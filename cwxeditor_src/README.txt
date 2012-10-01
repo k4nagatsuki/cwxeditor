@@ -2,68 +2,71 @@
 [[[ CWXEditor ビルドガイド ]]]
 
 ビルドツール:
-	・dmd 2.052
-	・rake
+	・dmd 2.060
 	・Digital Mars rcc
 ライブラリ:
-	・DWT2 rev.112
+	・DWT at GitHub
 
-　後はSubversionとMercurialのクライアントがあると楽です。
+　後はgitのクライアントがあると楽です。
 
 
 [ Windowsの場合 ]
 
-　DWT2をMercurialのリポジトリから取ってきます。
+　DWTをGitHubから取ってきます。
+　submoduleがあるので、submodule initとupdateをしておきましょう。
+　各submoduleが最新のcommitになっていない事が結構あるので、強制的に
+pullもしておきます。
 ---
-hg clone -r 112 http://hg.dsource.org/projects/dwt2
+git clone https://github.com/d-widget-toolkit/dwt.git
+cd dwt
+git submodule update --init
+git submodule foreach git pull origin master
 ---
-　このままではちゃんと動かないのでパッチを当てます。hgにはパッチを当てる
-機能がついてるのでそれを使いましょう。
+　準備ができたらビルドします。
 ---
-cd dwt2
-hg patch dwt2-rev.112_cwx.patch
----
-　こんな感じで。
-　DWT2はビルドにrakeを使います。こいつはRuby言語のスクリプトなのですが、
-RubyInstaller for Windowsを使うとRuby本体諸共入手できるようです。
-　http://rubyinstaller.org/
-　Rubyのbinフォルダにパスを通して、DWT2をビルド。baseとswtだけでOKです。
----
-rake base swt
+rdmd build base swt
 ---
 
-　後はdmd2/windows/bin/sc.iniを弄くってtangobosやDWT2のインポートフォ
-ルダやらリソースフォルダやらを探しに行くようにしておきましょう。
+　後は、dmd2/windows/bin/sc.iniを弄くってDWTのインポートフォルダやら
+リソースフォルダやらを探しに行くようにしておきましょう。
 ---
-LIB="%@P%\..\lib";\dm\lib;"%@P%\..\..\dwt2\lib"
-DFLAGS="-I%@P%\..\..\src\phobos" "-I%@P%\..\..\src\druntime\import" "-I%@P%\..\..\import" "-I%@P%\..\..\dwt2\imp" "-J%@P%\..\..\dwt2\res"
+LIB="%@P%\..\lib";\dm\lib;"%@P%\..\..\dwt\lib"
+DFLAGS="-I%@P%\..\..\src\phobos" "-I%@P%\..\..\src\druntime\import" "-I%@P%\..\..\import" "-I%@P%\..\..\dwt\imp" "-J%@P%\..\..\dwt\res"
 LINKCMD=%@P%\link.exe
 ---
+
 　最後にリソースコンパイル用のrccを入手します。
 　Digital MarsのサイトからBasic Utilitiesを入手して、パスを通しましょう。
 　http://www.digitalmars.com//download/freecompiler.html
 
 　これでようやく準備完了です。
-　cwxeditor本体のビルドはDigital Marsのmakeで行います。
-　Makefileはwin32.makです。
+　cwxeditor本体のビルドはビルドスクリプトbuild.dで行います。
+　rdmd等で実行してください。
 ---
-make -f win32.mak
+rdmd build
 ---
 　リリースビルドなら:
 ---
-make -f win32.mak release
+rdmd build release
 ---
-
-　最後にリンカが"org.eclipse.swt.win32.win32.x86"が見つからないとか文句を
-言ってきますが、実は何の問題も無いようです。気になる人はディレクトリ名と
-SWT.d内の該当箇所を'.'を含まない別の名前に変えるなり。
+　クリーンするなら:
+---
+rdmd build clean
+---
+　デバグビルドでコンソールを出さないなら:
+---
+rdmd build gui
+---
 
 　後はどうかDWTが死なないことを私と一緒に祈ってください。
 
 
 [ linuxの場合 ]
 
-　linuxでのビルドは今の所試していません。手順はWindows側と概ね同じです。
+　linuxでのビルドは最新のバージョンでは試されていない事が多いです。
+また、ビルドできたとしても全体が正常に動作する事はほとんどありませ
+ん(数箇所修正すれば動くはずではあります)。
+　手順はWindows側と概ね同じです。
 
 
 / 事前に必要なパッケージ /
@@ -78,58 +81,50 @@ SWT.d内の該当箇所を'.'を含まない別の名前に変えるなり。
 
 / DライブラリとCWXEditorのビルド /
 
-　DWT2をMercurialのリポジトリから取ってきます。
+　DWTをGitHubから取ってきます。
+　submoduleがあるので、submodule initとupdateをしておきましょう。
+　各submoduleが最新のcommitになっていない事が結構あるので、強制的に
+pullもしておきます。
 ---
-hg clone -r 112 http://hg.dsource.org/projects/dwt2
+git clone https://github.com/d-widget-toolkit/dwt.git
+cd dwt
+git submodule update --init
+git submodule foreach git pull origin master
 ---
-　このままではちゃんと動かないのでパッチを当てます。hgにはパッチを当てる
-機能がついてるのでそれを使いましょう。
+　準備ができたらビルドします。
 ---
-cd dwt2
-hg patch dwt2-rev.112_cwx.patch
+rdmd build base swt
 ---
-　こんな感じで。
-　さらに、org.eclipse.swt.browserがあると余計な依存関係が発生するので、
-消すか、どこかへ移動してしまう必要があります。
----
-mv org.eclipse.swt.gtk.linux.x86/src/org/eclipse/swt/browser .
----
-
-　DWT2はビルドにrakeを使います。
-　rakeで"base"と"swt"をビルドし、ライブラリを作りましょう。
+　ビルドが完了すると、以下のライブラリファイルがlibディレクトリに生成され
+るはずです。
 　 dwt-base.a
 　 org.eclipse.swt.gtk.linux.x86.a
-　dwt2/libにある状態では何をどうしてもリンクできなかったので、cwxeditor_src/
+　dwt/libにある状態では何をどうしてもリンクできなかったので、cwxeditor_src/
 に放り込んでしまってください。
 　名前が"lib"から始まっていないのが悪いのですが、そのままリンクする方法が
 あるんでしょうか。自分は完膚無きまでにタコなので、分かっている人は教えて
 くださると助かります。
 
-　後はTangoの"bin/sc.ini"のDFLAGSを弄くってDWT2のインポートフォルダやら
-リソースフォルダやらを探しに行くようにしておきましょう。
+　後は"/etc/dmd.conf"のDFLAGSを弄くってDWTのインポートフォルダやらリソー
+スやらを探しに行くようにしておきましょう。
 
-　ここまで準備をすれば、後はmakeするだけ。
-　Makefileはlinux.makです。
+　これでようやく準備完了です。
+　cwxeditor本体のビルドはビルドスクリプトbuild.dで行います。
+　rdmd等で実行してください。
 ---
-make -f linux.mak
+rdmd build
 ---
 　リリースビルドなら:
 ---
-make -f linux.mak release
+rdmd build release
+---
+　クリーンするなら:
+---
+rdmd build clean
+---
+　デバグビルドでコンソールを出さないなら:
+---
+rdmd build gui
 ---
 
 　後はどうかDWTが死なないことを私と一緒に祈ってください。
-
-
-[ dwt2_trace.patch について ]
-
-　Javaと違ってDは例外のスタックトレースを出してくれないため、とりあえずの
-対策として、全てのSWTExceptionとSWTErrorがファイル名と行番号を含むように
-したパッチです。以下のようにして適用できます。
-
----
-cd dwt2
-hg import dwt2_trace.patch
----
-
-　これが無いとデバグにどれほど苦労する事やら……あっても苦労するけど。

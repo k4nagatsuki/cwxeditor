@@ -5,6 +5,9 @@ import cwx.usecounter;
 import cwx.utils;
 import cwx.xml;
 import cwx.path;
+import cwx.structs;
+
+import std.path;
 
 /// エリア絡みの例外。
 public class AreaException : Exception {
@@ -23,6 +26,11 @@ private:
 	int _w, _h;
 	void delegate() _change;
 public:
+	/// XML要素名。
+	immutable XML_NAME = "BgImage";
+	/// XML要素名(複数)。
+	immutable XML_NAME_M = "BgImages";
+
 	const
 	bool opEquals(ref const(Object) o) {
 		auto b = cast(BgImage) o;
@@ -50,11 +58,13 @@ public:
 		_mask = mask;
 	}
 	/// コピーを生成する。
+	@property
 	const
 	BgImage dup() {
 		return new BgImage(path, flag, x, y, width, height, mask);
 	}
 	/// 変更ハンドラを登録する。
+	@property
 	void changeHandler(void delegate() change) {
 		_change = change;
 	}
@@ -64,76 +74,89 @@ public:
 	}
 
 	/// 透明色を使用するか。
+	@property
 	const
 	bool mask() {
 		return _mask;
 	}
 	/// ditto
+	@property
 	void mask(bool mask) {
-		if (_mask != mask) changed;
+		if (_mask != mask) changed();
 		_mask = mask;
 	}
 	/// X座標。
+	@property
 	const
 	int x() {
 		return _x;
 	}
 	/// ditto
+	@property
 	void x(int x) {
-		if (_x != x) changed;
+		if (_x != x) changed();
 		_x = x;
 	}
 	/// Y座標。
+	@property
 	const
 	int y() {
 		return _y;
 	}
 	/// ditto
+	@property
 	void y(int y) {
-		if (_y != y) changed;
+		if (_y != y) changed();
 		_y = y;
 	}
 
 	/// 幅。
+	@property
 	const
 	int width() {
 		return _w;
 	}
 	/// ditto
+	@property
 	void width(int w) {
 		if (w < 0) w = 0;
-		if (_w != w) changed;
+		if (_w != w) changed();
 		_w = w;
 	}
 	/// 高さ。
+	@property
 	const
 	int height() {
 		return _h;
 	}
 	/// ditto
+	@property
 	void height(int h) {
 		if (h < 0) h = 0;
-		if (_h != h) changed;
+		if (_h != h) changed();
 		_h = h;
 	}
 	/// 画像ファイルパス。
+	@property
 	const
 	string path() {
 		return _user.path;
 	}
 	/// ditto
+	@property
 	void path(string path) {
-		if (_user.path != path) changed;
+		if (_user.path != path) changed();
 		_user.path = path;
 	}
 
+	@property
 	override void setUseCounter(UseCounter uc) {
 		_user.setUseCounter(uc);
 		super.setUseCounter(uc);
 	}
 	override void removeUseCounter() {
-		_user.removeUseCounter;
-		super.removeUseCounter;
+		_user.removeUseCounter();
+		super.removeUseCounter();
 	}
 	override void change(FlagId id) {
 		super.change(id);
@@ -143,21 +166,21 @@ public:
 	}
 
 	static BgImage[] bgImagesFromNode(ref XNode node, string ver) {
-		assert (node.name == "BgImages");
+		assert (node.name == XML_NAME_M);
 		BgImage[] bgImgs;
-		node.onTag["BgImage"] = (ref XNode bgn) {
+		node.onTag[XML_NAME] = (ref XNode bgn) {
 			auto bg = BgImage.createFromNode(bgn, ver);
 			if (bg.path.length > 0) {
 				bgImgs ~= bg;
 			}
 		};
-		node.parse;
+		node.parse();
 		return bgImgs;
 	}
 
 	/// 指定されたノードに背景イメージ群のデータを追加する。
 	static void toNode(in BgImage[] bgImgs, ref XNode e) {
-		auto bge = e.newElement("BgImages");
+		auto bge = e.newElement(XML_NAME_M);
 		if (bgImgs.length > 0) {
 			// FIXME: このサイズはCPropsに持たせているがコンパイラのバグで参照できない。暫定。
 			if (bgImgs[0].width != 632 || bgImgs[0].height != 420) {
@@ -174,8 +197,8 @@ public:
 	/// XMLノード(BgImages)にインスタンスのデータを追加する。
 	const
 	void toNode(ref XNode node) {
-		assert (node.name == "BgImages", node.name ~ " != BgImages");
-		auto e = node.newElement("BgImage");
+		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
+		auto e = node.newElement(XML_NAME);
 		e.newAttr("mask", fromBool(_mask));
 		e.newElement("ImagePath", encodePath(_user.path));
 		e.newElement("Flag", super.flag);
@@ -188,8 +211,8 @@ public:
 	}
 	/// 背景イメージが一枚も無い場合。
 	static void appendEmptyToNode(ref XNode node) {
-		assert (node.name == "BgImages", node.name ~ " != BgImages");
-		auto e = node.newElement("BgImage");
+		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
+		auto e = node.newElement(XML_NAME);
 		e.newAttr("mask", "False");
 		e.newElement("ImagePath");
 		e.newElement("Flag");
@@ -202,7 +225,7 @@ public:
 	}
 
 	static BgImage createFromNode(ref XNode node, string ver) {
-		if (node.name != "BgImage") throw new AreaException("Node is not BgImage");
+		if (node.name != XML_NAME) throw new AreaException("Node is not BgImage");
 		bool mask = parseBool(node.attr("mask", true));
 		string path = "";
 		string flag = "";
@@ -222,39 +245,48 @@ public:
 			w = n.attr!(int)("width", true);
 			h = n.attr!(int)("height", true);
 		};
-		node.parse;
+		node.parse();
 		return new BgImage(path, flag, x, y, w, h, mask);
 	}
 	private BgImageOwner _owner;
+	@property
 	package void owner(BgImageOwner owner) {_owner = owner;}
-	override string cwxPath() {
-		return _owner ? cpjoin(_owner, "background", .cCountUntil!("a is b")(_owner.backs, this)) : "";
+	@property
+	override string cwxPath(bool id) {
+		return _owner ? cpjoin(_owner, "background", .cCountUntil!("a is b")(_owner.backs, this), id) : "";
 	}
 	override CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {return [];}
+	@property
+	CWXPath cwxParent() {return _owner;}
 }
 
 /// BgImage所持者のインタフェース。
 interface BgImageOwner : CWXPath {
+	@property
 	BgImage[] backs();
+	@property
 	const const(BgImage)[] backs();
 }
 
-/// BgImageのコンテナ。背景変更イベントで使用。
+/// BgImageのコンテナ。背景変更イベントの編集で使用。
+/// シナリオのデータ構造には組み込まれない。
 class BgImageContainer : BgImageOwner {
 private:
 	BgImage[] _bgImgs;
 public:
 	/// 唯一のコンストラクタ。
-	this(BgImage[] bgImgs) {
+	this (BgImage[] bgImgs) {
 		_bgImgs = bgImgs;
 	}
-	override string cwxPath() {return "";}
+	@property
+	override string cwxPath(bool id) {return "";}
 	override CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "background": {
@@ -266,21 +298,28 @@ public:
 		}
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		r ~= cast(CWXPath[]) backs;
 		return r;
 	}
+	@property
+	CWXPath cwxParent() {return null;}
+
 	/// 背景イメージ群。
+	@property
 	BgImage[] backs() {
 		return _bgImgs;
 	}
 	/// ditto
+	@property
 	const
 	const(BgImage)[] backs() {
 		return _bgImgs;
 	}
 	/// ditto
+	@property
 	void backs(BgImage[] bgImgs) {
 		foreach (b; _bgImgs) {
 			b.owner = null;
@@ -319,7 +358,7 @@ public:
 	static string BtoXML(BgImage[] backs) {
 		scope doc = XNode.create("MenuCardsAndBgImages");
 		if (backs.length) {
-			auto be = doc.newElement("BgImages");
+			auto be = doc.newElement(BgImage.XML_NAME_M);
 			foreach (b; backs) {
 				b.toNode(be);
 			}
@@ -331,13 +370,13 @@ public:
 		try {
 			scope doc = XNode.parse(xml);
 			if (doc.name == "MenuCardsAndBgImages") {
-				doc.onTag["BgImages"] = (ref XNode node) {
-					node.onTag["BgImage"] = (ref XNode n) {
+				doc.onTag[BgImage.XML_NAME_M] = (ref XNode node) {
+					node.onTag[BgImage.XML_NAME] = (ref XNode n) {
 						backs ~= BgImage.createFromNode(n, LATEST_VERSION);
 					};
-					node.parse;
+					node.parse();
 				};
-				doc.parse;
+				doc.parse();
 				return true;
 			}
 		} catch (Exception e) {

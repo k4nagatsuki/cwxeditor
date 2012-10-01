@@ -1,16 +1,9 @@
 
 module cwx.editor.gui.dwt.customtable;
 
-import cwx.utils : debugln;
+import cwx.utils : debugln, cdebugln;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.custom.TableCursor;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.all;
 
 class TableSorter(DataT) {
 	private TableColumn _col;
@@ -22,12 +15,12 @@ class TableSorter(DataT) {
 		_revCmp = revCmp;
 		_col.addListener(SWT.Selection, new class Listener {
 			override void handleEvent(Event e) {
-				doSort;
+				doSort();
 			}
 		});
 	}
 	private int __index() {
-		foreach (i, c; _col.getParent.getColumns) {
+		foreach (i, c; _col.getParent().getColumns()) {
 			if (c is _col) {
 				return i;
 			}
@@ -47,18 +40,18 @@ class TableSorter(DataT) {
 	private bool compC(RowData c1, RowData c2) {
 		DataT a = cast(DataT) c1.data;
 		DataT b = cast(DataT) c2.data;
-		return _col.getParent.getSortDirection == SWT.UP
+		return _col.getParent().getSortDirection() == SWT.UP
 			? _cmp(a, b) : (_revCmp ? _revCmp(a, b) : _cmp(b, a));
 	}
 	void doSort(int dir) {
-		auto tbl = _col.getParent;
-		tbl.setSortDirection = dir;
+		auto tbl = _col.getParent();
+		tbl.setSortDirection(dir);
 		if (dir == SWT.NONE) return;
-		auto itms = tbl.getItems;
-		int count = tbl.getColumnCount;
+		auto itms = tbl.getItems();
+		int count = tbl.getColumnCount();
 		scope RowData[] arr;
 		arr.length = itms.length;
-		auto cursor = cast(TableCursor) tbl.getCursor;
+		auto cursor = cast(TableCursor) tbl.getCursor();
 		foreach (i, c; itms) {
 			auto r = new RowData;
 			for (int j = 0; j < count; j++) {
@@ -66,16 +59,16 @@ class TableSorter(DataT) {
 				r.text ~= text ? text : "";
 				r.image ~= c.getImage(j);
 			}
-			r.data = c.getData;
+			r.data = c.getData();
 			r.select = tbl.isSelected(i);
-			r.cursor = cursor && _col is cursor.getRow;
+			r.cursor = cursor && _col is cursor.getRow();
 			arr[i] = r;
 		}
 		arr.sort;
 		for (int i = 0; i < itms.length; i++) {
 			auto c = arr[i];
 			auto row = tbl.getItem(i);
-			row.setData = c.data;
+			row.setData(c.data);
 			for (int j = 0; j < count; j++) {
 				row.setImage(j, c.image[j]);
 				row.setText(j, c.text[j]);
@@ -86,24 +79,25 @@ class TableSorter(DataT) {
 				tbl.deselect(i);
 			}
 			if (c.cursor) {
-				cursor.setSelection(i, cursor.getColumn);
+				cursor.setSelection(i, cursor.getColumn());
 			}
 		}
-		tbl.setSortColumn = _col;
+		tbl.setSortColumn(_col);
 	}
+	@property
 	TableColumn column() {
 		return _col;
 	}
 	void doSortR() {
-		auto tbl = _col.getParent;
-		if (tbl.getSortColumn is _col && tbl.getSortDirection != SWT.NONE) {
-			doSort(tbl.getSortDirection);
+		auto tbl = _col.getParent();
+		if (tbl.getSortColumn() is _col && tbl.getSortDirection() != SWT.NONE) {
+			doSort(tbl.getSortDirection());
 		}
 	}
 	void doSort() {
-		auto tbl = _col.getParent;
-		if (tbl.getSortColumn !is _col
-				|| tbl.getSortDirection == SWT.NONE || tbl.getSortDirection == SWT.DOWN) {
+		auto tbl = _col.getParent();
+		if (tbl.getSortColumn() !is _col
+				|| tbl.getSortDirection() == SWT.NONE || tbl.getSortDirection() == SWT.DOWN) {
 			doSort(SWT.UP);
 		} else {
 			doSort(SWT.DOWN);
@@ -113,34 +107,46 @@ class TableSorter(DataT) {
 
 class FullTableColumn {
 	private TableColumn _column;
-	private int _packWidth = 0;
+	private int _packWidth = 50;
 	private Listener _rl;
-	this(Table tbl, int style) {
+	this (Table tbl, int style) {
 		_column = new TableColumn(tbl, style);
-		_column.setResizable = false;
+		_column.setResizable(false);
 		_rl = new RL;
 		tbl.addListener(SWT.Resize, _rl);
+		_column.addListener(SWT.Dispose, new class Listener {
+			override void handleEvent(Event e) {
+				tbl.removeListener(SWT.Resize, _rl);
+			}
+		});
+		if (tbl.isVisible()) {
+			resize();
+		}
 	}
+	@property
 	TableColumn column() {
 		return _column;
 	}
 	private bool _ed = false;
-	private void __resize() {
-		auto tbl = _column.getParent;
+	private void resize() {
+		auto tbl = _column.getParent();
 		auto trim = tbl.computeTrim(SWT.DEFAULT, SWT.DEFAULT, SWT.DEFAULT, SWT.DEFAULT);
-		int width = tbl.getSize.x;
-		foreach (c; tbl.getColumns) {
-			if (c !is _column) {
-				width -= c.getWidth;
+		int width = tbl.getSize().x;
+		if (1 < tbl.getColumnCount()) {
+			foreach (c; tbl.getColumns()) {
+				if (c !is _column) {
+					width -= c.getWidth();
+				}
 			}
 		}
 		width += trim.x;
 		width -= trim.width;
-		_column.setWidth = _packWidth > width ? _packWidth : width;
+		_column.setWidth(_packWidth > width ? _packWidth : width);
+		tbl.redraw();
 	}
 	private class RL : Listener {
 		override void handleEvent(Event e) {
-			__resize;
+			resize();
 		}
 	}
 }

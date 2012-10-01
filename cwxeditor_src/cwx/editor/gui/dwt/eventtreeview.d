@@ -13,81 +13,50 @@ import cwx.usecounter;
 import cwx.background;
 import cwx.path;
 import cwx.script;
+import cwx.structs;
+import cwx.menu;
+import cwx.types;
+import cwx.xml;
 
-import cwx.editor.gui.dwt.utils;
-import cwx.editor.gui.dwt.props;
-import cwx.editor.gui.dwt.skin;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.eventdialog;
-import cwx.editor.gui.dwt.message;
+import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.scripterrordialog;
+import cwx.editor.gui.dwt.textdialog;
+import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.smalldialogs;
 
 import std.algorithm;
 import std.conv;
 import std.string;
+import std.datetime;
 
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.swt.widgets.CoolBar;
-import org.eclipse.swt.widgets.CoolItem;
-import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.ToolItem;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.custom.CCombo;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.PaletteData;
-import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.ShellAdapter;
-import org.eclipse.swt.events.ShellEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.all;
+
 import java.lang.all;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.ByteArrayTransfer;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.DragSourceAdapter;
-import org.eclipse.swt.dnd.DragSourceListener;
-import org.eclipse.swt.dnd.DragSourceEvent;
-import org.eclipse.swt.dnd.DragSource;
-import org.eclipse.swt.dnd.DropTargetAdapter;
-import org.eclipse.swt.dnd.DropTargetListener;
-import org.eclipse.swt.dnd.DropTargetEvent;
-import org.eclipse.swt.dnd.DropTarget;
 
 public:
 
+/// イベントコンテントツリー。
 class EventTreeView : TCPD {
 private:
+	string _id = "";
+
+	MouseTrack _mTrack = null;
 	Shell _toolWin = null;
+	Shell _autoHideTools = null;
+	TCListener _tcListener = null;
 	Composite _comp;
 	Tree _tree;
+	Color _grayFont;
 
 	Props _prop;
 	Commons _comm;
@@ -95,6 +64,9 @@ private:
 	EventTree _et;
 	bool _toolWinVisible = false;
 	bool _opened = false;
+	Composite _contentsBoxArea;
+	Menu _templMenu;
+	ToolItem _templTI;
 
 	bool _autoOpen;
 	bool _conti;
@@ -115,14 +87,17 @@ private:
 	string _statusLine;
 
 	void autoOpen() {
-		_autoOpen = _autoOpenTI.getSelection;
+		_autoOpen = _autoOpenTI.getSelection();
+		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti);
 	}
 	void addContinue() {
-		_conti = _contiTI.getSelection;
+		_conti = _contiTI.getSelection();
+		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti);
 	}
 
+	@property
 	TreeItem selection() {
-		auto sels = _tree.getSelection;
+		auto sels = _tree.getSelection();
 		if (sels.length > 0) {
 			return sels[0];
 		}
@@ -131,17 +106,17 @@ private:
 
 	class EditL : MouseAdapter, KeyListener {
 		private void __edit() {
-			edit;
+			edit();
 		}
 		override void keyPressed(KeyEvent e) {
 			if (e.character == SWT.CR) {
-				__edit;
+				__edit();
 			}
 		}
 		override void keyReleased(KeyEvent e) {}
 		override void mouseDoubleClick(MouseEvent e) {
-			if (e.button == 1 && !_tree.getCursor) {
-				__edit;
+			if (e.button == 1 && !_tree.getCursor()) {
+				__edit();
 			}
 		}
 	}
@@ -151,188 +126,262 @@ private:
 				create(null);
 			} else if (e.button == 2 && !_arrowMode) {
 				auto itm = _tree.getItem(new Point(e.x, e.y));
-				if (itm) create(itm);
+				if (itm && CDetail.fromType(_cType).owner) {
+					auto c = cast(Content) itm.getData();
+					if (c.parent) {
+						_tree.setSelection([itm]);
+						create(itm);
+						_comm.refreshToolBar();
+					}
+				}
 			} else if (e.button == 3) {
-				arrow;
+				arrow();
+				_comm.refreshToolBar();
 			}
 		}
 	}
 
 	UndoManager _undo;
-	abstract class ETVUndo : Undo {
+	abstract static class ETVUndo : Undo {
 		private size_t[] _etPath;
-		private size_t[] _selPath, _selPath2;
-		this () {
-			_etPath = _et.areaPath;
-			auto sel = selection;
-			_selPath = sel ? (cast(Content) sel.getData).ctPath : null;
+		private size_t[] _selPath = null, _selPath2 = null;
+		protected EventTree et;
+		protected Commons comm;
+		protected Props prop;
+		protected Summary summ;
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et) {
+			this.et = et;
+			this.comm = comm;
+			this.prop = prop;
+			this.summ = summ;
+			_etPath = et.areaPath;
+			if (v) {
+				auto sel = v.selection;
+				_selPath = sel ? (cast(Content) sel.getData()).ctPath : null;
+			}
 		}
-		void udb() {
-			.forceFocus(_tree);
-			_forceSel(_etPath);
-			auto sel = selection;
-			_selPath2 = sel ? (cast(Content) sel.getData).ctPath : null;
+		void udb(EventTreeView v) {
+			if (!v) return;
+			.forceFocus(v._tree, false);
+			v._forceSel(_etPath);
+			auto sel = v.selection;
+			_selPath2 = sel ? (cast(Content) sel.getData()).ctPath : null;
 		}
-		void uda() {
-			if (_selPath) _tree.select = fromPath(_selPath);
+		void uda(EventTreeView v) {
+			scope (exit) comm.refreshToolBar();
+			if (!v) return;
+			if (_selPath) v._tree.select(v.fromPath(_selPath));
 			_selPath = _selPath2;
+			v.refreshStatusLine();
+		}
+		EventTreeView view() {
+			return comm.eventTreeViewFrom(et.cwxPath(true), false);
 		}
 		abstract override void undo();
 		abstract override void redo();
 		abstract override void dispose();
 	}
-	private void insertStart(int index, Content c) {
-		_tree.setRedraw = false;
-		scope (exit) _tree.setRedraw = true;
-		_et.insert(index, c);
-		auto itm = createTreeItem(_tree, c, c.name, _prop.images.content(c.type), index);
-		createChilds(itm, c, false);
-		itm.setExpanded = true;
-		refreshStatusLine;
-		_comm.refUseCount.call;
-		_refreshTopStart();
+	private static void insertStart(EventTreeView v, Commons comm, EventTree et, int index, Content c) {
+		if (v) v._tree.setRedraw(false);
+		scope (exit) if (v) v._tree.setRedraw(true);
+		bool empty = et.owner.isEmpty;
+		scope (exit) {
+			if (empty != et.owner.isEmpty) comm.refEventTree.call(et);
+		}
+		et.insert(index, c);
+		if (v) {
+			auto itm = createTreeItem(v._tree, c, c.name, v._prop.images.content(c.type), index);
+			v.createChilds(itm, c);
+			itm.setExpanded(true);
+			v.refreshStatusLine();
+			v._refreshTopStart();
+		}
+		comm.refContent.call(c);
+		comm.refUseCount.call();
 	}
-	class UndoContent : ETVUndo {
+	static class UndoContent : ETVUndo {
 		private size_t[][] _path;
 		private Content[] _c;
-		this (Content[] cs) {
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, Content[] cs) {
+			super (v, comm, prop, summ, et);
 			foreach (c; cs) {
 				_path ~= c.ctPath;
-				auto node = c.toNode;
-				_c ~= Content.createFromNode(node, LATEST_VERSION);
-				_c[$ - 1].setUseCounter(_summ.useCounter.sub);
+				_c ~= c.dup;
+				_c[$ - 1].setUseCounter(summ.useCounter.sub);
 			}
 		}
 		private void impl() {
-			udb;
-			scope (exit) uda;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			bool empty = et.owner.isEmpty;
+			scope (exit) {
+				if (empty != et.owner.isEmpty) comm.refEventTree.call(et);
+			}
 			foreach (i, c; _c.dup) {
-				auto node = _et.fromPath(_path[i]).toNode;
-				_c[i] = Content.createFromNode(node, LATEST_VERSION);
-				_c[i].setUseCounter(_summ.useCounter.sub);
-				auto now = fromPath(_path[i]);
-				_tree.setRedraw = false;
-				scope (exit) _tree.setRedraw = true;
-				auto par = now.getParentItem;
-				TreeItem itm;
 				int index = _path[i][$ - 1];
-				if (par) {
-					auto pc = cast(Content) par.getData;
+				auto tc = et.fromPath(_path[i]);
+				_c[i] = tc.dup;
+				_c[i].setUseCounter(summ.useCounter.sub);
+				auto pc = tc.parent;
+				string text;
+				if (pc) {
 					pc.insert(index, c);
-					itm = createTreeItem(par, c, eventText(pc, c), _prop.images.content(c.type), index);
+					text = eventTextImpl(comm, prop, summ, pc, c);
 				} else {
-					_et.insert(index, c);
-					itm = createTreeItem(_tree, c, c.name, _prop.images.content(c.type), index);
+					et.insert(index, c);
+					text = c.name;
 				}
-				createChilds(itm, c, false);
-				itm.setExpanded = true;
-				delImpl(now, false);
-				if (!par) {
-					_refreshTopStart();
+				if (v) v._tree.setRedraw(false);
+				scope (exit) if (v) v._tree.setRedraw(true);
+				if (v) {
+					auto now = v.fromPath(_path[i]);
+					auto par = now.getParentItem();
+					TreeItem itm;
+					if (par) {
+						itm = createTreeItem(par, c, text, prop.images.content(c.type), index);
+					} else {
+						itm = createTreeItem(v._tree, c, text, prop.images.content(c.type), index);
+					}
+					v.procTreeItem(itm);
+					v.createChilds(itm, c);
+					itm.setExpanded(true);
+				}
+				delImpl(v, comm, et, tc);
+				if (v && !pc) {
+					v._refreshTopStart();
 				}
 			}
-			refreshStatusLine;
-			_comm.refUseCount.call;
+			if (v) v.refreshStatusLine();
+			comm.refUseCount.call();
 		}
-		override void undo() {impl;}
-		override void redo() {impl;}
+		override void undo() {impl();}
+		override void redo() {impl();}
 		override void dispose() {
 			foreach (c; _c) {
-				c.removeUseCounter;
+				c.removeUseCounter();
 			}
 		}
 	}
 	void store(Content[] evt ...) {
-		_undo ~= new UndoContent(evt);
+		_undo ~= new UndoContent(this, _comm, _prop, _summ, _et, evt);
 	}
-	class UndoSwap : ETVUndo {
+	static class UndoSwap : ETVUndo {
 		private int _upIndex;
-		this (int swapIndex1, int swapIndex2) {
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int swapIndex1, int swapIndex2) {
+			super (v, comm, prop, summ, et);
 			_upIndex = swapIndex1 > swapIndex2 ? swapIndex1 : swapIndex2;
 		}
 		private void impl() {
-			udb;
-			scope (exit) uda;
-			up(_tree.getItem(_upIndex), false);
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			udImpl!(-1)(v, comm, et, et.starts[_upIndex], false);
 		}
-		override void undo() {impl;}
-		override void redo() {impl;}
+		override void undo() {impl();}
+		override void redo() {impl();}
 		override void dispose() {}
 	}
 	void storeSwap(int swapIndex1, int swapIndex2) {
-		_undo ~= new UndoSwap(swapIndex1, swapIndex2);
+		_undo ~= new UndoSwap(this, _comm, _prop, _summ, _et, swapIndex1, swapIndex2);
 	}
-	class UndoInsert : ETVUndo {
+	static class UndoInsert : ETVUndo {
 		private int _index;
 		private size_t _count;
 		private Content[] _c;
-		this (int index, size_t count) {
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int index, size_t count) {
+			super (v, comm, prop, summ, et);
 			_index = index;
 			_count = count;
 		}
 		override void undo() {
-			udb;
-			scope (exit) uda;
-			_tree.setRedraw = false;
-			scope (exit) _tree.setRedraw = true;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			if (v) v._tree.setRedraw(false);
+			scope (exit) if (v) v._tree.setRedraw(true);
 			for (size_t i = 0; i < _count; i++) {
-				auto node = _et.starts[_index].toNode;
+				auto node = et.starts[_index].toNode(null);
 				auto c = Content.createFromNode(node, LATEST_VERSION);
-				c.setUseCounter(_summ.useCounter.sub);
+				c.setUseCounter(summ.useCounter.sub);
 				_c ~= c;
-				delImpl(_tree.getItem(_index), false);
+				delImpl(v, comm, et, et.starts[_index]);
 			}
-			refreshStatusLine;
-			_comm.refUseCount.call;
-			_refreshTopStart();
+			comm.refUseCount.call();
+			if (v) {
+				v.refreshStatusLine();
+				v._refreshTopStart();
+			}
 		}
 		override void redo() {
-			udb;
-			scope (exit) uda;
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
 			foreach_reverse (c; _c) {
-				insertStart(_index, c);
+				insertStart(v, comm, et, _index, c);
 			}
 			_c = [];
 		}
 		override void dispose() {
 			foreach (c; _c) {
-				c.removeUseCounter;
+				c.removeUseCounter();
 			}
 		}
 	}
 	void storeInsert(int insertIndex, size_t count = 1) {
-		_undo ~= new UndoInsert(insertIndex, count);
+		_undo ~= new UndoInsert(this, _comm, _prop, _summ, _et, insertIndex, count);
 	}
-	class UndoDelete : ETVUndo {
+	static class UndoDelete : ETVUndo {
 		private int _index;
 		private Content _c;
-		this (int index, Content del) {
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int index, Content del) {
+			super (v, comm, prop, summ, et);
 			_index = index;
-			auto node = del.toNode;
+			auto node = del.toNode(null);
 			_c = Content.createFromNode(node, LATEST_VERSION);
-			_c.setUseCounter(_summ.useCounter.sub);
+			_c.setUseCounter(summ.useCounter.sub);
 		}
 		override void undo() {
-			udb;
-			scope (exit) uda;
-			insertStart(_index, _c);
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			insertStart(v, comm, et, _index, _c);
 		}
 		override void redo() {
-			udb;
-			scope (exit) uda;
-			_tree.setRedraw = false;
-			scope (exit) _tree.setRedraw = true;
-			delImpl(_tree.getItem(_index), false);
-			refreshStatusLine;
-			_comm.refUseCount.call;
-			_refreshTopStart();
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			if (v) v._tree.setRedraw(false);
+			scope (exit) if (v) v._tree.setRedraw(true);
+			delImpl(v, comm, et, et.starts[_index]);
+			comm.refUseCount.call();
+			if (v) {
+				v.refreshStatusLine();
+				v._refreshTopStart();
+			}
 		}
 		override void dispose() {
-			_c.removeUseCounter;
+			_c.removeUseCounter();
 		}
 	}
 	void storeDelete(int index, Content del) {
-		_undo ~= new UndoDelete(index, del);
+		_undo ~= new UndoDelete(this, _comm, _prop, _summ, _et, index, del);
+	}
+	private TreeItem fromPath(string cwxPath) {
+		return fromPathImpl(_tree, cwxPath);
+	}
+	private TreeItem fromPathImpl(T)(T tree, string cwxPath) {
+		if (cpempty(cwxPath)) return null;
+		string cate = cpcategory(cwxPath);
+		while ("" != cate) {
+			cwxPath = cpbottom(cwxPath);
+			if (cpempty(cwxPath)) return null;
+			cate = cpcategory(cwxPath);
+		}
+		auto itm = tree.getItem(cpindex(cwxPath));
+		cwxPath = cpbottom(cwxPath);
+		if (cpempty(cwxPath)) return itm;
+		return fromPathImpl(itm, cwxPath);
 	}
 	private TreeItem fromPath(size_t[] path) {
 		return fromPathImpl(_tree, path);
@@ -343,821 +392,765 @@ private:
 		if (path.length == 1) return itm;
 		return fromPathImpl(itm, path[1 .. $]);
 	}
-	class UndoCP : Undo {
+	static class UndoCP : Undo {
 		private UndoContent _undoC;
 		private UndoDelete _undoD;
-		this (Content[] conts, int index, Content start) {
-			_undoC = new UndoContent(conts);
-			_undoD = new UndoDelete(index, start);
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, Content[] conts, int index, Content start) {
+			_undoC = new UndoContent(v, comm, prop, summ, et, conts);
+			_undoD = new UndoDelete(v, comm, prop, summ, et, index, start);
 		}
 		override void undo() {
-			_undoD.undo;
-			_undoC.undo;
+			_undoD.undo();
+			_undoC.undo();
 		}
 		override void redo() {
-			_undoC.redo;
-			_undoD.redo;
+			_undoC.redo();
+			_undoD.redo();
 		}
 		override void dispose() {
-			_undoC.dispose;
-			_undoD.dispose;
+			_undoC.dispose();
+			_undoD.dispose();
 		}
+	}
+	static class UndoContentAndInsert : ETVUndo {
+		private UndoContent _undoC;
+		private UndoInsert _undoI;
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, Content owner, int insertIndex, int count) {
+			super (v, comm, prop, summ, et);
+			_undoC = new UndoContent(v, comm, prop, summ, et, [owner]);
+			_undoI = new UndoInsert(v, comm, prop, summ, et, insertIndex, count);
+		}
+		override void undo() {
+			_undoI.undo();
+			_undoC.undo();
+		}
+		override void redo() {
+			_undoC.redo();
+			_undoI.redo();
+		}
+		override void dispose() {
+			_undoC.dispose();
+			_undoI.dispose();
+		}
+	}
+	void storeContentAndInsert(Content owner, int insertIndex, int count) {
+		_undo ~= new UndoContentAndInsert(this, _comm, _prop, _summ, _et, owner, insertIndex, count);
 	}
 
-	void edit() {
-		auto sels = _tree.getSelection;
-		if (sels.length > 0) {
-			auto c = cast(Content) sels[0].getData;
-			auto undo = new UndoContent([c]);
-			if (edit(c)) {
-				_undo ~= undo;
-				foreach (childItm; sels[0].getItems) {
-					auto par = cast(Content) sels[0].getData;
-					assert (par.detail.owner);
-					childItm.setText = eventText(par, cast(Content) childItm.getData);
-				}
-				_comm.refUseCount.call;
-				refreshStatusLine;
-			}
+	private EventDialog[Content] _editDlgs;
+	void appliedEdit(UndoContent undo, Content c) {
+		_undo ~= undo;
+		auto itm = fromPath(c.cwxPath(true));
+		assert (c is itm.getData());
+		foreach (childItm; itm.getItems()) {
+			auto par = cast(Content) itm.getData();
+			assert (par.detail.owner);
+			childItm.setText(eventText(par, cast(Content) childItm.getData()));
+			procTreeItem(childItm);
 		}
+		procTreeItem(itm);
+		_tree.select(itm);
+		.forceFocus(_tree, false);
+		_comm.refContent.call(c);
+		_comm.refUseCount.call();
+		refreshStatusLine();
+		_comm.refreshToolBar();
+	}
+	void editM() {edit();}
+	EventDialog edit() {
+		auto sels = _tree.getSelection();
+		if (sels.length > 0) {
+			auto c = cast(Content) sels[0].getData();
+			return edit(c);
+		}
+		return null;
 	}
 	void create(TreeItem insertTo) {
-		if (!_tree.getItems.length) return;
+		if (!_tree.getItems().length) return;
 		if (!_arrowMode) {
-			_tree.setRedraw = false;
-			scope (exit) _tree.setRedraw = true;
+			_tree.setRedraw(false);
+			scope (exit) _tree.setRedraw(true);
 			if (_cType == CType.START) {
 				if (insertTo) return;
-				auto evt = create(_cType, "");
-				assert (evt);
-				auto sel = selection;
-				int index;
-				if (sel) {
-					index = _tree.indexOf(topItem(sel)) + 1;
-				} else {
-					index = -1;
-				}
-				storeInsert(index);
-				_et.insert(index, cast(Content) evt);
-				auto sItm = createTreeItem(_tree, evt, evt.name, _prop.images.content(CType.START), index);
-				_tree.select = sItm;
-				_tree.showSelection;
-				refreshConvMenu;
-				refreshStatusLine;
-				if (!_conti) arrow;
+				create(null, _cType, "", (Content evt) {
+					assert (evt);
+					bool empty = _et.owner.isEmpty;
+					scope (exit) {
+						if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
+					}
+					auto sel = selection;
+					int index;
+					if (sel) {
+						index = _tree.indexOf(topItem(sel)) + 1;
+					} else {
+						index = -1;
+					}
+					storeInsert(index);
+					_et.insert(index, cast(Content) evt);
+					auto sItm = createTreeItem(_tree, evt, evt.name, _prop.images.content(CType.START), index);
+					_tree.select(sItm);
+					_tree.showSelection();
+					.forceFocus(_tree, false);
+					_comm.refContent.call(evt);
+					refreshConvMenu();
+					refreshStatusLine();
+					if (!_conti) arrow();
+					_comm.refreshToolBar();
+				});
 			} else {
 				if (insertTo && !CDetail.fromType(_cType).owner) return;
-				auto sels = _tree.getSelection;
-				if (insertTo || (sels.length > 0 && (cast(Content) sels[0].getData).detail.owner)) {
+				auto sels = _tree.getSelection();
+				if (insertTo || (sels.length > 0 && (cast(Content) sels[0].getData()).detail.owner)) {
 					TreeItem oItm;
 					if (insertTo) {
-						oItm = insertTo.getParentItem;
+						oItm = insertTo.getParentItem();
 						if (!oItm) return;
 					} else {
 						oItm = sels[0];
 					}
-					auto owner = cast(Content) oItm.getData;
-					Content evt;
-					if (insertTo) {
-						evt = create(_cType, (cast(Content) insertTo.getData).name);
-					} else {
-						evt = create(_cType, "");
-					}
-					if (evt) {
+					auto owner = cast(Content) oItm.getData();
+					void applied(Content evt) {
+						bool empty = _et.owner.isEmpty;
+						scope (exit) {
+							if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
+						}
 						store(owner);
 						owner.add(evt);
 						TreeItem itm = createTreeItem(oItm, evt, eventText(owner, evt), _prop.images.content(evt.type));
-						oItm.setExpanded = true;
-						_tree.setSelection = [itm];
+						oItm.setExpanded(true);
+						_tree.setSelection([itm]);
 						if (insertTo) {
-							evt.add(cast(Content) insertTo.getData);
-							insertTo.dispose;
-							createChilds(itm, evt, false);
-							itm.setExpanded = true;
+							auto ic = cast(Content) insertTo.getData();
+							_comm.delContent.call(ic);
+							evt.add(ic);
+							insertTo.dispose();
+							createChilds(itm, evt);
+							itm.setExpanded(true);
 						}
-						_tree.showSelection;
-						_comm.refUseCount.call;
+						procTreeItem(itm);
+						_tree.showSelection();
+						.forceFocus(_tree, false);
+						_comm.refContent.call(evt);
+						_comm.refUseCount.call();
+						refreshConvMenu();
+						refreshStatusLine();
+						if (!_conti) arrow();
+						_comm.refreshToolBar();
 					}
-					refreshConvMenu;
-					refreshStatusLine;
-					if (!_conti) arrow;
+					if (insertTo) {
+						create(owner, _cType, (cast(Content) insertTo.getData()).name, &applied);
+					} else {
+						create(owner, _cType, "", &applied);
+					}
 				}
 			}
 		}
 	}
 	void arrow() {
+		constructTools();
 		_arrowMode = true;
-		_comp.setCursor = null;
-		if (_toolWin && !_toolWin.isDisposed) {
-			_toolWin.setCursor = null;
+		_comp.setCursor(null);
+		if (_toolWin && !_toolWin.isDisposed()) {
+			_toolWin.setCursor(null);
 		}
-		_radioGroup.select = _arrowTI;
+		if (_autoHideTools) {
+			_autoHideTools.setCursor(null);
+		}
+		_radioGroup.select(_arrowTI);
+		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti);
+	}
+	void selContentTool(Object sender, bool arrowMode, CType cType, bool autoOpen, bool conti) {
+		if (!_prop.var.etc.connContentTools) return;
+		if (sender is this) return;
+		constructTools();
+		if (!_arrowMode && arrowMode) {
+			arrow();
+		}
+		if ((_arrowMode && !arrowMode) || (_cType != cType)) {
+			auto ce = _conts[cType];
+			_radioGroup.select(ce.ti);
+			ce.create();
+		}
+		if (_autoOpen != autoOpen) {
+			_autoOpenTI.setSelection(autoOpen);
+			this.autoOpen();
+		}
+		if (_conti != conti) {
+			_contiTI.setSelection(conti);
+			this.addContinue();
+		}
 	}
 
-	Content create(CType type, string name) {
+	bool hasDialog(CType type) {
 		switch (type) {
-		case CType.START: {
-			return new Content(type, createNewName(_prop.msgs.defaultStartName, (string name) {
-				foreach (start; _et.starts) {
-					if (icmp(start.name, name) == 0) return false;
-				}
-				return true;
-			}));
-		} case CType.START_BATTLE: {
-			if (_autoOpen && _summ.battles.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.START_BATTLE, Battle, "summary.battles")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.END: {
-			if (_autoOpen) {
-				auto dlg = new ClearEventDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.END_BAD_END: {
-			return new Content(type, name);
+		case CType.START:
+		case CType.END_BAD_END:
+		case CType.EFFECT_BREAK:
+		case CType.ELAPSE_TIME:
+		case CType.BRANCH_AREA:
+		case CType.BRANCH_BATTLE:
+		case CType.BRANCH_IS_BATTLE:
+		case CType.SHOW_PARTY:
+		case CType.HIDE_PARTY:
+			return false;
+		default:
+			return true;
+		}
+	}
+	bool checkOpenDialog(CType type) {
+		switch (type) {
+		case CType.START_BATTLE: {
+			return _summ.battles.length > 0;
 		} case CType.CHANGE_AREA: {
-			if (_autoOpen && _summ.areas.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.CHANGE_AREA, Area, "summary.areas")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
+			return _summ.areas.length > 0;
+		} case CType.LINK_PACKAGE, CType.CALL_PACKAGE: {
+			return _summ.packages.length > 0;
+		} case CType.BRANCH_FLAG, CType.SET_FLAG, CType.REVERSE_FLAG, CType.CHECK_FLAG, CType.SUBSTITUTE_FLAG, CType.BRANCH_FLAG_CMP: {
+			return _summ.flagDirRoot.allFlags.length > 0;
+		} case CType.BRANCH_MULTI_STEP, CType.BRANCH_STEP, CType.SET_STEP, CType.SET_STEP_UP, CType.SET_STEP_DOWN, CType.SUBSTITUTE_STEP, CType.BRANCH_STEP_CMP: {
+			return _summ.flagDirRoot.allSteps.length > 0;
+		} case CType.BRANCH_CAST, CType.GET_CAST, CType.LOSE_CAST: {
+			return _summ.casts.length > 0;
+		} case CType.BRANCH_ITEM, CType.GET_ITEM, CType.LOSE_ITEM: {
+			return _summ.items.length > 0;
+		} case CType.BRANCH_SKILL, CType.GET_SKILL, CType.LOSE_SKILL: {
+			return _summ.skills.length > 0;
+		} case CType.BRANCH_INFO, CType.GET_INFO, CType.LOSE_INFO: {
+			return _summ.infos.length > 0;
+		} case CType.BRANCH_BEAST, CType.GET_BEAST, CType.LOSE_BEAST: {
+			return _summ.beasts.length > 0;
+		} case CType.REDISPLAY: {
+			return !_summ.legacy;
+		} default: {
+			return true;
+		}
+		}
+	}
+
+	void create(Content parent, CType type, string name, void delegate(Content) applied) {
+		assert (parent is null || parent.detail.owner);
+		if (!_conti) {
+			arrow();
+			_comm.refreshToolBar();
+		}
+		void initial(Content c) {
+			if (type is CType.CHANGE_BG_IMAGE) {
+				c.backs = createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
+			} else if (type is CType.TALK_DIALOG) {
+				c.dialogs = [new SDialog];
+			} else if (type is CType.BRANCH_SKILL || type is CType.BRANCH_ITEM || type is CType.BRANCH_BEAST) {
+				c.range = Range.FIELD;
+			} else if (type is CType.LOSE_SKILL || type is CType.LOSE_ITEM || type is CType.LOSE_BEAST) {
+				c.range = Range.FIELD;
 			}
+		}
+		if (hasDialog(type)) {
+			if (!_autoOpen || !checkOpenDialog(type)) {
+				auto c = new Content(type, name);
+				initial(c);
+				applied(c);
+				return;
+			}
+		} else {
+			if (type is CType.START) {
+				name = createNewName(_prop.msgs.defaultStartName, (string name) {
+					foreach (start; _et.starts) {
+						if (icmp(start.name, name) == 0) return false;
+					}
+					return true;
+				});
+			}
+			applied(new Content(type, name));
+			return;
+		}
+		auto evt = new Content(type, name);
+		initial(evt);
+		EventDialog dlg;
+		switch (type) {
+		case CType.START_BATTLE: {
+			dlg = new AreaSelectDialog!(CType.START_BATTLE, Battle, "summary.battles")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
+		} case CType.END: {
+			dlg = new ClearEventDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
+		} case CType.CHANGE_AREA: {
+			dlg = new AreaSelectDialog!(CType.CHANGE_AREA, Area, "summary.areas")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.CHANGE_BG_IMAGE: {
 			auto c = new Content(type, name);
-			c.backs = BgImageS.createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
-			if (_autoOpen) {
-				auto dlg = new BgImagesDialog(_comm, _prop, _tree.getShell, _summ, c);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return c;
-			}
+			c.backs = createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
+			dlg = new BgImagesDialog(_comm, _prop, _tree.getShell(), _summ, parent, c, refTarget);
+			break;
 		} case CType.EFFECT: {
-			if (_autoOpen) {
-				auto dlg = new EffectDialog(_comm, _prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.EFFECT_BREAK: {
-			return new Content(type, name);
+			dlg = new EffectDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LINK_START: {
-			if (_autoOpen) {
-				auto dlg = new StartSelectDialog!(CType.LINK_START)(_prop, _tree.getShell, _et.starts, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new StartSelectDialog!(CType.LINK_START)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LINK_PACKAGE: {
-			if (_autoOpen && _summ.packages.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.LINK_PACKAGE, Package, "summary.packages")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new AreaSelectDialog!(CType.LINK_PACKAGE, Package, "summary.packages")(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.TALK_MESSAGE: {
-			if (_autoOpen) {
-				auto dlg = new MessageDialog
-					(_comm, _prop, _summ, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new MessageDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.TALK_DIALOG: {
-			if (_autoOpen) {
-				auto dlg = new SpeakDialog(_comm, _prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				auto r = new Content(type, name);
-				r.dialogs = [new SDialog];
-				return r;
-			}
+			dlg = new SpeakDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.PLAY_BGM: {
-			if (_autoOpen) {
-				auto dlg = new BgmDialog(_comm, _prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new BgmDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.PLAY_SOUND: {
-			if (_autoOpen) {
-				auto dlg = new SeDialog(_comm, _prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new SeDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.WAIT: {
-			if (_autoOpen) {
-				auto dlg = new WaitEventDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.ELAPSE_TIME: {
-			return new Content(type, name);
+			dlg = new WaitEventDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.CALL_START: {
-			if (_autoOpen) {
-				auto dlg = new StartSelectDialog!(CType.CALL_START)(_prop, _tree.getShell, _et.starts, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new StartSelectDialog!(CType.CALL_START)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.CALL_PACKAGE: {
-			if (_autoOpen && _summ.packages.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.CALL_PACKAGE, Package, "summary.packages")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new AreaSelectDialog!(CType.CALL_PACKAGE, Package, "summary.packages")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_FLAG: {
-			if (_autoOpen && _summ.flagDirRoot.allFlags.length > 0) {
-				auto dlg = new BrFlagDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new BrFlagDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.BRANCH_MULTI_STEP: {
-			if (_autoOpen && _summ.flagDirRoot.allSteps.length > 0) {
-				auto dlg = new BrStepNDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new BrStepNDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.BRANCH_STEP: {
-			if (_autoOpen && _summ.flagDirRoot.allSteps.length > 0) {
-				auto dlg = new BrStepULDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new BrStepULDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.BRANCH_SELECT: {
-			if (_autoOpen) {
-				auto dlg = new BrMemberDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new BrMemberDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_ABILITY: {
-			if (_autoOpen) {
-				auto dlg = new BrPowerDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new BrPowerDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_RANDOM: {
-			if (_autoOpen) {
-				auto dlg = new BrRandomEventDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new BrRandomEventDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_LEVEL: {
-			if (_autoOpen) {
-				auto dlg = new BrLevelDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new BrLevelDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_STATUS: {
-			if (_autoOpen) {
-				auto dlg = new BrStateDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new BrStateDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_PARTY_NUMBER: {
-			if (_autoOpen) {
-				auto dlg = new BrNumEventDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.BRANCH_AREA: {
-			return new Content(type, name);
-		} case CType.BRANCH_BATTLE: {
-			return new Content(type, name);
-		} case CType.BRANCH_IS_BATTLE: {
-			return new Content(type, name);
+			dlg = new BrNumEventDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_CAST: {
-			if (_autoOpen && _summ.casts.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.BRANCH_CAST, CastCard, "summary.casts")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new AreaSelectDialog!(CType.BRANCH_CAST, CastCard, "summary.casts")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_ITEM: {
-			if (_autoOpen && _summ.items.length > 0) {
-				auto dlg = new BrItemDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				auto r = new Content(type, name);
-				r.range = Range.FIELD;
-				return r;
-			}
+			dlg = new BrItemDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_SKILL: {
-			if (_autoOpen && _summ.skills.length > 0) {
-				auto dlg = new BrSkillDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				auto r = new Content(type, name);
-				r.range = Range.FIELD;
-				return r;
-			}
+			dlg = new BrSkillDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_INFO: {
-			if (_autoOpen && _summ.infos.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.BRANCH_INFO, InfoCard, "summary.infos")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new AreaSelectDialog!(CType.BRANCH_INFO, InfoCard, "summary.infos")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_BEAST: {
-			if (_autoOpen && _summ.beasts.length > 0) {
-				auto dlg = new BrBeastDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				auto r = new Content(type, name);
-				r.range = Range.FIELD;
-				return r;
-			}
+			dlg = new BrBeastDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_MONEY: {
-			if (_autoOpen) {
-				auto dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_COUPON: {
-			if (_autoOpen) {
-				auto dlg = new CouponEventDialog!(CType.BRANCH_COUPON, false)(_comm, _prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new BranchCouponDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_COMPLETE_STAMP: {
-			if (_autoOpen) {
-				auto dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_GOSSIP: {
-			if (_autoOpen) {
-				auto dlg = new GossipEventDialog!(CType.BRANCH_GOSSIP)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new GossipEventDialog!(CType.BRANCH_GOSSIP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.SET_FLAG: {
-			if (_autoOpen && _summ.flagDirRoot.allFlags.length > 0) {
-				auto dlg = new FlagSetDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new FlagSetDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.SET_STEP: {
-			if (_autoOpen && _summ.flagDirRoot.allSteps.length > 0) {
-				auto dlg = new StepSetDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new StepSetDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.SET_STEP_UP: {
-			if (_autoOpen && _summ.flagDirRoot.allSteps.length > 0) {
-				auto dlg = new StepPlusDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new StepPlusDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.SET_STEP_DOWN: {
-			if (_autoOpen && _summ.flagDirRoot.allSteps.length > 0) {
-				auto dlg = new StepMinusDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new StepMinusDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.REVERSE_FLAG: {
-			if (_autoOpen && _summ.flagDirRoot.allFlags.length > 0) {
-				auto dlg = new FlagRDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new FlagRDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.CHECK_FLAG: {
-			if (_autoOpen && _summ.flagDirRoot.allFlags.length > 0) {
-				auto dlg = new FlagJudgeDialog(_prop, _tree.getShell, _summ.flagDirRoot, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new FlagJudgeDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.GET_CAST: {
-			if (_autoOpen && _summ.casts.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.GET_CAST, CastCard, "summary.casts")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new AreaSelectDialog!(CType.GET_CAST, CastCard, "summary.casts")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_ITEM: {
-			if (_autoOpen && _summ.items.length > 0) {
-				auto dlg = new GetItemDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new GetItemDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_SKILL: {
-			if (_autoOpen && _summ.skills.length > 0) {
-				auto dlg = new GetSkillDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new GetSkillDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_INFO: {
-			if (_autoOpen && _summ.infos.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.GET_INFO, InfoCard, "summary.infos")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new AreaSelectDialog!(CType.GET_INFO, InfoCard, "summary.infos")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_BEAST: {
-			if (_autoOpen && _summ.beasts.length > 0) {
-				auto dlg = new GetBeastDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new GetBeastDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_MONEY: {
-			if (_autoOpen) {
-				auto dlg = new MoneyEventDialog!(CType.GET_MONEY)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new MoneyEventDialog!(CType.GET_MONEY)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_COUPON: {
-			if (_autoOpen) {
-				auto dlg = new CouponEventDialog!(CType.GET_COUPON, true)(_comm, _prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new GetCouponDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_COMPLETE_STAMP: {
-			if (_autoOpen) {
-				auto dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_GOSSIP: {
-			if (_autoOpen) {
-				auto dlg = new GossipEventDialog!(CType.GET_GOSSIP)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new GossipEventDialog!(CType.GET_GOSSIP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_CAST: {
-			if (_autoOpen && _summ.casts.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.LOSE_CAST, CastCard, "summary.casts")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new AreaSelectDialog!(CType.LOSE_CAST, CastCard, "summary.casts")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_ITEM: {
-			if (_autoOpen && _summ.items.length > 0) {
-				auto dlg = new LostItemDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				auto r = new Content(type, name);
-				r.range = Range.FIELD;
-				return r;
-			}
+			dlg = new LostItemDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_SKILL: {
-			if (_autoOpen && _summ.skills.length > 0) {
-				auto dlg = new LostSkillDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				auto r = new Content(type, name);
-				r.range = Range.FIELD;
-				return r;
-			}
+			dlg = new LostSkillDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_INFO: {
-			if (_autoOpen && _summ.infos.length > 0) {
-				auto dlg = new AreaSelectDialog!(CType.LOSE_INFO, InfoCard, "summary.infos")
-					(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new AreaSelectDialog!(CType.LOSE_INFO, InfoCard, "summary.infos")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_BEAST: {
-			if (_autoOpen && _summ.beasts.length > 0) {
-				auto dlg = new LostBeastDialog(_prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				auto r = new Content(type, name);
-				r.range = Range.FIELD;
-				return r;
-			}
+			dlg = new LostBeastDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_MONEY: {
-			if (_autoOpen) {
-				auto dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_COUPON: {
-			if (_autoOpen) {
-				auto dlg = new CouponEventDialog!(CType.LOSE_COUPON, false)(_comm, _prop, _tree.getShell, _summ, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new LoseCouponDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_COMPLETE_STAMP: {
-			if (_autoOpen) {
-				auto dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
+			dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_GOSSIP: {
-			if (_autoOpen) {
-				auto dlg = new GossipEventDialog!(CType.LOSE_GOSSIP)(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} case CType.SHOW_PARTY: {
-			return new Content(type, name);
-		} case CType.HIDE_PARTY: {
-			return new Content(type, name);
+			dlg = new GossipEventDialog!(CType.LOSE_GOSSIP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.REDISPLAY: {
-			if (_autoOpen && !_summ.legacy) {
-				auto dlg = new RefreshDialog(_prop, _tree.getShell, null);
-				return dlg.open ? dlg.event : null;
-			} else {
-				return new Content(type, name);
-			}
-		} default: assert (0);
+			dlg = new RefreshDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
+		} case CType.SUBSTITUTE_STEP: {
+			dlg = new SubstituteStepDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.SUBSTITUTE_FLAG: {
+			dlg = new SubstituteFlagDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_STEP_CMP: {
+			dlg = new BrStepCmpDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_FLAG_CMP: {
+			dlg = new BrFlagCmpDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_RANDOM_SELECT: {
+			dlg = new BrRandomSelectDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
+		} default: assert (0, to!string(type));
 		}
+		assert (applied);
+		dlg.appliedEvent ~= {
+			auto evt = dlg.event;
+			applied(evt);
+
+			auto undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
+			dlg.appliedEvent.length = 0;
+			dlg.appliedEvent ~= {
+				appliedEdit(undo, evt);
+				undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
+			};
+		};
+		_editDlgs[evt] = dlg;
+		dlg.closeEvent ~= {
+			_editDlgs.remove(evt);
+		};
+		dlg.open();
 	}
 
-	bool edit(Content evt) {
+	@property
+	bool canEdit() {
+		auto itm = selection;
+		if (!itm) return false;
+		auto evt = cast(Content) itm.getData();
+		return hasDialog(evt.type) && checkOpenDialog(evt.type);
+	}
+	EventDialog edit(Content evt) {
+		if (!hasDialog(evt.type) || !checkOpenDialog(evt.type)) return null;
+		auto p = evt in _editDlgs;
+		if (p) {
+			p.active();
+			return *p;
+		}
+		EventDialog dlg;
+		auto parent = evt.parent;
 		switch (evt.type) {
-		case CType.START: {
-			return false;
-		} case CType.START_BATTLE: {
-			if (_summ.battles.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.START_BATTLE, Battle, "summary.battles")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+		case CType.START_BATTLE: {
+			dlg = new AreaSelectDialog!(CType.START_BATTLE, Battle, "summary.battles")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.END: {
-			auto dlg = new ClearEventDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
-		} case CType.END_BAD_END: {
-			return false;
+			dlg = new ClearEventDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.CHANGE_AREA: {
-			if (_summ.areas.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.CHANGE_AREA, Area, "summary.areas")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.CHANGE_AREA, Area, "summary.areas")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.CHANGE_BG_IMAGE: {
-			auto dlg = new BgImagesDialog(_comm, _prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new BgImagesDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, refTarget);
+			break;
 		} case CType.EFFECT: {
-			auto dlg = new EffectDialog(_comm, _prop, _tree.getShell, _summ, evt);
-			return dlg.open;
-		} case CType.EFFECT_BREAK: {
-			return false;
+			dlg = new EffectDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LINK_START: {
-			auto dlg = new StartSelectDialog!(CType.LINK_START)(_prop, _tree.getShell, _et.starts, evt);
-			return dlg.open;
+			dlg = new StartSelectDialog!(CType.LINK_START)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LINK_PACKAGE: {
-			if (_summ.packages.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.LINK_PACKAGE, Package, "summary.packages")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.LINK_PACKAGE, Package, "summary.packages")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.TALK_MESSAGE: {
-			auto dlg = new MessageDialog
-				(_comm, _prop, _summ, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new MessageDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.TALK_DIALOG: {
-			auto dlg = new SpeakDialog(_comm, _prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new SpeakDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.PLAY_BGM: {
-			auto dlg = new BgmDialog(_comm, _prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new BgmDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.PLAY_SOUND: {
-			auto dlg = new SeDialog(_comm, _prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new SeDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.WAIT: {
-			auto dlg = new WaitEventDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
-		} case CType.ELAPSE_TIME: {
-			return false;
+			dlg = new WaitEventDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.CALL_START: {
-			auto dlg = new StartSelectDialog!(CType.CALL_START)(_prop, _tree.getShell, _et.starts, evt);
-			return dlg.open;
+			dlg = new StartSelectDialog!(CType.CALL_START)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.CALL_PACKAGE: {
-			if (_summ.packages.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.CALL_PACKAGE, Package, "summary.packages")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.CALL_PACKAGE, Package, "summary.packages")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_FLAG: {
-			if (_summ.flagDirRoot.allFlags.length == 0) return false;
-			auto dlg = new BrFlagDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new BrFlagDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.BRANCH_MULTI_STEP: {
-			if (_summ.flagDirRoot.allSteps.length == 0) return false;
-			auto dlg = new BrStepNDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new BrStepNDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.BRANCH_STEP: {
-			if (_summ.flagDirRoot.allSteps.length == 0) return false;
-			auto dlg = new BrStepULDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new BrStepULDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.BRANCH_SELECT: {
-			auto dlg = new BrMemberDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new BrMemberDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_ABILITY: {
-			auto dlg = new BrPowerDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new BrPowerDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_RANDOM: {
-			auto dlg = new BrRandomEventDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new BrRandomEventDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_LEVEL: {
-			auto dlg = new BrLevelDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new BrLevelDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_STATUS: {
-			auto dlg = new BrStateDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new BrStateDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_PARTY_NUMBER: {
-			auto dlg = new BrNumEventDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
-		} case CType.BRANCH_AREA: {
-			return false;
-		} case CType.BRANCH_BATTLE: {
-			return false;
-		} case CType.BRANCH_IS_BATTLE: {
-			return false;
+			dlg = new BrNumEventDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_CAST: {
-			if (_summ.casts.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.BRANCH_CAST, CastCard, "summary.casts")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.BRANCH_CAST, CastCard, "summary.casts")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_ITEM: {
-			if (_summ.items.length == 0) return false;
-			auto dlg = new BrItemDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new BrItemDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_SKILL: {
-			if (_summ.skills.length == 0) return false;
-			auto dlg = new BrSkillDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new BrSkillDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_INFO: {
-			if (_summ.infos.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.BRANCH_INFO, InfoCard, "summary.infos")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.BRANCH_INFO, InfoCard, "summary.infos")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_BEAST: {
-			if (_summ.beasts.length == 0) return false;
-			auto dlg = new BrBeastDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new BrBeastDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_MONEY: {
-			auto dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_COUPON: {
-			auto dlg = new CouponEventDialog!(CType.BRANCH_COUPON, false)(_comm, _prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new BranchCouponDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_COMPLETE_STAMP: {
-			auto dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.BRANCH_GOSSIP: {
-			auto dlg = new GossipEventDialog!(CType.BRANCH_GOSSIP)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new GossipEventDialog!(CType.BRANCH_GOSSIP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.SET_FLAG: {
-			if (_summ.flagDirRoot.allFlags.length == 0) return false;
-			auto dlg = new FlagSetDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new FlagSetDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.SET_STEP: {
-			if (_summ.flagDirRoot.allSteps.length == 0) return false;
-			auto dlg = new StepSetDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new StepSetDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.SET_STEP_UP: {
-			if (_summ.flagDirRoot.allSteps.length == 0) return false;
-			auto dlg = new StepPlusDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new StepPlusDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.SET_STEP_DOWN: {
-			if (_summ.flagDirRoot.allSteps.length == 0) return false;
-			auto dlg = new StepMinusDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new StepMinusDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.REVERSE_FLAG: {
-			if (_summ.flagDirRoot.allFlags.length == 0) return false;
-			auto dlg = new FlagRDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new FlagRDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.CHECK_FLAG: {
-			if (_summ.flagDirRoot.allFlags.length == 0) return false;
-			auto dlg = new FlagJudgeDialog(_prop, _tree.getShell, _summ.flagDirRoot, evt);
-			return dlg.open;
+			dlg = new FlagJudgeDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
 		} case CType.GET_CAST: {
-			if (_summ.casts.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.GET_CAST, CastCard, "summary.casts")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.GET_CAST, CastCard, "summary.casts")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_ITEM: {
-			if (_summ.items.length == 0) return false;
-			auto dlg = new GetItemDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new GetItemDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_SKILL: {
-			if (_summ.skills.length == 0) return false;
-			auto dlg = new GetSkillDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new GetSkillDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_INFO: {
-			if (_summ.infos.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.GET_INFO, InfoCard, "summary.infos")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.GET_INFO, InfoCard, "summary.infos")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_BEAST: {
-			if (_summ.beasts.length == 0) return false;
-			auto dlg = new GetBeastDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new GetBeastDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_MONEY: {
-			auto dlg = new MoneyEventDialog!(CType.GET_MONEY)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new MoneyEventDialog!(CType.GET_MONEY)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_COUPON: {
-			auto dlg = new CouponEventDialog!(CType.GET_COUPON, true)(_comm, _prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new GetCouponDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_COMPLETE_STAMP: {
-			auto dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.GET_GOSSIP: {
-			auto dlg = new GossipEventDialog!(CType.GET_GOSSIP)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new GossipEventDialog!(CType.GET_GOSSIP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_CAST: {
-			if (_summ.casts.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.LOSE_CAST, CastCard, "summary.casts")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.LOSE_CAST, CastCard, "summary.casts")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_ITEM: {
-			if (_summ.items.length == 0) return false;
-			auto dlg = new LostItemDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new LostItemDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_SKILL: {
-			if (_summ.skills.length == 0) return false;
-			auto dlg = new LostSkillDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new LostSkillDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_INFO: {
-			if (_summ.infos.length == 0) return false;
-			auto dlg = new AreaSelectDialog!(CType.LOSE_INFO, InfoCard, "summary.infos")
-				(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new AreaSelectDialog!(CType.LOSE_INFO, InfoCard, "summary.infos")
+				(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_BEAST: {
-			if (_summ.beasts.length == 0) return false;
-			auto dlg = new LostBeastDialog(_prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new LostBeastDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_MONEY: {
-			auto dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_COUPON: {
-			auto dlg = new CouponEventDialog!(CType.LOSE_COUPON, false)(_comm, _prop, _tree.getShell, _summ, evt);
-			return dlg.open;
+			dlg = new LoseCouponDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_COMPLETE_STAMP: {
-			auto dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.LOSE_GOSSIP: {
-			auto dlg = new GossipEventDialog!(CType.LOSE_GOSSIP)(_prop, _tree.getShell, evt);
-			return dlg.open;
-		} case CType.SHOW_PARTY: {
-			return false;
-		} case CType.HIDE_PARTY: {
-			return false;
+			dlg = new GossipEventDialog!(CType.LOSE_GOSSIP)(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} case CType.REDISPLAY: {
-			if (_summ.legacy) return false;
-			auto dlg = new RefreshDialog(_prop, _tree.getShell, evt);
-			return dlg.open;
+			dlg = new RefreshDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
+		} case CType.SUBSTITUTE_STEP: {
+			dlg = new SubstituteStepDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.SUBSTITUTE_FLAG: {
+			dlg = new SubstituteFlagDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_STEP_CMP: {
+			dlg = new BrStepCmpDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_FLAG_CMP: {
+			dlg = new BrFlagCmpDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_RANDOM_SELECT: {
+			dlg = new BrRandomSelectDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} default: assert (0);
 		}
+		auto undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
+		dlg.appliedEvent ~= {
+			appliedEdit(undo, evt);
+			undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
+		};
+		_editDlgs[evt] = dlg;
+		dlg.closeEvent ~= {
+			_editDlgs.remove(evt);
+		};
+		dlg.open();
+		return dlg;
+	}
+
+	@property
+	AbstractArea refTarget() {
+		if (_et && _et.owner) {
+			auto a = cast(Area) _et.owner;
+			if (a) return a;
+			auto b = cast(Battle) _et.owner;
+			if (b) return b;
+			auto m = cast(MenuCard) _et.owner;
+			if (m) return m.owner;
+			auto e = cast(EnemyCard) _et.owner;
+			if (e) return e.owner;
+		}
+		return null;
 	}
 
 	void refreshStatusLine() {
 		auto itm = selection;
 		if (itm) {
-			_statusLine = _prop.msgs.contentText(cast(Content) itm.getData, _summ);
+			_statusLine = .contentText(_comm, cast(Content) itm.getData());
 		} else {
 			_statusLine = "";
 		}
-		_comm.statusLine(_tree, _statusLine);
+		_comm.setStatusLine(_tree, _statusLine);
+	}
+	class TListener : TreeListener {
+		override void treeCollapsed(TreeEvent e) {
+			_comm.refreshToolBar();
+		}
+		override void treeExpanded(TreeEvent e) {
+			_comm.refreshToolBar();
+		}
 	}
 	class SListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) {
-			assert (cast(Content) e.item.getData);
-			refreshConvMenu;
-			refreshStatusLine;
+			assert (cast(Content) e.item.getData());
+			refreshConvMenu();
+			refreshStatusLine();
+			_comm.refreshToolBar();
 		}
 	}
 	private TreeItem _dragItm = null;
@@ -1168,44 +1161,53 @@ private:
 	public:
 		override void dragStart(DragSourceEvent e) {
 			auto itm = selection;
-			e.doit = itm && (cast(Content) itm.getData).type != CType.START
-				&& (cast(DragSource) e.getSource).getControl.isFocusControl;
+			e.doit = itm && (cast(Content) itm.getData()).type != CType.START
+				&& (cast(DragSource) e.getSource()).getControl().isFocusControl();
 			if (e.doit) {
 				_targ = itm;
-				_parItm = itm.getParentItem;
+				_parItm = itm.getParentItem();
 				_dragItm = _targ;
 			}
 		}
 		override void dragSetData(DragSourceEvent e) {
 			auto itm = selection;
-			if (itm && XMLBytesTransfer.getInstance.isSupportedType(e.dataType)) {
-				e.data = bytesFromXML((cast(Content) itm.getData).toXML);
+			if (itm && XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
+				auto node = (cast(Content) itm.getData()).toNode(null);
+				node.newAttr("paneId", _id);
+				e.data = bytesFromXML(node.text);
 			}
 		}
 		override void dragFinished(DragSourceEvent e) {
 			_dragItm = null;
 			auto itm = _targ;
 			if (itm && e.detail == DND.DROP_MOVE) {
-				if (_parItm) {
-					assert (_parItm.getData);
-					assert (itm.getData);
-					assert ((cast(Content) _parItm.getData).detail.owner);
-					assert (cast(Content) itm.getData);
-					(cast(Content) _parItm.getData).remove(cast(Content) itm.getData);
-				} else {
-					_et.remove(cast(Content) itm.getData);
+				bool empty = _et.owner.isEmpty;
+				scope (exit) {
+					if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
 				}
-				_tree.setRedraw = false;
-				itm.dispose;
-				_tree.setRedraw = true;
-				_comm.refUseCount.call;
+				auto c = cast(Content) itm.getData();
+				_comm.delContent.call(c);
+				if (_parItm) {
+					assert (_parItm.getData());
+					assert (itm.getData());
+					assert ((cast(Content) _parItm.getData()).detail.owner);
+					assert (cast(Content) itm.getData());
+					(cast(Content) _parItm.getData()).remove(c);
+				} else {
+					_et.remove(c);
+				}
+				_tree.setRedraw(false);
+				itm.dispose();
+				_tree.setRedraw(true);
+				_comm.refUseCount.call();
+				_comm.refreshToolBar();
 			}
 		}
 	}
 	class EventDropTarget : DropTargetAdapter {
 	private:
 		void move(DropTargetEvent e) {
-			e.detail = (e.item && cast(TreeItem) e.item && (cast(Content) e.item.getData).detail.owner)
+			e.detail = (e.item && cast(TreeItem) e.item && (cast(Content) e.item.getData()).detail.owner)
 				? DND.DROP_MOVE : DND.DROP_NONE;
 		}
 	public:
@@ -1219,40 +1221,53 @@ private:
 			if (!isXMLBytes(e.data)) return;
 			assert (cast(TreeItem) e.item);
 			e.detail = DND.DROP_NONE;
-			if ((cast(Content) e.item.getData).detail.owner) {
-				string id;
-				auto evt = Content.createFromXML(bytesToXML(e.data), LATEST_VERSION, id);
-				if (evt) {
-					auto owner = cast(Content) e.item.getData;
-					assert (owner.detail.owner);
-					auto ti = cast(TreeItem) e.item;
-					auto sp = selParent(ti);
-					if (!sp || sp.eventId != id) {
-						if (_dragItm) {
-							auto top = topItem(ti);
-							if (top is topItem(_dragItm)) {
-								store(cast(Content) top.getData);
-							} else {
-								store(cast(Content) _dragItm.getParentItem.getData, owner);
+			if ((cast(Content) e.item.getData()).detail.owner) {
+				try {
+					auto node = XNode.parse(bytesToXML(e.data));
+					bool samePane = _id == node.attr("paneId", false, "");
+					string id = node.attr("contentId", false, "");
+					auto evt = Content.createFromNode(node, LATEST_VERSION);
+					if (evt) {
+						auto owner = cast(Content) e.item.getData();
+						assert (owner.detail.owner);
+						auto ti = cast(TreeItem) e.item;
+						auto sp = selParent(ti);
+						if (!sp || sp.eventId != id) {
+							// 転送先が自分の子コンテントではないなら転送成功
+							bool empty = _et.owner.isEmpty;
+							scope (exit) {
+								if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
 							}
-						} else {
-							store(owner);
+							if (_dragItm) {
+								auto top = topItem(ti);
+								if (top is topItem(_dragItm)) {
+									store(cast(Content) top.getData());
+								} else {
+									store(cast(Content) _dragItm.getParentItem().getData(), owner);
+								}
+							} else {
+								store(owner);
+							}
+							owner.add(evt);
+							_comm.refContent.call(evt);
+							_tree.setRedraw(false);
+							auto itm = createTreeItem(ti, evt, eventText(owner, evt), _prop.images.content(evt.type));
+							procTreeItem(itm);
+							_tree.setSelection([itm]);
+							refreshStatusLine();
+							_comm.refUseCount.call();
+							if (evt.detail.owner) {
+								createChilds(itm, evt);
+								itm.setExpanded(true);
+							}
+							_tree.setRedraw(true);
+							refreshStatusLine();
+							e.detail = samePane ? DND.DROP_MOVE : DND.DROP_COPY;
+							_comm.refreshToolBar();
 						}
-						// 転送先が自分の子コンテントではないなら転送成功
-						owner.add(evt);
-						_tree.setRedraw = false;
-						auto itm = createTreeItem(ti, evt, eventText(owner, evt), _prop.images.content(evt.type));
-						_tree.setSelection = [itm];
-						refreshStatusLine;
-						_comm.refUseCount.call;
-						if (evt.detail.owner) {
-							createChilds(itm, evt);
-							itm.setExpanded = true;
-						}
-						_tree.setRedraw = true;
-						refreshStatusLine;
-						e.detail = DND.DROP_MOVE;
 					}
+				} catch (Exception e) {
+					debugln(e);
 				}
 			}
 		}
@@ -1261,15 +1276,15 @@ private:
 			if (itm) {
 				while (targ) {
 					if (itm is targ) {
-						return cast(Content) itm.getData;
+						return cast(Content) itm.getData();
 					}
-					targ = targ.getParentItem;
+					targ = targ.getParentItem();
 				}
 			}
 			return null;
 		}
 	}
-	private CreateEvent[] _conts;
+	private CreateEvent[CType] _conts;
 	private class CreateEvent {
 		CType type;
 		MenuItem convMenuItem;
@@ -1285,58 +1300,71 @@ private:
 			_cursor = cursor;
 		}
 		void create() {
-			if (_itm.getSelection) {
-				_v._comp.setCursor = _cursor;
-				if (_v._toolWin && !_v._toolWin.isDisposed) {
-					_v._toolWin.setCursor = _cursor;
+			if (_itm.getSelection()) {
+				_v._comp.setCursor(_cursor);
+				if (_v._toolWin && !_v._toolWin.isDisposed()) {
+					_v._toolWin.setCursor(_cursor);
+				}
+				if (_v._autoHideTools) {
+					_v._autoHideTools.setCursor(_cursor);
 				}
 				_v._arrowMode = false;
 				_v._cType = type;
 				_v._evtTI = _itm;
+				_v._comm.refreshToolBar();
+				_v._comm.selContentTool.call(_v._arrowMode, _v._cType, _v._autoOpen, _v._conti);
 			}
 		}
+		@property
 		void ti(ToolItem ti) {
 			_itm = ti;
 		}
+		@property
+		ToolItem ti() {return _itm;}
 		void convert() {
 			auto sel = selection;
 			if (!sel) return;
-			auto c = cast(Content) sel.getData;
+			auto c = cast(Content) sel.getData();
+			if (c.type == type) return;
 			store(c);
+			_comm.delContent.call(c);
 			assert (c.canConvert(type), "convert menu item enabled");
 			auto oldd = c.detail;
-			c.type(type, _prop.parent);
+			c.convertType(type, _prop.parent);
 			auto newd = c.detail;
 			if (newd.use(CArg.BG_IMAGES) && !oldd.use(CArg.BG_IMAGES)) {
-				c.backs = BgImageS.createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
+				c.backs = createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
 			}
 			if (newd.use(CArg.DIALOGS) && !oldd.use(CArg.DIALOGS)) {
 				c.dialogs = [new SDialog];
 			}
-			sel.setImage = _prop.images.content(type);
-			foreach (itm; sel.getItems) {
-				itm.setText = eventText(c, cast(Content) itm.getData);
+			sel.setImage(_prop.images.content(type));
+			foreach (itm; sel.getItems()) {
+				itm.setText(eventText(c, cast(Content) itm.getData()));
+				procTreeItem(itm);
 			}
-			refreshConvMenu;
-			refreshStatusLine;
-			_comm.refUseCount.call;
+			procTreeItem(sel);
+			refreshConvMenu();
+			refreshStatusLine();
+			_comm.refUseCount.call();
+			_comm.refreshToolBar();
 		}
 	}
 	ToolItem createEI(CType type, ToolBar bar, RadioGroup!(ToolItem) g, Menu convMenu) {
-		auto text = _prop.msgs.content(type);
+		auto text = _prop.msgs.contentName(type);
 		auto img = _prop.images.content(type);
-		auto imgData = img.getImageData;
-		auto cursor = new Cursor(Display.getCurrent, imgData, imgData.width / 2, imgData.height / 2);
+		auto imgData = img.getImageData();
+		auto cursor = new Cursor(Display.getCurrent(), imgData, imgData.width / 2, imgData.height / 2);
 		_cursors ~= cursor;
 		auto ce = new CreateEvent(this, type, cursor);
-		auto itm = createToolItem(bar, text, img, &ce.create, SWT.RADIO);
+		auto itm = createToolItem2(_comm, bar, text, img, &ce.create, null, SWT.RADIO);
 		ce.ti = itm;
 		g.append(itm);
 		if (type != CType.START) {
-			ce.convMenuItem = createMenuItem(convMenu, text, img, &ce.convert);
-			ce.convMenuItem.setEnabled = false;
-			_conts ~= ce;
+			ce.convMenuItem = createMenuItem2(_comm, convMenu, text, img, &ce.convert, null);
+			ce.convMenuItem.setEnabled(false);
 		}
+		_conts[type] = ce;
 		return itm;
 	}
 	class CDListener : DisposeListener {
@@ -1349,40 +1377,102 @@ private:
 	class TDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			assert (_toolWin);
-			if (_toolWin.isDisposed) return;
-			if (_toolWin.getVisible) {
-				saveToolWinPos;
+			if (_toolWin.isDisposed()) return;
+			if (_toolWin.getVisible()) {
+				saveToolWinPos();
 			}
 		}
 	}
 	class TCListener : ControlAdapter {
 		override void controlMoved(ControlEvent e) {
+			if (_autoHideTools) {
+				calcAutoHideSize();
+				return;
+			}
 			assert (_toolWin);
-			if (_toolWin.isDisposed) return;
-			auto pb = _toolWin.getParent.getBounds;
-			auto tb = _toolWin.getBounds;
+			if (!_toolWin || _toolWin.isDisposed()) return;
+			auto pb = _toolWin.getParent().getBounds();
+			auto tb = _toolWin.getBounds();
 			_toolWin.setBounds(tb.x + pb.x - _parX, tb.y + pb.y - _parY, tb.width, tb.height);
 			_parX = pb.x;
 			_parY = pb.y;
 		}
 	}
+	class AHTCListener : ControlAdapter {
+		override void controlResized(ControlEvent e) {
+			if (!_autoHideTools.isVisible()) return;
+			calcAutoHideSize();
+		}
+	}
+	void calcAutoHideSize() {
+		if (!_autoHideTools) return;
+		auto tb = _tree.getBounds();
+		auto ca1 = _contentsBoxArea.getBounds();
+		int x = _tree.toDisplay(tb.x, tb.y).x;
+		int y = _contentsBoxArea.toDisplay(0, ca1.y).y + ca1.height;
+		auto size = _autoHideTools.computeSize(tb.width, SWT.DEFAULT);
+		_autoHideTools.setBounds(new Rectangle(x, y, size.x, size.y));
+	}
+	class MouseTrack : Listener {
+		override void handleEvent(Event e) {
+			auto c = cast(Control) e.widget;
+			if (!c || !_autoHideTools) return;
+			if (!_et) {
+				_autoHideTools.setVisible(false);
+				return;
+			}
+			if (e.type is SWT.MouseMove && _contentsBoxArea.isVisible()) return;
+			if (c !is _tree && !isDescendant(_autoHideTools, c) && !isDescendant(_contentsBoxArea, c)) {
+				_autoHideTools.setVisible(false);
+				return;
+			}
+			auto p = c.toDisplay(e.x, e.y);
+			auto ca2 = _autoHideTools.getBounds();
+			ca2.x = 0;
+			ca2.y = 0;
+			if (!_autoHideTools.isVisible()) {
+				ca2.width = 0;
+				ca2.height = 0;
+			}
+			auto p2 = _autoHideTools.toControl(p);
+			auto ca1 = _contentsBoxArea.getBounds();
+			ca1.x = 0;
+			ca1.y = 0;
+			if (0 == ca1.height) {
+				ca1.height = _prop.var.etc.showContentsBoxHeightWhenNoToolBar;
+			}
+			auto p1 = _contentsBoxArea.toControl(p);
+			if (ca1.contains(p1) || ca2.contains(p2)) {
+				if (e.type is SWT.MouseDown && _autoHideTools.isVisible()) {
+				_autoHideTools.setVisible(false);
+ 				} else if ((e.type is SWT.MouseDown || _tree.isFocusControl()) && !_autoHideTools.isVisible()) {
+					calcAutoHideSize();
+					_autoHideTools.setVisible(true);
+				}
+			} else {
+				_autoHideTools.setVisible(false);
+			}
+		}
+	}
 	class PSListener : ShellAdapter {
 		override void shellActivated(ShellEvent e) {
 			assert (_toolWin);
-			if (_toolWin.isDisposed) return;
+			if (_toolWin.isDisposed()) return;
 			auto oldAct = _comm.actToolWin;
-			if (oldAct && !oldAct.isDisposed && oldAct.isVisible) {
-				oldAct.setVisible = false;
+			if (oldAct && !oldAct.isDisposed() && oldAct.isVisible()) {
+				oldAct.setVisible(false);
 			}
 			_comm.actToolWin = _toolWin;
-			_toolWin.setVisible = _toolWinVisible;
+			_toolWin.setVisible(_toolWinVisible);
+			_comm.refreshToolBar();
 		}
 	}
 	class TRDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			foreach (cur; _cursors) {
-				cur.dispose;
+				cur.dispose();
 			}
+			_comm.refSkin.remove(&refSkin);
 			_comm.refCast.remove(&__refreshCast);
 			_comm.delCast.remove(&__refreshCast);
 			_comm.refSkill.remove(&__refreshSkill);
@@ -1408,87 +1498,364 @@ private:
 			_comm.replText.remove(&__refreshCard);
 			_comm.replText.remove(&__refreshEventText);
 			_comm.replID.remove(&__refreshCard);
+			_comm.refContentText.remove(&refreshStatusLine);
+			_comm.refEventTemplates.remove(&refreshTemplates);
+			_comm.selContentTool.remove(&selContentTool);
+			_grayFont.dispose();
 			if (_toolWin) {
-				saveToolWinPos;
-				_toolWin.dispose;
+				saveToolWinPos();
+				_toolWin.dispose();
+			}
+			if (_autoHideTools && _mTrack) {
+				_autoHideTools.getDisplay().removeFilter(SWT.MouseDown, _mTrack);
+				_autoHideTools.getDisplay().removeFilter(SWT.MouseEnter, _mTrack);
+				_autoHideTools.getDisplay().removeFilter(SWT.MouseExit, _mTrack);
+			}
+			if (_tcListener) {
+				_autoHideTools.getParent().removeControlListener(_tcListener);
+			}
+			if (_autoHideTools) {
+				_autoHideTools.dispose();
+			}
+			foreach (dlg; _editDlgs.values) {
+				dlg.forceCancel();
+			}
+			foreach (dlg; _commentDlgs.values) {
+				dlg.forceCancel();
 			}
 		}
 	}
 	class TSListener : ShellAdapter {
 		public override void shellClosed(ShellEvent e) {
 			assert (_toolWin);
-			if (_toolWin.isDisposed) return;
-			_toolWin.setVisible = false;
+			if (_toolWin.isDisposed()) return;
+			_toolWin.setVisible(false);
 			e.doit = false;
 		}
 	}
 	class TMListener : MouseAdapter {
 		override void mouseDown(MouseEvent e) {
 			if (e.button == 3) {
-				arrow;
+				arrow();
+				_comm.refreshToolBar();
 			}
 		}
 	}
-	void refreshMenu() {
-		auto popup = new Menu(_tree.getShell, SWT.POP_UP);
-		createMenuItem(popup, _prop.msgs.menuCEdit, _prop.images.menuCEdit, &edit);
-		new MenuItem(popup, SWT.SEPARATOR);
-		createMenuItem(popup, _prop.msgs.menuUndo, _prop.images.menuUndo, &this.undo);
-		createMenuItem(popup, _prop.msgs.menuRedo, _prop.images.menuRedo, &this.redo);
-		new MenuItem(popup, SWT.SEPARATOR);
-		appendMenuTCPD(_prop, popup, this, true, true, true, true);
-		new MenuItem(popup, SWT.SEPARATOR);
-		createMenuItem(popup, _prop.msgs.menuToScript, _prop.images.menuToScript, &this.toScript);
-		createMenuItem(popup, _prop.msgs.menuToScriptAll, _prop.images.menuToScriptAll, &this.toScriptAll);
-		new MenuItem(popup, SWT.SEPARATOR);
-		createMenuItem(popup, _prop.msgs.menuStartToPackage, _prop.images.menuStartToPackage, &startToPackage);
-		void delegate() dlg = null;
-		auto convMI = createMenuItem(popup, _prop.msgs.menuConvertContent, _prop.images.menuConvertContent, dlg, SWT.CASCADE);
-		_convM = new Menu(_tree.getShell, SWT.DROP_DOWN);
-		debug {
-			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(popup, "debug: Create CWX &Path", null, &createCWXPath);
+	private class PutScript {
+		private string _script;
+		this (string script) {
+			_script = script;
 		}
-		convMI.setMenu = _convM;
+		void put() {
+			pasteScript(_script);
+		}
+	}
+	void refreshTemplates() {
+		foreach (itm; _templMenu.getItems()) {
+			itm.dispose();
+		}
+		foreach (t; _prop.var.etc.eventTemplates) {
+			// 設定でコンパイルオプションが変化する可能性があるため事前コンパイルは行わない
+			auto c = new PutScript(t.script);
+			createMenuItem2(_comm, _templMenu, t.name, null, &c.put, () => _et !is null);
+		}
+		_templTI.setEnabled(0 < _templMenu.getItemCount());
+	}
 
-		_tree.setMenu = popup;
+	/// 使用数とツリー毎の区切り線の描画。
+	void drawStartInfo(PaintEvent e, Color lineColor, Color fontColor) {
+		if (!_et) return;
+		if (!_prop.var.etc.drawCountOfUseOfStart && !_prop.var.etc.drawContentTreeLine) return;
+		auto d = _tree.getDisplay();
+		auto ca = _tree.getClientArea();
+		auto suc = _et.startUseCounter;
+		auto fore = e.gc.getForeground();
+		auto back = e.gc.getBackground();
+		auto counts = new string[_tree.getItemCount()];
+		auto ucExtent = e.gc.textExtent(_prop.msgs.startUseCount);
+		int maxW = 0;
+		int h = e.gc.getFontMetrics().getHeight();
+		if (_prop.var.etc.drawCountOfUseOfStart) {
+			foreach (i, itm; _tree.getItems()) {
+				auto c = cast(Content) itm.getData();
+				assert (c);
+				int count = suc.get(toStartId(c.name));
+				if (0 == i) count++;
+				counts[i] = .text(count);
+				auto extent = e.gc.textExtent(counts[i]);
+				maxW = max(maxW, extent.x);
+			}
+		}
+		foreach (i, itm; _tree.getItems()) {
+			auto b = itm.getBounds();
+			if (b.y + b.height <= ca.y) continue;
+			if (ca.y + ca.height < b.y) break;
+			if (_prop.var.etc.drawContentTreeLine && 0 < i) {
+				e.gc.setForeground(lineColor);
+				scope (exit) e.gc.setForeground(fore);
+				e.gc.drawLine(0, b.y, ca.width, b.y);
+			}
+			if (_prop.var.etc.drawCountOfUseOfStart) {
+				string t = counts[i];
+				int tx = ca.width - maxW - 5;
+				int ty = b.y + (b.height - h) / 2;
+				e.gc.drawString(t, tx, ty);
+				e.gc.setForeground(fontColor);
+				scope (exit) e.gc.setForeground(fore);
+				e.gc.drawString(_prop.msgs.startUseCount, tx - ucExtent.x - 5, ty);
+			}
+		}
+	}
+	/// コメントの描画。
+	void drawComment(PaintEvent e, Color lineColor) {
+		auto fore = e.gc.getForeground();
+		auto back = e.gc.getBackground();
+		auto font = e.gc.getFont();
+		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
+		e.gc.setFont(new Font(_tree.getDisplay(), dwtData(_prop.looks.textDlgFont(fSize))));
+		scope (exit) e.gc.getFont().dispose();
+		Rectangle[] boxes;
+		TreeItem[] itms;
+		void recurse(TreeItem itm) {
+			boxes ~= itm.getBounds();
+			itms ~= itm;
+			if (itm.getExpanded()) {
+				foreach (chld; itm.getItems()) {
+					recurse(chld);
+				}
+			}
+		}
+		foreach (itm; _tree.getItems()) {
+			recurse(itm);
+		}
+		if (!itms.length) return;
+		int mny = itms[0].getBounds().y;
+		auto bb = itms[$ - 1].getBounds();
+		int mxy = bb.y + bb.height;
+		int alpha = e.gc.getAlpha();
+		auto lineHeight = e.gc.getFontMetrics().getHeight();
+		Rectangle[] bs;
+		string[][] texts;
+		static const MARGIN_L = 5;
+		static const MARGIN_T = 4;
+		foreach (i, itm; itms) {
+			auto c = cast(Content) itm.getData();
+			string cm = c.comment;
+			if (cm.length) {
+				int dis = _prop.var.etc.commentBoxDistance;
+				auto ib = itm.getBounds();
+				cm = std.string.chomp(cm);
+				auto te = e.gc.textExtent(cm);
+				// 改行文字があると横幅がおかしくなるため
+				// 測り直す
+				te.x = 0;
+				auto lines = splitLines!string(cm);
+				foreach (line; lines) {
+					te.x = max(e.gc.textExtent(line).x, te.x);
+				}
+				int tx = ib.x + ib.width + dis;
+				int ty = ib.y + (ib.height - te.y) / 2;
+				int bx = tx - MARGIN_L;
+				int by = ty - MARGIN_T;
+				int bw = te.x + MARGIN_L * 2;
+				int bh = te.y + MARGIN_T * 2;
+				if (by < mny) {
+					ty += mny - by;
+					by = ty - MARGIN_T;
+				}
+				if (mxy < by + bh) {
+					ty -= by + bh - mxy;
+					by = ty - MARGIN_T;
+				}
+				auto box = new Rectangle(bx, by, bw, bh);
+				foreach (b; boxes) {
+					if (b.intersects(box)) {
+						bx = b.x + b.width + MARGIN_L;
+						box.x = bx;
+						tx = bx + MARGIN_L;
+						dis = tx - ib.x - ib.width;
+					}
+				}
+
+				/// ラインのみを先行描画
+				e.gc.setBackground(lineColor);
+				scope (exit) e.gc.setBackground(back);
+				int px = ib.x + ib.width + 2;
+				int py = ib.y + ib.height / 2 - 1;
+				e.gc.fillRectangle(px, py, dis - MARGIN_L - 2, 1);
+
+				boxes ~= box;
+				bs ~= box;
+				texts ~= lines;
+			}
+		}
+		foreach (i, lines; texts) {
+			auto b = bs[i];
+			int bx = b.x;
+			int by = b.y;
+			int bw = b.width;
+			int bh = b.height;
+			int tx = b.x + MARGIN_L;
+			int ty = b.y + MARGIN_T;
+
+			e.gc.setAlpha(128);
+			e.gc.fillRectangle(bx, by, bw, bh);
+			e.gc.setAlpha(alpha);
+
+			// FIXME: 場合によって改行が反映されない
+//			e.gc.drawString(cm, tx, ty, true);
+			foreach (line; lines) {
+				e.gc.drawString(line, tx, ty, true);
+				ty += lineHeight;
+			}
+			// FIXME: 一度でもsetAlpha()を呼び出すと描画されなくなる
+			e.gc.setBackground(lineColor);
+			scope (exit) e.gc.setBackground(back);
+//			e.gc.drawRectangle(bx, by, bw, bh);
+//			e.gc.drawLine(px, py, px + dis - MARGIN_L - 2, py);
+			e.gc.fillRectangle(bx, by, bw, 1);
+			e.gc.fillRectangle(bx, by + bh - 1, bw, 1);
+			e.gc.fillRectangle(bx, by + 1, 1, bh - 2);
+			e.gc.fillRectangle(bx + bw - 1, by + 1, 1, bh - 2);
+		}
+	}
+	class PaintTree : PaintListener {
+		override void paintControl(PaintEvent e) {
+			auto d = _tree.getDisplay();
+			auto fore = e.gc.getForeground();
+			auto back = e.gc.getBackground();
+			auto lineColor = new Color(d, alphaColor(fore.getRGB(), back.getRGB(), 64));
+			scope (exit) lineColor.dispose();
+
+			drawStartInfo(e, lineColor, _grayFont);
+			drawComment(e, lineColor);
+		}
 	}
 public:
-	this(Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
+	this (Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
-			void delegate() refreshTopStart) {
+			void delegate() refreshTopStart,
+			Composite contentsBoxArea) {
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
+
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		_undo = undo;
 		_forceSel = forceSel;
 		_refreshTopStart = refreshTopStart;
+		_contentsBoxArea = contentsBoxArea;
 
 		_comp = new Composite(parent, SWT.NONE);
-		_comp.setLayout = zeroGridLayout(1, false);
+		_comp.setLayout(zeroGridLayout(1, false));
 		if (_prop.var.etc.contentsFloat) {
-			_toolWin = new Shell(parent.getShell, SWT.TITLE | SWT.RESIZE | SWT.TOOL);
-			_toolWin.setLayout = zeroGridLayout(1);
-			_toolWin.setText = prop.msgs.tools;
+			_toolWin = new Shell(parent.getShell(), SWT.TITLE | SWT.RESIZE | SWT.TOOL);
+			_toolWin.setLayout(zeroGridLayout(1));
+			_toolWin.setText(prop.msgs.tools);
 			_toolWin.addShellListener(new TSListener);
 			_toolWin.addMouseListener(new TMListener);
+			_cbarPar = new Composite(_toolWin, SWT.NONE);
+		} else if (_prop.var.etc.contentsAutoHide) {
+			_autoHideTools = new Shell(parent.getShell(), SWT.NO_TRIM);
+			_autoHideTools.setLayout(zeroGridLayout(1));
+			_autoHideTools.addMouseListener(new TMListener);
+			_cbarPar = new Composite(_autoHideTools, SWT.NONE);
+			_mTrack = new MouseTrack;
+			_autoHideTools.getDisplay().addFilter(SWT.MouseDown, _mTrack);
+			_autoHideTools.getDisplay().addFilter(SWT.MouseEnter, _mTrack);
+			_autoHideTools.getDisplay().addFilter(SWT.MouseExit, _mTrack);
+		} else {
+			_cbarPar = new Composite(_comp, SWT.NONE);
 		}
 		_autoOpen = _prop.var.etc.contentsAutoOpen;
 		_conti = _prop.var.etc.contentsContinue;
-		_cbarPar = new Composite(_prop.var.etc.contentsFloat ? _toolWin : _comp, SWT.NONE);
-		_cbarPar.setLayoutData = new GridData(GridData.FILL_HORIZONTAL);
-		_cbarPar.setLayout = new FillLayout;
+		_cbarPar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		_cbarPar.setLayout(new FillLayout);
 		_tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
-		_tree.setLayoutData = new GridData(GridData.FILL_BOTH);
-		new TreeEdit(_tree, &editEnd, &createEditor);
+		initTree(_tree, true);
+		_tree.setLayoutData(new GridData(GridData.FILL_BOTH));
+		_tree.addPaintListener(new PaintTree);
+		new TreeEdit(_comm, _tree, &editEnd, &createEditor);
 		_tree.addDisposeListener(new TRDListener);
 		_tree.addMouseListener(new CreateL);
 		auto editl = new EditL;
 		_tree.addKeyListener(editl);
 		_tree.addMouseListener(editl);
-		refreshMenu();
-		_tree.addSelectionListener(new SListener);
 
+		auto shell = _tree.getShell();
+		{
+			uint retry = 0;
+			while (true) {
+				Menu popup = null;
+				string dStr = .text(__LINE__); // ログ
+				try {
+					dStr ~= " - " ~ .text(__LINE__);
+					popup = new Menu(shell, SWT.POP_UP);
+					dStr ~= " - " ~ .text(__LINE__);
+					createMenuItem(_comm, popup, MenuID.EditProp, &editM, &canEdit);
+					new MenuItem(popup, SWT.SEPARATOR);
+					dStr ~= " - " ~ .text(__LINE__);
+					createMenuItem(_comm, popup, MenuID.Comment, &writeComment, &canWriteComment);
+					new MenuItem(popup, SWT.SEPARATOR);
+					dStr ~= " - " ~ .text(__LINE__);
+					createMenuItem(_comm, popup, MenuID.Undo, &this.undo, &_undo.canUndo);
+					createMenuItem(_comm, popup, MenuID.Redo, &this.redo, &_undo.canRedo);
+					new MenuItem(popup, SWT.SEPARATOR);
+					dStr ~= " - " ~ .text(__LINE__);
+					appendMenuTCPD(_comm, popup, this, true, true, true, true, true);
+					new MenuItem(popup, SWT.SEPARATOR);
+					dStr ~= " - " ~ .text(__LINE__);
+					createMenuItem(_comm, popup, MenuID.ToScript, &toScript, &canToScript);
+					createMenuItem(_comm, popup, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
+					new MenuItem(popup, SWT.SEPARATOR);
+					dStr ~= " - " ~ .text(__LINE__);
+					createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, () => selection !is null);
+					dStr ~= " - " ~ .text(__LINE__);
+					void delegate() dlg = null;
+					auto convMI = createMenuItem(_comm, popup, MenuID.ConvertContent, dlg, {
+						auto itm = selection;
+						if (!itm) return false;
+						auto evt = cast(Content) itm.getData();
+						return evt.type !is CType.START;
+					}, SWT.CASCADE);
+					dStr ~= " - " ~ .text(__LINE__);
+					_convM = new Menu(_tree.getShell(), SWT.DROP_DOWN);
+					debug {
+						new MenuItem(popup, SWT.SEPARATOR);
+						createMenuItem2(_comm, popup, "debug: Create CWX &Path", null, &createCWXPath, () => selection !is null);
+					}
+					dStr ~= " - " ~ .text(__LINE__);
+					convMI.setMenu(_convM);
+					dStr ~= " - " ~ .text(__LINE__);
+
+					_tree.setMenu(popup);
+					dStr ~= " - " ~ .text(__LINE__);
+					break;
+				} catch (Throwable e) {
+					// 環境によってはMenuが異常な状態になり、
+					// MenuItemの追加で落ちることがある模様
+					debugln(dStr);
+					debugln(e);
+					try {
+						if (popup) popup.dispose();
+						popup = null;
+					} catch {}
+					retry++;
+					if (retry > 128) {
+						debugln("create menu failed (tree view).");
+						break;
+					}
+					debugln("create menu failed (tree view). retry: ", retry);
+				}
+			}
+		}
+		_tree.addTreeListener(new TListener);
+		_tree.addSelectionListener(new SListener);
+		if (_mTrack) {
+			_tree.addListener(SWT.MouseMove, _mTrack);
+		}
+
+		_comm.refSkin.add(&refSkin);
 		_comm.refCast.add(&__refreshCast);
 		_comm.delCast.add(&__refreshCast);
 		_comm.refSkill.add(&__refreshSkill);
@@ -1514,161 +1881,87 @@ public:
 		_comm.replText.add(&__refreshCard);
 		_comm.replText.add(&__refreshEventText);
 		_comm.replID.add(&__refreshCard);
+		_comm.refContentText.add(&refreshStatusLine);
+		_comm.refEventTemplates.add(&refreshTemplates);
+		_comm.selContentTool.add(&selContentTool);
+		_grayFont = new Color(_tree.getDisplay(), alphaColor(_tree.getForeground().getRGB(), _tree.getBackground().getRGB(), 128));
 
 		auto dt = new DropTarget(_tree, DND.DROP_DEFAULT | DND.DROP_MOVE);
-		dt.setTransfer = [XMLBytesTransfer.getInstance];
+		dt.setTransfer([XMLBytesTransfer.getInstance()]);
 		dt.addDropListener(new EventDropTarget);
 		auto ds = new DragSource(_tree, DND.DROP_MOVE);
-		ds.setTransfer = [XMLBytesTransfer.getInstance];
+		ds.setTransfer([XMLBytesTransfer.getInstance()]);
 		ds.addDragListener(new EventDragSource);
 	}
 	private int _parX, _parY;
 	private void saveToolWinPos() {
+		if (!_constructTools) return;
 		assert (_toolWin);
-		if (_toolWin.isDisposed) return;
-		_prop.var.contentsWin.x = _toolWin.getBounds.x - _toolWin.getParent.getBounds.x;
-		_prop.var.contentsWin.y = _toolWin.getBounds.y - _toolWin.getParent.getBounds.y;
+		if (_toolWin.isDisposed()) return;
+		_prop.var.contentsWin.x = _toolWin.getBounds().x - _toolWin.getParent().getBounds().x;
+		_prop.var.contentsWin.y = _toolWin.getBounds().y - _toolWin.getParent().getBounds().y;
 	}
 	private Composite _cbarPar;
 	private Menu _convM;
 	private bool _constructTools = false;
-	void constructTools() {
-		if (_tree.isDisposed || _constructTools) return;
+	private bool canConvTerminal() {
+		auto itm = selection;
+		if (!itm) return false;
+		auto evt = cast(Content) itm.getData();
+		return !evt.next.length;
+	}
+	private void constructTools() {
+		if (_tree.isDisposed() || _constructTools) return;
 		_constructTools = true;
-		auto cbar = createCoolBar!("contents")(_prop, _cbarPar, (CoolBar cbar) {
-			if (!_prop.var.etc.contentsFloat) {
+		auto cbar = createCoolBar!("contents")(_comm, _cbarPar, (CoolBar cbar) {
+			void createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {
+				.createCoolItem(cbar, tbar, index);
+			}
+			if (!_prop.var.etc.contentsFloat || _autoHideTools) {
 				cbar.addMouseListener(new TMListener);
 			}
 			auto g = new RadioGroup!(ToolItem);
 			_radioGroup = g;
 			void delegate() dlg = null;
-			Menu convMenu(string text, Image img) {
-				auto mi = createMenuItem(_convM, text, img, dlg, SWT.CASCADE);
-				auto m = new Menu(_tree.getShell, SWT.DROP_DOWN);
-				mi.setMenu = m;
+			Menu convMenu(CTypeGroup g) {
+				auto mi = createMenuItem(_comm, _convM, cTypeGroupToMenuID(g), dlg, g is CTypeGroup.Terminal ? &canConvTerminal : null, SWT.CASCADE);
+				auto m = new Menu(_tree.getShell(), SWT.DROP_DOWN);
+				mi.setMenu(m);
 				return m;
 			}
 
 			auto atm = new ToolBar(cbar, SWT.FLAT);
 			atm.addMouseListener(new TMListener);
-			_arrowTI = createToolItem(atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, SWT.RADIO);
-			_arrowTI.setSelection = true;
+			_arrowTI = createToolItem2(_comm, atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, null, SWT.RADIO);
+			_arrowTI.setSelection(true);
 			g.append(_arrowTI);
 			createCoolItem(cbar, atm);
 
 			auto mode = new ToolBar(cbar, SWT.FLAT);
 			mode.addMouseListener(new TMListener);
-			_contiTI = createToolItem(mode, _prop.msgs.evtAddContinue, _prop.images.evtAddContinue, &addContinue, SWT.CHECK);
-			_contiTI.setSelection = _conti;
-			_autoOpenTI = createToolItem(mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, SWT.CHECK);
-			_autoOpenTI.setSelection = _autoOpen;
+			_contiTI = createToolItem2(_comm, mode, _prop.msgs.evtAddContinue, _prop.images.evtAddContinue, &addContinue, null, SWT.CHECK);
+			_contiTI.setSelection(_conti);
+			_autoOpenTI = createToolItem2(_comm, mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, null, SWT.CHECK);
+			_autoOpenTI.setSelection(_autoOpen);
+			new ToolItem(mode, SWT.SEPARATOR);
+			_templTI = createDropDownItem(_comm, mode, MenuID.EvTemplates, null, _templMenu, () => _et && _prop.var.etc.eventTemplates.length > 0);
+			refreshTemplates();
 			createCoolItem(cbar, mode);
 
-			auto e1 = new ToolBar(cbar, SWT.FLAT);
-			e1.addMouseListener(new TMListener);
-			auto e1c = convMenu(_prop.msgs.menuEvtTerminal, _prop.images.menuEvtTerminal);
-			createEI(CType.START, e1, g, _convM);
-			createEI(CType.START_BATTLE, e1, g, e1c);
-			createEI(CType.END, e1, g, e1c);
-			createEI(CType.END_BAD_END, e1, g, e1c);
-			createEI(CType.CHANGE_AREA, e1, g, e1c);
-			createEI(CType.EFFECT_BREAK, e1, g, e1c);
-			createEI(CType.LINK_START, e1, g, e1c);
-			createEI(CType.LINK_PACKAGE, e1, g, e1c);
-			createCoolItem(cbar, e1);
-
-			auto e2 = new ToolBar(cbar, SWT.FLAT);
-			e2.addMouseListener(new TMListener);
-			auto e2c = convMenu(_prop.msgs.menuEvtStandard, _prop.images.menuEvtStandard);
-			createEI(CType.TALK_MESSAGE, e2, g, e2c);
-			createEI(CType.TALK_DIALOG, e2, g, e2c);
-			createEI(CType.PLAY_BGM, e2, g, e2c);
-			createEI(CType.PLAY_SOUND, e2, g, e2c);
-			createEI(CType.WAIT, e2, g, e2c);
-			createEI(CType.ELAPSE_TIME, e2, g, e2c);
-			createEI(CType.EFFECT, e2, g, e2c);
-			createEI(CType.CALL_START, e2, g, e2c);
-			createEI(CType.CALL_PACKAGE, e2, g, e2c);
-			createCoolItem(cbar, e2);
-
-			auto e3 = new ToolBar(cbar, SWT.FLAT);
-			e3.addMouseListener(new TMListener);
-			auto e3c = convMenu(_prop.msgs.menuEvtData, _prop.images.menuEvtData);
-			createEI(CType.BRANCH_FLAG, e3, g, e3c);
-			createEI(CType.SET_FLAG, e3, g, e3c);
-			createEI(CType.REVERSE_FLAG, e3, g, e3c);
-			createEI(CType.BRANCH_MULTI_STEP, e3, g, e3c);
-			createEI(CType.BRANCH_STEP, e3, g, e3c);
-			createEI(CType.SET_STEP, e3, g, e3c);
-			createEI(CType.SET_STEP_UP, e3, g, e3c);
-			createEI(CType.SET_STEP_DOWN, e3, g, e3c);
-			createEI(CType.CHECK_FLAG, e3, g, e3c);
-			createCoolItem(cbar, e3);
-
-			auto e4 = new ToolBar(cbar, SWT.FLAT);
-			e4.addMouseListener(new TMListener);
-			auto e4c = convMenu(_prop.msgs.menuEvtUtility, _prop.images.menuEvtUtility);
-			createEI(CType.BRANCH_SELECT, e4, g, e4c);
-			createEI(CType.BRANCH_ABILITY, e4, g, e4c);
-			createEI(CType.BRANCH_RANDOM, e4, g, e4c);
-			createEI(CType.BRANCH_LEVEL, e4, g, e4c);
-			createEI(CType.BRANCH_STATUS, e4, g, e4c);
-			createEI(CType.BRANCH_PARTY_NUMBER, e4, g, e4c);
-			createEI(CType.BRANCH_AREA, e4, g, e4c);
-			createEI(CType.BRANCH_BATTLE, e4, g, e4c);
-			createEI(CType.BRANCH_IS_BATTLE, e4, g, e4c);
-			createCoolItem(cbar, e4);
-
-			auto e5 = new ToolBar(cbar, SWT.FLAT);
-			e5.addMouseListener(new TMListener);
-			auto e5c = convMenu(_prop.msgs.menuEvtBranch, _prop.images.menuEvtBranch);
-			createEI(CType.BRANCH_CAST, e5, g, e5c);
-			createEI(CType.BRANCH_ITEM, e5, g, e5c);
-			createEI(CType.BRANCH_SKILL, e5, g, e5c);
-			createEI(CType.BRANCH_INFO, e5, g, e5c);
-			createEI(CType.BRANCH_BEAST, e5, g, e5c);
-			createEI(CType.BRANCH_MONEY, e5, g, e5c);
-			createEI(CType.BRANCH_COUPON, e5, g, e5c);
-			createEI(CType.BRANCH_COMPLETE_STAMP, e5, g, e5c);
-			createEI(CType.BRANCH_GOSSIP, e5, g, e5c);
-			createCoolItem(cbar, e5);
-
-			auto e6 = new ToolBar(cbar, SWT.FLAT);
-			e6.addMouseListener(new TMListener);
-			auto e6c = convMenu(_prop.msgs.menuEvtGet, _prop.images.menuEvtGet);
-			createEI(CType.GET_CAST, e6, g, e6c);
-			createEI(CType.GET_ITEM, e6, g, e6c);
-			createEI(CType.GET_SKILL, e6, g, e6c);
-			createEI(CType.GET_INFO, e6, g, e6c);
-			createEI(CType.GET_BEAST, e6, g, e6c);
-			createEI(CType.GET_MONEY, e6, g, e6c);
-			createEI(CType.GET_COUPON, e6, g, e6c);
-			createEI(CType.GET_COMPLETE_STAMP, e6, g, e6c);
-			createEI(CType.GET_GOSSIP, e6, g, e6c);
-			createCoolItem(cbar, e6);
-
-			auto e7 = new ToolBar(cbar, SWT.FLAT);
-			e7.addMouseListener(new TMListener);
-			auto e7c = convMenu(_prop.msgs.menuEvtLost, _prop.images.menuEvtLost);
-			createEI(CType.LOSE_CAST, e7, g, e7c);
-			createEI(CType.LOSE_ITEM, e7, g, e7c);
-			createEI(CType.LOSE_SKILL, e7, g, e7c);
-			createEI(CType.LOSE_INFO, e7, g, e7c);
-			createEI(CType.LOSE_BEAST, e7, g, e7c);
-			createEI(CType.LOSE_MONEY, e7, g, e7c);
-			createEI(CType.LOSE_COUPON, e7, g, e7c);
-			createEI(CType.LOSE_COMPLETE_STAMP, e7, g, e7c);
-			createEI(CType.LOSE_GOSSIP, e7, g, e7c);
-			createCoolItem(cbar, e7);
-
-			auto e8 = new ToolBar(cbar, SWT.FLAT);
-			e8.addMouseListener(new TMListener);
-			auto e8c = convMenu(_prop.msgs.menuEvtVisual, _prop.images.menuEvtVisual);
-			createEI(CType.SHOW_PARTY, e8, g, e8c);
-			createEI(CType.HIDE_PARTY, e8, g, e8c);
-			createEI(CType.CHANGE_BG_IMAGE, e8, g, e8c);
-			createEI(CType.REDISPLAY, e8, g, e8c);
-			createCoolItem(cbar, e8, 2);
+			auto tml = new TMListener;
+			foreach (cGrp, cs; CTYPE_GROUP) {
+				auto eBar = new ToolBar(cbar, SWT.FLAT);
+				eBar.addMouseListener(tml);
+				auto conv = convMenu(cGrp);
+				foreach (cType; cs) {
+					createEI(cType, eBar, g, cType is CType.START ? _convM : conv);
+				}
+				if (cGrp is CTypeGroup.Visual) {
+					createCoolItem(cbar, eBar, 2);
+				} else {
+					createCoolItem(cbar, eBar);
+				}
+			}
 
 			cbar.addDisposeListener(new CDListener);
 		});
@@ -1676,11 +1969,11 @@ public:
 			auto dummy = new Composite(_toolWin, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.heightHint = 0;
-			dummy.setLayoutData = gd;
-			_toolWin.setVisible = false;
-			auto pb = _toolWin.getParent.getBounds;
+			dummy.setLayoutData(gd);
+			_toolWin.setVisible(false);
+			auto pb = _toolWin.getParent().getBounds();
 			auto size = _toolWin.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-			auto ts = _toolWin.getBounds;
+			auto ts = _toolWin.getBounds();
 			int tx = _prop.var.contentsWin.x == SWT.DEFAULT ? ts.x : pb.x + _prop.var.contentsWin.x;
 			int ty = _prop.var.contentsWin.y == SWT.DEFAULT ? ts.y : pb.y + _prop.var.contentsWin.y;
 			intoDisplay(tx, ty, size.x, size.y);
@@ -1688,60 +1981,106 @@ public:
 			_parY = pb.y;
 			_toolWin.setBounds(tx, ty, size.x, size.y);
 			_toolWin.addDisposeListener(new TDListener);
-			_toolWin.getParent.addControlListener(new TCListener);
-			_tree.getShell.addShellListener(new PSListener);
+			_toolWin.getParent().addControlListener(new TCListener);
+			_tree.getShell().addShellListener(new PSListener);
 		} else {
-			_cbarPar.getParent.layout(true);
+			_cbarPar.getParent().layout(true);
+			if (_autoHideTools) {
+				cbar.addControlListener(new AHTCListener);
+				_tcListener = new TCListener;
+				_autoHideTools.getParent().addControlListener(_tcListener);
+			}
 		}
 	}
 
+	@property
 	Control widget() {return _comp;}
 
+	@property
 	string statusLine() {return _statusLine;}
 
-	void undo() {_undo.undo;}
-	void redo() {_undo.redo;}
+	void undo() {
+		_undo.undo();
+		_comm.refreshToolBar();
+	}
+	void redo() {
+		_undo.redo();
+		_comm.refreshToolBar();
+	}
 	debug {
 		void createCWXPath() {
 			auto itm = selection;
 			if (itm) {
-				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
-				auto c = cast(Content) itm.getData;
-				cb.setContents([new ArrayWrapperString(c.cwxPath)], [TextTransfer.getInstance]);
+				auto c = cast(Content) itm.getData();
+				_comm.clipboard.setContents([new ArrayWrapperString(c.cwxPath(true))], [TextTransfer.getInstance()]);
+				_comm.refreshToolBar();
 			}
 		}
+	}
+	@property
+	bool canToScript() {
+		return selection !is null;
+	}
+	@property
+	bool canToScriptAll() {
+		return _et !is null;
 	}
 	void toScript() {
 		auto itm = selection;
 		if (!itm) return;
-		auto c = cast(Content) itm.getData;
-		auto script = CWXScript(_prop.parent, _summ);
-		auto text = script.toScript([c], _summ.legacy, "\t");
-		text = std.array.replace(text, "\n", std.path.linesep);
-		auto cb = new Clipboard(Display.getCurrent);
-		scope (exit) cb.dispose;
-		cb.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
+		auto c = cast(Content) itm.getData();
+		auto script = new CWXScript(_prop.parent, _summ);
+		auto text = script.toScript([c], _comm.skin.evtChildOK, _summ.legacy, "\t");
+		text = std.array.replace(text ~ "\n", "\n", .newline);
+		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
+		_comm.refreshToolBar();
 	}
 	void toScriptAll() {
 		if (!_et) return;
-		auto script = CWXScript(_prop.parent, _summ);
-		auto text = script.toScript(_et.starts, _summ.legacy, "\t");
-		text = std.array.replace(text, "\n", std.path.linesep);
-		auto cb = new Clipboard(Display.getCurrent);
-		scope (exit) cb.dispose;
-		cb.setContents([new ArrayWrapperString(text ~ "\n")], [TextTransfer.getInstance]);
+		auto script = new CWXScript(_prop.parent, _summ);
+		auto text = script.toScript(_et.starts, _comm.skin.evtChildOK, _summ.legacy, "\t");
+		text = std.array.replace(text ~ "\n", "\n", .newline);
+		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
+		_comm.refreshToolBar();
+	}
+	private ContentCommentDialog[Content] _commentDlgs;
+	@property
+	bool canWriteComment() {
+		return selection !is null;
+	}
+	void writeComment() {
+		auto itm = selection;
+		if (!itm) return;
+		.forceFocus(_tree, false);
+		auto c = cast(Content) itm.getData();
+		auto p = c in _commentDlgs;
+		if (p) {
+			p.active();
+			return;
+		}
+		auto dlg = new ContentCommentDialog(_comm, _prop, _tree.getShell(), c.parent, c);
+		dlg.appliedEvent ~= &_tree.redraw;
+		auto undo = new UndoContent(this, _comm, _prop, _summ, _et, [c]);
+		dlg.appliedEvent ~= {
+			_undo ~= undo;
+			undo = new UndoContent(this, _comm, _prop, _summ, _et, [c]);
+		};
+		_commentDlgs[c] = dlg;
+		dlg.closeEvent ~= {
+			_commentDlgs.remove(c);
+		};
+		dlg.open();
 	}
 
 	private void refreshConvMenu() {
 		if (!_et || !selection) {
-			foreach (ce; _conts) {
-				ce.convMenuItem.setEnabled = false;
+			foreach (ce; _conts.values) {
+				if (ce.convMenuItem) ce.convMenuItem.setEnabled(false);
 			}
 		} else {
-			auto c = cast(Content) selection.getData;
-			foreach (ce; _conts) {
-				ce.convMenuItem.setEnabled = c.canConvert(ce.type);
+			auto c = cast(Content) selection.getData();
+			foreach (ce; _conts.values) {
+				if (ce.convMenuItem) ce.convMenuItem.setEnabled(c.canConvert(ce.type));
 			}
 		}
 	}
@@ -1749,84 +2088,119 @@ public:
 		if (!_et || !selection) return;
 		auto sel = selection;
 		if (!sel) return;
-		auto base = cast(Content) selection.getData;
+		auto base = cast(Content) selection.getData();
 		auto startItm = topItem(sel);
 		auto start = base.parentStart;
 		assert (start);
-		assert (start is startItm.getData, start.name ~ " : " ~ startItm.getText);
+		assert (start is startItm.getData(), start.name ~ " : " ~ startItm.getText());
 		int index = _tree.indexOf(startItm);
 		if (index == 0) return;
 		TreeItem[] users;
 		Content[] conts = [start];
 		void find(TreeItem itm) {
-			auto c = cast(Content) itm.getData;
+			auto c = cast(Content) itm.getData();
 			if (c.start == start.name) {
 				users ~= itm;
 				conts ~= c;
 			}
-			foreach (cld; itm.getItems) find(cld);
+			foreach (cld; itm.getItems()) find(cld);
 		}
-		foreach (itm; _tree.getItems) find(itm);
-		auto ucp = new UndoCP(conts, index, start);
-		auto id = _comm.createPackage(start);
+		foreach (itm; _tree.getItems()) find(itm);
+		auto ucp = new UndoCP(this, _comm, _prop, _summ, _et, conts, index, start);
+		auto id = _comm.createPackage(start, false);
 		if (id == 0) {
-			ucp.dispose;
+			ucp.dispose();
 			return;
 		}
 		_undo ~= ucp;
 		delImpl(startItm, false);
 		foreach (itm; users) {
-			auto c = cast(Content) itm.getData;
+			auto c = cast(Content) itm.getData();
 			switch (c.type) {
 			case CType.LINK_START: {
-				c.type(CType.LINK_PACKAGE, _prop.parent);
+				c.convertType(CType.LINK_PACKAGE, _prop.parent);
 				c.packages = id;
 			} break;
 			case CType.CALL_START: {
-				c.type(CType.CALL_PACKAGE, _prop.parent);
+				c.convertType(CType.CALL_PACKAGE, _prop.parent);
 				c.packages = id;
 			} break;
 			default: assert (0);
 			}
-			itm.setImage = _prop.images.content(c.type);
+			itm.setImage(_prop.images.content(c.type));
 		}
-		refreshStatusLine;
-		_comm.refUseCount.call;
+		refreshStatusLine();
+		_comm.refUseCount.call();
+		_comm.refreshToolBar();
 	}
 
 	void refresh(EventTree et) {
-		_comm.statusLine(_tree, "");
+		_comm.setStatusLine(_tree, "");
 		_statusLine = "";
 		if (_et !is et) {
+			foreach (dlg; _editDlgs.values) {
+				dlg.forceCancel();
+			}
+			foreach (dlg; _commentDlgs.values) {
+				dlg.forceCancel();
+			}
 			_et = et;
-			_tree.setRedraw = false;
-			_tree.removeAll;
+			_tree.setRedraw(false);
+			scope (exit) _tree.setRedraw(true);
+			_tree.removeAll();
 			if (et) {
 				foreach (start; et.starts) {
 					auto itm = createTreeItem(_tree, start, start.name, _prop.images.content(CType.START));
 					createChilds(itm, start);
-					itm.setExpanded = true;
+					itm.setExpanded(true);
 				}
-			} else {
-				closeToolWindow;
 			}
-			_tree.setRedraw = true;
-			refreshStatusLine;
+			if (0 < _tree.getItemCount()) {
+				_tree.setSelection([_tree.getItem(0)]);
+			}
+			if (et) {
+				openToolWindow();
+			} else {
+				closeToolWindow();
+				if (_autoHideTools) _autoHideTools.setVisible(false);
+			}
+			refreshStatusLine();
+			_comm.refreshToolBar();
 		}
 	}
 	void treeOpen() {
 		treeExpandedAll(_tree);
+		_comm.refreshToolBar();
 	}
 	void treeClose() {
-		foreach (itm; _tree.getItems) {
-			itm.setExpanded = false;
+		foreach (itm; _tree.getItems()) {
+			itm.setExpanded(false);
 		}
+		_comm.refreshToolBar();
+	}
+	@property
+	bool canExpandTree() {
+		foreach (itm; _tree.getItems()) {
+			if (itm.getItems().length && !itm.getExpanded()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	@property
+	bool canFoldTree() {
+		foreach (itm; _tree.getItems()) {
+			if (itm.getItems().length && itm.getExpanded()) {
+				return true;
+			}
+		}
+		return false;
 	}
 	private void editEnd(TreeItem itm, Control c) {
 		auto t = cast(Text) c;
-		auto evt = (cast(Content) itm.getData);
+		auto evt = (cast(Content) itm.getData());
 		if (t) {
-			auto text = t.getText;
+			auto text = t.getText();
 			if (!text) text = "";
 			if (text == evt.name) return;
 			store(evt);
@@ -1842,22 +2216,22 @@ public:
 			} else {
 				evt.name = text;
 			}
-			itm.setText = evt.name;
+			itm.setText(evt.name);
 			if (evt.type == CType.START && _tree.indexOf(itm) == 0) {
 				_refreshTopStart();
 			}
 		} else {
 			auto combo = cast(CCombo) c;
-			int index = combo.getSelectionIndex;
-			auto data = cast(Content) itm.getParentItem.getData;
+			int index = combo.getSelectionIndex();
+			auto data = cast(Content) itm.getParentItem().getData();
 			string name;
 			switch (data.type) {
 			case CType.BRANCH_MULTI_STEP: {
-				if (index + 1 < combo.getItemCount) {
+				if (index + 1 < combo.getItemCount()) {
 					name = to!(string)(index);
 				} else {
-					assert (index + 1 == combo.getItemCount);
-					name = _prop.msgs.evtChildDefault;
+					assert (index + 1 == combo.getItemCount());
+					name = _prop.sys.evtChildDefault;
 				}
 				break;
 			} case CType.BRANCH_AREA: {
@@ -1865,7 +2239,7 @@ public:
 					name = to!(string)(_summ.areas[index].id);
 				} else {
 					assert (index == _summ.areas.length);
-					name = _prop.msgs.evtChildDefault;
+					name = _prop.sys.evtChildDefault;
 				}
 				break;
 			} case CType.BRANCH_BATTLE: {
@@ -1873,38 +2247,56 @@ public:
 					name = to!(string)(_summ.battles[index].id);
 				} else {
 					assert (index == _summ.battles.length);
-					name = _prop.msgs.evtChildDefault;
+					name = _prop.sys.evtChildDefault;
+				}
+				break;
+			} case CType.BRANCH_STEP_CMP: {
+				switch (combo.getSelectionIndex()) {
+				case 0:
+					name = _prop.sys.evtChildGreater;
+					break;
+				case 1:
+					name = _prop.sys.evtChildLesser;
+					break;
+				case 2:
+					name = _prop.sys.evtChildEq;
+					break;
+				default:
+					assert (0);
 				}
 				break;
 			} default:
-				assert (combo.getItemCount == 2);
-				name = index == 0 ? _prop.msgs.evtChildTrue : _prop.msgs.evtChildFalse;
+				assert (combo.getItemCount() == 2);
+				name = index == 0 ? _prop.sys.evtChildTrue : _prop.sys.evtChildFalse;
 			}
 			if (name == evt.name) return;
 			store(evt);
 			evt.name = name;
-			itm.setText = combo.getText;
-			_comm.refUseCount.call;
+			itm.setText(combo.getText());
+			_comm.refUseCount.call();
 		}
-		refreshStatusLine;
+		procTreeItem(itm);
+		_comm.refContent.call(evt);
+		refreshStatusLine();
+		_comm.refreshToolBar();
 	}
 	private CCombo createBoolEditor(string Create)(Content evt, Content child) {
 		string[] vals;
 		vals.length = 2;
-		string name = _prop.msgs.evtChildTrue;
+		string name = _prop.sys.evtChildTrue;
 		vals[0] = mixin (Create);
-		name = _prop.msgs.evtChildFalse;
+		name = _prop.sys.evtChildFalse;
 		vals[1] = mixin (Create);
-		return createComboEditor(_tree, vals, vals[child.name == _prop.msgs.evtChildTrue ? 0 : 1]);
+		return createComboEditor(_comm, _prop, _tree, vals, vals[child.name == _prop.sys.evtChildTrue ? 0 : 1]);
 	}
 	private CCombo createBoolEditor2(string Create)(Content evt, Content child) {
 		string[] vals;
 		vals.length = 2;
-		string name = _prop.msgs.evtChildTrue;
+		string name = _prop.sys.evtChildTrue;
 		vals[0] = mixin (Create);
-		name = _prop.msgs.evtChildFalse;
+		name = _prop.sys.evtChildFalse;
 		vals[1] = mixin (Create);
-		return createComboEditor(_tree, vals, vals[child.name == _prop.msgs.evtChildTrue ? 0 : 1]);
+		return createComboEditor(_comm, _prop, _tree, vals, vals[child.name == _prop.sys.evtChildTrue ? 0 : 1]);
 	}
 	private CCombo createNumEditor(string Create)(Content evt, Content child, ulong[] nums) {
 		string[] vals;
@@ -1917,9 +2309,9 @@ public:
 				index = i;
 			}
 		}
-		string name = _prop.msgs.evtChildDefault;
+		string name = _prop.sys.evtChildDefault;
 		vals[$ - 1] = mixin (Create);
-		return createComboEditor(_tree, vals, vals[index]);
+		return createComboEditor(_comm, _prop, _tree, vals, vals[index]);
 	}
 	private CCombo createAreaSelectEditor(string Create, A)(Content evt, Content child, A[] areas) {
 		ulong[] nums;
@@ -1929,22 +2321,41 @@ public:
 		}
 		return createNumEditor!(Create)(evt, child, nums);
 	}
+	private CCombo createTrioEditor(string Create)(Content evt, Content child) {
+		string[] vals;
+		vals.length = 3;
+		string name = _prop.sys.evtChildGreater;
+		vals[0] = mixin (Create);
+		name = _prop.sys.evtChildLesser;
+		vals[1] = mixin (Create);
+		name = _prop.sys.evtChildEq;
+		vals[2] = mixin (Create);
+		size_t index;
+		if (child.name == _prop.sys.evtChildEq) {
+			index = 2;
+		} else if (child.name == _prop.sys.evtChildLesser) {
+			index = 1;
+		} else {
+			index = 0;
+		}
+		return createComboEditor(_comm, _prop, _tree, vals, vals[index]);
+	}
 	private Control createEditor(TreeItem itm) {
-		auto parent = itm.getParentItem;
+		auto parent = itm.getParentItem();
 		if (parent) {
-			if ((cast(Content) parent.getData).detail.nextType == CNextType.TEXT) {
-				return createTextEditor(_tree, (cast(Content) itm.getData).name);
+			if ((cast(Content) parent.getData()).detail.nextType == CNextType.TEXT) {
+				return createTextEditor(_comm, _prop, _tree, (cast(Content) itm.getData()).name);
 			}
 		} else if (_tree.getItem(0) is itm) {
 			return null;
 		} else {
-			return createTextEditor(_tree, (cast(Content) itm.getData).name);
+			return createTextEditor(_comm, _prop, _tree, (cast(Content) itm.getData()).name);
 		}
-		auto data = cast(Content) parent.getData;
-		auto c = cast(Content) itm.getData;
+		auto data = cast(Content) parent.getData();
+		auto c = cast(Content) itm.getData();
 		switch (data.type) {
 		case CType.BRANCH_FLAG: {
-			return createBoolEditor!("_prop.msgs.evtChildBrFlag(_summ.flagDirRoot.findFlag(evt.flag), name)")(data, c);
+			return createBoolEditor!("evtChildBrFlag(_prop, _summ, evt.flag, name)")(data, c);
 		} case CType.BRANCH_MULTI_STEP: {
 			Step step = _summ.flagDirRoot.findStep(data.step);
 			ulong[] nums;
@@ -1952,45 +2363,51 @@ public:
 			for (ulong i = 0; i < count; i++) {
 				nums ~= i;
 			}
-			return createNumEditor!("_prop.msgs.evtChildBrStepN(_summ.flagDirRoot.findStep(evt.step), name)")(data, c, nums);
+			return createNumEditor!("evtChildBrStepN(_prop, _summ, evt.step, name)")(data, c, nums);
 		} case CType.BRANCH_STEP: {
-			return createBoolEditor!("_prop.msgs.evtChildBrStepUL(_summ.flagDirRoot.findStep(evt.step), evt.stepValue, name)")(data, c);
+			return createBoolEditor!("evtChildBrStepUL(_prop, _summ, evt.step, evt.stepValue, name)")(data, c);
 		} case CType.BRANCH_SELECT: {
-			return createBoolEditor!("_prop.msgs.evtChildBrMember(evt.targetAll, evt.random, name)")(data, c);
+			return createBoolEditor!("evtChildBrMember(_prop, evt.targetAll, evt.random, name)")(data, c);
 		} case CType.BRANCH_ABILITY: {
-			return createBoolEditor!("_prop.msgs.evtChildBrPower(evt.targetS, evt.physical, evt.mental, evt.signedLevel, name)")(data, c);
+			return createBoolEditor!("evtChildBrPower(_prop, evt.targetS, evt.physical, evt.mental, evt.signedLevel, name)")(data, c);
 		} case CType.BRANCH_RANDOM: {
-			return createBoolEditor!("_prop.msgs.evtChildBrRandom(evt.percent, name)")(data, c);
+			return createBoolEditor!("evtChildBrRandom(_prop, evt.percent, name)")(data, c);
 		} case CType.BRANCH_LEVEL: {
-			return createBoolEditor!("_prop.msgs.evtChildBrLevel(evt.unsignedLevel, evt.average, name)")(data, c);
+			return createBoolEditor!("evtChildBrLevel(_prop, evt.unsignedLevel, evt.average, name)")(data, c);
 		} case CType.BRANCH_STATUS: {
-			return createBoolEditor!("_prop.msgs.evtChildBrState(evt.targetNS, evt.status, name)")(data, c);
+			return createBoolEditor!("evtChildBrState(_prop, evt.targetNS, evt.status, name)")(data, c);
 		} case CType.BRANCH_PARTY_NUMBER: {
-			return createBoolEditor!("_prop.msgs.evtChildBrNum(evt.partyNumber, name)")(data, c);
+			return createBoolEditor!("evtChildBrNum(_prop, evt.partyNumber, name)")(data, c);
 		} case CType.BRANCH_AREA: {
-			return createAreaSelectEditor!("_prop.msgs.evtChildBrArea(_summ.areas, name)")(data, c, _summ.areas);
+			return createAreaSelectEditor!("evtChildBrArea(_prop, _summ.areas, name)")(data, c, _summ.areas);
 		} case CType.BRANCH_BATTLE: {
-			return createAreaSelectEditor!("_prop.msgs.evtChildBrBattle(_summ.battles, name)")(data, c, _summ.battles);
+			return createAreaSelectEditor!("evtChildBrBattle(_prop, _summ.battles, name)")(data, c, _summ.battles);
 		} case CType.BRANCH_IS_BATTLE: {
-			return createBoolEditor!("_prop.msgs.evtChildBrOnBattle(name)")(data, c);
+			return createBoolEditor!("evtChildBrOnBattle(_prop, name)")(data, c);
 		} case CType.BRANCH_CAST: {
-			return createBoolEditor!("_prop.msgs.evtChildBrCast(_summ.casts(evt.casts), name)")(data, c);
+			return createBoolEditor!("evtChildBrCast(_prop, _summ, evt.casts, name)")(data, c);
 		} case CType.BRANCH_ITEM: {
-			return createBoolEditor!("_prop.msgs.evtChildBrItem(_summ.item(evt.item), evt.range, evt.cardNumber, name)")(data, c);
+			return createBoolEditor!("evtChildBrItem(_prop, _summ, evt.item, evt.range, evt.cardNumber, name)")(data, c);
 		} case CType.BRANCH_SKILL: {
-			return createBoolEditor!("_prop.msgs.evtChildBrSkill( _summ.skill(evt.skill), evt.range, evt.cardNumber, name)")(data, c);
+			return createBoolEditor!("evtChildBrSkill(_prop,  _summ, evt.skill, evt.range, evt.cardNumber, name)")(data, c);
 		} case CType.BRANCH_BEAST: {
-			return createBoolEditor!("_prop.msgs.evtChildBrBeast(_summ.beast(evt.beast), evt.range, evt.cardNumber, name)")(data, c);
+			return createBoolEditor!("evtChildBrBeast(_prop, _summ, evt.beast, evt.range, evt.cardNumber, name)")(data, c);
 		} case CType.BRANCH_INFO: {
-			return createBoolEditor!("_prop.msgs.evtChildBrInfo(_summ.info(evt.info), name)")(data, c);
+			return createBoolEditor!("evtChildBrInfo(_prop, _summ, evt.info, name)")(data, c);
 		} case CType.BRANCH_MONEY: {
-			return createBoolEditor!("_prop.msgs.evtChildBrMoney(evt.money, name)")(data, c);
+			return createBoolEditor!("evtChildBrMoney(_prop, evt.money, name)")(data, c);
 		} case CType.BRANCH_COUPON: {
-			return createBoolEditor!("_prop.msgs.evtChildBrCoupon(evt.range, evt.coupon, name)")(data, c);
+			return createBoolEditor!("evtChildBrCoupon(_prop, evt.range, evt.coupon, name)")(data, c);
 		} case CType.BRANCH_COMPLETE_STAMP: {
-			return createBoolEditor!("_prop.msgs.evtChildBrEnd(evt.completeStamp, name)")(data, c);
+			return createBoolEditor!("evtChildBrEnd(_prop, evt.completeStamp, name)")(data, c);
 		} case CType.BRANCH_GOSSIP: {
-			return createBoolEditor!("_prop.msgs.evtChildBrGossip(evt.gossip, name)")(data, c);
+			return createBoolEditor!("evtChildBrGossip(_prop, evt.gossip, name)")(data, c);
+		} case CType.BRANCH_STEP_CMP: {
+			return createTrioEditor!("evtChildBrStepCmp(_prop, _summ, evt.step, evt.step2, name)")(data, c);
+		} case CType.BRANCH_FLAG_CMP: {
+			return createBoolEditor!("evtChildBrFlagCmp(_prop, _summ, evt.flag, evt.flag2, name)")(data, c);
+		} case CType.BRANCH_RANDOM_SELECT: {
+			return createBoolEditor!("evtChildBrRandomSelect(_prop, evt, name)")(data, c);
 		} default:
 		}
 		return null;
@@ -1999,233 +2416,736 @@ public:
 	/// parent = 親イベント。
 	/// e = イベント。名称が書き換えられる。
 	/// Returns: テキスト。
-	private string eventText(Content parent, Content e) in {
+	private string eventText(Content parent, Content e) {
+		return eventTextImpl(_comm, _prop, _summ, parent, e);
+	}
+	private static string eventTextImpl(Commons comm, Props prop, Summary summ, Content parent, Content e) in {
 		assert (parent.detail.owner);
 	} body {
 		if (!parent) return e.name;
 		if (parent.detail.nextType == CNextType.TEXT) {
-			return e.name.length > 0 ? e.name : " ";
+			return e.name;
 		}
 		string name = e.name;
 		string r;
 		switch (parent.type) {
 		case CType.BRANCH_FLAG: {
-			r = _prop.msgs.evtChildBrFlag(_summ.flagDirRoot.findFlag(parent.flag), name);
+			r = evtChildBrFlag(prop, summ, parent.flag, name);
 			break;
 		} case CType.BRANCH_MULTI_STEP: {
-			r = _prop.msgs.evtChildBrStepN(_summ.flagDirRoot.findStep(parent.step), name);
+			r = evtChildBrStepN(prop, summ, parent.step, name);
 			break;
 		} case CType.BRANCH_STEP: {
-			r = _prop.msgs.evtChildBrStepUL(_summ.flagDirRoot.findStep(parent.step), parent.stepValue, name);
+			r = evtChildBrStepUL(prop, summ, parent.step, parent.stepValue, name);
 			break;
 		} case CType.BRANCH_SELECT: {
-			r = _prop.msgs.evtChildBrMember(parent.targetAll, parent.random, name);
+			r = evtChildBrMember(prop, parent.targetAll, parent.random, name);
 			break;
 		} case CType.BRANCH_ABILITY: {
-			r = _prop.msgs.evtChildBrPower(parent.targetS, parent.physical, parent.mental, parent.signedLevel, name);
+			r = evtChildBrPower(prop, parent.targetS, parent.physical, parent.mental, parent.signedLevel, name);
 			break;
 		} case CType.BRANCH_RANDOM: {
-			r = _prop.msgs.evtChildBrRandom(parent.percent, name);
+			r = evtChildBrRandom(prop, parent.percent, name);
 			break;
 		} case CType.BRANCH_LEVEL: {
-			r = _prop.msgs.evtChildBrLevel(parent.unsignedLevel, parent.average, name);
+			r = evtChildBrLevel(prop, parent.unsignedLevel, parent.average, name);
 			break;
 		} case CType.BRANCH_STATUS: {
-			r = _prop.msgs.evtChildBrState(parent.targetNS, parent.status, name);
+			r = evtChildBrState(prop, parent.targetNS, parent.status, name);
 			break;
 		} case CType.BRANCH_PARTY_NUMBER: {
-			r = _prop.msgs.evtChildBrNum(parent.partyNumber, name);
+			r = evtChildBrNum(prop, parent.partyNumber, name);
 			break;
 		} case CType.BRANCH_AREA: {
-			r = _prop.msgs.evtChildBrArea(_summ.areas, name);
+			r = evtChildBrArea(prop, summ.areas, name);
 			break;
 		} case CType.BRANCH_BATTLE: {
-			r = _prop.msgs.evtChildBrBattle(_summ.battles, name);
+			r = evtChildBrBattle(prop, summ.battles, name);
 			break;
 		} case CType.BRANCH_IS_BATTLE: {
-			r = _prop.msgs.evtChildBrOnBattle(name);
+			r = evtChildBrOnBattle(prop, name);
 			break;
 		} case CType.BRANCH_CAST: {
-			r = _prop.msgs.evtChildBrCast(_summ.casts(parent.casts), name);
+			r = evtChildBrCast(prop, summ, parent.casts, name);
 			break;
 		} case CType.BRANCH_ITEM: {
-			r = _prop.msgs.evtChildBrItem(_summ.item(parent.item), parent.range, parent.cardNumber, name);
+			r = evtChildBrItem(prop, summ, parent.item, parent.range, parent.cardNumber, name);
 			break;
 		} case CType.BRANCH_SKILL: {
-			r = _prop.msgs.evtChildBrSkill(_summ.skill(parent.skill), parent.range, parent.cardNumber, name);
+			r = evtChildBrSkill(prop, summ, parent.skill, parent.range, parent.cardNumber, name);
 			break;
 		} case CType.BRANCH_BEAST: {
-			r = _prop.msgs.evtChildBrBeast(_summ.beast(parent.beast), parent.range, parent.cardNumber, name);
+			r = evtChildBrBeast(prop, summ, parent.beast, parent.range, parent.cardNumber, name);
 			break;
 		} case CType.BRANCH_INFO: {
-			r = _prop.msgs.evtChildBrInfo(_summ.info(parent.info), name);
+			r = evtChildBrInfo(prop, summ, parent.info, name);
 			break;
 		} case CType.BRANCH_MONEY: {
-			r = _prop.msgs.evtChildBrMoney(parent.money, name);
+			r = evtChildBrMoney(prop, parent.money, name);
 			break;
 		} case CType.BRANCH_COUPON: {
-			r = _prop.msgs.evtChildBrCoupon(parent.range, parent.coupon, name);
+			r = evtChildBrCoupon(prop, parent.range, parent.coupon, name);
 			break;
 		} case CType.BRANCH_COMPLETE_STAMP: {
-			r = _prop.msgs.evtChildBrEnd(parent.completeStamp, name);
+			r = evtChildBrEnd(prop, parent.completeStamp, name);
 			break;
 		} case CType.BRANCH_GOSSIP: {
-			r = _prop.msgs.evtChildBrGossip(parent.gossip, name);
+			r = evtChildBrGossip(prop, parent.gossip, name);
+			break;
+		} case CType.BRANCH_STEP_CMP: {
+			r = evtChildBrStepCmp(prop, summ, parent.step, parent.step2, name);
+			break;
+		} case CType.BRANCH_FLAG_CMP: {
+			r = evtChildBrFlagCmp(prop, summ, parent.flag, parent.flag2, name);
+			break;
+		} case CType.BRANCH_RANDOM_SELECT: {
+			r = evtChildBrRandomSelect(prop, parent, name);
 			break;
 		} default:
 			name = "";
 			r = "";
 		}
 		e.name = name;
+		comm.refContent.call(e);
 		return r;
 	}
-	private void createChilds(TreeItem parent, Content evt, bool select = false) {
-		if (!evt.detail.owner) return;
-		parent.removeAll;
+	/// 空のテキストは入力ガイドを代わりに表示。
+	private void procTreeItem(TreeItem itm) {
+		auto c = cast(Content) itm.getData();
+		assert (c !is null);
+		if (c.parent && c.parent.detail.nextType == CNextType.TEXT) {
+			if (c.name.length) {
+				itm.setForeground(_tree.getForeground());
+			} else {
+				itm.setForeground(_grayFont);
+				if (_prop.var.etc.showInputGuide) {
+					itm.setText(_comm.skin.evtChildOK);
+				} else {
+					itm.setText(" ");
+				}
+			}
+		}
+	}
+	/// 末尾のアイテムを返す。
+	private TreeItem createChilds(TreeItem parent, Content evt) {
+		if (!evt.detail.owner) return parent;
+		parent.removeAll();
+		TreeItem itm = parent;
 		foreach (c; evt.next) {
-			auto itm = createTreeItem(parent, c, eventText(evt, c), _prop.images.content(c.type));
-			if (select) {
-				_tree.setSelection = [itm];
-			}
+			auto itm2 = createTreeItem(parent, c, eventText(evt, c), _prop.images.content(c.type));
+			itm = itm2;
 			if (c.detail.owner) {
-				createChilds(itm, c, select);
+				itm = createChilds(itm2, c);
 			}
-			itm.setExpanded = true;
+			procTreeItem(itm2);
+			itm2.setExpanded(true);
+		}
+		return itm;
+	}
+	private static string evtChildBrFlag(in Props prop, in Summary summ, string path, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string name = prop.msgs.noSelectFlag;
+		string on = prop.msgs.flagOn;
+		string off = prop.msgs.flagOff;
+		if (path.length) {
+			auto o = summ.flagDirRoot.findFlag(path);
+			if (o) {
+				name = path;
+				on = o.on;
+				off = o.off;
+			} else {
+				name = .tryFormat(prop.msgs.noFlag, path);
+			}
+		}
+		return .tryFormat(prop.msgs.evtChildBrVar, name, (val ? on : off));
+	}
+	private static string evtChildBrStepN(in Props prop, in Summary summ, string path, ref string text) {
+		int val = -1;
+		try {
+			val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(int)(text) : -1);
+		} catch {
+			// Nothing
+		}
+		string name = prop.msgs.noSelectStep;
+		string value = val >= 0 ? .tryFormat(prop.msgs.dlgLblStep, val) : prop.msgs.etc;
+		if (path.length) {
+			auto o = summ.flagDirRoot.findStep(path);
+			if (o) {
+				if (o.count <= val) {
+					val = -1;
+					text = prop.sys.evtChildDefault;
+				}
+				name = path;
+				if (0 <= val) value = o.getValue(val);
+			} else {
+				name = .tryFormat(prop.msgs.noStep, path);
+			}
+		}
+		return .tryFormat(prop.msgs.evtChildBrVar, name, value);
+	}
+	private static string evtChildBrStepUL(in Props prop, in Summary summ, string path, int num, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string name = prop.msgs.noSelectStep;
+		string value = .tryFormat(prop.msgs.dlgLblStep, num);
+		if (path.length) {
+			auto o = summ.flagDirRoot.findStep(path);
+			if (o) {
+				name = path;
+				if (0 <= num && num < o.count) value = o.getValue(num);
+			} else {
+				name = .tryFormat(prop.msgs.noStep, path);
+			}
+		}
+		if (val) {
+			return .tryFormat(prop.msgs.stepMoreThan, path, value);
+		} else {
+			return .tryFormat(prop.msgs.stepLessThan, path, value);
+		}
+	}
+	private static string evtChildBrMember(in Props prop, bool all, bool random, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string mem = all ? prop.msgs.partyAll : prop.msgs.partyActive;
+		string am = random ? prop.msgs.autoSelect : prop.msgs.manualSelect;
+		if (val) {
+			return .tryFormat(prop.msgs.selectMemberSuccess, mem, am);
+		} else {
+			return .tryFormat(prop.msgs.selectMemberFailure, mem, am);
+		}
+	}
+	private static string evtChildBrPower(in Props prop, Target targ, Physical p, Mental m, int lev, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string tt = prop.msgs.targetName(targ.m);
+		string tp = prop.msgs.physicalName(p);
+		string tm = prop.msgs.mentalName(m);
+		if (val) {
+			return .tryFormat(prop.msgs.branchAbilitySuccess, tt, lev, tp, tm);
+		} else {
+			return .tryFormat(prop.msgs.branchAbilityFailure, tt, lev, tp, tm);
+		}
+	}
+	private static string evtChildBrRandom(in Props prop, int percent, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		if (val) {
+			return .tryFormat(prop.msgs.branchRandomSuccess, percent);
+		} else {
+			return .tryFormat(prop.msgs.branchRandomFailure, percent);
+		}
+	}
+	private static string evtChildBrLevel(in Props prop, int lev, bool avg, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string ta = avg  ? prop.msgs.levelAverage : prop.msgs.levelSelected;
+		if (val) {
+			return .tryFormat(prop.msgs.branchLevelSuccess, ta, lev);
+		} else {
+			return .tryFormat(prop.msgs.branchLevelFailure, ta, lev);
+		}
+	}
+	private static string evtChildBrState(in Props prop, Target targ, Status stat, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string tt = prop.msgs.targetName(targ.m);
+		string ts = prop.msgs.statusName(stat);
+		if (val) {
+			return .tryFormat(prop.msgs.branchStatusSuccess, tt, ts);
+		} else {
+			return .tryFormat(prop.msgs.branchStatusFailure, tt, ts);
+		}
+	}
+	private static string evtChildBrNum(in Props prop, int num, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		if (val) {
+			return .tryFormat(prop.msgs.branchNumberSuccess, num);
+		} else {
+			return .tryFormat(prop.msgs.branchNumberFailure, num);
+		}
+	}
+	private static string evtChildBrArea(in Props prop, in Area[] areas, ref string text) {
+		if (text.length > 0) {
+			try {
+				long val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
+				if (val >= 0) {
+					foreach (a; areas) {
+						if (a.id == val) {
+							return .tryFormat(prop.msgs.branchArea, a.name);
+						}
+					}
+				}
+			} catch {}
+		}
+		text = prop.sys.evtChildDefault;
+		return .tryFormat(prop.msgs.branchArea, prop.msgs.etc);
+	}
+	private static string evtChildBrBattle(in Props prop, in Battle[] btls, ref string text) {
+		if (text.length > 0) {
+			try {
+				long val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
+				if (val >= 0) {
+					foreach (b; btls) {
+						if (b.id == val) {
+							return .tryFormat(prop.msgs.branchBattle, b.name);
+						}
+					}
+				}
+			} catch {}
+		}
+		text = prop.sys.evtChildDefault;
+		return .tryFormat(prop.msgs.branchBattle, prop.msgs.etc);
+	}
+	private static string evtChildBrOnBattle(in Props prop, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		if (val) {
+			return prop.msgs.branchOnBattleSuccess;
+		} else {
+			return prop.msgs.branchOnBattleFailure;
+		}
+	}
+	private static string evtChildBrCast(in Props prop, in Summary summ, ulong id, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string name = prop.msgs.noSelectCast;
+		if (0 != id) {
+			auto c = summ.cwCast(id);
+			name = c ? c.name : .tryFormat(prop.msgs.noCast, id);
+		}
+		if (val) {
+			return .tryFormat(prop.msgs.branchCastSuccess, name);
+		} else {
+			return .tryFormat(prop.msgs.branchCastFailure, name);
+		}
+	}
+	private static string evtChildBrItem(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string tr = prop.msgs.rangeName(r);
+		string name = prop.msgs.noSelectItem;
+		if (0 != id) {
+			auto c = summ.item(id);
+			name = c ? c.name : .tryFormat(prop.msgs.noItem, id);
+		}
+		if (val) {
+			return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
+		} else {
+			return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
+		}
+	}
+	private static string evtChildBrSkill(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string tr = prop.msgs.rangeName(r);
+		string name = prop.msgs.noSelectSkill;
+		if (0 != id) {
+			auto c = summ.skill(id);
+			name = c ? c.name : .tryFormat(prop.msgs.noSkill, id);
+		}
+		if (val) {
+			return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
+		} else {
+			return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
+		}
+	}
+	private static string evtChildBrBeast(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string tr = prop.msgs.rangeName(r);
+		string name = prop.msgs.noSelectBeast;
+		if (0 != id) {
+			auto c = summ.beast(id);
+			name = c ? c.name : .tryFormat(prop.msgs.noBeast, id);
+		}
+		if (val) {
+			return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
+		} else {
+			return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
+		}
+	}
+	private static string evtChildBrInfo(in Props prop, in Summary summ, ulong id, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string name = prop.msgs.noSelectInfo;
+		if (0 != id) {
+			auto c = summ.info(id);
+			name = c ? c.name : .tryFormat(prop.msgs.noInfo, id);
+		}
+		if (val) {
+			return .tryFormat(prop.msgs.branchInfoSuccess, name);
+		} else {
+			return .tryFormat(prop.msgs.branchInfoFailure, name);
+		}
+	}
+	private static string evtChildBrMoney(in Props prop, uint sp, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		if (val) {
+			return .tryFormat(prop.msgs.branchMoneySuccess, sp);
+		} else {
+			return .tryFormat(prop.msgs.branchMoneyFailure, sp);
+		}
+	}
+	private static string evtChildBrCoupon(in Props prop, Range r, string coupon, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		if (!coupon || !coupon.length) coupon = prop.msgs.noSelectCoupon;
+		string tr = prop.msgs.rangeName(r);
+		if (val) {
+			return .tryFormat(prop.msgs.branchCouponSuccess, tr, coupon);
+		} else {
+			return .tryFormat(prop.msgs.branchCouponFailure, tr, coupon);
+		}
+	}
+	private static string evtChildBrEnd(in Props prop, string scenario, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		if (!scenario || !scenario.length) scenario = prop.msgs.noSelectCompleteStamp;
+		if (val) {
+			return .tryFormat(prop.msgs.branchCompleteSuccess, scenario);
+		} else {
+			return .tryFormat(prop.msgs.branchCompleteFailure, scenario);
+		}
+	}
+	private static string evtChildBrGossip(in Props prop, string gossip, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		if (!gossip || !gossip.length) gossip = prop.msgs.noSelectGossip;
+		if (val) {
+			return .tryFormat(prop.msgs.branchGossipSuccess, gossip);
+		} else {
+			return .tryFormat(prop.msgs.branchGossipFailure, gossip);
+		}
+	}
+	private static string evtChildBrStepCmp(in Props prop, in Summary summ, string step1, string step2, ref string text) {
+		int index;
+		if (text == prop.sys.evtChildEq) {
+			index = 2;
+			text = prop.sys.evtChildEq;
+		} else if (text == prop.sys.evtChildLesser) {
+			index = 1;
+			text = prop.sys.evtChildLesser;
+		} else {
+			index = 0;
+			text = prop.sys.evtChildGreater;
+		}
+		string nameFrom(string path) {
+			string name = prop.msgs.noSelectStep;
+			if (path.length) {
+				auto o = summ.flagDirRoot.findStep(path);
+				if (o) {
+					name = path;
+				} else {
+					name = .tryFormat(prop.msgs.noStep, path);
+				}
+			}
+			return name;
+		}
+		step1 = nameFrom(step1);
+		step2 = nameFrom(step2);
+		switch (index) {
+		case 0:
+			return .tryFormat(prop.msgs.branchStepCmpGreater, step1, step2);
+		case 1:
+			return .tryFormat(prop.msgs.branchStepCmpLesser, step1, step2);
+		case 2:
+			return .tryFormat(prop.msgs.branchStepCmpEq, step1, step2);
+		default:
+			assert (0);
+		}
+	}
+	private static string evtChildBrFlagCmp(in Props prop, in Summary summ, string flag1, string flag2, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+		string nameFrom(string path) {
+			string name = prop.msgs.noSelectFlag;
+			if (path.length) {
+				auto o = summ.flagDirRoot.findFlag(path);
+				if (o) {
+					name = path;
+				} else {
+					name = .tryFormat(prop.msgs.noFlag, path);
+				}
+			}
+			return name;
+		}
+		flag1 = nameFrom(flag1);
+		flag2 = nameFrom(flag2);
+		if (val) {
+			return .tryFormat(prop.msgs.branchFlagCmpEq, flag1, flag2);
+		} else {
+			return .tryFormat(prop.msgs.branchFlagCmpNotEq, flag1, flag2);
+		}
+	}
+	private static string evtChildBrRandomSelect(in Props prop, in Content evt, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+
+		string r = prop.msgs.castRangeName(evt.castRange);
+		bool hasLevel = 0 < evt.levelMax;
+		bool hasStatus = evt.status !is Status.NONE;
+		if (hasLevel || hasStatus) {
+			string s = prop.msgs.statusName(evt.status);
+			auto l1 = evt.levelMin, l2 = evt.levelMax;
+			string cond;
+			if (hasLevel && hasStatus) {
+				cond = .tryFormat(prop.msgs.randomSelectCondition3, l1, l2, s);
+			} else if (hasLevel) {
+				cond = .tryFormat(prop.msgs.randomSelectCondition1, l1, l2);
+			} else if (hasStatus) {
+				cond = .tryFormat(prop.msgs.randomSelectCondition2, s);
+			} else assert (0);
+			if (val) {
+				return .tryFormat(prop.msgs.branchRandomSelectSuccess, r, cond);
+			} else {
+				return .tryFormat(prop.msgs.branchRandomSelectFailure, r, cond);
+			}
+		} else {
+			if (val) {
+				return .tryFormat(prop.msgs.branchRandomSelectSuccessN, r);
+			} else {
+				return .tryFormat(prop.msgs.branchRandomSelectFailureN, r);
+			}
 		}
 	}
 
+	@property
 	EventTree eventTree() {
 		return _et;
 	}
+	@property
 	bool isFocusControl() {
-		return _tree.isFocusControl;
+		return _tree.isFocusControl();
 	}
 
-	private void __ud(string ToIndex)(TreeItem itm, int function(TreeItem) treeSwap, bool store) {
-		if (!_et) return;
-		if (itm) {
-			_tree.setRedraw = false;
-			scope (exit) _tree.setRedraw = true;
-			if (itm.getParentItem) {
-				auto p = cast(Content) itm.getParentItem.getData;
-				int i = treeSwap(itm);
-				if (i >= 0) {
-					if (store) this.store(p);
-					p.swapContent(i, mixin(ToIndex));
-					_tree.showSelection;
-				}
-			} else {
-				int i = treeSwap(itm);
-				int j = mixin(ToIndex);
-				if (i >= 0) {
-					if (store) this.storeSwap(i, j);
-					_et.swapStart(i, j);
-					_tree.showSelection;
-				}
-				if (i == 0 || j == 0) {
-					_refreshTopStart();
-				}
+	private static void udImpl(int To)(EventTreeView v, Commons comm, EventTree et, Content c, bool store) {
+		if (!et) return;
+		if (v) v._tree.setRedraw(false);
+		scope (exit) if (v) v._tree.setRedraw(true);
+		auto pc = c.parent;
+		int i, j;
+		auto path = c.ctPath;
+		if (pc) {
+			i = cCountUntil!("a is b")(pc.next, c);
+			j = i + To;
+			if (j < 0 || pc.next.length <= j) return;
+			if (v && store) {
+				v.store(pc);
 			}
+			comm.delContent.call(pc.next[i]);
+			comm.delContent.call(pc.next[j]);
+			pc.swapContent(i, j);
+		} else {
+			i = cCountUntil!("a is b")(et.starts, c);
+			j = i + To;
+			if (j < 0 || et.starts.length <= j) return;
+			if (v && store) {
+				v.storeSwap(i, j);
+			}
+			comm.delContent.call(et.starts[i]);
+			comm.delContent.call(et.starts[j]);
+			et.swapStart(i, j);
+		}
+		if (v) {
+			static if (To == -1) {
+				int r = treeItemUp(v.fromPath(path));
+			} else static if (To == 1) {
+				int r = treeItemDown(v.fromPath(path));
+			} else static assert (0);
+			v._tree.showSelection();
+			if (!pc && (i == 0 || j == 0)) {
+				v._refreshTopStart();
+			}
+		}
+	}
+	@property
+	bool canUp() {
+		auto itm = selection;
+		if (!itm) return false;
+		auto par = itm.getParentItem();
+		if (par) {
+			return 0 < par.indexOf(itm);
+		} else {
+			return 0 < itm.getParent().indexOf(itm);
+		}
+	}
+	@property
+	bool canDown() {
+		auto itm = selection;
+		if (!itm) return false;
+		auto par = itm.getParentItem();
+		if (par) {
+			return par.indexOf(itm) + 1 < par.getItemCount();
+		} else {
+			auto tree = itm.getParent();
+			return tree.indexOf(itm) + 1 < tree.getItemCount();
 		}
 	}
 	private void up(TreeItem itm, bool store) {
 		if (!itm) return;
-		__ud!("i - 1")(itm, &treeItemUp, store);
+		udImpl!(-1)(this, _comm, _et, cast(Content) itm.getData(), store);
+		_comm.refreshToolBar();
 	}
 	void up() {
-		up(selection, true);
+		auto itm = selection;
+		if (itm) up(itm, true);
 	}
 	private void down(TreeItem itm, bool store) {
 		if (!itm) return;
-		__ud!("i + 1")(itm, &treeItemDown, store);
+		udImpl!(1)(this, _comm, _et, cast(Content) itm.getData(), store);
+		_comm.refreshToolBar();
 	}
 	void down() {
-		down(selection, true);
+		auto itm = selection;
+		if (itm) down(itm, true);
 	}
 
 	void openToolWindow() {
+		constructTools();
 		if (_toolWin) {
-			if (_toolWin.isDisposed) return;
+			if (_toolWin.isDisposed()) return;
 			if (_et) {
 				if (_opened) {
-					_toolWin.setVisible = true;
+					_toolWin.setVisible(true);
 					_toolWinVisible = true;
 				} else {
 					_opened = true;
-					_toolWin.open;
+					_toolWin.open();
 					_toolWinVisible = true;
 				}
 			} else {
 				_toolWinVisible = true;
 			}
+			_comm.refreshToolBar();
 		}
 	}
 	void closeToolWindow() {
 		if (_toolWin) {
-			if (_toolWin.isDisposed) return;
-			_toolWin.setVisible = false;
+			if (_toolWin.isDisposed()) return;
+			_toolWin.setVisible(false);
 			_toolWinVisible = false;
 		}
 	}
+
 	void refreshTreeName() {
-		_tree.getItems[0].setText = _et.name;
-		refreshStatusLine;
+		_tree.getItems()[0].setText(_et.name);
+		refreshStatusLine();
 	}
 
-	private void addContents(Content[] cs ...) {
+	@property
+	private Content insertOwner() {
+		auto itm = selection;
+		if (!itm) return null;
+		auto owner = cast(Content) itm.getData();
+		assert (owner);
+		if (owner.detail.owner) return owner;
+		return null;
+	}
+	private void addContents(bool stored, Content[] cs, Content[] refCS = []) {
 		auto itm = selection;
 		if (!itm) return;
-		auto owner = cast(Content) itm.getData;
-		assert (owner);
-		if (!owner.detail.owner) return;
-		_tree.setRedraw = false;
-		scope (exit) _tree.setRedraw = true;
-		store(owner);
+		auto owner = insertOwner;
+		if (!owner) return;
+		bool empty = _et.owner.isEmpty;
+		scope (exit) {
+			if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
+		}
+		Content[] cs2;
 		foreach (ct; cs) {
+			if (ct.type is CType.START) continue;
+			cs2 ~= ct;
+		}
+		if (!cs2.length) return;
+		_tree.setRedraw(false);
+		scope (exit) _tree.setRedraw(true);
+		if (stored) store(owner);
+		foreach (ct; cs2) {
 			owner.add(ct);
+			_comm.refContent.call(ct);
 		}
-		createChilds(itm, owner, true);
-		_comm.refUseCount.call;
-		refreshStatusLine;
+		auto lastItm = createChilds(itm, owner);
+		_tree.setSelection([lastItm]);
+		_comm.refUseCount.call();
+		refreshStatusLine();
+		_comm.refreshToolBar();
 	}
-	private void addStarts(Content[] cs ...) {
-		_tree.setRedraw = false;
-		scope (exit) _tree.setRedraw = true;
+	@property
+	private int insertStartIndex() {
 		auto sel = selection;
-		int index;
 		if (sel) {
-			index = _tree.indexOf(topItem(sel)) + 1;
+			return _tree.indexOf(topItem(sel)) + 1;
 		} else {
-			index = 1;
+			return 1;
 		}
-		auto top = _tree.getTopItem;
-		storeInsert(index, cs.length);
-		TreeItem sItm = null;
-		foreach (i, c; cs) {
+	}
+	private void addStarts(bool stored, Content[] cs, Content[] refCS = []) {
+		_tree.setRedraw(false);
+		scope (exit) _tree.setRedraw(true);
+		bool empty = _et.owner.isEmpty;
+		scope (exit) {
+			if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
+		}
+		auto sel = selection;
+		int index = insertStartIndex;
+		Content[] cs2;
+		foreach (ct; cs) {
+			if (ct.type !is CType.START) continue;
+			cs2 ~= ct;
+		}
+		if (!cs2.length) return;
+
+		auto top = _tree.getTopItem();
+		if (stored) storeInsert(index, cs2.length);
+		TreeItem sItm = null, lastItm = null;
+		foreach (i, c; cs2) {
+			if (!c.type is CType.START) continue;
+			auto oldName = c.name;
 			c.name = createNewName(c.name, (string name) {
 				foreach (s; _et.starts) {
 					if (icmp(s.name, name) == 0) {
 						return false;
 					}
 				}
+				foreach (s; cs2) {
+					if (s is c) continue;
+					if (icmp(s.name, name) == 0) {
+						return false;
+					}
+				}
 				return true;
 			}, true);
+			if (c.name != oldName) {
+				void recurse(Content[] cs) {
+					foreach (ct; cs) {
+						if (ct.start == oldName) {
+							ct.start = c.name;
+						}
+						recurse(ct.next);
+					}
+				}
+				recurse(refCS);
+			}
 			_et.insert(index + i, c);
 			sItm = createTreeItem(_tree, c, c.name, _prop.images.content(c.type), index + i);
-			createChilds(sItm, c, true);
-			sItm.setExpanded = true;
+			lastItm = createChilds(sItm, c);
+			sItm.setExpanded(true);
+			_comm.refContent.call(c);
 		}
 		if (!sItm) return;
-		_tree.select = sItm;
-		_tree.showSelection;
-		_comm.refUseCount.call;
-		refreshStatusLine;
+		if (lastItm) _tree.setSelection([lastItm]);
+		_tree.showSelection();
+		_comm.refUseCount.call();
+		refreshStatusLine();
+		_comm.refreshToolBar();
 	}
 
 	override {
 		void cut(SelectionEvent se) {
 			auto itm = selection;
-			if (itm && itm !is _tree.getItems[0]) {
+			if (itm && itm !is _tree.getItems()[0]) {
 				copy(se);
 				del(se);
 			}
@@ -2233,19 +3153,16 @@ public:
 		void copy(SelectionEvent se) {
 			auto itm = selection;
 			if (itm) {
-				string xml = (cast(Content) itm.getData).toXML;
-				auto cb = new Clipboard(Display.getCurrent);
-				scope (exit) cb.dispose;
-				XMLtoCB(_prop, cb, xml);
+				string xml = (cast(Content) itm.getData()).toXML(null);
+				XMLtoCB(_prop, _comm.clipboard, xml);
+				_comm.refreshToolBar();
 			}
 		}
 		void paste(SelectionEvent se) {
 			if (!_et) return;
-			auto cb = new Clipboard(Display.getCurrent);
-			scope (exit) cb.dispose;
 			string c;
 			try {
-				c = CBtoXML(cb);
+				c = CBtoXML(_comm.clipboard);
 			} catch (Exception e) {
 				// たまにアクセス違反が起こる
 				debugln(e);
@@ -2257,138 +3174,276 @@ public:
 					auto evt = Content.createFromXML(c, LATEST_VERSION, id);
 					if (!evt) return;
 					if (evt.type == CType.START) {
-						addStarts(evt);
+						addStarts(true, [evt]);
 					} else {
-						addContents(evt);
+						addContents(true, [evt]);
 					}
+					_comm.refreshToolBar();
 					return;
 				} catch (Exception e) {
 					debugln(e);
 				}
 			}
-			auto script = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance);
+			auto script = cast(ArrayWrapperString) _comm.clipboard.getContents(TextTransfer.getInstance());
 			if (script) {
-				try {
-					auto cs = cwx.script.compile(_prop.parent, _summ, script.array.idup);
-					if (!cs.length) return;
-					if (cs[0].type is CType.START) {
-						addStarts(cs);
-					} else {
-						addContents(cs);
-					}
-				} catch (CWXScriptException e) {
-					auto dlg = new ScriptErrorDialog(_prop, _tree.getShell, e);
-					dlg.open;
-				}
+				pasteScript(script.array.idup);
 			}
 		}
 		void del(SelectionEvent se) {
 			auto itm = selection;
-			if (itm && itm !is _tree.getItems[0]) {
-				_tree.setRedraw = false;
-				scope(exit) _tree.setRedraw = true;
+			if (itm && itm !is _tree.getItems()[0]) {
+				_tree.setRedraw(false);
+				scope(exit) _tree.setRedraw(true);
 				delImpl(itm, true);
-				_comm.refUseCount.call;
+				_comm.refUseCount.call();
+				_comm.refreshToolBar();
 			}
 		}
+		void clone(SelectionEvent se) {
+			_comm.clipboard.memoryMode = true;
+			scope (exit) _comm.clipboard.memoryMode = false;
+			copy(se);
+			auto itm = selection;
+			auto parItm = itm.getParentItem();
+			if (parItm) {
+				_tree.setSelection([parItm]);
+			}
+			paste(se);
+		}
+		@property
 		bool canDoTCPD() {
-			return _tree.isFocusControl;
+			return _et !is null && _tree.isFocusControl();
+		}
+		@property
+		bool canDoT() {
+			auto itm = selection;
+			return itm && itm !is _tree.getItems()[0];
+		}
+		@property
+		bool canDoC() {
+			return selection !is null;
+		}
+		@property
+		bool canDoP() {
+			return _et !is null && (CBisXML(_comm.clipboard) || CBisText(_comm.clipboard));
+		}
+		@property
+		bool canDoD() {
+			return canDoT;
+		}
+		@property
+		bool canDoClone() {
+			return canDoC;
 		}
 	}
+	void pasteScript(string script) {
+		if (!_et) return;
+		string base = script;
+		CompileOption opt;
+		try {
+			try {
+				opt.linkId = _prop.var.etc.linkCard;
+
+				auto compiler = new CWXScript(_prop.parent, _summ);
+				auto vars = compiler.eatEmptyVars(script, opt);
+				if (vars.length) {
+					auto dlg = new ScriptVarSetDialog(_comm, _summ, _tree.getShell(), vars, script, base, opt);
+					dlg.appliedEvent ~= {
+						putContents(dlg.contents);
+					};
+					dlg.open();
+				} else {
+					auto cs = cwx.script.compile(_prop.parent, _summ, script, opt);
+					putContents(cs);
+				}
+			} catch (CWXScriptException e) {
+				throw e;
+			} catch (Exception e) {
+				debugln(e);
+				throw e;
+			} catch (Throwable e) {
+				debugln(e);
+				throw new CWXScriptException(__FILE__, __LINE__, "", [CWXSError(_prop.msgs.scriptErrorSystem, 0, 0, __FILE__, __LINE__)], false);
+			}
+		} catch (CWXScriptException e) {
+			auto dlg = new ScriptErrorDialog(_comm, _prop, _tree, e, base, opt);
+			dlg.open();
+		}
+	}
+	void putContents(Content[] cs) {
+		if (!_et) return;
+		if (!cs.length) return;
+		Content[] starts;
+		Content[] contents;
+		foreach (c; cs) {
+			if (c.type is CType.START) {
+				starts ~= c;
+			} else {
+				contents ~= c;
+			}
+		}
+		int si = insertStartIndex;
+		auto owner = insertOwner;
+		bool s = starts.length > 0;
+		bool c = contents.length && owner;
+		if (s && c) {
+			storeContentAndInsert(owner, si, starts.length);
+			addContents(false, contents, cs);
+			addStarts(false, starts, cs);
+		} else if (s) {
+			addStarts(true, starts);
+		} else if (c) {
+			addContents(true, contents);
+		} else {
+			return;
+		}
+		_comm.refreshToolBar();
+	}
 	private void delImpl(TreeItem itm, bool store) {
-		auto ownerItm = itm.getParentItem;
-		auto c = cast(Content) itm.getData;
+		bool empty = _et.owner.isEmpty;
+		scope (exit) {
+			if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
+		}
+		auto ownerItm = itm.getParentItem();
+		auto c = cast(Content) itm.getData();
+		_comm.delContent.call(c);
 		if (ownerItm) {
-			auto owner = cast(Content) ownerItm.getData;
+			auto owner = cast(Content) ownerItm.getData();
 			if (store) this.store(owner);
 			owner.remove(c);
 		} else {
 			if (store) this.storeDelete(.cCountUntil!("a is b")(_et.starts, c), c);
 			_et.remove(c);
 		}
-		itm.dispose;
+		itm.dispose();
 	}
-	private void __refreshCard(TreeItem evt) {
-		foreach (childItm; evt.getItems) {
-			auto child = cast(Content) childItm.getData;
-			childItm.setText = eventText(cast(Content) evt.getData, child);
-			if (child.detail.owner) {
-				__refreshCard(childItm);
+	private static void delImpl(EventTreeView v, Commons comm, EventTree et, Content c) {
+		if (v) {
+			v.delImpl(v.fromPath(c.ctPath), false);
+		} else {
+			bool empty = et.owner.isEmpty;
+			scope (exit) {
+				if (empty != et.owner.isEmpty) comm.refEventTree.call(et);
+			}
+			comm.delContent.call(c);
+			if (c.parent) {
+				c.parent.remove(c);
+			} else {
+				et.remove(c);
 			}
 		}
 	}
-	private void __refreshCard() {
-		if (_tree.isDisposed) return;
-		if (_et) {
-			foreach (itm; _tree.getItems) {
-				__refreshCard(itm);
+	private void __refreshCardImpl(TreeItem evt) {
+		foreach (childItm; evt.getItems()) {
+			auto child = cast(Content) childItm.getData();
+			childItm.setText(eventText(cast(Content) evt.getData(), child));
+			if (child.detail.owner) {
+				__refreshCardImpl(childItm);
 			}
-			refreshStatusLine;
+			procTreeItem(childItm);
+		}
+	}
+	private void __refreshCard() {
+		if (_tree.isDisposed()) return;
+		if (_et) {
+			foreach (itm; _tree.getItems()) {
+				__refreshCardImpl(itm);
+			}
+			refreshStatusLine();
 		}
 	}
 	private void __refreshEventTextImpl(Content par, TreeItem itm) in {
 		assert (par.detail.owner);
 	} body {
-		auto e = cast(Content) itm.getData;
-		itm.setText = eventText(par, e);
+		auto e = cast(Content) itm.getData();
+		itm.setText(eventText(par, e));
 		if (e.detail.owner) {
-			foreach (child; itm.getItems) {
+			foreach (child; itm.getItems()) {
 				__refreshEventTextImpl(e, child);
 			}
 		} else {
-			assert (!itm.getItems.length);
+			assert (!itm.getItems().length);
 		}
+		procTreeItem(itm);
 	}
 	private void __refreshEventText() {
 		if (_et) {
-			foreach (itm; _tree.getItems) {
-				auto start = cast(Content) itm.getData;
+			foreach (itm; _tree.getItems()) {
+				auto start = cast(Content) itm.getData();
 				assert (start.type == CType.START);
-				itm.setText = start.name;
-				foreach (child; itm.getItems) {
+				itm.setText(start.name);
+				foreach (child; itm.getItems()) {
 					__refreshEventTextImpl(start, child);
 				}
 			}
-			refreshStatusLine;
+			refreshStatusLine();
 		}
 	}
-	private void __refreshCast(CastCard c) {__refreshCard;}
-	private void __refreshSkill(SkillCard c) {__refreshCard;}
-	private void __refreshItem(ItemCard c) {__refreshCard;}
-	private void __refreshBeast(BeastCard c) {__refreshCard;}
-	private void __refreshInfo(InfoCard c) {__refreshCard;}
-	private void __refreshArea(Area c) {__refreshCard;}
-	private void __refreshPackage(Package c) {__refreshCard;}
-	private void __refreshBattle(Battle c) {__refreshCard;}
+	private void refSkin() {__refreshCard();}
+	private void __refreshCast(CastCard c) {__refreshCard();}
+	private void __refreshSkill(SkillCard c) {__refreshCard();}
+	private void __refreshItem(ItemCard c) {__refreshCard();}
+	private void __refreshBeast(BeastCard c) {__refreshCard();}
+	private void __refreshInfo(InfoCard c) {__refreshCard();}
+	private void __refreshArea(Area c) {__refreshCard();}
+	private void __refreshPackage(Package c) {__refreshCard();}
+	private void __refreshBattle(Battle c) {__refreshCard();}
 	private void __refreshFlagAndStep(Flag[] flags, Step[] steps) {
 		if (flags.length > 0 || steps.length > 0) {
-			__refreshCard;
+			__refreshCard();
 		}
 	}
-	private void __refreshPath(string from, string to, bool isDir) {refreshStatusLine;}
-	private void __refreshPaths(string path) {refreshStatusLine;}
-	private void __deletePaths() {refreshStatusLine;}
-	private void __replacePaths(string from, string to) {refreshStatusLine;}
+	private void __refreshPath(string from, string to, bool isDir) {refreshStatusLine();}
+	private void __refreshPaths(string path) {refreshStatusLine();}
+	private void __deletePaths() {refreshStatusLine();}
+	private void __replacePaths(string from, string to) {refreshStatusLine();}
 
-	private bool openCWXPathImpl(T)(T itm, string path) {
+	private bool openCWXPathImpl(T)(T itm, string path, bool shellActivate) {
 		auto cate = cpcategory(path);
 		if (cate == "") {
 			auto index = cpindex(path);
-			if (index >= itm.getItemCount) return false;
+			if (index >= itm.getItemCount()) return false;
 			auto child = itm.getItem(index);
 			path = cpbottom(path);
-			if (path == "" || cpcategory(path) != "") {
-				forceFocus(_tree);
-				_tree.select = child;
-				refreshStatusLine;
+			if (cpempty(path) || cpcategory(path) != "") {
+				forceFocus(_tree, shellActivate);
+				_tree.select(child);
+				refreshStatusLine();
+				if (cphasattr(path, "opendialog")) {
+					auto d = edit();
+					if (d) {
+						// ダイアログ無し、もしくは開けない状態のコンテント
+						_comm.refreshToolBar();
+						return true;
+					}
+					if (!cpempty(path)) {
+						return d.openCWXPath(path, shellActivate);
+					}
+				}
+				_comm.refreshToolBar();
 				return true;
 			} else {
-				return openCWXPathImpl(child, path);
+				return openCWXPathImpl(child, path, shellActivate);
 			}
 		}
 		return false;
 	}
-	bool openCWXPath(string path) {
-		return openCWXPathImpl(_tree, path);
+	bool openCWXPath(string path, bool shellActivate) {
+		return openCWXPathImpl(_tree, path, shellActivate);
+	}
+	@property
+	string[] openedCWXPath() {
+		string[] r;
+		if (_et) {
+			auto e = selection;
+			if (e) {
+				auto c = cast(Content) e.getData();
+				assert (c);
+				r ~= c.cwxPath(true);
+			} else {
+				r ~= _et.cwxPath(true);
+			}
+		}
+		return r;
 	}
 }

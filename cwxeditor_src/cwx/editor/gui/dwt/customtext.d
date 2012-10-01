@@ -3,74 +3,151 @@ module cwx.editor.gui.dwt.customtext;
 
 import cwx.utils;
 
+import cwx.editor.gui.dwt.undo;
+import cwx.editor.gui.dwt.dmenu;
+
 import std.utf;
 import std.string;
 import std.exception;
+import std.array;
+import std.ascii;
+import std.conv;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTException;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Item;
-import org.eclipse.swt.widgets.Widget;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.all;
+
 import java.lang.all;
+
+Text mnemonicText(Composite parent, int style) {
+	auto text = new Text(parent, style | SWT.READ_ONLY);
+	class Key : KeyAdapter {
+		override void keyPressed(KeyEvent e) {
+			text.setText(acceleratorText(e.keyCode));
+		}
+	}
+	text.addKeyListener(new Key);
+	text.setData(new CIgnoreHotkey);
+	return text;
+}
+
+/// ホットキーを入力するためのフィールド。
+class HotKeyField {
+	private Text _char;
+	this (Composite parent, int style) {
+		_char = new Text(parent, style | SWT.READ_ONLY);
+		_char.addKeyListener(new StateMaskKey);
+		_char.setData(new CIgnoreHotkey);
+	}
+	private class StateMaskKey : KeyAdapter {
+		override void keyPressed(KeyEvent e) {
+			refText(e.keyCode | e.stateMask);
+		}
+	}
+	private void refText(int val) {
+		string t = "";
+		void put(string a) {
+			if (!a.length) return;
+			if (t.length) t ~= " + ";
+			t ~= a;
+		}
+		if (SWT.CONTROL & val) {
+			put("Ctrl");
+			val &= ~SWT.CONTROL;
+		}
+		if (SWT.SHIFT & val) {
+			put("Shift");
+			val &= ~SWT.SHIFT;
+		}
+		if (SWT.ALT & val) {
+			put("Alt");
+			val &= ~SWT.ALT;
+		}
+		if (SWT.COMMAND & val) {
+			put("Command");
+			val &= ~SWT.COMMAND;
+		}
+		put(.acceleratorText(val));
+		_char.setText(t);
+	}
+	@property
+	Text widget() {return _char;}
+	@property
+	string acceleratorText() {
+		return _char.getText().replace(" + ", "+");
+	}
+	@property
+	void accelerator(string hotkey) {
+		refText(convertAccelerator2(hotkey));
+	}
+}
 
 /// 折り返しを反映したテキストを取得可能なText。
 class FixedWidthText {
 	private Text _widget;
-	private GC _gc;
+	private GC _gc = null;
 	private int _width;
-	this(FontData fontData, int num, Composite parent, int style) {
+	private int _num;
+	this (FontData fontData, int num, Composite parent, int style) {
 		_widget = new Text(parent, style | SWT.MULTI | SWT.WRAP);
-		_widget.setFont = new Font(Display.getCurrent, fontData);
-		_gc = new GC(_widget);
-		_gc.setFont = _widget.getFont;
-		// FIXME: Windows環境で太字にするとサイズが合わなくなる
-/+		_width = _gc.getAdvanceWidth(' ') * num;
-+/		_width = _gc.textExtent("　").x * (num / 2) + 1;
-		if (num & 1) _width += _gc.textExtent(" ").x;
+		_num = num;
+		font = fontData;
 
 		_widget.addListener(SWT.Dispose, new class Listener {
 			override void handleEvent(Event e) {
-				_widget.getFont.dispose;
-				_gc.dispose;
+				_widget.getFont().dispose();
+				_gc.dispose();
 			}
 		});
 	}
+	@property
+	void num(int num) {
+		_num = num;
+		calcWidth();
+	}
+	@property
+	void font(FontData fontData) {
+		if (_gc) {
+			_widget.getFont().dispose();
+		}
+		_widget.setFont(new Font(Display.getCurrent(), fontData));
+		calcWidth();
+	}
+	private void calcWidth() {
+		if (_gc) {
+			_gc.dispose();
+		}
+		_gc = new GC(_widget);
+		_gc.setFont(_widget.getFont());
+		// FIXME: Windows環境で太字にするとサイズが合わなくなる
+/+		_width = _gc.getAdvanceWidth(' ') * _num;
++/		_width = _gc.textExtent("　").x * (_num / 2) + 1;
+		if (_num & 1) _width += _gc.textExtent(" ").x;
+	}
+	@property
 	Text widget() {
 		return _widget;
 	}
 	Point computeTextBaseSize(int line) {
-		return _widget.computeSize(_width, _gc.getFontMetrics.getHeight * line);
+		return _widget.computeSize(_width, _gc.getFontMetrics().getHeight() * line);
 	}
 	string getRRText(bool lastRet = true) {
-		return toRRText(_widget.getText, _width, _gc, lastRet);
+		return toRRText(_widget.getText(), _width, _gc, lastRet);
 	}
 	static string toRRText(string targ, int num, FontData fontData, bool lastRet = true) {
 		if (targ == "") return "";
-		scope img = new Image(Display.getCurrent, 1, 1);
-		scope (exit) img.dispose;
+		scope img = new Image(Display.getCurrent(), 1, 1);
+		scope (exit) img.dispose();
 		scope gc = new GC(img);
-		scope (exit) gc.dispose;
-		scope font = new Font(Display.getCurrent, fontData);
-		scope (exit) font.dispose;
-		gc.setFont = font;
+		scope (exit) gc.dispose();
+		scope font = new Font(Display.getCurrent(), fontData);
+		scope (exit) font.dispose();
+		gc.setFont(font);
 		int width = gc.getAdvanceWidth(' ') * num;
 		return toRRText(targ, width, gc, lastRet);
 	}
 	private static string toRRText(string targ, int width, GC gc, bool lastRet) {
 		if (targ == "") return "";
 		dstring[] buf;
-		string[] text = splitlines(targ);
+		string[] text = splitLines!string(targ);
 		foreach (t8; text) {
 			dstring t = toUTF32(t8);
 			if (gc.textExtent(t8).x > width) {
@@ -104,18 +181,25 @@ class FixedWidthText {
 		return "";
 	}
 	void insert(string text) {
-		_widget.insert = text;
+		_widget.insert(text);
 	}
 	void setText(string text) {
-		_widget.setText = text;
+		_widget.setText(text);
 	}
 	string getText() {
-		return _widget.getText;
+		return _widget.getText();
 	}
 }
 
 /// 入力された文字列の長さを検証し、制限をかける。
 class GBLimitText {
+	/// 入力された文字列の長さが制限を超えたか、
+	/// または制限内に収まったときに呼び出される。
+	void delegate()[] limitEvent;
+
+	private bool _over = false;
+
+	private bool _cut = true;
 	private Text _widget;
 	private bool _ed = false;
 	private int _width;
@@ -125,32 +209,38 @@ class GBLimitText {
 	/// Params:
 	/// font = 検証に使用するフォント。
 	/// num = 最大文字数。[' 'の幅 * num]が入力可能な文字列幅となる。
-	this(string font, int num, Composite parent, int style) {
+	/// cut = trueの場合、制限を超えた分は無条件にカットする。
+	this (string font, int num, bool cut, Composite parent, int style) {
 		_widget = new Text(parent, style | SWT.NO_BACKGROUND);
+		_cut = cut;
 		_gc = new GC(_widget);
-		_gc.setFont = new Font(Display.getCurrent, new FontData(font, 10, SWT.NORMAL));
+		_gc.setFont(new Font(Display.getCurrent(), new FontData(font, 10, SWT.NORMAL)));
 		_width = _gc.textExtent(" ").x * num;
 
 		_widget.addListener(SWT.Verify, new class Listener {
 			override void handleEvent(Event e) {
+				if (!_cut) {
+					e.doit = true;
+					return;
+				}
 				if (_ed) return;
-				scope dstring vText;
+				dstring vText;
 				try {
 					vText = toUTF32(e.text);
 				} catch {
-					// FIXME: たまーに壊れたテキストが来るんだよね
-					//        「情報」と入力したときとか
+					// FIXME: 時々壊れたテキストが来る
+					//        「情報」と入力したときなど
 					return;
 				}
 				if (vText.length < e.end - e.start) {
 					// 文字数が減少するなら無条件に通す
 					e.doit = true;
 				} else {
-					scope text = toUTF32(_widget.getText);
-					scope p = _widget.getSelection;
+					auto text = toUTF32(_widget.getText());
+					auto p = _widget.getSelection();
 					text = text[0 .. p.x] ~ text[p.y .. $];
-					scope st = text[0 .. e.start];
-					scope el = text[e.end .. $];
+					auto st = text[0 .. e.start];
+					auto el = text[e.end .. $];
 					if (vText.length > 1) {
 						// 複数文字挿入。ペーストのみ。
 						while (_gc.textExtent(toUTF8(st ~ vText ~ el)).x > _width && vText.length > 0) {
@@ -168,43 +258,259 @@ class GBLimitText {
 		// FIXME: 全角スペース入力でVerifyEventが入力文字を取れないようなので暫定
 		_widget.addListener(SWT.Modify, new class Listener {
 			override void handleEvent(Event e) {
+				if (!_cut) {
+					bool over = _gc.textExtent(getText()).x > _width;
+					if (_over != over) {
+						_over = over;
+						foreach (le; limitEvent) {
+							le();
+						}
+					} else {
+						_over = over;
+					}
+					return;
+				}
 				if (_ed) return;
-				if (_gc.textExtent(getText).x <= _width) {
-					_old = _widget.getText;
+				if (_gc.textExtent(getText()).x <= _width) {
+					_old = _widget.getText();
 				} else {
 					dstring old32 = toUTF32(_old);
-					int cur = _widget.getCaretPosition;
-					Point sel = _widget.getSelection;
+					int cur = _widget.getCaretPosition();
+					Point sel = _widget.getSelection();
 					if (cur >= sel.x) sel.x--;
 					if (cur >= sel.y) sel.y--;
 					_ed = true;
-					_widget.setText = _old;
+					_widget.setText(_old);
 					_ed = false;
-					_widget.setSelection = sel;
+					_widget.setSelection(sel);
 				}
 			}
 		});
 		_widget.addListener(SWT.Dispose, new class Listener {
 			override void handleEvent(Event e) {
-				_gc.getFont.dispose;
-				_gc.dispose;
+				_gc.getFont().dispose();
+				_gc.dispose();
 			}
 		});
 	}
+	@property
 	Text widget() {
 		return _widget;
 	}
 	Point computeSize(int wHint, int hHint) {
 		return _widget.computeSize(wHint == SWT.DEFAULT ? _width : wHint, hHint);
 	}
+	@property
+	bool over() {return _over;}
 	void insert(string text) {
-		_widget.insert = text;
+		_widget.insert(text);
 	}
 	void setText(string text) {
-		_widget.setText = text;
+		_widget.setText(text);
 		_old = text;
 	}
 	string getText() {
-		return _widget.getText;
+		return _widget.getText();
+	}
+}
+
+// FIXME: TextMenuModifyをテンプレート化できない
+immutable TMM_T = 0;
+immutable TMM_C = 1;
+immutable TMM_CC = 2;
+struct TMM {
+	union {
+		Text text;
+		Combo combo;
+		CCombo ccombo;
+	}
+	int kind;
+	static TMM opCall(Text text) {
+		TMM r;
+		r.text = text;
+		r.kind = TMM_T;
+		return r;
+	}
+	static TMM opCall(Combo combo) {
+		TMM r;
+		r.combo = combo;
+		r.kind = TMM_C;
+		return r;
+	}
+	static TMM opCall(CCombo ccombo) {
+		TMM r;
+		r.ccombo = ccombo;
+		r.kind = TMM_CC;
+		return r;
+	}
+	string getText() {
+		final switch (kind) {
+		case TMM_T:
+			return text.getText();
+		case TMM_C:
+			return combo.getText();
+		case TMM_CC:
+			return ccombo.getText();
+		}
+	}
+	void setText(string v) {
+		final switch (kind) {
+		case TMM_T:
+			text.setText(v);
+			break;
+		case TMM_C:
+			combo.setText(v);
+			break;
+		case TMM_CC:
+			ccombo.setText(v);
+			break;
+		}
+	}
+	Point getSelection() {
+		final switch (kind) {
+		case TMM_T:
+			return text.getSelection();
+		case TMM_C:
+			return combo.getSelection();
+		case TMM_CC:
+			return ccombo.getSelection();
+		}
+	}
+	void setSelection(Point v) {
+		final switch (kind) {
+		case TMM_T:
+			text.setSelection(v);
+			break;
+		case TMM_C:
+			combo.setSelection(v);
+			break;
+		case TMM_CC:
+			ccombo.setSelection(v);
+			break;
+		}
+	}
+	void addListener(int type, Listener l) {
+		final switch (kind) {
+		case TMM_T:
+			text.addListener(type, l);
+			break;
+		case TMM_C:
+			combo.addListener(type, l);
+			break;
+		case TMM_CC:
+			ccombo.addListener(type, l);
+			break;
+		}
+	}
+}
+struct TMAppendData {
+	Object delegate(Object old) read = null;
+	void delegate(Object) write = null;
+}
+// FIXME: これをテンプレート化しただけでリンクに失敗する
+class TextMenuModify : ModifyListener {
+	private class TextMenuUndo : Undo {
+		private Object _apData = null;
+		private Point _sel;
+		private string _oldText;
+		this () {
+			if (_apd.read) _apData = _oldApData;
+			_oldText = _oldTextBase;
+			_sel = _oldSel;
+		}
+		private void impl() {
+			_inProc = true;
+			scope (exit) _inProc = false;
+
+			auto oapd = _apData;
+			string o = _oldText;
+			auto os = _sel;
+
+			if (_apd.read) _apData = _apd.read(oapd);
+			_oldText = _text.getText();
+			_sel = _text.getSelection();
+
+			if (_apd.write) _apd.write(oapd);
+			_text.setText(o);
+			_text.setSelection(os);
+
+			_oldApData = oapd;
+			_oldSel = os;
+			_oldTextBase = o;
+		}
+		override void undo() {impl();}
+		override void redo() {impl();}
+		override void dispose() {
+			// Nothing
+		}
+	}
+
+	private bool _inProc = false;
+	private TMM _text;
+	private TMAppendData _apd;
+	private Object _oldApData = null;
+	private Point _oldSel;
+	private string _oldTextBase;
+	private bool delegate() _canSaveHistory;
+	private UndoManager _undo;
+	private class SelectChanged : Listener {
+		private bool _mouseDown = false;
+		override void handleEvent(Event e) {
+			if (e.type is SWT.MouseMove) {
+				if (!_mouseDown) return;
+			} else if (e.type is SWT.MouseUp) {
+				_mouseDown = false;
+				return;
+			} else if (e.type is SWT.MouseDown) {
+				_mouseDown = true;
+			}
+			auto sel = _text.getSelection();
+			if (sel.x != _oldSel.x || sel.y != _oldSel.y) {
+				_oldSel = sel;
+				if (selectChanged) selectChanged();
+			}
+		}
+	}
+
+	this (TMM text, bool delegate() canSaveHistory, UndoManager undo, TMAppendData apd) {
+		_text = text;
+		_canSaveHistory = canSaveHistory;
+		_undo = undo;
+		_apd = apd;
+		auto sc = new SelectChanged;
+		text.addListener(SWT.KeyDown, sc);
+		text.addListener(SWT.KeyUp, sc);
+		text.addListener(SWT.MouseDown, sc);
+		text.addListener(SWT.MouseUp, sc);
+		text.addListener(SWT.MouseMove, sc);
+		text.addListener(SWT.MouseDoubleClick, sc);
+
+		save();
+	}
+	private void save() {
+		if (_apd.read) _oldApData = _apd.read(_oldApData);
+		_oldSel = _text.getSelection();
+		_oldTextBase = _text.getText();
+	}
+
+	const
+	bool inProc() {return _inProc;}
+
+	void delegate() selectChanged;
+
+	void reset() {
+		_undo.reset();
+		save();
+	}
+
+	override void modifyText(ModifyEvent e) {
+		if (_inProc) return;
+		if (_oldTextBase == _text.getText()) return;
+		if (!_canSaveHistory) {
+			_undo ~= new TextMenuUndo;
+		} else if (_canSaveHistory()) {
+			_undo ~= new TextMenuUndo;
+		}
+		save();
 	}
 }

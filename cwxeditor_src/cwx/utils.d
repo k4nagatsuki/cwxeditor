@@ -1,20 +1,24 @@
 
 module cwx.utils;
 
+public import cwx.perf;
+
 import cwx.sjis;
 
 import std.algorithm;
 import std.array;
 import std.conv;
+import std.uni;
 import std.metastrings;
 import std.string;
+import std.format;
 import std.file;
 import std.path;
 import std.uni;
 import std.utf;
 import std.base64;
 import std.stdio;
-import std.ctype;
+import std.ascii;
 import std.cstream;
 import std.traits;
 import std.datetime;
@@ -22,8 +26,43 @@ import std.regex;
 import std.array;
 import std.exception;
 import std.traits;
+import std.stdint;
+import std.stream;
+import std.md5;
+
+debug {
+	version (Console) {
+		private immutable DR = "Debug / Console";
+	} else {
+		private immutable DR = "Debug";
+	}
+} else {
+	@property
+	private immutable DR = "Release";
+}
+shared immutable string APP_BUILD = "Build: "
+		~ __DATE__[7 .. $]
+		~ "-" ~ [
+			"Jan":"01",
+			"Feb":"02",
+			"Mar":"03",
+			"Apr":"04",
+			"May":"05",
+			"Jun":"06",
+			"Jul":"07",
+			"Aug":"08",
+			"Sep":"09",
+			"Oct":"10",
+			"Nov":"11",
+			"Dec":"12"
+		][__DATE__[0 .. 3]]
+		~ "-" ~ (__DATE__[4 .. 5] == " " ? "0" : __DATE__[4 .. 5]) ~ __DATE__[5 .. 6]
+		~ " " ~ __TIME__ ~ " "
+		~ DR ~ .newline
+		~ "Compiled by " ~ __VENDOR__ ~ " " ~ .text(__VERSION__);
 
 private version (Windows) {
+	import std.windows.charset;
 	import std.c.stdio;
 	extern (Windows) {
 		import std.c.windows.windows;
@@ -56,81 +95,217 @@ private version (Windows) {
 		BOOL SetFileAttributesW(LPCWSTR, DWORD);
 		BOOL CreateProcessW(LPCWSTR, LPWSTR, SECURITY_ATTRIBUTES*, SECURITY_ATTRIBUTES*,
 			BOOL, DWORD, LPVOID, LPCWSTR, STARTUPINFO*, PROCESS_INFORMATION*);
+		alias HRESULT function(HWND, INT, HANDLE, DWORD, LPWSTR) SHGetFolderPathW;
+		const CSIDL_APPDATA = 0x1A;
+		const SHGFP_TYPE_CURRENT = 0;
 	}
+} else {
+	import core.sys.posix.unistd;
+	import core.sys.posix.pwd;
+	import std.c.string;
 }
 
-string LATEST_VERSION = "";
+shared string LATEST_VERSION = "";
 
-string debugLog = "cwxeditor_error.log";
+shared string debugLog = "cwxeditor_error.log";
+private __gshared BufferedFile debugLogFile = null;
+
+/// FIXME: 2.059以降altsep不在
+version (Windows) {
+	immutable altDirSeparator = "/";
+} else version (Posix) {
+	immutable altDirSeparator = " ";
+} else static assert (0);
+
+immutable curdir = ".";
+immutable pardir = "..";
+
+/// デバグログを生成する。
+string debugString(T)(ref T v) {
+	static if (is(T : Throwable)) {
+		char[] trace;
+		if (v.info) {
+			foreach (file; v.info) {
+				if (trace.length) {
+					trace ~= " - ".dup;
+				}
+				try {
+					for (size_t i = 0; i < file.length; i++) {
+						char c = file[i];
+						.validate([c]);
+						trace ~= c;
+					}
+				} catch (Exception e) {
+					/// infoには妥当でない文字列が含まれている
+					/// 可能性があるので、単に無視する
+				}
+			}
+		}
+		return .format("[%s] %s, %d: ", v.msg, v.file, v.line) ~ trace.idup;
+	} else {
+		return .format("%s", v);
+	}
+}
+/// ditto
+string createDebugln(bool BuildInfo = true, string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
+	char[] buf = format("%s:%d ", F, L).dup;
+	foreach (v; vals) {
+		static if (is(typeof(v) : Throwable)) {
+			buf ~= debugString(v);
+		} else static if (is(typeof(v) : string)) {
+			buf ~= v;
+		} else {
+			buf ~= debugString(v);
+		}
+	}
+	auto d = Clock.currTime();
+	int year = d.year;
+	int month = d.month;
+	int day = d.day;
+	int hour = d.hour;
+	int min = d.minute;
+	int second = d.second;
+	static if (BuildInfo) {
+		buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ " [" ~ .splitLines!string(APP_BUILD)[0] ~ "]\t" ~ buf;
+	} else {
+		buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ " " ~ buf;
+	}
+	return assumeUnique(buf);
+}
 
 /// デバグログに文字列を出力する。
-void fdebugln(T ...)(T vals) {
+shared void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	try {
 		synchronized {
-			char[] buf;
-			foreach (v; vals) {
-				static if (is(typeof(v.msg)) && is(typeof(v.file)) && is(typeof(v.line))) {
-					buf ~= format("%s, %s, %d", v.msg, v.file, v.line);
-				} else {
-					buf ~= to!(string)(v);
-				}
-			}
-			debug {
+			string log = createDebugln!(true, F, L)(vals);
+			version (Console) {
 				version (Windows) {
-					printf("%s\n\0".ptr, tosjisz(buf));
-					dout.flush;
+					printf("%s\n\0".ptr, toMBSz(log));
+					dout.flush();
 				} else {
-					writeln(buf);
+					writeln(log);
 				}
 			}
-			auto d = Clock.currTime;
-			int year = d.year;
-			int month = d.month;
-			int day = d.day;
-			int hour = d.hour;
-			int min = d.minute;
-			int second = d.second;
-			std.file.append(debugLog,
-				format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second)
-				~ "\t" ~ buf ~ linesep);
+			if (!debugLogFile) {
+				debugLogFile = new typeof(debugLogFile)(debugLog, FileMode.Append);
+			}
+			debugLogFile.writeLine(log);
+			debugLogFile.flush();
 		}
-	} catch {}
+	} catch (Throwable e) {
+		std.stdio.writeln(__FILE__, " ", __LINE__, " ", e.msg);
+	}
+}
+shared static ~this () {
+	version (Console) {
+		debug std.stdio.writeln("Close Debug log file Start");
+	}
+	synchronized {
+		if (debugLogFile) debugLogFile.close();
+	}
+	version (Console) {
+		debug std.stdio.writeln("Close Debug log file Exit");
+	}
 }
 /// debugコンパイルされている際は デバグログに文字列を出力すると
 /// 共にfdebugln()を呼出し、ファイル出力する。
-void debugln(T ...)(T vals) {
+void debugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	debug {
-		fdebugln!(T)(vals);
+		fdebugln!(F, L, T)(vals);
 	}
 }
 
-debug {
-	ulong t[1024u];
-	static ~this () {
-		foreach (i, time; t) {
-			if (time > 0u) {
-				debugln(format("%04d = ", i), time);
+/// コンソール上にデバグログを出力する。
+void cdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
+	version (Console) {
+		debug {
+			synchronized {
+				string log = createDebugln!(false, F, L)(vals);
+				version (Windows) {
+					printf("%s\n\0".ptr, toMBSz(log));
+					dout.flush();
+				} else {
+					writeln(log);
+				}
 			}
 		}
 	}
-	template FPerf(int I) {
-		static const FPerf
-			= "scope f_timer = StopWatch(AutoStart.yes);"
-			~ "scope (exit) {"
-			~ "f_timer.stop;"
-			~ ".t[" ~ .toStringNow!(I) ~ "] += f_timer.peek.mses;"
-			~ "}";
+}
+
+/// コンソール上に文字列を出力する。
+void cwriteln(string s) {
+	version (Console) {
+		synchronized {
+			version (Windows) {
+				printf("%s\n\0".ptr, toMBSz(s));
+				dout.flush();
+			} else {
+				writeln(s);
+			}
+		}
 	}
-	const BPerfS = "scope b_timer = new StopWatch(AutoStart.yes);";
-	template BPerf(int I) {
-		static const BPerf
-			= "b_timer.stop;"
-			~ ".t[" ~ .toStringNow!(I) ~ "] += b_timer.peek.mses;"
-			~ "b_timer.reset;"
-			~ "b_timer.start;";
+}
+
+version (Windows) {
+	import core.sys.windows.windows;
+
+	/// 共有ライブラリを読み込む。
+	void* dlopen(string lib) {
+		return LoadLibraryW(.toUTFz!(wchar*)(lib));
 	}
-	static assert (FPerf!(10));
-	static assert (BPerf!(10));
+	/// 共有ライブラリからシンボルを取得。
+	void* dlsym(void* lib, string sym) {
+		if (!lib) return null;
+		return GetProcAddress(lib, .toStringz(sym));
+	}
+	/// 共有ライブラリを解放する。
+	void dlclose(ref void* lib) {
+		if (!lib) return;
+		FreeLibrary(lib);
+		lib = null;
+	}
+} else version (Posix) {
+	import core.sys.posix.dlfcn;
+
+	/// 共有ライブラリを読み込む。
+	void* dlopen(string lib) {
+		return core.sys.posix.dlfcn.dlopen(.toStringz(lib), RTLD_NOW);
+	}
+	/// 共有ライブラリからシンボルを取得。
+	void* dlsym(void* lib, string sym) {
+		if (!lib) return null;
+		return core.sys.posix.dlfcn.dlsym(lib, .toStringz(sym));
+	}
+	/// 共有ライブラリを解放する。
+	void dlclose(ref void* lib) {
+		if (!lib) return;
+		core.sys.posix.dlfcn.dlclose(lib);
+		lib = null;
+	}
+} else static assert (0);
+
+/// アプリケーションデータを格納する環境標準のディレクトリを返す。
+string appDataDir(string appPath) {
+	version (Windows) {
+		auto shl = dlopen("shell32.dll");
+		if (!shl) {
+			return appPath.dirName();
+		}
+		scope (exit) dlclose(shl);
+		auto getFolderPath = cast(SHGetFolderPathW) dlsym(shl, "SHGetFolderPathW");
+		if (!getFolderPath) {
+			return appPath.dirName();
+		}
+		wchar[MAX_PATH] appDataBuf;
+		auto gfr = getFolderPath(null, CSIDL_APPDATA, null, SHGFP_TYPE_CURRENT, appDataBuf.ptr);
+		if (0 != gfr) {
+			return appPath.dirName();
+		}
+		auto p = to!string(appDataBuf[0 .. appDataBuf.indexOf('\0')]);
+		return assumeUnique(p);
+	} else {
+		return to!string(getpwuid(getuid()).pw_dir);
+	}
 }
 
 static const B_IMG = "binaryimage://";
@@ -145,66 +320,402 @@ string bImgToStr(in ubyte[] bimg) {
 	return assumeUnique(r);
 }
 
-/// 16進数文字列xを整数に変換する。
-int xtoi(string x) {
-	int i = 0;
-	foreach (char c; x) {
-		i <<= 4;
-		if ('a' <= c && c <= 'z') {
-			i += c - 'a' + 10;
-		} else if ('A' <= c && c <= 'Z') {
-			i += c - 'A' + 10;
-		} else if ('0' <= c && c <= '9') {
-			i += c - '0';
-		} else {
-			throw new Exception("invalid x: " ~ x);
-		}
-	}
-	return i;
+/// Enumメンバ名の先頭を小文字にして文字列に変換する。
+@safe
+pure
+string enumToString(E)(E e) {
+	mixin("final switch (e) {"
+		~ enumToStringImpl!(E, 0)
+		~ "}");
 } unittest {
-	assert (xtoi("FF") == 255, to!(string)(xtoi("FF")));
-	assert (xtoi("ff") == 255);
-	assert (xtoi("FFFE") == 65534);
-	assert (xtoi("0F") == 15);
-	assert (xtoi("10") == 16);
+	debug mixin(UTPerf);
+	enum En {
+		Abc, Def
+	}
+	assert (enumToString(En.Abc) == "abc");
+	assert (enumToString(En.Def) == "def");
+}
+private template enumToStringImpl(E, size_t Index) {
+	static if (EnumMembers!E.length <= Index) {
+		immutable enumToStringImpl = "";
+	} else {
+		immutable enumToStringImpl = "case E." ~ .text(EnumMembers!E[Index])
+			~ ": return `" ~ .capLower(.text(EnumMembers!E[Index])) ~ "`;"
+			~ enumToStringImpl!(E, Index + 1);
+	}
 }
 
-/// t1とt2を入替える。
-void swap(T)(ref T t1, ref T t2) {
-	T temp = t1;
-	t1 = t2;
-	t2 = temp;
+/// 先頭を小文字にしたEnumメンバ名文字列をEnum値に変換する。
+@safe
+pure
+E stringToEnum(E)(string name) {
+	mixin("switch (name) {"
+		~ stringToEnumImpl!(E, 0)
+		~ "default: return E.init;"
+		~ "}");
+} unittest {
+	debug mixin(UTPerf);
+	enum En {
+		Abc, Def
+	}
+	assert (stringToEnum!En("abc") == En.Abc);
+	assert (stringToEnum!En("def") == En.Def);
+}
+private template stringToEnumImpl(E, size_t Index) {
+	static if (EnumMembers!E.length <= Index) {
+		immutable stringToEnumImpl = "";
+	} else {
+		immutable stringToEnumImpl = "case `" ~ .capLower(.text(EnumMembers!E[Index])) ~ "`:"
+			~ "return E." ~ .text(EnumMembers!E[Index]) ~ ";"
+			~ stringToEnumImpl!(E, Index + 1);
+	}
+}
+
+/// enumのメンバ毎のメソッド呼出のswitch文を生成する。
+template EnumToStringSwitch2(E, string EName, string Prefix) {
+	immutable EnumToStringSwitch2 = "final switch (id) {\n"
+		~ EnumToStringCase!(E, EName, Prefix, 0)
+		~ "}";
+}
+/// ditto
+template EnumToStringSwitch(E, string Prefix) {
+	immutable EnumToStringSwitch = EnumToStringSwitch2!(E, E.stringof, Prefix);
+}
+/// switch文でenumのメンバ毎のメソッド呼出のメソッドを生成する。
+template EnumToStringMethod2(E, string EName, string MethodName, string Prefix) {
+	immutable EnumToStringMethod2 = "const string " ~ MethodName ~ "(" ~ EName ~ " id) {\n"
+		~ "\tfinal switch (id) {\n"
+		~ EnumToStringCase!(E, EName, Prefix, 0)
+		~ "\t}\n"
+		~ "}";
+}
+/// ditto
+template EnumToStringMethod(E, string MethodName, string Prefix) {
+	immutable EnumToStringMethod = EnumToStringMethod2!(E, E.stringof, MethodName, Prefix);
+}
+private template EnumToStringCase(E, string EName, string Prefix, size_t Index) {
+	private import std.traits;
+	private import std.conv;
+	private immutable Case = "\tcase " ~ EName ~ "." ~ EnumMembers!E[Index].stringof ~ ": return " ~ Prefix ~ .upperToCap(std.conv.text(EnumMembers!E[Index])) ~ ";\n";
+	static if (Index + 1 < EnumMembers!E.length) {
+		immutable EnumToStringCase = Case ~ EnumToStringCase!(E, EName, Prefix, Index + 1);
+	} else {
+		immutable EnumToStringCase = Case;
+	}
+}
+
+/// 文字列がすべて大文字の形式であれば単語の始まりのみ大文字の形式に変更する。
+string upperToCap(string s) {
+	if (!s.length) return s;
+	bool isCap = true;
+	foreach (c; s) {
+		if (std.ascii.isLower(c)) {
+			isCap = false;
+			break;
+		}
+	}
+	if (!isCap) return s;
+
+	bool ul = true;
+	char[] buf;
+	foreach (i, c; s) {
+		if (ul) {
+			buf ~= c;
+			ul = false;
+		} else if ('_' == c) {
+			ul = true;
+		} else {
+			buf ~= std.ascii.toLower(c);
+		}
+	}
+	return .assumeUnique(buf);
+} unittest {
+	assert (upperToCap("UPPER_TO_CAP") == "UpperToCap");
+	assert (upperToCap("UpperToCap") == "UpperToCap");
+}
+
+/// sの先頭1文字を小文字にする。
+string capLower(string s) {
+	if (!s.length) return s;
+	dstring ds = to!dstring(s);
+	return to!string([std.uni.toLower(ds[0])] ~ ds[1 .. $]);
+}
+/// sの先頭1文字を大文字にする。
+string capUpper(string s) {
+	if (!s.length) return s;
+	dstring ds = to!dstring(s);
+	return to!string([std.uni.toUpper(ds[0])] ~ ds[1 .. $]);
+}
+
+/// 例外を発しないstd.string.format()。
+string tryFormat(T ...)(string s, T vals) {
+	try {
+		auto a = appender!string();
+		formattedWrite(a, s, vals);
+		return a.data;
+	} catch (Exception e) {
+		debugln(s);
+		debugln(e);
+		return s;
+	}
+}
+
+/// ワイルドカードを用いてパターンマッチングを行う。
+/// *は任意の文字列に、?は任意の文字にそれぞれ一致し、
+/// \をエスケープ文字として使用する。
+class Wildcard {
+	/// sからマッチを探し、indexを返す。
+	/// 見つからなければ-1を返す。
+	int find(string s) {
+		if (!s.length) return -1;
+		size_t len;
+		auto ds = toUTF32(s);
+		int i = find(ds, false, len);
+		if (i == -1) return -1;
+		return toUTF8(ds[0 .. i]).length;
+	}
+	/// sに完全一致した場合にtrueを返す。
+	bool match(string s) {
+		if (!s.length) {
+			return 0 == _left.length;
+		}
+		size_t len;
+		auto ds = toUTF32(s);
+		int i = find(ds, false, len);
+		if (i == -1) return false;
+		return 0 == i && ds.length == len;
+	}
+	/// s中のマッチする部分をtoに置換して返す。
+	string replace(string s, string to) {
+		if (!s.length) return s;
+		auto ds = toUTF32(s);
+		auto dto = toUTF32(to);
+		dchar[] r;
+		size_t len;
+		while (true) {
+			if (!ds.length) break;
+			int i = find(ds, false, len);
+			if (i == -1) {
+				r ~= ds;
+				break;
+			}
+			r ~= ds[0 .. i] ~ dto;
+			ds = ds[i + len .. $];
+		}
+		return toUTF8(r);
+	}
+	/// s中のマッチする部分をカウントして返す。
+	size_t count(string s) {
+		if (!s.length) return 0;
+		auto ds = toUTF32(s);
+		size_t r = 0;
+		size_t len;
+		while (true) {
+			if (!ds.length) break;
+			int i = find(ds, false, len);
+			if (i == -1) {
+				break;
+			}
+			r++;
+			ds = ds[i + len .. $];
+		}
+		return r;
+	}
+
+	private enum Pattern {
+		CHAR, QUESTION
+	}
+	private static struct WChar {
+		Pattern pattern;
+		dchar chr;
+		bool ignoreCase;
+		bool match(dchar c) {
+			switch (pattern) {
+			case Pattern.CHAR: {
+				if (ignoreCase) {
+					return std.ascii.toLower(chr) == std.ascii.toLower(c);
+				} else {
+					return chr == c;
+				}
+			}
+			case Pattern.QUESTION: {
+				return true;
+			}
+			default: assert (0);
+			}
+		}
+	}
+	private WChar[] _left;
+	private Wildcard _right;
+	private bool _ignoreCase;
+	private int findw(dstring s) {
+		if (s.length < _left.length) return -1;
+		for (int i = 0; i <= s.length - _left.length; i++) {
+			int j;
+			for (j = 0; j < _left.length && _left[j].match(s[i + j]); j++) {}
+			if (j == _left.length) return i;
+		}
+		return -1;
+	}
+	private int rfindw(dstring s) {
+		if (s.length < _left.length) return -1;
+		for (int i = s.length - _left.length; i >= 0; i--) {
+			int j;
+			for (j = 0; j < _left.length && _left[j].match(s[i + j]); j++) {}
+			if (j == _left.length) return i;
+		}
+		return -1;
+	}
+	private int find(ref dstring s, bool next, out size_t len) {
+		auto sbase = s;
+		while (true) {
+			int i = next ? rfindw(s) : findw(s);
+			if (i == -1) return -1;
+			if (_right) {
+				int j = _right.find(sbase[i + _left.length .. $], true, len);
+				if (j == -1) {
+					if (next) {
+						s = s[0 .. $ - 1];
+						continue;
+					}
+					return -1;
+				}
+				len += _left.length + j;
+				return i;
+			} else {
+				len = _left.length;
+				return i;
+			}
+		}
+	}
+	public static Wildcard opCall(string sub, bool ignoreCase = false) {
+		auto wild = new Wildcard;
+		wild._ignoreCase = ignoreCase;
+		bool onbs = false;
+		foreach (i, dchar c; sub) {
+			switch (c) {
+			case '?': {
+				if (!onbs) {
+					wild._left ~= WChar(Pattern.QUESTION, '\0', ignoreCase);
+					onbs = false;
+					break;
+				}
+			} goto default;
+			case '*': {
+				if (!onbs) {
+					while (i < sub.length && sub[i] == '*')
+						i++;
+					wild._right = Wildcard(sub[i .. $], ignoreCase);
+					return wild;
+				}
+			} goto default;
+			case '\\': {
+				if (onbs) wild._left ~= WChar(Pattern.CHAR, c, ignoreCase);
+				onbs = !onbs;
+			} break;
+			default: {
+				wild._left ~= WChar(Pattern.CHAR, c, ignoreCase);
+				onbs = false;
+			}
+			}
+		}
+		if (onbs) wild._left ~= WChar(Pattern.CHAR, '\\', ignoreCase);
+		return wild;
+	}
+} unittest {
+	debug mixin(UTPerf);
+	assert (Wildcard("test").find("test") == 0);
+	assert (Wildcard("test").find("atest") == 1);
+	assert (Wildcard("te?t").find("test") == 0);
+	assert (Wildcard("t*t").find("abctest") == 3);
+	assert (Wildcard("test*").find("test") == 0);
+	assert (Wildcard("test\\*").find("atest*") == 1);
+	assert (Wildcard("*test").find("abcdtest") == 0);
+	assert (Wildcard("te\\?st").find("abcdte?st") == 4);
+	assert (Wildcard("te\\\\st").find("abcdte\\st") == 4);
+	assert (Wildcard("t*st").find("testst") == 0);
+	assert (Wildcard("te\\st").find("te\\st") == -1);
+
+	assert (Wildcard("te?t", true).find("tEst") == 0);
+	assert (Wildcard("t*t", true).find("abcTEST") == 3);
+	assert (Wildcard("test*", true).find("teST") == 0);
+
+	assert (Wildcard("test").match("test"));
+	assert (!Wildcard("test").match("atest"));
+	assert (Wildcard("te?t").match("test"));
+	assert (!Wildcard("t*t").match("abctest"));
+	assert (Wildcard("test*").match("test"));
+	assert (!Wildcard("test\\*").match("atest*"));
+	assert (Wildcard("*test").match("abcdtest"));
+	assert (!Wildcard("te\\?st").match("abcdte?st"));
+	assert (!Wildcard("te\\\\st").match("abcdte\\st"));
+	assert (Wildcard("t*st").match("testst"));
+	assert (!Wildcard("te\\st").match("te\\st"));
+
+	assert (Wildcard("te?t", true).match("tEst"));
+	assert (!Wildcard("t*t", true).match("abcTEST"));
+	assert (Wildcard("test*", true).match("teST"));
+
+	assert (Wildcard("*").count("test") == 1);
+	assert (Wildcard("te?t").count("testtestest") == 2);
+
+	assert (Wildcard("t*s").replace("test", "A") == "At");
+	assert (Wildcard("???t").replace("testtestest", "BB") == "BBBBest");
+}
+
+/// データのMD5ダイジェストを取得する。
+string md5Digest(in void[] data) {
+	return getDigestString([data]);
+}
+/// ファイルのMD5ダイジェストを取得する。
+string fileToMD5Digest(string file) {
+	if (.exists(file)) {
+		try {
+			return md5Digest(std.file.read(file));
+		} catch (FileException e) {
+			// 読み込めなかった場合は空文字列を返す
+			debugln(e);
+		}
+	}
+	return "";
 }
 
 /// 絶対パス化と正規化を行う。
 string nabs(string path) {
-	return normal(rel2abs(path));
+	return buildNormalizedPath(absolutePath(path));
+}
+
+/// 絶対パス化・正規化を行いつつ相対パスを取る。
+string abs2rel(string p1, string p2) {
+	auto rel = relativePath(nabs(p1), nabs(p2));
+	return rel.buildNormalizedPath();
 }
 
 /// 大/小文字を区別しないstartsWith。
-bool istartsWith(string a, string b) {
+bool istartsWith(in char[] a, in char[] b) {
 	return a.length >= b.length && icmp(a[0 .. b.length], b) == 0;
 }
 
 /// 大/小文字を区別しないendsWith。
-bool iendsWith(string a, string b) {
+bool iendsWith(in char[] a, in char[] b) {
 	return a.length >= b.length && icmp(a[$ - b.length .. $], b) == 0;
 }
 
 /// pathがlistに含まれていればtrueを返す。
 bool containsPath(in string[] list, string path) {
 	foreach (l; list) {
-		if (fnmatch(path, l)) return true;
+		if (cglobMatch(path, l)) return true;
 	}
 	return false;
 } unittest {
+	debug mixin(UTPerf);
 	assert (containsPath(["*.txt"], "test.txt"));
 	assert (containsPath([".*"], ".svn"));
 }
 
 /// ファイルパスに対応したstartsWith。
-bool fnstartsWith(string a, string b) {
-	static if (fnmatch("A", "a")) {
+bool fnstartsWith(in char[] a, in char[] b) {
+	static if (0 == filenameCharCmp('A', 'a')) {
 		return istartsWith(a, b);
 	} else {
 		return startsWith(a, b);
@@ -213,106 +724,20 @@ bool fnstartsWith(string a, string b) {
 
 /// ファイルパスに対応したendsWith。
 bool fnendsWith(string a, string b) {
-	static if (fnmatch("A", "a")) {
+	static if (0 == filenameCharCmp('A', 'a')) {
 		return iendsWith(a, b);
 	} else {
 		return endsWith(a, b);
 	}
 }
 
-/// 絶対パスであればtrueを返す。
-bool isabs(string path) {
-	version (Windows) {
-		return startsWith(path, `\`) || std.path.isabs(path);
-	} else {
-		return std.path.isabs(path) != 0;
-	}
-}
-
-/// 正規化を行う。
-string normal(string path) {
-	static if (altsep.length) {
-		path = replace(path, altsep, sep);
-	}
-	scope spl = std.string.split(path, sep);
-	string[] buf;
-	foreach (i, str; spl) {
-		if (str == curdir) {
-			continue;
-		} else if (str == pardir) {
-			if (buf.length && buf[$ - 1] != pardir) {
-				buf = buf[0 .. $ - 1];
-			} else {
-				buf ~= str;
-			}
-		} else if (str.length || i + 1 < spl.length) {
-			buf ~= str;
-		}
-	}
-	return expandTilde(std.string.join(buf, sep));
-} unittest {
-	version (Windows) {
-		assert (normal("C:/aaaa/./bbbb/../ccc../dd/test.d/..") == `C:\aaaa\ccc..\dd`);
-		assert (normal(`C:\./,/..\aaa/bbb/cc\../...\..\`) == `C:\aaa\bbb`);
-		assert (normal(`..\..\./,/..\aaa/bbb/cc\../...\..\`) == `..\..\aaa\bbb`);
-		assert (normal(`\\./,/..\aaa/bbb/cc\../...\..\`) == `\\aaa\bbb`);
-	} else {
-		assert (normal("/aaaa/./bbbb/../ccc../dd/test.d/..") == `/aaaa/ccc../dd`);
-		assert (normal(`/./,/../aaa/bbb/cc/../.../../`) == `/aaa/bbb`);
-		assert (normal(`../.././,/../aaa/bbb/cc/../.../../`) == `../../aaa/bbb`);
-	}
-}
-
-/// 絶対パスをbaseからの相対パスに変換する。
-/// baseを指定しなかった場合は現在の作業ディレクトリが用いられる。
-string abs2rel(string path) {
-	return abs2rel(getcwd, path);
-}
-/// ditto
-string abs2rel(string base, string path) {
-	base = nabs(base);
-	path = nabs(path);
-	if (getDrive(base) != getDrive(path)) {
-		return path;
-	}
-	if (fnstartsWith(path, base)) {
-		path = path[base.length .. $];
-		if (fnstartsWith(path, sep)) path = path[sep.length .. $];
-		return path;
-	}
-	auto basesp = std.array.split(base, sep);
-	auto pathsp = std.array.split(path, sep);
-	size_t df = 0;
-	foreach (i, b; basesp) {
-		if (i >= pathsp.length || !fnmatch(b, pathsp[i])) {
-			df = i;
-			break;
-		}
-	}
-	string[] r;
-	for (size_t i = df; i < basesp.length; i++) {
-		r ~= pardir;
-	}
-	if (df < pathsp.length) r ~= pathsp[df .. $];
-	return std.string.join(r, sep);
-} unittest {
-	version (Windows) {
-		assert (abs2rel(`c:\windows\system`, `c:\windows\system\test\test.txt`) == `test\test.txt`);
-		assert (abs2rel(`c:\windows\system`, `c:\`) == `..\..`);
-		assert (abs2rel(`c:\windows\system`, `c:\windows`) == `..`);
-		assert (abs2rel(`c:\windows\system`, `c:\winnt`) == `..\..\winnt`);
-		assert (abs2rel(`c:\windows\system`, `c:\winnt\system\temp`) == `..\..\winnt\system\temp`);
-		assert (abs2rel(`c:\windows\system`, `\\winnt`) == `\\winnt`);
-	}
-}
-
 /// 素材パスをencodeする。
 string encodePath(string path) {
-	return isBinImg(path) ? path : replace(path, sep, "/");
+	return isBinImg(path) ? path : replace(path, dirSeparator, "/");
 }
 /// 素材パスをdecodeする。
 string decodePath(string path) {
-	return isBinImg(path) ? path : replace(path, "/", sep);
+	return isBinImg(path) ? path : replace(path, "/", dirSeparator);
 }
 
 /// 末尾に改行文字が複数あったら纏める。
@@ -336,19 +761,11 @@ string lastRet(string text) {
 	}
 	return text;
 } unittest {
+	debug mixin(UTPerf);
 	assert (lastRet("test\n\n\n") == "test\n");
 	assert (lastRet("test") == "test\n");
 	assert (lastRet("t\n\nes\nt\n\n") == "t\n\nes\nt\n");
 	assert (lastRet("test\n") == "test\n");
-}
-
-/// Unicode文字列をすべて小文字にする。
-string toLower(string s) {
-	dstring r;
-	foreach (dchar c; s) {
-		r ~= toUniLower(c);
-	}
-	return toUTF8(r);
 }
 
 /// arrをin-placeでソートして返す。
@@ -373,6 +790,7 @@ T[] sortDlg(T, Dlg)(T[] arr, Dlg lmin) {
 	}
 	return sortDlg!(T)(arr[0u .. l], lmin) ~ sortDlg!(T)(arr[l .. $], lmin);
 } unittest {
+	debug mixin(UTPerf);
 	assert (sortDlg!(int)([8, 1, 4, 6, 5, 3, 2, 9, 7, 0], (in int a, in int b) {return a < b;})
 		== [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 	int[] arr = [5, 2, 3, 4, 6, 7, 9, 1, 0, 8];
@@ -399,6 +817,7 @@ int qsearch(T)(in T[] ds, T c) {
 		return i;
 	}
 } unittest {
+	debug mixin(UTPerf);
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128], 0) == -1);
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128], 1) == 0);
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128], 2) == 1);
@@ -467,6 +886,7 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 	}
 	return name;
 } unittest {
+	debug mixin(UTPerf);
 	assert (createNewName("aaa", (string n) {return n != "aaa" && n != "aaa (2)";}, true) == "aaa (3)");
 	assert (createNewName("aaa", (string n) {return n != "aaa" && n != "aaa(2)";}, false) == "aaa(3)");
 	assert (createNewName("aaa (2)", (string n) {return n != "aaa (2)" && n != "aaa (3)";}, true) == "aaa (4)");
@@ -474,18 +894,28 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 }
 /// ditto
 string createNewFileName(string path, bool isdir) {
-	string parent = getDirName(path);
-	string name = getBaseName(path);
-	string ext = isdir ? "" : getExt(name);
-	if (!isdir) name = getName(name);
+	string parent = dirName(path);
+	string name = baseName(path);
+	string ext = isdir ? "" : .extension(name);
+	if (!isdir) name = stripExtension(name);
 	name = createNewName(name, (string name) {
-		name = std.path.join(parent, name);
-		if (!isdir && ext.length) name = addExt(name, ext);
+		name = std.path.buildPath(parent, name);
+		if (!isdir && ext.length) name = setExtension(name, ext);
 		return !.exists(name);
 	}, false);
-	name = std.path.join(parent, name);
-	if (!isdir && ext.length) name = addExt(name, ext);
+	name = std.path.buildPath(parent, name);
+	if (!isdir && ext.length) name = setExtension(name, ext);
 	return name;
+}
+
+/// 複数行の文字列を単行へ変換する。各行の左右の空白は切り詰められる。
+@property
+string singleLine(string s) {
+	string r = "";
+	foreach (line; s.splitLines()) {
+		r ~= line.strip();
+	}
+	return r;
 }
 
 /// 改行文字を\nに置換する。
@@ -494,6 +924,7 @@ string encodeLf(string s) {
 	s = replace(s, "\n", "\\n");
 	return s;
 } unittest {
+	debug mixin(UTPerf);
 	assert (encodeLf("\\\\\n\n\\") == "\\\\\\\\\\n\\n\\\\");
 }
 /// strsを\nを結合子にして結合する。
@@ -508,6 +939,7 @@ string encodeLf(in string[] strs, bool lastLf = true) {
 	}
 	return r;
 } unittest {
+	debug mixin(UTPerf);
 	assert (encodeLf(decodeLf("t\\\\e\\\\st\\ntest\\\\n\\\\")) == "t\\\\e\\\\st\\ntest\\\\n\\\\\\n");
 	assert (encodeLf(decodeLf("t\\\\e\\\\st\\ntest\\\\n\\\\"), false) == "t\\\\e\\\\st\\ntest\\\\n\\\\");
 }
@@ -538,6 +970,7 @@ string decodeLf2(string str) {
 	}
 	return toUTF8(buf);
 } unittest {
+	debug mixin(UTPerf);
 	assert (decodeLf("t\\\\e\\st\\ntest\\\\n\\") == ["t\\e\\st", "test\\n\\"]);
 	assert (decodeLf("t\\\\e\\st\\n\\\\ntest\\\\n\\\\n\\n") == ["t\\e\\st", "\\ntest\\n\\n"]);
 }
@@ -549,13 +982,13 @@ string[] decodeLf(string str, bool useEmpty = false) {
 	string[] r;
 	if (useEmpty) {
 		int last = 0;
-		foreach (i, s; splitlines(decodeLf2(str))) {
+		foreach (i, s; splitLines!string(decodeLf2(str))) {
 			r ~= s;
 			if (s.length > 0) last = i + 1;
 		}
 		r.length = last;
 	} else {
-		foreach (s; splitlines(decodeLf2(str))) {
+		foreach (s; splitLines!string(decodeLf2(str))) {
 			if (s.length > 0) {
 				r ~= s;
 			}
@@ -563,6 +996,7 @@ string[] decodeLf(string str, bool useEmpty = false) {
 	}
 	return r;
 } unittest {
+	debug mixin(UTPerf);
 	assert (decodeLf("t\\\\e\\st\\ntest\\\\n\\") == ["t\\e\\st", "test\\n\\"]);
 	assert (decodeLf("t\\\\e\\st\\n\\\\ntest\\\\n\\\\n\\n") == ["t\\e\\st", "\\ntest\\n\\n"]);
 }
@@ -581,217 +1015,6 @@ bool parseBool(string b) {
 	default:
 		throw new Exception("Not bool: " ~ b);
 	}
-}
-
-/// テキストの中で使用されているフラグ・ステップ・画像パスを抽出する。
-/// Params:
-/// text = テキスト。
-/// flags = 使用されているフラグ群。
-/// steps = 使用されているステップ群。
-/// fonts = 使用されている画像パス群。
-void textUseItems(in string text,
-		out string[] flags, out string[] steps, out string[] fonts) {
-	dstring dtext = toUTF32(text);
-	for (size_t i = 0; i + 1 < dtext.length; i++) {
-		dchar c = dtext[i];
-		void flag_step(ref string[] targ, dchar c) {
-			int next = .countUntil(dtext[i + 1 .. $], c);
-			if (next >= 0) {
-				next = i + 1 + next;
-				targ ~= toUTF8(dtext[i + 1 .. next]);
-				dtext = dtext[next .. $];
-				i = 0;
-			}
-		}
-		switch (c) {
-		case '#':
-			switch (std.ctype.toupper(dtext[i + 1])) {
-			case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
-				break;
-			default:
-				fonts ~= toUTF8("font_"d ~ dtext[i + 1] ~ ".bmp"d);
-				break;
-			}
-			i++;
-			break;
-		case '%':
-			flag_step(flags, '%');
-			break;
-		case '$':
-			flag_step(steps, '$');
-			break;
-		default:
-			break;
-		}
-	}
-} unittest {
-	string[] flags, steps, fonts;
-	textUseItems("#M#R#U#C#I#T#Yaaa$test$$あああ\t2$$#tes%t3$%tes#t%#a#Z#1#2#33d$dd%aaa%%#%#;%vv%#表%#", flags, steps, fonts);
-	assert(flags == ["tes#t", "aaa", "#", "vv"]);
-	assert(steps == ["test", "あああ\t2", "#tes%t3"]);
-	assert(fonts == ["font_a.bmp", "font_Z.bmp", "font_1.bmp", "font_2.bmp", "font_3.bmp", "font_;.bmp", "font_表.bmp"]);
-}
-private void __replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring dold, dstring dnew, dchar targC) {
-	int next = .countUntil(dtext[i + 1 .. $], targC);
-	if (next >= 0) {
-		next = i + 1 + next;
-		if (dtext[i + 1 .. next] == dold) {
-			buf ~= [targC] ~ dnew ~ [targC];
-		} else {
-			buf ~= dtext[i .. next + 1];
-		}
-		if (next < dtext.length) {
-			dtext = dtext[next .. $];
-			i = 0;
-		}
-	} else {
-		buf ~= dtext[i];
-	}
-}
-private void __replOff(ref dstring dtext, ref dstring buf, ref size_t i, dchar targC) {
-	int next = .countUntil(dtext[i + 1 .. $], targC);
-	if (next >= 0) {
-		next = i + 1 + next;
-		buf ~= [targC] ~ dtext[i + 1 .. next] ~ [targC];
-		if (next < dtext.length) {
-			dtext = dtext[next .. $];
-			i = 0;
-		}
-	} else {
-		buf ~= dtext[i];
-	}
-}
-private string __replTextFlagStep(char Ch1, char Ch2)
-		(string text, string oldFlag, string newFlag) {
-	dstring dtext = toUTF32(text);
-	dstring dold = toUTF32(oldFlag);
-	dstring dnew = toUTF32(newFlag);
-	dstring buf;
-	for (size_t i; i < dtext.length; i++) {
-		dchar c = dtext[i];
-		switch (c) {
-		case '#':
-			buf ~= c;
-			if (i + 1 < dtext.length) {
-				buf ~= dtext[i + 1];
-				i++;
-			}
-			break;
-		case Ch1:
-			__replOn(dtext, buf, i, dold, dnew, Ch1);
-			break;
-		case Ch2:
-			__replOff(dtext, buf, i, Ch2);
-			break;
-		default:
-			buf ~= c;
-			break;
-		}
-	}
-	return toUTF8(buf);
-}
-/// テキストの中で使用されているフラグのパスを置換する。
-/// Params:
-/// text = テキスト。
-/// oldFlag = 置換前のフラグパス。
-/// newFlag = 置換後のフラグパス。
-string replTextUseFlag(string text, string oldFlag, string newFlag) {
-	return __replTextFlagStep!('%', '$')(text, oldFlag, newFlag);
-} unittest {
-	assert(replTextUseFlag("aaa%aaa%$%置換前%$%置換前%a#%置換前%%aa$%置換前%", "置換前", "置換no後")
-		== "aaa%aaa%$%置換前%$%置換no後%a#%置換前%%aa$%置換no後%");
-}
-/// テキストの中で使用されているステップのパスを置換する。
-/// Params:
-/// text = テキスト。
-/// oldStep = 置換前のステップパス。
-/// newStep = 置換後のステップパス。
-string replTextUseStep(string text, string oldStep, string newStep) {
-	return __replTextFlagStep!('$', '%')(text, oldStep, newStep);
-} unittest {
-	assert(replTextUseStep("aaa$aaa$%$置換前$%$置換前$a#$置換前$$aa%$置換前$", "置換前", "置換no後")
-		== "aaa$aaa$%$置換前$%$置換no後$a#$置換前$$aa%$置換no後$");
-}
-/// テキストの中で使用されている画像のパスを置換する。
-/// Params:
-/// text = テキスト。
-/// oldFont = 置換前の画像パス。
-/// newFont = 置換後の画像パス。
-string replTextUseFont(string text, string oldFont, string newFont)
-in {
-	dstring dold = toUTF32(toLower(oldFont));
-	dstring dnew = toUTF32(toLower(newFont));
-	assert(dold.length == 10);
-	assert(startsWith(dold, "font_"d));
-	assert(endsWith(dold, ".bmp"d));
-	assert(dnew.length == 10);
-	assert(startsWith(dnew, "font_"d));
-	assert(endsWith(dnew, ".bmp"d));
-} body {
-	dstring dtext = toUTF32(text);
-	dchar dold = toUTF32(oldFont)[5];
-	dchar dnew = toUTF32(newFont)[5];
-	dstring buf;
-	for (size_t i; i < dtext.length; i++) {
-		dchar c = dtext[i];
-		switch (c) {
-		case '#':
-			buf ~= c;
-			if (i + 1 < dtext.length) {
-				if (tolower([dtext[i + 1]]) == tolower([dold])) {
-					buf ~= dnew;
-				} else {
-					buf ~= dtext[i + 1];
-				}
-				i++;
-			}
-			break;
-		case '%':
-			__replOff(dtext, buf, i, '%');
-			break;
-		case '$':
-			__replOff(dtext, buf, i, '$');
-			break;
-		default:
-			buf ~= c;
-			break;
-		}
-	}
-	return toUTF8(buf);
-} unittest {
-	assert(replTextUseFont("#a#置$#置$#b%#置%#置", "font_置.bmp", "Font_換.bmp")
-		== "#a#換$#置$#b%#置%#換");
-	assert(replTextUseFont("#a#c$#c$#b%#C%#C", "fonT_c.bmp", "font_F.Bmp")
-		== "#a#F$#c$#b%#C%#F");
-}
-/// textのstart .. end範囲内の色をcolorにする。
-/// %%・$$区間は通常のテキストとして扱う。
-dstring putColor(dstring text, dchar color, size_t start, size_t end) {
-	if (start == end) {
-		return text[0u .. start] ~ cast(dchar) '&' ~ color ~ text[end .. $];
-	}
-	dchar defColor = 'W';
-	if (start >= 1) {
-		l: foreach_reverse (i, dchar c; text[1u .. start]) {
-			switch (c) {
-			case 'W', 'R', 'B', 'G', 'Y':
-				if (text[i] == '&') {
-					defColor = c;
-					break l;
-				}
-				break;
-			default:
-			}
-		}
-	}
-	if (defColor == color) return text;
-	return text[0u .. start] ~ cast(dchar) '&' ~ color
-		~ text[start .. end] ~ cast(dchar) '&' ~ defColor ~ text[end .. $];
-} unittest {
-	assert (putColor("テストテスト"d, 'R', 1, 4) == "テ&Rストテ&Wスト"d);
-	assert (putColor("テストテスト"d, 'B', 2, 5) == "テス&Bトテス&Wト"d);
-	assert (putColor("&Rテストテスト"d, 'Y', 4, 7) == "&Rテス&Yトテス&Rト"d);
-	assert (putColor("テストテスト"d, 'B', 2, 2) == "テス&Bトテスト"d);
 }
 
 /// 連想配列をクリアする。
@@ -815,6 +1038,7 @@ bool isSortedDlg(T, Dlg)(in T[] arr, Dlg cmp) {
 	}
 	return true;
 } unittest {
+	debug mixin(UTPerf);
 	assert (isSorted([1, 2, 3]));
 	assert (!isSorted([1, 3, 2]));
 }
@@ -835,6 +1059,7 @@ string toHex(string str) {
 	}
 	return r;
 } unittest {
+	debug mixin(UTPerf);
 	string result;
 	result = toHex("aBc");
 	assert (result == "%61%42%63", result);
@@ -855,11 +1080,11 @@ string getenv(string env) {
 	return r;
 }
 
-private string __createF(bool Dir)(string parent, string name, string ext, string prefix) {
+private string createFileImpl(bool Dir)(string parent, string name, string ext, string prefix) {
 	string clean(string name) {
-		name = replace(name, sep, "");
-		static if (altsep.length) {
-			name = replace(name, altsep, "");
+		name = replace(name, dirSeparator, "");
+		static if (altDirSeparator.length) {
+			name = replace(name, altDirSeparator, "");
 		}
 		name = replace(name, ".", "");
 		name = replace(name, " ", "");
@@ -871,24 +1096,13 @@ private string __createF(bool Dir)(string parent, string name, string ext, strin
 	string r;
 	void create() {
 		r = prefix ~ name;
-		if (ext.length) r = addExt(r, ext);
-		r = std.path.join(parent, r);
+		r = r.toFileName();
+		if (ext.length) r = setExtension(r, ext);
+		r = std.path.buildPath(parent, r);
 		r = createNewFileName(r, Dir);
-		static if (Dir) {
-			mkdir(r);
-			rmdir(r);
-		} else {
-			std.file.write(r, []);
-			std.file.remove(r);
-		}
 	}
 	name = clean(name);
-	try {
-		create;
-	} catch (Exception e) {
-		name = toHex(name);
-		create;
-	}
+	create();
 	return r;
 }
 /// 存在しないファイル名を生成して返す。
@@ -896,18 +1110,18 @@ private string __createF(bool Dir)(string parent, string name, string ext, strin
 /// 括弧つき数字をつける。
 /// それでも存在する場合、括弧内の数値をインクリメントしてゆく。
 string createFileI(string parent, string name, string ext, string prefix) {
-	return __createF!(false)(parent, name, ext, prefix);
+	return createFileImpl!(false)(parent, name, ext, prefix);
 }
 /// ditto
 string createFolder(string parent, string name) {
-	return __createF!(true)(parent, name, "", "");
+	return createFileImpl!(true)(parent, name, "", "");
 }
 
 /// ファイル削除の準備を行う。
 void preRemove(string delpath) {
 	version (Windows) {
 		// 書込み権限を付けておく
-		auto fname = std.utf.toUTF16z(delpath);
+		auto fname = std.utf.toUTFz!(wchar*)(delpath);
 		SetFileAttributesW(fname, FILE_ATTRIBUTE_NORMAL);
 	}
 }
@@ -918,16 +1132,18 @@ void preRemove(string delpath) {
 /// sPath = シナリオのパス。
 /// path = コピー元のファイル。
 /// added = シナリオ内のどのフォルダにコピーするか。
+/// binImgToRef = 格納イメージを参照に差し替えるか。
 /// Returns: コピー後のファイルパス。
-string copyTo(string sPath, string path, string added) {
+string copyTo(string sPath, string path, string added, bool binImgToRef) {
 	bool binImg = isBinImg(path);
-	auto mtDir = std.path.join(sPath, added);
+	if (binImg && !binImgToRef) return path;
+	auto mtDir = std.path.buildPath(sPath, added);
 	if (!exists(mtDir)) mkdirRecurse(mtDir);
 	string to;
 	if (binImg) {
-		to = std.path.join(mtDir, "@simage(1).bmp");
+		to = std.path.buildPath(mtDir, "@simage(1).bmp");
 	} else {
-		to = std.path.join(mtDir, getBaseName(path));
+		to = std.path.buildPath(mtDir, baseName(path));
 	}
 	to = createNewFileName(to, false);
 	if (binImg) {
@@ -935,24 +1151,32 @@ string copyTo(string sPath, string path, string added) {
 	} else {
 		copy(path, to);
 	}
-	return std.path.join(added, getBaseName(to));
+	return std.path.buildPath(added, baseName(to));
 }
 
 /// aからbへすべてのファイル・ディレクトリをコピーする。
-void copyAll(string a, string b) in {
-	assert (isdir(a));
-	assert (isdir(b));
-} body {
-	foreach (file; clistdir(a)) {
-		string fPath = std.path.join(a, file);
-		string tPath = std.path.join(b, file);
-		if (isdir(fPath)) {
-			mkdir(tPath);
+void copyAll(string a, string b, bool overwrite = false) {
+	if (isDir(a)) {
+		if (!.exists(b)) mkdir(b);
+		foreach (file; clistdir(a)) {
+			string fPath = std.path.buildPath(a, file);
+			string tPath = std.path.buildPath(b, file);
 			copyAll(fPath, tPath);
-		} else {
-			std.file.copy(fPath, tPath);
 		}
+	} else {
+		if (overwrite && .exists(b)) delAll(b);
+		std.file.copy(a, b);
 	}
+}
+
+/// listDirの代替。指定されたディレクトリに含まれるファイル名の一覧を返す。
+string[] clistdir(string dir) {
+	string[] r;
+	if (!.exists(dir)) return r;
+	foreach (string file; dirEntries(dir, SpanMode.shallow, false)) {
+		r ~= file.baseName();
+	}
+	return r;
 }
 
 /// delpath以降の全てのファイル・ディレクトリを削除する。
@@ -963,9 +1187,9 @@ void delAll(string delpath, bool force = true) {
 	void __delAll(string delpath, ref Exception ee) {
 		try {
 			preRemove(delpath);
-			if (isdir(delpath)) {
+			if (isDir(delpath)) {
 				foreach (file; clistdir(delpath)) {
-					__delAll(std.path.join(delpath, file), ee);
+					__delAll(std.path.buildPath(delpath, file), ee);
 				}
 				rmdir(delpath);
 			} else {
@@ -982,14 +1206,14 @@ void delAll(string delpath, bool force = true) {
 }
 
 /// arrにaが見つかればtrueを返す。
-bool contains(string pred = "a == b", T)(in T[] arr, in T a) {
+bool contains(string pred = "a == b", T1, T2)(in T1[] arr, in T2 a) {
 	foreach (b; arr) {
 		if (mixin(pred)) return true;
 	}
 	return false;
 }
 
-static if (fnmatch("A", "a")) {
+static if (0 == filenameCharCmp('A', 'a')) {
 	/// ファイル名を比較する。
 	alias icmp fncmp;
 } else {
@@ -1025,11 +1249,11 @@ private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a, in C2[] b) {
 		if (i >= a.length) return -1;
 		if (j >= b.length) return 1;
 		C1[] buf1;
-		for (size_t k = i; k < a.length && isdigit(a[k]); k++) {
+		for (size_t k = i; k < a.length && std.ascii.isDigit(a[k]); k++) {
 			buf1 ~= a[k];
 		}
 		C2[] buf2;
-		for (size_t k = j; k < b.length && isdigit(b[k]); k++) {
+		for (size_t k = j; k < b.length && std.ascii.isDigit(b[k]); k++) {
 			buf2 ~= b[k];
 		}
 		if (buf1.length && buf2.length) {
@@ -1054,6 +1278,7 @@ private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a, in C2[] b) {
 	}
 	return 0;
 } unittest {
+	debug mixin(UTPerf);
 	assert (ncmp("42", "2") > 0);
 	assert (ncmp("02", "2") < 0);
 	assert (ncmp("abc42", "abc4") > 0);
@@ -1070,6 +1295,7 @@ private C[] zfill_(C)(in C[] str, size_t width) {
 	r[n .. $] = str;
 	return cast(C[]) r;
 } unittest {
+	debug mixin(UTPerf);
 	assert (zfill_("abc", 2) == "abc");
 	assert (zfill_("abc", 3) == "abc");
 	assert (zfill_("abc", 4) == "0abc");
@@ -1078,13 +1304,6 @@ private C[] zfill_(C)(in C[] str, size_t width) {
 	assert (zfill_("abc"d, 5) == "00abc"d);
 }
 
-/// arrからaを探して見つかればそのindex。見つからなかった場合は-1。
-int indexOf(string pred = "a == b", T1, T2)(in T1[] arr, in T2 a) {
-	foreach (i, b; arr) {
-		if (mixin(pred)) return i;
-	}
-	return -1;
-}
 /// arrからaを除去する。
 T[] remove(string pred = "a == b", T)(ref T[] arr, T a) {
 	foreach (i, b; arr) {
@@ -1098,24 +1317,37 @@ T[] remove(string pred = "a == b", T)(ref T[] arr, T a) {
 /// 簡単なhashset。
 class HashSet(T) {
 	private int[T] a;
+	/// 唯一のコンストラクタ。
+	@property
+	this () {
+		/// Nothing
+	}
+	/// 要素を追加する。
 	void add(T v) {
 		a[v] = 0;
 	}
+	/// 要素を除外する。
 	void remove(T v) {
 		a.remove(v);
 	}
+	/// 要素を全て除外する。
 	void clear() {
 		int[T] init;
 		a = init;
 	}
+	/// 含まれていればtrue。
 	const
 	bool contains(T v) {
 		return (v in a) !is null;
 	}
+	/// 要素数。
+	@property
 	const
 	size_t size() {
 		return a.length;
 	}
+	/// 空であればtrue。
+	@property
 	const
 	bool isEmpty() {
 		return a.length == 0u;
@@ -1155,9 +1387,9 @@ version (Windows) {
 		int r;
 		wchar[] procTemp;
 		procTemp.length = process.length + 1;
-		procTemp[0 .. $] = toUTF16z(process)[0 .. procTemp.length];
+		procTemp[0 .. $] = toUTFz!(wchar*)(process)[0 .. procTemp.length];
 		r = CreateProcessW(null, procTemp.ptr, null, null, false, flag, null,
-			workDir.length ? toUTF16z(workDir) : null, &setup, &info);
+			workDir.length ? toUTFz!(wchar*)(workDir) : null, &setup, &info);
 		if (r) {
 			if (wait) {
 				WaitForSingleObject(info.hProcess, INFINITE);
@@ -1169,14 +1401,14 @@ version (Windows) {
 	}
 } else {
 	private extern (C) {
-		int fork();
+		intptr_t fork();
 	}
 	import std.c.stdlib;
 	import std.process;
 	/// プロセスを起動する。成功した場合はtrueを返す。
 	/// FIXME: まったくテストしていない
 	bool exec(string process, string workDir = "", bool console = true, bool wait = false) {
-		auto pid = fork;
+		auto pid = fork();
 		if (pid < 0) {
 			return false;
 		} else if (pid > 0) {
@@ -1187,6 +1419,7 @@ version (Windows) {
 			if (execv(process, null) == -1) {
 				exit(-1);
 			}
+            return true;
 		}
 	}
 }
@@ -1196,8 +1429,9 @@ bool hasPath(string sPath, string path) {
 	path = nabs(path);
 	sPath = nabs(sPath);
 	return cwx.utils.fnstartsWith(path, sPath)
-		&& (path.length == sPath.length || startsWith(path[sPath.length .. $], sep));
+		&& (path.length == sPath.length || startsWith(path[sPath.length .. $], dirSeparator));
 } unittest {
+	debug mixin(UTPerf);
 	version (Windows) {
 		assert (hasPath(`c:\test\aaa`, `c:\test\aaa\bbb`));
 		assert (!hasPath(`c:\test\aaa`, `c:\test\aaaaaa`));
@@ -1205,38 +1439,6 @@ bool hasPath(string sPath, string path) {
 	}
 }
 
-private struct FCPt {
-	string path;
-	hash_t toHash() {
-		hash_t r = 0;
-		foreach (char c; std.path.getBaseName(path)) {
-			r *= 31;
-			r += c;
-		}
-		return r;
-	}
-	const
-	bool opEquals(ref const(FCPt) s) {
-		auto r = fnmatch(getBaseName(s.path), getBaseName(path));
-		if (r) {
-			r = fnmatch(getDirName(s.path), getDirName(path));
-		}
-		return r;
-	}
-	const
-	int opCmp(ref const(FCPt) s) {
-		static if (fnmatch("A", "a")) {
-			alias std.string.icmp cp;
-		} else {
-			alias std.string.cmp cp;
-		}
-		int r = cp(getBaseName(s.path), getBaseName(path));
-		if (r == 0) {
-			r = cp(getDirName(s.path), getDirName(path));
-		}
-		return r;
-	}
-}
 /// ファイルパスから取得する何らかのデータをキャッシュするための
 /// 一連の変数と関数を定義する。
 template FileCache(T ...) {
@@ -1249,49 +1451,53 @@ template FileCache(T ...) {
 		}
 	}
 	static const CACHE_MAX = 1024;
-	static Cache[FCPt] caches;
+	static Cache[string] caches;
 	static string[] cachePaths;
 	void putCache(string path, T v) {
 		if (!exists(path)) return;
 		path = nabs(path);
+		static if (0 == filenameCharCmp('A', 'a')) {
+			path = std.string.toLower(path);
+		}
 		if (cachePaths.length >= CACHE_MAX) {
-			caches.remove(FCPt(cachePaths[0u]));
+			caches.remove(cachePaths[0u]);
 			cachePaths = cachePaths[1u .. $];
 		}
-		caches[FCPt(path)] = Cache(timeLastModified(path), v);
+		caches[path] = Cache(timeLastModified(path), v);
 		cachePaths ~= path;
 	}
 	Cache* cache(string path) {
 		if (!exists(path)) return null;
 		path = nabs(path);
-		auto cache = FCPt(path) in caches;
-		auto ftm = timeLastModified(path);
-		return cache && cache.ftm == ftm ? cache : null;
+		static if (0 == filenameCharCmp('A', 'a')) {
+			path = std.string.toLower(path);
+		}
+		auto cache = path in caches;
+		if (!cache) return null;
+		return cache.ftm == timeLastModified(path) ? cache : null;
 	}
 }
 
 /// 親ディレクトリへの移動が含まれているパスであればtrueを返す。
 bool hasParDir(string path) {
-	path = normal(path);
-	if (startsWith(path, pardir ~ sep)) return true;
-	if (.countUntil(path, sep ~ pardir ~ sep) != -1) return true;
+	path = buildNormalizedPath(path);
+	if (startsWith(path, pardir ~ dirSeparator)) return true;
+	if (.countUntil(path, dirSeparator ~ pardir ~ dirSeparator) != -1) return true;
 	return false;
 }
-
-/// 歴史的理由でaliasを用意。
-alias listdir clistdir;
 
 /// sにsubがいくつ含まれているかを返す。
 /// std.string.count()と違って大文字と小文字を区別しない。
 size_t icount(string s, string sub) {
 	int c = 0;
 	while (true) {
-		auto i = std.string.indexOf(s, sub, CaseSensitive.no);
+		auto i = std.string.indexOf(s, sub, std.string.CaseSensitive.no);
 		if (i < 0) return c;
 		c++;
 		s = s[i + sub.length .. $];
 	}
 } unittest {
+	debug mixin(UTPerf);
 	assert (icount("test", "Es") == 1);
 	assert (icount("aaaaaaa", "AA") == 3);
 }
@@ -1301,189 +1507,16 @@ size_t icount(string s, string sub) {
 string ireplace(string s, string from, string to) {
 	string r = "";
 	while (true) {
-		auto i = std.string.indexOf(s, from, CaseSensitive.no);
+		auto i = std.string.indexOf(s, from, std.string.CaseSensitive.no);
 		if (i < 0) return r ~ s;
 		r ~= s[0 .. i] ~ to;
 		s = s[i + from.length .. $];
 	}
 } unittest {
+	debug mixin(UTPerf);
+	assert (ireplace("testte", "te", "tea") == "teasttea");
 	assert (ireplace("test", "Es", "TT") == "tTTt");
 	assert (ireplace("aaaaaaa", "AA", "BB") == "BBBBBBa");
-}
-
-/// ワイルドカードを用いてパターンマッチングを行う。
-/// *は任意の文字列に、?は任意の文字にそれぞれ一致し、
-/// \をエスケープ文字として使用する。
-class Wildcard {
-	/// sからマッチを探し、indexを返す。
-	/// 見つからなければ-1を返す。
-	int find(string s) {
-		if (!s.length) return -1;
-		size_t len;
-		auto ds = toUTF32(s);
-		int i = find(ds, false, len);
-		if (i == -1) return -1;
-		return toUTF8(ds[0 .. i]).length;
-	}
-	/// s中のマッチする部分をtoに置換して返す。
-	string replace(string s, string to) {
-		if (!s.length) return s;
-		auto ds = toUTF32(s);
-		auto dto = toUTF32(to);
-		dchar[] r;
-		size_t len;
-		while (true) {
-			if (!ds.length) break;
-			int i = find(ds, false, len);
-			if (i == -1) {
-				r ~= ds;
-				break;
-			}
-			r ~= ds[0 .. i] ~ dto;
-			ds = ds[i + len .. $];
-		}
-		return toUTF8(r);
-	}
-	/// s中のマッチする部分をカウントして返す。
-	size_t count(string s) {
-		if (!s.length) return 0;
-		auto ds = toUTF32(s);
-		size_t r = 0;
-		size_t len;
-		while (true) {
-			if (!ds.length) break;
-			int i = find(ds, false, len);
-			if (i == -1) {
-				break;
-			}
-			r++;
-			ds = ds[i + len .. $];
-		}
-		return r;
-	}
-
-	private enum Pattern {
-		CHAR, QUESTION
-	}
-	private static struct WChar {
-		Pattern pattern;
-		dchar chr;
-		bool ignoreCase;
-		bool match(dchar c) {
-			switch (pattern) {
-			case Pattern.CHAR: {
-				if (ignoreCase) {
-					return std.ctype.tolower(chr) == std.ctype.tolower(c);
-				} else {
-					return chr == c;
-				}
-			}
-			case Pattern.QUESTION: {
-				return true;
-			}
-			default: assert (0);
-			}
-		}
-	}
-	private WChar[] _left;
-	private Wildcard _right;
-	private bool _ignoreCase;
-	private int findw(dstring s) {
-		if (s.length < _left.length) return -1;
-		for (int i = 0; i <= s.length - _left.length; i++) {
-			int j;
-			for (j = 0; j < _left.length && _left[j].match(s[i + j]); j++) {}
-			if (j == _left.length) return i;
-		}
-		return -1;
-	}
-	private int rfindw(dstring s) {
-		if (s.length < _left.length) return -1;
-		for (int i = s.length - _left.length; i >= 0; i--) {
-			int j;
-			for (j = 0; j < _left.length && _left[j].match(s[i + j]); j++) {}
-			if (j == _left.length) return i;
-		}
-		return -1;
-	}
-	private int find(dstring s, bool next, out size_t len) {
-		auto sbase = s;
-		while (true) {
-			int i = next ? rfindw(s) : findw(s);
-			if (i == -1) return -1;
-			if (_right) {
-				int j = _right.find(sbase[i + _left.length .. $], true, len);
-				if (j == -1) {
-					if (next) {
-						s = s[0 .. $ - 1];
-						continue;
-					}
-					return -1;
-				}
-				len += _left.length + j;
-				return i;
-			} else {
-				len = _left.length;
-				return i;
-			}
-		}
-	}
-	public static Wildcard opCall(string sub, bool ignoreCase = false) {
-		auto wild = new Wildcard;
-		wild._ignoreCase = ignoreCase;
-		bool onbs = false;
-		foreach (i, dchar c; sub) {
-			switch (c) {
-			case '?': {
-				if (!onbs) {
-					wild._left ~= WChar(Pattern.QUESTION, '\0', ignoreCase);
-					onbs = false;
-					break;
-				}
-			} goto default;
-			case '*': {
-				if (!onbs) {
-					while (i < sub.length && sub[i] == '*')
-						i++;
-					wild._right = Wildcard(sub[i .. $], ignoreCase);
-					return wild;
-				}
-			} goto default;
-			case '\\': {
-				if (onbs) wild._left ~= WChar(Pattern.CHAR, c, ignoreCase);
-				onbs = !onbs;
-			} break;
-			default: {
-				wild._left ~= WChar(Pattern.CHAR, c, ignoreCase);
-				onbs = false;
-			}
-			}
-		}
-		if (onbs) wild._left ~= WChar(Pattern.CHAR, '\\', ignoreCase);
-		return wild;
-	}
-} unittest {
-	assert (Wildcard("test").find("test") == 0);
-	assert (Wildcard("test").find("atest") == 1);
-	assert (Wildcard("te?t").find("test") == 0);
-	assert (Wildcard("t*t").find("abctest") == 3);
-	assert (Wildcard("test*").find("test") == 0);
-	assert (Wildcard("test\\*").find("atest*") == 1);
-	assert (Wildcard("*test").find("abcdtest") == 0);
-	assert (Wildcard("te\\?st").find("abcdte?st") == 4);
-	assert (Wildcard("te\\\\st").find("abcdte\\st") == 4);
-	assert (Wildcard("t*st").find("testst") == 0);
-	assert (Wildcard("te\\st").find("te\\st") == -1);
-
-	assert (Wildcard("te?t", true).find("tEst") == 0);
-	assert (Wildcard("t*t", true).find("abcTEST") == 3);
-	assert (Wildcard("test*", true).find("teST") == 0);
-
-	assert (Wildcard("*").count("test") == 1);
-	assert (Wildcard("te?t").count("testtestest") == 2);
-
-	assert (Wildcard("t*s").replace("test", "A") == "At");
-	assert (Wildcard("???t").replace("testtestest", "BB") == "BBBBest");
 }
 
 /// 数値をCount桁でSepによって区切った文字列にして返す。
@@ -1499,6 +1532,7 @@ string formatNum(N, size_t Count = 3, string Sep = ",")(N num) {
 	buf = s ~ buf;
 	return buf;
 } unittest {
+	debug mixin(UTPerf);
 	assert (formatNum(123) == "123");
 	assert (formatNum(123456) == "123,456");
 	assert (formatNum(1234567) == "1,234,567");
@@ -1532,6 +1566,7 @@ size_t lengthJ(in char[] text) {
 	}
 	return len;
 } unittest {
+	debug mixin(UTPerf);
 	assert (lengthJ("斉") == 2);
 	assert (lengthJ("大秦") == 4);
 	assert (lengthJ("1万") == 3);
@@ -1551,7 +1586,8 @@ size_t lineCount(in string[] lines) {
 	}
 	return to - from;
 } unittest {
-	assert (lineCount(splitlines("\na\nb\n\nc\n\n")) == 4);
+	debug mixin(UTPerf);
+	assert (lineCount(splitLines!string("\na\nb\n\nc\n\n")) == 4);
 }
 /// std.algorithm.countUntilはconst配列に対する検索が通らない
 sizediff_t cCountUntil(string pred = "a == b", R1, R2)(R1 arr, R2 b) {
@@ -1581,7 +1617,7 @@ string sliceJ(string text, size_t from, size_t to) {
 		string msg = "text: " ~ text ~ ", from: " ~ .to!(string)(from) ~ ", to: " ~ .to!(string)(to);
 		throw new Exception(msg, __FILE__, __LINE__);
 	}
-	if (from > to) te;
+	if (from > to) te();
 	size_t i = 0u, j = 0u;
 	size_t s = size_t.max, e;
 	bool ok = false;
@@ -1600,9 +1636,10 @@ string sliceJ(string text, size_t from, size_t to) {
 			break;
 		}
 	}
-	if (!ok) te;
+	if (!ok) te();
 	return text[s .. e];
 } unittest {
+	debug mixin(UTPerf);
 	assert (sliceJ("あいうえお", 2, 10) == "いうえお");
 	assert (sliceJ("あいうeお", 2, 9) == "いうeお");
 	assert (sliceJ("あいうえお", 2, 9) == "いうえ");
@@ -1616,4 +1653,138 @@ string sliceJ(string text, size_t from, size_t to) {
 	assert (sliceJ("1いうえお", 3, 9) == "うえお");
 	assert (sliceJ("1いuえお", 3, 8) == "uえお");
 	assert (sliceJ("あいうえお", 3, 3) == "");
+}
+
+/// strip()と同様に動作するが、全角空白を空白文字として扱わない。
+string astrip(string s) {
+	return s.astripl().astripr();
+}
+/// ditto
+string astripl(string s) {
+	foreach (i, c; s) {
+		if (!std.ascii.isWhite(c)) {
+			return s[i .. $];
+		}
+	}
+	return "";
+}
+/// ditto
+string astripr(string s) {
+	foreach_reverse (i, c; s) {
+		if (!std.ascii.isWhite(c)) {
+			return s[0 .. i + 1];
+		}
+	}
+	return "";
+}
+
+/// '[' ']'を含むファイル名が存在するため、globMatch()の代替を用意する必要がある。
+bool cglobMatch(string a, string b) {
+	b = b.replace("\\", "\\\\");
+	return Wildcard(b, 0 == filenameCharCmp('A', 'a')).match(a);
+} unittest {
+	debug mixin(UTPerf);
+	assert (cfnmatch(r"C:\path", r"C:\path"));
+}
+/// ファイル名が一致するか。
+bool cfnmatch(in char[] a, in char[] b) {
+	return 0 == filenameCmp(a, b);
+}
+
+/// Nameを変数名として使用できる場合はtrue。
+template isVariableName(string Name) {
+	immutable isVariableName = is(typeof({mixin("int " ~ Name ~ ";");}));
+}
+static assert (!isVariableName!("version"));
+static assert (isVariableName!("version_"));
+
+/// Nameを変数名として使用できない場合は末尾に'_'を追加する。
+template variableName(string Name) {
+	immutable variableName = isVariableName!Name ? Name : Name ~ "_";
+}
+static assert (variableName!("version") == "version_");
+static assert (variableName!("versio") == "versio");
+
+version (Windows) {
+	extern (Windows) {
+		private alias UINT function(WCHAR c) PathGetCharTypeW;
+		private immutable GCT_INVALID = 0x0;
+		private immutable GCT_LFNCHAR = 0x1;
+		private immutable GCT_SHORTCHAR = 0x2;
+		private immutable GCT_WILD = 0x4;
+		private immutable GCT_SEPARATOR = 0x8;
+		private __gshared void* _shlwapi = null;
+		private __gshared PathGetCharTypeW _PathGetCharType = null;
+	}
+	shared static ~this() {
+		if (_shlwapi) dlclose(_shlwapi);
+	}
+}
+/// ファイル名に使用できる文字か。
+@property
+bool isFileNameChar(dchar c) {
+	version (Windows) {
+		static immutable DN = "\\/:*?\"<>|"d;
+		if (!_shlwapi) {
+			_shlwapi = dlopen("shlwapi.dll");
+		}
+		if (!_shlwapi) {
+			debugln("not found: shlwapi.dll");
+			return -1 == std.string.indexOf(DN, c);
+		}
+		if (!_PathGetCharType) {
+			_PathGetCharType = cast(PathGetCharTypeW) dlsym(_shlwapi, "PathGetCharTypeW");
+		}
+		if (!_PathGetCharType) {
+			debugln("not found: PathGetCharTypeW");
+			return -1 == std.string.indexOf(DN, c);
+		}
+		foreach (wchar wc; [c]) {
+			auto r = _PathGetCharType(wc);
+			if (!(GCT_LFNCHAR & r) && !(GCT_SHORTCHAR & r)) {
+				return false;
+			}
+		}
+		return true;
+	} else version (Posix) {
+		static immutable DN = "/"d;
+		return 0 != c && -1 == std.string.indexOf(DN, c);
+	} else static assert (0);
+}
+
+/// ファイル名に使用できない文字があったらcに置換する。
+string toFileName(string name, dchar c = '_') {
+	dchar[] buf;
+	foreach (dchar n; name) {
+		buf ~= isFileNameChar(n) ? n : c;
+	}
+	version (Windows) {
+		// 末尾が'.'のファイル名は拒否される
+		if (buf.length && '.' == buf[$ - 1]) {
+			buf[$ - 1] = c;
+		}
+	}
+	return to!string(buf);
+}
+
+/// 実行モジュールのパスを返す。
+string exeName(string args0) {
+	version (Windows) {
+		char[MAX_PATH] pathBuf;
+		if (GetModuleFileNameA(null, pathBuf.ptr, pathBuf.length)) {
+			return fromMBSz(pathBuf.idup.ptr);
+		} else {
+			version (Console) {
+				cwriteln("GetModuleFileName failure!");
+			}
+		}
+	} else version (linux) {
+		char[1024] buf;
+		buf[] = '\0';
+		if (-1 != .readlink("/proc/self/exe", buf.ptr, buf.sizeof)) {
+			cdebugln(buf);
+			return buf[0 .. .strlen(buf.ptr)].idup;
+		}
+	}
+	return args0;
 }

@@ -9,13 +9,13 @@ import cwx.xml;
 /// 種族関連の例外。
 class RaceException : Exception {
 public:
-	this(string msg) {
+	this (string msg) {
 		super(msg);
 	}
 }
 
 /// 種族。
-class Race {
+class Race : CouponsOwner {
 private:
 	string _name;
 	string _desc;
@@ -33,19 +33,27 @@ public:
 		node.onTag["Ability"] = (ref XNode node) {r.loadAbility(node, ver);};
 		node.onTag["Coupons"] = (ref XNode node) {
 			node.onTag["Coupon"] = (ref XNode node) {
-				r._coupons ~= Coupon.fromNode(node, ver);
+				auto coupon = Coupon.fromNode(node, ver);
+				coupon.owner = r;
+				r._coupons ~= coupon;
 			};
 		};
-		node.parse;
+		node.parse();
 		if (!r._name) throw new Exception("Race name not found.");
 		return r;
 	}
 	/// 種族名。
+	@property
 	const
 	string name() {return _name;}
 	/// 解説。
+	@property
 	const
 	string desc() {return _desc;}
+	/// 初期クーポン。
+	@property
+	const
+	const(Coupon)[] coupons() {return _coupons;}
 }
 
 /// mixinによって種族絡みのパラメータを付与する。
@@ -63,64 +71,133 @@ template RaceParam(bool Set) {
 		int _dEnh[Enhance]; /// デフォルトの能力修正
 	}
 
+	/// rからパラメータをコピーする。
+	void copyRaceParam(T)(T r) {
+		automaton = r.automaton;
+		constructure = r.constructure;
+		undead = r.undead;
+		unholy = r.unholy;
+		weaponResist = r.weaponResist;
+		magicResist = r.magicResist;
+		resist(Element.FIRE, r.resist(Element.FIRE));
+		resist(Element.ICE, r.resist(Element.ICE));
+		weakness(Element.FIRE, r.weakness(Element.FIRE));
+		weakness(Element.ICE, r.weakness(Element.ICE));
+		physical(Physical.DEX, r.physical(Physical.DEX));
+		physical(Physical.AGL, r.physical(Physical.AGL));
+		physical(Physical.INT, r.physical(Physical.INT));
+		physical(Physical.STR, r.physical(Physical.STR));
+		physical(Physical.VIT, r.physical(Physical.VIT));
+		physical(Physical.MIN, r.physical(Physical.MIN));
+		mental(Mental.AGGRESSIVE, r.mental(Mental.AGGRESSIVE));
+		mental(Mental.CHEERFUL, r.mental(Mental.CHEERFUL));
+		mental(Mental.BRAVE, r.mental(Mental.BRAVE));
+		mental(Mental.CAUTIOUS, r.mental(Mental.CAUTIOUS));
+		mental(Mental.TRICKISH, r.mental(Mental.TRICKISH));
+		defaultEnhance(Enhance.AVOID, r.defaultEnhance(Enhance.AVOID));
+		defaultEnhance(Enhance.RESIST, r.defaultEnhance(Enhance.RESIST));
+		defaultEnhance(Enhance.DEFENSE, r.defaultEnhance(Enhance.DEFENSE));
+	}
+
+	/// パラメータを比較する。
+	const
+	bool equalsRace(T)(T r) {
+		return automaton == r.automaton
+			&& constructure == r.constructure
+			&& undead == r.undead
+			&& unholy == r.unholy
+			&& weaponResist == r.weaponResist
+			&& magicResist == r.magicResist
+			&& resist(Element.FIRE) == r.resist(Element.FIRE)
+			&& resist(Element.ICE) == r.resist(Element.ICE)
+			&& weakness(Element.FIRE) == r.weakness(Element.FIRE)
+			&& weakness(Element.ICE) == r.weakness(Element.ICE)
+			&& physical(Physical.DEX) == r.physical(Physical.DEX)
+			&& physical(Physical.AGL) == r.physical(Physical.AGL)
+			&& physical(Physical.INT) == r.physical(Physical.INT)
+			&& physical(Physical.STR) == r.physical(Physical.STR)
+			&& physical(Physical.VIT) == r.physical(Physical.VIT)
+			&& physical(Physical.MIN) == r.physical(Physical.MIN)
+			&& mental(Mental.AGGRESSIVE) == r.mental(Mental.AGGRESSIVE)
+			&& mental(Mental.CHEERFUL) == r.mental(Mental.CHEERFUL)
+			&& mental(Mental.BRAVE) == r.mental(Mental.BRAVE)
+			&& mental(Mental.CAUTIOUS) == r.mental(Mental.CAUTIOUS)
+			&& mental(Mental.TRICKISH) == r.mental(Mental.TRICKISH)
+			&& defaultEnhance(Enhance.AVOID) ==r.defaultEnhance(Enhance.AVOID)
+			&& defaultEnhance(Enhance.RESIST) == r.defaultEnhance(Enhance.RESIST)
+			&& defaultEnhance(Enhance.DEFENSE) == r.defaultEnhance(Enhance.DEFENSE);
+	}
+
 	public {
 		/// 命を持たないか。
+		@property
 		const
 		bool undead() {return _undead;}
 		static if (Set) {
 			/// ditto
+			@property
 			void undead(bool undead) {
-				if (_undead != undead) changed;
+				if (_undead != undead) changed();
 				_undead = undead;
 			}
 		}
 		/// 心を持たないか。
+		@property
 		const
 		bool automaton() {return _automaton;}
 		static if (Set) {
 			/// ditto
+			@property
 			void automaton(bool automaton) {
-				if (_automaton != automaton) changed;
+				if (_automaton != automaton) changed();
 				_automaton = automaton;
 			}
 		}
 		/// 不浄な存在か。
+		@property
 		const
 		bool unholy() {return _unholy;}
 		static if (Set) {
 			/// ditto
+			@property
 			void unholy(bool unholy) {
-				if (_unholy != unholy) changed;
+				if (_unholy != unholy) changed();
 				_unholy = unholy;
 			}
 		}
 		/// 魔法生物か。
+		@property
 		const
 		bool constructure() {return _constructure;}
 		static if (Set) {
 			/// ditto
+			@property
 			void constructure(bool constructure) {
-				if (_constructure != constructure) changed;
+				if (_constructure != constructure) changed();
 				_constructure = constructure;
 			}
 		}
 		/// 武器が効かないか。
+		@property
 		const
 		bool weaponResist() {return _weaponRes;}
 		static if (Set) {
 			/// ditto
+			@property
 			void weaponResist(bool weaponRes) {
-				if (_weaponRes != weaponRes) changed;
+				if (_weaponRes != weaponRes) changed();
 				_weaponRes = weaponRes;
 			}
 		}
 		/// 魔法が効かないか。
+		@property
 		const
 		bool magicResist() {return _magicRes;}
 		static if (Set) {
 			/// ditto
+			@property
 			void magicResist(bool magicRes) {
-				if (_magicRes != magicRes) changed;
+				if (_magicRes != magicRes) changed();
 				_magicRes = magicRes;
 			}
 		}
@@ -130,7 +207,7 @@ template RaceParam(bool Set) {
 		static if (Set) {
 			/// ditto
 			void resist(Element el, bool res) {
-				if (_res[el] != res) changed;
+				if (_res[el] != res) changed();
 				_res[el] = res;
 				if (res) weakness(el, false);
 			}
@@ -141,7 +218,7 @@ template RaceParam(bool Set) {
 		static if (Set) {
 			/// ditto
 			void weakness(Element el, bool weak) {
-				if (_weak[el] != weak) changed;
+				if (_weak[el] != weak) changed();
 				_weak[el] = weak;
 				if (weak) resist(el, false);
 			}
@@ -152,14 +229,14 @@ template RaceParam(bool Set) {
 		static if (Set) {
 			/// ditto
 			void physical(Physical phy, uint val) {
-				if (_phy[phy] != val) changed;
+				if (_phy[phy] != val) changed();
 				_phy[phy] = val;
 			}
 		}
 		/// 精神傾向。
 		const
 		int mental(Mental m) {
-			switch (m) {
+			final switch (m) {
 			case Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE, Mental.CAUTIOUS, Mental.TRICKISH:
 				return _mtl[m];
 			case Mental.UNAGGRESSIVE:
@@ -177,13 +254,13 @@ template RaceParam(bool Set) {
 		static if (Set) {
 			/// ditto
 			void mental(Mental m, int val) {
-				switch (m) {
+				final switch (m) {
 				case Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE, Mental.CAUTIOUS, Mental.TRICKISH:
-					if (_mtl[m] != val) changed;
+					if (_mtl[m] != val) changed();
 					_mtl[m] = val;
 					break;
 				case Mental.UNAGGRESSIVE, Mental.UNCHEERFUL, Mental.UNBRAVE, Mental.UNCAUTIOUS, Mental.UNTRICKISH:
-					if (_mtl[m] != val * -1) changed;
+					if (_mtl[m] != val * -1) changed();
 					_mtl[m] = val * -1;
 					break;
 				}
@@ -195,7 +272,7 @@ template RaceParam(bool Set) {
 		static if (Set) {
 			/// ditto
 			void defaultEnhance(Enhance enh, int dEnh) {
-				if (_dEnh[enh] != dEnh) changed;
+				if (_dEnh[enh] != dEnh) changed();
 				_dEnh[enh] = dEnh;
 			}
 		}
@@ -279,7 +356,7 @@ template RaceParam(bool Set) {
 			_weak[Element.FIRE] = parseBool(wNode.attr("fire", true));
 			_weak[Element.ICE] = parseBool(wNode.attr("ice", true));
 		};
-		fNode.parse;
+		fNode.parse();
 	}
 	private void loadAbility(ref XNode aNode, string ver) {
 		assert (aNode.name == "Ability");
@@ -303,6 +380,6 @@ template RaceParam(bool Set) {
 			_dEnh[Enhance.RESIST] = enhNode.attr!(int)("resist", true);
 			_dEnh[Enhance.DEFENSE] = enhNode.attr!(int)("defense", true);
 		};
-		aNode.parse;
+		aNode.parse();
 	}
 }

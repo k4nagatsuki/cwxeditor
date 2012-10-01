@@ -1,8 +1,7 @@
 
 module cwx.binary;
 
-private import cwx.utils : enforce;
-
+private import std.exception : enforce;
 private import std.stream : InputStream, OutputStream;
 private import std.string : format;
 private import std.metastrings : toStringNow;
@@ -18,11 +17,13 @@ struct ByteIO {
 	/// Byte列。
 	private ubyte[] _bytes;
 	/// 読込・書込済Byte列。
+	@property
 	ubyte[] bytes() {
 		return _pointer == _bytes.length ? _bytes : _bytes[0 .. _pointer];
 	}
 	private size_t _pointer = 0u;
 	/// 読込み・書込みを終えたByte数。
+	@property
 	size_t pointer() {return _pointer;}
 	/// void[]をByte列としてByteIOを生成。
 	static ByteIO opCall(void[] _bytes) {
@@ -47,6 +48,7 @@ struct ByteIO {
 		return ByteIO(256);
 	}
 	/// Byte列の終りに達していればtrue。
+	@property
 	bool eob() {return _pointer >= _bytes.length;}
 	/// seekする。
 	void seek(int bytes) {
@@ -60,12 +62,14 @@ struct ByteIO {
 		_pointer += bytes;
 	}
 	/// Byteを読込む。
+	@property
 	ubyte readUByte() {
 		enforce(_pointer < _bytes.length,
 			new Exception(format("read over: 0x%X", _pointer), __FILE__, __LINE__));
 		return _bytes[_pointer++];
 	}
 	/// ditto
+	@property
 	byte readByte() {return cast(byte) readUByte;}
 	/// Duck Typingの便宜上用意されたreadUByte()の別名。
 	alias readUByte readUByteB;
@@ -143,6 +147,7 @@ struct ByteIO {
 	void writeL(ubyte[] val) {write(val);}
 	/// ditto
 	void writeL(void[] val) {write(val);}
+	@property
 	private I readBytesB_(I)() {
 		enforce(_pointer + I.sizeof <= _bytes.length,
 			new Exception(format("read over: 0x%X + %d", _pointer, I.sizeof), __FILE__, __LINE__));
@@ -150,6 +155,7 @@ struct ByteIO {
 		mixin (ReadBytesB!(I));
 		return i;
 	}
+	@property
 	private I readBytesL_(I)() {
 		enforce(_pointer + I.sizeof <= _bytes.length,
 			new Exception(format("read over: 0x%X + %d", _pointer, I.sizeof), __FILE__, __LINE__));
@@ -254,8 +260,8 @@ private template ReadBytesB(I, size_t Len = I.sizeof) {
 private template ReadBytesL(I, size_t Len = I.sizeof, size_t N = 1) {
 	static if (N < Len) {
 		const string ReadBytesL = "i |= "
-			~ (N > size_t.sizeof ? "cast(" ~ I.stringof ~ ") " : "")
-			~ "_bytes[_pointer++] << 8 * " ~ .toStringNow!(N) ~ ";\n" ~ ReadBytesL!(I, Len, N + 1);
+			~ (N >= size_t.sizeof ? "cast(" ~ I.stringof ~ ") " : "")
+		~ "_bytes[_pointer++] << 8 * " ~ .toStringNow!(N) ~ ";\n" ~ ReadBytesL!(I, Len, N + 1);
 	} else {
 		const string ReadBytesL = "";
 	}

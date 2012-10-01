@@ -1,54 +1,54 @@
 
-module cwx.editor.gui.dwt.skin;
+module cwx.editor.gui.dwt.dskin;
 
-import cwx.cwl;
-import cwx.race;
 import cwx.utils;
 import cwx.skin;
-import cwx.summary;
-import cwx.imagesize;
 import cwx.types;
+import cwx.structs;
 
-import cwx.editor.gui.dwt.props;
-import cwx.editor.gui.dwt.utils;
+import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.properties;
+import cwx.editor.gui.dwt.dutils;
 
 import std.string;
 import std.utf;
-import std.ctype;
+import std.ascii;
 import std.file;
+import std.path;
 
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.all;
 
-Skin findSkin(S = Summary)(in Props prop, in S summ) {
-	static if (is(typeof(summ.type))) {
-		if (!summ) {
-			return findSkin2(prop, prop.var.etc.defaultSkin);
-		}
-		if (summ.legacy && !summ.type.length) {
-			return Skin.find2!(S)(prop.parent, prop.var.etc.enginePath, summ);
-		}
-		return findSkin2(prop, summ.type);
-	} else {
-		return findSkin2(prop, prop.var.etc.defaultSkin);
-	}
+Skin createClassicSkin(in Props prop, in ClassicEngine ce) {
+	return Skin.createLegacySkin(prop.parent, prop.enginePath, ce.enginePath, ce.dataDirName, ce.execute, [ce]);
 }
+
+bool findCWPy(Props prop, string sPath) {
+	if (prop.var.etc.findEnginePath && !prop.var.etc.enginePath.length) {
+		auto p = Skin.findCardWirthPy(sPath, prop.var.etc.engine, prop.var.etc.dataDir);
+		if (p.length) {
+			prop.var.etc.enginePath = p;
+			prop.var.etc.findEnginePath = false;
+			return true;
+		}
+	}
+	return false;
+}
+
 Skin findSkin2(const(Props) prop, string type) {
 	auto p = type in skinTable(prop);
 	if (p) return *p;
 	static Skin[string] emptySkins;
-	p = prop.var.etc.enginePath in emptySkins;
+	p = prop.enginePath in emptySkins;
 	if (p) return *p;
-	auto r = new Skin(prop.parent, prop.var.etc.enginePath);
-	emptySkins[prop.var.etc.enginePath] = r;
+	auto r = new Skin(prop.parent, prop.enginePath);
+	emptySkins[prop.enginePath] = r;
 	return r;
 }
 bool hasSkin(in Props prop, string type) {
 	return (type in skinTable(prop)) !is null;
 }
 Skin[string] skinTable(const(Props) prop) {
-	return Skin.table(prop.parent, prop.var.etc.enginePath);
+	return Skin.table(prop.parent, prop.enginePath);
 }
 
 private static ImageData imgd(string path, bool mask, bool rmask) {
@@ -71,33 +71,107 @@ version (Windows) {
 		const DWORD LOAD_LIBRARY_AS_DATAFILE = 0x2;
 		const DWORD LOAD_WITH_ALTERED_SEARCH_PATH = 0x8;
 		HBITMAP LoadBitmapW(HINSTANCE, LPCWSTR);
+		const DWORD LR_DEFAULTSIZE = 0x0040;
+		LPWSTR MAKEINTRESOURCEW(WORD w) {return cast(LPWSTR) w;}
+		struct SHFILEINFO {
+			HICON hIcon = null;
+			INT iIcon;
+			DWORD dwAttributes;
+			WCHAR[MAX_PATH] szDisplayName;
+			WCHAR[80] szTypeName;
+		}
+		DWORD* SHGetFileInfoW(in LPCWSTR pszPath, DWORD dwFileAttributes, SHFILEINFO *psfi, UINT cbFileInfo, UINT uFlags);
+		const DWORD SHGFI_ICON = 0x0100;
+		const DWORD SHGFI_LARGEICON = 0x0000;
+		const DWORD SHGFI_SMALLICON = 0x0001;
+		const DWORD ASSOCSTR_EXECUTABLE = 2;
+		void PathRemoveArgsW(LPWSTR);
+		void PathUnquoteSpacesW(LPWSTR);
 	}
-	private static ImageData imgr(string legacyEngine, string resName, bool mask, bool rmask) {
+
+	ImageData loadIcon(string exe, int w, int h, void delegate(void delegate()) syncExec = null) {
+		alias org.eclipse.swt.internal.win32.OS.OS OS;
+		alias org.eclipse.swt.internal.win32.WINAPI WINAPI;
+		alias org.eclipse.swt.internal.win32.WINTYPES WINTYPES;
 		mixin FileCache!(ImageData);
-		string path = std.path.join(legacyEngine, resName);
-		auto ca = cache(path);
+		auto ca = cache(exe);
 		if (ca) {
 			return ca.value;
 		} else {
-			if (!.exists(legacyEngine)) return null;
-			// TODO lEnginePathからリソース読込み
-			HINSTANCE handle;
-			handle = LoadLibraryExW(toUTF16z(legacyEngine), null, LOAD_LIBRARY_AS_DATAFILE | LOAD_WITH_ALTERED_SEARCH_PATH);
-			if (!handle) return null;
-			scope (exit) FreeLibrary(handle);
-			HBITMAP hbmp;
-			hbmp = LoadBitmapW(handle, toUTF16z(resName));
+			if (!isAbsolute(exe)) {
+				auto path = new wchar[MAX_PATH];
+				DWORD cchOut = path.length;
+				auto r = WINAPI.AssocQueryStringW(ASSOCSTR_EXECUTABLE, OS.ASSOCSTR_COMMAND, toUTFz!(wchar*)(exe), null, path.ptr, &cchOut);
+				if (FAILED(r) || 0 == cchOut) return null;
+				PathRemoveArgsW(path.ptr);
+				PathUnquoteSpacesW(path.ptr);
+				exe = std.conv.to!string(path[0 .. std.algorithm.countUntil(path, '\0')]);
+			}
+			if (!.exists(exe)) return null;
+			SHFILEINFO info;
+			SHGetFileInfoW(toUTFz!(wchar*)(exe), 0, &info, info.sizeof, SHGFI_ICON | SHGFI_SMALLICON);
+			HICON hbmp = info.hIcon;
 			if (!hbmp) return null;
 			scope (exit) DeleteObject(hbmp);
-			auto img = Image.win32_new(Display.getCurrent, SWT.BITMAP, hbmp);
-			auto data = img.getImageData;
-			img.destroy;
+			ImageData data = null;
+			void put() {
+				auto img = Image.win32_new(Display.getCurrent(), SWT.ICON, hbmp);
+				data = img.getImageData();
+				img.destroy();
+			}
+			if (syncExec) {
+				syncExec(&put);
+			} else {
+				put();
+			}
+			putCache(exe, data);
+			return data;
+		}
+	}
+	private static ImageData imgr(string legacyEngine, string resName, bool mask, bool rmask) {
+		mixin FileCache!(ImageData);
+		void setMask(ImageData data) {
 			if (mask) {
 				data.transparentPixel = data.getPixel(0, 0);
 			}
 			if (rmask) {
 				data.transparentPixel = data.getPixel(data.width - 1, 0);
 			}
+		}
+
+		/// リソースオーバーライドに対応
+		string oPath = legacyEngine.dirName().buildPath("Data").buildPath("Resource").buildPath(resName.setExtension(".bmp"));
+		if (.exists(oPath)) {
+			auto ca = cache(oPath);
+			if (ca) {
+				return ca.value;
+			} else {
+				auto data = loadImage(oPath, false);
+				setMask(data);
+				putCache(oPath, data);
+				return data;
+			}
+		}
+
+		string path = std.path.buildPath(legacyEngine, resName);
+		auto ca = cache(path);
+		if (ca) {
+			return ca.value;
+		} else {
+			if (!.exists(legacyEngine)) return null;
+			// lEnginePathからリソース読込み
+			HINSTANCE handle;
+			handle = LoadLibraryExW(toUTFz!(wchar*)(legacyEngine), null, LOAD_LIBRARY_AS_DATAFILE | LOAD_WITH_ALTERED_SEARCH_PATH);
+			if (!handle) return null;
+			scope (exit) FreeLibrary(handle);
+			HBITMAP hbmp;
+			hbmp = LoadBitmapW(handle, toUTFz!(wchar*)(resName));
+			if (!hbmp) return null;
+			scope (exit) DeleteObject(hbmp);
+			auto img = Image.win32_new(Display.getCurrent(), SWT.BITMAP, hbmp);
+			auto data = img.getImageData();
+			img.destroy();
+			setMask(data);
 			putCache(path, data);
 			return data;
 		}
@@ -149,10 +223,10 @@ ImageData lifeGuage(Skin skin) {return createImg(skin.legacyEngine, "STATUS_LIFE
 ImageData enhanceUp(Skin skin, Enhance enh) {
 	string res;
 	switch (enh) {
-	case Enhance.ACTION: res = "STATUS_UP0";
-	case Enhance.AVOID: res = "STATUS_UP1";
-	case Enhance.RESIST: res = "STATUS_UP2";
-	case Enhance.DEFENSE: res = "STATUS_UP3";
+	case Enhance.ACTION: res = "STATUS_UP0"; break;
+	case Enhance.AVOID: res = "STATUS_UP1"; break;
+	case Enhance.RESIST: res = "STATUS_UP2"; break;
+	case Enhance.DEFENSE: res = "STATUS_UP3"; break;
 	default: assert (0);
 	}
 	return createImg(skin.legacyEngine, res, &skin.resEnhanceUp, enh);
@@ -160,10 +234,10 @@ ImageData enhanceUp(Skin skin, Enhance enh) {
 ImageData enhanceDown(Skin skin, Enhance enh) {
 	string res;
 	switch (enh) {
-	case Enhance.ACTION: res = "STATUS_DOWN0";
-	case Enhance.AVOID: res = "STATUS_DOWN1";
-	case Enhance.RESIST: res = "STATUS_DOWN2";
-	case Enhance.DEFENSE: res = "STATUS_DOWN3";
+	case Enhance.ACTION: res = "STATUS_DOWN0"; break;
+	case Enhance.AVOID: res = "STATUS_DOWN1"; break;
+	case Enhance.RESIST: res = "STATUS_DOWN2"; break;
+	case Enhance.DEFENSE: res = "STATUS_DOWN3"; break;
 	default: assert (0);
 	}
 	return createImg(skin.legacyEngine, res, &skin.resEnhanceDown, enh);
@@ -171,12 +245,12 @@ ImageData enhanceDown(Skin skin, Enhance enh) {
 ImageData mentality(Skin skin, Mentality mtly) {
 	string res;
 	switch (mtly) {
-	case Mentality.NORMAL: res = "STATUS_MIND0";
-	case Mentality.SLEEP: res = "STATUS_MIND1";
-	case Mentality.CONFUSE: res = "STATUS_MIND2";
-	case Mentality.OVERHEAT: res = "STATUS_MIND3";
-	case Mentality.BRAVE: res = "STATUS_MIND4";
-	case Mentality.PANIC: res = "STATUS_MIND5";
+	case Mentality.NORMAL: res = "STATUS_MIND0"; break;
+	case Mentality.SLEEP: res = "STATUS_MIND1"; break;
+	case Mentality.CONFUSE: res = "STATUS_MIND2"; break;
+	case Mentality.OVERHEAT: res = "STATUS_MIND3"; break;
+	case Mentality.BRAVE: res = "STATUS_MIND4"; break;
+	case Mentality.PANIC: res = "STATUS_MIND5"; break;
 	default: assert (0);
 	}
 	return createImg(skin.legacyEngine, res, &skin.resMentality, mtly);
@@ -221,7 +295,7 @@ ImageData spChar(Skin skin, dchar c) {
 	string res;
 	switch (c) {
 	case 'A', 'a': res = "FONT_ANGRY"; break;
-	case 'C', 'c': res = "FONT_CLUB"; break;
+	case 'B', 'b': res = "FONT_CLUB"; break;
 	case 'D', 'd': res = "FONT_DIAMOND"; break;
 	case 'E', 'e': res = "FONT_EASY"; break;
 	case 'F', 'f': res = "FONT_FLY"; break;
@@ -240,9 +314,14 @@ ImageData spChar(Skin skin, dchar c) {
 	case 'Z', 'z': res = "FONT_ZAP"; break;
 	default: res = "";
 	}
-	return createImg(skin.legacyEngine, res, (out bool mask, out bool rMask) {
-		mask = true;
-		rMask = false;
-		return skin.spChars[c];
+	return createImg(skin.legacyEngine, res, delegate string (out bool mask, out bool rMask) {
+		auto p = c in skin.spChars;
+		if (p) {
+			mask = true;
+			rMask = false;
+			return *p;
+		} else {
+			return null;
+		}
 	});
 }

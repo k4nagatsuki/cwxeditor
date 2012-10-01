@@ -7,6 +7,7 @@ import cwx.sjis;
 
 import std.array;
 import std.conv;
+import std.exception;
 import std.string;
 import std.regex;
 import std.utf;
@@ -116,20 +117,22 @@ private {
 	CPoint pointVal(string value) {
 		auto sp = std.string.split(value, ",");
 		if (sp.length < 2) throw new Exception("invalid point: " ~ value);
-		return CPoint(to!(int)(strip(sp[0])), to!(int)(strip(sp[1])));
+		return CPoint(to!(int)(astrip(sp[0])), to!(int)(astrip(sp[1])));
 	}
 	CRect rectVal(string value) {
 		auto sp = std.string.split(value, ",");
 		if (sp.length < 4) throw new Exception("invalid rect: " ~ value);
-		return CRect(to!(int)(strip(sp[0])), to!(int)(strip(sp[1])),
-			to!(int)(strip(sp[2])), to!(int)(strip(sp[3])));
+		return CRect(to!(int)(astrip(sp[0])), to!(int)(astrip(sp[1])),
+			to!(int)(astrip(sp[2])), to!(int)(astrip(sp[3])));
 	}
 	CRGB rgbVal(string value) {
-		if (value.length < 7 && value[0] != '$') throw new Exception("invalid rgb: " ~ value);
+		if (value.length < 7 || (value[0] != '$' && value[0] != '#')) {
+			throw new Exception("invalid rgb: " ~ value);
+		}
 		auto sr = value[1 .. 3];
 		auto sg = value[3 .. 5];
 		auto sb = value[5 .. 7];
-		return CRGB(xtoi(sr), xtoi(sg), xtoi(sb));
+		return CRGB(toImpl!int(sr, 16), toImpl!int(sg, 16), toImpl!int(sb, 16));
 	}
 	Enum enumVal(Enum)(string value) {
 		return cast(Enum) to!(int)(value);
@@ -146,8 +149,39 @@ private {
 	bool boolVal(string value) {return value == "1";}
 }
 
+/// pathのファイルを読み込む。
+string readJPYFile(string path, out bool isSJIS) {
+	char[] value;
+	try {
+		value = cast(char[]) std.file.readText(path);
+		isSJIS = false;
+		return assumeUnique(value);
+	} catch {
+		isSJIS = true;
+		value = cast(char[]) std.file.read(path);
+		return touni(value);
+	}
+}
+/// ditto
+private string readJPYFile(string path) {
+	auto value = cast(char[]) std.file.read(path);
+	try {
+		validate(value);
+		return assumeUnique(value);
+	} catch {
+		return touni(value);
+	}
+}
+/// pathへ書き込む。
+void writeJPYFile(string path, string value, bool isSJIS) {
+	if (isSJIS) {
+		value = tosjis(value);
+	}
+	std.file.write(path, value);
+}
+
 private string stripValue(string eqAfter) {
-	auto value = strip(eqAfter);
+	auto value = astrip(eqAfter);
 	if (value.length >= 2 && value[0] == '"' && value[$ - 1] == '"') {
 		value = value[1 .. $ - 1];
 	}
@@ -161,13 +195,13 @@ struct Jpy1 {
 	/// pathからJpy1を読込む。
 	static Jpy1 load(string path) {
 		Jpy1 r;
-		foreach (line; splitlines(cast(string) std.file.read(path))) {
-			line = strip(line);
+		foreach (line; splitLines!string(readJPYFile(path))) {
+			line = astrip(line);
 			if (!line.length || line[0] == ';') continue;
 			if (line[0] == '[' && line[$ - 1] == ']') {
 				// label
 				Jpy1Sec sec;
-				sec.label = strip(line[1 .. $ - 1]);
+				sec.label = astrip(line[1 .. $ - 1]);
 				r.sections ~= sec;
 				continue;
 			}
@@ -176,9 +210,9 @@ struct Jpy1 {
 				// contents
 				int eq = .cCountUntil(line, '=');
 				if (eq == -1) throw new Exception("invalid line: " ~ line);
-				auto key = strip(line[0 .. eq]);
+				auto key = astrip(line[0 .. eq]);
 				auto value = stripValue(line[eq + 1 .. $]);
-				switch (toLower(key)) {
+				switch (.toLower(key)) {
 				case "backwidth": backwidth = intVal(value); break;
 				case "backheight": backheight = intVal(value); break;
 				case "backcolor": backcolor = rgbVal(value); break;
@@ -277,7 +311,7 @@ private struct JptxTag {
 		auto reg = .match(toUTF32(startTag), .regex!(dstring)("^<[A-Z]+"d, "i"));
 		if (reg.empty) throw new Exception("invalid start tag: " ~ startTag);
 		JptxTag tag;
-		tag.name = toLower(toUTF8(reg.hit[1 .. $]));
+		tag.name = .toLower(toUTF8(reg.hit[1 .. $]));
 		dstring p = reg.post;
 		if (!p.length) throw new Exception("invalid start tag: " ~ startTag);
 		if (startsWith(p, "=\""d)) {
@@ -287,14 +321,16 @@ private struct JptxTag {
 			p = p[ei + 4 .. $];
 		}
 		static const ATTR = " *([A-Z]+)=\"([^\"]+)\""d;
-		foreach (areg; .match(p, .regex!(dstring)(ATTR, "i"))) {
-			foreach (m; areg) {
-				auto cap = m.captures;
-				tag.attr[toLower(toUTF8(cap[1]))] = toUTF8(cap[2]);
-			}
+		auto attrReg = .regex!(dstring)(ATTR, "gi");
+		foreach (m; .match(p, attrReg)) {
+			if(m.empty) break;
+			p = m.post;
+			auto cap = m.captures;
+			tag.attr[.toLower(to!string(cap[1]))] = to!string(cap[2]);
 		}
 		return tag;
 	} unittest {
+		debug mixin(UTPerf);
 		auto t1 = JptxTag.parse("<b>");
 		assert (t1.name == "b");
 		auto t2 = JptxTag.parse("<lineheight=\"80\">");
@@ -377,7 +413,7 @@ private struct JptxParser {
 	}
 	private void endTag(string tagText) {
 		auto tag = tagText[2 .. $ - 1];
-		switch (toLower(tag)) {
+		switch (.toLower(tag)) {
 		case "b": {
 			if (onEndB) onEndB();
 		} break;
@@ -406,20 +442,31 @@ private struct JptxParser {
 		}
 	}
 	void parse(string text) {
+		immutable TAG = "</(b|i|u|s|shiftx|shifty|lineheight|font)>"d
+			~ "|<"d
+			~ "(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\""d
+			~ "|lineheight=\"-?[0-9]+\""d
+			~ "|font( +(face=\"[^\"]+\"|color=\"[\\$#][0-9A-Fa-f]{6}\""d
+			~ "|pixels=\"[0-9]+\"))+)"d
+			~ ">"d;
 		if (autoline) {
-			auto lines = splitlines(text);
+			auto r = .regex!(dstring)("^" ~ TAG ~ "$", "i");
+			auto lines = splitLines!string(text);
 			text = "";
 			foreach (i, line; lines) {
 				text ~= line;
-				if (i + 1 < lines.length) text ~= "<br>";
+				if (i + 1 < lines.length && .match(toUTF32(line), r).empty) {
+					text ~= "<br>";
+				}
 			}
 		} else {
 			text = replace(text, "\r\n", "");
 			text = replace(text, "\r", "");
 			text = replace(text, "\n", "");
 		}
+		auto r = .regex!(dstring)(TAG, "i");
 		while (text.length) {
-			auto reg = .match(toUTF32(text), .regex!(dstring)("</(b|i|u|s|shiftx|shifty|lineheight|font)>|<(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\"|lineheight=\"-?[0-9]+\"|font( +(face=\".+\"|color=\"\\$[0-9A-Fa-f]{6}\"|pixels=\"[0-9]+\"))+)>"d, "i"));
+			auto reg = .match(toUTF32(text), r);
 			if (!reg.empty) {
 				if (onText && reg.pre.length) onText(toUTF8(reg.pre));
 				auto m = toUTF8(reg.hit);
@@ -469,6 +516,7 @@ struct Jptx {
 	bool fonttransparent = false;
 
 	unittest {
+		debug mixin(UTPerf);
 		Jptx jptx;
 		jptx.text = "Jptxのテスト。<br>改行した後、<b>太字<i>かつ斜体</i></b><s>打ち消し</s>"
 			~ "<font color=\"$000000\" face=\"font!\" pixels=\"28\">font!の黒の28px"
@@ -687,12 +735,12 @@ struct Jptx {
 		bool textFirst = true;
 		bool init = false;
 		bool text = false;
-		foreach (line; splitlines(cast(string) std.file.read(path))) {
-			auto sline = strip(line);
+		foreach (line; splitLines!string(readJPYFile(path))) {
+			auto sline = astrip(line);
 			if (!text && sline.length && sline[0] == ';') continue;
 			if (sline.length && sline[0] == '[' && sline[$ - 1] == ']') {
 				// label
-				switch (strip(sline[1 .. $ - 1])) {
+				switch (astrip(sline[1 .. $ - 1])) {
 				case "jptx:init": {
 					if (!text) {
 						init = true;
@@ -720,9 +768,9 @@ struct Jptx {
 					// init
 					int eq = .cCountUntil(sline, '=');
 					if (eq == -1) throw new Exception("invalid line: " ~ line);
-					auto key = strip(sline[0 .. eq]);
+					auto key = astrip(sline[0 .. eq]);
 					auto value = stripValue(sline[eq + 1 .. $]);
-					switch (toLower(key)) {
+					switch (.toLower(key)) {
 					case "backcolor": backcolor = rgbVal(value); break;
 					case "backwidth": backwidth = intVal(value); break;
 					case "backheight": backheight = intVal(value); break;
@@ -759,6 +807,51 @@ struct Jptx {
 	}
 }
 
+/// JPTXの設定内からテキスト部分を抽出する。
+string jptxText(string jptxAll) {
+	string r = "";
+	bool inText = false;
+	foreach (line; jptxAll.splitLines(KeepTerminator.yes)) {
+		if (!inText && chomp(line).icmp("[jptx:begin]") == 0) {
+			inText = true;
+		} else if (inText && chomp(line).icmp("[jptx:end]") == 0) {
+			inText = false;
+		} else if (inText) {
+			r ~= line;
+		}
+	}
+	return r;
+} unittest {
+	debug mixin(UTPerf);
+	assert (jptxText("[jptx:init]\nline1\nline2\r\n\n[jptx:begin]\r\na\nbcd\r\nefg\r\n[jptx:end]")
+		== "a\nbcd\r\nefg\r\n");
+}
+/// JPTXの設定内のテキスト部分を置換する。
+string jptxText(string jptxAll, string jptxText) {
+	string r = "";
+	bool inText = false, put = false;
+	foreach (line; jptxAll.splitLines(KeepTerminator.yes)) {
+		if (!inText && chomp(line).icmp("[jptx:begin]") == 0) {
+			inText = true;
+			r ~= line;
+			if (!put) {
+				r ~= jptxText;
+				put = true;
+			}
+		} else if (inText && chomp(line).icmp("[jptx:end]") == 0) {
+			inText = false;
+			r ~= line;
+		} else if (!inText) {
+			r ~= line;
+		}
+	}
+	return r;
+} unittest {
+	debug mixin(UTPerf);
+	assert (jptxText("[jptx:init]\nline1\nline2\r\n\n[jptx:begin]\r\na\nbcd\r\nefg\r\n[jptx:end]", "a\rbc\r\n")
+		== "[jptx:init]\nline1\nline2\r\n\n[jptx:begin]\r\na\rbc\r\n[jptx:end]");
+}
+
 enum Copymode {
 	AUTO = 0,
 	BEFORE_SCREEN = 1,
@@ -780,12 +873,12 @@ struct Jpdc {
 	static Jpdc load(string path) {
 		Jpdc r;
 		bool init = false;
-		foreach (line; splitlines(cast(string) std.file.read(path))) {
-			line = strip(line);
+		foreach (line; splitLines!string(readJPYFile(path))) {
+			line = astrip(line);
 			if (!line.length || line[0] == ';') continue;
 			if (line[0] == '[' && line[$ - 1] == ']') {
 				// label
-				switch (strip(line[1 .. $ - 1])) {
+				switch (astrip(line[1 .. $ - 1])) {
 				case "jpdc:init": {
 					init = true;
 					continue;
@@ -798,9 +891,9 @@ struct Jpdc {
 					// init
 					int eq = .cCountUntil(line, '=');
 					if (eq == -1) throw new Exception("invalid line: " ~ line);
-					auto key = strip(line[0 .. eq]);
+					auto key = astrip(line[0 .. eq]);
 					auto value = stripValue(line[eq + 1 .. $]);
-					switch (toLower(key)) {
+					switch (.toLower(key)) {
 					case "clip": clip = rectVal(value); break;
 					case "copymode": copymode = enumVal!(Copymode)(value); break;
 					case "savefilename": saveFileName = strVal(value); break;

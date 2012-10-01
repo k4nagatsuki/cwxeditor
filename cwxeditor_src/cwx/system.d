@@ -1,9 +1,17 @@
 
 module cwx.system;
 
-import cwx.card;
 import cwx.features;
-import cwx.utils;
+
+import std.string;
+import std.algorithm;
+
+/// 発火条件キーコードの種別。
+enum FKCKind {
+	Use, /// 使用時。
+	Success, /// 成功時。
+	Failure /// 失敗時。
+}
 
 class System {
 	/// 唯一のコンストラクタ。
@@ -120,8 +128,8 @@ class System {
 		}
 		case Nature.DIV: {
 			switch (toLower(legacyName)) {
-			case "darkwirth": return "闇の者";
-			default: return "神竜族";
+			case "darkwirth": return "神竜族";
+			default: return "神仙型";
 			}
 		}
 		default: assert (0);
@@ -206,12 +214,171 @@ class System {
 
 	/// ペナルティカードであればtrue。
 	const
-	bool isPenalty(EffectCard card) {
-		return contains(card.keyCodes, "ペナルティ");
+	bool isPenalty(in string[] keyCodes) {
+		return 0 < keyCodes.find("ペナルティ").length;
 	}
 	/// リサイクルカードであればtrue。
 	const
-	bool isRecycle(EffectCard card) {
-		return contains(card.keyCodes, "リサイクル");
+	bool isRecycle(in string[] keyCodes) {
+		return 0 < keyCodes.find("リサイクル").length;
+	}
+
+	private immutable FKC_SUCCESS = "○";
+	private immutable FKC_FAILURE = "×";
+	/// キーコード発火条件の種別を返す。
+	const
+	FKCKind fireKeyCodeKind(string keyCode) {
+		if (.endsWith(keyCode, FKC_SUCCESS.idup)) {
+			return FKCKind.Success;
+		} else if (std.string.endsWith(keyCode, FKC_FAILURE.idup)) {
+			return FKCKind.Failure;
+		}
+		return FKCKind.Use;
+	}
+	/// キーコード発火条件を変換する。
+	const
+	string convFireKeyCode(string keyCode, FKCKind kind) {
+		if (.endsWith(keyCode, FKC_SUCCESS.idup)) {
+			final switch (kind) {
+			case FKCKind.Use: return keyCode[0 .. $ - FKC_SUCCESS.length];
+			case FKCKind.Success: return keyCode;
+			case FKCKind.Failure: return keyCode[0 .. $ - FKC_SUCCESS.length] ~ FKC_FAILURE;
+			}
+		} else if (.endsWith(keyCode, FKC_FAILURE.idup)) {
+			final switch (kind) {
+			case FKCKind.Use: return keyCode[0 .. $ - FKC_FAILURE.length];
+			case FKCKind.Success: return keyCode[0 .. $ - FKC_FAILURE.length] ~ FKC_SUCCESS;
+			case FKCKind.Failure: return keyCode;
+			}
+		} else {
+			final switch (kind) {
+			case FKCKind.Use: return keyCode;
+			case FKCKind.Success: return keyCode ~ FKC_SUCCESS;
+			case FKCKind.Failure: return keyCode ~ FKC_FAILURE;
+			}
+		}
+	}
+	/// 種族名をクーポンに変換する。
+	const
+	string raceCoupon(string raceName) {
+		return "＠Ｒ" ~ raceName;
+	}
+
+	/// 後続イベントコンテントのTrue値。
+	@property const string evtChildTrue() {return "○";}
+	/// 後続イベントコンテントのFalse値。
+	@property const string evtChildFalse() {return "×";}
+	/// 後続イベントコンテントのDefault値。
+	@property const string evtChildDefault() {return "Default";}
+	/// 後続イベントコンテントのメッセージ送り標準値。
+	@property const string evtChildOK(string legacyName) {
+		switch (toLower(legacyName)) {
+		case "oedowirth":
+			return " 是 ";
+		default:
+			return "ＯＫ";
+		}
+	}
+	/// 後続イベントコンテントの大なり値。
+	@property const string evtChildGreater() {return ">";}
+	/// 後続イベントコンテントの小なり値。
+	@property const string evtChildLesser() {return "<";}
+	/// 後続イベントコンテントの一致値。
+	@property const string evtChildEq() {return "=";}
+
+	/// クーポンの型を判別する。
+	const CouponType couponType(string coupon) {
+		foreach (coType; [CouponType.Hide, CouponType.System, CouponType.Dur, CouponType.DurBattle]) {
+			if (isCouponType(coupon, coType)) {
+				return coType;
+			}
+		}
+		return CouponType.Normal;
+	}
+	/// ditto
+	const bool isCouponType(string coupon, CouponType type) {
+		final switch (type) {
+		case CouponType.Normal:
+			return !isCouponType(coupon, CouponType.Hide)
+				&& !isCouponType(coupon, CouponType.System)
+				&& !isCouponType(coupon, CouponType.Dur)
+				&& !isCouponType(coupon, CouponType.DurBattle);
+		case CouponType.Hide:
+			return std.string.startsWith(coupon, couponHide);
+		case CouponType.System:
+			return std.string.startsWith(coupon, couponSystem);
+		case CouponType.Dur:
+			return std.string.startsWith(coupon, couponDur);
+		case CouponType.DurBattle:
+			return std.string.startsWith(coupon, couponDurBattle);
+		}
+	}
+	/// クーポンの型を変換する。
+	const string convCoupon(string coupon, CouponType type) {
+		final switch (type) {
+		case CouponType.Normal:
+			if (isCouponType(coupon, CouponType.Hide)) {
+				return coupon[couponHide.length .. $];
+			}
+			if (isCouponType(coupon, CouponType.System)) {
+				return coupon[couponSystem.length .. $];
+			}
+			if (isCouponType(coupon, CouponType.Dur)) {
+				return coupon[couponDur.length .. $];
+			}
+			if (isCouponType(coupon, CouponType.DurBattle)) {
+				return coupon[couponDurBattle.length .. $];
+			}
+			return coupon;
+		case CouponType.Hide:
+			if (isCouponType(coupon, CouponType.Hide)) {
+				return coupon;
+			}
+			return couponHide ~ convCoupon(coupon, CouponType.Normal);
+		case CouponType.System:
+			if (isCouponType(coupon, CouponType.System)) {
+				return coupon;
+			}
+			return couponSystem ~ convCoupon(coupon, CouponType.Normal);
+		case CouponType.Dur:
+			if (isCouponType(coupon, CouponType.Dur)) {
+				return coupon;
+			}
+			return couponDur ~ convCoupon(coupon, CouponType.Normal);
+		case CouponType.DurBattle:
+			if (isCouponType(coupon, CouponType.DurBattle)) {
+				return coupon;
+			}
+			return couponDurBattle ~ convCoupon(coupon, CouponType.Normal);
+		}
+	}
+	/// 各クーポンの型を表現する文字列。
+	@property const string couponHide() {
+		return "＿";
+	}
+	/// ditto
+	@property const string couponSystem() {
+		return "＠";
+	}
+	/// ditto
+	@property const string couponDur() {
+		return "：";
+	}
+	/// ditto
+	@property const string couponDurBattle() {
+		return "；";
+	}
+
+	/// システム変数名の接頭辞を返す。
+	@property const string prefixSystemVarName() {
+		return "??";
+	}
+	/// システム変数名か。
+	@property const bool isSystemVar(string varName) {
+		return varName.startsWith(prefixSystemVarName);
+	}
+	/// フラグ・ステップ値のランダム値ソース名。
+	@property const string randomValue() {
+		return "??Random";
 	}
 }

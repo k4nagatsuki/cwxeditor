@@ -1,10 +1,6 @@
 
 module cwx.types;
 
-import cwx.utils;
-
-public:
-
 /// 効果関連の例外。
 class MotionException : Exception {
 public:
@@ -36,7 +32,7 @@ Mentality toMentality(string s) {
 }
 /// ditto
 string fromMentality(Mentality m) {
-	switch (m) {
+	final switch (m) {
 	case Mentality.NORMAL: return "Normal";
 	case Mentality.PANIC: return "Panic";
 	case Mentality.BRAVE: return "Brave";
@@ -73,7 +69,7 @@ EffectType toEffectType(string name) {
 }
 /// 効果属性を文字列に変換。
 string fromEffectType(EffectType etyp) {
-	switch (etyp) {
+	final switch (etyp) {
 	case EffectType.PHYSIC:
 		return "Physic";
 	case EffectType.MAGIC:
@@ -107,7 +103,7 @@ Resist toResist(string name) {
 }
 /// 抵抗属性から文字列へ変換。
 string fromResist(Resist resist) {
-	switch (resist) {
+	final switch (resist) {
 	case Resist.AVOID:
 		return "Avoid";
 	case Resist.RESIST:
@@ -140,7 +136,7 @@ CardVisual toCardVisual(string name) {
 }
 /// 視覚効果から文字列へ変換。
 string fromCardVisual(CardVisual vis) {
-	switch (vis) {
+	final switch (vis) {
 	case CardVisual.NONE:
 		return "None";
 	case CardVisual.REVERSE:
@@ -184,7 +180,7 @@ Element toElement(string name) {
 }
 /// 効果属性から文字列へ変換。
 string fromElement(Element el) {
-	switch (el) {
+	final switch (el) {
 	case Element.ALL:
 		return "All";
 	case Element.HEALTH:
@@ -222,7 +218,7 @@ DamageType toDamageType(string name) {
 }
 /// 効果計算方式を文字列へ変換。
 string fromDamageType(DamageType dtyp) {
-	switch (dtyp) {
+	final switch (dtyp) {
 	case DamageType.LEVEL_RATIO:
 		return "LevelRatio";
 	case DamageType.NORMAL:
@@ -252,7 +248,7 @@ public:
 		return r;
 	}
 	const
-	bool opEquals(ref const(Target) t) {
+	bool opEquals(const(Target) t) {
 		return t.m == m && t.sleep == sleep;
 	}
 private:
@@ -285,7 +281,7 @@ string fromTarget(Target targ) {
 	string targetText(string text, bool sleep) {
 		return sleep ? text ~ "Sleep" : text;
 	}
-	switch (targ.m) {
+	final switch (targ.m) {
 	case Target.M.SELECTED:
 		return targetText("Selected", targ.sleep);
 	case Target.M.UNSELECTED:
@@ -339,7 +335,7 @@ Mental toMental(string name) {
 }
 ///精神要素を文字列へ変換。
 string fromMental(Mental m) {
-	switch (m) {
+	final switch (m) {
 	case Mental.AGGRESSIVE:
 		return "Aggressive";
 	case Mental.UNAGGRESSIVE:
@@ -364,7 +360,7 @@ string fromMental(Mental m) {
 }
 /// 精神要素の対立側を返す。
 Mental reverseMental(Mental m) {
-	switch (m) {
+	final switch (m) {
 	case Mental.AGGRESSIVE:
 		return Mental.UNAGGRESSIVE;
 	case Mental.UNAGGRESSIVE:
@@ -417,7 +413,7 @@ Physical toPhysical(string name) {
 }
 /// 肉体要素を文字列へ変換。
 string fromPhysical(Physical p) {
-	switch (p) {
+	final switch (p) {
 	case Physical.DEX:
 		return "Dex";
 	case Physical.AGL:
@@ -446,6 +442,11 @@ enum Status {
 	SLEEP, /// 睡眠。
 	BIND, /// 呪縛。
 	PARALYZE, /// 麻痺/石化。
+	CONFUSE, /// 混乱(CardWirth Extender 1.30～)。
+	OVERHEAT, /// 激昂(CardWirth Extender 1.30～)。
+	BRAVE, /// 勇敢(CardWirth Extender 1.30～)。
+	PANIC, /// 恐慌(CardWirth Extender 1.30～)。
+	NONE, /// 状態指定無し。
 }
 /// 文字列から状態を生成。
 Status toStatus(string name) {
@@ -474,13 +475,23 @@ Status toStatus(string name) {
 		return Status.BIND;
 	case "Paralyze":
 		return Status.PARALYZE;
+	case "Confuse":
+		return Status.CONFUSE;
+	case "Overheat":
+		return Status.OVERHEAT;
+	case "Brave":
+		return Status.BRAVE;
+	case "Panic":
+		return Status.PANIC;
+	case "None":
+		return Status.NONE;
 	default:
 		throw new MotionException("Unknown status: " ~ name);
 	}
 }
 /// 状態を文字列へ変換。
 string fromStatus(Status stat) {
-	switch (stat) {
+	final switch (stat) {
 	case Status.ACTIVE:
 		return "Active";
 	case Status.INACTIVE:
@@ -505,6 +516,16 @@ string fromStatus(Status stat) {
 		return "Bind";
 	case Status.PARALYZE:
 		return "Paralyze";
+	case Status.CONFUSE:
+		return "Confuse";
+	case Status.OVERHEAT:
+		return "Overheat";
+	case Status.BRAVE:
+		return "Brave";
+	case Status.PANIC:
+		return "Panic";
+	case Status.NONE:
+		return "None";
 	}
 }
 /// 適用範囲。
@@ -537,7 +558,7 @@ Range toRange(string name) {
 }
 /// 適用範囲を文字列へ変換。
 string fromRange(Range r) {
-	switch (r) {
+	final switch (r) {
 	case Range.SELECTED:
 		return "Selected";
 	case Range.RANDOM:
@@ -555,6 +576,36 @@ string fromRange(Range r) {
 /// 効果対象や話者選択時に現れる適用範囲。
 Range[] RANGE_MEMBER = [Range.SELECTED, Range.RANDOM, Range.PARTY];
 
+/// キャスト選択範囲。CardWirth Extender 1.30～
+enum CastRange {
+	PARTY, /// パーティ全体。
+	ENEMY, /// 敵全体。
+	FIELD, /// フィールド全体。
+}
+/// 文字列からキャスト選択範囲を生成。
+CastRange toCastRange(string name) {
+	switch (name) {
+	case "Party":
+		return CastRange.PARTY;
+	case "Enemy":
+		return CastRange.ENEMY;
+	case "Field":
+		return CastRange.FIELD;
+	default:
+		throw new MotionException("Unknown targets: " ~ name);
+	}
+}
+/// キャスト選択範囲を文字列へ変換。
+string fromCastRange(CastRange r) {
+	final switch (r) {
+	case CastRange.PARTY:
+		return "Party";
+	case CastRange.ENEMY:
+		return "Enemy";
+	case CastRange.FIELD:
+		return "Field";
+	}
+}
 /// 能力修正。
 enum Enhance {
 	ACTION, /// 行動。
@@ -573,11 +624,13 @@ Enhance toEnhance(string name) {
 		return Enhance.RESIST;
 	case "Defense":
 		return Enhance.DEFENSE;
+	default:
+		throw new Exception("Unknown enhance: " ~ name);
 	}
 }
 /// 能力修正種別を文字列へ変換。
 string fromEnhance(Enhance r) {
-	switch (r) {
+	final switch (r) {
 	case Enhance.ACTION:
 		return "Action";
 	case Enhance.AVOID:
@@ -603,11 +656,13 @@ Premium toPremium(string name) {
 		return Premium.RARE;
 	case "Premium":
 		return Premium.PREMIUM;
+	default:
+		throw new Exception("Unknown premium: " ~ name);
 	}
 }
 /// 希少度を文字列へ変換。
 string fromPremium(Premium r) {
-	switch (r) {
+	final switch (r) {
 	case Premium.NORMAL:
 		return "Normal";
 	case Premium.RARE:
@@ -637,11 +692,13 @@ CardTarget toCardTarget(string name) {
 		return CardTarget.ENEMY;
 	case "Both":
 		return CardTarget.BOTH;
+	default:
+		throw new Exception("Unknown card target: " ~ name);
 	}
 }
 /// カード効果標的を文字列へ変換。
 string fromCardTarget(CardTarget r) {
-	switch (r) {
+	final switch (r) {
 	case CardTarget.NONE:
 		return "None";
 	case CardTarget.USER:
@@ -694,11 +751,13 @@ Transition toTransition(string name) {
 		return Transition.PIXEL_DISSOLVE;
 	case "Blinds":
 		return Transition.BLINDS;
+	default:
+		throw new Exception("Unknown transition: " ~ name);
 	}
 }
 /// 背景遷移エフェクトを文字列へ変換。
 string fromTransition(Transition t) {
-	switch (t) {
+	final switch (t) {
 	case Transition.DEFAULT:
 		return "Default";
 	case Transition.NONE:
@@ -709,5 +768,370 @@ string fromTransition(Transition t) {
 		return "PixelDissolve";
 	case Transition.BLINDS:
 		return "Blinds";
+
 	}
+}
+
+/// コンテントのタイプ。
+enum CType {
+	START,
+	START_BATTLE,
+	END,
+	END_BAD_END,
+	CHANGE_AREA,
+	CHANGE_BG_IMAGE,
+	EFFECT,
+	EFFECT_BREAK,
+	LINK_START,
+	LINK_PACKAGE,
+	TALK_MESSAGE,
+	TALK_DIALOG,
+	PLAY_BGM,
+	PLAY_SOUND,
+	WAIT,
+	ELAPSE_TIME,
+	CALL_START,
+	CALL_PACKAGE,
+	BRANCH_FLAG,
+	BRANCH_MULTI_STEP,
+	BRANCH_STEP,
+	BRANCH_SELECT,
+	BRANCH_ABILITY,
+	BRANCH_RANDOM,
+	BRANCH_LEVEL,
+	BRANCH_STATUS,
+	BRANCH_PARTY_NUMBER,
+	BRANCH_AREA,
+	BRANCH_BATTLE,
+	BRANCH_IS_BATTLE,
+	BRANCH_CAST,
+	BRANCH_ITEM,
+	BRANCH_SKILL,
+	BRANCH_INFO,
+	BRANCH_BEAST,
+	BRANCH_MONEY,
+	BRANCH_COUPON,
+	BRANCH_COMPLETE_STAMP,
+	BRANCH_GOSSIP,
+	SET_FLAG,
+	SET_STEP,
+	SET_STEP_UP,
+	SET_STEP_DOWN,
+	REVERSE_FLAG,
+	CHECK_FLAG,
+	GET_CAST,
+	GET_ITEM,
+	GET_SKILL,
+	GET_INFO,
+	GET_BEAST,
+	GET_MONEY,
+	GET_COUPON,
+	GET_COMPLETE_STAMP,
+	GET_GOSSIP,
+	LOSE_CAST,
+	LOSE_ITEM,
+	LOSE_SKILL,
+	LOSE_INFO,
+	LOSE_BEAST,
+	LOSE_MONEY,
+	LOSE_COUPON,
+	LOSE_COMPLETE_STAMP,
+	LOSE_GOSSIP,
+	SHOW_PARTY,
+	HIDE_PARTY,
+	REDISPLAY,
+	SUBSTITUTE_STEP, /// ステップ代入(CardWirth Extender 1.30～)。
+	SUBSTITUTE_FLAG, /// フラグ代入(CardWirth Extender 1.30～)。
+	BRANCH_STEP_CMP, /// ステップ値分岐(CardWirth Extender 1.30～)。
+	BRANCH_FLAG_CMP, /// フラグ値分岐(CardWirth Extender 1.30～)。
+	BRANCH_RANDOM_SELECT, /// ランダム選択(CardWirth Extender 1.30～)。
+}
+
+/// コンテントタイプの分類。
+enum CTypeGroup {
+	Terminal = 0, /// 開始/終端。
+	Standard = 1, /// 基本。
+	Data = 2, /// 変数操作/分岐。
+	Utility = 3, /// 状況分岐。
+	Branch = 4, /// 保有分岐。
+	Get = 5, /// 取得。
+	Lost = 6, /// 喪失。
+	Visual = 7, // 外観操作。
+}
+
+enum CArg {
+	AREA,
+	BATTLE,
+	PACKAGE,
+	FLAG,
+	STEP,
+	BGM_PATH,
+	SOUND_PATH,
+	CAST,
+	ITEM,
+	SKILL,
+	BEAST,
+	INFO,
+	MOTIONS,
+	TEXT,
+	DIALOGS,
+	START,
+	COUPON,
+	GOSSIP,
+	COMPLETE_STAMP,
+	MENTAL,
+	PHYSICAL,
+	STATUS,
+	RANGE,
+	CARD_VISUAL,
+	TARGET_S,
+	TARGET_NS,
+	TALKER_C,
+	TALKER_NC,
+	EFFECT_TYPE,
+	RESIST,
+	TRANSITION,
+	TARGET_ALL,
+	RANDOM,
+	AVERAGE,
+	COMPLETE,
+	UNSIGNED_LEVEL,
+	SIGNED_LEVEL,
+	SUCCESS_RATE,
+	TRANSITION_SPEED,
+	PERCENT,
+	FLAG_VALUE,
+	STEP_VALUE,
+	COUPON_VALUE,
+	PARTY_NUMBER,
+	CARD_NUMBER,
+	MONEY,
+	WAIT,
+	BG_IMAGES,
+	STEP_2, /// 操作ターゲットステップ(CardWirth Extender 1.30～)。
+	FLAG_2, /// 操作ターゲットフラグ(CardWirth Extender 1.30～)。
+	CAST_RANGE, /// キャスト選択範囲(CardWirth Extender 1.30～)。
+	LEVEL_MIN, /// 下限レベル(CardWirth Extender 1.30～)。
+	LEVEL_MAX, /// 上限レベル(CardWirth Extender 1.30～)。
+}
+
+/// 後続コンテントのnameの型。
+enum CNextType {
+	NONE, /// 無し。
+	TEXT, /// テキスト。
+	BOOL, /// True/False。
+	STEP, /// ステップ値。
+	ID_AREA, /// エリアID。
+	ID_BATTLE, /// バトルID。
+	TRIO, /// 大なり、少なり、一致(CardWirth Extender 1.30～)。
+}
+
+enum MType {
+	HEAL,
+	DAMAGE,
+	ABSORB,
+	PARALYZE,
+	DIS_PARALYZE,
+	POISON,
+	DIS_POISON,
+	GET_SKILL_POWER,
+	LOSE_SKILL_POWER,
+	SLEEP,
+	CONFUSE,
+	OVERHEAT,
+	BRAVE,
+	PANIC,
+	NORMAL,
+	BIND,
+	DIS_BIND,
+	SILENCE,
+	DIS_SILENCE,
+	FACE_UP,
+	FACE_DOWN,
+	ANTI_MAGIC,
+	DIS_ANTI_MAGIC,
+	ENHANCE_ACTION,
+	ENHANCE_AVOID,
+	ENHANCE_RESIST,
+	ENHANCE_DEFENSE,
+	VANISH_TARGET,
+	VANISH_CARD,
+	VANISH_BEAST,
+	DEAL_ATTACK_CARD,
+	DEAL_POWERFUL_ATTACK_CARD,
+	DEAL_CRITICAL_ATTACK_CARD,
+	DEAL_FEINT_CARD,
+	DEAL_DEFENSE_CARD,
+	DEAL_DISTANCE_CARD,
+	DEAL_CONFUSE_CARD,
+	DEAL_SKILL_CARD,
+	SUMMON_BEAST
+}
+
+enum MArg {
+	VALUE_TYPE, /// レベル比・直接等、値のタイプ。
+	U_VALUE, /// ダメージ・回復量。
+	A_VALUE, /// ボーナス値。
+	ROUND, /// 継続ラウンド数。
+	BEAST /// 召喚獣カード。
+}
+
+/// メニューのID。
+enum MenuID {
+	None = 0,
+
+	File,
+	Edit,
+	View,
+	Tool,
+	Table,
+	Variable,
+	Help,
+	Card,
+	CardsAndBacks,
+
+	DelNotUsedFile,
+	ClosePane,
+	ClosePaneExcept,
+	ClosePaneLeft,
+	ClosePaneRight,
+	ClosePaneAll,
+	New,
+	Open,
+	NewAtNewWindow,
+	OpenAtNewWindow,
+	Close,
+	CloseWin,
+	Save,
+	SaveAs,
+	Reload,
+	OpenDir,
+	OpenPlace,
+	SaveImage,
+	IncludeImage,
+	LookImages,
+	ShowMainToolBar,
+	ShowSceneToolBar,
+	ShowEventToolBar,
+	ChangeVH,
+	Find,
+	IncSearch,
+	CloseIncSearch,
+	EditProp,
+	Refresh,
+	Undo,
+	Redo,
+	Cut,
+	Copy,
+	Paste,
+	Delete,
+	Clone,
+	SelectAll,
+	ToXMLText,
+	TableView,
+	VarView,
+	CardView,
+	CastView,
+	SkillView,
+	ItemView,
+	BeastView,
+	InfoView,
+	FileView,
+	ExecEngine,
+	ExecEngineAuto,
+	ExecEngineMain,
+	OuterTools,
+	Settings,
+	VersionInfo,
+	LockToolBar,
+	ResetToolBar,
+	CopyAsText,
+	OpenAtView,
+	StartToPackage,
+	ConvertContent,
+	CGroupTerminal,
+	CGroupStandard,
+	CGroupData,
+	CGroupUtility,
+	CGroupBranch,
+	CGroupGet,
+	CGroupLost,
+	CGroupVisual,
+	EditSummary,
+	NewArea,
+	NewBattle,
+	NewPackage,
+	ReNumberingAll,
+	ReNumbering,
+	EditScene,
+	EditEvent,
+	NewFlagDir,
+	NewFlag,
+	NewStep,
+	Up,
+	Down,
+	OverDialog,
+	UnderDialog,
+	ShowParty,
+	ShowMsg,
+	ShowRefCards,
+	FixedImage,
+	ShowGrid,
+	ShowEnemyCardProp,
+	ShowCard,
+	ShowBack,
+	NewMenuCard,
+	NewEnemyCard,
+	NewBack,
+	AutoArrange,
+	ManualArrange,
+	Mask,
+	Escape,
+	PosTop,
+	PosBottom,
+	PosLeft,
+	PosRight,
+	PosEven,
+	ScaleMin,
+	ScaleMiddle,
+	ScaleMax,
+	ScaleBig,
+	ScaleSmall,
+	StopBGM,
+	PlayBGM,
+	KeyCodeTiming,
+	KeyCodeTimingUse,
+	KeyCodeTimingSuccess,
+	KeyCodeTimingFailure,
+	AddRangeOfRound,
+	OpenAtTableView,
+	OpenAtVarView,
+	OpenAtCardView,
+	OpenAtFileView,
+	OpenAtEventView,
+	Comment,
+	ShowCardProp,
+	ShowCardImage,
+	ShowCardDetail,
+	OpenImportSource,
+	NewCast,
+	NewSkill,
+	NewItem,
+	NewBeast,
+	NewInfo,
+	Import,
+	OpenHand,
+	AddHand,
+	RemoveRef,
+	EditEventAtTimeOfUsing,
+	Hold,
+	PlaySE,
+	StopSE,
+	NewDir,
+	CopyFilePath,
+	ReplFilePath,
+	CreateArchive,
+	ToScript,
+	ToScriptAll,
+	EvTemplates,
 }

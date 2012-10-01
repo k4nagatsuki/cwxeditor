@@ -4,61 +4,10 @@ module cwx.motion;
 import cwx.types;
 import cwx.card;
 import cwx.usecounter;
-import cwx.utils;
 import cwx.xml;
 import cwx.path;
 
-public:
-
-enum MType {
-	HEAL,
-	DAMAGE,
-	ABSORB,
-	PARALYZE,
-	DIS_PARALYZE,
-	POISON,
-	DIS_POISON,
-	GET_SKILL_POWER,
-	LOSE_SKILL_POWER,
-	SLEEP,
-	CONFUSE,
-	OVERHEAT,
-	BRAVE,
-	PANIC,
-	NORMAL,
-	BIND,
-	DIS_BIND,
-	SILENCE,
-	DIS_SILENCE,
-	FACE_UP,
-	FACE_DOWN,
-	ANTI_MAGIC,
-	DIS_ANTI_MAGIC,
-	ENHANCE_ACTION,
-	ENHANCE_AVOID,
-	ENHANCE_RESIST,
-	ENHANCE_DEFENSE,
-	VANISH_TARGET,
-	VANISH_CARD,
-	VANISH_BEAST,
-	DEAL_ATTACK_CARD,
-	DEAL_POWERFUL_ATTACK_CARD,
-	DEAL_CRITICAL_ATTACK_CARD,
-	DEAL_FEINT_CARD,
-	DEAL_DEFENSE_CARD,
-	DEAL_DISTANCE_CARD,
-	DEAL_CONFUSE_CARD,
-	DEAL_SKILL_CARD,
-	SUMMON_BEAST
-}
-
-enum MArg {
-	VALUE_TYPE, /// レベル比・直接等、値のタイプ。
-	U_VALUE, /// ダメージ・回復量。
-	A_VALUE, /// ボーナス値。
-	ROUND, /// 継続ラウンド数。
-	BEAST /// 召喚獣カード。
-}
+import std.algorithm;
 
 private bool static_this_completed = false;
 private void static_this () {
@@ -111,13 +60,15 @@ private void static_this () {
 }
 
 private MDetail[MType] _MOTION_DETAILS;
+@property
 private MDetail[MType] MOTION_DETAILS() {
-	static_this;
+	static_this();
 	return _MOTION_DETAILS;
 }
 private MType[string] _MTYPE_MAP;
+@property
 private MType[string] MTYPE_MAP() {
-	static_this;
+	static_this();
 	return _MTYPE_MAP;
 }
 
@@ -156,9 +107,11 @@ private:
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	this (MotionOwner cwxPath) {_cwxPath = cwxPath;}
-	string cwxPath() {return _cwxPath.cwxPath;}
+	@property
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
 
 	/// 変更ハンドラを登録する。
+	@property
 	void changeHandler(void delegate() change) {
 		_change = change;
 	}
@@ -168,8 +121,10 @@ public:
 	}
 
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		foreach (m; _motions) {
 			m.setUseCounter(uc);
@@ -179,7 +134,7 @@ public:
 	/// ditto
 	void removeUseCounter() {
 		foreach (m; _motions) {
-			m.removeUseCounter;
+			m.removeUseCounter();
 		}
 		_uc = null;
 	}
@@ -190,12 +145,13 @@ public:
 		}
 	}
 	/// 効果群。
+	@property
 	void motions(Motion[] motions) {
 		if (_motions != motions) {
-			changed;
+			changed();
 			foreach (m; _motions) {
 				m.changeHandler = null;
-				m.removeUseCounter;
+				m.removeUseCounter();
 				m._owner = null;
 			}
 			foreach (m; motions) {
@@ -207,10 +163,12 @@ public:
 		}
 	}
 	/// ditto
+	@property
 	Motion[] motions() {
 		return _motions;
 	}
 	/// ditto
+	@property
 	const
 	const(Motion)[] motions() {
 		return _motions;
@@ -219,7 +177,9 @@ public:
 
 /// 効果の所持者である事を示すインタフェース。
 interface MotionOwner : CWXPath {
+	@property
 	Motion[] motions();
+	@property
 	const
 	const(Motion)[] motions();
 }
@@ -239,34 +199,40 @@ private:
 	int _aValue = 0;
 	uint _round = 10u;
 	BeastCard _beast = null;
+	uint _maxNest = maxNest_init;
 
 	MotionOwner _owner = null;
 public:
 	static const XML_NAME = "Motion";
 
 	/// 唯一のコンストラクタ。
-	this(MType type, Element el) {
+	this (MType type, Element el) {
 		_type = type;
 		_el = el;
 	}
 	/// 効果の種類。
+	@property
 	const
 	MType type() {return _type;}
 	/// 効果の概要。
+	@property
 	const
 	MDetail detail() {
-		static_this;
+		static_this();
 		return MOTION_DETAILS[type];
 	}
 
 	/// 変更ハンドラを登録する。
+	@property
 	void changeHandler(void delegate() change) {
 		if (_beast) _beast.changeHandler = change;
 		_change = change;
 	}
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		if (_beast) {
 			_beast.setUseCounter(uc);
@@ -276,12 +242,13 @@ public:
 	/// ditto
 	void removeUseCounter() {
 		if (_beast) {
-			_beast.removeUseCounter;
+			_beast.removeUseCounter();
 		}
 		_uc = null;
 	}
 
 	/// コピーを作成する。
+	@property
 	const
 	Motion dup() {
 		auto r = new Motion(type, element);
@@ -289,6 +256,7 @@ public:
 		r.uValue = uValue;
 		r.aValue = aValue;
 		r.round = round;
+		r.maxNest = maxNest;
 		if (_beast) {
 			r.beast = _beast.dup;
 		}
@@ -304,9 +272,10 @@ public:
 		if (m.uValue != uValue) return false;
 		if (m.aValue != aValue) return false;
 		if (m.round != round) return false;
+		if (m.maxNest != maxNest) return false;
 		if (_beast) {
 			if (m._beast) {
-				return _beast.toXML == m._beast.toXML;
+				return _beast == m._beast;
 			}
 			return false;
 		} else {
@@ -320,28 +289,35 @@ public:
 	}
 
 	/// 効果属性。
+	@property
 	const
 	Element element() {return _el;}
 	/// ditto
+	@property
 	void element(Element el) {_el = el;}
 
 	/// 値の形式。
+	@property
 	const
 	DamageType damageType() {return _dtyp;}
 	/// ditto
+	@property
 	void damageType(DamageType dtyp) {_dtyp = dtyp;}
 	/// ダメージ・回復値。
+	@property
 	const
 	uint uValue() {return _uValue;}
 	/// ditto
 	static const uValue_min = 1;
 	/// ditto
-	static const uValue_max = 999;
+	static const uValue_max = int.max;
 	/// ditto
+	@property
 	void uValue(int val) {
 		_uValue = roundValue(val, uValue_max, uValue_min);
 	}
 	/// ボーナス・ペナルティ値。
+	@property
 	const
 	int aValue() {return _aValue;}
 	/// ditto
@@ -349,32 +325,43 @@ public:
 	/// ditto
 	static const aValue_max = 10;
 	/// ditto
+	@property
 	void aValue(int val) {
 		_aValue = roundValue(val, aValue_max, aValue_min);
 	}
 	/// ラウンド数。
+	@property
 	const
 	int round() {return _round;}
 	/// ditto
+	@property
 	void round(int val) {
 		_round = roundValue(val, round_max, round_min);
 	}
 	/// ditto
 	static const round_min = 1;
 	/// ditto
-	static const round_max = 999;
+	static const round_max = int.max;
 	/// 召喚獣。
+	@property
 	BeastCard beast() {return _beast;}
 	/// ditto
+	@property
 	const
 	const(BeastCard) beast() {return _beast;}
 	/// ditto
+	@property
 	BeastCard[] beasts() {return _beast ? [_beast] : [];}
 	/// ditto
+	@property
+	const
+	const(BeastCard)[] beasts() {return _beast ? [_beast] : [];}
+	/// ditto
+	@property
 	void beast(in BeastCard beast) {
 		if (_beast) {
 			_beast.changeHandler = null;
-			_beast.removeUseCounter;
+			_beast.removeUseCounter();
 			_beast.owner = null;
 		}
 		if (beast) {
@@ -384,9 +371,13 @@ public:
 		}
 	}
 	/// XMLノードから召喚獣を読み出して設定する。
-	void setBeastFromNode(ref XNode node, string ver) {
+	/// ノードから生成された召喚獣のIDを返す。
+	ulong setBeastFromNode(ref XNode node, string ver) {
 		assert (node.name == "BeastCard", "setBeastFromNode: " ~ node.name);
-		setBeastImpl(BeastCard.createFromNode(node, ver));
+		auto b = BeastCard.createFromNode(node, ver);
+		ulong bid = b.id;
+		setBeastImpl(b);
+		return bid;
 	}
 	private void setBeastImpl(BeastCard beast) {
 		_beast = beast;
@@ -400,28 +391,44 @@ public:
 		_beast.change(id);
 	}
 
+	/// 参照IDを使用する時、同一の召喚獣カードを何回までネストできるか。
+	@property
+	const
+	uint maxNest() {return _maxNest;}
+	/// ditto
+	@property
+	void maxNest(uint val) {
+		_maxNest = roundValue(val, maxNest_max, maxNest_min);
+	}
+	/// ネスト可能回数の初期値、最小値、最大値。
+	static immutable maxNest_init = 1;
+	/// ditto
+	static immutable maxNest_min = 0;
+	/// ditto
+	static immutable maxNest_max = 999;
+
 	/// XMLテキスト化して返す。
 	const
-	string toXML() {
-		return toNode.text;
+	string toXML(XMLOption opt) {
+		return toNode(opt).text;
 	}
 	/// XMLノード化して返す。
 	const
-	XNode toNode() {
+	XNode toNode(XMLOption opt) {
 		auto e = XNode.create(XML_NAME);
-		toNodeImpl(e);
+		toNodeImpl(e, opt);
 		return e;
 	}
 	/// XMLノードに自身のデータをノード化して追加し、
 	/// そのノードを返す。
 	const
-	XNode toNode(ref XNode node) {
+	XNode toNode(ref XNode node, XMLOption opt) {
 		auto e = node.newElement(XML_NAME);
-		toNodeImpl(e);
+		toNodeImpl(e, opt);
 		return e;
 	}
 	const
-	private XNode toNodeImpl(ref XNode e) {
+	private XNode toNodeImpl(ref XNode e, XMLOption opt) {
 		auto d = detail;
 		e.newAttr("type", d.name);
 		e.newAttr("element", fromElement(element));
@@ -431,8 +438,27 @@ public:
 		if (d.use(MArg.ROUND)) e.newAttr(d.attr(MArg.ROUND), round);
 		if (d.use(MArg.BEAST)) {
 			auto be = e.newElement("Beasts");
+			be.newAttr("maxNest", maxNest);
 			if (_beast) {
-				_beast.toNode(be);
+				if (opt && opt.includeCard && 0 != _beast.linkId) {
+				// FIXME: リンクに失敗する
+//					auto nestCount = opt.nestCount.get(_beast.linkId, 0) + 1;
+					auto p = _beast.linkId in opt.nestCount;
+					uint nestCount = p ? *p : 0;
+					nestCount++;
+
+					opt.nestCount[_beast.linkId] = nestCount;
+					if (nestCount <= maxNest) {
+						_beast.toNode(be, opt);
+					}
+					if (1 >= nestCount) {
+						opt.nestCount.remove(_beast.linkId);
+					} else {
+						opt.nestCount[_beast.linkId] = nestCount - 1;
+					}
+				} else {
+					_beast.toNode(be, opt);
+				}
 			}
 		}
 		return e;
@@ -440,7 +466,7 @@ public:
 
 	/// XMLノードからインスタンスを生成して返す。
 	static Motion createFromNode(ref XNode node, string ver) {
-		static_this;
+		static_this();
 		string elStr = null;
 		auto type = MTYPE_MAP[node.attr("type", true)];
 		auto d = MOTION_DETAILS[type];
@@ -451,34 +477,43 @@ public:
 		if (d.use(MArg.ROUND)) r.round = node.attr!(uint)(d.attr(MArg.ROUND), true);
 		if (d.use(MArg.BEAST)) {
 			node.onTag["Beasts"] = (ref XNode node) {
+				int maxNestInit = maxNest_init;
+				r.maxNest = node.attr("maxNest", false, maxNestInit);
 				node.onTag["BeastCard"] = (ref XNode node) {
 					r.setBeastFromNode(node, ver);
 				};
-				node.parse;
+				node.parse();
 			};
-			node.parse;
+			node.parse();
 		}
 		return r;
 	}
 
-	override string cwxPath() {
-		return _owner ? cpjoin(_owner, .cCountUntil!("a is b")(_owner.motions, this)) : "";
+	@property
+	override string cwxPath(bool id) {
+		return _owner ? cpjoin(_owner, "motion", .countUntil!("a is b")(_owner.motions, this), id) : "";
 	}
 	override CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "beastcard": {
 			auto index = cpindex(path);
 			return index == 0 && beast ? beast.findCWXPath(cpbottom(path)) : null;
 		}
+		case "beastcard:id": {
+			return beast && beast.id == cpindex(path) ? beast.findCWXPath(cpbottom(path)) : null;
+		}
 		default: break;
 		}
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		if (_beast) r ~= _beast;
 		return r;
 	}
+	@property
+	CWXPath cwxParent() {return _owner;}
 }

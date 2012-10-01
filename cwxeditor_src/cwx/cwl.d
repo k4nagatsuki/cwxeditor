@@ -27,13 +27,8 @@ import cwx.event;
 import cwx.types;
 import cwx.utils;
 import cwx.sjis;
-
-unittest {
-	try {
-		loadLScenario!(Summary)("", "");
-		loadLScenario!(Importable)("", "");
-	} catch {}
-}
+import cwx.xml;
+import cwx.path;
 
 private bool sWith(string f, string s, out ulong id) {
 	if (!fnstartsWith(f, s)) return false;
@@ -45,13 +40,14 @@ private bool sWith(string f, string s, out ulong id) {
 }
 private string encodePathLegacy(string path) {
 	// エフェクトブースターは'/'区切りのパスを受け付けない
-	return isBinImg(path) ? path : replace(path, sep, "\\");
+	return isBinImg(path) ? path : replace(path, dirSeparator, "\\");
 }
 private string decodePathLegacy(string path) {
-	return isBinImg(path) ? path : replace(path, "\\", sep);
+	return isBinImg(path) ? path : replace(path, "\\", dirSeparator);
 }
 
 private struct RData {
+	bool cardOnly;
 	string sPath;
 	string skin;
 	int dataVersion;
@@ -60,74 +56,67 @@ private struct RData {
 /// Params:
 /// newName = シナリオ名。null以外が指定された場合、
 ///           Summary.wsmが存在しない際はこの名前で新規に作成する。
-S loadLScenario(S)(string p, string skin, string newName = null) {
-	static const bool AR = is (S : AreaOwner);
-	static const bool BA = is (S : BattleOwner);
-	static const bool PA = is (S : PackageOwner);
-	static const bool CA = is (S : CastOwner);
-	static const bool SK = is (S : SkillOwner);
-	static const bool IT = is (S : ItemOwner);
-	static const bool BE = is (S : BeastOwner);
-	static const bool IN = is (S : InfoOwner);
+Summary loadLScenario(string p, string skin, in LoadOption opt, string newName = null) {
 	auto sPath = p;
-	string summPath = std.path.join(p, "Summary.wsm");
-	S summ;
+	string summPath = std.path.buildPath(p, "Summary.wsm");
+	Summary summ;
 	RData d;
 	ulong startAreaId;
 	if (.exists(summPath)) {
-		d = RData(sPath, skin);
+		d = RData(opt.cardOnly, sPath, skin);
 		{
 			auto bytes = ByteIO(std.file.read(summPath));
-			summ = loadSummary!(S)(d, bytes, startAreaId);
+			summ = loadSummary(d, bytes, startAreaId);
 		}
 	} else {
 		if (!newName) throw new SummaryException("Not Scenario: " ~ p);
-		d = RData(sPath, skin);
-		static if (is(S == Summary)) {
-			summ = new Summary(newName, d.skin, d.sPath, false, true);
-		} else {
-			summ = new S(d.sPath, newName, true);
-		}
+		d = RData(opt.cardOnly, sPath, skin);
+		summ = new Summary(newName, d.skin, d.sPath, false, true);
 	}
 	class Load {
-		static if (AR) Area[] areas;
-		static if (BA) Battle[] battles;
-		static if (PA) Package[] packages;
-		static if (CA) CastCard[] casts;
-		static if (SK) SkillCard[] skills;
-		static if (IT) ItemCard[] items;
-		static if (BE) BeastCard[] beasts;
-		static if (IN) InfoCard[] infos;
+		Area[] areas;
+		Battle[] battles;
+		Package[] packages;
+		CastCard[] casts;
+		SkillCard[] skills;
+		ItemCard[] items;
+		BeastCard[] beasts;
+		InfoCard[] infos;
 		string[] files;
 		ulong wait = 0L;
-		int load() {
+		void load() {
+			version (Console) {
+				debug std.stdio.writeln("Start Classic Load Thread");
+			}
 			foreach (file; this.files) {
 				try {
 					auto f = ByteIO(std.file.read(file));
-					auto base = getBaseName(file);
+					auto base = baseName(file);
 					ulong id;
-					static if (AR) if (sWith(base, "Area", id)) {
-						areas ~= .loadArea(d, f, id);
+					if (!d.cardOnly) {
+						if (sWith(base, "Area", id)) {
+							areas ~= .loadArea(d, f, id);
+						}
+						if (sWith(base, "Battle", id)) {
+							battles ~= .loadBattle(d, f, id);
+						}
+						if (sWith(base, "Package", id)) {
+							packages ~= .loadPackage(d, f, id);
+						}
 					}
-					static if (BA) if (sWith(base, "Battle", id)) {
-						battles ~= .loadBattle(d, f, id);
-					}
-					static if (PA) if (sWith(base, "Package", id)) {
-						packages ~= .loadPackage(d, f, id);
-					}
-					static if (CA) if (sWith(base, "Mate", id)) {
+					if (sWith(base, "Mate", id)) {
 						casts ~= .loadCast(d, f, id);
 					}
-					static if (SK) if (sWith(base, "Skill", id)) {
+					if (sWith(base, "Skill", id)) {
 						skills ~= .loadSkill(d, f, id);
 					}
-					static if (IT) if (sWith(base, "Item", id)) {
+					if (sWith(base, "Item", id)) {
 						items ~= .loadItem(d, f, id);
 					}
-					static if (BE) if (sWith(base, "Beast", id)) {
+					if (sWith(base, "Beast", id)) {
 						beasts ~= .loadBeast(d, f, id);
 					}
-					static if (IN) if (sWith(base, "Info", id)) {
+					if (sWith(base, "Info", id)) {
 						infos ~= .loadInfo(d, f, id);
 					}
 				} catch (Exception e) {
@@ -135,14 +124,17 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 					throw e;
 				}
 			}
-			return 0;
+			version (Console) {
+				debug std.stdio.writeln("Exit Classic Load Thread");
+			}
 		}
 	}
+	if (opt.summaryOnly) return summ;
 	auto load1 = new Load;
 	auto load2 = new Load;
 	foreach (file; clistdir(sPath)) {
-		if (fnmatch(getExt(file), "wid")) {
-			file = std.path.join(sPath, file);
+		if (cfnmatch(extension(file), ".wid")) {
+			file = std.path.buildPath(sPath, file);
 			auto size = std.file.getSize(file);
 			if (load1.wait < load2.wait) {
 				load1.files ~= file;
@@ -153,50 +145,136 @@ S loadLScenario(S)(string p, string skin, string newName = null) {
 			}
 		}
 	}
-	version (TwinIO) {
-		auto thr = new Thread(&load2.load);
-		thr.start;
-		load1.load;
-		thr.wait;
+	if (opt.doubleIO) {
+		auto thr = new core.thread.Thread(&load2.load);
+		thr.start();
+		load1.load();
+		thr.join();
 	} else {
-		load1.load;
-		load2.load;
+		load1.load();
+		load2.load();
 	}
-	static if (AR) Area[] areas = load1.areas ~ load2.areas;
-	static if (BA) Battle[] battles = load1.battles ~ load2.battles;
-	static if (PA) Package[] packages = load1.packages ~ load2.packages;
-	static if (CA) CastCard[] casts = load1.casts ~ load2.casts;
-	static if (SK) SkillCard[] skills = load1.skills ~ load2.skills;
-	static if (IT) ItemCard[] items = load1.items ~ load2.items;
-	static if (BE) BeastCard[] beasts = load1.beasts ~ load2.beasts;
-	static if (IN) InfoCard[] infos = load1.infos ~ load2.infos;
-	static if (is (S == Summary)) {
-		foreach (a; areas.sort) summ.add(a, false);
-		foreach (a; battles.sort) summ.add(a, false);
-		foreach (a; packages.sort) summ.add(a, false);
-		foreach (a; casts.sort) summ.add(a, false);
-		foreach (a; skills.sort) summ.add(a, false);
-		foreach (a; items.sort) summ.add(a, false);
-		foreach (a; beasts.sort) summ.add(a, false);
-		foreach (a; infos.sort) summ.add(a, false);
-		summ.startArea = startAreaId;
-		summ.resetChanged;
-	} else {
-		static if (AR) foreach (a; areas.sort) summ.add(a);
-		static if (BA) foreach (a; battles.sort) summ.add(a);
-		static if (PA) foreach (a; packages.sort) summ.add(a);
-		static if (CA) foreach (a; casts.sort) summ.add(a);
-		static if (SK) foreach (a; skills.sort) summ.add(a);
-		static if (IT) foreach (a; items.sort) summ.add(a);
-		static if (BE) foreach (a; beasts.sort) summ.add(a);
-		static if (IN) foreach (a; infos.sort) summ.add(a);
-	}
+	Area[] areas = load1.areas ~ load2.areas;
+	Battle[] battles = load1.battles ~ load2.battles;
+	Package[] packages = load1.packages ~ load2.packages;
+	CastCard[] casts = load1.casts ~ load2.casts;
+	SkillCard[] skills = load1.skills ~ load2.skills;
+	ItemCard[] items = load1.items ~ load2.items;
+	BeastCard[] beasts = load1.beasts ~ load2.beasts;
+	InfoCard[] infos = load1.infos ~ load2.infos;
+	foreach (a; areas.sort) summ.add(a, false);
+	foreach (a; battles.sort) summ.add(a, false);
+	foreach (a; packages.sort) summ.add(a, false);
+	foreach (a; casts.sort) summ.add(a, false);
+	foreach (a; skills.sort) summ.add(a, false);
+	foreach (a; items.sort) summ.add(a, false);
+	foreach (a; beasts.sort) summ.add(a, false);
+	foreach (a; infos.sort) summ.add(a, false);
+	loadComment(summ);
+	loadImageRef(summ);
+	loadCardRef(summ);
+	summ.startArea = startAreaId;
+	summ.resetChanged();
 	return summ;
+}
+
+/// 拡張情報"Comment.wex"を読み込む。
+void loadComment(Summary summ) {
+	string file = summ.scenarioPath.buildPath("Comment.wex");
+	if (!.exists(file)) return;
+	auto node = XNode.parse(readText(file));
+	if ("comments" == node.name) {
+		node.onTag["comment"] = (ref XNode node) {
+			string path = node.attr("path", false, INVALID_CWX_PATH);
+			if (INVALID_CWX_PATH == path) return;
+			auto ct = cast(Content) summ.findCWXPath(path);
+			if (!ct) return;
+			ct.comment = node.value;
+		};
+		node.parse();
+	}
+}
+/// 拡張情報"ImageRef.wex"を読み込む。
+void loadImageRef(Summary summ) {
+	string file = summ.scenarioPath.buildPath("ImageRef.wex");
+	if (!.exists(file)) return;
+	auto node = XNode.parse(readText(file));
+	if ("imageRefs" == node.name) {
+		node.onTag["imageRef"] = (ref XNode node) {
+			string path = node.attr("path", false, INVALID_CWX_PATH);
+			if (INVALID_CWX_PATH == path) return;
+			auto cp = summ.findCWXPath(path);
+			auto card = cast(Card) cp;
+			if (card) {
+				card.path = node.value;
+			}
+			auto mCard = cast(MenuCard) cp;
+			if (mCard) {
+				mCard.path = node.value;
+			}
+			auto summ2 = cast(Summary) cp;
+			if (summ2) {
+				summ2.imagePath = node.value;
+			}
+		};
+		node.parse();
+	}
+}
+/// 拡張情報"CardRef.wex"を読み込む。
+void loadCardRef(Summary summ) {
+	string file = summ.scenarioPath.buildPath("CardRef.wex");
+	if (!.exists(file)) return;
+	auto node = XNode.parse(readText(file));
+	if ("cardRefs" == node.name) {
+		node.onTag["maxNest"] = (ref XNode node) {
+			string path = node.attr("path", false, INVALID_CWX_PATH);
+			if (INVALID_CWX_PATH == path) return;
+			auto m = cast(Motion) summ.findCWXPath(path);
+			if (!m) return;
+			string value = node.value;
+			try {
+				m.maxNest = .to!uint(value);
+			} catch (ConvException e) {
+				debugln(e);
+			}
+		};
+		node.onTag["cardRef"] = (ref XNode node) {
+			string path = node.attr("path", false, INVALID_CWX_PATH);
+			if (INVALID_CWX_PATH == path) return;
+			auto cp = summ.findCWXPath(path);
+			string value = node.value;
+			try {
+				auto id = .to!ulong(value);
+				auto skill = cast(SkillCard) cp;
+				if (skill) {
+					bool hold = skill.hold;
+					skill.clearData();
+					skill.linkId = id;
+					skill.hold = hold;
+				}
+				auto item = cast(ItemCard) cp;
+				if (item) {
+					bool hold = item.hold;
+					item.clearData();
+					item.linkId = id;
+					item.hold = hold;
+				}
+				auto beast = cast(BeastCard) cp;
+				if (beast) {
+					beast.clearData();
+					beast.linkId = id;
+				}
+			} catch (ConvException e) {
+				debugln(e);
+			}
+		};
+		node.parse();
+	}
 }
 
 /// fileのIDと型を返す。
 TypeInfo getType(string file, out ulong id) {
-	file = getBaseName(file);
+	file = baseName(file);
 	bool chk(string prefix) {
 		ulong idl;
 		auto r = sWith(file, prefix, idl);
@@ -214,18 +292,28 @@ TypeInfo getType(string file, out ulong id) {
 	return null;
 }
 
-private Target toTarget(byte b) {
+private Target toTargetT(byte b) {
 	switch (b) {
 	case 0: return Target(Target.M.SELECTED, false);
 	case 1: return Target(Target.M.RANDOM, false);
 	case 2: return Target(Target.M.UNSELECTED, false);
+	default: throw new SummaryException("Unknown target T: " ~ to!(string)(b));
+	}
+}
+private Target toTargetE(byte b) {
+	switch (b) {
+	case 0: return Target(Target.M.SELECTED, false);
+	case 1: return Target(Target.M.RANDOM, false);
+	case 2: return Target(Target.M.PARTY, false);
 	case 3: return Target(Target.M.SELECTED, true);
 	case 4: return Target(Target.M.RANDOM, true);
 	case 5: return Target(Target.M.PARTY, true);
 	case 6: return Target(Target.M.PARTY, false);
-	default: throw new SummaryException("Unknown target: " ~ to!(string)(b));
+	default: throw new SummaryException("Unknown target A: " ~ to!(string)(b));
 	}
 }
+private alias toTargetE toTargetA;
+
 private EffectType toEffectType(byte b) {
 	switch (b) {
 	case 0: return EffectType.PHYSIC;
@@ -264,6 +352,25 @@ private Range toRange(byte b) {
 	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
 	}
 }
+/// CardWirth Extender 1.30～
+private Range toCouponRange(byte b) {
+	switch (b) {
+	case 0: return Range.SELECTED;
+	case 1: return Range.RANDOM;
+	case 2: return Range.PARTY;
+	case 3: return Range.FIELD;
+	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
+	}
+}
+/// CardWirth Extender 1.30～
+private CastRange toCastRange(byte b) {
+	switch (b) {
+	case 1: return CastRange.PARTY;
+	case 2: return CastRange.ENEMY;
+	case 3: return CastRange.FIELD;
+	default: throw new SummaryException("Unknown cast range: " ~ to!(string)(b));
+	}
+}
 private Status toStatus(byte b) {
 	switch (b) {
 	case 0: return Status.ACTIVE;
@@ -278,6 +385,10 @@ private Status toStatus(byte b) {
 	case 9: return Status.SLEEP;
 	case 10: return Status.BIND;
 	case 11: return Status.PARALYZE;
+	case 12: return Status.CONFUSE;
+	case 13: return Status.OVERHEAT;
+	case 14: return Status.BRAVE;
+	case 15: return Status.PANIC;
 	default: throw new SummaryException("Unknown status: " ~ to!(string)(b));
 	}
 }
@@ -373,7 +484,7 @@ private string readImage(in RData d, ref ByteIO f) {
 		}
 		if (index != size_t.max) {
 			auto s = cast(string) img[index .. $ - B_IMG_REF.length];
-			if (.exists(std.path.join(d.sPath, s))) {
+			if (.exists(std.path.buildPath(d.sPath, s))) {
 				return s;
 			} else {
 				return bImgToStr(img[0 .. index - 1]);
@@ -387,6 +498,38 @@ private string readString(ref ByteIO f, bool lns = false, bool cutText = false) 
 	if (!len) return "";
 	string str = cast(string) f.read(len);
 	if (!lns && str[$ - 1] == '\0') str = str[0 .. $ - 1];
+	int zi = indexOf(str, '\0');
+	if (-1 != zi) str = str[zi + 1 .. $];
+	str = touni(str);
+	if (cutText) {
+		str = str.length > "TEXT\r\n".length ? str["TEXT\r\n".length .. $] : "";
+	}
+	str = replace(str, "\r\n", "\n");
+	return str;
+}
+private string readString(ref ByteIO f, ref string[string] addInfo, bool lns = false, bool cutText = false) {
+	uint len = f.readUIntL;
+	if (!len) return "";
+	string str = cast(string) f.read(len);
+	if (!lns && str[$ - 1] == '\0') str = str[0 .. $ - 1];
+	while (true) {
+		int zi = indexOf(str, '\0');
+		if (-1 == zi) break;
+		string info = touni(str[zi + 1 .. $]);
+		info = replace(info, "\r\n", "\n");
+		str = str[0 .. zi];
+
+		zi = indexOf(info, ':');
+		string key, value;
+		if (-1 == zi) {
+			key = info;
+			value = "";
+		} else {
+			key = info[0 .. zi];
+			value = info[zi + 1 .. $];
+		}
+		addInfo[key] = value;
+	}
 	str = touni(str);
 	if (cutText) {
 		str = str.length > "TEXT\r\n".length ? str["TEXT\r\n".length .. $] : "";
@@ -396,81 +539,78 @@ private string readString(ref ByteIO f, bool lns = false, bool cutText = false) 
 }
 private string[] readStrings(ref ByteIO f) {
 	auto str = readString(f, true);
-	return str.length ? splitlines(str) : cast(string[]) [];
+	return str.length ? splitLines!string(str) : cast(string[]) [];
 }
-private S loadSummary(S)(ref RData d, ref ByteIO f, out ulong startAreaId) {
+private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) {
 	string img = readImage(d, f);
-	static if (is (S == Summary)) {
-		byte b;
-		auto summ = new Summary(readString(f), d.skin, d.sPath, false, true);
-		summ.imagePath = img;
-		summ.desc = readString(f, true);
-		summ.author = readString(f);
-		summ.rCoupons = readStrings(f);
-		summ.rCouponNum = f.readUIntL;
-		auto area = f.readUIntL;
-		if (area < 19999) {
-			d.dataVersion = 0;
-		} else if (area < 39999) {
-			d.dataVersion = 2;
-			startAreaId = area - 20000u;
-		} else {
-			d.dataVersion = 4;
-			startAreaId = area - 40000u;
-		}
-		FlagDir flagsParent(string path) {
-			FlagDir dir = summ.flagDirRoot;
-			string par = FlagDir.up(path);
-			if (par.length) {
-				string[] spPath = std.string.split(par, "\\")[0u .. $ - 1u];
-				while (spPath.length) {
-					auto sub = dir.getSubDir(spPath[0u]);
-					if (!sub) {
-						sub = new FlagDir(spPath[0u]);
-						if (!dir.add(sub)) throw new SummaryException("Invalid flag and step directory: " ~ path);
-					}
-					dir = sub;
-					spPath = spPath[1u .. $];
-				}
-			}
-			return dir;
-		}
-		uint stepNum = f.readUIntL;
-		for (uint i = 0u; i < stepNum; i++) {
-			string path = readString(f);
-			uint sel = f.readUIntL;
-			string[] vals;
-			vals.length = 10u;
-			for (uint j = 0u; j < 10u; j++) {
-				vals[j] = readString(f);
-			}
-			if (!flagsParent(path).add(new Step(FlagDir.basename(path), vals, sel))) {
-				throw new SummaryException("Invalid step path: " ~ path);
-			}
-		}
-		summ.flagDirRoot.sortSteps(true);
-		uint flagNum = f.readUIntL;
-		for (uint i = 0u; i < flagNum; i++) {
-			string path = readString(f);
-			bool sel = readBool(f);
-			string on = readString(f);
-			string off = readString(f);
-			if (!flagsParent(path).add(new Flag(FlagDir.basename(path), on, off, sel))) {
-				throw new SummaryException("Invalid flag path: " ~ path);
-			}
-		}
-		summ.flagDirRoot.sortFlags(true);
-		f.readUIntL;
-		if (d.dataVersion != 0) {
-			summ.levelMin = f.readUIntL;
-			summ.levelMax = f.readUIntL;
-		}
-		return summ;
+	byte b;
+	auto summ = new Summary(readString(f), d.skin, d.sPath, false, true);
+	if (d.cardOnly) return summ;
+	summ.imagePath = img;
+	summ.desc = readString(f, true);
+	summ.author = readString(f);
+	summ.rCoupons = readStrings(f);
+	summ.rCouponNum = f.readUIntL;
+	auto area = f.readUIntL;
+	if (area < 19999) {
+		d.dataVersion = 0;
+	} else if (area < 39999) {
+		d.dataVersion = 2;
+		startAreaId = area - 20000u;
 	} else {
-		return new S(d.sPath, readString(f), true);
+		d.dataVersion = 4;
+		startAreaId = area - 40000u;
 	}
+	FlagDir flagsParent(string path) {
+		FlagDir dir = summ.flagDirRoot;
+		string par = FlagDir.up(path);
+		if (par.length) {
+			string[] spPath = std.string.split(par, "\\")[0u .. $ - 1u];
+			while (spPath.length) {
+				auto sub = dir.getSubDir(spPath[0u]);
+				if (!sub) {
+					sub = new FlagDir(spPath[0u]);
+					if (!dir.add(sub)) throw new SummaryException("Invalid flag and step directory: " ~ path);
+				}
+				dir = sub;
+				spPath = spPath[1u .. $];
+			}
+		}
+		return dir;
+	}
+	uint stepNum = f.readUIntL;
+	for (uint i = 0u; i < stepNum; i++) {
+		string path = readString(f);
+		uint sel = f.readUIntL;
+		string[] vals;
+		vals.length = 10u;
+		for (uint j = 0u; j < 10u; j++) {
+			vals[j] = readString(f);
+		}
+		if (!flagsParent(path).add(new Step(FlagDir.basename(path), vals, sel))) {
+			throw new SummaryException("Invalid step path: " ~ path);
+		}
+	}
+	summ.flagDirRoot.sortSteps(true);
+	uint flagNum = f.readUIntL;
+	for (uint i = 0u; i < flagNum; i++) {
+		string path = readString(f);
+		bool sel = readBool(f);
+		string on = readString(f);
+		string off = readString(f);
+		if (!flagsParent(path).add(new Flag(FlagDir.basename(path), on, off, sel))) {
+			throw new SummaryException("Invalid flag path: " ~ path);
+		}
+	}
+	summ.flagDirRoot.sortFlags(true);
+	f.readUIntL;
+	if (d.dataVersion != 0) {
+		summ.levelMin = f.readUIntL;
+		summ.levelMax = f.readUIntL;
+	}
+	return summ;
 }
-private Motion readMotion(in RData d, ref ByteIO f) {
+private Motion readMotion(ref RData d, ref ByteIO f, size_t index) {
 	byte tType = f.readByte;
 	if (d.dataVersion > 2) {
 		f.readByte;
@@ -599,7 +739,9 @@ private Motion readMotion(in RData d, ref ByteIO f) {
 		BeastCard beast = null;
 		uint bNum = f.readUIntL; // 常に0か1のはず
 		for (uint i = 0u; i < bNum ; i++) {
-			beast = loadBeast(d, f, 1);
+			auto d2 = d;
+			// d.dataVersionを上書きしない
+			beast = loadBeast(d2, f, 1);
 		}
 		auto m = new Motion(MType.SUMMON_BEAST, el);
 		m.beast = beast;
@@ -608,9 +750,10 @@ private Motion readMotion(in RData d, ref ByteIO f) {
 	default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 	}
 }
-private Content readContent(in RData d, ref ByteIO f) {
+private Content readContent(ref RData d, ref ByteIO f, size_t index) {
 	byte type = f.readByte;
-	string name = readString(f);
+	string[string] info;
+	string name = readString(f, info, false, false);
 	uint cNum;
 	if (d.dataVersion <= 2) {
 		cNum = f.readUIntL;
@@ -620,7 +763,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 	Content[] childs;
 	childs.length = cNum;
 	for (uint i = 0u; i < cNum; i++) {
-		childs[i] = readContent(d, f);
+		childs[i] = readContent(d, f, i);
 	}
 	Content e;
 	switch (type) {
@@ -700,11 +843,11 @@ private Content readContent(in RData d, ref ByteIO f) {
 		Motion[] effMotions;
 		effMotions.length = effMotionNum;
 		for (uint i = 0u; i < effMotionNum; i++) {
-			effMotions[i] = readMotion(d, f);
+			effMotions[i] = readMotion(d, f, i);
 		}
 		e = new Content(CType.EFFECT, name);
 		e.signedLevel = effLev;
-		e.targetNS = toTarget(effTarget);
+		e.targetNS = toTargetE(effTarget);
 		e.effectType = toEffectType(effType);
 		e.resist = toResist(effResist);
 		e.successRate = effSuc;
@@ -727,7 +870,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 		uint phy = f.readUIntL;
 		int mtl = f.readIntL;
 		e = new Content(CType.BRANCH_ABILITY, name);
-		e.targetS = toTarget(targ);
+		e.targetS = toTargetA(targ);
 		e.mental = toMental(mtl);
 		e.physical = toPhysical(phy);
 		e.signedLevel = val;
@@ -830,7 +973,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 		byte rng = f.readByte;
 		e = new Content(CType.BRANCH_COUPON, name);
 		e.coupon = coupon;
-		e.range = toRange(rng);
+		e.range = toCouponRange(rng);
 		break;
 	}
 	case 26:
@@ -981,7 +1124,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 	case 40: {
 		byte targ = f.readByte;
 		Talker t;
-		switch (toTarget(targ).m) {
+		switch (toTargetT(targ).m) {
 		case Target.M.SELECTED: t = Talker.SELECTED; break;
 		case Target.M.UNSELECTED: t = Talker.UNSELECTED; break;
 		case Target.M.RANDOM: t = Talker.RANDOM; break;
@@ -1034,7 +1177,7 @@ private Content readContent(in RData d, ref ByteIO f) {
 		byte stat = f.readByte;
 		byte targ = f.readByte;
 		e = new Content(CType.BRANCH_STATUS, name);
-		e.targetNS = toTarget(targ);
+		e.targetNS = toTargetA(targ);
 		e.status = toStatus(stat);
 		break;
 	}
@@ -1105,6 +1248,43 @@ private Content readContent(in RData d, ref ByteIO f) {
 		e = new Content(CType.CHECK_FLAG, name);
 		e.flag = readString(f);
 		break;
+	case 66:
+		e = new Content(CType.SUBSTITUTE_STEP, name);
+		e.step = readString(f);
+		e.step2 = readString(f);
+		break;
+	case 67:
+		e = new Content(CType.SUBSTITUTE_FLAG, name);
+		e.flag = readString(f);
+		e.flag2 = readString(f);
+		break;
+	case 68:
+		e = new Content(CType.BRANCH_STEP_CMP, name);
+		e.step = readString(f);
+		e.step2 = readString(f);
+		break;
+	case 69:
+		e = new Content(CType.BRANCH_FLAG_CMP, name);
+		e.flag = readString(f);
+		e.flag2 = readString(f);
+		break;
+	case 70:
+		e = new Content(CType.BRANCH_RANDOM_SELECT, name);
+		e.castRange = toCastRange(f.readByte);
+		ubyte style = f.readUByte;
+		if (style & 0b01) {
+			e.levelMin = f.readUIntL;
+			e.levelMax = f.readUIntL;
+		} else {
+			e.levelMin = 0;
+			e.levelMax = 0;
+		}
+		if (style & 0b10) {
+			e.status = toStatus(f.readByte);
+		} else {
+			e.status = Status.NONE;
+		}
+		break;
 	default: throw new SummaryException("Unknown content type: " ~ to!(string)(type));
 	}
 	if (e.detail.owner) {
@@ -1112,24 +1292,28 @@ private Content readContent(in RData d, ref ByteIO f) {
 			e.add(c);
 		}
 	}
+	auto p = "comment" in info;
+	if (p) {
+		e.comment = *p;
+	}
 	return e;
 }
-private EventTree readCEventTree(in RData d, ref ByteIO f) {
+private EventTree readCEventTree(ref RData d, ref ByteIO f, size_t index) {
 	auto tree = new EventTree("");
 	auto dest = tree.starts[0u];
 	uint cNum = f.readUIntL;
 	for (uint i = 0u; i < cNum; i++) {
-		tree.add(readContent(d, f));
+		tree.add(readContent(d, f, i));
 	}
 	tree.remove(dest);
 	return tree;
 }
-private EventTree readEventTree(in RData d, ref ByteIO f, bool enemyCard) {
+private EventTree readEventTree(ref RData d, ref ByteIO f, bool enemyCard, size_t index) {
 	auto tree = new EventTree("");
 	auto dest = tree.starts[0u];
 	uint cNum = f.readUIntL;
 	for (uint i = 0u; i < cNum; i++) {
-		tree.add(readContent(d, f));
+		tree.add(readContent(d, f, i));
 	}
 	tree.remove(dest);
 	uint igNum = f.readUIntL;
@@ -1216,7 +1400,7 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) {
 	auto a = new Area(id, name);
 	uint evtNum = f.readUIntL;
 	for (uint i = 0; i < evtNum; i++) {
-		a.add(readEventTree(d, f, false));
+		a.add(readEventTree(d, f, false, i));
 	}
 	a.spAuto = !readBool(f);
 	uint cNum = f.readUIntL;
@@ -1230,19 +1414,30 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) {
 		EventTree[] trees;
 		trees.length = cEvtNum;
 		for (uint j = 0; j < cEvtNum; j++) {
-			trees[j] = readEventTree(d, f, false);
+			trees[j] = readEventTree(d, f, false, j);
 		}
 		string flag = readString(f);
 		real scale = f.readUIntL / 100.0;
 		int x = f.readIntL;
 		int y = f.readIntL;
 		string imgPath;
+		uint pcNum = 0;
 		if (d.dataVersion <= 2) {
 			imgPath = "";
 		} else {
 			imgPath = decodePathLegacy(readString(f));
+			if (isNumeric(imgPath)) {
+				// PC画像
+				try {
+					pcNum = .to!int(imgPath);
+					if (0 != pcNum) imgPath = "";
+				} catch (Exception e) {
+					debugln(e);
+				}
+			}
 		}
 		auto c = new MenuCard(cName, imgPath.length ? imgPath : img, desc, flag, x, y, scale);
+		c.pcNumber = pcNum;
 		foreach (tree; trees) {
 			c.add(tree);
 		}
@@ -1260,7 +1455,7 @@ private Battle loadBattle(ref RData d, ref ByteIO f, ulong fid) {
 	auto r = new Battle(id, name, "");
 	uint evtNum = f.readUIntL;
 	for (uint i = 0u; i < evtNum; i++) {
-		r.add(readEventTree(d, f, false));
+		r.add(readEventTree(d, f, false, i));
 	}
 	r.spAuto = !readBool(f);
 	uint cNum = f.readUIntL;
@@ -1270,7 +1465,7 @@ private Battle loadBattle(ref RData d, ref ByteIO f, ulong fid) {
 		EventTree[] cTrees;
 		cTrees.length = cEvtNum;
 		for (uint j = 0u; j < cEvtNum; j++) {
-			cTrees[j] = readEventTree(d, f, true);
+			cTrees[j] = readEventTree(d, f, true, j);
 		}
 		string flag = readString(f);
 		real scale = f.readUIntL / 100.0;
@@ -1288,14 +1483,14 @@ private Battle loadBattle(ref RData d, ref ByteIO f, ulong fid) {
 	}
 	return r;
 }
-private Package loadPackage(in RData d, ref ByteIO f, ulong fid) {
+private Package loadPackage(ref RData d, ref ByteIO f, ulong fid) {
 	f.readUIntL;
 	string name = readString(f);
 	ulong id = f.readUIntL;
 	auto r = new Package(id, name);
 	uint evtNum = f.readUIntL;
 	for (uint i = 0u; i < evtNum; i++) {
-		r.add(readCEventTree(d, f));
+		r.add(readCEventTree(d, f, i));
 	}
 	return r;
 }
@@ -1417,7 +1612,7 @@ private C readEffCard(C)(ref RData d, ref ByteIO f) {
 	Motion[] motions;
 	motions.length = mNum;
 	for (uint i = 0u; i < mNum; i++) {
-		motions[i] = readMotion(d, f);
+		motions[i] = readMotion(d, f, i);
 	}
 	r.motions = motions;
 	r.enhance(Enhance.AVOID, f.readIntL);
@@ -1439,7 +1634,7 @@ private C readEffCard(C)(ref RData d, ref ByteIO f) {
 		r.author = readString(f);
 		uint evtNum = f.readUIntL;
 		for (uint i = 0u; i < evtNum; i++) {
-			r.add(readCEventTree(d, f));
+			r.add(readCEventTree(d, f, i));
 		}
 	}
 	return r;
@@ -1497,10 +1692,18 @@ private InfoCard loadInfo(ref RData d, ref ByteIO f, ulong fid) {
 struct SData {
 	string sPath;
 	bool saveInnerImagePath;
+	SkillCard delegate(ulong) skill;
+	ItemCard delegate(ulong) item;
+	BeastCard delegate(ulong) beast;
+	string[string] comment;
+	string[string] imageRef;
+	ulong[string] cardRef;
+	uint[string] maxNest;
+	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
 }
 /// 4.0形式のCardWirthシナリオを保存する。
-void saveLScenario(Summary summ, bool saveInnerImagePath = false) {
-	auto d = SData(summ.scenarioPath, saveInnerImagePath);
+void saveLScenario(Summary summ, in SaveOption opt) {
+	auto d = SData(summ.scenarioPath, opt.saveInnerImagePath, &summ.skill, &summ.item, &summ.beast);
 	class Save {
 		Area[] areas;
 		Battle[] battles;
@@ -1511,68 +1714,73 @@ void saveLScenario(Summary summ, bool saveInnerImagePath = false) {
 		BeastCard[] beasts;
 		InfoCard[] infos;
 		string[] wids;
-		int save() {
+		void save() {
+			version (Console) {
+				debug std.stdio.writeln("Start Classic Load Thread");
+			}
 			foreach (a; areas) {
 				auto file = "~Area" ~ to!(string)(a.id) ~ ".wid";
 				ByteIO f;
 				writeArea(d, f, a);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
 			foreach (a; battles) {
 				auto file = "~Battle" ~ to!(string)(a.id) ~ ".wid";
 				ByteIO f;
 				writeBattle(d, f, a);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
 			foreach (a; packages) {
 				auto file = "~Package" ~ to!(string)(a.id) ~ ".wid";
 				ByteIO f;
 				writePackage(d, f, a);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
 			foreach (c; casts) {
 				auto file = "~Mate" ~ to!(string)(c.id) ~ ".wid";
 				ByteIO f;
 				writeCast(d, f, c);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
 			foreach (c; skills) {
 				auto file = "~Skill" ~ to!(string)(c.id) ~ ".wid";
 				ByteIO f;
 				writeSkill(d, f, c);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
 			foreach (c; items) {
 				auto file = "~Item" ~ to!(string)(c.id) ~ ".wid";
 				ByteIO f;
 				writeItem(d, f, c);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
 			foreach (c; beasts) {
 				auto file = "~Beast" ~ to!(string)(c.id) ~ ".wid";
 				ByteIO f;
 				writeBeast(d, f, c);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
 			foreach (c; infos) {
 				auto file = "~Info" ~ to!(string)(c.id) ~ ".wid";
 				ByteIO f;
 				writeInfo(d, f, c);
-				std.file.write(std.path.join(d.sPath, file), f.bytes);
+				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 				wids ~= file;
 			}
-			return 0;
+			version (Console) {
+				debug std.stdio.writeln("Exit Classic Save Thread");
+			}
 		}
 		void rename() {
 			foreach (file; wids) {
-				std.file.rename(std.path.join(d.sPath, file), std.path.join(d.sPath, file[1u .. $]));
+				std.file.rename(std.path.buildPath(d.sPath, file), std.path.buildPath(d.sPath, file[1u .. $]));
 			}
 		}
 	}
@@ -1582,7 +1790,7 @@ void saveLScenario(Summary summ, bool saveInnerImagePath = false) {
 		auto file = "~Summary.wsm";
 		ByteIO f;
 		writeSummary(d, f, summ);
-		std.file.write(std.path.join(d.sPath, file), f.bytes);
+		std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
 		save1.wids ~= file;
 	}
 	save1.areas = summ.areas[0 .. $ / 2];
@@ -1601,45 +1809,137 @@ void saveLScenario(Summary summ, bool saveInnerImagePath = false) {
 	save2.beasts = summ.beasts[$ / 2 .. $];
 	save1.infos = summ.infos[0 .. $ / 2];
 	save2.infos = summ.infos[$ / 2 .. $];
-	version (TwinIO) {
-		auto thr = new Thread(&save2.save);
-		thr.start;
-		save1.save;
-		thr.wait;
+	if (opt.doubleIO) {
+		auto thr = new core.thread.Thread(&save2.save);
+		thr.start();
+		save1.save();
+		thr.join();
 	} else {
-		save1.save;
-		save2.save;
+		save1.save();
+		save2.save();
+	}
+
+	string[] renames;
+	string comment = saveComment(d);
+	if (comment.length) {
+		auto file = "~Comment.wex";
+		std.file.write(d.sPath.buildPath(file), cast(immutable byte[]) comment);
+		renames ~= file;
+	}
+	string imageRef = saveImageRef(d);
+	if (imageRef.length) {
+		auto file = "~ImageRef.wex";
+		std.file.write(d.sPath.buildPath(file), cast(immutable byte[]) imageRef);
+		renames ~= file;
+	}
+	string cardRef = saveCardRef(d);
+	if (cardRef.length) {
+		auto file = "~CardRef.wex";
+		std.file.write(d.sPath.buildPath(file), cast(immutable byte[]) cardRef);
+		renames ~= file;
+	}
+
+	auto sysFName = .regex!(dstring)("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef|CardRef)\\.wex))$"d);
+	bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
+	if (canBackup) {
+		foreach (file; clistdir(opt.backupDir)) {
+			delAll(opt.backupDir.buildPath(file));
+		}
 	}
 	foreach (file; clistdir(d.sPath)) {
-		if (std.path.fnmatch(file, "Summary.wsm")
-				|| !std.regex.match(toUTF32(file), .regex!(dstring)("^(Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid$"d)).empty) {
-			scope path = std.path.join(d.sPath, file);
+		if (cfnmatch(file, "Summary.wsm")
+				|| !std.regex.match(toUTF32(file), sysFName).empty) {
+			scope path = std.path.buildPath(d.sPath, file);
+			if (canBackup) {
+				if (!opt.backupDir.exists()) opt.backupDir.mkdirRecurse();
+				path.copy(opt.backupDir.buildPath(file));
+			}
 			preRemove(path);
 			std.file.remove(path);
 		}
 	}
-	save1.rename;
-	save2.rename;
+	save1.rename();
+	save2.rename();
+	foreach (file; renames) {
+		std.file.rename(std.path.buildPath(d.sPath, file), std.path.buildPath(d.sPath, file[1u .. $]));
+	}
 }
 
-private byte fromTarget(Target v) {
-	if (v.m == Target.M.UNSELECTED) return 2;
+/// 拡張情報"Comment.wex"を保存する。
+string saveComment(in SData d) {
+	if (!d.comment.length) return "";
+	auto node = XNode.create("comments");
+	node.newAttr("dataVersion", 1);
+	foreach (cwxPath, comment; d.comment) {
+		auto e = node.newElement("comment", comment);
+		e.newAttr("path", cwxPath);
+	}
+	return node.text;
+}
+/// 拡張情報"ImageRef.wex"を保存する。
+string saveImageRef(in SData d) {
+	if (!d.saveInnerImagePath) return "";
+	if (!d.imageRef.length) return "";
+	auto node = XNode.create("imageRefs");
+	node.newAttr("dataVersion", 1);
+	foreach (cwxPath, imgPath; d.imageRef) {
+		auto e = node.newElement("imageRef", imgPath);
+		e.newAttr("path", cwxPath);
+	}
+	return node.text;
+}
+/// 拡張情報"CardRef.wex"を保存する。
+string saveCardRef(in SData d) {
+	if (!d.cardRef.length && !d.maxNest.length) return "";
+	auto node = XNode.create("cardRefs");
+	node.newAttr("dataVersion", 1);
+	foreach (cwxPath, maxNest; d.maxNest) {
+		auto e = node.newElement("maxNest", .text(maxNest));
+		e.newAttr("path", cwxPath);
+	}
+	foreach (cwxPath, linkId; d.cardRef) {
+		auto e = node.newElement("cardRef", .text(linkId));
+		e.newAttr("path", cwxPath);
+	}
+	return node.text;
+}
+
+private byte fromTargetT(Target v) {
+	switch (v.m) {
+	case Target.M.SELECTED: return 0;
+	case Target.M.RANDOM: return 1;
+	case Target.M.UNSELECTED: return 2;
+	default: throw new SummaryException("Unknown target T value: " ~ to!(string)(cast(int) v.m));
+	}
+}
+private byte fromTargetE(Target v) {
+	if (v.m == Target.M.UNSELECTED) throw new SummaryException("Unknown target E value with sleep: " ~ to!(string)(cast(int) v.m));
+	switch (v.m) {
+	case Target.M.SELECTED: return 0;
+	case Target.M.RANDOM: return 1;
+	case Target.M.PARTY: return 6;
+	default: throw new SummaryException("Unknown target E value: " ~ to!(string)(cast(int) v.m));
+	}
+}
+private byte fromTargetA(Target v) {
+	if (v.m == Target.M.UNSELECTED) throw new SummaryException("Unknown target A value with sleep: " ~ to!(string)(cast(int) v.m));
 	if (v.sleep) {
 		switch (v.m) {
 		case Target.M.SELECTED: return 3;
 		case Target.M.RANDOM: return 4;
 		case Target.M.PARTY: return 5;
-		default: throw new SummaryException("Unknown target value with sleep: " ~ to!(string)(cast(int) v.m));
+		default: throw new SummaryException("Unknown target A value with sleep: " ~ to!(string)(cast(int) v.m));
 		}
 	} else {
 		switch (v.m) {
 		case Target.M.SELECTED: return 0;
 		case Target.M.RANDOM: return 1;
-		case Target.M.PARTY: return 6;
-		default: throw new SummaryException("Unknown target value: " ~ to!(string)(cast(int) v.m));
+		case Target.M.PARTY: return 2;
+		default: throw new SummaryException("Unknown target A value: " ~ to!(string)(cast(int) v.m));
 		}
 	}
 }
+
 private byte fromEffectType(EffectType v) {
 	switch (v) {
 	case EffectType.PHYSIC: return 0;
@@ -1678,6 +1978,25 @@ private byte fromRange(Range v) {
 	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
 	}
 }
+/// CardWirth Extender 1.30～
+private byte fromCouponRange(Range v) {
+	switch (v) {
+	case Range.SELECTED: return 0;
+	case Range.RANDOM: return 1;
+	case Range.PARTY: return 2;
+	case Range.FIELD: return 3;
+	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
+	}
+}
+/// CardWirth Extender 1.30～
+private byte fromCastRange(CastRange v) {
+	switch (v) {
+	case CastRange.PARTY: return 1;
+	case CastRange.ENEMY: return 2;
+	case CastRange.FIELD: return 3;
+	default: throw new SummaryException("Unknown cast range value: " ~ to!(string)(cast(int) v));
+	}
+}
 private byte fromStatus(Status v) {
 	switch (v) {
 	case Status.ACTIVE: return 0;
@@ -1692,6 +2011,10 @@ private byte fromStatus(Status v) {
 	case Status.SLEEP: return 9;
 	case Status.BIND: return 10;
 	case Status.PARALYZE: return 11;
+	case Status.CONFUSE: return 12;
+	case Status.OVERHEAT: return 13;
+	case Status.BRAVE: return 14;
+	case Status.PANIC: return 15;
 	default: throw new SummaryException("Unknown status value: " ~ to!(string)(cast(int) v));
 	}
 }
@@ -1774,7 +2097,7 @@ private const B_IMG_REF = ":INNER_BINARY_IMAGE";
 private void writeBool(ref ByteIO f, bool b) {
 	f.writeL(cast(byte) (b ? 1 : 0));
 }
-private void writeImage(in SData d, ref ByteIO f, string imgPath) {
+private void writeImage(ref SData d, ref ByteIO f, CWXPath cp, string imgPath) {
 	if (!imgPath.length) {
 		f.writeL(cast(uint) 0);
 		return;
@@ -1783,62 +2106,12 @@ private void writeImage(in SData d, ref ByteIO f, string imgPath) {
 	if (isBinImg(imgPath)) {
 		bytes = cast(ubyte[]) strToBImg(imgPath);
 	} else {
-		auto path = std.path.join(d.sPath, imgPath);
+		auto path = std.path.buildPath(d.sPath, imgPath);
 		if (exists(path)) {
 			bytes = cast(ubyte[]) std.file.read(path);
-			if (d.saveInnerImagePath) {
-				bytes ~= '\0';
-				bytes ~= cast(ubyte[]) (imgPath ~ B_IMG_REF);
-			}
-		} else if (d.saveInnerImagePath) {
-			// 空のイメージを作成し、パスを保存しておく
-			ByteIO f2;
-			struct BITMAPFILEHEADER {
-				ushort bfType = ('B' << 0) | ('M' << 8);
-				uint bfSize = 14 + 40 + 4 * 16 + 1;
-				ushort bfReserved1 = 0;
-				ushort bfReserved2 = 0;
-				uint bfOffBits = 54 + 4 * 16;
-			}
-			struct BITMAPINFOHEADER {
-				uint biSize = 40;
-				int biWidth = 1;
-				int biHeight = 1;
-				ushort biPlanes = 1;
-				ushort biBitCount = 8;
-				uint biCompression = 0;
-				uint biSizeImage = 1;
-				int biXPixPerMeter = 0;
-				int biYPixPerMeter = 0;
-				// CWでは16色パレットが必要。
-				// ダイレクト形式で縦横1ドットのデータはエラーになる。
-				uint biClrUsed = 16;
-				uint biCirImportant = 0;
-			}
-			struct RGBQUAD {
-				ubyte rgbBlue = 0;
-				ubyte rgbGreen = 0;
-				ubyte rgbRed = 0;
-				ubyte rgbReserved = 0;
-			}
-			BITMAPFILEHEADER h1;
-			BITMAPINFOHEADER h2;
-			foreach (val; h1.tupleof) {
-				f2.writeL(val);
-			}
-			foreach (val; h2.tupleof) {
-				f2.writeL(val);
-			}
-			for (size_t i = 0; i < 16; i++) {
-				RGBQUAD rgb;
-				foreach (val; rgb.tupleof) {
-					f2.writeL(val);
-				}
-			}
-			f2.writeL(cast(ubyte) 0); // Image data
-			bytes ~= f2.bytes;
-			bytes ~= '\0';
-			bytes ~= cast(ubyte[]) (imgPath ~ B_IMG_REF);
+		}
+		if (d.saveInnerImagePath) {
+			d.imageRef[cp.cwxPath(true)] = imgPath;
 		}
 	}
 	f.writeL(cast(uint) bytes.length);
@@ -1873,8 +2146,8 @@ private void writeStrings(ref ByteIO f, string[] strs) {
 	}
 }
 
-private void writeSummary(in SData d, ref ByteIO f, Summary summ) {
-	writeImage(d, f, summ.imagePath);
+private void writeSummary(ref SData d, ref ByteIO f, Summary summ) {
+	writeImage(d, f, summ, summ.imagePath);
 	writeString(f, summ.scenarioName);
 	writeString(f, summ.desc, true);
 	writeString(f, summ.author);
@@ -1906,7 +2179,7 @@ private void writeSummary(in SData d, ref ByteIO f, Summary summ) {
 	f.writeL(cast(uint) summ.levelMin);
 	f.writeL(cast(uint) summ.levelMax);
 }
-private void writeMotion(in SData d, ref ByteIO f, Motion m) {
+private void writeMotion(ref SData d, ref ByteIO f, Motion m) {
 	byte tType;
 	byte type;
 	switch (m.type) {
@@ -2095,10 +2368,34 @@ private void writeMotion(in SData d, ref ByteIO f, Motion m) {
 	case 6, 7:
 		break;
 	case 8:
+		if (Motion.maxNest_init != m.maxNest) {
+			d.maxNest[m.cwxPath(true)] = m.maxNest;
+		}
 		auto beast = m.beast;
 		if (beast) {
-			f.writeL(cast(uint) 0x1);
-			writeBeast(d, f, beast);
+			if (0 != beast.linkId) {
+				// FIXME: リンクに失敗する
+//				auto nestCount = d.nestCount.get(beast.linkId, 0) + 1;
+				auto p = beast.linkId in d.nestCount;
+				uint nestCount = p ? *p : 0;
+				nestCount++;
+
+				d.nestCount[beast.linkId] = nestCount;
+				if (nestCount <= m.maxNest) {
+					f.writeL(cast(uint) 0x1);
+					writeBeast(d, f, beast);
+				} else {
+					f.writeL(cast(uint) 0x0);
+				}
+				if (1 >= nestCount) {
+					d.nestCount.remove(beast.linkId);
+				} else {
+					d.nestCount[beast.linkId] = nestCount - 1;
+				}
+			} else {
+				f.writeL(cast(uint) 0x1);
+				writeBeast(d, f, beast);
+			}
 		} else {
 			f.writeL(cast(uint) 0x0);
 		}
@@ -2106,11 +2403,15 @@ private void writeMotion(in SData d, ref ByteIO f, Motion m) {
 	default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 	}
 }
-private void writeContent(in SData d, ref ByteIO f, Content e) {
+private void writeContent(ref SData d, ref ByteIO f, Content e) {
 	auto dt = e.detail;
 	void wb(byte type) {
 		f.write(type);
-		writeString(f, e.name);
+		string name = e.name;
+		writeString(f, name);
+		if (e.comment.length) {
+			d.comment[e.cwxPath(true)] = e.comment;
+		}
 		if (dt.owner) {
 			f.writeL(cast(uint) 40000 + e.next.length);
 			foreach (child; e.next) {
@@ -2165,7 +2466,7 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 	} else if (e.type is CType.EFFECT) {
 		wb(11);
 		f.writeL(cast(int) e.signedLevel);
-		byte targ = fromTarget(e.targetNS);
+		byte targ = fromTargetE(e.targetNS);
 		if (targ == 6) targ = 2;
 		f.write(targ);
 		f.write(fromEffectType(e.effectType));
@@ -2184,7 +2485,7 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 	} else if (e.type is CType.BRANCH_ABILITY) {
 		wb(13);
 		f.writeL(cast(int) e.signedLevel);
-		f.write(fromTarget(e.targetS));
+		f.write(fromTargetA(e.targetS));
 		f.writeL(cast(uint) fromPhysical(e.physical));
 		f.writeL(cast(int) fromMental(e.mental));
 	} else if (e.type is CType.BRANCH_RANDOM) {
@@ -2232,7 +2533,7 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 		wb(25);
 		writeString(f, e.coupon);
 		f.writeL(cast(int) 0x0);
-		f.write(fromRange(e.range));
+		f.write(fromCouponRange(e.range));
 	} else if (e.type is CType.GET_CAST) {
 		wb(26);
 		f.writeL(cast(uint) e.casts);
@@ -2326,7 +2627,7 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 	} else if (e.type is CType.BRANCH_STATUS) {
 		wb(47);
 		f.write(fromStatus(e.status));
-		f.write(fromTarget(e.targetNS));
+		f.write(fromTargetA(e.targetNS));
 	} else if (e.type is CType.BRANCH_PARTY_NUMBER) {
 		wb(48);
 		f.writeL(cast(uint) e.partyNumber);
@@ -2374,17 +2675,51 @@ private void writeContent(in SData d, ref ByteIO f, Content e) {
 	} else if (e.type is CType.CHECK_FLAG) {
 		wb(65);
 		writeString(f, e.flag);
+	} else if (e.type is CType.SUBSTITUTE_STEP) {
+		wb(66);
+		writeString(f, e.step);
+		writeString(f, e.step2);
+	} else if (e.type is CType.SUBSTITUTE_FLAG) {
+		wb(67);
+		writeString(f, e.flag);
+		writeString(f, e.flag2);
+	} else if (e.type is CType.BRANCH_STEP_CMP) {
+		wb(68);
+		writeString(f, e.step);
+		writeString(f, e.step2);
+	} else if (e.type is CType.BRANCH_FLAG_CMP) {
+		wb(69);
+		writeString(f, e.flag);
+		writeString(f, e.flag2);
+	} else if (e.type is CType.BRANCH_RANDOM_SELECT) {
+		wb(70);
+		f.write(fromCastRange(e.castRange));
+		ubyte style = 0b00;
+		if (0 < e.levelMax) {
+			style |= 0b01;
+		}
+		if (e.status !is Status.NONE) {
+			style |= 0b10;
+		}
+		f.write(style);
+		if (style & 0b01) {
+			f.writeL(e.levelMin);
+			f.writeL(e.levelMax);
+		}
+		if (style & 0b10) {
+			f.write(fromStatus(e.status));
+		}
 	} else {
 		assert (0, "event");
 	}
 }
-private void writeCEventTree(in SData d, ref ByteIO f, EventTree tree) {
+private void writeCEventTree(ref SData d, ref ByteIO f, EventTree tree) {
 	f.writeL(cast(uint) tree.starts.length);
 	foreach (evt; tree.starts) {
 		writeContent(d, f, evt);
 	}
 }
-private void writeEventTree(in SData d, ref ByteIO f, EventTree tree) {
+private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) {
 	f.writeL(cast(uint) tree.starts.length);
 	foreach (evt; tree.starts) {
 		writeContent(d, f, evt);
@@ -2425,7 +2760,7 @@ private void writeBgImages(ref ByteIO f, BgImage[] backs) {
 		writeBgImage(f, b);
 	}
 }
-private void writeArea(in SData d, ref ByteIO f, Area a) {
+private void writeArea(ref SData d, ref ByteIO f, Area a) {
 	f.writeL(cast(byte) 0x0);
 	f.writeL(cast(uint) 0x0);
 	writeString(f, a.name);
@@ -2438,7 +2773,7 @@ private void writeArea(in SData d, ref ByteIO f, Area a) {
 	f.writeL(cast(uint) a.cards.length);
 	foreach (c; a.cards) {
 		f.writeL(cast(byte) 0x0);
-		writeImage(d, f, isBinImg(c.path) ? c.path : "");
+		writeImage(d, f, c, isBinImg(c.path) ? c.path : "");
 		writeString(f, c.name);
 		f.writeL(cast(byte) 0x40);
 		f.writeL(cast(byte) 0x9C);
@@ -2453,11 +2788,15 @@ private void writeArea(in SData d, ref ByteIO f, Area a) {
 		f.writeL(cast(uint) rndtol(c.scale * 100.0));
 		f.writeL(cast(int) c.x);
 		f.writeL(cast(int) c.y);
-		writeString(f, isBinImg(c.path) ? "" : encodePathLegacy(c.path));
+		if (0 == c.pcNumber) {
+			writeString(f, isBinImg(c.path) ? "" : encodePathLegacy(c.path));
+		} else {
+			writeString(f, .text(c.pcNumber));
+		}
 	}
 	writeBgImages(f, a.backs);
 }
-private void writeBattle(in SData d, ref ByteIO f, Battle a) {
+private void writeBattle(ref SData d, ref ByteIO f, Battle a) {
 	f.writeL(cast(byte) 0x1);
 	f.writeL(cast(uint) 0x0);
 	writeString(f, a.name);
@@ -2482,7 +2821,7 @@ private void writeBattle(in SData d, ref ByteIO f, Battle a) {
 	}
 	writeString(f, encodePathLegacy(a.music));
 }
-private void writePackage(in SData d, ref ByteIO f, Package a) {
+private void writePackage(ref SData d, ref ByteIO f, Package a) {
 	f.writeL(cast(uint) 0x4);
 	writeString(f, a.name);
 	f.writeL(cast(uint) a.id);
@@ -2491,9 +2830,9 @@ private void writePackage(in SData d, ref ByteIO f, Package a) {
 		writeCEventTree(d, f, tree);
 	}
 }
-private void writeCast(in SData d, ref ByteIO f, CastCard c) {
+private void writeCast(ref SData d, ref ByteIO f, CastCard c) {
 	f.writeL(cast(byte) 0x2);
-	writeImage(d, f, c.path);
+	writeImage(d, f, c, c.path);
 	writeString(f, c.name);
 	f.writeL(cast(uint) (c.id + 40000u));
 	writeBool(f, c.weaponResist);
@@ -2555,15 +2894,15 @@ private void writeCast(in SData d, ref ByteIO f, CastCard c) {
 	}
 	f.writeL(cast(uint) c.coupons.length);
 	foreach (cc; c.coupons) {
-		writeString(f, cc.name);
+		writeString(f, cc.coupon);
 		f.writeL(cast(int) cc.value);
 	}
 }
-private void writeEffCard(in SData d, ref ByteIO f, EffectCard c, byte type) {
+private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type, ulong id) {
 	f.write(type);
-	writeImage(d, f, c.path);
+	writeImage(d, f, c, c.path);
 	writeString(f, c.name);
-	f.writeL(cast(uint) (c.id + 40000u));
+	f.writeL(cast(uint) (id + 40000u));
 	writeString(f, c.desc);
 	f.writeL(cast(uint) fromPhysical(c.physical));
 	f.writeL(cast(int) fromMental(c.mental));
@@ -2598,15 +2937,31 @@ private void writeEffCard(in SData d, ref ByteIO f, EffectCard c, byte type) {
 		writeCEventTree(d, f, tree);
 	}
 }
-private void writeSkill(in SData d, ref ByteIO f, SkillCard c) {
-	writeEffCard(d, f, c, 0x5);
-	writeBool(f, c.hold);
+private void writeSkill(ref SData d, ref ByteIO f, SkillCard c) {
+	ulong id = c.id;
+	ulong linkId = c.linkId;
+	bool hold = c.hold;
+	if (0 != c.linkId) {
+		d.cardRef[c.cwxPath(true)] = linkId;
+		c = d.skill(c.linkId);
+		if (!c) c = new SkillCard(id, "", "", "");
+	}
+	writeEffCard(d, f, c, 0x5, id);
+	writeBool(f, hold);
 	f.writeL(cast(uint) c.level);
 	f.writeL(cast(uint) c.useLimit);
 }
-private void writeItem(in SData d, ref ByteIO f, ItemCard c) {
-	writeEffCard(d, f, c, 0x3);
-	writeBool(f, c.hold);
+private void writeItem(ref SData d, ref ByteIO f, ItemCard c) {
+	ulong id = c.id;
+	ulong linkId = c.linkId;
+	bool hold = c.hold;
+	if (0 != c.linkId) {
+		d.cardRef[c.cwxPath(true)] = linkId;
+		c = d.item(c.linkId);
+		if (!c) c = new ItemCard(id, "", "", "");
+	}
+	writeEffCard(d, f, c, 0x3, id);
+	writeBool(f, hold);
 	f.writeL(cast(uint) c.useLimit);
 	f.writeL(cast(uint) c.useLimitMax);
 	f.writeL(cast(uint) c.price);
@@ -2614,14 +2969,21 @@ private void writeItem(in SData d, ref ByteIO f, ItemCard c) {
 	f.writeL(cast(int) c.enhanceOwner(Enhance.RESIST));
 	f.writeL(cast(int) c.enhanceOwner(Enhance.DEFENSE));
 }
-private void writeBeast(in SData d, ref ByteIO f, BeastCard c) {
-	writeEffCard(d, f, c, 0x6);
+private void writeBeast(ref SData d, ref ByteIO f, BeastCard c) {
+	ulong id = c.id;
+	ulong linkId = c.linkId;
+	if (0 != c.linkId) {
+		d.cardRef[c.cwxPath(true)] = linkId;
+		c = d.beast(c.linkId);
+		if (!c) c = new BeastCard(id, "", "", "");
+	}
+	writeEffCard(d, f, c, 0x6, id);
 	writeBool(f, false); // Hold
 	f.writeL(cast(uint) c.useLimit);
 }
-private void writeInfo(in SData d, ref ByteIO f, InfoCard c) {
+private void writeInfo(ref SData d, ref ByteIO f, InfoCard c) {
 	f.writeL(cast(byte) 0x4);
-	writeImage(d, f, c.path);
+	writeImage(d, f, c, c.path);
 	writeString(f, c.name);
 	f.writeL(cast(uint) (c.id + 40000u));
 	writeString(f, c.desc);

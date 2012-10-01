@@ -1,24 +1,23 @@
 
 module cwx.imagesize;
 
+import cwx.binary;
+
 import std.file;
 import std.path;
 import std.stream;
 import std.string;
 
-import cwx.utils;
-import cwx.binary;
-
 /// ファイルがimageSize()でサイズを取得できる
 /// 画像形式の拡張子を持つならtrueを返す。
 bool isImageExt(string path) {
-	switch (tolower(getExt(path))) {
-	case "jpeg", "jpg", "jpe", "jfif", "jfi", "jif":
-	case "gif":
-	case "tiff", "tif":
-	case "bmp":
-	case "png":
-	case "ico":
+	switch (.toLower(.extension(path))) {
+	case ".jpeg", ".jpg", ".jpe", ".jfif", ".jfi", ".jif":
+	case ".gif":
+	case ".tiff", ".tif":
+	case ".bmp":
+	case ".png":
+	case ".ico":
 		return true;
 	default:
 		return false;
@@ -46,18 +45,18 @@ bool isImageExt(string path) {
 ///  FileException = ファイル読込失敗時。
 bool imageSize(string path, out uint x, out uint y) {
 	if (!.exists(path)) return false;
-	switch (tolower(getExt(path))) {
-	case "jpeg", "jpg", "jpe", "jfif", "jfi", "jif":
+	switch (.toLower(.extension(path))) {
+	case ".jpeg", ".jpg", ".jpe", ".jfif", ".jfi", ".jif":
 		return .jpgSize(path, x, y);
-	case "gif":
+	case ".gif":
 		return .gifSize(path, x, y);
-	case "tiff", "tif":
+	case ".tiff", ".tif":
 		return .tifSize(path, x, y);
-	case "bmp":
+	case ".bmp":
 		return .bmpSize(path, x, y);
-	case "png":
+	case ".png":
 		return .pngSize(path, x, y);
-	case "ico":
+	case ".ico":
 		return .icoSize(path, x, y);
 	default:
 		return false;
@@ -81,7 +80,7 @@ bool jpgSize(string file, out uint x, out uint y) {
 	ulong size = getSize(file);
 	if (6L <= size) {
 		auto inp = new File(file);
-		scope (exit) inp.close;
+		scope (exit) inp.close();
 
 		ubyte b;
 		inp.read(b); if (0xFF != b) return false;
@@ -126,7 +125,7 @@ bool tifSize(string file, out uint x, out uint y, uint n = 0) {
 	ulong size = getSize(file);
 	if (10L <= size) {
 		auto inp = new File(file);
-		scope (exit) inp.close;
+		scope (exit) inp.close();
 
 		ubyte b;
 		inp.read(b);
@@ -205,7 +204,7 @@ bool tifSize(string file, out uint x, out uint y, uint n = 0) {
 bool gifSize(string file, out uint x, out uint y) {
 	if (10L <= getSize(file)) {
 		auto inp = new File(file);
-		scope (exit) inp.close;
+		scope (exit) inp.close();
 
 		ubyte b;
 		inp.read(b); if ('G' != b) return false;
@@ -238,7 +237,7 @@ bool bmpSize(string file, out uint x, out uint y) {
 	ulong size = getSize(file);
 	if (22L <= size) {
 		auto inp = new File(file);
-		scope (exit) inp.close;
+		scope (exit) inp.close();
 
 		uint i;
 		ushort s;
@@ -281,7 +280,7 @@ bool bmpSize(string file, out uint x, out uint y) {
 bool pngSize(string file, out uint x, out uint y) {
 	if (25L <= getSize(file)) {
 		auto inp = new File(file);
-		scope (exit) inp.close;
+		scope (exit) inp.close();
 
 		ubyte b;
 		inp.read(b); if (0x89 != b) return false;
@@ -325,7 +324,7 @@ bool icoSize(string file, out uint x, out uint y, uint n = 0) {
 	ulong size = getSize(file);
 	if (8UL <= size) {
 		auto inp = new File(file);
-		scope (exit) inp.close;
+		scope (exit) inp.close();
 
 		if (0x00 != readUShortL(inp)) return false;
 		if (0x01 != readUShortL(inp)) return false;

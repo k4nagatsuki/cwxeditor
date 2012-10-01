@@ -25,22 +25,28 @@ import std.c.string : strlen;
 /// UtfException = アーカイブに含まれるファイル名の文字コード解決が出来なかった。
 /// FileException = ファイル入出力に失敗した。
 void unzip(string parent, string zip,
+		string delegate(string, bool) expand = null,
 		void delegate(uint) setProgressNum = null,
 		void delegate(uint) progress = null) {
 	scope arc = new ZipArchive(read(zip));
-	unzip(parent, arc, setProgressNum, progress);
+	unzip(parent, arc, expand, setProgressNum, progress);
 }
 /// ditto
 void unzip(string parent, ZipArchive arc,
+		string delegate(string, bool) expand = null,
 		void delegate(uint) setProgressNum = null,
 		void delegate(uint) progress = null) {
 	unzip(arc, (string path, ubyte[] data, bool isDir) {
-		path = std.path.join(parent, path);
+		if (expand) {
+			path = expand(path, isDir);
+			if (!path.length) return;
+		}
+		path = std.path.buildPath(parent, path);
 		if (isDir) {
 			assert (!data.length);
 			if (!exists(path)) mkdirRecurse(path);
 		} else {
-			scope p = getDirName(path);
+			scope p = dirName(path);
 			if (!exists(p)) mkdirRecurse(p);
 			write(path, data);
 		}
@@ -56,18 +62,11 @@ void unzip(ZipArchive arc,
 	}
 	int count = 1;
 	foreach (am; arc.directory) {
-		string name = am.name;
-		// ファイル名の文字コードがShift JISだったりするのを何とかする
-		try {
-			validate(name);
-		} catch (UtfException e) {
-			name = touni(name);
-			validate(name);
-		}
-		string nml = replace(name, "/", sep);
+		string name = memberName(am.name);
+		string nml = replace(name, "/", dirSeparator);
 		if (name.length > 0 && !hasParDir(nml)) {
 			// 属性が不思議なことになってるので0x10だけで判断するのは避ける
-			bool isDir = ((am.externalAttributes & 0x10) != 0 || name[$ - 1] == '\\') && am.expandedSize == 0;
+			bool isDir = ((am.externalAttributes & 0x10) != 0 || std.algorithm.endsWith(nml, dirSeparator)) && am.expandedSize == 0;
 			fileProc(nml, arc.expand(am), isDir);
 		}
 		if (progress !is null) {
@@ -78,21 +77,29 @@ void unzip(ZipArchive arc,
 }
 
 /// ファイルとしては存在しないデータをアーカイブ化する。
-ArchiveMember archive(string name, ubyte[] data, bool isDir) {
+ArchiveMember archive(string name, ubyte[] data, bool isDir, bool useSysEnc = false) {
 	if (data.length && isDir) throw new Exception("not directory");
-	name = std.array.replace(name, sep, "/");
-	static if (altsep.length) {
-		name = std.array.replace(name, altsep, "/");
+	name = std.array.replace(name, dirSeparator, "/");
+	static if (altDirSeparator.length) {
+		name = std.array.replace(name, altDirSeparator, "/");
 	}
 	auto am = new ArchiveMember;
-	am.time = SysTimeToDosFileTime(Clock.currTime);
+	am.time = SysTimeToDosFileTime(Clock.currTime());
 	am.compressionMethod = 8;
 	// Attributes: Directory = 0x10, File = 0x20, ReadOnly = 0x01
 	am.externalAttributes = isDir ? 0x10 : 0x20;
 	am.internalAttributes = 1;
-	// ファイル名はUTF-8
-	am.name = name;
-	am.flags |= 0x800;
+	if (useSysEnc) {
+		version (Windows) {
+			am.name = tosjis(name);
+		} else {
+			am.name = name;
+		}
+	} else {
+		// ファイル名はUTF-8
+		am.flags |= 0x800;
+		am.name = name;
+	}
 	if (!isDir) am.expandedData = data;
 	return am;
 }
@@ -101,25 +108,22 @@ ArchiveMember archive(string name, ubyte[] data, bool isDir) {
 /// targがディレクトリの場合、topにtrueを指定すると
 /// targ自体もアーカイブに含める。
 /// Params:
-/// excludePath = 圧縮から除外するパスのリスト。
+/// ignorePath = このdelegeteがtrueを返したパスは除外される。
 /// useSysEnc = trueにするとファイル名にシステムの文字コードをそのまま使用する。
 ///             falseの場合はUTF-8を使用する。
-ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc = false) {
+ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, bool useSysEnc) {
 	auto arc = new ZipArchive;
 	scope path = nabs(targ);
-	foreach (i, ex; excludePath) {
-		excludePath[i] = nabs(ex);
-	}
 	size_t cut;
 	void archive(string file) {
-		foreach (ex; excludePath) {
-			if (fnmatch(file, ex)) return;
+		if (ignorePath && ignorePath(file)) {
+			return;
 		}
-		if (isdir(file)) {
+		if (isDir(file)) {
 			string[] list = clistdir(file);
 			if (list.length > 0) {
 				foreach (c; list) {
-					archive(std.path.join(file, c));
+					archive(std.path.buildPath(file, c));
 				}
 				return;
 			}
@@ -128,8 +132,8 @@ ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc 
 		am.time = SysTimeToDosFileTime(timeLastModified(file));
 		am.compressionMethod = 8;
 		auto name = file;
-		if (isdir(file)) {
-			name ~= sep;
+		if (isDir(file)) {
+			name ~= dirSeparator;
 		}
 		// Attributes: Directory = 0x10, File = 0x20, ReadOnly = 0x01
 		am.externalAttributes = getAttributes(file);
@@ -146,27 +150,72 @@ ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc 
 			am.flags |= 0x800;
 			am.name = name;
 		}
-		if (!isdir(file)) {
+		if (!isDir(file)) {
 			am.expandedData = cast(ubyte[]) std.file.read(file);
 		}
 		arc.addMember(am);
 	}
-	if (top || !isdir(path)) {
-		auto par = getDirName(path);
-		if (par.length && !endsWith(par, sep)) par ~= sep;
+	if (top || !isDir(path)) {
+		auto par = dirName(path);
+		if (par.length && !endsWith(par, dirSeparator)) par ~= dirSeparator;
 		cut = par.length;
 		archive(path);
 	} else {
-		cut = path.length + sep.length;
+		cut = path.length + dirSeparator.length;
 		foreach (c; clistdir(path)) {
-			archive(std.path.join(path, c));
+			archive(std.path.buildPath(path, c));
 		}
 	}
 	return arc;
 }
+/// ditto
+ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc = false) {
+	foreach (i, ex; excludePath) {
+		excludePath[i] = nabs(ex);
+	}
+	return .zip(targ, top, (string path) {
+		return containsPath(excludePath, path);
+	}, useSysEnc);
+}
+
+// ファイル名の文字コードをUTF-8に統一する。
+string memberName(string name) {
+	try {
+		validate(name);
+	} catch (Exception e) {
+		name = touni(name);
+		validate(name);
+	}
+	return name;
+}
+
+/// 指定されたファイルが含まれているか。
+bool zipHasFile(string zip, string fileName) {
+	if (!zip.exists()) return false;
+	try {
+		scope arc = new ZipArchive(read(zip));
+		foreach (am; arc.directory) {
+			string name = memberName(am.name);
+			if (cfnmatch(replace(name, "/", dirSeparator).baseName(), fileName)) {
+				return true;
+			}
+		}
+	} catch (Exception e) {
+		debugln(e);
+	}
+	return false;
+}
 
 /// targをzip圧縮し、パスzipに保存する。
-void zip(string targ, string zip, bool top, string[] excludePath = [], bool useSysEnc = false) {
-	scope arc = .zip(targ, top, excludePath);
-	std.file.write(zip, arc.build);
+void zip(string targ, string zip, bool top, bool delegate(string path) ignorePath, bool useSysEnc) {
+	scope arc = .zip(targ, top, ignorePath, useSysEnc);
+	std.file.write(zip, arc.build());
+}
+void zip(string targ, string zip, bool top, string[] excludePath, bool useSysEnc) {
+	foreach (i, ex; excludePath) {
+		excludePath[i] = nabs(ex);
+	}
+	.zip(targ, zip, top, (string path) {
+		return containsPath(excludePath, path);
+	}, useSysEnc);
 }

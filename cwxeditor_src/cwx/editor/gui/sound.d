@@ -1,138 +1,351 @@
 
 module cwx.editor.gui.sound;
 
-import std.loader;
+import std.algorithm : min;
 import std.utf;
+import std.stdint;
+import std.string;
+import std.conv;
+import std.path;
+import std.exception;
 
-import cwx.sjis;
-import cwx.utils : debugln, enforce;
+import cwx.utils;
+
+enum {
+	SOUND_TYPE_AUTO = 0,
+	SOUND_TYPE_SDL = 1,
+	SOUND_TYPE_APP = 3,
+	SOUND_TYPE_SAME_BGM = -1
+}
+version (Windows) {
+	enum {
+		SOUND_TYPE_MCI = 2,
+		SOUND_TYPE_BASS = 4,
+	}
+} else {
+	private alias uint DWORD;
+}
 
 version (Windows) {
+	import std.windows.charset;
 	import std.c.windows.windows;
 	private extern (Windows) {
-		alias DWORD MCIERROR;
-		alias MCIERROR function(LPCWSTR, LPWSTR, UINT, HANDLE) mciSendStringW;
+		alias __gshared DWORD MCIERROR;
+		alias __gshared nothrow MCIERROR function(LPCWSTR, LPWSTR, UINT, HANDLE) mciSendStringW;
+	}
+	private const __gshared MCI_NOTIFY_SUCCESSFUL = 0x0001;
+	private const __gshared MM_MCINOTIFY = 0x03B9;
+	/// playBGM()は_mciNotifyHandleに設定されたウィンドウに対して
+	/// 再生イベントを通知する。
+	private HWND _mciNotifyHandle = null;
+	/// ditto
+	nothrow
+	private extern (Windows) LRESULT mciNotifyWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+		if (!_mciNotifyHandle || !winmm || !_mciSendString || !_bgmPlayingMCI || MM_MCINOTIFY != message || MCI_NOTIFY_SUCCESSFUL != wParam) {
+			return DefWindowProcW(hWnd, message, wParam, lParam);
+		}
+		static const __gshared SEEK = "seek cws to 0\0"w.ptr;
+		static const __gshared PLAY = "play cws notify\0"w.ptr;
+		_mciSendString(SEEK, null, 0, null);
+		_mciSendString(PLAY, null, 0, _mciNotifyHandle);
+		return DefWindowProcW(hWnd, message, wParam, lParam);
 	}
 }
 private extern (C) {
-	const uint SDL_INIT_AUDIO = 0x10;
+	immutable uint SDL_INIT_AUDIO = 0x10;
+	immutable ushort AUDIO_U8 = 0x0008;
+	immutable ushort AUDIO_S8 = 0x8008;
+	immutable ushort AUDIO_U16LSB = 0x0010;
+	immutable ushort AUDIO_S16LSB = 0x8010;
+	immutable ushort AUDIO_U16MSB = 0x1010;
+	immutable ushort AUDIO_S16MSB = 0x9010;
+	immutable ushort AUDIO_U16 = AUDIO_U16LSB;
+	immutable ushort AUDIO_S16 = AUDIO_S16LSB;
 	version (LittleEndian) {
-		const ushort MIX_DEFAULT_FORMAT = AUDIO_S16LSB;
+		const __gshared ushort MIX_DEFAULT_FORMAT = AUDIO_S16LSB;
  	} else {
-		const ushort MIX_DEFAULT_FORMAT = AUDIO_S16MSB;
+		const __gshared ushort MIX_DEFAULT_FORMAT = AUDIO_S16MSB;
 	}
-	const ushort AUDIO_S16LSB = 0x8010;
-	const ushort AUDIO_S16MSB = 0x9010;
+	alias uint Uint32;
+	alias ushort Uint16;
+	alias ubyte Uint8;
+	alias void Mix_Music;
+	struct Mix_Chunk {
+		intptr_t allocated;
+		Uint8 *abuf;
+		Uint32 alen;
+		Uint8 volume;
+	}
 
-	alias int function(uint) SDL_Init;
+	immutable MIX_MAX_VOLUME = 128;
+
+	struct SDL_RWops {}
+
+	alias intptr_t function(Uint32) SDL_Init;
 	alias void function() SDL_Quit;
-	alias int function(int, ushort, int, int) Mix_OpenAudio;
+	alias intptr_t function(intptr_t, Uint16, intptr_t, intptr_t) Mix_OpenAudio;
 	alias void function() Mix_CloseAudio;
-	alias int function(int numchans) Mix_AllocateChannels;
-	struct Mix_Music {}
+	alias intptr_t function(intptr_t numchans) Mix_AllocateChannels;
 	alias Mix_Music* function(const char* file) Mix_LoadMUS;
-	alias int function(Mix_Music* music, int loops) Mix_PlayMusic;
+	alias Mix_Chunk* function(Uint8* mem) Mix_QuickLoad_WAV;
+	alias intptr_t function(Mix_Music* music, intptr_t loops) Mix_PlayMusic;
+	alias intptr_t function(intptr_t channel, Mix_Chunk *chunk, intptr_t loops, intptr_t ticks) Mix_PlayChannelTimed;
+	alias intptr_t function(Mix_Chunk* chunk, intptr_t volume) Mix_VolumeChunk;
+	alias intptr_t function(intptr_t volume) Mix_VolumeMusic;
+	alias intptr_t function(intptr_t channel, intptr_t volume) Mix_Volume;
 	alias void function(Mix_Music* music) Mix_FreeMusic;
-	alias int function() Mix_HaltMusic;
+	alias intptr_t function() Mix_HaltMusic;
+	alias intptr_t function(intptr_t channel) Mix_HaltChannel;
+	alias void function(Mix_Chunk* chunk) Mix_FreeChunk;
+	alias Mix_Chunk* function(SDL_RWops* src, int freesrc) Mix_LoadWAV_RW;
+	alias SDL_RWops* function(const char* file, const char* mode) SDL_RWFromFile;
+	alias int function(intptr_t *frequency, Uint16 *format, intptr_t *channels) Mix_QuerySpec;
+
+	immutable SDL_FREQUENCY = 44100;
+	immutable SDL_FORMAT = MIX_DEFAULT_FORMAT;
+	immutable SDL_CHANNELS = 2;
+	immutable SDL_CHUNKSIZE = 4092;
 }
 
-private HXModule sdl = null;
-private HXModule mixer = null;
+private __gshared void* sdl = null;
+private __gshared void* mixer = null;
+private __gshared intptr_t sdl_frequency = 0;
+private __gshared Uint16 sdl_format = 0;
+private __gshared intptr_t sdl_channels = 0;
 
-private T getSymbol(T)(HXModule mod, string name) {
-	void* symbol = ExeModule_GetSymbol(mod, name);
+private __gshared uint _bgmVolume = 100;
+private __gshared uint _seVolume = 100;
+
+private __gshared Object mutex = null;
+
+private T getSymbol(T)(void* mod, string name) {
+	void* symbol = dlsym(mod, name);
 	if (!symbol) throw new Exception("Symbol " ~ name ~ " is not found.");
 	T r = cast(T) symbol;
-	if (!r) throw new Exception("Symbol " ~ name ~ " is not found.");
+	if (!r) throw new Exception("Symbol " ~ name ~ " is invalid function.");
 	return r;
 }
 
+private __gshared bool _bgmPlayingMCI = false;
+private __gshared bool _sePlayingMCI = false;
 version (Windows) {
-	private HXModule winmm = null;
+	private __gshared Object winmmSync = null;
+	private __gshared void* winmm = null;
+	private __gshared mciSendStringW _mciSendString = null;
 	private void initWinmm() {
-		winmm = ExeModule_Load("winmm.dll");
+		if (winmm) return;
+		winmmSync = new Object;
+		winmm = dlopen("winmm.dll");
 		if (!winmm) {
 			debugln("error: winmm.dll initialize");
+		}
+		_mciSendString = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
+		if (!_mciSendString) {
+			debugln("mciSendStringW() not found");
+			dlclose(winmm);
+			winmm = null;
+			return;
+		}
+		WNDCLASS wc;
+		wc.lpszClassName = "MCIHandler\0".ptr;
+		wc.lpfnWndProc = &mciNotifyWndProc;
+		if (!RegisterClassA(&wc)) {
+			debugln("RegisterClass() failure");
+			return;
+		}
+		_mciNotifyHandle = CreateWindowA(wc.lpszClassName, null, 0, 0, 0, 0, 0, null, null, null, null);
+		if (!_mciNotifyHandle) {
+			debugln("CreateWindow() failure");
 		}
 	}
 }
 private void initSdl() {
+	if (sdl && mixer) return;
 	version (Windows) {
-		static const SDL = "SDL.dll";
-		static const MIXER = "SDL_mixer.dll";
+		static __gshared const SDL = "SDL.dll";
+		static __gshared const MIXER = "SDL_mixer.dll";
 	} else {
-		static const SDL = "SDL.so";
-		static const MIXER = "SDL_mixer.so";
+		static __gshared const SDL = "libSDL.so";
+		static __gshared const MIXER = "libSDL_mixer.so";
 	}
-	sdl = ExeModule_Load(SDL);
-	mixer = ExeModule_Load(MIXER);
+	sdl = dlopen(SDL);
+	mixer = dlopen(MIXER);
 	if (sdl && mixer) {
 		try {
 			if (0 == getSymbol!(SDL_Init)(sdl, "SDL_Init")(SDL_INIT_AUDIO)) {
-				if (0 == getSymbol!(Mix_OpenAudio)(mixer, "Mix_OpenAudio")(44100, MIX_DEFAULT_FORMAT, 2, 4092)) {
-					if (0 < getSymbol!(Mix_AllocateChannels)(mixer, "Mix_AllocateChannels")(1)) {
-						return;
+				if (0 == getSymbol!(Mix_OpenAudio)(mixer, "Mix_OpenAudio")(SDL_FREQUENCY, SDL_FORMAT, SDL_CHANNELS, SDL_CHUNKSIZE)) {
+					if (0 < getSymbol!(Mix_AllocateChannels)(mixer, "Mix_AllocateChannels")(2)) {
+						if (0 != getSymbol!(Mix_QuerySpec)(mixer, "Mix_QuerySpec")(&sdl_frequency, &sdl_format, &sdl_channels)) {
+							return;
+						}
 					}
 					getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
 				}
 				getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
 			}
-		} catch (Exception e) {
-			debugln(e.msg);
+		} catch (Throwable e) {
+			debugln(e);
 		}
 	} else {
 		if (!sdl) debugln("not found: " ~ SDL);
 		if (!mixer) debugln("not found: " ~ MIXER);
 	}
 	if (sdl) {
-		ExeModule_Release(sdl);
+		dlclose(sdl);
 		sdl = null;
 	}
 	if (mixer) {
-		ExeModule_Release(mixer);
+		dlclose(mixer);
 		mixer = null;
 	}
 	debugln("error: SDL_mixer initialize");
 }
-static this() {
-	version (Windows) {
-		initWinmm;
-	}
-	initSdl;
-}
-
-static ~this() {
-	if (sdl) {
-		try {
-			getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
-			getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
-		} catch (Exception e) {
-			debugln(e.msg);
+shared void initSound() {
+	try {
+		mutex = new Object;
+		version (Windows) {
+			initWinmm();
 		}
-		ExeModule_Release(mixer);
-		ExeModule_Release(sdl);
+		initSdl();
+	} catch (Throwable e) {
+		debugln(e);
 	}
 }
 
-private bool onLegacy = false;
-private Mix_Music *music = null;
+shared static ~this () {
+	try {
+		version (Console) {
+			debug std.stdio.writeln("Release DLLs for sound Start");
+		}
+		if (sdl) {
+			// FIXME: WindowsでVirtualMIDISynthを使用していると以下の二件の
+			//        呼び出しで停止するため、システムに任せる
+			version (Windows) {} else {
+				try {
+					if (mixer) getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
+					if (sdl) getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
+				} catch (Exception e) {
+					debugln(e.msg);
+				}
+				if (mixer) dlclose(mixer);
+				if (sdl) dlclose(sdl);
+			}
+		}
+		version (Windows) {
+			if (winmm) {
+				dlclose(winmm);
+			}
+		}
+		disposeBass();
+		version (Console) {
+			debug std.stdio.writeln("Release DLLs for sound Exit");
+		}
+	} catch (Throwable e) {
+		debugln(e);
+	}
+}
 
-private void __play(string file, bool loop, bool legacy) {
-	stopBGM;
+private __gshared bool bgmOnLegacy = false;
+private __gshared Mix_Music* bgmMusic = null;
+private __gshared Mix_Chunk* bgmChunk = null;
+private __gshared intptr_t bgmChannel = -1;
+
+private __gshared bool seOnLegacy = false;
+private __gshared Mix_Music* seMusic = null;
+private __gshared Mix_Chunk* seChunk = null;
+private __gshared intptr_t seChannel = -1;
+
+private ulong pos(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream) {
+	version (Windows) {
+		if (bassStream) {
+			return _BASS_StreamGetFilePosition(bassStream, BASS_FILEPOS_CURRENT);
+		}
+		if (playingMCI) {
+			wchar[1024] len;
+			_mciSendString(toUTFz!(wchar*)("status " ~ mciName ~ " position"), len.ptr, len.length, null);
+			return to!ulong(len[0 .. wcslen(len.ptr)]);
+		}
+		if (chunk) {
+			// TODO
+		}
+		return 0;
+	}
+}
+private ulong len(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream) {
+	version (Windows) {
+		if (bassStream) {
+			return _BASS_StreamGetFilePosition(bassStream, BASS_FILEPOS_END);
+		}
+		if (playingMCI) {
+			wchar[1024] len;
+			_mciSendString(toUTFz!(wchar*)("status " ~ mciName ~ " length"), len.ptr, len.length, null);
+			return to!ulong(len[0 .. wcslen(len.ptr)]);
+		}
+		if (chunk) {
+			auto bps = sdl_frequency * ((sdl_format & 0xFF) == 0x08 ? 1 : 2) * sdl_channels;
+			return chunk.alen * 1000UL / bps;
+		}
+		return 0;
+	}
+}
+
+/// 現在再生中のBGMの再生位置(msecs)を取得する。
+@property
+ulong bgmPos() {
+	return pos(bgmChunk, _bgmPlayingMCI, "cwbgm", bassBGMStream);
+}
+/// 現在再生中のBGMの再生時間(msecs)を取得する。
+@property
+ulong bgmLen() {
+	return len(bgmChunk, _bgmPlayingMCI, "cwbgm", bassBGMStream);
+}
+/// 現在再生中の効果音の再生位置(msecs)を取得する。
+@property
+ulong sePos() {
+	return pos(seChunk, _sePlayingMCI, "cwse", bassSEStream);
+}
+/// 現在再生中の効果音の再生時間(msecs)を取得する。
+@property
+ulong seLen() {
+	return len(seChunk, _sePlayingMCI, "cwse", bassSEStream);
+}
+
+private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool loop, int soundPlayType, uint volume, ref HSTREAM bassStream) {
+	stop(music, chunk, channel, mciName, onLegacy, playingMCI, bassStream);
+	version (Windows) {
+		if (SOUND_TYPE_BASS == soundPlayType) {
+			// BASSがロードされている場合はBASSで再生する
+			if (playBass(file, loop, bassStream, volume)) {
+				return;
+			}
+			// ここへ来たら再生失敗
+		}
+	}
 	try {
 		version (Windows) {
-			if (winmm && (legacy || !sdl)) {
-				onLegacy = true;
-				auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
-				if (!ss) throw new Exception("mciSendStringW()");
-				// mpegvideoにするとなぜかopenが成功する上repeatが利くようになる
-				enforce(0 == ss(toUTF16z("open \"" ~ file ~ "\" alias cwxeditor_sound type mpegvideo"), null, 0, null),
-					new Exception("MCI open: " ~ file));
-				string p = "play cwxeditor_sound";
-				if (loop) p ~= " repeat";
-				enforce(0 == ss(toUTF16z(p), null, 0, null),
-					new Exception("MCI open: " ~ file));
-				return;
+			if (winmm && (SOUND_TYPE_MCI == soundPlayType || !sdl)) {
+				synchronized (winmmSync) {
+					onLegacy = true;
+					// typeにmpegvideoを指定するとリピート再生や音量の調節ができるが、
+					// 一部環境でアプリケーションが丸ごと落ちる
+					enforce(0 == _mciSendString(toUTFz!(wchar*)("open \"" ~ file ~ "\" alias " ~ mciName), null, 0, null),
+						new Exception("MCI open: " ~ file));
+/+					if (0 != _mciSendString(toUTFz!(wchar*)(.format("setaudio %s volume to %d", mciName, volume * 10)), null, 0, null)) {
+						debugln("error MCI setaudio");
+					}
++/					_mciSendString(toUTFz!(wchar*)("set " ~ mciName ~ " time format milliseconds"), null, 0, null);
+					string p = "play " ~ mciName;
+					if (loop && _mciNotifyHandle) {
+						p ~= " notify";
+						enforce(0 == _mciSendString(toUTFz!(wchar*)(p), null, 0, _mciNotifyHandle),
+							new Exception("MCI play: " ~ file));
+					} else {
+						enforce(0 == _mciSendString(toUTFz!(wchar*)(p), null, 0, null),
+							new Exception("MCI play: " ~ file));
+					}
+					playingMCI = true;
+					return;
+				}
 			}
 		}
 	} catch (Exception e) {
@@ -144,17 +357,39 @@ private void __play(string file, bool loop, bool legacy) {
 			if (file.length > 0 && !music) {
 				version (Windows) {
 					// Unicodeで日本語パスを渡すと失敗するので変換しておく
-					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(tosjisz(file));
+					const char* filez = toMBSz(file);
 				} else {
-					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")((file ~ "\0").ptr);
+					const char* filez = (file ~ "\0").ptr;
 				}
-				if (!music) {
-					debugln("error: Mix_LoadMUS, " ~ file);
-					return;
-				}
-				if (0 != getSymbol!(Mix_PlayMusic)(mixer, "Mix_PlayMusic")(music, loop ? -1 : 0)) {
-					debugln("error: Mix_PlayMusic, " ~ file);
-					return;
+
+				if (loop) {
+					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(filez);
+					if (!music) {
+						debugln("error: Mix_LoadMUS, " ~ file);
+						return;
+					}
+					getSymbol!(Mix_VolumeMusic)(mixer, "Mix_VolumeMusic")(.roundTo!intptr_t((volume / 100.0) * MIX_MAX_VOLUME));
+					if (0 != getSymbol!(Mix_PlayMusic)(mixer, "Mix_PlayMusic")(music, -1)) {
+						debugln("error: Mix_PlayMusic, " ~ file);
+						return;
+					}
+				} else {
+					auto ops = getSymbol!(SDL_RWFromFile)(sdl, "SDL_RWFromFile")(filez, "rb".toStringz());
+					if (!ops) {
+						debugln("error: SDL_RWFromFile, " ~ file);
+						return;
+					}
+					chunk = getSymbol!(Mix_LoadWAV_RW)(mixer, "Mix_LoadWAV_RW")(ops, 1);
+					if (!chunk) {
+						debugln("error: Mix_LoadWAV_RW, " ~ file);
+						return;
+					}
+					getSymbol!(Mix_VolumeChunk)(mixer, "Mix_VolumeChunk")(chunk, .roundTo!intptr_t((volume / 100.0) * MIX_MAX_VOLUME));
+					channel = getSymbol!(Mix_PlayChannelTimed)(mixer, "Mix_PlayChannelTimed")(channel, chunk, 0, -1);
+					if (-1 == channel) {
+						debugln("error: Mix_PlayChannelTimed, " ~ file);
+						return;
+					}
 				}
 			}
 		}
@@ -163,46 +398,451 @@ private void __play(string file, bool loop, bool legacy) {
 	}
 }
 
-private void __stop() {
+private void stop(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t channel, string mciName, bool onLegacy, ref bool playingMCI, ref HSTREAM bassStream) {
 	try {
 		version (Windows) {
-			if (onLegacy) {
-				auto ss = getSymbol!(mciSendStringW)(winmm, "mciSendStringW");
-				if (!ss) throw new Exception("mciSendStringW()");
-				ss(toUTF16z("stop cwxeditor_sound"), null, 0, null);
-				ss(toUTF16z("close cwxeditor_sound"), null, 0, null);
-				return;
+			stopBass(bassStream);
+			if (onLegacy && playingMCI) {
+				synchronized (winmmSync) {
+					playingMCI = false;
+					_mciSendString(toUTFz!(wchar*)("stop " ~ mciName), null, 0, null);
+					_mciSendString(toUTFz!(wchar*)("close " ~ mciName), null, 0, null);
+					return;
+				}
 			}
 		}
-		if (sdl && music) {
-			if (0 == getSymbol!(Mix_HaltMusic)(mixer, "Mix_HaltMusic")()) {
-				getSymbol!(Mix_FreeMusic)(mixer, "Mix_FreeMusic")(music);
-				music = null;
-			} else {
-				debugln("error: Mix_HaltMusic");
+		if (sdl) {
+			if (music) {
+				if (0 == getSymbol!(Mix_HaltMusic)(mixer, "Mix_HaltMusic")()) {
+					getSymbol!(Mix_FreeMusic)(mixer, "Mix_FreeMusic")(music);
+					music = null;
+				} else {
+					debugln("error: Mix_HaltMusic");
+				}
+			}
+			if (-1 != channel) {
+				getSymbol!(Mix_HaltChannel)(mixer, "Mix_HaltChannel")(channel);
+				channel = -1;
+			}
+			if (chunk) {
+				getSymbol!(Mix_FreeChunk)(mixer, "Mix_FreeChunk")(chunk);
+				chunk = null;
 			}
 		}
 	} catch (Exception e) {
-		debugln(e);
+		debugln(e.msg);
+	}
+}
+
+__gshared void delegate()[] stopBGMEvent;
+__gshared void delegate()[] stopSEEvent;
+
+/// 指定されたディレクトリにあるBASSのDLLをロードし、初期化する。
+bool initBass(string dir, in string[] soundFonts) {
+	if (!mutex) return false;
+	synchronized (mutex) {
+		version (Windows) {
+			if (bass) {
+				_toggleInitBass = true;
+				_initBassDir = dir;
+				_initBassSFont = soundFonts.dup;
+				return true;
+			}
+			try {
+				if (!bass) {
+					bass = dlopen(dir.buildPath("bass.dll"));
+					if (!bass) {
+						disposeBass();
+						return false;
+					}
+					if (soundFonts.length) {
+						bassMidi = dlopen(dir.buildPath("bassmidi.dll")); // 読込失敗でも続行
+					}
+					if (!getSymbol!(BASS_Init)(bass, "BASS_Init")(-1, 44100, BASS_DEVICE_DEFAULT, null, null)) {
+						disposeBass();
+						return false;
+					}
+				}
+				_BASS_StreamGetFilePosition = getSymbol!(BASS_StreamGetFilePosition)(bass, "BASS_StreamGetFilePosition");
+				if (!bassMidi || !soundFonts.length || !loadBassSoundFont(soundFonts)) {
+					// MIDI再生のみ無効とする
+					return true;
+				}
+				return true;
+			} catch (Exception e) {
+				debugln(e);
+			}
+		}
+		return false;
+	}
+}
+/// BASSのMIDI再生で使用するサウンドフォントを変更する。
+private bool loadBassSoundFont(in string[] soundFonts) {
+	version (Windows) {
+		try {
+			if (!bassMidi) return false;
+			releaseBassSoundFont();
+			foreach (soundFont; soundFonts) {
+				auto sfont = getSymbol!(BASS_MIDI_FontInit)(bassMidi, "BASS_MIDI_FontInit")(soundFont.toMBSz(), 0);
+				if (!sfont) continue;
+				.soundFonts ~= BASS_MIDI_FONT(sfont, -1, 0);
+			}
+			return 0 < .soundFonts.length;
+		} catch (Exception e) {
+			debugln(e);
+		}
+	}
+	return false;
+}
+private void releaseBassSoundFont() {
+	version (Windows) {
+		if (!bassMidi) return;
+		try {
+			foreach (sf; soundFonts) {
+				if (!getSymbol!(BASS_MIDI_FontFree)(bassMidi, "BASS_MIDI_FontFree")(sf.font)) {
+					debugln("BASS_MIDI_FontFree error");
+				}
+			}
+			soundFonts = [];
+		} catch (Exception e) {
+			debugln(e);
+		}
+	}
+}
+/// BASSのサウンドフォントとDLLを解放する。
+void disposeBass() {
+	if (!mutex) return;
+	synchronized (mutex) {
+		version (Windows) {
+			_toggleDisposeBass = false;
+			try {
+				stopBGM();
+				stopSE();
+				if (bassMidi) {
+					releaseBassSoundFont();
+					dlclose(bassMidi);
+					bassMidi = null;
+				}
+				if (bass) {
+					if (!getSymbol!(BASS_Free)(bass, "BASS_Free")())  {
+						debugln("BASS_Free");
+					}
+					dlclose(bass);
+					bass = null;
+				}
+			} catch (Exception e) {
+				debugln(e);
+			}
+			if (_toggleInitBass) {
+				_toggleInitBass = false;
+				initBass(_initBassDir, _initBassSFont);
+				_initBassDir = "";
+				_initBassSFont = [];
+			}
+		}
+	}
+}
+/// BGMと音声の停止後にdisposeBass()を行う。
+void toggleDisposeBass() {
+	if (!mutex) return;
+	synchronized (mutex) {
+		version (Windows) {
+			if (bassBGMStream || bassSEStream) {
+				_toggleDisposeBass = true;
+			} else {
+				disposeBass();
+			}
+		}
+	}
+}
+
+// BASS関係
+version (Windows) {
+	private __gshared void* bass = null;
+	private __gshared void* bassMidi = null;
+	private __gshared BASS_MIDI_FONT[] soundFonts = [];
+	private __gshared HSTREAM bassBGMStream = 0;
+	private __gshared HSTREAM bassSEStream = 0;
+	private __gshared _toggleDisposeBass = false;
+	private __gshared _toggleInitBass = false;
+	private __gshared _initBassDir = "";
+	private __gshared const(string)[] _initBassSFont = [];
+}
+
+/// fileがMIDIファイルであればtrue。
+bool isMidi(string file) {
+	switch (file.extension().toLower()) {
+	case ".mid", ".midi":
+		return true;
+	default:
+		return false;
+	}
+}
+
+private bool playBass(string file, bool loop, ref DWORD stream, uint volume) {
+	version (Windows) {
+		try {
+			if (!bass) return false;
+			stopBass(stream);
+			if (!.canPlayBass(file)) {
+				return false;
+			}
+			bool midi = isMidi(file);
+			int flag = loop ? BASS_SAMPLE_LOOP : BASS_DEFAULT;
+			if (midi) {
+				stream = getSymbol!(BASS_MIDI_StreamCreateFile)(bassMidi, "BASS_MIDI_StreamCreateFile")(false, file.toMBSz(), 0, 0, flag, 44100);
+			} else {
+				stream = getSymbol!(BASS_StreamCreateFile)(bass, "BASS_StreamCreateFile")(false, file.toMBSz(), 0, 0, flag);
+			}
+			if (!stream) return false;
+			if (midi) {
+				if (!getSymbol!(BASS_MIDI_StreamSetFonts)(bassMidi, "BASS_MIDI_StreamSetFonts")(stream, soundFonts.ptr, soundFonts.length)) {
+					stopBass(stream);
+					return false;
+				}
+			}
+			volume = .min(100, volume);
+			if (!getSymbol!(BASS_ChannelSetAttribute)(bass, "BASS_ChannelSetAttribute")(stream, BASS_ATTRIB_VOL, volume / 100.0F)) {
+				debugln("BASS_ChannelSetAttribute");
+			}
+			if (!getSymbol!(BASS_ChannelPlay)(bass, "BASS_ChannelPlay")(stream, loop)) {
+				stopBass(stream);
+				return false;
+			}
+			return true;
+		} catch (Exception e) {
+			debugln(e);
+		}
+	}
+	return false;
+}
+private void stopBass(ref DWORD stream) {
+	version (Windows) {
+		try {
+			if (!bass) return;
+			if (!stream) return;
+			if (!getSymbol!(BASS_ChannelStop)(bass, "BASS_ChannelStop")(stream)) {
+				debugln("BASS_ChannelStop");
+			}
+			if (!getSymbol!(BASS_StreamFree)(bass, "BASS_StreamFree")(stream)) {
+				debugln("BASS_StreamFree");
+			}
+			stream = 0;
+		} catch (Exception e) {
+			debugln(e);
+		}
+	}
+}
+
+version (Windows) {
+	private extern (Windows) {
+		struct GUID {
+			DWORD Data1;
+			WORD Data2;
+			WORD Data3;
+			BYTE Data4[8];
+		}
+		struct BASS_MIDI_FONT {
+			HSOUNDFONT font;
+			intptr_t preset;
+			intptr_t bank;
+		}
+		alias DWORD HSTREAM;
+		alias DWORD HSOUNDFONT;
+		alias ulong QWORD;
+		immutable BASS_DEVICE_DEFAULT = 2;
+		immutable BASS_DEFAULT = 0;
+		immutable BASS_SAMPLE_LOOP = 4;
+		immutable BASS_ATTRIB_VOL = 2;
+		immutable BASS_FILEPOS_CURRENT = 0;
+		immutable BASS_FILEPOS_END = 2;
+		alias BOOL function(HSTREAM handle, BASS_MIDI_FONT *fonts, DWORD count) BASS_MIDI_StreamSetFonts;
+		alias HSOUNDFONT function(const void *file, DWORD flags) BASS_MIDI_FontInit;
+		alias BOOL function(HSOUNDFONT handle) BASS_MIDI_FontFree;
+		alias BOOL function(int device, DWORD freq, DWORD flags, HWND win, GUID* clsid) BASS_Init;
+		alias BOOL function(DWORD handle, BOOL restart) BASS_ChannelPlay;
+		alias BOOL function(DWORD handle) BASS_ChannelStop;
+		alias HSTREAM function(BOOL mem, const void* file, QWORD offset, QWORD length, DWORD flags) BASS_StreamCreateFile;
+		alias BOOL function(HSTREAM handle) BASS_StreamFree;
+		alias BOOL function() BASS_Free;
+		alias HSTREAM function(BOOL mem, const void* file, QWORD offset, QWORD length, DWORD flags, DWORD freq) BASS_MIDI_StreamCreateFile;
+		alias BOOL function(float volume) BASS_SetVolume;
+		alias BOOL function(DWORD handle, DWORD attrib, float value) BASS_ChannelSetAttribute;
+		alias QWORD function(HSTREAM handle, DWORD mode) BASS_StreamGetFilePosition;
+		BASS_StreamGetFilePosition _BASS_StreamGetFilePosition;
+	}
+} else {
+	private alias intptr_t HSTREAM;
+}
+
+/// BASSを使用する状態であればtrue。
+@property
+bool useBass() {
+	if (!mutex) return false;
+	synchronized (mutex) {
+		version (Windows) {
+			return bass !is null && !_toggleDisposeBass;
+		}
+		return false;
+	}
+}
+/// BASSでfileを再生できる状態であればtrue。
+bool canPlayBass(string file) {
+	if (!mutex) return false;
+	synchronized (mutex) {
+		version (Windows) {
+			return .useBass && (isMidi(file) ? (bassMidi && soundFonts.length) : true);
+		}
+		return false;
 	}
 }
 
 /// BGMを再生する。
-void playBGM(string path, bool legacy) {
-	__play(path, true, legacy);
+void playBGM(string path, int soundPlayType) {
+	if (!mutex) return;
+	synchronized (mutex) {
+		try {
+			version (Windows) {
+				HSTREAM bass = bassBGMStream;
+				scope (exit) bassBGMStream = bass;
+			} else {
+				HSTREAM bass = 0;
+			}
+			play(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, path, true, soundPlayType, _bgmVolume, bass);
+		} catch (Throwable e) {
+			debugln(e);
+		}
+	}
 }
 
 /// BGMを停止する。
 void stopBGM() {
-	__stop;
+	if (!mutex) return;
+	synchronized (mutex) {
+		try {
+			version (Windows) {
+				HSTREAM bass = bassBGMStream;
+				scope (exit) bassBGMStream = bass;
+			} else {
+				HSTREAM bass = 0;
+			}
+			stop(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, bass);
+		} catch (Throwable e) {
+			debugln(e);
+		}
+		version (Windows) {
+			if (_toggleDisposeBass && !bassBGMStream && !bassSEStream) {
+				disposeBass();
+			}
+		}
+	}
+	if (inStopBGM) return;
+	inStopBGM = true;
+	scope (exit) inStopBGM = false;
+	foreach (dlg; stopBGMEvent) {
+		dlg();
+	}
+}
+private __gshared inStopBGM = false;
+
+/// BGMの音量(%)を設定する。
+@property
+void bgmVolume(uint volume) {
+	if (!mutex) return;
+	synchronized (mutex) {
+		_bgmVolume = .min(volume, 100);
+		if (mixer) {
+			auto sdlvol = .roundTo!intptr_t((_bgmVolume / 100.0) * MIX_MAX_VOLUME);
+			getSymbol!(Mix_VolumeMusic)(mixer, "Mix_VolumeMusic")(sdlvol);
+		}
+		version (Windows) {
+			if (bassBGMStream) {
+				if (!getSymbol!(BASS_ChannelSetAttribute)(bass, "BASS_ChannelSetAttribute")(bassBGMStream, BASS_ATTRIB_VOL, _bgmVolume / 100.0F)) {
+					debugln("BASS_ChannelSetAttribute");
+				}
+			}
+/+			if (_mciSendString) {
+				synchronized (winmmSync) {
+					if (0 != _mciSendString(toUTFz!(wchar*)(.format("setaudio %s volume to %d", "cwbgm", _bgmVolume * 10)), null, 0, null)) {
+						debugln("error MCI setaudio");
+					}
+				}
+			}
++/		}
+	}
 }
 
 /// 効果音を再生する。
-void playSE(string path, bool legacy) {
-	__play(path, false, legacy);
+void playSE(string path, int soundPlayType) {
+	if (!mutex) return;
+	synchronized (mutex) {
+		try {
+			version (Windows) {
+				HSTREAM bass = bassSEStream;
+				scope (exit) bassSEStream = bass;
+			} else {
+				HSTREAM bass = 0;
+			}
+			play(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, path, false, soundPlayType, _seVolume, bass);
+		} catch (Throwable e) {
+			debugln(e);
+		}
+	}
 }
 
 /// 効果音を停止する。
 void stopSE() {
-	__stop;
+	if (!mutex) return;
+	synchronized (mutex) {
+		try {
+			version (Windows) {
+				HSTREAM bass = bassSEStream;
+				scope (exit) bassSEStream = bass;
+			} else {
+				HSTREAM bass = 0;
+			}
+			stop(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, bass);
+		} catch (Throwable e) {
+			debugln(e);
+		}
+		version (Windows) {
+			if (_toggleDisposeBass && !bassBGMStream && !bassSEStream) {
+				disposeBass();
+			}
+		}
+	}
+	if (inStopSE) return;
+	inStopSE = true;
+	scope (exit) inStopSE = false;
+	foreach (dlg; stopSEEvent) {
+		dlg();
+	}
+}
+private __gshared inStopSE = false;
+
+/// 効果音の音量(%)を設定する。
+@property
+void seVolume(uint volume) {
+	if (!mutex) return;
+	synchronized (mutex) {
+		_seVolume = .min(volume, 100);
+		if (mixer && -1 != seChannel) {
+			auto sdlvol =.roundTo!intptr_t((_seVolume / 100.0) * MIX_MAX_VOLUME);
+			getSymbol!(Mix_Volume)(mixer, "Mix_Volume")(seChannel, sdlvol);
+		}
+		version (Windows) {
+			if (bassSEStream) {
+				if (!getSymbol!(BASS_ChannelSetAttribute)(bass, "BASS_ChannelSetAttribute")(bassSEStream, BASS_ATTRIB_VOL, _seVolume / 100.0F)) {
+					debugln("BASS_ChannelSetAttribute");
+				}
+			}
+/+			if (_mciSendString) {
+				synchronized (winmmSync) {
+					if (0 != _mciSendString(toUTFz!(wchar*)(.format("setaudio %s volume to %d", "cwse", _seVolume * 10)), null, 0, null)) {
+						debugln("error MCI setaudio");
+					}
+				}
+			}
++/		}
+	}
 }

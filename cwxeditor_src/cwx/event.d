@@ -9,146 +9,103 @@ import cwx.usecounter;
 import cwx.xml;
 import cwx.path;
 import cwx.props;
+import cwx.msgutils;
+import cwx.card;
 
 import std.algorithm;
 import std.datetime;
 import std.string;
 import std.traits;
-
-enum CType {
-	START,
-	START_BATTLE,
-	END,
-	END_BAD_END,
-	CHANGE_AREA,
-	CHANGE_BG_IMAGE,
-	EFFECT,
-	EFFECT_BREAK,
-	LINK_START,
-	LINK_PACKAGE,
-	TALK_MESSAGE,
-	TALK_DIALOG,
-	PLAY_BGM,
-	PLAY_SOUND,
-	WAIT,
-	ELAPSE_TIME,
-	CALL_START,
-	CALL_PACKAGE,
-	BRANCH_FLAG,
-	BRANCH_MULTI_STEP,
-	BRANCH_STEP,
-	BRANCH_SELECT,
-	BRANCH_ABILITY,
-	BRANCH_RANDOM,
-	BRANCH_LEVEL,
-	BRANCH_STATUS,
-	BRANCH_PARTY_NUMBER,
-	BRANCH_AREA,
-	BRANCH_BATTLE,
-	BRANCH_IS_BATTLE,
-	BRANCH_CAST,
-	BRANCH_ITEM,
-	BRANCH_SKILL,
-	BRANCH_INFO,
-	BRANCH_BEAST,
-	BRANCH_MONEY,
-	BRANCH_COUPON,
-	BRANCH_COMPLETE_STAMP,
-	BRANCH_GOSSIP,
-	SET_FLAG,
-	SET_STEP,
-	SET_STEP_UP,
-	SET_STEP_DOWN,
-	REVERSE_FLAG,
-	CHECK_FLAG,
-	GET_CAST,
-	GET_ITEM,
-	GET_SKILL,
-	GET_INFO,
-	GET_BEAST,
-	GET_MONEY,
-	GET_COUPON,
-	GET_COMPLETE_STAMP,
-	GET_GOSSIP,
-	LOSE_CAST,
-	LOSE_ITEM,
-	LOSE_SKILL,
-	LOSE_INFO,
-	LOSE_BEAST,
-	LOSE_MONEY,
-	LOSE_COUPON,
-	LOSE_COMPLETE_STAMP,
-	LOSE_GOSSIP,
-	SHOW_PARTY,
-	HIDE_PARTY,
-	REDISPLAY
-}
-
-enum CArg {
-	AREA,
-	BATTLE,
-	PACKAGE,
-	FLAG,
-	STEP,
-	BGM_PATH,
-	SOUND_PATH,
-	CAST,
-	ITEM,
-	SKILL,
-	BEAST,
-	INFO,
-	MOTIONS,
-	TEXT,
-	DIALOGS,
-	START,
-	COUPON,
-	GOSSIP,
-	COMPLETE_STAMP,
-	MENTAL,
-	PHYSICAL,
-	STATUS,
-	RANGE,
-	CARD_VISUAL,
-	TARGET_S,
-	TARGET_NS,
-	TALKER_C,
-	TALKER_NC,
-	EFFECT_TYPE,
-	RESIST,
-	TRANSITION,
-	TARGET_ALL,
-	RANDOM,
-	AVERAGE,
-	COMPLETE,
-	UNSIGNED_LEVEL,
-	SIGNED_LEVEL,
-	SUCCESS_RATE,
-	TRANSITION_SPEED,
-	PERCENT,
-	FLAG_VALUE,
-	STEP_VALUE,
-	COUPON_VALUE,
-	PARTY_NUMBER,
-	CARD_NUMBER,
-	MONEY,
-	WAIT,
-	BG_IMAGES
-}
-
-/// 後続コンテントのnameの型。
-enum CNextType {
-	NONE, /// 無し。
-	TEXT, /// テキスト。
-	BOOL, /// True/False。
-	STEP, /// ステップ値。
-	ID_AREA, /// エリアID。
-	ID_BATTLE /// バトルID。
-}
+import std.conv;
 
 private bool static_this_completed = false;
 private void static_this () {
 	if (static_this_completed) return;
 	static_this_completed = true;
+
+	_CTYPE_GROUP = [
+		CTypeGroup.Terminal:[
+			CType.START,
+			CType.START_BATTLE,
+			CType.END,
+			CType.END_BAD_END,
+			CType.CHANGE_AREA,
+			CType.EFFECT_BREAK,
+			CType.LINK_START,
+			CType.LINK_PACKAGE,
+		], CTypeGroup.Standard:[
+			CType.TALK_MESSAGE,
+			CType.TALK_DIALOG,
+			CType.PLAY_BGM,
+			CType.PLAY_SOUND,
+			CType.WAIT,
+			CType.ELAPSE_TIME,
+			CType.EFFECT,
+			CType.CALL_START,
+			CType.CALL_PACKAGE,
+		], CTypeGroup.Data:[
+			CType.BRANCH_FLAG,
+			CType.SET_FLAG,
+			CType.REVERSE_FLAG,
+			CType.BRANCH_MULTI_STEP,
+			CType.BRANCH_STEP,
+			CType.SET_STEP,
+			CType.SET_STEP_UP,
+			CType.SET_STEP_DOWN,
+			CType.CHECK_FLAG,
+			CType.SUBSTITUTE_STEP,
+			CType.SUBSTITUTE_FLAG,
+			CType.BRANCH_STEP_CMP,
+			CType.BRANCH_FLAG_CMP,
+		], CTypeGroup.Utility:[
+			CType.BRANCH_SELECT,
+			CType.BRANCH_ABILITY,
+			CType.BRANCH_RANDOM,
+			CType.BRANCH_LEVEL,
+			CType.BRANCH_STATUS,
+			CType.BRANCH_PARTY_NUMBER,
+			CType.BRANCH_AREA,
+			CType.BRANCH_BATTLE,
+			CType.BRANCH_IS_BATTLE,
+			CType.BRANCH_RANDOM_SELECT,
+		], CTypeGroup.Branch:[
+			CType.BRANCH_CAST,
+			CType.BRANCH_ITEM,
+			CType.BRANCH_SKILL,
+			CType.BRANCH_INFO,
+			CType.BRANCH_BEAST,
+			CType.BRANCH_MONEY,
+			CType.BRANCH_COUPON,
+			CType.BRANCH_COMPLETE_STAMP,
+			CType.BRANCH_GOSSIP,
+		], CTypeGroup.Get:[
+			CType.GET_CAST,
+			CType.GET_ITEM,
+			CType.GET_SKILL,
+			CType.GET_INFO,
+			CType.GET_BEAST,
+			CType.GET_MONEY,
+			CType.GET_COUPON,
+			CType.GET_COMPLETE_STAMP,
+			CType.GET_GOSSIP,
+		], CTypeGroup.Lost:[
+			CType.LOSE_CAST,
+			CType.LOSE_ITEM,
+			CType.LOSE_SKILL,
+			CType.LOSE_INFO,
+			CType.LOSE_BEAST,
+			CType.LOSE_MONEY,
+			CType.LOSE_COUPON,
+			CType.LOSE_COMPLETE_STAMP,
+			CType.LOSE_GOSSIP,
+		], CTypeGroup.Visual:[
+			CType.SHOW_PARTY,
+			CType.HIDE_PARTY,
+			CType.CHANGE_BG_IMAGE,
+			CType.REDISPLAY,
+		]
+	];
+
 	string _(string v) {return v;}
 	_CONTENT_DETAILS = [
 		CType.START:CDetail("Start", "", CNextType.NONE, true),
@@ -217,29 +174,46 @@ private void static_this () {
 		CType.LOSE_GOSSIP:CDetail("Lose", "Gossip", CNextType.NONE, true, [CArg.GOSSIP:"gossip"]),
 		CType.SHOW_PARTY:CDetail("Show", "Party", CNextType.NONE, true),
 		CType.HIDE_PARTY:CDetail("Hide", "Party", CNextType.NONE, true),
-		CType.REDISPLAY:CDetail("Redisplay", "", CNextType.NONE, true, [CArg.TRANSITION:_("transition"), CArg.TRANSITION_SPEED:"transitionspeed"])
+		CType.REDISPLAY:CDetail("Redisplay", "", CNextType.NONE, true, [CArg.TRANSITION:_("transition"), CArg.TRANSITION_SPEED:"transitionspeed"]),
+		CType.SUBSTITUTE_STEP:CDetail("Sbustitute", "Step", CNextType.NONE, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
+		CType.SUBSTITUTE_FLAG:CDetail("Sbustitute", "Flag", CNextType.NONE, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
+		CType.BRANCH_STEP_CMP:CDetail("Branch", "StepValue", CNextType.TRIO, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
+		CType.BRANCH_FLAG_CMP:CDetail("Branch", "FlagValue", CNextType.BOOL, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
+		CType.BRANCH_RANDOM_SELECT:CDetail("Branch", "RandomSelect", CNextType.BOOL, true, [CArg.CAST_RANGE:"targetc", CArg.LEVEL_MIN:"minLevel", CArg.LEVEL_MAX:"maxLevel", CArg.STATUS:"status"]),
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) {
 		_CTYPE_MAP[detail.name][detail.type] = cType;
 	}
 }
 
+private CType[][CTypeGroup] _CTYPE_GROUP;
+/// コンテントタイプの分類毎の配列。
+@property
+CType[][CTypeGroup] CTYPE_GROUP() {
+	static_this();
+	return _CTYPE_GROUP;
+}
+
 private CDetail[CType] _CONTENT_DETAILS;
+/// コンテントタイプ毎の情報。
+@property
 private CDetail[CType] CONTENT_DETAILS() {
-	static_this;
+	static_this();
 	return _CONTENT_DETAILS;
 }
 private CType[string][string] _CTYPE_MAP;
+/// コンテントタイプと要素名・属性名の対応表。
+@property
 private CType[string][string] CTYPE_MAP() {
-	static_this;
+	static_this();
 	return _CTYPE_MAP;
 }
 
 struct CDetail {
-	string name;
-	string type;
-	CNextType nextType;
-	bool owner;
+	string name; /// 要素名。
+	string type; /// 属性名。
+	CNextType nextType; /// 後続パラメータのタイプ。
+	bool owner; /// 後続コンテントを持てるか。
 
 	string[CArg] args;
 	/// argを使用するコンテントであればtrueを返す。
@@ -269,16 +243,16 @@ struct CDetail {
 }
 
 /// スタートのID。
-typedef string StartId;
+alias string StartId;
 /// 文字列をスタートIDに変換。
-StartId toStartId(string start) {return cast(StartId) start;}
+StartId toStartId(string start) {return start;}
 /// スタートコンテントの使用者。
 alias User!(StartId) IStartUser;
 /// スタートコンテントの使用回数カウンタ。
 alias UCCont!(StartId, IStartUser) SUseCounter;
 
 /// メッセージやダイアログが持つテキスト。
-private class TextHolder : CWXPath, IPathUser, IFlagUser, IStepUser {
+private class TextHolder : CWXPath, IPathUser, IFlagUser, IStepUser, ChgPathCallback, ChgFlagCallback, ChgStepCallback {
 private:
 	string _text;
 	PathUser[] _fontusers;
@@ -286,19 +260,27 @@ private:
 	StepUser[] _stepusers;
 	UseCounter _uc;
 public:
+	/// コンストラクタ。
+	this () {}
+	/// コピーコンストラクタ。
+	this (in TextHolder base) {
+		this.text = base.text;
+	}
 	/// テキスト。
+	@property
 	const
 	string text() {
 		return _text;
 	}
 	/// ditto
+	@property
 	void text(string text) {
 		if (_text != text) {
 			string[] flags;
 			string[] steps;
 			string[] fonts;
 			textUseItems(text, flags, steps, fonts);
-			removeTextUseCounter;
+			removeTextUseCounter();
 			_fontusers = [];
 			foreach (f; fonts) {
 				auto u = new PathUser(this);
@@ -324,8 +306,10 @@ public:
 		}
 	}
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを設定する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		foreach (u; _fontusers) {
 			u.setUseCounter(uc);
@@ -341,128 +325,249 @@ public:
 	private void removeTextUseCounter() {
 		if (_uc) {
 			foreach (u; _fontusers) {
-				u.removeUseCounter;
+				u.removeUseCounter();
 			}
 			foreach (u; _flagusers) {
-				u.removeUseCounter;
+				u.removeUseCounter();
 			}
 			foreach (u; _stepusers) {
-				u.removeUseCounter;
+				u.removeUseCounter();
 			}
 		}
 	}
 	/// 使用回数カウンタを除去。
 	void removeUseCounter() {
-		removeTextUseCounter;
+		removeTextUseCounter();
 		_uc = null;
 	}
 	void change(PathId id) {
 		foreach (u; _fontusers) {
-			replTextUseFont(_text, cast(string) u.path, cast(string) id);
 			u.change(id);
 		}
 	}
 	void change(FlagId id) {
 		foreach (u; _flagusers) {
-			replTextUseFlag(_text, cast(string) u.flag, cast(string) id);
 			u.change(id);
 		}
 	}
 	void change(StepId id) {
 		foreach (u; _stepusers) {
-			replTextUseStep(_text, cast(string) u.step, cast(string) id);
 			u.change(id);
 		}
 	}
+	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
+	void change(size_t index, PathId id) {
+		_fontusers[index].change(id);
+	}
+	/// ditto
+	void change(size_t index, FlagId id) {
+		_flagusers[index].change(id);
+	}
+	/// ditto
+	void change(size_t index, StepId id) {
+		_stepusers[index].change(id);
+	}
+	override void changeCallback(PathId oldVal, PathId newVal) {
+		_text = replTextUseFont(_text, cast(string) oldVal, cast(string) newVal);
+	}
+	override void changeCallback(FlagId oldVal, FlagId newVal) {
+		_text = replTextUseFlag(_text, cast(string) oldVal, cast(string) newVal);
+	}
+	override void changeCallback(StepId oldVal, StepId newVal) {
+		_text = replTextUseStep(_text, cast(string) oldVal, cast(string) newVal);
+	}
 	/// このTextHolderの所持者。
+	@property
 	CWXPath owner() {return _owner;}
 	private CWXPath _owner = null;
+	@property
 	private void owner(CWXPath owner) {_owner = owner;}
-	string cwxPath() {
+	@property
+	string cwxPath(bool id) {
 		if (_owner) {
-			return cpjoin(_owner, "text");
+			return cpjoin(_owner, "text", id);
 		}
 		return "";
 	}
 	CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {return [];}
+	@property
+	CWXPath cwxParent() {return _owner;}
+}
+
+/// メッセージテキストの保持者。
+interface ITextHolder {
+	/// テキスト。
+	@property
+	const string text();
+	/// ditto
+	@property
+	void text(string);
+	/// テキスト内で使用されているfont_X.png・フラグ・ステップのパス。
+	@property
+	const string[] fontsInText();
+	/// ditto
+	@property
+	const string[] flagsInText();
+	/// ditto
+	@property
+	const string[] stepsInText();
+	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
+	void changeInText(size_t index, PathId id);
+	/// ditto
+	void changeInText(size_t index, FlagId id);
+	/// ditto
+	void changeInText(size_t index, StepId id);
 }
 
 /// 口調分け条件とメッセージ内容を持つクラス。
-static class SDialog : CWXPath, IPathUser, IFlagUser, IStepUser {
+static class SDialog : CWXPath, IPathUser, IFlagUser, IStepUser, ITextHolder {
 private:
-	string[] _rCoupons;
+	CouponUser[] _rCoupons = [];
 	TextHolder _text;
 	Content _parent;
 public:
 	/// XML名。
 	static const XML_NAME = "Dialog";
 
-	/// 唯一のコンストラクタ。
-	this(string text = "", string[] rCoupons = []) {
+	/// コンストラクタ。
+	this (string text = "", string[] rCoupons = []) {
 		_text = new TextHolder;
 		_text.text = text;
 		_text.owner = this;
-		_rCoupons = rCoupons;
+		this.rCoupons = rCoupons;
+	}
+	/// コピーコンストラクタ。
+	this (in SDialog base) {
+		this (base.text, base.rCoupons);
 	}
 	const
 	bool opEquals(ref const(Object) o) {
 		auto d = cast(const(SDialog)) o;
-		return d && d._rCoupons == _rCoupons && d.text == text;
+		return d && d.rCoupons == rCoupons && d.text == text;
 	}
 	/// メッセージ。
+	@property
 	const
 	string text() {
 		return _text.text;
 	}
 	/// ditto
+	@property
 	void text(string text) {
-		if (_parent && _text.text != text) _parent.changed;
+		if (_parent && _text.text != text) _parent.changed();
 		_text.text = text;
 	}
 	/// 口調分け条件クーポン群。
-	string[] rCoupons() {
-		return _rCoupons;
-	}
-	/// ditto
+	@property
 	const
-	const(string)[] rCoupons() {
-		return _rCoupons;
+	string[] rCoupons() {
+		auto r = new string[_rCoupons.length];
+		foreach (i, ref c; r) {
+			c = _rCoupons[i].coupon;
+		}
+		return r;
 	}
 	/// ditto
+	@property
 	void rCoupons(string[] rCoupons) {
-		if (_parent && _rCoupons != rCoupons) _parent.changed;
-		_rCoupons = rCoupons;
+		if (this.rCoupons != rCoupons) {
+			if (_parent) _parent.changed();
+			foreach (c; _rCoupons) {
+				c.removeUseCounter();
+			}
+			_rCoupons.length = rCoupons.length;
+			foreach (i, ref c; _rCoupons) {
+				c = new CouponUser(this);
+				c.coupon = rCoupons[i];
+				if (useCounter) {
+					c.setUseCounter = useCounter;
+				}
+			}
+		}
 	}
 	/// このSDialogを所持するSpeak。
+	@property
 	Content parent() {
 		return _parent;
 	}
 	/// ditto
+	@property
 	void parent(Content s) {
 		_parent = s;
 	}
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {return _text.useCounter;}
 	/// 使用回数カウンタを設定・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		_text.setUseCounter(uc);
+		foreach (ref c; _rCoupons) {
+			c.setUseCounter = useCounter;
+		}
 	}
 	/// ditto
 	void removeUseCounter() {
-		_text.removeTextUseCounter;
+		_text.removeTextUseCounter();
+		foreach (ref c; _rCoupons) {
+			c.removeUseCounter();
+		}
 	}
-	void change(PathId id) {
+	override void change(PathId id) {
 		_text.change(id);
 	}
-	void change(FlagId id) {
+	override void change(FlagId id) {
 		_text.change(id);
 	}
-	void change(StepId id) {
+	override void change(StepId id) {
 		_text.change(id);
+	}
+	// テキスト内で使用されているfont_X.png等のパス。
+	@property
+	const
+	override string[] fontsInText() {
+		string[] r;
+		foreach (u; _text._fontusers) {
+			r ~= u.path;
+		}
+		return r;
+	}
+	// テキスト内で使用されているフラグのパス。
+	@property
+	const
+	override string[] flagsInText() {
+		string[] r;
+		foreach (u; _text._flagusers) {
+			r ~= u.flag;
+		}
+		return r;
+	}
+	// テキスト内で使用されているステップのパス。
+	@property
+	const
+	override string[] stepsInText() {
+		string[] r;
+		foreach (u; _text._stepusers) {
+			r ~= u.step;
+		}
+		return r;
+	}
+	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
+	override void changeInText(size_t index, PathId id) {
+		_text.change(index, id);
+	}
+	/// ditto
+	override void changeInText(size_t index, FlagId id) {
+		_text.change(index, id);
+	}
+	/// ditto
+	override void changeInText(size_t index, StepId id) {
+		_text.change(index, id);
 	}
 	const
 	XNode toNode() {
@@ -492,14 +597,15 @@ public:
 		node.onTag["Text"] = (ref XNode n) {
 			text = decodeLf2(n.value);
 		};
-		node.parse;
+		node.parse();
 		return new SDialog(text, rCoupons);
 	}
-	string cwxPath() {
-		return _parent ? cpjoin(_parent, "dialog", .cCountUntil!("a is b")(_parent.dialogs, this)) : "";
+	@property
+	string cwxPath(bool id) {
+		return _parent ? cpjoin(_parent, "dialog", .cCountUntil!("a is b")(_parent.dialogs, this), id) : "";
 	}
 	override CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		if (cate == "text") {
 			auto index = cpindex(path);
@@ -508,34 +614,215 @@ public:
 		}
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {return _text.cwxChilds;}
+	@property
+	CWXPath cwxParent() {return _parent;}
 }
 
 class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		IFlagUser, IStepUser,
-		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser, IStartUser,
-		MotionOwner, BgImageOwner {
+		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser,
+		ICouponUser, IGossipUser, ICompleteStampUser, IStartUser,
+		MotionOwner, BgImageOwner, ITextHolder {
 	private EventTree _tree = null;
 
 	/// 型と後続テキストnameを指定してインスタンスを生成。
 	this (CType type, string name) {
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime);
+		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_type = type;
 		_name = name;
+		validate();
 	}
+	/// ディープコピーを生成する。
+	@property
+	const
+	Content dup() {
+		auto copy = new Content(type, name);
+		copy.comment = comment;
+
+		copy.area = area;
+		copy.battle = battle;
+		copy.packages = packages;
+		copy.flag = flag;
+		copy.step = step;
+		copy.cardPath = cardPath;
+		copy.bgmPath = bgmPath;
+		copy.soundPath = soundPath;
+		copy.casts = casts;
+		copy.item = item;
+		copy.skill = skill;
+		copy.beast = beast;
+		copy.info = info;
+
+		copy.start = start;
+		copy.coupon = coupon;
+		copy.gossip = gossip;
+		copy.completeStamp = completeStamp;
+
+		copy.mental = mental;
+		copy.physical = physical;
+		copy.status = status;
+		copy.range = range;
+		copy.cardVisual = cardVisual;
+		copy.effectType = effectType;
+		copy.resist = resist;
+		copy.transition = transition;
+
+		copy.targetAll = targetAll;
+		copy.random = random;
+		copy.average = average;
+		copy.complete = complete;
+
+		copy.unsignedLevel = unsignedLevel;
+		copy.signedLevel = signedLevel;
+		copy.successRate = successRate;
+		copy.transitionSpeed = transitionSpeed;
+		copy.percent = percent;
+		copy.flagValue = flagValue;
+		copy.stepValue = stepValue;
+		copy.couponValue = couponValue;
+		copy.partyNumber = partyNumber;
+		copy.cardNumber = cardNumber;
+		copy.money = money;
+		copy.wait = wait;
+
+		copy.flag2 = flag2;
+		copy.step2 = step2;
+		copy.castRange = castRange;
+		copy.levelMin = levelMin;
+		copy.levelMax = levelMax;
+
+		Motion[] motions;
+		foreach (m; this.motions) {
+			motions ~= m.dup;
+		}
+		copy.motions = motions;
+
+		copy.text = text;
+		SDialog[] dialogs;
+		foreach (d; this.dialogs) {
+			dialogs ~= new SDialog(d);
+		}
+		copy.dialogs = dialogs;
+
+		copy.targetS = targetS;
+		copy.targetNS = targetNS;
+		copy.talkerC = talkerC;
+		copy.talkerNC = talkerNC;
+
+		BgImage[] backs;
+		foreach (b; this.backs) {
+			backs ~= b.dup;
+		}
+		copy.backs = backs;
+
+		foreach (c; next) {
+			copy.add(c.dup);
+		}
+
+		return copy;
+	}
+
+	const
+	bool opEquals(ref const(Object) o) {
+		auto c = cast(const(Content)) o;
+		if (!c) return false;
+		return type == c.type
+			&& name == c.name
+			&& comment == c.comment
+
+			&& area == c.area
+			&& battle == c.battle
+			&& packages == c.packages
+			&& flag == c.flag
+			&& step == c.step
+			&& cardPath == c.cardPath
+			&& bgmPath == c.bgmPath
+			&& soundPath == c.soundPath
+			&& casts == c.casts
+			&& item == c.item
+			&& skill == c.skill
+			&& beast == c.beast
+			&& info == c.info
+
+			&& start == c.start
+			&& coupon == c.coupon
+			&& gossip == c.gossip
+			&& completeStamp == c.completeStamp
+
+			&& mental == c.mental
+			&& physical == c.physical
+			&& status == c.status
+			&& range == c.range
+			&& cardVisual == c.cardVisual
+			&& effectType == c.effectType
+			&& resist == c.resist
+			&& transition == c.transition
+
+			&& targetAll == c.targetAll
+			&& random == c.random
+			&& average == c.average
+			&& complete == c.complete
+
+			&& unsignedLevel == c.unsignedLevel
+			&& signedLevel == c.signedLevel
+			&& successRate == c.successRate
+			&& transitionSpeed == c.transitionSpeed
+			&& percent == c.percent
+			&& flagValue == c.flagValue
+			&& stepValue == c.stepValue
+			&& couponValue == c.couponValue
+			&& partyNumber == c.partyNumber
+			&& cardNumber == c.cardNumber
+			&& money == c.money
+			&& wait == c.wait
+
+			&& flag2 == c.flag2
+			&& step2 == c.step2
+			&& castRange == c.castRange
+			&& levelMin == c.levelMin
+			&& levelMax == c.levelMax
+
+			&& motions == c.motions
+
+			&& text == c.text
+
+			&& dialogs == c.dialogs
+
+			&& targetS == c.targetS
+			&& targetNS == c.targetNS
+			&& talkerC == c.talkerC
+			&& talkerNC == c.talkerNC
+
+			&& backs == c.backs
+
+			&& next == c.next;
+	}
+
 	private string _id;
 	/// イベントID。ドラッグ&ドロップ等でイベントを移動するとき、
 	/// 自分自身を識別するために使用する。
+	@property
 	const
 	string eventId() {return _id;}
 
 	private CType _type;
 	/// コンテントの型。
+	@property
 	const
 	CType type() {return _type;}
 	/// コンテントの概要。
+	@property
 	const
 	CDetail detail() {return CONTENT_DETAILS[type];}
+
+	/// プロパティを正規化する。
+	private void validate() {
+		if (CType.BRANCH_STATUS is type) {
+			if (Status.NONE is _status) _status = Status.ACTIVE;
+		}
+	}
 
 	/// 型変換が可能であればtrue。
 	const
@@ -551,34 +838,34 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 	}
 	/// コンテントの型を変換。
-	void type(CType type, in CProps prop) {
-		if (!canConvert(type)) throw new Exception("can not convert: " ~ prop.msgs.content(type));
+	void convertType(CType type, in CProps prop) {
+		if (!canConvert(type)) throw new Exception("can not convert: " ~ prop.msgs.contentName(type));
 		if (_type == type) return;
-		changed;
+		changed();
 		auto od = detail;
 		auto d = CONTENT_DETAILS[type];
 		foreach (n; next) {
 			void setNum() {
-				if (prop.msgs.evtChildDefault != n.name && !std.string.isNumeric(n.name) || n.name == "0") {
-					n.name = prop.msgs.evtChildDefault;
+				if (prop.sys.evtChildDefault != n.name && !std.string.isNumeric(n.name) || n.name == "0") {
+					n.name = prop.sys.evtChildDefault;
 				}
 			}
-			switch (d.nextType) {
+			final switch (d.nextType) {
 			case CNextType.NONE: n.name = ""; break;
 			case CNextType.TEXT: break;
 			case CNextType.BOOL: {
-				if (prop.msgs.evtChildTrue != n.name && prop.msgs.evtChildFalse != n.name) {
-					n.name = prop.msgs.evtChildTrue;
+				if (prop.sys.evtChildTrue != n.name && prop.sys.evtChildFalse != n.name) {
+					n.name = prop.sys.evtChildTrue;
 				}
 			} break;
 			case CNextType.STEP: {
-				if (prop.msgs.evtChildDefault != n.name && !std.string.isNumeric(n.name)) {
-					n.name = prop.msgs.evtChildDefault;
+				if (prop.sys.evtChildDefault != n.name && !std.string.isNumeric(n.name)) {
+					n.name = prop.sys.evtChildDefault;
 				}
 			} break;
 			case CNextType.ID_AREA: {
-				setNum;
-				if (n.name != prop.msgs.evtChildDefault) {
+				setNum();
+				if (n.name != prop.sys.evtChildDefault) {
 					try {
 						n.area = to!(ulong)(n.name);
 					} catch {
@@ -589,8 +876,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				}
 			} break;
 			case CNextType.ID_BATTLE: {
-				setNum;
-				if (n.name != prop.msgs.evtChildDefault) {
+				setNum();
+				if (n.name != prop.sys.evtChildDefault) {
 					try {
 						n.battle = to!(ulong)(n.name);
 					} catch {
@@ -598,6 +885,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 					}
 				} else {
 					n.battle = 0;
+				}
+			} break;
+			case CNextType.TRIO: {
+				if (prop.sys.evtChildGreater != n.name && prop.sys.evtChildLesser != n.name && prop.sys.evtChildEq != n.name) {
+					n.name = prop.sys.evtChildGreater;
 				}
 			} break;
 			}
@@ -609,6 +901,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.PACKAGE, ulong, 0)(d, &packages);
 		resetValue!(CArg.FLAG, string, "")(d, &flag);
 		resetValue!(CArg.STEP, string, "")(d, &step);
+		resetValue!(CArg.TALKER_C, string, "")(d, &cardPath);
 		resetValue!(CArg.BGM_PATH, string, "")(d, &bgmPath);
 		resetValue!(CArg.SOUND_PATH, string, "")(d, &soundPath);
 		resetValue!(CArg.CAST, ulong, 0)(d, &casts);
@@ -636,7 +929,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.AVERAGE, bool, false)(d, &average);
 		resetValue!(CArg.COMPLETE, bool, false)(d, &complete);
 
-		resetValue!(CArg.UNSIGNED_LEVEL, int, 0)(d, &unsignedLevel);
+		resetValue!(CArg.UNSIGNED_LEVEL, int, 1)(d, &unsignedLevel);
 		resetValue!(CArg.SIGNED_LEVEL, int, 0)(d, &signedLevel);
 		resetValue!(CArg.SUCCESS_RATE, int, 5)(d, &successRate);
 		resetValue!(CArg.TRANSITION_SPEED, int, 5u)(d, &transitionSpeed);
@@ -649,6 +942,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.MONEY, int, 0)(d, &money);
 		resetValue!(CArg.WAIT, int, 0)(d, &wait);
 
+		resetValue!(CArg.FLAG_2, string, "")(d, &flag2);
+		resetValue!(CArg.STEP_2, string, "")(d, &step2);
+		resetValue!(CArg.CAST_RANGE, CastRange, CastRange.PARTY)(d, &castRange);
+		resetValue!(CArg.LEVEL_MIN, int, 0)(d, &levelMin);
+		resetValue!(CArg.LEVEL_MAX, int, 0)(d, &levelMax);
+
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
 
 		resetValue!(CArg.TEXT, string, "")(d, &text);
@@ -660,47 +959,45 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.TALKER_NC, Talker, Talker.SELECTED)(d, &talkerNC);
 
 		resetValue!(CArg.BG_IMAGES, BgImage[], [])(d, &backs);
+
+		validate();
 	}
 
 	private string _name;
 	/// テキスト。
+	@property
 	void name(string name) {
 		if (_name != name) {
-			changed;
+			changed();
 			if (_type is CType.START && _tree) {
 				_tree.startUseCounter.change(toStartId(_name), toStartId(name), true);
-			}
-			if (_parent && _parent.detail.nextType == CNextType.ID_AREA) {
-				if (icmp(name, "default") == 0) {
-					area = 0;
-				} else if (std.string.isNumeric(name)) {
-					try {
-						area = to!(ulong)(name);
-					} catch {
-						area = 0;
-					}
-				}
-			}
-			if (_parent && _parent.detail.nextType == CNextType.ID_BATTLE) {
-				if (icmp(name, "default") == 0) {
-					battle = 0;
-				} else if (std.string.isNumeric(name)) {
-					try {
-						battle = to!(ulong)(name);
-					} catch {
-						battle = 0;
-					}
-				}
 			}
 		}
 		_name = name;
 	}
 	/// ditto
+	@property
 	const
 	string name() {return _name;}
 
+	/// 専らシナリオ作者が参考のために記すコンテントのコメント。
+	private string _comment = "";
+	/// ditto
+	@property
+	const
+	string comment() {return _comment;}
+	/// ditto
+	@property
+	void comment(string v) {
+		if (_comment == v) return;
+		changed();
+		_comment = v;
+	}
+
+
 	private Content _parent = null;
 	/// 親イベント。
+	@property
 	private void parent(Content parent) in {
 		assert (!parent || parent.detail.owner);
 	} body {
@@ -738,17 +1035,23 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_parent = parent;
 	}
 	/// ditto
+	@property
 	Content parent() {return _parent;}
-	override string cwxPath() {
+	/// ditto
+	@property
+	const
+	const(Content) parent() {return _parent;}
+	@property
+	override string cwxPath(bool id) {
 		if (_parent) {
-			return cpjoin(_parent, .cCountUntil!("a is b")(_parent.next, this));
+			return cpjoin(_parent, .cCountUntil!("a is b")(_parent.next, this), id);
 		} else if (_tree) {
-			return cpjoin(_tree, .cCountUntil!("a is b")(_tree.starts, this));
+			return cpjoin(_tree, .cCountUntil!("a is b")(_tree.starts, this), id);
 		}
 		return "";
 	}
 	override CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "": {
@@ -770,6 +1073,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		r ~= cast(CWXPath[]) next;
@@ -779,8 +1083,18 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		r ~= cast(CWXPath[]) backs;
 		return r;
 	}
+	@property
+	CWXPath cwxParent() {
+		if (_parent) {
+			return _parent;
+		} else if (_tree) {
+			return _tree;
+		}
+		return null;
+	}
 
 	/// EventTreeからこのコンテントに到達するまでのindex群を返す。
+	@property
 	size_t[] ctPath() {
 		if (parent) {
 			assert (contains!("a is b")(parent.next, this));
@@ -793,13 +1107,31 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 	}
 	/// このコンテントが属すツリーを返す。
+	@property
 	EventTree tree() {
 		auto ps = parentStart;
 		if (ps) return ps._tree;
 		return null;
 	}
+	/// ditto
+	@property
+	const
+	const(EventTree) tree() {
+		auto ps = parentStart;
+		if (ps) return ps._tree;
+		return null;
+	}
 	/// このコンテントが属すスタートコンテントを返す。
+	@property
 	Content parentStart() {
+		if (type is CType.START) return this;
+		if (!parent) return null;
+		return parent.parentStart;
+	}
+	/// ditto
+	@property
+	const
+	const(Content) parentStart() {
 		if (type is CType.START) return this;
 		if (!parent) return null;
 		return parent.parentStart;
@@ -810,17 +1142,26 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (path.length == 1) return next[path[0]];
 		return next[path[0]].fromPath(path[1 .. $]);
 	}
+	/// このコンテントが指定されたコンテントそのもの、
+	/// もしくは子孫であればtrueを返す。
+	bool isDescendant(in Content c) {
+		if (this is c) return true;
+		if (!parent) return false;
+		return parent.isDescendant(c);
+	}
 
 	private Content[] _next = [];
 	/// 後続イベント群。
+	@property
 	Content[] next() {return _next;}
 	/// ditto
+	@property
 	const
 	const(Content)[] next() {return _next;}
 
 	/// 後続コンテントのインデックスを交換する。
 	void swapContent(int index1, int index2) {
-		if (index1 != index2) changed;
+		if (index1 != index2) changed();
 		auto temp = _next[index1];
 		_next[index1] = _next[index2];
 		_next[index2] = temp;
@@ -834,7 +1175,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (_suc !is null) c.setSUseCounter(startUseCounter);
 		c.changeHandler = changeHandler;
 		_next ~= c;
-		changed;
+		changed();
 	}
 	/// ditto
 	void insert(int index, Content c) {
@@ -847,18 +1188,18 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			if (_suc !is null) c.setSUseCounter(startUseCounter);
 			c.changeHandler = changeHandler;
 			_next = _next[0 .. index] ~ c ~ _next[index .. $];
-			changed;
+			changed();
 		}
 	}
 
 	/// 後続コンテントを除外する。
 	void remove(int index) {
-		if (_uc !is null) _next[index].removeUseCounter;
-		if (_suc !is null) _next[index].removeSUseCounter;
+		if (_uc !is null) _next[index].removeUseCounter();
+		if (_suc !is null) _next[index].removeSUseCounter();
 		_next[index].changeHandler = null;
 		_next[index].parent = null;
 		_next = _next[0 .. index] ~ _next[index + 1 .. $];
-		changed;
+		changed();
 	}
 	/// ditto
 	void remove(Content c) {
@@ -875,20 +1216,22 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		static if (is(typeof(val.owner(this)))) {
 			val.owner = this;
 		}
-		static if (is(typeof(val.setUseCounter(uc)))) {
-			if (val.useCounter || !uc) {
-				val.removeUseCounter;
-			}
-			if (uc) {
-				val.setUseCounter(uc);
-			}
-			static if (is(typeof(val.parent))) {
-				if (c && val.parent) throw new EventException("used other event.");
-				val.parent = c;
-			}
-		} else static if (!is(T : string) && is(typeof(val[0u]))) {
-			foreach (vc; val) {
-				setValUCs(vc, uc, c);
+		static if (!is(T : Motion)) {
+			static if (is(typeof(val.setUseCounter(uc)))) {
+				if (val.useCounter || !uc) {
+					val.removeUseCounter();
+				}
+				if (uc) {
+					val.setUseCounter(uc);
+				}
+				static if (is(typeof(val.parent))) {
+					if (c && val.parent) throw new EventException("used other event.");
+					val.parent = c;
+				}
+			} else static if (!is(T : string) && is(typeof(val[0u]))) {
+				foreach (vc; val) {
+					setValUCs(vc, uc, c);
+				}
 			}
 		}
 	}
@@ -899,7 +1242,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// private AreaUser _area;
 	/// void area(ulong val) {
 	/// 	if (!_area) _area = new AreaUser(this);
-	/// 	if (_area.area != val) changed;
+	/// 	if (_area.area != val) changed();
 	/// 	setValUCs(this._area.area, null, null);
 	/// 	setValUCs(val, _uc, this);
 	/// 	_area.area = val;
@@ -914,7 +1257,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		} else {
 			mixin ("private " ~ T.stringof ~ " _" ~ Name ~ " = Def;");
 		}
-		mixin ("void " ~ Name ~ "(" ~ T2.stringof ~ " val) {"
+		mixin ("@property void " ~ Name ~ "(" ~ T2.stringof ~ " val) {"
+			~ "scope (exit) validate();"
 			~ "static if (is(typeof(check_" ~ Name ~ "(val)))) {"
 			~ "    if (!check_" ~ Name ~ "(val)) throw new EventException(\"Invalid " ~ Name ~ "\");"
 			~ "}"
@@ -934,17 +1278,21 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				~ "    static if (is(T == BattleUser)) _" ~ Name ~ ".handleChange = &battleChg;"
 				~ "}"
 			) : "")
-			~ "if (_" ~ Name ~ Get ~ " != val) changed;"
+			~ "if (_" ~ Name ~ Get ~ " != val) changed();"
 			~ "setValUCs(this._" ~ Name ~ Get ~ ");"
 			~ "setValUCs(val, _uc, this);"
 			~ "_" ~ Name ~ Set ~ " = val;"
 		"}");
 		static if (New) {
-			mixin (T2.stringof ~ " " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
-			mixin ("const const(T2) " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
+			static if (is(T2 == string)) {
+				mixin ("@property const T2 " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
+			} else {
+				mixin ("@property " ~ T2.stringof ~ " " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
+				mixin ("@property const const(T2) " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
+			}
 		} else {
-			mixin ("T2 " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
-			mixin ("const const(T2) " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
+			mixin ("@property T2 " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
+			mixin ("@property const const(T2) " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
 		}
 	}
 	private template Prop(T, string Name, T Def) {
@@ -957,6 +1305,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	private string _start = "";
 	/// スタート名。
+	@property
 	void start(string start) {
 		if (_suc) {
 			if (_start) _suc.remove(toStartId(_start), this);
@@ -965,6 +1314,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_start = start;
 	}
 	/// ditto
+	@property
 	const
 	string start() {return _start;}
 
@@ -1022,18 +1372,18 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(SDialog[], "dialogs", []);
 
 	/// クーポン名。
-	mixin Prop!(string, "coupon", "");
+	mixin Prop!(CouponUser, string, "coupon", "", ".coupon", ".coupon", true);
 	/// ゴシップ。
-	mixin Prop!(string, "gossip", "");
+	mixin Prop!(GossipUser, string, "gossip", "", ".gossip", ".gossip", true);
 	/// 終了印。
-	mixin Prop!(string, "completeStamp", "");
+	mixin Prop!(CompleteStampUser, string, "completeStamp", "", ".completeStamp", ".completeStamp", true);
 
 	/// 精神系能力。
 	mixin Prop!(Mental, "mental", Mental.init);
 	/// 肉体系能力。
 	mixin Prop!(Physical, "physical", Physical.init);
 	/// 状態。
-	mixin Prop!(Status, "status", Status.ACTIVE);
+	mixin Prop!(Status, "status", Status.NONE);
 	/// 範囲。
 	mixin Prop!(Range, "range", Range.SELECTED);
 	/// カード視覚効果。
@@ -1072,10 +1422,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	/// レベル。
 	mixin Prop!(int, "unsignedLevel", 1);
-	mixin MaxMin!(int, "unsignedLevel", 99, 1);
+	mixin MaxMin!(int, "unsignedLevel", int.max, 1);
 	/// マイナスにする事が可能なレベル。
 	mixin Prop!(int, "signedLevel", 0);
-	mixin MaxMin!(int, "signedLevel", 99, -99);
+	mixin MaxMin!(int, "signedLevel", int.max, int.min);
 	/// 命中補正。-5～+5。
 	mixin Prop!(int, "successRate", 5);
 	mixin MaxMin!(int, "successRate", 5, -5);
@@ -1092,25 +1442,39 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin MaxMin!(int, "stepValue", int.max, 0);
 	/// クーポン点。
 	mixin Prop!(int, "couponValue", 0);
-	mixin MaxMin!(int, "couponValue", 999, -999);
+	mixin MaxMin!(int, "couponValue", int.max, int.min);
 	/// 人数。
 	mixin Prop!(int, "partyNumber", 1u);
 	mixin MaxMin!(int, "partyNumber", int.max, 1);
 	/// カード枚数。
 	mixin Prop!(int, "cardNumber", 1u);
-	mixin MaxMin!(int, "cardNumber", 99, 0);
+	mixin MaxMin!(int, "cardNumber", int.max, 0);
 	/// 金額。
 	mixin Prop!(int, "money", 0u);
-	mixin MaxMin!(int, "money", 999999, 0);
+	mixin MaxMin!(int, "money", int.max, 0);
 	/// 停止時間。0.1秒単位。
 	mixin Prop!(int, "wait", 0u);
-	mixin MaxMin!(int, "wait", 1000, 0);
+	mixin MaxMin!(int, "wait", int.max, 0);
+
+	/// 操作対象フラグ(CardWirth Extender 1.30～)。
+	mixin Prop!(FlagUser, string, "flag2", "", ".flag", ".flag", true);
+	/// 操作対象ステップ(CardWirth Extender 1.30～)。
+	mixin Prop!(StepUser, string, "step2", "", ".step", ".step", true);
+	/// ランダム選択範囲(CardWirth Extender 1.30～)。
+	mixin Prop!(CastRange, "castRange", CastRange.PARTY);
+	/// 下限レベル(CardWirth Extender 1.30～)。
+	mixin Prop!(int, "levelMin", 0);
+	mixin MaxMin!(int, "levelMin", int.max, 0);
+	/// 上限レベル(CardWirth Extender 1.30～)。
+	mixin Prop!(int, "levelMax", 0);
+	mixin MaxMin!(int, "levelMax", int.max, 0);
 
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
 
 	private void delegate() _change;
 	/// 変更ハンドラを登録する。
+	@property
 	void changeHandler(void delegate() change) {
 		foreach (c; _next) {
 			c.changeHandler = change;
@@ -1118,6 +1482,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_change = change;
 	}
 	/// 変更ハンドラ。
+	@property
 	private void delegate() changeHandler() {
 		return _change;
 	}
@@ -1135,7 +1500,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			if (uc) {
 				v.setUseCounter(uc);
 			} else {
-				v.removeUseCounter;
+				v.removeUseCounter();
 			}
 		} else static if (!isSomeString!(T) && is(typeof(v[0u]))) {
 			foreach (i, vc; v) {
@@ -1145,6 +1510,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 	}
 	/// 使用回数カウンタを設定・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		foreach (v; this.tupleof) {
 			setUseCounterImpl(v, uc);
@@ -1157,10 +1523,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_uc = null;
 	}
 	/// 使用回数カウンタを返す。存在しない場合はnullを返す。
+	@property
 	UseCounter useCounter() {return _uc;}
 
 	private SUseCounter _suc = null;
 	/// スタートの使用回数カウンタを設定・除去する。
+	@property
 	void setSUseCounter(SUseCounter suc) {
 		if (_suc is suc) return;
 		if (suc && _start) {
@@ -1180,11 +1548,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			_suc.remove(toStartId(_start), this);
 		}
 		foreach (c; next) {
-			c.removeUseCounter;
+			c.removeSUseCounter();
 		}
 		_suc = null;
 	}
 	/// スタートの使用回数カウンタ。
+	@property
 	SUseCounter startUseCounter() {return _suc;}
 	override void change(StartId newVal) {
 		_start = newVal;
@@ -1219,18 +1588,67 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	override void change(SkillId id) {idChange(id);}
 	override void change(BeastId id) {idChange(id);}
 	override void change(InfoId id) {idChange(id);}
+	override void change(CouponId id) {idChange(id);}
+	override void change(GossipId id) {idChange(id);}
+	override void change(CompleteStampId id) {idChange(id);}
+
+	// テキスト内で使用されているfont_X.png等のパス。
+	@property
+	const
+	override string[] fontsInText() {
+		if (!_text) return [];
+		string[] r;
+		foreach (u; _text._fontusers) {
+			r ~= u.path;
+		}
+		return r;
+	}
+	// テキスト内で使用されているフラグのパス。
+	@property
+	const
+	override string[] flagsInText() {
+		if (!_text) return [];
+		string[] r;
+		foreach (u; _text._flagusers) {
+			r ~= u.flag;
+		}
+		return r;
+	}
+	// テキスト内で使用されているステップのパス。
+	@property
+	const
+	override string[] stepsInText() {
+		if (!_text) return [];
+		string[] r;
+		foreach (u; _text._stepusers) {
+			r ~= u.step;
+		}
+		return r;
+	}
+	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
+	override void changeInText(size_t index, PathId id) {
+		_text.change(index, id);
+	}
+	/// ditto
+	override void changeInText(size_t index, FlagId id) {
+		_text.change(index, id);
+	}
+	/// ditto
+	override void changeInText(size_t index, StepId id) {
+		_text.change(index, id);
+	}
 
 	/// コンテントをXMLテキストにして返す。
 	const
-	string toXML() {
-		return toNode.text;
+	string toXML(XMLOption opt) {
+		return toNode(opt).text;
 	}
 	/// コンテントをXMLノードにして返す。
 	const
-	XNode toNode() {
+	XNode toNode(XMLOption opt) {
 		auto d = this.detail;
 		auto doc = XNode.create(d.name);
-		toNodeImpl(doc, d);
+		toNodeImpl(doc, d, opt);
 		doc.newAttr("contentId", _id);
 		return doc;
 	}
@@ -1242,16 +1660,17 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	/// 指定されたXMLノードにインスタンスのデータを追加する。
 	const
-	XNode toNode(ref XNode parent) {
+	XNode toNode(ref XNode parent, XMLOption opt) {
 		auto d = this.detail;
 		auto e = parent.newElement(d.name);
-		toNodeImpl(e, d);
+		toNodeImpl(e, d, opt);
 		return e;
 	}
 	const
-	private void toNodeImpl(ref XNode e, in CDetail d) {
+	private void toNodeImpl(ref XNode e, in CDetail d, XMLOption opt) {
 		if (d.type.length) e.newAttr("type", d.type);
 		if (name.length) e.newAttr("name", name);
+		if (comment.length) e.newAttr("comment", comment);
 
 		// 単純データ
 		atnPut!(CArg.AREA, "area", "")(e, d);
@@ -1299,11 +1718,17 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.MONEY, "money", "")(e, d);
 		atnPut!(CArg.WAIT, "wait", "")(e, d);
 
+		atnPut!(CArg.FLAG_2, "flag2", "")(e, d);
+		atnPut!(CArg.STEP_2, "step2", "")(e, d);
+		atnPut!(CArg.CAST_RANGE, "castRange", "fromCastRange")(e, d);
+		atnPut!(CArg.LEVEL_MIN, "levelMin", "")(e, d);
+		atnPut!(CArg.LEVEL_MAX, "levelMax", "")(e, d);
+
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) {
 			auto me = e.newElement("Motions");
 			foreach (m; motions) {
-				m.toNode(me);
+				m.toNode(me, opt);
 			}
 		}
 
@@ -1318,7 +1743,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.TARGET_NS, "targetNS", "fromTarget")(e, d);
 		atnPut!(CArg.TARGET_S, "targetS", "fromTarget")(e, d);
 		if (d.use(CArg.TALKER_C)) {
-			switch (talkerC) {
+			final switch (talkerC) {
 			case Talker.NARRATION:
 				e.newAttr(d.attr(CArg.TALKER_C), "");
 				break;
@@ -1336,7 +1761,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		auto ce = e.newElement("Contents");
 		foreach (sub; _next) {
-			sub.toNode(ce);
+			sub.toNode(ce, opt);
 		}
 	}
 	/// XMLノード(Contents)の直下にある全てのイベントを、
@@ -1347,7 +1772,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		node.onTag[null] = (ref XNode en) {
 			r ~= createFromNode(en, ver);
 		};
-		node.parse;
+		node.parse();
 		return r;
 	}
 	/// XMLテキストからイベントを生成する。
@@ -1372,6 +1797,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		auto d = CONTENT_DETAILS[cType];
 		string name = en.attr("name", false);
 		auto r = new Content(cType, name);
+		r.comment = en.attr("comment", false);
 
 		// 単純データ
 		cfnPut!(CArg.AREA, "area", "to!(ulong)")(en, d, r);
@@ -1417,6 +1843,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.MONEY, "money", "to!(int)")(en, d, r);
 		cfnPut!(CArg.WAIT, "wait", "to!(int)")(en, d, r);
 
+		cfnPut!(CArg.FLAG_2, "flag2", "")(en, d, r);
+		cfnPut!(CArg.STEP_2, "step2", "")(en, d, r);
+		cfnPut!(CArg.CAST_RANGE, "castRange", "toCastRange")(en, d, r);
+		cfnPut!(CArg.LEVEL_MIN, "levelMin", "to!(int)")(en, d, r);
+		cfnPut!(CArg.LEVEL_MAX, "levelMax", "to!(int)")(en, d, r);
+
 		// 多少複雑なもの
 		if (d.use(CArg.TRANSITION)) {
 			// 歴史的経緯から、transitionは値が存在しない可能性がある
@@ -1433,7 +1865,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				node.onTag["Motion"] = (ref XNode node) {
 					motions ~= Motion.createFromNode(node, ver);
 				};
-				node.parse;
+				node.parse();
 				r.motions = motions;
 			};
 		}
@@ -1447,7 +1879,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				node.onTag["Dialog"] = (ref XNode node) {
 					dlgs ~= SDialog.createFromNode(node, ver);
 				};
-				node.parse;
+				node.parse();
 				if (dlgs.length == 0) dlgs ~= new SDialog;
 				r.dialogs = dlgs;
 			};
@@ -1488,7 +1920,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				}
 			};
 		}
-		en.parse;
+		en.parse();
 		return r;
 	}
 }
@@ -1533,7 +1965,7 @@ private void loadTalker(in XNode node, out Talker talker, out string path = null
 }
 /// Talkerを文字列に変換する。
 private string fromTalker(Talker talker) {
-	switch (talker) {
+	final switch (talker) {
 	case Talker.SELECTED:
 		return "Selected";
 	case Talker.UNSELECTED:
@@ -1542,6 +1974,8 @@ private string fromTalker(Talker talker) {
 		return "Random";
 	case Talker.CARD:
 		return "Card";
+	case Talker.NARRATION, Talker.IMAGE:
+		return "";
 	}
 }
 
@@ -1556,14 +1990,14 @@ private:
 	bool _lose = false;
 	uint[] _rounds;
 
-	string[] _keyCodes;
+	KeyCodeUser[] _keyCodes;
 
 	Content[] _starts;
 	UseCounter _uc;
 	SUseCounter _suc;
 	void delegate() _change = null;
 
-	this(Content[] starts) in {
+	this (Content[] starts) in {
 		foreach (c; starts) {
 			assert (c.type is CType.START);
 		}
@@ -1575,33 +2009,65 @@ private:
 			s.setSUseCounter(_suc);
 		}
 	}
-	this() {
+	this () {
 		_suc = new SUseCounter;
 	}
 public:
 	/// イベントツリー名を指定してインスタンスを生成。
-	this(string name) {
+	this (string name) {
 		this(new Content(CType.START, name));
 	}
 	/// スタートコンテントを指定してインスタンスを生成。
 	/// startがすでにイベントツリーに所属している場合、
 	/// コピーが生成される。
-	this(Content start) in {
+	this (Content start) in {
 		assert (start.type == CType.START);
 	} body {
 		_suc = new SUseCounter;
 		if (start.tree) {
-			auto node = start.toNode;
+			auto node = start.toNode(null);
 			start = start.createFromNode(node, LATEST_VERSION);
 		}
 		add(start);
 	}
+	/// このツリーの所有者。
+	@property
 	EventTreeOwner owner() {return _owner;}
-	override string cwxPath() {
-		return _owner ? cpjoin(_owner, "event", .cCountUntil!("a is b")(_owner.trees, this)) : "";
+
+	/// ディープコピーを作成する。
+	@property
+	const
+	EventTree dup() {
+		auto copy = new EventTree;
+		copy.enter = fireEnter;
+		copy.escape = fireEscape;
+		copy.lose = fireLose;
+		copy.rounds = rounds.dup;
+		copy.keyCodes = keyCodes;
+		foreach (s; starts) {
+			copy.add(s.dup);
+		}
+		return copy;
+	}
+
+	const
+	bool opEquals(ref const(Object) o) {
+		auto c = cast(const(EventTree)) o;
+		if (!c) return false;
+		return fireEnter == c.fireEnter
+			&& fireEscape == c.fireEscape
+			&& fireLose == c.fireLose
+			&& rounds == c.rounds
+			&& keyCodes == c.keyCodes
+			&& starts == c.starts;
+	}
+
+	@property
+	override string cwxPath(bool id) {
+		return _owner ? cpjoin(_owner, "event", .cCountUntil!("a is b")(_owner.trees, this), id) : "";
 	}
 	CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		if (cate == "") {
 			auto index = cpindex(path);
@@ -1610,12 +2076,17 @@ public:
 		}
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		r ~= cast(CWXPath[]) starts;
 		return r;
 	}
+	@property
+	CWXPath cwxParent() {return _owner;}
+
 	/// 変更ハンドラを登録する。
+	@property
 	void changeHandler(void delegate() change) {
 		foreach (s; _starts) {
 			s.changeHandler = change;
@@ -1623,6 +2094,7 @@ public:
 		_change = change;
 	}
 	/// 変更ハンドラを返す。
+	@property
 	protected void delegate() changeHandler() {
 		return _change;
 	}
@@ -1631,13 +2103,24 @@ public:
 		if (_change) _change();
 	}
 
+	/// スタートコンテントのみが含まれている場合はtrue。
+	@property
+	bool isEmpty() {
+		foreach (s; _starts) {
+			if (s.next.length) return false;
+		}
+		return true;
+	}
+
 	/// イベントツリー名。
 	/// 最初のスタートコンテントのテキストと常に一致する。
+	@property
 	void name(string name) {
-		if (_starts[0].name != name) changed;
+		if (_starts[0].name != name) changed();
 		_starts[0].name = name;
 	}
 	/// ditto
+	@property
 	const
 	string name() {
 		return _starts[0].name;
@@ -1645,14 +2128,14 @@ public:
 
 	/// スタートコンテントのインデックスを交換。
 	void swapStart(int index1, int index2) {
-		if (index1 != index2) changed;
+		if (index1 != index2) changed();
 		auto temp = _starts[index1];
 		_starts[index1] = _starts[index2];
 		_starts[index2] = temp;
 	}
 	/// キーコードのインデックスを交換。
 	void swapKeyCode(int index1, int index2) {
-		if (index1 != index2) changed;
+		if (index1 != index2) changed();
 		auto temp = _keyCodes[index1];
 		_keyCodes[index1] = _keyCodes[index2];
 		_keyCodes[index2] = temp;
@@ -1669,7 +2152,7 @@ public:
 		evt._tree = this;
 		evt.changeHandler = changeHandler;
 		_starts ~= evt;
-		changed;
+		changed();
 	}
 	/// ditto
 	void insert(int index, Content evt) in {
@@ -1682,16 +2165,16 @@ public:
 		evt._tree = this;
 		evt.changeHandler = changeHandler;
 		_starts = _starts[0u .. index] ~ evt ~ _starts[index .. $];
-		changed;
+		changed();
 	}
 	/// スタートコンテントを除外。
 	void remove(int index) in {
 		assert (_starts.length > 1);
 	} body {
 		if (_uc !is null) {
-			_starts[index].removeUseCounter;
+			_starts[index].removeUseCounter();
 		}
-		_starts[index].removeSUseCounter;
+		_starts[index].removeSUseCounter();
 		_starts[index]._tree = null;
 		_starts[index].changeHandler = null;
 		_starts = _starts[0 .. index] ~ _starts[index + 1 .. $];
@@ -1709,6 +2192,7 @@ public:
 		assert (0);
 	}
 	/// スタートコンテント群。
+	@property
 	Content[] starts() out (r) {
 		foreach (c; r) {
 			assert (c.type is CType.START);
@@ -1716,7 +2200,26 @@ public:
 	} body {
 		return _starts;
 	}
+	/// ditto
+	@property
+	const
+	const(Content)[] starts() out (r) {
+		foreach (c; r) {
+			assert (c.type is CType.START);
+		}
+	} body {
+		return _starts;
+	}
+	/// 指定された名前のスタートコンテントがあるか。
+	const
+	bool hasStart(string name) {
+		foreach (s; _starts) {
+			if (0 == icmp(s.name, name)) return true;
+		}
+		return false;
+	}
 	/// 属するエリア等からの相対パスを返す。
+	@property
 	size_t[] areaPath() {
 		if (_owner) {
 			return _owner.areaPath ~ cast(size_t) .cCountUntil!("a is b")(_owner.trees, this);
@@ -1733,56 +2236,75 @@ public:
 
 	/// 指定されたインデックスのキーコードを差し替える。
 	void setKeyCode(int index, string keyCode) {
-		if (_keyCodes[index] != keyCode) changed;
-		_keyCodes[index] = keyCode;
+		if (_keyCodes[index].keyCode != keyCode) {
+			changed();
+			_keyCodes[index].keyCode = keyCode;
+		}
 	}
 
+	/// 使用回数カウンタ。
+	@property
+	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを設定する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		foreach (s; starts) {
 			s.setUseCounter(uc);
+		}
+		foreach (kc; _keyCodes) {
+			kc.setUseCounter(uc);
 		}
 		_uc = uc;
 	}
 	/// 使用回数カウンタを外す。
 	void removeUseCounter() {
 		foreach (s; starts) {
-			s.removeUseCounter;
+			s.removeUseCounter();
+		}
+		foreach (kc; _keyCodes) {
+			kc.removeUseCounter();
 		}
 		_uc = null;
 	}
 
 	/// スタートの使用回数カウンタ。
+	@property
 	SUseCounter startUseCounter() {return _suc;}
 
 	/// エリア到着時・クリック時・パッケージ開始時・勝利・死亡時に発火するか。
+	@property
 	void enter(bool enter) {
-		if (_enter != enter) changed;
+		if (_enter != enter) changed();
 		_enter = enter;
 	}
 	/// ditto
+	@property
 	const
 	bool fireEnter() {
 		return _enter;
 	}
 
 	/// 逃走時に発火するか。
+	@property
 	void escape(bool escape) {
-		if (_escape != escape) changed;
+		if (_escape != escape) changed();
 		_escape = escape;
 	}
 	/// ditto
+	@property
 	const
 	bool fireEscape() {
 		return _escape;
 	}
 
 	/// 敗北時に発火するか。
+	@property
 	void lose(bool lose) {
-		if (_lose != lose) changed;
+		if (_lose != lose) changed();
 		_lose = lose;
 	}
 	/// ditto
+	@property
 	const
 	bool fireLose() {
 		return _lose;
@@ -1791,7 +2313,7 @@ public:
 	/// 発火ラウンドを追加。追加できた場合はtrueを返す。
 	bool addRound(uint round) {
 		if (!fireRound(round)) {
-			changed;
+			changed();
 			_rounds ~= round;
 			return true;
 		}
@@ -1802,9 +2324,9 @@ public:
 		auto s = new HashSet!(uint);
 		foreach (r; _rounds) s.add(r);
 		foreach (r; rounds) s.add(r);
-		rounds = s.toArray.sort;
+		rounds = s.toArray().sort;
 		if (rounds != _rounds) {
-			changed;
+			changed();
 			_rounds = rounds;
 			return true;
 		}
@@ -1821,8 +2343,21 @@ public:
 		return false;
 	}
 	/// 発火ラウンド群。
+	@property
 	uint[] rounds() {
 		return _rounds;
+	}
+	/// ditto
+	@property
+	const
+	const(uint)[] rounds() {
+		return _rounds;
+	}
+	/// ditto
+	@property
+	void rounds(uint[] rounds) {
+		if (_rounds != rounds) changed();
+		_rounds = rounds;
 	}
 	/// 発火ラウンドを除去。
 	void removeRound(uint round) {
@@ -1843,8 +2378,11 @@ public:
 	/// Returns: 追加できた場合はtrue。
 	bool addKeyCode(string keyCode) {
 		if (!fireKeyCode(keyCode)) {
-			changed;
-			_keyCodes ~= keyCode;
+			changed();
+			auto user = new KeyCodeUser(this);
+			if (useCounter) user.setUseCounter = useCounter;
+			user.keyCode = keyCode;
+			_keyCodes ~= user;
 			return true;
 		}
 		return false;
@@ -1853,25 +2391,45 @@ public:
 	const
 	bool fireKeyCode(string keyCode) {
 		foreach (kc; _keyCodes) {
-			if (kc == keyCode) {
+			if (kc.keyCode == keyCode) {
 				return true;
 			}
 		}
 		return false;
 	}
 	/// 発火キーコード群。
+	@property
+	const
 	string[] keyCodes() {
-		return _keyCodes;
+		auto r = new string[_keyCodes.length];
+		foreach (i, ref kc; r) {
+			kc = _keyCodes[i].keyCode;
+		}
+		return r;
 	}
 	/// ditto
+	@property
 	void keyCodes(string[] keyCodes) {
-		if (_keyCodes != keyCodes) changed;
-		_keyCodes = keyCodes;
+		if (this.keyCodes != keyCodes) {
+			changed();
+			foreach (c; _keyCodes) {
+				c.removeUseCounter();
+			}
+			_keyCodes.length = keyCodes.length;
+			foreach (i, ref c; _keyCodes) {
+				c = new KeyCodeUser(this);
+				c.keyCode = keyCodes[i];
+				if (useCounter) {
+					c.setUseCounter = useCounter;
+				}
+			}
+		}
 	}
 	/// 発火キーコードを除去。
 	void removeKeyCode(string keyCode) {
 		foreach (i, kc; _keyCodes) {
-			if (kc == keyCode) {
+			if (kc.keyCode == keyCode) {
+				kc.removeUseCounter();
 				_keyCodes = _keyCodes[0 .. i] ~ _keyCodes[i + 1 .. $];
 				return;
 			}
@@ -1880,30 +2438,33 @@ public:
 	}
 	/// ditto
 	void removeKeyCodesAll() {
+		foreach (kc; _keyCodes) {
+			kc.removeUseCounter();
+		}
 		_keyCodes.length = 0;
 	}
 
 	/// イベントツリーをXMLテキストにする。
 	const
-	string toXML() {
-		return toNode.text;
+	string toXML(XMLOption opt) {
+		return toNode(opt).text;
 	}
 	/// イベントツリーをXMLノードにする。
 	const
-	XNode toNode() {
+	XNode toNode(XMLOption opt) {
 		auto doc = XNode.create("Event");
-		__toNode(doc);
+		__toNode(doc, opt);
 		return doc;
 	}
 	/// 指定されたXMLノード(Events)にこのインスタンスのデータを追加する。
 	const
-	void toNode(ref XNode node) {
+	void toNode(ref XNode node, XMLOption opt) {
 		assert (node.name == "Events", node.name ~ " != Events");
 		auto e = node.newElement("Event");
-		__toNode(e);
+		__toNode(e, opt);
 	}
 	const
-	private void __toNode(ref XNode node) {
+	private void __toNode(ref XNode node, XMLOption opt) {
 		assert (node.name == "Event", node.name ~ " != Event");
 		if (_enter || _escape || _lose || _rounds.length > 0 || _keyCodes.length > 0) {
 			auto ig = node.newElement("Ignitions");
@@ -1915,11 +2476,11 @@ public:
 				nums ~= ("-" ~ to!(string)(r));
 			}
 			ig.newElement("Number", encodeLf(nums, false));
-			ig.newElement("KeyCodes", encodeLf(_keyCodes));
+			ig.newElement("KeyCodes", encodeLf(keyCodes));
 		}
 		auto c = node.newElement("Contents");
 		foreach (st; _starts) {
-			st.toNode(c);
+			st.toNode(c, opt);
 		}
 	}
 
@@ -1942,7 +2503,7 @@ public:
 			node.onTag["Start"] = (ref XNode node) {
 				r.add(Content.createFromNode(node, ver));
 			};
-			node.parse;
+			node.parse();
 		};
 		node.onTag["Ignitions"] = (ref XNode node) {
 			node.onTag["Number"] = (ref XNode n) {
@@ -1969,13 +2530,13 @@ public:
 				auto val = n.value;
 				if (val.length > 0) {
 					foreach (kc; decodeLf(val)) {
-						r.addKeyCode = kc;
+						r.addKeyCode(kc);
 					}
 				}
 			};
-			node.parse;
+			node.parse();
 		};
-		node.parse;
+		node.parse();
 		return r.starts.length > 0 ? r : null;
 	}
 
@@ -2055,21 +2616,31 @@ public:
 /// イベントツリーの所持者。エリアや効果カード等。
 public interface EventTreeOwner : CWXPath {
 	/// イベントツリー群。
+	@property
 	EventTree[] trees();
+	/// ditto
+	@property
+	const
+	const(EventTree)[] trees();
 
 	/// 発火条件「到着時」に対応しているか。
+	@property
 	const
 	bool canHasFireEnter();
 	/// 発火条件「敗北時」に対応しているか。
+	@property
 	const
 	bool canHasFireLose();
 	/// 発火条件「逃走時」に対応しているか。
+	@property
 	const
 	bool canHasFireEscape();
 	/// 発火条件「ラウンド」に対応しているか。
+	@property
 	const
 	bool canHasFireRound();
 	/// 発火条件「キーコード」に対応しているか。
+	@property
 	const
 	bool canHasFireKeyCode();
 
@@ -2085,7 +2656,13 @@ public interface EventTreeOwner : CWXPath {
 	void swapEventTree(int index1, int index2);
 
 	/// 属すエリア等からの相対パス。
+	@property
 	size_t[] areaPath();
+
+	/// EventTreeが含まれていないか。
+	/// 内容が空のEventTreeしか持たない場合もtrueとなる。
+	@property
+	bool isEmpty();
 }
 
 /// EventTreeOwnerの仮の実装。
@@ -2095,10 +2672,11 @@ private:
 	UseCounter _uc;
 	void delegate() _change;
 public:
+	@property
 	override abstract size_t[] areaPath();
 
 	CWXPath findCWXPath(string path) {
-		if (path == "") return this;
+		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		if (cate == "event") {
 			auto index = cpindex(path);
@@ -2107,6 +2685,7 @@ public:
 		}
 		return null;
 	}
+	@property
 	CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		r ~= cast(CWXPath[]) trees;
@@ -2114,10 +2693,12 @@ public:
 	}
 
 	/// 使用回数カウンタ。
+	@property
 	UseCounter useCounter() {
 		return _uc;
 	}
 	/// 変更ハンドラを登録する。
+	@property
 	void changeHandler(void delegate() change) {
 		foreach (e; _evts) {
 			e.changeHandler = change;
@@ -2125,6 +2706,7 @@ public:
 		_change = change;
 	}
 	/// 変更ハンドラ。
+	@property
 	protected void delegate() changeHandler() {
 		return _change;
 	}
@@ -2132,13 +2714,22 @@ public:
 	protected void changed() {
 		if (_change) _change();
 	}
+	/// 委譲によって使用する場合は委譲元を返す。
+	@property
+	protected EventTreeOwner con() {return this;}
 
+	@property
 	EventTree[] trees() {
+		return _evts;
+	}
+	@property
+	const
+	const(EventTree)[] trees() {
 		return _evts;
 	}
 
 	void swapEventTree(int index1, int index2) {
-		if (index1 != index2) changed;
+		if (index1 != index2) changed();
 		auto temp = _evts[index1];
 		_evts[index1] = _evts[index2];
 		_evts[index2] = temp;
@@ -2153,15 +2744,15 @@ public:
 		if (!canHasFireEnter) evt.enter = false;
 		if (!canHasFireLose) evt.lose = false;
 		if (!canHasFireEscape) evt.escape = false;
-		if (!canHasFireRound) evt.removeRoundsAll;
-		if (!canHasFireKeyCode) evt.removeKeyCodesAll;
+		if (!canHasFireRound) evt.removeRoundsAll();
+		if (!canHasFireKeyCode) evt.removeKeyCodesAll();
 
 		if (_uc !is null) {
 			evt.setUseCounter(_uc);
 		}
 		evt.changeHandler = changeHandler;
-		evt._owner = this;
-		changed;
+		evt._owner = con;
+		changed();
 	}
 	void add(EventTree evt) {
 		addCmn(evt);
@@ -2176,25 +2767,30 @@ public:
 		}
 	}
 	/// このクラスを継承する場合、「到着時」は有効になる。
+	@property
 	const
 	bool canHasFireEnter() {return true;}
+	@property
 	const
 	abstract bool canHasFireLose();
+	@property
 	const
 	abstract bool canHasFireEscape();
+	@property
 	const
 	abstract bool canHasFireRound();
+	@property
 	const
 	abstract bool canHasFireKeyCode();
 
 	void removeEvent(int index) {
 		if (_uc !is null) {
-			_evts[index].removeUseCounter;
+			_evts[index].removeUseCounter();
 		}
 		_evts[index].changeHandler = null;
 		_evts[index]._owner = null;
 		_evts = _evts[0 .. index] ~ _evts[index + 1 .. $];
-		changed;
+		changed();
 	}
 	void remove(EventTree et) {
 		foreach (i, t; _evts) {
@@ -2207,6 +2803,7 @@ public:
 	}
 
 	/// 使用回数カウンタを登録・除去する。
+	@property
 	void setUseCounter(UseCounter uc) {
 		foreach (tree; _evts) {
 			tree.setUseCounter(uc);
@@ -2216,7 +2813,7 @@ public:
 	/// ditto
 	void removeUseCounter() {
 		foreach (tree; _evts) {
-			tree.removeUseCounter;
+			tree.removeUseCounter();
 		}
 		_uc = null;
 	}
@@ -2229,23 +2826,31 @@ public:
 			auto tree = EventTree.createFromNode(node, ver);
 			if (tree) r ~= tree;
 		};
-		node.parse;
+		node.parse();
 		return r;
 	}
 	/// XMLノードにイベントツリー群のデータを追加する。
 	const
-	void appendEventsToNode(ref XNode node) {
+	void appendEventsToNode(ref XNode node, XMLOption opt) {
 		auto ee = node.newElement("Events");
 		foreach (evt; _evts) {
-			evt.toNode(ee);
+			evt.toNode(ee, opt);
 		}
+	}
+
+	@property
+	override bool isEmpty() {
+		foreach (tree; trees) {
+			if (!tree.isEmpty) return false;
+		}
+		return true;
 	}
 }
 
 /// イベント関連の例外。
 public class EventException : Exception {
 public:
-	this(string msg) {
+	this (string msg) {
 		super(msg);
 	}
 }

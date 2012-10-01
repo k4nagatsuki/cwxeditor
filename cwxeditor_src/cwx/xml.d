@@ -1,10 +1,11 @@
 
 module cwx.xml;
 
-import cwx.utils : to, debugln;
+import cwx.utils : debugln;
 
+import std.conv;
 import std.string;
-import std.xml;
+import d2std.xml;
 
 /// XML文書処理用の構造体。
 struct XNode {
@@ -12,13 +13,13 @@ struct XNode {
 
 	private static E ps(E)(ElementParser ep) {
 		auto e = new E(ep.tag);
-		ep.onText = (string text) {e ~= new Text(text);};
-		ep.onCData = (string cdata) {e ~= new CData(cdata);};
-		ep.onComment = (string comment) {e ~= new Comment(comment);};
-		ep.onPI = (string pi) {e ~= new ProcessingInstruction(pi);};
-		ep.onXI = (string xi) {e.items ~= new XMLInstruction(xi);};
+		ep.onText((string text) {e ~= new Text(text);});
+		ep.onCData((string cdata) {e ~= new CData(cdata);});
+		ep.onComment((string comment) {e ~= new Comment(comment);});
+		ep.onPI((string pi) {e ~= new ProcessingInstruction(pi);});
+		ep.onXI((string xi) {e.items ~= new XMLInstruction(xi);});
 		ep.onStartTag[null] = (ElementParser ep) {e ~= ps!(Element)(ep);};
-		ep.parse;
+		ep.parse();
 		return e;
 	}
 	/// xmlの処理を開始する。
@@ -36,16 +37,24 @@ struct XNode {
 	}
 
 	/// 現在処理中の要素の名前。
+	@property
 	const
 	string name() {return _el.tag.name;}
 	/// 現在処理中の要素のテキスト。
+	@property
 	const
 	string value() {
-		string r = _el.text;
+		string r = _el.text();
 		if (r == "\n") r = "";
 		return r;
 	}
 	/// ditto
+	@property
+	void value(string text) {
+		_el ~= new Text(text);
+	}
+	/// ditto
+	@property
 	const
 	T valueTo(T)() {return to!(T)(value);}
 
@@ -62,7 +71,7 @@ struct XNode {
 	/// 属性nameの値を返す。
 	/// nothingIsErrorにtrueを指定すると、nameが存在しなかった際に例外を投げる。
 	const
-	T attr(T = string)(string name, bool nothingIsError, T defaultValue = T.init) {
+	T attr(T = string)(string name, bool nothingIsError, lazy T defaultValue = T.init) {
 		auto p = name in _el.tag.attr;
 		if (nothingIsError && !p) throw new Exception(name ~ " not found");
 		if (!p) return defaultValue;
@@ -84,6 +93,7 @@ struct XNode {
 		return XNode(null);
 	}
 	/// 有効なXNodeであればtrue。
+	@property
 	const
 	bool valid() {return _el !is null;}
 	/// 要素名と、その要素を発見した際に処理を行うハンドラを登録する。
@@ -102,11 +112,13 @@ struct XNode {
 	}
 
 	/// 処理中の要素が文書ルートであればtrue。
+	@property
 	const
 	bool isRoot() {return cast(Document) _el !is null;}
 
 	/// 文書全体をテキストにして返す。
 	/// ルート要素以外では使用不可。
+	@property
 	const
 	string text() {
 		if (!isRoot) throw new Exception("Node is not Root: " ~ name);
