@@ -149,7 +149,6 @@ private:
 					} else {
 						e.detail = DND.DROP_COPY;
 						storeInsert(dir, tblSels, [dir.indexOf(dirName)], [], []);
-						cdebugln(root.findPath(newPath, false).name);
 						_comm.refFlagDir.call(this.outer, [root.findPath(newPath, false)]);
 					}
 					refresh(newPath);
