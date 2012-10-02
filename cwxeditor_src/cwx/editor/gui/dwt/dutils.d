@@ -118,8 +118,6 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 			}
 			return data;
 		} catch (SWTException e) {
-			cdebugln(e.file);
-			cdebugln(e.line);
 			debugln(e);
 		}
 	}
@@ -1629,13 +1627,15 @@ void drawWallpaper(GC gc, Image img, Rectangle rect, WallpaperStyle style) {
 		}
 		if (data.width != wi || data.height != hi) {
 			auto d = Display.getCurrent();
-			if (!data.palette.isDirect || data.depth < 16) {
+			if (!data.palette.isDirect || data.depth < 16 || 24 < data.depth) {
 				auto buf = new Image(d, data.width, data.height);
 				scope (exit) buf.dispose();
 				auto igc = new GC(buf);
 				scope (exit) igc.dispose();
 				igc.drawImage(img, 0, 0);
-				data = buf.getImageData();
+				auto data2 = buf.getImageData();
+				if (24 < data.depth) data2.alphaData = data.alphaData;
+				data = data2;
 			}
 			size_t bpl;
 			auto bdata = cast(ubyte[]) data.data;
