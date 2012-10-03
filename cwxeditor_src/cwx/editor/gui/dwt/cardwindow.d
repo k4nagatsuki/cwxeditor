@@ -1440,18 +1440,20 @@ public:
 	@property
 	string[] openedCWXPath() {
 		string[] r;
-		static if (1 < Cards.length) {
-			string[] last;
-			foreach (i, pane; _pane) {
-				if (_tabf.getSelectionIndex() == i) {
-					last = pane.openedCWXPath;
-				} else {
-					r ~= pane.openedCWXPath;
+		static if (EditMode) {
+			static if (1 < Cards.length) {
+				string[] last;
+				foreach (i, pane; _pane) {
+					if (_tabf.getSelectionIndex() == i) {
+						last = pane.openedCWXPath;
+					} else {
+						r ~= pane.openedCWXPath;
+					}
 				}
+				r ~= last;
+			} else {
+				r ~= _pane[0].openedCWXPath;
 			}
-			r ~= last;
-		} else {
-			r ~= _pane[0].openedCWXPath;
 		}
 		return r;
 	}
