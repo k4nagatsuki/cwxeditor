@@ -1100,8 +1100,7 @@ private:
 	}
 	private class SelChanged : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			refreshStatusLine();
-			_comm.refreshToolBar();
+			selectChanged();
 		}
 	}
 	static if (EditMode && is(CardOwner : Summary)) {
@@ -1134,6 +1133,28 @@ private:
 	void selectChanged() {
 		refreshStatusLine();
 		_comm.refreshToolBar();
+	}
+	static if (!EditMode) {
+		void selectAll() {
+			if (_viewMode == CViewMode.TABLE) {
+				foreach (i; 0 .. _tbl.getItemCount()) {
+					_tbl.select(i);
+				}
+			} else {
+				foreach (i; 0 .. _list.count()) {
+					_list.select(i);
+				}
+			}
+			selectChanged();
+		}
+		@property
+		int selectionCount() {
+			if (_viewMode == CViewMode.TABLE) {
+				return _tbl.getSelectionCount();
+			} else {
+				return _list.selectionCount;
+			}
+		}
 	}
 	void createCardList(Composite parent) {
 		_list = new CardList!(C)(parent, SWT.VIRTUAL | SWT.V_SCROLL | (EditMode ? SWT.SINGLE : SWT.MULTI) | SWT.BORDER);
@@ -1449,6 +1470,8 @@ public:
 			createMenuItem(_comm, pop, MenuID.Import, &addCard, () => selection !is null);
 			new MenuItem(pop, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, pop, this, false, true, false, false, false);
+			new MenuItem(pop, SWT.SEPARATOR);
+			createMenuItem(_comm, pop, MenuID.SelectAll, &selectAll, () => cards.length && selectionCount != cards.length);
 		}
 		_list.setMenu(pop);
 		_tbl.setMenu(pop);

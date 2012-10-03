@@ -2536,3 +2536,9 @@ private class OpenDir : SelectionAdapter {
 		openFolder(file);
 	}
 }
+
+/// これを実装している場合はIME設定を無視するべきという
+/// マーカインタフェース。
+interface NoIME {
+	// Nothing
+}

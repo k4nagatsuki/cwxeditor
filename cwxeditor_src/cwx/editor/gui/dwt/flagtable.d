@@ -1024,10 +1024,13 @@ private:
 			_dragSteps.length = 0;
 		}
 	}
+	void flagsSelected() {
+		refreshStatusLine();
+		_comm.refreshToolBar();
+	}
 	class SListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			refreshStatusLine();
-			_comm.refreshToolBar();
+			flagsSelected();
 		}
 	}
 	class DListener : DisposeListener {
@@ -1118,6 +1121,12 @@ private:
 		if (flags && !flags.isDisposed()) return flags.getShell();
 		return _comm.mainWin.shell.getShell();
 	}
+	void selectAll() {
+		foreach (i; 0 .. flags.getItemCount()) {
+			flags.select(i);
+		}
+		flagsSelected();
+	}
 public:
 	this (Commons comm, Props prop, UndoManager undo) {
 		_undo = undo;
@@ -1152,6 +1161,8 @@ public:
 		createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, () => flags.getItemCount() && flags.getSelectionCount() != flags.getItemCount());
 		flags.setMenu(menu);
 
 		auto ds = new DragSource(flags, DND.DROP_MOVE | DND.DROP_COPY);

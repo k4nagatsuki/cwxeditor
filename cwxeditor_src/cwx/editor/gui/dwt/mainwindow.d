@@ -2429,16 +2429,22 @@ public:
 			auto focusInOut = new class Listener {
 				private int _imeMode = SWT.NONE;
 				override void handleEvent(Event e) {
-					if (e.type is SWT.FocusIn) {
-						if (auto spn = cast(Spinner) e.widget) {
-							_imeMode = spn.getShell().getImeInputMode();
-							spn.getShell().setImeInputMode(SWT.NONE);
+					auto control = cast(Control) e.widget;
+					if (!control) return;
+					if (e.type is SWT.KeyUp) {
+						if (cast(Spinner) control || cast(NoIME) control) {
+							control.getShell().setImeInputMode(SWT.NONE);
+						}
+					} else if (e.type is SWT.FocusIn) {
+						if (cast(Spinner) control || cast(NoIME) control) {
+							_imeMode = control.getShell().getImeInputMode();
+							control.getShell().setImeInputMode(SWT.NONE);
 						}
 						_comm.refreshToolBar();
 					} else {
 						assert (e.type is SWT.FocusOut);
-						if (auto spn = cast(Spinner) e.widget) {
-							spn.getShell().setImeInputMode(_imeMode);
+						if (cast(Spinner) control || cast(NoIME) control) {
+							control.getShell().setImeInputMode(_imeMode);
 						}
 					}
 				}
@@ -2448,12 +2454,14 @@ public:
 			d.addFilter(SWT.Selection, selectFilter);
 			d.addFilter(SWT.FocusIn, focusInOut);
 			d.addFilter(SWT.FocusOut, focusInOut);
+			d.addFilter(SWT.KeyUp, focusInOut);
 			d.addFilter(SWT.KeyDown, keyDownFilter);
 			d.addFilter(SWT.MouseWheel, switchTab);
 			.listener(_win, SWT.Dispose, {
 				d.removeFilter(SWT.Selection, selectFilter);
 				d.removeFilter(SWT.FocusIn, focusInOut);
 				d.removeFilter(SWT.FocusOut, focusInOut);
+				d.removeFilter(SWT.KeyUp, focusInOut);
 				d.removeFilter(SWT.KeyDown, keyDownFilter);
 				d.removeFilter(SWT.MouseWheel, switchTab);
 			});

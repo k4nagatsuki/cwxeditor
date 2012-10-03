@@ -507,6 +507,10 @@ class Commons {
 
 	void closeAll() {
 		foreach (w; _ws.toArray()) {
+			if (!_ws.contains(w)) {
+				// 他のウィンドウに連動して閉じたものを回避
+				continue;
+			}
 			// 分割領域のサイズを保存するためそれ以外を優先して閉じる
 			auto tlpData = cast(TLPData) w.getData();
 			if (!(cast(SashPanel) tlpData.tlp)) {
@@ -514,10 +518,12 @@ class Commons {
 			}
 		}
 		foreach (w; _ws.toArray()) {
+			if (!_ws.contains(w)) continue;
 			close(w);
 		}
 		assert (_ws.size == 0);
 		foreach (w; _aws.toArray()) {
+			if (!_aws.contains(w)) continue;
 			close(w);
 		}
 		assert (_aws.size == 0);

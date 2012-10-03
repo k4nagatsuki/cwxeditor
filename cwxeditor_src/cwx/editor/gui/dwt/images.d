@@ -1022,7 +1022,7 @@ public:
 
 /// FlexImageと組合わせて柔軟に操作可能な画像を表示するパネル。
 /// See_Also: FlexImage
-public class ImagePane : Canvas {
+public class ImagePane : Canvas, NoIME {
 private:
 	/// トグルごとのカーソル。
 	Cursor[Toggle] toggleCursors;

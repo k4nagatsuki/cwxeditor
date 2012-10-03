@@ -402,6 +402,11 @@ public:
 	int count() {
 		return _items.length;
 	}
+	/// 選択中のアイテムの数。
+	@property
+	int selectionCount() {
+		return _sels.length;
+	}
 	/// Returns: 選択中のアイテムの配列。
 	@property
 	protected CardListItem!(C)[] selectionItems() {
