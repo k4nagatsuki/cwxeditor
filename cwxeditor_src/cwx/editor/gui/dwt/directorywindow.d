@@ -562,9 +562,12 @@ private:
 	}
 	class FilesSelection : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			refreshStatusLine();
-			_comm.refreshToolBar();
+			filesSelected();
 		}
+	}
+	void filesSelected() {
+		refreshStatusLine();
+		_comm.refreshToolBar();
 	}
 	class FileSelect : KeyAdapter, MouseListener {
 	private:
@@ -969,6 +972,14 @@ private:
 		.forceFocus(_files, true);
 		_incSearch.startIncSearch();
 	}
+
+	void selectAll() {
+		foreach (i; 0 .. _files.getItemCount()) {
+			_files.select(i);
+		}
+		filesSelected();
+	}
+
 	void createFilesMenu() {
 		if (_files.getMenu()) _files.getMenu().dispose();
 		auto menu = new Menu(_win.getShell(), SWT.POP_UP);
@@ -985,6 +996,8 @@ private:
 		}
 		if (_prop.var.etc.outerTools.length > 0) new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, () => _files.getItemCount() && _files.getSelectionCount() != _files.getItemCount());
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath, () => _files.getSelectionIndex() != -1);
 		new MenuItem(menu, SWT.SEPARATOR);

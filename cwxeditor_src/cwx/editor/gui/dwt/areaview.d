@@ -703,6 +703,12 @@ private:
 				listSelectC();
 			}
 		}
+		void selectAllC() {
+			foreach (i; 0 .. _cards.getItemCount()) {
+				_cards.select(i);
+			}
+			listSelectC();
+		}
 		void listSelectC() {
 			selectListItem!(C)(_cards, cardsIndex, _editC, _area.cards);
 		}
@@ -762,6 +768,12 @@ private:
 			public override void widgetSelected(SelectionEvent e) {
 				listSelectB();
 			}
+		}
+		void selectAllB() {
+			foreach (i; 0 .. _backs.getItemCount()) {
+				_backs.select(i);
+			}
+			listSelectB();
 		}
 		void listSelectB() {
 			selectListItem!(BgImage)(_backs, 0, _editB, _area.backs);
@@ -1594,7 +1606,7 @@ private:
 		}
 	}
 	Table createList(C)(Composite parent, string name, Image image, TCPD tcpd,
-			void delegate(int[]) edit, C[] delegate() items) {
+			void delegate(int[]) edit, C[] delegate() items, void delegate() selectAll) {
 		auto comp = new Composite(parent, SWT.NONE);
 		comp.setLayout(zeroGridLayout(1));
 		auto label = new CLabel(comp, SWT.NONE);
@@ -1620,6 +1632,8 @@ private:
 			}, () => list.getSelectionIndex() != -1);
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, menu, tcpd, true, true, true, true, true);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.SelectAll, selectAll, () => list.getItemCount() && list.getSelectionCount() != list.getItemCount());
 			static if ((is(A : Area) || is(A : Battle)) && is(C : AbstractSpCard)) {
 				new MenuItem(menu, SWT.SEPARATOR);
 				static if (is(A : Area)) {
@@ -1837,11 +1851,11 @@ public:
 			static if (UseCards) {
 				static if (is (C == MenuCard)) {
 					_cards = createList(listsP, prop.msgs.menuCards,
-						prop.images.cards, ctcpd, &editCard, &_area.cards);
+						prop.images.cards, ctcpd, &editCard, &_area.cards, &selectAllC);
 					new TableTextEdit(_comm, _prop, _cards, 0, &nameEditEnd);
 				} else static if (is (C == EnemyCard)) {
 					_cards = createList(listsP, prop.msgs.enemyCards,
-						prop.images.cards, ctcpd, &editCard, &_area.cards);
+						prop.images.cards, ctcpd, &editCard, &_area.cards, &selectAllC);
 					new TableComboEdit!CCombo(_comm, _prop, _cards, 0, &createEnemyCombo, &enemyEditEnd);
 				}
 				_cards.addSelectionListener(new SCListener);
@@ -1855,7 +1869,7 @@ public:
 			}
 			static if (UseBacks) {
 				_backs = createList(listsP, prop.msgs.backs,
-					prop.images.backs, btcpd, &editBack, &_area.backs);
+					prop.images.backs, btcpd, &editBack, &_area.backs, &selectAllB);
 				_backs.addSelectionListener(new SBListener);
 				new TableComboEdit!CCombo(_comm, _prop, _backs, 0, &createBgImageCombo, &bgImageEditEnd);
 				auto backDrop = new DropTarget(_backs, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
