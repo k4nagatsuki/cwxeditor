@@ -2431,7 +2431,7 @@ public:
 				override void handleEvent(Event e) {
 					auto control = cast(Control) e.widget;
 					if (!control) return;
-					if (e.type is SWT.KeyUp) {
+					if (e.type is SWT.KeyUp || e.type is SWT.KeyDown) {
 						if (cast(Spinner) control || cast(NoIME) control) {
 							control.getShell().setImeInputMode(SWT.NONE);
 						}
@@ -2455,6 +2455,7 @@ public:
 			d.addFilter(SWT.FocusIn, focusInOut);
 			d.addFilter(SWT.FocusOut, focusInOut);
 			d.addFilter(SWT.KeyUp, focusInOut);
+			d.addFilter(SWT.KeyDown, focusInOut);
 			d.addFilter(SWT.KeyDown, keyDownFilter);
 			d.addFilter(SWT.MouseWheel, switchTab);
 			.listener(_win, SWT.Dispose, {
@@ -2462,6 +2463,7 @@ public:
 				d.removeFilter(SWT.FocusIn, focusInOut);
 				d.removeFilter(SWT.FocusOut, focusInOut);
 				d.removeFilter(SWT.KeyUp, focusInOut);
+				d.removeFilter(SWT.KeyDown, focusInOut);
 				d.removeFilter(SWT.KeyDown, keyDownFilter);
 				d.removeFilter(SWT.MouseWheel, switchTab);
 			});
