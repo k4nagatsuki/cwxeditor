@@ -988,7 +988,7 @@ public:
 		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		{
 			_cards = new Tree(_sash, SWT.SINGLE | SWT.BORDER);
-			initTree(_cards, false);
+			initTree(_prop, _cards, false);
 			_cards.addSelectionListener(new SListener);
 
 			auto shell = _cards.getShell();

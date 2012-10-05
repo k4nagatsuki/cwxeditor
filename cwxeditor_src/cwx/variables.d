@@ -159,6 +159,7 @@ class FlexEtcProps : Properties {
 	auto contentsFloat = Prop!(bool)("contentsFloat", false);
 	auto contentsAutoHide = Prop!(bool)("contentsAutoHide", false);
 	auto showContentsBoxHeightWhenNoToolBar = Prop!(int, true)("showContentsBoxHeightWhenNoToolBar", 8);
+	auto clickIsOpenEvent = Prop!(bool)("clickIsOpenEvent", false);
 	auto smoothingCard = Prop!(bool)("smoothingCard", true);
 	auto ignorePathsWidth = Prop!(int, true)("ignorePathsWidth", 50);
 	auto menuSettingsHeight = Prop!(int, true)("menuSettingsHeight", 150);
@@ -242,6 +243,7 @@ class FlexEtcProps : Properties {
 	auto copyDesc = Prop!(bool)("copyDesc", false);
 	auto refCardsAtEditBgImage = Prop!(bool)("refCardsAtEditBgImage", true);
 	auto showImagePreview = Prop!(bool)("showImagePreview", true);
+	auto classicStyleTree = Prop!(bool)("classicStyleTree", false);
 	auto showEventTreeMark = Prop!(bool)("showEventTreeMark", true);
 	auto ignoreEmptyStart = Prop!(bool)("ignoreEmptyStart", true);
 	auto switchTabWheel = Prop!(bool)("switchTabWheel", true);

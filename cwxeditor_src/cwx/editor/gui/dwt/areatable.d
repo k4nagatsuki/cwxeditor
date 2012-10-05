@@ -765,7 +765,11 @@ private:
 				if (itm && 0 == _areas.indexOf(itm)) {
 					editSummary();
 				} else {
-					openAreaEvent(e.x, e.y, true);
+					if (_prop.var.etc.clickIsOpenEvent) {
+						openAreaScene(e.x, e.y, true);
+					} else {
+						openAreaEvent(e.x, e.y, true);
+					}
 				}
 			}
 		}
@@ -774,10 +778,14 @@ private:
 				auto itm = _areas.getItem(new Point(e.x, e.y));
 				if (itm && 0 == _areas.indexOf(itm)) {
 					editSummary();
-				} else if (e.stateMask & SWT.SHIFT) {
-					openAreaEvent(true);
 				} else {
-					openAreaScene(true);
+					bool shift = 0 != (e.stateMask & SWT.SHIFT);
+					if (_prop.var.etc.clickIsOpenEvent) shift = !shift;
+					if (shift) {
+						openAreaEvent(true);
+					} else {
+						openAreaScene(true);
+					}
 				}
 			}
 		}
@@ -787,10 +795,14 @@ private:
 			if (_areas.isFocusControl() && e.character == SWT.CR) {
 				if (0 == _areas.getSelectionIndex()) {
 					editSummary();
-				} else if (e.stateMask & SWT.SHIFT) {
-					openAreaEvent(true);
 				} else {
-					openAreaScene(true);
+					bool shift = 0 != (e.stateMask & SWT.SHIFT);
+					if (_prop.var.etc.clickIsOpenEvent) shift = !shift;
+					if (shift) {
+						openAreaEvent(true);
+					} else {
+						openAreaScene(true);
+					}
 				}
 			}
 		}
@@ -1228,6 +1240,15 @@ public:
 			}
 		}
 	}
+	void openAreaScene(int x, int y, bool shellActivate) {
+		auto itm = _areas.getItem(new Point(x, y));
+		if (itm) {
+			_areas.setSelection([itm]);
+			openAreaScene(cast(AbstractArea) itm.getData(), shellActivate);
+		} else {
+			openAreaScene(shellActivate);
+		}
+	}
 	void openAreaEvent(int x, int y, bool shellActivate) {
 		auto itm = _areas.getItem(new Point(x, y));
 		if (itm) {
@@ -1241,6 +1262,23 @@ public:
 		auto area = getSelectionArea();
 		if (area) {
 			openAreaEvent(area, shellActivate);
+		}
+	}
+	void openAreaScene(AbstractArea area, bool shellActivate) {
+		auto a = cast(Area) area;
+		if (a) {
+			openAreaSceneImpl(a, shellActivate);
+			return;
+		}
+		auto b = cast(Battle) area;
+		if (b) {
+			openAreaSceneImpl(b, shellActivate);
+			return;
+		}
+		auto p = cast(Package) area;
+		if (p) {
+			_comm.openArea(_prop, _summ, p, shellActivate);
+			return;
 		}
 	}
 	void openAreaEvent(AbstractArea area, bool shellActivate) {
