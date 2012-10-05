@@ -2064,6 +2064,14 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 		noID = comm.prop.msgs.noStart;
 		find = () => evt.tree.hasStart(id);
 		use = id && id.length;
+		if ("" == id && evt) {
+			foreach (s; evt.tree.starts) {
+				if (!s.name.length) {
+					use = true;
+					break;
+				}
+			}
+		}
 		name = id;
 	} else static assert (0);
 	if (!use) return .tryFormat(msg, noSelect);

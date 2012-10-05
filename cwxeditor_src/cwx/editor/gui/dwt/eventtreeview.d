@@ -1348,6 +1348,7 @@ private:
 			refreshStatusLine();
 			_comm.refUseCount.call();
 			_comm.refreshToolBar();
+			_tree.redraw();
 		}
 	}
 	ToolItem createEI(CType type, ToolBar bar, RadioGroup!(ToolItem) g, Menu convMenu) {
