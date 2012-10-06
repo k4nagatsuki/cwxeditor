@@ -1666,29 +1666,81 @@ void setComboItems(C)(C combo, string[] items) {
 }
 
 /// Windows Vista以降で、Treeに点線を表示する。
-void initTree(Props prop, Tree tree, bool eventTree) {
+void initTree(Commons comm, Tree tree, bool eventTree) {
 	version (Windows) {
-		auto style = OS.GetWindowLong(tree.handle, GWL_STYLE);
-		style |= OS.TVS_HASLINES;
 		if (eventTree) {
-			if (prop.var.etc.classicStyleTree) {
-				style &= ~OS.TVS_HASBUTTONS;
-				style &= ~OS.TVS_LINESATROOT;
-			}
-			.listener(tree, SWT.MouseDoubleClick , (Event e) {
-				if (1 != e.button) return;
-				auto itm = tree.getItem(new Point(e.x, e.y));
-				if (!itm) return;
-				if (!itm.getParentItem()) {
-					itm.setExpanded(!itm.getExpanded());
-					tree.redraw();
+			Listener keyDown = null, mouseDoubleClick = null;
+			void updateTreeStyle() {
+				auto style = OS.GetWindowLong(tree.handle, GWL_STYLE);
+				style |= OS.TVS_HASLINES;
+				if (comm.prop.var.etc.classicStyleTree) {
+					style &= ~OS.TVS_HASBUTTONS;
+					style &= ~OS.TVS_LINESATROOT;
+					if (!keyDown) {
+						keyDown = new class Listener {
+							override void handleEvent(Event e) {
+								auto itms = tree.getSelection();
+								if (!itms.length) return;
+								if (SWT.ARROW_LEFT is e.keyCode) {
+									auto par = itms[0].getParentItem();
+									if (par) {
+										tree.setSelection(par);
+										e.doit = false;
+										return;
+									}
+								}
+							}
+						};
+						mouseDoubleClick = new class Listener {
+							override void handleEvent(Event e) {
+								if (1 != e.button) return;
+								auto itm = tree.getItem(new Point(e.x, e.y));
+								if (!itm) return;
+								if (!itm.getParentItem()) {
+									itm.setExpanded(!itm.getExpanded());
+									tree.redraw();
+								}
+							}
+						};
+						tree.addListener(SWT.KeyDown, keyDown);
+						tree.addListener(SWT.MouseDoubleClick, mouseDoubleClick);
+					}
+					void recurse(TreeItem itm) {
+						if (itm.getParentItem()) {
+							itm.setExpanded(true);
+						}
+						foreach (c; itm.getItems()) {
+							recurse(c);
+						}
+					}
+					foreach (itm; tree.getItems()) {
+						recurse(itm);
+					}
+				} else {
+					style |= OS.TVS_HASBUTTONS;
+					style |= OS.TVS_LINESATROOT;
+					if (keyDown) {
+						tree.removeListener(SWT.KeyDown, keyDown);
+						tree.removeListener(SWT.MouseDoubleClick, mouseDoubleClick);
+						keyDown = null;
+						mouseDoubleClick = null;
+					}
 				}
+				style = OS.SetWindowLong(tree.handle, GWL_STYLE, style);
+				OS.SetWindowPos(tree.handle, null, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+			}
+			comm.refEventTreeStyle.add(&updateTreeStyle);
+			.listener(tree, SWT.Dispose, {
+				comm.refEventTreeStyle.remove(&updateTreeStyle);
 			});
+			updateTreeStyle();
 		} else {
+			auto style = OS.GetWindowLong(tree.handle, GWL_STYLE);
+			style |= OS.TVS_HASLINES;
 			style &= ~OS.TVS_LINESATROOT;
+			style = OS.SetWindowLong(tree.handle, GWL_STYLE, style);
+			OS.SetWindowPos(tree.handle, null, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 		}
-		style = OS.SetWindowLong(tree.handle, GWL_STYLE, style);
-		OS.SetWindowPos(tree.handle, null, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 	}
 }
 
