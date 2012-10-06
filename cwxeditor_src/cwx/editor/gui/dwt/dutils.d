@@ -1685,6 +1685,7 @@ void initTree(Commons comm, Tree tree, bool eventTree) {
 									auto par = itms[0].getParentItem();
 									if (par) {
 										tree.setSelection(par);
+										comm.refreshToolBar();
 										e.doit = false;
 										return;
 									}
@@ -1699,6 +1700,7 @@ void initTree(Commons comm, Tree tree, bool eventTree) {
 								if (!itm.getParentItem()) {
 									itm.setExpanded(!itm.getExpanded());
 									tree.redraw();
+									comm.refreshToolBar();
 								}
 							}
 						};

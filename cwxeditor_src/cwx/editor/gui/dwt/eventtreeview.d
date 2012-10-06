@@ -1852,6 +1852,9 @@ public:
 		}
 		_tree.addTreeListener(new TListener);
 		_tree.addSelectionListener(new SListener);
+		.listener(_tree, SWT.KeyUp, {
+			_comm.refreshToolBar();
+		});
 		if (_mTrack) {
 			_tree.addListener(SWT.MouseMove, _mTrack);
 		}
