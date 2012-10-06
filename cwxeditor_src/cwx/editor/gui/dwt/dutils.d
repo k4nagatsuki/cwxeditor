@@ -1666,11 +1666,25 @@ void setComboItems(C)(C combo, string[] items) {
 }
 
 /// Windows Vista以降で、Treeに点線を表示する。
-void initTree(Tree tree, bool closeRoot) {
+void initTree(Props prop, Tree tree, bool eventTree) {
 	version (Windows) {
 		auto style = OS.GetWindowLong(tree.handle, GWL_STYLE);
 		style |= OS.TVS_HASLINES;
-		if (!closeRoot) {
+		if (eventTree) {
+			if (prop.var.etc.classicStyleTree) {
+				style &= ~OS.TVS_HASBUTTONS;
+				style &= ~OS.TVS_LINESATROOT;
+			}
+			.listener(tree, SWT.MouseDoubleClick , (Event e) {
+				if (1 != e.button) return;
+				auto itm = tree.getItem(new Point(e.x, e.y));
+				if (!itm) return;
+				if (!itm.getParentItem()) {
+					itm.setExpanded(!itm.getExpanded());
+					tree.redraw();
+				}
+			});
+		} else {
 			style &= ~OS.TVS_LINESATROOT;
 		}
 		style = OS.SetWindowLong(tree.handle, GWL_STYLE, style);
@@ -2064,6 +2078,14 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 		noID = comm.prop.msgs.noStart;
 		find = () => evt.tree.hasStart(id);
 		use = id && id.length;
+		if ("" == id && evt) {
+			foreach (s; evt.tree.starts) {
+				if (!s.name.length) {
+					use = true;
+					break;
+				}
+			}
+		}
 		name = id;
 	} else static assert (0);
 	if (!use) return .tryFormat(msg, noSelect);

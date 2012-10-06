@@ -896,6 +896,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		_type = type;
 
+		if (_suc) {
+			if (od.use(CArg.START) && !detail.use(CArg.START)) {
+				_suc.remove(toStartId(_start), this);
+			} else if (!od.use(CArg.START) && detail.use(CArg.START)) {
+				_suc.add(toStartId(_start), this);
+			}
+		}
+
 		resetValue!(CArg.AREA, ulong, 0)(d, &area);
 		resetValue!(CArg.BATTLE, ulong, 0)(d, &battle);
 		resetValue!(CArg.PACKAGE, ulong, 0)(d, &packages);
@@ -1307,9 +1315,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// スタート名。
 	@property
 	void start(string start) {
-		if (_suc) {
-			if (_start) _suc.remove(toStartId(_start), this);
-			if (start) _suc.add(toStartId(start), this);
+		if (_suc && detail.use(CArg.START)) {
+			_suc.remove(toStartId(_start), this);
+			_suc.add(toStartId(start), this);
 		}
 		_start = start;
 	}
@@ -1531,10 +1539,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	@property
 	void setSUseCounter(SUseCounter suc) {
 		if (_suc is suc) return;
-		if (suc && _start) {
+		if (suc && detail.use(CArg.START)) {
 			suc.add(toStartId(_start), this);
 		}
-		if (_suc && _start) {
+		if (_suc && detail.use(CArg.START)) {
 			_suc.remove(toStartId(_start), this);
 		}
 		foreach (c; next) {
@@ -1544,7 +1552,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	/// ditto
 	void removeSUseCounter() {
-		if (_suc && _start) {
+		if (_suc && detail.use(CArg.START)) {
 			_suc.remove(toStartId(_start), this);
 		}
 		foreach (c; next) {

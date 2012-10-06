@@ -1514,7 +1514,7 @@ public:
 		auto dirsComp = new Composite(_sash, SWT.NONE);
 		dirsComp.setLayout(new FillLayout);
 		_dirs = new Tree(dirsComp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
-		initTree(_dirs, false);
+		initTree(_prop, _dirs, false);
 		{
 			_dirs.addSelectionListener(new DirsSelection);
 			_dirsEdit = new TreeEdit(_comm, _dirs, &dirsEditEnd, &dirsCreateEditor);

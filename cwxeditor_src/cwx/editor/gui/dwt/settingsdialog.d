@@ -1388,8 +1388,11 @@ private:
 	string[string] _msgsTableFile;
 	Text _ignorePaths;
 	Button _singleWindow = null;
+
+	Button _clickIsOpenEvent;
 	Button _smoothingCard;
 	Button _showImagePreview;
+	Button _classicStyleTree;
 	Button _showEventTreeMark;
 	Button _ignoreEmptyStart;
 	Button _expandXMLs;
@@ -2202,8 +2205,10 @@ private:
 				if (!_comm.singleWindowMode(_prop)) {
 					_singleWindow = createB(_prop.msgs.singleWindow);
 				}
+				_clickIsOpenEvent = createB(_prop.msgs.clickIsOpenEvent);
 				_smoothingCard = createB(_prop.msgs.smoothingCard);
 				_showImagePreview = createB(_prop.msgs.showImagePreview);
+				_classicStyleTree = createB(_prop.msgs.classicStyleTree);
 				_showEventTreeMark = createB(_prop.msgs.showEventTreeMark);
 				_ignoreEmptyStart = createB(_prop.msgs.ignoreEmptyStart);
 				_expandXMLs = createB(_prop.msgs.expandXMLs);
@@ -2455,9 +2460,12 @@ protected:
 			ipbuf ~= path ~ "\n";
 		}
 		_ignorePaths.setText(ipbuf);
+
+		_clickIsOpenEvent.setSelection(_prop.var.etc.clickIsOpenEvent);
 		_expandXMLs.setSelection(_prop.var.etc.expandXMLs);
 		_smoothingCard.setSelection(_prop.var.etc.smoothingCard);
 		_showImagePreview.setSelection(_prop.var.etc.showImagePreview);
+		_classicStyleTree.setSelection(_prop.var.etc.classicStyleTree);
 		_showEventTreeMark.setSelection(_prop.var.etc.showEventTreeMark);
 		_ignoreEmptyStart.setSelection(_prop.var.etc.ignoreEmptyStart);
 		if (_singleWindow) {
@@ -2601,8 +2609,10 @@ protected:
 		if (_singleWindow) {
 			_prop.var.etc.singleWindow = _singleWindow.getSelection();
 		}
+		_prop.var.etc.clickIsOpenEvent = _clickIsOpenEvent.getSelection();
 		_prop.var.etc.smoothingCard = _smoothingCard.getSelection();
 		_prop.var.etc.showImagePreview = _showImagePreview.getSelection();
+		_prop.var.etc.classicStyleTree = _classicStyleTree.getSelection();
 		_prop.var.etc.showEventTreeMark = _showEventTreeMark.getSelection();
 		_prop.var.etc.ignoreEmptyStart = _ignoreEmptyStart.getSelection();
 		_prop.var.etc.expandXMLs = _expandXMLs.getSelection();

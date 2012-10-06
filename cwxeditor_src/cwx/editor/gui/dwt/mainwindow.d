@@ -2431,7 +2431,7 @@ public:
 				override void handleEvent(Event e) {
 					auto control = cast(Control) e.widget;
 					if (!control) return;
-					if (e.type is SWT.KeyUp) {
+					if (e.type is SWT.KeyUp || e.type is SWT.KeyDown) {
 						if (cast(Spinner) control || cast(NoIME) control) {
 							control.getShell().setImeInputMode(SWT.NONE);
 						}
@@ -2455,15 +2455,19 @@ public:
 			d.addFilter(SWT.FocusIn, focusInOut);
 			d.addFilter(SWT.FocusOut, focusInOut);
 			d.addFilter(SWT.KeyUp, focusInOut);
+			d.addFilter(SWT.KeyDown, focusInOut);
 			d.addFilter(SWT.KeyDown, keyDownFilter);
 			d.addFilter(SWT.MouseWheel, switchTab);
+			d.addFilter(SWT.Traverse, switchTab);
 			.listener(_win, SWT.Dispose, {
 				d.removeFilter(SWT.Selection, selectFilter);
 				d.removeFilter(SWT.FocusIn, focusInOut);
 				d.removeFilter(SWT.FocusOut, focusInOut);
 				d.removeFilter(SWT.KeyUp, focusInOut);
+				d.removeFilter(SWT.KeyDown, focusInOut);
 				d.removeFilter(SWT.KeyDown, keyDownFilter);
 				d.removeFilter(SWT.MouseWheel, switchTab);
+				d.removeFilter(SWT.Traverse, switchTab);
 			});
 			refreshExecEngine();
 			refreshOuterTools();
@@ -2608,9 +2612,11 @@ public:
 			auto w = cast(Control) e.widget;
 			if (!w) return false;
 			if (tabf.getItemCount() <= 1) return false;
-			auto p = w.toDisplay(e.x, e.y);
-			auto ca = tabf.getClientArea();
-			if (ca.y <= tabf.toControl(p).y) return false;
+			if (e.type is SWT.MouseWheel) {
+				auto p = w.toDisplay(e.x, e.y);
+				auto ca = tabf.getClientArea();
+				if (ca.y <= tabf.toControl(p).y) return false;
+			}
 			int index = tabf.indexOf(tab);
 			assert (-1 != index);
 			if (e.count < 0) {
@@ -2635,11 +2641,30 @@ public:
 
 		override void handleEvent(Event e) {
 			if (!_prop.var.etc.switchTabWheel) return;
-			if (e.type != SWT.MouseWheel) return;
+			if (e.type != SWT.MouseWheel && e.type != SWT.Traverse) return;
 			auto d = Display.getCurrent();
-			auto c = d.getCursorControl();
+			Control c;
+			if (e.type is SWT.MouseWheel) {
+				c = d.getCursorControl();
+			} else if (e.type is SWT.Traverse) {
+				c = d.getFocusControl();
+				while (c) {
+					if (cast(CTabFolder) c) break;
+					c = c.getParent();
+				}
+			}
 			if (!c) return;
 			if (!.isDescendant(_win, c.getShell())) return;
+
+			if (e.type is SWT.Traverse && (e.stateMask & SWT.CTRL)) {
+				if (e.detail is SWT.TRAVERSE_TAB_NEXT) {
+					e.count = -1;
+				} else if (e.detail is SWT.TRAVERSE_TAB_PREVIOUS) {
+					e.count = 1;
+				} else {
+					return;
+				}
+			}
 
 			auto ctabf = cast(CTabFolder) c;
 			if (ctabf) {

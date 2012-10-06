@@ -350,7 +350,7 @@ public:
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout(new FillLayout);
 		dirs = new Tree(_comp, SWT.SINGLE | SWT.BORDER);
-		initTree(dirs, false);
+		initTree(prop, dirs, false);
 
 		edit = new TreeEdit(_comm, dirs, &editEnd, &createEditor);
 
