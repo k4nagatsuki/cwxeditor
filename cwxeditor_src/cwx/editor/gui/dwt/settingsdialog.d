@@ -2713,6 +2713,7 @@ struct OldSettings {
 	int soundEffectPlayType;
 	bool showEventTreeMark;
 	bool ignoreEmptyStart;
+	bool classicStyleTree;
 	this (Props prop) {
 		this.prop = prop;
 		this.oldEnginePath = prop.var.etc.enginePath;
@@ -2746,6 +2747,7 @@ struct OldSettings {
 		this.soundEffectPlayType = prop.var.etc.soundEffectPlayType;
 		this.showEventTreeMark = prop.var.etc.showEventTreeMark;
 		this.ignoreEmptyStart = prop.var.etc.ignoreEmptyStart;
+		this.classicStyleTree = prop.var.etc.classicStyleTree;
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
@@ -2841,6 +2843,9 @@ struct OldSettings {
 		}
 		if (this.showEventTreeMark != prop.var.etc.showEventTreeMark || this.ignoreEmptyStart != prop.var.etc.ignoreEmptyStart) {
 			comm.refCardImageStatus.call();
+		}
+		if (this.classicStyleTree != prop.var.etc.classicStyleTree) {
+			comm.refEventTreeStyle.call();
 		}
 	}
 }

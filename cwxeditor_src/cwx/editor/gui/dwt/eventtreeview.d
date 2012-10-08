@@ -1773,7 +1773,7 @@ public:
 		_cbarPar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		_cbarPar.setLayout(new FillLayout);
 		_tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
-		initTree(_prop, _tree, true);
+		initTree(_comm, _tree, true);
 		_tree.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_tree.addPaintListener(new PaintTree);
 		new TreeEdit(_comm, _tree, &editEnd, &createEditor);
@@ -1852,6 +1852,9 @@ public:
 		}
 		_tree.addTreeListener(new TListener);
 		_tree.addSelectionListener(new SListener);
+		.listener(_tree, SWT.KeyUp, {
+			_comm.refreshToolBar();
+		});
 		if (_mTrack) {
 			_tree.addListener(SWT.MouseMove, _mTrack);
 		}

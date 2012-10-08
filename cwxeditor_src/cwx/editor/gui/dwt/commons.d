@@ -312,6 +312,7 @@ class Commons {
 	Dlg!() refSoundType;
 	Dlg!() refShowToolBar;
 	Dlg!() refCardImageStatus;
+	Dlg!() refEventTreeStyle;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;
