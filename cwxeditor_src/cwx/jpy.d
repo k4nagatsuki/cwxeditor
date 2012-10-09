@@ -164,12 +164,10 @@ string readJPYFile(string path, out bool isSJIS) {
 }
 /// ditto
 private string readJPYFile(string path) {
-	auto value = cast(char[]) std.file.read(path);
 	try {
-		validate(value);
-		return assumeUnique(value);
-	} catch {
-		return touni(value);
+		return std.file.readText(path);
+	} catch (UTFException e) {
+		return touni(cast(char[]) std.file.read(path));
 	}
 }
 /// pathへ書き込む。

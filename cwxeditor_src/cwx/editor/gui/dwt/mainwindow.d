@@ -1606,7 +1606,7 @@ private:
 			version (Windows) {
 				if (summary.legacy) {
 					auto settings = _comm.skin.loadEngineSettings();
-					switch (.toLower(settings.get("soundapibgm", ""))) {
+					switch (.toLower(settings.get("musicapi", settings.get("soundapibgm", "")))) {
 					case "winmm":
 						engineTypeBGM = SOUND_TYPE_MCI;
 						break;
@@ -1616,7 +1616,7 @@ private:
 					default:
 						break;
 					}
-					switch (.toLower(settings.get("soundapise", ""))) {
+					switch (.toLower(settings.get("soundapi", settings.get("soundapise", "")))) {
 					case "winmm":
 						engineTypeSE = SOUND_TYPE_MCI;
 						break;

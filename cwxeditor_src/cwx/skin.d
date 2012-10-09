@@ -10,6 +10,7 @@ import cwx.types;
 import cwx.structs;
 import cwx.features;
 import cwx.background;
+import cwx.sjis;
 
 import std.exception;
 import std.conv;
@@ -546,8 +547,15 @@ class Skin {
 		if (_legacyEngine.length) {
 			auto ini = _legacyEngine.dirName().buildPath("cwex.ini");
 			if (!ini.exists()) return r;
+			string iniText;
+			try {
+				iniText = std.file.readText(ini);
+			} catch (UTFException e) {
+				// ここではMS932を想定
+				iniText = .touni(cast(char[]) std.file.read(ini));
+			}
 			/// UTF-8とは限らないため、バイナリで読み込む
-			foreach (line; (cast(const char[]) std.file.read(ini)).splitLines()) {
+			foreach (line; iniText.splitLines()) {
 				auto ln = line.split("=");
 				if (2 != ln.length) continue;
 				auto key = ln[0].strip();
