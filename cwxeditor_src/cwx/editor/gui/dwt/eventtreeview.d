@@ -2225,7 +2225,7 @@ public:
 				_refreshTopStart();
 			}
 		} else {
-			auto combo = cast(CCombo) c;
+			auto combo = cast(Combo) c;
 			int index = combo.getSelectionIndex();
 			auto data = cast(Content) itm.getParentItem().getData();
 			string name;
@@ -2284,7 +2284,7 @@ public:
 		refreshStatusLine();
 		_comm.refreshToolBar();
 	}
-	private CCombo createBoolEditor(string Create)(Content evt, Content child) {
+	private Combo createBoolEditor(string Create)(Content evt, Content child) {
 		string[] vals;
 		vals.length = 2;
 		string name = _prop.sys.evtChildTrue;
@@ -2293,7 +2293,7 @@ public:
 		vals[1] = mixin (Create);
 		return createComboEditor(_comm, _prop, _tree, vals, vals[child.name == _prop.sys.evtChildTrue ? 0 : 1]);
 	}
-	private CCombo createBoolEditor2(string Create)(Content evt, Content child) {
+	private Combo createBoolEditor2(string Create)(Content evt, Content child) {
 		string[] vals;
 		vals.length = 2;
 		string name = _prop.sys.evtChildTrue;
@@ -2302,7 +2302,7 @@ public:
 		vals[1] = mixin (Create);
 		return createComboEditor(_comm, _prop, _tree, vals, vals[child.name == _prop.sys.evtChildTrue ? 0 : 1]);
 	}
-	private CCombo createNumEditor(string Create)(Content evt, Content child, ulong[] nums) {
+	private Combo createNumEditor(string Create)(Content evt, Content child, ulong[] nums) {
 		string[] vals;
 		vals.length = nums.length + 1;
 		int index = nums.length;
@@ -2317,7 +2317,7 @@ public:
 		vals[$ - 1] = mixin (Create);
 		return createComboEditor(_comm, _prop, _tree, vals, vals[index]);
 	}
-	private CCombo createAreaSelectEditor(string Create, A)(Content evt, Content child, A[] areas) {
+	private Combo createAreaSelectEditor(string Create, A)(Content evt, Content child, A[] areas) {
 		ulong[] nums;
 		nums.length = areas.length;
 		foreach (i, area; areas) {
@@ -2325,7 +2325,7 @@ public:
 		}
 		return createNumEditor!(Create)(evt, child, nums);
 	}
-	private CCombo createTrioEditor(string Create)(Content evt, Content child) {
+	private Combo createTrioEditor(string Create)(Content evt, Content child) {
 		string[] vals;
 		vals.length = 3;
 		string name = _prop.sys.evtChildGreater;

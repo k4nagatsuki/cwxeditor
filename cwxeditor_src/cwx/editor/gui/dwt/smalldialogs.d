@@ -537,7 +537,7 @@ private:
 
 	string[] _values;
 	Table _table;
-	CCombo _editor = null;
+	Combo _editor = null;
 	string[] _editorTable;
 	const CompileOption _opt;
 

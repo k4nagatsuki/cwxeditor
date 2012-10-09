@@ -406,7 +406,7 @@ Text createTextEditor(Commons comm, Props prop, Composite parent, string str) {
 	}
 }
 
-C createComboEditor(C = CCombo)(Commons comm, Props prop, Composite parent, string[] strs, string str, bool readOnly = true) {
+C createComboEditor(C = Combo)(Commons comm, Props prop, Composite parent, string[] strs, string str, bool readOnly = true) {
 	try {
 		int style = SWT.BORDER;
 		if (readOnly) style |= SWT.READ_ONLY;
