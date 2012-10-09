@@ -1398,6 +1398,7 @@ private:
 	Button _expandXMLs;
 	Button _contentsFloat;
 	Button _contentsAutoHide;
+	Button _comboListVisible;
 	Button _xmlCopy;
 	Button _saveInnerImagePath;
 	Button _linkCard;
@@ -2214,6 +2215,7 @@ private:
 				_expandXMLs = createB(_prop.msgs.expandXMLs);
 				_contentsFloat = createB(_prop.msgs.contentsFloat);
 				_contentsAutoHide = createB(_prop.msgs.contentsAutoHide);
+				_comboListVisible = createB(_prop.msgs.comboListVisible);
 				_contentsFloat.addSelectionListener(new SelContentsFloat);
 				_contentsAutoHide.setEnabled(!_contentsFloat.getSelection());
 				_xmlCopy = createB(_prop.msgs.xmlCopy);
@@ -2473,6 +2475,7 @@ protected:
 		}
 		_contentsFloat.setSelection(_prop.var.etc.contentsFloat);
 		_contentsAutoHide.setSelection(_prop.var.etc.contentsAutoHide);
+		_comboListVisible.setSelection(_prop.var.etc.comboListVisible);
 		_xmlCopy.setSelection(_prop.var.etc.xmlCopy);
 		_saveInnerImagePath.setSelection(_prop.var.etc.saveInnerImagePath);
 		_linkCard.setSelection(_prop.var.etc.linkCard);
@@ -2632,6 +2635,7 @@ protected:
 		_prop.var.etc.openLastScenario = _openLastScenario.getSelection();
 		_prop.var.etc.contentsFloat = _contentsFloat.getSelection();
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getSelection();
+		_prop.var.etc.comboListVisible = _comboListVisible.getSelection();
 		_prop.var.etc.soundPlayType = _soundPlayTypeTbl2[_soundPlayType.getSelectionIndex()];
 		_prop.var.etc.bgmVolume = _bgmVolume.getSelection();
 		_prop.var.etc.soundEffectPlayType = _soundEffectPlayTypeTbl2[_soundEffectPlayType.getSelectionIndex()];

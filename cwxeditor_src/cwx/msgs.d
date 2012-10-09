@@ -1360,6 +1360,7 @@ class Msgs : Properties {
 	auto expandXMLs = Msg("expandXMLs", "圧縮されたシナリオの読込み時にXMLファイルを展開する");
 	auto contentsFloat = Msg("contentsFloat", "コンテンツボックスを別ウィンドウで表示する");
 	auto contentsAutoHide = Msg("contentsAutoHide", "コンテンツボックスを自動的に隠す");
+	auto comboListVisible = Msg("comboListVisible", "コンボボックスでの編集開始時にリストを開く");
 	auto xmlCopy = Msg("xmlCopy", "コピーや切り取りを常にXML形式で行う");
 	auto saveInnerImagePath = Msg("saveInnerImagePath", "クラシックなシナリオで格納イメージのファイルパスを保存する");
 	auto linkCard = Msg("linkCard", "キャストの所有カードや召喚対象のカードを参照で設定する");

@@ -158,6 +158,7 @@ class FlexEtcProps : Properties {
 	auto contentsContinue = Prop!(bool)("contentsContinue", false);
 	auto contentsFloat = Prop!(bool)("contentsFloat", false);
 	auto contentsAutoHide = Prop!(bool)("contentsAutoHide", false);
+	auto comboListVisible = Prop!(bool)("comboListVisible", true);
 	auto showContentsBoxHeightWhenNoToolBar = Prop!(int, true)("showContentsBoxHeightWhenNoToolBar", 8);
 	auto clickIsOpenEvent = Prop!(bool)("clickIsOpenEvent", false);
 	auto smoothingCard = Prop!(bool)("smoothingCard", true);

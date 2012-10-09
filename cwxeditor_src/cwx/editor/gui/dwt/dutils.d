@@ -332,10 +332,12 @@ public:
 	void setFocus() {
 		try {
 			ctrl.setFocus();
-			auto combo = cast(Combo) ctrl;
-			if (combo) combo.setListVisible(true);
-			auto ccombo = cast(CCombo) ctrl;
-			if (ccombo) ccombo.setListVisible(true);
+			if (_comm.prop.var.etc.comboListVisible) {
+				auto combo = cast(Combo) ctrl;
+				if (combo) combo.setListVisible(true);
+				auto ccombo = cast(CCombo) ctrl;
+				if (ccombo) ccombo.setListVisible(true);
+			}
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
