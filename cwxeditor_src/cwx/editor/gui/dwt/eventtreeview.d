@@ -3017,7 +3017,7 @@ public:
 					_toolWinVisible = true;
 				} else {
 					_opened = true;
-					_toolWin.open();
+					_toolWin.setVisible(true);
 					_toolWinVisible = true;
 				}
 			} else {
