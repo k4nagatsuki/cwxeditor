@@ -356,8 +356,8 @@ public:
 								} else if (a.scaleType is ScaleType.Cut) {
 									auto img = new Image(cur, imgData);
 									scope (exit) img.dispose();
-									int dw = .min(imgData.width, bw);
-									int dh = .min(imgData.height, bh);
+									int dw = imgData.width;
+									int dh = imgData.height;
 									dc.drawImage(img, 0, 0, dw, dh, a.insets.w, a.insets.n, dw, dh);
 								} else {
 									assert (a.scaleType is ScaleType.Scale);
