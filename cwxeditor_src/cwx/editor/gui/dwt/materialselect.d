@@ -508,7 +508,7 @@ public:
 		_path = path;
 		_binPath = isBinImg(path) ? path : "";
 		static if (Type is MtType.CARD) {
-			if (!useNoCardSizeImage && !isBinImg(filePath)) {
+			if (!useNoCardSizeImage && !_binPath.length) {
 				auto p = _comm.skin.findImagePath(_path, _summ ? _summ.scenarioPath : "");
 				if (p.length) {
 					uint w, h;
