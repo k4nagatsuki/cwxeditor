@@ -7,6 +7,7 @@ import cwx.summary;
 import cwx.skin;
 import cwx.menu;
 import cwx.types;
+import cwx.imagesize;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.dprops;
@@ -203,6 +204,28 @@ public:
 		_fileList.setMenu(menu);
 	}
 	static if (Type == MtType.CARD) {
+		@property
+		void useNoCardSizeImage(bool noCardSize) {
+			if (_noCardSize == noCardSize) return;
+			_noCardSize = noCardSize;
+			if (!_noCardSize && !isBinImg(filePath)) {
+				auto p = _comm.skin.findImagePath(path, _summ ? _summ.scenarioPath : "");
+				if (p.length) {
+					uint w, h;
+					imageSize(p, w, h);
+					auto cs = _prop.looks.cardSize;
+					if (cs.width != w || cs.height != h) {
+						path = "";
+					}
+				}
+			}
+			refresh();
+		}
+		@property
+		const
+		bool useNoCardSizeImage() {
+			return _noCardSize;
+		}
 		private void includeImage() {
 			if (!_canInclude) return;
 			string file = filePath;
@@ -484,6 +507,20 @@ public:
 		}
 		_path = path;
 		_binPath = isBinImg(path) ? path : "";
+		static if (Type is MtType.CARD) {
+			if (!useNoCardSizeImage && !isBinImg(filePath)) {
+				auto p = _comm.skin.findImagePath(_path, _summ ? _summ.scenarioPath : "");
+				if (p.length) {
+					uint w, h;
+					imageSize(p, w, h);
+					auto cs = _prop.looks.cardSize;
+					if (cs.width != w || cs.height != h) {
+						useNoCardSizeImage = true;
+						if (_refresh) _refresh();
+					}
+				}
+			}
+		}
 		refreshDefs();
 	}
 	@property
@@ -603,13 +640,15 @@ public:
 		.forceFocus(_fileList, true);
 		_incSearch.startIncSearch();
 	}
+
 private:
 	static if (Type == MtType.CARD) {
+		private bool _noCardSize = false;
 		@property string defExt() {return _comm.skin.extImage;}
 		@property string defDir() {return _comm.skin.tableDir;}
-		bool isTarg(string p) {return _comm.skin.isCardImage(p);}
-		bool hasTarg(string p) {return _comm.skin.hasCardImage(p);}
-		string[] targsImpl(string dir, bool re) {return _comm.skin.cards(dir, _prop.var.etc.logicalSort, re);}
+		bool isTarg(string p) {return _comm.skin.isCardImage(p, _noCardSize);}
+		bool hasTarg(string p) {return _comm.skin.hasCardImage(p, _noCardSize);}
+		string[] targsImpl(string dir, bool re) {return _comm.skin.cards(dir, _prop.var.etc.logicalSort, re, _noCardSize);}
 		@property Image image() {return _prop.images.cards;}
 	} else static if (Type == MtType.BG_IMG) {
 		@property string defExt() {return _comm.skin.extImage;}

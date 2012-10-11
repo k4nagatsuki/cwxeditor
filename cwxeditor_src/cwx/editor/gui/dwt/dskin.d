@@ -178,14 +178,6 @@ version (Windows) {
 	}
 }
 
-/// カード画像として使用可能であればイメージデータを生成して返す。
-/// Params:
-/// prop = 設定データ。
-/// path = ファイルパス。
-/// Returns: カード画像。カード画像でないならnull。
-ImageData loadCardImage(Skin skin, string path) {
-	return skin.isCardImage(path) ? loadImage(skin, path) : null;
-}
 /// 背景画像として使用可能であればイメージデータを生成して返す。
 /// Params:
 /// path = ファイルパス。

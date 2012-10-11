@@ -679,9 +679,10 @@ class Skin {
 	}
 	/// pathがカード画像として使用可能か。
 	const
-	bool isCardImage(string path) {
+	bool isCardImage(string path, bool ignoreSize) {
 		if (isBinImg(path)) return true;
 		if (legacy && !cfnmatch(.extension(path), ".bmp")) return false;
+		if (ignoreSize) return true;
 		try {
 			uint x, y;
 			return imageSize(path, x, y)
@@ -736,16 +737,16 @@ class Skin {
 	const(string[dchar]) spChars() {return _spChars;}
 
 	const
-	private bool has(alias isT)(string dir) {
+	private bool has(alias isT, Arg ...)(string dir, Arg args) {
 		foreach (file; clistdir(dir)) {
-			if (isT(std.path.buildPath(dir, file))) return true;
+			if (isT(std.path.buildPath(dir, file), args)) return true;
 		}
 		return false;
 	}
 
 	/// 各種の素材がdirに含まれていればtrueを返す。
 	const
-	bool hasCardImage(string dir) {return has!(isCardImage)(dir);}
+	bool hasCardImage(string dir, bool ignoreSize) {return has!(isCardImage)(dir, ignoreSize);}
 	/// ditto
 	const
 	bool hasBgImage(string dir) {return has!(isBgImage)(dir);}
@@ -757,24 +758,31 @@ class Skin {
 	bool hasSE(string dir) {return has!(isSE)(dir);}
 
 	const
-	private string[] list(alias isT)(string dir, bool logicalSort, bool forceRefresh) {
+	private string[] list(alias isT)(string dir, bool logicalSort, bool forceRefresh, bool ignoreSize) {
 		synchronized {
 			static struct Files {
 				bool logicalSort;
+				bool ignoreSize;
 				string[] files;
 			}
 			mixin FileCache!(Files);
 			if (!forceRefresh) {
 				auto ca = cache(dir);
-				if (ca && ca.value.logicalSort == logicalSort) {
+				if (ca && ca.value.logicalSort == logicalSort && ca.value.ignoreSize == ignoreSize) {
 					return ca.value.files;
 				}
 			}
 			string[] r;
 			foreach (fp; clistdir(dir)) {
 				fp = std.path.buildPath(dir, fp);
-				if (isT(fp)) {
-					r ~= baseName(fp);
+				static if (is(typeof(isT(fp, ignoreSize)))) {
+					if (isT(fp, ignoreSize)) {
+						r ~= baseName(fp);
+					}
+				} else {
+					if (isT(fp)) {
+						r ~= baseName(fp);
+					}
 				}
 			}
 			if (logicalSort) {
@@ -782,38 +790,38 @@ class Skin {
 			} else {
 				r = sort!(fncmp)(r);
 			}
-			putCache(dir, Files(logicalSort, r));
+			putCache(dir, Files(logicalSort, ignoreSize, r));
 			return r;
 		}
 	}
 
 	/// dirに含まれるカード画像の一覧。
 	const
-	string[] cards(string dir, bool logicalSort, bool forceRefresh) {return list!(isCardImage)(dir, logicalSort, forceRefresh);}
+	string[] cards(string dir, bool logicalSort, bool forceRefresh, bool ignoreSize) {return list!(isCardImage)(dir, logicalSort, forceRefresh, ignoreSize);}
 
 	/// 標準の背景画像。
 	const
-	string[] tables(bool logicalSort, bool forceRefresh = false) {return list!(isBgImage)(tableDir, logicalSort, forceRefresh);}
+	string[] tables(bool logicalSort, bool forceRefresh = false) {return list!(isBgImage)(tableDir, logicalSort, forceRefresh, false);}
 
 	/// dirに含まれる背景画像の一覧。
 	const
-	string[] tables(string dir, bool logicalSort, bool forceRefresh) {return list!(isBgImage)(dir, logicalSort, forceRefresh);}
+	string[] tables(string dir, bool logicalSort, bool forceRefresh) {return list!(isBgImage)(dir, logicalSort, forceRefresh, false);}
 
 	/// 標準のBGM。
 	const
-	string[] musics(bool logicalSort, bool forceRefresh = false) {return list!(isBGM)(bgmDir, logicalSort, forceRefresh);}
+	string[] musics(bool logicalSort, bool forceRefresh = false) {return list!(isBGM)(bgmDir, logicalSort, forceRefresh, false);}
 
 	/// dirに含まれるBGMの一覧。
 	const
-	string[] musics(string dir, bool logicalSort, bool forceRefresh) {return list!(isBGM)(dir, logicalSort, forceRefresh);}
+	string[] musics(string dir, bool logicalSort, bool forceRefresh) {return list!(isBGM)(dir, logicalSort, forceRefresh, false);}
 
 	/// 標準のSE。
 	const
-	string[] sounds(bool logicalSort, bool forceRefresh = false) {return list!(isSE)(seDir, logicalSort, forceRefresh);}
+	string[] sounds(bool logicalSort, bool forceRefresh = false) {return list!(isSE)(seDir, logicalSort, forceRefresh, false);}
 
 	/// dirに含まれるSEの一覧。
 	const
-	string[] sounds(string dir, bool logicalSort, bool forceRefresh) {return list!(isSE)(dir, logicalSort, forceRefresh);}
+	string[] sounds(string dir, bool logicalSort, bool forceRefresh) {return list!(isSE)(dir, logicalSort, forceRefresh, false);}
 
 	/// 標準素材ディレクトリのルート。
 	@property

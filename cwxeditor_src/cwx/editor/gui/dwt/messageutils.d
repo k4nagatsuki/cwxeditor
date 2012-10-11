@@ -13,6 +13,7 @@ import cwx.structs;
 import cwx.msgutils;
 import cwx.menu;
 import cwx.types;
+import cwx.imagesize;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -839,7 +840,11 @@ private:
 	ImageSelect!(MtType.CARD, Combo) _msel;
 
 	void refreshWarning() {
-		warning = comm.skin.warningImage(prop.parent, _msel.filePath, summ.legacy);
+		string[] ws;
+
+		ws ~= _msel.warnings;
+
+		warning = ws;
 	}
 	void tabChanged() {
 		switch (_tabf.getSelectionIndex()) {

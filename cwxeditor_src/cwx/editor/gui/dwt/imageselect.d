@@ -6,6 +6,7 @@ import cwx.summary;
 import cwx.skin;
 import cwx.menu;
 import cwx.types;
+import cwx.imagesize;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -16,6 +17,7 @@ import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.imagelistwindow;
 import cwx.editor.gui.dwt.dmenu;
 
+import std.algorithm : min;
 import std.file;
 import std.path;
 import std.string;
@@ -124,6 +126,17 @@ public:
 				imgList.addSelectionListener(new SelImageList);
 				_msel.createRefreshButton(comp, true).setLayoutData(new GridData(GridData.FILL_BOTH));
 				_msel.createDirectoryButton(comp, false).setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				static if (Type is MtType.CARD) {
+					_noCardSize = new Button(compl, SWT.CHECK);
+					_noCardSize.setText(prop.msgs.useNoCardSizeImage);
+					auto ncsgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+					ncsgd.horizontalSpan = 3;
+					_noCardSize.setLayoutData(ncsgd);
+					_noCardSize.setSelection(_msel.useNoCardSizeImage);
+					.listener(_noCardSize, SWT.Selection, {
+						_msel.useNoCardSizeImage = _noCardSize.getSelection();
+					});
+				}
 			}
 		}
 		{
@@ -228,6 +241,27 @@ public:
 			_msel.pcNumber = pcNum;
 			__refresh();
 		}
+	}
+
+	@property
+	string[] warnings() {
+		string[] ws;
+		auto img = filePath;
+		// TODO 格納イメージでも警告は発されるべき
+		if (!isBinImg(img)) {
+			ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? false : _summ.legacy);
+			static if (Type is MtType.CARD) {
+				if (img.length) {
+					uint w, h;
+					imageSize(img, w, h);
+					auto cs = _prop.looks.cardSize;
+					if (cs.width != w && cs.height != h) {
+						ws ~= _prop.msgs.warningNoCardSizeImage;
+					}
+				}
+			}
+		}
+		return ws;
 	}
 private:
 	void selectDirImpl(int sel) {
@@ -337,22 +371,33 @@ private:
 			scope img = new Image(Display.getCurrent(), imgData);
 			scope b = img.getBounds();
 			scope area = _image.getClientArea();
-			int x, y, w, h;
-			if (area.width >= b.width) {
-				x = (area.width - b.width) / 2;
-				w = b.width;
-			} else {
+			int x, y, w, h, fw, fh;
+			static if (Type is MtType.CARD) {
 				x = 0;
-				w = area.width;
-			}
-			if (area.height >= b.height) {
-				y = (area.height - b.height) / 2;
-				h = b.height;
-			} else {
 				y = 0;
-				h = area.height;
+				w = .min(b.width, area.width);
+				h = .min(b.height, area.height);
+				fw = w;
+				fh = h;
+			} else {
+				if (area.width >= b.width) {
+					x = (area.width - b.width) / 2;
+					w = b.width;
+				} else {
+					x = 0;
+					w = area.width;
+				}
+				if (area.height >= b.height) {
+					y = (area.height - b.height) / 2;
+					h = b.height;
+				} else {
+					y = 0;
+					h = area.height;
+				}
+				fw = b.width;
+				fh = b.height;
 			}
-			e.gc.drawImage(img, 0, 0, b.width, b.height, x, y, w, h);
+			e.gc.drawImage(img, 0, 0, fw, fh, x, y, w, h);
 			img.dispose();
 		}
 	}
@@ -363,6 +408,9 @@ private:
 		refreshImageList();
 		foreach (dlg; updateImageEvent) {
 			dlg();
+		}
+		static if (Type is MtType.CARD) {
+			_noCardSize.setSelection(_msel.useNoCardSizeImage);
 		}
 	}
 	string _paintedPath = null;
@@ -380,4 +428,7 @@ private:
 	bool _mask = true;
 	void delegate() _refresh;
 	int _oldDirSel = -1;
+	static if (Type is MtType.CARD) {
+		Button _noCardSize;
+	}
 }

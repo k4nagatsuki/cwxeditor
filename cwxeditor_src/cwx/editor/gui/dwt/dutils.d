@@ -1050,7 +1050,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 			prop.looks.castCardLevelColor,
 			PileImage.TPos.RIGHT);
 	}
-	r.append(skin.findImagePath(c.path, sPath), matPad, true);
+	r.append(skin.findImagePath(c.path, sPath), matPad, ScaleType.Cut, true);
 	int stMax = prop.looks.statusVerMax;
 	if (dbgMode || c.faceUpRound > 0) {
 		auto d = Display.getCurrent();
@@ -1076,7 +1076,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 				gc.drawImage(lgi, 0, 0);
 				auto life = bmp.getImageData();
 				life.transparentPixel = life.getPixel(0, 0);
-				r.append(life, stp);
+				r.append(life, stp, ScaleType.Cut);
 				stp.y -= lgh + 2;
 				stMax--;
 			} catch (SWTException e) {
@@ -1089,7 +1089,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 	int styf = stp.y;
 	int stc = 0;
 	void status(ImageData id) {
-		r.append(id, stp);
+		r.append(id, stp, ScaleType.Cut);
 		stc++;
 		if (stc >= stMax) {
 			stp.x += id.width + 1;
@@ -1151,7 +1151,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 		auto tx = bid.width - cw - 1;
 		auto ty = bid.height - mt.getAscent() - 2;
 		hemming(gc, s, tx, ty, d.getSystemColor(SWT.COLOR_WHITE));
-		r.append(bmp.getImageData(), stp);
+		r.append(bmp.getImageData(), stp, ScaleType.Cut);
 	}
 	r.setTitle(c.name, dwtData(prop.looks.castCardNameFont(skin.legacy)), dwtData(prop.looks.castCardNamePoint));
 	return r.createImageData();
@@ -1189,14 +1189,14 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner,
 			scope pp = prop.looks.premiumXY;
 			auto img = c.premium == Premium.PREMIUM
 			? premier(skin) : rare(skin);
-			r.append(img, CInsets(pp.y, pp.x, h - pp.y - img.height, w - pp.x - img.width));
-			r.append(img, CInsets(h - pp.y - img.height, w - pp.x - img.width, pp.y, pp.x));
+			r.append(img, CInsets(pp.y, pp.x, h - pp.y - img.height, w - pp.x - img.width), ScaleType.Cut);
+			r.append(img, CInsets(h - pp.y - img.height, w - pp.x - img.width, pp.y, pp.x), ScaleType.Cut);
 			break;
 		case Premium.NORMAL:
 			break;
 		}
 	}
-	r.append(skin.findImagePath(c.path, sPath), matPad, true);
+	r.append(skin.findImagePath(c.path, sPath), matPad, ScaleType.Cut, true);
 	static if (is(typeof(c.linkId))) {
 		if (link) {
 			auto mc = prop.var.etc.linkCardMaskColor;
@@ -1207,13 +1207,13 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner,
 		if (prop.sys.isPenalty(c.keyCodes)) {
 			auto pid = cardPenalty(skin);
 			pid.transparentPixel = pid.getPixel(pid.width / 2, pid.height / 2);
-			r.append(pid, CPoint(0, 0));
+			r.append(pid, CPoint(0, 0), ScaleType.Cut);
 		}
 		static if (is(typeof(c.hold))) {
 			if (hold) {
 				auto hid = cardHold(skin);
 				hid.transparentPixel = hid.getPixel(hid.width / 2, hid.height / 2);
-				r.append(hid, CPoint(0, 0));
+				r.append(hid, CPoint(0, 0), ScaleType.Cut);
 			}
 		}
 		if (detail && owner) {
@@ -1229,11 +1229,11 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner,
 				aimg = aptLow(skin);
 			}
 			auto ap = prop.looks.aptStoneXY;
-			r.append(aimg, CInsets(ap.y, w - ap.x - aimg.width, h - ap.y - aimg.height, ap.x));
+			r.append(aimg, CInsets(ap.y, w - ap.x - aimg.width, h - ap.y - aimg.height, ap.x), ScaleType.Cut);
 			static if (is (C == SkillCard)) {
 				auto uimg = use4(skin);
 				auto up = prop.looks.useStoneXY;
-				r.append(uimg, CInsets(up.y, w - up.x - uimg.width, h - up.y - uimg.height, up.x));
+				r.append(uimg, CInsets(up.y, w - up.x - uimg.width, h - up.y - uimg.height, up.x), ScaleType.Cut);
 			}
 		}
 	}
@@ -1244,7 +1244,7 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner,
 			auto et = useCount ? prop.looks.eventTreeXYWithCount : prop.looks.eventTreeXY;
 			if (detail && (prop.var.etc.ignoreEmptyStart ? !c.isEmpty : 0 < c.trees.length)) {
 				auto iData = prop.images.eventTree.getImageData();
-				r.append(iData, CInsets(et.y, w - et.x - iData.width, h - et.y - iData.height, et.x));
+				r.append(iData, CInsets(et.y, w - et.x - iData.width, h - et.y - iData.height, et.x), ScaleType.Cut);
 			}
 		}
 	}

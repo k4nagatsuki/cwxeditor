@@ -1728,7 +1728,7 @@ public:
 	private string[][immutable(ubyte[])] cardImgTable(string mtdir, Skin skin, UseCounter uc) {
 		string[][immutable(ubyte[])] r;
 		foreach (file; clistdir(mtdir)) {
-			if (skin.isCardImage(std.path.buildPath(mtdir, file))) {
+			if (skin.isCardImage(std.path.buildPath(mtdir, file), true)) {
 				auto mBytes = cast(ubyte[]) std.file.read(std.path.buildPath(mtdir, file));
 				auto bytes = assumeUnique(mBytes);
 				r[bytes] ~= std.path.buildPath(skin.materialPath, file);
@@ -1812,7 +1812,7 @@ public:
 					mkdir(top);
 					copyAll(p, top, true);
 				} else if (!cfnmatch(.extension(p), ".wsm") && !cfnmatch(.extension(p), ".wid") && !cfnmatch(.extension(p), ".wex")) {
-					if (toSkin.isCardImage(p)
+					if (toSkin.isCardImage(p, true)
 							|| toSkin.isBgImage(p)
 							|| toSkin.isBGM(p)
 							|| toSkin.isSE(p)) {

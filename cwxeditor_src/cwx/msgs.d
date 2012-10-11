@@ -118,6 +118,7 @@ class Msgs : Properties {
 	auto seNone = Msg("seNone", "[サウンド無し]");
 	auto bgmStop = Msg("bgmStop", "[BGM停止]");
 	auto bgmNone = Msg("bgmNone", "[BGM無し]");
+	auto useNoCardSizeImage = Msg("useNoCardSizeImage", "74×94以外も許容");
 	auto dlgMsgIsSaveBeforeReload = Msg("dlgMsgIsSaveBeforeReload", "「%1$s」は変更されています。再読込しますか？");
 	auto reloadBeforeSaveError = Msg("reloadBeforeSaveError", "「%1$s」は保存されていないため、再読込できません。");
 	auto dlgMsgIsSaveBeforeExit = Msg("dlgMsgIsSaveBeforeExit", "「%1$s」は変更されています。保存しますか？");
@@ -1275,6 +1276,7 @@ class Msgs : Properties {
 	auto warningSystemVarName = Msg("warningSystemVarName", "%1$sで始まる名前の状態変数は、プレイヤーの環境によっては正しく機能しない事があります。");
 	auto warningSystemCoupon = Msg("warningSystemCoupon", "%1$sで始まる名前のクーポンを操作する事はできません。");
 	auto warningBranchStatusMental = Msg("warningBranchStatusMental", "%1$sによる状態分岐は、プレイヤーの環境によっては正しく機能しない事があります。");
+	auto warningNoCardSizeImage = Msg("warningNoCardSizeImage", "カードサイズ以外の画像を使用すると、プレイヤーの環境によっては意図したように表示されない事があります。");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");

@@ -14,6 +14,7 @@ import cwx.motion;
 import cwx.path;
 import cwx.menu;
 import cwx.types;
+import cwx.imagesize;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -105,7 +106,8 @@ private:
 		if (_name.over) {
 			ws ~= .tryFormat(_prop.msgs.warningNameLenOver, _prop.looks.castNameLimit, _prop.looks.castNameLimit / 2);
 		}
-		ws ~= _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ.legacy);
+		ws ~= _imgPath.warnings;
+
 		warning = ws;
 	}
 
@@ -507,8 +509,9 @@ private:
 				bool including = _card && isBinImg(_card.path);
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText);
-				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 				mod(_imgPath);
+				_imgPath.modEvent ~= &refreshWarning;
+				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
 		}
 		{

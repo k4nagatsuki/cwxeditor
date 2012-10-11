@@ -488,7 +488,7 @@ private:
 		assert (0);
 	}
 	Image fimage(Skin skin, string file) {
-		if (skin.isCardImage(file)) {
+		if (skin.isCardImage(file, false)) {
 			return _prop.images.cards;
 		} else if (skin.isBgImage(file)) {
 			return _prop.images.backs;
@@ -526,7 +526,7 @@ private:
 		auto skin = _comm.skin;
 		if (.isDir(file)) {
 			return _sImgFolder;
-		} else if (skin.isCardImage(file)) {
+		} else if (skin.isCardImage(file, false)) {
 			return _sImgCards;
 		} else if (skin.isBgImage(file)) {
 			return _sImgBacks;
