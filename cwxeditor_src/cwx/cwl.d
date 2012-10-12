@@ -29,6 +29,7 @@ import cwx.utils;
 import cwx.sjis;
 import cwx.xml;
 import cwx.path;
+import cwx.skin;
 
 private bool sWith(string f, string s, out ulong id) {
 	if (!fnstartsWith(f, s)) return false;
@@ -1691,6 +1692,7 @@ private InfoCard loadInfo(ref RData d, ref ByteIO f, ulong fid) {
 
 struct SData {
 	string sPath;
+	const Skin skin;
 	bool saveInnerImagePath;
 	SkillCard delegate(ulong) skill;
 	ItemCard delegate(ulong) item;
@@ -1702,8 +1704,8 @@ struct SData {
 	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
 }
 /// 4.0形式のCardWirthシナリオを保存する。
-void saveLScenario(Summary summ, in SaveOption opt) {
-	auto d = SData(summ.scenarioPath, opt.saveInnerImagePath, &summ.skill, &summ.item, &summ.beast);
+void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
+	auto d = SData(summ.scenarioPath, skin, opt.saveInnerImagePath, &summ.skill, &summ.item, &summ.beast);
 	class Save {
 		Area[] areas;
 		Battle[] battles;
@@ -2106,7 +2108,7 @@ private void writeImage(ref SData d, ref ByteIO f, CWXPath cp, string imgPath) {
 	if (isBinImg(imgPath)) {
 		bytes = cast(ubyte[]) strToBImg(imgPath);
 	} else {
-		auto path = std.path.buildPath(d.sPath, imgPath);
+		auto path = d.skin.findImagePath(imgPath, d.sPath);
 		if (exists(path)) {
 			bytes = cast(ubyte[]) std.file.read(path);
 		}

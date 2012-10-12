@@ -742,7 +742,7 @@ private:
 				}
 				try {
 					synchronized (_saveSync) {
-						summary.saveOverwrite(_prop.parent, createSaveOpt());
+						summary.saveOverwrite(_prop.parent, _comm.skin, createSaveOpt());
 					}
 					_comm.saved.call();
 					refreshTitle();
@@ -847,7 +847,7 @@ private:
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin);
 				try {
 					synchronized (_saveSync) {
-						summary.saveWithName(_prop.parent, createSaveOpt(),
+						summary.saveWithName(_prop.parent, _comm.skin, createSaveOpt(),
 							fname, tempPath, expandXMLs, defSkin, (string msg) {
 								MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
 							}, classic);

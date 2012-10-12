@@ -1889,13 +1889,13 @@ public:
 		return !useTemp || zipName.length;
 	}
 	/// 上書き保存。
-	void saveOverwrite(in CProps prop, in SaveOption opt) in {
+	void saveOverwrite(in CProps prop, in Skin skin, in SaveOption opt) in {
 		assert (isSaved);
 	} body {
-		saveProc(prop, opt, false, zipName, scenarioPath, scenarioPath, legacy, false, expandXMLs, false);
+		saveProc(prop, skin, opt, false, zipName, scenarioPath, scenarioPath, legacy, false, expandXMLs, false);
 	}
 	/// 名前をつけて保存。
-	void saveWithName(in CProps prop, in SaveOption opt, string fname, string tempPath,
+	void saveWithName(in CProps prop, in Skin skin, in SaveOption opt, string fname, string tempPath,
 			bool defExpandXMLs, Skin defSkin, void delegate(string) showWarn, bool classic) {
 		if (classic) {
 			// クラシック形式で保存
@@ -1911,7 +1911,7 @@ public:
 			scope (failure) {
 				if (useTemp) delAll(temp);
 			}
-			saveProc(prop, opt, useTemp, zipName, temp, sPath, true, false, defExpandXMLs, true);
+			saveProc(prop, skin, opt, useTemp, zipName, temp, sPath, true, false, defExpandXMLs, true);
 		} else if (fname.baseName().cfnmatch("Summary.xml") || (fname.exists() && fname.isDir())) {
 			// 新しく指定ディレクトリに保存(クラシック形式からXML形式への変換も含む)
 			string[] copyFail;
@@ -1932,7 +1932,7 @@ public:
 			}
 			assert (!useTemp);
 			string zipName = "";
-			saveProc(prop, opt, useTemp, zipName, temp, sPath, false, false, defExpandXMLs, true);
+			saveProc(prop, skin, opt, useTemp, zipName, temp, sPath, false, false, defExpandXMLs, true);
 			if (!type.length) {
 				type = defSkin.type;
 				resetChanged();
@@ -1948,13 +1948,13 @@ public:
 			}
 			scope (failure) delAll(temp);
 			if (!type.length) type = defSkin.type;
-			saveProc(prop, opt, true, fname, temp, scenarioPath, legacy, true, defExpandXMLs, true);
+			saveProc(prop, skin, opt, true, fname, temp, scenarioPath, legacy, true, defExpandXMLs, true);
 		} else if (useTemp) {
 			// 新しいアーカイブを作成
 			string oldZip = _zipName;
 			_zipName = fname;
 			scope (failure) _zipName = oldZip;
-			saveProc(prop, opt, false, zipName, scenarioPath, scenarioPath, legacy, false, defExpandXMLs, true);
+			saveProc(prop, skin, opt, false, zipName, scenarioPath, scenarioPath, legacy, false, defExpandXMLs, true);
 		} else {
 			// 展開済みシナリオからアーカイブに変換
 			auto oldPath = scenarioPath;
@@ -1965,10 +1965,10 @@ public:
 				scenarioPath = oldPath;
 				delAll(p);
 			}
-			saveProc(prop, opt, true, fname, p, scenarioPath, legacy, false, defExpandXMLs, true);
+			saveProc(prop, skin, opt, true, fname, p, scenarioPath, legacy, false, defExpandXMLs, true);
 		}
 	}
-	private void saveProc(in CProps prop, in SaveOption opt, bool archive,
+	private void saveProc(in CProps prop, in Skin skin, in SaveOption opt, bool archive,
 			string zipName, string temp, string sPath, bool legacy, bool legacyToX, bool defExpandXMLs, bool releaseLock) {
 		try {
 			void releaseLockFile() {
@@ -1982,7 +1982,7 @@ public:
 				auto oldPath = scenarioPath;
 				scenarioPath = sPath;
 				scope (failure) scenarioPath = oldPath;
-				saveLScenario(this, opt);
+				saveLScenario(this, skin, opt);
 				bool useTemp = archive;
 				.enforce(useTemp == (0 < zipName.length));
 				if (useTemp) {
