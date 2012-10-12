@@ -758,25 +758,25 @@ class Skin {
 	bool hasSE(string dir) {return has!(isSE)(dir);}
 
 	const
-	private string[] list(alias isT)(string dir, bool logicalSort, bool forceRefresh, bool ignoreSize) {
+	private string[] list(alias isT, bool UseFlag = false)(string dir, bool logicalSort, bool forceRefresh, bool flag) {
 		synchronized {
 			static struct Files {
 				bool logicalSort;
-				bool ignoreSize;
+				bool flag;
 				string[] files;
 			}
 			mixin FileCache!(Files);
 			if (!forceRefresh) {
 				auto ca = cache(dir);
-				if (ca && ca.value.logicalSort == logicalSort && ca.value.ignoreSize == ignoreSize) {
+				if (ca && ca.value.logicalSort == logicalSort && ca.value.flag == flag) {
 					return ca.value.files;
 				}
 			}
 			string[] r;
 			foreach (fp; clistdir(dir)) {
 				fp = std.path.buildPath(dir, fp);
-				static if (is(typeof(isT(fp, ignoreSize)))) {
-					if (isT(fp, ignoreSize)) {
+				static if (UseFlag) {
+					if (isT(fp, flag)) {
 						r ~= baseName(fp);
 					}
 				} else {
@@ -790,14 +790,14 @@ class Skin {
 			} else {
 				r = sort!(fncmp)(r);
 			}
-			putCache(dir, Files(logicalSort, ignoreSize, r));
+			putCache(dir, Files(logicalSort, flag, r));
 			return r;
 		}
 	}
 
 	/// dirに含まれるカード画像の一覧。
 	const
-	string[] cards(string dir, bool logicalSort, bool forceRefresh, bool ignoreSize) {return list!(isCardImage)(dir, logicalSort, forceRefresh, ignoreSize);}
+	string[] cards(string dir, bool logicalSort, bool forceRefresh, bool ignoreSize) {return list!(isCardImage, true)(dir, logicalSort, forceRefresh, ignoreSize);}
 
 	/// 標準の背景画像。
 	const
