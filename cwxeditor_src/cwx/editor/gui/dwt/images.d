@@ -43,8 +43,9 @@ public enum Toggle {
 
 /// 画像のサイズが実際に表示されるサイズと一致しない場合の処理方法。
 enum ScaleType {
-	Cut, /// 左上を基準に配置し、はみ出した分はカットする。
+	Cut, /// 左上を基準に配置する。
 	Scale, /// 表示サイズに合わせて拡縮する。
+	Center, /// 中央寄せして配置する。
 }
 
 /// 画像を重ねて1枚のイメージを作成する。
@@ -359,6 +360,14 @@ public:
 									int dw = imgData.width;
 									int dh = imgData.height;
 									dc.drawImage(img, 0, 0, dw, dh, a.insets.w, a.insets.n, dw, dh);
+								} else if (a.scaleType is ScaleType.Center) {
+									auto img = new Image(cur, imgData);
+									scope (exit) img.dispose();
+									int dw = imgData.width;
+									int dh = imgData.height;
+									int x = a.insets.w + (bw - dw) / 2;
+									int y = a.insets.n + (bh - dh) / 2;
+									dc.drawImage(img, 0, 0, dw, dh, x, y, dw, dh);
 								} else {
 									assert (a.scaleType is ScaleType.Scale);
 									imgData = imgData.scaledTo

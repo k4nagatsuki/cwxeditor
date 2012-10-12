@@ -512,6 +512,7 @@ private:
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
+				_imgPath.cardMode = CardMode.Cast;
 			}
 		}
 		{

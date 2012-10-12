@@ -1050,7 +1050,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 			prop.looks.castCardLevelColor,
 			PileImage.TPos.RIGHT);
 	}
-	r.append(skin.findImagePath(c.path, sPath), matPad, ScaleType.Cut, true);
+	r.append(skin.findImagePath(c.path, sPath), matPad, ScaleType.Center, true);
 	int stMax = prop.looks.statusVerMax;
 	if (dbgMode || c.faceUpRound > 0) {
 		auto d = Display.getCurrent();

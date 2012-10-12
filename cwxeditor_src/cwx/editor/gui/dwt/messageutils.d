@@ -956,6 +956,7 @@ protected:
 			}
 			mod(_msel);
 			_msel.modEvent ~= &refreshWarning;
+			_msel.cardMode = CardMode.Message;
 			tp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			_msgCompA = new Composite(comp, SWT.NONE);
 			_msgCompA.setLayoutData(new GridData(GridData.FILL_VERTICAL));
@@ -1770,6 +1771,16 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		gc.fillRectangle(3, rect.height + 3 + bh * i, rect.width - 6, bh - 6);
 	}
 
+	// 話者の描画
+	if (talker) {
+		auto tImg = new Image(d, talker);
+		scope (exit) tImg.dispose();
+		auto tp = prop.looks.messageTalkerPos;
+		auto cs = prop.looks.cardSize;
+		int tpy = tp.y + (cast(int) cs.height - cast(int) talker.height) / 2;
+		gc.drawImage(tImg, tp.x, tpy);
+	}
+
 	// 文章と特殊文字の描画
 
 	// 改行置換
@@ -2081,14 +2092,6 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			scope (exit) img.dispose();
 			gc.drawImage(img, pt.x, pt.y);
 		}
-	}
-
-	// 話者
-	if (talker) {
-		auto tImg = new Image(d, talker);
-		scope (exit) tImg.dispose();
-		auto tp = prop.looks.messageTalkerPos;
-		gc.drawImage(tImg, tp.x, tp.y);
 	}
 
 	// 枠

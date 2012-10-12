@@ -27,6 +27,12 @@ import org.eclipse.swt.all;
 
 public:
 
+enum CardMode {
+	Message,
+	Cast,
+	Normal,
+}
+
 /// 画像の選択を行うペイン。
 class ImageSelect(MtType Type, C : Control = Table) {
 	/// パスの変更時に呼び出される。
@@ -263,6 +269,14 @@ public:
 		}
 		return ws;
 	}
+
+	static if (Type is MtType.CARD) {
+		@property
+		void cardMode(CardMode cardMode) {
+			_cardMode = cardMode;
+			_image.redraw();
+		}
+	}
 private:
 	void selectDirImpl(int sel) {
 		auto dirs = dirsCombo;
@@ -373,12 +387,32 @@ private:
 			scope area = _image.getClientArea();
 			int x, y, w, h, fw, fh;
 			static if (Type is MtType.CARD) {
-				x = 0;
-				y = 0;
-				w = .min(b.width, area.width);
-				h = .min(b.height, area.height);
-				fw = w;
-				fh = h;
+				final switch (_cardMode) {
+				case CardMode.Message:
+					x = 0;
+					w = .min(b.width, area.width);
+					fw = w;
+					fh = b.height;
+					h = fh;
+					y = (area.height - fh) / 2;
+					break;
+				case CardMode.Cast:
+					fw = b.width;
+					fh = b.height;
+					w = fw;
+					h = fh;
+					x = (area.width - fw) / 2;
+					y = (area.height - fh) / 2;
+					break;
+				case CardMode.Normal:
+					x = 0;
+					y = 0;
+					w = .min(b.width, area.width);
+					h = .min(b.height, area.height);
+					fw = w;
+					fh = h;
+					break;
+				}
 			} else {
 				if (area.width >= b.width) {
 					x = (area.width - b.width) / 2;
@@ -430,5 +464,6 @@ private:
 	int _oldDirSel = -1;
 	static if (Type is MtType.CARD) {
 		Button _noCardSize;
+		CardMode _cardMode = CardMode.Normal;
 	}
 }
