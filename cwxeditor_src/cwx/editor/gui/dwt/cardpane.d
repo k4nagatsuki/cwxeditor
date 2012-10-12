@@ -1019,26 +1019,20 @@ private:
 		static if (EditMode && is(C:EventTreeOwner)) {
 			override void mouseDown(MouseEvent e) {
 				if (e.button != 2) return;
-				int index = _list.selection;
+				int index = _list.searchIndex(e.x, e.y);
 				if (index >= 0) {
-					scope p = _list.toControl(e.x, e.y);
-					if (_list.getBounds(index).contains(e.x, e.y)) {
-						editUseEvent(_list.card(index));
-					}
+					editUseEvent(_list.card(index));
 				}
 			}
 		}
 		override void mouseDoubleClick(MouseEvent e) {
 			if (e.button != 1) return;
-			int index = _list.selection;
+			int index = _list.searchIndex(e.x, e.y);
 			if (index >= 0) {
-				scope p = _list.toControl(e.x, e.y);
-				if (_list.getBounds(index).contains(e.x, e.y)) {
-					static if (EditMode) {
-						edit(_list.card(index));
-					} else {
-						addCard();
-					}
+				static if (EditMode) {
+					edit(_list.card(index));
+				} else {
+					addCard();
 				}
 			}
 		}
