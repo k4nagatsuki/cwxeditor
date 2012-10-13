@@ -1029,7 +1029,7 @@ class Skin {
 			auto arr = _cEngine.physicalModMakings;
 		} else static assert (0);
 
-		if (auto p1 = (featureName(e) in arr)) {
+		if (auto p1 = (e in arr)) {
 			if (auto p2 = (phy in *p1)) {
 				return *p2;
 			}
@@ -1058,7 +1058,7 @@ class Skin {
 			auto arr = _cEngine.mentalModMakings;
 		} else static assert (0);
 
-		if (auto p1 = (featureName(e) in arr)) {
+		if (auto p1 = (e in arr)) {
 			if (auto p2 = (mtl in *p1)) {
 				return *p2;
 			}

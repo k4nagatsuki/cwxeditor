@@ -22,6 +22,20 @@ static const SEX_ALL = [
 	Sex.MALE,
 	Sex.FEMALE,
 ];
+/// 性別を文字列に変換する。
+string fromSex(Sex e) {
+	final switch (e) {
+	case Sex.MALE: return "Male";
+	case Sex.FEMALE: return "Female";
+	}
+}
+/// ditto
+Sex toSex(string e) {
+	final switch (e) {
+	case "Male": return Sex.MALE;
+	case "Female": return Sex.FEMALE;
+	}
+}
 
 /// 年代。
 enum Period {
@@ -37,6 +51,24 @@ static const PERIOD_ALL = [
 	Period.ADULT,
 	Period.OLD,
 ];
+/// 年代を文字列に変換する。
+string fromPeriod(Period e) {
+	final switch (e) {
+	case Period.CHILD: return "Child";
+	case Period.YOUNG: return "Young";
+	case Period.ADULT: return "Adult";
+	case Period.OLD: return "Old";
+	}
+}
+/// ditto
+Period toPeriod(string e) {
+	final switch (e) {
+	case "Child": return Period.CHILD;
+	case "Young": return Period.YOUNG;
+	case "Adult": return Period.ADULT;
+	case "Old": return Period.OLD;
+	}
+}
 
 /// 素質。
 enum Nature {
@@ -53,6 +85,41 @@ enum Nature {
 	HER, /// 英雄型。
 	DIV, /// 神仙型。
 }
+/// 素質を文字列に変換する。
+string fromNature(Nature e) {
+	final switch (e) {
+	case Nature.SPI: return "Spi";
+	case Nature.INT: return "Int";
+	case Nature.AGL: return "Agl";
+	case Nature.SCH: return "Sch";
+	case Nature.STR: return "Str";
+	case Nature.VIT: return "Vit";
+	case Nature.BRI: return "Bri";
+	case Nature.MAT: return "Mat";
+	case Nature.GEN: return "Gen";
+	case Nature.MED: return "Med";
+	case Nature.HER: return "Her";
+	case Nature.DIV: return "Div";
+	}
+}
+/// ditto
+Nature toNature(string e) {
+	final switch (e) {
+	case "Spi": return Nature.SPI;
+	case "Int": return Nature.INT;
+	case "Agl": return Nature.AGL;
+	case "Sch": return Nature.SCH;
+	case "Str": return Nature.STR;
+	case "Vit": return Nature.VIT;
+	case "Bri": return Nature.BRI;
+	case "Mat": return Nature.MAT;
+	case "Gen": return Nature.GEN;
+	case "Med": return Nature.MED;
+	case "Her": return Nature.HER;
+	case "Div": return Nature.DIV;
+	}
+}
+
 /// 通常の素質。
 static const NATURE_DEF = [
 	Nature.SPI,
@@ -122,6 +189,112 @@ enum Makings {
 	PER_T, /// ひねくれ者。
 	FAME_H, /// 名誉こそ命。
 	FAME_A, /// 愛に生きる。
+}
+/// 素質を文字列に変換する。
+string fromMakings(Makings e) {
+	final switch (e) {
+	case Makings.LOOKS_B: return "LooksB";
+	case Makings.LOOKS_U: return "LooksU";
+	case Makings.CLASS_H: return "ClassH";
+	case Makings.CLASS_L: return "ClassL";
+	case Makings.BRED_T: return "BredT";
+	case Makings.BRED_C: return "BredC";
+	case Makings.MEANS_H: return "MeansH";
+	case Makings.MEANS_L: return "MeansL";
+	case Makings.FAITH_F: return "FaithF";
+	case Makings.FAITH_I: return "FaithI";
+	case Makings.RELI_R: return "ReliR";
+	case Makings.RELI_U: return "ReliU";
+	case Makings.DISP_C: return "DispC";
+	case Makings.DISP_S: return "DispS";
+	case Makings.DESIRE_G: return "DesireG";
+	case Makings.DESIRE_C: return "DesireC";
+	case Makings.DEVOTE_D: return "DevoteD";
+	case Makings.DEVOTE_S: return "DevoteS";
+	case Makings.DISC_O: return "DiscO";
+	case Makings.DISC_C: return "DiscC";
+	case Makings.POLIT_R: return "PolitR";
+	case Makings.POLIT_C: return "PolitC";
+	case Makings.SENSE_R: return "SenseR";
+	case Makings.SENSE_S: return "SenseS";
+	case Makings.CURIO_B: return "CurioB";
+	case Makings.CURIO_I: return "CurioI";
+	case Makings.NOTION_R: return "NotionR";
+	case Makings.NOTION_M: return "NotionM";
+	case Makings.IDEA_O: return "IdeaO";
+	case Makings.IDEA_P: return "IdeaP";
+	case Makings.WORK_H: return "WorkH";
+	case Makings.WORK_S: return "WorkS";
+	case Makings.CHAR_C: return "CharC";
+	case Makings.CHAR_B: return "CharB";
+	case Makings.STYLE_F: return "StyleF";
+	case Makings.STYLE_P: return "StyleP";
+	case Makings.PRIDE_P: return "PrideP";
+	case Makings.PRIDE_M: return "PrideM";
+	case Makings.REF_R: return "RefR";
+	case Makings.REF_B: return "RefB";
+	case Makings.GRACE_G: return "GraceG";
+	case Makings.GRACE_R: return "GraceR";
+	case Makings.LINER_H: return "LinerH";
+	case Makings.LINER_M: return "LinerM";
+	case Makings.PER_S: return "PerS";
+	case Makings.PER_T: return "PerT";
+	case Makings.FAME_H: return "FameH";
+	case Makings.FAME_A: return "FameA";
+	}
+}
+/// 素質を文字列に変換する。
+Makings toMakings(string e) {
+	final switch (e) {
+	case "LooksB": return Makings.LOOKS_B;
+	case "LooksU": return Makings.LOOKS_U;
+	case "ClassH": return Makings.CLASS_H;
+	case "ClassL": return Makings.CLASS_L;
+	case "BredT": return Makings.BRED_T;
+	case "BredC": return Makings.BRED_C;
+	case "MeansH": return Makings.MEANS_H;
+	case "MeansL": return Makings.MEANS_L;
+	case "FaithF": return Makings.FAITH_F;
+	case "FaithI": return Makings.FAITH_I;
+	case "ReliR": return Makings.RELI_R;
+	case "ReliU": return Makings.RELI_U;
+	case "DispC": return Makings.DISP_C;
+	case "DispS": return Makings.DISP_S;
+	case "DesireG": return Makings.DESIRE_G;
+	case "DesireC": return Makings.DESIRE_C;
+	case "DevoteD": return Makings.DEVOTE_D;
+	case "DevoteS": return Makings.DEVOTE_S;
+	case "DiscO": return Makings.DISC_O;
+	case "DiscC": return Makings.DISC_C;
+	case "PolitR": return Makings.POLIT_R;
+	case "PolitC": return Makings.POLIT_C;
+	case "SenseR": return Makings.SENSE_R;
+	case "SenseS": return Makings.SENSE_S;
+	case "CurioB": return Makings.CURIO_B;
+	case "CurioI": return Makings.CURIO_I;
+	case "NotionR": return Makings.NOTION_R;
+	case "NotionM": return Makings.NOTION_M;
+	case "IdeaO": return Makings.IDEA_O;
+	case "IdeaP": return Makings.IDEA_P;
+	case "WorkH": return Makings.WORK_H;
+	case "WorkS": return Makings.WORK_S;
+	case "CharC": return Makings.CHAR_C;
+	case "CharB": return Makings.CHAR_B;
+	case "StyleF": return Makings.STYLE_F;
+	case "StyleP": return Makings.STYLE_P;
+	case "PrideP": return Makings.PRIDE_P;
+	case "PrideM": return Makings.PRIDE_M;
+	case "RefR": return Makings.REF_R;
+	case "RefB": return Makings.REF_B;
+	case "GraceG": return Makings.GRACE_G;
+	case "GraceR": return Makings.GRACE_R;
+	case "LinerH": return Makings.LINER_H;
+	case "LinerM": return Makings.LINER_M;
+	case "PerS": return Makings.PER_S;
+	case "PerT": return Makings.PER_T;
+	case "FameH": return Makings.FAME_H;
+	case "FameA": return Makings.FAME_A;
+	}
 }
 /// 左辺の特徴。
 static const MAKINGS_LEFT = [
