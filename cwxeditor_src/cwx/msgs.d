@@ -1364,6 +1364,7 @@ class Msgs : Properties {
 	auto contentsAutoHide = Msg("contentsAutoHide", "コンテンツボックスを自動的に隠す");
 	auto comboListVisible = Msg("comboListVisible", "コンボボックスでの編集開始時にリストを開く");
 	auto xmlCopy = Msg("xmlCopy", "コピーや切り取りを常にXML形式で行う");
+	auto showSpNature = Msg("showSpNature", "特殊型を表示する");
 	auto saveInnerImagePath = Msg("saveInnerImagePath", "クラシックなシナリオで格納イメージのファイルパスを保存する");
 	auto linkCard = Msg("linkCard", "キャストの所有カードや召喚対象のカードを参照で設定する");
 	auto traceDirectories = Msg("traceDirectories", "ファイル・" ~ DIR ~ "の変更を自動的に追跡する");

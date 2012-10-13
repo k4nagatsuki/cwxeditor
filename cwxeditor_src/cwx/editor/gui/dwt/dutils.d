@@ -1297,7 +1297,7 @@ string[] castCoupons(Commons comm, bool talker, string legacyName) {
 	foreach (e; PERIOD_ALL) {
 		r ~= comm.skin.periodCoupon(e);
 	}
-	foreach (e; NATURE_DEF) {
+	foreach (e; comm.prop.var.etc.showSpNature ? (NATURE_DEF ~ NATURE_EXT) : NATURE_DEF) {
 		r ~= comm.skin.natureCoupon(e);
 	}
 	foreach (e; MAKINGS_LEFT) {

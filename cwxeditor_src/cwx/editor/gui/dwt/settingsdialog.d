@@ -484,7 +484,7 @@ private:
 					auto t = _periodName[f].getText(2);
 					if (t.length) _array[i].periodName[_prop.sys.periodName(f, "")] = t;
 				}
-				foreach (f; NATURE_DEF) {
+				foreach (f; NATURE_DEF ~ NATURE_EXT) {
 					auto t = _natureName[f].getText(2);
 					if (t.length) _array[i].natureName[_prop.sys.natureName(f, "")] = t;
 				}
@@ -1158,7 +1158,7 @@ private:
 						itm.setText(0, _prop.sys.periodName(f, ""));
 						_periodName[f] = itm;
 					}
-					foreach (f; NATURE_DEF) {
+					foreach (f; NATURE_DEF ~ NATURE_EXT) {
 						auto itm = new TableItem(_featureName, SWT.NONE);
 						itm.setText(0, _prop.sys.natureName(f, ""));
 						_natureName[f] = itm;
@@ -1400,6 +1400,7 @@ private:
 	Button _contentsAutoHide;
 	Button _comboListVisible;
 	Button _xmlCopy;
+	Button _showSpNature;
 	Button _saveInnerImagePath;
 	Button _linkCard;
 	Button _traceDirectories;
@@ -2219,6 +2220,7 @@ private:
 				_contentsFloat.addSelectionListener(new SelContentsFloat);
 				_contentsAutoHide.setEnabled(!_contentsFloat.getSelection());
 				_xmlCopy = createB(_prop.msgs.xmlCopy);
+				_showSpNature = createB(_prop.msgs.showSpNature);
 				_saveInnerImagePath = createB(_prop.msgs.saveInnerImagePath);
 				_linkCard = createB(_prop.msgs.linkCard);
 				_traceDirectories = createB(_prop.msgs.traceDirectories);
@@ -2477,6 +2479,7 @@ protected:
 		_contentsAutoHide.setSelection(_prop.var.etc.contentsAutoHide);
 		_comboListVisible.setSelection(_prop.var.etc.comboListVisible);
 		_xmlCopy.setSelection(_prop.var.etc.xmlCopy);
+		_showSpNature.setSelection(_prop.var.etc.showSpNature);
 		_saveInnerImagePath.setSelection(_prop.var.etc.saveInnerImagePath);
 		_linkCard.setSelection(_prop.var.etc.linkCard);
 		_traceDirectories.setSelection(_prop.var.etc.traceDirectories);
@@ -2620,6 +2623,7 @@ protected:
 		_prop.var.etc.ignoreEmptyStart = _ignoreEmptyStart.getSelection();
 		_prop.var.etc.expandXMLs = _expandXMLs.getSelection();
 		_prop.var.etc.xmlCopy = _xmlCopy.getSelection();
+		_prop.var.etc.showSpNature = _showSpNature.getSelection();
 		_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getSelection();
 		_prop.var.etc.linkCard = _linkCard.getSelection();
 		_prop.var.etc.traceDirectories = _traceDirectories.getSelection();
@@ -2718,6 +2722,7 @@ struct OldSettings {
 	bool showEventTreeMark;
 	bool ignoreEmptyStart;
 	bool classicStyleTree;
+	bool showSpNature;
 	this (Props prop) {
 		this.prop = prop;
 		this.oldEnginePath = prop.var.etc.enginePath;
@@ -2752,6 +2757,7 @@ struct OldSettings {
 		this.showEventTreeMark = prop.var.etc.showEventTreeMark;
 		this.ignoreEmptyStart = prop.var.etc.ignoreEmptyStart;
 		this.classicStyleTree = prop.var.etc.classicStyleTree;
+		this.showSpNature = prop.var.etc.showSpNature;
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
@@ -2850,6 +2856,9 @@ struct OldSettings {
 		}
 		if (this.classicStyleTree != prop.var.etc.classicStyleTree) {
 			comm.refEventTreeStyle.call();
+		}
+		if (this.showSpNature != prop.var.etc.showSpNature) {
+			comm.refCoupons.call();
 		}
 	}
 }

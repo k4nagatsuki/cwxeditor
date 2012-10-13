@@ -70,8 +70,10 @@ private:
 	Button _sexU;
 	Button[Period] _period;
 	Button _periodU;
+	Composite _natureComp;
 	Button[Nature] _nature;
 	Button _natureU;
+	bool _showSpNature = false;
 	Button[Makings] _makings;
 	Button _resW;
 	Button _resM;
@@ -258,6 +260,17 @@ private:
 			_comm.refreshToolBar();
 		}
 	}
+	void addCoupon(Coupon coupon) {
+		foreach (i, itm; _coupons.getItems()) {
+			if (coupon.name == (cast(Coupon) itm.getData()).name) {
+				return;
+			}
+		}
+		storeCoupons();
+		appendCoupon(coupon);
+		applyEnabled();
+		_comm.refreshToolBar();
+	}
 	void altCoupon() {
 		int index = _coupons.getSelectionIndex();
 		if (_newCoupon.getText().length > 0 && index >= 0) {
@@ -281,16 +294,19 @@ private:
 	void delCoupon() {
 		int i = _coupons.getSelectionIndex();
 		if (i >= 0) {
-			storeCoupons();
-			_coupons.remove(i);
-			if (i >= _coupons.getItemCount()) i--;
-			if (i >= 0) {
-				_coupons.select(i);
-				selCoupon();
-			}
-			applyEnabled();
-			_comm.refreshToolBar();
+			delCoupon(i);
 		}
+	}
+	void delCoupon(int i) {
+		storeCoupons();
+		_coupons.remove(i);
+		if (i >= _coupons.getItemCount()) i--;
+		if (i >= 0) {
+			_coupons.select(i);
+			selCoupon();
+		}
+		applyEnabled();
+		_comm.refreshToolBar();
 	}
 	void selCoupon() {
 		auto i = _coupons.getSelectionIndex();
@@ -625,6 +641,23 @@ private:
 	class HTBKeyDown : Listener {
 		override void handleEvent(Event e) {e.doit = true;}
 	}
+	Button createR(Composite parent, string name, int hAlignHint = -1) {
+		auto radio = new Button(parent, SWT.RADIO);
+		mod(radio);
+		auto gd = new GridData(GridData.FILL_BOTH);
+		if (0 <= hAlignHint) {
+			hAlignHint %= 2;
+			gd.grabExcessHorizontalSpace = true;
+			if (0 == hAlignHint) {
+				gd.horizontalAlignment = SWT.LEFT;
+			} else {
+				gd.horizontalAlignment = SWT.RIGHT;
+			}
+		}
+		radio.setLayoutData(gd);
+		radio.setText(name);
+		return radio;
+	}
 	void constructHistory(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(2, false));
@@ -707,13 +740,6 @@ private:
 			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			comp2.setLayout(zeroMarginGridLayout(2, false));
-			Button createR(Composite parent, string name) {
-				auto radio = new Button(parent, SWT.RADIO);
-				mod(radio);
-				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
-				radio.setText(name);
-				return radio;
-			}
 			{
 				auto comp3 = createButtonGroup(comp2, _prop.msgs.sexTitle, 1, 1);
 				foreach (s; SEX_ALL) {
@@ -731,12 +757,14 @@ private:
 				_periodU = createR(comp3, _prop.msgs.periodUnknown);
 			}
 			{
-				auto comp3 = createButtonGroup(comp2, _prop.msgs.natureTitle, 2, 2);
-				foreach (n; NATURE_DEF) {
-					auto name = skin.natureName(n);
-					_nature[n] = createR(comp3, _prop.msgs.nature.get(name, name));
-				}
-				_natureU = createR(comp3, _prop.msgs.natureUnknown);
+				auto comp3 = new Group(comp2, SWT.NONE);
+				comp3.setText(_prop.msgs.natureTitle);
+				auto cgd = new GridData(GridData.FILL_BOTH);
+				cgd.horizontalSpan = 2;
+				comp3.setLayoutData(cgd);
+				comp3.setLayout(new GridLayout(2, true));
+				_natureComp = comp3;
+				updateNature();
 			}
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
@@ -1287,6 +1315,7 @@ private:
 			_comm.refMenu.remove(&refMenu);
 			_comm.refSkin.remove(&refSkin);
 			_comm.refUndoMax.remove(&refUndoMax);
+			_comm.refCoupons.remove(&updateNature);
 			e.widget.getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 		}
 	}
@@ -1328,36 +1357,115 @@ private:
 		_race.setEnabled(!_summ.legacy);
 	}
 	void refreshSex() {
-		foreach (s; SEX_ALL) {
+		foreach (s, b; _sex) {
 			auto name = _comm.skin.sexName(s);
-			_sex[s].setText(_prop.msgs.sex.get(name, name));
+			b.setText(_prop.msgs.sex.get(name, name));
 		}
 	}
 	void refreshPeriod() {
-		foreach (p; PERIOD_ALL) {
+		foreach (p, b; _period) {
 			auto name = _comm.skin.periodName(p);
-			_period[p].setText(_prop.msgs.period.get(name, name));
+			b.setText(_prop.msgs.period.get(name, name));
 		}
 	}
 	void refreshNature() {
-		foreach (n; NATURE_DEF) {
+		foreach (n, b; _nature) {
 			auto name = _comm.skin.natureName(n);
-			_nature[n].setText(_prop.msgs.nature.get(name, name));
+			b.setText(_prop.msgs.nature.get(name, name));
 		}
 	}
 	void refreshMakings() {
-		foreach (m; MAKINGS_LEFT) {
-			void refresh(Makings m) {
-				auto name = _comm.skin.makingsName(m);
-				_makings[m].setText(_prop.msgs.makings.get(name, name));
-			}
-			refresh(m);
-			refresh(reverseMakings(m));
+		foreach (m, b; _makings) {
+			auto name = _comm.skin.makingsName(m);
+			b.setText(_prop.msgs.makings.get(name, name));
 		}
 	}
 
 	void refUndoMax() {
 		_undoCoupons.max = _prop.var.etc.undoMaxEtc;
+	}
+
+	void updateNature() {
+		if (getShell().isVisible()) getShell().setRedraw(false);
+		scope (exit) {
+			if (getShell().isVisible()) getShell().setRedraw(true);
+		}
+
+		bool first = (0 == _natureComp.getChildren().length);
+		string nature = "";
+		if (first || _showSpNature != _prop.var.etc.showSpNature) {
+			foreach (n, b; _nature) {
+				if (b.getSelection()) {
+					nature = _comm.skin.natureCoupon(n);
+					break;
+				}
+			}
+			foreach (chld; _natureComp.getChildren()) {
+				chld.dispose();
+			}
+			typeof(_nature) tbl;
+			_nature = tbl;
+
+			bool selected = false;
+			void sep() {
+				auto sep = new Label(_natureComp, SWT.SEPARATOR | SWT.HORIZONTAL);
+				auto gd = new GridData(GridData.FILL_HORIZONTAL);
+				gd.horizontalSpan = 2;
+				sep.setLayoutData(gd);
+			}
+			void put(Nature n) {
+				auto name = _comm.skin.natureName(n);
+				auto b = createR(_natureComp, _prop.msgs.nature.get(name, name), (_nature.length + 1) % 2);
+				_nature[n] = b;
+				if (!first && nature == _comm.skin.natureCoupon(n)) {
+					b.setSelection(true);
+					selected = true;
+				}
+			}
+			foreach (n; NATURE_DEF) {
+				put(n);
+			}
+			if (_prop.var.etc.showSpNature) {
+				sep();
+				foreach (n; NATURE_EXT) {
+					put(n);
+				}
+			}
+			sep();
+			_natureU = createR(_natureComp, _prop.msgs.natureUnknown, 1);
+			if (!first && !selected) {
+				_natureU.setSelection(true);
+				selected = true;
+			}
+		}
+
+		if (!first && _showSpNature != _prop.var.etc.showSpNature) {
+			_showSpNature = _prop.var.etc.showSpNature;
+			_natureComp.layout(true);
+			_natureComp.getParent().layout(true);
+			_natureComp.getParent().getParent().layout(true);
+			if (_showSpNature) {
+				if (_natureU.getSelection()) {
+					cp: foreach (i, itm; _coupons.getItems()) {
+						auto cp = cast(Coupon) itm.getData();
+						if (0 == cp.value) {
+							foreach (n; NATURE_EXT) {
+								if (cp.name == _comm.skin.natureCoupon(n)) {
+									_nature[n].setSelection(true);
+									_natureU.setSelection(false);
+									delCoupon(i);
+									break cp;
+								}
+							}
+						}
+					}
+				}
+			} else {
+				if (_natureU.getSelection() && "" != nature) {
+					addCoupon(new Coupon(nature, 0));
+				}
+			}
+		}
 	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, CastCard card) {
@@ -1399,6 +1507,7 @@ protected:
 		_comm.refMenu.add(&refMenu);
 		_comm.refSkin.add(&refSkin);
 		_comm.refUndoMax.add(&refUndoMax);
+		_comm.refCoupons.add(&updateNature);
 		area.addDisposeListener(new Dispose);
 		_kdFilter = new KeyDownFilter();
 		area.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
@@ -1434,36 +1543,30 @@ protected:
 			bool sex = false, period = false, nature = false;
 			scope makings = new HashSet!(Makings);
 			cp: foreach (c; _card.coupons) {
-				foreach (s; SEX_ALL) {
+				foreach (s, b; _sex) {
 					if (c.name == skin.sexCoupon(s)) {
-						if (!sex) _sex[s].setSelection(true);
+						if (!sex) b.setSelection(true);
 						sex = true;
 						continue cp;
 					}
 				}
-				foreach (per; PERIOD_ALL) {
+				foreach (per, b; _period) {
 					if (c.name == skin.periodCoupon(per)) {
-						if (!period) _period[per].setSelection(true);
+						if (!period) b.setSelection(true);
 						period = true;
 						continue cp;
 					}
 				}
-				foreach (nat; NATURE_DEF) {
+				foreach (nat, b; _nature) {
 					if (c.name == skin.natureCoupon(nat)) {
-						if (!nature) _nature[nat].setSelection(true);
+						if (!nature) b.setSelection(true);
 						nature = true;
 						continue cp;
 					}
 				}
-				foreach (m; MAKINGS_LEFT) {
+				foreach (m, b; _makings) {
 					if (c.name == skin.makingsCoupon(m)) {
-						if (!makings.contains(m)) _makings[m].setSelection(true);
-						makings.add(m);
-						continue cp;
-					}
-					auto r = reverseMakings(m);
-					if (c.name == skin.makingsCoupon(r)) {
-						if (!makings.contains(m)) _makings[r].setSelection(true);
+						if (!makings.contains(m)) b.setSelection(true);
 						makings.add(m);
 						continue cp;
 					}
@@ -1567,23 +1670,27 @@ protected:
 		}
 		auto skin = _comm.skin;
 		string legacyName = skin.legacyName;
+		alias contains!("a.name == b.name", Coupon, Coupon) cContains;
+		auto tblCoupons = coupons;
 		Coupon[] cs;
 		auto sex = createCoupon!(Sex)(_sex, &skin.sexCoupon);
-		if (sex) cs ~= sex;
+		if (sex && !cContains(tblCoupons, sex)) cs ~= sex;
 		auto race = selectedRace;
 		if (race) {
-			cs ~= new Coupon(_prop.sys.raceCoupon(race.name), 0);
+			auto rc = new Coupon(_prop.sys.raceCoupon(race.name), 0);
+			if (!cContains(tblCoupons, sex)) cs ~= rc;
 		}
 		auto period = createCoupon!(Period)(_period, &skin.periodCoupon);
-		if (period) cs ~= period;
+		if (period && !cContains(tblCoupons, period)) cs ~= period;
 		auto nature = createCoupon!(Nature)(_nature, &skin.natureCoupon);
-		if (nature) cs ~= nature;
+		if (nature && !cContains(tblCoupons, nature)) cs ~= nature;
 		foreach (m, radio; _makings) {
 			if (radio.getSelection()) {
-				cs ~= new Coupon(skin.makingsCoupon(m), 0);
+				auto mc = new Coupon(skin.makingsCoupon(m), 0);
+				if (!cContains(tblCoupons, nature)) cs ~= mc;
 			}
 		}
-		cs ~= coupons;
+		cs ~= tblCoupons;
 		_card.coupons = cs;
 		_card.weaponResist = _resW.getSelection();
 		_card.magicResist = _resM.getSelection();
