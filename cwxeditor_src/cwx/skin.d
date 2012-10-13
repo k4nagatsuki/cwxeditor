@@ -1004,43 +1004,21 @@ class Skin {
 
 	/// 特徴の能力修正値を返す。
 	const
-	real physicalMod(Sex e, Physical phy) {
-		return _prop.sys.physicalMod(e, phy, legacyName);
+	real physicalMod(E)(E e, Physical phy) {
+		const(real[Physical]) init;
+		return _prop.sys.physicalMod!E(legacyName).get(e, init).get(phy, 0.0);
 	}
 	/// ditto
 	const
-	real mentalMod(Sex e, Mental mtl) {
-		return _prop.sys.mentalMod(e, mtl, legacyName);
-	}
-	/// ditto
-	const
-	real physicalMod(Period e, Physical phy) {
-		return _prop.sys.physicalMod(e, phy, legacyName);
-	}
-	/// ditto
-	const
-	real mentalMod(Period e, Mental mtl) {
-		return _prop.sys.mentalMod(e, mtl, legacyName);
-	}
-	/// ditto
-	const
-	real physicalMod(Nature e, Physical phy) {
-		return _prop.sys.physicalMod(e, phy, legacyName);
-	}
-	/// ditto
-	const
-	real mentalMod(Nature e, Mental mtl) {
-		return _prop.sys.mentalMod(e, mtl, legacyName);
-	}
-	/// ditto
-	const
-	real physicalMod(Makings e, Physical phy) {
-		return _prop.sys.physicalMod(e, phy, legacyName);
-	}
-	/// ditto
-	const
-	real mentalMod(Makings e, Mental mtl) {
-		return _prop.sys.mentalMod(e, mtl, legacyName);
+	real mentalMod(E)(E e, Mental mtl) {
+		switch (mtl) {
+		case Mental.UNAGGRESSIVE, Mental.UNCHEERFUL, Mental.UNBRAVE,
+				Mental.UNCAUTIOUS, Mental.UNTRICKISH:
+			return mentalMod(e, reverseMental(mtl)) * -1.0;
+		default:
+		}
+		const(real[Mental]) init;
+		return _prop.sys.mentalMod!E(legacyName).get(e, init).get(mtl, 0.0);
 	}
 
 	/// XMLファイルからスキンデータをロードする。
