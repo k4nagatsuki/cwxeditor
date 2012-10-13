@@ -2,6 +2,7 @@
 module cwx.system;
 
 import cwx.features;
+import cwx.types;
 
 import std.string;
 import std.algorithm;
@@ -380,5 +381,1086 @@ class System {
 	/// フラグ・ステップ値のランダム値ソース名。
 	@property const string randomValue() {
 		return "??Random";
+	}
+
+	/// 性別による肉体能力の修正値のテーブルを返す。
+	const
+	real physicalMod(Sex e, Physical phy, string legacyName) {
+		switch (e) {
+		case Sex.MALE:
+			switch (phy) {
+			case Physical.STR:
+				return 1.0;
+			default:
+			}
+			break;
+		case Sex.FEMALE:
+			switch (phy) {
+			case Physical.DEX:
+				return 1.0;
+			default:
+			}
+			break;
+		default:
+		}
+		return 0.0;
+	}
+	/// 性別による精神能力の修正値を返す。
+	const
+	real mentalMod(Sex e, Mental mtl, string legacyName) {
+		switch (mtl) {
+		case Mental.UNAGGRESSIVE, Mental.UNCHEERFUL, Mental.UNBRAVE,
+				Mental.UNCAUTIOUS, Mental.UNTRICKISH:
+			return mentalMod(e, reverseMental(mtl), legacyName) * -1.0;
+		default:
+		}
+		switch (e) {
+		case Sex.MALE:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return 0.5;
+			default:
+			}
+			break;
+		case Sex.FEMALE:
+			switch (mtl) {
+			case Mental.CAUTIOUS:
+				return 0.5;
+			default:
+			}
+			break;
+		default:
+		}
+		return 0.0;
+	}
+
+	/// 年代による肉体能力の修正値を返す。
+	const
+	real physicalMod(Period e, Physical phy, string legacyName) {
+		switch (e) {
+		case Period.CHILD:
+			switch (phy) {
+			case Physical.DEX:
+				return 1.0;
+			case Physical.AGL:
+				return 1.0;
+			case Physical.STR:
+				return -1.0;
+			case Physical.VIT:
+				return -1.0;
+			default:
+			}
+			break;
+		case Period.ADULT:
+			switch (phy) {
+			case Physical.VIT:
+				return -1.0;
+			default:
+			}
+			break;
+		case Period.OLD:
+			switch (phy) {
+			case Physical.DEX:
+				return -1.0;
+			case Physical.AGL:
+				return -1.0;
+			case Physical.INT:
+				return 1.0;
+			case Physical.STR:
+				return -1.0;
+			case Physical.VIT:
+				return -1.0;
+			case Physical.MIN:
+				return 1.0;
+			default:
+			}
+			break;
+		default:
+		}
+		return 0.0;
+	}
+	/// 年代による精神能力の修正値を返す。
+	const
+	real mentalMod(Period e, Mental mtl, string legacyName) {
+		switch (mtl) {
+		case Mental.UNAGGRESSIVE, Mental.UNCHEERFUL, Mental.UNBRAVE,
+				Mental.UNCAUTIOUS, Mental.UNTRICKISH:
+			return mentalMod(e, reverseMental(mtl), legacyName) * -1.0;
+		default:
+		}
+		switch (e) {
+		case Period.CHILD:
+			switch (mtl) {
+			case Mental.CHEERFUL:
+				return 0.5;
+			case Mental.CAUTIOUS:
+				return -0.5;
+			default:
+			}
+			break;
+		case Period.ADULT:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return -0.5;
+			case Mental.CAUTIOUS:
+				return 0.5;
+			default:
+			}
+			break;
+		case Period.OLD:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return -0.5;
+			case Mental.BRAVE:
+				return -0.5;
+			case Mental.CAUTIOUS:
+				return 0.5;
+			case Mental.TRICKISH:
+				return 0.5;
+			default:
+			}
+			break;
+		default:
+		}
+		return 0.0;
+	}
+	/// 素質による肉体能力の修正値を返す。
+	const
+	real physicalMod(Nature e, Physical phy, string legacyName) {
+		switch (e) {
+		case Nature.SPI:
+			switch (phy) {
+			case Physical.MIN:
+				return 1.0;
+			default:
+			}
+			break;
+		case Nature.INT:
+			switch (phy) {
+			case Physical.INT:
+				return 2.0;
+			case Physical.STR:
+				return -1.0;
+			case Physical.VIT:
+				return -1.0;
+			default:
+			}
+			break;
+		case Nature.AGL:
+			switch (phy) {
+			case Physical.DEX:
+				return 1.0;
+			case Physical.AGL:
+				return 1.0;
+			case Physical.MIN:
+				return -1.0;
+			default:
+			}
+			break;
+		case Nature.SCH:
+			switch (phy) {
+			case Physical.AGL:
+				return -1.0;
+			case Physical.INT:
+				return 3.0;
+			case Physical.STR:
+				return -2.0;
+			case Physical.VIT:
+				return -2.0;
+			default:
+			}
+			break;
+		case Nature.STR:
+			switch (phy) {
+			case Physical.DEX:
+				return -1.0;
+			case Physical.INT:
+				return -1.0;
+			case Physical.STR:
+				return 2.0;
+			default:
+			}
+			break;
+		case Nature.VIT:
+			switch (phy) {
+			case Physical.DEX:
+				return -2.0;
+			case Physical.AGL:
+				return -1.0;
+			case Physical.INT:
+				return -2.0;
+			case Physical.STR:
+				return 3.0;
+			case Physical.VIT:
+				return 1.0;
+			case Physical.MIN:
+				return -1.0;
+			default:
+			}
+			break;
+		case Nature.BRI:
+			return 1.0;
+		case Nature.MAT:
+			switch (phy) {
+			case Physical.AGL:
+				return 1.0;
+			case Physical.STR:
+				return 3.0;
+			case Physical.VIT:
+				return 2.0;
+			default:
+			}
+			break;
+		case Nature.GEN:
+			switch (phy) {
+			case Physical.DEX:
+				return 1.0;
+			case Physical.INT:
+				return 3.0;
+			case Physical.MIN:
+				return 2.0;
+			default:
+			}
+			break;
+		case Nature.MED:
+			return -2.0;
+		case Nature.HER:
+			switch (phy) {
+			case Physical.DEX:
+				return 1.0;
+			case Physical.AGL:
+				return 1.0;
+			case Physical.INT:
+				return 2.0;
+			case Physical.STR:
+				return 2.0;
+			case Physical.VIT:
+				return 1.0;
+			case Physical.MIN:
+				return 2.0;
+			default:
+			}
+			break;
+		case Nature.DIV:
+			return 2.0;
+		default:
+		}
+		return 0.0;
+	}
+	/// 素質による精神能力の修正値を返す。
+	const
+	real mentalMod(Nature e, Mental mtl, string legacyName) {
+		switch (mtl) {
+		case Mental.UNAGGRESSIVE, Mental.UNCHEERFUL, Mental.UNBRAVE,
+				Mental.UNCAUTIOUS, Mental.UNTRICKISH:
+			return mentalMod(e, reverseMental(mtl), legacyName) * -1.0;
+		default:
+		}
+		switch (e) {
+		case Nature.SPI:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return -0.5;
+			case Mental.CAUTIOUS:
+				return 0.5;
+			default:
+			}
+			break;
+		case Nature.INT:
+			switch (mtl) {
+			case Mental.CAUTIOUS:
+				return 0.5;
+			default:
+			}
+			break;
+		case Nature.AGL:
+			switch (mtl) {
+			case Mental.CHEERFUL:
+				return 0.5;
+			default:
+			}
+			break;
+		case Nature.SCH:
+			switch (mtl) {
+			case Mental.CAUTIOUS:
+				return 0.5;
+			case Mental.TRICKISH:
+				return 0.5;
+			default:
+			}
+			break;
+		case Nature.STR:
+			switch (mtl) {
+			case Mental.BRAVE:
+				return 1.0;
+			default:
+			}
+			break;
+		case Nature.VIT:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return 0.5;
+			case Mental.BRAVE:
+				return 0.5;
+			case Mental.CAUTIOUS:
+				return -0.5;
+			default:
+			}
+			break;
+		case Nature.BRI:
+			switch (mtl) {
+			case Mental.CAUTIOUS:
+				return 0.5;
+			default:
+			}
+			break;
+		case Nature.MAT:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return 0.5;
+			case Mental.BRAVE:
+				return 0.5;
+			default:
+			}
+			break;
+		case Nature.GEN:
+			switch (mtl) {
+			case Mental.CAUTIOUS:
+				return 0.5;
+			case Mental.TRICKISH:
+				return 0.5;
+			default:
+			}
+			break;
+		case Nature.MED:
+			switch (mtl) {
+			case Mental.BRAVE:
+				return -0.5;
+			case Mental.CAUTIOUS:
+				return 0.5;
+			default:
+			}
+			break;
+		case Nature.HER:
+			switch (mtl) {
+			case Mental.CHEERFUL:
+				return 0.5;
+			case Mental.BRAVE:
+				return 0.5;
+			case Mental.TRICKISH:
+				return -0.5;
+			default:
+			}
+			break;
+		case Nature.DIV:
+			return 0.0;
+		default:
+		}
+		return 0.0;
+	}
+	/// 特徴による肉体能力の修正値を返す。
+	const
+	real physicalMod(Makings e, Physical phy, string legacyName) {
+		switch (e) {
+		case Makings.LOOKS_B:
+			switch (phy) {
+			case Physical.VIT:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.LOOKS_U:
+			switch (phy) {
+			case Physical.VIT:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.BRED_T:
+			switch (phy) {
+			case Physical.INT:
+				return 1.0;
+			case Physical.VIT:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.BRED_C:
+			switch (phy) {
+			case Physical.AGL:
+				return -1.0;
+			case Physical.VIT:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.MEANS_H:
+			switch (phy) {
+			case Physical.MIN:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.MEANS_L:
+			switch (phy) {
+			case Physical.MIN:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.FAITH_F:
+			switch (phy) {
+			case Physical.INT:
+				return -1.0;
+			case Physical.MIN:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.DISP_C:
+			switch (phy) {
+			case Physical.AGL:
+				return -1.0;
+			case Physical.INT:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.DISP_S:
+			switch (phy) {
+			case Physical.AGL:
+				return 1.0;
+			case Physical.MIN:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.DESIRE_G:
+			switch (phy) {
+			case Physical.VIT:
+				return 1.0;
+			case Physical.MIN:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.DEVOTE_D:
+			switch (phy) {
+			case Physical.VIT:
+				return -1.0;
+			case Physical.MIN:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.DEVOTE_S:
+			switch (phy) {
+			case Physical.DEX:
+				return -1.0;
+			case Physical.AGL:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.DISC_C:
+			switch (phy) {
+			case Physical.STR:
+				return 1.0;
+			case Physical.MIN:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.POLIT_R:
+			switch (phy) {
+			case Physical.AGL:
+				return 1.0;
+			case Physical.VIT:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.POLIT_C:
+			switch (phy) {
+			case Physical.STR:
+				return -1.0;
+			case Physical.MIN:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.SENSE_R:
+			switch (phy) {
+			case Physical.AGL:
+				return 1.0;
+			case Physical.STR:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.SENSE_S:
+			switch (phy) {
+			case Physical.INT:
+				return -1.0;
+			case Physical.VIT:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.CURIO_B:
+			switch (phy) {
+			case Physical.DEX:
+				return 1.0;
+			case Physical.VIT:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.CURIO_I:
+			switch (phy) {
+			case Physical.AGL:
+				return -1.0;
+			case Physical.MIN:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.NOTION_R:
+			switch (phy) {
+			case Physical.STR:
+				return 1.0;
+			case Physical.VIT:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.IDEA_O:
+			switch (phy) {
+			case Physical.DEX:
+				return 1.0;
+			case Physical.AGL:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.IDEA_P:
+			switch (phy) {
+			case Physical.INT:
+				return 1.0;
+			case Physical.MIN:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.WORK_H:
+			switch (phy) {
+			case Physical.DEX:
+				return -1.0;
+			case Physical.VIT:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.WORK_S:
+			switch (phy) {
+			case Physical.DEX:
+				return 1.0;
+			case Physical.INT:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.STYLE_F:
+			switch (phy) {
+			case Physical.AGL:
+				return 1.0;
+			case Physical.INT:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.STYLE_P:
+			switch (phy) {
+			case Physical.STR:
+				return -1.0;
+			case Physical.VIT:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.PRIDE_P:
+			switch (phy) {
+			case Physical.DEX:
+				return -1.0;
+			case Physical.MIN:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.PRIDE_M:
+			switch (phy) {
+			case Physical.DEX:
+				return -1.0;
+			case Physical.INT:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.REF_R:
+			switch (phy) {
+			case Physical.INT:
+				return 1.0;
+			case Physical.STR:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.REF_B:
+			switch (phy) {
+			case Physical.INT:
+				return -1.0;
+			case Physical.STR:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.GRACE_G:
+			switch (phy) {
+			case Physical.DEX:
+				return -1.0;
+			case Physical.STR:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.GRACE_R:
+			switch (phy) {
+			case Physical.DEX:
+				return 1.0;
+			case Physical.STR:
+				return -1.0;
+			default:
+			}
+			break;
+		case Makings.LINER_H:
+			switch (phy) {
+			case Physical.AGL:
+				return -1.0;
+			case Physical.STR:
+				return 1.0;
+			default:
+			}
+			break;
+		case Makings.LINER_M:
+			switch (phy) {
+			case Physical.DEX:
+				return 1.0;
+			case Physical.MIN:
+				return -1.0;
+			default:
+			}
+			break;
+		default:
+		}
+		return 0.0;
+	}
+	/// 特徴による精神能力の修正値を返す。
+	const
+	real mentalMod(Makings e, Mental mtl, string legacyName) {
+		switch (mtl) {
+		case Mental.UNAGGRESSIVE, Mental.UNCHEERFUL, Mental.UNBRAVE,
+				Mental.UNCAUTIOUS, Mental.UNTRICKISH:
+			return mentalMod(e, reverseMental(mtl), legacyName) * -1.0;
+		default:
+		}
+		switch (e) {
+		case Makings.LOOKS_B:
+			switch (mtl) {
+			case Mental.CHEERFUL:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.LOOKS_U:
+			switch (mtl) {
+			case Mental.CHEERFUL:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.CLASS_H:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return -0.5;
+			case Mental.BRAVE:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.CLASS_L:
+			switch (mtl) {
+			case Mental.CAUTIOUS:
+				return -0.5;
+			case Mental.TRICKISH:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.BRED_T:
+			switch (mtl) {
+			case Mental.CHEERFUL:
+				return 0.5;
+			case Mental.TRICKISH:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.BRED_C:
+			switch (mtl) {
+			case Mental.TRICKISH:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.MEANS_H:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return -0.5;
+			case Mental.TRICKISH:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.MEANS_L:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return 0.5;
+			case Mental.BRAVE:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.FAITH_F:
+			switch (mtl) {
+			case Mental.BRAVE:
+				return 0.5;
+			case Mental.TRICKISH:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.FAITH_I:
+			switch (mtl) {
+			case Mental.CAUTIOUS:
+				return 0.5;
+			case Mental.TRICKISH:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.RELI_R:
+			switch (mtl) {
+			case Mental.BRAVE:
+				return 0.5;
+			case Mental.TRICKISH:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.RELI_U:
+			switch (mtl) {
+			case Mental.BRAVE:
+				return -0.5;
+			case Mental.TRICKISH:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.DISP_C:
+			switch (mtl) {
+			case Mental.CAUTIOUS:
+				return 0.5;
+			case Mental.TRICKISH:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.DISP_S:
+			switch (mtl) {
+			case Mental.CAUTIOUS:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.DESIRE_G:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return 0.5;
+			case Mental.BRAVE:
+				return -0.5;
+			case Mental.CAUTIOUS:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.DESIRE_C:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.DEVOTE_D:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.DEVOTE_S:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return 0.5;
+			case Mental.CHEERFUL:
+				return -0.5;
+			case Mental.TRICKISH:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.DISC_O:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return 0.5;
+			case Mental.TRICKISH:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.DISC_C:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return 0.5;
+			case Mental.TRICKISH:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.POLIT_R:
+			switch (mtl) {
+			case Mental.BRAVE:
+				return 0.5;
+			case Mental.CAUTIOUS:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.POLIT_C:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return -0.5;
+			case Mental.CAUTIOUS:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.SENSE_R:
+			switch (mtl) {
+			case Mental.CHEERFUL:
+				return -0.5;
+			case Mental.CAUTIOUS:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.CURIO_I:
+			switch (mtl) {
+			case Mental.CHEERFUL:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.NOTION_R:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return 0.5;
+			case Mental.CAUTIOUS:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.NOTION_M:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return -0.5;
+			case Mental.CAUTIOUS:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.IDEA_O:
+			switch (mtl) {
+			case Mental.BRAVE:
+				return 0.5;
+			case Mental.CAUTIOUS:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.IDEA_P:
+			switch (mtl) {
+			case Mental.BRAVE:
+				return -0.5;
+			case Mental.CAUTIOUS:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.WORK_S:
+			switch (mtl) {
+			case Mental.CHEERFUL:
+				return 0.5;
+			case Mental.TRICKISH:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.CHAR_C:
+			switch (mtl) {
+			case Mental.CHEERFUL:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.CHAR_B:
+			switch (mtl) {
+			case Mental.BRAVE:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.STYLE_F:
+			switch (mtl) {
+			case Mental.CHEERFUL:
+				return 0.5;
+			case Mental.CAUTIOUS:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.STYLE_P:
+			switch (mtl) {
+			case Mental.BRAVE:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.PRIDE_P:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return 0.5;
+			case Mental.CHEERFUL:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.PRIDE_M:
+			switch (mtl) {
+			case Mental.CAUTIOUS:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.REF_R:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return -0.5;
+			case Mental.CHEERFUL:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.REF_B:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return 0.5;
+			case Mental.CHEERFUL:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.GRACE_G:
+			switch (mtl) {
+			case Mental.CHEERFUL:
+				return -0.5;
+			case Mental.BRAVE:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.GRACE_R:
+			switch (mtl) {
+			case Mental.BRAVE:
+				return -0.5;
+			case Mental.CAUTIOUS:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.LINER_H:
+			switch (mtl) {
+			case Mental.BRAVE:
+				return 0.5;
+			case Mental.TRICKISH:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.LINER_M:
+			switch (mtl) {
+			case Mental.CHEERFUL:
+				return 0.5;
+			case Mental.BRAVE:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.PER_S:
+			switch (mtl) {
+			case Mental.CHEERFUL:
+				return 0.5;
+			case Mental.TRICKISH:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.PER_T:
+			switch (mtl) {
+			case Mental.CHEERFUL:
+				return 0.5;
+			default:
+			}
+			break;
+		case Makings.FAME_H:
+			switch (mtl) {
+			case Mental.BRAVE:
+				return 0.5;
+			case Mental.CAUTIOUS:
+				return -0.5;
+			case Mental.TRICKISH:
+				return -0.5;
+			default:
+			}
+			break;
+		case Makings.FAME_A:
+			switch (mtl) {
+			case Mental.AGGRESSIVE:
+				return -0.5;
+			default:
+			}
+			break;
+		default:
+		}
+		return 0.0;
 	}
 }

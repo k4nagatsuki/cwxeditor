@@ -1002,6 +1002,47 @@ class Skin {
 		return _prop.sys.convCoupon(makingsName(e), CouponType.Hide);
 	}
 
+	/// 特徴の能力修正値を返す。
+	const
+	real physicalMod(Sex e, Physical phy) {
+		return _prop.sys.physicalMod(e, phy, legacyName);
+	}
+	/// ditto
+	const
+	real mentalMod(Sex e, Mental mtl) {
+		return _prop.sys.mentalMod(e, mtl, legacyName);
+	}
+	/// ditto
+	const
+	real physicalMod(Period e, Physical phy) {
+		return _prop.sys.physicalMod(e, phy, legacyName);
+	}
+	/// ditto
+	const
+	real mentalMod(Period e, Mental mtl) {
+		return _prop.sys.mentalMod(e, mtl, legacyName);
+	}
+	/// ditto
+	const
+	real physicalMod(Nature e, Physical phy) {
+		return _prop.sys.physicalMod(e, phy, legacyName);
+	}
+	/// ditto
+	const
+	real mentalMod(Nature e, Mental mtl) {
+		return _prop.sys.mentalMod(e, mtl, legacyName);
+	}
+	/// ditto
+	const
+	real physicalMod(Makings e, Physical phy) {
+		return _prop.sys.physicalMod(e, phy, legacyName);
+	}
+	/// ditto
+	const
+	real mentalMod(Makings e, Mental mtl) {
+		return _prop.sys.mentalMod(e, mtl, legacyName);
+	}
+
 	/// XMLファイルからスキンデータをロードする。
 	void loadFromXML(string fname) {
 		try {

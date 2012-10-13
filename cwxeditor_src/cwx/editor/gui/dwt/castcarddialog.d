@@ -941,11 +941,11 @@ private:
 		tab.setText(_prop.msgs.physicalParams);
 		tab.setControl(comp);
 	}
-	real calcPhy(E)(Physical phy, Button[E] radios, bool all) {
+	real calcPhy(E)(in Skin skin, Physical phy, Button[E] radios, bool all) {
 		real r = 0.0;
 		foreach (e, radio; radios) {
 			if (radio.getSelection()) {
-				r += physicalMod(e, phy);
+				r += skin.physicalMod(e, phy);
 				if (!all) break;
 			}
 		}
@@ -975,10 +975,10 @@ private:
 				max[phy] = pmax;
 			}
 			foreach (phy, val; p) {
-				val += calcPhy!(Sex)(phy, _sex, false);
-				val += calcPhy!(Period)(phy, _period, false);
-				val += calcPhy!(Nature)(phy, _nature, false);
-				val += calcPhy!(Makings)(phy, _makings, true);
+				val += calcPhy!(Sex)(_comm.skin, phy, _sex, false);
+				val += calcPhy!(Period)(_comm.skin, phy, _period, false);
+				val += calcPhy!(Nature)(_comm.skin, phy, _nature, false);
+				val += calcPhy!(Makings)(_comm.skin, phy, _makings, true);
 				p[phy] = val;
 			}
 			int[] vals;
@@ -1030,11 +1030,11 @@ private:
 		tab.setText(_prop.msgs.mentalParams);
 		tab.setControl(comp);
 	}
-	real calcMtl(E)(Mental mtl, Button[E] radios, bool all) {
+	real calcMtl(E)(in Skin skin, Mental mtl, Button[E] radios, bool all) {
 		real r = 0.0;
 		foreach (e, radio; radios) {
 			if (radio.getSelection()) {
-				r += mentalMod(e, mtl);
+				r += skin.mentalMod(e, mtl);
 				if (!all) break;
 			}
 		}
@@ -1055,10 +1055,10 @@ private:
 				} else {
 					val = 0.0;
 				}
-				val += calcMtl!(Sex)(mtl, _sex, false);
-				val += calcMtl!(Period)(mtl, _period, false);
-				val += calcMtl!(Nature)(mtl, _nature, false);
-				val += calcMtl!(Makings)(mtl, _makings, true);
+				val += calcMtl!(Sex)(_comm.skin, mtl, _sex, false);
+				val += calcMtl!(Period)(_comm.skin, mtl, _period, false);
+				val += calcMtl!(Nature)(_comm.skin, mtl, _nature, false);
+				val += calcMtl!(Makings)(_comm.skin, mtl, _makings, true);
 				int v = cast(int) val;
 				if (v < min) v = min;
 				if (v > max) v = max;
