@@ -981,6 +981,20 @@ class Skin {
 	string makingsName(Makings e) {
 		return _cEngine.makingsName.get(_prop.sys.makingsName(e, ""), _prop.sys.makingsName(e, legacyName));
 	}
+	/// ditto
+	const
+	string featureName(E)(E e) {
+		static if (is(E:Sex)) {
+			return sexName(e);
+		} else static if (is(E:Period)) {
+			return periodName(e);
+		} else static if (is(E:Nature)) {
+			return natureName(e);
+		} else static if (is(E:Makings)) {
+			return makingsName(e);
+		} else static assert (0);
+	}
+
 	/// このスキンでの特徴のクーポンを返す。
 	const
 	string sexCoupon(Sex e) {
@@ -1005,6 +1019,22 @@ class Skin {
 	/// 特徴の能力修正値を返す。
 	const
 	real physicalMod(E)(E e, Physical phy) {
+		static if (is(E:Sex)) {
+			auto arr = _cEngine.physicalModSex;
+		} else static if (is(E:Period)) {
+			auto arr = _cEngine.physicalModPeriod;
+		} else static if (is(E:Nature)) {
+			auto arr = _cEngine.physicalModNature;
+		} else static if (is(E:Makings)) {
+			auto arr = _cEngine.physicalModMakings;
+		} else static assert (0);
+
+		if (auto p1 = (featureName(e) in arr)) {
+			if (auto p2 = (phy in *p1)) {
+				return *p2;
+			}
+		}
+
 		const(real[Physical]) init;
 		return _prop.sys.physicalMod!E(legacyName).get(e, init).get(phy, 0.0);
 	}
@@ -1017,6 +1047,23 @@ class Skin {
 			return mentalMod(e, reverseMental(mtl)) * -1.0;
 		default:
 		}
+
+		static if (is(E:Sex)) {
+			auto arr = _cEngine.mentalModSex;
+		} else static if (is(E:Period)) {
+			auto arr = _cEngine.mentalModPeriod;
+		} else static if (is(E:Nature)) {
+			auto arr = _cEngine.mentalModNature;
+		} else static if (is(E:Makings)) {
+			auto arr = _cEngine.mentalModMakings;
+		} else static assert (0);
+
+		if (auto p1 = (featureName(e) in arr)) {
+			if (auto p2 = (mtl in *p1)) {
+				return *p2;
+			}
+		}
+
 		const(real[Mental]) init;
 		return _prop.sys.mentalMod!E(legacyName).get(e, init).get(mtl, 0.0);
 	}

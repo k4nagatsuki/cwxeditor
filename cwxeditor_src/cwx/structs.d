@@ -1,6 +1,7 @@
 
 module cwx.structs;
 
+import cwx.types;
 import cwx.xml;
 
 import std.conv;
@@ -477,6 +478,27 @@ struct ClassicEngine {
 	string[string] natureName;
 	string[string] makingsName;
 
+	real[Physical][string] physicalModSex;
+	real[Physical][string] physicalModPeriod;
+	real[Physical][string] physicalModNature;
+	real[Physical][string] physicalModMakings;
+	real[Mental][string] mentalModSex;
+	real[Mental][string] mentalModPeriod;
+	real[Mental][string] mentalModNature;
+	real[Mental][string] mentalModMakings;
+
+	private static real[P][string] dupAA(P)(in real[P][string] aa) {
+		real[P][string] r;
+		foreach (key1, value1; aa) {
+			real[P] arr;
+			foreach (key2, value2; value1) {
+				arr[key2] = value2;
+			}
+			r[key1] = arr;
+		}
+		return r;
+	}
+
 	/// コピーを生成する。
 	@property
 	const
@@ -489,10 +511,21 @@ struct ClassicEngine {
 		ce.mnemonic = mnemonic;
 		ce.hotkey = hotkey;
 		ce.okText = okText;
+
 		foreach (key, value; sexName) ce.sexName[key] = value;
 		foreach (key, value; periodName) ce.periodName[key] = value;
 		foreach (key, value; natureName) ce.natureName[key] = value;
 		foreach (key, value; makingsName) ce.makingsName[key] = value;
+
+		ce.physicalModSex = dupAA!Physical(physicalModSex);
+		ce.physicalModPeriod = dupAA!Physical(physicalModPeriod);
+		ce.physicalModNature = dupAA!Physical(physicalModNature);
+		ce.physicalModMakings = dupAA!Physical(physicalModMakings);
+		ce.mentalModSex = dupAA!Mental(mentalModSex);
+		ce.mentalModPeriod = dupAA!Mental(mentalModPeriod);
+		ce.mentalModNature = dupAA!Mental(mentalModNature);
+		ce.mentalModMakings = dupAA!Mental(mentalModMakings);
+
 		return ce;
 	}
 
@@ -565,6 +598,32 @@ struct ClassicEngine {
 				ne.newAttr("key", key);
 			}
 		}
+		putAA!Physical(e, "sexPhysical", physicalModSex);
+		putAA!Physical(e, "periodPhysical", physicalModPeriod);
+		putAA!Physical(e, "naturePhysical", physicalModNature);
+		putAA!Physical(e, "makingsPhysical", physicalModMakings);
+		putAA!Mental(e, "sexMental", mentalModSex);
+		putAA!Mental(e, "periodMental", mentalModPeriod);
+		putAA!Mental(e, "natureMental", mentalModNature);
+		putAA!Mental(e, "makingsMental", mentalModMakings);
+	}
+	private static void putAA(P)(ref XNode e, string eName, in real[P][string] aa) {
+		static if (is(P:Physical)) {
+			alias fromPhysical toName;
+		} else static if (is(P:Mental)) {
+			alias fromMental toName;
+		} else static assert (0);
+		if (!aa.length) return;
+		auto ee = e.newElement(eName);
+		foreach (key1, value1; aa) {
+			if (!value1.length) continue;
+			auto pe = ee.newElement("params");
+			pe.newAttr("key", key1);
+			foreach (key2, value2; value1) {
+				auto ve = pe.newElement("value", .text(value2));
+				ve.newAttr("key", toName(key2));
+			}
+		}
 	}
 
 	/// エンジンの実行ファイル名から拡張子を取り戻した文字列を返す。
@@ -577,14 +636,31 @@ struct ClassicEngine {
 	/// 特徴名をクリアする。
 	void clearFeatures() {
 		okText = null;
-		typeof(sexName) sexName;
+		typeof(this.sexName) sexName;
 		this.sexName = sexName;
-		typeof(periodName) periodName;
+		typeof(this.periodName) periodName;
 		this.periodName = periodName;
-		typeof(natureName) natureName;
+		typeof(this.natureName) natureName;
 		this.natureName = natureName;
-		typeof(makingsName) makingsName;
+		typeof(this.makingsName) makingsName;
 		this.makingsName = makingsName;
+
+		typeof(this.physicalModSex) physicalModSex;
+		this.physicalModSex = physicalModSex;
+		typeof(this.physicalModPeriod) physicalModPeriod;
+		this.physicalModPeriod = physicalModPeriod;
+		typeof(this.physicalModNature) physicalModNature;
+		this.physicalModNature = physicalModNature;
+		typeof(this.physicalModMakings) physicalModMakings;
+		this.physicalModMakings = physicalModMakings;
+		typeof(this.mentalModSex) mentalModSex;
+		this.mentalModSex = mentalModSex;
+		typeof(this.mentalModPeriod) mentalModPeriod;
+		this.mentalModPeriod = mentalModPeriod;
+		typeof(this.mentalModNature) mentalModNature;
+		this.mentalModNature = mentalModNature;
+		typeof(this.mentalModMakings) mentalModMakings;
+		this.mentalModMakings = mentalModMakings;
 	}
 
 	/// ditto
@@ -627,7 +703,39 @@ struct ClassicEngine {
 			};
 			node.parse();
 		};
+		getAA(node, "sexPhysical", physicalModSex);
+		getAA(node, "periodPhysical", physicalModPeriod);
+		getAA(node, "naturePhysical", physicalModNature);
+		getAA(node, "makingsPhysical", physicalModMakings);
+		getAA(node, "sexMental", mentalModSex);
+		getAA(node, "periodMental", mentalModPeriod);
+		getAA(node, "natureMental", mentalModNature);
+		getAA(node, "makingsMental", mentalModMakings);
 		node.parse();
+	}
+	private static void getAA(P)(ref XNode node, string eName, ref real[P][string] aa) {
+		static if (is(P:Physical)) {
+			alias toPhysical fromName;
+		} else static if (is(P:Mental)) {
+			alias toMental fromName;
+		} else static assert (0);
+		node.onTag[eName] = (ref XNode node) {
+			real[P] arr;
+			string key = node.attr!string("key", false, "");
+			if (key.length) {
+				node.onTag["params"] = (ref XNode node) {
+					auto keyStr = node.attr!string("key", false, "");
+					if (keyStr.length) {
+						auto key = fromName(keyStr);
+						arr[key] = to!real(node.value);
+					}
+				};
+				node.parse();
+				if (arr.length) {
+					aa[key] = arr;
+				}
+			}
+		};
 	}
 }
 
