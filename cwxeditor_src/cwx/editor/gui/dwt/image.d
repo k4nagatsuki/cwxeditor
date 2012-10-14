@@ -63,7 +63,7 @@ public:
 	}
 	@property Image emptyIcon() {return imgd!("empty.png");}
 
-	@property Image app() {return imgd!("new.png");}
+	@property Image app() {return imgd!("cwxeditor.png");}
 	@property Image icon() {return imgd!("cwxeditor.ico");}
 
 	@property Image text() {return imgd!("text.png");}
