@@ -253,8 +253,22 @@ public:
 	string[] warnings() {
 		string[] ws;
 		auto img = filePath;
-		// TODO 格納イメージでも警告は発されるべき
-		if (!isBinImg(img)) {
+		if (isBinImg(img)) {
+			auto bin =  cast(ubyte[]) strToBImg(img);
+			auto type = imageType(bin);
+			if ("" != type) {
+				img = "image".setExtension(type);
+				ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? false : _summ.legacy);
+				static if (Type is MtType.CARD) {
+					uint w, h;
+					imageSize(bin, w, h);
+					auto cs = _prop.looks.cardSize;
+					if (cs.width != w && cs.height != h) {
+						ws ~= _prop.msgs.warningNoCardSizeImage;
+					}
+				}
+			}
+		} else {
 			ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? false : _summ.legacy);
 			static if (Type is MtType.CARD) {
 				if (img.length) {
