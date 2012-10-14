@@ -125,7 +125,7 @@ public:
 				auto comp = new Composite(compl, SWT.NONE);
 				comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				comp.setLayout(zeroMarginGridLayout(3, false));
-				auto imgList = new Button(comp, SWT.PUSH);
+				auto imgList = new Button(comp, SWT.TOGGLE);
 				imgList.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				imgList.setImage(_prop.images.menu(MenuID.LookImages));
 				imgList.setToolTipText(_prop.buildTool(MenuID.LookImages));
@@ -304,27 +304,40 @@ private:
 	}
 	class SelImageList : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			if (_imgList && !_imgList.shell.isDisposed()) {
-				_imgList.shell.setActive();
-				return;
-			}
-			auto parent = (cast(Control) e.widget).getShell();
-			_imgList = new ImageListWindow!Type(_prop, _comm, _summ, parent, &image);
-			auto menu = new Menu(_imgList.shell, SWT.POP_UP);
-			createMenuItem(_comm, menu, MenuID.IncSearch, &_msel.startIncSearch, null);
-			_imgList.widget.setMenu(menu);
+			auto b = cast(Button) e.widget;
+			if (b.getSelection()) {
+				if (_imgList && !_imgList.shell.isDisposed()) {
+					_imgList.shell.setActive();
+					return;
+				}
+				auto parent = (cast(Control) e.widget).getShell();
+				_imgList = new ImageListWindow!Type(_prop, _comm, _summ, parent, &image);
+				.listener(_imgList.shell, SWT.Dispose, {
+					b.setSelection(false);
+				});
+				auto menu = new Menu(_imgList.shell, SWT.POP_UP);
+				createMenuItem(_comm, menu, MenuID.IncSearch, &_msel.startIncSearch, null);
+				_imgList.widget.setMenu(menu);
 
-			_imgList.shell.open();
-
-			auto cloc = Display.getCurrent().getCursorLocation();
-			auto p = _imgList.shell.getSize();
-			intoDisplay(cloc.x, cloc.y, p.x, p.y);
-			_imgList.shell.setLocation(cloc.x, cloc.y);
-			_imgList.images(dirsCombo.getText(), _msel.showingPaths);
-			static if (Type == MtType.BG_IMG) {
-				_imgList.mask = mask;
+				auto cloc = Display.getCurrent().getCursorLocation();
+				cloc.x++;
+				cloc.y++;
+				auto p = new Point(_prop.var.etc.imageListWidth, _prop.var.etc.imageListHeight);
+				intoDisplay(cloc.x, cloc.y, p.x, p.y);
+				_imgList.shell.setBounds(cloc.x, cloc.y, p.x, p.y);
+				_imgList.images(dirsCombo.getText(), _msel.showingPaths);
+				static if (Type == MtType.BG_IMG) {
+					_imgList.mask = mask;
+				}
+				_imgList.select(_msel.path);
+				_imgList.shell.open();
+			} else {
+				if (!_imgList || _imgList.shell.isDisposed()) {
+					return;
+				}
+				_imgList.shell.close();
+				_imgList.shell.dispose();
 			}
-			_imgList.select(_msel.path);
 		}
 	}
 	class SaveIncImg : SelectionAdapter {
