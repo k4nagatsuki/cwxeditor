@@ -33,6 +33,18 @@ bool isImageExt(string path) {
 /// Bitmap .... ".bmp"
 /// PNG .... ".png"
 string imageType(in ubyte[] b) {
+	if (22L <= b.length && 'B' == b[0] && 'M' == b[1]) {
+		// Bitmap
+		return ".bmp";
+	}
+	if (25L <= b.length && 0x89 == b[0] && 'P' == b[1] && 'N' == b[2] && 'G' == b[3]) {
+		// PNG
+		return ".png";
+	}
+	if (10L <= b.length && 'G' == b[0] && 'I' == b[1] && 'F' == b[2]) {
+		// GIF
+		return ".gif";
+	}
 	if (6L <= b.length && 0xFF == b[0] && 0xD8 == b[1]) {
 		// JPEG
 		return ".jpg";
@@ -56,18 +68,6 @@ string imageType(in ubyte[] b) {
 			break;
 		default:
 		}
-	}
-	if (10L <= b.length && 'G' == b[0] && 'I' == b[1] && 'F' == b[2]) {
-		// GIF
-		return ".gif";
-	}
-	if (22L <= b.length && 'B' == b[0] && 'M' == b[1]) {
-		// Bitmap
-		return ".bmp";
-	}
-	if (25L <= b.length && 0x89 == b[0] && 'P' == b[1] && 'N' == b[2] && 'G' == b[3]) {
-		// PNG
-		return ".png";
 	}
 	return "";
 }

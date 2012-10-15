@@ -30,6 +30,7 @@ import cwx.sjis;
 import cwx.xml;
 import cwx.path;
 import cwx.skin;
+import cwx.imagesize;
 
 private bool sWith(string f, string s, out ulong id) {
 	if (!fnstartsWith(f, s)) return false;
@@ -1697,6 +1698,7 @@ struct SData {
 	SkillCard delegate(ulong) skill;
 	ItemCard delegate(ulong) item;
 	BeastCard delegate(ulong) beast;
+	const(SaveOption) opt;
 	string[string] comment;
 	string[string] imageRef;
 	ulong[string] cardRef;
@@ -1705,7 +1707,7 @@ struct SData {
 }
 /// 4.0形式のCardWirthシナリオを保存する。
 void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
-	auto d = SData(summ.scenarioPath, skin, opt.saveInnerImagePath, &summ.skill, &summ.item, &summ.beast);
+	auto d = SData(summ.scenarioPath, skin, opt.saveInnerImagePath, &summ.skill, &summ.item, &summ.beast, opt);
 	class Save {
 		Area[] areas;
 		Battle[] battles;
@@ -2112,8 +2114,11 @@ private void writeImage(ref SData d, ref ByteIO f, CWXPath cp, string imgPath) {
 		if (exists(path)) {
 			bytes = cast(ubyte[]) std.file.read(path);
 		}
+		if (d.opt.imageConverter !is null && ".bmp" != .imageType(bytes)) {
+			bytes = d.opt.imageConverter(bytes);
+		}
 		if (d.saveInnerImagePath) {
-			d.imageRef[cp.cwxPath(true)] = imgPath;
+			d.imageRef[cp.cwxPath(true)] = encodePathLegacy(imgPath);
 		}
 	}
 	f.writeL(cast(uint) bytes.length);
@@ -2775,7 +2780,21 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) {
 	f.writeL(cast(uint) a.cards.length);
 	foreach (c; a.cards) {
 		f.writeL(cast(byte) 0x0);
-		writeImage(d, f, c, isBinImg(c.path) ? c.path : "");
+		bool saveBinImg;
+		if (isBinImg(c.path)) {
+			writeImage(d, f, c, c.path);
+			saveBinImg = true;
+		} else {
+			if (cfnmatch(".bmp", c.path.extension())) {
+				writeImage(d, f, c, "");
+				saveBinImg = false;
+			} else {
+				// Bitmapへの変換が行われた場合は必ずパスを保存する
+				d.imageRef[c.cwxPath(true)] = encodePathLegacy(c.path);
+				writeImage(d, f, c, c.path);
+				saveBinImg = true;
+			}
+		}
 		writeString(f, c.name);
 		f.writeL(cast(byte) 0x40);
 		f.writeL(cast(byte) 0x9C);
@@ -2791,7 +2810,7 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) {
 		f.writeL(cast(int) c.x);
 		f.writeL(cast(int) c.y);
 		if (0 == c.pcNumber) {
-			writeString(f, isBinImg(c.path) ? "" : encodePathLegacy(c.path));
+			writeString(f, saveBinImg ? "" : encodePathLegacy(c.path));
 		} else {
 			writeString(f, .text(c.pcNumber));
 		}
