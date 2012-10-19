@@ -611,6 +611,16 @@ private:
 				_comm.openCWXPath("fileview", false);
 				_dirWin.select(_opt.selectfile);
 			}
+			foreach (path; _opt.openPaths) {
+				try {
+					if (openCWXPath(path, true)) {
+						continue;
+					}
+				} catch (Exception e) {
+					debugln(e);
+				}
+				MessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
+			}
 			dStr ~= " - " ~ .text(__LINE__);
 			resetOpt();
 			dStr ~= " - " ~ .text(__LINE__);
@@ -700,7 +710,7 @@ private:
 		if (cfnmatch(.extension(fname), ".wsm") && !.exists(fname)) {
 			fname = dirName(fname);
 		}
-		decScenarioPath(fname, _opt.openPaths);
+		decScenarioPath(fname, _opt.openPaths, _prop.var.etc.clickIsOpenEvent);
 		auto old = summary;
 		loadScenarioFromFile(_prop, loadOption(null), _comm.mainShell, &setStatusLine,
 			old, fname, &openScenarioImpl, failure);
@@ -1674,7 +1684,7 @@ public:
 			_prop = prop;
 			_opt = opt;
 			dStr ~= " - " ~ .text(__LINE__);
-			decScenarioPath(opt.scenario, opt.openPaths);
+			decScenarioPath(opt.scenario, opt.openPaths, _prop.var.etc.clickIsOpenEvent);
 			/// すでにopt.scenarioを開いている
 			/// 既存のcwxeditorプロセスがある場合、
 			/// そちらを開くようにする。

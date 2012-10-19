@@ -2785,7 +2785,7 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) {
 			writeImage(d, f, c, c.path);
 			saveBinImg = true;
 		} else {
-			if (cfnmatch(".bmp", c.path.extension())) {
+			if (".bmp" == .toLower(c.path.extension())) {
 				writeImage(d, f, c, "");
 				saveBinImg = false;
 			} else {

@@ -2248,7 +2248,7 @@ bool isScenarioSystemDir(string dir) {
 
 /// シナリオ関連ファイルのパスを分解し、シナリオフォルダと
 /// パスに含まれるリソースパスに分ける。
-void decScenarioPath(ref string scenarioPath, ref string[] openPaths) {
+void decScenarioPath(ref string scenarioPath, ref string[] openPaths, bool eventPriority) {
 	if (scenarioPath && cfnmatch(.extension(scenarioPath), ".wid")) {
 		ulong id;
 		auto type = cwx.cwl.getType(scenarioPath, id);
@@ -2272,6 +2272,13 @@ void decScenarioPath(ref string scenarioPath, ref string[] openPaths) {
 				ts = "infocard";
 			}
 			ts ~= ":id:" ~ to!(string)(id);
+			if (eventPriority) {
+				if (type is typeid(Area)) {
+					ts = cpaddattr(ts, "eventview");
+				} else if (type is typeid(Battle)) {
+					ts = cpaddattr(ts, "eventview");
+				}
+			}
 			openPaths ~= ts;
 		}
 		scenarioPath = dirName(scenarioPath);
