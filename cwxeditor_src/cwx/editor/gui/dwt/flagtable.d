@@ -101,7 +101,7 @@ public:
 	@property
 	string name() {
 		auto name = FlagDir.validName(stepName.getText());
-		return dir.createNewStepName(name);
+		return dir.createNewStepName(name, _step ? _step.name : "");
 	}
 protected:
 	override void setup(Composite area) {
@@ -299,7 +299,7 @@ public:
 	@property
 	string name() {
 		auto name = FlagDir.validName(flagName.getText());
-		return dir.createNewStepName(name);
+		return dir.createNewFlagName(name, _flag ? _flag.name : "");
 	}
 protected:
 	private static void setMinW(Control c, int minW, int gridStyle = SWT.NULL) {
@@ -1046,7 +1046,7 @@ private:
 			if (0 == icmp(f.name, text)) return;
 			storeEdit(itm.getParent().indexOf(itm));
 			auto oldId = toFlagId(f.path);
-			f.name = f.parent.createNewFlagName(text);
+			f.name = f.parent.createNewFlagName(text, f.name);
 			itm.setText(column, f.name);
 			uc.change(oldId, toFlagId(f.path), true);
 			_comm.refFlagAndStep.call([f], []);
@@ -1058,7 +1058,7 @@ private:
 			if (0 == icmp(s.name, text)) return;
 			storeEdit(itm.getParent().indexOf(itm));
 			auto oldId = toStepId(s.path);
-			s.name = s.parent.createNewStepName(text);
+			s.name = s.parent.createNewStepName(text, s.name);
 			itm.setText(column, s.name);
 			uc.change(oldId, toStepId(s.path), true);
 			_comm.refFlagAndStep.call([], [s]);
