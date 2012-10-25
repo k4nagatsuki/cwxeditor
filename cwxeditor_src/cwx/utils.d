@@ -189,6 +189,7 @@ shared void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 			if (!debugLogFile) {
 				debugLogFile = new typeof(debugLogFile)(debugLog, FileMode.Append);
 			}
+			debugLogFile.seekEnd(0);
 			debugLogFile.writeLine(log);
 			debugLogFile.flush();
 		}
