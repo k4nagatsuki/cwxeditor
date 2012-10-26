@@ -2439,24 +2439,36 @@ public:
 				}
 			};
 			auto focusInOut = new class Listener {
-				private int _imeMode = SWT.NONE;
+				private int[Shell] _imeMode;
 				override void handleEvent(Event e) {
 					auto control = cast(Control) e.widget;
 					if (!control) return;
+					auto shl = control.getShell();
 					if (e.type is SWT.KeyUp || e.type is SWT.KeyDown) {
 						if (cast(Spinner) control || cast(NoIME) control) {
-							control.getShell().setImeInputMode(SWT.NONE);
+							shl.setImeInputMode(SWT.NONE);
 						}
 					} else if (e.type is SWT.FocusIn) {
 						if (cast(Spinner) control || cast(NoIME) control) {
-							_imeMode = control.getShell().getImeInputMode();
-							control.getShell().setImeInputMode(SWT.NONE);
+							if (shl !in _imeMode) {
+								.listener(shl, SWT.Dispose, {
+									if (shl in _imeMode) {
+										_imeMode.remove(shl);
+									}
+								});
+							}
+							_imeMode[shl] = shl.getImeInputMode();
+							shl.setImeInputMode(SWT.NONE);
 						}
 						_comm.refreshToolBar();
 					} else {
 						assert (e.type is SWT.FocusOut);
 						if (cast(Spinner) control || cast(NoIME) control) {
-							control.getShell().setImeInputMode(_imeMode);
+							auto p = shl in _imeMode;
+							if (p) {
+								shl.setImeInputMode(*p);
+								_imeMode.remove(shl);
+							}
 						}
 					}
 				}

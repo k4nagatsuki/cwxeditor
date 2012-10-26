@@ -313,13 +313,13 @@ abstract class AbsDialog {
 		}
 		calcBounds();
 		if (_apply) _apply.setEnabled(false);
-		_win.open();
-		if (firstFocusIsOK) _okBtn.setFocus();
 		auto par = cast(Shell) _win.getParent();
 		if (par) {
 			_imeMode = par.getImeInputMode();
 			_win.setImeInputMode(_imeMode);
 		}
+		_win.open();
+		if (firstFocusIsOK) _okBtn.setFocus();
 		opened();
 		foreach (dlg; openedEvent) {
 			dlg();
