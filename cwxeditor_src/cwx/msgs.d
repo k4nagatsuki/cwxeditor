@@ -1294,7 +1294,7 @@ class Msgs : Properties {
 	auto sourceScenario = Msg("sourceScenario", "シナリオ名");
 	auto sourceAuthor = Msg("sourceAuthor", "シナリオ作者");
 	auto resetSource = Msg("resetSource", "現在のシナリオを出典に設定");
-	auto diffSource = Msg("diffSource", "出典のシナリオ名と作者名が現在のシナリオと異なるため、使用時イベントは実行されません。");
+	auto diffSource = Msg("diffSource", "出典のシナリオ名と作者名が現在のシナリオと異なるため、使用時イベントのカード入手、エリア移動、パッケージのコール等は実行されません。");
 
 	/// ファイルビュー。
 	auto dirTabName = Msg("dirTabName", "ファイル");
