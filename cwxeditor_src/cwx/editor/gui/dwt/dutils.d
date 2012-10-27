@@ -1374,7 +1374,7 @@ bool qMaterialCopy(Commons comm, Shell shell,
 		if (!toIsLegacy || prop.var.etc.saveInnerImagePath) {
 			binImgToRef = question(prop.msgs.dlgMsgCopyMaterial1);
 		} else {
-			binImgToRef = true;
+			binImgToRef = false;
 		}
 	} else if (msgPaths.length && !bin) {
 		binImgToRef = false; // 格納イメージは存在しない
