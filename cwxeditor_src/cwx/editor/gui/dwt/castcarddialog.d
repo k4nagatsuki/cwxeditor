@@ -687,9 +687,9 @@ private:
 				_couponHide.setText(_prop.msgs.couponHide);
 				.listener(_couponHide, SWT.Selection, {
 					if (_couponHide.getSelection()) {
-						_newCoupon.setText(_prop.sys.convCoupon(_newCoupon.getText(), CouponType.Hide));
+						_newCoupon.setText(_prop.sys.convCoupon(_newCoupon.getText(), CouponType.Hide, true));
 					} else {
-						_newCoupon.setText(_prop.sys.convCoupon(_newCoupon.getText(), CouponType.Normal));
+						_newCoupon.setText(_prop.sys.convCoupon(_newCoupon.getText(), CouponType.Normal, true));
 					}
 				});
 			}

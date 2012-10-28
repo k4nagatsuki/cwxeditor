@@ -998,22 +998,22 @@ class Skin {
 	/// このスキンでの特徴のクーポンを返す。
 	const
 	string sexCoupon(Sex e) {
-		return _prop.sys.convCoupon(sexName(e), CouponType.Hide);
+		return _prop.sys.convCoupon(sexName(e), CouponType.Hide, false);
 	}
 	/// ditto
 	const
 	string periodCoupon(Period e) {
-		return _prop.sys.convCoupon(periodName(e), CouponType.Hide);
+		return _prop.sys.convCoupon(periodName(e), CouponType.Hide, false);
 	}
 	/// ditto
 	const
 	string natureCoupon(Nature e) {
-		return _prop.sys.convCoupon(natureName(e), CouponType.Hide);
+		return _prop.sys.convCoupon(natureName(e), CouponType.Hide, false);
 	}
 	/// ditto
 	const
 	string makingsCoupon(Makings e) {
-		return _prop.sys.convCoupon(makingsName(e), CouponType.Hide);
+		return _prop.sys.convCoupon(makingsName(e), CouponType.Hide, false);
 	}
 
 	/// 特徴の能力修正値を返す。

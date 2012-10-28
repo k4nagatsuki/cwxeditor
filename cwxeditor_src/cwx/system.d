@@ -315,13 +315,13 @@ class System {
 		}
 	}
 	/// クーポンの型を変換する。
-	const string convCoupon(string coupon, CouponType type) {
+	const string convCoupon(string coupon, CouponType type, bool ignoreSystemCoupon) {
 		final switch (type) {
 		case CouponType.Normal:
 			if (isCouponType(coupon, CouponType.Hide)) {
 				return coupon[couponHide.length .. $];
 			}
-			if (isCouponType(coupon, CouponType.System)) {
+			if (!ignoreSystemCoupon && isCouponType(coupon, CouponType.System)) {
 				return coupon[couponSystem.length .. $];
 			}
 			if (isCouponType(coupon, CouponType.Dur)) {
@@ -335,22 +335,23 @@ class System {
 			if (isCouponType(coupon, CouponType.Hide)) {
 				return coupon;
 			}
-			return couponHide ~ convCoupon(coupon, CouponType.Normal);
+			return couponHide ~ convCoupon(coupon, CouponType.Normal, ignoreSystemCoupon);
 		case CouponType.System:
+			if (ignoreSystemCoupon) goto case CouponType.Normal;
 			if (isCouponType(coupon, CouponType.System)) {
 				return coupon;
 			}
-			return couponSystem ~ convCoupon(coupon, CouponType.Normal);
+			return couponSystem ~ convCoupon(coupon, CouponType.Normal, ignoreSystemCoupon);
 		case CouponType.Dur:
 			if (isCouponType(coupon, CouponType.Dur)) {
 				return coupon;
 			}
-			return couponDur ~ convCoupon(coupon, CouponType.Normal);
+			return couponDur ~ convCoupon(coupon, CouponType.Normal, ignoreSystemCoupon);
 		case CouponType.DurBattle:
 			if (isCouponType(coupon, CouponType.DurBattle)) {
 				return coupon;
 			}
-			return couponDurBattle ~ convCoupon(coupon, CouponType.Normal);
+			return couponDurBattle ~ convCoupon(coupon, CouponType.Normal, ignoreSystemCoupon);
 		}
 	}
 	/// 各クーポンの型を表現する文字列。

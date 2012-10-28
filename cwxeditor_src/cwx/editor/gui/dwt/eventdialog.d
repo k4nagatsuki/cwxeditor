@@ -605,7 +605,7 @@ private:
 			_coType = coType;
 		}
 		override void widgetSelected(SelectionEvent e) {
-			_name.setText(prop.sys.convCoupon(_name.getText(), _coType));
+			_name.setText(prop.sys.convCoupon(_name.getText(), _coType, true));
 		}
 	}
 
@@ -697,9 +697,12 @@ protected:
 				}
 				.listener(_name, SWT.Modify, {
 					auto t = prop.sys.couponType(_name.getText());
+					bool checked = false;
 					foreach (coType; _type.keys) {
 						_type[coType].setSelection(coType == t);
+						checked |= (coType == t);
 					}
+					if (!checked) _type[CouponType.Normal].setSelection(true);
 					refreshWarning();
 				});
 			}
@@ -728,7 +731,13 @@ protected:
 
 		if (_evt) {
 			_range[_evt.range].setSelection(true);
-			_type[prop.sys.couponType(_evt.coupon)].setSelection(true);
+			auto cType = prop.sys.couponType(_evt.coupon);
+			auto cTypeP = cType in _type;
+			if (cTypeP) {
+				cTypeP.setSelection(true);
+			} else {
+				_type[CouponType.Normal].setSelection(true);
+			}
 			_name.setText(_evt.coupon);
 			_name.add(_evt.coupon, 0);
 			static if (EditValue) {
