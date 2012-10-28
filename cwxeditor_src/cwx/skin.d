@@ -1018,7 +1018,7 @@ class Skin {
 
 	/// 特徴の能力修正値を返す。
 	const
-	real physicalMod(E)(E e, Physical phy) {
+	int physicalMod(E)(E e, Physical phy) {
 		static if (is(E:Sex)) {
 			auto arr = _cEngine.physicalModSex;
 		} else static if (is(E:Period)) {
@@ -1035,8 +1035,8 @@ class Skin {
 			}
 		}
 
-		const(real[Physical]) init;
-		return _prop.sys.physicalMod!E(legacyName).get(e, init).get(phy, 0.0);
+		const(int[Physical]) init;
+		return _prop.sys.physicalMod!E(legacyName).get(e, init).get(phy, 0);
 	}
 	/// ditto
 	const

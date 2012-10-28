@@ -479,19 +479,19 @@ struct ClassicEngine {
 	string[string] natureName;
 	string[string] makingsName;
 
-	real[Physical][Sex] physicalModSex;
-	real[Physical][Period] physicalModPeriod;
-	real[Physical][Nature] physicalModNature;
-	real[Physical][Makings] physicalModMakings;
+	int[Physical][Sex] physicalModSex;
+	int[Physical][Period] physicalModPeriod;
+	int[Physical][Nature] physicalModNature;
+	int[Physical][Makings] physicalModMakings;
 	real[Mental][Sex] mentalModSex;
 	real[Mental][Period] mentalModPeriod;
 	real[Mental][Nature] mentalModNature;
 	real[Mental][Makings] mentalModMakings;
 
-	private static real[P][E] dupAA(P, E)(in real[P][E] aa) {
-		real[P][E] r;
+	private static R[P][E] dupAA(P, E, R)(in R[P][E] aa) {
+		R[P][E] r;
 		foreach (key1, value1; aa) {
-			real[P] arr;
+			R[P] arr;
 			foreach (key2, value2; value1) {
 				arr[key2] = value2;
 			}
@@ -518,14 +518,14 @@ struct ClassicEngine {
 		foreach (key, value; natureName) ce.natureName[key] = value;
 		foreach (key, value; makingsName) ce.makingsName[key] = value;
 
-		ce.physicalModSex = dupAA!(Physical, Sex)(physicalModSex);
-		ce.physicalModPeriod = dupAA!(Physical, Period)(physicalModPeriod);
-		ce.physicalModNature = dupAA!(Physical, Nature)(physicalModNature);
-		ce.physicalModMakings = dupAA!(Physical, Makings)(physicalModMakings);
-		ce.mentalModSex = dupAA!(Mental, Sex)(mentalModSex);
-		ce.mentalModPeriod = dupAA!(Mental, Period)(mentalModPeriod);
-		ce.mentalModNature = dupAA!(Mental, Nature)(mentalModNature);
-		ce.mentalModMakings = dupAA!(Mental, Makings)(mentalModMakings);
+		ce.physicalModSex = dupAA!(Physical, Sex, int)(physicalModSex);
+		ce.physicalModPeriod = dupAA!(Physical, Period, int)(physicalModPeriod);
+		ce.physicalModNature = dupAA!(Physical, Nature, int)(physicalModNature);
+		ce.physicalModMakings = dupAA!(Physical, Makings, int)(physicalModMakings);
+		ce.mentalModSex = dupAA!(Mental, Sex, real)(mentalModSex);
+		ce.mentalModPeriod = dupAA!(Mental, Period, real)(mentalModPeriod);
+		ce.mentalModNature = dupAA!(Mental, Nature, real)(mentalModNature);
+		ce.mentalModMakings = dupAA!(Mental, Makings, real)(mentalModMakings);
 
 		return ce;
 	}
@@ -599,16 +599,16 @@ struct ClassicEngine {
 				ne.newAttr("key", key);
 			}
 		}
-		putAA!(Physical, Sex)(e, "sexPhysical", physicalModSex);
-		putAA!(Physical, Period)(e, "periodPhysical", physicalModPeriod);
-		putAA!(Physical, Nature)(e, "naturePhysical", physicalModNature);
-		putAA!(Physical, Makings)(e, "makingsPhysical", physicalModMakings);
-		putAA!(Mental, Sex)(e, "sexMental", mentalModSex);
-		putAA!(Mental, Period)(e, "periodMental", mentalModPeriod);
-		putAA!(Mental, Nature)(e, "natureMental", mentalModNature);
-		putAA!(Mental, Makings)(e, "makingsMental", mentalModMakings);
+		putAA!(Physical, Sex, int)(e, "sexPhysical", physicalModSex);
+		putAA!(Physical, Period, int)(e, "periodPhysical", physicalModPeriod);
+		putAA!(Physical, Nature, int)(e, "naturePhysical", physicalModNature);
+		putAA!(Physical, Makings, int)(e, "makingsPhysical", physicalModMakings);
+		putAA!(Mental, Sex, real)(e, "sexMental", mentalModSex);
+		putAA!(Mental, Period, real)(e, "periodMental", mentalModPeriod);
+		putAA!(Mental, Nature, real)(e, "natureMental", mentalModNature);
+		putAA!(Mental, Makings, real)(e, "makingsMental", mentalModMakings);
 	}
-	private static void putAA(P, E)(ref XNode e, string eName, in real[P][E] aa) {
+	private static void putAA(P, E, R)(ref XNode e, string eName, in R[P][E] aa) {
 		static if (is(E:Sex)) {
 			alias fromSex toNameE;
 		} else static if (is(E:Period)) {
@@ -723,7 +723,7 @@ struct ClassicEngine {
 		getAA(node, "makingsMental", mentalModMakings);
 		node.parse();
 	}
-	private static void getAA(P, E)(ref XNode node, string eName, ref real[P][E] aa) {
+	private static void getAA(P, E, R)(ref XNode node, string eName, ref R[P][E] aa) {
 		static if (is(E:Sex)) {
 			alias toSex fromNameE;
 		} else static if (is(E:Period)) {
@@ -739,7 +739,7 @@ struct ClassicEngine {
 			alias toMental fromName;
 		} else static assert (0);
 		node.onTag[eName] = (ref XNode node) {
-			real[P] arr;
+			R[P] arr;
 			string keyStr = node.attr!string("key", false, "");
 			if (keyStr.length) {
 				auto key = fromNameE(keyStr);
@@ -747,7 +747,7 @@ struct ClassicEngine {
 					auto keyStr = node.attr!string("key", false, "");
 					if (keyStr.length) {
 						auto key = fromName(keyStr);
-						arr[key] = to!real(node.value);
+						arr[key] = to!R(node.value);
 					}
 				};
 				node.parse();

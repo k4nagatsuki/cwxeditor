@@ -73,15 +73,15 @@ Period toPeriod(string e) {
 /// 素質。
 enum Nature {
 	SPI, /// 標準型。
-	INT, /// 知将型。
 	AGL, /// 万能型。
-	SCH, /// 策士型。
 	STR, /// 勇将型。
 	VIT, /// 豪傑型。
+	INT, /// 知将型。
+	SCH, /// 策士型。
+	MED, /// 凡庸型。
 	BRI, /// 英明型。
 	MAT, /// 無双型。
 	GEN, /// 天才型。
-	MED, /// 凡庸型。
 	HER, /// 英雄型。
 	DIV, /// 神仙型。
 }
@@ -89,15 +89,15 @@ enum Nature {
 string fromNature(Nature e) {
 	final switch (e) {
 	case Nature.SPI: return "Spi";
-	case Nature.INT: return "Int";
 	case Nature.AGL: return "Agl";
-	case Nature.SCH: return "Sch";
 	case Nature.STR: return "Str";
 	case Nature.VIT: return "Vit";
+	case Nature.INT: return "Int";
+	case Nature.SCH: return "Sch";
+	case Nature.MED: return "Med";
 	case Nature.BRI: return "Bri";
 	case Nature.MAT: return "Mat";
 	case Nature.GEN: return "Gen";
-	case Nature.MED: return "Med";
 	case Nature.HER: return "Her";
 	case Nature.DIV: return "Div";
 	}
@@ -106,15 +106,15 @@ string fromNature(Nature e) {
 Nature toNature(string e) {
 	final switch (e) {
 	case "Spi": return Nature.SPI;
-	case "Int": return Nature.INT;
 	case "Agl": return Nature.AGL;
-	case "Sch": return Nature.SCH;
 	case "Str": return Nature.STR;
 	case "Vit": return Nature.VIT;
+	case "Int": return Nature.INT;
+	case "Sch": return Nature.SCH;
+	case "Med": return Nature.MED;
 	case "Bri": return Nature.BRI;
 	case "Mat": return Nature.MAT;
 	case "Gen": return Nature.GEN;
-	case "Med": return Nature.MED;
 	case "Her": return Nature.HER;
 	case "Div": return Nature.DIV;
 	}
