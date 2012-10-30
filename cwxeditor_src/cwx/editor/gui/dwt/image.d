@@ -107,7 +107,7 @@ public:
 	@property Image couponPlus() {return imgd!("coupon_plus.png");}
 	@property Image couponMinus() {return imgd!("coupon_minus.png");}
 	@property Image couponHigh() {return imgd!("coupon.png");}
-	@property Image couponDelete() {return imgd!("evt_stop.png");}
+	@property Image couponDelete() {return imgd!("del_res.png");}
 
 	@property Image gossip() {return imgd!("gossip.png");}
 	@property Image endScenario() {return imgd!("end.png");}
@@ -194,7 +194,7 @@ public:
 		}
 	}
 
-	@property Image msnDelete() {return imgd!("evt_stop.png");}
+	@property Image msnDelete() {return imgd!("del_res.png");}
 
 	Image motion(MType type) {
 		switch (type) {
@@ -284,7 +284,7 @@ public:
 
 	@property Image addCoupon() {return imgd!("coupon.png");}
 	@property Image altCoupon() {return imgd!("alt_coupon.png");}
-	@property Image delCoupon() {return imgd!("evt_stop.png");}
+	@property Image delCoupon() {return imgd!("del_res.png");}
 
 	@property Image setBeast() {return imgd!("set_beast.png");}
 
@@ -320,7 +320,7 @@ public:
 	@property Image scYado() {return imgd!("sc_y.png");}
 
 	@property Image createDialog() {return imgd!("evt_speak.png");}
-	@property Image deleteDialog() {return imgd!("evt_stop.png");}
+	@property Image deleteDialog() {return imgd!("del_res.png");}
 	@property Image copyToDialogs() {return imgd!("copy_dialog.png");}
 	@property Image copyToUpper() {return imgd!("copy_dialog_u.png");}
 	@property Image copyToLower() {return imgd!("copy_dialog_l.png");}

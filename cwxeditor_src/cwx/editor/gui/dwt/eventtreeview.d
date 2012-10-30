@@ -2509,8 +2509,10 @@ public:
 			name = "";
 			r = "";
 		}
-		e.name = name;
-		comm.refContent.call(e);
+		if (e.name != name) {
+			e.name = name;
+			comm.refContent.call(e);
+		}
 		return r;
 	}
 	/// 空のテキストは入力ガイドを代わりに表示。
