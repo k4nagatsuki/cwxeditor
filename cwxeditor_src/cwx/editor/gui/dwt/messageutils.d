@@ -1733,21 +1733,26 @@ class MsgPreview : Composite {
 		}
 
 		string[char] names;
-		string[string] flags;
+		string[string] flags, steps;
 		foreach (i; C.min .. C.max + 1) {
 			names[C_TBL[cast(C) i]] = _values.getItem(i).getText(1);
 		}
-		foreach (i; C.max .. _values.getItemCount()) {
+		foreach (i; C.max + 1 .. _values.getItemCount()) {
 			auto itm = _values.getItem(i);
-			flags[itm.getText(0)] = itm.getText(1);
+			if (cast(FlagData) itm.getData()) {
+				flags[itm.getText(0)] = itm.getText(1);
+			} else {
+				assert (cast(StepData) itm.getData());
+				steps[itm.getText(0)] = itm.getText(1);
+			}
 		}
-		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, _message, [], names, flags));
+		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, _message, [], names, flags, steps));
 		_canvas.redraw();
 	}
 }
 
 /// メッセージのプレビューを生成する。
-ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talker, string message, in string[] sel, in string[char] names, in string[string] flags) {
+ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talker, string message, in string[] sel, in string[char] names, in string[string] flags, in string[string] steps) {
 	auto d = Display.getCurrent();
 	version (Windows) {
 		bool legacy = comm.skin.legacy;
@@ -1796,9 +1801,17 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				return v;
 			}
 		}
-		return "";
+		return "%" ~ path ~ "%";
 	}
-	message = formatMsg(message, &fValue, &fValue, delegate string (char name) {
+	string sValue(string path) {
+		foreach (f, v; steps) {
+			if (0 == icmp(f, path)) {
+				return v;
+			}
+		}
+		return "$" ~ path ~ "$";
+	}
+	message = formatMsg(message, &fValue, &sValue, delegate string (char name) {
 		auto dc = std.ascii.toUpper(name);
 		foreach (c, v; names) {
 			if (std.ascii.toUpper(c) == dc) {

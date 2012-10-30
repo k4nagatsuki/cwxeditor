@@ -184,9 +184,9 @@ BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, B
 PileImage createMessageImage(Commons comm, Props prop) {
 	auto rect = prop.looks.messageBounds;
 	string[char] names;
-	string[string] flags;
+	string[string] flags, steps;
 	// 特殊文字が無いためシナリオパス不要
-	auto imgData = previewMessage(comm, prop, "", null, "", [""], names, flags);
+	auto imgData = previewMessage(comm, prop, "", null, "", [""], names, flags, steps);
 	auto img = new PileImage(imgData, rect.x, rect.y, imgData.width, imgData.height);
 	img.alpha = prop.var.etc.messageAlpha;
 	img.createImage();
