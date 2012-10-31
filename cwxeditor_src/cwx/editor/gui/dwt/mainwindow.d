@@ -166,6 +166,7 @@ private:
 							auto exeIcon = loadIcon(ePath, 16, 16, (void delegate() dlg) {
 								_display.syncExec(new class Runnable {
 									void run() {
+										if (!_win || _win.isDisposed()) return;
 										dlg();
 									}
 								});
@@ -261,6 +262,7 @@ private:
 
 	class RefreshTitle : Runnable {
 		void run() {
+			if (!_win || _win.isDisposed()) return;
 			if (summary) {
 				string path = summary.scenarioPath;
 				if (summary.isChanged) {
@@ -313,6 +315,7 @@ private:
 				// バックアップ前に自動セーブ
 				_display.syncExec(new class Runnable {
 					override void run() {
+						if (!_win || _win.isDisposed()) return;
 						save(_win, true);
 					}
 				});
@@ -644,12 +647,14 @@ private:
 			dStr ~= " - " ~ .text(__LINE__);
 			auto chgEvtForce = new class Runnable {
 				override void run() {
+					if (!_win || _win.isDisposed()) return;
 					_comm.changed.call();
 				}
 			};
 			dStr ~= " - " ~ .text(__LINE__);
 			auto chgEvt = new class Runnable {
 				override void run() {
+					if (!_win || _win.isDisposed()) return;
 					refreshTitle();
 				}
 			};
@@ -1360,34 +1365,37 @@ private:
 	class OpenCWXPath : Runnable {
 		string path;
 		override void run() {
+			if (!_win || _win.isDisposed()) return;
 			auto paths = std.string.split(path, CWXPATH_SEP.idup);
 			if (!paths.length) paths = [""];
 			foreach (p; paths) {
 				try {
 					openCWXPath(p, true);
 				} catch (Throwable e) {
-					debugln (e);
+					debugln(e);
 				}
 			}
 		}
 	}
 	class ReloadSettings : Runnable {
 		override void run() {
+			if (!_win || _win.isDisposed()) return;
 			try {
 				reloadProps();
 			} catch (Throwable e) {
-				debugln (e);
+				debugln(e);
 			}
 		}
 	}
 	class SelectFile : Runnable {
 		string path;
 		override void run() {
+			if (!_win || _win.isDisposed()) return;
 			try {
 				_comm.openCWXPath("fileview", false);
 				_dirWin.select(path);
 			} catch (Throwable e) {
-				debugln (e);
+				debugln(e);
 			}
 		}
 	}
@@ -3161,6 +3169,7 @@ public:
 
 	bool openCWXPath(string path, bool shellActivate) {
 		if (!summary) return false;
+		if (!_win || _win.isDisposed()) return false;
 		if (_win.isVisible()) _win.setRedraw(false);
 		scope (exit) {
 			if (_win.isVisible()) _win.setRedraw(true);
