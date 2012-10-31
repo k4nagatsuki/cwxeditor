@@ -502,7 +502,12 @@ private string readString(ref ByteIO f, bool lns = false, bool cutText = false) 
 	if (!lns && str[$ - 1] == '\0') str = str[0 .. $ - 1];
 	int zi = indexOf(str, '\0');
 	if (-1 != zi) str = str[zi + 1 .. $];
-	str = touni(str);
+	try {
+		str = touni(str);
+	} catch (Exception e) {
+		debugln(e);
+		str = touni(str, false);
+	}
 	if (cutText) {
 		str = str.length > "TEXT\r\n".length ? str["TEXT\r\n".length .. $] : "";
 	}
