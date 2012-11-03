@@ -231,7 +231,7 @@ class FlexEtcProps : Properties {
 	auto defaultSkin = Prop!(string, true)("defaultSkin", "MedievalFantasy");
 	auto defaultAuthor = Prop!(string)("defaultAuthor", "");
 
-	auto classicEngineRegex = Prop!(string)("classicEngineRegex", "^(CW´|.+Wirth(_.+)?)\\.exe$");
+	auto classicEngineRegex = Prop!(string)("classicEngineRegex", "^(CW´|.+Wirth(_.+|Next)?)\\.exe$");
 	auto classicDataDirRegex = Prop!(string)("classicDataDirRegex", "^Data|D_[A-Z]1|[A-Z]_dt$");
 	auto classicMatchKey = Prop!(string, true)("classicMatchKey", "Table" ~ dirSeparator ~ "MapOfWirth.BMP");
 
