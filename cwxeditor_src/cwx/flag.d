@@ -1111,7 +1111,7 @@ public:
 	}
 
 	private static bool __loadFS(string Fs, string Fg, F)
-			(ref XNode node, FlagDir p, out F[string] c, string delegate(string) createNewName, bool copy, string ver) {
+			(ref XNode node, FlagDir p, out F[string] c, string delegate(string, string) createNewName, bool copy, string ver) {
 		bool ret = true;
 		node.onTag[Fs] = (ref XNode node) {
 			if (!ret) return;
@@ -1120,7 +1120,7 @@ public:
 				auto f = F.createFromNode(n, ver);
 				if (!p.canAppendFS(f.name)) {
 					if (copy) {
-						f.name = createNewName(f.name);
+						f.name = createNewName(f.name, "");
 					} else {
 						ret = false;
 						return;
@@ -1168,7 +1168,7 @@ public:
 			}
 			if (!canAppendSub(subName)) {
 				if (copy) {
-					subName = createNewDirName(subName);
+					subName = createNewDirName(subName, "");
 				} else {
 					return null;
 				}
@@ -1350,16 +1350,25 @@ public:
 	/// base = xxxxの場合、xxxxというフラグがすでに存在すればxxxx (2)、
 	/// さらにxxxx (2)というフラグが存在すればxxxx (3)……というように、
 	/// 付記した数字をインクリメントしていく。
-	string createNewFlagName(string base) {
-		return createNewName(validName(base), &canAppendFS);
+	string createNewFlagName(string base, string oldName) {
+		return createNewName(validName(base), (string name) {
+			if (oldName && oldName.length && oldName == name) return true;
+			return canAppendFS(name);
+		});
 	}
 	/// ditto
-	string createNewStepName(string base) {
-		return createNewName(validName(base), &canAppendFS);
+	string createNewStepName(string base, string oldName) {
+		return createNewName(validName(base), (string name) {
+			if (oldName && oldName.length && oldName == name) return true;
+			return canAppendFS(name);
+		});
 	}
 	/// ditto
-	string createNewDirName(string base) {
-		return createNewName(validName(base), &canAppendSub);
+	string createNewDirName(string base, string oldName) {
+		return createNewName(validName(base), (string name) {
+			if (oldName && oldName.length && oldName == name) return true;
+			return canAppendSub(name);
+		});
 	}
 
 	/// 指定されたパスを探して返す。

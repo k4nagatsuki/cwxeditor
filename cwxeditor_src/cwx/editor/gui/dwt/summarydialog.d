@@ -11,6 +11,7 @@ import cwx.card;
 import cwx.structs;
 import cwx.types;
 import cwx.path;
+import cwx.imagesize;
 
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
@@ -70,7 +71,11 @@ private:
 	}
 
 	void refreshWarning()  {
-		warning = _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ.legacy);
+		string[] ws;
+
+		ws ~= _imgPath.warnings;
+
+		warning = ws;
 	}
 
 	void levMaxEnter(int enter) {

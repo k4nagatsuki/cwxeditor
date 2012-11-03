@@ -6,6 +6,7 @@ import cwx.summary;
 import cwx.skin;
 import cwx.menu;
 import cwx.types;
+import cwx.imagesize;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -16,6 +17,7 @@ import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.imagelistwindow;
 import cwx.editor.gui.dwt.dmenu;
 
+import std.algorithm : min;
 import std.file;
 import std.path;
 import std.string;
@@ -24,6 +26,12 @@ import std.conv;
 import org.eclipse.swt.all;
 
 public:
+
+enum CardMode {
+	Message,
+	Cast,
+	Normal,
+}
 
 /// 画像の選択を行うペイン。
 class ImageSelect(MtType Type, C : Control = Table) {
@@ -117,13 +125,24 @@ public:
 				auto comp = new Composite(compl, SWT.NONE);
 				comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				comp.setLayout(zeroMarginGridLayout(3, false));
-				auto imgList = new Button(comp, SWT.PUSH);
+				auto imgList = new Button(comp, SWT.TOGGLE);
 				imgList.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				imgList.setImage(_prop.images.menu(MenuID.LookImages));
 				imgList.setToolTipText(_prop.buildTool(MenuID.LookImages));
 				imgList.addSelectionListener(new SelImageList);
 				_msel.createRefreshButton(comp, true).setLayoutData(new GridData(GridData.FILL_BOTH));
 				_msel.createDirectoryButton(comp, false).setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				static if (Type is MtType.CARD) {
+					_noCardSize = new Button(compl, SWT.CHECK);
+					_noCardSize.setText(prop.msgs.useNoCardSizeImage);
+					auto ncsgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+					ncsgd.horizontalSpan = 3;
+					_noCardSize.setLayoutData(ncsgd);
+					_noCardSize.setSelection(_msel.useNoCardSizeImage);
+					.listener(_noCardSize, SWT.Selection, {
+						_msel.useNoCardSizeImage = _noCardSize.getSelection();
+					});
+				}
 			}
 		}
 		{
@@ -229,6 +248,49 @@ public:
 			__refresh();
 		}
 	}
+
+	@property
+	string[] warnings() {
+		string[] ws;
+		auto img = filePath;
+		if (isBinImg(img)) {
+			auto bin =  cast(ubyte[]) strToBImg(img);
+			auto type = imageType(bin);
+			if ("" != type) {
+				img = "image".setExtension(type);
+				ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? false : _summ.legacy);
+				static if (Type is MtType.CARD) {
+					uint w, h;
+					imageSize(bin, w, h);
+					auto cs = _prop.looks.cardSize;
+					if (cs.width != w && cs.height != h) {
+						ws ~= _prop.msgs.warningNoCardSizeImage;
+					}
+				}
+			}
+		} else {
+			ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? false : _summ.legacy);
+			static if (Type is MtType.CARD) {
+				if (img.length) {
+					uint w, h;
+					imageSize(img, w, h);
+					auto cs = _prop.looks.cardSize;
+					if (cs.width != w && cs.height != h) {
+						ws ~= _prop.msgs.warningNoCardSizeImage;
+					}
+				}
+			}
+		}
+		return ws;
+	}
+
+	static if (Type is MtType.CARD) {
+		@property
+		void cardMode(CardMode cardMode) {
+			_cardMode = cardMode;
+			_image.redraw();
+		}
+	}
 private:
 	void selectDirImpl(int sel) {
 		auto dirs = dirsCombo;
@@ -256,27 +318,40 @@ private:
 	}
 	class SelImageList : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			if (_imgList && !_imgList.shell.isDisposed()) {
-				_imgList.shell.setActive();
-				return;
-			}
-			auto parent = (cast(Control) e.widget).getShell();
-			_imgList = new ImageListWindow!Type(_prop, _comm, _summ, parent, &image);
-			auto menu = new Menu(_imgList.shell, SWT.POP_UP);
-			createMenuItem(_comm, menu, MenuID.IncSearch, &_msel.startIncSearch, null);
-			_imgList.widget.setMenu(menu);
+			auto b = cast(Button) e.widget;
+			if (b.getSelection()) {
+				if (_imgList && !_imgList.shell.isDisposed()) {
+					_imgList.shell.setActive();
+					return;
+				}
+				auto parent = (cast(Control) e.widget).getShell();
+				_imgList = new ImageListWindow!Type(_prop, _comm, _summ, parent, &image);
+				.listener(_imgList.shell, SWT.Dispose, {
+					b.setSelection(false);
+				});
+				auto menu = new Menu(_imgList.shell, SWT.POP_UP);
+				createMenuItem(_comm, menu, MenuID.IncSearch, &_msel.startIncSearch, null);
+				_imgList.widget.setMenu(menu);
 
-			_imgList.shell.open();
-
-			auto cloc = Display.getCurrent().getCursorLocation();
-			auto p = _imgList.shell.getSize();
-			intoDisplay(cloc.x, cloc.y, p.x, p.y);
-			_imgList.shell.setLocation(cloc.x, cloc.y);
-			_imgList.images(dirsCombo.getText(), _msel.showingPaths);
-			static if (Type == MtType.BG_IMG) {
-				_imgList.mask = mask;
+				auto cloc = Display.getCurrent().getCursorLocation();
+				cloc.x++;
+				cloc.y++;
+				auto p = new Point(_prop.var.etc.imageListWidth, _prop.var.etc.imageListHeight);
+				intoDisplay(cloc.x, cloc.y, p.x, p.y);
+				_imgList.shell.setBounds(cloc.x, cloc.y, p.x, p.y);
+				_imgList.images(dirsCombo.getText(), _msel.showingPaths);
+				static if (Type == MtType.BG_IMG) {
+					_imgList.mask = mask;
+				}
+				_imgList.select(_msel.path);
+				_imgList.shell.open();
+			} else {
+				if (!_imgList || _imgList.shell.isDisposed()) {
+					return;
+				}
+				_imgList.shell.close();
+				_imgList.shell.dispose();
 			}
-			_imgList.select(_msel.path);
 		}
 	}
 	class SaveIncImg : SelectionAdapter {
@@ -337,22 +412,53 @@ private:
 			scope img = new Image(Display.getCurrent(), imgData);
 			scope b = img.getBounds();
 			scope area = _image.getClientArea();
-			int x, y, w, h;
-			if (area.width >= b.width) {
-				x = (area.width - b.width) / 2;
-				w = b.width;
+			int x, y, w, h, fw, fh;
+			static if (Type is MtType.CARD) {
+				final switch (_cardMode) {
+				case CardMode.Message:
+					x = 0;
+					w = .min(b.width, area.width);
+					fw = w;
+					fh = b.height;
+					h = fh;
+					y = (area.height - fh) / 2;
+					break;
+				case CardMode.Cast:
+					fw = b.width;
+					fh = b.height;
+					w = fw;
+					h = fh;
+					x = (area.width - fw) / 2;
+					y = (area.height - fh) / 2;
+					break;
+				case CardMode.Normal:
+					x = 0;
+					y = 0;
+					w = .min(b.width, area.width);
+					h = .min(b.height, area.height);
+					fw = w;
+					fh = h;
+					break;
+				}
 			} else {
-				x = 0;
-				w = area.width;
+				if (area.width >= b.width) {
+					x = (area.width - b.width) / 2;
+					w = b.width;
+				} else {
+					x = 0;
+					w = area.width;
+				}
+				if (area.height >= b.height) {
+					y = (area.height - b.height) / 2;
+					h = b.height;
+				} else {
+					y = 0;
+					h = area.height;
+				}
+				fw = b.width;
+				fh = b.height;
 			}
-			if (area.height >= b.height) {
-				y = (area.height - b.height) / 2;
-				h = b.height;
-			} else {
-				y = 0;
-				h = area.height;
-			}
-			e.gc.drawImage(img, 0, 0, b.width, b.height, x, y, w, h);
+			e.gc.drawImage(img, 0, 0, fw, fh, x, y, w, h);
 			img.dispose();
 		}
 	}
@@ -363,6 +469,9 @@ private:
 		refreshImageList();
 		foreach (dlg; updateImageEvent) {
 			dlg();
+		}
+		static if (Type is MtType.CARD) {
+			_noCardSize.setSelection(_msel.useNoCardSizeImage);
 		}
 	}
 	string _paintedPath = null;
@@ -380,4 +489,8 @@ private:
 	bool _mask = true;
 	void delegate() _refresh;
 	int _oldDirSel = -1;
+	static if (Type is MtType.CARD) {
+		Button _noCardSize;
+		CardMode _cardMode = CardMode.Normal;
+	}
 }

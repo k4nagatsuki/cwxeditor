@@ -349,7 +349,7 @@ Summary loadScenario(Props prop, in LoadOption opt, Shell w, void delegate(strin
 		Summary old, string dlgTitle, ref string[] openPaths, void delegate(Summary) loaded = null, void delegate() failure = null, bool oThr = true) {
 	string fname = selectScenario(prop, w, dlgTitle);
 	if (fname) {
-		decScenarioPath(fname, openPaths);
+		decScenarioPath(fname, openPaths, prop.var.etc.clickIsOpenEvent);
 		auto put = new class Object {
 			void delegate(Summary) loaded;
 			void put(Summary r) {

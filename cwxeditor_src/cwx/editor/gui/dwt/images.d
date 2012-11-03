@@ -41,6 +41,13 @@ public enum Toggle {
 	NONE,
 }
 
+/// 画像のサイズが実際に表示されるサイズと一致しない場合の処理方法。
+enum ScaleType {
+	Cut, /// 左上を基準に配置する。
+	Scale, /// 表示サイズに合わせて拡縮する。
+	Center, /// 中央寄せして配置する。
+}
+
 /// 画像を重ねて1枚のイメージを作成する。
 public class PileImage {
 private:
@@ -61,6 +68,7 @@ private:
 		TPos textPos = TPos.LEFT;
 		byte alpha = cast(byte) 0xFF;
 		FontData fontData = null;
+		ScaleType scaleType = ScaleType.Scale;
 	}
 	string _title = null;
 	FontData titFont = null;
@@ -159,7 +167,7 @@ public:
 	/// maskX = マスク色のX位置。
 	/// maskY = マスク色のY位置。
 	/// See_Also: createImage();
-	void append(string path, CInsets insets, bool transparent, int maskX = 0, int maskY = 0, byte alpha = cast(byte) 0xFF) {
+	void append(string path, CInsets insets, ScaleType scaleType, bool transparent, int maskX = 0, int maskY = 0, byte alpha = cast(byte) 0xFF) {
 		AppImg append;
 		append.insets = insets;
 		append.path = path;
@@ -167,22 +175,24 @@ public:
 		append.maskX = maskX;
 		append.maskY = maskY;
 		append.alpha = alpha;
+		append.scaleType = scaleType;
 		appends ~= append;
 	}
 	/// ditto
-	void append(ImageData data, CInsets insets, byte alpha = cast(byte) 0xFF) {
+	void append(ImageData data, CInsets insets, ScaleType scaleType, byte alpha = cast(byte) 0xFF) {
 		AppImg append;
 		append.insets = insets;
 		append.data = data;
 		append.alpha = alpha;
+		append.scaleType = scaleType;
 		appends ~= append;
 	}
 	/// ditto
-	void append(ImageData data, CPoint point, byte alpha = cast(byte) 0xFF) {
+	void append(ImageData data, CPoint point, ScaleType scaleType, byte alpha = cast(byte) 0xFF) {
 		append(data, CInsets(point.y,
 			initW - (point.x + data.width),
 			initH - (point.y + data.height),
-			point.x), alpha);
+			point.x), scaleType, alpha);
 	}
 	/// ditto
 	void append(FontData fontData, string text, CInsets insets) {
@@ -334,16 +344,39 @@ public:
 								} else {
 									imgData = loadImage(a.path, a.transparent, a.maskX, a.maskY);
 								}
-								imgData = imgData.scaledTo
-									(initW - a.insets.w - a.insets.e,
-									initH - a.insets.n - a.insets.s);
-								auto img = new Image(cur, imgData);
-								scope (exit) img.dispose();
 								if (a.alpha != 0xFF) dc.setAlpha(a.alpha);
 								scope (exit) {
 									if (a.alpha != 0xFF) dc.setAlpha(0xFF);
 								}
-								dc.drawImage(img, a.insets.w, a.insets.n);
+								int bw = initW - a.insets.w - a.insets.e;
+								int bh = initH - a.insets.n - a.insets.s;
+								if (imgData.width == bw && imgData.height == bh) {
+									auto img = new Image(cur, imgData);
+									scope (exit) img.dispose();
+									dc.drawImage(img, a.insets.w, a.insets.n);
+								} else if (a.scaleType is ScaleType.Cut) {
+									auto img = new Image(cur, imgData);
+									scope (exit) img.dispose();
+									int dw = imgData.width;
+									int dh = imgData.height;
+									dc.drawImage(img, 0, 0, dw, dh, a.insets.w, a.insets.n, dw, dh);
+								} else if (a.scaleType is ScaleType.Center) {
+									auto img = new Image(cur, imgData);
+									scope (exit) img.dispose();
+									int dw = imgData.width;
+									int dh = imgData.height;
+									int x = a.insets.w + (bw - dw) / 2;
+									int y = a.insets.n + (bh - dh) / 2;
+									dc.drawImage(img, 0, 0, dw, dh, x, y, dw, dh);
+								} else {
+									assert (a.scaleType is ScaleType.Scale);
+									imgData = imgData.scaledTo
+										(initW - a.insets.w - a.insets.e,
+										initH - a.insets.n - a.insets.s);
+									auto img = new Image(cur, imgData);
+									scope (exit) img.dispose();
+									dc.drawImage(img, a.insets.w, a.insets.n);
+								}
 							} catch (SWTException e) {
 								// ファイルが無い場合は表示しない。
 								debugln(e);

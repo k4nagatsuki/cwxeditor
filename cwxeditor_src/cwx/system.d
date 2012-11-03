@@ -2,6 +2,7 @@
 module cwx.system;
 
 import cwx.features;
+import cwx.types;
 
 import std.string;
 import std.algorithm;
@@ -314,13 +315,13 @@ class System {
 		}
 	}
 	/// クーポンの型を変換する。
-	const string convCoupon(string coupon, CouponType type) {
+	const string convCoupon(string coupon, CouponType type, bool ignoreSystemCoupon) {
 		final switch (type) {
 		case CouponType.Normal:
 			if (isCouponType(coupon, CouponType.Hide)) {
 				return coupon[couponHide.length .. $];
 			}
-			if (isCouponType(coupon, CouponType.System)) {
+			if (!ignoreSystemCoupon && isCouponType(coupon, CouponType.System)) {
 				return coupon[couponSystem.length .. $];
 			}
 			if (isCouponType(coupon, CouponType.Dur)) {
@@ -334,22 +335,23 @@ class System {
 			if (isCouponType(coupon, CouponType.Hide)) {
 				return coupon;
 			}
-			return couponHide ~ convCoupon(coupon, CouponType.Normal);
+			return couponHide ~ convCoupon(coupon, CouponType.Normal, ignoreSystemCoupon);
 		case CouponType.System:
+			if (ignoreSystemCoupon) goto case CouponType.Normal;
 			if (isCouponType(coupon, CouponType.System)) {
 				return coupon;
 			}
-			return couponSystem ~ convCoupon(coupon, CouponType.Normal);
+			return couponSystem ~ convCoupon(coupon, CouponType.Normal, ignoreSystemCoupon);
 		case CouponType.Dur:
 			if (isCouponType(coupon, CouponType.Dur)) {
 				return coupon;
 			}
-			return couponDur ~ convCoupon(coupon, CouponType.Normal);
+			return couponDur ~ convCoupon(coupon, CouponType.Normal, ignoreSystemCoupon);
 		case CouponType.DurBattle:
 			if (isCouponType(coupon, CouponType.DurBattle)) {
 				return coupon;
 			}
-			return couponDurBattle ~ convCoupon(coupon, CouponType.Normal);
+			return couponDurBattle ~ convCoupon(coupon, CouponType.Normal, ignoreSystemCoupon);
 		}
 	}
 	/// 各クーポンの型を表現する文字列。
@@ -380,5 +382,401 @@ class System {
 	/// フラグ・ステップ値のランダム値ソース名。
 	@property const string randomValue() {
 		return "??Random";
+	}
+
+	/// 値の配列をenum値のテーブルに変換する。
+	private static const(R[T]) mod(T, R)(in R[] values...) {
+		import std.traits;
+		R[T] r;
+		foreach (key; EnumMembers!T) {
+			int iKey = key;
+			static if (is(T:Mental)) {
+				iKey /= 2;
+			}
+			R v = values[iKey];
+			static if (is(T:Mental)) {
+				if (iKey & 0b1) v = -v;
+			}
+			r[key] = v;
+		}
+		return r;
+	}
+	private alias mod!(Physical, int) modP;
+	private alias mod!(Mental, real) modM;
+
+	/// 特徴による肉体能力の修正値のテーブルを返す。
+	const
+	const(int[Physical][E]) physicalMod(E)(string legacyName) {
+		static if (is(E:Sex)) {
+			return [
+				Sex.MALE  : modP( 0,  0,  0,  1,  0,  0),
+				Sex.FEMALE: modP( 1,  0,  0,  0,  0,  0),
+			];
+		} else static if (is(E:Period)) {
+			if (legacyName.toLower().startsWith("cw´")) {
+				return [
+					Period.CHILD: modP( 1,  1,  1,  0,  0,  1),
+					Period.YOUNG: modP( 1,  1,  1,  1,  1,  1),
+					Period.ADULT: modP( 1,  1,  1,  1,  0,  2),
+					Period.OLD  : modP( 1,  0,  2,  0,  0,  2),
+				];
+			} else {
+				return [
+					Period.CHILD: modP( 1,  1,  0, -1, -1,  0),
+					Period.YOUNG: modP( 0,  0,  0,  0,  0,  0),
+					Period.ADULT: modP( 0,  0,  0,  0, -1,  0),
+					Period.OLD  : modP(-1, -1,  1, -1, -1,  1),
+				];
+			}
+		} else static if (is(E:Nature)) {
+			if ("cw´standard" == .toLower(legacyName)) {
+				return [
+					Nature.SPI: modP(-1, -1, -1, -1, -1,  1),
+					Nature.AGL: modP( 0,  1, -1, -1, -1, -2),
+					Nature.STR: modP(-1, -1, -2,  0,  0,  0),
+					Nature.VIT: modP(-2, -1, -2,  1,  1, -1),
+					Nature.INT: modP(-1, -1,  0, -1, -1,  0),
+					Nature.SCH: modP( 0,  0,  1, -2, -2, -1),
+					Nature.MED: modP(-3, -3, -3, -3, -3, -3),
+					Nature.BRI: modP( 0,  1,  0,  0,  0,  1),
+					Nature.MAT: modP(-1,  0, -1,  2,  2,  0),
+					Nature.GEN: modP( 0,  0,  2, -1, -1,  2),
+					Nature.HER: modP( 0,  0,  1,  1,  1,  2),
+					Nature.DIV: modP( 1,  1,  1,  1,  1,  2),
+				];
+			} else if ("cw´heroic" == .toLower(legacyName)) {
+				return [
+					Nature.SPI: modP( 0,  0,  0,  0,  0,  2),
+					Nature.AGL: modP( 1,  1,  0,  0,  0,  0),
+					Nature.STR: modP( 0,  0, -1,  1,  1,  1),
+					Nature.VIT: modP(-1,  0, -1,  2,  2,  0),
+					Nature.INT: modP( 0,  0,  2, -1,  0,  1),
+					Nature.SCH: modP( 1,  0,  3, -1, -1,  0),
+					Nature.MED: modP(-2, -2, -2, -2, -2, -2),
+					Nature.BRI: modP( 1,  1,  1,  1,  1,  2),
+					Nature.MAT: modP( 0,  1,  0,  3,  2,  1),
+					Nature.GEN: modP( 1,  1,  3,  0,  0,  2),
+					Nature.HER: modP( 2,  2,  2,  2,  2,  2),
+					Nature.DIV: modP( 2,  2,  3,  2,  2,  3),
+				];
+			} else if ("cw´commoner" == .toLower(legacyName)) {
+				return [
+					Nature.SPI: modP(-2, -2, -2, -2, -2, -1),
+					Nature.AGL: modP(-1, -1, -2, -2, -2, -3),
+					Nature.STR: modP(-2, -2, -2, -1, -2, -2),
+					Nature.VIT: modP(-3, -2, -3,  0, -1, -2),
+					Nature.INT: modP(-2, -2, -1, -2, -2, -2),
+					Nature.SCH: modP(-1, -2,  0, -3, -3, -2),
+					Nature.MED: modP(-3, -3, -3, -3, -3, -3),
+					Nature.BRI: modP( 0,  1,  0,  0,  0,  1),
+					Nature.MAT: modP(-1,  0, -1,  2,  2,  0),
+					Nature.GEN: modP( 0,  0,  2, -1, -1,  2),
+					Nature.HER: modP( 0,  0,  1,  1,  1,  2),
+					Nature.DIV: modP( 1,  1,  1,  1,  1,  2),
+				];
+			} else if ("darkwirth" == .toLower(legacyName)) {
+				return [
+					Nature.SPI: modP( 1,  0,  0,  0,  1,  1),
+					Nature.AGL: modP( 1,  1,  0,  0,  0, -1),
+					Nature.STR: modP(-1,  0, -2,  2,  2, -1),
+					Nature.VIT: modP(-2, -1, -2,  3,  2, -2),
+					Nature.INT: modP(-2, -2,  2, -1,  2,  1),
+					Nature.SCH: modP(-2,  2,  3, -2, -2, -1),
+					Nature.MED: modP(-1,  0, -3, -3, -3, -2),
+					Nature.BRI: modP( 1,  1,  1,  1,  1,  1),
+					Nature.MAT: modP( 0,  1,  0,  3,  2,  0),
+					Nature.GEN: modP( 0,  2,  3,  0,  0,  1),
+					Nature.HER: modP( 1,  2,  1,  2,  2,  1),
+					Nature.DIV: modP( 2,  2,  2,  2,  2,  2),
+				];
+			} else {
+				return [
+					Nature.SPI: modP( 0,  0,  0,  0,  0,  1),
+					Nature.AGL: modP( 1,  1,  0,  0,  0, -1),
+					Nature.STR: modP(-1,  0, -1,  2,  0,  0),
+					Nature.VIT: modP(-2, -1, -2,  3,  1, -1),
+					Nature.INT: modP( 0,  0,  2, -1, -1,  0),
+					Nature.SCH: modP( 0, -1,  3, -2, -2,  0),
+					Nature.MED: modP(-2, -2, -2, -2, -2, -2),
+					Nature.BRI: modP( 1,  1,  1,  1,  1,  1),
+					Nature.MAT: modP( 0,  1,  0,  3,  2,  0),
+					Nature.GEN: modP( 1,  0,  3,  0,  0,  2),
+					Nature.HER: modP( 1,  1,  2,  2,  1,  2),
+					Nature.DIV: modP( 2,  2,  2,  2,  2,  2),
+				];
+			}
+		} else static if (is(E:Makings)) {
+			if (legacyName.toLower().startsWith("cw´")) {
+				return [
+					Makings.LOOKS_B : modP( 0,  0,  0,  0, -1,  0),
+					Makings.LOOKS_U : modP( 0,  0,  0,  0,  1,  0),
+					Makings.CLASS_H : modP( 0,  0,  0,  0,  0,  0),
+					Makings.CLASS_L : modP( 0,  0,  0,  1,  0, -1),
+					Makings.BRED_T  : modP( 0,  0,  1,  0, -1,  0),
+					Makings.BRED_C  : modP(-1,  0,  0,  0,  1,  0),
+					Makings.MEANS_H : modP( 0,  0,  0,  0,  0, -1),
+					Makings.MEANS_L : modP( 0,  0,  0,  0,  0,  1),
+					Makings.FAITH_F : modP( 0,  0, -1,  0,  0,  1),
+					Makings.FAITH_I : modP( 0,  0,  0,  0,  0,  0),
+					Makings.RELI_R  : modP( 0,  0,  0,  0,  0,  0),
+					Makings.RELI_U  : modP( 0,  0,  0,  0,  0,  0),
+					Makings.DISP_C  : modP( 0, -1,  0,  0,  0,  1),
+					Makings.DISP_S  : modP( 0,  1,  0,  0,  0, -1),
+					Makings.DESIRE_G: modP( 0,  0,  0,  0,  1, -1),
+					Makings.DESIRE_C: modP( 1,  0,  0,  0, -1,  0),
+					Makings.DEVOTE_D: modP( 0,  0,  0,  0, -1,  1),
+					Makings.DEVOTE_S: modP( 0,  0,  1,  0,  0, -1),
+					Makings.DISC_O  : modP( 0,  0,  0,  0,  0,  0),
+					Makings.DISC_C  : modP(-1,  1,  0,  0,  0,  0),
+					Makings.POLIT_R : modP( 0,  1,  0,  0, -1,  0),
+					Makings.POLIT_C : modP( 0,  0,  0,  0,  0,  0),
+					Makings.SENSE_R : modP( 0,  1,  0, -1,  0,  0),
+					Makings.SENSE_S : modP( 0,  0, -1,  0,  1,  0),
+					Makings.CURIO_B : modP( 0,  0,  0,  0,  0,  0),
+					Makings.CURIO_I : modP( 0, -1,  0,  0,  1,  0),
+					Makings.NOTION_R: modP( 0,  0,  0,  1, -1,  0),
+					Makings.NOTION_M: modP( 0,  0,  0, -1,  0,  1),
+					Makings.IDEA_O  : modP( 1, -1,  0,  0,  0,  0),
+					Makings.IDEA_P  : modP( 0,  0,  0,  0,  0,  0),
+					Makings.WORK_H  : modP(-1,  0,  1,  0,  0,  0),
+					Makings.WORK_S  : modP( 1,  0, -1,  0,  0,  0),
+					Makings.CHAR_C  : modP( 0,  0,  0,  0,  0,  0),
+					Makings.CHAR_B  : modP( 0,  0,  0,  0,  0,  0),
+					Makings.STYLE_F : modP( 0,  1, -1,  0,  0,  0),
+					Makings.STYLE_P : modP( 0,  0,  0, -1,  1,  0),
+					Makings.PRIDE_P : modP(-1,  0,  0,  0,  0,  1),
+					Makings.PRIDE_M : modP( 0, -1,  1,  0,  0,  0),
+					Makings.REF_R   : modP( 0,  0,  1, -1,  0,  0),
+					Makings.REF_B   : modP( 0,  0, -1,  1,  0,  0),
+					Makings.GRACE_G : modP(-1,  0,  0,  1,  0,  0),
+					Makings.GRACE_R : modP( 1,  0,  0, -1,  0,  0),
+					Makings.LINER_H : modP( 0, -1,  0,  1,  0,  0),
+					Makings.LINER_M : modP( 1,  0,  0,  0,  0, -1),
+					Makings.PER_S   : modP( 0,  0,  0,  0,  0,  0),
+					Makings.PER_T   : modP( 0,  0,  0,  0,  0,  0),
+					Makings.FAME_H  : modP( 0,  0,  0,  0,  0,  0),
+					Makings.FAME_A  : modP( 0,  0,  0,  0,  0,  0),
+				];
+			} else {
+				return [
+					Makings.LOOKS_B : modP( 0,  0,  0,  0, -1,  0),
+					Makings.LOOKS_U : modP( 0,  0,  0,  0,  1,  0),
+					Makings.CLASS_H : modP( 0,  0,  0,  0,  0,  0),
+					Makings.CLASS_L : modP( 0,  0,  0,  0,  0,  0),
+					Makings.BRED_T  : modP( 0,  0,  1,  0, -1,  0),
+					Makings.BRED_C  : modP( 0, -1,  0,  0,  1,  0),
+					Makings.MEANS_H : modP( 0,  0,  0,  0,  0, -1),
+					Makings.MEANS_L : modP( 0,  0,  0,  0,  0,  1),
+					Makings.FAITH_F : modP( 0,  0, -1,  0,  0,  1),
+					Makings.FAITH_I : modP( 0,  0,  0,  0,  0,  0),
+					Makings.RELI_R  : modP( 0,  0,  0,  0,  0,  0),
+					Makings.RELI_U  : modP( 0,  0,  0,  0,  0,  0),
+					Makings.DISP_C  : modP( 0, -1,  1,  0,  0,  0),
+					Makings.DISP_S  : modP( 0,  1,  0,  0,  0, -1),
+					Makings.DESIRE_G: modP( 0,  0,  0,  0,  1, -1),
+					Makings.DESIRE_C: modP( 0,  0,  0,  0,  0,  0),
+					Makings.DEVOTE_D: modP( 0,  0,  0,  0, -1,  1),
+					Makings.DEVOTE_S: modP(-1,  1,  0,  0,  0,  0),
+					Makings.DISC_O  : modP( 0,  0,  0,  0,  0,  0),
+					Makings.DISC_C  : modP( 0,  0,  0,  1,  0, -1),
+					Makings.POLIT_R : modP( 0,  1,  0,  0, -1,  0),
+					Makings.POLIT_C : modP( 0,  0,  0, -1,  0,  1),
+					Makings.SENSE_R : modP( 0,  1,  0, -1,  0,  0),
+					Makings.SENSE_S : modP( 0,  0, -1,  0,  1,  0),
+					Makings.CURIO_B : modP( 1,  0,  0,  0, -1,  0),
+					Makings.CURIO_I : modP( 0, -1,  0,  0,  0,  1),
+					Makings.NOTION_R: modP( 0,  0,  0,  1, -1,  0),
+					Makings.NOTION_M: modP( 0,  0,  0,  0,  0,  0),
+					Makings.IDEA_O  : modP( 1, -1,  0,  0,  0,  0),
+					Makings.IDEA_P  : modP( 0,  0,  1,  0,  0, -1),
+					Makings.WORK_H  : modP(-1,  0,  0,  0,  1,  0),
+					Makings.WORK_S  : modP( 1,  0, -1,  0,  0,  0),
+					Makings.CHAR_C  : modP( 0,  0,  0,  0,  0,  0),
+					Makings.CHAR_B  : modP( 0,  0,  0,  0,  0,  0),
+					Makings.STYLE_F : modP( 0,  1, -1,  0,  0,  0),
+					Makings.STYLE_P : modP( 0,  0,  0, -1,  1,  0),
+					Makings.PRIDE_P : modP(-1,  0,  0,  0,  0,  1),
+					Makings.PRIDE_M : modP(-1,  0,  1,  0,  0,  0),
+					Makings.REF_R   : modP( 0,  0,  1, -1,  0,  0),
+					Makings.REF_B   : modP( 0,  0, -1,  1,  0,  0),
+					Makings.GRACE_G : modP(-1,  0,  0,  1,  0,  0),
+					Makings.GRACE_R : modP( 1,  0,  0, -1,  0,  0),
+					Makings.LINER_H : modP( 0, -1,  0,  1,  0,  0),
+					Makings.LINER_M : modP( 1,  0,  0,  0,  0, -1),
+					Makings.PER_S   : modP( 0,  0,  0,  0,  0,  0),
+					Makings.PER_T   : modP( 0,  0,  0,  0,  0,  0),
+					Makings.FAME_H  : modP( 0,  0,  0,  0,  0,  0),
+					Makings.FAME_A  : modP( 0,  0,  0,  0,  0,  0),
+				];
+			}
+		} else static assert ( 0);
+	}
+	/// 特徴による精神能力の修正値を返す。
+	const
+	const(real[Mental][E]) mentalMod(E)(string legacyName) {
+		static if (is(E:Sex)) {
+			return [
+				Sex.MALE  : modM( 0.5,  0  ,  0  ,  0  ,  0  ),
+				Sex.FEMALE: modM( 0  ,  0  ,  0  ,  0.5,  0  ),
+			];
+		} else static if (is(E:Period)) {
+			return [
+				Period.CHILD: modM( 0  ,  0.5,  0  , -0.5,  0  ),
+				Period.YOUNG: modM( 0  ,  0  ,  0  ,  0  ,  0  ),
+				Period.ADULT: modM(-0.5,  0  ,  0  ,  0.5,  0  ),
+				Period.OLD  : modM(-0.5,  0  , -0.5,  0.5,  0.5),
+			];
+		} else static if (is(E:Nature)) {
+			if (legacyName.toLower().startsWith("cw´")) {
+				return [
+					Nature.SPI: modM(-0.5,  0  ,  0  ,  0.5,  0  ),
+					Nature.AGL: modM( 0  ,  0.5,  0  ,  0  ,  0  ),
+					Nature.STR: modM( 0  ,  0  ,  1.5,  0  ,  0  ),
+					Nature.VIT: modM( 1  ,  0  ,  0.5, -0.5,  0  ),
+					Nature.INT: modM( 0  ,  0  ,  0  ,  0.5,  0  ),
+					Nature.SCH: modM( 0  ,  0  ,  0  ,  0.5,  1  ),
+					Nature.MED: modM( 0  ,  0  , -0.5,  0.5,  0  ),
+					Nature.BRI: modM( 0  ,  0  ,  0  ,  0.5,  0  ),
+					Nature.MAT: modM( 1  ,  0  ,  1  ,  0  ,  0  ),
+					Nature.GEN: modM( 0  ,  0  ,  0  ,  0.5,  0.5),
+					Nature.HER: modM( 0  ,  1  ,  1  ,  0  , -0.5),
+					Nature.DIV: modM( 0  ,  0  ,  0  ,  0  ,  0  ),
+				];
+			} else if ("darkwirth" == .toLower(legacyName)) {
+				return [
+					Nature.SPI: modM(-0.5,  0  ,  0  ,  0.5,  0  ),
+					Nature.AGL: modM( 0  ,  0.5,  0  ,  0  ,  0  ),
+					Nature.STR: modM( 1  ,  0  ,  0  ,  0  ,  0  ),
+					Nature.VIT: modM( 0.5,  0  ,  0.5, -0.5,  0  ),
+					Nature.INT: modM( 0  ,  0  ,  0  ,  1  ,  0  ),
+					Nature.SCH: modM( 0  ,  0  ,  0  , -0.5,  0.5),
+					Nature.MED: modM( 0  ,  0  , -0.5,  0.5,  0  ),
+					Nature.BRI: modM( 0  ,  0.5,  0  ,  0.5,  0  ),
+					Nature.MAT: modM( 0.5,  0  ,  0.5,  0  ,  0  ),
+					Nature.GEN: modM( 0  ,  0  ,  0  ,  0.5,  1  ),
+					Nature.HER: modM( 0  ,  0  ,  0  ,  0  ,  1  ),
+					Nature.DIV: modM( 0  ,  0  ,  0  ,  0  ,  0  ),
+				];
+			} else {
+				return [
+					Nature.SPI: modM(-0.5,  0  ,  0  ,  0.5,  0  ),
+					Nature.AGL: modM( 0  ,  0.5,  0  ,  0  ,  0  ),
+					Nature.STR: modM( 0  ,  0  ,  1  ,  0  ,  0  ),
+					Nature.VIT: modM( 0.5,  0  ,  0.5, -0.5,  0  ),
+					Nature.INT: modM( 0  ,  0  ,  0  ,  0.5,  0  ),
+					Nature.SCH: modM( 0  ,  0  ,  0  ,  0.5,  0.5),
+					Nature.MED: modM( 0  ,  0  , -0.5,  0.5,  0  ),
+					Nature.BRI: modM( 0  ,  0.5,  0  ,  0.5,  0  ),
+					Nature.MAT: modM( 0.5,  0  ,  0.5,  0  ,  0  ),
+					Nature.GEN: modM( 0  ,  0  ,  0  ,  0.5,  0.5),
+					Nature.HER: modM( 0  ,  0.5,  0.5,  0  , -0.5),
+					Nature.DIV: modM( 0  ,  0  ,  0  ,  0  ,  0  ),
+				];
+			}
+		} else static if (is(E:Makings)) {
+			if (legacyName.toLower().startsWith("cw´")) {
+				return [
+					Makings.LOOKS_B : modM( 0  ,  1  ,  0  ,  0  ,  0  ),
+					Makings.LOOKS_U : modM( 0  , -1  ,  0  ,  0  ,  0  ),
+					Makings.CLASS_H : modM(-0.5,  0.5,  0.5,  0  ,  0  ),
+					Makings.CLASS_L : modM( 0  ,  0  ,  0  , -0.5,  0.5),
+					Makings.BRED_T  : modM( 0  ,  0.5,  0  ,  0  ,  0.5),
+					Makings.BRED_C  : modM( 0  ,  0  ,  0  ,  0  , -0.5),
+					Makings.MEANS_H : modM(-0.5,  0  ,  0  ,  0  , -0.5),
+					Makings.MEANS_L : modM( 0  ,  0  , -0.5,  0  ,  0  ),
+					Makings.FAITH_F : modM( 0  ,  0  ,  0.5,  0  , -0.5),
+					Makings.FAITH_I : modM( 0  ,  0  ,  0  ,  0.5,  0.5),
+					Makings.RELI_R  : modM( 0  ,  0  ,  0.5,  0  , -0.5),
+					Makings.RELI_U  : modM( 0  ,  0  , -0.5,  0  ,  1  ),
+					Makings.DISP_C  : modM( 0  ,  0  ,  0  ,  1  ,  0.5),
+					Makings.DISP_S  : modM( 0  ,  0  ,  0  , -1  , -0.5),
+					Makings.DESIRE_G: modM( 0.5,  0  , -0.5,  0  ,  0  ),
+					Makings.DESIRE_C: modM(-0.5,  0  ,  0  ,  0  ,  0  ),
+					Makings.DEVOTE_D: modM(-0.5,  0  ,  0  ,  0  ,  0  ),
+					Makings.DEVOTE_S: modM( 0  , -0.5,  0  ,  0  ,  1  ),
+					Makings.DISC_O  : modM( 0.5,  0  ,  0  ,  0.5,  0  ),
+					Makings.DISC_C  : modM( 0.5, -0.5,  0  ,  0  ,  0.5),
+					Makings.POLIT_R : modM( 0  ,  0  ,  0.5, -0.5,  0  ),
+					Makings.POLIT_C : modM(-0.5,  0  , -0.5,  0.5,  0  ),
+					Makings.SENSE_R : modM( 0  ,  0  , -0.5,  0.5,  0  ),
+					Makings.SENSE_S : modM( 0  ,  0  ,  0.5,  0  ,  0  ),
+					Makings.CURIO_B : modM( 0  ,  0  ,  0.5, -0.5,  0  ),
+					Makings.CURIO_I : modM( 0  , -0.5,  0  ,  0  ,  0  ),
+					Makings.NOTION_R: modM( 1  ,  0  ,  0  , -0.5,  0  ),
+					Makings.NOTION_M: modM(-1  ,  0  ,  0  ,  0.5,  0  ),
+					Makings.IDEA_O  : modM( 0  ,  0  ,  0.5, -0.5,  0  ),
+					Makings.IDEA_P  : modM( 0  ,  0  , -0.5,  0.5,  0  ),
+					Makings.WORK_H  : modM( 0  ,  0  ,  0  ,  0  ,  0  ),
+					Makings.WORK_S  : modM( 0  ,  0.5,  0  ,  0  ,  0.5),
+					Makings.CHAR_C  : modM( 0  ,  1  ,  0  ,  0  ,  0  ),
+					Makings.CHAR_B  : modM( 0  , -1  , -0.5,  0  ,  0  ),
+					Makings.STYLE_F : modM( 0  ,  0.5,  0  , -1  ,  0  ),
+					Makings.STYLE_P : modM( 0  , -0.5, -0.5,  0  ,  0  ),
+					Makings.PRIDE_P : modM( 0.5, -0.5,  0  ,  0  ,  0  ),
+					Makings.PRIDE_M : modM(-0.5,  0  ,  0  ,  0.5, -0.5),
+					Makings.REF_R   : modM(-0.5,  0.5,  0  ,  0  ,  0  ),
+					Makings.REF_B   : modM( 0.5, -0.5,  0  , -0.5,  0  ),
+					Makings.GRACE_G : modM( 0  , -0.5,  0.5,  0  ,  0  ),
+					Makings.GRACE_R : modM( 0  ,  0  , -0.5,  0.5,  0  ),
+					Makings.LINER_H : modM( 0.5,  0  ,  0.5,  0  , -0.5),
+					Makings.LINER_M : modM( 0  ,  0.5, -0.5,  0  ,  0  ),
+					Makings.PER_S   : modM( 0  ,  0.5,  0  ,  0  , -0.5),
+					Makings.PER_T   : modM( 0.5, -0.5,  0  ,  0  ,  0  ),
+					Makings.FAME_H  : modM( 0.5,  0  ,  0.5,  0  , -0.5),
+					Makings.FAME_A  : modM(-0.5,  0.5,  0  ,  0  , -0.5),
+				];
+			} else {
+				return [
+					Makings.LOOKS_B : modM( 0  ,  0.5,  0  ,  0  ,  0  ),
+					Makings.LOOKS_U : modM( 0  , -0.5,  0  ,  0  ,  0  ),
+					Makings.CLASS_H : modM(-0.5,  0  ,  0.5,  0  ,  0  ),
+					Makings.CLASS_L : modM( 0  ,  0  ,  0  , -0.5,  0.5),
+					Makings.BRED_T  : modM( 0  ,  0.5,  0  ,  0  ,  0.5),
+					Makings.BRED_C  : modM( 0  ,  0  ,  0  ,  0  , -0.5),
+					Makings.MEANS_H : modM(-0.5,  0  ,  0  ,  0  , -0.5),
+					Makings.MEANS_L : modM( 0.5,  0  , -0.5,  0  ,  0  ),
+					Makings.FAITH_F : modM( 0  ,  0  ,  0.5,  0  , -0.5),
+					Makings.FAITH_I : modM( 0  ,  0  ,  0  ,  0.5,  0.5),
+					Makings.RELI_R  : modM( 0  ,  0  ,  0.5,  0  , -0.5),
+					Makings.RELI_U  : modM( 0  ,  0  , -0.5,  0  ,  0.5),
+					Makings.DISP_C  : modM( 0  ,  0  ,  0  ,  0.5,  0.5),
+					Makings.DISP_S  : modM( 0  ,  0  ,  0  , -0.5,  0  ),
+					Makings.DESIRE_G: modM( 0.5,  0  , -0.5, -0.5,  0  ),
+					Makings.DESIRE_C: modM(-0.5,  0  ,  0  ,  0  ,  0  ),
+					Makings.DEVOTE_D: modM(-0.5,  0  ,  0  ,  0  ,  0  ),
+					Makings.DEVOTE_S: modM( 0.5, -0.5,  0  ,  0  ,  0.5),
+					Makings.DISC_O  : modM( 0.5,  0  ,  0  ,  0  , -0.5),
+					Makings.DISC_C  : modM( 0.5,  0  ,  0  ,  0  ,  0.5),
+					Makings.POLIT_R : modM( 0  ,  0  ,  0.5, -0.5,  0  ),
+					Makings.POLIT_C : modM(-0.5,  0  ,  0  ,  0.5,  0  ),
+					Makings.SENSE_R : modM( 0  , -0.5,  0  ,  0.5,  0  ),
+					Makings.SENSE_S : modM( 0  ,  0  ,  0  ,  0  ,  0  ),
+					Makings.CURIO_B : modM( 0  ,  0  ,  0  ,  0  ,  0  ),
+					Makings.CURIO_I : modM( 0  , -0.5,  0  ,  0  ,  0  ),
+					Makings.NOTION_R: modM( 0.5,  0  ,  0  , -0.5,  0  ),
+					Makings.NOTION_M: modM(-0.5,  0  ,  0  ,  0.5,  0  ),
+					Makings.IDEA_O  : modM( 0  ,  0  ,  0.5, -0.5,  0  ),
+					Makings.IDEA_P  : modM( 0  ,  0  , -0.5,  0.5,  0  ),
+					Makings.WORK_H  : modM( 0  ,  0  ,  0  ,  0  ,  0  ),
+					Makings.WORK_S  : modM( 0  ,  0.5,  0  ,  0  ,  0.5),
+					Makings.CHAR_C  : modM( 0  ,  0.5,  0  ,  0  ,  0  ),
+					Makings.CHAR_B  : modM( 0  ,  0  , -0.5,  0  ,  0  ),
+					Makings.STYLE_F : modM( 0  ,  0.5,  0  , -0.5,  0  ),
+					Makings.STYLE_P : modM( 0  ,  0  , -0.5,  0  ,  0  ),
+					Makings.PRIDE_P : modM( 0.5, -0.5,  0  ,  0  ,  0  ),
+					Makings.PRIDE_M : modM( 0  ,  0  ,  0  ,  0.5,  0  ),
+					Makings.REF_R   : modM(-0.5,  0.5,  0  ,  0  ,  0  ),
+					Makings.REF_B   : modM( 0.5, -0.5,  0  ,  0  ,  0  ),
+					Makings.GRACE_G : modM( 0  , -0.5,  0.5,  0  ,  0  ),
+					Makings.GRACE_R : modM( 0  ,  0  , -0.5,  0.5,  0  ),
+					Makings.LINER_H : modM( 0  ,  0  ,  0.5,  0  , -0.5),
+					Makings.LINER_M : modM( 0  ,  0.5, -0.5,  0  ,  0  ),
+					Makings.PER_S   : modM( 0  ,  0.5,  0  ,  0  , -0.5),
+					Makings.PER_T   : modM( 0  , -0.5,  0  ,  0  ,  0  ),
+					Makings.FAME_H  : modM( 0  ,  0  ,  0.5, -0.5, -0.5),
+					Makings.FAME_A  : modM(-0.5,  0  ,  0  ,  0  ,  0  ),
+				];
+			}
+		} else static assert (0);
 	}
 }

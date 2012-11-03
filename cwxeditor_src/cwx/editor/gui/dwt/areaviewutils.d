@@ -140,7 +140,7 @@ PImg createMenuCardImage(PImg)(Props prop, Skin skin,
 		string title, string path, int x, int y, real scale, bool smoothing, uint pcNum) {
 	auto matPad = prop.looks.menuCardInsets;
 	auto r = createCardImageCommon!PImg(prop, menuCard(skin), matPad, x, y, scale, smoothing);
-	r.append(path, matPad, true);
+	r.append(path, matPad, ScaleType.Cut, true);
 	r.setTitle(title, dwtData(prop.looks.menuCardNameFont(skin.legacy)), dwtData(prop.looks.menuCardNamePoint));
 	if (0 != pcNum) {
 		r.append(dwtData(prop.looks.pcNumberFont(skin.legacy)), .text(pcNum), prop.looks.menuCardInsets);
@@ -184,9 +184,9 @@ BgImagesView createBgImagesViewAndMenu(Commons comm, Props prop, Summary summ, B
 PileImage createMessageImage(Commons comm, Props prop) {
 	auto rect = prop.looks.messageBounds;
 	string[char] names;
-	string[string] flags;
+	string[string] flags, steps;
 	// 特殊文字が無いためシナリオパス不要
-	auto imgData = previewMessage(comm, prop, "", null, "", [""], names, flags);
+	auto imgData = previewMessage(comm, prop, "", null, "", [""], names, flags, steps);
 	auto img = new PileImage(imgData, rect.x, rect.y, imgData.width, imgData.height);
 	img.alpha = prop.var.etc.messageAlpha;
 	img.createImage();

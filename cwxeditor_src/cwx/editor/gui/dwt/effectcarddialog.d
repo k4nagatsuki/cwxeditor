@@ -8,6 +8,7 @@ import cwx.motion;
 import cwx.utils;
 import cwx.skin;
 import cwx.event;
+import cwx.imagesize;
 
 import cwx.editor.gui.sound;
 
@@ -125,7 +126,7 @@ private:
 		if (_name.over) {
 			ws ~= .tryFormat(_prop.msgs.warningNameLenOver, _prop.looks.nameLimit, _prop.looks.nameLimit / 2);
 		}
-		ws ~= _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ.legacy);
+		ws ~= _imgPath.warnings;
 		if (_effTyp[EffectType.NONE].getSelection()) {
 			ws ~= _prop.msgs.warningEffectTypeNone;
 		}
@@ -143,6 +144,7 @@ private:
 				ws ~= _prop.msgs.diffSource;
 			}
 		}
+
 		warning = ws;
 	}
 
@@ -186,6 +188,7 @@ private:
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText);
 				mod(_imgPath);
+				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
 		}

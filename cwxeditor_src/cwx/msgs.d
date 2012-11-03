@@ -118,6 +118,7 @@ class Msgs : Properties {
 	auto seNone = Msg("seNone", "[サウンド無し]");
 	auto bgmStop = Msg("bgmStop", "[BGM停止]");
 	auto bgmNone = Msg("bgmNone", "[BGM無し]");
+	auto useNoCardSizeImage = Msg("useNoCardSizeImage", "74×94以外も許容");
 	auto dlgMsgIsSaveBeforeReload = Msg("dlgMsgIsSaveBeforeReload", "「%1$s」は変更されています。再読込しますか？");
 	auto reloadBeforeSaveError = Msg("reloadBeforeSaveError", "「%1$s」は保存されていないため、再読込できません。");
 	auto dlgMsgIsSaveBeforeExit = Msg("dlgMsgIsSaveBeforeExit", "「%1$s」は変更されています。保存しますか？");
@@ -1275,6 +1276,7 @@ class Msgs : Properties {
 	auto warningSystemVarName = Msg("warningSystemVarName", "%1$sで始まる名前の状態変数は、プレイヤーの環境によっては正しく機能しない事があります。");
 	auto warningSystemCoupon = Msg("warningSystemCoupon", "%1$sで始まる名前のクーポンを操作する事はできません。");
 	auto warningBranchStatusMental = Msg("warningBranchStatusMental", "%1$sによる状態分岐は、プレイヤーの環境によっては正しく機能しない事があります。");
+	auto warningNoCardSizeImage = Msg("warningNoCardSizeImage", "カードサイズ以外の画像を使用すると、プレイヤーの環境によっては意図したように表示されない事があります。");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");
@@ -1292,7 +1294,7 @@ class Msgs : Properties {
 	auto sourceScenario = Msg("sourceScenario", "シナリオ名");
 	auto sourceAuthor = Msg("sourceAuthor", "シナリオ作者");
 	auto resetSource = Msg("resetSource", "現在のシナリオを出典に設定");
-	auto diffSource = Msg("diffSource", "出典のシナリオ名と作者名が現在のシナリオと異なるため、使用時イベントは実行されません。");
+	auto diffSource = Msg("diffSource", "出典のシナリオ名と作者名が現在のシナリオと異なるため、使用時イベントのカード入手、エリア移動、パッケージのコール等は実行されません。");
 
 	/// ファイルビュー。
 	auto dirTabName = Msg("dirTabName", "ファイル");
@@ -1360,7 +1362,9 @@ class Msgs : Properties {
 	auto expandXMLs = Msg("expandXMLs", "圧縮されたシナリオの読込み時にXMLファイルを展開する");
 	auto contentsFloat = Msg("contentsFloat", "コンテンツボックスを別ウィンドウで表示する");
 	auto contentsAutoHide = Msg("contentsAutoHide", "コンテンツボックスを自動的に隠す");
+	auto comboListVisible = Msg("comboListVisible", "コンボボックスでの編集開始時にリストを開く");
 	auto xmlCopy = Msg("xmlCopy", "コピーや切り取りを常にXML形式で行う");
+	auto showSpNature = Msg("showSpNature", "特殊型を表示する");
 	auto saveInnerImagePath = Msg("saveInnerImagePath", "クラシックなシナリオで格納イメージのファイルパスを保存する");
 	auto linkCard = Msg("linkCard", "キャストの所有カードや召喚対象のカードを参照で設定する");
 	auto traceDirectories = Msg("traceDirectories", "ファイル・" ~ DIR ~ "の変更を自動的に追跡する");

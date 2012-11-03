@@ -58,6 +58,7 @@ import std.regex;
 import std.array;
 import std.algorithm;
 import std.csv;
+import std.functional;
 debug import std.stdio;
 
 import org.eclipse.swt.all;
@@ -165,6 +166,7 @@ private:
 							auto exeIcon = loadIcon(ePath, 16, 16, (void delegate() dlg) {
 								_display.syncExec(new class Runnable {
 									void run() {
+										if (!_win || _win.isDisposed()) return;
 										dlg();
 									}
 								});
@@ -260,6 +262,7 @@ private:
 
 	class RefreshTitle : Runnable {
 		void run() {
+			if (!_win || _win.isDisposed()) return;
 			if (summary) {
 				string path = summary.scenarioPath;
 				if (summary.isChanged) {
@@ -312,6 +315,7 @@ private:
 				// バックアップ前に自動セーブ
 				_display.syncExec(new class Runnable {
 					override void run() {
+						if (!_win || _win.isDisposed()) return;
 						save(_win, true);
 					}
 				});
@@ -610,6 +614,16 @@ private:
 				_comm.openCWXPath("fileview", false);
 				_dirWin.select(_opt.selectfile);
 			}
+			foreach (path; _opt.openPaths) {
+				try {
+					if (openCWXPath(path, true)) {
+						continue;
+					}
+				} catch (Exception e) {
+					debugln(e);
+				}
+				MessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
+			}
 			dStr ~= " - " ~ .text(__LINE__);
 			resetOpt();
 			dStr ~= " - " ~ .text(__LINE__);
@@ -633,12 +647,14 @@ private:
 			dStr ~= " - " ~ .text(__LINE__);
 			auto chgEvtForce = new class Runnable {
 				override void run() {
+					if (!_win || _win.isDisposed()) return;
 					_comm.changed.call();
 				}
 			};
 			dStr ~= " - " ~ .text(__LINE__);
 			auto chgEvt = new class Runnable {
 				override void run() {
+					if (!_win || _win.isDisposed()) return;
 					refreshTitle();
 				}
 			};
@@ -699,7 +715,7 @@ private:
 		if (cfnmatch(.extension(fname), ".wsm") && !.exists(fname)) {
 			fname = dirName(fname);
 		}
-		decScenarioPath(fname, _opt.openPaths);
+		decScenarioPath(fname, _opt.openPaths, _prop.var.etc.clickIsOpenEvent);
 		auto old = summary;
 		loadScenarioFromFile(_prop, loadOption(null), _comm.mainShell, &setStatusLine,
 			old, fname, &openScenarioImpl, failure);
@@ -723,6 +739,7 @@ private:
 		opt.saveInnerImagePath = _prop.var.etc.saveInnerImagePath;
 		opt.backup = _prop.var.etc.backupBeforeSaveEnabled;
 		opt.backupDir = _prop.backupBeforeSavePath.buildPath(_prop.var.etc.backupBeforeSaveDir);
+		opt.imageConverter = .toDelegate(&imageToBitmap);
 		return opt;
 	}
 	bool save(Shell shell, bool backupSave = false) {
@@ -742,7 +759,7 @@ private:
 				}
 				try {
 					synchronized (_saveSync) {
-						summary.saveOverwrite(_prop.parent, createSaveOpt());
+						summary.saveOverwrite(_prop.parent, _comm.skin, createSaveOpt());
 					}
 					_comm.saved.call();
 					refreshTitle();
@@ -847,7 +864,7 @@ private:
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin);
 				try {
 					synchronized (_saveSync) {
-						summary.saveWithName(_prop.parent, createSaveOpt(),
+						summary.saveWithName(_prop.parent, _comm.skin, createSaveOpt(),
 							fname, tempPath, expandXMLs, defSkin, (string msg) {
 								MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
 							}, classic);
@@ -1348,34 +1365,37 @@ private:
 	class OpenCWXPath : Runnable {
 		string path;
 		override void run() {
+			if (!_win || _win.isDisposed()) return;
 			auto paths = std.string.split(path, CWXPATH_SEP.idup);
 			if (!paths.length) paths = [""];
 			foreach (p; paths) {
 				try {
 					openCWXPath(p, true);
 				} catch (Throwable e) {
-					debugln (e);
+					debugln(e);
 				}
 			}
 		}
 	}
 	class ReloadSettings : Runnable {
 		override void run() {
+			if (!_win || _win.isDisposed()) return;
 			try {
 				reloadProps();
 			} catch (Throwable e) {
-				debugln (e);
+				debugln(e);
 			}
 		}
 	}
 	class SelectFile : Runnable {
 		string path;
 		override void run() {
+			if (!_win || _win.isDisposed()) return;
 			try {
 				_comm.openCWXPath("fileview", false);
 				_dirWin.select(path);
 			} catch (Throwable e) {
-				debugln (e);
+				debugln(e);
 			}
 		}
 	}
@@ -1606,7 +1626,7 @@ private:
 			version (Windows) {
 				if (summary.legacy) {
 					auto settings = _comm.skin.loadEngineSettings();
-					switch (.toLower(settings.get("soundapibgm", ""))) {
+					switch (.toLower(settings.get("musicapi", settings.get("soundapibgm", "")))) {
 					case "winmm":
 						engineTypeBGM = SOUND_TYPE_MCI;
 						break;
@@ -1616,7 +1636,7 @@ private:
 					default:
 						break;
 					}
-					switch (.toLower(settings.get("soundapise", ""))) {
+					switch (.toLower(settings.get("soundapi", settings.get("soundapise", "")))) {
 					case "winmm":
 						engineTypeSE = SOUND_TYPE_MCI;
 						break;
@@ -1672,7 +1692,7 @@ public:
 			_prop = prop;
 			_opt = opt;
 			dStr ~= " - " ~ .text(__LINE__);
-			decScenarioPath(opt.scenario, opt.openPaths);
+			decScenarioPath(opt.scenario, opt.openPaths, _prop.var.etc.clickIsOpenEvent);
 			/// すでにopt.scenarioを開いている
 			/// 既存のcwxeditorプロセスがある場合、
 			/// そちらを開くようにする。
@@ -2427,24 +2447,36 @@ public:
 				}
 			};
 			auto focusInOut = new class Listener {
-				private int _imeMode = SWT.NONE;
+				private int[Shell] _imeMode;
 				override void handleEvent(Event e) {
 					auto control = cast(Control) e.widget;
 					if (!control) return;
+					auto shl = control.getShell();
 					if (e.type is SWT.KeyUp || e.type is SWT.KeyDown) {
 						if (cast(Spinner) control || cast(NoIME) control) {
-							control.getShell().setImeInputMode(SWT.NONE);
+							shl.setImeInputMode(SWT.NONE);
 						}
 					} else if (e.type is SWT.FocusIn) {
 						if (cast(Spinner) control || cast(NoIME) control) {
-							_imeMode = control.getShell().getImeInputMode();
-							control.getShell().setImeInputMode(SWT.NONE);
+							if (shl !in _imeMode) {
+								.listener(shl, SWT.Dispose, {
+									if (shl in _imeMode) {
+										_imeMode.remove(shl);
+									}
+								});
+							}
+							_imeMode[shl] = shl.getImeInputMode();
+							shl.setImeInputMode(SWT.NONE);
 						}
 						_comm.refreshToolBar();
 					} else {
 						assert (e.type is SWT.FocusOut);
 						if (cast(Spinner) control || cast(NoIME) control) {
-							control.getShell().setImeInputMode(_imeMode);
+							auto p = shl in _imeMode;
+							if (p) {
+								shl.setImeInputMode(*p);
+								_imeMode.remove(shl);
+							}
 						}
 					}
 				}
@@ -3137,6 +3169,7 @@ public:
 
 	bool openCWXPath(string path, bool shellActivate) {
 		if (!summary) return false;
+		if (!_win || _win.isDisposed()) return false;
 		if (_win.isVisible()) _win.setRedraw(false);
 		scope (exit) {
 			if (_win.isVisible()) _win.setRedraw(true);

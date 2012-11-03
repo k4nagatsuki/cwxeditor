@@ -10,6 +10,7 @@ import cwx.types;
 import cwx.structs;
 import cwx.features;
 import cwx.background;
+import cwx.sjis;
 
 import std.exception;
 import std.conv;
@@ -546,8 +547,15 @@ class Skin {
 		if (_legacyEngine.length) {
 			auto ini = _legacyEngine.dirName().buildPath("cwex.ini");
 			if (!ini.exists()) return r;
+			string iniText;
+			try {
+				iniText = std.file.readText(ini);
+			} catch (UTFException e) {
+				// ここではMS932を想定
+				iniText = .touni(cast(char[]) std.file.read(ini));
+			}
 			/// UTF-8とは限らないため、バイナリで読み込む
-			foreach (line; (cast(const char[]) std.file.read(ini)).splitLines()) {
+			foreach (line; iniText.splitLines()) {
 				auto ln = line.split("=");
 				if (2 != ln.length) continue;
 				auto key = ln[0].strip();
@@ -671,9 +679,10 @@ class Skin {
 	}
 	/// pathがカード画像として使用可能か。
 	const
-	bool isCardImage(string path) {
+	bool isCardImage(string path, bool ignoreSize) {
 		if (isBinImg(path)) return true;
 		if (legacy && !cfnmatch(.extension(path), ".bmp")) return false;
+		if (ignoreSize) return true;
 		try {
 			uint x, y;
 			return imageSize(path, x, y)
@@ -728,16 +737,16 @@ class Skin {
 	const(string[dchar]) spChars() {return _spChars;}
 
 	const
-	private bool has(alias isT)(string dir) {
+	private bool has(alias isT, Arg ...)(string dir, Arg args) {
 		foreach (file; clistdir(dir)) {
-			if (isT(std.path.buildPath(dir, file))) return true;
+			if (isT(std.path.buildPath(dir, file), args)) return true;
 		}
 		return false;
 	}
 
 	/// 各種の素材がdirに含まれていればtrueを返す。
 	const
-	bool hasCardImage(string dir) {return has!(isCardImage)(dir);}
+	bool hasCardImage(string dir, bool ignoreSize) {return has!(isCardImage)(dir, ignoreSize);}
 	/// ditto
 	const
 	bool hasBgImage(string dir) {return has!(isBgImage)(dir);}
@@ -749,24 +758,31 @@ class Skin {
 	bool hasSE(string dir) {return has!(isSE)(dir);}
 
 	const
-	private string[] list(alias isT)(string dir, bool logicalSort, bool forceRefresh) {
+	private string[] list(alias isT, bool UseFlag = false)(string dir, bool logicalSort, bool forceRefresh, bool flag) {
 		synchronized {
 			static struct Files {
 				bool logicalSort;
+				bool flag;
 				string[] files;
 			}
 			mixin FileCache!(Files);
 			if (!forceRefresh) {
 				auto ca = cache(dir);
-				if (ca && ca.value.logicalSort == logicalSort) {
+				if (ca && ca.value.logicalSort == logicalSort && ca.value.flag == flag) {
 					return ca.value.files;
 				}
 			}
 			string[] r;
 			foreach (fp; clistdir(dir)) {
 				fp = std.path.buildPath(dir, fp);
-				if (isT(fp)) {
-					r ~= baseName(fp);
+				static if (UseFlag) {
+					if (isT(fp, flag)) {
+						r ~= baseName(fp);
+					}
+				} else {
+					if (isT(fp)) {
+						r ~= baseName(fp);
+					}
 				}
 			}
 			if (logicalSort) {
@@ -774,38 +790,38 @@ class Skin {
 			} else {
 				r = sort!(fncmp)(r);
 			}
-			putCache(dir, Files(logicalSort, r));
+			putCache(dir, Files(logicalSort, flag, r));
 			return r;
 		}
 	}
 
 	/// dirに含まれるカード画像の一覧。
 	const
-	string[] cards(string dir, bool logicalSort, bool forceRefresh) {return list!(isCardImage)(dir, logicalSort, forceRefresh);}
+	string[] cards(string dir, bool logicalSort, bool forceRefresh, bool ignoreSize) {return list!(isCardImage, true)(dir, logicalSort, forceRefresh, ignoreSize);}
 
 	/// 標準の背景画像。
 	const
-	string[] tables(bool logicalSort, bool forceRefresh = false) {return list!(isBgImage)(tableDir, logicalSort, forceRefresh);}
+	string[] tables(bool logicalSort, bool forceRefresh = false) {return list!(isBgImage)(tableDir, logicalSort, forceRefresh, false);}
 
 	/// dirに含まれる背景画像の一覧。
 	const
-	string[] tables(string dir, bool logicalSort, bool forceRefresh) {return list!(isBgImage)(dir, logicalSort, forceRefresh);}
+	string[] tables(string dir, bool logicalSort, bool forceRefresh) {return list!(isBgImage)(dir, logicalSort, forceRefresh, false);}
 
 	/// 標準のBGM。
 	const
-	string[] musics(bool logicalSort, bool forceRefresh = false) {return list!(isBGM)(bgmDir, logicalSort, forceRefresh);}
+	string[] musics(bool logicalSort, bool forceRefresh = false) {return list!(isBGM)(bgmDir, logicalSort, forceRefresh, false);}
 
 	/// dirに含まれるBGMの一覧。
 	const
-	string[] musics(string dir, bool logicalSort, bool forceRefresh) {return list!(isBGM)(dir, logicalSort, forceRefresh);}
+	string[] musics(string dir, bool logicalSort, bool forceRefresh) {return list!(isBGM)(dir, logicalSort, forceRefresh, false);}
 
 	/// 標準のSE。
 	const
-	string[] sounds(bool logicalSort, bool forceRefresh = false) {return list!(isSE)(seDir, logicalSort, forceRefresh);}
+	string[] sounds(bool logicalSort, bool forceRefresh = false) {return list!(isSE)(seDir, logicalSort, forceRefresh, false);}
 
 	/// dirに含まれるSEの一覧。
 	const
-	string[] sounds(string dir, bool logicalSort, bool forceRefresh) {return list!(isSE)(dir, logicalSort, forceRefresh);}
+	string[] sounds(string dir, bool logicalSort, bool forceRefresh) {return list!(isSE)(dir, logicalSort, forceRefresh, false);}
 
 	/// 標準素材ディレクトリのルート。
 	@property
@@ -965,25 +981,91 @@ class Skin {
 	string makingsName(Makings e) {
 		return _cEngine.makingsName.get(_prop.sys.makingsName(e, ""), _prop.sys.makingsName(e, legacyName));
 	}
+	/// ditto
+	const
+	string featureName(E)(E e) {
+		static if (is(E:Sex)) {
+			return sexName(e);
+		} else static if (is(E:Period)) {
+			return periodName(e);
+		} else static if (is(E:Nature)) {
+			return natureName(e);
+		} else static if (is(E:Makings)) {
+			return makingsName(e);
+		} else static assert (0);
+	}
+
 	/// このスキンでの特徴のクーポンを返す。
 	const
 	string sexCoupon(Sex e) {
-		return _prop.sys.convCoupon(sexName(e), CouponType.Hide);
+		return _prop.sys.convCoupon(sexName(e), CouponType.Hide, false);
 	}
 	/// ditto
 	const
 	string periodCoupon(Period e) {
-		return _prop.sys.convCoupon(periodName(e), CouponType.Hide);
+		return _prop.sys.convCoupon(periodName(e), CouponType.Hide, false);
 	}
 	/// ditto
 	const
 	string natureCoupon(Nature e) {
-		return _prop.sys.convCoupon(natureName(e), CouponType.Hide);
+		return _prop.sys.convCoupon(natureName(e), CouponType.Hide, false);
 	}
 	/// ditto
 	const
 	string makingsCoupon(Makings e) {
-		return _prop.sys.convCoupon(makingsName(e), CouponType.Hide);
+		return _prop.sys.convCoupon(makingsName(e), CouponType.Hide, false);
+	}
+
+	/// 特徴の能力修正値を返す。
+	const
+	int physicalMod(E)(E e, Physical phy) {
+		static if (is(E:Sex)) {
+			auto arr = _cEngine.physicalModSex;
+		} else static if (is(E:Period)) {
+			auto arr = _cEngine.physicalModPeriod;
+		} else static if (is(E:Nature)) {
+			auto arr = _cEngine.physicalModNature;
+		} else static if (is(E:Makings)) {
+			auto arr = _cEngine.physicalModMakings;
+		} else static assert (0);
+
+		if (auto p1 = (e in arr)) {
+			if (auto p2 = (phy in *p1)) {
+				return *p2;
+			}
+		}
+
+		const(int[Physical]) init;
+		return _prop.sys.physicalMod!E(legacyName).get(e, init).get(phy, 0);
+	}
+	/// ditto
+	const
+	real mentalMod(E)(E e, Mental mtl) {
+		switch (mtl) {
+		case Mental.UNAGGRESSIVE, Mental.UNCHEERFUL, Mental.UNBRAVE,
+				Mental.UNCAUTIOUS, Mental.UNTRICKISH:
+			return mentalMod(e, reverseMental(mtl)) * -1.0;
+		default:
+		}
+
+		static if (is(E:Sex)) {
+			auto arr = _cEngine.mentalModSex;
+		} else static if (is(E:Period)) {
+			auto arr = _cEngine.mentalModPeriod;
+		} else static if (is(E:Nature)) {
+			auto arr = _cEngine.mentalModNature;
+		} else static if (is(E:Makings)) {
+			auto arr = _cEngine.mentalModMakings;
+		} else static assert (0);
+
+		if (auto p1 = (e in arr)) {
+			if (auto p2 = (mtl in *p1)) {
+				return *p2;
+			}
+		}
+
+		const(real[Mental]) init;
+		return _prop.sys.mentalMod!E(legacyName).get(e, init).get(mtl, 0.0);
 	}
 
 	/// XMLファイルからスキンデータをロードする。

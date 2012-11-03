@@ -13,6 +13,7 @@ import cwx.structs;
 import cwx.msgutils;
 import cwx.menu;
 import cwx.types;
+import cwx.imagesize;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -839,7 +840,11 @@ private:
 	ImageSelect!(MtType.CARD, Combo) _msel;
 
 	void refreshWarning() {
-		warning = comm.skin.warningImage(prop.parent, _msel.filePath, summ.legacy);
+		string[] ws;
+
+		ws ~= _msel.warnings;
+
+		warning = ws;
 	}
 	void tabChanged() {
 		switch (_tabf.getSelectionIndex()) {
@@ -951,6 +956,7 @@ protected:
 			}
 			mod(_msel);
 			_msel.modEvent ~= &refreshWarning;
+			_msel.cardMode = CardMode.Message;
 			tp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			_msgCompA = new Composite(comp, SWT.NONE);
 			_msgCompA.setLayoutData(new GridData(GridData.FILL_VERTICAL));
@@ -1160,7 +1166,7 @@ private class DisposeText : DisposeListener {
 }
 private FixedWidthText createMessagePane(Commons comm, Props prop, bool image, Composite parent, Summary summ) {
 	int len = image ? prop.looks.messageImageLen : prop.looks.messageLen;
-	auto r = new FixedWidthText(dwtData(prop.looks.messageFont(summ.legacy)), len, parent, SWT.BORDER);
+	auto r = new FixedWidthText(dwtData(prop.looks.messageFont(summ.legacy)), len, parent, SWT.BORDER, true);
 	auto d = r.widget.getDisplay();
 	auto back = new Color(d, new RGB(prop.var.etc.msgBackR, prop.var.etc.msgBackG, prop.var.etc.msgBackB));
 	auto fore = new Color(d, new RGB(prop.var.etc.msgForeR, prop.var.etc.msgForeG, prop.var.etc.msgForeB));
@@ -1727,21 +1733,26 @@ class MsgPreview : Composite {
 		}
 
 		string[char] names;
-		string[string] flags;
+		string[string] flags, steps;
 		foreach (i; C.min .. C.max + 1) {
 			names[C_TBL[cast(C) i]] = _values.getItem(i).getText(1);
 		}
-		foreach (i; C.max .. _values.getItemCount()) {
+		foreach (i; C.max + 1 .. _values.getItemCount()) {
 			auto itm = _values.getItem(i);
-			flags[itm.getText(0)] = itm.getText(1);
+			if (cast(FlagData) itm.getData()) {
+				flags[itm.getText(0)] = itm.getText(1);
+			} else {
+				assert (cast(StepData) itm.getData());
+				steps[itm.getText(0)] = itm.getText(1);
+			}
 		}
-		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, _message, [], names, flags));
+		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, _message, [], names, flags, steps));
 		_canvas.redraw();
 	}
 }
 
 /// メッセージのプレビューを生成する。
-ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talker, string message, in string[] sel, in string[char] names, in string[string] flags) {
+ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talker, string message, in string[] sel, in string[char] names, in string[string] flags, in string[string] steps) {
 	auto d = Display.getCurrent();
 	version (Windows) {
 		bool legacy = comm.skin.legacy;
@@ -1765,6 +1776,16 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		gc.fillRectangle(3, rect.height + 3 + bh * i, rect.width - 6, bh - 6);
 	}
 
+	// 話者の描画
+	if (talker) {
+		auto tImg = new Image(d, talker);
+		scope (exit) tImg.dispose();
+		auto tp = prop.looks.messageTalkerPos;
+		auto cs = prop.looks.cardSize;
+		int tpy = tp.y + (cast(int) cs.height - cast(int) talker.height) / 2;
+		gc.drawImage(tImg, tp.x, tpy);
+	}
+
 	// 文章と特殊文字の描画
 
 	// 改行置換
@@ -1780,9 +1801,17 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				return v;
 			}
 		}
-		return "";
+		return "%" ~ path ~ "%";
 	}
-	message = formatMsg(message, &fValue, &fValue, delegate string (char name) {
+	string sValue(string path) {
+		foreach (f, v; steps) {
+			if (0 == icmp(f, path)) {
+				return v;
+			}
+		}
+		return "$" ~ path ~ "$";
+	}
+	message = formatMsg(message, &fValue, &sValue, delegate string (char name) {
 		auto dc = std.ascii.toUpper(name);
 		foreach (c, v; names) {
 			if (std.ascii.toUpper(c) == dc) {
@@ -2076,14 +2105,6 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			scope (exit) img.dispose();
 			gc.drawImage(img, pt.x, pt.y);
 		}
-	}
-
-	// 話者
-	if (talker) {
-		auto tImg = new Image(d, talker);
-		scope (exit) tImg.dispose();
-		auto tp = prop.looks.messageTalkerPos;
-		gc.drawImage(tImg, tp.x, tp.y);
 	}
 
 	// 枠

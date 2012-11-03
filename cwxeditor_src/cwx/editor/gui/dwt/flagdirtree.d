@@ -391,7 +391,7 @@ public:
 		auto cur = current;
 		if (!cur) return;
 		_comm.openCWXPath(cur.cwxPath(true), true);
-		string name = cur.createNewDirName(prop.msgs.flagDirNew);
+		string name = cur.createNewDirName(prop.msgs.flagDirNew, null);
 		storeInsert(cur, flags.selected, [cast(int) cur.subDirs.length], [], []);
 		auto dir = new FlagDir(name);
 		cur.add(dir);

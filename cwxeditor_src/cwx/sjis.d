@@ -62,7 +62,7 @@ bool valid(CP CPage)(dchar c) {
 }
 
 /// CP2の文字列をCP1に変換。
-char[] convTo(CP CP1, CP CP2)(in char[] s) {
+char[] convTo(CP CP1, CP CP2)(in char[] s, bool throwError = true) {
 	static if (CP1 == CP2) {
 		return s;
 	} else {
@@ -119,7 +119,11 @@ char[] convTo(CP CP1, CP CP2)(in char[] s) {
 					if (uc == 0xFFFF) {
 						uc = SJIS_UNI[cbuf >> 8];
 						if (uc == 0xFFFF) {
-							throw new Exception("Invalid UTF character: 0x" ~ .format("%x", (cbuf >> 8)));
+							if (throwError) {
+								throw new Exception("Invalid UTF character: 0x" ~ .format("%x", (cbuf >> 8)));
+							} else {
+								put('?');
+							}
 						} else {
 							put(uc);
 						}
@@ -135,7 +139,11 @@ char[] convTo(CP CP1, CP CP2)(in char[] s) {
 			if (count >= 1) {
 				wchar uc = SJIS_UNI[cbuf];
 				if (uc == 0xFFFF) {
-					throw new Exception("Invalid UTF character: 0x" ~ .format("%x", cbuf));
+					if (throwError) {
+						throw new Exception("Invalid UTF character: 0x" ~ .format("%x", cbuf));
+					} else {
+						put('?');
+					}
 				} else {
 					put(uc);
 				}
@@ -156,23 +164,23 @@ char[] convTo(CP CP1, CP CP2)(in char[] s) {
 }
 
 /// UTF-8文字列をShift JISに変換。
-string tosjis(in char[] s) {
-	auto r = tosjism(s);
+string tosjis(in char[] s, bool throwError = true) {
+	auto r = tosjism(s, throwError);
 	return assumeUnique(r);
 }
 alias convTo!(CP.SJIS, CP.UNI) tosjism;
 /// Shift JIS文字列をUTF-8に変換。
-string touni(in char[] s) {
-	auto r = tounim(s);
+string touni(in char[] s, bool throwError = true) {
+	auto r = tounim(s, throwError);
 	return assumeUnique(r);
 }
 alias convTo!(CP.UNI, CP.SJIS) tounim;
 
 /// UTF-8文字列を0終端のShift JIS文字列に変換。
-const(char)* tosjisz(in char[] s) {
-	return (tosjis(s.dup) ~ '\0').ptr;
+const(char)* tosjisz(in char[] s, bool throwError = true) {
+	return (tosjis(s.dup, throwError) ~ '\0').ptr;
 }
 /// ditto
-char* tosjismz(in char[] s) {
-	return (tosjism(s.dup) ~ '\0').ptr;
+char* tosjismz(in char[] s, bool throwError = true) {
+	return (tosjism(s.dup, throwError) ~ '\0').ptr;
 }

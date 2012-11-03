@@ -458,15 +458,16 @@ private:
 	void editEnd(TableItem itm, int column, string newText) {
 		assert (column == 1);
 		if (!newText.length) return;
-		storeEdit(_areas.indexOf(itm));
 		if (auto summ = cast(Summary) itm.getData()) {
 			if (summ.scenarioName == newText) return;
+			storeEdit(_areas.indexOf(itm));
 			summ.scenarioName = newText;
 			itm.setText(NAME, newText);
 			_comm.refScenarioName.call();
 		} else if (auto area = cast(AbstractArea) itm.getData()) {
 			assert (area !is null);
 			if (area.name == newText) return;
+			storeEdit(_areas.indexOf(itm));
 			area.name = newText;
 			itm.setText(NAME, newText);
 			if (cast(Area) area) {
@@ -715,20 +716,20 @@ private:
 					index = revId(index);
 					AbstractArea area;
 					if (tid == typeid(Area)) {
-						storeInsert(index);
+						storeInsert(1 + index);
 						area = Area.createFromNode(node, LATEST_VERSION);
 						_summ.insert(index, cast(Area) area);
 						index = _summ.indexOf(cast(Area) area);
 						newAreaItem(index);
 					} else if (tid == typeid(Battle)) {
-						storeInsert(_summ.areas.length + index);
+						storeInsert(1 + _summ.areas.length + index);
 						area = Battle.createFromNode(node, LATEST_VERSION);
 						_summ.insert(index, cast(Battle) area);
 						index = _summ.indexOf(cast(Battle) area);
 						newBattleItem(index);
 					} else {
 						assert (tid == typeid(Package));
-						storeInsert(_summ.areas.length + _summ.battles.length + index);
+						storeInsert(1 + _summ.areas.length + _summ.battles.length + index);
 						area = Package.createFromNode(node, LATEST_VERSION);
 						_summ.insert(index, cast(Package) area);
 						index = _summ.indexOf(cast(Package) area);
@@ -1123,7 +1124,7 @@ public:
 
 	/// 新規エリアが作成され、名前の入力待ちになる。
 	void createArea() {
-		storeInsert(_summ.areas.length);
+		storeInsert(1 + _summ.areas.length);
 		auto area = new Area(_summ.newAreaId, _prop.msgs.areaNew);
 		auto bgImages = createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
 		foreach (b; bgImages) {
@@ -1144,7 +1145,7 @@ public:
 
 	/// 新規バトルが作成され、名前の入力待ちになる。
 	void createBattle() {
-		storeInsert(_summ.areas.length + _summ.battles.length);
+		storeInsert(1 + _summ.areas.length + _summ.battles.length);
 		auto btl = new Battle(_summ.newBattleId, _prop.msgs.battleNew, _comm.skin.defBattle);
 		_summ.add(btl);
 		int index = _summ.battles.length - 1;
@@ -1158,7 +1159,7 @@ public:
 
 	/// 新規パッケージが作成され、名前の入力待ちになる。
 	ulong createPackage(Content baseStart = null) {
-		storeInsert(_summ.areas.length + _summ.battles.length + _summ.packages.length);
+		storeInsert(1 + _summ.areas.length + _summ.battles.length + _summ.packages.length);
 		auto pkg = new Package(_summ.newPackageId, baseStart ? baseStart.name : _prop.msgs.packageNew);
 		EventTree et;
 		if (baseStart) {
@@ -1440,7 +1441,7 @@ public:
 					if (area !is null) {
 						auto oldId = area.id;
 						if (cast(Area) area) {
-							storeInsert(_summ.areas.length);
+							storeInsert(1 + _summ.areas.length);
 							auto newId = _summ.add(cast(Area) area);
 							int index = _summ.areas.length - 1;
 							newAreaItem(index);
@@ -1450,7 +1451,7 @@ public:
 								_summ.useCounter.change(toAreaId(oldId), toAreaId(newId));
 							}
 						} else if (cast(Battle) area) {
-							storeInsert(_summ.areas.length + _summ.battles.length);
+							storeInsert(1 + _summ.areas.length + _summ.battles.length);
 							auto newId = _summ.add(cast(Battle) area);
 							int index = _summ.battles.length - 1;
 							newBattleItem(index);
@@ -1460,7 +1461,7 @@ public:
 								_summ.useCounter.change(toBattleId(oldId), toBattleId(newId));
 							}
 						} else if (cast(Package) area) {
-							storeInsert(_summ.areas.length + _summ.battles.length + _summ.packages.length);
+							storeInsert(1 + _summ.areas.length + _summ.battles.length + _summ.packages.length);
 							auto newId = _summ.add(cast(Package) area);
 							int index = _summ.packages.length - 1;
 							newPackageItem(index);

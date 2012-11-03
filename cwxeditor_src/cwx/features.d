@@ -22,53 +22,19 @@ static const SEX_ALL = [
 	Sex.MALE,
 	Sex.FEMALE,
 ];
-/// 性別による肉体能力の修正値を返す。
-real physicalMod(Sex e, Physical phy) {
-	switch (e) {
-	case Sex.MALE:
-		switch (phy) {
-		case Physical.STR:
-			return 1.0;
-		default:
-		}
-		break;
-	case Sex.FEMALE:
-		switch (phy) {
-		case Physical.DEX:
-			return 1.0;
-		default:
-		}
-		break;
-	default:
+/// 性別を文字列に変換する。
+string fromSex(Sex e) {
+	final switch (e) {
+	case Sex.MALE: return "Male";
+	case Sex.FEMALE: return "Female";
 	}
-	return 0.0;
 }
-/// 性別による精神能力の修正値を返す。
-real mentalMod(Sex e, Mental mtl) {
-	switch (mtl) {
-	case Mental.UNAGGRESSIVE, Mental.UNCHEERFUL, Mental.UNBRAVE,
-			Mental.UNCAUTIOUS, Mental.UNTRICKISH:
-		return mentalMod(e, reverseMental(mtl)) * -1.0;
-	default:
+/// ditto
+Sex toSex(string e) {
+	final switch (e) {
+	case "Male": return Sex.MALE;
+	case "Female": return Sex.FEMALE;
 	}
-	switch (e) {
-	case Sex.MALE:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return 0.5;
-		default:
-		}
-		break;
-	case Sex.FEMALE:
-		switch (mtl) {
-		case Mental.CAUTIOUS:
-			return 0.5;
-		default:
-		}
-		break;
-	default:
-	}
-	return 0.0;
 }
 
 /// 年代。
@@ -85,110 +51,75 @@ static const PERIOD_ALL = [
 	Period.ADULT,
 	Period.OLD,
 ];
-/// 年代による肉体能力の修正値を返す。
-real physicalMod(Period e, Physical phy) {
-	switch (e) {
-	case Period.CHILD:
-		switch (phy) {
-		case Physical.DEX:
-			return 1.0;
-		case Physical.AGL:
-			return 1.0;
-		case Physical.STR:
-			return -1.0;
-		case Physical.VIT:
-			return -1.0;
-		default:
-		}
-		break;
-	case Period.ADULT:
-		switch (phy) {
-		case Physical.VIT:
-			return -1.0;
-		default:
-		}
-		break;
-	case Period.OLD:
-		switch (phy) {
-		case Physical.DEX:
-			return -1.0;
-		case Physical.AGL:
-			return -1.0;
-		case Physical.INT:
-			return 1.0;
-		case Physical.STR:
-			return -1.0;
-		case Physical.VIT:
-			return -1.0;
-		case Physical.MIN:
-			return 1.0;
-		default:
-		}
-		break;
-	default:
+/// 年代を文字列に変換する。
+string fromPeriod(Period e) {
+	final switch (e) {
+	case Period.CHILD: return "Child";
+	case Period.YOUNG: return "Young";
+	case Period.ADULT: return "Adult";
+	case Period.OLD: return "Old";
 	}
-	return 0.0;
 }
-/// 年代による精神能力の修正値を返す。
-real mentalMod(Period e, Mental mtl) {
-	switch (mtl) {
-	case Mental.UNAGGRESSIVE, Mental.UNCHEERFUL, Mental.UNBRAVE,
-			Mental.UNCAUTIOUS, Mental.UNTRICKISH:
-		return mentalMod(e, reverseMental(mtl)) * -1.0;
-	default:
+/// ditto
+Period toPeriod(string e) {
+	final switch (e) {
+	case "Child": return Period.CHILD;
+	case "Young": return Period.YOUNG;
+	case "Adult": return Period.ADULT;
+	case "Old": return Period.OLD;
 	}
-	switch (e) {
-	case Period.CHILD:
-		switch (mtl) {
-		case Mental.CHEERFUL:
-			return 0.5;
-		case Mental.CAUTIOUS:
-			return -0.5;
-		default:
-		}
-		break;
-	case Period.ADULT:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return -0.5;
-		case Mental.CAUTIOUS:
-			return 0.5;
-		default:
-		}
-		break;
-	case Period.OLD:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return -0.5;
-		case Mental.BRAVE:
-			return -0.5;
-		case Mental.CAUTIOUS:
-			return 0.5;
-		case Mental.TRICKISH:
-			return 0.5;
-		default:
-		}
-		break;
-	default:
-	}
-	return 0.0;
 }
 
 /// 素質。
 enum Nature {
 	SPI, /// 標準型。
-	INT, /// 知将型。
 	AGL, /// 万能型。
-	SCH, /// 策士型。
 	STR, /// 勇将型。
 	VIT, /// 豪傑型。
+	INT, /// 知将型。
+	SCH, /// 策士型。
+	MED, /// 凡庸型。
 	BRI, /// 英明型。
 	MAT, /// 無双型。
 	GEN, /// 天才型。
-	MED, /// 凡庸型。
 	HER, /// 英雄型。
 	DIV, /// 神仙型。
 }
+/// 素質を文字列に変換する。
+string fromNature(Nature e) {
+	final switch (e) {
+	case Nature.SPI: return "Spi";
+	case Nature.AGL: return "Agl";
+	case Nature.STR: return "Str";
+	case Nature.VIT: return "Vit";
+	case Nature.INT: return "Int";
+	case Nature.SCH: return "Sch";
+	case Nature.MED: return "Med";
+	case Nature.BRI: return "Bri";
+	case Nature.MAT: return "Mat";
+	case Nature.GEN: return "Gen";
+	case Nature.HER: return "Her";
+	case Nature.DIV: return "Div";
+	}
+}
+/// ditto
+Nature toNature(string e) {
+	final switch (e) {
+	case "Spi": return Nature.SPI;
+	case "Agl": return Nature.AGL;
+	case "Str": return Nature.STR;
+	case "Vit": return Nature.VIT;
+	case "Int": return Nature.INT;
+	case "Sch": return Nature.SCH;
+	case "Med": return Nature.MED;
+	case "Bri": return Nature.BRI;
+	case "Mat": return Nature.MAT;
+	case "Gen": return Nature.GEN;
+	case "Her": return Nature.HER;
+	case "Div": return Nature.DIV;
+	}
+}
+
 /// 通常の素質。
 static const NATURE_DEF = [
 	Nature.SPI,
@@ -207,238 +138,6 @@ static const NATURE_EXT = [
 	Nature.HER,
 	Nature.DIV,
 ];
-/// 素質による肉体能力の修正値を返す。
-real physicalMod(Nature e, Physical phy) {
-	switch (e) {
-	case Nature.SPI:
-		switch (phy) {
-		case Physical.MIN:
-			return 1.0;
-		default:
-		}
-		break;
-	case Nature.INT:
-		switch (phy) {
-		case Physical.INT:
-			return 2.0;
-		case Physical.STR:
-			return -1.0;
-		case Physical.VIT:
-			return -1.0;
-		default:
-		}
-		break;
-	case Nature.AGL:
-		switch (phy) {
-		case Physical.DEX:
-			return 1.0;
-		case Physical.AGL:
-			return 1.0;
-		case Physical.MIN:
-			return -1.0;
-		default:
-		}
-		break;
-	case Nature.SCH:
-		switch (phy) {
-		case Physical.AGL:
-			return -1.0;
-		case Physical.INT:
-			return 3.0;
-		case Physical.STR:
-			return -2.0;
-		case Physical.VIT:
-			return -2.0;
-		default:
-		}
-		break;
-	case Nature.STR:
-		switch (phy) {
-		case Physical.DEX:
-			return -1.0;
-		case Physical.INT:
-			return -1.0;
-		case Physical.STR:
-			return 2.0;
-		default:
-		}
-		break;
-	case Nature.VIT:
-		switch (phy) {
-		case Physical.DEX:
-			return -2.0;
-		case Physical.AGL:
-			return -1.0;
-		case Physical.INT:
-			return -2.0;
-		case Physical.STR:
-			return 3.0;
-		case Physical.VIT:
-			return 1.0;
-		case Physical.MIN:
-			return -1.0;
-		default:
-		}
-		break;
-	case Nature.BRI:
-		return 1.0;
-	case Nature.MAT:
-		switch (phy) {
-		case Physical.AGL:
-			return 1.0;
-		case Physical.STR:
-			return 3.0;
-		case Physical.VIT:
-			return 2.0;
-		default:
-		}
-		break;
-	case Nature.GEN:
-		switch (phy) {
-		case Physical.DEX:
-			return 1.0;
-		case Physical.INT:
-			return 3.0;
-		case Physical.MIN:
-			return 2.0;
-		default:
-		}
-		break;
-	case Nature.MED:
-		return -2.0;
-	case Nature.HER:
-		switch (phy) {
-		case Physical.DEX:
-			return 1.0;
-		case Physical.AGL:
-			return 1.0;
-		case Physical.INT:
-			return 2.0;
-		case Physical.STR:
-			return 2.0;
-		case Physical.VIT:
-			return 1.0;
-		case Physical.MIN:
-			return 2.0;
-		default:
-		}
-		break;
-	case Nature.DIV:
-		return 2.0;
-	default:
-	}
-	return 0.0;
-}
-/// 素質による精神能力の修正値を返す。
-real mentalMod(Nature e, Mental mtl) {
-	switch (mtl) {
-	case Mental.UNAGGRESSIVE, Mental.UNCHEERFUL, Mental.UNBRAVE,
-			Mental.UNCAUTIOUS, Mental.UNTRICKISH:
-		return mentalMod(e, reverseMental(mtl)) * -1.0;
-	default:
-	}
-	switch (e) {
-	case Nature.SPI:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return -0.5;
-		case Mental.CAUTIOUS:
-			return 0.5;
-		default:
-		}
-		break;
-	case Nature.INT:
-		switch (mtl) {
-		case Mental.CAUTIOUS:
-			return 0.5;
-		default:
-		}
-		break;
-	case Nature.AGL:
-		switch (mtl) {
-		case Mental.CHEERFUL:
-			return 0.5;
-		default:
-		}
-		break;
-	case Nature.SCH:
-		switch (mtl) {
-		case Mental.CAUTIOUS:
-			return 0.5;
-		case Mental.TRICKISH:
-			return 0.5;
-		default:
-		}
-		break;
-	case Nature.STR:
-		switch (mtl) {
-		case Mental.BRAVE:
-			return 1.0;
-		default:
-		}
-		break;
-	case Nature.VIT:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return 0.5;
-		case Mental.BRAVE:
-			return 0.5;
-		case Mental.CAUTIOUS:
-			return -0.5;
-		default:
-		}
-		break;
-	case Nature.BRI:
-		switch (mtl) {
-		case Mental.CAUTIOUS:
-			return 0.5;
-		default:
-		}
-		break;
-	case Nature.MAT:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return 0.5;
-		case Mental.BRAVE:
-			return 0.5;
-		default:
-		}
-		break;
-	case Nature.GEN:
-		switch (mtl) {
-		case Mental.CAUTIOUS:
-			return 0.5;
-		case Mental.TRICKISH:
-			return 0.5;
-		default:
-		}
-		break;
-	case Nature.MED:
-		switch (mtl) {
-		case Mental.BRAVE:
-			return -0.5;
-		case Mental.CAUTIOUS:
-			return 0.5;
-		default:
-		}
-		break;
-	case Nature.HER:
-		switch (mtl) {
-		case Mental.CHEERFUL:
-			return 0.5;
-		case Mental.BRAVE:
-			return 0.5;
-		case Mental.TRICKISH:
-			return -0.5;
-		default:
-		}
-		break;
-	case Nature.DIV:
-		return 0.0;
-	default:
-	}
-	return 0.0;
-}
 
 /// 特徴。
 enum Makings {
@@ -490,6 +189,112 @@ enum Makings {
 	PER_T, /// ひねくれ者。
 	FAME_H, /// 名誉こそ命。
 	FAME_A, /// 愛に生きる。
+}
+/// 素質を文字列に変換する。
+string fromMakings(Makings e) {
+	final switch (e) {
+	case Makings.LOOKS_B: return "LooksB";
+	case Makings.LOOKS_U: return "LooksU";
+	case Makings.CLASS_H: return "ClassH";
+	case Makings.CLASS_L: return "ClassL";
+	case Makings.BRED_T: return "BredT";
+	case Makings.BRED_C: return "BredC";
+	case Makings.MEANS_H: return "MeansH";
+	case Makings.MEANS_L: return "MeansL";
+	case Makings.FAITH_F: return "FaithF";
+	case Makings.FAITH_I: return "FaithI";
+	case Makings.RELI_R: return "ReliR";
+	case Makings.RELI_U: return "ReliU";
+	case Makings.DISP_C: return "DispC";
+	case Makings.DISP_S: return "DispS";
+	case Makings.DESIRE_G: return "DesireG";
+	case Makings.DESIRE_C: return "DesireC";
+	case Makings.DEVOTE_D: return "DevoteD";
+	case Makings.DEVOTE_S: return "DevoteS";
+	case Makings.DISC_O: return "DiscO";
+	case Makings.DISC_C: return "DiscC";
+	case Makings.POLIT_R: return "PolitR";
+	case Makings.POLIT_C: return "PolitC";
+	case Makings.SENSE_R: return "SenseR";
+	case Makings.SENSE_S: return "SenseS";
+	case Makings.CURIO_B: return "CurioB";
+	case Makings.CURIO_I: return "CurioI";
+	case Makings.NOTION_R: return "NotionR";
+	case Makings.NOTION_M: return "NotionM";
+	case Makings.IDEA_O: return "IdeaO";
+	case Makings.IDEA_P: return "IdeaP";
+	case Makings.WORK_H: return "WorkH";
+	case Makings.WORK_S: return "WorkS";
+	case Makings.CHAR_C: return "CharC";
+	case Makings.CHAR_B: return "CharB";
+	case Makings.STYLE_F: return "StyleF";
+	case Makings.STYLE_P: return "StyleP";
+	case Makings.PRIDE_P: return "PrideP";
+	case Makings.PRIDE_M: return "PrideM";
+	case Makings.REF_R: return "RefR";
+	case Makings.REF_B: return "RefB";
+	case Makings.GRACE_G: return "GraceG";
+	case Makings.GRACE_R: return "GraceR";
+	case Makings.LINER_H: return "LinerH";
+	case Makings.LINER_M: return "LinerM";
+	case Makings.PER_S: return "PerS";
+	case Makings.PER_T: return "PerT";
+	case Makings.FAME_H: return "FameH";
+	case Makings.FAME_A: return "FameA";
+	}
+}
+/// 素質を文字列に変換する。
+Makings toMakings(string e) {
+	final switch (e) {
+	case "LooksB": return Makings.LOOKS_B;
+	case "LooksU": return Makings.LOOKS_U;
+	case "ClassH": return Makings.CLASS_H;
+	case "ClassL": return Makings.CLASS_L;
+	case "BredT": return Makings.BRED_T;
+	case "BredC": return Makings.BRED_C;
+	case "MeansH": return Makings.MEANS_H;
+	case "MeansL": return Makings.MEANS_L;
+	case "FaithF": return Makings.FAITH_F;
+	case "FaithI": return Makings.FAITH_I;
+	case "ReliR": return Makings.RELI_R;
+	case "ReliU": return Makings.RELI_U;
+	case "DispC": return Makings.DISP_C;
+	case "DispS": return Makings.DISP_S;
+	case "DesireG": return Makings.DESIRE_G;
+	case "DesireC": return Makings.DESIRE_C;
+	case "DevoteD": return Makings.DEVOTE_D;
+	case "DevoteS": return Makings.DEVOTE_S;
+	case "DiscO": return Makings.DISC_O;
+	case "DiscC": return Makings.DISC_C;
+	case "PolitR": return Makings.POLIT_R;
+	case "PolitC": return Makings.POLIT_C;
+	case "SenseR": return Makings.SENSE_R;
+	case "SenseS": return Makings.SENSE_S;
+	case "CurioB": return Makings.CURIO_B;
+	case "CurioI": return Makings.CURIO_I;
+	case "NotionR": return Makings.NOTION_R;
+	case "NotionM": return Makings.NOTION_M;
+	case "IdeaO": return Makings.IDEA_O;
+	case "IdeaP": return Makings.IDEA_P;
+	case "WorkH": return Makings.WORK_H;
+	case "WorkS": return Makings.WORK_S;
+	case "CharC": return Makings.CHAR_C;
+	case "CharB": return Makings.CHAR_B;
+	case "StyleF": return Makings.STYLE_F;
+	case "StyleP": return Makings.STYLE_P;
+	case "PrideP": return Makings.PRIDE_P;
+	case "PrideM": return Makings.PRIDE_M;
+	case "RefR": return Makings.REF_R;
+	case "RefB": return Makings.REF_B;
+	case "GraceG": return Makings.GRACE_G;
+	case "GraceR": return Makings.GRACE_R;
+	case "LinerH": return Makings.LINER_H;
+	case "LinerM": return Makings.LINER_M;
+	case "PerS": return Makings.PER_S;
+	case "PerT": return Makings.PER_T;
+	case "FameH": return Makings.FAME_H;
+	case "FameA": return Makings.FAME_A;
+	}
 }
 /// 左辺の特徴。
 static const MAKINGS_LEFT = [
@@ -570,707 +375,4 @@ Makings reverseMakings(Makings m) {
 	case Makings.FAME_H: return Makings.FAME_A;
 	case Makings.FAME_A: return Makings.FAME_H;
 	}
-}
-/// 特徴による肉体能力の修正値を返す。
-real physicalMod(Makings e, Physical phy) {
-	switch (e) {
-	case Makings.LOOKS_B:
-		switch (phy) {
-		case Physical.VIT:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.LOOKS_U:
-		switch (phy) {
-		case Physical.VIT:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.BRED_T:
-		switch (phy) {
-		case Physical.INT:
-			return 1.0;
-		case Physical.VIT:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.BRED_C:
-		switch (phy) {
-		case Physical.AGL:
-			return -1.0;
-		case Physical.VIT:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.MEANS_H:
-		switch (phy) {
-		case Physical.MIN:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.MEANS_L:
-		switch (phy) {
-		case Physical.MIN:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.FAITH_F:
-		switch (phy) {
-		case Physical.INT:
-			return -1.0;
-		case Physical.MIN:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.DISP_C:
-		switch (phy) {
-		case Physical.AGL:
-			return -1.0;
-		case Physical.INT:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.DISP_S:
-		switch (phy) {
-		case Physical.AGL:
-			return 1.0;
-		case Physical.MIN:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.DESIRE_G:
-		switch (phy) {
-		case Physical.VIT:
-			return 1.0;
-		case Physical.MIN:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.DEVOTE_D:
-		switch (phy) {
-		case Physical.VIT:
-			return -1.0;
-		case Physical.MIN:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.DEVOTE_S:
-		switch (phy) {
-		case Physical.DEX:
-			return -1.0;
-		case Physical.AGL:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.DISC_C:
-		switch (phy) {
-		case Physical.STR:
-			return 1.0;
-		case Physical.MIN:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.POLIT_R:
-		switch (phy) {
-		case Physical.AGL:
-			return 1.0;
-		case Physical.VIT:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.POLIT_C:
-		switch (phy) {
-		case Physical.STR:
-			return -1.0;
-		case Physical.MIN:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.SENSE_R:
-		switch (phy) {
-		case Physical.AGL:
-			return 1.0;
-		case Physical.STR:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.SENSE_S:
-		switch (phy) {
-		case Physical.INT:
-			return -1.0;
-		case Physical.VIT:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.CURIO_B:
-		switch (phy) {
-		case Physical.DEX:
-			return 1.0;
-		case Physical.VIT:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.CURIO_I:
-		switch (phy) {
-		case Physical.AGL:
-			return -1.0;
-		case Physical.MIN:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.NOTION_R:
-		switch (phy) {
-		case Physical.STR:
-			return 1.0;
-		case Physical.VIT:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.IDEA_O:
-		switch (phy) {
-		case Physical.DEX:
-			return 1.0;
-		case Physical.AGL:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.IDEA_P:
-		switch (phy) {
-		case Physical.INT:
-			return 1.0;
-		case Physical.MIN:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.WORK_H:
-		switch (phy) {
-		case Physical.DEX:
-			return -1.0;
-		case Physical.VIT:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.WORK_S:
-		switch (phy) {
-		case Physical.DEX:
-			return 1.0;
-		case Physical.INT:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.STYLE_F:
-		switch (phy) {
-		case Physical.AGL:
-			return 1.0;
-		case Physical.INT:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.STYLE_P:
-		switch (phy) {
-		case Physical.STR:
-			return -1.0;
-		case Physical.VIT:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.PRIDE_P:
-		switch (phy) {
-		case Physical.DEX:
-			return -1.0;
-		case Physical.MIN:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.PRIDE_M:
-		switch (phy) {
-		case Physical.DEX:
-			return -1.0;
-		case Physical.INT:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.REF_R:
-		switch (phy) {
-		case Physical.INT:
-			return 1.0;
-		case Physical.STR:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.REF_B:
-		switch (phy) {
-		case Physical.INT:
-			return -1.0;
-		case Physical.STR:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.GRACE_G:
-		switch (phy) {
-		case Physical.DEX:
-			return -1.0;
-		case Physical.STR:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.GRACE_R:
-		switch (phy) {
-		case Physical.DEX:
-			return 1.0;
-		case Physical.STR:
-			return -1.0;
-		default:
-		}
-		break;
-	case Makings.LINER_H:
-		switch (phy) {
-		case Physical.AGL:
-			return -1.0;
-		case Physical.STR:
-			return 1.0;
-		default:
-		}
-		break;
-	case Makings.LINER_M:
-		switch (phy) {
-		case Physical.DEX:
-			return 1.0;
-		case Physical.MIN:
-			return -1.0;
-		default:
-		}
-		break;
-	default:
-	}
-	return 0.0;
-}
-/// 特徴による精神能力の修正値を返す。
-real mentalMod(Makings e, Mental mtl) {
-	switch (mtl) {
-	case Mental.UNAGGRESSIVE, Mental.UNCHEERFUL, Mental.UNBRAVE,
-			Mental.UNCAUTIOUS, Mental.UNTRICKISH:
-		return mentalMod(e, reverseMental(mtl)) * -1.0;
-	default:
-	}
-	switch (e) {
-	case Makings.LOOKS_B:
-		switch (mtl) {
-		case Mental.CHEERFUL:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.LOOKS_U:
-		switch (mtl) {
-		case Mental.CHEERFUL:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.CLASS_H:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return -0.5;
-		case Mental.BRAVE:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.CLASS_L:
-		switch (mtl) {
-		case Mental.CAUTIOUS:
-			return -0.5;
-		case Mental.TRICKISH:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.BRED_T:
-		switch (mtl) {
-		case Mental.CHEERFUL:
-			return 0.5;
-		case Mental.TRICKISH:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.BRED_C:
-		switch (mtl) {
-		case Mental.TRICKISH:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.MEANS_H:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return -0.5;
-		case Mental.TRICKISH:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.MEANS_L:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return 0.5;
-		case Mental.BRAVE:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.FAITH_F:
-		switch (mtl) {
-		case Mental.BRAVE:
-			return 0.5;
-		case Mental.TRICKISH:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.FAITH_I:
-		switch (mtl) {
-		case Mental.CAUTIOUS:
-			return 0.5;
-		case Mental.TRICKISH:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.RELI_R:
-		switch (mtl) {
-		case Mental.BRAVE:
-			return 0.5;
-		case Mental.TRICKISH:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.RELI_U:
-		switch (mtl) {
-		case Mental.BRAVE:
-			return -0.5;
-		case Mental.TRICKISH:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.DISP_C:
-		switch (mtl) {
-		case Mental.CAUTIOUS:
-			return 0.5;
-		case Mental.TRICKISH:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.DISP_S:
-		switch (mtl) {
-		case Mental.CAUTIOUS:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.DESIRE_G:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return 0.5;
-		case Mental.BRAVE:
-			return -0.5;
-		case Mental.CAUTIOUS:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.DESIRE_C:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.DEVOTE_D:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.DEVOTE_S:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return 0.5;
-		case Mental.CHEERFUL:
-			return -0.5;
-		case Mental.TRICKISH:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.DISC_O:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return 0.5;
-		case Mental.TRICKISH:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.DISC_C:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return 0.5;
-		case Mental.TRICKISH:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.POLIT_R:
-		switch (mtl) {
-		case Mental.BRAVE:
-			return 0.5;
-		case Mental.CAUTIOUS:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.POLIT_C:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return -0.5;
-		case Mental.CAUTIOUS:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.SENSE_R:
-		switch (mtl) {
-		case Mental.CHEERFUL:
-			return -0.5;
-		case Mental.CAUTIOUS:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.CURIO_I:
-		switch (mtl) {
-		case Mental.CHEERFUL:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.NOTION_R:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return 0.5;
-		case Mental.CAUTIOUS:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.NOTION_M:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return -0.5;
-		case Mental.CAUTIOUS:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.IDEA_O:
-		switch (mtl) {
-		case Mental.BRAVE:
-			return 0.5;
-		case Mental.CAUTIOUS:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.IDEA_P:
-		switch (mtl) {
-		case Mental.BRAVE:
-			return -0.5;
-		case Mental.CAUTIOUS:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.WORK_S:
-		switch (mtl) {
-		case Mental.CHEERFUL:
-			return 0.5;
-		case Mental.TRICKISH:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.CHAR_C:
-		switch (mtl) {
-		case Mental.CHEERFUL:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.CHAR_B:
-		switch (mtl) {
-		case Mental.BRAVE:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.STYLE_F:
-		switch (mtl) {
-		case Mental.CHEERFUL:
-			return 0.5;
-		case Mental.CAUTIOUS:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.STYLE_P:
-		switch (mtl) {
-		case Mental.BRAVE:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.PRIDE_P:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return 0.5;
-		case Mental.CHEERFUL:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.PRIDE_M:
-		switch (mtl) {
-		case Mental.CAUTIOUS:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.REF_R:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return -0.5;
-		case Mental.CHEERFUL:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.REF_B:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return 0.5;
-		case Mental.CHEERFUL:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.GRACE_G:
-		switch (mtl) {
-		case Mental.CHEERFUL:
-			return -0.5;
-		case Mental.BRAVE:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.GRACE_R:
-		switch (mtl) {
-		case Mental.BRAVE:
-			return -0.5;
-		case Mental.CAUTIOUS:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.LINER_H:
-		switch (mtl) {
-		case Mental.BRAVE:
-			return 0.5;
-		case Mental.TRICKISH:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.LINER_M:
-		switch (mtl) {
-		case Mental.CHEERFUL:
-			return 0.5;
-		case Mental.BRAVE:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.PER_S:
-		switch (mtl) {
-		case Mental.CHEERFUL:
-			return 0.5;
-		case Mental.TRICKISH:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.PER_T:
-		switch (mtl) {
-		case Mental.CHEERFUL:
-			return 0.5;
-		default:
-		}
-		break;
-	case Makings.FAME_H:
-		switch (mtl) {
-		case Mental.BRAVE:
-			return 0.5;
-		case Mental.CAUTIOUS:
-			return -0.5;
-		case Mental.TRICKISH:
-			return -0.5;
-		default:
-		}
-		break;
-	case Makings.FAME_A:
-		switch (mtl) {
-		case Mental.AGGRESSIVE:
-			return -0.5;
-		default:
-		}
-		break;
-	default:
-	}
-	return 0.0;
 }

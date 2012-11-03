@@ -9,6 +9,7 @@ import cwx.card;
 import cwx.menu;
 import cwx.types;
 import cwx.path;
+import cwx.imagesize;
 
 import cwx.editor.gui.sound;
 
@@ -50,7 +51,7 @@ private:
 
 		void refreshWarning() {
 			string[] ws;
-			ws ~= _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ.legacy);
+			ws ~= _imgPath.warnings;
 			if (0 != _imgPath.pcNumber && _summ) {
 				if (_summ.legacy) {
 					ws ~= _prop.msgs.warningPCNumberClassic;
@@ -58,6 +59,7 @@ private:
 					ws ~= _prop.msgs.warningPCNumberXML;
 				}
 			}
+
 			warning = ws;
 		}
 	} else static if (is (C == EnemyCard)) {

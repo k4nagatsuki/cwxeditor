@@ -3207,7 +3207,7 @@ public:
 				}
 				private bool doFile(string path) {
 					assert (_summ);
-					if (_comm.skin.isCardImage(path)) {
+					if (_comm.skin.isCardImage(path, true)) {
 						int i = cardFromFile(path, 0, 0, false);
 						if (i == -1) {
 							return false;
@@ -3604,7 +3604,7 @@ public:
 			assert (_summ);
 			auto skin = _comm.skin;
 			static if ((UseCards && is (C == MenuCard)) && UseBacks) {
-				if (skin.isCardImage(path)) {
+				if (skin.isCardImage(path, false)) {
 					int i = cardFromFile(path, x, y, true);
 					if (i == -1) {
 						return false;
@@ -3623,7 +3623,7 @@ public:
 					}
 				}
 			} else static if (UseCards && is (C == MenuCard)) {
-				if (skin.isCardImage(path)) {
+				if (skin.isCardImage(path, true)) {
 					int i = cardFromFile(path, x, y, true);
 					if (i == -1) {
 						return false;

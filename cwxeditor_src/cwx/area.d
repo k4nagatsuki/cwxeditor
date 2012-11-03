@@ -134,8 +134,10 @@ public:
 	/// ditto
 	@property
 	void scale(real scale) {
-		if (_scale != scale) changed();
-		_scale = scale;
+		if (cast(int) (_scale * 100) != cast(int) (scale * 100)) {
+			changed();
+			_scale = scale;
+		}
 	}
 
 	@property

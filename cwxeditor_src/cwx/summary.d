@@ -72,6 +72,8 @@ struct SaveOption {
 	bool saveInnerImagePath = false; /// 格納イメージの参照先を保存するか。
 	bool backup = false; /// 保存時バックアップを行うか。
 	string backupDir = ""; /// 保存時バックアップ先。
+	/// 画像をビットマップに変換する関数。変換保存しない場合はnull。
+	ubyte[] delegate(ubyte[]) imageConverter;
 }
 
 /// 貼り紙。シナリオの情報が入る。
@@ -1728,7 +1730,7 @@ public:
 	private string[][immutable(ubyte[])] cardImgTable(string mtdir, Skin skin, UseCounter uc) {
 		string[][immutable(ubyte[])] r;
 		foreach (file; clistdir(mtdir)) {
-			if (skin.isCardImage(std.path.buildPath(mtdir, file))) {
+			if (skin.isCardImage(std.path.buildPath(mtdir, file), true)) {
 				auto mBytes = cast(ubyte[]) std.file.read(std.path.buildPath(mtdir, file));
 				auto bytes = assumeUnique(mBytes);
 				r[bytes] ~= std.path.buildPath(skin.materialPath, file);
@@ -1812,7 +1814,7 @@ public:
 					mkdir(top);
 					copyAll(p, top, true);
 				} else if (!cfnmatch(.extension(p), ".wsm") && !cfnmatch(.extension(p), ".wid") && !cfnmatch(.extension(p), ".wex")) {
-					if (toSkin.isCardImage(p)
+					if (toSkin.isCardImage(p, true)
 							|| toSkin.isBgImage(p)
 							|| toSkin.isBGM(p)
 							|| toSkin.isSE(p)) {
@@ -1889,13 +1891,13 @@ public:
 		return !useTemp || zipName.length;
 	}
 	/// 上書き保存。
-	void saveOverwrite(in CProps prop, in SaveOption opt) in {
+	void saveOverwrite(in CProps prop, in Skin skin, in SaveOption opt) in {
 		assert (isSaved);
 	} body {
-		saveProc(prop, opt, false, zipName, scenarioPath, scenarioPath, legacy, false, expandXMLs, false);
+		saveProc(prop, skin, opt, false, zipName, scenarioPath, scenarioPath, legacy, false, expandXMLs, false);
 	}
 	/// 名前をつけて保存。
-	void saveWithName(in CProps prop, in SaveOption opt, string fname, string tempPath,
+	void saveWithName(in CProps prop, in Skin skin, in SaveOption opt, string fname, string tempPath,
 			bool defExpandXMLs, Skin defSkin, void delegate(string) showWarn, bool classic) {
 		if (classic) {
 			// クラシック形式で保存
@@ -1911,7 +1913,7 @@ public:
 			scope (failure) {
 				if (useTemp) delAll(temp);
 			}
-			saveProc(prop, opt, useTemp, zipName, temp, sPath, true, false, defExpandXMLs, true);
+			saveProc(prop, skin, opt, useTemp, zipName, temp, sPath, true, false, defExpandXMLs, true);
 		} else if (fname.baseName().cfnmatch("Summary.xml") || (fname.exists() && fname.isDir())) {
 			// 新しく指定ディレクトリに保存(クラシック形式からXML形式への変換も含む)
 			string[] copyFail;
@@ -1932,7 +1934,7 @@ public:
 			}
 			assert (!useTemp);
 			string zipName = "";
-			saveProc(prop, opt, useTemp, zipName, temp, sPath, false, false, defExpandXMLs, true);
+			saveProc(prop, skin, opt, useTemp, zipName, temp, sPath, false, false, defExpandXMLs, true);
 			if (!type.length) {
 				type = defSkin.type;
 				resetChanged();
@@ -1948,13 +1950,13 @@ public:
 			}
 			scope (failure) delAll(temp);
 			if (!type.length) type = defSkin.type;
-			saveProc(prop, opt, true, fname, temp, scenarioPath, legacy, true, defExpandXMLs, true);
+			saveProc(prop, skin, opt, true, fname, temp, scenarioPath, legacy, true, defExpandXMLs, true);
 		} else if (useTemp) {
 			// 新しいアーカイブを作成
 			string oldZip = _zipName;
 			_zipName = fname;
 			scope (failure) _zipName = oldZip;
-			saveProc(prop, opt, false, zipName, scenarioPath, scenarioPath, legacy, false, defExpandXMLs, true);
+			saveProc(prop, skin, opt, false, zipName, scenarioPath, scenarioPath, legacy, false, defExpandXMLs, true);
 		} else {
 			// 展開済みシナリオからアーカイブに変換
 			auto oldPath = scenarioPath;
@@ -1965,10 +1967,10 @@ public:
 				scenarioPath = oldPath;
 				delAll(p);
 			}
-			saveProc(prop, opt, true, fname, p, scenarioPath, legacy, false, defExpandXMLs, true);
+			saveProc(prop, skin, opt, true, fname, p, scenarioPath, legacy, false, defExpandXMLs, true);
 		}
 	}
-	private void saveProc(in CProps prop, in SaveOption opt, bool archive,
+	private void saveProc(in CProps prop, in Skin skin, in SaveOption opt, bool archive,
 			string zipName, string temp, string sPath, bool legacy, bool legacyToX, bool defExpandXMLs, bool releaseLock) {
 		try {
 			void releaseLockFile() {
@@ -1982,7 +1984,7 @@ public:
 				auto oldPath = scenarioPath;
 				scenarioPath = sPath;
 				scope (failure) scenarioPath = oldPath;
-				saveLScenario(this, opt);
+				saveLScenario(this, skin, opt);
 				bool useTemp = archive;
 				.enforce(useTemp == (0 < zipName.length));
 				if (useTemp) {
@@ -2246,7 +2248,7 @@ bool isScenarioSystemDir(string dir) {
 
 /// シナリオ関連ファイルのパスを分解し、シナリオフォルダと
 /// パスに含まれるリソースパスに分ける。
-void decScenarioPath(ref string scenarioPath, ref string[] openPaths) {
+void decScenarioPath(ref string scenarioPath, ref string[] openPaths, bool eventPriority) {
 	if (scenarioPath && cfnmatch(.extension(scenarioPath), ".wid")) {
 		ulong id;
 		auto type = cwx.cwl.getType(scenarioPath, id);
@@ -2270,6 +2272,13 @@ void decScenarioPath(ref string scenarioPath, ref string[] openPaths) {
 				ts = "infocard";
 			}
 			ts ~= ":id:" ~ to!(string)(id);
+			if (eventPriority) {
+				if (type is typeid(Area)) {
+					ts = cpaddattr(ts, "eventview");
+				} else if (type is typeid(Battle)) {
+					ts = cpaddattr(ts, "eventview");
+				}
+			}
 			openPaths ~= ts;
 		}
 		scenarioPath = dirName(scenarioPath);

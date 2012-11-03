@@ -358,14 +358,21 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t chann
 				version (Windows) {
 					// Unicodeで日本語パスを渡すと失敗するので変換しておく
 					const char* filez = toMBSz(file);
+					const char* filez2 = (file ~ "\0").ptr;
 				} else {
 					const char* filez = (file ~ "\0").ptr;
+					const char* filez2 = toMBSz(file);
 				}
 
 				if (loop) {
 					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(filez);
 					if (!music) {
-						debugln("error: Mix_LoadMUS, " ~ file);
+						debugln("error: Mix_LoadMUS, 1" ~ file);
+						// 別のエンコーディングで再トライ
+						music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(filez2);
+					}
+					if (!music) {
+						debugln("error: Mix_LoadMUS, 2, " ~ file);
 						return;
 					}
 					getSymbol!(Mix_VolumeMusic)(mixer, "Mix_VolumeMusic")(.roundTo!intptr_t((volume / 100.0) * MIX_MAX_VOLUME));
@@ -376,7 +383,11 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t chann
 				} else {
 					auto ops = getSymbol!(SDL_RWFromFile)(sdl, "SDL_RWFromFile")(filez, "rb".toStringz());
 					if (!ops) {
-						debugln("error: SDL_RWFromFile, " ~ file);
+						debugln("error: SDL_RWFromFile 1, " ~ file);
+						ops = getSymbol!(SDL_RWFromFile)(sdl, "SDL_RWFromFile")(filez2, "rb".toStringz());
+					}
+					if (!ops) {
+						debugln("error: SDL_RWFromFile 2, " ~ file);
 						return;
 					}
 					chunk = getSymbol!(Mix_LoadWAV_RW)(mixer, "Mix_LoadWAV_RW")(ops, 1);
@@ -591,8 +602,22 @@ private bool playBass(string file, bool loop, ref DWORD stream, uint volume) {
 			int flag = loop ? BASS_SAMPLE_LOOP : BASS_DEFAULT;
 			if (midi) {
 				stream = getSymbol!(BASS_MIDI_StreamCreateFile)(bassMidi, "BASS_MIDI_StreamCreateFile")(false, file.toMBSz(), 0, 0, flag, 44100);
+				if (!stream) {
+					debugln("error: BASS_MIDI_StreamCreateFile 1, " ~ file);
+					stream = getSymbol!(BASS_MIDI_StreamCreateFile)(bassMidi, "BASS_MIDI_StreamCreateFile")(false, file.toStringz(), 0, 0, flag, 44100);
+				}
+				if (!stream) {
+					debugln("error: BASS_MIDI_StreamCreateFile 2, " ~ file);
+				}
 			} else {
 				stream = getSymbol!(BASS_StreamCreateFile)(bass, "BASS_StreamCreateFile")(false, file.toMBSz(), 0, 0, flag);
+				if (!stream) {
+					debugln("error: BASS_StreamCreateFile 1, " ~ file);
+					stream = getSymbol!(BASS_StreamCreateFile)(bass, "BASS_StreamCreateFile")(false, file.toStringz(), 0, 0, flag);
+				}
+				if (!stream) {
+					debugln("error: BASS_StreamCreateFile 2, " ~ file);
+				}
 			}
 			if (!stream) return false;
 			if (midi) {

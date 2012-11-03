@@ -30,10 +30,10 @@ class FlexEtcProps : Properties {
 	auto areaIdColumn = Prop!(int)("areaIdColumn", 50);
 	auto areaNameColumn = Prop!(int)("areaNameColumn", 280);
 	auto areaCountColumn = Prop!(int)("areaCountColumn", 60);
-	auto summaryParamSashL = Prop!(int)("summaryParamSashL", 2);
-	auto summaryParamSashR = Prop!(int)("summaryParamSashR", 1);
-	auto rCouponsStartAreaSashL = Prop!(int)("rCouponsStartAreaSashL", 1);
-	auto rCouponsStartAreaSashR = Prop!(int)("rCouponsStartAreaSashR", 1);
+	auto summaryParamSashL = Prop!(int)("summaryParamSashL", 2, 2012101100);
+	auto summaryParamSashR = Prop!(int)("summaryParamSashR", 1, 2012101100);
+	auto rCouponsStartAreaSashL = Prop!(int)("rCouponsStartAreaSashL", 1, 2012101100);
+	auto rCouponsStartAreaSashR = Prop!(int)("rCouponsStartAreaSashR", 1, 2012101100);
 	auto areaViewL = Prop!(int)("areaViewL", 1);
 	auto areaViewR = Prop!(int)("areaViewR", 4);
 	auto partyCardAlpha = Prop!(int, true)("partyCardAlpha", 176);
@@ -59,8 +59,8 @@ class FlexEtcProps : Properties {
 	auto flagSashV = Prop!(bool)("flagSashV", false);
 	auto flagsWidth = Prop!(int, true)("flagsWidth", 150);
 	auto flagsHeight = Prop!(int, true)("flagsHeight", 200);
-	auto menuCardSashL = Prop!(int)("menuCardSashL", 5);
-	auto menuCardSashR = Prop!(int)("menuCardSashR", 3);
+	auto menuCardSashL = Prop!(int)("menuCardSashL", 5, 2012101100);
+	auto menuCardSashR = Prop!(int)("menuCardSashR", 3, 2012101100);
 	auto enemyCardSashL = Prop!(int)("enemyCardSashL", 3);
 	auto enemyCardSashR = Prop!(int)("enemyCardSashR", 5);
 	auto backSashL = Prop!(int)("backSashL", 5);
@@ -132,8 +132,8 @@ class FlexEtcProps : Properties {
 	auto cardsMarginY = Prop!(int, true)("cardsMarginY", 5);
 	auto cardsSpaceY = Prop!(int, true)("cardsSpaceY", 8);
 	auto cardsDefaultWrap = Prop!(int, true)("cardsDefaultWrap", 4);
-	auto seKeyCodeSashL = Prop!(int)("seKeyCodeSashL", 4);
-	auto seKeyCodeSashR = Prop!(int)("seKeyCodeSashR", 7);
+	auto seKeyCodeSashL = Prop!(int)("seKeyCodeSashL", 4, 2012101100);
+	auto seKeyCodeSashR = Prop!(int)("seKeyCodeSashR", 7, 2012101100);
 	auto talkSashL = Prop!(int)("talkSashL", 1);
 	auto talkSashR = Prop!(int)("talkSashR", 1);
 	auto msgBackR = Prop!(int, true)("msgBackR", 0);
@@ -158,6 +158,7 @@ class FlexEtcProps : Properties {
 	auto contentsContinue = Prop!(bool)("contentsContinue", false);
 	auto contentsFloat = Prop!(bool)("contentsFloat", false);
 	auto contentsAutoHide = Prop!(bool)("contentsAutoHide", false);
+	auto comboListVisible = Prop!(bool)("comboListVisible", true);
 	auto showContentsBoxHeightWhenNoToolBar = Prop!(int, true)("showContentsBoxHeightWhenNoToolBar", 8);
 	auto clickIsOpenEvent = Prop!(bool)("clickIsOpenEvent", false);
 	auto smoothingCard = Prop!(bool)("smoothingCard", true);
@@ -230,12 +231,13 @@ class FlexEtcProps : Properties {
 	auto defaultSkin = Prop!(string, true)("defaultSkin", "MedievalFantasy");
 	auto defaultAuthor = Prop!(string)("defaultAuthor", "");
 
-	auto classicEngineRegex = Prop!(string)("classicEngineRegex", "^.+Wirth(_.+)?\\.exe$");
+	auto classicEngineRegex = Prop!(string)("classicEngineRegex", "^(CW´|.+Wirth(_.+)?)\\.exe$");
 	auto classicDataDirRegex = Prop!(string)("classicDataDirRegex", "^Data|D_[A-Z]1|[A-Z]_dt$");
 	auto classicMatchKey = Prop!(string, true)("classicMatchKey", "Table" ~ dirSeparator ~ "MapOfWirth.BMP");
 
 	auto expandXMLs = Prop!(bool)("expandXMLs", false);
 	auto xmlCopy = Prop!(bool)("xmlCopy", false);
+	auto showSpNature = Prop!(bool)("showSpNature", false);
 	auto saveInnerImagePath = Prop!(bool)("saveInnerImagePath", false);
 	auto linkCard = Prop!(bool)("linkCard", false);
 	auto traceDirectories = Prop!(bool)("traceDirectories", true);

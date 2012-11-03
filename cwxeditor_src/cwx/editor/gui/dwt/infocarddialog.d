@@ -8,6 +8,7 @@ import cwx.features;
 import cwx.utils;
 import cwx.skin;
 import cwx.path;
+import cwx.imagesize;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -38,7 +39,9 @@ private:
 	void refreshWarning() {
 		// 情報カード名はメッセージに表示されないため長さ制限無し
 		string[] ws;
-		ws ~= _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ.legacy);
+
+		ws ~= _imgPath.warnings;
+
 		warning = ws;
 	}
 
@@ -103,6 +106,7 @@ protected:
 			_imgPath = new ImageSelect!(MtType.CARD)(area, SWT.NONE, _comm, _prop, _summ,
 				_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText);
 			mod(_imgPath);
+			_imgPath.modEvent ~= &refreshWarning;
 			_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		{

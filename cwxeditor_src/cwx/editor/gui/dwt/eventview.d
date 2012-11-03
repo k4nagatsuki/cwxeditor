@@ -551,11 +551,11 @@ private:
 	void editEnd(TreeItem itm, Control c) {
 		string text = (cast(Text) c).getText();
 		if (!text) text = "";
-		if (text.length == 0) return;
-		itm.setText(text);
 		auto tree = cast(EventTree) itm.getData();
 		if (tree) {
+			if (text == tree.name) return;
 			store(tree);
+			itm.setText(text);
 			tree.name = text;
 			_etree.refreshTreeName();
 			_comm.refEventTree.call(tree);
@@ -563,12 +563,15 @@ private:
 			return;
 		}
 		static if (UseFire) {
+			if ("" == text) return;
 			auto obj = cast(KeyCodeObj) itm.getData();
 			assert (obj);
 			auto p = itm.getParentItem();
 			tree = cast(EventTree) p.getData();
+			auto kcIndex = p.indexOf(itm) - keyCodesIndex(p);
+			if (tree.keyCodes[kcIndex] == text) return;
 			store(tree);
-			tree.setKeyCode(p.indexOf(itm) - keyCodesIndex(p), text);
+			tree.setKeyCode(kcIndex, text);
 			itm.setImage(keyCodeImage(text));
 			obj.array = text.dup;
 			_comm.refEventTree.call(tree);

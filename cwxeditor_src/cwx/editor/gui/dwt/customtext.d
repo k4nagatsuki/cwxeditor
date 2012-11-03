@@ -86,7 +86,7 @@ class FixedWidthText {
 	private GC _gc = null;
 	private int _width;
 	private int _num;
-	this (FontData fontData, int num, Composite parent, int style) {
+	this (FontData fontData, int num, Composite parent, int style, bool wordWrap = false) {
 		_widget = new Text(parent, style | SWT.MULTI | SWT.WRAP);
 		_num = num;
 		font = fontData;

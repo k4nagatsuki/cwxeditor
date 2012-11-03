@@ -3295,7 +3295,7 @@ public:
 			if (.exists(file)) {
 				if (.isDir(file)) {
 					return _prop.images.folder;
-				} else if (skin.isCardImage(file)) {
+				} else if (skin.isCardImage(file, false)) {
 					return _prop.images.cards;
 				} else if (skin.isBgImage(file)) {
 					return _prop.images.backs;
