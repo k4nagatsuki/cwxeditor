@@ -11,7 +11,6 @@ import cwx.background;
 import cwx.area;
 import cwx.card;
 
-import std.algorithm;
 import std.conv;
 import std.array;
 import std.ascii;
@@ -1774,21 +1773,6 @@ fi`;
 			}
 			i++;
 			return value;
-		} else static if (is(T == CastRange[])) {
-			T r;
-			crw: while (i < attr.length) {
-				auto value = attrValue(attr[i], varTable, msgWidth);
-				switch (value) {
-				case "field": r ~= [CastRange.PARTY, CastRange.ENEMY, CastRange.NPC]; break;
-				case "party", "t", "team": r ~= CastRange.PARTY; break;
-				case "enemy": r ~= CastRange.ENEMY; break;
-				case "npc": r ~= CastRange.NPC; break;
-				default: break crw;
-				}
-				i++;
-			}
-			r = r.sort().uniq().array();
-			return r;
 		} else static if (isVArray!(T)) {
 			T r;
 			while (i < attr.length) {
@@ -1846,6 +1830,14 @@ fi`;
 				static if (Within) goto default;
 				i++;
 				return Range.FIELD;
+			default: throwError(_prop.msgs.scriptErrorInvalidRange, attr[i].token);
+			}
+		} else static if (is(T == CastRange)) {
+			auto value = attrValue(attr[i], varTable, msgWidth);
+			switch (value) {
+			case "party", "t", "team": i++; return CastRange.PARTY;
+			case "enemy": i++; return CastRange.ENEMY;
+			case "field": i++; return CastRange.FIELD;
 			default: throwError(_prop.msgs.scriptErrorInvalidRange, attr[i].token);
 			}
 		} else static if (is(T == Status)) {
@@ -2299,7 +2291,7 @@ fi`;
 				c.range = parseAttr!(Range)(opt, node.attr, i, c.range, varTable, 0);
 			}
 			if (detail.use(CArg.CAST_RANGE)) {
-				c.castRange = parseAttr!(CastRange[])(opt, node.attr, i, c.castRange, varTable, 0);
+				c.castRange = parseAttr!(CastRange)(opt, node.attr, i, c.castRange, varTable, 0);
 			}
 			if (detail.use(CArg.AREA)) {
 				c.area = parseAttr!(ulong)(opt, node.attr, i, c.area, varTable, 0);
@@ -2569,7 +2561,7 @@ fi`;
 			switch (value) {
 			case CastRange.PARTY: attrs ~= "party"; break;
 			case CastRange.ENEMY: attrs ~= "enemy"; break;
-			case CastRange.NPC: attrs ~= "npc"; break;
+			case CastRange.FIELD: attrs ~= "field"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : Status)) {

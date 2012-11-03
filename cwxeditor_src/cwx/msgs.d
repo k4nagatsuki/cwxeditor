@@ -633,10 +633,6 @@ class Msgs : Properties {
 	auto randomValue = Msg("randomValue", "[ランダム]");
 	auto ctRandomSelect = Msg("ctRandomSelect", "%2$sのキャラクターを選択(%1$s)");
 	auto ctRandomSelectN = Msg("ctRandomSelectN", "キャラクターを選択(%1$s)");
-	auto castRange0 = Msg("castRange0", "対象無し");
-	auto castRange1 = Msg("castRange1", "%1$s全体");
-	auto castRange2 = Msg("castRange2", "%1$s全体または%2$s全体");
-	auto castRange3 = Msg("castRange3", "フィールド全体");
 
 	auto defaultStartName = Msg("defaultStartName", "イベント開始");
 
@@ -749,7 +745,6 @@ class Msgs : Properties {
 	auto currentEngineSkin = Msg("currentEngineSkin", "[%1$s]");
 
 	auto pngMayNotCorrespond = Msg("pngMayNotCorrespond", "PNGイメージはプレイヤーの環境によって表示エラーとなる事があります。");
-	auto gifMayNotCorrespond = Msg("gifMayNotCorrespond", "GIFイメージはプレイヤーの環境によって表示エラーとなる事があります。");
 
 	/// エリア・戦闘・パッケージウィンドウ。
 	auto noRefArea = Msg("noRefArea", "[カード配置参照無し]");
@@ -1049,9 +1044,9 @@ class Msgs : Properties {
 	const string castRangeName(CastRange id) {
 		mixin(EnumToStringSwitch!(CastRange, "castRangeName"));
 	}
-	auto castRangeNameParty = Msg("castRangeNameParty", "パーティ");
-	auto castRangeNameEnemy = Msg("castRangeNameEnemy", "敵");
-	auto castRangeNameNpc = Msg("castRangeNameNpc", "同行キャスト");
+	auto castRangeNameParty = Msg("castRangeNameParty", "パーティ全体");
+	auto castRangeNameEnemy = Msg("castRangeNameEnemy", "敵全体");
+	auto castRangeNameField = Msg("castRangeNameField", "フィールド全体");
 	const string damageTypeName(DamageType id) {
 		mixin(EnumToStringSwitch!(DamageType, "damageTypeName"));
 	}

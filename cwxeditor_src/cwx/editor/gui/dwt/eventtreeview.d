@@ -2890,7 +2890,7 @@ public:
 		bool val = (text != prop.sys.evtChildFalse);
 		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 
-		string r = castRangesName(prop, evt.castRange);
+		string r = prop.msgs.castRangeName(evt.castRange);
 		bool hasLevel = 0 < evt.levelMax;
 		bool hasStatus = evt.status !is Status.NONE;
 		if (hasLevel || hasStatus) {

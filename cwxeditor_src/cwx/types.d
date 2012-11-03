@@ -578,9 +578,9 @@ Range[] RANGE_MEMBER = [Range.SELECTED, Range.RANDOM, Range.PARTY];
 
 /// キャスト選択範囲。CardWirth Extender 1.30～
 enum CastRange {
-	PARTY = 0b0001, /// パーティ全体。
-	ENEMY = 0b0010, /// 敵全体。
-	NPC   = 0b0100, /// 同行キャスト全体。
+	PARTY, /// パーティ全体。
+	ENEMY, /// 敵全体。
+	FIELD, /// フィールド全体。
 }
 /// 文字列からキャスト選択範囲を生成。
 CastRange toCastRange(string name) {
@@ -589,8 +589,8 @@ CastRange toCastRange(string name) {
 		return CastRange.PARTY;
 	case "Enemy":
 		return CastRange.ENEMY;
-	case "Npc":
-		return CastRange.NPC;
+	case "Field":
+		return CastRange.FIELD;
 	default:
 		throw new MotionException("Unknown targets: " ~ name);
 	}
@@ -602,8 +602,8 @@ string fromCastRange(CastRange r) {
 		return "Party";
 	case CastRange.ENEMY:
 		return "Enemy";
-	case CastRange.NPC:
-		return "Npc";
+	case CastRange.FIELD:
+		return "Field";
 	}
 }
 /// 能力修正。

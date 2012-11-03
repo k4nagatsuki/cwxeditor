@@ -365,12 +365,13 @@ private Range toCouponRange(byte b) {
 	}
 }
 /// CardWirth Extender 1.30～
-private CastRange[] toCastRanges(byte b) {
-	CastRange[] r;
-	if (b & 0b0001) r ~= CastRange.PARTY;
-	if (b & 0b0010) r ~= CastRange.ENEMY;
-	if (b & 0b0100) r ~= CastRange.NPC;
-	return r;
+private CastRange toCastRange(byte b) {
+	switch (b) {
+	case 1: return CastRange.PARTY;
+	case 2: return CastRange.ENEMY;
+	case 3: return CastRange.FIELD;
+	default: throw new SummaryException("Unknown cast range: " ~ to!(string)(b));
+	}
 }
 private Status toStatus(byte b) {
 	switch (b) {
@@ -1276,7 +1277,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) {
 		break;
 	case 70:
 		e = new Content(CType.BRANCH_RANDOM_SELECT, name);
-		e.castRange = toCastRanges(f.readByte);
+		e.castRange = toCastRange(f.readByte);
 		ubyte style = f.readUByte;
 		if (style & 0b01) {
 			e.levelMin = f.readUIntL;
@@ -1997,17 +1998,13 @@ private byte fromCouponRange(Range v) {
 	}
 }
 /// CardWirth Extender 1.30～
-private byte fromCastRanges(in CastRange[] v) {
-	byte r = 0;
-	foreach (e; v) {
-		switch (e) {
-		case CastRange.PARTY: r |= 0b0001; break;
-		case CastRange.ENEMY: r |= 0b0010; break;
-		case CastRange.NPC:   r |= 0b0100; break;
-		default: throw new SummaryException("Unknown cast range value: " ~ to!(string)(cast(int) e));
-		}
+private byte fromCastRange(CastRange v) {
+	switch (v) {
+	case CastRange.PARTY: return 1;
+	case CastRange.ENEMY: return 2;
+	case CastRange.FIELD: return 3;
+	default: throw new SummaryException("Unknown cast range value: " ~ to!(string)(cast(int) v));
 	}
-	return r;
 }
 private byte fromStatus(Status v) {
 	switch (v) {
@@ -2708,7 +2705,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e) {
 		writeString(f, e.flag2);
 	} else if (e.type is CType.BRANCH_RANDOM_SELECT) {
 		wb(70);
-		f.write(fromCastRanges(e.castRange));
+		f.write(fromCastRange(e.castRange));
 		ubyte style = 0b00;
 		if (0 < e.levelMax) {
 			style |= 0b01;

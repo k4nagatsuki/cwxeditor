@@ -1824,18 +1824,18 @@
 <p class="fullname">(Select with Random)</p>
 
 <p class="desc"><em class="warning">このコンテントはCardWirth Extender 1.30以降でなければ機能しません。</em></p>
-<p class="desc">条件に合う中からランダムでパーティメンバまたは敵キャストまたは同行キャストを選択します。</p>
+<p class="desc">条件に合う中からランダムで味方キャストまたは敵キャストを選択します。</p>
 
 <h4 class="argments">パラメータ</h4>
 
-<p class="desc">範囲には、以下のいずれかが配列で指定できます。</p>
+<p class="desc">範囲には、以下のいずれかが指定できます。</p>
 <dl>
 	<dt class="keyword"><code>party</code></dt>
 	<dd class="worddesc">パーティ全体。</dd>
 	<dt class="keyword"><code>enemy</code></dt>
 	<dd class="worddesc">敵全体。</dd>
-	<dt class="keyword"><code>npc</code></dt>
-	<dd class="worddesc">同行キャスト全体。</dd>
+	<dt class="keyword"><code>field</code></dt>
+	<dd class="worddesc">フィールド全体。</dd>
 </dl>
 <p class="desc">レベル下限とレベル上限には、選択対象のレベル範囲を指定します。<code style="num">0</code>を指定した場合、レベルは無視されます。</p>
 <p class="desc">ステータスには、以下のいずれかを指定できます。<code style="code">none</code>を指定した場合、状態は無視されます。</p>
@@ -1876,13 +1876,13 @@
 	<dd class="worddesc">状態指定無し。</dd>
 </dl>
 
-<pre><code class="samplecode"><span class="keywords">selrandom</span> <span class="code">party</span> <span class="code">enemy</span> <span class="code">npc</span>, <span class="num">1</span>, <span class="num">3</span>, <span class="code">heavyinjured</span>
+<pre><code class="samplecode"><span class="keywords">selrandom</span> <span class="code">enemy</span>, <span class="num">1</span>, <span class="num">3</span>, <span class="code">heavyinjured</span>
 <code class="code">if</code> <span class="code">true</span>
-    <span class="comment">// 低レベルで弱っている存在を狙う</span>
+    <span class="comment">// 低レベルで弱っている敵を狙う</span>
     <span class="comment">// ...</span>
     <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">false</span>
-    <span class="comment">// 低レベルで弱っている存在はいない</span>
+    <span class="comment">// 低レベルで弱っている敵はいない</span>
     <span class="comment">// ...</span>
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>

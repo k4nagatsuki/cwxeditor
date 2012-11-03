@@ -2479,7 +2479,7 @@ string contentText(Commons comm, in Content evt, Summary summ = null) {
 		auto t2 = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag2, "%s", evt);
 		return .tryFormat(comm.prop.msgs.ctBranchFlagCmp, t1, t2);
 	} case CType.BRANCH_RANDOM_SELECT: {
-		string r = castRangesName(comm.prop, evt.castRange);
+		string r = comm.prop.msgs.castRangeName(evt.castRange);
 		bool hasLevel = 0 < evt.levelMax;
 		bool hasStatus = evt.status !is Status.NONE;
 		if (hasLevel || hasStatus) {
@@ -2498,21 +2498,6 @@ string contentText(Commons comm, in Content evt, Summary summ = null) {
 			return .tryFormat(comm.prop.msgs.ctRandomSelectN, r);
 		}
 	}
-	}
-}
-
-string castRangesName(in Props prop, in CastRange[] r) {
-	string cr(CastRange r) {
-		return prop.msgs.castRangeName(r);
-	}
-	if (3 <= r.length) {
-		return .tryFormat(prop.msgs.castRange3, cr(r[0]), cr(r[1]), cr(r[2]));
-	} else if (2 == r.length) {
-		return .tryFormat(prop.msgs.castRange2, cr(r[0]), cr(r[1]));
-	} else if (1 == r.length) {
-		return .tryFormat(prop.msgs.castRange1, cr(r[0]));
-	} else {
-		return prop.msgs.castRange0;
 	}
 }
 
