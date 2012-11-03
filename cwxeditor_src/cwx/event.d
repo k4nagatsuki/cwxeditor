@@ -179,7 +179,7 @@ private void static_this () {
 		CType.SUBSTITUTE_FLAG:CDetail("Sbustitute", "Flag", CNextType.NONE, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
 		CType.BRANCH_STEP_CMP:CDetail("Branch", "StepValue", CNextType.TRIO, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
 		CType.BRANCH_FLAG_CMP:CDetail("Branch", "FlagValue", CNextType.BOOL, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
-		CType.BRANCH_RANDOM_SELECT:CDetail("Branch", "RandomSelect", CNextType.BOOL, true, [CArg.CAST_RANGE:"targetc", CArg.LEVEL_MIN:"minLevel", CArg.LEVEL_MAX:"maxLevel", CArg.STATUS:"status"]),
+		CType.BRANCH_RANDOM_SELECT:CDetail("Branch", "RandomSelect", CNextType.BOOL, true, [CArg.CAST_RANGE:null, CArg.LEVEL_MIN:"minLevel", CArg.LEVEL_MAX:"maxLevel", CArg.STATUS:"status"]),
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) {
 		_CTYPE_MAP[detail.name][detail.type] = cType;
@@ -689,7 +689,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		copy.flag2 = flag2;
 		copy.step2 = step2;
-		copy.castRange = castRange;
+		copy.castRange = castRange.dup;
 		copy.levelMin = levelMin;
 		copy.levelMax = levelMax;
 
@@ -952,7 +952,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		resetValue!(CArg.FLAG_2, string, "")(d, &flag2);
 		resetValue!(CArg.STEP_2, string, "")(d, &step2);
-		resetValue!(CArg.CAST_RANGE, CastRange, CastRange.PARTY)(d, &castRange);
+		resetValue!(CArg.CAST_RANGE, CastRange[], [CastRange.PARTY])(d, &castRange);
 		resetValue!(CArg.LEVEL_MIN, int, 0)(d, &levelMin);
 		resetValue!(CArg.LEVEL_MAX, int, 0)(d, &levelMax);
 
@@ -1469,7 +1469,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 操作対象ステップ(CardWirth Extender 1.30～)。
 	mixin Prop!(StepUser, string, "step2", "", ".step", ".step", true);
 	/// ランダム選択範囲(CardWirth Extender 1.30～)。
-	mixin Prop!(CastRange, "castRange", CastRange.PARTY);
+	mixin Prop!(CastRange[], "castRange", [CastRange.PARTY]);
 	/// 下限レベル(CardWirth Extender 1.30～)。
 	mixin Prop!(int, "levelMin", 0);
 	mixin MaxMin!(int, "levelMin", int.max, 0);
@@ -1728,7 +1728,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		atnPut!(CArg.FLAG_2, "flag2", "")(e, d);
 		atnPut!(CArg.STEP_2, "step2", "")(e, d);
-		atnPut!(CArg.CAST_RANGE, "castRange", "fromCastRange")(e, d);
 		atnPut!(CArg.LEVEL_MIN, "levelMin", "")(e, d);
 		atnPut!(CArg.LEVEL_MAX, "levelMax", "")(e, d);
 
@@ -1766,6 +1765,13 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.TALKER_NC, "talkerNC", "fromTalker")(e, d);
 
 		if (d.use(CArg.BG_IMAGES)) BgImage.toNode(backs, e);
+
+		if (d.use(CArg.CAST_RANGE)) {
+			auto ce = e.newElement("CastRanges");
+			foreach (c; castRange) {
+				ce.newElement("CastRange", fromCastRange(c));
+			}
+		}
 
 		auto ce = e.newElement("Contents");
 		foreach (sub; _next) {
@@ -1853,7 +1859,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		cfnPut!(CArg.FLAG_2, "flag2", "")(en, d, r);
 		cfnPut!(CArg.STEP_2, "step2", "")(en, d, r);
-		cfnPut!(CArg.CAST_RANGE, "castRange", "toCastRange")(en, d, r);
 		cfnPut!(CArg.LEVEL_MIN, "levelMin", "to!(int)")(en, d, r);
 		cfnPut!(CArg.LEVEL_MAX, "levelMax", "to!(int)")(en, d, r);
 
@@ -1918,6 +1923,17 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (d.use(CArg.BG_IMAGES)) {
 			en.onTag["BgImages"] = (ref XNode node) {
 				r.backs = BgImage.bgImagesFromNode(node, ver);
+			};
+		}
+
+		if (d.use(CArg.CAST_RANGE)) {
+			en.onTag["CastRanges"] = (ref XNode node) {
+				CastRange[] castRange;
+				node.onTag["CastRange"] = (ref XNode node) {
+					castRange ~= toCastRange(node.value);
+				};
+				node.parse();
+				r.castRange = castRange;
 			};
 		}
 

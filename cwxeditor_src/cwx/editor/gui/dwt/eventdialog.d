@@ -2632,7 +2632,7 @@ protected:
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new GridLayout(3, true));
 			foreach (r; EnumMembers!CastRange) {
-				auto radio = new Button(grp, SWT.RADIO);
+				auto radio = new Button(grp, SWT.CHECK);
 				mod(radio);
 				radio.setText(prop.msgs.castRangeName(r));
 				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -2687,7 +2687,9 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) {
-			_castRange[_evt.castRange].setSelection(true);
+			foreach (e; _evt.castRange) {
+				_castRange[e].setSelection(true);
+			}
 			_hasLevel.setSelection(0 < _evt.levelMax);
 			_hasStatus.setSelection(Status.NONE !is _evt.status);
 			if (_hasLevel.getSelection()) {
@@ -2716,7 +2718,11 @@ protected:
 
 	override bool apply() {
 		if (!_evt) _evt = new Content(CType.BRANCH_RANDOM_SELECT, "");
-		_evt.castRange = getRadioValue!(CastRange)(_castRange);
+		CastRange[] range;
+		foreach (e, b; _castRange) {
+			if (b.getSelection()) range ~= e;
+		}
+		_evt.castRange = range;
 		bool hasLevel = _hasLevel.getSelection();
 		bool hasStatus = _hasStatus.getSelection();
 		if (hasLevel) {

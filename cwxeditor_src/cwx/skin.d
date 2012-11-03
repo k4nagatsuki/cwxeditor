@@ -681,7 +681,10 @@ class Skin {
 	const
 	bool isCardImage(string path, bool ignoreSize) {
 		if (isBinImg(path)) return true;
-		if (legacy && !cfnmatch(.extension(path), ".bmp")) return false;
+		auto ext = .toLower(.extension(path));
+		if (legacy && ext != ".bmp" && ext != ".png" && ext != ".gif") {
+			return false;
+		}
 		if (ignoreSize) return true;
 		try {
 			uint x, y;
@@ -695,15 +698,17 @@ class Skin {
 	/// pathが背景画像として使用可能か。
 	const
 	bool isBgImage(string path, bool check = false) {
-		auto ext = .extension(path);
-		if (cfnmatch(ext, ".jpy1")
-				|| cfnmatch(ext, ".jptx")
-				|| cfnmatch(ext, ".jpdc")) {
+		auto ext = .toLower(.extension(path));
+		if (ext == ".jpy1"
+				|| ext == ".jptx"
+				|| ext == ".jpdc") {
 			return true;
 		}
-		if (legacy && !cfnmatch(ext, ".bmp")
-				&& !cfnmatch(ext, ".jpg")
-				&& !cfnmatch(ext, ".jpeg")) {
+		if (legacy && ext != ".bmp"
+				&& ext != ".jpg"
+				&& ext != ".jpeg"
+				&& ext != ".png"
+				&& ext != ".gif") {
 			return false;
 		}
 		if (check) {
@@ -724,6 +729,8 @@ class Skin {
 			switch (ext) {
 			case ".png": // PNG
 				return [prop.msgs.pngMayNotCorrespond];
+			case ".gif": // GIF
+				return [prop.msgs.gifMayNotCorrespond];
 			default:
 				return [];
 			}
