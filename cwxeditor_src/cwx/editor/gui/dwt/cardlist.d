@@ -69,6 +69,7 @@ public:
 		});
 		addListener(SWT.KeyDown, new class Listener {
 			public override void handleEvent(Event e) {
+				if (0 == count) return;
 				bool ctrl = (e.stateMask & SWT.CTRL) != 0;
 				if (e.character == SWT.CR && (getStyle() & SWT.MULTI) != 0) {
 					if (_cur in _sels) {
