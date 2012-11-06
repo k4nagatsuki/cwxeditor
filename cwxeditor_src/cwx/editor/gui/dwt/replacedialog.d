@@ -3165,20 +3165,9 @@ public:
 	private bool _regexTarg = false;
 	private Wildcard _wildcard = null;
 	private dstring _toTemp = ""d;
-	/// FIXME: std.regex.replace()がdstringでコンパイルエラーになる。
-	private static dstring impReplace(dstring s, Regex!(dchar) regex, dstring to) {
-		dstring r = "";
-		dstring post = "";
-		foreach (m; .match(s, regex)) {
-			r ~= m.pre;
-			r ~= to;
-			r = m.post;
-		}
-		return r ~ post;
-	}
 	private string fTextRepl(string s) {
 		if (_regexTarg) {
-			return toUTF8(impReplace(toUTF32(s), _regex, _toTemp));
+			return toUTF8(std.regex.replace(toUTF32(s), _regex, _toTemp));
 		}
 		string to = _toText;
 		if (_wildcard) {
