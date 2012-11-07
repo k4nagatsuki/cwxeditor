@@ -1821,6 +1821,7 @@ public:
 	}
 	private void undo() {
 		if (!_undo.canUndo) return;
+		scope (exit) _comm.refreshToolBar();
 		_inProc = true;
 		scope (exit) _inProc = false;
 		_inUndo = true;
@@ -1832,10 +1833,10 @@ public:
 		refContentText();
 		_status.setText(.tryFormat(_prop.msgs.replaceUndo, .formatNum(_result.getItemCount())));
 		_comm.replText.call();
-		_comm.refreshToolBar();
 	}
 	private void redo() {
 		if (!_undo.canRedo) return;
+		scope (exit) _comm.refreshToolBar();
 		_inProc = true;
 		scope (exit) _inProc = false;
 		_inUndo = true;
@@ -1847,7 +1848,6 @@ public:
 		refContentText();
 		_status.setText(.tryFormat(_prop.msgs.replaceRedo, .formatNum(_result.getItemCount())));
 		_comm.replText.call();
-		_comm.refreshToolBar();
 	}
 	private void search() {
 		auto c = _win.getDisplay().getFocusControl();
