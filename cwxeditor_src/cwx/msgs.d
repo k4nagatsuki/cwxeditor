@@ -1682,6 +1682,7 @@ class Msgs : Properties {
 	auto menuTextKeyCodeTimingUse = Msg("menuTextKeyCodeTimingUse", "使用");
 	auto menuTextKeyCodeTimingSuccess = Msg("menuTextKeyCodeTimingSuccess", "成功");
 	auto menuTextKeyCodeTimingFailure = Msg("menuTextKeyCodeTimingFailure", "失敗");
+	auto menuTextKeyCodeTimingHasNot = Msg("menuTextKeyCodeTimingHasNot", "不保有");
 	auto menuTextAddRangeOfRound = Msg("menuTextAddRangeOfRound", "複数のラウンドを追加");
 	auto menuTextOpenAtTableView = Msg("menuTextOpenAtTableView", "テーブルビューで開く");
 	auto menuTextOpenAtVarView = Msg("menuTextOpenAtVarView", "状態変数ビューで開く");

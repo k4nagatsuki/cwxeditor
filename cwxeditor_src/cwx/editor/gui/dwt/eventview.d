@@ -669,6 +669,9 @@ private:
 					case 2:
 						kc = _prop.sys.convFireKeyCode(kc, FKCKind.Failure);
 						break;
+					case 3:
+						kc = _prop.sys.convFireKeyCode(kc, FKCKind.HasNot);
+						break;
 					}
 					return kc.length > 0 ? new KeyCodeObj(kc) : null;
 				}
@@ -779,6 +782,7 @@ private:
 			case FKCKind.Use: return _prop.images.keyCode;
 			case FKCKind.Success: return _prop.images.menu(MenuID.KeyCodeTimingSuccess);
 			case FKCKind.Failure: return _prop.images.menu(MenuID.KeyCodeTimingFailure);
+			case FKCKind.HasNot:  return _prop.images.menu(MenuID.KeyCodeTimingHasNot);
 			}
 		}
 		void createKeyCodeItem(T)(TreeItem parent, T a) {
@@ -878,6 +882,9 @@ private:
 		}
 		void keyCodeTimFailure() {
 			keyCodeTimImpl(FKCKind.Failure);
+		}
+		void keyCodeTimHasNot() {
+			keyCodeTimImpl(FKCKind.HasNot);
 		}
 	}
 	bool curIsKeyCode(FKCKind Kind)() {
@@ -1017,6 +1024,7 @@ public:
 						createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &keyCodeTimUse, &curIsKeyCode!(FKCKind.Use));
 						createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &keyCodeTimSuccess, &curIsKeyCode!(FKCKind.Success));
 						createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &keyCodeTimFailure, &curIsKeyCode!(FKCKind.Failure));
+						createMenuItem(_comm, sub, MenuID.KeyCodeTimingHasNot, &keyCodeTimHasNot, &curIsKeyCode!(FKCKind.HasNot));
 					}
 					dStr ~= " - " ~ .text(__LINE__);
 					new MenuItem(menu, SWT.SEPARATOR);

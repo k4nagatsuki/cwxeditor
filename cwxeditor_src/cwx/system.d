@@ -11,7 +11,8 @@ import std.algorithm;
 enum FKCKind {
 	Use, /// 使用時。
 	Success, /// 成功時。
-	Failure /// 失敗時。
+	Failure, /// 失敗時。
+	HasNot, /// 不保有。
 }
 
 class System {
@@ -226,6 +227,7 @@ class System {
 
 	private immutable FKC_SUCCESS = "○";
 	private immutable FKC_FAILURE = "×";
+	private immutable FKC_HASNOT = "！";
 	/// キーコード発火条件の種別を返す。
 	const
 	FKCKind fireKeyCodeKind(string keyCode) {
@@ -233,6 +235,8 @@ class System {
 			return FKCKind.Success;
 		} else if (std.string.endsWith(keyCode, FKC_FAILURE.idup)) {
 			return FKCKind.Failure;
+		} else if (std.string.startsWith(keyCode, FKC_HASNOT.idup)) {
+			return FKCKind.HasNot;
 		}
 		return FKCKind.Use;
 	}
@@ -244,18 +248,28 @@ class System {
 			case FKCKind.Use: return keyCode[0 .. $ - FKC_SUCCESS.length];
 			case FKCKind.Success: return keyCode;
 			case FKCKind.Failure: return keyCode[0 .. $ - FKC_SUCCESS.length] ~ FKC_FAILURE;
+			case FKCKind.HasNot: return FKC_HASNOT ~ keyCode[0 .. $ - FKC_SUCCESS.length];
 			}
 		} else if (.endsWith(keyCode, FKC_FAILURE.idup)) {
 			final switch (kind) {
 			case FKCKind.Use: return keyCode[0 .. $ - FKC_FAILURE.length];
 			case FKCKind.Success: return keyCode[0 .. $ - FKC_FAILURE.length] ~ FKC_SUCCESS;
 			case FKCKind.Failure: return keyCode;
+			case FKCKind.HasNot: return FKC_HASNOT ~ keyCode[0 .. $ - FKC_FAILURE.length];
+			}
+		} else if (.startsWith(keyCode, FKC_HASNOT.idup)) {
+			final switch (kind) {
+			case FKCKind.Use: return keyCode[FKC_HASNOT.length .. $];
+			case FKCKind.Success: return keyCode[FKC_HASNOT.length .. $] ~ FKC_SUCCESS;
+			case FKCKind.Failure: return keyCode[FKC_HASNOT.length .. $] ~ FKC_FAILURE;
+			case FKCKind.HasNot: return keyCode;
 			}
 		} else {
 			final switch (kind) {
 			case FKCKind.Use: return keyCode;
 			case FKCKind.Success: return keyCode ~ FKC_SUCCESS;
 			case FKCKind.Failure: return keyCode ~ FKC_FAILURE;
+			case FKCKind.HasNot: return FKC_HASNOT ~ keyCode;
 			}
 		}
 	}

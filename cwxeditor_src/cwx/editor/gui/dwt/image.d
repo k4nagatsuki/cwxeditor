@@ -461,6 +461,7 @@ public:
 		case MenuID.KeyCodeTimingUse: return imgd!("key_code.png");
 		case MenuID.KeyCodeTimingSuccess: return imgd!("key_code_suc.png");
 		case MenuID.KeyCodeTimingFailure: return imgd!("key_code_fail.png");
+		case MenuID.KeyCodeTimingHasNot: return imgd!("key_code_hasnot.png");
 		case MenuID.AddRangeOfRound: return imgd!("add_many_round.png");
 		case MenuID.OpenAtTableView: return imgd!("open_tableview.png");
 		case MenuID.OpenAtVarView: return imgd!("open_flagview.png");

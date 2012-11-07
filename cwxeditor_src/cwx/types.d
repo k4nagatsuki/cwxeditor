@@ -1103,6 +1103,7 @@ enum MenuID {
 	KeyCodeTimingUse,
 	KeyCodeTimingSuccess,
 	KeyCodeTimingFailure,
+	KeyCodeTimingHasNot,
 	AddRangeOfRound,
 	OpenAtTableView,
 	OpenAtVarView,
