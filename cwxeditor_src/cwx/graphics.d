@@ -104,7 +104,7 @@ void turn(ref ubyte[] data, ref ubyte[] alpha, ref size_t width, ref size_t heig
 		newBytesPerLine = newBytesPerLine - (newBytesPerLine % 4) + 4;
 	}
 	auto base = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
-	auto r = Pixels(new ubyte[newBytesPerLine * nw], alpha.length ? new ubyte[nw * nh] : new ubyte[0], nw, nh, depth, newBytesPerLine, bpp);
+	auto r = Pixels(new ubyte[newBytesPerLine * nh], alpha.length ? new ubyte[nw * nh] : new ubyte[0], nw, nh, depth, newBytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) {
 		for (size_t x = 0; x < width; x++) {
 			size_t xt;
