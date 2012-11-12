@@ -1012,6 +1012,7 @@ class CWXScript {
 			cast(string) "brcoupon":CType.BRANCH_COUPON,
 			cast(string) "brstamp":CType.BRANCH_COMPLETE_STAMP,
 			cast(string) "brgossip":CType.BRANCH_GOSSIP,
+			cast(string) "brkeycode":CType.BRANCH_KEY_CODE,
 			cast(string) "setflag":CType.SET_FLAG,
 			cast(string) "setstep":CType.SET_STEP,
 			cast(string) "stepup":CType.SET_STEP_UP,
@@ -2016,6 +2017,15 @@ fi`;
 			case "max": i++; return DamageType.MAX;
 			default: throwError(_prop.msgs.scriptErrorInvalidDamageType, attr[i].token);
 			}
+		} else static if (is(T == EffectCardType)) {
+			auto value = attrValue(attr[i], varTable, msgWidth);
+			switch (value) {
+			case "all": i++; return EffectCardType.ALL;
+			case "skill": i++; return EffectCardType.SKILL;
+			case "item": i++; return EffectCardType.ITEM;
+			case "beast": i++; return EffectCardType.BEAST;
+			default: throwError(_prop.msgs.scriptErrorInvalidEffectCardType, attr[i].token);
+			}
 		} else static if (is(T == BgImage)) {
 			if (attr[i].type !is NodeType.VALUES) {
 				throwError(_prop.msgs.scriptErrorInvalidBgImage, attr[i].token);
@@ -2301,6 +2311,12 @@ fi`;
 			if (detail.use(CArg.CAST_RANGE)) {
 				c.castRange = parseAttr!(CastRange[])(opt, node.attr, i, c.castRange, varTable, 0);
 			}
+			if (detail.use(CArg.KEY_CODE_RANGE)) {
+				c.keyCodeRange = parseAttr!(Range)(opt, node.attr, i, c.keyCodeRange, varTable, 0);
+			}
+			if (detail.use(CArg.EFFECT_CARD_TYPE)) {
+				c.effectCardType = parseAttr!(EffectCardType)(opt, node.attr, i, c.effectCardType, varTable, 0);
+			}
 			if (detail.use(CArg.AREA)) {
 				c.area = parseAttr!(ulong)(opt, node.attr, i, c.area, varTable, 0);
 			}
@@ -2345,6 +2361,9 @@ fi`;
 			}
 			if (detail.use(CArg.GOSSIP)) {
 				c.gossip = parseAttr!(string)(opt, node.attr, i, c.gossip, varTable, 0);
+			}
+			if (detail.use(CArg.KEY_CODE)) {
+				c.keyCode = parseAttr!(string)(opt, node.attr, i, c.keyCode, varTable, 0);
 			}
 			if (detail.use(CArg.FLAG)) {
 				c.flag = parseAttr!(string)(opt, node.attr, i, c.flag, varTable, 0);
@@ -2715,6 +2734,14 @@ fi`;
 			case DamageType.MAX: attrs ~= "max"; break;
 			default: assert (0);
 			}
+		} else static if (is(T : EffectCardType)) {
+			switch (value) {
+			case EffectCardType.ALL: attrs ~= "all"; break;
+			case EffectCardType.SKILL: attrs ~= "skill"; break;
+			case EffectCardType.ITEM: attrs ~= "item"; break;
+			case EffectCardType.BEAST: attrs ~= "beast"; break;
+			default: assert (0);
+			}
 		} else static if (is(Unqual!(T) : BgImage)) {
 			string[] attrs2;
 			attrs2 ~= toAttr(encodePath(value.path), command, indentValue, vars);
@@ -2907,6 +2934,12 @@ fi`;
 			if (detail.use(CArg.CAST_RANGE)) {
 				attrs ~= toAttr(c.castRange, command, indentValue, vars);
 			}
+			if (detail.use(CArg.KEY_CODE_RANGE)) {
+				attrs ~= toAttr(c.keyCodeRange, command, indentValue, vars);
+			}
+			if (detail.use(CArg.EFFECT_CARD_TYPE)) {
+				attrs ~= toAttr(c.effectCardType, command, indentValue, vars);
+			}
 			if (detail.use(CArg.AREA)) {
 				auto a = _summ.area(c.area);
 				attrs ~= toAttr(vars.id(a, c.area), command, indentValue, vars);
@@ -2956,6 +2989,9 @@ fi`;
 			}
 			if (detail.use(CArg.COMPLETE_STAMP)) {
 				attrs ~= toAttr(c.completeStamp, command, indentValue, vars);
+			}
+			if (detail.use(CArg.KEY_CODE)) {
+				attrs ~= toAttr(c.keyCode, command, indentValue, vars);
 			}
 			if (detail.use(CArg.GOSSIP)) {
 				attrs ~= toAttr(c.gossip, command, indentValue, vars);

@@ -309,6 +309,8 @@ class Msgs : Properties {
 	auto range = Msg("range", "適用範囲");
 	auto gossipName = Msg("gossipName", "ゴシップ名");
 	auto endName = Msg("endName", "シナリオ名");
+	auto cardType = Msg("cardType", "カードの種類");
+	auto keyCode = Msg("keyCode", "キーコード");
 
 	auto couponHide = Msg("couponHide", "隠蔽クーポン");
 
@@ -478,6 +480,7 @@ class Msgs : Properties {
 	auto contentNameBranchStepCmp = Msg("contentNameBranchStepCmp", "ステップ比較分岐");
 	auto contentNameBranchFlagCmp = Msg("contentNameBranchFlagCmp", "フラグ比較分岐");
 	auto contentNameBranchRandomSelect = Msg("contentNameBranchRandomSelect", "ランダム選択");
+	auto contentNameBranchKeyCode = Msg("contentNameBranchKeyCode", "キーコード所持分岐");
 
 	auto msnGroupVitality = Msg("msnGroupVitality", "生命力");
 	auto msnGroupPhysical = Msg("msnGroupPhysical", "肉体");
@@ -637,6 +640,8 @@ class Msgs : Properties {
 	auto castRange1 = Msg("castRange1", "%1$s全体");
 	auto castRange2 = Msg("castRange2", "%1$s全体または%2$s全体");
 	auto castRange3 = Msg("castRange3", "フィールド全体");
+	auto ctBranchKeyCodeAllType = Msg("ctBranchKeyCodeAllType", "キーコード「%1$s」を含むカードの有無で分岐(%2$s)");
+	auto ctBranchKeyCode = Msg("ctBranchKeyCode", "キーコード「%1$s」を含む%2$sの有無で分岐(%3$s)");
 
 	auto defaultStartName = Msg("defaultStartName", "イベント開始");
 
@@ -903,6 +908,10 @@ class Msgs : Properties {
 	auto randomSelectCondition1 = Msg("randomSelectCondition1", "レベル%1$s～%2$s");
 	auto randomSelectCondition2 = Msg("randomSelectCondition2", "状態が%1$s");
 	auto randomSelectCondition3 = Msg("randomSelectCondition3", "レベル%1$s～%2$sで状態が%3$s");
+	auto branchKeyCodeAllTypeSuccess = Msg("branchKeyCodeAllTypeSuccess", "キーコード「%1$s」を含むカードを所有している(%2$s)");
+	auto branchKeyCodeAllTypeFailure = Msg("branchKeyCodeAllTypeFailure", "キーコード「%1$s」を含むカードを所有していない(%2$s)");
+	auto branchKeyCodeSuccess = Msg("branchKeyCodeSuccess", "キーコード「%1$s」を含む%2$sを所有している(%3$s)");
+	auto branchKeyCodeFailure = Msg("branchKeyCodeFailure", "キーコード「%1$s」を含む%2$sを所有していない(%3$s)");
 
 	const string physicalName(Physical id) {
 		mixin(EnumToStringSwitch!(Physical, "physicalName"));
@@ -1087,6 +1096,14 @@ class Msgs : Properties {
 	auto sexUnknown = Msg("sexUnknown", "謎/？");
 	auto periodUnknown = Msg("periodUnknown", "不明");
 	auto natureUnknown = Msg("natureUnknown", "その他");
+
+	const string effectCardTypeName(EffectCardType id) {
+		mixin(EnumToStringSwitch!(EffectCardType, "effectCardTypeName"));
+	}
+	auto effectCardTypeNameAll = Msg("effectCardTypeNameAll", "全てのカード");
+	auto effectCardTypeNameSkill = Msg("effectCardTypeNameSkill", "特殊技能カード");
+	auto effectCardTypeNameItem = Msg("effectCardTypeNameItem", "アイテムカード");
+	auto effectCardTypeNameBeast = Msg("effectCardTypeNameBeast", "召喚獣カード");
 
 	auto dlgTitComment = Msg("dlgTitComment", "コメントの記述");
 
@@ -1528,6 +1545,7 @@ class Msgs : Properties {
 	auto scriptErrorInvalidMotion = Msg("scriptErrorInvalidMotion", "効果が正しくありません。");
 	auto scriptErrorInvalidElement = Msg("scriptErrorInvalidElement", "未知の属性です。");
 	auto scriptErrorInvalidDamageType = Msg("scriptErrorInvalidDamageType", "未知のダメージタイプです。");
+	auto scriptErrorInvalidEffectCardType = Msg("scriptErrorInvalidEffectCardType", "未知の効果カードタイプです。");
 	auto scriptErrorInvalidBgImage = Msg("scriptErrorInvalidBgImage", "背景画像が正しくありません。");
 	auto scriptErrorInvalidDialog = Msg("scriptErrorInvalidDialog", "台詞が正しくありません。");
 	auto scriptErrorInvalidTalker = Msg("scriptErrorInvalidTalker", "話者が正しくありません。");

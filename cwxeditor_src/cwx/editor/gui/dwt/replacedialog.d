@@ -1584,6 +1584,7 @@ public:
 		_contents[CType.BRANCH_STEP_CMP].setSelection(_prop.var.etc.searchContentsBranchStepCmp);
 		_contents[CType.BRANCH_FLAG_CMP].setSelection(_prop.var.etc.searchContentsBranchFlagCmp);
 		_contents[CType.BRANCH_RANDOM_SELECT].setSelection(_prop.var.etc.searchContentsBranchRandomSelect);
+		_contents[CType.BRANCH_KEY_CODE].setSelection(_prop.var.etc.searchContentsBranchKeyCode);
 
 		_cCoupon.setSelection(_prop.var.etc.replaceNameCoupon);
 		_cGossip.setSelection(_prop.var.etc.replaceNameGossip);
@@ -1767,6 +1768,7 @@ public:
 			_prop.var.etc.searchContentsBranchStepCmp = _contents[CType.BRANCH_STEP_CMP].getSelection();
 			_prop.var.etc.searchContentsBranchFlagCmp = _contents[CType.BRANCH_FLAG_CMP].getSelection();
 			_prop.var.etc.searchContentsBranchRandomSelect = _contents[CType.BRANCH_RANDOM_SELECT].getSelection();
+			_prop.var.etc.searchContentsBranchKeyCode = _contents[CType.BRANCH_KEY_CODE].getSelection();
 
 			_prop.var.etc.replaceNameCoupon = _cCoupon.getSelection();
 			_prop.var.etc.replaceNameGossip = _cGossip.getSelection();

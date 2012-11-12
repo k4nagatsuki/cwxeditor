@@ -2740,3 +2740,137 @@ protected:
 		return true;
 	}
 }
+
+/// キーコード所持判定の設定を行うダイアログ。
+private class BrKeyCodeDialog : EventDialog {
+private:
+	Button[Range] _keyCodeRange;
+	Button[EffectCardType] _effectCardType;
+	Combo _keyCode;
+	IncSearch _incSearch;
+	void incSearch() {
+		.forceFocus(_keyCode, true);
+		_incSearch.startIncSearch();
+	}
+
+	void refStandardKeyCodes() {
+		string id = _keyCode.getText();
+		_keyCode.removeAll();
+
+		string[] stdKCs = _prop.var.etc.standardKeyCodes.dup;
+
+		auto kcs = summ.useCounter.keyCode.keys;
+		string[] kcs2;
+		foreach (string kc; kcs) {
+			if (!.contains(stdKCs, kc)) {
+				kcs2 ~= kc;
+			}
+		}
+
+		if (kcs2.length) {
+			kcs2 ~= "";
+		}
+		kcs2 ~= stdKCs;
+		foreach (kc; kcs2) {
+			if (!_incSearch.match(kc)) continue;
+			_keyCode.add(kc);
+		}
+		_keyCode.setText(id);
+	}
+	class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.refStandardKeyCodes.remove(&refStandardKeyCodes);
+			_comm.refKeyCodes.remove(&refStandardKeyCodes);
+		}
+	}
+
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, CType.BRANCH_KEY_CODE, parent, evt, false, null, true);
+	}
+protected:
+	override void setup(Composite area) {
+		area.setLayout(new GridLayout(2, false));
+		{
+			auto grp = new Group(area, SWT.NONE);
+			grp.setText(_prop.msgs.range);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
+			auto comp = new Composite(grp, SWT.NONE);
+			comp.setLayout(zeroMarginGridLayout(1, true));
+			foreach (r; [Range.SELECTED, Range.RANDOM, Range.BACKPACK, Range.PARTY_AND_BACKPACK]) {
+				auto radio = new Button(comp, SWT.RADIO);
+				mod(radio);
+				radio.setText(_prop.msgs.rangeName(r));
+				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
+				_keyCodeRange[r] = radio;
+			}
+		}
+		{
+			auto grp = new Group(area, SWT.NONE);
+			grp.setText(_prop.msgs.cardType);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
+			auto comp = new Composite(grp, SWT.NONE);
+			comp.setLayout(zeroMarginGridLayout(1, true));
+			foreach (r; [EffectCardType.ALL, EffectCardType.SKILL, EffectCardType.ITEM, EffectCardType.BEAST]) {
+				auto radio = new Button(comp, SWT.RADIO);
+				mod(radio);
+				radio.setText(_prop.msgs.effectCardTypeName(r));
+				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
+				_effectCardType[r] = radio;
+			}
+		}
+		{
+			auto grp = new Group(area, SWT.NONE);
+			grp.setText(_prop.msgs.keyCode);
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.horizontalSpan = 2;
+			grp.setLayoutData(gd);
+			grp.setLayout(new GridLayout(1, true));
+
+			_keyCode = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
+			mod(_keyCode);
+			_keyCode.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+			auto menu = new Menu(_keyCode.getShell(), SWT.POP_UP);
+			createMenuItem(comm, menu, MenuID.IncSearch, &incSearch, null);
+			new MenuItem(menu, SWT.SEPARATOR);
+			_keyCode.setMenu(menu);
+			createTextMenu!Combo(_comm, _prop, _keyCode, &catchMod);
+			auto kgd = new GridData(GridData.FILL_HORIZONTAL);
+			kgd.widthHint = _prop.var.etc.nameWidth;
+			_keyCode.setLayoutData(kgd);
+
+			_incSearch = new IncSearch(comm, _keyCode);
+			_incSearch.modEvent ~= &refStandardKeyCodes;
+
+			refStandardKeyCodes();
+		}
+		_comm.refStandardKeyCodes.add(&refStandardKeyCodes);
+		_comm.refKeyCodes.add(&refStandardKeyCodes);
+		_keyCode.addDisposeListener(new Dispose);
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_evt) {
+			_keyCodeRange[_evt.keyCodeRange].setSelection(true);
+			_effectCardType[_evt.effectCardType].setSelection(true);
+			_keyCode.setText(_evt.keyCode);
+		} else {
+			_keyCodeRange[Range.SELECTED].setSelection(true);
+			_effectCardType[EffectCardType.ALL].setSelection(true);
+			_keyCode.setText("");
+		}
+	}
+
+	override bool apply() {
+		if (!_evt) _evt = new Content(CType.BRANCH_KEY_CODE, "");
+
+		_evt.keyCode = _keyCode.getText();
+		_evt.keyCodeRange = getRadioValue!(Range)(_keyCodeRange);
+		_evt.effectCardType = getRadioValue!(EffectCardType)(_effectCardType);
+
+		_comm.refKeyCodes.call();
+		return true;
+	}
+}

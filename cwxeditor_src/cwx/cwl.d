@@ -354,6 +354,16 @@ private Range toRange(byte b) {
 	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
 	}
 }
+/// CardWirthNext
+private Range toKeyCodeRange(byte b) {
+	switch (b) {
+	case 0: return Range.SELECTED;
+	case 1: return Range.RANDOM;
+	case 2: return Range.BACKPACK;
+	case 3: return Range.PARTY_AND_BACKPACK;
+	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
+	}
+}
 /// CardWirth Extender 1.30～
 private Range toCouponRange(byte b) {
 	switch (b) {
@@ -371,6 +381,16 @@ private CastRange[] toCastRanges(byte b) {
 	if (b & 0b0010) r ~= CastRange.ENEMY;
 	if (b & 0b0100) r ~= CastRange.NPC;
 	return r;
+}
+/// CardWirthNext
+private EffectCardType toEffectCardType(byte b) {
+	switch (b) {
+	case 0: return EffectCardType.ALL;
+	case 1: return EffectCardType.SKILL;
+	case 2: return EffectCardType.ITEM;
+	case 3: return EffectCardType.BEAST;
+	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
+	}
 }
 private Status toStatus(byte b) {
 	switch (b) {
@@ -1291,6 +1311,12 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) {
 			e.status = Status.NONE;
 		}
 		break;
+	case 71:
+		e = new Content(CType.BRANCH_KEY_CODE, name);
+		e.keyCodeRange = toKeyCodeRange(f.readByte);
+		e.effectCardType = toEffectCardType(f.readByte);
+		e.keyCode = readString(f);
+		break;
 	default: throw new SummaryException("Unknown content type: " ~ to!(string)(type));
 	}
 	if (e.detail.owner) {
@@ -1986,6 +2012,16 @@ private byte fromRange(Range v) {
 	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
 	}
 }
+/// CardWirthNext
+private byte fromKeyCodeRange(Range v) {
+	switch (v) {
+	case Range.SELECTED: return 0;
+	case Range.RANDOM: return 1;
+	case Range.BACKPACK: return 2;
+	case Range.PARTY_AND_BACKPACK: return 3;
+	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
+	}
+}
 /// CardWirth Extender 1.30～
 private byte fromCouponRange(Range v) {
 	switch (v) {
@@ -2008,6 +2044,16 @@ private byte fromCastRanges(in CastRange[] v) {
 		}
 	}
 	return r;
+}
+/// CardWirthNext
+private byte fromEffectCardType(EffectCardType v) {
+	switch (v) {
+	case EffectCardType.ALL: return 0;
+	case EffectCardType.SKILL: return 1;
+	case EffectCardType.ITEM: return 2;
+	case EffectCardType.BEAST: return 3;
+	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
+	}
 }
 private byte fromStatus(Status v) {
 	switch (v) {
@@ -2724,6 +2770,11 @@ private void writeContent(ref SData d, ref ByteIO f, Content e) {
 		if (style & 0b10) {
 			f.write(fromStatus(e.status));
 		}
+	} else if (e.type is CType.BRANCH_KEY_CODE) {
+		wb(71);
+		f.write(fromKeyCodeRange(e.keyCodeRange));
+		f.write(fromEffectCardType(e.effectCardType));
+		writeString(f, e.keyCode);
 	} else {
 		assert (0, "event");
 	}

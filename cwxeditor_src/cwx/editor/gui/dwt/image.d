@@ -158,6 +158,7 @@ public:
 		case CType.BRANCH_COUPON: return imgd!("evt_br_coupon.png");
 		case CType.BRANCH_COMPLETE_STAMP: return imgd!("evt_br_end.png");
 		case CType.BRANCH_GOSSIP: return imgd!("evt_br_gossip.png");
+		case CType.BRANCH_KEY_CODE: return imgd!("evt_br_keycode.png");
 		case CType.SET_FLAG: return imgd!("evt_flag_set.png");
 		case CType.SET_STEP: return imgd!("evt_step_set.png");
 		case CType.SET_STEP_UP: return imgd!("evt_step_plus.png");

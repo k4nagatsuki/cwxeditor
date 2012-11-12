@@ -303,6 +303,7 @@
 					<li class="content"><a href="#BRBATTL">brbattle</a></li>
 					<li class="content"><a href="#BRONBATTL">bronbattle</a></li>
 					<li class="content"><a href="#SELRANDOM">selrandom</a></li>
+					<li class="content"><a href="#BRKEYCODE">brkeycode</a></li>
 					<li class="content"><a href="#BRCAST">brcast</a></li>
 					<li class="content"><a href="#BRITEM">britem</a></li>
 					<li class="content"><a href="#BRSKILL">brskill</a></li>
@@ -805,6 +806,8 @@
 	<dd>バトル中/非バトル中分岐</dd>
 	<dt class="content"><a href="#SELRANDOM">selrandom <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;レベル下限&gt;</span>, <span class="arg">&lt;レベル上限&gt;</span>, <span class="arg">&lt;ステータス&gt;</span></span></a></dt>
 	<dd>ランダム選択分岐</dd>
+	<dt class="content"><a href="#BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span>, <span class="arg">&lt;キーコード&gt;</span></span></a></dt>
+	<dd>キーコード所持分岐</dd>
 	<dt class="content"><a href="#BRCAST">brcast <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></dt>
 	<dd>キャスト同行分岐</dd>
 	<dt class="content"><a href="#BRITEM">britem <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></dt>
@@ -1876,6 +1879,8 @@
 	<dd class="worddesc">状態指定無し。</dd>
 </dl>
 
+<h4 class="example">例</h4>
+
 <pre><code class="samplecode"><span class="keywords">selrandom</span> <span class="code">party</span> <span class="code">enemy</span> <span class="code">npc</span>, <span class="num">1</span>, <span class="num">3</span>, <span class="code">heavyinjured</span>
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">// 低レベルで弱っている存在を狙う</span>
@@ -1883,6 +1888,52 @@
     <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">false</span>
     <span class="comment">// 低レベルで弱っている存在はいない</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">break</span>
+<code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
+
+<h3 class="content"><a id="BRKEYCODE" name="BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span>, <span class="arg">&lt;キーコード&gt;</span></span></a></h3>
+
+<p class="fullname">(Branch with Key Code)</p>
+
+<p class="desc"><em class="warning">このコンテントはCardWirthNext(仮)でなければ機能しません。</em></p>
+<p class="desc">範囲内に指定されたキーコードを持つカードがあるか否かで分岐します。</p>
+
+<h4 class="argments">パラメータ</h4>
+
+<p class="desc">判定の範囲には、次のいずれかが指定できます。</p>
+<dl>
+	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
+	<dd class="worddesc">選択中のメンバの所持カード。</dd>
+	<dt class="keyword"><code>R</code> または <code>one</code></dt>
+	<dd class="worddesc">誰か一人の所持カード。これによって判定に成功した場合、所持しているメンバが選択状態になります。</dd>
+	<dt class="keyword"><code>backpack</code></dt>
+	<dd class="worddesc">荷物袋。</dd>
+	<dt class="keyword"><code>party</code></dt>
+	<dd class="worddesc">荷物袋も含むパーティ全員の所持カード。</dd>
+</dl>
+<p class="desc">カード種別には、以下のいずれかを指定できます。</p>
+<dl>
+	<dt class="keyword"><code>all</code></dt>
+	<dd class="worddesc">全てのカード。</dd>
+	<dt class="keyword"><code>skill</code></dt>
+	<dd class="worddesc">特殊技能カード。</dd>
+	<dt class="keyword"><code>item</code></dt>
+	<dd class="worddesc">アイテムカード。</dd>
+	<dt class="keyword"><code>beast</code></dt>
+	<dd class="worddesc">召喚獣カード。</dd>
+</dl>
+<p class="desc">最後のパラメータで判定対象のキーコードを指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brkeycode</span> <span class="code">R</span>, <span class="code">item</span>, <span class="code">"治療"</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">// 回復アイテムを持っている</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">break</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">// 回復アイテムを持っていない</span>
     <span class="comment">// ...</span>
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>

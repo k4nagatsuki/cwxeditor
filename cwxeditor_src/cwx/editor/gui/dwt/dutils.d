@@ -2497,7 +2497,15 @@ string contentText(Commons comm, in Content evt, Summary summ = null) {
 		} else {
 			return .tryFormat(comm.prop.msgs.ctRandomSelectN, r);
 		}
-	}
+	} case CType.BRANCH_KEY_CODE: {
+		string range = comm.prop.msgs.rangeName(evt.keyCodeRange);
+		if (evt.effectCardType is EffectCardType.ALL) {
+			return .tryFormat(comm.prop.msgs.ctBranchKeyCodeAllType, evt.keyCode, range);
+		} else {
+			string type = comm.prop.msgs.effectCardTypeName(evt.effectCardType);
+			return .tryFormat(comm.prop.msgs.ctBranchKeyCode, evt.keyCode, type, range);
+		}
+	} 
 	}
 }
 

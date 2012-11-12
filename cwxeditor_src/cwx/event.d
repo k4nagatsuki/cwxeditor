@@ -68,6 +68,7 @@ private void static_this () {
 			CType.BRANCH_BATTLE,
 			CType.BRANCH_IS_BATTLE,
 			CType.BRANCH_RANDOM_SELECT,
+			CType.BRANCH_KEY_CODE,
 		], CTypeGroup.Branch:[
 			CType.BRANCH_CAST,
 			CType.BRANCH_ITEM,
@@ -148,6 +149,7 @@ private void static_this () {
 		CType.BRANCH_COUPON:CDetail("Branch", "Coupon", CNextType.BOOL, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets"]),
 		CType.BRANCH_COMPLETE_STAMP:CDetail("Branch", "CompleteStamp", CNextType.BOOL, true, [CArg.COMPLETE_STAMP:"scenario"]),
 		CType.BRANCH_GOSSIP:CDetail("Branch", "Gossip", CNextType.BOOL, true, [CArg.GOSSIP:"gossip"]),
+		CType.BRANCH_KEY_CODE:CDetail("Branch", "KeyCode", CNextType.BOOL, true, [CArg.KEY_CODE_RANGE:"targetkc", CArg.EFFECT_CARD_TYPE:"effectCardType", CArg.KEY_CODE:"keyCode"]),
 		CType.SET_FLAG:CDetail("Set", "Flag", CNextType.NONE, true, [CArg.FLAG:_("flag"), CArg.FLAG_VALUE:"value"]),
 		CType.SET_STEP:CDetail("Set", "Step", CNextType.NONE, true, [CArg.STEP:_("step"), CArg.STEP_VALUE:"value"]),
 		CType.SET_STEP_UP:CDetail("Set", "StepUp", CNextType.NONE, true, [CArg.STEP:"step"]),
@@ -693,6 +695,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		copy.levelMin = levelMin;
 		copy.levelMax = levelMax;
 
+		copy.keyCodeRange = keyCodeRange;
+		copy.effectCardType = effectCardType;
+		copy.keyCode = keyCode;
+
 		Motion[] motions;
 		foreach (m; this.motions) {
 			motions ~= m.dup;
@@ -783,6 +789,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& castRange == c.castRange
 			&& levelMin == c.levelMin
 			&& levelMax == c.levelMax
+
+			&& keyCodeRange == c.keyCodeRange
+			&& effectCardType == c.effectCardType
+			&& keyCode == c.keyCode
 
 			&& motions == c.motions
 
@@ -955,6 +965,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.CAST_RANGE, CastRange[], [CastRange.PARTY])(d, &castRange);
 		resetValue!(CArg.LEVEL_MIN, int, 0)(d, &levelMin);
 		resetValue!(CArg.LEVEL_MAX, int, 0)(d, &levelMax);
+
+		resetValue!(CArg.KEY_CODE_RANGE, Range, Range.PARTY_AND_BACKPACK)(d, &keyCodeRange);
+		resetValue!(CArg.EFFECT_CARD_TYPE, EffectCardType, EffectCardType.ALL)(d, &effectCardType);
+		resetValue!(CArg.KEY_CODE, string, "")(d, &keyCode);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
 
@@ -1477,6 +1491,19 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(int, "levelMax", 0);
 	mixin MaxMin!(int, "levelMax", int.max, 0);
 
+	/// キーコード所持判定範囲(CardWirthNext)。
+	mixin Prop!(Range, "keyCodeRange", Range.PARTY_AND_BACKPACK);
+	private bool check_keyCodeRange(Range val) {
+		switch (val) {
+		case Range.SELECTED, Range.RANDOM, Range.BACKPACK, Range.PARTY_AND_BACKPACK: return true;
+		default: return false;
+		}
+	}
+	/// 効果カード種別(CardWirthNext)。
+	mixin Prop!(EffectCardType, "effectCardType", EffectCardType.ALL);
+	/// キーコード(CardWirthNext)。
+	mixin Prop!(KeyCodeUser, string, "keyCode", "", ".keyCode", ".keyCode", true);
+
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
 
@@ -1731,6 +1758,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.LEVEL_MIN, "levelMin", "")(e, d);
 		atnPut!(CArg.LEVEL_MAX, "levelMax", "")(e, d);
 
+		atnPut!(CArg.KEY_CODE_RANGE, "keyCodeRange", "fromRange")(e, d);
+		atnPut!(CArg.EFFECT_CARD_TYPE, "effectCardType", "fromEffectCardType")(e, d);
+		atnPut!(CArg.KEY_CODE, "keyCode", "")(e, d);
+
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) {
 			auto me = e.newElement("Motions");
@@ -1861,6 +1892,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.STEP_2, "step2", "")(en, d, r);
 		cfnPut!(CArg.LEVEL_MIN, "levelMin", "to!(int)")(en, d, r);
 		cfnPut!(CArg.LEVEL_MAX, "levelMax", "to!(int)")(en, d, r);
+
+		cfnPut!(CArg.KEY_CODE_RANGE, "keyCodeRange", "toRange")(en, d, r);
+		cfnPut!(CArg.EFFECT_CARD_TYPE, "effectCardType", "toEffectCardType")(en, d, r);
+		cfnPut!(CArg.KEY_CODE, "keyCode", "")(en, d, r);
 
 		// 多少複雑なもの
 		if (d.use(CArg.TRANSITION)) {

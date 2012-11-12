@@ -67,7 +67,8 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 		text.addModifyListener(new Modify);
 	}
 
-	auto menu = new Menu(text.getShell(), SWT.POP_UP);
+	auto menu = text.getMenu();
+	if (!menu) menu = new Menu(text.getShell(), SWT.POP_UP);
 	auto u = createMenuItem(comm, menu, MenuID.Undo, {undo.undo();}, () => undo !is null && undo.canUndo);
 	auto r = createMenuItem(comm, menu, MenuID.Redo, {undo.redo();}, () => undo !is null && undo.canRedo);
 	new MenuItem(menu, SWT.SEPARATOR);

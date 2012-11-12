@@ -864,6 +864,9 @@ private:
 		} case CType.BRANCH_RANDOM_SELECT: {
 			dlg = new BrRandomSelectDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
+		} case CType.BRANCH_KEY_CODE: {
+			dlg = new BrKeyCodeDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} default: assert (0, to!string(type));
 		}
 		assert (applied);
@@ -1097,6 +1100,9 @@ private:
 			break;
 		} case CType.BRANCH_RANDOM_SELECT: {
 			dlg = new BrRandomSelectDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
+		} case CType.BRANCH_KEY_CODE: {
+			dlg = new BrKeyCodeDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
 		} default: assert (0);
 		}
@@ -2412,6 +2418,8 @@ public:
 			return createBoolEditor!("evtChildBrFlagCmp(_prop, _summ, evt.flag, evt.flag2, name)")(data, c);
 		} case CType.BRANCH_RANDOM_SELECT: {
 			return createBoolEditor!("evtChildBrRandomSelect(_prop, evt, name)")(data, c);
+		} case CType.BRANCH_KEY_CODE: {
+			return createBoolEditor!("evtChildBrKeyCode(_prop, evt, name)")(data, c);
 		} default:
 		}
 		return null;
@@ -2504,6 +2512,9 @@ public:
 			break;
 		} case CType.BRANCH_RANDOM_SELECT: {
 			r = evtChildBrRandomSelect(prop, parent, name);
+			break;
+		} case CType.BRANCH_KEY_CODE: {
+			r = evtChildBrKeyCode(prop, parent, name);
 			break;
 		} default:
 			name = "";
@@ -2914,6 +2925,26 @@ public:
 				return .tryFormat(prop.msgs.branchRandomSelectSuccessN, r);
 			} else {
 				return .tryFormat(prop.msgs.branchRandomSelectFailureN, r);
+			}
+		}
+	}
+	private static string evtChildBrKeyCode(in Props prop, in Content evt, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+
+		string range = prop.msgs.rangeName(evt.keyCodeRange);
+		if (evt.effectCardType is EffectCardType.ALL) {
+			if (val) {
+				return .tryFormat(prop.msgs.branchKeyCodeAllTypeSuccess, evt.keyCode, range);
+			} else {
+				return .tryFormat(prop.msgs.branchKeyCodeAllTypeFailure, evt.keyCode, range);
+			}
+		} else {
+			string type = prop.msgs.effectCardTypeName(evt.effectCardType);
+			if (val) {
+				return .tryFormat(prop.msgs.branchKeyCodeSuccess, evt.keyCode, type, range);
+			} else {
+				return .tryFormat(prop.msgs.branchKeyCodeFailure, evt.keyCode, type, range);
 			}
 		}
 	}

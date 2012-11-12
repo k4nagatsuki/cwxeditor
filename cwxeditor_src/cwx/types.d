@@ -768,7 +768,33 @@ string fromTransition(Transition t) {
 		return "PixelDissolve";
 	case Transition.BLINDS:
 		return "Blinds";
+	}
+}
 
+/// 効果カードタイプ。
+enum EffectCardType {
+	ALL, /// 全種類。
+	SKILL, /// 特殊技能。
+	ITEM, /// アイテム。
+	BEAST, /// 召喚獣。
+}
+/// ditto
+EffectCardType toEffectCardType(string name) {
+	switch (name) {
+	case "All":   return EffectCardType.ALL;
+	case "Skill": return EffectCardType.SKILL;
+	case "Item":  return EffectCardType.ITEM;
+	case "Beast": return EffectCardType.BEAST;
+	default: throw new Exception("Unknown card type: " ~ name);
+	}
+}
+/// ditto
+string fromEffectCardType(EffectCardType t) {
+	final switch (t) {
+	case EffectCardType.ALL:   return "All";
+	case EffectCardType.SKILL: return "Skill";
+	case EffectCardType.ITEM:  return "Item";
+	case EffectCardType.BEAST: return "Beast";
 	}
 }
 
@@ -845,6 +871,7 @@ enum CType {
 	BRANCH_STEP_CMP, /// ステップ値分岐(CardWirth Extender 1.30～)。
 	BRANCH_FLAG_CMP, /// フラグ値分岐(CardWirth Extender 1.30～)。
 	BRANCH_RANDOM_SELECT, /// ランダム選択(CardWirth Extender 1.30～)。
+	BRANCH_KEY_CODE, /// キーコード所持分岐(CardWirthNext)。
 }
 
 /// コンテントタイプの分類。
@@ -913,6 +940,9 @@ enum CArg {
 	CAST_RANGE, /// キャスト選択範囲(CardWirth Extender 1.30～)。
 	LEVEL_MIN, /// 下限レベル(CardWirth Extender 1.30～)。
 	LEVEL_MAX, /// 上限レベル(CardWirth Extender 1.30～)。
+	KEY_CODE_RANGE, /// キーコード所持判定範囲(CardWirthNext)。
+	EFFECT_CARD_TYPE, /// 効果カード種別(CardWirthNext)。
+	KEY_CODE, /// キーコード(CardWirthNext)。
 }
 
 /// 後続コンテントのnameの型。
