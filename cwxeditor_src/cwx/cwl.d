@@ -1362,7 +1362,13 @@ private EventTree readEventTree(ref RData d, ref ByteIO f, bool enemyCard, size_
 			}
 		}
 	}
-	tree.keyCodes = readStrings(f);
+	auto keyCodes = readStrings(f);
+	if (keyCodes.length && "MatchingType=All" == keyCodes[0]) {
+		// CardWirthNext
+		tree.keyCodeMatchingType = KeyCodeMatchingType.And;
+		keyCodes = keyCodes[1 .. $];
+	}
+	tree.keyCodes = keyCodes;
 	return tree;
 }
 private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
@@ -2801,7 +2807,13 @@ private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) {
 	foreach (ig; igs) {
 		f.writeL(cast(int) ig);
 	}
-	writeStrings(f, tree.keyCodes);
+	auto keyCodes = tree.keyCodes;
+	if (KeyCodeMatchingType.And is tree.keyCodeMatchingType) {
+		// CardWirthNext
+		writeStrings(f, ["MatchingType=All"] ~ keyCodes);
+	} else {
+		writeStrings(f, keyCodes);
+	}
 }
 private void writeBgImage(ref ByteIO f, BgImage b) {
 	f.writeL(cast(int) b.x);

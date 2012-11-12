@@ -2489,6 +2489,13 @@ public:
 						return;
 					}
 				}
+				auto eventTree = cast(EventTree) path;
+				if (eventTree) {
+					if (eventTree.keyCodes.length && eventTree.keyCodes[0] == "MatchingType=All") {
+						addResult(path, count, _prop.msgs.searchErrorKeyCodeMatchingAll);
+						return;
+					}
+				}
 				auto casts = cast(CastCard) path;
 				if (casts) {
 					bool r = false;

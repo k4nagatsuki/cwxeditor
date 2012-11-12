@@ -2038,6 +2038,27 @@ private string fromTalker(Talker talker) {
 	}
 }
 
+/// キーコード判定条件。
+enum KeyCodeMatchingType {
+	Or, /// どれか一つ。
+	And, /// 全て。
+}
+/// ditto
+string fromKeyCodeMatchingType(KeyCodeMatchingType t) {
+	final switch (t) {
+	case KeyCodeMatchingType.Or: return "Or";
+	case KeyCodeMatchingType.And: return "And";
+	}
+}
+/// ditto
+KeyCodeMatchingType toKeyCodeMatchingType(string t) {
+	switch (t) {
+	case "Or": return KeyCodeMatchingType.Or;
+	case "And": return KeyCodeMatchingType.And;
+	default: throw new Exception("Unknown key code matching type: " ~ t);
+	}
+}
+
 /// イベントツリー。発火条件と実行するイベント群を持つ。
 public class EventTree : CWXPath {
 private:
@@ -2050,6 +2071,7 @@ private:
 	uint[] _rounds;
 
 	KeyCodeUser[] _keyCodes;
+	KeyCodeMatchingType _keyCodeMatchingType = KeyCodeMatchingType.Or;
 
 	Content[] _starts;
 	UseCounter _uc;
@@ -2502,6 +2524,18 @@ public:
 		}
 		_keyCodes.length = 0;
 	}
+	/// キーコード判定条件。
+	@property
+	void keyCodeMatchingType(KeyCodeMatchingType type) {
+		if (_keyCodeMatchingType != type) changed();
+		_keyCodeMatchingType = type;
+	}
+	/// ditto
+	@property
+	const
+	KeyCodeMatchingType keyCodeMatchingType() {
+		return _keyCodeMatchingType;
+	}
 
 	/// イベントツリーをXMLテキストにする。
 	const
@@ -2527,6 +2561,9 @@ public:
 		assert (node.name == "Event", node.name ~ " != Event");
 		if (_enter || _escape || _lose || _rounds.length > 0 || _keyCodes.length > 0) {
 			auto ig = node.newElement("Ignitions");
+			if (KeyCodeMatchingType.Or !is keyCodeMatchingType) {
+				ig.newAttr("keyCodeMatchingType", fromKeyCodeMatchingType(keyCodeMatchingType));
+			}
 			string[] nums;
 			if (_enter) nums ~= "1";
 			if (_escape) nums ~= "2";
@@ -2565,6 +2602,7 @@ public:
 			node.parse();
 		};
 		node.onTag["Ignitions"] = (ref XNode node) {
+			r.keyCodeMatchingType = toKeyCodeMatchingType(node.attr("keyCodeMatchingType", false, fromKeyCodeMatchingType(r.keyCodeMatchingType)));
 			node.onTag["Number"] = (ref XNode n) {
 				foreach (v; decodeLf(n.value)) {
 					switch (v) {

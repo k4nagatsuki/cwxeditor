@@ -275,6 +275,7 @@ public:
 	}
 
 	@property Image eventTree() {return imgd!("event_tree.png");}
+	@property Image eventTreeAnd() {return imgd!("event_tree_and.png");}
 	@property Image defStart() {return imgd!("def_start.png");}
 	@property Image keyCode() {return imgd!("key_code.png");}
 	@property Image round() {return imgd!("round.png");}
@@ -463,6 +464,9 @@ public:
 		case MenuID.KeyCodeTimingSuccess: return imgd!("key_code_suc.png");
 		case MenuID.KeyCodeTimingFailure: return imgd!("key_code_fail.png");
 		case MenuID.KeyCodeTimingHasNot: return imgd!("key_code_hasnot.png");
+		case MenuID.KeyCodeCond: return imgd!("key_code_cond.png");
+		case MenuID.KeyCodeCondOr: return imgd!("key_code_or.png");
+		case MenuID.KeyCodeCondAnd: return imgd!("key_code_and.png");
 		case MenuID.AddRangeOfRound: return imgd!("add_many_round.png");
 		case MenuID.OpenAtTableView: return imgd!("open_tableview.png");
 		case MenuID.OpenAtVarView: return imgd!("open_flagview.png");

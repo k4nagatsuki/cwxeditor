@@ -293,6 +293,7 @@ class Msgs : Properties {
 	auto searchErrorPCNumber = Msg("searchErrorPCNumber", "CardWirthPyではプレイヤーキャラクタ画像は表示できない");
 	auto searchErrorSouceIsTarget = Msg("searchErrorSouceIsTarget", "ソース変数とターゲット変数が同一");
 	auto searchErrorSystemName = Msg("searchErrorSystemName", "システムで使用されている名前のため正しく機能しない場合がある");
+	auto searchErrorKeyCodeMatchingAll = Msg("searchErrorKeyCodeMatchingAll", "「MatchingType=All」はシステムで使用されているキーコードのため正しく機能しない場合がある");
 
 	auto searchOpenDialog = Msg("searchOpenDialog", "検索結果へジャンプする時、ダイアログを開く");
 
@@ -1701,6 +1702,9 @@ class Msgs : Properties {
 	auto menuTextKeyCodeTimingSuccess = Msg("menuTextKeyCodeTimingSuccess", "成功");
 	auto menuTextKeyCodeTimingFailure = Msg("menuTextKeyCodeTimingFailure", "失敗");
 	auto menuTextKeyCodeTimingHasNot = Msg("menuTextKeyCodeTimingHasNot", "不保有");
+	auto menuTextKeyCodeCond = Msg("menuTextKeyCodeCond", "キーコード発火条件");
+	auto menuTextKeyCodeCondOr = Msg("menuTextKeyCodeCondOr", "どれか一つに一致");
+	auto menuTextKeyCodeCondAnd = Msg("menuTextKeyCodeCondAnd", "全てに一致");
 	auto menuTextAddRangeOfRound = Msg("menuTextAddRangeOfRound", "複数のラウンドを追加");
 	auto menuTextOpenAtTableView = Msg("menuTextOpenAtTableView", "テーブルビューで開く");
 	auto menuTextOpenAtVarView = Msg("menuTextOpenAtVarView", "状態変数ビューで開く");

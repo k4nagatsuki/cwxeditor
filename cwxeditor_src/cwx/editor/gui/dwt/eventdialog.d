@@ -2753,6 +2753,12 @@ private:
 		_incSearch.startIncSearch();
 	}
 
+	void refreshWarning()  {
+		string[] ws;
+		ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_KEY_CODE));
+		warning = ws;
+	}
+
 	void refStandardKeyCodes() {
 		string id = _keyCode.getText();
 		_keyCode.removeAll();
@@ -2861,6 +2867,7 @@ protected:
 			_effectCardType[EffectCardType.ALL].setSelection(true);
 			_keyCode.setText("");
 		}
+		refreshWarning();
 	}
 
 	override bool apply() {

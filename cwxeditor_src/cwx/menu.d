@@ -150,6 +150,9 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.KeyCodeTimingSuccess] = "S";
 		_mnemonic[MenuID.KeyCodeTimingFailure] = "F";
 		_mnemonic[MenuID.KeyCodeTimingHasNot] = "H";
+		_mnemonic[MenuID.KeyCodeCond] = "O";
+		_mnemonic[MenuID.KeyCodeCondOr] = "O";
+		_mnemonic[MenuID.KeyCodeCondAnd] = "A";
 		_mnemonic[MenuID.AddRangeOfRound] = "R";
 		_mnemonic[MenuID.OpenAtTableView] = "V";
 		_mnemonic[MenuID.OpenAtVarView] = "V";
@@ -306,6 +309,9 @@ class MenuProps : Properties {
 		_hotkey[MenuID.KeyCodeTimingSuccess] = "";
 		_hotkey[MenuID.KeyCodeTimingFailure] = "";
 		_hotkey[MenuID.KeyCodeTimingHasNot] = "";
+		_hotkey[MenuID.KeyCodeCond] = "";
+		_hotkey[MenuID.KeyCodeCondOr] = "";
+		_hotkey[MenuID.KeyCodeCondAnd] = "";
 		_hotkey[MenuID.AddRangeOfRound] = "";
 		_hotkey[MenuID.OpenAtTableView] = "";
 		_hotkey[MenuID.OpenAtVarView] = "";

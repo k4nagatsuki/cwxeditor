@@ -526,10 +526,16 @@ private:
 		parItm.setExpanded(true);
 		_comm.refreshToolBar();
 	}
+	Image etImage(in EventTree tree) {
+		final switch (tree.keyCodeMatchingType) {
+		case KeyCodeMatchingType.Or: return _prop.images.eventTree;
+		case KeyCodeMatchingType.And: return _prop.images.eventTreeAnd;
+		}
+	}
 	TreeItem appendTreeItem(TreeItem parItm, int index, Object defFire) {
 		auto par = cast(EventTreeOwner) parItm.getData();
 		auto tree = par.trees[index];
-		auto treeItm = createTreeItem(parItm, tree, tree.name, _prop.images.eventTree, index);
+		auto treeItm = createTreeItem(parItm, tree, tree.name, etImage(tree), index);
 		static if (UseFire) {
 			if (defFire) addFire(treeItm, defFire);
 			refreshFires(treeItm);
@@ -628,7 +634,7 @@ private:
 					createTreeItem(eItm, ENTER, _prop.msgs.startPackage, _prop.images.defStart);
 				}
 			} else {
-				auto eItm = createTreeItem(aItm, t, t.name, _prop.images.eventTree);
+				auto eItm = createTreeItem(aItm, t, t.name, etImage(t));
 				if (t.fireEnter) {
 					createTreeItem(eItm, ENTER, _prop.msgs.startUse, _prop.images.defStart);
 				}
@@ -892,6 +898,21 @@ private:
 		if (!itm) return false;
 		return Kind !is _prop.sys.fireKeyCodeKind((cast(KeyCodeObj) selectionKeyCode.getData()).array.idup);
 	}
+	void setKeyCodeCond(KeyCodeMatchingType Type)() {
+		auto eItm = selectionEventTree;
+		if (!eItm) return;
+		auto et = cast(EventTree) eItm.getData();
+		assert (et !is null);
+		et.keyCodeMatchingType = Type;
+		eItm.setImage(etImage(et));
+	}
+	bool canSetKeyCodeCond(KeyCodeMatchingType Type)() {
+		auto eItm = selectionEventTree;
+		if (!eItm) return false;
+		auto et = cast(EventTree) eItm.getData();
+		assert (et !is null);
+		return et.keyCodeMatchingType !is Type;
+	}
 
 	void refShowToolBar() {
 		if (!_comm.singleWindowMode(_prop)) return;
@@ -1025,6 +1046,12 @@ public:
 						createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &keyCodeTimSuccess, &curIsKeyCode!(FKCKind.Success));
 						createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &keyCodeTimFailure, &curIsKeyCode!(FKCKind.Failure));
 						createMenuItem(_comm, sub, MenuID.KeyCodeTimingHasNot, &keyCodeTimHasNot, &curIsKeyCode!(FKCKind.HasNot));
+
+						auto cascade2 = createMenuItem(_comm, menu, MenuID.KeyCodeCond, dlg, () => selectionEventTree !is null, SWT.CASCADE);
+						auto sub2 = new Menu(parent.getShell(), SWT.DROP_DOWN);
+						cascade2.setMenu(sub2);
+						createMenuItem(_comm, sub2, MenuID.KeyCodeCondOr, &setKeyCodeCond!(KeyCodeMatchingType.Or), &canSetKeyCodeCond!(KeyCodeMatchingType.Or));
+						createMenuItem(_comm, sub2, MenuID.KeyCodeCondAnd, &setKeyCodeCond!(KeyCodeMatchingType.And), &canSetKeyCodeCond!(KeyCodeMatchingType.And));
 					}
 					dStr ~= " - " ~ .text(__LINE__);
 					new MenuItem(menu, SWT.SEPARATOR);
@@ -1206,7 +1233,7 @@ public:
 			}
 			auto aItm = createTreeItem(_cards, _area, _area.name, imgArea);
 			foreach (i, t; _area.trees) {
-				auto eItm = createTreeItem(aItm, t, t.name, _prop.images.eventTree);
+				auto eItm = createTreeItem(aItm, t, t.name, etImage(t));
 				static if (UseFire) {
 					refreshFires(eItm);
 				}
@@ -1229,7 +1256,7 @@ public:
 				}
 				auto cItm = createTreeItem(_cards, c, cardName(c), imgCard);
 				foreach (t; c.trees) {
-					auto eItm = createTreeItem(cItm, t, t.name, _prop.images.eventTree);
+					auto eItm = createTreeItem(cItm, t, t.name, etImage(t));
 					static if (UseFire) {
 						refreshFires(eItm);
 					}
@@ -1695,7 +1722,7 @@ public:
 						storeI(_cards.indexOf(parItm), par.trees.length);
 						// イベントツリー
 						par.add(tree);
-						auto treeItm = createTreeItem(parItm, tree, tree.name, _prop.images.eventTree);
+						auto treeItm = createTreeItem(parItm, tree, tree.name, etImage(tree));
 						__select(treeItm);
 						static if (UseFire) {
 							refreshFires(treeItm);
