@@ -3311,7 +3311,7 @@ public:
 						if (!.exists(_opt.createclassicPath)) {
 							mkdirRecurse(_opt.createclassicPath);
 						}
-						auto summ = new Summary(name, _prop.var.etc.defaultSkin, _opt.createclassicPath, false, true);
+						auto summ = new Summary(name, "", _opt.createclassicPath, false, true);
 						summ.author = _prop.var.etc.defaultAuthor;
 						openScenario(summ);
 						statusLine = "";
