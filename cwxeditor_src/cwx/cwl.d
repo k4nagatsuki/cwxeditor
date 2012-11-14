@@ -1150,22 +1150,38 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) {
 	case 40: {
 		byte targ = f.readByte;
 		Talker t;
-		switch (toTargetT(targ).m) {
-		case Target.M.SELECTED: t = Talker.SELECTED; break;
-		case Target.M.UNSELECTED: t = Talker.UNSELECTED; break;
-		case Target.M.RANDOM: t = Talker.RANDOM; break;
-		default: throw new SummaryException("Unknown talker: " ~ to!(string)(targ));
+		Coupon[] coupons = [];
+		int initValue = 0;
+		if (3 == targ) {
+			t = Talker.VALUED;
+			uint cpNum = f.readUIntL;
+			foreach (i; 0 .. cpNum) {
+				coupons ~= new Coupon(readString(f), f.readIntL);
+			}
+			if (coupons.length && coupons[0].name == "") {
+				initValue = coupons[0].value;
+				coupons = coupons[1 .. $];
+			}
+		} else {
+			switch (toTargetT(targ).m) {
+			case Target.M.SELECTED: t = Talker.SELECTED; break;
+			case Target.M.UNSELECTED: t = Talker.UNSELECTED; break;
+			case Target.M.RANDOM: t = Talker.RANDOM; break;
+			default: throw new SummaryException("Unknown talker: " ~ to!(string)(targ));
+			}
 		}
 		uint dlgNum = f.readUIntL;
 		SDialog[] dlgs;
 		for (uint i = 0u; i < dlgNum; i++) {
-			string[] coupons = readStrings(f);
+			string[] cps = readStrings(f);
 			string text = readString(f, true);
-			dlgs ~= new SDialog(text, coupons);
+			dlgs ~= new SDialog(text, cps);
 		}
 		e = new Content(CType.TALK_DIALOG, name);
 		e.talkerNC = t;
 		e.dialogs = dlgs;
+		e.coupons = coupons;
+		e.initValue = initValue;
 		break;
 	}
 	case 41:
@@ -2665,7 +2681,21 @@ private void writeContent(ref SData d, ref ByteIO f, Content e) {
 		case Talker.SELECTED: f.writeL(cast(byte) 0); break;
 		case Talker.RANDOM: f.writeL(cast(byte) 1); break;
 		case Talker.UNSELECTED: f.writeL(cast(byte) 2); break;
+		case Talker.VALUED: f.writeL(cast(byte) 3); break;
 		default: throw new SummaryException("Unknown talker value: " ~ to!(string)(cast(int) e.talkerNC));
+		}
+		if (Talker.VALUED == e.talkerNC) {
+			if (0 == e.initValue) {
+				f.writeL(cast(uint) e.coupons.length);
+			} else {
+				f.writeL(cast(uint) e.coupons.length + 1);
+				writeString(f, "");
+				f.writeL(cast(int) e.initValue);
+			}
+			foreach (c; e.coupons) {
+				writeString(f, c.name);
+				f.writeL(cast(int) c.value);
+			}
 		}
 		f.writeL(cast(uint) e.dialogs.length);
 		foreach (dlg; e.dialogs) {

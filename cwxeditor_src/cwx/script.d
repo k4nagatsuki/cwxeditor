@@ -10,6 +10,7 @@ import cwx.motion;
 import cwx.background;
 import cwx.area;
 import cwx.card;
+import cwx.coupon;
 
 import std.algorithm;
 import std.conv;
@@ -2111,6 +2112,19 @@ fi`;
 			r.text = parseAttr!(string)(opt, vals, j, r.text, varTable, msgWidth);
 			i++;
 			return r;
+		} else static if (is(T == Coupon)) {
+			if (attr[i].type !is NodeType.VALUES) {
+				string name = attrValue(attr[i], varTable, msgWidth);
+				i++;
+				return new Coupon(name, 1);
+			}
+			size_t j = 0;
+			auto vals = attr[i].values;
+			string name = parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
+			int value = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
+			auto r = new Coupon(name, value);
+			i++;
+			return r;
 		} else static if (is(T == int)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			if (attr[i].token.kind is Kind.SYMBOL && value == "all") {
@@ -2163,6 +2177,7 @@ fi`;
 			static if (Within) goto default;
 			i++;
 			return Talker.CARD;
+		case "v", "valued": i++; return Talker.VALUED;
 		default:
 			throwError(_prop.msgs.scriptErrorInvalidTalker, node.token);
 			i++;
@@ -2451,6 +2466,12 @@ fi`;
 			}
 			if (detail.use(CArg.TRANSITION)) {
 				c.transition = parseAttr!(Transition)(opt, node.attr, i, c.transition, varTable, 0);
+			}
+			if (detail.use(CArg.INIT_VALUE)) {
+				c.initValue = parseAttr!(int)(opt, node.attr, i, c.initValue, varTable, 0);
+			}
+			if (detail.use(CArg.COUPONS)) {
+				c.coupons = parseAttr!(Coupon[])(opt, node.attr, i, c.coupons, varTable, 0);
 			}
 			Content autoWrap(Content c) {
 				if (!c.detail.owner) {
@@ -2793,6 +2814,11 @@ fi`;
 			}
 			attrs2 ~= toAttr(value.text, command, indentValue, vars, strWidth);
 			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
+		} else static if (is(Unqual!(T) : Coupon)) {
+			string[] attrs2;
+			attrs2 ~= createString(value.name);
+			attrs2 ~= to!(string)(value.value);
+			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
 		} else static if (is(T : int)) {
 			attrs ~= to!(string)(value);
 		} else static if (is(T : uint)) {
@@ -2811,6 +2837,7 @@ fi`;
 		case Talker.RANDOM: return "R";
 		case Talker.CARD: return "C";
 		case Talker.IMAGE: return createString(encodePath(cardPath));
+		case Talker.VALUED: return "V";
 		default: assert (0);
 		}
 	}
@@ -3108,6 +3135,12 @@ fi`;
 				if (detail.use(CArg.TRANSITION)) {
 					attrs ~= toAttr(c.transition, command, indentValue, vars);
 				}
+			}
+			if (detail.use(CArg.INIT_VALUE)) {
+				attrs ~= toAttr(c.initValue, command, indentValue, vars);
+			}
+			if (detail.use(CArg.COUPONS)) {
+				attrs ~= toAttr(c.coupons, command, indentValue, vars);
 			}
 			bool useIf = c.next.length > 1;
 			bool useSif = c.next.length == 1 && c.next[0].name.length;

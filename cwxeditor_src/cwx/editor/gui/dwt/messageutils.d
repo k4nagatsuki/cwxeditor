@@ -1721,6 +1721,7 @@ class MsgPreview : Composite {
 		case Talker.SELECTED:
 		case Talker.UNSELECTED:
 		case Talker.RANDOM:
+		case Talker.VALUED:
 			tImg = _prop.images.talker(_talker).getImageData();
 			break;
 		case Talker.IMAGE:

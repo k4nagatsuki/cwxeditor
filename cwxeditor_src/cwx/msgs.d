@@ -341,6 +341,7 @@ class Msgs : Properties {
 	auto scTalkerNameCard = Msg("scTalkerNameCard", "選択カード名(#C)");
 	auto scTalkerNameNarration = Msg("scTalkerNameNarration", "話者無し");
 	auto scTalkerNameImage = Msg("scTalkerNameImage", "画像");
+	auto scTalkerNameValued = Msg("scTalkerNameValued", "評価メンバ");
 	auto scRef = Msg("scRef", "話者(#I)");
 	auto scTeam = Msg("scTeam", "チーム名(#T)");
 	auto scYado = Msg("scYado", "宿屋名(#Y)");
@@ -1047,6 +1048,7 @@ class Msgs : Properties {
 	auto talkerNameCard = Msg("talkerNameCard", "[カード]");
 	auto talkerNameNarration = Msg("talkerNameNarration", "[話者無し]");
 	auto talkerNameImage = Msg("talkerNameImage", "[画像]");
+	auto talkerNameValued = Msg("talkerNameValued", "[評価メンバ]");
 	const string rangeName(Range id) {
 		mixin(EnumToStringSwitch!(Range, "rangeName"));
 	}
@@ -1550,6 +1552,7 @@ class Msgs : Properties {
 	auto scriptErrorInvalidBgImage = Msg("scriptErrorInvalidBgImage", "背景画像が正しくありません。");
 	auto scriptErrorInvalidDialog = Msg("scriptErrorInvalidDialog", "台詞が正しくありません。");
 	auto scriptErrorInvalidTalker = Msg("scriptErrorInvalidTalker", "話者が正しくありません。");
+	auto scriptErrorInvalidCoupon = Msg("scriptErrorInvalidCoupon", "評価条件が正しくありません。");
 	auto scriptErrorUndefinedSymbol = Msg("scriptErrorUndefinedSymbol", "未知のシンボルです。");
 	auto scriptErrorInvalidSif = Msg("scriptErrorInvalidSif", "ここにsifが現れる事はできません。");
 	auto scriptErrorNoSifText = Msg("scriptErrorNoSifText", "sifのテキストが見つかりません。");

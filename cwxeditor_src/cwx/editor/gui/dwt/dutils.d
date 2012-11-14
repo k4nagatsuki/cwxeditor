@@ -2239,6 +2239,7 @@ string contentText(Commons comm, in Content evt, Summary summ = null) {
 		case Talker.UNSELECTED:
 		case Talker.RANDOM:
 		case Talker.CARD:
+		case Talker.VALUED:
 			return .tryFormat(comm.prop.msgs.ctTalkMessage, comm.prop.msgs.talkerName(evt.talkerC), text);
 		case Talker.IMAGE:
 			string t = contentTextUseID!(CIDKind.Image)(comm, summ, evt.cardPath, comm.prop.msgs.ctTalkMessageImage, evt);

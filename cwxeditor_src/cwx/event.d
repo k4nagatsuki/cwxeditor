@@ -11,6 +11,7 @@ import cwx.path;
 import cwx.props;
 import cwx.msgutils;
 import cwx.card;
+import cwx.coupon;
 
 import std.algorithm;
 import std.datetime;
@@ -121,7 +122,7 @@ private void static_this () {
 		CType.LINK_START:CDetail("Link", "Start", CNextType.NONE, false, [CArg.START:"link"]),
 		CType.LINK_PACKAGE:CDetail("Link", "Package", CNextType.NONE, false, [CArg.PACKAGE:"link"]),
 		CType.TALK_MESSAGE:CDetail("Talk", "Message", CNextType.TEXT, true, [CArg.TALKER_C:_("path"), CArg.TEXT:null]),
-		CType.TALK_DIALOG:CDetail("Talk", "Dialog", CNextType.TEXT, true, [CArg.TALKER_NC:_("targetm"), CArg.DIALOGS:null]),
+		CType.TALK_DIALOG:CDetail("Talk", "Dialog", CNextType.TEXT, true, [CArg.TALKER_NC:_("targetm"), CArg.DIALOGS:null, CArg.COUPONS:null, CArg.INIT_VALUE:"initialValue"]),
 		CType.PLAY_BGM:CDetail("Play", "Bgm", CNextType.NONE, true, [CArg.BGM_PATH:"path"]),
 		CType.PLAY_SOUND:CDetail("Play", "Sound", CNextType.NONE, true, [CArg.SOUND_PATH:"path"]),
 		CType.WAIT:CDetail("Wait", "", CNextType.NONE, true, [CArg.WAIT:"value"]),
@@ -699,6 +700,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		copy.effectCardType = effectCardType;
 		copy.keyCode = keyCode;
 
+		copy.initValue = initValue;
+
 		Motion[] motions;
 		foreach (m; this.motions) {
 			motions ~= m.dup;
@@ -722,6 +725,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			backs ~= b.dup;
 		}
 		copy.backs = backs;
+
+		Coupon[] coupons;
+		foreach (c; this.coupons) {
+			coupons ~= new Coupon(c);
+		}
+		copy.coupons = coupons;
 
 		foreach (c; next) {
 			copy.add(c.dup);
@@ -794,6 +803,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& effectCardType == c.effectCardType
 			&& keyCode == c.keyCode
 
+			&& initValue == c.initValue
+
 			&& motions == c.motions
 
 			&& text == c.text
@@ -806,6 +817,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& talkerNC == c.talkerNC
 
 			&& backs == c.backs
+
+			&& coupons == c.coupons
 
 			&& next == c.next;
 	}
@@ -970,6 +983,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.EFFECT_CARD_TYPE, EffectCardType, EffectCardType.ALL)(d, &effectCardType);
 		resetValue!(CArg.KEY_CODE, string, "")(d, &keyCode);
 
+		resetValue!(CArg.INIT_VALUE, int, 0)(d, &initValue);
+
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
 
 		resetValue!(CArg.TEXT, string, "")(d, &text);
@@ -981,6 +996,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.TALKER_NC, Talker, Talker.SELECTED)(d, &talkerNC);
 
 		resetValue!(CArg.BG_IMAGES, BgImage[], [])(d, &backs);
+
+		resetValue!(CArg.COUPONS, Coupon[], [])(d, &coupons);
 
 		validate();
 	}
@@ -1103,6 +1120,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		r ~= _text;
 		r ~= cast(CWXPath[]) motions;
 		r ~= cast(CWXPath[]) backs;
+		r ~= cast(CWXPath[]) coupons;
 		return r;
 	}
 	@property
@@ -1420,10 +1438,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 話者(カード画像を含めない)。
 	mixin Prop!(Talker, "talkerNC", Talker.SELECTED);
 	private bool check_talkerNC(Talker val) {
-		switch (val) {
-		case Talker.SELECTED, Talker.UNSELECTED, Talker.RANDOM: return true;
+		final switch (val) {
+		case Talker.SELECTED, Talker.UNSELECTED, Talker.RANDOM, Talker.VALUED: return true;
 		case Talker.NARRATION, Talker.CARD, Talker.IMAGE: return false;
-		default: assert (0);
 		}
 	}
 	/// 効果タイプ。
@@ -1504,8 +1521,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// キーコード(CardWirthNext)。
 	mixin Prop!(KeyCodeUser, string, "keyCode", "", ".keyCode", ".keyCode", true);
 
+	/// 評価メンバ初期値(CardWirthNext)。
+	mixin Prop!(int, "initValue", 0);
+
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
+
+	/// 得点付きクーポン群(CardWirthNext)。
+	mixin Prop!(Coupon[], "coupons", []);
 
 	private void delegate() _change;
 	/// 変更ハンドラを登録する。
@@ -1762,6 +1785,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.EFFECT_CARD_TYPE, "effectCardType", "fromEffectCardType")(e, d);
 		atnPut!(CArg.KEY_CODE, "keyCode", "")(e, d);
 
+		atnPut!(CArg.INIT_VALUE, "initValue", "")(e, d);
+
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) {
 			auto me = e.newElement("Motions");
@@ -1785,7 +1810,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			case Talker.NARRATION:
 				e.newAttr(d.attr(CArg.TALKER_C), "");
 				break;
-			case Talker.SELECTED, Talker.UNSELECTED, Talker.RANDOM, Talker.CARD:
+			case Talker.SELECTED, Talker.UNSELECTED, Talker.RANDOM, Talker.CARD, Talker.VALUED:
 				e.newAttr(d.attr(CArg.TALKER_C), "Material/??" ~ fromTalker(talkerC));
 				break;
 			case Talker.IMAGE:
@@ -1801,6 +1826,13 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			auto ce = e.newElement("CastRanges");
 			foreach (c; castRange) {
 				ce.newElement("CastRange", fromCastRange(c));
+			}
+		}
+
+		if (d.use(CArg.COUPONS)) {
+			auto ce = e.newElement("Coupons");
+			foreach (c; coupons) {
+				c.toNode(ce);
 			}
 		}
 
@@ -1897,6 +1929,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.EFFECT_CARD_TYPE, "effectCardType", "toEffectCardType")(en, d, r);
 		cfnPut!(CArg.KEY_CODE, "keyCode", "")(en, d, r);
 
+		cfnPut!(CArg.INIT_VALUE, "initValue", "to!(int)")(en, d, r);
+
 		// 多少複雑なもの
 		if (d.use(CArg.TRANSITION)) {
 			// 歴史的経緯から、transitionは値が存在しない可能性がある
@@ -1917,7 +1951,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				r.motions = motions;
 			};
 		}
-
 		if (d.use(CArg.TEXT)) {
 			en.onTag["Text"] = (ref XNode node) {r.text = decodeLf2(node.value);};
 		}
@@ -1972,6 +2005,17 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			};
 		}
 
+		if (d.use(CArg.COUPONS)) {
+			en.onTag["Coupons"] = (ref XNode node) {
+				Coupon[] coupons;
+				node.onTag["Coupon"] = (ref XNode node) {
+					coupons ~= Coupon.fromNode(node, ver);
+				};
+				node.parse();
+				r.coupons = coupons;
+			};
+		}
+
 		if (d.owner) {
 			en.onTag["Contents"] = (ref XNode node) {
 				foreach (c; createContentsFromNode(node, ver)) {
@@ -1999,6 +2043,8 @@ private void loadTalker(in XNode node, out Talker talker, out string path = null
 			talker = Talker.RANDOM;
 		} else if (endsWith(pathTemp, "??Card")) {
 			talker = Talker.CARD;
+		} else if (endsWith(pathTemp, "??Valued")) {
+			talker = Talker.VALUED;
 		} else {
 			talker = Talker.IMAGE;
 			path = decodePath(pathTemp);
@@ -2017,6 +2063,9 @@ private void loadTalker(in XNode node, out Talker talker, out string path = null
 		case "Card":
 			talker = Talker.CARD;
 			break;
+		case "Valued":
+			talker = Talker.VALUED;
+			break;
 		default:
 			throw new EventException("Unknown targetm: " ~ t);
 		}
@@ -2033,6 +2082,8 @@ private string fromTalker(Talker talker) {
 		return "Random";
 	case Talker.CARD:
 		return "Card";
+	case Talker.VALUED:
+		return "Valued";
 	case Talker.NARRATION, Talker.IMAGE:
 		return "";
 	}

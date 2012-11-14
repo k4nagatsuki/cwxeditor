@@ -269,6 +269,8 @@ public:
 			return imgd!("talker_unsel.png");
 		case Talker.RANDOM:
 			return imgd!("talker_random.png");
+		case Talker.VALUED:
+			return imgd!("talker_valued.png");
 		case Talker.NARRATION, Talker.IMAGE, Talker.CARD:
 			throw new Exception("Narration, image and card haven't image.");
 		}
@@ -313,7 +315,7 @@ public:
 			return imgd!("sc_r.png");
 		case Talker.CARD:
 			return imgd!("sc_c.png");
-		case Talker.NARRATION, Talker.IMAGE:
+		case Talker.NARRATION, Talker.IMAGE, Talker.VALUED:
 			throw new Exception("Narration and image haven't image.");
 		}
 	}

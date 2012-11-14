@@ -766,7 +766,7 @@
 	<dd>パッケージへの移動</dd>
 	<dt class="content"><a href="#MSG">msg <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="arg">&lt;テキスト&gt;</span></span></a></dt>
 	<dd>メッセージ</dd>
-	<dt class="content"><a href="#DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span></span></a></dt>
+	<dt class="content"><a href="#DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span> ..., <span class="arg">&lt;得点&gt;</span>] ...</span></span></a></dt>
 	<dd>台詞</dd>
 	<dt class="content"><a href="#BGM">bgm <span class="args"><span class="arg">&lt;ファイル名&gt;</span></span></a></dt>
 	<dd>BGMの演奏</dd>
@@ -1302,7 +1302,7 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="DIALOG" name="DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span></span></a></h3>
+<h3 class="content"><a id="DIALOG" name="DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span> ..., <span class="arg">&lt;得点&gt;</span>] ...</span></span></a></h3>
 
 <p class="fullname">(Dialog)</p>
 <p class="desc">口調分けして台詞を表示します。</p>
@@ -1318,8 +1318,12 @@
 	<dd class="worddesc">選択以外のメンバ。</dd>
 	<dt class="keyword"><code>R</code> または <code>random</code></dt>
 	<dd class="worddesc">ランダムなメンバ。</dd>
+	<dt class="keyword"><code>V</code> または <code>valued</code></dt>
+	<dd class="worddesc">所持クーポンを評価して高得点になったメンバ。これを指定した場合のみ、評価初期値と評価クーポンが有効になります。</dd>
 </dl>
-<p class="desc"><code class="code">[]</code>で囲われたパラメータで、クーポンとメッセージを指定します。話者が持つクーポンによって、表示されるメッセージが切り替わります。</p>
+<p class="desc">話者の次の<code class="code">[]</code>で囲われたパラメータで、クーポンとメッセージを指定します。話者が持つクーポンによって、表示されるメッセージが切り替わります。</p>
+<p class="desc">最初のパラメータに<code class="code">V</code>または<code class="code">valued</code>を指定した場合、メッセージの次に評価初期値と評価クーポンを指定できます。それ以外の場合、これらの指定は無視されます。</p>
+<p class="desc">評価クーポンと得点には、話者を選択する際の評価条件を配列で指定します。</p>
 
 <h4 class="example">例</h4>
 

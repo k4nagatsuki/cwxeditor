@@ -720,6 +720,7 @@ enum Talker {
 	RANDOM, /// ランダムメンバ。
 	CARD, /// カード。
 	IMAGE, /// 画像ファイルを指定。
+	VALUED, /// 評価メンバ。
 }
 
 /// 背景遷移エフェクト。
@@ -943,6 +944,8 @@ enum CArg {
 	KEY_CODE_RANGE, /// キーコード所持判定範囲(CardWirthNext)。
 	EFFECT_CARD_TYPE, /// 効果カード種別(CardWirthNext)。
 	KEY_CODE, /// キーコード(CardWirthNext)。
+	COUPONS, /// 得点付きクーポン群(CardWirthNext)。
+	INIT_VALUE, /// 評価メンバ初期点(CardWirthNext)。
 }
 
 /// 後続コンテントのnameの型。
@@ -995,7 +998,7 @@ enum MType {
 	DEAL_DISTANCE_CARD,
 	DEAL_CONFUSE_CARD,
 	DEAL_SKILL_CARD,
-	SUMMON_BEAST
+	SUMMON_BEAST,
 }
 
 enum MArg {
