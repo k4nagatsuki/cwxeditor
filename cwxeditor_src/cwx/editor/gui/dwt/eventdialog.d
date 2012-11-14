@@ -2767,7 +2767,7 @@ private:
 
 		auto kcs = summ.useCounter.keyCode.keys;
 		string[] kcs2;
-		foreach (string kc; kcs) {
+		foreach (string kc; kcs.sort) {
 			if (!.contains(stdKCs, kc)) {
 				kcs2 ~= kc;
 			}

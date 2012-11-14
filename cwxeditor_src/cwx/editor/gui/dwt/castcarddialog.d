@@ -30,6 +30,7 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.couponview;
 
 import std.datetime;
 import std.string;
@@ -50,21 +51,13 @@ private:
 	Props _prop;
 	Summary _summ;
 	CastCard _card;
-	KeyDownFilter _kdFilter;
-
-	UndoManager _undoCoupons;
 
 	ImageSelect!(MtType.CARD) _imgPath;
 	FixedWidthText _desc;
 	GBLimitText _name;
 	Spinner _level;
 	Spinner _lifeMax;
-	Text _newCoupon;
-	TextMenuModify _newCouponTM;
-	Button _couponHide;
-	Spinner _couponVal;
-	Composite _couponView;
-	Table _coupons;
+	CouponView!true _couponView;
 	Combo _race;
 	Button[Sex] _sex;
 	Button _sexU;
@@ -174,318 +167,6 @@ private:
 					_enh.setValue(i, 0);
 				}
 			}
-		}
-	}
-	class UndoCoupons : Undo {
-		private Coupon[] _coupons;
-		private int _selected;
-		this () {
-			save();
-		}
-		private void save() {
-			_coupons = this.outer.coupons;
-			_selected = this.outer._coupons.getSelectionIndex();
-		}
-		private void impl() {
-			auto coupons = _coupons;
-			auto selected = _selected;
-			save();
-			this.outer._coupons.setRedraw(false);
-			scope (exit) this.outer._coupons.setRedraw(true);
-			this.outer._coupons.removeAll();
-			foreach (c; coupons) {
-				appendCoupon(c);
-			}
-			this.outer._coupons.select(selected);
-			this.outer._coupons.showSelection();
-			_comm.refreshToolBar();
-		}
-		override void undo() {impl();}
-		override void redo() {impl();}
-		override void dispose() {
-			// Nothing
-		}
-	}
-	void storeCoupons() {
-		_undoCoupons ~= new UndoCoupons;
-	}
-	void undoCoupons() {
-		_undoCoupons.undo();
-		_comm.refreshToolBar();
-	}
-	void redoCoupons() {
-		_undoCoupons.redo();
-		_comm.refreshToolBar();
-	}
-	@property
-	Coupon[] coupons() {
-		Coupon[] r;
-		r.length = _coupons.getItemCount();
-		foreach (i, itm; _coupons.getItems()) {
-			r[i] = cast(Coupon) itm.getData();
-		}
-		return r;
-	}
-	Image couponImage(int value) {
-		return value > 1 ? _prop.images.couponHigh
-			: (value > 0 ? _prop.images.couponPlus
-			: (value < 0 ? _prop.images.couponMinus : _prop.images.couponNormal));
-	}
-	void appendCoupon(in Coupon coupon, int index = -1) {
-		TableItem itm;
-		if (index >= 0) {
-			itm = new TableItem(_coupons, SWT.NONE, index);
-		} else {
-			itm = new TableItem(_coupons, SWT.NONE);
-		}
-		itm.setImage(0, couponImage(coupon.value));
-		itm.setText(0, coupon.name);
-		itm.setText(1, to!(string)(coupon.value));
-		itm.setData(new Coupon(coupon));
-		_coupons.setSelection([itm]);
-		_coupons.showSelection();
-		_comm.refreshToolBar();
-	}
-	void addCoupon() {
-		if (_newCoupon.getText().length > 0) {
-			foreach (i, itm; _coupons.getItems()) {
-				if (_newCoupon.getText() == (cast(Coupon) itm.getData()).name) {
-					_coupons.select(i);
-					return;
-				}
-			}
-			storeCoupons();
-			appendCoupon(new Coupon(_newCoupon.getText(), _couponVal.getSelection()), _coupons.getSelectionIndex());
-			applyEnabled();
-			_comm.refreshToolBar();
-		}
-	}
-	void addCoupon(Coupon coupon) {
-		foreach (i, itm; _coupons.getItems()) {
-			if (coupon.name == (cast(Coupon) itm.getData()).name) {
-				return;
-			}
-		}
-		storeCoupons();
-		appendCoupon(coupon);
-		applyEnabled();
-		_comm.refreshToolBar();
-	}
-	void altCoupon() {
-		int index = _coupons.getSelectionIndex();
-		if (_newCoupon.getText().length > 0 && index >= 0) {
-			foreach (i, itm; _coupons.getItems()) {
-				if (_newCoupon.getText() == (cast(Coupon) itm.getData()).name && i != index) {
-					_coupons.select(i);
-					return;
-				}
-			}
-			storeCoupons();
-			auto itm = _coupons.getItem(index);
-			auto coupon = new Coupon(_newCoupon.getText(), _couponVal.getSelection());
-			itm.setImage(0, couponImage(coupon.value));
-			itm.setText(0, coupon.name);
-			itm.setText(1, to!(string)(coupon.value));
-			itm.setData(coupon);
-			applyEnabled();
-			_comm.refreshToolBar();
-		}
-	}
-	void delCoupon() {
-		int i = _coupons.getSelectionIndex();
-		if (i >= 0) {
-			delCoupon(i);
-		}
-	}
-	void delCoupon(int i) {
-		storeCoupons();
-		_coupons.remove(i);
-		if (i >= _coupons.getItemCount()) i--;
-		if (i >= 0) {
-			_coupons.select(i);
-			selCoupon();
-		}
-		applyEnabled();
-		_comm.refreshToolBar();
-	}
-	void selCoupon() {
-		auto i = _coupons.getSelectionIndex();
-		if (-1 != i) {
-			auto c = cast(Coupon) _coupons.getItem(i).getData();
-			_newCoupon.setText(c.name);
-			_newCouponTM.reset();
-			_couponVal.setSelection(c.value);
-			_couponHide.setSelection(_prop.sys.isCouponType(c.name, CouponType.Hide));
-		}
-		_comm.refreshToolBar();
-	}
-	void swapCoupon(int index1, int index2) {
-		auto itm1 = _coupons.getItem(index1);
-		auto itm2 = _coupons.getItem(index2);
-		auto img = itm1.getImage();
-		auto text1 = itm1.getText(0);
-		auto text2 = itm1.getText(1);
-		auto data = itm1.getData();
-		itm1.setImage(itm2.getImage());
-		itm1.setText(0, itm2.getText(0));
-		itm1.setText(1, itm2.getText(1));
-		itm1.setData(itm2.getData());
-		itm2.setImage(img);
-		itm2.setText(0, text1);
-		itm2.setText(1, text2);
-		itm2.setData(data);
-		applyEnabled();
-	}
-	void upCoupon() {
-		int index = _coupons.getSelectionIndex();
-		if (index > 0) {
-			storeCoupons();
-			swapCoupon(index, index - 1);
-			_coupons.select(index - 1);
-			_comm.refreshToolBar();
-		}
-	}
-	void downCoupon() {
-		int index = _coupons.getSelectionIndex();
-		if (index >= 0 && index + 1 < _coupons.getItemCount()) {
-			storeCoupons();
-			swapCoupon(index, index + 1);
-			_coupons.select(index + 1);
-			_comm.refreshToolBar();
-		}
-	}
-
-	class CDropListener : DropTargetAdapter {
-		override void dragEnter(DropTargetEvent e){
-			e.detail = DND.DROP_MOVE;
-		}
-		override void dragOver(DropTargetEvent e){
-			e.detail = DND.DROP_MOVE;
-		}
-		override void drop(DropTargetEvent e){
-			if (!isXMLBytes(e.data)) return;
-			e.detail = DND.DROP_NONE;
-			string xml = bytesToXML(e.data);
-			try {
-				auto node = XNode.parse(xml);
-				if (node.name != Coupon.XML_NAME) return;
-				scope p = (cast(DropTarget) e.getSource()).getControl().toControl(e.x, e.y);
-				storeCoupons();
-				auto t = _coupons.getItem(p);
-				int index = t ? _coupons.indexOf(t) : _coupons.getItemCount();
-				appendCoupon(Coupon.fromNode(node, LATEST_VERSION), index);
-				if (_id == node.attr("paneId", false)) {
-					_coupons.select(index);
-					e.detail = DND.DROP_MOVE;
-				}
-				applyEnabled();
-				_comm.refreshToolBar();
-			} catch (Exception e) {
-				debugln(e);
-			}
-		}
-	}
-	class CDragListener : DragSourceAdapter {
-		private TableItem _itm;
-		override void dragStart(DragSourceEvent e) {
-			e.doit = (cast(DragSource) e.getSource()).getControl().isFocusControl();
-		}
-		override void dragSetData(DragSourceEvent e){
-			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
-				auto c = cast(Table) (cast(DragSource) e.getSource()).getControl();
-				int index = c.getSelectionIndex();
-				if (index >= 0) {
-					auto cp = cast(Coupon) c.getItem(index).getData();
-					auto node = cp.toNode();
-					node.newAttr("paneId", _id);
-					e.data = bytesFromXML(node.text);
-					_itm = c.getItem(index);
-				}
-			}
-		}
-		override void dragFinished(DragSourceEvent e) {
-			if (e.detail == DND.DROP_MOVE) {
-				_itm.dispose();
-				_coupons.redraw();
-				_comm.refreshToolBar();
-			}
-		}
-	}
-	private class CouponTCPD : TCPD {
-		@property
-		private Coupon selection() {
-			auto i = _coupons.getSelectionIndex();
-			return -1 != i ? cast(Coupon) _coupons.getItem(i).getData() : null;
-		}
-		override void cut(SelectionEvent se) {
-			auto c = selection;
-			if (c) {
-				copy(se);
-				del(se);
-			}
-		}
-		override void copy(SelectionEvent se) {
-			auto c = selection;
-			if (c) {
-				XMLtoCB(_prop, _comm.clipboard, c.toNode().text);
-				_comm.refreshToolBar();
-			}
-		}
-		override void paste(SelectionEvent se) {
-			auto xml = CBtoXML(_comm.clipboard);
-			if (xml) {
-				try {
-					auto node = XNode.parse(xml);
-					if (node.name == Coupon.XML_NAME) {
-						storeCoupons();
-						auto coupon = Coupon.fromNode(node, LATEST_VERSION);
-						string name = createNewName(coupon.name, (string s) {
-							foreach (itm; _coupons.getItems()) {
-								auto c = cast(Coupon) itm.getData();
-								if (c.name == s) return false;
-							}
-							return true;
-						}, true);
-						appendCoupon(new Coupon(name, coupon.value), _coupons.getSelectionIndex());
-					}
-					applyEnabled();
-				} catch (Exception e) {
-					debugln(e);
-				}
-			}
-		}
-		override void del(SelectionEvent se) {
-			delCoupon();
-		}
-		override void clone(SelectionEvent se) {
-			_comm.clipboard.memoryMode = true;
-			scope (exit) _comm.clipboard.memoryMode = false;
-			copy(se);
-			paste(se);
-		}
-		@property
-		override bool canDoTCPD() {
-			return _coupons.isFocusControl();
-		}
-		@property
-		bool canDoT() {
-			return _coupons.getSelectionIndex() != -1;
-		}
-		@property
-		bool canDoC() {
-			return _coupons.getSelectionIndex() != -1;
-		}
-		@property
-		bool canDoP() {
-			return CBisXML(_comm.clipboard);
-		}
-		@property
-		bool canDoD() {
-			return _coupons.getSelectionIndex() != -1;
-		}
-		@property
-		bool canDoClone() {
-			return canDoC;
 		}
 	}
 
@@ -630,17 +311,6 @@ private:
 		tab.setText(_prop.msgs.desc);
 		tab.setControl(comp);
 	}
-	class SelCoupon : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
-			selCoupon();
-		}
-	}
-	class HTBTraverse : Listener {
-		override void handleEvent(Event e) {e.doit = true;}
-	}
-	class HTBKeyDown : Listener {
-		override void handleEvent(Event e) {e.doit = true;}
-	}
 	Button createR(Composite parent, string name, int hAlignHint = -1) {
 		auto radio = new Button(parent, SWT.RADIO);
 		mod(radio);
@@ -664,77 +334,12 @@ private:
 		auto skin = _comm.skin;
 		{
 			auto grp = new Group(comp, SWT.NONE);
-			_couponView = grp;
 			grp.setText(_prop.msgs.coupons);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new GridLayout(3, false));
-			auto toolbar = new ToolBar(grp, SWT.FLAT);
-			{
-				_comm.put(toolbar);
-				toolbar.addListener(SWT.Traverse, new HTBTraverse);
-				toolbar.addListener(SWT.KeyDown, new HTBKeyDown);
-				createToolItem2(_comm, toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon, () => _newCoupon.getText().length > 0);
-				createToolItem2(_comm, toolbar, _prop.msgs.altCoupon, _prop.images.altCoupon, &altCoupon, () => _newCoupon.getText().length > 0 && _coupons.getSelectionIndex() != -1);
-				createToolItem2(_comm, toolbar, _prop.msgs.delCoupon, _prop.images.couponDelete, &delCoupon, () => _coupons.getSelectionIndex() != -1);
-				new ToolItem(toolbar, SWT.SEPARATOR);
-				createToolItem(_comm, toolbar, MenuID.Up, &upCoupon, () => _coupons.getSelectionIndex() != -1 && 0 < _coupons.getSelectionIndex());
-				createToolItem(_comm, toolbar, MenuID.Down, &downCoupon, () => _coupons.getSelectionIndex() != -1 && _coupons.getSelectionIndex() + 1 < _coupons.getItemCount());
-
-				_couponHide = new Button(grp, SWT.CHECK);
-				auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
-				gd.horizontalSpan = 2;
-				_couponHide.setLayoutData(gd);
-				_couponHide.setText(_prop.msgs.couponHide);
-				.listener(_couponHide, SWT.Selection, {
-					if (_couponHide.getSelection()) {
-						_newCoupon.setText(_prop.sys.convCoupon(_newCoupon.getText(), CouponType.Hide, true));
-					} else {
-						_newCoupon.setText(_prop.sys.convCoupon(_newCoupon.getText(), CouponType.Normal, true));
-					}
-				});
-			}
-			{
-				_newCoupon = new Text(grp, SWT.BORDER);
-				_newCouponTM = createTextMenu!Text(_comm, _prop, _newCoupon, &catchMod);
-				.listener(_newCoupon, SWT.Modify, {
-					_couponHide.setSelection(_prop.sys.isCouponType(_newCoupon.getText(), CouponType.Hide));
-				});
-				auto gd = new GridData(GridData.FILL_HORIZONTAL);
-				gd.horizontalSpan = 2;
-				_newCoupon.setLayoutData(gd);
-				_couponVal = new Spinner(grp, SWT.BORDER);
-				_couponVal.setMinimum(cast(int) _prop.var.etc.couponValueMax * -1);
-				_couponVal.setMaximum(_prop.var.etc.couponValueMax);
-			}
-			{
-				_coupons = new Table(grp, SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
-				auto gd = new GridData(GridData.FILL_BOTH);
-				gd.horizontalSpan = 3;
-				gd.widthHint = _prop.var.etc.couponWidth;
-				_coupons.setLayoutData(gd);
-				auto cc = new FullTableColumn(_coupons, SWT.NONE);
-				auto cv = new TableColumn(_coupons, SWT.NONE);
-				cv.setWidth(40);
-				saveColumnWidth!("prop.var.etc.couponValueColumn")(_prop, cv);
-				auto menu = new Menu(_coupons);
-				createMenuItem(_comm, menu, MenuID.Undo, &undoCoupons, &_undoCoupons.canUndo);
-				createMenuItem(_comm, menu, MenuID.Redo, &redoCoupons, &_undoCoupons.canRedo);
-				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.Up, &upCoupon, () => _coupons.getSelectionIndex() != -1 && 0 < _coupons.getSelectionIndex());
-				createMenuItem(_comm, menu, MenuID.Down, &downCoupon, () => _coupons.getSelectionIndex() != -1 && _coupons.getSelectionIndex() + 1 < _coupons.getItemCount());
-				new MenuItem(menu, SWT.SEPARATOR);
-				appendMenuTCPD(_comm, menu, new CouponTCPD, true, true, true, true, true);
-				_coupons.setMenu(menu);
-			}
-			_coupons.addSelectionListener(new SelCoupon);
-			grp.setTabList([toolbar, _newCoupon, _couponHide, _couponVal, _coupons]);
-
-			auto drag = new DragSource(_coupons, DND.DROP_MOVE | DND.DROP_COPY);
-			drag.setTransfer([XMLBytesTransfer.getInstance()]);
-			drag.addDragListener(new CDragListener);
-			auto drop = new DropTarget(_coupons, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY);
-			drop.setTransfer([XMLBytesTransfer.getInstance()]);
-			drop.addDropListener(new CDropListener);
+			grp.setLayout(new GridLayout(1, true));
+			_couponView = new CouponView!true(_comm, grp, SWT.NONE, &catchMod);
+			_couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
+			mod(_couponView);
 		}
 		{
 			auto comp2 = new Composite(comp, SWT.NONE);
@@ -1312,38 +917,9 @@ private:
 		override void widgetDisposed(DisposeEvent e) {
 			_comm.delCast.remove(&delCard);
 			_comm.refScenario.remove(&refScenario);
-			_comm.refMenu.remove(&refMenu);
 			_comm.refSkin.remove(&refSkin);
-			_comm.refUndoMax.remove(&refUndoMax);
 			_comm.refCoupons.remove(&updateNature);
-			e.widget.getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 		}
-	}
-	class KeyDownFilter : Listener {
-		this () {
-			refMenu(MenuID.Undo);
-			refMenu(MenuID.Redo);
-		}
-		override void handleEvent(Event e) {
-			auto c = cast(Control) e.widget;
-			if (!c || c.getShell() !is getShell()) return;
-			if (isDescendant(_couponView, c)) {
-				if (c.getMenu() && findMenu(c.getMenu(), e.keyCode, e.character, e.stateMask)) return;
-				if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
-					_undoCoupons.undo();
-					e.doit = false;
-				} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) {
-					_undoCoupons.redo();
-					e.doit = false;
-				}
-			}
-		}
-	}
-	private int _undoAcc;
-	private int _redoAcc;
-	void refMenu(MenuID id) {
-		if (id == MenuID.Undo) _undoAcc = convertAccelerator(_prop.buildMenu(MenuID.Undo));
-		if (id == MenuID.Redo) _redoAcc = convertAccelerator(_prop.buildMenu(MenuID.Redo));
 	}
 	void refSkin() {
 		_desc.font = dwtData(_prop.looks.cardDescFont(_summ.legacy));
@@ -1379,10 +955,6 @@ private:
 			auto name = _comm.skin.makingsName(m);
 			b.setText(_prop.msgs.makings.get(name, name));
 		}
-	}
-
-	void refUndoMax() {
-		_undoCoupons.max = _prop.var.etc.undoMaxEtc;
 	}
 
 	void updateNature() {
@@ -1446,14 +1018,13 @@ private:
 			_natureComp.getParent().getParent().layout(true);
 			if (_showSpNature) {
 				if (_natureU.getSelection()) {
-					cp: foreach (i, itm; _coupons.getItems()) {
-						auto cp = cast(Coupon) itm.getData();
+					cp: foreach (i, cp; _couponView.coupons) {
 						if (0 == cp.value) {
 							foreach (n; NATURE_EXT) {
 								if (cp.name == _comm.skin.natureCoupon(n)) {
 									_nature[n].setSelection(true);
 									_natureU.setSelection(false);
-									delCoupon(i);
+									_couponView.delCoupon(i);
 									break cp;
 								}
 							}
@@ -1462,7 +1033,7 @@ private:
 				}
 			} else {
 				if (_natureU.getSelection() && "" != nature) {
-					addCoupon(new Coupon(nature, 0));
+					_couponView.addCoupon(new Coupon(nature, 0));
 				}
 			}
 		}
@@ -1475,7 +1046,6 @@ public:
 		_summ = summ;
 		_card = card;
 		_prop = prop;
-		_undoCoupons = new UndoManager(_prop.var.etc.undoMaxEtc);
 		super(prop, shell, false, _card ? .tryFormat(_prop.msgs.dlgTitCast, _card.name) : _prop.msgs.dlgTitNewCast,
 			_prop.images.casts, true, _prop.var.castCardDlg, true);
 	}
@@ -1504,13 +1074,9 @@ protected:
 
 		_comm.delCast.add(&delCard);
 		_comm.refScenario.add(&refScenario);
-		_comm.refMenu.add(&refMenu);
 		_comm.refSkin.add(&refSkin);
-		_comm.refUndoMax.add(&refUndoMax);
 		_comm.refCoupons.add(&updateNature);
 		area.addDisposeListener(new Dispose);
-		_kdFilter = new KeyDownFilter();
-		area.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
 
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
 		scope maxSize = new Point(0, 0);
@@ -1531,7 +1097,6 @@ protected:
 		if (_card && _card !is card) return;
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		_undoCoupons.reset();
 		auto skin = _comm.skin;
 		if (_card) {
 			_imgPath.image = _card.path;
@@ -1542,6 +1107,7 @@ protected:
 			_lifeMax.setSelection(_card.lifeMax);
 			bool sex = false, period = false, nature = false;
 			scope makings = new HashSet!(Makings);
+			Coupon[] coupons;
 			cp: foreach (c; _card.coupons) {
 				foreach (s, b; _sex) {
 					if (c.name == skin.sexCoupon(s)) {
@@ -1580,8 +1146,9 @@ protected:
 						}
 					}
 				}
-				appendCoupon(c);
+				coupons ~= new Coupon(c);
 			}
+			_couponView.coupons = coupons;
 			if (!sex) _sexU.setSelection(true);
 			if (!period) _periodU.setSelection(true);
 			if (!nature) _natureU.setSelection(true);
@@ -1671,7 +1238,7 @@ protected:
 		auto skin = _comm.skin;
 		string legacyName = skin.legacyName;
 		alias contains!("a.name == b.name", Coupon, Coupon) cContains;
-		auto tblCoupons = coupons;
+		auto tblCoupons = _couponView.coupons;
 		Coupon[] cs;
 		auto sex = createCoupon!(Sex)(_sex, &skin.sexCoupon);
 		if (sex && !cContains(tblCoupons, sex)) cs ~= sex;
