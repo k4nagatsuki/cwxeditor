@@ -316,6 +316,8 @@ class Msgs : Properties {
 	auto initValue = Msg("initValue", "初期点");
 	auto toneCoupons = Msg("toneCoupons", "口調条件");
 	auto valued = Msg("valued", "評価条件");
+	auto valuedTalkerMaxMin = Msg("valuedTalkerMaxMin", "最大値 = %1$s\n最小値 = %2$s");
+	auto valuedTalkerMaxMinLess0 = Msg("valuedTalkerMaxMinLess0", "最大値 = %1$s\n最小値 = %2$s (発言しない)");
 
 	auto couponHide = Msg("couponHide", "隠蔽クーポン");
 

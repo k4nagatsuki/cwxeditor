@@ -71,19 +71,6 @@ class CouponView(CVType Type) : Composite {
 	private Table _coupons;
 	private ToolBar _toolbar;
 
-	@property
-	void enabled(bool e) {
-		_newCoupon.setEnabled(e);
-		_couponType.setEnabled(e);
-		_couponVal.setEnabled(e);
-		_coupons.setEnabled(e);
-		_toolbar.setEnabled(e);
-	}
-	@property
-	bool enabled() {
-		return _newCoupon.isEnabled();
-	}
-
 	private class UndoCoupons : Undo {
 		private Coupon[] _coupons;
 		private int _selected;
@@ -599,5 +586,27 @@ class CouponView(CVType Type) : Composite {
 		foreach (c; coupons) {
 			appendCoupon(c);
 		}
+	}
+
+	@property
+	void enabled(bool e) {
+		_newCoupon.setEnabled(e);
+		_couponType.setEnabled(e);
+		_couponVal.setEnabled(e);
+		_coupons.setEnabled(e);
+		_toolbar.setEnabled(e);
+	}
+	@property
+	bool enabled() {
+		return _newCoupon.isEnabled();
+	}
+
+	@property
+	void toolTip(string t) {
+		_coupons.setToolTipText(t);
+	}
+	@property
+	string toolTip() {
+		return _coupons.getToolTipText();
 	}
 }

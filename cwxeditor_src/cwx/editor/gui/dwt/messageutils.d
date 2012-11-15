@@ -295,6 +295,22 @@ private:
 	void storeEdit() {
 		_undo ~= new SUndo;
 	}
+	void updateValue() {
+		int max = _initValue.getSelection();
+		int min = max;
+		foreach (cp; _couponView.coupons) {
+			if (cp.value < 0) {
+				min -= cp.value;
+			} else {
+				max += cp.value;
+			}
+		}
+		if (0 >= min) {
+			_couponView.toolTip = .tryFormat(prop.msgs.valuedTalkerMaxMinLess0, max, min);
+		} else {
+			_couponView.toolTip = .tryFormat(prop.msgs.valuedTalkerMaxMin, max, min);
+		}
+	}
 
 	void refreshWarning() {
 		string[] ws;
@@ -786,11 +802,13 @@ protected:
 			_initValue.setMaximum(prop.var.etc.couponValueMax);
 			_initValue.setSelection(0);
 			_initValue.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			.listener(_initValue, SWT.Selection, &updateValue);
 			_couponView = new CouponView!(CVType.Valued)(comm, grp, SWT.NONE, &catchMod);
 			mod(_couponView);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.horizontalSpan = 2;
 			_couponView.setLayoutData(gd);
+			_couponView.modEvent ~= &updateValue;
 		}
 		auto right = new Composite(sash, SWT.NONE);
 		right.setLayout(zeroMarginGridLayout(2, false));
@@ -916,6 +934,7 @@ protected:
 		_rCouponsTM = createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
 
 		initPreview(area, prop.var.dlgPrev);
+		updateValue();
 		refreshWarning();
 	}
 
