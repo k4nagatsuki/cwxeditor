@@ -15,6 +15,7 @@
 	   にした。
 	 - CardWirthNextのキーコード所持分岐に対応。
 	 - CardWirthNextのキーコード発火条件を選択できるようにした。
+	 - CardWirthNextの評価メンバに対応。
 2012年xx月xx日 (2.0)
 2012年xx月xx日 (2.0 RC5)
 	* バグ修正

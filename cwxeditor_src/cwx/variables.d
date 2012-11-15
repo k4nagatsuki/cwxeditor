@@ -134,8 +134,10 @@ class FlexEtcProps : Properties {
 	auto cardsDefaultWrap = Prop!(int, true)("cardsDefaultWrap", 4);
 	auto seKeyCodeSashL = Prop!(int)("seKeyCodeSashL", 4, 2012101100);
 	auto seKeyCodeSashR = Prop!(int)("seKeyCodeSashR", 7, 2012101100);
-	auto talkSashL = Prop!(int)("talkSashL", 1);
-	auto talkSashR = Prop!(int)("talkSashR", 1);
+	auto talkMainSashL = Prop!(int)("talkMainSashL", 3);
+	auto talkMainSashR = Prop!(int)("talkMainSashR", 7);
+	auto talkLeftSashL = Prop!(int)("talkLeftSashL", 4);
+	auto talkLeftSashR = Prop!(int)("talkLeftSashR", 5);
 	auto msgBackR = Prop!(int, true)("msgBackR", 0);
 	auto msgBackG = Prop!(int, true)("msgBackG", 0);
 	auto msgBackB = Prop!(int, true)("msgBackB", 128);

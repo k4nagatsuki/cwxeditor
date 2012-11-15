@@ -312,6 +312,10 @@ class Msgs : Properties {
 	auto endName = Msg("endName", "シナリオ名");
 	auto cardType = Msg("cardType", "カードの種類");
 	auto keyCode = Msg("keyCode", "キーコード");
+	auto talker = Msg("talker", "話者");
+	auto initValue = Msg("initValue", "初期点");
+	auto toneCoupons = Msg("toneCoupons", "口調条件");
+	auto valued = Msg("valued", "評価条件");
 
 	auto couponHide = Msg("couponHide", "隠蔽クーポン");
 
@@ -323,6 +327,15 @@ class Msgs : Properties {
 	auto couponTypeDescSystem = Msg("couponTypeDescSystem", "[＠...] システム");
 	auto couponTypeDescDur = Msg("couponTypeDescDur", "[：...] 時限(点数分の時間経過及びシナリオ終了時に消滅)");
 	auto couponTypeDescDurBattle = Msg("couponTypeDescDurBattle", "[；...] 戦闘中時限(点数分の時間経過及び戦闘終了時に消滅)");
+
+	const string couponTypeName(CouponType id) {
+		mixin(EnumToStringSwitch!(CouponType, "couponTypeName"));
+	}
+	auto couponTypeNameNormal = Msg("couponTypeNameNormal", "通常");
+	auto couponTypeNameHide = Msg("couponTypeNameHide", "隠蔽");
+	auto couponTypeNameSystem = Msg("couponTypeNameSystem", "システム");
+	auto couponTypeNameDur = Msg("couponTypeNameDur", "時限");
+	auto couponTypeNameDurBattle = Msg("couponTypeNameDurBattle", "戦時");
 
 	auto imageMessage = Msg("imageMessage", "イメージ付きメッセージ");
 	auto noImageMessage = Msg("noImageMessage", "イメージ無しメッセージ");
@@ -1302,6 +1315,7 @@ class Msgs : Properties {
 	auto warningSystemCoupon = Msg("warningSystemCoupon", "%1$sで始まる名前のクーポンを操作する事はできません。");
 	auto warningBranchStatusMental = Msg("warningBranchStatusMental", "%1$sによる状態分岐は、プレイヤーの環境によっては正しく機能しない事があります。");
 	auto warningNoCardSizeImage = Msg("warningNoCardSizeImage", "カードサイズ以外の画像を使用すると、プレイヤーの環境によっては意図したように表示されない事があります。");
+	auto warningValuedTalker = Msg("warningValuedTalker", "評価メンバは、プレイヤーの環境によっては動作しない事があります。");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");

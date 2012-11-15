@@ -32,6 +32,7 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.couponview;
 
 import std.array;
 import std.utf;
@@ -125,6 +126,7 @@ class AbstractMessageDialog : EventDialog {
 		override void handleEvent(Event e) {
 			auto c = cast(Control) e.widget;
 			if (!c || c.getShell() !is getShell()) return;
+			if (!canHookKeyDown(c)) return;
 			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
 				_undo.undo();
 				e.doit = false;
@@ -133,6 +135,9 @@ class AbstractMessageDialog : EventDialog {
 				e.doit = false;
 			}
 		}
+	}
+	protected bool canHookKeyDown(Control fc) {
+		return true;
 	}
 	private int _undoAcc;
 	private int _redoAcc;
@@ -291,6 +296,16 @@ private:
 		_undo ~= new SUndo;
 	}
 
+	void refreshWarning() {
+		string[] ws;
+
+		if (Talker.VALUED is selectedTalker) {
+			ws ~= prop.msgs.warningValuedTalker;
+		}
+
+		warning = ws;
+	}
+
 	string _id;
 
 	Combo _talkers;
@@ -300,7 +315,12 @@ private:
 	Combo _rCouponsList;
 	FixedWidthText _text;
 	TextMenuModify _textTM, _rCouponsTM;
+	CouponView!(CVType.Valued) _couponView;
+	Spinner _initValue;
 
+	protected override bool canHookKeyDown(Control fc) {
+		return !isDescendant(_couponView, fc);
+	}
 	void selectChanged() {
 		bool oldIgnoreMod = ignoreMod;
 		ignoreMod = true;
@@ -460,6 +480,10 @@ private:
 	class SelectTalker : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			refreshPreview();
+			refreshWarning();
+			_couponView.enabled = (Talker.VALUED is selectedTalker);
+			_initValue.setEnabled(_couponView.enabled);
+			comm.refreshToolBar();
 		}
 	}
 	private void refreshDlgList(int index) {
@@ -624,12 +648,20 @@ private:
 			comm.refreshToolBar();
 		}
 	}
-	class Dispose : DisposeListener {
+	class DisposeLeftSash : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			auto sash = cast(SplitPane) e.widget;
 			auto ws = sash.getWeights();
-			prop.var.etc.talkSashL = ws[0];
-			prop.var.etc.talkSashR = ws[1];
+			prop.var.etc.talkLeftSashL = ws[0];
+			prop.var.etc.talkLeftSashR = ws[1];
+		}
+	}
+	class DisposeMainSash : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			auto sash = cast(SplitPane) e.widget;
+			auto ws = sash.getWeights();
+			prop.var.etc.talkMainSashL = ws[0];
+			prop.var.etc.talkMainSashR = ws[1];
 		}
 	}
 
@@ -689,6 +721,7 @@ public:
 		case 0: return Talker.SELECTED;
 		case 1: return Talker.UNSELECTED;
 		case 2: return Talker.RANDOM;
+		case 3: return Talker.VALUED;
 		default: assert (0);
 		}
 	}
@@ -702,12 +735,67 @@ protected:
 		super.setup(area);
 
 		area.setLayout(windowGridLayout(1, true));
-		auto sash = new SplitPane(area, SWT.VERTICAL);
+
+		auto sash = new SplitPane(area, SWT.HORIZONTAL);
 		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto left = new Composite(sash, SWT.NONE);
+		left.setLayout(zeroMarginGridLayout(1, true));
 		{
-			auto comp = new Composite(sash, SWT.NONE);
-			comp.setLayout(new GridLayout(2, false));
-			_dlgsL = new Table(comp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+			auto grp = new Group(left, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			grp.setText(prop.msgs.talker);
+			grp.setLayout(new GridLayout(1, true));
+			_talkers = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(_talkers);
+			_talkers.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			_talkers.add(prop.msgs.talkerName(Talker.SELECTED));
+			_talkers.add(prop.msgs.talkerName(Talker.UNSELECTED));
+			_talkers.add(prop.msgs.talkerName(Talker.RANDOM));
+			_talkers.add(prop.msgs.talkerName(Talker.VALUED));
+			_talkers.addSelectionListener(new SelectTalker);
+		}
+
+		auto leftSash = new SplitPane(left, SWT.VERTICAL);
+		leftSash.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto skin = comm.skin;
+		{
+			auto grp = new Group(leftSash, SWT.NONE);
+			grp.setText(prop.msgs.toneCoupons);
+			grp.setLayout(new GridLayout(1, true));
+			Control tp;
+			if (evt) {
+				tp = createTalkerPane2(grp, comm, prop, summ, evt.dialogs[0].rCoupons, _rCoupons, _rCouponsList);
+			} else {
+				tp = createTalkerPane2(grp, comm, prop, summ, [], _rCoupons, _rCouponsList);
+			}
+			mod(_rCoupons);
+			_rCoupons.addModifyListener(new ModRC);
+			refreshCoupons();
+			tp.setLayoutData(new GridData(GridData.FILL_BOTH));
+		}
+		{
+			auto grp = new Group(leftSash, SWT.NONE);
+			grp.setText(prop.msgs.valued);
+			grp.setLayout(new GridLayout(2, false));
+
+			auto lbl = new Label(grp, SWT.NONE);
+			lbl.setText(prop.msgs.initValue);
+			_initValue = new Spinner(grp, SWT.BORDER);
+			mod(_initValue);
+			_initValue.setMinimum(cast(int) prop.var.etc.couponValueMax * -1);
+			_initValue.setMaximum(prop.var.etc.couponValueMax);
+			_initValue.setSelection(0);
+			_initValue.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			_couponView = new CouponView!(CVType.Valued)(comm, grp, SWT.NONE, &catchMod);
+			mod(_couponView);
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.horizontalSpan = 2;
+			_couponView.setLayoutData(gd);
+		}
+		auto right = new Composite(sash, SWT.NONE);
+		right.setLayout(zeroMarginGridLayout(2, false));
+		{
+			_dlgsL = new Table(right, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
 			new FullTableColumn(_dlgsL, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = 0;
@@ -735,7 +823,7 @@ protected:
 			appendMenuTCPD(comm, menu, new DialogsTCPD, true, true, true, true, true);
 			_dlgsL.setMenu(menu);
 
-			auto bar = new ToolBar(comp, SWT.FLAT | SWT.VERTICAL);
+			auto bar = new ToolBar(right, SWT.FLAT | SWT.VERTICAL);
 			comm.put(bar);
 			bar.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			bar.addListener(SWT.Traverse, new class Listener {
@@ -754,24 +842,11 @@ protected:
 			createToolItem2(comm, bar, prop.msgs.copyToUpper, prop.images.copyToUpper, &copyToUpper, () => _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex());
 			createToolItem2(comm, bar, prop.msgs.copyToLower, prop.images.copyToLower, &copyToLower, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount());
 		}
-		auto skin = comm.skin;
 		{
-			auto comp = new Composite(sash, SWT.NONE);
-			comp.setLayout(new GridLayout(2, false));
-			Control tp;
-			if (evt) {
-				tp = createTalkerPane2(comp, comm, prop, summ, evt.talkerNC, evt.dialogs[0].rCoupons, _talkers, _rCoupons, _rCouponsList);
-			} else {
-				tp = createTalkerPane2(comp, comm, prop, summ, Talker.SELECTED, [], _talkers, _rCoupons, _rCouponsList);
-			}
-			mod(_talkers);
-			mod(_rCoupons);
-			_talkers.addSelectionListener(new SelectTalker);
-			_rCoupons.addModifyListener(new ModRC);
-			refreshCoupons();
-			tp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			auto msgComp = new Composite(comp, SWT.NONE);
-			msgComp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+			auto msgComp = new Composite(right, SWT.NONE);
+			auto gd = new GridData(GridData.FILL_HORIZONTAL);
+			gd.horizontalSpan = 2;
+			msgComp.setLayoutData(gd);
 			msgComp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 			_text = createMessagePane(comm, prop, true, msgComp, summ);
 			mod(_text.widget);
@@ -795,8 +870,10 @@ protected:
 		.listener(_rCouponsList, SWT.Dispose, {
 			comm.refCoupons.remove(&refreshCoupons);
 		});
-		sash.addDisposeListener(new Dispose);
-		sash.setWeights([prop.var.etc.talkSashL, prop.var.etc.talkSashR]);
+		leftSash.setWeights([prop.var.etc.talkLeftSashL, prop.var.etc.talkLeftSashR]);
+		leftSash.addDisposeListener(new DisposeLeftSash);
+		sash.setWeights([prop.var.etc.talkMainSashL, prop.var.etc.talkMainSashR]);
+		sash.addDisposeListener(new DisposeMainSash);
 		auto kdFilter = new KeyDownFilter;
 		area.getDisplay().addFilter(SWT.KeyDown, kdFilter);
 		comm.refMenu.add(&refMenu);
@@ -808,10 +885,29 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (evt) {
+			switch (evt.talkerNC) {
+			case Talker.SELECTED:
+				_talkers.select(0);
+				break;
+			case Talker.UNSELECTED:
+				_talkers.select(1);
+				break;
+			case Talker.RANDOM:
+				_talkers.select(2);
+				break;
+			case Talker.VALUED:
+				_talkers.select(3);
+				break;
+			default:
+				_talkers.select(0);
+			}
 			foreach (dlg; evt.dialogs) {
 				_dlgs ~= new SDialog(dlg.text, dlg.rCoupons);
 			}
+			_couponView.coupons = evt.coupons;
+			_initValue.setSelection(evt.initValue);
 		} else {
+			_talkers.select(0);
 			_dlgs = [new SDialog];
 		}
 		refreshDlgList();
@@ -820,12 +916,20 @@ protected:
 		_rCouponsTM = createTextMenu!Text(comm, prop, _text.widget, &catchMod, _undo, TMAppendData(&readAPD, &writeAPD));
 
 		initPreview(area, prop.var.dlgPrev);
+		refreshWarning();
 	}
 
 	override bool apply() {
 		if (!evt) evt = new Content(CType.TALK_DIALOG, "");
 		evt.dialogs = _dlgs;
 		evt.talkerNC = selectedTalker;
+		if (Talker.VALUED is evt.talkerNC) {
+			evt.coupons = _couponView.coupons;
+			evt.initValue = _initValue.getSelection();
+		} else {
+			evt.coupons = [];
+			evt.initValue = 0;
+		}
 		comm.refCoupons.call();
 		return true;
 	}
@@ -1023,32 +1127,10 @@ protected:
 	}
 }
 
-private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, Summary summ, Talker talker,
-		string[] coupons, out Combo talkerCombo, out Text couponList, out Combo couponCombo) {
+private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, Summary summ,
+		string[] coupons, out Text couponList, out Combo couponCombo) {
 	auto comp = new Composite(parent, SWT.NONE);
-	comp.setLayout(new GridLayout(2, false));
-	{
-		talkerCombo = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-		auto gd = new GridData(GridData.FILL_HORIZONTAL);
-		gd.horizontalSpan = 2;
-		talkerCombo.setLayoutData(gd);
-		talkerCombo.add(prop.msgs.talkerName(Talker.SELECTED));
-		talkerCombo.add(prop.msgs.talkerName(Talker.UNSELECTED));
-		talkerCombo.add(prop.msgs.talkerName(Talker.RANDOM));
-		switch (talker) {
-		case Talker.SELECTED:
-			talkerCombo.select(0);
-			break;
-		case Talker.UNSELECTED:
-			talkerCombo.select(1);
-			break;
-		case Talker.RANDOM:
-			talkerCombo.select(2);
-			break;
-		default:
-			talkerCombo.select(0);
-		}
-	}
+	comp.setLayout(zeroMarginGridLayout(2, false));
 	couponCombo = new Combo(comp, SWT.DROP_DOWN | SWT.BORDER);
 	couponCombo.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 	createTextMenu!Combo(comm, prop, couponCombo, null);

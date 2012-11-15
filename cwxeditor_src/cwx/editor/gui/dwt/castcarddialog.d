@@ -57,7 +57,7 @@ private:
 	GBLimitText _name;
 	Spinner _level;
 	Spinner _lifeMax;
-	CouponView!true _couponView;
+	CouponView!(CVType.Cast) _couponView;
 	Combo _race;
 	Button[Sex] _sex;
 	Button _sexU;
@@ -337,7 +337,7 @@ private:
 			grp.setText(_prop.msgs.coupons);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new GridLayout(1, true));
-			_couponView = new CouponView!true(_comm, grp, SWT.NONE, &catchMod);
+			_couponView = new CouponView!(CVType.Cast)(_comm, grp, SWT.NONE, &catchMod);
 			_couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
 			mod(_couponView);
 		}
