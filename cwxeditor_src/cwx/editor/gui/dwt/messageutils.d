@@ -488,6 +488,11 @@ private:
 		}
 		dlg.rCoupons = rcs;
 	}
+	void updateTalker() {
+		_couponView.enabled = (Talker.VALUED is selectedTalker);
+		_initValue.setEnabled(_couponView.enabled);
+		comm.refreshToolBar();
+	}
 	class SelL : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			selectChanged();
@@ -497,9 +502,7 @@ private:
 		override void widgetSelected(SelectionEvent e) {
 			refreshPreview();
 			refreshWarning();
-			_couponView.enabled = (Talker.VALUED is selectedTalker);
-			_initValue.setEnabled(_couponView.enabled);
-			comm.refreshToolBar();
+			updateTalker();
 		}
 	}
 	private void refreshDlgList(int index) {
@@ -800,7 +803,7 @@ protected:
 			mod(_initValue);
 			_initValue.setMinimum(cast(int) prop.var.etc.couponValueMax * -1);
 			_initValue.setMaximum(prop.var.etc.couponValueMax);
-			_initValue.setSelection(0);
+			_initValue.setSelection(1);
 			_initValue.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			.listener(_initValue, SWT.Selection, &updateValue);
 			_couponView = new CouponView!(CVType.Valued)(comm, grp, SWT.NONE, &catchMod);
@@ -935,6 +938,7 @@ protected:
 
 		initPreview(area, prop.var.dlgPrev);
 		updateValue();
+		updateTalker();
 		refreshWarning();
 	}
 

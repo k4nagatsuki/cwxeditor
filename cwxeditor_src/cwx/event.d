@@ -1522,7 +1522,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(KeyCodeUser, string, "keyCode", "", ".keyCode", ".keyCode", true);
 
 	/// 評価メンバ初期値(CardWirthNext)。
-	mixin Prop!(int, "initValue", 0);
+	mixin Prop!(int, "initValue", 1);
 
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
