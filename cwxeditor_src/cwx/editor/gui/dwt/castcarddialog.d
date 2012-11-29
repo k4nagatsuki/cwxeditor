@@ -1725,6 +1725,8 @@ protected:
 		foreach (enh, spn; _enhRound) {
 			if (_card.enhance(enh) != 0) {
 				_card.enhanceRound(enh, spn.getSelection());
+			} else {
+				_card.enhanceRound(enh, 0);
 			}
 		}
 		_card.paralyze = _paralyze.getSelection();

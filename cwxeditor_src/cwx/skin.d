@@ -48,6 +48,14 @@ BgImage[] createBgImages(in Skin skin, in BgImageS[] bgs) {
 	return r;
 }
 
+/// リソースのマスク方式。
+enum MaskType {
+	NoMask, /// 背景を透明にしない。
+	NormalMask, /// 左上のピクセルを透明色にする。
+	RightMask, /// 右上のピクセルを透明色にする。
+	Mask1_1, /// (1, 1)のピクセルを透明色にする。
+}
+
 /// シナリオの外観の情報。
 class Skin {
 	/// 設定に該当するスキンを探す。
@@ -307,46 +315,81 @@ class Skin {
 
 	/// リソース画像のパス。
 	const
-	string resSummary(out bool mask, out bool rMask) {
+	string resSummary(out MaskType maskType) {
+		maskType = MaskType.NoMask;
 		return buildPath(tableDir, setExtension("Bill", _legacyPath.length ? extImage : resExtImage));
 	}
 	/// ditto
 	const
-	string resMenuCard(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "NORMAL"), resExtImage));}
+	string resMenuCard(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "NORMAL"), resExtImage));
+	}
 
 	/// ditto
 	const
-	string resCastCard(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "LARGE"), resExtImage));}
+	string resCastCard(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "LARGE"), resExtImage));
+	}
 	/// ditto
 	const
-	string resCastCardInjury(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "INJURY"), resExtImage));}
+	string resCastCardInjury(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "INJURY"), resExtImage));
+	}
 	/// ditto
 	const
-	string resCastCardDanger(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "DANGER"), resExtImage));}
+	string resCastCardDanger(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "DANGER"), resExtImage));
+	}
 	/// ditto
 	const
-	string resCastCardFaint(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "FAINT"), resExtImage));}
+	string resCastCardFaint(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "FAINT"), resExtImage));
+	}
 	/// ditto
 	const
-	string resCastCardBind(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "BIND"), resExtImage));}
+	string resCastCardBind(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "BIND"), resExtImage));
+	}
 	/// ditto
 	const
-	string resCastCardParaly(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "PARALY"), resExtImage));}
+	string resCastCardParaly(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "PARALY"), resExtImage));
+	}
 	/// ditto
 	const
-	string resCastCardPetrif(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "PETRIF"), resExtImage));}
+	string resCastCardPetrif(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "PETRIF"), resExtImage));
+	}
 	/// ditto
 	const
-	string resCastCardSleep(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "SLEEP"), resExtImage));}
+	string resCastCardSleep(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "SLEEP"), resExtImage));
+	}
 	/// ditto
 	const
-	string resLifeBar(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "LIFEBAR"), resExtImage));}
+	string resLifeBar(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("Status", "LIFEBAR"), resExtImage));
+	}
 	/// ditto
 	const
-	string resLifeGuage(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "LIFEGUAGE"), resExtImage));}
+	string resLifeGuage(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("Status", "LIFEGUAGE"), resExtImage));
+	}
 	/// ditto
 	const
-	string resEnhanceUp(out bool mask, out bool rMask, Enhance enh) {
+	string resEnhanceUp(out MaskType maskType, Enhance enh) {
+		maskType = MaskType.Mask1_1;
 		switch (enh) {
 		case Enhance.ACTION: return buildPath(resourceDir, setExtension(buildPath("Status", "UP0"), resExtImage));
 		case Enhance.AVOID: return buildPath(resourceDir, setExtension(buildPath("Status", "UP1"), resExtImage));
@@ -357,7 +400,8 @@ class Skin {
 	}
 	/// ditto
 	const
-	string resEnhanceDown(out bool mask, out bool rMask, Enhance enh) {
+	string resEnhanceDown(out MaskType maskType, Enhance enh) {
+		maskType = MaskType.Mask1_1;
 		switch (enh) {
 		case Enhance.ACTION: return buildPath(resourceDir, setExtension(buildPath("Status", "DOWN0"), resExtImage));
 		case Enhance.AVOID: return buildPath(resourceDir, setExtension(buildPath("Status", "DOWN1"), resExtImage));
@@ -368,7 +412,8 @@ class Skin {
 	}
 	/// ditto
 	const
-	string resMentality(out bool mask, out bool rMask, Mentality mtly) {
+	string resMentality(out MaskType maskType, Mentality mtly) {
+		maskType = MaskType.NoMask;
 		switch (mtly) {
 		case Mentality.NORMAL: return buildPath(resourceDir, setExtension(buildPath("Status", "MIND0"), resExtImage));
 		case Mentality.SLEEP: return buildPath(resourceDir, setExtension(buildPath("Status", "MIND1"), resExtImage));
@@ -381,110 +426,147 @@ class Skin {
 	}
 	/// ditto
 	const
-	string resBind(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC0"), resExtImage));}
+	string resBind(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC0"), resExtImage));
+	}
 	/// ditto
 	const
-	string resSilence(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC1"), resExtImage));}
+	string resSilence(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC1"), resExtImage));
+	}
 	/// ditto
 	const
-	string resFaceUp(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC2"), resExtImage));}
+	string resFaceUp(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC2"), resExtImage));
+	}
 	/// ditto
 	const
-	string resAntiMagic(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC3"), resExtImage));}
+	string resAntiMagic(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC3"), resExtImage));
+	}
 	/// ditto
 	const
-	string resParalyze(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "BODY1"), resExtImage));}
+	string resParalyze(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("Status", "BODY1"), resExtImage));
+	}
 	/// ditto
 	const
-	string resPoison(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "BODY0"), resExtImage));}
+	string resPoison(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("Status", "BODY0"), resExtImage));
+	}
 	/// ditto
 	const
-	string resSummon(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("Status", "SUMMON"), resExtImage));}
+	string resSummon(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("Status", "SUMMON"), resExtImage));
+	}
 
 	/// ditto
 	const
-	string resItemCard(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "ITEM"), resExtImage));}
+	string resItemCard(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "ITEM"), resExtImage));
+	}
 	/// ditto
 	const
-	string resSkillCard(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "SKILL"), resExtImage));}
+	string resSkillCard(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "SKILL"), resExtImage));
+	}
 	/// ditto
 	const
-	string resBeastCard(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "BEAST"), resExtImage));}
+	string resBeastCard(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "BEAST"), resExtImage));
+	}
 	/// ditto
 	const
-	string resInfoCard(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "INFO"), resExtImage));}
+	string resInfoCard(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "INFO"), resExtImage));
+	}
 	/// ditto
 	const
-	string resCardHold(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "HOLD"), resExtImage));}
+	string resCardHold(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "HOLD"), resExtImage));
+	}
 	/// ditto
 	const
-	string resCardPenalty(out bool mask, out bool rMask) {return buildPath(resourceDir, setExtension(buildPath("CardBg", "PENALTY"), resExtImage));}
+	string resCardPenalty(out MaskType maskType) {
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "PENALTY"), resExtImage));
+	}
 	/// ditto
 	const
-	string resRare(out bool mask, out bool rMask) {
-		mask = true;
-		rMask = true;
+	string resRare(out MaskType maskType) {
+		maskType = MaskType.RightMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "RARE"), resExtImage));
 	}
 	/// ditto
 	const
-	string resPremier(out bool mask, out bool rMask) {
-		mask = true;
-		rMask = true;
+	string resPremier(out MaskType maskType) {
+		maskType = MaskType.RightMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "PREMIER"), resExtImage));
 	}
 	/// ditto
 	const
-	string resAptVeryHigh(out bool mask, out bool rMask) {
-		mask = true;
+	string resAptVeryHigh(out MaskType maskType) {
+		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND3"), resExtImage));
 	}
 	/// ditto
 	const
-	string resAptHigh(out bool mask, out bool rMask) {
-		mask = true;
+	string resAptHigh(out MaskType maskType) {
+		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND2"), resExtImage));
 	}
 	/// ditto
 	const
-	string resAptNormal(out bool mask, out bool rMask) {
-		mask = true;
+	string resAptNormal(out MaskType maskType) {
+		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND1"), resExtImage));
 	}
 	/// ditto
 	const
-	string resAptLow(out bool mask, out bool rMask) {
-		mask = true;
+	string resAptLow(out MaskType maskType) {
+		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND0"), resExtImage));
 	}
 	/// ditto
 	const
-	string resUse0(out bool mask, out bool rMask) {
-		mask = true;
+	string resUse0(out MaskType maskType) {
+		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND5"), resExtImage));
 	}
 	/// ditto
 	const
-	string resUse1(out bool mask, out bool rMask) {
-		mask = true;
+	string resUse1(out MaskType maskType) {
+		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND6"), resExtImage));
 	}
 	/// ditto
 	const
-	string resUse2(out bool mask, out bool rMask) {
-		mask = true;
+	string resUse2(out MaskType maskType) {
+		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND7"), resExtImage));
 	}
 	/// ditto
 	const
-	string resUse3(out bool mask, out bool rMask) {
-		mask = true;
+	string resUse3(out MaskType maskType) {
+		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND8"), resExtImage));
 	}
 	/// ditto
 	const
-	string resUse4(out bool mask, out bool rMask) {
-		mask = true;
+	string resUse4(out MaskType maskType) {
+		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND9"), resExtImage));
 	}
 

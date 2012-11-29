@@ -2898,14 +2898,13 @@ private void writeCast(ref SData d, ref ByteIO f, CastCard c) {
 	f.writeL(cast(uint) c.silenceRound);
 	f.writeL(cast(uint) c.faceUpRound);
 	f.writeL(cast(uint) c.antiMagicRound);
-	f.writeL(cast(int) c.enhance(Enhance.ACTION));
-	f.writeL(cast(uint) c.enhanceRound(Enhance.ACTION));
-	f.writeL(cast(int) c.enhance(Enhance.AVOID));
-	f.writeL(cast(uint) c.enhanceRound(Enhance.AVOID));
-	f.writeL(cast(int) c.enhance(Enhance.RESIST));
-	f.writeL(cast(uint) c.enhanceRound(Enhance.RESIST));
-	f.writeL(cast(int) c.enhance(Enhance.DEFENSE));
-	f.writeL(cast(uint) c.enhanceRound(Enhance.DEFENSE));
+	foreach (enh; [Enhance.ACTION, Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE]) {
+		int val = c.enhance(enh);
+		uint round = c.enhanceRound(enh);
+		if (!val) round = 0;
+		f.writeL(val);
+		f.writeL(round);
+	}
 	f.writeL(cast(uint) c.items.length);
 	foreach (cc; c.items) {
 		writeItem(d, f, cc);

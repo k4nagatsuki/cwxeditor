@@ -1131,10 +1131,36 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 	if (c.faceUpRound > 0) status(faceUp(skin));
 	if (c.antiMagicRound > 0) status(antiMagic(skin));
 	void enh(Enhance enh) {
-		if (c.enhance(enh) > 0 && c.enhanceRound(enh) > 0) {
-			status(enhanceUp(skin, enh));
-		} else if (c.enhance(enh) < 0 && c.enhanceRound(enh) > 0) {
-			status(enhanceDown(skin, enh));
+		void colorBlock(ImageData iData, CRGB rgb) {
+			auto id = new ImageData(iData.width, iData.height, 1, new PaletteData([new RGB(rgb.r, rgb.g, rgb.b), new RGB(0, 0, 0)]));
+			r.append(id, stp, ScaleType.Cut);
+		}
+		auto value = c.enhance(enh);
+		auto round = c.enhanceRound(enh);
+		if (value > 0 && round > 0) {
+			CRGB back;
+			if (prop.var.etc.enhanceHighVal <= value) {
+				back = prop.var.etc.enhanceColorHigh;
+			} else if (prop.var.etc.enhanceMiddleVal <= value) {
+				back = prop.var.etc.enhanceColorMiddle;
+			} else if (1 <= value) {
+				back = prop.var.etc.enhanceColorLow;
+			}
+			auto iData = enhanceUp(skin, enh);
+			colorBlock(iData, back);
+			status(iData);
+		} else if (value < 0 && round > 0) {
+			CRGB back;
+			if (-(cast(int) prop.var.etc.enhanceHighVal) >= value) {
+				back = prop.var.etc.penaltyColorHigh;
+			} else if (-(cast(int) prop.var.etc.enhanceMiddleVal) >= value) {
+				back = prop.var.etc.penaltyColorMiddle;
+			} else if (-1 >= value) {
+				back = prop.var.etc.penaltyColorLow;
+			}
+			auto iData = enhanceDown(skin, enh);
+			colorBlock(iData, back);
+			status(iData);
 		}
 	}
 	enh(Enhance.ACTION);
