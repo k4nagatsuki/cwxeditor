@@ -51,14 +51,18 @@ Skin[string] skinTable(const(Props) prop) {
 	return Skin.table(prop.parent, prop.enginePath);
 }
 
-private static ImageData imgd(string path, bool mask, bool rmask) {
+private static ImageData imgd(string path, MaskType maskType) {
 	mixin FileCache!(ImageData);
 	auto ca = cache(path);
 	if (ca) {
 		return ca.value;
 	} else {
-		auto data = loadImage(path, mask);
-		if (rmask) data.transparentPixel = data.getPixel(data.width - 1, 0);
+		auto data = loadImage(path, maskType is MaskType.NormalMask);
+		if (maskType is MaskType.Mask1_1) {
+			data.transparentPixel = data.getPixel(1, 1);
+		} else if (maskType is MaskType.RightMask) {
+			data.transparentPixel = data.getPixel(data.width - 1, 0);
+		}
 		putCache(path, data);
 		return data;
 	}
@@ -128,14 +132,23 @@ version (Windows) {
 			return data;
 		}
 	}
-	private static ImageData imgr(string legacyEngine, string resName, bool mask, bool rmask) {
+	private static ImageData imgr(string legacyEngine, string resName, MaskType maskType) {
 		mixin FileCache!(ImageData);
 		void setMask(ImageData data) {
-			if (mask) {
+			final switch (maskType) {
+			case MaskType.NoMask:
+				break;
+			case MaskType.NormalMask:
 				data.transparentPixel = data.getPixel(0, 0);
-			}
-			if (rmask) {
+				break;
+			case MaskType.RightMask:
 				data.transparentPixel = data.getPixel(data.width - 1, 0);
+				break;
+			case MaskType.Mask1_1:
+				if (1 < data.width && 1 < data.height) {
+					data.transparentPixel = data.getPixel(1, 1);
+				}
+				break;
 			}
 		}
 
@@ -187,16 +200,16 @@ ImageData loadBgImage(Skin skin, string path) {
 }
 
 private ImageData createImg(T ...)(string lEnginePath, string resName,
-		string delegate(out bool, out bool, T) res, T t) {
-	bool mask, rMask;
-	auto path = res(mask, rMask, t);
+		string delegate(out MaskType, T) res, T t) {
+	MaskType maskType;
+	auto path = res(maskType, t);
 	version (Windows) {
 		if (lEnginePath.length && resName.length) {
-			auto img = imgr(lEnginePath, resName, mask, rMask);
+			auto img = imgr(lEnginePath, resName, maskType);
 			if (img) return img;
 		}
 	}
-	return imgd(path, mask, rMask);
+	return imgd(path, maskType);
 }
 
 ImageData summary(Skin skin) {return createImg("", "", &skin.resSummary);}
@@ -276,10 +289,10 @@ ImageData use2(Skin skin) {return createImg(skin.legacyEngine, "STONE_HAND7", &s
 ImageData use3(Skin skin) {return createImg(skin.legacyEngine, "STONE_HAND8", &skin.resUse3);}
 ImageData use4(Skin skin) {return createImg(skin.legacyEngine, "STONE_HAND9", &skin.resUse4);}
 
-private ImageData createImg(T ...)(string delegate(out bool, out bool, T) res, T t) {
-	bool mask, rMask;
-	auto path = res(mask, rMask, t);
-	return imgd(path, mask, rMask);
+private ImageData createImg(T ...)(string delegate(out MaskType, T) res, T t) {
+	MaskType maskType;
+	auto path = res(maskType, t);
+	return imgd(path, maskType);
 }
 
 /// 特殊文字の画像。
@@ -306,13 +319,13 @@ ImageData spChar(Skin skin, dchar c) {
 	case 'Z', 'z': res = "FONT_ZAP"; break;
 	default: res = "";
 	}
-	return createImg(skin.legacyEngine, res, delegate string (out bool mask, out bool rMask) {
+	return createImg(skin.legacyEngine, res, delegate string (out MaskType maskType) {
 		auto p = c in skin.spChars;
 		if (p) {
-			mask = true;
-			rMask = false;
+			maskType = MaskType.NormalMask;
 			return *p;
 		} else {
+			maskType = MaskType.NoMask;
 			return null;
 		}
 	});
