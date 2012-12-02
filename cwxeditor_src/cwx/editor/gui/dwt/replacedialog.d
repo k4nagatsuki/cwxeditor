@@ -142,6 +142,7 @@ private:
 	CTabItem _tabGrep;
 	Button _find;
 	Button _replace;
+	Button _close;
 	Button _rangeAllCheck;
 
 	bool ignoreMod = false;
@@ -464,6 +465,7 @@ private:
 			setupIDs();
 			setupPaths();
 			_comm.refreshToolBar();
+			updateDefaultButton();
 		}
 	}
 	class SelID : SelectionAdapter {
@@ -473,6 +475,7 @@ private:
 			auto combo = cast(Combo) e.widget;
 			_spn.setEnabled(combo.getSelectionIndex() == 0);
 			_comm.refreshToolBar();
+			updateDefaultButton();
 		}
 	}
 	class SelIDKind : SelectionAdapter {
@@ -480,6 +483,7 @@ private:
 			setupIDs();
 			_prop.var.etc.searchIDKind = _idKind.getSelectionIndex();
 			_comm.refreshToolBar();
+			updateDefaultButton();
 		}
 	}
 	private void tabChanged() {
@@ -512,6 +516,7 @@ private:
 		_range.setEnabled(sel !is _tabUnuse && sel !is _tabGrep);
 		_rangeAllCheck.setEnabled(_range.getEnabled());
 		_comm.refreshToolBar();
+		updateDefaultButton();
 	}
 	class TSListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -1199,6 +1204,7 @@ private:
 		}
 		_range.showSelection();
 		_comm.refreshToolBar();
+		updateDefaultButton();
 	}
 	void refreshRangeAllCheck() {
 		bool recurse(TreeItem itm) {
@@ -1280,6 +1286,7 @@ public:
 		}
 		_undo.reset();
 		_comm.refreshToolBar();
+		updateDefaultButton();
 	}
 
 	void open() {
@@ -1471,15 +1478,15 @@ public:
 			}
 			_find = createButton(_prop.msgs.search, &search);
 			_comm.put(_find, &canFind);
-			_win.setDefaultButton(_find);
 			_replace = createButton(_prop.msgs.replace, &replace);
 			_comm.put(_replace, &canReplace);
-			createButton(_prop.msgs.replaceExit, &exit);
+			_close = createButton(_prop.msgs.replaceExit, &exit);
 			auto cancel = createButton(_prop.msgs.searchCancel, {
 				_cancel = true;
 				resultRedraw(true);
 			});
 			_comm.put(cancel, &canCancel);
+			updateDefaultButton();
 		}
 
 		ignoreMod = true;
@@ -1652,6 +1659,14 @@ public:
 		intoDisplay(x, y, width, height);
 		_win.setBounds(x, y, width, height);
 	}
+	private void updateDefaultButton() {
+		if (!_find || !_close) return;
+//		if (_find.isEnabled()) {
+			_win.setDefaultButton(_find);
+//		} else {
+//			_win.setDefaultButton(_close);
+//		}
+	}
 	private void saveWin() {
 		auto winProps = _prop.var.replaceDlg;
 		if (!_win.getMaximized()) {
@@ -1817,11 +1832,15 @@ public:
 			_cancel = true;
 		} else {
 			_comm.refreshToolBar();
+			updateDefaultButton();
 		}
 	}
 	private void undo() {
 		if (!_undo.canUndo) return;
-		scope (exit) _comm.refreshToolBar();
+		scope (exit) {
+			_comm.refreshToolBar();
+			updateDefaultButton();
+		}
 		_inProc = true;
 		scope (exit) _inProc = false;
 		_inUndo = true;
@@ -1836,7 +1855,10 @@ public:
 	}
 	private void redo() {
 		if (!_undo.canRedo) return;
-		scope (exit) _comm.refreshToolBar();
+		scope (exit) {
+			_comm.refreshToolBar();
+			updateDefaultButton();
+		}
 		_inProc = true;
 		scope (exit) _inProc = false;
 		_inUndo = true;
@@ -1875,6 +1897,7 @@ public:
 			_status.setText(_prop.msgs.searchResultEmpty);
 		}
 		_comm.refreshToolBar();
+		updateDefaultButton();
 	}
 	@property
 	private bool canFind() {
@@ -1977,6 +2000,7 @@ public:
 		_rUndo = [];
 		_after = [];
 		_comm.refreshToolBar();
+		updateDefaultButton();
 	}
 	@property
 	private CWXPath[] searchRange() {
@@ -2249,6 +2273,7 @@ public:
 
 		_inProc = true;
 		_comm.refreshToolBar();
+		updateDefaultButton();
 		auto cursors = setWaitCursors(_win);
 		auto thr = new core.thread.Thread({
 			auto exit = new class Runnable {
@@ -2286,6 +2311,7 @@ public:
 
 		_inProc = true;
 		_comm.refreshToolBar();
+		updateDefaultButton();
 		auto cursors = setWaitCursors(_win);
 		bool[CType] contents;
 		foreach (type; EnumMembers!CType) {
@@ -2408,6 +2434,7 @@ public:
 
 		_inProc = true;
 		_comm.refreshToolBar();
+		updateDefaultButton();
 		auto cursors = setWaitCursors(_win);
 		auto thr = new core.thread.Thread({
 			auto exit = new class Runnable {
@@ -2758,6 +2785,7 @@ public:
 
 		_inProc = true;
 		_comm.refreshToolBar();
+		updateDefaultButton();
 		auto cursors = setWaitCursors(_win);
 		auto thr = new core.thread.Thread({
 			auto exit = new class Runnable {
@@ -2940,6 +2968,7 @@ public:
 		bool jptx = _jptx.getSelection();
 		_inProc = true;
 		_comm.refreshToolBar();
+		updateDefaultButton();
 		addHist(_from, (string[] s) {_prop.var.etc.searchHistories = s;},
 			{return _prop.var.etc.searchHistories.dup;},
 			_prop.var.etc.searchHistoryMax, from);
@@ -3123,6 +3152,7 @@ public:
 		_inProc = true;
 		_inGrep = true;
 		_comm.refreshToolBar();
+		updateDefaultButton();
 		addHist(_from, (string[] s) {_prop.var.etc.searchHistories = s;},
 			{return _prop.var.etc.searchHistories.dup;},
 			_prop.var.etc.searchHistoryMax, from);
@@ -3312,6 +3342,7 @@ public:
 		auto text = new ArrayWrapperString(std.string.join(t, .newline));
 		_comm.clipboard.setContents([text], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
+		updateDefaultButton();
 	}
 	private void addResult(string path, ref size_t count, string desc = "") {
 		if (cancel) return;
