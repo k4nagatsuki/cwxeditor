@@ -1661,11 +1661,7 @@ public:
 	}
 	private void updateDefaultButton() {
 		if (!_find || !_close) return;
-//		if (_find.isEnabled()) {
-			_win.setDefaultButton(_find);
-//		} else {
-//			_win.setDefaultButton(_close);
-//		}
+		_win.setDefaultButton(_find);
 	}
 	private void saveWin() {
 		auto winProps = _prop.var.replaceDlg;
