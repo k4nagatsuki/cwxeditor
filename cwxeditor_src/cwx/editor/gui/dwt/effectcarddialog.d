@@ -639,7 +639,7 @@ private:
 	}
 	void refStandardKeyCodes() {
 		string[] stdKCs = _prop.var.etc.standardKeyCodes.dup;
-		auto cKeyCodes = _card.keyCodes;
+		auto cKeyCodes = _card ? _card.keyCodes: [];
 		foreach (i, combo; _keyCodes) {
 			string text = combo.getText();
 			combo.removeAll();
