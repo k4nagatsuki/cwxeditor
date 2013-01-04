@@ -317,6 +317,7 @@ public:
 	}
 
 	@property
+	override
 	Image image() {
 		static if (is (A == Area)) {
 			static if (WithEventView) {
@@ -335,6 +336,7 @@ public:
 		}
 	}
 	@property
+	override
 	string title() {
 		auto shl = cast(Shell) _win;
 		static if (WithEventView) {
@@ -350,6 +352,7 @@ public:
 		}
 	}
 	@property
+	override
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
 	private void saveWin() {
@@ -385,6 +388,7 @@ public:
 		}
 	}
 	@property
+	override
 	Composite shell() {
 		return _win;
 	}
@@ -532,6 +536,7 @@ public:
 			return false;
 		}
 	}
+	override
 	bool openCWXPath(string path, bool shellActivate) {
 		auto cate = cpcategory(path);
 		if (cpempty(path)) {
@@ -554,6 +559,7 @@ public:
 		return false;
 	}
 	@property
+	override
 	string[] openedCWXPath() {
 		string[] r;
 		static if (WithEventView) {

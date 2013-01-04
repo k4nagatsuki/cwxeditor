@@ -105,7 +105,9 @@ struct XNode {
 		foreach (el; _el.elements) {
 			auto p = el.tag.name in onTag;
 			if (!p) p = null in onTag;
-			if (p) (*p)(XNode(el));
+			XNode node;
+			node._el = el;
+			if (p) (*p)(node);
 		}
 		typeof(onTag) init;
 		onTag = init;

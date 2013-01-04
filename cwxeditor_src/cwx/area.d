@@ -164,8 +164,11 @@ public:
 		pNode.newElement("Size").newAttr("scale", to!(string)(cast(int) rndtol(_scale * 100.0)) ~ "%");
 	}
 	/// 指定されたノードからProperty情報を読み出す。
-	protected static void loadProp(ref XNode pNode,
-			out string flag = "", out int x = 0, out int y = 0, out real scale = 1.0) {
+	protected static void loadProp(ref XNode pNode, out string flag, out int x, out int y, out real scale) {
+		flag = "";
+		x = 0;
+		y = 0;
+		scale = 1.0;
 		assert (pNode.name == "Property", pNode.name ~ " != Property");
 		pNode.onTag["Flag"] = (ref XNode n) {flag = n.value;};
 		pNode.onTag["Location"] = (ref XNode n) {
@@ -1036,6 +1039,7 @@ public:
 			return _owner ? cpjoin(_owner, "area", .cCountUntil!("a is b")(_owner.areas, this), id) : "";
 		}
 	}
+	override
 	CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
@@ -1055,6 +1059,7 @@ public:
 		return super.findCWXPath(path);
 	}
 	@property
+	override
 	CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		r ~= cast(CWXPath[]) cards;
@@ -1426,6 +1431,7 @@ public:
 			return _owner ? cpjoin(_owner, "battle", .cCountUntil!("a is b")(_owner.battles, this), id) : "";
 		}
 	}
+	override
 	CWXPath findCWXPath(string path) {
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
@@ -1440,6 +1446,7 @@ public:
 		return super.findCWXPath(path);
 	}
 	@property
+	override
 	CWXPath[] cwxChilds() {
 		CWXPath[] r;
 		r ~= cast(CWXPath[]) cards;

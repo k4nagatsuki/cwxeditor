@@ -876,6 +876,7 @@ public:
 	}
 
 	@property
+	override
 	Composite shell() {
 		return _win;
 	}
@@ -902,6 +903,7 @@ public:
 	}
 
 	@property
+	override
 	Image image() {
 		final switch (CWKind) {
 		case CardWindowKind.Main: return _prop.images.menu(MenuID.CardView);
@@ -916,6 +918,7 @@ public:
 		}
 	}
 	@property
+	override
 	string title() {
 		auto shl = cast(Shell) _win;
 		if (shl) {
@@ -958,6 +961,7 @@ public:
 		} else static assert (0);
 	}
 	@property
+	override
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
 	void refreshTitle() {
@@ -1405,6 +1409,7 @@ public:
 		}
 		return false;
 	}
+	override
 	bool openCWXPath(string path, bool shellActivate) {
 		auto cate = cpcategory(path);
 		switch (cate) {
@@ -1438,6 +1443,7 @@ public:
 		return false;
 	}
 	@property
+	override
 	string[] openedCWXPath() {
 		string[] r;
 		static if (EditMode) {
@@ -1481,7 +1487,7 @@ private class DelTemp : DisposeListener {
 		}
 	}
 }
-private class AddCard {
+class AddCard {
 private:
 	alias CardWindow!(CardWindowKind.ImportSource, Summary, Summary, Summary, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) ACW;
 	static class AddS {

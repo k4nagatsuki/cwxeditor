@@ -33,13 +33,14 @@ class TableSorter(DataT) {
 		Image[] image;
 		bool select;
 		bool cursor;
+		override
 		int opCmp(Object s) {
 			return compC(this, cast(RowData) s) ? -1 : 1;
 		}
 	}
-	private bool compC(RowData c1, RowData c2) {
-		DataT a = cast(DataT) c1.data;
-		DataT b = cast(DataT) c2.data;
+	private bool compC(in RowData c1, in RowData c2) {
+		auto a = cast(const DataT) c1.data;
+		auto b = cast(const DataT) c2.data;
 		return _col.getParent().getSortDirection() == SWT.UP
 			? _cmp(a, b) : (_revCmp ? _revCmp(a, b) : _cmp(b, a));
 	}

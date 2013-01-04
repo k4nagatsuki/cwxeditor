@@ -730,11 +730,13 @@ public:
 	}
 
 	@property
+	override
 	string text() {
 		return wrapReturnCode(_text.getText());
 	}
 
 	@property
+	override
 	Talker selectedTalker() {
 		switch (_talkers.getSelectionIndex()) {
 		case 0: return Talker.SELECTED;
@@ -746,6 +748,7 @@ public:
 	}
 
 	@property
+	override
 	string imgPath() {
 		return "";
 	}

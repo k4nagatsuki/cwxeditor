@@ -2742,7 +2742,7 @@ protected:
 }
 
 /// キーコード所持判定の設定を行うダイアログ。
-private class BrKeyCodeDialog : EventDialog {
+class BrKeyCodeDialog : EventDialog {
 private:
 	Button[Range] _keyCodeRange;
 	Button[EffectCardType] _effectCardType;

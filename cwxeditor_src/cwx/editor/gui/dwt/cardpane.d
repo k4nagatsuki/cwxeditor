@@ -45,7 +45,7 @@ import org.eclipse.swt.all;
 
 import java.lang.all;
 
-private enum CViewMode {INIT, LIFE, CARD, TABLE}
+enum CViewMode {INIT, LIFE, CARD, TABLE}
 
 private class CardPane(PCardOwner, CardOwner, C : Card, ToCardOwner) : TCPD {
 private:

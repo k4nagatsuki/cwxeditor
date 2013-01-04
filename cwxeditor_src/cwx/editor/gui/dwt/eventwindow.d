@@ -251,6 +251,7 @@ public:
 		}
 	}
 	@property
+	override
 	Composite shell() {
 		return _win;
 	}
@@ -274,6 +275,7 @@ public:
 		}
 	}
 	@property
+	override
 	Image image() {
 		static if (is (A == Area)) {
 			return _prop.images.areaEventTreeView;
@@ -292,6 +294,7 @@ public:
 		}
 	}
 	@property
+	override
 	string title() {
 		auto shl = cast(Shell) _win;
 		static if (is (A == Area) || is (A == Battle)) {
@@ -307,6 +310,7 @@ public:
 		}
 	}
 	@property
+	override
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 	private void __refreshTitle() {
 		_comm.setTitle(_win, title);
@@ -367,10 +371,12 @@ public:
 			return _eview.canDoClone;
 		}
 	}
+	override
 	bool openCWXPath(string path, bool shellActivate) {
 		return _eview.openCWXPath(path, shellActivate);
 	}
 	@property
+	override
 	string[] openedCWXPath() {
 		return _eview.openedCWXPath;
 	}

@@ -124,10 +124,12 @@ class XMLBytesTransfer : ByteArrayTransfer {
 		return INSTANCE;
 	}
 
+	override
 	int[] getTypeIds() {
 		static_this();
 		return [TYPE_ID];
 	}
+	override
 	string[] getTypeNames() {
 		static_this();
 		return [TYPE_NAME];

@@ -769,6 +769,7 @@ public:
 	/// 画像を描画する。
 	/// Params:
 	/// dc = キャンバス。
+	override
 	void draw(GC gc) {
 		drawImage(gc);
 		drawToggle(gc);
@@ -1048,6 +1049,7 @@ public:
 	}
 
 	/// 全てのリソースを解放する。
+	override
 	void dispose() {
 		super.dispose();
 	}

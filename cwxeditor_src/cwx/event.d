@@ -255,7 +255,7 @@ alias User!(StartId) IStartUser;
 alias UCCont!(StartId, IStartUser) SUseCounter;
 
 /// メッセージやダイアログが持つテキスト。
-private class TextHolder : CWXPath, IPathUser, IFlagUser, IStepUser, ChgPathCallback, ChgFlagCallback, ChgStepCallback {
+class TextHolder : CWXPath, IPathUser, IFlagUser, IStepUser, ChgPathCallback, ChgFlagCallback, ChgStepCallback {
 private:
 	string _text;
 	PathUser[] _fontusers;
@@ -2029,7 +2029,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 }
 
 /// 指定されたXMLノードからtargetmと話者のデータを読み込む。
-private void loadTalker(in XNode node, out Talker talker, out string path = null) {
+private void loadTalker(in XNode node, out Talker talker, out string path) {
+	path = null;
 	string t = node.attr("targetm", false);
 	if (t.length == 0) {
 		auto pathTemp = node.attr("path", false);

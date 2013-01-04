@@ -270,7 +270,8 @@ public:
 			}
 			return "";
 		}
-		string sunzip(string fname, ZipArchive arc, out bool cancel = false) {
+		string sunzip(string fname, ZipArchive arc, out bool cancel) {
+			cancel = false;
 			auto temp = createTempDir(tempPath, baseName(stripExtension(fname)));
 			expandDir = temp;
 			if (expand) {

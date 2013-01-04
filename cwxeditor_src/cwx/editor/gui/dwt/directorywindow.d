@@ -1703,13 +1703,16 @@ public:
 	}
 
 	@property
+	override
 	Composite shell() {return _win;}
 
 	@property
+	override
 	Image image() {
 		return _prop.images.menu(MenuID.FileView);
 	}
 	@property
+	override
 	string title() {
 		auto shl = cast(Shell) _win;
 		if (shl) {
@@ -1718,6 +1721,7 @@ public:
 		return _prop.msgs.dirTabName;
 	}
 	@property
+	override
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
 	void copyFilePath() {
