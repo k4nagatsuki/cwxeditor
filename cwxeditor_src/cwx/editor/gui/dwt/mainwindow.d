@@ -3084,12 +3084,16 @@ public:
 	}
 
 	@property
+	override
 	string title() {return _win.getText();}
 	@property
+	override
 	Image image() {return _win.getImage();}
 	@property
+	override
 	Composite shell() {return _win;}
 	@property
+	override
 	void delegate(string) statusText() {return &_sbshl.statusLine;}
 	@property
 	DockingFolderCTC dock() {return _dock;}
@@ -3167,6 +3171,7 @@ public:
 		return _replDlg;
 	}
 
+	override
 	bool openCWXPath(string path, bool shellActivate) {
 		if (!summary) return false;
 		if (!_win || _win.isDisposed()) return false;
@@ -3248,6 +3253,7 @@ public:
 		return r;
 	}
 	@property
+	override
 	string[] openedCWXPath() {
 		string[] r;
 		if (!_dock) return r;

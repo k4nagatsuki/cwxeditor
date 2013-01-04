@@ -1198,9 +1198,9 @@ public:
 		removeAll(cSteps);
 		return null;
 	}
-	private bool readAtt(in XNode node,
-			out string rootId = null, out string path = null,
-			out bool sameTree = false) {
+	private bool readAtt(in XNode node, out string rootId, out string path, out bool sameTree) {
+		path = null;
+		sameTree = false;
 		rootId = node.attr(XML_ATT_ROOT_ID, false);
 		path = node.attr(XML_ATT_PATH, false);
 		if (rootId !is null && path !is null) {
@@ -1270,7 +1270,8 @@ public:
 		return AppendXmlResult.FAIL;
 	}
 	private AppendXmlResult loadRootFlagDirectory(ref XNode node, string ver, bool copy,
-			out Flag[string] cFlags, out Step[string] cSteps, out string newPath = null) {
+			out Flag[string] cFlags, out Step[string] cSteps, out string newPath) {
+		newPath = null;
 		string rootId;
 		string path;
 		bool sameTree;

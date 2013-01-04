@@ -739,6 +739,7 @@ class CWXScript {
 		bool opEquals(string val) {
 			return kind is CRKind.STR && str == val;
 		}
+		override
 		const
 		string toString() {
 			final switch (kind) {

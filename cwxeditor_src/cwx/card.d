@@ -403,6 +403,7 @@ public:
 		}
 	}
 
+	override
 	const
 	bool opEquals(ref const(Object) o) {
 		auto c = cast(const CastCard) o;
@@ -454,6 +455,7 @@ public:
 	}
 	/// 使用回数カウンタ。
 	@property
+	override
 	void setUseCounter(UseCounter uc) {
 		foreach (c; _items) {
 			c.setUseCounter = uc;
@@ -471,10 +473,12 @@ public:
 	}
 	/// ditto
 	@property
+	override
 	UseCounter useCounter() {
 		return super.useCounter;
 	}
 	/// ditto
+	override
 	void removeUseCounter() {
 		foreach (c; _items) {
 			c.removeUseCounter();
@@ -1044,7 +1048,7 @@ public:
 }
 
 /// スキル・アイテム・召喚獣といった、「効果」のあるカードの親クラス。
-private abstract class EffectCard : Card, EventTreeOwner, MotionOwner, IPathUser {
+abstract class EffectCard : Card, EventTreeOwner, MotionOwner, IPathUser {
 private:
 	string _scenario = "";
 	string _author = "";
@@ -1165,6 +1169,7 @@ public:
 		motions = [];
 	}
 
+	override
 	const
 	bool opEquals(ref const(Object) o) {
 		auto c = cast(const EffectCard) o;
@@ -1622,6 +1627,7 @@ public:
 		useLimit = 0;
 	}
 
+	override
 	const
 	bool opEquals(ref const(Object) o) {
 		auto c = cast(const SkillCard) o;
@@ -1837,6 +1843,7 @@ public:
 		hold = false;
 	}
 
+	override
 	const
 	bool opEquals(ref const(Object) o) {
 		auto c = cast(const ItemCard) o;
@@ -2070,6 +2077,7 @@ public:
 		useLimit = 0;
 	}
 
+	override
 	const
 	bool opEquals(ref const(Object) o) {
 		auto c = cast(const BeastCard) o;
@@ -2230,6 +2238,7 @@ public:
 	/// ditto
 	alias shallowCopy deepCopy;
 
+	override
 	const
 	bool opEquals(ref const(Object) o) {
 		auto c = cast(const InfoCard) o;

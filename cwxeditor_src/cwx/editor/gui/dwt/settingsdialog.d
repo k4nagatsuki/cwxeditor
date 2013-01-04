@@ -1630,11 +1630,12 @@ private:
 				_language.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_language.add(_prop.msgs.languageSystem);
 				_language.select(0);
+				string curLocale = _prop.msgs.locale;
 				foreach (locale; msgsTable.keys.sort) {
 					_language.add(msgsTable[locale].localeName);
 					int index = _language.getItemCount() - 1;
 					_msgsTableIndex[index] = locale;
-					if (!_prop.var.etc.useSystemLanguage && 0 == icmp(_prop.msgs.locale, locale)) {
+					if (!_prop.var.etc.useSystemLanguage && 0 == icmp(curLocale, locale)) {
 						_language.select(index);
 					}
 				}

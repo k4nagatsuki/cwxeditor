@@ -459,7 +459,7 @@ class ErrorDialog : AbsDialog {
 	}
 }
 
-private class ReNumDialog(A) : AbsDialog {
+class ReNumDialog(A) : AbsDialog {
 private:
 	Props _prop;
 	A _area;
@@ -509,7 +509,7 @@ protected:
 	}
 }
 
-private class ScriptVarSetDialog : AbsDialog {
+class ScriptVarSetDialog : AbsDialog {
 private:
 	/// 変数の種類(現在未使用)。
 	enum VarKind {

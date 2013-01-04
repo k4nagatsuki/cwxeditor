@@ -595,7 +595,6 @@ version (Windows) {
 				}
 				if (.cfnmatch(fileName, utfName.baseName())) return true;
 			}
-			return true;
 		} catch (Exception e) {
 			debugln(e);
 		}

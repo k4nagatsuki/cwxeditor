@@ -28,7 +28,7 @@ import std.exception;
 import std.traits;
 import std.stdint;
 import std.stream;
-import std.md5;
+import std.digest.md;
 
 debug {
 	version (Console) {
@@ -666,7 +666,7 @@ class Wildcard {
 
 /// データのMD5ダイジェストを取得する。
 string md5Digest(in void[] data) {
-	return getDigestString([data]);
+	return .toHexString(.md5Of(data));
 }
 /// ファイルのMD5ダイジェストを取得する。
 string fileToMD5Digest(string file) {

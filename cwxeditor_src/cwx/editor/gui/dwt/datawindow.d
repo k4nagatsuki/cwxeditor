@@ -286,6 +286,7 @@ public:
 		}
 	}
 	@property
+	override
 	Composite shell() {return _win;}
 
 	static if (UseArea) {
@@ -401,6 +402,7 @@ public:
 	}
 
 	@property
+	override
 	Image image() {
 		static if (UseArea && UseFlag) {
 			return _prop.images.menu(MenuID.TableView);
@@ -411,6 +413,7 @@ public:
 		} else static assert (0);
 	}
 	@property
+	override
 	string title() {
 		auto shl = cast(Shell) _win;
 		static if (UseArea && UseFlag) {
@@ -431,6 +434,7 @@ public:
 		} else static assert (0);
 	}
 	@property
+	override
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
 	private void __refreshTitle() {
@@ -667,6 +671,7 @@ public:
 		}
 		return false;
 	}
+	override
 	bool openCWXPath(string path, bool shellActivate) {
 		if (cpempty(path)) {
 			static if (UseArea) {
@@ -758,6 +763,7 @@ public:
 		return false;
 	}
 	@property
+	override
 	string[] openedCWXPath() {
 		string[] r;
 		static if (UseArea && UseFlag) {

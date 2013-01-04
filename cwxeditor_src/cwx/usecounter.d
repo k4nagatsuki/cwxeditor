@@ -146,7 +146,7 @@ private mixin template StringId() {
 }
 
 /// フラグのID。
-private struct FlagId {
+struct FlagId {
 	private string id;
 	static FlagId opCall(string id) {
 		FlagId r;
@@ -258,7 +258,7 @@ public:
 }
 
 /// ステップのID。
-private struct StepId {
+struct StepId {
 	private string id;
 	static StepId opCall(string id) {
 		StepId r;
@@ -1181,7 +1181,7 @@ public:
 }
 
 /// クーポンのID。
-private struct CouponId {
+struct CouponId {
 	string id;
 	alias id this;
 	mixin StringId;
@@ -1254,7 +1254,7 @@ public:
 }
 
 /// ゴシップのID。
-private struct GossipId {
+struct GossipId {
 	string id;
 	alias id this;
 	mixin StringId;
@@ -1327,7 +1327,7 @@ public:
 }
 
 /// 終了印のID。
-private struct CompleteStampId {
+struct CompleteStampId {
 	string id;
 	alias id this;
 	mixin StringId;
@@ -1400,7 +1400,7 @@ public:
 }
 
 /// キーコードのID。
-private struct KeyCodeId {
+struct KeyCodeId {
 	string id;
 	alias id this;
 	mixin StringId;

@@ -89,7 +89,7 @@ Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, str
 	return findSkin2(prop, type);
 }
 
-private class Dlg(Arg ...) {
+class Dlg(Arg ...) {
 	private static const ID = "cwx.editor.gui.dwt.commons.Dlg";
 	debug {
 		private string[] _fileDlg;

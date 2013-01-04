@@ -988,7 +988,8 @@ class Skin {
 	///       本体の付属ディレクトリ内であればtrueが入る。
 	/// Returns: ファイルパス。見つからなかった場合は""。
 	const
-	string findImagePathF(string path, string sPath, out bool def = false) {
+	string findImagePathF(string path, string sPath, out bool def) {
+		def = false;
 		return findPathF(path, extImage, tableDir, sPath, def);
 	}
 	/// ditto
@@ -999,7 +1000,8 @@ class Skin {
 	}
 	/// ditto
 	const
-	string findPathF(string path, string ext, string defDir, string sPath, out bool def = false) {
+	string findPathF(string path, string ext, string defDir, string sPath, out bool def) {
+		def = false;
 		if (path.length == 0) return "";
 		if (isBinImg(path)) return path;
 		string p;
