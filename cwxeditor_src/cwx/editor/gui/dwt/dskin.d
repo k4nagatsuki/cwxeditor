@@ -72,8 +72,8 @@ version (Windows) {
 	import std.c.windows.windows;
 	private extern (Windows) {
 		HINSTANCE LoadLibraryExW(LPCWSTR, HANDLE, DWORD);
-		const DWORD LOAD_LIBRARY_AS_DATAFILE = 0x2;
-		const DWORD LOAD_WITH_ALTERED_SEARCH_PATH = 0x8;
+		immutable DWORD LOAD_LIBRARY_AS_DATAFILE = 0x2;
+		immutable DWORD LOAD_WITH_ALTERED_SEARCH_PATH = 0x8;
 		HBITMAP LoadBitmapW(HINSTANCE, LPCWSTR);
 		const DWORD LR_DEFAULTSIZE = 0x0040;
 		LPWSTR MAKEINTRESOURCEW(WORD w) {return cast(LPWSTR) w;}
