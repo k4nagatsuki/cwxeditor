@@ -2023,7 +2023,9 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				int w = tgc.textExtent(s).x - 1;
 				if (rect.width - 6 < x + w) {
 					// 列数オーバー
-					ret();
+					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) {
+						ret();
+					}
 					if (rect.height - 6 < y + lineH) {
 						// 行数オーバー
 						break;
