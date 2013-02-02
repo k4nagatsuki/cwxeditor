@@ -1986,7 +1986,9 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				auto w = (tgc.textExtent(s1).x - 1) + (tgc.textExtent(s2).x - 1);
 				if (rect.width - 6 < x + w) {
 					// 列数オーバー
-					ret();
+					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) {
+						ret();
+					}
 					if (rect.height - 6 < y + lineH) {
 						// 行数オーバー
 						break;
@@ -2118,7 +2120,9 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				auto w = (gc.textExtent(s1).x - 1) + (gc.textExtent(s2).x - 1);
 				if (rect.width - 6 < x + w) {
 					// 列数オーバー
-					ret();
+					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) {
+						ret();
+					}
 					if (rect.height - 6 < y + lineH) {
 						// 行数オーバー
 						break;
@@ -2154,7 +2158,9 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				int w = gc.textExtent(s).x;
 				if (rect.width - 6 < x + w) {
 					// 列数オーバー
-					ret();
+					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) {
+						ret();
+					}
 					if (rect.height - 6 < y + lineH) {
 						// 行数オーバー
 						break;
