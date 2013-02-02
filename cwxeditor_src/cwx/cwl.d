@@ -1487,6 +1487,8 @@ private Battle loadBattle(ref RData d, ref ByteIO f, ulong fid) {
 	}
 	if (d.dataVersion > 0) {
 		r.music = decodePathLegacy(readString(f));
+	} else {
+		r.music = "DefBattle.mid";
 	}
 	return r;
 }
