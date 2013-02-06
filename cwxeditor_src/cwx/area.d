@@ -547,7 +547,7 @@ public:
 		auto pe = e.newElement("Property");
 		pe.newElement("Name", _name);
 		pe.newElement("ImagePath", encodePath(_user.path));
-		pe.newElement("Description", _desc);
+		pe.newElement("Description", encodeLf(_desc));
 		pe.newElement("PCNumber", .text(_pcNumber));
 		appendProp(pe, opt);
 		appendEventsToNode(e, opt);
@@ -572,7 +572,7 @@ public:
 		node.onTag["Property"] = (ref XNode pNode) {
 			pNode.onTag["Name"] = (ref XNode n) {name = n.value;};
 			pNode.onTag["ImagePath"] = (ref XNode n) {path = decodePath(n.value);};
-			pNode.onTag["Description"] = (ref XNode n) {desc = n.value;};
+			pNode.onTag["Description"] = (ref XNode n) {desc = decodeLf2(n.value);};
 			pNode.onTag["PCNumber"] = (ref XNode n) {pcNumber = .to!uint(n.value);};
 			loadProp(pNode, flag, x, y, scale);
 		};
