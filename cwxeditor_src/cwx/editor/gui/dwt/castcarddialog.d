@@ -1678,7 +1678,7 @@ protected:
 		auto race = selectedRace;
 		if (race) {
 			auto rc = new Coupon(_prop.sys.raceCoupon(race.name), 0);
-			if (!cContains(tblCoupons, sex)) cs ~= rc;
+			if (!cContains(tblCoupons, rc)) cs ~= rc;
 		}
 		auto period = createCoupon!(Period)(_period, &skin.periodCoupon);
 		if (period && !cContains(tblCoupons, period)) cs ~= period;
@@ -1687,7 +1687,7 @@ protected:
 		foreach (m, radio; _makings) {
 			if (radio.getSelection()) {
 				auto mc = new Coupon(skin.makingsCoupon(m), 0);
-				if (!cContains(tblCoupons, nature)) cs ~= mc;
+				if (!cContains(tblCoupons, mc)) cs ~= mc;
 			}
 		}
 		cs ~= tblCoupons;
