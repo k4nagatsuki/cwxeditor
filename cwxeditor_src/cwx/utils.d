@@ -28,7 +28,10 @@ import std.exception;
 import std.traits;
 import std.stdint;
 import std.stream;
+/+	// FIXME: 他のバグのためdmd 2.060に戻す
 import std.digest.md;
++/
+import std.md5;
 
 debug {
 	version (Console) {
@@ -666,7 +669,10 @@ class Wildcard {
 
 /// データのMD5ダイジェストを取得する。
 string md5Digest(in void[] data) {
+/+	// FIXME: 他のバグのためdmd 2.060に戻す
 	return .toHexString(.md5Of(data));
++/
+	return getDigestString([data]);
 }
 /// ファイルのMD5ダイジェストを取得する。
 string fileToMD5Digest(string file) {
