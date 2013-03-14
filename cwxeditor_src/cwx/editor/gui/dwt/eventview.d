@@ -567,12 +567,22 @@ private:
 			auto obj = cast(KeyCodeObj) itm.getData();
 			assert (obj);
 			auto p = itm.getParentItem();
+			foreach (child; p.getItems()) {
+				if (itm is child) continue;
+				auto kco = cast(KeyCodeObj) child.getData();
+				if (!kco) continue;
+				if (kco.array == text) {
+					_cards.setSelection([child]);
+					return;
+				}
+			}
 			tree = cast(EventTree) p.getData();
 			auto kcIndex = p.indexOf(itm) - keyCodesIndex(p);
 			if (tree.keyCodes[kcIndex] == text) return;
 			store(tree);
 			tree.setKeyCode(kcIndex, text);
 			itm.setImage(keyCodeImage(text));
+			itm.setText(text);
 			obj.array = text.dup;
 			_comm.refEventTree.call(tree);
 			_comm.refKeyCodes.call();
@@ -880,10 +890,24 @@ private:
 			keyCodeTimImpl(FKCKind.Failure);
 		}
 	}
-	bool curIsKeyCode(FKCKind Kind)() {
+	bool canConvKeyCode(FKCKind Kind)() {
 		auto itm = selectionKeyCode;
 		if (!itm) return false;
-		return Kind !is _prop.sys.fireKeyCodeKind((cast(KeyCodeObj) selectionKeyCode.getData()).array.idup);
+		auto keyCode = (cast(KeyCodeObj) itm.getData()).array.idup;
+		if (Kind is _prop.sys.fireKeyCodeKind(keyCode)) {
+			return false;
+		}
+		auto parItm = itm.getParentItem();
+		auto conv = _prop.sys.convFireKeyCode(keyCode, Kind);
+		foreach (child; parItm.getItems()) {
+			if (child is itm) continue;
+			auto kco = cast(KeyCodeObj) child.getData();
+			if (!kco) continue;
+			if (conv == kco.array) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	void refShowToolBar() {
@@ -1014,9 +1038,9 @@ public:
 						auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => selectionKeyCode !is null, SWT.CASCADE);
 						auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
 						cascade.setMenu(sub);
-						createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &keyCodeTimUse, &curIsKeyCode!(FKCKind.Use));
-						createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &keyCodeTimSuccess, &curIsKeyCode!(FKCKind.Success));
-						createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &keyCodeTimFailure, &curIsKeyCode!(FKCKind.Failure));
+						createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &keyCodeTimUse, &canConvKeyCode!(FKCKind.Use));
+						createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &keyCodeTimSuccess, &canConvKeyCode!(FKCKind.Success));
+						createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &keyCodeTimFailure, &canConvKeyCode!(FKCKind.Failure));
 					}
 					dStr ~= " - " ~ .text(__LINE__);
 					new MenuItem(menu, SWT.SEPARATOR);
