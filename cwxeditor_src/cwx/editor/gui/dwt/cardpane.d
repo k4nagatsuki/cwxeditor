@@ -1833,7 +1833,7 @@ public:
 			}
 			static if (is(typeof(c.linkId))) {
 				if (0 != c.linkId) {
-					auto c2 = card(c.linkId);
+					auto c2 = cardFrom(_summ, c.linkId);
 					if (c2) {
 						_comm.openCWXPath(c2.cwxPath(true), false);
 						static if (is(C:SkillCard)) {
