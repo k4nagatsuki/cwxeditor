@@ -35,6 +35,7 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
 
+import std.algorithm : countUntil;
 import std.conv;
 import std.math;
 import std.path;
@@ -1333,6 +1334,14 @@ protected:
 /// フラグ・ステップの選択・設定を行うダイアログ。
 private class FlagStepDialog(CType Type, F, bool SelValue) : EventDialog {
 private:
+	void refreshWarning()  {
+		string[] ws;
+		static if (Type is CType.CHECK_STEP) {
+			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.CHECK_STEP));
+		}
+		warning = ws;
+	}
+
 	FlagDir _root;
 
 	SplitPane _sash;
@@ -1349,11 +1358,22 @@ private:
 
 	@property
 	string listSelected() {
+		auto f = selected;
+		return f ? f.path : "";
+	}
+
+	@property
+	F selected() {
 		int index = _flags.getSelectionIndex();
 		if (-1 == index) {
-			return "";
+			return null;
 		}
-		return (cast(F) _flags.getItem(index).getData()).path;
+		return cast(F) _flags.getItem(index).getData();
+	}
+
+	@property
+	uint selectedValue() {
+		return _values.getSelectionIndex();
 	}
 
 	void refreshValues() {
@@ -1388,6 +1408,7 @@ private:
 				_values.select(sel);
 			}
 		}
+		updateLabel();
 	}
 	class SListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -1395,12 +1416,20 @@ private:
 			if (-1 != index) {
 				string selPath = (cast(F) _flags.getItem(index).getData()).path;
 				if (_selected == selPath) {
-					static if (SelValue) _values.select(0);
+					static if (SelValue) {
+						_values.select(0);
+						updateLabel();
+					}
 				} else {
 					_selected = selPath;
 					refreshValues();
 				}
 			}
+		}
+	}
+	class ValSListener : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			updateLabel();
 		}
 	}
 	void refreshList() {
@@ -1488,6 +1517,21 @@ private:
 			openView();
 		}
 	}
+	static if (Type is CType.CHECK_STEP) {
+		Label _cmpLabel = null;
+		Combo _cmp = null;
+		Comparison4[] _cmps;
+		void updateLabel() {
+			F step = selected;
+			assert (step !is null);
+			uint value = selectedValue;
+			_cmpLabel.setText(.tryFormat(prop.msgs.stepValueIs, step.path, step.getValue(value)));
+		}
+	} else {
+		void updateLabel() {
+			// 処理無し
+		}
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, FlagDir root) {
 		_root = root;
@@ -1551,7 +1595,23 @@ protected:
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			_values.setLayoutData(gd);
 			_values.setEnabled(SelValue);
+			_values.addSelectionListener(new ValSListener);
 		}
+		static if (Type is CType.CHECK_STEP) {
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			comp.setLayout(zeroMarginGridLayout(2, false));
+			_cmpLabel = new Label(comp, SWT.RIGHT);
+			_cmpLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			_cmp = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(_cmp);
+			_cmp.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+			foreach (cmp; EnumMembers!Comparison4) {
+				_cmp.add(prop.msgs.comparison4Name(cmp));
+				_cmps ~= cmp;
+			}
+		}
+
 		_comm.refFlagAndStep.add(&refFS);
 		_comm.delFlagAndStep.add(&delFS);
 		_flags.addDisposeListener(new Dispose);
@@ -1588,11 +1648,19 @@ protected:
 					static assert (0);
 				}
 			}
+			static if (Type is CType.CHECK_STEP) {
+				_cmp.select(_cmps.countUntil(_evt.comparison4));
+			}
 		} else {
 			_flags.select(0);
 			_selected = (cast(F) _flags.getItem(0).getData()).path;
 			refreshValues();
+			static if (Type is CType.CHECK_STEP) {
+				_cmp.select(0);
+			}
 		}
+		updateLabel();
+		refreshWarning();
 		_sash.setWeights([_prop.var.etc.flagEventSashL, _prop.var.etc.flagEventSashR]);
 	}
 
@@ -1612,6 +1680,9 @@ protected:
 		} else {
 			static assert (0);
 		}
+		static if (Type is CType.CHECK_STEP) {
+			_evt.comparison4 = _cmps[_cmp.getSelectionIndex()];
+		}
 		return true;
 	}
 }
@@ -1625,6 +1696,7 @@ alias FlagStepDialog!(CType.SET_STEP_UP, Step, false) StepPlusDialog;
 alias FlagStepDialog!(CType.SET_STEP_DOWN, Step, false) StepMinusDialog;
 alias FlagStepDialog!(CType.REVERSE_FLAG, Flag, false) FlagRDialog;
 alias FlagStepDialog!(CType.CHECK_FLAG, Flag, false) FlagJudgeDialog;
+alias FlagStepDialog!(CType.CHECK_STEP, Step, true) CheckStepDialog;
 
 /// フラグ・ステップの組み合わせを選択するダイアログ。
 private class FlagStepCombiDialog(CType Type, F, bool Random) : EventDialog {
@@ -2169,7 +2241,10 @@ private Composite createStatusPane(Props prop, Composite area, ref Button[Status
 	auto statuses = [Status.ACTIVE, Status.INACTIVE, Status.ALIVE, Status.DEAD,
 			Status.FINE, Status.INJURED, Status.HEAVY_INJURED, Status.UNCONSCIOUS,
 			Status.POISON, Status.SLEEP, Status.BIND, Status.PARALYZE,
-			Status.CONFUSE, Status.OVERHEAT, Status.BRAVE, Status.PANIC];
+			Status.CONFUSE, Status.OVERHEAT, Status.BRAVE, Status.PANIC,
+			Status.SILENCE, Status.FACE_UP, Status.ANTI_MAGIC,
+			Status.UP_ACTION, Status.UP_AVOID, Status.UP_RESIST, Status.UP_DEFENSE,
+			Status.DOWN_ACTION, Status.DOWN_AVOID, Status.DOWN_RESIST, Status.DOWN_DEFENSE];
 	foreach (s; statuses) {
 		auto radio = new Button(grp, SWT.RADIO);
 		mod(radio);
@@ -2878,6 +2953,74 @@ protected:
 		_evt.effectCardType = getRadioValue!(EffectCardType)(_effectCardType);
 
 		_comm.refKeyCodes.call();
+		return true;
+	}
+}
+
+/// ラウンド分岐の設定を行うダイアログ。
+class BranchRoundDialog : EventDialog {
+private:
+	void refreshWarning()  {
+		string[] ws;
+		ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_ROUND));
+		warning = ws;
+	}
+
+	Spinner _value;
+	Combo _cmp;
+	Comparison3[] _cmps;
+
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+		super (comm, prop, shell, summ, CType.BRANCH_ROUND, parent, evt, false, null, true);
+	}
+protected:
+	override void setup(Composite area) {
+		area.setLayout(new GridLayout(1, false));
+		{
+			auto grp = new Group(area, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(prop.msgs.roundCondition);
+			grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
+			auto comp = new Composite(grp, SWT.NONE);
+			comp.setLayout(new GridLayout(4, false));
+
+			auto l1 = new Label(comp, SWT.NONE);
+			l1.setText(_prop.msgs.roundIs);
+
+			_value = new Spinner(comp, SWT.BORDER);
+			mod(_value);
+			_value.setMinimum(0);
+			_value.setMaximum(_prop.var.etc.roundMax);
+
+			auto l2 = new Label(comp, SWT.NONE);
+			l2.setText(_prop.msgs.roundCmpIs);
+
+			_cmp = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(_cmp);
+			_cmp.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+			foreach (cmp; EnumMembers!Comparison3) {
+				_cmp.add(prop.msgs.comparison3Name(cmp));
+				_cmps ~= cmp;
+			}
+		}
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_evt) {
+			_value.setSelection(_evt.round);
+			_cmp.select(_cmps.countUntil(_evt.comparison3));
+		} else {
+			_value.setSelection(0);
+			_cmp.select(0);
+		}
+		refreshWarning();
+	}
+
+	override bool apply() {
+		if (!_evt) _evt = new Content(CType.BRANCH_ROUND, "");
+		_evt.round = _value.getSelection();
+		_evt.comparison3 = _cmps[_cmp.getSelectionIndex()];
 		return true;
 	}
 }

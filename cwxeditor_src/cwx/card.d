@@ -1083,6 +1083,12 @@ private:
 		override bool canHasFireEscape() {return false;}
 		@property
 		const
+		override bool canHasFireEveryRound() {return false;}
+		@property
+		const
+		override bool canHasFireRound0() {return false;}
+		@property
+		const
 		override bool canHasFireRound() {return false;}
 		@property
 		const
@@ -1457,6 +1463,12 @@ public:
 	@property
 	const
 	override bool canHasFireEscape() {return _ceto.canHasFireEscape;}
+	@property
+	const
+	override bool canHasFireEveryRound() {return _ceto.canHasFireEveryRound;}
+	@property
+	const
+	override bool canHasFireRound0() {return _ceto.canHasFireRound0;}
 	@property
 	const
 	override bool canHasFireRound() {return _ceto.canHasFireRound;}

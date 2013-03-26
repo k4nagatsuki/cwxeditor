@@ -446,6 +446,17 @@ enum Status {
 	OVERHEAT, /// 激昂(CardWirth Extender 1.30～)。
 	BRAVE, /// 勇敢(CardWirth Extender 1.30～)。
 	PANIC, /// 恐慌(CardWirth Extender 1.30～)。
+	SILENCE, /// 沈黙(CardWirthNext)。
+	FACE_UP, /// 暴露(CardWirthNext)。
+	ANTI_MAGIC, /// 魔法無効化(CardWirthNext)。
+	UP_ACTION, /// 行動力上昇(CardWirthNext)。
+	UP_AVOID, /// 回避力上昇(CardWirthNext)。
+	UP_RESIST, /// 抵抗力上昇(CardWirthNext)。
+	UP_DEFENSE, /// 防御力上昇(CardWirthNext)。
+	DOWN_ACTION, /// 行動力低下(CardWirthNext)。
+	DOWN_AVOID, /// 回避力低下(CardWirthNext)。
+	DOWN_RESIST, /// 抵抗力低下(CardWirthNext)。
+	DOWN_DEFENSE, /// 防御力低下(CardWirthNext)。
 	NONE, /// 状態指定無し。
 }
 /// 文字列から状態を生成。
@@ -483,6 +494,28 @@ Status toStatus(string name) {
 		return Status.BRAVE;
 	case "Panic":
 		return Status.PANIC;
+	case "Silence":
+		return Status.SILENCE;
+	case "FaceUp":
+		return Status.FACE_UP;
+	case "AntiMagic":
+		return Status.ANTI_MAGIC;
+	case "UpAction":
+		return Status.UP_ACTION;
+	case "UpAvoid":
+		return Status.UP_AVOID;
+	case "UpResist":
+		return Status.UP_RESIST;
+	case "UpDefense":
+		return Status.UP_DEFENSE;
+	case "DownAction":
+		return Status.DOWN_ACTION;
+	case "DownAvoid":
+		return Status.DOWN_AVOID;
+	case "DownResist":
+		return Status.DOWN_RESIST;
+	case "DownDefense":
+		return Status.DOWN_DEFENSE;
 	case "None":
 		return Status.NONE;
 	default:
@@ -524,6 +557,28 @@ string fromStatus(Status stat) {
 		return "Brave";
 	case Status.PANIC:
 		return "Panic";
+	case Status.SILENCE:
+		return "Silence";
+	case Status.FACE_UP:
+		return "FaceUp";
+	case Status.ANTI_MAGIC:
+		return "AntiMagic";
+	case Status.UP_ACTION:
+		return "UpAction";
+	case Status.UP_AVOID:
+		return "UpAvoid";
+	case Status.UP_RESIST:
+		return "UpResist";
+	case Status.UP_DEFENSE:
+		return "UpDefense";
+	case Status.DOWN_ACTION:
+		return "DownAction";
+	case Status.DOWN_AVOID:
+		return "DownAvoid";
+	case Status.DOWN_RESIST:
+		return "DownResist";
+	case Status.DOWN_DEFENSE:
+		return "DownDefense";
 	case Status.NONE:
 		return "None";
 	}
@@ -799,6 +854,135 @@ string fromEffectCardType(EffectCardType t) {
 	}
 }
 
+/// 4路比較条件。
+enum Comparison4 {
+	Eq, /// nであれば。
+	Ne, /// nでなければ。
+	Lt, /// nより大きければ。
+	Gt, /// nより小さければ。
+}
+/// ditto
+Comparison4 toComparison4(string name) {
+	switch (name) {
+	case "=": return Comparison4.Eq;
+	case "<>": return Comparison4.Ne;
+	case "<": return Comparison4.Lt;
+	case ">": return Comparison4.Gt;
+	default: throw new Exception("Unknown 4 way comparison: " ~ name);
+	}
+}
+/// ditto
+string fromComparison4(Comparison4 t) {
+	final switch (t) {
+	case Comparison4.Eq: return "=";
+	case Comparison4.Ne: return "<>";
+	case Comparison4.Lt: return "<";
+	case Comparison4.Gt: return ">";
+	}
+}
+
+/// 3路比較条件。
+enum Comparison3 {
+	Eq, /// nである。
+	Lt, /// nより大きい。
+	Gt, /// nより小さい。
+}
+/// ditto
+Comparison3 toComparison3(string name) {
+	switch (name) {
+	case "=": return Comparison3.Eq;
+	case "<": return Comparison3.Lt;
+	case ">": return Comparison3.Gt;
+	default: throw new Exception("Unknown 3 way comparison: " ~ name);
+	}
+}
+/// ditto
+string fromComparison3(Comparison3 t) {
+	final switch (t) {
+	case Comparison3.Eq: return "=";
+	case Comparison3.Lt: return "<";
+	case Comparison3.Gt: return ">";
+	}
+}
+
+/// 画像合成モード。
+enum BlendMode {
+	Normal, /// 標準。
+	Mask, /// 無効。
+	Add, /// 加算。
+	Subtract, /// 減算。
+	Multiply, /// 乗算。
+}
+/// ditto
+BlendMode toBlendMode(string name) {
+	switch (name) {
+	case "Normal": return BlendMode.Normal;
+	case "Mask": return BlendMode.Mask;
+	case "Add": return BlendMode.Add;
+	case "Subtract": return BlendMode.Subtract;
+	case "Multiply": return BlendMode.Multiply;
+	default: throw new Exception("Unknown blend mode: " ~ name);
+	}
+}
+/// ditto
+string fromBlendMode(BlendMode t) {
+	final switch (t) {
+	case BlendMode.Normal: return "Normal";
+	case BlendMode.Mask: return "Mask";
+	case BlendMode.Add: return "Add";
+	case BlendMode.Subtract: return "Subtract";
+	case BlendMode.Multiply: return "Multiply";
+	}
+}
+
+/// グラデーション方向。
+enum GradientDir {
+	None, /// グラデーション無し。
+	LeftToRight, /// 左から右へ。
+	TopToBottom, /// 上から下へ。
+}
+/// ditto
+GradientDir toGradientDir(string name) {
+	switch (name) {
+	case "None": return GradientDir.None;
+	case "LeftToRight": return GradientDir.LeftToRight;
+	case "TopToBottom": return GradientDir.TopToBottom;
+	default: throw new Exception("Unknown gradient dir: " ~ name);
+	}
+}
+/// ditto
+string fromGradientDir(GradientDir t) {
+	final switch (t) {
+	case GradientDir.None: return "None";
+	case GradientDir.LeftToRight: return "LeftToRight";
+	case GradientDir.TopToBottom: return "TopToBottom";
+	}
+}
+
+/// 縁取りタイプ。
+enum BorderingType {
+	None, /// 縁取り無し。
+	Outline, /// 外側を縁取り。
+	Inline, /// 内側を縁取り。
+}
+/// ditto
+BorderingType toBorderingType(string name) {
+	switch (name) {
+	case "None": return BorderingType.None;
+	case "Outline": return BorderingType.Outline;
+	case "Inline": return BorderingType.Inline;
+	default: throw new Exception("Unknown bordering type: " ~ name);
+	}
+}
+/// ditto
+string fromBorderingType(BorderingType t) {
+	final switch (t) {
+	case BorderingType.None: return "None";
+	case BorderingType.Outline: return "Outline";
+	case BorderingType.Inline: return "Inline";
+	}
+}
+
 /// コンテントのタイプ。
 enum CType {
 	START,
@@ -873,6 +1057,8 @@ enum CType {
 	BRANCH_FLAG_CMP, /// フラグ値分岐(CardWirth Extender 1.30～)。
 	BRANCH_RANDOM_SELECT, /// ランダム選択(CardWirth Extender 1.30～)。
 	BRANCH_KEY_CODE, /// キーコード所持分岐(CardWirthNext)。
+	CHECK_STEP, /// ステップ判定(CardWirthNext)。
+	BRANCH_ROUND, /// ラウンド分岐(CardWirthNext)。
 }
 
 /// コンテントタイプの分類。
@@ -946,6 +1132,9 @@ enum CArg {
 	KEY_CODE, /// キーコード(CardWirthNext)。
 	COUPONS, /// 得点付きクーポン群(CardWirthNext)。
 	INIT_VALUE, /// 評価メンバ初期点(CardWirthNext)。
+	COMPARISON_4, /// 4路比較条件(CardWirthNext)。
+	COMPARISON_3, /// 3路比較条件(CardWirthNext)。
+	ROUND, /// ラウンド(CardWirthNext)。
 }
 
 /// 後続コンテントのnameの型。
@@ -999,6 +1188,7 @@ enum MType {
 	DEAL_CONFUSE_CARD,
 	DEAL_SKILL_CARD,
 	SUMMON_BEAST,
+	CANCEL_ACTION, // CardWirthNext
 }
 
 enum MArg {
@@ -1116,6 +1306,8 @@ enum MenuID {
 	NewMenuCard,
 	NewEnemyCard,
 	NewBack,
+	NewTextCell,
+	NewColorCell,
 	AutoArrange,
 	ManualArrange,
 	Mask,

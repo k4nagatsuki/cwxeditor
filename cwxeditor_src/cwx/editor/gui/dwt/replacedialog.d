@@ -19,6 +19,7 @@ import cwx.menu;
 import cwx.jpy;
 import cwx.cab;
 import cwx.features;
+import cwx.textholder;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -262,6 +263,7 @@ private:
 	bool _keyCodeSel;
 	bool _fileSel;
 	bool _commentSel;
+	bool _jptxSel;
 	string _fromText;
 	string _toText;
 
@@ -1592,6 +1594,8 @@ public:
 		_contents[CType.BRANCH_FLAG_CMP].setSelection(_prop.var.etc.searchContentsBranchFlagCmp);
 		_contents[CType.BRANCH_RANDOM_SELECT].setSelection(_prop.var.etc.searchContentsBranchRandomSelect);
 		_contents[CType.BRANCH_KEY_CODE].setSelection(_prop.var.etc.searchContentsBranchKeyCode);
+		_contents[CType.CHECK_STEP].setSelection(_prop.var.etc.searchContentsCheckStep);
+		_contents[CType.BRANCH_ROUND].setSelection(_prop.var.etc.searchContentsBranchRound);
 
 		_cCoupon.setSelection(_prop.var.etc.replaceNameCoupon);
 		_cGossip.setSelection(_prop.var.etc.replaceNameGossip);
@@ -1780,6 +1784,8 @@ public:
 			_prop.var.etc.searchContentsBranchFlagCmp = _contents[CType.BRANCH_FLAG_CMP].getSelection();
 			_prop.var.etc.searchContentsBranchRandomSelect = _contents[CType.BRANCH_RANDOM_SELECT].getSelection();
 			_prop.var.etc.searchContentsBranchKeyCode = _contents[CType.BRANCH_KEY_CODE].getSelection();
+			_prop.var.etc.searchContentsCheckStep = _contents[CType.CHECK_STEP].getSelection();
+			_prop.var.etc.searchContentsBranchRound = _contents[CType.BRANCH_ROUND].getSelection();
 
 			_prop.var.etc.replaceNameCoupon = _cCoupon.getSelection();
 			_prop.var.etc.replaceNameGossip = _cGossip.getSelection();
@@ -1953,6 +1959,7 @@ public:
 		_keyCodeSel = _keyCode.getSelection();
 		_fileSel = _file.getSelection();
 		_commentSel = _comment.getSelection();
+		_jptxSel = _jptx.getSelection();
 		_fromText = _from.getText();
 		_toText = _to.getText();
 
@@ -2549,18 +2556,50 @@ public:
 						return;
 					}
 				}
+				auto spChars = _comm.skin.spChars;
+				string checkTextRes(string[] fonts, string[] flags, string[] steps) {
+					foreach (font; fonts) {
+						dchar c = decodeFontPath(font);
+						if (c in spChars) continue;
+						if (!skin.findPath(font, skin.extImage, skin.tableDir, sPath).length) {
+							return _prop.msgs.searchErrorSPFontNotFound;
+						}
+					}
+					foreach (flag; flags) {
+						if (!froot.findFlag(flag)) {
+							return _prop.msgs.searchErrorFlagNotFound;
+						}
+					}
+					foreach (step; steps) {
+						if (!froot.findStep(step)) {
+							return _prop.msgs.searchErrorStepNotFound;
+						}
+					}
+					return null;
+				}
 				auto bi = cast(BgImage) path;
 				if (bi) {
-					if (!bi.path.length) {
+					if (bi.flag != "" && !froot.findFlag(bi.flag)) {
+						addResult(path, count, _prop.msgs.searchErrorFlagNotFound);
+						return;
+					}
+				}
+				auto ic = cast(ImageCell) path;
+				if (ic) {
+					if (!ic.path.length) {
 						addResult(path, count, _prop.msgs.searchErrorNoImage);
 						return;
 					}
-					if (!skin.findPath(bi.path, skin.extImage, skin.tableDir, sPath).length) {
+					if (!skin.findPath(ic.path, skin.extImage, skin.tableDir, sPath).length) {
 						addResult(path, count, _prop.msgs.searchErrorImageNotFound);
 						return;
 					}
-					if (bi.flag != "" && !froot.findFlag(bi.flag)) {
-						addResult(path, count, _prop.msgs.searchErrorFlagNotFound);
+				}
+				auto tc = cast(TextCell) path;
+				if (tc) {
+					string err = checkTextRes([], tc.flagsInText, tc.stepsInText);
+					if (err) {
+						addResult(path, count, err);
 						return;
 					}
 				}
@@ -2610,27 +2649,6 @@ public:
 						}
 						set.add(cld.name);
 					}
-				}
-				auto spChars = _comm.skin.spChars;
-				string checkTextRes(string[] fonts, string[] flags, string[] steps) {
-					foreach (font; fonts) {
-						dchar c = decodeFontPath(font);
-						if (c in spChars) continue;
-						if (!skin.findPath(font, skin.extImage, skin.tableDir, sPath).length) {
-							return _prop.msgs.searchErrorSPFontNotFound;
-						}
-					}
-					foreach (flag; flags) {
-						if (!froot.findFlag(flag)) {
-							return _prop.msgs.searchErrorFlagNotFound;
-						}
-					}
-					foreach (step; steps) {
-						if (!froot.findStep(step)) {
-							return _prop.msgs.searchErrorStepNotFound;
-						}
-					}
-					return null;
 				}
 				if (c.type == CType.TALK_DIALOG) {
 					if (c.dialogs.length) {
@@ -2749,6 +2767,16 @@ public:
 				if (c.levelMin > c.levelMax) {
 					addResult(path, count, _prop.msgs.searchErrorReversalLevel);
 					return;
+				}
+				if (c.type is CType.BRANCH_ROUND) {
+					CWXPath cwxPath = c;
+					while (cwxPath) {
+						if (cast(Area) cwxPath) {
+							addResult(path, count, _prop.msgs.searchErrorBranchRoundInArea);
+							return;
+						}
+						cwxPath = cwxPath.cwxParent();
+					}
 				}
 			});
 		}
@@ -2970,7 +2998,6 @@ public:
 		saveColumnWidth!("prop.var.etc.searchResultColumnParent")(_prop, subColumn);
 
 		auto range = searchRange;
-		bool jptx = _jptx.getSelection();
 		_inProc = true;
 		_comm.refreshToolBar();
 		updateDefaultButton();
@@ -2988,7 +3015,7 @@ public:
 			foreach (path; range) {
 				searchAll(path, count, &replaceTextImpl);
 			}
-			if (jptx) {
+			if (_jptxSel) {
 				foreach (string file; .dirEntries(_summ.scenarioPath, SpanMode.depth, false)) {
 					if (cancel) break;
 					if (cfnmatch(.extension(file), ".jptx")) {
@@ -3080,7 +3107,6 @@ public:
 		if (0 == from.length) {
 			opt.summaryOnly = true;
 		}
-		bool jptx = _jptx.getSelection();
 		bool subDir = _grepSubDir.getSelection();
 
 		void findSumm(string summFile) {
@@ -3108,7 +3134,7 @@ public:
 				if (cancel) return;
 				searchAll(path, count, &replaceTextImpl);
 			}
-			if (jptx) {
+			if (_jptxSel) {
 				foreach (string file; .dirEntries(summ.scenarioPath, SpanMode.depth, false)) {
 					if (cancel) break;
 					if (cfnmatch(.extension(file), ".jptx")) {
@@ -3385,7 +3411,14 @@ public:
 		auto bgi = cast(BgImage) path;
 		if (bgi && !par) {
 			img = _prop.images.backs;
-			text = .tryFormat(_prop.msgs.searchResultBgImage, encodePath(bgi.path));
+			auto ic = cast(ImageCell) bgi;
+			if (ic) {
+				text = .tryFormat(_prop.msgs.searchResultImageCell, encodePath(ic.path));
+			}
+			auto tc = cast(TextCell) bgi;
+			if (tc) {
+				text = .tryFormat(_prop.msgs.searchResultTextCell, tc.name);
+			}
 		}
 		auto are = cast(Area) path;
 		if (are) {
@@ -3670,8 +3703,16 @@ public:
 				r |= repl(null, back.flag, &back.flag, count, uArr2);
 			}
 		}
-		if (_fileSel) {
-			r |= replFilePath(back.path, &back.path, count, uArr2);
+		auto ic = cast(ImageCell) back;
+		if (ic && _fileSel) {
+			r |= replFilePath(ic.path, &ic.path, count, uArr2);
+		}
+		auto tc = cast(TextCell) back;
+		if (tc) {
+			if (_jptxSel) {
+				r |= repl(null, tc.text, &tc.text, count, uArr2, true);
+			}
+			r |= replFlagsInText(tc, count, uArr2);
 		}
 		if (r && path) {
 			if (_replMode) store(path, uArr2);
@@ -3715,6 +3756,52 @@ public:
 		}
 		return r;
 	}
+	bool replFontsInText(ITextHolder th, ref size_t count, ref Undo[] uArr) {
+		Undo[] nArr;
+		bool r = false;
+		string old = th.text;
+		if (_fileSel) {
+			auto ps = th.fontsInText;
+			foreach (i, p; ps) {
+				auto c = decodeFontPath(p);
+				string ext = .extension(p);
+				r |= repl(null, .to!string(c), (string s) {
+					dstring ds = .to!dstring(s);
+					if (!ds.length) return;
+					th.changeInText(i, toPathId(encodeFontPath(ds[0], ext)));
+				}, count, nArr);
+			}
+			uArr ~= new StrUndo(old, th.text, &th.text);
+		}
+		return r;
+	}
+	bool replFlagsInText(ISimpleTextHolder th, ref size_t count, ref Undo[] uArr) {
+		Undo[] nArr;
+		bool r = false;
+		if (_flagSel && !_msgSel) {
+			if (_flagDirOnRange) {
+				// Flag/StepについてはUseCounter経由で置換される
+				auto fps = th.flagsInText;
+				foreach (i, p; fps) {
+					r |= repl(null, p, null, count, nArr);
+				}
+				auto sps = th.stepsInText;
+				foreach (i, p; sps) {
+					r |= repl(null, p, null, count, nArr);
+				}
+			} else {
+				auto fps = th.flagsInText;
+				foreach (i, p; fps) {
+					r |= repl(null, p, (string n) {th.changeInText(i, toFlagId(p));}, count, nArr);
+				}
+				auto sps = th.stepsInText;
+				foreach (i, p; sps) {
+					r |= repl(null, p, (string n) {th.changeInText(i, toStepId(p));}, count, nArr);
+				}
+			}
+		}
+		return r;
+	}
 	void replContent(Content e, ref size_t count) {
 		auto eo = e.parent;
 		assert (!eo || eo.detail.owner);
@@ -3755,48 +3842,8 @@ public:
 		if (_msgSel) {
 			r |= repl(null, e.text, &e.text, count, uArr2);
 		}
-		bool replInText(ITextHolder th, ref Undo[] uArr) {
-			Undo[] nArr;
-			bool r = false;
-			string old = th.text;
-			if (_fileSel) {
-				auto ps = th.fontsInText;
-				foreach (i, p; ps) {
-					auto c = decodeFontPath(p);
-					string ext = .extension(p);
-					r |= repl(null, .to!string(c), (string s) {
-						dstring ds = .to!dstring(s);
-						if (!ds.length) return;
-						th.changeInText(i, toPathId(encodeFontPath(ds[0], ext)));
-					}, count, nArr);
-				}
-				uArr ~= new StrUndo(old, th.text, &th.text);
-			}
-			if (_flagSel && !_msgSel) {
-				if (_flagDirOnRange) {
-					// Flag/StepについてはUseCounter経由で置換される
-					auto fps = th.flagsInText;
-					foreach (i, p; fps) {
-						r |= repl(null, p, null, count, nArr);
-					}
-					auto sps = th.stepsInText;
-					foreach (i, p; sps) {
-						r |= repl(null, p, null, count, nArr);
-					}
-				} else {
-					auto fps = th.flagsInText;
-					foreach (i, p; fps) {
-						r |= repl(null, p, (string n) {th.changeInText(i, toFlagId(p));}, count, nArr);
-					}
-					auto sps = th.stepsInText;
-					foreach (i, p; sps) {
-						r |= repl(null, p, (string n) {th.changeInText(i, toStepId(p));}, count, nArr);
-					}
-				}
-			}
-			return r;
-		}
-		r |= replInText(e, uArr2);
+		r |= replFontsInText(e, count, uArr2);
+		r |= replFlagsInText(e, count, uArr2);
 		bool rDlg = false;
 		if (_msgSel || _couponSel || _fileSel || _flagSel) {
 			auto dlgs = e.dialogs;
@@ -3811,7 +3858,9 @@ public:
 					rDlg = true;
 					put = null;
 				}
-				if (replInText(dlg, uArrDlg)) {
+				bool dr = replFontsInText(dlg, count, uArrDlg);
+				dr |= replFlagsInText(dlg, count, uArrDlg);
+				if (dr) {
 					size_t dmy = 0;
 					if (put) addResult(put, dmy);
 					rDlg = true;

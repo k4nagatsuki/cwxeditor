@@ -129,6 +129,8 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.NewMenuCard] = "C";
 		_mnemonic[MenuID.NewEnemyCard] = "C";
 		_mnemonic[MenuID.NewBack] = "B";
+		_mnemonic[MenuID.NewTextCell] = "T";
+		_mnemonic[MenuID.NewColorCell] = "L";
 		_mnemonic[MenuID.AutoArrange] = "A";
 		_mnemonic[MenuID.ManualArrange] = "U";
 		_mnemonic[MenuID.Mask] = "M";
@@ -288,6 +290,8 @@ class MenuProps : Properties {
 		_hotkey[MenuID.NewMenuCard] = "";
 		_hotkey[MenuID.NewEnemyCard] = "";
 		_hotkey[MenuID.NewBack] = "";
+		_hotkey[MenuID.NewTextCell] = "";
+		_hotkey[MenuID.NewColorCell] = "";
 		_hotkey[MenuID.AutoArrange] = "";
 		_hotkey[MenuID.ManualArrange] = "";
 		_hotkey[MenuID.Mask] = "";
@@ -509,6 +513,8 @@ bool isPMenu(MenuID id) {
 	case MenuID.NewMenuCard:
 	case MenuID.NewEnemyCard:
 	case MenuID.NewBack:
+	case MenuID.NewTextCell:
+	case MenuID.NewColorCell:
 	case MenuID.OpenImportSource:
 	case MenuID.NewCast:
 	case MenuID.NewSkill:

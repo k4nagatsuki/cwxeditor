@@ -434,32 +434,134 @@ struct OuterTool {
 
 /// デフォルト設定用の背景画像構造体。
 struct BgImageS {
-	string name; /// ファイル名。拡張子はスキンによるため、拡張子を含めない。
+	string type; /// セルのタイプ。image、text、colorのいずれか。
 	int x; /// X座標。
 	int y; /// Y座標。
 	uint width; /// 幅。
 	uint height; /// 高さ。
 	bool mask; /// マスク。
+
+	// ImageCell
+	string name; /// ファイル名。拡張子はスキンによるため、拡張子を含めない。
+
+	// TextCell
+	string text;
+	string fontName;
+	uint size;
+	CRGB color;
+	bool bold;
+	bool italic;
+	bool underline;
+	bool strike;
+	bool vertical;
+	BorderingType borderingType;
+	CRGB borderingColor;
+	uint borderingWidth;
+
+	// ColorCell
+	BlendMode blendMode;
+	GradientDir gradientDir;
+	CRGB color1;
+	CRGB color2;
+
 	/// XMLノードとして取り扱うための関数群。
 	const
 	void toNode(ref XNode e) {
 		auto r = e.newElement("background");
-		r.newAttr("name", name);
+		r.newAttr("type", type);
 		r.newAttr("x", x);
 		r.newAttr("y", y);
 		r.newAttr("width", width);
 		r.newAttr("height", height);
 		r.newAttr("mask", mask);
+		switch (type) {
+		case "image":
+			r.newAttr("name", name);
+			break;
+		case "text":
+			r.value = text;
+			auto f = r.newElement("font", fontName);
+			f.newAttr("size", size);
+			if (bold) f.newAttr("bold", bold);
+			if (italic) f.newAttr("italic", italic);
+			if (underline) f.newAttr("underline", underline);
+			if (strike) f.newAttr("strike", strike);
+			if (vertical) f.newAttr("vertical", vertical);
+			color.toNode(r);
+			if (borderingType !is BorderingType.None) {
+				auto b = r.newElement("bordering");
+				b.newAttr("type", fromBorderingType(borderingType));
+				b.newAttr("width", borderingWidth);
+				borderingColor.toNode(b);
+			}
+			break;
+		case "color":
+			r.newAttr("blendMode", fromBlendMode(blendMode));
+			color1.toNode(r);
+			if (gradientDir !is GradientDir.None) {
+				auto g = r.newElement("gradient");
+				g.newAttr("direction", fromGradientDir(gradientDir));
+				color2.toNode(g);
+			}
+			break;
+		default:
+			throw new Exception("Unknown type: " ~ type);
+		}
 	}
 	/// ditto
 	void fromNode(ref XNode node) {
 		if (node.name != "background") throw new Exception("Node is not background");
-		name = node.attr!(string)("name", true);
+		type = node.attr!(string)("type", false, "image");
 		x = node.attr!(int)("x", true);
 		y = node.attr!(int)("y", true);
 		width = node.attr!(uint)("width", true);
 		height = node.attr!(uint)("height", true);
 		mask = node.attr!(bool)("mask", true);
+		switch (type) {
+		case "image":
+			name = node.attr!(string)("name", true);
+			break;
+		case "text":
+			text = node.value;
+			node.onTag["font"] = (ref XNode node) {
+				fontName = node.value;
+				size = node.attr!uint("size", true);
+				bold = node.attr!bool("bold", false, bold);
+				italic = node.attr!bool("italic", false, italic);
+				underline = node.attr!bool("underline", false, underline);
+				strike = node.attr!bool("strike", false, strike);
+				vertical = node.attr!bool("vertical", false, vertical);
+			};
+			node.onTag["rgb"] = (ref XNode node) {
+				color.fromNode(node);
+			};
+			node.onTag["bordering"] = (ref XNode node) {
+				borderingType = toBorderingType(node.attr("type", true));
+				borderingWidth = node.attr!uint("width", true);
+				node.onTag["rgb"] = (ref XNode node) {
+					borderingColor.fromNode(node);
+				};
+				node.parse();
+			};
+			node.parse();
+			break;
+		case "color":
+			blendMode = toBlendMode(node.attr("blendMode", true));
+			node.onTag["rgb"] = (ref XNode node) {
+				color1.fromNode(node);
+			};
+			node.onTag["gradient"] = (ref XNode node) {
+				gradientDir = toGradientDir(node.attr("direction", true));
+				node.onTag["rgb"] = (ref XNode node) {
+					color2.fromNode(node);
+				};
+				node.parse();
+			};
+			node.parse();
+			break;
+		default:
+			throw new Exception("Unknown type: " ~ type);
+		}
 	}
 }
 

@@ -149,6 +149,8 @@ private:
 			bool enter;
 			bool escape;
 			bool lose;
+			bool everyRound;
+			bool round0;
 			string[] keyCodes;
 			uint[] rounds;
 		}
@@ -166,6 +168,8 @@ private:
 			_vals.enter = tree.fireEnter;
 			_vals.escape = tree.fireEscape;
 			_vals.lose = tree.fireLose;
+			_vals.everyRound = tree.fireEveryRound;
+			_vals.round0 = tree.fireRound0;
 			_vals.keyCodes = tree.keyCodes.dup;
 			_vals.rounds = tree.rounds.dup;
 		}
@@ -184,6 +188,8 @@ private:
 			tree.enter = vals.enter;
 			tree.escape = vals.escape;
 			tree.lose = vals.lose;
+			tree.everyRound = vals.everyRound;
+			tree.round0 = vals.round0;
 			tree.removeKeyCodesAll();
 			foreach (kc; vals.keyCodes) tree.addKeyCode(kc);
 			tree.removeRoundsAll();
@@ -475,6 +481,10 @@ private:
 				treeName = _prop.msgs.escapeTree;
 			} else if (fire is LOSE) {
 				treeName = _prop.msgs.loseTree;
+			} else if (fire is EVERY_ROUND) {
+				treeName = _prop.msgs.everyRoundTree;
+			} else if (fire is ROUND_0) {
+				treeName = _prop.msgs.round0Tree;
 			} else if (cast(KeyCodeObj) fire) {
 				treeName = .tryFormat(_prop.msgs.keyCodeTree, (cast(KeyCodeObj) fire).array.idup);
 			} else {
@@ -627,6 +637,12 @@ private:
 					if (t.fireLose) {
 						createTreeItem(eItm, LOSE, _prop.msgs.startLose, _prop.images.defStart);
 					}
+					if (t.fireEveryRound) {
+						createTreeItem(eItm, EVERY_ROUND, _prop.msgs.startEveryRound, _prop.images.defStart);
+					}
+					if (t.fireRound0) {
+						createTreeItem(eItm, ROUND_0, _prop.msgs.startRound0, _prop.images.defStart);
+					}
 				} else {
 					assert (cast(C) eItm.getParentItem().getData());
 					if (t.fireEnter) {
@@ -663,7 +679,7 @@ private:
 							break;
 						}
 					} else if (data is sel) {
-						assert (data is ENTER || data is LOSE || data is ESCAPE);
+						assert (data is ENTER || data is LOSE || data is ESCAPE || data is EVERY_ROUND || data is ROUND_0);
 						_cards.setSelection([itm]);
 						break;
 					}
@@ -715,6 +731,10 @@ private:
 							return ESCAPE;
 						case 2:
 							return LOSE;
+						case 3:
+							return EVERY_ROUND;
+						case 4:
+							return ROUND_0;
 						default: assert (0);
 						}
 					case 1:
@@ -754,6 +774,10 @@ private:
 				tree.escape = true;
 			} else if (fire is LOSE) {
 				tree.lose = true;
+			} else if (fire is EVERY_ROUND) {
+				tree.everyRound = true;
+			} else if (fire is ROUND_0) {
+				tree.round0 = true;
 			} else if (cast(KeyCodeObj) fire) {
 				tree.addKeyCode((cast(KeyCodeObj) fire).array.idup);
 			} else {
@@ -765,10 +789,14 @@ private:
 		static __gshared Object ENTER;
 		static __gshared Object ESCAPE;
 		static __gshared Object LOSE;
+		static __gshared Object EVERY_ROUND;
+		static __gshared Object ROUND_0;
 		shared static this () {
 			ENTER = new Object;
 			ESCAPE = new Object;
 			LOSE = new Object;
+			EVERY_ROUND = new Object;
+			ROUND_0 = new Object;
 		}
 		int keyCodesIndex(TreeItem itm) {
 			assert (cast(EventTree) itm.getData());
@@ -780,6 +808,8 @@ private:
 					if (tree.fireEnter) r++;
 					if (tree.fireLose) r++;
 					if (tree.fireEscape) r++;
+					if (tree.fireEveryRound) r++;
+					if (tree.fireRound0) r++;
 					return r;
 				} else {
 					return (cast(EventTree) itm.getData()).fireEnter ? 1 : 0;
@@ -1515,7 +1545,7 @@ public:
 		static if (is (A == Area)) {
 			return [_prop.msgs.startEnter];
 		} else static if (is (A == Battle)) {
-			return [_prop.msgs.startVictory, _prop.msgs.startEscape, _prop.msgs.startLose];
+			return [_prop.msgs.startVictory, _prop.msgs.startEscape, _prop.msgs.startLose, _prop.msgs.startEveryRound, _prop.msgs.startRound0];
 		} else static if (is (A == Package)) {
 			return [_prop.msgs.startPackage];
 		} else {
@@ -1710,6 +1740,10 @@ public:
 						xml = EventTree.escapeToXML();
 					} else if (LOSE is data) {
 						xml = EventTree.loseToXML();
+					} else if (EVERY_ROUND is data) {
+						xml = EventTree.everyRoundToXML();
+					} else if (ROUND_0 is data) {
+						xml = EventTree.round0ToXML();
 					} else if (cast(KeyCodeObj) data) {
 						xml = EventTree.keyCodeToXML((cast(KeyCodeObj) data).array.idup);
 					} else if (cast(RoundObj) data) {
@@ -1765,6 +1799,10 @@ public:
 									refreshFires(treeItm, ESCAPE);
 								} else if (tree.loseFromXML(par, xml)) {
 									refreshFires(treeItm, LOSE);
+								} else if (tree.everyRoundFromXML(par, xml)) {
+									refreshFires(treeItm, EVERY_ROUND);
+								} else if (tree.round0FromXML(par, xml)) {
+									refreshFires(treeItm, ROUND_0);
 								} else {
 									int round = tree.roundFromXML(par, xml);
 									if (round >= 0) {
@@ -1818,6 +1856,10 @@ public:
 						tree.escape = false;
 					} else if (LOSE is data) {
 						tree.lose = false;
+					} else if (EVERY_ROUND is data) {
+						tree.everyRound = false;
+					} else if (ROUND_0 is data) {
+						tree.round0 = false;
 					} else if (cast(KeyCodeObj) data) {
 						tree.removeKeyCode((cast(KeyCodeObj) data).array.idup);
 					} else if (cast(RoundObj) data) {

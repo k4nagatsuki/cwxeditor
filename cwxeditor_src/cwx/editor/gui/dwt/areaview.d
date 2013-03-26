@@ -39,6 +39,7 @@ import cwx.editor.gui.dwt.areawindow;
 import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.areaviewutils;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.absdialog;
 
 import std.algorithm;
 import std.math;
@@ -554,15 +555,8 @@ private:
 				auto bs = saveB(_bs.keys);
 				foreach (i, b; _bs) {
 					b.removeUseCounter();
-					auto ab = area.backs[i];
-					ab.path = b.path;
-					ab.flag = b.flag;
-					ab.x = b.x;
-					ab.y = b.y;
-					ab.width = b.width;
-					ab.height = b.height;
-					ab.mask = b.mask;
-					comm.refBgImage.call(ab.cwxPath(true));
+					area.set(i, area.backs[i].dup);
+					comm.refBgImage.call(area.backs[i].cwxPath(true));
 				}
 				_bs = bs;
 			}
@@ -942,6 +936,15 @@ private:
 		}
 	}
 	static if (UseBacks) {
+		private Image backImg(BgImage bg) {
+			if (cast(ImageCell) bg) {
+				return _prop.images.backs;
+			} else if (cast(TextCell) bg) {
+				return _prop.images.textCell;
+			} else if (cast(ColorCell) bg) {
+				return _prop.images.colorCell;
+			} else assert (0);
+		}
 		private void refreshBacks() {
 			_backs.setRedraw(false);
 			scope (exit) _backs.setRedraw(true);
@@ -950,10 +953,10 @@ private:
 			_backs.removeAll();
 			foreach (i, c; cs) {
 				auto itm = new TableItem(_backs, SWT.NONE);
-				itm.setImage(_prop.images.backs);
+				itm.setImage(backImg(c));
 				itm.setData(c);
 				itm.setChecked(true);
-				itm.setText(baseName(c.path));
+				itm.setText(c.name);
 			}
 			_backs.setSelection(idx);
 		}
@@ -1520,16 +1523,31 @@ private:
 		}
 		static if (UseBacks) {
 			void putOneBack(in BgImage back) {
-				string path = encodePath(back.path);
-				if (!path.length) {
-					path = _prop.msgs.noSelectImage;
-				} else if (!_comm.skin.findImagePath(path, _summ ? _summ.scenarioPath : "").length) {
-					path = .tryFormat(_prop.msgs.noImage, encodePath(path));
+				string path, name;
+				auto ic = cast(ImageCell) back;
+				if (ic) {
+					name = _prop.msgs.back;
+					path = encodePath(ic.path);
+					if (!path.length) {
+						path = _prop.msgs.noSelectImage;
+					} else if (!_comm.skin.findImagePath(path, _summ ? _summ.scenarioPath : "").length) {
+						path = .tryFormat(_prop.msgs.noImage, encodePath(path));
+					}
+				}
+				auto tc = cast(TextCell) back;
+				if (tc) {
+					name = _prop.msgs.textCell;
+					path = back.name;
+				}
+				auto cc = cast(ColorCell) back;
+				if (cc) {
+					name = _prop.msgs.colorCell;
+					path = back.name;
 				}
 				if (_summ) {
-					line = .tryFormat(_prop.msgs.areaViewStatus, _prop.msgs.back, path, flag(back.flag));
+					line = .tryFormat(_prop.msgs.areaViewStatus, name, path, flag(back.flag));
 				} else {
-					line = .tryFormat(_prop.msgs.areaViewStatusNoSummary, _prop.msgs.back, path);
+					line = .tryFormat(_prop.msgs.areaViewStatusNoSummary, name, path);
 				}
 			}
 		}
@@ -1871,7 +1889,7 @@ public:
 				_backs = createList(listsP, prop.msgs.backs,
 					prop.images.backs, btcpd, &editBack, &_area.backs, &selectAllB);
 				_backs.addSelectionListener(new SBListener);
-				new TableComboEdit!CCombo(_comm, _prop, _backs, 0, &createBgImageCombo, &bgImageEditEnd);
+				new TableComboEdit!CCombo(_comm, _prop, _backs, 0, &createBgImageCombo, &bgImageEditEnd, &bgImageCanEdit);
 				auto backDrop = new DropTarget(_backs, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
 				backDrop.setTransfer([cast(Transfer) FileTransfer.getInstance(), XMLBytesTransfer.getInstance()]);
 				backDrop.addDropListener(new BLDropTarget);
@@ -2124,7 +2142,7 @@ public:
 				auto fi = create(b);
 				fi.visible = v;
 				_imgp.set(i, fi);
-				_backs.getItem(i).setText(baseName(b.path));
+				_backs.getItem(i).setText(b.name);
 				_backs.getItem(i).setData(b);
 				partyIndex++;
 			}
@@ -2614,7 +2632,7 @@ public:
 		} else static assert (0, C2);
 	}
 	static if (UseBacks) {
-		BgImageDialog[BgImage] _editDlgsB;
+		AbsDialog[BgImage] _editDlgsB;
 		void editBackApply(UndoEdit undo, BgImage back) {
 			assert (undo);
 			_undo ~= undo;
@@ -2623,7 +2641,7 @@ public:
 					auto fi = create(back);
 					_imgp.set(i, fi);
 					if (_backs.isSelected(i) && _viewBacks) _imgp.select(fi);
-					_backs.getItem(i).setText(baseName(back.path));
+					_backs.getItem(i).setText(back.name);
 					_backs.getItem(i).setData(b);
 					refreshControls();
 					_comm.refBgImage.call(b.cwxPath(true));
@@ -2637,8 +2655,8 @@ public:
 			assert (0);
 		}
 		void createBackground() {
-			auto b = new BgImage("", "", 0, 0, 0, 0, false);
-			auto dlg = new BgImageDialog(_comm, _prop, getShell(), _summ, b);
+			auto b = new ImageCell("", "", 0, 0, 0, 0, false);
+			auto dlg = new ImageCellDialog(_comm, _prop, getShell(), _summ, b);
 			dlg.appliedEvent ~= {
 				auto b = dlg.back;
 				int index = insertIndex(_backs);
@@ -2659,6 +2677,12 @@ public:
 			};
 			dlg.open();
 		}
+		void createTextCell() {
+			// TODO TextCell
+		}
+		void createColorCell() {
+			// TODO ColorCell
+		}
 		void editBack(int[] indices) {
 			foreach (i; indices) {
 				editBack(_area.backs[i]);
@@ -2678,7 +2702,15 @@ public:
 				}
 			}
 			UndoEdit undo = null;
-			auto dlg = new BgImageDialog(_comm, _prop, getShell(), _summ, back);
+			AbsDialog dlg = null;
+			auto ic = cast(ImageCell) back;
+			if (ic) {
+				dlg = new ImageCellDialog(_comm, _prop, getShell(), _summ, ic);
+			} else {
+				// TODO TextCell
+				// TODO ColorCell
+				return;
+			}
 			dlg.applyEvent ~= {
 				undo = new UndoEdit(this, _comm, _area, _summ, [], [cCountUntil!("a is b")(_area.backs, back)]);
 			};
@@ -2694,7 +2726,8 @@ public:
 		void bgImageEditEnd(TableItem itm, int column, CCombo combo) {
 			int i = combo.getSelectionIndex();
 			if (-1 == i) return;
-			auto b = cast(BgImage) itm.getData();
+			auto b = cast(ImageCell) itm.getData();
+			assert (b !is null);
 			if (0 == i) {
 				if (b.path == "") return;
 				_undo ~= new UndoEdit(this, _comm, _area, _summ, [], [itm.getParent().indexOf(itm)]);
@@ -2715,8 +2748,12 @@ public:
 			callModEvent();
 			_comm.refreshToolBar();
 		}
+		bool bgImageCanEdit(TableItem itm, int column) {
+			return (cast(ImageCell) itm.getData()) !is null;
+		}
 		void createBgImageCombo(TableItem itm, int column, out string[] strs, out string str) {
-			auto b = cast(BgImage) itm.getData();
+			auto b = cast(ImageCell) itm.getData();
+			if (!b) return;
 			strs ~= _prop.msgs.imageNone;
 			str = _prop.msgs.imageNone;
 			bool def;
@@ -2836,6 +2873,8 @@ public:
 		}
 		static if (UseBacks) {
 			createMenuItem(_comm, mv, MenuID.NewBack, &createBackground, null);
+			createMenuItem(_comm, mv, MenuID.NewTextCell, &createTextCell, null);
+			createMenuItem(_comm, mv, MenuID.NewColorCell, &createColorCell, null);
 		}
 	}
 
@@ -2909,6 +2948,8 @@ public:
 		}
 		static if (UseBacks) {
 			createToolItem(_comm, bar, MenuID.NewBack, &createBackground, null);
+			createToolItem(_comm, bar, MenuID.NewTextCell, &createTextCell, null);
+			createToolItem(_comm, bar, MenuID.NewColorCell, &createColorCell, null);
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
 		_xSpn = createSpinner(bar, _prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax), 0,
@@ -3267,10 +3308,10 @@ public:
 				v._imgp.insert(index, img);
 				v._imgp.images[index].visible = check;
 				auto itm = new TableItem(v._backs, SWT.NONE, index);
-				itm.setImage(v._prop.images.backs);
+				itm.setImage(v.backImg(back));
 				itm.setData(back);
 				itm.setChecked(check);
-				itm.setText(baseName(back.path));
+				itm.setText(back.name);
 				if (select && v._viewBacks) {
 					v._imgp.select(img);
 					if (refresh) {
@@ -3284,16 +3325,34 @@ public:
 			if (v) v.callModEvent();
 		}
 		private FlexImage create(BgImage back) {
-			auto skin = _comm.skin;
-			auto path = skin.findImagePath(back.path, _summ ? _summ.scenarioPath : "");
-			auto img = createBackgroundImage
-				(skin, path, back.x, back.y, back.width, back.height, back.mask);
+			FlexImage img = null;
+			auto ic = cast(ImageCell) back;
+			if (ic) img = create(ic);
+			auto tc = cast(TextCell) back;
+			if (tc) img = create(tc);
+			auto cc = cast(ColorCell) back;
+			if (cc) img = create(cc);
+			assert (img !is null);
 			_backTbl[img] = back;
 			img.visible = _viewBacks;
 			img.fixed = isFixed;
 			img.addSelectionListener(&selectImageB);
 			img.addResizeListener(&resizeImageB);
 			return img;
+		}
+		private FlexImage create(ImageCell back) {
+			auto skin = _comm.skin;
+			auto path = skin.findImagePath(back.path, _summ ? _summ.scenarioPath : "");
+			return createBackgroundImage
+				(skin, path, back.x, back.y, back.width, back.height, back.mask);
+		}
+		private FlexImage create(TextCell back) {
+			// TODO TextCell
+			return createBackgroundImage(_comm.skin, "", back.x, back.y, back.width, back.height, back.mask);
+		}
+		private FlexImage create(ColorCell back) {
+			// TODO ColorCell
+			return createBackgroundImage(_comm.skin, "", back.x, back.y, back.width, back.height, back.mask);
 		}
 		private void appendBgImages(int index, BgImage[] backs, bool select, bool raiseEvent) {
 			FlexImage[] imgs;
@@ -3303,10 +3362,10 @@ public:
 			_imgp.insert(index, cast(PileImage[]) imgs);
 			foreach (i, b; backs) {
 				auto itm = new TableItem(_backs, SWT.NONE, index + i);
-				itm.setImage(_prop.images.backs);
+				itm.setImage(backImg(b));
 				itm.setData(b);
 				itm.setChecked(true);
-				itm.setText(baseName(b.path));
+				itm.setText(b.name);
 				if (raiseEvent) _comm.addBgImage.call(b.cwxPath(true));
 			}
 			if (select && _viewBacks) _imgp.select(imgs);
@@ -3325,7 +3384,7 @@ public:
 					return -1;
 				}
 			}
-			auto back = new BgImage(fname, "", x, y, w, h, false);
+			auto back = new ImageCell(fname, "", x, y, w, h, false);
 			return appendBgImage(back, true, true, fromImgPane);
 		}
 		private class BLDropTarget : DropTargetAdapter {

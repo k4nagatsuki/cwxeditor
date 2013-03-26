@@ -867,6 +867,12 @@ private:
 		} case CType.BRANCH_KEY_CODE: {
 			dlg = new BrKeyCodeDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
+		} case CType.CHECK_STEP: {
+			dlg = new CheckStepDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_ROUND: {
+			dlg = new BranchRoundDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
 		} default: assert (0, to!string(type));
 		}
 		assert (applied);
@@ -1103,6 +1109,12 @@ private:
 			break;
 		} case CType.BRANCH_KEY_CODE: {
 			dlg = new BrKeyCodeDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
+			break;
+		} case CType.CHECK_STEP: {
+			dlg = new CheckStepDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt, _summ.flagDirRoot);
+			break;
+		} case CType.BRANCH_ROUND: {
+			dlg = new BranchRoundDialog(_comm, _prop, _tree.getShell(), _summ, parent, evt);
 			break;
 		} default: assert (0);
 		}
@@ -2283,12 +2295,12 @@ public:
 			store(evt);
 			evt.name = name;
 			itm.setText(combo.getText());
-			_comm.refUseCount.call();
 		}
 		procTreeItem(itm);
 		_comm.refContent.call(evt);
 		refreshStatusLine();
 		_comm.refreshToolBar();
+		_comm.refUseCount.call();
 	}
 	private Combo createBoolEditor(string Create)(Content evt, Content child) {
 		string[] vals;
@@ -2420,6 +2432,8 @@ public:
 			return createBoolEditor!("evtChildBrRandomSelect(_prop, evt, name)")(data, c);
 		} case CType.BRANCH_KEY_CODE: {
 			return createBoolEditor!("evtChildBrKeyCode(_prop, evt, name)")(data, c);
+		} case CType.BRANCH_ROUND: {
+			return createBoolEditor!("evtChildBrRound(_prop, evt, name)")(data, c);
 		} default:
 		}
 		return null;
@@ -2515,6 +2529,9 @@ public:
 			break;
 		} case CType.BRANCH_KEY_CODE: {
 			r = evtChildBrKeyCode(prop, parent, name);
+			break;
+		} case CType.BRANCH_ROUND: {
+			r = evtChildBrRound(prop, parent, name);
 			break;
 		} default:
 			name = "";
@@ -2947,6 +2964,18 @@ public:
 				return .tryFormat(prop.msgs.branchKeyCodeFailure, evt.keyCode, type, range);
 			}
 		}
+	}
+	private static string evtChildBrRound(in Props prop, in Content evt, ref string text) {
+		bool val = (text != prop.sys.evtChildFalse);
+		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+
+		string cmp;
+		if (val) {
+			cmp = prop.msgs.comparison3Name(evt.comparison3);
+		} else {
+			cmp = prop.msgs.comparison3FalseName(evt.comparison3);
+		}
+		return .tryFormat(prop.msgs.branchRound, evt.round, cmp);
 	}
 
 	@property

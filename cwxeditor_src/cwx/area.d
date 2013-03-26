@@ -84,6 +84,12 @@ public:
 	override bool canHasFireEscape() {return false;}
 	@property
 	const
+	override bool canHasFireEveryRound() {return false;}
+	@property
+	const
+	override bool canHasFireRound0() {return false;}
+	@property
+	const
 	override bool canHasFireRound() {return false;}
 	@property
 	const
@@ -735,6 +741,12 @@ public:
 	override bool canHasFireEscape() {return false;}
 	@property
 	const
+	override bool canHasFireEveryRound() {return false;}
+	@property
+	const
+	override bool canHasFireRound0() {return false;}
+	@property
+	const
 	override bool canHasFireRound() {return false;}
 	@property
 	const
@@ -846,6 +858,17 @@ public:
 			_bgImgs = _bgImgs[0 .. index] ~ back ~ _bgImgs[index .. $];
 			changed();
 		}
+	}
+	/// ditto
+	void set(int index, BgImage back) {
+		_bgImgs[index].changeHandler = null;
+		_bgImgs[index].removeUseCounter();
+		_bgImgs[index].owner = null;
+		back.changeHandler = changeHandler;
+		if (useCounter) back.setUseCounter = useCounter;
+		back.owner = this;
+		_bgImgs[index] = back;
+		changed();
 	}
 	/// 背景画像を除去する。
 	void removeBgImage(int index) {
@@ -1092,6 +1115,12 @@ public:
 	override bool canHasFireEscape() {return false;}
 	@property
 	const
+	override bool canHasFireEveryRound() {return false;}
+	@property
+	const
+	override bool canHasFireRound0() {return false;}
+	@property
+	const
 	override bool canHasFireRound() {return false;}
 	@property
 	const
@@ -1206,6 +1235,12 @@ public:
 	@property
 	const
 	override bool canHasFireEscape() {return true;}
+	@property
+	const
+	override bool canHasFireEveryRound() {return true;}
+	@property
+	const
+	override bool canHasFireRound0() {return true;}
 	@property
 	const
 	override bool canHasFireRound() {return true;}

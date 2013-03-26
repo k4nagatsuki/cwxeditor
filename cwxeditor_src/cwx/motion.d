@@ -52,7 +52,8 @@ private void static_this () {
 		MType.DEAL_DISTANCE_CARD:MDetail("DealDistanceCard"),
 		MType.DEAL_CONFUSE_CARD:MDetail("DealConfuseCard"),
 		MType.DEAL_SKILL_CARD:MDetail("DealSkillCard"),
-		MType.SUMMON_BEAST:MDetail("SummonBeast", [MArg.BEAST:cast(string) null])
+		MType.SUMMON_BEAST:MDetail("SummonBeast", [MArg.BEAST:cast(string) null]),
+		MType.CANCEL_ACTION:MDetail("CancelAction"), // CardWirthNext
 	];
 	foreach (type, detail; _MOTION_DETAILS) {
 		_MTYPE_MAP[detail.name] = type;

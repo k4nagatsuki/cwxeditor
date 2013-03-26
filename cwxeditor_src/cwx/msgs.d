@@ -186,7 +186,7 @@ class Msgs : Properties {
 	auto replTextKeyCode = Msg("replTextKeyCode", "キーコード");
 	auto replTextFile = Msg("replTextFile", "ファイル名");
 	auto replTextComment = Msg("replTextComment", "コメント");
-	auto replTextJptx = Msg("replTextJptx", "JPTXテキスト");
+	auto replTextJptx = Msg("replTextJptx", "JPTX/テキストセル");
 
 	auto replID = Msg("replID", "検索/置換対象");
 	auto replIDKind = Msg("replIDKind", "対象");
@@ -254,7 +254,8 @@ class Msgs : Properties {
 
 	auto searchResultSummary = Msg("searchResultSummary", "シナリオの概要 - %1$s");
 
-	auto searchResultBgImage = Msg("searchResultBgImage", "背景画像 [%1$s]");
+	auto searchResultImageCell = Msg("searchResultBgImage", "背景画像 [%1$s]");
+	auto searchResultTextCell = Msg("searchResultTextCell", "テキストセル [%1$s]");
 	auto searchResultIds = Msg("searchResultIds", "%1$s [%2$s.%3$s]");
 
 	auto searchResultFlag = Msg("searchResultFlag", "フラグ [%1$s]");
@@ -294,6 +295,7 @@ class Msgs : Properties {
 	auto searchErrorSouceIsTarget = Msg("searchErrorSouceIsTarget", "ソース変数とターゲット変数が同一");
 	auto searchErrorSystemName = Msg("searchErrorSystemName", "システムで使用されている名前のため正しく機能しない場合がある");
 	auto searchErrorKeyCodeMatchingAll = Msg("searchErrorKeyCodeMatchingAll", "「MatchingType=All」はシステムで使用されているキーコードのため正しく機能しない場合がある");
+	auto searchErrorBranchRoundInArea = Msg("searchErrorBranchRoundInArea", "ラウンド分岐がエリアイベントで使用されている");
 
 	auto searchOpenDialog = Msg("searchOpenDialog", "検索結果へジャンプする時、ダイアログを開く");
 
@@ -416,6 +418,10 @@ class Msgs : Properties {
 	auto cmpTarget = Msg("flagCmpTarget", "ターゲット変数(比較元)");
 	auto randomSelectHasLevel = Msg("randomSelectHasLevel", "レベルを限定");
 	auto randomSelectHasStatus = Msg("randomSelectHasStatus", "状態を限定");
+	auto stepValueIs = Msg("stepValueIs", "ステップ「%1$s」が[%2$s]");
+	auto roundCondition = Msg("roundCondition", "ラウンド条件");
+	auto roundIs = Msg("roundIs", "バトルが");
+	auto roundCmpIs = Msg("roundCmpIs", "ラウンド");
 
 	/// イベント。
 	auto evtArrow = Msg("evtArrow", "イベント編集");
@@ -498,6 +504,8 @@ class Msgs : Properties {
 	auto contentNameBranchFlagCmp = Msg("contentNameBranchFlagCmp", "フラグ比較分岐");
 	auto contentNameBranchRandomSelect = Msg("contentNameBranchRandomSelect", "ランダム選択");
 	auto contentNameBranchKeyCode = Msg("contentNameBranchKeyCode", "キーコード所持分岐");
+	auto contentNameCheckStep = Msg("contentNameCheckStep", "ステップ判定");
+	auto contentNameBranchRound = Msg("contentNameBranchRound", "ラウンド分岐");
 
 	auto msnGroupVitality = Msg("msnGroupVitality", "生命力");
 	auto msnGroupPhysical = Msg("msnGroupPhysical", "肉体");
@@ -555,6 +563,7 @@ class Msgs : Properties {
 	auto motionNameDealConfuseCard = Msg("motionNameDealConfuseCard", "混乱");
 	auto motionNameDealSkillCard = Msg("motionNameDealSkillCard", "特殊技能");
 	auto motionNameSummonBeast = Msg("motionNameSummonBeast", "召喚獣召喚");
+	auto motionNameCancelAction = Msg("motionNameCancelAction", "行動キャンセル"); // CardWirthNext
 
 	auto dialogText = Msg("dialogText", "%2$s: %1$s");
 	auto dialogTextNoCoupon = Msg("dialogTextNoCoupon", "%1$s");
@@ -619,7 +628,7 @@ class Msgs : Properties {
 	auto ctSetStepUp = Msg("ctSetStepUp", "ステップ「%1$s」の値を1増加");
 	auto ctSetStepDown = Msg("ctSetStepDown", "ステップ「%1$s」の値を1減少");
 	auto ctReverseFlag = Msg("ctReverseFlag", "フラグ「%1$s」の値を反転");
-	auto ctCheckFlag = Msg("ctCheckFlag", "フラグ「%1$s」の値が[%2$s]であれば出現");
+	auto ctCheckFlag = Msg("ctCheckFlag", "フラグ「%1$s」の値が[%2$s]であれば後続のイベントが出現");
 	auto ctGetCast = Msg("ctGetCast", "キャストカード「%1$s」を同行させる");
 	auto ctGetSkill = Msg("ctGetSkill", "特殊技能カード「%1$s」を獲得(%2$sに%3$s枚)");
 	auto ctGetItem = Msg("ctGetItem", "アイテムカード「%1$s」を獲得(%2$sに%3$s枚)");
@@ -659,6 +668,8 @@ class Msgs : Properties {
 	auto castRange3 = Msg("castRange3", "フィールド全体");
 	auto ctBranchKeyCodeAllType = Msg("ctBranchKeyCodeAllType", "キーコード「%1$s」を含むカードの有無で分岐(%2$s)");
 	auto ctBranchKeyCode = Msg("ctBranchKeyCode", "キーコード「%1$s」を含む%2$sの有無で分岐(%3$s)");
+	auto ctCheckStep = Msg("ctCheckStep", "ステップ「%1$s」が[%2$s]%3$s後続のイベントが出現");
+	auto ctBranchRound = Msg("ctBranchRound", "バトルが%1$sラウンド%2$sか否かで分岐");
 
 	auto defaultStartName = Msg("defaultStartName", "イベント開始");
 
@@ -812,6 +823,8 @@ class Msgs : Properties {
 	auto menuCard = Msg("menuCard", "メニューカード");
 	auto enemyCard = Msg("enemyCard", "エネミーカード");
 	auto back = Msg("back", "背景画像");
+	auto textCell = Msg("textCell", "テキストセル");
+	auto colorCell = Msg("colorCell", "カラーセル");
 
 	/// カード/背景配置領域関連。
 	auto dlgTitDropCard = Msg("dlgTitDropCard", "カード画像の追加");
@@ -843,6 +856,8 @@ class Msgs : Properties {
 	auto startVictory = Msg("startVictory", "勝利");
 	auto startEscape = Msg("startEscape", "逃走");
 	auto startLose = Msg("startLose", "敗北");
+	auto startEveryRound = Msg("startEveryRound", "毎ラウンド");
+	auto startRound0 = Msg("startRound0", "バトル開始");
 	auto startPackage = Msg("startPackage", "パッケージ");
 	auto startUse = Msg("startUse", "使用時");
 	auto startRound = Msg("startRound", "ラウンド = %1$s");
@@ -860,6 +875,8 @@ class Msgs : Properties {
 	auto victoryTree = Msg("victoryTree", "勝利");
 	auto escapeTree = Msg("escapeTree", "逃走");
 	auto loseTree = Msg("loseTree", "敗北");
+	auto everyRoundTree = Msg("everyRoundTree", "毎ラウンド");
+	auto round0Tree = Msg("round0Tree", "バトル開始");
 	auto packageTree = Msg("packageTree", "パッケージイベント");
 	auto useTree = Msg("useTree", "使用時イベント");
 	auto keyCodeTree = Msg("keyCodeTree", "[%1$s]");
@@ -929,6 +946,7 @@ class Msgs : Properties {
 	auto branchKeyCodeAllTypeFailure = Msg("branchKeyCodeAllTypeFailure", "キーコード「%1$s」を含むカードを所有していない(%2$s)");
 	auto branchKeyCodeSuccess = Msg("branchKeyCodeSuccess", "キーコード「%1$s」を含む%2$sを所有している(%3$s)");
 	auto branchKeyCodeFailure = Msg("branchKeyCodeFailure", "キーコード「%1$s」を含む%2$sを所有していない(%3$s)");
+	auto branchRound = Msg("branchRound", "バトルが%1$sラウンド%2$s");
 
 	const string physicalName(Physical id) {
 		mixin(EnumToStringSwitch!(Physical, "physicalName"));
@@ -971,6 +989,17 @@ class Msgs : Properties {
 	auto statusNameOverheat = Msg("statusNameOverheat", "激昂");
 	auto statusNameBrave = Msg("statusNameBrave", "勇敢");
 	auto statusNamePanic = Msg("statusNamePanic", "恐慌");
+	auto statusNameSilence = Msg("statusNameSilence", "沈黙");
+	auto statusNameFaceUp = Msg("statusNameFaceUp", "暴露");
+	auto statusNameAntiMagic = Msg("statusNameAntiMagic", "魔法無効化");
+	auto statusNameUpAction = Msg("statusNameUpAction", "行動力上昇");
+	auto statusNameUpAvoid = Msg("statusNameUpAvoid", "回避力上昇");
+	auto statusNameUpResist = Msg("statusNameUpResist", "抵抗力上昇");
+	auto statusNameUpDefense = Msg("statusNameUpDefense", "防御力上昇");
+	auto statusNameDownAction = Msg("statusNameDownAction", "行動力低下");
+	auto statusNameDownAvoid = Msg("statusNameDownAvoid", "回避力低下");
+	auto statusNameDownResist = Msg("statusNameDownResist", "抵抗力低下");
+	auto statusNameDownDefense = Msg("statusNameDownDefense", "防御力低下");
 	auto statusNameNone = Msg("statusNameNone", "状態指定無し");
 	auto effectTypeElement = Msg("effectTypeElement", "%1$s属性");
 	const string effectTypeName(EffectType id) {
@@ -1122,6 +1151,28 @@ class Msgs : Properties {
 	auto effectCardTypeNameSkill = Msg("effectCardTypeNameSkill", "特殊技能カード");
 	auto effectCardTypeNameItem = Msg("effectCardTypeNameItem", "アイテムカード");
 	auto effectCardTypeNameBeast = Msg("effectCardTypeNameBeast", "召喚獣カード");
+
+	const string comparison4Name(Comparison4 id) {
+		mixin(EnumToStringSwitch!(Comparison4, "comparison4Name"));
+	}
+	auto comparison4NameEq = Msg("comparison4NameEq", "であれば");
+	auto comparison4NameNe = Msg("comparison4NameNe", "でなければ");
+	auto comparison4NameLt = Msg("comparison4NameLt", "より大きければ");
+	auto comparison4NameGt = Msg("comparison4NameGt", "より小さければ");
+
+	const string comparison3Name(Comparison3 id) {
+		mixin(EnumToStringSwitch!(Comparison3, "comparison3Name"));
+	}
+	auto comparison3NameEq = Msg("comparison3NameEq", "である");
+	auto comparison3NameLt = Msg("comparison3NameLt", "より大きい");
+	auto comparison3NameGt = Msg("comparison3NameGt", "より小さい");
+
+	const string comparison3FalseName(Comparison3 id) {
+		mixin(EnumToStringSwitch!(Comparison3, "comparison3FalseName"));
+	}
+	auto comparison3FalseNameEq = Msg("comparison3FalseNameEq", "ではない");
+	auto comparison3FalseNameLt = Msg("comparison3FalseNameLt", "以下");
+	auto comparison3FalseNameGt = Msg("comparison3FalseNameGt", "以上");
 
 	auto dlgTitComment = Msg("dlgTitComment", "コメントの記述");
 
@@ -1565,6 +1616,8 @@ class Msgs : Properties {
 	auto scriptErrorInvalidElement = Msg("scriptErrorInvalidElement", "未知の属性です。");
 	auto scriptErrorInvalidDamageType = Msg("scriptErrorInvalidDamageType", "未知のダメージタイプです。");
 	auto scriptErrorInvalidEffectCardType = Msg("scriptErrorInvalidEffectCardType", "未知の効果カードタイプです。");
+	auto scriptErrorInvalidComparison4 = Msg("scriptErrorInvalidComparison4", "未知の比較条件です。");
+	auto scriptErrorInvalidComparison3 = Msg("scriptErrorInvalidComparison3", "未知の比較条件です。");
 	auto scriptErrorInvalidBgImage = Msg("scriptErrorInvalidBgImage", "背景画像が正しくありません。");
 	auto scriptErrorInvalidDialog = Msg("scriptErrorInvalidDialog", "台詞が正しくありません。");
 	auto scriptErrorInvalidTalker = Msg("scriptErrorInvalidTalker", "話者が正しくありません。");
@@ -1700,6 +1753,8 @@ class Msgs : Properties {
 	auto menuTextNewMenuCard = Msg("menuTextNewMenuCard", "メニューカードの作成");
 	auto menuTextNewEnemyCard = Msg("menuTextNewEnemyCard", "エネミーカードの作成");
 	auto menuTextNewBack = Msg("menuTextNewBack", "背景の作成");
+	auto menuTextNewTextCell = Msg("menuTextNewTextCell", "テキストセルの作成");
+	auto menuTextNewColorCell = Msg("menuTextNewColorCell", "カラーセルの作成");
 	auto menuTextAutoArrange = Msg("menuTextAutoArrange", "カードを自動的に並べる");
 	auto menuTextManualArrange = Msg("menuTextManualArrange", "カードの位置を自分で決定する");
 	auto menuTextMask = Msg("menuTextMask", "透明色を使用");

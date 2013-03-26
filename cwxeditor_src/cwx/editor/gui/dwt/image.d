@@ -76,6 +76,8 @@ public:
 
 	@property Image cards() {return imgd!("cards.png");}
 	@property Image backs() {return imgd!("backs.png");}
+	@property Image colorCell() {return imgd!("color_cell.png");}
+	@property Image textCell() {return imgd!("text_cell.png");}
 
 	@property Image bgm() {return imgd!("evt_bgm.png");}
 	@property Image se() {return imgd!("evt_se.png");}
@@ -158,7 +160,6 @@ public:
 		case CType.BRANCH_COUPON: return imgd!("evt_br_coupon.png");
 		case CType.BRANCH_COMPLETE_STAMP: return imgd!("evt_br_end.png");
 		case CType.BRANCH_GOSSIP: return imgd!("evt_br_gossip.png");
-		case CType.BRANCH_KEY_CODE: return imgd!("evt_br_keycode.png");
 		case CType.SET_FLAG: return imgd!("evt_flag_set.png");
 		case CType.SET_STEP: return imgd!("evt_step_set.png");
 		case CType.SET_STEP_UP: return imgd!("evt_step_plus.png");
@@ -191,6 +192,9 @@ public:
 		case CType.BRANCH_STEP_CMP: return imgd!("evt_cmpstep.png");
 		case CType.BRANCH_FLAG_CMP: return imgd!("evt_cmpflag.png");
 		case CType.BRANCH_RANDOM_SELECT: return imgd!("evt_br_rndsel.png");
+		case CType.BRANCH_KEY_CODE: return imgd!("evt_br_keycode.png");
+		case CType.CHECK_STEP: return imgd!("evt_check_step.png");
+		case CType.BRANCH_ROUND: return imgd!("evt_br_round.png");
 		default: assert (0);
 		}
 	}
@@ -238,6 +242,7 @@ public:
 		case MType.DEAL_CONFUSE_CARD: return imgd!("hand_confuse.png");
 		case MType.DEAL_SKILL_CARD: return imgd!("hand_skill.png");
 		case MType.SUMMON_BEAST: return imgd!("msn_summon.png");
+		case MType.CANCEL_ACTION: return imgd!("msn_cancel_action.png"); // CardWirthNext
 		default: assert (0);
 		}
 	}
@@ -445,6 +450,8 @@ public:
 		case MenuID.NewMenuCard: return imgd!("card_new.png");
 		case MenuID.NewEnemyCard: return imgd!("card_new.png");
 		case MenuID.NewBack: return imgd!("back_new.png");
+		case MenuID.NewTextCell: return imgd!("text_cell_new.png");
+		case MenuID.NewColorCell: return imgd!("color_cell_new.png");
 		case MenuID.AutoArrange: return imgd!("auto.png");
 		case MenuID.ManualArrange: return imgd!("custom.png");
 		case MenuID.Mask: return imgd!("mask.png");

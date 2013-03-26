@@ -26,9 +26,42 @@ import std.regex : regex, match;
 /// BgImageをBgImageSに変換する。
 BgImageS[] createBgImageSs(in BgImage[] bgs) {
 	BgImageS[] r;
-	r.length = bgs.length;
-	foreach (i, b; bgs) {
-		r[i] = BgImageS(stripExtension(b.path), b.x, b.y, b.width, b.height, b.mask);
+	foreach (i, bg; bgs) {
+		BgImageS s;
+		s.x = bg.x;
+		s.y = bg.y;
+		s.width = bg.width;
+		s.height = bg.height;
+		s.mask = bg.mask;
+		auto ic = cast(ImageCell) bg;
+		if (ic) {
+			s.type = "image";
+			s.name = stripExtension(ic.path);
+		}
+		auto tc = cast(TextCell) bg;
+		if (tc) {
+			s.type = "text";
+			s.text = tc.text;
+			s.fontName = tc.fontName;
+			s.size = tc.size;
+			s.color = tc.color;
+			s.bold = tc.bold;
+			s.italic = tc.italic;
+			s.underline = tc.underline;
+			s.strike = tc.strike;
+			s.vertical = tc.vertical;
+			s.borderingType = tc.borderingType;
+			s.borderingColor = tc.borderingColor;
+			s.borderingWidth = tc.borderingWidth;
+		}
+		auto cc = cast(ColorCell) bg;
+		if (cc) {
+			s.type = "color";
+			s.blendMode = cc.blendMode;
+			s.gradientDir = cc.gradientDir;
+			s.color1 = cc.color1;
+			s.color2 = cc.color2;
+		}
 	}
 	return r;
 }
@@ -37,13 +70,29 @@ BgImage[] createBgImages(in Skin skin, in BgImageS[] bgs) {
 	BgImage[] r;
 	r.length = bgs.length;
 	foreach (i, b; bgs) {
-		auto path = skin.findImagePath(setExtension(b.name, skin.extImage), "");
-		if (path.length) {
-			path = abs2rel(nabs(path), skin.tableDir);
-		} else {
-			path = setExtension(b.name, skin.extImage);
+		switch (b.type) {
+		case "image":
+			auto path = skin.findImagePath(setExtension(b.name, skin.extImage), "");
+			if (path.length) {
+				path = abs2rel(nabs(path), skin.tableDir);
+			} else {
+				path = setExtension(b.name, skin.extImage);
+			}
+			r[i] = new ImageCell(path, "", b.x, b.y, b.width, b.height, b.mask);
+			break;
+		case "text":
+			r[i] = new TextCell(b.text, b.fontName, b.size, b.color,
+				b.bold, b.italic, b.underline, b.strike, b.vertical,
+				b.borderingType, b.borderingColor, b.borderingWidth,
+				"", b.x, b.y, b.width, b.height, b.mask);
+			break;
+		case "color":
+			r[i] = new ColorCell(b.blendMode, b.gradientDir, b.color1, b.color2,
+				"", b.x, b.y, b.width, b.height, b.mask);
+			break;
+		default:
+			throw new Exception("Unknown type: " ~ b.type);
 		}
-		r[i] = new BgImage(path, "", b.x, b.y, b.width, b.height, b.mask);
 	}
 	return r;
 }

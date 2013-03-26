@@ -12,6 +12,7 @@ import cwx.props;
 import cwx.msgutils;
 import cwx.card;
 import cwx.coupon;
+import cwx.textholder;
 
 import std.algorithm;
 import std.datetime;
@@ -53,11 +54,12 @@ private void static_this () {
 			CType.SET_STEP,
 			CType.SET_STEP_UP,
 			CType.SET_STEP_DOWN,
-			CType.CHECK_FLAG,
 			CType.SUBSTITUTE_STEP,
 			CType.SUBSTITUTE_FLAG,
 			CType.BRANCH_STEP_CMP,
 			CType.BRANCH_FLAG_CMP,
+			CType.CHECK_FLAG,
+			CType.CHECK_STEP,
 		], CTypeGroup.Utility:[
 			CType.BRANCH_SELECT,
 			CType.BRANCH_ABILITY,
@@ -69,7 +71,7 @@ private void static_this () {
 			CType.BRANCH_BATTLE,
 			CType.BRANCH_IS_BATTLE,
 			CType.BRANCH_RANDOM_SELECT,
-			CType.BRANCH_KEY_CODE,
+			CType.BRANCH_ROUND,
 		], CTypeGroup.Branch:[
 			CType.BRANCH_CAST,
 			CType.BRANCH_ITEM,
@@ -80,6 +82,7 @@ private void static_this () {
 			CType.BRANCH_COUPON,
 			CType.BRANCH_COMPLETE_STAMP,
 			CType.BRANCH_GOSSIP,
+			CType.BRANCH_KEY_CODE,
 		], CTypeGroup.Get:[
 			CType.GET_CAST,
 			CType.GET_ITEM,
@@ -150,7 +153,6 @@ private void static_this () {
 		CType.BRANCH_COUPON:CDetail("Branch", "Coupon", CNextType.BOOL, true, [CArg.COUPON:_("coupon"), CArg.RANGE:"targets"]),
 		CType.BRANCH_COMPLETE_STAMP:CDetail("Branch", "CompleteStamp", CNextType.BOOL, true, [CArg.COMPLETE_STAMP:"scenario"]),
 		CType.BRANCH_GOSSIP:CDetail("Branch", "Gossip", CNextType.BOOL, true, [CArg.GOSSIP:"gossip"]),
-		CType.BRANCH_KEY_CODE:CDetail("Branch", "KeyCode", CNextType.BOOL, true, [CArg.KEY_CODE_RANGE:"targetkc", CArg.EFFECT_CARD_TYPE:"effectCardType", CArg.KEY_CODE:"keyCode"]),
 		CType.SET_FLAG:CDetail("Set", "Flag", CNextType.NONE, true, [CArg.FLAG:_("flag"), CArg.FLAG_VALUE:"value"]),
 		CType.SET_STEP:CDetail("Set", "Step", CNextType.NONE, true, [CArg.STEP:_("step"), CArg.STEP_VALUE:"value"]),
 		CType.SET_STEP_UP:CDetail("Set", "StepUp", CNextType.NONE, true, [CArg.STEP:"step"]),
@@ -183,6 +185,9 @@ private void static_this () {
 		CType.BRANCH_STEP_CMP:CDetail("Branch", "StepValue", CNextType.TRIO, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
 		CType.BRANCH_FLAG_CMP:CDetail("Branch", "FlagValue", CNextType.BOOL, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
 		CType.BRANCH_RANDOM_SELECT:CDetail("Branch", "RandomSelect", CNextType.BOOL, true, [CArg.CAST_RANGE:null, CArg.LEVEL_MIN:"minLevel", CArg.LEVEL_MAX:"maxLevel", CArg.STATUS:"status"]),
+		CType.BRANCH_KEY_CODE:CDetail("Branch", "KeyCode", CNextType.BOOL, true, [CArg.KEY_CODE_RANGE:"targetkc", CArg.EFFECT_CARD_TYPE:"effectCardType", CArg.KEY_CODE:"keyCode"]),
+		CType.CHECK_STEP:CDetail("Check", "Step", CNextType.BOOL, true, [CArg.STEP:"step", CArg.STEP_VALUE:"value", CArg.COMPARISON_4:"comparison"]),
+		CType.BRANCH_ROUND:CDetail("Branch", "Round", CNextType.BOOL, true, [CArg.ROUND:"round", CArg.COMPARISON_3:"comparison"]),
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) {
 		_CTYPE_MAP[detail.name][detail.type] = cType;
@@ -253,179 +258,6 @@ StartId toStartId(string start) {return start;}
 alias User!(StartId) IStartUser;
 /// スタートコンテントの使用回数カウンタ。
 alias UCCont!(StartId, IStartUser) SUseCounter;
-
-/// メッセージやダイアログが持つテキスト。
-class TextHolder : CWXPath, IPathUser, IFlagUser, IStepUser, ChgPathCallback, ChgFlagCallback, ChgStepCallback {
-private:
-	string _text;
-	PathUser[] _fontusers;
-	FlagUser[] _flagusers;
-	StepUser[] _stepusers;
-	UseCounter _uc;
-public:
-	/// コンストラクタ。
-	this () {}
-	/// コピーコンストラクタ。
-	this (in TextHolder base) {
-		this.text = base.text;
-	}
-	/// テキスト。
-	@property
-	const
-	string text() {
-		return _text;
-	}
-	/// ditto
-	@property
-	void text(string text) {
-		if (_text != text) {
-			string[] flags;
-			string[] steps;
-			string[] fonts;
-			textUseItems(text, flags, steps, fonts);
-			removeTextUseCounter();
-			_fontusers = [];
-			foreach (f; fonts) {
-				auto u = new PathUser(this);
-				if (_uc !is null) u.setUseCounter(_uc);
-				u.path = f;
-				_fontusers ~= u;
-			}
-			_flagusers = [];
-			foreach (f; flags) {
-				auto u = new FlagUser(this);
-				if (_uc !is null) u.setUseCounter(_uc);
-				u.flag = f;
-				_flagusers ~= u;
-			}
-			_stepusers = [];
-			foreach (s; steps) {
-				auto u = new StepUser(this);
-				if (_uc !is null) u.setUseCounter(_uc);
-				u.step = s;
-				_stepusers ~= u;
-			}
-			_text = text;
-		}
-	}
-	/// 使用回数カウンタ。
-	@property
-	UseCounter useCounter() {return _uc;}
-	/// 使用回数カウンタを設定する。
-	@property
-	void setUseCounter(UseCounter uc) {
-		foreach (u; _fontusers) {
-			u.setUseCounter(uc);
-		}
-		foreach (u; _flagusers) {
-			u.setUseCounter(uc);
-		}
-		foreach (u; _stepusers) {
-			u.setUseCounter(uc);
-		}
-		_uc = uc;
-	}
-	private void removeTextUseCounter() {
-		if (_uc) {
-			foreach (u; _fontusers) {
-				u.removeUseCounter();
-			}
-			foreach (u; _flagusers) {
-				u.removeUseCounter();
-			}
-			foreach (u; _stepusers) {
-				u.removeUseCounter();
-			}
-		}
-	}
-	/// 使用回数カウンタを除去。
-	void removeUseCounter() {
-		removeTextUseCounter();
-		_uc = null;
-	}
-	void change(PathId id) {
-		foreach (u; _fontusers) {
-			u.change(id);
-		}
-	}
-	void change(FlagId id) {
-		foreach (u; _flagusers) {
-			u.change(id);
-		}
-	}
-	void change(StepId id) {
-		foreach (u; _stepusers) {
-			u.change(id);
-		}
-	}
-	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
-	void change(size_t index, PathId id) {
-		_fontusers[index].change(id);
-	}
-	/// ditto
-	void change(size_t index, FlagId id) {
-		_flagusers[index].change(id);
-	}
-	/// ditto
-	void change(size_t index, StepId id) {
-		_stepusers[index].change(id);
-	}
-	override void changeCallback(PathId oldVal, PathId newVal) {
-		_text = replTextUseFont(_text, cast(string) oldVal, cast(string) newVal);
-	}
-	override void changeCallback(FlagId oldVal, FlagId newVal) {
-		_text = replTextUseFlag(_text, cast(string) oldVal, cast(string) newVal);
-	}
-	override void changeCallback(StepId oldVal, StepId newVal) {
-		_text = replTextUseStep(_text, cast(string) oldVal, cast(string) newVal);
-	}
-	/// このTextHolderの所持者。
-	@property
-	CWXPath owner() {return _owner;}
-	private CWXPath _owner = null;
-	@property
-	private void owner(CWXPath owner) {_owner = owner;}
-	@property
-	string cwxPath(bool id) {
-		if (_owner) {
-			return cpjoin(_owner, "text", id);
-		}
-		return "";
-	}
-	CWXPath findCWXPath(string path) {
-		if (cpempty(path)) return this;
-		return null;
-	}
-	@property
-	CWXPath[] cwxChilds() {return [];}
-	@property
-	CWXPath cwxParent() {return _owner;}
-}
-
-/// メッセージテキストの保持者。
-interface ITextHolder {
-	/// テキスト。
-	@property
-	const string text();
-	/// ditto
-	@property
-	void text(string);
-	/// テキスト内で使用されているfont_X.png・フラグ・ステップのパス。
-	@property
-	const string[] fontsInText();
-	/// ditto
-	@property
-	const string[] flagsInText();
-	/// ditto
-	@property
-	const string[] stepsInText();
-	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
-	void changeInText(size_t index, PathId id);
-	/// ditto
-	void changeInText(size_t index, FlagId id);
-	/// ditto
-	void changeInText(size_t index, StepId id);
-}
 
 /// 口調分け条件とメッセージ内容を持つクラス。
 static class SDialog : CWXPath, IPathUser, IFlagUser, IStepUser, ITextHolder {
@@ -516,7 +348,7 @@ public:
 	}
 	/// ditto
 	void removeUseCounter() {
-		_text.removeTextUseCounter();
+		_text.removeUseCounter();
 		foreach (ref c; _rCoupons) {
 			c.removeUseCounter();
 		}
@@ -533,33 +365,15 @@ public:
 	// テキスト内で使用されているfont_X.png等のパス。
 	@property
 	const
-	override string[] fontsInText() {
-		string[] r;
-		foreach (u; _text._fontusers) {
-			r ~= u.path;
-		}
-		return r;
-	}
+	override string[] fontsInText() { return _text.fontsInText; }
 	// テキスト内で使用されているフラグのパス。
 	@property
 	const
-	override string[] flagsInText() {
-		string[] r;
-		foreach (u; _text._flagusers) {
-			r ~= u.flag;
-		}
-		return r;
-	}
+	override string[] flagsInText() { return _text.flagsInText; }
 	// テキスト内で使用されているステップのパス。
 	@property
 	const
-	override string[] stepsInText() {
-		string[] r;
-		foreach (u; _text._stepusers) {
-			r ~= u.step;
-		}
-		return r;
-	}
+	override string[] stepsInText() { return _text.stepsInText; }
 	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
 	override void changeInText(size_t index, PathId id) {
 		_text.change(index, id);
@@ -627,14 +441,16 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		IFlagUser, IStepUser,
 		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser,
 		ICouponUser, IGossipUser, ICompleteStampUser, IStartUser,
-		MotionOwner, BgImageOwner, ITextHolder {
+		MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHolder {
 	private EventTree _tree = null;
 
 	/// 型と後続テキストnameを指定してインスタンスを生成。
 	this (CType type, string name) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_type = type;
-		_name = name;
+		_name = new SimpleTextHolder;
+		_name.text = name;
+		_name.owner = this;
 		validate();
 	}
 	/// ディープコピーを生成する。
@@ -701,6 +517,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		copy.keyCode = keyCode;
 
 		copy.initValue = initValue;
+
+		copy.comparison4 = comparison4;
+		copy.comparison3 = comparison3;
+
+		copy.round = round;
 
 		Motion[] motions;
 		foreach (m; this.motions) {
@@ -804,6 +625,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& keyCode == c.keyCode
 
 			&& initValue == c.initValue
+
+			&& comparison4 == c.comparison4
+			&& comparison3 == c.comparison3
+
+			&& round == c.round
 
 			&& motions == c.motions
 
@@ -985,6 +811,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		resetValue!(CArg.INIT_VALUE, int, 0)(d, &initValue);
 
+		resetValue!(CArg.COMPARISON_4, Comparison4, Comparison4.Eq)(d, &comparison4);
+		resetValue!(CArg.COMPARISON_3, Comparison3, Comparison3.Eq)(d, &comparison3);
+
+		resetValue!(CArg.ROUND, uint, 0)(d, &round);
+
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
 
 		resetValue!(CArg.TEXT, string, "")(d, &text);
@@ -1002,22 +833,22 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		validate();
 	}
 
-	private string _name;
+	private SimpleTextHolder _name;
 	/// テキスト。
 	@property
 	void name(string name) {
-		if (_name != name) {
+		if (_name.text != name) {
 			changed();
 			if (_type is CType.START && _tree) {
-				_tree.startUseCounter.change(toStartId(_name), toStartId(name), true);
+				_tree.startUseCounter.change(toStartId(_name.text), toStartId(name), true);
 			}
+			_name.text = name;
 		}
-		_name = name;
 	}
 	/// ditto
 	@property
 	const
-	string name() {return _name;}
+	string name() {return _name.text;}
 
 	/// 専らシナリオ作者が参考のために記すコンテントのコメント。
 	private string _comment = "";
@@ -1039,6 +870,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	@property
 	private void parent(Content parent) in {
 		assert (!parent || parent.detail.owner);
+		assert (parent !is this);
+		assert (type !is CType.START);
 	} body {
 		if (_parent is parent) return;
 		bool oldAreaBr = _parent && _parent.detail.nextType == CNextType.ID_AREA;
@@ -1366,7 +1199,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	private void areaChg(AreaId id) {
 		if (area != id && _parent && _parent.detail.nextType == CNextType.ID_AREA) {
-			_name = id == 0 ? "Default" : to!(string)(cast(ulong) id);
+			name = id == 0 ? "Default" : to!(string)(cast(ulong) id);
 		}
 	}
 	/// バトルID。
@@ -1377,7 +1210,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	private void battleChg(BattleId id) {
 		if (battle != id && _parent && _parent.detail.nextType == CNextType.ID_BATTLE) {
-			_name = id == 0 ? "Default" : to!(string)(cast(ulong) id);
+			name = id == 0 ? "Default" : to!(string)(cast(ulong) id);
 		}
 	}
 	/// パッケージID。
@@ -1524,6 +1357,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 評価メンバ初期値(CardWirthNext)。
 	mixin Prop!(int, "initValue", 1);
 
+	/// 4路比較条件(CardWirthNext)。
+	mixin Prop!(Comparison4, "comparison4", Comparison4.Eq);
+	/// 3路比較条件(CardWirthNext)。
+	mixin Prop!(Comparison3, "comparison3", Comparison3.Eq);
+
+	/// ラウンド(CardWirthNext)。
+	mixin Prop!(uint, "round", 0);
+
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
 
@@ -1655,45 +1496,39 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const
 	override string[] fontsInText() {
 		if (!_text) return [];
-		string[] r;
-		foreach (u; _text._fontusers) {
-			r ~= u.path;
-		}
-		return r;
+		return _text.fontsInText;
 	}
 	// テキスト内で使用されているフラグのパス。
 	@property
 	const
 	override string[] flagsInText() {
-		if (!_text) return [];
 		string[] r;
-		foreach (u; _text._flagusers) {
-			r ~= u.flag;
-		}
+		if (_text) r ~= _text.flagsInText;
+		r ~= _name.flagsInText;
 		return r;
 	}
 	// テキスト内で使用されているステップのパス。
 	@property
 	const
 	override string[] stepsInText() {
-		if (!_text) return [];
 		string[] r;
-		foreach (u; _text._stepusers) {
-			r ~= u.step;
-		}
+		if (_text) r ~= _text.stepsInText;
+		r ~= _name.stepsInText;
 		return r;
 	}
 	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
 	override void changeInText(size_t index, PathId id) {
-		_text.change(index, id);
+		if (_text) _text.change(index, id);
 	}
 	/// ditto
 	override void changeInText(size_t index, FlagId id) {
-		_text.change(index, id);
+		if (_text) _text.change(index, id);
+		_name.change(index, id);
 	}
 	/// ditto
 	override void changeInText(size_t index, StepId id) {
-		_text.change(index, id);
+		if (_text) _text.change(index, id);
+		_name.change(index, id);
 	}
 
 	/// コンテントをXMLテキストにして返す。
@@ -1786,6 +1621,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.KEY_CODE, "keyCode", "")(e, d);
 
 		atnPut!(CArg.INIT_VALUE, "initValue", "")(e, d);
+
+		atnPut!(CArg.COMPARISON_4, "comparison4", "fromComparison4")(e, d);
+		atnPut!(CArg.COMPARISON_3, "comparison3", "fromComparison3")(e, d);
+
+		atnPut!(CArg.ROUND, "round", "")(e, d);
 
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) {
@@ -1930,6 +1770,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.KEY_CODE, "keyCode", "")(en, d, r);
 
 		cfnPut!(CArg.INIT_VALUE, "initValue", "to!(int)")(en, d, r);
+
+		cfnPut!(CArg.COMPARISON_4, "comparison4", "toComparison4")(en, d, r);
+		cfnPut!(CArg.COMPARISON_3, "comparison3", "toComparison3")(en, d, r);
+
+		cfnPut!(CArg.ROUND, "round", "to!(uint)")(en, d, r);
 
 		// 多少複雑なもの
 		if (d.use(CArg.TRANSITION)) {
@@ -2120,6 +1965,8 @@ private:
 	bool _enter = false;
 	bool _escape = false;
 	bool _lose = false;
+	bool _everyRound = 0;
+	bool _round0 = false;
 	uint[] _rounds;
 
 	KeyCodeUser[] _keyCodes;
@@ -2443,6 +2290,32 @@ public:
 		return _lose;
 	}
 
+	/// 毎ラウンドに発火するか。
+	@property
+	void everyRound(bool everyRound) {
+		if (_everyRound != everyRound) changed();
+		_everyRound = everyRound;
+	}
+	/// ditto
+	@property
+	const
+	bool fireEveryRound() {
+		return _everyRound;
+	}
+
+	/// 戦闘開始時に発火するか。
+	@property
+	void round0(bool round0) {
+		if (_round0 != round0) changed();
+		_round0 = round0;
+	}
+	/// ditto
+	@property
+	const
+	bool fireRound0() {
+		return _round0;
+	}
+
 	/// 発火ラウンドを追加。追加できた場合はtrueを返す。
 	bool addRound(uint round) {
 		if (!fireRound(round)) {
@@ -2611,7 +2484,7 @@ public:
 	const
 	private void __toNode(ref XNode node, XMLOption opt) {
 		assert (node.name == "Event", node.name ~ " != Event");
-		if (_enter || _escape || _lose || _rounds.length > 0 || _keyCodes.length > 0) {
+		if (_enter || _escape || _lose || _everyRound || _round0 || _rounds.length > 0 || _keyCodes.length > 0) {
 			auto ig = node.newElement("Ignitions");
 			if (KeyCodeMatchingType.Or !is keyCodeMatchingType) {
 				ig.newAttr("keyCodeMatchingType", fromKeyCodeMatchingType(keyCodeMatchingType));
@@ -2620,6 +2493,8 @@ public:
 			if (_enter) nums ~= "1";
 			if (_escape) nums ~= "2";
 			if (_lose) nums ~= "3";
+			if (_everyRound) nums ~= "4";
+			if (_round0) nums ~= "5";
 			foreach (r; _rounds) {
 				nums ~= ("-" ~ to!(string)(r));
 			}
@@ -2667,6 +2542,12 @@ public:
 					case "3":
 						r._lose = true;
 						break;
+					case "4":
+						r._everyRound = true;
+						break;
+					case "5":
+						r._round0 = true;
+						break;
 					default:
 						if (v.length > 1 && v[0] == '-') {
 							r._rounds ~= to!(int)(v[1 .. $]);
@@ -2702,6 +2583,10 @@ public:
 	static string escapeToXML() {return __fireToXML("FireEscape");}
 	/// 「敗北時発火」をXMLテキスト化する。
 	static string loseToXML() {return __fireToXML("FireLose");}
+	/// 「毎ラウンド発火」をXMLテキスト化する。
+	static string everyRoundToXML() {return __fireToXML("FireEveryRound");}
+	/// 「戦闘開始時発火」をXMLテキスト化する。
+	static string round0ToXML() {return __fireToXML("FireRound0");}
 	/// 「発火ラウンド」をXMLテキスト化する。
 	static string roundToXML(uint round) {
 		return __fireToXML("FireRound", "round", to!(string)(round));
@@ -2731,6 +2616,14 @@ public:
 	/// 「敗北時発火」をXMLテキストからロードし、成功すればtrueを返す。
 	bool loseFromXML(EventTreeOwner owner, string xml) {
 		return owner.canHasFireLose && __fireFromXML(xml, "FireLose", &lose);
+	}
+	/// 「毎ラウンド発火」をXMLテキストからロードし、成功すればtrueを返す。
+	bool everyRoundFromXML(EventTreeOwner owner, string xml) {
+		return owner.canHasFireEveryRound && __fireFromXML(xml, "FireEveryRound", &lose);
+	}
+	/// 「戦闘開始時発火」をXMLテキストからロードし、成功すればtrueを返す。
+	bool round0FromXML(EventTreeOwner owner, string xml) {
+		return owner.canHasFireRound0 && __fireFromXML(xml, "FireRound0", &lose);
 	}
 	/// 「発火ラウンド」をXMLテキストからロードし、成功すればtrueを返す。
 	int roundFromXML(EventTreeOwner owner, string xml) {
@@ -2784,6 +2677,14 @@ public interface EventTreeOwner : CWXPath {
 	@property
 	const
 	bool canHasFireEscape();
+	/// 発火条件「毎ラウンド」に対応しているか。
+	@property
+	const
+	bool canHasFireEveryRound();
+	/// 発火条件「戦闘開始時」に対応しているか。
+	@property
+	const
+	bool canHasFireRound0();
 	/// 発火条件「ラウンド」に対応しているか。
 	@property
 	const
@@ -2893,6 +2794,8 @@ public:
 		if (!canHasFireEnter) evt.enter = false;
 		if (!canHasFireLose) evt.lose = false;
 		if (!canHasFireEscape) evt.escape = false;
+		if (!canHasFireEveryRound) evt.everyRound = false;
+		if (!canHasFireRound0) evt.round0 = false;
 		if (!canHasFireRound) evt.removeRoundsAll();
 		if (!canHasFireKeyCode) evt.removeKeyCodesAll();
 
@@ -2925,6 +2828,12 @@ public:
 	@property
 	const
 	abstract bool canHasFireEscape();
+	@property
+	const
+	abstract bool canHasFireEveryRound();
+	@property
+	const
+	abstract bool canHasFireRound0();
 	@property
 	const
 	abstract bool canHasFireRound();

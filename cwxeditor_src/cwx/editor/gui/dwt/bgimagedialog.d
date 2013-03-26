@@ -35,12 +35,12 @@ import java.lang.all;
 public:
 
 /// 背景画像の設定を行うダイアログ。
-class BgImageDialog : AbsDialog {
+class ImageCellDialog : AbsDialog {
 private:
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
-	BgImage _back;
+	ImageCell _back;
 
 	ImageSelect!(MtType.BG_IMG) _imgPath;
 	Table _flag;
@@ -180,7 +180,7 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, BgImage back) {
+	this (Commons comm, Props prop, Shell shell, Summary summ, ImageCell back) {
 		_comm = comm;
 		_summ = summ;
 		_back = back;
@@ -199,7 +199,7 @@ public:
 	}
 
 	@property
-	BgImage back() {
+	ImageCell back() {
 		return _back;
 	}
 protected:
@@ -381,7 +381,7 @@ protected:
 			_back.height = _h.getSelection();
 			_back.mask = _mask.getSelection();
 		} else {
-			_back = new BgImage(_imgPath.image, _selectedFlag,
+			_back = new ImageCell(_imgPath.image, _selectedFlag,
 				_x.getSelection(), _y.getSelection(), _w.getSelection(), _h.getSelection(),
 				_mask.getSelection());
 		}

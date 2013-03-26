@@ -31,6 +31,7 @@ import cwx.xml;
 import cwx.path;
 import cwx.skin;
 import cwx.imagesize;
+import cwx.structs;
 
 private bool sWith(string f, string s, out ulong id) {
 	if (!fnstartsWith(f, s)) return false;
@@ -392,6 +393,54 @@ private EffectCardType toEffectCardType(byte b) {
 	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
 	}
 }
+/// CardWirthNext
+private Comparison4 toComparison4(byte b) {
+	switch (b) {
+	case 0: return Comparison4.Eq;
+	case 1: return Comparison4.Ne;
+	case 2: return Comparison4.Lt;
+	case 3: return Comparison4.Gt;
+	default: throw new SummaryException("Unknown 4 way comparison value: " ~ to!(string)(b));
+	}
+}
+/// CardWirthNext
+private Comparison3 toComparison3(byte b) {
+	switch (b) {
+	case 0: return Comparison3.Eq;
+	case 1: return Comparison3.Lt;
+	case 2: return Comparison3.Gt;
+	default: throw new SummaryException("Unknown 3 way comparison value: " ~ to!(string)(b));
+	}
+}
+/// CardWirthNext
+private BorderingType toBorderingType(byte b) {
+	switch (b) {
+	case 0: return BorderingType.Outline;
+	case 1: return BorderingType.Inline;
+	default: throw new SummaryException("Unknown bordering type value: " ~ to!(string)(b));
+	}
+}
+/// CardWirthNext
+private BlendMode toBlendMode(byte b, out bool mask) {
+	mask = false;
+	switch (b) {
+	case 0: return BlendMode.Normal;
+	case 1: mask = true; return BlendMode.Normal;
+	case 2: return BlendMode.Add;
+	case 3: return BlendMode.Subtract;
+	case 4: return BlendMode.Multiply;
+	default: throw new SummaryException("Unknown blend mode value: " ~ to!(string)(b));
+	}
+}
+/// CardWirthNext
+private GradientDir toGradientDir(byte b) {
+	switch (b) {
+	case 0: return GradientDir.None;
+	case 1: return GradientDir.LeftToRight;
+	case 2: return GradientDir.TopToBottom;
+	default: throw new SummaryException("Unknown gradient direction value: " ~ to!(string)(b));
+	}
+}
 private Status toStatus(byte b) {
 	switch (b) {
 	case 0: return Status.ACTIVE;
@@ -410,6 +459,17 @@ private Status toStatus(byte b) {
 	case 13: return Status.OVERHEAT;
 	case 14: return Status.BRAVE;
 	case 15: return Status.PANIC;
+	case 16: return Status.SILENCE;
+	case 17: return Status.FACE_UP;
+	case 18: return Status.ANTI_MAGIC;
+	case 19: return Status.UP_ACTION;
+	case 20: return Status.UP_AVOID;
+	case 21: return Status.UP_RESIST;
+	case 22: return Status.UP_DEFENSE;
+	case 23: return Status.DOWN_ACTION;
+	case 24: return Status.DOWN_AVOID;
+	case 25: return Status.DOWN_RESIST;
+	case 26: return Status.DOWN_DEFENSE;
 	default: throw new SummaryException("Unknown status: " ~ to!(string)(b));
 	}
 }
@@ -758,6 +818,7 @@ private Motion readMotion(ref RData d, ref ByteIO f, size_t index) {
 		case 5: return new Motion(MType.DEAL_DISTANCE_CARD, el);
 		case 6: return new Motion(MType.DEAL_CONFUSE_CARD, el);
 		case 7: return new Motion(MType.DEAL_SKILL_CARD, el);
+		case 8: return new Motion(MType.CANCEL_ACTION, el); // CardWirthNext
 		default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 		}
 	}
@@ -1333,6 +1394,17 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) {
 		e.effectCardType = toEffectCardType(f.readByte);
 		e.keyCode = readString(f);
 		break;
+	case 72:
+		e = new Content(CType.CHECK_STEP, name);
+		e.step = readString(f);
+		e.stepValue = f.readUIntL;
+		e.comparison4 = toComparison4(f.readByte);
+		break;
+	case 73:
+		e = new Content(CType.BRANCH_ROUND, name);
+		e.comparison3 = toComparison3(f.readByte);
+		e.round = f.readUIntL;
+		break;
 	default: throw new SummaryException("Unknown content type: " ~ to!(string)(type));
 	}
 	if (e.detail.owner) {
@@ -1374,6 +1446,8 @@ private EventTree readEventTree(ref RData d, ref ByteIO f, bool enemyCard, size_
 			case 1: tree.enter = true; break;
 			case 2: tree.escape = true; break;
 			case 3: tree.lose = true; break;
+			case 4: tree.everyRound = true; break;
+			case 5: tree.round0 = true; break;
 			default: throw new SummaryException("Unknown ignition: " ~ to!(string)(ig));
 			}
 		}
@@ -1391,21 +1465,75 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 	byte b;
 	int x = f.readIntL;
 	int y = f.readIntL;
-	int w;
-	if (d.dataVersion <= 2) {
-		w = f.readUIntL;
-	} else {
-		w = f.readUIntL - 40000u;
+	int w = f.readUIntL;
+	uint dataVersion = 0;
+	if (60000u <= w) {
+		w -= 60000u;
+		dataVersion = 6;
+	} else if (40000u <= w) {
+		w -= 40000u;
+		dataVersion = 4;
 	}
 	int h = f.readUIntL;
-	string imgPath = decodePathLegacy(readString(f));
-	bool mask = readBool(f);
-	if (d.dataVersion <= 2) {
-		return new BgImage(imgPath, "", x, y, w, h, mask);
+	if (dataVersion <= 4) {
+		string imgPath = decodePathLegacy(readString(f));
+		bool mask = readBool(f);
+		if (dataVersion <= 2) {
+			return new ImageCell(imgPath, "", x, y, w, h, mask);
+		}
+		string flag = readString(f);
+		f.readByte;
+		return new ImageCell(imgPath, flag, x, y, w, h, mask);
+	} else {
+		byte type = f.readByte;
+		switch (type) {
+		case 2:
+			// テキストセル
+			bool mask = readBool(f);
+			string text = readString(f);
+			string fontName = readString(f);
+			uint size = f.readUIntL;
+			auto color = CRGB(f.readUByte, f.readUByte, f.readUByte, f.readUByte);
+			ubyte style = f.readUByte;
+			bool bold      = (style & 0b0000001) != 0;
+			bool italic    = (style & 0b0000010) != 0;
+			bool underline = (style & 0b0000100) != 0;
+			bool strike    = (style & 0b0001000) != 0;
+			bool bordering = (style & 0b0010000) != 0;
+			bool vertical  = (style & 0b0100000) != 0;
+			auto borderingType = BorderingType.None;
+			auto borderingColor = CRGB(255, 255, 255, 255);
+			uint borderingWidth = 1;
+			if (bordering) {
+				borderingType = toBorderingType(f.readByte);
+				borderingColor = CRGB(f.readUByte, f.readUByte, f.readUByte, f.readUByte);
+				borderingWidth = f.readUIntL;
+			}
+			f.readByte; // 不明(100)
+			f.readUIntL; // 不明(0)
+			f.readUIntL; // 不明(0)
+			f.readByte; // 不明(縦書き時:2,他:0)
+			string flag = readString(f);
+			f.readByte; // 不明(0)
+			return new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
+				borderingType, borderingColor, borderingWidth, flag, x, y, w, h, mask);
+		case 3:
+			// カラーセル
+			bool mask;
+			auto blend = toBlendMode(f.readByte, mask);
+			auto gradient = toGradientDir(f.readByte);
+			auto color1 = CRGB(f.readUByte, f.readUByte, f.readUByte, f.readUByte);
+			auto color2 = CRGB(0, 0, 0, 255);
+			if (gradient !is GradientDir.None) {
+				color2 = CRGB(f.readUByte, f.readUByte, f.readUByte, f.readUByte);
+			}
+			string flag = readString(f);
+			f.readByte; // 不明(0)
+			return new ColorCell(blend, gradient, color1, color2, flag, x, y, w, h, mask);
+		default:
+			throw new SummaryException("Unknown cell type: " ~ to!string(type));
+		}
 	}
-	string flag = readString(f);
-	f.readByte;
-	return new BgImage(imgPath, flag, x, y, w, h, mask);
 }
 private BgImage[] readBgImages(in RData d, ref ByteIO f, bool area) {
 	BgImage[] bgImgs;
@@ -1414,8 +1542,8 @@ private BgImage[] readBgImages(in RData d, ref ByteIO f, bool area) {
 		bgImgs[i] = readBgImage(d, f, area, i);
 	}
 	if (!bgImgs.length) return bgImgs;
-	BgImage b = bgImgs[0u];
-	if (b.path == "" && b.flag == ""
+	auto b = cast(ImageCell) bgImgs[0u];
+	if (b && b.path == "" && b.flag == ""
 			&& b.x == 0 && b.y == 0 && b.width == 632 && b.height == 420 && !b.mask) {
 		// クラシックなエンジンでは必ず1枚以上の背景画像が必要であるため、
 		// ダミーのイメージが挿入されている
@@ -2079,6 +2207,53 @@ private byte fromEffectCardType(EffectCardType v) {
 	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
 	}
 }
+/// CardWirthNext
+private byte fromComparison4(Comparison4 v) {
+	switch (v) {
+	case Comparison4.Eq: return 0;
+	case Comparison4.Ne: return 1;
+	case Comparison4.Lt: return 2;
+	case Comparison4.Gt: return 3;
+	default: throw new SummaryException("Unknown 4 way comparison value: " ~ to!(string)(cast(int) v));
+	}
+}
+/// CardWirthNext
+private byte fromComparison3(Comparison3 v) {
+	switch (v) {
+	case Comparison3.Eq: return 0;
+	case Comparison3.Lt: return 1;
+	case Comparison3.Gt: return 2;
+	default: throw new SummaryException("Unknown 3 way comparison value: " ~ to!(string)(cast(int) v));
+	}
+}
+/// CardWirthNext
+private byte fromBorderingType(BorderingType v) {
+	switch (v) {
+	case BorderingType.Outline: return 0;
+	case BorderingType.Inline: return 1;
+	default: throw new SummaryException("Unknown bordering type value: " ~ to!(string)(cast(int) v));
+	}
+}
+/// CardWirthNext
+private byte fromBlendMode(BlendMode v, bool mask) {
+	if (mask) return 1;
+	switch (v) {
+	case BlendMode.Normal: return 0;
+	case BlendMode.Add: return 2;
+	case BlendMode.Subtract: return 3;
+	case BlendMode.Multiply: return 4;
+	default: throw new SummaryException("Unknown blend mode value: " ~ to!(string)(cast(int) v));
+	}
+}
+/// CardWirthNext
+private byte fromGradientDir(GradientDir v) {
+	switch (v) {
+	case GradientDir.None: return 0;
+	case GradientDir.LeftToRight: return 1;
+	case GradientDir.TopToBottom: return 2;
+	default: throw new SummaryException("Unknown gradient direction value: " ~ to!(string)(cast(int) v));
+	}
+}
 private byte fromStatus(Status v) {
 	switch (v) {
 	case Status.ACTIVE: return 0;
@@ -2097,6 +2272,17 @@ private byte fromStatus(Status v) {
 	case Status.OVERHEAT: return 13;
 	case Status.BRAVE: return 14;
 	case Status.PANIC: return 15;
+	case Status.SILENCE: return 16;
+	case Status.FACE_UP: return 17;
+	case Status.ANTI_MAGIC: return 18;
+	case Status.UP_ACTION: return 19;
+	case Status.UP_AVOID: return 20;
+	case Status.UP_RESIST: return 21;
+	case Status.UP_DEFENSE: return 22;
+	case Status.DOWN_ACTION: return 23;
+	case Status.DOWN_AVOID: return 24;
+	case Status.DOWN_RESIST: return 25;
+	case Status.DOWN_DEFENSE: return 26;
 	default: throw new SummaryException("Unknown status value: " ~ to!(string)(cast(int) v));
 	}
 }
@@ -2423,6 +2609,10 @@ private void writeMotion(ref SData d, ref ByteIO f, Motion m) {
 	case MType.SUMMON_BEAST:
 		tType = 8;
 		type = 0;
+		break;
+	case MType.CANCEL_ACTION: // CardWirthNext
+		tType = 7;
+		type = 8;
 		break;
 	default: assert (0);
 	}
@@ -2813,6 +3003,15 @@ private void writeContent(ref SData d, ref ByteIO f, Content e) {
 		f.write(fromKeyCodeRange(e.keyCodeRange));
 		f.write(fromEffectCardType(e.effectCardType));
 		writeString(f, e.keyCode);
+	} else if (e.type is CType.CHECK_STEP) {
+		wb(72);
+		writeString(f, e.step);
+		f.writeL(cast(uint) e.stepValue);
+		f.write(fromComparison4(e.comparison4));
+	} else if (e.type is CType.BRANCH_ROUND) {
+		wb(73);
+		f.write(fromComparison3(e.comparison3));
+		f.writeL(cast(uint) e.round);
 	} else {
 		assert (0, "event");
 	}
@@ -2832,6 +3031,8 @@ private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) {
 	if (tree.fireEnter) igs ~= 1;
 	if (tree.fireEscape) igs ~= 2;
 	if (tree.fireLose) igs ~= 3;
+	if (tree.fireEveryRound) igs ~= 4;
+	if (tree.fireRound0) igs ~= 5;
 	foreach (rnd; tree.rounds) {
 		igs ~= -(cast(int) rnd);
 	}
@@ -2848,26 +3049,96 @@ private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) {
 	}
 }
 private void writeBgImage(ref ByteIO f, BgImage b) {
-	f.writeL(cast(int) b.x);
-	f.writeL(cast(int) b.y);
-	f.writeL(cast(uint) b.width + 40000u);
-	f.writeL(cast(uint) b.height);
-	writeString(f, encodePathLegacy(b.path));
-	writeBool(f, b.mask);
-	writeString(f, b.flag);
-	f.writeL(cast(byte) 0x0);
+	auto ic = cast(ImageCell) b;
+	if (ic) {
+		f.writeL(cast(int) ic.x);
+		f.writeL(cast(int) ic.y);
+		f.writeL(cast(uint) ic.width + 40000u);
+		f.writeL(cast(uint) ic.height);
+		writeString(f, encodePathLegacy(ic.path));
+		writeBool(f, ic.mask);
+		writeString(f, ic.flag);
+		f.writeL(cast(byte) 0x0);
+	}
+	auto tc = cast(TextCell) b;
+	if (tc) {
+		f.writeL(cast(int) tc.x);
+		f.writeL(cast(int) tc.y);
+		f.writeL(cast(uint) tc.width + 60000u);
+		f.writeL(cast(uint) tc.height);
+		f.write(cast(byte) 2);
+		writeBool(f, tc.mask);
+		writeString(f, tc.text);
+		writeString(f, tc.fontName);
+		f.writeL(cast(uint) tc.size);
+		auto color = tc.color;
+		f.write(cast(ubyte) color.r);
+		f.write(cast(ubyte) color.g);
+		f.write(cast(ubyte) color.b);
+		f.write(cast(ubyte) color.a);
+		bool bordering = tc.borderingType !is BorderingType.None;
+		ubyte style = 0;
+		if (tc.bold)      style |= 0b0000001;
+		if (tc.italic)    style |= 0b0000010;
+		if (tc.underline) style |= 0b0000100;
+		if (tc.strike)    style |= 0b0001000;
+		if (bordering)    style |= 0b0010000;
+		if (tc.vertical)  style |= 0b0100000;
+		f.write(style);
+
+		if (bordering) {
+			f.write(fromBorderingType(tc.borderingType));
+			auto bColor = tc.borderingColor;
+			f.write(cast(ubyte) bColor.r);
+			f.write(cast(ubyte) bColor.g);
+			f.write(cast(ubyte) bColor.b);
+			f.write(cast(ubyte) bColor.a);
+			f.writeL(cast(uint) tc.borderingWidth);
+		}
+		f.write(cast(byte) 100);
+		f.writeL(cast(uint) 0);
+		f.writeL(cast(uint) 0);
+		f.write(cast(byte) (tc.vertical ? 2 : 0));
+
+		writeString(f, tc.flag);
+		f.writeL(cast(byte) 0x0);
+	}
+	auto cc = cast(ColorCell) b;
+	if (cc) {
+		f.writeL(cast(int) cc.x);
+		f.writeL(cast(int) cc.y);
+		f.writeL(cast(uint) cc.width + 60000u);
+		f.writeL(cast(uint) cc.height);
+		f.write(cast(byte) 3);
+		f.write(fromBlendMode(cc.blendMode, cc.mask));
+		f.write(fromGradientDir(cc.gradientDir));
+		auto color1 = cc.color1;
+		f.write(cast(ubyte) color1.r);
+		f.write(cast(ubyte) color1.g);
+		f.write(cast(ubyte) color1.b);
+		f.write(cast(ubyte) color1.a);
+		if (cc.gradientDir !is GradientDir.None) {
+			auto color2 = cc.color2;
+			f.write(cast(ubyte) color2.r);
+			f.write(cast(ubyte) color2.g);
+			f.write(cast(ubyte) color2.b);
+			f.write(cast(ubyte) color2.a);
+		}
+		writeString(f, cc.flag);
+		f.writeL(cast(byte) 0x0);
+	}
 }
 private void writeBgImages(ref ByteIO f, BgImage[] backs) {
-	if (backs.length && backs[0].path != "" && backs[0].flag == ""
-			&& backs[0].x == 0 && backs[0].y == 0
-			&& backs[0].width == 632 && backs[0].height == 420 && !backs[0].mask) {
+	auto b = backs.length ? cast(ImageCell) backs[0] : null;
+	if (b && b.path != "" && b.flag == "" && b.x == 0 && b.y == 0
+			&& b.width == 632 && b.height == 420 && !b.mask) {
 		f.writeL(cast(uint) backs.length);
 	} else {
 		f.writeL(cast(uint) backs.length + 1u);
-		writeBgImage(f, new BgImage("", "", 0, 0, 632, 420, false));
+		writeBgImage(f, new ImageCell("", "", 0, 0, 632, 420, false));
 	}
-	foreach (b; backs) {
-		writeBgImage(f, b);
+	foreach (back; backs) {
+		writeBgImage(f, back);
 	}
 }
 private void writeArea(ref SData d, ref ByteIO f, Area a) {

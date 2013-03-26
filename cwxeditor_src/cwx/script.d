@@ -1014,7 +1014,6 @@ class CWXScript {
 			cast(string) "brcoupon":CType.BRANCH_COUPON,
 			cast(string) "brstamp":CType.BRANCH_COMPLETE_STAMP,
 			cast(string) "brgossip":CType.BRANCH_GOSSIP,
-			cast(string) "brkeycode":CType.BRANCH_KEY_CODE,
 			cast(string) "setflag":CType.SET_FLAG,
 			cast(string) "setstep":CType.SET_STEP,
 			cast(string) "stepup":CType.SET_STEP_UP,
@@ -1047,6 +1046,9 @@ class CWXScript {
 			cast(string) "cmpstep":CType.BRANCH_STEP_CMP,
 			cast(string) "cmpflag":CType.BRANCH_FLAG_CMP,
 			cast(string) "selrandom":CType.BRANCH_RANDOM_SELECT,
+			cast(string) "brkeycode":CType.BRANCH_KEY_CODE,
+			cast(string) "chkstep":CType.CHECK_STEP,
+			cast(string) "brround":CType.BRANCH_ROUND,
 		];
 		string[CType] commands;
 		foreach (name, type; keywords) {
@@ -1870,6 +1872,17 @@ fi`;
 			case "overheat": i++; return Status.OVERHEAT;
 			case "brave": i++; return Status.BRAVE;
 			case "panic": i++; return Status.PANIC;
+			case "silence": i++; return Status.SILENCE;
+			case "faceup": i++; return Status.FACE_UP;
+			case "antimagic": i++; return Status.ANTI_MAGIC;
+			case "upaction": i++; return Status.UP_ACTION;
+			case "upavoid": i++; return Status.UP_AVOID;
+			case "upresist": i++; return Status.UP_RESIST;
+			case "updefense": i++; return Status.UP_DEFENSE;
+			case "downaction": i++; return Status.DOWN_ACTION;
+			case "downavoid": i++; return Status.DOWN_AVOID;
+			case "downresist": i++; return Status.DOWN_RESIST;
+			case "downdefense": i++; return Status.DOWN_DEFENSE;
 			case "none": i++; return Status.NONE;
 			default: throwError(_prop.msgs.scriptErrorInvalidStatus, attr[i].token);
 			}
@@ -1997,6 +2010,7 @@ fi`;
 			case "dealconfuse": i++; return MType.DEAL_CONFUSE_CARD;
 			case "dealskill": i++; return MType.DEAL_SKILL_CARD;
 			case "summon": i++; return MType.SUMMON_BEAST;
+			case "cancelaction": i++; return MType.CANCEL_ACTION;
 			default: throwError(_prop.msgs.scriptErrorInvalidMotionType, attr[i].token);
 			}
 		} else static if (is(T == Element)) {
@@ -2028,7 +2042,26 @@ fi`;
 			case "beast": i++; return EffectCardType.BEAST;
 			default: throwError(_prop.msgs.scriptErrorInvalidEffectCardType, attr[i].token);
 			}
+		} else static if (is(T == Comparison4)) {
+			auto value = attrValue(attr[i], varTable, msgWidth);
+			switch (value) {
+			case "=": i++; return Comparison4.Eq;
+			case "<>", "!=": i++; return Comparison4.Ne;
+			case "<": i++; return Comparison4.Lt;
+			case ">": i++; return Comparison4.Gt;
+			default: throwError(_prop.msgs.scriptErrorInvalidComparison4, attr[i].token);
+			}
+		} else static if (is(T == Comparison3)) {
+			auto value = attrValue(attr[i], varTable, msgWidth);
+			switch (value) {
+			case "=": i++; return Comparison3.Eq;
+			case "<": i++; return Comparison3.Lt;
+			case ">": i++; return Comparison3.Gt;
+			default: throwError(_prop.msgs.scriptErrorInvalidComparison3, attr[i].token);
+			}
 		} else static if (is(T == BgImage)) {
+			// TODO TextCell
+			// TODO ColorCell
 			if (attr[i].type !is NodeType.VALUES) {
 				throwError(_prop.msgs.scriptErrorInvalidBgImage, attr[i].token);
 				return defValue;
@@ -2043,7 +2076,7 @@ fi`;
 			int w = parseAttr!(int)(opt, vals, j, cast(int) size.width, varTable, msgWidth);
 			int h = parseAttr!(int)(opt, vals, j, cast(int) size.height, varTable, msgWidth);
 			bool mask = parseAttr!(bool)(opt, vals, j, false, varTable, msgWidth);
-			auto r = new BgImage(path, flag, x, y, w, h, mask);
+			auto r = new ImageCell(path, flag, x, y, w, h, mask);
 			i++;
 			return r;
 		} else static if (is(T == Motion)) {
@@ -2147,7 +2180,7 @@ fi`;
 			} catch (Exception e) {
 				throwError(_prop.msgs.scriptErrorReqID, attr[i].token);
 			}
-		} else static assert (0);
+		} else static assert (0, T.stringof);
 		return T.init;
 	}
 	private void parseAttrTalker(in Node[] attr, ref size_t i, ref Talker t, ref string cardPath, in const(Node)[][string] varTable) {
@@ -2474,6 +2507,15 @@ fi`;
 			if (detail.use(CArg.COUPONS)) {
 				c.coupons = parseAttr!(Coupon[])(opt, node.attr, i, c.coupons, varTable, 0);
 			}
+			if (detail.use(CArg.COMPARISON_4)) {
+				c.comparison4 = parseAttr!(Comparison4)(opt, node.attr, i, c.comparison4, varTable, 0);
+			}
+			if (detail.use(CArg.COMPARISON_3)) {
+				c.comparison3 = parseAttr!(Comparison3)(opt, node.attr, i, c.comparison3, varTable, 0);
+			}
+			if (detail.use(CArg.ROUND)) {
+				c.round = parseAttr!(int)(opt, node.attr, i, c.round, varTable, 0);
+			}
 			Content autoWrap(Content c) {
 				if (!c.detail.owner) {
 					throwError(_prop.msgs.scriptErrorCanNotHaveContent, node.token);
@@ -2631,6 +2673,17 @@ fi`;
 			case Status.OVERHEAT: attrs ~= "overheat"; break;
 			case Status.BRAVE: attrs ~= "brave"; break;
 			case Status.PANIC: attrs ~= "panic"; break;
+			case Status.SILENCE: attrs ~= "silence"; break;
+			case Status.FACE_UP: attrs ~= "faceup"; break;
+			case Status.ANTI_MAGIC: attrs ~= "antimagic"; break;
+			case Status.UP_ACTION: attrs ~= "upaction"; break;
+			case Status.UP_AVOID: attrs ~= "upavoid"; break;
+			case Status.UP_RESIST: attrs ~= "upresist"; break;
+			case Status.UP_DEFENSE: attrs ~= "updefense"; break;
+			case Status.DOWN_ACTION: attrs ~= "downaction"; break;
+			case Status.DOWN_AVOID: attrs ~= "downavoid"; break;
+			case Status.DOWN_RESIST: attrs ~= "downresist"; break;
+			case Status.DOWN_DEFENSE: attrs ~= "downdefense"; break;
 			case Status.NONE: attrs ~= "none"; break;
 			default: assert (0);
 			}
@@ -2736,6 +2789,7 @@ fi`;
 			case MType.DEAL_CONFUSE_CARD: attrs ~= "dealconfuse"; break;
 			case MType.DEAL_SKILL_CARD: attrs ~= "dealskill"; break;
 			case MType.SUMMON_BEAST: attrs ~= "summon"; break;
+			case MType.CANCEL_ACTION: attrs ~= "cancelaction"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : Element)) {
@@ -2764,15 +2818,35 @@ fi`;
 			case EffectCardType.BEAST: attrs ~= "beast"; break;
 			default: assert (0);
 			}
+		} else static if (is(T : Comparison4)) {
+			switch (value) {
+			case Comparison4.Eq: attrs ~= createString("="); break;
+			case Comparison4.Ne: attrs ~= createString("<>"); break;
+			case Comparison4.Lt: attrs ~= createString("<"); break;
+			case Comparison4.Gt: attrs ~= createString(">"); break;
+			default: assert (0);
+			}
+		} else static if (is(T : Comparison3)) {
+			switch (value) {
+			case Comparison3.Eq: attrs ~= createString("="); break;
+			case Comparison3.Lt: attrs ~= createString("<"); break;
+			case Comparison3.Gt: attrs ~= createString(">"); break;
+			default: assert (0);
+			}
 		} else static if (is(Unqual!(T) : BgImage)) {
+			// TODO TextCell
+			// TODO ColorCell
 			string[] attrs2;
-			attrs2 ~= toAttr(encodePath(value.path), command, indentValue, vars);
-			attrs2 ~= toAttr(value.flag, command, indentValue, vars);
-			attrs2 ~= toAttr(value.x, command, indentValue, vars);
-			attrs2 ~= toAttr(value.y, command, indentValue, vars);
-			attrs2 ~= toAttr(value.width, command, indentValue, vars);
-			attrs2 ~= toAttr(value.height, command, indentValue, vars);
-			attrs2 ~= toAttr(value.mask, command, indentValue, vars);
+			auto ic = cast(ImageCell) value;
+			if (ic) {
+				attrs2 ~= toAttr(encodePath(ic.path), command, indentValue, vars);
+				attrs2 ~= toAttr(ic.flag, command, indentValue, vars);
+				attrs2 ~= toAttr(ic.x, command, indentValue, vars);
+				attrs2 ~= toAttr(ic.y, command, indentValue, vars);
+				attrs2 ~= toAttr(ic.width, command, indentValue, vars);
+				attrs2 ~= toAttr(ic.height, command, indentValue, vars);
+				attrs2 ~= toAttr(ic.mask, command, indentValue, vars);
+			}
 			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
 		} else static if (is(Unqual!(T) : Motion)) {
 			auto detail = value.detail;
@@ -3142,6 +3216,15 @@ fi`;
 			}
 			if (detail.use(CArg.COUPONS)) {
 				attrs ~= toAttr(c.coupons, command, indentValue, vars);
+			}
+			if (detail.use(CArg.COMPARISON_4)) {
+				attrs ~= toAttr(c.comparison4, command, indentValue, vars);
+			}
+			if (detail.use(CArg.COMPARISON_3)) {
+				attrs ~= toAttr(c.comparison3, command, indentValue, vars);
+			}
+			if (detail.use(CArg.ROUND)) {
+				attrs ~= toAttr(c.round, command, indentValue, vars);
 			}
 			bool useIf = c.next.length > 1;
 			bool useSif = c.next.length == 1 && c.next[0].name.length;

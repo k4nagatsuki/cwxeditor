@@ -21,6 +21,7 @@ import cwx.path;
 import cwx.menu;
 import cwx.variables;
 import cwx.flag;
+import cwx.background;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;
@@ -2225,7 +2226,12 @@ string contentText(Commons comm, in Content evt, Summary summ = null) {
 	} case CType.CHANGE_BG_IMAGE: {
 		string buf;
 		foreach (i, b; evt.backs) {
-			buf ~= contentTextUseID!(CIDKind.Image)(comm, summ, b.path, comm.prop.msgs.ctChangeBgImageFile, null);
+			auto ic = cast(ImageCell) b;
+			if (ic) {
+				buf ~= contentTextUseID!(CIDKind.Image)(comm, summ, ic.path, comm.prop.msgs.ctChangeBgImageFile, null);
+			} else {
+				buf ~= .tryFormat(comm.prop.msgs.ctChangeBgImageFile, b.name);
+			}
 			if (i + 1 < evt.backs.length) buf ~= " ";
 		}
 		if (summ && summ.legacy) {
@@ -2532,7 +2538,21 @@ string contentText(Commons comm, in Content evt, Summary summ = null) {
 			string type = comm.prop.msgs.effectCardTypeName(evt.effectCardType);
 			return .tryFormat(comm.prop.msgs.ctBranchKeyCode, evt.keyCode, type, range);
 		}
-	} 
+	} case CType.CHECK_STEP: {
+		string name = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
+		string value;
+		auto o = summ.flagDirRoot.findStep(evt.step);
+		if (o) {
+			value = o.getValue(evt.stepValue);
+		} else {
+			value = .tryFormat(comm.prop.msgs.dlgLblStep, evt.stepValue);
+		}
+		string cmp = comm.prop.msgs.comparison4Name(evt.comparison4);
+		return .tryFormat(comm.prop.msgs.ctCheckStep, name, value, cmp);
+	} case CType.BRANCH_ROUND: {
+		string cmp = comm.prop.msgs.comparison3Name(evt.comparison3);
+		return .tryFormat(comm.prop.msgs.ctBranchRound, evt.round, cmp);
+	}
 	}
 }
 

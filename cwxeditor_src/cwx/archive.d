@@ -201,7 +201,7 @@ bool zipHasFile(string zip, string fileName) {
 			}
 		}
 	} catch (Exception e) {
-		debugln(e);
+		debugln!(__FILE__, __LINE__, Exception)(e);
 	}
 	return false;
 }

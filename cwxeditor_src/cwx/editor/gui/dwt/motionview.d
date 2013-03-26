@@ -972,6 +972,7 @@ public:
 				createMT(this, bar, g, MType.DEAL_DISTANCE_CARD);
 				createMT(this, bar, g, MType.DEAL_CONFUSE_CARD);
 				createMT(this, bar, g, MType.DEAL_SKILL_CARD);
+				createMT(this, bar, g, MType.CANCEL_ACTION); // CardWirthNext
 			}
 			{
 				string g = _prop.msgs.msnGroupBeast;
