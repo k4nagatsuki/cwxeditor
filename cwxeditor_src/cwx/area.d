@@ -1038,7 +1038,7 @@ public:
 					node.parse();
 				};
 				node.onTag["BgImages"] = (ref XNode node) {
-					node.onTag["BgImage"] = (ref XNode n) {
+					node.onTag[null] = (ref XNode n) {
 						backs ~= BgImage.createFromNode(n, LATEST_VERSION);
 					};
 					node.parse();

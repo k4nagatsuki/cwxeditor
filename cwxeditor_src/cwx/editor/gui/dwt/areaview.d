@@ -2212,6 +2212,7 @@ public:
 			foreach (c; cs) {
 				auto pimg = createCardImage!PileImage(c, _prop.var.etc.smoothingCard);
 				auto pdata = pimg.createImageData();
+				assert (pdata !is null);
 				foreach (x; 0 .. pimg.width) {
 					foreach (y; 0 .. pimg.height) {
 						int x2 = x + pimg.x;
@@ -3347,12 +3348,22 @@ public:
 				(skin, path, back.x, back.y, back.width, back.height, back.mask);
 		}
 		private FlexImage create(TextCell back) {
-			// TODO TextCell
-			return createBackgroundImage(_comm.skin, "", back.x, back.y, back.width, back.height, back.mask);
+			int style = SWT.NORMAL;
+			if (back.bold) style |= SWT.BOLD;
+			if (back.italic) style |= SWT.ITALIC;
+			auto font = new FontData(back.fontName, back.size, style);
+			auto r = new FlexImage(back.text, font, back.color,
+				back.underline, back.strike, back.vertical,
+				back.borderingType, back.borderingColor, back.borderingWidth,
+				back.x, back.y, back.width, back.height);
+			r.transparent = back.mask;
+			return r;
 		}
 		private FlexImage create(ColorCell back) {
-			// TODO ColorCell
-			return createBackgroundImage(_comm.skin, "", back.x, back.y, back.width, back.height, back.mask);
+			auto r = new FlexImage(back.blendMode, back.gradientDir, back.color1, back.color2,
+				back.x, back.y, back.width, back.height);
+			r.transparent = back.mask;
+			return r;
 		}
 		private void appendBgImages(int index, BgImage[] backs, bool select, bool raiseEvent) {
 			FlexImage[] imgs;
@@ -3402,7 +3413,9 @@ public:
 							if (!doFile(fname)) {
 								break;
 							}
-						} catch (SWTException e) {}
+						} catch (SWTException e) {
+							debugln(e);
+						}
 					}
 					if (addB.length) {
 						auto undo = new UndoInsert(this.outer, _comm, _area, _summ, [], addB);
@@ -3640,7 +3653,9 @@ public:
 							break;
 						}
 						append++;
-					} catch (SWTException e) {}
+					} catch (SWTException e) {
+						debugln(e);
+					}
 				}
 				if (append > 0) {
 					_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, addC, addB);

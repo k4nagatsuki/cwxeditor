@@ -4,6 +4,7 @@ module cwx.editor.gui.dwt.images;
 import cwx.utils;
 import cwx.props;
 import cwx.structs;
+import cwx.types;
 import cwx.graphics;
 
 import cwx.editor.gui.dwt.dutils;
@@ -14,6 +15,7 @@ import std.algorithm;
 import std.math;
 import std.file;
 import std.path;
+import std.conv;
 
 import org.eclipse.swt.all;
 
@@ -48,9 +50,17 @@ enum ScaleType {
 	Center, /// 中央寄せして配置する。
 }
 
+/// PileImageのタイプ。
+enum ImageType {
+	Image, /// 重ね合わせた画像。
+	Text, /// テキスト描画。テキスト本体は拡大縮小されない。
+	ColorFilter, /// カラーフィルタ。
+}
+
 /// 画像を重ねて1枚のイメージを作成する。
 public class PileImage {
 private:
+	// ImageType.Image用。
 	public enum TPos {
 		LEFT,
 		RIGHT
@@ -70,6 +80,7 @@ private:
 		FontData fontData = null;
 		ScaleType scaleType = ScaleType.Scale;
 	}
+	ImageType _type = ImageType.Image;
 	string _title = null;
 	FontData titFont = null;
 	Point titPoint = null;
@@ -79,6 +90,7 @@ private:
 	bool s = false;
 	int _alpha = 0xFF;
 	Image _img = null;
+	ImageData _imgData = null;
 	ImageData _baseSizeData = null;
 	string path = "";
 	ImageData data = null;
@@ -88,6 +100,21 @@ private:
 
 	int initW, initH;
 	int _maskR = 0, _maskG = 0, _maskB = 0, _maskA = 0;
+
+	// ImageType.Text用。_titleとtitFontを流用。
+	CRGB _textColor = CRGB(0, 0, 0, 255);
+	bool _underline = false;
+	bool _strike = false;
+	bool _vertical = false;
+	BorderingType _borderingType = BorderingType.None;
+	CRGB _borderingColor = CRGB(255, 255, 255, 255);
+	uint _borderingWidth = 1;
+
+	// ImageType.ColorFilter用。
+	BlendMode _blendMode = BlendMode.Normal;
+	GradientDir _gradientDir = GradientDir.None;
+	CRGB _color1 = CRGB(255, 255, 255, 255);
+	CRGB _color2 = CRGB(0, 0, 0, 255);
 
 public:
 	/// 画像のファイルパス、位置、サイズを指定してインスタンスを生成する。
@@ -99,6 +126,7 @@ public:
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
 	this (string path, int x, int y, int baseW, int baseH) {
+		this._type = ImageType.Image;
 		this.path = path;
 		rect = new Rectangle(x, y, baseW, baseH);
 		initW = baseW;
@@ -121,6 +149,7 @@ public:
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
 	this (ImageData data, int x, int y, int baseW, int baseH) {
+		this._type = ImageType.Image;
 		this.data = data;
 		rect = new Rectangle(x, y, baseW, baseH);
 		initW = baseW;
@@ -134,6 +163,15 @@ public:
 	this (ImageData data, int baseW, int baseH) {
 		this(data, 0, 0, baseW, baseH);
 	}
+
+	/// サイズのみを指定してインスタンスを生成する。
+	this (ImageType type, int x, int y, int baseW, int baseH) {
+		this._type = type;
+		rect = new Rectangle(x, y, baseW, baseH);
+		initW = baseW;
+		initH = baseH;
+	}
+
 	/// Returns: ベースとなる幅。
 	@property
 	const
@@ -266,216 +304,507 @@ public:
 		_maskA = a;
 	}
 
+	// テキスト色。
+	@property
+	const
+	CRGB textColor() { return _textColor; }
+	@property
+	void textColor(CRGB value) { _textColor = value; }
+	// 下線。
+	@property
+	const
+	bool underline() { return _underline; }
+	@property
+	void underline(bool value) { _underline = value; }
+	// 取消線。
+	@property
+	const
+	bool strike() { return _strike; }
+	@property
+	void strike(bool value) { _strike = value; }
+	// 縦書き。
+	@property
+	const
+	bool vertical() { return _vertical; }
+	@property
+	void vertical(bool value) { _vertical = value; }
+	// 縁取り方式。
+	@property
+	const
+	BorderingType borderingType() { return _borderingType; }
+	@property
+	void borderingType(BorderingType value) { _borderingType = value; }
+	// 縁取り色。
+	@property
+	const
+	CRGB borderingColor() { return _borderingColor; }
+	@property
+	void borderingColor(CRGB value) { _borderingColor = value; }
+	// 縁取り幅。
+	@property
+	const
+	uint borderingWidth() { return _borderingWidth; }
+	@property
+	void borderingWidth(uint value) { _borderingWidth = value; }
+
+	/// 合成モード。
+	@property
+	const
+	BlendMode blendMode() { return _blendMode; }
+	/// ditto
+	@property
+	void blendMode(BlendMode value) { _blendMode = value; }
+	/// グラデーション方向。
+	@property
+	const
+	GradientDir gradientDir() { return _gradientDir; }
+	/// ditto
+	@property
+	void gradientDir(GradientDir value) { _gradientDir = value; }
+	/// 開始色。
+	@property
+	const
+	CRGB color1() { return _color1; }
+	/// ditto
+	@property
+	void color1(CRGB value) { _color1 = value; }
+	/// 終了色。
+	@property
+	const
+	CRGB color2() { return _color2; }
+	/// ditto
+	@property
+	void color2(CRGB value) { _color2 = value; }
+
 	/// イメージ・タイトル・透明色の設定有無を設定した後に
 	/// このメソッドを呼び出すことで、画像が生成される。
 	/// See_Also: append(), setTitle(), transparent()
 	void createImage() {
 		auto cur = Display.getCurrent();
 		if (_img) _img.dispose();
-		auto data = createImageData();
-		_img = data ? new Image(cur, data) : null;
+		_imgData = createImageData();
+		_img = _imgData ? new Image(cur, _imgData) : null;
 	}
 	/// イメージ・タイトル・透明色の設定有無を設定した後に
 	/// このメソッドを呼び出すことで、ImageDataが生成される。
 	/// See_Also: append(), setTitle(), transparent()
 	ImageData createImageData() {
 		if (width == 0 || height == 0 || initW == 0 || initH == 0) return null;
-		auto cur = Display.getCurrent();
 
 		try {
-			ImageData getMat() {
-				ImageData matImgData;
-				if (this.data) {
-					matImgData = this.data;
-				} else {
-					if (isBinImg(path) || (path !is null && .exists(path))) {
-						matImgData = loadImage(path, false);
-						matImgData = matImgData.scaledTo(initW, initH);
-					} else {
-						// ファイルが無い場合は単に表示しない。
-						matImgData = blankImage(initW, initH);
-					}
-				}
-				return matImgData;
+			final switch (_type) {
+			case ImageType.Image:
+				return createImageDataImpl();
+			case ImageType.Text:
+				return createTextImageData();
+			case ImageType.ColorFilter:
+				return createFilterImageData();
 			}
-			ImageData matImgData;
-			bool noTransparent = false;
-			void matNoTransparent() {
-				auto data = blankImage(initW, initH);
-				data.transparentPixel = -1;
-				data.data[] = cast(byte) 255;
-				auto img = new Image(cur, data);
-				scope (exit) img.dispose();
-				auto dc = new GC(img);
-				scope (exit) dc.dispose();
-				auto mat = getMat();
-				auto img2 = new Image(cur, mat);
-				scope (exit) img2.dispose();
-				dc.drawImage(img2, 0, 0);
-				matImgData = img.getImageData();
-				if (mat.depth == 32) noTransparent = true;
-			}
-			if (!appends.length && !_title && !this.data && transparent) {
-				// FIXME: 1.29の挙動に合わせ、マスク有効なら透明色を無効にする
-				matNoTransparent();
-			} else if (appends.length || _title !is null) {
-				matNoTransparent();
-			} else {
-				matImgData = getMat();
-			}
-			auto bmp = new Image(cur, matImgData);
-			scope (exit) bmp.dispose();
-			ImageData bmpData;
-			if (appends.length || _title !is null) {
-				auto dc = new GC(bmp);
-				scope (exit) dc.dispose();
-
-				foreach (a; appends) {
-					if (a.fontData) {
-						// 中央にテキストを表示
-						auto ca = new Rectangle(a.insets.w, a.insets.n, initW - a.insets.w - a.insets.e, initH - a.insets.n - a.insets.s);
-						drawCenterText(a.fontData, dc, ca, a.text);
-					} else {
-						if (a.path.length || a.data) {
-							try {
-								ImageData imgData;
-								if (a.data) {
-									imgData = a.data;
-								} else {
-									imgData = loadImage(a.path, a.transparent, a.maskX, a.maskY);
-								}
-								if (a.alpha != 0xFF) dc.setAlpha(a.alpha);
-								scope (exit) {
-									if (a.alpha != 0xFF) dc.setAlpha(0xFF);
-								}
-								int bw = initW - a.insets.w - a.insets.e;
-								int bh = initH - a.insets.n - a.insets.s;
-								if (imgData.width == bw && imgData.height == bh) {
-									auto img = new Image(cur, imgData);
-									scope (exit) img.dispose();
-									dc.drawImage(img, a.insets.w, a.insets.n);
-								} else if (a.scaleType is ScaleType.Cut) {
-									auto img = new Image(cur, imgData);
-									scope (exit) img.dispose();
-									int dw = imgData.width;
-									int dh = imgData.height;
-									dc.drawImage(img, 0, 0, dw, dh, a.insets.w, a.insets.n, dw, dh);
-								} else if (a.scaleType is ScaleType.Center) {
-									auto img = new Image(cur, imgData);
-									scope (exit) img.dispose();
-									int dw = imgData.width;
-									int dh = imgData.height;
-									int x = a.insets.w + (bw - dw) / 2;
-									int y = a.insets.n + (bh - dh) / 2;
-									dc.drawImage(img, 0, 0, dw, dh, x, y, dw, dh);
-								} else {
-									assert (a.scaleType is ScaleType.Scale);
-									imgData = imgData.scaledTo
-										(initW - a.insets.w - a.insets.e,
-										initH - a.insets.n - a.insets.s);
-									auto img = new Image(cur, imgData);
-									scope (exit) img.dispose();
-									dc.drawImage(img, a.insets.w, a.insets.n);
-								}
-							} catch (SWTException e) {
-								// ファイルが無い場合は表示しない。
-								debugln(e);
-							}
-						}
-						if (a.text.length) {
-							try {
-								auto font = new Font(cur, dwtData(a.font));
-								scope (exit) font.dispose();
-								dc.setFont(font);
-								scope (exit) dc.setFont(null);
-								int alpha;
-								auto color = new Color(cur, dwtData(a.fontColor, alpha));
-								scope (exit) color.dispose();
-								auto fore = dc.getForeground();
-								dc.setForeground(color);
-								scope (exit) dc.setForeground(fore);
-								dc.setAlpha(alpha);
-								scope (exit) dc.setAlpha(255);
-								switch (a.textPos) {
-								case TPos.LEFT: {
-									dc.drawText(a.text, a.insets.w, a.insets.n, true);
-								} break;
-								case TPos.RIGHT: {
-									int tw = dc.textExtent(a.text).x;
-									dc.drawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
-								} break;
-								default: assert (0);
-								}
-							} catch (SWTException e) {
-								debugln(e);
-							}
-						}
-					}
-				}
-
-				if (0 != _maskA) {
-					auto color = new Color(cur, _maskR, _maskG, _maskB);
-					scope (exit) color.dispose();
-					dc.setAlpha(_maskA);
-					scope (exit) dc.setAlpha(255);
-					dc.setBackground(color);
-					dc.fillRectangle(0, 0, initW, initH);
-				}
-
-				// フォントがおかしくなる
-				dc.dispose();
-				dc = new GC(bmp);
-				if (_title !is null) {
-					auto font = new Font(cur, titFont);
-					scope (exit) font.dispose();
-					dc.setFont(font);
-					dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
-					dc.drawText(_title, titPoint.x, titPoint.y, true);
-					dc.setFont(null);
-				}
-				bmpData = bmp.getImageData();
-				_baseSizeData = bmp.getImageData();
-			} else {
-				bmpData = matImgData;
-				_baseSizeData = matImgData;
-			}
-
-			if (transparent && !noTransparent) {
-				bmpData.transparentPixel = bmpData.getPixel(0, 0);
-				_baseSizeData.transparentPixel = _baseSizeData.getPixel(0, 0);
-			}
-			if (bmpData.width != width || bmpData.height != height) {
-				if (smoothing) {
-					auto data = cast(ubyte[]) bmpData.data;
-					auto alpha = cast(ubyte[]) bmpData.alphaData;
-					size_t bpl;
-					bmpData.data = cast(byte[]) smoothResize(width, height, data, alpha,
-						bmpData.depth, bmpData.width, bmpData.height, bmpData.bytesPerLine, bpl);
-					bmpData.alphaData = cast(byte[]) alpha;
-					bmpData.width = width;
-					bmpData.height = height;
-					bmpData.bytesPerLine = bpl;
-				} else {
-					bmpData = bmpData.scaledTo(width, height);
-				}
-			}
-			return bmpData;
 		} catch (Exception e) {
 			debugln(e);
 			return blankImage;
 		}
 	}
+	private ImageData createImageDataImpl() {
+		auto cur = Display.getCurrent();
+
+		ImageData getMat() {
+			ImageData matImgData;
+			if (this.data) {
+				matImgData = this.data;
+			} else {
+				if (isBinImg(path) || (path !is null && .exists(path))) {
+					matImgData = loadImage(path, false);
+					matImgData = matImgData.scaledTo(initW, initH);
+				} else {
+					// ファイルが無い場合は単に表示しない。
+					matImgData = blankImage(initW, initH);
+				}
+			}
+			return matImgData;
+		}
+		ImageData matImgData;
+		bool noTransparent = false;
+		void matNoTransparent() {
+			auto data = blankImage(initW, initH);
+			data.transparentPixel = -1;
+			data.data[] = cast(byte) 255;
+			auto img = new Image(cur, data);
+			scope (exit) img.dispose();
+			auto dc = new GC(img);
+			scope (exit) dc.dispose();
+			auto mat = getMat();
+			auto img2 = new Image(cur, mat);
+			scope (exit) img2.dispose();
+			dc.drawImage(img2, 0, 0);
+			matImgData = img.getImageData();
+			if (mat.depth == 32) noTransparent = true;
+		}
+		if (!appends.length && !_title && !this.data && transparent) {
+			// FIXME: 1.29の挙動に合わせ、マスク有効なら透明色を無効にする
+			matNoTransparent();
+		} else if (appends.length || _title !is null) {
+			matNoTransparent();
+		} else {
+			matImgData = getMat();
+		}
+		auto bmp = new Image(cur, matImgData);
+		scope (exit) bmp.dispose();
+		ImageData bmpData;
+		if (appends.length || _title !is null) {
+			auto dc = new GC(bmp);
+			scope (exit) dc.dispose();
+
+			foreach (a; appends) {
+				if (a.fontData) {
+					// 中央にテキストを表示
+					auto ca = new Rectangle(a.insets.w, a.insets.n, initW - a.insets.w - a.insets.e, initH - a.insets.n - a.insets.s);
+					drawCenterText(a.fontData, dc, ca, a.text);
+				} else {
+					if (a.path.length || a.data) {
+						try {
+							ImageData imgData;
+							if (a.data) {
+								imgData = a.data;
+							} else {
+								imgData = loadImage(a.path, a.transparent, a.maskX, a.maskY);
+							}
+							if (a.alpha != 0xFF) dc.setAlpha(a.alpha);
+							scope (exit) {
+								if (a.alpha != 0xFF) dc.setAlpha(0xFF);
+							}
+							int bw = initW - a.insets.w - a.insets.e;
+							int bh = initH - a.insets.n - a.insets.s;
+							if (imgData.width == bw && imgData.height == bh) {
+								auto img = new Image(cur, imgData);
+								scope (exit) img.dispose();
+								dc.drawImage(img, a.insets.w, a.insets.n);
+							} else if (a.scaleType is ScaleType.Cut) {
+								auto img = new Image(cur, imgData);
+								scope (exit) img.dispose();
+								int dw = imgData.width;
+								int dh = imgData.height;
+								dc.drawImage(img, 0, 0, dw, dh, a.insets.w, a.insets.n, dw, dh);
+							} else if (a.scaleType is ScaleType.Center) {
+								auto img = new Image(cur, imgData);
+								scope (exit) img.dispose();
+								int dw = imgData.width;
+								int dh = imgData.height;
+								int x = a.insets.w + (bw - dw) / 2;
+								int y = a.insets.n + (bh - dh) / 2;
+								dc.drawImage(img, 0, 0, dw, dh, x, y, dw, dh);
+							} else {
+								assert (a.scaleType is ScaleType.Scale);
+								imgData = imgData.scaledTo
+									(initW - a.insets.w - a.insets.e,
+									initH - a.insets.n - a.insets.s);
+								auto img = new Image(cur, imgData);
+								scope (exit) img.dispose();
+								dc.drawImage(img, a.insets.w, a.insets.n);
+							}
+						} catch (SWTException e) {
+							// ファイルが無い場合は表示しない。
+							debugln(e);
+						}
+					}
+					if (a.text.length) {
+						try {
+							auto font = new Font(cur, dwtData(a.font));
+							scope (exit) font.dispose();
+							dc.setFont(font);
+							scope (exit) dc.setFont(null);
+							int alpha;
+							auto color = new Color(cur, dwtData(a.fontColor, alpha));
+							scope (exit) color.dispose();
+							auto fore = dc.getForeground();
+							dc.setForeground(color);
+							scope (exit) dc.setForeground(fore);
+							dc.setAlpha(alpha);
+							scope (exit) dc.setAlpha(255);
+							switch (a.textPos) {
+							case TPos.LEFT: {
+								dc.drawText(a.text, a.insets.w, a.insets.n, true);
+							} break;
+							case TPos.RIGHT: {
+								int tw = dc.textExtent(a.text).x;
+								dc.drawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
+							} break;
+							default: assert (0);
+							}
+						} catch (SWTException e) {
+							debugln(e);
+						}
+					}
+				}
+			}
+
+			if (0 != _maskA) {
+				auto color = new Color(cur, _maskR, _maskG, _maskB);
+				scope (exit) color.dispose();
+				dc.setAlpha(_maskA);
+				scope (exit) dc.setAlpha(255);
+				dc.setBackground(color);
+				dc.fillRectangle(0, 0, initW, initH);
+			}
+
+			// フォントがおかしくなる
+			dc.dispose();
+			dc = new GC(bmp);
+			if (_title !is null) {
+				auto font = new Font(cur, titFont);
+				scope (exit) font.dispose();
+				dc.setFont(font);
+				dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
+				dc.drawText(_title, titPoint.x, titPoint.y, true);
+				dc.setFont(null);
+			}
+			bmpData = bmp.getImageData();
+			_baseSizeData = bmp.getImageData();
+		} else {
+			bmpData = matImgData;
+			_baseSizeData = matImgData;
+		}
+
+		if (transparent && !noTransparent) {
+			bmpData.transparentPixel = bmpData.getPixel(0, 0);
+			_baseSizeData.transparentPixel = _baseSizeData.getPixel(0, 0);
+		}
+		if (bmpData.width != width || bmpData.height != height) {
+			if (smoothing) {
+				auto data = cast(ubyte[]) bmpData.data;
+				auto alpha = cast(ubyte[]) bmpData.alphaData;
+				size_t bpl;
+				bmpData.data = cast(byte[]) smoothResize(width, height, data, alpha,
+					bmpData.depth, bmpData.width, bmpData.height, bmpData.bytesPerLine, bpl);
+				bmpData.alphaData = cast(byte[]) alpha;
+				bmpData.width = width;
+				bmpData.height = height;
+				bmpData.bytesPerLine = bpl;
+			} else {
+				bmpData = bmpData.scaledTo(width, height);
+			}
+		}
+		return bmpData;
+	}
+	private ImageData createTextImageData() {
+		// TODO TextCell
+		return null;
+	}
+	private ImageData createFilterImageData() {
+		// カラーフィルタは常に画像無し
+		return null;
+	}
+
 	/// 画像を描画する。
 	/// Params:
 	/// dc = キャンバス。
-	void draw(GC gc) {
-		if (_visible && _img) {
+	void draw(ref Image buf, ref GC gc, Rectangle range) {
+		if (!_visible) return;
+		if (!range.intersects(rect)) return;
+		final switch (_type) {
+		case ImageType.Image:
+			if (!_img) return;
 			int olda = gc.getAlpha();
 			gc.setAlpha(alpha);
 			scope (exit) gc.setAlpha(olda);
 			gc.drawImage(_img, x, y);
+			break;
+		case ImageType.Text:
+			drawText(buf, gc, range);
+			break;
+		case ImageType.ColorFilter:
+			drawFilter(buf, gc, range);
+			break;
 		}
 	}
+	private void drawText(ref Image buf, ref GC gc, Rectangle range) {
+		// TODO TextCell
+	}
+	private static ubyte roundColor(T)(T c) {
+		return cast(ubyte) .max(0, .min(255, c));
+	}
+	private void drawFilter(ref Image buf, ref GC gc, Rectangle range) {
+		auto iRect = rect.intersection(range);
+		auto bMode = this.blendMode;
+		if (transparent) {
+			bMode = BlendMode.Mask;
+		}
+		ubyte calcN(int f, int t, real per) {
+			if (f == t) {
+				return roundColor(f);
+			}
+			return roundColor(f + .roundTo!int((t - f) * per));
+		}
+
+		final switch (bMode) {
+		case BlendMode.Normal:
+		case BlendMode.Mask:
+			// 普通に描画(アルファブレンドのみ)
+			auto cur = Display.getCurrent();
+			int alpha;
+			auto color = new Color(cur, dwtData(color1, alpha));
+			scope (exit) color.dispose();
+
+			final switch (gradientDir) {
+			case GradientDir.None:
+				gc.setBackground(color);
+				gc.setAlpha(alpha);
+				gc.fillRectangle(iRect);
+				break;
+			case GradientDir.LeftToRight:
+			case GradientDir.TopToBottom:
+				int cr = _color1.r;
+				int cg = _color1.g;
+				int cb = _color1.b;
+				int from, width, iFrom, iWidth;
+				if (gradientDir is GradientDir.LeftToRight) {
+					from = this.x;
+					width = this.width;
+					iFrom = iRect.x;
+					iWidth = iRect.width;
+				} else {
+					from = this.y;
+					width = this.height;
+					iFrom = iRect.y;
+					iWidth = iRect.height;
+				}
+				foreach (ip; iFrom .. iFrom + iWidth) {
+					int p = ip - from;
+					real per = cast(real) p / width;
+					ubyte r = calcN(_color1.r, _color2.r, per);
+					ubyte g = calcN(_color1.g, _color2.g, per);
+					ubyte b = calcN(_color1.b, _color2.b, per);
+					ubyte a = calcN(_color1.a, _color2.a, per);
+					if (cr != r || cg != g || cb != b) {
+						color.dispose();
+						color = new Color(cur, r, g, b);
+					}
+					gc.setAlpha(a);
+					gc.setForeground(color);
+					if (gradientDir is GradientDir.LeftToRight) {
+						gc.drawLine(ip, iRect.y, ip, iRect.y + iRect.height);
+					} else {
+						gc.drawLine(iRect.x, ip, iRect.x + iRect.width, ip);
+					}
+				}
+				break;
+			}
+			break;
+		case BlendMode.Add:
+		case BlendMode.Subtract:
+		case BlendMode.Multiply:
+			// 通常のGCでは対応できないため、一旦ImageDataを生成して直接編集する
+			auto data = buf.getImageData();
+			gc.dispose();
+			buf.dispose();
+
+			size_t bpp = data.bytesPerLine / data.width;
+			auto px = Pixels(cast(ubyte[]) data.data, cast(ubyte[]) data.alphaData,
+				data.width, data.height, data.depth, data.bytesPerLine, bpp);
+
+			// グラデーション用のデータを生成
+			FC fc1 = FC(cast(ubyte)_color1.r, cast(ubyte)_color1.g, cast(ubyte)_color1.b, cast(ubyte)_color1.a);
+			FC[] colorLine = null;
+			int from, width, iFrom, iWidth;
+			final switch (gradientDir) {
+			case GradientDir.None:
+				break;
+			case GradientDir.LeftToRight:
+			case GradientDir.TopToBottom:
+				if (gradientDir is GradientDir.LeftToRight) {
+					from = this.x;
+					width = this.width;
+					iFrom = iRect.x;
+					iWidth = iRect.width;
+				} else {
+					from = this.y;
+					width = this.height;
+					iFrom = iRect.y;
+					iWidth = iRect.height;
+				}
+				colorLine = new FC[iWidth];
+				foreach (ip; iFrom .. iFrom + iWidth) {
+					int p = ip - from;
+					real per = cast(real) p / width;
+					ubyte r = calcN(_color1.r, _color2.r, per);
+					ubyte g = calcN(_color1.g, _color2.g, per);
+					ubyte b = calcN(_color1.b, _color2.b, per);
+					ubyte a = calcN(_color1.a, _color2.a, per);
+					colorLine[ip - iFrom] = FC(r, g, b, a);
+				}
+			}
+
+			// このセルにおける該当箇所の色を取得
+			FC color(int ix, int iy) {
+				final switch (gradientDir) {
+				case GradientDir.None:
+					return fc1;
+				case GradientDir.LeftToRight:
+					return colorLine[ix - iFrom];
+				case GradientDir.TopToBottom:
+					return colorLine[iy - iFrom];
+				}
+			}
+
+			// 色を加算または減算または乗算。
+			foreach (ix; iRect.x .. iRect.x + iRect.width) {
+				int x = ix - this.x;
+				foreach (iy; iRect.y .. iRect.y + iRect.height) {
+					int y = iy - this.y;
+					auto fc = px.get(ix, iy);
+					auto tfc = color(ix, iy);
+					if (tfc.a == 0) continue;
+
+					final switch (bMode) {
+					case BlendMode.Normal:
+					case BlendMode.Mask:
+						assert (0);
+					case BlendMode.Add:
+						if (tfc.a != 255) {
+							// アルファブレンド
+							fc.r = roundColor(fc.r + (tfc.r * tfc.a >>> 8));
+							fc.g = roundColor(fc.g + (tfc.g * tfc.a >>> 8));
+							fc.b = roundColor(fc.b + (tfc.b * tfc.a >>> 8));
+						} else {
+							fc.r = roundColor(fc.r + tfc.r);
+							fc.g = roundColor(fc.g + tfc.g);
+							fc.b = roundColor(fc.b + tfc.b);
+						}
+						break;
+					case BlendMode.Subtract:
+						if (tfc.a != 255) {
+							// アルファブレンド
+							fc.r = roundColor(fc.r - (tfc.r * tfc.a >>> 8));
+							fc.g = roundColor(fc.g - (tfc.g * tfc.a >>> 8));
+							fc.b = roundColor(fc.b - (tfc.b * tfc.a >>> 8));
+						} else {
+							fc.r = roundColor(fc.r - tfc.r);
+							fc.g = roundColor(fc.g - tfc.g);
+							fc.b = roundColor(fc.b - tfc.b);
+						}
+						break;
+					case BlendMode.Multiply:
+						if (tfc.a != 255) {
+							// アルファブレンド
+							tfc.r = roundColor(((tfc.r * tfc.a) + (255 * (255 - tfc.a))) >>> 8);
+							tfc.g = roundColor(((tfc.g * tfc.a) + (255 * (255 - tfc.a))) >>> 8);
+							tfc.b = roundColor(((tfc.b * tfc.a) + (255 * (255 - tfc.a))) >>> 8);
+						}
+						fc.r = roundColor(fc.r * tfc.r >>> 8);
+						fc.g = roundColor(fc.g * tfc.g >>> 8);
+						fc.b = roundColor(fc.b * tfc.b >>> 8);
+						break;
+					}
+					px.set(ix, iy, fc);
+				}
+			}
+
+			buf = new Image(Display.getCurrent(), data);
+			gc = new GC(buf);
+			break;
+		}
+	}
+
 	/// 画像。
 	@property
 	Image image() {
@@ -636,7 +965,7 @@ public:
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
 	this (string path, int x, int y, int baseW, int baseH) {
-		super(path, x, y, baseW, baseH);
+		super (path, x, y, baseW, baseH);
 		newR = new Rectangle(x, y, baseW, baseH);
 	}
 	/// 画像のデータ、位置、本来のサイズを指定してインスタンスを生成する。
@@ -647,9 +976,37 @@ public:
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
 	this (ImageData data, int x, int y, int baseW, int baseH) {
-		super(data, x, y, baseW, baseH);
+		super (data, x, y, baseW, baseH);
 		newR = new Rectangle(x, y, baseW, baseH);
 	}
+
+	/// テキスト表示用のインスタンスを生成する。
+	this (string text, FontData font, CRGB color,
+			bool underline, bool strike, bool vertical,
+			BorderingType borderingType, CRGB borderingColor, uint borderingWidth,
+			int x, int y, int baseW, int baseH) {
+		super (ImageType.Text, x, y, baseW, baseH);
+		newR = new Rectangle(x, y, baseW, baseH);
+		setTitle(text, font, new Point(0, 0));
+		this.textColor = color;
+		this.underline = underline;
+		this.strike = strike;
+		this.vertical = vertical;
+		this.borderingType = borderingType;
+		this.borderingColor = borderingColor;
+		this.borderingWidth = borderingWidth;
+	}
+	/// カラーフィルタ用のインスタンスを生成する。
+	this (BlendMode blendMode, GradientDir gradientDir, CRGB color1, CRGB color2,
+			int x, int y, int baseW, int baseH) {
+		super (ImageType.ColorFilter, x, y, baseW, baseH);
+		newR = new Rectangle(x, y, baseW, baseH);
+		this.blendMode = blendMode;
+		this.gradientDir = gradientDir;
+		this.color1 = color1;
+		this.color2 = color2;
+	}
+
 	/// Returns: 最小の幅。初期値は1。
 	@property
 	const
@@ -747,12 +1104,6 @@ public:
 		newR.height = height;
 		retoggle();
 	}
-	/// トグル以外の画像を描画する。
-	void drawImage(GC gc) {
-		if (visible) {
-			super.draw(gc);
-		}
-	}
 	/// トグルを描画する。
 	void drawToggle(GC gc) {
 		if (visible && selected) {
@@ -766,14 +1117,6 @@ public:
 		}
 	}
 
-	/// 画像を描画する。
-	/// Params:
-	/// dc = キャンバス。
-	override
-	void draw(GC gc) {
-		drawImage(gc);
-		drawToggle(gc);
-	}
 	/// Returns: 選択中か。
 	@property
 	const
@@ -1086,6 +1429,11 @@ private:
 	int _gridRange = 5;
 	int[] _gridXH = [];
 	int[] _gridYH = [];
+
+	/// 背景。壁紙まで描画済みのImageData。
+	ImageData _background = null;
+	Image _lastWallpaper = null;
+	Rectangle _lastClientArea = null;
 
 	class DListener : DisposeListener {
 		public override void widgetDisposed(DisposeEvent e)  {
@@ -1529,23 +1877,40 @@ private:
 	class PListener : PaintListener {
 		override void paintControl(PaintEvent e) {
 			auto d = getShell().getDisplay();
-			auto buf = new Image(d, getSize().x, getSize().y);
-			auto gc = new GC(buf);
-
 			auto backImg = getBackgroundImage();
 			auto rect = getClientArea();
-			if (_backColor) {
-				gc.setBackground(_backColor);
-				gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
-			} else {
-				gc.setBackground(d.getSystemColor(SWT.COLOR_DARK_BLUE));
-				gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
+			if (!_background || backImg !is _lastWallpaper || rect != _lastClientArea) {
+				// 背景の初期化
+				auto buf = new Image(d, rect.width, rect.height);
+				auto gc = new GC(buf);
+				scope (exit) gc.dispose();
+				scope (exit) buf.dispose();
+
+				if (_backColor) {
+					gc.setBackground(_backColor);
+					gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
+				} else {
+					gc.setBackground(d.getSystemColor(SWT.COLOR_DARK_BLUE));
+					gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
+				}
+				if (backImg) {
+					drawWallpaper(gc, backImg, rect, _wallpaperStyle);
+				}
+				_background = buf.getImageData();
+				_lastWallpaper = backImg;
+				_lastClientArea = rect;
 			}
-			if (backImg) {
-				drawWallpaper(gc, backImg, rect, _wallpaperStyle);
+
+			auto imageData = cast(ImageData)_background.clone();
+			auto range = new Rectangle(e.x, e.y, e.width, e.height);
+			auto buf = new Image(d, imageData);
+			auto gc = new GC(buf);
+			foreach (bmp; backs) {
+				bmp.draw(buf, gc, range);
 			}
 			foreach (bmp; backs) {
-				bmp.draw(gc);
+				auto fi = cast(FlexImage) bmp;
+				if (fi) fi.drawToggle(gc);
 			}
 			if (_showAppends) {
 				foreach (a; _appends) {
@@ -1593,6 +1958,7 @@ private:
 					drawHLines();
 				}
 			}
+			gc.dispose();
 
 			e.gc.drawImage(buf, 0, 0);
 			buf.dispose();

@@ -4,6 +4,7 @@ module cwx.graphics;
 import cwx.jpy;
 import cwx.utils;
 
+import std.algorithm : min;
 import std.string;
 import std.random;
 
@@ -600,4 +601,40 @@ ubyte[] smoothResize(size_t newWidth, size_t newHeight,
 	data = result.data;
 	alpha = result.alpha;
 	return result.data;
+}
+
+/// a部分へのbによる縁取り(bWidth幅)を行う。
+ubyte[] bordering(ubyte[] data, ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine, FC a, FC b, uint bWidth) {
+	if (width < 1 || height < 1) return data;
+	size_t bpp = bytesPerLine / width;
+	auto base = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
+	auto r = Pixels(data.dup, alpha.dup, width, height, depth, bytesPerLine, bpp);
+	auto w = width - 1;
+	auto h = height - 1;
+	foreach (y; 0..height) {
+		foreach (x; 0..width) {
+			if (base.get(x, y) == a) continue;
+
+			// 周囲にaがあるか探す
+			bool find = false;
+			find |= 0 < x && base.get(x - 1, y) == a;
+			find |= 0 < y && base.get(x, y - 1) == a;
+			find |= x < w && base.get(x + 1, y) == a;
+			find |= y < h && base.get(x, y + 1) == a;
+			find |= 0 < x && 0 < y && base.get(x - 1, y - 1) == a;
+			find |= 0 < x && y < h && base.get(x - 1, y + 1) == a;
+			find |= x < w && 0 < y && base.get(x + 1, y - 1) == a;
+			find |= x < w && y < h && base.get(x + 1, y + 1) == a;
+
+			if (!find) continue;
+
+			// 縁取り実行
+			foreach (wy; y..min(height, y + bWidth)) {
+				foreach (wx; x..min(width, x + bWidth)) {
+					r.set(wx, wy, b);
+				}
+			}
+		}
+	}
+	return r.data;
 }

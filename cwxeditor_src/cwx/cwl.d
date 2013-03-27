@@ -1462,7 +1462,6 @@ private EventTree readEventTree(ref RData d, ref ByteIO f, bool enemyCard, size_
 	return tree;
 }
 private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
-	byte b;
 	int x = f.readIntL;
 	int y = f.readIntL;
 	int w = f.readUIntL;
@@ -1493,7 +1492,11 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 			string text = readString(f);
 			string fontName = readString(f);
 			uint size = f.readUIntL;
-			auto color = CRGB(f.readUByte, f.readUByte, f.readUByte, f.readUByte);
+			auto b = f.readUByte;
+			auto g = f.readUByte;
+			auto r = f.readUByte;
+			auto a = f.readUByte;
+			auto color = CRGB(r, g, b, a);
 			ubyte style = f.readUByte;
 			bool bold      = (style & 0b0000001) != 0;
 			bool italic    = (style & 0b0000010) != 0;
@@ -1506,7 +1509,11 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 			uint borderingWidth = 1;
 			if (bordering) {
 				borderingType = toBorderingType(f.readByte);
-				borderingColor = CRGB(f.readUByte, f.readUByte, f.readUByte, f.readUByte);
+				b = f.readUByte;
+				g = f.readUByte;
+				r = f.readUByte;
+				a = f.readUByte;
+				borderingColor = CRGB(r, g, b, a);
 				borderingWidth = f.readUIntL;
 			}
 			f.readByte; // 不明(100)
@@ -1522,10 +1529,18 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 			bool mask;
 			auto blend = toBlendMode(f.readByte, mask);
 			auto gradient = toGradientDir(f.readByte);
-			auto color1 = CRGB(f.readUByte, f.readUByte, f.readUByte, f.readUByte);
+			auto b = f.readUByte;
+			auto g = f.readUByte;
+			auto r = f.readUByte;
+			auto a = f.readUByte;
+			auto color1 = CRGB(r, g, b, a);
 			auto color2 = CRGB(0, 0, 0, 255);
 			if (gradient !is GradientDir.None) {
-				color2 = CRGB(f.readUByte, f.readUByte, f.readUByte, f.readUByte);
+				b = f.readUByte;
+				g = f.readUByte;
+				r = f.readUByte;
+				a = f.readUByte;
+				color2 = CRGB(r, g, b, a);
 			}
 			string flag = readString(f);
 			f.readByte; // 不明(0)
@@ -3072,9 +3087,9 @@ private void writeBgImage(ref ByteIO f, BgImage b) {
 		writeString(f, tc.fontName);
 		f.writeL(cast(uint) tc.size);
 		auto color = tc.color;
-		f.write(cast(ubyte) color.r);
-		f.write(cast(ubyte) color.g);
 		f.write(cast(ubyte) color.b);
+		f.write(cast(ubyte) color.g);
+		f.write(cast(ubyte) color.r);
 		f.write(cast(ubyte) color.a);
 		bool bordering = tc.borderingType !is BorderingType.None;
 		ubyte style = 0;
@@ -3089,9 +3104,9 @@ private void writeBgImage(ref ByteIO f, BgImage b) {
 		if (bordering) {
 			f.write(fromBorderingType(tc.borderingType));
 			auto bColor = tc.borderingColor;
-			f.write(cast(ubyte) bColor.r);
-			f.write(cast(ubyte) bColor.g);
 			f.write(cast(ubyte) bColor.b);
+			f.write(cast(ubyte) bColor.g);
+			f.write(cast(ubyte) bColor.r);
 			f.write(cast(ubyte) bColor.a);
 			f.writeL(cast(uint) tc.borderingWidth);
 		}
@@ -3113,15 +3128,15 @@ private void writeBgImage(ref ByteIO f, BgImage b) {
 		f.write(fromBlendMode(cc.blendMode, cc.mask));
 		f.write(fromGradientDir(cc.gradientDir));
 		auto color1 = cc.color1;
-		f.write(cast(ubyte) color1.r);
-		f.write(cast(ubyte) color1.g);
 		f.write(cast(ubyte) color1.b);
+		f.write(cast(ubyte) color1.g);
+		f.write(cast(ubyte) color1.r);
 		f.write(cast(ubyte) color1.a);
 		if (cc.gradientDir !is GradientDir.None) {
 			auto color2 = cc.color2;
-			f.write(cast(ubyte) color2.r);
-			f.write(cast(ubyte) color2.g);
 			f.write(cast(ubyte) color2.b);
+			f.write(cast(ubyte) color2.g);
+			f.write(cast(ubyte) color2.r);
 			f.write(cast(ubyte) color2.a);
 		}
 		writeString(f, cc.flag);
