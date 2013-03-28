@@ -845,6 +845,10 @@ class Msgs : Properties {
 	auto dlgTitNewMenuCard = Msg("dlgTitNewMenuCard", "メニューカードの作成");
 	auto dlgTitBgImage = Msg("dlgTitBgImage", "背景画像の設定");
 	auto dlgTitNewBgImage = Msg("dlgTitNewBgImage", "背景画像の作成");
+	auto dlgTitTextCell = Msg("dlgTitTextCell", "テキストセルの設定");
+	auto dlgTitNewTextCell = Msg("dlgTitNewTextCell", "テキストセルの作成");
+	auto dlgTitColorCell = Msg("dlgTitColorCell", "カラーセルの設定");
+	auto dlgTitNewColorCell = Msg("dlgTitNewColorCell", "カラーセルの作成");
 	auto dlgTitEnemyCard = Msg("dlgTitEnemyCard", "エネミーカードの設定 [ %1$s ]");
 	auto dlgTitNewEnemyCard = Msg("dlgTitNewEnemyCard", "エネミーカードの作成");
 
@@ -1369,6 +1373,8 @@ class Msgs : Properties {
 	auto warningBranchStatusMental = Msg("warningBranchStatusMental", "%1$sによる状態分岐は、プレイヤーの環境によっては正しく機能しない事があります。");
 	auto warningNoCardSizeImage = Msg("warningNoCardSizeImage", "カードサイズ以外の画像を使用すると、プレイヤーの環境によっては意図したように表示されない事があります。");
 	auto warningValuedTalker = Msg("warningValuedTalker", "評価メンバは、プレイヤーの環境によっては動作しない事があります。");
+	auto warningTextCell = Msg("warningTextCell", "テキストセルは、プレイヤーの環境によっては動作しない事があります。");
+	auto warningColorCell = Msg("warningColorCell", "カラーセルは、プレイヤーの環境によっては動作しない事があります。");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");

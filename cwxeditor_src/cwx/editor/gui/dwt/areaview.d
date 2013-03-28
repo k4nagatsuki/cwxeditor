@@ -555,7 +555,7 @@ private:
 				auto bs = saveB(_bs.keys);
 				foreach (i, b; _bs) {
 					b.removeUseCounter();
-					area.set(i, area.backs[i].dup);
+					area.set(i, b.dup);
 					comm.refBgImage.call(area.backs[i].cwxPath(true));
 				}
 				_bs = bs;
@@ -726,6 +726,9 @@ private:
 			_undo ~= new UndoSPAuto(this, _comm, _area, _summ);
 			__setAuto(false);
 		}
+		FlexImage cardImage(int index) {
+			return cast(FlexImage) _imgp.images[cardsIndex + index];
+		}
 	}
 
 	static if (UseBacks) {
@@ -795,6 +798,9 @@ private:
 			}
 			_imgp.redraw();
 			callModEvent();
+		}
+		FlexImage backImage(int index) {
+			return cast(FlexImage) _imgp.images[index];
 		}
 	}
 
@@ -2633,7 +2639,7 @@ public:
 		} else static assert (0, C2);
 	}
 	static if (UseBacks) {
-		AbsDialog[BgImage] _editDlgsB;
+		BgImageDialog[BgImage] _editDlgsB;
 		void editBackApply(UndoEdit undo, BgImage back) {
 			assert (undo);
 			_undo ~= undo;
@@ -2656,8 +2662,40 @@ public:
 			assert (0);
 		}
 		void createBackground() {
-			auto b = new ImageCell("", "", 0, 0, 0, 0, false);
-			auto dlg = new ImageCellDialog(_comm, _prop, getShell(), _summ, b);
+			createBackgroundImpl(ImageType.Image);
+		}
+		void createTextCell() {
+			createBackgroundImpl(ImageType.Text);
+		}
+		void createColorCell() {
+			createBackgroundImpl(ImageType.ColorFilter);
+		}
+		void createBackgroundImpl(ImageType type) {
+			BgImage b = null;
+			BgImageDialog dlg = null;
+			final switch (type) {
+			case ImageType.Image:
+				auto ic = new ImageCell;
+				dlg = new ImageCellDialog(_comm, _prop, getShell(), _summ, ic, true);
+				b = ic;
+				break;
+			case ImageType.Text:
+				auto tc = new TextCell;
+				tc.width = 100;
+				tc.height = 100;
+				// TODO TextCell
+				return;
+				b = tc;
+				break;
+			case ImageType.ColorFilter:
+				auto cc = new ColorCell;
+				cc.width = 100;
+				cc.height = 100;
+				// TODO ColorCell
+				return;
+				b = cc;
+				break;
+			}
 			dlg.appliedEvent ~= {
 				auto b = dlg.back;
 				int index = insertIndex(_backs);
@@ -2678,12 +2716,6 @@ public:
 			};
 			dlg.open();
 		}
-		void createTextCell() {
-			// TODO TextCell
-		}
-		void createColorCell() {
-			// TODO ColorCell
-		}
 		void editBack(int[] indices) {
 			foreach (i; indices) {
 				editBack(_area.backs[i]);
@@ -2703,12 +2735,18 @@ public:
 				}
 			}
 			UndoEdit undo = null;
-			AbsDialog dlg = null;
+			BgImageDialog dlg = null;
 			auto ic = cast(ImageCell) back;
 			if (ic) {
-				dlg = new ImageCellDialog(_comm, _prop, getShell(), _summ, ic);
-			} else {
+				dlg = new ImageCellDialog(_comm, _prop, getShell(), _summ, ic, false);
+			}
+			auto tc = cast(TextCell) back;
+			if (tc) {
 				// TODO TextCell
+				return;
+			}
+			auto cc = cast(ColorCell) back;
+			if (cc) {
 				// TODO ColorCell
 				return;
 			}
@@ -3351,12 +3389,22 @@ public:
 			int style = SWT.NORMAL;
 			if (back.bold) style |= SWT.BOLD;
 			if (back.italic) style |= SWT.ITALIC;
-			auto font = new FontData(back.fontName, back.size, style);
+			auto d = Display.getCurrent();
+			auto h = cast(int) (back.size * (72.0 / d.getDPI().y) + 0.5);
+			string fontName = back.fontName;
+			if (back.vertical) {
+				auto fontName2 = "@" ~ fontName;
+				if (d.getFontList(fontName2, true) || d.getFontList(fontName2, false)) {
+					fontName = fontName2;
+				}
+			}
+			auto font = new FontData(fontName, h, style);
 			auto r = new FlexImage(back.text, font, back.color,
 				back.underline, back.strike, back.vertical,
 				back.borderingType, back.borderingColor, back.borderingWidth,
 				back.x, back.y, back.width, back.height);
 			r.transparent = back.mask;
+			r.createImage();
 			return r;
 		}
 		private FlexImage create(ColorCell back) {

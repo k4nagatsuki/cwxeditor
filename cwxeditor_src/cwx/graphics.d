@@ -4,7 +4,7 @@ module cwx.graphics;
 import cwx.jpy;
 import cwx.utils;
 
-import std.algorithm : min;
+import std.algorithm : max, min;
 import std.string;
 import std.random;
 
@@ -629,8 +629,10 @@ ubyte[] bordering(ubyte[] data, ubyte[] alpha, size_t depth, size_t width, size_
 			if (!find) continue;
 
 			// 縁取り実行
-			foreach (wy; y..min(height, y + bWidth)) {
-				foreach (wx; x..min(width, x + bWidth)) {
+			int bx = x - bWidth / 2;
+			int by = y - bWidth / 2;
+			foreach (wy; .max(0, by) .. .min(height, by + bWidth)) {
+				foreach (wx; .max(0, bx) .. .min(width, bx + bWidth)) {
 					r.set(wx, wy, b);
 				}
 			}

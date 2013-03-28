@@ -35,7 +35,12 @@ public:
 			&& x == b.x && y == b.y && width == b.width && height == b.height;
 	}
 
-	/// 唯一のコンストラクタ。
+	/// 空のインスタンスを生成する。
+	this () {
+		this ("", "", 0, 0, 0, 0, false);
+	}
+
+	/// パラメータを指定してインスタンスを生成する。
 	/// Params:
 	/// path = ファイルパス。無しの場合は""。
 	/// flag = フラグ。無しの場合は""。
@@ -148,6 +153,14 @@ public:
 	/// XML要素名。
 	immutable XML_NAME = "TextCell";
 
+	/// 空のインスタンスを生成する。
+	this () {
+		super ("", 0, 0, 0, 0, false);
+		_text = new SimpleTextHolder;
+		_text.owner = this;
+	}
+
+	/// パラメータを指定してインスタンスを生成する。
 	this (string text, string fontName, uint size, CRGB color,
 			bool bold, bool italic, bool underline, bool strike, bool vertical,
 			BorderingType borderingType, CRGB borderingColor, uint borderingWidth,
@@ -477,6 +490,12 @@ public:
 	/// XML要素名。
 	immutable XML_NAME = "ColorCell";
 
+	/// 空のインスタンスを生成する。
+	this () {
+		super ("", 0, 0, 0, 0, false);
+	}
+
+	/// パラメータを指定してインスタンスを生成する。
 	this (BlendMode blendMode, GradientDir gradientDir, CRGB color1, CRGB color2,
 			string flag, int x, int y, int w, int h, bool mask) {
 		super (flag, x, y, w, h, mask);

@@ -34,15 +34,13 @@ import java.lang.all;
 
 public:
 
-/// 背景画像の設定を行うダイアログ。
-class ImageCellDialog : AbsDialog {
+/// 背景画像の設定を行うダイアログを定義する。
+abstract class BgImageDialog : AbsDialog {
 private:
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
-	ImageCell _back;
 
-	ImageSelect!(MtType.BG_IMG) _imgPath;
 	Table _flag;
 	Spinner _x;
 	Spinner _y;
@@ -59,25 +57,6 @@ private:
 		_flagIncSearch.startIncSearch();
 	}
 
-	void refreshWarning() {
-		warning = _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ ? _summ.legacy : false);
-	}
-
-	void select() {
-		if (!_selected || _easy.getSelectionIndex() == 1) {
-			string file = _imgPath.filePath;
-			if (file.length > 0) {
-				try {
-					uint x, y;
-					dwtImageSize(_comm.skin, file, x, y);
-					_w.setSelection(x);
-					_h.setSelection(y);
-					_selected = true;
-					_comm.refreshToolBar();
-				} catch {}
-			}
-		}
-	}
 	class SModL : ModifyListener {
 		override void modifyText(ModifyEvent e) {
 			_selected = true;
@@ -85,7 +64,7 @@ private:
 	};
 	class MaskListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			_imgPath.mask = (cast(Button) e.widget).getSelection();
+			updateMask();
 		}
 	}
 	class SettingsListener : SelectionAdapter {
@@ -96,33 +75,32 @@ private:
 			case 0:
 				break;
 			case 1:
-				select();
-				applyEnabled();
+				if (cast(ImageCell) back) {
+					selectEasySetting();
+					applyEnabled();
+				} else {
+					goto default;
+				}
 				break;
 			default:
 				_selected = true;
-				auto s = _prop.var.etc.bgImageSettings[i - 2];
+				if (cast(ImageCell) back) {
+					i--;
+				}
+				auto s = _prop.var.etc.bgImageSettings[i - 1];
 				_x.setSelection(s.x);
 				_y.setSelection(s.y);
 				_w.setSelection(s.width);
 				_h.setSelection(s.height);
 				_mask.setSelection(s.mask);
-				_imgPath.mask = s.mask;
+				updateMask();
 				applyEnabled();
 			}
 			_comm.refreshToolBar();
 		}
 	}
-	class SDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
-			auto sash = cast(SplitPane) e.widget;
-			auto ws = sash.getWeights();
-			_prop.var.etc.backSashL = ws[0];
-			_prop.var.etc.backSashR = ws[1];
-		}
-	}
 	void delBgImage(string cwxPath) {
-		if (_back && _back.cwxPath(true) == cwxPath) {
+		if (back && back.cwxPath(true) == cwxPath) {
 			forceCancel();
 		}
 	}
@@ -180,146 +158,105 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, ImageCell back) {
+	this (Commons comm, Shell parent, string text, Image img, bool resizable, DSize size, bool create) {
 		_comm = comm;
-		_summ = summ;
-		_back = back;
-		_prop = prop;
-		_selected = back !is null;
-		DSize size;
-		if (_summ) {
-			size = _prop.var.areaBackgroundDlg;
-		} else {
-			size = _prop.var.areaBackgroundNFDlg;
-		}
-		super(prop, shell, false,
-			_back ? _prop.msgs.dlgTitBgImage : _prop.msgs.dlgTitNewBgImage,
-			_prop.images.backs, true, size, true);
+		_summ = comm.summary;
+		_prop = comm.prop;
+		_selected = !create;
+		super (_prop, parent, text, img, resizable, size, true);
 		enterClose = true;
 	}
 
 	@property
-	ImageCell back() {
-		return _back;
-	}
+	BgImage back();
+
 protected:
-	override void setup(Composite area) {
-		area.setLayout(zeroGridLayout(1));
-		auto skin = _comm.skin;
-		{
-			auto comp = new Composite(area, SWT.NONE);
-			comp.setLayout(new GridLayout(1, false));
-			void imgs(Composite parent) {
-				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, SWT.NONE, _comm, _prop, _summ,
-					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, false, false, () => "", &select);
-				mod(_imgPath);
-				_imgPath.modEvent ~= &refreshWarning;
+	Composite createFlagPanel(Composite comp) {
+		auto grp = new Group(comp, SWT.NONE);
+		grp.setLayout(new GridLayout(2, false));
+		grp.setText(_prop.msgs.refFlag);
+		_flag = new Table(grp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
+		mod(_flag);
+		_flagIncSearch = new IncSearch(_comm, _flag);
+		_flagIncSearch.modEvent ~= &refreshFlags;
+		auto gd = new GridData(GridData.FILL_BOTH);
+		gd.widthHint = _prop.var.etc.flagsWidth;
+		gd.heightHint = _prop.var.etc.flagsHeight;
+		_flag.setLayoutData(gd);
+		auto colN = new FullTableColumn(_flag, SWT.NONE);
+		.listener(_flag, SWT.Selection, {
+			int index = _flag.getSelectionIndex();
+			if (-1 != index) {
+				auto f = cast(Flag) _flag.getItem(index).getData();
+				_selectedFlag = f ? f.path : "";
 			}
-			if (_summ) {
-				auto sash = new SplitPane(comp, SWT.HORIZONTAL);
-				sash.setLayoutData(new GridData(GridData.FILL_BOTH));
-				{
-					imgs(sash);
-				}
-				{
-					auto grp = new Group(sash, SWT.NONE);
-					grp.setLayout(new GridLayout(2, false));
-					grp.setText(_prop.msgs.refFlag);
-					_flag = new Table(grp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
-					mod(_flag);
-					_flagIncSearch = new IncSearch(_comm, _flag);
-					_flagIncSearch.modEvent ~= &refreshFlags;
-					auto gd = new GridData(GridData.FILL_BOTH);
-					gd.widthHint = _prop.var.etc.flagsWidth;
-					gd.heightHint = _prop.var.etc.flagsHeight;
-					_flag.setLayoutData(gd);
-					auto colN = new FullTableColumn(_flag, SWT.NONE);
-					.listener(_flag, SWT.Selection, {
-						int index = _flag.getSelectionIndex();
-						if (-1 != index) {
-							auto f = cast(Flag) _flag.getItem(index).getData();
-							_selectedFlag = f ? f.path : "";
-						}
-					});
+		});
 
-					auto menu = new Menu(_flag.getShell(), SWT.POP_UP);
-					createMenuItem(_comm, menu, MenuID.IncSearch, &flagIncSearch, () => 1 < _flag.getItemCount());
-					new MenuItem(menu, SWT.SEPARATOR);
-					createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagView, () => _flag.getSelectionIndex() != -1);
-					_flag.setMenu(menu);
-				}
-				sash.setWeights([_prop.var.etc.backSashL, _prop.var.etc.backSashR]);
-				sash.addDisposeListener(new SDListener);
+		auto menu = new Menu(_flag.getShell(), SWT.POP_UP);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &flagIncSearch, () => 1 < _flag.getItemCount());
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagView, () => _flag.getSelectionIndex() != -1);
+		_flag.setMenu(menu);
 
-				_comm.refFlagAndStep.add(&refFlags);
-				_comm.delFlagAndStep.add(&delFlags);
-				.listener(_flag, SWT.Dispose, {
-					_comm.refFlagAndStep.remove(&refFlags);
-					_comm.delFlagAndStep.remove(&delFlags);
-				});
-			} else {
-				// フラグ無し
-				imgs(comp);
-				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
-			}
-			{
-				auto grp = new Group(comp, SWT.NONE);
-				grp.setText(_prop.msgs.cardPosition);
-				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
-				auto comp2 = new Composite(grp, SWT.NONE);
-				comp2.setLayout(new GridLayout(5, false));
-				Spinner createS(string name, int max, int min) {
-					auto comp3 = new Composite(comp2, SWT.NONE);
-					auto gl = new GridLayout(2, false);
-					gl.marginHeight = 0;
-					comp3.setLayout(gl);
-					auto l = new Label(comp3, SWT.NONE);
-					l.setText(name);
-					auto spn = new Spinner(comp3, SWT.BORDER);
-					mod(spn);
-					spn.setMaximum(max);
-					spn.setMinimum(min);
-					spn.setSelection(0);
-					return spn;
-				}
-				_x = createS(_prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax));
-				_y = createS(_prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax));
-				_w = createS(_prop.msgs.width, _prop.var.etc.backWidthMax, 0);
-				_h = createS(_prop.msgs.height, _prop.var.etc.backHeightMax, 0);
-				_mask = new Button(comp2, SWT.TOGGLE);
-				mod(_mask);
-				_mask.setImage(_prop.images.menu(MenuID.Mask));
-				_mask.setToolTipText(_prop.buildTool(MenuID.Mask));
-				_mask.addSelectionListener(new MaskListener);
-			}
-			{
-				auto comp2 = new Composite(comp, SWT.NONE);
-				comp2.setLayout(new GridLayout(2, false));
-				comp2.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-				auto l = new Label(comp2, SWT.NONE);
-				l.setText(_prop.msgs.bgImageSettings);
-				_easy = new Combo(comp2, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-				_easy.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
-				_easy.add(_prop.msgs.bgImageSettingCustom);
-				_easy.add(_prop.msgs.bgImageSettingOriginal);
-				foreach (bs; _prop.var.etc.bgImageSettings) {
-					_easy.add(bs.name);
-				}
-				_easy.addSelectionListener(new SettingsListener);
-				_easy.select(0);
-			}
-			scope p = comp.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.widthHint = p.x;
-			gd.heightHint = p.y;
-			comp.setLayoutData(gd);
+		_comm.refFlagAndStep.add(&refFlags);
+		_comm.delFlagAndStep.add(&delFlags);
+		.listener(_flag, SWT.Dispose, {
+			_comm.refFlagAndStep.remove(&refFlags);
+			_comm.delFlagAndStep.remove(&delFlags);
+		});
+		return grp;
+	}
+
+	Composite createPositionPanel(Composite comp) {
+		auto grp = new Group(comp, SWT.NONE);
+		grp.setText(_prop.msgs.cardPosition);
+		grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
+		auto comp2 = new Composite(grp, SWT.NONE);
+		comp2.setLayout(new GridLayout(5, false));
+		Spinner createS(string name, int max, int min) {
+			auto comp3 = new Composite(comp2, SWT.NONE);
+			auto gl = new GridLayout(2, false);
+			gl.marginHeight = 0;
+			comp3.setLayout(gl);
+			auto l = new Label(comp3, SWT.NONE);
+			l.setText(name);
+			auto spn = new Spinner(comp3, SWT.BORDER);
+			mod(spn);
+			spn.setMaximum(max);
+			spn.setMinimum(min);
+			spn.setSelection(0);
+			return spn;
 		}
-		{
-			auto l = new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL);
-			l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		_x = createS(_prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax));
+		_y = createS(_prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax));
+		_w = createS(_prop.msgs.width, _prop.var.etc.backWidthMax, 0);
+		_h = createS(_prop.msgs.height, _prop.var.etc.backHeightMax, 0);
+		_mask = new Button(comp2, SWT.TOGGLE);
+		mod(_mask);
+		_mask.setImage(_prop.images.menu(MenuID.Mask));
+		_mask.setToolTipText(_prop.buildTool(MenuID.Mask));
+		_mask.addSelectionListener(new MaskListener);
+		return grp;
+	}
+	Composite createEasySettingsPanel(Composite comp) {
+		auto comp2 = new Composite(comp, SWT.NONE);
+		comp2.setLayout(new GridLayout(2, false));
+		auto l = new Label(comp2, SWT.NONE);
+		l.setText(_prop.msgs.bgImageSettings);
+		_easy = new Combo(comp2, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+		_easy.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+		_easy.add(_prop.msgs.bgImageSettingCustom);
+		if (cast(ImageCell) back) {
+			_easy.add(_prop.msgs.bgImageSettingOriginal);
 		}
-
+		foreach (bs; _prop.var.etc.bgImageSettings) {
+			_easy.add(bs.name);
+		}
+		_easy.addSelectionListener(new SettingsListener);
+		_easy.select(0);
+		return comp2;
+	}
+	void setFirstParams(Composite area) {
 		if (_flag) {
 			refreshFlags();
 		}
@@ -328,18 +265,16 @@ protected:
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		if (_back) {
-			_imgPath.image = _back.path;
-			_imgPath.mask = _back.mask;
+		if (back) {
 			if (_flag) {
 				_flag.select(0);
 				_selectedFlag = "";
-				if (_back.flag.length > 0) {
+				if (back.flag.length > 0) {
 					foreach (i, itm; _flag.getItems()) {
 						auto flag = cast(Flag) itm.getData();
 						if (!flag) continue;
 						string path = flag.path;
-						if (path == _back.flag) {
+						if (path == back.flag) {
 							_flag.select(i);
 							_selectedFlag = path;
 							break;
@@ -347,14 +282,12 @@ protected:
 					}
 				}
 			}
-			_x.setSelection(_back.x);
-			_y.setSelection(_back.y);
-			_w.setSelection(_back.width);
-			_h.setSelection(_back.height);
-			_mask.setSelection(_back.mask);
+			_x.setSelection(back.x);
+			_y.setSelection(back.y);
+			_w.setSelection(back.width);
+			_h.setSelection(back.height);
+			_mask.setSelection(back.mask);
 		} else {
-			_imgPath.image = "";
-			_imgPath.mask = false;
 			if (_flag) {
 				_flag.select(0);
 				_selectedFlag = "";
@@ -371,20 +304,269 @@ protected:
 		_h.addModifyListener(spnl);
 	}
 
-	override bool apply() {
-		if (_back) {
-			_back.path = _imgPath.image;
-			_back.flag = _selectedFlag;
-			_back.x = _x.getSelection();
-			_back.y = _y.getSelection();
-			_back.width = _w.getSelection();
-			_back.height = _h.getSelection();
-			_back.mask = _mask.getSelection();
-		} else {
-			_back = new ImageCell(_imgPath.image, _selectedFlag,
-				_x.getSelection(), _y.getSelection(), _w.getSelection(), _h.getSelection(),
-				_mask.getSelection());
+	void applyParams(BgImage back) {
+		back.flag = _selectedFlag;
+		back.x = _x.getSelection();
+		back.y = _y.getSelection();
+		back.width = _w.getSelection();
+		back.height = _h.getSelection();
+		back.mask = _mask.getSelection();
+	}
+
+	void updateMask() {
+		// 処理無し
+	}
+	void selectEasySetting() {
+		// 処理無し
+	}
+}
+
+/// イメージセルの設定を行う。
+class ImageCellDialog : BgImageDialog {
+private:
+	ImageCell _back;
+
+	ImageSelect!(MtType.BG_IMG) _imgPath;
+
+	void refreshWarning() {
+		warning = _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ ? _summ.legacy : false);
+	}
+
+	class SDListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			auto sash = cast(SplitPane) e.widget;
+			auto ws = sash.getWeights();
+			_prop.var.etc.backSashL = ws[0];
+			_prop.var.etc.backSashR = ws[1];
 		}
+	}
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, ImageCell back, bool create) {
+		_back = back;
+		DSize size;
+		if (_summ) {
+			size = prop.var.areaBackgroundDlg;
+		} else {
+			size = prop.var.areaBackgroundNFDlg;
+		}
+		super(comm, shell, _back ? prop.msgs.dlgTitBgImage : prop.msgs.dlgTitNewBgImage,
+			prop.images.backs, true, size, create);
+	}
+
+	@property
+	override
+	BgImage back() {
+		return _back;
+	}
+protected:
+	override void setup(Composite area) {
+		area.setLayout(zeroGridLayout(1));
+		auto skin = _comm.skin;
+		{
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayout(new GridLayout(1, false));
+			void imgs(Composite parent) {
+				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, SWT.NONE, _comm, _prop, _summ,
+					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, false, false,
+					() => "", &selectEasySetting);
+				mod(_imgPath);
+				_imgPath.modEvent ~= &refreshWarning;
+			}
+			if (_summ) {
+				auto sash = new SplitPane(comp, SWT.HORIZONTAL);
+				sash.setLayoutData(new GridData(GridData.FILL_BOTH));
+				{
+					imgs(sash);
+				}
+				createFlagPanel(sash);
+				sash.setWeights([_prop.var.etc.backSashL, _prop.var.etc.backSashR]);
+				sash.addDisposeListener(new SDListener);
+			} else {
+				// フラグ無し
+				imgs(comp);
+				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
+			}
+			auto posPanel = createPositionPanel(comp);
+			posPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			auto easyPanel = createEasySettingsPanel(comp);
+			easyPanel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+			scope p = comp.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.widthHint = p.x;
+			gd.heightHint = p.y;
+			comp.setLayoutData(gd);
+		}
+		{
+			auto l = new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL);
+			l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		}
+
+		setFirstParams(area);
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_back) {
+			_imgPath.image = _back.path;
+			_imgPath.mask = _back.mask;
+		} else {
+			_imgPath.image = "";
+			_imgPath.mask = false;
+		}
+	}
+
+	override void updateMask() {
+		_imgPath.mask = _mask.getSelection();
+	}
+	override void selectEasySetting() {
+		if (!_selected || _easy.getSelectionIndex() == 1) {
+			string file = _imgPath.filePath;
+			if (file.length > 0) {
+				try {
+					uint x, y;
+					dwtImageSize(_comm.skin, file, x, y);
+					_w.setSelection(x);
+					_h.setSelection(y);
+					_selected = true;
+					_comm.refreshToolBar();
+				} catch (Exception e) {
+					debugln(e);
+				}
+			}
+		}
+	}
+
+	override bool apply() {
+		if (!_back) {
+			_back = new ImageCell;
+		}
+		_back.path = _imgPath.image;
+		applyParams(_back);
+		return true;
+	}
+}
+
+/// テキストセルの設定を行う。
+class TextCellDialog : BgImageDialog {
+private:
+	TextCell _back;
+
+	Text _text;
+	Button _fontName;
+	Spinner _size;
+	Button _color;
+	Button _bold;
+	Button _italic;
+	Button _underline;
+	Button _strike;
+	Button _vertical;
+	Combo _borderingType;
+	Button _borderingColor;
+	Spinner _borderingWidth;
+
+	void refreshWarning() {
+		warning = [_prop.msgs.warningTextCell];
+	}
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, TextCell back, bool create) {
+		_back = back;
+		DSize size;
+		if (_summ) {
+			size = prop.var.areaTextCellDlg;
+		} else {
+			size = prop.var.areaTextCellNFDlg;
+		}
+		super(comm, shell, _back ? prop.msgs.dlgTitTextCell : prop.msgs.dlgTitNewTextCell,
+			prop.images.textCell, true, size, create);
+	}
+
+	@property
+	override
+	BgImage back() {
+		return _back;
+	}
+protected:
+	override void setup(Composite area) {
+		area.setLayout(zeroGridLayout(1));
+		auto skin = _comm.skin;
+		// TODO
+
+		setFirstParams(area);
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_back) {
+			// TODO
+		} else {
+			// TODO
+		}
+		refreshWarning();
+	}
+
+	override bool apply() {
+		if (!_back) {
+			_back = new TextCell;
+		}
+		// TODO
+		applyParams(_back);
+		return true;
+	}
+}
+
+/// カラーセルの設定を行う。
+class ColorCellDialog : BgImageDialog {
+private:
+	ColorCell _back;
+
+	Button[BlendMode] _blendMode;
+	Button[GradientDir] _gradientDir;
+	Button _color1;
+	Button _color2;
+
+	void refreshWarning() {
+		warning = [_prop.msgs.warningColorCell];
+	}
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, ColorCell back, bool create) {
+		_back = back;
+		DSize size;
+		if (_summ) {
+			size = prop.var.areaColorCellDlg;
+		} else {
+			size = prop.var.areaColorCellNFDlg;
+		}
+		super(comm, shell, _back ? prop.msgs.dlgTitColorCell : prop.msgs.dlgTitNewColorCell,
+			prop.images.colorCell, true, size, create);
+	}
+
+	@property
+	override
+	BgImage back() {
+		return _back;
+	}
+protected:
+	override void setup(Composite area) {
+		area.setLayout(zeroGridLayout(1));
+		auto skin = _comm.skin;
+		// TODO
+
+		setFirstParams(area);
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_back) {
+			// TODO
+		} else {
+			// TODO
+		}
+		refreshWarning();
+	}
+
+	override bool apply() {
+		if (!_back) {
+			_back = new ColorCell;
+		}
+		// TODO
+		applyParams(_back);
 		return true;
 	}
 }

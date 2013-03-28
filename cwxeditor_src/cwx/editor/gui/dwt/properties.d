@@ -184,6 +184,10 @@ public class FlexProps {
 	DialogParam!("menuCardDialog", SWT.DEFAULT, SWT.DEFAULT, 2012101100) menuCardDlg;
 	DialogParam!("areaBackgroundDialog") areaBackgroundDlg;
 	DialogParam!("areaBackgroundNFDialog") areaBackgroundNFDlg;
+	DialogParam!("areaTextCellDialog") areaTextCellDlg;
+	DialogParam!("areaTextCellNFDialog") areaTextCellNFDlg;
+	DialogParam!("areaColorCellDialog") areaColorCellDlg;
+	DialogParam!("areaColorCellNFDialog") areaColorCellNFDlg;
 	DialogParam!("enemyCardDialog") enemyCardDlg;
 	DialogParam!("castCardDialog", SWT.DEFAULT, SWT.DEFAULT, 2012101100) castCardDlg;
 	DialogParam!("skillCardDialog", SWT.DEFAULT, SWT.DEFAULT, 2012101100) skillCardDlg;

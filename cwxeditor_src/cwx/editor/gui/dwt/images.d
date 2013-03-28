@@ -6,6 +6,7 @@ import cwx.props;
 import cwx.structs;
 import cwx.types;
 import cwx.graphics;
+import cwx.jpy;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -16,6 +17,7 @@ import std.math;
 import std.file;
 import std.path;
 import std.conv;
+import std.string;
 
 import org.eclipse.swt.all;
 
@@ -587,8 +589,72 @@ public:
 		return bmpData;
 	}
 	private ImageData createTextImageData() {
-		// TODO TextCell
-		return null;
+		// BorderingType.Inlineの場合のみ、予め画像を生成する
+		// (アンチエイリアスがかからないため可能)
+		if (borderingType !is BorderingType.Inline) return null;
+		auto cur = Display.getCurrent();
+
+		// 文字色でも縁取り色でもない色
+		auto back = CRGB(255, 255, 255, 255);
+		while (textColor == back || borderingColor == back) {
+			back.r--;
+		}
+
+		int w, h;
+		if (vertical) {
+			w = height;
+			h = width;
+		} else {
+			w = width;
+			h = height;
+		}
+
+		int alpha;
+		auto backRgb = dwtData(back, alpha);
+		auto textRgb = dwtData(textColor, alpha);
+
+		auto img = new Image(cur, w, h);
+		scope (exit) img.dispose();
+		auto gc = new GC(img);
+		scope (exit) gc.dispose();
+		auto font = new Font(cur, titFont);
+		scope (exit) font.dispose();
+		auto backColor = new Color(cur, backRgb);
+		scope (exit) backColor.dispose();
+		auto textColor = new Color(cur, textRgb);
+		scope (exit) textColor.dispose();
+
+		gc.setBackground(backColor);
+		gc.fillRectangle(0, 0, w, h);
+		auto tPixel = img.getImageData().getPixel(0, 0);
+
+		gc.setFont(font);
+		gc.setForeground(textColor);
+		gc.setTextAntialias(SWT.NONE);
+
+		drawTextImpl(gc, .splitLines(_title), 0, 0);
+
+		auto imgData = img.getImageData();
+		FC tColor;
+		tColor.r = cast(ubyte) textRgb.red;
+		tColor.g = cast(ubyte) textRgb.green;
+		tColor.b = cast(ubyte) textRgb.blue;
+		FC bColor;
+		bColor.r = cast(ubyte) borderingColor.r;
+		bColor.g = cast(ubyte) borderingColor.g;
+		bColor.b = cast(ubyte) borderingColor.b;
+		imgData.data = cast(byte[]) bordering(cast(ubyte[]) imgData.data,
+			cast(ubyte[]) imgData.alphaData, imgData.depth, imgData.width,
+			imgData.height, imgData.bytesPerLine, tColor, bColor, borderingWidth);
+
+		if (vertical) {
+			turnImpl(imgData, Turn.LEFT);
+		}
+
+		imgData.transparentPixel = tPixel;
+		imgData.alpha = alpha;
+
+		return imgData;
 	}
 	private ImageData createFilterImageData() {
 		// カラーフィルタは常に画像無し
@@ -610,19 +676,142 @@ public:
 			gc.drawImage(_img, x, y);
 			break;
 		case ImageType.Text:
-			drawText(buf, gc, range);
+			if (_img) {
+				int olda = gc.getAlpha();
+				gc.setAlpha(alpha);
+				scope (exit) gc.setAlpha(olda);
+				gc.drawImage(_img, x, y);
+			} else {
+				drawText(buf, gc, range);
+			}
 			break;
 		case ImageType.ColorFilter:
 			drawFilter(buf, gc, range);
 			break;
 		}
 	}
+	private void drawTextImpl(GC gc, in string[] lines, int xm, int ym) {
+		int x = xm;
+		int y = ym;
+		auto mt = gc.getFontMetrics();
+		int height = mt.getHeight();
+		gc.setLineWidth(.max(1, height / 15));
+		foreach (line; lines) {
+			gc.drawText(line, x, y, true);
+			if (underline || strike) {
+				auto ts = gc.textExtent(line);
+				if (underline) {
+					int uy = y + height;
+					gc.drawLine(0, uy, ts.x, uy);
+				}
+				if (strike) {
+					int sy = y + height / 2;
+					gc.drawLine(0, sy, ts.x, sy);
+				}
+			}
+			y += height;
+		}
+	}
+	private void turnImpl(ImageData imgData, Turn turn) {
+		auto data = cast(ubyte[]) imgData.data;
+		auto alphaData = cast(ubyte[]) imgData.alphaData;
+		size_t iWidth = imgData.width;
+		size_t iHeight = imgData.height;
+		size_t bytesPerLine = imgData.bytesPerLine;
+		.turn(data, alphaData, iWidth, iHeight, bytesPerLine, turn, imgData.depth);
+		imgData.data = cast(byte[]) data;
+		imgData.alphaData = cast(byte[]) alphaData;
+		imgData.width = iWidth;
+		imgData.height = iHeight;
+		imgData.bytesPerLine = bytesPerLine;
+	}
+	// BorderingType.Inline以外のテキストの描画を行う。
 	private void drawText(ref Image buf, ref GC gc, Rectangle range) {
-		// TODO TextCell
+		auto cur = Display.getCurrent();
+		auto img2 = new Image(cur, width, height);
+		auto gc2 = new GC(img2);
+		// 描画対象領域をコピーして下地にする
+		int sx = x;
+		int sy = y;
+		int sw = width;
+		int sh = height;
+		int dx = 0;
+		int dy = 0;
+		if (sx < range.x) {
+			dx = range.x - sx;
+			sw -= dx;
+			sx = range.x;
+		}
+		if (sy < range.y) {
+			dy = range.y - sy;
+			sh -= dy;
+			sy = range.y;
+		}
+		if (range.x + range.width < sx + sw) {
+			sw -= (sx + sw) - (range.x + range.width);
+		}
+		if (range.y + range.height < sy + sh) {
+			sh -= (sy + sh) - (range.y + range.height);
+		}
+		gc2.drawImage(buf, sx, sy, sw, sh, dx, dy, sw, sh);
+		gc2.dispose();
+		auto imgData = img2.getImageData();
+		img2.dispose();
+
+		if (vertical) {
+			turnImpl(imgData, Turn.RIGHT);
+		}
+
+		int alpha;
+		auto borderRgb = dwtData(borderingColor, alpha);
+		auto textRgb = dwtData(textColor, alpha);
+
+		img2 = new Image(cur, imgData);
+		scope (exit) img2.dispose();
+		gc2 = new GC(img2);
+		scope (exit) gc2.dispose();
+		auto font = new Font(cur, titFont);
+		scope (exit) font.dispose();
+		auto borderColor = new Color(cur, borderRgb);
+		scope (exit) borderColor.dispose();
+		auto textColor = new Color(cur, textRgb);
+		scope (exit) textColor.dispose();
+
+		gc2.setFont(font);
+
+		auto lines = .splitLines(_title);
+
+		if (borderingType is BorderingType.Outline) {
+			// 縁取り色で描画
+			gc2.setForeground(borderColor);
+			drawTextImpl(gc2, lines, -1, -1);
+			drawTextImpl(gc2, lines,  0, -1);
+			drawTextImpl(gc2, lines,  1, -1);
+			drawTextImpl(gc2, lines, -1,  0);
+			drawTextImpl(gc2, lines,  1,  0);
+			drawTextImpl(gc2, lines, -1,  1);
+			drawTextImpl(gc2, lines,  0,  1);
+			drawTextImpl(gc2, lines,  1,  1);
+		}
+
+		// テキスト本体を描画
+		gc2.setForeground(textColor);
+		drawTextImpl(gc2, lines,  0,  0);
+
+		if (vertical) {
+			imgData = img2.getImageData();
+			img2.dispose();
+			turnImpl(imgData, Turn.LEFT);
+			img2 = new Image(cur, imgData);
+		}
+
+		// 元のバッファへ描き戻す
+		gc.drawImage(img2, 0, 0, width, height, x, y, width, height);
 	}
 	private static ubyte roundColor(T)(T c) {
 		return cast(ubyte) .max(0, .min(255, c));
 	}
+	/// カラーフィルタの描画を行う。
 	private void drawFilter(ref Image buf, ref GC gc, Rectangle range) {
 		auto iRect = rect.intersection(range);
 		auto bMode = this.blendMode;
