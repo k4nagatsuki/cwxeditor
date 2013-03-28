@@ -180,12 +180,12 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, BgImage back) {
+	this (Commons comm, Props prop, Shell shell, Summary summ, BgImage back, bool create) {
 		_comm = comm;
 		_summ = summ;
 		_back = back;
 		_prop = prop;
-		_selected = back !is null;
+		_selected = !create;
 		DSize size;
 		if (_summ) {
 			size = _prop.var.areaBackgroundDlg;

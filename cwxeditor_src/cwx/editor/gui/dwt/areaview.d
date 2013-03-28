@@ -2638,7 +2638,7 @@ public:
 		}
 		void createBackground() {
 			auto b = new BgImage("", "", 0, 0, 0, 0, false);
-			auto dlg = new BgImageDialog(_comm, _prop, getShell(), _summ, b);
+			auto dlg = new BgImageDialog(_comm, _prop, getShell(), _summ, b, true);
 			dlg.appliedEvent ~= {
 				auto b = dlg.back;
 				int index = insertIndex(_backs);
@@ -2678,7 +2678,7 @@ public:
 				}
 			}
 			UndoEdit undo = null;
-			auto dlg = new BgImageDialog(_comm, _prop, getShell(), _summ, back);
+			auto dlg = new BgImageDialog(_comm, _prop, getShell(), _summ, back, false);
 			dlg.applyEvent ~= {
 				undo = new UndoEdit(this, _comm, _area, _summ, [], [cCountUntil!("a is b")(_area.backs, back)]);
 			};
