@@ -315,10 +315,6 @@ protected:
 			gd.heightHint = p.y;
 			comp.setLayoutData(gd);
 		}
-		{
-			auto l = new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL);
-			l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		}
 
 		if (_flag) {
 			refreshFlags();
