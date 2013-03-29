@@ -364,7 +364,7 @@ public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, ImageCell back, bool create) {
 		_back = back;
 		DSize size;
-		if (_summ) {
+		if (summ) {
 			size = prop.var.areaBackgroundDlg;
 		} else {
 			size = prop.var.areaBackgroundNFDlg;
@@ -525,7 +525,7 @@ public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, TextCell back, bool create) {
 		_back = back;
 		DSize size;
-		if (_summ) {
+		if (summ) {
 			size = prop.var.areaTextCellDlg;
 		} else {
 			size = prop.var.areaTextCellNFDlg;
@@ -853,7 +853,7 @@ public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, ColorCell back, bool create) {
 		_back = back;
 		DSize size;
-		if (_summ) {
+		if (summ) {
 			size = prop.var.areaColorCellDlg;
 		} else {
 			size = prop.var.areaColorCellNFDlg;
