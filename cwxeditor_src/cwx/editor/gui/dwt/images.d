@@ -104,6 +104,7 @@ private:
 	int _maskR = 0, _maskG = 0, _maskB = 0, _maskA = 0;
 
 	// ImageType.Text用。_titleとtitFontを流用。
+	int _fontPixelSize = 0;
 	CRGB _textColor = CRGB(0, 0, 0, 255);
 	bool _underline = false;
 	bool _strike = false;
@@ -172,6 +173,22 @@ public:
 		rect = new Rectangle(x, y, baseW, baseH);
 		initW = baseW;
 		initH = baseH;
+	}
+
+	/// テキスト表示用のインスタンスを生成する。
+	this (string text, string fontName, int size, CRGB color,
+			bool bold, bool italic, bool underline, bool strike, bool vertical,
+			BorderingType borderingType, CRGB borderingColor, uint borderingWidth,
+			int x, int y, int baseW, int baseH) {
+		this (ImageType.Text, x, y, baseW, baseH);
+
+		setTitle(text, fontName, size, bold, italic, vertical);
+		this.textColor = color;
+		this.underline = underline;
+		this.strike = strike;
+		this.borderingType = borderingType;
+		this.borderingColor = borderingColor;
+		this.borderingWidth = borderingWidth;
 	}
 
 	/// Returns: ベースとなる幅。
@@ -286,6 +303,23 @@ public:
 		this.titFont = font;
 		this.titPoint = titPoint;
 	}
+	void setTitle(string title, string fontName, int size, bool bold, bool italic, bool vertical) {
+		this.vertical = vertical;
+		int style = SWT.NORMAL;
+		if (bold) style |= SWT.BOLD;
+		if (italic) style |= SWT.ITALIC;
+		auto d = Display.getCurrent();
+		auto h = cast(int) (size * (72.0 / d.getDPI().y) + 0.5);
+		if (vertical && !fontName.startsWith("@")) {
+			auto fontName2 = "@" ~ fontName;
+			if (d.getFontList(fontName2, true) || d.getFontList(fontName2, false)) {
+				fontName = fontName2;
+			}
+		}
+		_fontPixelSize = size;
+		auto font = new FontData(fontName, h, style);
+		setTitle(title, font, new Point(0, 0));
+	}
 	@property
 	void title(string title) {
 		assert (titFont !is null);
@@ -297,6 +331,13 @@ public:
 	string title() {
 		return this._title;
 	}
+	@property
+	FontData font() {
+		return titFont;
+	}
+	@property
+	const
+	int fontPixelSize() { return _fontPixelSize; }
 
 	/// 全体に指定された色のフィルタをかける。
 	void colorMask(int r, int g, int b, int a) {
@@ -975,9 +1016,9 @@ public:
 					case BlendMode.Multiply:
 						if (tfc.a != 255) {
 							// アルファブレンド
-							tfc.r = roundColor(((tfc.r * tfc.a) + (255 * (255 - tfc.a))) >>> 8);
-							tfc.g = roundColor(((tfc.g * tfc.a) + (255 * (255 - tfc.a))) >>> 8);
-							tfc.b = roundColor(((tfc.b * tfc.a) + (255 * (255 - tfc.a))) >>> 8);
+							tfc.r = roundColor(((tfc.r * tfc.a) + (((1 << 8) - tfc.a) << 8)) >>> 8);
+							tfc.g = roundColor(((tfc.g * tfc.a) + (((1 << 8) - tfc.a) << 8)) >>> 8);
+							tfc.b = roundColor(((tfc.b * tfc.a) + (((1 << 8) - tfc.a) << 8)) >>> 8);
 						}
 						fc.r = roundColor(fc.r * tfc.r >>> 8);
 						fc.g = roundColor(fc.g * tfc.g >>> 8);
@@ -1170,20 +1211,13 @@ public:
 	}
 
 	/// テキスト表示用のインスタンスを生成する。
-	this (string text, FontData font, CRGB color,
-			bool underline, bool strike, bool vertical,
+	this (string text, string fontName, int size, CRGB color,
+			bool bold, bool italic, bool underline, bool strike, bool vertical,
 			BorderingType borderingType, CRGB borderingColor, uint borderingWidth,
 			int x, int y, int baseW, int baseH) {
-		super (ImageType.Text, x, y, baseW, baseH);
+		super (text, fontName, size, color, bold, italic, underline, strike, vertical,
+			borderingType, borderingColor, borderingWidth, x, y, baseW, baseH);
 		newR = new Rectangle(x, y, baseW, baseH);
-		setTitle(text, font, new Point(0, 0));
-		this.textColor = color;
-		this.underline = underline;
-		this.strike = strike;
-		this.vertical = vertical;
-		this.borderingType = borderingType;
-		this.borderingColor = borderingColor;
-		this.borderingWidth = borderingWidth;
 	}
 	/// カラーフィルタ用のインスタンスを生成する。
 	this (BlendMode blendMode, GradientDir gradientDir, CRGB color1, CRGB color2,

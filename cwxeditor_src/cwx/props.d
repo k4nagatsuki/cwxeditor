@@ -162,12 +162,12 @@ public:
 	@property const CPoint castLifeBarPoint() {return CPoint(8, 110);}
 	@property const int statusX() {return 7;}
 	@property const uint statusVerMax() {return 6;}
-	@property const CFont beastNumFont(bool legacy){return CFont(pgothic(legacy), 9, false, false);}
+	@property const CFont beastNumFont(bool legacy) {return CFont(pgothic(legacy), 9, false, false);}
 
-	const CFont menuCardNameFont(bool legacy){return castCardNameFont(legacy);}
-	const CFont cardNameFont(bool legacy){return castCardNameFont(legacy);}
-	const CFont useCountFont(bool legacy){return CFont(mincho(legacy), 12, true, false);}
-	@property const CPoint useCountPoint(){return CPoint(10, 90);}
+	const CFont menuCardNameFont(bool legacy) {return castCardNameFont(legacy);}
+	const CFont cardNameFont(bool legacy) {return castCardNameFont(legacy);}
+	const CFont useCountFont(bool legacy) {return CFont(mincho(legacy), 12, true, false);}
+	@property const CPoint useCountPoint() {return CPoint(10, 90);}
 	@property const CRGB recycleNumColor() {return CRGB(255, 255, 0);}
 	const CFont summaryLevelFont(bool legacy) {return CFont(mincho(legacy), 10, true, true);}
 	const CFont summaryTitleFont(bool legacy) {return CFont(mincho(legacy), 16, true, false);}

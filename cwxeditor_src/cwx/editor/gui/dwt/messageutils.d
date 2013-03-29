@@ -1534,6 +1534,7 @@ class MsgPreviewWindow {
 	}
 }
 
+// TODO: テキストセルなどに対応するためテーブル部分を切り出す
 class MsgPreview : Composite {
 	private static class FlagData {
 		Flag flag;

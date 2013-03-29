@@ -139,7 +139,7 @@ public class TextCell : BgImage, ISimpleTextHolder {
 private:
 	SimpleTextHolder _text = null;
 	string _fontName = "";
-	uint _size = 1;
+	uint _size = 18;
 	CRGB _color = CRGB(0, 0, 0, 255);
 	bool _bold = false;
 	bool _italic = false;
@@ -384,7 +384,7 @@ public:
 		font.newAttr("italic", italic);
 		font.newAttr("underline", underline);
 		font.newAttr("strike", strike);
-		e.newElement("vertical", vertical);
+		e.newElement("Vertical", vertical);
 		auto clr = e.newElement("Color");
 		clr.newAttr("r", color.r);
 		clr.newAttr("g", color.g);
@@ -838,7 +838,7 @@ public:
 			return TextCell.createFromNode(node, ver);
 		} else if (node.name == ColorCell.XML_NAME) {
 			return ColorCell.createFromNode(node, ver);
-		} else assert (0);
+		} else assert (0, node.name);
 	}
 
 	private BgImageOwner _owner;
@@ -970,7 +970,10 @@ public:
 			scope doc = XNode.parse(xml);
 			if (doc.name == "MenuCardsAndBgImages") {
 				doc.onTag[BgImage.XML_NAME_M] = (ref XNode node) {
-					backs ~= BgImage.createFromNode(node, LATEST_VERSION);
+					node.onTag[null] = (ref XNode node) {
+						backs ~= BgImage.createFromNode(node, LATEST_VERSION);
+					};
+					node.parse();
 				};
 				doc.parse();
 				return true;

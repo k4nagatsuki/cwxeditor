@@ -423,6 +423,29 @@ class Msgs : Properties {
 	auto roundIs = Msg("roundIs", "バトルが");
 	auto roundCmpIs = Msg("roundCmpIs", "ラウンド");
 
+	const string blendModeName(BlendMode id) {
+		mixin(EnumToStringSwitch!(BlendMode, "blendModeName"));
+	}
+	auto blendModeNameNormal = Msg("blendModeNameNormal", "通常");
+	auto blendModeNameMask = Msg("blendModeNameMask", "マスク");
+	auto blendModeNameAdd = Msg("blendModeNameAdd", "加算");
+	auto blendModeNameSubtract = Msg("blendModeNameSubtract", "減算");
+	auto blendModeNameMultiply = Msg("blendModeNameMultiply", "乗算");
+
+	const string gradientDirName(GradientDir id) {
+		mixin(EnumToStringSwitch!(GradientDir, "gradientDirName"));
+	}
+	auto gradientDirNameNone = Msg("gradientDirNameNone", "グラデーション無し");
+	auto gradientDirNameLeftToRight = Msg("gradientDirNameLeftToRight", "左から右へ");
+	auto gradientDirNameTopToBottom = Msg("gradientDirNameTopToBottom", "上から下へ");
+
+	const string borderingTypeName(BorderingType id) {
+		mixin(EnumToStringSwitch!(BorderingType, "borderingTypeName"));
+	}
+	auto borderingTypeNameNone = Msg("borderingTypeNameNone", "縁取り無し");
+	auto borderingTypeNameOutline = Msg("borderingTypeNameOutline", "形式1");
+	auto borderingTypeNameInline = Msg("borderingTypeNameInline", "形式2");
+
 	/// イベント。
 	auto evtArrow = Msg("evtArrow", "イベント編集");
 
@@ -851,6 +874,26 @@ class Msgs : Properties {
 	auto dlgTitNewColorCell = Msg("dlgTitNewColorCell", "カラーセルの作成");
 	auto dlgTitEnemyCard = Msg("dlgTitEnemyCard", "エネミーカードの設定 [ %1$s ]");
 	auto dlgTitNewEnemyCard = Msg("dlgTitNewEnemyCard", "エネミーカードの作成");
+	auto alphaChannel = Msg("alphaChannel", "不透明度:");
+	auto blendMode = Msg("blendMode", "合成方法");
+	auto colorCellBaseColor = Msg("colorCellBaseColor", "基本色");
+	auto gradient = Msg("gradient", "グラデーション");
+	auto direction = Msg("direction", "方向:");
+	auto endColor = Msg("endColor", "終端色");
+	auto text = Msg("text", "テキスト");
+	auto font = Msg("font", "フォント");
+	auto size = Msg("size", "サイズ:");
+	auto pixel = Msg("pixel", "ピクセル");
+	auto fontColor = Msg("fontColor", "テキスト色");
+	auto fontStyle = Msg("fontStyle", "書式");
+	auto bold = Msg("bold", "太字");
+	auto italic = Msg("italic", "斜体");
+	auto underline = Msg("underline", "下線");
+	auto strike = Msg("strike", "取り消し線");
+	auto vertical = Msg("vertical", "縦書き");
+	auto bordering = Msg("bordering", "縁取り");
+	auto borderingWidth = Msg("borderingWidth", "幅:");
+	auto borderingColor = Msg("borderingColor", "縁取り色");
 
 	/// イベントビュー。
 	auto tools = Msg("tools", "イベントコンテント");
@@ -1625,6 +1668,9 @@ class Msgs : Properties {
 	auto scriptErrorInvalidComparison4 = Msg("scriptErrorInvalidComparison4", "未知の比較条件です。");
 	auto scriptErrorInvalidComparison3 = Msg("scriptErrorInvalidComparison3", "未知の比較条件です。");
 	auto scriptErrorInvalidBgImage = Msg("scriptErrorInvalidBgImage", "背景画像が正しくありません。");
+	auto scriptErrorInvalidColor = Msg("scriptErrorInvalidColor", "色が正しくありません。");
+	auto scriptErrorInvalidBlendMode = Msg("scriptErrorInvalidBlendMode", "未知の合成方式です。");
+	auto scriptErrorInvalidGradientDir = Msg("scriptErrorInvalidGradientDir", "未知のグラデーション方向です。");
 	auto scriptErrorInvalidDialog = Msg("scriptErrorInvalidDialog", "台詞が正しくありません。");
 	auto scriptErrorInvalidTalker = Msg("scriptErrorInvalidTalker", "話者が正しくありません。");
 	auto scriptErrorInvalidCoupon = Msg("scriptErrorInvalidCoupon", "評価条件が正しくありません。");

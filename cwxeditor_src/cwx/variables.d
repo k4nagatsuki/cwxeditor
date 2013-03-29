@@ -67,6 +67,14 @@ class FlexEtcProps : Properties {
 	auto backSashR = Prop!(int)("backSashR", 3);
 	auto bgImageSampleWidth = Prop!(int, true)("bgImageSampleWidth", 150);
 	auto bgImageSampleHeight = Prop!(int, true)("bgImageSampleHeight", 150);
+	auto textCellVSashT = Prop!(int)("textCellVSashT", 2);
+	auto textCellVSashB = Prop!(int)("textCellVSashB", 1);
+	auto textCellHSashL = Prop!(int)("textCellHSashL", 2);
+	auto textCellHSashR = Prop!(int)("textCellHSashR", 1);
+	auto textCellPreviewWidth = Prop!(int, true)("textCellPreviewWidth", 100);
+	auto textCellPreviewHeight = Prop!(int, true)("textCellPreviewHeight", 100);
+	auto textCellBoxWidth = Prop!(int, true)("textCellBoxWidth", 100);
+	auto textCellBoxHeight = Prop!(int, true)("textCellBoxHeight", 50);
 	auto cardIdColumn = Prop!(int)("cardIdColumn", 50);
 	auto cardNameColumn = Prop!(int)("cardNameColumn", 100);
 	auto cardDescriptionColumn = Prop!(int)("cardDescriptionColumn", 280);
@@ -158,6 +166,19 @@ class FlexEtcProps : Properties {
 	auto penaltyColorHigh = Prop!(CRGB, true)("penaltyColorHigh", CRGB(0, 0, 85));
 	auto penaltyColorMiddle = Prop!(CRGB, true)("penaltyColorMiddle", CRGB(0, 0, 160));
 	auto penaltyColorLow = Prop!(CRGB, true)("penaltyColorLow", CRGB(0, 0, 187));
+	auto textCellDefaultWidth = Prop!(int, true)("textCellDefaultWidth", 100);
+	auto textCellDefaultHeight = Prop!(int, true)("textCellDefaultHeight", 100);
+	auto textCellDefaultFontClassic = Prop!(string, true)("textCellDefaultFontClassic", "ＭＳ ゴシック");
+	auto textCellDefaultFont = Prop!(string, true)("textCellDefaultFont", "IPA ゴシック");
+	auto textCellDefaultFontSize = Prop!(int, true)("textCellDefaultFontSize", 18);
+	auto textCellDefaultColor = Prop!(CRGB, true)("textCellDefaultColor", CRGB(0, 0, 0, 255));
+	auto textCellDefaultBorderingColor = Prop!(CRGB, true)("textCellDefaultBorderingColor", CRGB(255, 255, 255, 255));
+	auto fontSizeMax = Prop!(uint, true)("fontSizeMax", 999);
+	auto borderingWidthMax = Prop!(uint, true)("borderingWidthMax", 99);
+	auto colorCellDefaultWidth = Prop!(int, true)("colorCellDefaultWidth", 100);
+	auto colorCellDefaultHeight = Prop!(int, true)("colorCellDefaultHeight", 100);
+	auto colorCellDefaultColor1 = Prop!(CRGB, true)("colorCellDefaultColor1", CRGB(255, 255, 255, 255));
+	auto colorCellDefaultColor2 = Prop!(CRGB, true)("colorCellDefaultColor2", CRGB(0, 0, 0, 255));
 
 	auto noFileName = Prop!(string, true)("noFileName", "_");
 

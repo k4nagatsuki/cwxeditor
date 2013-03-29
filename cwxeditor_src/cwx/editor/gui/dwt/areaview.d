@@ -791,10 +791,12 @@ private:
 		void setMask() {
 			_undo ~= createUndoEdit();
 			foreach (back, i; _editB) {
-				back.mask = _maskTMenu.getSelection();
-				_imgp.images[i].transparent = back.mask;
-				_imgp.images[i].createImage();
-				_comm.refBgImage.call(back.cwxPath(true));
+				if (cast(ImageCell) back) {
+					back.mask = _maskTMenu.getSelection();
+					_imgp.images[i].transparent = back.mask;
+					_imgp.images[i].createImage();
+					_comm.refBgImage.call(back.cwxPath(true));
+				}
 			}
 			_imgp.redraw();
 			callModEvent();
@@ -1392,7 +1394,14 @@ private:
 			_ySpn.setEnabled(_xSpn.getEnabled());
 			_wSpn.setEnabled(_editB.length > 0);
 			_hSpn.setEnabled(_wSpn.getEnabled());
-			_maskTMenu.setEnabled(_wSpn.getEnabled());
+			bool maskEnabled = false;
+			foreach (back; _editB.keys) {
+				if (cast(ImageCell) back) {
+					maskEnabled = true;
+					break;
+				}
+			}
+			_maskTMenu.setEnabled(maskEnabled);
 			_scaleSpn.setEnabled(_editC.length > 0);
 			if (_editC.length == 1) {
 				auto card = _editC.keys[0];
@@ -1464,7 +1473,14 @@ private:
 			_ySpn.setEnabled (enbl);
 			_wSpn.setEnabled (enbl);
 			_hSpn.setEnabled (enbl);
-			_maskTMenu.setEnabled(enbl);
+			bool maskEnabled = false;
+			foreach (back; _editB.keys) {
+				if (cast(ImageCell) back) {
+					maskEnabled = true;
+					break;
+				}
+			}
+			_maskTMenu.setEnabled(maskEnabled);
 			if (_editB.length == 1) {
 				auto back = _editB.keys[0];
 				_xSpn.setSelection(back.x);
@@ -2681,18 +2697,16 @@ public:
 				break;
 			case ImageType.Text:
 				auto tc = new TextCell;
-				tc.width = 100;
-				tc.height = 100;
-				// TODO TextCell
-				return;
+				tc.width = _prop.var.etc.textCellDefaultWidth;
+				tc.height = _prop.var.etc.textCellDefaultHeight;
+				dlg = new TextCellDialog(_comm, _prop, getShell(), _summ, tc, true);
 				b = tc;
 				break;
 			case ImageType.ColorFilter:
 				auto cc = new ColorCell;
-				cc.width = 100;
-				cc.height = 100;
-				// TODO ColorCell
-				return;
+				cc.width = _prop.var.etc.colorCellDefaultWidth;
+				cc.height = _prop.var.etc.colorCellDefaultHeight;
+				dlg = new ColorCellDialog(_comm, _prop, getShell(), _summ, cc, true);
 				b = cc;
 				break;
 			}
@@ -2742,13 +2756,11 @@ public:
 			}
 			auto tc = cast(TextCell) back;
 			if (tc) {
-				// TODO TextCell
-				return;
+				dlg = new TextCellDialog(_comm, _prop, getShell(), _summ, tc, false);
 			}
 			auto cc = cast(ColorCell) back;
 			if (cc) {
-				// TODO ColorCell
-				return;
+				dlg = new ColorCellDialog(_comm, _prop, getShell(), _summ, cc, false);
 			}
 			dlg.applyEvent ~= {
 				undo = new UndoEdit(this, _comm, _area, _summ, [], [cCountUntil!("a is b")(_area.backs, back)]);
@@ -3386,21 +3398,8 @@ public:
 				(skin, path, back.x, back.y, back.width, back.height, back.mask);
 		}
 		private FlexImage create(TextCell back) {
-			int style = SWT.NORMAL;
-			if (back.bold) style |= SWT.BOLD;
-			if (back.italic) style |= SWT.ITALIC;
-			auto d = Display.getCurrent();
-			auto h = cast(int) (back.size * (72.0 / d.getDPI().y) + 0.5);
-			string fontName = back.fontName;
-			if (back.vertical) {
-				auto fontName2 = "@" ~ fontName;
-				if (d.getFontList(fontName2, true) || d.getFontList(fontName2, false)) {
-					fontName = fontName2;
-				}
-			}
-			auto font = new FontData(fontName, h, style);
-			auto r = new FlexImage(back.text, font, back.color,
-				back.underline, back.strike, back.vertical,
+			auto r = new FlexImage(back.text, back.fontName, back.size, back.color,
+				back.bold, back.italic, back.underline, back.strike, back.vertical,
 				back.borderingType, back.borderingColor, back.borderingWidth,
 				back.x, back.y, back.width, back.height);
 			r.transparent = back.mask;

@@ -27,6 +27,10 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.images;
+
+import std.algorithm : countUntil;
+import std.traits;
 
 import org.eclipse.swt.all;
 
@@ -40,6 +44,7 @@ private:
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
+	bool _create;
 
 	Table _flag;
 	Spinner _x;
@@ -92,7 +97,7 @@ private:
 				_y.setSelection(s.y);
 				_w.setSelection(s.width);
 				_h.setSelection(s.height);
-				_mask.setSelection(s.mask);
+				if (_mask) _mask.setSelection(s.mask);
 				updateMask();
 				applyEnabled();
 			}
@@ -158,12 +163,13 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Shell parent, string text, Image img, bool resizable, DSize size, bool create) {
+	this (Commons comm, Summary summ, Shell parent, string text, Image img, bool resizable, DSize size, bool create) {
 		_comm = comm;
-		_summ = comm.summary;
+		_summ = summ;
 		_prop = comm.prop;
 		_selected = !create;
-		super (_prop, parent, text, img, resizable, size, true);
+		_create = create;
+		super (_prop, parent, false, text, img, resizable, size, true);
 		enterClose = true;
 	}
 
@@ -207,12 +213,12 @@ protected:
 		return grp;
 	}
 
-	Composite createPositionPanel(Composite comp) {
+	Composite createPositionPanel(Composite comp, bool mask) {
 		auto grp = new Group(comp, SWT.NONE);
 		grp.setText(_prop.msgs.cardPosition);
 		grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 		auto comp2 = new Composite(grp, SWT.NONE);
-		comp2.setLayout(new GridLayout(5, false));
+		comp2.setLayout(new GridLayout(mask ? 5 : 4, false));
 		Spinner createS(string name, int max, int min) {
 			auto comp3 = new Composite(comp2, SWT.NONE);
 			auto gl = new GridLayout(2, false);
@@ -231,11 +237,13 @@ protected:
 		_y = createS(_prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax));
 		_w = createS(_prop.msgs.width, _prop.var.etc.backWidthMax, 0);
 		_h = createS(_prop.msgs.height, _prop.var.etc.backHeightMax, 0);
-		_mask = new Button(comp2, SWT.TOGGLE);
-		mod(_mask);
-		_mask.setImage(_prop.images.menu(MenuID.Mask));
-		_mask.setToolTipText(_prop.buildTool(MenuID.Mask));
-		_mask.addSelectionListener(new MaskListener);
+		if (mask) {
+			_mask = new Button(comp2, SWT.TOGGLE);
+			mod(_mask);
+			_mask.setImage(_prop.images.menu(MenuID.Mask));
+			_mask.setToolTipText(_prop.buildTool(MenuID.Mask));
+			_mask.addSelectionListener(new MaskListener);
+		}
 		return grp;
 	}
 	Composite createEasySettingsPanel(Composite comp) {
@@ -255,6 +263,17 @@ protected:
 		_easy.addSelectionListener(new SettingsListener);
 		_easy.select(0);
 		return comp2;
+	}
+	void createPosPanel(Composite comp, bool mask) {
+		auto posPanel = createPositionPanel(comp, mask);
+		posPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		auto easyPanel = createEasySettingsPanel(comp);
+		easyPanel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+		scope p = comp.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		auto gd = new GridData(GridData.FILL_BOTH);
+		gd.widthHint = p.x;
+		gd.heightHint = p.y;
+		comp.setLayoutData(gd);
 	}
 	void setFirstParams(Composite area) {
 		if (_flag) {
@@ -286,7 +305,7 @@ protected:
 			_y.setSelection(back.y);
 			_w.setSelection(back.width);
 			_h.setSelection(back.height);
-			_mask.setSelection(back.mask);
+			if (_mask) _mask.setSelection(back.mask);
 		} else {
 			if (_flag) {
 				_flag.select(0);
@@ -296,7 +315,7 @@ protected:
 			_y.setSelection(0);
 			_w.setSelection(0);
 			_h.setSelection(0);
-			_mask.setSelection(false);
+			if (_mask) _mask.setSelection(false);
 		}
 		if (_flag) _flag.showSelection();
 		auto spnl = new SModL;
@@ -310,7 +329,8 @@ protected:
 		back.y = _y.getSelection();
 		back.width = _w.getSelection();
 		back.height = _h.getSelection();
-		back.mask = _mask.getSelection();
+		if (_mask) back.mask = _mask.getSelection();
+		_create = false;
 	}
 
 	void updateMask() {
@@ -349,7 +369,7 @@ public:
 		} else {
 			size = prop.var.areaBackgroundNFDlg;
 		}
-		super(comm, shell, _back ? prop.msgs.dlgTitBgImage : prop.msgs.dlgTitNewBgImage,
+		super (comm, summ, shell, _back ? prop.msgs.dlgTitBgImage : prop.msgs.dlgTitNewBgImage,
 			prop.images.backs, true, size, create);
 	}
 
@@ -386,19 +406,7 @@ protected:
 				imgs(comp);
 				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
-			auto posPanel = createPositionPanel(comp);
-			posPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			auto easyPanel = createEasySettingsPanel(comp);
-			easyPanel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-			scope p = comp.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.widthHint = p.x;
-			gd.heightHint = p.y;
-			comp.setLayoutData(gd);
-		}
-		{
-			auto l = new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL);
-			l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			createPosPanel(comp, true);
 		}
 
 		setFirstParams(area);
@@ -450,21 +458,68 @@ class TextCellDialog : BgImageDialog {
 private:
 	TextCell _back;
 
+	PileImage _preview = null;
+	Canvas _prevPanel;
 	Text _text;
-	Button _fontName;
+	Combo _fontName;
 	Spinner _size;
-	Button _color;
+	ColorPicker _color;
 	Button _bold;
 	Button _italic;
 	Button _underline;
 	Button _strike;
 	Button _vertical;
 	Combo _borderingType;
-	Button _borderingColor;
+	BorderingType[] _borderingTypes;
+	ColorPicker _borderingColor;
 	Spinner _borderingWidth;
 
 	void refreshWarning() {
 		warning = [_prop.msgs.warningTextCell];
+	}
+	void updatePreview() {
+		int index = _borderingType.getSelectionIndex();
+		if (index == -1) return;
+		auto bType = _borderingTypes[index];
+		_borderingColor.enabled = BorderingType.None !is bType;
+		_borderingWidth.setEnabled(BorderingType.Inline is bType);
+
+		CRGB tColor;
+		auto rgb1 = _color.color;
+		if (rgb1) {
+			tColor = CRGB(rgb1.red, rgb1.green, rgb1.blue, _color.alpha);
+		}
+		CRGB bColor;
+		auto rgb2 = _borderingColor.color;
+		if (rgb2) {
+			bColor = CRGB(rgb2.red, rgb2.green, rgb2.blue, _borderingColor.alpha);
+		}
+
+		auto ca = _prevPanel.getClientArea();
+		if (_preview) _preview.dispose();
+		_preview = new PileImage(wrapReturnCode(_text.getText()), _fontName.getText(),
+			_size.getSelection(), tColor, _bold.getSelection(), _italic.getSelection(),
+			_underline.getSelection(), _strike.getSelection(), _vertical.getSelection(),
+			bType, bColor, _borderingWidth.getSelection(), ca.x, ca.y, ca.width, ca.height);
+
+		_preview.createImage();
+		_prevPanel.redraw();
+	}
+	class Paint : PaintListener {
+		override void paintControl(PaintEvent e) {
+			auto range = new Rectangle(e.x, e.y, e.width, e.height);
+			auto size = _prevPanel.getSize();
+			auto image = new Image(_prevPanel.getDisplay(), size.x, size.y);
+			scope (exit) image.dispose();
+			auto gc = new GC(image);
+			scope (exit) gc.dispose();
+			gc.setBackground(_prevPanel.getBackground());
+			gc.fillRectangle(range);
+			if (_preview) {
+				_preview.draw(image, gc, range);
+			}
+			e.gc.drawImage(image, 0, 0);
+		}
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, TextCell back, bool create) {
@@ -475,7 +530,7 @@ public:
 		} else {
 			size = prop.var.areaTextCellNFDlg;
 		}
-		super(comm, shell, _back ? prop.msgs.dlgTitTextCell : prop.msgs.dlgTitNewTextCell,
+		super (comm, summ, shell, _back ? prop.msgs.dlgTitTextCell : prop.msgs.dlgTitNewTextCell,
 			prop.images.textCell, true, size, create);
 	}
 
@@ -487,26 +542,258 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout(zeroGridLayout(1));
-		auto skin = _comm.skin;
-		// TODO
+		auto comp = new Composite(area, SWT.NONE);
+		comp.setLayout(new GridLayout(1, false));
+		auto sash = new SplitPane(comp, SWT.VERTICAL);
+		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
+		void left(Composite parent) {
+			auto comp = new Composite(parent, SWT.NONE);
+			comp.setLayout(new GridLayout(2, false));
+			{
+				auto grp = new Group(comp, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setLayout(new GridLayout(1, true));
+				grp.setText(_prop.msgs.image);
+				_prevPanel = new Canvas(grp, SWT.BORDER | SWT.NO_BACKGROUND | SWT.DOUBLE_BUFFERED);
+				_prevPanel.addPaintListener(new Paint);
+				auto gd = new GridData(GridData.FILL_BOTH);
+				gd.widthHint = _prop.var.etc.textCellPreviewWidth;
+				gd.heightHint = _prop.var.etc.textCellPreviewHeight;
+				_prevPanel.setLayoutData(gd);
+				.listener(_prevPanel, SWT.Resize, &updatePreview);
+			}
+			{
+				auto grp = new Group(comp, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				grp.setText(_prop.msgs.fontStyle);
+				grp.setLayout(new GridLayout(1, true));
+
+				Button check(string name) {
+					auto button = new Button(grp, SWT.CHECK);
+					button.setLayoutData(new GridData(GridData.FILL_BOTH));
+					mod(button);
+					.listener(button, SWT.Selection, &updatePreview);
+					button.setText(name);
+					return button;
+				}
+				_bold = check(_prop.msgs.bold);
+				_italic = check(_prop.msgs.italic);
+				_underline = check(_prop.msgs.underline);
+				_strike = check(_prop.msgs.strike);
+				_vertical = check(_prop.msgs.vertical);
+			}
+			auto sq = new Composite(comp, SWT.NONE);
+			auto sqgd = new GridData(GridData.FILL_HORIZONTAL);
+			sqgd.horizontalSpan = 2;
+			sq.setLayoutData(sqgd);
+			sq.setLayout(zeroMarginGridLayout(2, false));
+			{
+				auto grp = new Group(sq, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setText(_prop.msgs.font);
+				grp.setLayout(new CenterLayout);
+
+				auto comp2 = new Composite(grp, SWT.NONE);
+				comp2.setLayout(zeroMarginGridLayout(4, false));
+
+				_fontName = new Combo(comp2, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+				_fontName.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+				mod(_fontName);
+				string[] names;
+				bool[string] nameSet;
+				foreach (fontData; _fontName.getDisplay().getFontList(null, true)) {
+					auto name = fontData.getName();
+					if (!nameSet.get(name, false)) {
+						names ~= name;
+						nameSet[name] = true;
+					}
+				}
+				if (_prop.var.etc.logicalSort) {
+					names = sort!(fnncmp)(names);
+				} else {
+					names = sort!(fncmp)(names);
+				}
+				foreach (name; names) {
+					_fontName.add(name);
+				}
+				.listener(_fontName, SWT.Selection, &updatePreview);
+
+				auto l1 = new Label(comp2, SWT.NONE);
+				l1.setText(_prop.msgs.size);
+				_size = new Spinner(comp2, SWT.BORDER);
+				mod(_size);
+				_size.setMinimum(1);
+				_size.setMaximum(_prop.var.etc.fontSizeMax);
+				.listener(_size, SWT.Modify, &updatePreview);
+				auto l2 = new Label(comp2, SWT.NONE);
+				l2.setText(_prop.msgs.pixel);
+			}
+			{
+				auto grp = new Group(sq, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setLayout(new CenterLayout);
+				grp.setText(_prop.msgs.fontColor);
+				_color = new ColorPicker(_prop, grp, false);
+				mod(_color);
+				_color.modEvent ~= &updatePreview;
+			}
+			{
+				auto grp = new Group(sq, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setText(_prop.msgs.bordering);
+				grp.setLayout(new CenterLayout);
+
+				auto comp2 = new Composite(grp, SWT.NONE);
+				comp2.setLayout(zeroMarginGridLayout(4, false));
+
+				_borderingType = new Combo(comp2, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+				_borderingType.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+				mod(_borderingType);
+				foreach (bType; EnumMembers!BorderingType) {
+					_borderingType.add(_prop.msgs.borderingTypeName(bType));
+					_borderingTypes ~= bType;
+				}
+				.listener(_borderingType, SWT.Selection, &updatePreview);
+
+				auto l1 = new Label(comp2, SWT.NONE);
+				l1.setText(_prop.msgs.borderingWidth);
+				_borderingWidth = new Spinner(comp2, SWT.BORDER);
+				mod(_borderingWidth);
+				_borderingWidth.setMinimum(1);
+				_borderingWidth.setMaximum(_prop.var.etc.borderingWidthMax);
+				.listener(_borderingWidth, SWT.Modify, &updatePreview);
+				auto l2 = new Label(comp2, SWT.NONE);
+				l2.setText(_prop.msgs.pixel);
+			}
+			{
+				auto grp = new Group(sq, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+				grp.setLayout(new CenterLayout);
+				grp.setText(_prop.msgs.borderingColor);
+				_borderingColor = new ColorPicker(_prop, grp, false);
+				mod(_borderingColor);
+				_borderingColor.modEvent ~= &updatePreview;
+			}
+		}
+		{
+			if (_summ) {
+				auto sash2 = new SplitPane(sash, SWT.HORIZONTAL);
+				left(sash2);
+				sash2.setWeights([_prop.var.etc.textCellHSashL, _prop.var.etc.textCellHSashR]);
+				.listener(sash2, SWT.Dispose, {
+					_prop.var.etc.textCellHSashL = sash2.getWeights()[0];
+					_prop.var.etc.textCellHSashR = sash2.getWeights()[1];
+				});
+				createFlagPanel(sash2);
+			} else {
+				// フラグ無し
+				left(sash);
+			}
+		}
+		{
+			auto grp = new Group(sash, SWT.NONE);
+			grp.setText(_prop.msgs.text);
+			auto cl = new CenterLayout;
+			cl.fillHorizontal = true;
+			cl.fillVertical = true;
+			grp.setLayout(cl);
+			_text = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+			mod(_text);
+			createTextMenu!Text(_comm, _prop, _text, &catchMod);
+			_text.setLayoutData(new Point(_prop.var.etc.textCellBoxWidth, _prop.var.etc.textCellBoxHeight));
+			.listener(_text, SWT.Modify, &updatePreview);
+		}
+		sash.setWeights([_prop.var.etc.textCellVSashT, _prop.var.etc.textCellVSashB]);
+		.listener(sash, SWT.Dispose, {
+			_prop.var.etc.textCellVSashT = sash.getWeights()[0];
+			_prop.var.etc.textCellVSashB = sash.getWeights()[1];
+		});
+
+		createPosPanel(comp, false);
+
+		.listener(area, SWT.Dispose, {
+			if (_preview) _preview.dispose();
+		});
 
 		setFirstParams(area);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		if (_back) {
-			// TODO
+		if (!_create) {
+			_text.setText(_back.text);
+			_fontName.setText(_back.fontName);
+			_size.setSelection(_back.size);
+			auto tc = _back.color;
+			_color.color = new RGB(tc.r, tc.g, tc.b);
+			_color.alpha = tc.a;
+			_bold.setSelection(_back.bold);
+			_italic.setSelection(_back.italic);
+			_underline.setSelection(_back.underline);
+			_strike.setSelection(_back.strike);
+			_vertical.setSelection(_back.vertical);
+			_borderingType.select(_borderingTypes.countUntil(_back.borderingType));
+			auto bc = _back.borderingColor;
+			_borderingColor.color = new RGB(bc.r, bc.g, bc.b);
+			_borderingColor.alpha = bc.a;
+			_borderingWidth.setSelection(_back.borderingWidth);
 		} else {
-			// TODO
+			_text.setText("");
+			if (_fontName.getItemCount()) {
+				_fontName.select(0);
+				string[] fonts;
+				if (_summ && _summ.legacy) {
+					fonts ~= _prop.var.etc.textCellDefaultFontClassic;
+					fonts ~= _prop.var.etc.textCellDefaultFont;
+				} else {
+					fonts ~= _prop.var.etc.textCellDefaultFont;
+					fonts ~= _prop.var.etc.textCellDefaultFontClassic;
+				}
+				foreach (font; fonts) {
+					int i = _fontName.indexOf(font);
+					if (i != -1) {
+						_fontName.select(i);
+						break;
+					}
+				}
+			}
+			_size.setSelection(_prop.var.etc.textCellDefaultFontSize);
+			auto tc = _prop.var.etc.textCellDefaultColor;
+			_color.color = new RGB(tc.r, tc.g, tc.b);
+			_color.alpha = tc.a;
+			_bold.setSelection(false);
+			_italic.setSelection(false);
+			_underline.setSelection(false);
+			_strike.setSelection(false);
+			_vertical.setSelection(false);
+			_borderingType.select(0);
+			auto bc = _prop.var.etc.textCellDefaultBorderingColor;
+			_borderingColor.color = new RGB(bc.r, bc.g, bc.b);
+			_borderingColor.alpha = bc.a;
+			_borderingWidth.setSelection(1);
 		}
 		refreshWarning();
+		updatePreview();
 	}
 
 	override bool apply() {
 		if (!_back) {
 			_back = new TextCell;
 		}
-		// TODO
+		_back.text = wrapReturnCode(_text.getText());
+		_back.fontName = _fontName.getText();
+		_back.size = _size.getSelection();
+		auto tc = _color.color;
+		_back.color = CRGB(tc.red, tc.green, tc.blue, _color.alpha);
+		_back.bold = _bold.getSelection();
+		_back.italic = _italic.getSelection();
+		_back.underline = _underline.getSelection();
+		_back.strike = _strike.getSelection();
+		_back.vertical = _vertical.getSelection();
+		_back.borderingType = _borderingTypes[_borderingType.getSelectionIndex()];
+		auto bc = _borderingColor.color;
+		_back.borderingColor = CRGB(bc.red, bc.green, bc.blue, _borderingColor.alpha);
+		_back.borderingWidth = _borderingWidth.getSelection();
+
 		applyParams(_back);
 		return true;
 	}
@@ -517,13 +804,50 @@ class ColorCellDialog : BgImageDialog {
 private:
 	ColorCell _back;
 
+	PileImage _preview = null;
+	Canvas _prevPanel;
 	Button[BlendMode] _blendMode;
-	Button[GradientDir] _gradientDir;
-	Button _color1;
-	Button _color2;
+	Combo _gradientDir;
+	GradientDir[] _gradientDirs;
+	ColorPicker _color1;
+	ColorPicker _color2;
 
 	void refreshWarning() {
 		warning = [_prop.msgs.warningColorCell];
+	}
+	void updatePreview() {
+		_color2.enabled = GradientDir.None !is _gradientDirs[_gradientDir.getSelectionIndex()];
+		auto ca = _prevPanel.getClientArea();
+		if (_preview) _preview.dispose();
+		_preview = new PileImage(ImageType.ColorFilter, ca.x, ca.y, ca.width, ca.height);
+		_preview.blendMode = getRadioValue(_blendMode);
+		_preview.gradientDir = _gradientDirs[_gradientDir.getSelectionIndex()];
+		auto rgb1 = _color1.color;
+		if (rgb1) {
+			_preview.color1 = CRGB(rgb1.red, rgb1.green, rgb1.blue, _color1.alpha);
+		}
+		auto rgb2 = _color2.color;
+		if (rgb2) {
+			_preview.color2 = CRGB(rgb2.red, rgb2.green, rgb2.blue, _color2.alpha);
+		}
+		_preview.createImage();
+		_prevPanel.redraw();
+	}
+	class Paint : PaintListener {
+		override void paintControl(PaintEvent e) {
+			auto range = new Rectangle(e.x, e.y, e.width, e.height);
+			auto size = _prevPanel.getSize();
+			auto image = new Image(_prevPanel.getDisplay(), size.x, size.y);
+			scope (exit) image.dispose();
+			auto gc = new GC(image);
+			scope (exit) gc.dispose();
+			gc.setBackground(_prevPanel.getBackground());
+			gc.fillRectangle(range);
+			if (_preview) {
+				_preview.draw(image, gc, range);
+			}
+			e.gc.drawImage(image, 0, 0);
+		}
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, ColorCell back, bool create) {
@@ -534,7 +858,7 @@ public:
 		} else {
 			size = prop.var.areaColorCellNFDlg;
 		}
-		super(comm, shell, _back ? prop.msgs.dlgTitColorCell : prop.msgs.dlgTitNewColorCell,
+		super (comm, summ, shell, _back ? prop.msgs.dlgTitColorCell : prop.msgs.dlgTitNewColorCell,
 			prop.images.colorCell, true, size, create);
 	}
 
@@ -546,27 +870,222 @@ public:
 protected:
 	override void setup(Composite area) {
 		area.setLayout(zeroGridLayout(1));
-		auto skin = _comm.skin;
-		// TODO
+		auto comp = new Composite(area, SWT.NONE);
+		comp.setLayout(new GridLayout(1, false));
+		{
+			Composite left(Composite parent) {
+				auto comp = new Composite(parent, SWT.NONE);
+				comp.setLayout(zeroMarginGridLayout(1, true));
+				{
+					auto grp = new Group(comp, SWT.NONE);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(new GridLayout(1, true));
+					grp.setText(_prop.msgs.image);
+					_prevPanel = new Canvas(grp, SWT.BORDER | SWT.NO_BACKGROUND | SWT.DOUBLE_BUFFERED);
+					_prevPanel.addPaintListener(new Paint);
+					_prevPanel.setLayoutData(new GridData(GridData.FILL_BOTH));
+					.listener(_prevPanel, SWT.Resize, &updatePreview);
+				}
+				auto sq = new Composite(comp, SWT.NONE);
+				sq.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				sq.setLayout(zeroMarginGridLayout(2, false));
+				{
+					auto grp = new Group(sq, SWT.NONE);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setText(_prop.msgs.blendMode);
+					grp.setLayout(new CenterLayout);
+
+					auto comp2 = new Composite(grp, SWT.NONE);
+					comp2.setLayout(zeroMarginGridLayout(EnumMembers!BlendMode.length - 1, true));
+					foreach (mode; EnumMembers!BlendMode) {
+						if (mode is BlendMode.Mask) continue;
+						auto radio = new Button(comp2, SWT.RADIO);
+						mod(radio);
+						.listener(radio, SWT.Selection, &updatePreview);
+						radio.setText(_prop.msgs.blendModeName(mode));
+						_blendMode[mode] = radio;
+					}
+				}
+				{
+					auto grp = new Group(sq, SWT.NONE);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(new CenterLayout);
+					grp.setText(_prop.msgs.colorCellBaseColor);
+					_color1 = new ColorPicker(_prop, grp, true);
+					mod(_color1);
+					_color1.modEvent ~= &updatePreview;
+				}
+				{
+					auto grp = new Group(sq, SWT.NONE);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setText(_prop.msgs.gradient);
+					grp.setLayout(new CenterLayout);
+
+					auto comp2 = new Composite(grp, SWT.NONE);
+					comp2.setLayout(zeroMarginGridLayout(2, false));
+
+					auto l1 = new Label(comp2, SWT.NONE);
+					l1.setText(_prop.msgs.direction);
+					_gradientDir = new Combo(comp2, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+					_gradientDir.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+					mod(_gradientDir);
+					foreach (gradientDir; EnumMembers!GradientDir) {
+						_gradientDir.add(_prop.msgs.gradientDirName(gradientDir));
+						_gradientDirs ~= gradientDir;
+					}
+					.listener(_gradientDir, SWT.Selection, &updatePreview);
+				}
+				{
+					auto grp = new Group(sq, SWT.NONE);
+					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+					grp.setLayout(new CenterLayout);
+					grp.setText(_prop.msgs.endColor);
+					_color2 = new ColorPicker(_prop, grp, true);
+					mod(_color2);
+					_color2.modEvent ~= &updatePreview;
+				}
+				return comp;
+			}
+			if (_summ) {
+				auto comp2 = new Composite(comp, SWT.NONE);
+				comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
+				comp2.setLayout(zeroMarginGridLayout(2, false));
+				left(comp2).setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				createFlagPanel(comp2).setLayoutData(new GridData(GridData.FILL_BOTH));
+			} else {
+				// フラグ無し
+				left(comp).setLayoutData(new GridData(GridData.FILL_BOTH));
+			}
+		}
+		createPosPanel(comp, false);
+
+		.listener(area, SWT.Dispose, {
+			if (_preview) _preview.dispose();
+		});
 
 		setFirstParams(area);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		if (_back) {
-			// TODO
+		if (!_create) {
+			auto blendMode = _back.blendMode;
+			if (_back.blendMode is BlendMode.Mask || _back.mask) {
+				blendMode = BlendMode.Normal;
+			}
+			_blendMode[blendMode].setSelection(true);
+			_gradientDir.select(_gradientDirs.countUntil(_back.gradientDir));
+			_color1.color = new RGB(_back.color1.r, _back.color1.g, _back.color1.b);
+			_color1.alpha = _back.color1.a;
+			_color2.color = new RGB(_back.color2.r, _back.color2.g, _back.color2.b);
+			_color2.alpha = _back.color2.a;
 		} else {
-			// TODO
+			_blendMode[BlendMode.Normal].setSelection(true);
+			_gradientDir.select(_gradientDirs.countUntil(GradientDir.None));
+			auto c1 = _prop.var.etc.colorCellDefaultColor1;
+			_color1.color = new RGB(c1.r, c1.g, c1.b);
+			_color1.alpha = c1.a;
+			auto c2 = _prop.var.etc.colorCellDefaultColor2;
+			_color2.color = new RGB(c2.r, c2.g, c2.b);
+			_color2.alpha = c2.a;
 		}
 		refreshWarning();
+		updatePreview();
 	}
 
 	override bool apply() {
 		if (!_back) {
 			_back = new ColorCell;
 		}
-		// TODO
+		_back.blendMode = getRadioValue(_blendMode);
+		_back.gradientDir = _gradientDirs[_gradientDir.getSelectionIndex()];
+		auto rgb1 = _color1.color;
+		_back.color1 = CRGB(rgb1.red, rgb1.green, rgb1.blue, _color1.alpha);
+		auto rgb2 = _color2.color;
+		_back.color2 = CRGB(rgb2.red, rgb2.green, rgb2.blue, _color2.alpha);
+
 		applyParams(_back);
 		return true;
+	}
+}
+
+/// 色を選択するためのコントロール。
+class ColorPicker : Composite {
+	void delegate()[] modEvent;
+
+	private Label _colorLabel;
+	private Color _color = null;
+	private Button _button;
+	private Spinner _alpha = null;
+
+	this (Props prop, Composite parent, bool transparency) {
+		super (parent, SWT.NONE);
+		.listener(this, SWT.Dispose, {
+			if (_color) _color.dispose();
+		});
+
+		setLayout(zeroMarginGridLayout(transparency ? 4 : 1, false));
+
+		auto comp = new Composite(this, SWT.NONE);
+		comp.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto gl = windowGridLayout(2, false);
+		gl.marginWidth = 0;
+		gl.marginHeight = 0;
+		comp.setLayout(gl);
+
+		_colorLabel = new Label(comp, SWT.BORDER);
+		auto gd = new GridData(GridData.FILL_BOTH);
+		gd.widthHint = 50;
+		_colorLabel.setLayoutData(gd);
+
+		_button = new Button(comp, SWT.PUSH);
+		_button.setText("...");
+		.listener(_button, SWT.Selection, {
+			auto dlg = new ColorDialog(this.getShell());
+			auto rgb = dlg.open();
+			if (rgb) {
+				color = rgb;
+				callMod();
+			}
+		});
+
+		if (transparency) {
+			auto l1 = new Label(this, SWT.NONE);
+			l1.setText(prop.msgs.alphaChannel);
+			_alpha = new Spinner(this, SWT.BORDER);
+			_alpha.setMinimum(0);
+			_alpha.setMaximum(255);
+			.listener(_alpha, SWT.Modify, &callMod);
+			auto l2 = new Label(this, SWT.NONE);
+			l2.setText(.tryFormat(prop.msgs.rangeHint, 0, 255));
+		}
+	}
+	private void callMod() {
+		foreach (dlg; modEvent) dlg();
+	}
+
+	@property
+	RGB color() {
+		return _color ? _color.getRGB() : null;
+	}
+	@property
+	void color(RGB rgb) {
+		if (_color) _color.dispose();
+		_color = new Color(this.getDisplay(), rgb);
+		_colorLabel.setBackground(_color);
+	}
+	@property
+	int alpha() {
+		return _alpha ? _alpha.getSelection() : 255;
+	}
+	@property
+	void alpha(int value) {
+		if (_alpha) _alpha.setSelection(value);
+	}
+
+	@property
+	void enabled(bool enabled) {
+		_button.setEnabled(enabled);
+		if (_alpha) _alpha.setEnabled(enabled);
+		setEnabled(enabled);
 	}
 }

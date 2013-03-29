@@ -11,6 +11,7 @@ import cwx.background;
 import cwx.area;
 import cwx.card;
 import cwx.coupon;
+import cwx.structs;
 
 import std.algorithm;
 import std.conv;
@@ -2059,24 +2060,142 @@ fi`;
 			case ">": i++; return Comparison3.Gt;
 			default: throwError(_prop.msgs.scriptErrorInvalidComparison3, attr[i].token);
 			}
+		} else static if (is(T == BlendMode)) {
+			auto value = attrValue(attr[i], varTable, msgWidth);
+			switch (value) {
+			case "normal": i++; return BlendMode.Normal;
+			case "add": i++; return BlendMode.Add;
+			case "sub": i++; return BlendMode.Subtract;
+			case "mul": i++; return BlendMode.Multiply;
+			default: throwError(_prop.msgs.scriptErrorInvalidBlendMode, attr[i].token);
+			}
+		} else static if (is(T == GradientDir)) {
+			auto value = attrValue(attr[i], varTable, msgWidth);
+			switch (value) {
+			case "none": i++; return GradientDir.None;
+			case "h", "horizontal": i++; return GradientDir.LeftToRight;
+			case "v", "vertical": i++; return GradientDir.TopToBottom;
+			default: throwError(_prop.msgs.scriptErrorInvalidGradientDir, attr[i].token);
+			}
+		} else static if (is(T == CRGB)) {
+			if (attr[i].type is NodeType.VALUES) {
+				auto vals = attr[i].values;
+				size_t j = 0;
+				int r = parseAttr!(int)(opt, vals, j, defValue.r, varTable, msgWidth);
+				int g = parseAttr!(int)(opt, vals, j, defValue.g, varTable, msgWidth);
+				int b = parseAttr!(int)(opt, vals, j, defValue.b, varTable, msgWidth);
+				int a = parseAttr!(int)(opt, vals, j, defValue.a, varTable, msgWidth);
+				i++;
+				return CRGB(r, g, b, a);
+			} else {
+				string value = parseAttr!(string)(opt, attr, i, "#000000", varTable, msgWidth);
+				value = value.toLower();
+				if (value.startsWith("#") && (7 == value.length || 9 == value.length)) {
+					foreach (c; value[1..$]) {
+						if (!(('0' <= c && c <= '9') || ('a' <= c && c <= 'f'))) {
+							throwError(_prop.msgs.scriptErrorInvalidColor, attr[i].token);
+							return defValue;
+						}
+					}
+					int r = parse!int(value[1..3], 16);
+					int g = parse!int(value[3..5], 16);
+					int b = parse!int(value[5..7], 16);
+					int a = 255;
+					if (9 == value.length) {
+						a = parse!int(value[7..9], 16);
+					}
+					return CRGB(r, g, b, a);
+				} else {
+					throwError(_prop.msgs.scriptErrorInvalidColor, attr[i].token);
+					return defValue;
+				}
+			}
 		} else static if (is(T == BgImage)) {
-			// TODO TextCell
-			// TODO ColorCell
 			if (attr[i].type !is NodeType.VALUES) {
 				throwError(_prop.msgs.scriptErrorInvalidBgImage, attr[i].token);
 				return defValue;
 			}
+			auto vals = attr[i].values.dup;
+			string type = "image";
+			if (vals && vals[0].token.kind is Kind.SYMBOL) {
+				type = attrValue(vals[0], varTable, msgWidth);
+				vals = vals[1..$];
+			}
+			BgImage r;
 			size_t j = 0;
-			auto vals = attr[i].values;
-			string path = decodePath(parseAttr!(string)(opt, vals, j, "", varTable, msgWidth));
-			string flag = parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
-			int x = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
-			int y = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
-			auto size = _prop.looks.viewSize;
-			int w = parseAttr!(int)(opt, vals, j, cast(int) size.width, varTable, msgWidth);
-			int h = parseAttr!(int)(opt, vals, j, cast(int) size.height, varTable, msgWidth);
-			bool mask = parseAttr!(bool)(opt, vals, j, false, varTable, msgWidth);
-			auto r = new ImageCell(path, flag, x, y, w, h, mask);
+			switch (type) {
+			case "image":
+				string path = decodePath(parseAttr!(string)(opt, vals, j, "", varTable, msgWidth));
+				string flag = parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
+				int x = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
+				int y = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
+				auto size = _prop.looks.viewSize;
+				int w = parseAttr!(int)(opt, vals, j, cast(int) size.width, varTable, msgWidth);
+				int h = parseAttr!(int)(opt, vals, j, cast(int) size.height, varTable, msgWidth);
+				bool mask = parseAttr!(bool)(opt, vals, j, false, varTable, msgWidth);
+				r = new ImageCell(path, flag, x, y, w, h, mask);
+				break;
+			case "text":
+				string text = parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
+				string fontName = parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
+				int size = parseAttr!(int)(opt, vals, j, 18, varTable, msgWidth);
+				CRGB color = parseAttr!(CRGB)(opt, vals, j, CRGB(0, 0, 0, 255), varTable, msgWidth);
+				bool bold = false, italic = false, underline = false, strike = false, vertical = false;
+				BorderingType borderingType = BorderingType.None;
+				bgtw: while (j < vals.length) {
+					if (vals[j].token.kind !is Kind.SYMBOL) break;
+					switch (attrValue(vals[j], varTable, msgWidth)) {
+					case "bold": j++; bold = true; break;
+					case "italic": j++; italic = true; break;
+					case "underline", "uline": j++; underline = true; break;
+					case "strike": j++; strike = true; break;
+					case "vertical": j++; vertical = true; break;
+					case "border1": j++; borderingType = BorderingType.Outline; break;
+					case "border2": j++; borderingType = BorderingType.Inline; break;
+					default: break bgtw;
+					}
+				}
+				CRGB borderingColor = CRGB(255, 255, 255, 255);
+				int borderingWidth = 1;
+				final switch (borderingType) {
+				case BorderingType.None: break;
+				case BorderingType.Outline:
+					borderingColor = parseAttr!(CRGB)(opt, vals, j, borderingColor, varTable, msgWidth);
+					break;
+				case BorderingType.Inline:
+					borderingColor = parseAttr!(CRGB)(opt, vals, j, borderingColor, varTable, msgWidth);
+					borderingWidth = parseAttr!(int)(opt, vals, j, borderingWidth, varTable, msgWidth);
+					break;
+				}
+				string flag = parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
+				int x = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
+				int y = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
+				int w = parseAttr!(int)(opt, vals, j, cast(int) _prop.looks.viewSize.width, varTable, msgWidth);
+				int h = parseAttr!(int)(opt, vals, j, cast(int) _prop.looks.viewSize.height, varTable, msgWidth);
+				r = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
+					borderingType, borderingColor, borderingWidth, flag, x, y, w, h, false);
+				break;
+			case "color":
+				BlendMode blendMode = parseAttr!(BlendMode)(opt, vals, j, BlendMode.Normal, varTable, msgWidth);
+				CRGB color1 = parseAttr!(CRGB)(opt, vals, j, CRGB(255, 255, 255, 255), varTable, msgWidth);
+				GradientDir gradientDir = GradientDir.None;
+				CRGB color2 = CRGB(0, 0, 0, 255);
+				if (j < vals.length && vals[j].token.kind is Kind.SYMBOL) {
+					gradientDir = parseAttr!(GradientDir)(opt, vals, j, gradientDir, varTable, msgWidth);
+					color2 = parseAttr!(CRGB)(opt, vals, j, color2, varTable, msgWidth);
+				}
+				string flag = parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
+				int x = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
+				int y = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
+				auto size = _prop.looks.viewSize;
+				int w = parseAttr!(int)(opt, vals, j, cast(int) size.width, varTable, msgWidth);
+				int h = parseAttr!(int)(opt, vals, j, cast(int) size.height, varTable, msgWidth);
+				r = new ColorCell(blendMode, gradientDir, color1, color2, flag, x, y, w, h, false);
+				break;
+			default:
+				throwError(_prop.msgs.scriptErrorInvalidBgImage, attr[i].token);
+				return defValue;
+			}
 			i++;
 			return r;
 		} else static if (is(T == Motion)) {
@@ -2833,18 +2952,89 @@ fi`;
 			case Comparison3.Gt: attrs ~= createString(">"); break;
 			default: assert (0);
 			}
+		} else static if (is(T : BorderingType)) {
+			final switch (value) {
+			case BorderingType.None: break;
+			case BorderingType.Outline: attrs ~= "border1"; break;
+			case BorderingType.Inline: attrs ~= "border2"; break;
+			}
+		} else static if (is(T : BlendMode)) {
+			final switch (value) {
+			case BlendMode.Normal: attrs ~= "normal"; break;
+			case BlendMode.Mask: attrs ~= "normal"; break; // MaskはNormalと同様
+			case BlendMode.Add: attrs ~= "add"; break;
+			case BlendMode.Subtract: attrs ~= "sub"; break;
+			case BlendMode.Multiply: attrs ~= "mul"; break;
+			}
+		} else static if (is(T : GradientDir)) {
+			final switch (value) {
+			case GradientDir.None: attrs ~= "none"; break;
+			case GradientDir.LeftToRight: attrs ~= "horizontal"; break;
+			case GradientDir.TopToBottom: attrs ~= "vertical"; break;
+			}
+		} else static if (is(T : CRGB)) {
+			if (value.a == 255) {
+				attrs ~= createString(.tryFormat("#%02X%02X%02X", value.r, value.g, value.b));
+			} else {
+				attrs ~= createString(.tryFormat("#%02X%02X%02X%02X", value.r, value.g, value.b, value.a));
+			}
 		} else static if (is(Unqual!(T) : BgImage)) {
-			// TODO TextCell
-			// TODO ColorCell
 			string[] attrs2;
 			auto ic = cast(ImageCell) value;
 			if (ic) {
 				attrs2 ~= toAttr(encodePath(ic.path), command, indentValue, vars);
-				attrs2 ~= toAttr(ic.flag, command, indentValue, vars);
-				attrs2 ~= toAttr(ic.x, command, indentValue, vars);
-				attrs2 ~= toAttr(ic.y, command, indentValue, vars);
-				attrs2 ~= toAttr(ic.width, command, indentValue, vars);
-				attrs2 ~= toAttr(ic.height, command, indentValue, vars);
+			}
+			auto tc = cast(TextCell) value;
+			if (tc) {
+				attrs2 ~= "text";
+				attrs2 ~= toAttr(tc.text, command, indentValue, vars);
+				attrs2 ~= toAttr(tc.fontName, command, indentValue, vars);
+				attrs2 ~= toAttr(tc.size, command, indentValue, vars);
+				attrs2 ~= toAttr(tc.color, command, indentValue, vars);
+				string[] style = [];
+				if (tc.bold) style ~= "bold";
+				if (tc.italic) style ~= "italic";
+				if (tc.underline) style ~= "underline";
+				if (tc.strike) style ~= "strike";
+				if (tc.vertical) style ~= "vertical";
+				final switch (tc.borderingType) {
+				case BorderingType.None:
+					attrs2 ~= std.string.join(style, " ");
+					break;
+				case BorderingType.Outline:
+					style ~= "border1";
+					attrs2 ~= std.string.join(style, " ");
+					attrs2 ~= toAttr(tc.borderingColor, command, indentValue, vars);
+					break;
+				case BorderingType.Inline:
+					style ~= "border2";
+					attrs2 ~= std.string.join(style, " ");
+					attrs2 ~= toAttr(tc.borderingColor, command, indentValue, vars);
+					attrs2 ~= toAttr(tc.borderingWidth, command, indentValue, vars);
+					break;
+				}
+			}
+			auto cc = cast(ColorCell) value;
+			if (cc) {
+				attrs2 ~= "color";
+				attrs2 ~= toAttr(cc.blendMode, command, indentValue, vars);
+				attrs2 ~= toAttr(cc.color1, command, indentValue, vars);
+				final switch (cc.gradientDir) {
+				case GradientDir.None:
+					break;
+				case GradientDir.LeftToRight:
+				case GradientDir.TopToBottom:
+					attrs2 ~= toAttr(cc.gradientDir, command, indentValue, vars);
+					attrs2 ~= toAttr(cc.color2, command, indentValue, vars);
+					break;
+				}
+			}
+			attrs2 ~= toAttr(value.flag, command, indentValue, vars);
+			attrs2 ~= toAttr(value.x, command, indentValue, vars);
+			attrs2 ~= toAttr(value.y, command, indentValue, vars);
+			attrs2 ~= toAttr(value.width, command, indentValue, vars);
+			attrs2 ~= toAttr(value.height, command, indentValue, vars);
+			if (ic) {
 				attrs2 ~= toAttr(ic.mask, command, indentValue, vars);
 			}
 			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
