@@ -502,7 +502,9 @@ struct Jptx {
 	/// テキスト。タグがそのままの形で含まれる。
 	string text;
 
-	CRGB backcolor = CRGB(255, 255, 255);
+	// FIXME: マニュアルによれば初期値は白だがcwconv.dllの実装は黒
+//	CRGB backcolor = CRGB(255, 255, 255);
+	CRGB backcolor = CRGB(0, 0, 0);
 	int backwidth = -1;
 	int backheight = -1;
 	bool autoline = 1;
