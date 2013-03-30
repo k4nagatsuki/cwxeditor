@@ -307,6 +307,10 @@ public:
 		case 'B': return imgd!("cc_b.png");
 		case 'G': return imgd!("cc_g.png");
 		case 'Y': return imgd!("cc_y.png");
+		case 'O': return imgd!("cc_o.png"); // CardWirth 1.50
+		case 'P': return imgd!("cc_p.png"); // CardWirth 1.50
+		case 'L': return imgd!("cc_l.png"); // CardWirth 1.50
+		case 'D': return imgd!("cc_d.png"); // CardWirth 1.50
 		default: return null;
 		}
 	}

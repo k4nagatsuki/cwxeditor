@@ -74,6 +74,7 @@ string formatMsg(in string text,
 			auto nc = std.ascii.toUpper(dtext[i + 1]);
 			switch (nc) {
 			case 'W', 'R', 'B', 'G', 'Y':
+			case 'O', 'P', 'L', 'D': // CardWirth 1.50
 				colors[result.length] = cast(char) nc;
 				break;
 			default:
@@ -277,6 +278,7 @@ dstring putColor(dstring text, dchar color, size_t start, size_t end) {
 		l: foreach_reverse (i, dchar c; text[1u .. start]) {
 			switch (c) {
 			case 'W', 'R', 'B', 'G', 'Y':
+			case 'O', 'P', 'L', 'D': // CardWirth 1.50
 				if (text[i] == '&') {
 					defColor = c;
 					break l;

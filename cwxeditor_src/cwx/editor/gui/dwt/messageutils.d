@@ -1317,7 +1317,11 @@ private ToolBar createSCharBar(Commons comm, Composite parent,
 	bar.addListener(SWT.KeyDown, new class Listener {
 		override void handleEvent(Event e) {e.doit = true;}
 	});
-	foreach (c; ['W', 'R', 'B', 'G', 'Y']) {
+	foreach (c; [
+		'W', 'R', 'B', 'G', 'Y'
+	] ~ [
+		'O', 'P', 'L', 'D' // CardWirth 1.50
+	]) {
 		string t;
 		final switch (c) {
 		case 'W': t = prop.msgs.colorW; break;
@@ -1325,6 +1329,10 @@ private ToolBar createSCharBar(Commons comm, Composite parent,
 		case 'B': t = prop.msgs.colorB; break;
 		case 'G': t = prop.msgs.colorG; break;
 		case 'Y': t = prop.msgs.colorY; break;
+		case 'O': t = prop.msgs.colorO; break; // CardWirth 1.50
+		case 'P': t = prop.msgs.colorP; break; // CardWirth 1.50
+		case 'L': t = prop.msgs.colorL; break; // CardWirth 1.50
+		case 'D': t = prop.msgs.colorD; break; // CardWirth 1.50
 		}
 		createToolItem2(comm, bar, t, prop.images.color(c), &(new PutColor(putColor, c)).put, null);
 	}
@@ -1941,6 +1949,10 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	auto cb = d.getSystemColor(SWT.COLOR_CYAN);
 	auto cg = d.getSystemColor(SWT.COLOR_GREEN);
 	auto cy = d.getSystemColor(SWT.COLOR_YELLOW);
+	auto co = new Color(d, new RGB(255, 165, 0)); scope (exit) co.dispose(); // CardWirth 1.50
+	auto cp = new Color(d, new RGB(204, 136, 255)); scope (exit) cp.dispose(); // CardWirth 1.50
+	auto cl = new Color(d, new RGB(169, 169, 169)); scope (exit) cl.dispose(); // CardWirth 1.50
+	auto cd = new Color(d, new RGB(105, 105, 105)); scope (exit) cd.dispose(); // CardWirth 1.50
 
 	auto font = new Font(d, dwtData(prop.looks.messageFont(legacy)));
 	scope (exit) font.dispose();
@@ -2001,15 +2013,19 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				x += w;
 				continue;
 			}
-			auto cp = i in rColors;
-			if (cp) {
+			auto colorP = i in rColors;
+			if (colorP) {
 				// フォント色変更
-				switch (*cp) {
+				switch (*colorP) {
 				case 'W': tgc.setForeground(fc); break;
 				case 'R': tgc.setForeground(cr); break;
 				case 'B': tgc.setForeground(cb); break;
 				case 'G': tgc.setForeground(cg); break;
 				case 'Y': tgc.setForeground(cy); break;
+				case 'O': tgc.setForeground(co); break;
+				case 'P': tgc.setForeground(cp); break;
+				case 'L': tgc.setForeground(cl); break;
+				case 'D': tgc.setForeground(cd); break;
 				default: assert (0);
 				}
 				i++;
@@ -2135,15 +2151,19 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				x += w;
 				continue;
 			}
-			auto cp = i in rColors;
-			if (cp) {
+			auto colorP = i in rColors;
+			if (colorP) {
 				// フォント色変更
-				switch (*cp) {
+				switch (*colorP) {
 				case 'W': gc.setForeground(fc); break;
 				case 'R': gc.setForeground(cr); break;
 				case 'B': gc.setForeground(cb); break;
 				case 'G': gc.setForeground(cg); break;
 				case 'Y': gc.setForeground(cy); break;
+				case 'O': gc.setForeground(co); break; // CardWirth 1.50
+				case 'P': gc.setForeground(cp); break; // CardWirth 1.50
+				case 'L': gc.setForeground(cl); break; // CardWirth 1.50
+				case 'D': gc.setForeground(cd); break; // CardWirth 1.50
 				default: assert (0);
 				}
 				i++;

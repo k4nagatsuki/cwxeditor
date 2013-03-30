@@ -345,10 +345,14 @@ class Msgs : Properties {
 	auto noImageMessage = Msg("noImageMessage", "イメージ無しメッセージ");
 	auto spCharsTitle = Msg("spCharsTitle", "特殊文字");
 	auto colorW = Msg("colorW", "デフォルト(&W)");
-	auto colorR = Msg("colorR", "赤(&R)");
-	auto colorB = Msg("colorB", "青(&B)");
-	auto colorG = Msg("colorG", "緑(&G)");
-	auto colorY = Msg("colorY", "黄(&Y)");
+	auto colorR = Msg("colorR", "赤色(&R)");
+	auto colorB = Msg("colorB", "青色(&B)");
+	auto colorG = Msg("colorG", "緑色(&G)");
+	auto colorY = Msg("colorY", "黄色(&Y)");
+	auto colorO = Msg("colorO", "橙色(&O)"); // CardWirth 1.50
+	auto colorP = Msg("colorP", "紫色(&P)"); // CardWirth 1.50
+	auto colorL = Msg("colorL", "明るい灰色(&L)"); // CardWirth 1.50
+	auto colorD = Msg("colorD", "暗い灰色(&D)"); // CardWirth 1.50
 	const string scTalkerName(Talker id) {
 		mixin(EnumToStringSwitch!(Talker, "scTalkerName"));
 	}
