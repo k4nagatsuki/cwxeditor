@@ -183,6 +183,12 @@
 		font-size: 80%;
 		font-weight: normal;
 	}
+	p.args {
+		color: #225;
+		font-size: 100%;
+		font-weight: normal;
+		margin-bottom: 0.2em;
+	}
 	em {
 		font-style: italic;
 	}
@@ -195,6 +201,16 @@
 	}
 	ol ol {
 		margin-right: 0;
+	}
+	ul {
+		margin-top: 0.5em;
+		margin-left: 1em;
+		margin-right: 5%;
+		margin-bottom: 0.5em;
+	}
+	ul ul {
+		margin-top: 0;
+		margin-bottom: 0;
 	}
 	li {
 		display: list-item;
@@ -277,7 +293,7 @@
 					<li class="content"><a href="#ENDSC">endsc</a></li>
 					<li class="content"><a href="#GAMEOVE">gameover</a></li>
 					<li class="content"><a href="#GOAREA">goarea</a></li>
-					<li class="content"><a href="#CHGBACK">chback</a></li>
+					<li class="content"><a href="#CHBACK">chback</a></li>
 					<li class="content"><a href="#EFFECT">effect</a></li>
 					<li class="content"><a href="#BREA">break</a></li>
 					<li class="content"><a href="#GOSTART">gostart</a></li>
@@ -301,9 +317,9 @@
 					<li class="content"><a href="#BRCOUNT">brcount</a></li>
 					<li class="content"><a href="#BRARE">brarea</a></li>
 					<li class="content"><a href="#BRBATTL">brbattle</a></li>
-					<li class="content"><a href="#BRONBATTL">bronbattle</a></li>
+					<li class="content"><a href="#BRONBATTLE">bronbattle</a></li>
 					<li class="content"><a href="#SELRANDOM">selrandom</a></li>
-					<li class="content"><a href="#BRKEYCODE">brkeycode</a></li>
+					<li class="content"><a href="#BRROUND">brround</a></li>
 					<li class="content"><a href="#BRCAST">brcast</a></li>
 					<li class="content"><a href="#BRITEM">britem</a></li>
 					<li class="content"><a href="#BRSKILL">brskill</a></li>
@@ -313,16 +329,18 @@
 					<li class="content"><a href="#BRCOUPON">brcoupon</a></li>
 					<li class="content"><a href="#BRSTAMP">brstamp</a></li>
 					<li class="content"><a href="#BRGOSSIP">brgossip</a></li>
+					<li class="content"><a href="#BRKEYCODE">brkeycode</a></li>
 					<li class="content"><a href="#SETFLAG">setflag</a></li>
 					<li class="content"><a href="#SETSTEP">setstep</a></li>
 					<li class="content"><a href="#STEPUP">stepup</a></li>
 					<li class="content"><a href="#STEPDOWN">stepdown</a></li>
 					<li class="content"><a href="#REVFLAG">revflag</a></li>
-					<li class="content"><a href="#CHKFLAG">chkflag</a></li>
 					<li class="content"><a href="#CPSTEP">cpstep</a></li>
 					<li class="content"><a href="#CPFLAG">cpflag</a></li>
 					<li class="content"><a href="#CMPSTEP">cmpstep</a></li>
 					<li class="content"><a href="#CMPFLAG">cmpflag</a></li>
+					<li class="content"><a href="#CHKFLAG">chkflag</a></li>
+					<li class="content"><a href="#CHKSTEP">chkstep</a></li>
 					<li class="content"><a href="#GETCAST">getcast</a></li>
 					<li class="content"><a href="#GETITEM">getitem</a></li>
 					<li class="content"><a href="#GETSKILL">getskill</a></li>
@@ -754,7 +772,10 @@
 	<dd>ゲームオーバー</dd>
 	<dt class="content"><a href="#GOAREA">goarea <span class="args"><span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></dt>
 	<dd>エリアの移動</dd>
-	<dt class="content"><a href="#CHGBACK">chback <span class="args"><span class="array">[<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>] ...</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></dt>
+	<dt class="content"><a href="#CHBACK">chback <span class="args"><span class="array">([<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>]
+| [<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>]
+| [<span class="arg">color</span>, <span class="arg">&lt;合成方式&gt;</span>, <span class="arg">&lt;基本色&gt;</span>, <span class="arg">&lt;グラデーション方向&gt;</span>, <span class="arg">&lt;終端色&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>]) ...</span>,
+<span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></dt>
 	<dd>背景の変更</dd>
 	<dt class="content"><a href="#EFFECT">effect <span class="args"> <span class="arg">&lt;効果対象&gt;</span>, <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span></span></a></dt>
 	<dd>効果</dd>
@@ -802,12 +823,12 @@
 	<dd>エリア分岐</dd>
 	<dt class="content"><a href="#BRBATTL">brbattle</a></dt>
 	<dd>バトル分岐</dd>
-	<dt class="content"><a href="#BRONBATTL">bronbattle</a></dt>
+	<dt class="content"><a href="#BRONBATTLE">bronbattle</a></dt>
 	<dd>バトル中/非バトル中分岐</dd>
 	<dt class="content"><a href="#SELRANDOM">selrandom <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;レベル下限&gt;</span>, <span class="arg">&lt;レベル上限&gt;</span>, <span class="arg">&lt;ステータス&gt;</span></span></a></dt>
 	<dd>ランダム選択分岐</dd>
-	<dt class="content"><a href="#BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span>, <span class="arg">&lt;キーコード&gt;</span></span></a></dt>
-	<dd>キーコード所持分岐</dd>
+	<dt class="content"><a href="#BRROUND">brround <span class="args"><span class="arg">&lt;比較条件&gt;</span>, <span class="arg">&lt;ラウンド&gt;</span></span></a></dt>
+	<dd>ラウンド分岐</dd>
 	<dt class="content"><a href="#BRCAST">brcast <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></dt>
 	<dd>キャスト同行分岐</dd>
 	<dt class="content"><a href="#BRITEM">britem <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></dt>
@@ -826,6 +847,8 @@
 	<dd>終了印有無分岐</dd>
 	<dt class="content"><a href="#BRGOSSIP">brgossip <span class="args"><span class="arg">&lt;ゴシップ名&gt;</span></span></a></dt>
 	<dd>ゴシップ有無分岐</dd>
+	<dt class="content"><a href="#BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span>, <span class="arg">&lt;キーコード&gt;</span></span></a></dt>
+	<dd>キーコード所持分岐</dd>
 	<dt class="content"><a href="#SETFLAG">setflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span>, <span class="arg">&lt;値&gt;</span></span></a></dt>
 	<dd>フラグ値の設定</dd>
 	<dt class="content"><a href="#SETSTEP">setstep <span class="args"><span class="arg">&lt;ステップ名&gt;</span>, <span class="arg">&lt;値&gt;</span></span></a></dt>
@@ -836,8 +859,6 @@
 	<dd>ステップ値の減少</dd>
 	<dt class="content"><a href="#REVFLAG">revflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span></span></a></dt>
 	<dd>フラグ反転</dd>
-	<dt class="content"><a href="#CHKFLAG">chkflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span></span></a></dt>
-	<dd>フラグ判定</dd>
 	<dt class="content"><a href="#CPSTEP">cpstep <span class="args"><span class="arg">&lt;代入元ステップ名&gt;</span>, <span class="arg">&lt;代入先ステップ名&gt;</span></span></a></dt>
 	<dd>ステップ代入</dd>
 	<dt class="content"><a href="#CPFLAG">cpflag <span class="args"><span class="arg">&lt;代入元フラグ名&gt;</span>, <span class="arg">&lt;代入先フラグ名&gt;</span></span></a></dt>
@@ -846,6 +867,10 @@
 	<dd>ステップ比較分岐</dd>
 	<dt class="content"><a href="#CMPFLAG">cmpflag <span class="args"><span class="arg">&lt;比較元フラグ名&gt;</span>, <span class="arg">&lt;比較先フラグ名&gt;</span></span></a></dt>
 	<dd>フラグ比較分岐</dd>
+	<dt class="content"><a href="#CHKFLAG">chkflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span></span></a></dt>
+	<dd>フラグ判定</dd>
+	<dt class="content"><a href="#CHKSTEP">chkstep <span class="args"><span class="arg">&lt;ステップ名&gt;</span>, <span class="arg">&lt;比較条件&gt;</span>, <span class="arg">&lt;値&gt;</span></span></a></dt>
+	<dd>ステップ判定</dd>
 	<dt class="content"><a href="#GETCAST">getcast <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></dt>
 	<dd>キャストの同行</dd>
 	<dt class="content"><a href="#GETITEM">getitem <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></dt>
@@ -977,18 +1002,114 @@
 
 <pre><code class="samplecode"><span class="keywords">goarea</span> <span class="num">2</span>, <span class="num">10</span>, <span class="code">fade</span> <span class="comment">// 画面をフェード式でゆっくりと切り替えながらエリア2へ移動</span></code></pre>
 
-<h3 class="content"><a id="CHGBACK" name="CHGBACK">chback <span class="args"><span class="array">[<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>] ...</span>, <span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></h3>
+<h3 class="content"><a id="CHBACK" name="CHBACK">chback <span class="args"><span class="array">([<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>]
+| [<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>]
+| [<span class="arg">color</span>, <span class="arg">&lt;合成方式&gt;</span>, <span class="arg">&lt;基本色&gt;</span>, <span class="arg">&lt;グラデーション方向&gt;</span>, <span class="arg">&lt;終端色&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>]) ...</span>,
+<span class="arg">&lt;画面切替スピード&gt;</span>, <span class="arg">&lt;切替方式&gt;</span></span></a></h3>
 
 <p class="fullname">(Change Background)</p>
 <p class="desc">背景を切替えます。</p>
 
-<h4 class="argments">パラメータ</h4>
+<h4 class="argments">セルパラメータ</h4>
 
-<p class="desc"><code class="code">[]</code>で囲われたパラメータが一枚の画像を表し、いくつでも重ねて指定できます。</p>
+<p class="desc">画像セル・テキストセル・カラーセルの三種類を配置できるようになっています。</p>
+<p class="desc"><code class="code">[]</code>で囲われたパラメータが一枚のセルを表し、いくつでも重ねて指定できます。</p>
+
+<h5>画像セル</h5>
+
+<p class="args"><code class="array">[<span class="arg">&lt;画像パス&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>, <span class="arg">&lt;透明化有無&gt;</span>]</code></p>
 <p class="desc">画像パスには、文字列で画像のファイル名を指定します。</p>
 <p class="desc">フラグには、画像を表示する条件のフラグ名を指定します。フラグを使用しない場合は空文字列<code class="str">""</code>を指定します。</p>
-<p class="desc">X位置・Y位置・横幅・縦幅には、画像の配置とサイズを指定します。指定しなかった場合、0、0、632、420になります。(画面一杯に表示)</p>
+<p class="desc">X位置・Y位置・横幅・縦幅には、画像の配置とサイズを指定します。指定しなかった場合、<span class="num">0</span>、<span class="num">0</span>、<span class="num">632</span>、<span class="num">420</span>になります。(画面一杯に表示)</p>
 <p class="desc">透明化の有無には、<code class="code">true/false</code>で、左上を透明色として使用するか、透明化を行わないかを指定します。指定しなかった場合、透明化は行われません。</p>
+
+<pre><code class="samplecode"><span class="keywords">chback</span> [<span class="str">"MapOfWirth.bmp"</span>] <span class="comment">// MapOfWirth.bmpを画面一杯に表示</span>
+       [<span class="str">"AdventurersInn.bmp"</span>, <span class="str">""</span>, <span class="num">116</span>, <span class="num">15</span>, <span class="num">400</span>, <span class="num">260</span>, <span class="code">false</span>] <span class="comment">// 宿の画像を標準の位置に表示</span></code></pre>
+
+<h5>テキストセル</h5>
+
+<p class="args"><code class="array">[<span class="arg">text</span>, <span class="arg">&lt;テキスト&gt;</span>, <span class="arg">&lt;フォント名&gt;</span>, <span class="arg">&lt;文字サイズ&gt;</span>, <span class="arg">&lt;文字色&gt;</span>, <span class="arg">&lt;書式&gt;</span> ..., (<span class="arg">&lt;縁取り色&gt;</span>), (<span class="arg">&lt;縁取り幅&gt;</span>), <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>]</code></p>
+<p class="desc">最初にキーワード<code class="keywords">text</code>を指定してください。</p>
+<p class="desc">テキストには、セルに表示する文章の内容を文字列で指定します。</p>
+<p class="desc">フォント名には、表示に使用するフォントの名前を文字列で指定子ます。</p>
+<p class="desc">文字サイズには、表示する文字のサイズをピクセル値で指定します。ポイントサイズではなくピクセル単位のサイズである事にご注意ください。</p>
+<p class="desc">文字色には、表示される文字の色を指定します。次のいずれかの方式で指定する事ができます。</p>
+
+<ul>
+	<li><code class="str">"#FFFFFF"</code>のように文字列で指定する。これはWebの色指定などを行った事があれば馴染みのある形式かもしれません。この指定は<code class="code"># FF FF FF</code>のように分割して解釈され、<code class="code">FF</code>の部分がそれぞれ十六進数の数値で、光の三原色である赤、緑、青の明るさを示しています。例えば、赤と緑の明るさが最高で青が真っ黒という意味の<code class="str">"#FFFF00"</code>を指定すると、文字色は黄色になります。</li>
+	<li><code class="array">[<span class="num">255</span>, <span class="num">255</span>, <span class="num">255</span>]</code>のように、複合パラメータで赤、緑、青の明るさを指定する。それぞれの明るさの値は<code class="num">0</code>～<code class="num">255</code>までです。</li>
+</ul>
+
+<p class="desc">書式には、以下のパラメータを配列で指定します。</p>
+
+<dl>
+	<dt class="keyword"><code>bold</code></dt>
+	<dd class="worddesc">文字を太字にします。</dd>
+	<dt class="keyword"><code>italic</code></dt>
+	<dd class="worddesc">文字を斜体にします。</dd>
+	<dt class="keyword"><code>underline</code></dt>
+	<dd class="worddesc">行に下線を付けます。</dd>
+	<dt class="keyword"><code>strike</code></dt>
+	<dd class="worddesc">行に打ち消し線を付けます。</dd>
+	<dt class="keyword"><code>vertical</code></dt>
+	<dd class="worddesc">文章を縦書きにします。</dd>
+	<dt class="keyword"><code>border1</code></dt>
+	<dd class="worddesc">文字を縁取りします。縁取りには2種類の形式があります。<code class="keywords">border2</code>と共に指定された場合は、後から指定された方が有効になります。</dt>
+	<dt class="keyword"><code>border2</code></dt>
+	<dd class="worddesc"><code class="keywords">border1</code>とは別の形式で縁取りを行います。<code class="keywords">border1</code>と共に指定された場合は、後から指定された方が有効になります。</dd>
+</dl>
+
+<p class="desc">書式に<code class="keywords">border1</code>または<code class="keywords">border2</code>を指定した場合、縁取りの色を指定する事ができます。指定の方法は文字色と同様です。縁取り書式を指定していない場合は、必ず省略してください。</p>
+<p class="desc">書式に<code class="keywords">border2</code>を指定した場合、縁取りの太さを数値で指定する事ができます。<code class="keywords">border2</code>を指定していない場合は、必ず省略してください。</p>
+<p class="desc">フラグには、画像を表示する条件のフラグ名を指定します。フラグを使用しない場合は空文字列<code class="str">""</code>を指定します。</p>
+<p class="desc">X位置・Y位置・横幅・縦幅には、画像の配置とサイズを指定します。指定しなかった場合、<span class="num">0</span>、<span class="num">0</span>、<span class="num">632</span>、<span class="num">420</span>になります。(画面一杯に表示)</p>
+
+<pre><code class="samplecode"><span class="comment">// 文字列"Card Wirth"(太字・斜体・縁取り付き)をBatangフォントで画面中央に表示</span>
+<span class="keywords">chback</span> [<span class="keywords">text</span>, <span class="str">"Card Wirth"</span>, <span class="str">"Batang"</span>, <span class="num">48</span>, <span class="str">"#000000"</span>, <span class="code">bold</span> <span class="code">italic</span> <span class="code">border2</span>, <span class="str">"#FFFFFF"</span>, <span class="num">1</span>, <span class="str">""</span>, <span class="num">185</span>, <span class="num">110</span>, <span class="num">280</span>, <span class="num">60</span>]</code></pre>
+
+<h5>カラーセル</h5>
+
+<p class="args"><code class="array">[<span class="arg">color</span>, <span class="arg">&lt;合成方式&gt;</span>, <span class="arg">&lt;基本色&gt;</span>, <span class="arg">&lt;グラデーション方向&gt;</span>, <span class="arg">&lt;終端色&gt;</span>, <span class="arg">&lt;フラグ&gt;</span>, <span class="arg">&lt;X位置&gt;</span>, <span class="arg">&lt;Y位置&gt;</span>, <span class="arg">&lt;横幅&gt;</span>, <span class="arg">&lt;縦幅&gt;</span>]</code></p>
+<p class="desc">最初にキーワード<code class="keywords">color</code>を指定してください。</p>
+<p class="desc">合成方式には、次のいずれかを指定できます。</p>
+
+<dl>
+	<dt class="keyword"><code>normal</code></dt>
+	<dd class="worddesc">そのままセルを描画します。背景は上書きされます。</dd>
+	<dt class="keyword"><code>add</code></dt>
+	<dd class="worddesc">背景の色にセルの色を加算します。例えば、灰色の背景に灰色のセルを加算合成すると、明るさが足し合わされて白に近い色になります。</dd>
+	<dt class="keyword"><code>sub</code></dt>
+	<dd class="worddesc">背景の色からセルの色を減じます。例えば、灰色の背景に灰色のセルを減算合成すると、明るさがセルの色の分だけ引かれて黒に近い色になります。</dd>
+	<dt class="keyword"><code>mul</code></dt>
+	<dd class="worddesc">背景の色とセルの色で乗算を行います。背景に対してセルの色で薄暗いフィルタをかけたような効果が得られます。</dd>
+</dl>
+
+<p class="desc">基本色には、セル全体を塗り潰す色を指定します。次のいずれかの方式で指定する事ができます。</p>
+
+<ul>
+	<li><code class="str">"#FFFFFF"</code>のように文字列で指定する。これはWebの色指定などを行った事があれば馴染みのある形式かもしれません。この指定は<code class="code"># FF FF FF</code>のように分割して解釈され、<code class="code">FF</code>の部分がそれぞれ十六進数の数値で、光の三原色である赤、緑、青の明るさを示しています。例えば、赤と緑の明るさが最高で青が真っ黒という意味の<code class="str">"#FFFF00"</code>を指定すると、セルの色は黄色になります。透明度を指定したい場合は、もう一つ数値を加えて<code class="str">#FFFF0080</code>のようにしてください。数値が大きいほど不透明になり、<code class="code">00</code>で完全に透明になります。</li>
+	<li><code class="array">[<span class="num">255</span>, <span class="num">255</span>, <span class="num">255</span>, <span class="num">128</span>]</code>のように、複合パラメータで赤、緑、青の明るさと透明度を指定する。それぞれの明るさの値は<code class="num">0</code>～<code class="num">255</code>までです。透明度も<code class="num">0</code>～<code class="num">255</code>で、<code class="num">255</code>が完全に不透明、<code class="num">0</code>が完全に透明となります。</li>
+</ul>
+<p class="desc">グラデーション方向には、次のいずれかを指定できます。</p>
+
+<dl>
+	<dt class="keyword"><code>none</code></dt>
+	<dd class="worddesc">グラデーションしません。</dd>
+	<dt class="keyword"><code>h</code> または <code>horizontal</code></dt>
+	<dd class="worddesc">左から右へグラデーションします。</dd>
+	<dt class="keyword"><code>v</code> または <code>vertical</code></dt>
+	<dd class="worddesc">上から下へグラデーションします。</dd>
+</dl>
+
+<p class="desc">グラデーション方向で<code class="keywords">none</code>以外を指定した場合、グラデーションの終端側の色を指定する事ができます。色の指定方法は、基本色と同じです。グラデーション方向が<code class="keywords">none</code>の場合は、必ず省略してください。</p>
+<p class="desc">フラグには、画像を表示する条件のフラグ名を指定します。フラグを使用しない場合は空文字列<code class="str">""</code>を指定します。</p>
+<p class="desc">X位置・Y位置・横幅・縦幅には、画像の配置とサイズを指定します。指定しなかった場合、<span class="num">0</span>、<span class="num">0</span>、<span class="num">632</span>、<span class="num">420</span>になります。(画面一杯に表示)</p>
+
+<pre><code class="samplecode"><span class="comment">// 画面全体に薄暗い青色のフィルタをかける</span>
+<span class="keywords">chback</span> [<span class="code">color</span>, <span class="code">mul</span>, <span class="str">"#70B0FF"</span>, <span class="code">vertical</span>, <span class="str">"#102030"</span>, <span class="str">""</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">632</span>, <span class="num">420</span>]</code></pre>
+
+<h4 class="argments">その他のパラメータ</h4>
+
 <p class="desc">背景画像の指定に加え、画像切替スピードと切替速度を指定できます。</p>
 <p class="desc">画像の指定の他、CardWirthPy形式のシナリオに限り、画面切替スピードと切替方式を指定できます。</p>
 <p class="desc">指定しなかった場合はエンジンの設定が採用されます。</p>
@@ -1011,9 +1132,10 @@
 <h4 class="example">例</h4>
 
 <pre><code class="samplecode"><span class="comment">// 宿の背景を遅めの背景切替で表示する</span>
-<span class="keywords">chback</span> <span class="comment">// 次の二つのパラメータは配列のため、カンマで区切らない</span>
+<span class="keywords">chback</span> <span class="comment">// 次の3つのパラメータは配列のため、カンマで区切らない</span>
        [<span class="str">"MapOfWirth.bmp"</span>] <span class="comment">// MapOfWirth.bmpを画面一杯に表示</span>
-       [<span class="str">"AdventurersInn.bmp"</span>, <span class="str">""</span>, <span class="num">116</span>, <span class="num">15</span>, <span class="num">400</span>, <span class="num">260</span>, <span class="code">false</span>], <span class="comment">// 宿の画像を標準の位置に表示</span>
+       [<span class="str">"AdventurersInn.bmp"</span>, <span class="str">""</span>, <span class="num">116</span>, <span class="num">15</span>, <span class="num">400</span>, <span class="num">260</span>, <span class="code">false</span>] <span class="comment">// 宿の画像を標準の位置に表示</span>
+       [<span class="code">color</span>, <span class="code">add</span>, <span class="str">"#909090"</span>], <span class="comment">// 画面全体を明るくする</span>
        <span class="num">8</span> <span class="comment">// ゆっくり背景を切り替える</span></code></pre>
 
 <h3 class="content"><a id="EFFECT" name="EFFECT">effect <span class="args"><span class="arg">&lt;効果対象&gt;</span>, <span class="array">[<span class="arg">&lt;効果種別&gt;</span>, (<span class="arg">&lt;ダメージタイプ&gt;</span>, <span class="arg">&lt;値&gt;</span> | <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;増減値&gt;</span>, <span class="arg">&lt;継続時間&gt;</span> | <span class="arg">&lt;召喚獣ID&gt;</span>), <span class="arg">&lt;属性&gt;</span>] ...</span>, <span class="arg">&lt;視覚効果&gt;</span>, <span class="arg">&lt;効果レベル&gt;</span>, <span class="arg">&lt;成功率&gt;</span>, <span class="arg">&lt;効果属性&gt;</span>, <span class="arg">&lt;抵抗属性&gt;</span>, <span class="arg">&lt;音声パス&gt;</span></span></a></h3>
@@ -1705,6 +1827,36 @@
 	<dd class="worddesc">呪縛。</dd>
 	<dt class="keyword"><code>paralyze</code></dt>
 	<dd class="worddesc">麻痺あるいは石化。</dd>
+	<dt class="keyword"><code>confuse</code></dt>
+	<dd class="worddesc">混乱。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
+	<dt class="keyword"><code>overheat</code></dt>
+	<dd class="worddesc">激昂。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
+	<dt class="keyword"><code>brave</code></dt>
+	<dd class="worddesc">勇敢。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
+	<dt class="keyword"><code>panic</code></dt>
+	<dd class="worddesc">恐慌。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
+	<dt class="keyword"><code>silence</code></dt>
+	<dd class="worddesc">沈黙。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
+	<dt class="keyword"><code>faceup</code></dt>
+	<dd class="worddesc">暴露。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
+	<dt class="keyword"><code>antimagic</code></dt>
+	<dd class="worddesc">魔法無効化。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
+	<dt class="keyword"><code>upaction</code></dt>
+	<dd class="worddesc">行動力上昇。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
+	<dt class="keyword"><code>upavoid</code></dt>
+	<dd class="worddesc">回避力上昇。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
+	<dt class="keyword"><code>upresit</code></dt>
+	<dd class="worddesc">抵抗力上昇。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
+	<dt class="keyword"><code>updefense</code></dt>
+	<dd class="worddesc">防御力上昇。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
+	<dt class="keyword"><code>downaction</code></dt>
+	<dd class="worddesc">行動力低下。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
+	<dt class="keyword"><code>downavoid</code></dt>
+	<dd class="worddesc">回避力低下。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
+	<dt class="keyword"><code>downresit</code></dt>
+	<dd class="worddesc">抵抗力低下。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
+	<dt class="keyword"><code>downdefense</code></dt>
+	<dd class="worddesc">防御力低下。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
 </dl>
 
 <h4 class="example">例</h4>
@@ -1804,7 +1956,7 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="BRONBATTL" name="BRONBATTL">bronbattle</a></h3>
+<h3 class="content"><a id="BRONBATTLE" name="BRONBATTLE">bronbattle</a></h3>
 
 <p class="fullname">(Branch with If on Battle)</p>
 <p class="desc">現在バトル中であるかどうかで分岐します。</p>
@@ -1842,10 +1994,10 @@
 	<dt class="keyword"><code>enemy</code></dt>
 	<dd class="worddesc">敵全体。</dd>
 	<dt class="keyword"><code>npc</code></dt>
-	<dd class="worddesc">同行キャスト全体。<em class="warning">CardWirthNextでなければ機能しません。</em></dd>
+	<dd class="worddesc">同行キャスト全体。<em class="warning">CardWirth 1.50以降でなければ機能しません。</em></dd>
 </dl>
-<p class="desc">レベル下限とレベル上限には、選択対象のレベル範囲を指定します。<code style="num">0</code>を指定した場合、レベルは無視されます。</p>
-<p class="desc">ステータスには、以下のいずれかを指定できます。<code style="code">none</code>を指定した場合、状態は無視されます。</p>
+<p class="desc">レベル下限とレベル上限には、選択対象のレベル範囲を指定します。<code class="num">0</code>を指定した場合、レベルは無視されます。</p>
+<p class="desc">ステータスには、以下のいずれかを指定できます。<code class="code">none</code>を指定した場合、状態は無視されます。</p>
 <dl>
 	<dt class="keyword"><code>active</code></dt>
 	<dd class="worddesc">行動可能。(健康 | 負傷 | 重傷 | 中毒)</dd>
@@ -1879,6 +2031,28 @@
 	<dd class="worddesc">勇敢。</dd>
 	<dt class="keyword"><code>panic</code></dt>
 	<dd class="worddesc">恐慌。</dd>
+	<dt class="keyword"><code>silence</code></dt>
+	<dd class="worddesc">沈黙。</dd>
+	<dt class="keyword"><code>faceup</code></dt>
+	<dd class="worddesc">暴露。</dd>
+	<dt class="keyword"><code>antimagic</code></dt>
+	<dd class="worddesc">魔法無効化。</dd>
+	<dt class="keyword"><code>upaction</code></dt>
+	<dd class="worddesc">行動力上昇。</dd>
+	<dt class="keyword"><code>upavoid</code></dt>
+	<dd class="worddesc">回避力上昇。</dd>
+	<dt class="keyword"><code>upresit</code></dt>
+	<dd class="worddesc">抵抗力上昇。</dd>
+	<dt class="keyword"><code>updefense</code></dt>
+	<dd class="worddesc">防御力上昇。</dd>
+	<dt class="keyword"><code>downaction</code></dt>
+	<dd class="worddesc">行動力低下。</dd>
+	<dt class="keyword"><code>downavoid</code></dt>
+	<dd class="worddesc">回避力低下。</dd>
+	<dt class="keyword"><code>downresit</code></dt>
+	<dd class="worddesc">抵抗力低下。</dd>
+	<dt class="keyword"><code>downdefense</code></dt>
+	<dd class="worddesc">防御力低下。</dd>
 	<dt class="keyword"><code>none</code></dt>
 	<dd class="worddesc">状態指定無し。</dd>
 </dl>
@@ -1896,48 +2070,29 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="BRKEYCODE" name="BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span>, <span class="arg">&lt;キーコード&gt;</span></span></a></h3>
+<h3 class="content"><a id="BRROUND" name="BRROUND">brround <span class="args"><span class="arg">&lt;比較条件&gt;</span>, <span class="arg">&lt;ラウンド&gt;</span></span></a></h3>
 
-<p class="fullname">(Branch with Key Code)</p>
+<p class="fullname">(Branch with Random)</p>
 
-<p class="desc"><em class="warning">このコンテントはCardWirthNext(仮)でなければ機能しません。</em></p>
-<p class="desc">範囲内に指定されたキーコードを持つカードがあるか否かで分岐します。</p>
+<p class="desc"><em class="warning">このコンテントはCardWirth 1.50以降でなければ機能しません。</em></p>
+
+<p class="desc">現在のバトルのラウンド数で分岐します。</p>
+<p class="desc">バトル内でなければ正常に動かない事に注意してください。<a href="#BRONBATTLE"><code class="keywords">bronbattle</code></a>との併用が効果的です。</p>
 
 <h4 class="argments">パラメータ</h4>
 
-<p class="desc">判定の範囲には、次のいずれかが指定できます。</p>
-<dl>
-	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
-	<dd class="worddesc">選択中のメンバの所持カード。</dd>
-	<dt class="keyword"><code>R</code> または <code>one</code></dt>
-	<dd class="worddesc">誰か一人の所持カード。これによって判定に成功した場合、所持しているメンバが選択状態になります。</dd>
-	<dt class="keyword"><code>backpack</code></dt>
-	<dd class="worddesc">荷物袋。</dd>
-	<dt class="keyword"><code>party</code></dt>
-	<dd class="worddesc">荷物袋も含むパーティ全員の所持カード。</dd>
-</dl>
-<p class="desc">カード種別には、以下のいずれかを指定できます。</p>
-<dl>
-	<dt class="keyword"><code>all</code></dt>
-	<dd class="worddesc">全てのカード。</dd>
-	<dt class="keyword"><code>skill</code></dt>
-	<dd class="worddesc">特殊技能カード。</dd>
-	<dt class="keyword"><code>item</code></dt>
-	<dd class="worddesc">アイテムカード。</dd>
-	<dt class="keyword"><code>beast</code></dt>
-	<dd class="worddesc">召喚獣カード。</dd>
-</dl>
-<p class="desc">最後のパラメータで判定対象のキーコードを指定します。</p>
+<p class="desc">比較条件には、この後に指定するラウンドと、イベント実行時点でのバトルラウンドをどのように比較するかを指定します。<code class="str">"="</code>を指定すると現在のラウンドと指定ラウンドが一致する場合に、<code class="str">"<"</code>を指定するとバトルラウンドが指定ラウンドより小さい場合に、<code class="str">">"</code>を指定するとバトルラウンドが指定ラウンドより大きい場合に、それぞれ<code class="code">true</code>となります。</p>
+<p class="desc">ラウンドには、現在のバトルのラウンド数を指定します。</p>
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">brkeycode</span> <span class="code">R</span>, <span class="code">item</span>, <span class="code">"治療"</span>
+<pre><code class="samplecode"><span class="keywords">brround</span> <span class="str">"<"</span> <span class="num">11</span>
 <code class="code">if</code> <span class="code">true</span>
-    <span class="comment">// 回復アイテムを持っている</span>
+    <span class="comment">// 10ラウンド目まではこちらへ分岐する</span>
     <span class="comment">// ...</span>
     <span class="keywords">break</span>
 <code class="code">elif</code> <span class="code">false</span>
-    <span class="comment">// 回復アイテムを持っていない</span>
+    <span class="comment">// 11ラウンド目以降はこちらへ分岐する</span>
     <span class="comment">// ...</span>
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
@@ -2130,6 +2285,53 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
+<h3 class="content"><a id="BRKEYCODE" name="BRKEYCODE">brkeycode <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;カード種別&gt;</span>, <span class="arg">&lt;キーコード&gt;</span></span></a></h3>
+
+<p class="fullname">(Branch with Key Code)</p>
+
+<p class="desc"><em class="warning">このコンテントはCardWirth 1.50以降でなければ機能しません。</em></p>
+
+<p class="desc">範囲内に指定されたキーコードを持つカードがあるか否かで分岐します。</p>
+
+<h4 class="argments">パラメータ</h4>
+
+<p class="desc">判定の範囲には、次のいずれかが指定できます。</p>
+<dl>
+	<dt class="keyword"><code>M</code> または <code>selected</code></dt>
+	<dd class="worddesc">選択中のメンバの所持カード。</dd>
+	<dt class="keyword"><code>R</code> または <code>one</code></dt>
+	<dd class="worddesc">誰か一人の所持カード。これによって判定に成功した場合、所持しているメンバが選択状態になります。</dd>
+	<dt class="keyword"><code>backpack</code></dt>
+	<dd class="worddesc">荷物袋。</dd>
+	<dt class="keyword"><code>party</code></dt>
+	<dd class="worddesc">荷物袋も含むパーティ全員の所持カード。</dd>
+</dl>
+<p class="desc">カード種別には、以下のいずれかを指定できます。</p>
+<dl>
+	<dt class="keyword"><code>all</code></dt>
+	<dd class="worddesc">全てのカード。</dd>
+	<dt class="keyword"><code>skill</code></dt>
+	<dd class="worddesc">特殊技能カード。</dd>
+	<dt class="keyword"><code>item</code></dt>
+	<dd class="worddesc">アイテムカード。</dd>
+	<dt class="keyword"><code>beast</code></dt>
+	<dd class="worddesc">召喚獣カード。</dd>
+</dl>
+<p class="desc">最後のパラメータで判定対象のキーコードを指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">brkeycode</span> <span class="code">R</span>, <span class="code">item</span>, <span class="code">"治療"</span>
+<code class="code">if</code> <span class="code">true</span>
+    <span class="comment">// 回復アイテムを持っている</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">break</span>
+<code class="code">elif</code> <span class="code">false</span>
+    <span class="comment">// 回復アイテムを持っていない</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">break</span>
+<code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
+
 <h3 class="content"><a id="SETFLAG" name="SETFLAG">setflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span>, <span class="arg">&lt;値&gt;</span></span></a></h3>
 
 <p class="fullname">(Set Flag)</p>
@@ -2196,32 +2398,6 @@
 <h4 class="example">例</h4>
 
 <pre><code class="samplecode"><span class="keywords">revflag</span> <span class="str">"見張り生存"</span> <span class="comment">// フラグ「見張り生存」を反転</span></code></pre>
-
-<h3 class="content"><a id="CHKFLAG" name="CHKFLAG">chkflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span></span></a></h3>
-
-<p class="fullname">(Check Flag)</p>
-
-<p class="desc">フラグがOnになっている場合だけ出現する選択肢を作ります。</p>
-<p class="desc">メッセージ選択分岐の直後に配置する事で有効になります。例を参照してください。</p>
-
-<h4 class="argments">パラメータ</h4>
-
-<p class="desc">フラグの名前を文字列で指定します。</p>
-
-<h4 class="example">例</h4>
-
-<pre><code class="samplecode"><span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"どうする？"</span>
-<code class="code">if</code> <span class="str">"依頼を受ける"</span> <span class="keywords">chkflag</span> <span class="str">"話を聞いた"</span>
-    <span class="comment">// フラグ「話を聞いた」がOnでなければこの選択肢は出現しない</span>
-    <span class="comment">// ...</span>
-    <span class="keywords">break</span>
-<code class="code">elif</code> <span class="str">"依頼を断る"</span>
-    <span class="comment">// ...</span>
-    <span class="keywords">endsc</span>
-<code class="code">elif</code> <span class="str">"話を聞く"</span>
-    <span class="comment">// ...</span>
-    <span class="keywords">setflag</span> <span class="str">"話を聞いた"</span>, <span class="code">true</span>
-<code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="CPSTEP" name="CPSTEP">cpstep <span class="args"><span class="arg">&lt;代入元ステップ名&gt;</span>, <span class="arg">&lt;代入先ステップ名&gt;</span></span></a></h3>
 
@@ -2290,6 +2466,64 @@
     <span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"自分と相手の状態は同じ程度のようだ。"</span>
 <code class="code">elif</code> <span class="code">false</span> <span class="comment">// 不一致</span>
     <span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"好調なのは片方だけか。"</span>
+<code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
+
+<h3 class="content"><a id="CHKFLAG" name="CHKFLAG">chkflag <span class="args"><span class="arg">&lt;フラグ名&gt;</span></span></a></h3>
+
+<p class="fullname">(Check Flag)</p>
+
+<p class="desc">フラグがOnになっている場合だけ出現するイベントを作ります。</p>
+<p class="desc">メッセージ選択分岐の直後に配置するのが一般的な使い方です。例を参照してください。</p>
+
+<h4 class="argments">パラメータ</h4>
+
+<p class="desc">フラグの名前を文字列で指定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"どうする？"</span>
+<code class="code">if</code> <span class="str">"依頼を受ける"</span> <span class="keywords">chkflag</span> <span class="str">"話を聞いた"</span>
+    <span class="comment">// フラグ「話を聞いた」がOnでなければこの選択肢は出現しない</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">break</span>
+<code class="code">elif</code> <span class="str">"依頼を断る"</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">endsc</span>
+<code class="code">elif</code> <span class="str">"話を聞く"</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">setflag</span> <span class="str">"話を聞いた"</span>, <span class="code">true</span>
+<code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
+
+<h3 class="content"><a id="CHKSTEP" name="CHKSTEP">chkstep <span class="args"><span class="arg">&lt;ステップ名&gt;</span>, <span class="arg">&lt;値&gt;</span>, <span class="arg">&lt;比較条件&gt;</span></span></a></h3>
+
+<p class="fullname">(Check Step)</p>
+
+<p class="desc"><em class="warning">このコンテントはCardWirth 1.50以降でなければ機能しません。</em></p>
+
+<p class="desc">ステップの値が条件を満たす時だけ出現するイベントを作ります。</p>
+<p class="desc"><a href="#CHKFLAG"><code class="keywords">chkflag</code></a>と同様ですが、より柔軟な条件設定が可能です。例を参照してください。</p>
+
+<h4 class="argments">パラメータ</h4>
+
+<p class="desc">ステップ名には、ステップの名前を文字列で指定します。</p>
+<p class="desc">比較条件には、この後に指定する値とイベント実行時点でのステップの値をどのように比較するかを指定します。<code class="str">"="</code>を指定すると現在のステップ値と比較値が一致する場合に、<code class="str">"<>"</code>を指定するとステップ値と比較値が一致しない場合に、<code class="str">"<"</code>を指定するとステップ値が比較値より小さい場合に、<code class="str">">"</code>を指定するとステップ値が比較値より大きい場合に、それぞれイベントが出現します。</p>
+<p class="desc">値には、イベント実行時点での値と比較する値を数値で設定します。</p>
+
+<h4 class="example">例</h4>
+
+<pre><code class="samplecode"><span class="keywords">msg</span> <span class="code">none</span>, <span class="str">"何を聞こう？"</span>
+<code class="code">if</code> <span class="str">"事件のあらまし"</span> <span class="keywords">chkstep</span> <span class="str">"質問段階"</span>, <span class="str">"="</span>, <span class="num">0</span>
+    <span class="comment">// ステップ「質問段階」が0でなければこの選択肢は出現しない</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">stepup</span> <span class="str">"質問段階"</span>
+<code class="code">elif</code> <span class="str">"目撃者について"</span> <span class="keywords">chkstep</span> <span class="str">"質問段階"</span>, <span class="str">"<>"</span>, <span class="num">0</span>
+    <span class="comment">// ステップ「質問段階」が0の時はこの選択肢は出現しない</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">stepup</span> <span class="str">"質問段階" </span>
+<code class="code">elif</code> <span class="str">"依頼について"</span> <span class="keywords">chkstep</span> <span class="str">"質問段階"</span>, <span class="str">">"</span>, <span class="num">1</span>
+    <span class="comment">// ステップ「質問段階」が1より大きくなければこの選択肢は出現しない</span>
+    <span class="comment">// ...</span>
+    <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
 <h3 class="content"><a id="GETCAST" name="GETCAST">getcast <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></h3>
@@ -2623,10 +2857,12 @@ brflag
 brgossip
 brinfo
 britem
+brkeycode
 brlevel
 brmoney
 bronbattle
 brrandom
+brround
 brskill
 brstamp
 brstatus
@@ -2636,6 +2872,7 @@ callpack
 callstart
 chback
 chkflag
+chkstep
 cmpflag
 cmpstep
 cpflag
@@ -2723,6 +2960,10 @@ disparalyze
 dispoison
 dissilence
 dissolve
+downaction
+downavoid
+downdefense
+downresist
 enemy
 enhaction
 enhavoid
@@ -2799,6 +3040,10 @@ under
 unfail
 unselected
 untrick
+upaction
+upavoid
+updefense
+upresist
 value
 vanbeast
 vancard

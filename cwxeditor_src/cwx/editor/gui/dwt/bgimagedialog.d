@@ -1041,6 +1041,7 @@ class ColorPicker : Composite {
 		_button.setText("...");
 		.listener(_button, SWT.Selection, {
 			auto dlg = new ColorDialog(this.getShell());
+			if (_color) dlg.setRGB(_color.getRGB());
 			auto rgb = dlg.open();
 			if (rgb) {
 				color = rgb;

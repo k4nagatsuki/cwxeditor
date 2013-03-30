@@ -2048,16 +2048,16 @@ fi`;
 			switch (value) {
 			case "=": i++; return Comparison4.Eq;
 			case "<>", "!=": i++; return Comparison4.Ne;
-			case "<": i++; return Comparison4.Lt;
-			case ">": i++; return Comparison4.Gt;
+			case ">": i++; return Comparison4.Lt;
+			case "<": i++; return Comparison4.Gt;
 			default: throwError(_prop.msgs.scriptErrorInvalidComparison4, attr[i].token);
 			}
 		} else static if (is(T == Comparison3)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
 			case "=": i++; return Comparison3.Eq;
-			case "<": i++; return Comparison3.Lt;
-			case ">": i++; return Comparison3.Gt;
+			case ">": i++; return Comparison3.Lt;
+			case "<": i++; return Comparison3.Gt;
 			default: throwError(_prop.msgs.scriptErrorInvalidComparison3, attr[i].token);
 			}
 		} else static if (is(T == BlendMode)) {
@@ -2536,20 +2536,26 @@ fi`;
 			if (detail.use(CArg.FLAG)) {
 				c.flag = parseAttr!(string)(opt, node.attr, i, c.flag, varTable, 0);
 			}
-			if (detail.use(CArg.FLAG_VALUE)) {
-				c.flagValue = parseAttr!(bool)(opt, node.attr, i, c.flagValue, varTable, 0);
-			}
 			if (detail.use(CArg.FLAG_2)) {
 				c.flag2 = parseAttr!(string)(opt, node.attr, i, c.flag2, varTable, 0);
 			}
 			if (detail.use(CArg.STEP)) {
 				c.step = parseAttr!(string)(opt, node.attr, i, c.step, varTable, 0);
 			}
-			if (detail.use(CArg.STEP_VALUE)) {
-				c.stepValue = parseAttr!(int)(opt, node.attr, i, c.stepValue, varTable, 0);
-			}
 			if (detail.use(CArg.STEP_2)) {
 				c.step2 = parseAttr!(string)(opt, node.attr, i, c.step2, varTable, 0);
+			}
+			if (detail.use(CArg.COMPARISON_4)) {
+				c.comparison4 = parseAttr!(Comparison4)(opt, node.attr, i, c.comparison4, varTable, 0);
+			}
+			if (detail.use(CArg.COMPARISON_3)) {
+				c.comparison3 = parseAttr!(Comparison3)(opt, node.attr, i, c.comparison3, varTable, 0);
+			}
+			if (detail.use(CArg.FLAG_VALUE)) {
+				c.flagValue = parseAttr!(bool)(opt, node.attr, i, c.flagValue, varTable, 0);
+			}
+			if (detail.use(CArg.STEP_VALUE)) {
+				c.stepValue = parseAttr!(int)(opt, node.attr, i, c.stepValue, varTable, 0);
 			}
 			if (detail.use(CArg.CARD_NUMBER)) {
 				c.cardNumber = parseAttr!(int)(opt, node.attr, i, c.cardNumber, varTable, 0);
@@ -2625,12 +2631,6 @@ fi`;
 			}
 			if (detail.use(CArg.COUPONS)) {
 				c.coupons = parseAttr!(Coupon[])(opt, node.attr, i, c.coupons, varTable, 0);
-			}
-			if (detail.use(CArg.COMPARISON_4)) {
-				c.comparison4 = parseAttr!(Comparison4)(opt, node.attr, i, c.comparison4, varTable, 0);
-			}
-			if (detail.use(CArg.COMPARISON_3)) {
-				c.comparison3 = parseAttr!(Comparison3)(opt, node.attr, i, c.comparison3, varTable, 0);
 			}
 			if (detail.use(CArg.ROUND)) {
 				c.round = parseAttr!(int)(opt, node.attr, i, c.round, varTable, 0);
@@ -2941,22 +2941,16 @@ fi`;
 			switch (value) {
 			case Comparison4.Eq: attrs ~= createString("="); break;
 			case Comparison4.Ne: attrs ~= createString("<>"); break;
-			case Comparison4.Lt: attrs ~= createString("<"); break;
-			case Comparison4.Gt: attrs ~= createString(">"); break;
+			case Comparison4.Lt: attrs ~= createString(">"); break;
+			case Comparison4.Gt: attrs ~= createString("<"); break;
 			default: assert (0);
 			}
 		} else static if (is(T : Comparison3)) {
 			switch (value) {
 			case Comparison3.Eq: attrs ~= createString("="); break;
-			case Comparison3.Lt: attrs ~= createString("<"); break;
-			case Comparison3.Gt: attrs ~= createString(">"); break;
+			case Comparison3.Lt: attrs ~= createString(">"); break;
+			case Comparison3.Gt: attrs ~= createString("<"); break;
 			default: assert (0);
-			}
-		} else static if (is(T : BorderingType)) {
-			final switch (value) {
-			case BorderingType.None: break;
-			case BorderingType.Outline: attrs ~= "border1"; break;
-			case BorderingType.Inline: attrs ~= "border2"; break;
 			}
 		} else static if (is(T : BlendMode)) {
 			final switch (value) {
@@ -3295,9 +3289,6 @@ fi`;
 					attrs ~= toAttr(c.flag, command, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.FLAG_VALUE)) {
-				attrs ~= toAttr(c.flagValue, command, indentValue, vars);
-			}
 			if (detail.use(CArg.FLAG_2)) {
 				if (_prop && _prop.sys.randomValue == c.flag2) {
 					attrs ~= toAttr(Symbol("random"), command, indentValue, vars);
@@ -3312,15 +3303,24 @@ fi`;
 					attrs ~= toAttr(c.step, command, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.STEP_VALUE)) {
-				attrs ~= toAttr(c.stepValue, command, indentValue, vars);
-			}
 			if (detail.use(CArg.STEP_2)) {
 				if (_prop && _prop.sys.randomValue == c.step2) {
 					attrs ~= toAttr(Symbol("random"), command, indentValue, vars);
 				} else {
 					attrs ~= toAttr(c.step2, command, indentValue, vars);
 				}
+			}
+			if (detail.use(CArg.COMPARISON_4)) {
+				attrs ~= toAttr(c.comparison4, command, indentValue, vars);
+			}
+			if (detail.use(CArg.COMPARISON_3)) {
+				attrs ~= toAttr(c.comparison3, command, indentValue, vars);
+			}
+			if (detail.use(CArg.FLAG_VALUE)) {
+				attrs ~= toAttr(c.flagValue, command, indentValue, vars);
+			}
+			if (detail.use(CArg.STEP_VALUE)) {
+				attrs ~= toAttr(c.stepValue, command, indentValue, vars);
 			}
 			if (detail.use(CArg.CARD_NUMBER)) {
 				if (c.cardNumber != 0) {
@@ -3406,12 +3406,6 @@ fi`;
 			}
 			if (detail.use(CArg.COUPONS)) {
 				attrs ~= toAttr(c.coupons, command, indentValue, vars);
-			}
-			if (detail.use(CArg.COMPARISON_4)) {
-				attrs ~= toAttr(c.comparison4, command, indentValue, vars);
-			}
-			if (detail.use(CArg.COMPARISON_3)) {
-				attrs ~= toAttr(c.comparison3, command, indentValue, vars);
 			}
 			if (detail.use(CArg.ROUND)) {
 				attrs ~= toAttr(c.round, command, indentValue, vars);
