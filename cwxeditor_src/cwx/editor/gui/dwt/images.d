@@ -704,8 +704,8 @@ public:
 			gc.fillPath(path);
 			if (1 < borderingWidth) {
 				gc.setLineJoin(SWT.JOIN_ROUND);
+				gc.drawPath(path);
 			}
-			gc.drawPath(path);
 
 			x = 0;
 			y += height;
@@ -717,26 +717,18 @@ public:
 		}
 
 		if (1 == borderingWidth) {
-			// FIXME: はみ出している部分と隙間になっている部分を埋める
-			//        本来はそういう事が生じないべきなので、あまりよい処理ではない
+			// FIXME: 隙間が生じてしまうのを避ける
 			FC tColor;
 			tColor.r = cast(ubyte) textRgb.red;
 			tColor.g = cast(ubyte) textRgb.green;
 			tColor.b = cast(ubyte) textRgb.blue;
-			FC bkColor;
-			bkColor.r = cast(ubyte) backRgb.red;
-			bkColor.g = cast(ubyte) backRgb.green;
-			bkColor.b = cast(ubyte) backRgb.blue;
 			FC bColor;
 			bColor.r = cast(ubyte) borderingColor.r;
 			bColor.g = cast(ubyte) borderingColor.g;
 			bColor.b = cast(ubyte) borderingColor.b;
-			imgData.data = cast(byte[]) adjustBordering(cast(ubyte[]) imgData.data,
+			imgData.data = cast(byte[]) bordering(cast(ubyte[]) imgData.data,
 				cast(ubyte[]) imgData.alphaData, imgData.depth, imgData.width,
-				imgData.height, imgData.bytesPerLine, bkColor, bColor, tColor);
-			imgData.data = cast(byte[]) adjustBordering(cast(ubyte[]) imgData.data,
-				cast(ubyte[]) imgData.alphaData, imgData.depth, imgData.width,
-				imgData.height, imgData.bytesPerLine, tColor, bColor, bkColor);
+				imgData.height, imgData.bytesPerLine, tColor, bColor, 1);
 		}
 
 		imgData.transparentPixel = tPixel;
