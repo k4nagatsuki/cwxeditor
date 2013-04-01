@@ -1492,9 +1492,9 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 			string text = readString(f);
 			string fontName = readString(f);
 			uint size = f.readUIntL;
-			auto b = f.readUByte;
-			auto g = f.readUByte;
 			auto r = f.readUByte;
+			auto g = f.readUByte;
+			auto b = f.readUByte;
 			auto a = f.readUByte;
 			auto color = CRGB(r, g, b, a);
 			ubyte style = f.readUByte;
@@ -1509,9 +1509,9 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 			uint borderingWidth = 1;
 			if (bordering) {
 				borderingType = toBorderingType(f.readByte);
-				b = f.readUByte;
-				g = f.readUByte;
 				r = f.readUByte;
+				g = f.readUByte;
+				b = f.readUByte;
 				a = f.readUByte;
 				borderingColor = CRGB(r, g, b, a);
 				borderingWidth = f.readUIntL;
@@ -3087,9 +3087,9 @@ private void writeBgImage(ref ByteIO f, BgImage b) {
 		writeString(f, tc.fontName);
 		f.writeL(cast(uint) tc.size);
 		auto color = tc.color;
-		f.write(cast(ubyte) color.b);
-		f.write(cast(ubyte) color.g);
 		f.write(cast(ubyte) color.r);
+		f.write(cast(ubyte) color.g);
+		f.write(cast(ubyte) color.b);
 		f.write(cast(ubyte) color.a);
 		bool bordering = tc.borderingType !is BorderingType.None;
 		ubyte style = 0;
@@ -3104,9 +3104,9 @@ private void writeBgImage(ref ByteIO f, BgImage b) {
 		if (bordering) {
 			f.write(fromBorderingType(tc.borderingType));
 			auto bColor = tc.borderingColor;
-			f.write(cast(ubyte) bColor.b);
-			f.write(cast(ubyte) bColor.g);
 			f.write(cast(ubyte) bColor.r);
+			f.write(cast(ubyte) bColor.g);
+			f.write(cast(ubyte) bColor.b);
 			f.write(cast(ubyte) bColor.a);
 			f.writeL(cast(uint) tc.borderingWidth);
 		}

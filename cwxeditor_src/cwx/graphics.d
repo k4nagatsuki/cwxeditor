@@ -82,6 +82,10 @@ struct Pixels {
 /// RGB。
 struct FC {
 	ubyte r, g, b, a;
+	const
+	bool eqRgb(in FC fc) {
+		return r == fc.r && g == fc.g && b == fc.b;
+	}
 }
 
 /// intを使用するRGB。
@@ -636,6 +640,35 @@ ubyte[] bordering(ubyte[] data, ubyte[] alpha, size_t depth, size_t width, size_
 					r.set(wx, wy, b);
 				}
 			}
+		}
+	}
+	return r.data;
+}
+
+/// aとbに同時に接触している色cをaによって上書きする。
+ubyte[] adjustBordering(ubyte[] data, ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine, FC a, FC b, FC c) {
+	if (width < 1 || height < 1) return data;
+	size_t bpp = bytesPerLine / width;
+	auto base = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
+	auto r = Pixels(data.dup, alpha.dup, width, height, depth, bytesPerLine, bpp);
+	auto w = width - 1;
+	auto h = height - 1;
+	foreach (y; 0..height) {
+		foreach (x; 0..width) {
+			if (!base.get(x, y).eqRgb(c)) continue;
+
+			bool find(in FC fc) {
+				bool find = 0 < x && base.get(x - 1, y).eqRgb(fc);
+				find |= 0 < y && base.get(x, y - 1).eqRgb(fc);
+				find |= x < w && base.get(x + 1, y).eqRgb(fc);
+				find |= y < h && base.get(x, y + 1).eqRgb(fc);
+				return find;
+			}
+			// 周囲にaとbがあるか探す
+			if (!find(a)) continue;
+			if (!find(b)) continue;
+
+			r.set(x, y, a);
 		}
 	}
 	return r.data;
