@@ -18,6 +18,7 @@ import std.file;
 import std.path;
 import std.conv;
 import std.string;
+import std.utf;
 
 import org.eclipse.swt.all;
 
@@ -651,6 +652,7 @@ public:
 		}
 
 		int alpha;
+		auto borderRgb = dwtData(borderingColor, alpha);
 		auto backRgb = dwtData(back, alpha);
 		auto textRgb = dwtData(textColor, alpha);
 
@@ -664,29 +666,48 @@ public:
 		scope (exit) backColor.dispose();
 		auto textColor = new Color(cur, textRgb);
 		scope (exit) textColor.dispose();
+		auto borderColor = new Color(cur, borderRgb);
+		scope (exit) borderColor.dispose();
 
 		gc.setBackground(backColor);
 		gc.fillRectangle(0, 0, w, h);
 		auto tPixel = img.getImageData().getPixel(0, 0);
 
 		gc.setFont(font);
-		gc.setForeground(textColor);
 		gc.setTextAntialias(SWT.NONE);
 
-		drawTextImpl(gc, .splitLines(_title), 0, 0);
+		int x = 0;
+		int y = 0;
+		int height, ulineWidth, ulinePos, slineWidth, slinePos;
+		lineMetrics(gc, height, ulineWidth, ulinePos, slineWidth, slinePos);
+		gc.setLineWidth(borderingWidth);
+		foreach (line; .splitLines(_title)) {
+			auto path = new Path(cur);
+			scope (exit) path.dispose();
+			gc.setBackground(textColor);
+			gc.setForeground(borderColor);
+			gc.setLineJoin(SWT.JOIN_ROUND);
+			foreach (dchar c; line) {
+				immutable s = [c].toUTF8();
+				path.addString(s, x, y, font);
+				x += gc.textExtent(s).x;
+			}
+			if (underline) {
+				int ly = y + ulinePos;
+				path.addRectangle(0, ly, x, ulineWidth);
+			}
+			if (strike) {
+				int ly = y + slinePos;
+				path.addRectangle(0, ly, x, slineWidth);
+			}
 
+			gc.fillPath(path);
+			gc.drawPath(path);
+
+			x = 0;
+			y += height;
+		}
 		auto imgData = img.getImageData();
-		FC tColor;
-		tColor.r = cast(ubyte) textRgb.red;
-		tColor.g = cast(ubyte) textRgb.green;
-		tColor.b = cast(ubyte) textRgb.blue;
-		FC bColor;
-		bColor.r = cast(ubyte) borderingColor.r;
-		bColor.g = cast(ubyte) borderingColor.g;
-		bColor.b = cast(ubyte) borderingColor.b;
-		imgData.data = cast(byte[]) bordering(cast(ubyte[]) imgData.data,
-			cast(ubyte[]) imgData.alphaData, imgData.depth, imgData.width,
-			imgData.height, imgData.bytesPerLine, tColor, bColor, borderingWidth);
 
 		if (vertical) {
 			turnImpl(imgData, Turn.LEFT);
@@ -731,23 +752,28 @@ public:
 			break;
 		}
 	}
+	private void lineMetrics(GC gc, out int height, out int ulineWidth, out int ulinePos, out int slineWidth, out int slinePos) {
+		auto mt = gc.getFontMetrics();
+		height = mt.getHeight();
+		ulineWidth = .max(1, fontPixelSize / 16);
+		ulinePos = height - mt.getDescent() + ulineWidth / 2;
+		slineWidth = .max(1, fontPixelSize / 16);
+		slinePos = height - mt.getAscent() / 2 + slineWidth / 2;
+	}
 	private void drawTextImpl(GC gc, in string[] lines, int xm, int ym) {
 		int x = xm;
 		int y = ym;
-		auto mt = gc.getFontMetrics();
-		int height = mt.getHeight();
-		gc.setLineWidth(.max(1, height / 15));
+		int height, ulineWidth, ulinePos, slineWidth, slinePos;
+		lineMetrics(gc, height, ulineWidth, ulinePos, slineWidth, slinePos);
 		foreach (line; lines) {
 			gc.drawText(line, x, y, true);
 			if (underline || strike) {
 				auto ts = gc.textExtent(line);
 				if (underline) {
-					int uy = y + height;
-					gc.drawLine(0, uy, ts.x, uy);
+					gc.fillRectangle(0, y + ulinePos, ts.x, y + ulinePos + ulineWidth);
 				}
 				if (strike) {
-					int sy = y + height / 2;
-					gc.drawLine(0, sy, ts.x, sy);
+					gc.fillRectangle(0, y + slinePos, ts.x, y + slinePos + slineWidth);
 				}
 			}
 			y += height;
@@ -825,6 +851,7 @@ public:
 		if (borderingType is BorderingType.Outline) {
 			// 縁取り色で描画
 			gc2.setForeground(borderColor);
+			gc2.setBackground(borderColor);
 			drawTextImpl(gc2, lines, -1, -1);
 			drawTextImpl(gc2, lines,  0, -1);
 			drawTextImpl(gc2, lines,  1, -1);
@@ -837,6 +864,7 @@ public:
 
 		// テキスト本体を描画
 		gc2.setForeground(textColor);
+		gc2.setBackground(textColor);
 		drawTextImpl(gc2, lines,  0,  0);
 
 		if (vertical) {
