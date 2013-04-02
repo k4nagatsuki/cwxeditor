@@ -681,31 +681,34 @@ public:
 		int height, ulineWidth, ulinePos, slineWidth, slinePos;
 		lineMetrics(gc, height, ulineWidth, ulinePos, slineWidth, slinePos);
 		gc.setLineWidth(borderingWidth);
+		gc.setLineJoin(SWT.JOIN_ROUND);
+		float hb = 0.5F; // drawとfillのずれを補正
 		foreach (line; .splitLines(_title)) {
-			auto path = new Path(cur);
-			scope (exit) path.dispose();
+			auto pathL = new Path(cur);
+			scope (exit) pathL.dispose();
+			auto pathF = new Path(cur);
+			scope (exit) pathF.dispose();
 			gc.setBackground(textColor);
 			gc.setForeground(borderColor);
 			foreach (dchar c; line) {
 				immutable s = [c].toUTF8();
-				path.addString(s, x, y, font);
+				pathL.addString(s, x, y, font);
+				pathF.addString(s, x + hb, y + hb, font);
 				x += gc.textExtent(s).x;
 			}
 			if (underline) {
 				int ly = y + ulinePos;
-				path.addRectangle(0, ly, x, ulineWidth);
+				pathL.addRectangle(0, ly, x, ulineWidth);
+				pathF.addRectangle(hb, ly + hb, x, ulineWidth);
 			}
 			if (strike) {
 				int ly = y + slinePos;
-				path.addRectangle(0, ly, x, slineWidth);
+				pathL.addRectangle(0, ly, x, slineWidth);
+				pathF.addRectangle(hb, ly + hb, x, slineWidth);
 			}
 
-			gc.setLineJoin(SWT.JOIN_MITER);
-			gc.fillPath(path);
-			if (1 < borderingWidth) {
-				gc.setLineJoin(SWT.JOIN_ROUND);
-				gc.drawPath(path);
-			}
+			gc.fillPath(pathF);
+			gc.drawPath(pathL);
 
 			x = 0;
 			y += height;
@@ -714,21 +717,6 @@ public:
 
 		if (vertical) {
 			turnImpl(imgData, Turn.LEFT);
-		}
-
-		if (1 == borderingWidth) {
-			// FIXME: 隙間が生じてしまうのを避ける
-			FC tColor;
-			tColor.r = cast(ubyte) textRgb.red;
-			tColor.g = cast(ubyte) textRgb.green;
-			tColor.b = cast(ubyte) textRgb.blue;
-			FC bColor;
-			bColor.r = cast(ubyte) borderingColor.r;
-			bColor.g = cast(ubyte) borderingColor.g;
-			bColor.b = cast(ubyte) borderingColor.b;
-			imgData.data = cast(byte[]) bordering(cast(ubyte[]) imgData.data,
-				cast(ubyte[]) imgData.alphaData, imgData.depth, imgData.width,
-				imgData.height, imgData.bytesPerLine, tColor, bColor, 1);
 		}
 
 		imgData.transparentPixel = tPixel;
@@ -1547,7 +1535,7 @@ public:
 	/// y = 縦位置。
 	/// Returns: トグル。
 	const
-	Toggle inToggle(int x, int y) {
+	Toggle inToggle(int x, int y, bool move) {
 		foreach (key; tgls.keys) {
 			auto rect = tgls[key];
 			if (rect.x <= x && x <= (rect.x + rect.width)
@@ -1555,7 +1543,7 @@ public:
 				return key;
 			}
 		}
-		if (this.x <= x && x <= (this.x + this.width)
+		if (move && this.x <= x && x <= (this.x + this.width)
 				&& this.y <= y && y <= (this.y + this.height)) {
 			return Toggle.MOVE;
 		} else {
@@ -1985,13 +1973,16 @@ private:
 				redrawGridHighlight();
 				moved = true;
 			} else {
-				foreach_reverse (pimg; backs) {
-					if (cast(FlexImage) pimg && pimg.visible) {
-						auto img = cast(FlexImage) pimg;
-						Toggle tgl = img.inToggle(x, y);
-						if (tgl != Toggle.NONE) {
-							setCursor(getToggleCursor(tgl));
-							return;
+				// サイズ変更は下に隠れているセルでも優先的に受け付ける
+				foreach (move; [false, true]) {
+					foreach_reverse (pimg; backs) {
+						if (cast(FlexImage) pimg && pimg.visible) {
+							auto img = cast(FlexImage) pimg;
+							Toggle tgl = img.inToggle(x, y, move);
+							if (tgl != Toggle.NONE) {
+								setCursor(getToggleCursor(tgl));
+								return;
+							}
 						}
 					}
 				}
@@ -2015,13 +2006,16 @@ private:
 				dragStartY = y;
 				auto tgl = Toggle.NONE;
 				FlexImage img = null;
-				foreach_reverse (i, pimg; backs) {
-					if (cast(FlexImage) pimg) {
-						img = cast(FlexImage) pimg;
-						if (img.visible) {
-							tgl = img.inToggle(x, y);
-							if (tgl !is Toggle.NONE) {
-								break;
+				foreach (move; [false, true]) {
+					if (tgl !is Toggle.NONE) break;
+					foreach_reverse (i, pimg; backs) {
+						if (cast(FlexImage) pimg) {
+							img = cast(FlexImage) pimg;
+							if (img.visible) {
+								tgl = img.inToggle(x, y, move);
+								if (tgl !is Toggle.NONE) {
+									break;
+								}
 							}
 						}
 					}
