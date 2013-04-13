@@ -630,7 +630,7 @@ public:
 		};
 		node.parse();
 		node.onTag["Gradient"] = (ref XNode n) {
-			auto gradient = toGradientDir(n.attr("direction", true));
+			gradientDir = toGradientDir(n.attr("direction", true));
 			n.onTag["EndColor"] = (ref XNode n) {
 				color2.r = n.attr!uint("r", true);
 				color2.g = n.attr!uint("g", true);

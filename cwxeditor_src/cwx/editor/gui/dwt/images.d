@@ -764,8 +764,6 @@ public:
 		ulineWidth = .max(1, fontPixelSize / 16);
 		ulinePos = height - mt.getDescent() + ulineWidth / 2;
 		slineWidth = .max(1, fontPixelSize / 16);
-		cdebugln(fontPixelSize);
-		cdebugln(ulineWidth);
 		slinePos = height - mt.getAscent() / 2 + slineWidth / 2;
 	}
 	private void drawTextImpl(GC gc, in string[] lines, int xm, int ym) {
