@@ -987,6 +987,9 @@ private:
 						auto dtemp = itm1.getData();
 						itm1.setData(itm2.getData());
 						itm2.setData(dtemp);
+						auto itemp = itm1.getImage();
+						itm1.setImage(itm2.getImage());
+						itm2.setImage(itemp);
 						auto ctemp = itm1.getChecked();
 						itm1.setChecked(itm2.getChecked());
 						itm2.setChecked(ctemp);
@@ -1014,6 +1017,9 @@ private:
 						auto dtemp = itm1.getData();
 						itm1.setData(itm2.getData());
 						itm2.setData(dtemp);
+						auto itemp = itm1.getImage();
+						itm1.setImage(itm2.getImage());
+						itm2.setImage(itemp);
 						auto ctemp = itm1.getChecked();
 						itm1.setChecked(itm2.getChecked());
 						itm2.setChecked(ctemp);

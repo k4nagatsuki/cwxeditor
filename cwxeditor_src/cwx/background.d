@@ -375,7 +375,6 @@ public:
 	void toNode(ref XNode node) {
 		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
 		auto e = node.newElement(XML_NAME);
-		e.newAttr("mask", fromBool(_mask));
 
 		e.newElement("Text", text);
 		auto font = e.newElement("Font", fontName);
@@ -412,7 +411,6 @@ public:
 	}
 	static TextCell createFromNode(ref XNode node, string ver) {
 		if (node.name != XML_NAME) throw new AreaException("Node is not TextCell");
-		bool mask = parseBool(node.attr("mask", true));
 		string text = "";
 		string fontName = "";
 		uint size = 1;
@@ -475,7 +473,7 @@ public:
 		};
 		node.parse();
 		return new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
-			borderingType, borderingColor, borderingWidth, flag, x, y, w, h, mask);
+			borderingType, borderingColor, borderingWidth, flag, x, y, w, h, false);
 	}
 }
 
@@ -589,7 +587,6 @@ public:
 	void toNode(ref XNode node) {
 		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
 		auto e = node.newElement(XML_NAME);
-		e.newAttr("mask", fromBool(_mask));
 
 		e.newElement("BlendMode", fromBlendMode(blendMode));
 		auto clr1 = e.newElement("Color");
@@ -598,9 +595,9 @@ public:
 		clr1.newAttr("b", color1.b);
 		clr1.newAttr("a", color1.a);
 		if (gradientDir !is GradientDir.None) {
-			e.newElement("Gradient");
-			e.newAttr("direction", fromGradientDir(gradientDir));
-			auto clr2 = e.newElement("EndColor");
+			auto ge = e.newElement("Gradient");
+			ge.newAttr("direction", fromGradientDir(gradientDir));
+			auto clr2 = ge.newElement("EndColor");
 			clr2.newAttr("r", color2.r);
 			clr2.newAttr("g", color2.g);
 			clr2.newAttr("b", color2.b);
@@ -617,7 +614,6 @@ public:
 	}
 	static ColorCell createFromNode(ref XNode node, string ver) {
 		if (node.name != XML_NAME) throw new AreaException("Node is not TextCell");
-		bool mask = parseBool(node.attr("mask", true));
 		BlendMode blendMode = BlendMode.Normal;
 		GradientDir gradientDir = GradientDir.None;
 		CRGB color1 = CRGB(255, 255, 255, 255);
@@ -660,7 +656,7 @@ public:
 			h = n.attr!(int)("height", true);
 		};
 		node.parse();
-		return new ColorCell(blendMode, gradientDir, color1, color2, flag, x, y, w, h, mask);
+		return new ColorCell(blendMode, gradientDir, color1, color2, flag, x, y, w, h, false);
 	}
 }
 

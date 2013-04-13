@@ -764,6 +764,8 @@ public:
 		ulineWidth = .max(1, fontPixelSize / 16);
 		ulinePos = height - mt.getDescent() + ulineWidth / 2;
 		slineWidth = .max(1, fontPixelSize / 16);
+		cdebugln(fontPixelSize);
+		cdebugln(ulineWidth);
 		slinePos = height - mt.getAscent() / 2 + slineWidth / 2;
 	}
 	private void drawTextImpl(GC gc, in string[] lines, int xm, int ym) {
@@ -776,10 +778,10 @@ public:
 			if (underline || strike) {
 				auto ts = gc.textExtent(line);
 				if (underline) {
-					gc.fillRectangle(0, y + ulinePos, ts.x, y + ulinePos + ulineWidth);
+					gc.fillRectangle(0, y + ulinePos, ts.x, ulineWidth);
 				}
 				if (strike) {
-					gc.fillRectangle(0, y + slinePos, ts.x, y + slinePos + slineWidth);
+					gc.fillRectangle(0, y + slinePos, ts.x, slineWidth);
 				}
 			}
 			y += height;
