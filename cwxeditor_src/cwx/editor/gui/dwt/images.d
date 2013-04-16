@@ -676,20 +676,22 @@ public:
 		gc.setFont(font);
 		gc.setTextAntialias(SWT.NONE);
 
+		// パスの形成
 		int x = 0;
 		int y = 0;
 		int height, ulineWidth, ulinePos, slineWidth, slinePos;
 		lineMetrics(gc, height, ulineWidth, ulinePos, slineWidth, slinePos);
 		gc.setLineWidth(borderingWidth);
 		gc.setLineJoin(SWT.JOIN_ROUND);
+		gc.setLineCap(SWT.CAP_ROUND);
 		float hb = 0.5F; // drawとfillのずれを補正
+		auto pathL = new Path(cur);
+		scope (exit) pathL.dispose();
+		auto pathF = new Path(cur);
+		scope (exit) pathF.dispose();
+		gc.setBackground(textColor);
+		gc.setForeground(borderColor);
 		foreach (line; .splitLines(_title)) {
-			auto pathL = new Path(cur);
-			scope (exit) pathL.dispose();
-			auto pathF = new Path(cur);
-			scope (exit) pathF.dispose();
-			gc.setBackground(textColor);
-			gc.setForeground(borderColor);
 			foreach (dchar c; line) {
 				immutable s = [c].toUTF8();
 				pathL.addString(s, x, y, font);
@@ -707,12 +709,60 @@ public:
 				pathF.addRectangle(hb, ly + hb, x, slineWidth);
 			}
 
-			gc.fillPath(pathF);
-			gc.drawPath(pathL);
-
 			x = 0;
 			y += height;
 		}
+
+		// 描画
+		gc.fillPath(pathF);
+		if (borderingWidth <= fontPixelSize / 2) {
+			gc.drawPath(pathL);
+		} else {
+			// FIXME: 何層にも重なり合った部分に隙間が生じてしまう減少に対処
+			auto p = pathL.getPathData();
+			size_t pi = 0;
+			auto rPath = new Path(cur);
+			scope (exit) rPath.dispose();
+			void newRPath() {
+				gc.drawPath(rPath);
+				float[2] curPos;
+				rPath.getCurrentPoint(curPos);
+				rPath.dispose();
+				rPath = new Path(cur);
+				rPath.moveTo(curPos[0], curPos[1]);
+			}
+			foreach (type; p.types) {
+				switch (type) {
+				case SWT.PATH_MOVE_TO:
+					rPath.moveTo(p.points[pi], p.points[pi + 1]);
+					pi += 2;
+					break;
+				case SWT.PATH_LINE_TO:
+					rPath.lineTo(p.points[pi], p.points[pi + 1]);
+					newRPath();
+					pi += 2;
+					break;
+				case SWT.PATH_CUBIC_TO:
+					rPath.cubicTo(p.points[pi], p.points[pi + 1], p.points[pi + 2],
+						p.points[pi + 3], p.points[pi + 4], p.points[pi + 5]);
+					newRPath();
+					pi += 6;
+					break;
+				case SWT.PATH_QUAD_TO:
+					rPath.quadTo(p.points[pi], p.points[pi + 1], p.points[pi + 2], p.points[pi + 3]);
+					newRPath();
+					pi += 4;
+					break;
+				case SWT.PATH_CLOSE:
+					rPath.close();
+					newRPath();
+					break;
+				default:
+					assert (0);
+				}
+			}
+		}
+
 		auto imgData = img.getImageData();
 
 		if (vertical) {
