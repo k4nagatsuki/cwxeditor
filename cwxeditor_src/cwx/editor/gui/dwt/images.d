@@ -1076,9 +1076,16 @@ public:
 					case BlendMode.Add:
 						if (tfc.a != 255) {
 							// アルファブレンド
-							fc.r = roundColor(fc.r + (tfc.r * tfc.a >>> 8));
+							// 一般的な方式ではないが1.50の処理に合わせる
+/+							fc.r = roundColor(fc.r + (tfc.r * tfc.a >>> 8));
 							fc.g = roundColor(fc.g + (tfc.g * tfc.a >>> 8));
 							fc.b = roundColor(fc.b + (tfc.b * tfc.a >>> 8));
++/							tfc.r = roundColor(tfc.r * tfc.a >>> 8);
+							tfc.g = roundColor(tfc.g * tfc.a >>> 8);
+							tfc.b = roundColor(tfc.b * tfc.a >>> 8);
+							fc.r = roundColor(fc.r + tfc.r);
+							fc.g = roundColor(fc.g + tfc.g);
+							fc.b = roundColor(fc.b + tfc.b);
 						} else {
 							fc.r = roundColor(fc.r + tfc.r);
 							fc.g = roundColor(fc.g + tfc.g);
