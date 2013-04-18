@@ -1095,9 +1095,13 @@ public:
 					case BlendMode.Subtract:
 						if (tfc.a != 255) {
 							// アルファブレンド
-							fc.r = roundColor(fc.r - (tfc.r * tfc.a >>> 8));
+							// 一般的な方式ではないが1.50の処理に合わせる
+/+							fc.r = roundColor(fc.r - (tfc.r * tfc.a >>> 8));
 							fc.g = roundColor(fc.g - (tfc.g * tfc.a >>> 8));
 							fc.b = roundColor(fc.b - (tfc.b * tfc.a >>> 8));
++/							fc.r = max(roundColor(fc.r * (255 - tfc.a) >>> 8), roundColor(fc.r - (tfc.r * tfc.a >>> 8)));
+							fc.g = max(roundColor(fc.g * (255 - tfc.a) >>> 8), roundColor(fc.g - (tfc.g * tfc.a >>> 8)));
+							fc.b = max(roundColor(fc.b * (255 - tfc.a) >>> 8), roundColor(fc.b - (tfc.b * tfc.a >>> 8)));
 						} else {
 							fc.r = roundColor(fc.r - tfc.r);
 							fc.g = roundColor(fc.g - tfc.g);
