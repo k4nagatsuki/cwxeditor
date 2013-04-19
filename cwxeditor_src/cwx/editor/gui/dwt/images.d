@@ -1080,12 +1080,9 @@ public:
 /+							fc.r = roundColor(fc.r + (tfc.r * tfc.a >>> 8));
 							fc.g = roundColor(fc.g + (tfc.g * tfc.a >>> 8));
 							fc.b = roundColor(fc.b + (tfc.b * tfc.a >>> 8));
-+/							tfc.r = roundColor(tfc.r * tfc.a >>> 8);
-							tfc.g = roundColor(tfc.g * tfc.a >>> 8);
-							tfc.b = roundColor(tfc.b * tfc.a >>> 8);
-							fc.r = roundColor(fc.r + tfc.r);
-							fc.g = roundColor(fc.g + tfc.g);
-							fc.b = roundColor(fc.b + tfc.b);
++/							fc.r = roundColor((fc.r * (255 - tfc.a) >>> 8) + (roundColor(fc.r + tfc.r) * tfc.a >>> 8));
+							fc.g = roundColor((fc.g * (255 - tfc.a) >>> 8) + (roundColor(fc.g + tfc.g) * tfc.a >>> 8));
+							fc.b = roundColor((fc.b * (255 - tfc.a) >>> 8) + (roundColor(fc.b + tfc.b) * tfc.a >>> 8));
 						} else {
 							fc.r = roundColor(fc.r + tfc.r);
 							fc.g = roundColor(fc.g + tfc.g);
