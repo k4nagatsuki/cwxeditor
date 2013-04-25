@@ -502,9 +502,11 @@ private:
 				auto sels = _tree.getSelection();
 				if (insertTo || (sels.length > 0 && (cast(Content) sels[0].getData()).detail.owner)) {
 					TreeItem oItm;
+					int insertIndex = -1;
 					if (insertTo) {
 						oItm = insertTo.getParentItem();
 						if (!oItm) return;
+						insertIndex = oItm.indexOf(insertTo);
 					} else {
 						oItm = sels[0];
 					}
@@ -515,8 +517,12 @@ private:
 							if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
 						}
 						store(owner);
-						owner.add(evt);
-						TreeItem itm = createTreeItem(oItm, evt, eventText(owner, evt), _prop.images.content(evt.type));
+						if (insertIndex == -1) {
+							owner.add(evt);
+						} else {
+							owner.insert(insertIndex, evt);
+						}
+						auto itm = createTreeItem(oItm, evt, eventText(owner, evt), _prop.images.content(evt.type), insertIndex);
 						oItm.setExpanded(true);
 						_tree.setSelection([itm]);
 						if (insertTo) {

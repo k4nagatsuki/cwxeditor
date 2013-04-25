@@ -1616,7 +1616,7 @@ class MsgPreview : Composite {
 		if (combo) {
 			itm.setText(column, combo.getText());
 			auto fd = cast(FlagData) itm.getData();
-			if (fd) fd.onOff = combo.getSelectionIndex() == 1;
+			if (fd) fd.onOff = combo.getSelectionIndex() == 0;
 			auto sd = cast(StepData) itm.getData();
 			if (sd) sd.select = combo.getSelectionIndex();
 		}
