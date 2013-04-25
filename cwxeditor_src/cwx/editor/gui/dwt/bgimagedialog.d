@@ -12,6 +12,7 @@ import cwx.structs;
 import cwx.menu;
 import cwx.types;
 import cwx.path;
+import cwx.msgutils;
 
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.dprops;
@@ -28,6 +29,7 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.images;
+import cwx.editor.gui.dwt.messageutils;
 
 import std.algorithm : countUntil;
 import std.traits;
@@ -459,6 +461,8 @@ private:
 	TextCell _back;
 
 	PileImage _preview = null;
+	PreviewValues _values;
+
 	Canvas _prevPanel;
 	Text _text;
 	Combo _fontName;
@@ -501,9 +505,17 @@ private:
 			_size.getSelection(), tColor, _bold.getSelection(), _italic.getSelection(),
 			_underline.getSelection(), _strike.getSelection(), _vertical.getSelection(),
 			bType, bColor, _borderingWidth.getSelection(), ca.x, ca.y, ca.width, ca.height);
+		_preview.previewText = &previewText;
 
 		_preview.createImage();
 		_prevPanel.redraw();
+	}
+	string previewText(string base) {
+		string[char] names;
+		string[string] flags;
+		string[string] steps;
+		_values.getValues(names, flags, steps);
+		return simpleFormatMsg(base, flags, steps, names);
 	}
 	class Paint : PaintListener {
 		override void paintControl(PaintEvent e) {
@@ -532,6 +544,7 @@ public:
 		}
 		super (comm, summ, shell, _back ? prop.msgs.dlgTitTextCell : prop.msgs.dlgTitNewTextCell,
 			prop.images.textCell, true, size, create);
+		enterClose = false;
 	}
 
 	@property
@@ -691,7 +704,9 @@ protected:
 			}
 		}
 		{
-			auto grp = new Group(sash, SWT.NONE);
+			auto sash2 = new SplitPane(sash, SWT.HORIZONTAL);
+
+			auto grp = new Group(sash2, SWT.NONE);
 			grp.setText(_prop.msgs.text);
 			auto cl = new CenterLayout;
 			cl.fillHorizontal = true;
@@ -702,6 +717,15 @@ protected:
 			createTextMenu!Text(_comm, _prop, _text, &catchMod);
 			_text.setLayoutData(new Point(_prop.var.etc.textCellBoxWidth, _prop.var.etc.textCellBoxHeight));
 			.listener(_text, SWT.Modify, &updatePreview);
+
+			_values = new PreviewValues(sash2, _comm, _prop, _summ, false);
+			_values.modEvent ~= &updatePreview;
+
+			sash2.setWeights([_prop.var.etc.textCellPreviewSashL, _prop.var.etc.textCellPreviewSashR]);
+			.listener(sash, SWT.Dispose, {
+				_prop.var.etc.textCellPreviewSashL = sash2.getWeights()[0];
+				_prop.var.etc.textCellPreviewSashR = sash2.getWeights()[1];
+			});
 		}
 		sash.setWeights([_prop.var.etc.textCellVSashT, _prop.var.etc.textCellVSashB]);
 		.listener(sash, SWT.Dispose, {

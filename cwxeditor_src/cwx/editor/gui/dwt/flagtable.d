@@ -1093,6 +1093,7 @@ private:
 			storeEdit(flags.indexOf(itm));
 			f.onOff = 0 == i;
 			itm.setText(column, f.onOff ? f.on : f.off);
+			_comm.refFlagAndStep.call([f], []);
 			_comm.refreshToolBar();
 			return;
 		}
@@ -1102,6 +1103,7 @@ private:
 			storeEdit(flags.indexOf(itm));
 			s.select(i);
 			itm.setText(column, s.value);
+			_comm.refFlagAndStep.call([], [s]);
 			_comm.refreshToolBar();
 			return;
 		}

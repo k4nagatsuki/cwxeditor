@@ -1363,4 +1363,5 @@ enum MenuID {
 	ToScript,
 	ToScriptAll,
 	EvTemplates,
+	ResetPreviewValues,
 }

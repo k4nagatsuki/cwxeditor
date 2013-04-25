@@ -377,6 +377,11 @@ public:
 	string[] values() {
 		return _vals;
 	}
+	@property
+	const
+	const(string)[] values() {
+		return _vals;
+	}
 	/// ステップ値群と選択状態を設定する。
 	void setValues(string[] vals, int select) {
 		assert (select < vals.length);

@@ -39,8 +39,10 @@ import std.utf;
 import std.string;
 import std.datetime;
 import std.conv;
+import std.exception;
 
 import org.eclipse.swt.all;
+import java.lang.all;
 
 /// 台詞コンテント・メッセージコンテントのダイアログの親クラス。
 class AbstractMessageDialog : EventDialog {
@@ -127,6 +129,7 @@ class AbstractMessageDialog : EventDialog {
 			auto c = cast(Control) e.widget;
 			if (!c || c.getShell() !is getShell()) return;
 			if (!canHookKeyDown(c)) return;
+			if (cast(Text) c) return;
 			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
 				_undo.undo();
 				e.doit = false;
@@ -137,7 +140,7 @@ class AbstractMessageDialog : EventDialog {
 		}
 	}
 	protected bool canHookKeyDown(Control fc) {
-		return true;
+		return !_preview.focusInValues;
 	}
 	private int _undoAcc;
 	private int _redoAcc;
@@ -335,7 +338,7 @@ private:
 	Spinner _initValue;
 
 	protected override bool canHookKeyDown(Control fc) {
-		return !isDescendant(_couponView, fc);
+		return super.canHookKeyDown(fc) && !isDescendant(_couponView, fc);
 	}
 	void selectChanged() {
 		bool oldIgnoreMod = ignoreMod;
@@ -1542,8 +1545,47 @@ class MsgPreviewWindow {
 	}
 }
 
-// TODO: テキストセルなどに対応するためテーブル部分を切り出す
-class MsgPreview : Composite {
+enum SPChar {
+	M = 0, /// 選択中
+	U = 1, /// 選択外
+	R = 2, /// ランダム
+	C = 3, /// カード
+	I = 4, /// 話者
+	T = 5, /// チーム
+	Y = 6 /// 宿
+}
+
+immutable SPCHAR_ALL = [
+	SPChar.M,
+	SPChar.U,
+	SPChar.R,
+	SPChar.C,
+	SPChar.I,
+	SPChar.T,
+	SPChar.Y,
+];
+
+immutable SPCHAR_TEXT = [
+	SPChar.M,
+	SPChar.U,
+	SPChar.R,
+	SPChar.T,
+	SPChar.Y,
+];
+
+private immutable C_TBL = [
+	'M',
+	'U',
+	'R',
+	'C',
+	'I',
+	'T',
+	'Y',
+];
+
+class PreviewValues : Composite {
+	void delegate()[] modEvent;
+
 	private static class FlagData {
 		Flag flag;
 		bool onOff;
@@ -1552,72 +1594,87 @@ class MsgPreview : Composite {
 		Step step;
 		int select;
 	}
-	private enum C {
-		M = 0, // 選択中
-		U = 1, // 選択外
-		R = 2, // ランダム
-		C = 3, // カード
-		I = 4, // 話者
-		T = 5, // チーム
-		Y = 6 // 宿
-	}
-	private static immutable C_TBL = [
-		'M',
-		'U',
-		'R',
-		'C',
-		'I',
-		'T',
-		'Y'
-	];
 
 	private Commons _comm;
 	private Props _prop;
 	private Summary _summ;
 
-	private Canvas _canvas;
+	private bool _isMessage;
+	private const(SPChar)[] _targetChars;
 	private Table _values;
-	private Image _img = null;
+	private UndoManager _undo;
+	private bool _changedText = false;
 
-	private Talker _talker = Talker.NARRATION;
-	private string _imgPath = "";
-	private string _message = "";
-
-	private class Paint : PaintListener {
-		override void paintControl(PaintEvent e) {
-			auto b = _canvas.getBounds();
-			auto rect = _prop.looks.messageBounds;
-			e.gc.drawImage(_img, (b.width - rect.width) / 2, (b.height - rect.height) / 2);
+	private class UndoPV : Undo {
+		private string[char] _names;
+		private bool[string] _flags;
+		private int[string] _steps;
+		this () {
+			getValues2(_names, _flags, _steps);
+		}
+		private void impl() {
+			string[char] names;
+			bool[string] flags;
+			int[string] steps;
+			getValues2(names, flags, steps);
+			setValues2(_names, _flags, _steps);
+			_names = names;
+			_flags = flags;
+			_steps = steps;
+			raiseModEvent();
+		}
+		override void undo() { impl(); }
+		override void redo() { impl(); }
+		override void dispose() {
+			// Nothing
 		}
 	}
+	private void store() {
+		_undo ~= new UndoPV;
+	}
+	private void refUndoMax() {
+		_undo.max = _prop.var.etc.undoMaxEtc;
+	}
+
 	private class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			if (_img) _img.dispose();
+			_comm.refUndoMax.remove(&refUndoMax);
 			_comm.refFlagAndStep.remove(&refFlagAndStep);
 			_comm.delFlagAndStep.remove(&refFlagAndStep);
-			_comm.refSkin.remove(&refresh);
-			_prop.var.etc.messageVarSelected = _values.getItem(C.M).getText(1);
-			_prop.var.etc.messageVarUnselected = _values.getItem(C.U).getText(1);
-			_prop.var.etc.messageVarRandom = _values.getItem(C.R).getText(1);
-			_prop.var.etc.messageVarCard = _values.getItem(C.C).getText(1);
-			_prop.var.etc.messageVarRef = _values.getItem(C.I).getText(1);
-			_prop.var.etc.messageVarTeam = _values.getItem(C.T).getText(1);
-			_prop.var.etc.messageVarYado = _values.getItem(C.Y).getText(1);
-			_prop.var.etc.messageVarKindColumn = _values.getColumn(0).getWidth();
-			_prop.var.etc.messageVarValueColumn = _values.getColumn(1).getWidth();
+			_prop.var.etc.messageVarSelected = _values.getItem(SPChar.M).getText(1);
+			_prop.var.etc.messageVarUnselected = _values.getItem(SPChar.U).getText(1);
+			_prop.var.etc.messageVarRandom = _values.getItem(SPChar.R).getText(1);
+			_prop.var.etc.messageVarCard = _values.getItem(SPChar.C).getText(1);
+			_prop.var.etc.messageVarRef = _values.getItem(SPChar.I).getText(1);
+			_prop.var.etc.messageVarTeam = _values.getItem(SPChar.T).getText(1);
+			_prop.var.etc.messageVarYado = _values.getItem(SPChar.Y).getText(1);
+			if (_isMessage) {
+				_prop.var.etc.messageVarKindColumn = _values.getColumn(0).getWidth();
+				_prop.var.etc.messageVarValueColumn = _values.getColumn(1).getWidth();
+			} else {
+				_prop.var.etc.textVarKindColumn = _values.getColumn(0).getWidth();
+				_prop.var.etc.textVarValueColumn = _values.getColumn(1).getWidth();
+			}
+			_comm.refPreviewValues.call();
 		}
 	}
+
 	private class Mod : ModifyListener {
 		private TableItem _itm;
 		this (TableItem itm) {
 			_itm = itm;
 		}
 		override void modifyText(ModifyEvent e) {
+			if (!_changedText) {
+				store();
+				_changedText = true;
+			}
 			string text = ctrlText(cast(Control) e.widget);
 			_itm.setText(1, text);
-			refresh();
+			raiseModEvent();
 		}
 	}
+
 	private void refreshFlags() {
 		_values.setRedraw(false);
 		scope (exit) _values.setRedraw(true);
@@ -1631,8 +1688,8 @@ class MsgPreview : Composite {
 		int[string] pvs;
 		string selPath = null;
 
-		if (C.max + 1 < _values.getItemCount()) {
-			foreach (i; C.max .. _values.getItemCount()) {
+		if (_targetChars.length < _values.getItemCount()) {
+			foreach (i; _targetChars.length .. _values.getItemCount()) {
 				auto itm = _values.getItem(i);
 				string key = .toLower(itm.getText(0));
 				auto o = itm.getData();
@@ -1644,7 +1701,7 @@ class MsgPreview : Composite {
 					selPath = key;
 				}
 			}
-			_values.remove(C.max + 1, _values.getItemCount() - 1);
+			_values.remove(_targetChars.length, _values.getItemCount() - 1);
 		}
 		foreach (f; _summ.flagDirRoot.allFlags) {
 			auto itm = new TableItem(_values, SWT.NONE);
@@ -1695,10 +1752,12 @@ class MsgPreview : Composite {
 		}
 	}
 	private void refFlagAndStep(Flag[] flags, Step[] steps) {
+		_undo.reset();
 		refreshFlags();
-		refresh();
+		raiseModEvent();
 	}
 	private Control createEditor(TableItem itm, int editC) {
+		_changedText = false;
 		auto fd = cast(FlagData) itm.getData();
 		if (fd) {
 			auto text = createComboEditor!Combo(_comm, _prop, itm.getParent(), [fd.flag.on, fd.flag.off], itm.getText(1));
@@ -1730,11 +1789,397 @@ class MsgPreview : Composite {
 		if (combo) {
 			itm.setText(column, combo.getText());
 			auto fd = cast(FlagData) itm.getData();
-			if (fd) fd.onOff = combo.getSelectionIndex() == 1;
+			if (fd) fd.onOff = combo.getSelectionIndex() == 0;
 			auto sd = cast(StepData) itm.getData();
 			if (sd) sd.select = combo.getSelectionIndex();
 		}
-		if (old != itm.getText()) refresh();
+		if (old != itm.getText()) raiseModEvent();
+	}
+
+	private void raiseModEvent() {
+		foreach (dlg; modEvent) dlg();
+		_comm.refreshToolBar();
+	}
+
+	void resetValues() {
+		store();
+		size_t i = 0;
+		foreach (c; _targetChars) {
+			auto itm = _values.getItem(i);
+			final switch (cast(SPChar)c) {
+			case SPChar.M:
+				itm.setText(1, _prop.var.etc.messageVarSelected.INIT);
+				break;
+			case SPChar.U:
+				itm.setText(1, _prop.var.etc.messageVarUnselected.INIT);
+				break;
+			case SPChar.R:
+				itm.setText(1, _prop.var.etc.messageVarRandom.INIT);
+				break;
+			case SPChar.C:
+				itm.setText(1, _prop.var.etc.messageVarCard.INIT);
+				break;
+			case SPChar.I:
+				itm.setText(1, _prop.var.etc.messageVarRef.INIT);
+				break;
+			case SPChar.T:
+				itm.setText(1, _prop.var.etc.messageVarTeam.INIT);
+				break;
+			case SPChar.Y:
+				itm.setText(1, _prop.var.etc.messageVarYado.INIT);
+				break;
+			}
+			i++;
+		}
+		foreach (f; _summ.flagDirRoot.allFlags) {
+			auto itm = _values.getItem(i);
+			itm.setText(1, f.onOff ? f.on : f.off);
+			auto data = cast(FlagData) itm.getData();
+			data.onOff = f.onOff;
+			i++;
+		}
+		foreach (f; _summ.flagDirRoot.allSteps) {
+			auto itm = _values.getItem(i);
+			itm.setText(1, f.values[f.select]);
+			auto data = cast(StepData) itm.getData();
+			data.select = f.select;
+			i++;
+		}
+		raiseModEvent();
+	}
+	@property
+	bool isInitialValues() {
+		size_t i = 0;
+		foreach (c; _targetChars) {
+			auto itm = _values.getItem(i);
+			final switch (cast(SPChar)c) {
+			case SPChar.M:
+				if (itm.getText(1) != _prop.var.etc.messageVarSelected.INIT) return false;
+				break;
+			case SPChar.U:
+				if (itm.getText(1) != _prop.var.etc.messageVarUnselected.INIT) return false;
+				break;
+			case SPChar.R:
+				if (itm.getText(1) != _prop.var.etc.messageVarRandom.INIT) return false;
+				break;
+			case SPChar.C:
+				if (itm.getText(1) != _prop.var.etc.messageVarCard.INIT) return false;
+				break;
+			case SPChar.I:
+				if (itm.getText(1) != _prop.var.etc.messageVarRef.INIT) return false;
+				break;
+			case SPChar.T:
+				if (itm.getText(1) != _prop.var.etc.messageVarTeam.INIT) return false;
+				break;
+			case SPChar.Y:
+				if (itm.getText(1) != _prop.var.etc.messageVarYado.INIT) return false;
+				break;
+			}
+			i++;
+		}
+		foreach (f; _summ.flagDirRoot.allFlags) {
+			auto itm = _values.getItem(i);
+			auto data = cast(FlagData) itm.getData();
+			if (data.onOff != f.onOff) return false;
+			i++;
+		}
+		foreach (f; _summ.flagDirRoot.allSteps) {
+			auto itm = _values.getItem(i);
+			auto data = cast(StepData) itm.getData();
+			if (data.select != f.select) return false;
+			i++;
+		}
+		return true;
+	}
+
+	class ValuesTCPD : TCPD {
+		void cut(SelectionEvent e) { assert (0); };
+		void copy(SelectionEvent e) {
+			auto indices = _values.getSelectionIndices().sort;
+			if (!indices.length) return;
+			string text;
+			foreach (sel; indices[0] .. indices[$ - 1] + 1) {
+				auto itm = _values.getItem(sel);
+				auto fd = cast(FlagData) itm.getData();
+				auto sd = cast(StepData) itm.getData();
+				if (fd) {
+					text ~= to!string(fd.onOff);
+				} else if (sd) {
+					text ~= to!string(sd.select);
+				} else {
+					text ~= itm.getText(1);
+				}
+				text ~= std.ascii.newline;
+			}
+			_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
+			_comm.refreshToolBar();
+		}
+		void paste(SelectionEvent e) {
+			auto a = cast(ArrayWrapperString) _comm.clipboard.getContents(TextTransfer.getInstance());
+			if (!a) return;
+			auto indices = _values.getSelectionIndices().sort;
+			if (!indices.length) return;
+			int i = indices[0];
+			auto linesu = a.array.splitLines();
+			if (!linesu.length) return;
+			store();
+			auto lines = assumeUnique(linesu);
+			int[] sels;
+			foreach (line; lines) {
+				if (_values.getItemCount() <= i) break;
+				auto itm = _values.getItem(i);
+				auto fd = cast(FlagData) itm.getData();
+				auto sd = cast(StepData) itm.getData();
+				try {
+					if (fd) {
+						fd.onOff = to!bool(line);
+						itm.setText(1, fd.onOff ? fd.flag.on : fd.flag.off);
+					} else if (sd) {
+						auto value = to!int(line);
+						if (0 <= value && value < sd.step.values.length) {
+							sd.select = value;
+							itm.setText(1, sd.step.values[sd.select]);
+						}
+					} else {
+						itm.setText(1, line);
+					}
+				} catch (ConvException e) {
+					debugln(e);
+				}
+				sels ~= i;
+				i++;
+			}
+			_values.deselectAll();
+			_values.select(sels);
+			_values.showSelection();
+			raiseModEvent();
+		}
+		void del(SelectionEvent e) { assert (0); };
+		void clone(SelectionEvent e) { assert (0); };
+		bool canDoTCPD() {
+			return _values.isFocusControl();
+		}
+		bool canDoT() { return false; }
+		bool canDoC() { return -1 != _values.getSelectionIndex(); }
+		bool canDoP() { return -1 != _values.getSelectionIndex() && CBisText(_comm.clipboard); }
+		bool canDoD() { return false; }
+		bool canDoClone() { return false; }
+	}
+
+	this (Composite parent, Commons comm, Props prop, Summary summ, bool message) {
+		super (parent, SWT.NONE);
+
+		_undo = new UndoManager(prop.var.etc.undoMaxEtc);
+		_comm = comm;
+		_prop = prop;
+		_summ = summ;
+		_isMessage = message;
+		_targetChars = message ? SPCHAR_ALL : SPCHAR_TEXT;
+
+		this.setLayout(zeroGridLayout(1, true));
+
+		_values = new Table(this, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
+		auto vgd = new GridData(GridData.FILL_BOTH);
+		vgd.heightHint = _prop.var.etc.messageVarTableHeight;
+		_values.setLayoutData(vgd);
+		_values.addDisposeListener(new Dispose);
+		_values.setHeaderVisible(true);
+
+		auto menu = new Menu(_values);
+		createMenuItem(comm, menu, MenuID.Undo, {_undo.undo();}, &_undo.canUndo);
+		createMenuItem(comm, menu, MenuID.Redo, {_undo.redo();}, &_undo.canRedo);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(comm, menu, MenuID.ResetPreviewValues, &resetValues, () => !isInitialValues);
+		new MenuItem(menu, SWT.SEPARATOR);
+		appendMenuTCPD(comm, menu, new ValuesTCPD, false, true, true, false, false);
+		_values.setMenu(menu);
+
+		auto kindCol = new TableColumn(_values, SWT.NONE);
+		kindCol.setText(_prop.msgs.messageVarKindColumn);
+		auto valueCol = new TableColumn(_values, SWT.NONE);
+		valueCol.setText(_prop.msgs.messageVarValueColumn);
+		if (_isMessage) {
+			kindCol.setWidth(_prop.var.etc.messageVarKindColumn);
+			valueCol.setWidth(_prop.var.etc.messageVarValueColumn);
+		} else {
+			kindCol.setWidth(_prop.var.etc.textVarKindColumn);
+			valueCol.setWidth(_prop.var.etc.textVarValueColumn);
+		}
+
+		foreach (i; _targetChars) {
+			auto itm = new TableItem(_values, SWT.NONE);
+			final switch (cast(SPChar)i) {
+			case SPChar.M:
+				itm.setImage(0, _prop.images.scTalker(Talker.SELECTED));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.SELECTED));
+				itm.setText(1, _prop.var.etc.messageVarSelected);
+				break;
+			case SPChar.U:
+				itm.setImage(0, _prop.images.scTalker(Talker.UNSELECTED));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.UNSELECTED));
+				itm.setText(1, _prop.var.etc.messageVarUnselected);
+				break;
+			case SPChar.R:
+				itm.setImage(0, _prop.images.scTalker(Talker.RANDOM));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.RANDOM));
+				itm.setText(1, _prop.var.etc.messageVarRandom);
+				break;
+			case SPChar.C:
+				itm.setImage(0, _prop.images.scTalker(Talker.CARD));
+				itm.setText(0, _prop.msgs.scTalkerName(Talker.CARD));
+				itm.setText(1, _prop.var.etc.messageVarCard);
+				break;
+			case SPChar.I:
+				itm.setImage(0, _prop.images.scRef);
+				itm.setText(0, _prop.msgs.scRef);
+				itm.setText(1, _prop.var.etc.messageVarRef);
+				break;
+			case SPChar.T:
+				itm.setImage(0, _prop.images.scTeam);
+				itm.setText(0, _prop.msgs.scTeam);
+				itm.setText(1, _prop.var.etc.messageVarTeam);
+				break;
+			case SPChar.Y:
+				itm.setImage(0, _prop.images.scYado);
+				itm.setText(0, _prop.msgs.scYado);
+				itm.setText(1, _prop.var.etc.messageVarYado);
+				break;
+			}
+		}
+		refreshFlags();
+		_comm.refUndoMax.add(&refUndoMax);
+		_comm.refFlagAndStep.add(&refFlagAndStep);
+		_comm.delFlagAndStep.add(&refFlagAndStep);
+
+		new TableTCEdit(_comm, _values, 1, &createEditor, &editEnd, null);
+	}
+
+	void getValues(out string[char] names, out string[string] flags, out string[string] steps) {
+		foreach (i; _targetChars) {
+			names[C_TBL[cast(SPChar) i]] = _values.getItem(i).getText(1);
+		}
+		foreach (i; _targetChars.length .. _values.getItemCount()) {
+			auto itm = _values.getItem(i);
+			if (cast(FlagData) itm.getData()) {
+				flags[itm.getText(0)] = itm.getText(1);
+			} else {
+				assert (cast(StepData) itm.getData());
+				steps[itm.getText(0)] = itm.getText(1);
+			}
+		}
+	}
+	private void getValues2(out string[char] names, out bool[string] flags, out int[string] steps) {
+		foreach (i; _targetChars) {
+			names[C_TBL[cast(SPChar) i]] = _values.getItem(i).getText(1);
+		}
+		foreach (i; _targetChars.length .. _values.getItemCount()) {
+			auto itm = _values.getItem(i);
+			auto fd = cast(FlagData) itm.getData();
+			if (fd) {
+				flags[itm.getText(0)] = fd.onOff;
+			} else {
+				auto sd = cast(StepData) itm.getData();
+				assert (sd !is null);
+				steps[itm.getText(0)] = sd.select;
+			}
+		}
+	}
+	private void setValues2(in string[char] names, in bool[string] flags, in int[string] steps) {
+		foreach (i; _targetChars) {
+			_values.getItem(i).setText(1, names[C_TBL[cast(SPChar) i]]);
+		}
+		foreach (i; _targetChars.length .. _values.getItemCount()) {
+			auto itm = _values.getItem(i);
+			auto fd = cast(FlagData) itm.getData();
+			if (fd) {
+				auto p = itm.getText(0) in flags;
+				if (p) {
+					fd.onOff = *p;
+					itm.setText(1, fd.onOff ? fd.flag.on : fd.flag.off);
+				}
+			} else {
+				auto sd = cast(StepData) itm.getData();
+				assert (sd !is null);
+				auto p = itm.getText(0) in steps;
+				if (p && 0 <= *p && *p < sd.step.values.length) {
+					sd.select = *p;
+					itm.setText(1, sd.step.values[sd.select]);
+				}
+			}
+		}
+	}
+
+	@property
+	bool focusInValues() {
+		return _values.isFocusControl();
+	}
+	bool undo() { return _undo.undo(); }
+	bool redo() { return _undo.redo(); }
+}
+
+void getPreviewValues(in Props prop, in Summary summ, in SPChar[] targetChars,
+		out string[char] names, out string[string] flags, out string[string] steps) {
+	foreach (c; targetChars) {
+		final switch (c) {
+		case SPChar.M:
+			names[C_TBL[c]] = prop.var.etc.messageVarSelected;
+			break;
+		case SPChar.U:
+			names[C_TBL[c]] = prop.var.etc.messageVarUnselected;
+			break;
+		case SPChar.R:
+			names[C_TBL[c]] = prop.var.etc.messageVarRandom;
+			break;
+		case SPChar.C:
+			names[C_TBL[c]] = prop.var.etc.messageVarCard;
+			break;
+		case SPChar.I:
+			names[C_TBL[c]] = prop.var.etc.messageVarRef;
+			break;
+		case SPChar.T:
+			names[C_TBL[c]] = prop.var.etc.messageVarTeam;
+			break;
+		case SPChar.Y:
+			names[C_TBL[c]] = prop.var.etc.messageVarYado;
+			break;
+		}
+	}
+	if (summ) {
+		foreach (f; summ.flagDirRoot.allFlags) {
+			flags[f.path] = f.onOff ? f.on : f.off;
+		}
+		foreach (f; summ.flagDirRoot.allSteps) {
+			steps[f.path] = f.value;
+		}
+	}
+}
+
+class MsgPreview : Composite {
+
+	private Commons _comm;
+	private Props _prop;
+	private Summary _summ;
+
+	private Canvas _canvas;
+	private Image _img = null;
+	private PreviewValues _values;
+
+	private Talker _talker = Talker.NARRATION;
+	private string _imgPath = "";
+	private string _message = "";
+
+	private class Paint : PaintListener {
+		override void paintControl(PaintEvent e) {
+			auto b = _canvas.getBounds();
+			auto rect = _prop.looks.messageBounds;
+			e.gc.drawImage(_img, (b.width - rect.width) / 2, (b.height - rect.height) / 2);
+		}
+	}
+	private class Dispose : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			if (_img) _img.dispose();
+			_comm.refSkin.remove(&refresh);
+		}
 	}
 
 	this (Composite parent, Commons comm, Props prop, Summary summ) {
@@ -1755,64 +2200,12 @@ class MsgPreview : Composite {
 		_canvas.addPaintListener(new Paint);
 		_canvas.addDisposeListener(new Dispose);
 
-		_values = new Table(this, SWT.BORDER | SWT.FULL_SELECTION);
+		_values = new PreviewValues(this, comm, prop, summ, true);
 		auto vgd = new GridData(GridData.FILL_BOTH);
 		vgd.heightHint = _prop.var.etc.messageVarTableHeight;
 		_values.setLayoutData(vgd);
-		_values.setHeaderVisible(true);
-		auto kindCol = new TableColumn(_values, SWT.NONE);
-		kindCol.setText(_prop.msgs.messageVarKindColumn);
-		kindCol.setWidth(_prop.var.etc.messageVarKindColumn);
-		auto valueCol = new TableColumn(_values, SWT.NONE);
-		valueCol.setText(_prop.msgs.messageVarValueColumn);
-		valueCol.setWidth(_prop.var.etc.messageVarValueColumn);
-
-		foreach (i; C.min .. C.max + 1) {
-			auto itm = new TableItem(_values, SWT.NONE);
-			final switch (cast(C) i) {
-			case C.M:
-				itm.setImage(0, _prop.images.scTalker(Talker.SELECTED));
-				itm.setText(0, _prop.msgs.scTalkerName(Talker.SELECTED));
-				itm.setText(1, _prop.var.etc.messageVarSelected);
-				break;
-			case C.U:
-				itm.setImage(0, _prop.images.scTalker(Talker.UNSELECTED));
-				itm.setText(0, _prop.msgs.scTalkerName(Talker.UNSELECTED));
-				itm.setText(1, _prop.var.etc.messageVarUnselected);
-				break;
-			case C.R:
-				itm.setImage(0, _prop.images.scTalker(Talker.RANDOM));
-				itm.setText(0, _prop.msgs.scTalkerName(Talker.RANDOM));
-				itm.setText(1, _prop.var.etc.messageVarRandom);
-				break;
-			case C.C:
-				itm.setImage(0, _prop.images.scTalker(Talker.CARD));
-				itm.setText(0, _prop.msgs.scTalkerName(Talker.CARD));
-				itm.setText(1, _prop.var.etc.messageVarCard);
-				break;
-			case C.I:
-				itm.setImage(0, _prop.images.scRef);
-				itm.setText(0, _prop.msgs.scRef);
-				itm.setText(1, _prop.var.etc.messageVarRef);
-				break;
-			case C.T:
-				itm.setImage(0, _prop.images.scTeam);
-				itm.setText(0, _prop.msgs.scTeam);
-				itm.setText(1, _prop.var.etc.messageVarTeam);
-				break;
-			case C.Y:
-				itm.setImage(0, _prop.images.scYado);
-				itm.setText(0, _prop.msgs.scYado);
-				itm.setText(1, _prop.var.etc.messageVarYado);
-				break;
-			}
-		}
-		refreshFlags();
-		_comm.refFlagAndStep.add(&refFlagAndStep);
-		_comm.delFlagAndStep.add(&refFlagAndStep);
+		_values.modEvent ~= &refresh;
 		_comm.refSkin.add(&refresh);
-
-		new TableTCEdit(_comm, _values, 1, &createEditor, &editEnd, null);
 	}
 
 	void text(Talker talker, string imgPath, string message) {
@@ -1852,21 +2245,17 @@ class MsgPreview : Composite {
 
 		string[char] names;
 		string[string] flags, steps;
-		foreach (i; C.min .. C.max + 1) {
-			names[C_TBL[cast(C) i]] = _values.getItem(i).getText(1);
-		}
-		foreach (i; C.max + 1 .. _values.getItemCount()) {
-			auto itm = _values.getItem(i);
-			if (cast(FlagData) itm.getData()) {
-				flags[itm.getText(0)] = itm.getText(1);
-			} else {
-				assert (cast(StepData) itm.getData());
-				steps[itm.getText(0)] = itm.getText(1);
-			}
-		}
+		_values.getValues(names, flags, steps);
 		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, _message, [], names, flags, steps));
 		_canvas.redraw();
 	}
+
+	@property
+	bool focusInValues() {
+		return _values.focusInValues;
+	}
+	bool undo() { return _values.undo(); }
+	bool redo() { return _values.redo(); }
 }
 
 /// メッセージのプレビューを生成する。
@@ -1886,7 +2275,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	int alpha;
 
 	// 背景の描画
-	auto back = new Color(d, dwtData(prop.looks.messageBackColor, alpha));
+	auto back = new Color(d, dwtData(prop.var.etc.messageBackColor, alpha));
 	scope (exit) back.dispose();
 	gc.setBackground(back);
 	gc.fillRectangle(3, 3, rect.width - 6, rect.height - 6);
@@ -1956,9 +2345,9 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 
 	auto font = new Font(d, dwtData(prop.looks.messageFont(legacy)));
 	scope (exit) font.dispose();
-	auto fc = new Color(d, dwtData(prop.looks.messageForeColor, alpha));
+	auto fc = new Color(d, dwtData(prop.var.etc.messageForeColor, alpha));
 	scope (exit) fc.dispose();
-	auto hc = new Color(d, dwtData(prop.looks.messageHemColor, alpha));
+	auto hc = new Color(d, dwtData(prop.var.etc.messageHemColor, alpha));
 	scope (exit) hc.dispose();
 	auto selFont = new Font(d, dwtData(prop.looks.messageSelectFont(legacy)));
 	scope (exit) selFont.dispose();
@@ -2246,9 +2635,9 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	}
 
 	// 枠
-	auto c1 = new Color(d, dwtData(prop.looks.messageLineColor1, alpha));
+	auto c1 = new Color(d, dwtData(prop.var.etc.messageLineColor1, alpha));
 	scope (exit) c1.dispose();
-	auto c2 = new Color(d, dwtData(prop.looks.messageLineColor2, alpha));
+	auto c2 = new Color(d, dwtData(prop.var.etc.messageLineColor2, alpha));
 	scope (exit) c2.dispose();
 	gc.setForeground(c1);
 	gc.drawRectangle(0, 0, rect.width - 1, rect.height - 1);

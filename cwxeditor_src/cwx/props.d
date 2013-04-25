@@ -51,11 +51,6 @@ public:
 
 	@property const CRect messageBounds() {return CRect(81, 50, 470, 180);}
 	@property const int messageButtonHeight() {return 25;}
-	@property const CRGB messageLineColor1() {return CRGB(0, 0, 0);}
-	@property const CRGB messageLineColor2() {return CRGB(128, 0, 0);}
-	@property const CRGB messageBackColor() {return CRGB(0, 0, 128);}
-	@property const CRGB messageForeColor() {return CRGB(255, 255, 255);}
-	@property const CRGB messageHemColor() {return CRGB(0, 0, 0);}
 	const CPoint messageStartPos(bool legacy, bool withTalker) {
 		if (legacy) {
 			return withTalker ? CPoint(115, 11) : CPoint(16, 11);

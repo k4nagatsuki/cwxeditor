@@ -32,6 +32,44 @@ string formatMsg(in string text,
 		bool delegate(string) hasMaterial,
 		out string[size_t] fonts,
 		out char[size_t] colors) {
+	return formatMsgImpl(text, getFlag, getStep, getName, hasMaterial, fonts, colors, true);
+}
+/// ditto
+string simpleFormatMsg(in string text, string[string] flags, string[string] steps, string[char] names) {
+	string[size_t] fonts;
+	char[size_t] colors;
+	return formatMsgImpl(text, (string path) {
+			foreach (f, v; flags) {
+				if (0 == icmp(f, path)) {
+					return v;
+				}
+			}
+			return "%" ~ path ~ "%";
+		}, (string path) {
+			foreach (f, v; steps) {
+				if (0 == icmp(f, path)) {
+					return v;
+				}
+			}
+			return "$" ~ path ~ "$";
+		}, delegate string (char name) {
+			auto dc = std.ascii.toUpper(name);
+			foreach (c, v; names) {
+				if (std.ascii.toUpper(c) == dc) {
+					return v;
+				}
+			}
+			return "#" ~ name;
+		}, (c) => false, fonts, colors, false);
+}
+private string formatMsgImpl(in string text,
+		string delegate(string) getFlag,
+		string delegate(string) getStep,
+		string delegate(char) getName,
+		bool delegate(string) hasMaterial,
+		out string[size_t] fonts,
+		out char[size_t] colors,
+		bool full) {
 	dchar[] result;
 	dstring dtext = to!dstring(text);
 	for (size_t i = 0; i < dtext.length; i++) {
@@ -49,17 +87,28 @@ string formatMsg(in string text,
 			if (i + 1 == dtext.length) goto default;
 			if ('\n' == dtext[i + 1]) goto default;
 			auto nc = std.ascii.toUpper(dtext[i + 1]);
-			switch (nc) {
-			case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
-				result ~= to!dstring(getName(cast(char) nc));
-				i++;
-				continue;
-			default:
-				string path = encodeFontPath(dtext[i + 1], ".bmp");
-				if (!hasMaterial || hasMaterial(path)) {
-					fonts[result.length] = path;
+			if (full) {
+				switch (nc) {
+				case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
+					result ~= to!dstring(getName(cast(char) nc));
+					i++;
+					continue;
+				default:
+					string path = encodeFontPath(dtext[i + 1], ".bmp");
+					if (!hasMaterial || hasMaterial(path)) {
+						fonts[result.length] = path;
+					}
+					break;
 				}
-				break;
+			} else {
+				switch (nc) {
+				case 'M', 'R', 'U', 'T', 'Y':
+					result ~= to!dstring(getName(cast(char) nc));
+					i++;
+					continue;
+				default:
+					break;
+				}
 			}
 			goto default;
 		case '%':
@@ -69,6 +118,7 @@ string formatMsg(in string text,
 			if (!flag_step(getStep, '$')) goto default;
 			break;
 		case '&':
+			if (!full) goto default;
 			if (i + 1 == dtext.length) goto default;
 			if ('\n' == dtext[i + 1]) goto default;
 			auto nc = std.ascii.toUpper(dtext[i + 1]);

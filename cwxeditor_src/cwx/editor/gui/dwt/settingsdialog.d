@@ -1387,33 +1387,34 @@ private:
 	string[int] _msgsTableIndex;
 	string[string] _msgsTableFile;
 	Text _ignorePaths;
-	Button _singleWindow = null;
+	TableItem _singleWindow = null;
 
-	Button _clickIsOpenEvent;
-	Button _smoothingCard;
-	Button _showImagePreview;
-	Button _classicStyleTree;
-	Button _showEventTreeMark;
-	Button _ignoreEmptyStart;
-	Button _expandXMLs;
-	Button _contentsFloat;
-	Button _contentsAutoHide;
-	Button _comboListVisible;
-	Button _xmlCopy;
-	Button _showSpNature;
-	Button _saveInnerImagePath;
-	Button _linkCard;
-	Button _traceDirectories;
-	Button _logicalSort;
-	Button _copyDesc;
-	Button _refCardsAtEditBgImage;
-	Button _floatMessagePreview;
-	Button _addNewClassicEngine;
-	Button _doubleIO;
-	Button _switchTabWheel;
-	Button _openTabAtRightOfCurrentTab;
-	Button _reconstruction;
-	Button _openLastScenario;
+	TableItem _clickIsOpenEvent;
+	TableItem _smoothingCard;
+	TableItem _showImagePreview;
+	TableItem _classicStyleTree;
+	TableItem _showEventTreeMark;
+	TableItem _ignoreEmptyStart;
+	TableItem _expandXMLs;
+	TableItem _contentsFloat;
+	TableItem _contentsAutoHide;
+	TableItem _comboListVisible;
+	TableItem _xmlCopy;
+	TableItem _showSpNature;
+	TableItem _saveInnerImagePath;
+	TableItem _linkCard;
+	TableItem _traceDirectories;
+	TableItem _logicalSort;
+	TableItem _copyDesc;
+	TableItem _refCardsAtEditBgImage;
+	TableItem _floatMessagePreview;
+	TableItem _addNewClassicEngine;
+	TableItem _doubleIO;
+	TableItem _switchTabWheel;
+	TableItem _openTabAtRightOfCurrentTab;
+	TableItem _reconstruction;
+	TableItem _openLastScenario;
+	TableItem _showVariableValuesInEventText;
 	Combo _soundPlayType;
 	int[int] _soundPlayTypeTbl;
 	int[int] _soundPlayTypeTbl2;
@@ -2071,12 +2072,6 @@ private:
 		});
 	}
 
-	class SelContentsFloat : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
-			refreshEnabled();
-		}
-	}
-
 	Combo createEnumC(Composite grp, string title, in int[] values, in string[] names, ref int[int] tblA, ref int[int] tblB, int hSpan = 1) {
 		assert (values.length == names.length);
 		auto l = new Label(grp, SWT.NONE);
@@ -2181,6 +2176,18 @@ private:
 			applyMenu();
 		}
 	}
+	class SelBoolTable : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			if (e.detail != SWT.CHECK) return;
+			applyEnabled();
+			if (e.item is _contentsFloat && _contentsFloat.getChecked()) {
+				_contentsAutoHide.setChecked(false);
+			}
+			if (e.item is _contentsAutoHide && _contentsAutoHide.getChecked()) {
+				_contentsFloat.setChecked(false);
+			}
+		}
+	}
 	void construct5(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		_tabE = new CTabItem(tabf, SWT.NONE);
@@ -2193,17 +2200,20 @@ private:
 			comp2.setLayout(zeroMarginGridLayout(1, false));
 			{
 				auto grp = new Group(comp2, SWT.NONE);
-				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setText(_prop.msgs.etcSettingsTitle);
 				grp.setLayout(new GridLayout(5, false));
-				Button createB(string text) {
-					auto btn = new Button(grp, SWT.CHECK);
-					btn.setText(text);
-					mod(btn);
-					auto gd = new GridData;
-					gd.horizontalSpan = 5;
-					btn.setLayoutData(gd);
-					return btn;
+
+				auto boolTable = new Table(grp, SWT.BORDER | SWT.FULL_SELECTION | SWT.CHECK);
+				new FullTableColumn(boolTable, SWT.NONE);
+				boolTable.addSelectionListener(new SelBoolTable);
+				auto tgd = new GridData(GridData.FILL_BOTH);
+				tgd.horizontalSpan = 5;
+				boolTable.setLayoutData(tgd);
+				TableItem createB(string text) {
+					auto itm = new TableItem(boolTable, SWT.NONE);
+					itm.setText(text);
+					return itm;
 				}
 				if (!_comm.singleWindowMode(_prop)) {
 					_singleWindow = createB(_prop.msgs.singleWindow);
@@ -2218,8 +2228,6 @@ private:
 				_contentsFloat = createB(_prop.msgs.contentsFloat);
 				_contentsAutoHide = createB(_prop.msgs.contentsAutoHide);
 				_comboListVisible = createB(_prop.msgs.comboListVisible);
-				_contentsFloat.addSelectionListener(new SelContentsFloat);
-				_contentsAutoHide.setEnabled(!_contentsFloat.getSelection());
 				_xmlCopy = createB(_prop.msgs.xmlCopy);
 				_showSpNature = createB(_prop.msgs.showSpNature);
 				_saveInnerImagePath = createB(_prop.msgs.saveInnerImagePath);
@@ -2235,6 +2243,7 @@ private:
 				_openTabAtRightOfCurrentTab = createB(_prop.msgs.openTabAtRightOfCurrentTab);
 				_reconstruction = createB(_prop.msgs.reconstruction);
 				_openLastScenario = createB(_prop.msgs.openLastScenario);
+				_showVariableValuesInEventText = createB(_prop.msgs.showVariableValuesInEventText);
 
 				auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 				auto sepgd = new GridData(GridData.FILL_HORIZONTAL);
@@ -2385,8 +2394,6 @@ private:
 
 		_backupBeforeSaveDir.setEnabled(_backupBeforeSaveEnabled.getSelection());
 		_backupBeforeSaveRef.setEnabled(_backupBeforeSaveEnabled.getSelection());
-
-		_contentsAutoHide.setEnabled(!_contentsFloat.getSelection());
 	}
 	void refEngineEnabled() {
 		_findEnginePath.setEnabled(0 == _enginePath.getText().length);
@@ -2466,34 +2473,35 @@ protected:
 		}
 		_ignorePaths.setText(ipbuf);
 
-		_clickIsOpenEvent.setSelection(_prop.var.etc.clickIsOpenEvent);
-		_expandXMLs.setSelection(_prop.var.etc.expandXMLs);
-		_smoothingCard.setSelection(_prop.var.etc.smoothingCard);
-		_showImagePreview.setSelection(_prop.var.etc.showImagePreview);
-		_classicStyleTree.setSelection(_prop.var.etc.classicStyleTree);
-		_showEventTreeMark.setSelection(_prop.var.etc.showEventTreeMark);
-		_ignoreEmptyStart.setSelection(_prop.var.etc.ignoreEmptyStart);
+		_clickIsOpenEvent.setChecked(_prop.var.etc.clickIsOpenEvent);
+		_expandXMLs.setChecked(_prop.var.etc.expandXMLs);
+		_smoothingCard.setChecked(_prop.var.etc.smoothingCard);
+		_showImagePreview.setChecked(_prop.var.etc.showImagePreview);
+		_classicStyleTree.setChecked(_prop.var.etc.classicStyleTree);
+		_showEventTreeMark.setChecked(_prop.var.etc.showEventTreeMark);
+		_ignoreEmptyStart.setChecked(_prop.var.etc.ignoreEmptyStart);
 		if (_singleWindow) {
-			_singleWindow.setSelection(_prop.var.etc.singleWindow);
+			_singleWindow.setChecked(_prop.var.etc.singleWindow);
 		}
-		_contentsFloat.setSelection(_prop.var.etc.contentsFloat);
-		_contentsAutoHide.setSelection(_prop.var.etc.contentsAutoHide);
-		_comboListVisible.setSelection(_prop.var.etc.comboListVisible);
-		_xmlCopy.setSelection(_prop.var.etc.xmlCopy);
-		_showSpNature.setSelection(_prop.var.etc.showSpNature);
-		_saveInnerImagePath.setSelection(_prop.var.etc.saveInnerImagePath);
-		_linkCard.setSelection(_prop.var.etc.linkCard);
-		_traceDirectories.setSelection(_prop.var.etc.traceDirectories);
-		_logicalSort.setSelection(_prop.var.etc.logicalSort);
-		_copyDesc.setSelection(_prop.var.etc.copyDesc);
-		_refCardsAtEditBgImage.setSelection(_prop.var.etc.refCardsAtEditBgImage);
-		_floatMessagePreview.setSelection(_prop.var.etc.floatMessagePreview);
-		_addNewClassicEngine.setSelection(_prop.var.etc.addNewClassicEngine);
-		_doubleIO.setSelection(_prop.var.etc.doubleIO);
-		_switchTabWheel.setSelection(_prop.var.etc.switchTabWheel);
-		_openTabAtRightOfCurrentTab.setSelection(_prop.var.etc.openTabAtRightOfCurrentTab);
-		_reconstruction.setSelection(_prop.var.etc.reconstruction);
-		_openLastScenario.setSelection(_prop.var.etc.openLastScenario);
+		_contentsFloat.setChecked(_prop.var.etc.contentsFloat);
+		_contentsAutoHide.setChecked(_prop.var.etc.contentsAutoHide);
+		_comboListVisible.setChecked(_prop.var.etc.comboListVisible);
+		_xmlCopy.setChecked(_prop.var.etc.xmlCopy);
+		_showSpNature.setChecked(_prop.var.etc.showSpNature);
+		_saveInnerImagePath.setChecked(_prop.var.etc.saveInnerImagePath);
+		_linkCard.setChecked(_prop.var.etc.linkCard);
+		_traceDirectories.setChecked(_prop.var.etc.traceDirectories);
+		_logicalSort.setChecked(_prop.var.etc.logicalSort);
+		_copyDesc.setChecked(_prop.var.etc.copyDesc);
+		_refCardsAtEditBgImage.setChecked(_prop.var.etc.refCardsAtEditBgImage);
+		_floatMessagePreview.setChecked(_prop.var.etc.floatMessagePreview);
+		_addNewClassicEngine.setChecked(_prop.var.etc.addNewClassicEngine);
+		_doubleIO.setChecked(_prop.var.etc.doubleIO);
+		_switchTabWheel.setChecked(_prop.var.etc.switchTabWheel);
+		_openTabAtRightOfCurrentTab.setChecked(_prop.var.etc.openTabAtRightOfCurrentTab);
+		_reconstruction.setChecked(_prop.var.etc.reconstruction);
+		_openLastScenario.setChecked(_prop.var.etc.openLastScenario);
+		_showVariableValuesInEventText.setChecked(_prop.var.etc.showVariableValuesInEventText);
 		auto sptp = _prop.var.etc.soundPlayType in _soundPlayTypeTbl;
 		if (sptp) {
 			_soundPlayType.select(*sptp);
@@ -2614,33 +2622,34 @@ protected:
 			_prop.var.etc.ignorePaths = [];
 		}
 		if (_singleWindow) {
-			_prop.var.etc.singleWindow = _singleWindow.getSelection();
+			_prop.var.etc.singleWindow = _singleWindow.getChecked();
 		}
-		_prop.var.etc.clickIsOpenEvent = _clickIsOpenEvent.getSelection();
-		_prop.var.etc.smoothingCard = _smoothingCard.getSelection();
-		_prop.var.etc.showImagePreview = _showImagePreview.getSelection();
-		_prop.var.etc.classicStyleTree = _classicStyleTree.getSelection();
-		_prop.var.etc.showEventTreeMark = _showEventTreeMark.getSelection();
-		_prop.var.etc.ignoreEmptyStart = _ignoreEmptyStart.getSelection();
-		_prop.var.etc.expandXMLs = _expandXMLs.getSelection();
-		_prop.var.etc.xmlCopy = _xmlCopy.getSelection();
-		_prop.var.etc.showSpNature = _showSpNature.getSelection();
-		_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getSelection();
-		_prop.var.etc.linkCard = _linkCard.getSelection();
-		_prop.var.etc.traceDirectories = _traceDirectories.getSelection();
-		_prop.var.etc.logicalSort = _logicalSort.getSelection();
-		_prop.var.etc.copyDesc = _copyDesc.getSelection();
-		_prop.var.etc.refCardsAtEditBgImage = _refCardsAtEditBgImage.getSelection();
-		_prop.var.etc.floatMessagePreview = _floatMessagePreview.getSelection();
-		_prop.var.etc.addNewClassicEngine = _addNewClassicEngine.getSelection();
-		_prop.var.etc.doubleIO = _doubleIO.getSelection();
-		_prop.var.etc.switchTabWheel = _switchTabWheel.getSelection();
-		_prop.var.etc.openTabAtRightOfCurrentTab = _openTabAtRightOfCurrentTab.getSelection();
-		_prop.var.etc.reconstruction = _reconstruction.getSelection();
-		_prop.var.etc.openLastScenario = _openLastScenario.getSelection();
-		_prop.var.etc.contentsFloat = _contentsFloat.getSelection();
-		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getSelection();
-		_prop.var.etc.comboListVisible = _comboListVisible.getSelection();
+		_prop.var.etc.clickIsOpenEvent = _clickIsOpenEvent.getChecked();
+		_prop.var.etc.smoothingCard = _smoothingCard.getChecked();
+		_prop.var.etc.showImagePreview = _showImagePreview.getChecked();
+		_prop.var.etc.classicStyleTree = _classicStyleTree.getChecked();
+		_prop.var.etc.showEventTreeMark = _showEventTreeMark.getChecked();
+		_prop.var.etc.ignoreEmptyStart = _ignoreEmptyStart.getChecked();
+		_prop.var.etc.expandXMLs = _expandXMLs.getChecked();
+		_prop.var.etc.xmlCopy = _xmlCopy.getChecked();
+		_prop.var.etc.showSpNature = _showSpNature.getChecked();
+		_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getChecked();
+		_prop.var.etc.linkCard = _linkCard.getChecked();
+		_prop.var.etc.traceDirectories = _traceDirectories.getChecked();
+		_prop.var.etc.logicalSort = _logicalSort.getChecked();
+		_prop.var.etc.copyDesc = _copyDesc.getChecked();
+		_prop.var.etc.refCardsAtEditBgImage = _refCardsAtEditBgImage.getChecked();
+		_prop.var.etc.floatMessagePreview = _floatMessagePreview.getChecked();
+		_prop.var.etc.addNewClassicEngine = _addNewClassicEngine.getChecked();
+		_prop.var.etc.doubleIO = _doubleIO.getChecked();
+		_prop.var.etc.switchTabWheel = _switchTabWheel.getChecked();
+		_prop.var.etc.openTabAtRightOfCurrentTab = _openTabAtRightOfCurrentTab.getChecked();
+		_prop.var.etc.reconstruction = _reconstruction.getChecked();
+		_prop.var.etc.openLastScenario = _openLastScenario.getChecked();
+		_prop.var.etc.showVariableValuesInEventText = _showVariableValuesInEventText.getChecked();
+		_prop.var.etc.contentsFloat = _contentsFloat.getChecked();
+		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getChecked();
+		_prop.var.etc.comboListVisible = _comboListVisible.getChecked();
 		_prop.var.etc.soundPlayType = _soundPlayTypeTbl2[_soundPlayType.getSelectionIndex()];
 		_prop.var.etc.bgmVolume = _bgmVolume.getSelection();
 		_prop.var.etc.soundEffectPlayType = _soundEffectPlayTypeTbl2[_soundEffectPlayType.getSelectionIndex()];
@@ -2724,6 +2733,7 @@ struct OldSettings {
 	bool ignoreEmptyStart;
 	bool classicStyleTree;
 	bool showSpNature;
+	bool showVariableValuesInEventText;
 	this (Props prop) {
 		this.prop = prop;
 		this.oldEnginePath = prop.var.etc.enginePath;
@@ -2759,6 +2769,7 @@ struct OldSettings {
 		this.ignoreEmptyStart = prop.var.etc.ignoreEmptyStart;
 		this.classicStyleTree = prop.var.etc.classicStyleTree;
 		this.showSpNature = prop.var.etc.showSpNature;
+		this.showVariableValuesInEventText = prop.var.etc.showVariableValuesInEventText;
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
@@ -2860,6 +2871,9 @@ struct OldSettings {
 		}
 		if (this.showSpNature != prop.var.etc.showSpNature) {
 			comm.refCoupons.call();
+		}
+		if (this.showVariableValuesInEventText != prop.var.etc.showVariableValuesInEventText) {
+			comm.refPreviewValues.call();
 		}
 	}
 }

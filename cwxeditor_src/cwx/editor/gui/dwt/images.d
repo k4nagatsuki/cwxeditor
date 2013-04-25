@@ -113,6 +113,7 @@ private:
 	BorderingType _borderingType = BorderingType.None;
 	CRGB _borderingColor = CRGB(255, 255, 255, 255);
 	uint _borderingWidth = 1;
+	string delegate(string) _previewText = null;
 
 	// ImageType.ColorFilter用。
 	BlendMode _blendMode = BlendMode.Normal;
@@ -191,6 +192,11 @@ public:
 		this.borderingColor = borderingColor;
 		this.borderingWidth = borderingWidth;
 	}
+
+	/// イメージのタイプ。
+	@property
+	const
+	ImageType type() { return _type; }
 
 	/// Returns: ベースとなる幅。
 	@property
@@ -348,48 +354,56 @@ public:
 		_maskA = a;
 	}
 
-	// テキスト色。
+	/// テキスト色。
 	@property
 	const
 	CRGB textColor() { return _textColor; }
 	@property
 	void textColor(CRGB value) { _textColor = value; }
-	// 下線。
+	/// 下線。
 	@property
 	const
 	bool underline() { return _underline; }
 	@property
 	void underline(bool value) { _underline = value; }
-	// 取消線。
+	/// 取消線。
 	@property
 	const
 	bool strike() { return _strike; }
 	@property
 	void strike(bool value) { _strike = value; }
-	// 縦書き。
+	/// 縦書き。
 	@property
 	const
 	bool vertical() { return _vertical; }
 	@property
 	void vertical(bool value) { _vertical = value; }
-	// 縁取り方式。
+	/// 縁取り方式。
 	@property
 	const
 	BorderingType borderingType() { return _borderingType; }
 	@property
 	void borderingType(BorderingType value) { _borderingType = value; }
-	// 縁取り色。
+	/// 縁取り色。
 	@property
 	const
 	CRGB borderingColor() { return _borderingColor; }
 	@property
 	void borderingColor(CRGB value) { _borderingColor = value; }
-	// 縁取り幅。
+	/// 縁取り幅。
 	@property
 	const
 	uint borderingWidth() { return _borderingWidth; }
 	@property
 	void borderingWidth(uint value) { _borderingWidth = value; }
+
+	/// 表示前にテキスト加工を行うdelegate。
+	/// nullの場合は加工しない。
+	@property
+	const
+	string delegate(string) previewText() { return _previewText; }
+	@property
+	void previewText(string delegate(string) value) { _previewText = value; }
 
 	/// 合成モード。
 	@property
@@ -691,7 +705,11 @@ public:
 		scope (exit) pathF.dispose();
 		gc.setBackground(textColor);
 		gc.setForeground(borderColor);
-		foreach (line; .splitLines(_title)) {
+		auto text = _title;
+		if (_previewText) {
+			text = _previewText(text);
+		}
+		foreach (line; .splitLines(text)) {
 			foreach (dchar c; line) {
 				immutable s = [c].toUTF8();
 				pathL.addString(s, x, y, font);
@@ -902,7 +920,11 @@ public:
 
 		gc2.setFont(font);
 
-		auto lines = .splitLines(_title);
+		auto text = _title;
+		if (_previewText) {
+			text = _previewText(text);
+		}
+		auto lines = .splitLines(text);
 
 		if (borderingType is BorderingType.Outline) {
 			// 縁取り色で描画

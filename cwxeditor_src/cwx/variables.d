@@ -71,6 +71,8 @@ class FlexEtcProps : Properties {
 	auto textCellVSashB = Prop!(int)("textCellVSashB", 1);
 	auto textCellHSashL = Prop!(int)("textCellHSashL", 2);
 	auto textCellHSashR = Prop!(int)("textCellHSashR", 1);
+	auto textCellPreviewSashL = Prop!(int)("textCellPreviewSashL", 1);
+	auto textCellPreviewSashR = Prop!(int)("textCellPreviewSashR", 1);
 	auto textCellPreviewWidth = Prop!(int, true)("textCellPreviewWidth", 100);
 	auto textCellPreviewHeight = Prop!(int, true)("textCellPreviewHeight", 100);
 	auto textCellBoxWidth = Prop!(int, true)("textCellBoxWidth", 100);
@@ -153,6 +155,11 @@ class FlexEtcProps : Properties {
 	auto msgForeG = Prop!(int, true)("msgForeG", 255);
 	auto msgForeB = Prop!(int, true)("msgForeB", 255);
 	auto textTabs = Prop!(int, true)("textTabs", 4);
+	auto messageLineColor1 = Prop!(CRGB, true)("messageLineColor1", CRGB(0, 0, 0));
+	auto messageLineColor2 = Prop!(CRGB, true)("messageLineColor2", CRGB(128, 0, 0));
+	auto messageBackColor = Prop!(CRGB, true)("messageBackColor", CRGB(0, 0, 128));
+	auto messageForeColor = Prop!(CRGB, true)("messageForeColor", CRGB(255, 255, 255));
+	auto messageHemColor = Prop!(CRGB, true)("messageHemColor", CRGB(0, 0, 0));
 	auto gridX = Prop!(uint)("gridX", 10);
 	auto gridY = Prop!(uint)("gridY", 10);
 	auto gridRange = Prop!(uint)("gridRange", 5);
@@ -559,6 +566,8 @@ class FlexEtcProps : Properties {
 	auto showMessagePreview = Prop!(bool)("showMessagePreview", true);
 	auto messageVarKindColumn = Prop!(int)("messageVarKindColumn", 200);
 	auto messageVarValueColumn = Prop!(int)("messageVarValueColumn", 250);
+	auto textVarKindColumn = Prop!(int)("textVarKindColumn", 160);
+	auto textVarValueColumn = Prop!(int)("textVarValueColumn", 180);
 	auto messageVarTableHeight = Prop!(int, true)("messageVarTableHeight", 300);
 	auto messageVarSelected = Prop!(string)("messageVarSelected", "[選択中----14]");
 	auto messageVarUnselected = Prop!(string)("messageVarUnselected", "[選択外----14]");
@@ -567,6 +576,7 @@ class FlexEtcProps : Properties {
 	auto messageVarRef = Prop!(string)("messageVarRef", "[話者------14]");
 	auto messageVarTeam = Prop!(string)("messageVarTeam", "[チーム名------------------30]");
 	auto messageVarYado = Prop!(string)("messageVarYado", "[宿屋名--------18]");
+	auto showVariableValuesInEventText = Prop!(bool)("showVariableValuesInEventText", false);
 
 	auto scenarioTemplates = Prop!(ScTemplate[])("scenarioTemplates", []);
 	auto defaultScenarioTemplate = Prop!(string)("defaultScenarioTemplate", "");

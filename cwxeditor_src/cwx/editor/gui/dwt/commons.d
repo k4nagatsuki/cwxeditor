@@ -338,6 +338,7 @@ class Commons {
 	Dlg!(Content) refContent;
 	Dlg!(Content) delContent;
 	Dlg!() refContentText;
+	Dlg!() refPreviewValues;
 
 	Dlg!() refCoupons;
 	Dlg!() refGossips;

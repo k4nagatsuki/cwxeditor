@@ -511,6 +511,7 @@ public:
 		case MenuID.ToScript: return imgd!("script.png");
 		case MenuID.ToScriptAll: return imgd!("script_all.png");
 		case MenuID.EvTemplates: return imgd!("ev_tmpl.png");
+		case MenuID.ResetPreviewValues: return imgd!("reset.png");
 		}
 	}
 }

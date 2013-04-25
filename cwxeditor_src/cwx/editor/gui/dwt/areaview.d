@@ -18,6 +18,7 @@ import cwx.sjis;
 import cwx.graphics;
 import cwx.types;
 import cwx.menu;
+import cwx.msgutils;
 
 import cwx.editor.gui.sound;
 
@@ -1763,6 +1764,10 @@ public:
 		static if (UseCards) {
 			_comm.refCardState.add(&refreshCardState);
 		}
+		static if (UseBacks) {
+			_comm.refPreviewValues.add(&refreshTextCell);
+			_comm.refFlagAndStep.add(&refreshTextCellF);
+		}
 		_preview = new Preview(_prop, parent.getShell());
 		addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
@@ -1780,6 +1785,8 @@ public:
 					}
 				}
 				static if (UseBacks) {
+					_comm.refPreviewValues.remove(&refreshTextCell);
+					_comm.refFlagAndStep.remove(&refreshTextCellF);
 					foreach (dlg; _editDlgsB.values) {
 						dlg.forceCancel();
 					}
@@ -2845,6 +2852,24 @@ public:
 		bool isViewBacks() {
 			return _viewBacks;
 		}
+		void refreshTextCellF(Flag[] flags, Step[] steps) {
+			refreshTextCell();
+		}
+		void refreshTextCell() {
+			foreach (img; _imgp.images) {
+				if (img.type == ImageType.Text) {
+					img.createImage();
+				}
+			}
+			_imgp.redraw();
+		}
+		string previewText(string base) {
+			string[char] names;
+			string[string] flags;
+			string[string] steps;
+			getPreviewValues(_prop, _summ, SPCHAR_TEXT, names, flags, steps);
+			return simpleFormatMsg(base, flags, steps, names);
+		}
 	}
 
 	@property
@@ -3409,6 +3434,7 @@ public:
 				back.borderingType, back.borderingColor, back.borderingWidth,
 				back.x, back.y, back.width, back.height);
 			r.transparent = back.mask;
+			r.previewText = &previewText;
 			r.createImage();
 			return r;
 		}

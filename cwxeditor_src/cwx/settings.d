@@ -13,7 +13,9 @@ import std.traits;
 
 private void toNode(T)(ref XNode node, string key, in T value) {
 	import cwx.utils;
-	static if (is (typeof(value.toNode))) {
+	static if (is (typeof({value.toNode(node, key);}))) {
+		value.toNode(node, key);
+	} else static if (is (typeof(value.toNode))) {
 		value.toNode(node);
 	} else static if (isVArray!(T)) {
 		auto e = node.newElement(key);

@@ -17,6 +17,7 @@ import cwx.structs;
 import cwx.menu;
 import cwx.types;
 import cwx.xml;
+import cwx.msgutils;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -502,9 +503,11 @@ private:
 				auto sels = _tree.getSelection();
 				if (insertTo || (sels.length > 0 && (cast(Content) sels[0].getData()).detail.owner)) {
 					TreeItem oItm;
+					int insertIndex = -1;
 					if (insertTo) {
 						oItm = insertTo.getParentItem();
 						if (!oItm) return;
+						insertIndex = oItm.indexOf(insertTo);
 					} else {
 						oItm = sels[0];
 					}
@@ -515,8 +518,12 @@ private:
 							if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
 						}
 						store(owner);
-						owner.add(evt);
-						TreeItem itm = createTreeItem(oItm, evt, eventText(owner, evt), _prop.images.content(evt.type));
+						if (insertIndex == -1) {
+							owner.add(evt);
+						} else {
+							owner.insert(insertIndex, evt);
+						}
+						auto itm = createTreeItem(oItm, evt, eventText(owner, evt), _prop.images.content(evt.type), insertIndex);
 						oItm.setExpanded(true);
 						_tree.setSelection([itm]);
 						if (insertTo) {
@@ -1518,6 +1525,7 @@ private:
 			_comm.replText.remove(&__refreshEventText);
 			_comm.replID.remove(&__refreshCard);
 			_comm.refContentText.remove(&refreshStatusLine);
+			_comm.refPreviewValues.remove(&__refreshEventText);
 			_comm.refEventTemplates.remove(&refreshTemplates);
 			_comm.selContentTool.remove(&selContentTool);
 			_grayFont.dispose();
@@ -1904,6 +1912,7 @@ public:
 		_comm.replText.add(&__refreshEventText);
 		_comm.replID.add(&__refreshCard);
 		_comm.refContentText.add(&refreshStatusLine);
+		_comm.refPreviewValues.add(&__refreshEventText);
 		_comm.refEventTemplates.add(&refreshTemplates);
 		_comm.selContentTool.add(&selContentTool);
 		_grayFont = new Color(_tree.getDisplay(), alphaColor(_tree.getForeground().getRGB(), _tree.getBackground().getRGB(), 128));
@@ -2235,10 +2244,11 @@ public:
 					}
 					return true;
 				}, true);
+				itm.setText(evt.name);
 			} else {
 				evt.name = text;
+				itm.setText(eventText(evt.parent, evt));
 			}
-			itm.setText(evt.name);
 			if (evt.type == CType.START && _tree.indexOf(itm) == 0) {
 				_refreshTopStart();
 			}
@@ -2450,7 +2460,15 @@ public:
 	} body {
 		if (!parent) return e.name;
 		if (parent.detail.nextType == CNextType.TEXT) {
-			return e.name;
+			if (prop.var.etc.showVariableValuesInEventText) {
+				string[string] flags;
+				string[string] steps;
+				string[char] names;
+				getPreviewValues(prop, summ, SPCHAR_TEXT, names, flags, steps);
+				return simpleFormatMsg(e.name, flags, steps, names);
+			} else {
+				return e.name;
+			}
 		}
 		string name = e.name;
 		string r;
@@ -3455,8 +3473,11 @@ public:
 	private void __refreshPackage(Package c) {__refreshCard();}
 	private void __refreshBattle(Battle c) {__refreshCard();}
 	private void __refreshFlagAndStep(Flag[] flags, Step[] steps) {
-		if (flags.length > 0 || steps.length > 0) {
+		if (flags.length || steps.length) {
 			__refreshCard();
+			if (_prop.var.etc.showVariableValuesInEventText) {
+				__refreshEventText();
+			}
 		}
 	}
 	private void __refreshPath(string from, string to, bool isDir) {refreshStatusLine();}

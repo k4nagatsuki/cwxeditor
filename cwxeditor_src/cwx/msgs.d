@@ -1523,6 +1523,7 @@ class Msgs : Properties {
 	auto openTabAtRightOfCurrentTab = Msg("openTabAtRightOfCurrentTab", "新しいタブを現在のタブの直後に開く");
 	auto reconstruction = Msg("reconstruction", "シナリオごとにタブの配置を記憶する");
 	auto openLastScenario = Msg("openLastScenario", "終了時に開いていたシナリオを次の起動時に開く");
+	auto showVariableValuesInEventText = Msg("showVariableValuesInEventText", "選択肢のテキスト内の変数をプレビュー表示する(#M -> [選択中]...)");
 	auto soundPlayType = Msg("soundPlayType", "BGM再生方式");
 	auto soundPlayTypeDef = Msg("soundPlayTypeDef", "自動選択");
 	auto soundPlayTypeSDL = Msg("soundPlayTypeSDL", "SDL(CardWirthPy方式)");
@@ -1866,6 +1867,7 @@ class Msgs : Properties {
 	auto menuTextToScript = Msg("menuTextToScript", "スクリプトに変換してコピー");
 	auto menuTextToScriptAll = Msg("menuTextToScriptAll", "全てをスクリプトに変換してコピー");
 	auto menuTextEvTemplates = Msg("menuTextEvTemplates", "テンプレートから作成");
+	auto menuTextResetPreviewValues = Msg("menuTextResetPreviewValues", "全て初期値に戻す");
 
 	auto bgm = Msg("bgm", "BGM");
 	auto newEvent = Msg("newEvent", "イベントの作成");
