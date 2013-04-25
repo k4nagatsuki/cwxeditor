@@ -1,6 +1,7 @@
 
 module cwx.textholder;
 
+import cwx.utils;
 import cwx.msgutils;
 import cwx.path;
 import cwx.usecounter;
@@ -71,7 +72,8 @@ public:
 		}
 		super.setUseCounter(uc);
 	}
-	private void removeTextUseCounter() {
+	override
+	protected void removeTextUseCounter() {
 		if (_uc) {
 			foreach (u; _fontusers) {
 				u.removeUseCounter();
@@ -187,7 +189,7 @@ public:
 		}
 		_uc = uc;
 	}
-	private void removeTextUseCounter() {
+	protected void removeTextUseCounter() {
 		if (_uc) {
 			foreach (u; _flagusers) {
 				u.removeUseCounter();
