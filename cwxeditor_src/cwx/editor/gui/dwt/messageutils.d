@@ -125,6 +125,7 @@ class AbstractMessageDialog : EventDialog {
 		override void handleEvent(Event e) {
 			auto c = cast(Control) e.widget;
 			if (!c || c.getShell() !is getShell()) return;
+			if (cast(Text) c) return;
 			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
 				_undo.undo();
 				e.doit = false;
