@@ -122,7 +122,6 @@ private:
 		CTabItem[Cards.length] _tab;
 	} else {
 		Composite _tabf;
-		StackLayout _stackL;
 	}
 
 	Props _prop;
@@ -485,8 +484,7 @@ public:
 			_tabf.addSelectionListener(new SelChanged);
 		} else {
 			_tabf = new Composite(_comp, SWT.BORDER);
-			_stackL = new StackLayout;
-			_tabf.setLayout(_stackL);
+			_tabf.setLayout(zeroGridLayout(1, true));
 		}
 		_tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
 
@@ -528,7 +526,12 @@ public:
 					static if (1 < Cards.length) {
 						_tab[i].setControl(f.widget);
 					} else {
-						_stackL.topControl = f.widget;
+						auto tgd = new GridData(GridData.FILL_HORIZONTAL);
+						// TODO ソート可能になったらヘッダを常時表示する
+						tgd.heightHint = 0;//f.table.getHeaderHeight();
+						f.table.getParent().setLayoutData(tgd);
+						f.list.setLayoutData(new GridData(GridData.FILL_BOTH));
+						f.list.setVisible(true);
 						_tabf.layout();
 					}
 				}
@@ -557,7 +560,12 @@ public:
 					static if (1 < Cards.length) {
 						_tab[i].setControl(f.widget);
 					} else {
-						_stackL.topControl = f.widget;
+						auto tgd = new GridData(GridData.FILL_HORIZONTAL);
+						// TODO ソート可能になったらヘッダを常時表示する
+						tgd.heightHint = 0;//f.table.getHeaderHeight();
+						f.table.getParent().setLayoutData(tgd);
+						f.list.setLayoutData(new GridData(GridData.FILL_BOTH));
+						f.list.setVisible(true);
 						_tabf.layout();
 					}
 				}
@@ -586,7 +594,11 @@ public:
 					static if (1 < Cards.length) {
 						_tab[i].setControl(f.widget);
 					} else {
-						_stackL.topControl = f.widget;
+						f.list.setVisible(false);
+						auto lgd = new GridData;
+						lgd.heightHint = 0;
+						f.list.setLayoutData(lgd);
+						f.table.getParent().setLayoutData(new GridData(GridData.FILL_BOTH));
 						_tabf.layout();
 					}
 				}

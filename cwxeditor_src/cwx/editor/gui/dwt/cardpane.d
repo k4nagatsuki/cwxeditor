@@ -478,6 +478,7 @@ private:
 			}
 			_tbl.showSelection();
 		} else {
+			_tbl.removeAll();
 			_list.refresh(__cards, &cardImage);
 			int sel = _list.selection;
 			if (sel >= 0) {
@@ -1151,11 +1152,9 @@ private:
 		}
 	}
 	void createCardList(Composite parent) {
-		_list = new CardList!(C)(parent, SWT.VIRTUAL | SWT.V_SCROLL | (EditMode ? SWT.SINGLE : SWT.MULTI) | SWT.BORDER);
-		_list.setLayoutValues(_prop.var.etc.cardsMarginX, _prop.var.etc.cardsSpaceX,
-			_prop.var.etc.cardsMarginY, _prop.var.etc.cardsSpaceY, _prop.var.etc.cardsDefaultWrap);
-		_list.selectChanged(&selectChanged);
-		_tbl = new Table(parent, SWT.FULL_SELECTION | (EditMode ? SWT.SINGLE : SWT.MULTI) | SWT.BORDER);
+		auto tableComp = new Composite(parent, SWT.NONE);
+		tableComp.setLayout(new FillLayout);
+		_tbl = new Table(tableComp, SWT.FULL_SELECTION | (EditMode ? SWT.SINGLE : SWT.MULTI));
 		_tbl.addSelectionListener(new SelChanged);
 		_tbl.setHeaderVisible(true);
 		auto idCol = new TableColumn(_tbl, SWT.NONE);
@@ -1189,6 +1188,11 @@ private:
 		static if (EditMode) {
 			new TableTextEdit(_comm, _prop, _tbl, 1, &nameEditEnd, null);
 		}
+
+		_list = new CardList!(C)(parent, SWT.VIRTUAL | SWT.V_SCROLL | (EditMode ? SWT.SINGLE : SWT.MULTI));
+		_list.setLayoutValues(_prop.var.etc.cardsMarginX, _prop.var.etc.cardsSpaceX,
+			_prop.var.etc.cardsMarginY, _prop.var.etc.cardsSpaceY, _prop.var.etc.cardsDefaultWrap);
+		_list.selectChanged(&selectChanged);
 
 		static if (is (C == CastCard)) {
 			auto matPad = _prop.looks.castCardInsets;
@@ -1487,6 +1491,14 @@ public:
 		} else {
 			return _list;
 		}
+	}
+	@property
+	Table table() {
+		return _tbl;
+	}
+	@property
+	CardList!C list() {
+		return _list;
 	}
 	@property
 	string statusLine() {return _statusLine;}
