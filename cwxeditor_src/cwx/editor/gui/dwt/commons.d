@@ -320,6 +320,9 @@ class Commons {
 	Dlg!(Battle) delBattle;
 	Dlg!(Package) refPackage;
 	Dlg!(Package) delPackage;
+	Dlg!(int, int) refMainCardsSort;
+	Dlg!(int, int) refHandCardsSort;
+	Dlg!(int, int) refImportCardsSort;
 
 	Dlg!(string) addMenuCard;
 	Dlg!(string) refMenuCard;

@@ -13,6 +13,7 @@ import cwx.motion;
 import cwx.menu;
 import cwx.types;
 import cwx.event;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.images;
@@ -95,6 +96,24 @@ private:
 			return card(id);
 		}
 		return null;
+	}
+	private string cardName(in C card) {
+		static if (is(typeof(card.linkId))) {
+			if (0 != card.linkId) {
+				auto c = pOwnerCard(card.linkId);
+				if (c) return c.name;
+			}
+		}
+		return card.name;
+	}
+	private string cardDesc(in C card) {
+		static if (is(typeof(card.linkId))) {
+			if (0 != card.linkId) {
+				auto c = pOwnerCard(card.linkId);
+				if (c) return c.desc;
+			}
+		}
+		return card.desc;
 	}
 	@property
 	private C[] pOwnerCards() {return cardsFrom(_summ);}
@@ -375,6 +394,8 @@ private:
 
 	string _id;
 	Composite _parent;
+	Composite _pane;
+	int _style;
 	Commons _comm;
 	Props _prop;
 	static if (EditMode) {
@@ -559,6 +580,13 @@ private:
 			refCard(c);
 			_comm.refreshToolBar();
 		}
+		bool canEdit(TableItem itm, int column) {
+			auto c = cast(C) itm.getData();
+			static if (is(CardOwner:CastCard) && is(typeof(c.linkId))) {
+				return 0 == c.linkId;
+			}
+			return true;
+		}
 	}
 	void __refreshR(string from, string to) {
 		__refresh();
@@ -623,8 +651,8 @@ private:
 	void refreshTableItem(C c, TableItem itm) {
 		itm.setImage(0, _cimg);
 		itm.setText(0, to!(string)(c.id));
-		itm.setText(1, c.name);
-		string desc = c.desc.singleLine;
+		itm.setText(1, cardName(c));
+		string desc = cardDesc(c).singleLine;
 		static if (is(C:EventTreeOwner)) {
 			if (_prop.var.etc.showEventTreeMark && ((_prop.var.etc.ignoreEmptyStart ? !c.isEmpty : 0 < c.trees.length))) {
 				itm.setImage(2, _prop.images.eventTree);
@@ -1287,8 +1315,49 @@ private:
 			}
 		}
 	}
+	void refSortParams(Object sender, int column, int dir) {
+		if (sender is this) return;
+		if (column == 0) {
+			_idSorter.doSort(dir);
+		} else if (column == 1) {
+			_nameSorter.doSort(dir);
+		} else if (column == 2) {
+			_descSorter.doSort(dir);
+		} else {
+			static if (EditMode && is(CardOwner : Summary)) {
+				_ucSorter.doSort(dir);
+			} else assert (0);
+		}
+	}
+	bool _sortProc = false;
+	void sorted() {
+		if (_sortProc) return;
+		_sortProc = true;
+		scope (exit) _sortProc = false;
+		if (_viewMode != CViewMode.TABLE) {
+			__refresh();
+		}
+		int column = _tbl.indexOf(_tbl.getSortColumn());
+		int dir = _tbl.getSortDirection();
+		static if (EditMode && is(CardOwner : Summary)) {
+			_prop.var.etc.mainCardsSortColumn = column;
+			_prop.var.etc.mainCardsSortDirection = dir;
+			_comm.refMainCardsSort.call(this, column, dir);
+		} else static if (EditMode) {
+			_prop.var.etc.handCardsSortColumn = column;
+			_prop.var.etc.handCardsSortDirection = dir;
+			_comm.refHandCardsSort.call(this, column, dir);
+		} else {
+			_prop.var.etc.importCardsSortColumn = column;
+			_prop.var.etc.importCardsSortDirection = dir;
+			_comm.refImportCardsSort.call(this, column, dir);
+		}
+	}
 	void createCardList(Composite parent) {
-		auto tableComp = new Composite(parent, SWT.NONE);
+		_pane = new Composite(parent, _style);
+		_pane.setLayout(zeroGridLayout(1, true));
+
+		auto tableComp = new Composite(_pane, SWT.NONE);
 		tableComp.setLayout(new FillLayout);
 		_tbl = new Table(tableComp, SWT.FULL_SELECTION | (EditMode ? SWT.SINGLE : SWT.MULTI));
 		_tbl.addSelectionListener(new SelChanged);
@@ -1322,10 +1391,10 @@ private:
 			_tbl.addDisposeListener(new DisposeTable);
 		}
 		static if (EditMode) {
-			new TableTextEdit(_comm, _prop, _tbl, 1, &nameEditEnd, null);
+			new TableTextEdit(_comm, _prop, _tbl, 1, &nameEditEnd, &canEdit);
 		}
 
-		_list = new CardList!(C)(parent, SWT.VIRTUAL | SWT.V_SCROLL | (EditMode ? SWT.SINGLE : SWT.MULTI));
+		_list = new CardList!(C)(_pane, SWT.VIRTUAL | SWT.V_SCROLL | (EditMode ? SWT.SINGLE : SWT.MULTI));
 		_list.setLayoutValues(_prop.var.etc.cardsMarginX, _prop.var.etc.cardsSpaceX,
 			_prop.var.etc.cardsMarginY, _prop.var.etc.cardsSpaceY, _prop.var.etc.cardsDefaultWrap);
 		_list.selectChanged(&selectChanged);
@@ -1344,23 +1413,35 @@ private:
 		auto ct_ = new CT;
 		_tcpd ~= ct_;
 
-		auto sorted = {
-			if (_viewMode != CViewMode.TABLE) {
-				__refresh();
-			}
-		};
 		// ソート関係
 		_idSorter = new TableSorter!C(idCol, &compID, &revCompID);
-		_idSorter.sortedEvent ~= sorted;
+		_idSorter.sortedEvent ~= &sorted;
 		_nameSorter = new TableSorter!C(nameCol, &compName, &revCompName);
-		_nameSorter.sortedEvent ~= sorted;
+		_nameSorter.sortedEvent ~= &sorted;
 		_descSorter = new TableSorter!C(descCol, &compDesc, &revCompDesc);
-		_descSorter.sortedEvent ~= sorted;
+		_descSorter.sortedEvent ~= &sorted;
 		static if (EditMode && is (CardOwner == Summary)) {
 			_ucSorter = new TableSorter!C(ucCol, &compUC, &revCompUC);
-			_ucSorter.sortedEvent ~= sorted;
+			_ucSorter.sortedEvent ~= &sorted;
 		}
-		// TODO 記憶
+		static if (EditMode && is(CardOwner : Summary)) {
+			int column = _prop.var.etc.mainCardsSortColumn;
+			int dir = _prop.var.etc.mainCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
+			_comm.refMainCardsSort.add(&refSortParams);
+			.listener(_tbl, SWT.Dispose, { _comm.refMainCardsSort.remove(&refSortParams); });
+		} else static if (EditMode) {
+			int column = _prop.var.etc.handCardsSortColumn;
+			int dir = _prop.var.etc.handCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
+			_comm.refHandCardsSort.add(&refSortParams);
+			.listener(_tbl, SWT.Dispose, { _comm.refHandCardsSort.remove(&refSortParams); });
+		} else {
+			int column = _prop.var.etc.importCardsSortColumn;
+			int dir = _prop.var.etc.importCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
+			_comm.refImportCardsSort.add(&refSortParams);
+			.listener(_tbl, SWT.Dispose, { _comm.refImportCardsSort.remove(&refSortParams); });
+		}
+		_tbl.setSortColumn(_tbl.getColumn(column));
+		_tbl.setSortDirection(dir);
 
 		// マウス・キーボード操作
 		void setupDrag(Control c) {
@@ -1398,11 +1479,12 @@ private:
 			_undo.max = _prop.var.etc.undoMaxMainView;
 		}
 	}
-	private void construct1(Commons comm, Props prop, PCardOwner summ) {
+	private void construct1(Commons comm, Props prop, PCardOwner summ, int style) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		_style = style;
 		static if (EditMode) {
 			_undo = new UndoManager(_prop.var.etc.undoMaxMainView);
 		}
@@ -1468,31 +1550,31 @@ private:
 public:
 	static if (!EditMode) {
 		static if (is (C == CastCard)) {
-			this (Commons comm, Props prop, PCardOwner summ, Composite parent, ToCardOwner toc, void delegate() openHand) {
+			this (Commons comm, Props prop, PCardOwner summ, Composite parent, int style, ToCardOwner toc, void delegate() openHand) {
 				_parent = parent;
 				_toc = toc;
 				_openHand = openHand;
 				_skinTemp = comm.findSkinFromHistory(summ);
-				construct1(comm, prop, summ);
+				construct1(comm, prop, summ, style);
 			}
 		} else {
-			this (Commons comm, Props prop, PCardOwner summ, Composite parent, ToCardOwner toc) {
+			this (Commons comm, Props prop, PCardOwner summ, Composite parent, int style, ToCardOwner toc) {
 				_parent = parent;
 				_toc = toc;
 				_skinTemp = comm.findSkinFromHistory(summ);
-				construct1(comm, prop, summ);
+				construct1(comm, prop, summ, style);
 			}
 		}
 		void construct() {
-			reconstruct(_parent);
+			reconstruct(_parent, _style);
 		}
 	} else static if (is (C : Card)) {
-		this (Commons comm, Props prop, PCardOwner summ, Composite parent) {
+		this (Commons comm, Props prop, PCardOwner summ, Composite parent, int style) {
 			_parent = parent;
-			construct1(comm, prop, summ);
+			construct1(comm, prop, summ, style);
 		}
 		void construct() {
-			reconstruct(_parent);
+			reconstruct(_parent, _style);
 		}
 	} else {
 		static assert (0);
@@ -1505,7 +1587,8 @@ public:
 			}
 		}
 	}
-	void reconstruct(Composite parent) {
+	void reconstruct(Composite parent, int style) {
+		_style = style;
 		_parent = parent;
 		createCardList(parent);
 		_comm.refCardImageStatus.add(&__refresh);
@@ -1648,6 +1731,10 @@ public:
 		}
 	}
 	@property
+	Composite pane() {
+		return _pane;
+	}
+	@property
 	Table table() {
 		return _tbl;
 	}
@@ -1676,20 +1763,35 @@ public:
 		}
 	}
 	void showCardLife() {
-		if (_viewMode != CViewMode.LIFE) {
-			_viewMode = CViewMode.LIFE;
-			__refList();
-		}
+		showCardListImpl(CViewMode.LIFE);
 	}
 	void showCardList() {
-		if (_viewMode != CViewMode.CARD) {
-			_viewMode = CViewMode.CARD;
+		showCardListImpl(CViewMode.CARD);
+	}
+	private void showCardListImpl(CViewMode mode) {
+		if (_viewMode != mode) {
+			_viewMode = mode;
 			__refList();
+
+			// テーブルのヘッダのみ表示する
+			auto tgd = new GridData(GridData.FILL_HORIZONTAL);
+			tgd.heightHint = _tbl.getHeaderHeight();
+			_tbl.getParent().setLayoutData(tgd);
+			_list.setLayoutData(new GridData(GridData.FILL_BOTH));
+			_list.setVisible(true);
+			_pane.layout();
 		}
 	}
 	void showCardTable() {
 		if (_viewMode != CViewMode.TABLE) {
 			_viewMode = CViewMode.TABLE;
+
+			_list.setVisible(false);
+			auto lgd = new GridData;
+			lgd.heightHint = 0;
+			_list.setLayoutData(lgd);
+			_tbl.getParent().setLayoutData(new GridData(GridData.FILL_BOTH));
+			_pane.layout();
 			__refTbl();
 		}
 	}

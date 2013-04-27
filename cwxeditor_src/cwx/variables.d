@@ -83,6 +83,12 @@ class FlexEtcProps : Properties {
 	auto cardNameColumn = Prop!(int)("cardNameColumn", 100);
 	auto cardDescriptionColumn = Prop!(int)("cardDescriptionColumn", 280);
 	auto cardCountColumn = Prop!(int)("cardCountColumn", 60);
+	auto mainCardsSortColumn = Prop!(int)("mainCardsSortColumn", 0);
+	auto mainCardsSortDirection = Prop!(int)("mainCardsSortDirection", SortDir.Up);
+	auto handCardsSortColumn = Prop!(int)("handCardsSortColumn", 0);
+	auto handCardsSortDirection = Prop!(int)("handCardsSortDirection", SortDir.Up);
+	auto importCardsSortColumn = Prop!(int)("importCardsSortColumn", 0);
+	auto importCardsSortDirection = Prop!(int)("importCardsSortDirection", SortDir.Up);
 	auto linkCardMaskColor = Prop!(CRGB)("linkCardMaskColor", CRGB(0, 255, 0, 64), true);
 	auto couponWidth = Prop!(int, true)("couponWidth", 150);
 	auto couponValueColumn = Prop!(int, true)("couponValueColumn", 40);

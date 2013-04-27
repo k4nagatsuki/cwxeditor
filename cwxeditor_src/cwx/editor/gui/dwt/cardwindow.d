@@ -291,16 +291,18 @@ public:
 		}
 		void initPane(int Index)() {
 			assert (!_pane[Index]);
-			_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf);
+			int style = 1 < Cards.length ? SWT.BORDER : SWT.NONE;
+			_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, style);
 			static if (Index + 1 < Cards.length) {
 				initPane!(Index + 1)();
 			}
 		}
 		void newPane(int Index)() {
+			int style = 1 < Cards.length ? SWT.BORDER : SWT.NONE;
 			if (_pane[Index]) {
-				_pane[Index].reconstruct(_tabf);
+				_pane[Index].reconstruct(_tabf, style);
 			} else {
-				_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf);
+				_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, style);
 				_pane[Index].construct();
 			}
 			static if (Index + 1 < Cards.length) {
@@ -309,13 +311,14 @@ public:
 		}
 	} else {
 		void newPane(int Index)() {
+			int style = 1 < Cards.length ? SWT.BORDER : SWT.NONE;
 			if (_pane[Index]) {
-				_pane[Index].reconstruct(_tabf);
+				_pane[Index].reconstruct(_tabf, style);
 			} else {
 				static if (UseCast && Index == CAST) {
-					_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, _toc, &openHand);
+					_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, style, _toc, &openHand);
 				} else {
-					_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, _toc);
+					_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, style, _toc);
 				}
 				_pane[Index].construct();
 			}
@@ -484,7 +487,7 @@ public:
 			_tabf.addSelectionListener(new SelChanged);
 		} else {
 			_tabf = new Composite(_comp, SWT.BORDER);
-			_tabf.setLayout(zeroGridLayout(1, true));
+			_tabf.setLayout(new FillLayout);
 		}
 		_tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
 
@@ -523,17 +526,6 @@ public:
 				}
 				foreach (i, f; _pane) {
 					f.showCardLife();
-					static if (1 < Cards.length) {
-						_tab[i].setControl(f.widget);
-					} else {
-						// テーブルのヘッダのみ表示する
-						auto tgd = new GridData(GridData.FILL_HORIZONTAL);
-						tgd.heightHint = f.table.getHeaderHeight();
-						f.table.getParent().setLayoutData(tgd);
-						f.list.setLayoutData(new GridData(GridData.FILL_BOTH));
-						f.list.setVisible(true);
-						_tabf.layout();
-					}
 				}
 			}
 			static if (EditMode && is (CardOwner == Summary)) {
@@ -557,17 +549,6 @@ public:
 				}
 				foreach (i, f; _pane) {
 					f.showCardList();
-					static if (1 < Cards.length) {
-						_tab[i].setControl(f.widget);
-					} else {
-						auto tgd = new GridData(GridData.FILL_HORIZONTAL);
-						// テーブルのヘッダのみ表示する
-						tgd.heightHint = f.table.getHeaderHeight();
-						f.table.getParent().setLayoutData(tgd);
-						f.list.setLayoutData(new GridData(GridData.FILL_BOTH));
-						f.list.setVisible(true);
-						_tabf.layout();
-					}
 				}
 			}
 			static if (EditMode && is (CardOwner == Summary)) {
@@ -591,16 +572,6 @@ public:
 				}
 				foreach (i, f; _pane) {
 					f.showCardTable();
-					static if (1 < Cards.length) {
-						_tab[i].setControl(f.widget);
-					} else {
-						f.list.setVisible(false);
-						auto lgd = new GridData;
-						lgd.heightHint = 0;
-						f.list.setLayoutData(lgd);
-						f.table.getParent().setLayoutData(new GridData(GridData.FILL_BOTH));
-						_tabf.layout();
-					}
 				}
 			}
 			static if (EditMode && is (CardOwner == Summary)) {
@@ -821,6 +792,7 @@ public:
 						_tab[i].setImage(_prop.images.info);
 					}
 				}
+				_tab[i].setControl(_pane[i].pane);
 			}
 			_tcpd ~= f;
 			static if (!EditMode || !is(CardOwner : Summary)) {
