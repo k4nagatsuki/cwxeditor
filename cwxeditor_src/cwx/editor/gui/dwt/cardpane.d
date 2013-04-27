@@ -31,6 +31,7 @@ import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.cardpane;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.customtable;
 
 import std.algorithm;
 import std.array;
@@ -73,7 +74,7 @@ private:
 		}
 		return [];
 	}
-	public C cardFrom(CardOwner)(CardOwner owner, ulong id) {
+	public static C cardFrom(CardOwner)(CardOwner owner, ulong id) {
 		static if (is(C:CastCard)) {
 			return owner.cwCast(id);
 		} else static if (is(C:SkillCard)) {
@@ -107,8 +108,8 @@ private:
 
 			private ulong[] _ids;
 			private ulong[] _idsB;
-			private int _sel;
-			private int _selB;
+			private ulong _sel;
+			private ulong _selB;
 
 			this (CardPane v, Commons comm, CardOwner owner) {
 				_v = v;
@@ -121,7 +122,7 @@ private:
 				_ids.length = 0;
 				foreach (c; cardsFrom(owner)) _ids ~= c.id;
 				if (v && v.widget && !v.widget.isDisposed()) {
-					_sel = v.selectionIndex;
+					_sel = v.selectionID;
 				}
 			}
 			abstract override void undo();
@@ -159,7 +160,7 @@ private:
 				resetID(v);
 				if (v && v.widget && !v.widget.isDisposed()) {
 					v.refresh();
-					v.select(_selB);
+					v.selectID(_selB);
 					v.refreshStatusLine();
 				}
 				comm.refUseCount.call();
@@ -187,14 +188,14 @@ private:
 		}
 		static class UndoEdit : CPUndo {
 			private C _card;
-			private int _index;
-			this (CardPane v, Commons comm, CardOwner owner, int index) {
+			private ulong _id;
+			this (CardPane v, Commons comm, CardOwner owner, ulong id) {
 				super (v, comm, owner);
-				auto c = cardsFrom(owner)[index];
+				auto c = cardFrom(owner, id);
 				_card = new C(c.id, c.name, c.path, c.desc);
 				_card.shallowCopy(c);
 				_card.setUseCounter(comm.summary.useCounter.sub);
-				_index = index;
+				_id = id;
 			}
 			private void impl() {
 				auto v = view();
@@ -202,7 +203,7 @@ private:
 				scope (exit) uda(v);
 				auto card = _card;
 				card.removeUseCounter();
-				auto c = cardsFrom(owner)[_index];
+				auto c = cardFrom(owner, _id);
 				_card = new C(c.id, c.name, c.path, c.desc);
 				_card.shallowCopy(c);
 				_card.setUseCounter(comm.summary.useCounter.sub);
@@ -224,8 +225,8 @@ private:
 				_card.removeUseCounter();
 			}
 		}
-		void storeEdit(int index) {
-			_undo ~= new UndoEdit(this, _comm, _owner, index);
+		void storeEdit(ulong id) {
+			_undo ~= new UndoEdit(this, _comm, _owner, id);
 		}
 		static class UndoSwap : CPUndo {
 			private int _index1, _index2;
@@ -251,6 +252,7 @@ private:
 			override void dispose() {}
 		}
 		void storeSwap(int index1, int index2) {
+			assert (_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column);
 			_undo ~= new UndoSwap(this, _comm, _owner, index1, index2);
 		}
 		static class UndoMove : CPUndo {
@@ -279,19 +281,21 @@ private:
 			override void dispose() {}
 		}
 		void storeMove(int from, int to) {
+			assert (_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column);
 			_undo ~= new UndoMove(this, _comm, _owner, from, to);
 		}
 		static class UndoInsertDelete : CPUndo {
 			private bool _insert;
 
-			private int[] _indices;
+			private ulong[] _ids;
 
 			private C[] _cards = [];
+			private int[] _indices;
 
-			this (CardPane v, Commons comm, CardOwner owner, int[] indices, bool insert) {
+			this (CardPane v, Commons comm, CardOwner owner, ulong[] ids, bool insert) {
 				super (v, comm, owner);
 				_insert = insert;
-				_indices = indices.dup.sort;
+				_ids = ids.dup.sort;
 
 				if (!insert) {
 					initUndoDelete();
@@ -302,11 +306,13 @@ private:
 					c.removeUseCounter();
 				}
 				_cards.length = 0;
-				foreach (index; _indices) {
-					auto c = cardsFrom(owner)[index];
+				_indices.length = 0;
+				foreach (id; _ids) {
+					auto c = cardFrom(owner, id);
 					auto card = c.dup;
 					card.setUseCounter(comm.summary.useCounter.sub);
 					_cards ~= card;
+					_indices ~= owner.indexOf(c);
 				}
 			}
 			private void undoInsert() {
@@ -315,8 +321,8 @@ private:
 				scope (exit) uda(v);
 				_insert = false;
 				initUndoDelete();
-				foreach_reverse (i, index; _indices) {
-					auto card = cardsFrom(owner)[index];
+				foreach_reverse (id; _ids) {
+					auto card = cardFrom(owner, id);
 					delImpl(v, comm, owner, card);
 				}
 				comm.refUseCount.call();
@@ -326,24 +332,18 @@ private:
 				udb(v);
 				scope (exit) uda(v);
 				_insert = true;
-				foreach (i, index; _indices) {
+				ulong selID = 0;
+				foreach (i, id; _ids) {
+					assert (_indices[i] != -1);
 					auto c = _cards[i];
 					c.removeUseCounter();
-					owner.insert(index, c);
+					owner.insert(_indices[i], c);
 					refCard(v, comm, c);
+					selID = id;
 				}
 				if (v && v.widget && !v.widget.isDisposed()) {
-					if (v._viewMode == CViewMode.TABLE) {
-						foreach (i, c; _cards) {
-							v.createTableItem(c, _indices[i]);
-						}
-						v._tbl.setSelection([_indices[$ - 1]]);
-						v._tbl.showSelection();
-					} else {
-						v.refresh();
-						v._list.select(_indices[$ - 1]);
-						v._list.scroll(_indices[$ - 1]);
-					}
+					v.refresh();
+					v.selectID(selID);
 					v.refreshStatusLine();
 				}
 				_cards.length = 0;
@@ -365,11 +365,11 @@ private:
 				}
 			}
 		}
-		void storeInsert(int[] indices) {
-			_undo ~= new UndoInsertDelete(this, _comm, _owner, indices, true);
+		void storeInsert(ulong[] ids) {
+			_undo ~= new UndoInsertDelete(this, _comm, _owner, ids, true);
 		}
-		void storeDelete(int[] indices) {
-			_undo ~= new UndoInsertDelete(this, _comm, _owner, indices, false);
+		void storeDelete(ulong[] ids) {
+			_undo ~= new UndoInsertDelete(this, _comm, _owner, ids, false);
 		}
 	}
 
@@ -392,6 +392,127 @@ private:
 		ToCardOwner _toc;
 	}
 	string _statusLine = "";
+
+	TableSorter!C _idSorter;
+	TableSorter!C _descSorter;
+	TableSorter!C _nameSorter;
+
+	bool compID(const C c1, const C c2) {
+		if (c1.id < c2.id) return true;
+		if (c1.id > c2.id) return false;
+		return false;
+	}
+	bool compName(const C c1, const C c2) {
+		int c;
+		if (_prop.var.etc.logicalSort) {
+			c = incmp(c1.name, c2.name);
+			if (c < 0) return true;
+		} else {
+			c = icmp(c1.name, c2.name);
+			if (c < 0) return true;
+		}
+		if (c == 0) {
+			return compID(c1, c2);
+		} else {
+			return false;
+		}
+	}
+	bool compDesc(const C c1, const C c2) {
+		int c;
+		if (_prop.var.etc.logicalSort) {
+			c = incmp(c1.desc, c2.desc);
+			if (c < 0) return true;
+		} else {
+			c = icmp(c1.desc, c2.desc);
+			if (c < 0) return true;
+		}
+		if (c == 0) {
+			return compID(c1, c2);
+		} else {
+			return false;
+		}
+	}
+	bool revCompID(const C c1, const C c2) {
+		if (c2.id < c1.id) return true;
+		if (c2.id > c1.id) return false;
+		return false;
+	}
+	bool revCompName(const C c1, const C c2) {
+		int c;
+		if (_prop.var.etc.logicalSort) {
+			c = incmp(c2.name, c1.name);
+			if (c < 0) return true;
+		} else {
+			c = icmp(c2.name, c1.name);
+			if (c < 0) return true;
+		}
+		if (c == 0) {
+			return revCompID(c1, c2);
+		} else {
+			return false;
+		}
+	}
+	bool revCompDesc(const C c1, const C c2) {
+		int c;
+		if (_prop.var.etc.logicalSort) {
+			c = incmp(c2.desc, c1.desc);
+			if (c < 0) return true;
+		} else {
+			c = icmp(c2.desc, c1.desc);
+			if (c < 0) return true;
+		}
+		if (c == 0) {
+			return revCompID(c1, c2);
+		} else {
+			return false;
+		}
+	}
+	static if (EditMode && is (CardOwner == Summary)) {
+		TableSorter!C _ucSorter;
+		bool compUC(const C c1, const C c2) {
+			int uc1 = _summ.useCounter.get(C.toID(c1.id));
+			int uc2 = _summ.useCounter.get(C.toID(c2.id));
+			if (uc1 < uc2) return true;
+			if (uc1 > uc2) return false;
+			return compID(c1, c2);
+		}
+		bool revCompUC(const C c1, const C c2) {
+			int uc1 = _summ.useCounter.get(C.toID(c2.id));
+			int uc2 = _summ.useCounter.get(C.toID(c1.id));
+			if (uc1 < uc2) return true;
+			if (uc1 > uc2) return false;
+			return compID(c1, c2);
+		}
+	}
+
+	void sort() {
+		if (_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column) {
+			_idSorter.doSort(_tbl.getSortDirection());
+		} else if (_tbl.getSortColumn() is _nameSorter.column) {
+			_nameSorter.doSort(_tbl.getSortDirection());
+		} else if (_tbl.getSortColumn() is _descSorter.column) {
+			_descSorter.doSort(_tbl.getSortDirection());
+		} else {
+			static if (EditMode && is (CardOwner == Summary)) {
+				_ucSorter.doSort(_tbl.getSortDirection());
+			} else assert (0);
+		}
+	}
+	void sort(ref C[] cards) {
+		bool delegate(const C, const C) minL;
+		if (_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column) {
+			minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompID : &compID;
+		} else if (_tbl.getSortColumn() is _nameSorter.column) {
+			minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompName : &compName;
+		} else if (_tbl.getSortColumn() is _descSorter.column) {
+			minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompDesc : &compDesc;
+		} else {
+			static if (EditMode && is (CardOwner == Summary)) {
+				minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompUC : &compUC;
+			} else assert (0);
+		}
+		cards = .sortDlg(cards.dup, minL);
+	}
 
 	void refreshStatusLine() {
 		if (!_tbl || !_list || !_comm) return;
@@ -431,8 +552,8 @@ private:
 	static if (EditMode) {
 		void nameEditEnd(TableItem itm, int column, string newText) {
 			auto c = cast(C) itm.getData();
-			assert (c);
-			storeEdit(itm.getParent().indexOf(itm));
+			assert (c !is null);
+			storeEdit(c.id);
 			c.name = newText;
 			refresh();
 			refCard(c);
@@ -463,14 +584,17 @@ private:
 		refreshStatusLine();
 	}
 	void __refresh() {
+		auto cards = __cards;
+		sort(cards);
 		if (_viewMode == CViewMode.TABLE) {
+			_list.refresh([], &cardImage);
 			C sel = null;
 			auto index = _tbl.getSelectionIndex();
 			if (-1 != index) {
 				sel = cast(C) _tbl.getItem(index).getData();
 			}
 			_tbl.removeAll();
-			foreach (i, c; __cards) {
+			foreach (i, c; cards) {
 				createTableItem(c);
 				if (sel is c) {
 					_tbl.setSelection([i]);
@@ -479,7 +603,7 @@ private:
 			_tbl.showSelection();
 		} else {
 			_tbl.removeAll();
-			_list.refresh(__cards, &cardImage);
+			_list.refresh(cards, &cardImage);
 			int sel = _list.selection;
 			if (sel >= 0) {
 				_list.scroll(sel);
@@ -618,7 +742,7 @@ private:
 			static if (EditMode) {
 				auto c = selectionCard;
 				if (c) {
-					storeDelete([_list.selection]);
+					storeDelete([c.id]);
 					_owner.remove(c);
 					refresh();
 					delCard(c);
@@ -700,7 +824,7 @@ private:
 				if (c) {
 					int i = _tbl.getSelectionIndex();
 					if (-1 == i) return;
-					storeDelete([i]);
+					storeDelete([c.id]);
 					_owner.remove(c);
 					_tbl.getItem(i).dispose();
 					_tbl.redraw();
@@ -734,7 +858,8 @@ private:
 						_comm.refreshToolBar();
 					}
 					if (sameSc && samePane) {
-						// 同一リスト内で移動。
+						// 同一リスト内で移動
+						if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return;
 						int count = cardCount;
 						if (count < index) index = count;
 						if ((index < count ? index : count - 1) == selectionIndex
@@ -754,6 +879,16 @@ private:
 						assert (adds.length == 1);
 						auto card = adds[0];
 						int oldIndex = _owner.indexOf!C(card);
+
+						if (_tbl.getSortDirection() is SWT.DOWN) {
+							// 処理を単純化するため、ID昇順でソートされた
+							// 状態に対して移動処理を行う
+							index = cards.length - index;
+							if (index < oldIndex) {
+								index--;
+							}
+						}
+
 						storeMove(oldIndex, oldIndex < index ? index - 1 : index);
 						_owner.insert(index, card);
 						insert(card, true);
@@ -770,16 +905,17 @@ private:
 						node.parse();
 						if (adds.length == 0) return;
 						if (qCardMaterialCopy(node, adds)) {
-							int[] indices;
+							ulong[] ids;
 							foreach (i, card; adds) {
 								refreshLink(card, samePane, sameSc, topLevel);
 								_owner.insert(index, card);
+								ids ~= cardsFrom(_owner)[index].id;
 								adds[i] = cards[index];
-								indices ~= index;
 								index++;
 							}
-							storeInsert(indices);
+							storeInsert(ids);
 							insert(adds[$ - 1], false);
+							sort();
 							_comm.refUseCount.call();
 							refreshStatusLine();
 						}
@@ -1208,6 +1344,25 @@ private:
 		auto ct_ = new CT;
 		_tcpd ~= ct_;
 
+		auto sorted = {
+			if (_viewMode != CViewMode.TABLE) {
+				__refresh();
+			}
+		};
+		// ソート関係
+		_idSorter = new TableSorter!C(idCol, &compID, &revCompID);
+		_idSorter.sortedEvent ~= sorted;
+		_nameSorter = new TableSorter!C(nameCol, &compName, &revCompName);
+		_nameSorter.sortedEvent ~= sorted;
+		_descSorter = new TableSorter!C(descCol, &compDesc, &revCompDesc);
+		_descSorter.sortedEvent ~= sorted;
+		static if (EditMode && is (CardOwner == Summary)) {
+			_ucSorter = new TableSorter!C(ucCol, &compUC, &revCompUC);
+			_ucSorter.sortedEvent ~= sorted;
+		}
+		// TODO 記憶
+
+		// マウス・キーボード操作
 		void setupDrag(Control c) {
 			auto drag = new DragSource(c, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
 			drag.setTransfer([XMLBytesTransfer.getInstance()]);
@@ -1269,7 +1424,7 @@ private:
 			if (!card) return;
 			auto mi = cast(MenuItem) e.widget;
 			if (card.hold is mi.getSelection()) return;
-			storeEdit(_owner.indexOf(card));
+			storeEdit(card.id);
 			card.hold = mi.getSelection();
 			refresh();
 		}
@@ -1517,6 +1672,7 @@ public:
 				refreshAddHand();
 			}
 			refresh(c);
+			sort();
 		}
 	}
 	void showCardLife() {
@@ -1558,6 +1714,24 @@ public:
 		}
 		refreshStatusLine();
 	}
+	void selectID(ulong id) {
+		if (_viewMode == CViewMode.TABLE) {
+			foreach (i, itm; _tbl.getItems()) {
+				auto c = cast(C) itm.getData();
+				if (c.id == id) {
+					select(i);
+					break;
+				}
+			}
+		} else {
+			foreach (i, c; _list.cards) {
+				if (c.id == id) {
+					select(i);
+					break;
+				}
+			}
+		}
+	}
 	@property
 	C[] selectedCards() {
 		if (_viewMode == CViewMode.TABLE) {
@@ -1580,6 +1754,11 @@ public:
 		} else {
 			return _list.selection;
 		}
+	}
+	@property
+	ulong selectionID() {
+		auto c = selection;
+		return c ? c.id : 0;
 	}
 	@property
 	C selection() {
@@ -1634,7 +1813,7 @@ public:
 			dlg.appliedEvent ~= {
 				open(false);
 				auto c = dlg.card;
-				storeInsert([cards.length]);
+				ulong id;
 				static if (is(CardOwner : CastCard)) {
 					// CastCardは手札追加時にコピーを生成する
 					c = _owner.add(c);
@@ -1642,8 +1821,9 @@ public:
 				} else {
 					_owner.add(c);
 				}
+				storeInsert([c.id]);
 				refresh();
-				select(__cards.length - 1);
+				selectID(c.id);
 				static if (is(C : CastCard)) {
 					_comm.refCast.call(this, c);
 				} else static if(is(C : SkillCard)) {
@@ -1661,7 +1841,7 @@ public:
 				_comm.refreshToolBar();
 				dlg.appliedEvent.length = 0;
 				dlg.applyEvent ~= {
-					storeEdit(_owner.indexOf(c));
+					storeEdit(c.id);
 				};
 				dlg.appliedEvent ~= {
 					refresh();
@@ -1687,7 +1867,7 @@ public:
 		}
 		bool addFromNode(ref XNode node, string ver) {
 			C[] adds;
-			static if (is (CardOwner == Summary)) bool ids = false;
+			static if (is (CardOwner == Summary)) bool inPane = false;
 			if (node.attr("summId", false) != ownerId) {
 				node.onTag[C.XML_NAME] = (ref XNode cNode) {
 					adds ~= C.createFromNode(cNode, ver);
@@ -1700,7 +1880,7 @@ public:
 					if (cNode.attr("paneId", false) != _id || __card(card.id)) {
 						adds ~= card;
 					} else {
-						static if (is (CardOwner == Summary)) ids = true;
+						static if (is (CardOwner == Summary)) inPane = true;
 						adds ~= card;
 					}
 				};
@@ -1708,22 +1888,22 @@ public:
 			}
 			if (adds.length == 0) return false;
 			open(false);
-			int[] indices;
+			ulong[] ids;
 			bool samePane = _id == node.attr("paneId", false);
 			bool sameSc = ownerId == node.attr("summId", false);
 			bool topLevel = node.attr!bool("topLevel", false, false);
 			foreach (card; adds) {
-				indices ~= cards.length;
 				refreshLink(card, samePane, sameSc, topLevel);
 				static if (is(CardOwner:Summary)) {
 					ulong oldId = _owner.add(card);
-					if (ids) {
+					if (inPane) {
 						// 同じペイン内でコピー&ペースト
 						_owner.useCounter.change(C.toID(oldId), C.toID(card.id));
 					}
 				} else {
-					_owner.add(card);
+					card = _owner.add(card);
 				}
+				ids ~= card.id;
 				static if (is(C : CastCard)) {
 					_comm.refCast.call(this, card);
 				} else static if(is(C : SkillCard)) {
@@ -1736,7 +1916,7 @@ public:
 					_comm.refInfo.call(this, card);
 				} else static assert (0);
 			}
-			storeInsert(indices);
+			storeInsert(ids);
 			pasteRefresh(adds);
 			_comm.refUseCount.call();
 			static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
@@ -1867,7 +2047,7 @@ public:
 				auto dlg = new InfoCardDialog(_comm, _prop, dlgParShl, _summ, c);
 			} else static assert (0, typeof(C));
 			dlg.applyEvent ~= {
-				storeEdit(_owner.indexOf(c));
+				storeEdit(c.id);
 			};
 			dlg.appliedEvent ~= {
 				refresh();
@@ -1931,28 +2111,38 @@ public:
 		}
 
 		private void udImpl(int index1, int index2) {
+			if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return;
 			auto arr = cardsFrom(_owner);
 			if (index1 < 0 || arr.length <= index1) return;
 			if (index2 < 0 || arr.length <= index2) return;
+			int selIndex = index2;
+			if (_tbl.getSortDirection() is SWT.DOWN) {
+				// ID昇順に変更
+				index1 = arr.length - index1 - 1;
+				index2 = arr.length - index2 - 1;
+			}
 			storeSwap(index1, index2);
 			_owner.swap!C(index1, index2);
 			refresh();
 			arr = cardsFrom(_owner);
 			refCard(arr[index1]);
 			refCard(arr[index2]);
-			select(index2);
+			select(selIndex);
 		}
 		bool canUp() {
+			if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return false;
 			if (!_list.isFocusControl() && !_tbl.isFocusControl()) return false;
 			int sel = selectionIndex;
 			return sel != -1 && 0 < sel;
 		}
 		bool canDown() {
+			if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return false;
 			if (!_list.isFocusControl() && !_tbl.isFocusControl()) return false;
 			int sel = selectionIndex;
 			return sel != -1 && sel + 1 < cards.length;
 		}
 		void up() {
+			if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return;
 			if (!_list.isFocusControl() && !_tbl.isFocusControl()) return;
 			int sel = selectionIndex;
 			if (-1 == sel) return;
@@ -1960,6 +2150,7 @@ public:
 			_comm.refreshToolBar();
 		}
 		void down() {
+			if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return;
 			if (!_list.isFocusControl() && !_tbl.isFocusControl()) return;
 			int sel = selectionIndex;
 			if (-1 == sel) return;

@@ -526,9 +526,9 @@ public:
 					static if (1 < Cards.length) {
 						_tab[i].setControl(f.widget);
 					} else {
+						// テーブルのヘッダのみ表示する
 						auto tgd = new GridData(GridData.FILL_HORIZONTAL);
-						// TODO ソート可能になったらヘッダを常時表示する
-						tgd.heightHint = 0;//f.table.getHeaderHeight();
+						tgd.heightHint = f.table.getHeaderHeight();
 						f.table.getParent().setLayoutData(tgd);
 						f.list.setLayoutData(new GridData(GridData.FILL_BOTH));
 						f.list.setVisible(true);
@@ -561,8 +561,8 @@ public:
 						_tab[i].setControl(f.widget);
 					} else {
 						auto tgd = new GridData(GridData.FILL_HORIZONTAL);
-						// TODO ソート可能になったらヘッダを常時表示する
-						tgd.heightHint = 0;//f.table.getHeaderHeight();
+						// テーブルのヘッダのみ表示する
+						tgd.heightHint = f.table.getHeaderHeight();
 						f.table.getParent().setLayoutData(tgd);
 						f.list.setLayoutData(new GridData(GridData.FILL_BOTH));
 						f.list.setVisible(true);

@@ -444,6 +444,16 @@ public:
 		_items[index].createImage(true);
 		redraw();
 	}
+	/// Returns: カードの配列。
+	@property
+	C[] cards() {
+		C[] cs;
+		cs.length = _items.length;
+		foreach (i, c; _items) {
+			cs[i] = cast(C) c.getData();
+		}
+		return cs;
+	}
 	/// Returns: 選択されているカードの配列。
 	@property
 	C[] selectionCards() {

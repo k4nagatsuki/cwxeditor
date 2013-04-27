@@ -6,6 +6,7 @@ import cwx.utils : debugln, cdebugln;
 import org.eclipse.swt.all;
 
 class TableSorter(DataT) {
+	void delegate()[] sortedEvent;
 	private TableColumn _col;
 	private bool delegate(in DataT, in DataT) _cmp;
 	private bool delegate(in DataT, in DataT) _revCmp;
@@ -84,6 +85,7 @@ class TableSorter(DataT) {
 			}
 		}
 		tbl.setSortColumn(_col);
+		foreach (dlg; sortedEvent) dlg();
 	}
 	@property
 	TableColumn column() {

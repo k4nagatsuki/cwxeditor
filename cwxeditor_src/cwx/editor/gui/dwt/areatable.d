@@ -947,24 +947,44 @@ private:
 					index = revId(index);
 					int fromIndex = tbl.getSelectionIndex();
 					if (fromIndex < 1) return;
+
+					if (_areas.getSortDirection() is SWT.DOWN) {
+						// 処理を単純化するため、ID昇順でソートされた
+						// 状態に対して移動処理を行う
+						if (tid == typeid(Area)) {
+							index = _summ.areas.length - index;
+						} else if (tid == typeid(Battle)) {
+							index = _summ.battles.length - index;
+						} else {
+							assert (tid == typeid(Package));
+							index = _summ.packages.length - index;
+						}
+					}
+
 					auto area = cast(AbstractArea) tbl.getItem(fromIndex).getData();
 					tbl.getItem(fromIndex).dispose();
 					int toIndex;
 					if (tid == typeid(Area)) {
+						// ID順昇順でソートされた時の位置を基準にアンドゥを
+						// 行うため、fromIndexを取り直す
+						fromIndex = _summ.indexOf(cast(Area) area) + 1;
 						_summ.insert(index, cast(Area) area);
 						index = _summ.indexOf(cast(Area) area);
 						toIndex = newAreaItem(index);
 					} else if (tid == typeid(Battle)) {
+						fromIndex = _summ.areas.length + _summ.indexOf(cast(Battle) area) + 1;
 						_summ.insert(index, cast(Battle) area);
 						index = _summ.indexOf(cast(Battle) area);
 						toIndex = newBattleItem(index);
 					} else {
 						assert (tid == typeid(Package));
+						fromIndex = _summ.areas.length + _summ.battles.length + _summ.indexOf(cast(Package) area) + 1;
 						_summ.insert(index, cast(Package) area);
 						index = _summ.indexOf(cast(Package) area);
 						toIndex = newPackageItem(index);
 					}
 					storeMove(fromIndex, toIndex);
+					sort();
 					callRefArea(area);
 					refreshIDs(true);
 					refreshStatusLine();
@@ -976,21 +996,21 @@ private:
 					AbstractArea area;
 					if (tid == typeid(Area)) {
 						area = Area.createFromNode(node, LATEST_VERSION);
-						auto id = _summ.insert(index, cast(Area) area);
-						storeInsert(id, tid);
+						_summ.insert(index, cast(Area) area);
+						storeInsert(area.id, tid);
 						index = _summ.indexOf(cast(Area) area);
 						newAreaItem(index);
 					} else if (tid == typeid(Battle)) {
 						area = Battle.createFromNode(node, LATEST_VERSION);
-						auto id = _summ.insert(index, cast(Battle) area);
-						storeInsert(id, tid);
+						_summ.insert(index, cast(Battle) area);
+						storeInsert(area.id, tid);
 						index = _summ.indexOf(cast(Battle) area);
 						newBattleItem(index);
 					} else {
 						assert (tid == typeid(Package));
 						area = Package.createFromNode(node, LATEST_VERSION);
-						auto id = _summ.insert(index, cast(Package) area);
-						storeInsert(id, tid);
+						_summ.insert(index, cast(Package) area);
+						storeInsert(area.id, tid);
 						index = _summ.indexOf(cast(Package) area);
 						newPackageItem(index);
 					}
@@ -1005,6 +1025,14 @@ private:
 				debugln(e);
 			}
 		}
+	}
+	int indexOf(in AbstractArea area) {
+		foreach (i, itm; _areas.getItems()) {
+			if (itm.getData() is area) {
+				return i;
+			}
+		}
+		return -1;
 	}
 	void __refreshUseCount() {
 		foreach (itm; _areas.getItems()[1 .. $]) {
@@ -1449,8 +1477,8 @@ public:
 		auto tree = new EventTree(_prop.msgs.enterTree);
 		tree.enter = true;
 		area.add(tree);
-		ulong id = _summ.add(area);
-		storeInsert(id, typeid(Area));
+		_summ.add(area);
+		storeInsert(area.id, typeid(Area));
 		int index = _summ.areas.length - 1;
 		newAreaItem(index);
 		selArea(index);
@@ -1464,8 +1492,8 @@ public:
 	/// 新規バトルが作成され、名前の入力待ちになる。
 	void createBattle() {
 		auto btl = new Battle(_summ.newBattleId, _prop.msgs.battleNew, _comm.skin.defBattle);
-		ulong id = _summ.add(btl);
-		storeInsert(id, typeid(Battle));
+		_summ.add(btl);
+		storeInsert(btl.id, typeid(Battle));
 		int index = _summ.battles.length - 1;
 		newBattleItem(index);
 		selBattle(index);
@@ -1486,8 +1514,8 @@ public:
 			et = new EventTree(_prop.msgs.packageTree);
 		}
 		pkg.add(et);
-		ulong id = _summ.add(pkg);
-		storeInsert(id, typeid(Package));
+		_summ.add(pkg);
+		storeInsert(pkg.id, typeid(Package));
 		int index = _summ.packages.length - 1;
 		newPackageItem(index);
 		selPackage(index);
@@ -1689,6 +1717,7 @@ public:
 		_comm.refreshToolBar();
 	}
 	private void udImpl2(A)(int index1, int index2) {
+		assert (_areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column);
 		auto a1 = cast(A) areaFromIndex(_summ, index1);
 		auto a2 = cast(A) areaFromIndex(_summ, index2);
 		if (!a1 || !a2) return;
@@ -1696,8 +1725,13 @@ public:
 		int i1 = toIndex!A(_summ, index1);
 		int i2 = toIndex!A(_summ, index2);
 		_summ.swap!A(i1, i2);
-		refData(a2, _areas.getItem(index1));
-		refData(a1, _areas.getItem(index2));
+		if (_areas.getSortDirection() == SWT.DOWN) {
+			refData(a1, _areas.getItem(index1));
+			refData(a2, _areas.getItem(index2));
+		} else {
+			refData(a2, _areas.getItem(index1));
+			refData(a1, _areas.getItem(index2));
+		}
 		_areas.select(index2);
 		_areas.showSelection();
 		static if (is(A : Area)) {
