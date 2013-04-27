@@ -30,6 +30,8 @@ class FlexEtcProps : Properties {
 	auto areaIdColumn = Prop!(int)("areaIdColumn", 50);
 	auto areaNameColumn = Prop!(int)("areaNameColumn", 280);
 	auto areaCountColumn = Prop!(int)("areaCountColumn", 60);
+	auto areasSortColumn = Prop!(int)("areasSortColumn", 0);
+	auto areasSortDirection = Prop!(int)("areasSortDirection", SortDir.Up);
 	auto summaryParamSashL = Prop!(int)("summaryParamSashL", 2, 2012101100);
 	auto summaryParamSashR = Prop!(int)("summaryParamSashR", 1, 2012101100);
 	auto rCouponsStartAreaSashL = Prop!(int)("rCouponsStartAreaSashL", 1, 2012101100);

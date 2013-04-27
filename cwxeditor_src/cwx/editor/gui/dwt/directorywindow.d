@@ -1570,7 +1570,7 @@ public:
 			_sortName = new TableSorter!(FileNameObj)(namec, &compFName, &revCompFName);
 			_sortExt = new TableSorter!(FileNameObj)(extc, &compFExt, &revCompFExt);
 			_sortCount = new TableSorter!(FileNameObj)(cc, &compFCount, &revCompFCount);
-			TableSorter!(FileNameObj) st;
+			auto st = _sortName;
 			int sortColumn = _prop.var.etc.filesSortColumn;
 			switch (sortColumn) {
 			case 0:
