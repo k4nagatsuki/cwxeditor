@@ -83,6 +83,12 @@ class FlexEtcProps : Properties {
 	auto cardNameColumn = Prop!(int)("cardNameColumn", 100);
 	auto cardDescriptionColumn = Prop!(int)("cardDescriptionColumn", 280);
 	auto cardCountColumn = Prop!(int)("cardCountColumn", 60);
+	auto handCardIdColumn = Prop!(int)("handCardIdColumn", 50);
+	auto handCardNameColumn = Prop!(int)("handCardNameColumn", 100);
+	auto handCardDescriptionColumn = Prop!(int)("handCardDescriptionColumn", 50);
+	auto importCardIdColumn = Prop!(int)("importCardIdColumn", 50);
+	auto importCardNameColumn = Prop!(int)("importCardNameColumn", 100);
+	auto importCardDescriptionColumn = Prop!(int)("importCardDescriptionColumn", 50);
 	auto mainCardsSortColumn = Prop!(int)("mainCardsSortColumn", 0);
 	auto mainCardsSortDirection = Prop!(int)("mainCardsSortDirection", SortDir.Up);
 	auto handCardsSortColumn = Prop!(int)("handCardsSortColumn", 0);

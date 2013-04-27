@@ -487,7 +487,7 @@ public:
 			_tabf.addSelectionListener(new SelChanged);
 		} else {
 			_tabf = new Composite(_comp, SWT.BORDER);
-			_tabf.setLayout(new FillLayout);
+			_tabf.setLayout(zeroGridLayout(1, true));
 		}
 		_tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
 
@@ -793,6 +793,8 @@ public:
 					}
 				}
 				_tab[i].setControl(_pane[i].pane);
+			} else {
+				_pane[i].pane.setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
 			_tcpd ~= f;
 			static if (!EditMode || !is(CardOwner : Summary)) {

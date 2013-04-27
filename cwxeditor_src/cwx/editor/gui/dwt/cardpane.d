@@ -426,10 +426,10 @@ private:
 	bool compName(const C c1, const C c2) {
 		int c;
 		if (_prop.var.etc.logicalSort) {
-			c = incmp(c1.name, c2.name);
+			c = incmp(cardName(c1), cardName(c2));
 			if (c < 0) return true;
 		} else {
-			c = icmp(c1.name, c2.name);
+			c = icmp(cardName(c1), cardName(c2));
 			if (c < 0) return true;
 		}
 		if (c == 0) {
@@ -441,10 +441,10 @@ private:
 	bool compDesc(const C c1, const C c2) {
 		int c;
 		if (_prop.var.etc.logicalSort) {
-			c = incmp(c1.desc, c2.desc);
+			c = incmp(cardDesc(c1), cardDesc(c2));
 			if (c < 0) return true;
 		} else {
-			c = icmp(c1.desc, c2.desc);
+			c = icmp(cardDesc(c1), cardDesc(c2));
 			if (c < 0) return true;
 		}
 		if (c == 0) {
@@ -461,10 +461,10 @@ private:
 	bool revCompName(const C c1, const C c2) {
 		int c;
 		if (_prop.var.etc.logicalSort) {
-			c = incmp(c2.name, c1.name);
+			c = incmp(cardName(c2), cardName(c1));
 			if (c < 0) return true;
 		} else {
-			c = icmp(c2.name, c1.name);
+			c = icmp(cardName(c2), cardName(c1));
 			if (c < 0) return true;
 		}
 		if (c == 0) {
@@ -476,10 +476,10 @@ private:
 	bool revCompDesc(const C c1, const C c2) {
 		int c;
 		if (_prop.var.etc.logicalSort) {
-			c = incmp(c2.desc, c1.desc);
+			c = incmp(cardDesc(c2), cardDesc(c1));
 			if (c < 0) return true;
 		} else {
-			c = icmp(c2.desc, c1.desc);
+			c = icmp(cardDesc(c2), cardDesc(c1));
 			if (c < 0) return true;
 		}
 		if (c == 0) {
@@ -1262,31 +1262,29 @@ private:
 			selectChanged();
 		}
 	}
-	static if (EditMode && is(CardOwner : Summary)) {
-		private bool _procRefColW = false;
-		void refColumnWidth(TableColumn c, int width) {
+	private bool _procRefColW = false;
+	void refColumnWidth(TableColumn c, int width) {
+		if (_procRefColW) return;
+		if (!_tbl || _tbl.isDisposed()) return;
+		if (_tbl is c.getParent()) return;
+		int i = c.getParent().indexOf(c);
+		auto col = _tbl.getColumn(i);
+		col.setWidth(width);
+	}
+	class DisposeTable : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) {
+			_comm.refCardTableColumnWidth.remove(&refColumnWidth);
+		}
+	}
+	class ColResize(string WidthPropName) : ControlAdapter {
+		override void controlResized(ControlEvent e) {
 			if (_procRefColW) return;
-			if (!_tbl || _tbl.isDisposed()) return;
-			if (_tbl is c.getParent()) return;
-			int i = c.getParent().indexOf(c);
-			auto col = _tbl.getColumn(i);
-			col.setWidth(width);
-		}
-		class DisposeTable : DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
-				_comm.refCardTableColumnWidth.remove(&refColumnWidth);
-			}
-		}
-		class ColResize(string WidthPropName) : ControlAdapter {
-			override void controlResized(ControlEvent e) {
-				if (_procRefColW) return;
-				_procRefColW = true;
-				scope (exit) _procRefColW = false;
-				auto col = cast(TableColumn) e.widget;
-				int width = col.getWidth();
-				_comm.refCardTableColumnWidth.call(col, width);
-				mixin("_prop.var.etc." ~ WidthPropName ~ " = width;");
-			}
+			_procRefColW = true;
+			scope (exit) _procRefColW = false;
+			auto col = cast(TableColumn) e.widget;
+			int width = col.getWidth();
+			_comm.refCardTableColumnWidth.call(col, width);
+			mixin("_prop.var.etc." ~ WidthPropName ~ " = width;");
 		}
 	}
 	void selectChanged() {
@@ -1358,38 +1356,24 @@ private:
 		_pane.setLayout(zeroGridLayout(1, true));
 
 		auto tableComp = new Composite(_pane, SWT.NONE);
-		tableComp.setLayout(new FillLayout);
+		tableComp.setLayout(zeroGridLayout(1, true));
 		_tbl = new Table(tableComp, SWT.FULL_SELECTION | (EditMode ? SWT.SINGLE : SWT.MULTI));
+		_tbl.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_tbl.addSelectionListener(new SelChanged);
 		_tbl.setHeaderVisible(true);
 		auto idCol = new TableColumn(_tbl, SWT.NONE);
 		idCol.setText(_prop.msgs.cardId);
-		idCol.setWidth(_prop.var.etc.cardIdColumn);
-		static if (EditMode && is(CardOwner : Summary)) {
-			idCol.addControlListener(new ColResize!("cardIdColumn"));
-		}
 		auto nameCol = new TableColumn(_tbl, SWT.NONE);
 		nameCol.setText(_prop.msgs.cardName);
-		nameCol.setWidth(_prop.var.etc.cardNameColumn);
-		static if (EditMode && is(CardOwner : Summary)) {
-			nameCol.addControlListener(new ColResize!("cardNameColumn"));
-		}
 		auto descCol = new TableColumn(_tbl, SWT.NONE);
 		descCol.setText(_prop.msgs.cardDesc);
-		descCol.setWidth(_prop.var.etc.cardDescriptionColumn);
-		static if (EditMode && is(CardOwner : Summary)) {
-			descCol.addControlListener(new ColResize!("cardDescriptionColumn"));
-		}
+
 		static if (EditMode && is (CardOwner == Summary)) {
 			auto ucCol = new TableColumn(_tbl, SWT.NONE);
 			ucCol.setText(_prop.msgs.cardCount);
-			ucCol.setWidth(_prop.var.etc.cardCountColumn);
-			ucCol.addControlListener(new ColResize!("cardCountColumn"));
 		}
-		static if (EditMode && is(CardOwner : Summary)) {
-			_comm.refCardTableColumnWidth.add(&refColumnWidth);
-			_tbl.addDisposeListener(new DisposeTable);
-		}
+		_comm.refCardTableColumnWidth.add(&refColumnWidth);
+		_tbl.addDisposeListener(new DisposeTable);
 		static if (EditMode) {
 			new TableTextEdit(_comm, _prop, _tbl, 1, &nameEditEnd, &canEdit);
 		}
@@ -1425,16 +1409,39 @@ private:
 			_ucSorter.sortedEvent ~= &sorted;
 		}
 		static if (EditMode && is(CardOwner : Summary)) {
+			idCol.setWidth(_prop.var.etc.cardIdColumn);
+			idCol.addControlListener(new ColResize!("cardIdColumn"));
+			nameCol.setWidth(_prop.var.etc.cardNameColumn);
+			nameCol.addControlListener(new ColResize!("cardNameColumn"));
+			descCol.setWidth(_prop.var.etc.cardDescriptionColumn);
+			descCol.addControlListener(new ColResize!("cardDescriptionColumn"));
+			ucCol.setWidth(_prop.var.etc.cardCountColumn);
+			ucCol.addControlListener(new ColResize!("cardCountColumn"));
+
 			int column = _prop.var.etc.mainCardsSortColumn;
 			int dir = _prop.var.etc.mainCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
 			_comm.refMainCardsSort.add(&refSortParams);
 			.listener(_tbl, SWT.Dispose, { _comm.refMainCardsSort.remove(&refSortParams); });
 		} else static if (EditMode) {
+			idCol.setWidth(_prop.var.etc.handCardIdColumn);
+			idCol.addControlListener(new ColResize!("handCardIdColumn"));
+			nameCol.setWidth(_prop.var.etc.handCardNameColumn);
+			nameCol.addControlListener(new ColResize!("handCardNameColumn"));
+			descCol.setWidth(_prop.var.etc.handCardDescriptionColumn);
+			descCol.addControlListener(new ColResize!("handCardDescriptionColumn"));
+
 			int column = _prop.var.etc.handCardsSortColumn;
 			int dir = _prop.var.etc.handCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
 			_comm.refHandCardsSort.add(&refSortParams);
 			.listener(_tbl, SWT.Dispose, { _comm.refHandCardsSort.remove(&refSortParams); });
 		} else {
+			idCol.setWidth(_prop.var.etc.importCardIdColumn);
+			idCol.addControlListener(new ColResize!("importCardIdColumn"));
+			nameCol.setWidth(_prop.var.etc.importCardNameColumn);
+			nameCol.addControlListener(new ColResize!("importCardNameColumn"));
+			descCol.setWidth(_prop.var.etc.importCardDescriptionColumn);
+			descCol.addControlListener(new ColResize!("importCardDescriptionColumn"));
+
 			int column = _prop.var.etc.importCardsSortColumn;
 			int dir = _prop.var.etc.importCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
 			_comm.refImportCardsSort.add(&refSortParams);
@@ -1787,7 +1794,7 @@ public:
 			_viewMode = CViewMode.TABLE;
 
 			_list.setVisible(false);
-			auto lgd = new GridData;
+			auto lgd = new GridData(GridData.FILL_HORIZONTAL);
 			lgd.heightHint = 0;
 			_list.setLayoutData(lgd);
 			_tbl.getParent().setLayoutData(new GridData(GridData.FILL_BOTH));
