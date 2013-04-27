@@ -482,6 +482,7 @@ private:
 
 		private AbstractArea _area = null;
 		private bool _isStartArea = false;
+		private int _delIndex = -1;
 
 		this (AreaTable v, Commons comm, Summary summ, ulong id, TypeInfo type, bool insert) {
 			super (v, comm, summ);
@@ -495,6 +496,7 @@ private:
 		}
 		private void initUndoDelete() {
 			auto area = areaFromInfo(summ, _id, _type);
+			_delIndex = toIndexFrom(summ, _id, _type);
 			_isStartArea = cast(Area) area && summ.startArea == area.id;
 			auto node = area.toNode(null);
 			auto a = cast(Area) area;
@@ -548,8 +550,8 @@ private:
 			_insert = true;
 			auto a = cast(Area) _area;
 			if (a) {
-				int i = toIndexFrom(summ, _id, _type);
-				summ.insert(i, a);
+				summ.insert(_delIndex, a);
+				auto i = toIndexFrom(summ, _id, _type);
 				if (v && v._areas && !v._areas.isDisposed()) v.newAreaItem(i);
 				if (_isStartArea) {
 					summ.startArea = a.id;
@@ -560,16 +562,16 @@ private:
 			}
 			auto b = cast(Battle) _area;
 			if (b) {
-				int i = toIndexFrom(summ, _id, _type);
-				summ.insert(i, b);
+				summ.insert(_delIndex, b);
+				auto i = toIndexFrom(summ, _id, _type);
 				if (v && v._areas && !v._areas.isDisposed()) v.newBattleItem(i);
 				comm.refBattle.call(v, b);
 				return;
 			}
 			auto p = cast(Package) _area;
 			if (p) {
-				int i = toIndexFrom(summ, _id, _type);
-				summ.insert(i, p);
+				summ.insert(_delIndex, p);
+				auto i = toIndexFrom(summ, _id, _type);
 				if (v && v._areas && !v._areas.isDisposed()) v.newPackageItem(i);
 				comm.refPackage.call(v, p);
 				return;
@@ -696,7 +698,9 @@ private:
 			area = _summ.battle(id);
 		} else if (type is typeid(Package)) {
 			area = _summ.cwPackage(id);
-		} else assert (0);
+		} else {
+			return;
+		}
 		foreach (i, itm; _areas.getItems()) {
 			if (itm.getData() is area) {
 				_areas.select(i);
