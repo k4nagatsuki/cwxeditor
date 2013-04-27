@@ -95,6 +95,24 @@ private:
 		}
 		return null;
 	}
+	private string cardName(in C card) {
+		static if (is(typeof(card.linkId))) {
+			if (0 != card.linkId) {
+				auto c = pOwnerCard(card.linkId);
+				if (c) return c.name;
+			}
+		}
+		return card.name;
+	}
+	private string cardDesc(in C card) {
+		static if (is(typeof(card.linkId))) {
+			if (0 != card.linkId) {
+				auto c = pOwnerCard(card.linkId);
+				if (c) return c.desc;
+			}
+		}
+		return card.desc;
+	}
 	@property
 	private C[] pOwnerCards() {return cardsFrom(_summ);}
 	private C pOwnerCard(ulong id) {return cardFrom(_summ, id);}
@@ -438,6 +456,13 @@ private:
 			refCard(c);
 			_comm.refreshToolBar();
 		}
+		bool canEdit(TableItem itm, int column) {
+			auto c = cast(C) itm.getData();
+			static if (is(CardOwner:CastCard) && is(typeof(c.linkId))) {
+				return 0 == c.linkId;
+			}
+			return true;
+		}
 	}
 	void __refreshR(string from, string to) {
 		__refresh();
@@ -498,8 +523,8 @@ private:
 	void refreshTableItem(C c, TableItem itm) {
 		itm.setImage(0, _cimg);
 		itm.setText(0, to!(string)(c.id));
-		itm.setText(1, c.name);
-		string desc = c.desc.singleLine;
+		itm.setText(1, cardName(c));
+		string desc = cardDesc(c).singleLine;
 		static if (is(C:EventTreeOwner)) {
 			if (_prop.var.etc.showEventTreeMark && ((_prop.var.etc.ignoreEmptyStart ? !c.isEmpty : 0 < c.trees.length))) {
 				itm.setImage(2, _prop.images.eventTree);
@@ -1187,7 +1212,7 @@ private:
 			_tbl.addDisposeListener(new DisposeTable);
 		}
 		static if (EditMode) {
-			new TableTextEdit(_comm, _prop, _tbl, 1, &nameEditEnd, null);
+			new TableTextEdit(_comm, _prop, _tbl, 1, &nameEditEnd, &canEdit);
 		}
 
 		static if (is (C == CastCard)) {
