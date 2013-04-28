@@ -1327,6 +1327,9 @@ public:
 				_prop.var.etc.areasSortColumn = -1;
 			}
 		});
+		_idSorter.sortedEvent ~= &_comm.refreshToolBar;
+		_nameSorter.sortedEvent ~= &_comm.refreshToolBar;
+		_ucSorter.sortedEvent ~= &_comm.refreshToolBar;
 	}
 
 	private int toAreaIndex(int index) {
