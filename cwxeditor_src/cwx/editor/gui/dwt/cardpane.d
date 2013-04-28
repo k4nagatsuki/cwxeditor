@@ -885,9 +885,10 @@ private:
 						}
 						_comm.refreshToolBar();
 					}
+					bool sortedID = _tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column;
 					if (sameSc && samePane) {
 						// 同一リスト内で移動
-						if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return;
+						if (!sortedID) return;
 						int count = cardCount;
 						if (count < index) index = count;
 						if ((index < count ? index : count - 1) == selectionIndex
@@ -925,6 +926,11 @@ private:
 						e.detail = DND.DROP_NONE;
 						// 他のリストからのコピー
 						if (cardCount < index) index = cardCount;
+						if (!sortedID) {
+							index = cardCount;
+						} else if (_tbl.getSortDirection() is SWT.DOWN) {
+							index = cards.length - index;
+						}
 						C[] adds;
 						node.onTag[C.XML_NAME] = (ref XNode cNode) {
 							auto card = C.createFromNode(cNode, LATEST_VERSION);

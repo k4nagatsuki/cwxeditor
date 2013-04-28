@@ -912,13 +912,16 @@ private:
 				auto toItm = tbl.getItem(tbl.toControl(e.x, e.y));
 				int count = tbl.getItemCount();
 				int index = toItm ? tbl.indexOf(toItm) : count;
+				bool sortedID = _areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column;
 				int revId(int index) {
 					index -= 1;
 					if (tid == typeid(Area)) {
+						if (!sortedID) return _summ.areas.length;
 						if (_summ.areas.length < index) {
 							index = _summ.areas.length;
 						}
 					} else if (tid == typeid(Battle)) {
+						if (!sortedID) return _summ.battles.length;
 						index -= _summ.areas.length;
 						if (index < 0) {
 							index = 0;
@@ -927,6 +930,7 @@ private:
 						}
 					} else {
 						assert (tid == typeid(Package));
+						if (!sortedID) return _summ.packages.length;
 						index -= _summ.areas.length + _summ.battles.length;
 						if (index < 0) {
 							index = 0;
@@ -934,20 +938,6 @@ private:
 							index = _summ.packages.length;
 						}
 					}
-					return index;
-				}
-				if (_summ.id == AbstractArea.summaryId(node)) {
-					// 同一リスト内で移動
-					if (!(_areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column)) return;
-					if ((index < count ? index : count - 1) == tbl.getSelectionIndex()
-							|| index == tbl.getSelectionIndex() + 1) {
-						tbl.showSelection();
-						return;
-					}
-					index = revId(index);
-					int fromIndex = tbl.getSelectionIndex();
-					if (fromIndex < 1) return;
-
 					if (_areas.getSortDirection() is SWT.DOWN) {
 						// 処理を単純化するため、ID昇順でソートされた
 						// 状態に対して移動処理を行う
@@ -960,6 +950,19 @@ private:
 							index = _summ.packages.length - index;
 						}
 					}
+					return index;
+				}
+				if (_summ.id == AbstractArea.summaryId(node)) {
+					// 同一リスト内で移動
+					if (!sortedID) return;
+					if ((index < count ? index : count - 1) == tbl.getSelectionIndex()
+							|| index == tbl.getSelectionIndex() + 1) {
+						tbl.showSelection();
+						return;
+					}
+					index = revId(index);
+					int fromIndex = tbl.getSelectionIndex();
+					if (fromIndex < 1) return;
 
 					auto area = cast(AbstractArea) tbl.getItem(fromIndex).getData();
 					tbl.getItem(fromIndex).dispose();
