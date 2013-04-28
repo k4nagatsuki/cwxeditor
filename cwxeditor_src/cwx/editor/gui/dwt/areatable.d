@@ -31,6 +31,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.customtable;
 
+import std.algorithm : max, min;
 import std.conv;
 import std.string : icmp;
 
@@ -915,30 +916,7 @@ private:
 				bool sortedID = _areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column;
 				int revId(int index) {
 					index -= 1;
-					if (tid == typeid(Area)) {
-						if (!sortedID) return _summ.areas.length;
-						if (_summ.areas.length < index) {
-							index = _summ.areas.length;
-						}
-					} else if (tid == typeid(Battle)) {
-						if (!sortedID) return _summ.battles.length;
-						index -= _summ.areas.length;
-						if (index < 0) {
-							index = 0;
-						} else if (_summ.battles.length < index) {
-							index = _summ.battles.length;
-						}
-					} else {
-						assert (tid == typeid(Package));
-						if (!sortedID) return _summ.packages.length;
-						index -= _summ.areas.length + _summ.battles.length;
-						if (index < 0) {
-							index = 0;
-						} else if (_summ.packages.length < index) {
-							index = _summ.packages.length;
-						}
-					}
-					if (_areas.getSortDirection() is SWT.DOWN) {
+					if (sortedID && _areas.getSortDirection() is SWT.DOWN) {
 						// 処理を単純化するため、ID昇順でソートされた
 						// 状態に対して移動処理を行う
 						if (tid == typeid(Area)) {
@@ -950,42 +928,77 @@ private:
 							index = _summ.packages.length - index;
 						}
 					}
+					if (tid == typeid(Area)) {
+						if (!sortedID) return _summ.areas.length;
+						if (cast(int)_summ.areas.length < index) {
+							index = _summ.areas.length;
+						}
+					} else if (tid == typeid(Battle)) {
+						if (!sortedID) return _summ.battles.length;
+						index -= _summ.areas.length;
+						if (index < 0) {
+							index = 0;
+						} else if (cast(int)_summ.battles.length < index) {
+							index = _summ.battles.length;
+						}
+					} else {
+						assert (tid == typeid(Package));
+						if (!sortedID) return _summ.packages.length;
+						index -= _summ.areas.length + _summ.battles.length;
+						if (index < 0) {
+							index = 0;
+						} else if (cast(int)_summ.packages.length < index) {
+							index = _summ.packages.length;
+						}
+					}
 					return index;
 				}
 				if (_summ.id == AbstractArea.summaryId(node)) {
 					// 同一リスト内で移動
 					if (!sortedID) return;
-					if ((index < count ? index : count - 1) == tbl.getSelectionIndex()
-							|| index == tbl.getSelectionIndex() + 1) {
-						tbl.showSelection();
-						return;
-					}
 					index = revId(index);
 					int fromIndex = tbl.getSelectionIndex();
 					if (fromIndex < 1) return;
 
+					if (_areas.getSortDirection() is SWT.DOWN) {
+						if (index < revId(fromIndex)) {
+							index--;
+						}
+					} else {
+						if (revId(fromIndex) < index) {
+							index++;
+						}
+					}
+
 					auto area = cast(AbstractArea) tbl.getItem(fromIndex).getData();
-					tbl.getItem(fromIndex).dispose();
 					int toIndex;
+					int disposeIndex = fromIndex;
 					if (tid == typeid(Area)) {
 						// ID順昇順でソートされた時の位置を基準にアンドゥを
 						// 行うため、fromIndexを取り直す
 						fromIndex = _summ.indexOf(cast(Area) area) + 1;
+						index = .max(0, .min(cast(int)_summ.areas.length, index));
+						if (index == _summ.indexOf(cast(Area)area)) return;
 						_summ.insert(index, cast(Area) area);
 						index = _summ.indexOf(cast(Area) area);
 						toIndex = newAreaItem(index);
 					} else if (tid == typeid(Battle)) {
 						fromIndex = _summ.areas.length + _summ.indexOf(cast(Battle) area) + 1;
+						index = .max(0, .min(cast(int)_summ.battles.length, index));
+						if (index == _summ.indexOf(cast(Battle)area)) return;
 						_summ.insert(index, cast(Battle) area);
 						index = _summ.indexOf(cast(Battle) area);
 						toIndex = newBattleItem(index);
 					} else {
 						assert (tid == typeid(Package));
 						fromIndex = _summ.areas.length + _summ.battles.length + _summ.indexOf(cast(Package) area) + 1;
+						index = .max(0, .min(cast(int)_summ.packages.length, index));
+						if (index == _summ.indexOf(cast(Package)area)) return;
 						_summ.insert(index, cast(Package) area);
 						index = _summ.indexOf(cast(Package) area);
 						toIndex = newPackageItem(index);
 					}
+					tbl.getItem(disposeIndex).dispose();
 					storeMove(fromIndex, toIndex);
 					sort();
 					callRefArea(area);
