@@ -916,18 +916,6 @@ private:
 				bool sortedID = _areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column;
 				int revId(int index) {
 					index -= 1;
-					if (sortedID && _areas.getSortDirection() is SWT.DOWN) {
-						// 処理を単純化するため、ID昇順でソートされた
-						// 状態に対して移動処理を行う
-						if (tid == typeid(Area)) {
-							index = _summ.areas.length - index;
-						} else if (tid == typeid(Battle)) {
-							index = _summ.battles.length - index;
-						} else {
-							assert (tid == typeid(Package));
-							index = _summ.packages.length - index;
-						}
-					}
 					if (tid == typeid(Area)) {
 						if (!sortedID) return _summ.areas.length;
 						if (cast(int)_summ.areas.length < index) {
@@ -949,6 +937,18 @@ private:
 							index = 0;
 						} else if (cast(int)_summ.packages.length < index) {
 							index = _summ.packages.length;
+						}
+					}
+					if (sortedID && _areas.getSortDirection() is SWT.DOWN) {
+						// 処理を単純化するため、ID昇順でソートされた
+						// 状態に対して移動処理を行う
+						if (tid == typeid(Area)) {
+							index = _summ.areas.length - index;
+						} else if (tid == typeid(Battle)) {
+							index = _summ.battles.length - index;
+						} else {
+							assert (tid == typeid(Package));
+							index = _summ.packages.length - index;
 						}
 					}
 					return index;
@@ -981,6 +981,7 @@ private:
 						if (index == _summ.indexOf(cast(Area)area)) return;
 						_summ.insert(index, cast(Area) area);
 						index = _summ.indexOf(cast(Area) area);
+						tbl.getItem(disposeIndex).dispose();
 						toIndex = newAreaItem(index);
 					} else if (tid == typeid(Battle)) {
 						fromIndex = _summ.areas.length + _summ.indexOf(cast(Battle) area) + 1;
@@ -988,6 +989,7 @@ private:
 						if (index == _summ.indexOf(cast(Battle)area)) return;
 						_summ.insert(index, cast(Battle) area);
 						index = _summ.indexOf(cast(Battle) area);
+						tbl.getItem(disposeIndex).dispose();
 						toIndex = newBattleItem(index);
 					} else {
 						assert (tid == typeid(Package));
@@ -996,13 +998,13 @@ private:
 						if (index == _summ.indexOf(cast(Package)area)) return;
 						_summ.insert(index, cast(Package) area);
 						index = _summ.indexOf(cast(Package) area);
+						tbl.getItem(disposeIndex).dispose();
 						toIndex = newPackageItem(index);
 					}
-					tbl.getItem(disposeIndex).dispose();
 					storeMove(fromIndex, toIndex);
-					sort();
 					callRefArea(area);
 					refreshIDs(true);
+					sort();
 					refreshStatusLine();
 					_comm.refreshToolBar();
 					e.detail = DND.DROP_NONE;
