@@ -265,6 +265,8 @@ class Preview {
 				real s = std.algorithm.min(ws, hs);
 				_w *= s;
 				_h *= s;
+				_w = .max(1, _w);
+				_h = .max(1, _h);
 			}
 
 			// 画面に収まるよう位置合わせ
