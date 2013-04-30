@@ -30,6 +30,12 @@ enum DialogStatus {
 	UnderWithCoupon = 2, /// 最下位(条件クーポンあり)を表示。
 }
 
+/// 編集開始方法。
+enum EditTrigger {
+	Quick = 0, /// 2度のクリックで即編集開始。
+	Slow = 1, /// ダブルクリックが発生した場合は編集開始しない。
+}
+
 /// 起動オプション。
 struct LaunchOption {
 	string conf;

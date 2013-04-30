@@ -302,6 +302,7 @@ class FlexEtcProps : Properties {
 	auto ignoreEmptyStart = Prop!(bool)("ignoreEmptyStart", true);
 	auto switchTabWheel = Prop!(bool)("switchTabWheel", true);
 	auto openTabAtRightOfCurrentTab = Prop!(bool)("openTabAtRightOfCurrentTab", true);
+	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
 
 	auto soundPlayType = Prop!(int)("soundPlayType", 0);
 	auto soundEffectPlayType = Prop!(int)("soundEffectPlayType", -1);

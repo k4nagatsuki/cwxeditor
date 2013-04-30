@@ -232,73 +232,96 @@ public:
 	}
 }
 
-private class TextEditMFListener : MouseAdapter, SelectionListener {
+private class TextEditMFListener : MouseAdapter, SelectionListener, FocusListener {
 private:
-	Object _itm = null;
-	SysTime _time;
+	Commons _comm;
+	Display _display;
+	Item _itm = null;
+	Item _oldSel = null;
+	bool _hasFocus = false;
+	bool _start = false;
 	Item delegate() _selection;
 	Item delegate(int x, int y) _selectionM;
 	void delegate(Item itm) _startEdit;
-	bool _dClick;
+
+	class StartEdit : Runnable {
+		private Item _itm;
+		this (Item itm) { _itm = itm; }
+		override void run() {
+			if (_comm.prop.var.etc.editTriggerType is EditTrigger.Slow) {
+				if (_start && !_itm.isDisposed() && _hasFocus && _itm is _selection()) {
+					_startEdit(_itm);
+				}
+			}
+			_start = false;
+		}
+	}
+	class Starter {
+		private Item _itm;
+		private SysTime _time;
+		this () {
+			_time = Clock.currTime() + dur!"msecs"(_display.getDoubleClickTime());
+			_itm = _selection();
+			_start = true;
+		}
+		void run() {
+			while (_start && Clock.currTime() <= _time) {
+				core.thread.Thread.sleep(dur!("msecs")(1));
+			}
+			if (_start) {
+				_display.asyncExec(new StartEdit(_itm));
+			}
+		}
+	}
 public:
 	/// Params:
 	/// startEdit = 編集開始時に呼出される。
 	/// selection = 編集対象を返す。
 	/// selectionM = 位置に応じて編集対象を返す。
-	/// dClick = trueなら編集開始条件はダブルクリックと既選択後のシングルクリック、
-	///          falseならダブルクリックにならない速度の2回クリック。
-	this (void delegate(Item itm) startEdit,
-			Item delegate() selection, Item delegate(int x, int y) selectionM,
-			bool dClick = true) {
-		try {
-			_startEdit = startEdit;
-			_selection = selection;
-			_selectionM = selectionM;
-			_dClick = dClick;
-		} catch (Exception e) {
-			throw new Exception(e.msg, __FILE__, __LINE__);
+	this (Commons comm, void delegate(Item itm) startEdit,
+			Item delegate() selection, Item delegate(int x, int y) selectionM) {
+		_comm = comm;
+		_display = Display.getCurrent();
+		_startEdit = startEdit;
+		_selection = selection;
+		_selectionM = selectionM;
+	}
+	override void widgetSelected(SelectionEvent e) {
+		if (_comm.prop.var.etc.editTriggerType is EditTrigger.Quick) {
+			_itm = _selection();
+		}
+		_oldSel = _selection();
+	}
+	override void widgetDefaultSelected(SelectionEvent e) {
+		// 処理無し
+	}
+	override void focusGained(FocusEvent e) {
+		_hasFocus = true;
+		if (_comm.prop.var.etc.editTriggerType is EditTrigger.Quick) {
+			_itm = _selection();
+		} else {
+			_oldSel = _selection();
 		}
 	}
-/+	void mouseDoubleClick(MouseEvent e) {
-		if (_dClick) {
-			auto itm = _selectionM(e.x, e.y);
-			if (e.button == 1 && itm !is null) {
+	override void focusLost(FocusEvent e) {
+		_hasFocus = false;
+		_start = false;
+	}
+	override void mouseDown(MouseEvent e) {
+		auto itm = _selectionM(e.x, e.y);
+		if (!itm) return;
+		if (e.button != 1) return;
+		if (_comm.prop.var.etc.editTriggerType is EditTrigger.Quick) {
+			if (itm is _itm) {
 				_startEdit(itm);
 			}
-		}
-	}
-+/	override void widgetSelected(SelectionEvent e) {
-		try {
-			if (_dClick) {
-				_itm = _selection();
+		} else {
+			if (2 <= e.count) {
+				return;
 			}
-		} catch (Exception e) {
-			throw new Exception(e.msg, __FILE__, __LINE__);
-		}
-	}
-	override void widgetDefaultSelected(SelectionEvent e) {}
-	override void mouseDown(MouseEvent e) {
-		try {
-			auto itm = _selectionM(e.x, e.y);
-			if (_dClick) {
-				if (e.button == 1 && itm !is null && itm == _itm) {
-					_startEdit(itm);
-				}
-			} else {
-				synchronized {
-					if (e.button == 1 && itm !is null) {
-						if (_itm !is null && itm == _itm && _time <= Clock.currTime()) {
-							_itm = null;
-							_startEdit(itm);
-						} else {
-							_itm = itm;
-							_time = Clock.currTime() + dur!"msecs"(Display.getCurrent().getDoubleClickTime());
-						}
-					}
-				}
+			if (_oldSel is _selection()) {
+				(new core.thread.Thread(&(new Starter).run)).start();
 			}
-		} catch (Exception e) {
-			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
 }
@@ -513,9 +536,10 @@ public:
 			editor = new TableEditor(table);
 			editor.grabHorizontal = true;
 
-			auto mf = new TextEditMFListener(&startEdit, &selectionK, &selectionM);
+			auto mf = new TextEditMFListener(comm, &startEdit, &selectionK, &selectionM);
 			table.addMouseListener(mf);
 			table.addSelectionListener(mf);
+			table.addFocusListener(mf);
 			table.addKeyListener(new TextEditKListener(&startEdit, &selectionK));
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
@@ -793,9 +817,10 @@ public:
 			editor = new TreeEditor(tree);
 			editor.grabHorizontal = true;
 
-			auto mf = new TextEditMFListener(&startEdit, &selectionK, &selectionM);
+			auto mf = new TextEditMFListener(comm, &startEdit, &selectionK, &selectionM);
 			tree.addMouseListener(mf);
 			tree.addSelectionListener(mf);
+			tree.addFocusListener(mf);
 			tree.addKeyListener(new TextEditKListener(&startEdit, &selectionK));
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
