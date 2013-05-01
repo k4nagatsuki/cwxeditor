@@ -555,6 +555,15 @@ private:
 		if (tree) {
 			if (text == tree.name) return;
 			store(tree);
+			text = createNewName(text, (string name) {
+				if (!tree.starts.length) return true;
+				foreach (s; tree.starts[1..$]) {
+					if (icmp(s.name, name) == 0) {
+						return false;
+					}
+				}
+				return true;
+			}, true);
 			itm.setText(text);
 			tree.name = text;
 			_etree.refreshTreeName();
