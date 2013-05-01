@@ -2378,8 +2378,6 @@ public:
 			if ((cast(Content) parent.getData()).detail.nextType == CNextType.TEXT) {
 				return createTextEditor(_comm, _prop, _tree, (cast(Content) itm.getData()).name);
 			}
-		} else if (_tree.getItem(0) is itm) {
-			return null;
 		} else {
 			return createTextEditor(_comm, _prop, _tree, (cast(Content) itm.getData()).name);
 		}

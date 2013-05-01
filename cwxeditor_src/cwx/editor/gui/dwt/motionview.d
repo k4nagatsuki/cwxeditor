@@ -665,7 +665,7 @@ private:
 			auto beast = selection.beast;
 			if (beast) {
 				scope img = new Image(Display.getCurrent(),
-					cardImage!(BeastCard)(_prop, _comm.skin, beast, _summ.scenarioPath, null, &_summ.beast, true));
+					cardImage!(BeastCard)(_prop, _comm.skin, beast, _summ.scenarioPath, null, &_summ.beast, true, false));
 				scope data = img.getImageData();
 				auto pane = cast(Canvas) e.widget;
 				scope rect = pane.getClientArea();

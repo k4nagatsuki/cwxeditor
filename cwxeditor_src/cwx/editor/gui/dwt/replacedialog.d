@@ -1993,6 +1993,15 @@ public:
 			grepImpl();
 		} else assert (0);
 	}
+	private bool cautionReplace(string name1, string name2) {
+		if (_replMode && _prop.var.etc.cautionBeforeReplace) {
+			auto dlg = new MessageBox(_win, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+			dlg.setMessage(.tryFormat(_prop.msgs.cautionOfReplace, name1, name2));
+			dlg.setText(_prop.msgs.dlgTitQuestion);
+			return SWT.YES == dlg.open();
+		}
+		return true;
+	}
 	private void after() {
 		foreach (a; _after) a();
 		if (_after.length) {
@@ -2200,12 +2209,22 @@ public:
 			return *p;
 		}
 	}
+	private string getIDName(Combo combo, Spinner spn) {
+		if (combo.getSelectionIndex() == 0) {
+			auto id = spn.getSelection();
+			string objName = _idKind.getText();
+			return .tryFormat(_prop.msgs.idValue, id, objName);
+		} else {
+			return .tryFormat(_prop.msgs.replaceValue, combo.getText());
+		}
+	}
 	private void replaceIDImpl() {
 		if (!_summ) return;
 		ulong from = getID(_fromID, _fromIDVal, _fromIDTbl);
 		ulong to = getID(_toID, _toIDVal, _toIDTbl);
 		if (0 == from) return;
 		if (from == to) _replMode = false;
+		if (!cautionReplace(getIDName(_fromID, _fromIDVal), getIDName(_toID, _toIDVal))) return;
 		switch (_idKind.getSelectionIndex()) {
 		case ID_AREA: replaceIDImpl2(toAreaId(from), toAreaId(to)); break;
 		case ID_BATTLE: replaceIDImpl2(toBattleId(from), toBattleId(to)); break;
@@ -2221,6 +2240,10 @@ public:
 	private void replacePathImpl() {
 		if (!_summ) return;
 		if (!_fromPath.getText().length) return;
+		string toText = _toPath.getText();
+		string fromName = .tryFormat(_prop.msgs.replaceValue, _fromPath.getText());
+		string toName = toText.length ? .tryFormat(_prop.msgs.replaceValue, toText) : _prop.msgs.emptyPath;
+		if (!cautionReplace(fromName, toName)) return;
 		auto from = toPathId(_fromPath.getText());
 		auto to = toPathId(_toPath.getText());
 		if (from == to) _replMode = false;
@@ -2984,6 +3007,9 @@ public:
 		string from = _from.getText();
 		string to = _to.getText();
 		if (!from.length) return;
+		string fromName = from.length ? .tryFormat(_prop.msgs.replaceValue, from) : _prop.msgs.emptyText;
+		string toName = to.length ? .tryFormat(_prop.msgs.replaceValue, to) : _prop.msgs.emptyText;
+		if (!cautionReplace(fromName, toName)) return;
 		initText(from, to);
 
 		size_t count = 0;

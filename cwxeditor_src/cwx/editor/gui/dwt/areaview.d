@@ -601,7 +601,6 @@ private:
 
 	bool _viewMsg = false;
 	bool _viewParty = true;
-	bool _fixed = false;
 	bool _showGrid = false;
 	int _gridX = 0;
 	int _gridY = 0;
@@ -609,12 +608,10 @@ private:
 	Summary _summ;
 	MenuItem _vmMenu;
 	MenuItem _vpMenu;
-	MenuItem _vfMenu;
 	MenuItem _sgMenu;
 	MenuItem _sgPMenu;
 	ToolItem _vmTMenu;
 	ToolItem _vpTMenu;
-	ToolItem _vfTMenu;
 	ToolItem _sgTMenu;
 	static if (RefCards) {
 		MenuItem _vrMenu;
@@ -661,10 +658,13 @@ private:
 	Spinner _xSpn, _ySpn;
 	Combo _flag = null;
 	static if (UseCards) {
+		bool _fixedC = false;
 		bool _viewCards = true;
 		C[PileImage] _cardTbl;
 		int[C] _editC;
 		Table _cards;
+		MenuItem _vfcMenu;
+		ToolItem _vfcTMenu;
 		MenuItem _vcMenu;
 		ToolItem _vcTMenu;
 		MenuItem _autoMenu;
@@ -733,10 +733,13 @@ private:
 	}
 
 	static if (UseBacks) {
+		bool _fixedB = false;
 		bool _viewBacks = true;
 		BgImage[PileImage] _backTbl;
 		int[BgImage] _editB;
 		Table _backs;
+		MenuItem _vfbMenu;
+		ToolItem _vfbTMenu;
 		MenuItem _vbMenu;
 		ToolItem _vbTMenu;
 		ToolItem _maskTMenu;
@@ -1655,11 +1658,33 @@ private:
 	Table createList(C)(Composite parent, string name, Image image, TCPD tcpd,
 			void delegate(int[]) edit, C[] delegate() items, void delegate() selectAll) {
 		auto comp = new Composite(parent, SWT.NONE);
-		comp.setLayout(zeroGridLayout(1));
+		auto gl = windowGridLayout(2, false);
+		gl.marginWidth = 0;
+		gl.marginHeight = 0;
+		comp.setLayout(gl);
 		auto label = new CLabel(comp, SWT.NONE);
 		label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		label.setText(name);
 		label.setImage(image);
+		auto bar = new ToolBar(comp, SWT.FLAT);
+		_comm.put(bar);
+		static if (is(C:AbstractSpCard)) {
+			static if (UseBacks) {
+				_vcTMenu = createToolItem(_comm, bar, MenuID.ShowCard, &reverseViewCards, null, SWT.CHECK);
+				_vcTMenu.setSelection(_viewCards);
+			}
+			_vfcTMenu = createToolItem(_comm, bar, MenuID.FixedCards, &reverseFixedCards, null, SWT.CHECK);
+			_vfcTMenu.setSelection(_fixedC);
+		} else {
+			static assert (is(C:BgImage));
+			static if (UseCards) {
+				_vbTMenu = createToolItem(_comm, bar, MenuID.ShowBack, &reverseViewBacks, null, SWT.CHECK);
+				_vbTMenu.setSelection(_viewBacks);
+			}
+			_vfbTMenu = createToolItem(_comm, bar, MenuID.FixedCells, &reverseFixedCells, null, SWT.CHECK);
+			_vfbTMenu.setSelection(_fixedB);
+		}
+
 		auto list = new Table(comp, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		new FullTableColumn(list, SWT.NONE);
 		auto mkl = new MKListener!(C)(edit, items);
@@ -1669,6 +1694,7 @@ private:
 		list.addSelectionListener(new VCheckListener);
 		list.addMouseListener(mkl);
 		auto gd = new GridData(GridData.FILL_BOTH);
+		gd.horizontalSpan = 2;
 		gd.widthHint = 0;
 		gd.heightHint = 0;
 		list.setLayoutData(gd);
@@ -1806,15 +1832,16 @@ public:
 		static if (is (A == Area)) {
 			_viewMsg = _prop.var.etc.viewMessageArea;
 			_viewParty = _prop.var.etc.viewPartyCardsArea;
-			_fixed = _prop.var.etc.fixedImagesArea;
+			_fixedC = _prop.var.etc.fixedImagesMenuCards;
+			_fixedB = _prop.var.etc.fixedImagesCells;
 		} else static if (is (A == Battle)) {
 			_viewMsg = _prop.var.etc.viewMessageBattle;
 			_viewParty = _prop.var.etc.viewPartyCardsBattle;
-			_fixed = _prop.var.etc.fixedImagesBattle;
+			_fixedC = _prop.var.etc.fixedImagesBattle;
 		} else static if (is (A == BgImageContainer)) {
 			_viewMsg = _prop.var.etc.viewMessageEvent;
 			_viewParty = _prop.var.etc.viewPartyCardsEvent;
-			_fixed = _prop.var.etc.fixedImagesEvent;
+			_fixedB = _prop.var.etc.fixedImagesEvent;
 		} else {
 			static assert (0);
 		}
@@ -1829,15 +1856,16 @@ public:
 				static if (is (A == Area)) {
 					_prop.var.etc.viewMessageArea = _viewMsg;
 					_prop.var.etc.viewPartyCardsArea = _viewParty;
-					_prop.var.etc.fixedImagesArea = _fixed;
+					_prop.var.etc.fixedImagesMenuCards = _fixedC;
+					_prop.var.etc.fixedImagesCells = _fixedB;
 				} else static if (is (A == Battle)) {
 					_prop.var.etc.viewMessageBattle = _viewMsg;
 					_prop.var.etc.viewPartyCardsBattle = _viewParty;
-					_prop.var.etc.fixedImagesBattle = _fixed;
+					_prop.var.etc.fixedImagesBattle = _fixedC;
 				} else static if (is (A == BgImageContainer)) {
 					_prop.var.etc.viewMessageEvent = _viewMsg;
 					_prop.var.etc.viewPartyCardsEvent = _viewParty;
-					_prop.var.etc.fixedImagesEvent = _fixed;
+					_prop.var.etc.fixedImagesEvent = _fixedB;
 				} else {
 					static assert (0);
 				}
@@ -2880,17 +2908,20 @@ public:
 		@property
 		bool isViewRefCards() {return _imgp.showAppends;}
 	}
-	@property
-	bool isFixed() {return _fixed;}
 	static if (UseCards) {
 		@property
+		bool isFixedCards() {return _fixedC;}
+		@property
 		bool spCustom() {return !_area.spAuto;}
+	}
+	static if (UseBacks) {
+		@property
+		bool isFixedCells() {return _fixedB;}
 	}
 	@property
 	bool isShowGrid() {return _showGrid;}
 	private void setupTLP(TopLevelPanel tlp) {
 		_tlp.putMenuChecked(MenuID.ShowParty, &reverseViewParty, &isViewParty, null);
-		_tlp.putMenuChecked(MenuID.FixedImage, &reverseFixed, &isFixed, null);
 		static if (UseCards && UseBacks) {
 			_tlp.putMenuChecked(MenuID.ShowCard, &reverseViewCards, &isViewCards, null);
 			_tlp.putMenuChecked(MenuID.ShowBack, &reverseViewBacks, &isViewBacks, null);
@@ -2898,6 +2929,10 @@ public:
 		static if (UseCards) {
 			_tlp.putMenuChecked(MenuID.AutoArrange, &setAuto, &_area.spAuto, null);
 			_tlp.putMenuChecked(MenuID.ManualArrange, &setCustom, &spCustom, null);
+			_tlp.putMenuChecked(MenuID.FixedCards, &reverseFixedCards, &isFixedCards, null);
+		}
+		static if (UseBacks) {
+			_tlp.putMenuChecked(MenuID.FixedCells, &reverseFixedCells, &isFixedCells, null);
 		}
 		_tlp.putMenuChecked(MenuID.ShowGrid, &reverseShowGrid, &isShowGrid, null);
 		_tlp.putMenuAction(MenuID.Refresh, &refresh, null);
@@ -2921,8 +2956,14 @@ public:
 			_vrMenu.setSelection(_imgp.showAppends);
 		}
 		new MenuItem(mv, SWT.SEPARATOR);
-		_vfMenu = createMenuItem(_comm, mv, MenuID.FixedImage, &reverseFixed, null, SWT.CHECK);
-		_vfMenu.setSelection(_fixed);
+		static if (UseCards) {
+			_vfcMenu = createMenuItem(_comm, mv, MenuID.FixedCards, &reverseFixedCards, null, SWT.CHECK);
+			_vfcMenu.setSelection(_fixedC);
+		}
+		static if (UseBacks) {
+			_vfbMenu = createMenuItem(_comm, mv, MenuID.FixedCells, &reverseFixedCells, null, SWT.CHECK);
+			_vfbMenu.setSelection(_fixedB);
+		}
 		static if (is(C : EnemyCard) || RefCards) {
 			if (_summ) {
 				new MenuItem(mv, SWT.SEPARATOR);
@@ -2988,22 +3029,12 @@ public:
 			_vrTMenu = createToolItem(_comm, bar, MenuID.ShowRefCards, &reverseViewRefCards, null, SWT.CHECK);
 			_vrTMenu.setSelection(_imgp.showAppends);
 		}
-		new ToolItem(bar, SWT.SEPARATOR);
-		_vfTMenu = createToolItem(_comm, bar, MenuID.FixedImage, &reverseFixed, null, SWT.CHECK);
-		_vfTMenu.setSelection(_fixed);
 		static if (is(C : EnemyCard) || RefCards) {
 			if (_summ) {
 				new ToolItem(bar, SWT.SEPARATOR);
 				_dbgTMenu = createToolItem(_comm, bar, MenuID.ShowEnemyCardProp, &reverseDebugMode, null, SWT.CHECK);
 				_dbgTMenu.setSelection(_dbgMode);
 			}
-		}
-		static if (UseCards && UseBacks) {
-			new ToolItem(bar, SWT.SEPARATOR);
-			_vcTMenu = createToolItem(_comm, bar, MenuID.ShowCard, &reverseViewCards, null, SWT.CHECK);
-			_vcTMenu.setSelection(_viewCards);
-			_vbTMenu = createToolItem(_comm, bar, MenuID.ShowBack, &reverseViewBacks, null, SWT.CHECK);
-			_vbTMenu.setSelection(_viewBacks);
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
 		if (!_tlp) {
@@ -3180,17 +3211,23 @@ public:
 			_imgp.redraw();
 		}
 	}
-	void reverseFixed() {
-		_fixed = !_fixed;
-		static if (UseCards) {
-			_imgp.fixedRange(_fixed, cardsIndex, cardsIndex + _area.cards.length);
+	static if (UseCards) {
+		void reverseFixedCards() {
+			_fixedC = !_fixedC;
+			_imgp.fixedRange(_fixedC, cardsIndex, cardsIndex + _area.cards.length);
+			if (_vfcMenu) _vfcMenu.setSelection(_fixedC);
+			if (_vfcTMenu) _vfcTMenu.setSelection(_fixedC);
+			_imgp.redraw();
 		}
-		static if (UseBacks) {
-			_imgp.fixedRange(_fixed, 0, _area.backs.length);
+	}
+	static if (UseBacks) {
+		void reverseFixedCells() {
+			_fixedB = !_fixedB;
+			_imgp.fixedRange(_fixedB, 0, _area.backs.length);
+			if (_vfbMenu) _vfbMenu.setSelection(_fixedB);
+			if (_vfbTMenu) _vfbTMenu.setSelection(_fixedB);
+			_imgp.redraw();
 		}
-		if (_vfMenu) _vfMenu.setSelection(_fixed);
-		if (_vfTMenu) _vfTMenu.setSelection(_fixed);
-		_imgp.redraw();
 	}
 	void reverseShowGrid() {
 		_showGrid = !_showGrid;
@@ -3252,7 +3289,7 @@ public:
 			auto img = createCardImage!FlexImage(card, _prop.var.etc.smoothingCard);
 			_cardTbl[img] = card;
 			img.visible = isViewCards;
-			img.fixed = isFixed;
+			img.fixed = isFixedCards;
 			img.addSelectionListener(&selectImageC);
 			img.addResizeListener(&resizeImageC);
 			return img;
@@ -3417,7 +3454,7 @@ public:
 			assert (img !is null);
 			_backTbl[img] = back;
 			img.visible = _viewBacks;
-			img.fixed = isFixed;
+			img.fixed = isFixedCells;
 			img.addSelectionListener(&selectImageB);
 			img.addResizeListener(&resizeImageB);
 			return img;

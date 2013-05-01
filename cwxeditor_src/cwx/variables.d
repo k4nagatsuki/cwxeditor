@@ -48,7 +48,8 @@ class FlexEtcProps : Properties {
 	auto viewMessageBattle = Prop!(bool)("viewMessageBattle", false);
 	auto viewMessageEvent = Prop!(bool)("viewMessageEvent", false);
 	auto viewReferenceCards = Prop!(bool)("viewReferenceCards", true);
-	auto fixedImagesArea = Prop!(bool)("fixedImagesArea", false);
+	auto fixedImagesMenuCards = Prop!(bool)("fixedImagesMenuCards", false);
+	auto fixedImagesCells = Prop!(bool)("fixedImagesCells", false);
 	auto fixedImagesBattle = Prop!(bool)("fixedImagesBattle", false);
 	auto fixedImagesEvent = Prop!(bool)("fixedImagesEvent", false);
 	auto viewCards = Prop!(bool)("viewCards", true);
@@ -302,6 +303,8 @@ class FlexEtcProps : Properties {
 	auto ignoreEmptyStart = Prop!(bool)("ignoreEmptyStart", true);
 	auto switchTabWheel = Prop!(bool)("switchTabWheel", true);
 	auto openTabAtRightOfCurrentTab = Prop!(bool)("openTabAtRightOfCurrentTab", true);
+	auto cautionBeforeReplace = Prop!(bool)("cautionBeforeReplace", false);
+
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
 
 	auto soundPlayType = Prop!(int)("soundPlayType", 0);

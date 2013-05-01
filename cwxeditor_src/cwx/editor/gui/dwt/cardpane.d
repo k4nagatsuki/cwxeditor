@@ -33,6 +33,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.cardpane;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.areaviewutils;
 
 import std.algorithm;
 import std.array;
@@ -413,6 +414,19 @@ private:
 		ToCardOwner _toc;
 	}
 	string _statusLine = "";
+	Preview _preview;
+	C _previewC = null;
+	PileImage _previewI = null;
+	void closePreview() {
+		if (_previewI) {
+			_preview.close();
+			_previewC = null;
+			_previewI.dispose();
+		}
+	}
+	static if (EditMode && is(C:EventTreeOwner)) {
+		C _openEventTarget = null;
+	}
 
 	TableSorter!C _idSorter;
 	TableSorter!C _descSorter;
@@ -612,6 +626,7 @@ private:
 		refreshStatusLine();
 	}
 	void __refresh() {
+		closePreview();
 		auto cards = __cards;
 		sort(cards);
 		if (_viewMode == CViewMode.TABLE) {
@@ -716,10 +731,6 @@ private:
 			paste(se);
 		}
 		@property
-		override bool canDoTCPD() {
-			return _summ && widget.isFocusControl();
-		}
-		@property
 		override bool canDoT() {
 			return selectedCards.length > 0;
 		}
@@ -764,6 +775,10 @@ private:
 		@property
 		C selectionCard() {
 			return _list.selectionCard;
+		}
+		@property
+		override bool canDoTCPD() {
+			return _summ && _list.isFocusControl() && _viewMode !is CViewMode.TABLE;
 		}
 		mixin CopyAndPaste;
 		override void del(SelectionEvent se) {
@@ -844,6 +859,10 @@ private:
 		C selectionCard() {
 			auto i = _tbl.getSelectionIndex();
 			return -1 != i ? cast(C) _tbl.getItem(i).getData() : null;
+		}
+		@property
+		override bool canDoTCPD() {
+			return _summ && _tbl.isFocusControl() && _viewMode is CViewMode.TABLE;
 		}
 		mixin CopyAndPaste;
 		override void del(SelectionEvent se) {
@@ -1102,13 +1121,14 @@ private:
 	private Skin _skinTemp = null;
 	ImageData cardImage(C c) {
 		Skin skin = _skinTemp ? _skinTemp : _comm.skin;
-		auto detail = _viewMode == CViewMode.LIFE;
+		auto preview = _viewMode == CViewMode.TABLE;
+		auto detail = _viewMode == CViewMode.LIFE || preview;
 		static if (is (C == CastCard)) {
 			return castCardImage(_prop, skin, c, ownerScenarioPath, detail);
 		} else static if (!is (C == InfoCard) && is (CardOwner == CastCard)) {
-			return .cardImage!(C)(_prop, skin, c, ownerScenarioPath, _owner, &pOwnerCard, detail);
+			return .cardImage!(C)(_prop, skin, c, ownerScenarioPath, _owner, &pOwnerCard, detail, preview);
 		} else {
-			return .cardImage!(C)(_prop, skin, c, ownerScenarioPath, cast(CastCard) null, &pOwnerCard, detail);
+			return .cardImage!(C)(_prop, skin, c, ownerScenarioPath, cast(CastCard) null, &pOwnerCard, detail, preview);
 		}
 	}
 
@@ -1189,10 +1209,15 @@ private:
 	class LMouse : MouseAdapter {
 		static if (EditMode && is(C:EventTreeOwner)) {
 			override void mouseDown(MouseEvent e) {
-				if (e.button != 2) return;
-				int index = _list.searchIndex(e.x, e.y);
-				if (index >= 0) {
-					editUseEvent(_list.card(index));
+				if (e.button == 1) {
+					if (_openEventTarget) {
+						editUseEvent(_openEventTarget);
+					}
+				} else if (e.button == 2) {
+					int index = _list.searchIndex(e.x, e.y);
+					if (index >= 0) {
+						editUseEvent(_list.card(index));
+					}
 				}
 			}
 		}
@@ -1211,11 +1236,16 @@ private:
 	class TMouse : MouseAdapter {
 		static if (EditMode && is(C:EventTreeOwner)) {
 			override void mouseDown(MouseEvent e) {
-				if (e.button != 2) return;
-				scope p = new Point(e.x, e.y);
-				auto itm = _tbl.getItem(p);
-				if (!itm) return;
-				editUseEvent(cast(C) itm.getData());
+				if (e.button == 1) {
+					if (_openEventTarget) {
+						editUseEvent(_openEventTarget);
+					}
+				} else if (e.button == 2) {
+					scope p = new Point(e.x, e.y);
+					auto itm = _tbl.getItem(p);
+					if (!itm) return;
+					editUseEvent(cast(C) itm.getData());
+				}
 			}
 		}
 		override void mouseDoubleClick(MouseEvent e) {
@@ -1279,6 +1309,8 @@ private:
 	}
 	class DisposeTable : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
+			closePreview();
+			_preview.dispose();
 			_comm.refCardTableColumnWidth.remove(&refColumnWidth);
 		}
 	}
@@ -1297,6 +1329,85 @@ private:
 		refreshStatusLine();
 		_comm.refreshToolBar();
 	}
+
+	void previewTrigger(int x, int y) {
+		auto itm = _tbl.getItem(new Point(x, y));
+		if (!itm) {
+			closePreview();
+			return;
+		}
+		assert (cast(C)itm.getData() !is null);
+		auto c = cast(C)itm.getData();
+		if (c is _previewC) {
+			return;
+		}
+		closePreview();
+		_previewC = c;
+		auto imgData = cardImage(c);
+		_previewI = new PileImage(imgData, imgData.width, imgData.height);
+		_previewI.createImage();
+
+		auto b = itm.getBounds();
+		auto p = _tbl.toDisplay(b.x, b.y + b.height);
+		_preview.image(_previewI, p.x, p.y, b.height);
+		_preview.show();
+	}
+	class FocusOut : Listener {
+		override void handleEvent(Event e) {
+			if (!_tbl.isVisible()) {
+				closePreview();
+			}
+		}
+	}
+	class ClosePreview : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			closePreview();
+		}
+	}
+	class PreviewTrigger : MouseTrackAdapter, MouseMoveListener {
+		override void mouseExit(MouseEvent e) {
+			closePreview();
+		}
+		override void mouseMove(MouseEvent e) {
+			previewTrigger(e.x, e.y);
+			static if (EditMode && is(C:EventTreeOwner)) {
+				auto itm = _tbl.getItem(new Point(e.x, e.y));
+				if (!itm) return;
+				if (!itm.getImage(2)) return;
+				auto rect = itm.getImageBounds(2);
+				if (!rect) return;
+				if (rect.contains(e.x, e.y)) {
+					_tbl.setCursor(_list.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+					_openEventTarget = cast(C)itm.getData();
+				} else {
+					_tbl.setCursor(null);
+					_openEventTarget = null;
+				}
+			}
+		}
+	}
+
+	class ListMouseMove : MouseMoveListener {
+		override void mouseMove(MouseEvent e) {
+			static if (EditMode && is(C:EventTreeOwner)) {
+				if (_viewMode !is CViewMode.LIFE) return;
+				int i = _list.searchIndex(e.x, e.y);
+				if (i < 0) return;
+				auto c = _list.card(i);
+				auto bounds = _list.getBounds(i);
+				auto rect = .eventTreeMarkRect(_prop, bounds.x, bounds.y, c);
+				if (!rect) return;
+				if (rect.contains(e.x, e.y)) {
+					_list.setCursor(_list.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+					_openEventTarget = c;
+				} else {
+					_list.setCursor(null);
+					_openEventTarget = null;
+				}
+			}
+		}
+	}
+
 	static if (!EditMode) {
 		void selectAll() {
 			if (_viewMode == CViewMode.TABLE) {
@@ -1367,6 +1478,15 @@ private:
 		_tbl.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_tbl.addSelectionListener(new SelChanged);
 		_tbl.setHeaderVisible(true);
+
+		_preview = new Preview(_prop, _tbl.getShell());
+		auto closePreview = new ClosePreview;
+		_tbl.getVerticalBar().addSelectionListener(closePreview);
+		_tbl.getHorizontalBar().addSelectionListener(closePreview);
+		auto prevTrig = new PreviewTrigger;
+		_tbl.addMouseTrackListener(prevTrig);
+		_tbl.addMouseMoveListener(prevTrig);
+
 		auto idCol = new TableColumn(_tbl, SWT.NONE);
 		idCol.setText(_prop.msgs.cardId);
 		auto nameCol = new TableColumn(_tbl, SWT.NONE);
@@ -1466,6 +1586,7 @@ private:
 		setupDrag(_tbl);
 
 		_list.addMouseListener(new LMouse);
+		_list.addMouseMoveListener(new ListMouseMove);
 		_list.addKeyListener(new LKey);
 		_tbl.addMouseListener(new TMouse);
 		_tbl.addKeyListener(new TKey);

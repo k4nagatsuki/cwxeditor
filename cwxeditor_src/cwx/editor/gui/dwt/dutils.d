@@ -1225,7 +1225,7 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 	r.setTitle(c.name, dwtData(prop.looks.castCardNameFont(skin.legacy)), dwtData(prop.looks.castCardNamePoint));
 	return r.createImageData();
 }
-ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner, C delegate(ulong) get, bool detail) {
+ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner, C delegate(ulong) get, bool detail, bool preview) {
 	static if (is (C == SkillCard)) {
 		bool hold = c.hold;
 		auto card = skillCard(skin);
@@ -1309,7 +1309,7 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner,
 	r.setTitle(c.name, dwtData(prop.looks.cardNameFont(skin.legacy)), dwtData(prop.looks.cardNamePoint));
 	void putEventTree(bool useCount) {
 		static if (is(C:EventTreeOwner)) {
-			if (!prop.var.etc.showEventTreeMark) return;
+			if (preview || !prop.var.etc.showEventTreeMark) return;
 			auto et = useCount ? prop.looks.eventTreeXYWithCount : prop.looks.eventTreeXY;
 			if (detail && (prop.var.etc.ignoreEmptyStart ? !c.isEmpty : 0 < c.trees.length)) {
 				auto iData = prop.images.eventTree.getImageData();
@@ -1351,6 +1351,27 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner,
 	}
 	putEventTree(false);
 	return r.createImageData();
+}
+
+Rectangle eventTreeMarkRect(C:EventTreeOwner)(Props prop, int left, int top, in C c) {
+	if (!prop.var.etc.showEventTreeMark) return null;
+
+	static if (is(C:ItemCard)) {
+		bool useCount = 0 < c.useLimitMax;
+	} else static if (is(C:BeastCard)) {
+		bool useCount = 0 < c.useLimit;
+	} else {
+		bool useCount = false;
+	}
+
+	auto et = useCount ? prop.looks.eventTreeXYWithCount : prop.looks.eventTreeXY;
+	if (prop.var.etc.ignoreEmptyStart ? !c.isEmpty : 0 < c.trees.length) {
+		auto bounds = prop.images.eventTree.getBounds();
+		bounds.x = left + et.x;
+		bounds.y = top + et.y;
+		return bounds;
+	}
+	return null;
 }
 
 string[] castCoupons(Commons comm, bool talker, string legacyName) {

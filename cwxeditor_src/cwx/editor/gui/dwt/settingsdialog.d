@@ -1416,6 +1416,7 @@ private:
 	TableItem _reconstruction;
 	TableItem _openLastScenario;
 	TableItem _showVariableValuesInEventText;
+	TableItem _cautionBeforeReplace;
 	Combo _soundPlayType;
 	int[int] _soundPlayTypeTbl;
 	int[int] _soundPlayTypeTbl2;
@@ -2246,6 +2247,7 @@ private:
 				_reconstruction = createB(_prop.msgs.reconstruction);
 				_openLastScenario = createB(_prop.msgs.openLastScenario);
 				_showVariableValuesInEventText = createB(_prop.msgs.showVariableValuesInEventText);
+				_cautionBeforeReplace = createB(_prop.msgs.cautionBeforeReplace);
 
 				auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 				auto sepgd = new GridData(GridData.FILL_HORIZONTAL);
@@ -2505,6 +2507,7 @@ protected:
 		_reconstruction.setChecked(_prop.var.etc.reconstruction);
 		_openLastScenario.setChecked(_prop.var.etc.openLastScenario);
 		_showVariableValuesInEventText.setChecked(_prop.var.etc.showVariableValuesInEventText);
+		_cautionBeforeReplace.setChecked(_prop.var.etc.cautionBeforeReplace);
 		auto sptp = _prop.var.etc.soundPlayType in _soundPlayTypeTbl;
 		if (sptp) {
 			_soundPlayType.select(*sptp);
@@ -2651,6 +2654,7 @@ protected:
 		_prop.var.etc.reconstruction = _reconstruction.getChecked();
 		_prop.var.etc.openLastScenario = _openLastScenario.getChecked();
 		_prop.var.etc.showVariableValuesInEventText = _showVariableValuesInEventText.getChecked();
+		_prop.var.etc.cautionBeforeReplace = _cautionBeforeReplace.getChecked();
 		_prop.var.etc.contentsFloat = _contentsFloat.getChecked();
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getChecked();
 		_prop.var.etc.comboListVisible = _comboListVisible.getChecked();

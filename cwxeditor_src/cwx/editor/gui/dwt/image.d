@@ -446,11 +446,12 @@ public:
 		case MenuID.ShowParty: return imgd!("party_cards.png");
 		case MenuID.ShowMsg: return imgd!("view_msg.png");
 		case MenuID.ShowRefCards: return imgd!("view_ref.png");
-		case MenuID.FixedImage: return imgd!("fixed.png");
+		case MenuID.FixedCards: return imgd!("fixed.png");
+		case MenuID.FixedCells: return imgd!("fixed_cell.png");
 		case MenuID.ShowGrid: return imgd!("grid.png");
 		case MenuID.ShowEnemyCardProp: return imgd!("card_life.png");
-		case MenuID.ShowCard: return imgd!("cards.png");
-		case MenuID.ShowBack: return imgd!("backs.png");
+		case MenuID.ShowCard: return imgd!("show_cards.png");
+		case MenuID.ShowBack: return imgd!("show_backs.png");
 		case MenuID.NewMenuCard: return imgd!("card_new.png");
 		case MenuID.NewEnemyCard: return imgd!("card_new.png");
 		case MenuID.NewBack: return imgd!("back_new.png");

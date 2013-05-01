@@ -898,7 +898,7 @@ private:
 				createMode = false;
 			}
 			_comm.openCWXPath(flag.cwxPath(true), false);
-			refresh(flag.name);
+			refresh(flag);
 			_comm.refFlagAndStep.call([flag], []);
 			_comm.refreshToolBar();
 		};
@@ -943,7 +943,7 @@ private:
 				createMode = false;
 			}
 			_comm.openCWXPath(step.cwxPath(true), false);
-			refresh(step.name);
+			refresh(step);
 			_comm.refFlagAndStep.call([], [step]);
 			_comm.refreshToolBar();
 		};
@@ -1228,15 +1228,15 @@ public:
 	void refresh() {
 		refresh(null);
 	}
-	void refresh(string selName) {
+	void refresh(in Object selObj) {
 		if (!flags || flags.isDisposed()) return;
 		if (_dir) {
-			string[] sels;
-			if (selName) {
-				sels ~= selName;
+			const(Object)[] sels;
+			if (selObj) {
+				sels ~= selObj;
 			} else {
 				foreach (itm; flags.getSelection()) {
-					sels ~= itm.getText(NAME);
+					sels ~= itm.getData();
 				}
 			}
 			flags.deselectAll();
@@ -1244,11 +1244,11 @@ public:
 			_dir.sortFlags();
 			refreshFlags();
 			foreach (i, itm; flags.getItems()) {
-				if (contains(sels, itm.getText(NAME))) {
+				if (.contains(sels, itm.getData())) {
 					flags.select(i);
 				}
 			}
-			if (selName) {
+			if (selObj) {
 				flags.showSelection();
 			}
 		}

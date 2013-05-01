@@ -1484,6 +1484,7 @@ public:
 		assert (0);
 	}
 	@property
+	const
 	override bool isEmpty() {return _ceto.isEmpty;}
 
 	override void add(EventTree evt) {return _ceto.add(evt);}

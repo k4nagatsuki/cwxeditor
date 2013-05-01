@@ -2085,6 +2085,7 @@ public:
 
 	/// スタートコンテントのみが含まれている場合はtrue。
 	@property
+	const
 	bool isEmpty() {
 		foreach (s; _starts) {
 			if (s.next.length) return false;
@@ -2712,6 +2713,7 @@ public interface EventTreeOwner : CWXPath {
 	/// EventTreeが含まれていないか。
 	/// 内容が空のEventTreeしか持たない場合もtrueとなる。
 	@property
+	const
 	bool isEmpty();
 }
 
@@ -2897,6 +2899,7 @@ public:
 	}
 
 	@property
+	const
 	override bool isEmpty() {
 		foreach (tree; trees) {
 			if (!tree.isEmpty) return false;

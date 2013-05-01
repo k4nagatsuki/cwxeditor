@@ -298,6 +298,7 @@ public:
 		}
 		if (scroll) this.scroll(_cur);
 	}
+	alias Composite.setCursor setCursor;
 	/// 指定されたインデックスの領域を再描画するよう指示する。
 	/// Params:
 	/// index = インデックス。

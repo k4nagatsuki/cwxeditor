@@ -291,18 +291,16 @@ public:
 		}
 		void initPane(int Index)() {
 			assert (!_pane[Index]);
-			int style = 1 < Cards.length ? SWT.BORDER : SWT.NONE;
-			_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, style);
+			_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, SWT.BORDER);
 			static if (Index + 1 < Cards.length) {
 				initPane!(Index + 1)();
 			}
 		}
 		void newPane(int Index)() {
-			int style = 1 < Cards.length ? SWT.BORDER : SWT.NONE;
 			if (_pane[Index]) {
-				_pane[Index].reconstruct(_tabf, style);
+				_pane[Index].reconstruct(_tabf, SWT.BORDER);
 			} else {
-				_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, style);
+				_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, SWT.BORDER);
 				_pane[Index].construct();
 			}
 			static if (Index + 1 < Cards.length) {
@@ -311,14 +309,13 @@ public:
 		}
 	} else {
 		void newPane(int Index)() {
-			int style = 1 < Cards.length ? SWT.BORDER : SWT.NONE;
 			if (_pane[Index]) {
-				_pane[Index].reconstruct(_tabf, style);
+				_pane[Index].reconstruct(_tabf, SWT.BORDER);
 			} else {
 				static if (UseCast && Index == CAST) {
-					_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, style, _toc, &openHand);
+					_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, SWT.BORDER, _toc, &openHand);
 				} else {
-					_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, style, _toc);
+					_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, SWT.BORDER, _toc);
 				}
 				_pane[Index].construct();
 			}
@@ -486,7 +483,7 @@ public:
 			_tabf = new CTabFolder(_comp, SWT.BORDER);
 			_tabf.addSelectionListener(new SelChanged);
 		} else {
-			_tabf = new Composite(_comp, SWT.BORDER);
+			_tabf = new Composite(_comp, SWT.NONE);
 			_tabf.setLayout(zeroGridLayout(1, true));
 		}
 		_tabf.setLayoutData(new GridData(GridData.FILL_BOTH));

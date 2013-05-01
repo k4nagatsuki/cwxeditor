@@ -158,7 +158,7 @@ public:
 	@property
 	bool name(string name) {
 		name = FlagDir.validName(name);
-		if (!_parent || _parent.canAppendFS(name)) {
+		if (!_parent || _parent.canAppend!Flag(name)) {
 			if (_change && _name != name) _change();
 			_name = name;
 			return true;
@@ -327,7 +327,7 @@ public:
 	@property
 	bool name(string name) {
 		name = FlagDir.validName(name);
-		if (!_parent || _parent.canAppendFS(name)) {
+		if (!_parent || _parent.canAppend!Step(name)) {
 			if (_change && _name != name) _change();
 			_name = name;
 			return true;
@@ -644,34 +644,47 @@ public:
 		return false;
 	}
 
-	const
-	private bool canAppendFlag(in Flag f) {
-		return canAppendFS(f.name);
-	}
-	const
-	private bool canAppendStep(in Step s) {
-		return canAppendFS(s.name);
-	}
-	const
-	private bool canAppendFS(string name) {
-		name = validName(name);
-		if (name.length == 0) {
-			return false;
-		}
-		foreach (flag; _flags) {
-			if (icmp(flag.name, name) == 0) {
-				return false;
-			}
-		}
-		foreach (step; _steps) {
-			if (icmp(step.name, name) == 0) {
-				return false;
-			}
-		}
-		return true;
-	}
 	/// 指定された名前のフラグ・ステップ・サブディレクトリが
 	/// 追加可能であればtrueを返す。
+	const
+	private bool canAppend(F)(string name) {
+		static if (is(F:Flag)) {
+			name = validName(name);
+			if (name.length == 0) {
+				return false;
+			}
+			foreach (flag; _flags) {
+				if (icmp(flag.name, name) == 0) {
+					return false;
+				}
+			}
+			return true;
+		} else static if (is(F:Step)) {
+			name = validName(name);
+			if (name.length == 0) {
+				return false;
+			}
+			foreach (step; _steps) {
+				if (icmp(step.name, name) == 0) {
+					return false;
+				}
+			}
+			return true;
+		} else {
+			static assert (is(F:FlagDir));
+			return canAppendSub(name);
+		}
+	}
+	const
+	private bool canAppendFlag(in Flag f) {
+		return canAppend!Flag(f.name);
+	}
+	/// ditto
+	const
+	private bool canAppendStep(in Step f) {
+		return canAppend!Step(f.name);
+	}
+	/// ditto
 	const
 	bool canAppendSub(string name) {
 		name = validName(name);
@@ -1123,7 +1136,7 @@ public:
 			node.onTag[Fg] = (ref XNode n) {
 				if (!ret) return;
 				auto f = F.createFromNode(n, ver);
-				if (!p.canAppendFS(f.name)) {
+				if (!p.canAppend!F(f.name)) {
 					if (copy) {
 						f.name = createNewName(f.name, "");
 					} else {
@@ -1359,14 +1372,14 @@ public:
 	string createNewFlagName(string base, string oldName) {
 		return createNewName(validName(base), (string name) {
 			if (oldName && oldName.length && oldName == name) return true;
-			return canAppendFS(name);
+			return canAppend!Flag(name);
 		});
 	}
 	/// ditto
 	string createNewStepName(string base, string oldName) {
 		return createNewName(validName(base), (string name) {
 			if (oldName && oldName.length && oldName == name) return true;
-			return canAppendFS(name);
+			return canAppend!Step(name);
 		});
 	}
 	/// ditto
@@ -1525,7 +1538,7 @@ public:
 				auto parent = up(path);
 				auto dir = parent !is null ? root.findPath(parent, true) : root;
 				auto f = pfunc(e, ver);
-				if (!f || !dir.canAppendFS(f.name)) {
+				if (!f || !dir.canAppend!E(f.name)) {
 					throw new FlagException(es ~ " parse error: " ~ path);
 				}
 				dir.add(f);
