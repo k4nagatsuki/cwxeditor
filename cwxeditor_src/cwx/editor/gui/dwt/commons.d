@@ -313,6 +313,7 @@ class Commons {
 	Dlg!() refShowToolBar;
 	Dlg!() refCardImageStatus;
 	Dlg!() refEventTreeStyle;
+	Dlg!() refRadarStyle;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;

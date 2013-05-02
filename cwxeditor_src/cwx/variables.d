@@ -38,6 +38,8 @@ class FlexEtcProps : Properties {
 	auto rCouponsStartAreaSashR = Prop!(int)("rCouponsStartAreaSashR", 1, 2012101100);
 	auto areaViewL = Prop!(int)("areaViewL", 1);
 	auto areaViewR = Prop!(int)("areaViewR", 4);
+	auto areaViewImageFlagL = Prop!(int)("areaViewImageFlagL", 3);
+	auto areaViewImageFlagR = Prop!(int)("areaViewImageFlagR", 1);
 	auto partyCardAlpha = Prop!(int, true)("partyCardAlpha", 176);
 	auto viewPartyCardsArea = Prop!(bool)("viewPartyCardsArea", true);
 	auto viewPartyCardsBattle = Prop!(bool)("viewPartyCardsBattle", true);
@@ -304,6 +306,7 @@ class FlexEtcProps : Properties {
 	auto switchTabWheel = Prop!(bool)("switchTabWheel", true);
 	auto openTabAtRightOfCurrentTab = Prop!(bool)("openTabAtRightOfCurrentTab", true);
 	auto cautionBeforeReplace = Prop!(bool)("cautionBeforeReplace", false);
+	auto radarStyleParams = Prop!(bool)("radarStyleParams", true);
 
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
 

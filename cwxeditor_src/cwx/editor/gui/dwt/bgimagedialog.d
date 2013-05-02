@@ -203,7 +203,7 @@ protected:
 		auto menu = new Menu(_flag.getShell(), SWT.POP_UP);
 		createMenuItem(_comm, menu, MenuID.IncSearch, &flagIncSearch, () => 1 < _flag.getItemCount());
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagView, () => _flag.getSelectionIndex() != -1);
+		createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagView, () => 0 < _flag.getSelectionIndex());
 		_flag.setMenu(menu);
 
 		_comm.refFlagAndStep.add(&refFlags);

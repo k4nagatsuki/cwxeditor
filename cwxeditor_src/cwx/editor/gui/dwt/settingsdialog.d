@@ -1394,6 +1394,7 @@ private:
 	TableItem _showImagePreview;
 	TableItem _editTriggerTypeIsQuick;
 	TableItem _classicStyleTree;
+	TableItem _radarStyleParams;
 	TableItem _showEventTreeMark;
 	TableItem _ignoreEmptyStart;
 	TableItem _expandXMLs;
@@ -2225,6 +2226,7 @@ private:
 				_showImagePreview = createB(_prop.msgs.showImagePreview);
 				_editTriggerTypeIsQuick = createB(_prop.msgs.editTriggerTypeIsQuick);
 				_classicStyleTree = createB(_prop.msgs.classicStyleTree);
+				_radarStyleParams = createB(_prop.msgs.radarStyleParams);
 				_showEventTreeMark = createB(_prop.msgs.showEventTreeMark);
 				_ignoreEmptyStart = createB(_prop.msgs.ignoreEmptyStart);
 				_expandXMLs = createB(_prop.msgs.expandXMLs);
@@ -2483,6 +2485,7 @@ protected:
 		_showImagePreview.setChecked(_prop.var.etc.showImagePreview);
 		_editTriggerTypeIsQuick.setChecked(_prop.var.etc.editTriggerType is EditTrigger.Quick);
 		_classicStyleTree.setChecked(_prop.var.etc.classicStyleTree);
+		_radarStyleParams.setChecked(_prop.var.etc.radarStyleParams);
 		_showEventTreeMark.setChecked(_prop.var.etc.showEventTreeMark);
 		_ignoreEmptyStart.setChecked(_prop.var.etc.ignoreEmptyStart);
 		if (_singleWindow) {
@@ -2635,6 +2638,7 @@ protected:
 		_prop.var.etc.showImagePreview = _showImagePreview.getChecked();
 		_prop.var.etc.editTriggerType = _editTriggerTypeIsQuick.getChecked() ? EditTrigger.Quick : EditTrigger.Slow;
 		_prop.var.etc.classicStyleTree = _classicStyleTree.getChecked();
+		_prop.var.etc.radarStyleParams = _radarStyleParams.getChecked();
 		_prop.var.etc.showEventTreeMark = _showEventTreeMark.getChecked();
 		_prop.var.etc.ignoreEmptyStart = _ignoreEmptyStart.getChecked();
 		_prop.var.etc.expandXMLs = _expandXMLs.getChecked();
@@ -2740,6 +2744,7 @@ struct OldSettings {
 	bool showEventTreeMark;
 	bool ignoreEmptyStart;
 	bool classicStyleTree;
+	bool radarStyleParams;
 	bool showSpNature;
 	bool showVariableValuesInEventText;
 	this (Props prop) {
@@ -2776,6 +2781,7 @@ struct OldSettings {
 		this.showEventTreeMark = prop.var.etc.showEventTreeMark;
 		this.ignoreEmptyStart = prop.var.etc.ignoreEmptyStart;
 		this.classicStyleTree = prop.var.etc.classicStyleTree;
+		this.radarStyleParams = prop.var.etc.radarStyleParams;
 		this.showSpNature = prop.var.etc.showSpNature;
 		this.showVariableValuesInEventText = prop.var.etc.showVariableValuesInEventText;
 	}
@@ -2876,6 +2882,9 @@ struct OldSettings {
 		}
 		if (this.classicStyleTree != prop.var.etc.classicStyleTree) {
 			comm.refEventTreeStyle.call();
+		}
+		if (this.radarStyleParams != prop.var.etc.radarStyleParams) {
+			comm.refRadarStyle.call();
 		}
 		if (this.showSpNature != prop.var.etc.showSpNature) {
 			comm.refCoupons.call();

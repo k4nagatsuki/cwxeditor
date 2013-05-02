@@ -31,6 +31,7 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.couponview;
+import cwx.editor.gui.dwt.scales;
 
 import std.datetime;
 import std.string;
@@ -77,10 +78,15 @@ private:
 	Button _res[Element];
 	Button _weak[Element];
 	int[Physical] _phyTbl;
-	RadarSpinner _phy;
+	Composite _phyParent;
+	RadarSpinner _phyR = null;
+	Scales _phyS = null;
 	Scale[Mental] _mtl;
+	Label _sumPhy;
 	int[Enhance] _enhTbl;
-	RadarSpinner _enh;
+	Composite _enhParent;
+	RadarSpinner _enhR = null;
+	Scales _enhS = null;
 
 	Spinner _life;
 	Button _lifeUseMax;
@@ -160,11 +166,19 @@ private:
 			auto race = selectedRace;
 			if (race) {
 				foreach (enh, i; _enhTbl) {
-					_enh.setValue(i, race.defaultEnhance(enh));
+					if (_enhR) {
+						_enhR.setValue(i, race.defaultEnhance(enh));
+					} else {
+						_enhS.setValue(i, race.defaultEnhance(enh));
+					}
 				}
 			} else {
 				foreach (enh, i; _enhTbl) {
-					_enh.setValue(i, 0);
+					if (_enhR) {
+						_enhR.setValue(i, 0);
+					} else {
+						_enhS.setValue(i, 0);
+					}
 				}
 			}
 		}
@@ -172,9 +186,11 @@ private:
 
 	class SelLifeC : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
+			auto vit = _phyTbl[Physical.VIT];
+			auto min = _phyTbl[Physical.MIN];
 			_lifeMax.setSelection(_prop.looks.lifeCalc(_level.getSelection(),
-				_phy.getValue(_phyTbl[Physical.VIT]),
-				_phy.getValue(_phyTbl[Physical.MIN])));
+				(_phyR ? _phyR.getValue(vit) : _phyS.getValue(vit)),
+				(_phyR ? _phyR.getValue(min) : _phyS.getValue(min))));
 		}
 	}
 
@@ -509,31 +525,79 @@ private:
 		tab.setText(_prop.msgs.tolerant);
 		tab.setControl(comp);
 	}
+	static immutable PHYSICALS = [Physical.DEX, Physical.AGL, Physical.INT,
+		Physical.STR, Physical.VIT, Physical.MIN];
+	void initPhysical() {
+		int[] values = [];
+		if (_phyR) {
+			values = _phyR.getValues();
+			_phyR.dispose();
+			_phyR = null;
+		}
+		if (_phyS) {
+			values = _phyS.getValues();
+			_phyS.dispose();
+			_phyS = null;
+		}
+
+		string[] names;
+		names.length = PHYSICALS.length;
+		int[Physical] table;
+		foreach (i, p; PHYSICALS) {
+			table[p] = i;
+			names[i] = _prop.msgs.physicalName(p);
+		}
+		_phyTbl = table;
+		int page = _prop.var.etc.physicalMax / 5;
+
+		if (_prop.var.etc.radarStyleParams) {
+			_phyR = new RadarSpinner(_phyParent, SWT.NONE);
+			_phyR.setRadar(_prop.var.etc.physicalMax + 1, names, 0);
+			_phyR.antialias = true;
+			_phyR.borderlines = cast(int[]) _prop.looks.physicalBorders;
+			_phyR.lineStep = page;
+			if (values.length) _phyR.setValues(values);
+			mod(_phyR);
+			_phyR.modEvent ~= &modPhysical;
+		} else {
+			_phyS = new Scales(_phyParent, SWT.NONE);
+			_phyS.setScales(_prop.var.etc.physicalMax + 1, names, page, 0);
+			_phyS.borderlines = cast(int[]) _prop.looks.physicalBorders;
+			if (values.length) _phyS.setValues(values);
+			mod(_phyS);
+			_phyS.modEvent ~= &modPhysical;
+		}
+		_phyParent.layout();
+	}
+	void modPhysical() {
+		int[] vals;
+		if (_phyR) vals = _phyR.getValues();
+		if (_phyS) vals = _phyS.getValues();
+		int sum = 0;
+		foreach (val; vals) {
+			sum += val;
+		}
+		_sumPhy.setText(.tryFormat(_prop.msgs.physicalSum, sum));
+	}
 	void constructPhysical(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, false));
+		comp.setLayout(new GridLayout(2, false));
 		{
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.physicalParams);
-			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.horizontalSpan = 2;
+			grp.setLayoutData(gd);
 			auto cl = new CenterLayout;
 			cl.fillHorizontal = true;
 			cl.fillVertical = true;
 			grp.setLayout(cl);
-			_phy = new RadarSpinner(grp, SWT.NONE);
-			mod(_phy);
-			static const Ps = [Physical.DEX, Physical.AGL, Physical.INT,
-				Physical.STR, Physical.VIT, Physical.MIN];
-			string[] names;
-			names.length = Ps.length;
-			foreach (i, p; Ps) {
-				_phyTbl[p] = i;
-				names[i] = _prop.msgs.physicalName(p);
-			}
-			_phy.setRadar(_prop.var.etc.physicalMax + 1, names, 0);
-			_phy.antialias = true;
-			_phy.borderlines = cast(int[]) _prop.looks.physicalBorders;
-			_phy.lineStep = _prop.var.etc.physicalMax / 5;
+			_phyParent = grp;
+			initPhysical();
+		}
+		{
+			_sumPhy = new Label(comp, SWT.NONE);
+			_sumPhy.setLayoutData(new GridData(GridData.FILL_HORIZONTAL|GridData.HORIZONTAL_ALIGN_BEGINNING));
 		}
 		{
 			auto basic = new Button(comp, SWT.PUSH);
@@ -594,7 +658,12 @@ private:
 				if (v > max[phy]) v = max[phy];
 				vals[_phyTbl[phy]] = v;
 			}
-			_phy.setValues(vals);
+			if (_phyR) {
+				_phyR.setValues(vals);
+			} else {
+				_phyS.setValues(vals);
+			}
+			modPhysical();
 		}
 	}
 	void constructMental(CTabFolder tabf) {
@@ -671,6 +740,46 @@ private:
 			}
 		}
 	}
+	static immutable ENHANCE = [Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE];
+	void initEnhance() {
+		int[] values = [];
+		if (_enhR) {
+			values = _enhR.getValues();
+			_enhR.dispose();
+			_enhR = null;
+		}
+		if (_enhS) {
+			values = _enhS.getValues();
+			_enhS.dispose();
+			_enhS = null;
+		}
+
+		string[] names;
+		names.length = ENHANCE.length;
+		foreach (i, enh; ENHANCE) {
+			_enhTbl[enh] = i;
+			names[i] = .tryFormat(_prop.msgs.enhanceBonus, _prop.msgs.enhanceName(enh));
+		}
+		int stepC = _prop.var.etc.enhanceMax * 2 + 1;
+		int min = cast(int) _prop.var.etc.enhanceMax * -1;
+		int page = _prop.var.etc.enhanceMax / 2;
+		if (_prop.var.etc.radarStyleParams) {
+			_enhR = new RadarSpinner(_enhParent, SWT.NONE);
+			_enhR.setRadar(stepC, names, min);
+			_enhR.antialias = true;
+			_enhR.borderlines = [0];
+			_enhR.lineStep = page;
+			if (values.length) _enhR.setValues(values);
+			mod(_enhR);
+		} else {
+			_enhS = new Scales(_enhParent, SWT.NONE);
+			_enhS.setScales(stepC, names, page, min);
+			_enhS.borderlines = [0];
+			if (values.length) _enhS.setValues(values);
+			mod(_enhS);
+		}
+		_enhParent.layout();
+	}
 	void constructEnhance(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
@@ -682,20 +791,8 @@ private:
 			cl.fillHorizontal = true;
 			cl.fillVertical = true;
 			grp.setLayout(cl);
-			_enh = new RadarSpinner(grp, SWT.NONE);
-			mod(_enh);
-			static const Es = [Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE];
-			string[] names;
-			names.length = Es.length;
-			foreach (i, enh; Es) {
-				_enhTbl[enh] = i;
-				names[i] = .tryFormat(_prop.msgs.enhanceBonus, _prop.msgs.enhanceName(enh));
-			}
-			_enh.setRadar(_prop.var.etc.enhanceMax * 2 + 1,
-				names, cast(int) _prop.var.etc.enhanceMax * -1);
-			_enh.antialias = true;
-			_enh.borderlines = [0];
-			_enh.lineStep = _prop.var.etc.enhanceMax / 2;
+			_enhParent = grp;
+			initEnhance();
 		}
 		{
 			auto basic = new Button(comp, SWT.PUSH);
@@ -915,6 +1012,8 @@ private:
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
+			_comm.refRadarStyle.remove(&initPhysical);
+			_comm.refRadarStyle.remove(&initEnhance);
 			_comm.delCast.remove(&delCard);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSkin.remove(&refSkin);
@@ -1076,6 +1175,8 @@ protected:
 		_comm.refScenario.add(&refScenario);
 		_comm.refSkin.add(&refSkin);
 		_comm.refCoupons.add(&updateNature);
+		_comm.refRadarStyle.add(&initPhysical);
+		_comm.refRadarStyle.add(&initEnhance);
 		area.addDisposeListener(new Dispose);
 
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
@@ -1165,13 +1266,21 @@ protected:
 				radio.setSelection(_card.weakness(e));
 			}
 			foreach (phy, i; _phyTbl) {
-				_phy.setValue(i, _card.physical(phy));
+				if (_phyR) {
+					_phyR.setValue(i, _card.physical(phy));
+				} else {
+					_phyS.setValue(i, _card.physical(phy));
+				}
 			}
 			foreach (mtl, scale; _mtl) {
 				scale.setSelection(_prop.var.etc.mentalMax + _card.mental(mtl));
 			}
 			foreach (enh, i; _enhTbl) {
-				_enh.setValue(i, _card.defaultEnhance(enh));
+				if (_enhR) {
+					_enhR.setValue(i, _card.defaultEnhance(enh));
+				} else {
+					_enhS.setValue(i, _card.defaultEnhance(enh));
+				}
 			}
 
 			_life.setSelection(_card.life);
@@ -1199,20 +1308,29 @@ protected:
 			_periodU.setSelection(true);
 			_natureU.setSelection(true);
 			int[] phys;
-			phys.length = _phy.paramCount;
+			phys.length = PHYSICALS.length;
 			phys[] = _prop.looks.physicalNormal;
-			_phy.setValues(phys);
+			if (_phyR) {
+				_phyR.setValues(phys);
+			} else {
+				_phyS.setValues(phys);
+			}
 			foreach (radio; _mtl) {
 				radio.setSelection(_prop.var.etc.mentalMax);
 			}
 			int[] bonus;
-			bonus.length = _enh.paramCount;
+			bonus.length = ENHANCE.length;
 			bonus[] = 0;
-			_enh.setValues(bonus);
+			if (_enhR) {
+				_enhR.setValues(bonus);
+			} else {
+				_enhS.setValues(bonus);
+			}
 
 			resetLiveStatus();
 		}
 		setMaxLife();
+		modPhysical();
 	}
 
 	private Coupon createCoupon(E)(Button[E] radios, string delegate(E) coupon) {
@@ -1272,13 +1390,21 @@ protected:
 			_card.weakness(e, radio.getSelection());
 		}
 		foreach (phy, i; _phyTbl) {
-			_card.physical(phy, _phy.getValue(i));
+			if (_phyR) {
+				_card.physical(phy, _phyR.getValue(i));
+			} else {
+				_card.physical(phy, _phyS.getValue(i));
+			}
 		}
 		foreach (mtl, scale; _mtl) {
 			_card.mental(mtl, cast(int) scale.getSelection() - _prop.var.etc.mentalMax);
 		}
 		foreach (enh, i; _enhTbl) {
-			_card.defaultEnhance(enh, _enh.getValue(i));
+			if (_enhR) {
+				_card.defaultEnhance(enh, _enhR.getValue(i));
+			} else {
+				_card.defaultEnhance(enh, _enhS.getValue(i));
+			}
 		}
 
 		_card.life = _lifeUseMax.getSelection() ? _card.lifeMax : _life.getSelection();

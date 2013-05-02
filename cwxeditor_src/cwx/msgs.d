@@ -820,6 +820,8 @@ class Msgs : Properties {
 	auto noRefArea = Msg("noRefArea", "[カード配置参照無し]");
 	auto areaViewFlagDesc = Msg("areaViewFlagDesc", "フラグ");
 	auto areaViewRefAreaDesc = Msg("areaViewRefAreaDesc", "参照");
+	auto refFlags = Msg("refFlags", "参照フラグ");
+	auto allCheckFlag = Msg("allCheckFlag", "全てTRUE/全てFALSE");
 
 	auto left = Msg("left", "X");
 	auto top = Msg("top", "Y");
@@ -1347,6 +1349,7 @@ class Msgs : Properties {
 	auto descWeakness = Msg("descWeakness", "(%1$s属性の効果に影響)");
 	auto basicResist = Msg("basicResist", "標準値");
 	auto physicalParams = Msg("physicalParams", "身体能力");
+	auto physicalSum = Msg("physicalSum", "合計値: %1$s");
 	auto physicalCalc = Msg("physicalCalc", "標準値");
 	auto mentalParams = Msg("mentalParams", "精神傾向");
 	auto mentalCalc = Msg("mentalCalc", "標準値");
@@ -1506,7 +1509,8 @@ class Msgs : Properties {
 	auto clickIsOpenEvent = Msg("clickIsOpenEvent", "左クリックでイベントビューを開く");
 	auto smoothingCard = Msg("smoothingCard", "カードのサイズ変更時にスムージングを行う");
 	auto showImagePreview = Msg("showImagePreview", "カードや背景のプレビュー表示を行う");
-	auto classicStyleTree = Msg("classicStyleTree", "イベントツリーの開閉ボタンを表示しない");
+	auto classicStyleTree = Msg("classicStyleTree", "イベントツリーの開閉ボタンを省略する");
+	auto radarStyleParams = Msg("radarStyleParams", "レーダー型コントロールでパラメータ値を設定する");
 	auto editTriggerTypeIsQuick = Msg("editTriggerTypeIsQuick", "選択項目のクリックですぐにテキストの編集を開始する");
 	auto showEventTreeMark = Msg("showEventTreeMark", "カードの詳細情報表示時に使用時イベントの有無を表示する");
 	auto ignoreEmptyStart = Msg("ignoreEmptyStart", "空のイベントツリーしか持たない使用時イベントは無視する");

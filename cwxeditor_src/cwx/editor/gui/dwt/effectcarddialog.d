@@ -26,6 +26,7 @@ import cwx.editor.gui.dwt.radarspinner;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.scales;
 
 import std.algorithm : max;
 import std.path;
@@ -81,10 +82,14 @@ private:
 	}
 	Spinner _price;
 	MotionView _motions;
-	RadarSpinner _useMod;
+	Composite _useModParent;
+	RadarSpinner _useModR;
+	Scales _useModS;
 	int[Enhance] _useModTbl;
 	static if (is (C == ItemCard)) {
-		RadarSpinner _hasMod;
+		Composite _hasModParent;
+		RadarSpinner _hasModR;
+		Scales _hasModS;
 		int[Enhance] _hasModTbl;
 	}
 	Button[CardTarget] _targ;
@@ -412,7 +417,7 @@ private:
 		tab.setControl(comp);
 		return tab;
 	}
-	RadarSpinner createMod(Composite comp, string title, ref int[Enhance] tbl) {
+	Composite createModParent(Composite comp, string title) {
 		auto grp = new Group(comp, SWT.NONE);
 		grp.setText(title);
 		grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -420,8 +425,21 @@ private:
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
 		grp.setLayout(cl);
-		auto useMod = new RadarSpinner(grp, SWT.NONE);
-		mod(useMod);
+		return grp;
+	}
+	void createMod(Composite parent, ref int[Enhance] tbl, ref RadarSpinner useModR, ref Scales useModS) {
+		int[] values = [];
+		if (useModR) {
+			values = useModR.getValues();
+			useModR.dispose();
+			useModR = null;
+		}
+		if (useModS) {
+			values = useModS.getValues();
+			useModS.dispose();
+			useModS = null;
+		}
+
 		static const Es = [Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE];
 		string[] names;
 		names.length = Es.length;
@@ -429,18 +447,36 @@ private:
 			tbl[enh] = i;
 			names[i] = .tryFormat(_prop.msgs.enhanceBonus, _prop.msgs.enhanceName(enh));
 		}
-		useMod.setRadar(_prop.var.etc.enhanceMax * 2 + 1,
-			names, cast(int) _prop.var.etc.enhanceMax * -1);
-		useMod.antialias = true;
-		useMod.borderlines = [0];
-		useMod.lineStep = _prop.var.etc.enhanceMax / 2;
-		return useMod;
+
+		int stepC = _prop.var.etc.enhanceMax * 2 + 1;
+		int min = cast(int) _prop.var.etc.enhanceMax * -1;
+		int page = _prop.var.etc.enhanceMax / 2;
+		if (_prop.var.etc.radarStyleParams) {
+			useModR = new RadarSpinner(parent, SWT.NONE);
+			useModR.setRadar(stepC, names, min);
+			useModR.antialias = true;
+			useModR.borderlines = [0];
+			useModR.lineStep = page;
+			if (values.length) useModR.setValues(values);
+			mod(useModR);
+		} else {
+			useModS = new Scales(parent, SWT.NONE);
+			useModS.setScales(stepC, names, page, min);
+			useModS.borderlines = [0];
+			if (values.length) useModS.setValues(values);
+			mod(useModS);
+		}
+		parent.layout();
+	}
+	void initUseMod() {
+		createMod(_useModParent, _useModTbl, _useModR, _useModS);
 	}
 	CTabItem constructUseModify(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(2, false));
 		{
-			_useMod = createMod(comp, _prop.msgs.useModify, _useModTbl);
+			_useModParent = createModParent(comp, _prop.msgs.useModify);
+			initUseMod();
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText(_prop.msgs.useBonus);
@@ -448,11 +484,15 @@ private:
 		return tab;
 	}
 	static if (is (C == ItemCard)) {
+		void initHasMod() {
+			createMod(_hasModParent, _hasModTbl, _hasModR, _hasModS);
+		}
 		CTabItem constructHaveModify(CTabFolder tabf) {
 			auto comp = new Composite(tabf, SWT.NONE);
 			comp.setLayout(new GridLayout(2, false));
 			{
-				_hasMod = createMod(comp, _prop.msgs.haveModify, _hasModTbl);
+				_hasModParent = createModParent(comp, _prop.msgs.haveModify);
+				initHasMod();
 			}
 			auto tab = new CTabItem(tabf, SWT.NONE);
 			tab.setText(_prop.msgs.haveBonus);
@@ -682,6 +722,10 @@ private:
 			_comm.refKeyCodes.remove(&refStandardKeyCodes);
 			_comm.refEventTree.remove(&refEventTree);
 			_comm.delEventTree.remove(&refEventTree);
+			_comm.refRadarStyle.remove(&initUseMod);
+			static if (is(C:ItemCard)) {
+				_comm.refRadarStyle.remove(&initHasMod);
+			}
 		}
 	}
 	void setKeyCodesEnabled() {
@@ -760,6 +804,10 @@ protected:
 		_comm.refKeyCodes.add(&refStandardKeyCodes);
 		_comm.refEventTree.add(&refEventTree);
 		_comm.delEventTree.add(&refEventTree);
+		_comm.refRadarStyle.add(&initUseMod);
+		static if (is(C:ItemCard)) {
+			_comm.refRadarStyle.add(&initHasMod);
+		}
 		area.addDisposeListener(new Dispose);
 
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
@@ -806,11 +854,19 @@ protected:
 			}
 			_motions.motions = _card.motions;
 			foreach (e, index; _useModTbl) {
-				_useMod.setValue(index, _card.enhance(e));
+				if (_useModR) {
+					_useModR.setValue(index, _card.enhance(e));
+				} else {
+					_useModS.setValue(index, _card.enhance(e));
+				}
 			}
 			static if (is (C == ItemCard)) {
 				foreach (e, index; _hasModTbl) {
-					_hasMod.setValue(index, _card.enhanceOwner(e));
+					if (_hasModR) {
+						_hasModR.setValue(index, _card.enhanceOwner(e));
+					} else {
+						_hasModS.setValue(index, _card.enhanceOwner(e));
+					}
 				}
 			}
 			_targ[_card.target].setSelection(true);
@@ -844,11 +900,19 @@ protected:
 				_level.setSelection(1);
 			}
 			foreach (e, index; _useModTbl) {
-				_useMod.setValue(index, 0);
+				if (_useModR) {
+					_useModR.setValue(index, 0);
+				} else {
+					_useModS.setValue(index, 0);
+				}
 			}
 			static if (is (C == ItemCard)) {
 				foreach (e, index; _hasModTbl) {
-					_hasMod.setValue(index, 0);
+					if (_hasModR) {
+						_hasModR.setValue(index, 0);
+					} else {
+						_hasModS.setValue(index, 0);
+					}
 				}
 			}
 			_targ[CardTarget.NONE].setSelection(true);
@@ -902,11 +966,19 @@ protected:
 		}
 		_card.motions = _motions.motions;
 		foreach (e, index; _useModTbl) {
-			_card.enhance(e, _useMod.getValue(index));
+			if (_useModR) {
+				_card.enhance(e, _useModR.getValue(index));
+			} else {
+				_card.enhance(e, _useModS.getValue(index));
+			}
 		}
 		static if (is (C == ItemCard)) {
 			foreach (e, index; _hasModTbl) {
-				_card.enhanceOwner(e, _hasMod.getValue(index));
+				if (_hasModR) {
+					_card.enhanceOwner(e, _hasModR.getValue(index));
+				} else {
+					_card.enhanceOwner(e, _hasModS.getValue(index));
+				}
 			}
 		}
 		putRadioValue!(CardTarget)(_targ, &_card.target);

@@ -41,6 +41,7 @@ import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.areaviewutils;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.incsearch;
 
 import std.algorithm;
 import std.math;
@@ -565,6 +566,7 @@ private:
 				v.refreshPanel();
 				v.refreshControls();
 				v.callModEvent();
+				v.refreshFlags();
 			}
 			comm.refUseCount.call();
 		}
@@ -598,6 +600,13 @@ private:
 
 	ToolBar _toolbar;
 	ImagePane _imgp;
+	Table _flagList;
+	Button _flagAllCheck;
+	IncSearch _flagIncSearch;
+	void flagIncSearch() {
+		.forceFocus(_flagList, true);
+		_flagIncSearch.startIncSearch();
+	}
 
 	bool _viewMsg = false;
 	bool _viewParty = true;
@@ -1369,6 +1378,228 @@ private:
 		});
 		return sc;
 	}
+	void createFlagList(Composite parent) {
+		auto comp = new Composite(parent, SWT.NONE);
+		auto gl = windowGridLayout(1, false);
+		gl.marginWidth = 0;
+		gl.marginHeight = 0;
+		comp.setLayout(gl);
+		auto label = new CLabel(comp, SWT.NONE);
+		label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		label.setText(_prop.msgs.refFlags);
+		label.setImage(_prop.images.flag);
+
+		_flagList = new Table(comp, SWT.SINGLE | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		new FullTableColumn(_flagList, SWT.NONE);
+		auto gd = new GridData(GridData.FILL_BOTH);
+		gd.widthHint = 0;
+		gd.heightHint = 0;
+		_flagList.setLayoutData(gd);
+
+		_flagIncSearch = new IncSearch(_comm, _flagList);
+		_flagIncSearch.modEvent ~= &refreshFlags;
+
+		auto menu = new Menu(_flagList.getShell(), SWT.POP_UP);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &flagIncSearch, {
+			foreach (itm; _flagList.getItems()) {
+				if (cast(Flag)itm.getData()) return true;
+			}
+			return false;
+		});
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagView,
+			() => _flagList.getSelectionIndex() != -1
+			&& cast(Flag)_flagList.getItem(_flagList.getSelectionIndex()).getData());
+		_flagList.setMenu(menu);
+
+		_flagAllCheck = new Button(comp, SWT.CHECK);
+		_flagAllCheck.setText(_prop.msgs.allCheckFlag);
+		_flagAllCheck.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		.listener(_flagAllCheck, SWT.Selection, {
+			foreach (itm; _flagList.getItems()) {
+				itm.setChecked(_flagAllCheck.getSelection());
+			}
+			checkFlag(null);
+		});
+		.listener(_flagList, SWT.Selection, &checkFlag);
+
+		_comm.refFlagAndStep.add(&refFlags);
+		_comm.delFlagAndStep.add(&delFlags);
+		.listener(_flag, SWT.Dispose, {
+			_comm.refFlagAndStep.remove(&refFlags);
+			_comm.delFlagAndStep.remove(&delFlags);
+		});
+	}
+	void refFlags(Flag[] f, Step[] s) {
+		if (!_summ) return;
+		if (!f.length) return;
+		refreshFlags();
+	}
+	void delFlags(Flag[] f, Step[] s) {
+		if (!_summ) return;
+		if (!f.length) return;
+		refreshFlags();
+	}
+	void refreshFlags() {
+		if (!_flagList) return;
+		bool[string] useFlags;
+		static if (UseCards) {
+			foreach (c; _area.cards) {
+				useFlags[c.flag] = true;
+			}
+		}
+		static if (UseBacks) {
+			foreach (c; _area.backs) {
+				useFlags[c.flag] = true;
+			}
+		}
+		string sel = "";
+		if (_flagList.getSelectionIndex() != -1) {
+			auto itm = _flagList.getItem(_flagList.getSelectionIndex());
+			if (itm.getImage() is _prop.images.emptyIcon) {
+				sel = itm.getText();
+			}
+		}
+		_flagList.removeAll();
+		bool has = false;
+		auto flags = useFlags.keys;
+		if (_prop.var.etc.logicalSort) {
+			flags = cwx.utils.sort!(incmp)(flags);
+		} else {
+			flags = cwx.utils.sort!(icmp)(flags);
+		}
+		foreach (path; flags) {
+			if (!path.length) {
+				auto nof = new TableItem(_flagList, SWT.NONE);
+				nof.setText(_prop.msgs.noFlagRef);
+				nof.setImage(_prop.images.emptyIcon);
+			} else {
+				auto flag = _summ.flagDirRoot.findFlag(path);
+				if (!has && path == sel) {
+					has = true;
+				}
+				if (!_flagIncSearch.match(path)) continue;
+				auto itm = new TableItem(_flagList, SWT.NONE);
+				itm.setData(flag);
+				if (flag) {
+					itm.setImage(_prop.images.flag);
+				} else {
+					itm.setImage(_prop.images.warning);
+				}
+				itm.setText(path);
+			}
+			if (path == sel) _flagList.select(_flagList.getItemCount() - 1);
+		}
+		if (!has && _flagList.getItemCount()) {
+			_flagList.select(0);
+		}
+		_flagList.showSelection();
+		_flagList.setEnabled(0 < _flagList.getItemCount());
+		updateFlagChecks();
+	}
+	void openFlagView() {
+		if (!_flagList) return;
+		auto i = _flagList.getSelectionIndex();
+		if (-1 == i) return;
+		auto a = cast(Flag) _flagList.getItem(i).getData();
+		if (!a) return;
+		try {
+			_comm.openCWXPath(cpaddattr(a.cwxPath(true), "shallow"), false);
+		} catch (Exception e) {
+			debugln(e);
+		}
+	}
+	void checkFlag(Event e) {
+		if (!_flagList) return;
+		bool[string] useFlags;
+		if (e && cast(TableItem)e.item) {
+			auto itm = cast(TableItem)e.item;
+			itm.setGrayed(false);
+		}
+		bool allChecked = true;
+		foreach (itm; _flagList.getItems()) {
+			if (itm.getGrayed()) {
+				allChecked = false;
+				continue;
+			}
+			bool checked = itm.getChecked();
+			allChecked &= checked;
+			if (itm.getImage() is _prop.images.emptyIcon) {
+				useFlags[""] = checked;
+			} else {
+				useFlags[itm.getText().toLower()] = checked;
+			}
+		}
+		_flagAllCheck.setSelection(allChecked && _flagList.getItemCount());
+		static if (UseCards) {
+			foreach (itm; _cards.getItems()) {
+				auto c = cast(C)itm.getData();
+				auto p = c.flag.toLower() in useFlags;
+				if (p) itm.setChecked(*p);
+			}
+		}
+		static if (UseBacks) {
+			foreach (itm; _backs.getItems()) {
+				auto c = cast(BgImage)itm.getData();
+				auto p = c.flag.toLower() in useFlags;
+				if (p) itm.setChecked(*p);
+			}
+		}
+		checked();
+		_imgp.redraw();
+	}
+	void updateFlagChecks() {
+		if (!_flagList) return;
+		int[string] useFlags;
+		void put(string flag, bool check) {
+			auto p = flag in useFlags;
+			if (p) {
+				if ((*p == 0 && check) || (*p == 1 && !check)) {
+					useFlags[flag] = 2;
+				}
+			} else {
+				useFlags[flag] = check ? 1 : 0;
+			}
+		}
+		static if (UseCards) {
+			foreach (itm; _cards.getItems()) {
+				auto c = cast(C)itm.getData();
+				auto flag = c.flag.toLower();
+				put(flag, itm.getChecked());
+			}
+		}
+		static if (UseBacks) {
+			foreach (itm; _backs.getItems()) {
+				auto c = cast(BgImage)itm.getData();
+				auto flag = c.flag.toLower();
+				put(flag, itm.getChecked());
+			}
+		}
+		bool allChecked = true;
+		foreach (itm; _flagList.getItems()) {
+			string flag;
+			if (itm.getImage() is _prop.images.emptyIcon) {
+				flag = "";
+			} else {
+				flag = itm.getText().toLower();
+			}
+			int val = useFlags.get(flag, 0);
+			if (val == 0) {
+				itm.setChecked(false);
+				itm.setGrayed(false);
+				allChecked = false;
+			} else if (val == 1) {
+				itm.setChecked(true);
+				itm.setGrayed(false);
+			} else {
+				itm.setChecked(true);
+				itm.setGrayed(true);
+				allChecked = false;
+			}
+		}
+		_flagAllCheck.setSelection(allChecked && _flagList.getItemCount());
+	}
+
 	void changingImages() {
 		_undo ~= createUndoEdit();
 		_comm.refreshToolBar();
@@ -1732,15 +1963,19 @@ private:
 	}
 	class VCheckListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			static if (UseCards) {
-				foreach (i, itm; _cards.getItems()) {
-					_imgp.images[cardsIndex + i].visible = _viewCards && itm.getChecked();
-				}
+			checked();
+			updateFlagChecks();
+		}
+	}
+	void checked() {
+		static if (UseCards) {
+			foreach (i, itm; _cards.getItems()) {
+				_imgp.images[cardsIndex + i].visible = _viewCards && itm.getChecked();
 			}
-			static if (UseBacks) {
-				foreach (i, itm; _backs.getItems()) {
-					_imgp.images[i].visible = _viewBacks && itm.getChecked();
-				}
+		}
+		static if (UseBacks) {
+			foreach (i, itm; _backs.getItems()) {
+				_imgp.images[i].visible = _viewBacks && itm.getChecked();
 			}
 		}
 	}
@@ -2056,7 +2291,19 @@ public:
 			}
 		}
 		{
-			createImagePane(lrSash);
+			if (_summ) {
+				auto lrSash2 = new SplitPane(lrSash, SWT.HORIZONTAL);
+				createImagePane(lrSash2);
+				createFlagList(lrSash2);
+				lrSash2.setWeights([_prop.var.etc.areaViewImageFlagL, _prop.var.etc.areaViewImageFlagR]);
+				.listener(lrSash2, SWT.Dispose, {
+					auto ws = lrSash2.getWeights();
+					_prop.var.etc.areaViewImageFlagL = ws[0];
+					_prop.var.etc.areaViewImageFlagR = ws[1];
+				});
+			} else {
+				createImagePane(lrSash);
+			}
 			static if (is (C == MenuCard) || UseBacks) {
 				auto target = new DropTarget(_imgp, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
 				static if (is (C == MenuCard)) {
@@ -2112,6 +2359,7 @@ public:
 			refreshRefAreas();
 		}
 		refreshGrid();
+		refreshFlags();
 	}
 	private string _statusLine;
 	@property
@@ -2545,6 +2793,7 @@ public:
 					refreshControls();
 					_comm.refMenuCard.call(c.cwxPath(true));
 					_comm.refUseCount.call();
+					refreshFlags();
 					_imgp.redraw();
 					callModEvent();
 					_comm.refreshToolBar();
@@ -2710,6 +2959,7 @@ public:
 					refreshControls();
 					_comm.refBgImage.call(b.cwxPath(true));
 					_comm.refUseCount.call();
+					refreshFlags();
 					_imgp.redraw();
 					callModEvent();
 					_comm.refreshToolBar();
@@ -3166,6 +3416,7 @@ public:
 			_undo ~= undo;
 			refreshStatusLine();
 			_comm.refUseCount.call();
+			refreshFlags();
 		}
 	}
 	private void refFlag(Flag[] flag, Step[] step) {
@@ -3283,7 +3534,10 @@ public:
 			}
 			comm.addMenuCard.call(card.cwxPath(true));
 			comm.refUseCount.call();
-			if (v) v.callModEvent();
+			if (v) {
+				v.refreshFlags();
+				v.callModEvent();
+			}
 		}
 		private FlexImage create(C card) {
 			auto img = createCardImage!FlexImage(card, _prop.var.etc.smoothingCard);
@@ -3441,7 +3695,10 @@ public:
 			}
 			comm.addBgImage.call(back.cwxPath(true));
 			comm.refUseCount.call();
-			if (v) v.callModEvent();
+			if (v) {
+				v.refreshFlags();
+				v.callModEvent();
+			}
 		}
 		private FlexImage create(BgImage back) {
 			FlexImage img = null;
@@ -3631,6 +3888,7 @@ public:
 						}
 					}
 					_comm.refUseCount.call();
+					refreshFlags();
 					_comm.refreshToolBar();
 					return;
 				}
@@ -3646,6 +3904,7 @@ public:
 							ci ~= si + i;
 						}
 						_comm.refUseCount.call();
+						refreshFlags();
 						_comm.refreshToolBar();
 						return;
 					}
@@ -3662,6 +3921,7 @@ public:
 							bi ~= si + i;
 						}
 						_comm.refUseCount.call();
+						refreshFlags();
 						_comm.refreshToolBar();
 						return;
 					}
@@ -3678,6 +3938,8 @@ public:
 							ci ~= appendCard(card, true, true, toImgp);
 						}
 						_comm.refUseCount.call();
+						refreshFlags();
+						_comm.refreshToolBar();
 						return;
 					}
 					if (DropTarg.Card is dTarg && ecs.length) {
@@ -3691,6 +3953,7 @@ public:
 							ci ~= si + i;
 						}
 						_comm.refUseCount.call();
+						refreshFlags();
 						_comm.refreshToolBar();
 						return;
 					}
@@ -3719,6 +3982,7 @@ public:
 							ci ~= appendCard(card, true, true, toImgp);
 						}
 						_comm.refUseCount.call();
+						refreshFlags();
 						_comm.refreshToolBar();
 					}
 					return;
@@ -3951,6 +4215,7 @@ public:
 		if (v) {
 			v._imgp.redraw();
 			v.refreshSelected();
+			v.refreshFlags();
 		}
 		comm.refUseCount.call();
 	}
@@ -4025,6 +4290,7 @@ public:
 							if (_viewCards || _viewBacks) _imgp.redraw();
 							refreshSelected();
 							_comm.refUseCount.call();
+							refreshFlags();
 							_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, addC, addB);
 							_comm.refreshToolBar();
 						}
@@ -4107,6 +4373,7 @@ public:
 								if (_viewCards) _imgp.redraw();
 								refreshSelected();
 								_comm.refUseCount.call();
+								refreshFlags();
 								_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, addC, []);
 								_comm.refreshToolBar();
 							}
@@ -4189,6 +4456,7 @@ public:
 								if (_viewBacks) _imgp.redraw();
 								refreshSelected();
 								_comm.refUseCount.call();
+								refreshFlags();
 								_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, [], addB);
 								_comm.refreshToolBar();
 							}
