@@ -3490,6 +3490,7 @@ public:
 							ci ~= appendCard(card, true, true, toImgp);
 						}
 						_comm.refUseCount.call();
+						_comm.refreshToolBar();
 						return;
 					}
 					if (DropTarg.Card is dTarg && ecs.length) {
