@@ -1827,8 +1827,10 @@ private C readEffCard(C)(ref RData d, ref ByteIO f) {
 		keyCodes[i] = readString(f);
 	}
 	r.keyCodes = keyCodes;
-	if (d.dataVersion > 2) {
+	if (d.dataVersion > 0) {
 		r.premium = toPremium(f.readByte);
+	}
+	if (d.dataVersion > 2) {
 		r.scenario = readString(f);
 		r.author = readString(f);
 		uint evtNum = f.readUIntL;
@@ -1840,7 +1842,7 @@ private C readEffCard(C)(ref RData d, ref ByteIO f) {
 }
 private SkillCard loadSkill(ref RData d, ref ByteIO f, ulong fid) {
 	auto r = readEffCard!(SkillCard)(d, f);
-	if (d.dataVersion > 0) {
+	if (d.dataVersion > 2) {
 		r.hold = readBool(f);
 	}
 	r.level = f.readUIntL;
@@ -1849,7 +1851,7 @@ private SkillCard loadSkill(ref RData d, ref ByteIO f, ulong fid) {
 }
 private ItemCard loadItem(ref RData d, ref ByteIO f, ulong fid) {
 	auto r = readEffCard!(ItemCard)(d, f);
-	if (d.dataVersion > 0) {
+	if (d.dataVersion > 2) {
 		r.hold = readBool(f);
 	}
 	r.useLimit = f.readUIntL;
@@ -1862,7 +1864,7 @@ private ItemCard loadItem(ref RData d, ref ByteIO f, ulong fid) {
 }
 private BeastCard loadBeast(ref RData d, ref ByteIO f, ulong fid) {
 	auto r = readEffCard!(BeastCard)(d, f);
-	if (d.dataVersion > 0) {
+	if (d.dataVersion > 2) {
 		readBool(f); // Hold
 	}
 	r.useLimit = f.readUIntL;
