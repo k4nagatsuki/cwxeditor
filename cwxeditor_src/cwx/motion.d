@@ -6,6 +6,7 @@ import cwx.card;
 import cwx.usecounter;
 import cwx.xml;
 import cwx.path;
+import cwx.system;
 
 import std.algorithm;
 
@@ -373,7 +374,7 @@ public:
 	}
 	/// XMLノードから召喚獣を読み出して設定する。
 	/// ノードから生成された召喚獣のIDを返す。
-	ulong setBeastFromNode(ref XNode node, string ver) {
+	ulong setBeastFromNode(ref XNode node, in XMLInfo ver) {
 		assert (node.name == "BeastCard", "setBeastFromNode: " ~ node.name);
 		auto b = BeastCard.createFromNode(node, ver);
 		ulong bid = b.id;
@@ -466,7 +467,7 @@ public:
 	}
 
 	/// XMLノードからインスタンスを生成して返す。
-	static Motion createFromNode(ref XNode node, string ver) {
+	static Motion createFromNode(ref XNode node, in XMLInfo ver) {
 		static_this();
 		string elStr = null;
 		auto type = MTYPE_MAP[node.attr("type", true)];

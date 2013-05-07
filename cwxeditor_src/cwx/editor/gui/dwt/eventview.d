@@ -273,8 +273,7 @@ private:
 			auto owner = tree.owner;
 			_ownerIndex = .cCountUntil!("a is b")(etos(area), owner);
 			_treeIndex = .cCountUntil!("a is b")(owner.trees, tree);
-			auto node = tree.toNode(null);
-			_tree = EventTree.createFromNode(node, LATEST_VERSION);
+			_tree = tree.dup;
 			_tree.setUseCounter(summ.useCounter.sub);
 		}
 		override void undo() {
@@ -1784,7 +1783,8 @@ public:
 			if (parItm) {
 				try {
 					auto par = cast(EventTreeOwner) parItm.getData();
-					EventTree tree = EventTree.fromXML(xml, LATEST_VERSION);
+					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+					EventTree tree = EventTree.fromXML(xml, ver);
 					if (tree) {
 						storeI(_cards.indexOf(parItm), par.trees.length);
 						// イベントツリー

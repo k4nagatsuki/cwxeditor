@@ -12,6 +12,7 @@ import cwx.xml;
 import cwx.menu;
 import cwx.types;
 import cwx.structs;
+import cwx.system;
 
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dprops;
@@ -952,11 +953,11 @@ class Commons {
 
 	private HashSet!(Composite) _aws;
 	private void addScenarioImpl(Object[] ws) {
-		void delegate(ref XNode, string) addCast;
-		void delegate(ref XNode, string) addSkill;
-		void delegate(ref XNode, string) addItem;
-		void delegate(ref XNode, string) addBeast;
-		void delegate(ref XNode, string) addInfo;
+		void delegate(ref XNode, in XMLInfo) addCast;
+		void delegate(ref XNode, in XMLInfo) addSkill;
+		void delegate(ref XNode, in XMLInfo) addItem;
+		void delegate(ref XNode, in XMLInfo) addBeast;
+		void delegate(ref XNode, in XMLInfo) addInfo;
 		if (_cardWin) {
 			addCast = &_cardWin.addCast;
 			addSkill = &_cardWin.addSkill;

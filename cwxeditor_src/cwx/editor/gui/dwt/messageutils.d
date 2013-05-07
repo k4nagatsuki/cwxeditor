@@ -14,6 +14,7 @@ import cwx.msgutils;
 import cwx.menu;
 import cwx.types;
 import cwx.imagesize;
+import cwx.system;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -555,7 +556,8 @@ private:
 				try {
 					auto node = XNode.parse(xml);
 					if (node.name == SDialog.XML_NAME) {
-						createDialog(SDialog.createFromNode(node, LATEST_VERSION));
+						auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
+						createDialog(SDialog.createFromNode(node, ver));
 					}
 				} catch (Exception e) {
 					debugln(e);
@@ -594,7 +596,8 @@ private:
 				scope p = (cast(DropTarget) e.getSource()).getControl().toControl(e.x, e.y);
 				auto t = _dlgsL.getItem(p);
 				int index = t ? _dlgsL.indexOf(t) : _dlgsL.getItemCount();
-				insertDialog(SDialog.createFromNode(node, LATEST_VERSION), index, false);
+				auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
+				insertDialog(SDialog.createFromNode(node, ver), index, false);
 				if (_id == node.attr("paneId", false)) {
 					e.detail = DND.DROP_MOVE;
 				}

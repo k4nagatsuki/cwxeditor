@@ -5,6 +5,7 @@ import cwx.coupon;
 import cwx.utils;
 import cwx.types;
 import cwx.xml;
+import cwx.system;
 
 /// 種族関連の例外。
 class RaceException : Exception {
@@ -24,7 +25,7 @@ private:
 	this () {}
 public:
 	/// XMLノードから種族を生成。
-	static Race fromNode(ref XNode node, string ver) {
+	static Race fromNode(ref XNode node, in XMLInfo ver) {
 		auto r = new Race;
 		r._name = null;
 		node.onTag["Name"] = (ref XNode node) {r._name = node.value;};
@@ -336,7 +337,7 @@ template RaceParam(bool Set) {
 		enh.newAttr("resist", _dEnh[Enhance.RESIST]);
 		enh.newAttr("defense", _dEnh[Enhance.DEFENSE]);
 	}
-	private void loadFeature(ref XNode fNode, string ver) {
+	private void loadFeature(ref XNode fNode, in XMLInfo ver) {
 		assert (fNode.name == "Feature");
 		fNode.onTag["Type"] = (ref XNode tNode) {
 			_undead = parseBool(tNode.attr("undead", true));
@@ -358,7 +359,7 @@ template RaceParam(bool Set) {
 		};
 		fNode.parse();
 	}
-	private void loadAbility(ref XNode aNode, string ver) {
+	private void loadAbility(ref XNode aNode, in XMLInfo ver) {
 		assert (aNode.name == "Ability");
 		aNode.onTag["Physical"] = (ref XNode phyNode) {
 			_phy[Physical.DEX] = phyNode.attr!(int)("dex", true);

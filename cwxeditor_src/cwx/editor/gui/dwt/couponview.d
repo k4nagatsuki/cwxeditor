@@ -12,6 +12,7 @@ import cwx.skin;
 import cwx.path;
 import cwx.menu;
 import cwx.types;
+import cwx.system;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -273,7 +274,8 @@ class CouponView(CVType Type) : Composite {
 				storeCoupons();
 				auto t = _coupons.getItem(p);
 				int index = t ? _coupons.indexOf(t) : _coupons.getItemCount();
-				appendCoupon(Coupon.fromNode(node, LATEST_VERSION), index);
+				auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+				appendCoupon(Coupon.fromNode(node, ver), index);
 				if (_id == node.attr("paneId", false)) {
 					_coupons.select(index);
 					e.detail = DND.DROP_MOVE;
@@ -338,7 +340,8 @@ class CouponView(CVType Type) : Composite {
 					auto node = XNode.parse(xml);
 					if (node.name == Coupon.XML_NAME) {
 						storeCoupons();
-						auto coupon = Coupon.fromNode(node, LATEST_VERSION);
+						auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+						auto coupon = Coupon.fromNode(node, ver);
 						string name = createNewName(coupon.name, (string s) {
 							foreach (itm; _coupons.getItems()) {
 								auto c = cast(Coupon) itm.getData();

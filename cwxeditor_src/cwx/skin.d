@@ -11,6 +11,7 @@ import cwx.structs;
 import cwx.features;
 import cwx.background;
 import cwx.sjis;
+import cwx.system;
 
 import std.exception;
 import std.conv;
@@ -349,7 +350,7 @@ class Skin {
 	private this (const(CProps) prop, string skinFile, string enginePath) {
 		this (prop, enginePath);
 		if (skinFile.length) {
-			loadFromXML(skinFile);
+			loadFromXML(skinFile, new XMLInfo(prop.sys, LATEST_VERSION));
 		}
 	}
 	@property
@@ -1209,7 +1210,7 @@ class Skin {
 	}
 
 	/// XMLファイルからスキンデータをロードする。
-	void loadFromXML(string fname) {
+	void loadFromXML(string fname, in XMLInfo ver) {
 		try {
 			_path = dirName(fname);
 			_skinFile = fname;
@@ -1236,7 +1237,7 @@ class Skin {
 			};
 			sNode.onTag["Races"] = (ref XNode node) {
 				node.onTag["Race"] = (ref XNode node) {
-					_races ~= Race.fromNode(node, LATEST_VERSION);
+					_races ~= Race.fromNode(node, ver);
 				};
 				node.parse();
 			};

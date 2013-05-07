@@ -19,6 +19,7 @@ import cwx.graphics;
 import cwx.types;
 import cwx.menu;
 import cwx.msgutils;
+import cwx.system;
 
 import cwx.editor.gui.sound;
 
@@ -437,8 +438,9 @@ private:
 			super (v, comm, area, summ);
 			static if (UseCards) {
 				foreach (i; cIdcs) {
-					auto node = area.cards[i].toNode(null);
-					auto c = C.createFromNode(node, LATEST_VERSION);
+					auto node = area.cards[i].toNode(new XMLOption(comm.prop.sys));
+					auto ver = new XMLInfo(comm.prop.sys, LATEST_VERSION);
+					auto c = C.createFromNode(node, ver);
 					if (summ) c.setUseCounter(summ.useCounter.sub);
 					_cs[i] = c;
 					_cChks[i] = v ? v._cards.getItem(i).getChecked() : true;
@@ -3646,7 +3648,7 @@ public:
 					foreach (itm; tbl.getSelection()) {
 						cs ~= cast(C) itm.getData();
 					}
-					auto node = A.CtoNode(cs, null);
+					auto node = A.CtoNode(cs, new XMLOption(_prop.sys));
 					node.newAttr("paneId", _id);
 					if (curItm) node.newAttr("cursorIndex", tbl.indexOf(curItm));
 					e.data = bytesFromXML(node.text);
@@ -3833,7 +3835,7 @@ public:
 					foreach (itm; tbl.getSelection()) {
 						bs ~= cast(BgImage) itm.getData();
 					}
-					auto node = Area.BtoNode(bs);
+					auto node = Area.BtoNode(bs, new XMLOption(_prop.sys));
 					node.newAttr("paneId", _id);
 					if (curItm) node.newAttr("cursorIndex", tbl.indexOf(curItm));
 					e.data = bytesFromXML(node.text);
@@ -3873,7 +3875,8 @@ public:
 
 			MenuCard[] mcs;
 			BgImage[] bs;
-			if (Area.CBfromXML(node, mcs, bs)) {
+			auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+			if (Area.CBfromXML(node, mcs, bs, ver)) {
 				if (!mcs.length && !bs.length) return;
 				if (toImgp) {
 					if (_id == node.attr("paneId", false)) return;
@@ -3930,7 +3933,7 @@ public:
 			}
 			static if (is(C : EnemyCard)) {
 				EnemyCard[] ecs;
-				if (Battle.CfromXML(node, ecs)) {
+				if (Battle.CfromXML(node, ecs, ver)) {
 					if (!ecs.length) return;
 					if (toImgp) {
 						if (_id == node.attr("paneId", false)) return;
@@ -3965,7 +3968,7 @@ public:
 				if (node.name == CastCard.XML_NAME_M) {
 					// キャストカードからのエネミーカード生成
 					if (summary.id != node.attr("summId", false)) return;
-					auto cards = EnemyCard.createCardsFromNode(node, LATEST_VERSION);
+					auto cards = EnemyCard.createCardsFromNode(node, ver);
 					if (cards.length) {
 						int cx = 0;
 						int cy = 0;
@@ -3991,7 +3994,7 @@ public:
 
 			static if (is(C : MenuCard)) {
 				// その他カードからのメニューカード生成
-				auto cards = MenuCard.createFromCardNode(node, _prop.var.etc.copyDesc, LATEST_VERSION);
+				auto cards = MenuCard.createFromCardNode(node, _prop.var.etc.copyDesc, ver);
 				// x, y座標を中心にして配置
 				int cx = 0;
 				int cy = 0;
@@ -4259,7 +4262,7 @@ public:
 					backs ~= _area.backs[i];
 				}
 				if (cards.length > 0 || backs.length > 0) {
-					XMLtoCB(_prop, _comm.clipboard, Area.CBtoXML(cards, backs, null));
+					XMLtoCB(_prop, _comm.clipboard, Area.CBtoXML(cards, backs, new XMLOption(_prop.sys)));
 					_comm.refreshToolBar();
 				}
 			}
@@ -4269,7 +4272,8 @@ public:
 					try {
 						C[] cs;
 						BgImage[] bs;
-						A.CBfromXML(xml, cs, bs);
+						auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+						A.CBfromXML(xml, cs, bs, ver);
 						if (cs.length || bs.length) {
 							_imgp.deselectAll();
 							int[] addC, addB;
@@ -4360,7 +4364,8 @@ public:
 					if (xml) {
 						try {
 							C[] cs;
-							A.CfromXML(xml, cs);
+							auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+							A.CfromXML(xml, cs, ver);
 							if (cs.length) {
 								int[] addC;
 								_imgp.deselectAll();
@@ -4431,7 +4436,7 @@ public:
 					backs ~= _area.backs[i];
 				}
 				if (backs.length > 0) {
-					XMLtoCB(_prop, _comm.clipboard, A.BtoXML(backs));
+					XMLtoCB(_prop, _comm.clipboard, A.BtoXML(backs, new XMLOption(_prop.sys)));
 					_comm.refreshToolBar();
 				}
 			}
@@ -4443,7 +4448,8 @@ public:
 					if (xml) {
 						try {
 							BgImage[] bs;
-							A.BfromXML(xml, bs);
+							auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+							A.BfromXML(xml, bs, ver);
 							if (bs.length) {
 								int[] addB;
 								_imgp.deselectAll();

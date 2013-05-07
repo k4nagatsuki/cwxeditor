@@ -12,6 +12,7 @@ import cwx.event;
 import cwx.path;
 import cwx.menu;
 import cwx.types;
+import cwx.system;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -699,7 +700,8 @@ private:
 				scope p = (cast(DropTarget) e.getSource()).getControl().toControl(e.x, e.y);
 				auto t = _motions.getItem(p);
 				int index = t ? _motions.indexOf(t) : _motions.getItemCount();
-				auto m = Motion.createFromNode(node, LATEST_VERSION);
+				auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+				auto m = Motion.createFromNode(node, ver);
 				if (_id == node.attr("paneId", false)) {
 					if (-1 != _dragIndex) {
 						storeMove(_dragIndex, index);
@@ -730,7 +732,7 @@ private:
 				if (index >= 0) {
 					auto m = cast(Motion) c.getItem(index).getData();
 					_dragIndex = index;
-					auto node = m.toNode(null);
+					auto node = m.toNode(new XMLOption(_prop.sys));
 					node.newAttr("paneId", _id);
 					e.data = bytesFromXML(node.text);
 					_itm = c.getItem(index);
@@ -1280,7 +1282,8 @@ public:
 				try {
 					auto node = XNode.parse(xml);
 					if (node.name == Motion.XML_NAME) {
-						appendMotion(Motion.createFromNode(node, LATEST_VERSION));
+						auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+						appendMotion(Motion.createFromNode(node, ver));
 						_motions.select(_motions.getItemCount() - 1);
 						refreshSels();
 						foreach (dlg; modEvent) dlg();
@@ -1337,7 +1340,8 @@ public:
 					storeEdit(_motions.getSelectionIndex());
 					if (m.beast) _comm.delBeast.call(m.beast);
 					m.beast = null;
-					auto bid = m.setBeastFromNode(bNode, LATEST_VERSION);
+					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+					auto bid = m.setBeastFromNode(bNode, ver);
 					if (bid && sameSc && topLevel && _prop.var.etc.linkCard) {
 						m.beast = new BeastCard(1UL, "", "", "");
 						m.beast.linkId = bid;
@@ -1368,7 +1372,7 @@ public:
 					node.newAttr("summId", _summ.id);
 					node.newAttr("paneId", "");
 					node.newAttr("scenarioPath", nabs(_summ.scenarioPath));
-					m.beast.toNode(node, null);
+					m.beast.toNode(node, new XMLOption(_prop.sys));
 					XMLtoCB(_prop, _comm.clipboard, node.text);
 					_comm.refreshToolBar();
 					return true;

@@ -7,6 +7,7 @@ import cwx.usecounter;
 import cwx.path;
 import cwx.menu;
 import cwx.types;
+import cwx.system;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -135,7 +136,8 @@ private:
 					}
 					return name;
 				}
-				auto ret = dir.appendFromXML(data, LATEST_VERSION, false, true, cFlags, cSteps, newPath, rootId);
+				auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
+				auto ret = dir.appendFromXML(data, ver, false, true, cFlags, cSteps, newPath, rootId);
 				bool samePane = dir.root.id == rootId;
 				final switch (ret) {
 				case FlagDir.AppendXmlResult.DIR_SUCCESS:
@@ -502,7 +504,8 @@ public:
 					Flag[string] cFlags;
 					Step[string] cSteps;
 					auto tblSels = flags.selected;
-					switch (cur.appendFromXML(c, LATEST_VERSION, true, true, cFlags, cSteps, newPath, rootId)) {
+					auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
+					switch (cur.appendFromXML(c, ver, true, true, cFlags, cSteps, newPath, rootId)) {
 					case FlagDir.AppendXmlResult.DIR_SUCCESS:
 						refresh(newPath);
 						auto dir = root.findPath(newPath, false);

@@ -8,6 +8,8 @@ import cwx.path;
 import cwx.structs;
 import cwx.types;
 import cwx.textholder;
+import cwx.card;
+import cwx.system;
 
 import std.path;
 import std.string;
@@ -95,7 +97,7 @@ public:
 
 	override
 	const
-	void toNode(ref XNode node) {
+	void toNode(ref XNode node, XMLOption opt) {
 		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
 		auto e = node.newElement(XML_NAME);
 		e.newAttr("mask", fromBool(_mask));
@@ -108,7 +110,7 @@ public:
 		sn.newAttr("width", _w);
 		sn.newAttr("height", _h);
 	}
-	static ImageCell createFromNode(ref XNode node, string ver) {
+	static ImageCell createFromNode(ref XNode node, in XMLInfo ver) {
 		if (node.name != XML_NAME) throw new AreaException("Node is not BgImage");
 		bool mask = parseBool(node.attr("mask", true));
 		string path = "";
@@ -372,7 +374,7 @@ public:
 
 	override
 	const
-	void toNode(ref XNode node) {
+	void toNode(ref XNode node, XMLOption opt) {
 		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
 		auto e = node.newElement(XML_NAME);
 
@@ -409,7 +411,7 @@ public:
 		sn.newAttr("width", _w);
 		sn.newAttr("height", _h);
 	}
-	static TextCell createFromNode(ref XNode node, string ver) {
+	static TextCell createFromNode(ref XNode node, in XMLInfo ver) {
 		if (node.name != XML_NAME) throw new AreaException("Node is not TextCell");
 		string text = "";
 		string fontName = "";
@@ -584,7 +586,7 @@ public:
 
 	override
 	const
-	void toNode(ref XNode node) {
+	void toNode(ref XNode node, XMLOption opt) {
 		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
 		auto e = node.newElement(XML_NAME);
 
@@ -612,7 +614,7 @@ public:
 		sn.newAttr("width", _w);
 		sn.newAttr("height", _h);
 	}
-	static ColorCell createFromNode(ref XNode node, string ver) {
+	static ColorCell createFromNode(ref XNode node, in XMLInfo ver) {
 		if (node.name != XML_NAME) throw new AreaException("Node is not TextCell");
 		BlendMode blendMode = BlendMode.Normal;
 		GradientDir gradientDir = GradientDir.None;
@@ -769,7 +771,7 @@ public:
 		super.change(id);
 	}
 
-	static BgImage[] bgImagesFromNode(ref XNode node, string ver) {
+	static BgImage[] bgImagesFromNode(ref XNode node, in XMLInfo ver) {
 		assert (node.name == XML_NAME_M);
 		BgImage[] bgImgs;
 		node.onTag[ImageCell.XML_NAME] = (ref XNode bgn) {
@@ -792,27 +794,27 @@ public:
 	}
 
 	/// 指定されたノードに背景イメージ群のデータを追加する。
-	static void toNode(in BgImage[] bgImgs, ref XNode e) {
+	static void toNode(in BgImage[] bgImgs, ref XNode e, XMLOption opt) {
 		auto bge = e.newElement(XML_NAME_M);
 		if (bgImgs.length > 0) {
 			// FIXME: このサイズはCPropsに持たせているがコンパイラのバグで参照できない。暫定。
 			if (bgImgs[0].width != 632 || bgImgs[0].height != 420) {
-				BgImage.appendEmptyToNode(bge);
+				BgImage.appendEmptyToNode(bge, opt);
 			}
 			foreach (bg; bgImgs) {
-				bg.toNode(bge);
+				bg.toNode(bge, opt);
 			}
 		} else {
-			BgImage.appendEmptyToNode(bge);
+			BgImage.appendEmptyToNode(bge, opt);
 		}
 	}
 
 	/// XMLノード(BgImages)にインスタンスのデータを追加する。
 	const
 	abstract
-	void toNode(ref XNode node);
+	void toNode(ref XNode node, XMLOption opt);
 	/// 背景イメージが一枚も無い場合。
-	static void appendEmptyToNode(ref XNode node) {
+	static void appendEmptyToNode(ref XNode node, XMLOption opt) {
 		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
 		auto e = node.newElement(ImageCell.XML_NAME);
 		e.newAttr("mask", "False");
@@ -827,7 +829,7 @@ public:
 	}
 	
 	/// nodeから適切なインスタンスを生成して返す。
-	static BgImage createFromNode(ref XNode node, string ver) {
+	static BgImage createFromNode(ref XNode node, in XMLInfo ver) {
 		if (node.name == ImageCell.XML_NAME) {
 			return ImageCell.createFromNode(node, ver);
 		} else if (node.name == TextCell.XML_NAME) {
@@ -950,24 +952,24 @@ public:
 		_bgImgs[index2] = temp;
 	}
 	/// 背景イメージ群をXMLノードにする。
-	static string BtoXML(BgImage[] backs) {
+	static string BtoXML(BgImage[] backs, XMLOption opt) {
 		scope doc = XNode.create("MenuCardsAndBgImages");
 		if (backs.length) {
 			auto be = doc.newElement(BgImage.XML_NAME_M);
 			foreach (b; backs) {
-				b.toNode(be);
+				b.toNode(be, opt);
 			}
 		}
 		return doc.text;
 	}
 	/// XMLノードから背景イメージ群を読み出す。
-	static bool BfromXML(string xml, out BgImage[] backs) {
+	static bool BfromXML(string xml, out BgImage[] backs, in XMLInfo ver) {
 		try {
 			scope doc = XNode.parse(xml);
 			if (doc.name == "MenuCardsAndBgImages") {
 				doc.onTag[BgImage.XML_NAME_M] = (ref XNode node) {
 					node.onTag[null] = (ref XNode node) {
-						backs ~= BgImage.createFromNode(node, LATEST_VERSION);
+						backs ~= BgImage.createFromNode(node, ver);
 					};
 					node.parse();
 				};

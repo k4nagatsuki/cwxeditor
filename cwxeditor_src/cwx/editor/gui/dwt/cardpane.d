@@ -14,6 +14,7 @@ import cwx.menu;
 import cwx.types;
 import cwx.event;
 import cwx.structs;
+import cwx.system;
 
 import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.images;
@@ -714,7 +715,8 @@ private:
 						try {
 							auto node = XNode.parse(c);
 							if (node.name != C.XML_NAME_M) return;
-							addFromNode(node, LATEST_VERSION);
+							auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+							addFromNode(node, ver);
 						} catch {}
 					}
 					refreshStatusLine();
@@ -952,7 +954,8 @@ private:
 						}
 						C[] adds;
 						node.onTag[C.XML_NAME] = (ref XNode cNode) {
-							auto card = C.createFromNode(cNode, LATEST_VERSION);
+							auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+							auto card = C.createFromNode(cNode, ver);
 							adds ~= card;
 						};
 						node.parse();
@@ -1173,7 +1176,7 @@ private:
 			sn.newAttr("topLevel", false);
 		}
 		sn.newAttr("scenarioPath", nabs(ownerScenarioPath));
-		auto opt = new XMLOption;
+		auto opt = new XMLOption(_prop.sys);
 		static if (!is(ToCardOwner == void)) {
 			if (1 == _prop.var.etc.importLinkCondition) {
 				// 参照先を格納
@@ -1652,7 +1655,8 @@ private:
 				.forceFocus(widget, false);
 				auto doc = XNode.create(C.XML_NAME_M);
 				toNode(doc, [card]);
-				addFromNode(doc, LATEST_VERSION);
+				auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+				addFromNode(doc, ver);
 			}, null);
 		}
 		void refreshAddHand() {
@@ -2101,7 +2105,7 @@ public:
 				}
 			}
 		}
-		bool addFromNode(ref XNode node, string ver) {
+		bool addFromNode(ref XNode node, in XMLInfo ver) {
 			C[] adds;
 			static if (is (CardOwner == Summary)) bool inPane = false;
 			if (node.attr("summId", false) != ownerId) {
@@ -2176,18 +2180,19 @@ public:
 			_comm.refreshToolBar();
 		}
 	} else {
-		private void delegate(ref XNode, string) _addc;
-		void setAddCard(void delegate(ref XNode, string) addc) {
+		private void delegate(ref XNode, in XMLInfo) _addc;
+		void setAddCard(void delegate(ref XNode, in XMLInfo) addc) {
 			_addc = addc;
 		}
-		void delegate(ref XNode, string) getAddCard() {
+		void delegate(ref XNode, in XMLInfo) getAddCard() {
 			return _addc;
 		}
 		void addCard() {
 			C[] cs = selectedCards;
 			auto doc = XNode.create(C.XML_NAME_M);
 			toNode(doc, cs);
-			_addc(doc, LATEST_VERSION);
+			auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+			_addc(doc, ver);
 			_comm.refreshToolBar();
 		}
 	}

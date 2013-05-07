@@ -14,6 +14,8 @@ import cwx.path;
 import cwx.structs;
 import cwx.menu;
 import cwx.types;
+import cwx.card;
+import cwx.system;
 
 import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.dprops;
@@ -499,18 +501,19 @@ private:
 			auto area = areaFromInfo(summ, _id, _type);
 			_delIndex = toIndexFrom(summ, _id, _type);
 			_isStartArea = cast(Area) area && summ.startArea == area.id;
-			auto node = area.toNode(null);
+			auto node = area.toNode(new XMLOption(comm.prop.sys));
+			auto ver = new XMLInfo(comm.prop.sys, LATEST_VERSION);
 			auto a = cast(Area) area;
 			if (a) {
-				_area = Area.createFromNode(node, LATEST_VERSION);
+				_area = Area.createFromNode(node, ver);
 			}
 			auto b = cast(Battle) area;
 			if (b) {
-				_area = Battle.createFromNode(node, LATEST_VERSION);
+				_area = Battle.createFromNode(node, ver);
 			}
 			auto p = cast(Package) area;
 			if (p) {
-				_area = Package.createFromNode(node, LATEST_VERSION);
+				_area = Package.createFromNode(node, ver);
 			}
 			assert (_area);
 			_area.setUseCounter(summ.useCounter.sub);
@@ -1012,21 +1015,22 @@ private:
 					// 他のリストからのコピー
 					index = revId(index);
 					AbstractArea area;
+					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 					if (tid == typeid(Area)) {
-						area = Area.createFromNode(node, LATEST_VERSION);
+						area = Area.createFromNode(node, ver);
 						_summ.insert(index, cast(Area) area);
 						storeInsert(area.id, tid);
 						index = _summ.indexOf(cast(Area) area);
 						newAreaItem(index);
 					} else if (tid == typeid(Battle)) {
-						area = Battle.createFromNode(node, LATEST_VERSION);
+						area = Battle.createFromNode(node, ver);
 						_summ.insert(index, cast(Battle) area);
 						storeInsert(area.id, tid);
 						index = _summ.indexOf(cast(Battle) area);
 						newBattleItem(index);
 					} else {
 						assert (tid == typeid(Package));
-						area = Package.createFromNode(node, LATEST_VERSION);
+						area = Package.createFromNode(node, ver);
 						_summ.insert(index, cast(Package) area);
 						storeInsert(area.id, tid);
 						index = _summ.indexOf(cast(Package) area);
@@ -1816,41 +1820,42 @@ public:
 			if (c) {
 				try {
 					bool sameSummary;
-					auto area = createAreaFromXML(c, _summ.id, sameSummary, LATEST_VERSION);
+					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+					auto area = createAreaFromXML(c, _summ.id, sameSummary, ver);
 					if (area !is null) {
 						auto oldId = area.id;
 						if (cast(Area) area) {
-							auto newId = _summ.add(cast(Area) area);
-							storeInsert(newId, typeid(Area));
+							_summ.add(cast(Area) area);
+							storeInsert(area.id, typeid(Area));
 							int index = _summ.areas.length - 1;
 							newAreaItem(index);
 							selArea(index);
 							sort();
 							_comm.refArea.call(cast(Area) area);
 							if (sameSummary && !_summ.hasAreaId(oldId)) {
-								_summ.useCounter.change(toAreaId(oldId), toAreaId(newId));
+								_summ.useCounter.change(toAreaId(oldId), toAreaId(area.id));
 							}
 						} else if (cast(Battle) area) {
-							auto newId = _summ.add(cast(Battle) area);
-							storeInsert(newId, typeid(Battle));
+							_summ.add(cast(Battle) area);
+							storeInsert(area.id, typeid(Battle));
 							int index = _summ.battles.length - 1;
 							newBattleItem(index);
 							selBattle(index);
 							sort();
 							_comm.refBattle.call(cast(Battle) area);
 							if (sameSummary && !_summ.hasBattleId(oldId)) {
-								_summ.useCounter.change(toBattleId(oldId), toBattleId(newId));
+								_summ.useCounter.change(toBattleId(oldId), toBattleId(area.id));
 							}
 						} else if (cast(Package) area) {
-							auto newId = _summ.add(cast(Package) area);
-							storeInsert(newId, typeid(Package));
+							_summ.add(cast(Package) area);
+							storeInsert(area.id, typeid(Package));
 							int index = _summ.packages.length - 1;
 							newPackageItem(index);
 							selPackage(index);
 							sort();
 							_comm.refPackage.call(cast(Package) area);
 							if (sameSummary && !_summ.hasPackageId(oldId)) {
-								_summ.useCounter.change(toPackageId(oldId), toPackageId(newId));
+								_summ.useCounter.change(toPackageId(oldId), toPackageId(area.id));
 							}
 						} else assert (0);
 						if (_flags) _flags.refresh();

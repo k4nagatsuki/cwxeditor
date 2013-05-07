@@ -15,6 +15,7 @@ import cwx.path;
 import cwx.cab;
 import cwx.sjis;
 import cwx.event;
+import cwx.system;
 
 import std.array;
 import std.file;
@@ -218,14 +219,14 @@ public:
 	}
 
 	/// tempPathにシナリオを新規作成する。
-	static Summary createScenario(string tempPath, string name, Skin skin) {
+	static Summary createScenario(const System sys, string tempPath, string name, Skin skin) {
 		auto p = Summary.createTempDir(tempPath, name);
 		auto mFPath = std.path.buildPath(p, skin.materialPath);
 		if (!exists(mFPath) || !isDir(mFPath)) std.file.mkdir(mFPath);
 		auto summ = new Summary(name, skin.type, p, true, false);
 		if (summ.expandXMLs) {
 			SaveOption opt;
-			summ.saveXMLs(summ.scenarioPath, opt);
+			summ.saveXMLs(summ.scenarioPath, sys, opt);
 		}
 		return summ;
 	}
@@ -357,9 +358,9 @@ public:
 		Summary load(string p) {
 			Summary r;
 			if (expand) {
-				r = Summary.fromXMLs(std.path.buildPath(p, "Summary.xml"), opt);
+				r = Summary.fromXMLs(prop.sys, std.path.buildPath(p, "Summary.xml"), opt);
 			} else {
-				r = Summary.fromXMLs(p, xmls, opt);
+				r = Summary.fromXMLs(prop.sys, p, xmls, opt);
 				r._oldXMLs = xmls;
 			}
 			return r;
@@ -1251,7 +1252,7 @@ public:
 	ulong add(Area area, bool forceNewId = true) {
 		auto id = addImpl!(Area, toAreaId)(_area, area, forceNewId);
 		if (areas.length == 1) {
-			startArea = id;
+			startArea = area.id;
 		}
 		return id;
 	}
@@ -1407,8 +1408,8 @@ public:
 	/// ]
 	/// ---
 	const
-	string[string][string] toXMLs() {
-		auto opt = new XMLOption;
+	string[string][string] toXMLs(const System sys) {
+		auto opt = new XMLOption(sys);
 		opt.includeCard = true;
 		opt.skill = &skill;
 		opt.item = &item;
@@ -1450,7 +1451,7 @@ public:
 	/// path = 保存先のパス。
 	/// Throws:
 	/// FileException = ファイル削除時・保存時例外発生時。
-	void saveXMLs(string path, in SaveOption opt) {
+	void saveXMLs(string path, const System sys, in SaveOption opt) {
 		string summFile = std.path.buildPath(path, "Summary.xml");
 
 		bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
@@ -1463,7 +1464,7 @@ public:
 			}
 		}
 
-		auto xOpt = new XMLOption;
+		auto xOpt = new XMLOption(sys);
 		xOpt.includeCard = true;
 		xOpt.skill = &skill;
 		xOpt.item = &item;
@@ -1481,8 +1482,8 @@ public:
 		saveXML(std.path.buildPath(path, PATH_INFO), _info, opt, xOpt);
 	}
 	/// ditto
-	void saveXMLs(in SaveOption opt) {
-		saveXMLs(_sPath, opt);
+	void saveXMLs(const System sys, in SaveOption opt) {
+		saveXMLs(_sPath, sys, opt);
 	}
 	private static void delAllXML(string p, in SaveOption opt) {
 		bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
@@ -1524,7 +1525,7 @@ public:
 		}
 	}
 
-	private static Summary summaryFromXML(string sPath, string xml) {
+	private static Summary summaryFromXML(const System sys, string sPath, string xml) {
 		scope summNode = XNode.parse(xml);
 		if (summNode.name == "Summary") {
 			auto summ = new Summary(sPath);
@@ -1549,7 +1550,7 @@ public:
 				propNode.parse();
 				summ.rCoupons = rCoupons;
 			};
-			summ._froot = FlagDir.fromXmlNode(summNode, summ, &summ.changeHandler, summ.dataVersion);
+			summ._froot = FlagDir.fromXmlNode(summNode, summ, &summ.changeHandler, new XMLInfo(sys, summ.dataVersion));
 			return summ;
 		}
 		throw new SummaryException("File is not summary: " ~ sPath);
@@ -1564,7 +1565,7 @@ public:
 	}
 
 	private void loadXMLCommon(A)(string xml, string name, ref A[] areas,
-			UseCounter uc, void delegate() change, string ver) {
+			UseCounter uc, void delegate() change, in XMLInfo ver) {
 		auto doc = XNode.parse(xml);
 		if (doc.name == name) {
 			auto area = A.createFromNode(doc, ver);
@@ -1575,7 +1576,7 @@ public:
 		}
 	}
 	private void loadXML1(A)(string targPath, string name, ref A[] areas,
-			UseCounter uc, void delegate() change, string ver) {
+			UseCounter uc, void delegate() change, in XMLInfo ver) {
 		if (exists(targPath)) {
 			foreach (p; clistdir(targPath)) {
 				p = std.path.buildPath(targPath, p);
@@ -1593,7 +1594,7 @@ public:
 	}
 	private void loadXML2(A)(string[string][string] xmls,
 			string dirName, string name, ref A[] areas,
-			UseCounter uc, void delegate() change, string ver) {
+			UseCounter uc, void delegate() change, in XMLInfo ver) {
 		auto dir = dirName in xmls;
 		if (!dir) return;
 		foreach (file, xml; *dir) {
@@ -1615,44 +1616,46 @@ public:
 	/// SummaryException = xmlsにSummary定義のXML文書が含まれていない、または壊れている。
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	private static Summary fromXMLs(string sPath, string[string][string] xmls, in LoadOption opt) {
+	private static Summary fromXMLs(const System sys, string sPath, string[string][string] xmls, in LoadOption opt) {
 		auto parent = "" in xmls;
 		if (!parent) throw new SummaryException("invalid xmls");
 		auto summXML = "Summary.xml" in *parent;
 		if (!summXML) throw new SummaryException("invalid parent of xmls");
-		Summary summ = summaryFromXML(sPath, *summXML);
+		Summary summ = summaryFromXML(sys, sPath, *summXML);
 
+		auto ver = new XMLInfo(sys, summ.dataVersion);
 		if (opt.summaryOnly) return summ;
 		if (!opt.cardOnly) {
-			summ.loadXML2(xmls, PATH_AREA, "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+			summ.loadXML2(xmls, PATH_AREA, "Area", summ._area, summ.useCounter, &summ.changeHandler, ver);
 			summ.checkStartArea();
-			summ.loadXML2(xmls, PATH_BATTLE, "Battle", summ._btl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-			summ.loadXML2(xmls, PATH_PACKAGE, "Package", summ._pkg, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+			summ.loadXML2(xmls, PATH_BATTLE, "Battle", summ._btl, summ.useCounter, &summ.changeHandler, ver);
+			summ.loadXML2(xmls, PATH_PACKAGE, "Package", summ._pkg, summ.useCounter, &summ.changeHandler, ver);
 		}
 
-		summ.loadXML2(xmls, PATH_CAST, "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		summ.loadXML2(xmls, PATH_SKILL, "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		summ.loadXML2(xmls, PATH_ITEM, "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		summ.loadXML2(xmls, PATH_BEAST, "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		summ.loadXML2(xmls, PATH_INFO, "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML2(xmls, PATH_CAST, "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML2(xmls, PATH_SKILL, "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML2(xmls, PATH_ITEM, "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML2(xmls, PATH_BEAST, "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML2(xmls, PATH_INFO, "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, ver);
 
 		return summ;
 	}
-	private static void fromXMLs(Summary summ, in LoadOption opt) {
+	private static void fromXMLs(const System sys, Summary summ, in LoadOption opt) {
 		if (opt.summaryOnly) return;
 		auto path = summ.scenarioPath;
+		auto ver = new XMLInfo(sys, summ.dataVersion);
 		if (!opt.cardOnly) {
-			summ.loadXML1(std.path.buildPath(path, PATH_AREA), "Area", summ._area, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+			summ.loadXML1(std.path.buildPath(path, PATH_AREA), "Area", summ._area, summ.useCounter, &summ.changeHandler, ver);
 			summ.checkStartArea();
-			summ.loadXML1(std.path.buildPath(path, PATH_BATTLE), "Battle", summ._btl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-			summ.loadXML1(std.path.buildPath(path, PATH_PACKAGE), "Package", summ._pkg, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+			summ.loadXML1(std.path.buildPath(path, PATH_BATTLE), "Battle", summ._btl, summ.useCounter, &summ.changeHandler, ver);
+			summ.loadXML1(std.path.buildPath(path, PATH_PACKAGE), "Package", summ._pkg, summ.useCounter, &summ.changeHandler, ver);
 		}
 
-		summ.loadXML1(std.path.buildPath(path, PATH_CAST), "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		summ.loadXML1(std.path.buildPath(path, PATH_SKILL), "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		summ.loadXML1(std.path.buildPath(path, PATH_ITEM), "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		summ.loadXML1(std.path.buildPath(path, PATH_BEAST), "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, summ.dataVersion);
-		summ.loadXML1(std.path.buildPath(path, PATH_INFO), "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, summ.dataVersion);
+		summ.loadXML1(std.path.buildPath(path, PATH_CAST), "CastCard", summ._cast, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML1(std.path.buildPath(path, PATH_SKILL), "SkillCard", summ._skl, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML1(std.path.buildPath(path, PATH_ITEM), "ItemCard", summ._itm, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML1(std.path.buildPath(path, PATH_BEAST), "BeastCard", summ._bst, summ.useCounter, &summ.changeHandler, ver);
+		summ.loadXML1(std.path.buildPath(path, PATH_INFO), "InfoCard", summ._info, summ.useCounter, &summ.changeHandler, ver);
 	}
 
 	/// XMLを元にしたインスタンスを返す。
@@ -1664,22 +1667,22 @@ public:
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	/// FileLoadException = Summary.xml以外での読込例外発生時。
-	private static Summary fromXMLs(string path, in LoadOption opt) {
-		auto summ = summaryFromXML(dirName(path), std.file.readText(path));
+	private static Summary fromXMLs(const System sys, string path, in LoadOption opt) {
+		auto summ = summaryFromXML(sys, dirName(path), std.file.readText(path));
 		if (opt.summaryOnly) return summ;
-		fromXMLs(summ, opt);
+		fromXMLs(sys, summ, opt);
 		return summ;
 	}
 
 	/// XMLファイルまたはクラシックなシナリオを再読込し、新しいSummaryを生成して返す。
-	Summary reloadXMLs(in LoadOption opt) {
+	Summary reloadXMLs(const System sys, in LoadOption opt) {
 		Summary summ;
 		if (legacy) {
 			summ = loadLScenario(scenarioPath, "", opt, scenarioName);
 		} else {
-			summ = summaryFromXML(scenarioPath,
+			summ = summaryFromXML(sys, scenarioPath,
 				std.file.readText(std.path.buildPath(scenarioPath, "Summary.xml")));
-			fromXMLs(summ, opt);
+			fromXMLs(sys, summ, opt);
 		}
 		summ._expandXMLs = expandXMLs;
 		summ._zipName = zipName;
@@ -2010,18 +2013,18 @@ public:
 			} else if (archive || useTemp || legacyToX) {
 				auto oldPath = scenarioPath;
 				if (expandXMLs) {
-					saveXMLs(opt);
+					saveXMLs(prop.sys, opt);
 					expand = true;
 				} else if (legacyToX && defExpandXMLs) {
 					scenarioPath = temp;
 					scope (failure) scenarioPath = oldPath;
-					saveXMLs(opt);
+					saveXMLs(prop.sys, opt);
 					expand = true;
 				}
 				auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
 				scope arc = .zip(scenarioPath, false, [lock]);
 				if (!expand) {
-					auto xmls = toXMLs();
+					auto xmls = toXMLs(prop.sys);
 					foreach (path, files; xmls) {
 						foreach (name, xml; files) {
 							auto p = std.path.buildPath(path, name);
@@ -2035,7 +2038,7 @@ public:
 				auto oldPath = scenarioPath;
 				scenarioPath = sPath;
 				scope (failure) scenarioPath = oldPath;
-				saveXMLs(opt);
+				saveXMLs(prop.sys, opt);
 				releaseLockFile();
 				_useTemp = useTemp;
 				_zipName = zipName;

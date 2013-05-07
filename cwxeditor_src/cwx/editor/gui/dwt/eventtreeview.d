@@ -18,6 +18,7 @@ import cwx.menu;
 import cwx.types;
 import cwx.xml;
 import cwx.msgutils;
+import cwx.system;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -302,8 +303,9 @@ private:
 			if (v) v._tree.setRedraw(false);
 			scope (exit) if (v) v._tree.setRedraw(true);
 			for (size_t i = 0; i < _count; i++) {
-				auto node = et.starts[_index].toNode(null);
-				auto c = Content.createFromNode(node, LATEST_VERSION);
+				auto node = et.starts[_index].toNode(new XMLOption(prop.sys));
+				auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
+				auto c = Content.createFromNode(node, ver);
 				c.setUseCounter(summ.useCounter.sub);
 				_c ~= c;
 				delImpl(v, comm, et, et.starts[_index]);
@@ -338,8 +340,9 @@ private:
 		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int index, Content del) {
 			super (v, comm, prop, summ, et);
 			_index = index;
-			auto node = del.toNode(null);
-			_c = Content.createFromNode(node, LATEST_VERSION);
+			auto node = del.toNode(new XMLOption(prop.sys));
+			auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
+			_c = Content.createFromNode(node, ver);
 			_c.setUseCounter(summ.useCounter.sub);
 		}
 		override void undo() {
@@ -1197,7 +1200,7 @@ private:
 		override void dragSetData(DragSourceEvent e) {
 			auto itm = selection;
 			if (itm && XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
-				auto node = (cast(Content) itm.getData()).toNode(null);
+				auto node = (cast(Content) itm.getData()).toNode(new XMLOption(_prop.sys));
 				node.newAttr("paneId", _id);
 				e.data = bytesFromXML(node.text);
 			}
@@ -1251,7 +1254,8 @@ private:
 					auto node = XNode.parse(bytesToXML(e.data));
 					bool samePane = _id == node.attr("paneId", false, "");
 					string id = node.attr("contentId", false, "");
-					auto evt = Content.createFromNode(node, LATEST_VERSION);
+					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+					auto evt = Content.createFromNode(node, ver);
 					if (evt) {
 						auto owner = cast(Content) e.item.getData();
 						assert (owner.detail.owner);
@@ -3253,7 +3257,8 @@ public:
 			if (c) {
 				try {
 					string id;
-					auto evt = Content.createFromXML(c, LATEST_VERSION, id);
+					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+					auto evt = Content.createFromXML(c, ver, id);
 					if (!evt) return;
 					if (evt.type == CType.START) {
 						addStarts(true, [evt]);

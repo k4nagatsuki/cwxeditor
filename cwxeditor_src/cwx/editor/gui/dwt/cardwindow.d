@@ -12,6 +12,7 @@ import cwx.path;
 import cwx.motion;
 import cwx.menu;
 import cwx.types;
+import cwx.system;
 
 import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.images;
@@ -973,7 +974,7 @@ public:
 		}
 	}
 	static if (EditMode) {
-		void add(int Index)(ref XNode node, string ver) {
+		void add(int Index)(ref XNode node, in XMLInfo ver) {
 			if (_pane[Index].addFromNode(node, ver)) {
 				static if (1 < Cards.length) {
 					_tabf.setSelection(_tab[Index]);
@@ -981,53 +982,53 @@ public:
 			}
 		}
 		static if (UseCast) {
-			void addCast(ref XNode node, string ver) {
+			void addCast(ref XNode node, in XMLInfo ver) {
 				_pane[CAST].addFromNode(node, ver);
 			}
 		}
 		static if (UseSkill) {
-			void addSkill(ref XNode node, string ver) {
+			void addSkill(ref XNode node, in XMLInfo ver) {
 				_pane[SKILL].addFromNode(node, ver);
 			}
 		}
 		static if (UseItem) {
-			void addItem(ref XNode node, string ver) {
+			void addItem(ref XNode node, in XMLInfo ver) {
 				_pane[ITEM].addFromNode(node, ver);
 			}
 		}
 		static if (UseBeast) {
-			void addBeast(ref XNode node, string ver) {
+			void addBeast(ref XNode node, in XMLInfo ver) {
 				_pane[BEAST].addFromNode(node, ver);
 			}
 		}
 		static if (UseInfo) {
-			void addInfo(ref XNode node, string ver) {
+			void addInfo(ref XNode node, in XMLInfo ver) {
 				_pane[INFO].addFromNode(node, ver);
 			}
 		}
 	} else {
 		static if (UseCast) {
-			void setAddCast(void delegate(ref XNode node, string) addc) {
+			void setAddCast(void delegate(ref XNode node, in XMLInfo) addc) {
 				_pane[CAST].setAddCard(addc);
 			}
 		}
 		static if (UseSkill) {
-			void setAddSkill(void delegate(ref XNode node, string) addc) {
+			void setAddSkill(void delegate(ref XNode node, in XMLInfo) addc) {
 				_pane[SKILL].setAddCard(addc);
 			}
 		}
 		static if (UseItem) {
-			void setAddItem(void delegate(ref XNode node, string) addc) {
+			void setAddItem(void delegate(ref XNode node, in XMLInfo) addc) {
 				_pane[ITEM].setAddCard(addc);
 			}
 		}
 		static if (UseBeast) {
-			void setAddBeast(void delegate(ref XNode node, string) addc) {
+			void setAddBeast(void delegate(ref XNode node, in XMLInfo) addc) {
 				_pane[BEAST].setAddCard(addc);
 			}
 		}
 		static if (UseInfo) {
-			void setAddInfo(void delegate(ref XNode node, string) addc) {
+			void setAddInfo(void delegate(ref XNode node, in XMLInfo) addc) {
 				_pane[INFO].setAddCard(addc);
 			}
 		}

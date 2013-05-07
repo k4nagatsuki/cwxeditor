@@ -13,6 +13,7 @@ import cwx.msgutils;
 import cwx.card;
 import cwx.coupon;
 import cwx.textholder;
+import cwx.system;
 
 import std.algorithm;
 import std.datetime;
@@ -404,7 +405,7 @@ public:
 		e.newElement("RequiredCoupons", encodeLf(rCoupons, true));
 		e.newElement("Text", encodeLf(text));
 	}
-	static SDialog createFromNode(ref XNode node, string ver) {
+	static SDialog createFromNode(ref XNode node, in XMLInfo ver) {
 		assert (node.name == XML_NAME, node.name ~ " != " ~ XML_NAME);
 		string[] rCoupons;
 		string text;
@@ -1660,7 +1661,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		atnPut!(CArg.TALKER_NC, "talkerNC", "fromTalker")(e, d);
 
-		if (d.use(CArg.BG_IMAGES)) BgImage.toNode(backs, e);
+		if (d.use(CArg.BG_IMAGES)) BgImage.toNode(backs, e, opt);
 
 		if (d.use(CArg.CAST_RANGE)) {
 			auto ce = e.newElement("CastRanges");
@@ -1683,7 +1684,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	/// XMLノード(Contents)の直下にある全てのイベントを、
 	/// 後続のツリーを全て含めて生成する。
-	static Content[] createContentsFromNode(ref XNode node, string ver) {
+	static Content[] createContentsFromNode(ref XNode node, in XMLInfo ver) {
 		assert (node.name == "Contents", node.name ~ " != Contents");
 		Content[] r;
 		node.onTag[null] = (ref XNode en) {
@@ -1693,7 +1694,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return r;
 	}
 	/// XMLテキストからイベントを生成する。
-	static Content createFromXML(string xml, string ver, out string id) {
+	static Content createFromXML(string xml, in XMLInfo ver, out string id) {
 		id = "";
 		auto en = XNode.parse(xml);
 		id = en.attr("contentId", false);
@@ -1705,7 +1706,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 	}
 	/// XMLノードからイベントを生成する。
-	static Content createFromNode(ref XNode en, string ver) {
+	static Content createFromNode(ref XNode en, in XMLInfo ver) {
 		auto nmap = en.name in CTYPE_MAP;
 		if (!nmap) return null;
 		auto t = en.attr("type", false) in *nmap;
@@ -2005,8 +2006,7 @@ public:
 	} body {
 		_suc = new SUseCounter;
 		if (start.tree) {
-			auto node = start.toNode(null);
-			start = start.createFromNode(node, LATEST_VERSION);
+			start = start.dup;
 		}
 		add(start);
 	}
@@ -2509,7 +2509,7 @@ public:
 	}
 
 	/// XMLテキストからインスタンスを生成。
-	static EventTree fromXML(string xml, string ver) {
+	static EventTree fromXML(string xml, in XMLInfo ver) {
 		try {
 			scope doc = XNode.parse(xml);
 			if (doc.name == "Event") {
@@ -2520,7 +2520,7 @@ public:
 	}
 	/// XMLノードからインスタンスを生成。
 	/// スタートコンテントが一つも無かった場合はnullを返す。
-	static EventTree createFromNode(ref XNode node, string ver) {
+	static EventTree createFromNode(ref XNode node, in XMLInfo ver) {
 		assert (node.name == "Event", node.name ~ " != Event");
 		auto r = new EventTree;
 		node.onTag["Contents"] = (ref XNode node) {
@@ -2879,7 +2879,7 @@ public:
 	}
 
 	/// XMLノードからイベントツリーを読み出して返す。
-	static EventTree[] loadEventsFromNode(XNode node, string ver) {
+	static EventTree[] loadEventsFromNode(XNode node, in XMLInfo ver) {
 		assert (node.name == "Events");
 		EventTree[] r;
 		node.onTag["Event"] = (ref XNode node) {

@@ -8,6 +8,7 @@ import cwx.background;
 import cwx.xml;
 import cwx.card;
 import cwx.path;
+import cwx.system;
 
 import std.math;
 import std.conv;
@@ -37,7 +38,7 @@ interface PackageOwner : CWXPath {
 /// Throws:
 /// XmlException = パース失敗。
 /// IllegalArgumentException = 数値であるべきデータが数値でない。
-AbstractArea createAreaFromXML(string xml, string summId, out bool sameSummary, string ver) {
+AbstractArea createAreaFromXML(string xml, string summId, out bool sameSummary, in XMLInfo ver) {
 	try {
 		scope e = XNode.parse(xml);
 		auto id = e.attr("summaryId", false);
@@ -286,7 +287,7 @@ public:
 		_user.change(id);
 	}
 
-	static EnemyCard[] createCardsFromNode(ref XNode node, string ver) {
+	static EnemyCard[] createCardsFromNode(ref XNode node, in XMLInfo ver) {
 		assert (node.name == CastCard.XML_NAME_M);
 		EnemyCard[] cards;
 		node.onTag["CastCard"] = (ref XNode cNode) {
@@ -329,7 +330,7 @@ public:
 	/// Throws:
 	/// AreaException = nodeがMenuCardでない。またはデータが不足している。
 	/// IllegalArgmentException = 数値であるべきデータが数値でない。
-	static EnemyCard createFromNode(ref XNode node, string ver) {
+	static EnemyCard createFromNode(ref XNode node, in XMLInfo ver) {
 		if (node.name != XML_NAME) throw new AreaException("Node is not EnemyCard");
 
 		bool getId = false;
@@ -496,7 +497,7 @@ public:
 		_user.change(id);
 	}
 
-	static MenuCard[] createFromCardNode(ref XNode node, bool copyDesc, string ver) {
+	static MenuCard[] createFromCardNode(ref XNode node, bool copyDesc, in XMLInfo ver) {
 		MenuCard parse(ref XNode node) {
 			auto pNode = node.child("Property", false);
 			if (!pNode.valid) return null;
@@ -563,7 +564,7 @@ public:
 	/// Throws:
 	/// AreaException = nodeがMenuCardでない。またはデータが不足している。
 	/// IllegalArgmentException = 数値であるべきデータが数値でない。
-	static MenuCard createFromNode(ref XNode node, string ver) {
+	static MenuCard createFromNode(ref XNode node, in XMLInfo ver) {
 		if (node.name != XML_NAME) throw new AreaException("Node is not MenuCard");
 
 		string name = null;
@@ -909,7 +910,7 @@ public:
 		auto pNode = e.newElement("Property");
 		appendProp(pNode, opt);
 
-		BgImage.toNode(_bgImgs, e);
+		BgImage.toNode(_bgImgs, e, opt);
 		auto ce = e.newElement("MenuCards");
 		ce.newAttr("spreadtype", _auto ? "Auto" : "Custom");
 		foreach (c; _cards) {
@@ -926,7 +927,7 @@ public:
 	/// FileException = ファイル読込み例外発生時。
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static Area loadFromXML(string path, string ver) {
+	static Area loadFromXML(string path, in XMLInfo ver) {
 		scope doc = XNode.parse(std.file.readText(path));
 		if (doc.name == "Area") {
 			return createFromNode(doc, ver);
@@ -940,7 +941,7 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static Area createFromNode(ref XNode aNode, string ver) {
+	static Area createFromNode(ref XNode aNode, in XMLInfo ver) {
 		if (aNode.name != "Area") throw new AreaException("Node is not area: " ~ aNode.name);
 		ulong id;
 		string name;
@@ -982,12 +983,12 @@ public:
 		return CBtoNode(cards, [], opt);
 	}
 	/// 背景イメージ群をXMLデータにして返す。
-	static string BtoXML(BgImage[] backs) {
-		return BtoNode(backs).text;
+	static string BtoXML(BgImage[] backs, XMLOption opt) {
+		return BtoNode(backs, opt).text;
 	}
 	/// ditto
-	static XNode BtoNode(BgImage[] backs) {
-		return CBtoNode([], backs, null);
+	static XNode BtoNode(BgImage[] backs, XMLOption opt) {
+		return CBtoNode([], backs, opt);
 	}
 	/// メニューカード群と背景イメージ群をXMLデータにして返す。
 	static string CBtoXML(MenuCard[] cards, BgImage[] backs, XMLOption opt) {
@@ -1005,7 +1006,7 @@ public:
 		if (backs.length > 0) {
 			auto be = e.newElement("BgImages");
 			foreach (b; backs) {
-				b.toNode(be);
+				b.toNode(be, opt);
 			}
 		}
 		return e;
@@ -1018,28 +1019,28 @@ public:
 	/// xml = XMLテキスト。
 	/// Returns: 成功したか。
 	/// See_Also: Area.CBtoXML(MenuCard, BgImages)
-	static bool CBfromXML(string xml, out MenuCard[] cards, out BgImage[] backs) {
+	static bool CBfromXML(string xml, out MenuCard[] cards, out BgImage[] backs, in XMLInfo ver) {
 		try {
 			scope doc = XNode.parse(xml);
-			return CBfromXML(doc, cards, backs);
+			return CBfromXML(doc, cards, backs, ver);
 		} catch (Exception e) {
 			debugln(e);
 		}
 		return false;
 	}
 	/// ditto
-	static bool CBfromXML(ref XNode node, out MenuCard[] cards, out BgImage[] backs) {
+	static bool CBfromXML(ref XNode node, out MenuCard[] cards, out BgImage[] backs, in XMLInfo ver) {
 		try {
 			if (node.name == "MenuCardsAndBgImages") {
 				node.onTag["MenuCards"] = (ref XNode node) {
 					node.onTag["MenuCard"] = (ref XNode n) {
-						cards ~= MenuCard.createFromNode(n, LATEST_VERSION);
+						cards ~= MenuCard.createFromNode(n, ver);
 					};
 					node.parse();
 				};
 				node.onTag["BgImages"] = (ref XNode node) {
 					node.onTag[null] = (ref XNode n) {
-						backs ~= BgImage.createFromNode(n, LATEST_VERSION);
+						backs ~= BgImage.createFromNode(n, ver);
 					};
 					node.parse();
 				};
@@ -1158,7 +1159,7 @@ public:
 	/// FileException = ファイル読込み例外発生時。
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static Package loadFromXML(string path, string ver) {
+	static Package loadFromXML(string path, in XMLInfo ver) {
 		scope doc = XNode.parse(std.file.readText(path));
 		if (doc.name == "Package") {
 			return createFromNode(doc, ver);
@@ -1172,7 +1173,7 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static Package createFromNode(ref XNode aNode, string ver) {
+	static Package createFromNode(ref XNode aNode, in XMLInfo ver) {
 		if (aNode.name != "Package") throw new AreaException("Node is not package: " ~ aNode.name);
 		ulong id;
 		string name;
@@ -1370,7 +1371,7 @@ public:
 	/// FileException = ファイル読込み例外発生時。
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static Battle loadFromXML(string path, string ver) {
+	static Battle loadFromXML(string path, in XMLInfo ver) {
 		scope doc = XNode.parse(std.file.readText(path));
 		if (doc.name == "Battle") {
 			return createFromNode(doc, ver);
@@ -1384,7 +1385,7 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static Battle createFromNode(ref XNode aNode, string ver) {
+	static Battle createFromNode(ref XNode aNode, in XMLInfo ver) {
 		if (aNode.name != "Battle") throw new AreaException("Node is not battle: " ~ aNode.name);
 		ulong id;
 		string name;
@@ -1431,21 +1432,21 @@ public:
 	/// xml = XMLテキスト。
 	/// Returns: 成功したか。
 	/// See_Also: Battle.CtoXML(EnemyCard)
-	static bool CfromXML(string xml, out EnemyCard[] cards) {
+	static bool CfromXML(string xml, out EnemyCard[] cards, in XMLInfo ver) {
 		try {
 			scope doc = XNode.parse(xml);
-			return CfromXML(doc, cards);
+			return CfromXML(doc, cards, ver);
 		} catch (Exception e) {
 			debugln(e);
 		}
 		return false;
 	}
 	/// ditto
-	static bool CfromXML(ref XNode node, out EnemyCard[] cards) {
+	static bool CfromXML(ref XNode node, out EnemyCard[] cards, in XMLInfo ver) {
 		try {
 			if (node.name == "EnemyCards") {
 				node.onTag["EnemyCard"] = (ref XNode n) {
-					cards ~= EnemyCard.createFromNode(n, LATEST_VERSION);
+					cards ~= EnemyCard.createFromNode(n, ver);
 				};
 				node.parse();
 				return true;

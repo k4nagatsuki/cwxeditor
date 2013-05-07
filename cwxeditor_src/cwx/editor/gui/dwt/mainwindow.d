@@ -408,7 +408,7 @@ private:
 				if (!dir.exists()) mkdirRecurse(dir);
 				summ = new Summary(dlg.name, dlg.skin, dir, false, true);
 			} else {
-				summ = Summary.createScenario(_prop.tempPath, dlg.name, findSkin2(_prop, dlg.skin));
+				summ = Summary.createScenario(_prop.sys, _prop.tempPath, dlg.name, findSkin2(_prop, dlg.skin));
 			}
 			summ.author = _prop.var.etc.defaultAuthor;
 			openScenario(summ);
@@ -451,7 +451,7 @@ private:
 				auto wsm = std.path.buildPath(old.scenarioPath, "Summary.wsm");
 				if (old.useTemp) {
 					try {
-						openScenario(old.reloadXMLs(loadOption(old)));
+						openScenario(old.reloadXMLs(_prop.sys, loadOption(old)));
 					} catch (Exception e) {
 						debugln(e);
 						MessageBox.showWarning(.tryFormat(_prop.msgs.reloadError, summary.scenarioPath)
@@ -464,7 +464,7 @@ private:
 				}
 			} else if (expand) {
 				try {
-					openScenario(old.reloadXMLs(loadOption(old)));
+					openScenario(old.reloadXMLs(_prop.sys, loadOption(old)));
 				} catch (Exception e) {
 					debugln(e);
 					MessageBox.showWarning(.tryFormat(_prop.msgs.reloadError, summary.scenarioPath)
@@ -3303,7 +3303,7 @@ public:
 			if (_opt.create) {
 				string name = _opt.createName is null ? _prop.msgs.newScenarioName : _opt.createName;
 				string skin = _opt.createSkin is null ? _prop.var.etc.defaultSkin : _opt.createSkin;
-				auto summ = Summary.createScenario(_prop.tempPath, name, findSkin2(_prop, skin));
+				auto summ = Summary.createScenario(_prop.sys, _prop.tempPath, name, findSkin2(_prop, skin));
 				summ.author = _prop.var.etc.defaultAuthor;
 				openScenario(summ);
 				statusLine = "";

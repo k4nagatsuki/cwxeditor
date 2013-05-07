@@ -12,6 +12,7 @@ import cwx.xml;
 import cwx.utils;
 import cwx.path;
 import cwx.structs;
+import cwx.system;
 
 import std.algorithm;
 import std.exception;
@@ -19,12 +20,17 @@ import std.conv;
 
 /// データをXML化する時のオプション。
 class XMLOption {
+	const System sys; /// 対象システム情報。
 	bool includeCard = false; /// リンク先のカードの実体を格納する。
 	bool noLinkId = false; /// 実体を格納した時、参照IDを削除する。
 	SkillCard delegate(ulong) skill = null; /// IDからスキルカードを取得。
 	ItemCard delegate(ulong) item = null; /// IDからアイテムカードを取得。
 	BeastCard delegate(ulong) beast = null; /// IDから召喚獣カードを取得。
 	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
+
+	this (const System sys) {
+		this.sys = sys;
+	}
 }
 
 /// XML化時に上書きするデータ。
@@ -260,7 +266,7 @@ public:
 		return pNode;
 	}
 	/// 指定されたXMLノードからProperty情報を読み出す。
-	protected void loadProp(ref XNode pNode, string ver) {
+	protected void loadProp(ref XNode pNode, in XMLInfo ver) {
 		string idStr = null;
 		pNode.onTag["Id"] = (ref XNode n) {idStr = n.value;};
 		pNode.onTag["ImagePath"] = (ref XNode n) {_path.path = decodePath(n.value);};
@@ -555,9 +561,7 @@ public:
 		if (contains!("a is b")(arr, c)) {
 			remove(c);
 		}
-		scope doc = XNode.create(C.XML_NAME);
-		c.toNodeImpl(doc, null, null);
-		c = C.createFromNode(doc, LATEST_VERSION);
+		c = c.dup;
 		if (arr.length > 0 && arr[$ - 1].id >= c.id) {
 			c.id = arr[$ - 1].id + 1L;
 		}
@@ -905,7 +909,7 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static CastCard createFromNode(XNode cNode, string ver) {
+	static CastCard createFromNode(XNode cNode, in XMLInfo ver) {
 		if (cNode.name != XML_NAME) throw new CardException("Node is not cast card: " ~ cNode.name);
 		auto r = new CastCard(0, "", "", "", 1, 1);
 		cNode.onTag["Property"] = (ref XNode pNode) {
@@ -1524,7 +1528,7 @@ public:
 		return pNode;
 	}
 	/// 指定されたXMLノードから効果カード関連のデータを読み出す。
-	protected void loadEffProp(ref XNode pNode, string ver) {
+	protected void loadEffProp(ref XNode pNode, in XMLInfo ver) {
 		assert (pNode.name == "Property");
 		pNode.onTag["LinkId"] = (ref XNode n) {linkId = .to!ulong(n.value);};
 		pNode.onTag["Scenario"] = (ref XNode n) {_scenario = n.value;};
@@ -1556,7 +1560,7 @@ public:
 		loadProp(pNode, ver);
 	}
 	/// ditto
-	protected void loadEffV(ref XNode node, string ver) {
+	protected void loadEffV(ref XNode node, in XMLInfo ver) {
 		node.onTag["Motions"] = (ref XNode n) {
 			Motion[] motions;
 			n.onTag["Motion"] = (ref XNode n) {
@@ -1762,7 +1766,7 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static SkillCard createFromNode(ref XNode cNode, string ver) {
+	static SkillCard createFromNode(ref XNode cNode, in XMLInfo ver) {
 		if (cNode.name != XML_NAME) throw new CardException("Node is not skill card: " ~ cNode.name);
 		auto r = new SkillCard(0, "", "", "");
 		ulong id = 0UL, linkId = 0UL;
@@ -2008,7 +2012,7 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static ItemCard createFromNode(ref XNode cNode, string ver) {
+	static ItemCard createFromNode(ref XNode cNode, in XMLInfo ver) {
 		if (cNode.name != XML_NAME) throw new CardException("Node is not item card: " ~ cNode.name);
 		auto r = new ItemCard(0, "", "", "");
 		ulong id = 0UL, linkId = 0UL;
@@ -2193,7 +2197,7 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static BeastCard createFromNode(ref XNode cNode, string ver) {
+	static BeastCard createFromNode(ref XNode cNode, in XMLInfo ver) {
 		if (cNode.name != XML_NAME) throw new CardException("Node is not beast card: " ~ cNode.name);
 		auto r = new BeastCard(0, "", "", "");
 		ulong id = 0UL, linkId = 0UL;
@@ -2303,7 +2307,7 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static InfoCard createFromNode(ref XNode cNode, string ver) {
+	static InfoCard createFromNode(ref XNode cNode, in XMLInfo ver) {
 		if (cNode.name != XML_NAME) throw new CardException("Node is not info card: " ~ cNode.name);
 		auto r = new InfoCard(0, "", "", "");
 		cNode.onTag["Property"] = (ref XNode node) {

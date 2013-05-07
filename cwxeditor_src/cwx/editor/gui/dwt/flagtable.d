@@ -8,6 +8,7 @@ import cwx.usecounter;
 import cwx.path;
 import cwx.menu;
 import cwx.types;
+import cwx.system;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -1396,8 +1397,8 @@ public:
 					Flag[string] cFlags;
 					Step[string] cSteps;
 					auto sels = flags.getSelectionIndices();
-					if (_dir.appendFromXML(c, LATEST_VERSION,
-							true, false, cFlags, cSteps, newPath, rootId)) {
+					auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
+					if (_dir.appendFromXML(c, ver, true, false, cFlags, cSteps, newPath, rootId)) {
 						string[] flagName;
 						string[] stepName;
 						foreach (f; cFlags) {

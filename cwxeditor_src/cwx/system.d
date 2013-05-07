@@ -7,6 +7,17 @@ import cwx.types;
 import std.string;
 import std.algorithm;
 
+/// XMLからデータを生成する際に必要な情報。
+class XMLInfo {
+	const System sys; /// 対象システム情報。
+	string ver; /// バージョン情報。
+
+	this (const System sys, string ver) {
+		this.sys = sys;
+		this.ver = ver;
+	}
+}
+
 /// 発火条件キーコードの種別。
 enum FKCKind {
 	Use, /// 使用時。

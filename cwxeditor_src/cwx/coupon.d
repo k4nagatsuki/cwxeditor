@@ -5,6 +5,7 @@ import cwx.xml;
 import cwx.usecounter;
 import cwx.path;
 import cwx.utils;
+import cwx.system;
 
 import std.conv;
 
@@ -94,7 +95,7 @@ public:
 	}
 
 	/// XMLノードからインスタンスを生成する。
-	static Coupon fromNode(in XNode node, string ver) {
+	static Coupon fromNode(in XNode node, in XMLInfo ver) {
 		assert (node.name == "Coupon", node.name ~ " != Coupon");
 		return new Coupon(node.value, node.attr!(int)("value", true));
 	}

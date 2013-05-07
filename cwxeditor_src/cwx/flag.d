@@ -5,6 +5,7 @@ import cwx.utils;
 import cwx.xml;
 import cwx.path;
 import cwx.usecounter;
+import cwx.system;
 
 import std.array;
 import std.datetime;
@@ -220,7 +221,7 @@ public:
 		return doc.text;
 	}
 	/// XMLノードからインスタンスを生成。
-	static Flag createFromNode(ref XNode fe, string ver) {
+	static Flag createFromNode(ref XNode fe, in XMLInfo ver) {
 		string name = null;
 		string tv = "TRUE";
 		string fv = "FALSE";
@@ -410,7 +411,7 @@ public:
 		return doc.text;
 	}
 	/// XMLノードからステップを生成する。
-	static Step createFromNode(ref XNode se, string ver) {
+	static Step createFromNode(ref XNode se, in XMLInfo ver) {
 		string[] vals;
 		string name = null;
 		int def = se.attr!(int)("default", true);
@@ -1129,7 +1130,7 @@ public:
 	}
 
 	private static bool __loadFS(string Fs, string Fg, F)
-			(ref XNode node, FlagDir p, out F[string] c, string delegate(string, string) createNewName, bool copy, string ver) {
+			(ref XNode node, FlagDir p, out F[string] c, string delegate(string, string) createNewName, bool copy, in XMLInfo ver) {
 		bool ret = true;
 		node.onTag[Fs] = (ref XNode node) {
 			if (!ret) return;
@@ -1152,7 +1153,7 @@ public:
 		return ret;
 	}
 	private bool loadFlagAndSteps
-			(ref XNode node, out Flag[string] cFlags, out Step[string] cSteps, bool copy, string ver) {
+			(ref XNode node, out Flag[string] cFlags, out Step[string] cSteps, bool copy, in XMLInfo ver) {
 		try {
 			if (!__loadFS!("Flags", "Flag", Flag)(node, this, cFlags, &createNewFlagName, copy, ver)) {
 				removeAll(cFlags);
@@ -1178,7 +1179,7 @@ public:
 		}
 	}
 	private FlagDir loadSubs
-			(ref XNode node, out Flag[string] cFlags, out Step[string] cSteps, bool copy, string ver) {
+			(ref XNode node, out Flag[string] cFlags, out Step[string] cSteps, bool copy, in XMLInfo ver) {
 		try {
 			auto subName = basename(node.attr("path", true));
 			if (subName.length == 0) {
@@ -1245,7 +1246,7 @@ public:
 	/// cSteps = 移動またはコピーしたステップの旧パスをキーにして新たなステップを格納する。
 	/// Returns: XMLからの追加を試みた結果。
 	/// See_Also: getXml(FlagDir, Flag[], Step[]), getXml(FlagDir)
-	AppendXmlResult appendFromXML(string xml, string ver, bool copy, bool dirMode,
+	AppendXmlResult appendFromXML(string xml, in XMLInfo ver, bool copy, bool dirMode,
 			out Flag[string] cFlags, out Step[string] cSteps, out string newPath, out string rootId) {
 		newPath = null;
 		rootId = "";
@@ -1287,7 +1288,7 @@ public:
 		}
 		return AppendXmlResult.FAIL;
 	}
-	private AppendXmlResult loadRootFlagDirectory(ref XNode node, string ver, bool copy,
+	private AppendXmlResult loadRootFlagDirectory(ref XNode node, in XMLInfo ver, bool copy,
 			out Flag[string] cFlags, out Step[string] cSteps, out string newPath) {
 		newPath = null;
 		string rootId;
@@ -1518,7 +1519,7 @@ public:
 	/// node = ノード。
 	/// change = 変更を通知するハンドラ。
 	/// Returns: ディレクトリツリー。
-	static FlagDir fromXmlNode(ref XNode node, CWXPath owner, void delegate() change, string ver) {
+	static FlagDir fromXmlNode(ref XNode node, CWXPath owner, void delegate() change, in XMLInfo ver) {
 		auto root = new FlagDir(owner);
 		node.onTag["Flags"] = (ref XNode node) {
 			__fromXmlNode!(Flag)(node, root, "Flag", &Flag.createFromNode, ver);
@@ -1531,7 +1532,7 @@ public:
 		return root;
 	}
 	private static void __fromXmlNode(E)(ref XNode node,
-			FlagDir root, string es, E function(ref XNode, string) pfunc, string ver) {
+			FlagDir root, string es, E function(ref XNode, in XMLInfo) pfunc, in XMLInfo ver) {
 		node.onTag[es] = (ref XNode e) {
 			string path = e.childText("Name", false);
 			if (path) {
