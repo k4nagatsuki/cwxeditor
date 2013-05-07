@@ -1251,7 +1251,7 @@ public:
 	ulong add(Area area, bool forceNewId = true) {
 		auto id = addImpl!(Area, toAreaId)(_area, area, forceNewId);
 		if (areas.length == 1) {
-			startArea = id;
+			startArea = area.id;
 		}
 		return id;
 	}

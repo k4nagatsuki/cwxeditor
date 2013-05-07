@@ -1442,33 +1442,33 @@ public:
 						auto oldId = area.id;
 						if (cast(Area) area) {
 							storeInsert(1 + _summ.areas.length);
-							auto newId = _summ.add(cast(Area) area);
+							_summ.add(cast(Area) area);
 							int index = _summ.areas.length - 1;
 							newAreaItem(index);
 							selArea(index);
 							_comm.refArea.call(cast(Area) area);
 							if (sameSummary && !_summ.hasAreaId(oldId)) {
-								_summ.useCounter.change(toAreaId(oldId), toAreaId(newId));
+								_summ.useCounter.change(toAreaId(oldId), toAreaId(area.id));
 							}
 						} else if (cast(Battle) area) {
 							storeInsert(1 + _summ.areas.length + _summ.battles.length);
-							auto newId = _summ.add(cast(Battle) area);
+							_summ.add(cast(Battle) area);
 							int index = _summ.battles.length - 1;
 							newBattleItem(index);
 							selBattle(index);
 							_comm.refBattle.call(cast(Battle) area);
 							if (sameSummary && !_summ.hasBattleId(oldId)) {
-								_summ.useCounter.change(toBattleId(oldId), toBattleId(newId));
+								_summ.useCounter.change(toBattleId(oldId), toBattleId(area.id));
 							}
 						} else if (cast(Package) area) {
 							storeInsert(1 + _summ.areas.length + _summ.battles.length + _summ.packages.length);
-							auto newId = _summ.add(cast(Package) area);
+							_summ.add(cast(Package) area);
 							int index = _summ.packages.length - 1;
 							newPackageItem(index);
 							selPackage(index);
 							_comm.refPackage.call(cast(Package) area);
 							if (sameSummary && !_summ.hasPackageId(oldId)) {
-								_summ.useCounter.change(toPackageId(oldId), toPackageId(newId));
+								_summ.useCounter.change(toPackageId(oldId), toPackageId(area.id));
 							}
 						} else assert (0);
 						if (_flags) _flags.refresh();
