@@ -236,6 +236,7 @@ private class TextEditMFListener : MouseAdapter, SelectionListener, FocusListene
 private:
 	Commons _comm;
 	Display _display;
+	Widget _oldFocusOut = null;
 	Item _itm = null;
 	Item _oldSel = null;
 	bool _hasFocus = false;
@@ -278,13 +279,22 @@ public:
 	/// startEdit = 編集開始時に呼出される。
 	/// selection = 編集対象を返す。
 	/// selectionM = 位置に応じて編集対象を返す。
-	this (Commons comm, void delegate(Item itm) startEdit,
+	this (Commons comm, Control ctrl, void delegate(Item itm) startEdit,
 			Item delegate() selection, Item delegate(int x, int y) selectionM) {
 		_comm = comm;
 		_display = Display.getCurrent();
 		_startEdit = startEdit;
 		_selection = selection;
 		_selectionM = selectionM;
+		auto filter = new class Listener {
+			override void handleEvent(Event e) {
+				_oldFocusOut = e.widget;
+			}
+		};
+		_display.addFilter(SWT.FocusOut, filter);
+		.listener(ctrl, SWT.Dispose, {
+			_display.removeFilter(SWT.FocusOut, filter);
+		});
 	}
 	override void widgetSelected(SelectionEvent e) {
 		if (_comm.prop.var.etc.editTriggerType is EditTrigger.Quick) {
@@ -299,7 +309,12 @@ public:
 		_hasFocus = true;
 		if (_comm.prop.var.etc.editTriggerType is EditTrigger.Quick) {
 			_itm = _selection();
-		} else {
+		} else if (_oldFocusOut !is e.widget) {
+			auto comp = cast(Composite)e.widget;
+			auto ctrl = cast(Control)_oldFocusOut;
+			if (comp && ctrl && isDescendant(comp, ctrl)) {
+				return;
+			}
 			_oldSel = _selection();
 		}
 	}
@@ -536,7 +551,7 @@ public:
 			editor = new TableEditor(table);
 			editor.grabHorizontal = true;
 
-			auto mf = new TextEditMFListener(comm, &startEdit, &selectionK, &selectionM);
+			auto mf = new TextEditMFListener(comm, table, &startEdit, &selectionK, &selectionM);
 			table.addMouseListener(mf);
 			table.addSelectionListener(mf);
 			table.addFocusListener(mf);
@@ -817,7 +832,7 @@ public:
 			editor = new TreeEditor(tree);
 			editor.grabHorizontal = true;
 
-			auto mf = new TextEditMFListener(comm, &startEdit, &selectionK, &selectionM);
+			auto mf = new TextEditMFListener(comm, tree, &startEdit, &selectionK, &selectionM);
 			tree.addMouseListener(mf);
 			tree.addSelectionListener(mf);
 			tree.addFocusListener(mf);
