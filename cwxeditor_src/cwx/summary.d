@@ -366,7 +366,7 @@ public:
 			return r;
 		}
 		Summary loadLegacy(string p) {
-			Summary r = loadLScenario(p, "", opt, newName);
+			Summary r = loadLScenario(p, "", prop.sys, opt, newName);
 			return r;
 		}
 		Summary createFromTemplate(Summary r) {
@@ -1678,7 +1678,7 @@ public:
 	Summary reloadXMLs(const System sys, in LoadOption opt) {
 		Summary summ;
 		if (legacy) {
-			summ = loadLScenario(scenarioPath, "", opt, scenarioName);
+			summ = loadLScenario(scenarioPath, "", sys, opt, scenarioName);
 		} else {
 			summ = summaryFromXML(sys, scenarioPath,
 				std.file.readText(std.path.buildPath(scenarioPath, "Summary.xml")));
@@ -1988,7 +1988,7 @@ public:
 				auto oldPath = scenarioPath;
 				scenarioPath = sPath;
 				scope (failure) scenarioPath = oldPath;
-				saveLScenario(this, skin, opt);
+				saveLScenario(this, skin, prop.sys, opt);
 				bool useTemp = archive;
 				.enforce(useTemp == (0 < zipName.length));
 				if (useTemp) {

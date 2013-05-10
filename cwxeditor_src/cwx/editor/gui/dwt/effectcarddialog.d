@@ -27,6 +27,7 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.scales;
+import cwx.editor.gui.dwt.chooser;
 
 import std.algorithm : max;
 import std.path;
@@ -651,14 +652,10 @@ private:
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			_keyCodes.length = _prop.looks.keyCodesMax;
 			grp.setLayout(new GridLayout(_keyCodes.length >= 8 ? 2 : 1, true));
-			string[] stdKCs = _prop.var.etc.standardKeyCodes.dup;
 			for (int i = 0; i < _keyCodes.length; i++) {
-				_keyCodes[i] = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
+				_keyCodes[i] = createKeyCodeCombo(_comm, grp, &catchMod);
 				mod(_keyCodes[i]);
-				_keyCodes[i].setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
-				createTextMenu!Combo(_comm, _prop, _keyCodes[i], &catchMod);
 				_keyCodes[i].setLayoutData(new GridData(GridData.FILL_BOTH));
-				setComboItems(_keyCodes[i], stdKCs);
 			}
 			setKeyCodesEnabled();
 		}
@@ -676,24 +673,6 @@ private:
 		tab.setText(_prop.msgs.seAndKeyCode);
 		tab.setControl(comp);
 		return tab;
-	}
-	void refStandardKeyCodes() {
-		string[] stdKCs = _prop.var.etc.standardKeyCodes.dup;
-		auto cKeyCodes = _card ? _card.keyCodes: [];
-		foreach (i, combo; _keyCodes) {
-			string text = combo.getText();
-			combo.removeAll();
-			foreach (kc; stdKCs) {
-				combo.add(kc);
-			}
-			combo.setText(text);
-			if (i < cKeyCodes.length) {
-				auto kc = cKeyCodes[i];
-				if (_card && !contains(combo.getItems(), kc)) {
-					combo.add(kc, 0);
-				}
-			}
-		}
 	}
 	void delCard(C c) {
 		if (_card is c) {
@@ -718,8 +697,6 @@ private:
 			} else static assert (0);
 			_comm.refSkin.remove(&refSkin);
 			_comm.refScenario.remove(&refScenario);
-			_comm.refStandardKeyCodes.remove(&refStandardKeyCodes);
-			_comm.refKeyCodes.remove(&refStandardKeyCodes);
 			_comm.refEventTree.remove(&refEventTree);
 			_comm.delEventTree.remove(&refEventTree);
 			_comm.refRadarStyle.remove(&initUseMod);
@@ -800,8 +777,6 @@ protected:
 		} else static assert (0);
 		_comm.refSkin.add(&refSkin);
 		_comm.refScenario.add(&refScenario);
-		_comm.refStandardKeyCodes.add(&refStandardKeyCodes);
-		_comm.refKeyCodes.add(&refStandardKeyCodes);
 		_comm.refEventTree.add(&refEventTree);
 		_comm.delEventTree.add(&refEventTree);
 		_comm.refRadarStyle.add(&initUseMod);

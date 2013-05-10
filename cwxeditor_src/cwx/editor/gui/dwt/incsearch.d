@@ -125,7 +125,9 @@ class IncSearch {
 				if (!_open) return;
 				if (!_win.isVisible()) return;
 				auto c = parent.getDisplay().getFocusControl();
+				if (!c) return;
 				if (isDescendant(_win, c)) return;
+				if (!(c.getShell() is _win || c.getShell() is parent.getShell())) return;
 				auto comp = cast(Composite) parent;
 				if (comp) {
 					if (!isDescendant(comp, c)) {

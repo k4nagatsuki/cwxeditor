@@ -34,6 +34,7 @@ import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.couponview;
+import cwx.editor.gui.dwt.chooser;
 
 import std.array;
 import std.utf;
@@ -628,22 +629,8 @@ private:
 			}
 		}
 	}
-	void refreshCoupons() {
-		auto c = _rCouponsList.getText();
-		_rCouponsList.removeAll();
-		auto cs = castCoupons(comm, true, comm.skin.legacyName);
-		foreach (coupon; cs) {
-			_rCouponsList.add(coupon);
-		}
-		_rCouponsList.select(0);
-		if (c.length && -1 == _rCouponsList.indexOf(c)) {
-			_rCouponsList.add(c, 0);
-		}
-		_rCouponsList.setText(c);
-	}
 	protected override void refSkin() {
 		_text.font = dwtData(prop.looks.messageFont(summ.legacy));
-		refreshCoupons();
 	}
 	void refreshDlgList() {
 		bool oldIgnoreMod = ignoreMod;
@@ -798,7 +785,6 @@ protected:
 			}
 			mod(_rCoupons);
 			_rCoupons.addModifyListener(new ModRC);
-			refreshCoupons();
 			tp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		{
@@ -896,10 +882,6 @@ protected:
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 
-		comm.refCoupons.add(&refreshCoupons);
-		.listener(_rCouponsList, SWT.Dispose, {
-			comm.refCoupons.remove(&refreshCoupons);
-		});
 		leftSash.setWeights([prop.var.etc.talkLeftSashL, prop.var.etc.talkLeftSashR]);
 		leftSash.addDisposeListener(new DisposeLeftSash);
 		sash.setWeights([prop.var.etc.talkMainSashL, prop.var.etc.talkMainSashR]);
@@ -1163,9 +1145,7 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 		string[] coupons, out Text couponList, out Combo couponCombo) {
 	auto comp = new Composite(parent, SWT.NONE);
 	comp.setLayout(zeroMarginGridLayout(2, false));
-	couponCombo = new Combo(comp, SWT.DROP_DOWN | SWT.BORDER);
-	couponCombo.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
-	createTextMenu!Combo(comm, prop, couponCombo, null);
+	couponCombo = createCouponCombo(comm, comp, null, CouponComboType.Talker);
 	auto push = new Button(comp, SWT.PUSH);
 	auto skin = comm.skin;
 	{

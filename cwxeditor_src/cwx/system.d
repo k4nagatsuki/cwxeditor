@@ -25,6 +25,11 @@ enum FKCKind {
 	Failure, /// 失敗時。
 	HasNot, /// 不保有。
 }
+/// キーコード発火条件とキーコード本体の組み合わせ。
+struct FKeyCode {
+	string keyCode; /// キーコード。
+	FKCKind kind; /// 発火条件。
+}
 
 class System {
 	/// 唯一のコンストラクタ。
@@ -251,7 +256,27 @@ class System {
 		}
 		return FKCKind.Use;
 	}
+	/// ditto
+	const
+	FKCKind fireKeyCodeKindRef(ref string keyCode) {
+		if (.endsWith(keyCode, FKC_SUCCESS.idup)) {
+			keyCode = keyCode[0..$-FKC_SUCCESS.length];
+			return FKCKind.Success;
+		} else if (std.string.endsWith(keyCode, FKC_FAILURE.idup)) {
+			keyCode = keyCode[0..$-FKC_FAILURE.length];
+			return FKCKind.Failure;
+		} else if (std.string.startsWith(keyCode, FKC_HASNOT.idup)) {
+			keyCode = keyCode[FKC_HASNOT.length..$];
+			return FKCKind.HasNot;
+		}
+		return FKCKind.Use;
+	}
 	/// キーコード発火条件を変換する。
+	const
+	string convFireKeyCode(in FKeyCode keyCode) {
+		return convFireKeyCode(keyCode.keyCode, keyCode.kind);
+	}
+	/// ditto
 	const
 	string convFireKeyCode(string keyCode, FKCKind kind) {
 		if (.endsWith(keyCode, FKC_SUCCESS.idup)) {
@@ -284,6 +309,13 @@ class System {
 			}
 		}
 	}
+	/// 発火条件付のキーコードをFKeyCodeへ変換する。
+	const
+	FKeyCode toFKeyCode(string keyCode) {
+		auto kind = fireKeyCodeKindRef(keyCode);
+		return FKeyCode(keyCode, kind);
+	}
+
 	/// 種族名をクーポンに変換する。
 	const
 	string raceCoupon(string raceName) {

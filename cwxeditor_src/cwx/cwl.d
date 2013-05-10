@@ -32,6 +32,7 @@ import cwx.path;
 import cwx.skin;
 import cwx.imagesize;
 import cwx.structs;
+import cwx.system;
 
 private bool sWith(string f, string s, out ulong id) {
 	if (!fnstartsWith(f, s)) return false;
@@ -50,30 +51,38 @@ private string decodePathLegacy(string path) {
 }
 
 private struct RData {
+	const System sys;
 	bool cardOnly;
 	string sPath;
 	string skin;
 	int dataVersion;
+	this (const System sys, bool cardOnly, string sPath, string skin) {
+		this.sys = sys;
+		this.cardOnly = cardOnly;
+		this.sPath = sPath;
+		this.skin = skin;
+		this.dataVersion = 0;
+	}
 }
 /// 4.0形式のCardWirthシナリオを読込む。
 /// Params:
 /// newName = シナリオ名。null以外が指定された場合、
 ///           Summary.wsmが存在しない際はこの名前で新規に作成する。
-Summary loadLScenario(string p, string skin, in LoadOption opt, string newName = null) {
+Summary loadLScenario(string p, string skin, const System sys, in LoadOption opt, string newName = null) {
 	auto sPath = p;
 	string summPath = std.path.buildPath(p, "Summary.wsm");
 	Summary summ;
-	RData d;
+	RData* d;
 	ulong startAreaId;
 	if (.exists(summPath)) {
-		d = RData(opt.cardOnly, sPath, skin);
+		d = new RData(sys, opt.cardOnly, sPath, skin);
 		{
 			auto bytes = ByteIO(std.file.read(summPath));
-			summ = loadSummary(d, bytes, startAreaId);
+			summ = loadSummary(*d, bytes, startAreaId);
 		}
 	} else {
 		if (!newName) throw new SummaryException("Not Scenario: " ~ p);
-		d = RData(opt.cardOnly, sPath, skin);
+		d = new RData(sys, opt.cardOnly, sPath, skin);
 		summ = new Summary(newName, d.skin, d.sPath, false, true);
 	}
 	class Load {
@@ -98,29 +107,29 @@ Summary loadLScenario(string p, string skin, in LoadOption opt, string newName =
 					ulong id;
 					if (!d.cardOnly) {
 						if (sWith(base, "Area", id)) {
-							areas ~= .loadArea(d, f, id);
+							areas ~= .loadArea(*d, f, id);
 						}
 						if (sWith(base, "Battle", id)) {
-							battles ~= .loadBattle(d, f, id);
+							battles ~= .loadBattle(*d, f, id);
 						}
 						if (sWith(base, "Package", id)) {
-							packages ~= .loadPackage(d, f, id);
+							packages ~= .loadPackage(*d, f, id);
 						}
 					}
 					if (sWith(base, "Mate", id)) {
-						casts ~= .loadCast(d, f, id);
+						casts ~= .loadCast(*d, f, id);
 					}
 					if (sWith(base, "Skill", id)) {
-						skills ~= .loadSkill(d, f, id);
+						skills ~= .loadSkill(*d, f, id);
 					}
 					if (sWith(base, "Item", id)) {
-						items ~= .loadItem(d, f, id);
+						items ~= .loadItem(*d, f, id);
 					}
 					if (sWith(base, "Beast", id)) {
-						beasts ~= .loadBeast(d, f, id);
+						beasts ~= .loadBeast(*d, f, id);
 					}
 					if (sWith(base, "Info", id)) {
-						infos ~= .loadInfo(d, f, id);
+						infos ~= .loadInfo(*d, f, id);
 					}
 				} catch (Exception e) {
 					debugln(file ~ " - " ~ e.msg);
@@ -1458,7 +1467,12 @@ private EventTree readEventTree(ref RData d, ref ByteIO f, bool enemyCard, size_
 		tree.keyCodeMatchingType = KeyCodeMatchingType.And;
 		keyCodes = keyCodes[1 .. $];
 	}
-	tree.keyCodes = keyCodes;
+	FKeyCode[] kcArray;
+	foreach (keyCode; keyCodes) {
+		auto kind = d.sys.fireKeyCodeKindRef(keyCode);
+		kcArray ~= FKeyCode(keyCode, kind);
+	}
+	tree.keyCodes = kcArray;
 	return tree;
 }
 private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
@@ -1891,6 +1905,7 @@ private InfoCard loadInfo(ref RData d, ref ByteIO f, ulong fid) {
 }
 
 struct SData {
+	const System sys;
 	string sPath;
 	const Skin skin;
 	bool saveInnerImagePath;
@@ -1905,8 +1920,8 @@ struct SData {
 	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
 }
 /// 4.0形式のCardWirthシナリオを保存する。
-void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
-	auto d = SData(summ.scenarioPath, skin, opt.saveInnerImagePath, &summ.skill, &summ.item, &summ.beast, opt);
+void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOption opt) {
+	auto d = SData(sys, summ.scenarioPath, skin, opt.saveInnerImagePath, &summ.skill, &summ.item, &summ.beast, opt);
 	class Save {
 		Area[] areas;
 		Battle[] battles;
@@ -3057,7 +3072,10 @@ private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) {
 	foreach (ig; igs) {
 		f.writeL(cast(int) ig);
 	}
-	auto keyCodes = tree.keyCodes;
+	string[] keyCodes;
+	foreach (keyCode; tree.keyCodes) {
+		keyCodes ~= d.sys.convFireKeyCode(keyCode.keyCode, keyCode.kind);
+	}
 	if (KeyCodeMatchingType.And is tree.keyCodeMatchingType) {
 		// CardWirthNext
 		writeStrings(f, ["MatchingType=All"] ~ keyCodes);

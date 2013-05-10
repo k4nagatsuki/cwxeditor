@@ -34,6 +34,7 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.chooser;
 
 import std.algorithm : countUntil;
 import std.conv;
@@ -610,28 +611,6 @@ private:
 		}
 	}
 
-	protected override void refSkin() {
-		refreshCoupons();
-	}
-	void refreshCoupons() {
-		auto c = _name.getText();
-		_name.removeAll();
-		auto cs = castCoupons(comm, false, comm.skin.legacyName);
-		string[] cs2;
-		if (prop.var.etc.usedCouponToCombo) {
-			foreach (coupon; comm.summary.useCounter.coupon.keys.sort) {
-				if (!.contains(cs2, coupon.id)) cs2 ~= coupon;
-			}
-		}
-		foreach (coupon; cs2 ~ cs) {
-			_name.add(coupon);
-		}
-		_name.select(0);
-		if (c.length && -1 == _name.indexOf(c)) {
-			_name.add(c, 0);
-		}
-		_name.setText(c);
-	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.couponEvtDlg, true);
@@ -677,15 +656,12 @@ protected:
 				auto comp = new Composite(grp, SWT.NONE);
 				comp.setLayout(new GridLayout(3, false));
 				{
-					_name = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN);
+					_name = createCouponCombo(comm, comp, &catchMod, CouponComboType.AllCoupons);
 					mod(_name);
-					_name.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
-					createTextMenu!Combo(_comm, _prop, _name, &catchMod);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
 					gd.widthHint = _prop.var.etc.nameWidth;
 					_name.setLayoutData(gd);
-					refreshCoupons();
 				}
 				foreach (coType; [CouponType.Normal, CouponType.Hide, CouponType.Dur, CouponType.DurBattle]) {
 					auto b = new Button(comp, SWT.RADIO);
@@ -725,10 +701,6 @@ protected:
 				lr.setText(.tryFormat(_prop.msgs.couponValueRange, -(cast(int) prop.var.etc.couponValueMax), prop.var.etc.couponValueMax));
 			}
 		}
-		comm.refCoupons.add(&refreshCoupons);
-		.listener(_name, SWT.Dispose, {
-			comm.refCoupons.remove(&refreshCoupons);
-		});
 
 		if (_evt) {
 			_range[_evt.range].setSelection(true);
@@ -740,7 +712,6 @@ protected:
 				_type[CouponType.Normal].setSelection(true);
 			}
 			_name.setText(_evt.coupon);
-			_name.add(_evt.coupon, 0);
 			static if (EditValue) {
 				_value.setSelection(_evt.couponValue);
 			}
@@ -780,30 +751,11 @@ private class OneTextEventDialog(CType Type, string Name, string Get, string Set
 private:
 	Combo _name;
 
-	void refreshCombo() {
-		auto c = _name.getText();
-		_name.removeAll();
-
-		if (CDetail.fromType(Type).use(CArg.GOSSIP)) {
-			foreach (n; comm.summary.useCounter.gossip.keys.sort) {
-				_name.add(n);
-			}
-		}
-		if (CDetail.fromType(Type).use(CArg.COMPLETE_STAMP)) {
-			foreach (n; comm.summary.useCounter.completeStamp.keys.sort) {
-				_name.add(n);
-			}
-		}
-		_name.select(0);
-		if (c.length && -1 == _name.indexOf(c)) {
-			_name.add(c, 0);
-		}
-		_name.setText(c);
-	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.inputEvtDlg, true);
 	}
+
 protected:
 	override void setup(Composite area) {
 		area.setLayout(new GridLayout(1, false));
@@ -817,26 +769,15 @@ protected:
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout(new GridLayout(1, true));
 
-			_name = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN);
+			if (CDetail.fromType(Type).use(CArg.GOSSIP)) {
+				_name = createGossipCombo(comm, comp, &catchMod);
+			} else if (CDetail.fromType(Type).use(CArg.COMPLETE_STAMP)) {
+				_name = createCompleteStampCombo(comm, comp, &catchMod);
+			} else assert (0);
 			mod(_name);
-			_name.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
-			createTextMenu!Combo(_comm, _prop, _name, &catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_name.setLayoutData(gd);
-			refreshCombo();
-		}
-		if (CDetail.fromType(Type).use(CArg.GOSSIP)) {
-			comm.refGossips.add(&refreshCombo);
-			.listener(_name, SWT.Dispose, {
-				comm.refGossips.remove(&refreshCombo);
-			});
-		}
-		if (CDetail.fromType(Type).use(CArg.COMPLETE_STAMP)) {
-			comm.refCompleteStamps.add(&refreshCombo);
-			.listener(_name, SWT.Dispose, {
-				comm.refCompleteStamps.remove(&refreshCombo);
-			});
 		}
 
 		if (_evt) {
@@ -2822,47 +2763,11 @@ private:
 	Button[Range] _keyCodeRange;
 	Button[EffectCardType] _effectCardType;
 	Combo _keyCode;
-	IncSearch _incSearch;
-	void incSearch() {
-		.forceFocus(_keyCode, true);
-		_incSearch.startIncSearch();
-	}
 
 	void refreshWarning()  {
 		string[] ws;
 		ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_KEY_CODE));
 		warning = ws;
-	}
-
-	void refStandardKeyCodes() {
-		string id = _keyCode.getText();
-		_keyCode.removeAll();
-
-		string[] stdKCs = _prop.var.etc.standardKeyCodes.dup;
-
-		auto kcs = summ.useCounter.keyCode.keys;
-		string[] kcs2;
-		foreach (string kc; kcs.sort) {
-			if (!.contains(stdKCs, kc)) {
-				kcs2 ~= kc;
-			}
-		}
-
-		if (kcs2.length) {
-			kcs2 ~= "";
-		}
-		kcs2 ~= stdKCs;
-		foreach (kc; kcs2) {
-			if (!_incSearch.match(kc)) continue;
-			_keyCode.add(kc);
-		}
-		_keyCode.setText(id);
-	}
-	class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
-			_comm.refStandardKeyCodes.remove(&refStandardKeyCodes);
-			_comm.refKeyCodes.remove(&refStandardKeyCodes);
-		}
 	}
 
 public:
@@ -2910,26 +2815,12 @@ protected:
 			grp.setLayoutData(gd);
 			grp.setLayout(new GridLayout(1, true));
 
-			_keyCode = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
+			_keyCode = createKeyCodeCombo(comm, grp, &catchMod);
 			mod(_keyCode);
-			_keyCode.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
-			auto menu = new Menu(_keyCode.getShell(), SWT.POP_UP);
-			createMenuItem(comm, menu, MenuID.IncSearch, &incSearch, null);
-			new MenuItem(menu, SWT.SEPARATOR);
-			_keyCode.setMenu(menu);
-			createTextMenu!Combo(_comm, _prop, _keyCode, &catchMod);
 			auto kgd = new GridData(GridData.FILL_HORIZONTAL);
 			kgd.widthHint = _prop.var.etc.nameWidth;
 			_keyCode.setLayoutData(kgd);
-
-			_incSearch = new IncSearch(comm, _keyCode);
-			_incSearch.modEvent ~= &refStandardKeyCodes;
-
-			refStandardKeyCodes();
 		}
-		_comm.refStandardKeyCodes.add(&refStandardKeyCodes);
-		_comm.refKeyCodes.add(&refStandardKeyCodes);
-		_keyCode.addDisposeListener(new Dispose);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;

@@ -1957,6 +1957,16 @@ KeyCodeMatchingType toKeyCodeMatchingType(string t) {
 	}
 }
 
+/// キーコード発火条件とキーコード本体の組み合わせ。
+private struct FKeyCodeU {
+	KeyCodeUser user; /// キーコード。
+	FKCKind kind; /// 発火条件。
+	const
+	bool opEquals(in FKeyCode kc) {
+		return user.keyCode == kc.keyCode && kind == kc.kind;
+	}
+}
+
 /// イベントツリー。発火条件と実行するイベント群を持つ。
 public class EventTree : CWXPath {
 private:
@@ -1970,7 +1980,7 @@ private:
 	bool _round0 = false;
 	uint[] _rounds;
 
-	KeyCodeUser[] _keyCodes;
+	FKeyCodeU[] _keyCodes;
 	KeyCodeMatchingType _keyCodeMatchingType = KeyCodeMatchingType.Or;
 
 	Content[] _starts;
@@ -2216,10 +2226,11 @@ public:
 	}
 
 	/// 指定されたインデックスのキーコードを差し替える。
-	void setKeyCode(int index, string keyCode) {
-		if (_keyCodes[index].keyCode != keyCode) {
+	void setKeyCode(int index, FKeyCode keyCode) {
+		if (_keyCodes[index] != keyCode) {
 			changed();
-			_keyCodes[index].keyCode = keyCode;
+			_keyCodes[index].user.keyCode = keyCode.keyCode;
+			_keyCodes[index].kind = keyCode.kind;
 		}
 	}
 
@@ -2233,7 +2244,7 @@ public:
 			s.setUseCounter(uc);
 		}
 		foreach (kc; _keyCodes) {
-			kc.setUseCounter(uc);
+			kc.user.setUseCounter(uc);
 		}
 		_uc = uc;
 	}
@@ -2243,7 +2254,7 @@ public:
 			s.removeUseCounter();
 		}
 		foreach (kc; _keyCodes) {
-			kc.removeUseCounter();
+			kc.user.removeUseCounter();
 		}
 		_uc = null;
 	}
@@ -2383,22 +2394,22 @@ public:
 
 	/// 発火キーコードを追加。
 	/// Returns: 追加できた場合はtrue。
-	bool addKeyCode(string keyCode) {
+	bool addKeyCode(FKeyCode keyCode) {
 		if (!fireKeyCode(keyCode)) {
 			changed();
 			auto user = new KeyCodeUser(this);
 			if (useCounter) user.setUseCounter = useCounter;
-			user.keyCode = keyCode;
-			_keyCodes ~= user;
+			user.keyCode = keyCode.keyCode;
+			_keyCodes ~= FKeyCodeU(user, keyCode.kind);
 			return true;
 		}
 		return false;
 	}
 	/// 指定されたキーコードで発火するか。
 	const
-	bool fireKeyCode(string keyCode) {
+	bool fireKeyCode(in FKeyCode keyCode) {
 		foreach (kc; _keyCodes) {
-			if (kc.keyCode == keyCode) {
+			if (kc == keyCode) {
 				return true;
 			}
 		}
@@ -2407,36 +2418,36 @@ public:
 	/// 発火キーコード群。
 	@property
 	const
-	string[] keyCodes() {
-		auto r = new string[_keyCodes.length];
+	FKeyCode[] keyCodes() {
+		auto r = new FKeyCode[_keyCodes.length];
 		foreach (i, ref kc; r) {
-			kc = _keyCodes[i].keyCode;
+			kc = FKeyCode(_keyCodes[i].user.keyCode, _keyCodes[i].kind);
 		}
 		return r;
 	}
 	/// ditto
 	@property
-	void keyCodes(string[] keyCodes) {
+	void keyCodes(in FKeyCode[] keyCodes) {
 		if (this.keyCodes != keyCodes) {
 			changed();
 			foreach (c; _keyCodes) {
-				c.removeUseCounter();
+				c.user.removeUseCounter();
 			}
 			_keyCodes.length = keyCodes.length;
 			foreach (i, ref c; _keyCodes) {
-				c = new KeyCodeUser(this);
-				c.keyCode = keyCodes[i];
+				c = FKeyCodeU(new KeyCodeUser(this), keyCodes[i].kind);
+				c.user.keyCode = keyCodes[i].keyCode;
 				if (useCounter) {
-					c.setUseCounter = useCounter;
+					c.user.setUseCounter = useCounter;
 				}
 			}
 		}
 	}
 	/// 発火キーコードを除去。
-	void removeKeyCode(string keyCode) {
+	void removeKeyCode(in FKeyCode keyCode) {
 		foreach (i, kc; _keyCodes) {
-			if (kc.keyCode == keyCode) {
-				kc.removeUseCounter();
+			if (kc == keyCode) {
+				kc.user.removeUseCounter();
 				_keyCodes = _keyCodes[0 .. i] ~ _keyCodes[i + 1 .. $];
 				return;
 			}
@@ -2446,7 +2457,7 @@ public:
 	/// ditto
 	void removeKeyCodesAll() {
 		foreach (kc; _keyCodes) {
-			kc.removeUseCounter();
+			kc.user.removeUseCounter();
 		}
 		_keyCodes.length = 0;
 	}
@@ -2500,6 +2511,10 @@ public:
 				nums ~= ("-" ~ to!(string)(r));
 			}
 			ig.newElement("Number", encodeLf(nums, false));
+			string[] keyCodes;
+			foreach (u; _keyCodes) {
+				keyCodes ~= opt.sys.convFireKeyCode(u.user.keyCode, u.kind);
+			}
 			ig.newElement("KeyCodes", encodeLf(keyCodes));
 		}
 		auto c = node.newElement("Contents");
@@ -2561,7 +2576,8 @@ public:
 				auto val = n.value;
 				if (val.length > 0) {
 					foreach (kc; decodeLf(val)) {
-						r.addKeyCode(kc);
+						auto kind = ver.sys.fireKeyCodeKindRef(kc);
+						r.addKeyCode(FKeyCode(kc, kind));
 					}
 				}
 			};
@@ -2593,8 +2609,9 @@ public:
 		return __fireToXML("FireRound", "round", to!(string)(round));
 	}
 	/// 「発火キーコード」をXMLテキスト化する。
-	static string keyCodeToXML(string keyCode) {
-		return __fireToXML("FireKeyCode", "keyCode", keyCode);
+	static string keyCodeToXML(FKeyCode keyCode, in System sys) {
+		string str = sys.convFireKeyCode(keyCode.keyCode, keyCode.kind);
+		return __fireToXML("FireKeyCode", "keyCode", str);
 	}
 	private static bool __fireFromXML(string xml, string name, void delegate(bool) fire) {
 		try {
@@ -2641,13 +2658,15 @@ public:
 		return -1;
 	}
 	/// 「発火キーコード」をXMLテキストからロードし、成功すればtrueを返す。
-	string keyCodeFromXML(EventTreeOwner owner, string xml) {
+	string keyCodeFromXML(EventTreeOwner owner, string xml, in System sys) {
 		if (owner.canHasFireKeyCode) {
 			try {
 				auto node = XNode.parse(xml);
 				if (node.name == "FireKeyCode") {
 					string r = node.attr("keyCode", true);
-					addKeyCode(r);
+					string name = r;
+					auto kind = sys.fireKeyCodeKindRef(name);
+					addKeyCode(FKeyCode(name, kind));
 					return r;
 				}
 			} catch {}

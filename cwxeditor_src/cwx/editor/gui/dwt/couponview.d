@@ -26,6 +26,7 @@ import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.chooser;
 
 import std.datetime;
 import std.string;
@@ -59,11 +60,10 @@ class CouponView(CVType Type) : Composite {
 	private UndoManager _undoCoupons;
 
 	private TextMenuModify _newCouponTM;
+	private Combo _newCoupon;
 	static if (CVType.Cast == Type) {
-		private Text _newCoupon;
 		private Button _couponType;
 	} else {
-		private Combo _newCoupon;
 		private CCombo _couponType;
 		private int[CouponType] _couponTypeTable;
 		private CouponType[int] _couponTypeTable2;
@@ -455,15 +455,12 @@ class CouponView(CVType Type) : Composite {
 		}
 		{
 			static if (CVType.Cast == Type) {
-				_newCoupon = new Text(this, SWT.BORDER);
+				_newCoupon = createCouponCombo!Combo(_comm, this, catchMod, CouponComboType.Cast, _newCouponTM);
 				.listener(_newCoupon, SWT.Modify, &updateCouponType);
 			} else {
-				_newCoupon = new Combo(this, SWT.BORDER | SWT.DROP_DOWN);
-				_newCoupon.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+				_newCoupon = createCouponCombo!Combo(_comm, this, catchMod, CouponComboType.Talker, _newCouponTM);
 				.listener(_newCoupon, SWT.Modify, &updateCouponType);
-				updateCoupons();
 			}
-			_newCouponTM = createTextMenu!(typeof(_newCoupon))(_comm, _prop, _newCoupon, catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.horizontalSpan = 2;
 			_newCoupon.setLayoutData(gd);
@@ -506,8 +503,6 @@ class CouponView(CVType Type) : Composite {
 
 		_comm.refMenu.add(&refMenu);
 		_comm.refUndoMax.add(&refUndoMax);
-		_comm.refSkin.add(&updateCoupons);
-		_comm.refCoupons.add(&updateCoupons);
 		this.addDisposeListener(new Dispose);
 		_kdFilter = new KeyDownFilter();
 		this.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
@@ -516,8 +511,6 @@ class CouponView(CVType Type) : Composite {
 		override void widgetDisposed(DisposeEvent e) {
 			_comm.refMenu.remove(&refMenu);
 			_comm.refUndoMax.remove(&refUndoMax);
-			_comm.refSkin.remove(&updateCoupons);
-			_comm.refCoupons.remove(&updateCoupons);
 			e.widget.getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 		}
 	}
@@ -550,28 +543,6 @@ class CouponView(CVType Type) : Composite {
 
 	private void refUndoMax() {
 		_undoCoupons.max = _prop.var.etc.undoMaxEtc;
-	}
-
-	private void updateCoupons() {
-		static if (CVType.Cast != Type) {
-			auto c = _newCoupon.getText();
-			_newCoupon.removeAll();
-			auto cs = castCoupons(_comm, false, _comm.skin.legacyName);
-			string[] cs2;
-			if (_prop.var.etc.usedCouponToCombo) {
-				foreach (coupon; _comm.summary.useCounter.coupon.keys.sort) {
-					if (!.contains(cs2, coupon.id)) cs2 ~= coupon;
-				}
-			}
-			foreach (coupon; cs2 ~ cs) {
-				_newCoupon.add(coupon);
-			}
-			_newCoupon.select(0);
-			if (c.length && -1 == _newCoupon.indexOf(c)) {
-				_newCoupon.add(c, 0);
-			}
-			_newCoupon.setText(c);
-		}
 	}
 
 	@property

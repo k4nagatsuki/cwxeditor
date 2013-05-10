@@ -922,6 +922,7 @@ class Msgs : Properties {
 	auto keyCodeTimingUse = Msg("keyCodeTimingUse", "使用");
 	auto keyCodeTimingSuccess = Msg("keyCodeTimingSuccess", "成功");
 	auto keyCodeTimingFailure = Msg("keyCodeTimingFailure", "失敗");
+	auto keyCodeTimingHasNot = Msg("keyCodeTimingHasNot", "不保有");
 
 	auto manyRounds = Msg("manyRounds", "追加する発火ラウンドの範囲");
 	auto dlgTitAddManyRounds = Msg("dlgTitAddManyRounds", "追加する発火ラウンドの範囲");

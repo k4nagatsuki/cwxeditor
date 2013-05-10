@@ -20,6 +20,7 @@ import cwx.jpy;
 import cwx.cab;
 import cwx.features;
 import cwx.textholder;
+import cwx.system;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -61,6 +62,12 @@ private class FilePathString {
 	this (string scPath, string array) {
 		this.scPath = scPath;
 		this.array = array;
+	}
+}
+
+private class FKeyCodesUndo : TUndo!(FKeyCode[]) {
+	this (FKeyCode[] old, FKeyCode[] n, void delegate(FKeyCode[]) set) {
+		super (old.dup, n.dup, set, (FKeyCode[] v) {return v.dup;});
 	}
 }
 
@@ -107,6 +114,9 @@ private:
 	}
 	void store(CWXPath path, string[] o, string[] n, void delegate(string[]) set) {
 		_rUndo ~= new RUndo(path, [new StrArrUndo(o, n, set)]);
+	}
+	void store(CWXPath path, FKeyCode[] o, FKeyCode[] n, void delegate(FKeyCode[]) set) {
+		_rUndo ~= new RUndo(path, [new FKeyCodesUndo(o, n, set)]);
 	}
 	void storeID(User, Id)(CWXPath path, User u, Id from, Id to, void delegate(Id) set) {
 		_rUndo ~= new RUndo(path, [new TUndo!Id(from, to, set)]);
@@ -2544,7 +2554,7 @@ public:
 				}
 				auto eventTree = cast(EventTree) path;
 				if (eventTree) {
-					if (eventTree.keyCodes.length && eventTree.keyCodes[0] == "MatchingType=All") {
+					if (eventTree.keyCodes.length && _prop.sys.convFireKeyCode(eventTree.keyCodes[0]) == "MatchingType=All") {
 						addResult(path, count, _prop.msgs.searchErrorKeyCodeMatchingAll);
 						return;
 					}
@@ -2954,7 +2964,7 @@ public:
 		}
 		auto et = cast(EventTree) c;
 		if (et) {
-			replKeyCode(et, et, count, nArr);
+			replFKeyCode(et, et, count, nArr);
 		}
 		auto content = cast(Content) c;
 		if (content) {
@@ -3710,6 +3720,32 @@ public:
 				}
 				if (path) {
 					if (_replMode) store(path, old, kcs.dup, &targ.keyCodes);
+					size_t dmy = 0;
+					addResult(path, dmy);
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+	private bool replFKeyCode(C)(CWXPath path, C targ, ref size_t count, ref Undo[] uArr) {
+		if (_keyCodeSel) {
+			auto kcs = targ.keyCodes.dup;
+			auto old = targ.keyCodes.dup;
+			bool r = false;
+			Undo[] nArr;
+			foreach (i, fkc; kcs) {
+				auto kc = _prop.sys.convFireKeyCode(fkc);
+				r |= repl(null, kc, (string t) {kc = t;}, count, nArr);
+				if (_replMode) kcs[i] = _prop.sys.toFKeyCode(kc);
+			}
+			if (r) {
+				if (_replMode) {
+					if (!path) uArr ~= new FKeyCodesUndo(old, kcs.dup, (FKeyCode[] fkc) {targ.keyCodes = fkc;});
+					targ.keyCodes = kcs;
+				}
+				if (path) {
+					if (_replMode) store(path, old, kcs.dup, (FKeyCode[] fkc) {targ.keyCodes = fkc;});
 					size_t dmy = 0;
 					addResult(path, dmy);
 				}

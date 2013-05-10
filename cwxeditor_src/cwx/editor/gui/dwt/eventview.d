@@ -30,6 +30,7 @@ import cwx.editor.gui.dwt.scripterrordialog;
 import cwx.editor.gui.dwt.eventwindow;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.smalldialogs;
+import cwx.editor.gui.dwt.chooser;
 
 import std.algorithm : max;
 import std.string;
@@ -151,7 +152,7 @@ private:
 			bool lose;
 			bool everyRound;
 			bool round0;
-			string[] keyCodes;
+			FKeyCode[] keyCodes;
 			uint[] rounds;
 		}
 		private Vals _vals;
@@ -602,9 +603,10 @@ private:
 			}
 			tree = cast(EventTree) p.getData();
 			auto kcIndex = p.indexOf(itm) - keyCodesIndex(p);
-			if (tree.keyCodes[kcIndex] == text) return;
+			auto old = tree.keyCodes[kcIndex];
+			if (_prop.sys.convFireKeyCode(old.keyCode, old.kind) == text) return;
 			store(tree);
-			tree.setKeyCode(kcIndex, text);
+			tree.setKeyCode(kcIndex, _prop.sys.toFKeyCode(text));
 			itm.setImage(keyCodeImage(text));
 			itm.setText(text);
 			obj.array = text.dup;
@@ -787,7 +789,7 @@ private:
 			} else if (fire is ROUND_0) {
 				tree.round0 = true;
 			} else if (cast(KeyCodeObj) fire) {
-				tree.addKeyCode((cast(KeyCodeObj) fire).array.idup);
+				tree.addKeyCode(_prop.sys.toFKeyCode((cast(KeyCodeObj) fire).array.idup));
 			} else {
 				assert (cast(RoundObj) fire);
 				tree.addRound((cast(RoundObj) fire).intValue());
@@ -840,7 +842,8 @@ private:
 			}
 		}
 		void createKeyCodeItem(T)(TreeItem parent, T a) {
-			foreach (kc; a.keyCodes) {
+			foreach (keyCode; a.keyCodes) {
+				string kc = _prop.sys.convFireKeyCode(keyCode.keyCode, keyCode.kind);
 				createTreeItem(parent, new KeyCodeObj(kc), kc, keyCodeImage(kc));
 			}
 		}
@@ -875,8 +878,8 @@ private:
 					foreach (i, itm3; itm2.getItems()) {
 						auto kc = cast(KeyCodeObj) itm3.getData();
 						if (kc && startKC <= 0) startKC = i;
-						if (startKC >= 0 && itm3.getText() != et.keyCodes[i - startKC]) {
-							itm3.setText(et.keyCodes[i - startKC]);
+						if (startKC >= 0 && itm3.getText() != _prop.sys.convFireKeyCode(et.keyCodes[i - startKC])) {
+							itm3.setText(_prop.sys.convFireKeyCode(et.keyCodes[i - startKC]));
 							chg = true;
 						}
 					}
@@ -913,8 +916,8 @@ private:
 			if (!itm) return;
 			auto kc = cast(KeyCodeObj) itm.getData();
 			if (!kc) return;
-			string old = kc.array.idup;
-			string keyCode = _prop.sys.convFireKeyCode(old, kind);
+			auto old = _prop.sys.toFKeyCode(kc.array.idup);
+			string keyCode = _prop.sys.convFireKeyCode(old.keyCode, kind);
 			kc.array = keyCode.dup;
 			auto etItm = selectionEventTree;
 			assert (etItm);
@@ -922,7 +925,7 @@ private:
 			assert (et);
 			int i = cCountUntil(et.keyCodes, old);
 			assert (-1 != i);
-			et.setKeyCode(i, keyCode);
+			et.setKeyCode(i, _prop.sys.toFKeyCode(keyCode));
 			itm.setText(keyCode);
 			itm.setImage(keyCodeImage(keyCode));
 			_comm.refKeyCodes.call();
@@ -1004,10 +1007,6 @@ public:
 		_comm.put(_toolbar);
 
 		_sash = new SplitPane(this, SWT.HORIZONTAL);
-		static if (is (A == Area) || is (A == Battle)) {
-			_comm.refStandardKeyCodes.add(&refKeyCodes);
-			_comm.refKeyCodes.add(&refKeyCodes);
-		}
 		_comm.replText.add(&replText);
 		_comm.replID.add(&replText);
 		_comm.refShowToolBar.add(&refShowToolBar);
@@ -1048,10 +1047,6 @@ public:
 					_prop.var.cardEventWin.eventSashR = ws[1];
 				} else {
 					static assert (0);
-				}
-				static if (is (A == Area) || is (A == Battle)) {
-					_comm.refStandardKeyCodes.remove(&refKeyCodes);
-					_comm.refKeyCodes.remove(&refKeyCodes);
 				}
 				_comm.replText.remove(&replText);
 				_comm.replID.remove(&replText);
@@ -1504,6 +1499,7 @@ public:
 				_keyCodeTim.add(_prop.msgs.keyCodeTimingUse);
 				_keyCodeTim.add(_prop.msgs.keyCodeTimingSuccess);
 				_keyCodeTim.add(_prop.msgs.keyCodeTimingFailure);
+				_keyCodeTim.add(_prop.msgs.keyCodeTimingHasNot);
 				_keyCodeTim.select(0);
 				keyCodeTimItm.setControl(_keyCodeTim);
 				keyCodeTimItm.setWidth(_keyCodeTim.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
@@ -1594,16 +1590,11 @@ public:
 		createTextMenu!CCombo(_comm, _prop, c, null);
 		setFireControl(c);
 	}
-	static if (is (A == Area) || is (A == Battle)) {
-		private void refKeyCodes() {
-			if (_treeKind.getSelectionIndex() == 1) {
-				auto combo = cast(CCombo) _fireItm.getControl();
-				combo.removeAll();
-				foreach (i, v; _prop.var.etc.standardKeyCodes) {
-					combo.add(v);
-					if (i == 0) combo.setText(v);
-				}
-			}
+	private void createKCCombo() {
+		auto combo = createKeyCodeCombo!CCombo(_comm, _toolbar, null);
+		setFireControl(combo);
+		if (combo.getItemCount()) {
+			combo.select(0);
 		}
 	}
 	private class KSListener : SelectionAdapter {
@@ -1616,8 +1607,7 @@ public:
 					_keyCodeTim.setEnabled(false);
 					break;
 				case 1:
-					createCombo(false, [], true);
-					refKeyCodes();
+					createKCCombo();
 					_keyCodeTim.setEnabled(true);
 					break;
 				default: assert (0);
@@ -1629,8 +1619,7 @@ public:
 					_keyCodeTim.setEnabled(false);
 					break;
 				case 1:
-					createCombo(false, [], true);
-					refKeyCodes();
+					createKCCombo();
 					_keyCodeTim.setEnabled(true);
 					break;
 				case 2:
@@ -1753,7 +1742,7 @@ public:
 					} else if (ROUND_0 is data) {
 						xml = EventTree.round0ToXML();
 					} else if (cast(KeyCodeObj) data) {
-						xml = EventTree.keyCodeToXML((cast(KeyCodeObj) data).array.idup);
+						xml = EventTree.keyCodeToXML(_prop.sys.toFKeyCode((cast(KeyCodeObj) data).array.idup), _prop.sys);
 					} else if (cast(RoundObj) data) {
 						xml = EventTree.roundToXML((cast(RoundObj) data).intValue());
 					} else {
@@ -1817,7 +1806,7 @@ public:
 									if (round >= 0) {
 										refreshFires(treeItm, new RoundObj(round));
 									} else {
-										string keyCode = tree.keyCodeFromXML(par, xml);
+										string keyCode = tree.keyCodeFromXML(par, xml, _prop.sys);
 										if (keyCode) {
 											refreshFires(treeItm, new KeyCodeObj(keyCode));
 										}
@@ -1870,7 +1859,7 @@ public:
 					} else if (ROUND_0 is data) {
 						tree.round0 = false;
 					} else if (cast(KeyCodeObj) data) {
-						tree.removeKeyCode((cast(KeyCodeObj) data).array.idup);
+						tree.removeKeyCode(_prop.sys.toFKeyCode((cast(KeyCodeObj) data).array.idup));
 					} else if (cast(RoundObj) data) {
 						tree.removeRound((cast(RoundObj) data).intValue());
 					} else {
