@@ -309,18 +309,12 @@ public:
 		_hasFocus = true;
 		if (_comm.prop.var.etc.editTriggerType is EditTrigger.Quick) {
 			_itm = _selection();
-		} else if (_oldFocusOut !is e.widget) {
-			auto comp = cast(Composite)e.widget;
-			auto ctrl = cast(Control)_oldFocusOut;
-			if (comp && ctrl && isDescendant(comp, ctrl)) {
-				return;
-			}
-			_oldSel = _selection();
 		}
 	}
 	override void focusLost(FocusEvent e) {
 		_hasFocus = false;
 		_start = false;
+		_oldSel = null;
 	}
 	override void mouseDown(MouseEvent e) {
 		auto itm = _selectionM(e.x, e.y);
