@@ -296,7 +296,8 @@ TypeInfo getType(string file, out ulong id) {
 
 private Target toTargetT(byte b) {
 	switch (b) {
-	case 0: return Target(Target.M.SELECTED, false);
+	case 0, -1: // 稀に-1になっている事がある(CardWirth Editorでは空欄)
+		return Target(Target.M.SELECTED, false);
 	case 1: return Target(Target.M.RANDOM, false);
 	case 2: return Target(Target.M.UNSELECTED, false);
 	default: throw new SummaryException("Unknown target T: " ~ to!(string)(b));
