@@ -439,6 +439,7 @@ public:
 		case MenuID.NewFlagDir: return imgd!("flagdir_new.png");
 		case MenuID.NewFlag: return imgd!("flag_new.png");
 		case MenuID.NewStep: return imgd!("step_new.png");
+		case MenuID.CopyVariablePath: return imgd!("copy_path.png");
 		case MenuID.Up: return imgd!("up.png");
 		case MenuID.Down: return imgd!("down.png");
 		case MenuID.OverDialog: return imgd!("over_dlg.png");
@@ -513,6 +514,7 @@ public:
 		case MenuID.ToScriptAll: return imgd!("script_all.png");
 		case MenuID.EvTemplates: return imgd!("ev_tmpl.png");
 		case MenuID.ResetPreviewValues: return imgd!("reset.png");
+		case MenuID.ResetPreviewValuesAll: return imgd!("reset_all.png");
 		}
 	}
 }

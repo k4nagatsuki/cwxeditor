@@ -1531,6 +1531,7 @@ class Msgs : Properties {
 	auto addNewClassicEngine = Msg("addNewClassicEngine", "未知のクラシックエンジンを見つけたら記憶する");
 	auto doubleIO = Msg("doubleIO", "分割読込・保存を行う(デュアルコア以上の環境で高速化)");
 	auto switchTabWheel = Msg("switchTabWheel", "マウスホイールでタブ切替を行う");
+	auto closeTabWithMiddleClick = Msg("closeTabWithMiddleClick", "中ボタンクリックでタブを閉じる");
 	auto openTabAtRightOfCurrentTab = Msg("openTabAtRightOfCurrentTab", "新しいタブを現在のタブの直後に開く");
 	auto reconstruction = Msg("reconstruction", "シナリオごとにタブの配置を記憶する");
 	auto openLastScenario = Msg("openLastScenario", "終了時に開いていたシナリオを次の起動時に開く");
@@ -1807,6 +1808,7 @@ class Msgs : Properties {
 	auto menuTextNewFlagDir = Msg("menuTextNewFlagDir", "フォルダの作成");
 	auto menuTextNewFlag = Msg("menuTextNewFlag", "フラグの作成");
 	auto menuTextNewStep = Msg("menuTextNewStep", "ステップの作成");
+	auto menuTextCopyVariablePath = Msg("menuTextCopyVariablePath", "状態変数のパスをコピー");
 	auto menuTextUp = Msg("menuTextUp", "上へ");
 	auto menuTextDown = Msg("menuTextDown", "下へ");
 	auto menuTextOverDialog = Msg("menuTextOverDialog", "上の台詞へ移動");
@@ -1880,7 +1882,8 @@ class Msgs : Properties {
 	auto menuTextToScript = Msg("menuTextToScript", "スクリプトに変換してコピー");
 	auto menuTextToScriptAll = Msg("menuTextToScriptAll", "全てをスクリプトに変換してコピー");
 	auto menuTextEvTemplates = Msg("menuTextEvTemplates", "テンプレートから作成");
-	auto menuTextResetPreviewValues = Msg("menuTextResetPreviewValues", "全て初期値に戻す");
+	auto menuTextResetPreviewValues = Msg("menuTextResetPreviewValues", "初期値に戻す");
+	auto menuTextResetPreviewValuesAll = Msg("menuTextResetPreviewValuesAll", "全て初期値に戻す");
 
 	auto bgm = Msg("bgm", "BGM");
 	auto newEvent = Msg("newEvent", "イベントの作成");

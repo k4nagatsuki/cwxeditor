@@ -1130,6 +1130,22 @@ private:
 		}
 		flagsSelected();
 	}
+	void copyVariablePath() {
+		if (0 == flags.getSelectionCount()) return;
+
+		char[] buf;
+		foreach (itm; flags.getSelection()) {
+			if (buf.length) buf ~= .newline;
+			auto f = cast(Flag)itm.getData();
+			if (f) buf ~= f.path;
+			auto s = cast(Step)itm.getData();
+			if (s) buf ~= s.path;
+			assert (f || s);
+		}
+		_comm.clipboard.setContents([new ArrayWrapperString(buf)],
+			[TextTransfer.getInstance()]);
+		_comm.refreshToolBar();
+	}
 public:
 	this (Commons comm, Props prop, UndoManager undo) {
 		_undo = undo;
@@ -1166,6 +1182,8 @@ public:
 		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, () => flags.getItemCount() && flags.getSelectionCount() != flags.getItemCount());
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.CopyVariablePath, &copyVariablePath, () => 0 < flags.getSelectionCount());
 		flags.setMenu(menu);
 
 		auto ds = new DragSource(flags, DND.DROP_MOVE | DND.DROP_COPY);

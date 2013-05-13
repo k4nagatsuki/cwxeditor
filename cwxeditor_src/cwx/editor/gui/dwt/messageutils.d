@@ -1785,91 +1785,118 @@ class PreviewValues : Composite {
 	}
 
 	void resetValues() {
+		return resetValues(_values.getSelectionIndices());
+	}
+	void resetValuesAll() {
+		return resetValues(std.range.iota(0, _values.getItemCount()).array());
+	}
+	void resetValues(in int[] indices) {
+		bool[int] set;
+		foreach (i; indices) set[i] = true;
 		store();
 		size_t i = 0;
 		foreach (c; _targetChars) {
-			auto itm = _values.getItem(i);
-			final switch (cast(SPChar)c) {
-			case SPChar.M:
-				itm.setText(1, _prop.var.etc.messageVarSelected.INIT);
-				break;
-			case SPChar.U:
-				itm.setText(1, _prop.var.etc.messageVarUnselected.INIT);
-				break;
-			case SPChar.R:
-				itm.setText(1, _prop.var.etc.messageVarRandom.INIT);
-				break;
-			case SPChar.C:
-				itm.setText(1, _prop.var.etc.messageVarCard.INIT);
-				break;
-			case SPChar.I:
-				itm.setText(1, _prop.var.etc.messageVarRef.INIT);
-				break;
-			case SPChar.T:
-				itm.setText(1, _prop.var.etc.messageVarTeam.INIT);
-				break;
-			case SPChar.Y:
-				itm.setText(1, _prop.var.etc.messageVarYado.INIT);
-				break;
+			if (i in set) {
+				auto itm = _values.getItem(i);
+				final switch (cast(SPChar)c) {
+				case SPChar.M:
+					itm.setText(1, _prop.var.etc.messageVarSelected.INIT);
+					break;
+				case SPChar.U:
+					itm.setText(1, _prop.var.etc.messageVarUnselected.INIT);
+					break;
+				case SPChar.R:
+					itm.setText(1, _prop.var.etc.messageVarRandom.INIT);
+					break;
+				case SPChar.C:
+					itm.setText(1, _prop.var.etc.messageVarCard.INIT);
+					break;
+				case SPChar.I:
+					itm.setText(1, _prop.var.etc.messageVarRef.INIT);
+					break;
+				case SPChar.T:
+					itm.setText(1, _prop.var.etc.messageVarTeam.INIT);
+					break;
+				case SPChar.Y:
+					itm.setText(1, _prop.var.etc.messageVarYado.INIT);
+					break;
+				}
 			}
 			i++;
 		}
 		foreach (f; _summ.flagDirRoot.allFlags) {
-			auto itm = _values.getItem(i);
-			itm.setText(1, f.onOff ? f.on : f.off);
-			auto data = cast(FlagData) itm.getData();
-			data.onOff = f.onOff;
+			if (i in set) {
+				auto itm = _values.getItem(i);
+				itm.setText(1, f.onOff ? f.on : f.off);
+				auto data = cast(FlagData) itm.getData();
+				data.onOff = f.onOff;
+			}
 			i++;
 		}
 		foreach (f; _summ.flagDirRoot.allSteps) {
-			auto itm = _values.getItem(i);
-			itm.setText(1, f.values[f.select]);
-			auto data = cast(StepData) itm.getData();
-			data.select = f.select;
+			if (i in set) {
+				auto itm = _values.getItem(i);
+				itm.setText(1, f.values[f.select]);
+				auto data = cast(StepData) itm.getData();
+				data.select = f.select;
+			}
 			i++;
 		}
 		raiseModEvent();
 	}
-	@property
 	bool isInitialValues() {
+		return isInitialValues(_values.getSelectionIndices());
+	}
+	bool isInitialValuesAll() {
+		return isInitialValues(std.range.iota(0, _values.getItemCount()).array());
+	}
+	bool isInitialValues(in int[] indices) {
+		bool[int] set;
+		foreach (i; indices) set[i] = true;
 		size_t i = 0;
 		foreach (c; _targetChars) {
-			auto itm = _values.getItem(i);
-			final switch (cast(SPChar)c) {
-			case SPChar.M:
-				if (itm.getText(1) != _prop.var.etc.messageVarSelected.INIT) return false;
-				break;
-			case SPChar.U:
-				if (itm.getText(1) != _prop.var.etc.messageVarUnselected.INIT) return false;
-				break;
-			case SPChar.R:
-				if (itm.getText(1) != _prop.var.etc.messageVarRandom.INIT) return false;
-				break;
-			case SPChar.C:
-				if (itm.getText(1) != _prop.var.etc.messageVarCard.INIT) return false;
-				break;
-			case SPChar.I:
-				if (itm.getText(1) != _prop.var.etc.messageVarRef.INIT) return false;
-				break;
-			case SPChar.T:
-				if (itm.getText(1) != _prop.var.etc.messageVarTeam.INIT) return false;
-				break;
-			case SPChar.Y:
-				if (itm.getText(1) != _prop.var.etc.messageVarYado.INIT) return false;
-				break;
+			if (i in set) {
+				auto itm = _values.getItem(i);
+				final switch (cast(SPChar)c) {
+				case SPChar.M:
+					if (itm.getText(1) != _prop.var.etc.messageVarSelected.INIT) return false;
+					break;
+				case SPChar.U:
+					if (itm.getText(1) != _prop.var.etc.messageVarUnselected.INIT) return false;
+					break;
+				case SPChar.R:
+					if (itm.getText(1) != _prop.var.etc.messageVarRandom.INIT) return false;
+					break;
+				case SPChar.C:
+					if (itm.getText(1) != _prop.var.etc.messageVarCard.INIT) return false;
+					break;
+				case SPChar.I:
+					if (itm.getText(1) != _prop.var.etc.messageVarRef.INIT) return false;
+					break;
+				case SPChar.T:
+					if (itm.getText(1) != _prop.var.etc.messageVarTeam.INIT) return false;
+					break;
+				case SPChar.Y:
+					if (itm.getText(1) != _prop.var.etc.messageVarYado.INIT) return false;
+					break;
+				}
 			}
 			i++;
 		}
 		foreach (f; _summ.flagDirRoot.allFlags) {
-			auto itm = _values.getItem(i);
-			auto data = cast(FlagData) itm.getData();
-			if (data.onOff != f.onOff) return false;
+			if (i in set) {
+				auto itm = _values.getItem(i);
+				auto data = cast(FlagData) itm.getData();
+				if (data.onOff != f.onOff) return false;
+			}
 			i++;
 		}
 		foreach (f; _summ.flagDirRoot.allSteps) {
-			auto itm = _values.getItem(i);
-			auto data = cast(StepData) itm.getData();
-			if (data.select != f.select) return false;
+			if (i in set) {
+				auto itm = _values.getItem(i);
+				auto data = cast(StepData) itm.getData();
+				if (data.select != f.select) return false;
+			}
 			i++;
 		}
 		return true;
@@ -1972,9 +1999,12 @@ class PreviewValues : Composite {
 		createMenuItem(comm, menu, MenuID.Undo, {_undo.undo();}, &_undo.canUndo);
 		createMenuItem(comm, menu, MenuID.Redo, {_undo.redo();}, &_undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(comm, menu, MenuID.ResetPreviewValues, &resetValues, () => !isInitialValues);
+		createMenuItem(comm, menu, MenuID.ResetPreviewValues, &resetValues, () => !isInitialValues());
+		createMenuItem(comm, menu, MenuID.ResetPreviewValuesAll, &resetValuesAll, () => !isInitialValuesAll());
 		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(comm, menu, new ValuesTCPD, false, true, true, false, false);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(comm, menu, MenuID.SelectAll, &_values.selectAll, () => _values.getSelectionCount() < _values.getItemCount());
 		_values.setMenu(menu);
 
 		auto kindCol = new TableColumn(_values, SWT.NONE);

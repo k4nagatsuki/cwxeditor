@@ -91,6 +91,7 @@ class DockingFolder(TabF, int Style) {
 	private Canvas _canvas;
 
 	private FocusL _fl;
+
 	private this (Composite parent, int style, bool createTabf, string firstPaneKey = "") {
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
@@ -326,6 +327,10 @@ class DockingFolder(TabF, int Style) {
 	private bool vanish(string key) {
 		return canVanish ? canVanish(key) : true;
 	}
+	/// 中ボタンクリックでタブを閉じようとした際に呼び出される。
+	/// falseを返すとキャンセルする。
+	bool delegate(string key) closeTabWithMiddleClick = null;
+
 	/// keyのペインが空になった際に呼び出される。
 	/// falseを返す事で、ペインの消去を回避する事ができる。
 	bool delegate(string key) canVanish = null;
@@ -1025,6 +1030,20 @@ class DockingFolder(TabF, int Style) {
 			if (tabf.getShell() is tabf.getDisplay().getActiveShell()) {
 				tabf.setFocus();
 			}
+		}
+		override void mouseUp(MouseEvent e) {
+			if (e.button != 2) return;
+			auto tabf = cast(TabF)e.widget;
+			auto ca = tabf.getClientArea();
+			if (ca.y <= e.y) return;
+			auto tab = tabf.getItem(new Point(e.x, e.y));
+			if (!tab) return;
+			auto ctrl = tab.getControl();
+			if (!ctrl) return;
+			auto key = keyFromCtrl(ctrl);
+			if (!key) return;
+			if (closeTabWithMiddleClick && !closeTabWithMiddleClick(key)) return;
+			close(key);
 		}
 	}
 	private class FocusL : Listener {

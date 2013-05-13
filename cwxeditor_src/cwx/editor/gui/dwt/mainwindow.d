@@ -1959,6 +1959,7 @@ public:
 					_dock.closeCtrlEvent ~= &dockCloseCtrl;
 					_dock.memoryPane = &isSystemPaneName;
 					_dock.memoryControl = &isSystemCtrlName;
+					_dock.closeTabWithMiddleClick = (key) => _prop.var.etc.closeTabWithMiddleClick != false;
 					_dock.addCreatePaneEvent(&createPaneEvent);
 					_dock.area.setLayoutData(new GridData(GridData.FILL_BOTH));
 					dStr ~= " - " ~ .text(__LINE__);

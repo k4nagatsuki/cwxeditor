@@ -304,6 +304,7 @@ class FlexEtcProps : Properties {
 	auto showEventTreeMark = Prop!(bool)("showEventTreeMark", true);
 	auto ignoreEmptyStart = Prop!(bool)("ignoreEmptyStart", true);
 	auto switchTabWheel = Prop!(bool)("switchTabWheel", true);
+	auto closeTabWithMiddleClick = Prop!(bool)("closeTabWithMiddleClick", true);
 	auto openTabAtRightOfCurrentTab = Prop!(bool)("openTabAtRightOfCurrentTab", true);
 	auto cautionBeforeReplace = Prop!(bool)("cautionBeforeReplace", false);
 	auto radarStyleParams = Prop!(bool)("radarStyleParams", true);

@@ -1413,6 +1413,7 @@ private:
 	TableItem _addNewClassicEngine;
 	TableItem _doubleIO;
 	TableItem _switchTabWheel;
+	TableItem _closeTabWithMiddleClick;
 	TableItem _openTabAtRightOfCurrentTab;
 	TableItem _reconstruction;
 	TableItem _openLastScenario;
@@ -2245,6 +2246,7 @@ private:
 				_addNewClassicEngine = createB(_prop.msgs.addNewClassicEngine);
 				_doubleIO = createB(_prop.msgs.doubleIO);
 				_switchTabWheel = createB(_prop.msgs.switchTabWheel);
+				_closeTabWithMiddleClick = createB(_prop.msgs.closeTabWithMiddleClick);
 				_openTabAtRightOfCurrentTab = createB(_prop.msgs.openTabAtRightOfCurrentTab);
 				_reconstruction = createB(_prop.msgs.reconstruction);
 				_openLastScenario = createB(_prop.msgs.openLastScenario);
@@ -2506,6 +2508,7 @@ protected:
 		_addNewClassicEngine.setChecked(_prop.var.etc.addNewClassicEngine);
 		_doubleIO.setChecked(_prop.var.etc.doubleIO);
 		_switchTabWheel.setChecked(_prop.var.etc.switchTabWheel);
+		_closeTabWithMiddleClick.setChecked(_prop.var.etc.closeTabWithMiddleClick);
 		_openTabAtRightOfCurrentTab.setChecked(_prop.var.etc.openTabAtRightOfCurrentTab);
 		_reconstruction.setChecked(_prop.var.etc.reconstruction);
 		_openLastScenario.setChecked(_prop.var.etc.openLastScenario);
@@ -2654,6 +2657,7 @@ protected:
 		_prop.var.etc.addNewClassicEngine = _addNewClassicEngine.getChecked();
 		_prop.var.etc.doubleIO = _doubleIO.getChecked();
 		_prop.var.etc.switchTabWheel = _switchTabWheel.getChecked();
+		_prop.var.etc.closeTabWithMiddleClick = _closeTabWithMiddleClick.getChecked();
 		_prop.var.etc.openTabAtRightOfCurrentTab = _openTabAtRightOfCurrentTab.getChecked();
 		_prop.var.etc.reconstruction = _reconstruction.getChecked();
 		_prop.var.etc.openLastScenario = _openLastScenario.getChecked();

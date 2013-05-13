@@ -1291,6 +1291,7 @@ enum MenuID {
 	NewFlagDir,
 	NewFlag,
 	NewStep,
+	CopyVariablePath,
 	Up,
 	Down,
 	OverDialog,
@@ -1365,4 +1366,5 @@ enum MenuID {
 	ToScriptAll,
 	EvTemplates,
 	ResetPreviewValues,
+	ResetPreviewValuesAll,
 }

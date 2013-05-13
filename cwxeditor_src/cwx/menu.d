@@ -114,6 +114,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.NewFlagDir] = "N";
 		_mnemonic[MenuID.NewFlag] = "F";
 		_mnemonic[MenuID.NewStep] = "S";
+		_mnemonic[MenuID.CopyVariablePath] = "V";
 		_mnemonic[MenuID.Up] = "K";
 		_mnemonic[MenuID.Down] = "J";
 		_mnemonic[MenuID.OverDialog] = "O";
@@ -188,6 +189,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ToScriptAll] = "Y";
 		_mnemonic[MenuID.EvTemplates] = "";
 		_mnemonic[MenuID.ResetPreviewValues] = "R";
+		_mnemonic[MenuID.ResetPreviewValuesAll] = "E";
 
 		_hotkey[MenuID.None] = "";
 		_hotkey[MenuID.File] = "";
@@ -277,6 +279,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.NewFlagDir] = "";
 		_hotkey[MenuID.NewFlag] = "Ctrl+L";
 		_hotkey[MenuID.NewStep] = "Ctrl+P";
+		_hotkey[MenuID.CopyVariablePath] = "";
 		_hotkey[MenuID.Up] = "Ctrl+Arrow_Up";
 		_hotkey[MenuID.Down] = "Ctrl+Arrow_Down";
 		_hotkey[MenuID.OverDialog] = "Ctrl+Shift+Arrow_Up";
@@ -351,6 +354,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ToScriptAll] = "Ctrl+B";
 		_hotkey[MenuID.EvTemplates] = "";
 		_hotkey[MenuID.ResetPreviewValues] = "";
+		_hotkey[MenuID.ResetPreviewValuesAll] = "";
 
 		_mnemonic_init = _mnemonic.idup;
 		_hotkey_init = _hotkey.idup;
