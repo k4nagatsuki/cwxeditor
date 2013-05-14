@@ -1396,6 +1396,7 @@ private:
 	TableItem _classicStyleTree;
 	TableItem _radarStyleParams;
 	TableItem _showEventTreeMark;
+	TableItem _showSkillCardLevel;
 	TableItem _ignoreEmptyStart;
 	TableItem _expandXMLs;
 	TableItem _contentsFloat;
@@ -2229,6 +2230,7 @@ private:
 				_classicStyleTree = createB(_prop.msgs.classicStyleTree);
 				_radarStyleParams = createB(_prop.msgs.radarStyleParams);
 				_showEventTreeMark = createB(_prop.msgs.showEventTreeMark);
+				_showSkillCardLevel = createB(_prop.msgs.showSkillCardLevel);
 				_ignoreEmptyStart = createB(_prop.msgs.ignoreEmptyStart);
 				_expandXMLs = createB(_prop.msgs.expandXMLs);
 				_contentsFloat = createB(_prop.msgs.contentsFloat);
@@ -2489,6 +2491,7 @@ protected:
 		_classicStyleTree.setChecked(_prop.var.etc.classicStyleTree);
 		_radarStyleParams.setChecked(_prop.var.etc.radarStyleParams);
 		_showEventTreeMark.setChecked(_prop.var.etc.showEventTreeMark);
+		_showSkillCardLevel.setChecked(_prop.var.etc.showSkillCardLevel);
 		_ignoreEmptyStart.setChecked(_prop.var.etc.ignoreEmptyStart);
 		if (_singleWindow) {
 			_singleWindow.setChecked(_prop.var.etc.singleWindow);
@@ -2643,6 +2646,7 @@ protected:
 		_prop.var.etc.classicStyleTree = _classicStyleTree.getChecked();
 		_prop.var.etc.radarStyleParams = _radarStyleParams.getChecked();
 		_prop.var.etc.showEventTreeMark = _showEventTreeMark.getChecked();
+		_prop.var.etc.showSkillCardLevel = _showSkillCardLevel.getChecked();
 		_prop.var.etc.ignoreEmptyStart = _ignoreEmptyStart.getChecked();
 		_prop.var.etc.expandXMLs = _expandXMLs.getChecked();
 		_prop.var.etc.xmlCopy = _xmlCopy.getChecked();
@@ -2746,6 +2750,7 @@ struct OldSettings {
 	int soundPlayType;
 	int soundEffectPlayType;
 	bool showEventTreeMark;
+	bool showSkillCardLevel;
 	bool ignoreEmptyStart;
 	bool classicStyleTree;
 	bool radarStyleParams;
@@ -2783,6 +2788,7 @@ struct OldSettings {
 		this.soundPlayType = prop.var.etc.soundPlayType;
 		this.soundEffectPlayType = prop.var.etc.soundEffectPlayType;
 		this.showEventTreeMark = prop.var.etc.showEventTreeMark;
+		this.showSkillCardLevel = prop.var.etc.showSkillCardLevel;
 		this.ignoreEmptyStart = prop.var.etc.ignoreEmptyStart;
 		this.classicStyleTree = prop.var.etc.classicStyleTree;
 		this.radarStyleParams = prop.var.etc.radarStyleParams;
@@ -2881,7 +2887,7 @@ struct OldSettings {
 		if (this.soundPlayType != prop.var.etc.soundPlayType || this.soundEffectPlayType != prop.var.etc.soundEffectPlayType) {
 			comm.refSoundType.call();
 		}
-		if (this.showEventTreeMark != prop.var.etc.showEventTreeMark || this.ignoreEmptyStart != prop.var.etc.ignoreEmptyStart) {
+		if (this.showEventTreeMark != prop.var.etc.showEventTreeMark || this.showSkillCardLevel != prop.var.etc.showSkillCardLevel || this.ignoreEmptyStart != prop.var.etc.ignoreEmptyStart) {
 			comm.refCardImageStatus.call();
 		}
 		if (this.classicStyleTree != prop.var.etc.classicStyleTree) {

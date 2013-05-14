@@ -19,6 +19,7 @@ import cwx.types;
 import cwx.xml;
 import cwx.msgutils;
 import cwx.system;
+import cwx.warning;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -85,6 +86,11 @@ private:
 	void delegate() _refreshTopStart;
 
 	Cursor[] _cursors;
+	static struct Warning {
+		Rectangle rect;
+		string[] warnings;
+	}
+	Warning[] _warningRects;
 
 	string _statusLine;
 
@@ -140,6 +146,27 @@ private:
 				arrow();
 				_comm.refreshToolBar();
 			}
+		}
+	}
+	class MouseMove : MouseMoveListener {
+		override void mouseMove(MouseEvent e) {
+			updateToolTip();
+		}
+	}
+	void updateToolTip() {
+		auto p = _tree.getDisplay().getCursorLocation();
+		p = _tree.toControl(p);
+		string toolTip = "";
+		if (_tree.getClientArea().contains(p)) {
+			foreach (warn; _warningRects) {
+				if (warn.rect.contains(p)) {
+					toolTip = std.string.join(warn.warnings, .newline);
+					break;
+				}
+			}
+		}
+		if (_tree.getToolTipText() != toolTip) {
+			_tree.setToolTipText(toolTip);
 		}
 	}
 
@@ -1637,7 +1664,7 @@ private:
 			}
 		}
 	}
-	/// コメントの描画。
+	/// コメントと警告の描画。
 	void drawComment(PaintEvent e, Color lineColor) {
 		auto fore = e.gc.getForeground();
 		auto back = e.gc.getBackground();
@@ -1660,7 +1687,10 @@ private:
 			recurse(itm);
 		}
 		if (!itms.length) return;
-		int mny = itms[0].getBounds().y;
+		auto ca = _tree.getClientArea();
+		auto itmBounds = itms[0].getBounds();
+		int itmH = itmBounds.height;
+		int mny = itmBounds.y;
 		auto bb = itms[$ - 1].getBounds();
 		int mxy = bb.y + bb.height;
 		int alpha = e.gc.getAlpha();
@@ -1669,6 +1699,37 @@ private:
 		string[][] texts;
 		static const MARGIN_L = 5;
 		static const MARGIN_T = 4;
+		Image wImg = null;
+		scope (exit) {
+			if (wImg) wImg.dispose();
+		}
+		_warningRects = [];
+		Image warningImage() {
+			if (!wImg) {
+				auto d = _tree.getDisplay();
+				auto buf = new Image(d, _prop.var.etc.warningImageWidth, itmH);
+				scope (exit) buf.dispose();
+				auto gc = new GC(buf);
+				scope (exit) gc.dispose();
+				int alpha;
+				auto rgb = dwtData(_prop.var.etc.warningImageColor, alpha);
+				auto color = new Color(d, rgb);
+				scope (exit) color.dispose();
+				gc.setForeground(color);
+				gc.setBackground(color);
+				gc.fillRectangle(0, 0, _prop.var.etc.warningImageWidth, itmH);
+				auto alphas = new byte[_prop.var.etc.warningImageWidth];
+				foreach (i, ref b; alphas) {
+					b = cast(byte)(cast(real)i / _prop.var.etc.warningImageWidth * alpha);
+				}
+				alphas = std.array.replicate(alphas, itmH);
+				assert (alphas.length == _prop.var.etc.warningImageWidth * itmH);
+				auto imgData = buf.getImageData();
+				imgData.setAlphas(0, 0, _prop.var.etc.warningImageWidth * itmH, alphas, 0);
+				wImg = new Image(d, imgData);
+			}
+			return wImg;
+		}
 		foreach (i, itm; itms) {
 			auto c = cast(Content) itm.getData();
 			string cm = c.comment;
@@ -1718,6 +1779,26 @@ private:
 				boxes ~= box;
 				bs ~= box;
 				texts ~= lines;
+			}
+			if (_prop.var.etc.drawContentWarnings) {
+				auto warnings = .warnings(_prop.parent, _comm.skin, _summ, c);
+				if (warnings.length) {
+					auto b = itm.getBounds();
+					if (b.y + b.height <= ca.y) continue;
+					if (ca.y + ca.height < b.y) continue;
+					auto ib = itm.getImageBounds(0);
+					if (ca.width <= ib.x) continue;
+					auto img = warningImage();
+					int ix = .max(ib.x, ca.width - _prop.var.etc.warningImageWidth);
+					e.gc.drawImage(img, ix, b.y);
+					auto bounds = _prop.images.warning.getBounds();
+					int wx = .max(b.x + b.width, ca.width - bounds.width - 1);
+					if (wx < ca.width) {
+						e.gc.drawImage(_prop.images.warning, wx, b.y + (itmH - bounds.height) / 2);
+					}
+					auto rect = new Rectangle(ix, b.y, _prop.var.etc.warningImageWidth, b.height);
+					_warningRects ~= Warning(rect, warnings);
+				}
 			}
 		}
 		foreach (i, lines; texts) {
@@ -1809,6 +1890,7 @@ public:
 		new TreeEdit(_comm, _tree, &editEnd, &createEditor);
 		_tree.addDisposeListener(new TRDListener);
 		_tree.addMouseListener(new CreateL);
+		_tree.addMouseMoveListener(new MouseMove);
 		auto editl = new EditL;
 		_tree.addKeyListener(editl);
 		_tree.addMouseListener(editl);

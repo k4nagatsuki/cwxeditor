@@ -320,7 +320,8 @@ private:
 			override string cwxPath(bool id) {return "";}
 			override CWXPath findCWXPath(string path) {return null;}
 			@property
-			override CWXPath[] cwxChilds() {return [];}
+			const
+			override const(CWXPath)[] cwxChilds() {return [];}
 			@property
 			CWXPath cwxParent() {return null;}
 		}

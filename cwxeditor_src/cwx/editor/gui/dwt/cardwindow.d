@@ -806,7 +806,9 @@ public:
 		}
 		bool life = _prop.var.etc.cardLife;
 		bool detail = _prop.var.etc.cardDetails;
-		if (life) {
+		if (!life && detail) {
+			showCardTable();
+		} else if (life) {
 			showCardLife();
 		} else {
 			showCardList();
@@ -825,9 +827,6 @@ public:
 			} else {
 				shell.setSize(width, _prop.var.cardWin.height);
 			}
-		}
-		if (!life && detail) {
-			showCardTable();
 		}
 	}
 	private class SizeL : ControlAdapter {

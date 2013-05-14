@@ -302,6 +302,7 @@ class FlexEtcProps : Properties {
 	auto showImagePreview = Prop!(bool)("showImagePreview", true);
 	auto classicStyleTree = Prop!(bool)("classicStyleTree", false);
 	auto showEventTreeMark = Prop!(bool)("showEventTreeMark", true);
+	auto showSkillCardLevel = Prop!(bool)("showSkillCardLevel", true);
 	auto ignoreEmptyStart = Prop!(bool)("ignoreEmptyStart", true);
 	auto switchTabWheel = Prop!(bool)("switchTabWheel", true);
 	auto closeTabWithMiddleClick = Prop!(bool)("closeTabWithMiddleClick", true);
@@ -310,6 +311,8 @@ class FlexEtcProps : Properties {
 	auto radarStyleParams = Prop!(bool)("radarStyleParams", true);
 
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
+
+	auto spinnerUpDownWithWheel = Prop!(bool)("spinnerUpDownWithWheel", true);
 
 	auto soundPlayType = Prop!(int)("soundPlayType", 0);
 	auto soundEffectPlayType = Prop!(int)("soundEffectPlayType", -1);
@@ -554,7 +557,10 @@ class FlexEtcProps : Properties {
 
 	auto drawCountOfUseOfStart = Prop!(bool)("drawCountOfUseOfStart", true);
 	auto drawContentTreeLine = Prop!(bool)("drawContentTreeLine", true);
+	auto drawContentWarnings = Prop!(bool)("drawContentWarnings", true);
 	auto commentBoxDistance = Prop!(int, true)("commentBoxDistance", 50);
+	auto warningImageWidth = Prop!(int, true)("warningImageWidth", 200);
+	auto warningImageColor = Prop!(CRGB, true)("warningImageColor", CRGB(255, 128, 128));
 
 	auto doubleIO = Prop!(bool)("doubleIO", true);
 	auto reconstruction = Prop!(bool)("reconstruction", true);

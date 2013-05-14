@@ -1084,10 +1084,11 @@ public:
 	}
 	@property
 	override
-	CWXPath[] cwxChilds() {
-		CWXPath[] r;
-		r ~= cast(CWXPath[]) cards;
-		r ~= cast(CWXPath[]) backs;
+	const
+	const(CWXPath)[] cwxChilds() {
+		const(CWXPath)[] r;
+		r ~= cast(const CWXPath[]) cards;
+		r ~= cast(const CWXPath[]) backs;
 		r ~= super.cwxChilds;
 		return r;
 	}
@@ -1483,9 +1484,10 @@ public:
 	}
 	@property
 	override
-	CWXPath[] cwxChilds() {
-		CWXPath[] r;
-		r ~= cast(CWXPath[]) cards;
+	const
+	const(CWXPath)[] cwxChilds() {
+		const(CWXPath)[] r;
+		r ~= cast(const CWXPath[]) _cards;
 		r ~= super.cwxChilds;
 		return r;
 	}

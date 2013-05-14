@@ -2671,11 +2671,41 @@ public:
 			e.doit = se.doit;
 			return true;
 		}
+		private void spinUpDown(Event e, Spinner spn) {
+			int val = spn.getSelection();
+			if (e.count < 0) {
+				val -= spn.getIncrement();
+			} else if (0 < e.count) {
+				val += spn.getIncrement();
+			} else {
+				return;
+			}
+			spn.setSelection(val);
+			if (spn.getSelection() != val) {
+				auto se = new Event;
+				se.type = SWT.Selection;
+				se.widget = spn;
+				se.time = e.time;
+				se.stateMask = e.stateMask;
+				se.doit = e.doit;
+				spn.notifyListeners(SWT.Selection, se);
+				e.doit = se.doit;
+			}
+		}
 
 		override void handleEvent(Event e) {
 			if (!_prop.var.etc.switchTabWheel) return;
 			if (e.type != SWT.MouseWheel && e.type != SWT.Traverse) return;
 			auto d = Display.getCurrent();
+
+			if (e.type == SWT.MouseWheel && _prop.var.etc.spinnerUpDownWithWheel) {
+				auto spn = cast(Spinner)e.widget;
+				if (spn) {
+					spinUpDown(e, spn);
+					return;
+				}
+			}
+
 			Control c;
 			if (e.type is SWT.MouseWheel) {
 				c = d.getCursorControl();

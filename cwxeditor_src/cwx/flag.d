@@ -251,7 +251,8 @@ public:
 		return null;
 	}
 	@property
-	override CWXPath[] cwxChilds() {return [];}
+	const
+	override const(CWXPath)[] cwxChilds() {return [];}
 	@property
 	CWXPath cwxParent() {return _parent;}
 }
@@ -453,7 +454,8 @@ public:
 		return null;
 	}
 	@property
-	override CWXPath[] cwxChilds() {return [];}
+	const
+	override const(CWXPath)[] cwxChilds() {return [];}
 	@property
 	CWXPath cwxParent() {return _parent;}
 }
@@ -544,11 +546,12 @@ public:
 		return null;
 	}
 	@property
-	override CWXPath[] cwxChilds() {
-		CWXPath[] r;
-		r ~= cast(CWXPath[]) flags;
-		r ~= cast(CWXPath[]) steps;
-		r ~= cast(CWXPath[]) subDirs;
+	const
+	override const(CWXPath)[] cwxChilds() {
+		const(CWXPath)[] r;
+		r ~= cast(const CWXPath[]) _flags;
+		r ~= cast(const CWXPath[]) _steps;
+		r ~= cast(const CWXPath[]) _subdir;
 		return r;
 	}
 	@property

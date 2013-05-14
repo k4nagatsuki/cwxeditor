@@ -246,7 +246,8 @@ public:
 		return null;
 	}
 	@property
-	CWXPath[] cwxChilds() {return [];}
+	const
+	const(CWXPath)[] cwxChilds() {return [];}
 	@property
 	CWXPath cwxParent() {return _owner;}
 }

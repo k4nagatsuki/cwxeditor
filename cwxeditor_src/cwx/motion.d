@@ -511,8 +511,9 @@ public:
 		return null;
 	}
 	@property
-	CWXPath[] cwxChilds() {
-		CWXPath[] r;
+	const
+	const(CWXPath)[] cwxChilds() {
+		const(CWXPath)[] r;
 		if (_beast) r ~= _beast;
 		return r;
 	}

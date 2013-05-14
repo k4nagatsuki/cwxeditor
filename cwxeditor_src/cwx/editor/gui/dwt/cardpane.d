@@ -1473,7 +1473,8 @@ private:
 	}
 	void createCardList(Composite parent) {
 		_pane = new Composite(parent, _style);
-		_pane.setLayout(zeroGridLayout(1, true));
+/+		_pane.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_GRAY));
++/		_pane.setLayout(zeroGridLayout(1, true));
 
 		auto tableComp = new Composite(_pane, SWT.NONE);
 		tableComp.setLayout(zeroGridLayout(1, true));
@@ -1726,6 +1727,7 @@ public:
 		}
 	}
 	void reconstruct(Composite parent, int style) {
+		_viewMode = CViewMode.INIT;
 		_style = style;
 		_parent = parent;
 		createCardList(parent);

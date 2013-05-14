@@ -1514,6 +1514,7 @@ class Msgs : Properties {
 	auto radarStyleParams = Msg("radarStyleParams", "レーダー型コントロールでパラメータ値を設定する");
 	auto editTriggerTypeIsQuick = Msg("editTriggerTypeIsQuick", "選択項目のクリックですぐにテキストの編集を開始する");
 	auto showEventTreeMark = Msg("showEventTreeMark", "カードの詳細情報表示時に使用時イベントの有無を表示する");
+	auto showSkillCardLevel = Msg("showSkillCardLevel", "カードの一覧表示時にスキルカードのレベルを表示する");
 	auto ignoreEmptyStart = Msg("ignoreEmptyStart", "空のイベントツリーしか持たない使用時イベントは無視する");
 	auto expandXMLs = Msg("expandXMLs", "圧縮されたシナリオの読込み時にXMLファイルを展開する");
 	auto contentsFloat = Msg("contentsFloat", "コンテンツボックスを別ウィンドウで表示する");

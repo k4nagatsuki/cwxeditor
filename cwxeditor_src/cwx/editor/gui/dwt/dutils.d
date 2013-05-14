@@ -1274,6 +1274,15 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner,
 			break;
 		}
 	}
+	static if (is(C:SkillCard)) {
+		if (prop.var.etc.showSkillCardLevel) {
+			r.append(to!(string)(c.level),
+				prop.looks.skillCardLevelInsets,
+				prop.looks.skillCardLevelFont(skin.legacy),
+				prop.looks.skillCardLevelColor,
+				PileImage.TPos.RIGHT);
+		}
+	}
 	r.append(skin.findImagePath(c.path, sPath), matPad, ScaleType.Cut, true);
 	static if (is(typeof(c.linkId))) {
 		if (link) {

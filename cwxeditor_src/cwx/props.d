@@ -159,6 +159,10 @@ public:
 	@property const uint statusVerMax() {return 6;}
 	@property const CFont beastNumFont(bool legacy) {return CFont(pgothic(legacy), 9, false, false);}
 
+	const CFont skillCardLevelFont(bool legacy) {return CFont(mincho(legacy), 20, true, true);}
+	@property const CRGB skillCardLevelColor() {return CRGB(0, 0, 0, 128);}
+	@property const CInsets skillCardLevelInsets() {return CInsets(2, 8, 0, 0);}
+
 	const CFont menuCardNameFont(bool legacy) {return castCardNameFont(legacy);}
 	const CFont cardNameFont(bool legacy) {return castCardNameFont(legacy);}
 	const CFont useCountFont(bool legacy) {return CFont(mincho(legacy), 12, true, false);}

@@ -851,7 +851,8 @@ public:
 		return null;
 	}
 	@property
-	CWXPath[] cwxChilds() {return [];}
+	const
+	const(CWXPath)[] cwxChilds() {return [];}
 	@property
 	CWXPath cwxParent() {return _owner;}
 }
@@ -890,9 +891,10 @@ public:
 		return null;
 	}
 	@property
-	CWXPath[] cwxChilds() {
-		CWXPath[] r;
-		r ~= cast(CWXPath[]) backs;
+	const
+	const(CWXPath)[] cwxChilds() {
+		const(CWXPath)[] r;
+		r ~= cast(const CWXPath[]) backs;
 		return r;
 	}
 	@property

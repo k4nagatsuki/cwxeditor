@@ -433,7 +433,8 @@ public:
 		return null;
 	}
 	@property
-	CWXPath[] cwxChilds() {return _text.cwxChilds;}
+	const
+	const(CWXPath)[] cwxChilds() {return _text.cwxChilds;}
 	@property
 	CWXPath cwxParent() {return _parent;}
 }
@@ -947,14 +948,15 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return null;
 	}
 	@property
-	CWXPath[] cwxChilds() {
-		CWXPath[] r;
-		r ~= cast(CWXPath[]) next;
-		r ~= cast(CWXPath[]) dialogs;
+	const
+	const(CWXPath)[] cwxChilds() {
+		const(CWXPath)[] r;
+		r ~= cast(const CWXPath[]) next;
+		r ~= cast(const CWXPath[]) dialogs;
 		r ~= _text;
-		r ~= cast(CWXPath[]) motions;
-		r ~= cast(CWXPath[]) backs;
-		r ~= cast(CWXPath[]) coupons;
+		r ~= cast(const CWXPath[]) motions;
+		r ~= cast(const CWXPath[]) backs;
+		r ~= cast(const CWXPath[]) coupons;
 		return r;
 	}
 	@property
@@ -2067,9 +2069,10 @@ public:
 		return null;
 	}
 	@property
-	CWXPath[] cwxChilds() {
-		CWXPath[] r;
-		r ~= cast(CWXPath[]) starts;
+	const
+	const(CWXPath)[] cwxChilds() {
+		const(CWXPath)[] r;
+		r ~= cast(const CWXPath[]) starts;
 		return r;
 	}
 	@property
@@ -2757,9 +2760,10 @@ public:
 		return null;
 	}
 	@property
-	CWXPath[] cwxChilds() {
-		CWXPath[] r;
-		r ~= cast(CWXPath[]) trees;
+	const
+	const(CWXPath)[] cwxChilds() {
+		const(CWXPath)[] r;
+		r ~= cast(const CWXPath[]) trees;
 		return r;
 	}
 

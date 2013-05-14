@@ -610,16 +610,17 @@ public:
 		return null;
 	}
 	@property
-	override CWXPath[] cwxChilds() {
-		CWXPath[] r;
-		r ~= cast(CWXPath[]) areas;
-		r ~= cast(CWXPath[]) battles;
-		r ~= cast(CWXPath[]) packages;
-		r ~= cast(CWXPath[]) casts;
-		r ~= cast(CWXPath[]) skills;
-		r ~= cast(CWXPath[]) items;
-		r ~= cast(CWXPath[]) beasts;
-		r ~= cast(CWXPath[]) infos;
+	const
+	override const(CWXPath)[] cwxChilds() {
+		const(CWXPath)[] r;
+		r ~= cast(const CWXPath[]) _area;
+		r ~= cast(const CWXPath[]) _btl;
+		r ~= cast(const CWXPath[]) _pkg;
+		r ~= cast(const CWXPath[]) _cast;
+		r ~= cast(const CWXPath[]) _skl;
+		r ~= cast(const CWXPath[]) _itm;
+		r ~= cast(const CWXPath[]) _bst;
+		r ~= cast(const CWXPath[]) _info;
 		r ~= flagDirRoot;
 		return r;
 	}

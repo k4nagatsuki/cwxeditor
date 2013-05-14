@@ -1040,11 +1040,12 @@ public:
 		return null;
 	}
 	@property
-	CWXPath[] cwxChilds() {
-		CWXPath[] r;
-		r ~= cast(CWXPath[]) skills;
-		r ~= cast(CWXPath[]) items;
-		r ~= cast(CWXPath[]) beasts;
+	const
+	const(CWXPath)[] cwxChilds() {
+		const(CWXPath)[] r;
+		r ~= cast(const CWXPath[]) skills;
+		r ~= cast(const CWXPath[]) items;
+		r ~= cast(const CWXPath[]) beasts;
 		return r;
 	}
 	@property
@@ -1591,9 +1592,10 @@ public:
 		return null;
 	}
 	@property
-	CWXPath[] cwxChilds() {
-		CWXPath[] r;
-		r ~= cast(CWXPath[]) motions;
+	const
+	const(CWXPath)[] cwxChilds() {
+		const(CWXPath)[] r;
+		r ~= cast(const CWXPath[]) motions;
 		r ~= _ceto.cwxChilds;
 		return r;
 	}
@@ -2333,7 +2335,8 @@ public:
 		return null;
 	}
 	@property
-	CWXPath[] cwxChilds() {return [];}
+	const
+	const(CWXPath)[] cwxChilds() {return [];}
 	@property
 	CWXPath cwxParent() {return _owner;}
 }
