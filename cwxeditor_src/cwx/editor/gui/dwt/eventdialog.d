@@ -297,6 +297,7 @@ protected:
 				auto lt = new Label(comp, SWT.NONE);
 				lt.setText(_prop.msgs.transition);
 				_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+				mod(_ts);
 				auto tgd = new GridData;
 				tgd.horizontalSpan = 2;
 				_ts.setLayoutData(tgd);
@@ -309,6 +310,7 @@ protected:
 				auto ls = new Label(comp, SWT.NONE);
 				ls.setText(_prop.msgs.transitionSpeed);
 				_tsSpeed = new Spinner(comp, SWT.BORDER);
+				mod(_tsSpeed);
 				_tsSpeed.setMaximum(Content.transitionSpeed_max);
 				_tsSpeed.setMinimum(Content.transitionSpeed_min);
 				auto hint = new Label(comp, SWT.NONE);
