@@ -943,6 +943,9 @@ private:
 		return sels;
 	}
 	static if (UseCards) {
+		private Image cardImg(C c) {
+			return c.flag == "" ? _prop.images.cards : _prop.images.cardsWithFlag;
+		}
 		private void refreshCards() {
 			_cards.setRedraw(false);
 			scope (exit) _cards.setRedraw(true);
@@ -951,7 +954,7 @@ private:
 			_cards.removeAll();
 			foreach (i, c; cs) {
 				auto itm = new TableItem(_cards, SWT.NONE);
-				itm.setImage(_prop.images.cards);
+				itm.setImage(cardImg(c));
 				itm.setData(c);
 				itm.setChecked(true);
 				itm.setText(cardName(c));
@@ -962,11 +965,11 @@ private:
 	static if (UseBacks) {
 		private Image backImg(BgImage bg) {
 			if (cast(ImageCell) bg) {
-				return _prop.images.backs;
+				return bg.flag == "" ? _prop.images.backs : _prop.images.backsWithFlag;
 			} else if (cast(TextCell) bg) {
-				return _prop.images.textCell;
+				return bg.flag == "" ? _prop.images.textCell : _prop.images.textCellWithFlag;
 			} else if (cast(ColorCell) bg) {
-				return _prop.images.colorCell;
+				return bg.flag == "" ? _prop.images.colorCell : _prop.images.colorCellWithFlag;
 			} else assert (0);
 		}
 		private void refreshBacks() {
@@ -2422,8 +2425,15 @@ public:
 					itm.setText(name);
 					_comm.refMenuCard.call(c.cwxPath(true));
 				}
+				// 置換でフラグ名が消失する可能性があるため
+				itm.setImage(cardImg(c));
 			}
 			_imgp.redraw();
+		}
+		static if (UseBacks) {
+			foreach (i, b; _area.backs) {
+				backList.getItem(i).setImage(backImg(b));
+			}
 		}
 	}
 	static if (UseCards) {
@@ -2446,6 +2456,7 @@ public:
 				fi.visible = v;
 				_imgp.set(cardsIndex + i, fi);
 				_cards.getItem(i).setText(cardName(c));
+				_cards.getItem(i).setImage(cardImg(c));
 				_cards.getItem(i).setData(c);
 				partyIndex++;
 			}
@@ -2457,6 +2468,7 @@ public:
 				fi.visible = v;
 				_imgp.set(i, fi);
 				_backs.getItem(i).setText(b.name);
+				_backs.getItem(i).setImage(backImg(b));
 				_backs.getItem(i).setData(b);
 				partyIndex++;
 			}
@@ -2792,6 +2804,7 @@ public:
 					_imgp.set(cardsIndex + i, fi);
 					if (_cards.isSelected(i) && _viewCards) _imgp.select(fi);
 					_cards.getItem(i).setText(cardName(c));
+					_cards.getItem(i).setImage(cardImg(c));
 					_cards.getItem(i).setData(c);
 					refreshControls();
 					_comm.refMenuCard.call(c.cwxPath(true));
@@ -2958,6 +2971,7 @@ public:
 					_imgp.set(i, fi);
 					if (_backs.isSelected(i) && _viewBacks) _imgp.select(fi);
 					_backs.getItem(i).setText(back.name);
+					_backs.getItem(i).setImage(backImg(back));
 					_backs.getItem(i).setData(b);
 					refreshControls();
 					_comm.refBgImage.call(b.cwxPath(true));
@@ -3401,17 +3415,19 @@ public:
 			auto undo = createUndoEdit();
 			bool chg = false;
 			static if (UseCards) {
-				foreach (c; _editC.keys) {
+				foreach (c, i; _editC) {
 					if (c.flag != flag) {
 						c.flag = flag;
+						_cards.getItem(i).setImage(cardImg(c));
 						chg = true;
 					}
 				}
 			}
 			static if (UseBacks) {
-				foreach (b; _editB.keys) {
+				foreach (b, i; _editB) {
 					if (b.flag != flag) {
 						b.flag = flag;
+						_backs.getItem(i).setImage(backImg(b));
 						chg = true;
 					}
 				}
@@ -3460,8 +3476,8 @@ public:
 	static if (RefCards) {
 		void reverseViewRefCards() {
 			_imgp.showAppends = !_imgp.showAppends;
-			if (_vmMenu) _vmMenu.setSelection(_imgp.showAppends);
-			if (_vmTMenu) _vmTMenu.setSelection(_imgp.showAppends);
+			if (_vrMenu) _vrMenu.setSelection(_imgp.showAppends);
+			if (_vrTMenu) _vrTMenu.setSelection(_imgp.showAppends);
 			_imgp.redraw();
 		}
 	}
@@ -3523,7 +3539,7 @@ public:
 				v._imgp.insert(v.cardsIndex + index, img);
 				v._imgp.images[v.cardsIndex + index].visible = check;
 				auto itm = new TableItem(v._cards, SWT.NONE, index);
-				itm.setImage(v._prop.images.cards);
+				itm.setImage(v.cardImg(card));
 				itm.setData(card);
 				itm.setChecked(check);
 				itm.setText(v.cardName(card));
@@ -3561,7 +3577,7 @@ public:
 			_imgp.insert(cardsIndex + index, cast(PileImage[]) imgs);
 			foreach (i, c; cards) {
 				auto itm = new TableItem(_cards, SWT.NONE, index + i);
-				itm.setImage(_prop.images.cards);
+				itm.setImage(cardImg(c));
 				itm.setData(c);
 				itm.setChecked(true);
 				itm.setText(cardName(c));

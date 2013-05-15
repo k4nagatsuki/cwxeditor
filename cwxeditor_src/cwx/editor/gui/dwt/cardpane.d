@@ -49,12 +49,26 @@ import org.eclipse.swt.all;
 
 import java.lang.all;
 
-enum CViewMode {INIT, LIFE, CARD, TABLE}
+enum CViewMode { INIT, LIFE, CARD, TABLE }
+enum CardTableColumn { ID, Name, Desc, UC, Num }
 
 private class CardPane(PCardOwner, CardOwner, C : Card, ToCardOwner) : TCPD {
 private:
 	static immutable EditMode = is (ToCardOwner == void);
 	static immutable CanHold = is(CardOwner:CastCard) && (is(C:SkillCard) || is(C:ItemCard));
+	static immutable UseNum = !is(C:InfoCard);
+
+	static immutable COL_ID = 0;
+	static immutable COL_NAME = 1;
+	static if (UseNum) {
+		static immutable COL_NUM = 2;
+		static immutable COL_DESC = 3;
+	} else {
+		static immutable COL_DESC = 2;
+	}
+	static if (EditMode && is (CardOwner == Summary)) {
+		static immutable COL_UC = COL_DESC + 1;
+	}
 	private static C[] cardsFrom(CardOwner)(CardOwner owner) {
 		static if (is(C:CastCard)) {
 			return owner.casts;
@@ -116,6 +130,23 @@ private:
 			}
 		}
 		return card.desc;
+	}
+	static if (UseNum) {
+		private int cardNum(in C card) {
+			static if (is(typeof(card.linkId))) {
+				if (0 != card.linkId) {
+					auto c = pOwnerCard(card.linkId);
+					if (c) return cardNum(c);
+				}
+			}
+			static if (is(typeof(card.level))) {
+				return card.level; // cast, skill
+			} else static if (is(typeof(card.useLimitMax))) {
+				return card.useLimitMax; // item
+			} else {
+				return card.useLimit; // beast
+			}
+		}
 	}
 	@property
 	private C[] pOwnerCards() {return cardsFrom(_summ);}
@@ -520,6 +551,63 @@ private:
 			return compID(c1, c2);
 		}
 	}
+	static if (UseNum) {
+		TableSorter!C _numSorter;
+		bool compNum(const C c1, const C c2) {
+			int num1 = cardNum(c1);
+			int num2 = cardNum(c2);
+			if (num1 < num2) return true;
+			if (num1 > num2) return false;
+			return compID(c1, c2);
+		}
+		bool revCompNum(const C c1, const C c2) {
+			int num1 = cardNum(c2);
+			int num2 = cardNum(c1);
+			if (num1 < num2) return true;
+			if (num1 > num2) return false;
+			return compID(c1, c2);
+		}
+	}
+	CardTableColumn columnVal(TableColumn column) {
+		int index = _tbl.indexOf(column);
+		if (index == COL_ID) return CardTableColumn.ID;
+		if (index == COL_NAME) return CardTableColumn.Name;
+		if (index == COL_DESC) return CardTableColumn.Desc;
+		static if (is(typeof(COL_UC))) {
+			if (index == COL_UC) return CardTableColumn.UC;
+		}
+		static if (is(typeof(COL_NUM))) {
+			if (index == COL_NUM) return CardTableColumn.Num;
+		}
+		assert (0);
+	}
+	static int columnToInt(CardTableColumn column) {
+		final switch (column) {
+		case CardTableColumn.ID: return 0;
+		case CardTableColumn.Name: return 1;
+		case CardTableColumn.Desc: return 2;
+		case CardTableColumn.UC: return 3;
+		case CardTableColumn.Num: return 4;
+		}
+	}
+	TableColumn columnFromInt(int column) {
+		switch (column) {
+		case 0: return _tbl.getColumn(COL_ID);
+		case 1: return _tbl.getColumn(COL_NAME);
+		case 2: return _tbl.getColumn(COL_DESC);
+		case 3:
+			static if (is(typeof(COL_UC))) {
+				return _tbl.getColumn(COL_UC);
+			}
+			goto default;
+		case 4:
+			static if (is(typeof(COL_NUM))) {
+				return _tbl.getColumn(COL_NUM);
+			}
+			goto default;
+		default: return _tbl.getColumn(COL_ID);
+		}
+	}
 
 	void sort() {
 		if (_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column) {
@@ -530,7 +618,14 @@ private:
 			_descSorter.doSort(_tbl.getSortDirection());
 		} else {
 			static if (EditMode && is (CardOwner == Summary)) {
-				_ucSorter.doSort(_tbl.getSortDirection());
+				if (_tbl.getSortColumn() is _ucSorter.column) {
+					_ucSorter.doSort(_tbl.getSortDirection());
+				}
+			}
+			static if (UseNum) {
+				if (_tbl.getSortColumn() is _numSorter.column) {
+					_numSorter.doSort(_tbl.getSortDirection());
+				}
 			} else assert (0);
 		}
 	}
@@ -544,7 +639,14 @@ private:
 			minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompDesc : &compDesc;
 		} else {
 			static if (EditMode && is (CardOwner == Summary)) {
-				minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompUC : &compUC;
+				if (_tbl.getSortColumn() is _ucSorter.column) {
+					minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompUC : &compUC;
+				}
+			}
+			static if (UseNum) {
+				if (_tbl.getSortColumn() is _numSorter.column) {
+					minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompNum : &compNum;
+				}
 			} else assert (0);
 		}
 		cards = .sortDlg(cards.dup, minL);
@@ -594,6 +696,42 @@ private:
 			refresh();
 			refCard(c);
 			_comm.refreshToolBar();
+		}
+		static if (UseNum) {
+			Control numCreateEditor(TableItem itm, int column) {
+				auto c = cast(C)itm.getData();
+				auto spn = new Spinner(itm.getParent(), SWT.BORDER);
+				static if (is(C:CastCard)) {
+					int max = _prop.var.etc.castLevelMax;
+					int min = 1;
+				} else static if (is(C:SkillCard)) {
+					int max = _prop.var.etc.skillLevelMax;
+					int min = 0;
+				} else {
+					int max = _prop.var.etc.useCountMax;
+					int min = 0;
+				}
+				spn.setMaximum(max);
+				spn.setMinimum(min);
+				spn.setSelection(cardNum(c));
+				return spn;
+			}
+			void numEditEnd(TableItem itm, int column, Control ctrl) {
+				auto num = (cast(Spinner)ctrl).getSelection();
+				auto c = cast(C)itm.getData();
+				assert (c !is null);
+				storeEdit(c.id);
+				static if (is(typeof(c.level))) {
+					c.level = num;
+				} else static if (is(typeof(c.useLimitMax))) {
+					c.useLimitMax = num;
+				} else {
+					c.useLimit = num;
+				}
+				refresh();
+				refCard(c);
+				_comm.refreshToolBar();
+			}
 		}
 		bool canEdit(TableItem itm, int column) {
 			auto c = cast(C) itm.getData();
@@ -665,20 +803,28 @@ private:
 		_list.refresh(index, card);
 	}
 	void refreshTableItem(C c, TableItem itm) {
-		itm.setImage(0, _cimg);
-		itm.setText(0, to!(string)(c.id));
-		itm.setText(1, cardName(c));
+		itm.setImage(COL_ID, _cimg);
+		itm.setText(COL_ID, to!(string)(c.id));
+		itm.setText(COL_NAME, cardName(c));
 		string desc = cardDesc(c).singleLine;
 		static if (is(C:EventTreeOwner)) {
 			if (_prop.var.etc.showEventTreeMark && ((_prop.var.etc.ignoreEmptyStart ? !c.isEmpty : 0 < c.trees.length))) {
-				itm.setImage(2, _prop.images.eventTree);
+				itm.setImage(COL_DESC, _prop.images.eventTree);
 			} else {
-				itm.setImage(2, null);
+				itm.setImage(COL_DESC, null);
 			}
 		}
-		itm.setText(2, desc);
+		itm.setText(COL_DESC, desc);
 		static if (EditMode && is (CardOwner == Summary)) {
-			itm.setText(3, to!(string)(_summ.useCounter.get(C.toID(c.id))));
+			itm.setText(COL_UC, to!(string)(_summ.useCounter.get(C.toID(c.id))));
+		}
+		static if (UseNum) {
+			auto num = cardNum(c);
+			static if (is(typeof(c.level))) {
+				itm.setText(COL_NUM, to!string(num));
+			} else {
+				itm.setText(COL_NUM, 0 < num ? to!string(num) : _prop.msgs.infinity);
+			}
 		}
 		itm.setData(c);
 
@@ -691,7 +837,7 @@ private:
 		} else {
 			bool warn = w > _prop.looks.nameLimit;
 		}
-		itm.setImage(1, warn ? _prop.images.warning : null);
+		itm.setImage(COL_NAME, warn ? _prop.images.warning : null);
 	}
 	template CopyAndPaste() {
 		override void cut(SelectionEvent se) {
@@ -1138,7 +1284,7 @@ private:
 	void refreshIDs() {
 		if (_viewMode == CViewMode.TABLE) {
 			foreach (i, c; cards) {
-				_tbl.getItem(i).setText(0, to!(string)(c.id));
+				_tbl.getItem(i).setText(COL_ID, to!(string)(c.id));
 			}
 		}
 	}
@@ -1302,12 +1448,11 @@ private:
 		}
 	}
 	private bool _procRefColW = false;
-	void refColumnWidth(TableColumn c, int width) {
+	void refColumnWidth(Object sender, CardTableColumn c, int width) {
 		if (_procRefColW) return;
 		if (!_tbl || _tbl.isDisposed()) return;
-		if (_tbl is c.getParent()) return;
-		int i = c.getParent().indexOf(c);
-		auto col = _tbl.getColumn(i);
+		if (sender is this) return;
+		auto col = columnFromInt(columnToInt(c));
 		col.setWidth(width);
 	}
 	class DisposeTable : DisposeListener {
@@ -1324,7 +1469,9 @@ private:
 			scope (exit) _procRefColW = false;
 			auto col = cast(TableColumn) e.widget;
 			int width = col.getWidth();
-			_comm.refCardTableColumnWidth.call(col, width);
+			static if (EditMode && is(CardOwner : Summary)) {
+				_comm.refCardTableColumnWidth.call(this.outer, columnVal(col), width);
+			}
 			mixin("_prop.var.etc." ~ WidthPropName ~ " = width;");
 		}
 	}
@@ -1376,8 +1523,8 @@ private:
 			static if (EditMode && is(C:EventTreeOwner)) {
 				auto itm = _tbl.getItem(new Point(e.x, e.y));
 				if (!itm) return;
-				if (!itm.getImage(2)) return;
-				auto rect = itm.getImageBounds(2);
+				if (!itm.getImage(COL_DESC)) return;
+				auto rect = itm.getImageBounds(COL_DESC);
 				if (!rect) return;
 				if (rect.contains(e.x, e.y)) {
 					_tbl.setCursor(_list.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
@@ -1433,18 +1580,33 @@ private:
 			}
 		}
 	}
-	void refSortParams(Object sender, int column, int dir) {
+	void refSortParams(Object sender, CardTableColumn column, int dir) {
 		if (sender is this) return;
-		if (column == 0) {
+		if (_sortProc) return;
+		_sortProc = true;
+		scope (exit) _sortProc = false;
+		final switch (column) {
+		case CardTableColumn.ID:
 			_idSorter.doSort(dir);
-		} else if (column == 1) {
+			break;
+		case CardTableColumn.Name:
 			_nameSorter.doSort(dir);
-		} else if (column == 2) {
+			break;
+		case CardTableColumn.Desc:
 			_descSorter.doSort(dir);
-		} else {
+			break;
+		case CardTableColumn.UC:
 			static if (EditMode && is(CardOwner : Summary)) {
 				_ucSorter.doSort(dir);
+				break;
 			} else assert (0);
+		case CardTableColumn.Num:
+			static if (UseNum) {
+				_numSorter.doSort(dir);
+				break;
+			} else {
+				goto case CardTableColumn.ID;
+			}
 		}
 	}
 	bool _sortProc = false;
@@ -1455,26 +1617,26 @@ private:
 		if (_viewMode != CViewMode.TABLE) {
 			__refresh();
 		}
-		int column = _tbl.indexOf(_tbl.getSortColumn());
+		auto columnVal = columnVal(_tbl.getSortColumn());
+		int column = columnToInt(columnVal);
 		int dir = _tbl.getSortDirection();
 		static if (EditMode && is(CardOwner : Summary)) {
 			_prop.var.etc.mainCardsSortColumn = column;
 			_prop.var.etc.mainCardsSortDirection = dir;
-			_comm.refMainCardsSort.call(this, column, dir);
+			_comm.refMainCardsSort.call(this, columnVal, dir);
 		} else static if (EditMode) {
 			_prop.var.etc.handCardsSortColumn = column;
 			_prop.var.etc.handCardsSortDirection = dir;
-			_comm.refHandCardsSort.call(this, column, dir);
+			_comm.refHandCardsSort.call(this, columnVal, dir);
 		} else {
 			_prop.var.etc.importCardsSortColumn = column;
 			_prop.var.etc.importCardsSortDirection = dir;
-			_comm.refImportCardsSort.call(this, column, dir);
+			_comm.refImportCardsSort.call(this, columnVal, dir);
 		}
 	}
 	void createCardList(Composite parent) {
 		_pane = new Composite(parent, _style);
-/+		_pane.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_GRAY));
-+/		_pane.setLayout(zeroGridLayout(1, true));
+		_pane.setLayout(zeroGridLayout(1, true));
 
 		auto tableComp = new Composite(_pane, SWT.NONE);
 		tableComp.setLayout(zeroGridLayout(1, true));
@@ -1495,6 +1657,14 @@ private:
 		idCol.setText(_prop.msgs.cardId);
 		auto nameCol = new TableColumn(_tbl, SWT.NONE);
 		nameCol.setText(_prop.msgs.cardName);
+		static if (UseNum) {
+			auto numCol = new TableColumn(_tbl, SWT.NONE);
+			static if (is(typeof(cards[0].level))) {
+				numCol.setText(_prop.msgs.level);
+			} else {
+				numCol.setText(_prop.msgs.useCount);
+			}
+		}
 		auto descCol = new TableColumn(_tbl, SWT.NONE);
 		descCol.setText(_prop.msgs.cardDesc);
 
@@ -1505,7 +1675,10 @@ private:
 		_comm.refCardTableColumnWidth.add(&refColumnWidth);
 		_tbl.addDisposeListener(new DisposeTable);
 		static if (EditMode) {
-			new TableTextEdit(_comm, _prop, _tbl, 1, &nameEditEnd, &canEdit);
+			new TableTextEdit(_comm, _prop, _tbl, COL_NAME, &nameEditEnd, &canEdit);
+			static if (UseNum) {
+				new TableTCEdit(_comm, _tbl, COL_NUM, &numCreateEditor, &numEditEnd, &canEdit);
+			}
 		}
 
 		_list = new CardList!(C)(_pane, SWT.VIRTUAL | SWT.V_SCROLL | (EditMode ? SWT.SINGLE : SWT.MULTI));
@@ -1538,6 +1711,10 @@ private:
 			_ucSorter = new TableSorter!C(ucCol, &compUC, &revCompUC);
 			_ucSorter.sortedEvent ~= &sorted;
 		}
+		static if (UseNum) {
+			_numSorter = new TableSorter!C(numCol, &compNum, &revCompNum);
+			_numSorter.sortedEvent ~= &sorted;
+		}
 		static if (EditMode && is(CardOwner : Summary)) {
 			idCol.setWidth(_prop.var.etc.cardIdColumn);
 			idCol.addControlListener(new ColResize!("cardIdColumn"));
@@ -1547,6 +1724,10 @@ private:
 			descCol.addControlListener(new ColResize!("cardDescriptionColumn"));
 			ucCol.setWidth(_prop.var.etc.cardCountColumn);
 			ucCol.addControlListener(new ColResize!("cardCountColumn"));
+			static if (UseNum) {
+				numCol.setWidth(_prop.var.etc.cardNumberColumn);
+				numCol.addControlListener(new ColResize!("cardNumberColumn"));
+			}
 
 			int column = _prop.var.etc.mainCardsSortColumn;
 			int dir = _prop.var.etc.mainCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
@@ -1559,6 +1740,10 @@ private:
 			nameCol.addControlListener(new ColResize!("handCardNameColumn"));
 			descCol.setWidth(_prop.var.etc.handCardDescriptionColumn);
 			descCol.addControlListener(new ColResize!("handCardDescriptionColumn"));
+			static if (UseNum) {
+				numCol.setWidth(_prop.var.etc.handCardNumberColumn);
+				numCol.addControlListener(new ColResize!("handCardNumberColumn"));
+			}
 
 			int column = _prop.var.etc.handCardsSortColumn;
 			int dir = _prop.var.etc.handCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
@@ -1571,13 +1756,17 @@ private:
 			nameCol.addControlListener(new ColResize!("importCardNameColumn"));
 			descCol.setWidth(_prop.var.etc.importCardDescriptionColumn);
 			descCol.addControlListener(new ColResize!("importCardDescriptionColumn"));
+			static if (UseNum) {
+				numCol.setWidth(_prop.var.etc.importCardNumberColumn);
+				numCol.addControlListener(new ColResize!("importCardNumberColumn"));
+			}
 
 			int column = _prop.var.etc.importCardsSortColumn;
 			int dir = _prop.var.etc.importCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
 			_comm.refImportCardsSort.add(&refSortParams);
 			.listener(_tbl, SWT.Dispose, { _comm.refImportCardsSort.remove(&refSortParams); });
 		}
-		_tbl.setSortColumn(_tbl.getColumn(column));
+		_tbl.setSortColumn(columnFromInt(column));
 		_tbl.setSortDirection(dir);
 
 		// マウス・キーボード操作
@@ -2102,7 +2291,7 @@ public:
 				if (_viewMode == CViewMode.TABLE) {
 					foreach (itm; _tbl.getItems()) {
 						auto c = cast(C) itm.getData();
-						itm.setText(3, to!(string)(_summ.useCounter.get(C.toID(c.id))));
+						itm.setText(COL_UC, to!(string)(_summ.useCounter.get(C.toID(c.id))));
 					}
 				}
 			}
@@ -2210,6 +2399,20 @@ public:
 	@property
 	Table cardTable() {
 		return _tbl;
+	}
+	@property
+	TableColumn[CardTableColumn] columns() {
+		TableColumn[CardTableColumn] r;
+		r[CardTableColumn.ID] = _tbl.getColumn(COL_ID);
+		r[CardTableColumn.Name] = _tbl.getColumn(COL_NAME);
+		r[CardTableColumn.Desc] = _tbl.getColumn(COL_DESC);
+		static if (is(typeof(COL_UC))) {
+			r[CardTableColumn.UC] = _tbl.getColumn(COL_UC);
+		}
+		static if (is(typeof(COL_NUM))) {
+			r[CardTableColumn.Num] = _tbl.getColumn(COL_NUM);
+		}
+		return r;
 	}
 
 	static if (EditMode) {

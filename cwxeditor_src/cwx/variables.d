@@ -84,13 +84,16 @@ class FlexEtcProps : Properties {
 	auto textCellBoxHeight = Prop!(int, true)("textCellBoxHeight", 50);
 	auto cardIdColumn = Prop!(int)("cardIdColumn", 50);
 	auto cardNameColumn = Prop!(int)("cardNameColumn", 100);
+	auto cardNumberColumn = Prop!(int)("cardNumberColumn", 60);
 	auto cardDescriptionColumn = Prop!(int)("cardDescriptionColumn", 280);
 	auto cardCountColumn = Prop!(int)("cardCountColumn", 60);
 	auto handCardIdColumn = Prop!(int)("handCardIdColumn", 50);
 	auto handCardNameColumn = Prop!(int)("handCardNameColumn", 100);
+	auto handCardNumberColumn = Prop!(int)("handCardNumberColumn", 60);
 	auto handCardDescriptionColumn = Prop!(int)("handCardDescriptionColumn", 50);
 	auto importCardIdColumn = Prop!(int)("importCardIdColumn", 50);
 	auto importCardNameColumn = Prop!(int)("importCardNameColumn", 100);
+	auto importCardNumberColumn = Prop!(int)("importCardNumberColumn", 60);
 	auto importCardDescriptionColumn = Prop!(int)("importCardDescriptionColumn", 50);
 	auto mainCardsSortColumn = Prop!(int)("mainCardsSortColumn", 0);
 	auto mainCardsSortDirection = Prop!(int)("mainCardsSortDirection", SortDir.Up);
@@ -302,8 +305,8 @@ class FlexEtcProps : Properties {
 	auto showImagePreview = Prop!(bool)("showImagePreview", true);
 	auto classicStyleTree = Prop!(bool)("classicStyleTree", false);
 	auto showEventTreeMark = Prop!(bool)("showEventTreeMark", true);
-	auto showSkillCardLevel = Prop!(bool)("showSkillCardLevel", true);
 	auto ignoreEmptyStart = Prop!(bool)("ignoreEmptyStart", true);
+	auto showSkillCardLevel = Prop!(bool)("showSkillCardLevel", true);
 	auto switchTabWheel = Prop!(bool)("switchTabWheel", true);
 	auto closeTabWithMiddleClick = Prop!(bool)("closeTabWithMiddleClick", true);
 	auto openTabAtRightOfCurrentTab = Prop!(bool)("openTabAtRightOfCurrentTab", true);

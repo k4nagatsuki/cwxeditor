@@ -307,7 +307,7 @@ class Commons {
 	Dlg!() refCardState;
 	Dlg!() refWallpaper;
 	Dlg!() refSortCondition;
-	Dlg!(TableColumn, int) refCardTableColumnWidth;
+	Dlg!(CardTableColumn, int) refCardTableColumnWidth;
 	Dlg!() refUndoMax;
 	Dlg!(MenuID) refMenu;
 	Dlg!() refSoundType;
@@ -322,9 +322,9 @@ class Commons {
 	Dlg!(Battle) delBattle;
 	Dlg!(Package) refPackage;
 	Dlg!(Package) delPackage;
-	Dlg!(int, int) refMainCardsSort;
-	Dlg!(int, int) refHandCardsSort;
-	Dlg!(int, int) refImportCardsSort;
+	Dlg!(CardTableColumn, int) refMainCardsSort;
+	Dlg!(CardTableColumn, int) refHandCardsSort;
+	Dlg!(CardTableColumn, int) refImportCardsSort;
 
 	Dlg!(string) addMenuCard;
 	Dlg!(string) refMenuCard;

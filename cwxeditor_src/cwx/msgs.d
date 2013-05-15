@@ -1301,6 +1301,7 @@ class Msgs : Properties {
 	auto cardId = Msg("cardId", "ID");
 	auto cardName = Msg("cardName", "名称");
 	auto cardDesc = Msg("cardDesc", "説明");
+	auto infinity = Msg("infinity", "∞");
 
 	auto dlgTitNewCast = Msg("dlgTitNewCast", "キャストカードの作成");
 	auto dlgTitNewSkill = Msg("dlgTitNewSkill", "特殊技能カードの作成");
@@ -1388,6 +1389,7 @@ class Msgs : Properties {
 	auto aptPhysical = Msg("aptPhysical", "身体的要素");
 	auto aptMental = Msg("aptMental", "精神的要素");
 	auto skillLevel = Msg("skillLevel", "技能レベル");
+	auto useCount = Msg("useCount", "使用回数");
 	auto useCountGroup = Msg("useCountGroup", "使用可能回数");
 	auto useCountRange = Msg("useCountRange", "(0～%1$s : 0 = ∞)");
 	auto price = Msg("price", "価格");

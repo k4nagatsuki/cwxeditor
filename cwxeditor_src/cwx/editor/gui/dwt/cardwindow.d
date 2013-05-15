@@ -744,14 +744,13 @@ public:
 	private void construct2() {
 		newPane!(0)();
 		static if (!EditMode || !is(CardOwner : Summary)) {
-			ColResize[] colR;
-			colR.length = (is (CardOwner == Summary)) ? 4 : 3;
-			foreach (i, c; colR) {
-				colR[i] = new ColResize;
-				colR[i].comm = _comm;
-			}
-			void addTable(Table tbl) {
-				foreach (i, col; tbl.getColumns()) {
+			ColResize[CardTableColumn] colR;
+			void addTable(TableColumn[CardTableColumn] columns) {
+				foreach (i, col; columns) {
+					if (i !in colR) {
+						colR[i] = new ColResize;
+						colR[i].comm = _comm;
+					}
 					colR[i].cols ~= col;
 					col.addControlListener(colR[i]);
 				}
@@ -796,7 +795,7 @@ public:
 			}
 			_tcpd ~= f;
 			static if (!EditMode || !is(CardOwner : Summary)) {
-				addTable(f.cardTable);
+				addTable(f.columns);
 			}
 		}
 		auto shell = cast(Shell) _win;

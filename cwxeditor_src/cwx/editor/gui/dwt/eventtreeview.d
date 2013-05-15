@@ -1790,7 +1790,7 @@ private:
 					if (ca.width <= ib.x) continue;
 					auto img = warningImage();
 					int ix = .max(ib.x, ca.width - _prop.var.etc.warningImageWidth);
-					e.gc.drawImage(img, ix, b.y);
+					e.gc.drawImage(img, 0, 0, _prop.var.etc.warningImageWidth, itmH, ix, b.y, ca.width - ix, itmH);
 					auto bounds = _prop.images.warning.getBounds();
 					int wx = .max(b.x + b.width, ca.width - bounds.width - 1);
 					if (wx < ca.width) {
@@ -1801,6 +1801,7 @@ private:
 				}
 			}
 		}
+		updateToolTip();
 		foreach (i, lines; texts) {
 			auto b = bs[i];
 			int bx = b.x;

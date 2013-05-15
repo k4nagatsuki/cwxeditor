@@ -75,9 +75,13 @@ public:
 	@property Image summary() {return imgd!("summary.png");}
 
 	@property Image cards() {return imgd!("cards.png");}
+	@property Image cardsWithFlag() {return imgd!("cards_flag.png");}
 	@property Image backs() {return imgd!("backs.png");}
+	@property Image backsWithFlag() {return imgd!("backs_flag.png");}
 	@property Image colorCell() {return imgd!("color_cell.png");}
+	@property Image colorCellWithFlag() {return imgd!("color_cell_flag.png");}
 	@property Image textCell() {return imgd!("text_cell.png");}
+	@property Image textCellWithFlag() {return imgd!("text_cell_flag.png");}
 
 	@property Image bgm() {return imgd!("evt_bgm.png");}
 	@property Image se() {return imgd!("evt_se.png");}
