@@ -3052,8 +3052,8 @@ public:
 	static if (RefCards) {
 		void reverseViewRefCards() {
 			_imgp.showAppends = !_imgp.showAppends;
-			if (_vmMenu) _vmMenu.setSelection(_imgp.showAppends);
-			if (_vmTMenu) _vmTMenu.setSelection(_imgp.showAppends);
+			if (_vrMenu) _vrMenu.setSelection(_imgp.showAppends);
+			if (_vrTMenu) _vrTMenu.setSelection(_imgp.showAppends);
 			_imgp.redraw();
 		}
 	}
