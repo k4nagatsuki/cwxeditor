@@ -226,11 +226,11 @@ public class FlexProps {
 	private string _noFileTemp;
 
 	version (Windows) {
-		private immutable CWX_DIR = "cwxeditor";
-		private immutable CWX_DIR_NOS = "cwxeditor_no_settings";
+		private static immutable CWX_DIR = "cwxeditor";
+		private static immutable CWX_DIR_NOS = "cwxeditor_no_settings";
 	} else {
-		private immutable CWX_DIR = ".cwxeditor";
-		private immutable CWX_DIR_NOS = ".cwxeditor_no_settings";
+		private static immutable CWX_DIR = ".cwxeditor";
+		private static immutable CWX_DIR_NOS = ".cwxeditor_no_settings";
 	}
 
 	this (string appPath, string confFileName) {
@@ -391,7 +391,7 @@ public class FlexProps {
 					this.tupleof[i] = fromNode(_node, fld, force, dataVersion);
 				}
 				if (dataVersion < 2012072700) {
-					etc.backupBeforeSavePath = etc.backupPath;
+					etc.backupBeforeSavePath.value = etc.backupPath;
 				}
 				dStr ~= " - " ~ .text(__LINE__);
 			}

@@ -2915,20 +2915,20 @@ public:
 		static if (Act.length) {
 			static const MenuAction = "_mainMenu.add(" ~ Id.stringof ~ ");"
 				~ "_menu[" ~ Id.stringof ~ "] = createMenuItem(_comm, " ~ M ~ ", " ~ Id.stringof ~ ", &"
-				~ Act ~ ", " ~ Can ~ ", " ~ toStringNow!(Style) ~ ");";
+				~ Act ~ ", " ~ Can ~ ", " ~ to!string(Style) ~ ");";
 		} else {
 			static const MenuAction = "_menu[" ~ Id.stringof ~ "] = createMenuItem(_comm, " ~ M ~ ", " ~ Id.stringof ~ ", "
-				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ toStringNow!(Style) ~ ");";
+				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ to!string(Style) ~ ");";
 		}
 	}
 	private template ToolAction(string T, MenuID Id, int Style = SWT.PUSH, string Act = "", string Can = "null") {
 		static if (Act.length) {
 			static const ToolAction = "_mainMenu.add(" ~ Id.stringof ~ ");"
 				~ "_tool[" ~ Id.stringof ~ "] = createToolItem(_comm, " ~ T ~ ", " ~ Id.stringof ~ ", &"
-				~ Act ~ ", " ~ Can ~ ", " ~ toStringNow!(Style) ~ ");";
+				~ Act ~ ", " ~ Can ~ ", " ~ to!string(Style) ~ ");";
 		} else {
 			static const ToolAction = "_tool[" ~ Id.stringof ~ "] = createToolItem(_comm, " ~ T ~ ", " ~ Id.stringof ~ ", "
-				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ toStringNow!(Style) ~ ");";
+				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ to!string(Style) ~ ");";
 		}
 	}
 	void refreshToolBar(bool delegate()[MenuID] cMenuTbl) {

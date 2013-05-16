@@ -27,9 +27,9 @@ private:
 	void delegate() _change;
 public:
 	/// XML要素名。
-	immutable XML_NAME = "BgImage";
+	static immutable XML_NAME = "BgImage";
 	/// XML要素名(複数)。
-	immutable XML_NAME_M = "BgImages";
+	static immutable XML_NAME_M = "BgImages";
 
 	const
 	bool opEquals(ref const(Object) o) {

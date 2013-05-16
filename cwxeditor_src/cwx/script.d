@@ -19,6 +19,7 @@ import std.string;
 import std.regex;
 import std.exception;
 import std.traits;
+import std.range : ElementType;
 
 /// スクリプトの解析途中に発生したエラー。
 struct CWXSError {
@@ -925,8 +926,10 @@ class CWXScript {
 		size_t i;
 		Token[] tokens;
 		const(Node)[][string] varTable;
-		varTable["$abc"] = [Node(NodeType.VALUE, Token(0, 0, 0, Kind.NUMBER, "15"))];
-		varTable["$s"] = [Node(NodeType.VALUE, Token(0, 0, 0, Kind.NUMBER, "0"))];
+		auto tok = Token(0, 0, 0, Kind.NUMBER, "15");
+		varTable["$abc"] = [Node(NodeType.VALUE, tok)];
+		tok = Token(0, 0, 0, Kind.NUMBER, "0");
+		varTable["$s"] = [Node(NodeType.VALUE, tok)];
 		auto s = new CWXScript(new CProps("", null), null);
 		i = 0;
 		assert (s.calc(s.tokenize("10 * $abc"), i, varTable, 0) == 150);
@@ -1786,7 +1789,7 @@ fi`;
 						// 空の配列
 						break;
 					}
-					r ~= parseAttr!(typeof(T[0]), Within)(opt, values, i2, typeof(T[0]).init, varTable, msgWidth);
+					r ~= parseAttr!(ElementType!(T), Within)(opt, values, i2, ElementType!(T).init, varTable, msgWidth);
 					if (0 == i2) break;
 				}
 				i++;

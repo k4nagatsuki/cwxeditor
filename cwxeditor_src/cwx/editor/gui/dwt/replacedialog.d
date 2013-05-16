@@ -30,6 +30,7 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
 
+import std.ascii;
 import std.conv;
 import std.array;
 import std.string;

@@ -195,9 +195,9 @@ private:
 	CastUser _user;
 public:
 	/// XML要素名。
-	immutable XML_NAME = "EnemyCard";
+	static immutable XML_NAME = "EnemyCard";
 	/// XML要素名(複数)。
-	immutable XML_NAME_M = "EnemyCards";
+	static immutable XML_NAME_M = "EnemyCards";
 
 	/// 唯一のコンストラクタ。
 	this (ulong id, bool escape, string flag, int x, int y, real scale) {
@@ -369,9 +369,9 @@ private:
 
 public:
 	/// XML要素名。
-	immutable XML_NAME = "MenuCard";
+	static immutable XML_NAME = "MenuCard";
 	/// XML要素名(複数)。
-	immutable XML_NAME_M = "MenuCards";
+	static immutable XML_NAME_M = "MenuCards";
 
 	/// 唯一のコンストラクタ。
 	/// Params:
@@ -707,7 +707,7 @@ private:
 	bool _auto = false;
 
 public:
-	static const XML_NAME = "Area";
+	static immutable XML_NAME = "Area";
 	alias toAreaId toID;
 
 	/// 唯一のコンストラクタ。
@@ -1074,7 +1074,7 @@ public:
 /// パッケージ。
 public class Package : AbstractArea {
 public:
-	static const XML_NAME = "Package";
+	static immutable XML_NAME = "Package";
 	alias toPackageId toID;
 
 	/// 唯一のコンストラクタ。
@@ -1180,7 +1180,7 @@ private:
 	bool _auto;
 	PathUser _music;
 public:
-	static const XML_NAME = "Battle";
+	static immutable XML_NAME = "Battle";
 	alias toBattleId toID;
 
 	/// 唯一のコンストラクタ。
