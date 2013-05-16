@@ -52,6 +52,7 @@ version (Windows) {
 		"-L+org.eclipse.swt.win32.win32.x86.lib",
 	];
 	immutable DEBUG_FLAGS = [
+		"-g",
 		"-debug",
 		"-unittest",
 	];

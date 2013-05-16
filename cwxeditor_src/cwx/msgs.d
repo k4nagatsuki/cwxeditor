@@ -1734,6 +1734,8 @@ class Msgs : Properties {
 	auto menuTextCardsAndBacks = Msg("menuTextCardsAndBacks", "カードと背景");
 
 	auto menuTextDelNotUsedFile = Msg("menuTextDelNotUsedFile", "未使用のファイルを削除");
+	auto menuTextLeftPane = Msg("menuTextLeftPane", "左のタブ");
+	auto menuTextRightPane = Msg("menuTextRightPane", "右のタブ");
 	auto menuTextClosePane = Msg("menuTextClosePane", "閉じる");
 	auto menuTextClosePaneExcept = Msg("menuTextClosePaneExcept", "他のタブを閉じる");
 	auto menuTextClosePaneLeft = Msg("menuTextClosePaneLeft", "左側のタブを閉じる");

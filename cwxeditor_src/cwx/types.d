@@ -1214,6 +1214,8 @@ enum MenuID {
 	CardsAndBacks,
 
 	DelNotUsedFile,
+	LeftPane,
+	RightPane,
 	ClosePane,
 	ClosePaneExcept,
 	ClosePaneLeft,

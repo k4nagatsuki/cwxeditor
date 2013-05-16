@@ -200,7 +200,7 @@ private void initSdl() {
 	}
 	debugln("error: SDL_mixer initialize");
 }
-shared void initSound() {
+void initSound() {
 	try {
 		mutex = new Object;
 		version (Windows) {

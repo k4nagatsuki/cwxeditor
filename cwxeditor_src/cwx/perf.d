@@ -5,7 +5,7 @@ debug {
 	version (Console) {
 		import std.datetime;
 		import std.string;
-		import std.metastrings;
+		import std.conv;
 		import std.stdio;
 
 		StopWatch initTimer;
@@ -28,7 +28,7 @@ debug {
 				= "scope f_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);"
 				~ "scope (exit) {"
 				~ "f_timer.stop();"
-				~ ".t[" ~ .toStringNow!(I) ~ "] += f_timer.peek().msecs;"
+				~ ".t[" ~ .to!string(I) ~ "] += f_timer.peek().msecs;"
 				~ "}";
 		}
 		/// mixin(BPerfS)とmixin(BPerf!N)でブロックの実行時間を計測する。
@@ -36,7 +36,7 @@ debug {
 		template BPerf(int I) {
 			static const BPerf
 				= "b_timer.stop();"
-				~ ".t[" ~ .toStringNow!(I) ~ "] += b_timer.peek().msecs;"
+				~ ".t[" ~ .to!string(I) ~ "] += b_timer.peek().msecs;"
 				~ "b_timer.reset();"
 				~ "b_timer.start();";
 		}

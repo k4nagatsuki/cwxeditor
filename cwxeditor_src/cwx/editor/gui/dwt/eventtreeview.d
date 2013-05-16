@@ -37,6 +37,7 @@ import cwx.editor.gui.dwt.textdialog;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.smalldialogs;
 
+import std.ascii;
 import std.algorithm;
 import std.conv;
 import std.string;

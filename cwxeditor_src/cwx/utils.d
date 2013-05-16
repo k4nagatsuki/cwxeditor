@@ -28,10 +28,7 @@ import std.exception;
 import std.traits;
 import std.stdint;
 import std.stream;
-/+	// FIXME: 他のバグのためdmd 2.060に戻す
 import std.digest.md;
-+/
-import std.md5;
 
 debug {
 	version (Console) {
@@ -177,7 +174,7 @@ string createDebugln(bool BuildInfo = true, string F = __FILE__, size_t L = __LI
 }
 
 /// デバグログに文字列を出力する。
-shared void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
+void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	try {
 		synchronized {
 			string log = createDebugln!(true, F, L)(vals);
@@ -400,7 +397,7 @@ template EnumToStringMethod(E, string MethodName, string Prefix) {
 private template EnumToStringCase(E, string EName, string Prefix, size_t Index) {
 	private import std.traits;
 	private import std.conv;
-	private immutable Case = "\tcase " ~ EName ~ "." ~ EnumMembers!E[Index].stringof ~ ": return " ~ Prefix ~ .upperToCap(std.conv.text(EnumMembers!E[Index])) ~ ";\n";
+	private immutable Case = "\tcase " ~ EName ~ "." ~ to!string(EnumMembers!E[Index]) ~ ": return " ~ Prefix ~ .upperToCap(std.conv.text(EnumMembers!E[Index])) ~ ";\n";
 	static if (Index + 1 < EnumMembers!E.length) {
 		immutable EnumToStringCase = Case ~ EnumToStringCase!(E, EName, Prefix, Index + 1);
 	} else {
@@ -576,7 +573,8 @@ class Wildcard {
 			int i = next ? rfindw(s) : findw(s);
 			if (i == -1) return -1;
 			if (_right) {
-				int j = _right.find(sbase[i + _left.length .. $], true, len);
+				auto refVal = sbase[i + _left.length .. $];
+				int j = _right.find(refVal, true, len);
 				if (j == -1) {
 					if (next) {
 						s = s[0 .. $ - 1];
@@ -669,10 +667,7 @@ class Wildcard {
 
 /// データのMD5ダイジェストを取得する。
 string md5Digest(in void[] data) {
-/+	// FIXME: 他のバグのためdmd 2.060に戻す
 	return .toHexString(.md5Of(data));
-+/
-	return getDigestString([data]);
 }
 /// ファイルのMD5ダイジェストを取得する。
 string fileToMD5Digest(string file) {

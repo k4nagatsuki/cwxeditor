@@ -37,10 +37,12 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.Card] = "C";
 		_mnemonic[MenuID.CardsAndBacks] = "A";
 		_mnemonic[MenuID.DelNotUsedFile] = "E";
+		_mnemonic[MenuID.LeftPane] = "L";
+		_mnemonic[MenuID.RightPane] = "R";
 		_mnemonic[MenuID.ClosePane] = "C";
 		_mnemonic[MenuID.ClosePaneExcept] = "W";
-		_mnemonic[MenuID.ClosePaneLeft] = "L";
-		_mnemonic[MenuID.ClosePaneRight] = "R";
+		_mnemonic[MenuID.ClosePaneLeft] = "E";
+		_mnemonic[MenuID.ClosePaneRight] = "I";
 		_mnemonic[MenuID.ClosePaneAll] = "A";
 		_mnemonic[MenuID.New] = "N";
 		_mnemonic[MenuID.Open] = "O";
@@ -202,6 +204,8 @@ class MenuProps : Properties {
 		_hotkey[MenuID.Card] = "";
 		_hotkey[MenuID.CardsAndBacks] = "";
 		_hotkey[MenuID.DelNotUsedFile] = "";
+		_hotkey[MenuID.LeftPane] = "Ctrl+Page_Up";
+		_hotkey[MenuID.RightPane] = "Ctrl+Page_Down";
 		_hotkey[MenuID.ClosePane] = "";
 		_hotkey[MenuID.ClosePaneExcept] = "";
 		_hotkey[MenuID.ClosePaneLeft] = "";

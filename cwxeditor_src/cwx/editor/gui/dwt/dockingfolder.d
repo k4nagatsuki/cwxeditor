@@ -262,6 +262,13 @@ class DockingFolder(TabF, int Style) {
 		}
 		return r;
 	}
+	/// 指定されたペインに含まれるControlの数。
+	/// ペインが存在しない場合は0を返す。
+	int controlCount(string key) {
+		auto tabf = cast(TabF) pane(key);
+		if (!tabf) return 0;
+		return tabf.getItemCount();
+	}
 	/// 現在表示中のコントロールの一覧を返す。
 	@property
 	Control[] showingControls() {
@@ -418,10 +425,7 @@ class DockingFolder(TabF, int Style) {
 		_ctrls[ctrl] = key;
 		_keys[key] = ctrl;
 		if (select) {
-			tabf.setSelection(tab);
-			if (tabf.getShell() is tabf.getDisplay().getActiveShell()) {
-				tabf.setFocus();
-			}
+			this.select(key);
 		}
 	}
 	/// 指定されたControlが以前配置された事があればその場所に追加する。
@@ -496,6 +500,35 @@ class DockingFolder(TabF, int Style) {
 			}
 		}
 		return r;
+	}
+	/// keyのControlを表示する。
+	bool select(string key) {
+		auto tab = this.tab(key);
+		if (!tab) return false;
+		tab.getParent().setSelection(tab);
+		return true;
+	}
+	/// keyの左のControlを表示する。
+	bool walkLeft(string key) {
+		auto tab = this.tab(key);
+		if (!tab) return false;
+		auto tabf = tab.getParent();
+		int count = tabf.getItemCount();
+		if (count <= 1) return false;
+		int index = tabf.indexOf(tab);
+		index = index == 0 ? count - 1 : index - 1;
+		return select(keyFromCtrl(tabf.getItem(index).getControl()));
+	}
+	/// keyの右のControlを表示する。
+	bool walkRight(string key) {
+		auto tab = this.tab(key);
+		if (!tab) return false;
+		auto tabf = tab.getParent();
+		int count = tabf.getItemCount();
+		if (count <= 1) return false;
+		int index = tabf.indexOf(tab);
+		index = index + 1 == count ? 0 : index + 1;
+		return select(keyFromCtrl(tabf.getItem(index).getControl()));
 	}
 	/// Controlを閉じる。閉じる事が可能な該当するControlが無かった場合はfalseを返す。
 	bool close(string key) {

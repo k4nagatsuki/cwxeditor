@@ -28,7 +28,7 @@ private:
 	PathUser _user;
 public:
 	/// XML要素名。
-	immutable XML_NAME = "BgImage";
+	static immutable XML_NAME = "BgImage";
 
 	const
 	bool opEquals(ref const(Object) o) {
@@ -153,7 +153,7 @@ private:
 	uint _borderingWidth = 1;
 public:
 	/// XML要素名。
-	immutable XML_NAME = "TextCell";
+	static immutable XML_NAME = "TextCell";
 
 	/// 空のインスタンスを生成する。
 	this () {
@@ -488,7 +488,7 @@ private:
 	CRGB _color2 = CRGB(0, 0, 0, 255);
 public:
 	/// XML要素名。
-	immutable XML_NAME = "ColorCell";
+	static immutable XML_NAME = "ColorCell";
 
 	/// 空のインスタンスを生成する。
 	this () {
@@ -670,7 +670,7 @@ private:
 	void delegate() _change;
 public:
 	/// XML要素名(複数)。
-	immutable XML_NAME_M = "BgImages";
+	static immutable XML_NAME_M = "BgImages";
 
 	protected this (string flag, int x, int y, int w, int h, bool mask) {
 		super (this);

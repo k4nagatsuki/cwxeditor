@@ -51,7 +51,6 @@ import std.path;
 import std.zip;
 import std.utf;
 import std.process;
-import std.metastrings;
 import std.string;
 import std.datetime;
 import std.regex;
@@ -2812,6 +2811,9 @@ public:
 			auto comp = _dock.pane(paneKey);
 			comp.addPaintListener(new TabfPaint);
 			auto menu = new Menu(comp.getShell(), SWT.POP_UP);
+			createMenuItem(_comm, menu, MenuID.LeftPane, &leftTab, &canWalkTab);
+			createMenuItem(_comm, menu, MenuID.RightPane, &rightTab, &canWalkTab);
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.ClosePane, &close, &canClose);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.ClosePaneExcept, &closeEtc, &canCloseEtc);
@@ -2820,6 +2822,10 @@ public:
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.ClosePaneAll, &closeAll, &canClose);
 			_dock.setMenu(paneKey, menu);
+		}
+		@property
+		bool canWalkTab() {
+			return 1 < _dock.controlCount(_paneKey) && 0 < _dock.selectedCtrl(_paneKey).length;
 		}
 		@property
 		bool canClose() {
@@ -2839,6 +2845,14 @@ public:
 		bool canCloseRight() {
 			auto ctrl = _dock.selectedCtrl(_paneKey);
 			return ctrl.length && _dock.hasRight(ctrl);
+		}
+		void leftTab(SelectionEvent se) {
+			auto ctrl = _dock.selectedCtrl(_paneKey);
+			if (ctrl.length) _dock.walkLeft(ctrl);
+		}
+		void rightTab(SelectionEvent se) {
+			auto ctrl = _dock.selectedCtrl(_paneKey);
+			if (ctrl.length) _dock.walkRight(ctrl);
 		}
 		void close(SelectionEvent se) {
 			auto ctrl = _dock.selectedCtrl(_paneKey);
@@ -2946,20 +2960,20 @@ public:
 		static if (Act.length) {
 			static const MenuAction = "_mainMenu.add(" ~ Id.stringof ~ ");"
 				~ "_menu[" ~ Id.stringof ~ "] = createMenuItem(_comm, " ~ M ~ ", " ~ Id.stringof ~ ", &"
-				~ Act ~ ", " ~ Can ~ ", " ~ toStringNow!(Style) ~ ");";
+				~ Act ~ ", " ~ Can ~ ", " ~ to!string(Style) ~ ");";
 		} else {
 			static const MenuAction = "_menu[" ~ Id.stringof ~ "] = createMenuItem(_comm, " ~ M ~ ", " ~ Id.stringof ~ ", "
-				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ toStringNow!(Style) ~ ");";
+				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ to!string(Style) ~ ");";
 		}
 	}
 	private template ToolAction(string T, MenuID Id, int Style = SWT.PUSH, string Act = "", string Can = "null") {
 		static if (Act.length) {
 			static const ToolAction = "_mainMenu.add(" ~ Id.stringof ~ ");"
 				~ "_tool[" ~ Id.stringof ~ "] = createToolItem(_comm, " ~ T ~ ", " ~ Id.stringof ~ ", &"
-				~ Act ~ ", " ~ Can ~ ", " ~ toStringNow!(Style) ~ ");";
+				~ Act ~ ", " ~ Can ~ ", " ~ to!string(Style) ~ ");";
 		} else {
 			static const ToolAction = "_tool[" ~ Id.stringof ~ "] = createToolItem(_comm, " ~ T ~ ", " ~ Id.stringof ~ ", "
-				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ toStringNow!(Style) ~ ");";
+				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ to!string(Style) ~ ");";
 		}
 	}
 	void refreshToolBar(bool delegate()[MenuID] cMenuTbl) {

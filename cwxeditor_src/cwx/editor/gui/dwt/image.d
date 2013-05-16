@@ -366,6 +366,8 @@ public:
 		case MenuID.CardsAndBacks: return null;
 
 		case MenuID.DelNotUsedFile: return imgd!("del_unuse.png");
+		case MenuID.LeftPane: return imgd!("left_tab.png");
+		case MenuID.RightPane: return imgd!("right_tab.png");
 		case MenuID.ClosePane: return imgd!("close_pane.png");
 		case MenuID.ClosePaneExcept: return imgd!("close_pane_e.png");
 		case MenuID.ClosePaneLeft: return imgd!("close_pane_l.png");
