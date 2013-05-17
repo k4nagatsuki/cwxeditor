@@ -161,6 +161,7 @@ class FlexEtcProps : Properties {
 	auto cardsSpaceX = Prop!(int, true)("cardsSpaceX", 8);
 	auto cardsMarginY = Prop!(int, true)("cardsMarginY", 5);
 	auto cardsSpaceY = Prop!(int, true)("cardsSpaceY", 8);
+	auto cardsTitleSpace = Prop!(int, true)("cardsTitleSpace", 2);
 	auto cardsDefaultWrap = Prop!(int, true)("cardsDefaultWrap", 4);
 	auto seKeyCodeSashL = Prop!(int)("seKeyCodeSashL", 4, 2012101100);
 	auto seKeyCodeSashR = Prop!(int)("seKeyCodeSashR", 7, 2012101100);
@@ -312,6 +313,8 @@ class FlexEtcProps : Properties {
 	auto openTabAtRightOfCurrentTab = Prop!(bool)("openTabAtRightOfCurrentTab", true);
 	auto cautionBeforeReplace = Prop!(bool)("cautionBeforeReplace", false);
 	auto radarStyleParams = Prop!(bool)("radarStyleParams", true);
+	auto showCardListHeader = Prop!(bool)("showCardListHeader", true);
+	auto showCardListTitle = Prop!(bool)("showCardListTitle", true);
 
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
 

@@ -8,6 +8,7 @@ import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.materialselect;
+import cwx.editor.gui.dwt.cardlist : cutText;
 
 import std.algorithm;
 import std.conv;
@@ -193,7 +194,6 @@ class ImageList : Composite {
 		int x = SPACING;
 		int y = SPACING - getVerticalBar().getSelection();
 		int fh = e.gc.getFontMetrics().getHeight();
-		int dotw = e.gc.textExtent("...").x;
 		foreach (i, ref imgData; _image) {
 			if (ca.intersects(x, y, _imgW, fh + _imgH)) {
 				int iw, ih;
@@ -215,17 +215,7 @@ class ImageList : Composite {
 				}
 				auto img = new Image(getDisplay(), imgData);
 				scope (exit) img.dispose();
-				string name = _path[i].baseName();
-				int tw = e.gc.textExtent(name).x;
-				if (tw > _imgW) {
-					dstring dname = to!dstring(name);
-					while (dname.length && tw + dotw > _imgW) {
-						dname = dname[0 .. $ - 1];
-						tw = e.gc.textExtent(to!string(dname)).x;
-					}
-					name = to!string(dname) ~ "...";
-					tw = e.gc.textExtent(name).x;
-				}
+				string name = .cutText(_path[i].baseName(), e.gc, _imgW);
 				e.gc.drawText(name, x, y);
 				int ix = (_imgW - iw) / 2;
 				int iy = (_imgH - ih) / 2;

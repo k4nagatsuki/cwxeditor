@@ -36,6 +36,7 @@ import cwx.editor.gui.dwt.jpyimage;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.cardlist;
 
 import core.thread;
 
@@ -50,6 +51,7 @@ import std.datetime;
 import std.path;
 import std.process;
 import std.functional;
+import std.typecons : Rebindable;
 
 import org.eclipse.swt.all;
 
@@ -814,7 +816,7 @@ private:
 public:
 	/// tree = テキスト編集対象のツリー。
 	/// editEnd = 編集終了時に実行される関数。
-	/// createEditor = ツリーアイテムが編集するコンポーネントを生成する関数。
+	/// createEditor = ツリーアイテムを編集するコンポーネントを生成する関数。
 	///                nullを返した場合、編集は開始されない。
 	this(Commons comm, Tree tree, void delegate(TreeItem itm, Control ctrl) editEnd,
 			Control delegate(TreeItem itm) createEditor = null) {
@@ -852,6 +854,96 @@ public:
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
+	}
+}
+
+/// CardListのテキストを編集可能にする。
+/// ダブルクリック、またはF2キーの押下で編集開始。
+class CardListEdit(C) {
+private:
+	Commons _comm;
+	CardList!C _list;
+	EditEnd _tee;
+	Control _editor = null;
+	Item _edit = null;
+
+	void delegate(C card, Control ctrl) _editEnd;
+	Control delegate(in C card) _createEditor;
+
+	Item selectionM(int x, int y) {
+		auto sels = _list.selectionIndices();
+		if (1 == sels.length && _list.getTitleBounds(sels[0]).contains(x, y)) {
+			return _list.getItem(sels[0]);
+		}
+		return null;
+	}
+	Item selectionK() {
+		auto sels = _list.selectionIndices();
+		if (1 == sels.length) {
+			return _list.getItem(sels[0]);
+		}
+		return null;
+	}
+
+	void end(Control ctrl) {
+		assert (_edit !is null);
+		_editEnd(cast(C)_edit.getData(), ctrl);
+		_tee = null;
+		_edit = null;
+		_editor = null;
+	}
+
+	void startEdit(Item itm) {
+		if (_tee !is null && !_tee.isExit) _tee.enter();
+		auto sel = cast(C)itm.getData();
+		_editor = _createEditor(sel);
+		if (_editor) {
+			_edit = itm;
+			_tee = new EditEnd(_comm, _list, _editor, &end);
+			layout();
+			_tee.setFocus();
+		}
+	}
+	void layout() {
+		if (!_edit) return;
+		auto cItm = _list.indexOf(_edit);
+		auto ib = _list.getImageBounds(cItm);
+		auto tb = _list.getTitleBounds(cItm);
+		auto size = _editor.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		int x = ib.x;
+		int y = tb.y + (tb.height - size.y) / 2;
+		int w = ib.width;
+		int h = size.y;
+		_editor.setBounds(x, y, w, h);
+	}
+public:
+	/// list = テキスト編集対象のリスト。
+	/// editEnd = 編集終了時に実行される関数。
+	/// createEditor = アイテムを編集するコンポーネントを生成する関数。
+	///                nullを返した場合、編集は開始されない。
+	this(Commons comm, CardList!C list, void delegate(C card, Control ctrl) editEnd,
+			Control delegate(in C card) createEditor = null) {
+		_comm = comm;
+		_list = list;
+		_editEnd = editEnd;
+		_createEditor = createEditor;
+
+		auto mf = new TextEditMFListener(comm, list, &startEdit, &selectionK, &selectionM);
+		list.addMouseListener(mf);
+		list.addSelectionListener(mf);
+		list.addFocusListener(mf);
+		list.addKeyListener(new TextEditKListener(&startEdit, &selectionK));
+		.listener(list, SWT.Paint, &layout);
+	}
+	/// 選択されているセルの編集を開始する。
+	void startEdit() {
+		auto sels = _list.selectionIndices();
+		if (sels.length == 1) {
+			startEdit(_list.getItem(sels[0]));
+		}
+	}
+	bool isEditing() {
+		return _tee !is null;
 	}
 }
 
@@ -1070,7 +1162,7 @@ void hemming(GC gc, string s, int tx, int ty, Color color) {
 	gc.setForeground(color);
 	gc.drawText(s, tx, ty, true);
 }
-ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool dbgMode) {
+ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool dbgMode) {
 	auto cardSize = prop.looks.cardSize;
 	auto matPad = prop.looks.castCardInsets;
 	int w = cardSize.width + matPad.e + matPad.w;
@@ -1234,12 +1326,12 @@ ImageData castCardImage(Props prop, Skin skin, CastCard c, string sPath, bool db
 	r.setTitle(c.name, dwtData(prop.looks.castCardNameFont(skin.legacy)), dwtData(prop.looks.castCardNamePoint));
 	return r.createImageData();
 }
-ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner, C delegate(ulong) get, bool detail, bool preview) {
+ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard owner, C delegate(ulong) get, bool detail, bool preview) {
 	static if (is (C == SkillCard)) {
-		bool hold = c.hold;
+		bool hold = base.hold;
 		auto card = skillCard(skin);
 	} else static if (is (C == ItemCard)) {
-		bool hold = c.hold;
+		bool hold = base.hold;
 		auto card = itemCard(skin);
 	} else static if (is (C == BeastCard)) {
 		auto card = beastCard(skin);
@@ -1249,8 +1341,9 @@ ImageData cardImage(C)(Props prop, Skin skin, C c, string sPath, CastCard owner,
 		static assert (0);
 	}
 	bool link = false;
-	static if (is(typeof(c.linkId))) {
-		if (get && 0 != c.linkId) {
+	Rebindable!(const(C)) c = base;
+	static if (is(typeof(base.linkId))) {
+		if (get && 0 != base.linkId) {
 			link = true;
 			c = get(c.linkId);
 			if (!c) c = new C(1UL, "", "", "");

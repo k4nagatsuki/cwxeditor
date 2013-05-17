@@ -3,7 +3,12 @@ module cwx.editor.gui.dwt.cardlist;
 
 import cwx.utils;
 
+import std.algorithm : countUntil;
+import std.conv;
+import std.datetime;
+
 import org.eclipse.swt.all;
+import java.lang.all;
 
 public:
 
@@ -174,6 +179,9 @@ public:
 		});
 		addListener(SWT.MouseDown, new class Listener {
 			public override void handleEvent(Event e) {
+				if (e.button == 1 || e.button == 3) {
+					forceFocus();
+				}
 				_dragging = false;
 				_shift = (e.stateMask & SWT.SHIFT) != 0;
 				_ctrl = (e.stateMask & SWT.CTRL) != 0;
@@ -272,14 +280,29 @@ public:
 			}
 		});
 	}
-	/// 選択の変更をdlgに通知する。
-	@property
-	void selectChanged(void delegate() dlg) {
-		_selected ~= dlg;
+	/// 選択の変更をlistenerに通知する。
+	void addSelectionListener(SelectionListener listener) {
+		auto tl = new TypedListener(listener);
+		addListener(SWT.Selection, tl);
+		addListener(SWT.DefaultSelection, tl);
 	}
-	private void delegate()[] _selected;
+	/// ditto
+	void removeSelectionListener(SelectionListener listener) {
+		removeListener(SWT.Selection, listener);
+		removeListener(SWT.DefaultSelection, listener);
+	}
 	private void callSelectChanged() {
-		foreach (dlg; _selected) dlg();
+		getDisplay().asyncExec(new class Runnable {
+			override void run() {
+				auto se = new Event;
+				int index = selection;
+				se.item = 0 <= index ? _items[index] : null;
+				se.time = cast(int)(0xFFFFFFFFL & Clock.currStdTime());
+				se.stateMask = 0;
+				se.doit = true;
+				notifyListeners(SWT.Selection, se);
+			}
+		});
 	}
 	/// 指定されたインデックスをカーソル位置にする。
 	/// Params:
@@ -363,17 +386,19 @@ public:
 	/// Params:
 	/// cards = 表示する要素の配列。
 	/// createImage = 要素から画像を作成する関数。
-	void refresh(C[] cards, ImageData delegate(C) createImage) {
+	/// createTitle = 要素から画像タイトルを作成する関数。
+	///               タイトルが不要な場合はnullを指定する。
+	void refresh(C[] cards, ImageData delegate(in C) createImage, string delegate(in C) createTitle) {
 		int ox = _origin.x;
 		int oy = _origin.y;
-		scope sels = new HashSet!(C);
+		auto sels = new HashSet!(C);
 		foreach (itm; _sels.values) {
 			sels.add(cast(C) itm.getData());
 		}
 		deselectAll();
 		disposeItems();
 		foreach (c; cards) {
-			auto itm = new CardListItem!(C)(this, SWT.NONE, c, createImage);
+			auto itm = new CardListItem!(C)(this, SWT.NONE, c, createImage, createTitle);
 			_items ~= itm;
 			if (_defItmW < 0 && _itmW < itm.width) _itmW = itm.width;
 			if (_defItmH < 0 && _itmH < itm.height) _itmH = itm.height;
@@ -441,9 +466,11 @@ public:
 	}
 	/// indexの画像を更新する。
 	void refresh(int index, C card) {
-		_items[index].setData(card);
-		_items[index].createImage(true);
-		redraw();
+		auto itm = _items[index];
+		itm.setData(card);
+		itm.createImage(true);
+		itm.createTitle();
+		redraw(itm.x, itm.y, itm.width, itm.height, false);
 	}
 	/// Returns: カードの配列。
 	@property
@@ -492,10 +519,9 @@ public:
 	int searchIndex(int x, int y) {
 		int index = searchIndexLoose(x, y);
 		if (index < _items.length) {
-			auto i = _items[index];
-			if (i.x <= x && x <= i.x + i.width && i.y <= y && y <= i.y + i.height) {
-				return index;
-			}
+			auto itm = _items[index];
+			if (itm.imageBounds.contains(x, y)) return index;
+			if (itm.titleBounds.contains(x, y)) return index;
 		}
 		return -1;
 	}
@@ -506,19 +532,30 @@ public:
 		int row = ((y + _origin.y) - _marginY + _spaceY) / (_itmH + _spaceY);
 		return row * _wrap + col;
 	}
-	void setCardSize(int itmW, int itmH) {
-		_defItmW = itmW;
-		_defItmH = itmH;
-		_itmW = itmW;
-		_itmH = itmH;
+	void setCardSize(int cardW, int cardH, bool showTitle) {
+		_cardW = cardW;
+		_cardH = cardH;
+		_showTitle = showTitle;
+		if (showTitle) {
+			auto gc = new GC(this);
+			scope (exit) gc.dispose();
+			_fontHeight = gc.getFontMetrics().getHeight();
+			cardH += _titleSpace + _fontHeight + 1;
+		}
+		_defItmW = cardW;
+		_defItmH = cardH;
+		_itmW = cardW;
+		_itmH = cardH;
+		if (isVisible()) redraw();
 	}
-	void setLayoutValues(int marginX, int spaceX, int marginY, int spaceY, int defWrap) {
+	void setLayoutValues(int marginX, int spaceX, int marginY, int spaceY, int titleSpace, int defWrap) {
 		_marginX = marginX;
 		_spaceX = spaceX;
 		_marginY = marginY;
 		_spaceY = spaceY;
+		_titleSpace = titleSpace;
 		_defWrap = defWrap;
-		if (isVisible()) redraw();
+		setCardSize(_cardW, _cardH, _showTitle);
 	}
 	override {
 		Point computeSize(int wHint, int hHint) {
@@ -588,9 +625,21 @@ public:
 		_createToolTip = createToolTip;
 		__refreshToolTip();
 	}
+	Item getItem(int index) {
+		return _items[index];
+	}
+	int indexOf(Item item) {
+		return .countUntil(_items, item);
+	}
 	Rectangle getBounds(int index) {
 		auto itm = _items[index];
 		return new Rectangle(itm.x, itm.y, itm.width, itm.height);
+	}
+	Rectangle getImageBounds(int index) {
+		return _items[index].imageBounds();
+	}
+	Rectangle getTitleBounds(int index) {
+		return _items[index].titleBounds();
 	}
 private:
 	void __refreshToolTip() {
@@ -657,7 +706,7 @@ private:
 		int index, iy, ix;
 		int x;
 		int y = _marginY - _origin.y;
-		if (gc) gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_SELECTION));
+		auto d = getDisplay();
 		for (iy = 0; iy < _line; iy++) {
 			x = _marginX - _origin.x;
 			for (ix = 0; ix < _wrap && (index = iy * _wrap + ix) < _items.length; ix++) {
@@ -667,17 +716,41 @@ private:
 				if ((getStyle() | SWT.VIRTUAL) || y < rect.y + rect.height) {
 					if (gc) {
 						itm.createImage();
-						gc.drawImage(itm.getImage(), x, y);
+						auto image = itm.getImage();
+						gc.drawImage(image, x, y);
+
+						itm.createTitle();
+						auto title = itm.cutText(gc);
+						auto ib = itm.imageBounds();
+						auto tb = itm.titleBounds();
+						if (title != "") {
+							if (index in _sels) {
+								gc.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
+								gc.setForeground(d.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
+								gc.fillRectangle(tb);
+								gc.drawText(title, tb.x, tb.y, true);
+							} else {
+								gc.setBackground(getBackground());
+								gc.setForeground(getForeground());
+								gc.drawText(title, tb.x, tb.y, true);
+							}
+						}
+
+						gc.setForeground(getForeground());
+						gc.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
 						if (isFocusControl() && _cur == index) {
-							int fx = x + _focusLinePadding;
-							int fy = y + _focusLinePadding;
-							int fw = itm.width - _focusLinePadding * 2;
-							int fh = itm.height - _focusLinePadding * 2;
+							int fx = ib.x + _focusLinePadding;
+							int fy = ib.y + _focusLinePadding;
+							int fw = ib.width - _focusLinePadding * 2;
+							int fh = ib.height - _focusLinePadding * 2;
 							gc.drawFocus(fx, fy, fw, fh);
+							if (title != "") {
+								gc.drawFocus(tb.x - 1, tb.y - 1, tb.width + 2, tb.height + 2);
+							}
 						}
 						if (index in _sels) {
 							gc.setAlpha(64);
-							gc.fillRectangle(x, y, itm.width, itm.height);
+							gc.fillRectangle(ib);
 							gc.setAlpha(255);
 						}
 					}
@@ -740,6 +813,8 @@ private:
 	CardListItem!(C)[int] _sels;
 	Point _origin;
 	int _cur = -1;
+	int _cardW = 0, _cardH = 0;
+	bool _showTitle = false;
 	int _itmW = 0, _itmH = 0;
 	int _defItmW = -1, _defItmH = -1;
 	int _wrap = 0;
@@ -748,7 +823,9 @@ private:
 	int _spaceX = 25;
 	int _marginY = 20;
 	int _spaceY = 20;
+	int _titleSpace = 5;
 	int _defWrap = 4;
+	int _fontHeight = 12;
 	int _focusLinePadding = 2;
 	int _oldMoveIndex = -1;
 	int _shiftP = -1;
@@ -760,23 +837,36 @@ private:
 
 private class CardListItem(C) : Item {
 private:
+	CardList!C _parent;
 	ImageData _imgData;
-	ImageData delegate(C) _createImage;
+	ImageData delegate(in C) _createImage;
+	string delegate(in C) _createTitle;
 	int _x, _y;
 public:
-	this (CardList!(C) parent, int style, C c, ImageData delegate(C) createImage) {
+	this (CardList!(C) parent, int style, C c, ImageData delegate(in C) createImage, string delegate(in C) createTitle) {
 		super(parent, style);
 		setData(c);
+		_parent = parent;
 		_createImage = createImage;
+		_createTitle = createTitle;
+		this.createTitle();
 	}
 	void createImage(bool force = false) {
 		if (!_imgData || force) {
-			_imgData = _createImage(cast(C) getData());
+			_imgData = _createImage(cast(C)getData());
 			auto img = getImage();
 			if (img) img.dispose();
 			setImage(new Image(Display.getCurrent(), _imgData));
 		}
 	}
+	void createTitle() {
+		if (_createTitle) {
+			setText(_createTitle(cast(C)getData()));
+		} else {
+			setText("");
+		}
+	}
+
 	@property
 	int x() {
 		return _x;
@@ -801,8 +891,36 @@ public:
 	@property
 	int height() {
 		createImage();
-		return _imgData.height;
+		createTitle();
+		if (_createTitle) {
+			return _imgData.height + _parent._titleSpace + _parent._fontHeight + 1;
+		} else {
+			return _imgData.height;
+		}
 	}
+
+	@property
+	Rectangle imageBounds() {
+		createImage();
+		return new Rectangle(x, y, _imgData.width, _imgData.height);
+	}
+	@property
+	Rectangle titleBounds() {
+		createImage();
+		createTitle();
+		if (getText() == "") return new Rectangle(0, 0, 0, 0);
+		auto gc = new GC(_parent);
+		scope (exit) gc.dispose();
+		auto te = gc.textExtent(cutText(gc));
+		int tx = (width - te.x) / 2 + x;
+		int ty = y + _imgData.height + _parent._titleSpace;
+		return new Rectangle(tx, ty, te.x, te.y);
+	}
+
+	string cutText(GC gc) {
+		return .cutText(getText(), gc, width);
+	}
+
 	override void dispose() {
 		auto img = getImage();
 		if (img) img.dispose();
@@ -854,9 +972,22 @@ public override:
 			scope gc = new GC(img);
 			scope (exit) gc.dispose();
 			int maxW = 0;
+			auto d = clist.getDisplay();
+			gc.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
+			gc.setForeground(d.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
 			foreach (s; sels) {
 				s.createImage();
-				gc.drawImage(s.getImage(), s.x - left, s.y - top);
+				auto image = s.getImage();
+				gc.drawImage(image, s.x - left, s.y - top);
+
+				s.createTitle();
+				if (s.getText() != "") {
+					auto tb = s.titleBounds();
+					string title = s.cutText(gc);
+					gc.fillRectangle(tb.x - left, tb.y - top, tb.width, tb.height);
+					gc.drawText(title, tb.x - left, tb.y - top, true);
+				}
+
 				if (maxW < s.width) maxW = s.width;
 			}
 			scope data = img.getImageData();
@@ -864,8 +995,15 @@ public override:
 			alphas.length = maxW;
 			alphas[] = cast(byte) 255;
 			foreach (s; sels) {
-				for (int y = s.y - top; y < s.y - top + s.height; y++) {
-					data.setAlphas(s.x - left, y, s.width, alphas, 0);
+				auto ib = s.imageBounds();
+				auto tb = s.titleBounds();
+				for (int y = ib.y - top; y < ib.y - top + ib.height; y++) {
+					data.setAlphas(ib.x - left, y, ib.width, alphas, 0);
+				}
+				if (s.getText() != "") {
+					for (int y = tb.y - top; y < tb.y - top + tb.height; y++) {
+						data.setAlphas(tb.x - left, y, tb.width, alphas, 0);
+					}
 				}
 			}
 			_dImg = new Image(Display.getCurrent(), data);
@@ -874,4 +1012,21 @@ public override:
 			event.y += event.y - top;
 		}
 	}
+}
+
+/// nameの表示幅がmaxWより大きくなる場合、
+/// はみ出す分を"..."に置換する。
+string cutText(string name, GC gc, int maxW) {
+	int tw = gc.textExtent(name).x;
+	if (tw > maxW) {
+		int dotw = gc.textExtent("...").x;
+		dstring dname = to!dstring(name);
+		while (dname.length && tw + dotw > maxW) {
+			dname = dname[0 .. $ - 1];
+			tw = gc.textExtent(to!string(dname)).x;
+		}
+		name = to!string(dname) ~ "...";
+		tw = gc.textExtent(name).x;
+	}
+	return name;
 }

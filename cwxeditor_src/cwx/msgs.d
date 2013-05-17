@@ -1246,6 +1246,7 @@ class Msgs : Properties {
 	auto handCardTabName = Msg("handCardTabName", "%1$s.%2$s");
 	auto importSourceWindowName = Msg("importSourceWindowName", "カードのインポート - [ %1$s ] - %2$s");
 	auto importSourceTabName = Msg("importSourceTabName", "%1$s");
+	auto cardTitle = Msg("cardTitle", "%1$s.%2$s");
 
 	auto dlgTitAddScenario = Msg("dlgTitAddScenario", "インポート元の選択");
 
@@ -1516,7 +1517,9 @@ class Msgs : Properties {
 	auto radarStyleParams = Msg("radarStyleParams", "レーダー型コントロールでパラメータ値を設定する");
 	auto editTriggerTypeIsQuick = Msg("editTriggerTypeIsQuick", "選択項目のクリックですぐにテキストの編集を開始する");
 	auto showEventTreeMark = Msg("showEventTreeMark", "カードの詳細情報表示時に使用時イベントの有無を表示する");
-	auto showSkillCardLevel = Msg("showSkillCardLevel", "カードの一覧表示時にスキルカードのレベルを表示する");
+	auto showCardListHeader = Msg("showCardListHeader", "カードの画像表示時にヘッダを表示する");
+	auto showCardListTitle = Msg("showCardListTitle", "カードの画像表示時にIDと名前を表示する");
+	auto showSkillCardLevel = Msg("showSkillCardLevel", "カードの画像表示時にスキルカードのレベルを表示する");
 	auto ignoreEmptyStart = Msg("ignoreEmptyStart", "空のイベントツリーしか持たない使用時イベントは無視する");
 	auto expandXMLs = Msg("expandXMLs", "圧縮されたシナリオの読込み時にXMLファイルを展開する");
 	auto contentsFloat = Msg("contentsFloat", "コンテンツボックスを別ウィンドウで表示する");

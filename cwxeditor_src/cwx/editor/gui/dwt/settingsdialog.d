@@ -1396,6 +1396,8 @@ private:
 	TableItem _classicStyleTree;
 	TableItem _radarStyleParams;
 	TableItem _showEventTreeMark;
+	TableItem _showCardListHeader;
+	TableItem _showCardListTitle;
 	TableItem _showSkillCardLevel;
 	TableItem _ignoreEmptyStart;
 	TableItem _expandXMLs;
@@ -2230,6 +2232,8 @@ private:
 				_classicStyleTree = createB(_prop.msgs.classicStyleTree);
 				_radarStyleParams = createB(_prop.msgs.radarStyleParams);
 				_showEventTreeMark = createB(_prop.msgs.showEventTreeMark);
+				_showCardListHeader = createB(_prop.msgs.showCardListHeader);
+				_showCardListTitle = createB(_prop.msgs.showCardListTitle);
 				_showSkillCardLevel = createB(_prop.msgs.showSkillCardLevel);
 				_ignoreEmptyStart = createB(_prop.msgs.ignoreEmptyStart);
 				_expandXMLs = createB(_prop.msgs.expandXMLs);
@@ -2491,6 +2495,8 @@ protected:
 		_classicStyleTree.setChecked(_prop.var.etc.classicStyleTree);
 		_radarStyleParams.setChecked(_prop.var.etc.radarStyleParams);
 		_showEventTreeMark.setChecked(_prop.var.etc.showEventTreeMark);
+		_showCardListHeader.setChecked(_prop.var.etc.showCardListHeader);
+		_showCardListTitle.setChecked(_prop.var.etc.showCardListTitle);
 		_showSkillCardLevel.setChecked(_prop.var.etc.showSkillCardLevel);
 		_ignoreEmptyStart.setChecked(_prop.var.etc.ignoreEmptyStart);
 		if (_singleWindow) {
@@ -2646,6 +2652,8 @@ protected:
 		_prop.var.etc.classicStyleTree = _classicStyleTree.getChecked();
 		_prop.var.etc.radarStyleParams = _radarStyleParams.getChecked();
 		_prop.var.etc.showEventTreeMark = _showEventTreeMark.getChecked();
+		_prop.var.etc.showCardListHeader = _showCardListHeader.getChecked();
+		_prop.var.etc.showCardListTitle = _showCardListTitle.getChecked();
 		_prop.var.etc.showSkillCardLevel = _showSkillCardLevel.getChecked();
 		_prop.var.etc.ignoreEmptyStart = _ignoreEmptyStart.getChecked();
 		_prop.var.etc.expandXMLs = _expandXMLs.getChecked();
@@ -2750,6 +2758,8 @@ struct OldSettings {
 	int soundPlayType;
 	int soundEffectPlayType;
 	bool showEventTreeMark;
+	bool showCardListHeader;
+	bool showCardListTitle;
 	bool showSkillCardLevel;
 	bool ignoreEmptyStart;
 	bool classicStyleTree;
@@ -2788,6 +2798,8 @@ struct OldSettings {
 		this.soundPlayType = prop.var.etc.soundPlayType;
 		this.soundEffectPlayType = prop.var.etc.soundEffectPlayType;
 		this.showEventTreeMark = prop.var.etc.showEventTreeMark;
+		this.showCardListHeader = prop.var.etc.showCardListHeader;
+		this.showCardListTitle = prop.var.etc.showCardListTitle;
 		this.showSkillCardLevel = prop.var.etc.showSkillCardLevel;
 		this.ignoreEmptyStart = prop.var.etc.ignoreEmptyStart;
 		this.classicStyleTree = prop.var.etc.classicStyleTree;
@@ -2901,6 +2913,12 @@ struct OldSettings {
 		}
 		if (this.showVariableValuesInEventText != prop.var.etc.showVariableValuesInEventText) {
 			comm.refPreviewValues.call();
+		}
+		if (this.showCardListHeader != prop.var.etc.showCardListHeader) {
+			comm.refShowCardListHeader.call();
+		}
+		if (this.showCardListTitle != prop.var.etc.showCardListTitle) {
+			comm.refShowCardListTitle.call();
 		}
 	}
 }

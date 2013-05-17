@@ -1,4 +1,5 @@
-
+/// カードビュー。
+/// カードの一覧を表示し、各種の操作を受け付ける。
 module cwx.editor.gui.dwt.cardpane;
 
 import cwx.card;
@@ -113,38 +114,38 @@ private:
 		}
 		return null;
 	}
-	private string cardName(in C card) {
+	private C baseCard(C card) {
 		static if (is(typeof(card.linkId))) {
 			if (0 != card.linkId) {
 				auto c = pOwnerCard(card.linkId);
-				if (c) return c.name;
+				if (c) return c;
 			}
 		}
-		return card.name;
+		return card;
+	}
+	private const(C) baseCard(const C card) {
+		static if (is(typeof(card.linkId))) {
+			if (0 != card.linkId) {
+				auto c = pOwnerCard(card.linkId);
+				if (c) return c;
+			}
+		}
+		return card;
+	}
+	private string cardName(in C card) {
+		return baseCard(card).name;
 	}
 	private string cardDesc(in C card) {
-		static if (is(typeof(card.linkId))) {
-			if (0 != card.linkId) {
-				auto c = pOwnerCard(card.linkId);
-				if (c) return c.desc;
-			}
-		}
-		return card.desc;
+		return baseCard(card).desc;
 	}
 	static if (UseNum) {
 		private int cardNum(in C card) {
-			static if (is(typeof(card.linkId))) {
-				if (0 != card.linkId) {
-					auto c = pOwnerCard(card.linkId);
-					if (c) return cardNum(c);
-				}
-			}
 			static if (is(typeof(card.level))) {
-				return card.level; // cast, skill
+				return baseCard(card).level; // cast, skill
 			} else static if (is(typeof(card.useLimitMax))) {
-				return card.useLimitMax; // item
+				return baseCard(card).useLimitMax; // item
 			} else {
-				return card.useLimit; // beast
+				return baseCard(card).useLimit; // beast
 			}
 		}
 	}
@@ -769,7 +770,7 @@ private:
 		auto cards = __cards;
 		sort(cards);
 		if (_viewMode == CViewMode.TABLE) {
-			_list.refresh([], &cardImage);
+			_list.refresh([], &cardImage, _prop.var.etc.showCardListTitle ? &cardTitle : null);
 			C sel = null;
 			auto index = _tbl.getSelectionIndex();
 			if (-1 != index) {
@@ -785,7 +786,7 @@ private:
 			_tbl.showSelection();
 		} else {
 			_tbl.removeAll();
-			_list.refresh(cards, &cardImage);
+			_list.refresh(cards, &cardImage, _prop.var.etc.showCardListTitle ? &cardTitle : null);
 			int sel = _list.selection;
 			if (sel >= 0) {
 				_list.scroll(sel);
@@ -1268,7 +1269,7 @@ private:
 		}
 	}
 	private Skin _skinTemp = null;
-	ImageData cardImage(C c) {
+	ImageData cardImage(in C c) {
 		Skin skin = _skinTemp ? _skinTemp : _comm.skin;
 		auto preview = _viewMode == CViewMode.TABLE;
 		auto detail = _viewMode == CViewMode.LIFE || preview;
@@ -1279,6 +1280,9 @@ private:
 		} else {
 			return .cardImage!(C)(_prop, skin, c, ownerScenarioPath, cast(CastCard) null, &pOwnerCard, detail, preview);
 		}
+	}
+	string cardTitle(in C c) {
+		return .tryFormat(_prop.msgs.cardTitle, c.id, baseCard(c).name);
 	}
 
 	void refreshIDs() {
@@ -1411,11 +1415,7 @@ private:
 	}
 	class LKey : KeyAdapter {
 		override void keyPressed(KeyEvent e) {
-			static if (EditMode) {
-				bool keyMatch = (e.keyCode == SWT.F2 && _viewMode != CViewMode.TABLE) || e.character == SWT.CR;
-			} else {
-				bool keyMatch = e.character == SWT.CR;
-			}
+			bool keyMatch = e.character == SWT.CR;
 			if (keyMatch && _list.selection >= 0) {
 				static if (EditMode) {
 					edit(_list.selectionCard);
@@ -1427,11 +1427,7 @@ private:
 	}
 	class TKey : KeyAdapter {
 		override void keyPressed(KeyEvent e) {
-			static if (EditMode) {
-				bool keyMatch = (e.keyCode == SWT.F2 && _viewMode != CViewMode.TABLE) || e.character == SWT.CR;
-			} else {
-				bool keyMatch = e.character == SWT.CR;
-			}
+			bool keyMatch = e.character == SWT.CR;
 			int i = _tbl.getSelectionIndex();
 			if (keyMatch && -1 != i) {
 				static if (EditMode) {
@@ -1634,6 +1630,23 @@ private:
 			_comm.refImportCardsSort.call(this, columnVal, dir);
 		}
 	}
+	static if (EditMode) {
+		void listEditEnd(C c, Control ctrl) {
+			assert (c !is null);
+			string newText = (cast(Text)ctrl).getText();
+			storeEdit(c.id);
+			c.name = newText;
+			refresh();
+			refCard(c);
+			_comm.refreshToolBar();
+		}
+		Control listCreateEditor(in C c) {
+			static if (is(typeof(c.linkId))) {
+				if (0 != c.linkId) return null;
+			}
+			return createTextEditor(_comm, _prop, _list, c.name);
+		}
+	}
 	void createCardList(Composite parent) {
 		_pane = new Composite(parent, _style);
 		_pane.setLayout(zeroGridLayout(1, true));
@@ -1682,20 +1695,37 @@ private:
 		}
 
 		_list = new CardList!(C)(_pane, SWT.VIRTUAL | SWT.V_SCROLL | (EditMode ? SWT.SINGLE : SWT.MULTI));
-		_list.setLayoutValues(_prop.var.etc.cardsMarginX, _prop.var.etc.cardsSpaceX,
-			_prop.var.etc.cardsMarginY, _prop.var.etc.cardsSpaceY, _prop.var.etc.cardsDefaultWrap);
-		_list.selectChanged(&selectChanged);
-
-		static if (is (C == CastCard)) {
-			auto matPad = _prop.looks.castCardInsets;
-		} else {
-			auto matPad = _prop.looks.menuCardInsets;
+		void updateCardListParamsImpl() {
+			static if (is(C:CastCard)) {
+				auto matPad = _prop.looks.castCardInsets;
+			} else {
+				auto matPad = _prop.looks.menuCardInsets;
+			}
+			int w = _prop.looks.cardSize.width + matPad.e + matPad.w;
+			int h = _prop.looks.cardSize.height + matPad.n + matPad.s;
+			_list.setCardSize(w, h, _prop.var.etc.showCardListTitle);
+			_list.setLayoutValues(_prop.var.etc.cardsMarginX, _prop.var.etc.cardsSpaceX,
+				_prop.var.etc.cardsMarginY, _prop.var.etc.cardsSpaceY, _prop.var.etc.cardsTitleSpace,
+				_prop.var.etc.cardsDefaultWrap);
 		}
+		void updateCardListParams() {
+			updateCardListParamsImpl();
+			__refresh();
+		}
+		updateCardListParamsImpl();
+		_list.addSelectionListener(new SelChanged);
+		_comm.refShowCardListHeader.add(&updateLayout);
+		_comm.refShowCardListTitle.add(&updateCardListParams);
+		.listener(_list, SWT.Dispose, {
+			_comm.refShowCardListHeader.remove(&updateLayout);
+			_comm.refShowCardListTitle.remove(&updateCardListParams);
+		});
+		static if (EditMode) {
+			new CardListEdit!C(_comm, _list, &listEditEnd, &listCreateEditor);
+		}
+
 		auto cl_ = new CL;
 		_tcpd ~= cl_;
-		int w = _prop.looks.cardSize.width + matPad.e + matPad.w;
-		int h = _prop.looks.cardSize.height + matPad.n + matPad.s;
-		_list.setCardSize(w, h);
 
 		auto ct_ = new CT;
 		_tcpd ~= ct_;
@@ -2101,27 +2131,42 @@ public:
 		if (_viewMode != mode) {
 			_viewMode = mode;
 			__refList();
-
-			// テーブルのヘッダのみ表示する
-			auto tgd = new GridData(GridData.FILL_HORIZONTAL);
-			tgd.heightHint = _tbl.getHeaderHeight();
-			_tbl.getParent().setLayoutData(tgd);
-			_list.setLayoutData(new GridData(GridData.FILL_BOTH));
-			_list.setVisible(true);
-			_pane.layout();
+			updateLayout();
 		}
 	}
 	void showCardTable() {
 		if (_viewMode != CViewMode.TABLE) {
 			_viewMode = CViewMode.TABLE;
-
+			__refTbl();
+			updateLayout();
+		}
+	}
+	private void updateLayout() {
+		if (_viewMode == CViewMode.TABLE) {
+			_tbl.getParent().setVisible(true);
 			_list.setVisible(false);
 			auto lgd = new GridData(GridData.FILL_HORIZONTAL);
 			lgd.heightHint = 0;
 			_list.setLayoutData(lgd);
 			_tbl.getParent().setLayoutData(new GridData(GridData.FILL_BOTH));
 			_pane.layout();
-			__refTbl();
+		} else if (_prop.var.etc.showCardListHeader) {
+			// テーブルのヘッダのみ表示する
+			_tbl.getParent().setVisible(true);
+			_list.setVisible(true);
+			auto tgd = new GridData(GridData.FILL_HORIZONTAL);
+			tgd.heightHint = _tbl.getHeaderHeight();
+			_tbl.getParent().setLayoutData(tgd);
+			_list.setLayoutData(new GridData(GridData.FILL_BOTH));
+			_pane.layout();
+		} else {
+			_tbl.getParent().setVisible(false);
+			_list.setVisible(true);
+			auto tgd = new GridData(GridData.FILL_HORIZONTAL);
+			tgd.heightHint = 0;
+			_tbl.getParent().setLayoutData(tgd);
+			_list.setLayoutData(new GridData(GridData.FILL_BOTH));
+			_pane.layout();
 		}
 	}
 

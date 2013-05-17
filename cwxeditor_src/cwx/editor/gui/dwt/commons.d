@@ -308,6 +308,8 @@ class Commons {
 	Dlg!() refWallpaper;
 	Dlg!() refSortCondition;
 	Dlg!(CardTableColumn, int) refCardTableColumnWidth;
+	Dlg!() refShowCardListHeader;
+	Dlg!() refShowCardListTitle;
 	Dlg!() refUndoMax;
 	Dlg!(MenuID) refMenu;
 	Dlg!() refSoundType;
