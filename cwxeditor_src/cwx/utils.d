@@ -667,7 +667,7 @@ class Wildcard {
 
 /// データのMD5ダイジェストを取得する。
 string md5Digest(in void[] data) {
-	return .toHexString(.md5Of(data));
+	return .toHexString(.md5Of(data)).idup;
 }
 /// ファイルのMD5ダイジェストを取得する。
 string fileToMD5Digest(string file) {
