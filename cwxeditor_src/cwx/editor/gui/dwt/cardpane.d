@@ -1634,6 +1634,7 @@ private:
 		void listEditEnd(C c, Control ctrl) {
 			assert (c !is null);
 			string newText = (cast(Text)ctrl).getText();
+			if (newText == "") return;
 			storeEdit(c.id);
 			c.name = newText;
 			refresh();
