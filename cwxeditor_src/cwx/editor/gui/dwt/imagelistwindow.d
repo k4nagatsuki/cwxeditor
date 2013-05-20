@@ -119,6 +119,8 @@ class ImageList : Composite {
 	private int _sel = -1;
 	private ImageData delegate(string path, bool mask) _createImage;
 
+	private bool _showSelection = false;
+
 	this (Composite parent, int style) {
 		super (parent, style | SWT.V_SCROLL | SWT.DOUBLE_BUFFERED);
 		addControlListener(new Resize);
@@ -181,6 +183,9 @@ class ImageList : Composite {
 	private class Resize : ControlAdapter {
 		override void controlResized(ControlEvent e) {
 			calcScrollParams();
+			if (isVisible() && _showSelection) {
+				showSelection();
+			}
 		}
 	}
 	private class Paint : PaintListener {
@@ -262,6 +267,11 @@ class ImageList : Composite {
 	}
 	void showSelection() {
 		if (-1 == _sel) return;
+		if (!isVisible()) {
+			_showSelection = true;
+			return;
+		}
+		_showSelection = false;
 		auto vs = getVerticalBar();
 
 		int countPerLine = calcCountPerLine();
