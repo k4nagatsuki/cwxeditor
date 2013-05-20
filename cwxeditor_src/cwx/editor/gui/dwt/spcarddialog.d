@@ -53,11 +53,7 @@ private:
 			string[] ws;
 			ws ~= _imgPath.warnings;
 			if (!_prop.targetVersion("1.50") && 0 != _imgPath.pcNumber && _summ) {
-				if (_summ.legacy) {
-					ws ~= _prop.msgs.warningPCNumberClassic;
-				} else {
-					ws ~= _prop.msgs.warningPCNumberXML;
-				}
+				ws ~= _prop.msgs.warningPCNumberClassic;
 			}
 
 			warning = ws;
