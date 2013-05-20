@@ -2351,6 +2351,11 @@ public:
 	PileImage[] images() {
 		return backs;
 	}
+	@property
+	const
+	const(PileImage)[] images() {
+		return backs;
+	}
 
 	void swap(int index1, int index2) {
 		auto temp = backs[index1];
@@ -2621,7 +2626,20 @@ public:
 	void gridRange(int v) {
 		_gridRange = v;
 	}
-	
+
+	/// 含まれるFlexImageが移動・サイズ変更中か。
+	@property
+	const
+	bool isMoving() {
+		foreach (pi; images) {
+			auto img = cast(const(FlexImage))pi;
+			if (!img) continue;
+			if (img.x != img.newX || img.y != img.newY || img.width != img.newWidth || img.height != img.newHeight) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/// 唯一のコンストラクタ。
 	this (Composite parent, int style) {

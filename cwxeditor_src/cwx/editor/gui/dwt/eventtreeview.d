@@ -1560,6 +1560,7 @@ private:
 			_comm.refPreviewValues.remove(&__refreshEventText);
 			_comm.refEventTemplates.remove(&refreshTemplates);
 			_comm.selContentTool.remove(&selContentTool);
+			_comm.refTargetVersion.remove(&_tree.redraw);
 			_grayFont.dispose();
 			if (_toolWin) {
 				saveToolWinPos();
@@ -1782,7 +1783,7 @@ private:
 				texts ~= lines;
 			}
 			if (_prop.var.etc.drawContentWarnings) {
-				auto warnings = .warnings(_prop.parent, _comm.skin, _summ, c);
+				auto warnings = .warnings(_prop.parent, _comm.skin, _summ, c, _prop.var.etc.targetVersion);
 				if (warnings.length) {
 					auto b = itm.getBounds();
 					if (b.y + b.height <= ca.y) continue;
@@ -2003,6 +2004,7 @@ public:
 		_comm.refPreviewValues.add(&__refreshEventText);
 		_comm.refEventTemplates.add(&refreshTemplates);
 		_comm.selContentTool.add(&selContentTool);
+		_comm.refTargetVersion.add(&_tree.redraw);
 		_grayFont = new Color(_tree.getDisplay(), alphaColor(_tree.getForeground().getRGB(), _tree.getBackground().getRGB(), 128));
 
 		auto dt = new DropTarget(_tree, DND.DROP_DEFAULT | DND.DROP_MOVE);

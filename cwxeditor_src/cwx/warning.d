@@ -16,7 +16,7 @@ import cwx.types;
 import cwx.features;
 
 /// pathの内容を調査し、警告すべき点があればメッセージ群を返す。
-string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path) {
+string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path, string targVer) {
 	if (!summ) return [];
 	auto sPath = summ.scenarioPath;
 	auto froot = summ.flagDirRoot;
@@ -32,6 +32,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (!psumm.area(psumm.startArea)) {
 			r ~= prop.msgs.searchErrorStartAreaNotFound;
+		}
+		if (psumm.imagePath != "") {
+			r ~= skin.warningImage(prop, psumm.imagePath, summ.legacy, targVer);
 		}
 	}
 	auto flagDir = cast(FlagDir) path;
@@ -88,6 +91,18 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (card.path != "" && !isBinImg(card.path) && !skin.findPath(card.path, skin.extImage, skin.tableDir, sPath).length) {
 			r ~= prop.msgs.searchErrorImageNotFound;
 		}
+		if (card.path != "") {
+			r ~= skin.warningImage(prop, card.path, summ.legacy, targVer);
+		}
+	}
+	auto effCard = cast(EffectCard) path;
+	if (effCard) {
+		if (effCard.soundPath1 != "") {
+			r ~= skin.warningSE(prop, effCard.soundPath1, summ.legacy, targVer);
+		}
+		if (effCard.soundPath2 != "") {
+			r ~= skin.warningSE(prop, effCard.soundPath2, summ.legacy, targVer);
+		}
 	}
 	auto spChars = skin.spChars;
 	string checkTextRes(string[] fonts, string[] flags, string[] steps) {
@@ -124,12 +139,30 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (ic.path.length && !skin.findPath(ic.path, skin.extImage, skin.tableDir, sPath).length) {
 			r ~= prop.msgs.searchErrorImageNotFound;
 		}
+		if (ic.path != "") {
+			r ~= skin.warningImage(prop, ic.path, summ.legacy, targVer);
+		}
 	}
 	auto tc = cast(TextCell) path;
 	if (tc) {
 		string err = checkTextRes([], tc.flagsInText, tc.stepsInText);
 		if (err) {
 			r ~= err;
+		}
+		if (!prop.targetVersion("1.50", targVer)) {
+			r ~= prop.msgs.warningTextCell;
+		}
+	}
+	auto cc = cast(ColorCell) path;
+	if (cc) {
+		if (!prop.targetVersion("1.50", targVer)) {
+			r ~= prop.msgs.warningColorCell;
+		}
+	}
+	auto btl = cast(Battle) path;
+	if (btl) {
+		if (btl.music != "") {
+			r ~= skin.warningBGM(prop, btl.music, summ.legacy, targVer);
 		}
 	}
 	auto mc = cast(MenuCard) path;
@@ -140,8 +173,8 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (mc.flag != "" && !froot.findFlag(mc.flag)) {
 			r ~= prop.msgs.searchErrorFlagNotFound;
 		}
-		if (0 != mc.pcNumber && !summ.legacy) {
-			r ~= prop.msgs.searchErrorPCNumber;
+		if (0 != mc.pcNumber && !prop.targetVersion("1.50", targVer)) {
+			r ~= prop.msgs.warningPCNumberClassic;
 		}
 	}
 	auto ec = cast(EnemyCard) path;
@@ -278,6 +311,52 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				}
 				cwxPath = cwxPath.cwxParent();
 			}
+		}
+		if (c.cardPath != "") {
+			r ~= skin.warningImage(prop, c.cardPath, summ.legacy, targVer);
+		}
+		if (c.bgmPath != "") {
+			r ~= skin.warningBGM(prop, c.bgmPath, summ.legacy, targVer);
+		}
+		if (c.soundPath != "") {
+			r ~= skin.warningSE(prop, c.soundPath, summ.legacy, targVer);
+		}
+		if (c.talkerC is Talker.VALUED && !prop.targetVersion("1.50", targVer)) {
+			r ~= prop.msgs.warningValuedTalker;
+		}
+		if (c.status !is Status.NONE) {
+			if (Status.SILENCE <= c.status && !prop.targetVersion("1.50", targVer)) {
+				r ~= .tryFormat(prop.msgs.warningBranchStatusMental, prop.msgs.statusName(c.status), "1.50");
+			} else if (Status.CONFUSE <= c.status && !prop.targetVersion("1.30", targVer)) {
+				r ~= .tryFormat(prop.msgs.warningBranchStatusMental, prop.msgs.statusName(c.status), "1.30");
+			}
+		}
+		if (c.range == Range.FIELD && c.detail.use(CArg.COUPON) && !prop.targetVersion("1.30", targVer)) {
+			r ~= prop.msgs.warningBranchCouponAtField;
+		}
+		if (c.type is CType.CHECK_STEP && !prop.targetVersion("1.50", targVer)) {
+			r ~= .tryFormat(prop.msgs.warningUnknownContent, prop.msgs.contentName(CType.CHECK_STEP), "1.50");
+		}
+		if (c.type is CType.SUBSTITUTE_STEP && !prop.targetVersion("1.30", targVer)) {
+			r ~= .tryFormat(prop.msgs.warningUnknownContent, prop.msgs.contentName(CType.SUBSTITUTE_STEP), "1.30");
+		}
+		if (c.type is CType.SUBSTITUTE_FLAG && !prop.targetVersion("1.30", targVer)) {
+			r ~= .tryFormat(prop.msgs.warningUnknownContent, prop.msgs.contentName(CType.SUBSTITUTE_FLAG), "1.30");
+		}
+		if (c.type is CType.BRANCH_STEP_CMP && !prop.targetVersion("1.30", targVer)) {
+			r ~= .tryFormat(prop.msgs.warningUnknownContent, prop.msgs.contentName(CType.BRANCH_STEP_CMP), "1.30");
+		}
+		if (c.type is CType.BRANCH_FLAG_CMP && !prop.targetVersion("1.30", targVer)) {
+			r ~= .tryFormat(prop.msgs.warningUnknownContent, prop.msgs.contentName(CType.BRANCH_FLAG_CMP), "1.30");
+		}
+		if (c.type is CType.BRANCH_RANDOM_SELECT && !prop.targetVersion("1.30", targVer)) {
+			r ~= .tryFormat(prop.msgs.warningUnknownContent, prop.msgs.contentName(CType.BRANCH_RANDOM_SELECT), "1.30");
+		}
+		if (c.type is CType.BRANCH_KEY_CODE && !prop.targetVersion("1.50", targVer)) {
+			r ~= .tryFormat(prop.msgs.warningUnknownContent, prop.msgs.contentName(CType.BRANCH_KEY_CODE), "1.50");
+		}
+		if (c.type is CType.BRANCH_ROUND && !prop.targetVersion("1.50", targVer)) {
+			r ~= .tryFormat(prop.msgs.warningUnknownContent, prop.msgs.contentName(CType.BRANCH_ROUND), "1.50");
 		}
 	}
 	return r;

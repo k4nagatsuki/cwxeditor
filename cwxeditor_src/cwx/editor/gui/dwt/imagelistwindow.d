@@ -120,6 +120,8 @@ class ImageList : Composite {
 	private int _sel = -1;
 	private ImageData delegate(string path, bool mask) _createImage;
 
+	private bool _showSelection = false;
+
 	this (Composite parent, int style) {
 		super (parent, style | SWT.V_SCROLL | SWT.DOUBLE_BUFFERED);
 		addControlListener(new Resize);
@@ -182,6 +184,10 @@ class ImageList : Composite {
 	private class Resize : ControlAdapter {
 		override void controlResized(ControlEvent e) {
 			calcScrollParams();
+			if (isVisible() && _showSelection) {
+				showSelection();
+				_showSelection = false;
+			}
 		}
 	}
 	private class Paint : PaintListener {
@@ -215,11 +221,12 @@ class ImageList : Composite {
 				}
 				auto img = new Image(getDisplay(), imgData);
 				scope (exit) img.dispose();
-				string name = .cutText(_path[i].baseName(), e.gc, _imgW);
-				e.gc.drawText(name, x, y);
 				int ix = (_imgW - iw) / 2;
 				int iy = (_imgH - ih) / 2;
-				e.gc.drawImage(img, x + ix, y + fh + iy);
+				e.gc.drawImage(img, x + ix, y + iy);
+				string name = .cutText(_path[i].baseName(), e.gc, _imgW);
+				auto te = e.gc.textExtent(name);
+				e.gc.drawText(name, x + (_imgW - te.x) / 2, y + _imgH);
 				if (i == _sel) {
 					e.gc.drawRectangle(x - 2, y - 2, _imgW + 3, _imgH + fh + 3);
 				}
@@ -252,6 +259,10 @@ class ImageList : Composite {
 	}
 	void showSelection() {
 		if (-1 == _sel) return;
+		if (!isVisible()) {
+			_showSelection = true;
+			return;
+		}
 		auto vs = getVerticalBar();
 
 		int countPerLine = calcCountPerLine();

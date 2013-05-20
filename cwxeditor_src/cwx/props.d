@@ -283,4 +283,18 @@ public:
 		msgsTable[defLocale] = def;
 		return msgsTable;
 	}
+
+	/// verがターゲットとなる環境のバージョン
+	/// targVer以下であればtrueを返す。
+	const
+	bool targetVersion(string ver, string targVer) {
+		immutable VER_TABLE = [
+			"1.20": 0,
+			"1.28": 1,
+			"1.29": 2,
+			"1.30": 3,
+			"1.50": 4,
+		];
+		return VER_TABLE.get(ver, int.min) <= VER_TABLE.get(targVer, int.max);
+	}
 }

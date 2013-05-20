@@ -108,15 +108,15 @@ public:
 			}
 			if (defs) {
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, &__refresh, defs, -1, canInclude, isMenuCard);
+					(comm, prop, summ, &this.refresh, defs, -1, canInclude, isMenuCard);
 			} else if (included) {
 				_defs = [prop.msgs.imageNone, prop.msgs.imageIncluding];
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, &__refresh, _defs, 1, canInclude, isMenuCard);
+					(comm, prop, summ, &this.refresh, _defs, 1, canInclude, isMenuCard);
 			} else {
 				_defs = [prop.msgs.imageNone];
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, &__refresh, _defs, -1, canInclude, isMenuCard);
+					(comm, prop, summ, &this.refresh, _defs, -1, canInclude, isMenuCard);
 			}
 			_msel.modEvent ~= {
 				foreach (dlg; modEvent) dlg();
@@ -245,7 +245,7 @@ public:
 		@property
 		void pcNumber(uint pcNum) {
 			_msel.pcNumber = pcNum;
-			__refresh();
+			refresh();
 		}
 	}
 
@@ -258,7 +258,7 @@ public:
 			auto type = imageType(bin);
 			if ("" != type) {
 				img = "image".setExtension(type);
-				ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? false : _summ.legacy);
+				ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? false : _summ.legacy, _prop.var.etc.targetVersion);
 				static if (Type is MtType.CARD) {
 					uint w, h;
 					imageSize(bin, w, h);
@@ -269,7 +269,7 @@ public:
 				}
 			}
 		} else {
-			ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? false : _summ.legacy);
+			ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? false : _summ.legacy, _prop.var.etc.targetVersion);
 			static if (Type is MtType.CARD) {
 				if (img.length) {
 					uint w, h;
@@ -462,7 +462,7 @@ private:
 			img.dispose();
 		}
 	}
-	void __refresh() {
+	void refresh() {
 		if (_refresh) _refresh();
 		_paintedPath = null;
 		_image.redraw();

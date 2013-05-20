@@ -58,12 +58,16 @@ abstract class EventDialog : AbsDialog {
 		override void widgetDisposed(DisposeEvent e) {
 			_comm.delContent.remove(&delContent);
 			_comm.refSkin.remove(&refSkin);
+			_comm.refTargetVersion.remove(&refreshWarning);
 		}
 	}
 	private void delContent(Content c) {
 		if ((_evt && _evt.isDescendant(c)) || (_parent && _parent.isDescendant(c))) {
 			forceCancel();
 		}
+	}
+	protected void refreshWarning() {
+		// 処理無し
 	}
 
 	this (Commons comm, Props prop, Shell shell, Summary summ, CType type, Content parent, Content evt, bool resizable, DSize size, bool eClose, bool rightGroup = false) in {
@@ -80,6 +84,7 @@ abstract class EventDialog : AbsDialog {
 		_evt = evt;
 		_comm.delContent.add(&delContent);
 		_comm.refSkin.add(&refSkin);
+		_comm.refTargetVersion.add(&refreshWarning);
 		getShell().addDisposeListener(new Dispose);
 	}
 
@@ -588,7 +593,8 @@ private:
 		Spinner _value;
 	}
 
-	void refreshWarning() {
+	override
+	protected void refreshWarning() {
 		string[] ws;
 		static if (Type is CType.GET_COUPON || Type is CType.LOSE_COUPON) {
 			if (prop.sys.isCouponType(_name.getText(), CouponType.System)) {
@@ -596,8 +602,10 @@ private:
 			}
 		}
 		static if (Field) {
-			if (_range[Range.FIELD].getSelection()) {
-				ws ~= prop.msgs.warningBranchCouponAtField;
+			if (_prop.targetVersion("1.30")) {
+				if (_range[Range.FIELD].getSelection()) {
+					ws ~= prop.msgs.warningBranchCouponAtField;
+				}
 			}
 		}
 		warning = ws;
@@ -907,6 +915,10 @@ class BgmDialog : EventDialog {
 private:
 	MaterialSelect!(MtType.BGM, Combo, Table) _msel;
 
+	override
+	protected void refreshWarning() {
+		warning = comm.skin.warningBGM(prop.parent, _msel.filePath, summ.legacy, _prop.var.etc.targetVersion);
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super (comm, prop, shell, summ, CType.PLAY_BGM, parent, evt, true, prop.var.soundEvtDlg, true);
@@ -920,9 +932,7 @@ protected:
 				(_comm, _prop, _summ, null, [_prop.msgs.bgmStop]);
 			_msel.createDirsCombo(area).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
-			_msel.modEvent ~= {
-				warning = comm.skin.warningBGM(prop.parent, _msel.filePath, summ.legacy);
-			};
+			_msel.modEvent ~= &refreshWarning;
 
 			_msel.createPlayButton(area).setLayoutData(new GridData);
 			_msel.createRefreshButton(area, false).setLayoutData(new GridData);
@@ -952,6 +962,10 @@ class SeDialog : EventDialog {
 private:
 	MaterialSelect!(MtType.SE, Combo, Table) _msel;
 
+	override
+	protected void refreshWarning() {
+		warning = comm.skin.warningSE(prop.parent, _msel.filePath, summ.legacy, _prop.var.etc.targetVersion);
+	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
 		super (comm, prop, shell, summ, CType.PLAY_SOUND, parent, evt, true, prop.var.soundEvtDlg, true);
@@ -965,9 +979,7 @@ protected:
 				(_comm, _prop, _summ, null, []);
 			_msel.createDirsCombo(area).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
-			_msel.modEvent ~= {
-				warning = comm.skin.warningSE(prop.parent, _msel.filePath, summ.legacy);
-			};
+			_msel.modEvent ~= &refreshWarning;
 
 			_msel.createStopButton(area).setLayoutData(new GridData);
 			_msel.createPlayButton(area).setLayoutData(new GridData);
@@ -1095,10 +1107,11 @@ private:
 	Button[CardVisual] _vis;
 	Button[Target.M] _targ;
 
-	void refreshWarning() {
+	override
+	protected void refreshWarning() {
 		string[] ws;
 		if (_se.path != "" && !_se.selectedDefDir) ws ~= prop.msgs.warningNotDefaultSE;
-		warning = ws ~ comm.skin.warningSE(prop.parent, _se.filePath, summ.legacy);
+		warning = ws ~ comm.skin.warningSE(prop.parent, _se.filePath, summ.legacy, _prop.var.etc.targetVersion);
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
@@ -1277,10 +1290,13 @@ protected:
 /// フラグ・ステップの選択・設定を行うダイアログ。
 private class FlagStepDialog(CType Type, F, bool SelValue) : EventDialog {
 private:
-	void refreshWarning()  {
+	override
+	protected void refreshWarning()  {
 		string[] ws;
 		static if (Type is CType.CHECK_STEP) {
-			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.CHECK_STEP));
+			if (!_prop.targetVersion("1.50")) {
+				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.CHECK_STEP), "1.50");
+			}
 		}
 		warning = ws;
 	}
@@ -1653,9 +1669,12 @@ private:
 	string _selected1;
 	string _selected2;
 
-	void refreshWarning() {
+	override
+	protected void refreshWarning() {
 		string[] ws;
-		ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(Type));
+		if (!_prop.targetVersion("1.30")) {
+			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(Type), "1.30");
+		}
 		warning = ws;
 	}
 
@@ -2220,11 +2239,22 @@ private:
 	Button[Target.M] _targ;
 	Button[Status] _stat;
 
-	void refreshWarning() {
+	override
+	protected void refreshWarning() {
 		string[] ws;
-		foreach (st; [Status.CONFUSE, Status.OVERHEAT, Status.BRAVE, Status.PANIC]) {
-			if (_stat[st].getSelection()) {
-				ws ~= .tryFormat(prop.msgs.warningBranchStatusMental, prop.msgs.statusName(st));
+		if (!_prop.targetVersion("1.30")) {
+			auto status = getRadioValue!(Status)(_stat);
+			if (Status.CONFUSE <= status) {
+				if (Status.SILENCE <= status) {
+					ws ~= .tryFormat(_prop.msgs.warningBranchStatusMental, _prop.msgs.statusName(status), "1.50");
+				} else {
+					ws ~= .tryFormat(_prop.msgs.warningBranchStatusMental, _prop.msgs.statusName(status), "1.30");
+				}
+			}
+		} else if (!_prop.targetVersion("1.50")) {
+			auto status = getRadioValue!(Status)(_stat);
+			if (Status.SILENCE <= status) {
+				ws ~= .tryFormat(_prop.msgs.warningBranchStatusMental, _prop.msgs.statusName(status), "1.50");
 			}
 		}
 		warning = ws;
@@ -2613,9 +2643,17 @@ private:
 	Spinner _levMin, _levMax;
 	Button[Status] _status;
 
-	void refreshWarning()  {
+	override
+	protected void refreshWarning()  {
 		string[] ws;
-		ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_RANDOM_SELECT));
+		if (!_prop.targetVersion("1.30")) {
+			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_RANDOM_SELECT), "1.30");
+		} else if (!_prop.targetVersion("1.50")) {
+			auto status = getRadioValue!(Status)(_status);
+			if (Status.SILENCE <= status) {
+				ws ~= .tryFormat(_prop.msgs.warningBranchStatusMental, _prop.msgs.statusName(status), "1.50");
+			}
+		}
 		warning = ws;
 	}
 
@@ -2766,9 +2804,12 @@ private:
 	Button[EffectCardType] _effectCardType;
 	Combo _keyCode;
 
-	void refreshWarning()  {
+	override
+	protected void refreshWarning()  {
 		string[] ws;
-		ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_KEY_CODE));
+		if (!_prop.targetVersion("1.50")) {
+			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_KEY_CODE), "1.50");
+		}
 		warning = ws;
 	}
 
@@ -2853,9 +2894,12 @@ protected:
 /// ラウンド分岐の設定を行うダイアログ。
 class BranchRoundDialog : EventDialog {
 private:
-	void refreshWarning()  {
+	override
+	protected void refreshWarning()  {
 		string[] ws;
-		ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_ROUND));
+		if (!_prop.targetVersion("1.50")) {
+			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_ROUND), "1.50");
+		}
 		warning = ws;
 	}
 

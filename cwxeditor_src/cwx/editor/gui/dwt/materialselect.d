@@ -569,7 +569,7 @@ public:
 		string[] paths = showingNames;
 		foreach (s; paths) {
 			if (curr) {
-				r ~= std.path.buildPath(curr, s);
+				r ~= .encodePath(std.path.buildPath(curr, s));
 			} else if (s.startsWith("/")) {
 				string file;
 				s = s["/".length .. $];
@@ -581,7 +581,7 @@ public:
 					file = s;
 					s = "";
 				}
-				r ~= std.path.buildPath(s, file);
+				r ~= .encodePath(std.path.buildPath(s, file));
 			} else {
 				r ~= s;
 			}

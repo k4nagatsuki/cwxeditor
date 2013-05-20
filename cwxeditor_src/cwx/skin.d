@@ -752,12 +752,15 @@ class Skin {
 		}
 	}
 	/// pathを使用する際の警告(一部環境で再生不可等)。
-	static string[] warningSE(in CProps prop, string path, bool legacy) {
+	static string[] warningSE(in CProps prop, string path, bool legacy, string targVer) {
 		auto ext = .toLower(.extension(path));
 		if (legacy) {
 			switch (ext) {
 			case ".ogg", ".ogv", ".oga", ".ogx": // Ogg
-				return [prop.msgs.oggMayNotCorrespond];
+				if (!prop.targetVersion("1.50", targVer)) {
+					return [prop.msgs.oggMayNotCorrespond];
+				}
+				break;
 			default:
 				return [];
 			}
@@ -795,14 +798,20 @@ class Skin {
 		}
 	}
 	/// pathを使用する際の警告(一部環境で再生不可等)。
-	static string[] warningBGM(in CProps prop, string path, bool legacy) {
+	static string[] warningBGM(in CProps prop, string path, bool legacy, string targVer) {
 		auto ext = .toLower(.extension(path));
 		if (legacy) {
 			switch (ext) {
 			case ".mp3": // MP3
-				return [prop.msgs.mp3LoopMayNotCorrespond];
+				if (!prop.targetVersion("1.29", targVer)) {
+					return [prop.msgs.mp3LoopMayNotCorrespond];
+				}
+				break;
 			case ".ogg", ".ogv", ".oga", ".ogx": // Ogg
-				return [prop.msgs.oggMayNotCorrespond];
+				if (!prop.targetVersion("1.50", targVer)) {
+					return [prop.msgs.oggMayNotCorrespond];
+				}
+				break;
 			default:
 				return [];
 			}
@@ -855,14 +864,20 @@ class Skin {
 		return false;
 	}
 	/// pathを使用する際の警告(一部環境で表示不可等)。
-	static string[] warningImage(in CProps prop, string path, bool legacy) {
+	static string[] warningImage(in CProps prop, string path, bool legacy, string targVer) {
 		auto ext = .toLower(.extension(path));
 		if (legacy) {
 			switch (ext) {
 			case ".png": // PNG
-				return [prop.msgs.pngMayNotCorrespond];
+				if (!prop.targetVersion("1.50", targVer)) {
+					return [prop.msgs.pngMayNotCorrespond];
+				}
+				break;
 			case ".gif": // GIF
-				return [prop.msgs.gifMayNotCorrespond];
+				if (!prop.targetVersion("1.50", targVer)) {
+					return [prop.msgs.gifMayNotCorrespond];
+				}
+				break;
 			default:
 				return [];
 			}

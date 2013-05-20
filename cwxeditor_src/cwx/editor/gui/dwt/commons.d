@@ -279,6 +279,7 @@ class Commons {
 	Dlg!() refScenarioPath;
 	Dlg!() refSkin;
 	Dlg!() refClassicSkin;
+	Dlg!() refTargetVersion;
 	Dlg!() refStandardKeyCodes;
 	Dlg!() refOuterTools;
 	Dlg!() refEventTemplates;

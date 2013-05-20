@@ -60,6 +60,10 @@ class Msgs : Properties {
 		"エラーの内容は%1$sに記録されます。");
 	auto shutdown = Msg("shutdown", "強制終了");
 
+	auto targetVersion = Msg("targetVersion", "対象エンジン");
+	auto cardWirthPy = Msg("cardWirthPy", "CardWirthPy");
+	auto cardWirthWithVersion = Msg("cardWirthWithVersion", "CardWirth %1$s");
+
 	auto dlgTextOK = Msg("dlgTextOK", "&OK");
 	auto dlgTextApply = Msg("dlgTextApply", "適用");
 	auto dlgTextCancel = Msg("dlgTextCancel", "キャンセル");
@@ -261,6 +265,7 @@ class Msgs : Properties {
 
 	auto searchResultImageCell = Msg("searchResultBgImage", "背景画像 [%1$s]");
 	auto searchResultTextCell = Msg("searchResultTextCell", "テキストセル [%1$s]");
+	auto searchResultColorCell = Msg("searchResultColorCell", "カラーセル [%1$s]");
 	auto searchResultIds = Msg("searchResultIds", "%1$s [%2$s.%3$s]");
 
 	auto searchResultFlag = Msg("searchResultFlag", "フラグ [%1$s]");
@@ -270,37 +275,36 @@ class Msgs : Properties {
 	auto searchResultMenuCard = Msg("searchResultMenuCard", "メニューカード [%1$s]");
 	auto searchResultEnemyCard = Msg("searchResultEnemyCard", "エネミーカード [%1$s]");
 
-	auto searchErrorReversalLevel = Msg("searchErrorReversalLevel", "レベルの上限と下限が逆転している");
-	auto searchErrorNoImage = Msg("searchErrorNoImage", "イメージ指定無し");
-	auto searchErrorImageNotFound = Msg("searchErrorImageNotFound", "イメージファイルが見つからない");
-	auto searchErrorBGMNotFound = Msg("searchErrorBGMNotFound", "BGMファイルが見つからない");
-	auto searchErrorSENotFound = Msg("searchErrorSENotFound", "効果音ファイルが見つからない");
-	auto searchErrorStartAreaNotFound = Msg("searchErrorStartAreaNotFound", "開始エリア無し");
-	auto searchErrorFlagNotFound = Msg("searchErrorFlagNotFound", "フラグが見つからない");
-	auto searchErrorStepNotFound = Msg("searchErrorStepNotFound", "ステップが見つからない");
-	auto searchErrorNoCast = Msg("searchErrorNoCast", "キャストカード指定無し");
-	auto searchErrorNoBeast = Msg("searchErrorNoBeast", "召喚獣カード指定無し");
-	auto searchErrorDupNextContent = Msg("searchErrorDupNextContent", "分岐条件の重複");
-	auto searchErrorSPFontNotFound = Msg("searchErrorSPFontNotFound", "特殊フォントイメージが見つからない");
-	auto searchErrorNoRCouponsDialog = Msg("searchErrorNoRCouponsDialog", "最終項目以外にクーポン指定無し項目あり");
-	auto searchErrorAreaNotFound = Msg("searchErrorAreaNotFound", "エリアが見つからない");
-	auto searchErrorBattleNotFound = Msg("searchErrorBattleNotFound", "バトルが見つからない");
-	auto searchErrorPackageNotFound = Msg("searchErrorPackageNotFound", "パッケージが見つからない");
-	auto searchErrorCastNotFound = Msg("searchErrorCastNotFound", "キャストカードが見つからない");
-	auto searchErrorSkillNotFound = Msg("searchErrorSkillNotFound", "スキルカードが見つからない");
-	auto searchErrorItemNotFound = Msg("searchErrorItemNotFound", "アイテムカードが見つからない");
-	auto searchErrorBeastNotFound = Msg("searchErrorBeastNotFound", "召喚獣カードが見つからない");
-	auto searchErrorInfoNotFound = Msg("searchErrorInfoNotFound", "情報カードが見つからない");
-	auto searchErrorStartNotFound = Msg("searchErrorStartNotFound", "スタートコンテントが見つからない");
-	auto searchErrorIgnoreWait = Msg("searchErrorIgnoreWait", "後続コンテントが無いため、空白時間が無視される");
-	auto searchErrorLinkIdNotFound = Msg("searchErrorLinkIdNotFound", "参照先のカードが見つからない");
-	auto searchErrorEmptyFile = Msg("searchErrorEmptyFile", "ファイルの内容が存在しない");
-	auto searchErrorDupFile = Msg("searchErrorDupFile", "同一のファイル「%1$s」が存在する");
-	auto searchErrorPCNumber = Msg("searchErrorPCNumber", "CardWirthPyではプレイヤーキャラクタ画像は表示できない");
-	auto searchErrorSouceIsTarget = Msg("searchErrorSouceIsTarget", "ソース変数とターゲット変数が同一");
-	auto searchErrorSystemName = Msg("searchErrorSystemName", "システムで使用されている名前のため正しく機能しない場合がある");
-	auto searchErrorKeyCodeMatchingAll = Msg("searchErrorKeyCodeMatchingAll", "「MatchingType=All」はシステムで使用されているキーコードのため正しく機能しない場合がある");
-	auto searchErrorBranchRoundInArea = Msg("searchErrorBranchRoundInArea", "ラウンド分岐がエリアイベントで使用されている");
+	auto searchErrorReversalLevel = Msg("searchErrorReversalLevel", "レベルの上限と下限が逆転しています。");
+	auto searchErrorNoImage = Msg("searchErrorNoImage", "イメージが指定されていません。");
+	auto searchErrorImageNotFound = Msg("searchErrorImageNotFound", "存在しないイメージファイルが指定されています。");
+	auto searchErrorBGMNotFound = Msg("searchErrorBGMNotFound", "存在しないBGMファイルが指定されています。");
+	auto searchErrorSENotFound = Msg("searchErrorSENotFound", "存在しない効果音ファイルが指定されています。");
+	auto searchErrorStartAreaNotFound = Msg("searchErrorStartAreaNotFound", "開始エリアが設定されていません。");
+	auto searchErrorFlagNotFound = Msg("searchErrorFlagNotFound", "存在しないフラグが指定されています。");
+	auto searchErrorStepNotFound = Msg("searchErrorStepNotFound", "存在しないステップが指定されています");
+	auto searchErrorNoCast = Msg("searchErrorNoCast", "キャストカードが指定されていません。");
+	auto searchErrorNoBeast = Msg("searchErrorNoBeast", "召喚獣カードが指定されていません。");
+	auto searchErrorDupNextContent = Msg("searchErrorDupNextContent", "分岐条件が重複しています。");
+	auto searchErrorSPFontNotFound = Msg("searchErrorSPFontNotFound", "特殊フォントイメージが見つかりません。");
+	auto searchErrorNoRCouponsDialog = Msg("searchErrorNoRCouponsDialog", "最終項目以外にクーポン指定無し項目があります。");
+	auto searchErrorAreaNotFound = Msg("searchErrorAreaNotFound", "存在しないエリアが指定されています。");
+	auto searchErrorBattleNotFound = Msg("searchErrorBattleNotFound", "存在しないバトルが指定されています。");
+	auto searchErrorPackageNotFound = Msg("searchErrorPackageNotFound", "存在しないパッケージが指定されています。");
+	auto searchErrorCastNotFound = Msg("searchErrorCastNotFound", "存在しないキャストカードが指定されています。");
+	auto searchErrorSkillNotFound = Msg("searchErrorSkillNotFound", "存在しないスキルカードが指定されています。");
+	auto searchErrorItemNotFound = Msg("searchErrorItemNotFound", "存在しないアイテムカードが指定されています。");
+	auto searchErrorBeastNotFound = Msg("searchErrorBeastNotFound", "存在しない召喚獣カードが指定されています。");
+	auto searchErrorInfoNotFound = Msg("searchErrorInfoNotFound", "存在しない情報カードが指定されています。");
+	auto searchErrorStartNotFound = Msg("searchErrorStartNotFound", "存在しないスタートコンテントが指定されています。");
+	auto searchErrorIgnoreWait = Msg("searchErrorIgnoreWait", "後続コンテントが無いため、空白時間が無視されます。");
+	auto searchErrorLinkIdNotFound = Msg("searchErrorLinkIdNotFound", "参照先のカードが見つかりません。");
+	auto searchErrorEmptyFile = Msg("searchErrorEmptyFile", "ファイルの内容が存在しません。");
+	auto searchErrorDupFile = Msg("searchErrorDupFile", "同一のファイル「%1$s」が存在します。");
+	auto searchErrorSouceIsTarget = Msg("searchErrorSouceIsTarget", "ソース変数とターゲット変数が同一です。");
+	auto searchErrorSystemName = Msg("searchErrorSystemName", "システムで使用されている名前のため、正しく機能しない場合があります。");
+	auto searchErrorKeyCodeMatchingAll = Msg("searchErrorKeyCodeMatchingAll", "「MatchingType=All」はシステムで使用されているキーコードのため、正しく機能しない場合があります。");
+	auto searchErrorBranchRoundInArea = Msg("searchErrorBranchRoundInArea", "ラウンド分岐がエリアイベントで使用されています。");
 
 	auto searchOpenDialog = Msg("searchOpenDialog", "検索結果へジャンプする時、ダイアログを開く");
 
@@ -1423,17 +1427,16 @@ class Msgs : Properties {
 	auto warningEffectTypeNone = Msg("warningEffectTypeNone", "無属性のカードをシナリオ外に持ち出した場合、予期せぬ動作の原因になります。");
 	auto warningVanishCast = Msg("warningVanishCast", "神聖属性以外の対象消去効果を持つカードをシナリオ外に持ち出した場合、予期せぬ動作の原因になります。");
 	auto warningNameLenOver = Msg("warningNameLenOver", "名前の長さが%2$s文字を超えています。メッセージにカード名が表示された際に不具合が発生する可能性があります。"); // %1$s = 文字数、%2$s = 文字数 / 2
-	auto warningPCNumberClassic = Msg("warningPCNumberClassic", "プレイヤーキャラクタのイメージはプレイヤーの環境によって表示されない事があります。");
-	auto warningPCNumberXML = Msg("warningPCNumberXML", "CardWirthPyではプレイヤーキャラクタのイメージは表示されません。");
-	auto warningUnknownContent = Msg("warningUnknownContent", "イベント [%1$s] はプレイヤーの環境によって動作しない事があります。");
-	auto warningBranchCouponAtField = Msg("warningBranchCouponAtField", "フィールド全体でのクーポン所持判定は、プレイヤーの環境によっては動作しない事があります。");
+	auto warningPCNumberClassic = Msg("warningPCNumberClassic", "プレイヤーキャラクタのイメージはCardWirth 1.30より前のバージョンでは表示されません。");
+	auto warningUnknownContent = Msg("warningUnknownContent", "イベント [%1$s] はCardWirth %2$sより前のバージョンでは使用できません。");
+	auto warningBranchCouponAtField = Msg("warningBranchCouponAtField", "フィールド全体でのクーポン所持判定は、CardWirth 1.30より前のバージョンでは使用できません。");
 	auto warningSystemVarName = Msg("warningSystemVarName", "%1$sで始まる名前の状態変数は、プレイヤーの環境によっては正しく機能しない事があります。");
 	auto warningSystemCoupon = Msg("warningSystemCoupon", "%1$sで始まる名前のクーポンを操作する事はできません。");
-	auto warningBranchStatusMental = Msg("warningBranchStatusMental", "%1$sによる状態分岐は、プレイヤーの環境によっては正しく機能しない事があります。");
+	auto warningBranchStatusMental = Msg("warningBranchStatusMental", "%1$s状態の判定は、CardWirth %2$sより前のバージョンでは使用できません。");
 	auto warningNoCardSizeImage = Msg("warningNoCardSizeImage", "カードサイズ以外の画像を使用すると、プレイヤーの環境によっては意図したように表示されない事があります。");
-	auto warningValuedTalker = Msg("warningValuedTalker", "評価メンバは、プレイヤーの環境によっては動作しない事があります。");
-	auto warningTextCell = Msg("warningTextCell", "テキストセルは、プレイヤーの環境によっては動作しない事があります。");
-	auto warningColorCell = Msg("warningColorCell", "カラーセルは、プレイヤーの環境によっては動作しない事があります。");
+	auto warningValuedTalker = Msg("warningValuedTalker", "評価メンバは、CardWirth 1.50より前のバージョンでは使用できません。");
+	auto warningTextCell = Msg("warningTextCell", "テキストセルは、CardWirth 1.50より前のバージョンでは使用できません。");
+	auto warningColorCell = Msg("warningColorCell", "カラーセルは、CardWirth 1.50より前のバージョンでは使用できません。");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");

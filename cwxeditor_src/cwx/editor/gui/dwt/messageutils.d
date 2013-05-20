@@ -317,11 +317,14 @@ private:
 		}
 	}
 
-	void refreshWarning() {
+	override
+	protected void refreshWarning() {
 		string[] ws;
 
-		if (Talker.VALUED is selectedTalker) {
-			ws ~= prop.msgs.warningValuedTalker;
+		if (prop.targetVersion("1.50")) {
+			if (Talker.VALUED is selectedTalker) {
+				ws ~= prop.msgs.warningValuedTalker;
+			}
 		}
 
 		warning = ws;
@@ -957,7 +960,8 @@ private:
 	FixedWidthText _text;
 	ImageSelect!(MtType.CARD, Combo) _msel;
 
-	void refreshWarning() {
+	override
+	protected void refreshWarning() {
 		string[] ws;
 
 		ws ~= _msel.warnings;

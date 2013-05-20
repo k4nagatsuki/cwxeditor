@@ -2500,6 +2500,7 @@ public:
 		auto froot = _summ.flagDirRoot;
 		auto sPath = _summ.scenarioPath;
 		auto skin = _comm.skin;
+		auto targVer = _prop.var.etc.targetVersion;
 		reset();
 
 		_result.setHeaderVisible(true);
@@ -2518,7 +2519,7 @@ public:
 		void search(CWXPath path) {
 			searchAll(path, count, (CWXPath path, ref uint count) {
 				if (cancel) return;
-				auto warnings = .warnings(_prop.parent, skin, _summ, path);
+				auto warnings = .warnings(_prop.parent, skin, _summ, path, targVer);
 				foreach (warning; warnings) {
 					addResult(path, count, warning);
 				}
@@ -3157,14 +3158,20 @@ public:
 		}
 		auto bgi = cast(BgImage) path;
 		if (bgi && !par) {
-			img = _prop.images.backs;
 			auto ic = cast(ImageCell) bgi;
 			if (ic) {
+				img = _prop.images.backs;
 				text = .tryFormat(_prop.msgs.searchResultImageCell, encodePath(ic.path));
 			}
 			auto tc = cast(TextCell) bgi;
 			if (tc) {
+				img = _prop.images.textCell;
 				text = .tryFormat(_prop.msgs.searchResultTextCell, tc.name);
+			}
+			auto cc = cast(ColorCell) bgi;
+			if (cc) {
+				img = _prop.images.colorCell;
+				text = .tryFormat(_prop.msgs.searchResultColorCell, cc.name);
 			}
 		}
 		auto are = cast(Area) path;

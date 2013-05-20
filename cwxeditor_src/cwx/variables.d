@@ -14,6 +14,7 @@ class FlexEtcProps : Properties {
 
 	auto pipeAppMax = Prop!(int)("pipeAppMax", 256);
 
+	auto targetVersion = Prop!(string)("targetVersion", "1.50");
 	auto singleWindow = Prop!(bool)("singleWindow", true);
 	auto toolsLock = Prop!(bool)("toolsLock", false);
 	auto toolsOrder = Prop!(int[])("toolsOrder", []);

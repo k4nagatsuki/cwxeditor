@@ -52,7 +52,7 @@ private:
 		void refreshWarning() {
 			string[] ws;
 			ws ~= _imgPath.warnings;
-			if (0 != _imgPath.pcNumber && _summ) {
+			if (!_prop.targetVersion("1.50") && 0 != _imgPath.pcNumber && _summ) {
 				if (_summ.legacy) {
 					ws ~= _prop.msgs.warningPCNumberClassic;
 				} else {
@@ -128,6 +128,9 @@ private:
 				_comm.delCast.remove(&refCast);
 			}
 			_comm.refSkin.remove(&refSkin);
+			static if (is(C:MenuCard)) {
+				_comm.refTargetVersion.remove(&refreshWarning);
+			}
 		}
 	}
 	static if (is (C == EnemyCard)) {
@@ -442,6 +445,9 @@ protected:
 			_comm.delCast.add(&refCast);
 		}
 		_comm.refSkin.add(&refSkin);
+		static if (is(C:MenuCard)) {
+			_comm.refTargetVersion.add(&refreshWarning);
+		}
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_card) {

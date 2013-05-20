@@ -64,6 +64,10 @@ private:
 		_flagIncSearch.startIncSearch();
 	}
 
+	void refreshWarning() {
+		// 処理無し
+	}
+
 	class SModL : ModifyListener {
 		override void modifyText(ModifyEvent e) {
 			_selected = true;
@@ -114,6 +118,7 @@ private:
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
 			_comm.delBgImage.remove(&delBgImage);
+			_comm.refTargetVersion.remove(&refreshWarning);
 		}
 	}
 	void refFlags(Flag[] f, Step[] s) {
@@ -283,6 +288,7 @@ protected:
 		}
 		area.addDisposeListener(new Dispose);
 		_comm.delBgImage.add(&delBgImage);
+		_comm.refTargetVersion.add(&refreshWarning);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -351,7 +357,7 @@ private:
 	ImageSelect!(MtType.BG_IMG) _imgPath;
 
 	void refreshWarning() {
-		warning = _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ ? _summ.legacy : false);
+		warning = _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ ? _summ.legacy : false, _prop.var.etc.targetVersion);
 	}
 
 	class SDListener : DisposeListener {
@@ -479,7 +485,11 @@ private:
 	Spinner _borderingWidth;
 
 	void refreshWarning() {
-		warning = [_prop.msgs.warningTextCell];
+		string[] ws = [];
+		if (!_prop.targetVersion("1.50")) {
+			ws ~= _prop.msgs.warningTextCell;
+		}
+		warning = ws;
 	}
 	void updatePreview() {
 		int index = _borderingType.getSelectionIndex();
@@ -837,7 +847,11 @@ private:
 	ColorPicker _color2;
 
 	void refreshWarning() {
-		warning = [_prop.msgs.warningColorCell];
+		string[] ws = [];
+		if (!_prop.targetVersion("1.50")) {
+			ws ~= _prop.msgs.warningColorCell;
+		}
+		warning = ws;
 	}
 	void updatePreview() {
 		_color2.enabled = GradientDir.None !is _gradientDirs[_gradientDir.getSelectionIndex()];

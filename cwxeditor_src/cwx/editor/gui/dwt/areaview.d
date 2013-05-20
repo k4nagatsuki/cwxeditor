@@ -1262,6 +1262,7 @@ private:
 		editImagePane(_imgp.selectedIndices);
 	}
 	void editImagePane(int[] indices) {
+		if (_imgp.isMoving) return;
 		int[] cs;
 		int[] bs;
 		foreach (i; indices) {
@@ -1338,7 +1339,7 @@ private:
 		_imgp.changingImages(&changingImages);
 		{
 			auto menu = new Menu(parent.getShell(), SWT.POP_UP);
-			createMenuItem(_comm, menu, MenuID.EditProp, &edit, () => _imgp.selectedIndex != -1);
+			createMenuItem(_comm, menu, MenuID.EditProp, &edit, () => _imgp.selectedIndex != -1 && !_imgp.isMoving);
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, menu, _tcpd, true, true, true, true, true);
 			static if (is(A : Area)) {

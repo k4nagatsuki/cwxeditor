@@ -1422,6 +1422,9 @@ private:
 	TableItem _openLastScenario;
 	TableItem _showVariableValuesInEventText;
 	TableItem _cautionBeforeReplace;
+	Combo _targetVersion;
+	int[string] _targetVersionTbl;
+	string[int] _targetVersionTbl2;
 	Combo _soundPlayType;
 	int[int] _soundPlayTypeTbl;
 	int[int] _soundPlayTypeTbl2;
@@ -2079,7 +2082,7 @@ private:
 		});
 	}
 
-	Combo createEnumC(Composite grp, string title, in int[] values, in string[] names, ref int[int] tblA, ref int[int] tblB, int hSpan = 1) {
+	Combo createEnumC(I)(Composite grp, string title, in I[] values, in string[] names, ref int[I] tblA, ref I[int] tblB, int hSpan = 1) {
 		assert (values.length == names.length);
 		auto l = new Label(grp, SWT.NONE);
 		l.setText(title);
@@ -2263,6 +2266,22 @@ private:
 				auto sepgd = new GridData(GridData.FILL_HORIZONTAL);
 				sepgd.horizontalSpan = 5;
 				sep.setLayoutData(sepgd);
+
+				immutable string[] targetVersionVals = [
+					"CardWirthPy",
+					"1.50",
+					"1.30",
+					"1.29",
+					"1.28",
+				];
+				immutable string[] targetVersionNames = [
+					_prop.msgs.cardWirthPy,
+					.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[1]),
+					.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[2]),
+					.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[3]),
+					.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[4]),
+				];
+				_targetVersion = createEnumC(grp, _prop.msgs.targetVersion, targetVersionVals, targetVersionNames, _targetVersionTbl, _targetVersionTbl2, 4);
 
 				version (Windows) {
 					immutable int[] soundPlayTypeVals = [
@@ -2523,6 +2542,12 @@ protected:
 		_openLastScenario.setChecked(_prop.var.etc.openLastScenario);
 		_showVariableValuesInEventText.setChecked(_prop.var.etc.showVariableValuesInEventText);
 		_cautionBeforeReplace.setChecked(_prop.var.etc.cautionBeforeReplace);
+		auto tVer = _prop.var.etc.targetVersion in _targetVersionTbl;
+		if (tVer) {
+			_targetVersion.select(*tVer);
+		} else {
+			_targetVersion.select(0);
+		}
 		auto sptp = _prop.var.etc.soundPlayType in _soundPlayTypeTbl;
 		if (sptp) {
 			_soundPlayType.select(*sptp);
@@ -2679,6 +2704,7 @@ protected:
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getChecked();
 		_prop.var.etc.comboListVisible = _comboListVisible.getChecked();
 		_prop.var.etc.soundPlayType = _soundPlayTypeTbl2[_soundPlayType.getSelectionIndex()];
+		_prop.var.etc.targetVersion = _targetVersionTbl2[_targetVersion.getSelectionIndex()];
 		_prop.var.etc.bgmVolume = _bgmVolume.getSelection();
 		_prop.var.etc.soundEffectPlayType = _soundEffectPlayTypeTbl2[_soundEffectPlayType.getSelectionIndex()];
 		_prop.var.etc.seVolume = _seVolume.getSelection();
@@ -2730,6 +2756,7 @@ protected:
 
 struct OldSettings {
 	Props prop;
+	string targetVersion;
 	string oldEnginePath;
 	bool findEnginePath;
 	string oldWallpaper;
@@ -2768,6 +2795,7 @@ struct OldSettings {
 	bool showVariableValuesInEventText;
 	this (Props prop) {
 		this.prop = prop;
+		this.targetVersion = prop.var.etc.targetVersion;
 		this.oldEnginePath = prop.var.etc.enginePath;
 		this.oldWallpaper = prop.var.etc.wallpaper;
 		this.oldWallpaperStyle = prop.var.etc.wallpaperStyle;
@@ -2809,6 +2837,9 @@ struct OldSettings {
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
+		if (targetVersion != prop.var.etc.targetVersion) {
+			comm.refTargetVersion.call();
+		}
 		if (comm.summary && oldEnginePath != prop.var.etc.enginePath) {
 			refSkin = true;
 		}

@@ -327,7 +327,7 @@ public:
 	/// index = インデックス。
 	void redrawCard(int index) {
 		auto itm = _items[index];
-		super.redraw(itm.x, itm.y, itm.width, itm.height, false);
+		super.redraw(itm.x - 1, itm.y, itm.width + 2, itm.height + 1, false);
 	}
 	/// 指定されたカードのインデックスを返す。
 	/// Params:

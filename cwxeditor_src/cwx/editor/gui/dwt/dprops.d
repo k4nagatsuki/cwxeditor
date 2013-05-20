@@ -144,6 +144,12 @@ public:
 	string buildMenu(MenuID id) {
 		return var.menu.buildMenu(parent, id);
 	}
+
+	/// verがターゲットとなる環境のバージョン以下であればtrueを返す。
+	const
+	bool targetVersion(string ver) {
+		return parent.targetVersion(ver, var.etc.targetVersion);
+	}
 }
 
 /// CPoint等の構造体をSWTのクラスに変換するための関数。
