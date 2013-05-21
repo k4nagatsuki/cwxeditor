@@ -103,7 +103,11 @@ public:
 	@property
 	string name() {
 		auto name = FlagDir.validName(stepName.getText());
-		return dir.createNewStepName(name, _step ? _step.name : "");
+		if (_step.parent) {
+			return name;
+		} else {
+			return dir.createNewStepName(name, _step ? _step.name : "");
+		}
 	}
 protected:
 	override void setup(Composite area) {
@@ -209,7 +213,7 @@ protected:
 			vals ~= stepVal.getText();
 		}
 		if (_step.parent) {
-			_step.name = stepName.getText();
+			_step.name = this.name;
 			_step.setValues(vals, stepInit.getSelectionIndex());
 		} else {
 			_step = new Step(this.name, vals, stepInit.getSelectionIndex());
@@ -301,7 +305,11 @@ public:
 	@property
 	string name() {
 		auto name = FlagDir.validName(flagName.getText());
-		return dir.createNewFlagName(name, _flag ? _flag.name : "");
+		if (_flag.parent) {
+			return name;
+		} else {
+			return dir.createNewFlagName(name, _flag ? _flag.name : "");
+		}
 	}
 protected:
 	private static void setMinW(Control c, int minW, int gridStyle = SWT.NULL) {
@@ -398,7 +406,7 @@ protected:
 
 	override bool apply() {
 		if (_flag.parent) {
-			_flag.name = flagName.getText();
+			_flag.name = this.name;
 			_flag.onOff = flagInit.getSelectionIndex() == 0;
 			_flag.on = flagTrue.getText();
 			_flag.off = flagFalse.getText();
@@ -473,14 +481,11 @@ private abstract class FTVUndo : Undo {
 }
 package class UndoEdit : FTVUndo {
 	private CWXPath _f;
-	private int _index;
-	this (FlagTable v, Commons comm, FlagDir dir, int index) {
+	private string _name;
+	this (FlagTable v, Commons comm, FlagDir dir, int index, string newName) {
 		super (v, comm, dir);
-		_index = index;
-		save(dir);
-	}
-	private void save(FlagDir dir) {
-		auto p = FlagTable.fromIndex(dir, _index);
+		_name = newName;
+		auto p = FlagTable.fromIndex(dir, index);
 		auto f = cast(Flag) p;
 		if (f) _f = new Flag(f);
 		auto s = cast(Step) p;
@@ -493,12 +498,12 @@ package class UndoEdit : FTVUndo {
 		auto fB = _f;
 		auto dir = this.dir();
 		assert (dir);
-		save(dir);
-		auto p = FlagTable.fromIndex(dir, _index);
-		auto f = cast(Flag) p;
-		if (f) {
+		if (cast(Flag)fB) {
+			auto f = dir.getFlag(_name);
+			_f = new Flag(f);
 			auto o = cast(Flag) fB;
 			assert (o);
+			_name = o.name;
 			bool refVal = o.on != f.on || o.off != f.off;
 			auto oPath = f.path;
 			f.copyFrom(o);
@@ -510,11 +515,13 @@ package class UndoEdit : FTVUndo {
 			if (refVal) {
 				comm.refFlagAndStep.call([f], []);
 			}
-		}
-		auto s = cast(Step) p;
-		if (s) {
+		} else {
+			assert (cast(Step)fB);
+			auto s = dir.getStep(_name);
+			_f = new Step(s);
 			auto o = cast(Step) fB;
 			assert (o);
+			_name = o.name;
 			bool refVal = o.values != s.values;
 			auto oPath = s.path;
 			s.copyFrom(o);
@@ -771,8 +778,8 @@ package class UndoSwap : FTVUndo {
 
 public class FlagTable : TCPD {
 private:
-	void storeEdit(int index) {
-		_undo ~= new UndoEdit(this, _comm, _dir, index);
+	void storeEdit(int index, string newName) {
+		_undo ~= new UndoEdit(this, _comm, _dir, index, newName);
 	}
 	void storeInsert(int[] selected, string[] flagName, string[] stepName) {
 		_undo ~= new UndoInsertDelete(this, _comm, _dir, selected, [], flagName, stepName);
@@ -885,7 +892,7 @@ private:
 			int i = indexOf(parent, flag);
 			if (-1 != i) {
 				assert (!createMode);
-				storeEdit(i);
+				storeEdit(i, dlg.name);
 			}
 		};
 		dlg.appliedEvent ~= {
@@ -930,7 +937,7 @@ private:
 			int i = indexOf(parent, step);
 			if (-1 != i) {
 				assert (!createMode);
-				storeEdit(i);
+				storeEdit(i, dlg.name);
 			}
 		};
 		dlg.appliedEvent ~= {
@@ -1046,11 +1053,12 @@ private:
 		auto f = cast(Flag) itm.getData();
 		if (f) {
 			if (0 == icmp(f.name, text)) return;
-			storeEdit(itm.getParent().indexOf(itm));
+			auto newName = f.parent.createNewFlagName(text, f.name);
+			storeEdit(itm.getParent().indexOf(itm), newName);
 			auto oldId = toFlagId(f.path);
-			f.name = f.parent.createNewFlagName(text, f.name);
-			itm.setText(column, f.name);
+			f.name = newName;
 			uc.change(oldId, toFlagId(f.path), true);
+			refresh();
 			_comm.refFlagAndStep.call([f], []);
 			_comm.refreshToolBar();
 			return;
@@ -1058,11 +1066,12 @@ private:
 		auto s = cast(Step) itm.getData();
 		if (s) {
 			if (0 == icmp(s.name, text)) return;
-			storeEdit(itm.getParent().indexOf(itm));
+			auto newName = s.parent.createNewStepName(text, s.name);
+			storeEdit(itm.getParent().indexOf(itm), newName);
 			auto oldId = toStepId(s.path);
-			s.name = s.parent.createNewStepName(text, s.name);
-			itm.setText(column, s.name);
+			s.name = newName;
 			uc.change(oldId, toStepId(s.path), true);
+			refresh();
 			_comm.refFlagAndStep.call([], [s]);
 			_comm.refreshToolBar();
 			return;
@@ -1092,7 +1101,7 @@ private:
 		auto f = cast(Flag) itm.getData();
 		if (f) {
 			if (f.onOff == (0 == i)) return;
-			storeEdit(flags.indexOf(itm));
+			storeEdit(flags.indexOf(itm), f.name);
 			f.onOff = 0 == i;
 			itm.setText(column, f.onOff ? f.on : f.off);
 			_comm.refFlagAndStep.call([f], []);
@@ -1102,7 +1111,7 @@ private:
 		auto s = cast(Step) itm.getData();
 		if (s) {
 			if (s.select == i) return; 
-			storeEdit(flags.indexOf(itm));
+			storeEdit(flags.indexOf(itm), s.name);
 			s.select(i);
 			itm.setText(column, s.value);
 			_comm.refFlagAndStep.call([], [s]);
