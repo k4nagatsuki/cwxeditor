@@ -1714,7 +1714,7 @@ void setComboItems(C)(C combo, string[] items) {
 void initTree(Commons comm, Tree tree, bool eventTree) {
 	version (Windows) {
 		if (eventTree) {
-			Listener keyDown = null, mouseDoubleClick = null;
+			Listener keyDown = null, mouseDoubleClick = null, collapse = null;
 			void updateTreeStyle() {
 				auto style = OS.GetWindowLong(tree.handle, GWL_STYLE);
 				style |= OS.TVS_HASLINES;
@@ -1749,8 +1749,22 @@ void initTree(Commons comm, Tree tree, bool eventTree) {
 								}
 							}
 						};
+						collapse = new class Listener {
+							override void handleEvent(Event e) {
+								auto itm = cast(TreeItem)e.item;
+								if (!itm) return;
+								if (itm.getParentItem()) {
+									itm.getDisplay().asyncExec(new class Runnable {
+										override void run() {
+											itm.setExpanded(true);
+										}
+									});
+								}
+							}
+						};
 						tree.addListener(SWT.KeyDown, keyDown);
 						tree.addListener(SWT.MouseDoubleClick, mouseDoubleClick);
+						tree.addListener(SWT.Collapse, collapse);
 					}
 					void recurse(TreeItem itm) {
 						if (itm.getParentItem()) {
@@ -1769,8 +1783,10 @@ void initTree(Commons comm, Tree tree, bool eventTree) {
 					if (keyDown) {
 						tree.removeListener(SWT.KeyDown, keyDown);
 						tree.removeListener(SWT.MouseDoubleClick, mouseDoubleClick);
+						tree.removeListener(SWT.Collapse, collapse);
 						keyDown = null;
 						mouseDoubleClick = null;
+						collapse = null;
 					}
 				}
 				style = OS.SetWindowLong(tree.handle, GWL_STYLE, style);

@@ -337,20 +337,21 @@ public:
 				bool inPlay = playBGMCW(_prop, p, _summ.legacy);
 				if (inPlay) {
 					_playing = p;
+					auto relPath = .encodePath(this.path);
 					if (_bgmMenu) {
-						_bgmMenu.setText(.tryFormat(_prop.buildMenu(MenuID.StopBGM), p));
+						_bgmMenu.setText(.tryFormat(_prop.buildMenu(MenuID.StopBGM), .baseName(relPath)));
 						auto d = cast(MenuData) _bgmMenu.getData();
 						d.id = MenuID.StopBGM;
 						_bgmMenu.setImage(_prop.images.menu(MenuID.StopBGM));
 						_bgmMenu.setSelection(true);
 					}
 					if (_bgmTMenu) {
-						_bgmTMenu.setToolTipText(.tryFormat(_prop.buildTool(MenuID.StopBGM), p));
+						_bgmTMenu.setToolTipText(.tryFormat(_prop.buildTool(MenuID.StopBGM), relPath));
 						_bgmTMenu.setImage(_prop.images.menu(MenuID.StopBGM));
 						_bgmTMenu.setSelection(true);
 					}
 					if (_bgmBtn) {
-						_bgmBtn.setToolTipText(.tryFormat(_prop.buildTool(MenuID.StopBGM), baseName(path)));
+						_bgmBtn.setToolTipText(.tryFormat(_prop.buildTool(MenuID.StopBGM), relPath));
 						_bgmBtn.setImage(_prop.images.menu(MenuID.StopBGM));
 						_bgmBtn.setSelection(true);
 					}

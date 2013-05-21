@@ -214,7 +214,7 @@ private:
 		void delRefMenuCard(string a) {
 			if (!_refTarget) return;
 			if (!cpeq(_refTarget.cwxPath(true), cpparent(a))) return;
-			createRefCard();
+			createRefCard(cpindex(cpbottom(a)));
 			_imgp.redraw();
 		}
 		void upRefMenuCards(string a, int[] indices, int count) {
@@ -2159,30 +2159,30 @@ public:
 			foreach (a; _imgp.appends) {
 				a.dispose();
 			}
-			auto a = createRefCardImpl!C2(cs);
+			auto a = createRefCardImpl!C2(cs, -1);
 			if (a) {
 				_imgp.appends = [a];
 			} else {
 				_imgp.appends = [];
 			}
 		}
-		void createRefCard() {
+		void createRefCard(int del = -1) {
 			foreach (a; _imgp.appends) {
 				a.dispose();
 			}
 			_imgp.appends = [];
 			auto area = cast(Area) _refTarget;
 			if (area) {
-				auto a = createRefCardImpl(area.cards);
+				auto a = createRefCardImpl(area.cards, del);
 				if (a) _imgp.appends = [a];
 			}
 			auto battle = cast(Battle) _refTarget;
 			if (battle) {
-				auto a = createRefCardImpl(battle.cards);
+				auto a = createRefCardImpl(battle.cards, del);
 				if (a) _imgp.appends = [a];
 			}
 		}
-		Image createRefCardImpl(C2)(in C2[] cs) {
+		Image createRefCardImpl(C2)(in C2[] cs, int del) {
 			auto d = getDisplay();
 			auto vs = _prop.looks.viewSize;
 			auto img = new Image(d, vs.width, vs.height);
@@ -2191,7 +2191,8 @@ public:
 			auto alphas = new byte[vs.width * vs.height];
 			alphas[] = 0;
 			data.setAlphas(0, 0, vs.width * vs.height, alphas, 0);
-			foreach (c; cs) {
+			foreach (i, c; cs) {
+				if (i == del) continue;
 				auto pimg = createCardImage!PileImage(c, _prop.var.etc.smoothingCard);
 				auto pdata = pimg.createImageData();
 				foreach (x; 0 .. pimg.width) {
