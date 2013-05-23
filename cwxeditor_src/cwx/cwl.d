@@ -1419,7 +1419,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) {
 	}
 	if (e.detail.owner) {
 		foreach (c; childs) {
-			e.add(c);
+			e.add(null, c);
 		}
 	}
 	auto p = "comment" in info;

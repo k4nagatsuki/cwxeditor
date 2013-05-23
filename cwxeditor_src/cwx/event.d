@@ -14,12 +14,14 @@ import cwx.card;
 import cwx.coupon;
 import cwx.textholder;
 import cwx.system;
+import cwx.summary;
 
 import std.algorithm;
 import std.datetime;
 import std.string;
 import std.traits;
 import std.conv;
+import std.range;
 
 private bool static_this_completed = false;
 private void static_this () {
@@ -556,7 +558,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		copy.coupons = coupons;
 
 		foreach (c; next) {
-			copy.add(c.dup);
+			copy.add(null, c.dup);
 		}
 
 		return copy;
@@ -694,58 +696,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (_type == type) return;
 		changed();
 		auto od = detail;
-		auto d = CONTENT_DETAILS[type];
-		foreach (n; next) {
-			void setNum() {
-				if (prop.sys.evtChildDefault != n.name && !std.string.isNumeric(n.name) || n.name == "0") {
-					n.name = prop.sys.evtChildDefault;
-				}
-			}
-			final switch (d.nextType) {
-			case CNextType.NONE: n.name = ""; break;
-			case CNextType.TEXT: break;
-			case CNextType.BOOL: {
-				if (prop.sys.evtChildTrue != n.name && prop.sys.evtChildFalse != n.name) {
-					n.name = prop.sys.evtChildTrue;
-				}
-			} break;
-			case CNextType.STEP: {
-				if (prop.sys.evtChildDefault != n.name && !std.string.isNumeric(n.name)) {
-					n.name = prop.sys.evtChildDefault;
-				}
-			} break;
-			case CNextType.ID_AREA: {
-				setNum();
-				if (n.name != prop.sys.evtChildDefault) {
-					try {
-						n.area = to!(ulong)(n.name);
-					} catch {
-						n.area = 0;
-					}
-				} else {
-					n.area = 0;
-				}
-			} break;
-			case CNextType.ID_BATTLE: {
-				setNum();
-				if (n.name != prop.sys.evtChildDefault) {
-					try {
-						n.battle = to!(ulong)(n.name);
-					} catch {
-						n.battle = 0;
-					}
-				} else {
-					n.battle = 0;
-				}
-			} break;
-			case CNextType.TRIO: {
-				if (prop.sys.evtChildGreater != n.name && prop.sys.evtChildLesser != n.name && prop.sys.evtChildEq != n.name) {
-					n.name = prop.sys.evtChildGreater;
-				}
-			} break;
-			}
-		}
 		_type = type;
+		foreach (n; next) {
+			validText(prop, n);
+		}
 
 		if (_suc) {
 			if (od.use(CArg.START) && !detail.use(CArg.START)) {
@@ -755,6 +709,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			}
 		}
 
+		auto d = detail;
 		resetValue!(CArg.AREA, ulong, 0)(d, &area);
 		resetValue!(CArg.BATTLE, ulong, 0)(d, &battle);
 		resetValue!(CArg.PACKAGE, ulong, 0)(d, &packages);
@@ -838,7 +793,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	private SimpleTextHolder _name;
 	/// テキスト。
 	@property
-	void name(string name) {
+	private void name(string name) {
 		if (_name.text != name) {
 			changed();
 			if (_type is CType.START && _tree) {
@@ -848,9 +803,106 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 	}
 	/// ditto
+	void setName(in CProps prop, string name) {
+		this.name = name;
+		if (parent) {
+			parent.validText(prop, this);
+		}
+	}
+	/// ditto
 	@property
 	const
 	string name() {return _name.text;}
+
+	/// nameを後続コンテントとして適切な名前に変換して返す。
+	private void validText(in CProps prop, Content n) {
+		if (!prop) return;
+		string selectName(string[] selectable, string def) {
+			foreach (nn; next) {
+				if (nn is n) continue;
+				cwx.utils.remove(selectable, nn.name);
+			}
+			return selectable.length ? selectable[0] : def;
+		}
+		bool setNum() {
+			if (prop.sys.evtChildDefault != n.name && !std.string.isNumeric(n.name) || n.name == "0") {
+				n.name = prop.sys.evtChildDefault;
+				return true;
+			}
+			return false;
+		}
+		auto root = this.cwxParent;
+		while (root.cwxParent) root = root.cwxParent;
+		auto summ = cast(Summary)root;
+
+		final switch (detail.nextType) {
+		case CNextType.NONE: n.name = ""; break;
+		case CNextType.TEXT: break;
+		case CNextType.BOOL: {
+			if (prop.sys.evtChildTrue != n.name && prop.sys.evtChildFalse != n.name) {
+				n.name = selectName([prop.sys.evtChildTrue, prop.sys.evtChildFalse], prop.sys.evtChildTrue);
+			}
+		} break;
+		case CNextType.STEP: {
+			if (prop.sys.evtChildDefault != n.name && !std.string.isNumeric(n.name)) {
+				int num = prop.looks.stepMaxCount;
+				if (summ) {
+					auto step = summ.flagDirRoot.findStep(this.step);
+					if (step) num = step.count;
+				}
+				string[] array;
+				foreach (i; .iota(0, num)) {
+					array ~= .text(i);
+				}
+				array ~= prop.sys.evtChildDefault;
+				n.name = selectName(array, prop.sys.evtChildDefault);
+			}
+		} break;
+		case CNextType.ID_AREA: {
+			if (setNum() && summ) {
+				string[] array;
+				foreach (a; summ.areas) {
+					array ~= .text(a.id);
+				}
+				array ~= prop.sys.evtChildDefault;
+				n.name = selectName(array, prop.sys.evtChildDefault);
+			}
+			if (n.name != prop.sys.evtChildDefault) {
+				try {
+					n.area = to!(ulong)(n.name);
+				} catch {
+					n.area = 0;
+				}
+			} else {
+				n.area = 0;
+			}
+		} break;
+		case CNextType.ID_BATTLE: {
+			if (setNum() && summ) {
+				string[] array;
+				foreach (a; summ.battles) {
+					array ~= .text(a.id);
+				}
+				array ~= prop.sys.evtChildDefault;
+				n.name = selectName(array, prop.sys.evtChildDefault);
+			}
+			if (n.name != prop.sys.evtChildDefault) {
+				try {
+					n.battle = to!(ulong)(n.name);
+				} catch {
+					n.battle = 0;
+				}
+			} else {
+				n.battle = 0;
+			}
+		} break;
+		case CNextType.TRIO: {
+			if (prop.sys.evtChildGreater != n.name && prop.sys.evtChildLesser != n.name && prop.sys.evtChildEq != n.name) {
+				n.name = selectName([prop.sys.evtChildGreater, prop.sys.evtChildLesser, prop.sys.evtChildEq], prop.sys.evtChildGreater);
+			}
+		} break;
+		}
+	}
 
 	/// 専らシナリオ作者が参考のために記すコンテントのコメント。
 	private string _comment = "";
@@ -1044,8 +1096,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 
 	/// 後続コンテントを追加する。
-	void add(Content c) {
+	void add(in CProps prop, Content c) {
 		if (c.parent) c.parent.remove(c);
+		validText(prop, c);
 		c.parent = this;
 		if (_uc !is null) c.setUseCounter(useCounter);
 		if (_suc !is null) c.setSUseCounter(startUseCounter);
@@ -1054,11 +1107,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		changed();
 	}
 	/// ditto
-	void insert(int index, Content c) {
+	void insert(in CProps prop, int index, Content c) {
 		if (next.length == index) {
-			add(c);
+			add(prop, c);
 		} else {
 			if (c.parent) c.parent.remove(c);
+			validText(prop, c);
 			c.parent = this;
 			if (_uc !is null) c.setUseCounter(useCounter);
 			if (_suc !is null) c.setSUseCounter(startUseCounter);
@@ -1867,7 +1921,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (d.owner) {
 			en.onTag["Contents"] = (ref XNode node) {
 				foreach (c; createContentsFromNode(node, ver)) {
-					r.add(c);
+					r.add(null, c);
 				}
 			};
 		}

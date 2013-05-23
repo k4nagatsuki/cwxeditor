@@ -325,7 +325,10 @@ private:
 					return;
 				}
 				auto parent = (cast(Control) e.widget).getShell();
-				_imgList = new ImageListWindow!Type(_prop, _comm, _summ, parent, &image);
+				_imgList = new ImageListWindow!Type(_prop, _comm, _summ, parent, (string path) {
+					image(path);
+					refresh();
+				});
 				.listener(_imgList.shell, SWT.Dispose, {
 					b.setSelection(false);
 				});

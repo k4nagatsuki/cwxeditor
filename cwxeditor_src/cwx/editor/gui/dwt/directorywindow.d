@@ -847,7 +847,7 @@ private:
 		auto to = std.path.buildPath(dirName(path), newName);
 		bool isdir = cast(bool) .isDir(path);
 		if (!isdir && .extension(path).length > 0) {
-			to = setExtension(to, .extension(path));
+			to = to ~ .extension(path);
 		}
 		if (.exists(to) && cast(bool) .isDir(to) == cast(bool) .isDir(path)) return null;
 		try {

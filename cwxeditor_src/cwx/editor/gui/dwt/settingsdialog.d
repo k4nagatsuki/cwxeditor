@@ -1422,6 +1422,7 @@ private:
 	TableItem _openLastScenario;
 	TableItem _showVariableValuesInEventText;
 	TableItem _cautionBeforeReplace;
+	TableItem _applyDialogsBeforeSave;
 	Combo _targetVersion;
 	int[string] _targetVersionTbl;
 	string[int] _targetVersionTbl2;
@@ -2261,6 +2262,7 @@ private:
 				_openLastScenario = createB(_prop.msgs.openLastScenario);
 				_showVariableValuesInEventText = createB(_prop.msgs.showVariableValuesInEventText);
 				_cautionBeforeReplace = createB(_prop.msgs.cautionBeforeReplace);
+				_applyDialogsBeforeSave = createB(_prop.msgs.applyDialogsBeforeSave);
 
 				auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 				auto sepgd = new GridData(GridData.FILL_HORIZONTAL);
@@ -2542,6 +2544,7 @@ protected:
 		_openLastScenario.setChecked(_prop.var.etc.openLastScenario);
 		_showVariableValuesInEventText.setChecked(_prop.var.etc.showVariableValuesInEventText);
 		_cautionBeforeReplace.setChecked(_prop.var.etc.cautionBeforeReplace);
+		_applyDialogsBeforeSave.setChecked(_prop.var.etc.applyDialogsBeforeSave);
 		auto tVer = _prop.var.etc.targetVersion in _targetVersionTbl;
 		if (tVer) {
 			_targetVersion.select(*tVer);
@@ -2700,6 +2703,7 @@ protected:
 		_prop.var.etc.openLastScenario = _openLastScenario.getChecked();
 		_prop.var.etc.showVariableValuesInEventText = _showVariableValuesInEventText.getChecked();
 		_prop.var.etc.cautionBeforeReplace = _cautionBeforeReplace.getChecked();
+		_prop.var.etc.applyDialogsBeforeSave = _applyDialogsBeforeSave.getChecked();
 		_prop.var.etc.contentsFloat = _contentsFloat.getChecked();
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getChecked();
 		_prop.var.etc.comboListVisible = _comboListVisible.getChecked();

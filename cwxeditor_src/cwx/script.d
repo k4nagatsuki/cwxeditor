@@ -2440,14 +2440,14 @@ fi`;
 			string comment = node.token.comment;
 			auto c = new Content(*cmdPtr, parseNextValue(node, keys, varTable));
 			if (node.type is NodeType.START) {
-				c.name = createNewName(c.name, (string name) {
+				c.setName(_prop, createNewName(c.name, (string name) {
 					foreach (sn; startNames) {
 						if (0 == icmp(sn, name)) {
 							return false;
 						}
 					}
 					return true;
-				});
+				}));
 				startNames ~= c.name;
 			}
 			c.comment = parseComment(comment);
@@ -2662,7 +2662,7 @@ fi`;
 					startNames ~= s.name;
 					auto link = new Content(CType.LINK_START, c.name);
 					link.start = s.name;
-					c.add(link);
+					c.add(_prop, link);
 					if (isTop) {
 						r ~= s;
 					} else {
@@ -2675,7 +2675,7 @@ fi`;
 			if (nextIsChild) {
 				/// 一つ前の分析結果は nextIsChild is true 。
 				auto parent = autoWrap(lastParent);
-				parent.add(c);
+				parent.add(_prop, c);
 				stack++;
 			} else {
 				r ~= c;
@@ -2683,7 +2683,7 @@ fi`;
 			if (node.childs.length) {
 				auto parent = autoWrap(c);
 				foreach (chld; analyzeSemanticsImpl(opt, node.childs, keys, varTable, stack + 1, autoWrapCount, startNames, isTop ? r : topGroup, false)) {
-					parent.add(chld);
+					parent.add(_prop, chld);
 				}
 			}
 			nextIsChild = node.nextIsChild;

@@ -741,6 +741,15 @@ private:
 		opt.imageConverter = .toDelegate(&imageToBitmap);
 		return opt;
 	}
+	void beforeSave() {
+		if (_prop.var.etc.applyDialogsBeforeSave) {
+			foreach (shell; _display.getShells()) {
+				auto dlg = cast(AbsDialog)shell.getData();
+				if (!dlg) continue;
+				dlg.forceApply();
+			}
+		}
+	}
 	bool save(Shell shell, bool backupSave = false) {
 		if (summary) {
 			_dirWin.pauseTrace();
@@ -757,6 +766,7 @@ private:
 					resetCursors(cursors);
 				}
 				try {
+					beforeSave();
 					synchronized (_saveSync) {
 						summary.saveOverwrite(_prop.parent, _comm.skin, createSaveOpt());
 					}
@@ -862,6 +872,7 @@ private:
 				bool expandXMLs = _prop.var.etc.expandXMLs;
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin);
 				try {
+					beforeSave();
 					synchronized (_saveSync) {
 						summary.saveWithName(_prop.parent, _comm.skin, createSaveOpt(),
 							fname, tempPath, expandXMLs, defSkin, (string msg) {

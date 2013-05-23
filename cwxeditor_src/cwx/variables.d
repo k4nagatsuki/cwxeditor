@@ -316,6 +316,7 @@ class FlexEtcProps : Properties {
 	auto radarStyleParams = Prop!(bool)("radarStyleParams", true);
 	auto showCardListHeader = Prop!(bool)("showCardListHeader", true);
 	auto showCardListTitle = Prop!(bool)("showCardListTitle", true);
+	auto applyDialogsBeforeSave = Prop!(bool)("applyDialogsBeforeSave", true);
 
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
 

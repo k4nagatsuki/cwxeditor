@@ -50,6 +50,7 @@ abstract class AbsDialog {
 		_win = new Shell(parent, style);
 		_win.setText(text);
 		_win.setImage(img);
+		_win.setData(this);
 		if (rightGroup) {
 			_win.setLayout(zeroGridLayout(3, false));
 		} else {
@@ -94,7 +95,7 @@ abstract class AbsDialog {
 			createButton(buttons, prop.msgs.dlgTextCancel, &this.cancel);
 		}
 		if (apply) {
-			_apply = createButton(buttons, prop.msgs.dlgTextApply, &this.applyFunc);
+			_apply = createButton(buttons, prop.msgs.dlgTextApply, &this.forceApply);
 		}
 		foreach (info; button) {
 			createButton(buttons, info.name, info.func);
@@ -352,7 +353,7 @@ abstract class AbsDialog {
 		return _win.isDisposed();
 	}
 
-	private void applyFunc() {
+	void forceApply() {
 		foreach (dlg; applyEvent) {
 			dlg();
 		}

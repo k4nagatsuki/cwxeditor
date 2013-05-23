@@ -1546,6 +1546,7 @@ class Msgs : Properties {
 	auto openLastScenario = Msg("openLastScenario", "終了時に開いていたシナリオを次の起動時に開く");
 	auto showVariableValuesInEventText = Msg("showVariableValuesInEventText", "選択肢のテキスト内の変数をプレビュー表示する(#M -> [選択中]...)");
 	auto cautionBeforeReplace = Msg("cautionBeforeReplace", "全て置換する前に確認ダイアログを表示する");
+	auto applyDialogsBeforeSave = Msg("applyDialogsBeforeSave", "保存前にダイアログの編集内容を適用する");
 	auto soundPlayType = Msg("soundPlayType", "BGM再生方式");
 	auto soundPlayTypeDef = Msg("soundPlayTypeDef", "自動選択");
 	auto soundPlayTypeSDL = Msg("soundPlayTypeSDL", "SDL(CardWirthPy方式)");

@@ -1872,7 +1872,7 @@ void setComboItems(C)(C combo, string[] items) {
 void initTree(Commons comm, Tree tree, bool eventTree) {
 	version (Windows) {
 		if (eventTree) {
-			Listener keyDown = null, mouseDoubleClick = null, collapse;
+			Listener keyDown = null, mouseDoubleClick = null, collapse = null;
 			void updateTreeStyle() {
 				auto style = OS.GetWindowLong(tree.handle, GWL_STYLE);
 				style |= OS.TVS_HASLINES;
@@ -1914,7 +1914,9 @@ void initTree(Commons comm, Tree tree, bool eventTree) {
 								if (itm.getParentItem()) {
 									itm.getDisplay().asyncExec(new class Runnable {
 										override void run() {
-											itm.setExpanded(true);
+											if (!itm.isDisposed()) {
+												itm.setExpanded(true);
+											}
 										}
 									});
 								}

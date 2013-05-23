@@ -256,7 +256,7 @@ private:
 				auto pc = tc.parent;
 				string text;
 				if (pc) {
-					pc.insert(index, c);
+					pc.insert(prop.parent, index, c);
 					text = eventTextImpl(comm, prop, summ, pc, c);
 				} else {
 					et.insert(index, c);
@@ -550,9 +550,9 @@ private:
 						}
 						store(owner);
 						if (insertIndex == -1) {
-							owner.add(evt);
+							owner.add(_prop.parent, evt);
 						} else {
-							owner.insert(insertIndex, evt);
+							owner.insert(_prop.parent, insertIndex, evt);
 						}
 						auto itm = createTreeItem(oItm, evt, eventText(owner, evt), _prop.images.content(evt.type), insertIndex);
 						oItm.setExpanded(true);
@@ -560,7 +560,7 @@ private:
 						if (insertTo) {
 							auto ic = cast(Content) insertTo.getData();
 							_comm.delContent.call(ic);
-							evt.add(ic);
+							evt.add(_prop.parent, ic);
 							insertTo.dispose();
 							createChilds(itm, evt);
 							itm.setExpanded(true);
@@ -1305,7 +1305,7 @@ private:
 							} else {
 								store(owner);
 							}
-							owner.add(evt);
+							owner.add(_prop.parent, evt);
 							_comm.refContent.call(evt);
 							_tree.setRedraw(false);
 							auto itm = createTreeItem(ti, evt, eventText(owner, evt), _prop.images.content(evt.type));
@@ -2326,17 +2326,17 @@ public:
 			if (text == evt.name) return;
 			store(evt);
 			if (evt.type == CType.START) {
-				evt.name = createNewName(text, (string name) {
+				evt.setName(_prop.parent, createNewName(text, (string name) {
 					foreach (s; _et.starts) {
 						if (s !is evt && icmp(s.name, name) == 0) {
 							return false;
 						}
 					}
 					return true;
-				}, true);
+				}, true));
 				itm.setText(evt.name);
 			} else {
-				evt.name = text;
+				evt.setName(_prop.parent, text);
 				itm.setText(eventText(evt.parent, evt));
 			}
 			if (evt.type == CType.START && _tree.indexOf(itm) == 0) {
@@ -2393,7 +2393,7 @@ public:
 			}
 			if (name == evt.name) return;
 			store(evt);
-			evt.name = name;
+			evt.setName(_prop.parent, name);
 			itm.setText(combo.getText());
 		}
 		procTreeItem(itm);
@@ -2644,7 +2644,7 @@ public:
 			r = "";
 		}
 		if (e.name != name) {
-			e.name = name;
+			e.setName(prop.parent, name);
 			comm.refContent.call(e);
 		}
 		return r;
@@ -3235,7 +3235,7 @@ public:
 		scope (exit) _tree.setRedraw(true);
 		if (stored) store(owner);
 		foreach (ct; cs2) {
-			owner.add(ct);
+			owner.add(_prop.parent, ct);
 			_comm.refContent.call(ct);
 		}
 		auto lastItm = createChilds(itm, owner);
@@ -3275,7 +3275,7 @@ public:
 		foreach (i, c; cs2) {
 			if (!c.type is CType.START) continue;
 			auto oldName = c.name;
-			c.name = createNewName(c.name, (string name) {
+			c.setName(_prop.parent, createNewName(c.name, (string name) {
 				foreach (s; _et.starts) {
 					if (icmp(s.name, name) == 0) {
 						return false;
@@ -3288,7 +3288,7 @@ public:
 					}
 				}
 				return true;
-			}, true);
+			}, true));
 			if (c.name != oldName) {
 				void recurse(Content[] cs) {
 					foreach (ct; cs) {
