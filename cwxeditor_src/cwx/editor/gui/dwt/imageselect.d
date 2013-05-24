@@ -97,6 +97,7 @@ public:
 			compl.setLayoutData(new GridData(GridData.FILL_BOTH));
 			compl.setLayout(zeroMarginGridLayout(1, false));
 		}
+		Button imgList;
 		{
 			{
 				auto comp = new Composite(compl, SWT.NONE);
@@ -125,7 +126,7 @@ public:
 				auto comp = new Composite(compl, SWT.NONE);
 				comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				comp.setLayout(zeroMarginGridLayout(3, false));
-				auto imgList = new Button(comp, SWT.TOGGLE);
+				imgList = new Button(comp, SWT.TOGGLE);
 				imgList.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				imgList.setImage(_prop.images.menu(MenuID.LookImages));
 				imgList.setToolTipText(_prop.buildTool(MenuID.LookImages));
@@ -187,6 +188,21 @@ public:
 				_msel.incSearch.modEvent ~= &refreshImageList;
 			}
 		}
+		auto d = parent.getDisplay();
+		auto focusFilter = new class Listener {
+			override void handleEvent(Event e) {
+				if (!imgList.isVisible() && _imgList && !_imgList.shell.isDisposed()) {
+					_imgList.shell.close();
+					_imgList.shell.dispose();
+				}
+			}
+		};
+		d.addFilter(SWT.FocusOut, focusFilter);
+		d.addFilter(SWT.Selection, focusFilter);
+		.listener(imgList, SWT.Dispose, {
+			d.removeFilter(SWT.FocusOut, focusFilter);
+			d.removeFilter(SWT.Selection, focusFilter);
+		});
 	} 
 	@property
 	void mask(bool mask) {
