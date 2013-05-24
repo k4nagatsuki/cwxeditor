@@ -3210,18 +3210,18 @@ public:
 	}
 
 	@property
-	private Content insertOwner() {
+	private Content insertOwner(bool tryInsert) {
 		auto itm = selection;
 		if (!itm) return null;
 		auto owner = cast(Content) itm.getData();
 		assert (owner);
-		if (owner.detail.owner) return owner;
+		if (tryInsert || owner.detail.owner) return owner;
 		return null;
 	}
 	private void addContents(bool stored, Content[] cs, Content[] refCS, bool tryInsert) {
 		auto itm = selection;
 		if (!itm) return;
-		auto owner = insertOwner;
+		auto owner = insertOwner(tryInsert);
 		if (!owner) return;
 		bool empty = _et.owner.isEmpty;
 		scope (exit) {
@@ -3252,6 +3252,7 @@ public:
 				recurse(c);
 			}
 		}
+		if (!last && !owner.detail.owner) return;
 
 		_tree.setRedraw(false);
 		scope (exit) _tree.setRedraw(true);
@@ -3513,8 +3514,9 @@ public:
 			}
 		}
 		int si = insertStartIndex;
-		auto owner = insertOwner;
 		bool s = starts.length > 0;
+		if (s) tryInsert = false;
+		auto owner = insertOwner(tryInsert);
 		bool c = contents.length && owner;
 		if (s && c) {
 			storeContentAndInsert(owner, si, starts.length);
