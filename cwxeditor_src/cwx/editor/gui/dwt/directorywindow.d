@@ -11,6 +11,7 @@ import cwx.structs;
 import cwx.types;
 import cwx.menu;
 import cwx.path;
+import cwx.imagesize;
 
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.commons;
@@ -23,6 +24,8 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.areaviewutils;
+import cwx.editor.gui.dwt.images;
 
 import core.thread;
 
@@ -835,6 +838,62 @@ private:
 
 	Commons _comm;
 
+	Preview _preview;
+	FileNameObj _previewO = null;
+	PileImage _previewI = null;
+	void closePreview() {
+		if (_previewI) {
+			_preview.close();
+			_previewO = null;
+			_previewI.dispose();
+		}
+	}
+	void previewTrigger(int x, int y) {
+		auto itm = _files.getItem(new Point(x, y));
+		if (!itm) {
+			closePreview();
+			return;
+		}
+		assert (cast(FileNameObj)itm.getData() !is null);
+		auto path = cast(FileNameObj)itm.getData();
+		if (path is _previewO) {
+			return;
+		}
+		closePreview();
+		_previewO = path;
+		if (path.dir) return;
+		if (!path.array.isImageExt()) return;
+		auto imgData = previewImage(path.array);
+		if (!imgData) return;
+		_previewI = new PileImage(imgData, imgData.width, imgData.height);
+		_previewI.createImage();
+
+		auto b = itm.getBounds();
+		auto p = _files.toDisplay(b.x, b.y + b.height);
+		_preview.image(_previewI, p.x, p.y, b.height);
+		_preview.show();
+	}
+	class ClosePreview : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) {
+			closePreview();
+		}
+	}
+	class PreviewTrigger : MouseTrackAdapter, MouseMoveListener {
+		override void mouseExit(MouseEvent e) {
+			closePreview();
+		}
+		override void mouseMove(MouseEvent e) {
+			previewTrigger(e.x, e.y);
+		}
+	}
+	ImageData previewImage(string path) {
+		auto data = loadImage(_comm.skin, path, false);
+		if (data.width == 1 && data.height == 1 && data.transparentPixel == data.getPixel(0, 0)) {
+			return null;
+		}
+		return data;
+	}
+
 	string pathRename(T)(T itm, string newName) {
 		clearCut();
 		auto path = (cast(FileNameObj) itm.getData()).array;
@@ -847,7 +906,7 @@ private:
 		auto to = std.path.buildPath(dirName(path), newName);
 		bool isdir = cast(bool) .isDir(path);
 		if (!isdir && .extension(path).length > 0) {
-			to ~= .extension(path);
+			to = to ~ .extension(path);
 		}
 		if (.exists(to) && cast(bool) .isDir(to) == cast(bool) .isDir(path)) return null;
 		try {
@@ -1085,6 +1144,8 @@ private:
 	}
 	class FDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
+			closePreview();
+			_preview.dispose();
 			_comm.refOuterTools.remove(&createFilesMenu);
 		}
 	}
@@ -1601,6 +1662,14 @@ public:
 			_comm.refOuterTools.add(&createFilesMenu);
 			_files.addDisposeListener(new FDListener);
 			createFilesMenu();
+
+			_preview = new Preview(_prop, _files.getShell());
+			auto closePreview = new ClosePreview;
+			_files.getVerticalBar().addSelectionListener(closePreview);
+			_files.getHorizontalBar().addSelectionListener(closePreview);
+			auto prevTrig = new PreviewTrigger;
+			_files.addMouseTrackListener(prevTrig);
+			_files.addMouseMoveListener(prevTrig);
 		}
 		_sash.setWeights([_prop.var.etc.directorySashL, _prop.var.etc.directorySashR]);
 		_sdl = new SDListener;

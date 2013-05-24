@@ -2302,11 +2302,25 @@ public:
 				auto lrSash2 = new SplitPane(lrSash, SWT.HORIZONTAL);
 				createImagePane(lrSash2);
 				createFlagList(lrSash2);
-				lrSash2.setWeights([_prop.var.etc.areaViewImageFlagL, _prop.var.etc.areaViewImageFlagR]);
+				static if (is(A:Area)) {
+					lrSash2.setWeights([_prop.var.etc.areaViewImageFlagL, _prop.var.etc.areaViewImageFlagR]);
+				} else static if (is(A:Battle)) {
+					lrSash2.setWeights([_prop.var.etc.battleViewImageFlagL, _prop.var.etc.battleViewImageFlagR]);
+				} else static if (is(A:BgImageContainer)) {
+					lrSash2.setWeights([_prop.var.etc.bgImageViewImageFlagL, _prop.var.etc.bgImageViewImageFlagR]);
+				} else static assert (0);
 				.listener(lrSash2, SWT.Dispose, {
 					auto ws = lrSash2.getWeights();
-					_prop.var.etc.areaViewImageFlagL = ws[0];
-					_prop.var.etc.areaViewImageFlagR = ws[1];
+					static if (is(A:Area)) {
+						_prop.var.etc.areaViewImageFlagL = ws[0];
+						_prop.var.etc.areaViewImageFlagR = ws[1];
+					} else static if (is(A:Battle)) {
+						_prop.var.etc.battleViewImageFlagL = ws[0];
+						_prop.var.etc.battleViewImageFlagR = ws[1];
+					} else static if (is(A:BgImageContainer)) {
+						_prop.var.etc.bgImageViewImageFlagL = ws[0];
+						_prop.var.etc.bgImageViewImageFlagR = ws[1];
+					} else static assert (0);
 				});
 			} else {
 				createImagePane(lrSash);
@@ -2351,12 +2365,26 @@ public:
 			backDrag.addDragListener(new BackDrag);
 		}
 
-		lrSash.setWeights([_prop.var.etc.areaViewL, _prop.var.etc.areaViewR]);
+		static if (is(A:Area)) {
+			lrSash.setWeights([_prop.var.etc.areaViewL, _prop.var.etc.areaViewR]);
+		} else static if (is(A:Battle)) {
+			lrSash.setWeights([_prop.var.etc.battleViewL, _prop.var.etc.battleViewR]);
+		} else static if (is(A:BgImageContainer)) {
+			lrSash.setWeights([_prop.var.etc.bgImageViewL, _prop.var.etc.bgImageViewR]);
+		} else static assert (0);
 		lrSash.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				auto ws = (cast(SplitPane) e.widget).getWeights();
-				_prop.var.etc.areaViewL = ws[0];
-				_prop.var.etc.areaViewR = ws[1];
+				static if (is(A:Area)) {
+					_prop.var.etc.areaViewL = ws[0];
+					_prop.var.etc.areaViewR = ws[1];
+				} else static if (is(A:Battle)) {
+					_prop.var.etc.battleViewL = ws[0];
+					_prop.var.etc.battleViewR = ws[1];
+				} else static if (is(A:BgImageContainer)) {
+					_prop.var.etc.bgImageViewL = ws[0];
+					_prop.var.etc.bgImageViewR = ws[1];
+				} else static assert (0);
 			}
 		});
 		refShowToolBar();

@@ -39,8 +39,16 @@ class FlexEtcProps : Properties {
 	auto rCouponsStartAreaSashR = Prop!(int)("rCouponsStartAreaSashR", 1, 2012101100);
 	auto areaViewL = Prop!(int)("areaViewL", 1);
 	auto areaViewR = Prop!(int)("areaViewR", 4);
+	auto battleViewL = Prop!(int)("battleViewL", 1);
+	auto battleViewR = Prop!(int)("battleViewR", 4);
+	auto bgImageViewL = Prop!(int)("bgImageViewL", 1);
+	auto bgImageViewR = Prop!(int)("bgImageViewR", 4);
 	auto areaViewImageFlagL = Prop!(int)("areaViewImageFlagL", 3);
 	auto areaViewImageFlagR = Prop!(int)("areaViewImageFlagR", 1);
+	auto battleViewImageFlagL = Prop!(int)("battleViewImageFlagL", 3);
+	auto battleViewImageFlagR = Prop!(int)("battleViewImageFlagR", 1);
+	auto bgImageViewImageFlagL = Prop!(int)("bgImageViewImageFlagL", 3);
+	auto bgImageViewImageFlagR = Prop!(int)("bgImageViewImageFlagR", 1);
 	auto partyCardAlpha = Prop!(int, true)("partyCardAlpha", 176);
 	auto viewPartyCardsArea = Prop!(bool)("viewPartyCardsArea", true);
 	auto viewPartyCardsBattle = Prop!(bool)("viewPartyCardsBattle", true);

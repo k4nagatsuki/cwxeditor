@@ -41,7 +41,7 @@ import std.file;
 import std.path;
 import std.regex : Regex, regex, RegexMatch, match;
 import std.utf;
-import std.algorithm : uniq;
+import std.algorithm : uniq, swap;
 import std.traits;
 
 import org.eclipse.swt.all;
@@ -76,6 +76,26 @@ private class FKeyCodesUndo : TUndo!(FKeyCode[]) {
 /// 検索と置換を行うダイアログ。
 class ReplaceDialog {
 private:
+	class UndoRepl : UndoArr {
+		this (Undo[] array, bool rev = true) {
+			super (array, rev);
+		}
+		override void undo() {
+			reset(false);
+			super.undo();
+			refContentText();
+			_status.setText(.tryFormat(_prop.msgs.replaceUndo, .formatNum(_result.getItemCount())));
+			_comm.replText.call();
+		}
+		override void redo() {
+			reset(false);
+			super.redo();
+			refContentText();
+			_status.setText(.tryFormat(_prop.msgs.replaceRedo, .formatNum(_result.getItemCount())));
+			_comm.replText.call();
+		}
+	}
+
 	class RUndo : Undo {
 		private CWXPath _path = null;
 		private string _filePath = null;
@@ -153,6 +173,7 @@ private:
 	CTabItem _tabUnuse;
 	CTabItem _tabError;
 	CTabItem _tabGrep;
+	CTabItem _lastFind = null;
 	Button _find;
 	Button _replace;
 	Button _close;
@@ -251,6 +272,7 @@ private:
 	Button _cKeyCode;
 
 	Table _result;
+	TableTextEdit _edit;
 	Tree _range;
 
 	Composite[CTabItem] _comps;
@@ -479,7 +501,6 @@ private:
 			setupIDs();
 			setupPaths();
 			_comm.refreshToolBar();
-			updateDefaultButton();
 		}
 	}
 	class SelID : SelectionAdapter {
@@ -489,7 +510,6 @@ private:
 			auto combo = cast(Combo) e.widget;
 			_spn.setEnabled(combo.getSelectionIndex() == 0);
 			_comm.refreshToolBar();
-			updateDefaultButton();
 		}
 	}
 	class SelIDKind : SelectionAdapter {
@@ -497,7 +517,6 @@ private:
 			setupIDs();
 			_prop.var.etc.searchIDKind = _idKind.getSelectionIndex();
 			_comm.refreshToolBar();
-			updateDefaultButton();
 		}
 	}
 	private void tabChanged() {
@@ -530,7 +549,6 @@ private:
 		_range.setEnabled(sel !is _tabUnuse && sel !is _tabGrep);
 		_rangeAllCheck.setEnabled(_range.getEnabled());
 		_comm.refreshToolBar();
-		updateDefaultButton();
 	}
 	class TSListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -1218,7 +1236,6 @@ private:
 		}
 		_range.showSelection();
 		_comm.refreshToolBar();
-		updateDefaultButton();
 	}
 	void refreshRangeAllCheck() {
 		bool recurse(TreeItem itm) {
@@ -1300,7 +1317,6 @@ public:
 		}
 		_undo.reset();
 		_comm.refreshToolBar();
-		updateDefaultButton();
 	}
 
 	void open() {
@@ -1413,6 +1429,7 @@ public:
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.OpenAtView, &openPath, &canOpenPath);
 			_result.setMenu(menu);
+			_edit = new TableTextEdit(_comm, _prop, _result, 0, &couponEditEnd, &canCouponEdit);
 		}
 		{
 			auto comp = new Composite(left, SWT.NONE);
@@ -1500,8 +1517,21 @@ public:
 				resultRedraw(true);
 			});
 			_comm.put(cancel, &canCancel);
-			updateDefaultButton();
 		}
+		auto d = _tabf.getDisplay();
+		auto keyFilter = new class Listener {
+			override void handleEvent(Event e) {
+				auto fc = d.getFocusControl();
+				if (!fc || !_tabf.isDescendant(fc)) return;
+				if (e.character == SWT.CR) {
+					search();
+				}
+			}
+		};
+		d.addFilter(SWT.KeyDown, keyFilter);
+		.listener(_tabf, SWT.Dispose, {
+			d.removeFilter(SWT.KeyDown, keyFilter);
+		});
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -1676,10 +1706,6 @@ public:
 		intoDisplay(x, y, width, height);
 		_win.setBounds(x, y, width, height);
 	}
-	private void updateDefaultButton() {
-		if (!_find || !_close) return;
-		_win.setDefaultButton(_find);
-	}
 	private void saveWin() {
 		auto winProps = _prop.var.replaceDlg;
 		if (!_win.getMaximized()) {
@@ -1839,23 +1865,23 @@ public:
 		}
 	}
 	private void changed() {
+		if (!_inUndo && !_inProc) {
+			_undo.reset();
+		}
 		auto thr = core.thread.Thread.getThis();
 		if (&_uiThread !is &thr) return;
-		_undo.reset();
 		if (_inGrep) return;
 		if (_inUndo) return;
 		if (_inProc) {
 			_cancel = true;
 		} else {
 			_comm.refreshToolBar();
-			updateDefaultButton();
 		}
 	}
 	private void undo() {
 		if (!_undo.canUndo) return;
 		scope (exit) {
 			_comm.refreshToolBar();
-			updateDefaultButton();
 		}
 		_inProc = true;
 		scope (exit) _inProc = false;
@@ -1863,17 +1889,12 @@ public:
 		scope (exit) _inUndo = false;
 		resultRedraw(false);
 		scope (exit) resultRedraw(true);
-		reset(false);
 		_undo.undo();
-		refContentText();
-		_status.setText(.tryFormat(_prop.msgs.replaceUndo, .formatNum(_result.getItemCount())));
-		_comm.replText.call();
 	}
 	private void redo() {
 		if (!_undo.canRedo) return;
 		scope (exit) {
 			_comm.refreshToolBar();
-			updateDefaultButton();
 		}
 		_inProc = true;
 		scope (exit) _inProc = false;
@@ -1881,11 +1902,7 @@ public:
 		scope (exit) _inUndo = false;
 		resultRedraw(false);
 		scope (exit) resultRedraw(true);
-		reset(false);
 		_undo.redo();
-		refContentText();
-		_status.setText(.tryFormat(_prop.msgs.replaceRedo, .formatNum(_result.getItemCount())));
-		_comm.replText.call();
 	}
 	private void search() {
 		auto c = _win.getDisplay().getFocusControl();
@@ -1900,6 +1917,9 @@ public:
 		if (c) .forceFocus(_replace, false);
 	}
 	private void reset(bool removeColumns = true) {
+		if (!_inUndo && !_inProc) {
+			_undo.reset();
+		}
 		_result.removeAll();
 		if (removeColumns && _result.getColumnCount()) {
 			foreach (column; _result.getColumns()) {
@@ -1912,8 +1932,8 @@ public:
 		} else {
 			_status.setText(_prop.msgs.searchResultEmpty);
 		}
+		_lastFind = null;
 		_comm.refreshToolBar();
-		updateDefaultButton();
 	}
 	@property
 	private bool canFind() {
@@ -1952,6 +1972,7 @@ public:
 		return _inProc;
 	}
 	private void replaceImpl() {
+		if (_inProc) return;
 		_rUndo.length = 0;
 		_after.length = 0;
 
@@ -2021,12 +2042,11 @@ public:
 			if (_replMode) _comm.replText.call();
 		}
 		if (_replMode && _rUndo.length) {
-			_undo ~= new UndoArr(_rUndo, false);
+			_undo ~= new UndoRepl(_rUndo, false);
 		}
 		_rUndo = [];
 		_after = [];
 		_comm.refreshToolBar();
-		updateDefaultButton();
 	}
 	@property
 	private CWXPath[] searchRange() {
@@ -2156,6 +2176,7 @@ public:
 	private void replaceIDImpl2(ID)(ID from, ID to) {
 		if (!_summ) return;
 		reset();
+		_lastFind = _tabf.getSelection();
 
 		static if (is(ID:PathId)) {
 			new FullTableColumn(_result, SWT.NONE);
@@ -2262,6 +2283,112 @@ public:
 		replaceIDImpl2(from, to);
 	}
 
+	private void couponEditEnd(TableItem itm, int column, string text) {
+		auto uc = _summ.useCounter;
+		if (itm.getImage() is _prop.images.couponNormal) {
+			renameCoupon(itm, toCouponId(itm.getText()), toCouponId(text), uc.coupon);
+			_comm.refCoupons.call();
+		} else if (itm.getImage() is _prop.images.gossip) {
+			renameCoupon(itm, toGossipId(itm.getText()), toGossipId(text), uc.gossip);
+			_comm.refGossips.call();
+		} else if (itm.getImage() is _prop.images.endScenario) {
+			renameCoupon(itm, toCompleteStampId(itm.getText()), toCompleteStampId(text), uc.completeStamp);
+			_comm.refCompleteStamps.call();
+		} else if (itm.getImage() is _prop.images.keyCode) {
+			renameCoupon(itm, toKeyCodeId(itm.getText()), toKeyCodeId(text), uc.keyCode);
+			_comm.refKeyCodes.call();
+		} else assert (0);
+		_comm.replText.call();
+	}
+	private bool canCouponEdit(TableItem itm, int column) {
+		return _lastFind is _tabCoupon;
+	}
+	struct CouponParams {
+		Image image;
+		string name;
+		uint count;
+	}
+	class CouponUndo(User, KeyType) : Undo {
+		private CouponParams[] _results;
+		private KeyType _oldVal, _newVal;
+		private UCCont!(KeyType, User) _uc;
+		User[] users;
+		this (KeyType oldVal, KeyType newVal, UCCont!(KeyType, User) uc) {
+			_oldVal = oldVal;
+			_newVal = newVal;
+			_uc = uc;
+			save();
+		}
+		private void save() {
+			_results = [];
+			foreach (itm; _result.getItems()) {
+				_results ~= CouponParams(itm.getImage(), itm.getText(), itm.getText(1).to!uint());
+			}
+		}
+		private void impl() {
+			resultRedraw(false);
+			scope(exit) resultRedraw(true);
+			auto results = _results;
+			save();
+
+			foreach (u; users) {
+				_uc.remove(_newVal, u);
+				u.change(_oldVal);
+				_uc.add(_oldVal, u);
+			}
+
+			foreach (i, r; results) {
+				auto itm = i < _result.getItemCount() ? _result.getItem(i) : new TableItem(_result, SWT.NONE);
+				itm.setImage(r.image);
+				itm.setText(r.name);
+				itm.setText(1, r.count.text());
+			}
+			while (results.length < _result.getItemCount()) {
+				_result.getItem(results.length).dispose();
+			}
+
+			.swap(_oldVal, _newVal);
+			refResultStatus(_result.getItemCount(), false);
+			_comm.replText.call();
+		}
+		void undo() {
+			impl();
+		}
+		void redo() {
+			impl();
+		}
+		void dispose() { }
+	}
+	private void renameCoupon(KeyType, UC)(TableItem itm, KeyType oldVal, KeyType newVal, UC uc) {
+		if (cast(string)oldVal == cast(string)newVal) return;
+		if (cast(string)newVal == "") return;
+		_inProc = true;
+		scope (exit) _inProc = false;
+		auto rangeT = rangeTable;
+		auto undo = new CouponUndo!(ForeachType!(typeof(uc.values(oldVal))), KeyType)(oldVal, newVal, uc);
+		foreach (u; uc.values(oldVal)) {
+			if (dec(u.owner, rangeT)) {
+				uc.remove(oldVal, u);
+				u.change(newVal);
+				uc.add(newVal, u);
+				undo.users ~= u;
+				itm.setText(0, cast(string)newVal);
+			}
+		}
+		_undo ~= undo;
+		// 変更の結果、他のキーと同一の名前になったら統合する
+		foreach (i, itm2; _result.getItems()) {
+			if (itm is itm2) continue;
+			if (itm.getImage() !is itm2.getImage()) continue;
+			if (itm.getText() == itm2.getText()) {
+				_result.select(i);
+				_result.showSelection();
+				itm2.setText(1, uc.get(newVal).text());
+				itm.dispose();
+				break;
+			}
+		}
+	}
 	private void searchCouponImpl(KeyType)(in KeyType[] keys, UseCounter uc, in bool[CWXPath] rangeT, Image delegate() image, ref uint count) {
 		foreach (key; keys.dup.sort) {
 			if (cancel) break;
@@ -2280,6 +2407,7 @@ public:
 		if (!_summ) return;
 		uint count = 0;
 		reset();
+		_lastFind = _tabf.getSelection();
 
 		_result.setHeaderVisible(true);
 		auto mainColumn = new TableColumn(_result, SWT.NONE);
@@ -2313,7 +2441,6 @@ public:
 
 		_inProc = true;
 		_comm.refreshToolBar();
-		updateDefaultButton();
 		auto cursors = setWaitCursors(_win);
 		auto thr = new core.thread.Thread({
 			auto exit = new class Runnable {
@@ -2338,6 +2465,7 @@ public:
 		if (!_summ) return;
 		uint count = 0;
 		reset();
+		_lastFind = _tabf.getSelection();
 
 		_result.setHeaderVisible(true);
 		auto mainColumn = new TableColumn(_result, SWT.NONE);
@@ -2351,7 +2479,6 @@ public:
 
 		_inProc = true;
 		_comm.refreshToolBar();
-		updateDefaultButton();
 		auto cursors = setWaitCursors(_win);
 		bool[CType] contents;
 		foreach (type; EnumMembers!CType) {
@@ -2399,6 +2526,7 @@ public:
 		_replMode = false;
 		uint count = 0;
 		reset();
+		_lastFind = _tabf.getSelection();
 
 		new FullTableColumn(_result, SWT.NONE);
 
@@ -2474,7 +2602,6 @@ public:
 
 		_inProc = true;
 		_comm.refreshToolBar();
-		updateDefaultButton();
 		auto cursors = setWaitCursors(_win);
 		auto thr = new core.thread.Thread({
 			auto exit = new class Runnable {
@@ -2502,6 +2629,7 @@ public:
 		auto skin = _comm.skin;
 		auto targVer = _prop.var.etc.targetVersion;
 		reset();
+		_lastFind = _tabf.getSelection();
 
 		_result.setHeaderVisible(true);
 		auto mainColumn = new TableColumn(_result, SWT.NONE);
@@ -2563,7 +2691,6 @@ public:
 
 		_inProc = true;
 		_comm.refreshToolBar();
-		updateDefaultButton();
 		auto cursors = setWaitCursors(_win);
 		auto thr = new core.thread.Thread({
 			auto exit = new class Runnable {
@@ -2736,6 +2863,7 @@ public:
 
 		size_t count = 0;
 		reset();
+		_lastFind = _tabf.getSelection();
 
 		_result.setHeaderVisible(true);
 		auto mainColumn = new TableColumn(_result, SWT.NONE);
@@ -2748,7 +2876,6 @@ public:
 		auto range = searchRange;
 		_inProc = true;
 		_comm.refreshToolBar();
-		updateDefaultButton();
 		addHist(_from, (string[] s) {_prop.var.etc.searchHistories = s;},
 			{return _prop.var.etc.searchHistories.dup;},
 			_prop.var.etc.searchHistoryMax, from);
@@ -2827,6 +2954,7 @@ public:
 
 		size_t count = 0;
 		reset();
+		_lastFind = _tabf.getSelection();
 
 		_result.setHeaderVisible(true);
 		auto mainColumn = new TableColumn(_result, SWT.NONE);
@@ -2931,7 +3059,6 @@ public:
 		_inProc = true;
 		_inGrep = true;
 		_comm.refreshToolBar();
-		updateDefaultButton();
 		addHist(_from, (string[] s) {_prop.var.etc.searchHistories = s;},
 			{return _prop.var.etc.searchHistories.dup;},
 			_prop.var.etc.searchHistoryMax, from);
@@ -3121,7 +3248,6 @@ public:
 		auto text = new ArrayWrapperString(std.string.join(t, .newline));
 		_comm.clipboard.setContents([text], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
-		updateDefaultButton();
 	}
 	private void addResult(string path, ref size_t count, string desc = "") {
 		if (cancel) return;
