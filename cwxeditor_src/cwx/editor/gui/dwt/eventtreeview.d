@@ -1606,8 +1606,8 @@ private:
 		this (string script) {
 			_script = script;
 		}
-		void put() {
-			pasteScript(_script);
+		void put(SelectionEvent se) {
+			pasteScript(_script, (se.stateMask & SWT.SHIFT) != 0);
 		}
 	}
 	void refreshTemplates() {
@@ -1919,6 +1919,8 @@ public:
 					new MenuItem(popup, SWT.SEPARATOR);
 					dStr ~= " - " ~ .text(__LINE__);
 					appendMenuTCPD(_comm, popup, this, true, true, true, true, true);
+					new MenuItem(popup, SWT.SEPARATOR);
+					createMenuItem(_comm, popup, MenuID.PasteInsert, &pasteInsert, &canDoP);
 					new MenuItem(popup, SWT.SEPARATOR);
 					dStr ~= " - " ~ .text(__LINE__);
 					createMenuItem(_comm, popup, MenuID.ToScript, &toScript, &canToScript);
@@ -3216,7 +3218,7 @@ public:
 		if (owner.detail.owner) return owner;
 		return null;
 	}
-	private void addContents(bool stored, Content[] cs, Content[] refCS = []) {
+	private void addContents(bool stored, Content[] cs, Content[] refCS, bool tryInsert) {
 		auto itm = selection;
 		if (!itm) return;
 		auto owner = insertOwner;
@@ -3231,14 +3233,63 @@ public:
 			cs2 ~= ct;
 		}
 		if (!cs2.length) return;
+
+		Content last = null, allLast = null;
+		int index = -1;
+		if (tryInsert && owner.parent) {
+			// cs2内に子コンテントを持てるコンテントが
+			// 含まれている場合は挿入する
+			void recurse(Content c) {
+				if (c.detail.owner) {
+					last = c;
+				}
+				allLast = c;
+				foreach (cc; c.next) {
+					recurse(cc);
+				}
+			}
+			foreach (c; cs2) {
+				recurse(c);
+			}
+		}
+
 		_tree.setRedraw(false);
 		scope (exit) _tree.setRedraw(true);
 		if (stored) store(owner);
+		if (last) {
+			cs2[0].setName(_prop.parent, owner.name);
+			auto parent = owner.parent;
+			index = parent.next.countUntil(owner);
+			parent.remove(owner);
+			last.add(_prop.parent, owner);
+			owner = parent;
+			itm = itm.getParentItem();
+		}
 		foreach (ct; cs2) {
-			owner.add(_prop.parent, ct);
+			if (index == -1) {
+				owner.add(_prop.parent, ct);
+			} else {
+				owner.insert(_prop.parent, index, ct);
+				index = -1;
+			}
 			_comm.refContent.call(ct);
 		}
 		auto lastItm = createChilds(itm, owner);
+		if (last) {
+			TreeItem findLast(TreeItem itm) {
+				if (allLast is itm.getData()) {
+					return itm;
+				} else {
+					foreach (child; itm.getItems()) {
+						auto f = findLast(child);
+						if (f) return f;
+					}
+					return null;
+				}
+			}
+			lastItm = findLast(itm);
+			assert (lastItm !is null);
+		}
 		_tree.setSelection([lastItm]);
 		_comm.refUseCount.call();
 		refreshStatusLine();
@@ -3331,36 +3382,7 @@ public:
 			}
 		}
 		void paste(SelectionEvent se) {
-			if (!_et) return;
-			string c;
-			try {
-				c = CBtoXML(_comm.clipboard);
-			} catch (Exception e) {
-				// たまにアクセス違反が起こる
-				debugln(e);
-				return;
-			}
-			if (c) {
-				try {
-					string id;
-					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
-					auto evt = Content.createFromXML(c, ver, id);
-					if (!evt) return;
-					if (evt.type == CType.START) {
-						addStarts(true, [evt]);
-					} else {
-						addContents(true, [evt]);
-					}
-					_comm.refreshToolBar();
-					return;
-				} catch (Exception e) {
-					debugln(e);
-				}
-			}
-			auto script = cast(ArrayWrapperString) _comm.clipboard.getContents(TextTransfer.getInstance());
-			if (script) {
-				pasteScript(script.array.idup);
-			}
+			pasteImpl(false);
 		}
 		void del(SelectionEvent se) {
 			auto itm = selection;
@@ -3409,7 +3431,42 @@ public:
 			return canDoC;
 		}
 	}
-	void pasteScript(string script) {
+	private void pasteInsert() {
+		pasteImpl(true);
+	}
+	private void pasteImpl(bool tryInsert) {
+		if (!_et) return;
+		string c;
+		try {
+			c = CBtoXML(_comm.clipboard);
+		} catch (Exception e) {
+			// たまにアクセス違反が起こる
+			debugln(e);
+			return;
+		}
+		if (c) {
+			try {
+				string id;
+				auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+				auto evt = Content.createFromXML(c, ver, id);
+				if (!evt) return;
+				if (evt.type == CType.START) {
+					addStarts(true, [evt]);
+				} else {
+					addContents(true, [evt], [], tryInsert);
+				}
+				_comm.refreshToolBar();
+				return;
+			} catch (Exception e) {
+				debugln(e);
+			}
+		}
+		auto script = cast(ArrayWrapperString) _comm.clipboard.getContents(TextTransfer.getInstance());
+		if (script) {
+			pasteScript(script.array.idup, tryInsert);
+		}
+	}
+	void pasteScript(string script, bool tryInsert) {
 		if (!_et) return;
 		string base = script;
 		CompileOption opt;
@@ -3422,12 +3479,12 @@ public:
 				if (vars.length) {
 					auto dlg = new ScriptVarSetDialog(_comm, _summ, _tree.getShell(), vars, script, base, opt);
 					dlg.appliedEvent ~= {
-						putContents(dlg.contents);
+						putContents(dlg.contents, tryInsert);
 					};
 					dlg.open();
 				} else {
 					auto cs = cwx.script.compile(_prop.parent, _summ, script, opt);
-					putContents(cs);
+					putContents(cs, tryInsert);
 				}
 			} catch (CWXScriptException e) {
 				throw e;
@@ -3443,7 +3500,7 @@ public:
 			dlg.open();
 		}
 	}
-	void putContents(Content[] cs) {
+	void putContents(Content[] cs, bool tryInsert) {
 		if (!_et) return;
 		if (!cs.length) return;
 		Content[] starts;
@@ -3461,12 +3518,12 @@ public:
 		bool c = contents.length && owner;
 		if (s && c) {
 			storeContentAndInsert(owner, si, starts.length);
-			addContents(false, contents, cs);
+			addContents(false, contents, cs, tryInsert);
 			addStarts(false, starts, cs);
 		} else if (s) {
 			addStarts(true, starts);
 		} else if (c) {
-			addContents(true, contents);
+			addContents(true, contents, [], tryInsert);
 		} else {
 			return;
 		}

@@ -1249,6 +1249,7 @@ enum MenuID {
 	Cut,
 	Copy,
 	Paste,
+	PasteInsert,
 	Delete,
 	Clone,
 	SelectAll,
