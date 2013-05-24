@@ -1820,9 +1820,11 @@ public:
 		}
 	}
 	private void changed() {
+		if (!_inUndo && !_inProc) {
+			_undo.reset();
+		}
 		auto thr = core.thread.Thread.getThis();
 		if (&_uiThread !is &thr) return;
-		_undo.reset();
 		if (_inGrep) return;
 		if (_inUndo) return;
 		if (_inProc) {
@@ -1881,6 +1883,9 @@ public:
 		if (c) .forceFocus(_replace, false);
 	}
 	private void reset(bool removeColumns = true) {
+		if (!_inUndo && !_inProc) {
+			_undo.reset();
+		}
 		_result.removeAll();
 		if (removeColumns && _result.getColumnCount()) {
 			foreach (column; _result.getColumns()) {
