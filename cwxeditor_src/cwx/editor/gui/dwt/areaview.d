@@ -1189,6 +1189,12 @@ private:
 	void __posEven(T)(int startIndex, T[] cs) {
 		__posEven!("a.x", "a.width", "a.newX = b", "c.x = b", T)(startIndex, cs);
 	}
+	bool canChangePos() {
+		bool r = false;
+		static if (UseCards) r |= 0 < _cards.getSelectionCount();
+		static if (UseBacks) r |= 0 < _backs.getSelectionCount();
+		return r;
+	}
 	void posTop() {
 		_undo ~= createUndoEdit();
 		static if (UseCards) __posTop!(C)(cardsIndex, _area.cards);
@@ -1223,6 +1229,143 @@ private:
 		static if (UseBacks) __posEven!(BgImage)(0, _area.backs);
 		refreshControls();
 		_imgp.redraw();
+	}
+	void nearTop() {
+		_undo ~= createUndoEdit();
+		static if (UseCards) nearTopImpl(cardsIndex, _area.cards, true);
+		static if (UseBacks) nearTopImpl(0, _area.backs, false);
+		callModEvent();
+		refreshControls();
+		_imgp.redraw();
+	}
+	void nearBottom() {
+		_undo ~= createUndoEdit();
+		static if (UseCards) nearBottomImpl(cardsIndex, _area.cards, true);
+		static if (UseBacks) nearBottomImpl(0, _area.backs, false);
+		callModEvent();
+		refreshControls();
+		_imgp.redraw();
+	}
+	void nearLeft() {
+		_undo ~= createUndoEdit();
+		static if (UseCards) nearLeftImpl(cardsIndex, _area.cards, true);
+		static if (UseBacks) nearLeftImpl(0, _area.backs, false);
+		callModEvent();
+		refreshControls();
+		_imgp.redraw();
+	}
+	void nearRight() {
+		_undo ~= createUndoEdit();
+		static if (UseCards) nearRightImpl(cardsIndex, _area.cards, true);
+		static if (UseBacks) nearRightImpl(0, _area.backs, false);
+		callModEvent();
+		refreshControls();
+		_imgp.redraw();
+	}
+	void nearCenter() {
+		_undo ~= createUndoEdit();
+		static if (UseCards) nearCenterImpl(cardsIndex, _area.cards, true);
+		static if (UseBacks) nearCenterImpl(0, _area.backs, false);
+		callModEvent();
+		refreshControls();
+		_imgp.redraw();
+	}
+	void nearTopImpl(T)(int startIndex, T[] cs, bool refParty) {
+		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
+		getItemPositions(startIndex, cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
+		nearImpl(startIndex, cs, 0, -itemsT);
+	}
+	void nearBottomImpl(T)(int startIndex, T[] cs, bool refParty) {
+		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
+		getItemPositions(startIndex, cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
+		nearImpl(startIndex, cs, 0, canvasH - itemsH - itemsT);
+	}
+	void nearLeftImpl(T)(int startIndex, T[] cs, bool refParty) {
+		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
+		getItemPositions(startIndex, cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
+		nearImpl(startIndex, cs, -itemsL, 0);
+	}
+	void nearRightImpl(T)(int startIndex, T[] cs, bool refParty) {
+		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
+		getItemPositions(startIndex, cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
+		nearImpl(startIndex, cs, canvasW - itemsW - itemsL, 0);
+	}
+	void nearCenterImpl(T)(int startIndex, T[] cs, bool refParty) {
+		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
+		getItemPositions(startIndex, cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
+
+		int x = (canvasW - itemsW) / 2;
+		int y = (canvasH - itemsH) / 2;
+		int moveX = x - itemsL;
+		int moveY = y - itemsT;
+		nearImpl(startIndex, cs, moveX, moveY);
+	}
+	void getItemPositions(int startIndex, int count, bool refParty,
+			out int canvasW, out int canvasH,
+			out int itemsL, out int itemsT,
+			out int itemsW, out int itemsH) {
+		auto vs = _prop.looks.viewSize;
+		canvasW = vs.width;
+		canvasH = refParty && _viewParty ? _prop.looks.partyTop : vs.height;
+
+		itemsL = int.max;
+		itemsT = int.max;
+		int itemsR = int.min, itemsB = int.min;
+		foreach (i; startIndex .. startIndex + count) {
+			auto img = cast(FlexImage)_imgp.images[i];
+			assert (img !is null);
+			if (img.selected) {
+				itemsL = .min(itemsL, img.x);
+				itemsT = .min(itemsT, img.y);
+				itemsR = .max(itemsR, img.x + img.width);
+				itemsB = .max(itemsB, img.y + img.height);
+			}
+		}
+		itemsW = itemsR - itemsL;
+		itemsH = itemsB - itemsT;
+	}
+	void nearImpl(T)(int startIndex, T[] cs, int moveX, int moveY) {
+		foreach (i, c; cs) {
+			auto img = cast(FlexImage)_imgp.images[startIndex + i];
+			assert (img !is null);
+			if (img.selected) {
+				c.x = c.x + moveX;
+				c.y = c.y + moveY;
+				img.newX = c.x;
+				img.newY = c.y;
+				img.resize();
+				static if (is(T:AbstractSpCard)) {
+					_comm.refMenuCard.call(c.cwxPath(true));
+				} else static if (is(T:BgImage)) {
+					_comm.refBgImage.call(c.cwxPath(true));
+				} else static assert (0);
+			}
+		}
+	}
+	static if (UseBacks) {
+		void expandBacks() {
+			_undo ~= createUndoEdit();
+			auto vs = _prop.looks.viewSize;
+			foreach (i, back; _area.backs) {
+				auto img = cast(FlexImage)_imgp.images[0 + i];
+				assert (img !is null);
+				if (img.selected) {
+					back.x = 0;
+					back.y = 0;
+					back.width = vs.width;
+					back.height = vs.height;
+					img.newX = back.x;
+					img.newY = back.y;
+					img.newWidth = back.width;
+					img.newHeight = back.height;
+					img.resize();
+					_comm.refBgImage.call(back.cwxPath(true));
+				}
+			}
+			callModEvent();
+			refreshControls();
+			_imgp.redraw();
+		}
 	}
 	static if (UseCards) {
 		void __scaleEvenC(int First, string Cmp)() {
@@ -1354,20 +1497,36 @@ private:
 			_sgPMenu = createMenuItem(_comm, menu, MenuID.ShowGrid, &reverseShowGrid, null, SWT.CHECK);
 			_sgPMenu.setSelection(_showGrid);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.PosTop, &posTop, () => _imgp.selectedIndex >= 2);
-			createMenuItem(_comm, menu, MenuID.PosBottom, &posBottom, () => _imgp.selectedIndex >= 2);
-			createMenuItem(_comm, menu, MenuID.PosLeft, &posLeft, () => _imgp.selectedIndex >= 2);
-			createMenuItem(_comm, menu, MenuID.PosRight, &posRight, () => _imgp.selectedIndex >= 2);
-			createMenuItem(_comm, menu, MenuID.PosEven, &posEven, () => _imgp.selectedIndex >= 2);
+
+			void delegate(SelectionEvent) dummy = null;
+			auto chgPosMI = createMenuItem(_comm, menu, MenuID.ChangePos, dummy, &canChangePos, SWT.CASCADE);
+			auto chgPos = new Menu(chgPosMI);
+			chgPosMI.setMenu(chgPos);
+			createMenuItem(_comm, chgPos, MenuID.NearTop, &nearTop, &canChangePos);
+			createMenuItem(_comm, chgPos, MenuID.NearBottom, &nearBottom, &canChangePos);
+			createMenuItem(_comm, chgPos, MenuID.NearLeft, &nearLeft, &canChangePos);
+			createMenuItem(_comm, chgPos, MenuID.NearRight, &nearRight, &canChangePos);
+			createMenuItem(_comm, chgPos, MenuID.NearCenter, &nearCenter, &canChangePos);
+			new MenuItem(chgPos, SWT.SEPARATOR);
+			createMenuItem(_comm, chgPos, MenuID.PosTop, &posTop, &canChangePos);
+			createMenuItem(_comm, chgPos, MenuID.PosBottom, &posBottom, &canChangePos);
+			createMenuItem(_comm, chgPos, MenuID.PosLeft, &posLeft, &canChangePos);
+			createMenuItem(_comm, chgPos, MenuID.PosRight, &posRight, &canChangePos);
+			createMenuItem(_comm, chgPos, MenuID.PosEven, &posEven, &canChangePos);
 			static if (UseCards) {
-				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.ScaleMin, &__scaleCMin, () => _imgp.selectedIndex >= 2);
-	 			createMenuItem(_comm, menu, MenuID.ScaleMiddle, &__scaleCMiddle, () => _imgp.selectedIndex >= 2);
-				createMenuItem(_comm, menu, MenuID.ScaleMax, &__scaleCMax, () => _imgp.selectedIndex >= 2);
+				new MenuItem(chgPos, SWT.SEPARATOR);
+				createMenuItem(_comm, chgPos, MenuID.ScaleMin, &__scaleCMin, &canChangePos);
+	 			createMenuItem(_comm, chgPos, MenuID.ScaleMiddle, &__scaleCMiddle, &canChangePos);
+				createMenuItem(_comm, chgPos, MenuID.ScaleMax, &__scaleCMax, &canChangePos);
 			}
-			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.ScaleBig, &scaleEvenBig, () => _imgp.selectedIndex >= 2);
-			createMenuItem(_comm, menu, MenuID.ScaleSmall, &scaleEvenSmall, () => _imgp.selectedIndex >= 2);
+			new MenuItem(chgPos, SWT.SEPARATOR);
+			createMenuItem(_comm, chgPos, MenuID.ScaleBig, &scaleEvenBig, &canChangePos);
+			createMenuItem(_comm, chgPos, MenuID.ScaleSmall, &scaleEvenSmall, &canChangePos);
+			static if (UseBacks) {
+				new MenuItem(chgPos, SWT.SEPARATOR);
+				createMenuItem(_comm, chgPos, MenuID.ExpandBack, &expandBacks, () => 0 < _backs.getSelectionCount());
+			}
+
 			_imgp.setMenu(menu);
 		}
 		_imgp.addDisposeListener(new class DisposeListener {

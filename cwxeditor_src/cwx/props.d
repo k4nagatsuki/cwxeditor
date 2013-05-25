@@ -114,6 +114,7 @@ public:
 	@property const uint idMax() {return 99999;}
 
 	@property const CSize viewSize() {return CSize(632, 420);}
+	@property const uint partyTop() {return 280;}
 
 	@property const string monospace() {
 		version (Windows) {
