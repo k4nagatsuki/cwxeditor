@@ -707,6 +707,8 @@ class Msgs : Properties {
 	auto ctCheckStep = Msg("ctCheckStep", "ステップ「%1$s」が[%2$s]%3$s後続のイベントが出現");
 	auto ctBranchRound = Msg("ctBranchRound", "バトルが%1$sラウンド%2$sか否かで分岐");
 
+	auto nameWithID = Msg("nameWithID", "%1$s.%2$s");
+
 	auto defaultStartName = Msg("defaultStartName", "イベント開始");
 
 	auto oggMayNotCorrespond = Msg("oggMayNotCorrespond", "Oggはプレイヤーの環境によって再生できない事があります。");

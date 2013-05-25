@@ -2268,56 +2268,56 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 		use = 0 != id;
 		auto a = summ.area(id);
 		find = () => a !is null;
-		name = a ? a.name : "";
+		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Battle == Kind) {
 		noSelect = comm.prop.msgs.noSelectBattle;
 		noID = comm.prop.msgs.noBattle;
 		use = 0 != id;
 		auto a = summ.battle(id);
 		find = () => a !is null;
-		name = a ? a.name : "";
+		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Package == Kind) {
 		noSelect = comm.prop.msgs.noSelectPackage;
 		noID = comm.prop.msgs.noPackage;
 		use = 0 != id;
 		auto a = summ.cwPackage(id);
 		find = () => a !is null;
-		name = a ? a.name : "";
+		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Cast == Kind) {
 		noSelect = comm.prop.msgs.noSelectCast;
 		noID = comm.prop.msgs.noCast;
 		use = 0 != id;
 		auto a = summ.cwCast(id);
 		find = () => a !is null;
-		name = a ? a.name : "";
+		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Skill == Kind) {
 		noSelect = comm.prop.msgs.noSelectSkill;
 		noID = comm.prop.msgs.noSkill;
 		auto a = summ.skill(id);
 		find = () => a !is null;
 		use = 0 != id;
-		name = a ? a.name : "";
+		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Item == Kind) {
 		noSelect = comm.prop.msgs.noSelectItem;
 		noID = comm.prop.msgs.noItem;
 		auto a = summ.item(id);
 		find = () => a !is null;
 		use = 0 != id;
-		name = a ? a.name : "";
+		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Beast == Kind) {
 		noSelect = comm.prop.msgs.noSelectBeast;
 		noID = comm.prop.msgs.noBeast;
 		auto a = summ.beast(id);
 		find = () => a !is null;
 		use = 0 != id;
-		name = a ? a.name : "";
+		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Info == Kind) {
 		noSelect = comm.prop.msgs.noSelectInfo;
 		noID = comm.prop.msgs.noInfo;
 		auto a = summ.info(id);
 		find = () => a !is null;
 		use = 0 != id;
-		name = a ? a.name : "";
+		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Image == Kind) {
 		noSelect = comm.prop.msgs.noSelectImage;
 		noID = comm.prop.msgs.noImage;
