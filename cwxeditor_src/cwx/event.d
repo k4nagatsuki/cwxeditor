@@ -751,10 +751,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.FLAG_VALUE, bool, true)(d, &flagValue);
 		resetValue!(CArg.STEP_VALUE, int, 0)(d, &stepValue);
 		resetValue!(CArg.COUPON_VALUE, int, 0)(d, &couponValue);
-		resetValue!(CArg.PARTY_NUMBER, int, 1)(d, &partyNumber);
+		resetValue!(CArg.PARTY_NUMBER, int, 2)(d, &partyNumber);
 		resetValue!(CArg.CARD_NUMBER, int, 1)(d, &cardNumber);
 		resetValue!(CArg.MONEY, int, 0)(d, &money);
-		resetValue!(CArg.WAIT, int, 0)(d, &wait);
+		resetValue!(CArg.WAIT, int, 10)(d, &wait);
 
 		resetValue!(CArg.FLAG_2, string, "")(d, &flag2);
 		resetValue!(CArg.STEP_2, string, "")(d, &step2);
@@ -1373,7 +1373,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(int, "couponValue", 0);
 	mixin MaxMin!(int, "couponValue", int.max, int.min);
 	/// 人数。
-	mixin Prop!(int, "partyNumber", 1u);
+	mixin Prop!(int, "partyNumber", 2);
 	mixin MaxMin!(int, "partyNumber", int.max, 1);
 	/// カード枚数。
 	mixin Prop!(int, "cardNumber", 1u);
@@ -1382,7 +1382,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(int, "money", 0u);
 	mixin MaxMin!(int, "money", int.max, 0);
 	/// 停止時間。0.1秒単位。
-	mixin Prop!(int, "wait", 0u);
+	mixin Prop!(int, "wait", 10);
 	mixin MaxMin!(int, "wait", int.max, 0);
 
 	/// 操作対象フラグ(CardWirth Extender 1.30～)。
