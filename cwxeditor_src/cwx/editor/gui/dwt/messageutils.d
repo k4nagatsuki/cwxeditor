@@ -1828,9 +1828,6 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	}, rFonts, rColors);
 	auto dmsg = to!dstring(message);
 
-	CPoint[] spFontP;
-	string[] spFont;
-	RGB[] spColor;
 	auto cr = d.getSystemColor(SWT.COLOR_RED);
 	auto cb = d.getSystemColor(SWT.COLOR_CYAN);
 	auto cg = d.getSystemColor(SWT.COLOR_GREEN);
@@ -1854,6 +1851,43 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		y += lineH;
 		old = "";
 	}
+
+	// フォントイメージ
+	auto wrgb = fc.getRGB();
+	void drawSPFont(GC gc, CPoint pt, string path, RGB c) {
+		string fpath = comm.skin.findImagePath(path, sPath);
+		ImageData data = null;
+		if (fpath && fpath.length) {
+			// シナリオ内特殊文字
+			data = loadImage(fpath, true);
+		}
+		if (!data) {
+			// 標準特殊文字
+			data = spChar(comm.skin, decodeFontPath(path));
+			if (data) {
+				auto spc = data;
+				data = new ImageData(spc.width, spc.height, 24, new PaletteData(0xFF << 16, 0xFF << 8, 0xFF << 0));
+				// &R等による色の置換
+				foreach (dx; 0 .. data.width) {
+					foreach (dy; 0 .. data.height) {
+						auto p = spc.palette.getRGB(spc.getPixel(dx, dy));
+						if (wrgb.opEquals(p)) {
+							data.setPixel(dx, dy, (c.red << 16) | (c.green << 8) | (c.blue << 0));
+						} else {
+							data.setPixel(dx, dy, (p.red << 16) | (p.green << 8) | (p.blue << 0));
+						}
+					}
+				}
+				data.transparentPixel = data.getPixel(0, 0);
+			}
+		}
+		if (data) {
+			auto img = new Image(d, data);
+			scope (exit) img.dispose();
+			gc.drawImage(img, pt.x, pt.y);
+		}
+	}
+
 	if (legacy) {
 		auto textCanvas = new Image(d, rect.width, rect.height + bh * sel.length);
 		scope (exit) textCanvas.dispose();
@@ -1889,9 +1923,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 						break;
 					}
 				}
-				spFontP ~= CPoint(x - 2, y - 2);
-				spFont ~= *cf;
-				spColor ~= tgc.getForeground().getRGB();
+				drawSPFont(gc, CPoint(x - 2, y - 2), *cf, tgc.getForeground().getRGB());
 				x += w;
 				continue;
 			}
@@ -2023,9 +2055,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 						break;
 					}
 				}
-				spFontP ~= CPoint(x, y - 2);
-				spFont ~= *cf;
-				spColor ~= gc.getForeground().getRGB();
+				drawSPFont(gc, CPoint(x, y - 2), *cf, gc.getForeground().getRGB());
 				x += w;
 				continue;
 			}
@@ -2077,45 +2107,6 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			sx = (rect.width - gc.textExtent(t).x) / 2;
 			drawText(t, sx, sy);
 			sy += bh;
-		}
-	}
-
-	// フォントイメージ
-	auto wrgb = fc.getRGB();
-	for (size_t i = 0; i < spFontP.length; i++) {
-		auto pt = spFontP[i];
-		auto path = spFont[i];
-		string fpath = comm.skin.findImagePath(path, sPath);
-		ImageData data = null;
-		if (fpath && fpath.length) {
-			// シナリオ内特殊文字
-			data = loadImage(fpath, true);
-		}
-		if (!data) {
-			// 標準特殊文字
-			auto c = spColor[i];
-			data = spChar(comm.skin, decodeFontPath(path));
-			if (data) {
-				auto spc = data;
-				data = new ImageData(spc.width, spc.height, 24, new PaletteData(0xFF << 16, 0xFF << 8, 0xFF << 0));
-				// &R等による色の置換
-				foreach (dx; 0 .. data.width) {
-					foreach (dy; 0 .. data.height) {
-						auto p = spc.palette.getRGB(spc.getPixel(dx, dy));
-						if (wrgb.opEquals(p)) {
-							data.setPixel(dx, dy, (c.red << 16) | (c.green << 8) | (c.blue << 0));
-						} else {
-							data.setPixel(dx, dy, (p.red << 16) | (p.green << 8) | (p.blue << 0));
-						}
-					}
-				}
-				data.transparentPixel = data.getPixel(0, 0);
-			}
-		}
-		if (data) {
-			auto img = new Image(d, data);
-			scope (exit) img.dispose();
-			gc.drawImage(img, pt.x, pt.y);
 		}
 	}
 
