@@ -832,7 +832,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			return false;
 		}
 		auto root = this.cwxParent;
-		while (root.cwxParent) root = root.cwxParent;
+		while (root && root.cwxParent) root = root.cwxParent;
 		auto summ = cast(Summary)root;
 
 		final switch (detail.nextType) {

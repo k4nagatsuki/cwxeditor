@@ -3410,11 +3410,14 @@ fi`;
 					attrs ~= toAttr(c.transition, command, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.INIT_VALUE)) {
-				attrs ~= toAttr(c.initValue, command, indentValue, vars);
-			}
-			if (detail.use(CArg.COUPONS)) {
-				attrs ~= toAttr(c.coupons, command, indentValue, vars);
+			if (c.talkerC is Talker.VALUED) {
+				// 評価メンバ
+				if (detail.use(CArg.INIT_VALUE)) {
+					attrs ~= toAttr(c.initValue, command, indentValue, vars);
+				}
+				if (detail.use(CArg.COUPONS) && c.coupons.length) {
+					attrs ~= toAttr(c.coupons, command, indentValue, vars);
+				}
 			}
 			if (detail.use(CArg.ROUND)) {
 				attrs ~= toAttr(c.round, command, indentValue, vars);
