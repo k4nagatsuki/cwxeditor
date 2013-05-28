@@ -234,20 +234,21 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, C card) {
+	this(Commons comm, Props prop, Shell shell, Summary summ, C card, bool create) {
 		_comm = comm;
 		_summ = summ;
 		_card = card;
 		_prop = prop;
 		static if (is (C == MenuCard)) {
-			string text = _card ? .tryFormat(_prop.msgs.dlgTitMenuCard, _card.name) : _prop.msgs.dlgTitNewMenuCard;
+			string text = create ? _prop.msgs.dlgTitNewMenuCard : .tryFormat(_prop.msgs.dlgTitMenuCard, _card.name);
 			auto size = _prop.var.menuCardDlg;
 		} else static if (is (C == EnemyCard)) {
 			auto size = _prop.var.enemyCardDlg;
 			string text;
 			if (_card) {
 				auto c = _summ ? _summ.cwCast(_card.id) : null;
-				text = c ? .tryFormat(_prop.msgs.dlgTitEnemyCard, c.name) : _prop.msgs.dlgTitNewEnemyCard;
+				auto name = c ? c.name : .tryFormat(_prop.msgs.noCast, _card.id);
+				text = create ? _prop.msgs.dlgTitNewEnemyCard : .tryFormat(_prop.msgs.dlgTitEnemyCard, name);
 			} else {
 				text = _prop.msgs.dlgTitNewEnemyCard;
 			}
@@ -544,6 +545,14 @@ protected:
 				static assert (0);
 			}
 		}
+		static if (is (C == MenuCard)) {
+			string text = .tryFormat(_prop.msgs.dlgTitMenuCard, _card.name);
+		} else static if (is (C == EnemyCard)) {
+			auto c = _summ ? _summ.cwCast(_card.id) : null;
+			auto name = c ? c.name : .tryFormat(_prop.msgs.noCast, _card.id);
+			auto text = .tryFormat(_prop.msgs.dlgTitEnemyCard, name);
+		} else static assert (0);
+		getShell().setText(text);
 		return true;
 	}
 }

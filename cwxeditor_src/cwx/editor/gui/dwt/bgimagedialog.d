@@ -193,7 +193,7 @@ public:
 			size = _prop.var.areaBackgroundNFDlg;
 		}
 		super(prop, shell, false,
-			_back ? _prop.msgs.dlgTitBgImage : _prop.msgs.dlgTitNewBgImage,
+			create ? _prop.msgs.dlgTitNewBgImage : _prop.msgs.dlgTitBgImage,
 			_prop.images.backs, true, size, true);
 		enterClose = true;
 	}
@@ -381,6 +381,7 @@ protected:
 				_x.getSelection(), _y.getSelection(), _w.getSelection(), _h.getSelection(),
 				_mask.getSelection());
 		}
+		getShell().setText(_prop.msgs.dlgTitBgImage);
 		return true;
 	}
 }

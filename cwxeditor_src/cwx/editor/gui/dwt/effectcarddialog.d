@@ -928,6 +928,17 @@ protected:
 		_card.keyCodes = keyCodes;
 
 		_comm.refKeyCodes.call();
+
+		static if (is (C == SkillCard)) {
+			string text = .tryFormat(_prop.msgs.dlgTitSkill, _card.name);
+		} else static if (is (C == ItemCard)) {
+			string text = .tryFormat(_prop.msgs.dlgTitItem, _card.name);
+		} else static if (is (C == BeastCard)) {
+			string text = .tryFormat(_prop.msgs.dlgTitBeast, _card.name);
+		} else {
+			static assert (0);
+		}
+		getShell().setText(text);
 		return true;
 	}
 }

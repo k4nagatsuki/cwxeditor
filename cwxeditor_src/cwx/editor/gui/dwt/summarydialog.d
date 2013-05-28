@@ -604,6 +604,7 @@ protected:
 		}
 		_comm.skin = selectedSkin;
 		_comm.refCoupons.call();
+		getShell().setText(.tryFormat(_prop.msgs.dlgTitSummary, _summ.scenarioName));
 		return true;
 	}
 }
