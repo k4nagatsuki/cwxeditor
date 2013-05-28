@@ -1434,6 +1434,7 @@ protected:
 			? 0 : _mtlyRound.getSelection();
 
 		_comm.refCoupons.call();
+		getShell().setText(.tryFormat(_prop.msgs.dlgTitCast, _card.name));
 		return true;
 	}
 }

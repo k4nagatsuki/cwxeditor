@@ -148,6 +148,7 @@ protected:
 			_card = new InfoCard(_summ.newId!(InfoCard), _name.getText(),
 				_imgPath.image, wrapReturnCode(_desc.getText()));
 		}
+		getShell().setText(.tryFormat(_prop.msgs.dlgTitInfo, _card.name));
 		return true;
 	}
 }

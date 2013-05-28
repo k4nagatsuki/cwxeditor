@@ -377,7 +377,7 @@ public:
 		} else {
 			size = prop.var.areaBackgroundNFDlg;
 		}
-		super (comm, summ, shell, _back ? prop.msgs.dlgTitBgImage : prop.msgs.dlgTitNewBgImage,
+		super (comm, summ, shell, create ? prop.msgs.dlgTitNewBgImage : prop.msgs.dlgTitBgImage,
 			prop.images.backs, true, size, create);
 	}
 
@@ -457,6 +457,7 @@ protected:
 		}
 		_back.path = _imgPath.image;
 		applyParams(_back);
+		getShell().setText(_prop.msgs.dlgTitBgImage);
 		return true;
 	}
 }
@@ -552,7 +553,7 @@ public:
 		} else {
 			size = prop.var.areaTextCellNFDlg;
 		}
-		super (comm, summ, shell, _back ? prop.msgs.dlgTitTextCell : prop.msgs.dlgTitNewTextCell,
+		super (comm, summ, shell, create ? prop.msgs.dlgTitNewTextCell : prop.msgs.dlgTitTextCell,
 			prop.images.textCell, true, size, create);
 		enterClose = false;
 	}
@@ -829,6 +830,7 @@ protected:
 		_back.borderingWidth = _borderingWidth.getSelection();
 
 		applyParams(_back);
+		getShell().setText(_prop.msgs.dlgTitTextCell);
 		return true;
 	}
 }
@@ -896,7 +898,7 @@ public:
 		} else {
 			size = prop.var.areaColorCellNFDlg;
 		}
-		super (comm, summ, shell, _back ? prop.msgs.dlgTitColorCell : prop.msgs.dlgTitNewColorCell,
+		super (comm, summ, shell, create ? prop.msgs.dlgTitNewColorCell : prop.msgs.dlgTitColorCell,
 			prop.images.colorCell, true, size, create);
 	}
 
@@ -1042,6 +1044,7 @@ protected:
 		_back.color2 = CRGB(rgb2.red, rgb2.green, rgb2.blue, _color2.alpha);
 
 		applyParams(_back);
+		getShell().setText(_prop.msgs.dlgTitColorCell);
 		return true;
 	}
 }

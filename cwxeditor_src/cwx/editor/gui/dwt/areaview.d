@@ -3015,7 +3015,7 @@ public:
 				if (_summ.casts.length == 0) return;
 				auto c = new EnemyCard(0, false, "", 0, 0, 1.0);
 			} else static assert (0);
-			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, c);
+			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, c, true);
 			dlg.appliedEvent ~= {
 				auto c = dlg.card;
 				int index = insertIndex(_cards);
@@ -3055,7 +3055,7 @@ public:
 				}
 			}
 			UndoEdit undo = null;
-			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, card);
+			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, card, false);
 			dlg.applyEvent ~= {
 				undo = new UndoEdit(this, _comm, _area, _summ, [cCountUntil!("a is b")(_area.cards, card)], []);
 			};
