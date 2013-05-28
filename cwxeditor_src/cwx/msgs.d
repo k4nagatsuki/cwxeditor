@@ -1519,6 +1519,7 @@ class Msgs : Properties {
 	auto smoothingCard = Msg("smoothingCard", "カードのサイズ変更時にスムージングを行う");
 	auto showImagePreview = Msg("showImagePreview", "カードや背景のプレビュー表示を行う");
 	auto classicStyleTree = Msg("classicStyleTree", "イベントツリーの開閉ボタンを省略する");
+	auto adjustContentName = Msg("adjustContentName", "イベントコンテントの移動時にテキストを再設定する");
 	auto radarStyleParams = Msg("radarStyleParams", "レーダー型コントロールでパラメータ値を設定する");
 	auto editTriggerTypeIsQuick = Msg("editTriggerTypeIsQuick", "選択項目のクリックですぐにテキストの編集を開始する");
 	auto showEventTreeMark = Msg("showEventTreeMark", "カードの詳細情報表示時に使用時イベントの有無を表示する");

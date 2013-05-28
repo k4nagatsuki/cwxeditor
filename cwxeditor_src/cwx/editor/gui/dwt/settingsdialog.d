@@ -1394,6 +1394,7 @@ private:
 	TableItem _showImagePreview;
 	TableItem _editTriggerTypeIsQuick;
 	TableItem _classicStyleTree;
+	TableItem _adjustContentName;
 	TableItem _radarStyleParams;
 	TableItem _showEventTreeMark;
 	TableItem _showCardListHeader;
@@ -2234,6 +2235,7 @@ private:
 				_showImagePreview = createB(_prop.msgs.showImagePreview);
 				_editTriggerTypeIsQuick = createB(_prop.msgs.editTriggerTypeIsQuick);
 				_classicStyleTree = createB(_prop.msgs.classicStyleTree);
+				_adjustContentName = createB(_prop.msgs.adjustContentName);
 				_radarStyleParams = createB(_prop.msgs.radarStyleParams);
 				_showEventTreeMark = createB(_prop.msgs.showEventTreeMark);
 				_showCardListHeader = createB(_prop.msgs.showCardListHeader);
@@ -2514,6 +2516,7 @@ protected:
 		_showImagePreview.setChecked(_prop.var.etc.showImagePreview);
 		_editTriggerTypeIsQuick.setChecked(_prop.var.etc.editTriggerType is EditTrigger.Quick);
 		_classicStyleTree.setChecked(_prop.var.etc.classicStyleTree);
+		_adjustContentName.setChecked(_prop.var.etc.adjustContentName);
 		_radarStyleParams.setChecked(_prop.var.etc.radarStyleParams);
 		_showEventTreeMark.setChecked(_prop.var.etc.showEventTreeMark);
 		_showCardListHeader.setChecked(_prop.var.etc.showCardListHeader);
@@ -2678,6 +2681,7 @@ protected:
 		_prop.var.etc.showImagePreview = _showImagePreview.getChecked();
 		_prop.var.etc.editTriggerType = _editTriggerTypeIsQuick.getChecked() ? EditTrigger.Quick : EditTrigger.Slow;
 		_prop.var.etc.classicStyleTree = _classicStyleTree.getChecked();
+		_prop.var.etc.adjustContentName = _adjustContentName.getChecked();
 		_prop.var.etc.radarStyleParams = _radarStyleParams.getChecked();
 		_prop.var.etc.showEventTreeMark = _showEventTreeMark.getChecked();
 		_prop.var.etc.showCardListHeader = _showCardListHeader.getChecked();

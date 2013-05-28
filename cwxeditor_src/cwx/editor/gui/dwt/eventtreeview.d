@@ -1228,9 +1228,7 @@ private:
 		override void dragSetData(DragSourceEvent e) {
 			auto itm = selection;
 			if (itm && XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
-				auto node = (cast(Content) itm.getData()).toNode(new XMLOption(_prop.sys));
-				node.newAttr("paneId", _id);
-				e.data = bytesFromXML(node.text);
+				e.data = bytesFromXML(toXML((cast(Content)itm.getData())));
 			}
 		}
 		override void dragFinished(DragSourceEvent e) {
@@ -1282,6 +1280,7 @@ private:
 					auto node = XNode.parse(bytesToXML(e.data));
 					bool samePane = _id == node.attr("paneId", false, "");
 					string id = node.attr("contentId", false, "");
+					string lastNextType = node.attr("lastNextType", false, "");
 					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 					auto evt = Content.createFromNode(node, ver);
 					if (evt) {
@@ -1305,6 +1304,7 @@ private:
 							} else {
 								store(owner);
 							}
+							adjustText(owner, evt, lastNextType);
 							owner.add(_prop.parent, evt);
 							_comm.refContent.call(evt);
 							_tree.setRedraw(false);
@@ -1339,6 +1339,22 @@ private:
 				}
 			}
 			return null;
+		}
+	}
+	private void adjustText(in Content owner, Content evt, string lastNextType) {
+		if (!_prop.var.etc.adjustContentName) return;
+		if (lastNextType != "" && owner.detail.nextType !is toCNextType(lastNextType)) {
+			// 後続タイプが異なるので一端後続テキストをクリア
+			evt.setName(_prop.parent, "");
+		} else if (owner.detail.nextType !is CNextType.TEXT) {
+			foreach (ct; owner.next) {
+				if (ct.name == evt.name) {
+					// すでに同じテキストの後続コンテントがいるので
+					// 一端後続テキストをクリア
+					evt.setName(_prop.parent, "");
+					break;
+				}
+			}
 		}
 	}
 	private CreateEvent[CType] _conts;
@@ -3218,7 +3234,7 @@ public:
 		if (tryInsert || owner.detail.owner) return owner;
 		return null;
 	}
-	private void addContents(bool stored, Content[] cs, Content[] refCS, bool tryInsert) {
+	private void addContents(bool stored, Content[] cs, Content[] refCS, bool tryInsert, string lastNextType = "") {
 		auto itm = selection;
 		if (!itm) return;
 		auto owner = insertOwner(tryInsert);
@@ -3267,6 +3283,7 @@ public:
 			itm = itm.getParentItem();
 		}
 		foreach (ct; cs2) {
+			adjustText(owner, ct, lastNextType);
 			if (index == -1) {
 				owner.add(_prop.parent, ct);
 			} else {
@@ -3377,8 +3394,8 @@ public:
 		void copy(SelectionEvent se) {
 			auto itm = selection;
 			if (itm) {
-				string xml = (cast(Content) itm.getData()).toXML(null);
-				XMLtoCB(_prop, _comm.clipboard, xml);
+				auto c = cast(Content)itm.getData();
+				XMLtoCB(_prop, _comm.clipboard, toXML(c));
 				_comm.refreshToolBar();
 			}
 		}
@@ -3432,6 +3449,19 @@ public:
 			return canDoC;
 		}
 	}
+	private string toXML(in Content c) {
+		auto node = c.toNode(new XMLOption(_prop.sys));
+		CNextType next;
+		if (c.parent) {
+			next = c.parent.detail.nextType;
+		} else {
+			assert (c.type is CType.START);
+			next = CNextType.TEXT;
+		}
+		node.newAttr("lastNextType", fromCNextType(next));
+		node.newAttr("paneId", _id);
+		return node.text;
+	}
 	private void pasteInsert() {
 		pasteImpl(true);
 	}
@@ -3447,14 +3477,16 @@ public:
 		}
 		if (c) {
 			try {
-				string id;
 				auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
-				auto evt = Content.createFromXML(c, ver, id);
+				auto node = XNode.parse(c);
+				string id = node.attr("contentId", false);
+				string lastNextType = node.attr("lastNextType", false, "");
+				auto evt = Content.createFromNode(node, ver);
 				if (!evt) return;
 				if (evt.type == CType.START) {
 					addStarts(true, [evt]);
 				} else {
-					addContents(true, [evt], [], tryInsert);
+					addContents(true, [evt], [], tryInsert, lastNextType);
 				}
 				_comm.refreshToolBar();
 				return;

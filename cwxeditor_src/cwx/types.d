@@ -1147,6 +1147,31 @@ enum CNextType {
 	ID_BATTLE, /// バトルID。
 	TRIO, /// 大なり、少なり、一致(CardWirth Extender 1.30～)。
 }
+/// ditto
+CNextType toCNextType(string name) {
+	switch (name) {
+	case "None": return CNextType.NONE;
+	case "Text": return CNextType.TEXT;
+	case "Bool": return CNextType.BOOL;
+	case "Step": return CNextType.STEP;
+	case "IdArea": return CNextType.ID_AREA;
+	case "IdBattle": return CNextType.ID_BATTLE;
+	case "Trio": return CNextType.TRIO;
+	default: throw new Exception("Unknown content next type: " ~ name);
+	}
+}
+/// ditto
+string fromCNextType(CNextType t) {
+	final switch (t) {
+	case CNextType.NONE: return "None";
+	case CNextType.TEXT: return "Text";
+	case CNextType.BOOL: return "Bool";
+	case CNextType.STEP: return "Step";
+	case CNextType.ID_AREA: return "IdArea";
+	case CNextType.ID_BATTLE: return "IdBattle";
+	case CNextType.TRIO: return "Trio";
+	}
+}
 
 enum MType {
 	HEAL,

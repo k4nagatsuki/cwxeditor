@@ -314,6 +314,7 @@ class FlexEtcProps : Properties {
 	auto refCardsAtEditBgImage = Prop!(bool)("refCardsAtEditBgImage", true);
 	auto showImagePreview = Prop!(bool)("showImagePreview", true);
 	auto classicStyleTree = Prop!(bool)("classicStyleTree", false);
+	auto adjustContentName = Prop!(bool)("adjustContentName", true);
 	auto showEventTreeMark = Prop!(bool)("showEventTreeMark", true);
 	auto ignoreEmptyStart = Prop!(bool)("ignoreEmptyStart", true);
 	auto showSkillCardLevel = Prop!(bool)("showSkillCardLevel", true);

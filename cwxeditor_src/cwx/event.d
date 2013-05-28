@@ -445,7 +445,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		IFlagUser, IStepUser,
 		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser,
 		ICouponUser, IGossipUser, ICompleteStampUser, IStartUser,
-		MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHolder {
+		MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHolder,
+		CouponsOwner {
 	private EventTree _tree = null;
 
 	/// 型と後続テキストnameを指定してインスタンスを生成。
