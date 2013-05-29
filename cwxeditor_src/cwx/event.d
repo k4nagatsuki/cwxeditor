@@ -2541,7 +2541,7 @@ public:
 	const
 	XNode toNode(XMLOption opt) {
 		auto doc = XNode.create("Event");
-		__toNode(doc, opt);
+		toNodeImpl(doc, opt);
 		return doc;
 	}
 	/// 指定されたXMLノード(Events)にこのインスタンスのデータを追加する。
@@ -2549,10 +2549,10 @@ public:
 	void toNode(ref XNode node, XMLOption opt) {
 		assert (node.name == "Events", node.name ~ " != Events");
 		auto e = node.newElement("Event");
-		__toNode(e, opt);
+		toNodeImpl(e, opt);
 	}
 	const
-	private void __toNode(ref XNode node, XMLOption opt) {
+	private void toNodeImpl(ref XNode node, XMLOption opt) {
 		assert (node.name == "Event", node.name ~ " != Event");
 		if (_enter || _escape || _lose || _everyRound || _round0 || _rounds.length > 0 || _keyCodes.length > 0) {
 			auto ig = node.newElement("Ignitions");

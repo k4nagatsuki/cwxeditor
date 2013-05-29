@@ -1272,7 +1272,7 @@ public:
 		override void copy(SelectionEvent se) {
 			auto m = selection;
 			if (m) {
-				XMLtoCB(_prop, _comm.clipboard, m.toXML(null));
+				XMLtoCB(_prop, _comm.clipboard, m.toXML(new XMLOption(_prop.sys)));
 				_comm.refreshToolBar();
 			}
 		}

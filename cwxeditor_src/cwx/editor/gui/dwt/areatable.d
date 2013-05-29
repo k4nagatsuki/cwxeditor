@@ -867,7 +867,7 @@ private:
 				int i = tbl.getSelectionIndex();
 				assert (0 < i);
 				_data = cast(AbstractArea) tbl.getItem(i).getData();
-				e.data = bytesFromXML(_data.toXML(null, _summ.id));
+				e.data = bytesFromXML(_data.toXML(new XMLOption(_prop.sys), _summ.id));
 			}
 		}
 		override void dragFinished(DragSourceEvent e) {
@@ -1811,7 +1811,7 @@ public:
 		void copy(SelectionEvent se) {
 			auto area = getSelectionArea();
 			if (area !is null) {
-				XMLtoCB(_prop, _comm.clipboard, area.toXML(null, _summ.id));
+				XMLtoCB(_prop, _comm.clipboard, area.toXML(new XMLOption(_prop.sys), _summ.id));
 				_comm.refreshToolBar();
 			}
 		}

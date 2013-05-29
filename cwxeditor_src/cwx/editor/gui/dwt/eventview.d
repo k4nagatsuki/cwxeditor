@@ -1725,10 +1725,10 @@ public:
 			auto data = itm.getData();
 			string xml;
 			if (cast(EventTree) data) {
-				xml = (cast(EventTree) data).toXML(null);
+				xml = (cast(EventTree) data).toXML(new XMLOption(_prop.sys));
 			} else if (!canFire) {
 				assert (cast(EventTree) par !is null);
-				xml = (cast(EventTree) par).toXML(null);
+				xml = (cast(EventTree) par).toXML(new XMLOption(_prop.sys));
 			} else {
 				static if (UseFire) {
 					if (ENTER is data) {
