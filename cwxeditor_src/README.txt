@@ -2,7 +2,7 @@
 [[[ CWXEditor ビルドガイド ]]]
 
 ビルドツール:
-	・dmd 2.061
+	・dmd 2.063
 	・Digital Mars rcc
 ライブラリ:
 	・DWT at GitHub
@@ -73,7 +73,6 @@ rdmd build gui
 
 　apt-get等で手に入れておきましょう。
 
-・rake
 ・libgtk2.0-dev
 ・libxtst-dev
 ・libgnomeui-dev
