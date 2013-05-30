@@ -1304,7 +1304,9 @@ private:
 							} else {
 								store(owner);
 							}
-							adjustText(owner, evt, lastNextType);
+							if (cast(Content)_dragItm.getParentItem().getData() !is owner) {
+								adjustText(owner, evt, lastNextType);
+							}
 							owner.add(_prop.parent, evt);
 							_comm.refContent.call(evt);
 							_tree.setRedraw(false);
