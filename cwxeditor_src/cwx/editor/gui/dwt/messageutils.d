@@ -226,34 +226,28 @@ class AbstractMessageDialog : EventDialog {
 class SpeakDialog : AbstractMessageDialog {
 private:
 	class APData {
-		string text;
-		string[] rCoupons;
-		int targDlg;
 		int selDlg;
+		SDialog[] dlgs;
 	}
 	Object readAPD(Object old) {
 		auto o = new APData;
 		o.selDlg = _dlgsL.getSelectionIndex();
-		auto apd = cast(APData) old;
-		if (apd) {
-			o.targDlg = apd.targDlg;
-		} else {
-			o.targDlg = o.selDlg;
+		foreach (d; _dlgs) {
+		 	o.dlgs ~= new SDialog(d);
 		}
-		o.text = _dlgs[o.targDlg].text;
-		o.rCoupons = _dlgs[o.targDlg].rCoupons.dup;
 		return o;
 	}
 	void writeAPD(Object o) {
 		bool oldIgnoreMod = ignoreMod;
 		ignoreMod = true;
 		scope (exit) ignoreMod = oldIgnoreMod;
-		auto apd = cast(APData) o;
+		auto apd = cast(APData)o;
 		assert (apd);
+		foreach (i, d; apd.dlgs) {
+			_dlgs[i] = new SDialog(d);
+		}
+		refreshDlgList();
 		_dlgsL.select(apd.selDlg);
-		_dlgs[apd.targDlg].text = apd.text;
-		_dlgs[apd.targDlg].rCoupons = apd.rCoupons.dup;
-		refreshDlgList(apd.targDlg);
 		selectChanged();
 	}
 	class SUndo : Undo {
