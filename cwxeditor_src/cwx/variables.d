@@ -326,6 +326,7 @@ class FlexEtcProps : Properties {
 	auto showCardListHeader = Prop!(bool)("showCardListHeader", true);
 	auto showCardListTitle = Prop!(bool)("showCardListTitle", true);
 	auto applyDialogsBeforeSave = Prop!(bool)("applyDialogsBeforeSave", true);
+	auto useNamesAfterStandard = Prop!(bool)("useNamesAfterStandard", false);
 
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
 

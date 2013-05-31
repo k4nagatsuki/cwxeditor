@@ -41,10 +41,17 @@ T createCouponCombo(T = Combo)(Commons comm, Composite parent, bool delegate() c
 				if (!.contains(cs, coupon.id)) dcs ~= coupon;
 			}
 		}
-		if (dcs.length && cs.length) {
-			dcs ~= "";
+		if (comm.prop.var.etc.useNamesAfterStandard) {
+			if (dcs.length && cs.length) {
+				cs ~= "";
+			}
+			dcs = cs ~ dcs;
+		} else {
+			if (dcs.length && cs.length) {
+				dcs ~= "";
+			}
+			dcs ~= cs;
 		}
-		dcs ~= cs;
 		foreach (coupon; dcs) {
 			if (!incSearch.match(coupon)) continue;
 			combo.add(coupon);
@@ -165,10 +172,17 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Composite parent, bool delegate() 
 			}
 		}
 
-		if (kcs2.length) {
-			kcs2 ~= "";
+		if (comm.prop.var.etc.useNamesAfterStandard) {
+			if (kcs2.length && stdKCs.length) {
+				stdKCs ~= "";
+			}
+			kcs2 = stdKCs ~ kcs2;
+		} else {
+			if (kcs2.length) {
+				kcs2 ~= "";
+			}
+			kcs2 ~= stdKCs;
 		}
-		kcs2 ~= stdKCs;
 		foreach (kc; kcs2) {
 			if (!incSearch.match(kc)) continue;
 			combo.add(kc);

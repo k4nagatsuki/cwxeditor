@@ -1424,6 +1424,7 @@ private:
 	TableItem _showVariableValuesInEventText;
 	TableItem _cautionBeforeReplace;
 	TableItem _applyDialogsBeforeSave;
+	TableItem _useNamesAfterStandard;
 	Combo _targetVersion;
 	int[string] _targetVersionTbl;
 	string[int] _targetVersionTbl2;
@@ -2265,6 +2266,7 @@ private:
 				_showVariableValuesInEventText = createB(_prop.msgs.showVariableValuesInEventText);
 				_cautionBeforeReplace = createB(_prop.msgs.cautionBeforeReplace);
 				_applyDialogsBeforeSave = createB(_prop.msgs.applyDialogsBeforeSave);
+				_useNamesAfterStandard = createB(_prop.msgs.useNamesAfterStandard);
 
 				auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 				auto sepgd = new GridData(GridData.FILL_HORIZONTAL);
@@ -2548,6 +2550,7 @@ protected:
 		_showVariableValuesInEventText.setChecked(_prop.var.etc.showVariableValuesInEventText);
 		_cautionBeforeReplace.setChecked(_prop.var.etc.cautionBeforeReplace);
 		_applyDialogsBeforeSave.setChecked(_prop.var.etc.applyDialogsBeforeSave);
+		_useNamesAfterStandard.setChecked(_prop.var.etc.useNamesAfterStandard);
 		auto tVer = _prop.var.etc.targetVersion in _targetVersionTbl;
 		if (tVer) {
 			_targetVersion.select(*tVer);
@@ -2708,6 +2711,7 @@ protected:
 		_prop.var.etc.showVariableValuesInEventText = _showVariableValuesInEventText.getChecked();
 		_prop.var.etc.cautionBeforeReplace = _cautionBeforeReplace.getChecked();
 		_prop.var.etc.applyDialogsBeforeSave = _applyDialogsBeforeSave.getChecked();
+		_prop.var.etc.useNamesAfterStandard = _useNamesAfterStandard.getChecked();
 		_prop.var.etc.contentsFloat = _contentsFloat.getChecked();
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getChecked();
 		_prop.var.etc.comboListVisible = _comboListVisible.getChecked();
@@ -2801,6 +2805,7 @@ struct OldSettings {
 	bool radarStyleParams;
 	bool showSpNature;
 	bool showVariableValuesInEventText;
+	bool useNamesAfterStandard;
 	this (Props prop) {
 		this.prop = prop;
 		this.targetVersion = prop.var.etc.targetVersion;
@@ -2842,6 +2847,7 @@ struct OldSettings {
 		this.radarStyleParams = prop.var.etc.radarStyleParams;
 		this.showSpNature = prop.var.etc.showSpNature;
 		this.showVariableValuesInEventText = prop.var.etc.showVariableValuesInEventText;
+		this.useNamesAfterStandard = prop.var.etc.useNamesAfterStandard;
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
@@ -2947,8 +2953,11 @@ struct OldSettings {
 		if (this.radarStyleParams != prop.var.etc.radarStyleParams) {
 			comm.refRadarStyle.call();
 		}
-		if (this.showSpNature != prop.var.etc.showSpNature) {
+		if (this.showSpNature != prop.var.etc.showSpNature || this.useNamesAfterStandard != prop.var.etc.useNamesAfterStandard) {
 			comm.refCoupons.call();
+		}
+		if (this.useNamesAfterStandard != prop.var.etc.useNamesAfterStandard) {
+			comm.refKeyCodes.call();
 		}
 		if (this.showVariableValuesInEventText != prop.var.etc.showVariableValuesInEventText) {
 			comm.refPreviewValues.call();
