@@ -225,6 +225,7 @@ private:
 			itm.setExpanded(true);
 			v.refreshStatusLine();
 			v._refreshTopStart();
+			v._tree.redraw();
 		}
 		comm.refContent.call(c);
 		comm.refUseCount.call();
@@ -483,6 +484,7 @@ private:
 		procTreeItem(itm);
 		_tree.select(itm);
 		.forceFocus(_tree, false);
+		_tree.redraw();
 		_comm.refContent.call(c);
 		_comm.refUseCount.call();
 		refreshStatusLine();
@@ -523,6 +525,7 @@ private:
 					_tree.select(sItm);
 					_tree.showSelection();
 					.forceFocus(_tree, false);
+					_tree.redraw();
 					_comm.refContent.call(evt);
 					refreshConvMenu();
 					refreshStatusLine();
@@ -560,6 +563,9 @@ private:
 						if (insertTo) {
 							auto ic = cast(Content) insertTo.getData();
 							_comm.delContent.call(ic);
+							if (_prop.var.etc.adjustContentName) {
+								ic.setName(_prop.parent, "");
+							}
 							evt.add(_prop.parent, ic);
 							insertTo.dispose();
 							createChilds(itm, evt);
@@ -568,6 +574,7 @@ private:
 						procTreeItem(itm);
 						_tree.showSelection();
 						.forceFocus(_tree, false);
+						_tree.redraw();
 						_comm.refContent.call(evt);
 						_comm.refUseCount.call();
 						refreshConvMenu();
@@ -1308,6 +1315,7 @@ private:
 								adjustText(owner, evt, lastNextType);
 							}
 							owner.add(_prop.parent, evt);
+							_tree.redraw();
 							_comm.refContent.call(evt);
 							_tree.setRedraw(false);
 							auto itm = createTreeItem(ti, evt, eventText(owner, evt), _prop.images.content(evt.type));
@@ -2417,6 +2425,7 @@ public:
 			itm.setText(combo.getText());
 		}
 		procTreeItem(itm);
+		_tree.redraw();
 		_comm.refContent.call(evt);
 		refreshStatusLine();
 		_comm.refreshToolBar();
@@ -3280,13 +3289,16 @@ public:
 			auto parent = owner.parent;
 			index = parent.next.countUntil(owner);
 			parent.remove(owner);
+			if (_prop.var.etc.adjustContentName) {
+				owner.setName(_prop.parent, "");
+			}
 			last.add(_prop.parent, owner);
 			owner = parent;
 			itm = itm.getParentItem();
 		}
 		foreach (ct; cs2) {
-			adjustText(owner, ct, lastNextType);
 			if (index == -1) {
+				adjustText(owner, ct, lastNextType);
 				owner.add(_prop.parent, ct);
 			} else {
 				owner.insert(_prop.parent, index, ct);
@@ -3311,6 +3323,7 @@ public:
 			assert (lastItm !is null);
 		}
 		_tree.setSelection([lastItm]);
+		_tree.redraw();
 		_comm.refUseCount.call();
 		refreshStatusLine();
 		_comm.refreshToolBar();
@@ -3380,6 +3393,7 @@ public:
 		if (!sItm) return;
 		if (lastItm) _tree.setSelection([lastItm]);
 		_tree.showSelection();
+		_tree.redraw();
 		_comm.refUseCount.call();
 		refreshStatusLine();
 		_comm.refreshToolBar();
