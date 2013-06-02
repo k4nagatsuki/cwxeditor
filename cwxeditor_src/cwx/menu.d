@@ -72,8 +72,11 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.Cut] = "T";
 		_mnemonic[MenuID.Copy] = "C";
 		_mnemonic[MenuID.Paste] = "P";
-		_mnemonic[MenuID.PasteInsert] = "I";
 		_mnemonic[MenuID.Delete] = "D";
+		_mnemonic[MenuID.Cut1Content] = "U";
+		_mnemonic[MenuID.Copy1Content] = "O";
+		_mnemonic[MenuID.Delete1Content] = "E";
+		_mnemonic[MenuID.PasteInsert] = "I";
 		_mnemonic[MenuID.Clone] = "L";
 		_mnemonic[MenuID.SelectAll] = "A";
 		_mnemonic[MenuID.ToXMLText] = "X";
@@ -247,8 +250,11 @@ class MenuProps : Properties {
 		_hotkey[MenuID.Cut] = "Ctrl+X";
 		_hotkey[MenuID.Copy] = "Ctrl+C";
 		_hotkey[MenuID.Paste] = "Ctrl+V";
-		_hotkey[MenuID.PasteInsert] = "Ctrl+Shift+V";
 		_hotkey[MenuID.Delete] = "Delete";
+		_hotkey[MenuID.Cut1Content] = "Ctrl+Shift+X";
+		_hotkey[MenuID.Copy1Content] = "Ctrl+Shift+C";
+		_hotkey[MenuID.Delete1Content] = "Shift+Delete";
+		_hotkey[MenuID.PasteInsert] = "Ctrl+Shift+V";
 		_hotkey[MenuID.Clone] = "";
 		_hotkey[MenuID.SelectAll] = "Ctrl+A";
 		_hotkey[MenuID.ToXMLText] = "";

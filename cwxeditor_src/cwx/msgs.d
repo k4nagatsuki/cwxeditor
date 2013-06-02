@@ -1780,8 +1780,11 @@ class Msgs : Properties {
 	auto menuTextCut = Msg("menuTextCut", "切り取り");
 	auto menuTextCopy = Msg("menuTextCopy", "コピー");
 	auto menuTextPaste = Msg("menuTextPaste", "貼り付け");
-	auto menuTextPasteInsert = Msg("menuTextPasteInsert", "クリップボードから挿入");
 	auto menuTextDelete = Msg("menuTextDelete", "削除");
+	auto menuTextCut1Content = Msg("menuTextCut1Content", "1コンテント切り取り");
+	auto menuTextCopy1Content = Msg("menuTextCopy1Content", "1コンテントコピー");
+	auto menuTextDelete1Content = Msg("menuTextDelete1Content", "1コンテント削除");
+	auto menuTextPasteInsert = Msg("menuTextPasteInsert", "クリップボードから挿入");
 	auto menuTextClone = Msg("menuTextClone", "複製");
 	auto menuTextSelectAll = Msg("menuTextSelectAll", "すべて選択");
 	auto menuTextToXMLText = Msg("menuTextToXMLText", "コピーしたデータをXMLに変換");

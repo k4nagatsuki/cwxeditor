@@ -27,6 +27,7 @@ class XMLOption {
 	ItemCard delegate(ulong) item = null; /// IDからアイテムカードを取得。
 	BeastCard delegate(ulong) beast = null; /// IDから召喚獣カードを取得。
 	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
+	bool shallow = false; /// イベントコンテントのコピーの際、子コンテントを無視する。
 
 	this (const System sys) {
 		this.sys = sys;

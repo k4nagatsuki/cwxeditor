@@ -1946,6 +1946,10 @@ public:
 					dStr ~= " - " ~ .text(__LINE__);
 					appendMenuTCPD(_comm, popup, this, true, true, true, true, true);
 					new MenuItem(popup, SWT.SEPARATOR);
+					createMenuItem(_comm, popup, MenuID.Cut1Content, &cut1Content, () => canDoT && selection.getParentItem());
+					createMenuItem(_comm, popup, MenuID.Copy1Content, &copy1Content, &canDoC);
+					createMenuItem(_comm, popup, MenuID.Delete1Content, &del1Content, () => canDoD && selection.getParentItem());
+					new MenuItem(popup, SWT.SEPARATOR);
 					createMenuItem(_comm, popup, MenuID.PasteInsert, &pasteInsert, &canDoP);
 					new MenuItem(popup, SWT.SEPARATOR);
 					dStr ~= " - " ~ .text(__LINE__);
@@ -3465,8 +3469,10 @@ public:
 			return canDoC;
 		}
 	}
-	private string toXML(in Content c) {
-		auto node = c.toNode(new XMLOption(_prop.sys));
+	private string toXML(in Content c, bool shallow = false) {
+		auto opt = new XMLOption(_prop.sys);
+		opt.shallow = shallow;
+		auto node = c.toNode(opt);
 		CNextType next;
 		if (c.parent) {
 			next = c.parent.detail.nextType;
@@ -3478,8 +3484,46 @@ public:
 		node.newAttr("paneId", _id);
 		return node.text;
 	}
+	private void cut1Content() {
+		auto itm = selection;
+		if (itm && itm.getParentItem()) {
+			copy1Content();
+			del1Content();
+		}
+	}
+	private void copy1Content() {
+		auto itm = selection;
+		if (itm) {
+			auto c = cast(Content)itm.getData();
+			XMLtoCB(_prop, _comm.clipboard, toXML(c, true));
+			_comm.refreshToolBar();
+		}
+	}
 	private void pasteInsert() {
 		pasteImpl(true);
+	}
+	private void del1Content() {
+		auto itm = selection;
+		if (itm && itm.getParentItem()) {
+			_tree.setRedraw(false);
+			scope(exit) _tree.setRedraw(true);
+
+			auto ownerItm = itm.getParentItem();
+			auto c = cast(Content)itm.getData();
+			_comm.delContent.call(c);
+			auto owner = cast(Content)ownerItm.getData();
+			this.store(owner);
+			int insertIndex = owner.next.countUntil(c);
+			owner.remove(c);
+			auto lastNextType = fromCNextType(c.detail.nextType);
+			foreach (i, next; c.next) {
+				adjustText(owner, next, lastNextType);
+				owner.insert(_prop.parent, insertIndex + i, next);
+			}
+			createChilds(ownerItm, owner);
+			_comm.refUseCount.call();
+			_comm.refreshToolBar();
+		}
 	}
 	private void pasteImpl(bool tryInsert) {
 		if (!_et) return;

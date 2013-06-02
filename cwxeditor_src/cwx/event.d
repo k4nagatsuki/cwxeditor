@@ -1735,8 +1735,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 
 		auto ce = e.newElement("Contents");
-		foreach (sub; _next) {
-			sub.toNode(ce, opt);
+		if (!opt || !opt.shallow) {
+			foreach (sub; _next) {
+				sub.toNode(ce, opt);
+			}
 		}
 	}
 	/// XMLノード(Contents)の直下にある全てのイベントを、

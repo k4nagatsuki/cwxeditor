@@ -401,8 +401,11 @@ public:
 		case MenuID.Cut: return imgd!("cut.png");
 		case MenuID.Copy: return imgd!("copy.png");
 		case MenuID.Paste: return imgd!("paste.png");
-		case MenuID.PasteInsert: return imgd!("paste_insert.png");
 		case MenuID.Delete: return imgd!("del.png");
+		case MenuID.Cut1Content: return imgd!("cut_1content.png");
+		case MenuID.Copy1Content: return imgd!("copy_1content.png");
+		case MenuID.Delete1Content: return imgd!("del_1content.png");
+		case MenuID.PasteInsert: return imgd!("paste_insert.png");
 		case MenuID.Clone: return imgd!("clone.png");
 		case MenuID.SelectAll: return imgd!("select_all.png");
 		case MenuID.ToXMLText: return imgd!("toxml.png");
