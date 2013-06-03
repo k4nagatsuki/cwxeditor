@@ -4558,7 +4558,7 @@ public:
 					cards ~= _area.cards[i];
 				}
 				if (cards.length > 0) {
-					XMLtoCB(_prop, _comm.clipboard, A.CtoXML(cards, null));
+					XMLtoCB(_prop, _comm.clipboard, A.CtoXML(cards, new XMLOption(_prop.sys)));
 					_comm.refreshToolBar();
 				}
 			}
