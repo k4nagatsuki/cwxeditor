@@ -1266,7 +1266,9 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 		auto round = c.enhanceRound(enh);
 		if (value > 0 && round > 0) {
 			CRGB back;
-			if (prop.var.etc.enhanceHighVal <= value) {
+			if (prop.var.etc.enhanceMaxVal <= value) {
+				back = prop.var.etc.enhanceColorMax;
+			} else if (prop.var.etc.enhanceHighVal <= value) {
 				back = prop.var.etc.enhanceColorHigh;
 			} else if (prop.var.etc.enhanceMiddleVal <= value) {
 				back = prop.var.etc.enhanceColorMiddle;
@@ -1278,7 +1280,9 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 			status(iData);
 		} else if (value < 0 && round > 0) {
 			CRGB back;
-			if (-(cast(int) prop.var.etc.enhanceHighVal) >= value) {
+			if (-(cast(int) prop.var.etc.enhanceMaxVal) >= value) {
+				back = prop.var.etc.penaltyColorMax;
+			} else if (-(cast(int) prop.var.etc.enhanceHighVal) >= value) {
 				back = prop.var.etc.penaltyColorHigh;
 			} else if (-(cast(int) prop.var.etc.enhanceMiddleVal) >= value) {
 				back = prop.var.etc.penaltyColorMiddle;

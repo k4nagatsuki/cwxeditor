@@ -195,13 +195,16 @@ class FlexEtcProps : Properties {
 	auto gridRange = Prop!(uint)("gridRange", 5);
 	auto gridColor = Prop!(CRGB, true)("gridColor", CRGB(64, 64, 64));
 	auto gridHighlightColor = Prop!(CRGB, true)("gridHighlightColor", CRGB(192, 192, 192));
+	auto enhanceMaxVal = Prop!(uint, true)("enhanceMaxVal", 10);
 	auto enhanceHighVal = Prop!(uint, true)("enhanceHighVal", 7);
 	auto enhanceMiddleVal = Prop!(uint, true)("enhanceMiddleVal", 4);
+	auto enhanceColorMax = Prop!(CRGB, true)("enhanceColorHigh", CRGB(255, 0, 0));
 	auto enhanceColorHigh = Prop!(CRGB, true)("enhanceColorHigh", CRGB(175, 0, 0));
 	auto enhanceColorMiddle = Prop!(CRGB, true)("enhanceColorMiddle", CRGB(127, 0, 0));
 	auto enhanceColorLow = Prop!(CRGB, true)("enhanceColorLow", CRGB(79, 0, 0));
+	auto penaltyColorMax = Prop!(CRGB, true)("penaltyColorHigh", CRGB(0, 0, 51));
 	auto penaltyColorHigh = Prop!(CRGB, true)("penaltyColorHigh", CRGB(0, 0, 85));
-	auto penaltyColorMiddle = Prop!(CRGB, true)("penaltyColorMiddle", CRGB(0, 0, 160));
+	auto penaltyColorMiddle = Prop!(CRGB, true)("penaltyColorMiddle", CRGB(0, 0, 136));
 	auto penaltyColorLow = Prop!(CRGB, true)("penaltyColorLow", CRGB(0, 0, 187));
 	auto textCellDefaultWidth = Prop!(int, true)("textCellDefaultWidth", 100);
 	auto textCellDefaultHeight = Prop!(int, true)("textCellDefaultHeight", 100);
