@@ -318,6 +318,7 @@ class Commons {
 	Dlg!() refCardImageStatus;
 	Dlg!() refEventTreeStyle;
 	Dlg!() refRadarStyle;
+	Dlg!() refVarSelectStyle;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;
@@ -359,6 +360,8 @@ class Commons {
 
 	private Props _prop = null;
 
+	bool[string] flagDirExpanded;
+
 	private HashSet!(Composite) _ws;
 	private Object[Composite] _wos;
 	this (Props prop) {
@@ -372,6 +375,14 @@ class Commons {
 				this.tupleof[i] = new typeof(fld);
 			}
 		}
+		refScenario.add(&clearFlagDirExpandedS);
+		refVarSelectStyle.add(&clearFlagDirExpanded);
+	}
+	private void clearFlagDirExpandedS(Summary summ) {
+		flagDirExpanded = null;
+	}
+	private void clearFlagDirExpanded() {
+		flagDirExpanded = null;
 	}
 	@property
 	Props prop() {return _prop;}
@@ -380,7 +391,10 @@ class Commons {
 	const(Props) prop() {return _prop;}
 	void dispose() {
 		if (_wallpaper) _wallpaper.dispose();
+		refScenario.remove(&clearFlagDirExpandedS);
+		refVarSelectStyle.remove(&clearFlagDirExpanded);
 	}
+
 	private MainWindow _main = null;
 	private DataWindow _dataWin = null;
 	private TableWindow _tableWin = null;

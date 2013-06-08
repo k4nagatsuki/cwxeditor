@@ -30,6 +30,7 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.images;
 import cwx.editor.gui.dwt.messageutils;
+import cwx.editor.gui.dwt.chooser;
 
 import std.algorithm : countUntil;
 import std.traits;
@@ -48,7 +49,7 @@ private:
 	Summary _summ;
 	bool _create;
 
-	Table _flag;
+	FlagChooser!(Flag, true) _flag = null;
 	Spinner _x;
 	Spinner _y;
 	Spinner _w;
@@ -56,13 +57,6 @@ private:
 	Button _mask;
 	Combo _easy;
 	bool _selected;
-
-	string _selectedFlag = "";
-	IncSearch _flagIncSearch;
-	void flagIncSearch() {
-		.forceFocus(_flag, true);
-		_flagIncSearch.startIncSearch();
-	}
 
 	void refreshWarning() {
 		// 処理無し
@@ -121,54 +115,6 @@ private:
 			_comm.refTargetVersion.remove(&refreshWarning);
 		}
 	}
-	void refFlags(Flag[] f, Step[] s) {
-		if (!_summ) return;
-		if (!f.length) return;
-		refreshFlags();
-	}
-	void delFlags(Flag[] f, Step[] s) {
-		if (!_summ) return;
-		if (!f.length) return;
-		refreshFlags();
-	}
-	void refreshFlags() {
-		if (!_flag) return;
-		auto flags = _summ.flagDirRoot.allFlags;
-		string sel = _selectedFlag;
-		_flag.removeAll();
-		auto nof = new TableItem(_flag, SWT.NONE);
-		nof.setText(_prop.msgs.noFlagRef);
-		nof.setImage(_prop.images.emptyIcon);
-		bool has = false;
-		foreach (flag; flags) {
-			auto path = flag.path;
-			if (!has && path == sel) {
-				has = true;
-			}
-			if (!_flagIncSearch.match(path)) continue;
-			auto itm = new TableItem(_flag, SWT.NONE);
-			itm.setData(flag);
-			itm.setImage(_prop.images.flag);
-			itm.setText(path);
-			if (path == sel) _flag.select(_flag.getItemCount() - 1);
-		}
-		if (!has) {
-			_flag.select(0);
-			_selectedFlag = "";
-		}
-	}
-	void openFlagView() {
-		if (!_flag) return;
-		auto i = _flag.getSelectionIndex();
-		if (-1 == i) return;
-		auto a = cast(Flag) _flag.getItem(i).getData();
-		if (!a) return;
-		try {
-			_comm.openCWXPath(cpaddattr(a.cwxPath(true), "shallow"), false);
-		} catch (Exception e) {
-			debugln(e);
-		}
-	}
 public:
 	this (Commons comm, Summary summ, Shell parent, string text, Image img, bool resizable, DSize size, bool create) {
 		_comm = comm;
@@ -188,35 +134,9 @@ protected:
 		auto grp = new Group(comp, SWT.NONE);
 		grp.setLayout(new GridLayout(2, false));
 		grp.setText(_prop.msgs.refFlag);
-		_flag = new Table(grp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
+		_flag = new FlagChooser!(Flag, true)(_comm, grp);
 		mod(_flag);
-		_flagIncSearch = new IncSearch(_comm, _flag);
-		_flagIncSearch.modEvent ~= &refreshFlags;
-		auto gd = new GridData(GridData.FILL_BOTH);
-		gd.widthHint = _prop.var.etc.flagsWidth;
-		gd.heightHint = _prop.var.etc.flagsHeight;
-		_flag.setLayoutData(gd);
-		auto colN = new FullTableColumn(_flag, SWT.NONE);
-		.listener(_flag, SWT.Selection, {
-			int index = _flag.getSelectionIndex();
-			if (-1 != index) {
-				auto f = cast(Flag) _flag.getItem(index).getData();
-				_selectedFlag = f ? f.path : "";
-			}
-		});
-
-		auto menu = new Menu(_flag.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.IncSearch, &flagIncSearch, () => 1 < _flag.getItemCount());
-		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagView, () => 0 < _flag.getSelectionIndex());
-		_flag.setMenu(menu);
-
-		_comm.refFlagAndStep.add(&refFlags);
-		_comm.delFlagAndStep.add(&delFlags);
-		.listener(_flag, SWT.Dispose, {
-			_comm.refFlagAndStep.remove(&refFlags);
-			_comm.delFlagAndStep.remove(&delFlags);
-		});
+		_flag.setLayoutData(new GridData(GridData.FILL_BOTH));
 		return grp;
 	}
 
@@ -283,9 +203,6 @@ protected:
 		comp.setLayoutData(gd);
 	}
 	void setFirstParams(Composite area) {
-		if (_flag) {
-			refreshFlags();
-		}
 		area.addDisposeListener(new Dispose);
 		_comm.delBgImage.add(&delBgImage);
 		_comm.refTargetVersion.add(&refreshWarning);
@@ -294,20 +211,7 @@ protected:
 		scope (exit) ignoreMod = false;
 		if (back) {
 			if (_flag) {
-				_flag.select(0);
-				_selectedFlag = "";
-				if (back.flag.length > 0) {
-					foreach (i, itm; _flag.getItems()) {
-						auto flag = cast(Flag) itm.getData();
-						if (!flag) continue;
-						string path = flag.path;
-						if (path == back.flag) {
-							_flag.select(i);
-							_selectedFlag = path;
-							break;
-						}
-					}
-				}
+				_flag.selected = back.flag;
 			}
 			_x.setSelection(back.x);
 			_y.setSelection(back.y);
@@ -316,8 +220,7 @@ protected:
 			if (_mask) _mask.setSelection(back.mask);
 		} else {
 			if (_flag) {
-				_flag.select(0);
-				_selectedFlag = "";
+				_flag.selected = "";
 			}
 			_x.setSelection(0);
 			_y.setSelection(0);
@@ -325,14 +228,13 @@ protected:
 			_h.setSelection(0);
 			if (_mask) _mask.setSelection(false);
 		}
-		if (_flag) _flag.showSelection();
 		auto spnl = new SModL;
 		_w.addModifyListener(spnl);
 		_h.addModifyListener(spnl);
 	}
 
 	void applyParams(BgImage back) {
-		back.flag = _selectedFlag;
+		back.flag = _flag ? _flag.selected : "";
 		back.x = _x.getSelection();
 		back.y = _y.getSelection();
 		back.width = _w.getSelection();

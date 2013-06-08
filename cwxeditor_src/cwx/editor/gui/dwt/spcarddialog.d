@@ -26,6 +26,7 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.chooser;
 
 import std.conv;
 import std.math;
@@ -95,17 +96,10 @@ private:
 	} else {
 		static assert (0);
 	}
-	Table _flag;
+	FlagChooser!(Flag, true) _flag = null;
 	Spinner _x;
 	Spinner _y;
 	Spinner _scale;
-
-	string _selectedFlag = "";
-	IncSearch _flagIncSearch;
-	void flagIncSearch() {
-		.forceFocus(_flag, true);
-		_flagIncSearch.startIncSearch();
-	}
 
 	class SDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
@@ -170,54 +164,6 @@ private:
 	void refSkin() {
 		static if (is (C == MenuCard)) {
 			_desc.font = dwtData(_prop.looks.cardDescFont(_summ.legacy));
-		}
-	}
-	void refFlags(Flag[] f, Step[] s) {
-		if (!_summ) return;
-		if (!f.length) return;
-		refreshFlags();
-	}
-	void delFlags(Flag[] f, Step[] s) {
-		if (!_summ) return;
-		if (!f.length) return;
-		refreshFlags();
-	}
-	void refreshFlags() {
-		if (!_flag) return;
-		auto flags = _summ.flagDirRoot.allFlags;
-		string sel = _selectedFlag;
-		_flag.removeAll();
-		auto nof = new TableItem(_flag, SWT.NONE);
-		nof.setText(_prop.msgs.noFlagRef);
-		nof.setImage(_prop.images.emptyIcon);
-		bool has = false;
-		foreach (flag; flags) {
-			auto path = flag.path;
-			if (!has && path == sel) {
-				has = true;
-			}
-			if (!_flagIncSearch.match(path)) continue;
-			auto itm = new TableItem(_flag, SWT.NONE);
-			itm.setData(flag);
-			itm.setImage(_prop.images.flag);
-			itm.setText(path);
-			if (path == sel) _flag.select(_flag.getItemCount() - 1);
-		}
-		if (!has) {
-			_flag.select(0);
-			_selectedFlag = "";
-		}
-	}
-	void openFlagView() {
-		if (!_flag) return;
-		auto i = _flag.getSelectionIndex();
-		if (-1 == i) return;
-		auto a = cast(Flag) _flag.getItem(i).getData();
-		if (!a) return;
-		try {
-			_comm.openCWXPath(cpaddattr(a.cwxPath(true), "shallow"), false);
-		} catch (Exception e) {
-			debugln(e);
 		}
 	}
 	static if (is(C:EnemyCard)) {
@@ -348,29 +294,9 @@ protected:
 					auto grp = new Group(sash, SWT.NONE);
 					grp.setLayout(new GridLayout(2, false));
 					grp.setText(_prop.msgs.refFlag);
-					_flag = new Table(grp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
+					_flag = new FlagChooser!(Flag, true)(_comm, grp);
 					mod(_flag);
-					_flagIncSearch = new IncSearch(_comm, _flag);
-					_flagIncSearch.modEvent ~= &refreshFlags;
-					auto gd = new GridData(GridData.FILL_BOTH);
-					gd.widthHint = _prop.var.etc.flagsWidth;
-					gd.heightHint = _prop.var.etc.flagsHeight;
-					_flag.setLayoutData(gd);
-					auto colN = new FullTableColumn(_flag, SWT.NONE);
-
-					.listener(_flag, SWT.Selection, {
-						int index = _flag.getSelectionIndex();
-						if (-1 != index) {
-							auto f = cast(Flag) _flag.getItem(index).getData();
-							_selectedFlag = f ? f.path : "";
-						}
-					});
-
-					auto menu = new Menu(_flag.getShell(), SWT.POP_UP);
-					createMenuItem(_comm, menu, MenuID.IncSearch, &flagIncSearch, () => 1 < _flag.getItemCount());
-					new MenuItem(menu, SWT.SEPARATOR);
-					createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagView, () => 0 < _flag.getSelectionIndex());
-					_flag.setMenu(menu);
+					_flag.setLayoutData(new GridData(GridData.FILL_BOTH));
 				}
 				static if (is (C == MenuCard)) {
 					sash.setWeights([_prop.var.etc.menuCardSashL, _prop.var.etc.menuCardSashR]);
@@ -378,13 +304,6 @@ protected:
 					sash.setWeights([_prop.var.etc.enemyCardSashL, _prop.var.etc.enemyCardSashR]);
 				} else static assert (0);
 				sash.addDisposeListener(new SDListener);
-
-				_comm.refFlagAndStep.add(&refFlags);
-				_comm.delFlagAndStep.add(&delFlags);
-				.listener(_flag, SWT.Dispose, {
-					_comm.refFlagAndStep.remove(&refFlags);
-					_comm.delFlagAndStep.remove(&delFlags);
-				});
 			}
 			{
 				auto grp = new Group(comp, SWT.NONE);
@@ -429,9 +348,6 @@ protected:
 			comp.setLayoutData(area.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		}
 
-		if (_flag) {
-			refreshFlags();
-		}
 		static if (is(C : EnemyCard)) {
 			refreshCasts();
 		}
@@ -473,20 +389,7 @@ protected:
 				static assert (0);
 			}
 			if (_flag) {
-				_flag.select(0);
-				_selectedFlag = "";
-				if (_card.flag.length > 0) {
-					foreach (i, itm; _flag.getItems()) {
-						auto flag = cast(Flag) itm.getData();
-						if (!flag) continue;
-						string path = flag.path;
-						if (path == _card.flag) {
-							_flag.select(i);
-							_selectedFlag = path;
-							break;
-						}
-					}
-				}
+				_flag.selected = _card.flag;
 			}
 			_x.setSelection(_card.x);
 			_y.setSelection(_card.y);
@@ -505,14 +408,12 @@ protected:
 				static assert (0);
 			}
 			if (_flag) {
-				_flag.select(0);
-				_selectedFlag = "";
+				_flag.selected = "";
 			}
 			_x.setSelection(0);
 			_y.setSelection(0);
 			_scale.setSelection(100);
 		}
-		if (_flag) _flag.showSelection();
 		static if (is(typeof(refreshWarning))) {
 			refreshWarning();
 		}
@@ -531,18 +432,18 @@ protected:
 			} else {
 				static assert (0);
 			}
-			_card.flag = _selectedFlag;
+			_card.flag = _flag.selected;
 			_card.x = _x.getSelection();
 			_card.y = _y.getSelection();
 			_card.scale = _scale.getSelection() / 100.0;
 		} else {
 			static if (is (C == MenuCard)) {
 				_card = new C(_name.getText(), _imgPath.image,
-					wrapReturnCode(_desc.getText()), _selectedFlag,
+					wrapReturnCode(_desc.getText()), _flag.selected,
 					_x.getSelection(), _y.getSelection(), _scale.getSelection() / 100.0);
 			} else static if (is (C == EnemyCard)) {
 				_card = new C(_selectedID, _escape.getSelection(),
-					_selectedFlag, _x.getSelection(), _y.getSelection(), _scale.getSelection() / 100.0);
+					_flag.selected, _x.getSelection(), _y.getSelection(), _scale.getSelection() / 100.0);
 			} else {
 				static assert (0);
 			}

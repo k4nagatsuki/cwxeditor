@@ -1425,6 +1425,7 @@ private:
 	TableItem _cautionBeforeReplace;
 	TableItem _applyDialogsBeforeSave;
 	TableItem _useNamesAfterStandard;
+	TableItem _selectVariableWithTree;
 	Combo _targetVersion;
 	int[string] _targetVersionTbl;
 	string[int] _targetVersionTbl2;
@@ -2267,6 +2268,7 @@ private:
 				_cautionBeforeReplace = createB(_prop.msgs.cautionBeforeReplace);
 				_applyDialogsBeforeSave = createB(_prop.msgs.applyDialogsBeforeSave);
 				_useNamesAfterStandard = createB(_prop.msgs.useNamesAfterStandard);
+				_selectVariableWithTree = createB(_prop.msgs.selectVariableWithTree);
 
 				auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 				auto sepgd = new GridData(GridData.FILL_HORIZONTAL);
@@ -2551,6 +2553,7 @@ protected:
 		_cautionBeforeReplace.setChecked(_prop.var.etc.cautionBeforeReplace);
 		_applyDialogsBeforeSave.setChecked(_prop.var.etc.applyDialogsBeforeSave);
 		_useNamesAfterStandard.setChecked(_prop.var.etc.useNamesAfterStandard);
+		_selectVariableWithTree.setChecked(_prop.var.etc.selectVariableWithTree);
 		auto tVer = _prop.var.etc.targetVersion in _targetVersionTbl;
 		if (tVer) {
 			_targetVersion.select(*tVer);
@@ -2712,6 +2715,7 @@ protected:
 		_prop.var.etc.cautionBeforeReplace = _cautionBeforeReplace.getChecked();
 		_prop.var.etc.applyDialogsBeforeSave = _applyDialogsBeforeSave.getChecked();
 		_prop.var.etc.useNamesAfterStandard = _useNamesAfterStandard.getChecked();
+		_prop.var.etc.selectVariableWithTree = _selectVariableWithTree.getChecked();
 		_prop.var.etc.contentsFloat = _contentsFloat.getChecked();
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getChecked();
 		_prop.var.etc.comboListVisible = _comboListVisible.getChecked();
@@ -2806,6 +2810,7 @@ struct OldSettings {
 	bool showSpNature;
 	bool showVariableValuesInEventText;
 	bool useNamesAfterStandard;
+	bool selectVariableWithTree;
 	this (Props prop) {
 		this.prop = prop;
 		this.targetVersion = prop.var.etc.targetVersion;
@@ -2848,6 +2853,7 @@ struct OldSettings {
 		this.showSpNature = prop.var.etc.showSpNature;
 		this.showVariableValuesInEventText = prop.var.etc.showVariableValuesInEventText;
 		this.useNamesAfterStandard = prop.var.etc.useNamesAfterStandard;
+		this.selectVariableWithTree = prop.var.etc.selectVariableWithTree;
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
@@ -2967,6 +2973,9 @@ struct OldSettings {
 		}
 		if (this.showCardListTitle != prop.var.etc.showCardListTitle) {
 			comm.refShowCardListTitle.call();
+		}
+		if (this.selectVariableWithTree != prop.var.etc.selectVariableWithTree) {
+			comm.refVarSelectStyle.call();
 		}
 	}
 }

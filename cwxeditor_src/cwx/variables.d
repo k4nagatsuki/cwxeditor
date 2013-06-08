@@ -330,6 +330,7 @@ class FlexEtcProps : Properties {
 	auto showCardListTitle = Prop!(bool)("showCardListTitle", true);
 	auto applyDialogsBeforeSave = Prop!(bool)("applyDialogsBeforeSave", true);
 	auto useNamesAfterStandard = Prop!(bool)("useNamesAfterStandard", false);
+	auto selectVariableWithTree = Prop!(bool)("selectVariableWithTree", true);
 
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
 

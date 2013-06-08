@@ -1535,6 +1535,7 @@ public:
 		EventTree et;
 		if (baseStart) {
 			et = new EventTree(baseStart);
+			et.name = _prop.msgs.packageTree;
 		} else {
 			et = new EventTree(_prop.msgs.packageTree);
 		}

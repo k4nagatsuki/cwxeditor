@@ -1957,7 +1957,7 @@ public:
 					createMenuItem(_comm, popup, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
 					new MenuItem(popup, SWT.SEPARATOR);
 					dStr ~= " - " ~ .text(__LINE__);
-					createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, () => selection !is null);
+					createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, () => 1 < _tree.getItemCount() && selection !is null);
 					dStr ~= " - " ~ .text(__LINE__);
 					void delegate() dlg = null;
 					auto convMI = createMenuItem(_comm, popup, MenuID.ConvertContent, dlg, {
@@ -2239,6 +2239,7 @@ public:
 	}
 	private void startToPackage() {
 		if (!_et || !selection) return;
+		if (_tree.getItemCount() <= 1) return;
 		auto sel = selection;
 		if (!sel) return;
 		auto base = cast(Content) selection.getData();
@@ -2247,10 +2248,10 @@ public:
 		assert (start);
 		assert (start is startItm.getData(), start.name ~ " : " ~ startItm.getText());
 		int index = _tree.indexOf(startItm);
-		if (index == 0) return;
 		TreeItem[] users;
 		Content[] conts = [start];
 		void find(TreeItem itm) {
+			if (itm is startItm) return;
 			auto c = cast(Content) itm.getData();
 			if (c.start == start.name) {
 				users ~= itm;

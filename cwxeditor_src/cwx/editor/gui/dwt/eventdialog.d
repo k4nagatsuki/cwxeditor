@@ -1304,31 +1304,9 @@ private:
 	FlagDir _root;
 
 	SplitPane _sash;
-	Table _flags;
+	FlagChooser!(F, false) _flags;
+	string _oldSel = "";
 	Table _values;
-
-	string _selected;
-
-	IncSearch _incSearch;
-	void incSearch() {
-		.forceFocus(_flags, true);
-		_incSearch.startIncSearch();
-	}
-
-	@property
-	string listSelected() {
-		auto f = selected;
-		return f ? f.path : "";
-	}
-
-	@property
-	F selected() {
-		int index = _flags.getSelectionIndex();
-		if (-1 == index) {
-			return null;
-		}
-		return cast(F) _flags.getItem(index).getData();
-	}
 
 	@property
 	uint selectedValue() {
@@ -1337,9 +1315,9 @@ private:
 
 	void refreshValues() {
 		static if (is(F:Flag)) {
-			F flag = summ.flagDirRoot.findFlag(_selected);
+			F flag = summ.flagDirRoot.findFlag(_flags.selected);
 		} else static if (is(F:Step)) {
-			F flag = summ.flagDirRoot.findStep(_selected);
+			F flag = summ.flagDirRoot.findStep(_flags.selected);
 		} else static assert (0);
 		static if (SelValue) {
 			int sel = _values.getSelectionIndex();
@@ -1369,60 +1347,22 @@ private:
 		}
 		updateLabel();
 	}
-	class SListener : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
-			int index = _flags.getSelectionIndex();
-			if (-1 != index) {
-				string selPath = (cast(F) _flags.getItem(index).getData()).path;
-				if (_selected == selPath) {
-					static if (SelValue) {
-						_values.select(0);
-						updateLabel();
-					}
-				} else {
-					_selected = selPath;
-					refreshValues();
-				}
+	void selectedFlag() {
+		string selPath = _flags.selectedWithDir;
+		if (_oldSel == selPath) {
+			static if (SelValue) {
+				_values.select(0);
+				updateLabel();
 			}
+		} else {
+			_oldSel = _flags.selectedWithDir;
+			refreshValues();
 		}
 	}
 	class ValSListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			updateLabel();
 		}
-	}
-	void refreshList() {
-		static if (is (F == Flag)) {
-			auto flags = _root.allFlags;
-		} else static if (is (F == Step)) {
-			auto flags = _root.allSteps;
-		} else static assert (0);
-		string sel = _selected;
-		_flags.removeAll();
-		bool has = false;
-		size_t i = 0;
-		foreach (flag; flags) {
-			auto path = flag.path;
-			if (!has && path == sel) {
-				has = true;
-			}
-			if (!_incSearch.match(path)) continue;
-			auto itm = new TableItem(_flags, SWT.NONE);
-			itm.setData(flag);
-			itm.setText(path);
-			static if (is(F : Flag)) {
-				itm.setImage(_prop.images.flag);
-			} else static if (is(F : Step)) {
-				itm.setImage(_prop.images.step);
-			} else static assert (0);
-			if (path == sel) _flags.select(i);
-			i++;
-		}
-		if (!has && _flags.getItemCount()) {
-			_flags.select(0);
-			_selected = (cast(F) _flags.getItem(0).getData()).path;
-		}
-		refreshValues();
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
@@ -1457,32 +1397,20 @@ private:
 				return;
 			}
 		} else static assert (0);
-		refreshList();
+		refreshValues();
 	}
 
-	void openView() {
-		auto i = _flags.getSelectionIndex();
-		if (-1 == i) return;
-		auto a = cast(F) _flags.getItem(i).getData();
-		try {
-			_comm.openCWXPath(cpaddattr(a.cwxPath(true), "shallow"), false);
-		} catch (Exception e) {
-			debugln(e);
-		}
-	}
-	class OpenView : MouseAdapter {
-		override void mouseDoubleClick(MouseEvent e) {
-			if (1 != e.button) return;
-			openView();
-		}
-	}
 	static if (Type is CType.CHECK_STEP) {
 		Label _cmpLabel = null;
 		Combo _cmp = null;
 		Comparison4[] _cmps;
 		void updateLabel() {
-			F step = selected;
-			assert (step !is null);
+			static if (is(F:Flag)) {
+				F step = summ.flagDirRoot.findFlag(_flags.selected);
+			} else static if (is(F:Step)) {
+				F step = summ.flagDirRoot.findStep(_flags.selected);
+			} else static assert (0);
+			if (!step) return;
 			uint value = selectedValue;
 			_cmpLabel.setText(.tryFormat(prop.msgs.stepValueIs, step.path, step.getValue(value)));
 		}
@@ -1529,22 +1457,10 @@ protected:
 			l2.setLayoutData(gd);
 		}
 		{
-			_flags = new Table(left, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+			_flags = new FlagChooser!(F, false, false)(comm, left);
 			mod(_flags);
-			_incSearch = new IncSearch(comm, _flags);
-			_incSearch.modEvent ~= &refreshList;
-			new FullTableColumn(_flags, SWT.NONE);
-			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.heightHint = _prop.var.etc.nameTableHeight;
-			_flags.setLayoutData(gd);
-			_flags.addSelectionListener(new SListener);
-
-			_flags.addMouseListener(new OpenView);
-			auto menu = new Menu(_flags.getShell(), SWT.POP_UP);
-			createMenuItem(comm, menu, MenuID.IncSearch, &incSearch, null);
-			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(comm, menu, MenuID.OpenAtVarView, &openView, () => _flags.getSelectionIndex() != -1);
-			_flags.setMenu(menu);
+			_flags.modEvent ~= &selectedFlag;
+			_flags.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		{
 			_values = new Table(right, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
@@ -1577,26 +1493,14 @@ protected:
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		refreshList();
 		if (_evt) {
 			static if (is (F == Flag)) {
-				_selected = _evt.flag;
+				_flags.selected = _evt.flag;
 			} else static if (is (F == Step)) {
-				_selected = _evt.step;
+				_flags.selected = _evt.step;
 			} else {
 				static assert (0);
 			}
-			int index = -1;
-			foreach (i, itm; _flags.getItems()) {
-				if ((cast(F) itm.getData()).path == _selected) {
-					index = i;
-					break;
-				}
-			}
-			index = index >= 0 ? index : 0;
-			_flags.select(index);
-			_selected = (cast(F) _flags.getItem(index).getData()).path;
-			_flags.showSelection();
 			refreshValues();
 			static if (SelValue) {
 				static if (is (F == Flag)) {
@@ -1611,8 +1515,7 @@ protected:
 				_cmp.select(_cmps.countUntil(_evt.comparison4));
 			}
 		} else {
-			_flags.select(0);
-			_selected = (cast(F) _flags.getItem(0).getData()).path;
+			_flags.selected = "";
 			refreshValues();
 			static if (Type is CType.CHECK_STEP) {
 				_cmp.select(0);
@@ -1624,15 +1527,15 @@ protected:
 	}
 
 	override bool apply() {
-		assert (_flags.getItemCount() > 0);
+		assert (_flags.selected != "");
 		if (!_evt) _evt = new Content(Type, "");
 		static if (is (F == Flag)) {
-			_evt.flag = _selected;
+			_evt.flag = _flags.selected;
 			static if (SelValue) {
 				_evt.flagValue = _values.getSelectionIndex() == 0;
 			}
 		} else static if (is (F == Step)) {
-			_evt.step = _selected;
+			_evt.step = _flags.selected;
 			static if (SelValue) {
 				_evt.stepValue = _values.getSelectionIndex();
 			}
@@ -1663,11 +1566,8 @@ private:
 	FlagDir _root;
 
 	SplitPane _sash;
-	Table _flags1;
-	Table _flags2;
-
-	string _selected1;
-	string _selected2;
+	FlagChooser!(F, false, Random) _flags1;
+	FlagChooser!(F, false, false) _flags2;
 
 	override
 	protected void refreshWarning() {
@@ -1678,159 +1578,23 @@ private:
 		warning = ws;
 	}
 
-	IncSearch _incSearch1;
-	IncSearch _incSearch2;
-	void incSearch1() {
-		.forceFocus(_flags1, true);
-		_incSearch1.startIncSearch();
-	}
-	void incSearch2() {
-		.forceFocus(_flags2, true);
-		_incSearch2.startIncSearch();
-	}
-
-	string getPath(TableItem itm) {
-		auto f = cast(F) itm.getData();
-		static if (Random) {
-			return f ? f.path : prop.sys.randomValue;
-		} else {
-			assert (f !is null);
-			return f.path;
-		}
-	}
-
-	@property
-	string listSelected1() {
-		int index = _flags1.getSelectionIndex();
-		if (-1 == index) return "";
-		return getPath(_flags1.getItem(index));
-	}
-	@property
-	string listSelected2() {
-		int index = _flags2.getSelectionIndex();
-		if (-1 == index) return "";
-		return getPath(_flags2.getItem(index));
-	}
-
-	class SListener : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
-			auto flags = cast(Table) e.widget;
-			int index = flags.getSelectionIndex();
-			if (-1 != index) {
-				string selPath = getPath(flags.getItem(index));
-				if (_flags1 is flags) {
-					_selected1 = selPath;
-				} else {
-					assert (_flags2 is flags);
-					_selected2 = selPath;
-				}
-			}
-		}
-	}
-	void refreshList() {
-		static if (is (F == Flag)) {
-			auto flags = _root.allFlags;
-		} else static if (is (F == Step)) {
-			auto flags = _root.allSteps;
-		} else static assert (0);
-		string sel1 = _selected1;
-		string sel2 = _selected2;
-		_flags1.removeAll();
-		_flags2.removeAll();
-		bool has1 = false;
-		bool has2 = false;
-		void put(F flag, string path, string text, Table flags, string sel) {
-			auto itm = new TableItem(flags, SWT.NONE);
-			itm.setData(flag);
-			itm.setText(text);
-			if (flag) {
-				static if (is(F : Flag)) {
-					itm.setImage(_prop.images.flag);
-				} else static if (is(F : Step)) {
-					itm.setImage(_prop.images.step);
-				} else static assert (0);
-			}
-			if (path == sel) flags.select(flags.getItemCount() - 1);
-		}
-		static if (Random) {
-			{
-				auto path = prop.sys.randomValue;
-				if (!has1 && path == sel1) has1 = true;
-				put(null, path, prop.msgs.randomValue, _flags1, sel1);
-			}
-		}
-		foreach (flag; flags) {
-			auto path = flag.path;
-			if (!has1 && path == sel1) has1 = true;
-			if (!has2 && path == sel2) has2 = true;
-			if (_incSearch1.match(path)) {
-				put(flag, path, path, _flags1, sel1);
-			}
-			if (_incSearch2.match(path)) {
-				put(flag, path, path, _flags2, sel2);
-			}
-		}
-		if (!has1 && _flags1.getItemCount()) {
-			_flags1.select(0);
-			_selected1 = getPath(_flags1.getItem(0));
-		}
-		if (!has2 && _flags2.getItemCount()) {
-			_flags2.select(0);
-			_selected2 = getPath(_flags2.getItem(0));
-		}
-	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
-			_comm.refFlagAndStep.remove(&refFS);
 			_comm.delFlagAndStep.remove(&delFS);
 		}
 	}
-	void refFS(Flag[] f, Step[] s) {
-		static if (is(F : Flag)) {
-			if (!f.length) return;
-		} else {
-			if (!s.length) return;
-		}
-		refreshList();
-	}
 	void delFS(Flag[] f, Step[] s) {
-		static if (is(F : Flag)) {
-			if (!f.length) return;
-		} else {
-			if (!s.length) return;
-		}
 		static if (is(F : Flag)) {
 			if (!_root.allFlags.length) {
 				forceCancel();
-				return;
 			}
 		} else static if (is(F : Step)) {
 			if (!_root.allSteps.length) {
 				forceCancel();
-				return;
 			}
 		} else static assert (0);
-		refreshList();
 	}
 
-	void openViewImpl(Table flags) {
-		auto i = flags.getSelectionIndex();
-		if (-1 == i) return;
-		auto a = cast(F) flags.getItem(i).getData();
-		try {
-			_comm.openCWXPath(cpaddattr(a.cwxPath(true), "shallow"), false);
-		} catch (Exception e) {
-			debugln(e);
-		}
-	}
-	void openView1() {openViewImpl(_flags1);}
-	void openView2() {openViewImpl(_flags2);}
-	class OpenView : MouseAdapter {
-		override void mouseDoubleClick(MouseEvent e) {
-			if (1 != e.button) return;
-			openViewImpl(cast(Table) e.widget);
-		}
-	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, FlagDir root) {
 		_root = root;
@@ -1870,79 +1634,42 @@ protected:
 				static assert (0);
 			}
 		}
-		void createList(Composite comp, ref Table flags, ref IncSearch incSearch, void delegate() openView, void delegate() startSearch) {
-			flags = new Table(comp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
-			mod(flags);
-			incSearch = new IncSearch(comm, flags);
-			incSearch.modEvent ~= &refreshList;
-			new FullTableColumn(flags, SWT.NONE);
-			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.heightHint = _prop.var.etc.nameTableHeight;
-			flags.setLayoutData(gd);
-			flags.addSelectionListener(new SListener);
+		_flags1 = new FlagChooser!(F, false, Random)(comm, left);
+		_flags1.setLayoutData(new GridData(GridData.FILL_BOTH));
+		_flags2 = new FlagChooser!(F, false, false)(comm, right, false);
+		_flags2.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-			flags.addMouseListener(new OpenView);
-			auto menu = new Menu(flags.getShell(), SWT.POP_UP);
-			createMenuItem(comm, menu, MenuID.IncSearch, startSearch, null);
-			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(comm, menu, MenuID.OpenAtVarView, openView, () => flags.getSelectionIndex() != -1);
-			flags.setMenu(menu);
-		}
-		createList(left, _flags1, _incSearch1, &openView1, &incSearch1);
-		createList(right, _flags2, _incSearch2, &openView2, &incSearch2);
-
-		_comm.refFlagAndStep.add(&refFS);
 		_comm.delFlagAndStep.add(&delFS);
 		_sash.addDisposeListener(new Dispose);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		refreshList();
 		if (_evt) {
 			static if (is (F == Flag)) {
-				_selected1 = _evt.flag;
-				_selected2 = _evt.flag2;
+				_flags1.selected = _evt.flag;
+				_flags2.selected = _evt.flag2;
 			} else static if (is (F == Step)) {
-				_selected1 = _evt.step;
-				_selected2 = _evt.step2;
+				_flags1.selected = _evt.step;
+				_flags2.selected = _evt.step2;
 			} else {
 				static assert (0);
 			}
-			void put(Table flags, ref string selected) {
-				int index = -1;
-				foreach (i, itm; flags.getItems()) {
-					if (getPath(itm) == selected) {
-						index = i;
-						break;
-					}
-				}
-				index = index >= 0 ? index : 0;
-				flags.select(index);
-				selected = getPath(flags.getItem(index));
-				flags.showSelection();
-			}
-			put(_flags1, _selected1);
-			put(_flags2, _selected2);
 		} else {
-			_flags1.select(0);
-			_flags2.select(0);
-			_selected1 = getPath(_flags1.getItem(0));
-			_selected2 = getPath(_flags2.getItem(0));
+			_flags1.selected = "";
+			_flags2.selected = "";
 		}
 		refreshWarning();
 		_sash.setWeights([_prop.var.etc.flagCombiSashL, _prop.var.etc.flagCombiSashR]);
 	}
 
 	override bool apply() {
-		assert (_flags1.getItemCount() > 0);
-		assert (_flags2.getItemCount() > 0);
 		if (!_evt) _evt = new Content(Type, "");
 		static if (is (F == Flag)) {
-			_evt.flag = _selected1;
-			_evt.flag2 = _selected2;
+			_evt.flag = _flags1.selected;
+			_evt.flag2 = _flags2.selected;
 		} else static if (is (F == Step)) {
-			_evt.step = _selected1;
-			_evt.step2 = _selected2;
+			_evt.step = _flags1.selected;
+			_evt.step2 = _flags2.selected;
 		} else {
 			static assert (0);
 		}
