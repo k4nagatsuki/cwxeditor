@@ -345,7 +345,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					auto itm = new TreeItem(dirItm, SWT.NONE);
 					itm.setData(flag);
 					itm.setImage(icon);
-					itm.setText(path);
+					itm.setText(flag.name);
 					if (!_tree.getSelectionCount() && path == sel) {
 						selItm = true;
 						_tree.setSelection([itm]);

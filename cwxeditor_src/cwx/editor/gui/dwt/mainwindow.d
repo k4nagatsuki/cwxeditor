@@ -280,93 +280,147 @@ private:
 
 	private SysTime _lastBackup;
 	void backupThr() {
+		string dStr = .text(__LINE__);
 		try {
+			dStr ~= " - " ~ .text(__LINE__);
 			version (Console) {
 				debug std.stdio.writeln("Start Backup Thread");
 			}
+			dStr ~= " - " ~ .text(__LINE__);
 			_lastBackup = Clock.currTime();
+			dStr ~= " - " ~ .text(__LINE__);
 			while (!_quit) {
+				dStr ~= " - " ~ .text(__LINE__);
 				if (_lastBackup + dur!"minutes"(_prop.var.etc.backupInterval) <= Clock.currTime()) {
+					dStr ~= " - " ~ .text(__LINE__);
 					createBackup();
+					dStr ~= " - " ~ .text(__LINE__);
 					_lastBackup = Clock.currTime();
+					dStr ~= " - " ~ .text(__LINE__);
 				}
+				dStr ~= " - " ~ .text(__LINE__);
 				core.thread.Thread.sleep(dur!"seconds"(1));
 			}
+			dStr ~= " - " ~ .text(__LINE__);
 			version (Console) {
 				debug writeln("Exit Backup Thread");
 			}
+			dStr ~= " - " ~ .text(__LINE__);
 		} catch (Throwable e) {
-			debugln(e);
+			fdebugln(dStr);
+			fdebugln(e);
 		}
 	}
 	private string _oldMD5 = "";
 	void createBackup() {
+		string dStr = .text(__LINE__);
 		try {
+			dStr ~= " - " ~ .text(__LINE__);
 			if (_quit) return;
 			if (!_prop.var.etc.backupEnabled) return;
 			auto summ = summary;
 			if (!summ) return;
+			dStr ~= " - " ~ .text(__LINE__);
 
+			dStr ~= " - " ~ .text(__LINE__);
 			if (_prop.var.etc.backupRefAuthor) {
 				if (summ.author != _prop.var.etc.defaultAuthor) return;
 			}
+			dStr ~= " - " ~ .text(__LINE__);
 			if (_prop.var.etc.autoSave && summ.isChanged) {
 				// バックアップ前に自動セーブ
+				dStr ~= " - " ~ .text(__LINE__);
 				_display.syncExec(new class Runnable {
 					override void run() {
 						if (!_win || _win.isDisposed()) return;
 						save(_win, true);
 					}
 				});
+				dStr ~= " - " ~ .text(__LINE__);
 			}
 
+			dStr ~= " - " ~ .text(__LINE__);
 			string parent = _prop.backupPath;
+			dStr ~= " - " ~ .text(__LINE__);
 
 			// 既存のバックアップファイルのリスト
+			dStr ~= " - " ~ .text(__LINE__);
 			auto reg = .regex("^cwxeditor_backup_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]\\[.+\\]\\.zip$"d);
+			dStr ~= " - " ~ .text(__LINE__);
 			auto files = clistdir(parent);
+			dStr ~= " - " ~ .text(__LINE__);
 			string[] backup;
+			dStr ~= " - " ~ .text(__LINE__);
 			foreach (f; files) {
 				if (match(to!dstring(f), reg).empty) continue;
 				backup ~= f;
 			}
+			dStr ~= " - " ~ .text(__LINE__);
 			// 日時でソート。実際の更新日時よりファイル名に記述された日付を優先する
 			backup = backup.sort;
+			dStr ~= " - " ~ .text(__LINE__);
 
 			auto bc = _prop.var.etc.backupCount;
+			dStr ~= " - " ~ .text(__LINE__);
 			void[] data;
 			if (0 < bc) {
+				dStr ~= " - " ~ .text(__LINE__);
 				string sPath = summ.scenarioPath;
+				dStr ~= " - " ~ .text(__LINE__);
 				auto d = Clock.currTime();
+				dStr ~= " - " ~ .text(__LINE__);
 				string file = .format("cwxeditor_backup_%04d%02d%02d%02d%02d%02d[%s].zip",
 					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.baseName());
+				dStr ~= " - " ~ .text(__LINE__);
 				string zFile = std.path.buildPath(parent, file);
+				dStr ~= " - " ~ .text(__LINE__);
 				synchronized (_saveSync) {
 					data = summ.createZipData([], true);
 				}
+				dStr ~= " - " ~ .text(__LINE__);
 				auto md5 = md5Digest(data);
+				dStr ~= " - " ~ .text(__LINE__);
 				if ((_oldMD5 != md5) && (!backup.length || data != std.file.read(parent.buildPath(backup[$ - 1])))) {
 					// 前回のバックアップと異なっていれば保存
+					dStr ~= " - " ~ .text(__LINE__);
 					if (!parent.exists()) mkdirRecurse(parent);
+					dStr ~= " - " ~ .text(__LINE__);
 					std.file.write(zFile, data);
+					dStr ~= " - " ~ .text(__LINE__);
 					_oldMD5 = md5;
+					dStr ~= " - " ~ .text(__LINE__);
 					bc--;
+					dStr ~= " - " ~ .text(__LINE__);
 				}
+				dStr ~= " - " ~ .text(__LINE__);
 			}
+			dStr ~= " - " ~ .text(__LINE__);
 
 			if (backup.length <= bc) return;
+			dStr ~= " - " ~ .text(__LINE__);
 
 			// 古いバックアップを削除する
+			dStr ~= " - " ~ .text(__LINE__);
 			foreach (f; backup[0 .. backup.length - bc]) {
+				dStr ~= " - " ~ .text(__LINE__);
 				f = std.path.buildPath(parent, f);
+				dStr ~= " - " ~ .text(__LINE__);
 				try {
+					dStr ~= " - " ~ .text(__LINE__);
 					std.file.remove(f);
+					dStr ~= " - " ~ .text(__LINE__);
 				} catch (Exception e) {
 					debugln(e);
 				}
+				dStr ~= " - " ~ .text(__LINE__);
 			}
+			dStr ~= " - " ~ .text(__LINE__);
 		} catch (Exception e) {
 			debugln(e);
+		} catch (Throwable e) {
+			fdebugln(dStr);
+			fdebugln(e);
+			throw e;
 		}
 	}
 
