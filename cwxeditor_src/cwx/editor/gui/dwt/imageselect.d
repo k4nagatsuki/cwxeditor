@@ -317,7 +317,7 @@ private:
 	void refreshImageList() {
 		if (_imgList && !_imgList.shell.isDisposed()) {
 			_imgList.images(dirsCombo.getText(), _msel.showingPaths);
-			_imgList.select(_msel.path);
+			_imgList.select(encodePath(_msel.path));
 		}
 	}
 	class DirSelect : SelectionAdapter {
@@ -328,7 +328,7 @@ private:
 	class FileSelect : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			if (_imgList && !_imgList.shell.isDisposed()) {
-				_imgList.select(_msel.path);
+				_imgList.select(encodePath(_msel.path));
 			}
 		}
 	}
@@ -362,7 +362,7 @@ private:
 				static if (Type == MtType.BG_IMG) {
 					_imgList.mask = mask;
 				}
-				_imgList.select(_msel.path);
+				_imgList.select(encodePath(_msel.path));
 				_imgList.shell.open();
 			} else {
 				if (!_imgList || _imgList.shell.isDisposed()) {
