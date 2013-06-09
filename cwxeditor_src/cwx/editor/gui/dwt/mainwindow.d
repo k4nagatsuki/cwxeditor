@@ -375,7 +375,9 @@ private:
 				string zFile = std.path.buildPath(parent, file);
 				dStr ~= " - " ~ .text(__LINE__);
 				synchronized (_saveSync) {
+					dStr ~= " - " ~ .text(__LINE__);
 					data = summ.createZipData([], true);
+					dStr ~= " - " ~ .text(__LINE__);
 				}
 				dStr ~= " - " ~ .text(__LINE__);
 				auto md5 = md5Digest(data);

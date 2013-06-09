@@ -465,6 +465,19 @@ struct BgImageS {
 	CRGB color1;
 	CRGB color2;
 
+	/// 背景画像セルの設定を生成する。
+	static BgImageS opCall(string name, int x, int y, int width, int height, bool mask) {
+		BgImageS s;
+		s.type = "image";
+		s.name = name;
+		s.x = x;
+		s.y = y;
+		s.width = width;
+		s.height = height;
+		s.mask = mask;
+		return s;
+	}
+
 	/// XMLノードとして取り扱うための関数群。
 	const
 	void toNode(ref XNode e) {

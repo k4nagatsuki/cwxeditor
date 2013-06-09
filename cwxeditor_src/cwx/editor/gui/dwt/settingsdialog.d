@@ -2223,6 +2223,7 @@ private:
 				boolTable.addSelectionListener(new SelBoolTable);
 				auto tgd = new GridData(GridData.FILL_BOTH);
 				tgd.horizontalSpan = 5;
+				tgd.heightHint = 0;
 				boolTable.setLayoutData(tgd);
 				TableItem createB(string text) {
 					auto itm = new TableItem(boolTable, SWT.NONE);
@@ -2333,7 +2334,7 @@ private:
 				_soundEffectPlayType = createEnumC(grp, _prop.msgs.soundEffectPlayType, [SOUND_TYPE_SAME_BGM] ~ soundPlayTypeVals, sameBGM ~ soundPlayTypeNames, _soundEffectPlayTypeTbl, _soundEffectPlayTypeTbl2);
 				_seVolume = createVolume();
 				auto dummy = new Composite(grp, SWT.NONE);
-				auto dgd = new GridData(GridData.FILL_BOTH);
+				auto dgd = new GridData(GridData.FILL_HORIZONTAL);
 				dgd.widthHint = 0;
 				dgd.heightHint = 0;
 				dummy.setLayoutData(dgd);
