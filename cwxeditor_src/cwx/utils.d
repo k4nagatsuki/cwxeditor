@@ -186,6 +186,9 @@ void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 					writeln(log);
 				}
 			}
+			if (!debugLog.dirName().exists()) {
+				debugLog.dirName().mkdirRecurse();
+			}
 			if (!debugLogFile) {
 				debugLogFile = new typeof(debugLogFile)(debugLog, FileMode.Append);
 			}
