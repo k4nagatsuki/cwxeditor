@@ -374,15 +374,9 @@ private:
 				dStr ~= " - " ~ .text(__LINE__);
 				string zFile = std.path.buildPath(parent, file);
 				dStr ~= " - " ~ .text(__LINE__);
-				_display.syncExec(new class Runnable {
-					override void run() {
-						if (!_win || _win.isDisposed()) return;
-						synchronized (_saveSync) {
-							data = summ.createZipData([], true);
-						}
-					}
-				});
-				if (!data.length) return;
+				synchronized (_saveSync) {
+					data = summ.createZipData([], true);
+				}
 				dStr ~= " - " ~ .text(__LINE__);
 				auto md5 = md5Digest(data);
 				dStr ~= " - " ~ .text(__LINE__);
