@@ -290,7 +290,7 @@ private:
 			_lastBackup = Clock.currTime();
 			dStr ~= " - " ~ .text(__LINE__);
 			while (!_quit) {
-				dStr ~= " - " ~ .text(__LINE__);
+				dStr = .text(__LINE__);
 				if (_lastBackup + dur!"minutes"(_prop.var.etc.backupInterval) <= Clock.currTime()) {
 					dStr ~= " - " ~ .text(__LINE__);
 					createBackup();
@@ -374,9 +374,15 @@ private:
 				dStr ~= " - " ~ .text(__LINE__);
 				string zFile = std.path.buildPath(parent, file);
 				dStr ~= " - " ~ .text(__LINE__);
-				synchronized (_saveSync) {
-					data = summ.createZipData([], true);
-				}
+				_display.syncExec(new class Runnable {
+					override void run() {
+						if (!_win || _win.isDisposed()) return;
+						synchronized (_saveSync) {
+							data = summ.createZipData([], true);
+						}
+					}
+				});
+				if (!data.length) return;
 				dStr ~= " - " ~ .text(__LINE__);
 				auto md5 = md5Digest(data);
 				dStr ~= " - " ~ .text(__LINE__);
