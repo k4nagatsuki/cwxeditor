@@ -8,6 +8,8 @@ import cwx.path;
 import cwx.menu;
 import cwx.types;
 import cwx.system;
+import cwx.card;
+import cwx.event;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -362,6 +364,25 @@ public:
 		createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
+		new MenuItem(menu, SWT.SEPARATOR);
+
+		void delegate() dlg = null;
+		auto evt = createMenuItem(_comm, menu, MenuID.CreateVariableEventTree, dlg, () => current && (current.hasFlag || current.hasStep), SWT.CASCADE);
+		auto mEvt = new Menu(parent.getShell(), SWT.DROP_DOWN);
+		evt.setMenu(mEvt);
+		createMenuItem(_comm, mEvt, MenuID.InitVariablesTree, &copyInitTree, () => current && (current.hasFlag || current.hasStep));
+		new MenuItem(mEvt, SWT.SEPARATOR);
+		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.setFlagTrue, "T", "", false), prop.images.content(CType.SET_FLAG), () => copyFlagTree(true), () => current && current.hasFlag);
+		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.setFlagFalse, "F", "", false), prop.images.content(CType.SET_FLAG), () => copyFlagTree(false), () => current && current.hasFlag);
+		new MenuItem(mEvt, SWT.SEPARATOR);
+		void ssValue(uint i) {
+			string mnemonic = i < 10 ? .text(i) : "";
+			createMenuItem2(_comm, mEvt, MenuProps.buildMenu(.tryFormat(prop.msgs.setStepValue, .tryFormat(prop.msgs.dlgTxtStep, i)), mnemonic, "", false), prop.images.content(CType.SET_STEP), () => copyStepTree(i), () => current && current.hasStep);
+		}
+		foreach (i; 0..prop.looks.stepMaxCount) {
+			ssValue(i);
+		}
+
 		dirs.setMenu(menu);
 
 		auto ds = new DragSource(dirs, DND.DROP_MOVE);
@@ -592,6 +613,27 @@ public:
 		bool canDoClone() {
 			return canDoC;
 		}
+	}
+	void copyFlagTree(bool onOff) {
+		if (!current) return;
+		auto c = createSetFlagTree(current, onOff);
+		if (!c) return;
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		_comm.refreshToolBar();
+	}
+	void copyStepTree(int value) {
+		if (!current) return;
+		auto c = createSetStepTree(current, value);
+		if (!c) return;
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		_comm.refreshToolBar();
+	}
+	void copyInitTree() {
+		if (!current) return;
+		auto c = createInitVariablesTree(current);
+		if (!c) return;
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		_comm.refreshToolBar();
 	}
 
 	/// Returns: ルートディレクトリを返す。

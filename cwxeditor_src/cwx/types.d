@@ -1322,6 +1322,8 @@ enum MenuID {
 	NewFlagDir,
 	NewFlag,
 	NewStep,
+	CreateVariableEventTree,
+	InitVariablesTree,
 	CopyVariablePath,
 	Up,
 	Down,

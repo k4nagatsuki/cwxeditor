@@ -3069,30 +3069,50 @@ public:
 			dlg.open();
 		}
 		static if (is(C : MenuCard)) {
-			void nameEditEnd(TableItem itm, int column, string newText) {
-				auto c = cast(C) itm.getData();
-				if (c.name == newText) return;
-				_undo ~= new UndoEdit(this, _comm, _area, _summ, [itm.getParent().indexOf(itm)], []);
-				c.name = newText;
-				itm.setText(column, c.name);
-				refreshPanel();
-				_comm.refMenuCard.call(c.cwxPath(true));
-				callModEvent();
+			void nameEditEnd(TableItem selItm, int column, string newText) {
+				int[] indices;
+				foreach (itm; selItm.getParent().getSelection()) {
+					auto c = cast(C)itm.getData();
+					if (c.name == newText) continue;
+					indices ~= itm.getParent().indexOf(itm);
+				}
+				if (indices.length) {
+					_undo ~= new UndoEdit(this, _comm, _area, _summ, indices, []);
+					foreach (index; indices) {
+						auto itm = selItm.getParent().getItem(index);
+						auto c = cast(C)itm.getData();
+						c.name = newText;
+						itm.setText(column, c.name);
+						_comm.refMenuCard.call(c.cwxPath(true));
+					}
+					refreshPanel();
+					callModEvent();
+				}
 				_comm.refreshToolBar();
 			}
 		} else static if (is(C : EnemyCard)) {
-			void enemyEditEnd(TableItem itm, int column, CCombo combo) {
+			void enemyEditEnd(TableItem selItm, int column, CCombo combo) {
 				assert (_summ);
 				int i = combo.getSelectionIndex();
 				if (-1 == i) return;
-				auto c = cast(C) itm.getData();
-				if (c.id == _summ.casts[i].id) return;
-				_undo ~= new UndoEdit(this, _comm, _area, _summ, [itm.getParent().indexOf(itm)], []);
-				c.id = _summ.casts[i].id;
-				itm.setText(column, cardName(c));
-				refreshPanel();
-				_comm.refMenuCard.call(c.cwxPath(true));
-				callModEvent();
+				int[] indices;
+				foreach (itm; selItm.getParent().getSelection()) {
+					auto c = cast(C)itm.getData();
+					if (c.id == _summ.casts[i].id) continue;
+					indices ~= itm.getParent().indexOf(itm);
+				}
+				if (indices.length) {
+					_undo ~= new UndoEdit(this, _comm, _area, _summ, indices, []);
+					foreach (index; indices) {
+						auto itm = selItm.getParent().getItem(index);
+						auto c = cast(C)itm.getData();
+						c.id = _summ.casts[i].id;
+						itm.setText(column, cardName(c));
+						_comm.refMenuCard.call(c.cwxPath(true));
+					}
+					refreshPanel();
+					callModEvent();
+				}
 				_comm.refreshToolBar();
 			}
 			void createEnemyCombo(TableItem itm, int column, out string[] strs, out string str) {

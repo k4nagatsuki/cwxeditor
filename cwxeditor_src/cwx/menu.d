@@ -120,6 +120,8 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.NewFlagDir] = "N";
 		_mnemonic[MenuID.NewFlag] = "F";
 		_mnemonic[MenuID.NewStep] = "S";
+		_mnemonic[MenuID.CreateVariableEventTree] = "E";
+		_mnemonic[MenuID.InitVariablesTree] = "I";
 		_mnemonic[MenuID.CopyVariablePath] = "V";
 		_mnemonic[MenuID.Up] = "K";
 		_mnemonic[MenuID.Down] = "J";
@@ -298,6 +300,8 @@ class MenuProps : Properties {
 		_hotkey[MenuID.NewFlagDir] = "";
 		_hotkey[MenuID.NewFlag] = "Ctrl+L";
 		_hotkey[MenuID.NewStep] = "Ctrl+P";
+		_hotkey[MenuID.CreateVariableEventTree] = "";
+		_hotkey[MenuID.InitVariablesTree] = "";
 		_hotkey[MenuID.CopyVariablePath] = "";
 		_hotkey[MenuID.Up] = "Ctrl+Arrow_Up";
 		_hotkey[MenuID.Down] = "Ctrl+Arrow_Down";

@@ -9,6 +9,8 @@ import cwx.path;
 import cwx.menu;
 import cwx.types;
 import cwx.system;
+import cwx.card;
+import cwx.event;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -19,6 +21,7 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
 
+import std.array;
 import std.ascii;
 import std.conv;
 import std.string;
@@ -479,61 +482,98 @@ private abstract class FTVUndo : Undo {
 	abstract override void redo();
 	abstract override void dispose();
 }
-package class UndoEdit : FTVUndo {
+package class UndoEditN {
 	private CWXPath _f;
 	private string _name;
-	this (FlagTable v, Commons comm, FlagDir dir, int index, string newName) {
-		super (v, comm, dir);
-		_name = newName;
+	this (FlagDir dir, int index, string oldName, int value) {
 		auto p = FlagTable.fromIndex(dir, index);
-		auto f = cast(Flag) p;
-		if (f) _f = new Flag(f);
-		auto s = cast(Step) p;
-		if (s) _f = new Step(s);
+		auto f = cast(Flag)p;
+		if (f) {
+			auto flag = new Flag(f);
+			_name = flag.name;
+			flag.name = oldName;
+			if (-1 != value) flag.onOff = value == 0;
+			_f = flag;
+		}
+		auto s = cast(Step)p;
+		if (s) {
+			auto step = new Step(s);
+			_name = step.name;
+			step.name = oldName;
+			if (-1 != value) step.select = value;
+			_f = step;
+		}
 	}
-	private void impl() {
-		auto v = view();
-		udb(v);
-		scope (exit) uda(v);
-		auto fB = _f;
-		auto dir = this.dir();
+	CWXPath impl(Commons comm, FlagDir dir, out string newName) {
 		assert (dir);
+		auto fB = _f;
 		if (cast(Flag)fB) {
 			auto f = dir.getFlag(_name);
 			_f = new Flag(f);
-			auto o = cast(Flag) fB;
+			auto o = cast(Flag)fB;
 			assert (o);
 			_name = o.name;
 			bool refVal = o.on != f.on || o.off != f.off;
-			auto oPath = f.path;
+			newName = o.name;
+			o.name = f.name;
 			f.copyFrom(o);
-			auto nPath = f.path;
-			refVal |= oPath != nPath;
-			if (oPath != nPath) {
-				comm.summary.useCounter.change(toFlagId(oPath), toFlagId(nPath));
-			}
+			refVal |= newName != f.name;
 			if (refVal) {
-				comm.refFlagAndStep.call([f], []);
+				return f;
 			}
 		} else {
 			assert (cast(Step)fB);
 			auto s = dir.getStep(_name);
 			_f = new Step(s);
-			auto o = cast(Step) fB;
+			auto o = cast(Step)fB;
 			assert (o);
 			_name = o.name;
 			bool refVal = o.values != s.values;
-			auto oPath = s.path;
+			newName = o.name;
+			o.name = s.name;
 			s.copyFrom(o);
-			auto nPath = s.path;
-			refVal |= oPath != nPath;
-			if (oPath != nPath) {
-				comm.summary.useCounter.change(toStepId(oPath), toStepId(nPath));
-			}
+			refVal |= newName != s.name;
 			if (refVal) {
-				comm.refFlagAndStep.call([], [s]);
+				return s;
 			}
 		}
+		return null;
+	}
+}
+package class UndoEdit : FTVUndo {
+	private UndoEditN[] _impl;
+	this (FlagTable v, Commons comm, FlagDir dir, int[] index, string[] oldName, int[] oldValues) in {
+		assert (index.length == oldName.length);
+		assert (!oldValues.length || oldValues.length == index.length);
+	} body {
+		super (v, comm, dir);
+		foreach (i, idx; index) {
+			_impl ~= new UndoEditN(dir, idx, oldName[i], oldValues.length ? oldValues[i] : -1);
+		}
+	}
+	private void impl() {
+		auto v = view();
+		udb(v);
+		scope (exit) uda(v);
+		auto dir = this.dir();
+		Flag[] refF;
+		Step[] refS;
+		string[] newNameF;
+		string[] newNameS;
+		foreach (impl; _impl) {
+			string newName;
+			auto refVal = impl.impl(comm, dir, newName);
+			if (cast(Flag)refVal) {
+				refF ~= cast(Flag)refVal;
+				newNameF ~= newName;
+			} else if (cast(Step)refVal) {
+				refS ~= cast(Step)refVal;
+				newNameS ~= newName;
+			}
+		}
+		FlagTable.setNames(refF, newNameF, comm.summary.useCounter);
+		FlagTable.setNames(refS, newNameS, comm.summary.useCounter);
+		comm.refFlagAndStep.call(refF, refS);
 		if (v && v.flags && !v.flags.isDisposed()) {
 			v.refresh();
 		}
@@ -778,8 +818,11 @@ package class UndoSwap : FTVUndo {
 
 public class FlagTable : TCPD {
 private:
-	void storeEdit(int index, string newName) {
-		_undo ~= new UndoEdit(this, _comm, _dir, index, newName);
+	void storeEdit(int[] index, string[] oldName, int[] oldValues = []) {
+		_undo ~= new UndoEdit(this, _comm, _dir, index, oldName, oldValues);
+	}
+	void storeEdit(int index, string oldName, int oldValue) {
+		_undo ~= new UndoEdit(this, _comm, _dir, [index], [oldName], [oldValue]);
 	}
 	void storeInsert(int[] selected, string[] flagName, string[] stepName) {
 		_undo ~= new UndoInsertDelete(this, _comm, _dir, selected, [], flagName, stepName);
@@ -888,11 +931,14 @@ private:
 			return;
 		}
 		auto dlg = new FlagEditDialog(_comm, prop, dlgParShl, parent, flag);
+		string oldName = "";
+		int oldValue = 0;
 		dlg.applyEvent ~= {
 			int i = indexOf(parent, flag);
 			if (-1 != i) {
 				assert (!createMode);
-				storeEdit(i, dlg.name);
+				oldName = flag.name;
+				oldValue = flag.onOff ? 0 : 1;
 			}
 		};
 		dlg.appliedEvent ~= {
@@ -905,6 +951,8 @@ private:
 				}
 				storeInsert(indices, [flag.name], []);
 				createMode = false;
+			} else {
+				storeEdit(indexOf(parent, flag), oldName, oldValue);
 			}
 			_comm.openCWXPath(flag.cwxPath(true), false);
 			refresh(flag);
@@ -933,11 +981,14 @@ private:
 			return;
 		}
 		auto dlg = new StepEditDialog(_comm, prop, dlgParShl, parent, step);
+		string oldName = "";
+		int oldValue = 0;
 		dlg.applyEvent ~= {
 			int i = indexOf(parent, step);
 			if (-1 != i) {
 				assert (!createMode);
-				storeEdit(i, dlg.name);
+				oldName = step.name;
+				oldValue = step.select;
 			}
 		};
 		dlg.appliedEvent ~= {
@@ -950,6 +1001,8 @@ private:
 				}
 				storeInsert(indices, [step.name], []);
 				createMode = false;
+			} else {
+				storeEdit(indexOf(parent, step), oldName, oldValue);
 			}
 			_comm.openCWXPath(step.cwxPath(true), false);
 			refresh(step);
@@ -1000,6 +1053,22 @@ private:
 			return false;
 		}
 	}
+	/// ditto
+	@property
+	Flag[] selectionFlags() {
+		Flag[] fs;
+		Step[] ss;
+		getSelectionFlagAndStep(fs, ss);
+		return fs;
+	}
+	/// ditto
+	@property
+	Step[] selectionSteps() {
+		Flag[] fs;
+		Step[] ss;
+		getSelectionFlagAndStep(fs, ss);
+		return ss;
+	}
 
 	Flag[] _dragFlags;
 	Step[] _dragSteps;
@@ -1048,34 +1117,83 @@ private:
 			_comm.replText.remove(&refresh);
 		}
 	}
-	void nameEditEnd(TableItem itm, int column, string text) {
+	void nameEditEnd(TableItem selItm, int column, string text) {
 		text = FlagDir.validName(text);
-		auto f = cast(Flag) itm.getData();
-		if (f) {
-			if (0 == icmp(f.name, text)) return;
-			auto newName = f.parent.createNewFlagName(text, f.name);
-			storeEdit(itm.getParent().indexOf(itm), newName);
-			auto oldId = toFlagId(f.path);
-			f.name = newName;
-			uc.change(oldId, toFlagId(f.path), true);
-			refresh();
-			_comm.refFlagAndStep.call([f], []);
-			_comm.refreshToolBar();
-			return;
+		auto itms = flags.getSelection();
+		itms = itms.remove(selItm);
+		itms.insertInPlace(0, selItm);
+		Flag[] refF;
+		Step[] refS;
+		int[] indices;
+		string[] oldNames;
+		string[] oldNamesF;
+		string[] oldNamesS;
+		FlagId[] oldFID;
+		StepId[] oldSID;
+		foreach (itm; itms) {
+			auto f = cast(Flag)itm.getData();
+			if (f) {
+				indices ~= flags.indexOf(itm);
+				oldNamesF ~= f.name;
+				oldNames ~= f.name;
+				refF ~= f;
+				oldFID ~= toFlagId(f.path);
+			}
+			auto s = cast(Step)itm.getData();
+			if (s) {
+				indices ~= flags.indexOf(itm);
+				oldNamesS ~= s.name;
+				oldNames ~= s.name;
+				refS ~= s;
+				oldSID ~= toStepId(s.path);
+			}
 		}
-		auto s = cast(Step) itm.getData();
-		if (s) {
-			if (0 == icmp(s.name, text)) return;
-			auto newName = s.parent.createNewStepName(text, s.name);
-			storeEdit(itm.getParent().indexOf(itm), newName);
-			auto oldId = toStepId(s.path);
-			s.name = newName;
-			uc.change(oldId, toStepId(s.path), true);
-			refresh();
-			_comm.refFlagAndStep.call([], [s]);
-			_comm.refreshToolBar();
-			return;
+		if (indices.length) {
+			auto newNamesF = _dir.createNewFlagNames(text, refF.length, oldNamesF);
+			auto newNamesS = _dir.createNewStepNames(text, refS.length, oldNamesS);
+			bool changed = false;
+			changed |= setNames(refF, newNamesF, uc);
+			changed |= setNames(refS, newNamesS, uc);
+			if (changed) {
+				storeEdit(indices, oldNames);
+				refresh();
+				_comm.refFlagAndStep.call(refF, refS);
+			}
 		}
+		_comm.refreshToolBar();
+	}
+	static bool setNames(F)(F[] refVals, in string[] newNames, UseCounter uc) {
+		// 一旦ダミーの名前に変える事で既存名称との重複を回避する
+		if (!refVals.length) return false;
+		auto dir = refVals[0].parent;
+		auto newSet = new HashSet!string;
+		foreach (name; newNames) newSet.add(name.toLower());
+		auto tempSet = new HashSet!string;
+		foreach (i; 0..refVals.length) {
+			auto name = createNewName("temp", (string name) {
+				if (!dir.canAppend!F(name)) return false;
+				name = name.toLower();
+				return !newSet.contains(name) && !tempSet.contains(name);
+			});
+			tempSet.add(name);
+		}
+		string[] oldNames;
+		foreach (i, tempName; tempSet.toArray()) {
+			auto f = refVals[i];
+			oldNames ~= f.name;
+			auto oldID = F.toID(f.path);
+			f.name = tempName;
+			uc.change(oldID, F.toID(f.path), false);
+		}
+		bool changed = false;
+		foreach (i, name; newNames) {
+			auto f = refVals[i];
+			auto oldID = F.toID(f.path);
+			f.name = name;
+			uc.change(oldID, F.toID(f.path), false);
+			if (oldNames[i] != name) changed = true;
+		}
+		return changed;
 	}
 	void initCombo(TableItem itm, int column, out string[] strs, out string str) {
 		auto f = cast(Flag) itm.getData();
@@ -1095,29 +1213,46 @@ private:
 			return;
 		}
 	}
-	void initEditEnd(TableItem itm, int column, CCombo combo) {
+	void initEditEnd(TableItem selItm, int column, CCombo combo) {
 		int i = combo.getSelectionIndex();
 		if (-1 == i) return;
-		auto f = cast(Flag) itm.getData();
-		if (f) {
-			if (f.onOff == (0 == i)) return;
-			storeEdit(flags.indexOf(itm), f.name);
-			f.onOff = 0 == i;
-			itm.setText(column, f.onOff ? f.on : f.off);
-			_comm.refFlagAndStep.call([f], []);
-			_comm.refreshToolBar();
-			return;
+		auto selFlag = cast(Flag)selItm.getData();
+		auto selStep = cast(Step)selItm.getData();
+		auto itms = flags.getSelection();
+		itms = itms.remove(selItm);
+		itms.insertInPlace(0, selItm);
+		Flag[] refF;
+		Step[] refS;
+		int[] indices;
+		string[] oldNames;
+		int[] oldValues;
+		foreach (itm; itms) {
+			auto f = cast(Flag)itm.getData();
+			if (selFlag && f) {
+				if (f.onOff == (0 == i)) continue;
+				indices ~= flags.indexOf(itm);
+				oldNames ~= f.name;
+				oldValues ~= f.onOff ? 0 : 1;
+				f.onOff = 0 == i;
+				itm.setText(column, f.onOff ? f.on : f.off);
+				refF ~= f;
+			}
+			auto s = cast(Step)itm.getData();
+			if (selStep && s) {
+				if (s.select == i) continue; 
+				indices ~= flags.indexOf(itm);
+				oldNames ~= s.name;
+				oldValues ~= s.select;
+				s.select(i);
+				itm.setText(column, s.value);
+				refS ~= s;
+			}
 		}
-		auto s = cast(Step) itm.getData();
-		if (s) {
-			if (s.select == i) return; 
-			storeEdit(flags.indexOf(itm), s.name);
-			s.select(i);
-			itm.setText(column, s.value);
-			_comm.refFlagAndStep.call([], [s]);
-			_comm.refreshToolBar();
-			return;
+		if (indices.length) {
+			storeEdit(indices, oldNames, oldValues);
+			_comm.refFlagAndStep.call(refF, refS);
 		}
+		_comm.refreshToolBar();
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
@@ -1139,6 +1274,27 @@ private:
 			flags.select(i);
 		}
 		flagsSelected();
+	}
+	void copyFlagTree(bool onOff) {
+		auto c = createSetFlagTree(selectionFlags, onOff);
+		if (!c) return;
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		_comm.refreshToolBar();
+	}
+	void copyStepTree(int value) {
+		auto c = createSetStepTree(selectionSteps, value);
+		if (!c) return;
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		_comm.refreshToolBar();
+	}
+	void copyInitTree() {
+		Flag[] fs;
+		Step[] ss;
+		getSelectionFlagAndStep(fs, ss);
+		auto c = createInitVariablesTree(fs, ss);
+		if (!c) return;
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		_comm.refreshToolBar();
 	}
 	void copyVariablePath() {
 		if (0 == flags.getSelectionCount()) return;
@@ -1192,6 +1348,25 @@ public:
 		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, () => flags.getItemCount() && flags.getSelectionCount() != flags.getItemCount());
+		new MenuItem(menu, SWT.SEPARATOR);
+
+		void delegate() dlg = null;
+		auto evt = createMenuItem(_comm, menu, MenuID.CreateVariableEventTree, dlg, () => 0 < flags.getSelectionCount(), SWT.CASCADE);
+		auto mEvt = new Menu(parent.getShell(), SWT.DROP_DOWN);
+		evt.setMenu(mEvt);
+		createMenuItem(_comm, mEvt, MenuID.InitVariablesTree, &copyInitTree, () => 0 < flags.getSelectionCount());
+		new MenuItem(mEvt, SWT.SEPARATOR);
+		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.setFlagTrue, "T", "", false), prop.images.content(CType.SET_FLAG), () => copyFlagTree(true), () => 0 < selectionFlags.length);
+		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.setFlagFalse, "F", "", false), prop.images.content(CType.SET_FLAG), () => copyFlagTree(false), () => 0 < selectionFlags.length);
+		new MenuItem(mEvt, SWT.SEPARATOR);
+		void ssValue(uint i) {
+			string mnemonic = i < 10 ? .text(i) : "";
+			createMenuItem2(_comm, mEvt, MenuProps.buildMenu(.tryFormat(prop.msgs.setStepValue, .tryFormat(prop.msgs.dlgTxtStep, i)), mnemonic, "", false), prop.images.content(CType.SET_STEP), () => copyStepTree(i), () => 0 < selectionSteps.length);
+		}
+		foreach (i; 0..prop.looks.stepMaxCount) {
+			ssValue(i);
+		}
+
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.CopyVariablePath, &copyVariablePath, () => 0 < flags.getSelectionCount());
 		flags.setMenu(menu);

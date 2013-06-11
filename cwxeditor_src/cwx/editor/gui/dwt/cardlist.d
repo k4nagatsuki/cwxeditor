@@ -294,6 +294,7 @@ public:
 	private void callSelectChanged() {
 		getDisplay().asyncExec(new class Runnable {
 			override void run() {
+				if (isDisposed()) return;
 				auto se = new Event;
 				int index = selection;
 				se.item = 0 <= index ? _items[index] : null;

@@ -41,6 +41,10 @@ public:
 /// 手札カードの設定を行うダイアログ。
 class EffectCardDialog(C) : AbsDialog {
 private:
+	/// アイテムの現在使用回数の設定
+	/// (エンジンの仕様上ほとんど意味が無いため現在無効)
+	static immutable SetUseCountCur = false;
+
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
@@ -68,6 +72,16 @@ private:
 	}
 	static if (is (C == ItemCard)) {
 		Spinner _useCount;
+		static if (SetUseCountCur) {
+			Spinner _useCountCur;
+			Button _useCountIsMax;
+			void updateUseLimitMax() {
+				_useCountCur.setMaximum(_useCount.getSelection());
+				if (_useCountIsMax.getSelection()) {
+					_useCountCur.setSelection(_useCount.getSelection());
+				}
+			}
+		}
 	}
 	static if (is (C == BeastCard)) {
 		Spinner _useCount;
@@ -256,11 +270,14 @@ private:
 	}
 	CTabItem constructDesc(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(2, false));
+		comp.setLayout(new GridLayout(1, true));
+		auto top = new Composite(comp, SWT.NONE);
+		top.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		top.setLayout(zeroMarginGridLayout(2, false));
 		static if (is (C == SkillCard)) {
 			{
-				auto grp = new Group(comp, SWT.NONE);
-				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				auto grp = new Group(top, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new CenterLayout);
 				grp.setText(_prop.msgs.skillLevel);
 				auto comp2 = new Composite(grp, SWT.NONE);
@@ -274,25 +291,54 @@ private:
 			}
 		} else static if (is (C == ItemCard) || is (C == BeastCard)) {
 			{
-				auto grp = new Group(comp, SWT.NONE);
-				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				auto grp = new Group(top, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new CenterLayout);
 				grp.setText(_prop.msgs.useCountGroup);
 				auto comp2 = new Composite(grp, SWT.NONE);
-				comp2.setLayout(new GridLayout(2, false));
-				_useCount = new Spinner(comp2, SWT.BORDER);
-				mod(_useCount);
-				_useCount.setMaximum(_prop.var.etc.useCountMax);
-				_useCount.setMinimum(0);
-				auto l = new Label(comp2, SWT.NONE);
-				l.setText(.tryFormat(_prop.msgs.useCountRange, _prop.var.etc.useCountMax));
+				static if (SetUseCountCur && is(C:ItemCard)) {
+					comp2.setLayout(zeroMarginGridLayout(3, false));
+					auto l1 = new Label(comp2, SWT.NONE);
+					l1.setText(_prop.msgs.useCountMax);
+					_useCount = new Spinner(comp2, SWT.BORDER);
+					mod(_useCount);
+					_useCount.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					_useCount.setMaximum(_prop.var.etc.useCountMax);
+					_useCount.setMinimum(0);
+					.listener(_useCount, SWT.Selection, &updateUseLimitMax);
+					auto l2 = new Label(comp2, SWT.NONE);
+					l2.setText(.tryFormat(_prop.msgs.useCountRange, _prop.var.etc.useCountMax));
+					auto l3 = new Label(comp2, SWT.NONE);
+					l3.setText(_prop.msgs.useCountCur);
+					_useCountCur = new Spinner(comp2, SWT.BORDER);
+					mod(_useCountCur);
+					_useCountCur.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					_useCountCur.setMaximum(_prop.var.etc.useCountMax);
+					_useCountCur.setMinimum(0);
+					_useCountIsMax = new Button(comp2, SWT.CHECK);
+					_useCountIsMax.setText(_prop.msgs.useCountIsMax);
+					.listener(_useCountIsMax, SWT.Selection, {
+						_useCountCur.setEnabled(!_useCountIsMax.getSelection());
+						if (_useCountIsMax.getSelection()) {
+							_useCountCur.setSelection(_useCount.getSelection());
+						}
+					});
+				} else {
+					comp2.setLayout(new GridLayout(2, false));
+					_useCount = new Spinner(comp2, SWT.BORDER);
+					mod(_useCount);
+					_useCount.setMaximum(_prop.var.etc.useCountMax);
+					_useCount.setMinimum(0);
+					auto l = new Label(comp2, SWT.NONE);
+					l.setText(.tryFormat(_prop.msgs.useCountRange, _prop.var.etc.useCountMax));
+				}
 			}
 		} else {
 			static assert (0);
 		}
 		{
-			auto grp = new Group(comp, SWT.NONE);
-			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			auto grp = new Group(top, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new CenterLayout);
 			grp.setText(_prop.msgs.price);
 			auto comp2 = new Composite(grp, SWT.NONE);
@@ -821,6 +867,12 @@ protected:
 			}
 			static if (is (C == ItemCard)) {
 				_useCount.setSelection(_card.useLimitMax);
+				static if (SetUseCountCur) {
+					_useCountCur.setSelection(_card.useLimit);
+					_useCountIsMax.setSelection(_card.useLimit == _card.useLimitMax);
+					_useCountCur.setEnabled(!_useCountIsMax.getSelection());
+					updateUseLimitMax();
+				}
 			} else static if (is (C == BeastCard)) {
 				_useCount.setSelection(_card.useLimit);
 			}
@@ -932,7 +984,11 @@ protected:
 		}
 		static if (is (C == ItemCard)) {
 			_card.useLimitMax = _useCount.getSelection();
-			_card.useLimit = _useCount.getSelection();
+			static if (SetUseCountCur) {
+				_card.useLimit = _useCountCur.getSelection();
+			} else {
+				_card.useLimit = _card.useLimitMax;
+			}
 		} else static if (is (C == BeastCard)) {
 			_card.useLimit = _useCount.getSelection();
 		}

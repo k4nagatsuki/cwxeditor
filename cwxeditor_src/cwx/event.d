@@ -15,6 +15,7 @@ import cwx.coupon;
 import cwx.textholder;
 import cwx.system;
 import cwx.summary;
+import cwx.flag;
 
 import std.algorithm;
 import std.datetime;
@@ -2986,6 +2987,50 @@ public:
 		}
 		return true;
 	}
+}
+
+/// 状態変数を初期化するイベントツリーを生成する。
+Content createInitVariablesTree(in FlagDir dir) {
+	return createInitVariablesTree(dir.allFlags(), dir.allSteps());
+}
+/// ditto
+Content createInitVariablesTree(in Flag[] flags, in Step[] steps) {
+	return createInitVariablesTreeImpl(flags, steps, (f) => f.onOff, (s) => s.select);
+}
+/// フラグの値を設定するイベントツリーを生成する。
+Content createSetFlagTree(in FlagDir dir, bool onOff) {
+	return createSetFlagTree(dir.allFlags(), onOff);
+}
+/// ditto
+Content createSetFlagTree(in Flag[] flags, bool onOff) {
+	return createInitVariablesTreeImpl(flags, [], (f) => onOff, null);
+}
+/// ステップの値を設定するイベントツリーを生成する。
+Content createSetStepTree(in FlagDir dir, uint select) {
+	return createSetStepTree(dir.allSteps(), select);
+}
+/// ditto
+Content createSetStepTree(in Step[] steps, uint select) {
+	return createInitVariablesTreeImpl([], steps, null, (s) => select);
+}
+private Content createInitVariablesTreeImpl(in Flag[] flags, in Step[] steps,
+		bool delegate(in Flag) getValueF, uint delegate(in Step) getValueS) {
+	Content[] r;
+	foreach (step; steps) {
+		auto c = new Content(CType.SET_STEP, "");
+		c.step = step.path;
+		c.stepValue = getValueS(step);
+		if (r.length) r[$-1].add(null, c);
+		r ~= c;
+	}
+	foreach (flag; flags) {
+		auto c = new Content(CType.SET_FLAG, "");
+		c.flag = flag.path;
+		c.flagValue = getValueF(flag);
+		if (r.length) r[$-1].add(null, c);
+		r ~= c;
+	}
+	return r.length ? r[0] : null;
 }
 
 /// イベント関連の例外。

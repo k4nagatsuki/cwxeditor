@@ -7,6 +7,7 @@ import cwx.path;
 import cwx.usecounter;
 import cwx.system;
 
+import std.algorithm;
 import std.array;
 import std.datetime;
 import std.string;
@@ -365,7 +366,7 @@ public:
 	@property
 	void select(uint select) {
 		if (_change && _select != select) _change();
-		_select = select;
+		_select = .min(select, _vals.length - 1);
 	}
 
 	/// 選択中の値のテキストを返す。
@@ -928,6 +929,27 @@ public:
 		return r;
 	}
 
+	/// フラグ・ステップを所持していればtrue。
+	@property
+	const
+	bool hasFlag() {
+		if (_flags.length) return true;
+		foreach (dir; _subdir) {
+			if (dir.hasFlag) return true;
+		}
+		return false;
+	}
+	/// ditto
+	@property
+	const
+	bool hasStep() {
+		if (_steps.length) return true;
+		foreach (dir; _subdir) {
+			if (dir.hasStep) return true;
+		}
+		return false;
+	}
+
 	/// フラグ・ステップを名前順にソートする。
 	void sortFlags(bool sub = false) {
 		bool cmps(in Flag a, in Flag b) {
@@ -1392,6 +1414,45 @@ public:
 			if (oldName && oldName.length && oldName == name) return true;
 			return canAppendSub(name);
 		});
+	}
+	/// 新しい名前をn件生成して返す。
+	private string[] createNewNames(F)(string base, size_t n, in string[] oldNames)
+	out (value) {
+		assert (value.length == n);
+	} body {
+		auto oldSet = new HashSet!string;
+		foreach (name; oldNames) oldSet.add(name.toLower());
+		auto set = new HashSet!string;
+		string[] r;
+		foreach (i; 0..n) {
+			auto name = createNewName(validName(base), (string name) {
+				return (canAppend!F(name) || oldSet.contains(name.toLower())) && !set.contains(name.toLower());
+			});
+			set.add(name.toLower());
+			r ~= name;
+		}
+		return r;
+	}
+	/// ditto
+	string[] createNewFlagNames(string base, size_t n, in string[] oldNames)
+	out (value) {
+		assert (value.length == n);
+	} body {
+		return createNewNames!Flag(base, n, oldNames);
+	}
+	/// ditto
+	string[] createNewStepNames(string base, size_t n, in string[] oldNames)
+	out (value) {
+		assert (value.length == n);
+	} body {
+		return createNewNames!Step(base, n, oldNames);
+	}
+	/// ditto
+	string[] createNewDirNames(string base, size_t n, in string[] oldNames)
+	out (value) {
+		assert (value.length == n);
+	} body {
+		return createNewNames!FlagDir(base, n, oldNames);
 	}
 
 	/// 指定されたパスを探して返す。

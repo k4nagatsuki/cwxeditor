@@ -492,7 +492,7 @@ private:
 
 	Item selectionM(int x, int y) {
 		try {
-			if (table.getSelectionCount() == 1) {
+			if (table.getSelectionCount()) {
 				auto itm = table.getItem(table.getSelectionIndex());
 				if (itm.getBounds(editC).contains(x, y)) {
 					if (!itm.getImage() || !itm.getImageBounds(editC).contains(x, y)) {
@@ -507,7 +507,7 @@ private:
 	}
 	Item selectionK() {
 		try {
-			if (table.getSelectionCount() == 1) {
+			if (table.getSelectionCount()) {
 				return table.getItem(table.getSelectionIndex());
 			}
 			return null;

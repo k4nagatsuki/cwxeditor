@@ -725,7 +725,11 @@ private:
 				static if (is(typeof(c.level))) {
 					c.level = num;
 				} else static if (is(typeof(c.useLimitMax))) {
+					if (c.useLimitMax == c.useLimit) {
+						c.useLimit = num;
+					}
 					c.useLimitMax = num;
+					c.useLimit = .min(c.useLimit, c.useLimitMax);
 				} else {
 					c.useLimit = num;
 				}

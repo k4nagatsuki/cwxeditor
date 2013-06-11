@@ -1399,6 +1399,9 @@ class Msgs : Properties {
 	auto useCount = Msg("useCount", "使用回数");
 	auto useCountGroup = Msg("useCountGroup", "使用可能回数");
 	auto useCountRange = Msg("useCountRange", "(0～%1$s : 0 = ∞)");
+	auto useCountCur = Msg("useCountCur", "現在");
+	auto useCountMax = Msg("useCountMax", "最大");
+	auto useCountIsMax = Msg("useCountIsMax", "最大回数を使用");
 	auto price = Msg("price", "価格");
 	auto priceAuto = Msg("priceAuto", "(参考用)");
 	auto useModify = Msg("useModify", "使用時 能力値修正");
@@ -1829,6 +1832,8 @@ class Msgs : Properties {
 	auto menuTextNewFlagDir = Msg("menuTextNewFlagDir", "フォルダの作成");
 	auto menuTextNewFlag = Msg("menuTextNewFlag", "フラグの作成");
 	auto menuTextNewStep = Msg("menuTextNewStep", "ステップの作成");
+	auto menuTextCreateVariableEventTree = Msg("menuTextCreateVariableEventTree", "イベントツリーとしてコピー");
+	auto menuTextInitVariablesTree = Msg("menuTextInitVariablesTree", "初期値の設定");
 	auto menuTextCopyVariablePath = Msg("menuTextCopyVariablePath", "状態変数のパスをコピー");
 	auto menuTextUp = Msg("menuTextUp", "上へ");
 	auto menuTextDown = Msg("menuTextDown", "下へ");
@@ -1912,6 +1917,10 @@ class Msgs : Properties {
 	auto menuTextEvTemplates = Msg("menuTextEvTemplates", "テンプレートから作成");
 	auto menuTextResetPreviewValues = Msg("menuTextResetPreviewValues", "初期値に戻す");
 	auto menuTextResetPreviewValuesAll = Msg("menuTextResetPreviewValuesAll", "全て初期値に戻す");
+
+	auto setFlagTrue = Msg("setFlagTrue", "TRUEを設定");
+	auto setFlagFalse = Msg("setFlagFalse", "FALSEを設定");
+	auto setStepValue = Msg("setStepValue", "%1$sを設定");
 
 	auto bgm = Msg("bgm", "BGM");
 	auto newEvent = Msg("newEvent", "イベントの作成");
