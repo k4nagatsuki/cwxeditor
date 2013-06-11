@@ -2132,6 +2132,7 @@ public:
 		_display.syncExec(new class Runnable {
 			void run() {
 				if (!_win || _win.isDisposed()) return;
+				if (!_tabf.getSelection()) return;
 				string text;
 				string num = .formatNum(count);
 				if (_replMode) {

@@ -887,7 +887,7 @@ class DockingFolder(TabF, int Style) {
 			return tabf.getSelection();
 		} else {
 			auto tabs = tabf.getSelection();
-			return tabs.length ? tabs[0] : null;
+			return tabs && tabs.length ? tabs[0] : null;
 		}
 	}
 	private Rectangle boundsOnDisplay(Control ctrl) {

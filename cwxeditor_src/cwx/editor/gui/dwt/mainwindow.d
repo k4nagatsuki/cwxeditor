@@ -2802,7 +2802,7 @@ public:
 				}
 			}
 			auto tabf = cast(TabFolder) c;
-			if (tabf && 0 < tabf.getSelection().length) {
+			if (tabf && tabf.getSelection() && 0 < tabf.getSelection().length) {
 				if (switchTab(tabf, tabf.getSelection()[0], e)) {
 					e.doit = false;
 				}
