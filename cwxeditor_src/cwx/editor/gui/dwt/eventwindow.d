@@ -203,6 +203,7 @@ public:
 			override void handleEvent(Event e) {
 				auto tabf = cast(CTabFolder) contPane.getParent();
 				if (!tabf) return;
+				if (!tabf.getSelection()) return;
 				if (eventTreeView.eventTree && contPane is tabf.getSelection().getControl()) {
 					_eview.openToolWindow();
 				} else {
