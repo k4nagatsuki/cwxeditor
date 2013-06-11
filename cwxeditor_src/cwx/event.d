@@ -2995,7 +2995,7 @@ Content createInitVariablesTree(in FlagDir dir) {
 }
 /// ditto
 Content createInitVariablesTree(in Flag[] flags, in Step[] steps) {
-	return createInitVariablesTreeImpl(flags, steps, (f) => f.onOff, (s) => s.select);
+	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP)(flags, steps, (f) => f.onOff, (s) => s.select);
 }
 /// フラグの値を設定するイベントツリーを生成する。
 Content createSetFlagTree(in FlagDir dir, bool onOff) {
@@ -3003,7 +3003,7 @@ Content createSetFlagTree(in FlagDir dir, bool onOff) {
 }
 /// ditto
 Content createSetFlagTree(in Flag[] flags, bool onOff) {
-	return createInitVariablesTreeImpl(flags, [], (f) => onOff, null);
+	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP)(flags, [], (f) => onOff, null);
 }
 /// ステップの値を設定するイベントツリーを生成する。
 Content createSetStepTree(in FlagDir dir, uint select) {
@@ -3011,22 +3011,46 @@ Content createSetStepTree(in FlagDir dir, uint select) {
 }
 /// ditto
 Content createSetStepTree(in Step[] steps, uint select) {
-	return createInitVariablesTreeImpl([], steps, null, (s) => select);
+	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP)([], steps, null, (s) => select);
 }
-private Content createInitVariablesTreeImpl(in Flag[] flags, in Step[] steps,
+/// フラグを反転するイベントツリーを生成する。
+Content createReverseFlagTree(in FlagDir dir) {
+	return createReverseFlagTree(dir.allFlags());
+}
+/// ditto
+Content createReverseFlagTree(in Flag[] flags) {
+	return createInitVariablesTreeImpl!(CType.REVERSE_FLAG, CType.SET_STEP)(flags, [], null, null);
+}
+/// ステップを加算するイベントツリーを生成する。
+Content createSetStepUpTree(in FlagDir dir) {
+	return createSetStepUpTree(dir.allSteps());
+}
+/// ditto
+Content createSetStepUpTree(in Step[] steps) {
+	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP_UP)([], steps, null, null);
+}
+/// ステップを減算するイベントツリーを生成する。
+Content createSetStepDownTree(in FlagDir dir) {
+	return createSetStepDownTree(dir.allSteps());
+}
+/// ditto
+Content createSetStepDownTree(in Step[] steps) {
+	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP_DOWN)([], steps, null, null);
+}
+private Content createInitVariablesTreeImpl(CType TypeF, CType TypeS)(in Flag[] flags, in Step[] steps,
 		bool delegate(in Flag) getValueF, uint delegate(in Step) getValueS) {
 	Content[] r;
 	foreach (step; steps) {
-		auto c = new Content(CType.SET_STEP, "");
+		auto c = new Content(TypeS, "");
 		c.step = step.path;
-		c.stepValue = getValueS(step);
+		if (getValueS) c.stepValue = getValueS(step);
 		if (r.length) r[$-1].add(null, c);
 		r ~= c;
 	}
 	foreach (flag; flags) {
-		auto c = new Content(CType.SET_FLAG, "");
+		auto c = new Content(TypeF, "");
 		c.flag = flag.path;
-		c.flagValue = getValueF(flag);
+		if (getValueF) c.flagValue = getValueF(flag);
 		if (r.length) r[$-1].add(null, c);
 		r ~= c;
 	}

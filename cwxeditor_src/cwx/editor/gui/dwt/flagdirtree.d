@@ -372,8 +372,13 @@ public:
 		evt.setMenu(mEvt);
 		createMenuItem(_comm, mEvt, MenuID.InitVariablesTree, &copyInitTree, () => current && (current.hasFlag || current.hasStep));
 		new MenuItem(mEvt, SWT.SEPARATOR);
+		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.REVERSE_FLAG), "R", "", false), prop.images.content(CType.REVERSE_FLAG), &copyFlagReverseTree, () => current && current.hasFlag);
+		new MenuItem(mEvt, SWT.SEPARATOR);
 		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.setFlagTrue, "T", "", false), prop.images.content(CType.SET_FLAG), () => copyFlagTree(true), () => current && current.hasFlag);
 		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.setFlagFalse, "F", "", false), prop.images.content(CType.SET_FLAG), () => copyFlagTree(false), () => current && current.hasFlag);
+		new MenuItem(mEvt, SWT.SEPARATOR);
+		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.SET_STEP_UP), "U", "", false), prop.images.content(CType.SET_STEP_UP), &copyStepUpTree, () => current && current.hasStep);
+		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.SET_STEP_DOWN), "D", "", false), prop.images.content(CType.SET_STEP_DOWN), &copyStepDownTree, () => current && current.hasStep);
 		new MenuItem(mEvt, SWT.SEPARATOR);
 		void ssValue(uint i) {
 			string mnemonic = i < 10 ? .text(i) : "";
@@ -631,6 +636,27 @@ public:
 	void copyInitTree() {
 		if (!current) return;
 		auto c = createInitVariablesTree(current);
+		if (!c) return;
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		_comm.refreshToolBar();
+	}
+	void copyFlagReverseTree() {
+		if (!current) return;
+		auto c = createReverseFlagTree(current);
+		if (!c) return;
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		_comm.refreshToolBar();
+	}
+	void copyStepUpTree() {
+		if (!current) return;
+		auto c = createSetStepUpTree(current);
+		if (!c) return;
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		_comm.refreshToolBar();
+	}
+	void copyStepDownTree() {
+		if (!current) return;
+		auto c = createSetStepDownTree(current);
 		if (!c) return;
 		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
 		_comm.refreshToolBar();

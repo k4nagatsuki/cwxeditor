@@ -1296,6 +1296,24 @@ private:
 		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
 		_comm.refreshToolBar();
 	}
+	void copyFlagReverseTree() {
+		auto c = createReverseFlagTree(selectionFlags);
+		if (!c) return;
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		_comm.refreshToolBar();
+	}
+	void copyStepUpTree() {
+		auto c = createSetStepUpTree(selectionSteps);
+		if (!c) return;
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		_comm.refreshToolBar();
+	}
+	void copyStepDownTree() {
+		auto c = createSetStepDownTree(selectionSteps);
+		if (!c) return;
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		_comm.refreshToolBar();
+	}
 	void copyVariablePath() {
 		if (0 == flags.getSelectionCount()) return;
 
@@ -1356,8 +1374,13 @@ public:
 		evt.setMenu(mEvt);
 		createMenuItem(_comm, mEvt, MenuID.InitVariablesTree, &copyInitTree, () => 0 < flags.getSelectionCount());
 		new MenuItem(mEvt, SWT.SEPARATOR);
+		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.REVERSE_FLAG), "R", "", false), prop.images.content(CType.REVERSE_FLAG), &copyFlagReverseTree, () => 0 < selectionFlags.length);
+		new MenuItem(mEvt, SWT.SEPARATOR);
 		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.setFlagTrue, "T", "", false), prop.images.content(CType.SET_FLAG), () => copyFlagTree(true), () => 0 < selectionFlags.length);
 		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.setFlagFalse, "F", "", false), prop.images.content(CType.SET_FLAG), () => copyFlagTree(false), () => 0 < selectionFlags.length);
+		new MenuItem(mEvt, SWT.SEPARATOR);
+		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.SET_STEP_UP), "U", "", false), prop.images.content(CType.SET_STEP_UP), &copyStepUpTree, () => 0 < selectionSteps.length);
+		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.SET_STEP_DOWN), "D", "", false), prop.images.content(CType.SET_STEP_DOWN), &copyStepDownTree, () => 0 < selectionSteps.length);
 		new MenuItem(mEvt, SWT.SEPARATOR);
 		void ssValue(uint i) {
 			string mnemonic = i < 10 ? .text(i) : "";
