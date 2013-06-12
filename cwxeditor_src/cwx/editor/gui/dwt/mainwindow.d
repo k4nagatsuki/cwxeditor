@@ -343,7 +343,9 @@ private:
 					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.baseName());
 				string zFile = std.path.buildPath(parent, file);
 				synchronized (_saveSync) {
-					data = summ.createZipData([], true);
+					synchronized (loadImageSync) {
+						data = summ.createZipData([], true);
+					}
 				}
 				auto md5 = md5Digest(data);
 				if ((_oldMD5 != md5) && (!backup.length || data != std.file.read(parent.buildPath(backup[$ - 1])))) {
