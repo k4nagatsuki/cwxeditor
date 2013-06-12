@@ -1262,10 +1262,13 @@ private:
 		refreshControls();
 		_imgp.redraw();
 	}
-	void nearCenter() {
+	void nearCenterH() { nearCenterImpl1(true, false); }
+	void nearCenterV() { nearCenterImpl1(false, true); }
+	void nearCenter() { nearCenterImpl1(true, true); }
+	void nearCenterImpl1(bool h, bool v) {
 		_undo ~= createUndoEdit();
-		static if (UseCards) nearCenterImpl(cardsIndex, _area.cards, true);
-		static if (UseBacks) nearCenterImpl(0, _area.backs, false);
+		static if (UseCards) nearCenterImpl2(cardsIndex, _area.cards, true, h, v);
+		static if (UseBacks) nearCenterImpl2(0, _area.backs, false, h, v);
 		callModEvent();
 		refreshControls();
 		_imgp.redraw();
@@ -1290,12 +1293,12 @@ private:
 		getItemPositions(startIndex, cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
 		nearImpl(startIndex, cs, canvasW - itemsW - itemsL, 0);
 	}
-	void nearCenterImpl(T)(int startIndex, T[] cs, bool refParty) {
+	void nearCenterImpl2(T)(int startIndex, T[] cs, bool refParty, bool h, bool v) {
 		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
 		getItemPositions(startIndex, cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
 
-		int x = (canvasW - itemsW) / 2;
-		int y = (canvasH - itemsH) / 2;
+		int x = h ? (canvasW - itemsW) / 2 : itemsL;
+		int y = v ? (canvasH - itemsH) / 2 : itemsT;
 		int moveX = x - itemsL;
 		int moveY = y - itemsT;
 		nearImpl(startIndex, cs, moveX, moveY);
@@ -1506,6 +1509,8 @@ private:
 			createMenuItem(_comm, chgPos, MenuID.NearBottom, &nearBottom, &canChangePos);
 			createMenuItem(_comm, chgPos, MenuID.NearLeft, &nearLeft, &canChangePos);
 			createMenuItem(_comm, chgPos, MenuID.NearRight, &nearRight, &canChangePos);
+			createMenuItem(_comm, chgPos, MenuID.NearCenterH, &nearCenterH, &canChangePos);
+			createMenuItem(_comm, chgPos, MenuID.NearCenterV, &nearCenterV, &canChangePos);
 			createMenuItem(_comm, chgPos, MenuID.NearCenter, &nearCenter, &canChangePos);
 			new MenuItem(chgPos, SWT.SEPARATOR);
 			createMenuItem(_comm, chgPos, MenuID.PosTop, &posTop, &canChangePos);

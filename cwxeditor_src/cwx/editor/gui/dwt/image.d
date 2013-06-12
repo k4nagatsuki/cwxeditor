@@ -484,6 +484,8 @@ public:
 		case MenuID.NearBottom: return imgd!("near_bottom.png");
 		case MenuID.NearLeft: return imgd!("near_left.png");
 		case MenuID.NearRight: return imgd!("near_right.png");
+		case MenuID.NearCenterH: return imgd!("near_center_h.png");
+		case MenuID.NearCenterV: return imgd!("near_center_v.png");
 		case MenuID.NearCenter: return imgd!("near_center.png");
 		case MenuID.ScaleMin: return imgd!("scale_min.png");
 		case MenuID.ScaleMiddle: return imgd!("scale_middle.png");

@@ -155,6 +155,8 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.NearBottom] = "Z";
 		_mnemonic[MenuID.NearLeft] = "A";
 		_mnemonic[MenuID.NearRight] = "S";
+		_mnemonic[MenuID.NearCenterH] = "O";
+		_mnemonic[MenuID.NearCenterV] = "V";
 		_mnemonic[MenuID.NearCenter] = "E";
 		_mnemonic[MenuID.ScaleMin] = "N";
 		_mnemonic[MenuID.ScaleMiddle] = "I";
@@ -335,6 +337,8 @@ class MenuProps : Properties {
 		_hotkey[MenuID.NearBottom] = "";
 		_hotkey[MenuID.NearLeft] = "";
 		_hotkey[MenuID.NearRight] = "";
+		_hotkey[MenuID.NearCenterH] = "";
+		_hotkey[MenuID.NearCenterV] = "";
 		_hotkey[MenuID.NearCenter] = "";
 		_hotkey[MenuID.PosEven] = "";
 		_hotkey[MenuID.ScaleMin] = "";

@@ -1357,6 +1357,8 @@ enum MenuID {
 	NearBottom,
 	NearLeft,
 	NearRight,
+	NearCenterH,
+	NearCenterV,
 	NearCenter,
 	ScaleMin,
 	ScaleMiddle,

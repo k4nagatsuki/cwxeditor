@@ -1867,6 +1867,8 @@ class Msgs : Properties {
 	auto menuTextNearBottom = Msg("menuTextNearBottom", "下へ寄せる");
 	auto menuTextNearLeft = Msg("menuTextNearLeft", "左へ寄せる");
 	auto menuTextNearRight = Msg("menuTextNearRight", "右へ寄せる");
+	auto menuTextNearCenterH = Msg("menuTextNearCenterH", "横方向の中央へ寄せる");
+	auto menuTextNearCenterV = Msg("menuTextNearCenterV", "縦方向の中央へ寄せる");
 	auto menuTextNearCenter = Msg("menuTextNearCenter", "中央へ寄せる");
 	auto menuTextScaleMin = Msg("menuTextScaleMin", "最小のカードスケール");
 	auto menuTextScaleMiddle = Msg("menuTextScaleMiddle", "標準のカードスケール");
