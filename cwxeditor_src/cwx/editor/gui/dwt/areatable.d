@@ -1125,8 +1125,8 @@ private:
 	private void refreshAreas() {
 		if (!_areas || _areas.isDisposed()) return;
 		int topIndex = _areas.getTopIndex();
-		_areas.removeAll();
 		auto sel = getSelectionArea();
+		_areas.removeAll();
 		if (_summ) {
 			newSummaryItem();
 			_areas.select(0);
@@ -1203,17 +1203,27 @@ private:
 	private void addAreaItem(int index) {
 		auto a = _summ.areas[index];
 		if (!_incSearch.match(a.name, a)) return;
-		item(a, _prop.images.area, _summ.useCounter.get(toAreaId(a.id)), -1);
+		index = 1;
+		for (; index < _areas.getItemCount(); index++) {
+			if (!cast(Area)_areas.getItem(index).getData()) break;
+		}
+		item(a, _prop.images.area, _summ.useCounter.get(toAreaId(a.id)), index);
 	}
 	private void addBattleItem(int index) {
 		auto a = _summ.battles[index];
 		if (!_incSearch.match(a.name, a)) return;
-		item(a, _prop.images.battle, _summ.useCounter.get(toBattleId(a.id)), -1);
+		index = 1;
+		for (; index < _areas.getItemCount(); index++) {
+			auto data = _areas.getItem(index).getData();
+			if (!cast(Area)data && !cast(Battle)data) break;
+		}
+		item(a, _prop.images.battle, _summ.useCounter.get(toBattleId(a.id)), index);
 	}
 	private void addPackageItem(int index) {
 		auto a = _summ.packages[index];
 		if (!_incSearch.match(a.name, a)) return;
-		item(a, _prop.images.packages, _summ.useCounter.get(toPackageId(a.id)), -1);
+		index = _areas.getItemCount();
+		item(a, _prop.images.packages, _summ.useCounter.get(toPackageId(a.id)), index);
 	}
 	private class SListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
@@ -1542,6 +1552,7 @@ public:
 		addAreaItem(index);
 		auto sel = selArea(index);
 		sort();
+		_areas.showSelection();
 		_comm.refArea.call(area);
 		if (sel) _areasEdit.startEdit();
 		refreshStatusLine();
@@ -1557,6 +1568,7 @@ public:
 		addBattleItem(index);
 		auto sel = selBattle(index);
 		sort();
+		_areas.showSelection();
 		_comm.refBattle.call(btl);
 		if (sel) _areasEdit.startEdit();
 		refreshStatusLine();
@@ -1580,6 +1592,7 @@ public:
 		addPackageItem(index);
 		auto sel = selPackage(index);
 		sort();
+		_areas.showSelection();
 		_comm.refPackage.call(pkg);
 		if (sel) _areasEdit.startEdit();
 		refreshStatusLine();
