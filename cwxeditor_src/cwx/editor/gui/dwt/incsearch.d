@@ -18,22 +18,38 @@ import std.regex;
 
 import org.eclipse.swt.all;
 
+/// 追加検索条件。
+/// オブジェクトの種類毎に絞り込みたい等の場合に使用する。
+struct AdditionMatcher {
+	string name; /// 条件名。
+	bool delegate(in Object) match; /// オブジェクトがこの条件にマッチするか判定する。
+}
 class IncSearch {
 	/// 検索語が変更された際に呼び出される。
 	void delegate()[] modEvent;
 
 	/// 文字列がマッチすればtrue。
-	bool match(string text) {
-		if (!_wild) return true;
-		if (!_text.getText().length) return true;
+	bool match(string text, in Object additionalData = null) {
+		if (!_win.isVisible()) return true;
+		if (!_wild) return matchAdditional(additionalData);
+		if (!_text.getText().length) return matchAdditional(additionalData);
 		switch (_type.getSelectionIndex()) {
-		case 0: return .indexOf(text, _text.getText(), CaseSensitive.no) != -1;
-		case 1: return _wild.match(text);
+		case 0: return .indexOf(text, _text.getText(), CaseSensitive.no) != -1 && matchAdditional(additionalData);
+		case 1: return _wild.match(text) && matchAdditional(additionalData);
 		case 2:
 			if (_regexErr) return false;
-			return !.match(to!dstring(text), _regex).empty;
+			return !.match(to!dstring(text), _regex).empty && matchAdditional(additionalData);
 		default: assert (0);
 		}
+	}
+	bool matchAdditional(in Object additionalData) {
+		if (!additionalData) return true;
+		foreach (chk, dlg; _additionCheckers) {
+			if (!chk.getSelection() && dlg(additionalData)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private Shell _win;
@@ -42,13 +58,18 @@ class IncSearch {
 	private Control _parent;
 	private Wildcard _wild = null;
 	private Regex!dchar _regex;
+	private bool delegate(in Object)[Button] _additionCheckers;
 	private bool _regexErr = false;
 	private bool _open = false;
 
-	this (Commons comm, Control parent) {
+	this (Commons comm, Control parent, AdditionMatcher[] addition = []) {
 		_parent = parent;
 		_win = new Shell(parent.getShell(), SWT.BORDER | SWT.MODELESS);
-		_win.setLayout(zeroGridLayout(3, false));
+		auto wgl = windowGridLayout(3, false);
+		wgl.marginWidth = 0;
+		wgl.marginHeight = 0;
+		wgl.horizontalSpacing = 0;
+		_win.setLayout(wgl);
 		_text = new Text(_win, SWT.BORDER);
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.widthHint = comm.prop.var.etc.incrementalSearchBoxWidth;
@@ -78,6 +99,25 @@ class IncSearch {
 		auto bar = new ToolBar(_win, SWT.FLAT);
 		comm.put(bar);
 		createToolItem(comm, bar, MenuID.CloseIncSearch, &close, null);
+
+		if (addition.length) {
+			auto addComp = new Composite(_win, SWT.NONE);
+			auto agd = new GridData(GridData.FILL_HORIZONTAL);
+			agd.horizontalSpan = 3;
+			addComp.setLayoutData(agd);
+			addComp.setLayout(zeroMarginGridLayout(addition.length, false));
+			foreach (add; addition) {
+				auto check = new Button(addComp, SWT.CHECK);
+				check.setText(add.name);
+				check.setSelection(true);
+				.listener(check, SWT.Selection, {
+					foreach (dlg; modEvent) {
+						dlg();
+					}
+				});
+				_additionCheckers[check] = add.match;
+			}
+		}
 
 		bool inMod = false;
 		.listener(_text, SWT.Modify, {
@@ -185,8 +225,18 @@ class IncSearch {
 		if (_win.isVisible()) {
 			_win.setVisible(false);
 			_wild = null;
+			bool mod = false;
+			foreach (chk, dlg; _additionCheckers) {
+				if (!chk.getSelection()) {
+					chk.setSelection(true);
+					mod = true;
+				}
+			}
 			if (_text.getText().length) {
 				_text.setText("");
+				mod = true;
+			}
+			if (mod) {
 				foreach (dlg; modEvent) {
 					dlg();
 				}

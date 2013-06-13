@@ -65,7 +65,7 @@ public:
 		_sash = new SplitPane(_comp, _prop.var.etc.flagSashV ? SWT.VERTICAL : SWT.HORIZONTAL);
 
 		_dirs.createControl(_sash);
-		_flags.createControl(_sash);
+		_flags.createControl(_sash, _sash);
 		_flags.setDir(_dirs.current, true);
 
 		_sash.setWeights([_prop.var.etc.flagSashL, _prop.var.etc.flagSashR]);

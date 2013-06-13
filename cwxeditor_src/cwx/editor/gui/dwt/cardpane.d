@@ -36,6 +36,7 @@ import cwx.editor.gui.dwt.cardpane;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.areaviewutils;
+import cwx.editor.gui.dwt.incsearch;
 
 import std.algorithm;
 import std.array;
@@ -86,11 +87,25 @@ private:
 	@property
 	public C[] cards() {return cardsFrom(owner);}
 	@property
-	private C[] __cards() {
+	private C[] cardsNarrow() {
 		if (_owner) {
-			return cards;
+			C[] r;
+			foreach (card; cards) {
+				if (_incSearch.match(cardName(card))) {
+					r ~= card;
+				}
+			}
+			return r;
 		}
 		return [];
+	}
+	@property
+	private int narrowCount() {
+		if (_viewMode is CViewMode.TABLE) {
+			return _tbl.getItemCount();
+		} else {
+			return _list.count;
+		}
 	}
 	public static C cardFrom(CardOwner)(CardOwner owner, ulong id) {
 		static if (is(C:CastCard)) {
@@ -465,6 +480,12 @@ private:
 	TableSorter!C _descSorter;
 	TableSorter!C _nameSorter;
 
+	IncSearch _incSearch = null;
+	private void incSearch() {
+		.forceFocus(widget, true);
+		_incSearch.startIncSearch();
+	}
+
 	bool compID(const C c1, const C c2) {
 		if (c1.id < c2.id) return true;
 		if (c1.id > c2.id) return false;
@@ -751,27 +772,35 @@ private:
 	}
 	void refresh(C c) {
 		if (!_tbl || _tbl.isDisposed()) return;
-		int i;
-		for (i = 0; i < cards.length; i++) {
-			bool targ = cards[i] is c;
+		void update(size_t i, C card) {
+			bool targ = card is c;
 			static if (is(CardOwner:CastCard) && is(typeof(c.linkId))) {
-				if (cast(Summary) c.cwxParent && 0 != cards[i].linkId && cards[i].linkId is c.id) {
+				if (cast(Summary) c.cwxParent && 0 != card.linkId && card.linkId is c.id) {
 					targ = true;
 				}
 			}
 			if (targ) {
 				if (_viewMode == CViewMode.TABLE) {
-					refreshTableItem(cards[i], _tbl.getItem(i));
+					refreshTableItem(card, _tbl.getItem(i));
 				} else {
-					refreshListItem(i, cards[i]);
+					refreshListItem(i, card);
 				}
+			}
+		}
+		if (_viewMode == CViewMode.TABLE) {
+			foreach (i, itm; _tbl.getItems()) {
+				update(i, cast(C)itm.getData());
+			}
+		} else {
+			foreach (i, card; _list.cards) {
+				update(i, card);
 			}
 		}
 		refreshStatusLine();
 	}
 	void __refresh() {
 		closePreview();
-		auto cards = __cards;
+		auto cards = cardsNarrow;
 		sort(cards);
 		if (_viewMode == CViewMode.TABLE) {
 			_list.refresh([], &cardImage, _prop.var.etc.showCardListTitle ? &cardTitle : null);
@@ -907,10 +936,17 @@ private:
 	static if (EditMode) {
 		static void delImpl(CardPane v, Commons comm, CardOwner owner, C card) {
 			if (!card) return;
-			int index = cCountUntil!("a is b")(cardsFrom(owner), card);
 			owner.remove(card);
 			if (v && v.widget && !v.widget.isDisposed()) {
 				if (v._viewMode == CViewMode.TABLE) {
+					int index = -1;
+					foreach (i, itm; v._tbl.getItems()) {
+						if (card is itm.getData()) {
+							index = i;
+							break;
+						}
+					}
+					assert (index != -1);
 					v._tbl.remove(index);
 					v._tbl.redraw();
 				} else {
@@ -1150,10 +1186,10 @@ private:
 		}
 		class CLDTListener : DropTargetAdapter {
 			override void dragEnter(DropTargetEvent e){
-				e.detail = DND.DROP_MOVE;
+				e.detail = narrowCount == cards.length ? DND.DROP_MOVE : DND.DROP_NONE;
 			}
 			override void dragOver(DropTargetEvent e){
-				e.detail = DND.DROP_MOVE;
+				e.detail = narrowCount == cards.length ? DND.DROP_MOVE : DND.DROP_NONE;
 			}
 			mixin Drop;
 			@property
@@ -1180,10 +1216,10 @@ private:
 		}
 		class CTDTListener : DropTargetAdapter {
 			override void dragEnter(DropTargetEvent e){
-				e.detail = DND.DROP_MOVE;
+				e.detail = _viewMode is CViewMode.TABLE && narrowCount == cards.length ? DND.DROP_MOVE : DND.DROP_NONE;
 			}
 			override void dragOver(DropTargetEvent e){
-				e.detail = DND.DROP_MOVE;
+				e.detail = _viewMode is CViewMode.TABLE && narrowCount == cards.length ? DND.DROP_MOVE : DND.DROP_NONE;
 			}
 			mixin Drop;
 			@property
@@ -1291,8 +1327,9 @@ private:
 
 	void refreshIDs() {
 		if (_viewMode == CViewMode.TABLE) {
-			foreach (i, c; cards) {
-				_tbl.getItem(i).setText(COL_ID, to!(string)(c.id));
+			foreach (i, itm; _tbl.getItems()) {
+				auto c = cast(C)itm.getData();
+				itm.setText(COL_ID, to!(string)(c.id));
 			}
 		}
 	}
@@ -1735,6 +1772,10 @@ private:
 		auto ct_ = new CT;
 		_tcpd ~= ct_;
 
+		// 絞込み検索
+		_incSearch = new IncSearch(_comm, _pane);
+		_incSearch.modEvent ~= &refresh;
+
 		// ソート関係
 		_idSorter = new TableSorter!C(idCol, &compID, &revCompID);
 		_idSorter.sortedEvent ~= &sorted;
@@ -1826,6 +1867,7 @@ private:
 			dropT.setTransfer([XMLBytesTransfer.getInstance()]);
 			dropT.addDropListener(new CTDTListener);
 		}
+
 		__refList();
 	}
 	static if (EditMode) {
@@ -2024,6 +2066,8 @@ public:
 				}
 			});
 			auto pop = new Menu(parent.getShell(), SWT.POP_UP);
+			createMenuItem(_comm, pop, MenuID.IncSearch, &incSearch, null);
+			new MenuItem(pop, SWT.SEPARATOR);
 			static if (is (C == CastCard)) {
 				createMenuItem(_comm, pop, MenuID.EditProp, &editM, &canEdit);
 				new MenuItem(pop, SWT.SEPARATOR);
@@ -2063,6 +2107,8 @@ public:
 			createMenuItem(_comm, pop, MenuID.ReNumbering, &reNumbering, () => selection !is null);
 		} else {
 			auto pop = new Menu(parent.getShell(), SWT.POP_UP);
+			createMenuItem(_comm, pop, MenuID.IncSearch, &incSearch, null);
+			new MenuItem(pop, SWT.SEPARATOR);
 			static if (is (C == CastCard)) {
 				createMenuItem(_comm, pop, MenuID.OpenHand, _openHand, () => selection !is null);
 				new MenuItem(pop, SWT.SEPARATOR);
@@ -2178,20 +2224,12 @@ public:
 	@property
 	void select(int index) {
 		if (!_tbl || _tbl.isDisposed()) return;
-		if (_viewMode == CViewMode.TABLE) {
-			if (-1 == index) {
-				_tbl.deselectAll();
-			} else {
-				_tbl.select(index);
-				_tbl.showSelection();
-			}
+		if (0 <= index) {
+			selectID(cards[index].id);
+		} else if (_viewMode == CViewMode.TABLE) {
+			_tbl.deselectAll();
 		} else {
-			if (-1 == index) {
-				_list.deselectAll();
-			} else {
-				_list.select(index);
-				_list.scroll(index);
-			}
+			_list.deselectAll();
 		}
 		refreshStatusLine();
 	}
@@ -2200,14 +2238,16 @@ public:
 			foreach (i, itm; _tbl.getItems()) {
 				auto c = cast(C) itm.getData();
 				if (c.id == id) {
-					select(i);
+					_tbl.select(i);
+					_tbl.showSelection();
 					break;
 				}
 			}
 		} else {
 			foreach (i, c; _list.cards) {
 				if (c.id == id) {
-					select(i);
+					_list.select(i);
+					_list.scroll(i);
 					break;
 				}
 			}
@@ -2408,6 +2448,7 @@ public:
 		void pasteRefresh(C[] cs) {
 			if (_viewMode == CViewMode.TABLE) {
 				foreach (c; cs) {
+					if (!_incSearch.match(cardName(c))) continue;
 					createTableItem(c);
 				}
 				_tbl.setSelection([_tbl.getItemCount() - 1]);
@@ -2467,10 +2508,12 @@ public:
 
 	static if (EditMode) {
 		void reNumbering() {
+			_incSearch.close();
 			auto index = selectionIndex;
 			auto dlg = new ReNumDialog!(C)(_prop, dlgParShl, cards[index],
 				index == 0 ? 1 : cards[index - 1].id + 1);
 			if (dlg.open()) {
+				_incSearch.close();
 				reNumbering(index, dlg.newId);
 			}
 		}
@@ -2626,28 +2669,34 @@ public:
 			select(selIndex);
 		}
 		bool canUp() {
+			if (!_summ) return false;
+			if (!_tbl || !_list || !_incSearch) return false;
+			if (_tbl.isDisposed()) return false;
+			if (narrowCount != cards.length) return false;
 			if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return false;
 			if (!_list.isFocusControl() && !_tbl.isFocusControl()) return false;
 			int sel = selectionIndex;
 			return sel != -1 && 0 < sel;
 		}
 		bool canDown() {
+			if (!_summ) return false;
+			if (!_tbl || !_list || !_incSearch) return false;
+			if (_tbl.isDisposed()) return false;
+			if (narrowCount != cards.length) return false;
 			if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return false;
 			if (!_list.isFocusControl() && !_tbl.isFocusControl()) return false;
 			int sel = selectionIndex;
 			return sel != -1 && sel + 1 < cards.length;
 		}
 		void up() {
-			if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return;
-			if (!_list.isFocusControl() && !_tbl.isFocusControl()) return;
+			if (!canUp()) return;
 			int sel = selectionIndex;
 			if (-1 == sel) return;
 			udImpl(sel, sel - 1);
 			_comm.refreshToolBar();
 		}
 		void down() {
-			if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return;
-			if (!_list.isFocusControl() && !_tbl.isFocusControl()) return;
+			if (!canDown()) return;
 			int sel = selectionIndex;
 			if (-1 == sel) return;
 			udImpl(sel, sel + 1);

@@ -20,6 +20,7 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.incsearch;
 
 import std.array;
 import std.ascii;
@@ -428,8 +429,10 @@ private abstract class FTVUndo : Undo {
 	protected Commons comm;
 	protected string _dir;
 	private string _selectedDir;
-	private int[] _selected;
-	private int[] _selectedB;
+	private string[] _selectedF;
+	private string[] _selectedS;
+	private string[] _selectedFB;
+	private string[] _selectedSB;
 	protected FlagDir selDir = null;
 	this (FlagTable v, Commons comm, FlagDir dir) {
 		_v = v;
@@ -446,13 +449,16 @@ private abstract class FTVUndo : Undo {
 		if (!dir) return;
 		_selectedDir = dir.cwxPath(true);
 		if (v && v.flags && !v.flags.isDisposed()) {
-			_selected = v.flags.getSelectionIndices();
+			_selectedF = v.selectionFlagNames;
+			_selectedS = v.selectionStepNames;
 		} else {
-			_selected.length = 0;
+			_selectedF.length = 0;
+			_selectedS.length = 0;
 		}
 	}
 	void udb(FlagTable v) {
-		_selectedB = _selected.dup;
+		_selectedFB = _selectedF.dup;
+		_selectedSB = _selectedS.dup;
 		saveSelected(v);
 		if (v && v.flags && !v.flags.isDisposed()) {
 			.forceFocus(v.flags, false);
@@ -467,7 +473,8 @@ private abstract class FTVUndo : Undo {
 			} else {
 				if (comm.openCWXPath(_selectedDir, true)) {
 					v.flags.deselectAll();
-					v.flags.select(_selectedB);
+					v.selectFlagNames(_selectedFB);
+					v.selectStepNames(_selectedSB);
 				}
 			}
 			v.refreshStatusLine();
@@ -595,18 +602,20 @@ package class UndoInsertDelete : FTVUndo {
 	private Step[] _ss;
 
 	/// 追加を元に戻す。
-	this (FlagTable v, Commons comm, FlagDir dir, int[] selected, int[] dirIndices, string[] flagName, string[] stepName) {
+	this (FlagTable v, Commons comm, FlagDir dir, string[] selectedF, string[] selectedS, int[] dirIndices, string[] flagName, string[] stepName) {
 		super (v, comm, dir);
-		_selected = selected.dup;
+		_selectedF = selectedF.dup;
+		_selectedS = selectedS.dup;
 		_dirIndices = dirIndices.dup;
 		_flagName = flagName.dup;
 		_stepName = stepName.dup;
 		_insert = true;
 	}
 	/// 削除を元に戻す。
-	this (FlagTable v, Commons comm, FlagDir dir, int[] selected, FlagDir[int] ds, Flag[] fs, Step[] ss) {
+	this (FlagTable v, Commons comm, FlagDir dir, string[] selectedF, string[] selectedS, FlagDir[int] ds, Flag[] fs, Step[] ss) {
 		super (v, comm, dir);
-		_selected = selected.dup;
+		_selectedF = selectedF.dup;
+		_selectedS = selectedS.dup;
 		save(ds, fs, ss);
 		_insert = false;
 	}
@@ -718,14 +727,15 @@ package class UndoMove : FTVUndo {
 	private string[string] _cFlags;
 	private string[string] _cSteps;
 
-	this (FlagTable v, Commons comm, int[] selected, FlagDir to, int[] dirIndices, string[] flagName, string[] stepName, FlagDir from, FlagDir[int] ds, Flag[] fs, Step[] ss, Flag[string] cFlags, Step[string] cSteps) {
+	this (FlagTable v, Commons comm, string[] selectedF, string[] selectedS, FlagDir to, int[] dirIndices, string[] flagName, string[] stepName, FlagDir from, FlagDir[int] ds, Flag[] fs, Step[] ss, Flag[string] cFlags, Step[string] cSteps) {
 		super (v, comm, from);
-		_selected = selected.dup;
+		_selectedF = selectedF.dup;
+		_selectedS = selectedS.dup;
 		assert (dirIndices.length == ds.length);
 		assert (flagName.length == fs.length);
 		assert (stepName.length == ss.length);
-		_dir1 = new UndoInsertDelete(v, comm, to, selected, dirIndices, flagName, stepName);
-		_dir2 = new UndoInsertDelete(v, comm, from, selected, ds, fs, ss);
+		_dir1 = new UndoInsertDelete(v, comm, to, selectedF, selectedS, dirIndices, flagName, stepName);
+		_dir2 = new UndoInsertDelete(v, comm, from, selectedF, selectedS, ds, fs, ss);
 		foreach (oPath, flag; cFlags) {
 			_cFlags[oPath] = flag.path;
 		}
@@ -824,12 +834,12 @@ private:
 	void storeEdit(int index, string oldName, int oldValue) {
 		_undo ~= new UndoEdit(this, _comm, _dir, [index], [oldName], [oldValue]);
 	}
-	void storeInsert(int[] selected, string[] flagName, string[] stepName) {
-		_undo ~= new UndoInsertDelete(this, _comm, _dir, selected, [], flagName, stepName);
+	void storeInsert(string[] selectedF, string[] selectedS, string[] flagName, string[] stepName) {
+		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, [], flagName, stepName);
 	}
-	void storeDelete(int[] selected, Flag[] fs, Step[] ss) {
+	void storeDelete(string[] selectedF, string[] selectedS, Flag[] fs, Step[] ss) {
 		FlagDir[int] ds;
-		_undo ~= new UndoInsertDelete(this, _comm, _dir, selected, ds, fs, ss);
+		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, ds, fs, ss);
 	}
 
 	static int indexOf(FlagDir dir, CWXPath p) {
@@ -868,6 +878,7 @@ private:
 		if (_dir) {
 			int i = 0;
 			foreach (f; _dir.steps) {
+				if (!_incSearch.match(f.name, f)) continue;
 				TableItem itm;
 				if (i < flags.getItemCount()) {
 					itm = flags.getItem(i);
@@ -882,6 +893,7 @@ private:
 				i++;
 			}
 			foreach (f; _dir.flags) {
+				if (!_incSearch.match(f.name, f)) continue;
 				TableItem itm;
 				if (i < flags.getItemCount()) {
 					itm = flags.getItem(i);
@@ -915,6 +927,12 @@ private:
 	FlagEditDialog[Flag] _editDlgsF;
 	StepEditDialog[Step] _editDlgsS;
 
+	IncSearch _incSearch = null;
+	private void incSearch() {
+		.forceFocus(flags, true);
+		_incSearch.startIncSearch();
+	}
+
 	UndoManager _undo;
 
 	void editFlag(FlagDir parent, Flag flag) {
@@ -945,11 +963,13 @@ private:
 			auto flag = dlg.flag;
 			if (old && old != flag.path) uc.change(toFlagId(old), toFlagId(flag.path), true);
 			if (createMode) {
-				int[] indices;
+				string[] selsF;
+				string[] selsS;
 				if (flags && !flags.isDisposed()) {
-					indices = flags.getSelectionIndices();
+					selsF = selectionFlagNames;
+					selsS = selectionStepNames;
 				}
-				storeInsert(indices, [flag.name], []);
+				storeInsert(selsF, selsS, [flag.name], []);
 				createMode = false;
 			} else {
 				storeEdit(indexOf(parent, flag), oldName, oldValue);
@@ -995,11 +1015,13 @@ private:
 			auto step = dlg.step;
 			if (old && old != step.path) uc.change(toStepId(old), toStepId(step.path), true);
 			if (createMode) {
-				int[] indices;
+				string[] selsF;
+				string[] selsS;
 				if (flags && !flags.isDisposed()) {
-					indices = flags.getSelectionIndices();
+					selsF = selectionFlagNames;
+					selsS = selectionStepNames;
 				}
-				storeInsert(indices, [step.name], []);
+				storeInsert(selsF, selsS, [step.name], []);
 				createMode = false;
 			} else {
 				storeEdit(indexOf(parent, step), oldName, oldValue);
@@ -1042,32 +1064,34 @@ private:
 		auto indices = flags.getSelectionIndices();
 		if (indices.length > 0) {
 			foreach (i; indices) {
-				if (i < _dir.steps.length) {
-					ss ~= _dir.steps[i];
-				} else {
-					fs ~= _dir.flags[i - _dir.steps.length];
-				}
+				auto itm = flags.getItem(i);
+				if (auto s = cast(Step)itm.getData()) {
+					ss ~= s;
+				} else if (auto f = cast(Flag)itm.getData()) {
+					fs ~= f;
+				} else assert (0);
 			}
 			return true;
 		} else {
 			return false;
 		}
 	}
-	/// ditto
-	@property
-	Flag[] selectionFlags() {
-		Flag[] fs;
-		Step[] ss;
-		getSelectionFlagAndStep(fs, ss);
-		return fs;
+	void selectNamesImpl(F)(string[] names) {
+		auto set = new HashSet!string;
+		foreach (name; names) set.add(name.toLower());
+		foreach (i, itm; flags.getItems()) {
+			if (auto f = cast(F)itm.getData()) {
+				if (set.contains(f.name.toLower())) {
+					flags.select(i);
+				}
+			}
+		}
 	}
-	/// ditto
-	@property
-	Step[] selectionSteps() {
-		Flag[] fs;
-		Step[] ss;
-		getSelectionFlagAndStep(fs, ss);
-		return ss;
+	void selectFlagNames(string[] names) {
+		selectNamesImpl!Flag(names);
+	}
+	void selectStepNames(string[] names) {
+		selectNamesImpl!Step(names);
 	}
 
 	Flag[] _dragFlags;
@@ -1133,7 +1157,7 @@ private:
 		foreach (itm; itms) {
 			auto f = cast(Flag)itm.getData();
 			if (f) {
-				indices ~= flags.indexOf(itm);
+				indices ~= indexOf(f.parent, f);
 				oldNamesF ~= f.name;
 				oldNames ~= f.name;
 				refF ~= f;
@@ -1141,7 +1165,7 @@ private:
 			}
 			auto s = cast(Step)itm.getData();
 			if (s) {
-				indices ~= flags.indexOf(itm);
+				indices ~= indexOf(s.parent, s);
 				oldNamesS ~= s.name;
 				oldNames ~= s.name;
 				refS ~= s;
@@ -1230,7 +1254,7 @@ private:
 			auto f = cast(Flag)itm.getData();
 			if (selFlag && f) {
 				if (f.onOff == (0 == i)) continue;
-				indices ~= flags.indexOf(itm);
+				indices ~= indexOf(f.parent, f);
 				oldNames ~= f.name;
 				oldValues ~= f.onOff ? 0 : 1;
 				f.onOff = 0 == i;
@@ -1240,7 +1264,7 @@ private:
 			auto s = cast(Step)itm.getData();
 			if (selStep && s) {
 				if (s.select == i) continue; 
-				indices ~= flags.indexOf(itm);
+				indices ~= indexOf(s.parent, s);
 				oldNames ~= s.name;
 				oldValues ~= s.select;
 				s.select(i);
@@ -1340,7 +1364,7 @@ public:
 	/// コントロールを生成する。
 	/// Params:
 	/// parent = 親コントロール。
-	Control createControl(Composite parent) {
+	Control createControl(Composite parent, Composite incSearchParent) {
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout(new FillLayout);
 		flags = new Table(_comp, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
@@ -1355,9 +1379,18 @@ public:
 		countCol.setText(prop.msgs.flagCount);
 		saveColumnWidth!("prop.var.etc.flagCountColumn")(prop, countCol);
 
+		auto matchers = [
+			AdditionMatcher(MenuProps.buildMenu(.objName!Step(prop), "S", "", false), (o) => cast(Step)o !is null),
+			AdditionMatcher(MenuProps.buildMenu(.objName!Flag(prop), "F", "", false), (o) => cast(Flag)o !is null),
+		];
+		_incSearch = new IncSearch(_comm, incSearchParent, matchers);
+		_incSearch.modEvent ~= &refresh;
+
 		flags.addKeyListener(new KListener);
 		flags.addMouseListener(new MListener);
 		auto menu = new Menu(flags.getShell(), SWT.POP_UP);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, null);
+		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.EditProp, &edit, () => flags.getSelectionIndex() != -1);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
@@ -1504,6 +1537,40 @@ public:
 		}
 		return [];
 	}
+	/// ditto
+	@property
+	Flag[] selectionFlags() {
+		Flag[] fs;
+		Step[] ss;
+		getSelectionFlagAndStep(fs, ss);
+		return fs;
+	}
+	/// ditto
+	@property
+	Step[] selectionSteps() {
+		Flag[] fs;
+		Step[] ss;
+		getSelectionFlagAndStep(fs, ss);
+		return ss;
+	}
+	/// ditto
+	@property
+	string[] selectionFlagNames() {
+		string[] r;
+		foreach (f; selectionFlags) {
+			r ~= f.name;
+		}
+		return r;
+	}
+	/// ditto
+	@property
+	string[] selectionStepNames() {
+		string[] r;
+		foreach (f; selectionSteps) {
+			r ~= f.name;
+		}
+		return r;
+	}
 
 	/// フラグ生成のダイアログボックスを開く。
 	/// 適切に設定された場合、新規フラグを生成する。
@@ -1521,13 +1588,11 @@ public:
 	void edit() {
 		if (_dir !is null) {
 			foreach (index; flags.getSelectionIndices()) {
-				if (index < _dir.steps.length) {
-					auto step = _dir.steps[index];
+				if (auto step = cast(Step)flags.getItem(index).getData()) {
 					editStep(step.parent, step);
-				} else {
-					auto flag = _dir.flags[index - _dir.steps.length];
+				} else if (auto flag = cast(Flag)flags.getItem(index).getData()) {
 					editFlag(flag.parent, flag);
-				}
+				} else assert (0);
 			}
 		}
 	}
@@ -1622,7 +1687,8 @@ public:
 					string rootId;
 					Flag[string] cFlags;
 					Step[string] cSteps;
-					auto sels = flags.getSelectionIndices();
+					auto selsF = selectionFlagNames;
+					auto selsS = selectionStepNames;
 					auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
 					if (_dir.appendFromXML(c, ver, true, false, cFlags, cSteps, newPath, rootId)) {
 						string[] flagName;
@@ -1633,7 +1699,7 @@ public:
 						foreach (s; cSteps) {
 							stepName ~= s.name;
 						}
-						storeInsert(sels, flagName, stepName);
+						storeInsert(selsF, selsS, flagName, stepName);
 						refresh();
 						_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
 						_comm.refreshToolBar();
@@ -1645,7 +1711,8 @@ public:
 		}
 		void del(SelectionEvent se) {
 			if (!_dir) return;
-			auto sels = flags.getSelectionIndices();
+			auto selsF = selectionFlagNames;
+			auto selsS = selectionStepNames;
 			Flag[] fs;
 			Step[] ss;
 			foreach (itm; flags.getSelection()) {
@@ -1661,7 +1728,7 @@ public:
 					_dir.remove(step);
 				}
 			}
-			storeDelete(sels, fs, ss);
+			storeDelete(selsF, selsS, fs, ss);
 			_comm.delFlagAndStep.call(fs, ss);
 			refresh();
 			_comm.refreshToolBar();
