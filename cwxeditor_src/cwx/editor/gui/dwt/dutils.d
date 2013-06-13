@@ -77,61 +77,52 @@ bool dwtImageSize(Skin skin, string path, out uint width, out uint height) {
 	return imageSize(path, width, height);
 }
 
-__gshared Object loadImageSync = null;
-static this () {
-	loadImageSync = new Object;
-}
-
 ImageData loadImage(string path, bool mask = true, int maskX = 0, int maskY = 0) {
-	synchronized (loadImageSync) {
-		return loadImage(null, path, mask, maskX, maskY);
-	}
+	return loadImage(null, path, mask, maskX, maskY);
 }
 ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int maskY = 0, string[] stratum = []) {
-	synchronized (loadImageSync) {
-		if (!isBinImg(path) && contains(stratum, nabs(path))) {
-			// 無限再帰を回避
-			return blankImage;
-		}
-		if (path !is null && path.length > 0) {
-			string ext = .extension(path);
-			if (cfnmatch(ext, ".jpy1")
-					|| cfnmatch(ext, ".jptx")
-					|| cfnmatch(ext, ".jpdc")) {
-				auto data = loadJPYImage(skin, path, stratum);
-				if (mask) data.transparentPixel = data.getPixel(maskX, maskY);
-				return data;
-			}
-			try {
-				byte[] bytes;
-				if (isBinImg(path)) {
-					bytes = cast(byte[]) strToBImg(path);
-				} else {
-					if (!.exists(path)) return blankImage;
-					bytes = cast(byte[]) std.file.read(path);
-				}
-				auto s = new ByteArrayInputStream(bytes);
-				scope (exit) s.close();
-				auto data = new ImageData(s);
-				if (32 == data.depth && 'B' == bytes[0] && 'M' == bytes[1]) {
-					// アルファ値を正しく取れないので補完しておく
-					data.alphaData = new byte[data.width * data.height];
-					foreach (y; 0 .. data.height) {
-						foreach (x; 0 .. data.width) {
-							data.alphaData[y * data.width + x] = cast(ubyte) data.data[y * data.bytesPerLine + x * 4 + 3];
-						}
-					}
-				}
-				if (mask && (!data.alphaData || !data.alphaData.length)) {
-					data.transparentPixel = data.getPixel(maskX, maskY);
-				}
-				return data;
-			} catch (SWTException e) {
-				debugln(e);
-			}
-		}
+	if (!isBinImg(path) && contains(stratum, nabs(path))) {
+		// 無限再帰を回避
 		return blankImage;
 	}
+	if (path !is null && path.length > 0) {
+		string ext = .extension(path);
+		if (cfnmatch(ext, ".jpy1")
+				|| cfnmatch(ext, ".jptx")
+				|| cfnmatch(ext, ".jpdc")) {
+			auto data = loadJPYImage(skin, path, stratum);
+			if (mask) data.transparentPixel = data.getPixel(maskX, maskY);
+			return data;
+		}
+		try {
+			byte[] bytes;
+			if (isBinImg(path)) {
+				bytes = cast(byte[]) strToBImg(path);
+			} else {
+				if (!.exists(path)) return blankImage;
+				bytes = cast(byte[]) std.file.read(path);
+			}
+			auto s = new ByteArrayInputStream(bytes);
+			scope (exit) s.close();
+			auto data = new ImageData(s);
+			if (32 == data.depth && 'B' == bytes[0] && 'M' == bytes[1]) {
+				// アルファ値を正しく取れないので補完しておく
+				data.alphaData = new byte[data.width * data.height];
+				foreach (y; 0 .. data.height) {
+					foreach (x; 0 .. data.width) {
+						data.alphaData[y * data.width + x] = cast(ubyte) data.data[y * data.bytesPerLine + x * 4 + 3];
+					}
+				}
+			}
+			if (mask && (!data.alphaData || !data.alphaData.length)) {
+				data.transparentPixel = data.getPixel(maskX, maskY);
+			}
+			return data;
+		} catch (SWTException e) {
+			debugln(e);
+		}
+	}
+	return blankImage;
 }
 
 /// bytesがBitmapイメージでなければBitmapへ変換する。
