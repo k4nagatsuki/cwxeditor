@@ -376,9 +376,7 @@ private:
 				dStr ~= " - " ~ .text(__LINE__);
 				synchronized (_saveSync) {
 					dStr ~= " - " ~ .text(__LINE__);
-					synchronized (.loadImageSync) {
-						data = summ.createZipData([], true);
-					}
+					data = summ.createZipData([], true);
 					dStr ~= " - " ~ .text(__LINE__);
 				}
 				dStr ~= " - " ~ .text(__LINE__);
