@@ -103,7 +103,7 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 				bytes = cast(byte[]) strToBImg(path);
 			} else {
 				if (!.exists(path)) return blankImage;
-				bytes = cast(byte[]) std.file.read(path);
+				bytes = cast(byte[])readBinary(path);
 			}
 			auto s = new ByteArrayInputStream(bytes);
 			scope (exit) s.close();
@@ -124,8 +124,8 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 		} catch (SWTException e) {
 			debugln(e);
 		}
-		return blankImage;
 	}
+	return blankImage;
 }
 
 /// bytesがBitmapイメージでなければBitmapへ変換する。
@@ -2885,4 +2885,16 @@ private class OpenDir : SelectionAdapter {
 /// マーカインタフェース。
 interface NoIME {
 	// Nothing
+}
+
+void updateChecked(Event)(Event e) {
+	if (e.detail == SWT.CHECK) {
+		auto itm = cast(TableItem)e.item;
+		auto tbl = itm.getParent();
+		if (tbl.isSelected(tbl.indexOf(itm))) {
+			foreach (itm2; itm.getParent().getSelection()) {
+				itm2.setChecked(itm.getChecked());
+			}
+		}
+	}
 }

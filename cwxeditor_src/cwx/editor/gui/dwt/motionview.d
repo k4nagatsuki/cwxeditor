@@ -222,6 +222,7 @@ private:
 
 	string _id;
 
+	int _readOnly = 0;
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
@@ -378,7 +379,7 @@ private:
 		auto mt = new MT;
 		mt.v = v;
 		mt.type = type;
-		createToolItem2(_comm, tbar, tt, _prop.images.motion(type), &mt.create, null);
+		createToolItem2(_comm, tbar, tt, _prop.images.motion(type), &mt.create, () => !_readOnly);
 	}
 	int indexOf(Motion m) {
 		foreach (i, itm; _motions.getItems()) {
@@ -546,7 +547,7 @@ private:
 		scope(exit) refEnabled();
 		auto sels = _motions.getSelection();
 		auto stack = cast(StackLayout) _editComp.getLayout();
-		_motionElm.setEnabled(sels.length > 0);
+		_motionElm.setEnabled(!_readOnly && sels.length > 0);
 		if (sels.length == 0) {
 			_motionElm.deselectAll();
 			stack.topControl = _noneComp;
@@ -685,10 +686,10 @@ private:
 	}
 	class MDropListener : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){
-			e.detail = DND.DROP_MOVE;
+			e.detail = _readOnly ? DND.DROP_NONE : DND.DROP_MOVE;
 		}
 		override void dragOver(DropTargetEvent e){
-			e.detail = DND.DROP_MOVE;
+			e.detail = _readOnly ? DND.DROP_NONE : DND.DROP_MOVE;
 		}
 		override void drop(DropTargetEvent e){
 			if (!isXMLBytes(e.data)) return;
@@ -741,7 +742,7 @@ private:
 		}
 		override void dragFinished(DragSourceEvent e) {
 			_dragIndex = -1;
-			if (e.detail == DND.DROP_MOVE) {
+			if (!_readOnly && e.detail == DND.DROP_MOVE) {
 				bool oldVan = hasVan;
 				scope (exit) {
 					if (oldVan != hasVan) {
@@ -869,9 +870,10 @@ private:
 		_undo.max = _prop.var.etc.undoMaxEtc;
 	}
 public:
-	this (Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo = null) {
+	this (Commons comm, Props prop, Summary summ, Composite parent, int style, UndoManager undo = null) {
 		super(parent, SWT.NONE);
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
+		_readOnly = style & SWT.READ_ONLY;
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
@@ -889,6 +891,7 @@ public:
 			ToolBar createBar(string name) {
 				auto bar = new ToolBar(mtabf, SWT.FLAT);
 				_comm.put(bar);
+				bar.setEnabled(!_readOnly);
 				bar.addListener(SWT.Traverse, new class Listener {
 					override void handleEvent(Event e) {e.doit = true;}
 				});
@@ -990,11 +993,11 @@ public:
 			_motions.setLayoutData(gd);
 			_motions.setHeaderVisible(true);
 			auto menu = new Menu(_motions);
-			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
-			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
+			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => !_readOnly && _undo.canUndo);
+			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.Up, &up, () => _motions.getSelectionIndex() != -1 && 0 < _motions.getSelectionIndex());
-			createMenuItem(_comm, menu, MenuID.Down, &down, () => _motions.getSelectionIndex() != -1 && _motions.getSelectionIndex() + 1 < _motions.getItemCount());
+			createMenuItem(_comm, menu, MenuID.Up, &up, () => !_readOnly && _motions.getSelectionIndex() != -1 && 0 < _motions.getSelectionIndex());
+			createMenuItem(_comm, menu, MenuID.Down, &down, () => !_readOnly && _motions.getSelectionIndex() != -1 && _motions.getSelectionIndex() + 1 < _motions.getItemCount());
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, menu, new MotionTCPD, true, true, true, true, true);
 			_motions.setMenu(menu);
@@ -1027,8 +1030,8 @@ public:
 				}
 			});
 			auto menu = new Menu(_motionElm);
-			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
-			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
+			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => !_readOnly && _undo.canUndo);
+			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);
 			_motionElm.setMenu(menu);
 		}
 		{
@@ -1048,6 +1051,7 @@ public:
 				grp.setLayout(new GridLayout(2, false));
 				grp.setText(_prop.msgs.motionBeast);
 				_beasts = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+				_beasts.setEnabled(!_readOnly);
 				_beasts.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_beasts.addSelectionListener(new class SelectionAdapter {
 					override void widgetSelected(SelectionEvent e) {
@@ -1060,14 +1064,15 @@ public:
 				_beastIncSearch.modEvent ~= &refBeasts;
 				{
 					auto menu = new Menu(_beasts.getShell(), SWT.POP_UP);
-					createMenuItem(_comm, menu, MenuID.IncSearch, &beastIncSearch, () => 1 < _beasts.getItemCount());
+					createMenuItem(_comm, menu, MenuID.IncSearch, &beastIncSearch, () => !_readOnly && 1 < _beasts.getItemCount());
 					new MenuItem(menu, SWT.SEPARATOR);
-					createMenuItem(_comm, menu, MenuID.OpenAtCardView, &openBeastCardView, () => 0 < _beasts.getSelectionIndex());
+					createMenuItem(_comm, menu, MenuID.OpenAtCardView, &openBeastCardView, () => !_readOnly && 0 < _beasts.getSelectionIndex());
 					_beasts.setMenu(menu);
 				}
 				refBeasts();
 
 				auto setBeast = new Button(grp, SWT.PUSH);
+				setBeast.setEnabled(!_readOnly);
 				setBeast.setImage(_prop.images.setBeast);
 				setBeast.setToolTipText(_prop.msgs.setBeast);
 				setBeast.addSelectionListener(new SetBeast);
@@ -1105,12 +1110,12 @@ public:
 				auto menu = new Menu(_beastImg);
 				createMenuItem(_comm, menu, MenuID.EditProp, &editBeastM, &canEditBeast);
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.EditEventAtTimeOfUsing, &editBeastUseEvent, &canEditBeast);
+				createMenuItem(_comm, menu, MenuID.EditEventAtTimeOfUsing, &editBeastUseEvent, () => !_readOnly && canEditBeast());
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.RemoveRef, &removeRef, () => selection && selection.beast && 0 != selection.beast.linkId && _summ.beast(selection.beast.linkId));
+				createMenuItem(_comm, menu, MenuID.RemoveRef, &removeRef, () => !_readOnly && selection && selection.beast && 0 != selection.beast.linkId && _summ.beast(selection.beast.linkId));
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
-				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
+				createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => !_readOnly && _undo.canUndo);
+				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new BeastTCPD, true, true, true, true, false);
 				_beastImg.setMenu(menu);
@@ -1153,7 +1158,7 @@ public:
 				rgrp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 				auto rcomp = new Composite(rgrp, SWT.NONE);
 				rcomp.setLayout(new GridLayout(2, false));
-				auto round = new Spinner(rcomp, SWT.BORDER);
+				auto round = new Spinner(rcomp, SWT.BORDER | _readOnly);
 				round.setMaximum(max);
 				round.setMinimum(1);
 				new SpinnerEdit(round, edit, edit, cancel);
@@ -1173,6 +1178,7 @@ public:
 				auto vcomp = new Composite(vgrp, SWT.NONE);
 				vcomp.setLayout(new GridLayout(2, false));
 				_abiVal = new Scale(vcomp, SWT.NONE);
+				_abiVal.setEnabled(!_readOnly);
 				auto gd_av = new GridData(GridData.FILL_HORIZONTAL);
 				gd_av.horizontalSpan = 2;
 				_abiVal.setLayoutData(gd_av);
@@ -1203,6 +1209,7 @@ public:
 				auto dtl = new DamageTypeListener;
 				foreach (typ; [DamageType.LEVEL_RATIO, DamageType.NORMAL, DamageType.MAX]) {
 					auto radio = new Button(comp, SWT.RADIO);
+					radio.setEnabled(!_readOnly);
 					radio.setText(_prop.msgs.damageTypeName(typ));
 					radio.addSelectionListener(dtl);
 					_dmgTyp[typ] = radio;
@@ -1231,7 +1238,7 @@ public:
 	}
 	void refEnabled() {
 		auto m = selection();
-		if (_maxNest) _maxNest.setEnabled(m && m.beast && 0 != m.beast.linkId);
+		if (_maxNest) _maxNest.setEnabled(!_readOnly && m && m.beast && 0 != m.beast.linkId);
 	}
 	@property
 	void motions(Motion[] motions) {
@@ -1309,15 +1316,15 @@ public:
 		}
 		@property
 		override bool canDoT() {
-			return _motions.getSelectionIndex() > 0;
+			return !_readOnly && _motions.getSelectionIndex() >= 0;
 		}
 		@property
 		override bool canDoC() {
-			return canDoT;
+			return _motions.getSelectionIndex() >= 0;
 		}
 		@property
 		override bool canDoP() {
-			return CBisXML(_comm.clipboard);
+			return !_readOnly && CBisXML(_comm.clipboard);
 		}
 		@property
 		override bool canDoD() {
@@ -1325,7 +1332,7 @@ public:
 		}
 		@property
 		override bool canDoClone() {
-			return canDoC;
+			return !_readOnly && canDoC;
 		}
 	}
 	private void pasteBeast(ref XNode node) {
@@ -1426,7 +1433,7 @@ public:
 		}
 		@property
 		override bool canDoT() {
-			return selection !is null;
+			return !_readOnly && selection !is null;
 		}
 		@property
 		override bool canDoC() {
@@ -1434,11 +1441,11 @@ public:
 		}
 		@property
 		override bool canDoP() {
-			return CBisXML(_comm.clipboard);
+			return !_readOnly && CBisXML(_comm.clipboard);
 		}
 		@property
 		override bool canDoD() {
-			return selection !is null;
+			return !_readOnly && selection !is null;
 		}
 		@property
 		override bool canDoClone() {

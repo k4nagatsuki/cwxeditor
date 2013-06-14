@@ -31,7 +31,7 @@ private:
 			ImageData imgData = null;
 			if (.exists(dynPath)) {
 				try {
-					auto s = new ByteArrayInputStream(cast(byte[]) std.file.read(dynPath));
+					auto s = new ByteArrayInputStream(cast(byte[])readBinary(dynPath));
 					scope (exit) s.close();
 					imgData = new ImageData(s);
 				} catch (Exception e) {

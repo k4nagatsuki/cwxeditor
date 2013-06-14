@@ -42,7 +42,8 @@ class MaterialSelect(MtType Type, D, C) {
 	/// イメージ格納時に呼び出される。
 	void delegate(string file)[] includeEvent;
 public:
-	this (Commons comm, Props prop, Summary summ, void delegate() refresh, string[] defs, int including = -1, bool canInclude = false, bool isMenuCard = false) {
+	this (Commons comm, Props prop, Summary summ, bool readOnly, void delegate() refresh, string[] defs, int including = -1, bool canInclude = false, bool isMenuCard = false) {
+		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
@@ -64,6 +65,7 @@ public:
 		} else {
 			static assert (0);
 		}
+		_dirs.setEnabled(!_readOnly);
 		_dirs.addSelectionListener(new CSListener);
 
 		_comm.refSkin.add(&refresh);
@@ -91,7 +93,7 @@ public:
 			}
 		});
 		auto menu = new Menu(_dirs.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, null);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, () => !_readOnly);
 		_dirs.setMenu(menu);
 		return _dirs;
 	}
@@ -116,6 +118,7 @@ public:
 		} else {
 			static assert (0);
 		}
+		_fileList.setEnabled(!_readOnly);
 		_fileList.addSelectionListener(new LSListener);
 		static if (is (C == Table)) {
 			static if (Type == MtType.BGM || Type == MtType.SE) {
@@ -139,7 +142,7 @@ public:
 				super(c);
 			}
 		protected override:
-			bool canDrop() {return _summ !is null;}
+			bool canDrop() {return _summ !is null && !_readOnly;}
 			string[] doAll(string[] files) {
 				assert (_summ !is null);
 				string[] r;
@@ -182,14 +185,14 @@ public:
 	private void refreshFileListMenu() {
 		if (!_fileList) return;
 		auto menu = new Menu(_fileList.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, null);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, () => !_readOnly);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.OpenAtFileView, &openFilePath, () => filePath.length > 0);
+		createMenuItem(_comm, menu, MenuID.OpenAtFileView, &openFilePath, () => filePath.length > 0 && !_readOnly);
 		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath, () => filePath.length > 0);
 		static if (Type == MtType.CARD) {
 			if (_canInclude && _summ && _summ.legacy) {
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.IncludeImage, &includeImage, () => filePath.length > 0);
+				createMenuItem(_comm, menu, MenuID.IncludeImage, &includeImage, () => filePath.length > 0 && !_readOnly);
 			}
 		} else static if (Type == MtType.BGM) {
 			new MenuItem(menu, SWT.SEPARATOR);
@@ -236,7 +239,7 @@ public:
 			if (SWT.YES == dlg.open()) {
 				try {
 					if (!file.exists()) return;
-					_binPath = bImgToStr(cast(ubyte[]) std.file.read(file));
+					_binPath = bImgToStr(cast(ubyte[])readBinary(file));
 					refreshDefs();
 					selectDir(_including);
 					foreach (d; includeEvent) {
@@ -1079,6 +1082,7 @@ private:
 		_comm.refreshToolBar();
 	}
 
+	int _readOnly = 0;
 	Props _prop;
 	Commons _comm;
 	D _dirs;

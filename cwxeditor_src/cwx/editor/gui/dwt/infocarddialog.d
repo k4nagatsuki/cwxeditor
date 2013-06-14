@@ -27,6 +27,7 @@ public:
 
 class InfoCardDialog : AbsDialog {
 private:
+	int _readOnly = 0;
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
@@ -70,7 +71,7 @@ public:
 		_summ = summ;
 		_card = card;
 		_prop = prop;
-		super(prop, shell, false, _card ? .tryFormat(_prop.msgs.dlgTitInfo, _card.name) : _prop.msgs.dlgTitNewInfo,
+		super(prop, shell, _readOnly, false, _card ? .tryFormat(_prop.msgs.dlgTitInfo, _card.name) : _prop.msgs.dlgTitNewInfo,
 			_prop.images.info, true, _prop.var.infoCardDlg, true);
 		enterClose = true;
 	}
@@ -92,7 +93,7 @@ protected:
 			grp.setLayout(new GridLayout(1, false));
 			grp.setText(_prop.msgs.name);
 			_name = new GBLimitText(_prop.looks.monospace,
-				_prop.looks.nameLimit, false, grp, SWT.BORDER);
+				_prop.looks.nameLimit, false, grp, SWT.BORDER | _readOnly);
 			mod(_name.widget);
 			createTextMenu!Text(_comm, _prop, _name.widget, &catchMod);
 			_name.limitEvent ~= &refreshWarning;
@@ -103,7 +104,7 @@ protected:
 		{
 			auto skin = _comm.skin;
 			bool including = _card && isBinImg(_card.path);
-			_imgPath = new ImageSelect!(MtType.CARD)(area, SWT.NONE, _comm, _prop, _summ,
+			_imgPath = new ImageSelect!(MtType.CARD)(area, _readOnly, _comm, _prop, _summ,
 				_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText);
 			mod(_imgPath);
 			_imgPath.modEvent ~= &refreshWarning;
@@ -114,7 +115,7 @@ protected:
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
+			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			mod(_desc.widget);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));

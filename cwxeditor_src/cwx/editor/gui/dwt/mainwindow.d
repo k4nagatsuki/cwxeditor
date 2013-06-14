@@ -382,7 +382,7 @@ private:
 				dStr ~= " - " ~ .text(__LINE__);
 				auto md5 = md5Digest(data);
 				dStr ~= " - " ~ .text(__LINE__);
-				if ((_oldMD5 != md5) && (!backup.length || data != std.file.read(parent.buildPath(backup[$ - 1])))) {
+				if ((_oldMD5 != md5) && (!backup.length || data != readBinary(parent.buildPath(backup[$ - 1])))) {
 					// 前回のバックアップと異なっていれば保存
 					dStr ~= " - " ~ .text(__LINE__);
 					if (!parent.exists()) mkdirRecurse(parent);

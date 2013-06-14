@@ -32,7 +32,7 @@ class Scales : Composite {
 	/// パラメータを指定して初期化を行う。
 	/// 値の段階はstep_cで、最小値はminで設定する。
 	void setScales(uint step_c, in string[] names, int page, int min = 0) {
-		auto scStyle = _readOnly ? SWT.READ_ONLY : SWT.NONE;
+		auto scStyle = SWT.NONE;
 		auto spStyle = _readOnly ? SWT.BORDER|SWT.READ_ONLY : SWT.BORDER;
 		foreach (i; 0..names.length) {
 			auto label = new Label(this, SWT.NONE);
@@ -45,6 +45,7 @@ class Scales : Composite {
 			scaleComp.setLayout(cl);
 			auto scale = new Scale(scaleComp, scStyle);
 			_scales ~= scale;
+			scale.setEnabled(!_readOnly);
 			scale.setMinimum(0);
 			scale.setMaximum(step_c - 1);
 			scale.setPageIncrement(page);

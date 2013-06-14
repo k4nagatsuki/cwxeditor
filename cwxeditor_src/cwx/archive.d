@@ -28,7 +28,7 @@ void unzip(string parent, string zip,
 		string delegate(string, bool) expand = null,
 		void delegate(uint) setProgressNum = null,
 		void delegate(uint) progress = null) {
-	scope arc = new ZipArchive(read(zip));
+	scope arc = new ZipArchive(readBinary(zip));
 	unzip(parent, arc, expand, setProgressNum, progress);
 }
 /// ditto
@@ -151,7 +151,7 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, boo
 			am.name = name;
 		}
 		if (!isDir(file)) {
-			am.expandedData = cast(ubyte[]) std.file.read(file);
+			am.expandedData = cast(ubyte[])readBinary(file);
 		}
 		arc.addMember(am);
 	}
@@ -193,7 +193,7 @@ string memberName(string name) {
 bool zipHasFile(string zip, string fileName) {
 	if (!zip.exists()) return false;
 	try {
-		scope arc = new ZipArchive(read(zip));
+		scope arc = new ZipArchive(readBinary(zip));
 		foreach (am; arc.directory) {
 			string name = memberName(am.name);
 			if (cfnmatch(replace(name, "/", dirSeparator).baseName(), fileName)) {

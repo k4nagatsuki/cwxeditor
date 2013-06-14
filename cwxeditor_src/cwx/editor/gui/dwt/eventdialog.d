@@ -929,7 +929,7 @@ protected:
 		{
 			auto skin = _comm.skin;
 			_msel = new MaterialSelect!(MtType.BGM, Combo, Table)
-				(_comm, _prop, _summ, null, [_prop.msgs.bgmStop]);
+				(_comm, _prop, _summ, false, null, [_prop.msgs.bgmStop]);
 			_msel.createDirsCombo(area).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
 			_msel.modEvent ~= &refreshWarning;
@@ -976,7 +976,7 @@ protected:
 		{
 			auto skin = _comm.skin;
 			_msel = new MaterialSelect!(MtType.SE, Combo, Table)
-				(_comm, _prop, _summ, null, []);
+				(_comm, _prop, _summ, false, null, []);
 			_msel.createDirsCombo(area).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
 			_msel.modEvent ~= &refreshWarning;
@@ -1132,7 +1132,7 @@ protected:
 		auto tabM = new CTabItem(tabf, SWT.NONE);
 		tabM.setText(_prop.msgs.motion);
 		{
-			_mview = new MotionView(_comm, _prop, _summ, tabf);
+			_mview = new MotionView(_comm, _prop, _summ, tabf, SWT.NONE);
 			mod(_mview);
 			tabM.setControl(_mview);
 		}
@@ -1231,7 +1231,7 @@ protected:
 					gd.horizontalSpan = 2;
 					grp.setLayoutData(gd);
 					grp.setLayout(new GridLayout(3, false));
-					_se = new MaterialSelect!(MtType.SE, Combo, Combo)(comm, prop, summ, null, [prop.msgs.soundNone]);
+					_se = new MaterialSelect!(MtType.SE, Combo, Combo)(comm, prop, summ, false, null, [prop.msgs.soundNone]);
 					mod(_se);
 					_se.modEvent ~= &refreshWarning;
 					_se.createDirsCombo(grp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

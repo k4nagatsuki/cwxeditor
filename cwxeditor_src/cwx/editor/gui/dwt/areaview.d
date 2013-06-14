@@ -1682,6 +1682,7 @@ private:
 	}
 	void checkFlag(Event e) {
 		if (!_flagList) return;
+		updateChecked(e);
 		bool[string] useFlags;
 		if (e && cast(TableItem)e.item) {
 			auto itm = cast(TableItem)e.item;
@@ -2134,6 +2135,7 @@ private:
 	}
 	class VCheckListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
+			updateChecked(e);
 			checked();
 			updateFlagChecks();
 		}
@@ -3582,7 +3584,7 @@ public:
 			_escTMenu.setEnabled(false);
 			new ToolItem(bar, SWT.SEPARATOR);
 			auto skin = _comm.skin;
-			_bgm = new MaterialSelect!(MtType.BGM, CCombo, CCombo)(_comm, _prop, _summ, &selectBGM, [_prop.msgs.bgmNone]);
+			_bgm = new MaterialSelect!(MtType.BGM, CCombo, CCombo)(_comm, _prop, _summ, false, &selectBGM, [_prop.msgs.bgmNone]);
 			auto dirs = _bgm.createDirsCombo(bar);
 			createToolItemC(bar, dirs);
 			auto files = _bgm.createFileList(bar);

@@ -301,7 +301,7 @@ public:
 			return temp;
 		}
 		ZipArchive scArc(string fname, string ext) {
-			auto arc = new ZipArchive(std.file.read(fname));
+			auto arc = new ZipArchive(readBinary(fname));
 			foreach (am; arc.directory) {
 				string name;
 				try {
@@ -1736,7 +1736,7 @@ public:
 		string[][immutable(ubyte[])] r;
 		foreach (file; clistdir(mtdir)) {
 			if (skin.isCardImage(std.path.buildPath(mtdir, file), true)) {
-				auto mBytes = cast(ubyte[]) std.file.read(std.path.buildPath(mtdir, file));
+				auto mBytes = cast(ubyte[])readBinary(std.path.buildPath(mtdir, file));
 				auto bytes = assumeUnique(mBytes);
 				r[bytes] ~= std.path.buildPath(skin.materialPath, file);
 			}

@@ -39,6 +39,9 @@ abstract class AbsDialog {
 		this (prop, parent, true, text, img, resizable, size, apply, cancel, button);
 	}
 	this (Props prop, Shell parent, bool modal, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true, ButtonInfo[] button = [], bool rightGroup = false) {
+		this (prop, parent, SWT.NONE, modal, text, img, resizable, size, apply, cancel, button, rightGroup);
+	}
+	this (Props prop, Shell parent, int styleFlag, bool modal, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true, ButtonInfo[] button = [], bool rightGroup = false) {
 		_prop = prop;
 		_size = size;
 		_modal = modal;
@@ -84,18 +87,24 @@ abstract class AbsDialog {
 		auto buttons = new Composite(_win, SWT.NONE);
 		buttons.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 		int gll = 1;
-		if (apply) gll++;
-		if (cancel) gll++;
+		if (!(styleFlag & SWT.READ_ONLY)) {
+			if (apply) gll++;
+			if (cancel) gll++;
+		}
 		gll += button.length;
 		buttons.setLayout(new GridLayout(gll, true));
 		auto okComp = new Composite(buttons, SWT.NONE);
 		okComp.setLayout(new FillLayout);
-		_okBtn = createButton(okComp, prop.msgs.dlgTextOK, &this.ok);
-		if (cancel) {
-			createButton(buttons, prop.msgs.dlgTextCancel, &this.cancel);
-		}
-		if (apply) {
-			_apply = createButton(buttons, prop.msgs.dlgTextApply, &this.forceApply);
+		if (styleFlag & SWT.READ_ONLY) {
+			_okBtn = createButton(okComp, prop.msgs.dlgTextClose, &this.cancel);
+		} else {
+			_okBtn = createButton(okComp, prop.msgs.dlgTextOK, &this.ok);
+			if (cancel) {
+				createButton(buttons, prop.msgs.dlgTextCancel, &this.cancel);
+			}
+			if (apply) {
+				_apply = createButton(buttons, prop.msgs.dlgTextApply, &this.forceApply);
+			}
 		}
 		foreach (info; button) {
 			createButton(buttons, info.name, info.func);

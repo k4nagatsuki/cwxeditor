@@ -53,6 +53,7 @@ class CouponView(CVType Type) : Composite {
 	}
 	private string _id;
 
+	private int _readOnly = 0;
 	private Commons _comm;
 	private Props _prop;
 	private KeyDownFilter _kdFilter;
@@ -258,10 +259,10 @@ class CouponView(CVType Type) : Composite {
 
 	private class CDropListener : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){
-			e.detail = DND.DROP_MOVE;
+			e.detail = _readOnly ? DND.DROP_NONE : DND.DROP_MOVE;
 		}
 		override void dragOver(DropTargetEvent e){
-			e.detail = DND.DROP_MOVE;
+			e.detail = _readOnly ? DND.DROP_NONE : DND.DROP_MOVE;
 		}
 		override void drop(DropTargetEvent e){
 			if (!isXMLBytes(e.data)) return;
@@ -306,7 +307,7 @@ class CouponView(CVType Type) : Composite {
 			}
 		}
 		override void dragFinished(DragSourceEvent e) {
-			if (e.detail == DND.DROP_MOVE) {
+			if (!_readOnly && e.detail == DND.DROP_MOVE) {
 				_itm.dispose();
 				_coupons.redraw();
 				_comm.refreshToolBar();
@@ -372,7 +373,7 @@ class CouponView(CVType Type) : Composite {
 		}
 		@property
 		bool canDoT() {
-			return _coupons.getSelectionIndex() != -1;
+			return !_readOnly && _coupons.getSelectionIndex() != -1;
 		}
 		@property
 		bool canDoC() {
@@ -380,15 +381,15 @@ class CouponView(CVType Type) : Composite {
 		}
 		@property
 		bool canDoP() {
-			return CBisXML(_comm.clipboard);
+			return !_readOnly && CBisXML(_comm.clipboard);
 		}
 		@property
 		bool canDoD() {
-			return _coupons.getSelectionIndex() != -1;
+			return !_readOnly && _coupons.getSelectionIndex() != -1;
 		}
 		@property
 		bool canDoClone() {
-			return canDoC;
+			return !_readOnly && canDoC;
 		}
 	}
 	private class SelCoupon : SelectionAdapter {
@@ -407,6 +408,7 @@ class CouponView(CVType Type) : Composite {
 
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 
+		_readOnly = style & SWT.READ_ONLY;
 		_comm = comm;
 		_prop = comm.prop;
 		_undoCoupons = new UndoManager(_prop.var.etc.undoMaxEtc);
@@ -416,19 +418,20 @@ class CouponView(CVType Type) : Composite {
 			_comm.put(_toolbar);
 			_toolbar.addListener(SWT.Traverse, new HTBTraverse);
 			_toolbar.addListener(SWT.KeyDown, new HTBKeyDown);
-			createToolItem2(_comm, _toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon, () => _newCoupon.getText().length > 0);
-			createToolItem2(_comm, _toolbar, _prop.msgs.altCoupon, _prop.images.altCoupon, &altCoupon, () => _newCoupon.getText().length > 0 && _coupons.getSelectionIndex() != -1);
-			createToolItem2(_comm, _toolbar, _prop.msgs.delCoupon, _prop.images.couponDelete, &delCoupon, () => _coupons.getSelectionIndex() != -1);
+			createToolItem2(_comm, _toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon, () => !_readOnly && _newCoupon.getText().length > 0);
+			createToolItem2(_comm, _toolbar, _prop.msgs.altCoupon, _prop.images.altCoupon, &altCoupon, () => !_readOnly && _newCoupon.getText().length > 0 && _coupons.getSelectionIndex() != -1);
+			createToolItem2(_comm, _toolbar, _prop.msgs.delCoupon, _prop.images.couponDelete, &delCoupon, () => !_readOnly && _coupons.getSelectionIndex() != -1);
 			static if (CVType.Cast == Type) {
 				new ToolItem(_toolbar, SWT.SEPARATOR);
-				createToolItem(_comm, _toolbar, MenuID.Up, &upCoupon, () => _coupons.getSelectionIndex() != -1 && 0 < _coupons.getSelectionIndex());
-				createToolItem(_comm, _toolbar, MenuID.Down, &downCoupon, () => _coupons.getSelectionIndex() != -1 && _coupons.getSelectionIndex() + 1 < _coupons.getItemCount());
+				createToolItem(_comm, _toolbar, MenuID.Up, &upCoupon, () => !_readOnly && _coupons.getSelectionIndex() != -1 && 0 < _coupons.getSelectionIndex());
+				createToolItem(_comm, _toolbar, MenuID.Down, &downCoupon, () => !_readOnly && _coupons.getSelectionIndex() != -1 && _coupons.getSelectionIndex() + 1 < _coupons.getItemCount());
 			}
 
 			auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			gd.horizontalSpan = 2;
 			static if (CVType.Cast == Type) {
 				_couponType = new Button(this, SWT.CHECK);
+				_couponType.setEnabled(!_readOnly);
 				_couponType.setLayoutData(gd);
 				_couponType.setText(_prop.msgs.couponHide);
 				.listener(_couponType, SWT.Selection, {
@@ -440,6 +443,7 @@ class CouponView(CVType Type) : Composite {
 				});
 			} else {
 				_couponType = new CCombo(this, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+				_couponType.setEnabled(!_readOnly);
 				_couponType.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				_couponType.setLayoutData(gd);
 				foreach (i, type; [CouponType.Normal, CouponType.Hide, CouponType.Dur, CouponType.DurBattle]) {
@@ -461,10 +465,11 @@ class CouponView(CVType Type) : Composite {
 				_newCoupon = createCouponCombo!Combo(_comm, this, catchMod, CouponComboType.Talker, _newCouponTM);
 				.listener(_newCoupon, SWT.Modify, &updateCouponType);
 			}
+			_newCoupon.setEnabled(!_readOnly);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.horizontalSpan = 2;
 			_newCoupon.setLayoutData(gd);
-			_couponVal = new Spinner(this, SWT.BORDER);
+			_couponVal = new Spinner(this, SWT.BORDER | _readOnly);
 			_couponVal.setMinimum(cast(int) _prop.var.etc.couponValueMax * -1);
 			_couponVal.setMaximum(_prop.var.etc.couponValueMax);
 			static if (CVType.Valued == Type) {
@@ -482,11 +487,11 @@ class CouponView(CVType Type) : Composite {
 			cv.setWidth(40);
 			saveColumnWidth!("prop.var.etc.couponValueColumn")(_prop, cv);
 			auto menu = new Menu(_coupons);
-			createMenuItem(_comm, menu, MenuID.Undo, &undoCoupons, &_undoCoupons.canUndo);
-			createMenuItem(_comm, menu, MenuID.Redo, &redoCoupons, &_undoCoupons.canRedo);
+			createMenuItem(_comm, menu, MenuID.Undo, &undoCoupons, () => !_readOnly && _undoCoupons.canUndo);
+			createMenuItem(_comm, menu, MenuID.Redo, &redoCoupons, () => !_readOnly && _undoCoupons.canRedo);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.Up, &upCoupon, () => _coupons.getSelectionIndex() != -1 && 0 < _coupons.getSelectionIndex());
-			createMenuItem(_comm, menu, MenuID.Down, &downCoupon, () => _coupons.getSelectionIndex() != -1 && _coupons.getSelectionIndex() + 1 < _coupons.getItemCount());
+			createMenuItem(_comm, menu, MenuID.Up, &upCoupon, () => !_readOnly && _coupons.getSelectionIndex() != -1 && 0 < _coupons.getSelectionIndex());
+			createMenuItem(_comm, menu, MenuID.Down, &downCoupon, () => !_readOnly && _coupons.getSelectionIndex() != -1 && _coupons.getSelectionIndex() + 1 < _coupons.getItemCount());
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, menu, new CouponTCPD, true, true, true, true, true);
 			_coupons.setMenu(menu);
@@ -564,15 +569,15 @@ class CouponView(CVType Type) : Composite {
 
 	@property
 	void enabled(bool e) {
-		_newCoupon.setEnabled(e);
-		_couponType.setEnabled(e);
-		_couponVal.setEnabled(e);
+		_newCoupon.setEnabled(!_readOnly && e);
+		_couponType.setEnabled(!_readOnly && e);
+		_couponVal.setEnabled(!_readOnly && e);
 		_coupons.setEnabled(e);
-		_toolbar.setEnabled(e);
+		_toolbar.setEnabled(!_readOnly && e);
 	}
 	@property
 	bool enabled() {
-		return _newCoupon.isEnabled();
+		return _coupons.isEnabled();
 	}
 
 	@property

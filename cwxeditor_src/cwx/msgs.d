@@ -67,6 +67,7 @@ class Msgs : Properties {
 	auto dlgTextOK = Msg("dlgTextOK", "&OK");
 	auto dlgTextApply = Msg("dlgTextApply", "適用");
 	auto dlgTextCancel = Msg("dlgTextCancel", "キャンセル");
+	auto dlgTextClose = Msg("dlgTextClose", "閉じる");
 
 	auto apply = Msg("apply", "適用");
 	auto del = Msg("del", "削除");

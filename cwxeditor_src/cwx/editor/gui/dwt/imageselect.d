@@ -58,6 +58,7 @@ public:
 	this (Composite parent, int style, Commons comm, Props prop, Summary summ,
 			int w, int h, bool included, bool canInclude, string delegate() saveName, void delegate() refresh = null,
 			string[] defs = null, ImageData delegate(size_t defIndex) createDefImage = null, bool isMenuCard = false) {
+		_readOnly = style & SWT.READ_ONLY;
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
@@ -109,15 +110,15 @@ public:
 			}
 			if (defs) {
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, &this.refresh, defs, -1, canInclude, isMenuCard);
+					(comm, prop, summ, _readOnly != 0, &this.refresh, defs, -1, canInclude, isMenuCard);
 			} else if (included) {
 				_defs = [prop.msgs.imageNone, prop.msgs.imageIncluding];
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, &this.refresh, _defs, 1, canInclude, isMenuCard);
+					(comm, prop, summ, _readOnly != 0, &this.refresh, _defs, 1, canInclude, isMenuCard);
 			} else {
 				_defs = [prop.msgs.imageNone];
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, &this.refresh, _defs, -1, canInclude, isMenuCard);
+					(comm, prop, summ, _readOnly != 0, &this.refresh, _defs, -1, canInclude, isMenuCard);
 			}
 			_msel.modEvent ~= {
 				foreach (dlg; modEvent) dlg();
@@ -127,6 +128,7 @@ public:
 				comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				comp.setLayout(zeroMarginGridLayout(3, false));
 				imgList = new Button(comp, SWT.TOGGLE);
+				imgList.setEnabled(!_readOnly);
 				imgList.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				imgList.setImage(_prop.images.menu(MenuID.LookImages));
 				imgList.setToolTipText(_prop.buildTool(MenuID.LookImages));
@@ -135,6 +137,7 @@ public:
 				_msel.createDirectoryButton(comp, false).setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				static if (Type is MtType.CARD) {
 					_noCardSize = new Button(compl, SWT.CHECK);
+					_noCardSize.setEnabled(!_readOnly);
 					_noCardSize.setText(prop.msgs.useNoCardSizeImage);
 					auto ncsgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
 					ncsgd.horizontalSpan = 3;
@@ -493,6 +496,7 @@ private:
 			_noCardSize.setSelection(_msel.useNoCardSizeImage);
 		}
 	}
+	int _readOnly = 0;
 	string _paintedPath = null;
 	Composite _group;
 	Commons _comm;

@@ -169,7 +169,7 @@ struct Win32Res {
 			if (_winhandle) return;
 		}
 
-		auto data = cast(const(ubyte)[])file.read();
+		auto data = cast(const(ubyte)[])std.file.read(file);
 		const base = data[];
 
 		// MZ header

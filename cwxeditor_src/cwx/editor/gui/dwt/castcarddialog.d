@@ -48,6 +48,7 @@ class CastCardDialog : AbsDialog {
 private:
 	string _id;
 
+	int _readOnly = 0;
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
@@ -208,7 +209,7 @@ private:
 				grp.setLayout(new GridLayout(2, false));
 				grp.setText(_prop.msgs.name);
 				_name = new GBLimitText(_prop.looks.monospace,
-					_prop.looks.castNameLimit, false, grp, SWT.BORDER);
+					_prop.looks.castNameLimit, false, grp, SWT.BORDER | _readOnly);
 				_name.limitEvent ~= &refreshWarning;
 				mod(_name.widget);
 				createTextMenu!Text(_comm, _prop, _name.widget, &catchMod);
@@ -220,7 +221,7 @@ private:
 			}
 			{
 				bool including = _card && isBinImg(_card.path);
-				_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
+				_imgPath = new ImageSelect!(MtType.CARD)(comp2, _readOnly, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
@@ -239,7 +240,7 @@ private:
 				grp.setText(_prop.msgs.level);
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout(zeroMarginGridLayout(2, false));
-				_level = new Spinner(comp2, SWT.BORDER);
+				_level = new Spinner(comp2, SWT.BORDER | _readOnly);
 				mod(_level);
 				_level.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_level.setMinimum(1);
@@ -254,7 +255,7 @@ private:
 				grp.setText(_prop.msgs.life);
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout(zeroMarginGridLayout(2, false));
-				_lifeMax = new Spinner(comp2, SWT.BORDER);
+				_lifeMax = new Spinner(comp2, SWT.BORDER | _readOnly);
 				mod(_lifeMax);
 				_lifeMax.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_lifeMax.setMinimum(1);
@@ -264,6 +265,7 @@ private:
 				hint.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.var.etc.lifeMax));
 				auto lifec = new Button(comp2, SWT.PUSH);
 				mod(lifec);
+				lifec.setEnabled(!_readOnly);
 				auto lgd = new GridData(GridData.FILL_HORIZONTAL);
 				lgd.horizontalSpan = 2;
 				lifec.setLayoutData(lgd);
@@ -278,6 +280,7 @@ private:
 			grp.setLayout(cl);
 			_race = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			mod(_race);
+			_race.setEnabled(!_readOnly);
 			_race.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_race.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			_race.add(_prop.msgs.noRace);
@@ -316,7 +319,7 @@ private:
 			cl.fillVertical = true;
 			grp.setLayout(cl);
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
+			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
 			mod(_desc.widget);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			auto p = _desc.computeTextBaseSize(1);
@@ -330,6 +333,7 @@ private:
 	Button createR(Composite parent, string name, int hAlignHint = -1) {
 		auto radio = new Button(parent, SWT.RADIO);
 		mod(radio);
+		radio.setEnabled(!_readOnly);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		if (0 <= hAlignHint) {
 			hAlignHint %= 2;
@@ -353,7 +357,7 @@ private:
 			grp.setText(_prop.msgs.coupons);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new GridLayout(1, true));
-			_couponView = new CouponView!(CVType.Cast)(_comm, grp, SWT.NONE, &catchMod);
+			_couponView = new CouponView!(CVType.Cast)(_comm, grp, _readOnly, &catchMod);
 			_couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
 			mod(_couponView);
 		}
@@ -413,6 +417,7 @@ private:
 				void createR(Makings m) {
 					auto radio = new Button(comp3, SWT.CHECK);
 					mod(radio);
+					radio.setEnabled(!_readOnly);
 					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 					auto name = skin.makingsName(m);
 					radio.setText(_prop.msgs.makings.get(name, name));
@@ -465,6 +470,7 @@ private:
 			comp.setLayout(zeroGridLayout(2, false));
 			auto c = new Button(comp, SWT.CHECK);
 			mod(c);
+			c.setEnabled(!_readOnly);
 			auto cgd = new GridData(GridData.FILL_HORIZONTAL);
 			cgd.horizontalSpan = 2;
 			c.setLayoutData(cgd);
@@ -517,6 +523,7 @@ private:
 		{
 			auto basic = new Button(comp, SWT.PUSH);
 			mod(basic);
+			basic.setEnabled(!_readOnly);
 			basic.setText(_prop.msgs.basicResist);
 			basic.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			basic.addSelectionListener(new BasicResist);
@@ -551,7 +558,7 @@ private:
 		int page = _prop.var.etc.physicalMax / 5;
 
 		if (_prop.var.etc.radarStyleParams) {
-			_phyR = new RadarSpinner(_phyParent, SWT.NONE);
+			_phyR = new RadarSpinner(_phyParent, _readOnly);
 			_phyR.setRadar(_prop.var.etc.physicalMax + 1, names, 0);
 			_phyR.antialias = true;
 			_phyR.borderlines = cast(int[]) _prop.looks.physicalBorders;
@@ -560,7 +567,7 @@ private:
 			mod(_phyR);
 			_phyR.modEvent ~= &modPhysical;
 		} else {
-			_phyS = new Scales(_phyParent, SWT.NONE);
+			_phyS = new Scales(_phyParent, _readOnly);
 			_phyS.setScales(_prop.var.etc.physicalMax + 1, names, page, 0);
 			_phyS.borderlines = cast(int[]) _prop.looks.physicalBorders;
 			if (values.length) _phyS.setValues(values);
@@ -602,6 +609,7 @@ private:
 		{
 			auto basic = new Button(comp, SWT.PUSH);
 			mod(basic);
+			basic.setEnabled(!_readOnly);
 			basic.setText(_prop.msgs.physicalCalc);
 			basic.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			basic.addSelectionListener(new CalcPhysical);
@@ -683,6 +691,7 @@ private:
 				minl.setText(_prop.msgs.mentalName(reverseMental(m)));
 				auto scale = new Scale(grp, SWT.NONE);
 				mod(scale);
+				scale.setEnabled(!_readOnly);
 				scale.setLayoutData(new GridData(GridData.FILL_BOTH));
 				scale.setMaximum(_prop.var.etc.mentalMax * 2);
 				scale.setMinimum(0);
@@ -696,6 +705,7 @@ private:
 		{
 			auto basic = new Button(comp, SWT.PUSH);
 			mod(basic);
+			basic.setEnabled(!_readOnly);
 			basic.setText(_prop.msgs.mentalCalc);
 			basic.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			basic.addSelectionListener(new CalcMental);
@@ -764,7 +774,7 @@ private:
 		int min = cast(int) _prop.var.etc.enhanceMax * -1;
 		int page = _prop.var.etc.enhanceMax / 2;
 		if (_prop.var.etc.radarStyleParams) {
-			_enhR = new RadarSpinner(_enhParent, SWT.NONE);
+			_enhR = new RadarSpinner(_enhParent, _readOnly);
 			_enhR.setRadar(stepC, names, min);
 			_enhR.antialias = true;
 			_enhR.borderlines = [0];
@@ -772,7 +782,7 @@ private:
 			if (values.length) _enhR.setValues(values);
 			mod(_enhR);
 		} else {
-			_enhS = new Scales(_enhParent, SWT.NONE);
+			_enhS = new Scales(_enhParent, _readOnly);
 			_enhS.setScales(stepC, names, page, min);
 			_enhS.borderlines = [0];
 			if (values.length) _enhS.setValues(values);
@@ -797,6 +807,7 @@ private:
 		{
 			auto basic = new Button(comp, SWT.PUSH);
 			mod(basic);
+			basic.setEnabled(!_readOnly);
 			basic.setText(_prop.msgs.basicEnhance);
 			basic.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			basic.addSelectionListener(new BasicEnhance);
@@ -814,7 +825,7 @@ private:
 			// なぜかCompositeを挟まなければSpinner#computeSize()が大きめの値を返す
 			Composite comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayout(new FillLayout);
-			auto spn = new Spinner(comp2, SWT.BORDER);
+			auto spn = new Spinner(comp2, SWT.BORDER | _readOnly);
 			mod(spn);
 			spns ~= comp2;
 			return spn;
@@ -847,10 +858,11 @@ private:
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText(_prop.msgs.life);
 				lbls1 ~= l;
-				_life = new Spinner(comp2, SWT.BORDER);
+				_life = new Spinner(comp2, SWT.BORDER | _readOnly);
 				mod(_life);
 				_lifeUseMax = new Button(comp2, SWT.CHECK);
 				mod(_lifeUseMax);
+				_lifeUseMax.setEnabled(!_readOnly);
 				_lifeUseMax.setText(_prop.msgs.useMax);
 				_lifeUseMax.addSelectionListener(new LifeUseMax);
 			}
@@ -861,6 +873,7 @@ private:
 				lbls1 ~= lm;
 				_mtly = new Combo(comp2, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 				mod(_mtly);
+				_mtly.setEnabled(!_readOnly);
 				_mtly.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				foreach (i, mtly; [Mentality.NORMAL, Mentality.SLEEP, Mentality.CONFUSE,
 						Mentality.OVERHEAT, Mentality.BRAVE, Mentality.PANIC]) {
@@ -942,6 +955,7 @@ private:
 		{
 			auto reset = new Button(comp, SWT.PUSH);
 			mod(reset);
+			reset.setEnabled(!_readOnly);
 			reset.setText(_prop.msgs.resetLiveStatus);
 			reset.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			reset.addSelectionListener(new ResetLiveStatus);
@@ -972,14 +986,14 @@ private:
 	}
 	void changeLiveEnhance() {
 		foreach (enh, spn; _liveEnh) {
-			_enhRound[enh].setEnabled(spn.getSelection() != 0);
+			_enhRound[enh].setEnabled(!_readOnly && spn.getSelection() != 0);
 		}
 	}
 	void changeMentality() {
-		_mtlyRound.setEnabled(_mtly.getSelectionIndex() != 0);
+		_mtlyRound.setEnabled(!_readOnly && _mtly.getSelectionIndex() != 0);
 	}
 	void changeLifeUseMax() {
-		_life.setEnabled(!_lifeUseMax.getSelection());
+		_life.setEnabled(!_readOnly && !_lifeUseMax.getSelection());
 	}
 	void resetLiveStatus() {
 		_life.setSelection(_lifeMax.getSelection());
@@ -1029,7 +1043,7 @@ private:
 		refreshMakings();
 	}
 	void refreshRace() {
-		_race.setEnabled(!_summ.legacy);
+		_race.setEnabled(!_readOnly && !_summ.legacy);
 	}
 	void refreshSex() {
 		foreach (s, b; _sex) {
@@ -1145,8 +1159,8 @@ public:
 		_summ = summ;
 		_card = card;
 		_prop = prop;
-		super(prop, shell, false, _card ? .tryFormat(_prop.msgs.dlgTitCast, _card.name) : _prop.msgs.dlgTitNewCast,
-			_prop.images.casts, true, _prop.var.castCardDlg, true);
+		super(prop, shell, _readOnly, false, _card ? .tryFormat(_prop.msgs.dlgTitCast, _card.name) : _prop.msgs.dlgTitNewCast,
+			_prop.images.casts, true, _prop.var.castCardDlg);
 	}
 
 	@property

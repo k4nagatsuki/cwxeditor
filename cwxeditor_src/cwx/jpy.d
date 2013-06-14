@@ -158,7 +158,7 @@ string readJPYFile(string path, out bool isSJIS) {
 		return assumeUnique(value);
 	} catch {
 		isSJIS = true;
-		value = cast(char[]) std.file.read(path);
+		value = cast(char[])readBinary(path);
 		return touni(value);
 	}
 }
@@ -167,7 +167,7 @@ private string readJPYFile(string path) {
 	try {
 		return std.file.readText(path);
 	} catch (UTFException e) {
-		return touni(cast(char[]) std.file.read(path));
+		return touni(cast(char[])readBinary(path));
 	}
 }
 /// pathへ書き込む。

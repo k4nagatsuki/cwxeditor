@@ -77,7 +77,7 @@ Summary loadLScenario(string p, string skin, const System sys, in LoadOption opt
 	if (.exists(summPath)) {
 		d = new RData(sys, opt.cardOnly, sPath, skin);
 		{
-			auto bytes = ByteIO(std.file.read(summPath));
+			auto bytes = ByteIO(readBinary(summPath));
 			summ = loadSummary(*d, bytes, startAreaId);
 		}
 	} else {
@@ -102,7 +102,7 @@ Summary loadLScenario(string p, string skin, const System sys, in LoadOption opt
 			}
 			foreach (file; this.files) {
 				try {
-					auto f = ByteIO(std.file.read(file));
+					auto f = ByteIO(readBinary(file));
 					auto base = baseName(file);
 					ulong id;
 					if (!d.cardOnly) {
@@ -2409,7 +2409,7 @@ private void writeImage(ref SData d, ref ByteIO f, CWXPath cp, string imgPath) {
 	} else {
 		auto path = d.skin.findImagePath(imgPath, d.sPath);
 		if (exists(path)) {
-			bytes = cast(ubyte[]) std.file.read(path);
+			bytes = cast(ubyte[])readBinary(path);
 		}
 		if (d.opt.imageConverter !is null && ".bmp" != .imageType(bytes)) {
 			bytes = d.opt.imageConverter(bytes);

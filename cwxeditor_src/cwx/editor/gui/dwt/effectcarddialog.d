@@ -45,6 +45,7 @@ private:
 	/// (エンジンの仕様上ほとんど意味が無いため現在無効)
 	static immutable SetUseCountCur = false;
 
+	int _readOnly = 0;
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
@@ -192,7 +193,7 @@ private:
 				grp.setLayout(new GridLayout(2, false));
 				grp.setText(_prop.msgs.name);
 				_name = new GBLimitText(_prop.looks.monospace,
-					_prop.looks.nameLimit, false, grp, SWT.BORDER);
+					_prop.looks.nameLimit, false, grp, SWT.BORDER | _readOnly);
 				mod(_name.widget);
 				createTextMenu!Text(_comm, _prop, _name.widget, &catchMod);
 				_name.limitEvent ~= &refreshWarning;
@@ -205,7 +206,7 @@ private:
 			{
 				auto skin = _comm.skin;
 				bool including = _card && isBinImg(_card.path);
-				_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
+				_imgPath = new ImageSelect!(MtType.CARD)(comp2, _readOnly, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
@@ -223,6 +224,7 @@ private:
 				grp.setText(_prop.msgs.needSpellGroup);
 				_needSpell = new Button(grp, SWT.CHECK);
 				mod(_needSpell);
+				_needSpell.setEnabled(!_readOnly);
 				_needSpell.setText(_prop.msgs.needSpell);
 			}
 			{
@@ -235,6 +237,7 @@ private:
 						EffectType.NONE]) {
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
+					radio.setEnabled(!_readOnly);
 					if (2 <= i) {
 						auto gd = new GridData(GridData.FILL_BOTH);
 						gd.horizontalSpan = 2;
@@ -256,6 +259,7 @@ private:
 				foreach (res; [Resist.AVOID, Resist.RESIST, Resist.UNFAIL]) {
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
+					radio.setEnabled(!_readOnly);
 					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 					radio.setText(_prop.msgs.resistName(res));
 					radio.setToolTipText(_prop.msgs.resistDesc(res));
@@ -282,7 +286,7 @@ private:
 				grp.setText(_prop.msgs.skillLevel);
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout(new GridLayout(2, false));
-				_level = new Spinner(comp2, SWT.BORDER);
+				_level = new Spinner(comp2, SWT.BORDER | _readOnly);
 				mod(_level);
 				_level.setMaximum(_prop.var.etc.skillLevelMax);
 				_level.setMinimum(0);
@@ -300,7 +304,7 @@ private:
 					comp2.setLayout(zeroMarginGridLayout(3, false));
 					auto l1 = new Label(comp2, SWT.NONE);
 					l1.setText(_prop.msgs.useCountMax);
-					_useCount = new Spinner(comp2, SWT.BORDER);
+					_useCount = new Spinner(comp2, SWT.BORDER | _readOnly);
 					mod(_useCount);
 					_useCount.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					_useCount.setMaximum(_prop.var.etc.useCountMax);
@@ -310,22 +314,23 @@ private:
 					l2.setText(.tryFormat(_prop.msgs.useCountRange, _prop.var.etc.useCountMax));
 					auto l3 = new Label(comp2, SWT.NONE);
 					l3.setText(_prop.msgs.useCountCur);
-					_useCountCur = new Spinner(comp2, SWT.BORDER);
+					_useCountCur = new Spinner(comp2, SWT.BORDER | _readOnly);
 					mod(_useCountCur);
 					_useCountCur.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					_useCountCur.setMaximum(_prop.var.etc.useCountMax);
 					_useCountCur.setMinimum(0);
 					_useCountIsMax = new Button(comp2, SWT.CHECK);
+					_useCountIsMax.setEnabled(!_readOnly);
 					_useCountIsMax.setText(_prop.msgs.useCountIsMax);
 					.listener(_useCountIsMax, SWT.Selection, {
-						_useCountCur.setEnabled(!_useCountIsMax.getSelection());
+						_useCountCur.setEnabled(!_readOnly && !_useCountIsMax.getSelection());
 						if (_useCountIsMax.getSelection()) {
 							_useCountCur.setSelection(_useCount.getSelection());
 						}
 					});
 				} else {
 					comp2.setLayout(new GridLayout(2, false));
-					_useCount = new Spinner(comp2, SWT.BORDER);
+					_useCount = new Spinner(comp2, SWT.BORDER | _readOnly);
 					mod(_useCount);
 					_useCount.setMaximum(_prop.var.etc.useCountMax);
 					_useCount.setMinimum(0);
@@ -356,7 +361,7 @@ private:
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText(_prop.msgs.priceAuto);
 			} else static if (is (C == ItemCard)) {
-				_price = new Spinner(comp2, SWT.BORDER);
+				_price = new Spinner(comp2, SWT.BORDER | _readOnly);
 				mod(_price);
 				_price.setMaximum(_prop.var.etc.priceMax);
 				_price.setMinimum(0);
@@ -373,7 +378,7 @@ private:
 			grp.setLayoutData(gd);
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
+			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
 			mod(_desc.widget);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));
@@ -388,7 +393,7 @@ private:
 			Text createLine(string title, out TextMenuModify tm) {
 				auto l = new Label(grp, SWT.NONE);
 				l.setText(title);
-				auto text = new Text(grp, SWT.BORDER);
+				auto text = new Text(grp, SWT.BORDER | _readOnly);
 				mod(text);
 				tm = createTextMenu!Text(_comm, _prop, text, &catchMod);
 				text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -399,6 +404,7 @@ private:
 			_author = createLine(_prop.msgs.sourceAuthor, _authorTM);
 
 			auto resetSource = new Button(grp, SWT.PUSH);
+			resetSource.setEnabled(!_readOnly);
 			auto rgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			rgd.horizontalSpan = 2;
 			resetSource.setLayoutData(rgd);
@@ -431,6 +437,7 @@ private:
 					Physical.STR, Physical.VIT, Physical.MIN]) {
 				auto radio = new Button(comp2, SWT.RADIO);
 				mod(radio);
+				radio.setEnabled(!_readOnly);
 				radio.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				radio.setText(_prop.msgs.physicalName(phy));
 				_phy[phy] = radio;
@@ -454,6 +461,7 @@ private:
 			foreach (i, m; Ms) {
 				auto radio = new Button(comp2, SWT.RADIO);
 				mod(radio);
+				radio.setEnabled(!_readOnly);
 				radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 				radio.setText(_prop.msgs.mentalName(m));
 				_mtl[m] = radio;
@@ -499,7 +507,7 @@ private:
 		int min = cast(int) _prop.var.etc.enhanceMax * -1;
 		int page = _prop.var.etc.enhanceMax / 2;
 		if (_prop.var.etc.radarStyleParams) {
-			useModR = new RadarSpinner(parent, SWT.NONE);
+			useModR = new RadarSpinner(parent, _readOnly);
 			useModR.setRadar(stepC, names, min);
 			useModR.antialias = true;
 			useModR.borderlines = [0];
@@ -507,7 +515,7 @@ private:
 			if (values.length) useModR.setValues(values);
 			mod(useModR);
 		} else {
-			useModS = new Scales(parent, SWT.NONE);
+			useModS = new Scales(parent, _readOnly);
 			useModS.setScales(stepC, names, page, min);
 			useModS.borderlines = [0];
 			if (values.length) useModS.setValues(values);
@@ -551,7 +559,7 @@ private:
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
 		{
-			_motions = new MotionView(_comm, _prop, _summ, comp);
+			_motions = new MotionView(_comm, _prop, _summ, comp, _readOnly);
 			mod(_motions);
 			_motions.warningEvent ~= &refreshWarning;
 			_motions.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -587,6 +595,7 @@ private:
 							CardTarget.PARTY, CardTarget.ENEMY, CardTarget.BOTH]) {
 						auto radio = new Button(comp3, SWT.RADIO);
 						mod(radio);
+						radio.setEnabled(!_readOnly);
 						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 						radio.setText(_prop.msgs.cardTargetName(t));
 						radio.addSelectionListener(new OASelect);
@@ -604,11 +613,13 @@ private:
 					comp3.setLayout(new GridLayout(2, false));
 					auto one = new Button(comp3, SWT.RADIO);
 					mod(one);
+					one.setEnabled(!_readOnly);
 					one.setLayoutData(new GridData(GridData.FILL_BOTH));
 					one.setText(_prop.msgs.cardTargetOne);
 					_one = one;
 					auto all = new Button(comp3, SWT.RADIO);
 					mod(all);
+					all.setEnabled(!_readOnly);
 					all.setLayoutData(new GridData(GridData.FILL_BOTH));
 					all.setText(_prop.msgs.cardTargetAll);
 					_all = all;
@@ -624,6 +635,7 @@ private:
 						CardVisual.REVERSE, CardVisual.VERTICAL]) {
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
+					radio.setEnabled(!_readOnly);
 					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 					radio.setText(_prop.msgs.cardVisualName(v));
 					_vis[v] = radio;
@@ -637,6 +649,7 @@ private:
 				foreach (p; [Premium.NORMAL, Premium.RARE, Premium.PREMIUM]) {
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
+					radio.setEnabled(!_readOnly);
 					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 					radio.setText(_prop.msgs.premiumName(p));
 					_prem[p] = radio;
@@ -647,6 +660,7 @@ private:
 			createSuccessRateScale(_prop, comp, _sucRate)
 				.setLayoutData(new GridData(GridData.FILL_BOTH));
 			mod(_sucRate);
+			_sucRate.setEnabled(!_readOnly);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText(_prop.msgs.cardProps);
@@ -676,7 +690,7 @@ private:
 				l.setImage(_prop.images.sound);
 				l.setText(title);
 
-				auto se = new MaterialSelect!(MtType.SE, Combo, Combo)(_comm, _prop, _summ, null, [_prop.msgs.soundNone]);
+				auto se = new MaterialSelect!(MtType.SE, Combo, Combo)(_comm, _prop, _summ, _readOnly != 0, null, [_prop.msgs.soundNone]);
 				mod(se);
 				se.modEvent ~= &refreshWarning;
 				auto gddc = new GridData(GridData.FILL_HORIZONTAL);
@@ -701,6 +715,7 @@ private:
 			for (int i = 0; i < _keyCodes.length; i++) {
 				_keyCodes[i] = createKeyCodeCombo(_comm, grp, &catchMod);
 				mod(_keyCodes[i]);
+				_keyCodes[i].setEnabled(!_readOnly);
 				_keyCodes[i].setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
 			setKeyCodesEnabled();
@@ -755,9 +770,9 @@ private:
 		int big = max(_prop.looks.keyCodesMaxLegacy, _prop.looks.keyCodesMax);
 		foreach (i, kc; _keyCodes) {
 			if (_summ.legacy) {
-				kc.setEnabled(i < _prop.looks.keyCodesMaxLegacy);
+				kc.setEnabled(!_readOnly && i < _prop.looks.keyCodesMaxLegacy);
 			} else {
-				kc.setEnabled(i < _prop.looks.keyCodesMax);
+				kc.setEnabled(!_readOnly && i < _prop.looks.keyCodesMax);
 			}
 		}
 	}
@@ -783,7 +798,7 @@ public:
 		} else {
 			static assert (0);
 		}
-		super(prop, shell, false, text, img, true, size, true);
+		super(prop, shell, _readOnly, false, text, img, true, size, true);
 	}
 
 	@property
@@ -870,7 +885,7 @@ protected:
 				static if (SetUseCountCur) {
 					_useCountCur.setSelection(_card.useLimit);
 					_useCountIsMax.setSelection(_card.useLimit == _card.useLimitMax);
-					_useCountCur.setEnabled(!_useCountIsMax.getSelection());
+					_useCountCur.setEnabled(!_readOnly && !_useCountIsMax.getSelection());
 					updateUseLimitMax();
 				}
 			} else static if (is (C == BeastCard)) {
@@ -961,8 +976,8 @@ protected:
 		_oneAllGrp.setEnabled(_targ[CardTarget.PARTY].getSelection()
 			|| _targ[CardTarget.ENEMY].getSelection()
 			|| _targ[CardTarget.BOTH].getSelection());
-		_one.setEnabled(_oneAllGrp.getEnabled());
-		_all.setEnabled(_oneAllGrp.getEnabled());
+		_one.setEnabled(!_readOnly && _oneAllGrp.getEnabled());
+		_all.setEnabled(!_readOnly && _oneAllGrp.getEnabled());
 	}
 
 	override bool apply() {

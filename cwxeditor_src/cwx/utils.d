@@ -668,6 +668,9 @@ class Wildcard {
 	assert (Wildcard("???t").replace("testtestest", "BB") == "BBBBest");
 }
 
+/// ファイルの内容を全て読み込む。
+alias std.file.read readBinary;
+
 /// データのMD5ダイジェストを取得する。
 string md5Digest(in void[] data) {
 	return .toHexString(.md5Of(data)).idup;
@@ -676,7 +679,7 @@ string md5Digest(in void[] data) {
 string fileToMD5Digest(string file) {
 	if (.exists(file)) {
 		try {
-			return md5Digest(std.file.read(file));
+			return md5Digest(readBinary(file));
 		} catch (FileException e) {
 			// 読み込めなかった場合は空文字列を返す
 			debugln(e);

@@ -684,7 +684,7 @@ class Skin {
 				iniText = std.file.readText(ini);
 			} catch (UTFException e) {
 				// ここではMS932を想定
-				iniText = .touni(cast(char[]) std.file.read(ini));
+				iniText = .touni(cast(char[])readBinary(ini));
 			}
 			/// UTF-8とは限らないため、バイナリで読み込む
 			foreach (line; iniText.splitLines()) {
