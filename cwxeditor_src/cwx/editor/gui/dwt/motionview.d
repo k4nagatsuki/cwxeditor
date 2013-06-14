@@ -1305,7 +1305,7 @@ public:
 		}
 		@property
 		override bool canDoT() {
-			return _motions.getSelectionIndex() > 0;
+			return _motions.getSelectionIndex() >= 0;
 		}
 		@property
 		override bool canDoC() {
