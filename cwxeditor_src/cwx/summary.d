@@ -72,8 +72,6 @@ struct SaveOption {
 	bool saveInnerImagePath = false; /// 格納イメージの参照先を保存するか。
 	bool backup = false; /// 保存時バックアップを行うか。
 	string backupDir = ""; /// 保存時バックアップ先。
-	/// 画像をビットマップに変換する関数。変換保存しない場合はnull。
-	ubyte[] delegate(ubyte[]) imageConverter;
 }
 
 /// 貼り紙。シナリオの情報が入る。

@@ -2124,9 +2124,6 @@ private void writeImage(ref SData d, ref ByteIO f, CWXPath cp, string imgPath) {
 		if (exists(path)) {
 			bytes = cast(ubyte[]) std.file.read(path);
 		}
-		if (d.opt.imageConverter !is null && ".bmp" != .imageType(bytes)) {
-			bytes = d.opt.imageConverter(bytes);
-		}
 		if (d.saveInnerImagePath) {
 			d.imageRef[cp.cwxPath(true)] = encodePathLegacy(imgPath);
 		}

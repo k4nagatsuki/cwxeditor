@@ -739,7 +739,6 @@ private:
 		opt.saveInnerImagePath = _prop.var.etc.saveInnerImagePath;
 		opt.backup = _prop.var.etc.backupBeforeSaveEnabled;
 		opt.backupDir = _prop.backupBeforeSavePath.buildPath(_prop.var.etc.backupBeforeSaveDir);
-		opt.imageConverter = .toDelegate(&imageToBitmap);
 		return opt;
 	}
 	bool save(Shell shell, bool backupSave = false) {

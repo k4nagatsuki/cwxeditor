@@ -125,22 +125,6 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 	return blankImage;
 }
 
-/// bytesがBitmapイメージでなければBitmapへ変換する。
-ubyte[] imageToBitmap(ubyte[] bytes) {
-	auto type = .imageType(bytes);
-	if (".bmp" == type) return bytes;
-	if ("" == type) return bytes;
-	auto l = new ByteArrayInputStream(cast(byte[]) bytes);
-	scope (exit) l.close();
-	auto data = new ImageData(l);
-	auto loader = new ImageLoader;
-	loader.data ~= data;
-	auto s = new ByteArrayOutputStream(1024);
-	scope (exit) s.close();
-	loader.save(s, SWT.IMAGE_BMP);
-	return cast(ubyte[]) s.toByteArray();
-}
-
 @property
 ImageData blankImage(int width = 1, int height = 1) {
 	auto data = new ImageData(width, height, 32, new PaletteData(0xFF000000, 0xFF0000, 0xFF00));
