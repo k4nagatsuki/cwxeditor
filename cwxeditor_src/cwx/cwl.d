@@ -208,15 +208,15 @@ void loadImageRef(Summary summ) {
 			auto cp = summ.findCWXPath(path);
 			auto card = cast(Card) cp;
 			if (card) {
-				card.path = node.value;
+				card.path = decodePath(node.value);
 			}
 			auto mCard = cast(MenuCard) cp;
 			if (mCard) {
-				mCard.path = node.value;
+				mCard.path = decodePath(node.value);
 			}
 			auto summ2 = cast(Summary) cp;
 			if (summ2) {
-				summ2.imagePath = node.value;
+				summ2.imagePath = decodePath(node.value);
 			}
 		};
 		node.parse();
