@@ -786,7 +786,10 @@ private:
 					renameCopy(targ, file);
 				}
 				_comm.refPaths.call(this, toRelPath(selDirPath));
-				if (dir) refreshDirs(.exists(targ) ? targ : dir);
+				if (dir) {
+					refreshDirs(.exists(targ) ? targ : dir);
+					foreach (itm; _dirs.getSelection()) itm.setExpanded(true);
+				}
 				refreshFiles(selfs);
 				return true;
 			} catch (Exception e) {
