@@ -1160,7 +1160,7 @@ public:
 		_card = card;
 		_prop = prop;
 		super(prop, shell, _readOnly, false, _card ? .tryFormat(_prop.msgs.dlgTitCast, _card.name) : _prop.msgs.dlgTitNewCast,
-			_prop.images.casts, true, _prop.var.castCardDlg);
+			_prop.images.casts, true, _prop.var.castCardDlg, true);
 	}
 
 	@property
