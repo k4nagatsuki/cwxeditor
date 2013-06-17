@@ -2179,17 +2179,13 @@ public:
 		reset();
 		_lastFind = _tabf.getSelection();
 
-		static if (is(ID:PathId)) {
-			new FullTableColumn(_result, SWT.NONE);
-		} else {
-			_result.setHeaderVisible(true);
-			auto mainColumn = new TableColumn(_result, SWT.NONE);
-			mainColumn.setText(_prop.msgs.searchResultColumnMain);
-			saveColumnWidth!("prop.var.etc.searchResultColumnMain")(_prop, mainColumn);
-			auto subColumn = new TableColumn(_result, SWT.NONE);
-			subColumn.setText(_prop.msgs.searchResultColumnParent);
-			saveColumnWidth!("prop.var.etc.searchResultColumnParent")(_prop, subColumn);
-		}
+		_result.setHeaderVisible(true);
+		auto mainColumn = new TableColumn(_result, SWT.NONE);
+		mainColumn.setText(_prop.msgs.searchResultColumnMain);
+		saveColumnWidth!("prop.var.etc.searchResultColumnMain")(_prop, mainColumn);
+		auto subColumn = new TableColumn(_result, SWT.NONE);
+		subColumn.setText(_prop.msgs.searchResultColumnParent);
+		saveColumnWidth!("prop.var.etc.searchResultColumnParent")(_prop, subColumn);
 
 		auto range = rangeTable;
 
@@ -2206,11 +2202,7 @@ public:
 					_inProc = false;
 					setResultStatus(count);
 					if (count) {
-						static if (is(ID : PathId)) {
-							_comm.replPath.call(cast(string) from, cast(string) to);
-						} else {
-							_comm.replID.call();
-						}
+						_comm.replID.call();
 					}
 					resetCursors(cursors);
 					after();
@@ -2281,7 +2273,57 @@ public:
 		auto from = toPathId(_fromPath.getText());
 		auto to = toPathId(_toPath.getText());
 		if (from == to) _replMode = false;
-		replaceIDImpl2(from, to);
+		reset();
+		_lastFind = _tabf.getSelection();
+
+		new FullTableColumn(_result, SWT.NONE);
+
+		auto range = rangeTable;
+
+		auto uc = _summ.useCounter;
+		_inProc = true;
+		scope (exit) _inProc = false;
+		size_t count = 0;
+
+		auto cursors = setWaitCursors(_win);
+		auto thr = new core.thread.Thread({
+			string[2][] fromTos;
+			auto exit = new class Runnable {
+				override void run() {
+					_inProc = false;
+					setResultStatus(count);
+					if (count) {
+						foreach (fromTo; std.algorithm.uniq(fromTos)) {
+							_comm.replPath.call(fromTo[0], fromTo[1]);
+						}
+					}
+					resetCursors(cursors);
+					after();
+				}
+			};
+			scope (exit) _display.syncExec(exit);
+
+			try {
+				auto wildcard = Wildcard(cast(string)from, 0 == filenameCharCmp('A', 'a'));
+				foreach (key; uc.path.keys) {
+					if (wildcard.match(cast(string)key)) {
+						foreach (u; uc.path.values(key)) {
+							if (!dec(u.owner, range)) continue;
+							if (_replMode) {
+								auto id = u.path;
+								u.path = cast(string)to;
+								storeID(u.owner, u, cast(string)id, cast(string)to, &u.path);
+								fromTos ~= [cast(string)id, cast(string)to];
+							}
+							addResult(u.owner, count);
+						}
+					}
+				}
+			} catch (Throwable e) {
+				debugln(e);
+			}
+		});
+		thr.start();
 	}
 
 	private void couponEditEnd(TableItem itm, int column, string text) {
