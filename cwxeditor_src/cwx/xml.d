@@ -77,6 +77,9 @@ struct XNode {
 		if (!p) return defaultValue;
 		return to!(T)(*p);
 	}
+	/// 属性nameが存在すればtrueを返す。
+	const
+	bool hasAttr(string name) { return (name in _el.tag.attr) !is null; }
 	/// 子要素nameを一つだけ探し出してテキストを返す。
 	T childText(T = string)(string name, bool nothingIsError) {
 		auto node = child(name, nothingIsError);

@@ -1792,7 +1792,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	private static void cfnPut(CArg ARG, string Name, string To)(in XNode en, in CDetail d, ref Content c) {
 		if (d.use(ARG)) {
-			mixin ("c." ~ Name ~ " = " ~ To ~ "(en.attr(d.attr(ARG), true));");
+			auto name = d.attr(ARG);
+			if (en.hasAttr(name)) {
+				mixin ("c." ~ Name ~ " = " ~ To ~ "(en.attr(name, true));");
+			}
 		}
 	}
 	/// XMLノードからイベントを生成する。
