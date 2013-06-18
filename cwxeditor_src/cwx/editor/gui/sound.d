@@ -8,6 +8,8 @@ import std.string;
 import std.conv;
 import std.path;
 import std.exception;
+import std.c.stdio;
+import std.c.string;
 
 import cwx.utils;
 
@@ -53,6 +55,7 @@ version (Windows) {
 }
 private extern (C) {
 	immutable uint SDL_INIT_AUDIO = 0x10;
+	immutable uint SDL_INIT_NOPARACHUTE  = 0x00100000;
 	immutable ushort AUDIO_U8 = 0x0008;
 	immutable ushort AUDIO_S8 = 0x8008;
 	immutable ushort AUDIO_U16LSB = 0x0010;
@@ -81,7 +84,9 @@ private extern (C) {
 
 	struct SDL_RWops {}
 
+	alias void function() SDL_SetMainReady;
 	alias intptr_t function(Uint32) SDL_Init;
+	alias char* function() SDL_GetError;
 	alias void function() SDL_Quit;
 	alias intptr_t function(intptr_t, Uint16, intptr_t, intptr_t) Mix_OpenAudio;
 	alias void function() Mix_CloseAudio;
@@ -165,13 +170,15 @@ private void initSdl() {
 		static __gshared const SDL = "SDL.dll";
 		static __gshared const MIXER = "SDL_mixer.dll";
 	} else {
-		static __gshared const SDL = "libSDL.so";
-		static __gshared const MIXER = "libSDL_mixer.so";
+		static __gshared const SDL = "libSDL2.so";
+		static __gshared const MIXER = "libSDL2_mixer.so";
 	}
 	sdl = dlopen(SDL);
 	mixer = dlopen(MIXER);
 	if (sdl && mixer) {
 		try {
+			// FIXME: SDL2で必要
+			//getSymbol!(SDL_SetMainReady)(sdl, "SDL_SetMainReady")();
 			if (0 == getSymbol!(SDL_Init)(sdl, "SDL_Init")(SDL_INIT_AUDIO)) {
 				if (0 == getSymbol!(Mix_OpenAudio)(mixer, "Mix_OpenAudio")(SDL_FREQUENCY, SDL_FORMAT, SDL_CHANNELS, SDL_CHUNKSIZE)) {
 					if (0 < getSymbol!(Mix_AllocateChannels)(mixer, "Mix_AllocateChannels")(2)) {
@@ -181,7 +188,10 @@ private void initSdl() {
 					}
 					getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
 				}
+				printSDLError();
 				getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
+			} else {
+				printSDLError();
 			}
 		} catch (Throwable e) {
 			debugln(e);
@@ -310,6 +320,11 @@ ulong seLen() {
 	return len(seChunk, _sePlayingMCI, "cwse", bassSEStream);
 }
 
+private void printSDLError(string File = __FILE__, int Line = __LINE__)() {
+	auto str = getSymbol!(SDL_GetError)(sdl, "SDL_GetError")();
+	debugln!(File, Line)(str[0..strlen(str)]);
+}
+
 private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool loop, int soundPlayType, uint volume, ref HSTREAM bassStream) {
 	stop(music, chunk, channel, mciName, onLegacy, playingMCI, bassStream);
 	version (Windows) {
@@ -355,50 +370,51 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t chann
 	try {
 		if (sdl) {
 			if (file.length > 0 && !music) {
-				version (Windows) {
-					// Unicodeで日本語パスを渡すと失敗するので変換しておく
-					const char* filez = toMBSz(file);
-					const char* filez2 = (file ~ "\0").ptr;
-				} else {
-					const char* filez = (file ~ "\0").ptr;
-					const char* filez2 = toMBSz(file);
-				}
+				const char* filez = (file ~ "\0").ptr;
+				const char* filez2 = toMBSz(file);
 
 				if (loop) {
 					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(filez);
 					if (!music) {
 						debugln("error: Mix_LoadMUS, 1" ~ file);
+						printSDLError();
 						// 別のエンコーディングで再トライ
 						music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(filez2);
 					}
 					if (!music) {
 						debugln("error: Mix_LoadMUS, 2, " ~ file);
+						printSDLError();
 						return;
 					}
 					getSymbol!(Mix_VolumeMusic)(mixer, "Mix_VolumeMusic")(.roundTo!intptr_t((volume / 100.0) * MIX_MAX_VOLUME));
 					if (0 != getSymbol!(Mix_PlayMusic)(mixer, "Mix_PlayMusic")(music, -1)) {
 						debugln("error: Mix_PlayMusic, " ~ file);
+						printSDLError();
 						return;
 					}
 				} else {
 					auto ops = getSymbol!(SDL_RWFromFile)(sdl, "SDL_RWFromFile")(filez, "rb".toStringz());
 					if (!ops) {
 						debugln("error: SDL_RWFromFile 1, " ~ file);
+						printSDLError();
 						ops = getSymbol!(SDL_RWFromFile)(sdl, "SDL_RWFromFile")(filez2, "rb".toStringz());
 					}
 					if (!ops) {
 						debugln("error: SDL_RWFromFile 2, " ~ file);
+						printSDLError();
 						return;
 					}
 					chunk = getSymbol!(Mix_LoadWAV_RW)(mixer, "Mix_LoadWAV_RW")(ops, 1);
 					if (!chunk) {
 						debugln("error: Mix_LoadWAV_RW, " ~ file);
+						printSDLError();
 						return;
 					}
 					getSymbol!(Mix_VolumeChunk)(mixer, "Mix_VolumeChunk")(chunk, .roundTo!intptr_t((volume / 100.0) * MIX_MAX_VOLUME));
 					channel = getSymbol!(Mix_PlayChannelTimed)(mixer, "Mix_PlayChannelTimed")(channel, chunk, 0, -1);
 					if (-1 == channel) {
 						debugln("error: Mix_PlayChannelTimed, " ~ file);
+						printSDLError();
 						return;
 					}
 				}
@@ -429,6 +445,7 @@ private void stop(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t chann
 					music = null;
 				} else {
 					debugln("error: Mix_HaltMusic");
+					printSDLError();
 				}
 			}
 			if (-1 != channel) {
