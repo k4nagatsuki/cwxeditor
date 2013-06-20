@@ -1125,29 +1125,38 @@ private:
 	private void refreshAreas() {
 		if (!_areas || _areas.isDisposed()) return;
 		int topIndex = _areas.getTopIndex();
-		auto sel = getSelectionArea();
-		_areas.removeAll();
+		auto sel = _areas.getSelectionIndex();
 		if (_summ) {
-			newSummaryItem();
-			_areas.select(0);
-			foreach (i, a; _summ.areas) {
-				if (!_incSearch.match(a.name, a)) continue;
-				addAreaItem(i);
-				if (a is sel) _areas.select(_areas.getItemCount() - 1);
+			if (!_areas.getItemCount()) {
+				newSummaryItem();
 			}
-			foreach (i, a; _summ.battles) {
+			size_t i = 1;
+			foreach (a; _summ.areas) {
 				if (!_incSearch.match(a.name, a)) continue;
-				addBattleItem(i);
-				if (a is sel) _areas.select(_areas.getItemCount() - 1);
+				refData2(a, i < _areas.getItemCount() ? _areas.getItem(i) : new TableItem(_areas, SWT.NONE));
+				i++;
 			}
-			foreach (i, a; _summ.packages) {
+			foreach (a; _summ.battles) {
 				if (!_incSearch.match(a.name, a)) continue;
-				addPackageItem(i);
-				if (a is sel) _areas.select(_areas.getItemCount() - 1);
+				refData2(a, i < _areas.getItemCount() ? _areas.getItem(i) : new TableItem(_areas, SWT.NONE));
+				i++;
+			}
+			foreach (a; _summ.packages) {
+				if (!_incSearch.match(a.name, a)) continue;
+				refData2(a, i < _areas.getItemCount() ? _areas.getItem(i) : new TableItem(_areas, SWT.NONE));
+				i++;
+			}
+			while (i < _areas.getItemCount()) {
+				_areas.getItem(i).dispose();
 			}
 			sort();
+		} else {
+			_areas.removeAll();
 		}
 		_areas.setTopIndex(topIndex);
+		if (sel < 0 || _areas.getItemCount() <= sel) {
+			_areas.select(.min(_areas.getItemCount() - 1, sel));
+		}
 		_areas.showSelection();
 		refreshStatusLine();
 	}
@@ -1172,6 +1181,18 @@ private:
 		itm.setText(NAME, a.name);
 		itm.setText(UC, to!(string)(uc));
 		itm.setData(a);
+	}
+	void refData2(AbstractArea a, TableItem itm) {
+		if (auto area = cast(Area)a) {
+			itm.setImage(0, _prop.images.area);
+			refData(area, itm);
+		} else if (auto btl = cast(Battle)a) {
+			itm.setImage(0, _prop.images.battle);
+			refData(btl, itm);
+		} else if (auto pkg = cast(Package)a) {
+			itm.setImage(0, _prop.images.packages);
+			refData(pkg, itm);
+		} else assert (0);
 	}
 	void refData(A)(A a, TableItem itm) {
 		itm.setText(ID, to!(string)(a.id));

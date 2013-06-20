@@ -1170,11 +1170,11 @@ public:
 
 	/// エリアの名称表示を更新する。
 	void refreshTitle() {
-		if (!initial()) return;
+		initial();
 		_cards.getItems()[0].setText(_area.name);
 	}
 	private void refreshTitleA(A area) {
-		if (!initial()) return;
+		initial();
 		if (area is _area) {
 			_cards.getItems()[0].setText(_area.name);
 		}
@@ -1213,7 +1213,7 @@ public:
 			downCard(indices, count);
 		}
 		private void appendCard(int index, C c) {
-			if (initial()) return;
+			initial();
 			Image imgCard;
 			static if (is (C == MenuCard)) {
 				imgCard = _prop.images.cards;
@@ -1224,7 +1224,7 @@ public:
 			refreshTrees(itm);
 		}
 		private void removeCard(int index) {
-			if (initial()) return;
+			initial();
 			if (_selItm && !_selItm.isDisposed()
 					&& _selItm.getParentItem() is _cards.getItems()[index + 1]) {
 				_etree.refresh(null);
@@ -1233,7 +1233,7 @@ public:
 			_cards.getItems()[index + 1].dispose();
 		}
 		private void renameCard(int index) {
-			if (initial()) return;
+			initial();
 			auto itm = _cards.getItems()[index + 1];
 			itm.setText(cardName(cast(C) itm.getData()));
 		}
@@ -1252,11 +1252,11 @@ public:
 			}
 		}
 		private void upCard(int[] indices, int count) {
-			if (initial()) return;
+			initial();
 			__udCard(indices, &treeItemUp, -1, count);
 		}
 		private void downCard(int[] indices, int count) {
-			if (initial()) return;
+			initial();
 			__udCard(indices, &treeItemDown, 1, count);
 		}
 	}
