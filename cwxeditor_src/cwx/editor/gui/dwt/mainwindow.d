@@ -345,13 +345,22 @@ private:
 				synchronized (_saveSync) {
 					data = summ.createZipData([], true);
 				}
+				scope (exit) delete data;
 				auto md5 = md5Digest(data);
-				if ((_oldMD5 != md5) && (!backup.length || data != std.file.read(parent.buildPath(backup[$ - 1])))) {
-					// 前回のバックアップと異なっていれば保存
-					if (!parent.exists()) mkdirRecurse(parent);
-					std.file.write(zFile, data);
-					_oldMD5 = md5;
-					bc--;
+				if (_oldMD5 != md5) {
+					bool f = !backup.length;
+					if (!f) {
+						auto data2 = std.file.read(parent.buildPath(backup[$ - 1]));
+						f = data != data2;
+						delete data2;
+					}
+					if (f) {
+						// 前回のバックアップと異なっていれば保存
+						if (!parent.exists()) mkdirRecurse(parent);
+						std.file.write(zFile, data);
+						_oldMD5 = md5;
+						bc--;
+					}
 				}
 			}
 

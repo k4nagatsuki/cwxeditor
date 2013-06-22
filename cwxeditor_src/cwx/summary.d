@@ -2017,7 +2017,8 @@ public:
 					expand = true;
 				}
 				auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
-				scope arc = .zip(scenarioPath, false, [lock]);
+				ubyte[][] data;
+				scope arc = .zip(scenarioPath, false, [lock], false, data);
 				if (!expand) {
 					auto xmls = toXMLs();
 					foreach (path, files; xmls) {
@@ -2028,7 +2029,14 @@ public:
 					}
 					_oldXMLs = xmls;
 				}
-				std.file.write(zipName, arc.build());
+				auto b = arc.build();
+				destroy(arc);
+				std.file.write(zipName, b);
+				delete b;
+				foreach (d; data) {
+					delete d;
+				}
+				delete data;
 			} else if (expandXMLs || !useTemp) {
 				auto oldPath = scenarioPath;
 				scenarioPath = sPath;
@@ -2053,10 +2061,11 @@ public:
 	/// シナリオのフォルダのアーカイブを作成する。
 	void[] createZipData(in string[] ignorePaths, bool useSysEnc) {
 		auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
+		ubyte[][] data;
 		auto arc = .zip(scenarioPath, true, (string file) {
 			return cfnmatch(file, lock)
 				|| containsPath(ignorePaths, file.baseName());
-		}, useSysEnc);
+		}, useSysEnc, data);
 		if (useTemp && !expandXMLs) {
 			foreach (path, files; _oldXMLs) {
 				foreach (name, xml; files) {
@@ -2065,11 +2074,19 @@ public:
 				}
 			}
 		}
-		return arc.build();
+		auto r = arc.build();
+		destroy(arc);
+		foreach (d; data) {
+			delete d;
+		}
+		delete data;
+		return r;
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
 	void createZip(string zipName, in string[] ignorePaths, bool useSysEnc) {
-		std.file.write(zipName, createZipData(ignorePaths, useSysEnc));
+		auto data = createZipData(ignorePaths, useSysEnc);
+		std.file.write(zipName, data);
+		delete data;
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
 	/// 非展開のXMLファイルは一時的に展開される。

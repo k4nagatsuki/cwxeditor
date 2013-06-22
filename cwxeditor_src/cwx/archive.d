@@ -111,7 +111,7 @@ ArchiveMember archive(string name, ubyte[] data, bool isDir, bool useSysEnc = fa
 /// ignorePath = このdelegeteがtrueを返したパスは除外される。
 /// useSysEnc = trueにするとファイル名にシステムの文字コードをそのまま使用する。
 ///             falseの場合はUTF-8を使用する。
-ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, bool useSysEnc) {
+ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, bool useSysEnc, ref ubyte[][] data) {
 	auto arc = new ZipArchive;
 	scope path = nabs(targ);
 	size_t cut;
@@ -130,7 +130,10 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, boo
 		}
 		auto am = new ArchiveMember;
 		am.time = SysTimeToDosFileTime(timeLastModified(file));
-		am.compressionMethod = 8;
+		// FIXME: 巨大なメモリ領域をGCが回収してくれないため
+		//        手動で各配列を開放していくが、compressionMethod = 8を
+		//        指定しているとそれも上手くいかない
+		//am.compressionMethod = 8;
 		auto name = file;
 		if (isDir(file)) {
 			name ~= dirSeparator;
@@ -151,7 +154,8 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, boo
 			am.name = name;
 		}
 		if (!isDir(file)) {
-			am.expandedData = cast(ubyte[]) std.file.read(file);
+			data ~= cast(ubyte[])std.file.read(file);
+			am.expandedData = data[$ - 1];
 		}
 		arc.addMember(am);
 	}
@@ -169,13 +173,13 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, boo
 	return arc;
 }
 /// ditto
-ZipArchive zip(string targ, bool top, string[] excludePath = [], bool useSysEnc = false) {
+ZipArchive zip(string targ, bool top, string[] excludePath, bool useSysEnc, ref ubyte[][] data) {
 	foreach (i, ex; excludePath) {
 		excludePath[i] = nabs(ex);
 	}
 	return .zip(targ, top, (string path) {
 		return containsPath(excludePath, path);
-	}, useSysEnc);
+	}, useSysEnc, data);
 }
 
 // ファイル名の文字コードをUTF-8に統一する。
@@ -208,8 +212,16 @@ bool zipHasFile(string zip, string fileName) {
 
 /// targをzip圧縮し、パスzipに保存する。
 void zip(string targ, string zip, bool top, bool delegate(string path) ignorePath, bool useSysEnc) {
-	scope arc = .zip(targ, top, ignorePath, useSysEnc);
-	std.file.write(zip, arc.build());
+	ubyte[][] data;
+	scope arc = .zip(targ, top, ignorePath, useSysEnc, data);
+	auto b = arc.build();
+	destroy(arc);
+	std.file.write(zip, b);
+	delete b;
+	foreach (d; data) {
+		delete d;
+	}
+	delete data;
 }
 void zip(string targ, string zip, bool top, string[] excludePath, bool useSysEnc) {
 	foreach (i, ex; excludePath) {
