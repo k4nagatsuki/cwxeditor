@@ -3343,6 +3343,7 @@ public:
 			if (!_summ) return;
 			void recurse(string dir, string sDir) {
 				foreach (file; clistdir(dir)) {
+					if (containsPath(_prop.var.etc.ignorePaths, file)) continue;
 					string full = std.path.buildPath(dir, file);
 					string sFile = sDir ~ file;
 					if (isDir(full)) {

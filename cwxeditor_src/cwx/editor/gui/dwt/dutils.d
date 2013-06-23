@@ -100,10 +100,13 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 		try {
 			byte[] bytes;
 			if (isBinImg(path)) {
-				bytes = cast(byte[]) strToBImg(path);
+				bytes = cast(byte[])strToBImg(path);
 			} else {
 				if (!.exists(path)) return blankImage;
 				bytes = cast(byte[])readBinary(path);
+			}
+			scope (exit) {
+				if (!isBinImg(path)) delete bytes;
 			}
 			auto s = new ByteArrayInputStream(bytes);
 			scope (exit) s.close();
