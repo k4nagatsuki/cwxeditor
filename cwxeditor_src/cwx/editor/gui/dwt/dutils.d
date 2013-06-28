@@ -525,6 +525,7 @@ public:
 			auto sel = itm;
 			if (canEdit is null || canEdit(sel, editC)) {
 				_tee = new EditEnd(_comm, table, createEditor(sel, editC), &endImpl);
+				table.showSelection();
 				editor.setEditor(_tee.editor, sel, editC);
 				_tee.setFocus();
 			}
@@ -757,6 +758,7 @@ private:
 			auto c = createEditor(sel);
 			if (c) {
 				_tee = new EditEnd(_comm, tree, c, &end);
+				tree.showSelection();
 				editor.setEditor(_tee.editor, sel);
 				_tee.setFocus();
 			}
