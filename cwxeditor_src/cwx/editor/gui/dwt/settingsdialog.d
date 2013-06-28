@@ -1347,6 +1347,7 @@ private:
 	Spinner _backupCount;
 	Button _backupRefAuthor;
 	Button _autoSave;
+	Button _backupArchived;
 	Button _backupRef;
 	Button _backupDirOpen;
 	Text _backupBeforeSaveDir;
@@ -1734,7 +1735,7 @@ private:
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 3;
 				comp2.setLayoutData(gd);
-				comp2.setLayout(zeroMarginGridLayout(2, false));
+				comp2.setLayout(zeroMarginGridLayout(3, false));
 
 				_backupRefAuthor = new Button(comp2, SWT.CHECK);
 				_backupRefAuthor.setText(_prop.msgs.backupRefAuthor);
@@ -1744,6 +1745,10 @@ private:
 				_autoSave.setText(_prop.msgs.autoSave);
 				mod(_autoSave);
 				_autoSave.addSelectionListener(_refe);
+				_backupArchived = new Button(comp2, SWT.CHECK);
+				_backupArchived.setText(_prop.msgs.backupArchived);
+				mod(_backupArchived);
+				_backupArchived.addSelectionListener(_refe);
 			}
 		}
 		{
@@ -2433,6 +2438,7 @@ private:
 		_backupRef.setEnabled(_backupEnabled.getSelection());
 		_backupRefAuthor.setEnabled(_backupEnabled.getSelection());
 		_autoSave.setEnabled(_backupEnabled.getSelection());
+		_backupArchived.setEnabled(_backupEnabled.getSelection());
 
 		_backupBeforeSaveDir.setEnabled(_backupBeforeSaveEnabled.getSelection());
 		_backupBeforeSaveRef.setEnabled(_backupBeforeSaveEnabled.getSelection());
@@ -2491,6 +2497,7 @@ protected:
 		_backupCount.setSelection(_prop.var.etc.backupCount);
 		_backupRefAuthor.setSelection(_prop.var.etc.backupRefAuthor);
 		_autoSave.setSelection(_prop.var.etc.autoSave);
+		_backupArchived.setSelection(_prop.var.etc.backupArchived);
 
 		_backupBeforeSaveDir.setText(_prop.var.etc.backupBeforeSavePath);
 		_backupBeforeSaveEnabled.setSelection(_prop.var.etc.backupBeforeSaveEnabled);
@@ -2657,6 +2664,7 @@ protected:
 		_prop.var.etc.backupCount = _backupCount.getSelection();
 		_prop.var.etc.backupRefAuthor = _backupRefAuthor.getSelection();
 		_prop.var.etc.autoSave = _autoSave.getSelection();
+		_prop.var.etc.backupArchived = _backupArchived.getSelection();
 
 		_prop.var.etc.backupBeforeSavePath = backupBeforeSave;
 		_prop.var.etc.backupBeforeSaveEnabled = _backupBeforeSaveEnabled.getSelection();

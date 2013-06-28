@@ -18,6 +18,7 @@ import cwx.menu;
 import cwx.structs;
 import cwx.types;
 import cwx.cab;
+import cwx.binary;
 
 import cwx.editor.gui.sound;
 
@@ -58,6 +59,7 @@ import std.array;
 import std.algorithm;
 import std.csv;
 import std.functional;
+import std.typecons;
 debug import std.stdio;
 
 import org.eclipse.swt.all;
@@ -301,6 +303,16 @@ private:
 	}
 	private string _oldMD5 = "";
 	void createBackup() {
+		/// dir内の全てのファイルとディレクトリの更新日時のMD5値を得る。
+		@property
+		static string filesMD5(string dir) {
+			ByteIO io;
+			io.writeL(dir.timeLastModified().stdTime);
+			foreach (file; dir.dirEntries(SpanMode.depth)) {
+				io.writeL(file.timeLastModified.stdTime);
+			}
+			return md5Digest(io.bytes);
+		}
 		string dStr = .text(__LINE__);
 		try {
 			if (_quit) return;
@@ -324,50 +336,80 @@ private:
 			string parent = _prop.backupPath;
 
 			// 既存のバックアップファイルのリスト
-			auto reg = .regex("^cwxeditor_backup_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]\\[.+\\]\\.zip$"d);
+			auto dReg = .regex("^cwxeditor_backup_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]\\[.+\\]$"d);
+			auto fReg = .regex("^cwxeditor_backup_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]\\[.+\\]\\.zip$"d);
 			auto files = clistdir(parent);
-			string[] backup;
-			foreach (f; files) {
-				if (match(to!dstring(f), reg).empty) continue;
-				backup ~= f;
+			alias Tuple!(string, "name", string, "file", bool, "isDir") Info;
+			Info[] backup;
+			foreach (name; files) {
+				auto f = parent.buildPath(name);
+				if (f.isFile) {
+					if (match(to!dstring(name), fReg).empty) continue;
+					backup ~= Info(name, f, false);
+				} else {
+					if (match(to!dstring(name), dReg).empty) continue;
+					backup ~= Info(name, f, true);
+				}
 			}
 			// 日時でソート。実際の更新日時よりファイル名に記述された日付を優先する
-			backup = backup.sort;
+			auto sorter = (Info a, Info b) => .fncmp(a.name, b.name);
+			backup = cwx.utils.sort!(sorter)(backup);
 
 			auto bc = _prop.var.etc.backupCount;
 			if (0 < bc) {
 				string sPath = summ.scenarioPath;
 				auto d = Clock.currTime();
-				string file = .format("cwxeditor_backup_%04d%02d%02d%02d%02d%02d[%s].zip",
+				string name = .format("cwxeditor_backup_%04d%02d%02d%02d%02d%02d[%s]",
 					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.baseName());
-				string zFile = std.path.buildPath(parent, file);
-				void[] data;
-				synchronized (_saveSync) {
-					data = summ.createZipData([], true);
+				if (_prop.var.etc.backupArchived) {
+					name ~= ".zip";
 				}
-				if (_oldMD5 == "" && !backup.length) {
-					auto lastData = readBinary(parent.buildPath(backup[$ - 1]));
-					_oldMD5 = md5Digest(lastData);
-					delete lastData;
+				string writePath = std.path.buildPath(parent, name);
+
+				if (_oldMD5 == "" && backup.length) {
+					auto before = backup[$ - 1];
+					if (before.isDir) {
+						_oldMD5 = filesMD5(before.file);
+					} else {
+						auto lastData = readBinary(before.file);
+						_oldMD5 = md5Digest(lastData);
+						delete lastData;
+					}
 				}
-				auto md5 = md5Digest(data);
-				if (_oldMD5 != md5) {
-					// 前回のバックアップと異なっていれば保存
-					if (!parent.exists()) mkdirRecurse(parent);
-					std.file.write(zFile, data);
-					_oldMD5 = md5;
-					bc--;
+				if (_prop.var.etc.backupArchived) {
+					void[] data;
+					synchronized (_saveSync) {
+						data = summ.createZipData([], true);
+					}
+					auto md5 = md5Digest(data);
+					if (_oldMD5 != md5) {
+						// 前回のバックアップと異なっていれば保存
+						if (!parent.exists()) mkdirRecurse(parent);
+						std.file.write(writePath, data);
+						_oldMD5 = md5;
+						bc--;
+					}
+					delete data;
+				} else {
+					auto md5 = filesMD5(summ.scenarioPath);
+					if (_oldMD5 != md5) {
+						// 前回のバックアップと異なっていればコピー
+						if (!parent.exists()) mkdirRecurse(parent);
+						synchronized (_saveSync) {
+							copyAll(summ.scenarioPath, writePath);
+						}
+						_oldMD5 = md5;
+						bc--;
+					}
 				}
-				delete data;
 			}
 
 			if (backup.length <= bc) return;
 
 			// 古いバックアップを削除する
 			foreach (f; backup[0 .. backup.length - bc]) {
-				f = std.path.buildPath(parent, f);
 				try {
-					std.file.remove(f);
+					delAll(f.file);
 				} catch (Exception e) {
 					debugln(e);
 				}

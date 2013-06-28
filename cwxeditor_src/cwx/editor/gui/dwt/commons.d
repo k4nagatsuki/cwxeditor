@@ -1064,7 +1064,7 @@ class Commons {
 		}
 		if (refMain && _main.dock) {
 			auto fc = Display.getCurrent().getFocusControl();
-			if (fc) {
+			if (fc && fc.isVisible()) {
 				auto data2 = tlp(fc);
 				if (!data2 || data2 is data) {
 					_main.statusLine = status;

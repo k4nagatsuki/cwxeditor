@@ -281,6 +281,7 @@ class FlexEtcProps : Properties {
 	auto backupBeforeSaveEnabled = Prop!(bool)("backupBeforeSaveEnabled", true);
 	auto backupBeforeSavePath = Prop!(string)("backupBeforeSavePath", "backup");
 	auto backupBeforeSaveDir = Prop!(string, true)("backupBeforeSaveDir", "files");
+	auto backupArchived = Prop!(bool)("backupArchived", true);
 	auto ignoreMenuSashL = Prop!(int)("ignoreMenuSashL", 2);
 	auto ignoreMenuSashR = Prop!(int)("ignoreMenuSashR", 1);
 

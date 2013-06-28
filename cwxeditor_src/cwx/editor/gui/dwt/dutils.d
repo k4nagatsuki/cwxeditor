@@ -560,6 +560,7 @@ public:
 			if (_tee !is null && !_tee.isExit) _tee.enter();
 			auto sel = itm;
 			if (canEdit is null || canEdit(sel, editC)) {
+				table.showSelection();
 				_tee = new EditEnd(_comm, table, createEditor(sel, editC), &endImpl);
 				editor.setEditor(_tee.editor, sel, editC);
 				_tee.setFocus();
@@ -792,6 +793,7 @@ private:
 			auto sel = cast(TreeItem) itm;
 			auto c = createEditor(sel);
 			if (c) {
+				tree.showSelection();
 				_tee = new EditEnd(_comm, tree, c, &end);
 				editor.setEditor(_tee.editor, sel);
 				_tee.setFocus();
@@ -886,6 +888,7 @@ private:
 		_editor = _createEditor(sel);
 		if (_editor) {
 			_edit = itm;
+			_list.scroll(_list.indexOf(sel));
 			_tee = new EditEnd(_comm, _list, _editor, &end);
 			layout();
 			_tee.setFocus();
