@@ -1583,6 +1583,7 @@ class PreviewValues : Composite {
 	private bool _isMessage;
 	private const(SPChar)[] _targetChars;
 	private Table _values;
+	private int[SPChar] _indexTable;
 	private UndoManager _undo;
 	private bool _changedText = false;
 
@@ -1622,13 +1623,13 @@ class PreviewValues : Composite {
 			_comm.refUndoMax.remove(&refUndoMax);
 			_comm.refFlagAndStep.remove(&refFlagAndStep);
 			_comm.delFlagAndStep.remove(&refFlagAndStep);
-			_prop.var.etc.messageVarSelected = _values.getItem(SPChar.M).getText(1);
-			_prop.var.etc.messageVarUnselected = _values.getItem(SPChar.U).getText(1);
-			_prop.var.etc.messageVarRandom = _values.getItem(SPChar.R).getText(1);
-			_prop.var.etc.messageVarCard = _values.getItem(SPChar.C).getText(1);
-			_prop.var.etc.messageVarRef = _values.getItem(SPChar.I).getText(1);
-			_prop.var.etc.messageVarTeam = _values.getItem(SPChar.T).getText(1);
-			_prop.var.etc.messageVarYado = _values.getItem(SPChar.Y).getText(1);
+			if (SPChar.M in _indexTable) _prop.var.etc.messageVarSelected = _values.getItem(_indexTable[SPChar.M]).getText(1);
+			if (SPChar.U in _indexTable) _prop.var.etc.messageVarUnselected = _values.getItem(_indexTable[SPChar.U]).getText(1);
+			if (SPChar.R in _indexTable) _prop.var.etc.messageVarRandom = _values.getItem(_indexTable[SPChar.R]).getText(1);
+			if (SPChar.C in _indexTable) _prop.var.etc.messageVarCard = _values.getItem(_indexTable[SPChar.C]).getText(1);
+			if (SPChar.I in _indexTable) _prop.var.etc.messageVarRef = _values.getItem(_indexTable[SPChar.I]).getText(1);
+			if (SPChar.T in _indexTable) _prop.var.etc.messageVarTeam = _values.getItem(_indexTable[SPChar.T]).getText(1);
+			if (SPChar.Y in _indexTable) _prop.var.etc.messageVarYado = _values.getItem(_indexTable[SPChar.Y]).getText(1);
 			if (_isMessage) {
 				_prop.var.etc.messageVarKindColumn = _values.getColumn(0).getWidth();
 				_prop.var.etc.messageVarValueColumn = _values.getColumn(1).getWidth();
@@ -1795,7 +1796,7 @@ class PreviewValues : Composite {
 		size_t i = 0;
 		foreach (c; _targetChars) {
 			if (i in set) {
-				auto itm = _values.getItem(i);
+				auto itm = _values.getItem(_indexTable[cast(SPChar)c]);
 				final switch (cast(SPChar)c) {
 				case SPChar.M:
 					itm.setText(1, _prop.var.etc.messageVarSelected.INIT);
@@ -1854,7 +1855,7 @@ class PreviewValues : Composite {
 		size_t i = 0;
 		foreach (c; _targetChars) {
 			if (i in set) {
-				auto itm = _values.getItem(i);
+				auto itm = _values.getItem(_indexTable[cast(SPChar)c]);
 				final switch (cast(SPChar)c) {
 				case SPChar.M:
 					if (itm.getText(1) != _prop.var.etc.messageVarSelected.INIT) return false;
@@ -2018,6 +2019,7 @@ class PreviewValues : Composite {
 		}
 
 		foreach (i; _targetChars) {
+			_indexTable[cast(SPChar)i] = _values.getItemCount();
 			auto itm = new TableItem(_values, SWT.NONE);
 			final switch (cast(SPChar)i) {
 			case SPChar.M:
@@ -2067,7 +2069,7 @@ class PreviewValues : Composite {
 
 	void getValues(out string[char] names, out string[string] flags, out string[string] steps) {
 		foreach (i; _targetChars) {
-			names[C_TBL[cast(SPChar) i]] = _values.getItem(i).getText(1);
+			names[C_TBL[cast(SPChar)i]] = _values.getItem(_indexTable[cast(SPChar)i]).getText(1);
 		}
 		foreach (i; _targetChars.length .. _values.getItemCount()) {
 			auto itm = _values.getItem(i);
@@ -2081,7 +2083,7 @@ class PreviewValues : Composite {
 	}
 	private void getValues2(out string[char] names, out bool[string] flags, out int[string] steps) {
 		foreach (i; _targetChars) {
-			names[C_TBL[cast(SPChar) i]] = _values.getItem(i).getText(1);
+			names[C_TBL[cast(SPChar)i]] = _values.getItem(_indexTable[cast(SPChar)i]).getText(1);
 		}
 		foreach (i; _targetChars.length .. _values.getItemCount()) {
 			auto itm = _values.getItem(i);
@@ -2097,7 +2099,7 @@ class PreviewValues : Composite {
 	}
 	private void setValues2(in string[char] names, in bool[string] flags, in int[string] steps) {
 		foreach (i; _targetChars) {
-			_values.getItem(i).setText(1, names[C_TBL[cast(SPChar) i]]);
+			_values.getItem(_indexTable[cast(SPChar)i]).setText(1, names[C_TBL[cast(SPChar)i]]);
 		}
 		foreach (i; _targetChars.length .. _values.getItemCount()) {
 			auto itm = _values.getItem(i);
