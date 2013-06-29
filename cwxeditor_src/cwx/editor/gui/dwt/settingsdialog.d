@@ -2214,157 +2214,150 @@ private:
 		_tabE.setControl(comp);
 		comp.setLayout(new GridLayout(2, false));
 		{
-			auto comp2 = new Composite(comp, SWT.NONE);
-			comp2.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-			comp2.setLayout(zeroMarginGridLayout(1, false));
-			{
-				auto grp = new Group(comp2, SWT.NONE);
-				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				grp.setText(_prop.msgs.etcSettingsTitle);
-				grp.setLayout(new GridLayout(5, false));
+			auto grp = new Group(comp, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+			grp.setText(_prop.msgs.etcSettingsTitle);
+			grp.setLayout(new GridLayout(5, false));
 
-				auto boolTable = new Table(grp, SWT.BORDER | SWT.FULL_SELECTION | SWT.CHECK);
-				new FullTableColumn(boolTable, SWT.NONE);
-				boolTable.addSelectionListener(new SelBoolTable);
-				auto tgd = new GridData(GridData.FILL_BOTH);
-				tgd.horizontalSpan = 5;
-				tgd.heightHint = 0;
-				boolTable.setLayoutData(tgd);
-				TableItem createB(string text) {
-					auto itm = new TableItem(boolTable, SWT.NONE);
-					itm.setText(text);
-					return itm;
-				}
-				if (!_comm.singleWindowMode(_prop)) {
-					_singleWindow = createB(_prop.msgs.singleWindow);
-				}
-				_clickIsOpenEvent = createB(_prop.msgs.clickIsOpenEvent);
-				_smoothingCard = createB(_prop.msgs.smoothingCard);
-				_showImagePreview = createB(_prop.msgs.showImagePreview);
-				_editTriggerTypeIsQuick = createB(_prop.msgs.editTriggerTypeIsQuick);
-				_classicStyleTree = createB(_prop.msgs.classicStyleTree);
-				_adjustContentName = createB(_prop.msgs.adjustContentName);
-				_radarStyleParams = createB(_prop.msgs.radarStyleParams);
-				_showEventTreeMark = createB(_prop.msgs.showEventTreeMark);
-				_showCardListHeader = createB(_prop.msgs.showCardListHeader);
-				_showCardListTitle = createB(_prop.msgs.showCardListTitle);
-				_showSkillCardLevel = createB(_prop.msgs.showSkillCardLevel);
-				_ignoreEmptyStart = createB(_prop.msgs.ignoreEmptyStart);
-				_expandXMLs = createB(_prop.msgs.expandXMLs);
-				_contentsFloat = createB(_prop.msgs.contentsFloat);
-				_contentsAutoHide = createB(_prop.msgs.contentsAutoHide);
-				_comboListVisible = createB(_prop.msgs.comboListVisible);
-				_xmlCopy = createB(_prop.msgs.xmlCopy);
-				_showSpNature = createB(_prop.msgs.showSpNature);
-				_saveInnerImagePath = createB(_prop.msgs.saveInnerImagePath);
-				_linkCard = createB(_prop.msgs.linkCard);
-				_traceDirectories = createB(_prop.msgs.traceDirectories);
-				_logicalSort = createB(_prop.msgs.logicalSort);
-				_copyDesc = createB(_prop.msgs.copyDesc);
-				_refCardsAtEditBgImage = createB(_prop.msgs.refCardsAtEditBgImage);
-				_floatMessagePreview = createB(_prop.msgs.floatMessagePreview);
-				_addNewClassicEngine = createB(_prop.msgs.addNewClassicEngine);
-				_doubleIO = createB(_prop.msgs.doubleIO);
-				_switchTabWheel = createB(_prop.msgs.switchTabWheel);
-				_closeTabWithMiddleClick = createB(_prop.msgs.closeTabWithMiddleClick);
-				_openTabAtRightOfCurrentTab = createB(_prop.msgs.openTabAtRightOfCurrentTab);
-				_reconstruction = createB(_prop.msgs.reconstruction);
-				_openLastScenario = createB(_prop.msgs.openLastScenario);
-				_showVariableValuesInEventText = createB(_prop.msgs.showVariableValuesInEventText);
-				_cautionBeforeReplace = createB(_prop.msgs.cautionBeforeReplace);
-				_applyDialogsBeforeSave = createB(_prop.msgs.applyDialogsBeforeSave);
-				_useNamesAfterStandard = createB(_prop.msgs.useNamesAfterStandard);
-				_selectVariableWithTree = createB(_prop.msgs.selectVariableWithTree);
-
-				auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
-				auto sepgd = new GridData(GridData.FILL_HORIZONTAL);
-				sepgd.horizontalSpan = 5;
-				sep.setLayoutData(sepgd);
-
-				immutable string[] targetVersionVals = [
-					"CardWirthPy",
-					"1.50",
-					"1.30",
-					"1.29",
-					"1.28",
-				];
-				immutable string[] targetVersionNames = [
-					_prop.msgs.cardWirthPy,
-					.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[1]),
-					.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[2]),
-					.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[3]),
-					.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[4]),
-				];
-				_targetVersion = createEnumC(grp, _prop.msgs.targetVersion, targetVersionVals, targetVersionNames, _targetVersionTbl, _targetVersionTbl2, 4);
-
-				version (Windows) {
-					immutable int[] soundPlayTypeVals = [
-						SOUND_TYPE_AUTO,
-						SOUND_TYPE_SDL,
-						SOUND_TYPE_MCI,
-						SOUND_TYPE_APP
-					];
-					immutable string[] soundPlayTypeNames = [
-						_prop.msgs.soundPlayTypeDef,
-						_prop.msgs.soundPlayTypeSDL,
-						_prop.msgs.soundPlayTypeMCI,
-						_prop.msgs.soundPlayTypeApp
-					];
-				} else {
-					immutable int[] soundPlayTypeVals = [
-						SOUND_TYPE_AUTO,
-						SOUND_TYPE_SDL,
-						SOUND_TYPE_APP
-					];
-					immutable string[] soundPlayTypeNames = [
-						_prop.msgs.soundPlayTypeDef,
-						_prop.msgs.soundPlayTypeSDL,
-						_prop.msgs.soundPlayTypeApp
-					];
-				}
-				Spinner createVolume() {
-					auto l1 = new Label(grp, SWT.CENTER);
-					l1.setText(_prop.msgs.soundVolume);
-					auto spn = new Spinner(grp, SWT.BORDER);
-					spn.setMinimum(0);
-					spn.setMaximum(100);
-					mod(spn);
-					auto l2 = new Label(grp, SWT.CENTER);
-					l2.setText(_prop.msgs.soundVolumePer);
-					return spn;
-				}
-				_soundPlayType = createEnumC(grp, _prop.msgs.soundPlayType, soundPlayTypeVals, soundPlayTypeNames, _soundPlayTypeTbl, _soundPlayTypeTbl2);
-				_bgmVolume = createVolume();
-				string sameBGM = _prop.msgs.soundPlaySameBGM;
-				_soundEffectPlayType = createEnumC(grp, _prop.msgs.soundEffectPlayType, [SOUND_TYPE_SAME_BGM] ~ soundPlayTypeVals, sameBGM ~ soundPlayTypeNames, _soundEffectPlayTypeTbl, _soundEffectPlayTypeTbl2);
-				_seVolume = createVolume();
-				auto dummy = new Composite(grp, SWT.NONE);
-				auto dgd = new GridData(GridData.FILL_HORIZONTAL);
-				dgd.widthHint = 0;
-				dgd.heightHint = 0;
-				dummy.setLayoutData(dgd);
-				auto volc = new Label(grp, SWT.NONE);
-				volc.setText(_prop.msgs.soundCaution);
-				auto volcgd = new GridData(GridData.FILL_HORIZONTAL);
-				volcgd.horizontalSpan = 4;
-				volc.setLayoutData(volcgd);
-
-				_dialogStatus = createEnumC(grp, _prop.msgs.dialogStatus, [
-					cast(int) DialogStatus.Top,
-					cast(int) DialogStatus.Under,
-					cast(int) DialogStatus.UnderWithCoupon,
-				], [
-					_prop.msgs.dialogStatusName(DialogStatus.Top),
-					_prop.msgs.dialogStatusName(DialogStatus.Under),
-					_prop.msgs.dialogStatusName(DialogStatus.UnderWithCoupon),
-				], _dialogStatusTbl, _dialogStatusTbl2, 4);
+			auto boolTable = new Table(grp, SWT.BORDER | SWT.FULL_SELECTION | SWT.CHECK);
+			new FullTableColumn(boolTable, SWT.NONE);
+			boolTable.addSelectionListener(new SelBoolTable);
+			auto tgd = new GridData(GridData.FILL_BOTH);
+			tgd.horizontalSpan = 5;
+			tgd.heightHint = 0;
+			boolTable.setLayoutData(tgd);
+			TableItem createB(string text) {
+				auto itm = new TableItem(boolTable, SWT.NONE);
+				itm.setText(text);
+				return itm;
 			}
+			if (!_comm.singleWindowMode(_prop)) {
+				_singleWindow = createB(_prop.msgs.singleWindow);
+			}
+			_clickIsOpenEvent = createB(_prop.msgs.clickIsOpenEvent);
+			_smoothingCard = createB(_prop.msgs.smoothingCard);
+			_showImagePreview = createB(_prop.msgs.showImagePreview);
+			_editTriggerTypeIsQuick = createB(_prop.msgs.editTriggerTypeIsQuick);
+			_classicStyleTree = createB(_prop.msgs.classicStyleTree);
+			_adjustContentName = createB(_prop.msgs.adjustContentName);
+			_radarStyleParams = createB(_prop.msgs.radarStyleParams);
+			_showEventTreeMark = createB(_prop.msgs.showEventTreeMark);
+			_showCardListHeader = createB(_prop.msgs.showCardListHeader);
+			_showCardListTitle = createB(_prop.msgs.showCardListTitle);
+			_showSkillCardLevel = createB(_prop.msgs.showSkillCardLevel);
+			_ignoreEmptyStart = createB(_prop.msgs.ignoreEmptyStart);
+			_expandXMLs = createB(_prop.msgs.expandXMLs);
+			_contentsFloat = createB(_prop.msgs.contentsFloat);
+			_contentsAutoHide = createB(_prop.msgs.contentsAutoHide);
+			_comboListVisible = createB(_prop.msgs.comboListVisible);
+			_xmlCopy = createB(_prop.msgs.xmlCopy);
+			_showSpNature = createB(_prop.msgs.showSpNature);
+			_saveInnerImagePath = createB(_prop.msgs.saveInnerImagePath);
+			_linkCard = createB(_prop.msgs.linkCard);
+			_traceDirectories = createB(_prop.msgs.traceDirectories);
+			_logicalSort = createB(_prop.msgs.logicalSort);
+			_copyDesc = createB(_prop.msgs.copyDesc);
+			_refCardsAtEditBgImage = createB(_prop.msgs.refCardsAtEditBgImage);
+			_floatMessagePreview = createB(_prop.msgs.floatMessagePreview);
+			_addNewClassicEngine = createB(_prop.msgs.addNewClassicEngine);
+			_doubleIO = createB(_prop.msgs.doubleIO);
+			_switchTabWheel = createB(_prop.msgs.switchTabWheel);
+			_closeTabWithMiddleClick = createB(_prop.msgs.closeTabWithMiddleClick);
+			_openTabAtRightOfCurrentTab = createB(_prop.msgs.openTabAtRightOfCurrentTab);
+			_reconstruction = createB(_prop.msgs.reconstruction);
+			_openLastScenario = createB(_prop.msgs.openLastScenario);
+			_showVariableValuesInEventText = createB(_prop.msgs.showVariableValuesInEventText);
+			_cautionBeforeReplace = createB(_prop.msgs.cautionBeforeReplace);
+			_applyDialogsBeforeSave = createB(_prop.msgs.applyDialogsBeforeSave);
+			_useNamesAfterStandard = createB(_prop.msgs.useNamesAfterStandard);
+			_selectVariableWithTree = createB(_prop.msgs.selectVariableWithTree);
+
+			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
+			auto sepgd = new GridData(GridData.FILL_HORIZONTAL);
+			sepgd.horizontalSpan = 5;
+			sep.setLayoutData(sepgd);
+
+			immutable string[] targetVersionVals = [
+				"CardWirthPy",
+				"1.50",
+				"1.30",
+				"1.29",
+				"1.28",
+			];
+			immutable string[] targetVersionNames = [
+				_prop.msgs.cardWirthPy,
+				.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[1]),
+				.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[2]),
+				.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[3]),
+				.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[4]),
+			];
+			_targetVersion = createEnumC(grp, _prop.msgs.targetVersion, targetVersionVals, targetVersionNames, _targetVersionTbl, _targetVersionTbl2, 4);
+
+			version (Windows) {
+				immutable int[] soundPlayTypeVals = [
+					SOUND_TYPE_AUTO,
+					SOUND_TYPE_SDL,
+					SOUND_TYPE_MCI,
+					SOUND_TYPE_APP
+				];
+				immutable string[] soundPlayTypeNames = [
+					_prop.msgs.soundPlayTypeDef,
+					_prop.msgs.soundPlayTypeSDL,
+					_prop.msgs.soundPlayTypeMCI,
+					_prop.msgs.soundPlayTypeApp
+				];
+			} else {
+				immutable int[] soundPlayTypeVals = [
+					SOUND_TYPE_AUTO,
+					SOUND_TYPE_SDL,
+					SOUND_TYPE_APP
+				];
+				immutable string[] soundPlayTypeNames = [
+					_prop.msgs.soundPlayTypeDef,
+					_prop.msgs.soundPlayTypeSDL,
+					_prop.msgs.soundPlayTypeApp
+				];
+			}
+			Spinner createVolume() {
+				auto l1 = new Label(grp, SWT.CENTER);
+				l1.setText(_prop.msgs.soundVolume);
+				auto spn = new Spinner(grp, SWT.BORDER);
+				spn.setMinimum(0);
+				spn.setMaximum(100);
+				mod(spn);
+				auto l2 = new Label(grp, SWT.CENTER);
+				l2.setText(_prop.msgs.soundVolumePer);
+				return spn;
+			}
+			_soundPlayType = createEnumC(grp, _prop.msgs.soundPlayType, soundPlayTypeVals, soundPlayTypeNames, _soundPlayTypeTbl, _soundPlayTypeTbl2);
+			_bgmVolume = createVolume();
+			string sameBGM = _prop.msgs.soundPlaySameBGM;
+			_soundEffectPlayType = createEnumC(grp, _prop.msgs.soundEffectPlayType, [SOUND_TYPE_SAME_BGM] ~ soundPlayTypeVals, sameBGM ~ soundPlayTypeNames, _soundEffectPlayTypeTbl, _soundEffectPlayTypeTbl2);
+			_seVolume = createVolume();
+			auto dummy = new Composite(grp, SWT.NONE);
+			auto dgd = new GridData(GridData.FILL_HORIZONTAL);
+			dgd.widthHint = 0;
+			dgd.heightHint = 0;
+			dummy.setLayoutData(dgd);
+			auto volc = new Label(grp, SWT.NONE);
+			volc.setText(_prop.msgs.soundCaution);
+			auto volcgd = new GridData(GridData.FILL_HORIZONTAL);
+			volcgd.horizontalSpan = 4;
+			volc.setLayoutData(volcgd);
+
+			_dialogStatus = createEnumC(grp, _prop.msgs.dialogStatus, [
+				cast(int) DialogStatus.Top,
+				cast(int) DialogStatus.Under,
+				cast(int) DialogStatus.UnderWithCoupon,
+			], [
+				_prop.msgs.dialogStatusName(DialogStatus.Top),
+				_prop.msgs.dialogStatusName(DialogStatus.Under),
+				_prop.msgs.dialogStatusName(DialogStatus.UnderWithCoupon),
+			], _dialogStatusTbl, _dialogStatusTbl2, 4);
 		}
 		{
 			auto sash = new SplitPane(comp, SWT.VERTICAL);
-			auto sgd = new GridData(GridData.FILL_BOTH);
-			sgd.verticalSpan = 3;
-			sash.setLayoutData(sgd);
+			sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 			{
 				auto grp = new Group(sash, SWT.NONE);
 				grp.setText(_prop.msgs.keyBind);
