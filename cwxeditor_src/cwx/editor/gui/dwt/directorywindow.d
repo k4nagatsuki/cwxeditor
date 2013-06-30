@@ -495,7 +495,7 @@ private:
 			return _prop.images.cards;
 		} else if (skin.isBgImage(file)) {
 			return _prop.images.backs;
-		} else if (skin.isBGM(file)) {
+		} else if (skin.isBGM(file) && !.cfnmatch(file.extension(), ".wav")) {
 			return _prop.images.bgm;
 		} else if (skin.isSE(file)) {
 			return _prop.images.se;

@@ -167,11 +167,15 @@ public:
 			}
 			bool doFile(string path, int x, int y) {
 				assert (_summ !is null);
-				copyTo(_summ.scenarioPath, path, _comm.skin.materialPath, false);
+				auto cur = currentDir;
+				if (!cur) cur = _comm.skin.materialPath;
+				copyTo(_summ.scenarioPath, path, cur, false);
 				return true;
 			}
 			void doExit() {
 				assert (_summ !is null);
+				auto cur = currentDir;
+				if (!cur) cur = _comm.skin.materialPath;
 				refreshPaths(_comm.skin.materialPath);
 				_comm.refPaths.call(this.outer, _comm.skin.materialPath);
 			}
