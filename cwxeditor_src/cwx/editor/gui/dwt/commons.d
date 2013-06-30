@@ -1039,7 +1039,7 @@ class Commons {
 		if (data) {
 			data.tlp.statusLine = status;
 		}
-		if (refMain && _main.dock) {
+		if (base && base.isVisible() && refMain && _main.dock) {
 			auto fc = Display.getCurrent().getFocusControl();
 			if (fc && fc.isVisible()) {
 				auto data2 = tlp(fc);
