@@ -563,6 +563,7 @@ private:
 						if (insertTo) {
 							auto ic = cast(Content) insertTo.getData();
 							_comm.delContent.call(ic);
+							ic.parent.remove(ic);
 							if (_prop.var.etc.adjustContentName) {
 								ic.setName(_prop.parent, "");
 							}
