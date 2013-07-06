@@ -439,6 +439,11 @@ public:
 	/// See_Also: append(), setTitle(), transparent()
 	void createImage() {
 		auto cur = Display.getCurrent();
+		if (_imgData) {
+			delete _imgData.data;
+			delete _imgData.alphaData;
+			delete _imgData.maskData;
+		}
 		if (_img) _img.dispose();
 		_imgData = createImageData();
 		_img = _imgData ? new Image(cur, _imgData) : null;
@@ -466,6 +471,8 @@ public:
 	private ImageData createImageDataImpl() {
 		auto cur = Display.getCurrent();
 
+		auto dataSet = new HashSet!ImageData;
+		if (_baseSizeData) dataSet.add(_baseSizeData);
 		ImageData getMat() {
 			ImageData matImgData;
 			if (this.data) {
@@ -473,7 +480,11 @@ public:
 			} else {
 				if (isBinImg(path) || (path !is null && .exists(path))) {
 					matImgData = loadImage(path, false);
-					matImgData = matImgData.scaledTo(initW, initH);
+					dataSet.add(matImgData);
+					if (matImgData.width != initW || matImgData.height != initH) {
+						matImgData = matImgData.scaledTo(initW, initH);
+						dataSet.add(matImgData);
+					}
 				} else {
 					// ファイルが無い場合は単に表示しない。
 					matImgData = blankImage(initW, initH);
@@ -496,6 +507,7 @@ public:
 			scope (exit) img2.dispose();
 			dc.drawImage(img2, 0, 0);
 			matImgData = img.getImageData();
+			dataSet.add(matImgData);
 			if (mat.depth == 32) noTransparent = true;
 		}
 		if (!appends.length && !_title && !this.data && transparent) {
@@ -526,6 +538,7 @@ public:
 								imgData = a.data;
 							} else {
 								imgData = loadImage(a.path, a.transparent, a.maskX, a.maskY);
+								dataSet.add(imgData);
 							}
 							if (a.alpha != 0xFF) dc.setAlpha(a.alpha);
 							scope (exit) {
@@ -617,17 +630,20 @@ public:
 				dc.setFont(null);
 			}
 			bmpData = bmp.getImageData();
-			_baseSizeData = bmp.getImageData();
+			dataSet.add(bmpData);
+			_baseSizeData = bmpData;
 		} else {
 			bmpData = matImgData;
 			_baseSizeData = matImgData;
 		}
+		dataSet.add(bmpData);
 
 		if (transparent && !noTransparent) {
 			bmpData.transparentPixel = bmpData.getPixel(0, 0);
 			_baseSizeData.transparentPixel = _baseSizeData.getPixel(0, 0);
 		}
 		if (bmpData.width != width || bmpData.height != height) {
+			dataSet.add(bmpData);
 			if (smoothing) {
 				auto data = cast(ubyte[]) bmpData.data;
 				auto alpha = cast(ubyte[]) bmpData.alphaData;
@@ -640,6 +656,14 @@ public:
 				bmpData.bytesPerLine = bpl;
 			} else {
 				bmpData = bmpData.scaledTo(width, height);
+			}
+			dataSet.add(bmpData);
+		}
+		foreach (d; dataSet) {
+			if (_baseSizeData !is d && bmpData !is d && this.data !is d) {
+				delete d.data;
+				delete d.alphaData;
+				delete d.maskData;
 			}
 		}
 		return bmpData;
@@ -1275,6 +1299,17 @@ public:
 
 	/// 全てのリソースを解放する。
 	void dispose() {
+		void del(ImageData data) {
+			delete data.data;
+			delete data.alphaData;
+			delete data.maskData;
+		}
+		foreach (a; appends) {
+			if (a.data) del(a.data);
+		}
+		if (_imgData) del(_imgData);
+		if (_baseSizeData) del(_baseSizeData);
+		if (data) del(data);
 		if (_img) _img.dispose();
 	}
 }
@@ -1421,6 +1456,7 @@ public:
 	/// 配置後、createImage()が実行される。
 	/// See_Also: createImage();
 	void resize(bool callListeners = true) {
+		bool resize = bounds.width != newR.width || bounds.height != newR.height;
 		bounds = newR;
 		if (callListeners) {
 			foreach (l; l_resizes) {
@@ -1430,7 +1466,7 @@ public:
 				l(this, x, y, cast(real) width / initW);
 			}
 		}
-		createImage();
+		if (!_img || resize) createImage();
 		retoggle();
 	}
 	/// サイズと移動の仮設定を最初の状態に戻す。
@@ -2245,6 +2281,7 @@ private:
 			}
 
 			auto imageData = cast(ImageData)_background.clone();
+			scope (exit) delete imageData.data;
 			auto range = new Rectangle(e.x, e.y, e.width, e.height);
 			auto buf = new Image(d, imageData);
 			auto gc = new GC(buf);

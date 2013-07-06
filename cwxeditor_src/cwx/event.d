@@ -1223,8 +1223,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				mixin ("@property const const(T2) " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
 			}
 		} else {
-			mixin ("@property T2 " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
-			mixin ("@property const const(T2) " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
+			static if (__VERSION__ <= 2060 && isVArray!T2) {
+				mixin ("@property " ~ ElementType!T.stringof ~ "[] " ~ Name ~ "() const {return cast(T2)_" ~ Name ~ Get ~ ";}");
+			} else {
+				mixin ("@property T2 " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
+				mixin ("@property const const(T2) " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
+			}
 		}
 	}
 	private template Prop(T, string Name, T Def) {

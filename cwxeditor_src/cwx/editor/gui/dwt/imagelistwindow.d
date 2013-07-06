@@ -213,7 +213,9 @@ class ImageList : Composite {
 						real hr = cast(real) _imgH / imgData.height;
 						iw = cast(int) (imgData.width * min(wr, hr));
 						ih = cast(int) (imgData.height * min(wr, hr));
+						auto data2 = imgData;
 						imgData = imgData.scaledTo(iw, ih);
+						delete data2.data;
 					} else {
 						iw = imgData.width;
 						ih = imgData.height;

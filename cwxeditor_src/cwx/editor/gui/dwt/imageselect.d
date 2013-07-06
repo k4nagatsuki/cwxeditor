@@ -107,6 +107,9 @@ public:
 				_image = new Canvas(comp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
 				_image.setLayoutData(_image.computeSize(w, h));
 				_image.addPaintListener(new PListener);
+				.listener(_image, SWT.Dispose, {
+					if (_img) delete _img.data;
+				});
 			}
 			if (defs) {
 				_msel = new MaterialSelect!(Type, Combo, C)
@@ -407,7 +410,6 @@ private:
 		}
 	}
 	class PListener : PaintListener {
-		private ImageData _img = null;
 		public override void paintControl(PaintEvent e) {
 			static if (is(typeof(_msel.pcNumber))) {
 				auto pcNum = _msel.pcNumber;
@@ -425,6 +427,7 @@ private:
 				} else {
 					_paintedPath = path;
 					imgData = loadImage(_comm.skin, path, _mask);
+					if (_img) delete _img.data;
 					_img = imgData;
 				}
 			} else if (_createDefImage && dirsi < _defs.length) {
@@ -512,6 +515,7 @@ private:
 	bool _mask = true;
 	void delegate() _refresh;
 	int _oldDirSel = -1;
+	private ImageData _img = null;
 	static if (Type is MtType.CARD) {
 		Button _noCardSize;
 		CardMode _cardMode = CardMode.Normal;

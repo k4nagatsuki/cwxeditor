@@ -28,7 +28,6 @@ import std.exception;
 import std.traits;
 import std.stdint;
 import std.stream;
-import std.digest.md;
 
 debug {
 	version (Console) {
@@ -673,7 +672,13 @@ alias std.file.read readBinary;
 
 /// データのMD5ダイジェストを取得する。
 string md5Digest(in void[] data) {
-	return .toHexString(.md5Of(data)).idup;
+	static if (__VERSION__ >= 2061) {
+		import std.digest.md;
+		return toHexString(md5Of(data)).idup;
+	} else {
+		import std.md5;
+		return getDigestString([data]);
+	}
 }
 /// ファイルのMD5ダイジェストを取得する。
 string fileToMD5Digest(string file) {
