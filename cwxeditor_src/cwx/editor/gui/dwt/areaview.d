@@ -1586,11 +1586,11 @@ private:
 		_flagAllCheck = new Button(comp, SWT.CHECK);
 		_flagAllCheck.setText(_prop.msgs.allCheckFlag);
 		_flagAllCheck.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		.listener(_flagAllCheck, SWT.Selection, {
+		.listener(_flagAllCheck, SWT.Selection, (Event e) {
 			foreach (itm; _flagList.getItems()) {
 				itm.setChecked(_flagAllCheck.getSelection());
 			}
-			checkFlag(null);
+			checkFlag(e);
 		});
 		.listener(_flagList, SWT.Selection, &checkFlag);
 
