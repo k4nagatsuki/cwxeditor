@@ -69,13 +69,8 @@ bool dwtImageSize(Skin skin, string path, out uint width, out uint height) {
 	if (cfnmatch(ext, ".jpy1")
 			|| cfnmatch(ext, ".jptx")
 			|| cfnmatch(ext, ".jpdc")) {
-		auto img = loadJPYImage(skin, path, []);
-		if (img) {
-			width = img.width;
-			height = img.height;
-			return true;
-		}
-		return false;
+		auto img = loadJPYImage(skin, path, [], width, height);
+		return img !is null;
 	}
 	return imageSize(path, width, height);
 }

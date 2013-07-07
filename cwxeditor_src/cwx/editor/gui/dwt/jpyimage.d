@@ -20,18 +20,36 @@ import org.eclipse.swt.all;
 
 /// JPYの動作をエミュレートするが、甚だ不完全。
 ImageData loadJPYImage(Skin skin, string path, string[] stratum) {
+	uint width, height;
+	return loadJPYImage(skin, path, stratum, width, height);
+}
+/// ditto
+ImageData loadJPYImage(Skin skin, string path, string[] stratum, out uint width, out uint height) {
 	auto ext = .extension(path);
 	try {
 		if (cfnmatch(ext, ".jpy1")) {
-			return loadJPYImageImpl(skin, path, stratum);
+			auto img = loadJPYImageImpl(skin, path, stratum);
+			if (img) {
+				width = img.width;
+				height = img.height;
+				return img;
+			}
 		} else if (cfnmatch(ext, ".jptx")) {
-			return loadJPTXImage(path);
+			auto img = loadJPTXImage(path);
+			width = img.width;
+			height = img.height;
+			return img;
 		} else if (cfnmatch(ext, ".jpdc")) {
-			return loadJPDCImage(path);
+			auto img = loadJPDCImage(path);
+			width = img.width;
+			height = img.height;
+			return img;
 		}
 	} catch (Exception e) {
 		debugln(e);
 	}
+	width = 0;
+	height = 0;
 	return blankImage;
 }
 
@@ -40,9 +58,10 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 	if (!jpy.sections.length) return blankImage;
 	auto init = jpy.sections[0];
 	int width = 632, height = 420;
-	if (init.backwidth > 0) width = init.backwidth;
-	if (init.backheight > 0) height = init.backheight;
+	if (init.backwidth >= 0) width = init.backwidth;
+	if (init.backheight >= 0) height = init.backheight;
 	auto d = Display.getCurrent();
+	if (width == 0 || height == 0) return null;
 	auto img = new Image(d, width, height);
 	scope (exit) img.dispose();
 	auto gc = new GC(img);
@@ -50,12 +69,18 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 	path = nabs(path);
 	ImageData[Cache] cache;
 	foreach (i, sec; jpy.sections) {
-		int pw = i == 0 || sec.width <= 0 ? width : sec.width;
-		int ph = i == 0 || sec.height <= 0 ? height : sec.height;
+		int pw = i == 0 || sec.width < 0 ? width : sec.width;
+		int ph = i == 0 || sec.height < 0 ? height : sec.height;
 		ImageData data = null;
 		if (sec.loadcache == Cache.NONE) {
 			auto p = sec.loadcache in cache;
 			data = p ? *p : null;
+			if (!data) {
+				if (sec.savecache != Cache.NONE) {
+					cache[sec.savecache] = null;
+				}
+				continue;
+			}
 		}
 		if (!data && sec.filename.length && !cfnmatch(.extension(sec.filename), ".wav")) {
 			string dir;
@@ -102,6 +127,12 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 		}
 		int dtw = data && data.width > 0 ? data.width : pw;
 		int dth = data && data.height > 0 ? data.height : ph;
+		if (dtw <= 0 || dth <= 0) {
+			if (sec.savecache != Cache.NONE) {
+				cache[sec.savecache] = null;
+			}
+			continue;
+		}
 		auto dimg = new Image(d, dtw, dth);
 		scope (exit) dimg.dispose();
 		auto dgc = new GC(dimg);
