@@ -614,7 +614,7 @@ private:
 	void delegate(FlexImage img, int x, int y, int w, int h)[] l_resizes;
 	void delegate(FlexImage img)[] l_selected;
 
-	int minW = 1, minH = 1;
+	int minW = 0, minH = 0;
 	int maxW = 65536, maxH = 65536;
 	bool s = false;
 	bool whconst = false; // 縦横比を維持するか否か
