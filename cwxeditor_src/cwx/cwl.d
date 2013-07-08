@@ -102,7 +102,9 @@ Summary loadLScenario(string p, string skin, const System sys, in LoadOption opt
 			}
 			foreach (file; this.files) {
 				try {
-					auto f = ByteIO(readBinary(file));
+					auto bytes = readBinary(file);
+					scope (exit) delete bytes;
+					auto f = ByteIO(bytes);
 					auto base = baseName(file);
 					ulong id;
 					if (!d.cardOnly) {
