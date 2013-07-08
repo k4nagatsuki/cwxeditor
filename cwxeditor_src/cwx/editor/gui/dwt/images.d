@@ -440,9 +440,7 @@ public:
 	void createImage() {
 		auto cur = Display.getCurrent();
 		if (_imgData) {
-			delete _imgData.data;
-			delete _imgData.alphaData;
-			delete _imgData.maskData;
+			del(_imgData);
 		}
 		if (_img) _img.dispose();
 		_imgData = createImageData();
@@ -660,10 +658,8 @@ public:
 			dataSet.add(bmpData);
 		}
 		foreach (d; dataSet) {
-			if (_baseSizeData !is d && bmpData !is d && this.data !is d) {
-				delete d.data;
-				delete d.alphaData;
-				delete d.maskData;
+			if (bmpData !is data) {
+				del(d);
 			}
 		}
 		return bmpData;
@@ -1295,6 +1291,14 @@ public:
 	const
 	Rectangle bounds() {
 		return new Rectangle(x, y, width, height);
+	}
+
+	private void del(ImageData data) {
+		if (_baseSizeData !is data && this.data !is data) {
+			delete data.data;
+			delete data.alphaData;
+			delete data.maskData;
+		}
 	}
 
 	/// 全てのリソースを解放する。
