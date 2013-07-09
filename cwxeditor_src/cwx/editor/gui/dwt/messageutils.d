@@ -142,7 +142,7 @@ class AbstractMessageDialog : EventDialog {
 		}
 	}
 	protected bool canHookKeyDown(Control fc) {
-		return !_preview.focusInValues;
+		return !_preview || !_preview.focusInValues;
 	}
 	private int _undoAcc;
 	private int _redoAcc;
