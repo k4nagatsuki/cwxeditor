@@ -1944,6 +1944,7 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 				ByteIO f;
 				writeArea(d, f, a);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			foreach (a; battles) {
@@ -1951,6 +1952,7 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 				ByteIO f;
 				writeBattle(d, f, a);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			foreach (a; packages) {
@@ -1958,6 +1960,7 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 				ByteIO f;
 				writePackage(d, f, a);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			foreach (c; casts) {
@@ -1965,6 +1968,7 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 				ByteIO f;
 				writeCast(d, f, c);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			foreach (c; skills) {
@@ -1972,6 +1976,7 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 				ByteIO f;
 				writeSkill(d, f, c);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			foreach (c; items) {
@@ -1979,6 +1984,7 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 				ByteIO f;
 				writeItem(d, f, c);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			foreach (c; beasts) {
@@ -1986,6 +1992,7 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 				ByteIO f;
 				writeBeast(d, f, c);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			foreach (c; infos) {
@@ -1993,6 +2000,7 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 				ByteIO f;
 				writeInfo(d, f, c);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			version (Console) {

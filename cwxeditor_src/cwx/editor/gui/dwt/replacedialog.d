@@ -373,7 +373,7 @@ private:
 				itm.setText(2, .tryFormat(_prop.msgs.grepScenario, _grepSumm.scenarioName, scPath));
 				itm.setImage(2, _prop.images.summary);
 			}
-			itm.setData(new CWXPathString(scPath, path, path.cwxPath(true)));
+			itm.setData(new CWXPathString(scPath, _grepSumm ? null : path, path.cwxPath(true)));
 			refResultStatus(count, false);
 		}
 	}
