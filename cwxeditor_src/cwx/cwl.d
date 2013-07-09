@@ -93,6 +93,7 @@ Summary loadLScenario(string p, string skin, in LoadOption opt, string newName =
 			foreach (file; this.files) {
 				try {
 					auto f = ByteIO(std.file.read(file));
+					scope (exit) f.dispose();
 					auto base = baseName(file);
 					ulong id;
 					if (!d.cardOnly) {
@@ -1737,6 +1738,7 @@ void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
 				ByteIO f;
 				writeArea(d, f, a);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			foreach (a; battles) {
@@ -1744,6 +1746,7 @@ void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
 				ByteIO f;
 				writeBattle(d, f, a);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			foreach (a; packages) {
@@ -1751,6 +1754,7 @@ void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
 				ByteIO f;
 				writePackage(d, f, a);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			foreach (c; casts) {
@@ -1758,6 +1762,7 @@ void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
 				ByteIO f;
 				writeCast(d, f, c);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			foreach (c; skills) {
@@ -1765,6 +1770,7 @@ void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
 				ByteIO f;
 				writeSkill(d, f, c);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			foreach (c; items) {
@@ -1772,6 +1778,7 @@ void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
 				ByteIO f;
 				writeItem(d, f, c);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			foreach (c; beasts) {
@@ -1779,6 +1786,7 @@ void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
 				ByteIO f;
 				writeBeast(d, f, c);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			foreach (c; infos) {
@@ -1786,6 +1794,7 @@ void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
 				ByteIO f;
 				writeInfo(d, f, c);
 				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+				f.dispose();
 				wids ~= file;
 			}
 			version (Console) {

@@ -16,6 +16,11 @@ private string repeat(string s, int count) {
 struct ByteIO {
 	/// Byte列。
 	private ubyte[] _bytes;
+	/// バッファを解放する。
+	void dispose() {
+		delete _bytes;
+		_bytes = null;
+	}
 	/// 読込・書込済Byte列。
 	@property
 	ubyte[] bytes() {
