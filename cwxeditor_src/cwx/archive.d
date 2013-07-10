@@ -28,8 +28,10 @@ void unzip(string parent, string zip,
 		string delegate(string, bool) expand = null,
 		void delegate(uint) setProgressNum = null,
 		void delegate(uint) progress = null) {
-	scope arc = new ZipArchive(readBinary(zip));
+	auto data = readBinary(zip);
+	auto arc = new ZipArchive(data);
 	unzip(parent, arc, expand, setProgressNum, progress);
+	delete data;
 }
 /// ditto
 void unzip(string parent, ZipArchive arc,
@@ -48,7 +50,7 @@ void unzip(string parent, ZipArchive arc,
 		} else {
 			scope p = dirName(path);
 			if (!exists(p)) mkdirRecurse(p);
-			write(path, data);
+			std.file.write(path, data);
 		}
 	}, setProgressNum, progress);
 }
@@ -67,7 +69,9 @@ void unzip(ZipArchive arc,
 		if (name.length > 0 && !hasParDir(nml)) {
 			// 属性が不思議なことになってるので0x10だけで判断するのは避ける
 			bool isDir = ((am.externalAttributes & 0x10) != 0 || std.algorithm.endsWith(nml, dirSeparator)) && am.expandedSize == 0;
-			fileProc(nml, arc.expand(am), isDir);
+			auto data = arc.expand(am);
+			fileProc(nml, data, isDir);
+			scope (exit) delete data;
 		}
 		if (progress !is null) {
 			progress(count);

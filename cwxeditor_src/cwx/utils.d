@@ -1801,3 +1801,32 @@ string exeName(string args0) {
 	}
 	return args0;
 }
+
+version (Windows) {
+	private extern (Windows) {
+		struct PROCESS_MEMORY_COUNTERS {
+			DWORD  cb;
+			DWORD  PageFaultCount;
+			SIZE_T PeakWorkingSetSize;
+			SIZE_T WorkingSetSize;
+			SIZE_T QuotaPeakPagedPoolUsage;
+			SIZE_T QuotaPagedPoolUsage;
+			SIZE_T QuotaPeakNonPagedPoolUsage;
+			SIZE_T QuotaNonPagedPoolUsage;
+			SIZE_T PagefileUsage;
+			SIZE_T PeakPagefileUsage;
+		}
+		alias BOOL function(HANDLE Process, PROCESS_MEMORY_COUNTERS* ppsmemCounters, DWORD cb) GetProcessMemoryInfo;
+	}
+
+	/// 現在使用中のメモリ量を返す。
+	@property
+	size_t workingMemory() {
+		auto psapi = dlopen("psapi.dll");
+		scope (exit) dlclose(psapi);
+		auto func = cast(GetProcessMemoryInfo) dlsym(psapi, "GetProcessMemoryInfo");
+		PROCESS_MEMORY_COUNTERS info;
+		func(GetCurrentProcess(), &info, info.sizeof);
+		return info.WorkingSetSize;
+	}
+}

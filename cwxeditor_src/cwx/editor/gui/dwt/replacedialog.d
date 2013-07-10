@@ -3037,12 +3037,14 @@ public:
 			if (!summ) return;
 			_grepSumm = summ;
 			scope (exit) {
-				_grepSumm.delTemp();
-				_grepSumm = null;
+				summ.delTemp();
 				_grepSkin = null;
-				delete _grepSumm;
+				delete summ;
+				_grepSumm = null;
 				core.memory.GC.collect();
+				core.memory.GC.minimize();
 			}
+			return;
 			if (!_fromText.length) {
 				addResult(summ, count);
 				return;
