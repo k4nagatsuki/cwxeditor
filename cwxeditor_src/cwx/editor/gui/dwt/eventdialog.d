@@ -1501,6 +1501,7 @@ protected:
 			} else {
 				static assert (0);
 			}
+			_oldSel = _flags.selectedWithDir;
 			refreshValues();
 			static if (SelValue) {
 				static if (is (F == Flag)) {

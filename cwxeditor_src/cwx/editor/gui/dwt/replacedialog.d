@@ -156,6 +156,7 @@ private:
 	UndoManager _undo;
 
 	Summary _grepSumm = null;
+	int _grepCount = -1;
 	Skin _grepSkin = null;
 	string _grepFile = "";
 	bool _inGrep = false;
@@ -1921,6 +1922,7 @@ public:
 			_undo.reset();
 		}
 		_result.removeAll();
+		_grepCount = -1;
 		if (removeColumns && _result.getColumnCount()) {
 			foreach (column; _result.getColumns()) {
 				column.dispose();
@@ -2140,9 +2142,12 @@ public:
 					text = .tryFormat(_prop.msgs.replResult, num, kind);
 				} else {
 					if (_grepSumm) {
-						text = .tryFormat(_prop.msgs.searchResultGrep2, num, _grepFile);
+						text = .tryFormat(_prop.msgs.searchResultGrep2, _grepCount, num, _grepFile);
 					} else if (_grepFile.length) {
-						text = .tryFormat(_prop.msgs.searchResultGrep1, num, _grepFile);
+						text = .tryFormat(_prop.msgs.searchResultGrep1, _grepCount, num, _grepFile);
+					} else if (0 <= _grepCount) {
+						string kind = _tabf.getSelection().getText();
+						text = .tryFormat(_prop.msgs.searchResultGrep3, _grepCount, num, kind);
 					} else {
 						string kind = _tabf.getSelection().getText();
 						text = .tryFormat(_prop.msgs.searchResult, num, kind);
@@ -2997,6 +3002,7 @@ public:
 
 		size_t count = 0;
 		reset();
+		_grepCount = 0;
 		_lastFind = _tabf.getSelection();
 
 		_result.setHeaderVisible(true);
@@ -3036,6 +3042,7 @@ public:
 			auto summ = Summary.loadScenarioFromFile(_prop.parent, opt, summFile, _prop.tempPath);
 			if (!summ) return;
 			_grepSumm = summ;
+			_grepCount++;
 			scope (exit) {
 				summ.delTemp();
 				_grepSkin = null;
@@ -3044,7 +3051,6 @@ public:
 				core.memory.GC.collect();
 				core.memory.GC.minimize();
 			}
-			return;
 			if (!_fromText.length) {
 				addResult(summ, count);
 				return;

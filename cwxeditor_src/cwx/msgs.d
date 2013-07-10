@@ -238,8 +238,9 @@ class Msgs : Properties {
 	auto replaceExit = Msg("replaceExit", "閉じる");
 	auto searchResultEmpty = Msg("searchResultEmpty", "0件の検索結果");
 	auto searchResult = Msg("searchResult", "%1$s件の検索結果(%2$s)");
-	auto searchResultGrep1 = Msg("searchResultGrep1", "%1$s件の検索結果(%2$sを読込中...)");
-	auto searchResultGrep2 = Msg("searchResultGrep2", "%1$s件の検索結果(%2$sを検索中...)");
+	auto searchResultGrep1 = Msg("searchResultGrep1", "%1$s件のシナリオ内の%2$s件の検索結果(%3$sを読込中...)");
+	auto searchResultGrep2 = Msg("searchResultGrep2", "%1$s件のシナリオ内の%2$s件の検索結果(%3$sを検索中...)");
+	auto searchResultGrep3 = Msg("searchResultGrep3", "%1$s件のシナリオ内の%2$s件の検索結果(%3$s)");
 	auto searchResultRealtime = Msg("searchResultRealtime", "リアルタイム更新");
 	auto replResultEmpty = Msg("replResultEmpty", "0箇所の置換");
 	auto replResult = Msg("replResult", "%1$s箇所の置換(%2$s)");
