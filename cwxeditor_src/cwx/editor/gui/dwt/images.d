@@ -103,6 +103,7 @@ private:
 
 	int initW, initH;
 	int _maskR = 0, _maskG = 0, _maskB = 0, _maskA = 0;
+	bool _dataResizable = true;
 
 	// ImageType.Text用。_titleとtitFontを流用。
 	int _fontPixelSize = 0;
@@ -153,12 +154,13 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (ImageData data, int x, int y, int baseW, int baseH) {
+	this (ImageData data, int x, int y, int baseW, int baseH, bool dataResizable) {
 		this._type = ImageType.Image;
 		this.data = data;
 		rect = new Rectangle(x, y, baseW, baseH);
 		initW = baseW;
 		initH = baseH;
+		_dataResizable = dataResizable;
 	}
 	/// 画像のデータ、サイズを指定してインスタンスを生成する。
 	/// Params:
@@ -166,7 +168,7 @@ public:
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
 	this (ImageData data, int baseW, int baseH) {
-		this(data, 0, 0, baseW, baseH);
+		this(data, 0, 0, baseW, baseH, true);
 	}
 
 	/// サイズのみを指定してインスタンスを生成する。
@@ -640,7 +642,7 @@ public:
 			bmpData.transparentPixel = bmpData.getPixel(0, 0);
 			_baseSizeData.transparentPixel = _baseSizeData.getPixel(0, 0);
 		}
-		if (bmpData.width != width || bmpData.height != height) {
+		if (_dataResizable && (bmpData.width != width || bmpData.height != height)) {
 			dataSet.add(bmpData);
 			if (smoothing) {
 				auto data = cast(ubyte[]) bmpData.data;
@@ -823,6 +825,10 @@ public:
 	void draw(ref Image buf, ref GC gc, Rectangle range) {
 		if (!_visible) return;
 		if (!range.intersects(rect)) return;
+		if (!_dataResizable) gc.setClipping(new Rectangle(x, y, width, height));
+		scope (exit) {
+			if (!_dataResizable) gc.setClipping(cast(Rectangle)null);
+		}
 		final switch (_type) {
 		case ImageType.Image:
 			if (!_img) return;
@@ -1358,8 +1364,8 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (ImageData data, int x, int y, int baseW, int baseH) {
-		super (data, x, y, baseW, baseH);
+	this (ImageData data, int x, int y, int baseW, int baseH, bool dataResizable) {
+		super (data, x, y, baseW, baseH, dataResizable);
 		newR = new Rectangle(x, y, baseW, baseH);
 	}
 

@@ -19,23 +19,24 @@ import std.utf;
 import org.eclipse.swt.all;
 
 /// JPYの動作をエミュレートするが、甚だ不完全。
-ImageData loadJPYImage(in Props prop, in Skin skin, string path, string[] stratum) {
+ImageData loadJPYImage(in Props prop, in Skin skin, string path, string[] stratum, out bool resizable) {
 	uint width, height;
-	return loadJPYImage(prop, skin, path, stratum, width, height);
+	return loadJPYImage(prop, skin, path, stratum, width, height, resizable);
 }
 /// ditto
-ImageData loadJPYImage(in Props prop, in Skin skin, string path, string[] stratum, out uint width, out uint height) {
+ImageData loadJPYImage(in Props prop, in Skin skin, string path, string[] stratum, out uint width, out uint height, out bool resizable) {
 	auto ext = .extension(path);
+	resizable = true;
 	try {
 		if (cfnmatch(ext, ".jpy1")) {
-			auto img = loadJPYImageImpl(prop, skin, path, stratum);
+			auto img = loadJPYImageImpl(prop, skin, path, stratum, resizable);
 			if (img) {
 				width = img.width;
 				height = img.height;
 				return img;
 			}
 		} else if (cfnmatch(ext, ".jptx")) {
-			auto img = loadJPTXImage(prop, path);
+			auto img = loadJPTXImage(prop, path, resizable);
 			width = img.width;
 			height = img.height;
 			return img;
@@ -43,6 +44,7 @@ ImageData loadJPYImage(in Props prop, in Skin skin, string path, string[] stratu
 			auto img = loadJPDCImage(prop, path);
 			width = img.width;
 			height = img.height;
+			resizable = false;
 			return img;
 		}
 	} catch (Exception e) {
@@ -53,8 +55,15 @@ ImageData loadJPYImage(in Props prop, in Skin skin, string path, string[] stratu
 	return blankImage;
 }
 
-private ImageData loadJPYImageImpl(in Props prop, in Skin skin, string path, string[] stratum) {
-	auto jpy = Jpy1.load(prop.parent, path);
+private ImageData loadJPYImageImpl(in Props prop, in Skin skin, string path, string[] stratum, out bool resizable) {
+	Jpy1 jpy;
+	try {
+		resizable = true;
+		jpy = Jpy1.load(prop.parent, path);
+	} catch (EffectBoosterError e) {
+		resizable = false;
+		return textImage(prop, e);
+	}
 	if (!jpy.sections.length) return blankImage;
 	auto init = jpy.sections[0];
 	int width = 632, height = 420;
@@ -311,122 +320,148 @@ version (Windows) {
 /// この実装は実質Windows専用である。
 /// 他のOSではレンダリング結果が大幅に異なる。
 /// また、antialiasプロパティの値は一切反映されない。
-private ImageData loadJPTXImage(in Props prop, string path) {
-	auto jptx = Jptx.load(prop.parent, path);
-	if (jptx.backwidth == 0 || jptx.backheight == 0) return blankImage;
+private ImageData loadJPTXImage(in Props prop, string path, out bool resizable) {
+	try {
+		resizable = true;
+		auto jptx = Jptx.load(prop.parent, path);
+		if (jptx.backwidth == 0 || jptx.backheight == 0) return blankImage;
+		auto d = Display.getCurrent();
+		int width = 632, height = 420;
+		if (jptx.backwidth > -1) {
+			width = jptx.backwidth;
+		}
+		if (jptx.backheight > -1) {
+			height = jptx.backheight;
+		}
+		auto img = new Image(d, width, height);
+		scope (exit) img.dispose();
+		auto gc = new GC(img);
+		scope (exit) gc.dispose();
+		// FIXME: cwconv.dllの実装で必ずantialiasがかかってしまう
+		version (Windows) {} else {
+			// FIXME: IPAフォントの使用とアンチエイリアス設定を
+			//        同時に行うと一部環境で問題が出る。
+//		gc.setTextAntialias(jptx.antialias ? SWT.ON : SWT.OFF);
+		}
+		int alpha;
+		auto cBack = new Color(d, dwtData(jptx.backcolor, alpha));
+		scope (exit) cBack.dispose();
+		gc.setBackground(cBack);
+		gc.fillRectangle(0, 0, width, height);
+		if (jptx.fonttransparent) {
+			auto cFore = new Color(d, dwtData(jptx.fontcolor, alpha));
+			scope (exit) cFore.dispose();
+			gc.setForeground(cFore);
+			gc.drawLine(0, 0, img.width, 0);
+		}
+		int x = 0;
+		int y = 0;
+		int autoW = 1;
+		int autoH = 1;
+		int lineCount = 0;
+		jptx.parse((string text, in JptxParam param) {
+			version (Windows) {
+				int fh = jptx.fontpixels;
+				DWORD fwg = param.b ? FW_BOLD : FW_NORMAL;
+				DWORD fi = param.i ? TRUE : FALSE;
+				DWORD fu = param.u ? TRUE : FALSE;
+				DWORD fs = param.s ? TRUE : FALSE;
+				DWORD fc = DEFAULT_CHARSET;
+				DWORD fop = OUT_DEFAULT_PRECIS;
+				DWORD fclp = CLIP_DEFAULT_PRECIS;
+				// FIXME: 現行の実装で必ずantialiasがかかってしまう
+				DWORD fq = ANTIALIASED_QUALITY;
+	//			DWORD fq = jptx.antialias ? ANTIALIASED_QUALITY : DEFAULT_QUALITY;
+				DWORD fp = DEFAULT_PITCH | FF_DONTCARE;
+				HFONT hf;
+				hf = CreateFontW(fh, 0, 0, 0, fwg, fi, fu, fs, fc, fop, fclp, fq,
+					fp, toUTFz!(wchar*)(param.face));
+				auto font = Font.win32_new(d, hf);
+			} else {
+				int fStyle = SWT.NORMAL;
+				if (param.b) fStyle |= SWT.BOLD;
+				if (param.i) fStyle |= SWT.ITALIC;
+				auto h = cast(int) (jptx.fontpixels * (72.0 / d.getDPI().y) + 0.5);
+				auto fontData = new FontData(param.face, h, fStyle);
+				auto font = new Font(d, fontData);
+			}
+			scope (exit) font.dispose();
+			gc.setFont(font);
+			int height = gc.getFontMetrics().getHeight();
+			if (text == "\n") {
+				// wrap
+				height *= param.lineheight / 100.0;
+				y += height;
+				x = 0;
+				return;
+			}
+			auto cFore = new Color(d, dwtData(param.color, alpha));
+			scope (exit) cFore.dispose();
+			gc.setForeground(cFore);
+			int tx = x + param.shiftx, ty = y + param.shifty;
+			gc.drawText(text, tx, ty);
+			int w = gc.textExtent(text).x;
+			version (Windows) {} else {
+				if (param.s) {
+					int ly = y + height / 2;
+					gc.drawLine(x, ly, x + w, ly);
+				}
+				if (param.u) {
+					int ly = y + height;
+					gc.drawLine(x, ly, x + w, ly);
+				}
+			}
+			x += w;
+			if (x > autoW) autoW = x;
+			if (y + height > autoH) {
+				autoH = y + height; 
+				lineCount++;
+			}
+		}, prop.parent, path, lineCount);
+		if (lineCount & 0x1) {
+			// 奇数行数だと1ピクセル膨れる。cwconv.dllのバグか？
+			autoH++;
+		}
+		int rw = jptx.backwidth == -1 ? autoW : jptx.backwidth;
+		int rh = jptx.backheight == -1 ? autoH : jptx.backheight;
+		auto r = new Image(d, rw, rh);
+		scope (exit) r.dispose();
+		auto rgc = new GC(r);
+		rgc.setBackground(cBack);
+		rgc.fillRectangle(0, 0, rw, rh);
+		scope (exit) rgc.dispose();
+		int w = width < rw ? width : rw;
+		int h = height < rh ? height : rh;
+		rgc.drawImage(img, 0, 0, w, h, 0, 0, w, h);
+		return r.getImageData();
+	} catch (EffectBoosterError e) {
+		resizable = false;
+		return textImage(prop, e);
+	}
+}
+
+private ImageData textImage(in Props prop, EffectBoosterError e) {
+	auto text = .tryFormat(prop.msgs.jpyError, e.errorMsg, e.errorFile, e.errorLine);
 	auto d = Display.getCurrent();
-	int width = 632, height = 420;
-	if (jptx.backwidth > -1) {
-		width = jptx.backwidth;
-	}
-	if (jptx.backheight > -1) {
-		height = jptx.backheight;
-	}
-	auto img = new Image(d, width, height);
+	auto img = new Image(d, prop.looks.viewSize.width, prop.looks.viewSize.height);
 	scope (exit) img.dispose();
 	auto gc = new GC(img);
 	scope (exit) gc.dispose();
-	// FIXME: cwconv.dllの実装で必ずantialiasがかかってしまう
-	version (Windows) {} else {
-		// FIXME: IPAフォントの使用とアンチエイリアス設定を
-		//        同時に行うと一部環境で問題が出る。
-//		gc.setTextAntialias(jptx.antialias ? SWT.ON : SWT.OFF);
-	}
-	int alpha;
-	auto cBack = new Color(d, dwtData(jptx.backcolor, alpha));
-	scope (exit) cBack.dispose();
-	gc.setBackground(cBack);
-	gc.fillRectangle(0, 0, width, height);
-	if (jptx.fonttransparent) {
-		auto cFore = new Color(d, dwtData(jptx.fontcolor, alpha));
-		scope (exit) cFore.dispose();
-		gc.setForeground(cFore);
-		gc.drawLine(0, 0, img.width, 0);
-	}
-	int x = 0;
-	int y = 0;
-	int autoW = 1;
-	int autoH = 1;
-	int lineCount = 0;
-	jptx.parse((string text, in JptxParam param) {
-		version (Windows) {
-			int fh = jptx.fontpixels;
-			DWORD fwg = param.b ? FW_BOLD : FW_NORMAL;
-			DWORD fi = param.i ? TRUE : FALSE;
-			DWORD fu = param.u ? TRUE : FALSE;
-			DWORD fs = param.s ? TRUE : FALSE;
-			DWORD fc = DEFAULT_CHARSET;
-			DWORD fop = OUT_DEFAULT_PRECIS;
-			DWORD fclp = CLIP_DEFAULT_PRECIS;
-			// FIXME: 現行の実装で必ずantialiasがかかってしまう
-			DWORD fq = ANTIALIASED_QUALITY;
-//			DWORD fq = jptx.antialias ? ANTIALIASED_QUALITY : DEFAULT_QUALITY;
-			DWORD fp = DEFAULT_PITCH | FF_DONTCARE;
-			HFONT hf;
-			hf = CreateFontW(fh, 0, 0, 0, fwg, fi, fu, fs, fc, fop, fclp, fq,
-				fp, toUTFz!(wchar*)(param.face));
-			auto font = Font.win32_new(d, hf);
-		} else {
-			int fStyle = SWT.NORMAL;
-			if (param.b) fStyle |= SWT.BOLD;
-			if (param.i) fStyle |= SWT.ITALIC;
-			auto h = cast(int) (jptx.fontpixels * (72.0 / d.getDPI().y) + 0.5);
-			auto fontData = new FontData(param.face, h, fStyle);
-			auto font = new Font(d, fontData);
-		}
-		scope (exit) font.dispose();
-		gc.setFont(font);
-		int height = gc.getFontMetrics().getHeight();
-		if (text == "\n") {
-			// wrap
-			height *= param.lineheight / 100.0;
-			y += height;
-			x = 0;
-			return;
-		}
-		auto cFore = new Color(d, dwtData(param.color, alpha));
-		scope (exit) cFore.dispose();
-		gc.setForeground(cFore);
-		int tx = x + param.shiftx, ty = y + param.shifty;
-		gc.drawText(text, tx, ty);
-		int w = gc.textExtent(text).x;
-		version (Windows) {} else {
-			if (param.s) {
-				int ly = y + height / 2;
-				gc.drawLine(x, ly, x + w, ly);
-			}
-			if (param.u) {
-				int ly = y + height;
-				gc.drawLine(x, ly, x + w, ly);
-			}
-		}
-		x += w;
-		if (x > autoW) autoW = x;
-		if (y + height > autoH) {
-			autoH = y + height; 
-			lineCount++;
-		}
-	}, prop.parent, path, lineCount);
-	if (lineCount & 0x1) {
-		// 奇数行数だと1ピクセル膨れる。cwconv.dllのバグか？
-		autoH++;
-	}
-	int rw = jptx.backwidth == -1 ? autoW : jptx.backwidth;
-	int rh = jptx.backheight == -1 ? autoH : jptx.backheight;
-	auto r = new Image(d, rw, rh);
-	scope (exit) r.dispose();
-	auto rgc = new GC(r);
-	rgc.setBackground(cBack);
-	rgc.fillRectangle(0, 0, rw, rh);
-	scope (exit) rgc.dispose();
-	int w = width < rw ? width : rw;
-	int h = height < rh ? height : rh;
-	rgc.drawImage(img, 0, 0, w, h, 0, 0, w, h);
-	return r.getImageData();
+	gc.setForeground(d.getSystemColor(SWT.COLOR_WHITE));
+	gc.fillRectangle(0, 0, prop.looks.viewSize.width, prop.looks.viewSize.height);
+	gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
+	gc.drawText(text, 4, 2, true);
+	auto data = img.getImageData();
+	return data;
 }
 
 private ImageData loadJPDCImage(in Props prop, string path) {
-	auto jpdc = Jpdc.load(prop.parent, path);
+	Jpdc jpdc;
+	try {
+		jpdc = Jpdc.load(prop.parent, path);
+	} catch (EffectBoosterError e) {
+		return textImage(prop, e);
+	}
 	auto d = Display.getCurrent();
 	auto img = new Image(d, jpdc.clip.width, jpdc.clip.height);
 	scope (exit) img.dispose();

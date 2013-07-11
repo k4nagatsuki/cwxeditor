@@ -59,8 +59,9 @@ FlexImage createBackgroundImage
 	FlexImage r;
 	auto ext = .extension(path);
 	if (cfnmatch(ext, ".jpy1") || cfnmatch(ext, ".jptx") || cfnmatch(ext, ".jpdc")) {
-		auto data = loadJPYImage(prop, skin, path, []);
-		r = new FlexImage(data, x, y, data.width, data.height);
+		bool resizable;
+		auto data = loadJPYImage(prop, skin, path, [], resizable);
+		r = new FlexImage(data, x, y, data.width, data.height, resizable);
 	} else {
 		uint baseW = w, baseH = h;
 		try {
@@ -85,7 +86,7 @@ PileImage createCastCardBackImage(Props prop, Skin skin, int x, int y) {
 	auto matPad = prop.looks.castCardInsets;
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
-	auto r = new PileImage(castCard(skin), x, y, w, h);
+	auto r = new PileImage(castCard(skin), x, y, w, h, true);
 	r.createImage();
 	return r;
 }
@@ -95,7 +96,7 @@ PImg createCardImageCommon(PImg)(Props prop, ImageData card,
 	auto cardSize = prop.looks.cardSize;
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
-	auto r = new PImg(card, x, y, w, h);
+	auto r = new PImg(card, x, y, w, h, true);
 	r.transparent = false;
 	r.smoothing = smoothing;
 	static if (is(PImg : FlexImage)) {
@@ -187,7 +188,7 @@ PileImage createMessageImage(Commons comm, Props prop) {
 	string[string] flags, steps;
 	// 特殊文字が無いためシナリオパス不要
 	auto imgData = previewMessage(comm, prop, "", null, "", [""], names, flags, steps);
-	auto img = new PileImage(imgData, rect.x, rect.y, imgData.width, imgData.height);
+	auto img = new PileImage(imgData, rect.x, rect.y, imgData.width, imgData.height, true);
 	img.alpha = prop.var.etc.messageAlpha;
 	img.createImage();
 	return img;

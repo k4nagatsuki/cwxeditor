@@ -272,7 +272,7 @@ struct Jpy1 {
 				// contents
 				int eq = .cCountUntil(line, '=');
 				if (eq == -1) {
-					throw new EffectBoosterError("invalid line", __FILE__, __LINE__, prop.msgs.jpyErrorInvalidLine, path, lineNum);
+					throw new EffectBoosterError("invalid line", __FILE__, __LINE__, .tryFormat(prop.msgs.jpyErrorInvalidLine, line), path, lineNum);
 				}
 				auto key = astrip(line[0 .. eq]);
 				auto value = stripValue(line[eq + 1 .. $]);
@@ -842,7 +842,7 @@ struct Jptx {
 					// init
 					int eq = .cCountUntil(sline, '=');
 					if (eq == -1) {
-						throw new EffectBoosterError("invalid line: " ~ line, __FILE__, __LINE__, prop.msgs.jpyErrorInvalidLine, path, lineNum);
+						throw new EffectBoosterError("invalid line: " ~ line, __FILE__, __LINE__, .tryFormat(prop.msgs.jpyErrorInvalidLine, line), path, lineNum);
 					}
 					auto key = astrip(sline[0 .. eq]);
 					auto value = stripValue(sline[eq + 1 .. $]);
@@ -969,7 +969,7 @@ struct Jpdc {
 					// init
 					int eq = .cCountUntil(line, '=');
 					if (eq == -1) {
-						throw new EffectBoosterError("invalid line: " ~ line, __FILE__, __LINE__, prop.msgs.jpyErrorInvalidLine, path, lineNum);
+						throw new EffectBoosterError("invalid line: " ~ line, __FILE__, __LINE__, .tryFormat(prop.msgs.jpyErrorInvalidLine, line), path, lineNum);
 					}
 					auto key = astrip(line[0 .. eq]);
 					auto value = stripValue(line[eq + 1 .. $]);

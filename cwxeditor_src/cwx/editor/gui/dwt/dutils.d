@@ -69,7 +69,8 @@ bool dwtImageSize(in Props prop, in Skin skin, string path, out uint width, out 
 	if (cfnmatch(ext, ".jpy1")
 			|| cfnmatch(ext, ".jptx")
 			|| cfnmatch(ext, ".jpdc")) {
-		auto img = loadJPYImage(prop, skin, path, [], width, height);
+		bool resizable;
+		auto img = loadJPYImage(prop, skin, path, [], width, height, resizable);
 		return img !is null;
 	}
 	return imageSize(path, width, height);
@@ -88,7 +89,8 @@ ImageData loadImage(in Props prop, in Skin skin, string path, bool mask = true, 
 		if (cfnmatch(ext, ".jpy1")
 				|| cfnmatch(ext, ".jptx")
 				|| cfnmatch(ext, ".jpdc")) {
-			auto data = loadJPYImage(prop, skin, path, stratum);
+			bool resizable;
+			auto data = loadJPYImage(prop, skin, path, stratum, resizable);
 			if (mask) data.transparentPixel = data.getPixel(maskX, maskY);
 			return data;
 		}
