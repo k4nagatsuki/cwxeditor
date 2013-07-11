@@ -72,7 +72,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 		int pw = i == 0 || sec.width < 0 ? width : sec.width;
 		int ph = i == 0 || sec.height < 0 ? height : sec.height;
 		ImageData data = null;
-		if (sec.loadcache == Cache.NONE) {
+		if (sec.loadcache != Cache.NONE) {
 			auto p = sec.loadcache in cache;
 			data = p ? *p : null;
 			if (!data) {
