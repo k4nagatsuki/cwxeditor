@@ -699,7 +699,14 @@ private:
 			}
 		} else {
 			if (type is CType.START) {
-				name = createNewName(_prop.msgs.defaultStartName, (string name) {
+				string startName = _prop.msgs.defaultStartName;
+				auto sel = selection;
+				if (_prop.var.etc.useCurrentStartName && sel) {
+					if (auto s = (cast(Content)sel.getData()).parentStart) {
+						startName = s.name;
+					}
+				}
+				name = createNewName(startName, (string name) {
 					foreach (start; _et.starts) {
 						if (icmp(start.name, name) == 0) return false;
 					}

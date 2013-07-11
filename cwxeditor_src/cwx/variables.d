@@ -332,6 +332,7 @@ class FlexEtcProps : Properties {
 	auto applyDialogsBeforeSave = Prop!(bool)("applyDialogsBeforeSave", true);
 	auto useNamesAfterStandard = Prop!(bool)("useNamesAfterStandard", false);
 	auto selectVariableWithTree = Prop!(bool)("selectVariableWithTree", true);
+	auto useCurrentStartName = Prop!(bool)("useCurrentStartName", true);
 
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
 

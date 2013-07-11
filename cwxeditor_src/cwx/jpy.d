@@ -4,6 +4,7 @@ module cwx.jpy;
 import cwx.structs;
 import cwx.utils;
 import cwx.sjis;
+import cwx.props;
 
 import std.array;
 import std.conv;
@@ -113,40 +114,96 @@ enum Turn {
 	RIGHT = 2
 }
 
+/// エフェクトブースターファイルをパースした際に
+/// エラーが発生した場合、この例外が投げられる。
+class EffectBoosterError : Exception {
+	private string _errorMsg;
+	private string _errorFile;
+	private size_t _errorLine;
+	/// 通常の例外情報の他、パースしようとしたファイルと
+	/// エラー発生箇所の情報を渡してインスタンスを生成する。
+	this (string msg, string file, size_t line, string errorMsg, string errorFile, size_t errorLine) {
+		super (msg, file, line);
+		_errorMsg = errorMsg;
+		_errorFile = errorFile;
+		_errorLine = errorLine;
+	}
+	/// エラー内容。
+	@property
+	const
+	string errorMsg() { return _errorMsg; }
+	/// パースしようとしたファイル名。
+	@property
+	const
+	string errorFile() { return _errorFile; }
+	/// エラーが発生した行。
+	@property
+	const
+	size_t errorLine() { return _errorLine; }
+}
+
 private {
-	CPoint pointVal(string value) {
+	CPoint pointVal(string value, in CProps prop, string file, size_t line) {
 		auto sp = std.string.split(value, ",");
-		if (sp.length < 2) throw new Exception("invalid point: " ~ value);
+		if (sp.length < 2) {
+			throw new EffectBoosterError("invalid point: " ~ value, __FILE__, __LINE__, .tryFormat(prop.msgs.jpyErrorInvalidPoint, value), file, line);
+		}
 		return CPoint(to!(int)(astrip(sp[0])), to!(int)(astrip(sp[1])));
 	}
-	CRect rectVal(string value) {
+	CRect rectVal(string value, in CProps prop, string file, size_t line) {
 		auto sp = std.string.split(value, ",");
-		if (sp.length < 4) throw new Exception("invalid rect: " ~ value);
-		return CRect(to!(int)(astrip(sp[0])), to!(int)(astrip(sp[1])),
-			to!(int)(astrip(sp[2])), to!(int)(astrip(sp[3])));
+		if (sp.length < 4) {
+			throw new EffectBoosterError("invalid rect: " ~ value, __FILE__, __LINE__, .tryFormat(prop.msgs.jpyErrorInvalidRect, value), file, line);
+		}
+		try {
+			return CRect(to!(int)(astrip(sp[0])), to!(int)(astrip(sp[1])),
+				to!(int)(astrip(sp[2])), to!(int)(astrip(sp[3])));
+		} catch (Exception e) {
+			throw new EffectBoosterError(e.msg, e.file, e.line, .tryFormat(prop.msgs.jpyErrorInvalidRect, value), file, line);
+		}
 	}
-	CRGB rgbVal(string value) {
+	CRGB rgbVal(string value, in CProps prop, string file, size_t line) {
 		if (value.length < 7 || (value[0] != '$' && value[0] != '#')) {
-			throw new Exception("invalid rgb: " ~ value);
+			throw new EffectBoosterError("invalid rgb: " ~ value, __FILE__, __LINE__, .tryFormat(prop.msgs.jpyErrorInvalidRGB, value), file, line);
 		}
 		auto sr = value[1 .. 3];
 		auto sg = value[3 .. 5];
 		auto sb = value[5 .. 7];
-		return CRGB(toImpl!int(sr, 16), toImpl!int(sg, 16), toImpl!int(sb, 16));
+		try {
+			return CRGB(toImpl!int(sr, 16), toImpl!int(sg, 16), toImpl!int(sb, 16));
+		} catch (Exception e) {
+			throw new EffectBoosterError(e.msg, e.file, e.line, .tryFormat(prop.msgs.jpyErrorInvalidRGB, value), file, line);
+		}
 	}
-	Enum enumVal(Enum)(string value) {
-		return cast(Enum) to!(int)(value);
+	Enum enumVal(Enum)(string value, in CProps prop, string file, size_t line) {
+		try {
+			return cast(Enum) to!(int)(value);
+		} catch (Exception e) {
+			throw new EffectBoosterError(e.msg, e.file, e.line, .tryFormat(prop.msgs.jpyErrorInvalidEnum, value), file, line);
+		}
 	}
-	string strVal(string value) {
+	string strVal(string value, in CProps prop, string file, size_t line) {
 		try {
 			validate(value);
 			return value;
 		} catch {
-			return touni(value);
+			try {
+				return touni(value);
+			} catch (Exception e) {
+				throw new EffectBoosterError(e.msg, e.file, e.line, .tryFormat(prop.msgs.jpyErrorInvalidStr, value), file, line);
+			}
 		}
 	}
-	int intVal(string value) {return to!(int)(value);}
-	bool boolVal(string value) {return value == "1";}
+	int intVal(string value, in CProps prop, string file, size_t line) {
+		try {
+			return to!(int)(value);
+		} catch (Exception e) {
+			throw new EffectBoosterError(e.msg, e.file, e.line, .tryFormat(prop.msgs.jpyErrorInvalidInt, value), file, line);
+		}
+	}
+	bool boolVal(string value, in CProps prop, string file, size_t line) {
+		return value == "1";
+	}
 }
 
 /// pathのファイルを読み込む。
@@ -163,11 +220,15 @@ string readJPYFile(string path, out bool isSJIS) {
 	}
 }
 /// ditto
-private string readJPYFile(string path) {
+private string readJPYFile(string path, in CProps prop) {
 	try {
 		return std.file.readText(path);
 	} catch (UTFException e) {
-		return touni(cast(char[])readBinary(path));
+		try {
+			return touni(cast(char[])readBinary(path));
+		} catch (Exception e) {
+			throw new EffectBoosterError(e.msg, e.file, e.line, prop.msgs.jpyErrorInvalidEncoding, path, 0);
+		}
 	}
 }
 /// pathへ書き込む。
@@ -191,9 +252,10 @@ struct Jpy1 {
 	/// ファイルに含まれるセクション。
 	Jpy1Sec[] sections;
 	/// pathからJpy1を読込む。
-	static Jpy1 load(string path) {
+	static Jpy1 load(in CProps prop, string path) {
 		Jpy1 r;
-		foreach (line; splitLines!string(readJPYFile(path))) {
+		foreach (i, line; splitLines!string(readJPYFile(path, prop))) {
+			auto lineNum = i + 1;
 			line = astrip(line);
 			if (!line.length || line[0] == ';') continue;
 			if (line[0] == '[' && line[$ - 1] == ']') {
@@ -203,49 +265,54 @@ struct Jpy1 {
 				r.sections ~= sec;
 				continue;
 			}
-			if (!r.sections.length) throw new Exception("label not found");
+			if (!r.sections.length) {
+				throw new EffectBoosterError("label not found", __FILE__, __LINE__, prop.msgs.jpyErrorLabelNotFound, path, lineNum);
+			}
 			with (r.sections[$ - 1]) {
 				// contents
 				int eq = .cCountUntil(line, '=');
-				if (eq == -1) throw new Exception("invalid line: " ~ line);
+				if (eq == -1) {
+					throw new EffectBoosterError("invalid line", __FILE__, __LINE__, prop.msgs.jpyErrorInvalidLine, path, lineNum);
+				}
 				auto key = astrip(line[0 .. eq]);
 				auto value = stripValue(line[eq + 1 .. $]);
 				switch (.toLower(key)) {
-				case "backwidth": backwidth = intVal(value); break;
-				case "backheight": backheight = intVal(value); break;
-				case "backcolor": backcolor = rgbVal(value); break;
-				case "width": width = intVal(value); break;
-				case "height": height = intVal(value); break;
-				case "color": color = rgbVal(value); break;
-				case "dirdepth": dirdepth = intVal(value); break;
-				case "filename": filename = strVal(value); break;
-				case "dirtype": dirtype = enumVal!(Dirtype)(value); break;
-				case "loadcache": loadcache = enumVal!(Cache)(value); break;
-				case "savecache": savecache = enumVal!(Cache)(value); break;
-				case "visible": visible = boolVal(value); break;
-				case "position": position = pointVal(value); break;
-				case "transparent": transparent = boolVal(value); break;
-				case "clip": clip = rectVal(value); break;
-				case "paintmode": paintmode = enumVal!(Paintmode)(value); break;
-				case "alpha": alpha = intVal(value); break;
-				case "animeclip": animeclip = rectVal(value); break;
-				case "animation": animation = enumVal!(Animation)(value); break;
-				case "animeposition": animeposition = pointVal(value); break;
-				case "animemove": animemove = pointVal(value); break;
-				case "wait": wait = intVal(value); break;
-				case "animespeed": animespeed = intVal(value); break;
-				case "smooth": smooth = boolVal(value); break;
-				case "colorexchange": colorexchange = enumVal!(Colorexchange)(value); break;
-				case "colormap": colormap = enumVal!(Colormap)(value); break;
-				case "filter": filter = enumVal!(Filter)(value); break;
-				case "mask": mask = enumVal!(Mask)(value); break;
-				case "noise": noise = enumVal!(Noise)(value); break;
-				case "noisepoint": noisepoint = intVal(value); break;
-				case "turn": turn = enumVal!(Turn)(value); break;
-				case "flip": flip = boolVal(value); break;
-				case "mirror": mirror = boolVal(value); break;
-				case "comment": comment = strVal(value); break;
-				default: throw new Exception("invalid command: " ~ line);
+				case "backwidth": backwidth = intVal(value, prop, path, lineNum); break;
+				case "backheight": backheight = intVal(value, prop, path, lineNum); break;
+				case "backcolor": backcolor = rgbVal(value, prop, path, lineNum); break;
+				case "width": width = intVal(value, prop, path, lineNum); break;
+				case "height": height = intVal(value, prop, path, lineNum); break;
+				case "color": color = rgbVal(value, prop, path, lineNum); break;
+				case "dirdepth": dirdepth = intVal(value, prop, path, lineNum); break;
+				case "filename": filename = strVal(value, prop, path, lineNum); break;
+				case "dirtype": dirtype = enumVal!(Dirtype)(value, prop, path, lineNum); break;
+				case "loadcache": loadcache = enumVal!(Cache)(value, prop, path, lineNum); break;
+				case "savecache": savecache = enumVal!(Cache)(value, prop, path, lineNum); break;
+				case "visible": visible = boolVal(value, prop, path, lineNum); break;
+				case "position": position = pointVal(value, prop, path, lineNum); break;
+				case "transparent": transparent = boolVal(value, prop, path, lineNum); break;
+				case "clip": clip = rectVal(value, prop, path, lineNum); break;
+				case "paintmode": paintmode = enumVal!(Paintmode)(value, prop, path, lineNum); break;
+				case "alpha": alpha = intVal(value, prop, path, lineNum); break;
+				case "animeclip": animeclip = rectVal(value, prop, path, lineNum); break;
+				case "animation": animation = enumVal!(Animation)(value, prop, path, lineNum); break;
+				case "animeposition": animeposition = pointVal(value, prop, path, lineNum); break;
+				case "animemove": animemove = pointVal(value, prop, path, lineNum); break;
+				case "wait": wait = intVal(value, prop, path, lineNum); break;
+				case "animespeed": animespeed = intVal(value, prop, path, lineNum); break;
+				case "smooth": smooth = boolVal(value, prop, path, lineNum); break;
+				case "colorexchange": colorexchange = enumVal!(Colorexchange)(value, prop, path, lineNum); break;
+				case "colormap": colormap = enumVal!(Colormap)(value, prop, path, lineNum); break;
+				case "filter": filter = enumVal!(Filter)(value, prop, path, lineNum); break;
+				case "mask": mask = enumVal!(Mask)(value, prop, path, lineNum); break;
+				case "noise": noise = enumVal!(Noise)(value, prop, path, lineNum); break;
+				case "noisepoint": noisepoint = intVal(value, prop, path, lineNum); break;
+				case "turn": turn = enumVal!(Turn)(value, prop, path, lineNum); break;
+				case "flip": flip = boolVal(value, prop, path, lineNum); break;
+				case "mirror": mirror = boolVal(value, prop, path, lineNum); break;
+				case "comment": comment = strVal(value, prop, path, lineNum); break;
+				default:
+					throw new EffectBoosterError("invalid command: " ~ line, __FILE__, __LINE__, .tryFormat( prop.msgs.jpyErrorInvalidCommand, key), path, lineNum);
 				}
 			}
 		}
@@ -305,16 +372,22 @@ private struct JptxTag {
 	string name;
 	int tagValue;
 	string[string] attr;
-	static JptxTag parse(string startTag) {
+	static JptxTag parse(string startTag, in CProps prop, string file, size_t line) {
 		auto reg = .match(toUTF32(startTag), .regex!(dstring)("^<[A-Z]+"d, "i"));
-		if (reg.empty) throw new Exception("invalid start tag: " ~ startTag);
+		if (reg.empty) {
+			throw new EffectBoosterError("invalid start tag: " ~ startTag, __FILE__, __LINE__, .tryFormat(prop.msgs.jpyErrorInvalidStartTag, startTag), file, line);
+		}
 		JptxTag tag;
 		tag.name = .toLower(toUTF8(reg.hit[1 .. $]));
 		dstring p = reg.post;
-		if (!p.length) throw new Exception("invalid start tag: " ~ startTag);
+		if (!p.length) {
+			throw new EffectBoosterError("invalid start tag: " ~ startTag, __FILE__, __LINE__, .tryFormat(prop.msgs.jpyErrorInvalidStartTag, startTag), file, line);
+		}
 		if (startsWith(p, "=\""d)) {
 			int ei = .cCountUntil(p[2 .. $], '"');
-			if (ei == -1) throw new Exception("invalid start tag: " ~ startTag);
+			if (ei == -1) {
+				throw new EffectBoosterError("invalid start tag: " ~ startTag, __FILE__, __LINE__, .tryFormat(prop.msgs.jpyErrorInvalidStartTag, startTag), file, line);
+			}
 			tag.tagValue = to!(int)(p[2 .. ei + 2]);
 			p = p[ei + 4 .. $];
 		}
@@ -329,12 +402,12 @@ private struct JptxTag {
 		return tag;
 	} unittest {
 		debug mixin(UTPerf);
-		auto t1 = JptxTag.parse("<b>");
+		auto t1 = JptxTag.parse("<b>", null, "", 0);
 		assert (t1.name == "b");
-		auto t2 = JptxTag.parse("<lineheight=\"80\">");
+		auto t2 = JptxTag.parse("<lineheight=\"80\">", null, "", 0);
 		assert (t2.name == "lineheight");
 		assert (t2.tagValue == 80);
-		auto t3 = JptxTag.parse("<font face=\"face\" pixels=\"14\">");
+		auto t3 = JptxTag.parse("<font face=\"face\" pixels=\"14\">", null, "", 0);
 		assert (t3.name == "font");
 		assert (t3.attr["face"] == "face");
 		assert (t3.attr["pixels"] == "14");
@@ -365,8 +438,8 @@ private struct JptxParser {
 	void delegate() onEndLineheight = null;
 	void delegate() onEndFont = null;
 
-	private void startTag(string tagText) {
-		auto tag = JptxTag.parse(tagText);
+	private void startTag(string tagText, in CProps prop, string file, size_t line) {
+		auto tag = JptxTag.parse(tagText, prop, file, line);
 		switch (tag.name) {
 		case "br": {
 			if (onBR) onBR();
@@ -398,11 +471,11 @@ private struct JptxParser {
 				CRGB rgb = CRGB(-1, -1, -1);
 				int pixels = -1;
 				auto pFace = "face" in tag.attr;
-				if (pFace) face = strVal(*pFace);
+				if (pFace) face = strVal(*pFace, prop, file, line);
 				auto pRgb = "color" in tag.attr;
-				if (pRgb) rgb = rgbVal(*pRgb);
+				if (pRgb) rgb = rgbVal(*pRgb, prop, file, line);
 				auto pPixels = "pixels" in tag.attr;
-				if (pPixels) pixels = intVal(*pPixels);
+				if (pPixels) pixels = intVal(*pPixels, prop, file, line);
 				onFont(face, rgb, pixels);
 			}
 		} break;
@@ -439,7 +512,7 @@ private struct JptxParser {
 		default: assert (0, tag);
 		}
 	}
-	void parse(string text) {
+	void parse(string text, in CProps prop, string file, size_t line) {
 		immutable TAG = "</(b|i|u|s|shiftx|shifty|lineheight|font)>"d
 			~ "|<"d
 			~ "(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\""d
@@ -451,9 +524,9 @@ private struct JptxParser {
 			auto r = .regex!(dstring)("^" ~ TAG ~ "$", "i");
 			auto lines = splitLines!string(text);
 			text = "";
-			foreach (i, line; lines) {
-				text ~= line;
-				if (i + 1 < lines.length && .match(toUTF32(line), r).empty) {
+			foreach (i, ln; lines) {
+				text ~= ln;
+				if (i + 1 < lines.length && .match(toUTF32(ln), r).empty) {
 					text ~= "<br>";
 				}
 			}
@@ -471,7 +544,7 @@ private struct JptxParser {
 				if (std.algorithm.startsWith(m, "</")) {
 					endTag(m);
 				} else {
-					startTag(m);
+					startTag(m, prop, file, line);
 				}
 				text = toUTF8(reg.post);
 				continue;
@@ -617,11 +690,11 @@ struct Jptx {
 			default: assert (0);
 			}
 			count++;
-		});
+		}, null, "", 0);
 	}
 	/// textを分析し、経過をonTextに渡す。
 	/// 改行は独立したテキスト"\n"として渡される。
-	void parse(void delegate(string text, in JptxParam param) onText) {
+	void parse(void delegate(string text, in JptxParam param) onText, in CProps prop, string file, size_t line) {
 		JptxParam param;
 		param.b = false;
 		param.i = false;
@@ -726,16 +799,17 @@ struct Jptx {
 		parser.onText = (string text) {
 			onText(text, param);
 		};
-		parser.parse(text);
+		parser.parse(text, prop, file, line);
 	}
 	/// pathからJptxを読込む。
-	static Jptx load(string path) {
+	static Jptx load(in CProps prop, string path) {
 		Jptx r;
 		string t = "";
 		bool textFirst = true;
 		bool init = false;
 		bool text = false;
-		foreach (line; splitLines!string(readJPYFile(path))) {
+		foreach (i, line; splitLines!string(readJPYFile(path, prop))) {
+			auto lineNum = i + 1;
 			auto sline = astrip(line);
 			if (!text && sline.length && sline[0] == ';') continue;
 			if (sline.length && sline[0] == '[' && sline[$ - 1] == ']') {
@@ -767,21 +841,24 @@ struct Jptx {
 				with (r) {
 					// init
 					int eq = .cCountUntil(sline, '=');
-					if (eq == -1) throw new Exception("invalid line: " ~ line);
+					if (eq == -1) {
+						throw new EffectBoosterError("invalid line: " ~ line, __FILE__, __LINE__, prop.msgs.jpyErrorInvalidLine, path, lineNum);
+					}
 					auto key = astrip(sline[0 .. eq]);
 					auto value = stripValue(sline[eq + 1 .. $]);
 					switch (.toLower(key)) {
-					case "backcolor": backcolor = rgbVal(value); break;
-					case "backwidth": backwidth = intVal(value); break;
-					case "backheight": backheight = intVal(value); break;
-					case "autoline": autoline = boolVal(value); break;
-					case "lineheight": lineheight = intVal(value); break;
-					case "fontpixels": fontpixels = intVal(value); break;
-					case "fontcolor": fontcolor = rgbVal(value); break;
-					case "fontface": fontface = strVal(value); break;
-					case "antialias": antialias = intVal(value); break;
-					case "fonttransparent": fonttransparent = boolVal(value); break;
-					default: throw new Exception("invalid command: " ~ line);
+					case "backcolor": backcolor = rgbVal(value, prop, path, lineNum); break;
+					case "backwidth": backwidth = intVal(value, prop, path, lineNum); break;
+					case "backheight": backheight = intVal(value, prop, path, lineNum); break;
+					case "autoline": autoline = boolVal(value, prop, path, lineNum); break;
+					case "lineheight": lineheight = intVal(value, prop, path, lineNum); break;
+					case "fontpixels": fontpixels = intVal(value, prop, path, lineNum); break;
+					case "fontcolor": fontcolor = rgbVal(value, prop, path, lineNum); break;
+					case "fontface": fontface = strVal(value, prop, path, lineNum); break;
+					case "antialias": antialias = intVal(value, prop, path, lineNum); break;
+					case "fonttransparent": fonttransparent = boolVal(value, prop, path, lineNum); break;
+					default:
+						throw new EffectBoosterError("invalid command: " ~ line, __FILE__, __LINE__, .tryFormat(prop.msgs.jpyErrorInvalidCommand, key), path, lineNum);
 					}
 				}
 			}
@@ -870,10 +947,11 @@ struct Jpdc {
 	string savecomment = "";
 
 	/// pathからJpdcを読込む。
-	static Jpdc load(string path) {
+	static Jpdc load(in CProps prop, string path) {
 		Jpdc r;
 		bool init = false;
-		foreach (line; splitLines!string(readJPYFile(path))) {
+		foreach (i, line; splitLines!string(readJPYFile(path, prop))) {
+			auto lineNum = i + 1;
 			line = astrip(line);
 			if (!line.length || line[0] == ';') continue;
 			if (line[0] == '[' && line[$ - 1] == ']') {
@@ -890,15 +968,18 @@ struct Jpdc {
 				with (r) {
 					// init
 					int eq = .cCountUntil(line, '=');
-					if (eq == -1) throw new Exception("invalid line: " ~ line);
+					if (eq == -1) {
+						throw new EffectBoosterError("invalid line: " ~ line, __FILE__, __LINE__, prop.msgs.jpyErrorInvalidLine, path, lineNum);
+					}
 					auto key = astrip(line[0 .. eq]);
 					auto value = stripValue(line[eq + 1 .. $]);
 					switch (.toLower(key)) {
-					case "clip": clip = rectVal(value); break;
-					case "copymode": copymode = enumVal!(Copymode)(value); break;
-					case "savefilename": saveFileName = strVal(value); break;
-					case "savecomment": savecomment = strVal(value); break;
-					default: throw new Exception("invalid command: " ~ line);
+					case "clip": clip = rectVal(value, prop, path, lineNum); break;
+					case "copymode": copymode = enumVal!(Copymode)(value, prop, path, lineNum); break;
+					case "savefilename": saveFileName = strVal(value, prop, path, lineNum); break;
+					case "savecomment": savecomment = strVal(value, prop, path, lineNum); break;
+					default:
+						throw new EffectBoosterError("invalid command: " ~ line, __FILE__, __LINE__, .tryFormat(prop.msgs.jpyErrorInvalidCommand, key), path, lineNum);
 					}
 				}
 			}

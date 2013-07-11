@@ -19,28 +19,28 @@ import std.utf;
 import org.eclipse.swt.all;
 
 /// JPYの動作をエミュレートするが、甚だ不完全。
-ImageData loadJPYImage(Skin skin, string path, string[] stratum) {
+ImageData loadJPYImage(in Props prop, in Skin skin, string path, string[] stratum) {
 	uint width, height;
-	return loadJPYImage(skin, path, stratum, width, height);
+	return loadJPYImage(prop, skin, path, stratum, width, height);
 }
 /// ditto
-ImageData loadJPYImage(Skin skin, string path, string[] stratum, out uint width, out uint height) {
+ImageData loadJPYImage(in Props prop, in Skin skin, string path, string[] stratum, out uint width, out uint height) {
 	auto ext = .extension(path);
 	try {
 		if (cfnmatch(ext, ".jpy1")) {
-			auto img = loadJPYImageImpl(skin, path, stratum);
+			auto img = loadJPYImageImpl(prop, skin, path, stratum);
 			if (img) {
 				width = img.width;
 				height = img.height;
 				return img;
 			}
 		} else if (cfnmatch(ext, ".jptx")) {
-			auto img = loadJPTXImage(path);
+			auto img = loadJPTXImage(prop, path);
 			width = img.width;
 			height = img.height;
 			return img;
 		} else if (cfnmatch(ext, ".jpdc")) {
-			auto img = loadJPDCImage(path);
+			auto img = loadJPDCImage(prop, path);
 			width = img.width;
 			height = img.height;
 			return img;
@@ -53,8 +53,8 @@ ImageData loadJPYImage(Skin skin, string path, string[] stratum, out uint width,
 	return blankImage;
 }
 
-private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
-	auto jpy = Jpy1.load(path);
+private ImageData loadJPYImageImpl(in Props prop, in Skin skin, string path, string[] stratum) {
+	auto jpy = Jpy1.load(prop.parent, path);
 	if (!jpy.sections.length) return blankImage;
 	auto init = jpy.sections[0];
 	int width = 632, height = 420;
@@ -122,7 +122,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 			}
 			auto fname = std.path.buildPath(dir, sec.filename);
 			if (!exists(fname)) continue;
-			data = loadImage(skin, fname, false, 0, 0, stratum);
+			data = loadImage(prop, skin, fname, false, 0, 0, stratum);
 			stratum ~= nabs(fname);
 		}
 		int dtw = data && data.width > 0 ? data.width : pw;
@@ -311,8 +311,8 @@ version (Windows) {
 /// この実装は実質Windows専用である。
 /// 他のOSではレンダリング結果が大幅に異なる。
 /// また、antialiasプロパティの値は一切反映されない。
-private ImageData loadJPTXImage(string path) {
-	auto jptx = Jptx.load(path);
+private ImageData loadJPTXImage(in Props prop, string path) {
+	auto jptx = Jptx.load(prop.parent, path);
 	if (jptx.backwidth == 0 || jptx.backheight == 0) return blankImage;
 	auto d = Display.getCurrent();
 	int width = 632, height = 420;
@@ -406,7 +406,7 @@ private ImageData loadJPTXImage(string path) {
 			autoH = y + height; 
 			lineCount++;
 		}
-	});
+	}, prop.parent, path, lineCount);
 	if (lineCount & 0x1) {
 		// 奇数行数だと1ピクセル膨れる。cwconv.dllのバグか？
 		autoH++;
@@ -425,8 +425,8 @@ private ImageData loadJPTXImage(string path) {
 	return r.getImageData();
 }
 
-private ImageData loadJPDCImage(string path) {
-	auto jpdc = Jpdc.load(path);
+private ImageData loadJPDCImage(in Props prop, string path) {
+	auto jpdc = Jpdc.load(prop.parent, path);
 	auto d = Display.getCurrent();
 	auto img = new Image(d, jpdc.clip.width, jpdc.clip.height);
 	scope (exit) img.dispose();

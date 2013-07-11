@@ -75,7 +75,7 @@ private:
 					}
 					if (path.length > 0) {
 						auto skin = _comm.skin;
-						scope img = new Image(Display.getCurrent(), loadImage(skin, path));
+						scope img = new Image(Display.getCurrent(), loadImage(_prop, skin, path));
 						scope (exit) img.dispose();
 						e.gc.drawImage(img, 0, 0);
 					}

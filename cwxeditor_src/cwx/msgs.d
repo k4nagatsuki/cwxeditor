@@ -1734,6 +1734,19 @@ class Msgs : Properties {
 	auto gossip = Msg("gossip", "ゴシップ");
 	auto completeStamp = Msg("completeStamp", "終了印");
 
+	auto jpyErrorInvalidPoint = Msg("jpyErrorInvalidPoint", "位置の書式が正しくありません: %1$s");
+	auto jpyErrorInvalidRect = Msg("jpyErrorInvalidRect", "位置とサイズの書式が正しくありません: %1$s");
+	auto jpyErrorInvalidRGB = Msg("jpyErrorInvalidRGB", "値が正しくありません: %1$s");
+	auto jpyErrorInvalidEnum = Msg("jpyErrorInvalidEnum", "数値でなければなりません: %1$s");
+	auto jpyErrorInvalidStr = Msg("jpyErrorInvalidStr", "文字コードが正しくありません: %1$s");
+	auto jpyErrorInvalidInt = Msg("jpyErrorInvalidInt", "数値でなければなりません: %1$s");
+	auto jpyErrorInvalidBool = Msg("jpyErrorInvalidBool", "真偽値が正しくありません: %1$s");
+	auto jpyErrorInvalidEncoding = Msg("jpyErrorInvalidEncoding", "文字コードが不正です。");
+	auto jpyErrorInvalidLine = Msg("jpyErrorInvalidLine", "コマンドか値のどちらかが欠けています。");
+	auto jpyErrorInvalidCommand = Msg("jpyErrorInvalidCommand", "コマンドが正しくありません: %1$s");
+	auto jpyErrorInvalidStartTag = Msg("jpyErrorInvalidStartTag", "開始タグが正しくありません: %1$s");
+	auto jpyErrorLabelNotFound = Msg("jpyErrorLabelNotFound", "セクションがありません。");
+
 	/// メニュー。
 	const string menuText(MenuID id) {
 		mixin(EnumToStringSwitch!(MenuID, "menuText"));

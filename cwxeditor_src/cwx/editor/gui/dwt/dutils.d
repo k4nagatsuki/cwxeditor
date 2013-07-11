@@ -64,21 +64,21 @@ import java.lang.all;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
-bool dwtImageSize(Skin skin, string path, out uint width, out uint height) {
+bool dwtImageSize(in Props prop, in Skin skin, string path, out uint width, out uint height) {
 	auto ext = .extension(path);
 	if (cfnmatch(ext, ".jpy1")
 			|| cfnmatch(ext, ".jptx")
 			|| cfnmatch(ext, ".jpdc")) {
-		auto img = loadJPYImage(skin, path, [], width, height);
+		auto img = loadJPYImage(prop, skin, path, [], width, height);
 		return img !is null;
 	}
 	return imageSize(path, width, height);
 }
 
 ImageData loadImage(string path, bool mask = true, int maskX = 0, int maskY = 0) {
-	return loadImage(null, path, mask, maskX, maskY);
+	return loadImage(null, null, path, mask, maskX, maskY);
 }
-ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int maskY = 0, string[] stratum = []) {
+ImageData loadImage(in Props prop, in Skin skin, string path, bool mask = true, int maskX = 0, int maskY = 0, string[] stratum = []) {
 	if (!isBinImg(path) && contains(stratum, nabs(path))) {
 		// 無限再帰を回避
 		return blankImage;
@@ -88,7 +88,7 @@ ImageData loadImage(Skin skin, string path, bool mask = true, int maskX = 0, int
 		if (cfnmatch(ext, ".jpy1")
 				|| cfnmatch(ext, ".jptx")
 				|| cfnmatch(ext, ".jpdc")) {
-			auto data = loadJPYImage(skin, path, stratum);
+			auto data = loadJPYImage(prop, skin, path, stratum);
 			if (mask) data.transparentPixel = data.getPixel(maskX, maskY);
 			return data;
 		}
