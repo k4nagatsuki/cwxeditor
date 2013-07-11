@@ -658,7 +658,7 @@ public:
 			dataSet.add(bmpData);
 		}
 		foreach (d; dataSet) {
-			if (bmpData !is data) {
+			if (bmpData !is d) {
 				del(d);
 			}
 		}
