@@ -273,10 +273,10 @@ struct Jpy1 {
 				// label
 				Jpy1Sec sec;
 				sec.label = astrip(line[1 .. $ - 1]);
-				if (sec.label in secNames) {
+				if (sec.label.toLower() in secNames) {
 					errInfo.add(.tryFormat(prop.msgs.jpyErrorDupSection, line), path, lineNum);
 				} else {
-					secNames[sec.label] = true;
+					secNames[sec.label.toLower()] = true;
 				}
 				r.sections ~= sec;
 				continue;
