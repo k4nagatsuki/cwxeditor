@@ -264,6 +264,7 @@ struct Jpy1 {
 	static Jpy1 load(in CProps prop, string path) {
 		Jpy1 r;
 		auto errInfo = new EffectBoosterError;
+		bool[string] secNames;
 		foreach (i, line; splitLines!string(readJPYFile(path, prop, errInfo))) {
 			auto lineNum = i + 1;
 			line = astrip(line);
@@ -272,6 +273,11 @@ struct Jpy1 {
 				// label
 				Jpy1Sec sec;
 				sec.label = astrip(line[1 .. $ - 1]);
+				if (sec.label in secNames) {
+					errInfo.add(.tryFormat(prop.msgs.jpyErrorDupSection, line), path, lineNum);
+				} else {
+					secNames[sec.label] = true;
+				}
 				r.sections ~= sec;
 				continue;
 			}
@@ -564,6 +570,7 @@ private struct JptxParser {
 				} else {
 					startTag(m, prop, file, line, errInfo);
 				}
+				line += .count(reg.hit, "\n");
 				text = toUTF8(reg.post);
 				continue;
 			}

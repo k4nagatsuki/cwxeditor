@@ -1735,6 +1735,7 @@ class Msgs : Properties {
 	auto completeStamp = Msg("completeStamp", "終了印");
 
 	auto jpyError = Msg("jpyError", "%1$s\n%2$s の %3$s 行目");
+	auto jpyErrorDupSection = Msg("jpyErrorDupSection", "セクション名が重複してます: %1$s");
 	auto jpyErrorInvalidPoint = Msg("jpyErrorInvalidPoint", "位置の書式が正しくありません: %1$s");
 	auto jpyErrorInvalidRect = Msg("jpyErrorInvalidRect", "位置とサイズの書式が正しくありません: %1$s");
 	auto jpyErrorInvalidRGB = Msg("jpyErrorInvalidRGB", "値が正しくありません: %1$s");
