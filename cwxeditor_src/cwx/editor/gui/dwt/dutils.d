@@ -64,7 +64,7 @@ import java.lang.all;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
-bool dwtImageSize(in Props prop, in Skin skin, string path, out uint width, out uint height) {
+bool dwtImageSize(Props prop, in Skin skin, string path, out uint width, out uint height) {
 	auto ext = .extension(path);
 	if (cfnmatch(ext, ".jpy1")
 			|| cfnmatch(ext, ".jptx")
@@ -79,7 +79,7 @@ bool dwtImageSize(in Props prop, in Skin skin, string path, out uint width, out 
 ImageData loadImage(string path, bool mask = true, int maskX = 0, int maskY = 0) {
 	return loadImage(null, null, path, mask, maskX, maskY);
 }
-ImageData loadImage(in Props prop, in Skin skin, string path, bool mask = true, int maskX = 0, int maskY = 0, string[] stratum = []) {
+ImageData loadImage(Props prop, in Skin skin, string path, bool mask = true, int maskX = 0, int maskY = 0, string[] stratum = []) {
 	if (!isBinImg(path) && contains(stratum, nabs(path))) {
 		// 無限再帰を回避
 		return blankImage;

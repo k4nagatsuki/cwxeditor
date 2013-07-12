@@ -1734,7 +1734,7 @@ class Msgs : Properties {
 	auto gossip = Msg("gossip", "ゴシップ");
 	auto completeStamp = Msg("completeStamp", "終了印");
 
-	auto jpyError = Msg("jpyError", "%1$s\n%2$s, %3$s行目");
+	auto jpyError = Msg("jpyError", "%1$s\n%2$s の %3$s 行目");
 	auto jpyErrorInvalidPoint = Msg("jpyErrorInvalidPoint", "位置の書式が正しくありません: %1$s");
 	auto jpyErrorInvalidRect = Msg("jpyErrorInvalidRect", "位置とサイズの書式が正しくありません: %1$s");
 	auto jpyErrorInvalidRGB = Msg("jpyErrorInvalidRGB", "値が正しくありません: %1$s");

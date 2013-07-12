@@ -195,7 +195,7 @@ version (Windows) {
 /// Params:
 /// path = ファイルパス。
 /// Returns: 背景画像。背景画像でないならnull。
-ImageData loadBgImage(in Props prop, in Skin skin, string path) {
+ImageData loadBgImage(Props prop, in Skin skin, string path) {
  	return skin.isBgImage(path) ? loadImage(prop, skin, path) : null;
 }
 

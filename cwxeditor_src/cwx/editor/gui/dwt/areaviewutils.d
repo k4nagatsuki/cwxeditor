@@ -55,7 +55,7 @@ import java.lang.all;
 /// 背景画像を生成する。
 /// Returns: 背景画像。
 FlexImage createBackgroundImage
-		(in Props prop, in Skin skin, string path, int x, int y, int w, int h, bool transparent) {
+		(Props prop, in Skin skin, string path, int x, int y, int w, int h, bool transparent) {
 	FlexImage r;
 	auto ext = .extension(path);
 	if (cfnmatch(ext, ".jpy1") || cfnmatch(ext, ".jptx") || cfnmatch(ext, ".jpdc")) {

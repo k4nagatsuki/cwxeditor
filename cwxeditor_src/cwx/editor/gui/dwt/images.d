@@ -1476,7 +1476,7 @@ public:
 				l(this, x, y, cast(real) width / initW);
 			}
 		}
-		if (!_img || resize) createImage();
+		if (!_img || (resize && _dataResizable)) createImage();
 		retoggle();
 	}
 	/// サイズと移動の仮設定を最初の状態に戻す。
