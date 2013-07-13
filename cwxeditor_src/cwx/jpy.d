@@ -127,7 +127,15 @@ private {
 	}
 	CRGB rgbVal(string value) {
 		if (value.length < 7 || (value[0] != '$' && value[0] != '#')) {
-			throw new Exception("invalid rgb: " ~ value);
+			try {
+				int val = std.conv.parse!int(value, 16);
+				int r = val & 0xFF0000 >>> 16;
+				int g = val & 0x00FF00 >>> 8;
+				int b = val & 0x0000FF >>> 0;
+				return CRGB(r, g, b);
+			} catch (Exception e) {
+				throw new Exception("invalid rgb: " ~ value);
+			}
 		}
 		auto sr = value[1 .. 3];
 		auto sg = value[3 .. 5];
@@ -145,7 +153,10 @@ private {
 			return touni(value);
 		}
 	}
-	int intVal(string value) {return to!(int)(value);}
+	int intVal(string value) {
+		if (value.endsWith("px")) value = value[0 .. $-2];
+		return to!(int)(value);
+	}
 	bool boolVal(string value) {return value == "1";}
 }
 
@@ -511,7 +522,7 @@ struct Jptx {
 	int lineheight = 100; // %
 	int fontpixels = 12;
 	CRGB fontcolor = CRGB(255, 255, 255);
-	string fontface = "ＭＳ　Ｐゴシック";
+	string fontface = "ＭＳ Ｐゴシック";
 	int antialias = false;
 	bool fonttransparent = false;
 
