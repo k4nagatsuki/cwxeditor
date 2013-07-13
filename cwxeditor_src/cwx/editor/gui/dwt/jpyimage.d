@@ -358,7 +358,7 @@ private ImageData loadJPTXImage(in Props prop, string path) {
 	int lineCount = 0;
 	jptx.parse((string text, in JptxParam param) {
 		version (Windows) {
-			int fh = jptx.fontpixels;
+			int fh = param.pixels;
 			DWORD fwg = param.b ? FW_BOLD : FW_NORMAL;
 			DWORD fi = param.i ? TRUE : FALSE;
 			DWORD fu = param.u ? TRUE : FALSE;
@@ -378,7 +378,7 @@ private ImageData loadJPTXImage(in Props prop, string path) {
 			int fStyle = SWT.NORMAL;
 			if (param.b) fStyle |= SWT.BOLD;
 			if (param.i) fStyle |= SWT.ITALIC;
-			auto h = cast(int) (jptx.fontpixels * (72.0 / d.getDPI().y) + 0.5);
+			auto h = cast(int) (param.pixels * (72.0 / d.getDPI().y) + 0.5);
 			auto fontData = new FontData(param.face, h, fStyle);
 			auto font = new Font(d, fontData);
 		}

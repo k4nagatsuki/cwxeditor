@@ -1805,7 +1805,7 @@ private:
 	WallpaperStyle _wallpaperStyle = WallpaperStyle.Tile;
 
 	PileImage[] backs = [];
-	Image[] _appends = [];
+	ImageData[] _appends = [];
 	bool _showAppends = true;
 
 	int _gridX = 0, _gridY = 0;
@@ -2289,7 +2289,6 @@ private:
 				_lastWallpaper = backImg;
 				_lastClientArea = rect;
 			}
-
 			auto imageData = cast(ImageData)_background.clone();
 			scope (exit) {
 				delete imageData.alphaData;
@@ -2310,7 +2309,9 @@ private:
 			}
 			if (_showAppends) {
 				foreach (a; _appends) {
-					gc.drawImage(a, 0, 0);
+					auto img = new Image(d, a);
+					scope (exit) img.dispose();
+					gc.drawImage(img, 0, 0);
 				}
 			}
 
@@ -2617,12 +2618,12 @@ public:
 
 	/// 追加的に表示するイメージ。
 	@property
-	Image[] appends() {
+	ImageData[] appends() {
 		return _appends;
 	}
 	/// ditto
 	@property
-	void appends(Image[] v) {
+	void appends(ImageData[] v) {
 		_appends = v;
 		redraw();
 	}

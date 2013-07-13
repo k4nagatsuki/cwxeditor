@@ -167,8 +167,16 @@ private {
 	}
 	CRGB rgbVal(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) {
 		if (value.length < 7 || (value[0] != '$' && value[0] != '#')) {
-			errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidRGB, value), file, line);
-			return CRGB(0, 0, 0);
+			try {
+				int val = std.conv.parse!int(value, 16);
+				int r = val & 0xFF0000 >>> 16;
+				int g = val & 0x00FF00 >>> 8;
+				int b = val & 0x0000FF >>> 0;
+				return CRGB(r, g, b);
+			} catch (Exception e) {
+				errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidRGB, value), file, line);
+				return CRGB(0, 0, 0);
+			}
 		}
 		auto sr = value[1 .. 3];
 		auto sg = value[3 .. 5];
@@ -203,6 +211,7 @@ private {
 	}
 	int intVal(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) {
 		try {
+			if (value.endsWith("px")) value = value[0 .. $-2];
 			return to!(int)(value);
 		} catch (Exception e) {
 			errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidInt, value), file, line);
@@ -616,7 +625,7 @@ struct Jptx {
 	int lineheight = 100; // %
 	int fontpixels = 12;
 	CRGB fontcolor = CRGB(255, 255, 255);
-	string fontface = "ＭＳ　Ｐゴシック";
+	string fontface = "ＭＳ Ｐゴシック";
 	int antialias = false;
 	bool fonttransparent = false;
 

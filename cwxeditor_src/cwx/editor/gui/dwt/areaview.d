@@ -189,8 +189,8 @@ private:
 			if (0 == _refAreas.getSelectionIndex()) {
 				_refTarget = null;
 				foreach (a; _imgp.appends) {
-					delete a.getImageData().data;
-					a.dispose();
+					delete a.data;
+					delete a.alphaData;
 				}
 				_imgp.appends = [];
 			}
@@ -1455,8 +1455,8 @@ private:
 		static if (RefCards) {
 			listener(_imgp, SWT.Dispose, {
 				foreach (a; _imgp.appends) {
-					delete a.getImageData().data;
-					a.dispose();
+					delete a.data;
+					delete a.alphaData;
 				}
 			});
 		}
@@ -2432,8 +2432,8 @@ public:
 					_refTarget = sel <= 0 ? null : _refAreasArr[sel - 1];
 					if (!_refTarget) {
 						foreach (a; _imgp.appends) {
-							delete a.getImageData().data;
-							a.dispose();
+							delete a.data;
+							delete a.alphaData;
 						}
 						_imgp.appends = [];
 					}
@@ -2699,8 +2699,8 @@ public:
 	static if (RefCards) {
 		void addRefCards(C2)(in C2[] cs) {
 			foreach (a; _imgp.appends) {
-				delete a.getImageData().data;
-				a.dispose();
+				delete a.data;
+				delete a.alphaData;
 			}
 			auto a = createRefCardImpl!C2(cs, -1);
 			if (a) {
@@ -2711,8 +2711,8 @@ public:
 		}
 		void createRefCard(int del = -1) {
 			foreach (a; _imgp.appends) {
-				delete a.getImageData().data;
-				a.dispose();
+				delete a.data;
+				delete a.alphaData;
 			}
 			_imgp.appends = [];
 			auto area = cast(Area) _refTarget;
@@ -2726,19 +2726,21 @@ public:
 				if (a) _imgp.appends = [a];
 			}
 		}
-		Image createRefCardImpl(C2)(in C2[] cs, int del) {
+		ImageData createRefCardImpl(C2)(in C2[] cs, int del) {
 			auto d = getDisplay();
 			auto vs = _prop.looks.viewSize;
 			auto img = new Image(d, vs.width, vs.height);
 			auto data = img.getImageData();
 			img.dispose();
 			auto alphas = new byte[vs.width * vs.height];
+			scope (exit) delete alphas;
 			alphas[] = 0;
 			data.setAlphas(0, 0, vs.width * vs.height, alphas, 0);
 			foreach (i, c; cs) {
 				if (i == del) continue;
 				auto pimg = createCardImage!PileImage(c, _prop.var.etc.smoothingCard);
 				auto pdata = pimg.createImageData();
+				scope (exit) delete pdata.data;
 				assert (pdata !is null);
 				foreach (x; 0 .. pimg.width) {
 					foreach (y; 0 .. pimg.height) {
@@ -2752,7 +2754,7 @@ public:
 				}
 				pimg.dispose();
 			}
-			return new Image(d, data);
+			return data;
 		}
 	}
 	void refresh() {
