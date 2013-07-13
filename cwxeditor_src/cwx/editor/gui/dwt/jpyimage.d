@@ -108,7 +108,7 @@ private ImageData loadJPYImageImpl(Props prop, in Skin skin, string path, string
 			} break;
 			case Dirtype.SCENARIO: {
 				dir = dirName(path);
-				for (int dp = 0; dp < sec.dirdepth; dp++) {
+				for (int dp = 0; dp <= sec.dirdepth; dp++) {
 					dir = dirName(dir);
 				}
 			} break;
@@ -118,7 +118,7 @@ private ImageData loadJPYImageImpl(Props prop, in Skin skin, string path, string
 			} break;
 			case Dirtype.PARENT: {
 				dir = dirName(dirName(path));
-				for (int dp = 0; dp < sec.dirdepth; dp++) {
+				for (int dp = 0; dp <= sec.dirdepth; dp++) {
 					dir = dirName(dir);
 				}
 			} break;
