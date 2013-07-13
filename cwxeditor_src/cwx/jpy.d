@@ -338,7 +338,6 @@ struct Jpy1 {
 				case "flip": flip = boolVal(value, prop, path, lineNum, errInfo); break;
 				case "mirror": mirror = boolVal(value, prop, path, lineNum, errInfo); break;
 				case "comment": comment = strVal(value, prop, path, lineNum, errInfo); break;
-				case "flagname": flagname = strVal(value, prop, path, lineNum, errInfo); break; // リファレンスに無いコマンド
 				default:
 					errInfo.add(.tryFormat( prop.msgs.jpyErrorInvalidCommand, key), path, lineNum);
 					continue;
@@ -396,8 +395,6 @@ struct Jpy1Sec {
 	bool mirror = false;
 
 	string comment = "";
-
-	string flagname = ""; // リファレンスに無いコマンド
 }
 
 private struct JptxTag {
