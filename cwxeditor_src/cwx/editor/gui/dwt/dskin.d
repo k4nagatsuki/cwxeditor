@@ -5,6 +5,7 @@ import cwx.utils;
 import cwx.skin;
 import cwx.types;
 import cwx.structs;
+import cwx.summary;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.properties;
@@ -195,8 +196,8 @@ version (Windows) {
 /// Params:
 /// path = ファイルパス。
 /// Returns: 背景画像。背景画像でないならnull。
-ImageData loadBgImage(Skin skin, string path) {
- 	return skin.isBgImage(path) ? loadImage(skin, path) : null;
+ImageData loadBgImage(Skin skin, in Summary summ, string path) {
+ 	return skin.isBgImage(path) ? loadImage(skin, summ, path) : null;
 }
 
 private ImageData createImg(T ...)(string lEnginePath, string resName,

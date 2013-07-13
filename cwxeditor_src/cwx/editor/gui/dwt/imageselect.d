@@ -421,7 +421,7 @@ private:
 					imgData = _img;
 				} else {
 					_paintedPath = path;
-					imgData = loadImage(_comm.skin, path, _mask);
+					imgData = loadImage(_comm.skin, _summ, path, _mask);
 					_img = imgData;
 				}
 			} else if (_createDefImage && dirsi < _defs.length) {

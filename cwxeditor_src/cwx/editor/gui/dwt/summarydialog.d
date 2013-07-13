@@ -652,7 +652,7 @@ private class SummaryPreview : Composite {
 			if (imgPath !is null && imgPath.length > 0) {
 				string p = skin.findImagePath(imgPath, _summ.scenarioPath);
 				if (p.length) {
-					scope img = new Image(d, loadImage(skin, p));
+					scope img = new Image(d, loadImage(skin, _summ, p));
 					gc.drawImage(img, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
 					img.dispose();
 				}

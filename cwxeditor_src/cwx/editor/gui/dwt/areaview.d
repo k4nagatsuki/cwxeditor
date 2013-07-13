@@ -3288,7 +3288,7 @@ public:
 			auto skin = _comm.skin;
 			auto path = skin.findImagePath(back.path, _summ ? _summ.scenarioPath : "");
 			auto img = createBackgroundImage
-				(skin, path, back.x, back.y, back.width, back.height, back.mask);
+				(skin, _summ, path, back.x, back.y, back.width, back.height, back.mask);
 			_backTbl[img] = back;
 			img.visible = _viewBacks;
 			img.fixed = isFixed;
@@ -3365,7 +3365,7 @@ public:
 			}
 			private bool doFile(string path) {
 				assert (_summ);
-				auto img = loadBgImage(_comm.skin, path);
+				auto img = loadBgImage(_comm.skin, _summ, path);
 				if (img) {
 					int i = backFromFile(path, 0, 0, img.width, img.height, false);
 					if (i >= 0) {
@@ -3614,7 +3614,7 @@ public:
 						addC ~= i;
 					}
 				} else {
-					auto img = loadBgImage(skin, path);
+					auto img = loadBgImage(skin, _summ, path);
 					if (img) {
 						int i = backFromFile(path, x, y, img.width, img.height, true);
 						if (i == -1) {
@@ -3634,7 +3634,7 @@ public:
 					}
 				}
 			} else static if (UseBacks) {
-				auto img = loadBgImage(skin, path);
+				auto img = loadBgImage(skin, _summ, path);
 				if (img) {
 					int i = backFromFile(path, x, y, img.width, img.height, true);
 					if (i == -1) {

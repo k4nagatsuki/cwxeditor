@@ -7,6 +7,7 @@ import cwx.structs;
 import cwx.jpy;
 import cwx.graphics;
 import cwx.sjis;
+import cwx.summary;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -19,16 +20,16 @@ import std.utf;
 import org.eclipse.swt.all;
 
 /// JPYの動作をエミュレートするが、甚だ不完全。
-ImageData loadJPYImage(Skin skin, string path, string[] stratum) {
+ImageData loadJPYImage(Skin skin, in Summary summ, string path, string[] stratum) {
 	uint width, height;
-	return loadJPYImage(skin, path, stratum, width, height);
+	return loadJPYImage(skin, summ, path, stratum, width, height);
 }
 /// ditto
-ImageData loadJPYImage(Skin skin, string path, string[] stratum, out uint width, out uint height) {
+ImageData loadJPYImage(Skin skin, in Summary summ, string path, string[] stratum, out uint width, out uint height) {
 	auto ext = .extension(path);
 	try {
 		if (cfnmatch(ext, ".jpy1")) {
-			auto img = loadJPYImageImpl(skin, path, stratum);
+			auto img = loadJPYImageImpl(skin, summ, path, stratum);
 			if (img) {
 				width = img.width;
 				height = img.height;
@@ -53,7 +54,7 @@ ImageData loadJPYImage(Skin skin, string path, string[] stratum, out uint width,
 	return blankImage;
 }
 
-private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
+private ImageData loadJPYImageImpl(Skin skin, in Summary summ, string path, string[] stratum) {
 	auto jpy = Jpy1.load(path);
 	if (!jpy.sections.length) return blankImage;
 	auto init = jpy.sections[0];
@@ -99,10 +100,8 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 				dir = std.path.buildPath(edir, "scheme");
 			} break;
 			case Dirtype.SCENARIO: {
-				dir = dirName(path);
-				for (int dp = 0; dp <= sec.dirdepth; dp++) {
-					dir = dirName(dir);
-				}
+				if (!summ) continue;
+				dir = summ.scenarioPath;
 			} break;
 			case Dirtype.WAV: {
 				if (!skin) continue;
@@ -110,7 +109,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 			} break;
 			case Dirtype.PARENT: {
 				dir = dirName(dirName(path));
-				for (int dp = 0; dp <= sec.dirdepth; dp++) {
+				for (int dp = 0; dp < sec.dirdepth; dp++) {
 					dir = dirName(dir);
 				}
 			} break;
@@ -122,7 +121,7 @@ private ImageData loadJPYImageImpl(Skin skin, string path, string[] stratum) {
 			}
 			auto fname = std.path.buildPath(dir, sec.filename);
 			if (!exists(fname)) continue;
-			data = loadImage(skin, fname, false, 0, 0, stratum);
+			data = loadImage(skin, summ, fname, false, 0, 0, stratum);
 			stratum ~= nabs(fname);
 		}
 		int dtw = data && data.width > 0 ? data.width : pw;
