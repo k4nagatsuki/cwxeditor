@@ -7,6 +7,7 @@ import cwx.structs;
 import cwx.jpy;
 import cwx.graphics;
 import cwx.sjis;
+import cwx.summary;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -19,17 +20,17 @@ import std.utf;
 import org.eclipse.swt.all;
 
 /// JPYの動作をエミュレートするが、甚だ不完全。
-ImageData loadJPYImage(Props prop, in Skin skin, string path, string[] stratum, out bool resizable) {
+ImageData loadJPYImage(Props prop, in Skin skin, in Summary summ, string path, string[] stratum, out bool resizable) {
 	uint width, height;
-	return loadJPYImage(prop, skin, path, stratum, width, height, resizable);
+	return loadJPYImage(prop, skin, summ, path, stratum, width, height, resizable);
 }
 /// ditto
-ImageData loadJPYImage(Props prop, in Skin skin, string path, string[] stratum, out uint width, out uint height, out bool resizable) {
+ImageData loadJPYImage(Props prop, in Skin skin, in Summary summ, string path, string[] stratum, out uint width, out uint height, out bool resizable) {
 	auto ext = .extension(path);
 	resizable = true;
 	try {
 		if (cfnmatch(ext, ".jpy1")) {
-			auto img = loadJPYImageImpl(prop, skin, path, stratum);
+			auto img = loadJPYImageImpl(prop, skin, summ, path, stratum);
 			if (img) {
 				width = img.width;
 				height = img.height;
@@ -49,7 +50,7 @@ ImageData loadJPYImage(Props prop, in Skin skin, string path, string[] stratum, 
 		}
 	} catch (EffectBoosterError e) {
 		resizable = false;
-		auto img = warningImage(prop, e);
+		auto img = warningImage(prop, summ, e);
 		width = img.width;
 		height = img.height;
 		return img;
@@ -61,7 +62,7 @@ ImageData loadJPYImage(Props prop, in Skin skin, string path, string[] stratum, 
 	return blankImage;
 }
 
-private ImageData loadJPYImageImpl(Props prop, in Skin skin, string path, string[] stratum) {
+private ImageData loadJPYImageImpl(Props prop, in Skin skin, in Summary summ, string path, string[] stratum) {
 	Jpy1 jpy = Jpy1.load(prop.parent, path);
 	if (!jpy.sections.length) return blankImage;
 	auto init = jpy.sections[0];
@@ -107,10 +108,8 @@ private ImageData loadJPYImageImpl(Props prop, in Skin skin, string path, string
 				dir = std.path.buildPath(edir, "scheme");
 			} break;
 			case Dirtype.SCENARIO: {
-				dir = dirName(path);
-				for (int dp = 0; dp <= sec.dirdepth; dp++) {
-					dir = dirName(dir);
-				}
+				if (!summ) continue;
+				dir = summ.scenarioPath;
 			} break;
 			case Dirtype.WAV: {
 				if (!skin) continue;
@@ -118,7 +117,7 @@ private ImageData loadJPYImageImpl(Props prop, in Skin skin, string path, string
 			} break;
 			case Dirtype.PARENT: {
 				dir = dirName(dirName(path));
-				for (int dp = 0; dp <= sec.dirdepth; dp++) {
+				for (int dp = 0; dp < sec.dirdepth; dp++) {
 					dir = dirName(dir);
 				}
 			} break;
@@ -130,7 +129,7 @@ private ImageData loadJPYImageImpl(Props prop, in Skin skin, string path, string
 			}
 			auto fname = std.path.buildPath(dir, sec.filename);
 			if (!exists(fname)) continue;
-			data = loadImage(prop, skin, fname, false, 0, 0, stratum);
+			data = loadImage(prop, skin, summ, fname, false, 0, 0, stratum);
 			stratum ~= nabs(fname);
 		}
 		int dtw = data && data.width > 0 ? data.width : pw;
@@ -433,7 +432,7 @@ private ImageData loadJPTXImage(in Props prop, string path) {
 	return r.getImageData();
 }
 
-private ImageData warningImage(Props prop, EffectBoosterError e) {
+private ImageData warningImage(Props prop, in Summary summ, EffectBoosterError e) {
 	if (!e.errors.length) return blankImage;
 	auto d = Display.getCurrent();
 	string[] msgs;
@@ -449,8 +448,15 @@ private ImageData warningImage(Props prop, EffectBoosterError e) {
 		lh = .max(imgBounds.height, lineHeight);
 		height = (lh * 2) * e.errors.length + 5 * (e.errors.length - 1) + 2 * 2;
 		width = 0;
+		auto sPath = summ ? nabs(summ.scenarioPath).toLower() : "";
 		foreach (err; e.errors) {
-			auto msg = .tryFormat(prop.msgs.jpyError, err.msg, err.file.baseName(), err.line);
+			string path;
+			if (summ && nabs(err.file).toLower().startsWith(sPath)) {
+				path = err.file.abs2rel(summ.scenarioPath);
+			} else {
+				path = err.file.baseName();
+			}
+			auto msg = .tryFormat(prop.msgs.jpyError, err.msg, path, err.line);
 			width = .max(width, gc.textExtent(msg).x);
 			msgs ~= msg;
 		}

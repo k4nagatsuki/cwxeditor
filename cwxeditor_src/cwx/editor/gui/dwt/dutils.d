@@ -64,22 +64,22 @@ import java.lang.all;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
-bool dwtImageSize(Props prop, in Skin skin, string path, out uint width, out uint height) {
+bool dwtImageSize(Props prop, in Skin skin, in Summary summ, string path, out uint width, out uint height) {
 	auto ext = .extension(path);
 	if (cfnmatch(ext, ".jpy1")
 			|| cfnmatch(ext, ".jptx")
 			|| cfnmatch(ext, ".jpdc")) {
 		bool resizable;
-		auto img = loadJPYImage(prop, skin, path, [], width, height, resizable);
+		auto img = loadJPYImage(prop, skin, summ, path, [], width, height, resizable);
 		return img !is null;
 	}
 	return imageSize(path, width, height);
 }
 
 ImageData loadImage(string path, bool mask = true, int maskX = 0, int maskY = 0) {
-	return loadImage(null, null, path, mask, maskX, maskY);
+	return loadImage(null, null, null, path, mask, maskX, maskY);
 }
-ImageData loadImage(Props prop, in Skin skin, string path, bool mask = true, int maskX = 0, int maskY = 0, string[] stratum = []) {
+ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool mask = true, int maskX = 0, int maskY = 0, string[] stratum = []) {
 	if (!isBinImg(path) && contains(stratum, nabs(path))) {
 		// 無限再帰を回避
 		return blankImage;
@@ -90,7 +90,7 @@ ImageData loadImage(Props prop, in Skin skin, string path, bool mask = true, int
 				|| cfnmatch(ext, ".jptx")
 				|| cfnmatch(ext, ".jpdc")) {
 			bool resizable;
-			auto data = loadJPYImage(prop, skin, path, stratum, resizable);
+			auto data = loadJPYImage(prop, skin, summ, path, stratum, resizable);
 			if (mask) data.transparentPixel = data.getPixel(maskX, maskY);
 			return data;
 		}

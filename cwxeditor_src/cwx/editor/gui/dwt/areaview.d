@@ -3962,7 +3962,7 @@ public:
 			auto skin = _comm.skin;
 			auto path = skin.findImagePath(back.path, _summ ? _summ.scenarioPath : "");
 			return createBackgroundImage
-				(_prop, skin, path, back.x, back.y, back.width, back.height, back.mask);
+				(_prop, skin, _summ, path, back.x, back.y, back.width, back.height, back.mask);
 		}
 		private FlexImage create(TextCell back) {
 			auto r = new FlexImage(back.text, back.fontName, back.size, back.color,
@@ -4051,7 +4051,7 @@ public:
 			}
 			private bool doFile(string path) {
 				assert (_summ);
-				auto img = loadBgImage(_prop, _comm.skin, path);
+				auto img = loadBgImage(_prop, _comm.skin, _summ, path);
 				if (img) {
 					int i = backFromFile(path, 0, 0, img.width, img.height, false);
 					if (i >= 0) {
@@ -4309,7 +4309,7 @@ public:
 						addC ~= i;
 					}
 				} else {
-					auto img = loadBgImage(_prop, skin, path);
+					auto img = loadBgImage(_prop, skin, _summ, path);
 					if (img) {
 						int i = backFromFile(path, x, y, img.width, img.height, true);
 						if (i == -1) {
@@ -4329,7 +4329,7 @@ public:
 					}
 				}
 			} else static if (UseBacks) {
-				auto img = loadBgImage(_prop, skin, path);
+				auto img = loadBgImage(_prop, skin, _summ, path);
 				if (img) {
 					int i = backFromFile(path, x, y, img.width, img.height, true);
 					if (i == -1) {

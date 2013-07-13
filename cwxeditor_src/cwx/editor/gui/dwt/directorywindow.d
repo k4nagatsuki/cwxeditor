@@ -890,7 +890,7 @@ private:
 		}
 	}
 	ImageData previewImage(string path) {
-		auto data = loadImage(_prop, _comm.skin, path, false);
+		auto data = loadImage(_prop, _comm.skin, _summ, path, false);
 		if (data.width == 1 && data.height == 1 && data.transparentPixel == data.getPixel(0, 0)) {
 			return null;
 		}

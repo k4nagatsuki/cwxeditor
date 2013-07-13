@@ -426,7 +426,7 @@ private:
 					imgData = _img;
 				} else {
 					_paintedPath = path;
-					imgData = loadImage(_prop, _comm.skin, path, _mask);
+					imgData = loadImage(_prop, _comm.skin, _summ, path, _mask);
 					if (_img) delete _img.data;
 					_img = imgData;
 				}

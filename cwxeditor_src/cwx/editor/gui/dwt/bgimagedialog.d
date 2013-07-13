@@ -345,7 +345,7 @@ protected:
 			if (file.length > 0) {
 				try {
 					uint x, y;
-					dwtImageSize(_prop, _comm.skin, file, x, y);
+					dwtImageSize(_prop, _comm.skin, _summ, file, x, y);
 					_w.setSelection(x);
 					_h.setSelection(y);
 					_selected = true;

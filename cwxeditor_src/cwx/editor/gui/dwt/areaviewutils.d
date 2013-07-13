@@ -55,17 +55,17 @@ import java.lang.all;
 /// 背景画像を生成する。
 /// Returns: 背景画像。
 FlexImage createBackgroundImage
-		(Props prop, in Skin skin, string path, int x, int y, int w, int h, bool transparent) {
+		(Props prop, in Skin skin, in Summary summ, string path, int x, int y, int w, int h, bool transparent) {
 	FlexImage r;
 	auto ext = .extension(path);
 	if (cfnmatch(ext, ".jpy1") || cfnmatch(ext, ".jptx") || cfnmatch(ext, ".jpdc")) {
 		bool resizable;
-		auto data = loadJPYImage(prop, skin, path, [], resizable);
+		auto data = loadJPYImage(prop, skin, summ, path, [], resizable);
 		r = new FlexImage(data, x, y, data.width, data.height, resizable);
 	} else {
 		uint baseW = w, baseH = h;
 		try {
-			dwtImageSize(prop, skin, path, baseW, baseH);
+			dwtImageSize(prop, skin, summ, path, baseW, baseH);
 		} catch {
 			baseW = w;
 			baseH = h;
