@@ -2291,10 +2291,16 @@ private:
 			}
 
 			auto imageData = cast(ImageData)_background.clone();
-			scope (exit) delete imageData.data;
+			scope (exit) {
+				delete imageData.alphaData;
+				delete imageData.maskData;
+				delete imageData.data;
+			}
 			auto range = new Rectangle(e.x, e.y, e.width, e.height);
 			auto buf = new Image(d, imageData);
+			scope (exit) buf.dispose();
 			auto gc = new GC(buf);
+			scope (exit) gc.dispose();
 			foreach (bmp; backs) {
 				bmp.draw(buf, gc, range);
 			}
@@ -2348,10 +2354,8 @@ private:
 					drawHLines();
 				}
 			}
-			gc.dispose();
 
 			e.gc.drawImage(buf, 0, 0);
-			buf.dispose();
 		}
 	}
 	class Traverse : Listener {

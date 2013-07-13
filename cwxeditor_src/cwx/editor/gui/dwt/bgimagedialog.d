@@ -158,6 +158,9 @@ protected:
 			spn.setMaximum(max);
 			spn.setMinimum(min);
 			spn.setSelection(0);
+			.listener(spn, SWT.Selection, {
+				_easy.select(0);
+			});
 			return spn;
 		}
 		_x = createS(_prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax));
@@ -301,6 +304,7 @@ protected:
 					() => "", &selectEasySetting);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
+				_imgPath.modEvent ~= () =>_easy.select(0);
 			}
 			if (_summ) {
 				auto sash = new SplitPane(comp, SWT.HORIZONTAL);

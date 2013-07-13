@@ -189,6 +189,7 @@ private:
 			if (0 == _refAreas.getSelectionIndex()) {
 				_refTarget = null;
 				foreach (a; _imgp.appends) {
+					delete a.getImageData().data;
 					a.dispose();
 				}
 				_imgp.appends = [];
@@ -1454,6 +1455,7 @@ private:
 		static if (RefCards) {
 			listener(_imgp, SWT.Dispose, {
 				foreach (a; _imgp.appends) {
+					delete a.getImageData().data;
 					a.dispose();
 				}
 			});
@@ -2430,6 +2432,7 @@ public:
 					_refTarget = sel <= 0 ? null : _refAreasArr[sel - 1];
 					if (!_refTarget) {
 						foreach (a; _imgp.appends) {
+							delete a.getImageData().data;
 							a.dispose();
 						}
 						_imgp.appends = [];
@@ -2696,6 +2699,7 @@ public:
 	static if (RefCards) {
 		void addRefCards(C2)(in C2[] cs) {
 			foreach (a; _imgp.appends) {
+				delete a.getImageData().data;
 				a.dispose();
 			}
 			auto a = createRefCardImpl!C2(cs, -1);
@@ -2707,6 +2711,7 @@ public:
 		}
 		void createRefCard(int del = -1) {
 			foreach (a; _imgp.appends) {
+				delete a.getImageData().data;
 				a.dispose();
 			}
 			_imgp.appends = [];
