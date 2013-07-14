@@ -1891,6 +1891,7 @@ public:
 		resultRedraw(false);
 		scope (exit) resultRedraw(true);
 		_undo.undo();
+		_comm.updateJpy1Files();
 	}
 	private void redo() {
 		if (!_undo.canRedo) return;
@@ -1904,6 +1905,7 @@ public:
 		resultRedraw(false);
 		scope (exit) resultRedraw(true);
 		_undo.redo();
+		_comm.updateJpy1Files();
 	}
 	private void search() {
 		auto c = _win.getDisplay().getFocusControl();
@@ -2302,6 +2304,7 @@ public:
 							_comm.replPath.call(fromTo[0], fromTo[1]);
 						}
 					}
+					_comm.updateJpy1Files();
 					resetCursors(cursors);
 					after();
 				}
@@ -2309,15 +2312,17 @@ public:
 			scope (exit) _display.syncExec(exit);
 
 			try {
-				auto wildcard = Wildcard(cast(string)from, 0 == filenameCharCmp('A', 'a'));
+				auto wildcard = Wildcard((cast(string)from).encodePath(), 0 == filenameCharCmp('A', 'a'));
 				foreach (key; uc.path.keys) {
-					if (wildcard.match(cast(string)key)) {
+					if (wildcard.match((cast(string)key).encodePath())) {
 						foreach (u; uc.path.values(key)) {
-							if (!dec(u.owner, range)) continue;
+							if (!cast(Jpy1Sec)u && !dec(u.owner, range)) continue;
 							if (_replMode) {
 								auto id = u.path;
 								u.path = cast(string)to;
-								storeID(u.owner, u, cast(string)id, cast(string)to, &u.path);
+								storeID(u.owner, u, cast(string)id, cast(string)to, (string id) {
+									u.path = id;
+								});
 								fromTos ~= [cast(string)id, cast(string)to];
 							}
 							addResult(u.owner, count);
@@ -2944,7 +2949,8 @@ public:
 					if (cfnmatch(.extension(file), ".jptx")) {
 						try {
 							bool isSJIS;
-							string value = readJPYFile(file, isSJIS);
+							auto errInfo = new EffectBoosterError;
+							string value = readJPYFile(file, _prop.parent, errInfo, isSJIS);
 							auto jText = jptxText(value);
 							Undo[] uArr;
 							string file2 = file;
@@ -3066,15 +3072,20 @@ public:
 					if (cancel) break;
 					if (cfnmatch(.extension(file), ".jptx")) {
 						bool isSJIS;
-						string value = readJPYFile(file, isSJIS);
-						auto jText = jptxText(value);
-						Undo[] uArr;
-						string file2 = file;
-						bool r = repl(null, jText, null, count, uArr, true);
-						if (r) {
-							file = abs2rel(file, summ.scenarioPath);
-							size_t dmy = 0;
-							addResult(file, dmy);
+						auto errInfo = new EffectBoosterError;
+						try {
+							string value = readJPYFile(file, _prop.parent, errInfo, isSJIS);
+							auto jText = jptxText(value);
+							Undo[] uArr;
+							string file2 = file;
+							bool r = repl(null, jText, null, count, uArr, true);
+							if (r) {
+								file = abs2rel(file, summ.scenarioPath);
+								size_t dmy = 0;
+								addResult(file, dmy);
+							}
+						} catch (Exception e) {
+							debugln(e);
 						}
 					}
 				}
@@ -3462,6 +3473,12 @@ public:
 				}
 			}
 			text = .tryFormat(_prop.msgs.searchResultEnemyCard, cName);
+		}
+		auto jpy1Sec = cast(Jpy1Sec)path;
+		if (jpy1Sec) {
+			img = _prop.images.backs;
+			auto fPath = nabs(jpy1Sec.fPath).abs2rel(nabs(summ.scenarioPath));
+			text = .tryFormat(_prop.msgs.searchResultJpy1, encodePath(fPath));
 		}
 		assert (par || img);
 		string parText = "", dummy;

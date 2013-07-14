@@ -1134,4 +1134,9 @@ class Commons {
 			debugln(e);
 		}
 	}
+
+	/// シナリオ内にあるJpy1ファイルの内容の上書きが必要であれば更新する。
+	void updateJpy1Files() {
+		_dirWin.updateJpy1Files();
+	}
 }

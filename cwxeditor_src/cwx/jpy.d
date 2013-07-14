@@ -5,6 +5,8 @@ import cwx.structs;
 import cwx.utils;
 import cwx.sjis;
 import cwx.props;
+import cwx.usecounter;
+import cwx.path;
 
 import std.array;
 import std.conv;
@@ -12,6 +14,7 @@ import std.exception;
 import std.string;
 import std.regex;
 import std.utf;
+import std.path;
 
 enum Animation {
 	NONE = 0,
@@ -224,7 +227,7 @@ private {
 }
 
 /// pathのファイルを読み込む。
-string readJPYFile(string path, out bool isSJIS) {
+string readJPYFile(string path, in CProps prop, EffectBoosterError errInfo, out bool isSJIS) {
 	char[] value;
 	try {
 		value = cast(char[])std.file.readText(path);
@@ -233,7 +236,12 @@ string readJPYFile(string path, out bool isSJIS) {
 	} catch {
 		isSJIS = true;
 		value = cast(char[])readBinary(path);
-		return touni(value);
+		try {
+			return touni(value);
+		} catch {
+			errInfo.add(prop.msgs.jpyErrorInvalidEncoding, path, 0);
+			return "";
+		}
 	}
 }
 /// ditto
@@ -269,21 +277,34 @@ private string stripValue(string eqAfter) {
 struct Jpy1 {
 	/// ファイルに含まれるセクション。
 	Jpy1Sec[] sections;
-	/// pathからJpy1を読込む。
-	static Jpy1 load(in CProps prop, string path) {
+	/// ファイルパス。
+	string jpy1Path;
+	/// 改行コードを含めた全行をそのまま格納する。
+	string[] lines;
+	/// ファイルが本来はShift JISであればtrue。
+	bool isSJIS;
+
+	/// jpy1PathからJpy1を読込む。
+	static Jpy1 load(in CProps prop, string sPath, string jpy1Path) {
 		Jpy1 r;
 		auto errInfo = new EffectBoosterError;
 		bool[string] secNames;
-		foreach (i, line; splitLines!string(readJPYFile(path, prop, errInfo))) {
+		r.jpy1Path = jpy1Path;
+		r.lines = .splitLines(readJPYFile(jpy1Path, prop, errInfo, r.isSJIS), KeepTerminator.yes);
+		foreach (i, line; r.lines) {
+			string origLine = line;
+			line = line.chomp();
 			auto lineNum = i + 1;
 			line = astrip(line);
 			if (!line.length || line[0] == ';') continue;
 			if (line[0] == '[' && line[$ - 1] == ']') {
 				// label
-				Jpy1Sec sec;
+				auto sec = new Jpy1Sec;
+				sec.sPath = sPath;
+				sec.fPath = jpy1Path;
 				sec.label = astrip(line[1 .. $ - 1]);
 				if (sec.label.toLower() in secNames) {
-					errInfo.add(.tryFormat(prop.msgs.jpyErrorDupSection, line), path, lineNum);
+					errInfo.add(.tryFormat(prop.msgs.jpyErrorDupSection, line), jpy1Path, lineNum);
 				} else {
 					secNames[sec.label.toLower()] = true;
 				}
@@ -291,66 +312,245 @@ struct Jpy1 {
 				continue;
 			}
 			if (!r.sections.length) {
-				errInfo.add(prop.msgs.jpyErrorLabelNotFound, path, lineNum);
+				errInfo.add(prop.msgs.jpyErrorLabelNotFound, jpy1Path, lineNum);
 				throw errInfo;
 			}
 			with (r.sections[$ - 1]) {
 				// contents
 				int eq = .cCountUntil(line, '=');
 				if (eq == -1) {
-					errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidLine, line), path, lineNum);
+					errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidLine, line), jpy1Path, lineNum);
 					continue;
 				}
 				auto key = astrip(line[0 .. eq]);
 				auto value = stripValue(line[eq + 1 .. $]);
 				switch (.toLower(key)) {
-				case "backwidth": backwidth = intVal(value, prop, path, lineNum, errInfo); break;
-				case "backheight": backheight = intVal(value, prop, path, lineNum, errInfo); break;
-				case "backcolor": backcolor = rgbVal(value, prop, path, lineNum, errInfo); break;
-				case "width": width = intVal(value, prop, path, lineNum, errInfo); break;
-				case "height": height = intVal(value, prop, path, lineNum, errInfo); break;
-				case "color": color = rgbVal(value, prop, path, lineNum, errInfo); break;
-				case "dirdepth": dirdepth = intVal(value, prop, path, lineNum, errInfo); break;
-				case "filename": filename = strVal(value, prop, path, lineNum, errInfo); break;
-				case "dirtype": dirtype = enumVal!(Dirtype)(value, prop, path, lineNum, errInfo); break;
-				case "loadcache": loadcache = enumVal!(Cache)(value, prop, path, lineNum, errInfo); break;
-				case "savecache": savecache = enumVal!(Cache)(value, prop, path, lineNum, errInfo); break;
-				case "visible": visible = boolVal(value, prop, path, lineNum, errInfo); break;
-				case "position": position = pointVal(value, prop, path, lineNum, errInfo); break;
-				case "transparent": transparent = boolVal(value, prop, path, lineNum, errInfo); break;
-				case "clip": clip = rectVal(value, prop, path, lineNum, errInfo); break;
-				case "paintmode": paintmode = enumVal!(Paintmode)(value, prop, path, lineNum, errInfo); break;
-				case "alpha": alpha = intVal(value, prop, path, lineNum, errInfo); break;
-				case "animeclip": animeclip = rectVal(value, prop, path, lineNum, errInfo); break;
-				case "animation": animation = enumVal!(Animation)(value, prop, path, lineNum, errInfo); break;
-				case "animeposition": animeposition = pointVal(value, prop, path, lineNum, errInfo); break;
-				case "animemove": animemove = pointVal(value, prop, path, lineNum, errInfo); break;
-				case "wait": wait = intVal(value, prop, path, lineNum, errInfo); break;
-				case "animespeed": animespeed = intVal(value, prop, path, lineNum, errInfo); break;
-				case "smooth": smooth = boolVal(value, prop, path, lineNum, errInfo); break;
-				case "colorexchange": colorexchange = enumVal!(Colorexchange)(value, prop, path, lineNum, errInfo); break;
-				case "colormap": colormap = enumVal!(Colormap)(value, prop, path, lineNum, errInfo); break;
-				case "filter": filter = enumVal!(Filter)(value, prop, path, lineNum, errInfo); break;
-				case "mask": mask = enumVal!(Mask)(value, prop, path, lineNum, errInfo); break;
-				case "noise": noise = enumVal!(Noise)(value, prop, path, lineNum, errInfo); break;
-				case "noisepoint": noisepoint = intVal(value, prop, path, lineNum, errInfo); break;
-				case "turn": turn = enumVal!(Turn)(value, prop, path, lineNum, errInfo); break;
-				case "flip": flip = boolVal(value, prop, path, lineNum, errInfo); break;
-				case "mirror": mirror = boolVal(value, prop, path, lineNum, errInfo); break;
-				case "comment": comment = strVal(value, prop, path, lineNum, errInfo); break;
+				case "backwidth": backwidth = intVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "backheight": backheight = intVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "backcolor": backcolor = rgbVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "width": width = intVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "height": height = intVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "color": color = rgbVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "dirdepth": dirdepth = intVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "filename":
+					filename = strVal(value, prop, jpy1Path, lineNum, errInfo);
+					filenameIndex = i;
+					filenameLine = origLine;
+					break;
+				case "dirtype": dirtype = enumVal!(Dirtype)(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "loadcache": loadcache = enumVal!(Cache)(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "savecache": savecache = enumVal!(Cache)(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "visible": visible = boolVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "position": position = pointVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "transparent": transparent = boolVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "clip": clip = rectVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "paintmode": paintmode = enumVal!(Paintmode)(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "alpha": alpha = intVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "animeclip": animeclip = rectVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "animation": animation = enumVal!(Animation)(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "animeposition": animeposition = pointVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "animemove": animemove = pointVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "wait": wait = intVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "animespeed": animespeed = intVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "smooth": smooth = boolVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "colorexchange": colorexchange = enumVal!(Colorexchange)(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "colormap": colormap = enumVal!(Colormap)(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "filter": filter = enumVal!(Filter)(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "mask": mask = enumVal!(Mask)(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "noise": noise = enumVal!(Noise)(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "noisepoint": noisepoint = intVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "turn": turn = enumVal!(Turn)(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "flip": flip = boolVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "mirror": mirror = boolVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "comment": comment = strVal(value, prop, jpy1Path, lineNum, errInfo); break;
 				default:
-					errInfo.add(.tryFormat( prop.msgs.jpyErrorInvalidCommand, key), path, lineNum);
+					errInfo.add(.tryFormat( prop.msgs.jpyErrorInvalidCommand, key), jpy1Path, lineNum);
 					continue;
 				}
 			}
 		}
 		if (errInfo.errors.length) throw errInfo;
+
+		foreach (ref sec; r.sections) {
+			sec.path = sec.toMaterialPath();
+		}
 		return r;
+	}
+
+	/// 使用回数カウンタを設定する。
+	void setUseCounter(UseCounter uc) {
+		foreach (ref sec; sections) {
+			sec.setUseCounter(uc);
+		}
+	}
+	/// 使用回数カウンタを外す。
+	void removeUseCounter() {
+		foreach (ref sec; sections) {
+			sec.removeUseCounter();
+		}
+	}
+
+	/// ファイルパスの変更を反映する。
+	/// oldPathがこのJpy1のファイルでもこのJpy1が含まれる
+	/// ディレクトリでもない場合は何もしない。
+	bool renameFile(string oldPath, string newPath) {
+		auto fPath = .nabs(jpy1Path);
+		auto oPath = .nabs(oldPath);
+		if (!fPath.fnstartsWith(oPath)) return false;
+		if (!.cfnmatch(fPath, oPath)) {
+			newPath = newPath.buildPath(fPath.abs2rel(oPath));
+		}
+		jpy1Path = newPath;
+		foreach (ref sec; sections) {
+			sec.fPath = jpy1Path;
+		}
+		return true;
+	}
+
+	/// ファイルパスの変更に伴ってファイルを上書き更新する。
+	/// rewriteがfalseの場合はファイルの上書きはせず内部データのみを更新する。
+	void updateJpy1File(in CProps prop, bool rewrite) {
+		bool update = false;
+		foreach (ref sec; sections) {
+			if (sec.needUpdate && sec.filenameIndex != -1) {
+				int eq = sec.filenameLine.cCountUntil('=');
+				assert (eq != -1);
+				auto ret = sec.filenameLine[sec.filenameLine.chomp().length .. $];
+				lines[sec.filenameIndex] = sec.filenameLine[0 .. eq+1] ~ sec.filename ~ ret;
+				sec.needUpdate = false;
+				update = true;
+			}
+		}
+		if (update && rewrite) {
+			auto rLines = std.array.join(lines, "");
+			if (isSJIS) {
+				rLines = tosjis(rLines);
+			}
+			std.file.write(jpy1Path, rLines);
+		}
 	}
 }
 
 /// Jpy1のセクションブロック。
-struct Jpy1Sec {
+class Jpy1Sec : PathUser, CWXPath {
+	private this () {
+		super (this);
+	}
+
+	@property
+	override
+	string cwxPath(bool id) {
+		return "";
+	}
+	override
+	CWXPath findCWXPath(string path) {
+		if (cpempty(path)) return this;
+		return null;
+	}
+	@property
+	override
+	const
+	const(CWXPath)[] cwxChilds() {return [];}
+	@property
+	override
+	CWXPath cwxParent() {return null;}
+
+	override
+	void change(PathId newVal) {
+		super.change(newVal);
+		auto newName = fromMaterialPath(cast(string)newVal);
+		if (newName != filename) {
+			filename = newName;
+			needUpdate = true;
+		}
+	}
+
+	@property
+	override
+	void path(string path) {
+		super.path(path);
+		auto newName = fromMaterialPath(path);
+		if (newName != filename) {
+			filename = newName;
+			needUpdate = true;
+		}
+	}
+
+	private string toMaterialPath() {
+		string dir;
+		switch (dirtype) {
+		case Dirtype.CURRENT: {
+			dir = dirName(fPath);
+		} break;
+		case Dirtype.TABLE: return "";
+		case Dirtype.SCHEME: return "";
+		case Dirtype.SCENARIO: {
+			if (sPath == "") return "";
+			dir = sPath;
+		} break;
+		case Dirtype.WAV: return "";
+		case Dirtype.PARENT: {
+			dir = dirName(dirName(fPath));
+			for (int dp = 0; dp < dirdepth; dp++) {
+				dir = dirName(dir);
+			}
+		} break;
+		case Dirtype.PROGRAM: return "";
+		default: return "";
+		}
+		auto fname = std.path.buildPath(dir, filename);
+		sPath = .nabs(sPath);
+		fname = .nabs(fname);
+		if (fname.fnstartsWith(sPath)) {
+			return fname.abs2rel(sPath);
+		}
+		return "";
+	}
+
+	private string fromMaterialPath(string filename) {
+		string relPath(string path) {
+			auto nsPath = nabs(sPath);
+			auto nPath = nabs(path);
+			if (nPath.fnstartsWith(nsPath)) {
+				return nPath.abs2rel(nsPath);
+			}
+			return path;
+		}
+		switch (dirtype) {
+		case Dirtype.CURRENT: {
+			return relPath(dirName(fPath).buildPath(filename));
+		} break;
+		case Dirtype.TABLE: return filename;
+		case Dirtype.SCHEME: return filename;
+		case Dirtype.SCENARIO: {
+			return relPath(sPath.buildPath(filename));
+		} break;
+		case Dirtype.WAV: return filename;
+		case Dirtype.PARENT: {
+			string dir = dirName(dirName(fPath));
+			for (int dp = 0; dp < dirdepth; dp++) {
+				dir = dirName(dir);
+			}
+			return relPath(dir.buildPath(filename));
+		} break;
+		case Dirtype.PROGRAM: return filename;
+		default: return filename;
+		}
+	}
+
+	/// 所属するシナリオのディレクトリ。
+	/// シナリオに所属していない場合は""。
+	string sPath;
+	/// JPY1ファイルパス。
+	string fPath;
+
+	/// filenameがある行。ファイルの更新に使用する。
+	int filenameIndex = -1;
+	/// filenameがある行の内容。ファイルの更新に使用する。
+	string filenameLine = "filename=";
+	/// filenameが更新されたためファイルの上書きが必要な場合はtrue。
+	bool needUpdate = false;
+
 	/// セクションのラベル。
 	string label;
 

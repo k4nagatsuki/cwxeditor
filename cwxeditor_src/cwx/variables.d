@@ -333,6 +333,7 @@ class FlexEtcProps : Properties {
 	auto useNamesAfterStandard = Prop!(bool)("useNamesAfterStandard", false);
 	auto selectVariableWithTree = Prop!(bool)("selectVariableWithTree", true);
 	auto useCurrentStartName = Prop!(bool)("useCurrentStartName", true);
+	auto autoUpdateJpy1File = Prop!(bool)("autoUpdateJpy1File", false);
 
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
 

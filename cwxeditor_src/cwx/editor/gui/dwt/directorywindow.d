@@ -12,6 +12,7 @@ import cwx.types;
 import cwx.menu;
 import cwx.path;
 import cwx.imagesize;
+import cwx.jpy;
 
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.commons;
@@ -761,6 +762,9 @@ private:
 								}
 								_comm.refPath.call(p1, p2, false);
 								std.file.rename(from, to);
+								foreach (ref jpy; _jpyData) {
+									jpy.renameFile(from, to);
+								}
 							}
 						}
 						if (cfnmatch(parent, targ)) selfs ~= to;
@@ -786,6 +790,11 @@ private:
 					renameCopy(targ, file);
 				}
 				_comm.refPaths.call(this, toRelPath(selDirPath));
+
+				// Jpy1ファイルの内容を更新
+				updateJpy1Files();
+				updateJpy1List();
+
 				if (dir) {
 					refreshDirs(.exists(targ) ? targ : dir);
 					foreach (itm; _dirs.getSelection()) itm.setExpanded(true);
@@ -838,6 +847,7 @@ private:
 
 	Props _prop;
 	Summary _summ = null;
+	Jpy1[] _jpyData;
 
 	Commons _comm;
 
@@ -914,9 +924,20 @@ private:
 		if (.exists(to) && cast(bool) .isDir(to) == cast(bool) .isDir(path)) return null;
 		try {
 			std.file.rename(path, to);
-		} catch {
+			auto p1 = nabs(path);
+			auto p2 = nabs(to);
+			foreach (ref jpy; _jpyData) {
+				jpy.renameFile(p1, p2);
+			}
+		} catch (Exception e) {
 			// 不正な名前
+			debugln(e);
 			return null;
+		}
+		void updatePaths(string p1, string p2) {
+			if (_summ.useCounter.get(toPathId(p1)) == 0) return;
+			_summ.useCounter.change(toPathId(p1), toPathId(p2));
+			_summ.changed();
 		}
 		string trp = toRelPath(to);
 		if (isdir) {
@@ -930,10 +951,7 @@ private:
 				} else {
 					string p1 = toRelPath(oldP);
 					string p2 = toRelPath(file);
-					if (_summ.useCounter.get(toPathId(p1)) > 0) {
-						_summ.useCounter.change(toPathId(p1), toPathId(p2));
-						_summ.changed();
-					}
+					updatePaths(p1, p2);
 				}
 			}
 			foreach (c; clistdir(to)) {
@@ -942,12 +960,12 @@ private:
 		} else {
 			string p1 = frp;
 			string p2 = toRelPath(to);
-			if (_summ.useCounter.get(toPathId(p1)) > 0) {
-				_summ.useCounter.change(toPathId(p1), toPathId(p2));
-				_summ.changed();
-			}
+			updatePaths(p1, p2);
 			_comm.refPath.call(p1, p2, false);
 		}
+		// Jpy1ファイルの内容を更新
+		updateJpy1Files();
+
 		itm.setData(new FileNameObj(to));
 		static if (is (T == TreeItem)) {
 			itm.setText(baseName(stripExtension(to)));
@@ -1018,8 +1036,32 @@ private:
 		_comm.setTitle(_win, title);
 	}
 	void __refresh() {
+		updateJpy1List();
 		refreshDirs(selDirPath);
 		refreshFiles(selFiles);
+	}
+	void updateJpy1List() {
+		if (!_summ) return;
+		foreach (ref jpy; _jpyData) {
+			jpy.removeUseCounter();
+		}
+		_jpyData.length = 0;
+		auto sPath = _summ.scenarioPath;
+		foreach (string file; sPath.dirEntries(SpanMode.depth)) {
+			if (!cfnmatch(file.extension(), ".jpy1")) continue;
+			try {
+				_jpyData ~= Jpy1.load(_prop.parent, sPath, file);
+				_jpyData[$-1].setUseCounter(_summ.useCounter);
+			} catch (EffectBoosterError e) {
+				debug {
+					foreach (err; e.errors) {
+						debugln(.tryFormat(_prop.msgs.jpyError, err.msg, file, err.line));
+					}
+				}
+			} catch (Exception e) {
+				debugln(e);
+			}
+		}
 	}
 	void __delPaths(Object sender) {
 		if (sender !is this) {
@@ -1827,7 +1869,14 @@ public:
 	void pauseTrace() {_stopTrace = true;}
 
 	void refresh(Summary summ) {
+		foreach (ref jpy; _jpyData) {
+			jpy.removeUseCounter();
+		}
+		_jpyData.length = 0;
+
 		_summ = summ;
+
+		updateJpy1List();
 		refCheckPaths();
 		if (_win && !_win.isDisposed()) {
 			refreshDirs(std.path.buildPath(_summ.scenarioPath, _comm.skin.materialPath));
@@ -1951,6 +2000,13 @@ public:
 			_traceThr.join();
 		} catch (Throwable e) {
 			debugln(e);
+		}
+	}
+
+	/// シナリオ内にあるJpy1ファイルの内容の上書きが必要であれば更新する。
+	void updateJpy1Files() {
+		foreach (ref jpy; _jpyData) {
+			jpy.updateJpy1File(_prop.parent, _prop.var.etc.autoUpdateJpy1File);
 		}
 	}
 

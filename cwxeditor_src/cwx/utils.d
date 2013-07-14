@@ -1698,6 +1698,7 @@ bool cglobMatch(string a, string b) {
 } unittest {
 	debug mixin(UTPerf);
 	assert (cfnmatch(r"C:\path", r"C:\path"));
+	assert (cfnmatch(r"C:\path", r"C:/path"));
 }
 /// ファイル名が一致するか。
 bool cfnmatch(in char[] a, in char[] b) {

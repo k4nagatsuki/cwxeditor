@@ -277,6 +277,8 @@ class Msgs : Properties {
 	auto searchResultMenuCard = Msg("searchResultMenuCard", "メニューカード [%1$s]");
 	auto searchResultEnemyCard = Msg("searchResultEnemyCard", "エネミーカード [%1$s]");
 
+	auto searchResultJpy1 = Msg("searchResultJpy1", "JPY1ファイル [%1$s]");
+
 	auto searchErrorReversalLevel = Msg("searchErrorReversalLevel", "レベルの上限と下限が逆転しています。");
 	auto searchErrorNoImage = Msg("searchErrorNoImage", "イメージが指定されていません。");
 	auto searchErrorImageNotFound = Msg("searchErrorImageNotFound", "存在しないイメージファイルが指定されています。");
@@ -1558,6 +1560,7 @@ class Msgs : Properties {
 	auto applyDialogsBeforeSave = Msg("applyDialogsBeforeSave", "保存前にダイアログの編集内容を適用する");
 	auto useNamesAfterStandard = Msg("useNamesAfterStandard", "シナリオで使用中の称号・キーコードを標準の称号・キーコードの後に配置する");
 	auto selectVariableWithTree = Msg("selectVariableWithTree", "状態変数選択ビューでディレクトリの階層表示を行う");
+	auto autoUpdateJpy1File = Msg("autoUpdateJpy1File", "ファイル名が変更された時に関係するJPY1ファイルを自動的に更新する");
 	auto soundPlayType = Msg("soundPlayType", "BGM再生方式");
 	auto soundPlayTypeDef = Msg("soundPlayTypeDef", "自動選択");
 	auto soundPlayTypeSDL = Msg("soundPlayTypeSDL", "SDL(CardWirthPy方式)");

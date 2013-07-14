@@ -1427,6 +1427,7 @@ private:
 	TableItem _applyDialogsBeforeSave;
 	TableItem _useNamesAfterStandard;
 	TableItem _selectVariableWithTree;
+	TableItem _autoUpdateJpy1File;
 	Combo _targetVersion;
 	int[string] _targetVersionTbl;
 	string[int] _targetVersionTbl2;
@@ -2271,6 +2272,7 @@ private:
 			_applyDialogsBeforeSave = createB(_prop.msgs.applyDialogsBeforeSave);
 			_useNamesAfterStandard = createB(_prop.msgs.useNamesAfterStandard);
 			_selectVariableWithTree = createB(_prop.msgs.selectVariableWithTree);
+			_autoUpdateJpy1File = createB(_prop.msgs.autoUpdateJpy1File);
 
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			auto sepgd = new GridData(GridData.FILL_HORIZONTAL);
@@ -2555,6 +2557,7 @@ protected:
 		_applyDialogsBeforeSave.setChecked(_prop.var.etc.applyDialogsBeforeSave);
 		_useNamesAfterStandard.setChecked(_prop.var.etc.useNamesAfterStandard);
 		_selectVariableWithTree.setChecked(_prop.var.etc.selectVariableWithTree);
+		_autoUpdateJpy1File.setChecked(_prop.var.etc.autoUpdateJpy1File);
 		auto tVer = _prop.var.etc.targetVersion in _targetVersionTbl;
 		if (tVer) {
 			_targetVersion.select(*tVer);
@@ -2718,6 +2721,7 @@ protected:
 		_prop.var.etc.applyDialogsBeforeSave = _applyDialogsBeforeSave.getChecked();
 		_prop.var.etc.useNamesAfterStandard = _useNamesAfterStandard.getChecked();
 		_prop.var.etc.selectVariableWithTree = _selectVariableWithTree.getChecked();
+		_prop.var.etc.autoUpdateJpy1File = _autoUpdateJpy1File.getChecked();
 		_prop.var.etc.contentsFloat = _contentsFloat.getChecked();
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getChecked();
 		_prop.var.etc.comboListVisible = _comboListVisible.getChecked();

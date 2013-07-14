@@ -680,9 +680,9 @@ struct PathId {
 			return 0;
 		}
 		static if (0 == filenameCharCmp('A', 'a')) {
-			return std.string.icmp(this.id, s.id);
+			return std.string.icmp(this.id.encodePath(), s.id.encodePath());
 		} else {
-			return std.string.cmp(this.id, s.id);
+			return std.string.cmp(this.id.encodePath(), s.id.encodePath());
 		}
 	}
 	const
