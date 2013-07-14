@@ -520,12 +520,12 @@ class Jpy1Sec : PathUser, CWXPath {
 		case Dirtype.CURRENT: {
 			return relPath(dirName(fPath).buildPath(filename));
 		} break;
-		case Dirtype.TABLE: return filename;
-		case Dirtype.SCHEME: return filename;
+		case Dirtype.TABLE: return filename.decodePath();
+		case Dirtype.SCHEME: return filename.decodePath();
 		case Dirtype.SCENARIO: {
 			return relPath(sPath.buildPath(filename));
 		} break;
-		case Dirtype.WAV: return filename;
+		case Dirtype.WAV: return filename.decodePath();
 		case Dirtype.PARENT: {
 			string dir = dirName(dirName(fPath));
 			for (int dp = 0; dp < dirdepth; dp++) {
@@ -533,8 +533,8 @@ class Jpy1Sec : PathUser, CWXPath {
 			}
 			return relPath(dir.buildPath(filename));
 		} break;
-		case Dirtype.PROGRAM: return filename;
-		default: return filename;
+		case Dirtype.PROGRAM: return filename.decodePath();
+		default: return filename.decodePath();
 		}
 	}
 
