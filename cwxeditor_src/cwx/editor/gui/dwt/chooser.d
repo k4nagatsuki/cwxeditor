@@ -318,9 +318,9 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 				dirItm.setText(name);
 				foreach (child; dir.subDirs) {
 					static if (is(F:Flag)) {
-						auto flags = child.flags;
+						auto flags = child.allFlags;
 					} else static if (is(F:Step)) {
-						auto flags = child.steps;
+						auto flags = child.allSteps;
 					} else static assert (0);
 					bool hasChild = false;
 					foreach (flag; flags) {
