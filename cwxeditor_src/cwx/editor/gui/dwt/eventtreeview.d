@@ -3526,6 +3526,11 @@ public:
 			owner.remove(c);
 			auto lastNextType = fromCNextType(c.detail.nextType);
 			foreach (i, next; c.next) {
+				if (_prop.var.etc.adjustContentName) {
+					if (c.next.length == 1 && lastNextType == fromCNextType(next.detail.nextType)) {
+						next.setName(_prop.parent, c.name);
+					}
+				}
 				adjustText(owner, next, lastNextType);
 				owner.insert(_prop.parent, insertIndex + i, next);
 			}
