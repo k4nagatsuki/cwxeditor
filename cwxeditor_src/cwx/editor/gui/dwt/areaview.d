@@ -1087,6 +1087,10 @@ private:
 				if (right_w < rw) right_w = rw;
 			}
 		}
+		int[const FlexImage] baseIndices;
+		foreach (i, fimg; targs) {
+			baseIndices[fimg] = i;
+		}
 		if (targs.length > 1) {
 			bool ficmp(in FlexImage fi1, in FlexImage fi2) {
 				int x1, x2;
@@ -1098,7 +1102,11 @@ private:
 					auto a = fi2;
 					x2 = mixin (X);
 				}
-				return x1 < x2;
+				if (x1 == x2) {
+					return baseIndices[fi1] < baseIndices[fi2];
+				} else {
+					return x1 < x2;
+				}
 			}
 			targs = .sortDlg!(FlexImage)(targs, &ficmp);
 			auto a = targs[0];
