@@ -36,6 +36,7 @@ import cwx.editor.gui.dwt.scripterrordialog;
 import cwx.editor.gui.dwt.textdialog;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.smalldialogs;
+import cwx.editor.gui.dwt.eventeditor;
 
 import std.ascii;
 import std.algorithm;
@@ -48,6 +49,11 @@ import org.eclipse.swt.all;
 import java.lang.all;
 
 public:
+
+struct Warning {
+	Rectangle rect;
+	string[] warnings;
+}
 
 /// イベントコンテントツリー。
 class EventTreeView : TCPD {
@@ -87,10 +93,6 @@ private:
 	void delegate() _refreshTopStart;
 
 	Cursor[] _cursors;
-	static struct Warning {
-		Rectangle rect;
-		string[] warnings;
-	}
 	Warning[] _warningRects;
 
 	string _statusLine;
@@ -258,7 +260,7 @@ private:
 				string text;
 				if (pc) {
 					pc.insert(prop.parent, index, c);
-					text = eventTextImpl(comm, prop, summ, pc, c);
+					text = .eventText(comm, summ, pc, c);
 				} else {
 					et.insert(index, c);
 					text = c.name;
@@ -500,7 +502,7 @@ private:
 		return null;
 	}
 	void create(TreeItem insertTo) {
-		if (!_tree.getItems().length) return;
+		if (!_tree.getItemCount()) return;
 		if (!_arrowMode) {
 			_tree.setRedraw(false);
 			scope (exit) _tree.setRedraw(true);
@@ -1742,27 +1744,7 @@ private:
 		_warningRects = [];
 		Image warningImage() {
 			if (!wImg) {
-				auto d = _tree.getDisplay();
-				auto buf = new Image(d, _prop.var.etc.warningImageWidth, itmH);
-				scope (exit) buf.dispose();
-				auto gc = new GC(buf);
-				scope (exit) gc.dispose();
-				int alpha;
-				auto rgb = dwtData(_prop.var.etc.warningImageColor, alpha);
-				auto color = new Color(d, rgb);
-				scope (exit) color.dispose();
-				gc.setForeground(color);
-				gc.setBackground(color);
-				gc.fillRectangle(0, 0, _prop.var.etc.warningImageWidth, itmH);
-				auto alphas = new byte[_prop.var.etc.warningImageWidth];
-				foreach (i, ref b; alphas) {
-					b = cast(byte)(cast(real)i / _prop.var.etc.warningImageWidth * alpha);
-				}
-				alphas = std.array.replicate(alphas, itmH);
-				assert (alphas.length == _prop.var.etc.warningImageWidth * itmH);
-				auto imgData = buf.getImageData();
-				imgData.setAlphas(0, 0, _prop.var.etc.warningImageWidth * itmH, alphas, 0);
-				wImg = new Image(d, imgData);
+				wImg = .warningImage(_prop, _tree.getDisplay());
 			}
 			return wImg;
 		}
@@ -1826,7 +1808,7 @@ private:
 					if (ca.width <= ib.x) continue;
 					auto img = warningImage();
 					int ix = .max(ib.x, ca.width - _prop.var.etc.warningImageWidth);
-					e.gc.drawImage(img, 0, 0, _prop.var.etc.warningImageWidth, itmH, ix, b.y, ca.width - ix, itmH);
+					e.gc.drawImage(img, 0, 0, _prop.var.etc.warningImageWidth, 1, ix, b.y, ca.width - ix, itmH);
 					auto bounds = _prop.images.warning.getBounds();
 					int wx = .max(b.x + b.width, ca.width - bounds.width - 1);
 					if (wx < ca.width) {
@@ -2331,7 +2313,7 @@ public:
 		}
 	}
 	void treeOpen() {
-		treeExpandedAll(_tree);
+		_tree.treeExpandedAll();
 		_comm.refreshToolBar();
 	}
 	void treeClose() {
@@ -2583,113 +2565,7 @@ public:
 	/// e = イベント。名称が書き換えられる。
 	/// Returns: テキスト。
 	private string eventText(Content parent, Content e) {
-		return eventTextImpl(_comm, _prop, _summ, parent, e);
-	}
-	private static string eventTextImpl(Commons comm, Props prop, Summary summ, Content parent, Content e) in {
-		assert (parent.detail.owner);
-	} body {
-		if (!parent) return e.name;
-		if (parent.detail.nextType == CNextType.TEXT) {
-			if (prop.var.etc.showVariableValuesInEventText) {
-				string[string] flags;
-				string[string] steps;
-				string[char] names;
-				getPreviewValues(prop, summ, SPCHAR_TEXT, names, flags, steps);
-				return simpleFormatMsg(e.name, flags, steps, names);
-			} else {
-				return e.name;
-			}
-		}
-		string name = e.name;
-		string r;
-		switch (parent.type) {
-		case CType.BRANCH_FLAG: {
-			r = evtChildBrFlag(prop, summ, parent.flag, name);
-			break;
-		} case CType.BRANCH_MULTI_STEP: {
-			r = evtChildBrStepN(prop, summ, parent.step, name);
-			break;
-		} case CType.BRANCH_STEP: {
-			r = evtChildBrStepUL(prop, summ, parent.step, parent.stepValue, name);
-			break;
-		} case CType.BRANCH_SELECT: {
-			r = evtChildBrMember(prop, parent.targetAll, parent.random, name);
-			break;
-		} case CType.BRANCH_ABILITY: {
-			r = evtChildBrPower(prop, parent.targetS, parent.physical, parent.mental, parent.signedLevel, name);
-			break;
-		} case CType.BRANCH_RANDOM: {
-			r = evtChildBrRandom(prop, parent.percent, name);
-			break;
-		} case CType.BRANCH_LEVEL: {
-			r = evtChildBrLevel(prop, parent.unsignedLevel, parent.average, name);
-			break;
-		} case CType.BRANCH_STATUS: {
-			r = evtChildBrState(prop, parent.targetNS, parent.status, name);
-			break;
-		} case CType.BRANCH_PARTY_NUMBER: {
-			r = evtChildBrNum(prop, parent.partyNumber, name);
-			break;
-		} case CType.BRANCH_AREA: {
-			r = evtChildBrArea(prop, summ.areas, name);
-			break;
-		} case CType.BRANCH_BATTLE: {
-			r = evtChildBrBattle(prop, summ.battles, name);
-			break;
-		} case CType.BRANCH_IS_BATTLE: {
-			r = evtChildBrOnBattle(prop, name);
-			break;
-		} case CType.BRANCH_CAST: {
-			r = evtChildBrCast(prop, summ, parent.casts, name);
-			break;
-		} case CType.BRANCH_ITEM: {
-			r = evtChildBrItem(prop, summ, parent.item, parent.range, parent.cardNumber, name);
-			break;
-		} case CType.BRANCH_SKILL: {
-			r = evtChildBrSkill(prop, summ, parent.skill, parent.range, parent.cardNumber, name);
-			break;
-		} case CType.BRANCH_BEAST: {
-			r = evtChildBrBeast(prop, summ, parent.beast, parent.range, parent.cardNumber, name);
-			break;
-		} case CType.BRANCH_INFO: {
-			r = evtChildBrInfo(prop, summ, parent.info, name);
-			break;
-		} case CType.BRANCH_MONEY: {
-			r = evtChildBrMoney(prop, parent.money, name);
-			break;
-		} case CType.BRANCH_COUPON: {
-			r = evtChildBrCoupon(prop, parent.range, parent.coupon, name);
-			break;
-		} case CType.BRANCH_COMPLETE_STAMP: {
-			r = evtChildBrEnd(prop, parent.completeStamp, name);
-			break;
-		} case CType.BRANCH_GOSSIP: {
-			r = evtChildBrGossip(prop, parent.gossip, name);
-			break;
-		} case CType.BRANCH_STEP_CMP: {
-			r = evtChildBrStepCmp(prop, summ, parent.step, parent.step2, name);
-			break;
-		} case CType.BRANCH_FLAG_CMP: {
-			r = evtChildBrFlagCmp(prop, summ, parent.flag, parent.flag2, name);
-			break;
-		} case CType.BRANCH_RANDOM_SELECT: {
-			r = evtChildBrRandomSelect(prop, parent, name);
-			break;
-		} case CType.BRANCH_KEY_CODE: {
-			r = evtChildBrKeyCode(prop, parent, name);
-			break;
-		} case CType.BRANCH_ROUND: {
-			r = evtChildBrRound(prop, parent, name);
-			break;
-		} default:
-			name = "";
-			r = "";
-		}
-		if (e.name != name) {
-			e.setName(prop.parent, name);
-			comm.refContent.call(e);
-		}
-		return r;
+		return .eventText(_comm, _summ, parent, e);
 	}
 	/// 空のテキストは入力ガイドを代わりに表示。
 	private void procTreeItem(TreeItem itm) {
@@ -2723,407 +2599,6 @@ public:
 			itm2.setExpanded(true);
 		}
 		return itm;
-	}
-	private static string evtChildBrFlag(in Props prop, in Summary summ, string path, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		string name = prop.msgs.noSelectFlag;
-		string on = prop.msgs.flagOn;
-		string off = prop.msgs.flagOff;
-		if (path.length) {
-			auto o = summ.flagDirRoot.findFlag(path);
-			if (o) {
-				name = path;
-				on = o.on;
-				off = o.off;
-			} else {
-				name = .tryFormat(prop.msgs.noFlag, path);
-			}
-		}
-		return .tryFormat(prop.msgs.evtChildBrVar, name, (val ? on : off));
-	}
-	private static string evtChildBrStepN(in Props prop, in Summary summ, string path, ref string text) {
-		int val = -1;
-		try {
-			val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(int)(text) : -1);
-		} catch {
-			// Nothing
-		}
-		string name = prop.msgs.noSelectStep;
-		string value = val >= 0 ? .tryFormat(prop.msgs.dlgLblStep, val) : prop.msgs.etc;
-		if (path.length) {
-			auto o = summ.flagDirRoot.findStep(path);
-			if (o) {
-				if (o.count <= val) {
-					val = -1;
-					text = prop.sys.evtChildDefault;
-				}
-				name = path;
-				if (0 <= val) value = o.getValue(val);
-			} else {
-				name = .tryFormat(prop.msgs.noStep, path);
-			}
-		}
-		return .tryFormat(prop.msgs.evtChildBrVar, name, value);
-	}
-	private static string evtChildBrStepUL(in Props prop, in Summary summ, string path, int num, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		string name = prop.msgs.noSelectStep;
-		string value = .tryFormat(prop.msgs.dlgLblStep, num);
-		if (path.length) {
-			auto o = summ.flagDirRoot.findStep(path);
-			if (o) {
-				name = path;
-				if (0 <= num && num < o.count) value = o.getValue(num);
-			} else {
-				name = .tryFormat(prop.msgs.noStep, path);
-			}
-		}
-		if (val) {
-			return .tryFormat(prop.msgs.stepMoreThan, path, value);
-		} else {
-			return .tryFormat(prop.msgs.stepLessThan, path, value);
-		}
-	}
-	private static string evtChildBrMember(in Props prop, bool all, bool random, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		string mem = all ? prop.msgs.partyAll : prop.msgs.partyActive;
-		string am = random ? prop.msgs.autoSelect : prop.msgs.manualSelect;
-		if (val) {
-			return .tryFormat(prop.msgs.selectMemberSuccess, mem, am);
-		} else {
-			return .tryFormat(prop.msgs.selectMemberFailure, mem, am);
-		}
-	}
-	private static string evtChildBrPower(in Props prop, Target targ, Physical p, Mental m, int lev, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		string tt = prop.msgs.targetName(targ.m);
-		string tp = prop.msgs.physicalName(p);
-		string tm = prop.msgs.mentalName(m);
-		if (val) {
-			return .tryFormat(prop.msgs.branchAbilitySuccess, tt, lev, tp, tm);
-		} else {
-			return .tryFormat(prop.msgs.branchAbilityFailure, tt, lev, tp, tm);
-		}
-	}
-	private static string evtChildBrRandom(in Props prop, int percent, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		if (val) {
-			return .tryFormat(prop.msgs.branchRandomSuccess, percent);
-		} else {
-			return .tryFormat(prop.msgs.branchRandomFailure, percent);
-		}
-	}
-	private static string evtChildBrLevel(in Props prop, int lev, bool avg, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		string ta = avg  ? prop.msgs.levelAverage : prop.msgs.levelSelected;
-		if (val) {
-			return .tryFormat(prop.msgs.branchLevelSuccess, ta, lev);
-		} else {
-			return .tryFormat(prop.msgs.branchLevelFailure, ta, lev);
-		}
-	}
-	private static string evtChildBrState(in Props prop, Target targ, Status stat, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		string tt = prop.msgs.targetName(targ.m);
-		string ts = prop.msgs.statusName(stat);
-		if (val) {
-			return .tryFormat(prop.msgs.branchStatusSuccess, tt, ts);
-		} else {
-			return .tryFormat(prop.msgs.branchStatusFailure, tt, ts);
-		}
-	}
-	private static string evtChildBrNum(in Props prop, int num, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		if (val) {
-			return .tryFormat(prop.msgs.branchNumberSuccess, num);
-		} else {
-			return .tryFormat(prop.msgs.branchNumberFailure, num);
-		}
-	}
-	private static string evtChildBrArea(in Props prop, in Area[] areas, ref string text) {
-		if (text.length > 0) {
-			try {
-				long val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
-				if (val >= 0) {
-					foreach (a; areas) {
-						if (a.id == val) {
-							return .tryFormat(prop.msgs.branchArea, a.name);
-						}
-					}
-				}
-			} catch {}
-		}
-		text = prop.sys.evtChildDefault;
-		return .tryFormat(prop.msgs.branchArea, prop.msgs.etc);
-	}
-	private static string evtChildBrBattle(in Props prop, in Battle[] btls, ref string text) {
-		if (text.length > 0) {
-			try {
-				long val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
-				if (val >= 0) {
-					foreach (b; btls) {
-						if (b.id == val) {
-							return .tryFormat(prop.msgs.branchBattle, b.name);
-						}
-					}
-				}
-			} catch {}
-		}
-		text = prop.sys.evtChildDefault;
-		return .tryFormat(prop.msgs.branchBattle, prop.msgs.etc);
-	}
-	private static string evtChildBrOnBattle(in Props prop, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		if (val) {
-			return prop.msgs.branchOnBattleSuccess;
-		} else {
-			return prop.msgs.branchOnBattleFailure;
-		}
-	}
-	private static string evtChildBrCast(in Props prop, in Summary summ, ulong id, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		string name = prop.msgs.noSelectCast;
-		if (0 != id) {
-			auto c = summ.cwCast(id);
-			name = c ? c.name : .tryFormat(prop.msgs.noCast, id);
-		}
-		if (val) {
-			return .tryFormat(prop.msgs.branchCastSuccess, name);
-		} else {
-			return .tryFormat(prop.msgs.branchCastFailure, name);
-		}
-	}
-	private static string evtChildBrItem(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		string tr = prop.msgs.rangeName(r);
-		string name = prop.msgs.noSelectItem;
-		if (0 != id) {
-			auto c = summ.item(id);
-			name = c ? c.name : .tryFormat(prop.msgs.noItem, id);
-		}
-		if (val) {
-			return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
-		} else {
-			return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
-		}
-	}
-	private static string evtChildBrSkill(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		string tr = prop.msgs.rangeName(r);
-		string name = prop.msgs.noSelectSkill;
-		if (0 != id) {
-			auto c = summ.skill(id);
-			name = c ? c.name : .tryFormat(prop.msgs.noSkill, id);
-		}
-		if (val) {
-			return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
-		} else {
-			return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
-		}
-	}
-	private static string evtChildBrBeast(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		string tr = prop.msgs.rangeName(r);
-		string name = prop.msgs.noSelectBeast;
-		if (0 != id) {
-			auto c = summ.beast(id);
-			name = c ? c.name : .tryFormat(prop.msgs.noBeast, id);
-		}
-		if (val) {
-			return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
-		} else {
-			return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
-		}
-	}
-	private static string evtChildBrInfo(in Props prop, in Summary summ, ulong id, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		string name = prop.msgs.noSelectInfo;
-		if (0 != id) {
-			auto c = summ.info(id);
-			name = c ? c.name : .tryFormat(prop.msgs.noInfo, id);
-		}
-		if (val) {
-			return .tryFormat(prop.msgs.branchInfoSuccess, name);
-		} else {
-			return .tryFormat(prop.msgs.branchInfoFailure, name);
-		}
-	}
-	private static string evtChildBrMoney(in Props prop, uint sp, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		if (val) {
-			return .tryFormat(prop.msgs.branchMoneySuccess, sp);
-		} else {
-			return .tryFormat(prop.msgs.branchMoneyFailure, sp);
-		}
-	}
-	private static string evtChildBrCoupon(in Props prop, Range r, string coupon, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		if (!coupon || !coupon.length) coupon = prop.msgs.noSelectCoupon;
-		string tr = prop.msgs.rangeName(r);
-		if (val) {
-			return .tryFormat(prop.msgs.branchCouponSuccess, tr, coupon);
-		} else {
-			return .tryFormat(prop.msgs.branchCouponFailure, tr, coupon);
-		}
-	}
-	private static string evtChildBrEnd(in Props prop, string scenario, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		if (!scenario || !scenario.length) scenario = prop.msgs.noSelectCompleteStamp;
-		if (val) {
-			return .tryFormat(prop.msgs.branchCompleteSuccess, scenario);
-		} else {
-			return .tryFormat(prop.msgs.branchCompleteFailure, scenario);
-		}
-	}
-	private static string evtChildBrGossip(in Props prop, string gossip, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		if (!gossip || !gossip.length) gossip = prop.msgs.noSelectGossip;
-		if (val) {
-			return .tryFormat(prop.msgs.branchGossipSuccess, gossip);
-		} else {
-			return .tryFormat(prop.msgs.branchGossipFailure, gossip);
-		}
-	}
-	private static string evtChildBrStepCmp(in Props prop, in Summary summ, string step1, string step2, ref string text) {
-		int index;
-		if (text == prop.sys.evtChildEq) {
-			index = 2;
-			text = prop.sys.evtChildEq;
-		} else if (text == prop.sys.evtChildLesser) {
-			index = 1;
-			text = prop.sys.evtChildLesser;
-		} else {
-			index = 0;
-			text = prop.sys.evtChildGreater;
-		}
-		string nameFrom(string path) {
-			string name = prop.msgs.noSelectStep;
-			if (path.length) {
-				auto o = summ.flagDirRoot.findStep(path);
-				if (o) {
-					name = path;
-				} else {
-					name = .tryFormat(prop.msgs.noStep, path);
-				}
-			}
-			return name;
-		}
-		step1 = nameFrom(step1);
-		step2 = nameFrom(step2);
-		switch (index) {
-		case 0:
-			return .tryFormat(prop.msgs.branchStepCmpGreater, step1, step2);
-		case 1:
-			return .tryFormat(prop.msgs.branchStepCmpLesser, step1, step2);
-		case 2:
-			return .tryFormat(prop.msgs.branchStepCmpEq, step1, step2);
-		default:
-			assert (0);
-		}
-	}
-	private static string evtChildBrFlagCmp(in Props prop, in Summary summ, string flag1, string flag2, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-		string nameFrom(string path) {
-			string name = prop.msgs.noSelectFlag;
-			if (path.length) {
-				auto o = summ.flagDirRoot.findFlag(path);
-				if (o) {
-					name = path;
-				} else {
-					name = .tryFormat(prop.msgs.noFlag, path);
-				}
-			}
-			return name;
-		}
-		flag1 = nameFrom(flag1);
-		flag2 = nameFrom(flag2);
-		if (val) {
-			return .tryFormat(prop.msgs.branchFlagCmpEq, flag1, flag2);
-		} else {
-			return .tryFormat(prop.msgs.branchFlagCmpNotEq, flag1, flag2);
-		}
-	}
-	private static string evtChildBrRandomSelect(in Props prop, in Content evt, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-
-		string r = castRangesName(prop, evt.castRange);
-		bool hasLevel = 0 < evt.levelMax;
-		bool hasStatus = evt.status !is Status.NONE;
-		if (hasLevel || hasStatus) {
-			string s = prop.msgs.statusName(evt.status);
-			auto l1 = evt.levelMin, l2 = evt.levelMax;
-			string cond;
-			if (hasLevel && hasStatus) {
-				cond = .tryFormat(prop.msgs.randomSelectCondition3, l1, l2, s);
-			} else if (hasLevel) {
-				cond = .tryFormat(prop.msgs.randomSelectCondition1, l1, l2);
-			} else if (hasStatus) {
-				cond = .tryFormat(prop.msgs.randomSelectCondition2, s);
-			} else assert (0);
-			if (val) {
-				return .tryFormat(prop.msgs.branchRandomSelectSuccess, r, cond);
-			} else {
-				return .tryFormat(prop.msgs.branchRandomSelectFailure, r, cond);
-			}
-		} else {
-			if (val) {
-				return .tryFormat(prop.msgs.branchRandomSelectSuccessN, r);
-			} else {
-				return .tryFormat(prop.msgs.branchRandomSelectFailureN, r);
-			}
-		}
-	}
-	private static string evtChildBrKeyCode(in Props prop, in Content evt, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-
-		string range = prop.msgs.rangeName(evt.keyCodeRange);
-		if (evt.effectCardType is EffectCardType.ALL) {
-			if (val) {
-				return .tryFormat(prop.msgs.branchKeyCodeAllTypeSuccess, evt.keyCode, range);
-			} else {
-				return .tryFormat(prop.msgs.branchKeyCodeAllTypeFailure, evt.keyCode, range);
-			}
-		} else {
-			string type = prop.msgs.effectCardTypeName(evt.effectCardType);
-			if (val) {
-				return .tryFormat(prop.msgs.branchKeyCodeSuccess, evt.keyCode, type, range);
-			} else {
-				return .tryFormat(prop.msgs.branchKeyCodeFailure, evt.keyCode, type, range);
-			}
-		}
-	}
-	private static string evtChildBrRound(in Props prop, in Content evt, ref string text) {
-		bool val = (text != prop.sys.evtChildFalse);
-		text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-
-		string cmp;
-		if (val) {
-			cmp = prop.msgs.comparison3Name(evt.comparison3);
-		} else {
-			cmp = prop.msgs.comparison3FalseName(evt.comparison3);
-		}
-		return .tryFormat(prop.msgs.branchRound, evt.round, cmp);
 	}
 
 	@property
@@ -3787,4 +3262,538 @@ public:
 		}
 		return r;
 	}
+}
+
+string eventText(Commons comm, Summary summ, Content parent, Content e) in {
+	assert (!parent || parent.detail.owner);
+} body {
+	if (!parent) return e.name;
+	auto prop = comm.prop;
+	if (parent.detail.nextType == CNextType.TEXT) {
+		if (prop.var.etc.showVariableValuesInEventText) {
+			string[string] flags;
+			string[string] steps;
+			string[char] names;
+			getPreviewValues(prop, summ, SPCHAR_TEXT, names, flags, steps);
+			return simpleFormatMsg(e.name, flags, steps, names);
+		} else {
+			return e.name;
+		}
+	}
+	string name = e.name;
+	string r;
+	switch (parent.type) {
+	case CType.BRANCH_FLAG: {
+		r = evtChildBrFlag(prop, summ, parent.flag, name);
+		break;
+	} case CType.BRANCH_MULTI_STEP: {
+		r = evtChildBrStepN(prop, summ, parent.step, name);
+		break;
+	} case CType.BRANCH_STEP: {
+		r = evtChildBrStepUL(prop, summ, parent.step, parent.stepValue, name);
+		break;
+	} case CType.BRANCH_SELECT: {
+		r = evtChildBrMember(prop, parent.targetAll, parent.random, name);
+		break;
+	} case CType.BRANCH_ABILITY: {
+		r = evtChildBrPower(prop, parent.targetS, parent.physical, parent.mental, parent.signedLevel, name);
+		break;
+	} case CType.BRANCH_RANDOM: {
+		r = evtChildBrRandom(prop, parent.percent, name);
+		break;
+	} case CType.BRANCH_LEVEL: {
+		r = evtChildBrLevel(prop, parent.unsignedLevel, parent.average, name);
+		break;
+	} case CType.BRANCH_STATUS: {
+		r = evtChildBrState(prop, parent.targetNS, parent.status, name);
+		break;
+	} case CType.BRANCH_PARTY_NUMBER: {
+		r = evtChildBrNum(prop, parent.partyNumber, name);
+		break;
+	} case CType.BRANCH_AREA: {
+		r = evtChildBrArea(prop, summ.areas, name);
+		break;
+	} case CType.BRANCH_BATTLE: {
+		r = evtChildBrBattle(prop, summ.battles, name);
+		break;
+	} case CType.BRANCH_IS_BATTLE: {
+		r = evtChildBrOnBattle(prop, name);
+		break;
+	} case CType.BRANCH_CAST: {
+		r = evtChildBrCast(prop, summ, parent.casts, name);
+		break;
+	} case CType.BRANCH_ITEM: {
+		r = evtChildBrItem(prop, summ, parent.item, parent.range, parent.cardNumber, name);
+		break;
+	} case CType.BRANCH_SKILL: {
+		r = evtChildBrSkill(prop, summ, parent.skill, parent.range, parent.cardNumber, name);
+		break;
+	} case CType.BRANCH_BEAST: {
+		r = evtChildBrBeast(prop, summ, parent.beast, parent.range, parent.cardNumber, name);
+		break;
+	} case CType.BRANCH_INFO: {
+		r = evtChildBrInfo(prop, summ, parent.info, name);
+		break;
+	} case CType.BRANCH_MONEY: {
+		r = evtChildBrMoney(prop, parent.money, name);
+		break;
+	} case CType.BRANCH_COUPON: {
+		r = evtChildBrCoupon(prop, parent.range, parent.coupon, name);
+		break;
+	} case CType.BRANCH_COMPLETE_STAMP: {
+		r = evtChildBrEnd(prop, parent.completeStamp, name);
+		break;
+	} case CType.BRANCH_GOSSIP: {
+		r = evtChildBrGossip(prop, parent.gossip, name);
+		break;
+	} case CType.BRANCH_STEP_CMP: {
+		r = evtChildBrStepCmp(prop, summ, parent.step, parent.step2, name);
+		break;
+	} case CType.BRANCH_FLAG_CMP: {
+		r = evtChildBrFlagCmp(prop, summ, parent.flag, parent.flag2, name);
+		break;
+	} case CType.BRANCH_RANDOM_SELECT: {
+		r = evtChildBrRandomSelect(prop, parent, name);
+		break;
+	} case CType.BRANCH_KEY_CODE: {
+		r = evtChildBrKeyCode(prop, parent, name);
+		break;
+	} case CType.BRANCH_ROUND: {
+		r = evtChildBrRound(prop, parent, name);
+		break;
+	} default:
+		name = "";
+		r = "";
+	}
+	if (e.name != name) {
+		e.setName(prop.parent, name);
+		comm.refContent.call(e);
+	}
+	return r;
+}
+
+private string evtChildBrFlag(in Props prop, in Summary summ, string path, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	string name = prop.msgs.noSelectFlag;
+	string on = prop.msgs.flagOn;
+	string off = prop.msgs.flagOff;
+	if (path.length) {
+		auto o = summ.flagDirRoot.findFlag(path);
+		if (o) {
+			name = path;
+			on = o.on;
+			off = o.off;
+		} else {
+			name = .tryFormat(prop.msgs.noFlag, path);
+		}
+	}
+	return .tryFormat(prop.msgs.evtChildBrVar, name, (val ? on : off));
+}
+private string evtChildBrStepN(in Props prop, in Summary summ, string path, ref string text) {
+	int val = -1;
+	try {
+		val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(int)(text) : -1);
+	} catch {
+		// Nothing
+	}
+	string name = prop.msgs.noSelectStep;
+	string value = val >= 0 ? .tryFormat(prop.msgs.dlgLblStep, val) : prop.msgs.etc;
+	if (path.length) {
+		auto o = summ.flagDirRoot.findStep(path);
+		if (o) {
+			if (o.count <= val) {
+				val = -1;
+				text = prop.sys.evtChildDefault;
+			}
+			name = path;
+			if (0 <= val) value = o.getValue(val);
+		} else {
+			name = .tryFormat(prop.msgs.noStep, path);
+		}
+	}
+	return .tryFormat(prop.msgs.evtChildBrVar, name, value);
+}
+private string evtChildBrStepUL(in Props prop, in Summary summ, string path, int num, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	string name = prop.msgs.noSelectStep;
+	string value = .tryFormat(prop.msgs.dlgLblStep, num);
+	if (path.length) {
+		auto o = summ.flagDirRoot.findStep(path);
+		if (o) {
+			name = path;
+			if (0 <= num && num < o.count) value = o.getValue(num);
+		} else {
+			name = .tryFormat(prop.msgs.noStep, path);
+		}
+	}
+	if (val) {
+		return .tryFormat(prop.msgs.stepMoreThan, path, value);
+	} else {
+		return .tryFormat(prop.msgs.stepLessThan, path, value);
+	}
+}
+private string evtChildBrMember(in Props prop, bool all, bool random, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	string mem = all ? prop.msgs.partyAll : prop.msgs.partyActive;
+	string am = random ? prop.msgs.autoSelect : prop.msgs.manualSelect;
+	if (val) {
+		return .tryFormat(prop.msgs.selectMemberSuccess, mem, am);
+	} else {
+		return .tryFormat(prop.msgs.selectMemberFailure, mem, am);
+	}
+}
+private string evtChildBrPower(in Props prop, Target targ, Physical p, Mental m, int lev, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	string tt = prop.msgs.targetName(targ.m);
+	string tp = prop.msgs.physicalName(p);
+	string tm = prop.msgs.mentalName(m);
+	if (val) {
+		return .tryFormat(prop.msgs.branchAbilitySuccess, tt, lev, tp, tm);
+	} else {
+		return .tryFormat(prop.msgs.branchAbilityFailure, tt, lev, tp, tm);
+	}
+}
+private string evtChildBrRandom(in Props prop, int percent, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	if (val) {
+		return .tryFormat(prop.msgs.branchRandomSuccess, percent);
+	} else {
+		return .tryFormat(prop.msgs.branchRandomFailure, percent);
+	}
+}
+private string evtChildBrLevel(in Props prop, int lev, bool avg, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	string ta = avg  ? prop.msgs.levelAverage : prop.msgs.levelSelected;
+	if (val) {
+		return .tryFormat(prop.msgs.branchLevelSuccess, ta, lev);
+	} else {
+		return .tryFormat(prop.msgs.branchLevelFailure, ta, lev);
+	}
+}
+private string evtChildBrState(in Props prop, Target targ, Status stat, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	string tt = prop.msgs.targetName(targ.m);
+	string ts = prop.msgs.statusName(stat);
+	if (val) {
+		return .tryFormat(prop.msgs.branchStatusSuccess, tt, ts);
+	} else {
+		return .tryFormat(prop.msgs.branchStatusFailure, tt, ts);
+	}
+}
+private string evtChildBrNum(in Props prop, int num, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	if (val) {
+		return .tryFormat(prop.msgs.branchNumberSuccess, num);
+	} else {
+		return .tryFormat(prop.msgs.branchNumberFailure, num);
+	}
+}
+private string evtChildBrArea(in Props prop, in Area[] areas, ref string text) {
+	if (text.length > 0) {
+		try {
+			long val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
+			if (val >= 0) {
+				foreach (a; areas) {
+					if (a.id == val) {
+						return .tryFormat(prop.msgs.branchArea, a.name);
+					}
+				}
+			}
+		} catch {}
+	}
+	text = prop.sys.evtChildDefault;
+	return .tryFormat(prop.msgs.branchArea, prop.msgs.etc);
+}
+private string evtChildBrBattle(in Props prop, in Battle[] btls, ref string text) {
+	if (text.length > 0) {
+		try {
+			long val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
+			if (val >= 0) {
+				foreach (b; btls) {
+					if (b.id == val) {
+						return .tryFormat(prop.msgs.branchBattle, b.name);
+					}
+				}
+			}
+		} catch {}
+	}
+	text = prop.sys.evtChildDefault;
+	return .tryFormat(prop.msgs.branchBattle, prop.msgs.etc);
+}
+private string evtChildBrOnBattle(in Props prop, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	if (val) {
+		return prop.msgs.branchOnBattleSuccess;
+	} else {
+		return prop.msgs.branchOnBattleFailure;
+	}
+}
+private string evtChildBrCast(in Props prop, in Summary summ, ulong id, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	string name = prop.msgs.noSelectCast;
+	if (0 != id) {
+		auto c = summ.cwCast(id);
+		name = c ? c.name : .tryFormat(prop.msgs.noCast, id);
+	}
+	if (val) {
+		return .tryFormat(prop.msgs.branchCastSuccess, name);
+	} else {
+		return .tryFormat(prop.msgs.branchCastFailure, name);
+	}
+}
+private string evtChildBrItem(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	string tr = prop.msgs.rangeName(r);
+	string name = prop.msgs.noSelectItem;
+	if (0 != id) {
+		auto c = summ.item(id);
+		name = c ? c.name : .tryFormat(prop.msgs.noItem, id);
+	}
+	if (val) {
+		return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
+	} else {
+		return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
+	}
+}
+private string evtChildBrSkill(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	string tr = prop.msgs.rangeName(r);
+	string name = prop.msgs.noSelectSkill;
+	if (0 != id) {
+		auto c = summ.skill(id);
+		name = c ? c.name : .tryFormat(prop.msgs.noSkill, id);
+	}
+	if (val) {
+		return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
+	} else {
+		return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
+	}
+}
+private string evtChildBrBeast(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	string tr = prop.msgs.rangeName(r);
+	string name = prop.msgs.noSelectBeast;
+	if (0 != id) {
+		auto c = summ.beast(id);
+		name = c ? c.name : .tryFormat(prop.msgs.noBeast, id);
+	}
+	if (val) {
+		return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
+	} else {
+		return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
+	}
+}
+private string evtChildBrInfo(in Props prop, in Summary summ, ulong id, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	string name = prop.msgs.noSelectInfo;
+	if (0 != id) {
+		auto c = summ.info(id);
+		name = c ? c.name : .tryFormat(prop.msgs.noInfo, id);
+	}
+	if (val) {
+		return .tryFormat(prop.msgs.branchInfoSuccess, name);
+	} else {
+		return .tryFormat(prop.msgs.branchInfoFailure, name);
+	}
+}
+private string evtChildBrMoney(in Props prop, uint sp, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	if (val) {
+		return .tryFormat(prop.msgs.branchMoneySuccess, sp);
+	} else {
+		return .tryFormat(prop.msgs.branchMoneyFailure, sp);
+	}
+}
+private string evtChildBrCoupon(in Props prop, Range r, string coupon, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	if (!coupon || !coupon.length) coupon = prop.msgs.noSelectCoupon;
+	string tr = prop.msgs.rangeName(r);
+	if (val) {
+		return .tryFormat(prop.msgs.branchCouponSuccess, tr, coupon);
+	} else {
+		return .tryFormat(prop.msgs.branchCouponFailure, tr, coupon);
+	}
+}
+private string evtChildBrEnd(in Props prop, string scenario, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	if (!scenario || !scenario.length) scenario = prop.msgs.noSelectCompleteStamp;
+	if (val) {
+		return .tryFormat(prop.msgs.branchCompleteSuccess, scenario);
+	} else {
+		return .tryFormat(prop.msgs.branchCompleteFailure, scenario);
+	}
+}
+private string evtChildBrGossip(in Props prop, string gossip, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	if (!gossip || !gossip.length) gossip = prop.msgs.noSelectGossip;
+	if (val) {
+		return .tryFormat(prop.msgs.branchGossipSuccess, gossip);
+	} else {
+		return .tryFormat(prop.msgs.branchGossipFailure, gossip);
+	}
+}
+private string evtChildBrStepCmp(in Props prop, in Summary summ, string step1, string step2, ref string text) {
+	int index;
+	if (text == prop.sys.evtChildEq) {
+		index = 2;
+		text = prop.sys.evtChildEq;
+	} else if (text == prop.sys.evtChildLesser) {
+		index = 1;
+		text = prop.sys.evtChildLesser;
+	} else {
+		index = 0;
+		text = prop.sys.evtChildGreater;
+	}
+	string nameFrom(string path) {
+		string name = prop.msgs.noSelectStep;
+		if (path.length) {
+			auto o = summ.flagDirRoot.findStep(path);
+			if (o) {
+				name = path;
+			} else {
+				name = .tryFormat(prop.msgs.noStep, path);
+			}
+		}
+		return name;
+	}
+	step1 = nameFrom(step1);
+	step2 = nameFrom(step2);
+	switch (index) {
+	case 0:
+		return .tryFormat(prop.msgs.branchStepCmpGreater, step1, step2);
+	case 1:
+		return .tryFormat(prop.msgs.branchStepCmpLesser, step1, step2);
+	case 2:
+		return .tryFormat(prop.msgs.branchStepCmpEq, step1, step2);
+	default:
+		assert (0);
+	}
+}
+private string evtChildBrFlagCmp(in Props prop, in Summary summ, string flag1, string flag2, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+	string nameFrom(string path) {
+		string name = prop.msgs.noSelectFlag;
+		if (path.length) {
+			auto o = summ.flagDirRoot.findFlag(path);
+			if (o) {
+				name = path;
+			} else {
+				name = .tryFormat(prop.msgs.noFlag, path);
+			}
+		}
+		return name;
+	}
+	flag1 = nameFrom(flag1);
+	flag2 = nameFrom(flag2);
+	if (val) {
+		return .tryFormat(prop.msgs.branchFlagCmpEq, flag1, flag2);
+	} else {
+		return .tryFormat(prop.msgs.branchFlagCmpNotEq, flag1, flag2);
+	}
+}
+private string evtChildBrRandomSelect(in Props prop, in Content evt, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+
+	string r = castRangesName(prop, evt.castRange);
+	bool hasLevel = 0 < evt.levelMax;
+	bool hasStatus = evt.status !is Status.NONE;
+	if (hasLevel || hasStatus) {
+		string s = prop.msgs.statusName(evt.status);
+		auto l1 = evt.levelMin, l2 = evt.levelMax;
+		string cond;
+		if (hasLevel && hasStatus) {
+			cond = .tryFormat(prop.msgs.randomSelectCondition3, l1, l2, s);
+		} else if (hasLevel) {
+			cond = .tryFormat(prop.msgs.randomSelectCondition1, l1, l2);
+		} else if (hasStatus) {
+			cond = .tryFormat(prop.msgs.randomSelectCondition2, s);
+		} else assert (0);
+		if (val) {
+			return .tryFormat(prop.msgs.branchRandomSelectSuccess, r, cond);
+		} else {
+			return .tryFormat(prop.msgs.branchRandomSelectFailure, r, cond);
+		}
+	} else {
+		if (val) {
+			return .tryFormat(prop.msgs.branchRandomSelectSuccessN, r);
+		} else {
+			return .tryFormat(prop.msgs.branchRandomSelectFailureN, r);
+		}
+	}
+}
+private string evtChildBrKeyCode(in Props prop, in Content evt, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+
+	string range = prop.msgs.rangeName(evt.keyCodeRange);
+	if (evt.effectCardType is EffectCardType.ALL) {
+		if (val) {
+			return .tryFormat(prop.msgs.branchKeyCodeAllTypeSuccess, evt.keyCode, range);
+		} else {
+			return .tryFormat(prop.msgs.branchKeyCodeAllTypeFailure, evt.keyCode, range);
+		}
+	} else {
+		string type = prop.msgs.effectCardTypeName(evt.effectCardType);
+		if (val) {
+			return .tryFormat(prop.msgs.branchKeyCodeSuccess, evt.keyCode, type, range);
+		} else {
+			return .tryFormat(prop.msgs.branchKeyCodeFailure, evt.keyCode, type, range);
+		}
+	}
+}
+private string evtChildBrRound(in Props prop, in Content evt, ref string text) {
+	bool val = (text != prop.sys.evtChildFalse);
+	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
+
+	string cmp;
+	if (val) {
+		cmp = prop.msgs.comparison3Name(evt.comparison3);
+	} else {
+		cmp = prop.msgs.comparison3FalseName(evt.comparison3);
+	}
+	return .tryFormat(prop.msgs.branchRound, evt.round, cmp);
+}
+
+Image warningImage(Props prop, Display d) {
+	auto height = 1;
+	auto buf = new Image(d, prop.var.etc.warningImageWidth, height);
+	scope (exit) buf.dispose();
+	auto gc = new GC(buf);
+	scope (exit) gc.dispose();
+	int alpha;
+	auto rgb = dwtData(prop.var.etc.warningImageColor, alpha);
+	auto color = new Color(d, rgb);
+	scope (exit) color.dispose();
+	gc.setForeground(color);
+	gc.setBackground(color);
+	gc.fillRectangle(0, 0, prop.var.etc.warningImageWidth, height);
+	auto alphas = new byte[prop.var.etc.warningImageWidth];
+	foreach (i, ref b; alphas) {
+		b = cast(byte)(cast(real)i / prop.var.etc.warningImageWidth * alpha);
+	}
+	alphas = std.array.replicate(alphas, height);
+	assert (alphas.length == prop.var.etc.warningImageWidth * height);
+	auto imgData = buf.getImageData();
+	imgData.setAlphas(0, 0, prop.var.etc.warningImageWidth * height, alphas, 0);
+	return new Image(d, imgData);
 }
