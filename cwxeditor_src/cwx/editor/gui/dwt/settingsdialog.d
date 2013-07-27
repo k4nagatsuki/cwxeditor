@@ -1429,6 +1429,7 @@ private:
 	TableItem _selectVariableWithTree;
 	TableItem _autoUpdateJpy1File;
 	TableItem _straightEventTreeView;
+	TableItem _clickIconIsStartEdit;
 	Combo _targetVersion;
 	int[string] _targetVersionTbl;
 	string[int] _targetVersionTbl2;
@@ -2275,6 +2276,7 @@ private:
 			_selectVariableWithTree = createB(_prop.msgs.selectVariableWithTree);
 			_autoUpdateJpy1File = createB(_prop.msgs.autoUpdateJpy1File);
 			_straightEventTreeView = createB(_prop.msgs.straightEventTreeView);
+			_clickIconIsStartEdit = createB(_prop.msgs.clickIconIsStartEdit);
 
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			auto sepgd = new GridData(GridData.FILL_HORIZONTAL);
@@ -2561,6 +2563,7 @@ protected:
 		_selectVariableWithTree.setChecked(_prop.var.etc.selectVariableWithTree);
 		_autoUpdateJpy1File.setChecked(_prop.var.etc.autoUpdateJpy1File);
 		_straightEventTreeView.setChecked(_prop.var.etc.straightEventTreeView);
+		_clickIconIsStartEdit.setChecked(_prop.var.etc.clickIconIsStartEdit);
 		auto tVer = _prop.var.etc.targetVersion in _targetVersionTbl;
 		if (tVer) {
 			_targetVersion.select(*tVer);
@@ -2726,6 +2729,7 @@ protected:
 		_prop.var.etc.selectVariableWithTree = _selectVariableWithTree.getChecked();
 		_prop.var.etc.autoUpdateJpy1File = _autoUpdateJpy1File.getChecked();
 		_prop.var.etc.straightEventTreeView = _straightEventTreeView.getChecked();
+		_prop.var.etc.clickIconIsStartEdit = _clickIconIsStartEdit.getChecked();
 		_prop.var.etc.contentsFloat = _contentsFloat.getChecked();
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getChecked();
 		_prop.var.etc.comboListVisible = _comboListVisible.getChecked();

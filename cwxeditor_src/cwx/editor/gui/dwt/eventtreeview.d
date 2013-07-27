@@ -97,6 +97,8 @@ private:
 
 	string _statusLine;
 
+	Item _clickStart;
+
 	void autoOpen() {
 		_autoOpen = _autoOpenTI.getSelection();
 		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti);
@@ -130,6 +132,11 @@ private:
 				__edit();
 			}
 		}
+		override void mouseDown(MouseEvent e) {
+			if (e.button == 1 && _clickStart) {
+				__edit();
+			}
+		}
 	}
 	class CreateL : MouseAdapter {
 		override void mouseDown(MouseEvent e) {
@@ -153,6 +160,15 @@ private:
 	}
 	class MouseMove : MouseMoveListener {
 		override void mouseMove(MouseEvent e) {
+			_clickStart = null;
+			if (_arrowMode && _prop.var.etc.clickIconIsStartEdit) {
+				auto itm = _tree.getItem(new Point(e.x, e.y));
+				if (itm) {
+					if (_tree.getImageBounds(itm).contains(e.x, e.y)) {
+						_clickStart = itm;
+					}
+				}
+			}
 			updateToolTip();
 		}
 	}

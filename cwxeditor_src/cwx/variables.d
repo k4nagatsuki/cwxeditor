@@ -335,6 +335,7 @@ class FlexEtcProps : Properties {
 	auto useCurrentStartName = Prop!(bool)("useCurrentStartName", true);
 	auto autoUpdateJpy1File = Prop!(bool)("autoUpdateJpy1File", false);
 	auto straightEventTreeView = Prop!(bool)("straightEventTreeView", false);
+	auto clickIconIsStartEdit = Prop!(bool)("clickIconIsStartEdit", false);
 
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
 

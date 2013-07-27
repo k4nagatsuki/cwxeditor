@@ -101,6 +101,12 @@ class EventEditorItem : Item {
 		auto sy = _parent.getVerticalBar().getSelection();
 		return new Rectangle(0, pos.y - sy, 20 + gc.textExtent(s).x + 4, _parent._lineHeight);
 	}
+	Rectangle getImageBounds() {
+		auto c = cast(Content)getData();
+		auto index = _parent.indexOf(c);
+		auto pos = _parent._pos[index];
+		return new Rectangle(pos.x, pos.y + _parent._imgPos, _parent._imageWidth, _parent._lineHeight - _parent._imgPos - _parent._imgPos);
+	}
 }
 
 class EventEditor : Composite {
@@ -956,6 +962,11 @@ package struct TreeViewWrapper {
 		} else {
 			editor.expandAll();
 		}
+	}
+
+	Rectangle getImageBounds(Item itm) {
+		if (auto b = cast(TreeItem)itm) return b.getImageBounds(0);
+		return (cast(EventEditorItem)itm).getImageBounds();
 	}
 }
 
