@@ -1811,7 +1811,23 @@ private:
 			}
 			return wImg;
 		}
+		auto dotExtent = e.gc.textExtent("...");
 		foreach (i, itm; itms) {
+			if (itm.getItemCount() && !itm.getExpanded()) {
+				// アイテムを畳んでいる場合は明示する
+				e.gc.setAlpha(128);
+				scope (exit) e.gc.setAlpha(255);
+				auto bounds = itm.getBounds();
+				int dotX = bounds.x + bounds.width + 2;
+				bounds.x = dotX + 10;
+				bounds.width = dotExtent.x + 10;
+				e.gc.drawString("...", bounds.x + 5, bounds.y + (bounds.height - dotExtent.y) / 2, true);
+				auto lineY = bounds.y + bounds.height / 2;
+				e.gc.drawLine(dotX, lineY, bounds.x, lineY);
+				e.gc.setAntialias(SWT.ON);
+				scope (exit) e.gc.setAntialias(SWT.OFF);
+				e.gc.drawRoundRectangle(bounds.x, bounds.y, bounds.width, bounds.height, 10, 10);
+			}
 			auto c = cast(Content) itm.getData();
 			string cm = c.comment;
 			if (cm.length) {

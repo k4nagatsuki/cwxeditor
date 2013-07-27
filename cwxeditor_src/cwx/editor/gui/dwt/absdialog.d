@@ -316,6 +316,11 @@ abstract class AbsDialog {
 			dlg(x, y, width, height);
 		}
 	}
+	@property
+	void imeMode(int imeMode) {
+		_imeMode = imeMode;
+		_win.setImeInputMode(_imeMode);
+	}
 	bool open() {
 		setup(_area);
 		if (_enterClose) {
@@ -323,12 +328,12 @@ abstract class AbsDialog {
 		}
 		calcBounds();
 		if (_apply) _apply.setEnabled(false);
-		auto par = cast(Shell) _win.getParent();
+		_win.open();
+		auto par = cast(Shell)_win.getParent();
 		if (par) {
 			_imeMode = par.getImeInputMode();
 			_win.setImeInputMode(_imeMode);
 		}
-		_win.open();
 		if (firstFocusIsOK) _okBtn.setFocus();
 		opened();
 		foreach (dlg; openedEvent) {
