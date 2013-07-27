@@ -522,7 +522,7 @@ class EventEditor : Composite {
 		if (_selected) {
 			auto pos = _posTable[_selected];
 			auto sy = getVerticalBar().getSelection() * _lineHeight;
-			redraw(ca.x, pos.y - sy, ca.width, _lineHeight, true);
+			redraw(ca.x, pos.y - sy, ca.width, _lineHeight + 1, true);
 		}
 	}
 	private void clearLightup() {
@@ -530,7 +530,7 @@ class EventEditor : Composite {
 			auto ca = getClientArea();
 			auto sy = getVerticalBar().getSelection() * _lineHeight;
 			auto pos = _posTable[_lightup];
-			redraw(ca.x, pos.y - sy, ca.width, _lineHeight, true);
+			redraw(ca.x, pos.y - sy, ca.width, _lineHeight + 1, true);
 		}
 		_lightup = null;
 	}
@@ -543,7 +543,7 @@ class EventEditor : Composite {
 		_lightup = getContent(p.x, p.y);
 		if (_lightup) {
 			auto pos = _posTable[_lightup];
-			redraw(ca.x, pos.y - sy, ca.width, _lineHeight, true);
+			redraw(ca.x, pos.y - sy, ca.width, _lineHeight + 1, true);
 		}
 	}
 
