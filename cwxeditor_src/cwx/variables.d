@@ -334,6 +334,7 @@ class FlexEtcProps : Properties {
 	auto selectVariableWithTree = Prop!(bool)("selectVariableWithTree", true);
 	auto useCurrentStartName = Prop!(bool)("useCurrentStartName", true);
 	auto autoUpdateJpy1File = Prop!(bool)("autoUpdateJpy1File", false);
+	auto straightEventTreeView = Prop!(bool)("straightEventTreeView", false);
 
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
 
@@ -343,6 +344,8 @@ class FlexEtcProps : Properties {
 	auto soundEffectPlayType = Prop!(int)("soundEffectPlayType", -1);
 	auto bgmVolume = Prop!(int)("bgmVolume", 100);
 	auto seVolume = Prop!(int)("seVolume", 100);
+
+	auto detailAreaWidth = Prop!(int)("detailAreaWidth", 200);
 
 	auto searchPlan = Prop!(int)("searchPlan", 0);
 	auto searchIDKind = Prop!(int)("searchIDKind", 0);

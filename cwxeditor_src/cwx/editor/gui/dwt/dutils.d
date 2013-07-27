@@ -218,7 +218,7 @@ public:
 	}
 }
 
-private class TextEditMFListener : MouseAdapter, SelectionListener, FocusListener {
+class TextEditMFListener : MouseAdapter, SelectionListener, FocusListener {
 private:
 	Commons _comm;
 	Display _display;
@@ -236,7 +236,7 @@ private:
 		this (Item itm) { _itm = itm; }
 		override void run() {
 			if (_comm.prop.var.etc.editTriggerType is EditTrigger.Slow) {
-				if (_start && !_itm.isDisposed() && _hasFocus && _itm is _selection()) {
+				if (_start && !_itm.isDisposed() && _hasFocus && _itm == _selection()) {
 					_startEdit(_itm);
 				}
 			}
@@ -307,20 +307,20 @@ public:
 		if (!itm) return;
 		if (e.button != 1) return;
 		if (_comm.prop.var.etc.editTriggerType is EditTrigger.Quick) {
-			if (itm is _itm) {
+			if (itm == _itm) {
 				_startEdit(itm);
 			}
 		} else {
 			if (2 <= e.count) {
 				return;
 			}
-			if (_oldSel is _selection()) {
+			if (_oldSel == _selection()) {
 				(new core.thread.Thread(&(new Starter).run)).start();
 			}
 		}
 	}
 }
-private class TextEditKListener : KeyAdapter {
+class TextEditKListener : KeyAdapter {
 private:
 	Item delegate() _selection;
 	void delegate(Item itm) _startEdit;
@@ -347,7 +347,7 @@ public:
 	}
 }
 
-private class EditEnd : KeyAdapter, FocusListener {
+class EditEnd : KeyAdapter, FocusListener {
 private:
 	Commons _comm;
 	Control ctrl;

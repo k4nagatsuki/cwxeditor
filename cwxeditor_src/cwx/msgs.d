@@ -1561,6 +1561,7 @@ class Msgs : Properties {
 	auto useNamesAfterStandard = Msg("useNamesAfterStandard", "シナリオで使用中の称号・キーコードを標準の称号・キーコードの後に配置する");
 	auto selectVariableWithTree = Msg("selectVariableWithTree", "状態変数選択ビューでディレクトリの階層表示を行う");
 	auto autoUpdateJpy1File = Msg("autoUpdateJpy1File", "ファイル名が変更された時に関係するJPY1ファイルを自動的に更新する");
+	auto straightEventTreeView = Msg("straightEventTreeView", "イベントツリーを垂直に表示する");
 	auto soundPlayType = Msg("soundPlayType", "BGM再生方式");
 	auto soundPlayTypeDef = Msg("soundPlayTypeDef", "自動選択");
 	auto soundPlayTypeSDL = Msg("soundPlayTypeSDL", "SDL(CardWirthPy方式)");

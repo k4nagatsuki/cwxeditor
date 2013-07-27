@@ -1428,6 +1428,7 @@ private:
 	TableItem _useNamesAfterStandard;
 	TableItem _selectVariableWithTree;
 	TableItem _autoUpdateJpy1File;
+	TableItem _straightEventTreeView;
 	Combo _targetVersion;
 	int[string] _targetVersionTbl;
 	string[int] _targetVersionTbl2;
@@ -2273,6 +2274,7 @@ private:
 			_useNamesAfterStandard = createB(_prop.msgs.useNamesAfterStandard);
 			_selectVariableWithTree = createB(_prop.msgs.selectVariableWithTree);
 			_autoUpdateJpy1File = createB(_prop.msgs.autoUpdateJpy1File);
+			_straightEventTreeView = createB(_prop.msgs.straightEventTreeView);
 
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			auto sepgd = new GridData(GridData.FILL_HORIZONTAL);
@@ -2558,6 +2560,7 @@ protected:
 		_useNamesAfterStandard.setChecked(_prop.var.etc.useNamesAfterStandard);
 		_selectVariableWithTree.setChecked(_prop.var.etc.selectVariableWithTree);
 		_autoUpdateJpy1File.setChecked(_prop.var.etc.autoUpdateJpy1File);
+		_straightEventTreeView.setChecked(_prop.var.etc.straightEventTreeView);
 		auto tVer = _prop.var.etc.targetVersion in _targetVersionTbl;
 		if (tVer) {
 			_targetVersion.select(*tVer);
@@ -2722,6 +2725,7 @@ protected:
 		_prop.var.etc.useNamesAfterStandard = _useNamesAfterStandard.getChecked();
 		_prop.var.etc.selectVariableWithTree = _selectVariableWithTree.getChecked();
 		_prop.var.etc.autoUpdateJpy1File = _autoUpdateJpy1File.getChecked();
+		_prop.var.etc.straightEventTreeView = _straightEventTreeView.getChecked();
 		_prop.var.etc.contentsFloat = _contentsFloat.getChecked();
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getChecked();
 		_prop.var.etc.comboListVisible = _comboListVisible.getChecked();
@@ -2817,6 +2821,7 @@ struct OldSettings {
 	bool showVariableValuesInEventText;
 	bool useNamesAfterStandard;
 	bool selectVariableWithTree;
+	bool straightEventTreeView;
 	this (Props prop) {
 		this.prop = prop;
 		this.targetVersion = prop.var.etc.targetVersion;
@@ -2860,6 +2865,7 @@ struct OldSettings {
 		this.showVariableValuesInEventText = prop.var.etc.showVariableValuesInEventText;
 		this.useNamesAfterStandard = prop.var.etc.useNamesAfterStandard;
 		this.selectVariableWithTree = prop.var.etc.selectVariableWithTree;
+		this.straightEventTreeView = prop.var.etc.straightEventTreeView;
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
@@ -2982,6 +2988,9 @@ struct OldSettings {
 		}
 		if (this.selectVariableWithTree != prop.var.etc.selectVariableWithTree) {
 			comm.refVarSelectStyle.call();
+		}
+		if (this.straightEventTreeView != prop.var.etc.straightEventTreeView) {
+			comm.refEventTreeViewStyle.call();
 		}
 	}
 }

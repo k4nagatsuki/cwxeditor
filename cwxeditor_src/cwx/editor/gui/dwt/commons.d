@@ -319,6 +319,7 @@ class Commons {
 	Dlg!() refEventTreeStyle;
 	Dlg!() refRadarStyle;
 	Dlg!() refVarSelectStyle;
+	Dlg!() refEventTreeViewStyle;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;
@@ -442,7 +443,7 @@ class Commons {
 			}
 		}
 		void s(Widget itm) {
-			auto d = cast(MenuData) itm.getData();
+			auto d = cast(MenuData)itm.getData();
 			if (!d) return;
 			try {
 				bool enbl;
@@ -462,6 +463,8 @@ class Commons {
 					ctrl.setEnabled(enbl);
 				}
 			} catch (Throwable e) {
+				if (auto t = cast(ToolItem)itm) debugln(t.getText());
+				if (auto t = cast(MenuItem)itm) debugln(t.getText());
 				debugln(std.conv.text(d.id));
 				debugln(e);
 			}

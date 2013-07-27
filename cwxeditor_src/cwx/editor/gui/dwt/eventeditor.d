@@ -17,6 +17,7 @@ import std.algorithm;
 import std.ascii;
 import std.conv;
 import std.datetime;
+import std.string;
 
 import org.eclipse.swt.all;
 import java.lang.all;
@@ -36,8 +37,23 @@ class EventEditorItem : Item {
 		setData(c);
 	}
 
+	override
+	bool opEquals(Object obj) {
+		if (auto itm = cast(Item)obj) {
+			return getData() is itm.getData();
+		}
+		return false;
+	}
+
 	EventEditor getParent() { return _parent; }
 
+	EventEditorItem getParentItem() {
+		auto c = cast(Content)getData();
+		if (c.parent) {
+			return new EventEditorItem(getParent(), c.parent);
+		}
+		return null;
+	}
 	EventEditorItem getItem(int index) {
 		auto c = cast(Content)getData();
 		return new EventEditorItem(getParent(), c.next[index]);
@@ -54,17 +70,36 @@ class EventEditorItem : Item {
 		auto c = cast(Content)getData();
 		return c.next.length;
 	}
+	int indexOf(EventEditorItem itm) {
+		auto targ = cast(Content)itm.getData();
+		auto c = cast(Content)getData();
+		foreach (i, child; c.next) {
+			if (child is targ) {
+				return i;
+			}
+		}
+		return -1;
+	}
 
 	void setExpanded(bool expanded) {
 		auto c = cast(Content)getData();
 		if (c.type == CType.START && _parent._expanded.get(c, true) != expanded) {
 			_parent._expanded[c] = expanded;
-			_parent.updatePos();
+			_parent.updateEventTree();
 		}
 	}
 	bool getExpanded() {
 		auto c = cast(Content)getData();
 		return _parent._expanded.get(c, true);
+	}
+	Rectangle getBounds() {
+		auto gc = new GC(_parent);
+		scope (exit) gc.dispose();
+		auto c = cast(Content)getData();
+		auto s = .eventText(_parent._comm, _parent._summ, c.parent, c);
+		auto pos = _parent._posTable[c];
+		auto sy = _parent.getVerticalBar().getSelection();
+		return new Rectangle(0, pos.y - sy, 20 + gc.textExtent(s).x + 4, _parent._lineHeight);
 	}
 }
 
@@ -77,18 +112,18 @@ class EventEditor : Composite {
 	private int _imageWidth = 16;
 	private int _lineHeight = 16;
 	private int _imgPos = 0;
-	private Content _selected = null;
+	private Content _selected = null, _lightup = null;
 	/// yの順に整列した位置リスト。
 	private PosInfo[] _pos;
 	/// イベントコンテントをキーに位置を取るテーブル。
 	private PosInfo[Content] _posTable;
 
 	private Color _selectedColor = null;
+	private Color _lightupColor = null;
 
 	private Cursor _cursor = null;
 	private bool _changeCursor = false;
 	private bool _moveDetailLine = false;
-	private int _detailAreaWidth = 200;
 	private Image _warningImage = null;
 
 	private Warning[] _warningRects;
@@ -106,18 +141,23 @@ class EventEditor : Composite {
 
 		auto vbar = getVerticalBar();
 		vbar.setMinimum(0);
+		vbar.setMaximum(1);
 		vbar.setSelection(0);
 		vbar.setIncrement(1);
+		vbar.setPageIncrement(1);
+		vbar.setThumb(1);
 		.listener(this, SWT.Resize, &updateScrollBar);
 		.listener(vbar, SWT.Selection, &redraw);
 
 		setBackground(d.getSystemColor(SWT.COLOR_WHITE));
 		auto color = new Color(d, new RGB(96, 96, 96));
 		_selectedColor = new Color(d, new RGB(128, 191, 255));
+		_lightupColor = new Color(d, new RGB(191, 224, 255));
 		_warningImage = .warningImage(_comm.prop, d);
 		setForeground(color);
 		.listener(this, SWT.Dispose, {
 			_selectedColor.dispose();
+			_lightupColor.dispose();
 			color.dispose();
 			_warningImage.dispose();
 		});
@@ -127,10 +167,28 @@ class EventEditor : Composite {
 		.listener(this, SWT.MouseDown, &onMouseDown);
 		.listener(this, SWT.MouseUp, &onMouseUp);
 		.listener(this, SWT.MouseMove, &onMouseMove);
+		.listener(this, SWT.MouseEnter, &onMouseEnter);
+		.listener(this, SWT.MouseExit, &onMouseExit);
 		.listener(this, SWT.MouseDoubleClick, &onMouseDoubleClick);
 		.listener(this, SWT.KeyDown, &onKeyDown);
 		.listener(this, SWT.Resize, &onResize);
-		updatePos();
+		.listener(this, SWT.FocusIn, &onFocusInOut);
+		.listener(this, SWT.FocusOut, &onFocusInOut);
+		setDragDetect(true);
+		updateEventTree();
+	}
+
+	@property
+	EventTree eventTree() { return _et; }
+	@property
+	void eventTree(EventTree et) {
+		_et = et;
+		updateEventTree();
+	}
+
+	void expandAll() {
+		_expanded = null;
+		updateEventTree();
 	}
 
 	void showSelection() {
@@ -149,11 +207,21 @@ class EventEditor : Composite {
 		}
 	}
 
-	private void updatePos() {
+	void updateEventTree() {
+		updatePosImpl();
+		redraw();
+	}
+	private void updatePosImpl() {
 		int x = 0;
 		int y = 0;
+		int selIndex = 0;
+		if (_selected && _selected in _posTable) {
+			auto selPos = _posTable[_selected];
+			selIndex = selPos.y / _lineHeight;
+		}
 		_pos = [];
 		_posTable = null;
+		_lightup = null;
 		bool[Content] expanded2;
 		void recurse(int x, Content c) {
 			auto type = c.type;
@@ -172,23 +240,30 @@ class EventEditor : Composite {
 				}
 			}
 		}
-		foreach (i, start; _et.starts) {
-			recurse(x, start);
+		if (_et) {
+			foreach (i, start; _et.starts) {
+				recurse(x, start);
+			}
+			if (_selected && _selected !in _posTable && 0 < selIndex) {
+				selIndex -= 1;
+				_selected = null;
+			}
+		} else {
+			_selected = null;
+		}
+		if (!_selected && _pos.length) {
+			_selected = _pos[.min(selIndex, $ - 1)].content;
 		}
 		_expanded = expanded2;
 		_posTable.rehash();
-		while (_selected && _selected !in _posTable) {
-			_selected = _selected.parent;
-		}
 		updateScrollBar();
-		redraw();
 	}
 	private void updateScrollBar() {
 		auto ca = getClientArea();
 		auto vbar = getVerticalBar();
+		vbar.setMaximum(_pos.length);
 		vbar.setThumb(ca.height / _lineHeight);
 		vbar.setPageIncrement(ca.height / _lineHeight / 2);
-		vbar.setMaximum(_pos.length);
 	}
 
 	private void updateToolTip() {
@@ -203,7 +278,7 @@ class EventEditor : Composite {
 					break;
 				}
 			}
-			if (toolTip == "" && ca.width - _detailAreaWidth <= p.x) {
+			if (toolTip == "" && ca.width - _comm.prop.var.etc.detailAreaWidth <= p.x) {
 				int index = getVerticalBar().getSelection() + (p.y / _lineHeight);
 				if (0 <= index && index < _pos.length) {
 					auto pos = _pos[index];
@@ -229,6 +304,7 @@ class EventEditor : Composite {
 		return null;
 	}
 	EventEditorItem[] getItems() {
+		if (!_et) return [];
 		auto c = cast(Content)getData();
 		auto items = new EventEditorItem[_et.starts.length];
 		foreach (i; 0 .. _et.starts.length) {
@@ -236,7 +312,10 @@ class EventEditor : Composite {
 		}
 		return items;
 	}
-	int getItemCount() { return _et.starts.length; }
+	int getItemCount() {
+		if (!_et) return 0;
+		return _et.starts.length;
+	}
 
 	EventEditorItem[] getSelection() {
 		if (_selected) {
@@ -257,6 +336,7 @@ class EventEditor : Composite {
 		}
 	}
 	int indexOf(EventEditorItem itm) {
+		if (!_et) return -1;
 		return .cCountUntil(_et.starts, cast(Content)itm.getData());
 	}
 	EventEditorItem getTopItem() {
@@ -381,9 +461,9 @@ class EventEditor : Composite {
 	}
 
 	private void onMouseDown(Event e) {
-		if (e.button == 1) {
-			setFocus();
-			if (_changeCursor) {
+		if (e.button == 1 || e.button == 3) {
+			forceFocus();
+			if (e.button == 1 && _changeCursor) {
 				_moveDetailLine = true;
 			} else {
 				auto sel = getContent(e.x, e.y);
@@ -392,6 +472,7 @@ class EventEditor : Composite {
 				callSelectChanged();
 				redraw();
 			}
+			e.doit = false;
 		}
 	}
 
@@ -404,28 +485,66 @@ class EventEditor : Composite {
 	private void onMouseMove(Event e) {
 		auto ca = getClientArea();
 		if (_moveDetailLine) {
-			int w = _detailAreaWidth;
-			_detailAreaWidth = ca.width - e.x;
-			_detailAreaWidth = .min(_detailAreaWidth, ca.width - _imageWidth);
-			_detailAreaWidth = .max(_detailAreaWidth, _imageWidth);
-			w = .max(w, _detailAreaWidth);
+			int w = _comm.prop.var.etc.detailAreaWidth;
+			_comm.prop.var.etc.detailAreaWidth = ca.width - e.x;
+			_comm.prop.var.etc.detailAreaWidth = .min(_comm.prop.var.etc.detailAreaWidth.value, ca.width - _imageWidth);
+			_comm.prop.var.etc.detailAreaWidth = .max(_comm.prop.var.etc.detailAreaWidth.value, _imageWidth);
+			w = .max(w, _comm.prop.var.etc.detailAreaWidth.value);
 			redraw();
 		} else {
-			auto linePos = ca.width - _detailAreaWidth;
+			auto linePos = ca.width - _comm.prop.var.etc.detailAreaWidth;
 			if (linePos - 10 <= e.x && e.x < linePos + 10) {
 				if (!_changeCursor) {
 					auto d = getDisplay();
 					_cursor = getCursor();
 					_changeCursor = true;
 					setCursor(d.getSystemCursor(SWT.CURSOR_SIZEWE));
+					setDragDetect(false);
 				}
 			} else if (_changeCursor) {
 				setCursor(_cursor);
+				setDragDetect(true);
 				_cursor = null;
 				_changeCursor = false;
 			}
 		}
+		updateLightup();
 		updateToolTip();
+	}
+	private void onMouseEnter(Event e) {
+		updateLightup();
+	}
+	private void onMouseExit(Event e) {
+		clearLightup();
+	}
+	private void onFocusInOut(Event e) {
+		auto ca = getClientArea();
+		if (_selected) {
+			auto pos = _posTable[_selected];
+			auto sy = getVerticalBar().getSelection() * _lineHeight;
+			redraw(ca.x, pos.y - sy, ca.width, _lineHeight, true);
+		}
+	}
+	private void clearLightup() {
+		if (_lightup && _lightup in _posTable) {
+			auto ca = getClientArea();
+			auto sy = getVerticalBar().getSelection() * _lineHeight;
+			auto pos = _posTable[_lightup];
+			redraw(ca.x, pos.y - sy, ca.width, _lineHeight, true);
+		}
+		_lightup = null;
+	}
+	void updateLightup() {
+		auto ca = getClientArea();
+		auto p = getDisplay().getCursorLocation();
+		p = toControl(p);
+		auto sy = getVerticalBar().getSelection() * _lineHeight;
+		clearLightup();
+		_lightup = getContent(p.x, p.y);
+		if (_lightup) {
+			auto pos = _posTable[_lightup];
+			redraw(ca.x, pos.y - sy, ca.width, _lineHeight, true);
+		}
 	}
 
 	private void onMouseDoubleClick(Event e) {
@@ -440,11 +559,12 @@ class EventEditor : Composite {
 
 	private void onResize(Event e) {
 		auto ca = getClientArea();
-		_detailAreaWidth = .min(_detailAreaWidth, ca.width - _imageWidth);
-		_detailAreaWidth = .max(_detailAreaWidth, _imageWidth);
+		_comm.prop.var.etc.detailAreaWidth = .min(_comm.prop.var.etc.detailAreaWidth.value, ca.width - _imageWidth);
+		_comm.prop.var.etc.detailAreaWidth = .max(_comm.prop.var.etc.detailAreaWidth.value, _imageWidth);
 	}
 
 	private void onMouseWheel(Event e) {
+		clearLightup();
 		auto vbar = getVerticalBar();
 		auto val = vbar.getSelection();
 		if (e.count < 0) {
@@ -453,9 +573,11 @@ class EventEditor : Composite {
 			val -= 1;
 		}
 		vbar.setSelection(val);
+		updateLightup();
 	}
 
 	private void onPaint(Event e) {
+		if (!_et) return;
 		if (!_pos.length) return;
 		auto hw = _imageWidth / 2;
 		auto hh = _lineHeight / 2;
@@ -467,14 +589,26 @@ class EventEditor : Composite {
 		int sy = index * _lineHeight;
 
 		auto d = getDisplay();
+		if (_lightup) {
+			// マウスオーバー中のイベントコンテント
+			auto pos = _posTable[_lightup];
+			e.gc.setBackground(_lightupColor);
+			scope (exit) e.gc.setBackground(getBackground());
+			e.gc.fillRectangle(e.x, pos.y - sy, e.width, _lineHeight + 1);
+		}
 		if (_selected) {
 			// 選択中マーク
 			auto pos = _posTable[_selected];
 			e.gc.setBackground(_selectedColor);
 			scope (exit) e.gc.setBackground(getBackground());
-			e.gc.fillRectangle(e.x, pos.y - sy, e.width, _lineHeight);
+			e.gc.fillRectangle(e.x, pos.y - sy, e.width, _lineHeight + 1);
+			if (isFocusControl()) {
+				e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
+				e.gc.drawFocus(e.x + 2, pos.y - sy + 2, e.width - 4, _lineHeight + 1 - 4);
+			}
 		}
 
+		e.gc.setForeground(getForeground());
 		// イベントコンテントを結ぶ線
 		foreach (i, ref pos; poss) {
 			auto c = pos.content;
@@ -487,8 +621,11 @@ class EventEditor : Composite {
 				if (pPos.x == pos.x) {
 					e.gc.drawLine(pos.x + hw, pPos.y + hh - sy, pos.x + hw, pos.y + hh - sy);
 				} else {
-					e.gc.drawLine(pPos.x + hw, pPos.y + hh - sy, pPos.x + hw, pos.y + hh - sy);
-					e.gc.drawLine(pPos.x + hw, pos.y + hh - sy, pos.x + hw, pos.y + hh - sy);
+					e.gc.drawLine(pPos.x + hw, pPos.y + hh - sy, pPos.x + hw, pos.y - sy);
+					e.gc.setAntialias(SWT.ON);
+					e.gc.drawArc(pPos.x + hw, pos.y - sy - hh, _imageWidth, _lineHeight, 180, 90);
+					e.gc.setAntialias(SWT.OFF);
+					e.gc.drawLine(pPos.x + _imageWidth, pos.y + hh - sy, pos.x + hw, pos.y + hh - sy);
 				}
 			}
 		}
@@ -515,7 +652,7 @@ class EventEditor : Composite {
 				if (_pos[0].content is c) count++;
 				auto uc = .text(count);
 				auto tw = e.gc.textExtent(uc).x;
-				int tx = ca.width - _detailAreaWidth - 4 - tw;
+				int tx = ca.width - _comm.prop.var.etc.detailAreaWidth - 4 - tw;
 				e.gc.setForeground(getForeground());
 				e.gc.drawString(_comm.prop.msgs.startUseCount, tx - ucExtent.x - 4, pos.y - sy, true);
 				e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
@@ -537,9 +674,9 @@ class EventEditor : Composite {
 		// イベントコンテントの内容領域、警告
 		e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 		e.gc.setBackground(getBackground());
-		e.gc.drawLine(ca.width - _detailAreaWidth, e.y, ca.width - _detailAreaWidth, e.y + e.height);
+		e.gc.drawLine(ca.width - _comm.prop.var.etc.detailAreaWidth, e.y, ca.width - _comm.prop.var.etc.detailAreaWidth, e.y + e.height);
 		e.gc.setAlpha(192);
-		e.gc.fillRectangle(ca.width - _detailAreaWidth, e.y, _detailAreaWidth, e.height);
+		e.gc.fillRectangle(ca.width - _comm.prop.var.etc.detailAreaWidth, e.y, _comm.prop.var.etc.detailAreaWidth, e.height);
 		e.gc.setAlpha(255);
 
 		_warningRects = [];
@@ -547,7 +684,7 @@ class EventEditor : Composite {
 			// イベントコンテント内容
 			auto c = pos.content;
 			auto s = .contentText(_comm, c);
-			int x = ca.width - _detailAreaWidth + 2;
+			int x = ca.width - _comm.prop.var.etc.detailAreaWidth + 2;
 			auto image = _comm.prop.images.content(c.type);
 			e.gc.setAlpha(128);
 			e.gc.drawImage(image, x, pos.y + _imgPos - sy);
@@ -558,14 +695,351 @@ class EventEditor : Composite {
 			auto warnings = .warnings(_comm.prop.parent, _comm.skin, _summ, c, _comm.prop.var.etc.targetVersion);
 			if (warnings.length) {
 				int ww = _comm.prop.var.etc.warningImageWidth;
-				int wix = .max(0, ca.width - _detailAreaWidth - ww);
-				int wiw = ca.width - _detailAreaWidth - wix;
+				int wix = .max(0, ca.width - _comm.prop.var.etc.detailAreaWidth - ww);
+				int wiw = ca.width - _comm.prop.var.etc.detailAreaWidth - wix;
 				if (wiw <= 0) continue;
 				e.gc.drawImage(_warningImage, 0, 0, ww, 1, wix, pos.y - sy, wiw, _lineHeight);
 				e.gc.drawImage(_comm.prop.images.warning, wix + wiw - _imageWidth - 4, pos.y + _imgPos - sy);
-				auto rect = new Rectangle(ca.x, pos.y - sy, ca.width - _detailAreaWidth, _lineHeight);
+				auto rect = new Rectangle(ca.x, pos.y - sy, ca.width - _comm.prop.var.etc.detailAreaWidth, _lineHeight);
 				_warningRects ~= Warning(rect, warnings);
 			}
 		}
+
+		// コメント
+		e.gc.setBackground(getBackground());
+		e.gc.setForeground(getForeground());
+		Rectangle[] boxes;
+		string[] comments;
+		foreach (ref pos; _pos) {
+			auto c = pos.content;
+			if (c.comment == "") continue;
+			auto s = .eventText(_comm, _summ, c.parent, c);
+			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) {
+				s = _comm.skin.evtChildOK;
+			}
+			int rx = pos.x + 20 + e.gc.textExtent(s).x;
+			if (c.type == CType.START && !_expanded.get(c, true)) {
+				rx += 14 + e.gc.textExtent("...").x + 3;
+			} else {
+				rx += 2;
+			}
+			auto cm = std.string.chomp(c.comment);
+			auto te = e.gc.textExtent(cm);
+			// 改行文字があると横幅がおかしくなるため
+			// 測り直す
+			te.x = 0;
+			auto lines = splitLines!string(cm);
+			foreach (line; lines) {
+				te.x = max(e.gc.textExtent(line).x, te.x);
+			}
+
+			int tw = te.x + 10;
+			int th = te.y + 6;
+			int dis = 15;
+			auto box = new Rectangle(rx + dis, pos.y - th / 2 + hh - sy, tw, th);
+			foreach (b; boxes) {
+				if (b.intersects(box)) {
+					box.x = b.x + b.width + 4;
+				}
+			}
+			boxes ~= box;
+			comments ~= cm;
+
+			int hy = box.y + th / 2;
+			e.gc.drawLine(rx, hy, box.x, hy);
+		}
+		foreach (i, box; boxes) {
+			e.gc.setAlpha(192);
+			e.gc.fillRoundRectangle(box.x, box.y, box.width, box.height, 12, 12);
+			e.gc.setAlpha(255);
+			e.gc.setForeground(getForeground());
+			e.gc.drawRoundRectangle(box.x, box.y, box.width, box.height, 12, 12);
+			e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
+			e.gc.drawString(comments[i], box.x + 5, box.y + 5, true);
+		}
+	}
+}
+
+package struct TreeViewWrapper {
+	Tree tree;
+	EventEditor editor;
+
+	@property
+	Composite control() {
+		if (tree) {
+			return tree;
+		} else {
+			return editor;
+		}
+	}
+
+	private Item[] array(T)(T[] itms) {
+		auto a = new Item[itms.length];
+		foreach (i, itm; itms) {
+			a[i] = itm;
+		}
+		return a;
+	}
+	private T[] items(T)(Item[] itms) {
+		auto a = new T[itms.length];
+		foreach (i, itm; itms) {
+			a[i] = cast(T)itm;
+		}
+		return a;
+	}
+
+	Item getTopItem() {
+		if (tree) {
+			return tree.getTopItem();
+		} else {
+			return editor.getTopItem();
+		}
+	}
+	void setTopItem(Item itm) {
+		if (tree) {
+			tree.setTopItem(cast(TreeItem)itm);
+		} else {
+			editor.setTopItem(cast(EventEditorItem)itm);
+		}
+	}
+
+	Item[] getSelection() {
+		if (tree) {
+			return array(tree.getSelection());
+		} else {
+			return array(editor.getSelection());
+		}
+	}
+	void setSelection(Item[] itms) {
+		if (tree) {
+			tree.setSelection(items!TreeItem(itms));
+		} else {
+			editor.setSelection(items!EventEditorItem(itms));
+		}
+	}
+	void select(Item itm) {
+		if (tree) {
+			tree.select(cast(TreeItem)itm);
+		} else {
+			editor.select(cast(EventEditorItem)itm);
+		}
+	}
+
+	Item getItem(int index) {
+		if (tree) {
+			return tree.getItem(index);
+		} else {
+			return editor.getItem(index);
+		}
+	}
+	Item getItem(Point p) {
+		if (tree) {
+			return tree.getItem(p);
+		} else {
+			return editor.getItem(p);
+		}
+	}
+
+	int getItemCount() {
+		if (tree) {
+			return tree.getItemCount();
+		} else {
+			return editor.getItemCount();
+		}
+	}
+	int getItemCount(Item itm) {
+		if (auto b = cast(TreeItem)itm) return b.getItemCount();
+		return (cast(EventEditorItem)itm).getItemCount();
+	}
+	int getItemCount(ref TreeViewWrapper view) {
+		return view.getItemCount();
+	}
+
+	void showSelection() {
+		if (tree) {
+			return tree.showSelection();
+		} else {
+			return editor.showSelection();
+		}
+	}
+
+	void addSelectionListener(SelectionListener listener) {
+		if (tree) {
+			return tree.addSelectionListener(listener);
+		} else {
+			return editor.addSelectionListener(listener);
+		}
+	}
+	void addTreeListener(TreeListener listener) {
+		if (tree) {
+			return tree.addTreeListener(listener);
+		} else {
+			return editor.addTreeListener(listener);
+		}
+	}
+	Item[] getItems() {
+		if (tree) {
+			return array(tree.getItems());
+		} else {
+			return array(editor.getItems());
+		}
+	}
+	Item[] getItems(Item itm) {
+		if (auto b = cast(TreeItem)itm) return array(b.getItems());
+		return array((cast(EventEditorItem)itm).getItems());
+	}
+	Item getItem(Item itm, int index) {
+		if (auto b = cast(TreeItem)itm) return b.getItem(index);
+		return (cast(EventEditorItem)itm).getItem(index);
+	}
+	bool getExpanded(Item itm) {
+		if (auto b = cast(TreeItem)itm) return b.getExpanded();
+		return (cast(EventEditorItem)itm).getExpanded();
+	}
+	void setExpanded(Item itm, bool expanded) {
+		if (auto b = cast(TreeItem)itm) {
+			b.setExpanded(expanded);
+		} else {
+			(cast(EventEditorItem)itm).setExpanded(expanded);
+		}
+	}
+	Item getParentItem(Item itm) {
+		if (auto b = cast(TreeItem)itm) return b.getParentItem();
+		return (cast(EventEditorItem)itm).getParentItem();
+	}
+	Item getItem(ref TreeViewWrapper view, int index) {
+		return getItem(index);
+	}
+
+	int indexOf(Item itm) {
+		if (tree) {
+			return tree.indexOf(cast(TreeItem)itm);
+		} else {
+			return editor.indexOf(cast(EventEditorItem)itm);
+		}
+	}
+	int indexOf(Item itm, Item child) {
+		if (auto b = cast(TreeItem)itm) return b.indexOf(cast(TreeItem)child);
+		return (cast(EventEditorItem)itm).indexOf(cast(EventEditorItem)child);
+	}
+
+	Item topItem(Item itm) {
+		if (auto b = cast(TreeItem)itm) return .topItem(b);
+		auto c = cast(Content)itm.getData();
+		if (c.parent) return new EventEditorItem(editor, c.parentStart);
+		return itm;
+	}
+
+	void treeExpandedAll() {
+		if (tree) {
+			.treeExpandedAll(tree);
+		} else {
+			editor.expandAll();
+		}
+	}
+}
+
+/// EventEditorのテキストを編集可能にする。
+/// ダブルクリック、またはF2キーの押下で編集開始。
+class EventEdit {
+private:
+	Commons _comm;
+	EventEditor _list;
+	EditEnd _tee;
+	Control _editor = null;
+	EventEditorItem _edit = null;
+	int _oldIndex = -1;
+
+	void delegate(EventEditorItem itm, Control ctrl) _editEnd;
+	Control delegate(EventEditorItem itm) _createEditor;
+
+	Item selectionM(int x, int y) {
+		if (!_list.getDragDetect()) return null;
+		auto c = _list.getContent(x, y);
+		if (!c) return null;
+		int index = _list.indexOf(c);
+		if (x < _list._pos[index].x + 20) return null;
+		auto ca = _list.getClientArea();
+		if (ca.width - _comm.prop.var.etc.detailAreaWidth <= x) return null;
+		return _list.getItem(new Point(x, y));
+	}
+	Item selectionK() {
+		auto sels = _list.getSelection();
+		if (sels.length) {
+			return sels[0];
+		}
+		return null;
+	}
+
+	void end(Control ctrl) {
+		assert (_edit !is null);
+		_editEnd(_edit, ctrl);
+		_tee = null;
+		_edit = null;
+		_editor = null;
+		_oldIndex = -1;
+	}
+
+	void startEdit(Item itm) {
+		if (_tee !is null && !_tee.isExit) _tee.enter();
+		_editor = _createEditor(cast(EventEditorItem)itm);
+		if (_editor) {
+			_edit = cast(EventEditorItem)itm;
+			_list.scroll(_list.indexOf(cast(Content)_edit.getData()));
+			_tee = new EditEnd(_comm, _list, _editor, &end);
+			layout();
+			_tee.setFocus();
+		}
+	}
+	void layout() {
+		if (!_edit) return;
+		int scrPos = _list.getVerticalBar().getSelection();
+		if (scrPos == _oldIndex) return;
+		_oldIndex = scrPos;
+		auto index = _list.indexOf(cast(Content)_edit.getData());
+		auto size = _editor.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		auto pos = _list._pos[index];
+		auto sy = _list.getVerticalBar().getSelection() * _list._lineHeight;
+		int x = pos.x + 20;
+		int w;
+		if (cast(Combo)_editor || cast(CCombo)_editor) {
+			w = size.x;
+		} else {
+			auto ca = _list.getClientArea();
+			w = ca.width - _comm.prop.var.etc.detailAreaWidth - pos.x - 20;
+			w = .max(_comm.prop.var.etc.nameWidth.value, w);
+		}
+		int h = size.y;
+		int y = pos.y + (_list._lineHeight - h) / 2 - sy;
+		_editor.setBounds(x, y, w, h);
+	}
+public:
+	/// list = テキスト編集対象のEventEditor。
+	/// editEnd = 編集終了時に実行される関数。
+	/// createEditor = アイテムを編集するコンポーネントを生成する関数。
+	///                nullを返した場合、編集は開始されない。
+	this(Commons comm, EventEditor list, void delegate(EventEditorItem itm, Control ctrl) editEnd,
+			Control delegate(EventEditorItem itm) createEditor = null) {
+		_comm = comm;
+		_list = list;
+		_editEnd = editEnd;
+		_createEditor = createEditor;
+
+		auto mf = new TextEditMFListener(comm, list, &startEdit, &selectionK, &selectionM);
+		list.addMouseListener(mf);
+		list.addSelectionListener(mf);
+		list.addFocusListener(mf);
+		list.addKeyListener(new TextEditKListener(&startEdit, &selectionK));
+		.listener(list, SWT.Paint, &layout);
+	}
+	/// 選択されているセルの編集を開始する。
+	void startEdit() {
+		auto sels = _list.getSelection();
+		if (sels.length == 1) {
+			startEdit(sels[0]);
+		}
+	}
+	bool isEditing() {
+		return _tee !is null;
 	}
 }
