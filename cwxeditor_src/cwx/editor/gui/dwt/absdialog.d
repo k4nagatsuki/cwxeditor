@@ -314,11 +314,11 @@ abstract class AbsDialog {
 		calcBounds();
 		if (_apply) _apply.setEnabled(false);
 		auto par = cast(Shell) _win.getParent();
+		_win.open();
 		if (par) {
 			_imeMode = par.getImeInputMode();
 			_win.setImeInputMode(_imeMode);
 		}
-		_win.open();
 		if (firstFocusIsOK) _okBtn.setFocus();
 		opened();
 		foreach (dlg; openedEvent) {
