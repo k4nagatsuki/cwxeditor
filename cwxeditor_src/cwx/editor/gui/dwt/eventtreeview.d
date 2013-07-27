@@ -487,7 +487,7 @@ private:
 		auto itm = fromPath(c.cwxPath(true));
 		assert (c is itm.getData());
 		foreach (childItm; _tree.getItems(itm)) {
-			auto par = cast(Content) itm.getData();
+			auto par = cast(Content)itm.getData();
 			assert (par.detail.owner);
 			childItm.setText(eventText(par, cast(Content) childItm.getData()));
 			procTreeItem(childItm);
@@ -578,11 +578,11 @@ private:
 						if (_tree.tree) {
 							itm = createTreeItem(cast(TreeItem)oItm, evt, eventText(owner, evt), _prop.images.content(evt.type), insertIndex);
 							_tree.setExpanded(oItm, true);
-							_tree.setSelection([itm]);
 						} else {
 							_tree.editor.updateEventTree();
 							itm = new EventEditorItem(_tree.editor, evt);
 						}
+						_tree.setSelection([itm]);
 						if (insertTo) {
 							auto ic = cast(Content) insertTo.getData();
 							_comm.delContent.call(ic);

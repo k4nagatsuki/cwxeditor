@@ -346,16 +346,17 @@ class EventEditor : Composite {
 		return .cCountUntil(_et.starts, cast(Content)itm.getData());
 	}
 	EventEditorItem getTopItem() {
-		if(_selected) {
-			auto vbar = getVerticalBar();
-			return getItem(vbar.getSelection());
+		auto vbar = getVerticalBar();
+		auto index = vbar.getSelection();
+		if (0 <= index && index < _pos.length) {
+			return new EventEditorItem(this, _pos[index].content);
 		}
 		return null;
 	}
 	void setTopItem(EventEditorItem itm) {
 		if (itm) {
 			auto vbar = getVerticalBar();
-			vbar.setSelection(indexOf(itm));
+			vbar.setSelection(indexOf(cast(Content)itm.getData()));
 		}
 	}
 
@@ -438,6 +439,20 @@ class EventEditor : Composite {
 	private void onKeyDown(Event e) {
 		if (!_pos.length) return;
 		switch (e.keyCode) {
+		case SWT.ARROW_LEFT:
+			if (_selected && _selected.type == CType.START && _selected.next.length && _expanded.get(_selected, true)) {
+				_expanded[_selected] = false;
+				updateEventTree();
+				return;
+			}
+			goto case SWT.ARROW_UP;
+		case SWT.ARROW_RIGHT:
+			if (_selected && _selected.type == CType.START && _selected.next.length && !_expanded.get(_selected, true)) {
+				_expanded[_selected] = true;
+				updateEventTree();
+				return;
+			}
+			goto case SWT.ARROW_DOWN;
 		case SWT.ARROW_UP:
 			if (_selected) {
 				int i = indexOf(_selected);
@@ -449,7 +464,6 @@ class EventEditor : Composite {
 			callSelectChanged();
 			break;
 		case SWT.ARROW_DOWN:
-		case SWT.ARROW_RIGHT:
 			if (_selected) {
 				int i = indexOf(_selected);
 				if (i + 1 < _pos.length) {
@@ -610,7 +624,7 @@ class EventEditor : Composite {
 			e.gc.fillRectangle(e.x, pos.y - sy, e.width, _lineHeight + 1);
 			if (isFocusControl()) {
 				e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-				e.gc.drawFocus(e.x + 2, pos.y - sy + 2, e.width - 4, _lineHeight + 1 - 4);
+				e.gc.drawFocus(2, pos.y - sy + 2, ca.width - 4, _lineHeight + 1 - 4);
 			}
 		}
 
