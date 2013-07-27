@@ -560,7 +560,7 @@ class EventEditor : Composite {
 		p = toControl(p);
 		auto sy = getVerticalBar().getSelection() * _lineHeight;
 		clearLightup();
-		_lightup = getContent(p.x, p.y);
+		_lightup = ca.contains(p) ? getContent(p.x, p.y) : null;
 		if (_lightup) {
 			auto pos = _posTable[_lightup];
 			redraw(ca.x, pos.y - sy, ca.width, _lineHeight + 1, true);
