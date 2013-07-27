@@ -283,7 +283,13 @@ class EventEditor : Composite {
 				if (0 <= index && index < _pos.length) {
 					auto pos = _pos[index];
 					auto c = pos.content;
-					toolTip = .contentText(_comm, c);
+					auto s = .contentText(_comm, c);
+					auto gc = new GC(this);
+					scope (exit) gc.dispose();
+					int dw = _comm.prop.var.etc.detailAreaWidth - 2 - 18;
+					if (dw < gc.textExtent(s).x) {
+						toolTip = s;
+					}
 				}
 			}
 		}
