@@ -1314,9 +1314,6 @@ public:
 			delete data.alphaData;
 			delete data.maskData;
 		}
-		foreach (a; appends) {
-			if (a.data) del(a.data);
-		}
 		if (_imgData) del(_imgData);
 		if (_baseSizeData) del(_baseSizeData);
 		if (_img) _img.dispose();
