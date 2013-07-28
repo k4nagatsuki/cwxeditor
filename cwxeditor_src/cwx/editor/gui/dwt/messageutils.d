@@ -1809,6 +1809,10 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		}
 		return "$" ~ path ~ "$";
 	}
+	version (Windows) {
+		message = wrapReturnCode(message);
+		message = message.replace("\n", "\r\n");
+	}
 	message = formatMsg(message, &fValue, &sValue, delegate string (char name) {
 		auto dc = std.ascii.toUpper(name);
 		foreach (c, v; names) {
@@ -1820,10 +1824,6 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	}, (string path) {
 		return comm.skin.findImagePath(path, comm.summary.scenarioPath).length != 0 || decodeFontPath(path) in comm.skin.spChars;
 	}, rFonts, rColors);
-	version (Windows) {
-		message = wrapReturnCode(message);
-		message = message.replace("\n", "\r\n");
-	}
 	auto dmsg = to!dstring(message);
 
 	auto cr = d.getSystemColor(SWT.COLOR_RED);
