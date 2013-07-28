@@ -80,8 +80,10 @@ private:
 
 	bool _autoOpen;
 	bool _conti;
+	bool _insertFirst;
 	ToolItem _contiTI;
 	ToolItem _autoOpenTI;
+	ToolItem _insertFirstTI;
 
 	bool _arrowMode = true;
 	CType _cType;
@@ -101,11 +103,15 @@ private:
 
 	void autoOpen() {
 		_autoOpen = _autoOpenTI.getSelection();
-		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti);
+		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti, _insertFirst);
 	}
 	void addContinue() {
 		_conti = _contiTI.getSelection();
-		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti);
+		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti, _insertFirst);
+	}
+	void insertFirst() {
+		_insertFirst = _insertFirstTI.getSelection();
+		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti, _insertFirst);
 	}
 
 	@property
@@ -586,7 +592,11 @@ private:
 						}
 						store(owner);
 						if (insertIndex == -1) {
-							owner.add(_prop.parent, evt);
+							if (_insertFirst) {
+								owner.insert(_prop.parent, 0, evt);
+							} else {
+								owner.add(_prop.parent, evt);
+							}
 						} else {
 							owner.insert(_prop.parent, insertIndex, evt);
 						}
@@ -606,7 +616,11 @@ private:
 							if (_prop.var.etc.adjustContentName) {
 								ic.setName(_prop.parent, "");
 							}
-							evt.add(_prop.parent, ic);
+							if (_insertFirst) {
+								evt.insert(_prop.parent, 0, ic);
+							} else {
+								evt.add(_prop.parent, ic);
+							}
 							insertTo.dispose();
 							createChilds(itm, evt);
 							_tree.setExpanded(itm, true);
@@ -642,9 +656,9 @@ private:
 			_autoHideTools.setCursor(null);
 		}
 		_radioGroup.select(_arrowTI);
-		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti);
+		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti, _insertFirst);
 	}
-	void selContentTool(Object sender, bool arrowMode, CType cType, bool autoOpen, bool conti) {
+	void selContentTool(Object sender, bool arrowMode, CType cType, bool autoOpen, bool conti, bool insertFirst) {
 		if (!_prop.var.etc.connContentTools) return;
 		if (sender is this) return;
 		constructTools();
@@ -663,6 +677,10 @@ private:
 		if (_conti != conti) {
 			_contiTI.setSelection(conti);
 			this.addContinue();
+		}
+		if (_insertFirst != insertFirst) {
+			_insertFirstTI.setSelection(insertFirst);
+			this.insertFirst();
 		}
 	}
 
@@ -1377,7 +1395,11 @@ private:
 							if (cast(Content)_tree.getParentItem(_dragItm).getData() !is owner) {
 								adjustText(owner, evt, lastNextType);
 							}
-							owner.add(_prop.parent, evt);
+							if (_insertFirst) {
+								owner.insert(_prop.parent, 0, evt);
+							} else {
+								owner.add(_prop.parent, evt);
+							}
 							_tree.control.redraw();
 							_comm.refContent.call(evt);
 							_tree.control.setRedraw(false);
@@ -1464,7 +1486,7 @@ private:
 				_v._cType = type;
 				_v._evtTI = _itm;
 				_v._comm.refreshToolBar();
-				_v._comm.selContentTool.call(_v._arrowMode, _v._cType, _v._autoOpen, _v._conti);
+				_v._comm.selContentTool.call(_v._arrowMode, _v._cType, _v._autoOpen, _v._conti, _v._insertFirst);
 			}
 		}
 		@property
@@ -1539,6 +1561,7 @@ private:
 			auto cbar = cast(CoolBar) e.widget;
 			_prop.var.etc.contentsAutoOpen = _autoOpen;
 			_prop.var.etc.contentsContinue = _conti;
+			_prop.var.etc.contentsInsertFirst = _insertFirst;
 		}
 	}
 	class TDListener : DisposeListener {
@@ -1995,6 +2018,7 @@ public:
 		}
 		_autoOpen = _prop.var.etc.contentsAutoOpen;
 		_conti = _prop.var.etc.contentsContinue;
+		_insertFirst = _prop.var.etc.contentsInsertFirst;
 		_cbarPar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		_cbarPar.setLayout(new FillLayout);
 
@@ -2184,6 +2208,8 @@ public:
 			_contiTI.setSelection(_conti);
 			_autoOpenTI = createToolItem2(_comm, mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, null, SWT.CHECK);
 			_autoOpenTI.setSelection(_autoOpen);
+			_insertFirstTI = createToolItem2(_comm, mode, _prop.msgs.evtInsertFirst, _prop.images.evtInsertFirst, &insertFirst, null, SWT.CHECK);
+			_insertFirstTI.setSelection(_insertFirst);
 			new ToolItem(mode, SWT.SEPARATOR);
 			_templTI = createDropDownItem(_comm, mode, MenuID.EvTemplates, null, _templMenu, () => _et && _prop.var.etc.eventTemplates.length > 0);
 			refreshTemplates();
@@ -3046,10 +3072,19 @@ public:
 			owner = parent;
 			itm = _tree.getParentItem(itm);
 		}
+		bool insertFirst = (index == -1 && _insertFirst);
+		Content lastCt = null;
+		int i = 0;
 		foreach (ct; cs2) {
 			if (index == -1) {
 				adjustText(owner, ct, lastNextType);
-				owner.add(_prop.parent, ct);
+				if (insertFirst) {
+					owner.insert(_prop.parent, i, ct);
+					lastCt = ct;
+					i++;
+				} else {
+					owner.add(_prop.parent, ct);
+				}
 			} else {
 				owner.insert(_prop.parent, index, ct);
 				index = -1;
@@ -3057,7 +3092,23 @@ public:
 			_comm.refContent.call(ct);
 		}
 		auto lastItm = createChilds(itm, owner);
-		if (last) {
+		if (lastCt) {
+			while (lastCt.next.length) {
+				lastCt = lastCt.next[$ - 1];
+			}
+			Item find(Item itm) {
+				if (lastCt is itm.getData()) {
+					return itm;
+				} else {
+					foreach (child; _tree.getItems(itm)) {
+						auto f = find(child);
+						if (f) return f;
+					}
+					return null;
+				}
+			}
+			lastItm = find(itm);
+		} else if (last) {
 			Item findLast(Item itm) {
 				if (allLast is itm.getData()) {
 					return itm;

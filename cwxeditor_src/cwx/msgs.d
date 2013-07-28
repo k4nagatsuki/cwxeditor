@@ -468,6 +468,7 @@ class Msgs : Properties {
 
 	auto evtAddContinue = Msg("evtAddContinue", "連続で配置");
 	auto evtAutoOpen = Msg("evtAutoOpen", "配置と同時に編集");
+	auto evtInsertFirst = Msg("evtInsertFirst", "他の子コンテントより前に配置");
 
 	const string contentName(CType id) {
 		mixin(EnumToStringSwitch!(CType, "contentName"));

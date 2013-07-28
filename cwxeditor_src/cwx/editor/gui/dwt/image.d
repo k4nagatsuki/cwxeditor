@@ -122,6 +122,7 @@ public:
 
 	@property Image evtAddContinue() {return imgd!("evt_add_continue.png");}
 	@property Image evtAutoOpen() {return imgd!("evt_auto_edit.png");}
+	@property Image evtInsertFirst() {return imgd!("evt_insert_first.png");}
 
 	Image content(CType type) {
 		switch (type) {

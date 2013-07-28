@@ -227,6 +227,7 @@ class FlexEtcProps : Properties {
 	auto contentsWrapIndices = Prop!(int[])("contentsWrapIndices", [4, 6, 8]);
 	auto contentsAutoOpen = Prop!(bool)("contentsAutoOpen", true);
 	auto contentsContinue = Prop!(bool)("contentsContinue", false);
+	auto contentsInsertFirst = Prop!(bool)("contentsInsertFirst", false);
 	auto contentsFloat = Prop!(bool)("contentsFloat", false);
 	auto contentsAutoHide = Prop!(bool)("contentsAutoHide", false);
 	auto comboListVisible = Prop!(bool)("comboListVisible", true);
