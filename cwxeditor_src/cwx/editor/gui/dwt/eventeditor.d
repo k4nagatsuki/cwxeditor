@@ -105,7 +105,8 @@ class EventEditorItem : Item {
 		auto c = cast(Content)getData();
 		auto index = _parent.indexOf(c);
 		auto pos = _parent._pos[index];
-		return new Rectangle(pos.x, pos.y + _parent._imgPos, _parent._imageWidth, _parent._lineHeight - _parent._imgPos - _parent._imgPos);
+		auto sy = _parent.getVerticalBar().getSelection();
+		return new Rectangle(pos.x, pos.y + _parent._imgPos - sy, _parent._imageWidth, _parent._lineHeight - _parent._imgPos - _parent._imgPos);
 	}
 }
 

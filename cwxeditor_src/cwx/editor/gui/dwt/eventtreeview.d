@@ -170,14 +170,15 @@ private:
 			if (_arrowMode && _prop.var.etc.clickIconIsStartEdit) {
 				auto itm = _tree.getItem(new Point(e.x, e.y));
 				if (itm) {
+					auto d = _tree.control.getDisplay();
+					auto hand = d.getSystemCursor(SWT.CURSOR_HAND);
 					if (_tree.getImageBounds(itm).contains(e.x, e.y)) {
 						_clickStart = itm;
 						if (_tree.editor) {
-							auto d = _tree.control.getDisplay();
-							_tree.control.setCursor(d.getSystemCursor(SWT.CURSOR_HAND));
+							_tree.control.setCursor(hand);
 						}
 					} else {
-						if (_tree.editor) {
+						if (_tree.editor && _tree.control.getCursor() is hand) {
 							_tree.control.setCursor(null);
 						}
 					}
