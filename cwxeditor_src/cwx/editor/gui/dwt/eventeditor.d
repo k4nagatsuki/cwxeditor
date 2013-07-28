@@ -347,6 +347,10 @@ class EventEditor : Composite {
 			redraw();
 		}
 	}
+	void select(Content c) {
+		_selected = c;
+		redraw();
+	}
 	int indexOf(EventEditorItem itm) {
 		if (!_et) return -1;
 		return .cCountUntil(_et.starts, cast(Content)itm.getData());
@@ -444,6 +448,7 @@ class EventEditor : Composite {
 
 	private void onKeyDown(Event e) {
 		if (!_pos.length) return;
+		if (e.stateMask != SWT.NONE) return;
 		switch (e.keyCode) {
 		case SWT.ARROW_LEFT:
 			if (_selected && _selected.type == CType.START && _selected.next.length && _expanded.get(_selected, true)) {

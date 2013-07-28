@@ -1860,6 +1860,8 @@ class Msgs : Properties {
 	auto menuTextCopyVariablePath = Msg("menuTextCopyVariablePath", "状態変数のパスをコピー");
 	auto menuTextUp = Msg("menuTextUp", "上へ");
 	auto menuTextDown = Msg("menuTextDown", "下へ");
+	auto menuTextSwapToParent = Msg("menuTextSwapToParent", "親コンテントと入れ替える");
+	auto menuTextSwapToChild = Msg("menuTextSwapToChild", "子コンテントと入れ替える");
 	auto menuTextOverDialog = Msg("menuTextOverDialog", "上の台詞へ移動");
 	auto menuTextUnderDialog = Msg("menuTextUnderDialog", "下の台詞へ移動");
 	auto menuTextShowParty = Msg("menuTextShowParty", "パーティカードの表示");

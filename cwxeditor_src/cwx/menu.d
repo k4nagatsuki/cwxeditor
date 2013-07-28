@@ -125,6 +125,8 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.CopyVariablePath] = "V";
 		_mnemonic[MenuID.Up] = "K";
 		_mnemonic[MenuID.Down] = "J";
+		_mnemonic[MenuID.SwapToParent] = "S";
+		_mnemonic[MenuID.SwapToChild] = "W";
 		_mnemonic[MenuID.OverDialog] = "O";
 		_mnemonic[MenuID.UnderDialog] = "U";
 		_mnemonic[MenuID.ShowParty] = "P";
@@ -307,6 +309,8 @@ class MenuProps : Properties {
 		_hotkey[MenuID.CopyVariablePath] = "";
 		_hotkey[MenuID.Up] = "Ctrl+Arrow_Up";
 		_hotkey[MenuID.Down] = "Ctrl+Arrow_Down";
+		_hotkey[MenuID.SwapToParent] = "Ctrl+Shift+Arrow_Up";
+		_hotkey[MenuID.SwapToChild] = "Ctrl+Shift+Arrow_Down";
 		_hotkey[MenuID.OverDialog] = "Ctrl+Shift+Arrow_Up";
 		_hotkey[MenuID.UnderDialog] = "Ctrl+Shift+Arrow_Down";
 		_hotkey[MenuID.ShowParty] = "";

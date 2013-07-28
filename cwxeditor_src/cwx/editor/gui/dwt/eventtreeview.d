@@ -2077,8 +2077,7 @@ public:
 
 		auto shell = _tree.control.getShell();
 		{
-			Menu popup = null;
-			popup = new Menu(shell, SWT.POP_UP);
+			auto popup = new Menu(shell, SWT.POP_UP);
 			createMenuItem(_comm, popup, MenuID.EditProp, &editM, &canEdit);
 			new MenuItem(popup, SWT.SEPARATOR);
 			createMenuItem(_comm, popup, MenuID.Comment, &writeComment, &canWriteComment);
@@ -2093,6 +2092,9 @@ public:
 			createMenuItem(_comm, popup, MenuID.Delete1Content, &del1Content, () => canDoD && _tree.getParentItem(selection));
 			new MenuItem(popup, SWT.SEPARATOR);
 			createMenuItem(_comm, popup, MenuID.PasteInsert, &pasteInsert, &canDoP);
+			new MenuItem(popup, SWT.SEPARATOR);
+			createMenuItem(_comm, popup, MenuID.SwapToParent, &swapToParent, &canSwapToParent);
+			createMenuItem(_comm, popup, MenuID.SwapToChild, &swapToChild, &canSwapToChild);
 			new MenuItem(popup, SWT.SEPARATOR);
 			createMenuItem(_comm, popup, MenuID.ToScript, &toScript, &canToScript);
 			createMenuItem(_comm, popup, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
@@ -2777,25 +2779,39 @@ public:
 	}
 	@property
 	bool canUp() {
-		auto itm = selection;
-		if (!itm) return false;
-		auto par = _tree.getParentItem(itm);
-		if (par) {
-			return 0 < _tree.indexOf(par, itm);
-		} else {
-			return 0 < _tree.indexOf(itm);
-		}
+		return canUpImpl(true);
 	}
 	@property
 	bool canDown() {
+		return canDownImpl(true);
+	}
+	private bool canUpImpl(bool swapPC) {
 		auto itm = selection;
 		if (!itm) return false;
 		auto par = _tree.getParentItem(itm);
 		if (par) {
-			return _tree.indexOf(par, itm) + 1 < _tree.getItemCount(par);
+			if (0 < _tree.indexOf(par, itm)) return true;
 		} else {
-			return _tree.indexOf(itm) + 1 < _tree.getItemCount();
+			if (0 < _tree.indexOf(itm)) return true;
 		}
+		if (!swapPC) return false;
+		if (!_tree.editor) return false;
+		// 垂直表示時は上下移動に加えて親子の入れ替えも試みる
+		return canSwapToParent;
+	}
+	private bool canDownImpl(bool swapPC) {
+		auto itm = selection;
+		if (!itm) return false;
+		auto par = _tree.getParentItem(itm);
+		if (par) {
+			if (_tree.indexOf(par, itm) + 1 < _tree.getItemCount(par)) return true;
+		} else {
+			if (_tree.indexOf(itm) + 1 < _tree.getItemCount()) return true;
+		}
+		if (!swapPC) return false;
+		if (!_tree.editor) return false;
+		// 垂直表示時は上下移動に加えて親子の入れ替えも試みる
+		return canSwapToChild;
 	}
 	private void up(Item itm, bool store) {
 		if (!itm) return;
@@ -2803,6 +2819,12 @@ public:
 		_comm.refreshToolBar();
 	}
 	void up() {
+		if (!canUpImpl(false)) {
+			if (canSwapToParent) {
+				swapToParent();
+			}
+			return;
+		}
 		auto itm = selection;
 		if (itm) up(itm, true);
 	}
@@ -2812,6 +2834,12 @@ public:
 		_comm.refreshToolBar();
 	}
 	void down() {
+		if (!canDownImpl(false)) {
+			if (canSwapToChild) {
+				swapToChild();
+			}
+			return;
+		}
 		auto itm = selection;
 		if (itm) down(itm, true);
 	}
@@ -2835,40 +2863,66 @@ public:
 		if (!c.next[0].detail.owner) return false;
 		return true;
 	}
-	private void swapToPCImpl(Item parent, Item child) {
+	/// イベントコンテントの親子を入れ替える。
+	private void swapToPCImpl(Item parent, Item child, Item selTarg) {
 		auto par = cast(Content)parent.getData();
 		auto next = cast(Content)child.getData();
+		auto parPar = par.parent;
 		auto parName = par.name;
 		auto nextName = next.name;
 		auto parNType = fromCNextType(par.detail.nextType);
 		auto nextNType = fromCNextType(next.detail.nextType);
-		auto parParNType = fromCNextType(par.parent.detail.nextType);
-		auto parIndex = par.parent.next.cCountUntil!"a is b"(par);
+		auto parParNType = fromCNextType(parPar.detail.nextType);
+		auto parIndex = parPar.next.cCountUntil!"a is b"(par);
 
-		store(par.parent);
+		store(parPar);
 
-		par.parent.remove(par);
+		// 入れ替え
+		parPar.remove(par);
 		par.remove(next);
-		foreach (c; next.next) {
+		foreach (c; next.next.dup) {
+			next.remove(c);
 			adjustText(par, c, nextNType);
 			par.add(_prop.parent, c);
 		}
-		adjustText(par.parent, next, parNType);
-		par.parent.insert(_prop.parent, parIndex, next);
-		adjustText(next, par, parParNType);
+		par.setName(_prop.parent, nextName);
+		next.setName(_prop.parent, parName);
+		adjustText(parPar, next, parParNType); // すでに名前を入れ替えているためlastNextTypeも入れ替わる
+		parPar.insert(_prop.parent, parIndex, next);
+		adjustText(next, par, parNType);
 		next.add(_prop.parent, par);
+
+		// 表示の更新
+		if (_tree.tree) {
+			parent.setText(eventText(parPar, next));
+			child.setText(eventText(next, par));
+			parent.setData(next);
+			child.setData(par);
+			parent.setImage(_prop.images.content(next.type));
+			child.setImage(_prop.images.content(par.type));
+			procTreeItem(parent);
+			procTreeItem(child);
+			foreach (cc; _tree.getItems(child)) {
+				cc.setText(eventText(par, cast(Content)cc.getData()));
+				procTreeItem(cc);
+			}
+			_tree.setSelection([selTarg]);
+		} else {
+			_tree.editor.updateEventTree();
+		}
+		_tree.showSelection();
 	}
 	private void swapToParent() {
 		if (!canSwapToParent) return;
 		auto itm = selection;
 		auto par = _tree.getParentItem(itm);
-		swapToPCImpl(par, itm);
+		swapToPCImpl(par, itm, par);
 	}
 	private void swapToChild() {
 		if (!canSwapToChild) return;
 		auto par = selection;
 		auto itm = _tree.getItem(par, 0);
-		swapToPCImpl(par, itm);
+		swapToPCImpl(par, itm, itm);
 	}
 
 	void openToolWindow() {
