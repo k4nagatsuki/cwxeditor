@@ -1172,7 +1172,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 	} else {
 		id = castCard(skin);
 	}
-	scope r = new PileImage(id, w, h);
+	auto r = new PileImage(id, w, h);
 	auto stp = prop.looks.castLifeBarPoint;
 	if (dbgMode || c.faceUpRound > 0) {
 		r.append(to!(string)(c.level),

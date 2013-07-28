@@ -2816,6 +2816,26 @@ public:
 		if (itm) down(itm, true);
 	}
 
+	@property
+	bool canSwapToParent() {
+		auto itm = selection;
+		auto c = cast(Content)itm.getData();
+		if (!c.parent) return false;
+		if (c.parent.type == CType.START) return false;
+		if (c.parent.next.length != 1) return false;
+		if (!c.detail.owner) return false;
+		return true;
+	}
+	@property
+	bool canSwapToChild() {
+		auto itm = selection;
+		auto c = cast(Content)itm.getData();
+		if (c.type == CType.START) return false;
+		if (c.next.length != 1) return false;
+		if (!c.next[0].detail.owner) return false;
+		return true;
+	}
+
 	void openToolWindow() {
 		constructTools();
 		if (_toolWin) {

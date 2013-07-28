@@ -1319,7 +1319,6 @@ public:
 		}
 		if (_imgData) del(_imgData);
 		if (_baseSizeData) del(_baseSizeData);
-		if (data) del(data);
 		if (_img) _img.dispose();
 	}
 }
