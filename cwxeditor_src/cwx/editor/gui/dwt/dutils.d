@@ -302,7 +302,7 @@ public:
 		_start = false;
 		_oldSel = null;
 	}
-	override void mouseDown(MouseEvent e) {
+	override void mouseUp(MouseEvent e) {
 		auto itm = _selectionM(e.x, e.y);
 		if (!itm) return;
 		if (e.button != 1) return;

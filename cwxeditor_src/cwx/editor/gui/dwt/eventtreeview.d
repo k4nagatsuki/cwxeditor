@@ -116,6 +116,7 @@ private:
 
 	@property
 	Item selection() {
+		if (!_tree.control || _tree.control.isDisposed()) return null;
 		auto sels = _tree.getSelection();
 		if (sels.length > 0) {
 			return sels[0];
@@ -138,7 +139,7 @@ private:
 				__edit();
 			}
 		}
-		override void mouseDown(MouseEvent e) {
+		override void mouseUp(MouseEvent e) {
 			if (e.button == 1 && _clickStart) {
 				__edit();
 			}
@@ -164,7 +165,7 @@ private:
 			}
 		}
 	}
-	class MouseMove : MouseMoveListener {
+	class MouseMove : MouseTrackAdapter, MouseMoveListener {
 		override void mouseMove(MouseEvent e) {
 			_clickStart = null;
 			if (_arrowMode && _prop.var.etc.clickIconIsStartEdit) {
@@ -185,6 +186,16 @@ private:
 				}
 			}
 			updateToolTip();
+		}
+		override void mouseExit(MouseEvent e) {
+			clearClickStart();
+		}
+	}
+	void clearClickStart() {
+		auto d = _tree.control.getDisplay();
+		auto hand = d.getSystemCursor(SWT.CURSOR_HAND);
+		if (_clickStart && _tree.editor && _tree.editor && _tree.control.getCursor() is hand) {
+			_tree.control.setCursor(null);
 		}
 	}
 	void updateToolTip() {
@@ -1491,6 +1502,7 @@ private:
 				if (_v._autoHideTools) {
 					_v._autoHideTools.setCursor(_cursor);
 				}
+				_v.clearClickStart();
 				_v._arrowMode = false;
 				_v._cType = type;
 				_v._evtTI = _itm;
@@ -2070,7 +2082,8 @@ public:
 	private void refEventTreeViewStyle() {
 		_comp.setRedraw(false);
 		scope (exit) _comp.setRedraw(true);
-		auto cwxPaths = openedCWXPath();
+		auto sel = selection;
+		size_t[] ctPath = sel ? (cast(Content)sel.getData()).ctPath : [];
 		auto et = _et;
 		refresh(null);
 		if (_tree.tree) {
@@ -2095,7 +2108,9 @@ public:
 		}
 		_tree.control.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_tree.control.addMouseListener(new CreateL);
-		_tree.control.addMouseMoveListener(new MouseMove);
+		auto mml = new MouseMove;
+		_tree.control.addMouseMoveListener(mml);
+		_tree.control.addMouseTrackListener(mml);
 		auto editl = new EditL;
 		_tree.control.addKeyListener(editl);
 		_tree.control.addMouseListener(editl);
@@ -2163,8 +2178,10 @@ public:
 
 		_comp.layout();
 		refresh(et);
-		foreach (cwxPath; cwxPaths) {
-			_comm.openCWXPath(cwxPath, false);
+		if (ctPath.length) {
+			sel = fromPath(ctPath);
+			_tree.setSelection([sel]);
+			_tree.showSelection();
 		}
 	}
 	private int _parX, _parY;
