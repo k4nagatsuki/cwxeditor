@@ -172,6 +172,14 @@ private:
 				if (itm) {
 					if (_tree.getImageBounds(itm).contains(e.x, e.y)) {
 						_clickStart = itm;
+						if (_tree.editor) {
+							auto d = _tree.control.getDisplay();
+							_tree.control.setCursor(d.getSystemCursor(SWT.CURSOR_HAND));
+						}
+					} else {
+						if (_tree.editor) {
+							_tree.control.setCursor(null);
+						}
 					}
 				}
 			}
