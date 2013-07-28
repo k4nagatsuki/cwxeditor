@@ -98,14 +98,14 @@ class EventEditorItem : Item {
 		auto c = cast(Content)getData();
 		auto s = .eventText(_parent._comm, _parent._summ, c.parent, c);
 		auto pos = _parent._posTable[c];
-		auto sy = _parent.getVerticalBar().getSelection();
+		auto sy = _parent.getVerticalBar().getSelection() * _parent._lineHeight;
 		return new Rectangle(0, pos.y - sy, 20 + gc.textExtent(s).x + 4, _parent._lineHeight);
 	}
 	Rectangle getImageBounds() {
 		auto c = cast(Content)getData();
 		auto index = _parent.indexOf(c);
 		auto pos = _parent._pos[index];
-		auto sy = _parent.getVerticalBar().getSelection();
+		auto sy = _parent.getVerticalBar().getSelection() * _parent._lineHeight;
 		return new Rectangle(pos.x, pos.y + _parent._imgPos - sy, _parent._imageWidth, _parent._lineHeight - _parent._imgPos - _parent._imgPos);
 	}
 }
