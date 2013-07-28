@@ -1942,6 +1942,8 @@ class Msgs : Properties {
 	auto menuTextToScript = Msg("menuTextToScript", "スクリプトに変換してコピー");
 	auto menuTextToScriptAll = Msg("menuTextToScriptAll", "全てをスクリプトに変換してコピー");
 	auto menuTextEvTemplates = Msg("menuTextEvTemplates", "テンプレートから作成");
+	auto menuTextExpand = Msg("menuTextExpand", "ツリーを開く");
+	auto menuTextCollapse = Msg("menuTextCollapse", "ツリーを閉じる");
 	auto menuTextResetPreviewValues = Msg("menuTextResetPreviewValues", "初期値に戻す");
 	auto menuTextResetPreviewValuesAll = Msg("menuTextResetPreviewValuesAll", "全て初期値に戻す");
 

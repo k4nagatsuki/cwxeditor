@@ -83,7 +83,7 @@ class EventEditorItem : Item {
 
 	void setExpanded(bool expanded) {
 		auto c = cast(Content)getData();
-		if (c.type == CType.START && _parent._expanded.get(c, true) != expanded) {
+		if (_parent._expanded.get(c, true) != expanded) {
 			_parent._expanded[c] = expanded;
 			_parent.updateEventTree();
 		}
@@ -234,7 +234,7 @@ class EventEditor : Composite {
 			_pos ~= PosInfo(x, y, c);
 			_posTable[c] = PosInfo(x, y, c);
 			y += _lineHeight;
-			if (type == CType.START && c.next.length && !_expanded.get(c, true)) {
+			if (c.next.length && !_expanded.get(c, true)) {
 				expanded2[c] = false;
 				return;
 			}
@@ -451,14 +451,14 @@ class EventEditor : Composite {
 		if (e.stateMask != SWT.NONE) return;
 		switch (e.keyCode) {
 		case SWT.ARROW_LEFT:
-			if (_selected && _selected.type == CType.START && _selected.next.length && _expanded.get(_selected, true)) {
+			if (_selected && _selected.next.length && _expanded.get(_selected, true)) {
 				_expanded[_selected] = false;
 				updateEventTree();
 				return;
 			}
 			goto case SWT.ARROW_UP;
 		case SWT.ARROW_RIGHT:
-			if (_selected && _selected.type == CType.START && _selected.next.length && !_expanded.get(_selected, true)) {
+			if (_selected && _selected.next.length && !_expanded.get(_selected, true)) {
 				_expanded[_selected] = true;
 				updateEventTree();
 				return;
@@ -689,8 +689,8 @@ class EventEditor : Composite {
 				e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 				e.gc.drawString(uc, tx, pos.y - sy, true);
 			}
-			if (c.type == CType.START && !_expanded.get(c, true)) {
-				// スタートを畳んでいる時のマーク
+			if (!_expanded.get(c, true)) {
+				// ツリーを畳んでいる時のマーク
 				e.gc.setForeground(getForeground());
 				auto tw = e.gc.textExtent(s).x;
 				auto te = e.gc.textExtent("...");
@@ -749,7 +749,7 @@ class EventEditor : Composite {
 				s = _comm.skin.evtChildOK;
 			}
 			int rx = pos.x + 20 + e.gc.textExtent(s).x;
-			if (c.type == CType.START && !_expanded.get(c, true)) {
+			if (!_expanded.get(c, true)) {
 				rx += 14 + e.gc.textExtent("...").x + 3;
 			} else {
 				rx += 2;

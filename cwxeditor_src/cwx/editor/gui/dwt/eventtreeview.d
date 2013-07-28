@@ -2096,6 +2096,9 @@ public:
 			createMenuItem(_comm, popup, MenuID.SwapToParent, &swapToParent, &canSwapToParent);
 			createMenuItem(_comm, popup, MenuID.SwapToChild, &swapToChild, &canSwapToChild);
 			new MenuItem(popup, SWT.SEPARATOR);
+			createMenuItem(_comm, popup, MenuID.Expand, &expand, &canExpand);
+			createMenuItem(_comm, popup, MenuID.Collapse, &collapse, &canCollapse);
+			new MenuItem(popup, SWT.SEPARATOR);
 			createMenuItem(_comm, popup, MenuID.ToScript, &toScript, &canToScript);
 			createMenuItem(_comm, popup, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
 			new MenuItem(popup, SWT.SEPARATOR);
@@ -2440,6 +2443,32 @@ public:
 			}
 		}
 		return false;
+	}
+	@property
+	bool canExpand() {
+		auto itm = selection;
+		if (!itm) return false;
+		auto c = cast(Content)itm.getData();
+		return c.next.length && !_tree.getExpanded(itm);
+	}
+	@property
+	bool canCollapse() {
+		auto itm = selection;
+		if (!itm) return false;
+		auto c = cast(Content)itm.getData();
+		return c.next.length && _tree.getExpanded(itm);
+	}
+	void expand() {
+		if (!canExpand) return;
+		auto itm = selection;
+		if (!itm) return;
+		_tree.setExpanded(itm, true);
+	}
+	void collapse() {
+		if (!canCollapse) return;
+		auto itm = selection;
+		if (!itm) return;
+		_tree.setExpanded(itm, false);
 	}
 	private void editEnd(TreeItem itm, Control c) {
 		editEnd(cast(Item)itm, c);
