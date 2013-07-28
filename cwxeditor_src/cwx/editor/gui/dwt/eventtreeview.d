@@ -2835,6 +2835,41 @@ public:
 		if (!c.next[0].detail.owner) return false;
 		return true;
 	}
+	private void swapToPCImpl(Item parent, Item child) {
+		auto par = cast(Content)parent.getData();
+		auto next = cast(Content)child.getData();
+		auto parName = par.name;
+		auto nextName = next.name;
+		auto parNType = fromCNextType(par.detail.nextType);
+		auto nextNType = fromCNextType(next.detail.nextType);
+		auto parParNType = fromCNextType(par.parent.detail.nextType);
+		auto parIndex = par.parent.next.cCountUntil!"a is b"(par);
+
+		store(par.parent);
+
+		par.parent.remove(par);
+		par.remove(next);
+		foreach (c; next.next) {
+			adjustText(par, c, nextNType);
+			par.add(_prop.parent, c);
+		}
+		adjustText(par.parent, next, parNType);
+		par.parent.insert(_prop.parent, parIndex, next);
+		adjustText(next, par, parParNType);
+		next.add(_prop.parent, par);
+	}
+	private void swapToParent() {
+		if (!canSwapToParent) return;
+		auto itm = selection;
+		auto par = _tree.getParentItem(itm);
+		swapToPCImpl(par, itm);
+	}
+	private void swapToChild() {
+		if (!canSwapToChild) return;
+		auto par = selection;
+		auto itm = _tree.getItem(par, 0);
+		swapToPCImpl(par, itm);
+	}
 
 	void openToolWindow() {
 		constructTools();
