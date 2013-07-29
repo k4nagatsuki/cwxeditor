@@ -192,9 +192,10 @@ private:
 			if (_arrowMode && _prop.var.etc.clickIconIsStartEdit) {
 				auto itm = _tree.getItem(new Point(e.x, e.y));
 				if (itm) {
+					auto c = cast(Content)itm.getData();
 					auto d = _tree.control.getDisplay();
 					auto hand = d.getSystemCursor(SWT.CURSOR_HAND);
-					if (_tree.getImageBounds(itm).contains(e.x, e.y)) {
+					if (_tree.getImageBounds(itm).contains(e.x, e.y) && hasDialog(c.type) && checkOpenDialog(c.type)) {
 						_clickStart = itm;
 						if (_tree.editor) {
 							_tree.control.setCursor(hand);
