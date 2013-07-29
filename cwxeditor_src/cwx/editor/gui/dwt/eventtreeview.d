@@ -167,6 +167,7 @@ private:
 	}
 	class CreateL : MouseAdapter {
 		override void mouseDown(MouseEvent e) {
+			if (_putMode is MenuID.PutQuick) return;
 			if (e.button == 1) {
 				create(null);
 			} else if (e.button == 2 && !_arrowMode) {
