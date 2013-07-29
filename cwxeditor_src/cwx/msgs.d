@@ -65,9 +65,9 @@ class Msgs : Properties {
 	auto cardWirthWithVersion = Msg("cardWirthWithVersion", "CardWirth %1$s");
 
 	auto dlgTextOK = Msg("dlgTextOK", "&OK");
-	auto dlgTextApply = Msg("dlgTextApply", "適用");
-	auto dlgTextCancel = Msg("dlgTextCancel", "キャンセル");
-	auto dlgTextClose = Msg("dlgTextClose", "閉じる");
+	auto dlgTextApply = Msg("dlgTextApply", "適用(&A)");
+	auto dlgTextCancel = Msg("dlgTextCancel", "キャンセル(&C)");
+	auto dlgTextClose = Msg("dlgTextClose", "閉じる(&C)");
 
 	auto apply = Msg("apply", "適用");
 	auto del = Msg("del", "削除");
@@ -235,7 +235,6 @@ class Msgs : Properties {
 	auto emptyPath = Msg("emptyPath", "空のパス");
 	auto idValue = Msg("idValue", "ID:%1$sの%2$s");
 	auto searchCancel = Msg("searchCancel", "キャンセル(&C)");
-	auto replaceExit = Msg("replaceExit", "閉じる");
 	auto searchResultEmpty = Msg("searchResultEmpty", "0件の検索結果");
 	auto searchResult = Msg("searchResult", "%1$s件の検索結果(%2$s)");
 	auto searchResultGrep1 = Msg("searchResultGrep1", "%1$s件のシナリオ内の%2$s件の検索結果(%3$sを読込中...)");

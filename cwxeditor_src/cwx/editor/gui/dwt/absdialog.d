@@ -130,7 +130,7 @@ abstract class AbsDialog {
 	private Button createButton(Composite parent, string text, void delegate() push) {
 		auto b = new Button(parent, SWT.PUSH);
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
-		gd.widthHint = 85;
+		gd.widthHint = 100;
 		if (cast(GridLayout) parent.getLayout()) {
 			b.setLayoutData(gd);
 		} else {

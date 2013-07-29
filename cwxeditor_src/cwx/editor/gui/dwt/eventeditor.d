@@ -93,9 +93,10 @@ class EventEditorItem : Item {
 		return _parent._expanded.get(c, true);
 	}
 	Rectangle getBounds() {
+		auto c = cast(Content)getData();
+		if (c !in _parent._posTable) return null;
 		auto gc = new GC(_parent);
 		scope (exit) gc.dispose();
-		auto c = cast(Content)getData();
 		auto s = .eventText(_parent._comm, _parent._summ, c.parent, c);
 		auto pos = _parent._posTable[c];
 		auto sy = _parent.getVerticalBar().getSelection() * _parent._lineHeight;
@@ -125,6 +126,7 @@ class EventEditor : Composite {
 	/// イベントコンテントをキーに位置を取るテーブル。
 	private PosInfo[Content] _posTable;
 
+	private Color _lineColor = null;
 	private Color _selectedColor = null;
 	private Color _lightupColor = null;
 
@@ -134,6 +136,8 @@ class EventEditor : Composite {
 	private Image _warningImage = null;
 
 	private Warning[] _warningRects;
+
+	private bool _expandedOperation = false;
 
 	this (Commons comm, Composite parent, int style, Summary summ, EventTree et) {
 		super (parent, style | SWT.VERTICAL | SWT.DOUBLE_BUFFERED);
@@ -158,11 +162,13 @@ class EventEditor : Composite {
 
 		setBackground(d.getSystemColor(SWT.COLOR_WHITE));
 		auto color = new Color(d, new RGB(96, 96, 96));
+		_lineColor = new Color(d, new RGB(160, 160, 160));
 		_selectedColor = new Color(d, new RGB(128, 191, 255));
 		_lightupColor = new Color(d, new RGB(191, 224, 255));
 		_warningImage = .warningImage(_comm.prop, d);
 		setForeground(color);
 		.listener(this, SWT.Dispose, {
+			_lineColor.dispose();
 			_selectedColor.dispose();
 			_lightupColor.dispose();
 			color.dispose();
@@ -200,6 +206,7 @@ class EventEditor : Composite {
 
 	void showSelection() {
 		if (!_selected) return;
+		if (_selected !in _posTable) return;
 		auto pos = _posTable[_selected];
 		auto index = pos.y / _lineHeight;
 		scroll(index);
@@ -389,6 +396,7 @@ class EventEditor : Composite {
 	}
 
 	private int indexOf(Content c) {
+		if (c !in _posTable) return -1;
 		return _posTable[c].y / _lineHeight;
 	}
 	private void select(int index) {
@@ -447,19 +455,29 @@ class EventEditor : Composite {
 		});
 	}
 
+	/// キーボード操作による開閉操作が可能か。
+	@property
+	void expandedOperation(bool enabled) {
+		_expandedOperation = true;
+	}
+	/// ditto
+	@property
+	const
+	bool expandedOperation() { return _expandedOperation; }
+
 	private void onKeyDown(Event e) {
 		if (!_pos.length) return;
 		if (e.stateMask != SWT.NONE) return;
 		switch (e.keyCode) {
 		case SWT.ARROW_LEFT:
-			if (_selected && _selected.next.length && _expanded.get(_selected, true)) {
+			if (expandedOperation && _selected && _selected.next.length && _expanded.get(_selected, true)) {
 				_expanded[_selected] = false;
 				updateEventTree();
 				return;
 			}
 			goto case SWT.ARROW_UP;
 		case SWT.ARROW_RIGHT:
-			if (_selected && _selected.next.length && !_expanded.get(_selected, true)) {
+			if (expandedOperation && _selected && _selected.next.length && !_expanded.get(_selected, true)) {
 				_expanded[_selected] = true;
 				updateEventTree();
 				return;
@@ -551,7 +569,7 @@ class EventEditor : Composite {
 	}
 	private void onFocusInOut(Event e) {
 		auto ca = getClientArea();
-		if (_selected) {
+		if (_selected && _selected in _posTable) {
 			auto pos = _posTable[_selected];
 			auto sy = getVerticalBar().getSelection() * _lineHeight;
 			redraw(ca.x, pos.y - sy, ca.width, _lineHeight + 1, true);
@@ -573,7 +591,7 @@ class EventEditor : Composite {
 		auto sy = getVerticalBar().getSelection() * _lineHeight;
 		clearLightup();
 		_lightup = ca.contains(p) ? getContent(p.x, p.y) : null;
-		if (_lightup) {
+		if (_lightup && _lightup in _posTable) {
 			auto pos = _posTable[_lightup];
 			redraw(ca.x, pos.y - sy, ca.width, _lineHeight + 1, true);
 		}
@@ -621,14 +639,14 @@ class EventEditor : Composite {
 		int sy = index * _lineHeight;
 
 		auto d = getDisplay();
-		if (_lightup) {
+		if (_lightup && _lightup in _posTable) {
 			// マウスオーバー中のイベントコンテント
 			auto pos = _posTable[_lightup];
 			e.gc.setBackground(_lightupColor);
 			scope (exit) e.gc.setBackground(getBackground());
 			e.gc.fillRectangle(e.x, pos.y - sy, e.width, _lineHeight + 1);
 		}
-		if (_selected) {
+		if (_selected && _selected in _posTable) {
 			// 選択中マーク
 			auto pos = _posTable[_selected];
 			e.gc.setBackground(_selectedColor);
@@ -640,30 +658,50 @@ class EventEditor : Composite {
 			}
 		}
 
-		e.gc.setForeground(getForeground());
 		// イベントコンテントを結ぶ線
+		e.gc.setLineWidth(2);
+		e.gc.setForeground(_lineColor);
 		foreach (i, ref pos; poss) {
 			auto c = pos.content;
 			if (c.type == CType.START) {
 				if (0 < i && _comm.prop.var.etc.drawContentTreeLine) {
+					e.gc.setLineWidth(1);
+					e.gc.setForeground(_lineColor);
 					e.gc.drawLine(e.x, pos.y - sy, e.x + e.width, pos.y - sy);
+					e.gc.setLineWidth(2);
+					e.gc.setForeground(_lineColor);
 				}
-			} else if (c.parent) {
+			} else if (c.parent && c.parent in _posTable) {
 				auto pPos = _posTable[c.parent];
 				if (pPos.x == pos.x) {
 					e.gc.drawLine(pos.x + hw, pPos.y + hh - sy, pos.x + hw, pos.y + hh - sy);
 				} else {
 					e.gc.drawLine(pPos.x + hw, pPos.y + hh - sy, pPos.x + hw, pos.y - sy);
+					e.gc.drawLine(pPos.x + _imageWidth, pos.y + hh - sy, pos.x + hw, pos.y + hh - sy);
 					e.gc.setAntialias(SWT.ON);
 					e.gc.drawArc(pPos.x + hw, pos.y - sy - hh, _imageWidth, _lineHeight, 180, 90);
 					e.gc.setAntialias(SWT.OFF);
-					e.gc.drawLine(pPos.x + _imageWidth, pos.y + hh - sy, pos.x + hw, pos.y + hh - sy);
 				}
 			}
 		}
+		// イベントコンテント分岐点
+		e.gc.setAntialias(SWT.ON);
+		foreach (i, ref pos; poss) {
+			auto c = pos.content;
+			if (c.parent && c.parent in _posTable) {
+				auto pPos = _posTable[c.parent];
+				if (pPos.x != pos.x && pPos.y != pos.y - _lineHeight) {
+					e.gc.fillOval(pPos.x + hw - 4, pos.y - sy - 2, 8, 8);
+					e.gc.drawOval(pPos.x + hw - 4, pos.y - sy - 2, 8, 8);
+				}
+			}
+		}
+		e.gc.setAntialias(SWT.OFF);
+		e.gc.setLineWidth(1);
 
 		// イベントコンテントのアイコンとテキスト
 		auto ucExtent = e.gc.textExtent(_comm.prop.msgs.startUseCount);
+		e.gc.setForeground(getForeground());
 		foreach (ref pos; poss) {
 			auto c = pos.content;
 			auto image = _comm.prop.images.content(c.type);

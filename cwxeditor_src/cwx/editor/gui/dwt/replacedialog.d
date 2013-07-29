@@ -1512,7 +1512,7 @@ public:
 			_comm.put(_find, &canFind);
 			_replace = createButton(_prop.msgs.replace, &replace);
 			_comm.put(_replace, &canReplace);
-			_close = createButton(_prop.msgs.replaceExit, &exit);
+			_close = createButton(_prop.msgs.dlgTextClose, &exit);
 			auto cancel = createButton(_prop.msgs.searchCancel, {
 				_cancel = true;
 				resultRedraw(true);
