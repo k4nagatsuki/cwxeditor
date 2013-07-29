@@ -978,14 +978,15 @@ public:
 	}
 	void select(B b) {
 		if (_sel !is b) {
-			_sel.setSelection(false);
-			b.setSelection(true);
+			if (_sel) _sel.setSelection(false);
+			if (b) b.setSelection(true);
 			_sel = b;
 		}
 	}
 	bool contains(B b) {
 		return _set.contains(b);
 	}
+	@property
 	HashSet!(B) set() {return _set;}
 	void append(B b) {
 		_set.add(b);

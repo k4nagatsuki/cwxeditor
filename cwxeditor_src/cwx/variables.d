@@ -226,7 +226,7 @@ class FlexEtcProps : Properties {
 	auto contentsLock = Prop!(bool)("contentsLock", false);
 	auto contentsWrapIndices = Prop!(int[])("contentsWrapIndices", [4, 6, 8]);
 	auto contentsAutoOpen = Prop!(bool)("contentsAutoOpen", true);
-	auto contentsContinue = Prop!(bool)("contentsContinue", false);
+	auto contentsPutMode = Prop!(int)("contentsPutMode", 1);
 	auto contentsInsertFirst = Prop!(bool)("contentsInsertFirst", false);
 	auto contentsFloat = Prop!(bool)("contentsFloat", false);
 	auto contentsAutoHide = Prop!(bool)("contentsAutoHide", false);

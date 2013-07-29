@@ -484,18 +484,19 @@ Menu createMenu(Commons comm, Menu bar, MenuID id) {
 ToolItem createDropDownItem(Commons comm, ToolBar bar, MenuID id, void delegate() func, out Menu menu, bool delegate() enabled) {
 	return createDropDownItem2(comm, bar, comm.prop.buildTool(id), comm.prop.images.menu(id), func, menu, id, enabled);
 }
-private ToolItem createDropDownItem2(Commons comm, ToolBar bar, string text, Image img, void delegate() func, out Menu menu, MenuID id, bool delegate() enabled) {
+ToolItem createDropDownItem2(Commons comm, ToolBar bar, string text, Image img, void delegate() func, out Menu menu, MenuID id, bool delegate() enabled) {
 	auto ti = new ToolItem(bar, SWT.DROP_DOWN);
 	ti.setToolTipText(text);
 	ti.setImage(img);
 	menu = new Menu(bar.getShell());
+	auto menu2 = menu;
 	class Push : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
-			if ((!func || SWT.ARROW == e.detail) && 0 < menu.getItemCount()) {
+			if ((!func || SWT.ARROW == e.detail) && 0 < menu2.getItemCount()) {
 				auto b = ti.getBounds();
 				auto pt = bar.toDisplay(b.x, b.y + b.height);
-				menu.setLocation(pt);
-				menu.setVisible(true);
+				menu2.setLocation(pt);
+				menu2.setVisible(true);
 			} else if (func) {
 				func();
 			}

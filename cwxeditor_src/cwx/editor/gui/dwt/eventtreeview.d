@@ -78,10 +78,13 @@ private:
 	Menu _templMenu;
 	ToolItem _templTI;
 
+	auto _putMode = MenuID.PutSelect;
 	bool _autoOpen;
-	bool _conti;
 	bool _insertFirst;
-	ToolItem _contiTI;
+	MenuItem _putQuickMI;
+	MenuItem _putSelectMI;
+	MenuItem _putContinueMI;
+	ToolItem _putModeTI;
 	ToolItem _autoOpenTI;
 	ToolItem _insertFirstTI;
 
@@ -103,15 +106,32 @@ private:
 
 	void autoOpen() {
 		_autoOpen = _autoOpenTI.getSelection();
-		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti, _insertFirst);
+		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
 	}
-	void addContinue() {
-		_conti = _contiTI.getSelection();
-		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti, _insertFirst);
+	void updatePutMode() {
+		if (!_constructTools) return;
+		if (_putQuickMI.getSelection()) {
+			_putMode = MenuID.PutQuick;
+			arrow();
+			foreach (ti; _radioGroup.set) {
+				ti.setSelection(false);
+			}
+			_arrowTI.setSelection(false);
+		} else if (_putSelectMI.getSelection()) {
+			_putMode = MenuID.PutSelect;
+			if (!_arrowTI.getEnabled()) arrow();
+		} else if (_putContinueMI.getSelection()) {
+			_putMode = MenuID.PutContinue;
+			if (!_arrowTI.getEnabled()) arrow();
+		}
+		_arrowTI.setEnabled(_putMode !is MenuID.PutQuick);
+		_putModeTI.setToolTipText(_prop.buildTool(_putMode));
+		_putModeTI.setImage(_prop.images.menu(_putMode));
+		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
 	}
 	void insertFirst() {
 		_insertFirst = _insertFirstTI.getSelection();
-		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti, _insertFirst);
+		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
 	}
 
 	@property
@@ -554,7 +574,7 @@ private:
 	}
 	void create(Item insertTo) {
 		if (!_tree.getItemCount()) return;
-		if (!_arrowMode) {
+		if (!_arrowMode || _putMode is MenuID.PutQuick) {
 			_tree.control.setRedraw(false);
 			scope (exit) _tree.control.setRedraw(true);
 			if (_cType == CType.START) {
@@ -588,7 +608,7 @@ private:
 					_comm.refContent.call(evt);
 					refreshConvMenu();
 					refreshStatusLine();
-					if (!_conti) arrow();
+					if (_putMode !is MenuID.PutContinue) arrow();
 					_comm.refreshToolBar();
 				});
 			} else {
@@ -653,7 +673,7 @@ private:
 						_comm.refUseCount.call();
 						refreshConvMenu();
 						refreshStatusLine();
-						if (!_conti) arrow();
+						if (_putMode !is MenuID.PutContinue) arrow();
 						_comm.refreshToolBar();
 					}
 					if (insertTo) {
@@ -675,28 +695,31 @@ private:
 		if (_autoHideTools) {
 			_autoHideTools.setCursor(null);
 		}
-		_radioGroup.select(_arrowTI);
-		_comm.selContentTool.call(this, _arrowMode, _cType, _autoOpen, _conti, _insertFirst);
+		if (_radioGroup && _putMode !is MenuID.PutQuick) _radioGroup.select(_arrowTI);
+		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
 	}
-	void selContentTool(Object sender, bool arrowMode, CType cType, bool autoOpen, bool conti, bool insertFirst) {
+	void selContentTool(Object sender, bool arrowMode, CType cType, MenuID putMode, bool autoOpen, bool insertFirst) {
 		if (!_prop.var.etc.connContentTools) return;
 		if (sender is this) return;
 		constructTools();
 		if (!_arrowMode && arrowMode) {
 			arrow();
 		}
-		if ((_arrowMode && !arrowMode) || (_cType != cType)) {
+		if (((_arrowMode && !arrowMode) || (_cType != cType)) && MenuID.PutQuick !is putMode) {
 			auto ce = _conts[cType];
 			_radioGroup.select(ce.ti);
-			ce.create();
+			ce.create(null);
 		}
 		if (_autoOpen != autoOpen) {
 			_autoOpenTI.setSelection(autoOpen);
 			this.autoOpen();
 		}
-		if (_conti != conti) {
-			_contiTI.setSelection(conti);
-			this.addContinue();
+		if (_putMode != putMode) {
+			_putMode = putMode;
+			_putQuickMI.setSelection(_putMode is MenuID.PutQuick);
+			_putSelectMI.setSelection(_putMode is MenuID.PutSelect);
+			_putContinueMI.setSelection(_putMode is MenuID.PutContinue);
+			this.updatePutMode();
 		}
 		if (_insertFirst != insertFirst) {
 			_insertFirstTI.setSelection(insertFirst);
@@ -752,7 +775,7 @@ private:
 
 	void create(Content parent, CType type, string name, void delegate(Content) applied) {
 		assert (parent is null || parent.detail.owner);
-		if (!_conti) {
+		if (_putMode !is MenuID.PutContinue) {
 			arrow();
 			_comm.refreshToolBar();
 		}
@@ -1493,9 +1516,22 @@ private:
 			_v = v;
 			_cursor = cursor;
 		}
-		void create() {
+		void create(SelectionEvent e) {
 			if (_itm.getSelection()) {
 				_v._comp.setCursor(_cursor);
+
+				auto itm = _v.selection;
+				if (_v._putMode is MenuID.PutQuick && itm) {
+					_v._cType = type;
+					_v._evtTI = _itm;
+					this.outer.create(e && (e.stateMask & SWT.SHIFT) ? itm : null);
+					_v.clearClickStart();
+					_v.arrow();
+					_itm.setSelection(false);
+					if (e) e.doit = false;
+					return;
+				}
+
 				if (_v._toolWin && !_v._toolWin.isDisposed()) {
 					_v._toolWin.setCursor(_cursor);
 				}
@@ -1507,7 +1543,7 @@ private:
 				_v._cType = type;
 				_v._evtTI = _itm;
 				_v._comm.refreshToolBar();
-				_v._comm.selContentTool.call(_v._arrowMode, _v._cType, _v._autoOpen, _v._conti, _v._insertFirst);
+				_v._comm.selContentTool.call(_v._arrowMode, _v._cType, _v._putMode, _v._autoOpen, _v._insertFirst);
 			}
 		}
 		@property
@@ -1581,7 +1617,19 @@ private:
 		override void widgetDisposed(DisposeEvent e) {
 			auto cbar = cast(CoolBar) e.widget;
 			_prop.var.etc.contentsAutoOpen = _autoOpen;
-			_prop.var.etc.contentsContinue = _conti;
+			switch (_putMode) {
+			case MenuID.PutQuick:
+				_prop.var.etc.contentsPutMode = 0;
+				break;
+			case MenuID.PutSelect:
+				_prop.var.etc.contentsPutMode = 1;
+				break;
+			case MenuID.PutContinue:
+				_prop.var.etc.contentsPutMode = 1;
+				break;
+			default:
+				assert (0);
+			}
 			_prop.var.etc.contentsInsertFirst = _insertFirst;
 		}
 	}
@@ -2038,7 +2086,19 @@ public:
 			_cbarPar = new Composite(_comp, SWT.NONE);
 		}
 		_autoOpen = _prop.var.etc.contentsAutoOpen;
-		_conti = _prop.var.etc.contentsContinue;
+		switch (_prop.var.etc.contentsPutMode.value) {
+		case 0:
+			_putMode = MenuID.PutQuick;
+			break;
+		case 1:
+			_putMode = MenuID.PutSelect;
+			break;
+		case 2:
+			_putMode = MenuID.PutContinue;
+			break;
+		default:
+			_putMode = MenuID.PutSelect;
+		}
 		_insertFirst = _prop.var.etc.contentsInsertFirst;
 		_cbarPar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		_cbarPar.setLayout(new FillLayout);
@@ -2224,20 +2284,29 @@ public:
 			auto atm = new ToolBar(cbar, SWT.FLAT);
 			atm.addMouseListener(new TMListener);
 			_arrowTI = createToolItem2(_comm, atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, null, SWT.RADIO);
-			_arrowTI.setSelection(true);
+			if (_putMode !is MenuID.PutQuick) _arrowTI.setSelection(true);
 			g.append(_arrowTI);
 			createCoolItem(cbar, atm);
 
 			auto mode = new ToolBar(cbar, SWT.FLAT);
 			mode.addMouseListener(new TMListener);
-			_contiTI = createToolItem2(_comm, mode, _prop.msgs.evtAddContinue, _prop.images.evtAddContinue, &addContinue, null, SWT.CHECK);
-			_contiTI.setSelection(_conti);
+			Menu putModeMenu;
+			void delegate() dlg = null;
+			_putModeTI = createDropDownItem2(_comm, mode, _prop.buildTool(_putMode), _prop.images.menu(_putMode), dlg, putModeMenu, MenuID.None, null);
+			_putQuickMI = createMenuItem(_comm, putModeMenu, MenuID.PutQuick, &updatePutMode, null, SWT.RADIO);
+			_putSelectMI = createMenuItem(_comm, putModeMenu, MenuID.PutSelect, &updatePutMode, null, SWT.RADIO);
+			_putContinueMI = createMenuItem(_comm, putModeMenu, MenuID.PutContinue, &updatePutMode, null, SWT.RADIO);
 			_autoOpenTI = createToolItem2(_comm, mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, null, SWT.CHECK);
 			_autoOpenTI.setSelection(_autoOpen);
 			_insertFirstTI = createToolItem2(_comm, mode, _prop.msgs.evtInsertFirst, _prop.images.evtInsertFirst, &insertFirst, null, SWT.CHECK);
 			_insertFirstTI.setSelection(_insertFirst);
 			new ToolItem(mode, SWT.SEPARATOR);
 			_templTI = createDropDownItem(_comm, mode, MenuID.EvTemplates, null, _templMenu, () => _et && _prop.var.etc.eventTemplates.length > 0);
+
+			_putQuickMI.setSelection(_putMode is MenuID.PutQuick);
+			_putSelectMI.setSelection(_putMode is MenuID.PutSelect);
+			_putContinueMI.setSelection(_putMode is MenuID.PutContinue);
+			updatePutMode();
 			refreshTemplates();
 			createCoolItem(cbar, mode);
 

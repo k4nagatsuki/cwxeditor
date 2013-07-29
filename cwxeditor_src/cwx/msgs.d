@@ -465,7 +465,6 @@ class Msgs : Properties {
 	/// イベント。
 	auto evtArrow = Msg("evtArrow", "イベント編集");
 
-	auto evtAddContinue = Msg("evtAddContinue", "連続で配置");
 	auto evtAutoOpen = Msg("evtAutoOpen", "配置と同時に編集");
 	auto evtInsertFirst = Msg("evtInsertFirst", "他の子コンテントより前に配置");
 
@@ -1939,6 +1938,9 @@ class Msgs : Properties {
 	auto menuTextCopyFilePath = Msg("menuTextCopyFilePath", "素材のパスをコピー");
 	auto menuTextReplFilePath = Msg("menuTextReplFilePath", "素材の差替え");
 	auto menuTextCreateArchive = Msg("menuTextCreateArchive", "シナリオを圧縮");
+	auto menuTextPutQuick = Msg("menuTextPutQuick", "すぐに配置する");
+	auto menuTextPutSelect = Msg("menuTextPutSelect", "配置先を選択する");
+	auto menuTextPutContinue = Msg("menuTextPutContinue", "配置先を選択して連続で配置する");
 	auto menuTextToScript = Msg("menuTextToScript", "スクリプトに変換してコピー");
 	auto menuTextToScriptAll = Msg("menuTextToScriptAll", "全てをスクリプトに変換してコピー");
 	auto menuTextEvTemplates = Msg("menuTextEvTemplates", "テンプレートから作成");

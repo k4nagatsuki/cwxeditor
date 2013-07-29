@@ -120,7 +120,6 @@ public:
 
 	@property Image evtArrow() {return imgd!("evt_arrow.png");}
 
-	@property Image evtAddContinue() {return imgd!("evt_add_continue.png");}
 	@property Image evtAutoOpen() {return imgd!("evt_auto_edit.png");}
 	@property Image evtInsertFirst() {return imgd!("evt_insert_first.png");}
 
@@ -534,6 +533,9 @@ public:
 		case MenuID.CopyFilePath: return imgd!("copy_path.png");
 		case MenuID.ReplFilePath: return imgd!("replace.png");
 		case MenuID.CreateArchive: return imgd!("create_archive.png");
+		case MenuID.PutQuick: return imgd!("evt_put_quick.png");
+		case MenuID.PutSelect: return imgd!("evt_put_select.png");
+		case MenuID.PutContinue: return imgd!("evt_add_continue.png");
 		case MenuID.ToScript: return imgd!("script.png");
 		case MenuID.ToScriptAll: return imgd!("script_all.png");
 		case MenuID.EvTemplates: return imgd!("ev_tmpl.png");

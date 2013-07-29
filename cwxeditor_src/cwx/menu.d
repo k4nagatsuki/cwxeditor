@@ -204,6 +204,9 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.CopyFilePath] = "M";
 		_mnemonic[MenuID.ReplFilePath] = "R";
 		_mnemonic[MenuID.CreateArchive] = "V";
+		_mnemonic[MenuID.PutQuick] = "Q";
+		_mnemonic[MenuID.PutSelect] = "S";
+		_mnemonic[MenuID.PutContinue] = "C";
 		_mnemonic[MenuID.ToScript] = "S";
 		_mnemonic[MenuID.ToScriptAll] = "Y";
 		_mnemonic[MenuID.EvTemplates] = "";
@@ -391,6 +394,9 @@ class MenuProps : Properties {
 		_hotkey[MenuID.CopyFilePath] = "";
 		_hotkey[MenuID.ReplFilePath] = "";
 		_hotkey[MenuID.CreateArchive] = "";
+		_hotkey[MenuID.PutQuick] = "";
+		_hotkey[MenuID.PutSelect] = "";
+		_hotkey[MenuID.PutContinue] = "";
 		_hotkey[MenuID.ToScript] = "Ctrl+G";
 		_hotkey[MenuID.ToScriptAll] = "Ctrl+B";
 		_hotkey[MenuID.EvTemplates] = "";
