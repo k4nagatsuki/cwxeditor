@@ -3410,7 +3410,7 @@ fi`;
 					attrs ~= toAttr(c.transition, command, indentValue, vars);
 				}
 			}
-			if (c.talkerC is Talker.VALUED) {
+			if (c.talkerNC is Talker.VALUED) {
 				// 評価メンバ
 				if (detail.use(CArg.INIT_VALUE)) {
 					attrs ~= toAttr(c.initValue, command, indentValue, vars);
