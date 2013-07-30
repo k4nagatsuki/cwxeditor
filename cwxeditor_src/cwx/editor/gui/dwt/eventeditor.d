@@ -259,7 +259,7 @@ class EventEditor : Composite {
 				recurse(x, start);
 			}
 			if (_selected && _selected !in _posTable && 0 < selIndex) {
-				selIndex -= 1;
+				if (_selected.type !is CType.START) selIndex -= 1;
 				_selected = null;
 			}
 		} else {

@@ -103,7 +103,8 @@ private:
 
 	string _statusLine;
 
-	Item _clickStart;
+	Item _clickStart = null;
+	bool _shiftDown = false;
 
 	Skin _summSkin;
 	@property
@@ -1550,7 +1551,7 @@ private:
 				if (_v._putMode is MenuID.PutQuick && itm) {
 					_v._cType = type;
 					_v._evtTI = _itm;
-					this.outer.create(e && (e.stateMask & SWT.SHIFT) ? itm : null);
+					this.outer.create(_v._shiftDown ? itm : null);
 					_v.clearClickStart();
 					_v.arrow();
 					_itm.setSelection(false);
@@ -2144,6 +2145,21 @@ public:
 		refEventTreeViewStyle();
 
 		if (!_readOnly) {
+			auto shiftCaptcha = new class Listener {
+				override void handleEvent(Event e) {
+					if (e.type == SWT.KeyUp && e.keyCode == SWT.SHIFT) {
+						_shiftDown = false;
+					} else if (e.type == SWT.KeyDown && e.keyCode == SWT.SHIFT) {
+						_shiftDown = true;
+					}
+				}
+			};
+			_comp.getDisplay().addFilter(SWT.KeyDown, shiftCaptcha);
+			_comp.getDisplay().addFilter(SWT.KeyUp, shiftCaptcha);
+			.listener(_comp, SWT.Dispose, {
+				_comp.getDisplay().removeFilter(SWT.KeyDown, shiftCaptcha);
+				_comp.getDisplay().removeFilter(SWT.KeyUp, shiftCaptcha);
+			});
 			_comm.refSkin.add(&refSkin);
 			_comm.refCast.add(&__refreshCast);
 			_comm.delCast.add(&__refreshCast);
