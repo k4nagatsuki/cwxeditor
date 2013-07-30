@@ -633,7 +633,8 @@ class EventEditor : Composite {
 
 		auto vbar = getVerticalBar();
 		int index = vbar.getSelection();
-		auto poss = _pos[index .. .min($, index + ca.height / _lineHeight + 1)];
+		int to = .min(_pos.length, index + ca.height / _lineHeight + 1);
+		auto poss = _pos[index .. to];
 		int sy = index * _lineHeight;
 
 		auto d = getDisplay();
@@ -659,9 +660,10 @@ class EventEditor : Composite {
 		// イベントコンテントを結ぶ線
 		e.gc.setLineWidth(2);
 		e.gc.setForeground(_lineColor);
-		foreach (i, ref pos; poss) {
+		foreach (i, ref pos; _pos[index .. $]) {
 			auto c = pos.content;
 			if (c.type == CType.START) {
+				if (poss.length <= i) break;
 				if (0 < i && _comm.prop.var.etc.drawContentTreeLine) {
 					e.gc.setLineWidth(1);
 					e.gc.setForeground(_lineColor);
