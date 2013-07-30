@@ -122,6 +122,11 @@ private:
 	TextMenuModify _scenarioTM;
 	Text _author;
 	TextMenuModify _authorTM;
+	Skin _summSkin;
+	@property
+	Skin summSkin() {
+		return _summSkin ? _summSkin : _comm.skin;
+	}
 	class ResetSource : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) {
 			ignoreMod = true;
@@ -204,7 +209,7 @@ private:
 				l.setText(.tryFormat(_prop.msgs.nameLimit, _prop.looks.nameLimit, _prop.looks.nameLimit / 2));
 			}
 			{
-				auto skin = _comm.skin;
+				auto skin = summSkin;
 				bool including = _card && isBinImg(_card.path);
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, _readOnly, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText);
@@ -672,7 +677,7 @@ private:
 		comp.setLayout(new GridLayout(1, true));
 		auto sash = new SplitPane(comp, SWT.HORIZONTAL);
 		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
-		auto skin = _comm.skin;
+		auto skin = summSkin;
 		{
 			auto grp = new Group(sash, SWT.NONE);
 			grp.setText(_prop.msgs.se);
@@ -777,12 +782,14 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, C card) {
+	this(Commons comm, Props prop, Shell shell, Summary summ, C card, bool readOnly) {
 		assert (summ !is null);
 		_comm = comm;
 		_summ = summ;
 		_card = card;
 		_prop = prop;
+		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
+		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
 		static if (is (C == SkillCard)) {
 			string text = _card ? .tryFormat(_prop.msgs.dlgTitSkill, _card.name) : _prop.msgs.dlgTitNewSkill;
 			auto img = _prop.images.skill;
@@ -865,7 +872,7 @@ protected:
 		if (_card && _card !is card) return;
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		auto skin = _comm.skin;
+		auto skin = summSkin;
 		if (_card) {
 			_imgPath.image = _card.path;
 			_desc.setText(_card.desc);

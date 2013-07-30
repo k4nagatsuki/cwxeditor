@@ -1268,6 +1268,7 @@ enum MenuID {
 	IncSearch,
 	CloseIncSearch,
 	EditProp,
+	ShowProp,
 	Refresh,
 	Undo,
 	Redo,

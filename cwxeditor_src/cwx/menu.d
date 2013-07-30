@@ -66,6 +66,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.IncSearch] = "N";
 		_mnemonic[MenuID.CloseIncSearch] = "X";
 		_mnemonic[MenuID.EditProp] = "E";
+		_mnemonic[MenuID.ShowProp] = "E";
 		_mnemonic[MenuID.Refresh] = "R";
 		_mnemonic[MenuID.Undo] = "U";
 		_mnemonic[MenuID.Redo] = "R";
@@ -255,6 +256,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.IncSearch] = "Ctrl+I";
 		_hotkey[MenuID.CloseIncSearch] = "Escape";
 		_hotkey[MenuID.EditProp] = "Enter";
+		_hotkey[MenuID.ShowProp] = "Ctrl+Enter";
 		_hotkey[MenuID.Refresh] = "F5";
 		_hotkey[MenuID.Undo] = "Ctrl+Z";
 		_hotkey[MenuID.Redo] = "Ctrl+Y";
@@ -564,6 +566,8 @@ bool isPMenu(MenuID id) {
 	case MenuID.Find:
 	case MenuID.Settings:
 	case MenuID.EditSummary:
+	case MenuID.EditProp:
+	case MenuID.ShowProp:
 	case MenuID.NewFlagDir:
 	case MenuID.NewFlag:
 	case MenuID.NewStep:

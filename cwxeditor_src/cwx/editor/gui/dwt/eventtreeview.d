@@ -68,6 +68,7 @@ private:
 	TreeViewWrapper _tree;
 	Color _grayFont;
 
+	int _readOnly = 0;
 	Props _prop;
 	Commons _comm;
 	Summary _summ;
@@ -103,6 +104,12 @@ private:
 	string _statusLine;
 
 	Item _clickStart;
+
+	Skin _summSkin;
+	@property
+	Skin summSkin() {
+		return _summSkin ? _summSkin : _comm.skin;
+	}
 
 	void autoOpen() {
 		_autoOpen = _autoOpenTI.getSelection();
@@ -146,6 +153,7 @@ private:
 
 	class EditL : MouseAdapter, KeyListener {
 		private void __edit() {
+			if (_readOnly) return;
 			edit();
 		}
 		override void keyPressed(KeyEvent e) {
@@ -167,6 +175,7 @@ private:
 	}
 	class CreateL : MouseAdapter {
 		override void mouseDown(MouseEvent e) {
+			if (_readOnly) return;
 			if (_putMode is MenuID.PutQuick) return;
 			if (e.button == 1) {
 				create(null);
@@ -189,7 +198,7 @@ private:
 	class MouseMove : MouseTrackAdapter, MouseMoveListener {
 		override void mouseMove(MouseEvent e) {
 			_clickStart = null;
-			if (_arrowMode && _prop.var.etc.clickIconIsStartEdit) {
+			if (!_readOnly && _arrowMode && _prop.var.etc.clickIconIsStartEdit) {
 				auto itm = _tree.getItem(new Point(e.x, e.y));
 				if (itm) {
 					auto c = cast(Content)itm.getData();
@@ -329,7 +338,7 @@ private:
 				string text;
 				if (pc) {
 					pc.insert(prop.parent, index, c);
-					text = .eventText(comm, summ, pc, c);
+					text = .eventText(comm, summ, pc, c, false);
 				} else {
 					et.insert(index, c);
 					text = c.name;
@@ -567,6 +576,7 @@ private:
 	}
 	void editM() {edit();}
 	EventDialog edit() {
+		if (_readOnly) return null;
 		auto sels = _tree.getSelection();
 		if (sels.length > 0) {
 			auto c = cast(Content) sels[0].getData();
@@ -575,6 +585,7 @@ private:
 		return null;
 	}
 	void create(Item insertTo) {
+		if (_readOnly) return;
 		if (!_tree.getItemCount()) return;
 		if (!_arrowMode || _putMode is MenuID.PutQuick) {
 			_tree.control.setRedraw(false);
@@ -688,6 +699,7 @@ private:
 		}
 	}
 	void arrow() {
+		if (_readOnly) return;
 		constructTools();
 		_arrowMode = true;
 		_comp.setCursor(null);
@@ -701,6 +713,7 @@ private:
 		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
 	}
 	void selContentTool(Object sender, bool arrowMode, CType cType, MenuID putMode, bool autoOpen, bool insertFirst) {
+		if (_readOnly) return;
 		if (!_prop.var.etc.connContentTools) return;
 		if (sender is this) return;
 		constructTools();
@@ -746,6 +759,7 @@ private:
 		}
 	}
 	bool checkOpenDialog(CType type) {
+		if (_readOnly) return false;
 		switch (type) {
 		case CType.START_BATTLE: {
 			return _summ.battles.length > 0;
@@ -776,6 +790,7 @@ private:
 	}
 
 	void create(Content parent, CType type, string name, void delegate(Content) applied) {
+		if (_readOnly) return;
 		assert (parent is null || parent.detail.owner);
 		if (_putMode !is MenuID.PutContinue) {
 			arrow();
@@ -783,7 +798,7 @@ private:
 		}
 		void initial(Content c) {
 			if (type is CType.CHANGE_BG_IMAGE) {
-				c.backs = createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
+				c.backs = createBgImages(summSkin, _prop.var.etc.bgImagesDefault);
 			} else if (type is CType.TALK_DIALOG) {
 				c.dialogs = [new SDialog];
 			} else if (type is CType.BRANCH_SKILL || type is CType.BRANCH_ITEM || type is CType.BRANCH_BEAST) {
@@ -835,7 +850,7 @@ private:
 			break;
 		} case CType.CHANGE_BG_IMAGE: {
 			auto c = new Content(type, name);
-			c.backs = createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
+			c.backs = createBgImages(summSkin, _prop.var.etc.bgImagesDefault);
 			dlg = new BgImagesDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, c, refTarget);
 			break;
 		} case CType.EFFECT: {
@@ -1051,12 +1066,14 @@ private:
 
 	@property
 	bool canEdit() {
+		if (_readOnly) return false;
 		auto itm = selection;
 		if (!itm) return false;
 		auto evt = cast(Content) itm.getData();
 		return hasDialog(evt.type) && checkOpenDialog(evt.type);
 	}
 	EventDialog edit(Content evt) {
+		if (_readOnly) return null;
 		if (!hasDialog(evt.type) || !checkOpenDialog(evt.type)) return null;
 		auto p = evt in _editDlgs;
 		if (p) {
@@ -1334,7 +1351,7 @@ private:
 	public:
 		override void dragStart(DragSourceEvent e) {
 			auto itm = selection;
-			e.doit = itm && (cast(Content) itm.getData()).type != CType.START
+			e.doit = !_readOnly && itm && (cast(Content) itm.getData()).type != CType.START
 				&& (cast(DragSource) e.getSource()).getControl().isFocusControl();
 			if (e.doit) {
 				_targ = itm;
@@ -1381,6 +1398,10 @@ private:
 	class EventDropTarget : DropTargetAdapter {
 	private:
 		void move(DropTargetEvent e) {
+			if (_readOnly) {
+				e.detail = DND.DROP_NONE;
+				return;
+			}
 			if (_tree.tree) {
 				e.detail = (e.item && e.item && (cast(Content)e.item.getData()).detail.owner)
 					? DND.DROP_MOVE : DND.DROP_NONE;
@@ -1399,6 +1420,7 @@ private:
 			move(e);
 		}
 		override void drop(DropTargetEvent e){
+			if (_readOnly) return;
 			e.detail = DND.DROP_NONE;
 			if (!isXMLBytes(e.data)) return;
 			if (!_tree.tree) {
@@ -1488,6 +1510,7 @@ private:
 		}
 	}
 	private void adjustText(in Content owner, Content evt, string lastNextType) {
+		if (_readOnly) return;
 		if (!_prop.var.etc.adjustContentName) return;
 		if (lastNextType != "" && owner.detail.nextType !is toCNextType(lastNextType)) {
 			// 後続タイプが異なるので一端後続テキストをクリア
@@ -1519,6 +1542,7 @@ private:
 			_cursor = cursor;
 		}
 		void create(SelectionEvent e) {
+			if (_readOnly) return;
 			if (_itm.getSelection()) {
 				_v._comp.setCursor(_cursor);
 
@@ -1555,6 +1579,7 @@ private:
 		@property
 		ToolItem ti() {return _itm;}
 		void convert() {
+			if (_readOnly) return;
 			auto sel = selection;
 			if (!sel) return;
 			auto c = cast(Content) sel.getData();
@@ -1566,7 +1591,7 @@ private:
 			c.convertType(type, _prop.parent);
 			auto newd = c.detail;
 			if (newd.use(CArg.BG_IMAGES) && !oldd.use(CArg.BG_IMAGES)) {
-				c.backs = createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
+				c.backs = createBgImages(summSkin, _prop.var.etc.bgImagesDefault);
 			}
 			if (newd.use(CArg.DIALOGS) && !oldd.use(CArg.DIALOGS)) {
 				c.dialogs = [new SDialog];
@@ -1598,6 +1623,7 @@ private:
 		return itm;
 	}
 	void initConvMenu() {
+		if (_readOnly) return;
 		if (!_conts.length) return;
 		foreach (cGrp, cs; CTYPE_GROUP) {
 			auto conv = convMenu(cGrp);
@@ -1736,36 +1762,38 @@ private:
 			foreach (cur; _cursors) {
 				cur.dispose();
 			}
-			_comm.refSkin.remove(&refSkin);
-			_comm.refCast.remove(&__refreshCast);
-			_comm.delCast.remove(&__refreshCast);
-			_comm.refSkill.remove(&__refreshSkill);
-			_comm.delSkill.remove(&__refreshSkill);
-			_comm.refItem.remove(&__refreshItem);
-			_comm.delItem.remove(&__refreshItem);
-			_comm.refBeast.remove(&__refreshBeast);
-			_comm.delBeast.remove(&__refreshBeast);
-			_comm.refInfo.remove(&__refreshInfo);
-			_comm.delInfo.remove(&__refreshInfo);
-			_comm.refArea.remove(&__refreshArea);
-			_comm.delArea.remove(&__refreshArea);
-			_comm.refBattle.remove(&__refreshBattle);
-			_comm.delBattle.remove(&__refreshBattle);
-			_comm.refPackage.remove(&__refreshPackage);
-			_comm.delPackage.remove(&__refreshPackage);
-			_comm.refFlagAndStep.remove(&__refreshFlagAndStep);
-			_comm.delFlagAndStep.remove(&__refreshFlagAndStep);
-			_comm.refPath.remove(&__refreshPath);
-			_comm.refPaths.remove(&__refreshPaths);
-			_comm.delPaths.remove(&__deletePaths);
-			_comm.replPath.remove(&__replacePaths);
-			_comm.replText.remove(&__refreshCard);
-			_comm.replText.remove(&__refreshEventText);
-			_comm.replID.remove(&__refreshCard);
-			_comm.refContentText.remove(&refreshStatusLine);
-			_comm.refPreviewValues.remove(&__refreshEventText);
-			_comm.refEventTemplates.remove(&refreshTemplates);
-			_comm.selContentTool.remove(&selContentTool);
+			if (!_readOnly) {
+				_comm.refSkin.remove(&refSkin);
+				_comm.refCast.remove(&__refreshCast);
+				_comm.delCast.remove(&__refreshCast);
+				_comm.refSkill.remove(&__refreshSkill);
+				_comm.delSkill.remove(&__refreshSkill);
+				_comm.refItem.remove(&__refreshItem);
+				_comm.delItem.remove(&__refreshItem);
+				_comm.refBeast.remove(&__refreshBeast);
+				_comm.delBeast.remove(&__refreshBeast);
+				_comm.refInfo.remove(&__refreshInfo);
+				_comm.delInfo.remove(&__refreshInfo);
+				_comm.refArea.remove(&__refreshArea);
+				_comm.delArea.remove(&__refreshArea);
+				_comm.refBattle.remove(&__refreshBattle);
+				_comm.delBattle.remove(&__refreshBattle);
+				_comm.refPackage.remove(&__refreshPackage);
+				_comm.delPackage.remove(&__refreshPackage);
+				_comm.refFlagAndStep.remove(&__refreshFlagAndStep);
+				_comm.delFlagAndStep.remove(&__refreshFlagAndStep);
+				_comm.refPath.remove(&__refreshPath);
+				_comm.refPaths.remove(&__refreshPaths);
+				_comm.delPaths.remove(&__deletePaths);
+				_comm.replPath.remove(&__replacePaths);
+				_comm.replText.remove(&__refreshCard);
+				_comm.replText.remove(&__refreshEventText);
+				_comm.replID.remove(&__refreshCard);
+				_comm.refContentText.remove(&refreshStatusLine);
+				_comm.refPreviewValues.remove(&__refreshEventText);
+				_comm.refEventTemplates.remove(&refreshTemplates);
+				_comm.selContentTool.remove(&selContentTool);
+			}
 			_comm.refTargetVersion.remove(&redraw);
 			_comm.refEventTreeViewStyle.remove(&refEventTreeViewStyle);
 			if (_grayFont) _grayFont.dispose();
@@ -1818,6 +1846,7 @@ private:
 		}
 	}
 	void refreshTemplates() {
+		if (_readOnly) return;
 		foreach (itm; _templMenu.getItems()) {
 			itm.dispose();
 		}
@@ -1988,7 +2017,7 @@ private:
 				texts ~= lines;
 			}
 			if (_prop.var.etc.drawContentWarnings) {
-				auto warnings = .warnings(_prop.parent, _comm.skin, _summ, c, _prop.var.etc.targetVersion);
+				auto warnings = .warnings(_prop.parent, summSkin, _summ, c, _prop.var.etc.targetVersion);
 				if (warnings.length) {
 					auto b = itm.getBounds();
 					if (b.y + b.height <= ca.y) continue;
@@ -2055,37 +2084,41 @@ public:
 	this (Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
 			void delegate() refreshTopStart,
-			Composite contentsBoxArea) {
+			Composite contentsBoxArea, bool readOnly) {
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		_undo = undo;
+		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
+		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
 		_forceSel = forceSel;
 		_refreshTopStart = refreshTopStart;
 		_contentsBoxArea = contentsBoxArea;
 
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout(zeroGridLayout(1, false));
-		if (_prop.var.etc.contentsFloat) {
-			_toolWin = new Shell(parent.getShell(), SWT.TITLE | SWT.RESIZE | SWT.TOOL);
-			_toolWin.setLayout(zeroGridLayout(1));
-			_toolWin.setText(prop.msgs.tools);
-			_toolWin.addShellListener(new TSListener);
-			_toolWin.addMouseListener(new TMListener);
-			_cbarPar = new Composite(_toolWin, SWT.NONE);
-		} else if (_prop.var.etc.contentsAutoHide) {
-			_autoHideTools = new Shell(parent.getShell(), SWT.NO_TRIM);
-			_autoHideTools.setLayout(zeroGridLayout(1));
-			_autoHideTools.addMouseListener(new TMListener);
-			_cbarPar = new Composite(_autoHideTools, SWT.NONE);
-			_mTrack = new MouseTrack;
-			_autoHideTools.getDisplay().addFilter(SWT.MouseDown, _mTrack);
-			_autoHideTools.getDisplay().addFilter(SWT.MouseEnter, _mTrack);
-			_autoHideTools.getDisplay().addFilter(SWT.MouseExit, _mTrack);
-		} else {
-			_cbarPar = new Composite(_comp, SWT.NONE);
+		if (!_readOnly) {
+			if (_prop.var.etc.contentsFloat) {
+				_toolWin = new Shell(parent.getShell(), SWT.TITLE | SWT.RESIZE | SWT.TOOL);
+				_toolWin.setLayout(zeroGridLayout(1));
+				_toolWin.setText(prop.msgs.tools);
+				_toolWin.addShellListener(new TSListener);
+				_toolWin.addMouseListener(new TMListener);
+				_cbarPar = new Composite(_toolWin, SWT.NONE);
+			} else if (_prop.var.etc.contentsAutoHide) {
+				_autoHideTools = new Shell(parent.getShell(), SWT.NO_TRIM);
+				_autoHideTools.setLayout(zeroGridLayout(1));
+				_autoHideTools.addMouseListener(new TMListener);
+				_cbarPar = new Composite(_autoHideTools, SWT.NONE);
+				_mTrack = new MouseTrack;
+				_autoHideTools.getDisplay().addFilter(SWT.MouseDown, _mTrack);
+				_autoHideTools.getDisplay().addFilter(SWT.MouseEnter, _mTrack);
+				_autoHideTools.getDisplay().addFilter(SWT.MouseExit, _mTrack);
+			} else {
+				_cbarPar = new Composite(_comp, SWT.NONE);
+			}
 		}
 		_autoOpen = _prop.var.etc.contentsAutoOpen;
 		switch (_prop.var.etc.contentsPutMode.value) {
@@ -2102,42 +2135,46 @@ public:
 			_putMode = MenuID.PutSelect;
 		}
 		_insertFirst = _prop.var.etc.contentsInsertFirst;
-		_cbarPar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		_cbarPar.setLayout(new FillLayout);
+		if (_cbarPar) {
+			_cbarPar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			_cbarPar.setLayout(new FillLayout);
+		}
 
 		_comp.addDisposeListener(new TRDListener);
 		refEventTreeViewStyle();
 
-		_comm.refSkin.add(&refSkin);
-		_comm.refCast.add(&__refreshCast);
-		_comm.delCast.add(&__refreshCast);
-		_comm.refSkill.add(&__refreshSkill);
-		_comm.delSkill.add(&__refreshSkill);
-		_comm.refItem.add(&__refreshItem);
-		_comm.delItem.add(&__refreshItem);
-		_comm.refBeast.add(&__refreshBeast);
-		_comm.delBeast.add(&__refreshBeast);
-		_comm.refInfo.add(&__refreshInfo);
-		_comm.delInfo.add(&__refreshInfo);
-		_comm.refArea.add(&__refreshArea);
-		_comm.delArea.add(&__refreshArea);
-		_comm.refBattle.add(&__refreshBattle);
-		_comm.delBattle.add(&__refreshBattle);
-		_comm.refPackage.add(&__refreshPackage);
-		_comm.delPackage.add(&__refreshPackage);
-		_comm.refFlagAndStep.add(&__refreshFlagAndStep);
-		_comm.delFlagAndStep.add(&__refreshFlagAndStep);
-		_comm.refPath.add(&__refreshPath);
-		_comm.refPaths.add(&__refreshPaths);
-		_comm.delPaths.add(&__deletePaths);
-		_comm.replPath.add(&__replacePaths);
-		_comm.replText.add(&__refreshCard);
-		_comm.replText.add(&__refreshEventText);
-		_comm.replID.add(&__refreshCard);
-		_comm.refContentText.add(&refreshStatusLine);
-		_comm.refPreviewValues.add(&__refreshEventText);
-		_comm.refEventTemplates.add(&refreshTemplates);
-		_comm.selContentTool.add(&selContentTool);
+		if (!_readOnly) {
+			_comm.refSkin.add(&refSkin);
+			_comm.refCast.add(&__refreshCast);
+			_comm.delCast.add(&__refreshCast);
+			_comm.refSkill.add(&__refreshSkill);
+			_comm.delSkill.add(&__refreshSkill);
+			_comm.refItem.add(&__refreshItem);
+			_comm.delItem.add(&__refreshItem);
+			_comm.refBeast.add(&__refreshBeast);
+			_comm.delBeast.add(&__refreshBeast);
+			_comm.refInfo.add(&__refreshInfo);
+			_comm.delInfo.add(&__refreshInfo);
+			_comm.refArea.add(&__refreshArea);
+			_comm.delArea.add(&__refreshArea);
+			_comm.refBattle.add(&__refreshBattle);
+			_comm.delBattle.add(&__refreshBattle);
+			_comm.refPackage.add(&__refreshPackage);
+			_comm.delPackage.add(&__refreshPackage);
+			_comm.refFlagAndStep.add(&__refreshFlagAndStep);
+			_comm.delFlagAndStep.add(&__refreshFlagAndStep);
+			_comm.refPath.add(&__refreshPath);
+			_comm.refPaths.add(&__refreshPaths);
+			_comm.delPaths.add(&__deletePaths);
+			_comm.replPath.add(&__replacePaths);
+			_comm.replText.add(&__refreshCard);
+			_comm.replText.add(&__refreshEventText);
+			_comm.replID.add(&__refreshCard);
+			_comm.refContentText.add(&refreshStatusLine);
+			_comm.refPreviewValues.add(&__refreshEventText);
+			_comm.refEventTemplates.add(&refreshTemplates);
+			_comm.selContentTool.add(&selContentTool);
+		}
 		_comm.refTargetVersion.add(&redraw);
 		_comm.refEventTreeViewStyle.add(&refEventTreeViewStyle);
 	}
@@ -2157,12 +2194,14 @@ public:
 			_tree.editor = null;
 		}
 		if (_prop.var.etc.straightEventTreeView) {
-			_tree.editor = new EventEditor(_comm, _comp, SWT.BORDER, _summ, null);
+			_tree.editor = new EventEditor(_comm, _comp, SWT.BORDER | _readOnly, _summ, null);
 			new EventEdit(_comm, _tree.editor, &editEnd, &createEditor);
 		} else {
 			_tree.tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
 			initTree(_comm, _tree.tree, true);
-			new TreeEdit(_comm, _tree.tree, &editEnd, &createEditor);
+			if (!_readOnly) {
+				new TreeEdit(_comm, _tree.tree, &editEnd, &createEditor);
+			}
 			_tree.tree.addPaintListener(new PaintTree);
 			if (!_grayFont) {
 				_grayFont = new Color(_tree.control.getDisplay(), alphaColor(_tree.tree.getForeground().getRGB(), _tree.tree.getBackground().getRGB(), 128));
@@ -2192,8 +2231,8 @@ public:
 			new MenuItem(popup, SWT.SEPARATOR);
 			createMenuItem(_comm, popup, MenuID.Comment, &writeComment, &canWriteComment);
 			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(_comm, popup, MenuID.Undo, &this.undo, &_undo.canUndo);
-			createMenuItem(_comm, popup, MenuID.Redo, &this.redo, &_undo.canRedo);
+			createMenuItem(_comm, popup, MenuID.Undo, &this.undo, () => !_readOnly && _undo.canUndo);
+			createMenuItem(_comm, popup, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);
 			new MenuItem(popup, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, popup, this, true, true, true, true, true);
 			new MenuItem(popup, SWT.SEPARATOR);
@@ -2212,28 +2251,31 @@ public:
 			createMenuItem(_comm, popup, MenuID.ToScript, &toScript, &canToScript);
 			createMenuItem(_comm, popup, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
 			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, () => 1 < _tree.getItemCount() && selection !is null);
+			createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, () => !_readOnly && 1 < _tree.getItemCount() && selection !is null);
 			void delegate() dlg = null;
 			auto convMI = createMenuItem(_comm, popup, MenuID.ConvertContent, dlg, {
+				if (_readOnly) return false;
 				auto itm = selection;
 				if (!itm) return false;
 				auto evt = cast(Content) itm.getData();
 				return evt.type !is CType.START;
 			}, SWT.CASCADE);
 			_convM = new Menu(_tree.control.getShell(), SWT.DROP_DOWN);
-			debug {
+/+			debug {
 				new MenuItem(popup, SWT.SEPARATOR);
 				createMenuItem2(_comm, popup, "debug: Create CWX &Path", null, &createCWXPath, () => selection !is null);
 			}
-			convMI.setMenu(_convM);
++/			convMI.setMenu(_convM);
 			initConvMenu();
 
 			_tree.control.setMenu(popup);
 		}
 
-		auto dt = new DropTarget(_tree.control, DND.DROP_DEFAULT | DND.DROP_MOVE);
-		dt.setTransfer([XMLBytesTransfer.getInstance()]);
-		dt.addDropListener(new EventDropTarget);
+		if (!_readOnly) {
+			auto dt = new DropTarget(_tree.control, DND.DROP_DEFAULT | DND.DROP_MOVE);
+			dt.setTransfer([XMLBytesTransfer.getInstance()]);
+			dt.addDropListener(new EventDropTarget);
+		}
 		auto ds = new DragSource(_tree.control, DND.DROP_MOVE);
 		ds.setTransfer([XMLBytesTransfer.getInstance()]);
 		ds.addDragListener(new EventDragSource);
@@ -2254,7 +2296,7 @@ public:
 		_prop.var.contentsWin.x = _toolWin.getBounds().x - _toolWin.getParent().getBounds().x;
 		_prop.var.contentsWin.y = _toolWin.getBounds().y - _toolWin.getParent().getBounds().y;
 	}
-	private Composite _cbarPar;
+	private Composite _cbarPar = null;
 	private Menu _convM;
 	private bool _constructTools = false;
 	private bool canConvTerminal() {
@@ -2273,6 +2315,7 @@ public:
 	private void constructTools() {
 		if (_tree.control.isDisposed() || _constructTools) return;
 		_constructTools = true;
+		if (!_cbarPar) return;
 		auto cbar = createCoolBar!("contents")(_comm, _cbarPar, (CoolBar cbar) {
 			void createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {
 				.createCoolItem(cbar, tbar, index);
@@ -2347,7 +2390,7 @@ public:
 			_toolWin.addDisposeListener(new TDListener);
 			_toolWin.getParent().addControlListener(new TCListener);
 			_tree.control.getShell().addShellListener(new PSListener);
-		} else {
+		} else if (_cbarPar) {
 			_cbarPar.getParent().layout(true);
 			if (_autoHideTools) {
 				cbar.addControlListener(new AHTCListener);
@@ -2364,10 +2407,12 @@ public:
 	string statusLine() {return _statusLine;}
 
 	void undo() {
+		if (_readOnly) return;
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
 	void redo() {
+		if (_readOnly) return;
 		_undo.redo();
 		_comm.refreshToolBar();
 	}
@@ -2394,7 +2439,7 @@ public:
 		if (!itm) return;
 		auto c = cast(Content) itm.getData();
 		auto script = new CWXScript(_prop.parent, _summ);
-		auto text = script.toScript([c], _comm.skin.evtChildOK, _summ.legacy, "\t");
+		auto text = script.toScript([c], summSkin.evtChildOK, _summ.legacy, "\t");
 		text = std.array.replace(text ~ "\n", "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
@@ -2402,7 +2447,7 @@ public:
 	void toScriptAll() {
 		if (!_et) return;
 		auto script = new CWXScript(_prop.parent, _summ);
-		auto text = script.toScript(_et.starts, _comm.skin.evtChildOK, _summ.legacy, "\t");
+		auto text = script.toScript(_et.starts, summSkin.evtChildOK, _summ.legacy, "\t");
 		text = std.array.replace(text ~ "\n", "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
@@ -2410,9 +2455,11 @@ public:
 	private ContentCommentDialog[Content] _commentDlgs;
 	@property
 	bool canWriteComment() {
+		if (_readOnly) return false;
 		return selection !is null;
 	}
 	void writeComment() {
+		if (_readOnly) return;
 		auto itm = selection;
 		if (!itm) return;
 		.forceFocus(_tree.control, false);
@@ -2438,6 +2485,7 @@ public:
 	}
 
 	private void refreshConvMenu() {
+		if (_readOnly) return;
 		if (!_et || !selection) {
 			foreach (ce; _conts.values) {
 				if (ce.convMenuItem) ce.convMenuItem.setEnabled(false);
@@ -2450,6 +2498,7 @@ public:
 		}
 	}
 	private void startToPackage() {
+		if (_readOnly) return;
 		if (!_et || !selection) return;
 		if (_tree.getItemCount() <= 1) return;
 		auto sel = selection;
@@ -2600,6 +2649,7 @@ public:
 		editEnd(cast(Item)itm, c);
 	}
 	private void editEnd(Item itm, Control c) {
+		if (_readOnly) return;
 		auto t = cast(Text) c;
 		auto evt = (cast(Content) itm.getData());
 		if (t) {
@@ -2686,6 +2736,7 @@ public:
 		_comm.refUseCount.call();
 	}
 	private Combo createBoolEditor(string Create)(Content evt, Content child) {
+		if (_readOnly) return null;
 		string[] vals;
 		vals.length = 2;
 		string name = _prop.sys.evtChildTrue;
@@ -2695,6 +2746,7 @@ public:
 		return createComboEditor(_comm, _prop, _tree.control, vals, vals[child.name == _prop.sys.evtChildTrue ? 0 : 1]);
 	}
 	private Combo createBoolEditor2(string Create)(Content evt, Content child) {
+		if (_readOnly) return null;
 		string[] vals;
 		vals.length = 2;
 		string name = _prop.sys.evtChildTrue;
@@ -2704,6 +2756,7 @@ public:
 		return createComboEditor(_comm, _prop, _tree.control, vals, vals[child.name == _prop.sys.evtChildTrue ? 0 : 1]);
 	}
 	private Combo createNumEditor(string Create)(Content evt, Content child, ulong[] nums) {
+		if (_readOnly) return null;
 		string[] vals;
 		vals.length = nums.length + 1;
 		int index = nums.length;
@@ -2719,6 +2772,7 @@ public:
 		return createComboEditor(_comm, _prop, _tree.control, vals, vals[index]);
 	}
 	private Combo createAreaSelectEditor(string Create, A)(Content evt, Content child, A[] areas) {
+		if (_readOnly) return null;
 		ulong[] nums;
 		nums.length = areas.length;
 		foreach (i, area; areas) {
@@ -2727,6 +2781,7 @@ public:
 		return createNumEditor!(Create)(evt, child, nums);
 	}
 	private Combo createTrioEditor(string Create)(Content evt, Content child) {
+		if (_readOnly) return null;
 		string[] vals;
 		vals.length = 3;
 		string name = _prop.sys.evtChildGreater;
@@ -2752,6 +2807,7 @@ public:
 		return createEditor(cast(Item)itm);
 	}
 	private Control createEditor(Item itm) {
+		if (_readOnly) return null;
 		auto parent = _tree.getParentItem(itm);
 		if (parent) {
 			if ((cast(Content)parent.getData()).detail.nextType == CNextType.TEXT) {
@@ -2830,7 +2886,7 @@ public:
 	/// e = イベント。名称が書き換えられる。
 	/// Returns: テキスト。
 	private string eventText(Content parent, Content e) {
-		return .eventText(_comm, _summ, parent, e);
+		return .eventText(_comm, _summ, parent, e, _readOnly != SWT.NONE);
 	}
 	/// 空のテキストは入力ガイドを代わりに表示。
 	private void procTreeItem(Item targ) {
@@ -2844,7 +2900,7 @@ public:
 			} else {
 				itm.setForeground(_grayFont);
 				if (_prop.var.etc.showInputGuide) {
-					itm.setText(_comm.skin.evtChildOK);
+					itm.setText(summSkin.evtChildOK);
 				} else {
 					itm.setText(" ");
 				}
@@ -2938,6 +2994,7 @@ public:
 		return canDownImpl(true);
 	}
 	private bool canUpImpl(bool swapPC) {
+		if (_readOnly) return false;
 		auto itm = selection;
 		if (!itm) return false;
 		auto par = _tree.getParentItem(itm);
@@ -2952,6 +3009,7 @@ public:
 		return canSwapToParent;
 	}
 	private bool canDownImpl(bool swapPC) {
+		if (_readOnly) return false;
 		auto itm = selection;
 		if (!itm) return false;
 		auto par = _tree.getParentItem(itm);
@@ -2966,6 +3024,7 @@ public:
 		return canSwapToChild;
 	}
 	private void up(Item itm, bool store) {
+		if (_readOnly) return;
 		if (!itm) return;
 		udImpl!(-1)(this, _comm, _et, cast(Content) itm.getData(), store);
 		_comm.refreshToolBar();
@@ -2981,6 +3040,7 @@ public:
 		if (itm) up(itm, true);
 	}
 	private void down(Item itm, bool store) {
+		if (_readOnly) return;
 		if (!itm) return;
 		udImpl!(1)(this, _comm, _et, cast(Content) itm.getData(), store);
 		_comm.refreshToolBar();
@@ -2998,6 +3058,7 @@ public:
 
 	@property
 	bool canSwapToParent() {
+		if (_readOnly) return false;
 		auto itm = selection;
 		auto c = cast(Content)itm.getData();
 		if (!c.parent) return false;
@@ -3008,6 +3069,7 @@ public:
 	}
 	@property
 	bool canSwapToChild() {
+		if (_readOnly) return false;
 		auto itm = selection;
 		auto c = cast(Content)itm.getData();
 		if (c.type == CType.START) return false;
@@ -3017,6 +3079,7 @@ public:
 	}
 	/// イベントコンテントの親子を入れ替える。
 	private void swapToPCImpl(Item parent, Item child, Item selTarg) {
+		if (_readOnly) return;
 		auto par = cast(Content)parent.getData();
 		auto next = cast(Content)child.getData();
 		auto parPar = par.parent;
@@ -3065,12 +3128,14 @@ public:
 		_tree.showSelection();
 	}
 	private void swapToParent() {
+		if (_readOnly) return;
 		if (!canSwapToParent) return;
 		auto itm = selection;
 		auto par = _tree.getParentItem(itm);
 		swapToPCImpl(par, itm, par);
 	}
 	private void swapToChild() {
+		if (_readOnly) return;
 		if (!canSwapToChild) return;
 		auto par = selection;
 		auto itm = _tree.getItem(par, 0);
@@ -3079,6 +3144,7 @@ public:
 
 	void openToolWindow() {
 		constructTools();
+		if (_readOnly) return;
 		if (_toolWin) {
 			if (_toolWin.isDisposed()) return;
 			if (_et) {
@@ -3097,6 +3163,7 @@ public:
 		}
 	}
 	void closeToolWindow() {
+		if (_readOnly) return;
 		if (_toolWin) {
 			if (_toolWin.isDisposed()) return;
 			_toolWin.setVisible(false);
@@ -3119,6 +3186,7 @@ public:
 		return null;
 	}
 	private void addContents(bool stored, Content[] cs, Content[] refCS, bool tryInsert, string lastNextType = "") {
+		if (_readOnly) return;
 		auto itm = selection;
 		if (!itm) return;
 		auto owner = insertOwner(tryInsert);
@@ -3237,6 +3305,7 @@ public:
 		}
 	}
 	private void addStarts(bool stored, Content[] cs, Content[] refCS = []) {
+		if (_readOnly) return;
 		_tree.control.setRedraw(false);
 		scope (exit) _tree.control.setRedraw(true);
 		bool empty = _et.owner.isEmpty;
@@ -3304,6 +3373,7 @@ public:
 
 	override {
 		void cut(SelectionEvent se) {
+			if (_readOnly) return;
 			auto itm = selection;
 			if (itm && itm !is _tree.getItems()[0]) {
 				copy(se);
@@ -3319,9 +3389,11 @@ public:
 			}
 		}
 		void paste(SelectionEvent se) {
+			if (_readOnly) return;
 			pasteImpl(false);
 		}
 		void del(SelectionEvent se) {
+			if (_readOnly) return;
 			auto itm = selection;
 			if (itm && itm !is _tree.getItems()[0]) {
 				_tree.control.setRedraw(false);
@@ -3332,6 +3404,7 @@ public:
 			}
 		}
 		void clone(SelectionEvent se) {
+			if (_readOnly) return;
 			_comm.clipboard.memoryMode = true;
 			scope (exit) _comm.clipboard.memoryMode = false;
 			copy(se);
@@ -3344,12 +3417,12 @@ public:
 		}
 		@property
 		bool canDoTCPD() {
-			return _et !is null && _tree.control.isFocusControl();
+			return !_readOnly && _et !is null && _tree.control.isFocusControl();
 		}
 		@property
 		bool canDoT() {
 			auto itm = selection;
-			return itm && itm !is _tree.getItems()[0];
+			return !_readOnly && itm && itm !is _tree.getItems()[0];
 		}
 		@property
 		bool canDoC() {
@@ -3357,15 +3430,15 @@ public:
 		}
 		@property
 		bool canDoP() {
-			return _et !is null && (CBisXML(_comm.clipboard) || CBisText(_comm.clipboard));
+			return !_readOnly && _et !is null && (CBisXML(_comm.clipboard) || CBisText(_comm.clipboard));
 		}
 		@property
 		bool canDoD() {
-			return canDoT;
+			return !_readOnly && canDoT;
 		}
 		@property
 		bool canDoClone() {
-			return canDoC;
+			return !_readOnly && canDoC;
 		}
 	}
 	private string toXML(in Content c, bool shallow = false) {
@@ -3384,6 +3457,7 @@ public:
 		return node.text;
 	}
 	private void cut1Content() {
+		if (_readOnly) return;
 		auto itm = selection;
 		if (itm && _tree.getParentItem(itm)) {
 			copy1Content();
@@ -3391,6 +3465,7 @@ public:
 		}
 	}
 	private void copy1Content() {
+		if (_readOnly) return;
 		auto itm = selection;
 		if (itm) {
 			auto c = cast(Content)itm.getData();
@@ -3399,9 +3474,11 @@ public:
 		}
 	}
 	private void pasteInsert() {
+		if (_readOnly) return;
 		pasteImpl(true);
 	}
 	private void del1Content() {
+		if (_readOnly) return;
 		auto itm = selection;
 		if (itm && _tree.getParentItem(itm)) {
 			_tree.control.setRedraw(false);
@@ -3430,6 +3507,7 @@ public:
 		}
 	}
 	private void pasteImpl(bool tryInsert) {
+		if (_readOnly) return;
 		if (!_et) return;
 		string c;
 		try {
@@ -3464,6 +3542,7 @@ public:
 		}
 	}
 	void pasteScript(string script, bool tryInsert) {
+		if (_readOnly) return;
 		if (!_et) return;
 		string base = script;
 		CompileOption opt;
@@ -3498,6 +3577,7 @@ public:
 		}
 	}
 	void putContents(Content[] cs, bool tryInsert) {
+		if (_readOnly) return;
 		if (!_et) return;
 		if (!cs.length) return;
 		Content[] starts;
@@ -3528,6 +3608,7 @@ public:
 		_comm.refreshToolBar();
 	}
 	private void delImpl(Item itm, bool store) {
+		if (_readOnly) return;
 		bool empty = _et.owner.isEmpty;
 		scope (exit) {
 			if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
@@ -3691,7 +3772,7 @@ public:
 	}
 }
 
-string eventText(Commons comm, Summary summ, Content parent, Content e) in {
+string eventText(Commons comm, Summary summ, Content parent, Content e, bool readOnly) in {
 	assert (!parent || parent.detail.owner);
 } body {
 	if (!parent) return e.name;
@@ -3792,7 +3873,7 @@ string eventText(Commons comm, Summary summ, Content parent, Content e) in {
 		name = "";
 		r = "";
 	}
-	if (e.name != name) {
+	if (e.name != name && !readOnly) {
 		e.setName(prop.parent, name);
 		comm.refContent.call(e);
 	}

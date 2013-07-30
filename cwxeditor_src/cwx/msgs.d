@@ -1800,6 +1800,7 @@ class Msgs : Properties {
 	auto menuTextIncSearch = Msg("menuTextIncSearch", "絞り込み検索");
 	auto menuTextCloseIncSearch = Msg("menuTextCloseIncSearch", "閉じる");
 	auto menuTextEditProp = Msg("menuTextEditProp", "編集");
+	auto menuTextShowProp = Msg("menuTextShowProp", "詳細");
 	auto menuTextRefresh = Msg("menuTextRefresh", "最新の情報に更新");
 	auto menuTextUndo = Msg("menuTextUndo", "元に戻す");
 	auto menuTextRedo = Msg("menuTextRedo", "やり直し");

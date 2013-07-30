@@ -292,18 +292,14 @@ public:
 		removeListener(SWT.DefaultSelection, listener);
 	}
 	private void callSelectChanged() {
-		getDisplay().asyncExec(new class Runnable {
-			override void run() {
-				if (isDisposed()) return;
-				auto se = new Event;
-				int index = selection;
-				se.item = 0 <= index ? _items[index] : null;
-				se.time = cast(int)(0xFFFFFFFFL & Clock.currStdTime());
-				se.stateMask = 0;
-				se.doit = true;
-				notifyListeners(SWT.Selection, se);
-			}
-		});
+		if (isDisposed()) return;
+		auto se = new Event;
+		int index = selection;
+		se.item = 0 <= index ? _items[index] : null;
+		se.time = cast(int)(0xFFFFFFFFL & Clock.currStdTime());
+		se.stateMask = 0;
+		se.doit = true;
+		notifyListeners(SWT.Selection, se);
 	}
 	/// 指定されたインデックスをカーソル位置にする。
 	/// Params:

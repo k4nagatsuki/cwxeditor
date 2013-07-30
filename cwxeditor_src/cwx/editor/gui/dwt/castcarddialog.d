@@ -103,6 +103,12 @@ private:
 	Combo _mtly;
 	Spinner _mtlyRound;
 
+	Skin _summSkin;
+	@property
+	Skin summSkin() {
+		return _summSkin ? _summSkin : _comm.skin;
+	}
+
 	void refreshWarning() {
 		string[] ws;
 		if (_name.over) {
@@ -118,7 +124,7 @@ private:
 		if (_race) {
 			int index = _race.getSelectionIndex();
 			if (index > 0) {
-				return _comm.skin.races[index - 1];
+				return summSkin.races[index - 1];
 			}
 		}
 		return null;
@@ -198,7 +204,7 @@ private:
 	void constructBase(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(2, false));
-		auto skin = _comm.skin;
+		auto skin = summSkin;
 		{
 			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -351,7 +357,7 @@ private:
 	void constructHistory(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(2, false));
-		auto skin = _comm.skin;
+		auto skin = summSkin;
 		{
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.coupons);
@@ -409,7 +415,7 @@ private:
 	void constructMakings(CTabFolder tabf) {
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
-		auto skin = _comm.skin;
+		auto skin = summSkin;
 		{
 			auto comp3 = createButtonGroup(comp, _prop.msgs.coupons, 4, 1, true);
 			auto sl = new MSListener;
@@ -652,10 +658,10 @@ private:
 				max[phy] = pmax;
 			}
 			foreach (phy, val; p) {
-				val += calcPhy!(Sex)(_comm.skin, phy, _sex, false);
-				val += calcPhy!(Period)(_comm.skin, phy, _period, false);
-				val += calcPhy!(Nature)(_comm.skin, phy, _nature, false);
-				val += calcPhy!(Makings)(_comm.skin, phy, _makings, true);
+				val += calcPhy!(Sex)(summSkin, phy, _sex, false);
+				val += calcPhy!(Period)(summSkin, phy, _period, false);
+				val += calcPhy!(Nature)(summSkin, phy, _nature, false);
+				val += calcPhy!(Makings)(summSkin, phy, _makings, true);
 				p[phy] = val;
 			}
 			int[] vals;
@@ -739,10 +745,10 @@ private:
 				} else {
 					val = 0.0;
 				}
-				val += calcMtl!(Sex)(_comm.skin, mtl, _sex, false);
-				val += calcMtl!(Period)(_comm.skin, mtl, _period, false);
-				val += calcMtl!(Nature)(_comm.skin, mtl, _nature, false);
-				val += calcMtl!(Makings)(_comm.skin, mtl, _makings, true);
+				val += calcMtl!(Sex)(summSkin, mtl, _sex, false);
+				val += calcMtl!(Period)(summSkin, mtl, _period, false);
+				val += calcMtl!(Nature)(summSkin, mtl, _nature, false);
+				val += calcMtl!(Makings)(summSkin, mtl, _makings, true);
 				int v = cast(int) val;
 				if (v < min) v = min;
 				if (v > max) v = max;
@@ -1047,25 +1053,25 @@ private:
 	}
 	void refreshSex() {
 		foreach (s, b; _sex) {
-			auto name = _comm.skin.sexName(s);
+			auto name = summSkin.sexName(s);
 			b.setText(_prop.msgs.sex.get(name, name));
 		}
 	}
 	void refreshPeriod() {
 		foreach (p, b; _period) {
-			auto name = _comm.skin.periodName(p);
+			auto name = summSkin.periodName(p);
 			b.setText(_prop.msgs.period.get(name, name));
 		}
 	}
 	void refreshNature() {
 		foreach (n, b; _nature) {
-			auto name = _comm.skin.natureName(n);
+			auto name = summSkin.natureName(n);
 			b.setText(_prop.msgs.nature.get(name, name));
 		}
 	}
 	void refreshMakings() {
 		foreach (m, b; _makings) {
-			auto name = _comm.skin.makingsName(m);
+			auto name = summSkin.makingsName(m);
 			b.setText(_prop.msgs.makings.get(name, name));
 		}
 	}
@@ -1081,7 +1087,7 @@ private:
 		if (first || _showSpNature != _prop.var.etc.showSpNature) {
 			foreach (n, b; _nature) {
 				if (b.getSelection()) {
-					nature = _comm.skin.natureCoupon(n);
+					nature = summSkin.natureCoupon(n);
 					break;
 				}
 			}
@@ -1099,10 +1105,10 @@ private:
 				sep.setLayoutData(gd);
 			}
 			void put(Nature n) {
-				auto name = _comm.skin.natureName(n);
+				auto name = summSkin.natureName(n);
 				auto b = createR(_natureComp, _prop.msgs.nature.get(name, name), (_nature.length + 1) % 2);
 				_nature[n] = b;
-				if (!first && nature == _comm.skin.natureCoupon(n)) {
+				if (!first && nature == summSkin.natureCoupon(n)) {
 					b.setSelection(true);
 					selected = true;
 				}
@@ -1134,7 +1140,7 @@ private:
 					cp: foreach (i, cp; _couponView.coupons) {
 						if (0 == cp.value) {
 							foreach (n; NATURE_EXT) {
-								if (cp.name == _comm.skin.natureCoupon(n)) {
+								if (cp.name == summSkin.natureCoupon(n)) {
 									_nature[n].setSelection(true);
 									_natureU.setSelection(false);
 									_couponView.delCoupon(i);
@@ -1151,14 +1157,17 @@ private:
 			}
 		}
 	}
+
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, CastCard card) {
+	this(Commons comm, Props prop, Shell shell, Summary summ, CastCard card, bool readOnly) {
 		assert (summ !is null);
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_comm = comm;
 		_summ = summ;
 		_card = card;
 		_prop = prop;
+		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
+		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
 		super(prop, shell, _readOnly, false, _card ? .tryFormat(_prop.msgs.dlgTitCast, _card.name) : _prop.msgs.dlgTitNewCast,
 			_prop.images.casts, true, _prop.var.castCardDlg, true);
 	}
@@ -1212,7 +1221,7 @@ protected:
 		if (_card && _card !is card) return;
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		auto skin = _comm.skin;
+		auto skin = summSkin;
 		if (_card) {
 			_imgPath.image = _card.path;
 			if (_race) _race.select(0);
@@ -1253,7 +1262,7 @@ protected:
 					}
 				}
 				if (_race) {
-					foreach (i, r; _comm.skin.races) {
+					foreach (i, r; summSkin.races) {
 						if (c.name == _prop.sys.raceCoupon(r.name)) {
 							_race.select(i + 1);
 							raceToolTip();
@@ -1367,7 +1376,7 @@ protected:
 			_card = new CastCard(_summ.newId!(CastCard), _name.getText(), _imgPath.image,
 				_desc.getRRText(), _level.getSelection(), _lifeMax.getSelection());
 		}
-		auto skin = _comm.skin;
+		auto skin = summSkin;
 		string legacyName = skin.legacyName;
 		alias contains!("a.name == b.name", Coupon, Coupon) cContains;
 		auto tblCoupons = _couponView.coupons;

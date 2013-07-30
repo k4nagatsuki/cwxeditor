@@ -640,9 +640,10 @@ class Commons {
 	}
 	private Window __openArea(A, Window)(Props prop, Summary summ, A area, UndoManager undo, bool shellActivate) {
 		if (!area) return null;
-		return __open!("work", Window, A, "", Commons, Props, Summary, Composite, Shell, A, UndoManager)
+		bool readOnly = this.summary !is summ;
+		return __open!("work", Window, A, "", Commons, Props, Summary, Composite, Shell, A, UndoManager, bool)
 			(area, shellActivate, this, prop, summ, workPane,
-			cast(Shell) (_dataWin ? _dataWin.shell : _tableWin.shell), area, undo);
+			cast(Shell) (_dataWin ? _dataWin.shell : _tableWin.shell), area, undo, readOnly);
 	}
 	private BindWindow openAreaB(A, BindWindow, SceneWindow, EventWindow)(Props prop, Summary summ, A area, bool shellActivate) {
 		auto ws = opened(area);
@@ -733,8 +734,9 @@ class Commons {
 				parent = cast(Shell) _infoWin.shell;
 			} else static assert (0);
 		}
-		return __open!("work", Window, C, "", Commons, Props, Summary, Composite, Shell, C, UndoManager)
-			(c, shellActivate, this, prop, summ, workPane, parent, c, undo);
+		bool readOnly = this.summary !is summ;
+		return __open!("work", Window, C, "", Commons, Props, Summary, Composite, Shell, C, UndoManager, bool)
+			(c, shellActivate, this, prop, summ, workPane, parent, c, undo, readOnly);
 	}
 	SkillEventWindow openUseEvents(Props prop, Summary summ, SkillCard c, bool shellActivate) {
 		return __openUseEvent!(SkillCard, SkillEventWindow)(prop, summ, c, null, shellActivate);

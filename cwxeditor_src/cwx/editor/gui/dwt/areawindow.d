@@ -28,6 +28,7 @@ public:
 
 class TAreaWindow(V, A, C, bool WithEventView) : TopLevelPanel, SashPanel, TCPD {
 private:
+	int _readOnly = 0;
 	Commons _comm;
 
 	SBShell _sbshl;
@@ -158,11 +159,12 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Summary summ, Composite parent, Shell areaWin, A area, UndoManager undo = null) {
+	this(Commons comm, Props prop, Summary summ, Composite parent, Shell areaWin, A area, UndoManager undo = null, bool readOnly = false) {
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		_area = area;
+		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		_refUndo = undo is null;
 		_undo = undo ? undo : new UndoManager(_prop.var.etc.undoMaxEvent);
 		Shell shell = null;
@@ -280,7 +282,7 @@ public:
 			if (shell) _aview.setupMenu(shell.getMenuBar());
 		}
 		static if (WithEventView) {
-			_eview = new EventView!(A, C, true)(comm, prop, summ, area, _tabf, _undo);
+			_eview = new EventView!(A, C, true)(comm, prop, summ, area, _tabf, _undo, _readOnly != SWT.NONE);
 			_tabE.setControl(_eview);
 			_tcpd ~= _eview;
 		}

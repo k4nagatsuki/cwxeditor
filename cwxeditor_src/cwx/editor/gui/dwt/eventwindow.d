@@ -32,6 +32,7 @@ interface IEventWindow {
 
 class EventWindow(A : EventTreeOwner) : TopLevelPanel, IEventWindow, SashPanel, TCPD {
 private:
+	int _readOnly = 0;
 	Summary _summ;
 	A _eto;
 	Commons _comm;
@@ -56,7 +57,7 @@ private:
 		_undo.max = _prop.var.etc.undoMaxEvent;
 	}
 public:
-	this (Commons comm, Props prop, Summary summ, Composite parent, Shell parent2, A eto, UndoManager undo) {
+	this (Commons comm, Props prop, Summary summ, Composite parent, Shell parent2, A eto, UndoManager undo, bool readOnly) {
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
 		Composite contPane;
@@ -76,62 +77,71 @@ public:
 		_summ = summ;
 		_eto = eto;
 		_comm = comm;
+		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		_refUndo = undo is null;
 		_undo = undo ? undo : new UndoManager(_prop.var.etc.undoMaxEvent);
 
-		static if (is (A == Area)) {
-			_comm.delArea.add(&__deleteOwner);
-			_comm.refArea.add(&__refOwner);
-		} else static if (is (A == Battle)) {
-			_comm.delBattle.add(&__deleteOwner);
-			_comm.refBattle.add(&__refOwner);
-		} else static if (is (A == Package)) {
-			_comm.delPackage.add(&__deleteOwner);
-			_comm.refPackage.add(&__refOwner);
-		} else static if (is (A == SkillCard)) {
-			_comm.delSkill.add(&__deleteOwner);
-			_comm.refSkill.add(&__refOwner);
-		} else static if (is (A == ItemCard)) {
-			_comm.delItem.add(&__deleteOwner);
-			_comm.refItem.add(&__refOwner);
-		} else static if (is (A == BeastCard)) {
-			_comm.delBeast.add(&__deleteOwner);
-			_comm.refBeast.add(&__refOwner);
+		if (_readOnly) {
+			_comm.closeAdds.add(&closeAdds);
 		} else {
-			static assert (0);
+			static if (is (A == Area)) {
+				_comm.delArea.add(&__deleteOwner);
+				_comm.refArea.add(&__refOwner);
+			} else static if (is (A == Battle)) {
+				_comm.delBattle.add(&__deleteOwner);
+				_comm.refBattle.add(&__refOwner);
+			} else static if (is (A == Package)) {
+				_comm.delPackage.add(&__deleteOwner);
+				_comm.refPackage.add(&__refOwner);
+			} else static if (is (A == SkillCard)) {
+				_comm.delSkill.add(&__deleteOwner);
+				_comm.refSkill.add(&__refOwner);
+			} else static if (is (A == ItemCard)) {
+				_comm.delItem.add(&__deleteOwner);
+				_comm.refItem.add(&__refOwner);
+			} else static if (is (A == BeastCard)) {
+				_comm.delBeast.add(&__deleteOwner);
+				_comm.refBeast.add(&__refOwner);
+			} else {
+				static assert (0);
+			}
+			_comm.replText.add(&__refreshTitle);
+			_comm.refUndoMax.add(&refUndoMax);
 		}
-		_comm.replText.add(&__refreshTitle);
-		_comm.refUndoMax.add(&refUndoMax);
 		_win.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				saveWin();
-						static if (is (A == Area)) {
-					_comm.delArea.remove(&__deleteOwner);
-					_comm.refArea.remove(&__refOwner);
-				} else static if (is (A == Battle)) {
-					_comm.delBattle.remove(&__deleteOwner);
-					_comm.refBattle.remove(&__refOwner);
-				} else static if (is (A == Package)) {
-					_comm.delPackage.remove(&__deleteOwner);
-					_comm.refPackage.remove(&__refOwner);
-				} else static if (is (A == SkillCard)) {
-					_comm.delSkill.remove(&__deleteOwner);
-					_comm.refSkill.remove(&__refOwner);
-				} else static if (is (A == ItemCard)) {
-					_comm.delItem.remove(&__deleteOwner);
-					_comm.refItem.remove(&__refOwner);
-				} else static if (is (A == BeastCard)) {
-					_comm.delBeast.remove(&__deleteOwner);
-					_comm.refBeast.remove(&__refOwner);
+				if (_readOnly) {
+					_comm.closeAdds.add(&closeAdds);
 				} else {
-					static assert (0);
+					static if (is (A == Area)) {
+						_comm.delArea.remove(&__deleteOwner);
+						_comm.refArea.remove(&__refOwner);
+					} else static if (is (A == Battle)) {
+						_comm.delBattle.remove(&__deleteOwner);
+						_comm.refBattle.remove(&__refOwner);
+					} else static if (is (A == Package)) {
+						_comm.delPackage.remove(&__deleteOwner);
+						_comm.refPackage.remove(&__refOwner);
+					} else static if (is (A == SkillCard)) {
+						_comm.delSkill.remove(&__deleteOwner);
+						_comm.refSkill.remove(&__refOwner);
+					} else static if (is (A == ItemCard)) {
+						_comm.delItem.remove(&__deleteOwner);
+						_comm.refItem.remove(&__refOwner);
+					} else static if (is (A == BeastCard)) {
+						_comm.delBeast.remove(&__deleteOwner);
+						_comm.refBeast.remove(&__refOwner);
+					} else {
+						static assert (0);
+					}
+					_comm.replText.remove(&__refreshTitle);
+					_comm.refUndoMax.remove(&refUndoMax);
 				}
-				_comm.replText.remove(&__refreshTitle);
-				_comm.refUndoMax.remove(&refUndoMax);
 			}
 		});
 		{
-			_eview = new typeof(_eview)(comm, prop, summ, eto, contPane, _undo);
+			_eview = new typeof(_eview)(comm, prop, summ, eto, contPane, _undo, _readOnly != SWT.NONE);
 			_eview.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		if (shell) {
@@ -148,8 +158,8 @@ public:
 			createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close, null);
 
 			auto me = createMenu(_comm, bar, MenuID.Edit);
-			createMenuItem(_comm, me, MenuID.Undo, &_eview.undo, &_undo.canUndo);
-			createMenuItem(_comm, me, MenuID.Redo, &_eview.redo, &_undo.canRedo);
+			createMenuItem(_comm, me, MenuID.Undo, &_eview.undo, () => !_readOnly && _undo.canUndo);
+			createMenuItem(_comm, me, MenuID.Redo, &_eview.redo, () => !_readOnly && _undo.canRedo);
 			new MenuItem(me, SWT.SEPARATOR);
 			createMenuItem(_comm, me, MenuID.Up, &_eview.up, &_eview.canUp);
 			createMenuItem(_comm, me, MenuID.Down, &_eview.down, &_eview.canDown);
@@ -167,8 +177,8 @@ public:
 			static if (is(A : Area) || is(A : Battle)) {
 				putMenuAction(MenuID.EditScene, &openScene, null);
 			}
-			putMenuAction(MenuID.Undo, &_eview.undo, &_undo.canUndo);
-			putMenuAction(MenuID.Redo, &_eview.redo, &_undo.canRedo);
+			putMenuAction(MenuID.Undo, &_eview.undo, () => !_readOnly && _undo.canUndo);
+			putMenuAction(MenuID.Redo, &_eview.redo, () => !_readOnly && _undo.canRedo);
 			putMenuAction(MenuID.Up, &_eview.up, &_eview.canUp);
 			putMenuAction(MenuID.Down, &_eview.down, &_eview.canDown);
 			putMenuAction(MenuID.Comment, &_eview.writeComment, &_eview.canWriteComment);
@@ -273,6 +283,11 @@ public:
 	private void __refOwner(A a) {
 		if (_eto is a) {
 			__refreshTitle();
+		}
+	}
+	private void closeAdds(Summary summ) {
+		if (_summ is summ) {
+			_comm.close(_win);
 		}
 	}
 	@property

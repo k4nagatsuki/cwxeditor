@@ -48,6 +48,7 @@ alias Integer RoundObj;
 
 class EventView(A : EventTreeOwner, C, bool UseFire) : Composite, TCPD {
 private:
+	int _readOnly = 0;
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
@@ -153,6 +154,7 @@ private:
 			bool everyRound;
 			bool round0;
 			FKeyCode[] keyCodes;
+			KeyCodeMatchingType keyCodeMatchingType;
 			uint[] rounds;
 		}
 		private Vals _vals;
@@ -172,6 +174,7 @@ private:
 			_vals.everyRound = tree.fireEveryRound;
 			_vals.round0 = tree.fireRound0;
 			_vals.keyCodes = tree.keyCodes.dup;
+			_vals.keyCodeMatchingType = tree.keyCodeMatchingType;
 			_vals.rounds = tree.rounds.dup;
 		}
 		private TreeItem getItem(EventView v) {
@@ -193,12 +196,14 @@ private:
 			tree.round0 = vals.round0;
 			tree.removeKeyCodesAll();
 			foreach (kc; vals.keyCodes) tree.addKeyCode(kc);
+			tree.keyCodeMatchingType = vals.keyCodeMatchingType;
 			tree.removeRoundsAll();
 			foreach (rnd; vals.rounds) tree.addRound(rnd);
 			if (v) {
 				auto itm = getItem(v);
 				itm.setExpanded(vals.expand);
 				itm.setText(vals.name);
+				itm.setImage(v.etImage(tree));
 				v._etree.refreshTreeName();
 				static if (UseFire) {
 					v.refreshFires(itm);
@@ -448,6 +453,7 @@ private:
 		createEventTree([]);
 	}
 	void createEventTree(Content[] starts) {
+		if (_readOnly) return;
 		foreach (s; starts) {
 			if (s.type !is CType.START) return;
 		}
@@ -521,6 +527,7 @@ private:
 		comm.refUseCount.call();
 	}
 	void appendTree(TreeItem parItm, EventTree tree, int index, Object defFire, bool store) {
+		if (_readOnly) return;
 		auto eto = cast(EventTreeOwner) parItm.getData();
 		if (store) storeI(_cards.indexOf(parItm), eto.trees.length);
 		appendTreeImpl(_comm, eto, tree, index);
@@ -553,6 +560,7 @@ private:
 		return treeItm;
 	}
 	Control createEditor(TreeItem itm) {
+		if (_readOnly) return null;
 		static if (UseFire) {
 			if (cast(EventTree) itm.getData() || cast(KeyCodeObj) itm.getData()) {
 				return createTextEditor(_comm, _prop, _cards, itm.getText());
@@ -565,6 +573,7 @@ private:
 		return null;
 	}
 	void editEnd(TreeItem itm, Control c) {
+		if (_readOnly) return;
 		string text = (cast(Text) c).getText();
 		if (!text) text = "";
 		auto tree = cast(EventTree) itm.getData();
@@ -766,6 +775,7 @@ private:
 			return null;
 		}
 		void createEventFire() {
+			if (_readOnly) return;
 			auto treeItm = selectionEventTree;
 			if (!treeItm) return;
 			auto tree = cast(EventTree) treeItm.getData();
@@ -849,6 +859,7 @@ private:
 		}
 	}
 	void replText() {
+		if (_readOnly) return;
 		foreach (itm; _cards.getItems()) {
 			auto data = itm.getData();
 			if (cast(A) data) {
@@ -893,6 +904,7 @@ private:
 	}
 	static if (UseFire) {
 		void addManyRounds() {
+			if (_readOnly) return;
 			auto etItm = selectionEventTree;
 			if (!etItm) return;
 			auto parItm = selectionParent;
@@ -912,6 +924,7 @@ private:
 	}
 	static if (is(A : Area) || is(A : Battle)) {
 		void keyCodeTimImpl(FKCKind kind) {
+			if (_readOnly) return;
 			auto itm = selection;
 			if (!itm) return;
 			auto kc = cast(KeyCodeObj) itm.getData();
@@ -923,6 +936,7 @@ private:
 			assert (etItm);
 			auto et = cast(EventTree) etItm.getData();
 			assert (et);
+			store(et);
 			int i = cCountUntil(et.keyCodes, old);
 			assert (-1 != i);
 			et.setKeyCode(i, _prop.sys.toFKeyCode(keyCode));
@@ -945,6 +959,7 @@ private:
 		}
 	}
 	bool canConvKeyCode(FKCKind Kind)() {
+		if (_readOnly) return false;
 		auto itm = selectionKeyCode;
 		if (!itm) return false;
 		auto keyCode = (cast(KeyCodeObj) itm.getData()).array.idup;
@@ -964,14 +979,17 @@ private:
 		return true;
 	}
 	void setKeyCodeCond(KeyCodeMatchingType Type)() {
+		if (_readOnly) return;
 		auto eItm = selectionEventTree;
 		if (!eItm) return;
 		auto et = cast(EventTree) eItm.getData();
 		assert (et !is null);
+		store(et);
 		et.keyCodeMatchingType = Type;
 		eItm.setImage(etImage(et));
 	}
 	bool canSetKeyCodeCond(KeyCodeMatchingType Type)() {
+		if (_readOnly) return false;
 		auto eItm = selectionEventTree;
 		if (!eItm) return false;
 		auto et = cast(EventTree) eItm.getData();
@@ -995,41 +1013,44 @@ private:
 		layout();
 	}
 public:
-	this (Commons comm, Props prop, Summary summ, A area, Composite parent, UndoManager undo) {
+	this (Commons comm, Props prop, Summary summ, A area, Composite parent, UndoManager undo, bool readOnly) {
 		super (parent, SWT.NONE);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		_area = area;
 		_undo = undo;
+		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 
 		_toolbar = new ToolBar(this, SWT.FLAT);
 		_comm.put(_toolbar);
 
 		_sash = new SplitPane(this, SWT.HORIZONTAL);
-		_comm.replText.add(&replText);
-		_comm.replID.add(&replText);
 		_comm.refShowToolBar.add(&refShowToolBar);
-		static if (!is(C == void)) {
-			_comm.addMenuCard.add(&addCard);
-			_comm.refMenuCard.add(&refCard);
-			_comm.delMenuCard.add(&delCard);
-			_comm.upMenuCard.add(&upCard);
-			_comm.downMenuCard.add(&downCard);
+		if (!_readOnly) {
+			_comm.replText.add(&replText);
+			_comm.replID.add(&replText);
+			static if (!is(C == void)) {
+				_comm.addMenuCard.add(&addCard);
+				_comm.refMenuCard.add(&refCard);
+				_comm.delMenuCard.add(&delCard);
+				_comm.upMenuCard.add(&upCard);
+				_comm.downMenuCard.add(&downCard);
+			}
+			static if (is (A == Area)) {
+				_comm.refArea.add(&refreshTitleA);
+			} else static if (is (A == Battle)) {
+				_comm.refBattle.add(&refreshTitleA);
+			} else static if (is (A == Package)) {
+				_comm.refPackage.add(&refreshTitleA);
+			} else static if (is (A == SkillCard)) {
+				_comm.refSkill.add(&refreshTitleA);
+			} else static if (is (A == ItemCard)) {
+				_comm.refItem.add(&refreshTitleA);
+			} else static if (is (A == BeastCard)) {
+				_comm.refBeast.add(&refreshTitleA);
+			} else static assert (0);
 		}
-		static if (is (A == Area)) {
-			_comm.refArea.add(&refreshTitleA);
-		} else static if (is (A == Battle)) {
-			_comm.refBattle.add(&refreshTitleA);
-		} else static if (is (A == Package)) {
-			_comm.refPackage.add(&refreshTitleA);
-		} else static if (is (A == SkillCard)) {
-			_comm.refSkill.add(&refreshTitleA);
-		} else static if (is (A == ItemCard)) {
-			_comm.refItem.add(&refreshTitleA);
-		} else static if (is (A == BeastCard)) {
-			_comm.refBeast.add(&refreshTitleA);
-		} else static assert (0);
 		_sash.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
 				int[] ws = _sash.getWeights();
@@ -1048,29 +1069,31 @@ public:
 				} else {
 					static assert (0);
 				}
-				_comm.replText.remove(&replText);
-				_comm.replID.remove(&replText);
 				_comm.refShowToolBar.remove(&refShowToolBar);
-				static if (!is(C == void)) {
-					_comm.addMenuCard.remove(&addCard);
-					_comm.refMenuCard.remove(&refCard);
-					_comm.delMenuCard.remove(&delCard);
-					_comm.upMenuCard.remove(&upCard);
-					_comm.downMenuCard.remove(&downCard);
+				if (!_readOnly) {
+					_comm.replText.remove(&replText);
+					_comm.replID.remove(&replText);
+					static if (!is(C == void)) {
+						_comm.addMenuCard.remove(&addCard);
+						_comm.refMenuCard.remove(&refCard);
+						_comm.delMenuCard.remove(&delCard);
+						_comm.upMenuCard.remove(&upCard);
+						_comm.downMenuCard.remove(&downCard);
+					}
+					static if (is (A == Area)) {
+						_comm.refArea.remove(&refreshTitleA);
+					} else static if (is (A == Battle)) {
+						_comm.refBattle.remove(&refreshTitleA);
+					} else static if (is (A == Package)) {
+						_comm.refPackage.remove(&refreshTitleA);
+					} else static if (is (A == SkillCard)) {
+						_comm.refSkill.remove(&refreshTitleA);
+					} else static if (is (A == ItemCard)) {
+						_comm.refItem.remove(&refreshTitleA);
+					} else static if (is (A == BeastCard)) {
+						_comm.refBeast.remove(&refreshTitleA);
+					} else static assert (0);
 				}
-				static if (is (A == Area)) {
-					_comm.refArea.remove(&refreshTitleA);
-				} else static if (is (A == Battle)) {
-					_comm.refBattle.remove(&refreshTitleA);
-				} else static if (is (A == Package)) {
-					_comm.refPackage.remove(&refreshTitleA);
-				} else static if (is (A == SkillCard)) {
-					_comm.refSkill.remove(&refreshTitleA);
-				} else static if (is (A == ItemCard)) {
-					_comm.refItem.remove(&refreshTitleA);
-				} else static if (is (A == BeastCard)) {
-					_comm.refBeast.remove(&refreshTitleA);
-				} else static assert (0);
 			}
 		});
 		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1080,74 +1103,47 @@ public:
 			_cards.addSelectionListener(new SListener);
 
 			auto shell = _cards.getShell();
-			uint retry = 0;
-			while (true) {
-				Menu menu = null;
-				string dStr = .text(__LINE__); // ログ
-				try {
-					dStr ~= " - " ~ .text(__LINE__);
-					menu = new Menu(shell, SWT.POP_UP);
-					dStr ~= " - " ~ .text(__LINE__);
-					createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
-					createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
-					new MenuItem(menu, SWT.SEPARATOR);
-					appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
-					dStr ~= " - " ~ .text(__LINE__);
-					static if (is(A : Area) || is(A : Battle)) {
-						new MenuItem(menu, SWT.SEPARATOR);
-						void delegate() dlg = null;
-						auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => selectionKeyCode !is null, SWT.CASCADE);
-						auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
-						cascade.setMenu(sub);
-						createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &keyCodeTimUse, &canConvKeyCode!(FKCKind.Use));
-						createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &keyCodeTimSuccess, &canConvKeyCode!(FKCKind.Success));
-						createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &keyCodeTimFailure, &canConvKeyCode!(FKCKind.Failure));
-						createMenuItem(_comm, sub, MenuID.KeyCodeTimingHasNot, &keyCodeTimHasNot, &canConvKeyCode!(FKCKind.HasNot));
+			auto menu = new Menu(shell, SWT.POP_UP);
+			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => _undo.canUndo && !_readOnly);
+			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => _undo.canRedo && !_readOnly);
+			new MenuItem(menu, SWT.SEPARATOR);
+			appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
+			static if (is(A : Area) || is(A : Battle)) {
+				new MenuItem(menu, SWT.SEPARATOR);
+				void delegate() dlg = null;
+				auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => !_readOnly && selectionKeyCode !is null, SWT.CASCADE);
+				auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
+				cascade.setMenu(sub);
+				createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &keyCodeTimUse, &canConvKeyCode!(FKCKind.Use));
+				createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &keyCodeTimSuccess, &canConvKeyCode!(FKCKind.Success));
+				createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &keyCodeTimFailure, &canConvKeyCode!(FKCKind.Failure));
+				createMenuItem(_comm, sub, MenuID.KeyCodeTimingHasNot, &keyCodeTimHasNot, &canConvKeyCode!(FKCKind.HasNot));
 
-						auto cascade2 = createMenuItem(_comm, menu, MenuID.KeyCodeCond, dlg, () => selectionEventTree !is null, SWT.CASCADE);
-						auto sub2 = new Menu(parent.getShell(), SWT.DROP_DOWN);
-						cascade2.setMenu(sub2);
-						createMenuItem(_comm, sub2, MenuID.KeyCodeCondOr, &setKeyCodeCond!(KeyCodeMatchingType.Or), &canSetKeyCodeCond!(KeyCodeMatchingType.Or));
-						createMenuItem(_comm, sub2, MenuID.KeyCodeCondAnd, &setKeyCodeCond!(KeyCodeMatchingType.And), &canSetKeyCodeCond!(KeyCodeMatchingType.And));
-					}
-					dStr ~= " - " ~ .text(__LINE__);
-					new MenuItem(menu, SWT.SEPARATOR);
-					createMenuItem(_comm, menu, MenuID.ToScript, &toScript, &canToScript);
-					createMenuItem(_comm, menu, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
-					dStr ~= " - " ~ .text(__LINE__);
-					static if (is (A == Battle)) {
-						new MenuItem(menu, SWT.SEPARATOR);
-						createMenuItem(_comm, menu, MenuID.AddRangeOfRound, &addManyRounds, {
-							auto etItm = selectionEventTree;
-							if (!etItm) return false;
-							return (cast(EventTree) etItm.getData()).owner is _area;
-						});
-					}
-					dStr ~= " - " ~ .text(__LINE__);
-					_cards.setMenu(menu);
-					dStr ~= " - " ~ .text(__LINE__);
-					break;
-				} catch (Throwable e) {
-					// 環境によってはMenuが異常な状態になり、
-					// MenuItemの追加で落ちることがある模様
-					debugln(dStr);
-					debugln(e);
-					try {
-						if (menu) menu.dispose();
-						menu = null;
-					} catch {}
-					retry++;
-					if (retry > 128) {
-						debugln("create menu failed (event view).");
-						break;
-					}
-					debugln("create menu failed (event view). retry: ", retry);
-				}
+				auto cascade2 = createMenuItem(_comm, menu, MenuID.KeyCodeCond, dlg, () => !_readOnly && selectionEventTree !is null, SWT.CASCADE);
+				auto sub2 = new Menu(parent.getShell(), SWT.DROP_DOWN);
+				cascade2.setMenu(sub2);
+				createMenuItem(_comm, sub2, MenuID.KeyCodeCondOr, &setKeyCodeCond!(KeyCodeMatchingType.Or), &canSetKeyCodeCond!(KeyCodeMatchingType.Or));
+				createMenuItem(_comm, sub2, MenuID.KeyCodeCondAnd, &setKeyCodeCond!(KeyCodeMatchingType.And), &canSetKeyCodeCond!(KeyCodeMatchingType.And));
 			}
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.ToScript, &toScript, &canToScript);
+			createMenuItem(_comm, menu, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
+			static if (is (A == Battle)) {
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.AddRangeOfRound, &addManyRounds, {
+					if (_readOnly) return false;
+					auto etItm = selectionEventTree;
+					if (!etItm) return false;
+					return (cast(EventTree) etItm.getData()).owner is _area;
+				});
+			}
+			_cards.setMenu(menu);
 		}
 		{
-			_etree = new EventTreeView(comm, prop, summ, _sash, _undo, &forceSel, &refreshTopStart, _toolbar);
-			auto _edit = new TreeEdit(_comm, _cards, &editEnd, &createEditor);
+			_etree = new EventTreeView(comm, prop, summ, _sash, _undo, &forceSel, &refreshTopStart, _toolbar, _readOnly != SWT.NONE);
+			if (!_readOnly) {
+				auto _edit = new TreeEdit(_comm, _cards, &editEnd, &createEditor);
+			}
 			setupToolBar();
 		}
 		static if (is (A == Area)) {
@@ -1324,6 +1320,7 @@ public:
 		_comm.refreshToolBar();
 	}
 	private bool canUdImpl(string BeforeAfter, string CanSwapKeyCode)(TreeItem itm) {
+		if (_readOnly) return false;
 		if (itm && itm.getParentItem()) {
 			auto data = itm.getData();
 			auto parent = itm.getParentItem();
@@ -1350,6 +1347,7 @@ public:
 	}
 	private void udImpl(string BeforeAfter, string CanSwapKeyCode)
 			(TreeItem itm, int function(TreeItem) treeSwap, bool store) {
+		if (_readOnly) return;
 		if (itm && itm.getParentItem()) {
 			auto data = itm.getData();
 			auto parent = itm.getParentItem();
@@ -1398,6 +1396,7 @@ public:
 	}
 	@property
 	bool canUp() {
+		if (_readOnly) return false;
 		if (_etree.isFocusControl()) {
 			return _etree.canUp();
 		} else if (_cards.isFocusControl()) {
@@ -1407,6 +1406,7 @@ public:
 	}
 	@property
 	bool canDown() {
+		if (_readOnly) return false;
 		if (_etree.isFocusControl()) {
 			return _etree.canDown();
 		} else if (_cards.isFocusControl()) {
@@ -1419,6 +1419,7 @@ public:
 		up(selection, true);
 	}
 	private void up(TreeItem itm, bool store) {
+		if (_readOnly) return;
 		if (_etree.isFocusControl()) {
 			_etree.up();
 		} else if (_cards.isFocusControl()) {
@@ -1431,6 +1432,7 @@ public:
 		down(selection, true);
 	}
 	private void down(TreeItem itm, bool store) {
+		if (_readOnly) return;
 		if (_etree.isFocusControl()) {
 			_etree.down();
 		} else if (_cards.isFocusControl()) {
@@ -1460,8 +1462,8 @@ public:
 			}
 		}
 		if (!_comm.singleWindowMode(_prop)) {
-			createToolItem(_comm, bar, MenuID.Undo, &undo, &_undo.canUndo);
-			createToolItem(_comm, bar, MenuID.Redo, &redo, &_undo.canRedo);
+			createToolItem(_comm, bar, MenuID.Undo, &undo, () => !_readOnly && _undo.canUndo);
+			createToolItem(_comm, bar, MenuID.Redo, &redo, () => !_readOnly && _undo.canRedo);
 			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(_comm, bar, MenuID.Up, &up, &canUp);
 			createToolItem(_comm, bar, MenuID.Down, &down, &canDown);
@@ -1470,6 +1472,7 @@ public:
 		{
 			auto treeKindItm = new ToolItem(bar, SWT.SEPARATOR);
 			_treeKind = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			_treeKind.setEnabled(!_readOnly);
 			createTextMenu!CCombo(_comm, _prop, _treeKind, null);
 			_treeKind.add(_prop.msgs.eventTreeKindSystem);
 			_treeKind.setText(_prop.msgs.eventTreeKindSystem);
@@ -1507,6 +1510,7 @@ public:
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
 		createToolItem2(_comm, bar, _prop.msgs.newEvent, _prop.images.newEvent, &createEventTree, {
+			if (_readOnly) return false;
 			auto par = selectionParent;
 			if (!par) return false;
 			static if (is(A:Battle)) {
@@ -1521,6 +1525,7 @@ public:
 		});
 		static if (UseFire) {
 			createToolItem2(_comm, bar, _prop.msgs.newIgnition, _prop.images.newIgnition, &createEventFire, {
+				if (_readOnly) return false;
 				if (selectionEventTree is null) return false;
 				static if (is(A:Battle)) {
 					auto par = selectionParent;
@@ -1583,6 +1588,7 @@ public:
 		if (readOnly) style |= SWT.READ_ONLY;
 		auto c = new CCombo(_toolbar, style);
 		if (visLong) c.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+		c.setEnabled(!_readOnly);
 		foreach (i, v; vals) {
 			c.add(v);
 			if (i == 0) c.setText(v);
@@ -1592,6 +1598,7 @@ public:
 	}
 	private void createKCCombo() {
 		auto combo = createKeyCodeCombo!CCombo(_comm, _toolbar, null);
+		combo.setEnabled(!_readOnly);
 		setFireControl(combo);
 		if (combo.getItemCount()) {
 			combo.select(0);
@@ -1608,7 +1615,7 @@ public:
 					break;
 				case 1:
 					createKCCombo();
-					_keyCodeTim.setEnabled(true);
+					_keyCodeTim.setEnabled(!_readOnly);
 					break;
 				default: assert (0);
 				}
@@ -1620,7 +1627,7 @@ public:
 					break;
 				case 1:
 					createKCCombo();
-					_keyCodeTim.setEnabled(true);
+					_keyCodeTim.setEnabled(!_readOnly);
 					break;
 				case 2:
 					auto spn = new Spinner(_toolbar, SWT.BORDER);
@@ -1671,6 +1678,7 @@ public:
 	}
 
 	private void pasteScript(Clipboard cb) {
+		if (_readOnly) return;
 		auto array = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance());
 		if (!array) return;
 		CompileOption opt;
@@ -1701,6 +1709,7 @@ public:
 		}
 	}
 	override void cut(SelectionEvent se) {
+		if (_readOnly) return;
 		initial();
 		if (_etree.isFocusControl) {
 			_etree.cut(se);
@@ -1757,6 +1766,7 @@ public:
 		}
 	}
 	override void paste(SelectionEvent se) {
+		if (_readOnly) return;
 		initial();
 		if (_etree.isFocusControl) {
 			_etree.paste(se);
@@ -1825,6 +1835,7 @@ public:
 		}
 	}
 	override void del(SelectionEvent se) {
+		if (_readOnly) return;
 		initial();
 		if (_etree.isFocusControl) {
 			_etree.del(se);
@@ -1874,6 +1885,7 @@ public:
 		}
 	}
 	override void clone(SelectionEvent se) {
+		if (_readOnly) return;
 		if (_etree.isFocusControl) {
 			_etree.clone(se);
 		} else {
@@ -1885,10 +1897,12 @@ public:
 	}
 	@property
 	override bool canDoTCPD() {
+		if (_readOnly) return false;
 		return _cards.isFocusControl() || _etree.isFocusControl();
 	}
 	@property
 	override bool canDoT() {
+		if (_readOnly) return false;
 		if (_cards.isFocusControl()) {
 			return selection && selection.getParentItem();
 		} else if (_etree.isFocusControl()) {
@@ -1899,7 +1913,7 @@ public:
 	@property
 	override bool canDoC() {
 		if (_cards.isFocusControl()) {
-			return canDoT;
+			return selection && selection.getParentItem();
 		} else if (_etree.isFocusControl()) {
 			return _etree.canDoC;
 		}
@@ -1907,6 +1921,7 @@ public:
 	}
 	@property
 	override bool canDoP() {
+		if (_readOnly) return false;
 		if (_cards.isFocusControl()) {
 			return CBisXML(_comm.clipboard) || CBisText(_comm.clipboard);
 		} else if (_etree.isFocusControl()) {
@@ -1916,6 +1931,7 @@ public:
 	}
 	@property
 	override bool canDoD() {
+		if (_readOnly) return false;
 		if (_cards.isFocusControl()) {
 			return canDoT;
 		} else if (_etree.isFocusControl()) {
@@ -1925,13 +1941,16 @@ public:
 	}
 	@property
 	override bool canDoClone() {
+		if (_readOnly) return false;
 		return canDoC;
 	}
 	void undo() {
+		if (_readOnly) return;
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
 	void redo() {
+		if (_readOnly) return;
 		_undo.redo();
 		_comm.refreshToolBar();
 	}

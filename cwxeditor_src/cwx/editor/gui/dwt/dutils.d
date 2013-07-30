@@ -222,9 +222,10 @@ class TextEditMFListener : MouseAdapter, SelectionListener, FocusListener {
 private:
 	Commons _comm;
 	Display _display;
-	Widget _oldFocusOut = null;
+	Control _control;
+	bool _isEditorFocusOut = false;
 	Item _itm = null;
-	Item _oldSel = null;
+	Item _oldSel = null, _oldSel2 = null;
 	bool _hasFocus = false;
 	bool _start = false;
 	Item delegate() _selection;
@@ -268,13 +269,18 @@ public:
 	this (Commons comm, Control ctrl, void delegate(Item itm) startEdit,
 			Item delegate() selection, Item delegate(int x, int y) selectionM) {
 		_comm = comm;
-		_display = Display.getCurrent();
+		_display = ctrl.getDisplay();
+		_control = ctrl;
 		_startEdit = startEdit;
 		_selection = selection;
 		_selectionM = selectionM;
 		auto filter = new class Listener {
 			override void handleEvent(Event e) {
-				_oldFocusOut = e.widget;
+				if (auto comp = cast(Composite)_control) {
+					if (auto ctrl = cast(Control)e.widget) {
+						_isEditorFocusOut = isDescendant(comp, ctrl);
+					}
+				}
 			}
 		};
 		_display.addFilter(SWT.FocusOut, filter);
@@ -286,7 +292,11 @@ public:
 		if (_comm.prop.var.etc.editTriggerType is EditTrigger.Quick) {
 			_itm = _selection();
 		}
+		_oldSel2 = _oldSel;
 		_oldSel = _selection();
+		if (_oldSel != _oldSel2) {
+			_oldSel2 = null;
+		}
 	}
 	override void widgetDefaultSelected(SelectionEvent e) {
 		// 処理無し
@@ -301,6 +311,7 @@ public:
 		_hasFocus = false;
 		_start = false;
 		_oldSel = null;
+		_oldSel2 = null;
 	}
 	override void mouseDoubleClick(MouseEvent e) {
 		_start = false;
@@ -317,7 +328,7 @@ public:
 			if (2 <= e.count) {
 				return;
 			}
-			if (_oldSel == _selection()) {
+			if (_oldSel2 == itm) {
 				(new core.thread.Thread(&(new Starter).run)).start();
 			}
 		}

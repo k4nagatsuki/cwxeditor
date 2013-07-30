@@ -643,10 +643,10 @@ private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) {
 	string img = readImage(d, f);
 	byte b;
 	auto summ = new Summary(readString(f), d.skin, d.sPath, false, true);
-	if (d.cardOnly) return summ;
 	summ.imagePath = img;
 	summ.desc = readString(f, true);
 	summ.author = readString(f);
+	if (d.cardOnly) return summ;
 	summ.rCoupons = readStrings(f);
 	summ.rCouponNum = f.readUIntL;
 	auto area = f.readUIntL;

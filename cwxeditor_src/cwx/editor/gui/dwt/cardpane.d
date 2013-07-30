@@ -1387,18 +1387,16 @@ private:
 		toNode(doc, sels);
 		return doc.text;
 	}
-	static if (EditMode) {
-		private void editM() {
-			edit();
+	private void editM() {
+		edit();
+	}
+	private bool canEdit() {
+		auto c = selection;
+		if (!c) return false;
+		static if (is(typeof(c.linkId))) {
+			if (0 != c.linkId && !pOwnerCard(c.linkId)) return false;
 		}
-		private bool canEdit() {
-			auto c = selection;
-			if (!c) return false;
-			static if (is(typeof(c.linkId))) {
-				if (0 != c.linkId && !pOwnerCard(c.linkId)) return false;
-			}
-			return true;
-		}
+		return true;
 	}
 	class LMouse : MouseAdapter {
 		static if (EditMode && is(C:EventTreeOwner)) {
@@ -2109,6 +2107,12 @@ public:
 			auto pop = new Menu(parent.getShell(), SWT.POP_UP);
 			createMenuItem(_comm, pop, MenuID.IncSearch, &incSearch, null);
 			new MenuItem(pop, SWT.SEPARATOR);
+			createMenuItem(_comm, pop, MenuID.ShowProp, &editM, &canEdit);
+			new MenuItem(pop, SWT.SEPARATOR);
+			static if (is (C : EffectCard)) {
+				createMenuItem(_comm, pop, MenuID.EditEventAtTimeOfUsing, &editUseEvent, &canEdit);
+				new MenuItem(pop, SWT.SEPARATOR);
+			}
 			static if (is (C == CastCard)) {
 				createMenuItem(_comm, pop, MenuID.OpenHand, _openHand, () => selection !is null);
 				new MenuItem(pop, SWT.SEPARATOR);
@@ -2321,13 +2325,13 @@ public:
 		void create() {
 			static if (is (C == CastCard)) {
 				auto c = new CastCard(0, "", "", "", 1, 1);
-				auto dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, null);
+				auto dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, null, false);
 			} else static if (is (C : EffectCard)) {
 				auto c = new C(0, "", "", "");
-				auto dlg = new EffectCardDialog!(C)(_comm, _prop, dlgParShl, _summ, null);
+				auto dlg = new EffectCardDialog!(C)(_comm, _prop, dlgParShl, _summ, null, false);
 			} else static if (is (C == InfoCard)) {
 				auto c = new InfoCard(0, "", "", "");
-				auto dlg = new InfoCardDialog(_comm, _prop, dlgParShl, _summ, null);
+				auto dlg = new InfoCardDialog(_comm, _prop, dlgParShl, _summ, null, false);
 			} else {
 				static assert (0);
 			}
@@ -2547,23 +2551,25 @@ public:
 			if (refIDs) _undo ~= undo;
 			_comm.refreshToolBar();
 		}
+	}
 
-		static if (is (C == CastCard)) {
-			alias CastCardDialog CardDialog;
-		} else static if (is (C : EffectCard)) {
-			alias EffectCardDialog!C CardDialog;
-		} else static if (is (C == InfoCard)) {
-			alias InfoCardDialog CardDialog;
-		} else static assert (0, typeof(C));
-		private CardDialog[C] _editDlgs;
-		CardDialog edit(C c) {
-			auto p = c in _editDlgs;
-			if (p) {
-				p.active();
-				return *p;
-			}
-			static if (is(typeof(c.linkId))) {
-				if (0 != c.linkId) {
+	static if (is (C == CastCard)) {
+		alias CastCardDialog CardDialog;
+	} else static if (is (C : EffectCard)) {
+		alias EffectCardDialog!C CardDialog;
+	} else static if (is (C == InfoCard)) {
+		alias InfoCardDialog CardDialog;
+	} else static assert (0, typeof(C));
+	private CardDialog[C] _editDlgs;
+	CardDialog edit(C c) {
+		auto p = c in _editDlgs;
+		if (p) {
+			p.active();
+			return *p;
+		}
+		static if (is(typeof(c.linkId))) {
+			if (0 != c.linkId) {
+				static if (EditMode) {
 					auto c2 = cardFrom(_summ, c.linkId);
 					if (c2) {
 						_comm.openCWXPath(c2.cwxPath(true), false);
@@ -2576,15 +2582,20 @@ public:
 						} else static assert (0);
 					}
 					return null;
+				} else {
+					c = cardFrom(_summ, c.linkId);
+					if (!c) return null;
 				}
 			}
-			static if (is (C == CastCard)) {
-				auto dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, c);
-			} else static if (is (C : EffectCard)) {
-				auto dlg = new EffectCardDialog!(C)(_comm, _prop, dlgParShl, _summ, c);
-			} else static if (is (C == InfoCard)) {
-				auto dlg = new InfoCardDialog(_comm, _prop, dlgParShl, _summ, c);
-			} else static assert (0, typeof(C));
+		}
+		static if (is (C == CastCard)) {
+			auto dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, c, !EditMode);
+		} else static if (is (C : EffectCard)) {
+			auto dlg = new EffectCardDialog!(C)(_comm, _prop, dlgParShl, _summ, c, !EditMode);
+		} else static if (is (C == InfoCard)) {
+			auto dlg = new InfoCardDialog(_comm, _prop, dlgParShl, _summ, c, !EditMode);
+		} else static assert (0, typeof(C));
+		static if (EditMode) {
 			dlg.applyEvent ~= {
 				storeEdit(c.id);
 			};
@@ -2593,43 +2604,37 @@ public:
 				refCard(c);
 				_comm.refreshToolBar();
 			};
-			dlg.closeEvent ~= {
-				_editDlgs.remove(c);
-			};
-			_editDlgs[c] = dlg;
-			dlg.open();
-			return dlg;
 		}
-		CardDialog edit() {
-			if (_viewMode == CViewMode.TABLE) {
-				int index = _tbl.getSelectionIndex();
-				if (index >= 0) {
-					return edit(cast(C) _tbl.getItem(index).getData());
-				}
-			} else {
-				int index = _list.selection;
-				if (index >= 0) {
-					return edit(_list.card(index));
-				}
+		dlg.closeEvent ~= {
+			_editDlgs.remove(c);
+		};
+		_editDlgs[c] = dlg;
+		dlg.open();
+		return dlg;
+	}
+	CardDialog edit() {
+		if (_viewMode == CViewMode.TABLE) {
+			int index = _tbl.getSelectionIndex();
+			if (index >= 0) {
+				return edit(cast(C) _tbl.getItem(index).getData());
 			}
-			return null;
-		}
-		static if (is (C == CastCard)) {
-			void editHand() {
-				auto sel = selection;
-				if (sel) {
-					_comm.openHands(_prop, _summ, sel, true);
-				}
+		} else {
+			int index = _list.selection;
+			if (index >= 0) {
+				return edit(_list.card(index));
 			}
 		}
-		static if (is (C : EffectCard)) {
-			void editUseEvent() {
-				auto sel = selection;
-				if (sel) editUseEvent(sel);
-			}
-			void editUseEvent(C c) {
-				static if (is(typeof(c.linkId))) {
-					if (0 != c.linkId) {
+		return null;
+	}
+	static if (is (C : EffectCard)) {
+		void editUseEvent() {
+			auto sel = selection;
+			if (sel) editUseEvent(sel);
+		}
+		void editUseEvent(C c) {
+			static if (is(typeof(c.linkId))) {
+				if (0 != c.linkId) {
+					static if (EditMode) {
 						auto c2 = card(c.linkId);
 						if (c2) {
 							_comm.openCWXPath(c2.cwxPath(true), false);
@@ -2643,9 +2648,23 @@ public:
 							return;
 						}
 						return;
+					} else {
+						c = cardFrom(_summ, c.linkId);
+						if (!c) return;
 					}
 				}
-				_comm.openUseEvents(_prop, _summ, c, true);
+			}
+			_comm.openUseEvents(_prop, _summ, c, true);
+		}
+	}
+
+	static if (EditMode) {
+		static if (is (C == CastCard)) {
+			void editHand() {
+				auto sel = selection;
+				if (sel) {
+					_comm.openHands(_prop, _summ, sel, true);
+				}
 			}
 		}
 

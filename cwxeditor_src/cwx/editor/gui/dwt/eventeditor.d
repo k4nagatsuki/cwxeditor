@@ -97,7 +97,7 @@ class EventEditorItem : Item {
 		if (c !in _parent._posTable) return null;
 		auto gc = new GC(_parent);
 		scope (exit) gc.dispose();
-		auto s = .eventText(_parent._comm, _parent._summ, c.parent, c);
+		auto s = .eventText(_parent._comm, _parent._summ, c.parent, c, !(_parent.getStyle() & SWT.READ_ONLY));
 		auto pos = _parent._posTable[c];
 		auto sy = _parent.getVerticalBar().getSelection() * _parent._lineHeight;
 		return new Rectangle(0, pos.y - sy, 20 + gc.textExtent(s).x + 4, _parent._lineHeight);
@@ -416,18 +416,14 @@ class EventEditor : Composite {
 		removeListener(SWT.DefaultSelection, listener);
 	}
 	private void callSelectChanged() {
-		getDisplay().asyncExec(new class Runnable {
-			override void run() {
-				if (isDisposed()) return;
-				auto se = new Event;
-				auto sels = getSelection();
-				se.item = sels.length ? sels[0] : null;
-				se.time = cast(int)(0xFFFFFFFFL & Clock.currStdTime());
-				se.stateMask = 0;
-				se.doit = true;
-				notifyListeners(SWT.Selection, se);
-			}
-		});
+		if (isDisposed()) return;
+		auto se = new Event;
+		auto sels = getSelection();
+		se.item = sels.length ? sels[0] : null;
+		se.time = cast(int)(0xFFFFFFFFL & Clock.currStdTime());
+		se.stateMask = 0;
+		se.doit = true;
+		notifyListeners(SWT.Selection, se);
 	}
 
 	/// 選択の変更をlistenerに通知する。
@@ -518,8 +514,10 @@ class EventEditor : Composite {
 			} else {
 				auto sel = getContent(e.x, e.y);
 				if (sel) _selected = sel;
-				showSelection();
-				callSelectChanged();
+				if (sel) {
+					showSelection();
+					callSelectChanged();
+				}
 				redraw();
 			}
 			e.doit = false;
@@ -712,7 +710,7 @@ class EventEditor : Composite {
 				s = _comm.skin.evtChildOK;
 			} else {
 				e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-				s = .eventText(_comm, _summ, c.parent, c);
+				s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
 			}
 			auto ctx = pos.x + 20;
 			e.gc.drawText(s, ctx, pos.y - sy, true);
@@ -783,7 +781,7 @@ class EventEditor : Composite {
 		foreach (ref pos; _pos) {
 			auto c = pos.content;
 			if (c.comment == "") continue;
-			auto s = .eventText(_comm, _summ, c.parent, c);
+			auto s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
 			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) {
 				s = _comm.skin.evtChildOK;
 			}

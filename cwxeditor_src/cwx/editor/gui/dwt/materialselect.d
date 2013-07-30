@@ -47,6 +47,7 @@ public:
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
 		_refresh = refresh;
 		_defs = defs;
 		_including = including;
@@ -168,16 +169,16 @@ public:
 			bool doFile(string path, int x, int y) {
 				assert (_summ !is null);
 				auto cur = currentDir;
-				if (!cur) cur = _comm.skin.materialPath;
+				if (!cur) cur = summSkin.materialPath;
 				copyTo(_summ.scenarioPath, path, cur, false);
 				return true;
 			}
 			void doExit() {
 				assert (_summ !is null);
 				auto cur = currentDir;
-				if (!cur) cur = _comm.skin.materialPath;
-				refreshPaths(_comm.skin.materialPath);
-				_comm.refPaths.call(this.outer, _comm.skin.materialPath);
+				if (!cur) cur = summSkin.materialPath;
+				refreshPaths(summSkin.materialPath);
+				_comm.refPaths.call(this.outer, summSkin.materialPath);
 			}
 		};
 		_incSearch = new IncSearch(_comm, _fileList);
@@ -216,7 +217,7 @@ public:
 			if (_noCardSize == noCardSize) return;
 			_noCardSize = noCardSize;
 			if (!_noCardSize && !isBinImg(filePath)) {
-				auto p = _comm.skin.findImagePath(path, _summ ? _summ.scenarioPath : "");
+				auto p = summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "");
 				if (p.length) {
 					uint w, h;
 					imageSize(p, w, h);
@@ -517,7 +518,7 @@ public:
 		_binPath = isBinImg(path) ? path : "";
 		static if (Type is MtType.CARD) {
 			if (!useNoCardSizeImage && !_binPath.length) {
-				auto p = _comm.skin.findImagePath(_path, _summ ? _summ.scenarioPath : "");
+				auto p = summSkin.findImagePath(_path, _summ ? _summ.scenarioPath : "");
 				if (p.length) {
 					uint w, h;
 					imageSize(p, w, h);
@@ -652,32 +653,32 @@ public:
 private:
 	static if (Type == MtType.CARD) {
 		private bool _noCardSize = false;
-		@property string defExt() {return _comm.skin.extImage;}
-		@property string defDir() {return _comm.skin.tableDir;}
-		bool isTarg(string p) {return _comm.skin.isCardImage(p, _noCardSize);}
-		bool hasTarg(string p) {return _comm.skin.hasCardImage(p, _noCardSize);}
-		string[] targsImpl(string dir, bool re) {return _comm.skin.cards(dir, _prop.var.etc.logicalSort, re, _noCardSize);}
+		@property string defExt() {return summSkin.extImage;}
+		@property string defDir() {return summSkin.tableDir;}
+		bool isTarg(string p) {return summSkin.isCardImage(p, _noCardSize);}
+		bool hasTarg(string p) {return summSkin.hasCardImage(p, _noCardSize);}
+		string[] targsImpl(string dir, bool re) {return summSkin.cards(dir, _prop.var.etc.logicalSort, re, _noCardSize);}
 		@property Image image() {return _prop.images.cards;}
 	} else static if (Type == MtType.BG_IMG) {
-		@property string defExt() {return _comm.skin.extImage;}
-		@property string defDir() {return _comm.skin.tableDir;}
-		bool isTarg(string p) {return _comm.skin.isBgImage(p);}
-		bool hasTarg(string p) {return _comm.skin.hasBgImage(p);}
-		string[] targsImpl(string dir, bool re) {return _comm.skin.tables(dir, _prop.var.etc.logicalSort, re);}
+		@property string defExt() {return summSkin.extImage;}
+		@property string defDir() {return summSkin.tableDir;}
+		bool isTarg(string p) {return summSkin.isBgImage(p);}
+		bool hasTarg(string p) {return summSkin.hasBgImage(p);}
+		string[] targsImpl(string dir, bool re) {return summSkin.tables(dir, _prop.var.etc.logicalSort, re);}
 		@property Image image() {return _prop.images.backs;}
 	} else static if (Type == MtType.BGM) {
-		@property string defExt() {return _comm.skin.extBgm;}
-		@property string defDir() {return _comm.skin.bgmDir;}
-		bool isTarg(string p) {return _comm.skin.isBGM(p);}
-		bool hasTarg(string p) {return _comm.skin.hasBGM(p);}
-		string[] targsImpl(string dir, bool re) {return _comm.skin.musics(dir, _prop.var.etc.logicalSort, re);}
+		@property string defExt() {return summSkin.extBgm;}
+		@property string defDir() {return summSkin.bgmDir;}
+		bool isTarg(string p) {return summSkin.isBGM(p);}
+		bool hasTarg(string p) {return summSkin.hasBGM(p);}
+		string[] targsImpl(string dir, bool re) {return summSkin.musics(dir, _prop.var.etc.logicalSort, re);}
 		@property Image image() {return _prop.images.bgm;}
 	} else static if (Type == MtType.SE) {
-		@property string defExt() {return _comm.skin.extSound;}
-		@property string defDir() {return _comm.skin.seDir;}
-		bool isTarg(string p) {return _comm.skin.isSE(p);}
-		bool hasTarg(string p) {return _comm.skin.hasSE(p);}
-		string[] targsImpl(string dir, bool re) {return _comm.skin.sounds(dir, _prop.var.etc.logicalSort, re);}
+		@property string defExt() {return summSkin.extSound;}
+		@property string defDir() {return summSkin.seDir;}
+		bool isTarg(string p) {return summSkin.isSE(p);}
+		bool hasTarg(string p) {return summSkin.hasSE(p);}
+		string[] targsImpl(string dir, bool re) {return summSkin.sounds(dir, _prop.var.etc.logicalSort, re);}
 		@property Image image() {return _prop.images.se;}
 	} else static assert (0);
 
@@ -696,7 +697,7 @@ private:
 				if (cur) {
 					openFolder(std.path.buildPath(_summ.scenarioPath, cur));
 				} else {
-					scope p = std.path.buildPath(_summ.scenarioPath, _comm.skin.materialPath);
+					scope p = std.path.buildPath(_summ.scenarioPath, summSkin.materialPath);
 					if (exists(p)) {
 						openFolder(p);
 					} else {
@@ -925,7 +926,7 @@ private:
 			if (!dirs.length) {
 				_fileList.setEnabled(false);
 			} else {
-				_fileList.setEnabled(true);
+				_fileList.setEnabled(!_readOnly);
 				__refreshList(dirs, forceRefresh);
 				static if (is(C : Combo) || is(C : CCombo)) {
 					_fileList.add(_prop.msgs.fileNone, 0);
@@ -1001,7 +1002,7 @@ private:
 			if (isBinImg(_path)) {
 				_dirs.select(_including);
 			} else {
-				auto p = _comm.skin.findPathF(_path, defExt, defDir, _summ ? _summ.scenarioPath : "", def);
+				auto p = summSkin.findPathF(_path, defExt, defDir, _summ ? _summ.scenarioPath : "", def);
 				if (p.length > 0) {
 					if (def) {
 						if (_tbl == -1) {
@@ -1085,6 +1086,10 @@ private:
 	void refreshButtons() {
 		_comm.refreshToolBar();
 	}
+	@property
+	Skin summSkin() {
+		return _summSkin ? _summSkin : _comm.skin;
+	}
 
 	int _readOnly = 0;
 	Props _prop;
@@ -1105,4 +1110,5 @@ private:
 	C _fileList;
 	bool _allList = false;
 	void delegate() _refresh;
+	Skin _summSkin;
 }

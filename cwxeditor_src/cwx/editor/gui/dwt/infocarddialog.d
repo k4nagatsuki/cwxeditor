@@ -37,6 +37,12 @@ private:
 	FixedWidthText _desc;
 	GBLimitText _name;
 
+	Skin _summSkin;
+	@property
+	Skin summSkin() {
+		return _summSkin ? _summSkin : _comm.skin;
+	}
+
 	void refreshWarning() {
 		// 情報カード名はメッセージに表示されないため長さ制限無し
 		string[] ws;
@@ -65,12 +71,14 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, InfoCard card) {
+	this(Commons comm, Props prop, Shell shell, Summary summ, InfoCard card, bool readOnly) {
 		assert (summ !is null);
 		_comm = comm;
 		_summ = summ;
 		_card = card;
 		_prop = prop;
+		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
+		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
 		super(prop, shell, _readOnly, false, _card ? .tryFormat(_prop.msgs.dlgTitInfo, _card.name) : _prop.msgs.dlgTitNewInfo,
 			_prop.images.info, true, _prop.var.infoCardDlg, true);
 		enterClose = true;
@@ -102,7 +110,7 @@ protected:
 			_name.widget.setLayoutData(gd);
 		}
 		{
-			auto skin = _comm.skin;
+			auto skin = summSkin;
 			bool including = _card && isBinImg(_card.path);
 			_imgPath = new ImageSelect!(MtType.CARD)(area, _readOnly, _comm, _prop, _summ,
 				_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText);

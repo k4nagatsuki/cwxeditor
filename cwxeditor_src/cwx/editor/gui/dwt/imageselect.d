@@ -62,6 +62,7 @@ public:
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
 		_refresh = refresh;
 		_defs = defs;
 		_createDefImage = createDefImage;
@@ -280,7 +281,7 @@ public:
 			auto type = imageType(bin);
 			if ("" != type) {
 				img = "image".setExtension(type);
-				ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? false : _summ.legacy, _prop.var.etc.targetVersion);
+				ws ~= summSkin.warningImage(_prop.parent, img, _summ ? false : _summ.legacy, _prop.var.etc.targetVersion);
 				static if (Type is MtType.CARD) {
 					uint w, h;
 					imageSize(bin, w, h);
@@ -291,7 +292,7 @@ public:
 				}
 			}
 		} else {
-			ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? false : _summ.legacy, _prop.var.etc.targetVersion);
+			ws ~= summSkin.warningImage(_prop.parent, img, _summ ? false : _summ.legacy, _prop.var.etc.targetVersion);
 			static if (Type is MtType.CARD) {
 				if (img.length) {
 					uint w, h;
@@ -414,7 +415,7 @@ private:
 			static if (is(typeof(_msel.pcNumber))) {
 				auto pcNum = _msel.pcNumber;
 				if (0 != pcNum) {
-					drawCenterText(dwtData(_prop.looks.pcNumberFont(_comm.skin.legacy)), e.gc, _image.getClientArea(), .text(pcNum));
+					drawCenterText(dwtData(_prop.looks.pcNumberFont(summSkin.legacy)), e.gc, _image.getClientArea(), .text(pcNum));
 					return;
 				}
 			}
@@ -426,7 +427,7 @@ private:
 					imgData = _img;
 				} else {
 					_paintedPath = path;
-					imgData = loadImage(_prop, _comm.skin, _summ, path, _mask);
+					imgData = loadImage(_prop, summSkin, _summ, path, _mask);
 					if (_img) delete _img.data;
 					_img = imgData;
 				}
@@ -499,6 +500,10 @@ private:
 			_noCardSize.setSelection(_msel.useNoCardSizeImage);
 		}
 	}
+	@property
+	Skin summSkin() {
+		return _summSkin ? _summSkin : _comm.skin;
+	}
 	int _readOnly = 0;
 	string _paintedPath = null;
 	Composite _group;
@@ -520,4 +525,5 @@ private:
 		Button _noCardSize;
 		CardMode _cardMode = CardMode.Normal;
 	}
+	Skin _summSkin;
 }

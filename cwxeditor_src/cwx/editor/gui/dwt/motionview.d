@@ -251,6 +251,11 @@ private:
 	Spinner _valValue;
 	Image[TypeInfo] _imgMsns;
 	Image[Element] _imgElm;
+	Skin _summSkin;
+	@property
+	Skin summSkin() {
+		return _summSkin ? _summSkin : _comm.skin;
+	}
 
 	HashSet!BeastEventWindow _beWin;
 	BeastEventWindow openBeastEventWin(BeastCard beast) {
@@ -397,24 +402,31 @@ private:
 			auto b = m.beast;
 			if (b) {
 				if (0 != b.linkId) {
-					auto b2 = _summ.beast(b.linkId);
-					if (b2) {
-						_comm.openCWXPath(b2.cwxPath(true), false);
-						return _comm.openBeastWin(false).edit(b2);
+					if (_readOnly) {
+						b = _summ.beast(b.linkId);
+						if (!b) return null;
+					} else {
+						auto b2 = _summ.beast(b.linkId);
+						if (b2) {
+							_comm.openCWXPath(b2.cwxPath(true), false);
+							return _comm.openBeastWin(false).edit(b2);
+						}
 					}
 					return null;
 				}
 				if (_beastDlg) {
 					_beastDlg.active();
 				} else {
-					_beastDlg = new EffectCardDialog!(BeastCard)(_comm, _prop, getShell(), _summ, b);
+					_beastDlg = new EffectCardDialog!(BeastCard)(_comm, _prop, getShell(), _summ, b, _readOnly != SWT.NONE);
 					_beastDlg.open();
-					_beastDlg.applyEvent ~= {
-						storeEdit(indexOf(m));
-					};
-					_beastDlg.appliedEvent ~= {
-						foreach (dlg; modEvent) dlg();
-					};
+					if (!_readOnly) {
+						_beastDlg.applyEvent ~= {
+							storeEdit(indexOf(m));
+						};
+						_beastDlg.appliedEvent ~= {
+							foreach (dlg; modEvent) dlg();
+						};
+					}
 					_beastDlg.closeEvent ~= {
 						_beastDlg = null;
 					};
@@ -609,9 +621,8 @@ private:
 		}
 	}
 	bool canSetBeast() {
-		if (_selectedBeast) {
-			return true;
-		}
+		if (_readOnly) return false;
+		if (_selectedBeast) return true;
 		int mi = _motions.getSelectionIndex();
 		if (-1 == mi) return false;
 		auto sb = cast(Motion) _motions.getItem(mi).getData();
@@ -667,7 +678,7 @@ private:
 			auto beast = selection.beast;
 			if (beast) {
 				scope img = new Image(Display.getCurrent(),
-					cardImage!(BeastCard)(_prop, _comm.skin, beast, _summ.scenarioPath, null, &_summ.beast, true, false));
+					cardImage!(BeastCard)(_prop, summSkin, beast, _summ.scenarioPath, null, &_summ.beast, true, false));
 				scope data = img.getImageData();
 				auto pane = cast(Canvas) e.widget;
 				scope rect = pane.getClientArea();
@@ -877,6 +888,7 @@ public:
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
 		_refUndo = undo is null;
 		_undo = undo ? undo : new UndoManager(_prop.var.etc.undoMaxEtc);
 		_beWin = new typeof(_beWin);
@@ -1108,9 +1120,13 @@ public:
 				_beastImg.addMouseListener(eb);
 				_beastImg.addKeyListener(eb);
 				auto menu = new Menu(_beastImg);
-				createMenuItem(_comm, menu, MenuID.EditProp, &editBeastM, &canEditBeast);
+				if (_readOnly) {
+					createMenuItem(_comm, menu, MenuID.ShowProp, &editBeastM, &canEditBeast);
+				} else {
+					createMenuItem(_comm, menu, MenuID.EditProp, &editBeastM, &canEditBeast);
+				}
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.EditEventAtTimeOfUsing, &editBeastUseEvent, () => !_readOnly && canEditBeast());
+				createMenuItem(_comm, menu, MenuID.EditEventAtTimeOfUsing, &editBeastUseEvent, &canEditBeast);
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.RemoveRef, &removeRef, () => !_readOnly && selection && selection.beast && 0 != selection.beast.linkId && _summ.beast(selection.beast.linkId));
 				new MenuItem(menu, SWT.SEPARATOR);
