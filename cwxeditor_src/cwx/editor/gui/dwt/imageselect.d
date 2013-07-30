@@ -274,7 +274,7 @@ public:
 			auto type = imageType(bin);
 			if ("" != type) {
 				img = "image".setExtension(type);
-				ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? false : _summ.legacy);
+				ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false);
 				static if (Type is MtType.CARD) {
 					uint w, h;
 					imageSize(bin, w, h);
@@ -285,7 +285,7 @@ public:
 				}
 			}
 		} else {
-			ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? false : _summ.legacy);
+			ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false);
 			static if (Type is MtType.CARD) {
 				if (img.length) {
 					uint w, h;
