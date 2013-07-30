@@ -869,15 +869,17 @@ class Skin {
 		if (legacy) {
 			switch (ext) {
 			case ".png": // PNG
-				if (!prop.targetVersion("1.50", targVer)) {
-					return [prop.msgs.pngMayNotCorrespond];
-				}
-				break;
+				// FIXME: 少なくとも1.50までは使用不可
+/+				if (!prop.targetVersion("1.50", targVer)) {
++/					return [prop.msgs.pngMayNotCorrespond];
+/+				}
++/				break;
 			case ".gif": // GIF
-				if (!prop.targetVersion("1.50", targVer)) {
-					return [prop.msgs.gifMayNotCorrespond];
-				}
-				break;
+				// FIXME: 少なくとも1.50までは使用不可
+/+				if (!prop.targetVersion("1.50", targVer)) {
++/					return [prop.msgs.gifMayNotCorrespond];
+/+				}
++/				break;
 			default:
 				return [];
 			}
