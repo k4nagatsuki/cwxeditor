@@ -1697,6 +1697,11 @@ private:
 		_tbl.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_tbl.addSelectionListener(new SelChanged);
 		_tbl.setHeaderVisible(true);
+		.listener(_tbl, SWT.Resize, {
+			if (_tbl.getHorizontalBar()) {
+				_tbl.getHorizontalBar().setVisible(_viewMode is CViewMode.TABLE);
+			}
+		});
 
 		_preview = new Preview(_prop, _tbl.getShell());
 		auto closePreview = new ClosePreview;
@@ -2199,6 +2204,7 @@ public:
 	private void updateLayout() {
 		if (_viewMode == CViewMode.TABLE) {
 			_tbl.getParent().setVisible(true);
+			if (_tbl.getHorizontalBar()) _tbl.getHorizontalBar().setVisible(true);
 			_list.setVisible(false);
 			auto lgd = new GridData(GridData.FILL_HORIZONTAL);
 			lgd.heightHint = 0;
@@ -2208,6 +2214,7 @@ public:
 		} else if (_prop.var.etc.showCardListHeader) {
 			// テーブルのヘッダのみ表示する
 			_tbl.getParent().setVisible(true);
+			if (_tbl.getHorizontalBar()) _tbl.getHorizontalBar().setVisible(false);
 			_list.setVisible(true);
 			auto tgd = new GridData(GridData.FILL_HORIZONTAL);
 			tgd.heightHint = _tbl.getHeaderHeight();

@@ -1044,9 +1044,9 @@ public:
 					gc.setAlpha(a);
 					gc.setForeground(color);
 					if (gradientDir is GradientDir.LeftToRight) {
-						gc.drawLine(ip, iRect.y, ip, iRect.y + iRect.height);
+						gc.drawLine(ip, iRect.y, ip, iRect.y + iRect.height - 1);
 					} else {
-						gc.drawLine(iRect.x, ip, iRect.x + iRect.width, ip);
+						gc.drawLine(iRect.x, ip, iRect.x + iRect.width - 1, ip);
 					}
 				}
 				break;
