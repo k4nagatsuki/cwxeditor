@@ -1972,6 +1972,12 @@ void initTree(Commons comm, Tree tree, bool eventTree) {
 		}
 	}
 }
+void initSpinner(Spinner spn) {
+	assert (spn !is null);
+	if (spn.getStyle() & SWT.READ_ONLY) {
+		spn.setEnabled(false);
+	}
+}
 
 class CloseRemover(Window) : DisposeListener {
 	private HashSet!(Window) _ws;

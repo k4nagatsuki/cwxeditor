@@ -247,6 +247,7 @@ private:
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout(zeroMarginGridLayout(2, false));
 				_level = new Spinner(comp2, SWT.BORDER | _readOnly);
+				initSpinner(_level);
 				mod(_level);
 				_level.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_level.setMinimum(1);
@@ -262,6 +263,7 @@ private:
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout(zeroMarginGridLayout(2, false));
 				_lifeMax = new Spinner(comp2, SWT.BORDER | _readOnly);
+				initSpinner(_lifeMax);
 				mod(_lifeMax);
 				_lifeMax.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_lifeMax.setMinimum(1);
@@ -832,6 +834,7 @@ private:
 			Composite comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayout(new FillLayout);
 			auto spn = new Spinner(comp2, SWT.BORDER | _readOnly);
+			initSpinner(spn);
 			mod(spn);
 			spns ~= comp2;
 			return spn;
@@ -865,6 +868,7 @@ private:
 				l.setText(_prop.msgs.life);
 				lbls1 ~= l;
 				_life = new Spinner(comp2, SWT.BORDER | _readOnly);
+				initSpinner(_life);
 				mod(_life);
 				_lifeUseMax = new Button(comp2, SWT.CHECK);
 				mod(_lifeUseMax);

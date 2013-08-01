@@ -470,6 +470,7 @@ class CouponView(CVType Type) : Composite {
 			gd.horizontalSpan = 2;
 			_newCoupon.setLayoutData(gd);
 			_couponVal = new Spinner(this, SWT.BORDER | _readOnly);
+			initSpinner(_couponVal);
 			_couponVal.setMinimum(cast(int) _prop.var.etc.couponValueMax * -1);
 			_couponVal.setMaximum(_prop.var.etc.couponValueMax);
 			static if (CVType.Valued == Type) {

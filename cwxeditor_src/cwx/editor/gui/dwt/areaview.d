@@ -84,6 +84,7 @@ private Spinner createSpinner(ToolBar bar, string label, int max, int min, int s
 		void delegate(int value) edit, void delegate(int value) enter, int delegate(int oldVal) cancel) {
 	createLabel(bar, label ~ ":");
 	auto spn = new Spinner(bar, SWT.BORDER);
+	initSpinner(spn);
 	spn.setEnabled(false);
 	spn.setMaximum(max);
 	spn.setMinimum(min);
@@ -3613,6 +3614,7 @@ public:
 		new ToolItem(bar, SWT.SEPARATOR);
 		createLabel(bar, _prop.msgs.left ~ ":");
 		auto gridX = new Spinner(bar, SWT.BORDER);
+		initSpinner(gridX);
 		gridX.setMaximum(_prop.looks.viewSize.width);
 		gridX.setMinimum(1);
 		gridX.setSelection(_gridX);
@@ -3624,6 +3626,7 @@ public:
 		new ToolItem(bar, SWT.SEPARATOR);
 		createLabel(bar, _prop.msgs.top ~ ":");
 		auto gridY = new Spinner(bar, SWT.BORDER);
+		initSpinner(gridY);
 		gridY.setMaximum(_prop.looks.viewSize.height);
 		gridY.setMinimum(1);
 		gridY.setSelection(_gridY);

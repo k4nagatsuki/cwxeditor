@@ -154,6 +154,7 @@ protected:
 			auto l = new Label(comp3, SWT.NONE);
 			l.setText(name);
 			auto spn = new Spinner(comp3, SWT.BORDER);
+			initSpinner(spn);
 			mod(spn);
 			spn.setMaximum(max);
 			spn.setMinimum(min);
@@ -551,6 +552,7 @@ protected:
 				auto l1 = new Label(comp2, SWT.NONE);
 				l1.setText(_prop.msgs.size);
 				_size = new Spinner(comp2, SWT.BORDER);
+				initSpinner(_size);
 				mod(_size);
 				_size.setMinimum(1);
 				_size.setMaximum(_prop.var.etc.fontSizeMax);
@@ -588,6 +590,7 @@ protected:
 				auto l1 = new Label(comp2, SWT.NONE);
 				l1.setText(_prop.msgs.borderingWidth);
 				_borderingWidth = new Spinner(comp2, SWT.BORDER);
+				initSpinner(_borderingWidth);
 				mod(_borderingWidth);
 				_borderingWidth.setMinimum(1);
 				_borderingWidth.setMaximum(_prop.var.etc.borderingWidthMax);
@@ -1000,6 +1003,7 @@ class ColorPicker : Composite {
 			auto l1 = new Label(this, SWT.NONE);
 			l1.setText(prop.msgs.alphaChannel);
 			_alpha = new Spinner(this, SWT.BORDER);
+			initSpinner(_alpha);
 			_alpha.setMinimum(0);
 			_alpha.setMaximum(255);
 			.listener(_alpha, SWT.Modify, &callMod);

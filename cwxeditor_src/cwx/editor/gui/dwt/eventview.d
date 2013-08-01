@@ -1631,6 +1631,7 @@ public:
 					break;
 				case 2:
 					auto spn = new Spinner(_toolbar, SWT.BORDER);
+					initSpinner(spn);
 					spn.setMaximum(9999);
 					spn.setMinimum(1);
 					spn.setSelection(1);
@@ -2084,12 +2085,14 @@ protected:
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout(new GridLayout(4, false));
 			_from = new Spinner(comp, SWT.BORDER);
+			initSpinner(_from);
 			_from.setMinimum(1);
 			_from.setMaximum(_prop.var.etc.roundMax);
 			_from.addSelectionListener(new SelMin);
 			auto l1 = new Label(comp, SWT.NONE);
 			l1.setText(_prop.msgs.roundSep);
 			_to = new Spinner(comp, SWT.BORDER);
+			initSpinner(_to);
 			_to.setMinimum(1);
 			_to.setMaximum(_prop.var.etc.roundMax);
 			_to.addSelectionListener(new SelMax);

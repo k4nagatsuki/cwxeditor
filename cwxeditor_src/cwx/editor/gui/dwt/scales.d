@@ -51,6 +51,7 @@ class Scales : Composite {
 			scale.setPageIncrement(page);
 
 			auto spn = new Spinner(this, spStyle);
+			initSpinner(spn);
 			_spns ~= spn;
 			spn.setMinimum(min);
 			spn.setMaximum(step_c - 1 + min);

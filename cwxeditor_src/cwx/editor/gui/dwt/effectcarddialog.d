@@ -292,6 +292,7 @@ private:
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout(new GridLayout(2, false));
 				_level = new Spinner(comp2, SWT.BORDER | _readOnly);
+				initSpinner(_level);
 				mod(_level);
 				_level.setMaximum(_prop.var.etc.skillLevelMax);
 				_level.setMinimum(0);
@@ -310,6 +311,7 @@ private:
 					auto l1 = new Label(comp2, SWT.NONE);
 					l1.setText(_prop.msgs.useCountMax);
 					_useCount = new Spinner(comp2, SWT.BORDER | _readOnly);
+					initSpinner(_useCount);
 					mod(_useCount);
 					_useCount.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					_useCount.setMaximum(_prop.var.etc.useCountMax);
@@ -320,6 +322,7 @@ private:
 					auto l3 = new Label(comp2, SWT.NONE);
 					l3.setText(_prop.msgs.useCountCur);
 					_useCountCur = new Spinner(comp2, SWT.BORDER | _readOnly);
+					initSpinner(_useCountCur);
 					mod(_useCountCur);
 					_useCountCur.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					_useCountCur.setMaximum(_prop.var.etc.useCountMax);
@@ -336,6 +339,7 @@ private:
 				} else {
 					comp2.setLayout(new GridLayout(2, false));
 					_useCount = new Spinner(comp2, SWT.BORDER | _readOnly);
+					initSpinner(_useCount);
 					mod(_useCount);
 					_useCount.setMaximum(_prop.var.etc.useCountMax);
 					_useCount.setMinimum(0);
@@ -355,6 +359,7 @@ private:
 			comp2.setLayout(new GridLayout(2, false));
 			static if (is (C == SkillCard) || is (C == BeastCard)) {
 				_price = new Spinner(comp2, SWT.BORDER | SWT.READ_ONLY);
+				initSpinner(_price);
 				_price.setMaximum(_prop.var.etc.priceMax);
 				static if (is (C == SkillCard)) {
 					new SpinnerEdit(_level, &calcPrice, &calcPrice, &priceCancel);
@@ -367,6 +372,7 @@ private:
 				l.setText(_prop.msgs.priceAuto);
 			} else static if (is (C == ItemCard)) {
 				_price = new Spinner(comp2, SWT.BORDER | _readOnly);
+				initSpinner(_price);
 				mod(_price);
 				_price.setMaximum(_prop.var.etc.priceMax);
 				_price.setMinimum(0);

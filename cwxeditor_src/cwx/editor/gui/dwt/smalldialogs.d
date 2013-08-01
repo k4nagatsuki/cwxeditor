@@ -495,6 +495,7 @@ protected:
 			auto l1 = new Label(comp, SWT.NONE);
 			l1.setText(.tryFormat(_prop.msgs.reNumbering1, cName, _area.name));
 			_id = new Spinner(comp, SWT.BORDER);
+			initSpinner(_id);
 			_id.setMaximum(_prop.looks.idMax);
 			_id.setMinimum(cast(int) _minId);
 			auto l2 = new Label(comp, SWT.NONE);

@@ -1698,6 +1698,7 @@ private:
 				auto l = new Label(comp2, SWT.CENTER);
 				l.setText(_prop.msgs.backupInterval);
 				_backupInterval = new Spinner(comp2, SWT.BORDER);
+				initSpinner(_backupInterval);
 				_backupInterval.setMinimum(1);
 				_backupInterval.setMaximum(99);
 				mod(_backupInterval);
@@ -1711,6 +1712,7 @@ private:
 				auto l = new Label(comp2, SWT.CENTER);
 				l.setText(_prop.msgs.backupCount);
 				_backupCount = new Spinner(comp2, SWT.BORDER);
+				initSpinner(_backupCount);
 				_backupCount.setMinimum(0);
 				_backupCount.setMaximum(99);
 				mod(_backupCount);
@@ -1895,6 +1897,7 @@ private:
 						l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 						l.setText(_prop.msgs.openHistoryMax);
 						_histMax = new Spinner(grp, SWT.BORDER);
+						initSpinner(_histMax);
 						_histMax.setMinimum(0);
 						_histMax.setMaximum(99);
 						mod(_histMax);
@@ -1913,6 +1916,7 @@ private:
 						l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 						l.setText(_prop.msgs.searchHistoryMax);
 						_sHistMax = new Spinner(grp, SWT.BORDER);
+						initSpinner(_sHistMax);
 						_sHistMax.setMinimum(0);
 						_sHistMax.setMaximum(99);
 						mod(_sHistMax);
@@ -1932,6 +1936,7 @@ private:
 						l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 						l.setText(title);
 						auto spn = new Spinner(grp, SWT.BORDER);
+						initSpinner(spn);
 						mod(spn);
 						spn.setMaximum(_prop.var.etc.undoMaxLimit);
 						spn.setMinimum(0);
@@ -1949,6 +1954,7 @@ private:
 		auto l = new Label(parent, SWT.NONE);
 		l.setText(name);
 		auto spn = new Spinner(parent, SWT.BORDER);
+		initSpinner(spn);
 		spn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		spn.setMaximum(max);
 		spn.setMinimum(min);
@@ -2328,6 +2334,7 @@ private:
 				auto l1 = new Label(grp, SWT.CENTER);
 				l1.setText(_prop.msgs.soundVolume);
 				auto spn = new Spinner(grp, SWT.BORDER);
+				initSpinner(spn);
 				spn.setMinimum(0);
 				spn.setMaximum(100);
 				mod(spn);

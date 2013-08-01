@@ -320,6 +320,7 @@ protected:
 					auto l = new Label(comp3, SWT.NONE);
 					l.setText(name);
 					auto spn = new Spinner(comp3, SWT.BORDER);
+					initSpinner(spn);
 					mod(spn);
 					spn.setMaximum(max);
 					spn.setMinimum(min);

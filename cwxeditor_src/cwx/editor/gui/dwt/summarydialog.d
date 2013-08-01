@@ -217,6 +217,7 @@ private:
 					auto grp = centerGroup(comp2, _prop.msgs.targetLevel, false, false, new GridData(GridData.FILL_BOTH));
 					grp.setLayout(new GridLayout(4, false));
 					_levMin = new Spinner(grp, SWT.BORDER);
+					initSpinner(_levMin);
 					mod(_levMin);
 					_levMin.setSelection(_summ.levelMin);
 					_levMin.setMinimum(0);
@@ -226,6 +227,7 @@ private:
 					lbl.setText(_prop.msgs.levSep);
 					lbl.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 					_levMax = new Spinner(grp, SWT.BORDER);
+					initSpinner(_levMax);
 					mod(_levMax);
 					_levMax.setSelection(_summ.levelMax);
 					_levMax.setMinimum(0);
@@ -296,6 +298,7 @@ private:
 						auto lblN = new Label(grp, SWT.NONE);
 						lblN.setText(_prop.msgs.rCouponNum);
 						_rCouponNum = new Spinner(grp, SWT.BORDER);
+						initSpinner(_rCouponNum);
 						mod(_rCouponNum);
 						_rCouponNum.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 						_rCouponNum.setSelection(_summ.rCouponNum);

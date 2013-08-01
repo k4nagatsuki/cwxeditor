@@ -792,6 +792,7 @@ protected:
 			auto lbl = new Label(grp, SWT.NONE);
 			lbl.setText(prop.msgs.initValue);
 			_initValue = new Spinner(grp, SWT.BORDER);
+			initSpinner(_initValue);
 			mod(_initValue);
 			_initValue.setMinimum(cast(int) prop.var.etc.couponValueMax * -1);
 			_initValue.setMaximum(prop.var.etc.couponValueMax);

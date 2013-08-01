@@ -762,6 +762,7 @@ private:
 				gd.widthHint = _prop.var.etc.nameWidth;
 				combo.setLayoutData(gd);
 				spn = new Spinner(grp, SWT.BORDER);
+				initSpinner(spn);
 				spn.setMinimum(1);
 				spn.setMaximum(_prop.looks.idMax);
 				combo.addSelectionListener(new SelID(spn));

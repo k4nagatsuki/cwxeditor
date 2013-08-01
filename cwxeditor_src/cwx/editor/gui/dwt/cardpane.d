@@ -723,6 +723,7 @@ private:
 			Control numCreateEditor(TableItem itm, int column) {
 				auto c = cast(C)itm.getData();
 				auto spn = new Spinner(itm.getParent(), SWT.BORDER);
+				initSpinner(spn);
 				static if (is(C:CastCard)) {
 					int max = _prop.var.etc.castLevelMax;
 					int min = 1;

@@ -317,6 +317,7 @@ protected:
 				auto ls = new Label(comp, SWT.NONE);
 				ls.setText(_prop.msgs.transitionSpeed);
 				_tsSpeed = new Spinner(comp, SWT.BORDER);
+				initSpinner(_tsSpeed);
 				mod(_tsSpeed);
 				_tsSpeed.setMaximum(Content.transitionSpeed_max);
 				_tsSpeed.setMinimum(Content.transitionSpeed_min);
@@ -703,6 +704,7 @@ protected:
 				auto comp = new Composite(grp, SWT.NONE);
 				comp.setLayout(zeroMarginGridLayout(2, false));
 				_value = new Spinner(comp, SWT.BORDER);
+				initSpinner(_value);
 				mod(_value);
 				_value.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_value.setMaximum(_prop.var.etc.couponValueMax);
@@ -882,6 +884,7 @@ protected:
 			auto ls = new Label(comp, SWT.NONE);
 			ls.setText(_prop.msgs.transitionSpeed);
 			_tsSpeed = new Spinner(comp, SWT.BORDER);
+			initSpinner(_tsSpeed);
 			mod(_tsSpeed);
 			_tsSpeed.setMaximum(Content.transitionSpeed_max);
 			_tsSpeed.setMinimum(Content.transitionSpeed_min);
@@ -1031,6 +1034,7 @@ protected:
 			grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 			auto comp = new Composite(grp, SWT.NONE);
 			_value = new Spinner(comp, SWT.BORDER);
+			initSpinner(_value);
 			mod(_value);
 			_value.setMinimum(Min);
 			_value.setMaximum(mixin (Max));
@@ -1152,6 +1156,7 @@ protected:
 					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					grp.setLayout(new GridLayout(2, false));
 					_lev = new Spinner(grp, SWT.BORDER);
+					initSpinner(_lev);
 					mod(_lev);
 					_lev.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					_lev.setMinimum(-(cast(int) _prop.var.etc.castLevelMax));
@@ -1762,6 +1767,7 @@ protected:
 				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				grp.setLayout(new GridLayout(2, false));
 				_lev = new Spinner(grp, SWT.BORDER);
+				initSpinner(_lev);
 				mod(_lev);
 				_lev.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_lev.setMinimum(-(cast(int) _prop.var.etc.castLevelMax));
@@ -1897,6 +1903,7 @@ protected:
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout(zeroMarginGridLayout(2, false));
 			_lev = new Spinner(comp, SWT.BORDER);
+			initSpinner(_lev);
 			mod(_lev);
 			_lev.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			_lev.setMinimum(1);
@@ -2152,6 +2159,7 @@ protected:
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout(new GridLayout(2, false));
 				_num = new Spinner(comp2, SWT.BORDER);
+				initSpinner(_num);
 				mod(_num);
 				_num.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_num.setMinimum(1);
@@ -2337,6 +2345,7 @@ protected:
 			auto ls = new Label(comp, SWT.NONE);
 			ls.setText(_prop.msgs.transitionSpeed);
 			_tsSpeed = new Spinner(comp, SWT.BORDER);
+			initSpinner(_tsSpeed);
 			mod(_tsSpeed);
 			_tsSpeed.setMaximum(Content.transitionSpeed_max);
 			_tsSpeed.setMinimum(Content.transitionSpeed_min);
@@ -2449,6 +2458,7 @@ protected:
 			comp.setLayout(zeroMarginGridLayout(4, false));
 
 			_levMin = new Spinner(comp, SWT.BORDER);
+			initSpinner(_levMin);
 			mod(_levMin);
 			_levMin.setMinimum(1);
 			_levMin.setMaximum(_prop.var.etc.castLevelMax);
@@ -2456,6 +2466,7 @@ protected:
 			auto lbl = new Label(comp, SWT.NONE);
 			lbl.setText(_prop.msgs.levSep);
 			_levMax = new Spinner(comp, SWT.BORDER);
+			initSpinner(_levMax);
 			mod(_levMax);
 			_levMax.setMinimum(1);
 			_levMax.setMaximum(_prop.var.etc.castLevelMax);
@@ -2654,6 +2665,7 @@ protected:
 			l1.setText(_prop.msgs.roundIs);
 
 			_value = new Spinner(comp, SWT.BORDER);
+			initSpinner(_value);
 			mod(_value);
 			_value.setMinimum(0);
 			_value.setMaximum(_prop.var.etc.roundMax);

@@ -1157,6 +1157,7 @@ public:
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText(_prop.msgs.beastMaxNest);
 				_maxNest = new Spinner(comp2, SWT.BORDER);
+				initSpinner(_maxNest);
 				.listener(_maxNest, SWT.Modify, {
 					auto m = selection;
 					if (!m) return;
@@ -1175,6 +1176,7 @@ public:
 				auto rcomp = new Composite(rgrp, SWT.NONE);
 				rcomp.setLayout(new GridLayout(2, false));
 				auto round = new Spinner(rcomp, SWT.BORDER | _readOnly);
+				initSpinner(round);
 				round.setMaximum(max);
 				round.setMinimum(1);
 				new SpinnerEdit(round, edit, edit, cancel);
