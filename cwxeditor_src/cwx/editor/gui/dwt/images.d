@@ -1310,6 +1310,7 @@ public:
 	/// 全てのリソースを解放する。
 	void dispose() {
 		void del(ImageData data) {
+			if (this.data is data) return;
 			delete data.data;
 			delete data.alphaData;
 			delete data.maskData;
