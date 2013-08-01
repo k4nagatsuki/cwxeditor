@@ -293,6 +293,7 @@ private:
 			comp2.setLayout(new GridLayout(2, false));
 			static if (is (C == SkillCard) || is (C == BeastCard)) {
 				_price = new Spinner(comp2, SWT.BORDER | SWT.READ_ONLY);
+				_price.setEnabled(false);
 				_price.setMaximum(_prop.var.etc.priceMax);
 				static if (is (C == SkillCard)) {
 					new SpinnerEdit(_level, &calcPrice, &calcPrice, &priceCancel);
