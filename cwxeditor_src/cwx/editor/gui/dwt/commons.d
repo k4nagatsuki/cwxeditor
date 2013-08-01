@@ -320,6 +320,7 @@ class Commons {
 	Dlg!() refRadarStyle;
 	Dlg!() refVarSelectStyle;
 	Dlg!() refEventTreeViewStyle;
+	Dlg!() refTerminalMark;
 
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;

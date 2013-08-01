@@ -1561,6 +1561,7 @@ class Msgs : Properties {
 	auto selectVariableWithTree = Msg("selectVariableWithTree", "状態変数選択ビューでディレクトリの階層表示を行う");
 	auto autoUpdateJpy1File = Msg("autoUpdateJpy1File", "ファイル名が変更された時に関係するJPY1ファイルを自動的に更新する");
 	auto straightEventTreeView = Msg("straightEventTreeView", "イベントツリーを垂直に表示する");
+	auto showTerminalMark = Msg("showTerminalMark", "垂直表示時にイベントツリーの終端を明示する");
 	auto clickIconIsStartEdit = Msg("clickIconIsStartEdit", "イベントコンテントのアイコンのクリックでダイアログを開く");
 	auto soundPlayType = Msg("soundPlayType", "BGM再生方式");
 	auto soundPlayTypeDef = Msg("soundPlayTypeDef", "自動選択");

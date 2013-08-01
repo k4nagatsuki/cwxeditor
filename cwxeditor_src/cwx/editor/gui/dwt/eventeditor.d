@@ -25,24 +25,26 @@ import java.lang.all;
 struct PosInfo {
 	int x;
 	int y;
+	int height;
+	int index;
 	Content content;
 }
 
 class EventEditorItem : Item {
 	private EventEditor _parent;
 
-	this (EventEditor parent, Content c) {
+	private this (EventEditor parent, Content c) {
 		super (parent, style);
 		_parent = parent;
 		setData(c);
 	}
-
-	override
-	bool opEquals(Object obj) {
-		if (auto itm = cast(Item)obj) {
-			return getData() is itm.getData();
+	static EventEditorItem valueOf(EventEditor parent, Content c) {
+		auto itm = parent._items.get(c, null);
+		if (!itm) {
+			itm = new EventEditorItem(parent, c);
+			parent._items[c] = itm;
 		}
-		return false;
+		return itm;
 	}
 
 	EventEditor getParent() { return _parent; }
@@ -50,13 +52,13 @@ class EventEditorItem : Item {
 	EventEditorItem getParentItem() {
 		auto c = cast(Content)getData();
 		if (c.parent) {
-			return new EventEditorItem(getParent(), c.parent);
+			return EventEditorItem.valueOf(getParent(), c.parent);
 		}
 		return null;
 	}
 	EventEditorItem getItem(int index) {
 		auto c = cast(Content)getData();
-		return new EventEditorItem(getParent(), c.next[index]);
+		return EventEditorItem.valueOf(getParent(), c.next[index]);
 	}
 	EventEditorItem[] getItems() {
 		auto c = cast(Content)getData();
@@ -85,7 +87,7 @@ class EventEditorItem : Item {
 		auto c = cast(Content)getData();
 		if (_parent._expanded.get(c, true) != expanded) {
 			_parent._expanded[c] = expanded;
-			_parent.updateEventTree();
+			_parent.updatePosImpl();
 		}
 	}
 	bool getExpanded() {
@@ -100,7 +102,7 @@ class EventEditorItem : Item {
 		auto s = .eventText(_parent._comm, _parent._summ, c.parent, c, !(_parent.getStyle() & SWT.READ_ONLY));
 		auto pos = _parent._posTable[c];
 		auto sy = _parent.getVerticalBar().getSelection() * _parent._lineHeight;
-		return new Rectangle(0, pos.y - sy, 20 + gc.textExtent(s).x + 4, _parent._lineHeight);
+		return new Rectangle(0, pos.y - sy, 20 + gc.textExtent(s).x + 4, pos.height);
 	}
 	Rectangle getImageBounds() {
 		auto c = cast(Content)getData();
@@ -120,11 +122,13 @@ class EventEditor : Composite {
 	private int _imageWidth = 16;
 	private int _lineHeight = 16;
 	private int _imgPos = 0;
+	private int _heightSum = 0;
 	private Content _selected = null, _lightup = null;
 	/// yの順に整列した位置リスト。
 	private PosInfo[] _pos;
 	/// イベントコンテントをキーに位置を取るテーブル。
 	private PosInfo[Content] _posTable;
+	private EventEditorItem[Content] _items;
 
 	private Color _lineColor = null;
 	private Color _selectedColor = null;
@@ -167,12 +171,14 @@ class EventEditor : Composite {
 		_lightupColor = new Color(d, new RGB(191, 224, 255));
 		_warningImage = .warningImage(_comm.prop, d);
 		setForeground(color);
+		_comm.refTerminalMark.add(&updatePosImpl);
 		.listener(this, SWT.Dispose, {
 			_lineColor.dispose();
 			_selectedColor.dispose();
 			_lightupColor.dispose();
 			color.dispose();
 			_warningImage.dispose();
+			_comm.refTerminalMark.remove(&updatePosImpl);
 		});
 		.listener(this, SWT.Paint, &onPaint);
 		.listener(this, SWT.MouseWheel, &onMouseWheel);
@@ -192,7 +198,8 @@ class EventEditor : Composite {
 	}
 
 	@property
-	EventTree eventTree() { return _et; }
+	inout
+	inout(EventTree) eventTree() { return _et; }
 	@property
 	void eventTree(EventTree et) {
 		_et = et;
@@ -201,47 +208,53 @@ class EventEditor : Composite {
 
 	void expandAll() {
 		_expanded = null;
-		updateEventTree();
+		updatePosImpl();
 	}
 
 	void showSelection() {
 		if (!_selected) return;
 		if (_selected !in _posTable) return;
-		auto pos = _posTable[_selected];
-		auto index = pos.y / _lineHeight;
-		scroll(index);
+		scroll(_posTable[_selected].y / _lineHeight, _posTable[_selected].height);
 	}
-	private void scroll(int pos) {
+	private void scroll(int pos, int height) {
 		auto vbar = getVerticalBar();
 		int vPos = vbar.getSelection();
 		if (pos < vPos) {
 			vbar.setSelection(pos);
 		} else if (vPos + vbar.getThumb() <= pos) {
-			vbar.setSelection(pos - vbar.getThumb() + 1);
+			vbar.setSelection(pos - vbar.getThumb() + (height / _lineHeight));
 		}
 	}
 
 	void updateEventTree() {
+		_items = null;
 		updatePosImpl();
-		redraw();
 	}
 	private void updatePosImpl() {
 		int x = 0;
 		int y = 0;
 		int selIndex = 0;
 		if (_selected && _selected in _posTable) {
-			auto selPos = _posTable[_selected];
-			selIndex = selPos.y / _lineHeight;
+			selIndex = indexOf(_selected);
 		}
 		_pos = [];
 		_posTable = null;
 		_lightup = null;
+		_heightSum = 0;
+		int index = 0;
 		bool[Content] expanded2;
 		void recurse(int x, Content c) {
 			auto type = c.type;
-			_pos ~= PosInfo(x, y, c);
-			_posTable[c] = PosInfo(x, y, c);
-			y += _lineHeight;
+			int height = _lineHeight;
+			_heightSum++;
+			if (_comm.prop.var.etc.showTerminalMark && type != CType.START && !c.next.length) {
+				height = _lineHeight * 2;
+				_heightSum++;
+			}
+			_pos ~= PosInfo(x, y, height, index, c);
+			_posTable[c] = PosInfo(x, y, height, index, c);
+			y += height;
+			index++;
 			if (c.next.length && !_expanded.get(c, true)) {
 				expanded2[c] = false;
 				return;
@@ -271,11 +284,12 @@ class EventEditor : Composite {
 		_expanded = expanded2;
 		_posTable.rehash();
 		updateScrollBar();
+		redraw();
 	}
 	private void updateScrollBar() {
 		auto ca = getClientArea();
 		auto vbar = getVerticalBar();
-		vbar.setMaximum(_pos.length);
+		vbar.setMaximum(_heightSum);
 		vbar.setThumb(ca.height / _lineHeight);
 		vbar.setPageIncrement(ca.height / _lineHeight / 2);
 	}
@@ -293,16 +307,18 @@ class EventEditor : Composite {
 				}
 			}
 			if (toolTip == "" && ca.width - _comm.prop.var.etc.detailAreaWidth <= p.x) {
-				int index = getVerticalBar().getSelection() + (p.y / _lineHeight);
+				int index = indexOf(getVerticalBar().getSelection() * _lineHeight + p.y);
 				if (0 <= index && index < _pos.length) {
 					auto pos = _pos[index];
-					auto c = pos.content;
-					auto s = .contentText(_comm, c);
-					auto gc = new GC(this);
-					scope (exit) gc.dispose();
-					int dw = _comm.prop.var.etc.detailAreaWidth - 2 - 18;
-					if (dw < gc.textExtent(s).x) {
-						toolTip = s;
+					if (p.y - pos.y < _lineHeight) {
+						auto c = pos.content;
+						auto s = .contentText(_comm, c);
+						auto gc = new GC(this);
+						scope (exit) gc.dispose();
+						int dw = _comm.prop.var.etc.detailAreaWidth - 2 - 18;
+						if (dw < gc.textExtent(s).x) {
+							toolTip = s;
+						}
 					}
 				}
 			}
@@ -313,13 +329,13 @@ class EventEditor : Composite {
 	}
 
 	EventEditorItem getItem(int index) {
-		return new EventEditorItem(this, _et.starts[index]);
+		return EventEditorItem.valueOf(this, _et.starts[index]);
 	}
 
 	EventEditorItem getItem(Point p) {
 		auto c = getContent(p.x, p.y);
 		if (c) {
-			return new EventEditorItem(this, c);
+			return EventEditorItem.valueOf(this, c);
 		}
 		return null;
 	}
@@ -339,7 +355,7 @@ class EventEditor : Composite {
 
 	EventEditorItem[] getSelection() {
 		if (_selected) {
-			return [new EventEditorItem(this, _selected)];
+			return [EventEditorItem.valueOf(this, _selected)];
 		}
 		return [];
 	}
@@ -365,22 +381,22 @@ class EventEditor : Composite {
 	}
 	EventEditorItem getTopItem() {
 		auto vbar = getVerticalBar();
-		auto index = vbar.getSelection();
+		auto index = indexOf(vbar.getSelection() * _lineHeight);
 		if (0 <= index && index < _pos.length) {
-			return new EventEditorItem(this, _pos[index].content);
+			return EventEditorItem.valueOf(this, _pos[index].content);
 		}
 		return null;
 	}
 	void setTopItem(EventEditorItem itm) {
-		if (itm) {
+		if (itm && cast(Content)itm.getData() in _posTable) {
 			auto vbar = getVerticalBar();
-			vbar.setSelection(indexOf(cast(Content)itm.getData()));
+			auto pos = _posTable[cast(Content)itm.getData()];
+			vbar.setSelection(pos.y / _lineHeight);
 		}
 	}
 
 	Content getContent(int x, int y) {
-		auto vbar = getVerticalBar();
-		auto index = (y / _lineHeight + vbar.getSelection());
+		auto index = indexOf(y);
 		if (index < 0 || _pos.length <= index) return null;
 		return _pos[index].content;
 	}
@@ -397,7 +413,31 @@ class EventEditor : Composite {
 
 	private int indexOf(Content c) {
 		if (c !in _posTable) return -1;
-		return _posTable[c].y / _lineHeight;
+		return _posTable[c].index;
+	}
+	private int indexOf(int y) {
+		if (y < 0) return -1;
+		auto ca = getClientArea();
+		if (ca.height <= y) return -1;
+
+		auto vbar = getVerticalBar();
+		auto sy = vbar.getSelection() * _lineHeight;
+		y += sy;
+
+		return find(y, 0, _pos.length);
+	}
+	private int find(int y, int from, int to) {
+		if (to <= from) return -1;
+		auto mid = (from + to) / 2;
+		auto pos = _pos[mid];
+		assert (mid == pos.index);
+		if (y < pos.y) {
+			return find(y, from, mid);
+		} else if (pos.y + pos.height <= y) {
+			return find(y, mid + 1, to);
+		} else {
+			return pos.index;
+		}
 	}
 	private void select(int index) {
 		_selected = _pos[index].content;
@@ -468,14 +508,14 @@ class EventEditor : Composite {
 		case SWT.ARROW_LEFT:
 			if (expandedOperation && _selected && _selected.next.length && _expanded.get(_selected, true)) {
 				_expanded[_selected] = false;
-				updateEventTree();
+				updatePosImpl();
 				return;
 			}
 			goto case SWT.ARROW_UP;
 		case SWT.ARROW_RIGHT:
 			if (expandedOperation && _selected && _selected.next.length && !_expanded.get(_selected, true)) {
 				_expanded[_selected] = true;
-				updateEventTree();
+				updatePosImpl();
 				return;
 			}
 			goto case SWT.ARROW_DOWN;
@@ -632,10 +672,10 @@ class EventEditor : Composite {
 		auto ca = getClientArea();
 
 		auto vbar = getVerticalBar();
-		int index = vbar.getSelection();
+		int index = .max(0, find(vbar.getSelection() * _lineHeight, 0, _pos.length));
 		int to = .min(_pos.length, index + ca.height / _lineHeight + 1);
 		auto poss = _pos[index .. to];
-		int sy = index * _lineHeight;
+		int sy = vbar.getSelection() * _lineHeight;
 
 		auto d = getDisplay();
 		if (_lightup && _lightup in _posTable) {
@@ -660,6 +700,7 @@ class EventEditor : Composite {
 		// イベントコンテントを結ぶ線
 		e.gc.setLineWidth(2);
 		e.gc.setForeground(_lineColor);
+		e.gc.setBackground(_lineColor);
 		foreach (i, ref pos; _pos[index .. $]) {
 			auto c = pos.content;
 			if (c.type == CType.START) {
@@ -677,14 +718,36 @@ class EventEditor : Composite {
 					e.gc.drawLine(pos.x + hw, pPos.y + hh - sy, pos.x + hw, pos.y + hh - sy);
 				} else {
 					e.gc.drawLine(pPos.x + hw, pPos.y + hh - sy, pPos.x + hw, pos.y - sy);
-					e.gc.drawLine(pPos.x + _imageWidth, pos.y + hh - sy, pos.x + hw, pos.y + hh - sy);
+					int ly = pos.y + hh - sy;
+					version (Windows) {
+						import org.eclipse.swt.internal.win32.OS;
+						if (OS.WIN32_VERSION <= OS.VERSION (6, 0)) {
+							ly++;
+						}
+					}
+					e.gc.drawLine(pPos.x + _imageWidth, ly, pos.x + hw, ly);
 					e.gc.setAntialias(SWT.ON);
 					e.gc.drawArc(pPos.x + hw, pos.y - sy - hh, _imageWidth, _lineHeight, 180, 90);
 					e.gc.setAntialias(SWT.OFF);
 				}
 			}
+			if (_comm.prop.var.etc.showTerminalMark && c.type != CType.START && !c.next.length) {
+				// 後続コンテントが置かれるであろう位置を示す
+				// (終端の場合は後続コンテントが置けない事を示す)
+				int terX = pos.x + hw;
+				int terY = pos.y + hh + _lineHeight - sy + 1;
+				if (c.detail.owner) {
+					e.gc.drawLine(pos.x + hw, pos.y + hh - sy, terX, terY - 8);
+					e.gc.drawLine(terX, terY - 6, terX, terY - 3);
+					e.gc.drawLine(terX, terY - 1, terX, terY + 1);
+				} else {
+					e.gc.drawLine(pos.x + hw, pos.y + hh - sy, terX, terY - 5);
+					e.gc.fillRectangle(terX - 4, terY - 5, 8, 3);
+				}
+			}
 		}
 		// イベントコンテント分岐点
+		e.gc.setBackground(getBackground());
 		e.gc.setAntialias(SWT.ON);
 		foreach (i, ref pos; poss) {
 			auto c = pos.content;
@@ -996,7 +1059,7 @@ package struct TreeViewWrapper {
 	Item topItem(Item itm) {
 		if (auto b = cast(TreeItem)itm) return .topItem(b);
 		auto c = cast(Content)itm.getData();
-		if (c.parent) return new EventEditorItem(editor, c.parentStart);
+		if (c.parent) return EventEditorItem.valueOf(editor, c.parentStart);
 		return itm;
 	}
 
@@ -1060,7 +1123,7 @@ private:
 		_editor = _createEditor(cast(EventEditorItem)itm);
 		if (_editor) {
 			_edit = cast(EventEditorItem)itm;
-			_list.scroll(_list.indexOf(cast(Content)_edit.getData()));
+			_list.showSelection();
 			_tee = new EditEnd(_comm, _list, _editor, &end);
 			layout();
 			_tee.setFocus();

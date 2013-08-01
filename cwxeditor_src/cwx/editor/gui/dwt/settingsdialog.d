@@ -1429,6 +1429,7 @@ private:
 	TableItem _selectVariableWithTree;
 	TableItem _autoUpdateJpy1File;
 	TableItem _straightEventTreeView;
+	TableItem _showTerminalMark;
 	TableItem _clickIconIsStartEdit;
 	Combo _targetVersion;
 	int[string] _targetVersionTbl;
@@ -2282,6 +2283,7 @@ private:
 			_selectVariableWithTree = createB(_prop.msgs.selectVariableWithTree);
 			_autoUpdateJpy1File = createB(_prop.msgs.autoUpdateJpy1File);
 			_straightEventTreeView = createB(_prop.msgs.straightEventTreeView);
+			_showTerminalMark = createB(_prop.msgs.showTerminalMark);
 			_clickIconIsStartEdit = createB(_prop.msgs.clickIconIsStartEdit);
 
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -2570,6 +2572,7 @@ protected:
 		_selectVariableWithTree.setChecked(_prop.var.etc.selectVariableWithTree);
 		_autoUpdateJpy1File.setChecked(_prop.var.etc.autoUpdateJpy1File);
 		_straightEventTreeView.setChecked(_prop.var.etc.straightEventTreeView);
+		_showTerminalMark.setChecked(_prop.var.etc.showTerminalMark);
 		_clickIconIsStartEdit.setChecked(_prop.var.etc.clickIconIsStartEdit);
 		auto tVer = _prop.var.etc.targetVersion in _targetVersionTbl;
 		if (tVer) {
@@ -2736,6 +2739,7 @@ protected:
 		_prop.var.etc.selectVariableWithTree = _selectVariableWithTree.getChecked();
 		_prop.var.etc.autoUpdateJpy1File = _autoUpdateJpy1File.getChecked();
 		_prop.var.etc.straightEventTreeView = _straightEventTreeView.getChecked();
+		_prop.var.etc.showTerminalMark = _showTerminalMark.getChecked();
 		_prop.var.etc.clickIconIsStartEdit = _clickIconIsStartEdit.getChecked();
 		_prop.var.etc.contentsFloat = _contentsFloat.getChecked();
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getChecked();
@@ -2833,6 +2837,7 @@ struct OldSettings {
 	bool useNamesAfterStandard;
 	bool selectVariableWithTree;
 	bool straightEventTreeView;
+	bool showTerminalMark;
 	this (Props prop) {
 		this.prop = prop;
 		this.targetVersion = prop.var.etc.targetVersion;
@@ -2877,6 +2882,7 @@ struct OldSettings {
 		this.useNamesAfterStandard = prop.var.etc.useNamesAfterStandard;
 		this.selectVariableWithTree = prop.var.etc.selectVariableWithTree;
 		this.straightEventTreeView = prop.var.etc.straightEventTreeView;
+		this.showTerminalMark = prop.var.etc.showTerminalMark;
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
@@ -3002,6 +3008,9 @@ struct OldSettings {
 		}
 		if (this.straightEventTreeView != prop.var.etc.straightEventTreeView) {
 			comm.refEventTreeViewStyle.call();
+		}
+		if (this.showTerminalMark != prop.var.etc.showTerminalMark) {
+			comm.refTerminalMark.call();
 		}
 	}
 }

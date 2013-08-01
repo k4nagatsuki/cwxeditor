@@ -613,7 +613,7 @@ private:
 						sItm = createTreeItem(_tree.tree, evt, evt.name, _prop.images.content(CType.START), index);
 					} else {
 						_tree.editor.updateEventTree();
-						sItm = new EventEditorItem(_tree.editor, evt);
+						sItm = EventEditorItem.valueOf(_tree.editor, evt);
 					}
 					_tree.select(sItm);
 					_tree.showSelection();
@@ -660,7 +660,7 @@ private:
 							_tree.setExpanded(oItm, true);
 						} else {
 							_tree.editor.updateEventTree();
-							itm = new EventEditorItem(_tree.editor, evt);
+							itm = EventEditorItem.valueOf(_tree.editor, evt);
 						}
 						_tree.setSelection([itm]);
 						if (insertTo) {
@@ -1428,7 +1428,7 @@ private:
 				auto p = _tree.editor.toControl(new Point(e.x, e.y));
 				auto c = _tree.editor.getContent(p.x, p.y);
 				if (!c) return;
-				e.item = new EventEditorItem(_tree.editor, c);
+				e.item = EventEditorItem.valueOf(_tree.editor, c);
 			}
 			assert (cast(Item)e.item);
 			if ((cast(Content)e.item.getData()).detail.owner) {
@@ -1476,7 +1476,7 @@ private:
 								itm = createTreeItem(cast(TreeItem)ti, evt, eventText(owner, evt), _prop.images.content(evt.type));
 							} else {
 								_tree.editor.updateEventTree();
-								itm = new EventEditorItem(_tree.editor, evt);
+								itm = EventEditorItem.valueOf(_tree.editor, evt);
 							}
 							procTreeItem(itm);
 							_tree.setSelection([itm]);
@@ -2944,7 +2944,7 @@ public:
 			while (evt.next.length) {
 				evt = evt.next[$ - 1];
 			}
-			return new EventEditorItem(_tree.editor, evt);
+			return EventEditorItem.valueOf(_tree.editor, evt);
 		}
 	}
 
@@ -3189,6 +3189,7 @@ public:
 
 	void refreshTreeName() {
 		_tree.getItems()[0].setText(_et.name);
+		_tree.control.redraw();
 		refreshStatusLine();
 	}
 
@@ -3372,7 +3373,7 @@ public:
 			if (_tree.tree) {
 				sItm = createTreeItem(_tree.tree, c, c.name, _prop.images.content(c.type), index + i);
 			} else {
-				sItm = new EventEditorItem(_tree.editor, c);
+				sItm = EventEditorItem.valueOf(_tree.editor, c);
 			}
 			lastItm = createChilds(sItm, c);
 			_tree.setExpanded(sItm, true);
