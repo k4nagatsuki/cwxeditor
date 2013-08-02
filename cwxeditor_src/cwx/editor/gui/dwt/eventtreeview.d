@@ -722,6 +722,7 @@ private:
 			arrow();
 		}
 		if (((_arrowMode && !arrowMode) || (_cType != cType)) && MenuID.PutQuick !is putMode) {
+			assert (cType in _conts, .format("%s, putMode", cType));
 			auto ce = _conts[cType];
 			_radioGroup.select(ce.ti);
 			ce.create(null);
@@ -2369,7 +2370,6 @@ public:
 			_putQuickMI.setSelection(_putMode is MenuID.PutQuick);
 			_putSelectMI.setSelection(_putMode is MenuID.PutSelect);
 			_putContinueMI.setSelection(_putMode is MenuID.PutContinue);
-			updatePutMode();
 			refreshTemplates();
 			createCoolItem(cbar, mode);
 
@@ -2387,6 +2387,7 @@ public:
 				}
 			}
 			initConvMenu();
+			updatePutMode();
 
 			cbar.addDisposeListener(new CDListener);
 		});
