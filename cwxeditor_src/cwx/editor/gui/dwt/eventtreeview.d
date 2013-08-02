@@ -2193,6 +2193,8 @@ public:
 		}
 		_comm.refTargetVersion.add(&redraw);
 		_comm.refEventTreeViewStyle.add(&refEventTreeViewStyle);
+
+		constructTools();
 	}
 	private void refEventTreeViewStyle() {
 		_comp.setRedraw(false);
