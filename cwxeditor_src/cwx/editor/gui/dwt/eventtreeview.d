@@ -1897,6 +1897,8 @@ public:
 		_comm.selContentTool.add(&selContentTool);
 		_grayFont = new Color(_tree.getDisplay(), alphaColor(_tree.getForeground().getRGB(), _tree.getBackground().getRGB(), 128));
 
+		constructTools();
+
 		auto dt = new DropTarget(_tree, DND.DROP_DEFAULT | DND.DROP_MOVE);
 		dt.setTransfer([XMLBytesTransfer.getInstance()]);
 		dt.addDropListener(new EventDropTarget);
