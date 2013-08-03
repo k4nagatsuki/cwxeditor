@@ -190,7 +190,9 @@ private:
 			if (0 == _refAreas.getSelectionIndex()) {
 				_refTarget = null;
 				foreach (a; _imgp.appends) {
+					a.data[] = 0;
 					delete a.data;
+					a.alphaData[] = 0;
 					delete a.alphaData;
 				}
 				_imgp.appends = [];
@@ -1464,7 +1466,9 @@ private:
 		static if (RefCards) {
 			listener(_imgp, SWT.Dispose, {
 				foreach (a; _imgp.appends) {
+					a.data[] = 0;
 					delete a.data;
+					a.alphaData[] = 0;
 					delete a.alphaData;
 				}
 			});
@@ -2441,7 +2445,9 @@ public:
 					_refTarget = sel <= 0 ? null : _refAreasArr[sel - 1];
 					if (!_refTarget) {
 						foreach (a; _imgp.appends) {
+							a.data[] = 0;
 							delete a.data;
+							a.alphaData[] = 0;
 							delete a.alphaData;
 						}
 						_imgp.appends = [];
@@ -2708,7 +2714,9 @@ public:
 	static if (RefCards) {
 		void addRefCards(C2)(in C2[] cs) {
 			foreach (a; _imgp.appends) {
+				a.data[] = 0;
 				delete a.data;
+				a.alphaData[] = 0;
 				delete a.alphaData;
 			}
 			auto a = createRefCardImpl!C2(cs, -1);
@@ -2720,7 +2728,9 @@ public:
 		}
 		void createRefCard(int del = -1) {
 			foreach (a; _imgp.appends) {
+				a.data[] = 0;
 				delete a.data;
+				a.alphaData[] = 0;
 				delete a.alphaData;
 			}
 			_imgp.appends = [];
@@ -2742,14 +2752,20 @@ public:
 			auto data = img.getImageData();
 			img.dispose();
 			auto alphas = new byte[vs.width * vs.height];
-			scope (exit) delete alphas;
+			scope (exit) {
+				alphas[] = 0;
+				delete alphas;
+			}
 			alphas[] = 0;
 			data.setAlphas(0, 0, vs.width * vs.height, alphas, 0);
 			foreach (i, c; cs) {
 				if (i == del) continue;
 				auto pimg = createCardImage!PileImage(c, _prop.var.etc.smoothingCard);
 				auto pdata = pimg.createImageData();
-				scope (exit) delete pdata.data;
+				scope (exit) {
+					pdata.data[] = 0;
+					delete pdata.data;
+				}
 				assert (pdata !is null);
 				foreach (x; 0 .. pimg.width) {
 					foreach (y; 0 .. pimg.height) {

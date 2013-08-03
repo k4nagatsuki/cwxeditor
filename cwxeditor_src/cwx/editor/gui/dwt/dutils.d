@@ -103,7 +103,10 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				bytes = cast(byte[])readBinary(path);
 			}
 			scope (exit) {
-				if (!isBinImg(path)) delete bytes;
+				if (!isBinImg(path)) {
+					bytes[] = 0;
+					delete bytes;
+				}
 			}
 			auto s = new ByteArrayInputStream(bytes);
 			scope (exit) s.close();

@@ -612,18 +612,21 @@ private:
 		case CardTableColumn.Num: return 4;
 		}
 	}
-	TableColumn columnFromInt(int column) {
+	TableColumn columnFromInt(int column)
+	out (value) {
+		assert (value !is null, column.to!string());
+	} body {
 		switch (column) {
 		case 0: return _tbl.getColumn(COL_ID);
 		case 1: return _tbl.getColumn(COL_NAME);
 		case 2: return _tbl.getColumn(COL_DESC);
 		case 3:
-			static if (is(typeof(COL_UC))) {
+			static if (EditMode && is(typeof(COL_UC))) {
 				return _tbl.getColumn(COL_UC);
 			}
 			goto default;
 		case 4:
-			static if (is(typeof(COL_NUM))) {
+			static if (UseNum && is(typeof(COL_NUM))) {
 				return _tbl.getColumn(COL_NUM);
 			}
 			goto default;
@@ -652,7 +655,7 @@ private:
 		}
 	}
 	void sort(ref C[] cards) {
-		bool delegate(const C, const C) minL;
+		bool delegate(const C, const C) minL = null;
 		if (_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column) {
 			minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompID : &compID;
 		} else if (_tbl.getSortColumn() is _nameSorter.column) {
@@ -665,11 +668,13 @@ private:
 					minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompUC : &compUC;
 				}
 			}
-			static if (UseNum) {
-				if (_tbl.getSortColumn() is _numSorter.column) {
-					minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompNum : &compNum;
-				}
-			} else assert (0);
+			if (!minL) {
+				static if (UseNum) {
+					if (_tbl.getSortColumn() is _numSorter.column) {
+						minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompNum : &compNum;
+					}
+				} else assert (0, .format("%s, %s", C.stringof, UseNum.to!string()));
+			}
 		}
 		cards = .sortDlg(cards.dup, minL);
 	}

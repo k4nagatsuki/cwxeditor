@@ -109,7 +109,10 @@ public:
 				_image.setLayoutData(_image.computeSize(w, h));
 				_image.addPaintListener(new PListener);
 				.listener(_image, SWT.Dispose, {
-					if (_img) delete _img.data;
+					if (_img) {
+						_img.data[] = 0;
+						delete _img.data;
+					}
 				});
 			}
 			if (defs) {
@@ -428,7 +431,10 @@ private:
 				} else {
 					_paintedPath = path;
 					imgData = loadImage(_prop, summSkin, _summ, path, _mask);
-					if (_img) delete _img.data;
+					if (_img) {
+						_img.data[] = 0;
+						delete _img.data;
+					}
 					_img = imgData;
 				}
 			} else if (_createDefImage && dirsi < _defs.length) {

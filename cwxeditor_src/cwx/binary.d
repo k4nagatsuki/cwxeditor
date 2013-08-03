@@ -18,6 +18,7 @@ struct ByteIO {
 	private ubyte[] _bytes;
 	/// バッファを解放する。
 	void dispose() {
+		_bytes[] = 0;
 		delete _bytes;
 		_bytes = null;
 	}

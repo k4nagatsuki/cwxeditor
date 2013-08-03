@@ -2036,10 +2036,13 @@ public:
 				auto b = arc.build();
 				destroy(arc);
 				std.file.write(zipName, b);
+				(cast(ubyte[])b)[] = 0;
 				delete b;
 				foreach (d; data) {
+					(cast(ubyte[])d)[] = 0;
 					delete d;
 				}
+				(cast(ubyte[])data)[] = 0;
 				delete data;
 			} else if (expandXMLs || !useTemp) {
 				auto oldPath = scenarioPath;
@@ -2081,8 +2084,10 @@ public:
 		auto r = arc.build();
 		destroy(arc);
 		foreach (d; data) {
+			(cast(ubyte[])d)[] = 0;
 			delete d;
 		}
+		(cast(ubyte[])data)[] = 0;
 		delete data;
 		return r;
 	}
@@ -2090,6 +2095,7 @@ public:
 	void createZip(string zipName, in string[] ignorePaths, bool useSysEnc) {
 		auto data = createZipData(ignorePaths, useSysEnc);
 		std.file.write(zipName, data);
+		(cast(ubyte[])data)[] = 0;
 		delete data;
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。

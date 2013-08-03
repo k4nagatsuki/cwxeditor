@@ -373,6 +373,7 @@ private:
 					} else {
 						auto lastData = readBinary(before.file);
 						_oldMD5 = md5Digest(lastData);
+						(cast(ubyte[])lastData)[] = 0;
 						delete lastData;
 					}
 				}
@@ -389,6 +390,7 @@ private:
 						_oldMD5 = md5;
 						bc--;
 					}
+					(cast(ubyte[])data)[] = 0;
 					delete data;
 				} else {
 					auto md5 = filesMD5(summ.scenarioPath);

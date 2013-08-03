@@ -78,7 +78,7 @@ public:
 		set.remove(user);
 		if (set.isEmpty) {
 			_cont.remove(key);
-			delete set;
+			destroy(set);
 		}
 	}
 	/// キーに変更があったときに呼出す。

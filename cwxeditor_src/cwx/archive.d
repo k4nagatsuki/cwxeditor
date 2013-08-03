@@ -31,6 +31,7 @@ void unzip(string parent, string zip,
 	auto data = readBinary(zip);
 	auto arc = new ZipArchive(data);
 	unzip(parent, arc, expand, setProgressNum, progress);
+	(cast(ubyte[])data)[] = 0;
 	delete data;
 }
 /// ditto
@@ -71,7 +72,10 @@ void unzip(ZipArchive arc,
 			bool isDir = ((am.externalAttributes & 0x10) != 0 || std.algorithm.endsWith(nml, dirSeparator)) && am.expandedSize == 0;
 			auto data = arc.expand(am);
 			fileProc(nml, data, isDir);
-			scope (exit) delete data;
+			scope (exit) {
+				data[] = 0;
+				delete data;
+			}
 		}
 		if (progress !is null) {
 			progress(count);
@@ -221,10 +225,13 @@ void zip(string targ, string zip, bool top, bool delegate(string path) ignorePat
 	auto b = arc.build();
 	destroy(arc);
 	std.file.write(zip, b);
+	(cast(ubyte[])b)[] = 0;
 	delete b;
 	foreach (d; data) {
+		(cast(ubyte[])d)[] = 0;
 		delete d;
 	}
+	(cast(ubyte[])data)[] = 0;
 	delete data;
 }
 void zip(string targ, string zip, bool top, string[] excludePath, bool useSysEnc) {

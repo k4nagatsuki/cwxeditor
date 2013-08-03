@@ -1301,8 +1301,11 @@ public:
 
 	private void del(ImageData data) {
 		if (_baseSizeData !is data && this.data !is data) {
+			data.data[] = 0;
 			delete data.data;
+			data.alphaData[] = 0;
 			delete data.alphaData;
+			data.maskData[] = 0;
 			delete data.maskData;
 		}
 	}
@@ -1311,8 +1314,11 @@ public:
 	void dispose() {
 		void del(ImageData data) {
 			if (this.data is data) return;
+			data.data[] = 0;
 			delete data.data;
+			data.alphaData[] = 0;
 			delete data.alphaData;
+			data.maskData[] = 0;
 			delete data.maskData;
 		}
 		if (_imgData) del(_imgData);
@@ -2288,8 +2294,11 @@ private:
 			}
 			auto imageData = cast(ImageData)_background.clone();
 			scope (exit) {
+				imageData.alphaData[] = 0;
 				delete imageData.alphaData;
+				imageData.maskData[] = 0;
 				delete imageData.maskData;
+				imageData.data[] = 0;
 				delete imageData.data;
 			}
 			auto range = new Rectangle(e.x, e.y, e.width, e.height);
