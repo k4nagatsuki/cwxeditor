@@ -234,6 +234,7 @@ class EventEditor : Composite {
 		int x = 0;
 		int y = 0;
 		int selIndex = 0;
+		auto oldSel = _selected;
 		if (_selected && _selected in _posTable) {
 			selIndex = indexOf(_selected);
 		}
@@ -285,6 +286,9 @@ class EventEditor : Composite {
 		_posTable.rehash();
 		updateScrollBar();
 		redraw();
+		if (_selected !is oldSel) {
+			callSelectChanged();
+		}
 	}
 	private void updateScrollBar() {
 		auto ca = getClientArea();
