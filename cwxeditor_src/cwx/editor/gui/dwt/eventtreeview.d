@@ -3957,9 +3957,9 @@ private string evtChildBrStepUL(in Props prop, in Summary summ, string path, int
 		}
 	}
 	if (val) {
-		return .tryFormat(prop.msgs.stepMoreThan, path, value);
+		return .tryFormat(prop.msgs.stepMoreThan, name, value);
 	} else {
-		return .tryFormat(prop.msgs.stepLessThan, path, value);
+		return .tryFormat(prop.msgs.stepLessThan, name, value);
 	}
 }
 private string evtChildBrMember(in Props prop, bool all, bool random, ref string text) {
