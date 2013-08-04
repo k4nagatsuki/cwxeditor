@@ -2615,9 +2615,9 @@ public:
 			}
 		}
 		if (val) {
-			return .tryFormat(prop.msgs.stepMoreThan, path, value);
+			return .tryFormat(prop.msgs.stepMoreThan, name, value);
 		} else {
-			return .tryFormat(prop.msgs.stepLessThan, path, value);
+			return .tryFormat(prop.msgs.stepLessThan, name, value);
 		}
 	}
 	private static string evtChildBrMember(in Props prop, bool all, bool random, ref string text) {
