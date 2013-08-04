@@ -637,7 +637,7 @@ class Commons {
 	Composite sidePane() {
 		if (!_main.dock) return _main.shell;
 		auto pane = workPaneKey;
-		return _main.dock.addPaneFromMemory(pane, pane, Dir.E, 3, 1, "side");
+		return _main.dock.addPaneFromCtrlMemory(pane, Dir.E, 3, 1, "side", "side");
 	}
 	private Window __openArea(A, Window)(Props prop, Summary summ, A area, UndoManager undo, bool shellActivate) {
 		if (!area) return null;

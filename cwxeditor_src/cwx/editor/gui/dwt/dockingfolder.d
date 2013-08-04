@@ -398,6 +398,34 @@ class DockingFolder(TabF, int Style) {
 
 		return addPane(pair, dir, lWeight, rWeight, newPaneKey(key));
 	}
+	/// keyを接頭辞に持つControlが存在すれば所属ペインを返す。
+	/// keyを接頭辞に持つControlが以前閉じられたものであれば元々の所属ペインを返す。
+	/// Controlが以前にも存在しないか、所属ペインが今存在しなければペインを追加する。
+	Composite addPaneFromCtrlMemory(string base, Dir dir, int lWeight, int rWeight, string paneKey, string ctrlKey) {
+		auto s = findPane2(paneKey);
+		if (s) return s;
+		auto cs = findCtrl(ctrlKey);
+		if (cs.length) {
+			return tab(cs[0]).getParent();
+		}
+
+		auto preKey = prefix(ctrlKey);
+		auto memory = preKey in _cMemories;
+		scope (exit) {
+			if (memory) _cMemories.remove(preKey);
+		}
+		if (memory) {
+			paneKey = memory.pane;
+			dir = memory.dir;
+			base = memory.pairPane;
+			lWeight = memory.lWeight;
+			rWeight = memory.rWeight;
+		}
+		auto pane = findPane2(paneKey);
+		if (pane) return pane;
+
+		return addPaneFromMemory(base, base, dir, lWeight, rWeight, paneKey);
+	}
 	/// Controlを追加する。
 	/// ctrlの親は必ずこのインスタンスに含まれるペインでなくてはならない。
 	void add(Control ctrl, string tabText, string key, bool select = false, NewCtrlLocation loc = NewCtrlLocation.Last) {

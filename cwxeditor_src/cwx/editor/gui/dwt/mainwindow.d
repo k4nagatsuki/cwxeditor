@@ -1999,15 +1999,21 @@ public:
 						|| std.string.startsWith(key, "side");
 				}
 				bool isSystemCtrlName(string key) {
-					return std.string.startsWith(key, "data")
-						|| std.string.startsWith(key, "flag")
-						|| std.string.startsWith(key, "card")
-						|| std.string.startsWith(key, "castCard")
-						|| std.string.startsWith(key, "skillCard")
-						|| std.string.startsWith(key, "itemCard")
-						|| std.string.startsWith(key, "beastCard")
-						|| std.string.startsWith(key, "infoCard")
-						|| std.string.startsWith(key, "file");
+					if (std.string.startsWith(key, "data")
+							|| std.string.startsWith(key, "flag")
+							|| std.string.startsWith(key, "card")
+							|| std.string.startsWith(key, "castCard")
+							|| std.string.startsWith(key, "skillCard")
+							|| std.string.startsWith(key, "itemCard")
+							|| std.string.startsWith(key, "beastCard")
+							|| std.string.startsWith(key, "infoCard")
+							|| std.string.startsWith(key, "file")) {
+						return true;
+					}
+					if (std.string.startsWith(key, "side")) {
+						return _dock.findCtrl("side").length == 1;
+					}
+					return false;
 				}
 				void initDock() {
 					dStr ~= " - " ~ .text(__LINE__);
