@@ -286,7 +286,7 @@ class EventEditor : Composite {
 		_posTable.rehash();
 		updateScrollBar();
 		redraw();
-		if (_selected !is oldSel) {
+		if (_selected !is oldSel && _selected) {
 			callSelectChanged();
 		}
 	}

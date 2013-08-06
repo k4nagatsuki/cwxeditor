@@ -319,12 +319,6 @@ public:
 		if (italic) style |= SWT.ITALIC;
 		auto d = Display.getCurrent();
 		auto h = cast(int) (size * (72.0 / d.getDPI().y) + 0.5);
-		if (vertical && !fontName.startsWith("@")) {
-			auto fontName2 = "@" ~ fontName;
-			if (d.getFontList(fontName2, true) || d.getFontList(fontName2, false)) {
-				fontName = fontName2;
-			}
-		}
 		_fontPixelSize = size;
 		auto font = new FontData(fontName, h, style);
 		setTitle(title, font, new Point(0, 0));
