@@ -209,7 +209,7 @@ public class FlexProps {
 	DialogParam!("inputEventDialog") inputEvtDlg;
 	DialogParam!("selectEventDialog") selEvtDlg;
 	DialogParam!("scriptDialog", 400, 300) scriptDlg;
-	DialogParam!("commentDialog", 300, 200) commentDlg;
+	DialogParam!("commentDialog", 350, 200, 2013080800) commentDlg;
 	WindowProps!("dialogPreview", SWT.DEFAULT, 500) dlgPrev;
 	WindowProps!("messagePreview", SWT.DEFAULT, 500) msgPrev;
 	WindowProps!("scriptVariablesDialog", 400, 400) scriptVarSetDlg;

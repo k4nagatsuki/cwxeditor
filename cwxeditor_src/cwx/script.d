@@ -80,7 +80,7 @@ struct CompileOption {
 
 /// スクリプトを解析し、コンテント群にして返す。
 /// 解析中にエラーがあった場合はCWXScriptExceptionを投げる。
-static Content[] compile(const(CProps) prop, const(Summary) summ, string script, in CompileOption opt) {
+Content[] compile(const(CProps) prop, const(Summary) summ, string script, in CompileOption opt) {
 	auto compiler = new CWXScript(prop, summ, script);
 	auto tokens = compiler.tokenize(script, opt);
 	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors, false);
@@ -89,6 +89,25 @@ static Content[] compile(const(CProps) prop, const(Summary) summ, string script,
 	auto r = compiler.analyzeSemantics(nodes, opt);
 	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors, false);
 	return r;
+}
+
+/// スクリプトに含まれる最初のイベントコンテントのタイプを返す。
+/// タイプが検出できない場合は-1を返す。
+CType firstContentType(const(CProps) prop, const(Summary) summ, string script) {
+	CompileOption opt;
+	auto compiler = new CWXScript(prop, summ, script);
+	auto tokens = compiler.tokenize(script, opt);
+	if (compiler.errors.length) return cast(CType)-1;
+	foreach (ref token; tokens) {
+		if (token.kind is CWXScript.Kind.START) return CType.START;
+		if (token.kind is CWXScript.Kind.SYMBOL) {
+			auto p = token.value.toLower() in CWXScript.KEYS.keywords;
+			if (p) {
+				return *p;
+			}
+		}
+	}
+	return cast(CType)-1;
 }
 
 /// スクリプトからコンテントツリーを生成する。

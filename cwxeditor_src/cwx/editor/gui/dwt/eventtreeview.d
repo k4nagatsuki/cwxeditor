@@ -306,7 +306,7 @@ private:
 			}
 			v.refreshStatusLine();
 			v._refreshTopStart();
-			v._tree.control.redraw();
+			v.redraw();
 		}
 		comm.refContent.call(c);
 		comm.refUseCount.call();
@@ -569,7 +569,7 @@ private:
 		procTreeItem(itm);
 		_tree.select(itm);
 		.forceFocus(_tree.control, false);
-		_tree.control.redraw();
+		redraw();
 		_comm.refContent.call(c);
 		_comm.refUseCount.call();
 		refreshStatusLine();
@@ -618,7 +618,6 @@ private:
 					_tree.select(sItm);
 					_tree.showSelection();
 					.forceFocus(_tree.control, false);
-					_tree.control.redraw();
 					_comm.refContent.call(evt);
 					refreshConvMenu();
 					refreshStatusLine();
@@ -627,8 +626,12 @@ private:
 				});
 			} else {
 				if (insertTo && !CDetail.fromType(_cType).owner) return;
-				auto sels = _tree.getSelection();
-				if (insertTo || (sels.length > 0 && (cast(Content) sels[0].getData()).detail.owner)) {
+				auto sel = selection;
+				if (!insertTo && sel && !(cast(Content)sel.getData()).detail.owner) {
+					sel = _tree.getParentItem(sel);
+					if (!sel) return;
+				}
+				if (insertTo || (sel && (cast(Content)sel.getData()).detail.owner)) {
 					Item oItm;
 					int insertIndex = -1;
 					if (insertTo) {
@@ -636,7 +639,7 @@ private:
 						if (!oItm) return;
 						insertIndex = _tree.indexOf(oItm, insertTo);
 					} else {
-						oItm = sels[0];
+						oItm = sel;
 					}
 					auto owner = cast(Content) oItm.getData();
 					void applied(Content evt) {
@@ -682,7 +685,6 @@ private:
 						procTreeItem(itm);
 						_tree.showSelection();
 						.forceFocus(_tree.control, false);
-						_tree.control.redraw();
 						_comm.refContent.call(evt);
 						_comm.refUseCount.call();
 						refreshConvMenu();
@@ -1405,13 +1407,12 @@ private:
 				return;
 			}
 			if (_tree.tree) {
-				e.detail = (e.item && e.item && (cast(Content)e.item.getData()).detail.owner)
-					? DND.DROP_MOVE : DND.DROP_NONE;
+				e.detail = e.item ? DND.DROP_MOVE : DND.DROP_NONE;
 			} else {
 				auto p = _tree.editor.toControl(new Point(e.x, e.y));
 				auto c = _tree.editor.getContent(p.x, p.y);
 				_tree.editor.updateLightup();
-				e.detail = (c && c.detail.owner) ? DND.DROP_MOVE : DND.DROP_NONE;
+				e.detail = c ? DND.DROP_MOVE : DND.DROP_NONE;
 			}
 		}
 	public:
@@ -1432,7 +1433,12 @@ private:
 				e.item = EventEditorItem.valueOf(_tree.editor, c);
 			}
 			assert (cast(Item)e.item);
-			if ((cast(Content)e.item.getData()).detail.owner) {
+			auto ti = cast(Item)e.item;
+			if (!(cast(Content)ti.getData()).detail.owner) {
+				ti = _tree.getParentItem(ti);
+				if (!ti) return;
+			}
+			if ((cast(Content)ti.getData()).detail.owner) {
 				try {
 					auto node = XNode.parse(bytesToXML(e.data));
 					bool samePane = _id == node.attr("paneId", false, "");
@@ -1441,9 +1447,8 @@ private:
 					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 					auto evt = Content.createFromNode(node, ver);
 					if (evt) {
-						auto owner = cast(Content) e.item.getData();
+						auto owner = cast(Content)ti.getData();
 						assert (owner.detail.owner);
-						auto ti = cast(Item)e.item;
 						auto sp = selParent(ti);
 						if (!sp || sp.eventId != id) {
 							// 転送先が自分の子コンテントではないなら転送成功
@@ -1469,7 +1474,6 @@ private:
 							} else {
 								owner.add(_prop.parent, evt);
 							}
-							_tree.control.redraw();
 							_comm.refContent.call(evt);
 							_tree.control.setRedraw(false);
 							Item itm;
@@ -1546,20 +1550,14 @@ private:
 		void create(SelectionEvent e) {
 			if (_readOnly) return;
 			if (_itm.getSelection()) {
-				_v._comp.setCursor(_cursor);
-
 				auto itm = _v.selection;
 				if (_v._putMode is MenuID.PutQuick && itm) {
-					_v._cType = type;
-					_v._evtTI = _itm;
-					this.outer.create(_v._shiftDown ? itm : null);
-					_v.clearClickStart();
-					_v.arrow();
-					_itm.setSelection(false);
+					putQuick(_v._shiftDown);
 					if (e) e.doit = false;
 					return;
 				}
 
+				_v._comp.setCursor(_cursor);
 				if (_v._toolWin && !_v._toolWin.isDisposed()) {
 					_v._toolWin.setCursor(_cursor);
 				}
@@ -1574,9 +1572,34 @@ private:
 				_v._comm.selContentTool.call(_v._arrowMode, _v._cType, _v._putMode, _v._autoOpen, _v._insertFirst);
 			}
 		}
+		void middleClick() { putQuick(true); }
+		private void putQuick(bool insert) {
+			if (_readOnly) return;
+			auto itm = _v.selection;
+			if (_v._putMode !is MenuID.PutQuick || !itm) return;
+			_v._cType = type;
+			_v._evtTI = _itm;
+			this.outer.create(insert ? itm : null);
+			_v.clearClickStart();
+			_v.arrow();
+			_itm.setSelection(false);
+		}
 		@property
 		void ti(ToolItem ti) {
 			_itm = ti;
+			auto listener = new class MouseAdapter {
+				override void mouseUp(MouseEvent e) {
+					if (e.button != 2) return;
+					auto itm = _itm.getParent().getItem(new Point(e.x, e.y));
+					if (itm is _itm) {
+						middleClick();
+					}
+				}
+			};
+			_itm.getParent().addMouseListener(listener);
+			.listener(_itm, SWT.Dispose, {
+				_itm.getParent().removeMouseListener(listener);
+			});
 		}
 		@property
 		ToolItem ti() {return _itm;}
@@ -1606,9 +1629,9 @@ private:
 			procTreeItem(sel);
 			refreshConvMenu();
 			refreshStatusLine();
+			redraw();
 			_comm.refUseCount.call();
 			_comm.refreshToolBar();
-			_tree.control.redraw();
 		}
 	}
 	ToolItem createEI(CType type, ToolBar bar, RadioGroup!(ToolItem) g) {
@@ -1757,7 +1780,11 @@ private:
 		}
 	}
 	void redraw() {
-		_tree.control.redraw();
+		if (_tree.editor) {
+			_tree.editor.updateEventTree();
+		} else {
+			_tree.control.redraw();
+		}
 	}
 	class TRDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) {
@@ -1840,11 +1867,20 @@ private:
 	}
 	private class PutScript {
 		private string _script;
+		private Image _img = null;
 		this (string script) {
 			_script = script;
+			auto type = cwx.script.firstContentType(_prop.parent, _summ, _script);
+			if (type != -1) {
+				_img = _prop.images.content(type);
+			}
 		}
 		void put(SelectionEvent se) {
 			pasteScript(_script, (se.stateMask & SWT.SHIFT) != 0);
+		}
+		@property
+		Image image() {
+			return _img;
 		}
 	}
 	void refreshTemplates() {
@@ -1855,7 +1891,7 @@ private:
 		foreach (t; _prop.var.etc.eventTemplates) {
 			// 設定でコンパイルオプションが変化する可能性があるため事前コンパイルは行わない
 			auto c = new PutScript(t.script);
-			createMenuItem2(_comm, _templMenu, t.name, null, &c.put, () => _et !is null);
+			createMenuItem2(_comm, _templMenu, t.name, c.image, &c.put, () => _et !is null);
 		}
 		_templTI.setEnabled(0 < _templMenu.getItemCount());
 	}
@@ -2489,7 +2525,6 @@ public:
 			return;
 		}
 		auto dlg = new ContentCommentDialog(_comm, _prop, _tree.control.getShell(), c.parent, c);
-		dlg.appliedEvent ~= &redraw;
 		auto undo = new UndoContent(this, _comm, _prop, _summ, _et, [c]);
 		dlg.appliedEvent ~= {
 			_undo ~= undo;
@@ -2748,7 +2783,7 @@ public:
 			itm.setText(combo.getText());
 		}
 		procTreeItem(itm);
-		_tree.control.redraw();
+		redraw();
 		_comm.refContent.call(evt);
 		refreshStatusLine();
 		_comm.refreshToolBar();
@@ -3192,24 +3227,24 @@ public:
 
 	void refreshTreeName() {
 		_tree.getItems()[0].setText(_et.name);
-		_tree.control.redraw();
+		redraw();
 		refreshStatusLine();
 	}
 
 	@property
-	private Content insertOwner(bool tryInsert) {
-		auto itm = selection;
+	private Content insertOwner(bool tryInsert, ref Item itm) {
 		if (!itm) return null;
-		auto owner = cast(Content) itm.getData();
+		auto owner = cast(Content)itm.getData();
 		assert (owner);
 		if (tryInsert || owner.detail.owner) return owner;
-		return null;
+		itm = _tree.getParentItem(itm);
+		return owner.parent;
 	}
 	private void addContents(bool stored, Content[] cs, Content[] refCS, bool tryInsert, string lastNextType = "") {
 		if (_readOnly) return;
 		auto itm = selection;
 		if (!itm) return;
-		auto owner = insertOwner(tryInsert);
+		auto owner = insertOwner(tryInsert, itm);
 		if (!owner) return;
 		bool empty = _et.owner.isEmpty;
 		scope (exit) {
@@ -3310,7 +3345,6 @@ public:
 		}
 		_tree.setSelection([lastItm]);
 		_tree.showSelection();
-		_tree.control.redraw();
 		_comm.refUseCount.call();
 		refreshStatusLine();
 		_comm.refreshToolBar();
@@ -3385,7 +3419,6 @@ public:
 		if (!sItm) return;
 		if (lastItm) _tree.setSelection([lastItm]);
 		_tree.showSelection();
-		_tree.control.redraw();
 		_comm.refUseCount.call();
 		refreshStatusLine();
 		_comm.refreshToolBar();
@@ -3550,6 +3583,7 @@ public:
 				} else {
 					addContents(true, [evt], [], tryInsert, lastNextType);
 				}
+				redraw();
 				_comm.refreshToolBar();
 				return;
 			} catch (Exception e) {
@@ -3612,7 +3646,8 @@ public:
 		int si = insertStartIndex;
 		bool s = starts.length > 0;
 		if (s) tryInsert = false;
-		auto owner = insertOwner(tryInsert);
+		auto sel = selection;
+		auto owner = insertOwner(tryInsert, sel);
 		bool c = contents.length && owner;
 		if (s && c) {
 			storeContentAndInsert(owner, si, starts.length);
@@ -3625,6 +3660,7 @@ public:
 		} else {
 			return;
 		}
+		redraw();
 		_comm.refreshToolBar();
 	}
 	private void delImpl(Item itm, bool store) {
