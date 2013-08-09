@@ -1522,6 +1522,7 @@ class Msgs : Properties {
 	auto languageCaution = Msg("languageCaution", "※ 次回起動時から適用されます");
 
 	auto singleWindow = Msg("singleWindow", "シングルウィンドウモード(再起動後に反映されます)");
+	auto showSummaryInAreaTable = Msg("showSummaryInAreaTable", "テーブルビューにシナリオの概要を表示する");
 	auto clickIsOpenEvent = Msg("clickIsOpenEvent", "左クリックでイベントビューを開く");
 	auto smoothingCard = Msg("smoothingCard", "カードのサイズ変更時にスムージングを行う");
 	auto showImagePreview = Msg("showImagePreview", "カードや背景のプレビュー表示を行う");

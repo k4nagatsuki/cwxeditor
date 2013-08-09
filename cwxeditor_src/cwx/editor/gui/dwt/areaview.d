@@ -1681,6 +1681,7 @@ private:
 		}
 		_flagList.showSelection();
 		_flagList.setEnabled(0 < _flagList.getItemCount());
+		_flagAllCheck.setEnabled(0 < _flagList.getItemCount());
 		updateFlagChecks();
 	}
 	void openFlagView() {

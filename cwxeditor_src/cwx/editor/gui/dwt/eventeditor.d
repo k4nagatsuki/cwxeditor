@@ -169,7 +169,7 @@ class EventEditor : Composite {
 		hbar.setMinimum(0);
 		hbar.setMaximum(32);
 		hbar.setSelection(0);
-		hbar.setIncrement(32);
+		hbar.setIncrement(16);
 		hbar.setPageIncrement(32);
 		hbar.setThumb(32);
 		.listener(this, SWT.Resize, &updateScrollBar);
@@ -799,15 +799,24 @@ class EventEditor : Composite {
 		}
 		if (_selected && _selected in _posTable) {
 			// 選択中マーク
+			// FIXME: e.gcで直接描画するとフォーカス線が出ない場合がある
+			//        一度でもキー操作をすると改善するが、確実に回避する
+			//        ためには別のGCを作成して描画を行う必要がある
+			auto buf = new Image(d, e.width, _lineHeight + 1);
+			scope (exit) buf.dispose();
+			auto gc = new GC(buf);
+			scope (exit) gc.dispose();
+
 			auto pos = _posTable[_selected];
-			e.gc.setBackground(_selectedColor);
-			scope (exit) e.gc.setBackground(getBackground());
-			e.gc.fillRectangle(e.x, pos.y - sy, e.width, _lineHeight + 1);
+			gc.setBackground(_selectedColor);
+			scope (exit) gc.setBackground(getBackground());
+			gc.fillRectangle(0, 0, e.width, _lineHeight + 1);
 			if (isFocusControl()) {
-				e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
+				gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 				auto cw = .max(ca.width, _widthSum + _comm.prop.var.etc.detailAreaWidth);
-				e.gc.drawFocus(2 - sx, pos.y - sy + 2, cw - 4, _lineHeight + 1 - 4);
+				gc.drawFocus(2 - sx, 2, cw - 4, _lineHeight + 1 - 4);
 			}
+			e.gc.drawImage(buf, e.x, pos.y - sy);
 		}
 
 		// イベントコンテントを結ぶ線

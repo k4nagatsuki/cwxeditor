@@ -10,8 +10,10 @@ import cwx.card;
 import cwx.path;
 import cwx.system;
 
-import std.math;
+import std.array;
 import std.conv;
+import std.math;
+import std.string;
 
 /// エリア等の所持者を示すインタフェース。
 interface AreaOwner : CWXPath {
@@ -629,6 +631,36 @@ public:
 	void name(string name) {
 		if (_name != name) changed();
 		_name = name;
+	}
+
+	/// 名前を'\'で分割してディレクトリ構造と看做した時、
+	/// このエリアが属するディレクトリ名。
+	@property
+	string dirName() {
+		int i = .lastIndexOf(_name, '\\');
+		if (i == -1) return "";
+		return _name[0 .. i];
+	}
+	/// ditto
+	@property
+	void dirName(string name) {
+		if (name != "" && name[$ - 1] != '\\') name ~= "\\";
+		_name = name ~ baseName;
+	}
+
+	/// 名前を'\'で分割してディレクトリ構造と看做した時、
+	/// このエリアからディレクトリパスを除いた名前。
+	@property
+	string baseName() {
+		int i = .lastIndexOf(_name, '\\');
+		if (i == -1) return _name;
+		return _name[i + 1 .. $];
+	}
+	/// ditto
+	@property
+	void baseName(string name) {
+		name = name.replace("\\", "");
+		_name = _name[0 .. $ - baseName.length] ~ name;
 	}
 
 	const

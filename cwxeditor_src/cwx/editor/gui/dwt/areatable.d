@@ -175,6 +175,15 @@ private:
 		return 0 < c;
 	}
 
+	private static void saveIDs(Summary summ, out ulong[] areaIDs, out ulong[] battleIDs, out ulong[] packageIDs) {
+		areaIDs.length = 0;
+		foreach (a; summ.areas) areaIDs ~= a.id;
+		battleIDs.length = 0;
+		foreach (a; summ.battles) battleIDs ~= a.id;
+		packageIDs.length = 0;
+		foreach (a; summ.packages) packageIDs ~= a.id;
+	}
+
 	static class ATUndo : Undo {
 		protected AreaTable _v = null;
 		protected Commons comm;
@@ -199,12 +208,7 @@ private:
 			saveIDs(v);
 		}
 		private void saveIDs(AreaTable v) {
-			_areaIDs.length = 0;
-			foreach (a; summ.areas) _areaIDs ~= a.id;
-			_battleIDs.length = 0;
-			foreach (a; summ.battles) _battleIDs ~= a.id;
-			_packageIDs.length = 0;
-			foreach (a; summ.packages) _packageIDs ~= a.id;
+			AreaTable.saveIDs(summ, _areaIDs, _battleIDs, _packageIDs);
 			if (v && v._areas && !v._areas.isDisposed()) {
 				v.getSelectionInfo(_sel, _selType);
 			}
@@ -386,29 +390,41 @@ private:
 		ulong id;
 		TypeInfo type;
 		getInfo(index, id, type);
+		storeEdit(id, type);
+	}
+	void storeEdit(ulong id, TypeInfo type) {
 		_undo ~= new UndoEdit(this, _comm, _summ, id, type);
 	}
 	static class UndoMove : ATUndo {
-		private int _from, _to;
-		this (AreaTable v, Commons comm, Summary summ, int from, int to) {
+		private int _removeIndex, _insertIndex;
+		private TypeInfo _type;
+		this (AreaTable v, Commons comm, Summary summ, int removeIndex, int insertIndex, TypeInfo type) {
 			super (v, comm, summ);
-			_from = from;
-			_to = to;
+			_removeIndex = removeIndex;
+			_insertIndex = insertIndex;
+			if (_removeIndex < _insertIndex) _insertIndex--;
+			_type = type;
 		}
 		private void impl() {
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			auto area = areaFromIndex(summ, _to);
-			int from = _from;
-			if (_to <= from) from++;
-			auto a = cast(Area) area;
-			if (a) summ.insert(toAreaIndex(summ, from), a);
-			auto b = cast(Battle) area;
-			if (b) summ.insert(toBattleIndex(summ, from), b);
-			auto p = cast(Package) area;
-			if (p) summ.insert(toPackageIndex(summ, from), p);
-			std.algorithm.swap(_from, _to);
+
+			int removeIndex = _removeIndex;
+			int insertIndex = _insertIndex;
+			if (insertIndex < removeIndex) removeIndex++;
+			if (_type is typeid(Area)) {
+				auto a = summ.areas[insertIndex];
+				summ.insert(removeIndex, a);
+			} else if (_type is typeid(Battle)) {
+				auto a = summ.battles[insertIndex];
+				summ.insert(removeIndex, a);
+			} else if (_type is typeid(Package)) {
+				auto a = summ.packages[insertIndex];
+				summ.insert(removeIndex, a);
+			}
+
+			std.algorithm.swap(_removeIndex, _insertIndex);
 		}
 		override void undo() {
 			impl();
@@ -418,9 +434,9 @@ private:
 		}
 		override void dispose() {}
 	}
-	void storeMove(int from, int to) {
+	void storeMove(int removeIndex, int insertIndex, TypeInfo type) {
 		assert (_areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column);
-		_undo ~= new UndoMove(this, _comm, _summ, from, to);
+		_undo ~= new UndoMove(this, _comm, _summ, removeIndex, insertIndex, type);
 	}
 	static class UndoSwap : ATUndo {
 		private int _index1, _index2;
@@ -477,13 +493,16 @@ private:
 		private bool _isStartArea = false;
 		private int _delIndex = -1;
 
-		this (AreaTable v, Commons comm, Summary summ, ulong id, TypeInfo type, bool insert) {
+		this (AreaTable v, Commons comm, Summary summ, ulong id, TypeInfo type, bool insert, ulong[] a, ulong[] b, ulong[] p) {
 			super (v, comm, summ);
 			_insert = insert;
 			_id = id;
 			_type = type;
-
-			if (!insert) {
+			if (insert) {
+				_areaIDs = a;
+				_battleIDs = b;
+				_packageIDs = p;
+			} else {
 				initUndoDelete();
 			}
 		}
@@ -586,14 +605,14 @@ private:
 			}
 		}
 	}
-	void storeInsert(ulong id, TypeInfo type) {
-		_undo ~= new UndoInsertDelete(this, _comm, _summ, id, type, true);
+	void storeInsert(ulong id, TypeInfo type, ulong[] a, ulong[] b, ulong[] p) {
+		_undo ~= new UndoInsertDelete(this, _comm, _summ, id, type, true, a, b, p);
 	}
 	void storeDelete(int index) {
 		ulong id;
 		TypeInfo type;
 		getInfo(index, id, type);
-		_undo ~= new UndoInsertDelete(this, _comm, _summ, id, type, false);
+		_undo ~= new UndoInsertDelete(this, _comm, _summ, id, type, false, [], [], []);
 	}
 
 	void editEnd(TableItem itm, int column, string newText) {
@@ -626,6 +645,9 @@ private:
 	private static const NAME = 1;
 	private static const UC = 2;
 
+	bool _dirMode = false;
+	string _dir = "";
+
 	Commons _comm;
 	Props _prop;
 	FlagTable _flags = null;
@@ -654,22 +676,38 @@ private:
 			s ~= .tryFormat(_prop.msgs.areaStatus, name, count);
 		}
 		if (_summ) {
-			put(_prop.msgs.area, _summ.areas.length);
-			put(_prop.msgs.battle, _summ.battles.length);
-			put(_prop.msgs.cwPackage, _summ.packages.length);
+			put(_prop.msgs.area, areaCount);
+			put(_prop.msgs.battle, battleCount);
+			put(_prop.msgs.cwPackage, packageCount);
 		}
 		_statusLine = s;
 		_comm.setStatusLine(_areas, _statusLine);
 	}
+	size_t count(A)(A[] areas) {
+		if (_dirMode) {
+			size_t n = 0;
+			foreach (a; _summ.areas) {
+				if (icmp(a.dirName, _dir)) n++;
+			}
+			return n;
+		} else {
+			return areas.length;
+		}
+	}
+	@property
+	size_t areaCount() { return count(_summ.areas); }
+	@property
+	size_t battleCount() { return count(_summ.battles); }
+	@property
+	size_t packageCount() { return count(_summ.packages); }
 
 	void getSelectionInfo(out ulong id, out TypeInfo type) {
 		getInfo(_areas.getSelectionIndex(), id, type);
 	}
 	void getInfo(int index, out ulong id, out TypeInfo type) {
-		if (index == -1) {
-			id = 0;
-			type = null;
-		} else {
+		id = 0;
+		type = null;
+		if (0 <= index) {
 			auto d = _areas.getItem(index).getData();
 			auto a = cast(Area) d;
 			if (a) {
@@ -689,7 +727,7 @@ private:
 		}
 	}
 	void selectFromInfo(ulong id, in TypeInfo type) {
-		AbstractArea area = null;
+		Object area = null;
 		if (type is typeid(Area)) {
 			area = _summ.area(id);
 		} else if (type is typeid(Battle)) {
@@ -697,7 +735,7 @@ private:
 		} else if (type is typeid(Package)) {
 			area = _summ.cwPackage(id);
 		} else {
-			return;
+			area = _summ;
 		}
 		foreach (i, itm; _areas.getItems()) {
 			if (itm.getData() is area) {
@@ -718,26 +756,28 @@ private:
 	}
 	TableItem getItemFrom(ulong id, TypeInfo type) {
 		if (type is typeid(Area)) {
-			int s = 1;
 			foreach (itm; _areas.getItems()) {
 				if (cast(Area)itm.getData() && (cast(AbstractArea)itm.getData()).id == id) {
 					return itm;
 				}
 			}
+			return null;
 		} else if (type is typeid(Battle)) {
 			foreach (itm; _areas.getItems()) {
 				if (cast(Battle)itm.getData() && (cast(AbstractArea)itm.getData()).id == id) {
 					return itm;
 				}
 			}
+			return null;
 		} else if (type is typeid(Package)) {
 			foreach (itm; _areas.getItems()) {
 				if (cast(Package)itm.getData() && (cast(AbstractArea)itm.getData()).id == id) {
 					return itm;
 				}
 			}
-		} else assert (0);
-		return null;
+			return null;
+		}
+		return showSummary ? _areas.getItem(0) : null;
 	}
 
 	static int toIndexFrom(Summary summ, ulong id, TypeInfo type) {
@@ -757,7 +797,6 @@ private:
 		return -1;
 	}
 	static int toIndex(A)(Summary summ, int index) {
-		index = index - 1;
 		static if (is(A : Area)) {
 			return index;
 		} else static if (is(A : Battle)) {
@@ -770,20 +809,20 @@ private:
 	alias toIndex!Battle toBattleIndex;
 	alias toIndex!Package toPackageIndex;
 	static AbstractArea areaFromIndex(Summary summ, int index) {
-		if (summ.areas.length + summ.battles.length <= index - 1) {
+		if (summ.areas.length + summ.battles.length <= index) {
 			return summ.packages[toPackageIndex(summ, index)];
 		}
-		if (summ.areas.length <= index - 1) {
+		if (summ.areas.length <= index) {
 			return summ.battles[toBattleIndex(summ, index)];
 		}
-		if (0 <= index - 1) {
+		if (0 <= index) {
 			return summ.areas[toAreaIndex(summ, index)];
 		}
 		return null;
 	}
 	AbstractArea getSelectionArea() {
 		auto i = _areas.getSelectionIndex();
-		if (0 < i) {
+		if (0 <= i) {
 			return cast(AbstractArea) _areas.getItem(i).getData();
 		}
 		return null;
@@ -849,14 +888,15 @@ private:
 		AbstractArea _data;
 		override void dragStart(DragSourceEvent e) {
 			auto tbl = cast(Table) (cast(DragSource) e.getSource()).getControl();
-			e.doit = tbl.isFocusControl() && 0 < tbl.getSelectionIndex();
+			e.doit = tbl.isFocusControl() && 0 <= tbl.getSelectionIndex() && cast(AbstractArea)tbl.getSelection()[0].getData();
 		}
 		override void dragSetData(DragSourceEvent e) {
 			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
 				auto tbl = cast(Table) (cast(DragSource) e.getSource()).getControl();
 				int i = tbl.getSelectionIndex();
-				assert (0 < i);
-				_data = cast(AbstractArea) tbl.getItem(i).getData();
+				assert (0 <= i);
+				_data = cast(AbstractArea)tbl.getItem(i).getData();
+				assert (_data !is null);
 				e.data = bytesFromXML(_data.toXML(new XMLOption(_prop.sys), _summ.id));
 			}
 		}
@@ -878,14 +918,25 @@ private:
 			}
 		}
 	}
+	@property
+	bool showSummary() {
+		if (!_areas || _areas.isDisposed()) return false;
+		return 0 < _areas.getItemCount() && cast(Summary)_areas.getItem(0).getData();
+	}
+	@property
+	int countAllAreas() {
+		auto c = areaCount + battleCount + packageCount;
+		if (showSummary) {
+			return 1 + c;
+		}
+		return c;
+	}
 	class DropArea : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){
-			e.detail = _areas.getItemCount() == 1 + _summ.areas.length + _summ.battles.length + _summ.packages.length
-				? DND.DROP_MOVE : DND.DROP_NONE;
+			e.detail = _areas.getItemCount() == countAllAreas ? DND.DROP_MOVE : DND.DROP_NONE;
 		}
 		override void dragOver(DropTargetEvent e){
-			e.detail = _areas.getItemCount() == 1 + _summ.areas.length + _summ.battles.length + _summ.packages.length
-				? DND.DROP_MOVE : DND.DROP_NONE;
+			e.detail = _areas.getItemCount() == countAllAreas ? DND.DROP_MOVE : DND.DROP_NONE;
 		}
 		override void drop(DropTargetEvent e){
 			if (!isXMLBytes(e.data)) return;
@@ -904,133 +955,100 @@ private:
 					return;
 				}
 
+				bool sortedID = _areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column;
 				auto tbl = cast(Table) (cast(DropTarget) e.getSource()).getControl();
 				auto toItm = tbl.getItem(tbl.toControl(e.x, e.y));
-				int count = tbl.getItemCount();
-				int index = toItm ? tbl.indexOf(toItm) : count;
-				bool sortedID = _areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column;
-				int revId(int index) {
-					index -= 1;
-					if (tid == typeid(Area)) {
-						if (!sortedID) return _summ.areas.length;
-						if (cast(int)_summ.areas.length < index) {
+				Object toData = toItm ? toItm.getData() : null;
+				int getIndex(AbstractArea area) {
+					int index;
+					if (auto a = cast(Area)area) {
+						if (toItm && cast(Summary)toData) {
+							index = 0;
+						} else if (!toItm || cast(Battle)toData || cast(Package)toData) {
 							index = _summ.areas.length;
-						}
-					} else if (tid == typeid(Battle)) {
-						if (!sortedID) return _summ.battles.length;
-						index -= _summ.areas.length;
-						if (index < 0) {
-							index = 0;
-						} else if (cast(int)_summ.battles.length < index) {
-							index = _summ.battles.length;
-						}
-					} else {
-						assert (tid == typeid(Package));
-						if (!sortedID) return _summ.packages.length;
-						index -= _summ.areas.length + _summ.battles.length;
-						if (index < 0) {
-							index = 0;
-						} else if (cast(int)_summ.packages.length < index) {
-							index = _summ.packages.length;
-						}
-					}
-					if (sortedID && _areas.getSortDirection() is SWT.DOWN) {
-						// 処理を単純化するため、ID昇順でソートされた
-						// 状態に対して移動処理を行う
-						if (tid == typeid(Area)) {
-							index = _summ.areas.length - index;
-						} else if (tid == typeid(Battle)) {
-							index = _summ.battles.length - index;
 						} else {
-							assert (tid == typeid(Package));
-							index = _summ.packages.length - index;
+							index = _summ.indexOf(cast(Area)toData);
 						}
-					}
+					} else if (auto a = cast(Battle)area) {
+						if (toItm && (cast(Summary)toData || cast(Area)toData)) {
+							index = 0;
+						} else if (!toItm || cast(Package)toData) {
+							index = _summ.battles.length;
+						} else {
+							index = _summ.indexOf(cast(Battle)toData);
+						}
+					} else if (auto a = cast(Package)area) {
+						if (toItm && (cast(Summary)toData || cast(Area)toData || cast(Battle)toData)) {
+							index = 0;
+						} else if (!toItm) {
+							index = _summ.packages.length;
+						} else {
+							index = _summ.indexOf(cast(Package)toData);
+						}
+					} else assert (0);
 					return index;
 				}
 				if (_summ.id == AbstractArea.summaryId(node)) {
 					// 同一リスト内で移動
 					if (!sortedID) return;
-					index = revId(index);
 					int fromIndex = tbl.getSelectionIndex();
-					if (fromIndex < 1) return;
+					if (showSummary && fromIndex < 1) return;
 
-					if (_areas.getSortDirection() is SWT.DOWN) {
-						if (index < revId(fromIndex)) {
-							index--;
-						}
-					} else {
-						if (revId(fromIndex) < index) {
-							index++;
-						}
+					auto area = cast(AbstractArea)tbl.getItem(fromIndex).getData();
+					int index = getIndex(area);
+					void put(A)(A a) {
+						int moveIndex = _summ.indexOf(a);
+						if (moveIndex == index) return;
+						storeMove(moveIndex, index, typeid(typeof(a)));
+						_summ.insert(index, a);
 					}
-
-					auto area = cast(AbstractArea) tbl.getItem(fromIndex).getData();
-					int toIndex;
-					int disposeIndex = fromIndex;
-					if (tid == typeid(Area)) {
-						// ID順昇順でソートされた時の位置を基準にアンドゥを
-						// 行うため、fromIndexを取り直す
-						fromIndex = _summ.indexOf(cast(Area) area) + 1;
-						index = .max(0, .min(cast(int)_summ.areas.length, index));
-						if (index == _summ.indexOf(cast(Area)area)) return;
-						_summ.insert(index, cast(Area) area);
-						index = _summ.indexOf(cast(Area) area);
-						tbl.getItem(disposeIndex).dispose();
-						toIndex = newAreaItem(index);
-					} else if (tid == typeid(Battle)) {
-						fromIndex = _summ.areas.length + _summ.indexOf(cast(Battle) area) + 1;
-						index = .max(0, .min(cast(int)_summ.battles.length, index));
-						if (index == _summ.indexOf(cast(Battle)area)) return;
-						_summ.insert(index, cast(Battle) area);
-						index = _summ.indexOf(cast(Battle) area);
-						tbl.getItem(disposeIndex).dispose();
-						toIndex = newBattleItem(index);
-					} else {
-						assert (tid == typeid(Package));
-						fromIndex = _summ.areas.length + _summ.battles.length + _summ.indexOf(cast(Package) area) + 1;
-						index = .max(0, .min(cast(int)_summ.packages.length, index));
-						if (index == _summ.indexOf(cast(Package)area)) return;
-						_summ.insert(index, cast(Package) area);
-						index = _summ.indexOf(cast(Package) area);
-						tbl.getItem(disposeIndex).dispose();
-						toIndex = newPackageItem(index);
-					}
-					storeMove(fromIndex, toIndex);
+					if (auto a = cast(Area)area) {
+						put(a);
+					} else if (auto a = cast(Battle)area) {
+						put(a);
+					} else if (auto a = cast(Package)area) {
+						put(a);
+					} else assert (0);
 					callRefArea(area);
-					refreshIDs(true);
+					refreshAreas();
 					sort();
+					select(area);
 					refreshStatusLine();
 					_comm.refreshToolBar();
 					e.detail = DND.DROP_NONE;
 				} else {
 					// 他のリストからのコピー
-					index = revId(index);
 					AbstractArea area;
 					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+					ulong[] a, b, p;
+					saveIDs(_summ, a, b, p);
 					if (tid == typeid(Area)) {
 						area = Area.createFromNode(node, ver);
+						int index = getIndex(area);
 						_summ.insert(index, cast(Area) area);
-						storeInsert(area.id, tid);
+						storeInsert(area.id, tid, a, b, p);
 						index = _summ.indexOf(cast(Area) area);
 						newAreaItem(index);
 					} else if (tid == typeid(Battle)) {
 						area = Battle.createFromNode(node, ver);
+						int index = getIndex(area);
 						_summ.insert(index, cast(Battle) area);
-						storeInsert(area.id, tid);
+						storeInsert(area.id, tid, a, b, p);
 						index = _summ.indexOf(cast(Battle) area);
 						newBattleItem(index);
 					} else {
 						assert (tid == typeid(Package));
 						area = Package.createFromNode(node, ver);
+						int index = getIndex(area);
 						_summ.insert(index, cast(Package) area);
-						storeInsert(area.id, tid);
+						storeInsert(area.id, tid, a, b, p);
 						index = _summ.indexOf(cast(Package) area);
 						newPackageItem(index);
 					}
 					e.detail = DND.DROP_NONE;
 					refreshIDs(true);
 					sort();
+					select(area);
 					_comm.refUseCount.call();
 					refreshStatusLine();
 					_comm.refreshToolBar();
@@ -1049,14 +1067,13 @@ private:
 		return -1;
 	}
 	void __refreshUseCount() {
-		foreach (itm; _areas.getItems()[1 .. $]) {
+		foreach (itm; _areas.getItems()) {
 			auto element = itm.getData();
 			if (cast(Area) element) {
 				itm.setText(2, to!(string)(_summ.useCounter.area.get(toAreaId((cast(AbstractArea) element).id))));
 			} else if (cast(Battle) element) {
 				itm.setText(2, to!(string)(_summ.useCounter.battle.get(toBattleId((cast(AbstractArea) element).id))));
-			} else {
-				assert (cast(Package) element);
+			} else if (cast(Package) element) {
 				itm.setText(2, to!(string)(_summ.useCounter.packages.get(toPackageId((cast(AbstractArea) element).id))));
 			}
 		}
@@ -1065,7 +1082,7 @@ private:
 		public override void mouseDown(MouseEvent e) {
 			if (e.button == 2) {
 				auto itm = _areas.getItem(new Point(e.x, e.y));
-				if (itm && 0 == _areas.indexOf(itm)) {
+				if (itm && cast(Summary)itm.getData()) {
 					editSummary();
 				} else {
 					if (_prop.var.etc.clickIsOpenEvent) {
@@ -1079,7 +1096,7 @@ private:
 		public override void mouseDoubleClick(MouseEvent e) {
 			if (_areas.isFocusControl() && e.button == 1) {
 				auto itm = _areas.getItem(new Point(e.x, e.y));
-				if (itm && 0 == _areas.indexOf(itm)) {
+				if (itm && cast(Summary)itm.getData()) {
 					editSummary();
 				} else {
 					bool shift = 0 != (e.stateMask & SWT.SHIFT);
@@ -1096,7 +1113,9 @@ private:
 	class KListener : KeyAdapter {
 		public override void keyPressed(KeyEvent e) {
 			if (_areas.isFocusControl() && e.character == SWT.CR) {
-				if (0 == _areas.getSelectionIndex()) {
+				auto sel = _areas.getSelectionIndex();
+				if (sel == -1) return;
+				if (cast(Summary)_areas.getItem(sel).getData()) {
 					editSummary();
 				} else {
 					bool shift = 0 != (e.stateMask & SWT.SHIFT);
@@ -1120,6 +1139,7 @@ private:
 			_comm.refScenario.remove(&refScenario);
 			_comm.refScenarioName.remove(&refScenarioName);
 			_comm.refUndoMax.remove(&refUndoMax);
+			_comm.refAreaTable.remove(&refreshAreas);
 		}
 	}
 	private void refreshAreas() {
@@ -1127,10 +1147,11 @@ private:
 		int topIndex = _areas.getTopIndex();
 		auto sel = _areas.getSelectionIndex();
 		if (_summ) {
-			if (!_areas.getItemCount()) {
-				newSummaryItem();
+			size_t i = 0;
+			if (_prop.var.etc.showSummaryInAreaTable) {
+				refSummary();
+				i++;
 			}
-			size_t i = 1;
 			foreach (a; _summ.areas) {
 				if (!_incSearch.match(a.name, a)) continue;
 				refData2(a, i < _areas.getItemCount() ? _areas.getItem(i) : new TableItem(_areas, SWT.NONE));
@@ -1160,13 +1181,18 @@ private:
 		_areas.showSelection();
 		refreshStatusLine();
 	}
-	void newSummaryItem() {
+	void refSummary() {
 		if (!_summ) return;
-		auto itm = new TableItem(_areas, SWT.NONE, 0);
+		TableItem itm;
+		if (_areas.getItemCount()) {
+			itm = _areas.getItem(0);
+		} else {
+			itm = new TableItem(_areas, SWT.NONE, 0);
+		}
 		itm.setImage(0, _prop.images.summary);
 		itm.setText(ID, "-");
 		itm.setText(NAME, _summ.scenarioName);
-		itm.setText(UC, "1");
+		itm.setText(UC, "-");
 		itm.setData(_summ);
 	}
 	void item(AbstractArea a, Image img, int uc, int index = -1) {
@@ -1203,28 +1229,30 @@ private:
 	private int newAreaItem(int index) {
 		_incSearch.close();
 		auto a = _summ.areas[index];
-		index++;
+		if (showSummary) index++;
 		item(a, _prop.images.area, _summ.useCounter.get(toAreaId(a.id)), index);
 		return index;
 	}
 	private int newBattleItem(int index) {
 		_incSearch.close();
 		auto a = _summ.battles[index];
-		index += _summ.areas.length + 1;
+		index += _summ.areas.length;
+		if (showSummary) index++;
 		item(a, _prop.images.battle, _summ.useCounter.get(toBattleId(a.id)), index);
 		return index;
 	}
 	private int newPackageItem(int index) {
 		_incSearch.close();
 		auto a = _summ.packages[index];
-		index += _summ.areas.length + _summ.battles.length + 1;
+		index += _summ.areas.length + _summ.battles.length;
+		if (showSummary) index++;
 		item(a, _prop.images.packages, _summ.useCounter.get(toPackageId(a.id)), index);
 		return index;
 	}
 	private void addAreaItem(int index) {
 		auto a = _summ.areas[index];
 		if (!_incSearch.match(a.name, a)) return;
-		index = 1;
+		index = showSummary ? 1 : 0;
 		for (; index < _areas.getItemCount(); index++) {
 			if (!cast(Area)_areas.getItem(index).getData()) break;
 		}
@@ -1233,7 +1261,7 @@ private:
 	private void addBattleItem(int index) {
 		auto a = _summ.battles[index];
 		if (!_incSearch.match(a.name, a)) return;
-		index = 1;
+		index = showSummary ? 1 : 0;
 		for (; index < _areas.getItemCount(); index++) {
 			auto data = _areas.getItem(index).getData();
 			if (!cast(Area)data && !cast(Battle)data) break;
@@ -1257,8 +1285,10 @@ private:
 	}
 	void refScenarioName() {
 		if (!_summ) return;
-		auto itm = _areas.getItem(0);
-		itm.setText(NAME, _summ.scenarioName);
+		if (showSummary) {
+			auto itm = _areas.getItem(0);
+			itm.setText(NAME, _summ.scenarioName);
+		}
 	}
 	void refUndoMax() {
 		_undo.max = _prop.var.etc.undoMaxMainView;
@@ -1280,6 +1310,7 @@ public:
 		_comm.refScenario.add(&refScenario);
 		_comm.refScenarioName.add(&refScenarioName);
 		_comm.refUndoMax.add(&refUndoMax);
+		_comm.refAreaTable.add(&refreshAreas);
 		_areas = new Table(parent, SWT.BORDER | SWT.FULL_SELECTION);
 		_areas.addDisposeListener(new ADListener);
 		_areas.addSelectionListener(new SListener);
@@ -1310,7 +1341,8 @@ public:
 		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) {
 			createMenuItem(_comm, menu, MenuID.EditProp, {
 				int index = _areas.getSelectionIndex();
-				if (0 == index) {
+				if (index == -1) return;
+				if (cast(Summary)_areas.getItem(index).getData()) {
 					editSummary();
 				} else {
 					openAreaScene(true);
@@ -1328,7 +1360,7 @@ public:
 		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.ReNumbering, &reNumbering, () => 1 <= _areas.getSelectionIndex());
+		createMenuItem(_comm, menu, MenuID.ReNumbering, &reNumbering, () => (showSummary ? 1 : 0) <= _areas.getSelectionIndex());
 		_areas.setMenu(menu);
 
 		_areas.addMouseListener(new MListener);
@@ -1527,10 +1559,10 @@ public:
 		}
 		_summDlg = new SummaryDialog(_comm, _prop, parent.getShell(), _summ);
 		_summDlg.applyEvent ~= {
-			storeEdit(0);
+			storeEdit(0UL, null);
 		};
 		_summDlg.appliedEvent ~= {
-			refresh();
+			if (showSummary) refresh();
 		};
 		_summDlg.closeEvent ~= {
 			_summDlg = null;
@@ -1559,16 +1591,18 @@ public:
 
 	/// 新規エリアが作成され、名前の入力待ちになる。
 	void createArea() {
+		ulong[] a, b, p;
+		saveIDs(_summ, a, b, p);
 		auto area = new Area(_summ.newAreaId, _prop.msgs.areaNew);
 		auto bgImages = createBgImages(_comm.skin, _prop.var.etc.bgImagesDefault);
-		foreach (b; bgImages) {
-			area.append(b);
+		foreach (bg; bgImages) {
+			area.append(bg);
 		}
 		auto tree = new EventTree(_prop.msgs.enterTree);
 		tree.enter = true;
 		area.add(tree);
 		_summ.add(area);
-		storeInsert(area.id, typeid(Area));
+		storeInsert(area.id, typeid(Area), a, b, p);
 		int index = _summ.areas.length - 1;
 		addAreaItem(index);
 		auto sel = selArea(index);
@@ -1582,9 +1616,11 @@ public:
 
 	/// 新規バトルが作成され、名前の入力待ちになる。
 	void createBattle() {
+		ulong[] a, b, p;
+		saveIDs(_summ, a, b, p);
 		auto btl = new Battle(_summ.newBattleId, _prop.msgs.battleNew, _comm.skin.defBattle);
 		_summ.add(btl);
-		storeInsert(btl.id, typeid(Battle));
+		storeInsert(btl.id, typeid(Battle), a, b, p);
 		int index = _summ.battles.length - 1;
 		addBattleItem(index);
 		auto sel = selBattle(index);
@@ -1598,6 +1634,8 @@ public:
 
 	/// 新規パッケージが作成され、名前の入力待ちになる。
 	ulong createPackage(Content baseStart = null) {
+		ulong[] a, b, p;
+		saveIDs(_summ, a, b, p);
 		auto pkg = new Package(_summ.newPackageId, baseStart ? baseStart.name : _prop.msgs.packageNew);
 		EventTree et;
 		if (baseStart) {
@@ -1608,7 +1646,7 @@ public:
 		}
 		pkg.add(et);
 		_summ.add(pkg);
-		storeInsert(pkg.id, typeid(Package));
+		storeInsert(pkg.id, typeid(Package), a, b, p);
 		int index = _summ.packages.length - 1;
 		addPackageItem(index);
 		auto sel = selPackage(index);
@@ -1634,6 +1672,7 @@ public:
 	}
 	void selectSummary() {
 		if (!_summ) return;
+		if (!showSummary) return;
 		_areas.select(0);
 	}
 	@property
@@ -1650,11 +1689,11 @@ public:
 
 	@property
 	bool canOpenAreaScene() {
-		return 0 < _areas.getSelectionIndex();
+		return (showSummary ? 1 : 0) <= _areas.getSelectionIndex();
 	}
 	@property
 	bool canOpenAreaEvent() {
-		return 0 < _areas.getSelectionIndex();
+		return (showSummary ? 1 : 0) <= _areas.getSelectionIndex();
 	}
 	void openAreaScene(bool shellActivate) {
 		auto area = getSelectionArea();
@@ -1768,59 +1807,54 @@ public:
 
 	private bool canUdImpl(int index1, int index2) {
 		if (!_summ) return false;
-		if (_areas.getItemCount() != 1 + _summ.areas.length + _summ.battles.length + _summ.packages.length) return false;
-		if (index1 <= 0 || _areas.getItemCount() <= index1) return false;
-		if (index2 <= 0 || _areas.getItemCount() <= index2) return false;
-		auto area1 = areaFromIndex(_summ, index1);
-		auto area2 = areaFromIndex(_summ, index2);
+		if (_areas.getItemCount() != countAllAreas) return false;
+		if (index1 < (showSummary ? 1 : 0) || _areas.getItemCount() <= index1) return false;
+		if (index2 < (showSummary ? 1 : 0) || _areas.getItemCount() <= index2) return false;
+		auto area1 = cast(AbstractArea)_areas.getItem(index1).getData();
+		auto area2 = cast(AbstractArea)_areas.getItem(index2).getData();
 		if (cast(Area) area1 && cast(Area) area2) {
-			return canUdImpl2!Area(index1, index2);
+			return canUdImpl2!Area(area1, area2);
 		}
 		if (cast(Battle) area1 && cast(Battle) area2) {
-			return canUdImpl2!Battle(index1, index2);
+			return canUdImpl2!Battle(area1, area2);
 		}
 		if (cast(Package) area1 && cast(Package) area2) {
-			return canUdImpl2!Package(index1, index2);
+			return canUdImpl2!Package(area1, area2);
 		}
 		return false;
 	}
-	private bool canUdImpl2(A)(int index1, int index2) {
-		auto a1 = cast(A) areaFromIndex(_summ, index1);
-		auto a2 = cast(A) areaFromIndex(_summ, index2);
+	private bool canUdImpl2(A)(AbstractArea area1, AbstractArea area2) {
+		auto a1 = cast(A)area1;
+		auto a2 = cast(A)area2;
 		return a1 && a2;
 	}
 	private void udImpl(int index1, int index2) {
 		if (!canUdImpl(index1, index2)) return;
-		auto area1 = areaFromIndex(_summ, index1);
-		auto area2 = areaFromIndex(_summ, index2);
+		auto area1 = cast(AbstractArea)_areas.getItem(index1).getData();
+		auto area2 = cast(AbstractArea)_areas.getItem(index2).getData();
 		if (cast(Area) area1 && cast(Area) area2) {
-			udImpl2!Area(index1, index2);
+			udImpl2!Area(area1, area2);
 		}
 		if (cast(Battle) area1 && cast(Battle) area2) {
-			udImpl2!Battle(index1, index2);
+			udImpl2!Battle(area1, area2);
 		}
 		if (cast(Package) area1 && cast(Package) area2) {
-			udImpl2!Package(index1, index2);
+			udImpl2!Package(area1, area2);
 		}
 		_comm.refreshToolBar();
 	}
-	private void udImpl2(A)(int index1, int index2) {
+	private void udImpl2(A)(AbstractArea area1, AbstractArea area2) {
 		assert (_areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column);
-		auto a1 = cast(A) areaFromIndex(_summ, index1);
-		auto a2 = cast(A) areaFromIndex(_summ, index2);
+		auto a1 = cast(A)area1;
+		auto a2 = cast(A)area2;
 		if (!a1 || !a2) return;
-		storeSwap(index1, index2);
-		int i1 = toIndex!A(_summ, index1);
-		int i2 = toIndex!A(_summ, index2);
+		int i1 = _summ.indexOf(a1);
+		int i2 = _summ.indexOf(a2);
+		storeSwap(toIndex!A(_summ, i1), toIndex!A(_summ, i2));
 		_summ.swap!A(i1, i2);
-		if (_areas.getSortDirection() == SWT.DOWN) {
-			refData(a1, _areas.getItem(index1));
-			refData(a2, _areas.getItem(index2));
-		} else {
-			refData(a2, _areas.getItem(index1));
-			refData(a1, _areas.getItem(index2));
-		}
-		_areas.select(index2);
+		int m = showSummary ? 1 : 0;
+		refreshAreas();
+		select(a1);
 		_areas.showSelection();
 		static if (is(A : Area)) {
 			_comm.refArea.call(a1);
@@ -1836,21 +1870,21 @@ public:
 	@property
 	bool canUp() {
 		if (!_summ) return false;
-		if (_areas.getItemCount() != 1 + _summ.areas.length + _summ.battles.length + _summ.packages.length) return false;
+		if (_areas.getItemCount() != countAllAreas) return false;
 		if (!(_areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column)) return false;
 		if (!_areas.isFocusControl()) return false;
 		int sel = _areas.getSelectionIndex();
-		if (sel <= 0) return false;
+		if (sel < (showSummary ? 1 : 0)) return false;
 		return canUdImpl(sel, sel - 1);
 	}
 	@property
 	bool canDown() {
 		if (!_summ) return false;
-		if (_areas.getItemCount() != 1 + _summ.areas.length + _summ.battles.length + _summ.packages.length) return false;
+		if (_areas.getItemCount() != countAllAreas) return false;
 		if (!(_areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column)) return false;
 		if (!_areas.isFocusControl()) return false;
 		int sel = _areas.getSelectionIndex();
-		if (sel <= 0) return false;
+		if (sel < (showSummary ? 1 : 0)) return false;
 		return canUdImpl(sel, sel + 1);
 	}
 	void up() {
@@ -1858,7 +1892,7 @@ public:
 		if (!_areas.isFocusControl()) return;
 		_areasEdit.cancel();
 		int sel = _areas.getSelectionIndex();
-		if (sel <= 0) return;
+		if (sel < (showSummary ? 1 : 0)) return;
 		udImpl(sel, sel - 1);
 	}
 	void down() {
@@ -1866,7 +1900,7 @@ public:
 		if (!_areas.isFocusControl()) return;
 		_areasEdit.cancel();
 		int sel = _areas.getSelectionIndex();
-		if (sel <= 0) return;
+		if (sel < (showSummary ? 1 : 0)) return;
 		udImpl(sel, sel + 1);
 	}
 
@@ -1891,9 +1925,11 @@ public:
 					auto area = createAreaFromXML(c, _summ.id, sameSummary, ver);
 					if (area !is null) {
 						auto oldId = area.id;
+						ulong[] a, b, p;
+						saveIDs(_summ, a, b, p);
 						if (cast(Area) area) {
 							_summ.add(cast(Area) area);
-							storeInsert(area.id, typeid(Area));
+							storeInsert(area.id, typeid(Area), a, b, p);
 							int index = _summ.areas.length - 1;
 							addAreaItem(index);
 							selArea(index);
@@ -1904,7 +1940,7 @@ public:
 							}
 						} else if (cast(Battle) area) {
 							_summ.add(cast(Battle) area);
-							storeInsert(area.id, typeid(Battle));
+							storeInsert(area.id, typeid(Battle), a, b, p);
 							int index = _summ.battles.length - 1;
 							addBattleItem(index);
 							selBattle(index);
@@ -1915,7 +1951,7 @@ public:
 							}
 						} else if (cast(Package) area) {
 							_summ.add(cast(Package) area);
-							storeInsert(area.id, typeid(Package));
+							storeInsert(area.id, typeid(Package), a, b, p);
 							int index = _summ.packages.length - 1;
 							addPackageItem(index);
 							selPackage(index);
@@ -1967,11 +2003,11 @@ public:
 		}
 		@property
 		bool canDoT() {
-			return 1 <= _areas.getSelectionIndex();
+			return (showSummary ? 1 : 0) <= _areas.getSelectionIndex();
 		}
 		@property
 		bool canDoC() {
-			return 1 <= _areas.getSelectionIndex();
+			return (showSummary ? 1 : 0) <= _areas.getSelectionIndex();
 		}
 		@property
 		bool canDoP() {
@@ -1983,11 +2019,11 @@ public:
 		}
 		@property
 		bool canDoD() {
-			return 1 <= _areas.getSelectionIndex();
+			return (showSummary ? 1 : 0) <= _areas.getSelectionIndex();
 		}
 	}
-	private void delItem(AbstractArea area) {
-		foreach (itm; _areas.getItems()[1 .. $]) {
+	private void delItem(in AbstractArea area) {
+		foreach (itm; _areas.getItems()) {
 			if (itm.getData() is area) {
 				itm.dispose();
 				break;
@@ -2014,7 +2050,7 @@ public:
 	@property
 	string[] openedCWXPath() {
 		string[] r;
-		if (_summ && 0 == _areas.getSelectionIndex()) {
+		if (_summ && showSummary && 0 == _areas.getSelectionIndex()) {
 			r ~= _summ.cwxPath(true);
 		}
 		auto a = getSelectionArea();

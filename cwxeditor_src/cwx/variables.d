@@ -232,6 +232,7 @@ class FlexEtcProps : Properties {
 	auto contentsAutoHide = Prop!(bool)("contentsAutoHide", false);
 	auto comboListVisible = Prop!(bool)("comboListVisible", true);
 	auto showContentsBoxHeightWhenNoToolBar = Prop!(int, true)("showContentsBoxHeightWhenNoToolBar", 8);
+	auto showSummaryInAreaTable = Prop!(bool)("showSummaryInAreaTable", true);
 	auto clickIsOpenEvent = Prop!(bool)("clickIsOpenEvent", false);
 	auto smoothingCard = Prop!(bool)("smoothingCard", true);
 	auto ignorePathsWidth = Prop!(int, true)("ignorePathsWidth", 50);

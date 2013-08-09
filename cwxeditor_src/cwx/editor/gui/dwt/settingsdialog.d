@@ -1390,6 +1390,7 @@ private:
 	Text _ignorePaths;
 	TableItem _singleWindow = null;
 
+	TableItem _showSummaryInAreaTable;
 	TableItem _clickIsOpenEvent;
 	TableItem _smoothingCard;
 	TableItem _showImagePreview;
@@ -2244,6 +2245,7 @@ private:
 			if (!_comm.singleWindowMode(_prop)) {
 				_singleWindow = createB(_prop.msgs.singleWindow);
 			}
+			_showSummaryInAreaTable = createB(_prop.msgs.showSummaryInAreaTable);
 			_clickIsOpenEvent = createB(_prop.msgs.clickIsOpenEvent);
 			_smoothingCard = createB(_prop.msgs.smoothingCard);
 			_showImagePreview = createB(_prop.msgs.showImagePreview);
@@ -2530,6 +2532,7 @@ protected:
 		}
 		_ignorePaths.setText(ipbuf);
 
+		_showSummaryInAreaTable.setChecked(_prop.var.etc.showSummaryInAreaTable);
 		_clickIsOpenEvent.setChecked(_prop.var.etc.clickIsOpenEvent);
 		_expandXMLs.setChecked(_prop.var.etc.expandXMLs);
 		_smoothingCard.setChecked(_prop.var.etc.smoothingCard);
@@ -2703,6 +2706,7 @@ protected:
 		if (_singleWindow) {
 			_prop.var.etc.singleWindow = _singleWindow.getChecked();
 		}
+		_prop.var.etc.showSummaryInAreaTable = _showSummaryInAreaTable.getChecked();
 		_prop.var.etc.clickIsOpenEvent = _clickIsOpenEvent.getChecked();
 		_prop.var.etc.smoothingCard = _smoothingCard.getChecked();
 		_prop.var.etc.showImagePreview = _showImagePreview.getChecked();
@@ -2838,6 +2842,7 @@ struct OldSettings {
 	bool selectVariableWithTree;
 	bool straightEventTreeView;
 	bool showTerminalMark;
+	bool showSummaryInAreaTable;
 	this (Props prop) {
 		this.prop = prop;
 		this.targetVersion = prop.var.etc.targetVersion;
@@ -2883,6 +2888,7 @@ struct OldSettings {
 		this.selectVariableWithTree = prop.var.etc.selectVariableWithTree;
 		this.straightEventTreeView = prop.var.etc.straightEventTreeView;
 		this.showTerminalMark = prop.var.etc.showTerminalMark;
+		this.showSummaryInAreaTable = prop.var.etc.showSummaryInAreaTable;
 	}
 	void raiseEvent(Commons comm) {
 		bool refSkin = false;
@@ -3011,6 +3017,9 @@ struct OldSettings {
 		}
 		if (this.showTerminalMark != prop.var.etc.showTerminalMark) {
 			comm.refTerminalMark.call();
+		}
+		if (this.showSummaryInAreaTable != prop.var.etc.showSummaryInAreaTable) {
+			comm.refAreaTable.call();
 		}
 	}
 }

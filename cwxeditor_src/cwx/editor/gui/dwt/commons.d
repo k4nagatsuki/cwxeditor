@@ -288,6 +288,7 @@ class Commons {
 	Dlg!() delPaths;
 	Dlg!(string, string) replPath;
 	Dlg!() refUseCount;
+	Dlg!() refAreaTable;
 	Dlg!(CastCard) refCast;
 	Dlg!(CastCard) delCast;
 	Dlg!(SkillCard) refSkill;
