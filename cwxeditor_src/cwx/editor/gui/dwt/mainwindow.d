@@ -2741,6 +2741,7 @@ public:
 			return true;
 		}
 		private void spinUpDown(Event e, Spinner spn) {
+			if (!e.doit) return;
 			int val = spn.getSelection();
 			if (e.count < 0) {
 				val -= spn.getIncrement();
@@ -2766,14 +2767,6 @@ public:
 			if (!_prop.var.etc.switchTabWheel) return;
 			if (e.type != SWT.MouseWheel && e.type != SWT.Traverse) return;
 			auto d = Display.getCurrent();
-
-			if (e.type == SWT.MouseWheel && _prop.var.etc.spinnerUpDownWithWheel) {
-				auto spn = cast(Spinner)e.widget;
-				if (spn) {
-					spinUpDown(e, spn);
-					return;
-				}
-			}
 
 			Control c;
 			if (e.type is SWT.MouseWheel) {
@@ -2808,6 +2801,14 @@ public:
 			if (tabf && tabf.getSelection() && 0 < tabf.getSelection().length) {
 				if (switchTab(tabf, tabf.getSelection()[0], e)) {
 					e.doit = false;
+				}
+			}
+
+			if (e.type == SWT.MouseWheel && _prop.var.etc.spinnerUpDownWithWheel) {
+				auto spn = cast(Spinner)e.widget;
+				if (spn) {
+					spinUpDown(e, spn);
+					return;
 				}
 			}
 		}
