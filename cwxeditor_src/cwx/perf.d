@@ -13,7 +13,7 @@ immutable S_TRACE = `
 	} else if (.tStack.length <= .tStackLen) {
 		.tStack.length *= 2;
 	}
-	.tStack[.tStackLen] = StackTrace(__FILE__, __LINE__);
+	.tStack[.tStackLen] = StackTrace(__FILE__, __LINE__ - 6);
 	.tStackLen++;
 	scope (exit) .tStackLen--;
 	scope (failure) .saveStack();

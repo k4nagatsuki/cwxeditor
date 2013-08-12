@@ -368,6 +368,7 @@ abstract class AbsDialog {
 	}
 
 	void forceApply() { mixin(S_TRACE);
+		if (!_apply) return;
 		foreach (dlg; applyEvent) { mixin(S_TRACE);
 			dlg();
 		}
