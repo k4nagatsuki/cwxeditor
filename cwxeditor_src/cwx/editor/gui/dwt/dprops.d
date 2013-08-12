@@ -27,9 +27,9 @@ private:
 	Images _images;
 	FlexProps _var;
 public:
-	this (string confFilePath, CProps parent) {
+	this (string confFilePath, CProps parent) { mixin(S_TRACE);
 		string dStr = .text(__LINE__);
-		try {
+		try { mixin(S_TRACE);
 			_parent = parent;
 			dStr ~= " - " ~ .text(__LINE__);
 			_images = new Images(_parent.appPath);
@@ -45,18 +45,18 @@ public:
 			dStr ~= " - " ~ .text(__LINE__);
 			auto msgs = msgsTable.get(.caltureName(), null);
 			dStr ~= " - " ~ .text(__LINE__);
-			if (msgs) {
+			if (msgs) { mixin(S_TRACE);
 				_parent.msgs = msgs;
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 
 			// 設定された言語
-			if (!var.etc.useSystemLanguage && var.etc.languageFile.length) {
+			if (!var.etc.useSystemLanguage && var.etc.languageFile.length) { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
 				auto langFile = toAppAbs(var.etc.languageDir).buildPath(var.etc.languageFile);
 				dStr ~= " - " ~ .text(__LINE__);
-				if (.exists(langFile)) {
-					try {
+				if (.exists(langFile)) { mixin(S_TRACE);
+					try { mixin(S_TRACE);
 						dStr ~= " - " ~ .text(__LINE__);
 						_parent.loadMsgs(langFile);
 					} catch (Exception e) {
@@ -75,41 +75,41 @@ public:
 	}
 	@property
 	const
-	string enginePath() {
+	string enginePath() { mixin(S_TRACE);
 		if (!var.etc.enginePath.length) return "";
-		if (isAbsolute(var.etc.enginePath)) {
+		if (isAbsolute(var.etc.enginePath)) { mixin(S_TRACE);
 			return var.etc.enginePath;
-		} else {
+		} else { mixin(S_TRACE);
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.enginePath);
 		}
 	}
 	@property
 	const
-	string tempPath() {
+	string tempPath() { mixin(S_TRACE);
 		if (!var.etc.tempPath.length) return "";
-		if (isAbsolute(var.etc.tempPath)) {
+		if (isAbsolute(var.etc.tempPath)) { mixin(S_TRACE);
 			return var.etc.tempPath;
-		} else {
+		} else { mixin(S_TRACE);
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.tempPath);
 		}
 	}
 	@property
 	const
-	string backupPath() {
+	string backupPath() { mixin(S_TRACE);
 		if (!var.etc.backupPath.length) return "";
-		if (isAbsolute(var.etc.backupPath)) {
+		if (isAbsolute(var.etc.backupPath)) { mixin(S_TRACE);
 			return var.etc.backupPath;
-		} else {
+		} else { mixin(S_TRACE);
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.backupPath);
 		}
 	}
 	@property
 	const
-	string backupBeforeSavePath() {
+	string backupBeforeSavePath() { mixin(S_TRACE);
 		if (!var.etc.backupBeforeSavePath.length) return "";
-		if (isAbsolute(var.etc.backupBeforeSavePath)) {
+		if (isAbsolute(var.etc.backupBeforeSavePath)) { mixin(S_TRACE);
 			return var.etc.backupBeforeSavePath;
-		} else {
+		} else { mixin(S_TRACE);
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.backupBeforeSavePath);
 		}
 	}
@@ -137,17 +137,17 @@ public:
 	string toAppAbs(string path) {return parent.toAppAbs(path);}
 
 	const
-	string buildTool(MenuID id) {
+	string buildTool(MenuID id) { mixin(S_TRACE);
 		return var.menu.buildTool(parent, id);
 	}
 	const
-	string buildMenu(MenuID id) {
+	string buildMenu(MenuID id) { mixin(S_TRACE);
 		return var.menu.buildMenu(parent, id);
 	}
 
 	/// verがターゲットとなる環境のバージョン以下であればtrueを返す。
 	const
-	bool targetVersion(string ver) {
+	bool targetVersion(string ver) { mixin(S_TRACE);
 		return parent.targetVersion(ver, var.etc.targetVersion);
 	}
 }
@@ -157,12 +157,12 @@ Point dwtData(CPoint v) {return new Point(v.x, v.y);}
 /// ditto
 Point dwtData(CSize v) {return new Point(v.width, v.height);}
 /// ditto
-RGB dwtData(CRGB v, out int alpha) {
+RGB dwtData(CRGB v, out int alpha) { mixin(S_TRACE);
 	alpha = v.a;
 	return new RGB(cast(int) v.r, cast(int) v.g, cast(int) v.b);
 }
 /// ditto
-FontData dwtData(CFont v) {
+FontData dwtData(CFont v) { mixin(S_TRACE);
 	int flag = SWT.NONE;
 	if (v.bold) flag |= SWT.BOLD;
 	if (v.italic) flag |= SWT.ITALIC;

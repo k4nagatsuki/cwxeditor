@@ -1,6 +1,7 @@
 
 module cwx.imagesize;
 
+import cwx.perf;
 import cwx.binary;
 
 import std.file;
@@ -11,7 +12,7 @@ import std.traits;
 
 /// ファイルがimageSize()でサイズを取得できる
 /// 画像形式の拡張子を持つならtrueを返す。
-bool isImageExt(string path) {
+bool isImageExt(string path) { mixin(S_TRACE);
 	switch (.toLower(.extension(path))) {
 	case ".jpeg", ".jpg", ".jpe", ".jfif", ".jfi", ".jif":
 	case ".gif":
@@ -32,36 +33,36 @@ bool isImageExt(string path) {
 /// TIFF .... ".tiff"
 /// Bitmap .... ".bmp"
 /// PNG .... ".png"
-string imageType(in ubyte[] b) {
-	if (22L <= b.length && 'B' == b[0] && 'M' == b[1]) {
+string imageType(in ubyte[] b) { mixin(S_TRACE);
+	if (22L <= b.length && 'B' == b[0] && 'M' == b[1]) { mixin(S_TRACE);
 		// Bitmap
 		return ".bmp";
 	}
-	if (25L <= b.length && 0x89 == b[0] && 'P' == b[1] && 'N' == b[2] && 'G' == b[3]) {
+	if (25L <= b.length && 0x89 == b[0] && 'P' == b[1] && 'N' == b[2] && 'G' == b[3]) { mixin(S_TRACE);
 		// PNG
 		return ".png";
 	}
-	if (10L <= b.length && 'G' == b[0] && 'I' == b[1] && 'F' == b[2]) {
+	if (10L <= b.length && 'G' == b[0] && 'I' == b[1] && 'F' == b[2]) { mixin(S_TRACE);
 		// GIF
 		return ".gif";
 	}
-	if (6L <= b.length && 0xFF == b[0] && 0xD8 == b[1]) {
+	if (6L <= b.length && 0xFF == b[0] && 0xD8 == b[1]) { mixin(S_TRACE);
 		// JPEG
 		return ".jpg";
 	}
-	if (10L <= b.length) {
+	if (10L <= b.length) { mixin(S_TRACE);
 		// TIFF
 		switch (b[0]) {
 		case 'M':
-			if ('M' == b[1]) {
-				if (42 == b[3]) {
+			if ('M' == b[1]) { mixin(S_TRACE);
+				if (42 == b[3]) { mixin(S_TRACE);
 					return ".tiff";
 				}
 			}
 			break;
 		case 'I':
-			if ('I' == b[1]) {
-				if (42 == b[2]) {
+			if ('I' == b[1]) { mixin(S_TRACE);
+				if (42 == b[2]) { mixin(S_TRACE);
 					return ".tiff";
 				}
 			}
@@ -95,7 +96,7 @@ bool imageSize(T)(in T pathOrBytes, out uint x, out uint y) if (isSomeString!T |
 	static if (isSomeString!T) {
 		if (!.exists(pathOrBytes)) return false;
 		string ext = .toLower(.extension(pathOrBytes));
-	} else {
+	} else { mixin(S_TRACE);
 		string ext = imageType(pathOrBytes);
 	}
 	switch (ext) {
@@ -119,7 +120,7 @@ bool imageSize(T)(in T pathOrBytes, out uint x, out uint y) if (isSomeString!T |
 private ulong getSizeT(T)(in T pathOrBytes) if (isSomeString!T || is(T:ubyte[])) {
 	static if (isSomeString!T) {
 		return getSize(pathOrBytes);
-	} else {
+	} else { mixin(S_TRACE);
 		return pathOrBytes.length;
 	}
 }
@@ -139,10 +140,10 @@ private ulong getSizeT(T)(in T pathOrBytes) if (isSomeString!T || is(T:ubyte[]))
 /// Bugs: JFIFにしか対応していない。
 bool jpgSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ubyte[])) {
 	ulong size = getSizeT!T(file);
-	if (6L <= size) {
+	if (6L <= size) { mixin(S_TRACE);
 		static if (isSomeString!T) {
 			auto inp = new File(file);
-		} else {
+		} else { mixin(S_TRACE);
 			auto inp = new TArrayStream!(const ubyte[])(file);
 		}
 		scope (exit) inp.close();
@@ -152,17 +153,17 @@ bool jpgSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 		inp.read(b); if (0xD8 != b) return false;
 
 		ushort s;
-		do {
+		do { mixin(S_TRACE);
 			inp.read(b); if (0xFF != b) return false;
 			inp.read(b);
-			if (0xC0 == b || 0xC2 == b) {
+			if (0xC0 == b || 0xC2 == b) { mixin(S_TRACE);
 				inp.read(s);
 				inp.read(b);
 
 				y = readUShortB(inp);
 				x = readUShortB(inp);
 				return true;
-			} else {
+			} else { mixin(S_TRACE);
 				s = readUShortB(inp);
 				if (s <= 2) return false;
 				inp.seekCur(s - 2);
@@ -188,10 +189,10 @@ bool jpgSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 /// Bugs: JFIFにしか対応していない。
 bool tifSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!T || is(T:ubyte[])) {
 	ulong size = getSizeT!T(file);
-	if (10L <= size) {
+	if (10L <= size) { mixin(S_TRACE);
 		static if (isSomeString!T) {
 			auto inp = new File(file);
-		} else {
+		} else { mixin(S_TRACE);
 			auto inp = new TArrayStream!(const ubyte[])(file);
 		}
 		scope (exit) inp.close();
@@ -219,7 +220,7 @@ bool tifSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!
 
 		uint nn = 0;
 		ushort count;
-		while (true) {
+		while (true) { mixin(S_TRACE);
 			count = littleEndian ? readUShortL(inp) : readUShortB(inp);
 			i = (i + 2) + (12 * count);
 			if (i + 4 > size) return false;
@@ -233,7 +234,7 @@ bool tifSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!
 		}
 		bool w = false;
 		bool h = false;
-		for (ushort c = 0; c < count; c++) {
+		for (ushort c = 0; c < count; c++) { mixin(S_TRACE);
 			s = littleEndian ? readUShortL(inp) : readUShortB(inp);
 			switch (s) {
 			case 0x0100:
@@ -273,10 +274,10 @@ bool tifSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!
 /// Throws:
 ///  FileException = ファイル読込失敗時。
 bool gifSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ubyte[])) {
-	if (10L <= getSizeT!T(file)) {
+	if (10L <= getSizeT!T(file)) { mixin(S_TRACE);
 		static if (isSomeString!T) {
 			auto inp = new File(file);
-		} else {
+		} else { mixin(S_TRACE);
 			auto inp = new TArrayStream!(const ubyte[])(file);
 		}
 		scope (exit) inp.close();
@@ -310,10 +311,10 @@ bool gifSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 ///  FileException = ファイル読込失敗時。
 bool bmpSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ubyte[])) {
 	ulong size = getSizeT!T(file);
-	if (22L <= size) {
+	if (22L <= size) { mixin(S_TRACE);
 		static if (isSomeString!T) {
 			auto inp = new File(file);
-		} else {
+		} else { mixin(S_TRACE);
 			auto inp = new TArrayStream!(const ubyte[])(file);
 		}
 		scope (exit) inp.close();
@@ -329,14 +330,14 @@ bool bmpSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 		inp.read(i);
 
 		i = readUIntL(inp);
-		if (i == 12) {
+		if (i == 12) { mixin(S_TRACE);
 			x = readUShortL(inp);
 			y = readUShortL(inp);
-		} else if (i > 12) {
+		} else if (i > 12) { mixin(S_TRACE);
 			if (24L > size) return false;
 			x = readUIntL(inp);
 			y = readUIntL(inp);
-		} else {
+		} else { mixin(S_TRACE);
 			return false;
 		}
 		return true;
@@ -357,10 +358,10 @@ bool bmpSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 /// Throws:
 ///  FileException = ファイル読込失敗時。
 bool pngSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ubyte[])) {
-	if (25L <= getSizeT!T(file)) {
+	if (25L <= getSizeT!T(file)) { mixin(S_TRACE);
 		static if (isSomeString!T) {
 			auto inp = new File(file);
-		} else {
+		} else { mixin(S_TRACE);
 			auto inp = new TArrayStream!(const ubyte[])(file);
 		}
 		scope (exit) inp.close();
@@ -405,10 +406,10 @@ bool pngSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 ///  FileException = ファイル読込失敗時。
 bool icoSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!T || is(T:ubyte[])) {
 	ulong size = getSizeT!T(file);
-	if (8UL <= size) {
+	if (8UL <= size) { mixin(S_TRACE);
 		static if (isSomeString!T) {
 			auto inp = new File(file);
-		} else {
+		} else { mixin(S_TRACE);
 			auto inp = new TArrayStream!(const ubyte[])(file);
 		}
 		scope (exit) inp.close();
@@ -417,7 +418,7 @@ bool icoSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!
 		if (0x01 != readUShortL(inp)) return false;
 		ushort s = readUShortL(inp);
 		if (n >= s) return false;
-		if (n > 0) {
+		if (n > 0) { mixin(S_TRACE);
 			long pos = 6L + (n * 16L);
 			if (pos + 2 >= size) return false;
 			inp.seekSet(pos);

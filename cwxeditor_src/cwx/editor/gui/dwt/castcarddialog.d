@@ -105,13 +105,13 @@ private:
 
 	Skin _summSkin;
 	@property
-	Skin summSkin() {
+	Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
 	}
 
-	void refreshWarning() {
+	void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-		if (_name.over) {
+		if (_name.over) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningNameLenOver, _prop.looks.castNameLimit, _prop.looks.castNameLimit / 2);
 		}
 		ws ~= _imgPath.warnings;
@@ -120,48 +120,48 @@ private:
 	}
 
 	@property
-	Race selectedRace() {
-		if (_race) {
+	Race selectedRace() { mixin(S_TRACE);
+		if (_race) { mixin(S_TRACE);
 			int index = _race.getSelectionIndex();
-			if (index > 0) {
+			if (index > 0) { mixin(S_TRACE);
 				return summSkin.races[index - 1];
 			}
 		}
 		return null;
 	}
-	void raceToolTip() {
-		if (_race) {
+	void raceToolTip() { mixin(S_TRACE);
+		if (_race) { mixin(S_TRACE);
 			auto race = selectedRace;
 			_race.setToolTipText(race ? race.desc : "");
 		}
 	}
 	class SelectRace : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			raceToolTip();
 		}
 	}
 	class BasicResist : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto race = selectedRace;
-			if (race) {
+			if (race) { mixin(S_TRACE);
 				_automaton.setSelection(race.automaton);
 				_constructure.setSelection(race.constructure);
 				_undead.setSelection(race.undead);
 				_unholy.setSelection(race.unholy);
 				_resW.setSelection(race.weaponResist);
 				_resM.setSelection(race.magicResist);
-				foreach (el; _res.keys) {
+				foreach (el; _res.keys) { mixin(S_TRACE);
 					_res[el].setSelection(race.resist(el));
 					_weak[el].setSelection(race.weakness(el));
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				_automaton.setSelection(false);
 				_constructure.setSelection(false);
 				_undead.setSelection(false);
 				_unholy.setSelection(false);
 				_resW.setSelection(false);
 				_resM.setSelection(false);
-				foreach (el; _res.keys) {
+				foreach (el; _res.keys) { mixin(S_TRACE);
 					_res[el].setSelection(false);
 					_weak[el].setSelection(false);
 				}
@@ -169,21 +169,21 @@ private:
 		}
 	}
 	class BasicEnhance : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto race = selectedRace;
-			if (race) {
-				foreach (enh, i; _enhTbl) {
-					if (_enhR) {
+			if (race) { mixin(S_TRACE);
+				foreach (enh, i; _enhTbl) { mixin(S_TRACE);
+					if (_enhR) { mixin(S_TRACE);
 						_enhR.setValue(i, race.defaultEnhance(enh));
-					} else {
+					} else { mixin(S_TRACE);
 						_enhS.setValue(i, race.defaultEnhance(enh));
 					}
 				}
-			} else {
-				foreach (enh, i; _enhTbl) {
-					if (_enhR) {
+			} else { mixin(S_TRACE);
+				foreach (enh, i; _enhTbl) { mixin(S_TRACE);
+					if (_enhR) { mixin(S_TRACE);
 						_enhR.setValue(i, 0);
-					} else {
+					} else { mixin(S_TRACE);
 						_enhS.setValue(i, 0);
 					}
 				}
@@ -192,7 +192,7 @@ private:
 	}
 
 	class SelLifeC : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto vit = _phyTbl[Physical.VIT];
 			auto min = _phyTbl[Physical.MIN];
 			_lifeMax.setSelection(_prop.looks.lifeCalc(_level.getSelection(),
@@ -201,15 +201,15 @@ private:
 		}
 	}
 
-	void constructBase(CTabFolder tabf) {
+	void constructBase(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(2, false));
 		auto skin = summSkin;
-		{
+		{ mixin(S_TRACE);
 			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
 			comp2.setLayout(zeroMarginGridLayout(1, false));
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				grp.setLayout(new GridLayout(2, false));
@@ -225,7 +225,7 @@ private:
 				auto l = new Label(grp, SWT.NONE);
 				l.setText(.tryFormat(_prop.msgs.nameLimit, _prop.looks.castNameLimit, _prop.looks.castNameLimit / 2));
 			}
-			{
+			{ mixin(S_TRACE);
 				bool including = _card && isBinImg(_card.path);
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, _readOnly, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText);
@@ -235,11 +235,11 @@ private:
 				_imgPath.cardMode = CardMode.Cast;
 			}
 		}
-		{
+		{ mixin(S_TRACE);
 			auto compr = new Composite(comp, SWT.NONE);
 			compr.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			compr.setLayout(zeroMarginGridLayout(1, false));
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(compr, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new CenterLayout);
@@ -255,7 +255,7 @@ private:
 				auto hint = new Label(comp2, SWT.RIGHT);
 				hint.setText(.tryFormat(_prop.msgs.rangeHint, 1, _prop.var.etc.castLevelMax));
 			}
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(compr, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new CenterLayout);
@@ -292,7 +292,7 @@ private:
 			_race.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_race.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			_race.add(_prop.msgs.noRace);
-			foreach (race; skin.races) {
+			foreach (race; skin.races) { mixin(S_TRACE);
 				_race.add(race.name);
 			}
 			_race.addSelectionListener(new SelectRace);
@@ -302,23 +302,23 @@ private:
 		tab.setText(_prop.msgs.card);
 		tab.setControl(comp);
 	}
-	void setMaxLife() {
+	void setMaxLife() { mixin(S_TRACE);
 		_life.setMaximum(_lifeMax.getSelection());
-		if (_lifeUseMax.getSelection()) {
+		if (_lifeUseMax.getSelection()) { mixin(S_TRACE);
 			_life.setSelection(_lifeMax.getSelection());
 		}
 		_life.getParent().layout();
 		_life.setSelection(_life.getSelection());
 	}
 	class LifeMaxL : ModifyListener {
-		public override void modifyText(ModifyEvent e) {
+		public override void modifyText(ModifyEvent e) { mixin(S_TRACE);
 			setMaxLife();
 		}
 	}
-	void constructDesc(CTabFolder tabf) {
+	void constructDesc(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(2, false));
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			grp.setLayoutData(gd);
@@ -338,17 +338,17 @@ private:
 		tab.setText(_prop.msgs.desc);
 		tab.setControl(comp);
 	}
-	Button createR(Composite parent, string name, int hAlignHint = -1) {
+	Button createR(Composite parent, string name, int hAlignHint = -1) { mixin(S_TRACE);
 		auto radio = new Button(parent, SWT.RADIO);
 		mod(radio);
 		radio.setEnabled(!_readOnly);
 		auto gd = new GridData(GridData.FILL_BOTH);
-		if (0 <= hAlignHint) {
+		if (0 <= hAlignHint) { mixin(S_TRACE);
 			hAlignHint %= 2;
 			gd.grabExcessHorizontalSpace = true;
-			if (0 == hAlignHint) {
+			if (0 == hAlignHint) { mixin(S_TRACE);
 				gd.horizontalAlignment = SWT.LEFT;
-			} else {
+			} else { mixin(S_TRACE);
 				gd.horizontalAlignment = SWT.RIGHT;
 			}
 		}
@@ -356,11 +356,11 @@ private:
 		radio.setText(name);
 		return radio;
 	}
-	void constructHistory(CTabFolder tabf) {
+	void constructHistory(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(2, false));
 		auto skin = summSkin;
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.coupons);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -369,27 +369,27 @@ private:
 			_couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
 			mod(_couponView);
 		}
-		{
+		{ mixin(S_TRACE);
 			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			comp2.setLayout(zeroMarginGridLayout(2, false));
-			{
+			{ mixin(S_TRACE);
 				auto comp3 = createButtonGroup(comp2, _prop.msgs.sexTitle, 1, 1);
-				foreach (s; SEX_ALL) {
+				foreach (s; SEX_ALL) { mixin(S_TRACE);
 					auto name = skin.sexName(s);
 					_sex[s] = createR(comp3, _prop.msgs.sex.get(name, name));
 				}
 				_sexU = createR(comp3, _prop.msgs.sexUnknown);
 			}
-			{
+			{ mixin(S_TRACE);
 				auto comp3 = createButtonGroup(comp2, _prop.msgs.periodTitle, 2, 1);
-				foreach (p; PERIOD_ALL) {
+				foreach (p; PERIOD_ALL) { mixin(S_TRACE);
 					auto name = skin.periodName(p);
 					_period[p] = createR(comp3, _prop.msgs.period.get(name, name));
 				}
 				_periodU = createR(comp3, _prop.msgs.periodUnknown);
 			}
-			{
+			{ mixin(S_TRACE);
 				auto comp3 = new Group(comp2, SWT.NONE);
 				comp3.setText(_prop.msgs.natureTitle);
 				auto cgd = new GridData(GridData.FILL_BOTH);
@@ -405,24 +405,24 @@ private:
 		tab.setControl(comp);
 	}
 	class MSListener : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto radio = cast(Button) e.widget;
-			if (radio.getSelection()) {
+			if (radio.getSelection()) { mixin(S_TRACE);
 				auto m = cast(Makings) (cast(Integer) radio.getData()).intValue();
 				auto r = reverseMakings(m);
 				_makings[r].setSelection(false);
 			}
 		}
 	};
-	void constructMakings(CTabFolder tabf) {
+	void constructMakings(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
 		auto skin = summSkin;
-		{
+		{ mixin(S_TRACE);
 			auto comp3 = createButtonGroup(comp, _prop.msgs.coupons, 4, 1, true);
 			auto sl = new MSListener;
-			foreach (m; MAKINGS_LEFT) {
-				void createR(Makings m) {
+			foreach (m; MAKINGS_LEFT) { mixin(S_TRACE);
+				void createR(Makings m) { mixin(S_TRACE);
 					auto radio = new Button(comp3, SWT.CHECK);
 					mod(radio);
 					radio.setEnabled(!_readOnly);
@@ -442,7 +442,7 @@ private:
 		tab.setControl(comp);
 	}
 	Composite createButtonGroup(Composite parent, string name,
-			int row, int horSpan = 1, bool min = false) {
+			int row, int horSpan = 1, bool min = false) { mixin(S_TRACE);
 		auto grp = new Group(parent, SWT.NONE);
 		grp.setText(name);
 		auto gd = new GridData(GridData.FILL_BOTH);
@@ -459,20 +459,20 @@ private:
 	}
 	class ESListener : SelectionAdapter {
 		private Button _targ;
-		this(Button targ) {
+		this(Button targ) { mixin(S_TRACE);
 			_targ = targ;
 		}
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto radio = cast(Button) e.widget;
-			if (radio.getSelection()) {
+			if (radio.getSelection()) { mixin(S_TRACE);
 				_targ.setSelection(false);
 			}
 		}
 	};
-	void constructResist(CTabFolder tabf) {
+	void constructResist(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
-		Button createC(Composite parent, string name, string desc) {
+		Button createC(Composite parent, string name, string desc) { mixin(S_TRACE);
 			auto comp = new Composite(parent, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			comp.setLayout(zeroGridLayout(2, false));
@@ -493,16 +493,16 @@ private:
 			l.setText(desc);
 			return c;
 		}
-		{
+		{ mixin(S_TRACE);
 			Composite tcomp, bcomp;
-			{
+			{ mixin(S_TRACE);
 				tcomp = createButtonGroup(comp, _prop.msgs.tolerantBase, 2, 1);
 				auto gl = cast(GridLayout) tcomp.getLayout();
 				gl.horizontalSpacing = 15;
 				_resW = createC(tcomp, _prop.msgs.resistWeapon, _prop.msgs.descResistWeapon);
 				_resM = createC(tcomp, _prop.msgs.resistMagic, _prop.msgs.descResistMagic);
 			}
-			{
+			{ mixin(S_TRACE);
 				bcomp = createButtonGroup(comp, _prop.msgs.tolerantElement, 2, 1);
 				auto gl = cast(GridLayout) bcomp.getLayout();
 				gl.horizontalSpacing = 15;
@@ -510,7 +510,7 @@ private:
 				_automaton = createC(bcomp, _prop.msgs.automaton, _prop.msgs.descAutomaton);
 				_unholy = createC(bcomp, _prop.msgs.unholy, _prop.msgs.descUnholy);
 				_constructure = createC(bcomp, _prop.msgs.constructure, _prop.msgs.descConstructure);
-				foreach (e; [Element.FIRE, Element.ICE]) {
+				foreach (e; [Element.FIRE, Element.ICE]) { mixin(S_TRACE);
 					string eName = _prop.msgs.elementName(e);
 					auto res = createC(bcomp, .tryFormat(_prop.msgs.resistText, eName), .tryFormat(_prop.msgs.descResist, eName));
 					auto weak = createC(bcomp, .tryFormat(_prop.msgs.weaknessText, eName), .tryFormat(_prop.msgs.descWeakness, eName));
@@ -528,7 +528,7 @@ private:
 			tcomp.setLayoutData(ts);
 			bcomp.setLayoutData(bs);
 		}
-		{
+		{ mixin(S_TRACE);
 			auto basic = new Button(comp, SWT.PUSH);
 			mod(basic);
 			basic.setEnabled(!_readOnly);
@@ -542,14 +542,14 @@ private:
 	}
 	static immutable PHYSICALS = [Physical.DEX, Physical.AGL, Physical.INT,
 		Physical.STR, Physical.VIT, Physical.MIN];
-	void initPhysical() {
+	void initPhysical() { mixin(S_TRACE);
 		int[] values = [];
-		if (_phyR) {
+		if (_phyR) { mixin(S_TRACE);
 			values = _phyR.getValues();
 			_phyR.dispose();
 			_phyR = null;
 		}
-		if (_phyS) {
+		if (_phyS) { mixin(S_TRACE);
 			values = _phyS.getValues();
 			_phyS.dispose();
 			_phyS = null;
@@ -558,14 +558,14 @@ private:
 		string[] names;
 		names.length = PHYSICALS.length;
 		int[Physical] table;
-		foreach (i, p; PHYSICALS) {
+		foreach (i, p; PHYSICALS) { mixin(S_TRACE);
 			table[p] = i;
 			names[i] = _prop.msgs.physicalName(p);
 		}
 		_phyTbl = table;
 		int page = _prop.var.etc.physicalMax / 5;
 
-		if (_prop.var.etc.radarStyleParams) {
+		if (_prop.var.etc.radarStyleParams) { mixin(S_TRACE);
 			_phyR = new RadarSpinner(_phyParent, _readOnly);
 			_phyR.setRadar(_prop.var.etc.physicalMax + 1, names, 0);
 			_phyR.antialias = true;
@@ -574,7 +574,7 @@ private:
 			if (values.length) _phyR.setValues(values);
 			mod(_phyR);
 			_phyR.modEvent ~= &modPhysical;
-		} else {
+		} else { mixin(S_TRACE);
 			_phyS = new Scales(_phyParent, _readOnly);
 			_phyS.setScales(_prop.var.etc.physicalMax + 1, names, page, 0);
 			_phyS.borderlines = cast(int[]) _prop.looks.physicalBorders;
@@ -584,20 +584,20 @@ private:
 		}
 		_phyParent.layout();
 	}
-	void modPhysical() {
+	void modPhysical() { mixin(S_TRACE);
 		int[] vals;
 		if (_phyR) vals = _phyR.getValues();
 		if (_phyS) vals = _phyS.getValues();
 		int sum = 0;
-		foreach (val; vals) {
+		foreach (val; vals) { mixin(S_TRACE);
 			sum += val;
 		}
 		_sumPhy.setText(.tryFormat(_prop.msgs.physicalSum, sum));
 	}
-	void constructPhysical(CTabFolder tabf) {
+	void constructPhysical(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(2, false));
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.physicalParams);
 			auto gd = new GridData(GridData.FILL_BOTH);
@@ -610,11 +610,11 @@ private:
 			_phyParent = grp;
 			initPhysical();
 		}
-		{
+		{ mixin(S_TRACE);
 			_sumPhy = new Label(comp, SWT.NONE);
 			_sumPhy.setLayoutData(new GridData(GridData.FILL_HORIZONTAL|GridData.HORIZONTAL_ALIGN_BEGINNING));
 		}
-		{
+		{ mixin(S_TRACE);
 			auto basic = new Button(comp, SWT.PUSH);
 			mod(basic);
 			basic.setEnabled(!_readOnly);
@@ -626,10 +626,10 @@ private:
 		tab.setText(_prop.msgs.physicalParams);
 		tab.setControl(comp);
 	}
-	real calcPhy(E)(in Skin skin, Physical phy, Button[E] radios, bool all) {
+	real calcPhy(E)(in Skin skin, Physical phy, Button[E] radios, bool all) { mixin(S_TRACE);
 		real r = 0.0;
-		foreach (e, radio; radios) {
-			if (radio.getSelection()) {
+		foreach (e, radio; radios) { mixin(S_TRACE);
+			if (radio.getSelection()) { mixin(S_TRACE);
 				r += skin.physicalMod(e, phy);
 				if (!all) break;
 			}
@@ -637,21 +637,21 @@ private:
 		return r;
 	}
 	class CalcPhysical : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			real[Physical] p;
 			int[Physical] min;
 			int[Physical] max;
 			auto race = selectedRace;
-			foreach (phy; _phyTbl.keys) {
+			foreach (phy; _phyTbl.keys) { mixin(S_TRACE);
 				int pmin = _prop.looks.physicalCutMin;
 				int pmax;
-				if (race) {
+				if (race) { mixin(S_TRACE);
 					int v = race.physical(phy);
 					pmax = v + _prop.looks.physicalCutMaxBase;
 					if (pmax > _prop.var.etc.physicalMax) pmax = _prop.var.etc.physicalMax;
 					if (v < pmin) pmin = v;
 					p[phy] = v;
-				} else {
+				} else { mixin(S_TRACE);
 					int v = _prop.looks.physicalNormal;
 					pmax = v + _prop.looks.physicalCutMaxBase;
 					p[phy] = v;
@@ -659,7 +659,7 @@ private:
 				min[phy] = pmin;
 				max[phy] = pmax;
 			}
-			foreach (phy, val; p) {
+			foreach (phy, val; p) { mixin(S_TRACE);
 				val += calcPhy!(Sex)(summSkin, phy, _sex, false);
 				val += calcPhy!(Period)(summSkin, phy, _period, false);
 				val += calcPhy!(Nature)(summSkin, phy, _nature, false);
@@ -668,24 +668,24 @@ private:
 			}
 			int[] vals;
 			vals.length = p.length;
-			foreach (phy, val; p) {
+			foreach (phy, val; p) { mixin(S_TRACE);
 				int v = cast(int) val;
 				if (v < min[phy]) v = min[phy];
 				if (v > max[phy]) v = max[phy];
 				vals[_phyTbl[phy]] = v;
 			}
-			if (_phyR) {
+			if (_phyR) { mixin(S_TRACE);
 				_phyR.setValues(vals);
-			} else {
+			} else { mixin(S_TRACE);
 				_phyS.setValues(vals);
 			}
 			modPhysical();
 		}
 	}
-	void constructMental(CTabFolder tabf) {
+	void constructMental(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.mentalParams);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -694,7 +694,7 @@ private:
 			grp.setLayout(ggl);
 			static const Ms = [Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE,
 				Mental.CAUTIOUS, Mental.TRICKISH];
-			foreach (m; Ms) {
+			foreach (m; Ms) { mixin(S_TRACE);
 				auto minl = new Label(grp, SWT.NONE);
 				minl.setText(_prop.msgs.mentalName(reverseMental(m)));
 				auto scale = new Scale(grp, SWT.NONE);
@@ -710,7 +710,7 @@ private:
 				_mtl[m] = scale;
 			}
 		}
-		{
+		{ mixin(S_TRACE);
 			auto basic = new Button(comp, SWT.PUSH);
 			mod(basic);
 			basic.setEnabled(!_readOnly);
@@ -722,10 +722,10 @@ private:
 		tab.setText(_prop.msgs.mentalParams);
 		tab.setControl(comp);
 	}
-	real calcMtl(E)(in Skin skin, Mental mtl, Button[E] radios, bool all) {
+	real calcMtl(E)(in Skin skin, Mental mtl, Button[E] radios, bool all) { mixin(S_TRACE);
 		real r = 0.0;
-		foreach (e, radio; radios) {
-			if (radio.getSelection()) {
+		foreach (e, radio; radios) { mixin(S_TRACE);
+			if (radio.getSelection()) { mixin(S_TRACE);
 				r += skin.mentalMod(e, mtl);
 				if (!all) break;
 			}
@@ -733,18 +733,18 @@ private:
 		return r;
 	}
 	class CalcMental : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto race = selectedRace;
-			foreach (mtl, scale; _mtl) {
+			foreach (mtl, scale; _mtl) { mixin(S_TRACE);
 				int min = cast(int) _prop.looks.mentalCut * -1;
 				int max = _prop.looks.mentalCut;
 				real val;
-				if (race) {
+				if (race) { mixin(S_TRACE);
 					int ival = race.mental(mtl);
 					val = ival;
 					if (ival < min) min = ival;
 					if (ival > max) max = ival;
-				} else {
+				} else { mixin(S_TRACE);
 					val = 0.0;
 				}
 				val += calcMtl!(Sex)(summSkin, mtl, _sex, false);
@@ -759,14 +759,14 @@ private:
 		}
 	}
 	static immutable ENHANCE = [Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE];
-	void initEnhance() {
+	void initEnhance() { mixin(S_TRACE);
 		int[] values = [];
-		if (_enhR) {
+		if (_enhR) { mixin(S_TRACE);
 			values = _enhR.getValues();
 			_enhR.dispose();
 			_enhR = null;
 		}
-		if (_enhS) {
+		if (_enhS) { mixin(S_TRACE);
 			values = _enhS.getValues();
 			_enhS.dispose();
 			_enhS = null;
@@ -774,14 +774,14 @@ private:
 
 		string[] names;
 		names.length = ENHANCE.length;
-		foreach (i, enh; ENHANCE) {
+		foreach (i, enh; ENHANCE) { mixin(S_TRACE);
 			_enhTbl[enh] = i;
 			names[i] = .tryFormat(_prop.msgs.enhanceBonus, _prop.msgs.enhanceName(enh));
 		}
 		int stepC = _prop.var.etc.enhanceMax * 2 + 1;
 		int min = cast(int) _prop.var.etc.enhanceMax * -1;
 		int page = _prop.var.etc.enhanceMax / 2;
-		if (_prop.var.etc.radarStyleParams) {
+		if (_prop.var.etc.radarStyleParams) { mixin(S_TRACE);
 			_enhR = new RadarSpinner(_enhParent, _readOnly);
 			_enhR.setRadar(stepC, names, min);
 			_enhR.antialias = true;
@@ -789,7 +789,7 @@ private:
 			_enhR.lineStep = page;
 			if (values.length) _enhR.setValues(values);
 			mod(_enhR);
-		} else {
+		} else { mixin(S_TRACE);
 			_enhS = new Scales(_enhParent, _readOnly);
 			_enhS.setScales(stepC, names, page, min);
 			_enhS.borderlines = [0];
@@ -798,10 +798,10 @@ private:
 		}
 		_enhParent.layout();
 	}
-	void constructEnhance(CTabFolder tabf) {
+	void constructEnhance(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.castEnhance);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -812,7 +812,7 @@ private:
 			_enhParent = grp;
 			initEnhance();
 		}
-		{
+		{ mixin(S_TRACE);
 			auto basic = new Button(comp, SWT.PUSH);
 			mod(basic);
 			basic.setEnabled(!_readOnly);
@@ -824,12 +824,12 @@ private:
 		tab.setText(_prop.msgs.castEnhance);
 		tab.setControl(comp);
 	}
-	void constructStatus(CTabFolder tabf) {
+	void constructStatus(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
 		Label[] lbls1, lbls2;
 		Composite[] spns;
-		Spinner createSpn(Composite comp) {
+		Spinner createSpn(Composite comp) { mixin(S_TRACE);
 			// なぜかCompositeを挟まなければSpinner#computeSize()が大きめの値を返す
 			Composite comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayout(new FillLayout);
@@ -839,7 +839,7 @@ private:
 			spns ~= comp2;
 			return spn;
 		}
-		Composite createGrp(string text) {
+		Composite createGrp(string text) { mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto gl = new GridLayout(2, false);
@@ -848,7 +848,7 @@ private:
 			grp.setText(text);
 			return grp;
 		}
-		Composite createComp(Composite grp) {
+		Composite createComp(Composite grp) { mixin(S_TRACE);
 			auto comp2 = new Composite(grp, SWT.NONE);
 			comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto rl = new RowLayout(SWT.HORIZONTAL);
@@ -860,9 +860,9 @@ private:
 			comp2.setLayout(rl);
 			return comp2;
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = createGrp(_prop.msgs.lifeAndMentality);
-			{
+			{ mixin(S_TRACE);
 				auto comp2 = createComp(grp);
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText(_prop.msgs.life);
@@ -876,7 +876,7 @@ private:
 				_lifeUseMax.setText(_prop.msgs.useMax);
 				_lifeUseMax.addSelectionListener(new LifeUseMax);
 			}
-			{
+			{ mixin(S_TRACE);
 				auto comp2 = createComp(grp);
 				auto lm = new Label(comp2, SWT.NONE);
 				lm.setText(_prop.msgs.mentality);
@@ -886,10 +886,10 @@ private:
 				_mtly.setEnabled(!_readOnly);
 				_mtly.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				foreach (i, mtly; [Mentality.NORMAL, Mentality.SLEEP, Mentality.CONFUSE,
-						Mentality.OVERHEAT, Mentality.BRAVE, Mentality.PANIC]) {
+						Mentality.OVERHEAT, Mentality.BRAVE, Mentality.PANIC]) { mixin(S_TRACE);
 					_mtly.add(_prop.msgs.mentalityName(mtly));
 					_mtlyTbl[i] = mtly;
-					if (_card && _card.mentality is mtly) {
+					if (_card && _card.mentality is mtly) { mixin(S_TRACE);
 						_mtly.select(i);
 					}
 				}
@@ -903,9 +903,9 @@ private:
 				lm2.setText(_prop.msgs.unitRound);
 			}
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = createGrp(_prop.msgs.enhanceLiveBonus);
-			foreach (enh; [Enhance.ACTION, Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE]) {
+			foreach (enh; [Enhance.ACTION, Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE]) { mixin(S_TRACE);
 				auto comp2 = createComp(grp);
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText(_prop.msgs.enhanceLiveBonusName(enh));
@@ -925,7 +925,7 @@ private:
 				spn.addSelectionListener(new LiveEnh);
 			}
 		}
-		Spinner createStSpn(Composite grp, string name, uint max, string val) {
+		Spinner createStSpn(Composite grp, string name, uint max, string val) { mixin(S_TRACE);
 			auto comp2 = createComp(grp);
 			auto l = new Label(comp2, SWT.NONE);
 			l.setText(name);
@@ -939,7 +939,7 @@ private:
 			lbls2 ~= l2;
 			return spn;
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = createGrp(_prop.msgs.status);
 			_paralyze = createStSpn(grp, _prop.msgs.paralyze, _prop.var.etc.paralyzeMax, _prop.msgs.unitValue);
 			_poison = createStSpn(grp, _prop.msgs.poison, _prop.var.etc.poisonMax, _prop.msgs.unitValue);
@@ -948,13 +948,13 @@ private:
 			_faceUp = createStSpn(grp, _prop.msgs.faceUp, _prop.var.etc.roundMax, _prop.msgs.unitRound);
 			_antiMagic = createStSpn(grp, _prop.msgs.antiMagic, _prop.var.etc.roundMax, _prop.msgs.unitRound);
 		}
-		void setlblw(Control[] lbls) {
+		void setlblw(Control[] lbls) { mixin(S_TRACE);
 			int maxW = 0;
-			foreach (lbl; lbls) {
+			foreach (lbl; lbls) { mixin(S_TRACE);
 				int w = lbl.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 				if (maxW < w) maxW = w;
 			}
-			foreach (lbl; lbls) {
+			foreach (lbl; lbls) { mixin(S_TRACE);
 				auto gd = new RowData(maxW, SWT.DEFAULT);
 				lbl.setLayoutData(gd);
 			}
@@ -962,7 +962,7 @@ private:
 		setlblw(cast(Control[]) lbls1);
 		setlblw(cast(Control[]) lbls2);
 		setlblw(cast(Control[]) spns);
-		{
+		{ mixin(S_TRACE);
 			auto reset = new Button(comp, SWT.PUSH);
 			mod(reset);
 			reset.setEnabled(!_readOnly);
@@ -975,43 +975,43 @@ private:
 		tab.setControl(comp);
 	}
 	class LiveEnh : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			changeLiveEnhance();
 		}
 	}
 	class SelMentality : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			changeMentality();
 		}
 	}
 	class LifeUseMax : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			changeLifeUseMax();
 		}
 	}
 	class ResetLiveStatus : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			resetLiveStatus();
 		}
 	}
-	void changeLiveEnhance() {
-		foreach (enh, spn; _liveEnh) {
+	void changeLiveEnhance() { mixin(S_TRACE);
+		foreach (enh, spn; _liveEnh) { mixin(S_TRACE);
 			_enhRound[enh].setEnabled(!_readOnly && spn.getSelection() != 0);
 		}
 	}
-	void changeMentality() {
+	void changeMentality() { mixin(S_TRACE);
 		_mtlyRound.setEnabled(!_readOnly && _mtly.getSelectionIndex() != 0);
 	}
-	void changeLifeUseMax() {
+	void changeLifeUseMax() { mixin(S_TRACE);
 		_life.setEnabled(!_readOnly && !_lifeUseMax.getSelection());
 	}
-	void resetLiveStatus() {
+	void resetLiveStatus() { mixin(S_TRACE);
 		_life.setSelection(_lifeMax.getSelection());
 		_lifeUseMax.setSelection(true);
-		foreach (enh, spn; _liveEnh) {
+		foreach (enh, spn; _liveEnh) { mixin(S_TRACE);
 			spn.setSelection(0);
 		}
-		foreach (enh, spn; _enhRound) {
+		foreach (enh, spn; _enhRound) { mixin(S_TRACE);
 			spn.setSelection(0);
 		}
 		_paralyze.setSelection(0);
@@ -1026,16 +1026,16 @@ private:
 		changeMentality();
 		changeLifeUseMax();
 	}
-	void delCard(CastCard c) {
-		if (_card is c) {
+	void delCard(CastCard c) { mixin(S_TRACE);
+		if (_card is c) { mixin(S_TRACE);
 			forceCancel();
 		}
 	}
-	void refScenario(Summary summ) {
+	void refScenario(Summary summ) { mixin(S_TRACE);
 		forceCancel();
 	}
 	class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.refRadarStyle.remove(&initPhysical);
 			_comm.refRadarStyle.remove(&initEnhance);
 			_comm.delCast.remove(&delCard);
@@ -1044,7 +1044,7 @@ private:
 			_comm.refCoupons.remove(&updateNature);
 		}
 	}
-	void refSkin() {
+	void refSkin() { mixin(S_TRACE);
 		_desc.font = dwtData(_prop.looks.cardDescFont(_summ.legacy));
 		refreshRace();
 		refreshSex();
@@ -1052,35 +1052,35 @@ private:
 		refreshNature();
 		refreshMakings();
 	}
-	void refreshRace() {
+	void refreshRace() { mixin(S_TRACE);
 		_race.setEnabled(!_readOnly && !_summ.legacy);
 	}
-	void refreshSex() {
-		foreach (s, b; _sex) {
+	void refreshSex() { mixin(S_TRACE);
+		foreach (s, b; _sex) { mixin(S_TRACE);
 			auto name = summSkin.sexName(s);
 			b.setText(_prop.msgs.sex.get(name, name));
 		}
 	}
-	void refreshPeriod() {
-		foreach (p, b; _period) {
+	void refreshPeriod() { mixin(S_TRACE);
+		foreach (p, b; _period) { mixin(S_TRACE);
 			auto name = summSkin.periodName(p);
 			b.setText(_prop.msgs.period.get(name, name));
 		}
 	}
-	void refreshNature() {
-		foreach (n, b; _nature) {
+	void refreshNature() { mixin(S_TRACE);
+		foreach (n, b; _nature) { mixin(S_TRACE);
 			auto name = summSkin.natureName(n);
 			b.setText(_prop.msgs.nature.get(name, name));
 		}
 	}
-	void refreshMakings() {
-		foreach (m, b; _makings) {
+	void refreshMakings() { mixin(S_TRACE);
+		foreach (m, b; _makings) { mixin(S_TRACE);
 			auto name = summSkin.makingsName(m);
 			b.setText(_prop.msgs.makings.get(name, name));
 		}
 	}
 
-	void updateNature() {
+	void updateNature() { mixin(S_TRACE);
 		if (getShell().isVisible()) getShell().setRedraw(false);
 		scope (exit) {
 			if (getShell().isVisible()) getShell().setRedraw(true);
@@ -1088,63 +1088,63 @@ private:
 
 		bool first = (0 == _natureComp.getChildren().length);
 		string nature = "";
-		if (first || _showSpNature != _prop.var.etc.showSpNature) {
-			foreach (n, b; _nature) {
-				if (b.getSelection()) {
+		if (first || _showSpNature != _prop.var.etc.showSpNature) { mixin(S_TRACE);
+			foreach (n, b; _nature) { mixin(S_TRACE);
+				if (b.getSelection()) { mixin(S_TRACE);
 					nature = summSkin.natureCoupon(n);
 					break;
 				}
 			}
-			foreach (chld; _natureComp.getChildren()) {
+			foreach (chld; _natureComp.getChildren()) { mixin(S_TRACE);
 				chld.dispose();
 			}
 			typeof(_nature) tbl;
 			_nature = tbl;
 
 			bool selected = false;
-			void sep() {
+			void sep() { mixin(S_TRACE);
 				auto sep = new Label(_natureComp, SWT.SEPARATOR | SWT.HORIZONTAL);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 2;
 				sep.setLayoutData(gd);
 			}
-			void put(Nature n) {
+			void put(Nature n) { mixin(S_TRACE);
 				auto name = summSkin.natureName(n);
 				auto b = createR(_natureComp, _prop.msgs.nature.get(name, name), (_nature.length + 1) % 2);
 				_nature[n] = b;
-				if (!first && nature == summSkin.natureCoupon(n)) {
+				if (!first && nature == summSkin.natureCoupon(n)) { mixin(S_TRACE);
 					b.setSelection(true);
 					selected = true;
 				}
 			}
-			foreach (n; NATURE_DEF) {
+			foreach (n; NATURE_DEF) { mixin(S_TRACE);
 				put(n);
 			}
-			if (_prop.var.etc.showSpNature) {
+			if (_prop.var.etc.showSpNature) { mixin(S_TRACE);
 				sep();
-				foreach (n; NATURE_EXT) {
+				foreach (n; NATURE_EXT) { mixin(S_TRACE);
 					put(n);
 				}
 			}
 			sep();
 			_natureU = createR(_natureComp, _prop.msgs.natureUnknown, 1);
-			if (!first && !selected) {
+			if (!first && !selected) { mixin(S_TRACE);
 				_natureU.setSelection(true);
 				selected = true;
 			}
 		}
 
-		if (!first && _showSpNature != _prop.var.etc.showSpNature) {
+		if (!first && _showSpNature != _prop.var.etc.showSpNature) { mixin(S_TRACE);
 			_showSpNature = _prop.var.etc.showSpNature;
 			_natureComp.layout(true);
 			_natureComp.getParent().layout(true);
 			_natureComp.getParent().getParent().layout(true);
-			if (_showSpNature) {
-				if (_natureU.getSelection()) {
-					cp: foreach (i, cp; _couponView.coupons) {
-						if (0 == cp.value) {
-							foreach (n; NATURE_EXT) {
-								if (cp.name == summSkin.natureCoupon(n)) {
+			if (_showSpNature) { mixin(S_TRACE);
+				if (_natureU.getSelection()) { mixin(S_TRACE);
+					cp: foreach (i, cp; _couponView.coupons) { mixin(S_TRACE);
+						if (0 == cp.value) { mixin(S_TRACE);
+							foreach (n; NATURE_EXT) { mixin(S_TRACE);
+								if (cp.name == summSkin.natureCoupon(n)) { mixin(S_TRACE);
 									_nature[n].setSelection(true);
 									_natureU.setSelection(false);
 									_couponView.delCoupon(i);
@@ -1154,8 +1154,8 @@ private:
 						}
 					}
 				}
-			} else {
-				if (_natureU.getSelection() && "" != nature) {
+			} else { mixin(S_TRACE);
+				if (_natureU.getSelection() && "" != nature) { mixin(S_TRACE);
 					_couponView.addCoupon(new Coupon(nature, 0));
 				}
 			}
@@ -1163,7 +1163,7 @@ private:
 	}
 
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, CastCard card, bool readOnly) {
+	this(Commons comm, Props prop, Shell shell, Summary summ, CastCard card, bool readOnly) { mixin(S_TRACE);
 		assert (summ !is null);
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_comm = comm;
@@ -1177,15 +1177,15 @@ public:
 	}
 
 	@property
-	CastCard card() {
+	CastCard card() { mixin(S_TRACE);
 		return _card;
 	}
 
-	bool openCWXPath(string path, bool shellActivate) {
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		return cpempty(path);
 	}
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(windowGridLayout(1));
 		auto tabf = new CTabFolder(area, SWT.BORDER);
 		constructBase(tabf);
@@ -1208,7 +1208,7 @@ protected:
 
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
 		scope maxSize = new Point(0, 0);
-		foreach (tab; tabf.getItems()) {
+		foreach (tab; tabf.getItems()) { mixin(S_TRACE);
 			scope size = tab.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			if (maxSize.x < size.x) maxSize.x = size.x;
 			if (maxSize.y < size.y) maxSize.y = size.y;
@@ -1221,12 +1221,12 @@ protected:
 
 		refCard(_card);
 	}
-	private void refCard(CastCard card) {
+	private void refCard(CastCard card) { mixin(S_TRACE);
 		if (_card && _card !is card) return;
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		auto skin = summSkin;
-		if (_card) {
+		if (_card) { mixin(S_TRACE);
 			_imgPath.image = _card.path;
 			if (_race) _race.select(0);
 			_desc.setText(_card.desc);
@@ -1236,38 +1236,38 @@ protected:
 			bool sex = false, period = false, nature = false;
 			scope makings = new HashSet!(Makings);
 			Coupon[] coupons;
-			cp: foreach (c; _card.coupons) {
-				foreach (s, b; _sex) {
-					if (c.name == skin.sexCoupon(s)) {
+			cp: foreach (c; _card.coupons) { mixin(S_TRACE);
+				foreach (s, b; _sex) { mixin(S_TRACE);
+					if (c.name == skin.sexCoupon(s)) { mixin(S_TRACE);
 						if (!sex) b.setSelection(true);
 						sex = true;
 						continue cp;
 					}
 				}
-				foreach (per, b; _period) {
-					if (c.name == skin.periodCoupon(per)) {
+				foreach (per, b; _period) { mixin(S_TRACE);
+					if (c.name == skin.periodCoupon(per)) { mixin(S_TRACE);
 						if (!period) b.setSelection(true);
 						period = true;
 						continue cp;
 					}
 				}
-				foreach (nat, b; _nature) {
-					if (c.name == skin.natureCoupon(nat)) {
+				foreach (nat, b; _nature) { mixin(S_TRACE);
+					if (c.name == skin.natureCoupon(nat)) { mixin(S_TRACE);
 						if (!nature) b.setSelection(true);
 						nature = true;
 						continue cp;
 					}
 				}
-				foreach (m, b; _makings) {
-					if (c.name == skin.makingsCoupon(m)) {
+				foreach (m, b; _makings) { mixin(S_TRACE);
+					if (c.name == skin.makingsCoupon(m)) { mixin(S_TRACE);
 						if (!makings.contains(m)) b.setSelection(true);
 						makings.add(m);
 						continue cp;
 					}
 				}
-				if (_race) {
-					foreach (i, r; summSkin.races) {
-						if (c.name == _prop.sys.raceCoupon(r.name)) {
+				if (_race) { mixin(S_TRACE);
+					foreach (i, r; summSkin.races) { mixin(S_TRACE);
+						if (c.name == _prop.sys.raceCoupon(r.name)) { mixin(S_TRACE);
 							_race.select(i + 1);
 							raceToolTip();
 							continue cp;
@@ -1286,36 +1286,36 @@ protected:
 			_automaton.setSelection(_card.automaton);
 			_unholy.setSelection(_card.unholy);
 			_constructure.setSelection(_card.constructure);
-			foreach (e, radio; _res) {
+			foreach (e, radio; _res) { mixin(S_TRACE);
 				radio.setSelection(_card.resist(e));
 			}
-			foreach (e, radio; _weak) {
+			foreach (e, radio; _weak) { mixin(S_TRACE);
 				radio.setSelection(_card.weakness(e));
 			}
-			foreach (phy, i; _phyTbl) {
-				if (_phyR) {
+			foreach (phy, i; _phyTbl) { mixin(S_TRACE);
+				if (_phyR) { mixin(S_TRACE);
 					_phyR.setValue(i, _card.physical(phy));
-				} else {
+				} else { mixin(S_TRACE);
 					_phyS.setValue(i, _card.physical(phy));
 				}
 			}
-			foreach (mtl, scale; _mtl) {
+			foreach (mtl, scale; _mtl) { mixin(S_TRACE);
 				scale.setSelection(_prop.var.etc.mentalMax + _card.mental(mtl));
 			}
-			foreach (enh, i; _enhTbl) {
-				if (_enhR) {
+			foreach (enh, i; _enhTbl) { mixin(S_TRACE);
+				if (_enhR) { mixin(S_TRACE);
 					_enhR.setValue(i, _card.defaultEnhance(enh));
-				} else {
+				} else { mixin(S_TRACE);
 					_enhS.setValue(i, _card.defaultEnhance(enh));
 				}
 			}
 
 			_life.setSelection(_card.life);
 			_lifeUseMax.setSelection(_card.life == _card.lifeMax);
-			foreach (enh, spn; _liveEnh) {
+			foreach (enh, spn; _liveEnh) { mixin(S_TRACE);
 				spn.setSelection(_card.enhance(enh));
 			}
-			foreach (enh, spn; _enhRound) {
+			foreach (enh, spn; _enhRound) { mixin(S_TRACE);
 				spn.setSelection(_card.enhanceRound(enh));
 			}
 			_paralyze.setSelection(_card.paralyze);
@@ -1328,7 +1328,7 @@ protected:
 			changeLiveEnhance();
 			changeMentality();
 			changeLifeUseMax();
-		} else {
+		} else { mixin(S_TRACE);
 			_imgPath.image = "";
 			if (_race) _race.select(0);
 			_sexU.setSelection(true);
@@ -1337,20 +1337,20 @@ protected:
 			int[] phys;
 			phys.length = PHYSICALS.length;
 			phys[] = _prop.looks.physicalNormal;
-			if (_phyR) {
+			if (_phyR) { mixin(S_TRACE);
 				_phyR.setValues(phys);
-			} else {
+			} else { mixin(S_TRACE);
 				_phyS.setValues(phys);
 			}
-			foreach (radio; _mtl) {
+			foreach (radio; _mtl) { mixin(S_TRACE);
 				radio.setSelection(_prop.var.etc.mentalMax);
 			}
 			int[] bonus;
 			bonus.length = ENHANCE.length;
 			bonus[] = 0;
-			if (_enhR) {
+			if (_enhR) { mixin(S_TRACE);
 				_enhR.setValues(bonus);
-			} else {
+			} else { mixin(S_TRACE);
 				_enhS.setValues(bonus);
 			}
 
@@ -1360,23 +1360,23 @@ protected:
 		modPhysical();
 	}
 
-	private Coupon createCoupon(E)(Button[E] radios, string delegate(E) coupon) {
-		foreach (e, radio; radios) {
-			if (radio.getSelection()) {
+	private Coupon createCoupon(E)(Button[E] radios, string delegate(E) coupon) { mixin(S_TRACE);
+		foreach (e, radio; radios) { mixin(S_TRACE);
+			if (radio.getSelection()) { mixin(S_TRACE);
 				return new Coupon(coupon(e), 0);
 			}
 		}
 		return null;
 	}
-	override bool apply() {
-		if (_card) {
+	override bool apply() { mixin(S_TRACE);
+		if (_card) { mixin(S_TRACE);
 			_card.path = _imgPath.image;
 			_card.desc = _desc.getRRText();
 			_card.name = _name.getText();
 			_card.level = _level.getSelection();
 			_card.lifeMax = _lifeMax.getSelection();
 			_card.life = _lifeMax.getSelection();
-		} else {
+		} else { mixin(S_TRACE);
 			_card = new CastCard(_summ.newId!(CastCard), _name.getText(), _imgPath.image,
 				_desc.getRRText(), _level.getSelection(), _lifeMax.getSelection());
 		}
@@ -1388,7 +1388,7 @@ protected:
 		auto sex = createCoupon!(Sex)(_sex, &skin.sexCoupon);
 		if (sex && !cContains(tblCoupons, sex)) cs ~= sex;
 		auto race = selectedRace;
-		if (race) {
+		if (race) { mixin(S_TRACE);
 			auto rc = new Coupon(_prop.sys.raceCoupon(race.name), 0);
 			if (!cContains(tblCoupons, rc)) cs ~= rc;
 		}
@@ -1396,8 +1396,8 @@ protected:
 		if (period && !cContains(tblCoupons, period)) cs ~= period;
 		auto nature = createCoupon!(Nature)(_nature, &skin.natureCoupon);
 		if (nature && !cContains(tblCoupons, nature)) cs ~= nature;
-		foreach (m, radio; _makings) {
-			if (radio.getSelection()) {
+		foreach (m, radio; _makings) { mixin(S_TRACE);
+			if (radio.getSelection()) { mixin(S_TRACE);
 				auto mc = new Coupon(skin.makingsCoupon(m), 0);
 				if (!cContains(tblCoupons, mc)) cs ~= mc;
 			}
@@ -1410,42 +1410,42 @@ protected:
 		_card.automaton = _automaton.getSelection();
 		_card.unholy = _unholy.getSelection();
 		_card.constructure = _constructure.getSelection();
-		foreach (e, radio; _res) {
+		foreach (e, radio; _res) { mixin(S_TRACE);
 			_card.resist(e, radio.getSelection());
 		}
-		foreach (e, radio; _weak) {
+		foreach (e, radio; _weak) { mixin(S_TRACE);
 			_card.weakness(e, radio.getSelection());
 		}
-		foreach (phy, i; _phyTbl) {
-			if (_phyR) {
+		foreach (phy, i; _phyTbl) { mixin(S_TRACE);
+			if (_phyR) { mixin(S_TRACE);
 				_card.physical(phy, _phyR.getValue(i));
-			} else {
+			} else { mixin(S_TRACE);
 				_card.physical(phy, _phyS.getValue(i));
 			}
 		}
-		foreach (mtl, scale; _mtl) {
+		foreach (mtl, scale; _mtl) { mixin(S_TRACE);
 			_card.mental(mtl, cast(int) scale.getSelection() - _prop.var.etc.mentalMax);
 		}
-		foreach (enh, i; _enhTbl) {
-			if (_enhR) {
+		foreach (enh, i; _enhTbl) { mixin(S_TRACE);
+			if (_enhR) { mixin(S_TRACE);
 				_card.defaultEnhance(enh, _enhR.getValue(i));
-			} else {
+			} else { mixin(S_TRACE);
 				_card.defaultEnhance(enh, _enhS.getValue(i));
 			}
 		}
 
 		_card.life = _lifeUseMax.getSelection() ? _card.lifeMax : _life.getSelection();
-		foreach (enh, spn; _liveEnh) {
-			if (_enhRound[enh].getSelection() > 0) {
+		foreach (enh, spn; _liveEnh) { mixin(S_TRACE);
+			if (_enhRound[enh].getSelection() > 0) { mixin(S_TRACE);
 				_card.enhance(enh, spn.getSelection());
-			} else {
+			} else { mixin(S_TRACE);
 				_card.enhance(enh, 0);
 			}
 		}
-		foreach (enh, spn; _enhRound) {
-			if (_card.enhance(enh) != 0) {
+		foreach (enh, spn; _enhRound) { mixin(S_TRACE);
+			if (_card.enhance(enh) != 0) { mixin(S_TRACE);
 				_card.enhanceRound(enh, spn.getSelection());
-			} else {
+			} else { mixin(S_TRACE);
 				_card.enhanceRound(enh, 0);
 			}
 		}

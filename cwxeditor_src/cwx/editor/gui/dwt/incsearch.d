@@ -29,7 +29,7 @@ class IncSearch {
 	void delegate()[] modEvent;
 
 	/// 文字列がマッチすればtrue。
-	bool match(string text, in Object additionalData = null) {
+	bool match(string text, in Object additionalData = null) { mixin(S_TRACE);
 		if (!_win.isVisible()) return true;
 		if (!_wild) return matchAdditional(additionalData);
 		if (!_text.getText().length) return matchAdditional(additionalData);
@@ -42,10 +42,10 @@ class IncSearch {
 		default: assert (0);
 		}
 	}
-	bool matchAdditional(in Object additionalData) {
+	bool matchAdditional(in Object additionalData) { mixin(S_TRACE);
 		if (!additionalData) return true;
-		foreach (chk, dlg; _additionCheckers) {
-			if (!chk.getSelection() && dlg(additionalData)) {
+		foreach (chk, dlg; _additionCheckers) { mixin(S_TRACE);
+			if (!chk.getSelection() && dlg(additionalData)) { mixin(S_TRACE);
 				return false;
 			}
 		}
@@ -62,7 +62,7 @@ class IncSearch {
 	private bool _regexErr = false;
 	private bool _open = false;
 
-	this (Commons comm, Control parent, AdditionMatcher[] addition = []) {
+	this (Commons comm, Control parent, AdditionMatcher[] addition = []) { mixin(S_TRACE);
 		_parent = parent;
 		_win = new Shell(parent.getShell(), SWT.BORDER | SWT.MODELESS);
 		auto wgl = windowGridLayout(3, false);
@@ -88,11 +88,11 @@ class IncSearch {
 		auto menuc = _type.getMenu();
 		new MenuItem(menuc, SWT.SEPARATOR);
 		createMenuItem(comm, menuc, MenuID.CloseIncSearch, &close, null);
-		.listener(_type, SWT.Selection, {
+		.listener(_type, SWT.Selection, { mixin(S_TRACE);
 			comm.prop.var.etc.incrementalSearchType = _type.getSelectionIndex();
 			if (!_open) return;
 			if (!_win.isVisible()) return;
-			foreach (dlg; modEvent) {
+			foreach (dlg; modEvent) { mixin(S_TRACE);
 				dlg();
 			}
 		});
@@ -100,18 +100,18 @@ class IncSearch {
 		comm.put(bar);
 		createToolItem(comm, bar, MenuID.CloseIncSearch, &close, null);
 
-		if (addition.length) {
+		if (addition.length) { mixin(S_TRACE);
 			auto addComp = new Composite(_win, SWT.NONE);
 			auto agd = new GridData(GridData.FILL_HORIZONTAL);
 			agd.horizontalSpan = 3;
 			addComp.setLayoutData(agd);
 			addComp.setLayout(zeroMarginGridLayout(addition.length, false));
-			foreach (add; addition) {
+			foreach (add; addition) { mixin(S_TRACE);
 				auto check = new Button(addComp, SWT.CHECK);
 				check.setText(add.name);
 				check.setSelection(true);
-				.listener(check, SWT.Selection, {
-					foreach (dlg; modEvent) {
+				.listener(check, SWT.Selection, { mixin(S_TRACE);
+					foreach (dlg; modEvent) { mixin(S_TRACE);
 						dlg();
 					}
 				});
@@ -120,7 +120,7 @@ class IncSearch {
 		}
 
 		bool inMod = false;
-		.listener(_text, SWT.Modify, {
+		.listener(_text, SWT.Modify, { mixin(S_TRACE);
 			if (inMod) return;
 			if (!_open) return;
 			if (!_win.isVisible()) return;
@@ -130,7 +130,7 @@ class IncSearch {
 			scope (exit) _win.setRedraw(true);
 
 			_wild = Wildcard(_text.getText());
-			try {
+			try { mixin(S_TRACE);
 				_regex = .regex(to!dstring(_text.getText()), "i");
 				_regexErr = false;
 			} catch (Exception e) {
@@ -150,17 +150,17 @@ class IncSearch {
 			_text.setText(_text.getText());
 			_text.setSelection(sel);
 
-			foreach (dlg; modEvent) {
+			foreach (dlg; modEvent) { mixin(S_TRACE);
 				dlg();
 			}
 		});
 		auto l = new class Listener {
-			override void handleEvent(Event e) {
+			override void handleEvent(Event e) { mixin(S_TRACE);
 				resize();
 			}
 		};
 		auto rmFocus = new class Listener {
-			override void handleEvent(Event e) {
+			override void handleEvent(Event e) { mixin(S_TRACE);
 				if (_win.isDisposed()) return;
 				if (!_open) return;
 				if (!_win.isVisible()) return;
@@ -169,12 +169,12 @@ class IncSearch {
 				if (isDescendant(_win, c)) return;
 				if (!(c.getShell() is _win || c.getShell() is parent.getShell())) return;
 				auto comp = cast(Composite) parent;
-				if (comp) {
-					if (!isDescendant(comp, c)) {
+				if (comp) { mixin(S_TRACE);
+					if (!isDescendant(comp, c)) { mixin(S_TRACE);
 						close();
 					}
-				} else {
-					if (c !is parent) {
+				} else { mixin(S_TRACE);
+					if (c !is parent) { mixin(S_TRACE);
 						close();
 					}
 				}
@@ -187,7 +187,7 @@ class IncSearch {
 		auto d = parent.getDisplay();
 		d.addFilter(SWT.FocusIn, rmFocus);
 		d.addFilter(SWT.FocusOut, rmFocus);
-		.listener(_win, SWT.Dispose, {
+		.listener(_win, SWT.Dispose, { mixin(S_TRACE);
 			parent.getShell().removeListener(SWT.Resize, l);
 			parent.getShell().removeListener(SWT.Move, l);
 			parent.removeListener(SWT.Resize, l);
@@ -195,12 +195,12 @@ class IncSearch {
 			d.removeListener(SWT.FocusOut, rmFocus);
 			d.removeListener(SWT.FocusOut, rmFocus);
 		});
-		.listener(parent, SWT.Dispose, {
-			if (!_win.isDisposed()) {
+		.listener(parent, SWT.Dispose, { mixin(S_TRACE);
+			if (!_win.isDisposed()) { mixin(S_TRACE);
 				_win.dispose();
 			}
 		});
-		.listener(_win, SWT.Close, (Event e) {
+		.listener(_win, SWT.Close, (Event e) { mixin(S_TRACE);
 			e.doit = false;
 			close();
 		});
@@ -208,12 +208,12 @@ class IncSearch {
 		_win.pack();
 		resize();
 	}
-	private void resize() {
+	private void resize() { mixin(S_TRACE);
 		_win.setLocation(_parent.toDisplay(0, -_win.getSize().y));
 	}
 
-	void startIncSearch(string first = "") {
-		if (!_win.isVisible()) {
+	void startIncSearch(string first = "") { mixin(S_TRACE);
+		if (!_win.isVisible()) { mixin(S_TRACE);
 			_text.setText(first);
 			resize();
 			_win.setVisible(true);
@@ -221,23 +221,23 @@ class IncSearch {
 		.forceFocus(_text, true);
 		_open = true;
 	}
-	void close() {
-		if (_win.isVisible()) {
+	void close() { mixin(S_TRACE);
+		if (_win.isVisible()) { mixin(S_TRACE);
 			_win.setVisible(false);
 			_wild = null;
 			bool mod = false;
-			foreach (chk, dlg; _additionCheckers) {
-				if (!chk.getSelection()) {
+			foreach (chk, dlg; _additionCheckers) { mixin(S_TRACE);
+				if (!chk.getSelection()) { mixin(S_TRACE);
 					chk.setSelection(true);
 					mod = true;
 				}
 			}
-			if (_text.getText().length) {
+			if (_text.getText().length) { mixin(S_TRACE);
 				_text.setText("");
 				mod = true;
 			}
-			if (mod) {
-				foreach (dlg; modEvent) {
+			if (mod) { mixin(S_TRACE);
+				foreach (dlg; modEvent) { mixin(S_TRACE);
 					dlg();
 				}
 			}

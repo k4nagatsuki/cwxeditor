@@ -21,14 +21,14 @@ version (Windows) {
 	/// uncab()が行える状態であればtrueを返す。
 	/// cabinet.dllが使用できないなどの理由でfalseを返す事がある。
 	@property
-	bool canUncab() {
+	bool canUncab() { mixin(S_TRACE);
 		return usable;
 	}
 
 	/// src以下のファイル・フォルダを全て圧縮し、CAB書庫cabを生成する。
 	/// ファイルは圧縮される直前にisArc(string)へ渡され、isArc()がfalseを
 	/// 返すようであれば、そのファイルの圧縮を行わない。
-	bool cab(string src, string cab, bool delegate(string) isArc = null) {
+	bool cab(string src, string cab, bool delegate(string) isArc = null) { mixin(S_TRACE);
 		if (!canUncab) return false;
 		if (!.exists(src)) return false;
 		src = nabs(src);
@@ -36,10 +36,10 @@ version (Windows) {
 		if (!h) return false;
 		scope (exit) destroyFCI(h);
 		string cut = dirName(src) ~ dirSeparator.idup;
-		bool adds(string file) {
+		bool adds(string file) { mixin(S_TRACE);
 			if (isArc && !isArc(file)) return true;
 			bool isdir = isDir(file);
-			if (file.length > cut.length && !isdir) {
+			if (file.length > cut.length && !isdir) { mixin(S_TRACE);
 				string name = file[cut.length .. $];
 				version (Windows) {
 					string nFile = null;
@@ -47,7 +47,7 @@ version (Windows) {
 						if (nFile) remove(nFile);
 					}
 					auto hf = CreateFileW(std.utf.toUTFz!(wchar*)(file), GENERIC_WRITE, FILE_SHARE_READ, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
-					if (INVALID_HANDLE_VALUE == hf) {
+					if (INVALID_HANDLE_VALUE == hf) { mixin(S_TRACE);
 						// cabinet.dllが書込権限を要求するため、一時領域にコピー
 						wchar[MAX_PATH] path;
 						wchar[MAX_PATH] tempFile;
@@ -56,17 +56,17 @@ version (Windows) {
 						nFile = to!string(tempFile[0 .. std.string.indexOf(tempFile, '\0')]);
 						copy(file, nFile);
 						file = nFile;
-					} else {
+					} else { mixin(S_TRACE);
 						CloseHandle(hf);
 					}
 				}
-				if (!add(h, file, name)) {
+				if (!add(h, file, name)) { mixin(S_TRACE);
 					return false;
 				}
 			}
-			if (isdir) {
-				foreach (cf; clistdir(file)) {
-					if (!adds(std.path.buildPath(file, cf))) {
+			if (isdir) { mixin(S_TRACE);
+				foreach (cf; clistdir(file)) { mixin(S_TRACE);
+					if (!adds(std.path.buildPath(file, cf))) { mixin(S_TRACE);
 						return false;
 					}
 				}
@@ -83,7 +83,7 @@ version (Windows) {
 	/// キャンセルされる。
 	/// 何も特別な事をせずにそのまま展開する場合はexpand = nullとする。
 	/// SetupAPIの仕様上、書庫と出力先は共にファイルを指定しなければならない。
-	bool uncab(string file, string dest, string delegate(string) expand = null) {
+	bool uncab(string file, string dest, string delegate(string) expand = null) { mixin(S_TRACE);
 		if (!canUncab) return false;
 		if (!.exists(file)) return false;
 		auto h = fdiCreate();
@@ -248,76 +248,76 @@ version (Windows) {
 		BOOL SetFileAttributesA(LPCSTR lpFileName, DWORD dwFileAttributes);
 
 		extern (C++) {
-			INT FNFCIFILEPLACED(CCAB* pccab, LPSTR pszFile, LONG cbFile, BOOL fContinuation, LPVOID pv) {
+			INT FNFCIFILEPLACED(CCAB* pccab, LPSTR pszFile, LONG cbFile, BOOL fContinuation, LPVOID pv) { mixin(S_TRACE);
 				return 0;
 			}
-			LPVOID FNFCIALLOC(ULONG cb) {
+			LPVOID FNFCIALLOC(ULONG cb) { mixin(S_TRACE);
 				return HeapAlloc(GetProcessHeap(), 0, cb);
 			}
 			alias FNFCIALLOC FNALLOC;
-			void FNFCIFREE(LPVOID memory) {
+			void FNFCIFREE(LPVOID memory) { mixin(S_TRACE);
 				HeapFree(GetProcessHeap(), 0, memory);
 			}
 			alias FNFCIFREE FNFREE;
-			INT FNFCIOPEN(LPSTR pszFile, INT oflag, INT pmode, INT *err, LPVOID pv) {
+			INT FNFCIOPEN(LPSTR pszFile, INT oflag, INT pmode, INT *err, LPVOID pv) { mixin(S_TRACE);
 				DWORD access = 0;
-				if (oflag & _O_RDWR) {
+				if (oflag & _O_RDWR) { mixin(S_TRACE);
 					access = GENERIC_READ | GENERIC_WRITE;
-				} else if (oflag & _O_WRONLY) {
+				} else if (oflag & _O_WRONLY) { mixin(S_TRACE);
 					access = GENERIC_WRITE;
-				} else {
+				} else { mixin(S_TRACE);
 					access = GENERIC_READ;
 				}
 				DWORD create = 0;
-				if (oflag & _O_CREAT) {
+				if (oflag & _O_CREAT) { mixin(S_TRACE);
 					create = CREATE_ALWAYS;
-				} else {
+				} else { mixin(S_TRACE);
 					create = OPEN_EXISTING;
 				}
 				auto h = CreateFileA(pszFile, access, FILE_SHARE_READ, null, create, FILE_ATTRIBUTE_NORMAL, null);
 				return cast(INT) h;
 			}
-			INT FNOPEN(LPSTR pszFile, INT oflag, INT pmode, INT *err, LPVOID pv) {
+			INT FNOPEN(LPSTR pszFile, INT oflag, INT pmode, INT *err, LPVOID pv) { mixin(S_TRACE);
 				return cast(INT) CreateFileA(pszFile, GENERIC_READ, FILE_SHARE_READ, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
 			}
-			UINT FNFCIREAD(INT hf, LPVOID memory, UINT cb, INT* err, LPVOID pv) {
+			UINT FNFCIREAD(INT hf, LPVOID memory, UINT cb, INT* err, LPVOID pv) { mixin(S_TRACE);
 				DWORD val;
 				ReadFile(cast(HANDLE) hf, memory, cb, &val, null);
 				return val;
 			}
 			alias FNFCIREAD FNREAD;
-			UINT FNFCIWRITE(INT hf, LPVOID memory, UINT cb, INT* err, LPVOID pv) {
+			UINT FNFCIWRITE(INT hf, LPVOID memory, UINT cb, INT* err, LPVOID pv) { mixin(S_TRACE);
 				DWORD val;
 				WriteFile(cast(HANDLE) hf, memory, cb, &val, null);
 				return val;
 			}
 			alias FNFCIWRITE FNWRITE;
-			INT FNFCICLOSE(INT hf, INT* err, LPVOID pv) {
+			INT FNFCICLOSE(INT hf, INT* err, LPVOID pv) { mixin(S_TRACE);
 				return !CloseHandle(cast(HANDLE) hf);
 			}
 			alias FNFCICLOSE FNCLOSE;
-			LONG FNFCISEEK(INT hf, LONG dist, INT seektype, INT* err, LPVOID pv) {
+			LONG FNFCISEEK(INT hf, LONG dist, INT seektype, INT* err, LPVOID pv) { mixin(S_TRACE);
 				LONG p = 0;
 				return SetFilePointer(cast(HANDLE) hf, dist, &p, seektype);
 			}
 			alias FNFCISEEK FNSEEK;
 
-			INT FNFCIDELETE(LPSTR pszFile, INT* err, LPVOID pv) {
+			INT FNFCIDELETE(LPSTR pszFile, INT* err, LPVOID pv) { mixin(S_TRACE);
 				return !DeleteFileA(pszFile);
 			}
-			BOOL FNFCIGETTEMPFILE(LPSTR pszTempName, INT cbTempName, LPVOID pv) {
+			BOOL FNFCIGETTEMPFILE(LPSTR pszTempName, INT cbTempName, LPVOID pv) { mixin(S_TRACE);
 				char[MAX_PATH] path;
 				if (!GetTempPathA(cbTempName, path.ptr)) return FALSE;
 				if (!GetTempFileNameA(path.ptr, "fci".ptr, 0, pszTempName)) return FALSE;
 				return TRUE;
 			}
-			BOOL FNFCIGETNEXTCABINET(CCAB* pccab, ULONG cbPrevCab, LPVOID pv) {
+			BOOL FNFCIGETNEXTCABINET(CCAB* pccab, ULONG cbPrevCab, LPVOID pv) { mixin(S_TRACE);
 				return FALSE;
 			}
-			LONG FNFCISTATUS(UINT typeStatus, ULONG cb1, ULONG cb2, LPVOID pv) {
+			LONG FNFCISTATUS(UINT typeStatus, ULONG cb1, ULONG cb2, LPVOID pv) { mixin(S_TRACE);
 				return 0;
 			}
-			INT FNFCIGETOPENINFO(LPSTR pszName, USHORT* pdate, USHORT* ptime, USHORT* pattribs, INT* err, LPVOID pv) {
+			INT FNFCIGETOPENINFO(LPSTR pszName, USHORT* pdate, USHORT* ptime, USHORT* pattribs, INT* err, LPVOID pv) { mixin(S_TRACE);
 				auto h = CreateFileA(pszName, GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
 				if (h == INVALID_HANDLE_VALUE) return -1;
 				FILETIME ft, lft;
@@ -328,34 +328,34 @@ version (Windows) {
 					& (FILE_ATTRIBUTE_READONLY | FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM | FILE_ATTRIBUTE_ARCHIVE));
 				return cast(INT) h;
 			}
-			INT FNFDINOTIFY(FDINOTIFICATIONTYPE type, FDINOTIFICATION* pNotify) {
+			INT FNFDINOTIFY(FDINOTIFICATIONTYPE type, FDINOTIFICATION* pNotify) { mixin(S_TRACE);
 				switch (type) {
 				case FDINOTIFICATIONTYPE.fdintCABINET_INFO: return 0;
-				case FDINOTIFICATIONTYPE.fdintCOPY_FILE: {
+				case FDINOTIFICATIONTYPE.fdintCOPY_FILE: { mixin(S_TRACE);
 					auto prm = cast(Prm*) pNotify.pv;
 					char[] path;
 					path.length = MAX_PATH + strlen(prm.dest) + 1;
 					strcpy(path.ptr, prm.dest);
 					auto cpp = cast(char*) pNotify.psz1;
 					auto len = strlen(cpp);
-					for (size_t i = 0; i < len; i++) {
+					for (size_t i = 0; i < len; i++) { mixin(S_TRACE);
 						if (cpp[i] == '/') cpp[i] = '\\';
 					}
-					if (len >= 3 && cpp[0] == '.'  && cpp[1] == '.' && cpp[2] == '\\') {
+					if (len >= 3 && cpp[0] == '.'  && cpp[1] == '.' && cpp[2] == '\\') { mixin(S_TRACE);
 						return -1;
 					}
-					if (strstr(cpp, ("\\..\\").ptr)) {
+					if (strstr(cpp, ("\\..\\").ptr)) { mixin(S_TRACE);
 						return -1;
 					}
-					if (prm.expand) {
+					if (prm.expand) { mixin(S_TRACE);
 						auto pt = touni(cpp[0 .. len]);
 						auto cp = prm.expand(pt);
-						if (!cp.length) {
+						if (!cp.length) { mixin(S_TRACE);
 							prm.onExpand = null;
 							return -1;
 						}
 						strcat(path.ptr, toMBSz(cp));
-					} else {
+					} else { mixin(S_TRACE);
 						strcat(path.ptr, cast(char*) pNotify.psz1);
 					}
 					auto dir = dirName(touni(path[0 .. strlen(path.ptr)]));
@@ -363,7 +363,7 @@ version (Windows) {
 					prm.onExpand = path.ptr;
 					return cast(INT) CreateFileA(path.ptr, GENERIC_WRITE, 0, null, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null);
 				} break;
-				case FDINOTIFICATIONTYPE.fdintCLOSE_FILE_INFO: {
+				case FDINOTIFICATIONTYPE.fdintCLOSE_FILE_INFO: { mixin(S_TRACE);
 					auto h = cast(HANDLE) pNotify.hf;
 					scope (exit) CloseHandle(h);
 					FILETIME ft, lft;
@@ -377,7 +377,7 @@ version (Windows) {
 				default: assert (0);
 				}
 			}
-			INT FNFDIDECRYPT(FDIDECRYPT* pfdid) {
+			INT FNFDIDECRYPT(FDIDECRYPT* pfdid) { mixin(S_TRACE);
 				return 0;
 			}
 
@@ -443,7 +443,7 @@ version (Windows) {
 		}
 	}
 
-	private HFCI fciCreate(string cab) {
+	private HFCI fciCreate(string cab) { mixin(S_TRACE);
 		CCAB ccab;
 		ERF erf;
 		ccab.szDisk[] = '\0';
@@ -454,29 +454,29 @@ version (Windows) {
 			&FNFCIOPEN, &FNFCIREAD, &FNFCIWRITE, &FNFCICLOSE, &FNFCISEEK, &FNFCIDELETE,
 			&FNFCIGETTEMPFILE, &ccab, null);
 	}
-	private bool add(HFCI hfci, string file, string pathOnCab, TCOMP tcomp = tcompTYPE_MSZIP) {
+	private bool add(HFCI hfci, string file, string pathOnCab, TCOMP tcomp = tcompTYPE_MSZIP) { mixin(S_TRACE);
 		return FCIAddFile(hfci, toMBSz(nabs(file)), toMBSz(pathOnCab), FALSE,
 			null, &FNFCISTATUS, &FNFCIGETOPENINFO, tcomp) != 0;
 	}
-	private bool flush(HFCI hfci) {
+	private bool flush(HFCI hfci) { mixin(S_TRACE);
 		return FCIFlushCabinet(hfci, false, null, &FNFCISTATUS) != 0;
 	}
-	private bool destroyFCI(HFCI hfci) {
+	private bool destroyFCI(HFCI hfci) { mixin(S_TRACE);
 		return FCIDestroy(hfci) != 0;
 	}
 
-	private HFDI fdiCreate() {
+	private HFDI fdiCreate() { mixin(S_TRACE);
 		ERF erf;
 		return FDICreate(&FNALLOC, &FNFREE, &FNOPEN, &FNREAD, &FNWRITE, &FNCLOSE, &FNSEEK, cpuUNKNOWN, &erf);
 	}
-	private bool isCab(HFDI hfdi, string cab) {
+	private bool isCab(HFDI hfdi, string cab) { mixin(S_TRACE);
 		FDICABINETINFO info;
 		auto h = CreateFileA(toMBSz(cab), GENERIC_READ, 0, null, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null);
 		if (h == INVALID_HANDLE_VALUE) return false;
 		scope (exit) CloseHandle(h);
 		return FDIIsCabinet(hfdi, cast(INT*) h, &info) != 0;
 	}
-	private bool copyFiles(HFDI hfdi, string cab, string dir, string delegate(string) expand = null) {
+	private bool copyFiles(HFDI hfdi, string cab, string dir, string delegate(string) expand = null) { mixin(S_TRACE);
 		cab = nabs(cab);
 		dir = nabs(dir) ~ dirSeparator.idup;
 		Prm prm;
@@ -489,7 +489,7 @@ version (Windows) {
 		string delegate(string) expand = null;
 		char* onExpand = null;
 	}
-	private bool destroyFDI(HFDI hfdi) {
+	private bool destroyFDI(HFDI hfdi) { mixin(S_TRACE);
 		return FDIDestroy(hfdi) != 0;
 	}
 
@@ -507,11 +507,11 @@ version (Windows) {
 
 	private __gshared bool init = false;
 	private __gshared void* _cabinet = null;
-	shared static this () {
+	shared static this () { mixin(S_TRACE);
 		if (init) return;
 		if (_cabinet) return;
 		_cabinet = dlopen("cabinet.dll");
-		if (_cabinet) {
+		if (_cabinet) { mixin(S_TRACE);
 			FCICreate = cast(FCI_C) dlsym(_cabinet, "FCICreate");
 			if (!FCICreate) debugln("Not found: FCICreate");
 			FCIAddFile = cast(FCI_A) dlsym(_cabinet, "FCIAddFile");
@@ -532,15 +532,15 @@ version (Windows) {
 
 			usable = true;
 			init = true;
-		} else {
+		} else { mixin(S_TRACE);
 			debugln("Not found: cabinet.dll");
 		}
 	}
-	shared static ~this () {
+	shared static ~this () { mixin(S_TRACE);
 		version (Console) {
 			debug std.stdio.writeln("Release cabinet.dll Start");
 		}
-		if (_cabinet) {
+		if (_cabinet) { mixin(S_TRACE);
 			dlclose(_cabinet);
 		}
 		version (Console) {
@@ -549,17 +549,17 @@ version (Windows) {
 	}
 
 	/// 指定されたファイルが含まれているか。
-	bool cabHasFile(string cab, string fileName) {
+	bool cabHasFile(string cab, string fileName) { mixin(S_TRACE);
 		if (!canUncab) return false;
 		if (!.exists(cab)) return false;
 
 		CFHEADER head;
 		auto buf = new ubyte[CFHEADER.sizeof];
 
-		try {
+		try { mixin(S_TRACE);
 			auto stream = new BufferedFile(cab, FileMode.In);
 			scope (exit) stream.close();
-			if (buf.length != stream.read(buf)) {
+			if (buf.length != stream.read(buf)) { mixin(S_TRACE);
 				// Cabinetではない
 				return false;
 			}
@@ -569,28 +569,28 @@ version (Windows) {
 			if ('C' != head.signature[2]) return false;
 			if ('F' != head.signature[3]) return false;
 
-			if (head.coffFiles != stream.seekSet(head.coffFiles)) {
+			if (head.coffFiles != stream.seekSet(head.coffFiles)) { mixin(S_TRACE);
 				return false;
 			}
 
 			buf = new ubyte[CFFILE.sizeof];
 			CFFILE fl;
-			foreach (i; 0 .. head.cFiles) {
-				if (buf.length != stream.read(buf)) {
+			foreach (i; 0 .. head.cFiles) { mixin(S_TRACE);
+				if (buf.length != stream.read(buf)) { mixin(S_TRACE);
 					return false;
 				}
 				memcpy(&fl, buf.ptr, buf.length);
 				char[] name;
 				char c;
 				stream.read(c);
-				while ('\0' != c) {
+				while ('\0' != c) { mixin(S_TRACE);
 					name ~= c;
 					stream.read(c);
 				}
 				string utfName;
-				if (fl.attribs & _A_NAME_IS_UTF) {
+				if (fl.attribs & _A_NAME_IS_UTF) { mixin(S_TRACE);
 					utfName = .text(name);
-				} else {
+				} else { mixin(S_TRACE);
 					utfName = touni(name);
 				}
 				if (.cfnmatch(fileName, utfName.baseName())) return true;
@@ -628,7 +628,7 @@ version (Windows) {
 			BYTE szName[0];
 		}
 	}
-} else {
+} else { mixin(S_TRACE);
 	/// uncab()が行える状態であればtrueを返す。
 	/// Windows以外のOSでは必ずfalseを返す。
 	@property
@@ -636,17 +636,17 @@ version (Windows) {
 
 	/// src以下のファイル・フォルダを全て圧縮し、CAB書庫cabを生成する。
 	/// Windows以外のOSでは必ず失敗し、falseを返す。
-	bool cab(string src, string cab, bool delegate(string) isArc = null) {
+	bool cab(string src, string cab, bool delegate(string) isArc = null) { mixin(S_TRACE);
 		return false;
 	}
 	/// CAB書庫fileをフォルダdestに展開する。
 	/// Windows以外のOSでは必ず失敗し、falseを返す。
-	bool uncab(string file, string dest, string delegate(string) expand = null) {
+	bool uncab(string file, string dest, string delegate(string) expand = null) { mixin(S_TRACE);
 		return false;
 	}
 
 	/// 指定されたファイルが含まれているか。
-	bool cabHasFile(string cab, string fileName) {
+	bool cabHasFile(string cab, string fileName) { mixin(S_TRACE);
 		return false;
 	}
 }

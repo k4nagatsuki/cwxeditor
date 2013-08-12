@@ -130,7 +130,7 @@ class EffectBoosterError : Exception {
 	private EffectBoosterErrorInfo[] _errors;
 
 	/// インスタンスを生成する。
-	this () {
+	this () { mixin(S_TRACE);
 		super ("EffectBooster error", __FILE__, __LINE__);
 	}
 
@@ -140,27 +140,27 @@ class EffectBoosterError : Exception {
 	const(EffectBoosterErrorInfo)[] errors() { return _errors; }
 
 	/// エラー情報を追加する。
-	void add(string msg, string file, size_t line) {
+	void add(string msg, string file, size_t line) { mixin(S_TRACE);
 		_errors ~= EffectBoosterErrorInfo(msg, file, line);
 	}
 }
 
 private {
-	CPoint pointVal(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) {
+	CPoint pointVal(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) { mixin(S_TRACE);
 		auto sp = std.string.split(value, ",");
-		if (sp.length < 2) {
+		if (sp.length < 2) { mixin(S_TRACE);
 			errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidPoint, value), file, line);
 			return CPoint(0, 0);
 		}
 		return CPoint(to!(int)(astrip(sp[0])), to!(int)(astrip(sp[1])));
 	}
-	CRect rectVal(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) {
+	CRect rectVal(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) { mixin(S_TRACE);
 		auto sp = std.string.split(value, ",");
-		if (sp.length < 4) {
+		if (sp.length < 4) { mixin(S_TRACE);
 			errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidRect, value), file, line);
 			return CRect(0, 0, 0, 0);
 		}
-		try {
+		try { mixin(S_TRACE);
 			return CRect(to!(int)(astrip(sp[0])), to!(int)(astrip(sp[1])),
 				to!(int)(astrip(sp[2])), to!(int)(astrip(sp[3])));
 		} catch (Exception e) {
@@ -168,9 +168,9 @@ private {
 			return CRect(0, 0, 0, 0);
 		}
 	}
-	CRGB rgbVal(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) {
-		if (value.length < 7 || (value[0] != '$' && value[0] != '#')) {
-			try {
+	CRGB rgbVal(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) { mixin(S_TRACE);
+		if (value.length < 7 || (value[0] != '$' && value[0] != '#')) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
 				int val = std.conv.parse!int(value, 16);
 				int r = val & 0xFF0000 >>> 16;
 				int g = val & 0x00FF00 >>> 8;
@@ -184,26 +184,26 @@ private {
 		auto sr = value[1 .. 3];
 		auto sg = value[3 .. 5];
 		auto sb = value[5 .. 7];
-		try {
+		try { mixin(S_TRACE);
 			return CRGB(toImpl!int(sr, 16), toImpl!int(sg, 16), toImpl!int(sb, 16));
 		} catch (Exception e) {
 			errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidRGB, value), file, line);
 			return CRGB(0, 0, 0);
 		}
 	}
-	Enum enumVal(Enum)(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) {
-		try {
+	Enum enumVal(Enum)(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			return cast(Enum) to!(int)(value);
 		} catch (Exception e) {
 			errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidEnum, value), file, line);
 			return Enum.init;
 		}
 	}
-	string strVal(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) {
-		try {
+	string strVal(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			validate(value);
 			return value;
-		} catch {
+		} catch { mixin(S_TRACE);
 			try {
 				return touni(value);
 			} catch (Exception e) {
@@ -212,8 +212,8 @@ private {
 			}
 		}
 	}
-	int intVal(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) {
-		try {
+	int intVal(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			if (value.endsWith("px")) value = value[0 .. $-2];
 			return to!(int)(value);
 		} catch (Exception e) {
@@ -221,32 +221,32 @@ private {
 			return 0;
 		}
 	}
-	bool boolVal(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) {
+	bool boolVal(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) { mixin(S_TRACE);
 		return value == "1";
 	}
 }
 
 /// pathのファイルを読み込む。
-string readJPYFile(string path, in CProps prop, EffectBoosterError errInfo, out bool isSJIS) {
+string readJPYFile(string path, in CProps prop, EffectBoosterError errInfo, out bool isSJIS) { mixin(S_TRACE);
 	char[] value;
-	try {
+	try { mixin(S_TRACE);
 		value = cast(char[])std.file.readText(path);
 		isSJIS = false;
 		return assumeUnique(value);
-	} catch {
+	} catch { mixin(S_TRACE);
 		isSJIS = true;
 		value = cast(char[])readBinary(path);
 		try {
 			return touni(value);
-		} catch {
+		} catch { mixin(S_TRACE);
 			errInfo.add(prop.msgs.jpyErrorInvalidEncoding, path, 0);
 			return "";
 		}
 	}
 }
 /// ditto
-private string readJPYFile(string path, in CProps prop, EffectBoosterError errInfo) {
-	try {
+private string readJPYFile(string path, in CProps prop, EffectBoosterError errInfo) { mixin(S_TRACE);
+	try { mixin(S_TRACE);
 		return std.file.readText(path);
 	} catch (UTFException e) {
 		try {
@@ -258,16 +258,16 @@ private string readJPYFile(string path, in CProps prop, EffectBoosterError errIn
 	}
 }
 /// pathへ書き込む。
-void writeJPYFile(string path, string value, bool isSJIS) {
-	if (isSJIS) {
+void writeJPYFile(string path, string value, bool isSJIS) { mixin(S_TRACE);
+	if (isSJIS) { mixin(S_TRACE);
 		value = tosjis(value);
 	}
 	std.file.write(path, value);
 }
 
-private string stripValue(string eqAfter) {
+private string stripValue(string eqAfter) { mixin(S_TRACE);
 	auto value = astrip(eqAfter);
-	if (value.length >= 2 && value[0] == '"' && value[$ - 1] == '"') {
+	if (value.length >= 2 && value[0] == '"' && value[$ - 1] == '"') { mixin(S_TRACE);
 		value = value[1 .. $ - 1];
 	}
 	return value;
@@ -285,40 +285,40 @@ struct Jpy1 {
 	bool isSJIS;
 
 	/// jpy1PathからJpy1を読込む。
-	static Jpy1 load(in CProps prop, string sPath, string jpy1Path) {
+	static Jpy1 load(in CProps prop, string sPath, string jpy1Path) { mixin(S_TRACE);
 		Jpy1 r;
 		auto errInfo = new EffectBoosterError;
 		bool[string] secNames;
 		r.jpy1Path = jpy1Path;
 		r.lines = .splitLines(readJPYFile(jpy1Path, prop, errInfo, r.isSJIS), KeepTerminator.yes);
-		foreach (i, line; r.lines) {
+		foreach (i, line; r.lines) { mixin(S_TRACE);
 			string origLine = line;
 			line = line.chomp();
 			auto lineNum = i + 1;
 			line = astrip(line);
 			if (!line.length || line[0] == ';') continue;
-			if (line[0] == '[' && line[$ - 1] == ']') {
+			if (line[0] == '[' && line[$ - 1] == ']') { mixin(S_TRACE);
 				// label
 				auto sec = new Jpy1Sec;
 				sec.sPath = sPath;
 				sec.fPath = jpy1Path;
 				sec.label = astrip(line[1 .. $ - 1]);
-				if (sec.label.toLower() in secNames) {
+				if (sec.label.toLower() in secNames) { mixin(S_TRACE);
 					errInfo.add(.tryFormat(prop.msgs.jpyErrorDupSection, line), jpy1Path, lineNum);
-				} else {
+				} else { mixin(S_TRACE);
 					secNames[sec.label.toLower()] = true;
 				}
 				r.sections ~= sec;
 				continue;
 			}
-			if (!r.sections.length) {
+			if (!r.sections.length) { mixin(S_TRACE);
 				errInfo.add(prop.msgs.jpyErrorLabelNotFound, jpy1Path, lineNum);
 				throw errInfo;
 			}
-			with (r.sections[$ - 1]) {
+			with (r.sections[$ - 1]) { mixin(S_TRACE);
 				// contents
 				int eq = .cCountUntil(line, '=');
-				if (eq == -1) {
+				if (eq == -1) { mixin(S_TRACE);
 					errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidLine, line), jpy1Path, lineNum);
 					continue;
 				}
@@ -371,21 +371,21 @@ struct Jpy1 {
 		}
 		if (errInfo.errors.length) throw errInfo;
 
-		foreach (ref sec; r.sections) {
+		foreach (ref sec; r.sections) { mixin(S_TRACE);
 			sec.path = sec.toMaterialPath();
 		}
 		return r;
 	}
 
 	/// 使用回数カウンタを設定する。
-	void setUseCounter(UseCounter uc) {
-		foreach (ref sec; sections) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		foreach (ref sec; sections) { mixin(S_TRACE);
 			sec.setUseCounter(uc);
 		}
 	}
 	/// 使用回数カウンタを外す。
-	void removeUseCounter() {
-		foreach (ref sec; sections) {
+	void removeUseCounter() { mixin(S_TRACE);
+		foreach (ref sec; sections) { mixin(S_TRACE);
 			sec.removeUseCounter();
 		}
 	}
@@ -393,15 +393,15 @@ struct Jpy1 {
 	/// ファイルパスの変更を反映する。
 	/// oldPathがこのJpy1のファイルでもこのJpy1が含まれる
 	/// ディレクトリでもない場合は何もしない。
-	bool renameFile(string oldPath, string newPath) {
+	bool renameFile(string oldPath, string newPath) { mixin(S_TRACE);
 		auto fPath = .nabs(jpy1Path);
 		auto oPath = .nabs(oldPath);
 		if (!fPath.fnstartsWith(oPath)) return false;
-		if (!.cfnmatch(fPath, oPath)) {
+		if (!.cfnmatch(fPath, oPath)) { mixin(S_TRACE);
 			newPath = newPath.buildPath(fPath.abs2rel(oPath));
 		}
 		jpy1Path = newPath;
-		foreach (ref sec; sections) {
+		foreach (ref sec; sections) { mixin(S_TRACE);
 			sec.fPath = jpy1Path;
 		}
 		return true;
@@ -409,10 +409,10 @@ struct Jpy1 {
 
 	/// ファイルパスの変更に伴ってファイルを上書き更新する。
 	/// rewriteがfalseの場合はファイルの上書きはせず内部データのみを更新する。
-	void updateJpy1File(in CProps prop, bool rewrite) {
+	void updateJpy1File(in CProps prop, bool rewrite) { mixin(S_TRACE);
 		bool update = false;
-		foreach (ref sec; sections) {
-			if (sec.needUpdate && sec.filenameIndex != -1) {
+		foreach (ref sec; sections) { mixin(S_TRACE);
+			if (sec.needUpdate && sec.filenameIndex != -1) { mixin(S_TRACE);
 				int eq = sec.filenameLine.cCountUntil('=');
 				assert (eq != -1);
 				auto ret = sec.filenameLine[sec.filenameLine.chomp().length .. $];
@@ -421,9 +421,9 @@ struct Jpy1 {
 				update = true;
 			}
 		}
-		if (update && rewrite) {
+		if (update && rewrite) { mixin(S_TRACE);
 			auto rLines = std.array.join(lines, "");
-			if (isSJIS) {
+			if (isSJIS) { mixin(S_TRACE);
 				rLines = tosjis(rLines);
 			}
 			std.file.write(jpy1Path, rLines);
@@ -433,17 +433,17 @@ struct Jpy1 {
 
 /// Jpy1のセクションブロック。
 class Jpy1Sec : PathUser, CWXPath {
-	private this () {
+	private this () { mixin(S_TRACE);
 		super (this);
 	}
 
 	@property
 	override
-	string cwxPath(bool id) {
+	string cwxPath(bool id) { mixin(S_TRACE);
 		return "";
 	}
 	override
-	CWXPath findCWXPath(string path) {
+	CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		return null;
 	}
@@ -456,10 +456,10 @@ class Jpy1Sec : PathUser, CWXPath {
 	CWXPath cwxParent() {return null;}
 
 	override
-	void change(PathId newVal) {
+	void change(PathId newVal) { mixin(S_TRACE);
 		super.change(newVal);
 		auto newName = fromMaterialPath(cast(string)newVal);
-		if (newName != filename) {
+		if (newName != filename) { mixin(S_TRACE);
 			filename = newName;
 			needUpdate = true;
 		}
@@ -467,31 +467,31 @@ class Jpy1Sec : PathUser, CWXPath {
 
 	@property
 	override
-	void path(string path) {
+	void path(string path) { mixin(S_TRACE);
 		super.path(path);
 		auto newName = fromMaterialPath(path);
-		if (newName != filename) {
+		if (newName != filename) { mixin(S_TRACE);
 			filename = newName;
 			needUpdate = true;
 		}
 	}
 
-	private string toMaterialPath() {
+	private string toMaterialPath() { mixin(S_TRACE);
 		string dir;
 		switch (dirtype) {
-		case Dirtype.CURRENT: {
+		case Dirtype.CURRENT: { mixin(S_TRACE);
 			dir = dirName(fPath);
 		} break;
 		case Dirtype.TABLE: return "";
 		case Dirtype.SCHEME: return "";
-		case Dirtype.SCENARIO: {
+		case Dirtype.SCENARIO: { mixin(S_TRACE);
 			if (sPath == "") return "";
 			dir = sPath;
 		} break;
 		case Dirtype.WAV: return "";
-		case Dirtype.PARENT: {
+		case Dirtype.PARENT: { mixin(S_TRACE);
 			dir = dirName(dirName(fPath));
-			for (int dp = 0; dp < dirdepth; dp++) {
+			for (int dp = 0; dp < dirdepth; dp++) { mixin(S_TRACE);
 				dir = dirName(dir);
 			}
 		} break;
@@ -501,34 +501,34 @@ class Jpy1Sec : PathUser, CWXPath {
 		auto fname = std.path.buildPath(dir, filename);
 		sPath = .nabs(sPath);
 		fname = .nabs(fname);
-		if (fname.fnstartsWith(sPath)) {
+		if (fname.fnstartsWith(sPath)) { mixin(S_TRACE);
 			return fname.abs2rel(sPath);
 		}
 		return "";
 	}
 
-	private string fromMaterialPath(string filename) {
-		string relPath(string path) {
+	private string fromMaterialPath(string filename) { mixin(S_TRACE);
+		string relPath(string path) { mixin(S_TRACE);
 			auto nsPath = nabs(sPath);
 			auto nPath = nabs(path);
-			if (nPath.fnstartsWith(nsPath)) {
+			if (nPath.fnstartsWith(nsPath)) { mixin(S_TRACE);
 				return nPath.abs2rel(nsPath);
 			}
 			return path;
 		}
 		switch (dirtype) {
-		case Dirtype.CURRENT: {
+		case Dirtype.CURRENT: { mixin(S_TRACE);
 			return relPath(dirName(fPath).buildPath(filename));
 		} break;
 		case Dirtype.TABLE: return filename.decodePath();
 		case Dirtype.SCHEME: return filename.decodePath();
-		case Dirtype.SCENARIO: {
+		case Dirtype.SCENARIO: { mixin(S_TRACE);
 			return relPath(sPath.buildPath(filename));
 		} break;
 		case Dirtype.WAV: return filename.decodePath();
-		case Dirtype.PARENT: {
+		case Dirtype.PARENT: { mixin(S_TRACE);
 			string dir = dirName(dirName(fPath));
-			for (int dp = 0; dp < dirdepth; dp++) {
+			for (int dp = 0; dp < dirdepth; dp++) { mixin(S_TRACE);
 				dir = dirName(dir);
 			}
 			return relPath(dir.buildPath(filename));
@@ -601,22 +601,22 @@ private struct JptxTag {
 	string name;
 	int tagValue;
 	string[string] attr;
-	static JptxTag parse(string startTag, in CProps prop, string file, size_t line, EffectBoosterError errInfo) {
+	static JptxTag parse(string startTag, in CProps prop, string file, size_t line, EffectBoosterError errInfo) { mixin(S_TRACE);
 		auto reg = .match(toUTF32(startTag), .regex!(dstring)("^<[A-Z]+"d, "i"));
-		if (reg.empty) {
+		if (reg.empty) { mixin(S_TRACE);
 			errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidStartTag, startTag), file, line);
 			return JptxTag();
 		}
 		JptxTag tag;
 		tag.name = .toLower(toUTF8(reg.hit[1 .. $]));
 		dstring p = reg.post;
-		if (!p.length) {
+		if (!p.length) { mixin(S_TRACE);
 			errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidStartTag, startTag), file, line);
 			return JptxTag();
 		}
-		if (startsWith(p, "=\""d)) {
+		if (startsWith(p, "=\""d)) { mixin(S_TRACE);
 			int ei = .cCountUntil(p[2 .. $], '"');
-			if (ei == -1) {
+			if (ei == -1) { mixin(S_TRACE);
 				errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidStartTag, startTag), file, line);
 				return JptxTag();
 			}
@@ -625,14 +625,14 @@ private struct JptxTag {
 		}
 		static const ATTR = " *([A-Z]+)=\"([^\"]+)\""d;
 		auto attrReg = .regex!(dstring)(ATTR, "gi");
-		foreach (m; .match(p, attrReg)) {
+		foreach (m; .match(p, attrReg)) { mixin(S_TRACE);
 			if(m.empty) break;
 			p = m.post;
 			auto cap = m.captures;
 			tag.attr[.toLower(to!string(cap[1]))] = to!string(cap[2]);
 		}
 		return tag;
-	} unittest {
+	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		auto t1 = JptxTag.parse("<b>", null, "", 0, null);
 		assert (t1.name == "b");
@@ -670,36 +670,36 @@ private struct JptxParser {
 	void delegate() onEndLineheight = null;
 	void delegate() onEndFont = null;
 
-	private void startTag(string tagText, in CProps prop, string file, size_t line, EffectBoosterError errInfo) {
+	private void startTag(string tagText, in CProps prop, string file, size_t line, EffectBoosterError errInfo) { mixin(S_TRACE);
 		auto tag = JptxTag.parse(tagText, prop, file, line, errInfo);
 		if (tag.name == "") return;
 		switch (tag.name) {
-		case "br": {
+		case "br": { mixin(S_TRACE);
 			if (onBR) onBR();
 		} break;
-		case "b": {
+		case "b": { mixin(S_TRACE);
 			if (onB) onB();
 		} break;
-		case "i": {
+		case "i": { mixin(S_TRACE);
 			if (onI) onI();
 		} break;
-		case "u": {
+		case "u": { mixin(S_TRACE);
 			if (onU) onU();
 		} break;
-		case "s": {
+		case "s": { mixin(S_TRACE);
 			if (onS) onS();
 		} break;
-		case "shiftx": {
+		case "shiftx": { mixin(S_TRACE);
 			if (onShiftx) onShiftx(tag.tagValue);
 		} break;
-		case "shifty": {
+		case "shifty": { mixin(S_TRACE);
 			if (onShifty) onShifty(tag.tagValue);
 		} break;
-		case "lineheight": {
+		case "lineheight": { mixin(S_TRACE);
 			if (onLineheight) onLineheight(tag.tagValue);
 		} break;
-		case "font": {
-			if (onFont) {
+		case "font": { mixin(S_TRACE);
+			if (onFont) { mixin(S_TRACE);
 				string face = "";
 				CRGB rgb = CRGB(-1, -1, -1);
 				int pixels = -1;
@@ -715,37 +715,37 @@ private struct JptxParser {
 		default: assert (0, tag.name);
 		}
 	}
-	private void endTag(string tagText) {
+	private void endTag(string tagText) { mixin(S_TRACE);
 		auto tag = tagText[2 .. $ - 1];
 		switch (.toLower(tag)) {
-		case "b": {
+		case "b": { mixin(S_TRACE);
 			if (onEndB) onEndB();
 		} break;
-		case "i": {
+		case "i": { mixin(S_TRACE);
 			if (onEndI) onEndI();
 		} break;
-		case "u": {
+		case "u": { mixin(S_TRACE);
 			if (onEndU) onEndU();
 		} break;
-		case "s": {
+		case "s": { mixin(S_TRACE);
 			if (onEndS) onEndS();
 		} break;
-		case "shiftx": {
+		case "shiftx": { mixin(S_TRACE);
 			if (onEndShiftx) onEndShiftx();
 		} break;
-		case "shifty": {
+		case "shifty": { mixin(S_TRACE);
 			if (onEndShifty) onEndShifty();
 		} break;
-		case "lineheight": {
+		case "lineheight": { mixin(S_TRACE);
 			if (onEndLineheight) onEndLineheight();
 		} break;
-		case "font": {
+		case "font": { mixin(S_TRACE);
 			if (onEndFont) onEndFont();
 		} break;
 		default: assert (0, tag);
 		}
 	}
-	void parse(string text, in CProps prop, string file, size_t line, EffectBoosterError errInfo) {
+	void parse(string text, in CProps prop, string file, size_t line, EffectBoosterError errInfo) { mixin(S_TRACE);
 		immutable TAG = "</(b|i|u|s|shiftx|shifty|lineheight|font)>"d
 			~ "|<"d
 			~ "(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\""d
@@ -753,37 +753,37 @@ private struct JptxParser {
 			~ "|font( +(face=\"[^\"]+\"|color=\"[\\$#][0-9A-Fa-f]{6}\""d
 			~ "|pixels=\"[0-9]+\"))+)"d
 			~ ">"d;
-		if (autoline) {
+		if (autoline) { mixin(S_TRACE);
 			auto r = .regex!(dstring)("^" ~ TAG ~ "$", "i");
 			auto lines = splitLines!string(text);
 			text = "";
-			foreach (i, ln; lines) {
+			foreach (i, ln; lines) { mixin(S_TRACE);
 				text ~= ln;
-				if (i + 1 < lines.length && .match(toUTF32(ln), r).empty) {
+				if (i + 1 < lines.length && .match(toUTF32(ln), r).empty) { mixin(S_TRACE);
 					text ~= "<br>";
 				}
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			text = replace(text, "\r\n", "\n");
 			text = replace(text, "\r", "\n");
 		}
 		auto r = .regex!(dstring)(TAG, "i");
-		while (text.length) {
+		while (text.length) { mixin(S_TRACE);
 			auto reg = .match(toUTF32(text), r);
-			if (!reg.empty) {
+			if (!reg.empty) { mixin(S_TRACE);
 				line += .count(reg.pre, "\n");
 				if (onText && reg.pre.length) onText(toUTF8(reg.pre.replace("\n", "")));
 				auto m = toUTF8(reg.hit);
-				if (std.algorithm.startsWith(m, "</")) {
+				if (std.algorithm.startsWith(m, "</")) { mixin(S_TRACE);
 					endTag(m);
-				} else {
+				} else { mixin(S_TRACE);
 					startTag(m, prop, file, line, errInfo);
 				}
 				line += .count(reg.hit, "\n");
 				text = toUTF8(reg.post);
 				continue;
 			}
-			if (onText) {
+			if (onText) { mixin(S_TRACE);
 				onText(text);
 			}
 			text = "";
@@ -829,7 +829,7 @@ struct Jptx {
 	int antialias = false;
 	bool fonttransparent = false;
 
-	unittest {
+	unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		Jptx jptx;
 		jptx.text = "Jptxのテスト。<br>改行した後、<b>太字<i>かつ斜体</i></b><s>打ち消し</s>"
@@ -843,10 +843,10 @@ struct Jptx {
 		jptx.fontpixels = 18;
 		jptx.fontcolor = CRGB(128, 128, 128);
 		int count = 0;
-		jptx.parse((string text, in JptxParam param) {
+		jptx.parse((string text, in JptxParam param) { mixin(S_TRACE);
 			void chk(string t, bool b, bool i, bool u, bool s,
 					int shiftx, int shifty, int lineheight,
-					string face, CRGB color, int pixels) {
+					string face, CRGB color, int pixels) { mixin(S_TRACE);
 				assert (text == t, to!(string)(count) ~ ", " ~ text);
 				assert (param.b == b, to!(string)(count));
 				assert (param.i == i, to!(string)(count));
@@ -860,71 +860,71 @@ struct Jptx {
 				assert (param.pixels == pixels, format("%d, %d", count, param.pixels));
 			}
 			switch (count) {
-			case 0: {
+			case 0: { mixin(S_TRACE);
 				chk("Jptxのテスト。", false, false, false, false,
 					0, 0, 80, "testfont", CRGB(128, 128, 128), 18);
 			} break;
-			case 1: {
+			case 1: { mixin(S_TRACE);
 				chk("\n", false, false, false, false,
 					0, 0, 80, "testfont", CRGB(128, 128, 128), 18);
 			} break;
-			case 2: {
+			case 2: { mixin(S_TRACE);
 				chk("改行した後、", false, false, false, false,
 					0, 0, 80, "testfont", CRGB(128, 128, 128), 18);
 			} break;
-			case 3: {
+			case 3: { mixin(S_TRACE);
 				chk("太字", true, false, false, false,
 					0, 0, 80, "testfont", CRGB(128, 128, 128), 18);
 			} break;
-			case 4: {
+			case 4: { mixin(S_TRACE);
 				chk("かつ斜体", true, true, false, false,
 					0, 0, 80, "testfont", CRGB(128, 128, 128), 18);
 			} break;
-			case 5: {
+			case 5: { mixin(S_TRACE);
 				chk("打ち消し", false, false, false, true,
 					0, 0, 80, "testfont", CRGB(128, 128, 128), 18);
 			} break;
-			case 6: {
+			case 6: { mixin(S_TRACE);
 				chk("font!の黒の28px", false, false, false, false,
 					0, 0, 80, "font!", CRGB(0, 0, 0), 28);
 			} break;
-			case 7: {
+			case 7: { mixin(S_TRACE);
 				chk("ここはfont!の赤の28px", false, false, false, false,
 					0, 0, 80, "font!", CRGB(255, 0, 0), 28);
 			} break;
-			case 8: {
+			case 8: { mixin(S_TRACE);
 				chk("ここもfont!の黒の28px", false, false, false, false,
 					0, 0, 80, "font!", CRGB(0, 0, 0), 28);
 			} break;
-			case 9: {
+			case 9: { mixin(S_TRACE);
 				chk("shiftx=20", false, false, false, false,
 					20, 0, 80, "testfont", CRGB(128, 128, 128), 18);
 			} break;
-			case 10: {
+			case 10: { mixin(S_TRACE);
 				chk("shiftx=10", false, false, false, false,
 					10, 0, 80, "testfont", CRGB(128, 128, 128), 18);
 			} break;
-			case 11: {
+			case 11: { mixin(S_TRACE);
 				chk("shiftx=20", false, false, false, false,
 					20, 0, 80, "testfont", CRGB(128, 128, 128), 18);
 			} break;
-			case 12: {
+			case 12: { mixin(S_TRACE);
 				chk("shifty=20", false, false, false, false,
 					0, 20, 80, "testfont", CRGB(128, 128, 128), 18);
 			} break;
-			case 13: {
+			case 13: { mixin(S_TRACE);
 				chk("shifty=10", false, false, false, false,
 					0, 10, 80, "testfont", CRGB(128, 128, 128), 18);
 			} break;
-			case 14: {
+			case 14: { mixin(S_TRACE);
 				chk("shifty=20", false, false, false, false,
 					0, 20, 80, "testfont", CRGB(128, 128, 128), 18);
 			} break;
-			case 15: {
+			case 15: { mixin(S_TRACE);
 				chk("高さ50%", false, false, false, false,
 					0, 0, 50, "testfont", CRGB(128, 128, 128), 18);
 			} break;
-			case 16: {
+			case 16: { mixin(S_TRACE);
 				chk("高さ30%", false, false, false, false,
 					0, 0, 30, "testfont", CRGB(128, 128, 128), 18);
 			} break;
@@ -935,7 +935,7 @@ struct Jptx {
 	}
 	/// textを分析し、経過をonTextに渡す。
 	/// 改行は独立したテキスト"\n"として渡される。
-	void parse(void delegate(string text, in JptxParam param) onText) {
+	void parse(void delegate(string text, in JptxParam param) onText) { mixin(S_TRACE);
 		JptxParam param;
 		param.b = false;
 		param.i = false;
@@ -955,66 +955,66 @@ struct Jptx {
 		int[] sPixels;
 		// parse
 		JptxParser parser;
-		parser.onB = () {
+		parser.onB = () { mixin(S_TRACE);
 			sB++;
 			param.b = true;
 		};
-		parser.onEndB = () {
+		parser.onEndB = () { mixin(S_TRACE);
 			sB--;
 			if (sB <= 0) param.b = false;
 		};
-		parser.onI = () {
+		parser.onI = () { mixin(S_TRACE);
 			sI++;
 			param.i = true;
 		};
-		parser.onEndI = () {
+		parser.onEndI = () { mixin(S_TRACE);
 			sI--;
 			if (sI <= 0) param.i = false;
 		};
-		parser.onU = () {
+		parser.onU = () { mixin(S_TRACE);
 			sU++;
 			param.u = true;
 		};
-		parser.onEndU = () {
+		parser.onEndU = () { mixin(S_TRACE);
 			sU--;
 			if (sU <= 0) param.u = false;
 		};
-		parser.onS = () {
+		parser.onS = () { mixin(S_TRACE);
 			sS++;
 			param.s = true;
 		};
-		parser.onEndS = () {
+		parser.onEndS = () { mixin(S_TRACE);
 			sS--;
 			if (sS <= 0) param.s = false;
 		};
-		parser.onShiftx = (int shiftx) {
+		parser.onShiftx = (int shiftx) { mixin(S_TRACE);
 			sShiftx ~= shiftx;
 			param.shiftx += shiftx;
 		};
-		parser.onEndShiftx = () {
+		parser.onEndShiftx = () { mixin(S_TRACE);
 			if (!sShiftx.length) return;
 			param.shiftx -= sShiftx[$ - 1];
 			sShiftx = sShiftx[0 .. $ - 1];
 		};
-		parser.onShifty = (int shifty) {
+		parser.onShifty = (int shifty) { mixin(S_TRACE);
 			sShifty ~= shifty;
 			param.shifty += shifty;
 		};
-		parser.onEndShifty = () {
+		parser.onEndShifty = () { mixin(S_TRACE);
 			if (!sShifty.length) return;
 			param.shifty -= sShifty[$ - 1];
 			sShifty = sShifty[0 .. $ - 1];
 		};
-		parser.onLineheight = (int lineheight) {
+		parser.onLineheight = (int lineheight) { mixin(S_TRACE);
 			sLineheight ~= lineheight;
 			param.lineheight = lineheight;
 		};
-		parser.onEndLineheight = () {
+		parser.onEndLineheight = () { mixin(S_TRACE);
 			if (!sLineheight.length) return;
 			sLineheight = sLineheight[0 .. $ - 1];
 			param.lineheight = sLineheight.length ? sLineheight[$ - 1] : 100;
 		};
-		parser.onFont = (string face, CRGB color, int pixels) {
+		parser.onFont = (string face, CRGB color, int pixels) { mixin(S_TRACE);
 			if (!face.length) face = param.face;
 			if (color.r == -1) color = param.color;
 			if (pixels == -1) pixels = param.pixels;
@@ -1025,7 +1025,7 @@ struct Jptx {
 			param.color = color;
 			param.pixels = pixels;
 		};
-		parser.onEndFont = () {
+		parser.onEndFont = () { mixin(S_TRACE);
 			if (!sFace.length) return;
 			sFace = sFace[0 .. $ - 1];
 			param.face = sFace.length ? sFace[$ - 1] : fontface;
@@ -1034,10 +1034,10 @@ struct Jptx {
 			sPixels = sPixels[0 .. $ - 1];
 			param.pixels = sPixels.length ? sPixels[$ - 1] : fontpixels;
 		};
-		parser.onBR = () {
+		parser.onBR = () { mixin(S_TRACE);
 			onText("\n", param);
 		};
-		parser.onText = (string text) {
+		parser.onText = (string text) { mixin(S_TRACE);
 			onText(text, param);
 		};
 		auto errInfo = new EffectBoosterError;
@@ -1045,7 +1045,7 @@ struct Jptx {
 		if (errInfo.errors.length) throw errInfo;
 	}
 	/// pathからJptxを読込む。
-	static Jptx load(in CProps prop, string path) {
+	static Jptx load(in CProps prop, string path) { mixin(S_TRACE);
 		Jptx r;
 		r.file = path;
 		r.props = prop;
@@ -1054,28 +1054,28 @@ struct Jptx {
 		bool textFirst = true;
 		bool init = false;
 		bool text = false;
-		foreach (i, line; splitLines!string(readJPYFile(path, prop, errInfo))) {
+		foreach (i, line; splitLines!string(readJPYFile(path, prop, errInfo))) { mixin(S_TRACE);
 			auto lineNum = i + 1;
 			auto sline = astrip(line);
 			if (!text && sline.length && sline[0] == ';') continue;
-			if (sline.length && sline[0] == '[' && sline[$ - 1] == ']') {
+			if (sline.length && sline[0] == '[' && sline[$ - 1] == ']') { mixin(S_TRACE);
 				// label
 				switch (astrip(sline[1 .. $ - 1])) {
-				case "jptx:init": {
-					if (!text) {
+				case "jptx:init": { mixin(S_TRACE);
+					if (!text) { mixin(S_TRACE);
 						init = true;
 						text = false;
 						continue;
 					}
 				} break;
-				case "jptx:begin": {
-					if (!text) {
+				case "jptx:begin": { mixin(S_TRACE);
+					if (!text) { mixin(S_TRACE);
 						init = false;
 						text = true;
 						continue;
 					}
 				} break;
-				case "jptx:end": {
+				case "jptx:end": { mixin(S_TRACE);
 					init = true;
 					text = false;
 					continue;
@@ -1083,11 +1083,11 @@ struct Jptx {
 				default:
 				}
 			}
-			if (init) {
-				with (r) {
+			if (init) { mixin(S_TRACE);
+				with (r) { mixin(S_TRACE);
 					// init
 					int eq = .cCountUntil(sline, '=');
-					if (eq == -1) {
+					if (eq == -1) { mixin(S_TRACE);
 						errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidLine, line), path, lineNum);
 						continue;
 					}
@@ -1110,22 +1110,22 @@ struct Jptx {
 					}
 				}
 			}
-			if (text) {
-				if (textFirst) {
+			if (text) { mixin(S_TRACE);
+				if (textFirst) { mixin(S_TRACE);
 					textFirst = false;
 					r.textLine = lineNum;
-				} else {
+				} else { mixin(S_TRACE);
 					t ~= "\n";
 				}
-				try {
+				try { mixin(S_TRACE);
 					validate(line);
 					t ~= line;
-				} catch {
+				} catch { mixin(S_TRACE);
 					t ~= touni(line);
 				}
 			}
 		}
-		if (t.length && t[$ - 1] == '\n') {
+		if (t.length && t[$ - 1] == '\n') { mixin(S_TRACE);
 			t = t[0 .. $ - 1];
 		}
 		r.text = t;
@@ -1135,45 +1135,45 @@ struct Jptx {
 }
 
 /// JPTXの設定内からテキスト部分を抽出する。
-string jptxText(string jptxAll) {
+string jptxText(string jptxAll) { mixin(S_TRACE);
 	string r = "";
 	bool inText = false;
-	foreach (line; jptxAll.splitLines(KeepTerminator.yes)) {
-		if (!inText && chomp(line).icmp("[jptx:begin]") == 0) {
+	foreach (line; jptxAll.splitLines(KeepTerminator.yes)) { mixin(S_TRACE);
+		if (!inText && chomp(line).icmp("[jptx:begin]") == 0) { mixin(S_TRACE);
 			inText = true;
-		} else if (inText && chomp(line).icmp("[jptx:end]") == 0) {
+		} else if (inText && chomp(line).icmp("[jptx:end]") == 0) { mixin(S_TRACE);
 			inText = false;
-		} else if (inText) {
+		} else if (inText) { mixin(S_TRACE);
 			r ~= line;
 		}
 	}
 	return r;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (jptxText("[jptx:init]\nline1\nline2\r\n\n[jptx:begin]\r\na\nbcd\r\nefg\r\n[jptx:end]")
 		== "a\nbcd\r\nefg\r\n");
 }
 /// JPTXの設定内のテキスト部分を置換する。
-string jptxText(string jptxAll, string jptxText) {
+string jptxText(string jptxAll, string jptxText) { mixin(S_TRACE);
 	string r = "";
 	bool inText = false, put = false;
-	foreach (line; jptxAll.splitLines(KeepTerminator.yes)) {
-		if (!inText && chomp(line).icmp("[jptx:begin]") == 0) {
+	foreach (line; jptxAll.splitLines(KeepTerminator.yes)) { mixin(S_TRACE);
+		if (!inText && chomp(line).icmp("[jptx:begin]") == 0) { mixin(S_TRACE);
 			inText = true;
 			r ~= line;
-			if (!put) {
+			if (!put) { mixin(S_TRACE);
 				r ~= jptxText;
 				put = true;
 			}
-		} else if (inText && chomp(line).icmp("[jptx:end]") == 0) {
+		} else if (inText && chomp(line).icmp("[jptx:end]") == 0) { mixin(S_TRACE);
 			inText = false;
 			r ~= line;
-		} else if (!inText) {
+		} else if (!inText) { mixin(S_TRACE);
 			r ~= line;
 		}
 	}
 	return r;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (jptxText("[jptx:init]\nline1\nline2\r\n\n[jptx:begin]\r\na\nbcd\r\nefg\r\n[jptx:end]", "a\rbc\r\n")
 		== "[jptx:init]\nline1\nline2\r\n\n[jptx:begin]\r\na\rbc\r\n[jptx:end]");
@@ -1197,29 +1197,29 @@ struct Jpdc {
 	string savecomment = "";
 
 	/// pathからJpdcを読込む。
-	static Jpdc load(in CProps prop, string path) {
+	static Jpdc load(in CProps prop, string path) { mixin(S_TRACE);
 		Jpdc r;
 		auto errInfo = new EffectBoosterError;
 		bool init = false;
-		foreach (i, line; splitLines!string(readJPYFile(path, prop, errInfo))) {
+		foreach (i, line; splitLines!string(readJPYFile(path, prop, errInfo))) { mixin(S_TRACE);
 			auto lineNum = i + 1;
 			line = astrip(line);
 			if (!line.length || line[0] == ';') continue;
-			if (line[0] == '[' && line[$ - 1] == ']') {
+			if (line[0] == '[' && line[$ - 1] == ']') { mixin(S_TRACE);
 				// label
 				switch (astrip(line[1 .. $ - 1])) {
-				case "jpdc:init": {
+				case "jpdc:init": { mixin(S_TRACE);
 					init = true;
 					continue;
 				} break;
 				default:
 				}
 			}
-			if (init) {
-				with (r) {
+			if (init) { mixin(S_TRACE);
+				with (r) { mixin(S_TRACE);
 					// init
 					int eq = .cCountUntil(line, '=');
-					if (eq == -1) {
+					if (eq == -1) { mixin(S_TRACE);
 						errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidLine, line), path, lineNum);
 					}
 					auto key = astrip(line[0 .. eq]);

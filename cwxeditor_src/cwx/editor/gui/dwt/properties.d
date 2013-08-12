@@ -233,42 +233,42 @@ public class FlexProps {
 	version (Windows) {
 		private static immutable CWX_DIR = "cwxeditor";
 		private static immutable CWX_DIR_NOS = "cwxeditor_no_settings";
-	} else {
+	} else { mixin(S_TRACE);
 		private static immutable CWX_DIR = ".cwxeditor";
 		private static immutable CWX_DIR_NOS = ".cwxeditor_no_settings";
 	}
 
-	this (string appPath, string confFileName) {
+	this (string appPath, string confFileName) { mixin(S_TRACE);
 		_appPath = appPath;
 		string dStr = .text(__LINE__);
-		try {
+		try { mixin(S_TRACE);
 			dStr ~= " - " ~ .text(__LINE__);
 			_loc = IniLocation.STANDARD;
 			string iniFileName = "cwxeditor.xml";
 			string iniPath = std.path.buildPath(appPath.dirName(), iniFileName);
 			dStr ~= " - " ~ iniPath;
-			if (.exists(iniPath)) {
+			if (.exists(iniPath)) { mixin(S_TRACE);
 				// 1.0との互換性を維持するため、アプリケーションのディレクトリに
 				// cwxeditor.xmlがあった場合、LOCALをデフォルトにする。
 				_loc = IniLocation.LOCAL;
 			}
 			dStr ~= " - " ~ .text(__LINE__);
-			try {
-				if (.exists(confFileName)) {
+			try { mixin(S_TRACE);
+				if (.exists(confFileName)) { mixin(S_TRACE);
 					dStr ~= " - " ~ .text(__LINE__);
 					auto node = XNode.parse(std.file.readText(confFileName));
-					node.onTag["location"] = (ref XNode node) {
-						if (0 == icmp(node.value, "standard")) {
+					node.onTag["location"] = (ref XNode node) { mixin(S_TRACE);
+						if (0 == icmp(node.value, "standard")) { mixin(S_TRACE);
 							_loc = IniLocation.STANDARD;
-						} else if (0 == icmp(node.value, "local")) {
+						} else if (0 == icmp(node.value, "local")) { mixin(S_TRACE);
 							_loc = IniLocation.LOCAL;
-						} else if (0 == icmp(node.value, "copy")) {
+						} else if (0 == icmp(node.value, "copy")) { mixin(S_TRACE);
 							_loc = IniLocation.COPY;
-						} else if (0 == icmp(node.value, "nothing")) {
+						} else if (0 == icmp(node.value, "nothing")) { mixin(S_TRACE);
 							_loc = IniLocation.NOTHING;
 						}
 					};
-					node.onTag["file"] = (ref XNode node) {
+					node.onTag["file"] = (ref XNode node) { mixin(S_TRACE);
 						iniFileName = node.value;
 					};
 					dStr ~= " - " ~ .text(__LINE__);
@@ -298,8 +298,8 @@ public class FlexProps {
 				dir = appDataDir(appPath);
 				dir = std.path.buildPath(dir, CWX_DIR);
 				string dest = std.path.buildPath(dir, iniFileName);
-				if (.exists(base) && !.exists(dest)) {
-					try {
+				if (.exists(base) && !.exists(dest)) { mixin(S_TRACE);
+					try { mixin(S_TRACE);
 						if (!.exists(dir)) mkdirRecurse(dir);
 						std.file.copy(base, dest);
 					} catch (Exception e) {
@@ -319,20 +319,20 @@ public class FlexProps {
 			_path = std.path.buildPath(dir, iniFileName);
 			_cwxDir = dir;
 			dStr ~= " - " ~ .text(__LINE__);
-			if (!_noFile && exists(_path)) {
+			if (!_noFile && exists(_path)) { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
-				if (!reloadImpl(false, dStr)) {
+				if (!reloadImpl(false, dStr)) { mixin(S_TRACE);
 					dStr ~= " - " ~ .text(__LINE__);
 					createBackup();
 				}
 				dStr ~= " - " ~ .text(__LINE__);
-				foreach (i, fld; this.tupleof) {
+				foreach (i, fld; this.tupleof) { mixin(S_TRACE);
 					this.tupleof[i] = newField(fld);
 				}
 				dStr ~= " - " ~ .text(__LINE__);
-			} else {
+			} else { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
-				foreach (i, fld; this.tupleof) {
+				foreach (i, fld; this.tupleof) { mixin(S_TRACE);
 					this.tupleof[i] = newField(fld);
 				}
 
@@ -366,89 +366,89 @@ public class FlexProps {
 	}
 
 	@property
-	string cwxDir() {
+	string cwxDir() { mixin(S_TRACE);
 		return _cwxDir;
 	}
 
-	void cleanup() {
+	void cleanup() { mixin(S_TRACE);
 		if (!_noFile) return;
 		delAll(_noFileTemp);
 	}
-	bool reload() {
+	bool reload() { mixin(S_TRACE);
 		if (_noFile) return true;
 		string dStr = .text(__LINE__);
 		return reloadImpl(true, dStr);
 	}
-	void delNodeTemp() {
+	void delNodeTemp() { mixin(S_TRACE);
 		XNode node;
 		_node = node;
 	}
-	private bool reloadImpl(bool force, ref string dStr) {
+	private bool reloadImpl(bool force, ref string dStr) { mixin(S_TRACE);
 		if (_noFile) return true;
-		try {
+		try { mixin(S_TRACE);
 			dStr ~= " - " ~ .text(__LINE__);
 			_node = XNode.parse(std.file.readText(_path));
 			dStr ~= " - " ~ .text(__LINE__);
-			if (_node.name == "cwxeditor" || _node.name == "CWXEditor") {
+			if (_node.name == "cwxeditor" || _node.name == "CWXEditor") { mixin(S_TRACE);
 				ulong dataVersion = _node.attr("version", false, 0);
 				dStr ~= " - " ~ .text(__LINE__);
-				foreach (i, fld; this.tupleof) {
+				foreach (i, fld; this.tupleof) { mixin(S_TRACE);
 					this.tupleof[i] = fromNode(_node, fld, force, dataVersion);
 				}
-				if (dataVersion < 2012072700) {
+				if (dataVersion < 2012072700) { mixin(S_TRACE);
 					etc.backupBeforeSavePath.value = etc.backupPath;
 				}
 				dStr ~= " - " ~ .text(__LINE__);
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 			return true;
-		} catch(Exception e) {
+		} catch(Exception e) { mixin(S_TRACE);
 			debugln(e);
 			return false;
 		}
 	}
-	private T fromNode(T)(ref XNode node, T t, bool force, ulong dataVersion) {
+	private T fromNode(T)(ref XNode node, T t, bool force, ulong dataVersion) { mixin(S_TRACE);
 		static if (is(typeof(T.fromNode(node, dataVersion)))) {
-			if (!t || force) {
+			if (!t || force) { mixin(S_TRACE);
 				return T.fromNode(node, dataVersion);
 			}
 		} else static if (is(typeof(T.fromNode(node)))) {
-			if (!t || force) {
+			if (!t || force) { mixin(S_TRACE);
 				return T.fromNode(node);
 			}
 		}
 		return t;
 	}
-	private T newField(T)(T t) {
+	private T newField(T)(T t) { mixin(S_TRACE);
 		static if (is(T == class)) {
-			if (!t) {
+			if (!t) { mixin(S_TRACE);
 				return new T;
 			}
 		}
 		return t;
 	}
-	DockingFolderCTC loadDock(Composite parent, int style, bool delegate(DockingFolderCTC, string) canVanish, Control delegate(Composite, string) create) {
+	DockingFolderCTC loadDock(Composite parent, int style, bool delegate(DockingFolderCTC, string) canVanish, Control delegate(Composite, string) create) { mixin(S_TRACE);
 		if (_noFile) return null;
 		string dStr = .text(__LINE__);
-		try {
+		try { mixin(S_TRACE);
 			dStr ~= " - " ~ .text(__LINE__);
 			DockingFolderCTC r = null;
-			if (exists(_path)) {
+			if (exists(_path)) { mixin(S_TRACE);
 				int retryCount = 0;
 				dStr ~= " - " ~ .text(__LINE__);
-				while (!r) {
-					try {
+				while (!r) { mixin(S_TRACE);
+					try { mixin(S_TRACE);
 						dStr ~= " - " ~ .text(__LINE__);
 						XNode node;
-						if (_node.valid) {
+						if (_node.valid) { mixin(S_TRACE);
 							node = _node;
-						} else {
+						} else { mixin(S_TRACE);
 							auto text = std.file.readText(_path);
 							dStr ~= " - " ~ .text(__LINE__);
 							node = XNode.parse(text);
 						}
 						dStr ~= " - " ~ .text(__LINE__);
-						void df(ref XNode node) {
+						void df(ref XNode node) { mixin(S_TRACE);
 							dStr ~= " - " ~ .text(__LINE__);
 							r = DockingFolderCTC.fromNode(node, parent, style, canVanish, create);
 							dStr ~= " - " ~ .text(__LINE__);
@@ -465,7 +465,7 @@ public class FlexProps {
 						if (r && r.area) r.area.dispose();
 						dStr ~= " - " ~ .text(__LINE__);
 						retryCount++;
-						if (retryCount > 100) {
+						if (retryCount > 100) { mixin(S_TRACE);
 							dStr ~= " - " ~ .text(__LINE__);
 							createBackup();
 							dStr ~= " - " ~ .text(__LINE__);
@@ -486,35 +486,35 @@ public class FlexProps {
 			throw new Exception(dStr, __FILE__, __LINE__);
 		}
 	}
-	private void createBackup() {
+	private void createBackup() { mixin(S_TRACE);
 		if (_noFile) return;
 		auto d = Clock.currTime();
 		string bakPath = format("%s.bak.%04d%02d%02d%02d%02d%02d", _path, d.year, d.month, d.day, d.hour, d.minute, d.second);
-		try {
+		try { mixin(S_TRACE);
 			std.file.copy(_path, bakPath);
 		} catch (Exception e) {
 			debugln(e);
 		}
 	}
-	void save(DockingFolderCTC dock) {
+	void save(DockingFolderCTC dock) { mixin(S_TRACE);
 		if (_noFile) return;
 		save(_path, dock);
 	}
-	void save(string xmlFileName, DockingFolderCTC dock) {
+	void save(string xmlFileName, DockingFolderCTC dock) { mixin(S_TRACE);
 		if (_noFile) return;
 		auto node = XNode.create("cwxeditor");
 		node.newAttr("version", APP_VERSION_NUM);
-		foreach (i, fld; this.tupleof) {
+		foreach (i, fld; this.tupleof) { mixin(S_TRACE);
 			toNode(node, fld);
 		}
-		if (dock) {
+		if (dock) { mixin(S_TRACE);
 			dock.toNode(node, ["work"]);
 		}
 		auto dir = xmlFileName.dirName();
 		if (!.exists(dir)) mkdirRecurse(dir);
 		write(xmlFileName, node.text);
 	}
-	void toNode(T)(ref XNode node, T t) {
+	void toNode(T)(ref XNode node, T t) { mixin(S_TRACE);
 		static if (is(typeof(t.toNode(node)))) {
 			t.toNode(node);
 		}

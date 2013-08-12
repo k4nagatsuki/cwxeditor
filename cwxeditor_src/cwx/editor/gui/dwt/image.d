@@ -21,16 +21,16 @@ class Images {
 private:
 	string _appPath;
 	Image[string] _imgReg;
-	@property Image imgd(string Path)() {
+	@property Image imgd(string Path)() { mixin(S_TRACE);
 		auto p = Path in _imgReg;
-		if (p) {
+		if (p) { mixin(S_TRACE);
 			return *p;
-		} else {
+		} else { mixin(S_TRACE);
 			string dir = _appPath.dirName();
 			string dynPath = dir.buildPath("resource").buildPath(Path);
 			ImageData imgData = null;
-			if (.exists(dynPath)) {
-				try {
+			if (.exists(dynPath)) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					auto s = new ByteArrayInputStream(cast(byte[])readBinary(dynPath));
 					scope (exit) s.close();
 					imgData = new ImageData(s);
@@ -38,7 +38,7 @@ private:
 					debugln(e);
 				}
 			}
-			if (!imgData) {
+			if (!imgData) { mixin(S_TRACE);
 				auto s = new ByteArrayInputStream(cast(byte[]) getImportData!(Path).data);
 				scope (exit) s.close();
 				imgData = new ImageData(s);
@@ -50,12 +50,12 @@ private:
 		}
 	}
 public:
-	this (string appPath) {
+	this (string appPath) { mixin(S_TRACE);
 		_appPath = appPath;
 	}
 
-	void disposeImages() {
-		foreach (p, img; _imgReg) {
+	void disposeImages() { mixin(S_TRACE);
+		foreach (p, img; _imgReg) { mixin(S_TRACE);
 			img.dispose();
 		}
 		typeof(_imgReg) imgReg;
@@ -90,6 +90,7 @@ public:
 	@property Image folder() {return imgd!("folder.png");}
 	@property Image scenario() {return imgd!("scenario.png");}
 
+	@property Image areaDir() {return imgd!("folder.png");}
 	@property Image area() {return imgd!("area.png");}
 	@property Image battle() {return imgd!("battle.png");}
 	@property Image packages() {return imgd!("package.png");}
@@ -123,7 +124,7 @@ public:
 	@property Image evtAutoOpen() {return imgd!("evt_auto_edit.png");}
 	@property Image evtInsertFirst() {return imgd!("evt_insert_first.png");}
 
-	Image content(CType type) {
+	Image content(CType type) { mixin(S_TRACE);
 		switch (type) {
 		case CType.START: return imgd!("evt_start.png");
 		case CType.START_BATTLE: return imgd!("evt_battle.png");
@@ -205,7 +206,7 @@ public:
 
 	@property Image msnDelete() {return imgd!("del_res.png");}
 
-	Image motion(MType type) {
+	Image motion(MType type) { mixin(S_TRACE);
 		switch (type) {
 		case MType.HEAL: return imgd!("msn_heal.png");
 		case MType.DAMAGE: return imgd!("msn_damage.png");
@@ -251,7 +252,7 @@ public:
 		}
 	}
 
-	Image element(Element el) {
+	Image element(Element el) { mixin(S_TRACE);
 		final switch (el) {
 		case Element.ALL:
 			return imgd!("elm_all.png");
@@ -270,7 +271,7 @@ public:
 		}
 	}
 
-	Image talker(Talker t) {
+	Image talker(Talker t) { mixin(S_TRACE);
 		final switch (t) {
 		case Talker.SELECTED:
 			return imgd!("talker_sel.png");
@@ -304,7 +305,7 @@ public:
 	@property Image sound() {return imgd!("evt_se.png");}
 
 	@property Image setTalkerCoupon() {return imgd!("set_beast.png");}
-	Image color(dchar c) {
+	Image color(dchar c) { mixin(S_TRACE);
 		switch (c) {
 		case 'W': return imgd!("cc_w.png");
 		case 'R': return imgd!("cc_r.png");
@@ -318,7 +319,7 @@ public:
 		default: return null;
 		}
 	}
-	Image scTalker(Talker talker) {
+	Image scTalker(Talker talker) { mixin(S_TRACE);
 		final switch (talker) {
 		case Talker.SELECTED:
 			return imgd!("sc_m.png");
@@ -351,7 +352,7 @@ public:
 	@property Image editSceneBattle() {return imgd!("battle_cards.png");}
 	@property Image editEventBattle() {return imgd!("battle_event.png");}
 
-	Image menu(MenuID id) {
+	Image menu(MenuID id) { mixin(S_TRACE);
 		final switch (id) {
 		case MenuID.None: return null;
 

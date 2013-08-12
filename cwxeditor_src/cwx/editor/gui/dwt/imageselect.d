@@ -57,7 +57,7 @@ public:
 	/// createDefImage = 画像以外の選択肢が選ばれた際に表示するイメージ。
 	this (Composite parent, int style, Commons comm, Props prop, Summary summ,
 			int w, int h, bool included, bool canInclude, string delegate() saveName, void delegate() refresh = null,
-			string[] defs = null, ImageData delegate(size_t defIndex) createDefImage = null, bool isMenuCard = false) {
+			string[] defs = null, ImageData delegate(size_t defIndex) createDefImage = null, bool isMenuCard = false) { mixin(S_TRACE);
 		_readOnly = style & SWT.READ_ONLY;
 		_comm = comm;
 		_prop = prop;
@@ -100,37 +100,37 @@ public:
 			compl.setLayout(zeroMarginGridLayout(1, false));
 		}
 		Button imgList;
-		{
-			{
+		{ mixin(S_TRACE);
+			{ mixin(S_TRACE);
 				auto comp = new Composite(compl, SWT.NONE);
 				comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				comp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 				_image = new Canvas(comp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
 				_image.setLayoutData(_image.computeSize(w, h));
 				_image.addPaintListener(new PListener);
-				.listener(_image, SWT.Dispose, {
-					if (_img) {
+				.listener(_image, SWT.Dispose, { mixin(S_TRACE);
+					if (_img) { mixin(S_TRACE);
 						_img.data[] = 0;
 						delete _img.data;
 					}
 				});
 			}
-			if (defs) {
+			if (defs) { mixin(S_TRACE);
 				_msel = new MaterialSelect!(Type, Combo, C)
 					(comm, prop, summ, _readOnly != 0, &this.refresh, defs, -1, canInclude, isMenuCard);
-			} else if (included) {
+			} else if (included) { mixin(S_TRACE);
 				_defs = [prop.msgs.imageNone, prop.msgs.imageIncluding];
 				_msel = new MaterialSelect!(Type, Combo, C)
 					(comm, prop, summ, _readOnly != 0, &this.refresh, _defs, 1, canInclude, isMenuCard);
-			} else {
+			} else { mixin(S_TRACE);
 				_defs = [prop.msgs.imageNone];
 				_msel = new MaterialSelect!(Type, Combo, C)
 					(comm, prop, summ, _readOnly != 0, &this.refresh, _defs, -1, canInclude, isMenuCard);
 			}
-			_msel.modEvent ~= {
+			_msel.modEvent ~= { mixin(S_TRACE);
 				foreach (dlg; modEvent) dlg();
 			};
-			{
+			{ mixin(S_TRACE);
 				auto comp = new Composite(compl, SWT.NONE);
 				comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				comp.setLayout(zeroMarginGridLayout(3, false));
@@ -150,20 +150,20 @@ public:
 					ncsgd.horizontalSpan = 3;
 					_noCardSize.setLayoutData(ncsgd);
 					_noCardSize.setSelection(_msel.useNoCardSizeImage);
-					.listener(_noCardSize, SWT.Selection, {
+					.listener(_noCardSize, SWT.Selection, { mixin(S_TRACE);
 						_msel.useNoCardSizeImage = _noCardSize.getSelection();
 					});
 				}
 			}
 		}
-		{
+		{ mixin(S_TRACE);
 			compr.setLayout(zeroMarginGridLayout(1, true));
-			{
+			{ mixin(S_TRACE);
 				auto dirsComp = new Composite(compr, SWT.NONE);
 				dirsComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 				Button saveIncludeImage = null;
-				void createSaveButton() {
+				void createSaveButton() { mixin(S_TRACE);
 					if (saveIncludeImage) return;
 					saveIncludeImage = new Button(dirsComp, SWT.PUSH);
 					saveIncludeImage.setImage(_prop.images.menu(MenuID.SaveImage));
@@ -174,12 +174,12 @@ public:
 				auto dirs = _msel.createDirsCombo(dirsComp);
 				dirs.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				dirs.addSelectionListener(new DirSelect);
-				if (included) {
+				if (included) { mixin(S_TRACE);
 					dirsComp.setLayout(zeroMarginGridLayout(2, false));
 					createSaveButton();
-				} else {
+				} else { mixin(S_TRACE);
 					dirsComp.setLayout(zeroMarginGridLayout(1, false));
-					_msel.includeEvent ~= (string fname) {
+					_msel.includeEvent ~= (string fname) { mixin(S_TRACE);
 						if (saveIncludeImage) return;
 						dirsComp.setLayout(zeroMarginGridLayout(2, false));
 						createSaveButton();
@@ -188,7 +188,7 @@ public:
 					};
 				}
 			}
-			{
+			{ mixin(S_TRACE);
 				auto fileList = _msel.createFileList(compr);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.widthHint = _prop.var.etc.filesWidth;
@@ -200,8 +200,8 @@ public:
 		}
 		auto d = parent.getDisplay();
 		auto focusFilter = new class Listener {
-			override void handleEvent(Event e) {
-				if (!imgList.isVisible() && _imgList && !_imgList.shell.isDisposed()) {
+			override void handleEvent(Event e) { mixin(S_TRACE);
+				if (!imgList.isVisible() && _imgList && !_imgList.shell.isDisposed()) { mixin(S_TRACE);
 					_imgList.shell.close();
 					_imgList.shell.dispose();
 				}
@@ -209,99 +209,99 @@ public:
 		};
 		d.addFilter(SWT.FocusOut, focusFilter);
 		d.addFilter(SWT.Selection, focusFilter);
-		.listener(imgList, SWT.Dispose, {
+		.listener(imgList, SWT.Dispose, { mixin(S_TRACE);
 			d.removeFilter(SWT.FocusOut, focusFilter);
 			d.removeFilter(SWT.Selection, focusFilter);
 		});
 	} 
 	@property
-	void mask(bool mask) {
+	void mask(bool mask) { mixin(S_TRACE);
 		_mask = mask;
 		_image.redraw();
-		if (_imgList && !_imgList.shell.isDisposed()) {
+		if (_imgList && !_imgList.shell.isDisposed()) { mixin(S_TRACE);
 			_imgList.mask = mask;
 		}
 	}
 	@property
-	bool mask() {
+	bool mask() { mixin(S_TRACE);
 		return _mask;
 	}
 	/// 画像のファイルパス。
 	@property
-	string image() {
+	string image() { mixin(S_TRACE);
 		return _msel.path;
 	}
 	@property
-	string filePath() {
+	string filePath() { mixin(S_TRACE);
 		return _msel.filePath;
 	}
 	/// Params:
 	/// path = 画像のファイルパス。
 	@property
-	void image(string path) {
+	void image(string path) { mixin(S_TRACE);
 		_msel.path = path;
 		_image.redraw();
 	}
 	@property
-	Composite widget() {
+	Composite widget() { mixin(S_TRACE);
 		return _group;
 	}
 	@property
-	Point sampleSize() {
+	Point sampleSize() { mixin(S_TRACE);
 		return new Point(_w, _h);
 	}
 	@property
-	Combo dirsCombo() {
+	Combo dirsCombo() { mixin(S_TRACE);
 		return _msel.dirsCombo;
 	}
 	@property
-	C fileList() {
+	C fileList() { mixin(S_TRACE);
 		return _msel.fileList;
 	}
 	@property
-	void selectDir(int sel) {
+	void selectDir(int sel) { mixin(S_TRACE);
 		_msel.selectDir(sel);
 		selectDirImpl(sel);
 	}
 	static if (Type == MtType.CARD) {
 		@property
-		uint pcNumber() {
+		uint pcNumber() { mixin(S_TRACE);
 			return _msel.pcNumber;
 		}
 		@property
-		void pcNumber(uint pcNum) {
+		void pcNumber(uint pcNum) { mixin(S_TRACE);
 			_msel.pcNumber = pcNum;
 			refresh();
 		}
 	}
 
 	@property
-	string[] warnings() {
+	string[] warnings() { mixin(S_TRACE);
 		string[] ws;
 		auto img = filePath;
-		if (isBinImg(img)) {
+		if (isBinImg(img)) { mixin(S_TRACE);
 			auto bin =  cast(ubyte[]) strToBImg(img);
 			auto type = imageType(bin);
-			if ("" != type) {
+			if ("" != type) { mixin(S_TRACE);
 				img = "image".setExtension(type);
 				ws ~= summSkin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false, _prop.var.etc.targetVersion);
 				static if (Type is MtType.CARD) {
 					uint w, h;
 					imageSize(bin, w, h);
 					auto cs = _prop.looks.cardSize;
-					if (cs.width != w && cs.height != h) {
+					if (cs.width != w && cs.height != h) { mixin(S_TRACE);
 						ws ~= _prop.msgs.warningNoCardSizeImage;
 					}
 				}
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			ws ~= summSkin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false, _prop.var.etc.targetVersion);
 			static if (Type is MtType.CARD) {
-				if (img.length) {
+				if (img.length) { mixin(S_TRACE);
 					uint w, h;
 					imageSize(img, w, h);
 					auto cs = _prop.looks.cardSize;
-					if (cs.width != w && cs.height != h) {
+					if (cs.width != w && cs.height != h) { mixin(S_TRACE);
 						ws ~= _prop.msgs.warningNoCardSizeImage;
 					}
 				}
@@ -312,50 +312,50 @@ public:
 
 	static if (Type is MtType.CARD) {
 		@property
-		void cardMode(CardMode cardMode) {
+		void cardMode(CardMode cardMode) { mixin(S_TRACE);
 			_cardMode = cardMode;
 			_image.redraw();
 		}
 	}
 private:
-	void selectDirImpl(int sel) {
+	void selectDirImpl(int sel) { mixin(S_TRACE);
 		auto dirs = dirsCombo;
 		if (-1 == sel && _oldDirSel == sel) return;
 		_oldDirSel = sel;
 		refreshImageList();
 	}
-	void refreshImageList() {
-		if (_imgList && !_imgList.shell.isDisposed()) {
+	void refreshImageList() { mixin(S_TRACE);
+		if (_imgList && !_imgList.shell.isDisposed()) { mixin(S_TRACE);
 			_imgList.images(dirsCombo.getText(), _msel.showingPaths);
 			_imgList.select(encodePath(_msel.path));
 		}
 	}
 	class DirSelect : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			selectDirImpl(dirsCombo.getSelectionIndex());
 		}
 	}
 	class FileSelect : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
-			if (_imgList && !_imgList.shell.isDisposed()) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+			if (_imgList && !_imgList.shell.isDisposed()) { mixin(S_TRACE);
 				_imgList.select(encodePath(_msel.path));
 			}
 		}
 	}
 	class SelImageList : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto b = cast(Button) e.widget;
-			if (b.getSelection()) {
-				if (_imgList && !_imgList.shell.isDisposed()) {
+			if (b.getSelection()) { mixin(S_TRACE);
+				if (_imgList && !_imgList.shell.isDisposed()) { mixin(S_TRACE);
 					_imgList.shell.setActive();
 					return;
 				}
 				auto parent = (cast(Control) e.widget).getShell();
-				_imgList = new ImageListWindow!Type(_prop, _comm, _summ, parent, (string path) {
+				_imgList = new ImageListWindow!Type(_prop, _comm, _summ, parent, (string path) { mixin(S_TRACE);
 					image(path);
 					refresh();
 				});
-				.listener(_imgList.shell, SWT.Dispose, {
+				.listener(_imgList.shell, SWT.Dispose, { mixin(S_TRACE);
 					b.setSelection(false);
 				});
 				auto menu = new Menu(_imgList.shell, SWT.POP_UP);
@@ -374,8 +374,8 @@ private:
 				}
 				_imgList.select(encodePath(_msel.path));
 				_imgList.shell.open();
-			} else {
-				if (!_imgList || _imgList.shell.isDisposed()) {
+			} else { mixin(S_TRACE);
+				if (!_imgList || _imgList.shell.isDisposed()) { mixin(S_TRACE);
 					return;
 				}
 				_imgList.shell.close();
@@ -384,7 +384,7 @@ private:
 		}
 	}
 	class SaveIncImg : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto path = _msel.binPath;
 			if (!isBinImg(path)) return;
 			ubyte[] bytes = strToBImg(path);
@@ -393,13 +393,13 @@ private:
 			dlg.setFilterNames([_prop.msgs.filterBitmapImage]);
 			dlg.setText(_prop.msgs.dlgTitSaveBitmapImage);
 			auto dir = _msel.filePath;
-			if (isBinImg(dir)) {
-				if (_summ) {
+			if (isBinImg(dir)) { mixin(S_TRACE);
+				if (_summ) { mixin(S_TRACE);
 					dir = _summ.scenarioPath;
-				} else {
+				} else { mixin(S_TRACE);
 					dir = getcwd();
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				if (!.exists(dir) || !isDir(dir)) dir = dirName(dir);
 			}
 			dlg.setFilterPath(dir);
@@ -408,16 +408,16 @@ private:
 			dlg.setFileName(setExtension(s, ".bmp"));
 			dlg.setOverwrite(true);
 			string fname = dlg.open();
-			if (fname) {
+			if (fname) { mixin(S_TRACE);
 				std.file.write(fname, bytes);
 			}
 		}
 	}
 	class PListener : PaintListener {
-		public override void paintControl(PaintEvent e) {
+		public override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			static if (is(typeof(_msel.pcNumber))) {
 				auto pcNum = _msel.pcNumber;
-				if (0 != pcNum) {
+				if (0 != pcNum) { mixin(S_TRACE);
 					drawCenterText(dwtData(_prop.looks.pcNumberFont(summSkin.legacy)), e.gc, _image.getClientArea(), .text(pcNum));
 					return;
 				}
@@ -425,19 +425,19 @@ private:
 			int dirsi = dirsCombo.getSelectionIndex();
 			string path = filePath;
 			ImageData imgData = null;
-			if (path !is null && path.length > 0) {
-				if (!_paintedPath && _paintedPath == path) {
+			if (path !is null && path.length > 0) { mixin(S_TRACE);
+				if (!_paintedPath && _paintedPath == path) { mixin(S_TRACE);
 					imgData = _img;
-				} else {
+				} else { mixin(S_TRACE);
 					_paintedPath = path;
 					imgData = loadImage(_prop, summSkin, _summ, path, _mask);
-					if (_img) {
+					if (_img) { mixin(S_TRACE);
 						_img.data[] = 0;
 						delete _img.data;
 					}
 					_img = imgData;
 				}
-			} else if (_createDefImage && dirsi < _defs.length) {
+			} else if (_createDefImage && dirsi < _defs.length) { mixin(S_TRACE);
 				imgData = _createDefImage(dirsi);
 			}
 			if (!imgData) return;
@@ -472,18 +472,18 @@ private:
 					fh = h;
 					break;
 				}
-			} else {
-				if (area.width >= b.width) {
+			} else { mixin(S_TRACE);
+				if (area.width >= b.width) { mixin(S_TRACE);
 					x = (area.width - b.width) / 2;
 					w = b.width;
-				} else {
+				} else { mixin(S_TRACE);
 					x = 0;
 					w = area.width;
 				}
-				if (area.height >= b.height) {
+				if (area.height >= b.height) { mixin(S_TRACE);
 					y = (area.height - b.height) / 2;
 					h = b.height;
-				} else {
+				} else { mixin(S_TRACE);
 					y = 0;
 					h = area.height;
 				}
@@ -494,12 +494,12 @@ private:
 			img.dispose();
 		}
 	}
-	void refresh() {
+	void refresh() { mixin(S_TRACE);
 		if (_refresh) _refresh();
 		_paintedPath = null;
 		_image.redraw();
 		refreshImageList();
-		foreach (dlg; updateImageEvent) {
+		foreach (dlg; updateImageEvent) { mixin(S_TRACE);
 			dlg();
 		}
 		static if (Type is MtType.CARD) {
@@ -507,7 +507,7 @@ private:
 		}
 	}
 	@property
-	Skin summSkin() {
+	Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
 	}
 	int _readOnly = 0;

@@ -12,7 +12,7 @@ version (Windows) {
 	private immutable CARD_WIRTH_PY_EXE = "CardWirthPy.exe";
 	private immutable CWX_EDITOR_EXE = "cwxeditor.exe";
 	private immutable DIR = "フォルダ";
-} else {
+} else { mixin(S_TRACE);
 	private immutable CARD_WIRTH_PY_EXE = "CardWirthPy";
 	private immutable CWX_EDITOR_EXE = "cwxeditor";
 	private immutable DIR = "ディレクトリ";
@@ -335,7 +335,7 @@ class Msgs : Properties {
 
 	auto couponHide = Msg("couponHide", "隠蔽クーポン");
 
-	const string couponTypeDesc(CouponType id) {
+	const string couponTypeDesc(CouponType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CouponType, "couponTypeDesc"));
 	}
 	auto couponTypeDescNormal = Msg("couponTypeDescNormal", "ノーマル");
@@ -344,7 +344,7 @@ class Msgs : Properties {
 	auto couponTypeDescDur = Msg("couponTypeDescDur", "[：...] 時限(点数分の時間経過及びシナリオ終了時に消滅)");
 	auto couponTypeDescDurBattle = Msg("couponTypeDescDurBattle", "[；...] 戦闘中時限(点数分の時間経過及び戦闘終了時に消滅)");
 
-	const string couponTypeName(CouponType id) {
+	const string couponTypeName(CouponType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CouponType, "couponTypeName"));
 	}
 	auto couponTypeNameNormal = Msg("couponTypeNameNormal", "通常");
@@ -365,7 +365,7 @@ class Msgs : Properties {
 	auto colorP = Msg("colorP", "紫色(&P)"); // CardWirth 1.50
 	auto colorL = Msg("colorL", "明るい灰色(&L)"); // CardWirth 1.50
 	auto colorD = Msg("colorD", "暗い灰色(&D)"); // CardWirth 1.50
-	const string scTalkerName(Talker id) {
+	const string scTalkerName(Talker id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Talker, "scTalkerName"));
 	}
 	auto scTalkerNameSelected = Msg("scTalkerNameSelected", "選択メンバ名(#M)");
@@ -392,7 +392,7 @@ class Msgs : Properties {
 	auto messageVarValueColumn = Msg("messageVarValueColumn", "サンプル値");
 
 	auto transition = Msg("transition", "背景切替方式");
-	const string transitionName(Transition id) {
+	const string transitionName(Transition id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Transition, "transitionName"));
 	}
 	auto transitionNameDefault = Msg("transitionNameDefault", "[プレイヤーの設定を使用]");
@@ -439,7 +439,7 @@ class Msgs : Properties {
 	auto roundIs = Msg("roundIs", "バトルが");
 	auto roundCmpIs = Msg("roundCmpIs", "ラウンド");
 
-	const string blendModeName(BlendMode id) {
+	const string blendModeName(BlendMode id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(BlendMode, "blendModeName"));
 	}
 	auto blendModeNameNormal = Msg("blendModeNameNormal", "通常");
@@ -448,14 +448,14 @@ class Msgs : Properties {
 	auto blendModeNameSubtract = Msg("blendModeNameSubtract", "減算");
 	auto blendModeNameMultiply = Msg("blendModeNameMultiply", "乗算");
 
-	const string gradientDirName(GradientDir id) {
+	const string gradientDirName(GradientDir id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(GradientDir, "gradientDirName"));
 	}
 	auto gradientDirNameNone = Msg("gradientDirNameNone", "グラデーション無し");
 	auto gradientDirNameLeftToRight = Msg("gradientDirNameLeftToRight", "左から右へ");
 	auto gradientDirNameTopToBottom = Msg("gradientDirNameTopToBottom", "上から下へ");
 
-	const string borderingTypeName(BorderingType id) {
+	const string borderingTypeName(BorderingType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(BorderingType, "borderingTypeName"));
 	}
 	auto borderingTypeNameNone = Msg("borderingTypeNameNone", "縁取り無し");
@@ -468,7 +468,7 @@ class Msgs : Properties {
 	auto evtAutoOpen = Msg("evtAutoOpen", "配置と同時に編集");
 	auto evtInsertFirst = Msg("evtInsertFirst", "他の子コンテントより前に配置");
 
-	const string contentName(CType id) {
+	const string contentName(CType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CType, "contentName"));
 	}
 	auto contentNameStart = Msg("contentNameStart", "スタート");
@@ -560,7 +560,7 @@ class Msgs : Properties {
 
 	auto msnDesc = Msg("msnDesc", "%1$s - %2$s");
 
-	const string motionName(MType id) {
+	const string motionName(MType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(MType, "motionName"));
 	}
 	auto motionNameHeal = Msg("motionNameHeal", "回復");
@@ -767,6 +767,7 @@ class Msgs : Properties {
 	auto reNumbering2 = Msg("reNumbering2", "番から順に振り直す"); // reNumbering1と同様のパラメータを取る
 
 	/// エリアのテーブル。
+	auto areaDirRoot = Msg("areaDirRoot", "Scenario");
 	auto areaId = Msg("areaId", "ID");
 	auto areaName = Msg("areaName", "名称");
 	auto areaCount = Msg("areaCount", "利用数");
@@ -1016,7 +1017,7 @@ class Msgs : Properties {
 	auto branchKeyCodeFailure = Msg("branchKeyCodeFailure", "キーコード「%1$s」を含む%2$sを所有していない(%3$s)");
 	auto branchRound = Msg("branchRound", "バトルが%1$sラウンド%2$s");
 
-	const string physicalName(Physical id) {
+	const string physicalName(Physical id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Physical, "physicalName"));
 	}
 	auto physicalNameDex = Msg("physicalNameDex", "器用度");
@@ -1025,7 +1026,7 @@ class Msgs : Properties {
 	auto physicalNameStr = Msg("physicalNameStr", "筋力");
 	auto physicalNameVit = Msg("physicalNameVit", "生命力");
 	auto physicalNameMin = Msg("physicalNameMin", "精神力");
-	const string mentalName(Mental id) {
+	const string mentalName(Mental id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Mental, "mentalName"));
 	}
 	auto mentalNameAggressive = Msg("mentalNameAggressive", "好戦性");
@@ -1038,7 +1039,7 @@ class Msgs : Properties {
 	auto mentalNameUncautious = Msg("mentalNameUncautious", "大胆性");
 	auto mentalNameTrickish = Msg("mentalNameTrickish", "狡猾性");
 	auto mentalNameUntrickish = Msg("mentalNameUntrickish", "正直性");
-	const string statusName(Status id) {
+	const string statusName(Status id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Status, "statusName"));
 	}
 	auto statusNameActive = Msg("statusNameActive", "行動可能");
@@ -1070,7 +1071,7 @@ class Msgs : Properties {
 	auto statusNameDownDefense = Msg("statusNameDownDefense", "防御力低下");
 	auto statusNameNone = Msg("statusNameNone", "状態指定無し");
 	auto effectTypeElement = Msg("effectTypeElement", "%1$s属性");
-	const string effectTypeName(EffectType id) {
+	const string effectTypeName(EffectType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(EffectType, "effectTypeName"));
 	}
 	auto effectTypeNamePhysic = Msg("effectTypeNamePhysic", "物理");
@@ -1078,7 +1079,7 @@ class Msgs : Properties {
 	auto effectTypeNameMagicalPhysic = Msg("effectTypeNameMagicalPhysic", "魔法的物理");
 	auto effectTypeNamePhysicalMagic = Msg("effectTypeNamePhysicalMagic", "物理的魔法");
 	auto effectTypeNameNone = Msg("effectTypeNameNone", "無");
-	const string effectTypeDesc(EffectType id) {
+	const string effectTypeDesc(EffectType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(EffectType, "effectTypeDesc"));
 	}
 	auto effectTypeDescPhysic = Msg("effectTypeDescPhysic", "武器が効かない存在には無効");
@@ -1086,19 +1087,19 @@ class Msgs : Properties {
 	auto effectTypeDescMagicalPhysic = Msg("effectTypeDescMagicalPhysic", "武器と魔法の両方が効かない存在には無効");
 	auto effectTypeDescPhysicalMagic = Msg("effectTypeDescPhysicalMagic", "武器と魔法のどちらかが効かない存在には無効");
 	auto effectTypeDescNone = Msg("effectTypeDescNone", "全ての存在に有効");
-	const string resistName(Resist id) {
+	const string resistName(Resist id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Resist, "resistName"));
 	}
 	auto resistNameAvoid = Msg("resistNameAvoid", "回避属性");
 	auto resistNameResist = Msg("resistNameResist", "抵抗属性");
 	auto resistNameUnfail = Msg("resistNameUnfail", "必中属性");
-	const string resistDesc(Resist id) {
+	const string resistDesc(Resist id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Resist, "resistDesc"));
 	}
 	auto resistDescAvoid = Msg("resistDescAvoid", "回避された場合は効果無し");
 	auto resistDescResist = Msg("resistDescResist", "抵抗された場合は効果半減");
 	auto resistDescUnfail = Msg("resistDescUnfail", "絶対成功");
-	const string cardTargetName(CardTarget id) {
+	const string cardTargetName(CardTarget id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CardTarget, "cardTargetName"));
 	}
 	auto cardTargetNameNone = Msg("cardTargetNameNone", "対象無し");
@@ -1108,20 +1109,20 @@ class Msgs : Properties {
 	auto cardTargetNameBoth = Msg("cardTargetNameBoth", "双方");
 	auto cardTargetOne = Msg("cardTargetOne", "一体");
 	auto cardTargetAll = Msg("cardTargetAll", "全体");
-	const string cardVisualName(CardVisual id) {
+	const string cardVisualName(CardVisual id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CardVisual, "cardVisualName"));
 	}
 	auto cardVisualNameNone = Msg("cardVisualNameNone", "視覚効果無し");
 	auto cardVisualNameReverse = Msg("cardVisualNameReverse", "対象を反転");
 	auto cardVisualNameHorizontal = Msg("cardVisualNameHorizontal", "対象を横に震動");
 	auto cardVisualNameVertical = Msg("cardVisualNameVertical", "対象を縦に震動");
-	const string premiumName(Premium id) {
+	const string premiumName(Premium id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Premium, "premiumName"));
 	}
 	auto premiumNameNormal = Msg("premiumNameNormal", "日用品 (買戻し不可/破棄可)");
 	auto premiumNameRare = Msg("premiumNameRare", "希少品 (買戻し可/破棄可)");
 	auto premiumNamePremium = Msg("premiumNamePremium", "貴重品 (買戻し可/破棄不可)");
-	const string enhanceName(Enhance id) {
+	const string enhanceName(Enhance id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Enhance, "enhanceName"));
 	}
 	auto enhanceNameAction = Msg("enhanceNameAction", "行動");
@@ -1129,7 +1130,7 @@ class Msgs : Properties {
 	auto enhanceNameResist = Msg("enhanceNameResist", "抵抗");
 	auto enhanceNameDefense = Msg("enhanceNameDefense", "防御");
 	auto mentality = Msg("mentality", "精神状態");
-	const string mentalityName(Mentality id) {
+	const string mentalityName(Mentality id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Mentality, "mentalityName"));
 	}
 	auto mentalityNameNormal = Msg("mentalityNameNormal", "正常");
@@ -1144,14 +1145,14 @@ class Msgs : Properties {
 	auto statusInactive = Msg("statusInactive", "※ 行動不可 = (意識不明 | 麻痺/石化 | 呪縛 | 眠り)");
 	auto statusAlive = Msg("statusAlive", "※ 生存 = (健康 | 負傷 | 重傷 | 中毒 | 呪縛 | 眠り)");
 	auto statusDead = Msg("statusDead", "※ 非生存 = (意識不明 | 麻痺/石化)");
-	const string targetName(Target.M id) {
+	const string targetName(Target.M id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch2!(Target.M, "Target.M", "targetName"));
 	}
 	auto targetNameSelected = Msg("targetNameSelected", "選択中のメンバ");
 	auto targetNameUnselected = Msg("targetNameUnselected", "選択中以外のメンバ");
 	auto targetNameRandom = Msg("targetNameRandom", "誰か一人");
 	auto targetNameParty = Msg("targetNameParty", "パーティ全員");
-	const string talkerName(Talker id) {
+	const string talkerName(Talker id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Talker, "talkerName"));
 	}
 	auto talkerNameSelected = Msg("talkerNameSelected", "[選択中]");
@@ -1161,7 +1162,7 @@ class Msgs : Properties {
 	auto talkerNameNarration = Msg("talkerNameNarration", "[話者無し]");
 	auto talkerNameImage = Msg("talkerNameImage", "[画像]");
 	auto talkerNameValued = Msg("talkerNameValued", "[評価メンバ]");
-	const string rangeName(Range id) {
+	const string rangeName(Range id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Range, "rangeName"));
 	}
 	auto rangeNameSelected = Msg("rangeNameSelected", "現在選択中のメンバ");
@@ -1170,19 +1171,19 @@ class Msgs : Properties {
 	auto rangeNameBackpack = Msg("rangeNameBackpack", "荷物袋");
 	auto rangeNamePartyAndBackpack = Msg("rangeNamePartyAndBackpack", "全体(荷物袋含む)");
 	auto rangeNameField = Msg("rangeNameField", "フィールド全体");
-	const string castRangeName(CastRange id) {
+	const string castRangeName(CastRange id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CastRange, "castRangeName"));
 	}
 	auto castRangeNameParty = Msg("castRangeNameParty", "パーティ");
 	auto castRangeNameEnemy = Msg("castRangeNameEnemy", "敵");
 	auto castRangeNameNpc = Msg("castRangeNameNpc", "同行キャスト");
-	const string damageTypeName(DamageType id) {
+	const string damageTypeName(DamageType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(DamageType, "damageTypeName"));
 	}
 	auto damageTypeNameLevelRatio = Msg("damageTypeNameLevelRatio", "レベルに対応する値");
 	auto damageTypeNameNormal = Msg("damageTypeNameNormal", "値の直接入力");
 	auto damageTypeNameMax = Msg("damageTypeNameMax", "最大値処理");
-	const string elementName(Element id) {
+	const string elementName(Element id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Element, "elementName"));
 	}
 	auto elementNameAll = Msg("elementNameAll", "全");
@@ -1192,7 +1193,7 @@ class Msgs : Properties {
 	auto elementNameMagic = Msg("elementNameMagic", "魔力");
 	auto elementNameFire = Msg("elementNameFire", "炎");
 	auto elementNameIce = Msg("elementNameIce", "冷気");
-	const string elementDesc(Element id) {
+	const string elementDesc(Element id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Element, "elementDesc"));
 	}
 	auto elementDescAll = Msg("elementDescAll", "全ての存在に有効");
@@ -1203,7 +1204,7 @@ class Msgs : Properties {
 	auto elementDescFire = Msg("elementDescFire", "炎が無効でない存在に有効");
 	auto elementDescIce = Msg("elementDescIce", "冷気が無効でない存在に有効");
 
-	const string sexName(Sex id) {
+	const string sexName(Sex id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Sex, "sexName"));
 	}
 	auto sexNameMale = Msg("sexNameMale", "男/♂");
@@ -1212,7 +1213,7 @@ class Msgs : Properties {
 	auto periodUnknown = Msg("periodUnknown", "不明");
 	auto natureUnknown = Msg("natureUnknown", "その他");
 
-	const string effectCardTypeName(EffectCardType id) {
+	const string effectCardTypeName(EffectCardType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(EffectCardType, "effectCardTypeName"));
 	}
 	auto effectCardTypeNameAll = Msg("effectCardTypeNameAll", "全てのカード");
@@ -1220,7 +1221,7 @@ class Msgs : Properties {
 	auto effectCardTypeNameItem = Msg("effectCardTypeNameItem", "アイテムカード");
 	auto effectCardTypeNameBeast = Msg("effectCardTypeNameBeast", "召喚獣カード");
 
-	const string comparison4Name(Comparison4 id) {
+	const string comparison4Name(Comparison4 id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Comparison4, "comparison4Name"));
 	}
 	auto comparison4NameEq = Msg("comparison4NameEq", "であれば");
@@ -1228,14 +1229,14 @@ class Msgs : Properties {
 	auto comparison4NameLt = Msg("comparison4NameLt", "より大きければ");
 	auto comparison4NameGt = Msg("comparison4NameGt", "より小さければ");
 
-	const string comparison3Name(Comparison3 id) {
+	const string comparison3Name(Comparison3 id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Comparison3, "comparison3Name"));
 	}
 	auto comparison3NameEq = Msg("comparison3NameEq", "である");
 	auto comparison3NameLt = Msg("comparison3NameLt", "より大きい");
 	auto comparison3NameGt = Msg("comparison3NameGt", "より小さい");
 
-	const string comparison3FalseName(Comparison3 id) {
+	const string comparison3FalseName(Comparison3 id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Comparison3, "comparison3FalseName"));
 	}
 	auto comparison3FalseNameEq = Msg("comparison3FalseNameEq", "ではない");
@@ -1371,7 +1372,7 @@ class Msgs : Properties {
 	auto liveStatus = Msg("liveStatus", "初期状態");
 	auto lifeAndMentality = Msg("lifeAndMentality", "体力と精神状態");
 	auto enhanceLiveBonus = Msg("enhanceLiveBonus", "能力ボーナス/ペナルティ");
-	const string enhanceLiveBonusName(Enhance id) {
+	const string enhanceLiveBonusName(Enhance id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Enhance, "enhanceLiveBonusName"));
 	}
 	auto enhanceLiveBonusNameAction = Msg("enhanceLiveBonusNameAction", "行動");
@@ -1583,7 +1584,7 @@ class Msgs : Properties {
 	auto filterWallpaper = Msg("filterWallpaper", "画像ファイル (*.bmp;*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.ico;*.icon)");
 	auto dlgTitWallpaper = Msg("dlgTitWallpaper", "壁紙画像の選択");
 	auto wallpaperStyle = Msg("wallpaperStyle", "表示形式");
-	const string wallpaperStyleName(WallpaperStyle id) {
+	const string wallpaperStyleName(WallpaperStyle id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(WallpaperStyle, "wallpaperStyleName"));
 	}
 	auto wallpaperStyleNameCenter = Msg("wallpaperStyleNameCenter", "中央に表示");
@@ -1660,7 +1661,7 @@ class Msgs : Properties {
 	auto undoMaxEtc = Msg("undoMaxEtc", "テキスト/その他");
 
 	auto dialogStatus = Msg("dialogStatus", "台詞コンテントのステータス");
-	const string dialogStatusName(DialogStatus id) {
+	const string dialogStatusName(DialogStatus id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(DialogStatus, "dialogStatusName"));
 	}
 	auto dialogStatusNameTop = Msg("dialogStatusNameTop", "最上位の台詞");
@@ -1756,7 +1757,7 @@ class Msgs : Properties {
 	auto jpyErrorLabelNotFound = Msg("jpyErrorLabelNotFound", "セクションがありません。");
 
 	/// メニュー。
-	const string menuText(MenuID id) {
+	const string menuText(MenuID id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(MenuID, "menuText"));
 	}
 
@@ -1968,7 +1969,7 @@ class Msgs : Properties {
 	auto makings = AAMsg("makings", "key", "name");
 
 	/// 各連想配列を初期化する。
-	this () {
+	this () { mixin(S_TRACE);
 		sex = [
 			"♂":"♂",
 			"♀":"♀",

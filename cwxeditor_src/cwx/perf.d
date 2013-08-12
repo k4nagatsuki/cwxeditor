@@ -1,6 +1,29 @@
 /// パフォーマンスカウンタ。コンソール/デバグビルドでない場合は無効。
 module cwx.perf;
 
+struct StackTrace {
+	string file;
+	size_t line;
+}
+StackTrace[] tStack, stStack;
+size_t tStackLen = 0;
+immutable S_TRACE = `
+	if (!.tStack.length) {
+		.tStack = new StackTrace[8];
+	} else if (.tStack.length <= .tStackLen) {
+		.tStack.length *= 2;
+	}
+	.tStack[.tStackLen] = StackTrace(__FILE__, __LINE__);
+	.tStackLen++;
+	scope (exit) .tStackLen--;
+	scope (failure) .saveStack();
+`;
+void saveStack() {
+	if (!stStack.length) {
+		stStack = tStack[0 .. tStackLen];
+	}
+}
+
 debug {
 	version (Console) {
 		import std.datetime;

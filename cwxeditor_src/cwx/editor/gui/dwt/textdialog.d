@@ -28,24 +28,24 @@ private:
 	Text _viewer;
 
 public:
-	this(Commons comm, Props prop, Shell shell, string title, Image icon, string text, bool readOnly = true, DSize size = null) {
+	this(Commons comm, Props prop, Shell shell, string title, Image icon, string text, bool readOnly = true, DSize size = null) { mixin(S_TRACE);
 		_comm = comm;
 		_prop = prop;
 		_readOnly = readOnly;
 		_text = text;
 		super(prop, shell, title, icon, true, size, false, !readOnly);
-		if (readOnly) {
+		if (readOnly) { mixin(S_TRACE);
 			enterClose = true;
 			firstFocusIsOK = true;
 		}
 	}
 
 	@property
-	string text() {
+	string text() { mixin(S_TRACE);
 		return wrapReturnCode(_viewer.getText());
 	}
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		auto cl = new CenterLayout;
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
@@ -55,13 +55,13 @@ protected:
 		_viewer = new Text(area, style);
 		createTextMenu!Text(_comm, _prop, _viewer, &catchMod);
 		_viewer.setText(_text);
-		if (!_readOnly) {
+		if (!_readOnly) { mixin(S_TRACE);
 			_viewer.setSelection(_text.length);
 		}
 		auto font = _viewer.getFont();
 		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
 		_viewer.setFont(new Font(Display.getCurrent(), dwtData(_prop.looks.textDlgFont(fSize))));
-		closeEvent ~= () {
+		closeEvent ~= () { mixin(S_TRACE);
 			_viewer.getFont().dispose();
 		};
 	}

@@ -32,10 +32,10 @@ import std.stream;
 debug {
 	version (Console) {
 		private immutable DR = "Debug / Console";
-	} else {
+	} else { mixin(S_TRACE);
 		private immutable DR = "Debug";
 	}
-} else {
+} else { mixin(S_TRACE);
 	@property
 	private immutable DR = "Release";
 }
@@ -98,13 +98,24 @@ private version (Windows) {
 		const CSIDL_APPDATA = 0x1A;
 		const SHGFP_TYPE_CURRENT = 0;
 	}
-} else {
+} else { mixin(S_TRACE);
 	import core.sys.posix.unistd;
 	import core.sys.posix.pwd;
 	import std.c.string;
 }
 
 shared string LATEST_VERSION = "";
+
+string printStackTrace() {
+	string[] arr = ["Stack Trace --------"];
+	foreach (ref s; stStack) {
+		arr ~= .format("%s, %s", s.file, s.line);
+	}
+	auto s = arr.join("\n");
+	fdebugln(s);
+	stStack = [];
+	return createDebugln(s);
+}
 
 shared string debugLog = "cwxeditor_error.log";
 private __gshared BufferedFile debugLogFile = null;
@@ -120,16 +131,16 @@ immutable curdir = ".";
 immutable pardir = "..";
 
 /// デバグログを生成する。
-string debugString(T)(ref T v) {
+string debugString(T)(ref T v) { mixin(S_TRACE);
 	static if (is(T : Throwable)) {
 		char[] trace;
-		if (v.info) {
-			foreach (file; v.info) {
-				if (trace.length) {
+		if (v.info) { mixin(S_TRACE);
+			foreach (file; v.info) { mixin(S_TRACE);
+				if (trace.length) { mixin(S_TRACE);
 					trace ~= " - ".dup;
 				}
-				try {
-					for (size_t i = 0; i < file.length; i++) {
+				try { mixin(S_TRACE);
+					for (size_t i = 0; i < file.length; i++) { mixin(S_TRACE);
 						char c = file[i];
 						.validate([c]);
 						trace ~= c;
@@ -141,19 +152,19 @@ string debugString(T)(ref T v) {
 			}
 		}
 		return .format("[%s] %s, %d: ", v.msg, v.file, v.line) ~ trace.idup;
-	} else {
+	} else { mixin(S_TRACE);
 		return .format("%s", v);
 	}
 }
 /// ditto
-string createDebugln(bool BuildInfo = true, string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
+string createDebugln(bool BuildInfo = true, string F = __FILE__, size_t L = __LINE__, T ...)(T vals) { mixin(S_TRACE);
 	char[] buf = format("%s:%d ", F, L).dup;
-	foreach (v; vals) {
+	foreach (v; vals) { mixin(S_TRACE);
 		static if (is(typeof(v) : Throwable)) {
 			buf ~= debugString(v);
 		} else static if (is(typeof(v) : string)) {
 			buf ~= v;
-		} else {
+		} else { mixin(S_TRACE);
 			buf ~= debugString(v);
 		}
 	}
@@ -166,29 +177,29 @@ string createDebugln(bool BuildInfo = true, string F = __FILE__, size_t L = __LI
 	int second = d.second;
 	static if (BuildInfo) {
 		buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ " [" ~ .splitLines!string(APP_BUILD)[0] ~ "]\t" ~ buf;
-	} else {
+	} else { mixin(S_TRACE);
 		buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ " " ~ buf;
 	}
 	return assumeUnique(buf);
 }
 
 /// デバグログに文字列を出力する。
-void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
-	try {
-		synchronized {
+void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) { mixin(S_TRACE);
+	try { mixin(S_TRACE);
+		synchronized { mixin(S_TRACE);
 			string log = createDebugln!(true, F, L)(vals);
 			version (Console) {
 				version (Windows) {
 					printf("%s\n\0".ptr, toMBSz(log));
 					dout.flush();
-				} else {
+				} else { mixin(S_TRACE);
 					writeln(log);
 				}
 			}
-			if (!debugLog.dirName().exists()) {
+			if (!debugLog.dirName().exists()) { mixin(S_TRACE);
 				debugLog.dirName().mkdirRecurse();
 			}
-			if (!debugLogFile) {
+			if (!debugLogFile) { mixin(S_TRACE);
 				debugLogFile = new typeof(debugLogFile)(debugLog, FileMode.Append);
 			}
 			debugLogFile.seekEnd(0);
@@ -199,11 +210,11 @@ void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 		std.stdio.writeln(__FILE__, " ", __LINE__, " ", e.msg);
 	}
 }
-shared static ~this () {
+shared static ~this () { mixin(S_TRACE);
 	version (Console) {
 		debug std.stdio.writeln("Close Debug log file Start");
 	}
-	synchronized {
+	synchronized { mixin(S_TRACE);
 		if (debugLogFile) debugLogFile.close();
 	}
 	version (Console) {
@@ -212,22 +223,22 @@ shared static ~this () {
 }
 /// debugコンパイルされている際は デバグログに文字列を出力すると
 /// 共にfdebugln()を呼出し、ファイル出力する。
-void debugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
+void debugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) { mixin(S_TRACE);
 	debug {
 		fdebugln!(F, L, T)(vals);
 	}
 }
 
 /// コンソール上にデバグログを出力する。
-void cdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
+void cdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) { mixin(S_TRACE);
 	version (Console) {
 		debug {
-			synchronized {
+			synchronized { mixin(S_TRACE);
 				string log = createDebugln!(false, F, L)(vals);
 				version (Windows) {
 					printf("%s\n\0".ptr, toMBSz(log));
 					dout.flush();
-				} else {
+				} else { mixin(S_TRACE);
 					writeln(log);
 				}
 			}
@@ -236,13 +247,13 @@ void cdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 }
 
 /// コンソール上に文字列を出力する。
-void cwriteln(string s) {
+void cwriteln(string s) { mixin(S_TRACE);
 	version (Console) {
-		synchronized {
+		synchronized { mixin(S_TRACE);
 			version (Windows) {
 				printf("%s\n\0".ptr, toMBSz(s));
 				dout.flush();
-			} else {
+			} else { mixin(S_TRACE);
 				writeln(s);
 			}
 		}
@@ -253,16 +264,16 @@ version (Windows) {
 	import core.sys.windows.windows;
 
 	/// 共有ライブラリを読み込む。
-	void* dlopen(string lib) {
+	void* dlopen(string lib) { mixin(S_TRACE);
 		return LoadLibraryW(.toUTFz!(wchar*)(lib));
 	}
 	/// 共有ライブラリからシンボルを取得。
-	void* dlsym(void* lib, string sym) {
+	void* dlsym(void* lib, string sym) { mixin(S_TRACE);
 		if (!lib) return null;
 		return GetProcAddress(lib, .toStringz(sym));
 	}
 	/// 共有ライブラリを解放する。
-	void dlclose(ref void* lib) {
+	void dlclose(ref void* lib) { mixin(S_TRACE);
 		if (!lib) return;
 		FreeLibrary(lib);
 		lib = null;
@@ -271,16 +282,16 @@ version (Windows) {
 	import core.sys.posix.dlfcn;
 
 	/// 共有ライブラリを読み込む。
-	void* dlopen(string lib) {
+	void* dlopen(string lib) { mixin(S_TRACE);
 		return core.sys.posix.dlfcn.dlopen(.toStringz(lib), RTLD_NOW);
 	}
 	/// 共有ライブラリからシンボルを取得。
-	void* dlsym(void* lib, string sym) {
+	void* dlsym(void* lib, string sym) { mixin(S_TRACE);
 		if (!lib) return null;
 		return core.sys.posix.dlfcn.dlsym(lib, .toStringz(sym));
 	}
 	/// 共有ライブラリを解放する。
-	void dlclose(ref void* lib) {
+	void dlclose(ref void* lib) { mixin(S_TRACE);
 		if (!lib) return;
 		core.sys.posix.dlfcn.dlclose(lib);
 		lib = null;
@@ -288,37 +299,37 @@ version (Windows) {
 } else static assert (0);
 
 /// アプリケーションデータを格納する環境標準のディレクトリを返す。
-string appDataDir(string appPath) {
+string appDataDir(string appPath) { mixin(S_TRACE);
 	version (Windows) {
 		auto shl = dlopen("shell32.dll");
-		if (!shl) {
+		if (!shl) { mixin(S_TRACE);
 			return appPath.dirName();
 		}
 		scope (exit) dlclose(shl);
 		auto getFolderPath = cast(SHGetFolderPathW) dlsym(shl, "SHGetFolderPathW");
-		if (!getFolderPath) {
+		if (!getFolderPath) { mixin(S_TRACE);
 			return appPath.dirName();
 		}
 		wchar[MAX_PATH] appDataBuf;
 		auto gfr = getFolderPath(null, CSIDL_APPDATA, null, SHGFP_TYPE_CURRENT, appDataBuf.ptr);
-		if (0 != gfr) {
+		if (0 != gfr) { mixin(S_TRACE);
 			return appPath.dirName();
 		}
 		auto p = to!string(appDataBuf[0 .. appDataBuf.indexOf('\0')]);
 		return assumeUnique(p);
-	} else {
+	} else { mixin(S_TRACE);
 		return to!string(getpwuid(getuid()).pw_dir);
 	}
 }
 
 static const B_IMG = "binaryimage://";
-bool isBinImg(string path) {
+bool isBinImg(string path) { mixin(S_TRACE);
 	return path.length >= B_IMG.length && path[0u .. B_IMG.length] == B_IMG;
 }
-ubyte[] strToBImg(string bimg) {
+ubyte[] strToBImg(string bimg) { mixin(S_TRACE);
 	return Base64.decode(bimg[B_IMG.length .. $]);
 }
-string bImgToStr(in ubyte[] bimg) {
+string bImgToStr(in ubyte[] bimg) { mixin(S_TRACE);
 	auto r = B_IMG ~ Base64.encode(bimg);
 	return assumeUnique(r);
 }
@@ -330,7 +341,7 @@ string enumToString(E)(E e) {
 	mixin("final switch (e) {"
 		~ enumToStringImpl!(E, 0)
 		~ "}");
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	enum En {
 		Abc, Def
@@ -356,7 +367,7 @@ E stringToEnum(E)(string name) {
 		~ stringToEnumImpl!(E, 0)
 		~ "default: return E.init;"
 		~ "}");
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	enum En {
 		Abc, Def
@@ -432,7 +443,7 @@ string upperToCap(string s) {
 		}
 	}
 	return .assumeUnique(buf);
-} unittest {
+} unittest { mixin(S_TRACE);
 	assert (upperToCap("UPPER_TO_CAP") == "UpperToCap");
 	assert (upperToCap("UpperToCap") == "UpperToCap");
 }
@@ -444,15 +455,15 @@ string capLower(string s) {
 	return to!string([std.uni.toLower(ds[0])] ~ ds[1 .. $]);
 }
 /// sの先頭1文字を大文字にする。
-string capUpper(string s) {
+string capUpper(string s) { mixin(S_TRACE);
 	if (!s.length) return s;
 	dstring ds = to!dstring(s);
 	return to!string([std.uni.toUpper(ds[0])] ~ ds[1 .. $]);
 }
 
 /// 例外を発しないstd.string.format()。
-string tryFormat(T ...)(string s, T vals) {
-	try {
+string tryFormat(T ...)(string s, T vals) { mixin(S_TRACE);
+	try { mixin(S_TRACE);
 		auto a = appender!string();
 		formattedWrite(a, s, vals);
 		return a.data;
@@ -469,7 +480,7 @@ string tryFormat(T ...)(string s, T vals) {
 class Wildcard {
 	/// sからマッチを探し、indexを返す。
 	/// 見つからなければ-1を返す。
-	int find(string s) {
+	int find(string s) { mixin(S_TRACE);
 		if (!s.length) return -1;
 		size_t len;
 		auto ds = toUTF32(s);
@@ -478,8 +489,8 @@ class Wildcard {
 		return toUTF8(ds[0 .. i]).length;
 	}
 	/// sに完全一致した場合にtrueを返す。
-	bool match(string s) {
-		if (!s.length) {
+	bool match(string s) { mixin(S_TRACE);
+		if (!s.length) { mixin(S_TRACE);
 			return 0 == _left.length;
 		}
 		size_t len;
@@ -489,16 +500,16 @@ class Wildcard {
 		return 0 == i && ds.length == len;
 	}
 	/// s中のマッチする部分をtoに置換して返す。
-	string replace(string s, string to) {
+	string replace(string s, string to) { mixin(S_TRACE);
 		if (!s.length) return s;
 		auto ds = toUTF32(s);
 		auto dto = toUTF32(to);
 		dchar[] r;
 		size_t len;
-		while (true) {
+		while (true) { mixin(S_TRACE);
 			if (!ds.length) break;
 			int i = find(ds, false, len);
-			if (i == -1) {
+			if (i == -1) { mixin(S_TRACE);
 				r ~= ds;
 				break;
 			}
@@ -508,15 +519,15 @@ class Wildcard {
 		return toUTF8(r);
 	}
 	/// s中のマッチする部分をカウントして返す。
-	size_t count(string s) {
+	size_t count(string s) { mixin(S_TRACE);
 		if (!s.length) return 0;
 		auto ds = toUTF32(s);
 		size_t r = 0;
 		size_t len;
-		while (true) {
+		while (true) { mixin(S_TRACE);
 			if (!ds.length) break;
 			int i = find(ds, false, len);
-			if (i == -1) {
+			if (i == -1) { mixin(S_TRACE);
 				break;
 			}
 			r++;
@@ -532,16 +543,16 @@ class Wildcard {
 		Pattern pattern;
 		dchar chr;
 		bool ignoreCase;
-		bool match(dchar c) {
+		bool match(dchar c) { mixin(S_TRACE);
 			switch (pattern) {
-			case Pattern.CHAR: {
-				if (ignoreCase) {
+			case Pattern.CHAR: { mixin(S_TRACE);
+				if (ignoreCase) { mixin(S_TRACE);
 					return std.ascii.toLower(chr) == std.ascii.toLower(c);
-				} else {
+				} else { mixin(S_TRACE);
 					return chr == c;
 				}
 			}
-			case Pattern.QUESTION: {
+			case Pattern.QUESTION: { mixin(S_TRACE);
 				return true;
 			}
 			default: assert (0);
@@ -551,34 +562,34 @@ class Wildcard {
 	private WChar[] _left;
 	private Wildcard _right;
 	private bool _ignoreCase;
-	private int findw(dstring s) {
+	private int findw(dstring s) { mixin(S_TRACE);
 		if (s.length < _left.length) return -1;
-		for (int i = 0; i <= s.length - _left.length; i++) {
+		for (int i = 0; i <= s.length - _left.length; i++) { mixin(S_TRACE);
 			int j;
 			for (j = 0; j < _left.length && _left[j].match(s[i + j]); j++) {}
 			if (j == _left.length) return i;
 		}
 		return -1;
 	}
-	private int rfindw(dstring s) {
+	private int rfindw(dstring s) { mixin(S_TRACE);
 		if (s.length < _left.length) return -1;
-		for (int i = s.length - _left.length; i >= 0; i--) {
+		for (int i = s.length - _left.length; i >= 0; i--) { mixin(S_TRACE);
 			int j;
 			for (j = 0; j < _left.length && _left[j].match(s[i + j]); j++) {}
 			if (j == _left.length) return i;
 		}
 		return -1;
 	}
-	private int find(ref dstring s, bool next, out size_t len) {
+	private int find(ref dstring s, bool next, out size_t len) { mixin(S_TRACE);
 		auto sbase = s;
-		while (true) {
+		while (true) { mixin(S_TRACE);
 			int i = next ? rfindw(s) : findw(s);
 			if (i == -1) return -1;
-			if (_right) {
+			if (_right) { mixin(S_TRACE);
 				auto refVal = sbase[i + _left.length .. $];
 				int j = _right.find(refVal, true, len);
-				if (j == -1) {
-					if (next) {
+				if (j == -1) { mixin(S_TRACE);
+					if (next) { mixin(S_TRACE);
 						s = s[0 .. $ - 1];
 						continue;
 					}
@@ -586,7 +597,7 @@ class Wildcard {
 				}
 				len += _left.length + j;
 				return i;
-			} else {
+			} else { mixin(S_TRACE);
 				len = _left.length;
 				return i;
 			}
@@ -596,28 +607,28 @@ class Wildcard {
 		auto wild = new Wildcard;
 		wild._ignoreCase = ignoreCase;
 		bool onbs = false;
-		foreach (i, dchar c; sub) {
+		foreach (i, dchar c; sub) { mixin(S_TRACE);
 			switch (c) {
-			case '?': {
-				if (!onbs) {
+			case '?': { mixin(S_TRACE);
+				if (!onbs) { mixin(S_TRACE);
 					wild._left ~= WChar(Pattern.QUESTION, '\0', ignoreCase);
 					onbs = false;
 					break;
 				}
 			} goto default;
-			case '*': {
-				if (!onbs) {
+			case '*': { mixin(S_TRACE);
+				if (!onbs) { mixin(S_TRACE);
 					while (i < sub.length && sub[i] == '*')
 						i++;
 					wild._right = Wildcard(sub[i .. $], ignoreCase);
 					return wild;
 				}
 			} goto default;
-			case '\\': {
+			case '\\': { mixin(S_TRACE);
 				if (onbs) wild._left ~= WChar(Pattern.CHAR, c, ignoreCase);
 				onbs = !onbs;
 			} break;
-			default: {
+			default: { mixin(S_TRACE);
 				wild._left ~= WChar(Pattern.CHAR, c, ignoreCase);
 				onbs = false;
 			}
@@ -626,7 +637,7 @@ class Wildcard {
 		if (onbs) wild._left ~= WChar(Pattern.CHAR, '\\', ignoreCase);
 		return wild;
 	}
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (Wildcard("test").find("test") == 0);
 	assert (Wildcard("test").find("atest") == 1);
@@ -671,19 +682,19 @@ class Wildcard {
 alias std.file.read readBinary;
 
 /// データのMD5ダイジェストを取得する。
-string md5Digest(in void[] data) {
+string md5Digest(in void[] data) { mixin(S_TRACE);
 	static if (__VERSION__ >= 2061) {
 		import std.digest.md;
 		return toHexString(md5Of(data)).idup;
-	} else {
+	} else { mixin(S_TRACE);
 		import std.md5;
 		return getDigestString([data]);
 	}
 }
 /// ファイルのMD5ダイジェストを取得する。
-string fileToMD5Digest(string file) {
-	if (.exists(file)) {
-		try {
+string fileToMD5Digest(string file) { mixin(S_TRACE);
+	if (.exists(file)) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			return md5Digest(readBinary(file));
 		} catch (FileException e) {
 			// 読み込めなかった場合は空文字列を返す
@@ -694,86 +705,86 @@ string fileToMD5Digest(string file) {
 }
 
 /// 絶対パス化と正規化を行う。
-string nabs(string path) {
+string nabs(string path) { mixin(S_TRACE);
 	return buildNormalizedPath(absolutePath(path));
 }
 
 /// 絶対パス化・正規化を行いつつ相対パスを取る。
-string abs2rel(string p1, string p2) {
+string abs2rel(string p1, string p2) { mixin(S_TRACE);
 	auto rel = relativePath(nabs(p1), nabs(p2));
 	return rel.buildNormalizedPath();
 }
 
 /// 大/小文字を区別しないstartsWith。
-bool istartsWith(in char[] a, in char[] b) {
+bool istartsWith(in char[] a, in char[] b) { mixin(S_TRACE);
 	return a.length >= b.length && icmp(a[0 .. b.length], b) == 0;
 }
 
 /// 大/小文字を区別しないendsWith。
-bool iendsWith(in char[] a, in char[] b) {
+bool iendsWith(in char[] a, in char[] b) { mixin(S_TRACE);
 	return a.length >= b.length && icmp(a[$ - b.length .. $], b) == 0;
 }
 
 /// pathがlistに含まれていればtrueを返す。
-bool containsPath(in string[] list, string path) {
-	foreach (l; list) {
+bool containsPath(in string[] list, string path) { mixin(S_TRACE);
+	foreach (l; list) { mixin(S_TRACE);
 		if (cglobMatch(path, l)) return true;
 	}
 	return false;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (containsPath(["*.txt"], "test.txt"));
 	assert (containsPath([".*"], ".svn"));
 }
 
 /// ファイルパスに対応したstartsWith。
-bool fnstartsWith(in char[] a, in char[] b) {
+bool fnstartsWith(in char[] a, in char[] b) { mixin(S_TRACE);
 	static if (0 == filenameCharCmp('A', 'a')) {
 		return istartsWith(a, b);
-	} else {
+	} else { mixin(S_TRACE);
 		return startsWith(a, b);
 	}
 }
 
 /// ファイルパスに対応したendsWith。
-bool fnendsWith(string a, string b) {
+bool fnendsWith(string a, string b) { mixin(S_TRACE);
 	static if (0 == filenameCharCmp('A', 'a')) {
 		return iendsWith(a, b);
-	} else {
+	} else { mixin(S_TRACE);
 		return endsWith(a, b);
 	}
 }
 
 /// 素材パスをencodeする。
-string encodePath(string path) {
+string encodePath(string path) { mixin(S_TRACE);
 	return isBinImg(path) ? path : replace(path, dirSeparator, "/");
 }
 /// 素材パスをdecodeする。
-string decodePath(string path) {
+string decodePath(string path) { mixin(S_TRACE);
 	return isBinImg(path) ? path : replace(path, "/", dirSeparator);
 }
 
 /// 末尾に改行文字が複数あったら纏める。
 /// 末尾に改行が無い場合は改行一つを付加する。
-string lastRet(string text) {
+string lastRet(string text) { mixin(S_TRACE);
 	if (!text.length) return "";
 	bool ret = false;
 	size_t i = text.length;
-	foreach_reverse (j, char t; text) {
-		if (t == '\n') {
+	foreach_reverse (j, char t; text) { mixin(S_TRACE);
+		if (t == '\n') { mixin(S_TRACE);
 			i = j;
 			ret = true;
-		} else {
+		} else { mixin(S_TRACE);
 			break;
 		}
 	}
-	if (ret) {
+	if (ret) { mixin(S_TRACE);
 		text = text[0u .. i + 1u];
-	} else {
+	} else { mixin(S_TRACE);
 		text ~= '\n';
 	}
 	return text;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (lastRet("test\n\n\n") == "test\n");
 	assert (lastRet("test") == "test\n");
@@ -782,27 +793,27 @@ string lastRet(string text) {
 }
 
 /// arrをin-placeでソートして返す。
-T[] sort(alias Cmp, T)(T[] arr) {
+T[] sort(alias Cmp, T)(T[] arr) { mixin(S_TRACE);
 	auto dlg = (in T a, in T b) {return Cmp(a, b) < 0;};
 	return sortDlg!(T, typeof(dlg))(arr, dlg);
 }
 /// ditto
-T[] sortDlg(T, Dlg)(T[] arr, Dlg lmin) {
+T[] sortDlg(T, Dlg)(T[] arr, Dlg lmin) { mixin(S_TRACE);
 	if (arr.length <= 1u) return arr;
 	auto pv = arr[arr.length / 2u];
 	size_t l = 0u;
 	size_t r = arr.length - 1u;
-	while (r > l) {
+	while (r > l) { mixin(S_TRACE);
 		while (lmin(arr[l], pv)) l++;
 		while (lmin(pv, arr[r])) r--;
-		if (r > l) {
+		if (r > l) { mixin(S_TRACE);
 			auto tmp = arr[l];
 			arr[l] = arr[r];
 			arr[r] = tmp;
 		}
 	}
 	return sortDlg!(T)(arr[0u .. l], lmin) ~ sortDlg!(T)(arr[l .. $], lmin);
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (sortDlg!(int)([8, 1, 4, 6, 5, 3, 2, 9, 7, 0], (in int a, in int b) {return a < b;})
 		== [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -814,22 +825,22 @@ T[] sortDlg(T, Dlg)(T[] arr, Dlg lmin) {
 }
 
 /// ds内のcのインデックスをクイックサーチする。見つからなかった場合は-1を返す。
-int qsearch(T)(in T[] ds, T c) {
+int qsearch(T)(in T[] ds, T c) { mixin(S_TRACE);
 	if (ds.length == 1) return ds[0] == c ? 0 : -1;
 	int i = ds.length / 2;
 	T c2 = ds[i];
-	if (c < c2) {
+	if (c < c2) { mixin(S_TRACE);
 		if (i == 0) return -1;
 		return qsearch!(T)(ds[0 .. i], c);
-	} else if (c > c2) {
+	} else if (c > c2) { mixin(S_TRACE);
 		if (i + 1 == ds.length) return -1;
 		int i2 = qsearch!(T)(ds[i + 1 .. $], c);
 		if (i2 == -1) return -1;
 		return i + i2 + 1;
-	} else {
+	} else { mixin(S_TRACE);
 		return i;
 	}
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128], 0) == -1);
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128], 1) == 0);
@@ -868,12 +879,12 @@ template isVArray(T) {
 /// use = 名前を使用するか否かの判定関数。
 /// space = falseの場合は括弧の前のスペースを付けない。
 /// Returns: 新しい名前。
-string createNewName(string base, bool delegate(string) use, bool space = true) {
+string createNewName(string base, bool delegate(string) use, bool space = true) { mixin(S_TRACE);
 	auto dbase = toUTF32(base);
-	if (!std.regex.match(dbase, .regex!(dstring)(`^-?[1-9][0-9]*$`d)).empty) {
-		try {
+	if (!std.regex.match(dbase, .regex!(dstring)(`^-?[1-9][0-9]*$`d)).empty) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			long i = to!(long)(base);
-			while (true) {
+			while (true) { mixin(S_TRACE);
 				auto s = to!(string)(i);
 				if (use(s)) return s;
 				if (i + 1 < i) break; // overflow
@@ -887,18 +898,18 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 	if (space) rexp = " "d ~ rexp;
 	auto ni = std.regex.match(dbase, .regex!(dstring)(rexp));
 	auto name = base;
-	if (!ni.empty) {
-		try {
+	if (!ni.empty) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			i = to!(ulong)(ni.hit[(space ? 2 : 1) .. $ - 1]) + 1;
 			base = toUTF8(ni.pre);
 		} catch (Exception e) {
 		}
 	}
-	for (; !use(name); i++) {
+	for (; !use(name); i++) { mixin(S_TRACE);
 		name = base ~ (space ? " (" : "(") ~ .to!(string)(i) ~ ")";
 	}
 	return name;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (createNewName("aaa", (string n) {return n != "aaa" && n != "aaa (2)";}, true) == "aaa (3)");
 	assert (createNewName("aaa", (string n) {return n != "aaa" && n != "aaa(2)";}, false) == "aaa(3)");
@@ -906,12 +917,12 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 	assert (createNewName("aaa(2)", (string n) {return n != "aaa(2)" && n != "aaa(3)";}, false) == "aaa(4)");
 }
 /// ditto
-string createNewFileName(string path, bool isdir) {
+string createNewFileName(string path, bool isdir) { mixin(S_TRACE);
 	string parent = dirName(path);
 	string name = baseName(path);
 	string ext = isdir ? "" : .extension(name);
 	if (!isdir) name = stripExtension(name);
-	name = createNewName(name, (string name) {
+	name = createNewName(name, (string name) { mixin(S_TRACE);
 		name = std.path.buildPath(parent, name);
 		if (!isdir && ext.length) name = setExtension(name, ext);
 		return !.exists(name);
@@ -923,66 +934,66 @@ string createNewFileName(string path, bool isdir) {
 
 /// 複数行の文字列を単行へ変換する。各行の左右の空白は切り詰められる。
 @property
-string singleLine(string s) {
+string singleLine(string s) { mixin(S_TRACE);
 	string r = "";
-	foreach (line; s.splitLines()) {
+	foreach (line; s.splitLines()) { mixin(S_TRACE);
 		r ~= line.strip();
 	}
 	return r;
 }
 
 /// 改行文字を\nに置換する。
-string encodeLf(string s) {
+string encodeLf(string s) { mixin(S_TRACE);
 	s = replace(s, "\\", "\\\\");
 	s = replace(s, "\n", "\\n");
 	return s;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (encodeLf("\\\\\n\n\\") == "\\\\\\\\\\n\\n\\\\");
 }
 /// strsを\nを結合子にして結合する。
 /// lastLfがtrueの場合は全文字列の末尾にも\nを付与する。
-string encodeLf(in string[] strs, bool lastLf = true) {
+string encodeLf(in string[] strs, bool lastLf = true) { mixin(S_TRACE);
 	string r;
-	foreach (i, string s; strs) {
+	foreach (i, string s; strs) { mixin(S_TRACE);
 		r ~= replace(s, "\\", "\\\\");
-		if (lastLf || i < strs.length - 1) {
+		if (lastLf || i < strs.length - 1) { mixin(S_TRACE);
 			r ~= "\\n";
 		}
 	}
 	return r;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (encodeLf(decodeLf("t\\\\e\\\\st\\ntest\\\\n\\\\")) == "t\\\\e\\\\st\\ntest\\\\n\\\\\\n");
 	assert (encodeLf(decodeLf("t\\\\e\\\\st\\ntest\\\\n\\\\"), false) == "t\\\\e\\\\st\\ntest\\\\n\\\\");
 }
 /// \nを改行文字としてstrをデコードする。
-string decodeLf2(string str) {
+string decodeLf2(string str) { mixin(S_TRACE);
 	dstring buf;
 	bool bs = false;
-	foreach (dchar c; str) {
-		if (bs) {
-			if (c == 'n') {
+	foreach (dchar c; str) { mixin(S_TRACE);
+		if (bs) { mixin(S_TRACE);
+			if (c == 'n') { mixin(S_TRACE);
 				buf ~= "\n"d;
-			} else if (c == '\\') {
+			} else if (c == '\\') { mixin(S_TRACE);
 				buf ~= "\\"d;
-			} else {
+			} else { mixin(S_TRACE);
 				buf ~= "\\"d ~ c;
 			}
 			bs = false;
-		} else {
-			if (c == '\\') {
+		} else { mixin(S_TRACE);
+			if (c == '\\') { mixin(S_TRACE);
 				bs = true;
-			} else {
+			} else { mixin(S_TRACE);
 				buf ~= c;
 			}
 		}
 	}
-	if (bs) {
+	if (bs) { mixin(S_TRACE);
 		buf ~= "\\";
 	}
 	return toUTF8(buf);
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (decodeLf("t\\\\e\\st\\ntest\\\\n\\") == ["t\\e\\st", "test\\n\\"]);
 	assert (decodeLf("t\\\\e\\st\\n\\\\ntest\\\\n\\\\n\\n") == ["t\\e\\st", "\\ntest\\n\\n"]);
@@ -991,35 +1002,35 @@ string decodeLf2(string str) {
 /// \nを改行文字としてstrをデコードする。
 /// 結果は1行ごとの文字列の配列として返される。
 /// useEmptyがfalseの場合、空行は無視する。
-string[] decodeLf(string str, bool useEmpty = false) {
+string[] decodeLf(string str, bool useEmpty = false) { mixin(S_TRACE);
 	string[] r;
-	if (useEmpty) {
+	if (useEmpty) { mixin(S_TRACE);
 		int last = 0;
-		foreach (i, s; splitLines!string(decodeLf2(str))) {
+		foreach (i, s; splitLines!string(decodeLf2(str))) { mixin(S_TRACE);
 			r ~= s;
 			if (s.length > 0) last = i + 1;
 		}
 		r.length = last;
-	} else {
-		foreach (s; splitLines!string(decodeLf2(str))) {
-			if (s.length > 0) {
+	} else { mixin(S_TRACE);
+		foreach (s; splitLines!string(decodeLf2(str))) { mixin(S_TRACE);
+			if (s.length > 0) { mixin(S_TRACE);
 				r ~= s;
 			}
 		}
 	}
 	return r;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (decodeLf("t\\\\e\\st\\ntest\\\\n\\") == ["t\\e\\st", "test\\n\\"]);
 	assert (decodeLf("t\\\\e\\st\\n\\\\ntest\\\\n\\\\n\\n") == ["t\\e\\st", "\\ntest\\n\\n"]);
 }
 
 /// bをTrue/Falseの文字列に変換する。
-string fromBool(bool b) {
+string fromBool(bool b) { mixin(S_TRACE);
 	return b ? "True" : "False";
 }
 /// True/Falseの文字列からbool値を生成する。
-bool parseBool(string b) {
+bool parseBool(string b) { mixin(S_TRACE);
 	switch (b) {
 	case "True":
 		return true;
@@ -1031,26 +1042,26 @@ bool parseBool(string b) {
 }
 
 /// 連想配列をクリアする。
-void removeAll(Key, Value)(ref Value[Key] table) {
+void removeAll(Key, Value)(ref Value[Key] table) { mixin(S_TRACE);
 	typeof(table) init;
 	table = init;
 }
 
 /// Tがソート済みであればtrueを返す。
-bool isSorted(T)(in T[] arr) {
+bool isSorted(T)(in T[] arr) { mixin(S_TRACE);
 	auto dlg = (in T a, in T b) {return a < b;};
 	return isSortedDlg!(T, typeof(dlg))(arr, dlg);
 }
 /// ditto
-bool isSortedDlg(T, Dlg)(in T[] arr, Dlg cmp) {
-	foreach (i, v; arr) {
+bool isSortedDlg(T, Dlg)(in T[] arr, Dlg cmp) { mixin(S_TRACE);
+	foreach (i, v; arr) { mixin(S_TRACE);
 		if (arr.length <= i + 1) break;
-		if (!cmp(v, arr[i + 1])) {
+		if (!cmp(v, arr[i + 1])) { mixin(S_TRACE);
 			return false;
 		}
 	}
 	return true;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (isSorted([1, 2, 3]));
 	assert (!isSorted([1, 3, 2]));
@@ -1065,13 +1076,13 @@ bool isSortedDlg(T, Dlg)(in T[] arr, Dlg cmp) {
 /// result = toHex("あいう");
 /// assert (result == "%E3%81%82%E3%81%84%E3%81%86", result);
 /// ---
-string toHex(string str) {
+string toHex(string str) { mixin(S_TRACE);
 	string r;
-	foreach (i, c; str) {
+	foreach (i, c; str) { mixin(S_TRACE);
 		r ~= "%" ~ format("%02X", cast(int) c);
 	}
 	return r;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	string result;
 	result = toHex("aBc");
@@ -1083,7 +1094,7 @@ string toHex(string str) {
 private import std.c.stdlib;
 private import std.c.string;
 /// 環境変数envの値を返す。存在しない場合はnullを返す。
-string getenv(string env) {
+string getenv(string env) { mixin(S_TRACE);
 	auto v = std.c.stdlib.getenv((env ~ '\0').ptr);
 	if (!v) return null;
 	string r = v[0u .. strlen(v)].idup;
@@ -1093,21 +1104,21 @@ string getenv(string env) {
 	return r;
 }
 
-private string createFileImpl(bool Dir)(string parent, string name, string ext, string prefix) {
-	string clean(string name) {
+private string createFileImpl(bool Dir)(string parent, string name, string ext, string prefix) { mixin(S_TRACE);
+	string clean(string name) { mixin(S_TRACE);
 		name = replace(name, dirSeparator, "");
 		static if (altDirSeparator.length) {
 			name = replace(name, altDirSeparator, "");
 		}
 		name = replace(name, ".", "");
 		name = replace(name, " ", "");
-		if (name.length == 0) {
+		if (name.length == 0) { mixin(S_TRACE);
 			name = "noname";
 		}
 		return name;
 	}
 	string r;
-	void create() {
+	void create() { mixin(S_TRACE);
 		r = prefix ~ name;
 		r = r.toFileName();
 		if (ext.length) r = setExtension(r, ext);
@@ -1122,16 +1133,16 @@ private string createFileImpl(bool Dir)(string parent, string name, string ext, 
 /// 指定されたファイル名がすでに存在する場合、"test(2).txt"のように
 /// 括弧つき数字をつける。
 /// それでも存在する場合、括弧内の数値をインクリメントしてゆく。
-string createFileI(string parent, string name, string ext, string prefix) {
+string createFileI(string parent, string name, string ext, string prefix) { mixin(S_TRACE);
 	return createFileImpl!(false)(parent, name, ext, prefix);
 }
 /// ditto
-string createFolder(string parent, string name) {
+string createFolder(string parent, string name) { mixin(S_TRACE);
 	return createFileImpl!(true)(parent, name, "", "");
 }
 
 /// ファイル削除の準備を行う。
-void preRemove(string delpath) {
+void preRemove(string delpath) { mixin(S_TRACE);
 	version (Windows) {
 		// 書込み権限を付けておく
 		auto fname = std.utf.toUTFz!(wchar*)(delpath);
@@ -1147,46 +1158,46 @@ void preRemove(string delpath) {
 /// added = シナリオ内のどのフォルダにコピーするか。
 /// binImgToRef = 格納イメージを参照に差し替えるか。
 /// Returns: コピー後のファイルパス。
-string copyTo(string sPath, string path, string added, bool binImgToRef) {
+string copyTo(string sPath, string path, string added, bool binImgToRef) { mixin(S_TRACE);
 	bool binImg = isBinImg(path);
 	if (binImg && !binImgToRef) return path;
 	auto mtDir = std.path.buildPath(sPath, added);
 	if (!exists(mtDir)) mkdirRecurse(mtDir);
 	string to;
-	if (binImg) {
+	if (binImg) { mixin(S_TRACE);
 		to = std.path.buildPath(mtDir, "@simage(1).bmp");
-	} else {
+	} else { mixin(S_TRACE);
 		to = std.path.buildPath(mtDir, baseName(path));
 	}
 	to = createNewFileName(to, false);
-	if (binImg) {
+	if (binImg) { mixin(S_TRACE);
 		std.file.write(to, strToBImg(path));
-	} else {
+	} else { mixin(S_TRACE);
 		copy(path, to);
 	}
 	return std.path.buildPath(added, baseName(to));
 }
 
 /// aからbへすべてのファイル・ディレクトリをコピーする。
-void copyAll(string a, string b, bool overwrite = false) {
-	if (isDir(a)) {
+void copyAll(string a, string b, bool overwrite = false) { mixin(S_TRACE);
+	if (isDir(a)) { mixin(S_TRACE);
 		if (!.exists(b)) mkdir(b);
-		foreach (file; clistdir(a)) {
+		foreach (file; clistdir(a)) { mixin(S_TRACE);
 			string fPath = std.path.buildPath(a, file);
 			string tPath = std.path.buildPath(b, file);
 			copyAll(fPath, tPath);
 		}
-	} else {
+	} else { mixin(S_TRACE);
 		if (overwrite && .exists(b)) delAll(b);
 		std.file.copy(a, b);
 	}
 }
 
 /// listDirの代替。指定されたディレクトリに含まれるファイル名の一覧を返す。
-string[] clistdir(string dir) {
+string[] clistdir(string dir) { mixin(S_TRACE);
 	string[] r;
 	if (!.exists(dir)) return r;
-	foreach (string file; dirEntries(dir, SpanMode.shallow, false)) {
+	foreach (string file; dirEntries(dir, SpanMode.shallow, false)) { mixin(S_TRACE);
 		r ~= file.baseName();
 	}
 	return r;
@@ -1195,17 +1206,17 @@ string[] clistdir(string dir) {
 /// delpath以降の全てのファイル・ディレクトリを削除する。
 /// Params:
 /// force = trueを指定した場合、途中でエラーが発生しても中断しない。
-void delAll(string delpath, bool force = true) {
+void delAll(string delpath, bool force = true) { mixin(S_TRACE);
 	if (!.exists(delpath)) return;
-	void __delAll(string delpath, ref Exception ee) {
-		try {
+	void __delAll(string delpath, ref Exception ee) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			preRemove(delpath);
-			if (isDir(delpath)) {
-				foreach (file; clistdir(delpath)) {
+			if (isDir(delpath)) { mixin(S_TRACE);
+				foreach (file; clistdir(delpath)) { mixin(S_TRACE);
 					__delAll(std.path.buildPath(delpath, file), ee);
 				}
 				rmdir(delpath);
-			} else {
+			} else { mixin(S_TRACE);
 				std.file.remove(delpath);
 			}
 		} catch (Exception e) {
@@ -1219,8 +1230,8 @@ void delAll(string delpath, bool force = true) {
 }
 
 /// arrにaが見つかればtrueを返す。
-bool contains(string pred = "a == b", T1, T2)(in T1[] arr, in T2 a) {
-	foreach (b; arr) {
+bool contains(string pred = "a == b", T1, T2)(in T1[] arr, in T2 a) { mixin(S_TRACE);
+	foreach (b; arr) { mixin(S_TRACE);
 		if (mixin(pred)) return true;
 	}
 	return false;
@@ -1229,7 +1240,7 @@ bool contains(string pred = "a == b", T1, T2)(in T1[] arr, in T2 a) {
 static if (0 == filenameCharCmp('A', 'a')) {
 	/// ファイル名を比較する。
 	alias icmp fncmp;
-} else {
+} else { mixin(S_TRACE);
 	/// ファイル名を比較する。
 	alias cmp fncmp;
 }
@@ -1245,36 +1256,36 @@ static if (0 == filenameCharCmp('A', 'a')) {
 /// assert (ncmp("abc4a", "abc4b") < 0);
 /// assert (ncmp("abc", "def") < 0);
 /// ---
-int ncmp(C1, C2)(in C1[] a, in C2[] b) {
+int ncmp(C1, C2)(in C1[] a, in C2[] b) { mixin(S_TRACE);
 	return ncmpImpl!(C1, C2, std.string.cmp)(a, b);
 }
 /// ditto
-int incmp(C1, C2)(in C1[] a, in C2[] b) {
+int incmp(C1, C2)(in C1[] a, in C2[] b) { mixin(S_TRACE);
 	return ncmpImpl!(C1, C2, std.string.icmp)(a, b);
 }
 /// ditto
-int fnncmp(C1, C2)(in C1[] a, in C2[] b) {
+int fnncmp(C1, C2)(in C1[] a, in C2[] b) { mixin(S_TRACE);
 	return ncmpImpl!(C1, C2, fncmp)(a, b);
 }
 
-private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a, in C2[] b) {
-	for (size_t i = 0, j = 0; i < a.length || j < b.length;) {
+private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a, in C2[] b) { mixin(S_TRACE);
+	for (size_t i = 0, j = 0; i < a.length || j < b.length;) { mixin(S_TRACE);
 		if (i >= a.length) return -1;
 		if (j >= b.length) return 1;
 		C1[] buf1;
-		for (size_t k = i; k < a.length && std.ascii.isDigit(a[k]); k++) {
+		for (size_t k = i; k < a.length && std.ascii.isDigit(a[k]); k++) { mixin(S_TRACE);
 			buf1 ~= a[k];
 		}
 		C2[] buf2;
-		for (size_t k = j; k < b.length && std.ascii.isDigit(b[k]); k++) {
+		for (size_t k = j; k < b.length && std.ascii.isDigit(b[k]); k++) { mixin(S_TRACE);
 			buf2 ~= b[k];
 		}
-		if (buf1.length && buf2.length) {
+		if (buf1.length && buf2.length) { mixin(S_TRACE);
 			int cr;
-			if (buf1.length < buf2.length) {
+			if (buf1.length < buf2.length) { mixin(S_TRACE);
 				cr = Cmp(zfill_(buf1, buf2.length), buf2);
 				if (cr != 0) return cr;
-			} else if (buf1.length > buf2.length) {
+			} else if (buf1.length > buf2.length) { mixin(S_TRACE);
 				cr = Cmp(buf1, zfill_(buf2, buf1.length));
 				if (cr != 0) return cr;
 			}
@@ -1282,7 +1293,7 @@ private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a, in C2[] b) {
 			if (cr != 0) return cr;
 			i += buf1.length;
 			j += buf2.length;
-		} else {
+		} else { mixin(S_TRACE);
 			if (a[i] < b[j]) return -1;
 			if (a[i] > b[j]) return 1;
 			i++;
@@ -1290,7 +1301,7 @@ private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a, in C2[] b) {
 		}
 	}
 	return 0;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (ncmp("42", "2") > 0);
 	assert (ncmp("02", "2") < 0);
@@ -1299,7 +1310,7 @@ private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a, in C2[] b) {
 	assert (ncmp("abc", "def") < 0);
 }
 
-private C[] zfill_(C)(in C[] str, size_t width) {
+private C[] zfill_(C)(in C[] str, size_t width) { mixin(S_TRACE);
 	if (str.length >= width) return cast(C[]) str.dup;
 	Unqual!(C)[] r;
 	r.length = width;
@@ -1307,7 +1318,7 @@ private C[] zfill_(C)(in C[] str, size_t width) {
 	r[0 .. n] = '0';
 	r[n .. $] = str;
 	return cast(C[]) r;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (zfill_("abc", 2) == "abc");
 	assert (zfill_("abc", 3) == "abc");
@@ -1318,9 +1329,9 @@ private C[] zfill_(C)(in C[] str, size_t width) {
 }
 
 /// arrからaを除去する。
-T[] remove(string pred = "a == b", T)(ref T[] arr, T a) {
-	foreach (i, b; arr) {
-		if (mixin (pred)) {
+T[] remove(string pred = "a == b", T)(ref T[] arr, T a) { mixin(S_TRACE);
+	foreach (i, b; arr) { mixin(S_TRACE);
+		if (mixin (pred)) { mixin(S_TRACE);
 			return (arr = arr[0 .. i] ~ arr[i + 1 .. $]);
 		}
 	}
@@ -1332,49 +1343,49 @@ class HashSet(T) {
 	private int[T] a;
 	/// 唯一のコンストラクタ。
 	@property
-	this () {
+	this () { mixin(S_TRACE);
 		/// Nothing
 	}
 	/// 要素を追加する。
-	void add(T v) {
+	void add(T v) { mixin(S_TRACE);
 		a[v] = 0;
 	}
 	/// 要素を除外する。
-	void remove(T v) {
+	void remove(T v) { mixin(S_TRACE);
 		a.remove(v);
 	}
 	/// 要素を全て除外する。
-	void clear() {
+	void clear() { mixin(S_TRACE);
 		int[T] init;
 		a = init;
 	}
 	/// 含まれていればtrue。
 	const
-	bool contains(T v) {
+	bool contains(T v) { mixin(S_TRACE);
 		return (v in a) !is null;
 	}
 	/// 要素数。
 	@property
 	const
-	size_t size() {
+	size_t size() { mixin(S_TRACE);
 		return a.length;
 	}
 	/// 空であればtrue。
 	@property
 	const
-	bool isEmpty() {
+	bool isEmpty() { mixin(S_TRACE);
 		return a.length == 0u;
 	}
-	int opApply(int delegate(ref T) dg) {
+	int opApply(int delegate(ref T) dg) { mixin(S_TRACE);
 		int r = 0;
-		foreach (t, v; a) {
+		foreach (t, v; a) { mixin(S_TRACE);
 			r = dg(t);
 			if (r) break;
 		}
 		return r;
 	}
 	const
-	T[] toArray() {
+	T[] toArray() { mixin(S_TRACE);
 		return a.keys;
 	}
 }
@@ -1384,14 +1395,14 @@ version (Windows) {
 	private const CREATE_NEW_CONSOLE = 0x10;
 
 	/// プロセスを起動する。成功した場合はtrueを返す。
-	bool exec(string process, string workDir = "", bool console = true, bool wait = false) {
+	bool exec(string process, string workDir = "", bool console = true, bool wait = false) { mixin(S_TRACE);
 		STARTUPINFO setup;
 		setup.cb = setup.sizeof;
 		memset(&setup, 0, setup.sizeof);
 		PROCESS_INFORMATION info;
 
 		DWORD flag = 0;
-		if (!console) {
+		if (!console) { mixin(S_TRACE);
 			setup.dwFlags = STARTF_USESHOWWINDOW;
 			setup.wShowWindow = SW_HIDE;
 			flag |= CREATE_NEW_CONSOLE;
@@ -1403,8 +1414,8 @@ version (Windows) {
 		procTemp[0 .. $] = toUTFz!(wchar*)(process)[0 .. procTemp.length];
 		r = CreateProcessW(null, procTemp.ptr, null, null, false, flag, null,
 			workDir.length ? toUTFz!(wchar*)(workDir) : null, &setup, &info);
-		if (r) {
-			if (wait) {
+		if (r) { mixin(S_TRACE);
+			if (wait) { mixin(S_TRACE);
 				WaitForSingleObject(info.hProcess, INFINITE);
 			}
 			CloseHandle(info.hThread);
@@ -1412,7 +1423,7 @@ version (Windows) {
 		}
 		return false;
 	}
-} else {
+} else { mixin(S_TRACE);
 	private extern (C) {
 		intptr_t fork();
 	}
@@ -1420,16 +1431,16 @@ version (Windows) {
 	import std.process;
 	/// プロセスを起動する。成功した場合はtrueを返す。
 	/// FIXME: まったくテストしていない
-	bool exec(string process, string workDir = "", bool console = true, bool wait = false) {
+	bool exec(string process, string workDir = "", bool console = true, bool wait = false) { mixin(S_TRACE);
 		auto pid = fork();
-		if (pid < 0) {
+		if (pid < 0) { mixin(S_TRACE);
 			return false;
-		} else if (pid > 0) {
+		} else if (pid > 0) { mixin(S_TRACE);
 			return true;
-		} else {
+		} else { mixin(S_TRACE);
 			assert (pid == 0);
 			if (workDir.length) chdir(workDir);
-			if (execv(process, null) == -1) {
+			if (execv(process, null) == -1) { mixin(S_TRACE);
 				exit(-1);
 			}
             return true;
@@ -1438,12 +1449,12 @@ version (Windows) {
 }
 
 /// pathがsPath以下に存在するものであればtrueを返す。
-bool hasPath(string sPath, string path) {
+bool hasPath(string sPath, string path) { mixin(S_TRACE);
 	path = nabs(path);
 	sPath = nabs(sPath);
 	return cwx.utils.fnstartsWith(path, sPath)
 		&& (path.length == sPath.length || startsWith(path[sPath.length .. $], dirSeparator));
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	version (Windows) {
 		assert (hasPath(`c:\test\aaa`, `c:\test\aaa\bbb`));
@@ -1459,27 +1470,27 @@ template FileCache(T ...) {
 		std.datetime.SysTime ftm;
 		static if (T.length == 1) {
 			T[0] value;
-		} else {
+		} else { mixin(S_TRACE);
 			T values;
 		}
 	}
 	static const CACHE_MAX = 1024;
 	static Cache[string] caches;
 	static string[] cachePaths;
-	void putCache(string path, T v) {
+	void putCache(string path, T v) { mixin(S_TRACE);
 		if (!exists(path)) return;
 		path = nabs(path);
 		static if (0 == filenameCharCmp('A', 'a')) {
 			path = std.string.toLower(path);
 		}
-		if (cachePaths.length >= CACHE_MAX) {
+		if (cachePaths.length >= CACHE_MAX) { mixin(S_TRACE);
 			caches.remove(cachePaths[0u]);
 			cachePaths = cachePaths[1u .. $];
 		}
 		caches[path] = Cache(timeLastModified(path), v);
 		cachePaths ~= path;
 	}
-	Cache* cache(string path) {
+	Cache* cache(string path) { mixin(S_TRACE);
 		if (!exists(path)) return null;
 		path = nabs(path);
 		static if (0 == filenameCharCmp('A', 'a')) {
@@ -1492,7 +1503,7 @@ template FileCache(T ...) {
 }
 
 /// 親ディレクトリへの移動が含まれているパスであればtrueを返す。
-bool hasParDir(string path) {
+bool hasParDir(string path) { mixin(S_TRACE);
 	path = buildNormalizedPath(path);
 	if (startsWith(path, pardir ~ dirSeparator)) return true;
 	if (.countUntil(path, dirSeparator ~ pardir ~ dirSeparator) != -1) return true;
@@ -1501,15 +1512,15 @@ bool hasParDir(string path) {
 
 /// sにsubがいくつ含まれているかを返す。
 /// std.string.count()と違って大文字と小文字を区別しない。
-size_t icount(string s, string sub) {
+size_t icount(string s, string sub) { mixin(S_TRACE);
 	int c = 0;
-	while (true) {
+	while (true) { mixin(S_TRACE);
 		auto i = std.string.indexOf(s, sub, std.string.CaseSensitive.no);
 		if (i < 0) return c;
 		c++;
 		s = s[i + sub.length .. $];
 	}
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (icount("test", "Es") == 1);
 	assert (icount("aaaaaaa", "AA") == 3);
@@ -1517,15 +1528,15 @@ size_t icount(string s, string sub) {
 
 /// sに含まれるfromをtoに置換した結果を返す。
 /// std.string.replace()と違って大文字と小文字を区別しない。
-string ireplace(string s, string from, string to) {
+string ireplace(string s, string from, string to) { mixin(S_TRACE);
 	string r = "";
-	while (true) {
+	while (true) { mixin(S_TRACE);
 		auto i = std.string.indexOf(s, from, std.string.CaseSensitive.no);
 		if (i < 0) return r ~ s;
 		r ~= s[0 .. i] ~ to;
 		s = s[i + from.length .. $];
 	}
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (ireplace("testte", "te", "tea") == "teasttea");
 	assert (ireplace("test", "Es", "TT") == "tTTt");
@@ -1533,10 +1544,10 @@ string ireplace(string s, string from, string to) {
 }
 
 /// 数値をCount桁でSepによって区切った文字列にして返す。
-string formatNum(N, size_t Count = 3, string Sep = ",")(N num) {
+string formatNum(N, size_t Count = 3, string Sep = ",")(N num) { mixin(S_TRACE);
 	string s = to!(string)(num);
 	string buf;
-	while (s.length > Count) {
+	while (s.length > Count) { mixin(S_TRACE);
 		if (buf.length) buf = Sep ~ buf;
 		buf = s[$ - Count .. $] ~ buf;
 		s = s[0 .. $ - Count];
@@ -1544,7 +1555,7 @@ string formatNum(N, size_t Count = 3, string Sep = ",")(N num) {
 	if (buf.length) buf = Sep ~ buf;
 	buf = s ~ buf;
 	return buf;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (formatNum(123) == "123");
 	assert (formatNum(123456) == "123,456");
@@ -1552,9 +1563,9 @@ string formatNum(N, size_t Count = 3, string Sep = ",")(N num) {
 }
 
 /// arrをコピーして返す。
-T1[T2] dupAssocArray(T1, T2)(in T1[T2] arr) {
+T1[T2] dupAssocArray(T1, T2)(in T1[T2] arr) { mixin(S_TRACE);
 	T1[T2] arr2;
-	foreach (key, val; arr) {
+	foreach (key, val; arr) { mixin(S_TRACE);
 		arr2[key] = val;
 	}
 	return arr2;
@@ -1570,15 +1581,15 @@ T1[T2] dupAssocArray(T1, T2)(in T1[T2] arr) {
 /// assert (lengthJ("1000") == 4);
 /// assert (lengthJ("100万") == 5);
 /// ---
-size_t lengthJ(in char[] text) {
+size_t lengthJ(in char[] text) { mixin(S_TRACE);
 	size_t len = 0u;
-	foreach (dchar c; text) {
+	foreach (dchar c; text) { mixin(S_TRACE);
 		char[] s;
 		std.utf.encode(s, c);
 		len += s.length > 1u ? 2u : 1u;
 	}
 	return len;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (lengthJ("斉") == 2);
 	assert (lengthJ("大秦") == 4);
@@ -1588,24 +1599,24 @@ size_t lengthJ(in char[] text) {
 }
 
 /// 前後の空行を無視して行数をカウントする。
-size_t lineCount(in string[] lines) {
+size_t lineCount(in string[] lines) { mixin(S_TRACE);
 	int from = -1;
 	int to = -1;
-	foreach (i, l; lines) {
-		if (l.length) {
+	foreach (i, l; lines) { mixin(S_TRACE);
+		if (l.length) { mixin(S_TRACE);
 			if (from == -1) from = i;
 			to = i + 1;
 		}
 	}
 	return to - from;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (lineCount(splitLines!string("\na\nb\n\nc\n\n")) == 4);
 }
 /// std.algorithm.countUntilはconst配列に対する検索が通らない
-sizediff_t cCountUntil(string pred = "a == b", R1, R2)(R1 arr, R2 b) {
-	foreach (i, a; arr) {
-		if (mixin(pred)) {
+sizediff_t cCountUntil(string pred = "a == b", R1, R2)(R1 arr, R2 b) { mixin(S_TRACE);
+	foreach (i, a; arr) { mixin(S_TRACE);
+		if (mixin(pred)) { mixin(S_TRACE);
 			return i;
 		}
 	}
@@ -1625,8 +1636,8 @@ sizediff_t cCountUntil(string pred = "a == b", R1, R2)(R1 arr, R2 b) {
 /// assert (sliceJ("あいうえお", 3, 6) == "う");
 /// ---
 /// See_Also: lengthJ()
-string sliceJ(string text, size_t from, size_t to) {
-	void te() {
+string sliceJ(string text, size_t from, size_t to) { mixin(S_TRACE);
+	void te() { mixin(S_TRACE);
 		string msg = "text: " ~ text ~ ", from: " ~ .to!(string)(from) ~ ", to: " ~ .to!(string)(to);
 		throw new Exception(msg, __FILE__, __LINE__);
 	}
@@ -1635,14 +1646,14 @@ string sliceJ(string text, size_t from, size_t to) {
 	size_t s = size_t.max, e;
 	bool ok = false;
 	size_t len;
-	foreach (dchar c; text) {
+	foreach (dchar c; text) { mixin(S_TRACE);
 		if (s == size_t.max && from <= j) s = i;
 		char[] cbuf;
 		std.utf.encode(cbuf, c);
 		len = cbuf.length;
 		i += len;
 		j += len > 1 ? 2 : 1;
-		if (to <= j) {
+		if (to <= j) { mixin(S_TRACE);
 			e = to < j ? i - len : i;
 			if (s == size_t.max) s = e;
 			ok = true;
@@ -1651,7 +1662,7 @@ string sliceJ(string text, size_t from, size_t to) {
 	}
 	if (!ok) te();
 	return text[s .. e];
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (sliceJ("あいうえお", 2, 10) == "いうえお");
 	assert (sliceJ("あいうeお", 2, 9) == "いうeお");
@@ -1669,22 +1680,22 @@ string sliceJ(string text, size_t from, size_t to) {
 }
 
 /// strip()と同様に動作するが、全角空白を空白文字として扱わない。
-string astrip(string s) {
+string astrip(string s) { mixin(S_TRACE);
 	return s.astripl().astripr();
 }
 /// ditto
-string astripl(string s) {
-	foreach (i, c; s) {
-		if (!std.ascii.isWhite(c)) {
+string astripl(string s) { mixin(S_TRACE);
+	foreach (i, c; s) { mixin(S_TRACE);
+		if (!std.ascii.isWhite(c)) { mixin(S_TRACE);
 			return s[i .. $];
 		}
 	}
 	return "";
 }
 /// ditto
-string astripr(string s) {
-	foreach_reverse (i, c; s) {
-		if (!std.ascii.isWhite(c)) {
+string astripr(string s) { mixin(S_TRACE);
+	foreach_reverse (i, c; s) { mixin(S_TRACE);
+		if (!std.ascii.isWhite(c)) { mixin(S_TRACE);
 			return s[0 .. i + 1];
 		}
 	}
@@ -1692,16 +1703,16 @@ string astripr(string s) {
 }
 
 /// '[' ']'を含むファイル名が存在するため、globMatch()の代替を用意する必要がある。
-bool cglobMatch(string a, string b) {
+bool cglobMatch(string a, string b) { mixin(S_TRACE);
 	b = b.replace("\\", "\\\\");
 	return Wildcard(b, 0 == filenameCharCmp('A', 'a')).match(a);
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (cfnmatch(r"C:\path", r"C:\path"));
 	assert (cfnmatch(r"C:\path", r"C:/path"));
 }
 /// ファイル名が一致するか。
-bool cfnmatch(in char[] a, in char[] b) {
+bool cfnmatch(in char[] a, in char[] b) { mixin(S_TRACE);
 	return 0 == filenameCmp(a, b);
 }
 
@@ -1730,32 +1741,32 @@ version (Windows) {
 		private __gshared void* _shlwapi = null;
 		private __gshared PathGetCharTypeW _PathGetCharType = null;
 	}
-	shared static ~this() {
+	shared static ~this() { mixin(S_TRACE);
 		if (_shlwapi) dlclose(_shlwapi);
 	}
 }
 /// ファイル名に使用できる文字か。
 @property
-bool isFileNameChar(dchar c) {
+bool isFileNameChar(dchar c) { mixin(S_TRACE);
 	version (Windows) {
 		static immutable DN = "\\/:*?\"<>|"d;
-		if (!_shlwapi) {
+		if (!_shlwapi) { mixin(S_TRACE);
 			_shlwapi = dlopen("shlwapi.dll");
 		}
-		if (!_shlwapi) {
+		if (!_shlwapi) { mixin(S_TRACE);
 			debugln("not found: shlwapi.dll");
 			return -1 == std.string.indexOf(DN, c);
 		}
-		if (!_PathGetCharType) {
+		if (!_PathGetCharType) { mixin(S_TRACE);
 			_PathGetCharType = cast(PathGetCharTypeW) dlsym(_shlwapi, "PathGetCharTypeW");
 		}
-		if (!_PathGetCharType) {
+		if (!_PathGetCharType) { mixin(S_TRACE);
 			debugln("not found: PathGetCharTypeW");
 			return -1 == std.string.indexOf(DN, c);
 		}
-		foreach (wchar wc; [c]) {
+		foreach (wchar wc; [c]) { mixin(S_TRACE);
 			auto r = _PathGetCharType(wc);
-			if (!(GCT_LFNCHAR & r) && !(GCT_SHORTCHAR & r)) {
+			if (!(GCT_LFNCHAR & r) && !(GCT_SHORTCHAR & r)) { mixin(S_TRACE);
 				return false;
 			}
 		}
@@ -1767,14 +1778,14 @@ bool isFileNameChar(dchar c) {
 }
 
 /// ファイル名に使用できない文字があったらcに置換する。
-string toFileName(string name, dchar c = '_') {
+string toFileName(string name, dchar c = '_') { mixin(S_TRACE);
 	dchar[] buf;
-	foreach (dchar n; name) {
+	foreach (dchar n; name) { mixin(S_TRACE);
 		buf ~= isFileNameChar(n) ? n : c;
 	}
 	version (Windows) {
 		// 末尾が'.'のファイル名は拒否される
-		if (buf.length && '.' == buf[$ - 1]) {
+		if (buf.length && '.' == buf[$ - 1]) { mixin(S_TRACE);
 			buf[$ - 1] = c;
 		}
 	}
@@ -1782,12 +1793,12 @@ string toFileName(string name, dchar c = '_') {
 }
 
 /// 実行モジュールのパスを返す。
-string exeName(string args0) {
+string exeName(string args0) { mixin(S_TRACE);
 	version (Windows) {
 		char[MAX_PATH] pathBuf;
-		if (GetModuleFileNameA(null, pathBuf.ptr, pathBuf.length)) {
+		if (GetModuleFileNameA(null, pathBuf.ptr, pathBuf.length)) { mixin(S_TRACE);
 			return fromMBSz(pathBuf.idup.ptr);
-		} else {
+		} else { mixin(S_TRACE);
 			version (Console) {
 				cwriteln("GetModuleFileName failure!");
 			}
@@ -1795,7 +1806,7 @@ string exeName(string args0) {
 	} else version (linux) {
 		char[1024] buf;
 		buf[] = '\0';
-		if (-1 != .readlink("/proc/self/exe", buf.ptr, buf.sizeof)) {
+		if (-1 != .readlink("/proc/self/exe", buf.ptr, buf.sizeof)) { mixin(S_TRACE);
 			cdebugln(buf);
 			return buf[0 .. .strlen(buf.ptr)].idup;
 		}
@@ -1822,7 +1833,7 @@ version (Windows) {
 
 	/// 現在使用中のメモリ量を返す。
 	@property
-	size_t workingMemory() {
+	size_t workingMemory() { mixin(S_TRACE);
 		auto psapi = dlopen("psapi.dll");
 		scope (exit) dlclose(psapi);
 		auto func = cast(GetProcessMemoryInfo) dlsym(psapi, "GetProcessMemoryInfo");

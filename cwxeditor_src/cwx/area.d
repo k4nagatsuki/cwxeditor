@@ -40,8 +40,8 @@ interface PackageOwner : CWXPath {
 /// Throws:
 /// XmlException = パース失敗。
 /// IllegalArgumentException = 数値であるべきデータが数値でない。
-AbstractArea createAreaFromXML(string xml, string summId, out bool sameSummary, in XMLInfo ver) {
-	try {
+AbstractArea createAreaFromXML(string xml, string summId, out bool sameSummary, in XMLInfo ver) { mixin(S_TRACE);
+	try { mixin(S_TRACE);
 		scope e = XNode.parse(xml);
 		auto id = e.attr("summaryId", false);
 		sameSummary = id && id == summId;
@@ -64,7 +64,7 @@ private:
 	FlagUser _user;
 public:
 	/// 唯一のコンストラクタ。
-	this (string flag, int x, int y, real scale) {
+	this (string flag, int x, int y, real scale) { mixin(S_TRACE);
 		_user = new FlagUser(this);
 		_user.flag = flag;
 		_x = x;
@@ -100,71 +100,71 @@ public:
 
 	/// 表示フラグ。
 	@property
-	void flag(string flag) {
+	void flag(string flag) { mixin(S_TRACE);
 		if (_user.flag != flag) changed();
 		_user.flag = flag;
 	}
 	/// ditto
 	@property
 	const
-	string flag() {
+	string flag() { mixin(S_TRACE);
 		return _user.flag;
 	}
 	/// X座標。
 	@property
 	const
-	int x() {
+	int x() { mixin(S_TRACE);
 		return _x;
 	}
 	/// ditto
 	@property
-	void x(int x) {
+	void x(int x) { mixin(S_TRACE);
 		if (_x != x) changed();
 		_x = x;
 	}
 	/// Y座標。
 	@property
 	const
-	int y() {
+	int y() { mixin(S_TRACE);
 		return _y;
 	}
 	/// ditto
 	@property
-	void y(int y) {
+	void y(int y) { mixin(S_TRACE);
 		if (_y != y) changed();
 		_y = y;
 	}
 	/// スケール。1.0が標準。0.75～2.0。
 	@property
 	const
-	real scale() {
+	real scale() { mixin(S_TRACE);
 		return _scale;
 	}
 	/// ditto
 	@property
-	void scale(real scale) {
-		if (cast(int) (_scale * 100) != cast(int) (scale * 100)) {
+	void scale(real scale) { mixin(S_TRACE);
+		if (cast(int) (_scale * 100) != cast(int) (scale * 100)) { mixin(S_TRACE);
 			changed();
 			_scale = scale;
 		}
 	}
 
 	@property
-	override void setUseCounter(UseCounter uc) {
+	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		_user.setUseCounter(uc);
 		super.setUseCounter(uc);
 	}
-	override void removeUseCounter() {
+	override void removeUseCounter() { mixin(S_TRACE);
 		_user.removeUseCounter();
 		super.removeUseCounter();
 	}
-	override void change(FlagId id) {
+	override void change(FlagId id) { mixin(S_TRACE);
 		_user.change(id);
 	}
 
 	/// 指定されたノードにProperty情報を追加する。
 	const
-	protected void appendProp(ref XNode pNode, XMLOption opt) {
+	protected void appendProp(ref XNode pNode, XMLOption opt) { mixin(S_TRACE);
 		assert (pNode.name == "Property", pNode.name ~ " != Property");
 		pNode.newElement("Flag", _user.flag);
 		auto ln = pNode.newElement("Location");
@@ -173,21 +173,21 @@ public:
 		pNode.newElement("Size").newAttr("scale", to!(string)(cast(int) rndtol(_scale * 100.0)) ~ "%");
 	}
 	/// 指定されたノードからProperty情報を読み出す。
-	protected static void loadProp(ref XNode pNode, out string flag, out int x, out int y, out real scale) {
+	protected static void loadProp(ref XNode pNode, out string flag, out int x, out int y, out real scale) { mixin(S_TRACE);
 		flag = "";
 		x = 0;
 		y = 0;
 		scale = 1.0;
 		assert (pNode.name == "Property", pNode.name ~ " != Property");
 		pNode.onTag["Flag"] = (ref XNode n) {flag = n.value;};
-		pNode.onTag["Location"] = (ref XNode n) {
+		pNode.onTag["Location"] = (ref XNode n) { mixin(S_TRACE);
 			x = n.attr!(int)("left", true);
 			y = n.attr!(int)("top", true);
 		};
-		pNode.onTag["Size"] = (ref XNode n) {
+		pNode.onTag["Size"] = (ref XNode n) { mixin(S_TRACE);
 			string val = n.attr("scale", true);
 			if (val.length < 2u) throw new Exception("scale error: " ~ val);
-			if (val[$ - 1] == '%') {
+			if (val[$ - 1] == '%') { mixin(S_TRACE);
 				val = val[0 .. $ - 1];
 			}
 			scale = to!(real)(val) / 100.0;
@@ -209,93 +209,93 @@ public:
 	static immutable XML_NAME_M = "EnemyCards";
 
 	/// 唯一のコンストラクタ。
-	this (ulong id, bool escape, string flag, int x, int y, real scale) {
+	this (ulong id, bool escape, string flag, int x, int y, real scale) { mixin(S_TRACE);
 		super(flag, x, y, scale);
 		_user = new CastUser(this);
 		_user.casts = id;
 		_escape = escape;
 	}
 	@property
-	string cwxPath(bool id) {
+	string cwxPath(bool id) { mixin(S_TRACE);
 		return _owner ? cpjoin(_owner, "enemycard", .cCountUntil!("a is b")(_owner.cards, this), id) : "";
 	}
 	@property
 	CWXPath cwxParent() {return _owner;}
 
 	@property
-	override size_t[] areaPath() {
-		if (_owner) {
+	override size_t[] areaPath() { mixin(S_TRACE);
+		if (_owner) { mixin(S_TRACE);
 			return [.cCountUntil!("a is b")(_owner.cards, this) + 1];
-		} else {
+		} else { mixin(S_TRACE);
 			return [];
 		}
 	}
 	@property
-	override AbstractArea abstractOwner() {
+	override AbstractArea abstractOwner() { mixin(S_TRACE);
 		return _owner;
 	}
 	@property
 	const
-	override const(AbstractArea) abstractOwner() {
+	override const(AbstractArea) abstractOwner() { mixin(S_TRACE);
 		return _owner;
 	}
 	/// このカードの所属先を返す。
 	@property
-	Battle owner() {
+	Battle owner() { mixin(S_TRACE);
 		return _owner;
 	}
 	/// ditto
 	@property
 	const
-	const(Battle) owner() {
+	const(Battle) owner() { mixin(S_TRACE);
 		return _owner;
 	}
 
 	/// 逃走するか否か。
 	@property
 	const
-	bool escape() {
+	bool escape() { mixin(S_TRACE);
 		return _escape;
 	}
 	/// ditto
 	@property
-	void escape(bool escape) {
+	void escape(bool escape) { mixin(S_TRACE);
 		if (_escape != escape) changed();
 		_escape = escape;
 	}
 	/// キャストID。
 	@property
 	const
-	ulong id() {
+	ulong id() { mixin(S_TRACE);
 		return _user.casts;
 	}
 	/// ditto
 	@property
-	void id(ulong id) {
+	void id(ulong id) { mixin(S_TRACE);
 		if (_user.casts != id) changed();
 		_user.casts = id;
 	}
 
 	@property
-	override void setUseCounter(UseCounter uc) {
+	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		_user.setUseCounter(uc);
 		super.setUseCounter(uc);
 	}
-	override void removeUseCounter() {
+	override void removeUseCounter() { mixin(S_TRACE);
 		_user.removeUseCounter();
 		super.removeUseCounter();
 	}
-	override void change(CastId id) {
+	override void change(CastId id) { mixin(S_TRACE);
 		_user.change(id);
 	}
 
-	static EnemyCard[] createCardsFromNode(ref XNode node, in XMLInfo ver) {
+	static EnemyCard[] createCardsFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		assert (node.name == CastCard.XML_NAME_M);
 		EnemyCard[] cards;
-		node.onTag["CastCard"] = (ref XNode cNode) {
-			cNode.onTag["Property"] = (ref XNode pNode) {
+		node.onTag["CastCard"] = (ref XNode cNode) { mixin(S_TRACE);
+			cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 				string idStr = pNode.childText("Id", false);
-				if (idStr) {
+				if (idStr) { mixin(S_TRACE);
 					cards ~= new EnemyCard(to!(ulong)(idStr), false, "", 0, 0, 1.0);
 				}
 			};
@@ -307,21 +307,21 @@ public:
 
 	/// XMLノードにして返す。
 	const
-	XNode toNode(XMLOption opt) {
+	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto e = XNode.create(XML_NAME);
 		toNodeImpl(e, opt);
 		return e;
 	}
 	/// XMLノード(EnemyCards)にインスタンスのデータを追加する。
 	const
-	XNode toNode(ref XNode node, XMLOption opt) {
+	XNode toNode(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		assert (node.name == XML_NAME_M, node.name ~ " != EnemyCards");
 		auto e = node.newElement(XML_NAME);
 		toNodeImpl(e, opt);
 		return e;
 	}
 	const
-	private void toNodeImpl(ref XNode e, XMLOption opt) {
+	private void toNodeImpl(ref XNode e, XMLOption opt) { mixin(S_TRACE);
 		e.newAttr("escape", fromBool(escape));
 		auto pe = e.newElement("Property");
 		pe.newElement("Id", _user.casts);
@@ -332,7 +332,7 @@ public:
 	/// Throws:
 	/// AreaException = nodeがMenuCardでない。またはデータが不足している。
 	/// IllegalArgmentException = 数値であるべきデータが数値でない。
-	static EnemyCard createFromNode(ref XNode node, in XMLInfo ver) {
+	static EnemyCard createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		if (node.name != XML_NAME) throw new AreaException("Node is not EnemyCard");
 
 		bool getId = false;
@@ -346,14 +346,14 @@ public:
 
 		auto escStr = node.attr("escape", false);
 		escape = escStr ? parseBool(escStr) : false;
-		node.onTag["Property"] = (ref XNode pNode) {
-			pNode.onTag["Id"] = (ref XNode n) {
+		node.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
+			pNode.onTag["Id"] = (ref XNode n) { mixin(S_TRACE);
 				id = to!(long)(n.value);
 				getId = true;
 			};
 			loadProp(pNode, flag, x, y, scale);
 		};
-		node.onTag["Events"] = (ref XNode node) {
+		node.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
 			evt = loadEventsFromNode(node, ver);
 		};
 		node.parse();
@@ -392,7 +392,7 @@ public:
 	/// y = Y座標。
 	/// scale = スケール。通常0.75～2.0。
 	this (string name, string path, string desc, string flag,
-			int x, int y, real scale) {
+			int x, int y, real scale) { mixin(S_TRACE);
 		super(flag, x, y, scale);
 				_user = new PathUser(this);
 		_user.path = path;
@@ -400,74 +400,74 @@ public:
 		_desc = desc;
 	}
 	@property
-	string cwxPath(bool id) {
+	string cwxPath(bool id) { mixin(S_TRACE);
 		return _owner ? cpjoin(_owner, "menucard", .cCountUntil!("a is b")(_owner.cards, this), id) : "";
 	}
 	@property
 	CWXPath cwxParent() {return _owner;}
 
 	@property
-	override size_t[] areaPath() {
-		if (_owner) {
+	override size_t[] areaPath() { mixin(S_TRACE);
+		if (_owner) { mixin(S_TRACE);
 			return [.cCountUntil!("a is b")(_owner.cards, this) + 1];
-		} else {
+		} else { mixin(S_TRACE);
 			return [];
 		}
 	}
 	@property
-	override AbstractArea abstractOwner() {
+	override AbstractArea abstractOwner() { mixin(S_TRACE);
 		return _owner;
 	}
 	@property
 	const
-	override const(AbstractArea) abstractOwner() {
+	override const(AbstractArea) abstractOwner() { mixin(S_TRACE);
 		return _owner;
 	}
 	/// このカードの所属先を返す。
 	@property
-	Area owner() {
+	Area owner() { mixin(S_TRACE);
 		return _owner;
 	}
 	/// ditto
 	@property
 	const
-	const(Area) owner() {
+	const(Area) owner() { mixin(S_TRACE);
 		return _owner;
 	}
 
 	/// カード名。
 	@property
 	const
-	string name() {
+	string name() { mixin(S_TRACE);
 		return _name;
 	}
 	/// ditto
 	@property
-	void name(string name) {
+	void name(string name) { mixin(S_TRACE);
 		if (_name != name) changed();
 		_name = name;
 	}
 	/// 説明。
 	@property
 	const
-	string desc() {
+	string desc() { mixin(S_TRACE);
 		return _desc;
 	}
 	/// ditto
 	@property
-	void desc(string desc) {
+	void desc(string desc) { mixin(S_TRACE);
 		if (_desc != desc) changed();
 		_desc = desc;
 	}
 	/// 画像ファイルパス。
 	@property
 	const
-	string path() {
+	string path() { mixin(S_TRACE);
 		return _user.path;
 	}
 	/// ditto
 	@property
-	void path(string path) {
+	void path(string path) { mixin(S_TRACE);
 		if (_user.path != path) changed();
 		_user.path = path;
 	}
@@ -476,31 +476,31 @@ public:
 	/// 0の場合はPC画像を使用しない。
 	@property
 	const
-	uint pcNumber() {
+	uint pcNumber() { mixin(S_TRACE);
 		return _pcNumber;
 	}
 	/// ditto
 	@property
-	void pcNumber(uint pcNumber) {
+	void pcNumber(uint pcNumber) { mixin(S_TRACE);
 		if (_pcNumber != pcNumber) changed();
 		_pcNumber = pcNumber;
 	}
 
 	@property
-	override void setUseCounter(UseCounter uc) {
+	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		_user.setUseCounter(uc);
 		super.setUseCounter(uc);
 	}
-	override void removeUseCounter() {
+	override void removeUseCounter() { mixin(S_TRACE);
 		_user.removeUseCounter();
 		super.removeUseCounter();
 	}
-	override void change(PathId id) {
+	override void change(PathId id) { mixin(S_TRACE);
 		_user.change(id);
 	}
 
-	static MenuCard[] createFromCardNode(ref XNode node, bool copyDesc, in XMLInfo ver) {
-		MenuCard parse(ref XNode node) {
+	static MenuCard[] createFromCardNode(ref XNode node, bool copyDesc, in XMLInfo ver) { mixin(S_TRACE);
+		MenuCard parse(ref XNode node) { mixin(S_TRACE);
 			auto pNode = node.child("Property", false);
 			if (!pNode.valid) return null;
 			string name = null;
@@ -509,8 +509,8 @@ public:
 			uint pcNumber = 0;
 			pNode.onTag["Name"] = (ref XNode node) {name = node.value;};
 			pNode.onTag["ImagePath"] = (ref XNode node) {path = decodePath(node.value);};
-			if (copyDesc) {
-				pNode.onTag["Description"] = (ref XNode node) {
+			if (copyDesc) { mixin(S_TRACE);
+				pNode.onTag["Description"] = (ref XNode node) { mixin(S_TRACE);
 					desc = decodeLf2(node.value);
 				};
 			}
@@ -522,12 +522,12 @@ public:
 			return r;
 		}
 		auto pNode = node.child("Property", false);
-		if (pNode.valid) {
+		if (pNode.valid) { mixin(S_TRACE);
 			auto card = parse(node);
 			return card ? [card] : [];
-		} else {
+		} else { mixin(S_TRACE);
 			MenuCard[] r;
-			node.onTag[null] = (ref XNode node) {
+			node.onTag[null] = (ref XNode node) { mixin(S_TRACE);
 				auto card = parse(node);
 				if (card) r ~= card;
 			};
@@ -538,21 +538,21 @@ public:
 
 	/// XMLノードにして返す。
 	const
-	XNode toNode(XMLOption opt) {
+	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto e = XNode.create(XML_NAME);
 		toNodeImpl(e, opt);
 		return e;
 	}
 	/// XMLノード(MenuCards)にインスタンスのデータを追加する。
 	const
-	XNode toNode(ref XNode node, XMLOption opt) {
+	XNode toNode(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		assert (node.name == XML_NAME_M, node.name ~ " != MenuCards");
 		auto e = node.newElement(XML_NAME);
 		toNodeImpl(e, opt);
 		return e;
 	}
 	const
-	private void toNodeImpl(ref XNode e, XMLOption opt) {
+	private void toNodeImpl(ref XNode e, XMLOption opt) { mixin(S_TRACE);
 		auto pe = e.newElement("Property");
 		pe.newElement("Name", _name);
 		pe.newElement("ImagePath", encodePath(_user.path));
@@ -566,7 +566,7 @@ public:
 	/// Throws:
 	/// AreaException = nodeがMenuCardでない。またはデータが不足している。
 	/// IllegalArgmentException = 数値であるべきデータが数値でない。
-	static MenuCard createFromNode(ref XNode node, in XMLInfo ver) {
+	static MenuCard createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		if (node.name != XML_NAME) throw new AreaException("Node is not MenuCard");
 
 		string name = null;
@@ -578,14 +578,14 @@ public:
 		uint pcNumber = 0;
 		EventTree[] evt;
 
-		node.onTag["Property"] = (ref XNode pNode) {
+		node.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 			pNode.onTag["Name"] = (ref XNode n) {name = n.value;};
 			pNode.onTag["ImagePath"] = (ref XNode n) {path = decodePath(n.value);};
 			pNode.onTag["Description"] = (ref XNode n) {desc = decodeLf2(n.value);};
 			pNode.onTag["PCNumber"] = (ref XNode n) {pcNumber = .to!uint(n.value);};
 			loadProp(pNode, flag, x, y, scale);
 		};
-		node.onTag["Events"] = (ref XNode node) {
+		node.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
 			evt = loadEventsFromNode(node, ver);
 		};
 		node.parse();
@@ -604,31 +604,31 @@ public abstract class AbstractArea : AbstractEventTreeOwner {
 	string _name;
 public:
 	/// 唯一のコンストラクタ。
-	this (ulong id, string name) {
+	this (ulong id, string name) { mixin(S_TRACE);
 		_id = id;
 		_name = name;
 	}
 	/// エリアID。
 	@property
 	const
-	ulong id() {
+	ulong id() { mixin(S_TRACE);
 		return _id;
 	}
 	/// ditto
 	@property
-	void id(ulong id) {
+	void id(ulong id) { mixin(S_TRACE);
 		if (_id != id) changed();
 		_id = id;
 	}
 	/// エリア名。
 	@property
 	const
-	string name() {
+	string name() { mixin(S_TRACE);
 		return _name;
 	}
 	/// ditto
 	@property
-	void name(string name) {
+	void name(string name) { mixin(S_TRACE);
 		if (_name != name) changed();
 		_name = name;
 	}
@@ -636,14 +636,15 @@ public:
 	/// 名前を'\'で分割してディレクトリ構造と看做した時、
 	/// このエリアが属するディレクトリ名。
 	@property
-	string dirName() {
+	const
+	string dirName() { mixin(S_TRACE);
 		int i = .lastIndexOf(_name, '\\');
 		if (i == -1) return "";
 		return _name[0 .. i];
 	}
 	/// ditto
 	@property
-	void dirName(string name) {
+	void dirName(string name) { mixin(S_TRACE);
 		if (name != "" && name[$ - 1] != '\\') name ~= "\\";
 		_name = name ~ baseName;
 	}
@@ -651,20 +652,21 @@ public:
 	/// 名前を'\'で分割してディレクトリ構造と看做した時、
 	/// このエリアからディレクトリパスを除いた名前。
 	@property
-	string baseName() {
+	const
+	string baseName() { mixin(S_TRACE);
 		int i = .lastIndexOf(_name, '\\');
 		if (i == -1) return _name;
 		return _name[i + 1 .. $];
 	}
 	/// ditto
 	@property
-	void baseName(string name) {
+	void baseName(string name) { mixin(S_TRACE);
 		name = name.replace("\\", "");
 		_name = _name[0 .. $ - baseName.length] ~ name;
 	}
 
 	const
-	override int opCmp(Object o) {
+	override int opCmp(Object o) { mixin(S_TRACE);
 		return cast(int) _id - cast(int) (cast(const(AbstractArea)) o)._id;
 	}
 
@@ -679,7 +681,7 @@ public:
 	/// Params:
 	/// summId = テキストに付与するID。nullを指定すると付与しない。
 	const
-	string toXML(XMLOption opt, string summId = null) {
+	string toXML(XMLOption opt, string summId = null) { mixin(S_TRACE);
 		scope doc = XNode.create(rootName);
 		toNodeImpl(doc, opt);
 		if (summId) doc.newAttr("summaryId", summId);
@@ -688,13 +690,13 @@ public:
 
 	/// XMLノード化して返す。
 	const
-	XNode toNode(XMLOption opt) {
+	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto e = XNode.create(rootName);
 		toNodeImpl(e, opt);
 		return e;
 	}
 	const
-	XNode toNode(ref XNode parent, XMLOption opt) {
+	XNode toNode(ref XNode parent, XMLOption opt) { mixin(S_TRACE);
 		auto e = parent.newElement(rootName);
 		toNodeImpl(e, opt);
 		return e;
@@ -703,30 +705,30 @@ public:
 	abstract void toNodeImpl(ref XNode e, XMLOption opt);
 
 	/// toXML()でsummIdを指定されたノードを渡すと、summIdを読み出して返す。
-	static string summaryId(in XNode node) {
+	static string summaryId(in XNode node) { mixin(S_TRACE);
 		return node.attr("summaryId", false, "");
 	}
 
 	/// 指定されたノードにProperty情報を追加する。
 	const
-	protected void appendProp(ref XNode pNode, XMLOption opt) {
+	protected void appendProp(ref XNode pNode, XMLOption opt) { mixin(S_TRACE);
 		assert (pNode.name == "Property", pNode.name ~ " != Property");
 		pNode.newElement("Id", _id);
 		pNode.newElement("Name", _name);
 	}
 	/// 指定されたノードからProperty情報を読み出す。
-	protected static void loadProp(ref XNode aNode, out ulong id, out string name, out string path) {
+	protected static void loadProp(ref XNode aNode, out ulong id, out string name, out string path) { mixin(S_TRACE);
 		string idStr = null;
 		name = null;
 		path = "";
-		aNode.onTag["Property"] = (ref XNode pNode) {
-			pNode.onTag["Id"] = (ref XNode n) {
+		aNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
+			pNode.onTag["Id"] = (ref XNode n) { mixin(S_TRACE);
 				idStr = n.value;
 			};
-			pNode.onTag["Name"] = (ref XNode n) {
+			pNode.onTag["Name"] = (ref XNode n) { mixin(S_TRACE);
 				name = n.value;
 			};
-			pNode.onTag["MusicPath"] = (ref XNode n) {
+			pNode.onTag["MusicPath"] = (ref XNode n) { mixin(S_TRACE);
 				path = decodePath(n.value);
 			};
 			pNode.parse();
@@ -750,17 +752,17 @@ public:
 	alias toAreaId toID;
 
 	/// 唯一のコンストラクタ。
-	this (ulong id, string name) {
+	this (ulong id, string name) { mixin(S_TRACE);
 		super(id, name);
 	}
 	@property
 	protected override void delegate() changeHandler() {return super.changeHandler;}
 	@property
-	override void changeHandler(void delegate() change) {
-		foreach (b; _bgImgs) {
+	override void changeHandler(void delegate() change) { mixin(S_TRACE);
+		foreach (b; _bgImgs) { mixin(S_TRACE);
 			b.changeHandler = change;
 		}
-		foreach (c; _cards) {
+		foreach (c; _cards) { mixin(S_TRACE);
 			c.changeHandler = change;
 		}
 		super.changeHandler = change;
@@ -784,23 +786,23 @@ public:
 	@property
 	const
 	override bool canHasFireKeyCode() {return true;}
-	EventTree etFromPath(size_t[] path) {
-		if (path[0] == 0) {
+	EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
+		if (path[0] == 0) { mixin(S_TRACE);
 			return trees[path[1]];
-		} else {
+		} else { mixin(S_TRACE);
 			return cards[path[0] - 1].trees[path[1]];
 		}
 	}
 
 	/// メニューカードのインデックスを交換する。
-	void swapCards(int index1, int index2) {
+	void swapCards(int index1, int index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();
 		auto temp = _cards[index1];
 		_cards[index1] = _cards[index2];
 		_cards[index2] = temp;
 	}
 	/// 背景イメージのインデックスを交換する。
-	void swapBacks(int index1, int index2) {
+	void swapBacks(int index1, int index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();
 		auto temp = _bgImgs[index1];
 		_bgImgs[index1] = _bgImgs[index2];
@@ -810,41 +812,41 @@ public:
 	/// オート配置か否か。
 	@property
 	const
-	bool spAuto() {
+	bool spAuto() { mixin(S_TRACE);
 		return _auto;
 	}
 	/// ditto
 	@property
-	void spAuto(bool spAuto) {
+	void spAuto(bool spAuto) { mixin(S_TRACE);
 		if (_auto != spAuto) changed();
 		_auto = spAuto;
 	}
 
 	/// メニューカード群。
 	@property
-	MenuCard[] cards() {
+	MenuCard[] cards() { mixin(S_TRACE);
 		return _cards;
 	}
 	/// ditto
 	@property
 	const
-	const(MenuCard)[] cards() {
+	const(MenuCard)[] cards() { mixin(S_TRACE);
 		return _cards;
 	}
 	/// 背景画像群。
 	@property
-	BgImage[] backs() {
+	BgImage[] backs() { mixin(S_TRACE);
 		return _bgImgs;
 	}
 	/// ditto
 	@property
 	const
-	const(BgImage)[] backs() {
+	const(BgImage)[] backs() { mixin(S_TRACE);
 		return _bgImgs;
 	}
 
 	/// メニューカードを追加する。
-	void append(MenuCard card) {
+	void append(MenuCard card) { mixin(S_TRACE);
 		card.changeHandler = changeHandler;
 		if (useCounter) card.setUseCounter = useCounter;
 		card._owner = this;
@@ -852,10 +854,10 @@ public:
 		changed();
 	}
 	/// ditto
-	void insert(int index, MenuCard card) {
-		if (_cards.length == index) {
+	void insert(int index, MenuCard card) { mixin(S_TRACE);
+		if (_cards.length == index) { mixin(S_TRACE);
 			append(card);
-		} else {
+		} else { mixin(S_TRACE);
 			card.changeHandler = changeHandler;
 			if (useCounter) card.setUseCounter = useCounter;
 			card._owner = this;
@@ -864,7 +866,7 @@ public:
 		}
 	}
 	/// メニューカードを除去する。
-	void removeCard(int index) {
+	void removeCard(int index) { mixin(S_TRACE);
 		_cards[index].changeHandler = null;
 		_cards[index].removeUseCounter();
 		_cards[index]._owner = null;
@@ -873,7 +875,7 @@ public:
 	}
 
 	/// 背景画像を追加する。
-	void append(BgImage back) {
+	void append(BgImage back) { mixin(S_TRACE);
 		back.changeHandler = changeHandler;
 		if (useCounter) back.setUseCounter = useCounter;
 		back.owner = this;
@@ -881,10 +883,10 @@ public:
 		changed();
 	}
 	/// ditto
-	void insert(int index, BgImage back) {
-		if (_bgImgs.length == index) {
+	void insert(int index, BgImage back) { mixin(S_TRACE);
+		if (_bgImgs.length == index) { mixin(S_TRACE);
 			append(back);
-		} else {
+		} else { mixin(S_TRACE);
 			back.changeHandler = changeHandler;
 			if (useCounter) back.setUseCounter = useCounter;
 			back.owner = this;
@@ -893,7 +895,7 @@ public:
 		}
 	}
 	/// ditto
-	void set(int index, BgImage back) {
+	void set(int index, BgImage back) { mixin(S_TRACE);
 		_bgImgs[index].changeHandler = null;
 		_bgImgs[index].removeUseCounter();
 		_bgImgs[index].owner = null;
@@ -904,7 +906,7 @@ public:
 		changed();
 	}
 	/// 背景画像を除去する。
-	void removeBgImage(int index) {
+	void removeBgImage(int index) { mixin(S_TRACE);
 		_bgImgs[index].changeHandler = null;
 		_bgImgs[index].removeUseCounter();
 		_bgImgs[index].owner = null;
@@ -913,21 +915,21 @@ public:
 	}
 
 	@property
-	override void setUseCounter(UseCounter uc) {
-		foreach (c; _cards) {
+	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		foreach (c; _cards) { mixin(S_TRACE);
 			c.setUseCounter(uc);
 		}
-		foreach (bg; _bgImgs) {
+		foreach (bg; _bgImgs) { mixin(S_TRACE);
 			bg.setUseCounter(uc);
 		}
 		super.setUseCounter(uc);
 	}
 
-	override void removeUseCounter() {
-		foreach (c; _cards) {
+	override void removeUseCounter() { mixin(S_TRACE);
+		foreach (c; _cards) { mixin(S_TRACE);
 			c.removeUseCounter();
 		}
-		foreach (bg; _bgImgs) {
+		foreach (bg; _bgImgs) { mixin(S_TRACE);
 			bg.removeUseCounter();
 		}
 		super.removeUseCounter();
@@ -938,14 +940,14 @@ public:
 	override string rootName() {return "Area";}
 
 	const
-	override void toNodeImpl(ref XNode e, XMLOption opt) {
+	override void toNodeImpl(ref XNode e, XMLOption opt) { mixin(S_TRACE);
 		auto pNode = e.newElement("Property");
 		appendProp(pNode, opt);
 
 		BgImage.toNode(_bgImgs, e, opt);
 		auto ce = e.newElement("MenuCards");
 		ce.newAttr("spreadtype", _auto ? "Auto" : "Custom");
-		foreach (c; _cards) {
+		foreach (c; _cards) { mixin(S_TRACE);
 			c.toNode(ce, opt);
 		}
 		appendEventsToNode(e, opt);
@@ -959,9 +961,9 @@ public:
 	/// FileException = ファイル読込み例外発生時。
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static Area loadFromXML(string path, in XMLInfo ver) {
+	static Area loadFromXML(string path, in XMLInfo ver) { mixin(S_TRACE);
 		scope doc = XNode.parse(std.file.readText(path));
-		if (doc.name == "Area") {
+		if (doc.name == "Area") { mixin(S_TRACE);
 			return createFromNode(doc, ver);
 		}
 		throw new AreaException("File is not area");
@@ -973,7 +975,7 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static Area createFromNode(ref XNode aNode, in XMLInfo ver) {
+	static Area createFromNode(ref XNode aNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (aNode.name != "Area") throw new AreaException("Node is not area: " ~ aNode.name);
 		ulong id;
 		string name;
@@ -982,17 +984,17 @@ public:
 		MenuCard[] cards;
 		EventTree[] evt;
 		string path;
-		aNode.onTag["MenuCards"] = (ref XNode n) {
+		aNode.onTag["MenuCards"] = (ref XNode n) { mixin(S_TRACE);
 			spAuto = n.attr("spreadtype", true) == "Auto";
-			n.onTag["MenuCard"] = (ref XNode mcn) {
+			n.onTag["MenuCard"] = (ref XNode mcn) { mixin(S_TRACE);
 				cards ~= MenuCard.createFromNode(mcn, ver);
 			};
 			n.parse();
 		};
-		aNode.onTag["BgImages"] = (ref XNode n) {
+		aNode.onTag["BgImages"] = (ref XNode n) { mixin(S_TRACE);
 			bgImgs = BgImage.bgImagesFromNode(n, ver);
 		};
-		aNode.onTag["Events"] = (ref XNode n) {
+		aNode.onTag["Events"] = (ref XNode n) { mixin(S_TRACE);
 			evt = loadEventsFromNode(n, ver);
 		};
 		loadProp(aNode, id, name, path);
@@ -1007,37 +1009,37 @@ public:
 	}
 
 	/// メニューカード群をXMLデータにして返す。
-	static string CtoXML(MenuCard[] cards, XMLOption opt) {
+	static string CtoXML(MenuCard[] cards, XMLOption opt) { mixin(S_TRACE);
 		return CtoNode(cards, opt).text;
 	}
 	/// ditto
-	static XNode CtoNode(MenuCard[] cards, XMLOption opt) {
+	static XNode CtoNode(MenuCard[] cards, XMLOption opt) { mixin(S_TRACE);
 		return CBtoNode(cards, [], opt);
 	}
 	/// 背景イメージ群をXMLデータにして返す。
-	static string BtoXML(BgImage[] backs, XMLOption opt) {
+	static string BtoXML(BgImage[] backs, XMLOption opt) { mixin(S_TRACE);
 		return BtoNode(backs, opt).text;
 	}
 	/// ditto
-	static XNode BtoNode(BgImage[] backs, XMLOption opt) {
+	static XNode BtoNode(BgImage[] backs, XMLOption opt) { mixin(S_TRACE);
 		return CBtoNode([], backs, opt);
 	}
 	/// メニューカード群と背景イメージ群をXMLデータにして返す。
-	static string CBtoXML(MenuCard[] cards, BgImage[] backs, XMLOption opt) {
+	static string CBtoXML(MenuCard[] cards, BgImage[] backs, XMLOption opt) { mixin(S_TRACE);
 		return CBtoNode(cards, backs, opt).text;
 	}
 	/// ditto
-	static XNode CBtoNode(MenuCard[] cards, BgImage[] backs, XMLOption opt) {
+	static XNode CBtoNode(MenuCard[] cards, BgImage[] backs, XMLOption opt) { mixin(S_TRACE);
 		auto e = XNode.create("MenuCardsAndBgImages");
-		if (cards.length > 0) {
+		if (cards.length > 0) { mixin(S_TRACE);
 			auto me = e.newElement("MenuCards");
-			foreach (c; cards) {
+			foreach (c; cards) { mixin(S_TRACE);
 				c.toNode(me, opt);
 			}
 		}
-		if (backs.length > 0) {
+		if (backs.length > 0) { mixin(S_TRACE);
 			auto be = e.newElement("BgImages");
-			foreach (b; backs) {
+			foreach (b; backs) { mixin(S_TRACE);
 				b.toNode(be, opt);
 			}
 		}
@@ -1051,8 +1053,8 @@ public:
 	/// xml = XMLテキスト。
 	/// Returns: 成功したか。
 	/// See_Also: Area.CBtoXML(MenuCard, BgImages)
-	static bool CBfromXML(string xml, out MenuCard[] cards, out BgImage[] backs, in XMLInfo ver) {
-		try {
+	static bool CBfromXML(string xml, out MenuCard[] cards, out BgImage[] backs, in XMLInfo ver) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			scope doc = XNode.parse(xml);
 			return CBfromXML(doc, cards, backs, ver);
 		} catch (Exception e) {
@@ -1061,17 +1063,17 @@ public:
 		return false;
 	}
 	/// ditto
-	static bool CBfromXML(ref XNode node, out MenuCard[] cards, out BgImage[] backs, in XMLInfo ver) {
-		try {
-			if (node.name == "MenuCardsAndBgImages") {
-				node.onTag["MenuCards"] = (ref XNode node) {
-					node.onTag["MenuCard"] = (ref XNode n) {
+	static bool CBfromXML(ref XNode node, out MenuCard[] cards, out BgImage[] backs, in XMLInfo ver) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
+			if (node.name == "MenuCardsAndBgImages") { mixin(S_TRACE);
+				node.onTag["MenuCards"] = (ref XNode node) { mixin(S_TRACE);
+					node.onTag["MenuCard"] = (ref XNode n) { mixin(S_TRACE);
 						cards ~= MenuCard.createFromNode(n, ver);
 					};
 					node.parse();
 				};
-				node.onTag["BgImages"] = (ref XNode node) {
-					node.onTag[null] = (ref XNode n) {
+				node.onTag["BgImages"] = (ref XNode node) { mixin(S_TRACE);
+					node.onTag[null] = (ref XNode n) { mixin(S_TRACE);
 						backs ~= BgImage.createFromNode(n, ver);
 					};
 					node.parse();
@@ -1088,24 +1090,24 @@ public:
 	@property
 	package void owner(AreaOwner owner) {_owner = owner;}
 	@property
-	string cwxPath(bool id) {
-		if (id) {
+	string cwxPath(bool id) { mixin(S_TRACE);
+		if (id) { mixin(S_TRACE);
 			return _owner ? cpjoinid(_owner, "area", this.id) : "";
-		} else {
+		} else { mixin(S_TRACE);
 			return _owner ? cpjoin(_owner, "area", .cCountUntil!("a is b")(_owner.areas, this), id) : "";
 		}
 	}
 	override
-	CWXPath findCWXPath(string path) {
+	CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
-		case "menucard": {
+		case "menucard": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= cards.length) return null;
 			return cards[index].findCWXPath(cpbottom(path));
 		}
-		case "background": {
+		case "background": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= backs.length) return null;
 			return backs[index].findCWXPath(cpbottom(path));
@@ -1117,7 +1119,7 @@ public:
 	@property
 	override
 	const
-	const(CWXPath)[] cwxChilds() {
+	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
 		r ~= cast(const CWXPath[]) cards;
 		r ~= cast(const CWXPath[]) backs;
@@ -1135,7 +1137,7 @@ public:
 	alias toPackageId toID;
 
 	/// 唯一のコンストラクタ。
-	this (ulong id, string name) {
+	this (ulong id, string name) { mixin(S_TRACE);
 		super (id, name);
 	}
 	@property
@@ -1159,14 +1161,14 @@ public:
 	@property
 	const
 	override bool canHasFireKeyCode() {return false;}
-	EventTree etFromPath(size_t[] path) {
-		if (path[0] == 0) {
+	EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
+		if (path[0] == 0) { mixin(S_TRACE);
 			return trees[path[1]];
 		}
 		assert (0);
 	}
 
-	override void add(EventTree evt) {
+	override void add(EventTree evt) { mixin(S_TRACE);
 		evt.lose = false;
 		evt.escape = false;
 		evt.removeKeyCodesAll();
@@ -1178,7 +1180,7 @@ public:
 	const
 	override string rootName() {return "Package";}
 	const
-	override void toNodeImpl(ref XNode e, XMLOption opt) {
+	override void toNodeImpl(ref XNode e, XMLOption opt) { mixin(S_TRACE);
 		auto pNode = e.newElement("Property");
 		appendProp(pNode, opt);
 		appendEventsToNode(e, opt);
@@ -1192,9 +1194,9 @@ public:
 	/// FileException = ファイル読込み例外発生時。
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static Package loadFromXML(string path, in XMLInfo ver) {
+	static Package loadFromXML(string path, in XMLInfo ver) { mixin(S_TRACE);
 		scope doc = XNode.parse(std.file.readText(path));
-		if (doc.name == "Package") {
+		if (doc.name == "Package") { mixin(S_TRACE);
 			return createFromNode(doc, ver);
 		}
 		throw new AreaException("File is not package");
@@ -1206,13 +1208,13 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static Package createFromNode(ref XNode aNode, in XMLInfo ver) {
+	static Package createFromNode(ref XNode aNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (aNode.name != "Package") throw new AreaException("Node is not package: " ~ aNode.name);
 		ulong id;
 		string name;
 		string path;
 		EventTree[] evt;
-		aNode.onTag["Events"] = (ref XNode node) {
+		aNode.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
 			evt = loadEventsFromNode(node, ver);
 		};
 		loadProp(aNode, id, name, path);
@@ -1225,10 +1227,10 @@ public:
 	@property
 	package void owner(PackageOwner owner) {_owner = owner;}
 	@property
-	string cwxPath(bool id) {
-		if (id) {
+	string cwxPath(bool id) { mixin(S_TRACE);
+		if (id) { mixin(S_TRACE);
 			return _owner ? cpjoinid(_owner, "package", this.id) : "";
-		} else {
+		} else { mixin(S_TRACE);
 			return _owner ? cpjoin(_owner, "package", .cCountUntil!("a is b")(_owner.packages, this), id) : "";
 		}
 	}
@@ -1249,7 +1251,7 @@ public:
 	/// 唯一のコンストラクタ。
 	/// Params:
 	///  music = BGMのファイルパス。
-	this (ulong id, string name, string music) {
+	this (ulong id, string name, string music) { mixin(S_TRACE);
 		super(id, name);
 		_music = new PathUser(this);
 		_music.path = music;
@@ -1257,8 +1259,8 @@ public:
 	@property
 	protected override void delegate() changeHandler() {return super.changeHandler;}
 	@property
-	override void changeHandler(void delegate() change) {
-		foreach (c; _cards) {
+	override void changeHandler(void delegate() change) { mixin(S_TRACE);
+		foreach (c; _cards) { mixin(S_TRACE);
 			c.changeHandler = change;
 		}
 		super.changeHandler = change;
@@ -1281,29 +1283,29 @@ public:
 	@property
 	const
 	override bool canHasFireKeyCode() {return true;}
-	EventTree etFromPath(size_t[] path) {
-		if (path[0] == 0) {
+	EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
+		if (path[0] == 0) { mixin(S_TRACE);
 			return trees[path[1]];
-		} else {
+		} else { mixin(S_TRACE);
 			return cards[path[0] - 1].trees[path[1]];
 		}
 	}
 
 	/// BGMのファイルパス。
 	@property
-	void music(string music) {
+	void music(string music) { mixin(S_TRACE);
 		if (_music.path != music) changed();
 		_music.path = music;
 	}
 	/// ditto
 	@property
 	const
-	string music() {
+	string music() { mixin(S_TRACE);
 		return _music.path;
 	}
 
 	/// エネミーカードを追加する。
-	void append(EnemyCard card) {
+	void append(EnemyCard card) { mixin(S_TRACE);
 		card.changeHandler = changeHandler;
 		if (useCounter) card.setUseCounter = useCounter;
 		card._owner = this;
@@ -1311,10 +1313,10 @@ public:
 		changed();
 	}
 	/// ditto
-	void insert(int index, EnemyCard card) {
-		if (_cards.length == index) {
+	void insert(int index, EnemyCard card) { mixin(S_TRACE);
+		if (_cards.length == index) { mixin(S_TRACE);
 			append(card);
-		} else {
+		} else { mixin(S_TRACE);
 			card.changeHandler = changeHandler;
 			if (useCounter) card.setUseCounter = useCounter;
 			card._owner = this;
@@ -1323,7 +1325,7 @@ public:
 		}
 	}
 	/// エネミーカードを除去する。
-	void removeCard(int index) {
+	void removeCard(int index) { mixin(S_TRACE);
 		_cards[index].changeHandler = null;
 		_cards[index].removeUseCounter();
 		_cards[index]._owner = null;
@@ -1332,7 +1334,7 @@ public:
 	}
 
 	/// エネミーカードのインデックスを交換する。
-	void swapCards(int index1, int index2) {
+	void swapCards(int index1, int index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();
 		auto temp = _cards[index1];
 		_cards[index1] = _cards[index2];
@@ -1340,41 +1342,41 @@ public:
 	}
 	/// エネミーカード群。
 	@property
-	EnemyCard[] cards() {
+	EnemyCard[] cards() { mixin(S_TRACE);
 		return _cards;
 	}
 
 	/// オート配置か否か。
 	@property
 	const
-	bool spAuto() {
+	bool spAuto() { mixin(S_TRACE);
 		return _auto;
 	}
 	/// ditto
 	@property
-	void spAuto(bool spAuto) {
+	void spAuto(bool spAuto) { mixin(S_TRACE);
 		if (_auto != spAuto) changed();
 		_auto = spAuto;
 	}
 
 	@property
-	override void setUseCounter(UseCounter uc) {
-		foreach (c; _cards) {
+	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		foreach (c; _cards) { mixin(S_TRACE);
 			c.setUseCounter(uc);
 		}
 		_music.setUseCounter(uc);
 		super.setUseCounter(uc);
 	}
 
-	override void removeUseCounter() {
-		foreach (c; _cards) {
+	override void removeUseCounter() { mixin(S_TRACE);
+		foreach (c; _cards) { mixin(S_TRACE);
 			c.removeUseCounter();
 		}
 		_music.removeUseCounter();
 		super.removeUseCounter();
 	}
 
-	override void change(PathId id) {
+	override void change(PathId id) { mixin(S_TRACE);
 		_music.change(id);
 	}
 
@@ -1382,14 +1384,14 @@ public:
 	const
 	override string rootName() {return "Battle";}
 	const
-	override void toNodeImpl(ref XNode e, XMLOption opt) {
+	override void toNodeImpl(ref XNode e, XMLOption opt) { mixin(S_TRACE);
 		auto pe = e.newElement("Property");
 		appendProp(pe, opt);
 		pe.newElement("MusicPath", encodePath(_music.path));
 	
 		auto ce = e.newElement("EnemyCards");
 		ce.newAttr("spreadtype", _auto ? "Auto" : "Custom");
-		foreach (c; _cards) {
+		foreach (c; _cards) { mixin(S_TRACE);
 			c.toNode(ce, opt);
 		}
 
@@ -1404,9 +1406,9 @@ public:
 	/// FileException = ファイル読込み例外発生時。
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static Battle loadFromXML(string path, in XMLInfo ver) {
+	static Battle loadFromXML(string path, in XMLInfo ver) { mixin(S_TRACE);
 		scope doc = XNode.parse(std.file.readText(path));
-		if (doc.name == "Battle") {
+		if (doc.name == "Battle") { mixin(S_TRACE);
 			return createFromNode(doc, ver);
 		}
 		throw new AreaException("File is not battle");
@@ -1418,7 +1420,7 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static Battle createFromNode(ref XNode aNode, in XMLInfo ver) {
+	static Battle createFromNode(ref XNode aNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (aNode.name != "Battle") throw new AreaException("Node is not battle: " ~ aNode.name);
 		ulong id;
 		string name;
@@ -1426,14 +1428,14 @@ public:
 		bool spAuto;
 		EnemyCard[] cards;
 		EventTree[] evt;
-		aNode.onTag["EnemyCards"] = (ref XNode node) {
+		aNode.onTag["EnemyCards"] = (ref XNode node) { mixin(S_TRACE);
 			spAuto = node.attr("spreadtype", false) == "Auto";
-			node.onTag["EnemyCard"] = (ref XNode ecn) {
+			node.onTag["EnemyCard"] = (ref XNode ecn) { mixin(S_TRACE);
 				cards ~= EnemyCard.createFromNode(ecn, ver);
 			};
 			node.parse();
 		};
-		aNode.onTag["Events"] = (ref XNode node) {
+		aNode.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
 			evt = loadEventsFromNode(node, ver);
 		};
 		loadProp(aNode, id, name, music);
@@ -1446,13 +1448,13 @@ public:
 	}
 
 	/// エネミーカード群をXMLデータにして返す。
-	static string CtoXML(EnemyCard[] cards, XMLOption opt) {
+	static string CtoXML(EnemyCard[] cards, XMLOption opt) { mixin(S_TRACE);
 		return CtoNode(cards, opt).text;
 	}
 	/// ditto
-	static XNode CtoNode(EnemyCard[] cards, XMLOption opt) {
+	static XNode CtoNode(EnemyCard[] cards, XMLOption opt) { mixin(S_TRACE);
 		auto doc = XNode.create("EnemyCards");
-		foreach (c; cards) {
+		foreach (c; cards) { mixin(S_TRACE);
 			c.toNode(doc, opt);
 		}
 		return doc;
@@ -1465,8 +1467,8 @@ public:
 	/// xml = XMLテキスト。
 	/// Returns: 成功したか。
 	/// See_Also: Battle.CtoXML(EnemyCard)
-	static bool CfromXML(string xml, out EnemyCard[] cards, in XMLInfo ver) {
-		try {
+	static bool CfromXML(string xml, out EnemyCard[] cards, in XMLInfo ver) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			scope doc = XNode.parse(xml);
 			return CfromXML(doc, cards, ver);
 		} catch (Exception e) {
@@ -1475,10 +1477,10 @@ public:
 		return false;
 	}
 	/// ditto
-	static bool CfromXML(ref XNode node, out EnemyCard[] cards, in XMLInfo ver) {
-		try {
-			if (node.name == "EnemyCards") {
-				node.onTag["EnemyCard"] = (ref XNode n) {
+	static bool CfromXML(ref XNode node, out EnemyCard[] cards, in XMLInfo ver) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
+			if (node.name == "EnemyCards") { mixin(S_TRACE);
+				node.onTag["EnemyCard"] = (ref XNode n) { mixin(S_TRACE);
 					cards ~= EnemyCard.createFromNode(n, ver);
 				};
 				node.parse();
@@ -1493,19 +1495,19 @@ public:
 	@property
 	package void owner(BattleOwner owner) {_owner = owner;}
 	@property
-	string cwxPath(bool id) {
-		if (id) {
+	string cwxPath(bool id) { mixin(S_TRACE);
+		if (id) { mixin(S_TRACE);
 			return _owner ? cpjoinid(_owner, "battle", this.id) : "";
-		} else {
+		} else { mixin(S_TRACE);
 			return _owner ? cpjoin(_owner, "battle", .cCountUntil!("a is b")(_owner.battles, this), id) : "";
 		}
 	}
 	override
-	CWXPath findCWXPath(string path) {
+	CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
-		case "enemycard": {
+		case "enemycard": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= cards.length) return null;
 			return cards[index].findCWXPath(cpbottom(path));
@@ -1517,7 +1519,7 @@ public:
 	@property
 	override
 	const
-	const(CWXPath)[] cwxChilds() {
+	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
 		r ~= cast(const CWXPath[]) _cards;
 		r ~= super.cwxChilds;

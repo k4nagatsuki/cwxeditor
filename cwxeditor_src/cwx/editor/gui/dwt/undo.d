@@ -1,6 +1,8 @@
 
 module cwx.editor.gui.dwt.undo;
 
+import cwx.perf;
+
 interface Undo {
 	void undo();
 	void redo();
@@ -13,33 +15,33 @@ class TUndo(T) : Undo {
 	private T _new;
 	private void delegate(T) _set;
 	T delegate(T) _copy;
-	this (T old, T n, void delegate(T) set, T delegate(T) copy = null) {
+	this (T old, T n, void delegate(T) set, T delegate(T) copy = null) { mixin(S_TRACE);
 		_old = old;
 		_new = n;
 		_set = set;
 		_copy = copy;
 	}
-	void undo() {
+	void undo() { mixin(S_TRACE);
 		if (_copy) _old = _copy(_old);
 		_set(_old);
 	}
-	void redo() {
+	void redo() { mixin(S_TRACE);
 		if (_copy) _new = _copy(_new);
 		_set(_new);
 	}
-	void dispose() {
+	void dispose() { mixin(S_TRACE);
 		// Nothing
 	}
 }
 /// ditto
 class StrUndo : TUndo!(string) {
-	this (string old, string n, void delegate(string) set) {
+	this (string old, string n, void delegate(string) set) { mixin(S_TRACE);
 		super (old, n, set, null);
 	}
 }
 /// ditto
 class StrArrUndo : TUndo!(string[]) {
-	this (string[] old, string[] n, void delegate(string[]) set) {
+	this (string[] old, string[] n, void delegate(string[]) set) { mixin(S_TRACE);
 		super (old.dup, n.dup, set, (string[] v) {return v.dup;});
 	}
 }
@@ -47,21 +49,21 @@ class StrArrUndo : TUndo!(string[]) {
 class UndoArr : Undo {
 	private Undo[] _array;
 	private bool _rev;
-	this (Undo[] array, bool rev = true) {
+	this (Undo[] array, bool rev = true) { mixin(S_TRACE);
 		_array = array;
 		_rev = rev;
 	}
-	void undo() {
-		if (_rev) {
+	void undo() { mixin(S_TRACE);
+		if (_rev) { mixin(S_TRACE);
 			foreach_reverse (u; _array) u.undo();
-		} else {
+		} else { mixin(S_TRACE);
 			foreach (u; _array) u.undo();
 		}
 	}
-	void redo() {
+	void redo() { mixin(S_TRACE);
 		foreach (u; _array) u.redo();
 	}
-	void dispose() {
+	void dispose() { mixin(S_TRACE);
 		foreach (u; _array) u.dispose();
 	}
 }
@@ -70,36 +72,36 @@ class UndoManager {
 	private Undo[] _undos;
 	private size_t _max;
 	private size_t _pointer;
-	this (size_t max) {
+	this (size_t max) { mixin(S_TRACE);
 		_max = max;
 	}
-	void opCatAssign(Undo undo) {
+	void opCatAssign(Undo undo) { mixin(S_TRACE);
 		add(undo);
 	}
 	@property
-	void max(size_t v) {
+	void max(size_t v) { mixin(S_TRACE);
 		_max = v;
 		cut();
 	}
-	private void cut() {
-		if (_max < _pointer) {
+	private void cut() { mixin(S_TRACE);
+		if (_max < _pointer) { mixin(S_TRACE);
 			_undos = _undos[_pointer - _max .. $];
 			_pointer = _max;
 		}
 	}
 	@property
 	size_t pointer() {return _pointer;}
-	void add(Undo undo) {
+	void add(Undo undo) { mixin(S_TRACE);
 		if (_max == 0) return;
-		if (_undos.length && _pointer < _undos.length) {
-			foreach (u; _undos[_pointer .. $]) {
+		if (_undos.length && _pointer < _undos.length) { mixin(S_TRACE);
+			foreach (u; _undos[_pointer .. $]) { mixin(S_TRACE);
 				u.dispose();
 			}
 			_undos = _undos[0 .. _pointer];
 		}
-		if (_undos.length >= _max) {
+		if (_undos.length >= _max) { mixin(S_TRACE);
 			size_t i = _undos.length - _max + 1;
-			for (size_t j = 0; j < i; j++) {
+			for (size_t j = 0; j < i; j++) { mixin(S_TRACE);
 				_undos[j].dispose();
 			}
 			_undos = _undos[i .. $];
@@ -109,7 +111,7 @@ class UndoManager {
 	}
 	@property
 	bool canUndo() {return _pointer > 0;}
-	bool undo() {
+	bool undo() { mixin(S_TRACE);
 		if (!canUndo) return false;
 		// 例外対策のため_pointer--を後に
 		_undos[_pointer - 1].undo();
@@ -118,18 +120,18 @@ class UndoManager {
 	}
 	@property
 	bool canRedo() {return _pointer < _undos.length;}
-	bool redo() {
+	bool redo() { mixin(S_TRACE);
 		if (!canRedo) return false;
 		_undos[_pointer].redo();
 		_pointer++;
 		cut();
 		return true;
 	}
-	void reset() {
+	void reset() { mixin(S_TRACE);
 		if (!_undos.length) return;
 		dispose();
 	}
-	void dispose() {
+	void dispose() { mixin(S_TRACE);
 		if (!_undos.length) return;
 		foreach (u; _undos) u.dispose();
 		_undos.length = 0;

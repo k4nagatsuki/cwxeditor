@@ -1,6 +1,7 @@
 
 module cwx.motion;
 
+import cwx.perf;
 import cwx.types;
 import cwx.card;
 import cwx.usecounter;
@@ -11,7 +12,7 @@ import cwx.system;
 import std.algorithm;
 
 private bool static_this_completed = false;
-private void static_this () {
+private void static_this () { mixin(S_TRACE);
 	if (static_this_completed) return;
 	string _(string v) {return v;}
 	_MOTION_DETAILS = [
@@ -56,20 +57,20 @@ private void static_this () {
 		MType.SUMMON_BEAST:MDetail("SummonBeast", [MArg.BEAST:cast(string) null]),
 		MType.CANCEL_ACTION:MDetail("CancelAction"), // CardWirthNext
 	];
-	foreach (type, detail; _MOTION_DETAILS) {
+	foreach (type, detail; _MOTION_DETAILS) { mixin(S_TRACE);
 		_MTYPE_MAP[detail.name] = type;
 	}
 }
 
 private MDetail[MType] _MOTION_DETAILS;
 @property
-private MDetail[MType] MOTION_DETAILS() {
+private MDetail[MType] MOTION_DETAILS() { mixin(S_TRACE);
 	static_this();
 	return _MOTION_DETAILS;
 }
 private MType[string] _MTYPE_MAP;
 @property
-private MType[string] MTYPE_MAP() {
+private MType[string] MTYPE_MAP() { mixin(S_TRACE);
 	static_this();
 	return _MTYPE_MAP;
 }
@@ -114,11 +115,11 @@ public:
 
 	/// 変更ハンドラを登録する。
 	@property
-	void changeHandler(void delegate() change) {
+	void changeHandler(void delegate() change) { mixin(S_TRACE);
 		_change = change;
 	}
 	/// 変更ハンドラ。
-	protected void changed() {
+	protected void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 
@@ -127,36 +128,36 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		foreach (m; _motions) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		foreach (m; _motions) { mixin(S_TRACE);
 			m.setUseCounter(uc);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		foreach (m; _motions) {
+	void removeUseCounter() { mixin(S_TRACE);
+		foreach (m; _motions) { mixin(S_TRACE);
 			m.removeUseCounter();
 		}
 		_uc = null;
 	}
 	/// 効果の中にあるファイルパスに該当するものがあれば更新する。
-	void change(PathId id) {
-		foreach (m; _motions) {
+	void change(PathId id) { mixin(S_TRACE);
+		foreach (m; _motions) { mixin(S_TRACE);
 			m.change(id);
 		}
 	}
 	/// 効果群。
 	@property
-	void motions(Motion[] motions) {
-		if (_motions != motions) {
+	void motions(Motion[] motions) { mixin(S_TRACE);
+		if (_motions != motions) { mixin(S_TRACE);
 			changed();
-			foreach (m; _motions) {
+			foreach (m; _motions) { mixin(S_TRACE);
 				m.changeHandler = null;
 				m.removeUseCounter();
 				m._owner = null;
 			}
-			foreach (m; motions) {
+			foreach (m; motions) { mixin(S_TRACE);
 				m.changeHandler = _change;
 				if (_uc) m.setUseCounter(_uc);
 				m._owner = _cwxPath;
@@ -166,13 +167,13 @@ public:
 	}
 	/// ditto
 	@property
-	Motion[] motions() {
+	Motion[] motions() { mixin(S_TRACE);
 		return _motions;
 	}
 	/// ditto
 	@property
 	const
-	const(Motion)[] motions() {
+	const(Motion)[] motions() { mixin(S_TRACE);
 		return _motions;
 	}
 }
@@ -208,7 +209,7 @@ public:
 	static const XML_NAME = "Motion";
 
 	/// 唯一のコンストラクタ。
-	this (MType type, Element el) {
+	this (MType type, Element el) { mixin(S_TRACE);
 		_type = type;
 		_el = el;
 	}
@@ -219,14 +220,14 @@ public:
 	/// 効果の概要。
 	@property
 	const
-	MDetail detail() {
+	MDetail detail() { mixin(S_TRACE);
 		static_this();
 		return MOTION_DETAILS[type];
 	}
 
 	/// 変更ハンドラを登録する。
 	@property
-	void changeHandler(void delegate() change) {
+	void changeHandler(void delegate() change) { mixin(S_TRACE);
 		if (_beast) _beast.changeHandler = change;
 		_change = change;
 	}
@@ -235,15 +236,15 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (_beast) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (_beast) { mixin(S_TRACE);
 			_beast.setUseCounter(uc);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_beast) {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_beast) { mixin(S_TRACE);
 			_beast.removeUseCounter();
 		}
 		_uc = null;
@@ -252,20 +253,20 @@ public:
 	/// コピーを作成する。
 	@property
 	const
-	Motion dup() {
+	Motion dup() { mixin(S_TRACE);
 		auto r = new Motion(type, element);
 		r.damageType = damageType;
 		r.uValue = uValue;
 		r.aValue = aValue;
 		r.round = round;
 		r.maxNest = maxNest;
-		if (_beast) {
+		if (_beast) { mixin(S_TRACE);
 			r.beast = _beast.dup;
 		}
 		return r;
 	}
 	const
-	bool opEquals(ref const(Object) o) {
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto m = cast(const(Motion)) o;
 		if (!m) return false;
 		if (m.type != type) return false;
@@ -275,16 +276,16 @@ public:
 		if (m.aValue != aValue) return false;
 		if (m.round != round) return false;
 		if (m.maxNest != maxNest) return false;
-		if (_beast) {
-			if (m._beast) {
+		if (_beast) { mixin(S_TRACE);
+			if (m._beast) { mixin(S_TRACE);
 				return _beast == m._beast;
 			}
 			return false;
-		} else {
+		} else { mixin(S_TRACE);
 			return !m._beast;
 		}
 	}
-	private static int roundValue(int val, int max, int min) {
+	private static int roundValue(int val, int max, int min) { mixin(S_TRACE);
 		if (val > max) return max;
 		if (val < min) return min;
 		return val;
@@ -315,7 +316,7 @@ public:
 	static const uValue_max = int.max;
 	/// ditto
 	@property
-	void uValue(int val) {
+	void uValue(int val) { mixin(S_TRACE);
 		_uValue = roundValue(val, uValue_max, uValue_min);
 	}
 	/// ボーナス・ペナルティ値。
@@ -328,7 +329,7 @@ public:
 	static const aValue_max = 10;
 	/// ditto
 	@property
-	void aValue(int val) {
+	void aValue(int val) { mixin(S_TRACE);
 		_aValue = roundValue(val, aValue_max, aValue_min);
 	}
 	/// ラウンド数。
@@ -337,7 +338,7 @@ public:
 	int round() {return _round;}
 	/// ditto
 	@property
-	void round(int val) {
+	void round(int val) { mixin(S_TRACE);
 		_round = roundValue(val, round_max, round_min);
 	}
 	/// ditto
@@ -360,28 +361,28 @@ public:
 	const(BeastCard)[] beasts() {return _beast ? [_beast] : [];}
 	/// ditto
 	@property
-	void beast(in BeastCard beast) {
-		if (_beast) {
+	void beast(in BeastCard beast) { mixin(S_TRACE);
+		if (_beast) { mixin(S_TRACE);
 			_beast.changeHandler = null;
 			_beast.removeUseCounter();
 			_beast.owner = null;
 		}
-		if (beast) {
+		if (beast) { mixin(S_TRACE);
 			setBeastImpl(beast.dup);
-		} else {
+		} else { mixin(S_TRACE);
 			_beast = null;
 		}
 	}
 	/// XMLノードから召喚獣を読み出して設定する。
 	/// ノードから生成された召喚獣のIDを返す。
-	ulong setBeastFromNode(ref XNode node, in XMLInfo ver) {
+	ulong setBeastFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		assert (node.name == "BeastCard", "setBeastFromNode: " ~ node.name);
 		auto b = BeastCard.createFromNode(node, ver);
 		ulong bid = b.id;
 		setBeastImpl(b);
 		return bid;
 	}
-	private void setBeastImpl(BeastCard beast) {
+	private void setBeastImpl(BeastCard beast) { mixin(S_TRACE);
 		_beast = beast;
 		_beast.id = 1L;
 		_beast.changeHandler = _change;
@@ -389,7 +390,7 @@ public:
 		_beast.owner = this;
 	}
 	/// 召喚獣カードの画像イメージのパスが該当するものであれば更新する。
-	void change(PathId id) {
+	void change(PathId id) { mixin(S_TRACE);
 		_beast.change(id);
 	}
 
@@ -399,7 +400,7 @@ public:
 	uint maxNest() {return _maxNest;}
 	/// ditto
 	@property
-	void maxNest(uint val) {
+	void maxNest(uint val) { mixin(S_TRACE);
 		_maxNest = roundValue(val, maxNest_max, maxNest_min);
 	}
 	/// ネスト可能回数の初期値、最小値、最大値。
@@ -411,12 +412,12 @@ public:
 
 	/// XMLテキスト化して返す。
 	const
-	string toXML(XMLOption opt) {
+	string toXML(XMLOption opt) { mixin(S_TRACE);
 		return toNode(opt).text;
 	}
 	/// XMLノード化して返す。
 	const
-	XNode toNode(XMLOption opt) {
+	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto e = XNode.create(XML_NAME);
 		toNodeImpl(e, opt);
 		return e;
@@ -424,13 +425,13 @@ public:
 	/// XMLノードに自身のデータをノード化して追加し、
 	/// そのノードを返す。
 	const
-	XNode toNode(ref XNode node, XMLOption opt) {
+	XNode toNode(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		auto e = node.newElement(XML_NAME);
 		toNodeImpl(e, opt);
 		return e;
 	}
 	const
-	private XNode toNodeImpl(ref XNode e, XMLOption opt) {
+	private XNode toNodeImpl(ref XNode e, XMLOption opt) { mixin(S_TRACE);
 		auto d = detail;
 		e.newAttr("type", d.name);
 		e.newAttr("element", fromElement(element));
@@ -438,11 +439,11 @@ public:
 		if (d.use(MArg.U_VALUE)) e.newAttr(d.attr(MArg.U_VALUE), uValue);
 		if (d.use(MArg.A_VALUE)) e.newAttr(d.attr(MArg.A_VALUE), aValue);
 		if (d.use(MArg.ROUND)) e.newAttr(d.attr(MArg.ROUND), round);
-		if (d.use(MArg.BEAST)) {
+		if (d.use(MArg.BEAST)) { mixin(S_TRACE);
 			auto be = e.newElement("Beasts");
 			be.newAttr("maxNest", maxNest);
-			if (_beast) {
-				if (opt && opt.includeCard && 0 != _beast.linkId) {
+			if (_beast) { mixin(S_TRACE);
+				if (opt && opt.includeCard && 0 != _beast.linkId) { mixin(S_TRACE);
 				// FIXME: リンクに失敗する
 //					auto nestCount = opt.nestCount.get(_beast.linkId, 0) + 1;
 					auto p = _beast.linkId in opt.nestCount;
@@ -450,15 +451,15 @@ public:
 					nestCount++;
 
 					opt.nestCount[_beast.linkId] = nestCount;
-					if (nestCount <= maxNest) {
+					if (nestCount <= maxNest) { mixin(S_TRACE);
 						_beast.toNode(be, opt);
 					}
-					if (1 >= nestCount) {
+					if (1 >= nestCount) { mixin(S_TRACE);
 						opt.nestCount.remove(_beast.linkId);
-					} else {
+					} else { mixin(S_TRACE);
 						opt.nestCount[_beast.linkId] = nestCount - 1;
 					}
-				} else {
+				} else { mixin(S_TRACE);
 					_beast.toNode(be, opt);
 				}
 			}
@@ -467,7 +468,7 @@ public:
 	}
 
 	/// XMLノードからインスタンスを生成して返す。
-	static Motion createFromNode(ref XNode node, in XMLInfo ver) {
+	static Motion createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		static_this();
 		string elStr = null;
 		auto type = MTYPE_MAP[node.attr("type", true)];
@@ -477,11 +478,11 @@ public:
 		if (d.use(MArg.U_VALUE)) r.uValue = node.attr!(uint)(d.attr(MArg.U_VALUE), true);
 		if (d.use(MArg.A_VALUE)) r.aValue = node.attr!(int)(d.attr(MArg.A_VALUE), true);
 		if (d.use(MArg.ROUND)) r.round = node.attr!(uint)(d.attr(MArg.ROUND), true);
-		if (d.use(MArg.BEAST)) {
-			node.onTag["Beasts"] = (ref XNode node) {
+		if (d.use(MArg.BEAST)) { mixin(S_TRACE);
+			node.onTag["Beasts"] = (ref XNode node) { mixin(S_TRACE);
 				int maxNestInit = maxNest_init;
 				r.maxNest = node.attr("maxNest", false, maxNestInit);
-				node.onTag["BeastCard"] = (ref XNode node) {
+				node.onTag["BeastCard"] = (ref XNode node) { mixin(S_TRACE);
 					r.setBeastFromNode(node, ver);
 				};
 				node.parse();
@@ -492,18 +493,18 @@ public:
 	}
 
 	@property
-	override string cwxPath(bool id) {
+	override string cwxPath(bool id) { mixin(S_TRACE);
 		return _owner ? cpjoin(_owner, "motion", .countUntil!("a is b")(_owner.motions, this), id) : "";
 	}
-	override CWXPath findCWXPath(string path) {
+	override CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
-		case "beastcard": {
+		case "beastcard": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			return index == 0 && beast ? beast.findCWXPath(cpbottom(path)) : null;
 		}
-		case "beastcard:id": {
+		case "beastcard:id": { mixin(S_TRACE);
 			return beast && beast.id == cpindex(path) ? beast.findCWXPath(cpbottom(path)) : null;
 		}
 		default: break;
@@ -512,7 +513,7 @@ public:
 	}
 	@property
 	const
-	const(CWXPath)[] cwxChilds() {
+	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
 		if (_beast) r ~= _beast;
 		return r;

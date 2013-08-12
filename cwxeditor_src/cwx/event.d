@@ -25,7 +25,7 @@ import std.conv;
 import std.range;
 
 private bool static_this_completed = false;
-private void static_this () {
+private void static_this () { mixin(S_TRACE);
 	if (static_this_completed) return;
 	static_this_completed = true;
 
@@ -193,7 +193,7 @@ private void static_this () {
 		CType.CHECK_STEP:CDetail("Check", "Step", CNextType.BOOL, true, [CArg.STEP:"step", CArg.STEP_VALUE:"value", CArg.COMPARISON_4:"comparison"]),
 		CType.BRANCH_ROUND:CDetail("Branch", "Round", CNextType.BOOL, true, [CArg.ROUND:"round", CArg.COMPARISON_3:"comparison"]),
 	];
-	foreach (cType, detail; _CONTENT_DETAILS) {
+	foreach (cType, detail; _CONTENT_DETAILS) { mixin(S_TRACE);
 		_CTYPE_MAP[detail.name][detail.type] = cType;
 	}
 }
@@ -201,7 +201,7 @@ private void static_this () {
 private CType[][CTypeGroup] _CTYPE_GROUP;
 /// コンテントタイプの分類毎の配列。
 @property
-CType[][CTypeGroup] CTYPE_GROUP() {
+CType[][CTypeGroup] CTYPE_GROUP() { mixin(S_TRACE);
 	static_this();
 	return _CTYPE_GROUP;
 }
@@ -209,14 +209,14 @@ CType[][CTypeGroup] CTYPE_GROUP() {
 private CDetail[CType] _CONTENT_DETAILS;
 /// コンテントタイプ毎の情報。
 @property
-private CDetail[CType] CONTENT_DETAILS() {
+private CDetail[CType] CONTENT_DETAILS() { mixin(S_TRACE);
 	static_this();
 	return _CONTENT_DETAILS;
 }
 private CType[string][string] _CTYPE_MAP;
 /// コンテントタイプと要素名・属性名の対応表。
 @property
-private CType[string][string] CTYPE_MAP() {
+private CType[string][string] CTYPE_MAP() { mixin(S_TRACE);
 	static_this();
 	return _CTYPE_MAP;
 }
@@ -249,7 +249,7 @@ struct CDetail {
 		r.args = args;
 		return r;
 	}
-	static CDetail fromType(CType type) {
+	static CDetail fromType(CType type) { mixin(S_TRACE);
 		return CONTENT_DETAILS[type];
 	}
 }
@@ -274,56 +274,56 @@ public:
 	static const XML_NAME = "Dialog";
 
 	/// コンストラクタ。
-	this (string text = "", string[] rCoupons = []) {
+	this (string text = "", string[] rCoupons = []) { mixin(S_TRACE);
 		_text = new TextHolder;
 		_text.text = text;
 		_text.owner = this;
 		this.rCoupons = rCoupons;
 	}
 	/// コピーコンストラクタ。
-	this (in SDialog base) {
+	this (in SDialog base) { mixin(S_TRACE);
 		this (base.text, base.rCoupons);
 	}
 	const
-	bool opEquals(ref const(Object) o) {
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto d = cast(const(SDialog)) o;
 		return d && d.rCoupons == rCoupons && d.text == text;
 	}
 	/// メッセージ。
 	@property
 	const
-	string text() {
+	string text() { mixin(S_TRACE);
 		return _text.text;
 	}
 	/// ditto
 	@property
-	void text(string text) {
+	void text(string text) { mixin(S_TRACE);
 		if (_parent && _text.text != text) _parent.changed();
 		_text.text = text;
 	}
 	/// 口調分け条件クーポン群。
 	@property
 	const
-	string[] rCoupons() {
+	string[] rCoupons() { mixin(S_TRACE);
 		auto r = new string[_rCoupons.length];
-		foreach (i, ref c; r) {
+		foreach (i, ref c; r) { mixin(S_TRACE);
 			c = _rCoupons[i].coupon;
 		}
 		return r;
 	}
 	/// ditto
 	@property
-	void rCoupons(string[] rCoupons) {
-		if (this.rCoupons != rCoupons) {
+	void rCoupons(string[] rCoupons) { mixin(S_TRACE);
+		if (this.rCoupons != rCoupons) { mixin(S_TRACE);
 			if (_parent) _parent.changed();
-			foreach (c; _rCoupons) {
+			foreach (c; _rCoupons) { mixin(S_TRACE);
 				c.removeUseCounter();
 			}
 			_rCoupons.length = rCoupons.length;
-			foreach (i, ref c; _rCoupons) {
+			foreach (i, ref c; _rCoupons) { mixin(S_TRACE);
 				c = new CouponUser(this);
 				c.coupon = rCoupons[i];
-				if (useCounter) {
+				if (useCounter) { mixin(S_TRACE);
 					c.setUseCounter = useCounter;
 				}
 			}
@@ -331,12 +331,12 @@ public:
 	}
 	/// このSDialogを所持するSpeak。
 	@property
-	Content parent() {
+	Content parent() { mixin(S_TRACE);
 		return _parent;
 	}
 	/// ditto
 	@property
-	void parent(Content s) {
+	void parent(Content s) { mixin(S_TRACE);
 		_parent = s;
 	}
 	/// 使用回数カウンタ。
@@ -344,26 +344,26 @@ public:
 	UseCounter useCounter() {return _text.useCounter;}
 	/// 使用回数カウンタを設定・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		_text.setUseCounter(uc);
-		foreach (ref c; _rCoupons) {
+		foreach (ref c; _rCoupons) { mixin(S_TRACE);
 			c.setUseCounter = useCounter;
 		}
 	}
 	/// ditto
-	void removeUseCounter() {
+	void removeUseCounter() { mixin(S_TRACE);
 		_text.removeUseCounter();
-		foreach (ref c; _rCoupons) {
+		foreach (ref c; _rCoupons) { mixin(S_TRACE);
 			c.removeUseCounter();
 		}
 	}
-	override void change(PathId id) {
+	override void change(PathId id) { mixin(S_TRACE);
 		_text.change(id);
 	}
-	override void change(FlagId id) {
+	override void change(FlagId id) { mixin(S_TRACE);
 		_text.change(id);
 	}
-	override void change(StepId id) {
+	override void change(StepId id) { mixin(S_TRACE);
 		_text.change(id);
 	}
 	// テキスト内で使用されているfont_X.png等のパス。
@@ -379,56 +379,56 @@ public:
 	const
 	override string[] stepsInText() { return _text.stepsInText; }
 	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
-	override void changeInText(size_t index, PathId id) {
+	override void changeInText(size_t index, PathId id) { mixin(S_TRACE);
 		_text.change(index, id);
 	}
 	/// ditto
-	override void changeInText(size_t index, FlagId id) {
+	override void changeInText(size_t index, FlagId id) { mixin(S_TRACE);
 		_text.change(index, id);
 	}
 	/// ditto
-	override void changeInText(size_t index, StepId id) {
+	override void changeInText(size_t index, StepId id) { mixin(S_TRACE);
 		_text.change(index, id);
 	}
 	const
-	XNode toNode() {
+	XNode toNode() { mixin(S_TRACE);
 		auto e = XNode.create(XML_NAME);
 		toNodeImpl(e);
 		return e;
 	}
 	const
-	void toNode(ref XNode node) {
+	void toNode(ref XNode node) { mixin(S_TRACE);
 		assert (node.name == "Dialogs", node.name ~ " != Dialogs");
 		auto e = node.newElement(XML_NAME);
 		toNodeImpl(e);
 	}
 	const
-	private void toNodeImpl(ref XNode e) {
+	private void toNodeImpl(ref XNode e) { mixin(S_TRACE);
 		assert (e.name == XML_NAME, e.name ~ " != " ~ XML_NAME);
 		e.newElement("RequiredCoupons", encodeLf(rCoupons, true));
 		e.newElement("Text", encodeLf(text));
 	}
-	static SDialog createFromNode(ref XNode node, in XMLInfo ver) {
+	static SDialog createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		assert (node.name == XML_NAME, node.name ~ " != " ~ XML_NAME);
 		string[] rCoupons;
 		string text;
-		node.onTag["RequiredCoupons"] = (ref XNode n) {
+		node.onTag["RequiredCoupons"] = (ref XNode n) { mixin(S_TRACE);
 			rCoupons = decodeLf(n.value);
 		};
-		node.onTag["Text"] = (ref XNode n) {
+		node.onTag["Text"] = (ref XNode n) { mixin(S_TRACE);
 			text = decodeLf2(n.value);
 		};
 		node.parse();
 		return new SDialog(text, rCoupons);
 	}
 	@property
-	string cwxPath(bool id) {
+	string cwxPath(bool id) { mixin(S_TRACE);
 		return _parent ? cpjoin(_parent, "dialog", .cCountUntil!("a is b")(_parent.dialogs, this), id) : "";
 	}
-	override CWXPath findCWXPath(string path) {
+	override CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
-		if (cate == "text") {
+		if (cate == "text") { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index > 0) return null;
 			return _text.findCWXPath(cpbottom(path));
@@ -451,7 +451,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	private EventTree _tree = null;
 
 	/// 型と後続テキストnameを指定してインスタンスを生成。
-	this (CType type, string name) {
+	this (CType type, string name) { mixin(S_TRACE);
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_type = type;
 		_name = new SimpleTextHolder;
@@ -462,7 +462,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// ディープコピーを生成する。
 	@property
 	const
-	Content dup() {
+	Content dup() { mixin(S_TRACE);
 		auto copy = new Content(type, name);
 		copy.comment = comment;
 
@@ -530,14 +530,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		copy.round = round;
 
 		Motion[] motions;
-		foreach (m; this.motions) {
+		foreach (m; this.motions) { mixin(S_TRACE);
 			motions ~= m.dup;
 		}
 		copy.motions = motions;
 
 		copy.text = text;
 		SDialog[] dialogs;
-		foreach (d; this.dialogs) {
+		foreach (d; this.dialogs) { mixin(S_TRACE);
 			dialogs ~= new SDialog(d);
 		}
 		copy.dialogs = dialogs;
@@ -548,18 +548,18 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		copy.talkerNC = talkerNC;
 
 		BgImage[] backs;
-		foreach (b; this.backs) {
+		foreach (b; this.backs) { mixin(S_TRACE);
 			backs ~= b.dup;
 		}
 		copy.backs = backs;
 
 		Coupon[] coupons;
-		foreach (c; this.coupons) {
+		foreach (c; this.coupons) { mixin(S_TRACE);
 			coupons ~= new Coupon(c);
 		}
 		copy.coupons = coupons;
 
-		foreach (c; next) {
+		foreach (c; next) { mixin(S_TRACE);
 			copy.add(null, c.dup);
 		}
 
@@ -567,7 +567,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 
 	const
-	bool opEquals(ref const(Object) o) {
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto c = cast(const(Content)) o;
 		if (!c) return false;
 		return type == c.type
@@ -673,40 +673,40 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	CDetail detail() {return CONTENT_DETAILS[type];}
 
 	/// プロパティを正規化する。
-	private void validate() {
-		if (CType.BRANCH_STATUS is type) {
+	private void validate() { mixin(S_TRACE);
+		if (CType.BRANCH_STATUS is type) { mixin(S_TRACE);
 			if (Status.NONE is _status) _status = Status.ACTIVE;
 		}
 	}
 
 	/// 型変換が可能であればtrue。
 	const
-	bool canConvert(CType type) {
+	bool canConvert(CType type) { mixin(S_TRACE);
 		if (type == this.type) return false;
 		if (type == CType.START || this.type == CType.START) return false;
 		return _next.length ? CONTENT_DETAILS[type].owner : true;
 	}
 
-	private static void resetValue(CArg Arg, T, T Init)(in CDetail d, void delegate(T) set) {
-		if (!d.use(Arg)) {
+	private static void resetValue(CArg Arg, T, T Init)(in CDetail d, void delegate(T) set) { mixin(S_TRACE);
+		if (!d.use(Arg)) { mixin(S_TRACE);
 			set(Init);
 		}
 	}
 	/// コンテントの型を変換。
-	void convertType(CType type, in CProps prop) {
+	void convertType(CType type, in CProps prop) { mixin(S_TRACE);
 		if (!canConvert(type)) throw new Exception("can not convert: " ~ prop.msgs.contentName(type));
 		if (_type == type) return;
 		changed();
 		auto od = detail;
 		_type = type;
-		foreach (n; next) {
+		foreach (n; next) { mixin(S_TRACE);
 			validText(prop, n);
 		}
 
-		if (_suc) {
-			if (od.use(CArg.START) && !detail.use(CArg.START)) {
+		if (_suc) { mixin(S_TRACE);
+			if (od.use(CArg.START) && !detail.use(CArg.START)) { mixin(S_TRACE);
 				_suc.remove(toStartId(_start), this);
-			} else if (!od.use(CArg.START) && detail.use(CArg.START)) {
+			} else if (!od.use(CArg.START) && detail.use(CArg.START)) { mixin(S_TRACE);
 				_suc.add(toStartId(_start), this);
 			}
 		}
@@ -795,19 +795,19 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	private SimpleTextHolder _name;
 	/// テキスト。
 	@property
-	private void name(string name) {
-		if (_name.text != name) {
+	private void name(string name) { mixin(S_TRACE);
+		if (_name.text != name) { mixin(S_TRACE);
 			changed();
-			if (_type is CType.START && _tree) {
+			if (_type is CType.START && _tree) { mixin(S_TRACE);
 				_tree.startUseCounter.change(toStartId(_name.text), toStartId(name), true);
 			}
 			_name.text = name;
 		}
 	}
 	/// ditto
-	void setName(in CProps prop, string name) {
+	void setName(in CProps prop, string name) { mixin(S_TRACE);
 		this.name = name;
-		if (parent) {
+		if (parent) { mixin(S_TRACE);
 			parent.validText(prop, this);
 		}
 	}
@@ -817,17 +817,17 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	string name() {return _name.text;}
 
 	/// nameを後続コンテントとして適切な名前に変換して返す。
-	private void validText(in CProps prop, Content n) {
+	private void validText(in CProps prop, Content n) { mixin(S_TRACE);
 		if (!prop) return;
-		string selectName(string[] selectable, string def) {
-			foreach (nn; next) {
+		string selectName(string[] selectable, string def) { mixin(S_TRACE);
+			foreach (nn; next) { mixin(S_TRACE);
 				if (nn is n) continue;
 				cwx.utils.remove(selectable, nn.name);
 			}
 			return selectable.length ? selectable[0] : def;
 		}
-		bool setNum() {
-			if (prop.sys.evtChildDefault != n.name && !std.string.isNumeric(n.name) || n.name == "0") {
+		bool setNum() { mixin(S_TRACE);
+			if (prop.sys.evtChildDefault != n.name && !std.string.isNumeric(n.name) || n.name == "0") { mixin(S_TRACE);
 				n.name = prop.sys.evtChildDefault;
 				return true;
 			}
@@ -840,66 +840,66 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		final switch (detail.nextType) {
 		case CNextType.NONE: n.name = ""; break;
 		case CNextType.TEXT: break;
-		case CNextType.BOOL: {
-			if (prop.sys.evtChildTrue != n.name && prop.sys.evtChildFalse != n.name) {
+		case CNextType.BOOL: { mixin(S_TRACE);
+			if (prop.sys.evtChildTrue != n.name && prop.sys.evtChildFalse != n.name) { mixin(S_TRACE);
 				n.name = selectName([prop.sys.evtChildTrue, prop.sys.evtChildFalse], prop.sys.evtChildTrue);
 			}
 		} break;
-		case CNextType.STEP: {
-			if (prop.sys.evtChildDefault != n.name && !std.string.isNumeric(n.name)) {
+		case CNextType.STEP: { mixin(S_TRACE);
+			if (prop.sys.evtChildDefault != n.name && !std.string.isNumeric(n.name)) { mixin(S_TRACE);
 				int num = prop.looks.stepMaxCount;
-				if (summ) {
+				if (summ) { mixin(S_TRACE);
 					auto step = summ.flagDirRoot.findStep(this.step);
 					if (step) num = step.count;
 				}
 				string[] array;
-				foreach (i; .iota(0, num)) {
+				foreach (i; .iota(0, num)) { mixin(S_TRACE);
 					array ~= .text(i);
 				}
 				array ~= prop.sys.evtChildDefault;
 				n.name = selectName(array, prop.sys.evtChildDefault);
 			}
 		} break;
-		case CNextType.ID_AREA: {
-			if (setNum() && summ) {
+		case CNextType.ID_AREA: { mixin(S_TRACE);
+			if (setNum() && summ) { mixin(S_TRACE);
 				string[] array;
-				foreach (a; summ.areas) {
+				foreach (a; summ.areas) { mixin(S_TRACE);
 					array ~= .text(a.id);
 				}
 				array ~= prop.sys.evtChildDefault;
 				n.name = selectName(array, prop.sys.evtChildDefault);
 			}
-			if (n.name != prop.sys.evtChildDefault) {
-				try {
+			if (n.name != prop.sys.evtChildDefault) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					n.area = to!(ulong)(n.name);
-				} catch {
+				} catch { mixin(S_TRACE);
 					n.area = 0;
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				n.area = 0;
 			}
 		} break;
-		case CNextType.ID_BATTLE: {
-			if (setNum() && summ) {
+		case CNextType.ID_BATTLE: { mixin(S_TRACE);
+			if (setNum() && summ) { mixin(S_TRACE);
 				string[] array;
-				foreach (a; summ.battles) {
+				foreach (a; summ.battles) { mixin(S_TRACE);
 					array ~= .text(a.id);
 				}
 				array ~= prop.sys.evtChildDefault;
 				n.name = selectName(array, prop.sys.evtChildDefault);
 			}
-			if (n.name != prop.sys.evtChildDefault) {
-				try {
+			if (n.name != prop.sys.evtChildDefault) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					n.battle = to!(ulong)(n.name);
-				} catch {
+				} catch { mixin(S_TRACE);
 					n.battle = 0;
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				n.battle = 0;
 			}
 		} break;
-		case CNextType.TRIO: {
-			if (prop.sys.evtChildGreater != n.name && prop.sys.evtChildLesser != n.name && prop.sys.evtChildEq != n.name) {
+		case CNextType.TRIO: { mixin(S_TRACE);
+			if (prop.sys.evtChildGreater != n.name && prop.sys.evtChildLesser != n.name && prop.sys.evtChildEq != n.name) { mixin(S_TRACE);
 				n.name = selectName([prop.sys.evtChildGreater, prop.sys.evtChildLesser, prop.sys.evtChildEq], prop.sys.evtChildGreater);
 			}
 		} break;
@@ -914,7 +914,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	string comment() {return _comment;}
 	/// ditto
 	@property
-	void comment(string v) {
+	void comment(string v) { mixin(S_TRACE);
 		if (_comment == v) return;
 		changed();
 		_comment = v;
@@ -924,40 +924,40 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	private Content _parent = null;
 	/// 親イベント。
 	@property
-	private void parent(Content parent) in {
+	private void parent(Content parent) in { mixin(S_TRACE);
 		assert (!parent || parent.detail.owner);
 		assert (parent !is this);
 		assert (type !is CType.START);
-	} body {
+	} body { mixin(S_TRACE);
 		if (_parent is parent) return;
 		bool oldAreaBr = _parent && _parent.detail.nextType == CNextType.ID_AREA;
 		bool oldBattleBr = _parent && _parent.detail.nextType == CNextType.ID_BATTLE;
 		bool newAreaBr = parent && parent.detail.nextType == CNextType.ID_AREA;
 		bool newBattleBr = parent && parent.detail.nextType == CNextType.ID_BATTLE;
-		if (!oldAreaBr && newAreaBr) {
-			if (icmp(name, "default") == 0) {
+		if (!oldAreaBr && newAreaBr) { mixin(S_TRACE);
+			if (icmp(name, "default") == 0) { mixin(S_TRACE);
 				area = 0;
-			} else if (std.string.isNumeric(name)) {
-				try {
+			} else if (std.string.isNumeric(name)) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					area = to!(ulong)(name);
-				} catch {
+				} catch { mixin(S_TRACE);
 					area = 0;
 				}
 			}
-		} else if (oldAreaBr && !newAreaBr) {
+		} else if (oldAreaBr && !newAreaBr) { mixin(S_TRACE);
 			area = 0;
 		}
-		if (!oldBattleBr && newBattleBr) {
-			if (icmp(name, "default") == 0) {
+		if (!oldBattleBr && newBattleBr) { mixin(S_TRACE);
+			if (icmp(name, "default") == 0) { mixin(S_TRACE);
 				battle = 0;
-			} else if (std.string.isNumeric(name)) {
-				try {
+			} else if (std.string.isNumeric(name)) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					battle = to!(ulong)(name);
-				} catch {
+				} catch { mixin(S_TRACE);
 					battle = 0;
 				}
 			}
-		} else if (oldBattleBr && !newBattleBr) {
+		} else if (oldBattleBr && !newBattleBr) { mixin(S_TRACE);
 			battle = 0;
 		}
 		_parent = parent;
@@ -970,29 +970,29 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const
 	const(Content) parent() {return _parent;}
 	@property
-	override string cwxPath(bool id) {
-		if (_parent) {
+	override string cwxPath(bool id) { mixin(S_TRACE);
+		if (_parent) { mixin(S_TRACE);
 			return cpjoin(_parent, .cCountUntil!("a is b")(_parent.next, this), id);
-		} else if (_tree) {
+		} else if (_tree) { mixin(S_TRACE);
 			return cpjoin(_tree, .cCountUntil!("a is b")(_tree.starts, this), id);
 		}
 		return "";
 	}
-	override CWXPath findCWXPath(string path) {
+	override CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
-		case "": {
+		case "": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= _next.length) return null;
 			return _next[index].findCWXPath(cpbottom(path));
 		}
-		case "dialog": {
+		case "dialog": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= dialogs.length) return null;
 			return dialogs[index].findCWXPath(cpbottom(path));
 		}
-		case "text": {
+		case "text": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index > 0) return null;
 			return _text.findCWXPath(cpbottom(path));
@@ -1003,7 +1003,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	@property
 	const
-	const(CWXPath)[] cwxChilds() {
+	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
 		r ~= cast(const CWXPath[]) next;
 		r ~= cast(const CWXPath[]) dialogs;
@@ -1014,10 +1014,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return r;
 	}
 	@property
-	CWXPath cwxParent() {
-		if (_parent) {
+	CWXPath cwxParent() { mixin(S_TRACE);
+		if (_parent) { mixin(S_TRACE);
 			return _parent;
-		} else if (_tree) {
+		} else if (_tree) { mixin(S_TRACE);
 			return _tree;
 		}
 		return null;
@@ -1025,20 +1025,20 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	/// EventTreeからこのコンテントに到達するまでのindex群を返す。
 	@property
-	size_t[] ctPath() {
-		if (parent) {
+	size_t[] ctPath() { mixin(S_TRACE);
+		if (parent) { mixin(S_TRACE);
 			assert (contains!("a is b")(parent.next, this));
 			size_t[] r = parent.ctPath;
 			r ~= .cCountUntil!("a is b")(parent.next, this);
 			return r;
-		} else {
+		} else { mixin(S_TRACE);
 			assert (contains!("a is b")(_tree.starts, this));
 			return [.cCountUntil!("a is b")(_tree.starts, this)];
 		}
 	}
 	/// このコンテントが属すツリーを返す。
 	@property
-	EventTree tree() {
+	EventTree tree() { mixin(S_TRACE);
 		auto ps = parentStart;
 		if (ps) return ps._tree;
 		return null;
@@ -1046,14 +1046,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// ditto
 	@property
 	const
-	const(EventTree) tree() {
+	const(EventTree) tree() { mixin(S_TRACE);
 		auto ps = parentStart;
 		if (ps) return ps._tree;
 		return null;
 	}
 	/// このコンテントが属すスタートコンテントを返す。
 	@property
-	Content parentStart() {
+	Content parentStart() { mixin(S_TRACE);
 		if (type is CType.START) return this;
 		if (!parent) return null;
 		return parent.parentStart;
@@ -1061,20 +1061,20 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// ditto
 	@property
 	const
-	const(Content) parentStart() {
+	const(Content) parentStart() { mixin(S_TRACE);
 		if (type is CType.START) return this;
 		if (!parent) return null;
 		return parent.parentStart;
 	}
 	/// パスを辿って子孫のコンテントを返す。
-	Content fromPath(size_t[] path) {
+	Content fromPath(size_t[] path) { mixin(S_TRACE);
 		if (!path.length) return this;
 		if (path.length == 1) return next[path[0]];
 		return next[path[0]].fromPath(path[1 .. $]);
 	}
 	/// このコンテントが指定されたコンテントそのもの、
 	/// もしくは子孫であればtrueを返す。
-	bool isDescendant(in Content c) {
+	bool isDescendant(in Content c) { mixin(S_TRACE);
 		if (this is c) return true;
 		if (!parent) return false;
 		return parent.isDescendant(c);
@@ -1090,7 +1090,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const(Content)[] next() {return _next;}
 
 	/// 後続コンテントのインデックスを交換する。
-	void swapContent(int index1, int index2) {
+	void swapContent(int index1, int index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();
 		auto temp = _next[index1];
 		_next[index1] = _next[index2];
@@ -1098,7 +1098,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 
 	/// 後続コンテントを追加する。
-	void add(in CProps prop, Content c) {
+	void add(in CProps prop, Content c) { mixin(S_TRACE);
 		if (c.parent) c.parent.remove(c);
 		validText(prop, c);
 		c.parent = this;
@@ -1109,10 +1109,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		changed();
 	}
 	/// ditto
-	void insert(in CProps prop, int index, Content c) {
-		if (next.length == index) {
+	void insert(in CProps prop, int index, Content c) { mixin(S_TRACE);
+		if (next.length == index) { mixin(S_TRACE);
 			add(prop, c);
-		} else {
+		} else { mixin(S_TRACE);
 			if (c.parent) c.parent.remove(c);
 			validText(prop, c);
 			c.parent = this;
@@ -1125,7 +1125,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 
 	/// 後続コンテントを除外する。
-	void remove(int index) {
+	void remove(int index) { mixin(S_TRACE);
 		if (_uc !is null) _next[index].removeUseCounter();
 		if (_suc !is null) _next[index].removeSUseCounter();
 		_next[index].changeHandler = null;
@@ -1134,9 +1134,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		changed();
 	}
 	/// ditto
-	void remove(Content c) {
-		foreach (i, ct; _next) {
-			if (c is ct) {
+	void remove(Content c) { mixin(S_TRACE);
+		foreach (i, ct; _next) { mixin(S_TRACE);
+			if (c is ct) { mixin(S_TRACE);
 				remove(i);
 				return;
 			}
@@ -1144,16 +1144,16 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		assert (0);
 	}
 
-	private void setValUCs(T)(T val, UseCounter uc = null, Content c = null) {
+	private void setValUCs(T)(T val, UseCounter uc = null, Content c = null) { mixin(S_TRACE);
 		static if (is(typeof(val.owner(this)))) {
 			val.owner = this;
 		}
 		static if (!is(T : Motion)) {
 			static if (is(typeof(val.setUseCounter(uc)))) {
-				if (val.useCounter || !uc) {
+				if (val.useCounter || !uc) { mixin(S_TRACE);
 					val.removeUseCounter();
 				}
-				if (uc) {
+				if (uc) { mixin(S_TRACE);
 					val.setUseCounter(uc);
 				}
 				static if (is(typeof(val.parent))) {
@@ -1161,7 +1161,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 					val.parent = c;
 				}
 			} else static if (!is(T : string) && is(typeof(val[0u]))) {
-				foreach (vc; val) {
+				foreach (vc; val) { mixin(S_TRACE);
 					setValUCs(vc, uc, c);
 				}
 			}
@@ -1172,14 +1172,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// mixin Prop!(AreaUser, "area", 0UL, ".area", ".area", true);
 	/// 
 	/// private AreaUser _area;
-	/// void area(ulong val) {
+	/// void area(ulong val) { mixin(S_TRACE);
 	/// 	if (!_area) _area = new AreaUser(this);
 	/// 	if (_area.area != val) changed();
 	/// 	setValUCs(this._area.area, null, null);
 	/// 	setValUCs(val, _uc, this);
 	/// 	_area.area = val;
 	/// }
-	/// ulong area() {
+	/// ulong area() { mixin(S_TRACE);
 	/// 	return _area ? _area.area : 0UL;
 	/// }
 	/// ---
@@ -1242,8 +1242,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	private string _start = "";
 	/// スタート名。
 	@property
-	void start(string start) {
-		if (_suc && detail.use(CArg.START)) {
+	void start(string start) { mixin(S_TRACE);
+		if (_suc && detail.use(CArg.START)) { mixin(S_TRACE);
 			_suc.remove(toStartId(_start), this);
 			_suc.add(toStartId(start), this);
 		}
@@ -1256,23 +1256,23 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	/// エリアID。
 	mixin Prop!(AreaUser, ulong, "area", 0UL, ".area", ".area", true);
-	private bool check_area(ulong id) {
+	private bool check_area(ulong id) { mixin(S_TRACE);
 		areaChg(toAreaId(id));
 		return true;
 	}
-	private void areaChg(AreaId id) {
-		if (area != id && _parent && _parent.detail.nextType == CNextType.ID_AREA) {
+	private void areaChg(AreaId id) { mixin(S_TRACE);
+		if (area != id && _parent && _parent.detail.nextType == CNextType.ID_AREA) { mixin(S_TRACE);
 			name = id == 0 ? "Default" : to!(string)(cast(ulong) id);
 		}
 	}
 	/// バトルID。
 	mixin Prop!(BattleUser, ulong, "battle", 0UL, ".battle", ".battle", true);
-	private bool check_battle(ulong id) {
+	private bool check_battle(ulong id) { mixin(S_TRACE);
 		battleChg(toBattleId(id));
 		return true;
 	}
-	private void battleChg(BattleId id) {
-		if (battle != id && _parent && _parent.detail.nextType == CNextType.ID_BATTLE) {
+	private void battleChg(BattleId id) { mixin(S_TRACE);
+		if (battle != id && _parent && _parent.detail.nextType == CNextType.ID_BATTLE) { mixin(S_TRACE);
 			name = id == 0 ? "Default" : to!(string)(cast(ulong) id);
 		}
 	}
@@ -1333,7 +1333,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(Talker, "talkerC", Talker.NARRATION);
 	/// 話者(カード画像を含めない)。
 	mixin Prop!(Talker, "talkerNC", Talker.SELECTED);
-	private bool check_talkerNC(Talker val) {
+	private bool check_talkerNC(Talker val) { mixin(S_TRACE);
 		final switch (val) {
 		case Talker.SELECTED, Talker.UNSELECTED, Talker.RANDOM, Talker.VALUED: return true;
 		case Talker.NARRATION, Talker.CARD, Talker.IMAGE: return false;
@@ -1406,7 +1406,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	/// キーコード所持判定範囲(CardWirthNext)。
 	mixin Prop!(Range, "keyCodeRange", Range.PARTY_AND_BACKPACK);
-	private bool check_keyCodeRange(Range val) {
+	private bool check_keyCodeRange(Range val) { mixin(S_TRACE);
 		switch (val) {
 		case Range.SELECTED, Range.RANDOM, Range.BACKPACK, Range.PARTY_AND_BACKPACK: return true;
 		default: return false;
@@ -1437,35 +1437,35 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	private void delegate() _change;
 	/// 変更ハンドラを登録する。
 	@property
-	void changeHandler(void delegate() change) {
-		foreach (c; _next) {
+	void changeHandler(void delegate() change) { mixin(S_TRACE);
+		foreach (c; _next) { mixin(S_TRACE);
 			c.changeHandler = change;
 		}
 		_change = change;
 	}
 	/// 変更ハンドラ。
 	@property
-	private void delegate() changeHandler() {
+	private void delegate() changeHandler() { mixin(S_TRACE);
 		return _change;
 	}
 	/// 変更を通知する。
-	private void changed() {
+	private void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 
 	private UseCounter _uc = null;
-	private void setUseCounterImpl(T)(ref T v, UseCounter uc) {
+	private void setUseCounterImpl(T)(ref T v, UseCounter uc) { mixin(S_TRACE);
 		static if (is(T : EventTree)) return;
 		static if (is(T : Content)) if (parent is v) return;
 		static if (is(typeof(v.setUseCounter(uc)))) {
 			static if (is(typeof(v is null))) if (!v) return;
-			if (uc) {
+			if (uc) { mixin(S_TRACE);
 				v.setUseCounter(uc);
-			} else {
+			} else { mixin(S_TRACE);
 				v.removeUseCounter();
 			}
 		} else static if (!isSomeString!(T) && is(typeof(v[0u]))) {
-			foreach (i, vc; v) {
+			foreach (i, vc; v) { mixin(S_TRACE);
 				setUseCounterImpl(vc, uc);
 				v[i] = vc;
 			}
@@ -1473,14 +1473,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	/// 使用回数カウンタを設定・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		foreach (v; this.tupleof) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		foreach (v; this.tupleof) { mixin(S_TRACE);
 			setUseCounterImpl(v, uc);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
+	void removeUseCounter() { mixin(S_TRACE);
 		setUseCounter(null);
 		_uc = null;
 	}
@@ -1491,25 +1491,25 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	private SUseCounter _suc = null;
 	/// スタートの使用回数カウンタを設定・除去する。
 	@property
-	void setSUseCounter(SUseCounter suc) {
+	void setSUseCounter(SUseCounter suc) { mixin(S_TRACE);
 		if (_suc is suc) return;
-		if (suc && detail.use(CArg.START)) {
+		if (suc && detail.use(CArg.START)) { mixin(S_TRACE);
 			suc.add(toStartId(_start), this);
 		}
-		if (_suc && detail.use(CArg.START)) {
+		if (_suc && detail.use(CArg.START)) { mixin(S_TRACE);
 			_suc.remove(toStartId(_start), this);
 		}
-		foreach (c; next) {
+		foreach (c; next) { mixin(S_TRACE);
 			c.setSUseCounter(suc);
 		}
 		_suc = suc;
 	}
 	/// ditto
-	void removeSUseCounter() {
-		if (_suc && detail.use(CArg.START)) {
+	void removeSUseCounter() { mixin(S_TRACE);
+		if (_suc && detail.use(CArg.START)) { mixin(S_TRACE);
 			_suc.remove(toStartId(_start), this);
 		}
-		foreach (c; next) {
+		foreach (c; next) { mixin(S_TRACE);
 			c.removeSUseCounter();
 		}
 		_suc = null;
@@ -1517,25 +1517,25 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// スタートの使用回数カウンタ。
 	@property
 	SUseCounter startUseCounter() {return _suc;}
-	override void change(StartId newVal) {
+	override void change(StartId newVal) { mixin(S_TRACE);
 		_start = newVal;
 	}
 
-	private void idChangeImpl(T, Id)(ref T v, Id id) {
+	private void idChangeImpl(T, Id)(ref T v, Id id) { mixin(S_TRACE);
 		static if (is(T : EventTree)) return;
 		static if (is(T : Content)) if (parent is v) return;
 		static if (is(typeof(v.change(id)))) {
 			static if (is(typeof(v is null))) if (!v) return;
 			v.change(id);
 		} else static if (!isSomeString!(T) && is(typeof(v[0u]))) {
-			foreach (i, vc; v) {
+			foreach (i, vc; v) { mixin(S_TRACE);
 				idChangeImpl(vc, id);
 				v[i] = vc;
 			}
 		}
 	}
-	private void idChange(Id)(Id id) {
-		foreach (v; this.tupleof) {
+	private void idChange(Id)(Id id) { mixin(S_TRACE);
+		foreach (v; this.tupleof) { mixin(S_TRACE);
 			idChangeImpl(v, id);
 		}
 	}
@@ -1557,14 +1557,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	// テキスト内で使用されているfont_X.png等のパス。
 	@property
 	const
-	override string[] fontsInText() {
+	override string[] fontsInText() { mixin(S_TRACE);
 		if (!_text) return [];
 		return _text.fontsInText;
 	}
 	// テキスト内で使用されているフラグのパス。
 	@property
 	const
-	override string[] flagsInText() {
+	override string[] flagsInText() { mixin(S_TRACE);
 		string[] r;
 		if (_text) r ~= _text.flagsInText;
 		r ~= _name.flagsInText;
@@ -1573,35 +1573,35 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	// テキスト内で使用されているステップのパス。
 	@property
 	const
-	override string[] stepsInText() {
+	override string[] stepsInText() { mixin(S_TRACE);
 		string[] r;
 		if (_text) r ~= _text.stepsInText;
 		r ~= _name.stepsInText;
 		return r;
 	}
 	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
-	override void changeInText(size_t index, PathId id) {
+	override void changeInText(size_t index, PathId id) { mixin(S_TRACE);
 		if (_text) _text.change(index, id);
 	}
 	/// ditto
-	override void changeInText(size_t index, FlagId id) {
+	override void changeInText(size_t index, FlagId id) { mixin(S_TRACE);
 		if (_text) _text.change(index, id);
 		_name.change(index, id);
 	}
 	/// ditto
-	override void changeInText(size_t index, StepId id) {
+	override void changeInText(size_t index, StepId id) { mixin(S_TRACE);
 		if (_text) _text.change(index, id);
 		_name.change(index, id);
 	}
 
 	/// コンテントをXMLテキストにして返す。
 	const
-	string toXML(XMLOption opt) {
+	string toXML(XMLOption opt) { mixin(S_TRACE);
 		return toNode(opt).text;
 	}
 	/// コンテントをXMLノードにして返す。
 	const
-	XNode toNode(XMLOption opt) {
+	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto d = this.detail;
 		auto doc = XNode.create(d.name);
 		toNodeImpl(doc, d, opt);
@@ -1609,21 +1609,21 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return doc;
 	}
 	const
-	private void atnPut(CArg ARG, string Name, string From)(ref XNode en, in CDetail d) {
-		if (d.use(ARG)) {
+	private void atnPut(CArg ARG, string Name, string From)(ref XNode en, in CDetail d) { mixin(S_TRACE);
+		if (d.use(ARG)) { mixin(S_TRACE);
 			mixin ("en.newAttr(d.attr(ARG), " ~ From ~ "(this." ~ Name ~ "));");
 		}
 	}
 	/// 指定されたXMLノードにインスタンスのデータを追加する。
 	const
-	XNode toNode(ref XNode parent, XMLOption opt) {
+	XNode toNode(ref XNode parent, XMLOption opt) { mixin(S_TRACE);
 		auto d = this.detail;
 		auto e = parent.newElement(d.name);
 		toNodeImpl(e, d, opt);
 		return e;
 	}
 	const
-	private void toNodeImpl(ref XNode e, in CDetail d, XMLOption opt) {
+	private void toNodeImpl(ref XNode e, in CDetail d, XMLOption opt) { mixin(S_TRACE);
 		if (d.type.length) e.newAttr("type", d.type);
 		if (name.length) e.newAttr("name", name);
 		if (comment.length) e.newAttr("comment", comment);
@@ -1691,24 +1691,24 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.ROUND, "round", "")(e, d);
 
 		// 多少複雑なもの
-		if (d.use(CArg.MOTIONS)) {
+		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
 			auto me = e.newElement("Motions");
-			foreach (m; motions) {
+			foreach (m; motions) { mixin(S_TRACE);
 				m.toNode(me, opt);
 			}
 		}
 
 		if (d.use(CArg.TEXT)) e.newElement("Text", encodeLf(text));
-		if (d.use(CArg.DIALOGS)) {
+		if (d.use(CArg.DIALOGS)) { mixin(S_TRACE);
 			auto de = e.newElement("Dialogs");
-			foreach (dlg; dialogs) {
+			foreach (dlg; dialogs) { mixin(S_TRACE);
 				dlg.toNode(de);
 			}
 		}
 
 		atnPut!(CArg.TARGET_NS, "targetNS", "fromTarget")(e, d);
 		atnPut!(CArg.TARGET_S, "targetS", "fromTarget")(e, d);
-		if (d.use(CArg.TALKER_C)) {
+		if (d.use(CArg.TALKER_C)) { mixin(S_TRACE);
 			final switch (talkerC) {
 			case Talker.NARRATION:
 				e.newAttr(d.attr(CArg.TALKER_C), "");
@@ -1725,55 +1725,55 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		if (d.use(CArg.BG_IMAGES)) BgImage.toNode(backs, e, opt);
 
-		if (d.use(CArg.CAST_RANGE)) {
+		if (d.use(CArg.CAST_RANGE)) { mixin(S_TRACE);
 			auto ce = e.newElement("CastRanges");
-			foreach (c; castRange) {
+			foreach (c; castRange) { mixin(S_TRACE);
 				ce.newElement("CastRange", fromCastRange(c));
 			}
 		}
 
-		if (d.use(CArg.COUPONS)) {
+		if (d.use(CArg.COUPONS)) { mixin(S_TRACE);
 			auto ce = e.newElement("Coupons");
-			foreach (c; coupons) {
+			foreach (c; coupons) { mixin(S_TRACE);
 				c.toNode(ce);
 			}
 		}
 
 		auto ce = e.newElement("Contents");
-		if (!opt || !opt.shallow) {
-			foreach (sub; _next) {
+		if (!opt || !opt.shallow) { mixin(S_TRACE);
+			foreach (sub; _next) { mixin(S_TRACE);
 				sub.toNode(ce, opt);
 			}
 		}
 	}
 	/// XMLノード(Contents)の直下にある全てのイベントを、
 	/// 後続のツリーを全て含めて生成する。
-	static Content[] createContentsFromNode(ref XNode node, in XMLInfo ver) {
+	static Content[] createContentsFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		assert (node.name == "Contents", node.name ~ " != Contents");
 		Content[] r;
-		node.onTag[null] = (ref XNode en) {
+		node.onTag[null] = (ref XNode en) { mixin(S_TRACE);
 			r ~= createFromNode(en, ver);
 		};
 		node.parse();
 		return r;
 	}
 	/// XMLテキストからイベントを生成する。
-	static Content createFromXML(string xml, in XMLInfo ver, out string id) {
+	static Content createFromXML(string xml, in XMLInfo ver, out string id) { mixin(S_TRACE);
 		id = "";
 		auto en = XNode.parse(xml);
 		id = en.attr("contentId", false);
 		return createFromNode(en, ver);
 	}
-	private static void cfnPut(CArg ARG, string Name, string To)(in XNode en, in CDetail d, ref Content c) {
-		if (d.use(ARG)) {
+	private static void cfnPut(CArg ARG, string Name, string To)(in XNode en, in CDetail d, ref Content c) { mixin(S_TRACE);
+		if (d.use(ARG)) { mixin(S_TRACE);
 			auto name = d.attr(ARG);
-			if (en.hasAttr(name)) {
+			if (en.hasAttr(name)) { mixin(S_TRACE);
 				mixin ("c." ~ Name ~ " = " ~ To ~ "(en.attr(name, true));");
 			}
 		}
 	}
 	/// XMLノードからイベントを生成する。
-	static Content createFromNode(ref XNode en, in XMLInfo ver) {
+	static Content createFromNode(ref XNode en, in XMLInfo ver) { mixin(S_TRACE);
 		auto nmap = en.name in CTYPE_MAP;
 		if (!nmap) return null;
 		auto t = en.attr("type", false) in *nmap;
@@ -1845,32 +1845,32 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.ROUND, "round", "to!(uint)")(en, d, r);
 
 		// 多少複雑なもの
-		if (d.use(CArg.TRANSITION)) {
+		if (d.use(CArg.TRANSITION)) { mixin(S_TRACE);
 			// 歴史的経緯から、transitionは値が存在しない可能性がある
 			auto s = en.attr(d.attr(CArg.TRANSITION), false);
 			if (s.length) r.transition = toTransition(s);
 		}
-		if (d.use(CArg.TRANSITION_SPEED)) {
+		if (d.use(CArg.TRANSITION_SPEED)) { mixin(S_TRACE);
 			auto s = en.attr(d.attr(CArg.TRANSITION_SPEED), false);
 			if (s.length) r.transitionSpeed = to!(int)(s);
 		}
-		if (d.use(CArg.MOTIONS)) {
-			en.onTag["Motions"] = (ref XNode node) {
+		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
+			en.onTag["Motions"] = (ref XNode node) { mixin(S_TRACE);
 				Motion[] motions;
-				node.onTag["Motion"] = (ref XNode node) {
+				node.onTag["Motion"] = (ref XNode node) { mixin(S_TRACE);
 					motions ~= Motion.createFromNode(node, ver);
 				};
 				node.parse();
 				r.motions = motions;
 			};
 		}
-		if (d.use(CArg.TEXT)) {
+		if (d.use(CArg.TEXT)) { mixin(S_TRACE);
 			en.onTag["Text"] = (ref XNode node) {r.text = decodeLf2(node.value);};
 		}
-		if (d.use(CArg.DIALOGS)) {
-			en.onTag["Dialogs"] = (ref XNode node) {
+		if (d.use(CArg.DIALOGS)) { mixin(S_TRACE);
+			en.onTag["Dialogs"] = (ref XNode node) { mixin(S_TRACE);
 				SDialog[] dlgs;
-				node.onTag["Dialog"] = (ref XNode node) {
+				node.onTag["Dialog"] = (ref XNode node) { mixin(S_TRACE);
 					dlgs ~= SDialog.createFromNode(node, ver);
 				};
 				node.parse();
@@ -1879,38 +1879,38 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			};
 		}
 
-		Target loadTarget(bool canSleep = true) {
+		Target loadTarget(bool canSleep = true) { mixin(S_TRACE);
 			auto targ = toTarget(en.attr("targetm", true));
 			if (!canSleep && targ.sleep) targ = Target(targ.m, false);
 			return targ;
 		}
 		if (d.use(CArg.TARGET_S)) r.targetS = loadTarget(true);
 		if (d.use(CArg.TARGET_NS)) r.targetNS = loadTarget(false);
-		if (d.use(CArg.TALKER_C) || d.use(CArg.TALKER_NC)) {
+		if (d.use(CArg.TALKER_C) || d.use(CArg.TALKER_NC)) { mixin(S_TRACE);
 			Talker talker;
 			string path;
 			loadTalker(en, talker, path);
-			if (d.use(CArg.TALKER_NC)) {
+			if (d.use(CArg.TALKER_NC)) { mixin(S_TRACE);
 				// TALKER_NCは画像を使用しないため不正
 				if (path) throw new EventException("invalid talker: " ~ path);
 				r.talkerNC = talker;
 			}
-			if (d.use(CArg.TALKER_C)) {
+			if (d.use(CArg.TALKER_C)) { mixin(S_TRACE);
 				r.talkerC = talker;
 			}
 			r.cardPath = path;
 		}
 
-		if (d.use(CArg.BG_IMAGES)) {
-			en.onTag["BgImages"] = (ref XNode node) {
+		if (d.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
+			en.onTag["BgImages"] = (ref XNode node) { mixin(S_TRACE);
 				r.backs = BgImage.bgImagesFromNode(node, ver);
 			};
 		}
 
-		if (d.use(CArg.CAST_RANGE)) {
-			en.onTag["CastRanges"] = (ref XNode node) {
+		if (d.use(CArg.CAST_RANGE)) { mixin(S_TRACE);
+			en.onTag["CastRanges"] = (ref XNode node) { mixin(S_TRACE);
 				CastRange[] castRange;
-				node.onTag["CastRange"] = (ref XNode node) {
+				node.onTag["CastRange"] = (ref XNode node) { mixin(S_TRACE);
 					castRange ~= toCastRange(node.value);
 				};
 				node.parse();
@@ -1918,10 +1918,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			};
 		}
 
-		if (d.use(CArg.COUPONS)) {
-			en.onTag["Coupons"] = (ref XNode node) {
+		if (d.use(CArg.COUPONS)) { mixin(S_TRACE);
+			en.onTag["Coupons"] = (ref XNode node) { mixin(S_TRACE);
 				Coupon[] coupons;
-				node.onTag["Coupon"] = (ref XNode node) {
+				node.onTag["Coupon"] = (ref XNode node) { mixin(S_TRACE);
 					coupons ~= Coupon.fromNode(node, ver);
 				};
 				node.parse();
@@ -1929,9 +1929,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			};
 		}
 
-		if (d.owner) {
-			en.onTag["Contents"] = (ref XNode node) {
-				foreach (c; createContentsFromNode(node, ver)) {
+		if (d.owner) { mixin(S_TRACE);
+			en.onTag["Contents"] = (ref XNode node) { mixin(S_TRACE);
+				foreach (c; createContentsFromNode(node, ver)) { mixin(S_TRACE);
 					r.add(null, c);
 				}
 			};
@@ -1942,28 +1942,28 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 }
 
 /// 指定されたXMLノードからtargetmと話者のデータを読み込む。
-private void loadTalker(in XNode node, out Talker talker, out string path) {
+private void loadTalker(in XNode node, out Talker talker, out string path) { mixin(S_TRACE);
 	path = null;
 	string t = node.attr("targetm", false);
-	if (t.length == 0) {
+	if (t.length == 0) { mixin(S_TRACE);
 		auto pathTemp = node.attr("path", false);
-		if (!pathTemp || !pathTemp.length) {
+		if (!pathTemp || !pathTemp.length) { mixin(S_TRACE);
 			talker = Talker.NARRATION;
-		} else if (endsWith(pathTemp, "??Selected")) {
+		} else if (endsWith(pathTemp, "??Selected")) { mixin(S_TRACE);
 			talker = Talker.SELECTED;
-		} else if (endsWith(pathTemp, "??Unselected")) {
+		} else if (endsWith(pathTemp, "??Unselected")) { mixin(S_TRACE);
 			talker = Talker.UNSELECTED;
-		} else if (endsWith(pathTemp, "??Random")) {
+		} else if (endsWith(pathTemp, "??Random")) { mixin(S_TRACE);
 			talker = Talker.RANDOM;
-		} else if (endsWith(pathTemp, "??Card")) {
+		} else if (endsWith(pathTemp, "??Card")) { mixin(S_TRACE);
 			talker = Talker.CARD;
-		} else if (endsWith(pathTemp, "??Valued")) {
+		} else if (endsWith(pathTemp, "??Valued")) { mixin(S_TRACE);
 			talker = Talker.VALUED;
-		} else {
+		} else { mixin(S_TRACE);
 			talker = Talker.IMAGE;
 			path = decodePath(pathTemp);
 		}
-	} else {
+	} else { mixin(S_TRACE);
 		switch (t) {
 		case "Selected":
 			talker = Talker.SELECTED;
@@ -1986,7 +1986,7 @@ private void loadTalker(in XNode node, out Talker talker, out string path) {
 	}
 }
 /// Talkerを文字列に変換する。
-private string fromTalker(Talker talker) {
+private string fromTalker(Talker talker) { mixin(S_TRACE);
 	final switch (talker) {
 	case Talker.SELECTED:
 		return "Selected";
@@ -2009,14 +2009,14 @@ enum KeyCodeMatchingType {
 	And, /// 全て。
 }
 /// ditto
-string fromKeyCodeMatchingType(KeyCodeMatchingType t) {
+string fromKeyCodeMatchingType(KeyCodeMatchingType t) { mixin(S_TRACE);
 	final switch (t) {
 	case KeyCodeMatchingType.Or: return "Or";
 	case KeyCodeMatchingType.And: return "And";
 	}
 }
 /// ditto
-KeyCodeMatchingType toKeyCodeMatchingType(string t) {
+KeyCodeMatchingType toKeyCodeMatchingType(string t) { mixin(S_TRACE);
 	switch (t) {
 	case "Or": return KeyCodeMatchingType.Or;
 	case "And": return KeyCodeMatchingType.And;
@@ -2029,7 +2029,7 @@ private struct FKeyCodeU {
 	KeyCodeUser user; /// キーコード。
 	FKCKind kind; /// 発火条件。
 	const
-	bool opEquals(in FKeyCode kc) {
+	bool opEquals(in FKeyCode kc) { mixin(S_TRACE);
 		return user.keyCode == kc.keyCode && kind == kc.kind;
 	}
 }
@@ -2055,34 +2055,34 @@ private:
 	SUseCounter _suc;
 	void delegate() _change = null;
 
-	this (Content[] starts) in {
-		foreach (c; starts) {
+	this (Content[] starts) in { mixin(S_TRACE);
+		foreach (c; starts) { mixin(S_TRACE);
 			assert (c.type is CType.START);
 		}
-	} body {
+	} body { mixin(S_TRACE);
 		_suc = new SUseCounter;
 		_starts = starts;
-		foreach (s; _starts) {
+		foreach (s; _starts) { mixin(S_TRACE);
 			s._tree = this;
 			s.setSUseCounter(_suc);
 		}
 	}
-	this () {
+	this () { mixin(S_TRACE);
 		_suc = new SUseCounter;
 	}
 public:
 	/// イベントツリー名を指定してインスタンスを生成。
-	this (string name) {
+	this (string name) { mixin(S_TRACE);
 		this(new Content(CType.START, name));
 	}
 	/// スタートコンテントを指定してインスタンスを生成。
 	/// startがすでにイベントツリーに所属している場合、
 	/// コピーが生成される。
-	this (Content start) in {
+	this (Content start) in { mixin(S_TRACE);
 		assert (start.type == CType.START);
-	} body {
+	} body { mixin(S_TRACE);
 		_suc = new SUseCounter;
-		if (start.tree) {
+		if (start.tree) { mixin(S_TRACE);
 			start = start.dup;
 		}
 		add(start);
@@ -2094,21 +2094,21 @@ public:
 	/// ディープコピーを作成する。
 	@property
 	const
-	EventTree dup() {
+	EventTree dup() { mixin(S_TRACE);
 		auto copy = new EventTree;
 		copy.enter = fireEnter;
 		copy.escape = fireEscape;
 		copy.lose = fireLose;
 		copy.rounds = rounds.dup;
 		copy.keyCodes = keyCodes;
-		foreach (s; starts) {
+		foreach (s; starts) { mixin(S_TRACE);
 			copy.add(s.dup);
 		}
 		return copy;
 	}
 
 	const
-	bool opEquals(ref const(Object) o) {
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto c = cast(const(EventTree)) o;
 		if (!c) return false;
 		return fireEnter == c.fireEnter
@@ -2120,13 +2120,13 @@ public:
 	}
 
 	@property
-	override string cwxPath(bool id) {
+	override string cwxPath(bool id) { mixin(S_TRACE);
 		return _owner ? cpjoin(_owner, "event", .cCountUntil!("a is b")(_owner.trees, this), id) : "";
 	}
-	CWXPath findCWXPath(string path) {
+	CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
-		if (cate == "") {
+		if (cate == "") { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= _starts.length) return null;
 			return _starts[index].findCWXPath(cpbottom(path));
@@ -2135,7 +2135,7 @@ public:
 	}
 	@property
 	const
-	const(CWXPath)[] cwxChilds() {
+	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
 		r ~= cast(const CWXPath[]) starts;
 		return r;
@@ -2145,27 +2145,27 @@ public:
 
 	/// 変更ハンドラを登録する。
 	@property
-	void changeHandler(void delegate() change) {
-		foreach (s; _starts) {
+	void changeHandler(void delegate() change) { mixin(S_TRACE);
+		foreach (s; _starts) { mixin(S_TRACE);
 			s.changeHandler = change;
 		}
 		_change = change;
 	}
 	/// 変更ハンドラを返す。
 	@property
-	protected void delegate() changeHandler() {
+	protected void delegate() changeHandler() { mixin(S_TRACE);
 		return _change;
 	}
 	/// 変更を通知する。
-	protected void changed() {
+	protected void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 
 	/// スタートコンテントのみが含まれている場合はtrue。
 	@property
 	const
-	bool isEmpty() {
-		foreach (s; _starts) {
+	bool isEmpty() { mixin(S_TRACE);
+		foreach (s; _starts) { mixin(S_TRACE);
 			if (s.next.length) return false;
 		}
 		return true;
@@ -2174,26 +2174,26 @@ public:
 	/// イベントツリー名。
 	/// 最初のスタートコンテントのテキストと常に一致する。
 	@property
-	void name(string name) {
+	void name(string name) { mixin(S_TRACE);
 		if (_starts[0].name != name) changed();
 		_starts[0].name = name;
 	}
 	/// ditto
 	@property
 	const
-	string name() {
+	string name() { mixin(S_TRACE);
 		return _starts[0].name;
 	}
 
 	/// スタートコンテントのインデックスを交換。
-	void swapStart(int index1, int index2) {
+	void swapStart(int index1, int index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();
 		auto temp = _starts[index1];
 		_starts[index1] = _starts[index2];
 		_starts[index2] = temp;
 	}
 	/// キーコードのインデックスを交換。
-	void swapKeyCode(int index1, int index2) {
+	void swapKeyCode(int index1, int index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();
 		auto temp = _keyCodes[index1];
 		_keyCodes[index1] = _keyCodes[index2];
@@ -2201,10 +2201,10 @@ public:
 	}
 
 	/// スタートコンテントを追加する。
-	void add(Content evt) in {
+	void add(Content evt) in { mixin(S_TRACE);
 		assert (evt.type is CType.START);
-	} body {
-		if (_uc !is null) {
+	} body { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			evt.setUseCounter(_uc);
 		}
 		evt.setSUseCounter(_suc);
@@ -2214,10 +2214,10 @@ public:
 		changed();
 	}
 	/// ditto
-	void insert(int index, Content evt) in {
+	void insert(int index, Content evt) in { mixin(S_TRACE);
 		assert (evt.type is CType.START);
-	} body {
-		if (_uc !is null) {
+	} body { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			evt.setUseCounter(_uc);
 		}
 		evt.setSUseCounter(_suc);
@@ -2227,10 +2227,10 @@ public:
 		changed();
 	}
 	/// スタートコンテントを除外。
-	void remove(int index) in {
+	void remove(int index) in { mixin(S_TRACE);
 		assert (_starts.length > 1);
-	} body {
-		if (_uc !is null) {
+	} body { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			_starts[index].removeUseCounter();
 		}
 		_starts[index].removeSUseCounter();
@@ -2239,11 +2239,11 @@ public:
 		_starts = _starts[0 .. index] ~ _starts[index + 1 .. $];
 	}
 	/// ditto
-	void remove(Content start) in {
+	void remove(Content start) in { mixin(S_TRACE);
 		assert (start.type is CType.START);
-	} body {
-		foreach (i, s; _starts) {
-			if (s is start) {
+	} body { mixin(S_TRACE);
+		foreach (i, s; _starts) { mixin(S_TRACE);
+			if (s is start) { mixin(S_TRACE);
 				remove(i);
 				return;
 			}
@@ -2252,50 +2252,50 @@ public:
 	}
 	/// スタートコンテント群。
 	@property
-	Content[] starts() out (r) {
-		foreach (c; r) {
+	Content[] starts() out (r) { mixin(S_TRACE);
+		foreach (c; r) { mixin(S_TRACE);
 			assert (c.type is CType.START);
 		}
-	} body {
+	} body { mixin(S_TRACE);
 		return _starts;
 	}
 	/// ditto
 	@property
 	const
-	const(Content)[] starts() out (r) {
-		foreach (c; r) {
+	const(Content)[] starts() out (r) { mixin(S_TRACE);
+		foreach (c; r) { mixin(S_TRACE);
 			assert (c.type is CType.START);
 		}
-	} body {
+	} body { mixin(S_TRACE);
 		return _starts;
 	}
 	/// 指定された名前のスタートコンテントがあるか。
 	const
-	bool hasStart(string name) {
-		foreach (s; _starts) {
+	bool hasStart(string name) { mixin(S_TRACE);
+		foreach (s; _starts) { mixin(S_TRACE);
 			if (0 == icmp(s.name, name)) return true;
 		}
 		return false;
 	}
 	/// 属するエリア等からの相対パスを返す。
 	@property
-	size_t[] areaPath() {
-		if (_owner) {
+	size_t[] areaPath() { mixin(S_TRACE);
+		if (_owner) { mixin(S_TRACE);
 			return _owner.areaPath ~ cast(size_t) .cCountUntil!("a is b")(_owner.trees, this);
-		} else {
+		} else { mixin(S_TRACE);
 			return [];
 		}
 	}
 	/// パスを辿ってコンテントを返す。
-	Content fromPath(size_t[] path) {
+	Content fromPath(size_t[] path) { mixin(S_TRACE);
 		if (!path.length) return null;
 		if (path.length == 1) return starts[path[0]];
 		return starts[path[0]].fromPath(path[1 .. $]);
 	}
 
 	/// 指定されたインデックスのキーコードを差し替える。
-	void setKeyCode(int index, FKeyCode keyCode) {
-		if (_keyCodes[index] != keyCode) {
+	void setKeyCode(int index, FKeyCode keyCode) { mixin(S_TRACE);
+		if (_keyCodes[index] != keyCode) { mixin(S_TRACE);
 			changed();
 			_keyCodes[index].user.keyCode = keyCode.keyCode;
 			_keyCodes[index].kind = keyCode.kind;
@@ -2307,21 +2307,21 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを設定する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		foreach (s; starts) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		foreach (s; starts) { mixin(S_TRACE);
 			s.setUseCounter(uc);
 		}
-		foreach (kc; _keyCodes) {
+		foreach (kc; _keyCodes) { mixin(S_TRACE);
 			kc.user.setUseCounter(uc);
 		}
 		_uc = uc;
 	}
 	/// 使用回数カウンタを外す。
-	void removeUseCounter() {
-		foreach (s; starts) {
+	void removeUseCounter() { mixin(S_TRACE);
+		foreach (s; starts) { mixin(S_TRACE);
 			s.removeUseCounter();
 		}
-		foreach (kc; _keyCodes) {
+		foreach (kc; _keyCodes) { mixin(S_TRACE);
 			kc.user.removeUseCounter();
 		}
 		_uc = null;
@@ -2333,72 +2333,72 @@ public:
 
 	/// エリア到着時・クリック時・パッケージ開始時・勝利・死亡時に発火するか。
 	@property
-	void enter(bool enter) {
+	void enter(bool enter) { mixin(S_TRACE);
 		if (_enter != enter) changed();
 		_enter = enter;
 	}
 	/// ditto
 	@property
 	const
-	bool fireEnter() {
+	bool fireEnter() { mixin(S_TRACE);
 		return _enter;
 	}
 
 	/// 逃走時に発火するか。
 	@property
-	void escape(bool escape) {
+	void escape(bool escape) { mixin(S_TRACE);
 		if (_escape != escape) changed();
 		_escape = escape;
 	}
 	/// ditto
 	@property
 	const
-	bool fireEscape() {
+	bool fireEscape() { mixin(S_TRACE);
 		return _escape;
 	}
 
 	/// 敗北時に発火するか。
 	@property
-	void lose(bool lose) {
+	void lose(bool lose) { mixin(S_TRACE);
 		if (_lose != lose) changed();
 		_lose = lose;
 	}
 	/// ditto
 	@property
 	const
-	bool fireLose() {
+	bool fireLose() { mixin(S_TRACE);
 		return _lose;
 	}
 
 	/// 毎ラウンドに発火するか。
 	@property
-	void everyRound(bool everyRound) {
+	void everyRound(bool everyRound) { mixin(S_TRACE);
 		if (_everyRound != everyRound) changed();
 		_everyRound = everyRound;
 	}
 	/// ditto
 	@property
 	const
-	bool fireEveryRound() {
+	bool fireEveryRound() { mixin(S_TRACE);
 		return _everyRound;
 	}
 
 	/// 戦闘開始時に発火するか。
 	@property
-	void round0(bool round0) {
+	void round0(bool round0) { mixin(S_TRACE);
 		if (_round0 != round0) changed();
 		_round0 = round0;
 	}
 	/// ditto
 	@property
 	const
-	bool fireRound0() {
+	bool fireRound0() { mixin(S_TRACE);
 		return _round0;
 	}
 
 	/// 発火ラウンドを追加。追加できた場合はtrueを返す。
-	bool addRound(uint round) {
-		if (!fireRound(round)) {
+	bool addRound(uint round) { mixin(S_TRACE);
+		if (!fireRound(round)) { mixin(S_TRACE);
 			changed();
 			_rounds ~= round;
 			return true;
@@ -2406,12 +2406,12 @@ public:
 		return false;
 	}
 	/// ditto
-	bool addRounds(uint[] rounds) {
+	bool addRounds(uint[] rounds) { mixin(S_TRACE);
 		auto s = new HashSet!(uint);
 		foreach (r; _rounds) s.add(r);
 		foreach (r; rounds) s.add(r);
 		rounds = s.toArray().sort;
-		if (rounds != _rounds) {
+		if (rounds != _rounds) { mixin(S_TRACE);
 			changed();
 			_rounds = rounds;
 			return true;
@@ -2420,9 +2420,9 @@ public:
 	}
 	/// 指定されたラウンドで発火するか。
 	const
-	bool fireRound(uint round) {
-		foreach (r; _rounds) {
-			if (r == round) {
+	bool fireRound(uint round) { mixin(S_TRACE);
+		foreach (r; _rounds) { mixin(S_TRACE);
+			if (r == round) { mixin(S_TRACE);
 				return true;
 			}
 		}
@@ -2430,25 +2430,25 @@ public:
 	}
 	/// 発火ラウンド群。
 	@property
-	uint[] rounds() {
+	uint[] rounds() { mixin(S_TRACE);
 		return _rounds;
 	}
 	/// ditto
 	@property
 	const
-	const(uint)[] rounds() {
+	const(uint)[] rounds() { mixin(S_TRACE);
 		return _rounds;
 	}
 	/// ditto
 	@property
-	void rounds(uint[] rounds) {
+	void rounds(uint[] rounds) { mixin(S_TRACE);
 		if (_rounds != rounds) changed();
 		_rounds = rounds;
 	}
 	/// 発火ラウンドを除去。
-	void removeRound(uint round) {
-		foreach (i, r; _rounds) {
-			if (r == round) {
+	void removeRound(uint round) { mixin(S_TRACE);
+		foreach (i, r; _rounds) { mixin(S_TRACE);
+			if (r == round) { mixin(S_TRACE);
 				_rounds = _rounds[0 .. i] ~ _rounds[i + 1 .. $];
 				return;
 			}
@@ -2456,14 +2456,14 @@ public:
 		assert (0);
 	}
 	/// ditto
-	void removeRoundsAll() {
+	void removeRoundsAll() { mixin(S_TRACE);
 		_rounds.length = 0;
 	}
 
 	/// 発火キーコードを追加。
 	/// Returns: 追加できた場合はtrue。
-	bool addKeyCode(FKeyCode keyCode) {
-		if (!fireKeyCode(keyCode)) {
+	bool addKeyCode(FKeyCode keyCode) { mixin(S_TRACE);
+		if (!fireKeyCode(keyCode)) { mixin(S_TRACE);
 			changed();
 			auto user = new KeyCodeUser(this);
 			if (useCounter) user.setUseCounter = useCounter;
@@ -2475,9 +2475,9 @@ public:
 	}
 	/// 指定されたキーコードで発火するか。
 	const
-	bool fireKeyCode(in FKeyCode keyCode) {
-		foreach (kc; _keyCodes) {
-			if (kc == keyCode) {
+	bool fireKeyCode(in FKeyCode keyCode) { mixin(S_TRACE);
+		foreach (kc; _keyCodes) { mixin(S_TRACE);
+			if (kc == keyCode) { mixin(S_TRACE);
 				return true;
 			}
 		}
@@ -2486,35 +2486,35 @@ public:
 	/// 発火キーコード群。
 	@property
 	const
-	FKeyCode[] keyCodes() {
+	FKeyCode[] keyCodes() { mixin(S_TRACE);
 		auto r = new FKeyCode[_keyCodes.length];
-		foreach (i, ref kc; r) {
+		foreach (i, ref kc; r) { mixin(S_TRACE);
 			kc = FKeyCode(_keyCodes[i].user.keyCode, _keyCodes[i].kind);
 		}
 		return r;
 	}
 	/// ditto
 	@property
-	void keyCodes(in FKeyCode[] keyCodes) {
-		if (this.keyCodes != keyCodes) {
+	void keyCodes(in FKeyCode[] keyCodes) { mixin(S_TRACE);
+		if (this.keyCodes != keyCodes) { mixin(S_TRACE);
 			changed();
-			foreach (c; _keyCodes) {
+			foreach (c; _keyCodes) { mixin(S_TRACE);
 				c.user.removeUseCounter();
 			}
 			_keyCodes.length = keyCodes.length;
-			foreach (i, ref c; _keyCodes) {
+			foreach (i, ref c; _keyCodes) { mixin(S_TRACE);
 				c = FKeyCodeU(new KeyCodeUser(this), keyCodes[i].kind);
 				c.user.keyCode = keyCodes[i].keyCode;
-				if (useCounter) {
+				if (useCounter) { mixin(S_TRACE);
 					c.user.setUseCounter = useCounter;
 				}
 			}
 		}
 	}
 	/// 発火キーコードを除去。
-	void removeKeyCode(in FKeyCode keyCode) {
-		foreach (i, kc; _keyCodes) {
-			if (kc == keyCode) {
+	void removeKeyCode(in FKeyCode keyCode) { mixin(S_TRACE);
+		foreach (i, kc; _keyCodes) { mixin(S_TRACE);
+			if (kc == keyCode) { mixin(S_TRACE);
 				kc.user.removeUseCounter();
 				_keyCodes = _keyCodes[0 .. i] ~ _keyCodes[i + 1 .. $];
 				return;
@@ -2523,50 +2523,50 @@ public:
 		assert (0);
 	}
 	/// ditto
-	void removeKeyCodesAll() {
-		foreach (kc; _keyCodes) {
+	void removeKeyCodesAll() { mixin(S_TRACE);
+		foreach (kc; _keyCodes) { mixin(S_TRACE);
 			kc.user.removeUseCounter();
 		}
 		_keyCodes.length = 0;
 	}
 	/// キーコード判定条件。
 	@property
-	void keyCodeMatchingType(KeyCodeMatchingType type) {
+	void keyCodeMatchingType(KeyCodeMatchingType type) { mixin(S_TRACE);
 		if (_keyCodeMatchingType != type) changed();
 		_keyCodeMatchingType = type;
 	}
 	/// ditto
 	@property
 	const
-	KeyCodeMatchingType keyCodeMatchingType() {
+	KeyCodeMatchingType keyCodeMatchingType() { mixin(S_TRACE);
 		return _keyCodeMatchingType;
 	}
 
 	/// イベントツリーをXMLテキストにする。
 	const
-	string toXML(XMLOption opt) {
+	string toXML(XMLOption opt) { mixin(S_TRACE);
 		return toNode(opt).text;
 	}
 	/// イベントツリーをXMLノードにする。
 	const
-	XNode toNode(XMLOption opt) {
+	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto doc = XNode.create("Event");
 		toNodeImpl(doc, opt);
 		return doc;
 	}
 	/// 指定されたXMLノード(Events)にこのインスタンスのデータを追加する。
 	const
-	void toNode(ref XNode node, XMLOption opt) {
+	void toNode(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		assert (node.name == "Events", node.name ~ " != Events");
 		auto e = node.newElement("Event");
 		toNodeImpl(e, opt);
 	}
 	const
-	private void toNodeImpl(ref XNode node, XMLOption opt) {
+	private void toNodeImpl(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		assert (node.name == "Event", node.name ~ " != Event");
-		if (_enter || _escape || _lose || _everyRound || _round0 || _rounds.length > 0 || _keyCodes.length > 0) {
+		if (_enter || _escape || _lose || _everyRound || _round0 || _rounds.length > 0 || _keyCodes.length > 0) { mixin(S_TRACE);
 			auto ig = node.newElement("Ignitions");
-			if (KeyCodeMatchingType.Or !is keyCodeMatchingType) {
+			if (KeyCodeMatchingType.Or !is keyCodeMatchingType) { mixin(S_TRACE);
 				ig.newAttr("keyCodeMatchingType", fromKeyCodeMatchingType(keyCodeMatchingType));
 			}
 			string[] nums;
@@ -2575,27 +2575,27 @@ public:
 			if (_lose) nums ~= "3";
 			if (_everyRound) nums ~= "4";
 			if (_round0) nums ~= "5";
-			foreach (r; _rounds) {
+			foreach (r; _rounds) { mixin(S_TRACE);
 				nums ~= ("-" ~ to!(string)(r));
 			}
 			ig.newElement("Number", encodeLf(nums, false));
 			string[] keyCodes;
-			foreach (u; _keyCodes) {
+			foreach (u; _keyCodes) { mixin(S_TRACE);
 				keyCodes ~= opt.sys.convFireKeyCode(u.user.keyCode, u.kind);
 			}
 			ig.newElement("KeyCodes", encodeLf(keyCodes));
 		}
 		auto c = node.newElement("Contents");
-		foreach (st; _starts) {
+		foreach (st; _starts) { mixin(S_TRACE);
 			st.toNode(c, opt);
 		}
 	}
 
 	/// XMLテキストからインスタンスを生成。
-	static EventTree fromXML(string xml, in XMLInfo ver) {
-		try {
+	static EventTree fromXML(string xml, in XMLInfo ver) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			scope doc = XNode.parse(xml);
-			if (doc.name == "Event") {
+			if (doc.name == "Event") { mixin(S_TRACE);
 				return createFromNode(doc, ver);
 			}
 		} catch {}
@@ -2603,19 +2603,19 @@ public:
 	}
 	/// XMLノードからインスタンスを生成。
 	/// スタートコンテントが一つも無かった場合はnullを返す。
-	static EventTree createFromNode(ref XNode node, in XMLInfo ver) {
+	static EventTree createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		assert (node.name == "Event", node.name ~ " != Event");
 		auto r = new EventTree;
-		node.onTag["Contents"] = (ref XNode node) {
-			node.onTag["Start"] = (ref XNode node) {
+		node.onTag["Contents"] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag["Start"] = (ref XNode node) { mixin(S_TRACE);
 				r.add(Content.createFromNode(node, ver));
 			};
 			node.parse();
 		};
-		node.onTag["Ignitions"] = (ref XNode node) {
+		node.onTag["Ignitions"] = (ref XNode node) { mixin(S_TRACE);
 			r.keyCodeMatchingType = toKeyCodeMatchingType(node.attr("keyCodeMatchingType", false, fromKeyCodeMatchingType(r.keyCodeMatchingType)));
-			node.onTag["Number"] = (ref XNode n) {
-				foreach (v; decodeLf(n.value)) {
+			node.onTag["Number"] = (ref XNode n) { mixin(S_TRACE);
+				foreach (v; decodeLf(n.value)) { mixin(S_TRACE);
 					switch (v) {
 					case "1":
 						r._enter = true;
@@ -2633,17 +2633,17 @@ public:
 						r._round0 = true;
 						break;
 					default:
-						if (v.length > 1 && v[0] == '-') {
+						if (v.length > 1 && v[0] == '-') { mixin(S_TRACE);
 							r._rounds ~= to!(int)(v[1 .. $]);
 						}
 						break;
 					}
 				}
 			};
-			node.onTag["KeyCodes"] = (ref XNode n) {
+			node.onTag["KeyCodes"] = (ref XNode n) { mixin(S_TRACE);
 				auto val = n.value;
-				if (val.length > 0) {
-					foreach (kc; decodeLf(val)) {
+				if (val.length > 0) { mixin(S_TRACE);
+					foreach (kc; decodeLf(val)) { mixin(S_TRACE);
 						auto kind = ver.sys.fireKeyCodeKindRef(kc);
 						r.addKeyCode(FKeyCode(kc, kind));
 					}
@@ -2655,9 +2655,9 @@ public:
 		return r.starts.length > 0 ? r : null;
 	}
 
-	private static string __fireToXML(string name, string att = null, string value = null) {
+	private static string __fireToXML(string name, string att = null, string value = null) { mixin(S_TRACE);
 		auto e = XNode.create(name);
-		if (att && value) {
+		if (att && value) { mixin(S_TRACE);
 			e.newAttr(att, value);
 		}
 		return e.text;
@@ -2673,18 +2673,18 @@ public:
 	/// 「戦闘開始時発火」をXMLテキスト化する。
 	static string round0ToXML() {return __fireToXML("FireRound0");}
 	/// 「発火ラウンド」をXMLテキスト化する。
-	static string roundToXML(uint round) {
+	static string roundToXML(uint round) { mixin(S_TRACE);
 		return __fireToXML("FireRound", "round", to!(string)(round));
 	}
 	/// 「発火キーコード」をXMLテキスト化する。
-	static string keyCodeToXML(FKeyCode keyCode, in System sys) {
+	static string keyCodeToXML(FKeyCode keyCode, in System sys) { mixin(S_TRACE);
 		string str = sys.convFireKeyCode(keyCode.keyCode, keyCode.kind);
 		return __fireToXML("FireKeyCode", "keyCode", str);
 	}
-	private static bool __fireFromXML(string xml, string name, void delegate(bool) fire) {
-		try {
+	private static bool __fireFromXML(string xml, string name, void delegate(bool) fire) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			auto node = XNode.parse(xml);
-			if (node.name == name) {
+			if (node.name == name) { mixin(S_TRACE);
 				fire(true);
 				return true;
 			}
@@ -2692,31 +2692,31 @@ public:
 		return false;
 	}
 	/// 「到着時発火」をXMLテキストからロードし、成功すればtrueを返す。
-	bool enterFromXML(EventTreeOwner owner, string xml) {
+	bool enterFromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
 		return owner.canHasFireEnter && __fireFromXML(xml, "FireEnter", &enter);
 	}
 	/// 「逃走時発火」をXMLテキストからロードし、成功すればtrueを返す。
-	bool escapeFromXML(EventTreeOwner owner, string xml) {
+	bool escapeFromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
 		return owner.canHasFireEscape && __fireFromXML(xml, "FireEscape", &escape);
 	}
 	/// 「敗北時発火」をXMLテキストからロードし、成功すればtrueを返す。
-	bool loseFromXML(EventTreeOwner owner, string xml) {
+	bool loseFromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
 		return owner.canHasFireLose && __fireFromXML(xml, "FireLose", &lose);
 	}
 	/// 「毎ラウンド発火」をXMLテキストからロードし、成功すればtrueを返す。
-	bool everyRoundFromXML(EventTreeOwner owner, string xml) {
+	bool everyRoundFromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
 		return owner.canHasFireEveryRound && __fireFromXML(xml, "FireEveryRound", &lose);
 	}
 	/// 「戦闘開始時発火」をXMLテキストからロードし、成功すればtrueを返す。
-	bool round0FromXML(EventTreeOwner owner, string xml) {
+	bool round0FromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
 		return owner.canHasFireRound0 && __fireFromXML(xml, "FireRound0", &lose);
 	}
 	/// 「発火ラウンド」をXMLテキストからロードし、成功すればtrueを返す。
-	int roundFromXML(EventTreeOwner owner, string xml) {
-		if (owner.canHasFireRound) {
-			try {
+	int roundFromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
+		if (owner.canHasFireRound) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
 				auto node = XNode.parse(xml);
-				if (node.name == "FireRound") {
+				if (node.name == "FireRound") { mixin(S_TRACE);
 					int r = node.attr!(int)("round", true);
 					addRound(r);
 					return r;
@@ -2726,11 +2726,11 @@ public:
 		return -1;
 	}
 	/// 「発火キーコード」をXMLテキストからロードし、成功すればtrueを返す。
-	string keyCodeFromXML(EventTreeOwner owner, string xml, in System sys) {
-		if (owner.canHasFireKeyCode) {
-			try {
+	string keyCodeFromXML(EventTreeOwner owner, string xml, in System sys) { mixin(S_TRACE);
+		if (owner.canHasFireKeyCode) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
 				auto node = XNode.parse(xml);
-				if (node.name == "FireKeyCode") {
+				if (node.name == "FireKeyCode") { mixin(S_TRACE);
 					string r = node.attr("keyCode", true);
 					string name = r;
 					auto kind = sys.fireKeyCodeKindRef(name);
@@ -2814,10 +2814,10 @@ public:
 	@property
 	override abstract size_t[] areaPath();
 
-	CWXPath findCWXPath(string path) {
+	CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
-		if (cate == "event") {
+		if (cate == "event") { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= _evts.length) return null;
 			return _evts[index].findCWXPath(cpbottom(path));
@@ -2826,7 +2826,7 @@ public:
 	}
 	@property
 	const
-	const(CWXPath)[] cwxChilds() {
+	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
 		r ~= cast(const CWXPath[]) trees;
 		return r;
@@ -2834,24 +2834,24 @@ public:
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {
+	UseCounter useCounter() { mixin(S_TRACE);
 		return _uc;
 	}
 	/// 変更ハンドラを登録する。
 	@property
-	void changeHandler(void delegate() change) {
-		foreach (e; _evts) {
+	void changeHandler(void delegate() change) { mixin(S_TRACE);
+		foreach (e; _evts) { mixin(S_TRACE);
 			e.changeHandler = change;
 		}
 		_change = change;
 	}
 	/// 変更ハンドラ。
 	@property
-	protected void delegate() changeHandler() {
+	protected void delegate() changeHandler() { mixin(S_TRACE);
 		return _change;
 	}
 	/// 変更を通知する。
-	protected void changed() {
+	protected void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 	/// 委譲によって使用する場合は委譲元を返す。
@@ -2859,28 +2859,28 @@ public:
 	protected EventTreeOwner con() {return this;}
 
 	@property
-	EventTree[] trees() {
+	EventTree[] trees() { mixin(S_TRACE);
 		return _evts;
 	}
 	@property
 	const
-	const(EventTree)[] trees() {
+	const(EventTree)[] trees() { mixin(S_TRACE);
 		return _evts;
 	}
 
-	void swapEventTree(int index1, int index2) {
+	void swapEventTree(int index1, int index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();
 		auto temp = _evts[index1];
 		_evts[index1] = _evts[index2];
 		_evts[index2] = temp;
 	}
 
-	void addAll(EventTree[] evts) {
-		foreach (e; evts) {
+	void addAll(EventTree[] evts) { mixin(S_TRACE);
+		foreach (e; evts) { mixin(S_TRACE);
 			add(e);
 		}
 	}
-	private void addCmn(EventTree evt) {
+	private void addCmn(EventTree evt) { mixin(S_TRACE);
 		if (!canHasFireEnter) evt.enter = false;
 		if (!canHasFireLose) evt.lose = false;
 		if (!canHasFireEscape) evt.escape = false;
@@ -2889,21 +2889,21 @@ public:
 		if (!canHasFireRound) evt.removeRoundsAll();
 		if (!canHasFireKeyCode) evt.removeKeyCodesAll();
 
-		if (_uc !is null) {
+		if (_uc !is null) { mixin(S_TRACE);
 			evt.setUseCounter(_uc);
 		}
 		evt.changeHandler = changeHandler;
 		evt._owner = con;
 		changed();
 	}
-	void add(EventTree evt) {
+	void add(EventTree evt) { mixin(S_TRACE);
 		addCmn(evt);
 		_evts ~= evt;
 	}
-	void insert(int index, EventTree evt) {
-		if (_evts.length == index) {
+	void insert(int index, EventTree evt) { mixin(S_TRACE);
+		if (_evts.length == index) { mixin(S_TRACE);
 			add(evt);
-		} else {
+		} else { mixin(S_TRACE);
 			addCmn(evt);
 			_evts = _evts[0 .. index] ~ evt ~ _evts[index .. $];
 		}
@@ -2931,8 +2931,8 @@ public:
 	const
 	abstract bool canHasFireKeyCode();
 
-	void removeEvent(int index) {
-		if (_uc !is null) {
+	void removeEvent(int index) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			_evts[index].removeUseCounter();
 		}
 		_evts[index].changeHandler = null;
@@ -2940,9 +2940,9 @@ public:
 		_evts = _evts[0 .. index] ~ _evts[index + 1 .. $];
 		changed();
 	}
-	void remove(EventTree et) {
-		foreach (i, t; _evts) {
-			if (t is et) {
+	void remove(EventTree et) { mixin(S_TRACE);
+		foreach (i, t; _evts) { mixin(S_TRACE);
+			if (t is et) { mixin(S_TRACE);
 				removeEvent(i);
 				return;
 			}
@@ -2952,25 +2952,25 @@ public:
 
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		foreach (tree; _evts) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		foreach (tree; _evts) { mixin(S_TRACE);
 			tree.setUseCounter(uc);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		foreach (tree; _evts) {
+	void removeUseCounter() { mixin(S_TRACE);
+		foreach (tree; _evts) { mixin(S_TRACE);
 			tree.removeUseCounter();
 		}
 		_uc = null;
 	}
 
 	/// XMLノードからイベントツリーを読み出して返す。
-	static EventTree[] loadEventsFromNode(XNode node, in XMLInfo ver) {
+	static EventTree[] loadEventsFromNode(XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		assert (node.name == "Events");
 		EventTree[] r;
-		node.onTag["Event"] = (ref XNode node) {
+		node.onTag["Event"] = (ref XNode node) { mixin(S_TRACE);
 			auto tree = EventTree.createFromNode(node, ver);
 			if (tree) r ~= tree;
 		};
@@ -2979,17 +2979,17 @@ public:
 	}
 	/// XMLノードにイベントツリー群のデータを追加する。
 	const
-	void appendEventsToNode(ref XNode node, XMLOption opt) {
+	void appendEventsToNode(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		auto ee = node.newElement("Events");
-		foreach (evt; _evts) {
+		foreach (evt; _evts) { mixin(S_TRACE);
 			evt.toNode(ee, opt);
 		}
 	}
 
 	@property
 	const
-	override bool isEmpty() {
-		foreach (tree; trees) {
+	override bool isEmpty() { mixin(S_TRACE);
+		foreach (tree; trees) { mixin(S_TRACE);
 			if (!tree.isEmpty) return false;
 		}
 		return true;
@@ -2997,64 +2997,64 @@ public:
 }
 
 /// 状態変数を初期化するイベントツリーを生成する。
-Content createInitVariablesTree(in FlagDir dir) {
+Content createInitVariablesTree(in FlagDir dir) { mixin(S_TRACE);
 	return createInitVariablesTree(dir.allFlags(), dir.allSteps());
 }
 /// ditto
-Content createInitVariablesTree(in Flag[] flags, in Step[] steps) {
+Content createInitVariablesTree(in Flag[] flags, in Step[] steps) { mixin(S_TRACE);
 	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP)(flags, steps, (f) => f.onOff, (s) => s.select);
 }
 /// フラグの値を設定するイベントツリーを生成する。
-Content createSetFlagTree(in FlagDir dir, bool onOff) {
+Content createSetFlagTree(in FlagDir dir, bool onOff) { mixin(S_TRACE);
 	return createSetFlagTree(dir.allFlags(), onOff);
 }
 /// ditto
-Content createSetFlagTree(in Flag[] flags, bool onOff) {
+Content createSetFlagTree(in Flag[] flags, bool onOff) { mixin(S_TRACE);
 	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP)(flags, [], (f) => onOff, null);
 }
 /// ステップの値を設定するイベントツリーを生成する。
-Content createSetStepTree(in FlagDir dir, uint select) {
+Content createSetStepTree(in FlagDir dir, uint select) { mixin(S_TRACE);
 	return createSetStepTree(dir.allSteps(), select);
 }
 /// ditto
-Content createSetStepTree(in Step[] steps, uint select) {
+Content createSetStepTree(in Step[] steps, uint select) { mixin(S_TRACE);
 	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP)([], steps, null, (s) => select);
 }
 /// フラグを反転するイベントツリーを生成する。
-Content createReverseFlagTree(in FlagDir dir) {
+Content createReverseFlagTree(in FlagDir dir) { mixin(S_TRACE);
 	return createReverseFlagTree(dir.allFlags());
 }
 /// ditto
-Content createReverseFlagTree(in Flag[] flags) {
+Content createReverseFlagTree(in Flag[] flags) { mixin(S_TRACE);
 	return createInitVariablesTreeImpl!(CType.REVERSE_FLAG, CType.SET_STEP)(flags, [], null, null);
 }
 /// ステップを加算するイベントツリーを生成する。
-Content createSetStepUpTree(in FlagDir dir) {
+Content createSetStepUpTree(in FlagDir dir) { mixin(S_TRACE);
 	return createSetStepUpTree(dir.allSteps());
 }
 /// ditto
-Content createSetStepUpTree(in Step[] steps) {
+Content createSetStepUpTree(in Step[] steps) { mixin(S_TRACE);
 	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP_UP)([], steps, null, null);
 }
 /// ステップを減算するイベントツリーを生成する。
-Content createSetStepDownTree(in FlagDir dir) {
+Content createSetStepDownTree(in FlagDir dir) { mixin(S_TRACE);
 	return createSetStepDownTree(dir.allSteps());
 }
 /// ditto
-Content createSetStepDownTree(in Step[] steps) {
+Content createSetStepDownTree(in Step[] steps) { mixin(S_TRACE);
 	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP_DOWN)([], steps, null, null);
 }
 private Content createInitVariablesTreeImpl(CType TypeF, CType TypeS)(in Flag[] flags, in Step[] steps,
-		bool delegate(in Flag) getValueF, uint delegate(in Step) getValueS) {
+		bool delegate(in Flag) getValueF, uint delegate(in Step) getValueS) { mixin(S_TRACE);
 	Content[] r;
-	foreach (step; steps) {
+	foreach (step; steps) { mixin(S_TRACE);
 		auto c = new Content(TypeS, "");
 		c.step = step.path;
 		if (getValueS) c.stepValue = getValueS(step);
 		if (r.length) r[$-1].add(null, c);
 		r ~= c;
 	}
-	foreach (flag; flags) {
+	foreach (flag; flags) { mixin(S_TRACE);
 		auto c = new Content(TypeF, "");
 		c.flag = flag.path;
 		if (getValueF) c.flagValue = getValueF(flag);
@@ -3067,7 +3067,7 @@ private Content createInitVariablesTreeImpl(CType TypeF, CType TypeS)(in Flag[] 
 /// イベント関連の例外。
 public class EventException : Exception {
 public:
-	this (string msg) {
+	this (string msg) { mixin(S_TRACE);
 		super(msg);
 	}
 }

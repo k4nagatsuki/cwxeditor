@@ -36,14 +36,14 @@ struct PosInfo {
 class EventEditorItem : Item {
 	private EventEditor _parent;
 
-	private this (EventEditor parent, Content c) {
+	private this (EventEditor parent, Content c) { mixin(S_TRACE);
 		super (parent, style);
 		_parent = parent;
 		setData(c);
 	}
-	static EventEditorItem valueOf(EventEditor parent, Content c) {
+	static EventEditorItem valueOf(EventEditor parent, Content c) { mixin(S_TRACE);
 		auto itm = parent._items.get(c, null);
-		if (!itm) {
+		if (!itm) { mixin(S_TRACE);
 			itm = new EventEditorItem(parent, c);
 			parent._items[c] = itm;
 		}
@@ -52,52 +52,52 @@ class EventEditorItem : Item {
 
 	EventEditor getParent() { return _parent; }
 
-	EventEditorItem getParentItem() {
+	EventEditorItem getParentItem() { mixin(S_TRACE);
 		auto c = cast(Content)getData();
-		if (c.parent) {
+		if (c.parent) { mixin(S_TRACE);
 			return EventEditorItem.valueOf(getParent(), c.parent);
 		}
 		return null;
 	}
-	EventEditorItem getItem(int index) {
+	EventEditorItem getItem(int index) { mixin(S_TRACE);
 		auto c = cast(Content)getData();
 		return EventEditorItem.valueOf(getParent(), c.next[index]);
 	}
-	EventEditorItem[] getItems() {
+	EventEditorItem[] getItems() { mixin(S_TRACE);
 		auto c = cast(Content)getData();
 		auto items = new EventEditorItem[c.next.length];
-		foreach (i; 0 .. c.next.length) {
+		foreach (i; 0 .. c.next.length) { mixin(S_TRACE);
 			items[i] = getItem(i);
 		}
 		return items;
 	}
-	int getItemCount() {
+	int getItemCount() { mixin(S_TRACE);
 		auto c = cast(Content)getData();
 		return c.next.length;
 	}
-	int indexOf(EventEditorItem itm) {
+	int indexOf(EventEditorItem itm) { mixin(S_TRACE);
 		auto targ = cast(Content)itm.getData();
 		auto c = cast(Content)getData();
-		foreach (i, child; c.next) {
-			if (child is targ) {
+		foreach (i, child; c.next) { mixin(S_TRACE);
+			if (child is targ) { mixin(S_TRACE);
 				return i;
 			}
 		}
 		return -1;
 	}
 
-	void setExpanded(bool expanded) {
+	void setExpanded(bool expanded) { mixin(S_TRACE);
 		auto c = cast(Content)getData();
-		if (_parent._expanded.get(c, true) != expanded) {
+		if (_parent._expanded.get(c, true) != expanded) { mixin(S_TRACE);
 			_parent._expanded[c] = expanded;
 			_parent.updatePosImpl();
 		}
 	}
-	bool getExpanded() {
+	bool getExpanded() { mixin(S_TRACE);
 		auto c = cast(Content)getData();
 		return _parent._expanded.get(c, true);
 	}
-	Rectangle getBounds() {
+	Rectangle getBounds() { mixin(S_TRACE);
 		auto c = cast(Content)getData();
 		if (c !in _parent._posTable) return null;
 		auto gc = new GC(_parent);
@@ -106,7 +106,7 @@ class EventEditorItem : Item {
 		auto sy = _parent.getVerticalBar().getSelection() * _parent._lineHeight;
 		return new Rectangle(0, pos.y - sy, 20 + gc.textExtent(pos.eventText).x + 4, pos.height);
 	}
-	Rectangle getImageBounds() {
+	Rectangle getImageBounds() { mixin(S_TRACE);
 		auto c = cast(Content)getData();
 		auto index = _parent.indexOf(c);
 		auto pos = _parent._pos[index];
@@ -147,7 +147,7 @@ class EventEditor : Composite {
 
 	private bool _expandedOperation = false;
 
-	this (Commons comm, Composite parent, int style, Summary summ, EventTree et) {
+	this (Commons comm, Composite parent, int style, Summary summ, EventTree et) { mixin(S_TRACE);
 		super (parent, style | SWT.V_SCROLL | SWT.H_SCROLL | SWT.DOUBLE_BUFFERED);
 		auto d = getDisplay();
 		_comm = comm;
@@ -184,7 +184,7 @@ class EventEditor : Composite {
 		_warningImage = .warningImage(_comm.prop, d);
 		setForeground(color);
 		_comm.refTerminalMark.add(&updatePosImpl);
-		.listener(this, SWT.Dispose, {
+		.listener(this, SWT.Dispose, { mixin(S_TRACE);
 			_lineColor.dispose();
 			_selectedColor.dispose();
 			_lightupColor.dispose();
@@ -213,41 +213,41 @@ class EventEditor : Composite {
 	inout
 	inout(EventTree) eventTree() { return _et; }
 	@property
-	void eventTree(EventTree et) {
+	void eventTree(EventTree et) { mixin(S_TRACE);
 		_et = et;
 		updateEventTree();
 	}
 
-	void expandAll() {
+	void expandAll() { mixin(S_TRACE);
 		_expanded = null;
 		updatePosImpl();
 	}
 
-	void showSelection() {
+	void showSelection() { mixin(S_TRACE);
 		if (!_selected) return;
 		if (_selected !in _posTable) return;
 		scroll(_posTable[_selected].y / _lineHeight, _posTable[_selected].height);
 	}
-	private void scroll(int pos, int height) {
+	private void scroll(int pos, int height) { mixin(S_TRACE);
 		auto vbar = getVerticalBar();
 		int vPos = vbar.getSelection();
-		if (pos < vPos) {
+		if (pos < vPos) { mixin(S_TRACE);
 			vbar.setSelection(pos);
-		} else if (vPos + vbar.getThumb() <= pos) {
+		} else if (vPos + vbar.getThumb() <= pos) { mixin(S_TRACE);
 			vbar.setSelection(pos - vbar.getThumb() + (height / _lineHeight));
 		}
 	}
 
-	void updateEventTree() {
+	void updateEventTree() { mixin(S_TRACE);
 		_items = null;
 		updatePosImpl();
 	}
-	private void updatePosImpl() {
+	private void updatePosImpl() { mixin(S_TRACE);
 		int x = 0;
 		int y = 0;
 		int selIndex = 0;
 		auto oldSel = _selected;
-		if (_selected && _selected in _posTable) {
+		if (_selected && _selected in _posTable) { mixin(S_TRACE);
 			selIndex = indexOf(_selected);
 		}
 		_pos = [];
@@ -259,11 +259,11 @@ class EventEditor : Composite {
 		bool[Content] expanded2;
 		auto gc = new GC(this);
 		scope (exit) gc.dispose();
-		void recurse(int x, Content c) {
+		void recurse(int x, Content c) { mixin(S_TRACE);
 			auto type = c.type;
 			int height = _lineHeight;
 			_heightSum++;
-			if (_comm.prop.var.etc.showTerminalMark && type != CType.START && !c.next.length) {
+			if (_comm.prop.var.etc.showTerminalMark && type != CType.START && !c.next.length) { mixin(S_TRACE);
 				height = _lineHeight * 2;
 				_heightSum++;
 			}
@@ -274,39 +274,39 @@ class EventEditor : Composite {
 			index++;
 
 			// 幅計算
-			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) {
+			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
 				s = _comm.skin.evtChildOK;
 			}
-			if (s == "") {
+			if (s == "") { mixin(S_TRACE);
 				_widthSum = .max(x + 16, _widthSum);
-			} else {
+			} else { mixin(S_TRACE);
 				_widthSum = .max(x + 20 + gc.textExtent(s).x, _widthSum);
 			}
 
-			if (c.next.length && !_expanded.get(c, true)) {
+			if (c.next.length && !_expanded.get(c, true)) { mixin(S_TRACE);
 				expanded2[c] = false;
 				return;
 			}
-			if (type != CType.START && c.next.length == 1) {
+			if (type != CType.START && c.next.length == 1) { mixin(S_TRACE);
 				recurse(x, c.next[0]);
-			} else if (c.next.length) {
-				foreach (next; c.next) {
+			} else if (c.next.length) { mixin(S_TRACE);
+				foreach (next; c.next) { mixin(S_TRACE);
 					recurse(x + _imageWidth, next);
 				}
 			}
 		}
-		if (_et) {
-			foreach (i, start; _et.starts) {
+		if (_et) { mixin(S_TRACE);
+			foreach (i, start; _et.starts) { mixin(S_TRACE);
 				recurse(x, start);
 			}
-			if (_selected && _selected !in _posTable && 0 < selIndex) {
+			if (_selected && _selected !in _posTable && 0 < selIndex) { mixin(S_TRACE);
 				if (_selected.type !is CType.START) selIndex -= 1;
 				_selected = null;
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			_selected = null;
 		}
-		if (!_selected && _pos.length) {
+		if (!_selected && _pos.length) { mixin(S_TRACE);
 			_selected = _pos[.min(selIndex, $ - 1)].content;
 		}
 		_expanded = expanded2;
@@ -316,13 +316,13 @@ class EventEditor : Composite {
 		Rectangle[] boxes;
 		Rectangle[Content] cBoxes;
 		string[] comments;
-		Rectangle itemRect(ref PosInfo pos) {
+		Rectangle itemRect(ref PosInfo pos) { mixin(S_TRACE);
 			auto c = pos.content;
-			if (auto p = c in cBoxes) {
+			if (auto p = c in cBoxes) { mixin(S_TRACE);
 				return *p;
 			}
 			auto s = pos.eventText;
-			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) {
+			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
 				s = _comm.skin.evtChildOK;
 			}
 			int rx = 20 + gc.textExtent(s).x;
@@ -331,13 +331,13 @@ class EventEditor : Composite {
 			return rect;
 		}
 		auto hh = _lineHeight / 2;
-		foreach (i, ref pos; _pos) {
+		foreach (i, ref pos; _pos) { mixin(S_TRACE);
 			auto c = pos.content;
 			if (c.comment == "") continue;
 			int rx = itemRect(pos).x;
-			if (!_expanded.get(c, true)) {
+			if (!_expanded.get(c, true)) { mixin(S_TRACE);
 				rx += 14 + gc.textExtent("...").x + 3;
-			} else {
+			} else { mixin(S_TRACE);
 				rx += 2;
 			}
 			auto cm = std.string.chomp(c.comment);
@@ -346,17 +346,17 @@ class EventEditor : Composite {
 			// 測り直す
 			te.x = 0;
 			auto lines = splitLines!string(cm);
-			foreach (line; lines) {
+			foreach (line; lines) { mixin(S_TRACE);
 				te.x = max(gc.textExtent(line).x, te.x);
 			}
 			// 前後n件のイベントコンテントに被らないようにする
 			int ba = (lines.length + 1) / 2;
 			Rectangle[] boxes2;
-			if (0 < ba) {
-				foreach (j; .max(i - -ba, 0) .. i) {
+			if (0 < ba) { mixin(S_TRACE);
+				foreach (j; .max(i - -ba, 0) .. i) { mixin(S_TRACE);
 					boxes2 ~= itemRect(_pos[j]);
 				}
-				foreach (j; i + 1 .. .min(_pos.length, i + ba + 1)) {
+				foreach (j; i + 1 .. .min(_pos.length, i + ba + 1)) { mixin(S_TRACE);
 					boxes2 ~= itemRect(_pos[j]);
 				}
 			}
@@ -365,8 +365,8 @@ class EventEditor : Composite {
 			int th = te.y + 6;
 			int dis = 15;
 			auto box = new Rectangle(rx + dis, pos.y - th / 2 + hh, tw, th);
-			foreach (b; boxes2 ~ boxes) {
-				if (b.intersects(box)) {
+			foreach (b; boxes2 ~ boxes) { mixin(S_TRACE);
+				if (b.intersects(box)) { mixin(S_TRACE);
 					box.x = b.x + b.width + 4;
 				}
 			}
@@ -382,11 +382,11 @@ class EventEditor : Composite {
 
 		updateScrollBar();
 		redraw();
-		if (_selected !is oldSel && _selected) {
+		if (_selected !is oldSel && _selected) { mixin(S_TRACE);
 			callSelectChanged();
 		}
 	}
-	private void updateScrollBar() {
+	private void updateScrollBar() { mixin(S_TRACE);
 		auto ca = getClientArea();
 
 		auto hbar = getHorizontalBar();
@@ -402,114 +402,114 @@ class EventEditor : Composite {
 		vbar.setPageIncrement(ca.height / _lineHeight / 2);
 	}
 
-	private void updateToolTip() {
+	private void updateToolTip() { mixin(S_TRACE);
 		auto p = getDisplay().getCursorLocation();
 		p = toControl(p);
 		string toolTip = "";
 		auto ca = getClientArea();
-		if (!_moveDetailLine && !_changeCursor && ca.contains(p)) {
-			foreach (warn; _warningRects) {
-				if (warn.rect.contains(p)) {
+		if (!_moveDetailLine && !_changeCursor && ca.contains(p)) { mixin(S_TRACE);
+			foreach (warn; _warningRects) { mixin(S_TRACE);
+				if (warn.rect.contains(p)) { mixin(S_TRACE);
 					toolTip = std.string.join(warn.warnings, .newline);
 					break;
 				}
 			}
-			if (toolTip == "" && ca.width - _comm.prop.var.etc.detailAreaWidth <= p.x) {
+			if (toolTip == "" && ca.width - _comm.prop.var.etc.detailAreaWidth <= p.x) { mixin(S_TRACE);
 				int index = indexOf(getVerticalBar().getSelection() * _lineHeight + p.y);
-				if (0 <= index && index < _pos.length) {
+				if (0 <= index && index < _pos.length) { mixin(S_TRACE);
 					auto pos = _pos[index];
-					if (p.y - pos.y < _lineHeight) {
+					if (p.y - pos.y < _lineHeight) { mixin(S_TRACE);
 						auto c = pos.content;
 						auto s = .contentText(_comm, c);
 						auto gc = new GC(this);
 						scope (exit) gc.dispose();
 						int dw = _comm.prop.var.etc.detailAreaWidth - 2 - 18;
-						if (dw < gc.textExtent(s).x) {
+						if (dw < gc.textExtent(s).x) { mixin(S_TRACE);
 							toolTip = s;
 						}
 					}
 				}
 			}
 		}
-		if (getToolTipText() != toolTip) {
+		if (getToolTipText() != toolTip) { mixin(S_TRACE);
 			setToolTipText(toolTip);
 		}
 	}
 
-	EventEditorItem getItem(int index) {
+	EventEditorItem getItem(int index) { mixin(S_TRACE);
 		return EventEditorItem.valueOf(this, _et.starts[index]);
 	}
 
-	EventEditorItem getItem(Point p) {
+	EventEditorItem getItem(Point p) { mixin(S_TRACE);
 		auto c = getContent(p.x, p.y);
-		if (c) {
+		if (c) { mixin(S_TRACE);
 			return EventEditorItem.valueOf(this, c);
 		}
 		return null;
 	}
-	EventEditorItem[] getItems() {
+	EventEditorItem[] getItems() { mixin(S_TRACE);
 		if (!_et) return [];
 		auto c = cast(Content)getData();
 		auto items = new EventEditorItem[_et.starts.length];
-		foreach (i; 0 .. _et.starts.length) {
+		foreach (i; 0 .. _et.starts.length) { mixin(S_TRACE);
 			items[i] = getItem(i);
 		}
 		return items;
 	}
-	int getItemCount() {
+	int getItemCount() { mixin(S_TRACE);
 		if (!_et) return 0;
 		return _et.starts.length;
 	}
 
-	EventEditorItem[] getSelection() {
-		if (_selected) {
+	EventEditorItem[] getSelection() { mixin(S_TRACE);
+		if (_selected) { mixin(S_TRACE);
 			return [EventEditorItem.valueOf(this, _selected)];
 		}
 		return [];
 	}
-	void setSelection(EventEditorItem[] items) {
-		foreach (itm; items) {
+	void setSelection(EventEditorItem[] items) { mixin(S_TRACE);
+		foreach (itm; items) { mixin(S_TRACE);
 			select(itm);
 		}
 	}
-	void select(EventEditorItem itm) {
+	void select(EventEditorItem itm) { mixin(S_TRACE);
 		auto c = cast(Content)itm.getData();
-		if (c) {
+		if (c) { mixin(S_TRACE);
 			_selected = c;
 			redraw();
 		}
 	}
-	void select(Content c) {
+	void select(Content c) { mixin(S_TRACE);
 		_selected = c;
 		redraw();
 	}
-	int indexOf(EventEditorItem itm) {
+	int indexOf(EventEditorItem itm) { mixin(S_TRACE);
 		if (!_et) return -1;
 		return .cCountUntil(_et.starts, cast(Content)itm.getData());
 	}
-	EventEditorItem getTopItem() {
+	EventEditorItem getTopItem() { mixin(S_TRACE);
 		auto vbar = getVerticalBar();
 		auto index = indexOf(vbar.getSelection() * _lineHeight);
-		if (0 <= index && index < _pos.length) {
+		if (0 <= index && index < _pos.length) { mixin(S_TRACE);
 			return EventEditorItem.valueOf(this, _pos[index].content);
 		}
 		return null;
 	}
-	void setTopItem(EventEditorItem itm) {
-		if (itm && cast(Content)itm.getData() in _posTable) {
+	void setTopItem(EventEditorItem itm) { mixin(S_TRACE);
+		if (itm && cast(Content)itm.getData() in _posTable) { mixin(S_TRACE);
 			auto vbar = getVerticalBar();
 			auto pos = _posTable[cast(Content)itm.getData()];
 			vbar.setSelection(pos.y / _lineHeight);
 		}
 	}
 
-	Content getContent(int x, int y) {
+	Content getContent(int x, int y) { mixin(S_TRACE);
 		auto index = indexOf(y);
 		if (index < 0 || _pos.length <= index) return null;
 		return _pos[index].content;
 	}
 
-	private void onTraverse(Event e) {
+	private void onTraverse(Event e) { mixin(S_TRACE);
 		switch (e.detail) {
 		case SWT.TRAVERSE_ARROW_NEXT, SWT.TRAVERSE_ARROW_PREVIOUS:
 			e.doit = false;
@@ -519,11 +519,11 @@ class EventEditor : Composite {
 		}
 	}
 
-	private int indexOf(Content c) {
+	private int indexOf(Content c) { mixin(S_TRACE);
 		if (c !in _posTable) return -1;
 		return _posTable[c].index;
 	}
-	private int indexOf(int y) {
+	private int indexOf(int y) { mixin(S_TRACE);
 		if (y < 0) return -1;
 		auto ca = getClientArea();
 		if (ca.height <= y) return -1;
@@ -534,36 +534,36 @@ class EventEditor : Composite {
 
 		return find(y, 0, _pos.length);
 	}
-	private int find(int y, int from, int to) {
+	private int find(int y, int from, int to) { mixin(S_TRACE);
 		if (to <= from) return -1;
 		auto mid = (from + to) / 2;
 		auto pos = _pos[mid];
 		assert (mid == pos.index);
-		if (y < pos.y) {
+		if (y < pos.y) { mixin(S_TRACE);
 			return find(y, from, mid);
-		} else if (pos.y + pos.height <= y) {
+		} else if (pos.y + pos.height <= y) { mixin(S_TRACE);
 			return find(y, mid + 1, to);
-		} else {
+		} else { mixin(S_TRACE);
 			return pos.index;
 		}
 	}
-	private void select(int index) {
+	private void select(int index) { mixin(S_TRACE);
 		_selected = _pos[index].content;
 		redraw();
 	}
 
 	/// 選択の変更をlistenerに通知する。
-	void addSelectionListener(SelectionListener listener) {
+	void addSelectionListener(SelectionListener listener) { mixin(S_TRACE);
 		auto tl = new TypedListener(listener);
 		addListener(SWT.Selection, tl);
 		addListener(SWT.DefaultSelection, tl);
 	}
 	/// ditto
-	void removeSelectionListener(SelectionListener listener) {
+	void removeSelectionListener(SelectionListener listener) { mixin(S_TRACE);
 		removeListener(SWT.Selection, listener);
 		removeListener(SWT.DefaultSelection, listener);
 	}
-	private void callSelectChanged() {
+	private void callSelectChanged() { mixin(S_TRACE);
 		if (isDisposed()) return;
 		auto se = new Event;
 		auto sels = getSelection();
@@ -575,19 +575,19 @@ class EventEditor : Composite {
 	}
 
 	/// 選択の変更をlistenerに通知する。
-	void addTreeListener(TreeListener listener) {
+	void addTreeListener(TreeListener listener) { mixin(S_TRACE);
 		auto tl = new TypedListener(listener);
 		addListener(SWT.Expand, tl);
 		addListener(SWT.Collapse, tl);
 	}
 	/// ditto
-	void removeTreeListener(TreeListener listener) {
+	void removeTreeListener(TreeListener listener) { mixin(S_TRACE);
 		removeListener(SWT.Expand, listener);
 		removeListener(SWT.Collapse, listener);
 	}
-	private void callExpandedChanged(EventEditorItem itm) {
+	private void callExpandedChanged(EventEditorItem itm) { mixin(S_TRACE);
 		getDisplay().asyncExec(new class Runnable {
-			override void run() {
+			override void run() { mixin(S_TRACE);
 				if (isDisposed()) return;
 				auto se = new Event;
 				se.item = itm;
@@ -601,7 +601,7 @@ class EventEditor : Composite {
 
 	/// キーボード操作による開閉操作が可能か。
 	@property
-	void expandedOperation(bool enabled) {
+	void expandedOperation(bool enabled) { mixin(S_TRACE);
 		_expandedOperation = true;
 	}
 	/// ditto
@@ -609,41 +609,41 @@ class EventEditor : Composite {
 	const
 	bool expandedOperation() { return _expandedOperation; }
 
-	private void onKeyDown(Event e) {
+	private void onKeyDown(Event e) { mixin(S_TRACE);
 		if (!_pos.length) return;
 		if (e.stateMask != SWT.NONE) return;
 		switch (e.keyCode) {
 		case SWT.ARROW_LEFT:
-			if (expandedOperation && _selected && _selected.next.length && _expanded.get(_selected, true)) {
+			if (expandedOperation && _selected && _selected.next.length && _expanded.get(_selected, true)) { mixin(S_TRACE);
 				_expanded[_selected] = false;
 				updatePosImpl();
 				return;
 			}
 			goto case SWT.ARROW_UP;
 		case SWT.ARROW_RIGHT:
-			if (expandedOperation && _selected && _selected.next.length && !_expanded.get(_selected, true)) {
+			if (expandedOperation && _selected && _selected.next.length && !_expanded.get(_selected, true)) { mixin(S_TRACE);
 				_expanded[_selected] = true;
 				updatePosImpl();
 				return;
 			}
 			goto case SWT.ARROW_DOWN;
 		case SWT.ARROW_UP:
-			if (_selected) {
+			if (_selected) { mixin(S_TRACE);
 				int i = indexOf(_selected);
 				if (0 < i) select(i - 1);
-			} else {
+			} else { mixin(S_TRACE);
 				select(0);
 			}
 			showSelection();
 			callSelectChanged();
 			break;
 		case SWT.ARROW_DOWN:
-			if (_selected) {
+			if (_selected) { mixin(S_TRACE);
 				int i = indexOf(_selected);
-				if (i + 1 < _pos.length) {
+				if (i + 1 < _pos.length) { mixin(S_TRACE);
 					select(i + 1);
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				select(0);
 			}
 			showSelection();
@@ -654,15 +654,15 @@ class EventEditor : Composite {
 		}
 	}
 
-	private void onMouseDown(Event e) {
-		if (e.button == 1 || e.button == 3) {
+	private void onMouseDown(Event e) { mixin(S_TRACE);
+		if (e.button == 1 || e.button == 3) { mixin(S_TRACE);
 			forceFocus();
-			if (e.button == 1 && _changeCursor) {
+			if (e.button == 1 && _changeCursor) { mixin(S_TRACE);
 				_moveDetailLine = true;
-			} else {
+			} else { mixin(S_TRACE);
 				auto sel = getContent(e.x, e.y);
 				if (sel) _selected = sel;
-				if (sel) {
+				if (sel) { mixin(S_TRACE);
 					showSelection();
 					callSelectChanged();
 				}
@@ -672,15 +672,15 @@ class EventEditor : Composite {
 		}
 	}
 
-	private void onMouseUp(Event e) {
-		if (e.button == 1 && _moveDetailLine) {
+	private void onMouseUp(Event e) { mixin(S_TRACE);
+		if (e.button == 1 && _moveDetailLine) { mixin(S_TRACE);
 			_moveDetailLine = false;
 		}
 	}
 
-	private void onMouseMove(Event e) {
+	private void onMouseMove(Event e) { mixin(S_TRACE);
 		auto ca = getClientArea();
-		if (_moveDetailLine) {
+		if (_moveDetailLine) { mixin(S_TRACE);
 			int w = _comm.prop.var.etc.detailAreaWidth;
 			_comm.prop.var.etc.detailAreaWidth = ca.width - e.x;
 			_comm.prop.var.etc.detailAreaWidth = .min(_comm.prop.var.etc.detailAreaWidth.value, ca.width - _imageWidth);
@@ -688,17 +688,17 @@ class EventEditor : Composite {
 			w = .max(w, _comm.prop.var.etc.detailAreaWidth.value);
 			updateScrollBar();
 			redraw();
-		} else {
+		} else { mixin(S_TRACE);
 			auto linePos = ca.width - _comm.prop.var.etc.detailAreaWidth;
-			if (linePos - 10 <= e.x && e.x < linePos + 10) {
-				if (!_changeCursor) {
+			if (linePos - 10 <= e.x && e.x < linePos + 10) { mixin(S_TRACE);
+				if (!_changeCursor) { mixin(S_TRACE);
 					auto d = getDisplay();
 					_cursor = getCursor();
 					_changeCursor = true;
 					setCursor(d.getSystemCursor(SWT.CURSOR_SIZEWE));
 					setDragDetect(false);
 				}
-			} else if (_changeCursor) {
+			} else if (_changeCursor) { mixin(S_TRACE);
 				setCursor(_cursor);
 				setDragDetect(true);
 				_cursor = null;
@@ -708,23 +708,23 @@ class EventEditor : Composite {
 		updateLightup();
 		updateToolTip();
 	}
-	private void onMouseEnter(Event e) {
+	private void onMouseEnter(Event e) { mixin(S_TRACE);
 		updateLightup();
 	}
-	private void onMouseExit(Event e) {
+	private void onMouseExit(Event e) { mixin(S_TRACE);
 		clearLightup();
 	}
-	private void onFocusInOut(Event e) {
+	private void onFocusInOut(Event e) { mixin(S_TRACE);
 		auto ca = getClientArea();
-		if (_selected && _selected in _posTable) {
+		if (_selected && _selected in _posTable) { mixin(S_TRACE);
 			auto pos = _posTable[_selected];
 			auto sy = getVerticalBar().getSelection() * _lineHeight;
 			redraw(ca.x, pos.y - sy, ca.width, _lineHeight + 1, true);
 		}
 	}
 
-	private void clearLightup() {
-		if (_lightup && _lightup in _posTable) {
+	private void clearLightup() { mixin(S_TRACE);
+		if (_lightup && _lightup in _posTable) { mixin(S_TRACE);
 			auto ca = getClientArea();
 			auto sy = getVerticalBar().getSelection() * _lineHeight;
 			auto pos = _posTable[_lightup];
@@ -732,49 +732,49 @@ class EventEditor : Composite {
 		}
 		_lightup = null;
 	}
-	void updateLightup() {
+	void updateLightup() { mixin(S_TRACE);
 		auto ca = getClientArea();
 		auto p = getDisplay().getCursorLocation();
 		p = toControl(p);
 		auto sy = getVerticalBar().getSelection() * _lineHeight;
 		clearLightup();
 		_lightup = ca.contains(p) ? getContent(p.x, p.y) : null;
-		if (_lightup && _lightup in _posTable) {
+		if (_lightup && _lightup in _posTable) { mixin(S_TRACE);
 			auto pos = _posTable[_lightup];
 			redraw(ca.x, pos.y - sy, ca.width, _lineHeight + 1, true);
 		}
 	}
 
-	private void onMouseDoubleClick(Event e) {
+	private void onMouseDoubleClick(Event e) { mixin(S_TRACE);
 		auto itm = getItem(new Point(e.x, e.y));
 		if (!itm) return;
 		auto c = cast(Content)itm.getData();
-		if (itm && c.type == CType.START && c.next.length) {
+		if (itm && c.type == CType.START && c.next.length) { mixin(S_TRACE);
 			itm.setExpanded(!itm.getExpanded());
 			callExpandedChanged(itm);
 		}
 	}
 
-	private void onResize(Event e) {
+	private void onResize(Event e) { mixin(S_TRACE);
 		auto ca = getClientArea();
 		_comm.prop.var.etc.detailAreaWidth = .min(_comm.prop.var.etc.detailAreaWidth.value, ca.width - _imageWidth);
 		_comm.prop.var.etc.detailAreaWidth = .max(_comm.prop.var.etc.detailAreaWidth.value, _imageWidth);
 	}
 
-	private void onMouseWheel(Event e) {
+	private void onMouseWheel(Event e) { mixin(S_TRACE);
 		clearLightup();
 		auto vbar = getVerticalBar();
 		auto val = vbar.getSelection();
-		if (e.count < 0) {
+		if (e.count < 0) { mixin(S_TRACE);
 			val += 1;
-		} else if (0 < e.count) {
+		} else if (0 < e.count) { mixin(S_TRACE);
 			val -= 1;
 		}
 		vbar.setSelection(val);
 		updateLightup();
 	}
 
-	private void onPaint(Event e) {
+	private void onPaint(Event e) { mixin(S_TRACE);
 		if (!_et) return;
 		if (!_pos.length) return;
 		auto hw = _imageWidth / 2;
@@ -790,14 +790,14 @@ class EventEditor : Composite {
 		int sy = vbar.getSelection() * _lineHeight;
 
 		auto d = getDisplay();
-		if (_lightup && _lightup in _posTable) {
+		if (_lightup && _lightup in _posTable) { mixin(S_TRACE);
 			// マウスオーバー中のイベントコンテント
 			auto pos = _posTable[_lightup];
 			e.gc.setBackground(_lightupColor);
 			scope (exit) e.gc.setBackground(getBackground());
 			e.gc.fillRectangle(e.x, pos.y - sy, e.width, _lineHeight + 1);
 		}
-		if (_selected && _selected in _posTable) {
+		if (_selected && _selected in _posTable) { mixin(S_TRACE);
 			// 選択中マーク
 			// FIXME: e.gcで直接描画するとフォーカス線が出ない場合がある
 			//        一度でもキー操作をすると改善するが、確実に回避する
@@ -811,7 +811,7 @@ class EventEditor : Composite {
 			gc.setBackground(_selectedColor);
 			scope (exit) gc.setBackground(getBackground());
 			gc.fillRectangle(0, 0, e.width, _lineHeight + 1);
-			if (isFocusControl()) {
+			if (isFocusControl()) { mixin(S_TRACE);
 				gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 				auto cw = .max(ca.width, _widthSum + _comm.prop.var.etc.detailAreaWidth);
 				gc.drawFocus(2 - sx, 2, cw - 4, _lineHeight + 1 - 4);
@@ -823,27 +823,27 @@ class EventEditor : Composite {
 		e.gc.setLineWidth(2);
 		e.gc.setForeground(_lineColor);
 		e.gc.setBackground(_lineColor);
-		foreach (i, ref pos; _pos[index .. $]) {
+		foreach (i, ref pos; _pos[index .. $]) { mixin(S_TRACE);
 			auto c = pos.content;
-			if (c.type == CType.START) {
+			if (c.type == CType.START) { mixin(S_TRACE);
 				if (poss.length <= i) break;
-				if (0 < i && _comm.prop.var.etc.drawContentTreeLine) {
+				if (0 < i && _comm.prop.var.etc.drawContentTreeLine) { mixin(S_TRACE);
 					e.gc.setLineWidth(1);
 					e.gc.setForeground(_lineColor);
 					e.gc.drawLine(e.x - sx, pos.y - sy, e.x + e.width - sx, pos.y - sy);
 					e.gc.setLineWidth(2);
 					e.gc.setForeground(_lineColor);
 				}
-			} else if (c.parent && c.parent in _posTable) {
+			} else if (c.parent && c.parent in _posTable) { mixin(S_TRACE);
 				auto pPos = _posTable[c.parent];
-				if (pPos.x == pos.x) {
+				if (pPos.x == pos.x) { mixin(S_TRACE);
 					e.gc.drawLine(pos.x + hw - sx, pPos.y + hh - sy, pos.x + hw - sx, pos.y + hh - sy);
-				} else {
+				} else { mixin(S_TRACE);
 					e.gc.drawLine(pPos.x + hw - sx, pPos.y + hh - sy, pPos.x + hw - sx, pos.y - sy);
 					int ly = pos.y + hh - sy;
 					version (Windows) {
 						import org.eclipse.swt.internal.win32.OS;
-						if (OS.WIN32_VERSION != OS.VERSION (6, 1)) {
+						if (OS.WIN32_VERSION != OS.VERSION (6, 1)) { mixin(S_TRACE);
 							ly++;
 						}
 					}
@@ -853,16 +853,16 @@ class EventEditor : Composite {
 					e.gc.setAntialias(SWT.OFF);
 				}
 			}
-			if (_comm.prop.var.etc.showTerminalMark && c.type != CType.START && !c.next.length) {
+			if (_comm.prop.var.etc.showTerminalMark && c.type != CType.START && !c.next.length) { mixin(S_TRACE);
 				// 後続コンテントが置かれるであろう位置を示す
 				// (終端の場合は後続コンテントが置けない事を示す)
 				int terX = pos.x + hw - sx;
 				int terY = pos.y + hh + _lineHeight - sy + 1;
-				if (c.detail.owner) {
+				if (c.detail.owner) { mixin(S_TRACE);
 					e.gc.drawLine(pos.x + hw - sx, pos.y + hh - sy, terX, terY - 8);
 					e.gc.drawLine(terX, terY - 6, terX, terY - 3);
 					e.gc.drawLine(terX, terY - 1, terX, terY + 1);
-				} else {
+				} else { mixin(S_TRACE);
 					e.gc.drawLine(pos.x + hw - sx, pos.y + hh - sy, terX, terY - 5);
 					e.gc.fillRectangle(terX - 4, terY - 5, 8, 3);
 				}
@@ -871,11 +871,11 @@ class EventEditor : Composite {
 		// イベントコンテント分岐点
 		e.gc.setBackground(getBackground());
 		e.gc.setAntialias(SWT.ON);
-		foreach (i, ref pos; poss) {
+		foreach (i, ref pos; poss) { mixin(S_TRACE);
 			auto c = pos.content;
-			if (c.parent && c.parent in _posTable) {
+			if (c.parent && c.parent in _posTable) { mixin(S_TRACE);
 				auto pPos = _posTable[c.parent];
-				if (pPos.x != pos.x && pPos.y != pos.y - _lineHeight) {
+				if (pPos.x != pos.x && pPos.y != pos.y - _lineHeight) { mixin(S_TRACE);
 					e.gc.fillOval(pPos.x + hw - 4 - sx, pos.y - sy - 2, 8, 8);
 					e.gc.drawOval(pPos.x + hw - 4 - sx, pos.y - sy - 2, 8, 8);
 				}
@@ -887,21 +887,21 @@ class EventEditor : Composite {
 		// イベントコンテントのアイコンとテキスト
 		auto ucExtent = e.gc.textExtent(_comm.prop.msgs.startUseCount);
 		e.gc.setForeground(getForeground());
-		foreach (ref pos; poss) {
+		foreach (ref pos; poss) { mixin(S_TRACE);
 			auto c = pos.content;
 			auto image = _comm.prop.images.content(c.type);
 			e.gc.drawImage(image, pos.x - sx, pos.y + _imgPos - sy);
 			string s;
-			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) {
+			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
 				e.gc.setForeground(d.getSystemColor(SWT.COLOR_GRAY));
 				s = _comm.skin.evtChildOK;
-			} else {
+			} else { mixin(S_TRACE);
 				e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 				s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
 			}
 			auto ctx = pos.x + 20;
 			e.gc.drawText(s, ctx - sx, pos.y - sy, true);
-			if (_comm.prop.var.etc.drawCountOfUseOfStart && c.type == CType.START) {
+			if (_comm.prop.var.etc.drawCountOfUseOfStart && c.type == CType.START) { mixin(S_TRACE);
 				// スタート使用数
 				auto count = _et.startUseCounter.get(toStartId(c.name));
 				if (_pos[0].content is c) count++;
@@ -913,7 +913,7 @@ class EventEditor : Composite {
 				e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 				e.gc.drawString(uc, tx, pos.y - sy, true);
 			}
-			if (!_expanded.get(c, true)) {
+			if (!_expanded.get(c, true)) { mixin(S_TRACE);
 				// ツリーを畳んでいる時のマーク
 				e.gc.setForeground(getForeground());
 				auto tw = e.gc.textExtent(s).x;
@@ -935,7 +935,7 @@ class EventEditor : Composite {
 		e.gc.setAlpha(255);
 
 		_warningRects = [];
-		foreach (ref pos; poss) {
+		foreach (ref pos; poss) { mixin(S_TRACE);
 			// イベントコンテント内容
 			auto c = pos.content;
 			auto s = .contentText(_comm, c);
@@ -948,7 +948,7 @@ class EventEditor : Composite {
 
 			// 警告
 			auto warnings = .warnings(_comm.prop.parent, _comm.skin, _summ, c, _comm.prop.var.etc.targetVersion);
-			if (warnings.length) {
+			if (warnings.length) { mixin(S_TRACE);
 				int ww = _comm.prop.var.etc.warningImageWidth;
 				int wix = .max(0, ca.width - _comm.prop.var.etc.detailAreaWidth - ww);
 				int wiw = ca.width - _comm.prop.var.etc.detailAreaWidth - wix;
@@ -963,12 +963,12 @@ class EventEditor : Composite {
 		// コメント
 		e.gc.setBackground(getBackground());
 		e.gc.setForeground(getForeground());
-		foreach (i, ref pos; _pos) {
+		foreach (i, ref pos; _pos) { mixin(S_TRACE);
 			if (!pos.commentRect) continue;
 			e.gc.drawLine(pos.commentLineX - sx, pos.y + hh - sy, pos.commentRect.x - sx, pos.y + hh - sy);
 		}
 		e.gc.setAntialias(SWT.ON);
-		foreach (i, ref pos; _pos) {
+		foreach (i, ref pos; _pos) { mixin(S_TRACE);
 			if (!pos.commentRect) continue;
 			auto box = pos.commentRect;
 			e.gc.setAlpha(192);
@@ -988,180 +988,180 @@ package struct TreeViewWrapper {
 	EventEditor editor;
 
 	@property
-	Composite control() {
-		if (tree) {
+	Composite control() { mixin(S_TRACE);
+		if (tree) { mixin(S_TRACE);
 			return tree;
-		} else {
+		} else { mixin(S_TRACE);
 			return editor;
 		}
 	}
 
-	private Item[] array(T)(T[] itms) {
+	private Item[] array(T)(T[] itms) { mixin(S_TRACE);
 		auto a = new Item[itms.length];
-		foreach (i, itm; itms) {
+		foreach (i, itm; itms) { mixin(S_TRACE);
 			a[i] = itm;
 		}
 		return a;
 	}
-	private T[] items(T)(Item[] itms) {
+	private T[] items(T)(Item[] itms) { mixin(S_TRACE);
 		auto a = new T[itms.length];
-		foreach (i, itm; itms) {
+		foreach (i, itm; itms) { mixin(S_TRACE);
 			a[i] = cast(T)itm;
 		}
 		return a;
 	}
 
-	Item getTopItem() {
-		if (tree) {
+	Item getTopItem() { mixin(S_TRACE);
+		if (tree) { mixin(S_TRACE);
 			return tree.getTopItem();
-		} else {
+		} else { mixin(S_TRACE);
 			return editor.getTopItem();
 		}
 	}
-	void setTopItem(Item itm) {
-		if (tree) {
+	void setTopItem(Item itm) { mixin(S_TRACE);
+		if (tree) { mixin(S_TRACE);
 			tree.setTopItem(cast(TreeItem)itm);
-		} else {
+		} else { mixin(S_TRACE);
 			editor.setTopItem(cast(EventEditorItem)itm);
 		}
 	}
 
-	Item[] getSelection() {
-		if (tree) {
+	Item[] getSelection() { mixin(S_TRACE);
+		if (tree) { mixin(S_TRACE);
 			return array(tree.getSelection());
-		} else {
+		} else { mixin(S_TRACE);
 			return array(editor.getSelection());
 		}
 	}
-	void setSelection(Item[] itms) {
-		if (tree) {
+	void setSelection(Item[] itms) { mixin(S_TRACE);
+		if (tree) { mixin(S_TRACE);
 			tree.setSelection(items!TreeItem(itms));
-		} else {
+		} else { mixin(S_TRACE);
 			editor.setSelection(items!EventEditorItem(itms));
 		}
 	}
-	void select(Item itm) {
-		if (tree) {
+	void select(Item itm) { mixin(S_TRACE);
+		if (tree) { mixin(S_TRACE);
 			tree.select(cast(TreeItem)itm);
-		} else {
+		} else { mixin(S_TRACE);
 			editor.select(cast(EventEditorItem)itm);
 		}
 	}
 
-	Item getItem(int index) {
-		if (tree) {
+	Item getItem(int index) { mixin(S_TRACE);
+		if (tree) { mixin(S_TRACE);
 			return tree.getItem(index);
-		} else {
+		} else { mixin(S_TRACE);
 			return editor.getItem(index);
 		}
 	}
-	Item getItem(Point p) {
-		if (tree) {
+	Item getItem(Point p) { mixin(S_TRACE);
+		if (tree) { mixin(S_TRACE);
 			return tree.getItem(p);
-		} else {
+		} else { mixin(S_TRACE);
 			return editor.getItem(p);
 		}
 	}
 
-	int getItemCount() {
-		if (tree) {
+	int getItemCount() { mixin(S_TRACE);
+		if (tree) { mixin(S_TRACE);
 			return tree.getItemCount();
-		} else {
+		} else { mixin(S_TRACE);
 			return editor.getItemCount();
 		}
 	}
-	int getItemCount(Item itm) {
+	int getItemCount(Item itm) { mixin(S_TRACE);
 		if (auto b = cast(TreeItem)itm) return b.getItemCount();
 		return (cast(EventEditorItem)itm).getItemCount();
 	}
-	int getItemCount(ref TreeViewWrapper view) {
+	int getItemCount(ref TreeViewWrapper view) { mixin(S_TRACE);
 		return view.getItemCount();
 	}
 
-	void showSelection() {
-		if (tree) {
+	void showSelection() { mixin(S_TRACE);
+		if (tree) { mixin(S_TRACE);
 			return tree.showSelection();
-		} else {
+		} else { mixin(S_TRACE);
 			return editor.showSelection();
 		}
 	}
 
-	void addSelectionListener(SelectionListener listener) {
-		if (tree) {
+	void addSelectionListener(SelectionListener listener) { mixin(S_TRACE);
+		if (tree) { mixin(S_TRACE);
 			return tree.addSelectionListener(listener);
-		} else {
+		} else { mixin(S_TRACE);
 			return editor.addSelectionListener(listener);
 		}
 	}
-	void addTreeListener(TreeListener listener) {
-		if (tree) {
+	void addTreeListener(TreeListener listener) { mixin(S_TRACE);
+		if (tree) { mixin(S_TRACE);
 			return tree.addTreeListener(listener);
-		} else {
+		} else { mixin(S_TRACE);
 			return editor.addTreeListener(listener);
 		}
 	}
-	Item[] getItems() {
-		if (tree) {
+	Item[] getItems() { mixin(S_TRACE);
+		if (tree) { mixin(S_TRACE);
 			return array(tree.getItems());
-		} else {
+		} else { mixin(S_TRACE);
 			return array(editor.getItems());
 		}
 	}
-	Item[] getItems(Item itm) {
+	Item[] getItems(Item itm) { mixin(S_TRACE);
 		if (auto b = cast(TreeItem)itm) return array(b.getItems());
 		return array((cast(EventEditorItem)itm).getItems());
 	}
-	Item getItem(Item itm, int index) {
+	Item getItem(Item itm, int index) { mixin(S_TRACE);
 		if (auto b = cast(TreeItem)itm) return b.getItem(index);
 		return (cast(EventEditorItem)itm).getItem(index);
 	}
-	bool getExpanded(Item itm) {
+	bool getExpanded(Item itm) { mixin(S_TRACE);
 		if (auto b = cast(TreeItem)itm) return b.getExpanded();
 		return (cast(EventEditorItem)itm).getExpanded();
 	}
-	void setExpanded(Item itm, bool expanded) {
-		if (auto b = cast(TreeItem)itm) {
+	void setExpanded(Item itm, bool expanded) { mixin(S_TRACE);
+		if (auto b = cast(TreeItem)itm) { mixin(S_TRACE);
 			b.setExpanded(expanded);
-		} else {
+		} else { mixin(S_TRACE);
 			(cast(EventEditorItem)itm).setExpanded(expanded);
 		}
 	}
-	Item getParentItem(Item itm) {
+	Item getParentItem(Item itm) { mixin(S_TRACE);
 		if (auto b = cast(TreeItem)itm) return b.getParentItem();
 		return (cast(EventEditorItem)itm).getParentItem();
 	}
-	Item getItem(ref TreeViewWrapper view, int index) {
+	Item getItem(ref TreeViewWrapper view, int index) { mixin(S_TRACE);
 		return getItem(index);
 	}
 
-	int indexOf(Item itm) {
-		if (tree) {
+	int indexOf(Item itm) { mixin(S_TRACE);
+		if (tree) { mixin(S_TRACE);
 			return tree.indexOf(cast(TreeItem)itm);
-		} else {
+		} else { mixin(S_TRACE);
 			return editor.indexOf(cast(EventEditorItem)itm);
 		}
 	}
-	int indexOf(Item itm, Item child) {
+	int indexOf(Item itm, Item child) { mixin(S_TRACE);
 		if (auto b = cast(TreeItem)itm) return b.indexOf(cast(TreeItem)child);
 		return (cast(EventEditorItem)itm).indexOf(cast(EventEditorItem)child);
 	}
 
-	Item topItem(Item itm) {
+	Item topItem(Item itm) { mixin(S_TRACE);
 		if (auto b = cast(TreeItem)itm) return .topItem(b);
 		auto c = cast(Content)itm.getData();
 		if (c.parent) return EventEditorItem.valueOf(editor, c.parentStart);
 		return itm;
 	}
 
-	void treeExpandedAll() {
-		if (tree) {
+	void treeExpandedAll() { mixin(S_TRACE);
+		if (tree) { mixin(S_TRACE);
 			.treeExpandedAll(tree);
-		} else {
+		} else { mixin(S_TRACE);
 			editor.expandAll();
 		}
 	}
 
-	Rectangle getImageBounds(Item itm) {
+	Rectangle getImageBounds(Item itm) { mixin(S_TRACE);
 		if (auto b = cast(TreeItem)itm) return b.getImageBounds(0);
 		return (cast(EventEditorItem)itm).getImageBounds();
 	}
@@ -1181,7 +1181,7 @@ private:
 	void delegate(EventEditorItem itm, Control ctrl) _editEnd;
 	Control delegate(EventEditorItem itm) _createEditor;
 
-	Item selectionM(int x, int y) {
+	Item selectionM(int x, int y) { mixin(S_TRACE);
 		if (!_list.getDragDetect()) return null;
 		auto c = _list.getContent(x, y);
 		if (!c) return null;
@@ -1191,15 +1191,15 @@ private:
 		if (ca.width - _comm.prop.var.etc.detailAreaWidth <= x) return null;
 		return _list.getItem(new Point(x, y));
 	}
-	Item selectionK() {
+	Item selectionK() { mixin(S_TRACE);
 		auto sels = _list.getSelection();
-		if (sels.length) {
+		if (sels.length) { mixin(S_TRACE);
 			return sels[0];
 		}
 		return null;
 	}
 
-	void end(Control ctrl) {
+	void end(Control ctrl) { mixin(S_TRACE);
 		assert (_edit !is null);
 		_editEnd(_edit, ctrl);
 		_tee = null;
@@ -1208,10 +1208,10 @@ private:
 		_oldIndex = -1;
 	}
 
-	void startEdit(Item itm) {
+	void startEdit(Item itm) { mixin(S_TRACE);
 		if (_tee !is null && !_tee.isExit) _tee.enter();
 		_editor = _createEditor(cast(EventEditorItem)itm);
-		if (_editor) {
+		if (_editor) { mixin(S_TRACE);
 			_edit = cast(EventEditorItem)itm;
 			_list.showSelection();
 			_tee = new EditEnd(_comm, _list, _editor, &end);
@@ -1219,7 +1219,7 @@ private:
 			_tee.setFocus();
 		}
 	}
-	void layout() {
+	void layout() { mixin(S_TRACE);
 		if (!_edit) return;
 		int scrPos = _list.getVerticalBar().getSelection();
 		if (scrPos == _oldIndex) return;
@@ -1230,9 +1230,9 @@ private:
 		auto sy = _list.getVerticalBar().getSelection() * _list._lineHeight;
 		int x = pos.x + 20;
 		int w;
-		if (cast(Combo)_editor || cast(CCombo)_editor) {
+		if (cast(Combo)_editor || cast(CCombo)_editor) { mixin(S_TRACE);
 			w = size.x;
-		} else {
+		} else { mixin(S_TRACE);
 			auto ca = _list.getClientArea();
 			w = ca.width - _comm.prop.var.etc.detailAreaWidth - pos.x - 20;
 			w = .max(_comm.prop.var.etc.nameWidth.value, w);
@@ -1247,7 +1247,7 @@ public:
 	/// createEditor = アイテムを編集するコンポーネントを生成する関数。
 	///                nullを返した場合、編集は開始されない。
 	this(Commons comm, EventEditor list, void delegate(EventEditorItem itm, Control ctrl) editEnd,
-			Control delegate(EventEditorItem itm) createEditor = null) {
+			Control delegate(EventEditorItem itm) createEditor = null) { mixin(S_TRACE);
 		_comm = comm;
 		_list = list;
 		_editEnd = editEnd;
@@ -1261,13 +1261,13 @@ public:
 		.listener(list, SWT.Paint, &layout);
 	}
 	/// 選択されているセルの編集を開始する。
-	void startEdit() {
+	void startEdit() { mixin(S_TRACE);
 		auto sels = _list.getSelection();
-		if (sels.length == 1) {
+		if (sels.length == 1) { mixin(S_TRACE);
 			startEdit(sels[0]);
 		}
 	}
-	bool isEditing() {
+	bool isEditing() { mixin(S_TRACE);
 		return _tee !is null;
 	}
 }

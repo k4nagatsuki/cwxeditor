@@ -22,42 +22,42 @@ enum CouponComboType {
 	Talker, /// 話者用のクーポンを選択肢とする。
 	Cast, /// キャストの経歴用のクーポンを選択肢とする。
 }
-T createCouponCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod, CouponComboType type) {
+T createCouponCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod, CouponComboType type) { mixin(S_TRACE);
 	TextMenuModify tmm;
 	return createCouponCombo!T(comm, parent, catchMod, type, tmm);
 }
-T createCouponCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod, CouponComboType type, out TextMenuModify tmm) {
+T createCouponCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod, CouponComboType type, out TextMenuModify tmm) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	auto incSearch = new IncSearch(comm, combo);
 
-	void refreshCoupons() {
+	void refreshCoupons() { mixin(S_TRACE);
 		string id = combo.getText();
 		combo.removeAll();
 
 		string[] cs;
-		if (type !is CouponComboType.Cast) {
+		if (type !is CouponComboType.Cast) { mixin(S_TRACE);
 			cs = castCoupons(comm, type is CouponComboType.Talker, comm.skin.legacyName);
 		}
 
 		string[] dcs;
-		if (comm.prop.var.etc.usedCouponToCombo) {
-			foreach (coupon; comm.summary.useCounter.coupon.keys.sort) {
+		if (comm.prop.var.etc.usedCouponToCombo) { mixin(S_TRACE);
+			foreach (coupon; comm.summary.useCounter.coupon.keys.sort) { mixin(S_TRACE);
 				if (!.contains(cs, coupon.id)) dcs ~= coupon;
 			}
 		}
-		if (comm.prop.var.etc.useNamesAfterStandard) {
-			if (dcs.length && cs.length) {
+		if (comm.prop.var.etc.useNamesAfterStandard) { mixin(S_TRACE);
+			if (dcs.length && cs.length) { mixin(S_TRACE);
 				cs ~= "";
 			}
 			dcs = cs ~ dcs;
-		} else {
-			if (dcs.length && cs.length) {
+		} else { mixin(S_TRACE);
+			if (dcs.length && cs.length) { mixin(S_TRACE);
 				dcs ~= "";
 			}
 			dcs ~= cs;
 		}
-		foreach (coupon; dcs) {
+		foreach (coupon; dcs) { mixin(S_TRACE);
 			if (!incSearch.match(coupon)) continue;
 			combo.add(coupon);
 		}
@@ -67,13 +67,13 @@ T createCouponCombo(T = Combo)(Commons comm, Composite parent, bool delegate() c
 	incSearch.modEvent ~= &refreshCoupons;
 	comm.refSkin.add(&refreshCoupons);
 	comm.refCoupons.add(&refreshCoupons);
-	.listener(combo, SWT.Dispose, {
+	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
 		comm.refSkin.remove(&refreshCoupons);
 		comm.refCoupons.remove(&refreshCoupons);
 	});
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
-	createMenuItem(comm, menu, MenuID.IncSearch, {
+	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 		.forceFocus(combo, true);
 		incSearch.startIncSearch();
 	}, null);
@@ -86,16 +86,16 @@ T createCouponCombo(T = Combo)(Commons comm, Composite parent, bool delegate() c
 	return combo;
 }
 
-T createGossipCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod) {
+T createGossipCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	auto incSearch = new IncSearch(comm, combo);
 
-	void refGossip() {
+	void refGossip() { mixin(S_TRACE);
 		string id = combo.getText();
 		combo.removeAll();
 
-		foreach (gossip; comm.summary.useCounter.gossip.keys.sort) {
+		foreach (gossip; comm.summary.useCounter.gossip.keys.sort) { mixin(S_TRACE);
 			if (!incSearch.match(gossip)) continue;
 			combo.add(gossip);
 		}
@@ -104,12 +104,12 @@ T createGossipCombo(T = Combo)(Commons comm, Composite parent, bool delegate() c
 
 	incSearch.modEvent ~= &refGossip;
 	comm.refGossips.add(&refGossip);
-	.listener(combo, SWT.Dispose, {
+	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
 		comm.refGossips.remove(&refGossip);
 	});
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
-	createMenuItem(comm, menu, MenuID.IncSearch, {
+	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 		.forceFocus(combo, true);
 		incSearch.startIncSearch();
 	}, null);
@@ -122,16 +122,16 @@ T createGossipCombo(T = Combo)(Commons comm, Composite parent, bool delegate() c
 	return combo;
 }
 
-T createCompleteStampCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod) {
+T createCompleteStampCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	auto incSearch = new IncSearch(comm, combo);
 
-	void refCompleteStamp() {
+	void refCompleteStamp() { mixin(S_TRACE);
 		string id = combo.getText();
 		combo.removeAll();
 
-		foreach (stamp; comm.summary.useCounter.completeStamp.keys.sort) {
+		foreach (stamp; comm.summary.useCounter.completeStamp.keys.sort) { mixin(S_TRACE);
 			if (!incSearch.match(stamp)) continue;
 			combo.add(stamp);
 		}
@@ -140,12 +140,12 @@ T createCompleteStampCombo(T = Combo)(Commons comm, Composite parent, bool deleg
 
 	incSearch.modEvent ~= &refCompleteStamp;
 	comm.refCompleteStamps.add(&refCompleteStamp);
-	.listener(combo, SWT.Dispose, {
+	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
 		comm.refCompleteStamps.remove(&refCompleteStamp);
 	});
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
-	createMenuItem(comm, menu, MenuID.IncSearch, {
+	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 		.forceFocus(combo, true);
 		incSearch.startIncSearch();
 	}, null);
@@ -158,12 +158,12 @@ T createCompleteStampCombo(T = Combo)(Commons comm, Composite parent, bool deleg
 	return combo;
 }
 
-T createKeyCodeCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod) {
+T createKeyCodeCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	auto incSearch = new IncSearch(comm, combo);
 
-	void refStandardKeyCodes() {
+	void refStandardKeyCodes() { mixin(S_TRACE);
 		string id = combo.getText();
 		combo.removeAll();
 
@@ -171,24 +171,24 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Composite parent, bool delegate() 
 
 		auto kcs = comm.summary.useCounter.keyCode.keys;
 		string[] kcs2;
-		foreach (string kc; kcs.sort) {
-			if (!.contains(stdKCs, kc)) {
+		foreach (string kc; kcs.sort) { mixin(S_TRACE);
+			if (!.contains(stdKCs, kc)) { mixin(S_TRACE);
 				kcs2 ~= kc;
 			}
 		}
 
-		if (comm.prop.var.etc.useNamesAfterStandard) {
-			if (kcs2.length && stdKCs.length) {
+		if (comm.prop.var.etc.useNamesAfterStandard) { mixin(S_TRACE);
+			if (kcs2.length && stdKCs.length) { mixin(S_TRACE);
 				stdKCs ~= "";
 			}
 			kcs2 = stdKCs ~ kcs2;
-		} else {
-			if (kcs2.length) {
+		} else { mixin(S_TRACE);
+			if (kcs2.length) { mixin(S_TRACE);
 				kcs2 ~= "";
 			}
 			kcs2 ~= stdKCs;
 		}
-		foreach (kc; kcs2) {
+		foreach (kc; kcs2) { mixin(S_TRACE);
 			if (!incSearch.match(kc)) continue;
 			combo.add(kc);
 		}
@@ -198,13 +198,13 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Composite parent, bool delegate() 
 	incSearch.modEvent ~= &refStandardKeyCodes;
 	comm.refStandardKeyCodes.add(&refStandardKeyCodes);
 	comm.refKeyCodes.add(&refStandardKeyCodes);
-	.listener(combo, SWT.Dispose, {
+	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
 		comm.refStandardKeyCodes.remove(&refStandardKeyCodes);
 		comm.refKeyCodes.remove(&refStandardKeyCodes);
 	});
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
-	createMenuItem(comm, menu, MenuID.IncSearch, {
+	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
 		.forceFocus(combo, true);
 		incSearch.startIncSearch();
 	}, null);
@@ -236,16 +236,16 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 	private bool _saveExpanded = false;
 
 	@property
-	private Control widget() {
+	private Control widget() { mixin(S_TRACE);
 		return _tree ? _tree : _list;
 	}
 
-	private void flagIncSearch() {
+	private void flagIncSearch() { mixin(S_TRACE);
 		.forceFocus(widget, true);
 		_flagIncSearch.startIncSearch();
 	}
 
-	private void refFlags(Flag[] f, Step[] s) {
+	private void refFlags(Flag[] f, Step[] s) { mixin(S_TRACE);
 		if (!_summ) return;
 		static if (is(F:Flag)) {
 			if (!f.length) return;
@@ -254,7 +254,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		} else static assert (0);
 		refreshFlags();
 	}
-	private void delFlags(Flag[] f, Step[] s) {
+	private void delFlags(Flag[] f, Step[] s) { mixin(S_TRACE);
 		if (!_summ) return;
 		static if (is(F:Flag)) {
 			if (!f.length) return;
@@ -263,7 +263,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		} else static assert (0);
 		refreshFlags();
 	}
-	private void refreshFlags() {
+	private void refreshFlags() { mixin(S_TRACE);
 		static if (is(F:Flag)) {
 			auto icon = _prop.images.flag;
 		} else static if (is(F:Step)) {
@@ -271,9 +271,9 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		} else static assert (0);
 		string sel = _selected;
 		_selected = "";
-		if (_tree) {
+		if (_tree) { mixin(S_TRACE);
 			_tree.removeAll();
-		} else {
+		} else { mixin(S_TRACE);
 			_list.removeAll();
 		}
 		_canIncSearch = false;
@@ -281,9 +281,9 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		Item firstItem = null;
 		static if (CanSelNothing) {
 			Item nof;
-			if (_tree) {
+			if (_tree) { mixin(S_TRACE);
 				nof = new TreeItem(_tree, SWT.NONE);
-			} else {
+			} else { mixin(S_TRACE);
 				nof = new TableItem(_list, SWT.NONE);
 			}
 			nof.setText(_prop.msgs.noFlagRef);
@@ -291,39 +291,39 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			if (!firstItem) firstItem = nof;
 		}
 		static if (Random) {
-			if (_tree) {
+			if (_tree) { mixin(S_TRACE);
 				_random = new TreeItem(_tree, SWT.NONE);
-			} else {
+			} else { mixin(S_TRACE);
 				_random = new TableItem(_list, SWT.NONE);
 			}
 			_random.setText(_prop.msgs.randomValue);
 			_random.setImage(_prop.images.emptyIcon);
-			if (sel == _prop.sys.randomValue) {
+			if (sel == _prop.sys.randomValue) { mixin(S_TRACE);
 				has = true;
-				if (_tree) {
+				if (_tree) { mixin(S_TRACE);
 					_tree.setSelection([cast(TreeItem)_random]);
-				} else {
+				} else { mixin(S_TRACE);
 					_list.select(_list.getItemCount() - 1);
 				}
 				_selected = sel;
 			}
 			if (!firstItem) firstItem = _random;
 		}
-		if (_tree) {
-			bool recurse(T)(T parent, FlagDir dir, string name) {
+		if (_tree) { mixin(S_TRACE);
+			bool recurse(T)(T parent, FlagDir dir, string name) { mixin(S_TRACE);
 				bool selItm = false;
 				auto dirItm = new TreeItem(parent, SWT.NONE);
 				dirItm.setData(dir);
 				dirItm.setImage(_prop.images.flagDir);
 				dirItm.setText(name);
-				foreach (child; dir.subDirs) {
+				foreach (child; dir.subDirs) { mixin(S_TRACE);
 					static if (is(F:Flag)) {
 						auto flags = child.allFlags;
 					} else static if (is(F:Step)) {
 						auto flags = child.allSteps;
 					} else static assert (0);
 					bool hasChild = false;
-					foreach (flag; flags) {
+					foreach (flag; flags) { mixin(S_TRACE);
 						if (!_flagIncSearch.match(flag.path)) continue;
 						hasChild = true;
 						break;
@@ -336,9 +336,9 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 				} else static if (is(F:Step)) {
 					auto flags = dir.steps;
 				} else static assert (0);
-				foreach (flag; flags) {
+				foreach (flag; flags) { mixin(S_TRACE);
 					auto path = flag.path;
-					if (!has && path == sel) {
+					if (!has && path == sel) { mixin(S_TRACE);
 						has = true;
 					}
 					if (!_flagIncSearch.match(path)) continue;
@@ -346,7 +346,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					itm.setData(flag);
 					itm.setImage(icon);
 					itm.setText(flag.name);
-					if (!_tree.getSelectionCount() && path == sel) {
+					if (!_tree.getSelectionCount() && path == sel) { mixin(S_TRACE);
 						selItm = true;
 						_tree.setSelection([itm]);
 						_selected = path;
@@ -358,15 +358,15 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 				return selItm;
 			}
 			recurse(_tree, _summ.flagDirRoot, _prop.msgs.flagDirRoot);
-		} else {
+		} else { mixin(S_TRACE);
 			static if (is(F:Flag)) {
 				auto flags = _summ.flagDirRoot.allFlags;
 			} else static if (is(F:Step)) {
 				auto flags = _summ.flagDirRoot.allSteps;
 			} else static assert (0);
-			foreach (flag; flags) {
+			foreach (flag; flags) { mixin(S_TRACE);
 				auto path = flag.path;
-				if (!has && path == sel) {
+				if (!has && path == sel) { mixin(S_TRACE);
 					has = true;
 				}
 				if (!_flagIncSearch.match(path)) continue;
@@ -374,7 +374,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 				itm.setData(flag);
 				itm.setImage(icon);
 				itm.setText(path);
-				if (!_list.getSelectionCount() && path == sel) {
+				if (!_list.getSelectionCount() && path == sel) { mixin(S_TRACE);
 					_list.select(_list.getItemCount() - 1);
 					_selected = path;
 				}
@@ -382,33 +382,33 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 				_canIncSearch = true;
 			}
 		}
-		if (!has && firstItem) {
-			if (_tree) {
+		if (!has && firstItem) { mixin(S_TRACE);
+			if (_tree) { mixin(S_TRACE);
 				_tree.setSelection([cast(TreeItem)firstItem]);
-			} else {
+			} else { mixin(S_TRACE);
 				_list.setSelection([cast(TableItem)firstItem]);
 			}
 			auto flag = cast(F)firstItem.getData();
-			if (flag) {
+			if (flag) { mixin(S_TRACE);
 				_selected = flag.path;
-			} else {
+			} else { mixin(S_TRACE);
 				_selected = "";
 				static if (Random) {
-					if (firstItem is _random) {
+					if (firstItem is _random) { mixin(S_TRACE);
 						_selected = _prop.sys.randomValue;
 					}
 				}
 			}
 		}
-		if (_selected != sel) {
+		if (_selected != sel) { mixin(S_TRACE);
 			foreach (dlg; modEvent) dlg();
 		}
 	}
-	private void openFlagView() {
+	private void openFlagView() { mixin(S_TRACE);
 		Item[] sels;
-		if (_tree) {
+		if (_tree) { mixin(S_TRACE);
 			sels = cast(Item[])_tree.getSelection();
-		} else {
+		} else { mixin(S_TRACE);
 			sels = cast(Item[])_list.getSelection();
 		}
 		if (!sels.length) return;
@@ -417,17 +417,17 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		if (a) cwxPath = a.cwxPath(true);
 		auto d = cast(FlagDir)sels[0].getData();
 		if (d) cwxPath = d.cwxPath(true);
-		try {
+		try { mixin(S_TRACE);
 			_comm.openCWXPath(cpaddattr(cwxPath, "shallow"), false);
 		} catch (Exception e) {
 			debugln(e);
 		}
 	}
-	private bool canOpenView() {
+	private bool canOpenView() { mixin(S_TRACE);
 		Item[] sels;
-		if (_tree) {
+		if (_tree) { mixin(S_TRACE);
 			sels = cast(Item[])_tree.getSelection();
-		} else {
+		} else { mixin(S_TRACE);
 			sels = cast(Item[])_list.getSelection();
 		}
 		if (!sels.length) return false;
@@ -436,35 +436,35 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		return a || d;
 	}
 
-	private void initControl() {
-		if (_tree) {
+	private void initControl() { mixin(S_TRACE);
+		if (_tree) { mixin(S_TRACE);
 			_tree.dispose();
 			_tree = null;
 		}
-		if (_list) {
+		if (_list) { mixin(S_TRACE);
 			_list.dispose();
 			_list = null;
 		}
-		if (_prop.var.etc.selectVariableWithTree) {
+		if (_prop.var.etc.selectVariableWithTree) { mixin(S_TRACE);
 			_tree = new Tree(this, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
 			initTree(_comm, _tree, false);
-			if (_saveExpanded) {
-				.listener(_tree, SWT.Dispose, {
+			if (_saveExpanded) { mixin(S_TRACE);
+				.listener(_tree, SWT.Dispose, { mixin(S_TRACE);
 					bool[string] flagDirExpanded;
-					void recurse(TreeItem itm) {
+					void recurse(TreeItem itm) { mixin(S_TRACE);
 						auto dir = cast(FlagDir)itm.getData();
-						if (dir && dir.path != "") {
+						if (dir && dir.path != "") { mixin(S_TRACE);
 							flagDirExpanded[dir.path] = itm.getExpanded();
 						}
 						foreach (child; itm.getItems()) recurse(child);
 					}
-					foreach (itm; _tree.getItems()) {
+					foreach (itm; _tree.getItems()) { mixin(S_TRACE);
 						recurse(itm);
 					}
 					_comm.flagDirExpanded = flagDirExpanded;
 				});
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			_list = new Table(this, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
 			auto colN = new FullTableColumn(_list, SWT.NONE);
 		}
@@ -473,21 +473,21 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		gd.heightHint = _prop.var.etc.flagsHeight;
 		widget.setLayoutData(gd);
 
-		.listener(widget, SWT.Selection, {
+		.listener(widget, SWT.Selection, { mixin(S_TRACE);
 			Item[] sels;
-			if (_tree) {
+			if (_tree) { mixin(S_TRACE);
 				sels = cast(Item[])_tree.getSelection();
-			} else {
+			} else { mixin(S_TRACE);
 				sels = cast(Item[])_list.getSelection();
 			}
-			if (sels.length && !cast(FlagDir)sels[0].getData()) {
+			if (sels.length && !cast(FlagDir)sels[0].getData()) { mixin(S_TRACE);
 				auto f = cast(F)sels[0].getData();
-				if (f) {
+				if (f) { mixin(S_TRACE);
 					_selected = f.path;
-				} else {
+				} else { mixin(S_TRACE);
 					_selected = "";
 					static if (Random) {
-						if (sels[0] is _random) {
+						if (sels[0] is _random) { mixin(S_TRACE);
 							_selected = _prop.sys.randomValue;
 						}
 					}
@@ -507,7 +507,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		layout();
 	}
 
-	this (Commons comm, Composite parent, bool saveExpanded = true) {
+	this (Commons comm, Composite parent, bool saveExpanded = true) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 		_comm = comm;
 		_prop = comm.prop;
@@ -522,7 +522,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		_comm.refVarSelectStyle.add(&initControl);
 		_comm.refFlagAndStep.add(&refFlags);
 		_comm.delFlagAndStep.add(&delFlags);
-		.listener(this, SWT.Dispose, {
+		.listener(this, SWT.Dispose, { mixin(S_TRACE);
 			_comm.refVarSelectStyle.remove(&initControl);
 			_comm.refFlagAndStep.remove(&refFlags);
 			_comm.delFlagAndStep.remove(&delFlags);
@@ -530,7 +530,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 	}
 
 	@property
-	void selected(string path) {
+	void selected(string path) { mixin(S_TRACE);
 		_selected = path;
 		refreshFlags();
 	}
@@ -539,10 +539,10 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 	string selected() { return _selected; }
 
 	@property
-	string selectedWithDir() {
-		if (_tree) {
+	string selectedWithDir() { mixin(S_TRACE);
+		if (_tree) { mixin(S_TRACE);
 			auto sels = _tree.getSelection();
-			if (sels.length && cast(FlagDir)sels[0].getData()) {
+			if (sels.length && cast(FlagDir)sels[0].getData()) { mixin(S_TRACE);
 				return (cast(FlagDir)sels[0].getData()).path;
 			}
 		}

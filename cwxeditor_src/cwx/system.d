@@ -1,6 +1,7 @@
 
 module cwx.system;
 
+import cwx.perf;
 import cwx.features;
 import cwx.types;
 
@@ -12,7 +13,7 @@ class XMLInfo {
 	const System sys; /// 対象システム情報。
 	string ver; /// バージョン情報。
 
-	this (const System sys, string ver) {
+	this (const System sys, string ver) { mixin(S_TRACE);
 		this.sys = sys;
 		this.ver = ver;
 	}
@@ -42,7 +43,7 @@ class System {
 	/// http://www.geocities.jp/chikuan_shusui/history/variant_engine.htm
 	/// http://dwandnl.web.fc2.com/darkwirth/
 	const
-	string sexName(Sex s, string legacyName) {
+	string sexName(Sex s, string legacyName) { mixin(S_TRACE);
 		switch (s) {
 		case Sex.MALE: return "♂";
 		case Sex.FEMALE: return "♀";
@@ -51,7 +52,7 @@ class System {
 	}
 	/// ditto
 	const
-	string periodName(Period p, string legacyName) {
+	string periodName(Period p, string legacyName) { mixin(S_TRACE);
 		switch (p) {
 		case Period.CHILD: return "子供";
 		case Period.YOUNG: return "若者";
@@ -62,15 +63,15 @@ class System {
 	}
 	/// ditto
 	const
-	string natureName(Nature n, string legacyName) {
+	string natureName(Nature n, string legacyName) { mixin(S_TRACE);
 		switch (n) {
-		case Nature.SPI: {
+		case Nature.SPI: { mixin(S_TRACE);
 			switch (toLower(legacyName)) {
 			case "darkwirth": return "他種族";
 			default: return "標準型";
 			}
 		}
-		case Nature.INT: {
+		case Nature.INT: { mixin(S_TRACE);
 			switch (toLower(legacyName)) {
 			case "s_c_wirth": return "理性型";
 			case "oedowirth": return "参謀型";
@@ -78,21 +79,21 @@ class System {
 			default: return "知将型";
 			}
 		}
-		case Nature.AGL: {
+		case Nature.AGL: { mixin(S_TRACE);
 			switch (toLower(legacyName)) {
 			case "oedowirth": return "隠密型";
 			case "darkwirth": return "人獣族";
 			default: return "万能型";
 			}
 		}
-		case Nature.SCH: {
+		case Nature.SCH: { mixin(S_TRACE);
 			switch (toLower(legacyName)) {
 			case "s_c_wirth": return "秀才型";
 			case "darkwirth": return "小悪魔";
 			default:return "策士型";
 			}
 		}
-		case Nature.STR: {
+		case Nature.STR: { mixin(S_TRACE);
 			switch (toLower(legacyName)) {
 			case "s_c_wirth": return "根性型";
 			case "oedowirth": return "剣客型";
@@ -100,35 +101,35 @@ class System {
 			default: return "勇将型";
 			}
 		}
-		case Nature.VIT: {
+		case Nature.VIT: { mixin(S_TRACE);
 			switch (toLower(legacyName)) {
 			case "s_c_wirth": return "熱血型";
 			case "darkwirth": return "蜥蜴族";
 			default: return "豪傑型";
 			}
 		}
-		case Nature.BRI: {
+		case Nature.BRI: { mixin(S_TRACE);
 			switch (toLower(legacyName)) {
 			case "oedowirth": return "秀英型";
 			case "darkwirth": return "人狼族";
 			default: return "英明型";
 			}
 		}
-		case Nature.MAT: {
+		case Nature.MAT: { mixin(S_TRACE);
 			switch (toLower(legacyName)) {
 			case "oedowirth": return "剣豪型";
 			case "darkwirth": return "鬼人族";
 			default: return "無双型";
 			}
 		}
-		case Nature.GEN: {
+		case Nature.GEN: { mixin(S_TRACE);
 			switch (toLower(legacyName)) {
 			case "oedowirth": return "賢才型";
 			case "darkwirth": return "大悪魔";
 			default: return "天才型";
 			}
 		}
-		case Nature.MED: {
+		case Nature.MED: { mixin(S_TRACE);
 			switch (toLower(legacyName)) {
 			case "s_c_wirth": return "努力型";
 			case "oedowirth": return "晩成型";
@@ -136,7 +137,7 @@ class System {
 			default: return "凡庸型";
 			}
 		}
-		case Nature.HER: {
+		case Nature.HER: { mixin(S_TRACE);
 			switch (toLower(legacyName)) {
 			case "s_c_wirth": return "超人型";
 			case "oedowirth": return "覇道型";
@@ -144,7 +145,7 @@ class System {
 			default: return "英雄型";
 			}
 		}
-		case Nature.DIV: {
+		case Nature.DIV: { mixin(S_TRACE);
 			switch (toLower(legacyName)) {
 			case "darkwirth": return "神竜族";
 			default: return "神仙型";
@@ -155,7 +156,7 @@ class System {
 	}
 	/// ditto
 	const
-	string makingsName(Makings m, string legacyName) {
+	string makingsName(Makings m, string legacyName) { mixin(S_TRACE);
 		switch (m) {
 		case Makings.LOOKS_B: return "秀麗";
 		case Makings.LOOKS_U: return "醜悪";
@@ -211,33 +212,33 @@ class System {
 
 	/// 各特性をクーポンに変換する。
 	const
-	string sexCoupon(Sex p, string legacyName) {
+	string sexCoupon(Sex p, string legacyName) { mixin(S_TRACE);
 		return "＿" ~ sexName(p, legacyName);
 	}
 	/// ditto
 	const
-	string periodCoupon(Period p, string legacyName) {
+	string periodCoupon(Period p, string legacyName) { mixin(S_TRACE);
 		return "＿" ~ periodName(p, legacyName);
 	}
 	/// ditto
 	const
-	string natureCoupon(Nature n, string legacyName) {
+	string natureCoupon(Nature n, string legacyName) { mixin(S_TRACE);
 		return "＿" ~ natureName(n, legacyName);
 	}
 	/// ditto
 	const
-	string makingsCoupon(Makings m, string legacyName) {
+	string makingsCoupon(Makings m, string legacyName) { mixin(S_TRACE);
 		return "＿" ~ makingsName(m, legacyName);
 	}
 
 	/// ペナルティカードであればtrue。
 	const
-	bool isPenalty(in string[] keyCodes) {
+	bool isPenalty(in string[] keyCodes) { mixin(S_TRACE);
 		return 0 < keyCodes.find("ペナルティ").length;
 	}
 	/// リサイクルカードであればtrue。
 	const
-	bool isRecycle(in string[] keyCodes) {
+	bool isRecycle(in string[] keyCodes) { mixin(S_TRACE);
 		return 0 < keyCodes.find("リサイクル").length;
 	}
 
@@ -246,26 +247,26 @@ class System {
 	private immutable FKC_HASNOT = "！";
 	/// キーコード発火条件の種別を返す。
 	const
-	FKCKind fireKeyCodeKind(string keyCode) {
-		if (.endsWith(keyCode, FKC_SUCCESS.idup)) {
+	FKCKind fireKeyCodeKind(string keyCode) { mixin(S_TRACE);
+		if (.endsWith(keyCode, FKC_SUCCESS.idup)) { mixin(S_TRACE);
 			return FKCKind.Success;
-		} else if (std.string.endsWith(keyCode, FKC_FAILURE.idup)) {
+		} else if (std.string.endsWith(keyCode, FKC_FAILURE.idup)) { mixin(S_TRACE);
 			return FKCKind.Failure;
-		} else if (std.string.startsWith(keyCode, FKC_HASNOT.idup)) {
+		} else if (std.string.startsWith(keyCode, FKC_HASNOT.idup)) { mixin(S_TRACE);
 			return FKCKind.HasNot;
 		}
 		return FKCKind.Use;
 	}
 	/// ditto
 	const
-	FKCKind fireKeyCodeKindRef(ref string keyCode) {
-		if (.endsWith(keyCode, FKC_SUCCESS.idup)) {
+	FKCKind fireKeyCodeKindRef(ref string keyCode) { mixin(S_TRACE);
+		if (.endsWith(keyCode, FKC_SUCCESS.idup)) { mixin(S_TRACE);
 			keyCode = keyCode[0..$-FKC_SUCCESS.length];
 			return FKCKind.Success;
-		} else if (std.string.endsWith(keyCode, FKC_FAILURE.idup)) {
+		} else if (std.string.endsWith(keyCode, FKC_FAILURE.idup)) { mixin(S_TRACE);
 			keyCode = keyCode[0..$-FKC_FAILURE.length];
 			return FKCKind.Failure;
-		} else if (std.string.startsWith(keyCode, FKC_HASNOT.idup)) {
+		} else if (std.string.startsWith(keyCode, FKC_HASNOT.idup)) { mixin(S_TRACE);
 			keyCode = keyCode[FKC_HASNOT.length..$];
 			return FKCKind.HasNot;
 		}
@@ -273,34 +274,34 @@ class System {
 	}
 	/// キーコード発火条件を変換する。
 	const
-	string convFireKeyCode(in FKeyCode keyCode) {
+	string convFireKeyCode(in FKeyCode keyCode) { mixin(S_TRACE);
 		return convFireKeyCode(keyCode.keyCode, keyCode.kind);
 	}
 	/// ditto
 	const
-	string convFireKeyCode(string keyCode, FKCKind kind) {
-		if (.endsWith(keyCode, FKC_SUCCESS.idup)) {
+	string convFireKeyCode(string keyCode, FKCKind kind) { mixin(S_TRACE);
+		if (.endsWith(keyCode, FKC_SUCCESS.idup)) { mixin(S_TRACE);
 			final switch (kind) {
 			case FKCKind.Use: return keyCode[0 .. $ - FKC_SUCCESS.length];
 			case FKCKind.Success: return keyCode;
 			case FKCKind.Failure: return keyCode[0 .. $ - FKC_SUCCESS.length] ~ FKC_FAILURE;
 			case FKCKind.HasNot: return FKC_HASNOT ~ keyCode[0 .. $ - FKC_SUCCESS.length];
 			}
-		} else if (.endsWith(keyCode, FKC_FAILURE.idup)) {
+		} else if (.endsWith(keyCode, FKC_FAILURE.idup)) { mixin(S_TRACE);
 			final switch (kind) {
 			case FKCKind.Use: return keyCode[0 .. $ - FKC_FAILURE.length];
 			case FKCKind.Success: return keyCode[0 .. $ - FKC_FAILURE.length] ~ FKC_SUCCESS;
 			case FKCKind.Failure: return keyCode;
 			case FKCKind.HasNot: return FKC_HASNOT ~ keyCode[0 .. $ - FKC_FAILURE.length];
 			}
-		} else if (.startsWith(keyCode, FKC_HASNOT.idup)) {
+		} else if (.startsWith(keyCode, FKC_HASNOT.idup)) { mixin(S_TRACE);
 			final switch (kind) {
 			case FKCKind.Use: return keyCode[FKC_HASNOT.length .. $];
 			case FKCKind.Success: return keyCode[FKC_HASNOT.length .. $] ~ FKC_SUCCESS;
 			case FKCKind.Failure: return keyCode[FKC_HASNOT.length .. $] ~ FKC_FAILURE;
 			case FKCKind.HasNot: return keyCode;
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			final switch (kind) {
 			case FKCKind.Use: return keyCode;
 			case FKCKind.Success: return keyCode ~ FKC_SUCCESS;
@@ -311,14 +312,14 @@ class System {
 	}
 	/// 発火条件付のキーコードをFKeyCodeへ変換する。
 	const
-	FKeyCode toFKeyCode(string keyCode) {
+	FKeyCode toFKeyCode(string keyCode) { mixin(S_TRACE);
 		auto kind = fireKeyCodeKindRef(keyCode);
 		return FKeyCode(keyCode, kind);
 	}
 
 	/// 種族名をクーポンに変換する。
 	const
-	string raceCoupon(string raceName) {
+	string raceCoupon(string raceName) { mixin(S_TRACE);
 		return "＠Ｒ" ~ raceName;
 	}
 
@@ -329,7 +330,7 @@ class System {
 	/// 後続イベントコンテントのDefault値。
 	@property const string evtChildDefault() {return "Default";}
 	/// 後続イベントコンテントのメッセージ送り標準値。
-	@property const string evtChildOK(string legacyName) {
+	@property const string evtChildOK(string legacyName) { mixin(S_TRACE);
 		switch (toLower(legacyName)) {
 		case "oedowirth":
 			return " 是 ";
@@ -345,16 +346,16 @@ class System {
 	@property const string evtChildEq() {return "=";}
 
 	/// クーポンの型を判別する。
-	const CouponType couponType(string coupon) {
-		foreach (coType; [CouponType.Hide, CouponType.System, CouponType.Dur, CouponType.DurBattle]) {
-			if (isCouponType(coupon, coType)) {
+	const CouponType couponType(string coupon) { mixin(S_TRACE);
+		foreach (coType; [CouponType.Hide, CouponType.System, CouponType.Dur, CouponType.DurBattle]) { mixin(S_TRACE);
+			if (isCouponType(coupon, coType)) { mixin(S_TRACE);
 				return coType;
 			}
 		}
 		return CouponType.Normal;
 	}
 	/// ditto
-	const bool isCouponType(string coupon, CouponType type) {
+	const bool isCouponType(string coupon, CouponType type) { mixin(S_TRACE);
 		final switch (type) {
 		case CouponType.Normal:
 			return !isCouponType(coupon, CouponType.Hide)
@@ -372,80 +373,80 @@ class System {
 		}
 	}
 	/// クーポンの型を変換する。
-	const string convCoupon(string coupon, CouponType type, bool ignoreSystemCoupon) {
+	const string convCoupon(string coupon, CouponType type, bool ignoreSystemCoupon) { mixin(S_TRACE);
 		final switch (type) {
 		case CouponType.Normal:
-			if (isCouponType(coupon, CouponType.Hide)) {
+			if (isCouponType(coupon, CouponType.Hide)) { mixin(S_TRACE);
 				return coupon[couponHide.length .. $];
 			}
-			if (!ignoreSystemCoupon && isCouponType(coupon, CouponType.System)) {
+			if (!ignoreSystemCoupon && isCouponType(coupon, CouponType.System)) { mixin(S_TRACE);
 				return coupon[couponSystem.length .. $];
 			}
-			if (isCouponType(coupon, CouponType.Dur)) {
+			if (isCouponType(coupon, CouponType.Dur)) { mixin(S_TRACE);
 				return coupon[couponDur.length .. $];
 			}
-			if (isCouponType(coupon, CouponType.DurBattle)) {
+			if (isCouponType(coupon, CouponType.DurBattle)) { mixin(S_TRACE);
 				return coupon[couponDurBattle.length .. $];
 			}
 			return coupon;
 		case CouponType.Hide:
-			if (isCouponType(coupon, CouponType.Hide)) {
+			if (isCouponType(coupon, CouponType.Hide)) { mixin(S_TRACE);
 				return coupon;
 			}
 			return couponHide ~ convCoupon(coupon, CouponType.Normal, ignoreSystemCoupon);
 		case CouponType.System:
 			if (ignoreSystemCoupon) goto case CouponType.Normal;
-			if (isCouponType(coupon, CouponType.System)) {
+			if (isCouponType(coupon, CouponType.System)) { mixin(S_TRACE);
 				return coupon;
 			}
 			return couponSystem ~ convCoupon(coupon, CouponType.Normal, ignoreSystemCoupon);
 		case CouponType.Dur:
-			if (isCouponType(coupon, CouponType.Dur)) {
+			if (isCouponType(coupon, CouponType.Dur)) { mixin(S_TRACE);
 				return coupon;
 			}
 			return couponDur ~ convCoupon(coupon, CouponType.Normal, ignoreSystemCoupon);
 		case CouponType.DurBattle:
-			if (isCouponType(coupon, CouponType.DurBattle)) {
+			if (isCouponType(coupon, CouponType.DurBattle)) { mixin(S_TRACE);
 				return coupon;
 			}
 			return couponDurBattle ~ convCoupon(coupon, CouponType.Normal, ignoreSystemCoupon);
 		}
 	}
 	/// 各クーポンの型を表現する文字列。
-	@property const string couponHide() {
+	@property const string couponHide() { mixin(S_TRACE);
 		return "＿";
 	}
 	/// ditto
-	@property const string couponSystem() {
+	@property const string couponSystem() { mixin(S_TRACE);
 		return "＠";
 	}
 	/// ditto
-	@property const string couponDur() {
+	@property const string couponDur() { mixin(S_TRACE);
 		return "：";
 	}
 	/// ditto
-	@property const string couponDurBattle() {
+	@property const string couponDurBattle() { mixin(S_TRACE);
 		return "；";
 	}
 
 	/// システム変数名の接頭辞を返す。
-	@property const string prefixSystemVarName() {
+	@property const string prefixSystemVarName() { mixin(S_TRACE);
 		return "??";
 	}
 	/// システム変数名か。
-	@property const bool isSystemVar(string varName) {
+	@property const bool isSystemVar(string varName) { mixin(S_TRACE);
 		return varName.startsWith(prefixSystemVarName);
 	}
 	/// フラグ・ステップ値のランダム値ソース名。
-	@property const string randomValue() {
+	@property const string randomValue() { mixin(S_TRACE);
 		return "??Random";
 	}
 
 	/// 値の配列をenum値のテーブルに変換する。
-	private static const(R[T]) mod(T, R)(in R[] values...) {
+	private static const(R[T]) mod(T, R)(in R[] values...) { mixin(S_TRACE);
 		import std.traits;
 		R[T] r;
-		foreach (key; EnumMembers!T) {
+		foreach (key; EnumMembers!T) { mixin(S_TRACE);
 			int iKey = key;
 			static if (is(T:Mental)) {
 				iKey /= 2;
@@ -463,21 +464,21 @@ class System {
 
 	/// 特徴による肉体能力の修正値のテーブルを返す。
 	const
-	const(int[Physical][E]) physicalMod(E)(string legacyName) {
+	const(int[Physical][E]) physicalMod(E)(string legacyName) { mixin(S_TRACE);
 		static if (is(E:Sex)) {
 			return [
 				Sex.MALE  : modP( 0,  0,  0,  1,  0,  0),
 				Sex.FEMALE: modP( 1,  0,  0,  0,  0,  0),
 			];
 		} else static if (is(E:Period)) {
-			if (legacyName.toLower().startsWith("cw´")) {
+			if (legacyName.toLower().startsWith("cw´")) { mixin(S_TRACE);
 				return [
 					Period.CHILD: modP( 1,  1,  1,  0,  0,  1),
 					Period.YOUNG: modP( 1,  1,  1,  1,  1,  1),
 					Period.ADULT: modP( 1,  1,  1,  1,  0,  2),
 					Period.OLD  : modP( 1,  0,  2,  0,  0,  2),
 				];
-			} else {
+			} else { mixin(S_TRACE);
 				return [
 					Period.CHILD: modP( 1,  1,  0, -1, -1,  0),
 					Period.YOUNG: modP( 0,  0,  0,  0,  0,  0),
@@ -486,7 +487,7 @@ class System {
 				];
 			}
 		} else static if (is(E:Nature)) {
-			if ("cw´standard" == .toLower(legacyName)) {
+			if ("cw´standard" == .toLower(legacyName)) { mixin(S_TRACE);
 				return [
 					Nature.SPI: modP(-1, -1, -1, -1, -1,  1),
 					Nature.AGL: modP( 0,  1, -1, -1, -1, -2),
@@ -501,7 +502,7 @@ class System {
 					Nature.HER: modP( 0,  0,  1,  1,  1,  2),
 					Nature.DIV: modP( 1,  1,  1,  1,  1,  2),
 				];
-			} else if ("cw´heroic" == .toLower(legacyName)) {
+			} else if ("cw´heroic" == .toLower(legacyName)) { mixin(S_TRACE);
 				return [
 					Nature.SPI: modP( 0,  0,  0,  0,  0,  2),
 					Nature.AGL: modP( 1,  1,  0,  0,  0,  0),
@@ -516,7 +517,7 @@ class System {
 					Nature.HER: modP( 2,  2,  2,  2,  2,  2),
 					Nature.DIV: modP( 2,  2,  3,  2,  2,  3),
 				];
-			} else if ("cw´commoner" == .toLower(legacyName)) {
+			} else if ("cw´commoner" == .toLower(legacyName)) { mixin(S_TRACE);
 				return [
 					Nature.SPI: modP(-2, -2, -2, -2, -2, -1),
 					Nature.AGL: modP(-1, -1, -2, -2, -2, -3),
@@ -531,7 +532,7 @@ class System {
 					Nature.HER: modP( 0,  0,  1,  1,  1,  2),
 					Nature.DIV: modP( 1,  1,  1,  1,  1,  2),
 				];
-			} else if ("darkwirth" == .toLower(legacyName)) {
+			} else if ("darkwirth" == .toLower(legacyName)) { mixin(S_TRACE);
 				return [
 					Nature.SPI: modP( 1,  0,  0,  0,  1,  1),
 					Nature.AGL: modP( 1,  1,  0,  0,  0, -1),
@@ -546,7 +547,7 @@ class System {
 					Nature.HER: modP( 1,  2,  1,  2,  2,  1),
 					Nature.DIV: modP( 2,  2,  2,  2,  2,  2),
 				];
-			} else {
+			} else { mixin(S_TRACE);
 				return [
 					Nature.SPI: modP( 0,  0,  0,  0,  0,  1),
 					Nature.AGL: modP( 1,  1,  0,  0,  0, -1),
@@ -563,7 +564,7 @@ class System {
 				];
 			}
 		} else static if (is(E:Makings)) {
-			if (legacyName.toLower().startsWith("cw´")) {
+			if (legacyName.toLower().startsWith("cw´")) { mixin(S_TRACE);
 				return [
 					Makings.LOOKS_B : modP( 0,  0,  0,  0, -1,  0),
 					Makings.LOOKS_U : modP( 0,  0,  0,  0,  1,  0),
@@ -614,7 +615,7 @@ class System {
 					Makings.FAME_H  : modP( 0,  0,  0,  0,  0,  0),
 					Makings.FAME_A  : modP( 0,  0,  0,  0,  0,  0),
 				];
-			} else {
+			} else { mixin(S_TRACE);
 				return [
 					Makings.LOOKS_B : modP( 0,  0,  0,  0, -1,  0),
 					Makings.LOOKS_U : modP( 0,  0,  0,  0,  1,  0),
@@ -670,7 +671,7 @@ class System {
 	}
 	/// 特徴による精神能力の修正値を返す。
 	const
-	const(real[Mental][E]) mentalMod(E)(string legacyName) {
+	const(real[Mental][E]) mentalMod(E)(string legacyName) { mixin(S_TRACE);
 		static if (is(E:Sex)) {
 			return [
 				Sex.MALE  : modM( 0.5,  0  ,  0  ,  0  ,  0  ),
@@ -684,7 +685,7 @@ class System {
 				Period.OLD  : modM(-0.5,  0.5, -0.5,  0  ,  0.5),
 			];
 		} else static if (is(E:Nature)) {
-			if (legacyName.toLower().startsWith("cw´")) {
+			if (legacyName.toLower().startsWith("cw´")) { mixin(S_TRACE);
 				return [
 					Nature.SPI: modM(-0.5,  0.5,  0  ,  0  ,  0  ),
 					Nature.AGL: modM( 0  ,  0  ,  0  ,  0.5,  0  ),
@@ -699,7 +700,7 @@ class System {
 					Nature.HER: modM( 0  ,  0  ,  1  ,  1  , -0.5),
 					Nature.DIV: modM( 0  ,  0  ,  0  ,  0  ,  0  ),
 				];
-			} else if ("darkwirth" == .toLower(legacyName)) {
+			} else if ("darkwirth" == .toLower(legacyName)) { mixin(S_TRACE);
 				return [
 					Nature.SPI: modM(-0.5,  0.5,  0  ,  0  ,  0  ),
 					Nature.AGL: modM( 0  ,  0  ,  0  ,  0.5,  0  ),
@@ -714,7 +715,7 @@ class System {
 					Nature.HER: modM( 0  ,  0  ,  0  ,  0  ,  1  ),
 					Nature.DIV: modM( 0  ,  0  ,  0  ,  0  ,  0  ),
 				];
-			} else {
+			} else { mixin(S_TRACE);
 				return [
 					Nature.SPI: modM(-0.5,  0.5,  0  ,  0  ,  0  ),
 					Nature.AGL: modM( 0  ,  0  ,  0  ,  0.5,  0  ),
@@ -731,7 +732,7 @@ class System {
 				];
 			}
 		} else static if (is(E:Makings)) {
-			if (legacyName.toLower().startsWith("cw´")) {
+			if (legacyName.toLower().startsWith("cw´")) { mixin(S_TRACE);
 				return [
 					Makings.LOOKS_B : modM( 0  ,  0  ,  0  ,  1  ,  0  ),
 					Makings.LOOKS_U : modM( 0  ,  0  ,  0  , -1  ,  0  ),
@@ -782,7 +783,7 @@ class System {
 					Makings.FAME_H  : modM( 0.5,  0  ,  0.5,  0  , -0.5),
 					Makings.FAME_A  : modM(-0.5,  0  ,  0  ,  0.5, -0.5),
 				];
-			} else {
+			} else { mixin(S_TRACE);
 				return [
 					Makings.LOOKS_B : modM( 0  ,  0  ,  0  ,  0.5,  0  ),
 					Makings.LOOKS_U : modM( 0  ,  0  ,  0  , -0.5,  0  ),

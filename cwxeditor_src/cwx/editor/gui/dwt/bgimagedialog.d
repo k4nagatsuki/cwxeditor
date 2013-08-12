@@ -58,38 +58,38 @@ private:
 	Combo _easy;
 	bool _selected;
 
-	void refreshWarning() {
+	void refreshWarning() { mixin(S_TRACE);
 		// 処理無し
 	}
 
 	class SModL : ModifyListener {
-		override void modifyText(ModifyEvent e) {
+		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
 			_selected = true;
 		}
 	};
 	class MaskListener : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			updateMask();
 		}
 	}
 	class SettingsListener : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto c = cast(Combo) e.widget;
 			int i = c.getSelectionIndex();
 			switch (i) {
 			case 0:
 				break;
 			case 1:
-				if (cast(ImageCell) back) {
+				if (cast(ImageCell) back) { mixin(S_TRACE);
 					selectEasySetting();
 					applyEnabled();
-				} else {
+				} else { mixin(S_TRACE);
 					goto default;
 				}
 				break;
 			default:
 				_selected = true;
-				if (cast(ImageCell) back) {
+				if (cast(ImageCell) back) { mixin(S_TRACE);
 					i--;
 				}
 				auto s = _prop.var.etc.bgImageSettings[i - 1];
@@ -104,19 +104,19 @@ private:
 			_comm.refreshToolBar();
 		}
 	}
-	void delBgImage(string cwxPath) {
-		if (back && back.cwxPath(true) == cwxPath) {
+	void delBgImage(string cwxPath) { mixin(S_TRACE);
+		if (back && back.cwxPath(true) == cwxPath) { mixin(S_TRACE);
 			forceCancel();
 		}
 	}
 	class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.delBgImage.remove(&delBgImage);
 			_comm.refTargetVersion.remove(&refreshWarning);
 		}
 	}
 public:
-	this (Commons comm, Summary summ, Shell parent, string text, Image img, bool resizable, DSize size, bool create) {
+	this (Commons comm, Summary summ, Shell parent, string text, Image img, bool resizable, DSize size, bool create) { mixin(S_TRACE);
 		_comm = comm;
 		_summ = summ;
 		_prop = comm.prop;
@@ -130,7 +130,7 @@ public:
 	BgImage back();
 
 protected:
-	Composite createFlagPanel(Composite comp) {
+	Composite createFlagPanel(Composite comp) { mixin(S_TRACE);
 		auto grp = new Group(comp, SWT.NONE);
 		grp.setLayout(new GridLayout(2, false));
 		grp.setText(_prop.msgs.refFlag);
@@ -140,13 +140,13 @@ protected:
 		return grp;
 	}
 
-	Composite createPositionPanel(Composite comp, bool mask) {
+	Composite createPositionPanel(Composite comp, bool mask) { mixin(S_TRACE);
 		auto grp = new Group(comp, SWT.NONE);
 		grp.setText(_prop.msgs.cardPosition);
 		grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 		auto comp2 = new Composite(grp, SWT.NONE);
 		comp2.setLayout(new GridLayout(mask ? 5 : 4, false));
-		Spinner createS(string name, int max, int min) {
+		Spinner createS(string name, int max, int min) { mixin(S_TRACE);
 			auto comp3 = new Composite(comp2, SWT.NONE);
 			auto gl = new GridLayout(2, false);
 			gl.marginHeight = 0;
@@ -159,7 +159,7 @@ protected:
 			spn.setMaximum(max);
 			spn.setMinimum(min);
 			spn.setSelection(0);
-			.listener(spn, SWT.Selection, {
+			.listener(spn, SWT.Selection, { mixin(S_TRACE);
 				_easy.select(0);
 			});
 			return spn;
@@ -168,7 +168,7 @@ protected:
 		_y = createS(_prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax));
 		_w = createS(_prop.msgs.width, _prop.var.etc.backWidthMax, 0);
 		_h = createS(_prop.msgs.height, _prop.var.etc.backHeightMax, 0);
-		if (mask) {
+		if (mask) { mixin(S_TRACE);
 			_mask = new Button(comp2, SWT.TOGGLE);
 			mod(_mask);
 			_mask.setImage(_prop.images.menu(MenuID.Mask));
@@ -177,7 +177,7 @@ protected:
 		}
 		return grp;
 	}
-	Composite createEasySettingsPanel(Composite comp) {
+	Composite createEasySettingsPanel(Composite comp) { mixin(S_TRACE);
 		auto comp2 = new Composite(comp, SWT.NONE);
 		comp2.setLayout(new GridLayout(2, false));
 		auto l = new Label(comp2, SWT.NONE);
@@ -185,17 +185,17 @@ protected:
 		_easy = new Combo(comp2, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 		_easy.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 		_easy.add(_prop.msgs.bgImageSettingCustom);
-		if (cast(ImageCell) back) {
+		if (cast(ImageCell) back) { mixin(S_TRACE);
 			_easy.add(_prop.msgs.bgImageSettingOriginal);
 		}
-		foreach (bs; _prop.var.etc.bgImageSettings) {
+		foreach (bs; _prop.var.etc.bgImageSettings) { mixin(S_TRACE);
 			_easy.add(bs.name);
 		}
 		_easy.addSelectionListener(new SettingsListener);
 		_easy.select(0);
 		return comp2;
 	}
-	void createPosPanel(Composite comp, bool mask) {
+	void createPosPanel(Composite comp, bool mask) { mixin(S_TRACE);
 		auto posPanel = createPositionPanel(comp, mask);
 		posPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		auto easyPanel = createEasySettingsPanel(comp);
@@ -206,15 +206,15 @@ protected:
 		gd.heightHint = p.y;
 		comp.setLayoutData(gd);
 	}
-	void setFirstParams(Composite area) {
+	void setFirstParams(Composite area) { mixin(S_TRACE);
 		area.addDisposeListener(new Dispose);
 		_comm.delBgImage.add(&delBgImage);
 		_comm.refTargetVersion.add(&refreshWarning);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		if (back) {
-			if (_flag) {
+		if (back) { mixin(S_TRACE);
+			if (_flag) { mixin(S_TRACE);
 				_flag.selected = back.flag;
 			}
 			_x.setSelection(back.x);
@@ -222,8 +222,8 @@ protected:
 			_w.setSelection(back.width);
 			_h.setSelection(back.height);
 			if (_mask) _mask.setSelection(back.mask);
-		} else {
-			if (_flag) {
+		} else { mixin(S_TRACE);
+			if (_flag) { mixin(S_TRACE);
 				_flag.selected = "";
 			}
 			_x.setSelection(0);
@@ -237,7 +237,7 @@ protected:
 		_h.addModifyListener(spnl);
 	}
 
-	void applyParams(BgImage back) {
+	void applyParams(BgImage back) { mixin(S_TRACE);
 		back.flag = _flag ? _flag.selected : "";
 		back.x = _x.getSelection();
 		back.y = _y.getSelection();
@@ -247,10 +247,10 @@ protected:
 		_create = false;
 	}
 
-	void updateMask() {
+	void updateMask() { mixin(S_TRACE);
 		// 処理無し
 	}
-	void selectEasySetting() {
+	void selectEasySetting() { mixin(S_TRACE);
 		// 処理無し
 	}
 }
@@ -262,12 +262,12 @@ private:
 
 	ImageSelect!(MtType.BG_IMG) _imgPath;
 
-	void refreshWarning() {
+	void refreshWarning() { mixin(S_TRACE);
 		warning = _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ ? _summ.legacy : false, _prop.var.etc.targetVersion);
 	}
 
 	class SDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			auto sash = cast(SplitPane) e.widget;
 			auto ws = sash.getWeights();
 			_prop.var.etc.backSashL = ws[0];
@@ -275,12 +275,12 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, ImageCell back, bool create) {
+	this (Commons comm, Props prop, Shell shell, Summary summ, ImageCell back, bool create) { mixin(S_TRACE);
 		_back = back;
 		DSize size;
-		if (summ) {
+		if (summ) { mixin(S_TRACE);
 			size = prop.var.areaBackgroundDlg;
-		} else {
+		} else { mixin(S_TRACE);
 			size = prop.var.areaBackgroundNFDlg;
 		}
 		super (comm, summ, shell, create ? prop.msgs.dlgTitNewBgImage : prop.msgs.dlgTitBgImage,
@@ -289,17 +289,17 @@ public:
 
 	@property
 	override
-	BgImage back() {
+	BgImage back() { mixin(S_TRACE);
 		return _back;
 	}
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(zeroGridLayout(1));
 		auto skin = _comm.skin;
-		{
+		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayout(new GridLayout(1, false));
-			void imgs(Composite parent) {
+			void imgs(Composite parent) { mixin(S_TRACE);
 				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, SWT.NONE, _comm, _prop, _summ,
 					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, false, false,
 					() => "", &selectEasySetting);
@@ -307,16 +307,16 @@ protected:
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.modEvent ~= () =>_easy.select(0);
 			}
-			if (_summ) {
+			if (_summ) { mixin(S_TRACE);
 				auto sash = new SplitPane(comp, SWT.HORIZONTAL);
 				sash.setLayoutData(new GridData(GridData.FILL_BOTH));
-				{
+				{ mixin(S_TRACE);
 					imgs(sash);
 				}
 				createFlagPanel(sash);
 				sash.setWeights([_prop.var.etc.backSashL, _prop.var.etc.backSashR]);
 				sash.addDisposeListener(new SDListener);
-			} else {
+			} else { mixin(S_TRACE);
 				// フラグ無し
 				imgs(comp);
 				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -328,23 +328,23 @@ protected:
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		if (_back) {
+		if (_back) { mixin(S_TRACE);
 			_imgPath.image = _back.path;
 			_imgPath.mask = _back.mask;
-		} else {
+		} else { mixin(S_TRACE);
 			_imgPath.image = "";
 			_imgPath.mask = false;
 		}
 	}
 
-	override void updateMask() {
+	override void updateMask() { mixin(S_TRACE);
 		_imgPath.mask = _mask.getSelection();
 	}
-	override void selectEasySetting() {
-		if (!_selected || _easy.getSelectionIndex() == 1) {
+	override void selectEasySetting() { mixin(S_TRACE);
+		if (!_selected || _easy.getSelectionIndex() == 1) { mixin(S_TRACE);
 			string file = _imgPath.filePath;
-			if (file.length > 0) {
-				try {
+			if (file.length > 0) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					uint x, y;
 					dwtImageSize(_prop, _comm.skin, _summ, file, x, y);
 					_w.setSelection(x);
@@ -358,8 +358,8 @@ protected:
 		}
 	}
 
-	override bool apply() {
-		if (!_back) {
+	override bool apply() { mixin(S_TRACE);
+		if (!_back) { mixin(S_TRACE);
 			_back = new ImageCell;
 		}
 		_back.path = _imgPath.image;
@@ -392,14 +392,14 @@ private:
 	ColorPicker _borderingColor;
 	Spinner _borderingWidth;
 
-	void refreshWarning() {
+	void refreshWarning() { mixin(S_TRACE);
 		string[] ws = [];
-		if (!_prop.targetVersion("1.50")) {
+		if (!_prop.targetVersion("1.50")) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningTextCell;
 		}
 		warning = ws;
 	}
-	void updatePreview() {
+	void updatePreview() { mixin(S_TRACE);
 		int index = _borderingType.getSelectionIndex();
 		if (index == -1) return;
 		auto bType = _borderingTypes[index];
@@ -408,12 +408,12 @@ private:
 
 		CRGB tColor;
 		auto rgb1 = _color.color;
-		if (rgb1) {
+		if (rgb1) { mixin(S_TRACE);
 			tColor = CRGB(rgb1.red, rgb1.green, rgb1.blue, _color.alpha);
 		}
 		CRGB bColor;
 		auto rgb2 = _borderingColor.color;
-		if (rgb2) {
+		if (rgb2) { mixin(S_TRACE);
 			bColor = CRGB(rgb2.red, rgb2.green, rgb2.blue, _borderingColor.alpha);
 		}
 
@@ -428,7 +428,7 @@ private:
 		_preview.createImage();
 		_prevPanel.redraw();
 	}
-	string previewText(string base) {
+	string previewText(string base) { mixin(S_TRACE);
 		string[char] names;
 		string[string] flags;
 		string[string] steps;
@@ -436,7 +436,7 @@ private:
 		return simpleFormatMsg(base, flags, steps, names);
 	}
 	class Paint : PaintListener {
-		override void paintControl(PaintEvent e) {
+		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			auto range = new Rectangle(e.x, e.y, e.width, e.height);
 			auto size = _prevPanel.getSize();
 			auto image = new Image(_prevPanel.getDisplay(), size.x, size.y);
@@ -445,19 +445,19 @@ private:
 			scope (exit) gc.dispose();
 			gc.setBackground(_prevPanel.getBackground());
 			gc.fillRectangle(range);
-			if (_preview) {
+			if (_preview) { mixin(S_TRACE);
 				_preview.draw(image, gc, range);
 			}
 			e.gc.drawImage(image, 0, 0);
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, TextCell back, bool create) {
+	this (Commons comm, Props prop, Shell shell, Summary summ, TextCell back, bool create) { mixin(S_TRACE);
 		_back = back;
 		DSize size;
-		if (summ) {
+		if (summ) { mixin(S_TRACE);
 			size = prop.var.areaTextCellDlg;
-		} else {
+		} else { mixin(S_TRACE);
 			size = prop.var.areaTextCellNFDlg;
 		}
 		super (comm, summ, shell, create ? prop.msgs.dlgTitNewTextCell : prop.msgs.dlgTitTextCell,
@@ -467,20 +467,20 @@ public:
 
 	@property
 	override
-	BgImage back() {
+	BgImage back() { mixin(S_TRACE);
 		return _back;
 	}
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(zeroGridLayout(1));
 		auto comp = new Composite(area, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
 		auto sash = new SplitPane(comp, SWT.VERTICAL);
 		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
-		void left(Composite parent) {
+		void left(Composite parent) { mixin(S_TRACE);
 			auto comp = new Composite(parent, SWT.NONE);
 			comp.setLayout(new GridLayout(2, false));
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(comp, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new GridLayout(1, true));
@@ -493,13 +493,13 @@ protected:
 				_prevPanel.setLayoutData(gd);
 				.listener(_prevPanel, SWT.Resize, &updatePreview);
 			}
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(comp, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				grp.setText(_prop.msgs.fontStyle);
 				grp.setLayout(new GridLayout(1, true));
 
-				Button check(string name) {
+				Button check(string name) { mixin(S_TRACE);
 					auto button = new Button(grp, SWT.CHECK);
 					button.setLayoutData(new GridData(GridData.FILL_BOTH));
 					mod(button);
@@ -518,7 +518,7 @@ protected:
 			sqgd.horizontalSpan = 2;
 			sq.setLayoutData(sqgd);
 			sq.setLayout(zeroMarginGridLayout(2, false));
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(sq, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setText(_prop.msgs.font);
@@ -532,19 +532,19 @@ protected:
 				mod(_fontName);
 				string[] names;
 				bool[string] nameSet;
-				foreach (fontData; _fontName.getDisplay().getFontList(null, true)) {
+				foreach (fontData; _fontName.getDisplay().getFontList(null, true)) { mixin(S_TRACE);
 					auto name = fontData.getName();
-					if (!nameSet.get(name, false)) {
+					if (!nameSet.get(name, false)) { mixin(S_TRACE);
 						names ~= name;
 						nameSet[name] = true;
 					}
 				}
-				if (_prop.var.etc.logicalSort) {
+				if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
 					names = sort!(fnncmp)(names);
-				} else {
+				} else { mixin(S_TRACE);
 					names = sort!(fncmp)(names);
 				}
-				foreach (name; names) {
+				foreach (name; names) { mixin(S_TRACE);
 					_fontName.add(name);
 				}
 				.listener(_fontName, SWT.Selection, &updatePreview);
@@ -560,7 +560,7 @@ protected:
 				auto l2 = new Label(comp2, SWT.NONE);
 				l2.setText(_prop.msgs.pixel);
 			}
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(sq, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new CenterLayout);
@@ -569,7 +569,7 @@ protected:
 				mod(_color);
 				_color.modEvent ~= &updatePreview;
 			}
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(sq, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setText(_prop.msgs.bordering);
@@ -581,7 +581,7 @@ protected:
 				_borderingType = new Combo(comp2, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 				_borderingType.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				mod(_borderingType);
-				foreach (bType; EnumMembers!BorderingType) {
+				foreach (bType; EnumMembers!BorderingType) { mixin(S_TRACE);
 					_borderingType.add(_prop.msgs.borderingTypeName(bType));
 					_borderingTypes ~= bType;
 				}
@@ -598,7 +598,7 @@ protected:
 				auto l2 = new Label(comp2, SWT.NONE);
 				l2.setText(_prop.msgs.pixel);
 			}
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(sq, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new CenterLayout);
@@ -608,22 +608,22 @@ protected:
 				_borderingColor.modEvent ~= &updatePreview;
 			}
 		}
-		{
-			if (_summ) {
+		{ mixin(S_TRACE);
+			if (_summ) { mixin(S_TRACE);
 				auto sash2 = new SplitPane(sash, SWT.HORIZONTAL);
 				left(sash2);
 				sash2.setWeights([_prop.var.etc.textCellHSashL, _prop.var.etc.textCellHSashR]);
-				.listener(sash2, SWT.Dispose, {
+				.listener(sash2, SWT.Dispose, { mixin(S_TRACE);
 					_prop.var.etc.textCellHSashL = sash2.getWeights()[0];
 					_prop.var.etc.textCellHSashR = sash2.getWeights()[1];
 				});
 				createFlagPanel(sash2);
-			} else {
+			} else { mixin(S_TRACE);
 				// フラグ無し
 				left(sash);
 			}
 		}
-		{
+		{ mixin(S_TRACE);
 			auto sash2 = new SplitPane(sash, SWT.HORIZONTAL);
 
 			auto grp = new Group(sash2, SWT.NONE);
@@ -642,20 +642,20 @@ protected:
 			_values.modEvent ~= &updatePreview;
 
 			sash2.setWeights([_prop.var.etc.textCellPreviewSashL, _prop.var.etc.textCellPreviewSashR]);
-			.listener(sash, SWT.Dispose, {
+			.listener(sash, SWT.Dispose, { mixin(S_TRACE);
 				_prop.var.etc.textCellPreviewSashL = sash2.getWeights()[0];
 				_prop.var.etc.textCellPreviewSashR = sash2.getWeights()[1];
 			});
 		}
 		sash.setWeights([_prop.var.etc.textCellVSashT, _prop.var.etc.textCellVSashB]);
-		.listener(sash, SWT.Dispose, {
+		.listener(sash, SWT.Dispose, { mixin(S_TRACE);
 			_prop.var.etc.textCellVSashT = sash.getWeights()[0];
 			_prop.var.etc.textCellVSashB = sash.getWeights()[1];
 		});
 
 		createPosPanel(comp, false);
 
-		.listener(area, SWT.Dispose, {
+		.listener(area, SWT.Dispose, { mixin(S_TRACE);
 			if (_preview) _preview.dispose();
 		});
 
@@ -663,7 +663,7 @@ protected:
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		if (!_create) {
+		if (!_create) { mixin(S_TRACE);
 			_text.setText(_back.text);
 			_fontName.setText(_back.fontName);
 			_size.setSelection(_back.size);
@@ -680,21 +680,21 @@ protected:
 			_borderingColor.color = new RGB(bc.r, bc.g, bc.b);
 			_borderingColor.alpha = bc.a;
 			_borderingWidth.setSelection(_back.borderingWidth);
-		} else {
+		} else { mixin(S_TRACE);
 			_text.setText("");
-			if (_fontName.getItemCount()) {
+			if (_fontName.getItemCount()) { mixin(S_TRACE);
 				_fontName.select(0);
 				string[] fonts;
-				if (_summ && _summ.legacy) {
+				if (_summ && _summ.legacy) { mixin(S_TRACE);
 					fonts ~= _prop.var.etc.textCellDefaultFontClassic;
 					fonts ~= _prop.var.etc.textCellDefaultFont;
-				} else {
+				} else { mixin(S_TRACE);
 					fonts ~= _prop.var.etc.textCellDefaultFont;
 					fonts ~= _prop.var.etc.textCellDefaultFontClassic;
 				}
-				foreach (font; fonts) {
+				foreach (font; fonts) { mixin(S_TRACE);
 					int i = _fontName.indexOf(font);
-					if (i != -1) {
+					if (i != -1) { mixin(S_TRACE);
 						_fontName.select(i);
 						break;
 					}
@@ -719,8 +719,8 @@ protected:
 		updatePreview();
 	}
 
-	override bool apply() {
-		if (!_back) {
+	override bool apply() { mixin(S_TRACE);
+		if (!_back) { mixin(S_TRACE);
 			_back = new TextCell;
 		}
 		_back.text = wrapReturnCode(_text.getText());
@@ -757,14 +757,14 @@ private:
 	ColorPicker _color1;
 	ColorPicker _color2;
 
-	void refreshWarning() {
+	void refreshWarning() { mixin(S_TRACE);
 		string[] ws = [];
-		if (!_prop.targetVersion("1.50")) {
+		if (!_prop.targetVersion("1.50")) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningColorCell;
 		}
 		warning = ws;
 	}
-	void updatePreview() {
+	void updatePreview() { mixin(S_TRACE);
 		_color2.enabled = GradientDir.None !is _gradientDirs[_gradientDir.getSelectionIndex()];
 		auto ca = _prevPanel.getClientArea();
 		if (_preview) _preview.dispose();
@@ -772,18 +772,18 @@ private:
 		_preview.blendMode = getRadioValue(_blendMode);
 		_preview.gradientDir = _gradientDirs[_gradientDir.getSelectionIndex()];
 		auto rgb1 = _color1.color;
-		if (rgb1) {
+		if (rgb1) { mixin(S_TRACE);
 			_preview.color1 = CRGB(rgb1.red, rgb1.green, rgb1.blue, _color1.alpha);
 		}
 		auto rgb2 = _color2.color;
-		if (rgb2) {
+		if (rgb2) { mixin(S_TRACE);
 			_preview.color2 = CRGB(rgb2.red, rgb2.green, rgb2.blue, _color2.alpha);
 		}
 		_preview.createImage();
 		_prevPanel.redraw();
 	}
 	class Paint : PaintListener {
-		override void paintControl(PaintEvent e) {
+		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			auto range = new Rectangle(e.x, e.y, e.width, e.height);
 			auto size = _prevPanel.getSize();
 			auto image = new Image(_prevPanel.getDisplay(), size.x, size.y);
@@ -792,19 +792,19 @@ private:
 			scope (exit) gc.dispose();
 			gc.setBackground(_prevPanel.getBackground());
 			gc.fillRectangle(range);
-			if (_preview) {
+			if (_preview) { mixin(S_TRACE);
 				_preview.draw(image, gc, range);
 			}
 			e.gc.drawImage(image, 0, 0);
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, ColorCell back, bool create) {
+	this (Commons comm, Props prop, Shell shell, Summary summ, ColorCell back, bool create) { mixin(S_TRACE);
 		_back = back;
 		DSize size;
-		if (summ) {
+		if (summ) { mixin(S_TRACE);
 			size = prop.var.areaColorCellDlg;
-		} else {
+		} else { mixin(S_TRACE);
 			size = prop.var.areaColorCellNFDlg;
 		}
 		super (comm, summ, shell, create ? prop.msgs.dlgTitNewColorCell : prop.msgs.dlgTitColorCell,
@@ -813,19 +813,19 @@ public:
 
 	@property
 	override
-	BgImage back() {
+	BgImage back() { mixin(S_TRACE);
 		return _back;
 	}
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(zeroGridLayout(1));
 		auto comp = new Composite(area, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
-		{
-			Composite left(Composite parent) {
+		{ mixin(S_TRACE);
+			Composite left(Composite parent) { mixin(S_TRACE);
 				auto comp = new Composite(parent, SWT.NONE);
 				comp.setLayout(zeroMarginGridLayout(1, true));
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(comp, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setLayout(new GridLayout(1, true));
@@ -838,7 +838,7 @@ protected:
 				auto sq = new Composite(comp, SWT.NONE);
 				sq.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				sq.setLayout(zeroMarginGridLayout(2, false));
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(sq, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setText(_prop.msgs.blendMode);
@@ -846,7 +846,7 @@ protected:
 
 					auto comp2 = new Composite(grp, SWT.NONE);
 					comp2.setLayout(zeroMarginGridLayout(EnumMembers!BlendMode.length - 1, true));
-					foreach (mode; EnumMembers!BlendMode) {
+					foreach (mode; EnumMembers!BlendMode) { mixin(S_TRACE);
 						if (mode is BlendMode.Mask) continue;
 						auto radio = new Button(comp2, SWT.RADIO);
 						mod(radio);
@@ -855,7 +855,7 @@ protected:
 						_blendMode[mode] = radio;
 					}
 				}
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(sq, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setLayout(new CenterLayout);
@@ -864,7 +864,7 @@ protected:
 					mod(_color1);
 					_color1.modEvent ~= &updatePreview;
 				}
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(sq, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setText(_prop.msgs.gradient);
@@ -878,13 +878,13 @@ protected:
 					_gradientDir = new Combo(comp2, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 					_gradientDir.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 					mod(_gradientDir);
-					foreach (gradientDir; EnumMembers!GradientDir) {
+					foreach (gradientDir; EnumMembers!GradientDir) { mixin(S_TRACE);
 						_gradientDir.add(_prop.msgs.gradientDirName(gradientDir));
 						_gradientDirs ~= gradientDir;
 					}
 					.listener(_gradientDir, SWT.Selection, &updatePreview);
 				}
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(sq, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setLayout(new CenterLayout);
@@ -895,20 +895,20 @@ protected:
 				}
 				return comp;
 			}
-			if (_summ) {
+			if (_summ) { mixin(S_TRACE);
 				auto comp2 = new Composite(comp, SWT.NONE);
 				comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
 				comp2.setLayout(zeroMarginGridLayout(2, false));
 				left(comp2).setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				createFlagPanel(comp2).setLayoutData(new GridData(GridData.FILL_BOTH));
-			} else {
+			} else { mixin(S_TRACE);
 				// フラグ無し
 				left(comp).setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
 		}
 		createPosPanel(comp, false);
 
-		.listener(area, SWT.Dispose, {
+		.listener(area, SWT.Dispose, { mixin(S_TRACE);
 			if (_preview) _preview.dispose();
 		});
 
@@ -916,9 +916,9 @@ protected:
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		if (!_create) {
+		if (!_create) { mixin(S_TRACE);
 			auto blendMode = _back.blendMode;
-			if (_back.blendMode is BlendMode.Mask || _back.mask) {
+			if (_back.blendMode is BlendMode.Mask || _back.mask) { mixin(S_TRACE);
 				blendMode = BlendMode.Normal;
 			}
 			_blendMode[blendMode].setSelection(true);
@@ -927,7 +927,7 @@ protected:
 			_color1.alpha = _back.color1.a;
 			_color2.color = new RGB(_back.color2.r, _back.color2.g, _back.color2.b);
 			_color2.alpha = _back.color2.a;
-		} else {
+		} else { mixin(S_TRACE);
 			_blendMode[BlendMode.Normal].setSelection(true);
 			_gradientDir.select(_gradientDirs.countUntil(GradientDir.None));
 			auto c1 = _prop.var.etc.colorCellDefaultColor1;
@@ -941,8 +941,8 @@ protected:
 		updatePreview();
 	}
 
-	override bool apply() {
-		if (!_back) {
+	override bool apply() { mixin(S_TRACE);
+		if (!_back) { mixin(S_TRACE);
 			_back = new ColorCell;
 		}
 		_back.blendMode = getRadioValue(_blendMode);
@@ -967,9 +967,9 @@ class ColorPicker : Composite {
 	private Button _button;
 	private Spinner _alpha = null;
 
-	this (Props prop, Composite parent, bool transparency) {
+	this (Props prop, Composite parent, bool transparency) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
-		.listener(this, SWT.Dispose, {
+		.listener(this, SWT.Dispose, { mixin(S_TRACE);
 			if (_color) _color.dispose();
 		});
 
@@ -989,17 +989,17 @@ class ColorPicker : Composite {
 
 		_button = new Button(comp, SWT.PUSH);
 		_button.setText("...");
-		.listener(_button, SWT.Selection, {
+		.listener(_button, SWT.Selection, { mixin(S_TRACE);
 			auto dlg = new ColorDialog(this.getShell());
 			if (_color) dlg.setRGB(_color.getRGB());
 			auto rgb = dlg.open();
-			if (rgb) {
+			if (rgb) { mixin(S_TRACE);
 				color = rgb;
 				callMod();
 			}
 		});
 
-		if (transparency) {
+		if (transparency) { mixin(S_TRACE);
 			auto l1 = new Label(this, SWT.NONE);
 			l1.setText(prop.msgs.alphaChannel);
 			_alpha = new Spinner(this, SWT.BORDER);
@@ -1011,31 +1011,31 @@ class ColorPicker : Composite {
 			l2.setText(.tryFormat(prop.msgs.rangeHint, 0, 255));
 		}
 	}
-	private void callMod() {
+	private void callMod() { mixin(S_TRACE);
 		foreach (dlg; modEvent) dlg();
 	}
 
 	@property
-	RGB color() {
+	RGB color() { mixin(S_TRACE);
 		return _color ? _color.getRGB() : null;
 	}
 	@property
-	void color(RGB rgb) {
+	void color(RGB rgb) { mixin(S_TRACE);
 		if (_color) _color.dispose();
 		_color = new Color(this.getDisplay(), rgb);
 		_colorLabel.setBackground(_color);
 	}
 	@property
-	int alpha() {
+	int alpha() { mixin(S_TRACE);
 		return _alpha ? _alpha.getSelection() : 255;
 	}
 	@property
-	void alpha(int value) {
+	void alpha(int value) { mixin(S_TRACE);
 		if (_alpha) _alpha.setSelection(value);
 	}
 
 	@property
-	void enabled(bool enabled) {
+	void enabled(bool enabled) { mixin(S_TRACE);
 		_button.setEnabled(enabled);
 		if (_alpha) _alpha.setEnabled(enabled);
 		setEnabled(enabled);

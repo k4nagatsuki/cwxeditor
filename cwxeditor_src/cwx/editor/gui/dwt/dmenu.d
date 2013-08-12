@@ -37,30 +37,30 @@ import java.io.ByteArrayInputStream;
 
 /// Text/Combo/CComboに、アンドゥ・リドゥ及び
 /// 切り取り・コピー・貼り付け・削除のメニューをつける。
-TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool delegate() canSaveHistory, UndoManager undo = null, TMAppendData apd = TMAppendData()) {
+TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool delegate() canSaveHistory, UndoManager undo = null, TMAppendData apd = TMAppendData()) { mixin(S_TRACE);
 	static if (is(T:Text)) {
 		text.setTabs(prop.var.etc.textTabs);
 	}
 	bool readOnly = (text.getStyle() & SWT.READ_ONLY) != 0;
-	if (!readOnly && !undo) {
+	if (!readOnly && !undo) { mixin(S_TRACE);
 		undo = new UndoManager(prop.var.etc.undoMaxEtc);
-		void refUndoMax() {
+		void refUndoMax() { mixin(S_TRACE);
 			undo.max = prop.var.etc.undoMaxEtc;
 		}
 		comm.refUndoMax.add(&refUndoMax);
 		text.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
+			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				comm.refUndoMax.remove(&refUndoMax);
 			}
 		});
 	}
 	TextMenuModify ml = null;
-	if (!readOnly) {
+	if (!readOnly) { mixin(S_TRACE);
 		ml = new TextMenuModify(TMM(text), canSaveHistory, undo, apd);
 		ml.selectChanged = &comm.refreshToolBar;
 		text.addModifyListener(ml);
 		class Modify : ModifyListener {
-			override void modifyText(ModifyEvent e) {
+			override void modifyText(ModifyEvent e) { mixin(S_TRACE);
 				comm.refreshToolBar();
 			}
 		}
@@ -72,38 +72,38 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 	auto u = createMenuItem(comm, menu, MenuID.Undo, {undo.undo();}, () => undo !is null && undo.canUndo);
 	auto r = createMenuItem(comm, menu, MenuID.Redo, {undo.redo();}, () => undo !is null && undo.canRedo);
 	new MenuItem(menu, SWT.SEPARATOR);
-	bool sel() {
+	bool sel() { mixin(S_TRACE);
 		auto p = text.getSelection();
 		return p.y > p.x;
 	}
-	auto t = createMenuItem(comm, menu, MenuID.Cut, {
+	auto t = createMenuItem(comm, menu, MenuID.Cut, { mixin(S_TRACE);
 		text.cut();
 		comm.refreshToolBar();
 	}, () => !readOnly && sel());
-	auto c = createMenuItem(comm, menu, MenuID.Copy, {
+	auto c = createMenuItem(comm, menu, MenuID.Copy, { mixin(S_TRACE);
 		text.copy();
 		comm.refreshToolBar();
 	}, &sel);
-	auto p = createMenuItem(comm, menu, MenuID.Paste, {
+	auto p = createMenuItem(comm, menu, MenuID.Paste, { mixin(S_TRACE);
 		text.paste();
 		comm.refreshToolBar();
 	}, () => !readOnly && CBisText(comm.clipboard));
-	auto d = createMenuItem(comm, menu, MenuID.Delete, {
+	auto d = createMenuItem(comm, menu, MenuID.Delete, { mixin(S_TRACE);
 		auto p = text.getSelection();
 		auto t = to!dstring(text.getText());
 		if (t.length <= p.x) return;
-		if (p.x != p.y) {
+		if (p.x != p.y) { mixin(S_TRACE);
 			text.setText(to!string(t[0 .. p.x] ~ t[p.y .. $]));
-		} else {
+		} else { mixin(S_TRACE);
 			text.setText(to!string(t[0 .. p.x] ~ t[p.y + 1 .. $]));
 		}
 		text.setSelection(new Point(p.x, p.x));
 		comm.refreshToolBar();
 	}, () => !readOnly && sel());
 	new MenuItem(menu, SWT.SEPARATOR);
-	auto a = createMenuItem(comm, menu, MenuID.SelectAll, {
+	auto a = createMenuItem(comm, menu, MenuID.SelectAll, { mixin(S_TRACE);
 		text.setSelection(new Point(0, text.getText().length));
-	}, {
+	}, { mixin(S_TRACE);
 		auto t = text.getText();
 		if (t.length == 0) return false;
 		auto p = text.getSelection();
@@ -136,55 +136,55 @@ public:
 
 private class InTCPD {
 	TCPD tcpd;
-	void cut(SelectionEvent se) {
+	void cut(SelectionEvent se) { mixin(S_TRACE);
 		auto fc = Display.getCurrent().getFocusControl();
 		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
-		if (ro && cast(Text) fc) {
+		if (ro && cast(Text) fc) { mixin(S_TRACE);
 			(cast(Text) fc).cut();
-		} else if (ro && cast(Combo) fc) {
+		} else if (ro && cast(Combo) fc) { mixin(S_TRACE);
 			(cast(Combo) fc).cut();
-		} else if (ro && cast(CCombo) fc) {
+		} else if (ro && cast(CCombo) fc) { mixin(S_TRACE);
 			(cast(CCombo) fc).cut();
-		} else {
+		} else { mixin(S_TRACE);
 			tcpd.cut(se);
 		}
 	}
-	void copy(SelectionEvent se) {
+	void copy(SelectionEvent se) { mixin(S_TRACE);
 		auto fc = Display.getCurrent().getFocusControl();
 		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
-		if (ro && cast(Text) fc) {
+		if (ro && cast(Text) fc) { mixin(S_TRACE);
 			(cast(Text) fc).copy();
-		} else if (ro && cast(Combo) fc) {
+		} else if (ro && cast(Combo) fc) { mixin(S_TRACE);
 			(cast(Combo) fc).copy();
-		} else if (ro && cast(CCombo) fc) {
+		} else if (ro && cast(CCombo) fc) { mixin(S_TRACE);
 			(cast(CCombo) fc).copy();
-		} else {
+		} else { mixin(S_TRACE);
 			tcpd.copy(se);
 		}
 	}
-	void paste(SelectionEvent se) {
+	void paste(SelectionEvent se) { mixin(S_TRACE);
 		auto fc = Display.getCurrent().getFocusControl();
 		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
-		if (ro && cast(Text) fc) {
+		if (ro && cast(Text) fc) { mixin(S_TRACE);
 			(cast(Text) fc).paste();
-		} else if (ro && cast(Combo) fc) {
+		} else if (ro && cast(Combo) fc) { mixin(S_TRACE);
 			(cast(Combo) fc).paste();
-		} else if (ro && cast(CCombo) fc) {
+		} else if (ro && cast(CCombo) fc) { mixin(S_TRACE);
 			(cast(CCombo) fc).paste();
-		} else {
+		} else { mixin(S_TRACE);
 			tcpd.paste(se);
 		}
 	}
-	void del(SelectionEvent se) {
+	void del(SelectionEvent se) { mixin(S_TRACE);
 		auto fc = Display.getCurrent().getFocusControl();
 		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
-		if (ro && cast(Text) fc) {
+		if (ro && cast(Text) fc) { mixin(S_TRACE);
 			(cast(Text) fc).insert("");
-		} else {
+		} else { mixin(S_TRACE);
 			tcpd.del(se);
 		}
 	}
-	private void cloneImpl(T)(T fc) {
+	private void cloneImpl(T)(T fc) { mixin(S_TRACE);
 		auto p = fc.getSelection();
 		if (p.x == p.y) return;
 		auto text = fc.getText();
@@ -192,21 +192,21 @@ private class InTCPD {
 		fc.setText(text[0 .. p.y] ~ pt ~ text[p.y .. $]);
 		fc.setSelection(new Point(p.y, p.y + pt.length));
 	}
-	void clone(SelectionEvent se) {
+	void clone(SelectionEvent se) { mixin(S_TRACE);
 		auto fc = Display.getCurrent().getFocusControl();
 		bool ro = !(fc.getStyle() & SWT.READ_ONLY);
-		if (ro && cast(Text) fc) {
+		if (ro && cast(Text) fc) { mixin(S_TRACE);
 			cloneImpl(cast(Text) fc);
-		} else if (ro && cast(Combo) fc) {
+		} else if (ro && cast(Combo) fc) { mixin(S_TRACE);
 			cloneImpl(cast(Combo) fc);
-		} else if (ro && cast(CCombo) fc) {
+		} else if (ro && cast(CCombo) fc) { mixin(S_TRACE);
 			cloneImpl(cast(CCombo) fc);
-		} else {
+		} else { mixin(S_TRACE);
 			tcpd.clone(se);
 		}
 	}
 }
-void appendMenuTCPD(Commons comm, TopLevelPanel tlp, TCPD tcpd, bool t, bool c, bool p, bool d, bool clone) {
+void appendMenuTCPD(Commons comm, TopLevelPanel tlp, TCPD tcpd, bool t, bool c, bool p, bool d, bool clone) { mixin(S_TRACE);
 	auto itcpd = new InTCPD;
 	itcpd.tcpd = tcpd;
 	if (t) tlp.putMenuAction(MenuID.Cut, &itcpd.cut, &tcpd.canDoT);
@@ -215,14 +215,14 @@ void appendMenuTCPD(Commons comm, TopLevelPanel tlp, TCPD tcpd, bool t, bool c, 
 	if (d) tlp.putMenuAction(MenuID.Delete, &itcpd.del, &tcpd.canDoD);
 	if (clone) tlp.putMenuAction(MenuID.Clone, &itcpd.clone, &tcpd.canDoClone);
 }
-void appendMenuTCPD(Commons comm, Menu me, TCPD tcpd, bool t, bool c, bool p, bool d, bool clone) {
+void appendMenuTCPD(Commons comm, Menu me, TCPD tcpd, bool t, bool c, bool p, bool d, bool clone) { mixin(S_TRACE);
 	auto itcpd = new InTCPD;
 	itcpd.tcpd = tcpd;
 	if (t) createMenuItem(comm, me, MenuID.Cut, &itcpd.cut, &tcpd.canDoT);
 	if (c) createMenuItem(comm, me, MenuID.Copy, &itcpd.copy, &tcpd.canDoC);
 	if (p) createMenuItem(comm, me, MenuID.Paste, &itcpd.paste, &tcpd.canDoP);
 	if (d) createMenuItem(comm, me, MenuID.Delete, &itcpd.del, &tcpd.canDoD);
-	if (clone) {
+	if (clone) { mixin(S_TRACE);
 		new MenuItem(me, SWT.SEPARATOR);
 		createMenuItem(comm, me, MenuID.Clone, &itcpd.clone, &tcpd.canDoClone);
 	}
@@ -235,13 +235,13 @@ class CIgnoreHotkey : IgnoreHotkey {
 	// Nothing
 }
 
-bool eqAcc(int acc, int keyCode, wchar character, int stateMask) {
-	if ((acc & SWT.MODIFIER_MASK) == acc) {
+bool eqAcc(int acc, int keyCode, wchar character, int stateMask) { mixin(S_TRACE);
+	if ((acc & SWT.MODIFIER_MASK) == acc) { mixin(S_TRACE);
 		return (keyCode | stateMask) == acc;
-	} else if (toUpper(keyCode) == toUpper(character)) {
+	} else if (toUpper(keyCode) == toUpper(character)) { mixin(S_TRACE);
 		return (toUpper(keyCode) | stateMask) == acc
 			|| (toLower(keyCode) | stateMask) == acc;
-	} else {
+	} else { mixin(S_TRACE);
 		return (toUpper(keyCode) | stateMask) == acc
 			|| (toLower(keyCode) | stateMask) == acc
 			|| (toUpper(character) | (stateMask ^ SWT.SHIFT)) == acc
@@ -251,7 +251,7 @@ bool eqAcc(int acc, int keyCode, wchar character, int stateMask) {
 	}
 }
 
-string acceleratorText(int character) {
+string acceleratorText(int character) { mixin(S_TRACE);
 	switch (character) {
 	case SWT.BS: return "Backspace";
 	case SWT.CR: return "Enter";
@@ -284,7 +284,7 @@ string acceleratorText(int character) {
 	case SWT.F14: return "F14";
 	case SWT.F15: return "F15";
 	default:
-		if (.isPrintable(character)) {
+		if (.isPrintable(character)) { mixin(S_TRACE);
 			return to!string(std.uni.toUpper(character));
 		}
 		break;
@@ -292,10 +292,10 @@ string acceleratorText(int character) {
 	return "";
 }
 
-int convertAccelerator2(string acc_text) {
+int convertAccelerator2(string acc_text) { mixin(S_TRACE);
 	int acc = 0;
 	string kc;
-	int mod(string s) {
+	int mod(string s) { mixin(S_TRACE);
 		switch (std.string.toLower(s)) {
 		case "control", "ctrl": return SWT.CONTROL;
 		case "shift": return SWT.SHIFT;
@@ -304,17 +304,17 @@ int convertAccelerator2(string acc_text) {
 		default: return 0;
 		}
 	}
-	while (true) {
+	while (true) { mixin(S_TRACE);
 		int p_index = .cCountUntil(acc_text, '+');
-		if (p_index >= 0 && p_index < acc_text.length - 1) {
+		if (p_index >= 0 && p_index < acc_text.length - 1) { mixin(S_TRACE);
 			acc |= mod(acc_text[0 .. p_index]);
 			acc_text = acc_text[p_index + 1 .. $];
-		} else {
+		} else { mixin(S_TRACE);
 			kc = acc_text;
 			break;
 		}
 	}
-	int ek(string s) {
+	int ek(string s) { mixin(S_TRACE);
 		switch (std.string.toLower(s)) {
 		case "backspace": return SWT.BS;
 		case "enter", "return": return SWT.CR;
@@ -349,26 +349,26 @@ int convertAccelerator2(string acc_text) {
 		default: return 0;
 		}
 	}
-	if (kc.length > 1) {
+	if (kc.length > 1) { mixin(S_TRACE);
 		auto k = ek(kc);
-		if (k != 0) {
+		if (k != 0) { mixin(S_TRACE);
 			acc |= k;
-		} else {
+		} else { mixin(S_TRACE);
 			acc |= mod(kc);
 		}
-	} else if (kc.length) {
+	} else if (kc.length) { mixin(S_TRACE);
 		acc |= kc[0];
 	}
 	return acc;
 }
-int convertAccelerator(string text) {
+int convertAccelerator(string text) { mixin(S_TRACE);
 	int t_index = std.string.lastIndexOf(text, '\t');
-	if (t_index >= 0 && t_index < text.length - 1) {
+	if (t_index >= 0 && t_index < text.length - 1) { mixin(S_TRACE);
 		string acc_text = text[t_index + 1 .. $];
 		return convertAccelerator2(acc_text);
 	}
 	return 0;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (convertAccelerator("test\tCTRL+ARROW_UP") == (SWT.ARROW_UP | SWT.CTRL));
 	assert (convertAccelerator("test\tShift+A") == (SWT.SHIFT | 'A'));
@@ -377,7 +377,7 @@ int convertAccelerator(string text) {
 private class MenuSel(Dlg) : SelectionAdapter {
 	private Dlg _func;
 	public this(Dlg func) {_func = func;}
-	public override void widgetSelected(SelectionEvent e) {
+	public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 		static if (is(Dlg == void delegate(SelectionEvent))) {
 			_func(e);
 		} else static if (is(Dlg == void delegate())) {
@@ -385,12 +385,12 @@ private class MenuSel(Dlg) : SelectionAdapter {
 		} else static assert (0);
 	}
 }
-private void addRefMenu(Commons comm, MenuItem itm) {
+private void addRefMenu(Commons comm, MenuItem itm) { mixin(S_TRACE);
 	auto d = cast(MenuData) itm.getData();
 	enforce(d);
 	if (d.id == MenuID.None) return;
 
-	void refMenu(MenuID id) {
+	void refMenu(MenuID id) { mixin(S_TRACE);
 		auto d = cast(MenuData) itm.getData();
 		enforce(d);
 		enforce(d.id != MenuID.None);
@@ -400,7 +400,7 @@ private void addRefMenu(Commons comm, MenuItem itm) {
 		itm.setText(t);
 	}
 	class RefMenu : DisposeListener {
-		override void widgetDisposed(DisposeEvent d) {
+		override void widgetDisposed(DisposeEvent d) { mixin(S_TRACE);
 			comm.refMenu.remove(&refMenu);
 		}
 	}
@@ -409,10 +409,10 @@ private void addRefMenu(Commons comm, MenuItem itm) {
 }
 class MenuShown : MenuAdapter {
 	private MenuItem _itm;
-	this (MenuItem itm) {
+	this (MenuItem itm) { mixin(S_TRACE);
 		_itm = itm;
 	}
-	override void menuShown(MenuEvent e) {
+	override void menuShown(MenuEvent e) { mixin(S_TRACE);
 		auto d = cast(MenuData) _itm.getData();
 		if (!d) return;
 		if (!d.enabled) return;
@@ -420,20 +420,20 @@ class MenuShown : MenuAdapter {
 	}
 }
 private MenuItem createMenuItemImpl(Dlg)(Commons comm, Menu sub, string text, Image img,
-	Dlg func, int style, MenuID id, bool delegate() enabled) {
+	Dlg func, int style, MenuID id, bool delegate() enabled) { mixin(S_TRACE);
 	auto itm = new MenuItem(sub, style);
 	itm.setText(text);
-	if (func) {
+	if (func) { mixin(S_TRACE);
 		itm.addSelectionListener(new MenuSel!(Dlg)(func));
 	}
 	if (img) itm.setImage(img);
 	auto d = new MenuData();
 	d.id = id;
 	d.enabled = enabled;
-	if (enabled) {
+	if (enabled) { mixin(S_TRACE);
 		auto menuShown = new MenuShown(itm);
 		class Dispose : DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
+			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				sub.removeMenuListener(menuShown);
 			}
 		}
@@ -444,26 +444,26 @@ private MenuItem createMenuItemImpl(Dlg)(Commons comm, Menu sub, string text, Im
 	return itm;
 }
 MenuItem createMenuItem2(Commons comm, Menu sub, string text, Image img,
-		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH) {
+		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
 	return createMenuItemImpl(comm, sub, text, img, func, style, MenuID.None, enabled);
 }
 MenuItem createMenuItem2(Commons comm, Menu sub, string text, Image img,
-		void delegate() func, bool delegate() enabled, int style = SWT.PUSH) {
+		void delegate() func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
 	return createMenuItemImpl(comm, sub, text, img, func, style, MenuID.None, enabled);
 }
 MenuItem createMenuItem(Commons comm, Menu sub, MenuID id,
-		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH) {
+		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
 	auto mi = createMenuItemImpl(comm, sub, comm.prop.buildMenu(id), comm.prop.images.menu(id), func, style, id, enabled);
 	addRefMenu(comm, mi);
 	return mi;
 }
 MenuItem createMenuItem(Commons comm, Menu sub, MenuID id,
-		void delegate() func, bool delegate() enabled, int style = SWT.PUSH) {
+		void delegate() func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
 	auto mi = createMenuItemImpl(comm, sub, comm.prop.buildMenu(id), comm.prop.images.menu(id), func, style, id, enabled);
 	addRefMenu(comm, mi);
 	return mi;
 }
-private Menu createMenu2(Commons comm, Menu bar, string text, out MenuItem mi) {
+private Menu createMenu2(Commons comm, Menu bar, string text, out MenuItem mi) { mixin(S_TRACE);
 	auto menu = new Menu(bar.getShell(), SWT.DROP_DOWN);
 	mi = new MenuItem(bar, SWT.CASCADE);
 	mi.setText(text);
@@ -473,7 +473,7 @@ private Menu createMenu2(Commons comm, Menu bar, string text, out MenuItem mi) {
 	mi.setData(d);
 	return menu;
 }
-Menu createMenu(Commons comm, Menu bar, MenuID id) {
+Menu createMenu(Commons comm, Menu bar, MenuID id) { mixin(S_TRACE);
 	MenuItem mi;
 	auto m = createMenu2(comm, bar, comm.prop.buildMenu(id), mi);
 	(cast(MenuData) mi.getData()).id = id;
@@ -481,23 +481,23 @@ Menu createMenu(Commons comm, Menu bar, MenuID id) {
 	return m;
 }
 
-ToolItem createDropDownItem(Commons comm, ToolBar bar, MenuID id, void delegate() func, out Menu menu, bool delegate() enabled) {
+ToolItem createDropDownItem(Commons comm, ToolBar bar, MenuID id, void delegate() func, out Menu menu, bool delegate() enabled) { mixin(S_TRACE);
 	return createDropDownItem2(comm, bar, comm.prop.buildTool(id), comm.prop.images.menu(id), func, menu, id, enabled);
 }
-ToolItem createDropDownItem2(Commons comm, ToolBar bar, string text, Image img, void delegate() func, out Menu menu, MenuID id, bool delegate() enabled) {
+ToolItem createDropDownItem2(Commons comm, ToolBar bar, string text, Image img, void delegate() func, out Menu menu, MenuID id, bool delegate() enabled) { mixin(S_TRACE);
 	auto ti = new ToolItem(bar, SWT.DROP_DOWN);
 	ti.setToolTipText(text);
 	ti.setImage(img);
 	menu = new Menu(bar.getShell());
 	auto menu2 = menu;
 	class Push : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
-			if ((!func || SWT.ARROW == e.detail) && 0 < menu2.getItemCount()) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+			if ((!func || SWT.ARROW == e.detail) && 0 < menu2.getItemCount()) { mixin(S_TRACE);
 				auto b = ti.getBounds();
 				auto pt = bar.toDisplay(b.x, b.y + b.height);
 				menu2.setLocation(pt);
 				menu2.setVisible(true);
-			} else if (func) {
+			} else if (func) { mixin(S_TRACE);
 				func();
 			}
 		}
@@ -510,12 +510,12 @@ ToolItem createDropDownItem2(Commons comm, ToolBar bar, string text, Image img, 
 	return ti;
 }
 private ToolItem createToolItemImpl(Dlg)(Commons comm, ToolBar bar, string tip, string text, Image img,
-		Dlg func, int style, MenuID id, bool delegate() enabled) {
+		Dlg func, int style, MenuID id, bool delegate() enabled) { mixin(S_TRACE);
 	auto itm = new ToolItem(bar, style);
 	itm.setText(text);
 	itm.setToolTipText(tip);
 	itm.setImage(img);
-	if (func) {
+	if (func) { mixin(S_TRACE);
 		itm.addSelectionListener(new MenuSel!(Dlg)(func));
 	}
 	auto d = new MenuData;
@@ -525,19 +525,19 @@ private ToolItem createToolItemImpl(Dlg)(Commons comm, ToolBar bar, string tip, 
 	return itm;
 }
 ToolItem createToolItem2(Commons comm, ToolBar bar, string tip, string text, Image img,
-		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH) {
+		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
 	return createToolItemImpl(comm, bar, tip, text, img, func, style, MenuID.None, enabled);
 }
 ToolItem createToolItem2(Commons comm, ToolBar bar, string tip, string text, Image img,
-		void delegate() func, bool delegate() enabled, int style = SWT.PUSH) {
+		void delegate() func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
 	return createToolItemImpl(comm, bar, tip, text, img, func, style, MenuID.None, enabled);
 }
 ToolItem createToolItem2(Commons comm, ToolBar bar, string text, Image img,
-		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH) {
+		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
 	return createToolItemImpl!(void delegate(SelectionEvent))(comm, bar, text, null, img, func, style, MenuID.None, enabled);
 }
 ToolItem createToolItem2(Commons comm, ToolBar bar, string text, Image img,
-		void delegate() func, bool delegate() enabled, int style = SWT.PUSH) {
+		void delegate() func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
 	return createToolItemImpl!(void delegate())(comm, bar, text, null, img, func, style, MenuID.None, enabled);
 }
 private class ToolSel : SelectionAdapter {
@@ -546,12 +546,12 @@ private class ToolSel : SelectionAdapter {
 	public override void widgetSelected(SelectionEvent e) {_func(cast(ToolItem) e.widget);}
 }
 ToolItem createToolItem2(Commons comm, ToolBar bar, string tip, string text, Image img,
-		void delegate(ToolItem) func, bool delegate() enabled, int style = SWT.PUSH) {
+		void delegate(ToolItem) func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
 	auto itm = new ToolItem(bar, style);
 	itm.setText(text);
 	itm.setToolTipText(tip);
 	itm.setImage(img);
-	if (func) {
+	if (func) { mixin(S_TRACE);
 		itm.addSelectionListener(new ToolSel(func));
 	}
 	auto d = new MenuData;
@@ -562,17 +562,17 @@ ToolItem createToolItem2(Commons comm, ToolBar bar, string tip, string text, Ima
 }
 
 ToolItem createToolItem(Commons comm, ToolBar bar, MenuID id,
-		void delegate(ToolItem) func, bool delegate() enabled, int style = SWT.PUSH) {
+		void delegate(ToolItem) func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
 	auto m = createToolItem2(comm, bar, comm.prop.buildTool(id), null, comm.prop.images.menu(id), func, enabled, style);
 	(cast(MenuData) m.getData()).id = id;
 	return m;
 }
 ToolItem createToolItem(Commons comm, ToolBar bar, MenuID id,
-		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH) {
+		void delegate(SelectionEvent se) func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
 	return createToolItemImpl(comm, bar, comm.prop.buildTool(id), null, comm.prop.images.menu(id), func, style, id, enabled);
 }
 ToolItem createToolItem(Commons comm, ToolBar bar, MenuID id,
-		void delegate() func, bool delegate() enabled, int style = SWT.PUSH) {
+		void delegate() func, bool delegate() enabled, int style = SWT.PUSH) { mixin(S_TRACE);
 	return createToolItemImpl(comm, bar, comm.prop.buildTool(id), null, comm.prop.images.menu(id), func, style, id, enabled);
 }
 
@@ -580,49 +580,49 @@ private class CBarListener(string Name) : ControlAdapter, DisposeListener {
 	private Props _prop;
 	private CoolBar _cbar;
 	MenuItem _lock;
-	this (Props prop, CoolBar cbar) {
+	this (Props prop, CoolBar cbar) { mixin(S_TRACE);
 		_prop = prop;
 		_cbar = cbar;
 	}
-	override void widgetDisposed(DisposeEvent e) {
+	override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 		auto cbar = cast(CoolBar) e.widget;
 		int[] ixs;
-		for (int i = 0; i < _cbar.getItemCount(); i++) {
+		for (int i = 0; i < _cbar.getItemCount(); i++) { mixin(S_TRACE);
 			ixs ~= i;
 		}
 		mixin ("_prop.var.etc." ~ Name ~ "Lock = cbar.getLocked();");
-		if (ixs == cbar.getItemOrder()) {
+		if (ixs == cbar.getItemOrder()) { mixin(S_TRACE);
 			mixin ("_prop.var.etc." ~ Name ~ "Order = [];");
-		} else {
+		} else { mixin(S_TRACE);
 			mixin ("_prop.var.etc." ~ Name ~ "Order = cbar.getItemOrder();");
 		}
 		mixin ("_prop.var.etc." ~ Name ~ "WrapIndices = cbar.getWrapIndices();");
 	}
-	override void controlResized(ControlEvent e) {
+	override void controlResized(ControlEvent e) { mixin(S_TRACE);
 		auto cbar = cast(CoolBar) e.widget;
 		cbar.getShell().layout(true, true);
 	}
-	void reset() {
+	void reset() { mixin(S_TRACE);
 		int[] ixs;
-		for (int i = 0; i < _cbar.getItemCount(); i++) {
+		for (int i = 0; i < _cbar.getItemCount(); i++) { mixin(S_TRACE);
 			ixs ~= i;
 		}
 		_cbar.setItemOrder(ixs);
 		_cbar.setWrapIndices(mixin ("_prop.var.etc." ~ Name ~ "WrapIndices.INIT.dup"));
-		foreach_reverse (i; _cbar.getItemOrder()) {
+		foreach_reverse (i; _cbar.getItemOrder()) { mixin(S_TRACE);
 			resetCISize(_cbar.getItem(i));
 		}
 	}
-	void lock() {
+	void lock() { mixin(S_TRACE);
 		_cbar.setLocked(!_cbar.getLocked());
 		if (_lock) _lock.setSelection(_cbar.getLocked());
-		foreach_reverse (i; _cbar.getItemOrder()) {
+		foreach_reverse (i; _cbar.getItemOrder()) { mixin(S_TRACE);
 			resetCISize(_cbar.getItem(i));
 		}
 	}
 }
 CoolBar createCoolBar(string Name)(Commons comm, Composite parent,
-		void delegate(CoolBar) setupItems) {
+		void delegate(CoolBar) setupItems) { mixin(S_TRACE);
 	auto cbar = new CoolBar(parent, SWT.NONE);
 
 	setupItems(cbar);
@@ -637,14 +637,14 @@ CoolBar createCoolBar(string Name)(Commons comm, Composite parent,
 	createMenuItem(comm, menu, MenuID.ResetToolBar, &ls.reset, null);
 	cbar.setMenu(menu);
 
-	foreach (itm; cbar.getItems()) {
+	foreach (itm; cbar.getItems()) { mixin(S_TRACE);
 		itm.getControl().setMenu(menu);
 	}
-	if (mixin ("comm.prop.var.etc." ~ Name ~ "Order.length") == cbar.getItemCount()) {
+	if (mixin ("comm.prop.var.etc." ~ Name ~ "Order.length") == cbar.getItemCount()) { mixin(S_TRACE);
 		cbar.setItemOrder(mixin ("comm.prop.var.etc." ~ Name ~ "Order.dup"));
 	}
 	int[] wi;
-	foreach (i; mixin ("comm.prop.var.etc." ~ Name ~ "WrapIndices")) {
+	foreach (i; mixin ("comm.prop.var.etc." ~ Name ~ "WrapIndices")) { mixin(S_TRACE);
 		if (i > 0 && i < cbar.getItemCount()) wi ~= i;
 	}
 	if (wi != cbar.getWrapIndices()) cbar.setWrapIndices(wi);
@@ -653,18 +653,18 @@ CoolBar createCoolBar(string Name)(Commons comm, Composite parent,
 	return cbar;
 }
 
-void resetCISize(CoolItem itm) {
+void resetCISize(CoolItem itm) { mixin(S_TRACE);
 	auto p = itm.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT);
 	auto p2 = itm.computeSize(p.x, p.y);
 	itm.setMinimumSize(p.x, p.y);
 	itm.setPreferredSize(p2.x, p2.y);
 }
 
-CoolItem createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {
+CoolItem createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) { mixin(S_TRACE);
 	CoolItem itm;
-	if (index >= 0) {
+	if (index >= 0) { mixin(S_TRACE);
 		itm = new CoolItem(cbar, SWT.PUSH, index);
-	} else {
+	} else { mixin(S_TRACE);
 		itm = new CoolItem(cbar, SWT.PUSH);
 	}
 	itm.setControl(tbar);
@@ -673,18 +673,18 @@ CoolItem createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {
 }
 
 /// 押されたキーに該当するアクセラレータを持つメニューを探す。
-MenuItem findMenu(Shell shell, int keyCode, wchar character, int stateMask) {
+MenuItem findMenu(Shell shell, int keyCode, wchar character, int stateMask) { mixin(S_TRACE);
 	auto menu = shell.getMenuBar();
 	if (!menu) return null;
 	return findMenu(menu, keyCode, character, stateMask);
 }
 /// ditto
-MenuItem findMenu(Menu menu, int keyCode, wchar character, int stateMask) {
-	foreach (itm; menu.getItems()) {
-		if (eqAcc(convertAccelerator(itm.getText()), keyCode, character, stateMask)) {
+MenuItem findMenu(Menu menu, int keyCode, wchar character, int stateMask) { mixin(S_TRACE);
+	foreach (itm; menu.getItems()) { mixin(S_TRACE);
+		if (eqAcc(convertAccelerator(itm.getText()), keyCode, character, stateMask)) { mixin(S_TRACE);
 			return itm;
 		}
-		if (itm.getStyle() & SWT.CASCADE) {
+		if (itm.getStyle() & SWT.CASCADE) { mixin(S_TRACE);
 			auto r = findMenu(itm.getMenu(), keyCode, character, stateMask);
 			if (r) return r;
 		}

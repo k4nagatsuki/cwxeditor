@@ -54,36 +54,36 @@ class AbstractMessageDialog : EventDialog {
 	private UndoManager _undo;
 
 	private class SelPrev : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto btn = cast(Button) e.widget;
-			if (btn.getSelection()) {
+			if (btn.getSelection()) { mixin(S_TRACE);
 				auto s = wrapReturnCode(text);
-				if (_previewWin) {
+				if (_previewWin) { mixin(S_TRACE);
 					if (_previewWin.isVisible()) return;
 					_previewWin.text(selectedTalker, "", s);
 					_previewWin.open();
-				} else {
+				} else { mixin(S_TRACE);
 					if (rightGroup.isVisible()) return;
 					_preview.text(selectedTalker, imgPath, s);
 					setPreviewLData(true);
 				}
-			} else {
-				if (_previewWin) {
+			} else { mixin(S_TRACE);
+				if (_previewWin) { mixin(S_TRACE);
 					if (!_previewWin.isVisible()) return;
 					_previewWin.close();
-				} else {
+				} else { mixin(S_TRACE);
 					if (!rightGroup.isVisible()) return;
 					setPreviewLData(false);
 				}
 			}
 		}
 	}
-	private void setPreviewLData(bool visible, bool regWin = true) {
+	private void setPreviewLData(bool visible, bool regWin = true) { mixin(S_TRACE);
 		bool oVisible = rightGroup.isVisible();
 		assert (_preview);
 		rightGroup.setVisible(visible);
 		int pvw;
-		if (!visible) {
+		if (!visible) { mixin(S_TRACE);
 			pvw = rightGroup.getSize().x;
 		}
 		int w = visible ? prop.looks.messageBounds.width : 0;
@@ -94,28 +94,28 @@ class AbstractMessageDialog : EventDialog {
 		scope (exit) {
 			if (getShell().isVisible()) getShell().setRedraw(true);
 		}
-		if (regWin && oVisible != visible) {
+		if (regWin && oVisible != visible) { mixin(S_TRACE);
 			auto ws = getShell().getSize();
-			if (visible) {
+			if (visible) { mixin(S_TRACE);
 				pvw = rightGroup.getSize().x;
 			}
-			if (visible) {
+			if (visible) { mixin(S_TRACE);
 				ws.x += pvw;
-			} else {
+			} else { mixin(S_TRACE);
 				ws.x -= pvw;
 			}
 			getShell().setSize(ws);
 		}
 	}
 	private class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			comm.refMenu.remove(&refMenu);
 			comm.refUndoMax.remove(&refUndoMax);
 			getShell().getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
-			if (_preview) {
-				if (type is CType.TALK_MESSAGE) {
+			if (_preview) { mixin(S_TRACE);
+				if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
 					prop.var.etc.showMessagePreview = _preview.isVisible();
-				} else if (type is CType.TALK_DIALOG) {
+				} else if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
 					prop.var.etc.showDialogPreview = _preview.isVisible();
 				} else assert (0);
 			}
@@ -123,54 +123,54 @@ class AbstractMessageDialog : EventDialog {
 	}
 
 	private class KeyDownFilter : Listener {
-		this () {
+		this () { mixin(S_TRACE);
 			refMenu(MenuID.Undo);
 			refMenu(MenuID.Redo);
 		}
-		override void handleEvent(Event e) {
+		override void handleEvent(Event e) { mixin(S_TRACE);
 			auto c = cast(Control) e.widget;
 			if (!c || c.getShell() !is getShell()) return;
 			if (!canHookKeyDown(c)) return;
 			if (cast(Text) c) return;
-			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
+			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
 				_undo.undo();
 				e.doit = false;
-			} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) {
+			} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
 				_undo.redo();
 				e.doit = false;
 			}
 		}
 	}
-	protected bool canHookKeyDown(Control fc) {
+	protected bool canHookKeyDown(Control fc) { mixin(S_TRACE);
 		return !_preview || !_preview.focusInValues;
 	}
 	private int _undoAcc;
 	private int _redoAcc;
-	private void refMenu(MenuID id) {
+	private void refMenu(MenuID id) { mixin(S_TRACE);
 		if (id == MenuID.Undo) _undoAcc = convertAccelerator(prop.buildMenu(MenuID.Undo));
 		if (id == MenuID.Redo) _redoAcc = convertAccelerator(prop.buildMenu(MenuID.Redo));
 	}
-	private void refUndoMax() {
+	private void refUndoMax() { mixin(S_TRACE);
 		_undo.max = prop.var.etc.undoMaxEtc;
 	}
 
-	protected void initPreview(Composite area, WSize size) {
+	protected void initPreview(Composite area, WSize size) { mixin(S_TRACE);
 		auto aComp = addition();
 		aComp.setLayout(new GridLayout(1, true));
 		auto prev = new Button(aComp, SWT.TOGGLE);
 		prev.setText(prop.msgs.messagePreview);
 		bool show;
-		if (type is CType.TALK_MESSAGE) {
+		if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
 			show = prop.var.etc.showMessagePreview;
-		} else if (type is CType.TALK_DIALOG) {
+		} else if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
 			show = prop.var.etc.showDialogPreview;
 		} else assert (0);
 		prev.setSelection(show);
 		prev.addSelectionListener(new SelPrev);
 
-		if (prop.var.etc.floatMessagePreview) {
+		if (prop.var.etc.floatMessagePreview) { mixin(S_TRACE);
 			_previewWin = new MsgPreviewWindow(getShell(), comm, prop, summ, prev, size);
-		} else {
+		} else { mixin(S_TRACE);
 			_preview = new MsgPreview(rightGroup, comm, prop, summ);
 			rightGroup.setLayout(zeroGridLayout(1, false));
 			_preview.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -179,28 +179,28 @@ class AbstractMessageDialog : EventDialog {
 		refreshPreview();
 	}
 
-	this (Commons comm, Props prop, Shell shell, Summary summ, CType type, Content parent, Content evt, DSize size) {
+	this (Commons comm, Props prop, Shell shell, Summary summ, CType type, Content parent, Content evt, DSize size) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, type, parent, evt, true, size, false, !prop.var.etc.floatMessagePreview);
 		_undo = new UndoManager(prop.var.etc.undoMaxEtc);
 	}
 
 	override
-	protected void opened() {
+	protected void opened() { mixin(S_TRACE);
 		if (!_previewWin) return;
-		if (type is CType.TALK_MESSAGE) {
+		if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
 			if (prop.var.etc.showMessagePreview) _previewWin.open();
-			closeEvent ~= {
+			closeEvent ~= { mixin(S_TRACE);
 				prop.var.etc.showMessagePreview = _previewWin.isVisible();
 			};
-		} else if (type is CType.TALK_DIALOG) {
+		} else if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
 			if (prop.var.etc.showDialogPreview) _previewWin.open();
-			closeEvent ~= {
+			closeEvent ~= { mixin(S_TRACE);
 				prop.var.etc.showDialogPreview = _previewWin.isVisible();
 			};
 		} else assert (0);
 	}
 
-	protected override void setup(Composite area) {
+	protected override void setup(Composite area) { mixin(S_TRACE);
 		area.addDisposeListener(new Dispose);
 		_kdFilter = new KeyDownFilter;
 		area.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
@@ -209,13 +209,13 @@ class AbstractMessageDialog : EventDialog {
 
 	}
 
-	void refreshPreview() {
+	void refreshPreview() { mixin(S_TRACE);
 		if (!_previewWin && !_preview) return;
 		auto s = wrapReturnCode(text);
-		if (_previewWin) {
+		if (_previewWin) { mixin(S_TRACE);
 			_previewWin.text(selectedTalker, imgPath, s);
 			_previewWin.refresh();
-		} else {
+		} else { mixin(S_TRACE);
 			_preview.text(selectedTalker, imgPath, s);
 			_preview.refresh();
 		}
@@ -238,21 +238,21 @@ private:
 		int selDlg;
 		SDialog[] dlgs;
 	}
-	Object readAPD(Object old) {
+	Object readAPD(Object old) { mixin(S_TRACE);
 		auto o = new APData;
 		o.selDlg = _dlgsL.getSelectionIndex();
-		foreach (d; _dlgs) {
+		foreach (d; _dlgs) { mixin(S_TRACE);
 			o.dlgs ~= new SDialog(d);
 		}
 		return o;
 	}
-	void writeAPD(Object o) {
+	void writeAPD(Object o) { mixin(S_TRACE);
 		bool oldIgnoreMod = ignoreMod;
 		ignoreMod = true;
 		scope (exit) ignoreMod = oldIgnoreMod;
 		auto apd = cast(APData)o;
 		assert (apd);
-		foreach (i, d; apd.dlgs) {
+		foreach (i, d; apd.dlgs) { mixin(S_TRACE);
 			_dlgs[i] = new SDialog(d);
 		}
 		refreshDlgList();
@@ -262,23 +262,23 @@ private:
 	class SUndo : Undo {
 		private SDialog[] _dlgs;
 		private int _selDlg;
-		this () {
+		this () { mixin(S_TRACE);
 			save();
 		}
-		private void save() {
+		private void save() { mixin(S_TRACE);
 			_dlgs = [];
-			foreach (d; this.outer._dlgs) {
+			foreach (d; this.outer._dlgs) { mixin(S_TRACE);
 				_dlgs ~= new SDialog(d);
 			}
 			_selDlg = _dlgsL.getSelectionIndex();
 		}
-		private void impl() {
+		private void impl() { mixin(S_TRACE);
 			auto dlgs = _dlgs;
 			int selDlg = _selDlg;
 			save();
 
 			this.outer._dlgs = [];
-			foreach (dlg; dlgs) {
+			foreach (dlg; dlgs) { mixin(S_TRACE);
 				this.outer._dlgs ~= new SDialog(dlg);
 			}
 			refreshDlgList();
@@ -287,36 +287,36 @@ private:
 		}
 		override void undo() {impl();}
 		override void redo() {impl();}
-		override void dispose() {
+		override void dispose() { mixin(S_TRACE);
 			// Nothing
 		}
 	}
-	void storeEdit() {
+	void storeEdit() { mixin(S_TRACE);
 		_undo ~= new SUndo;
 	}
-	void updateValue() {
+	void updateValue() { mixin(S_TRACE);
 		int max = _initValue.getSelection();
 		int min = max;
-		foreach (cp; _couponView.coupons) {
-			if (cp.value < 0) {
+		foreach (cp; _couponView.coupons) { mixin(S_TRACE);
+			if (cp.value < 0) { mixin(S_TRACE);
 				min -= cp.value;
-			} else {
+			} else { mixin(S_TRACE);
 				max += cp.value;
 			}
 		}
-		if (0 >= min) {
+		if (0 >= min) { mixin(S_TRACE);
 			_couponView.toolTip = .tryFormat(prop.msgs.valuedTalkerMaxMinLess0, max, min);
-		} else {
+		} else { mixin(S_TRACE);
 			_couponView.toolTip = .tryFormat(prop.msgs.valuedTalkerMaxMin, max, min);
 		}
 	}
 
 	override
-	protected void refreshWarning() {
+	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 
-		if (prop.targetVersion("1.50")) {
-			if (Talker.VALUED is selectedTalker) {
+		if (prop.targetVersion("1.50")) { mixin(S_TRACE);
+			if (Talker.VALUED is selectedTalker) { mixin(S_TRACE);
 				ws ~= prop.msgs.warningValuedTalker;
 			}
 		}
@@ -336,16 +336,16 @@ private:
 	CouponView!(CVType.Valued) _couponView;
 	Spinner _initValue;
 
-	protected override bool canHookKeyDown(Control fc) {
+	protected override bool canHookKeyDown(Control fc) { mixin(S_TRACE);
 		return super.canHookKeyDown(fc) && !isDescendant(_couponView, fc);
 	}
-	void selectChanged() {
+	void selectChanged() { mixin(S_TRACE);
 		bool oldIgnoreMod = ignoreMod;
 		ignoreMod = true;
 		scope (exit) ignoreMod = oldIgnoreMod;
 		auto dlg = _dlgs[_dlgsL.getSelectionIndex()];
 		string rcs;
-		foreach (rc; dlg.rCoupons) {
+		foreach (rc; dlg.rCoupons) { mixin(S_TRACE);
 			rcs ~= rc;
 			rcs ~= '\n';
 		}
@@ -356,13 +356,13 @@ private:
 		refreshPreview();
 		comm.refreshToolBar();
 	}
-	void createDialog(SDialog dlg) {
+	void createDialog(SDialog dlg) { mixin(S_TRACE);
 		insertDialog(dlg, _dlgsL.getSelectionIndex());
 	}
-	void createDialog() {
+	void createDialog() { mixin(S_TRACE);
 		createDialog(new SDialog);
 	}
-	void insertDialog(SDialog dlg, int index, bool store = true) {
+	void insertDialog(SDialog dlg, int index, bool store = true) { mixin(S_TRACE);
 		if (store) storeEdit();
 		if (index < 0) index = _dlgs.length;
 		_dlgs = _dlgs[0 .. index] ~ dlg ~ _dlgs[index .. $];
@@ -373,40 +373,40 @@ private:
 		selectChanged();
 		applyEnabled();
 	}
-	void deleteDialog(int index, bool store = true) {
+	void deleteDialog(int index, bool store = true) { mixin(S_TRACE);
 		if (index < 0 || _dlgs.length <= 1) return;
 		if (store) storeEdit();
 		bool sel = _dlgsL.getSelectionIndex() == index;
 		_dlgs = _dlgs[0 .. index] ~ _dlgs[index + 1 .. $];
 		_dlgsL.remove(index);
-		if (sel) {
+		if (sel) { mixin(S_TRACE);
 			_dlgsL.select(index < _dlgs.length ? index : _dlgs.length - 1);
 			selectChanged();
-		} else {
+		} else { mixin(S_TRACE);
 			comm.refreshToolBar();
 		}
 		applyEnabled();
 	}
-	void deleteDialogSel() {
+	void deleteDialogSel() { mixin(S_TRACE);
 		deleteDialog(_dlgsL.getSelectionIndex());
 	}
-	void overDialog() {
+	void overDialog() { mixin(S_TRACE);
 		int index = _dlgsL.getSelectionIndex();
-		if (index > 0) {
+		if (index > 0) { mixin(S_TRACE);
 			_dlgsL.select(index - 1);
 			selectChanged();
 		}
 	}
-	void underDialog() {
+	void underDialog() { mixin(S_TRACE);
 		int index = _dlgsL.getSelectionIndex();
-		if (index + 1 < _dlgs.length) {
+		if (index + 1 < _dlgs.length) { mixin(S_TRACE);
 			_dlgsL.select(index + 1);
 			selectChanged();
 		}
 	}
-	void up() {
+	void up() { mixin(S_TRACE);
 		int index = _dlgsL.getSelectionIndex();
-		if (index > 0) {
+		if (index > 0) { mixin(S_TRACE);
 			storeEdit();
 			auto temp = _dlgs[index - 1];
 			_dlgs[index - 1] = _dlgs[index];
@@ -419,9 +419,9 @@ private:
 			comm.refreshToolBar();
 		}
 	}
-	void down() {
+	void down() { mixin(S_TRACE);
 		int index = _dlgsL.getSelectionIndex();
-		if (index + 1 < _dlgs.length) {
+		if (index + 1 < _dlgs.length) { mixin(S_TRACE);
 			storeEdit();
 			auto temp = _dlgs[index + 1];
 			_dlgs[index + 1] = _dlgs[index];
@@ -434,37 +434,37 @@ private:
 			comm.refreshToolBar();
 		}
 	}
-	void copyToUpper() {
+	void copyToUpper() { mixin(S_TRACE);
 		storeEdit();
 		int index = _dlgsL.getSelectionIndex();
 		string textL = _dlgsL.getItem(index).getText();
 		string text = lastRet(wrapReturnCode(_text.getText()));
-		for (int i = 0; i < index; i++) {
+		for (int i = 0; i < index; i++) { mixin(S_TRACE);
 			_dlgsL.getItem(i).setText(textL);
 			_dlgs[i].text = text;
 		}
 		applyEnabled();
 		comm.refreshToolBar();
 	}
-	void copyToLower() {
+	void copyToLower() { mixin(S_TRACE);
 		storeEdit();
 		int index = _dlgsL.getSelectionIndex();
 		string textL = _dlgsL.getItem(index).getText();
 		string text = lastRet(wrapReturnCode(_text.getText()));
-		for (int i = index + 1; i < _dlgs.length; i++) {
+		for (int i = index + 1; i < _dlgs.length; i++) { mixin(S_TRACE);
 			_dlgsL.getItem(i).setText(textL);
 			_dlgs[i].text = text;
 		}
 		applyEnabled();
 		comm.refreshToolBar();
 	}
-	void copyToDialogs() {
+	void copyToDialogs() { mixin(S_TRACE);
 		storeEdit();
 		int index = _dlgsL.getSelectionIndex();
 		string textL = _dlgsL.getItem(index).getText();
 		string text = lastRet(wrapReturnCode(_text.getText()));
-		foreach (i, dlg; _dlgs) {
-			if (i != index) {
+		foreach (i, dlg; _dlgs) { mixin(S_TRACE);
+			if (i != index) { mixin(S_TRACE);
 				_dlgsL.getItem(i).setText(textL);
 				dlg.text = text;
 			}
@@ -472,50 +472,50 @@ private:
 		applyEnabled();
 		comm.refreshToolBar();
 	}
-	void put(dchar put) {
+	void put(dchar put) { mixin(S_TRACE);
 		putColor(_text, put);
 	}
-	void insert(string put) {
+	void insert(string put) { mixin(S_TRACE);
 		_text.insert(put);
 	}
-	void putText(SDialog dlg) {
+	void putText(SDialog dlg) { mixin(S_TRACE);
 		dlg.text = lastRet(wrapReturnCode(_text.getText()));
 	}
-	void putRCoupons(SDialog dlg) {
+	void putRCoupons(SDialog dlg) { mixin(S_TRACE);
 		string[] rcs;
-		foreach (rc; splitLines!string(_rCoupons.getText())) {
-			if (rc.length > 0) {
+		foreach (rc; splitLines!string(_rCoupons.getText())) { mixin(S_TRACE);
+			if (rc.length > 0) { mixin(S_TRACE);
 				rcs ~= rc;
 			}
 		}
 		dlg.rCoupons = rcs;
 	}
-	void updateTalker() {
+	void updateTalker() { mixin(S_TRACE);
 		_couponView.enabled = (Talker.VALUED is selectedTalker);
 		_initValue.setEnabled(_couponView.enabled);
 		comm.refreshToolBar();
 	}
 	class SelL : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			selectChanged();
 		}
 	}
 	class SelectTalker : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			refreshPreview();
 			refreshWarning();
 			updateTalker();
 		}
 	}
-	private void refreshDlgList(int index) {
+	private void refreshDlgList(int index) { mixin(S_TRACE);
 		string text = wrapReturnCode(_dlgs[index].text).singleLine;
 		// FIXME: ""をsetTextするとArgument cannot be null
 		if (text == "") text = " ";
 		_dlgsL.getItem(index).setText(0, text);
 	}
 	class ModL : ModifyListener {
-		override void modifyText(ModifyEvent e) {
-			if (_textTM && _rCouponsTM && !_textTM.inProc() && !_rCouponsTM.inProc()) {
+		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
+			if (_textTM && _rCouponsTM && !_textTM.inProc() && !_rCouponsTM.inProc()) { mixin(S_TRACE);
 				putText(_dlgs[_dlgsL.getSelectionIndex()]);
 			}
 			refreshDlgList(_dlgsL.getSelectionIndex());
@@ -523,37 +523,37 @@ private:
 		}
 	}
 	class ModRC : ModifyListener {
-		override void modifyText(ModifyEvent e) {
-			if (_textTM && _rCouponsTM && !_textTM.inProc() && !_rCouponsTM.inProc()) {
+		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
+			if (_textTM && _rCouponsTM && !_textTM.inProc() && !_rCouponsTM.inProc()) { mixin(S_TRACE);
 				putRCoupons(_dlgs[_dlgsL.getSelectionIndex()]);
 			}
 		}
 	}
 	@property
-	SDialog selection() {
+	SDialog selection() { mixin(S_TRACE);
 		int index = _dlgsL.getSelectionIndex();
 		return index >= 0 ? _dlgs[index] : null;
 	}
 	class DialogsTCPD : TCPD {
-		void cut(SelectionEvent se) {
-			if (_dlgsL.getItemCount() > 1 && selection) {
+		void cut(SelectionEvent se) { mixin(S_TRACE);
+			if (_dlgsL.getItemCount() > 1 && selection) { mixin(S_TRACE);
 				copy(se);
 				del(se);
 			}
 		}
-		void copy(SelectionEvent se) {
+		void copy(SelectionEvent se) { mixin(S_TRACE);
 			auto d = selection;
-			if (d) {
+			if (d) { mixin(S_TRACE);
 				XMLtoCB(prop, comm.clipboard, d.toNode().text);
 				comm.refreshToolBar();
 			}
 		}
-		void paste(SelectionEvent se) {
+		void paste(SelectionEvent se) { mixin(S_TRACE);
 			auto xml = CBtoXML(comm.clipboard);
-			if (xml) {
-				try {
+			if (xml) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					auto node = XNode.parse(xml);
-					if (node.name == SDialog.XML_NAME) {
+					if (node.name == SDialog.XML_NAME) { mixin(S_TRACE);
 						auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
 						createDialog(SDialog.createFromNode(node, ver));
 					}
@@ -563,7 +563,7 @@ private:
 			}
 		}
 		void del(SelectionEvent se) {deleteDialogSel();}
-		void clone(SelectionEvent se) {
+		void clone(SelectionEvent se) { mixin(S_TRACE);
 			comm.clipboard.memoryMode = true;
 			scope (exit) comm.clipboard.memoryMode = false;
 			copy(se);
@@ -577,17 +577,17 @@ private:
 		@property bool canDoClone() {return canDoC;}
 	}
 	class DDropListener : DropTargetAdapter {
-		override void dragEnter(DropTargetEvent e){
+		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
 			e.detail = DND.DROP_MOVE;
 		}
-		override void dragOver(DropTargetEvent e){
+		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
 			e.detail = DND.DROP_MOVE;
 		}
-		override void drop(DropTargetEvent e){
+		override void drop(DropTargetEvent e){ mixin(S_TRACE);
 			if (!isXMLBytes(e.data)) return;
 			e.detail = DND.DROP_NONE;
 			string xml = bytesToXML(e.data);
-			try {
+			try { mixin(S_TRACE);
 				auto node = XNode.parse(xml);
 				if (node.name != SDialog.XML_NAME) return;
 				storeEdit();
@@ -596,7 +596,7 @@ private:
 				int index = t ? _dlgsL.indexOf(t) : _dlgsL.getItemCount();
 				auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
 				insertDialog(SDialog.createFromNode(node, ver), index, false);
-				if (_id == node.attr("paneId", false)) {
+				if (_id == node.attr("paneId", false)) { mixin(S_TRACE);
 					e.detail = DND.DROP_MOVE;
 				}
 			} catch {}
@@ -604,14 +604,14 @@ private:
 	}
 	class DDragListener : DragSourceAdapter {
 		private TableItem _itm;
-		override void dragStart(DragSourceEvent e) {
+		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
 			e.doit = (cast(DragSource) e.getSource()).getControl().isFocusControl();
 		}
-		override void dragSetData(DragSourceEvent e){
-			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
+		override void dragSetData(DragSourceEvent e){ mixin(S_TRACE);
+			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
 				auto c = cast(Table) (cast(DragSource) e.getSource()).getControl();
 				int index = c.getSelectionIndex();
-				if (index >= 0) {
+				if (index >= 0) { mixin(S_TRACE);
 					auto d = _dlgs[index];
 					auto node = d.toNode();
 					node.newAttr("paneId", _id);
@@ -620,16 +620,16 @@ private:
 				}
 			}
 		}
-		override void dragFinished(DragSourceEvent e) {
-			if (e.detail == DND.DROP_MOVE) {
+		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
+			if (e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
 				deleteDialog(_dlgsL.indexOf(_itm), false);
 			}
 		}
 	}
-	protected override void refSkin() {
+	protected override void refSkin() { mixin(S_TRACE);
 		_text.font = dwtData(prop.looks.messageFont(summ.legacy));
 	}
-	void refreshDlgList() {
+	void refreshDlgList() { mixin(S_TRACE);
 		bool oldIgnoreMod = ignoreMod;
 		ignoreMod = true;
 		scope (exit) ignoreMod = oldIgnoreMod;
@@ -637,7 +637,7 @@ private:
 		int topIndex = _dlgsL.getTopIndex();
 
 		_dlgsL.removeAll();
-		foreach (dlg; _dlgs) {
+		foreach (dlg; _dlgs) { mixin(S_TRACE);
 			auto itm = new TableItem(_dlgsL, SWT.NONE);
 			itm.setImage(prop.images.content(CType.TALK_DIALOG));
 			string text = dlg.text.singleLine;
@@ -645,20 +645,20 @@ private:
 			itm.setText(text.length > 0 ? text : " ");
 		}
 
-		if (selIndex < 0 || _dlgs.length <= selIndex) {
+		if (selIndex < 0 || _dlgs.length <= selIndex) { mixin(S_TRACE);
 			_dlgsL.select(0);
-		} else {
+		} else { mixin(S_TRACE);
 			_dlgsL.select(selIndex);
 			_dlgsL.setTopIndex(topIndex);
 		}
-		if (selIndex != _dlgsL.getSelectionIndex()) {
+		if (selIndex != _dlgsL.getSelectionIndex()) { mixin(S_TRACE);
 			selectChanged();
-		} else {
+		} else { mixin(S_TRACE);
 			comm.refreshToolBar();
 		}
 	}
 	class DisposeLeftSash : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			auto sash = cast(SplitPane) e.widget;
 			auto ws = sash.getWeights();
 			prop.var.etc.talkLeftSashL = ws[0];
@@ -666,7 +666,7 @@ private:
 		}
 	}
 	class DisposeMainSash : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			auto sash = cast(SplitPane) e.widget;
 			auto ws = sash.getWeights();
 			prop.var.etc.talkMainSashL = ws[0];
@@ -675,18 +675,18 @@ private:
 	}
 
 	private class KeyDownFilter : Listener {
-		this () {
+		this () { mixin(S_TRACE);
 			refMenu(MenuID.OverDialog);
 			refMenu(MenuID.UnderDialog);
 		}
-		override void handleEvent(Event e) {
+		override void handleEvent(Event e) { mixin(S_TRACE);
 			auto c = cast(Control) e.widget;
 			if (!c || c.getShell() !is getShell()) return;
 			if (_dlgsL is c) return;
-			if (eqAcc(_overAcc, e.keyCode, e.character, e.stateMask)) {
+			if (eqAcc(_overAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
 				overDialog();
 				e.doit = false;
-			} else if (eqAcc(_underAcc, e.keyCode, e.character, e.stateMask)) {
+			} else if (eqAcc(_underAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
 				underDialog();
 				e.doit = false;
 			}
@@ -694,20 +694,20 @@ private:
 	}
 	private int _overAcc;
 	private int _underAcc;
-	private void refMenu(MenuID id) {
+	private void refMenu(MenuID id) { mixin(S_TRACE);
 		if (id == MenuID.OverDialog) _overAcc = convertAccelerator(prop.buildMenu(MenuID.OverDialog));
 		if (id == MenuID.UnderDialog) _underAcc = convertAccelerator(prop.buildMenu(MenuID.UnderDialog));
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		super(comm, prop, shell, summ, CType.TALK_DIALOG, parent, evt, prop.var.speakDlg);
 	}
 
 	override
-	bool openCWXPath(string path, bool shellActivate) {
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		auto cate = cpcategory(path);
-		if ("dialog" == cate) {
+		if ("dialog" == cate) { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= _dlgsL.getItemCount()) return false;
 			_dlgsL.select(index);
@@ -721,13 +721,13 @@ public:
 
 	@property
 	override
-	string text() {
+	string text() { mixin(S_TRACE);
 		return wrapReturnCode(_text.getText());
 	}
 
 	@property
 	override
-	Talker selectedTalker() {
+	Talker selectedTalker() { mixin(S_TRACE);
 		switch (_talkers.getSelectionIndex()) {
 		case 0: return Talker.SELECTED;
 		case 1: return Talker.UNSELECTED;
@@ -739,11 +739,11 @@ public:
 
 	@property
 	override
-	string imgPath() {
+	string imgPath() { mixin(S_TRACE);
 		return "";
 	}
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		super.setup(area);
 
 		area.setLayout(windowGridLayout(1, true));
@@ -752,7 +752,7 @@ protected:
 		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto left = new Composite(sash, SWT.NONE);
 		left.setLayout(zeroMarginGridLayout(1, true));
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(left, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setText(prop.msgs.talker);
@@ -770,21 +770,21 @@ protected:
 		auto leftSash = new SplitPane(left, SWT.VERTICAL);
 		leftSash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto skin = comm.skin;
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(leftSash, SWT.NONE);
 			grp.setText(prop.msgs.toneCoupons);
 			grp.setLayout(new GridLayout(1, true));
 			Control tp;
-			if (evt) {
+			if (evt) { mixin(S_TRACE);
 				tp = createTalkerPane2(grp, comm, prop, summ, evt.dialogs[0].rCoupons, _rCoupons, _rCouponsList);
-			} else {
+			} else { mixin(S_TRACE);
 				tp = createTalkerPane2(grp, comm, prop, summ, [], _rCoupons, _rCouponsList);
 			}
 			mod(_rCoupons);
 			_rCoupons.addModifyListener(new ModRC);
 			tp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(leftSash, SWT.NONE);
 			grp.setText(prop.msgs.valued);
 			grp.setLayout(new GridLayout(2, false));
@@ -808,7 +808,7 @@ protected:
 		}
 		auto right = new Composite(sash, SWT.NONE);
 		right.setLayout(zeroMarginGridLayout(2, false));
-		{
+		{ mixin(S_TRACE);
 			_dlgsL = new Table(right, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
 			new FullTableColumn(_dlgsL, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
@@ -856,7 +856,7 @@ protected:
 			createToolItem2(comm, bar, prop.msgs.copyToUpper, prop.images.copyToUpper, &copyToUpper, () => _dlgsL.getSelectionIndex() != -1 && 0 < _dlgsL.getSelectionIndex());
 			createToolItem2(comm, bar, prop.msgs.copyToLower, prop.images.copyToLower, &copyToLower, () => _dlgsL.getSelectionIndex() != -1 && _dlgsL.getSelectionIndex() + 1 < _dlgsL.getItemCount());
 		}
-		{
+		{ mixin(S_TRACE);
 			auto msgComp = new Composite(right, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.horizontalSpan = 2;
@@ -867,15 +867,15 @@ protected:
 			_text.widget.setLayoutData(_text.computeTextBaseSize(prop.looks.messageLine));
 			_text.widget.addModifyListener(new ModL);
 		}
-		{
+		{ mixin(S_TRACE);
 			auto bar = createSCharBar(comm, area, &insert, &put, prop, skin);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
-		{
+		{ mixin(S_TRACE);
 			auto bar = createSkinSCharBar(comm, area, &insert, prop, skin);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
-		{
+		{ mixin(S_TRACE);
 			auto bar = createFlagStepBar(area, &insert, comm, prop);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
@@ -887,14 +887,14 @@ protected:
 		auto kdFilter = new KeyDownFilter;
 		area.getDisplay().addFilter(SWT.KeyDown, kdFilter);
 		comm.refMenu.add(&refMenu);
-		.listener(area, SWT.Dispose, {
+		.listener(area, SWT.Dispose, { mixin(S_TRACE);
 			area.getDisplay().removeFilter(SWT.KeyDown, kdFilter);
 			comm.refMenu.remove(&refMenu);
 		});
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		if (evt) {
+		if (evt) { mixin(S_TRACE);
 			switch (evt.talkerNC) {
 			case Talker.SELECTED:
 				_talkers.select(0);
@@ -911,12 +911,12 @@ protected:
 			default:
 				_talkers.select(0);
 			}
-			foreach (dlg; evt.dialogs) {
+			foreach (dlg; evt.dialogs) { mixin(S_TRACE);
 				_dlgs ~= new SDialog(dlg.text, dlg.rCoupons);
 			}
 			_couponView.coupons = evt.coupons;
 			_initValue.setSelection(evt.initValue);
-		} else {
+		} else { mixin(S_TRACE);
 			_talkers.select(0);
 			_dlgs = [new SDialog];
 		}
@@ -931,14 +931,14 @@ protected:
 		refreshWarning();
 	}
 
-	override bool apply() {
+	override bool apply() { mixin(S_TRACE);
 		if (!evt) evt = new Content(CType.TALK_DIALOG, "");
 		evt.dialogs = _dlgs;
 		evt.talkerNC = selectedTalker;
-		if (Talker.VALUED is evt.talkerNC) {
+		if (Talker.VALUED is evt.talkerNC) { mixin(S_TRACE);
 			evt.coupons = _couponView.coupons;
 			evt.initValue = _initValue.getSelection();
-		} else {
+		} else { mixin(S_TRACE);
 			evt.coupons = [];
 			evt.initValue = 0;
 		}
@@ -956,14 +956,14 @@ private:
 	ImageSelect!(MtType.CARD, Combo) _msel;
 
 	override
-	protected void refreshWarning() {
+	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 
 		ws ~= _msel.warnings;
 
 		warning = ws;
 	}
-	void tabChanged() {
+	void tabChanged() { mixin(S_TRACE);
 		switch (_tabf.getSelectionIndex()) {
 		case 0:
 			_text.num = prop.looks.messageImageLen;
@@ -977,36 +977,36 @@ private:
 		}
 		_text.widget.setLayoutData(_text.computeTextBaseSize(prop.looks.messageLine));
 		_text.widget.getParent().layout();
-		if (0 == _tabf.getSelectionIndex()) {
+		if (0 == _tabf.getSelectionIndex()) { mixin(S_TRACE);
 			_text.widget.getParent().getParent().layout();
 		}
 		refreshPreview();
 	}
 	class SL : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			tabChanged();
 		}
 	}
 	class ModText : ModifyListener {
-		override void modifyText(ModifyEvent e) {
+		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
 			refreshPreview();
 		}
 	}
-	void put(dchar put) {
+	void put(dchar put) { mixin(S_TRACE);
 		putColor(_text, put);
 	}
-	void insert(string put) {
+	void insert(string put) { mixin(S_TRACE);
 		_text.insert(put);
 	}
-	protected override void refSkin() {
+	protected override void refSkin() { mixin(S_TRACE);
 		_text.font = dwtData(prop.looks.messageFont(summ.legacy));
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) {
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
 		super(comm, prop, shell, summ, CType.TALK_MESSAGE, parent, evt, prop.var.msgDlg);
 	}
 
-	void selectedTalkerParam(out Talker talker, out string imgPath) {
+	void selectedTalkerParam(out Talker talker, out string imgPath) { mixin(S_TRACE);
 		imgPath = "";
 		switch (_tabf.getSelectionIndex()) {
 		case 0:
@@ -1036,25 +1036,25 @@ public:
 	}
 
 	@property
-	override Talker selectedTalker() {
+	override Talker selectedTalker() { mixin(S_TRACE);
 		Talker talker;
 		string imgPath;
 		selectedTalkerParam(talker, imgPath);
 		return talker;
 	}
 	@property
-	override string imgPath() {
+	override string imgPath() { mixin(S_TRACE);
 		Talker talker;
 		string imgPath;
 		selectedTalkerParam(talker, imgPath);
 		return imgPath;
 	}
 	@property
-	override string text() {
+	override string text() { mixin(S_TRACE);
 		return wrapReturnCode(_text.getText());
 	}
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		super.setup(area);
 
 		area.setLayout(new GridLayout(1, true));
@@ -1062,13 +1062,13 @@ protected:
 		mod(_tabf);
 		_tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto skin = comm.skin;
-		{
+		{ mixin(S_TRACE);
 			auto comp = new Composite(_tabf, SWT.NONE);
 			comp.setLayout(new GridLayout(2, false));
 			Control tp;
-			if (evt) {
+			if (evt) { mixin(S_TRACE);
 				tp = createTalkerPane(comp, comm, prop, summ, evt.talkerC, evt.cardPath, _msel);
-			} else {
+			} else { mixin(S_TRACE);
 				tp = createTalkerPane(comp, comm, prop, summ, Talker.SELECTED, "", _msel);
 			}
 			mod(_msel);
@@ -1086,22 +1086,22 @@ protected:
 			tab.setText(prop.msgs.imageMessage);
 			tab.setControl(comp);
 		}
-		{
+		{ mixin(S_TRACE);
 			_msgCompB = new Composite(_tabf, SWT.NONE);
 			_msgCompB.setLayout(new CenterLayout);
 			auto tab = new CTabItem(_tabf, SWT.NONE);
 			tab.setText(prop.msgs.noImageMessage);
 			tab.setControl(_msgCompB);
 		}
-		{
+		{ mixin(S_TRACE);
 			auto bar = createSCharBar(comm, area, &insert, &put, prop, skin);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
-		{
+		{ mixin(S_TRACE);
 			auto bar = createSkinSCharBar(comm, area, &insert, prop, skin);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
-		{
+		{ mixin(S_TRACE);
 			auto bar = createFlagStepBar(area, &insert, comm, prop);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
@@ -1111,12 +1111,12 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		_tabf.setSelection(0);
-		if (evt) {
+		if (evt) { mixin(S_TRACE);
 			_text.setText(evt.text);
-			if (evt.talkerC == Talker.NARRATION) {
+			if (evt.talkerC == Talker.NARRATION) { mixin(S_TRACE);
 				_tabf.setSelection(1);
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			_tabf.setSelection(1);
 		}
 		tabChanged();
@@ -1126,7 +1126,7 @@ protected:
 		_msel.updateImageEvent ~= &refreshPreview;
 	}
 
-	override bool apply() {
+	override bool apply() { mixin(S_TRACE);
 		string text;
 		string path = "";
 		Talker talker;
@@ -1141,41 +1141,41 @@ protected:
 }
 
 private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, Summary summ,
-		string[] coupons, out Text couponList, out Combo couponCombo) {
+		string[] coupons, out Text couponList, out Combo couponCombo) { mixin(S_TRACE);
 	auto comp = new Composite(parent, SWT.NONE);
 	comp.setLayout(zeroMarginGridLayout(2, false));
 	couponCombo = createCouponCombo(comm, comp, null, CouponComboType.Talker);
 	auto push = new Button(comp, SWT.PUSH);
 	auto skin = comm.skin;
-	{
+	{ mixin(S_TRACE);
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.widthHint = prop.var.etc.talkersWidth;
 		couponCombo.setLayoutData(gd);
 		push.setToolTipText(prop.msgs.setTalkerCoupon);
 		push.setImage(prop.images.setTalkerCoupon);
 	}
-	{
+	{ mixin(S_TRACE);
 		couponList = new Text(comp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.horizontalSpan = 2;
 		couponList.setLayoutData(gd);
 		string buf;
-		foreach (coupon; coupons) {
+		foreach (coupon; coupons) { mixin(S_TRACE);
 			buf ~= coupon ~ "\n";
 		}
 		couponList.setText(buf);
 		push.addSelectionListener(new class SelectionAdapter {
 			private Combo _combo;
 			private Text _list;
-			this() {
+			this() { mixin(S_TRACE);
 				_combo = couponCombo;
 				_list = couponList;
 			}
-			override void widgetSelected(SelectionEvent e) {
-				if (_combo.getText().length > 0) {
+			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+				if (_combo.getText().length > 0) { mixin(S_TRACE);
 					_list.setSelection(_list.getText().length, _list.getText().length);
 					string[] lines = splitLines!string(_list.getText());
-					if (lines.length > 0 && lines[$ - 1].length > 0) {
+					if (lines.length > 0 && lines[$ - 1].length > 0) { mixin(S_TRACE);
 						_list.insert("\n");
 					}
 					_list.insert(_combo.getText() ~ "\n");
@@ -1188,15 +1188,15 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 
 private Composite createTalkerPane
 		(Composite parent, Commons comm, Props prop, Summary summ, Talker talker, string path,
-		out ImageSelect!(MtType.CARD, Combo) msel) {
+		out ImageSelect!(MtType.CARD, Combo) msel) { mixin(S_TRACE);
 	auto comp = new Composite(parent, SWT.NONE);
-	{
+	{ mixin(S_TRACE);
 		comp.setLayout(zeroMarginGridLayout(1, true));
 	}
 	auto selected = prop.images.talker(Talker.SELECTED).getImageData();
 	auto unselected = prop.images.talker(Talker.UNSELECTED).getImageData();
 	auto random = prop.images.talker(Talker.RANDOM).getImageData();
-	ImageData createDefImage(size_t index) {
+	ImageData createDefImage(size_t index) { mixin(S_TRACE);
 		switch (index) {
 		case 0:
 			// 選択中
@@ -1225,7 +1225,7 @@ private Composite createTalkerPane
 	auto gd = new GridData(GridData.FILL_BOTH);
 	msel.widget.setLayoutData(gd);
 	msel.image = path;
-	if (msel.image.length == 0) {
+	if (msel.image.length == 0) { mixin(S_TRACE);
 		switch (talker) {
 		case Talker.SELECTED:
 			msel.dirsCombo.select(0);
@@ -1248,16 +1248,16 @@ private Composite createTalkerPane
 
 private class DisposeText : DisposeListener {
 	private Color _back, _fore;
-	this (Color back, Color fore) {
+	this (Color back, Color fore) { mixin(S_TRACE);
 		_back = back;
 		_fore = fore;
 	}
-	override void widgetDisposed(DisposeEvent e) {
+	override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 		_back.dispose();
 		_fore.dispose();
 	}
 }
-private FixedWidthText createMessagePane(Commons comm, Props prop, bool image, Composite parent, Summary summ) {
+private FixedWidthText createMessagePane(Commons comm, Props prop, bool image, Composite parent, Summary summ) { mixin(S_TRACE);
 	int len = image ? prop.looks.messageImageLen : prop.looks.messageLen;
 	auto r = new FixedWidthText(dwtData(prop.looks.messageFont(summ.legacy)), len, parent, SWT.BORDER, true);
 	auto d = r.widget.getDisplay();
@@ -1272,28 +1272,28 @@ private FixedWidthText createMessagePane(Commons comm, Props prop, bool image, C
 private class PutC {
 	private void delegate(string) _insert;
 	private string _put;
-	this(void delegate(string) insert, string put) {
+	this(void delegate(string) insert, string put) { mixin(S_TRACE);
 		_insert = insert;
 		_put = put;
 	}
-	void put() {
+	void put() { mixin(S_TRACE);
 		_insert(_put);
 	}
 }
 private class PutColor {
 	private void delegate(dchar) _put;
 	private dchar _color;
-	this(void delegate(dchar) put, dchar color) {
+	this(void delegate(dchar) put, dchar color) { mixin(S_TRACE);
 		_put = put;
 		_color = color;
 	}
-	void put() {
+	void put() { mixin(S_TRACE);
 		_put(_color);
 	}
 }
 
 private ToolBar createSCharBar(Commons comm, Composite parent,
-		void delegate(string) insert, void delegate(dchar) putColor, Props prop, Skin skin) {
+		void delegate(string) insert, void delegate(dchar) putColor, Props prop, Skin skin) { mixin(S_TRACE);
 	auto bar = new ToolBar(parent, SWT.FLAT);
 	comm.put(bar);
 	bar.addListener(SWT.Traverse, new class Listener {
@@ -1306,7 +1306,7 @@ private ToolBar createSCharBar(Commons comm, Composite parent,
 		'W', 'R', 'B', 'G', 'Y'
 	] ~ [
 		'O', 'P', 'L', 'D' // CardWirth 1.50
-	]) {
+	]) { mixin(S_TRACE);
 		string t;
 		final switch (c) {
 		case 'W': t = prop.msgs.colorW; break;
@@ -1336,7 +1336,7 @@ private ToolBar createSCharBar(Commons comm, Composite parent,
 	return bar;
 }
 
-private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate(string) insert, Props prop, Skin skin) {
+private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate(string) insert, Props prop, Skin skin) { mixin(S_TRACE);
 	auto bar = new ToolBar(parent, SWT.FLAT);
 	comm.put(bar);
 	bar.addListener(SWT.Traverse, new class Listener {
@@ -1346,7 +1346,7 @@ private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate
 		override void handleEvent(Event e) {e.doit = true;}
 	});
 	Image[] imgs;
-	foreach (spc; skin.spChars.keys) {
+	foreach (spc; skin.spChars.keys) { mixin(S_TRACE);
 		auto img = new Image(Display.getCurrent(), spChar(skin, spc));
 		string name = toUTF8("#"d ~ spc);
 		auto scp = new PutC(insert, name);
@@ -1356,8 +1356,8 @@ private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate
 	bar.addDisposeListener(new class DisposeListener {
 		private Image[] _imgs;
 		this() {_imgs = imgs;}
-		override void widgetDisposed(DisposeEvent e) {
-			foreach (img; _imgs) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+			foreach (img; _imgs) { mixin(S_TRACE);
 				img.dispose();
 			}
 		}
@@ -1365,10 +1365,10 @@ private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate
 	return bar;
 }
 
-private Composite createFlagStepBar(Composite parent, void delegate(string) insert, Commons comm, Props prop) {
+private Composite createFlagStepBar(Composite parent, void delegate(string) insert, Commons comm, Props prop) { mixin(S_TRACE);
 	auto bar = new Composite(parent, SWT.NONE);
 	bar.setLayout(zeroMarginGridLayout(2, true));
-	void create(out Combo list, out Button put, string puts, Image image, string lc) {
+	void create(out Combo list, out Button put, string puts, Image image, string lc) { mixin(S_TRACE);
 		auto comp = new Composite(bar, SWT.NONE);
 		comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		comp.setLayout(zeroMarginGridLayout(2, false));
@@ -1379,7 +1379,7 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 		put.setToolTipText(puts);
 		put.setImage(image);
 		put.addSelectionListener(new class SelectionAdapter {
-			override void widgetSelected(SelectionEvent e) {
+			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 				insert(lc ~ list.getText() ~ lc);
 			}
 		});
@@ -1389,18 +1389,18 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 	create(flags, putFlag, prop.msgs.addMsgRefFlag, prop.images.flag, "%");
 	create(steps, putStep, prop.msgs.addMsgRefStep, prop.images.step, "$");
 
-	void refList() {
+	void refList() { mixin(S_TRACE);
 		auto root = comm.summary.flagDirRoot;
 		auto fSel = flags.getText();
 		auto sSel = steps.getText();
 		flags.removeAll();
-		foreach (i, flag; root.allFlags) {
+		foreach (i, flag; root.allFlags) { mixin(S_TRACE);
 			auto p = flag.path;
 			flags.add(p);
 			if (0 == i || 0 == icmp(p, fSel)) flags.select(i);
 		}
 		steps.removeAll();
-		foreach (i, step; root.allSteps) {
+		foreach (i, step; root.allSteps) { mixin(S_TRACE);
 			auto p = step.path;
 			steps.add(p);
 			if (0 == i || 0 == icmp(p, sSel)) steps.select(i);
@@ -1412,13 +1412,13 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 	}
 	refList();
 
-	void refFlagAndStep(Flag[] flags, Step[] steps) {
+	void refFlagAndStep(Flag[] flags, Step[] steps) { mixin(S_TRACE);
 		refList();
 	}
 	comm.refFlagAndStep.add(&refFlagAndStep);
 	comm.delFlagAndStep.add(&refFlagAndStep);
 	bar.addDisposeListener(new class DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			comm.refFlagAndStep.remove(&refFlagAndStep);
 			comm.delFlagAndStep.remove(&refFlagAndStep);
 		}
@@ -1426,7 +1426,7 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 	return bar;
 }
 
-private void putColor(FixedWidthText text, dchar put) {
+private void putColor(FixedWidthText text, dchar put) { mixin(S_TRACE);
 	auto sel = text.widget.getSelection();
 	auto old = toUTF32(text.getText());
 	auto newt = cwx.msgutils.putColor(old, put, sel.x, sel.y);
@@ -1445,13 +1445,13 @@ class MsgPreviewWindow {
 	private int _parX, _parY;
 
 	private class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_win.getParent().removeControlListener(_winL);
 			saveWin();
 		}
 	}
 	private class PShellL : ControlAdapter {
-		override void controlMoved(ControlEvent e) {
+		override void controlMoved(ControlEvent e) { mixin(S_TRACE);
 			auto pb = _win.getParent().getBounds();
 			auto tb = _win.getBounds();
 			_win.setBounds(tb.x + pb.x - _parX, tb.y + pb.y - _parY, tb.width, tb.height);
@@ -1460,13 +1460,13 @@ class MsgPreviewWindow {
 		}
 	}
 	private class ShellL : ShellAdapter {
-		override void shellClosed(ShellEvent e) {
+		override void shellClosed(ShellEvent e) { mixin(S_TRACE);
 			close();
 			e.doit = false;
 		}
 	}
 
-	this (Shell parent, Commons comm, Props prop, Summary summ, Button toggle, WSize size) {
+	this (Shell parent, Commons comm, Props prop, Summary summ, Button toggle, WSize size) { mixin(S_TRACE);
 		_size = size;
 		_toggle = toggle;
 
@@ -1485,7 +1485,7 @@ class MsgPreviewWindow {
 		_preview = new MsgPreview(_win, comm, prop, summ);
 	}
 
-	private void saveWin() {
+	private void saveWin() { mixin(S_TRACE);
 		auto winProps = _size;
 		winProps.width = _win.getSize().x;
 		winProps.height = _win.getSize().y;
@@ -1494,7 +1494,7 @@ class MsgPreviewWindow {
 	}
 	bool isVisible() {return _win.isVisible();}
 
-	void open() {
+	void open() { mixin(S_TRACE);
 		if (_win.isVisible()) return;
 		auto pb = _win.getParent().getBounds();
 		_parX = pb.x;
@@ -1511,18 +1511,18 @@ class MsgPreviewWindow {
 		_win.setVisible(true);
 		_toggle.setSelection(true);
 	}
-	void close() {
+	void close() { mixin(S_TRACE);
 		if (!_win.isVisible()) return;
 		saveWin();
 		_win.setVisible(false);
 		_toggle.setSelection(false);
 	}
 
-	void text(Talker talker, string imgPath, string message) {
+	void text(Talker talker, string imgPath, string message) { mixin(S_TRACE);
 		_preview.text(talker, imgPath, message);
 	}
 
-	private void refresh() {
+	private void refresh() { mixin(S_TRACE);
 		_preview.refresh();
 	}
 }
@@ -1592,10 +1592,10 @@ class PreviewValues : Composite {
 		private string[char] _names;
 		private bool[string] _flags;
 		private int[string] _steps;
-		this () {
+		this () { mixin(S_TRACE);
 			getValues2(_names, _flags, _steps);
 		}
-		private void impl() {
+		private void impl() { mixin(S_TRACE);
 			string[char] names;
 			bool[string] flags;
 			int[string] steps;
@@ -1608,19 +1608,19 @@ class PreviewValues : Composite {
 		}
 		override void undo() { impl(); }
 		override void redo() { impl(); }
-		override void dispose() {
+		override void dispose() { mixin(S_TRACE);
 			// Nothing
 		}
 	}
-	private void store() {
+	private void store() { mixin(S_TRACE);
 		_undo ~= new UndoPV;
 	}
-	private void refUndoMax() {
+	private void refUndoMax() { mixin(S_TRACE);
 		_undo.max = _prop.var.etc.undoMaxEtc;
 	}
 
 	private class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.refUndoMax.remove(&refUndoMax);
 			_comm.refFlagAndStep.remove(&refFlagAndStep);
 			_comm.delFlagAndStep.remove(&refFlagAndStep);
@@ -1631,10 +1631,10 @@ class PreviewValues : Composite {
 			if (SPChar.I in _indexTable) _prop.var.etc.messageVarRef = _values.getItem(_indexTable[SPChar.I]).getText(1);
 			if (SPChar.T in _indexTable) _prop.var.etc.messageVarTeam = _values.getItem(_indexTable[SPChar.T]).getText(1);
 			if (SPChar.Y in _indexTable) _prop.var.etc.messageVarYado = _values.getItem(_indexTable[SPChar.Y]).getText(1);
-			if (_isMessage) {
+			if (_isMessage) { mixin(S_TRACE);
 				_prop.var.etc.messageVarKindColumn = _values.getColumn(0).getWidth();
 				_prop.var.etc.messageVarValueColumn = _values.getColumn(1).getWidth();
-			} else {
+			} else { mixin(S_TRACE);
 				_prop.var.etc.textVarKindColumn = _values.getColumn(0).getWidth();
 				_prop.var.etc.textVarValueColumn = _values.getColumn(1).getWidth();
 			}
@@ -1644,11 +1644,11 @@ class PreviewValues : Composite {
 
 	private class Mod : ModifyListener {
 		private TableItem _itm;
-		this (TableItem itm) {
+		this (TableItem itm) { mixin(S_TRACE);
 			_itm = itm;
 		}
-		override void modifyText(ModifyEvent e) {
-			if (!_changedText) {
+		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
+			if (!_changedText) { mixin(S_TRACE);
 				store();
 				_changedText = true;
 			}
@@ -1658,7 +1658,7 @@ class PreviewValues : Composite {
 		}
 	}
 
-	private void refreshFlags() {
+	private void refreshFlags() { mixin(S_TRACE);
 		_values.setRedraw(false);
 		scope (exit) _values.setRedraw(true);
 		int topIndex = _values.getTopIndex();
@@ -1671,8 +1671,8 @@ class PreviewValues : Composite {
 		int[string] pvs;
 		string selPath = null;
 
-		if (_targetChars.length < _values.getItemCount()) {
-			foreach (i; _targetChars.length .. _values.getItemCount()) {
+		if (_targetChars.length < _values.getItemCount()) { mixin(S_TRACE);
+			foreach (i; _targetChars.length .. _values.getItemCount()) { mixin(S_TRACE);
 				auto itm = _values.getItem(i);
 				string key = .toLower(itm.getText(0));
 				auto o = itm.getData();
@@ -1680,13 +1680,13 @@ class PreviewValues : Composite {
 				if (f) pvs[key] = f.onOff ? 1 : 0;
 				auto s = cast(StepData) o;
 				if (s) pvs[key] = s.select;
-				if (i == _values.getSelectionIndex()) {
+				if (i == _values.getSelectionIndex()) { mixin(S_TRACE);
 					selPath = key;
 				}
 			}
 			_values.remove(_targetChars.length, _values.getItemCount() - 1);
 		}
-		foreach (f; _summ.flagDirRoot.allFlags) {
+		foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
 			auto itm = new TableItem(_values, SWT.NONE);
 			auto path = f.path;
 			itm.setImage(0, _prop.images.flag);
@@ -1698,20 +1698,20 @@ class PreviewValues : Composite {
 			d.onOff = f.onOff;
 			string lpath = .toLower(path);
 			auto p = lpath in pvs;
-			if (p) {
-				if (*p == 1) {
+			if (p) { mixin(S_TRACE);
+				if (*p == 1) { mixin(S_TRACE);
 					itm.setText(1, f.on);
 					d.onOff = true;
-				} else if (*p == 0) {
+				} else if (*p == 0) { mixin(S_TRACE);
 					itm.setText(1, f.off);
 					d.onOff = false;
 				}
 			}
-			if (selPath && selPath == lpath) {
+			if (selPath && selPath == lpath) { mixin(S_TRACE);
 				_values.select(_values.getItemCount() - 1);
 			}
 		}
-		foreach (f; _summ.flagDirRoot.allSteps) {
+		foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
 			auto itm = new TableItem(_values, SWT.NONE);
 			auto path = f.path;
 			itm.setImage(0, _prop.images.step);
@@ -1723,32 +1723,32 @@ class PreviewValues : Composite {
 			d.select = f.select;
 			string lpath = .toLower(path);
 			auto p = lpath in pvs;
-			if (p) {
-				if (0 <= *p && *p < f.values.length) {
+			if (p) { mixin(S_TRACE);
+				if (0 <= *p && *p < f.values.length) { mixin(S_TRACE);
 					itm.setText(1, f.values[*p]);
 					d.select = *p;
 				}
 			}
-			if (selPath && selPath == lpath) {
+			if (selPath && selPath == lpath) { mixin(S_TRACE);
 				_values.select(_values.getItemCount() - 1);
 			}
 		}
 	}
-	private void refFlagAndStep(Flag[] flags, Step[] steps) {
+	private void refFlagAndStep(Flag[] flags, Step[] steps) { mixin(S_TRACE);
 		_undo.reset();
 		refreshFlags();
 		raiseModEvent();
 	}
-	private Control createEditor(TableItem itm, int editC) {
+	private Control createEditor(TableItem itm, int editC) { mixin(S_TRACE);
 		_changedText = false;
 		auto fd = cast(FlagData) itm.getData();
-		if (fd) {
+		if (fd) { mixin(S_TRACE);
 			auto text = createComboEditor!Combo(_comm, _prop, itm.getParent(), [fd.flag.on, fd.flag.off], itm.getText(1));
 			text.addModifyListener(new Mod(itm));
 			return text;
 		}
 		auto sd = cast(StepData) itm.getData();
-		if (sd) {
+		if (sd) { mixin(S_TRACE);
 			auto text = createComboEditor!Combo(_comm, _prop, itm.getParent(), sd.step.values, itm.getText(1));
 			text.addModifyListener(new Mod(itm));
 			return text;
@@ -1757,19 +1757,19 @@ class PreviewValues : Composite {
 		combo.addModifyListener(new Mod(itm));
 		return combo;
 	}
-	private static string ctrlText(Control ctrl) {
+	private static string ctrlText(Control ctrl) { mixin(S_TRACE);
 		auto text = cast(Text) ctrl;
 		if (text) return text.getText();
 		auto combo = cast(Combo) ctrl;
 		if (combo) return combo.getText();
 		assert (0);
 	}
-	private void editEnd(TableItem itm, int column, Control ctrl) {
+	private void editEnd(TableItem itm, int column, Control ctrl) { mixin(S_TRACE);
 		auto old = itm.getText(column);
 		auto text = cast(Text) ctrl;
 		if (text) itm.setText(column, text.getText());
 		auto combo = cast(Combo) ctrl;
-		if (combo) {
+		if (combo) { mixin(S_TRACE);
 			itm.setText(column, combo.getText());
 			auto fd = cast(FlagData) itm.getData();
 			if (fd) fd.onOff = combo.getSelectionIndex() == 0;
@@ -1779,24 +1779,24 @@ class PreviewValues : Composite {
 		if (old != itm.getText()) raiseModEvent();
 	}
 
-	private void raiseModEvent() {
+	private void raiseModEvent() { mixin(S_TRACE);
 		foreach (dlg; modEvent) dlg();
 		_comm.refreshToolBar();
 	}
 
-	void resetValues() {
+	void resetValues() { mixin(S_TRACE);
 		return resetValues(_values.getSelectionIndices());
 	}
-	void resetValuesAll() {
+	void resetValuesAll() { mixin(S_TRACE);
 		return resetValues(std.range.iota(0, _values.getItemCount()).array());
 	}
-	void resetValues(in int[] indices) {
+	void resetValues(in int[] indices) { mixin(S_TRACE);
 		bool[int] set;
 		foreach (i; indices) set[i] = true;
 		store();
 		size_t i = 0;
-		foreach (c; _targetChars) {
-			if (i in set) {
+		foreach (c; _targetChars) { mixin(S_TRACE);
+			if (i in set) { mixin(S_TRACE);
 				auto itm = _values.getItem(_indexTable[cast(SPChar)c]);
 				final switch (cast(SPChar)c) {
 				case SPChar.M:
@@ -1824,8 +1824,8 @@ class PreviewValues : Composite {
 			}
 			i++;
 		}
-		foreach (f; _summ.flagDirRoot.allFlags) {
-			if (i in set) {
+		foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
+			if (i in set) { mixin(S_TRACE);
 				auto itm = _values.getItem(i);
 				itm.setText(1, f.onOff ? f.on : f.off);
 				auto data = cast(FlagData) itm.getData();
@@ -1833,8 +1833,8 @@ class PreviewValues : Composite {
 			}
 			i++;
 		}
-		foreach (f; _summ.flagDirRoot.allSteps) {
-			if (i in set) {
+		foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
+			if (i in set) { mixin(S_TRACE);
 				auto itm = _values.getItem(i);
 				itm.setText(1, f.values[f.select]);
 				auto data = cast(StepData) itm.getData();
@@ -1844,18 +1844,18 @@ class PreviewValues : Composite {
 		}
 		raiseModEvent();
 	}
-	bool isInitialValues() {
+	bool isInitialValues() { mixin(S_TRACE);
 		return isInitialValues(_values.getSelectionIndices());
 	}
-	bool isInitialValuesAll() {
+	bool isInitialValuesAll() { mixin(S_TRACE);
 		return isInitialValues(std.range.iota(0, _values.getItemCount()).array());
 	}
-	bool isInitialValues(in int[] indices) {
+	bool isInitialValues(in int[] indices) { mixin(S_TRACE);
 		bool[int] set;
 		foreach (i; indices) set[i] = true;
 		size_t i = 0;
-		foreach (c; _targetChars) {
-			if (i in set) {
+		foreach (c; _targetChars) { mixin(S_TRACE);
+			if (i in set) { mixin(S_TRACE);
 				auto itm = _values.getItem(_indexTable[cast(SPChar)c]);
 				final switch (cast(SPChar)c) {
 				case SPChar.M:
@@ -1883,16 +1883,16 @@ class PreviewValues : Composite {
 			}
 			i++;
 		}
-		foreach (f; _summ.flagDirRoot.allFlags) {
-			if (i in set) {
+		foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
+			if (i in set) { mixin(S_TRACE);
 				auto itm = _values.getItem(i);
 				auto data = cast(FlagData) itm.getData();
 				if (data.onOff != f.onOff) return false;
 			}
 			i++;
 		}
-		foreach (f; _summ.flagDirRoot.allSteps) {
-			if (i in set) {
+		foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
+			if (i in set) { mixin(S_TRACE);
 				auto itm = _values.getItem(i);
 				auto data = cast(StepData) itm.getData();
 				if (data.select != f.select) return false;
@@ -1904,19 +1904,19 @@ class PreviewValues : Composite {
 
 	class ValuesTCPD : TCPD {
 		void cut(SelectionEvent e) { assert (0); };
-		void copy(SelectionEvent e) {
+		void copy(SelectionEvent e) { mixin(S_TRACE);
 			auto indices = _values.getSelectionIndices().sort;
 			if (!indices.length) return;
 			string text;
-			foreach (sel; indices[0] .. indices[$ - 1] + 1) {
+			foreach (sel; indices[0] .. indices[$ - 1] + 1) { mixin(S_TRACE);
 				auto itm = _values.getItem(sel);
 				auto fd = cast(FlagData) itm.getData();
 				auto sd = cast(StepData) itm.getData();
-				if (fd) {
+				if (fd) { mixin(S_TRACE);
 					text ~= to!string(fd.onOff);
-				} else if (sd) {
+				} else if (sd) { mixin(S_TRACE);
 					text ~= to!string(sd.select);
-				} else {
+				} else { mixin(S_TRACE);
 					text ~= itm.getText(1);
 				}
 				text ~= std.ascii.newline;
@@ -1924,7 +1924,7 @@ class PreviewValues : Composite {
 			_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
 			_comm.refreshToolBar();
 		}
-		void paste(SelectionEvent e) {
+		void paste(SelectionEvent e) { mixin(S_TRACE);
 			auto a = cast(ArrayWrapperString) _comm.clipboard.getContents(TextTransfer.getInstance());
 			if (!a) return;
 			auto indices = _values.getSelectionIndices().sort;
@@ -1935,22 +1935,22 @@ class PreviewValues : Composite {
 			store();
 			auto lines = assumeUnique(linesu);
 			int[] sels;
-			foreach (line; lines) {
+			foreach (line; lines) { mixin(S_TRACE);
 				if (_values.getItemCount() <= i) break;
 				auto itm = _values.getItem(i);
 				auto fd = cast(FlagData) itm.getData();
 				auto sd = cast(StepData) itm.getData();
-				try {
-					if (fd) {
+				try { mixin(S_TRACE);
+					if (fd) { mixin(S_TRACE);
 						fd.onOff = to!bool(line);
 						itm.setText(1, fd.onOff ? fd.flag.on : fd.flag.off);
-					} else if (sd) {
+					} else if (sd) { mixin(S_TRACE);
 						auto value = to!int(line);
-						if (0 <= value && value < sd.step.values.length) {
+						if (0 <= value && value < sd.step.values.length) { mixin(S_TRACE);
 							sd.select = value;
 							itm.setText(1, sd.step.values[sd.select]);
 						}
-					} else {
+					} else { mixin(S_TRACE);
 						itm.setText(1, line);
 					}
 				} catch (ConvException e) {
@@ -1966,7 +1966,7 @@ class PreviewValues : Composite {
 		}
 		void del(SelectionEvent e) { assert (0); };
 		void clone(SelectionEvent e) { assert (0); };
-		bool canDoTCPD() {
+		bool canDoTCPD() { mixin(S_TRACE);
 			return _values.isFocusControl();
 		}
 		bool canDoT() { return false; }
@@ -1976,7 +1976,7 @@ class PreviewValues : Composite {
 		bool canDoClone() { return false; }
 	}
 
-	this (Composite parent, Commons comm, Props prop, Summary summ, bool message) {
+	this (Composite parent, Commons comm, Props prop, Summary summ, bool message) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 
 		_undo = new UndoManager(prop.var.etc.undoMaxEtc);
@@ -2011,15 +2011,15 @@ class PreviewValues : Composite {
 		kindCol.setText(_prop.msgs.messageVarKindColumn);
 		auto valueCol = new TableColumn(_values, SWT.NONE);
 		valueCol.setText(_prop.msgs.messageVarValueColumn);
-		if (_isMessage) {
+		if (_isMessage) { mixin(S_TRACE);
 			kindCol.setWidth(_prop.var.etc.messageVarKindColumn);
 			valueCol.setWidth(_prop.var.etc.messageVarValueColumn);
-		} else {
+		} else { mixin(S_TRACE);
 			kindCol.setWidth(_prop.var.etc.textVarKindColumn);
 			valueCol.setWidth(_prop.var.etc.textVarValueColumn);
 		}
 
-		foreach (i; _targetChars) {
+		foreach (i; _targetChars) { mixin(S_TRACE);
 			_indexTable[cast(SPChar)i] = _values.getItemCount();
 			auto itm = new TableItem(_values, SWT.NONE);
 			final switch (cast(SPChar)i) {
@@ -2068,54 +2068,54 @@ class PreviewValues : Composite {
 		new TableTCEdit(_comm, _values, 1, &createEditor, &editEnd, null);
 	}
 
-	void getValues(out string[char] names, out string[string] flags, out string[string] steps) {
-		foreach (i; _targetChars) {
+	void getValues(out string[char] names, out string[string] flags, out string[string] steps) { mixin(S_TRACE);
+		foreach (i; _targetChars) { mixin(S_TRACE);
 			names[C_TBL[cast(SPChar)i]] = _values.getItem(_indexTable[cast(SPChar)i]).getText(1);
 		}
-		foreach (i; _targetChars.length .. _values.getItemCount()) {
+		foreach (i; _targetChars.length .. _values.getItemCount()) { mixin(S_TRACE);
 			auto itm = _values.getItem(i);
-			if (cast(FlagData) itm.getData()) {
+			if (cast(FlagData) itm.getData()) { mixin(S_TRACE);
 				flags[itm.getText(0)] = itm.getText(1);
-			} else {
+			} else { mixin(S_TRACE);
 				assert (cast(StepData) itm.getData());
 				steps[itm.getText(0)] = itm.getText(1);
 			}
 		}
 	}
-	private void getValues2(out string[char] names, out bool[string] flags, out int[string] steps) {
-		foreach (i; _targetChars) {
+	private void getValues2(out string[char] names, out bool[string] flags, out int[string] steps) { mixin(S_TRACE);
+		foreach (i; _targetChars) { mixin(S_TRACE);
 			names[C_TBL[cast(SPChar)i]] = _values.getItem(_indexTable[cast(SPChar)i]).getText(1);
 		}
-		foreach (i; _targetChars.length .. _values.getItemCount()) {
+		foreach (i; _targetChars.length .. _values.getItemCount()) { mixin(S_TRACE);
 			auto itm = _values.getItem(i);
 			auto fd = cast(FlagData) itm.getData();
-			if (fd) {
+			if (fd) { mixin(S_TRACE);
 				flags[itm.getText(0)] = fd.onOff;
-			} else {
+			} else { mixin(S_TRACE);
 				auto sd = cast(StepData) itm.getData();
 				assert (sd !is null);
 				steps[itm.getText(0)] = sd.select;
 			}
 		}
 	}
-	private void setValues2(in string[char] names, in bool[string] flags, in int[string] steps) {
-		foreach (i; _targetChars) {
+	private void setValues2(in string[char] names, in bool[string] flags, in int[string] steps) { mixin(S_TRACE);
+		foreach (i; _targetChars) { mixin(S_TRACE);
 			_values.getItem(_indexTable[cast(SPChar)i]).setText(1, names[C_TBL[cast(SPChar)i]]);
 		}
-		foreach (i; _targetChars.length .. _values.getItemCount()) {
+		foreach (i; _targetChars.length .. _values.getItemCount()) { mixin(S_TRACE);
 			auto itm = _values.getItem(i);
 			auto fd = cast(FlagData) itm.getData();
-			if (fd) {
+			if (fd) { mixin(S_TRACE);
 				auto p = itm.getText(0) in flags;
-				if (p) {
+				if (p) { mixin(S_TRACE);
 					fd.onOff = *p;
 					itm.setText(1, fd.onOff ? fd.flag.on : fd.flag.off);
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				auto sd = cast(StepData) itm.getData();
 				assert (sd !is null);
 				auto p = itm.getText(0) in steps;
-				if (p && 0 <= *p && *p < sd.step.values.length) {
+				if (p && 0 <= *p && *p < sd.step.values.length) { mixin(S_TRACE);
 					sd.select = *p;
 					itm.setText(1, sd.step.values[sd.select]);
 				}
@@ -2124,7 +2124,7 @@ class PreviewValues : Composite {
 	}
 
 	@property
-	bool focusInValues() {
+	bool focusInValues() { mixin(S_TRACE);
 		return _values.isFocusControl();
 	}
 	bool undo() { return _undo.undo(); }
@@ -2132,8 +2132,8 @@ class PreviewValues : Composite {
 }
 
 void getPreviewValues(in Props prop, in Summary summ, in SPChar[] targetChars,
-		out string[char] names, out string[string] flags, out string[string] steps) {
-	foreach (c; targetChars) {
+		out string[char] names, out string[string] flags, out string[string] steps) { mixin(S_TRACE);
+	foreach (c; targetChars) { mixin(S_TRACE);
 		final switch (c) {
 		case SPChar.M:
 			names[C_TBL[c]] = prop.var.etc.messageVarSelected;
@@ -2158,11 +2158,11 @@ void getPreviewValues(in Props prop, in Summary summ, in SPChar[] targetChars,
 			break;
 		}
 	}
-	if (summ) {
-		foreach (f; summ.flagDirRoot.allFlags) {
+	if (summ) { mixin(S_TRACE);
+		foreach (f; summ.flagDirRoot.allFlags) { mixin(S_TRACE);
 			flags[f.path] = f.onOff ? f.on : f.off;
 		}
-		foreach (f; summ.flagDirRoot.allSteps) {
+		foreach (f; summ.flagDirRoot.allSteps) { mixin(S_TRACE);
 			steps[f.path] = f.value;
 		}
 	}
@@ -2183,20 +2183,20 @@ class MsgPreview : Composite {
 	private string _message = "";
 
 	private class Paint : PaintListener {
-		override void paintControl(PaintEvent e) {
+		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			auto b = _canvas.getBounds();
 			auto rect = _prop.looks.messageBounds;
 			e.gc.drawImage(_img, (b.width - rect.width) / 2, (b.height - rect.height) / 2);
 		}
 	}
 	private class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			if (_img) _img.dispose();
 			_comm.refSkin.remove(&refresh);
 		}
 	}
 
-	this (Composite parent, Commons comm, Props prop, Summary summ) {
+	this (Composite parent, Commons comm, Props prop, Summary summ) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 
 		_comm = comm;
@@ -2222,8 +2222,8 @@ class MsgPreview : Composite {
 		_comm.refSkin.add(&refresh);
 	}
 
-	void text(Talker talker, string imgPath, string message) {
-		if (_img && talker is _talker && imgPath == _imgPath && message == _message) {
+	void text(Talker talker, string imgPath, string message) { mixin(S_TRACE);
+		if (_img && talker is _talker && imgPath == _imgPath && message == _message) { mixin(S_TRACE);
 			return;
 		}
 		_talker = talker;
@@ -2232,9 +2232,9 @@ class MsgPreview : Composite {
 		if (isVisible()) refresh();
 	}
 
-	private void refresh() {
+	private void refresh() { mixin(S_TRACE);
 		auto d = _canvas.getDisplay();
-		if (_img) {
+		if (_img) { mixin(S_TRACE);
 			_img.dispose();
 		}
 		ImageData tImg = null;
@@ -2265,7 +2265,7 @@ class MsgPreview : Composite {
 	}
 
 	@property
-	bool focusInValues() {
+	bool focusInValues() { mixin(S_TRACE);
 		return _values.focusInValues;
 	}
 	bool undo() { return _values.undo(); }
@@ -2273,11 +2273,11 @@ class MsgPreview : Composite {
 }
 
 /// メッセージのプレビューを生成する。
-ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talker, string message, in string[] sel, in string[char] names, in string[string] flags, in string[string] steps) {
+ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talker, string message, in string[] sel, in string[char] names, in string[string] flags, in string[string] steps) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	version (Windows) {
 		bool legacy = comm.skin.legacy;
-	} else {
+	} else { mixin(S_TRACE);
 		bool legacy = false;
 	}
 	auto rect = prop.looks.messageBounds;
@@ -2293,12 +2293,12 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	scope (exit) back.dispose();
 	gc.setBackground(back);
 	gc.fillRectangle(3, 3, rect.width - 6, rect.height - 6);
-	foreach (i; 0 .. sel.length) {
+	foreach (i; 0 .. sel.length) { mixin(S_TRACE);
 		gc.fillRectangle(3, rect.height + 3 + bh * i, rect.width - 6, bh - 6);
 	}
 
 	// 話者の描画
-	if (talker) {
+	if (talker) { mixin(S_TRACE);
 		auto tImg = new Image(d, talker);
 		scope (exit) tImg.dispose();
 		auto tp = prop.looks.messageTalkerPos;
@@ -2310,23 +2310,23 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	// 文章と特殊文字の描画
 
 	// 改行置換
-	if (.contains(message, '\r')) {
+	if (.contains(message, '\r')) { mixin(S_TRACE);
 		message = message.splitLines().join("\n");
 	}
 	// 特殊文字・フラグ・ステップ・色
 	string[size_t] rFonts;
 	char[size_t] rColors;
-	string fValue(string path) {
-		foreach (f, v; flags) {
-			if (0 == icmp(f, path)) {
+	string fValue(string path) { mixin(S_TRACE);
+		foreach (f, v; flags) { mixin(S_TRACE);
+			if (0 == icmp(f, path)) { mixin(S_TRACE);
 				return v;
 			}
 		}
 		return "%" ~ path ~ "%";
 	}
-	string sValue(string path) {
-		foreach (f, v; steps) {
-			if (0 == icmp(f, path)) {
+	string sValue(string path) { mixin(S_TRACE);
+		foreach (f, v; steps) { mixin(S_TRACE);
+			if (0 == icmp(f, path)) { mixin(S_TRACE);
 				return v;
 			}
 		}
@@ -2336,15 +2336,15 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		message = wrapReturnCode(message);
 		message = message.replace("\n", "\r\n");
 	}
-	message = formatMsg(message, &fValue, &sValue, delegate string (char name) {
+	message = formatMsg(message, &fValue, &sValue, delegate string (char name) { mixin(S_TRACE);
 		auto dc = std.ascii.toUpper(name);
-		foreach (c, v; names) {
-			if (std.ascii.toUpper(c) == dc) {
+		foreach (c, v; names) { mixin(S_TRACE);
+			if (std.ascii.toUpper(c) == dc) { mixin(S_TRACE);
 				return v;
 			}
 		}
 		return "";
-	}, (string path) {
+	}, (string path) { mixin(S_TRACE);
 		return comm.skin.findImagePath(path, comm.summary.scenarioPath).length != 0 || decodeFontPath(path) in comm.skin.spChars;
 	}, rFonts, rColors);
 	auto dmsg = to!dstring(message);
@@ -2371,7 +2371,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	int x = start.x, y = start.y;
 	int lineH;
 	string old = "";
-	void ret() {
+	void ret() { mixin(S_TRACE);
 		x = start.x;
 		y += lineH;
 		old = "";
@@ -2379,26 +2379,26 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 
 	// フォントイメージ
 	auto wrgb = fc.getRGB();
-	void drawSPFont(GC gc, CPoint pt, string path, RGB c) {
+	void drawSPFont(GC gc, CPoint pt, string path, RGB c) { mixin(S_TRACE);
 		string fpath = comm.skin.findImagePath(path, sPath);
 		ImageData data = null;
-		if (fpath && fpath.length) {
+		if (fpath && fpath.length) { mixin(S_TRACE);
 			// シナリオ内特殊文字
 			data = loadImage(fpath, true);
 		}
-		if (!data) {
+		if (!data) { mixin(S_TRACE);
 			// 標準特殊文字
 			data = spChar(comm.skin, decodeFontPath(path));
-			if (data) {
+			if (data) { mixin(S_TRACE);
 				auto spc = data;
 				data = new ImageData(spc.width, spc.height, 24, new PaletteData(0xFF << 16, 0xFF << 8, 0xFF << 0));
 				// &R等による色の置換
-				foreach (dx; 0 .. data.width) {
-					foreach (dy; 0 .. data.height) {
+				foreach (dx; 0 .. data.width) { mixin(S_TRACE);
+					foreach (dy; 0 .. data.height) { mixin(S_TRACE);
 						auto p = spc.palette.getRGB(spc.getPixel(dx, dy));
-						if (wrgb.opEquals(p)) {
+						if (wrgb.opEquals(p)) { mixin(S_TRACE);
 							data.setPixel(dx, dy, (c.red << 16) | (c.green << 8) | (c.blue << 0));
-						} else {
+						} else { mixin(S_TRACE);
 							data.setPixel(dx, dy, (p.red << 16) | (p.green << 8) | (p.blue << 0));
 						}
 					}
@@ -2406,14 +2406,14 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				data.transparentPixel = data.getPixel(0, 0);
 			}
 		}
-		if (data) {
+		if (data) { mixin(S_TRACE);
 			auto img = new Image(d, data);
 			scope (exit) img.dispose();
 			gc.drawImage(img, pt.x, pt.y);
 		}
 	}
 
-	if (legacy) {
+	if (legacy) { mixin(S_TRACE);
 		auto textCanvas = new Image(d, rect.width, rect.height + bh * sel.length);
 		scope (exit) textCanvas.dispose();
 		auto tgc = new GC(textCanvas);
@@ -2426,24 +2426,24 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		tgc.setBackground(hc);
 		tgc.fillRectangle(0, 0, rect.width, rect.height + bh * sel.length);
 		lineH = tgc.getFontMetrics().getHeight() + 2;
-		for (size_t i = 0; i < dmsg.length; i++) {
-			if (rect.height - 6 < y + lineH) {
+		for (size_t i = 0; i < dmsg.length; i++) { mixin(S_TRACE);
+			if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
 				// 行数オーバー
 				break;
 			}
 			auto cf = i in rFonts;
-			if (cf) {
+			if (cf) { mixin(S_TRACE);
 				// 特殊文字の描画位置を記憶
 				string s1 = to!string(dmsg[i]);
 				i++;
 				string s2 = to!string(dmsg[i]);
 				auto w = (tgc.textExtent(s1).x - 1) + (tgc.textExtent(s2).x - 1);
-				if (rect.width - 6 < x + w) {
+				if (rect.width - 6 < x + w) { mixin(S_TRACE);
 					// 列数オーバー
-					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) {
+					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) { mixin(S_TRACE);
 						ret();
 					}
-					if (rect.height - 6 < y + lineH) {
+					if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
 						// 行数オーバー
 						break;
 					}
@@ -2453,7 +2453,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				continue;
 			}
 			auto colorP = i in rColors;
-			if (colorP) {
+			if (colorP) { mixin(S_TRACE);
 				// フォント色変更
 				switch (*colorP) {
 				case 'W': tgc.setForeground(fc); break;
@@ -2479,12 +2479,12 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			default:
 				auto s = to!string(c);
 				int w = tgc.textExtent(s).x - 1;
-				if (rect.width - 6 < x + w) {
+				if (rect.width - 6 < x + w) { mixin(S_TRACE);
 					// 列数オーバー
-					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) {
+					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) { mixin(S_TRACE);
 						ret();
 					}
-					if (rect.height - 6 < y + lineH) {
+					if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
 						// 行数オーバー
 						break;
 					}
@@ -2501,7 +2501,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		auto slh = tgc.getFontMetrics().getHeight();
 		int sx;
 		int sy = rect.height + ((bh - slh) / 2);
-		foreach (i, t; sel) {
+		foreach (i, t; sel) { mixin(S_TRACE);
 			sx = (rect.width - tgc.textExtent(t).x) / 2;
 			tgc.drawText(t, sx, sy, true);
 			sy += bh;
@@ -2512,9 +2512,9 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		tImgData.transparentPixel = tImgData.getPixel(0, 0);
 		auto hemImgData = new ImageData(tImgData.width, tImgData.height, 2, new PaletteData([new RGB(255, 255, 255), new RGB(0, 0, 0)]));
 		hemImgData.transparentPixel = 0;
-		foreach (ix; 0 .. tImgData.width) {
-			foreach (iy; 0 .. tImgData.height) {
-				if (tImgData.getPixel(ix, iy) != tImgData.transparentPixel) {
+		foreach (ix; 0 .. tImgData.width) { mixin(S_TRACE);
+			foreach (iy; 0 .. tImgData.height) { mixin(S_TRACE);
+				if (tImgData.getPixel(ix, iy) != tImgData.transparentPixel) { mixin(S_TRACE);
 					hemImgData.setPixel(ix, iy, 1);
 				}
 			}
@@ -2532,7 +2532,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		gc.drawImage(hemImg, -1, 1);
 		gc.drawImage(hemImg, -1, 0);
 		gc.drawImage(tImg, 0, 0);
-	} else {
+	} else { mixin(S_TRACE);
 		// FIXME: IPAフォントの使用とアンチエイリアス設定を
 		//        同時に行うと一部環境で問題が出る。
 //		gc.setTextAntialias(SWT.ON);
@@ -2540,8 +2540,8 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		lineH = gc.getFontMetrics().getHeight();
 		gc.setForeground(fc);
 
-		void drawText(string s, int x, int y) {
-			if ("―" == s && "―" == old) {
+		void drawText(string s, int x, int y) { mixin(S_TRACE);
+			if ("―" == s && "―" == old) { mixin(S_TRACE);
 				// "―"の場合のみ表示を接続する処理が入る
 				gc.setForeground(hc);
 				gc.drawText(s, x, y - 1, true);
@@ -2551,7 +2551,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				gc.setForeground(fc);
 				gc.drawText(s, x - lineH / 2, y, true);
 				gc.drawText(s, x, y, true);
-			} else {
+			} else { mixin(S_TRACE);
 				gc.setForeground(hc);
 				gc.drawText(s, x - 1, y, true);
 				gc.drawText(s, x + 1, y, true);
@@ -2562,24 +2562,24 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			}
 			old = s;
 		}
-		for (size_t i = 0; i < dmsg.length; i++) {
-			if (rect.height - 6 < y + lineH) {
+		for (size_t i = 0; i < dmsg.length; i++) { mixin(S_TRACE);
+			if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
 				// 行数オーバー
 				break;
 			}
 			auto cf = i in rFonts;
-			if (cf) {
+			if (cf) { mixin(S_TRACE);
 				// 特殊文字の描画位置を記憶
 				string s1 = to!string(dmsg[i]);
 				i++;
 				string s2 = to!string(dmsg[i]);
 				auto w = (gc.textExtent(s1).x - 1) + (gc.textExtent(s2).x - 1);
-				if (rect.width - 6 < x + w) {
+				if (rect.width - 6 < x + w) { mixin(S_TRACE);
 					// 列数オーバー
-					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) {
+					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) { mixin(S_TRACE);
 						ret();
 					}
-					if (rect.height - 6 < y + lineH) {
+					if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
 						// 行数オーバー
 						break;
 					}
@@ -2589,7 +2589,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				continue;
 			}
 			auto colorP = i in rColors;
-			if (colorP) {
+			if (colorP) { mixin(S_TRACE);
 				// フォント色変更
 				switch (*colorP) {
 				case 'W': gc.setForeground(fc); break;
@@ -2614,12 +2614,12 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			default:
 				auto s = to!string(c);
 				int w = gc.textExtent(s).x;
-				if (rect.width - 6 < x + w) {
+				if (rect.width - 6 < x + w) { mixin(S_TRACE);
 					// 列数オーバー
-					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) {
+					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) { mixin(S_TRACE);
 						ret();
 					}
-					if (rect.height - 6 < y + lineH) {
+					if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
 						// 行数オーバー
 						break;
 					}
@@ -2636,7 +2636,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		auto slh = gc.getFontMetrics().getHeight();
 		int sx;
 		int sy = rect.height + ((bh - slh) / 2);
-		foreach (i, t; sel) {
+		foreach (i, t; sel) { mixin(S_TRACE);
 			sx = (rect.width - gc.textExtent(t).x) / 2;
 			drawText(t, sx, sy);
 			sy += bh;
@@ -2651,13 +2651,13 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	gc.setForeground(c1);
 	gc.drawRectangle(0, 0, rect.width - 1, rect.height - 1);
 	gc.drawRectangle(2, 2, rect.width - 5, rect.height - 5);
-	foreach (i; 0 .. sel.length) {
+	foreach (i; 0 .. sel.length) { mixin(S_TRACE);
 		gc.drawRectangle(0, rect.height + bh * i, rect.width - 1, bh - 1);
 		gc.drawRectangle(2, rect.height + 2 + bh * i, rect.width - 5, bh - 5);
 	}
 	gc.setForeground(c2);
 	gc.drawRectangle(1, 1, rect.width - 3, rect.height - 3);
-	foreach (i; 0 .. sel.length) {
+	foreach (i; 0 .. sel.length) { mixin(S_TRACE);
 		gc.drawRectangle(1, rect.height + 1 + bh * i, rect.width - 3, bh - 3);
 	}
 

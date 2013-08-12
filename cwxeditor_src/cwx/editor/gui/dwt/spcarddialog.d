@@ -50,10 +50,10 @@ private:
 		FixedWidthText _desc;
 		Text _name;
 
-		void refreshWarning() {
+		void refreshWarning() { mixin(S_TRACE);
 			string[] ws;
 			ws ~= _imgPath.warnings;
-			if (!_prop.targetVersion("1.50") && 0 != _imgPath.pcNumber && _summ) {
+			if (!_prop.targetVersion("1.50") && 0 != _imgPath.pcNumber && _summ) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningPCNumberClassic;
 			}
 
@@ -64,16 +64,16 @@ private:
 		Button _escape;
 		Canvas _image;
 		class CardPaint : PaintListener {
-			override void paintControl(PaintEvent e) {
-				if (0 != _selectedID) {
+			override void paintControl(PaintEvent e) { mixin(S_TRACE);
+				if (0 != _selectedID) { mixin(S_TRACE);
 					auto ec = _summ.cwCast(_selectedID);
 					if (!ec) return;
 					auto canv = cast(Canvas) e.widget;
 					string path = "";
-					if (_summ) {
+					if (_summ) { mixin(S_TRACE);
 						path = _comm.skin.findImagePath(ec.path, _summ.scenarioPath);
 					}
-					if (path.length > 0) {
+					if (path.length > 0) { mixin(S_TRACE);
 						auto skin = _comm.skin;
 						scope img = new Image(Display.getCurrent(), loadImage(_prop, skin, _summ, path));
 						scope (exit) img.dispose();
@@ -83,17 +83,17 @@ private:
 			}
 		}
 		class Repaint : SelectionAdapter {
-			override void widgetSelected(SelectionEvent e) {
+			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 				_image.redraw();
 			}
 		}
 		ulong _selectedID = 0;
 		IncSearch _cardIncSearch;
-		void cardIncSearch() {
+		void cardIncSearch() { mixin(S_TRACE);
 			.forceFocus(_casts, true);
 			_cardIncSearch.startIncSearch();
 		}
-	} else {
+	} else { mixin(S_TRACE);
 		static assert (0);
 	}
 	FlagChooser!(Flag, true) _flag = null;
@@ -102,7 +102,7 @@ private:
 	Spinner _scale;
 
 	class SDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			auto sash = cast(SplitPane) e.widget;
 			auto ws = sash.getWeights();
 			static if (is (C == MenuCard)) {
@@ -124,54 +124,54 @@ private:
 		}
 	}
 	static if (is (C == EnemyCard)) {
-		void refCast(CastCard c) {
+		void refCast(CastCard c) { mixin(S_TRACE);
 			refreshCasts();
 		}
-		void refreshCasts() {
+		void refreshCasts() { mixin(S_TRACE);
 			ignoreMod = true;
 			scope (exit) ignoreMod = false;
-			if (_summ) {
-				if (!_summ.casts.length) {
+			if (_summ) { mixin(S_TRACE);
+				if (!_summ.casts.length) { mixin(S_TRACE);
 					forceCancel();
 					return;
 				}
 				_casts.removeAll();
 				bool has = false;
-				foreach (i, c; _summ.casts) {
-					if (!has && _selectedID == c.id) {
+				foreach (i, c; _summ.casts) { mixin(S_TRACE);
+					if (!has && _selectedID == c.id) { mixin(S_TRACE);
 						has = true;
 					}
 					if (!_cardIncSearch.match(c.name)) continue;
 					_casts.add(to!string(c.id) ~ "." ~ c.name);
 					if (_selectedID == c.id) _casts.select(_casts.getItemCount() - 1);
 				}
-				if (!has && _casts.getItemCount()) {
+				if (!has && _casts.getItemCount()) { mixin(S_TRACE);
 					_casts.select(0);
 					_selectedID = _summ.casts[0].id;
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				_casts.removeAll();
 				_selectedID = 0;
 			}
 			_image.redraw();
 		}
 	}
-	void delMenuCard(string cwxPath) {
-		if (_card && _card.cwxPath(true) == cwxPath) {
+	void delMenuCard(string cwxPath) { mixin(S_TRACE);
+		if (_card && _card.cwxPath(true) == cwxPath) { mixin(S_TRACE);
 			forceCancel();
 		}
 	}
-	void refSkin() {
+	void refSkin() { mixin(S_TRACE);
 		static if (is (C == MenuCard)) {
 			_desc.font = dwtData(_prop.looks.cardDescFont(_summ.legacy));
 		}
 	}
 	static if (is(C:EnemyCard)) {
-		void openCardView() {
+		void openCardView() { mixin(S_TRACE);
 			auto i = _casts.getSelectionIndex();
 			if (-1 == i) return;
 			auto a = _summ.casts[i];
-			try {
+			try { mixin(S_TRACE);
 				_comm.openCWXPath(cpaddattr(a.cwxPath(true), "shallow"), false);
 			} catch (Exception e) {
 				debugln(e);
@@ -179,7 +179,7 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, C card, bool create) {
+	this(Commons comm, Props prop, Shell shell, Summary summ, C card, bool create) { mixin(S_TRACE);
 		_comm = comm;
 		_summ = summ;
 		_card = card;
@@ -190,14 +190,14 @@ public:
 		} else static if (is (C == EnemyCard)) {
 			auto size = _prop.var.enemyCardDlg;
 			string text;
-			if (_card) {
+			if (_card) { mixin(S_TRACE);
 				auto c = _summ ? _summ.cwCast(_card.id) : null;
 				auto name = c ? c.name : .tryFormat(_prop.msgs.noCast, _card.id);
 				text = create ? _prop.msgs.dlgTitNewEnemyCard : .tryFormat(_prop.msgs.dlgTitEnemyCard, name);
-			} else {
+			} else { mixin(S_TRACE);
 				text = _prop.msgs.dlgTitNewEnemyCard;
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
 		super(prop, shell, false, text, _prop.images.cards, true, size, true);
@@ -205,25 +205,25 @@ public:
 	}
 
 	@property
-	C card() {
+	C card() { mixin(S_TRACE);
 		return _card;
 	}
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		auto cl = new CenterLayout(SWT.NONE, 0);
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
 		area.setLayout(cl);
-		{
+		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayout(new GridLayout(1, false));
-			{
+			{ mixin(S_TRACE);
 				auto sash = new SplitPane(comp, SWT.HORIZONTAL);
 				sash.setLayoutData(new GridData(GridData.FILL_BOTH));
-				{
+				{ mixin(S_TRACE);
 					auto comp2 = new Composite(sash, SWT.NONE);
 					comp2.setLayout(zeroMarginGridLayout(1, false));
-					{
+					{ mixin(S_TRACE);
 						auto grp = new Group(comp2, SWT.NONE);
 						grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 						static if (is (C == MenuCard)) {
@@ -250,9 +250,9 @@ protected:
 							_cardIncSearch = new IncSearch(_comm, _casts);
 							_cardIncSearch.modEvent ~= &refreshCasts;
 
-							.listener(_casts, SWT.Selection, {
+							.listener(_casts, SWT.Selection, { mixin(S_TRACE);
 								int index = _casts.getSelectionIndex();
-								if (-1 != index) {
+								if (-1 != index) { mixin(S_TRACE);
 									_selectedID = _summ.casts[index].id;
 								}
 							});
@@ -262,11 +262,11 @@ protected:
 							new MenuItem(menu, SWT.SEPARATOR);
 							createMenuItem(_comm, menu, MenuID.OpenAtCardView, &openCardView, () => _casts.getSelectionIndex() != -1);
 							_casts.setMenu(menu);
-						} else {
+						} else { mixin(S_TRACE);
 							static assert (0);
 						}
 					}
-					{
+					{ mixin(S_TRACE);
 						static if (is (C == MenuCard)) {
 							auto skin = _comm.skin;
 							bool including = _card && isBinImg(_card.path);
@@ -285,12 +285,12 @@ protected:
 								_prop.looks.cardSize.width, _prop.looks.cardSize.height);
 							_image.setLayoutData(new Point(rect.width, rect.height));
 							_image.addPaintListener(new CardPaint);
-						} else {
+						} else { mixin(S_TRACE);
 							static assert (0);
 						}
 					}
 				}
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(sash, SWT.NONE);
 					grp.setLayout(new GridLayout(2, false));
 					grp.setText(_prop.msgs.refFlag);
@@ -305,14 +305,14 @@ protected:
 				} else static assert (0);
 				sash.addDisposeListener(new SDListener);
 			}
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(comp, SWT.NONE);
 				grp.setText(_prop.msgs.cardPosition);
 				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayout(new GridLayout(3, false));
-				Spinner createS(string name, int max, int min, bool percent = false) {
+				Spinner createS(string name, int max, int min, bool percent = false) { mixin(S_TRACE);
 					auto comp3 = new Composite(comp2, SWT.NONE);
 					auto gl = new GridLayout(percent ? 3 : 2, false);
 					gl.marginHeight = 0;
@@ -324,7 +324,7 @@ protected:
 					mod(spn);
 					spn.setMaximum(max);
 					spn.setMinimum(min);
-					if (percent) {
+					if (percent) { mixin(S_TRACE);
 						auto lp = new Label(comp3, SWT.NONE);
 						lp.setText("%");
 					}
@@ -335,7 +335,7 @@ protected:
 				_scale = createS(_prop.msgs.scale, _prop.var.etc.cardScaleMax, _prop.var.etc.cardScaleMin, true);
 			}
 			static if (is (C == MenuCard)) {
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(comp, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
@@ -364,38 +364,38 @@ protected:
 		}
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		if (_card) {
+		if (_card) { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
 				_imgPath.image = _card.path;
 				_desc.setText(_card.desc);
 				_name.setText(_card.name);
 				_imgPath.pcNumber = _card.pcNumber;
 			} else static if (is (C == EnemyCard)) {
-				if (_summ) {
+				if (_summ) { mixin(S_TRACE);
 					assert (_casts.getItemCount());
-					foreach (i, c; _summ.casts) {
-						if (c.id == _card.id) {
+					foreach (i, c; _summ.casts) { mixin(S_TRACE);
+						if (c.id == _card.id) { mixin(S_TRACE);
 							_casts.select(i);
 							_selectedID = c.id;
 							break;
 						}
 					}
-					if (-1 == _casts.getSelectionIndex()) {
+					if (-1 == _casts.getSelectionIndex()) { mixin(S_TRACE);
 						_casts.select(0);
 						_selectedID = _summ.casts[0].id;
 					}
 				}
 				_escape.setSelection(_card.escape);
-			} else {
+			} else { mixin(S_TRACE);
 				static assert (0);
 			}
-			if (_flag) {
+			if (_flag) { mixin(S_TRACE);
 				_flag.selected = _card.flag;
 			}
 			_x.setSelection(_card.x);
 			_y.setSelection(_card.y);
 			_scale.setSelection(cast(int) rndtol(_card.scale * 100));
-		} else {
+		} else { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
 				_imgPath.image = "";
 				_desc.setText("");
@@ -405,10 +405,10 @@ protected:
 				_casts.select(0);
 				_selectedID = _summ.casts[0].id;
 				_escape.setSelection(false);
-			} else {
+			} else { mixin(S_TRACE);
 				static assert (0);
 			}
-			if (_flag) {
+			if (_flag) { mixin(S_TRACE);
 				_flag.selected = "";
 			}
 			_x.setSelection(0);
@@ -420,8 +420,8 @@ protected:
 		}
 	}
 
-	override bool apply() {
-		if (_card) {
+	override bool apply() { mixin(S_TRACE);
+		if (_card) { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
 				_card.path = _imgPath.image;
 				_card.desc = wrapReturnCode(_desc.getText());
@@ -430,14 +430,14 @@ protected:
 			} else static if (is (C == EnemyCard)) {
 				_card.id = _selectedID;
 				_card.escape = _escape.getSelection();
-			} else {
+			} else { mixin(S_TRACE);
 				static assert (0);
 			}
 			_card.flag = _flag.selected;
 			_card.x = _x.getSelection();
 			_card.y = _y.getSelection();
 			_card.scale = _scale.getSelection() / 100.0;
-		} else {
+		} else { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
 				_card = new C(_name.getText(), _imgPath.image,
 					wrapReturnCode(_desc.getText()), _flag.selected,
@@ -445,7 +445,7 @@ protected:
 			} else static if (is (C == EnemyCard)) {
 				_card = new C(_selectedID, _escape.getSelection(),
 					_flag.selected, _x.getSelection(), _y.getSelection(), _scale.getSelection() / 100.0);
-			} else {
+			} else { mixin(S_TRACE);
 				static assert (0);
 			}
 		}

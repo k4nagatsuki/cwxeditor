@@ -31,48 +31,48 @@ interface CWXPath {
 }
 
 /// シナリオ内パスを結合する。
-string cpjoin(CWXPath owner, int index, bool id) {
+string cpjoin(CWXPath owner, int index, bool id) { mixin(S_TRACE);
 	return cpjoin(owner, "", index, id);
 }
 /// ditto
-string cpjoin(CWXPath owner, string category, int index, bool id) {
+string cpjoin(CWXPath owner, string category, int index, bool id) { mixin(S_TRACE);
 	return cpjoin(owner.cwxPath(id), category, index);
 }
 /// ditto
-string cpjoin(CWXPath owner, string name, bool id) {
+string cpjoin(CWXPath owner, string name, bool id) { mixin(S_TRACE);
 	auto ocp = owner.cwxPath(id);
 	return ocp.length ? ocp ~ "/" ~ name : name;
 }
 /// ditto
-string cpjoinid(CWXPath owner, ulong id) {
+string cpjoinid(CWXPath owner, ulong id) { mixin(S_TRACE);
 	return cpjoinid(owner, "", id);
 }
 /// ditto
-string cpjoinid(CWXPath owner, string category, ulong id) {
+string cpjoinid(CWXPath owner, string category, ulong id) { mixin(S_TRACE);
 	return cpjoinid(owner.cwxPath(true), category, id);
 }
 /// ditto
-string cpjoin(string ownerPath, string category, int index) {
+string cpjoin(string ownerPath, string category, int index) { mixin(S_TRACE);
 	string cn = category ~ ":" ~ to!(string)(index);
 	return ownerPath.length ? ownerPath ~ "/" ~ cn : cn;
 }
 /// ditto
-string cpjoinid(string ownerPath, string category, ulong id) {
+string cpjoinid(string ownerPath, string category, ulong id) { mixin(S_TRACE);
 	string cn = category ~ ":id:" ~ to!(string)(id);
 	return ownerPath.length ? ownerPath ~ "/" ~ cn : cn;
 }
 
 /// シナリオ内パスの属性を返す。
-string[] cpattr(string path) {
+string[] cpattr(string path) { mixin(S_TRACE);
 	string[] attrs;
-	while (true) {
+	while (true) { mixin(S_TRACE);
 		int index = std.string.lastIndexOf(path, ";");
 		if (-1 == index) break;
 		attrs ~= path[index + 1 .. $];
 		path = path[0 .. index];
 	}
 	return attrs;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	string path = "area:3/event:0/:5/:0/:1;shallow;deep";
 	assert (cpattr(path).sort == ["deep", "shallow"]);
@@ -82,15 +82,15 @@ string[] cpattr(string path) {
 
 /// シナリオ内パスの属性部分をデリミタつきで返す。
 /// pathは属性以外の部分に切り詰められる。
-private string cpattrRef(ref string path) {
+private string cpattrRef(ref string path) { mixin(S_TRACE);
 	int index = std.string.indexOf(path, ";");
-	if (-1 == index) {
+	if (-1 == index) { mixin(S_TRACE);
 		return "";
 	}
 	string attr = path[index .. $];
 	path = path[0 .. index];
 	return attr;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	string path = "area:3/event:0/:5/:0/:1;shallow;deep";
 	assert (cpattrRef(path) == ";shallow;deep");
@@ -101,13 +101,13 @@ private string cpattrRef(ref string path) {
 }
 
 /// シナリオ内パスの属性以外の部分を返す。
-string cpbody(string path) {
+string cpbody(string path) { mixin(S_TRACE);
 	int index = std.string.indexOf(path, ";");
-	if (-1 != index) {
+	if (-1 != index) { mixin(S_TRACE);
 		return path[0 .. index];
 	}
 	return path;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	string path = "area:3/event:0/:5/:0/:1;shallow;deep";
 	assert (cpbody(path) == "area:3/event:0/:5/:0/:1");
@@ -115,26 +115,26 @@ string cpbody(string path) {
 	assert (cpbody(path) == "area:3/event:0/:5/:0/:1");
 }
 /// シナリオ内パスに属性を追加する。
-string cpaddattr(string path, string attr) {
+string cpaddattr(string path, string attr) { mixin(S_TRACE);
 	return path ~ ";" ~ attr;
 }
 
 /// シナリオ内パスに指定された属性が含まれているか。
-bool cphasattr(string path, string attr) {
+bool cphasattr(string path, string attr) { mixin(S_TRACE);
 	return 0 < cpattr(path).find(attr).length;
 }
 
 /// シナリオ内パスを属性を除いて比較する。
-bool cpeq(string path1, string path2) {
+bool cpeq(string path1, string path2) { mixin(S_TRACE);
 	return cpbody(path1) == cpbody(path2);
 }
 
 /// シナリオ内パスの属性以外が空であればtrueを返す。
-bool cpempty(string path) {
+bool cpempty(string path) { mixin(S_TRACE);
 	if ("" == path) return true;
 	int index = std.string.indexOf(path, ";");
 	return 0 == index;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (cpempty(""));
 	assert (cpempty(";shallow;deep"));
@@ -143,53 +143,53 @@ bool cpempty(string path) {
 }
 
 /// シナリオ内パスを一つ上の部分を返す。
-string cpparent(string path) {
+string cpparent(string path) { mixin(S_TRACE);
 	string attrs = cpattrRef(path);
 	int index = std.string.lastIndexOf(path, "/");
 	return (index >= 0 ? path[0 .. index] : "") ~ attrs;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (cpparent("area:3/event:0/:5/:0/:1") == "area:3/event:0/:5/:0");
 }
 
 /// シナリオ内パスの先頭部分を返す。
-string cptop(string path) {
+string cptop(string path) { mixin(S_TRACE);
 	string attrs = cpattrRef(path);
 	int index = std.string.indexOf(path, "/");
 	return (index >= 0 ? path[0 .. index] : path) ~ attrs;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (cptop("area:3/event:0/:5/:0/:1") == "area:3");
 }
 /// シナリオ内パスの先頭部分以外を返す。
-string cpbottom(string path) {
+string cpbottom(string path) { mixin(S_TRACE);
 	string attrs = cpattrRef(path);
 	int index = std.string.indexOf(path, "/");
 	return (index >= 0 ? path[index + 1 .. $] : "") ~ attrs;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (cpbottom("area:3/event:0/:5/:0/:1") == "event:0/:5/:0/:1");
 }
 /// シナリオ内パスの先頭のカテゴリを返す。
-string cpcategory(string path) {
+string cpcategory(string path) { mixin(S_TRACE);
 	string top = cpbody(cptop(path));
 	int index = std.string.lastIndexOf(top, ":");
 	return index >= 0 ? top[0 .. index] : top;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (cpcategory("area:3/event:0/:5/:0/:1") == "area");
 }
 /// シナリオ内パスの先頭のindexを返す。
-size_t cpindex(string path) {
+size_t cpindex(string path) { mixin(S_TRACE);
 	string top = cpbody(cptop(path));
 	int index = std.string.lastIndexOf(top, ":");
 	return index >= 0 ? to!(size_t)(top[index + 1 .. $]) : 0;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (cpindex("area:3/event:0/:5/:0/:1") == 3);
 }
 /// path1がpath2そのもの、
 /// もしくはpath2がpath1の子孫であればtrueを返す。
-bool cpdescendant(string path1, string path2) {
+bool cpdescendant(string path1, string path2) { mixin(S_TRACE);
 	return cpbody(path2).startsWith(cpbody(path1));
 }

@@ -52,95 +52,95 @@ private:
 
 	TCPD[] _tcpd;
 
-	void refresh() {
+	void refresh() { mixin(S_TRACE);
 		_aview.refresh();
 	}
 	@property
-	bool canUp() {
+	bool canUp() { mixin(S_TRACE);
 		static if (WithEventView) {
-			if (_tabA !is null && _tabf.getSelectionIndex() == 0) {
+			if (_tabA !is null && _tabf.getSelectionIndex() == 0) { mixin(S_TRACE);
 				return _aview.canUp;
-			} else {
+			} else { mixin(S_TRACE);
 				return _eview.canUp;
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			return _aview.canUp;
 		}
 	}
 	@property
-	bool canDown() {
+	bool canDown() { mixin(S_TRACE);
 		static if (WithEventView) {
-			if (_tabA !is null && _tabf.getSelectionIndex() == 0) {
+			if (_tabA !is null && _tabf.getSelectionIndex() == 0) { mixin(S_TRACE);
 				return _aview.canDown;
-			} else {
+			} else { mixin(S_TRACE);
 				return _eview.canDown;
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			return _aview.canDown;
 		}
 	}
-	void up() {
+	void up() { mixin(S_TRACE);
 		static if (WithEventView) {
-			if (_tabA !is null && _tabf.getSelectionIndex() == 0) {
+			if (_tabA !is null && _tabf.getSelectionIndex() == 0) { mixin(S_TRACE);
 				_aview.setFocus();
 				_aview.up();
-			} else {
+			} else { mixin(S_TRACE);
 				_eview.up();
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			_aview.up();
 		}
 	}
-	void down() {
+	void down() { mixin(S_TRACE);
 		static if (WithEventView) {
-			if (_tabA !is null && _tabf.getSelectionIndex() == 0) {
+			if (_tabA !is null && _tabf.getSelectionIndex() == 0) { mixin(S_TRACE);
 				_aview.setFocus();
 				_aview.down();
-			} else {
+			} else { mixin(S_TRACE);
 				_eview.down();
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			_aview.down();
 		}
 	}
-	void __deleteArea(A area) {
-		if (_area is area) {
+	void __deleteArea(A area) { mixin(S_TRACE);
+		if (_area is area) { mixin(S_TRACE);
 			_comm.close(_win);
 		}
 	}
-	void __refArea(A area) {
-		if (_area is area) {
+	void __refArea(A area) { mixin(S_TRACE);
+		if (_area is area) { mixin(S_TRACE);
 			__refreshTitle();
 		}
 	}
-	void __refreshTitle() {
+	void __refreshTitle() { mixin(S_TRACE);
 		_comm.setTitle(_win, title);
 	}
 	static if (WithEventView) {
-		void selectedTabImpl() {
-			if (_tabf.getSelection() is _tabE) {
+		void selectedTabImpl() { mixin(S_TRACE);
+			if (_tabf.getSelection() is _tabE) { mixin(S_TRACE);
 				_eview.initial();
 				_comm.setStatusLine(_win, _eview.statusLine);
 				_eview.openToolWindow();
-			} else {
+			} else { mixin(S_TRACE);
 				_comm.setStatusLine(_win, _aview.statusLine);
 				_eview.closeToolWindow();
 			}
 			_comm.refreshToolBar();
 		}
 		class TabSel : SelectionAdapter {
-			override void widgetSelected(SelectionEvent e) {
+			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 				selectedTabImpl();
 			}
 		}
 	}
 	bool _refUndo = false;
-	void refUndoMax() {
+	void refUndoMax() { mixin(S_TRACE);
 		if (!_refUndo) return;
 		_undo.max = _prop.var.etc.undoMaxEvent;
 	}
 	class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			saveWin();
 			static if (is (A == Area)) {
 				_comm.delArea.remove(&__deleteArea);
@@ -151,7 +151,7 @@ private:
 			} else static if (is (A == Package)) {
 				_comm.delPackage.remove(&__deleteArea);
 				_comm.refPackage.remove(&__refArea);
-			} else {
+			} else { mixin(S_TRACE);
 				static assert (0);
 			}
 			_comm.replText.remove(&__refreshTitle);
@@ -159,7 +159,7 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Summary summ, Composite parent, Shell areaWin, A area, UndoManager undo = null, bool readOnly = false) {
+	this(Commons comm, Props prop, Summary summ, Composite parent, Shell areaWin, A area, UndoManager undo = null, bool readOnly = false) { mixin(S_TRACE);
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
@@ -170,13 +170,13 @@ public:
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
 		Composite contPane;
-		if (parShl) {
+		if (parShl) { mixin(S_TRACE);
 			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
 			shell = _sbshl.shell;
 			shell.setImage(prop.images.app);
 			_win = shell;
 			contPane = _sbshl.contentPane;
-		} else {
+		} else { mixin(S_TRACE);
 			_win = new Composite(parent, SWT.NONE);
 			contPane = _win;
 		}
@@ -190,7 +190,7 @@ public:
 		} else static if (is (A == Package)) {
 			_comm.delPackage.add(&__deleteArea);
 			_comm.refPackage.add(&__refArea);
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
 		_comm.replText.add(&__refreshTitle);
@@ -201,7 +201,7 @@ public:
 		static if (WithEventView) {
 			_tabf = new CTabFolder(contPane, SWT.BORDER);
 			_tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
-			if (cast(Area) area || cast(Battle) area) {
+			if (cast(Area) area || cast(Battle) area) { mixin(S_TRACE);
 				_tabA = new CTabItem(_tabf, SWT.NONE);
 				_tabA.setText(_prop.msgs.cardAndBackView);
 			}
@@ -209,16 +209,16 @@ public:
 			_tabE.setText(_prop.msgs.eventView);
 			_tabf.addSelectionListener(new TabSel);
 
-			if (cast(Area) area) {
+			if (cast(Area) area) { mixin(S_TRACE);
 				_tabA.setImage(_prop.images.areaSceneView);
 				_tabE.setImage(_prop.images.areaEventTreeView);
-			} else if (cast(Battle) area) {
+			} else if (cast(Battle) area) { mixin(S_TRACE);
 				_tabA.setImage(_prop.images.battleSceneView);
 				_tabE.setImage(_prop.images.battleEventTreeView);
 			} else assert (0);
 		}
 
-		if (shell) {
+		if (shell) { mixin(S_TRACE);
 			auto bar = new Menu(shell, SWT.BAR);
 
 			auto mf = createMenu(_comm, bar, MenuID.File);
@@ -251,7 +251,7 @@ public:
 			createMenuItem(_comm, mv, MenuID.Refresh, &refresh, null);
 
 			shell.setMenuBar(bar);
-		} else {
+		} else { mixin(S_TRACE);
 			putMenuAction(MenuID.Undo, &this.undo, &_undo.canUndo);
 			putMenuAction(MenuID.Redo, &this.redo, &_undo.canRedo);
 			putMenuAction(MenuID.Up, &up, &canUp);
@@ -261,21 +261,21 @@ public:
 				putMenuAction(MenuID.Comment, &writeComment, &canWriteComment);
 				putMenuAction(MenuID.ToScript, &toScript, &canToScript);
 				putMenuAction(MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
-			} else {
+			} else { mixin(S_TRACE);
 				putMenuAction(MenuID.EditEvent, &openEvent, null);
 			}
 			putMenuAction(MenuID.Refresh, &refresh, null);
 		}
-		{
+		{ mixin(S_TRACE);
 			static if (WithEventView) {
 				auto pane = _tabf;
-			} else {
+			} else { mixin(S_TRACE);
 				auto pane = contPane;
 			}
 			_aview = new V(comm, prop, summ, area, pane, shell ? null : this, _undo);
 			static if (WithEventView) {
 				_tabA.setControl(_aview);
-			} else {
+			} else { mixin(S_TRACE);
 				_aview.setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
 			_tcpd ~= _aview;
@@ -293,19 +293,19 @@ public:
 		static if (is(V == AreaView)) {
 			static if (WithEventView) {
 				auto winProps = _prop.var.areaWin;
-			} else {
+			} else { mixin(S_TRACE);
 				auto winProps = _prop.var.areaSceneWin;
 			}
 		} else static if (is(V == BattleView)) {
 			static if (WithEventView) {
 				auto winProps = _prop.var.battleWin;
-			} else {
+			} else { mixin(S_TRACE);
 				auto winProps = _prop.var.battleSceneWin;
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
-		if (shell) {
+		if (shell) { mixin(S_TRACE);
 			shell.setMaximized(winProps.maximized);
 			scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			int width = winProps.width == SWT.DEFAULT ? wp.x : winProps.width;
@@ -320,34 +320,34 @@ public:
 
 	@property
 	override
-	Image image() {
+	Image image() { mixin(S_TRACE);
 		static if (is (A == Area)) {
 			static if (WithEventView) {
 				return _prop.images.area;
-			} else {
+			} else { mixin(S_TRACE);
 				return _prop.images.areaSceneView;
 			}
 		} else static if (is (A == Battle)) {
 			static if (WithEventView) {
 				return _prop.images.battle;
-			} else {
+			} else { mixin(S_TRACE);
 				return _prop.images.battleSceneView;
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
 	}
 	@property
 	override
-	string title() {
+	string title() { mixin(S_TRACE);
 		auto shl = cast(Shell) _win;
 		static if (WithEventView) {
-			if (shl) {
+			if (shl) { mixin(S_TRACE);
 				return .tryFormat(_prop.msgs.viewName, .objName!A(_prop), _area.id, _area.name);
 			}
 			return .tryFormat(_prop.msgs.viewNameTab, .objName!A(_prop), _area.id, _area.name);
-		} else {
-			if (shl) {
+		} else { mixin(S_TRACE);
+			if (shl) { mixin(S_TRACE);
 				return .tryFormat(_prop.msgs.viewNameScene, .objName!A(_prop), _area.id, _area.name);
 			}
 			return .tryFormat(_prop.msgs.viewNameSceneTab, .objName!A(_prop), _area.id, _area.name);
@@ -357,31 +357,31 @@ public:
 	override
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
-	private void saveWin() {
+	private void saveWin() { mixin(S_TRACE);
 		static if (is(V == AreaView)) {
 			static if (WithEventView) {
 				auto winProps = _prop.var.areaWin;
-			} else {
+			} else { mixin(S_TRACE);
 				auto winProps = _prop.var.areaSceneWin;
 			}
 		} else static if (is(V == BattleView)) {
 			static if (WithEventView) {
 				auto winProps = _prop.var.battleWin;
-			} else {
+			} else { mixin(S_TRACE);
 				auto winProps = _prop.var.battleSceneWin;
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
 		auto shell = cast(Shell) _win;
-		if (shell) {
-			if (!shell.getMaximized()) {
+		if (shell) { mixin(S_TRACE);
+			if (!shell.getMaximized()) { mixin(S_TRACE);
 				winProps.width = shell.getSize().x;
 				winProps.height = shell.getSize().y;
-				if (_areaWin.isDisposed()) {
+				if (_areaWin.isDisposed()) { mixin(S_TRACE);
 					winProps.x = shell.getBounds().x - _prop.var.areaWin.x;
 					winProps.y = shell.getBounds().y - _prop.var.areaWin.y;
-				} else {
+				} else { mixin(S_TRACE);
 					winProps.x = shell.getBounds().x - _areaWin.getBounds().x;
 					winProps.y = shell.getBounds().y - _areaWin.getBounds().y;
 				}
@@ -391,168 +391,168 @@ public:
 	}
 	@property
 	override
-	Composite shell() {
+	Composite shell() { mixin(S_TRACE);
 		return _win;
 	}
 	@property
-	UndoManager undoManager() {
+	UndoManager undoManager() { mixin(S_TRACE);
 		return _undo;
 	}
 	@property
-	V areaView() {
+	V areaView() { mixin(S_TRACE);
 		return _aview;
 	}
 
 	/// Returns: 編集中のエリア。
 	@property
-	A eventTreeOwner() {
+	A eventTreeOwner() { mixin(S_TRACE);
 		return _area;
 	}
 	void undo() {_undo.undo();}
 	void redo() {_undo.redo();}
 
-	void openEvent() {
+	void openEvent() { mixin(S_TRACE);
 		_aview.openEvent();
 	}
 
 	static if (WithEventView) {
 		@property
-		EventView!(A, C, true) eventView() {
+		EventView!(A, C, true) eventView() { mixin(S_TRACE);
 			_eview.initial();
 			return _eview;
 		}
 		@property
-		EventTreeView eventTreeView() {
+		EventTreeView eventTreeView() { mixin(S_TRACE);
 			_eview.initial();
 			return _eview.eventTreeView;
 		}
 
-		void selectSceneView() {
+		void selectSceneView() { mixin(S_TRACE);
 			_tabf.setSelection(_tabA);
 			selectedTabImpl();
 		}
-		void selectEventView() {
+		void selectEventView() { mixin(S_TRACE);
 			_tabf.setSelection(_tabE);
 			selectedTabImpl();
 		}
 
-		private bool canToScript() {
+		private bool canToScript() { mixin(S_TRACE);
 			_eview.initial();
 			return _eview.canToScript();
 		}
-		private bool canToScriptAll() {
+		private bool canToScriptAll() { mixin(S_TRACE);
 			_eview.initial();
 			return _eview.canToScriptAll();
 		}
-		private bool canWriteComment() {
+		private bool canWriteComment() { mixin(S_TRACE);
 			_eview.initial();
 			return _eview.canWriteComment();
 		}
-		private void toScript() {
+		private void toScript() { mixin(S_TRACE);
 			_eview.initial();
 			_eview.toScript();
 		}
-		private void toScriptAll() {
+		private void toScriptAll() { mixin(S_TRACE);
 			_eview.initial();
 			_eview.toScriptAll();
 		}
-		private void writeComment() {
+		private void writeComment() { mixin(S_TRACE);
 			_eview.initial();
 			_eview.writeComment();
 		}
 	}
 
 	override {
-		void cut(SelectionEvent se) {
-			foreach (c; _tcpd) {
-				if (c.canDoTCPD) {
+		void cut(SelectionEvent se) { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
+				if (c.canDoTCPD) { mixin(S_TRACE);
 					c.cut(se);
 				}
 			}
 		}
-		void copy(SelectionEvent se) {
-			foreach (c; _tcpd) {
-				if (c.canDoTCPD) {
+		void copy(SelectionEvent se) { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
+				if (c.canDoTCPD) { mixin(S_TRACE);
 					c.copy(se);
 				}
 			}
 		}
-		void paste(SelectionEvent se) {
-			foreach (c; _tcpd) {
-				if (c.canDoTCPD) {
+		void paste(SelectionEvent se) { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
+				if (c.canDoTCPD) { mixin(S_TRACE);
 					c.paste(se);
 				}
 			}
 		}
-		void del(SelectionEvent se) {
-			foreach (c; _tcpd) {
-				if (c.canDoTCPD) {
+		void del(SelectionEvent se) { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
+				if (c.canDoTCPD) { mixin(S_TRACE);
 					c.del(se);
 				}
 			}
 		}
-		void clone(SelectionEvent se) {
-			foreach (c; _tcpd) {
-				if (c.canDoTCPD) {
+		void clone(SelectionEvent se) { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
+				if (c.canDoTCPD) { mixin(S_TRACE);
 					c.clone(se);
 				}
 			}
 		}
 		@property
-		bool canDoTCPD() {
+		bool canDoTCPD() { mixin(S_TRACE);
 			return .hasFocus(_win);
 		}
 		@property
-		bool canDoT() {
-			foreach (c; _tcpd) {
+		bool canDoT() { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
 				if (c.canDoTCPD) return c.canDoT;
 			}
 			return false;
 		}
 		@property
-		bool canDoC() {
-			foreach (c; _tcpd) {
+		bool canDoC() { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
 				if (c.canDoTCPD) return c.canDoC;
 			}
 			return false;
 		}
 		@property
-		bool canDoP() {
-			foreach (c; _tcpd) {
+		bool canDoP() { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
 				if (c.canDoTCPD) return c.canDoP;
 			}
 			return false;
 		}
 		@property
-		bool canDoD() {
-			foreach (c; _tcpd) {
+		bool canDoD() { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
 				if (c.canDoTCPD) return c.canDoD;
 			}
 			return false;
 		}
 		@property
-		bool canDoClone() {
-			foreach (c; _tcpd) {
+		bool canDoClone() { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
 				if (c.canDoTCPD) return c.canDoClone;
 			}
 			return false;
 		}
 	}
 	override
-	bool openCWXPath(string path, bool shellActivate) {
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		auto cate = cpcategory(path);
-		if (cpempty(path)) {
+		if (cpempty(path)) { mixin(S_TRACE);
 			return _aview.openCWXPath(path, shellActivate);
-		} else if (cphasattr(path, "eventview")) {
+		} else if (cphasattr(path, "eventview")) { mixin(S_TRACE);
 			static if (WithEventView) {
 				_eview.initial();
 				return _eview.openCWXPath(path, shellActivate);
 			}
 		} else if (((cate == "menucard" || cate == "enemycard")
 				&& cpempty(cpbottom(path)))
-				|| cate == "background") {
+				|| cate == "background") { mixin(S_TRACE);
 			return _aview.openCWXPath(path, shellActivate);
-		} else {
+		} else { mixin(S_TRACE);
 			static if (WithEventView) {
 				_eview.initial();
 				return _eview.openCWXPath(path, shellActivate);
@@ -562,18 +562,18 @@ public:
 	}
 	@property
 	override
-	string[] openedCWXPath() {
+	string[] openedCWXPath() { mixin(S_TRACE);
 		string[] r;
 		static if (WithEventView) {
 			_eview.initial();
-			if (_tabf.getSelection() is _tabE) {
+			if (_tabf.getSelection() is _tabE) { mixin(S_TRACE);
 				r ~= _aview.openedCWXPath;
 				r ~= _eview.openedCWXPath;
-			} else {
+			} else { mixin(S_TRACE);
 				r ~= _eview.openedCWXPath;
 				r ~= _aview.openedCWXPath;
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			r ~= _aview.openedCWXPath;
 		}
 		return r;

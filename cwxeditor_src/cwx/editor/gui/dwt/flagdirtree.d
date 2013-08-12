@@ -28,19 +28,19 @@ import java.lang.all;
 
 public class FlagDirTree : TCPD {
 private:
-	void storeInsert(FlagDir dir, string[] selectedF, string[] selectedS, int[] dirIndices, string[] flagName, string[] stepName) {
+	void storeInsert(FlagDir dir, string[] selectedF, string[] selectedS, int[] dirIndices, string[] flagName, string[] stepName) { mixin(S_TRACE);
 		_undo ~= new UndoInsertDelete(flags, _comm, dir, selectedF, selectedS, dirIndices, flagName, stepName);
 	}
-	void storeDelete(FlagDir dir, string[] selectedF, string[] selectedS, FlagDir[int] ds, Flag[] fs, Step[] ss) {
+	void storeDelete(FlagDir dir, string[] selectedF, string[] selectedS, FlagDir[int] ds, Flag[] fs, Step[] ss) { mixin(S_TRACE);
 		_undo ~= new UndoInsertDelete(flags, _comm, dir, selectedF, selectedS, ds, fs, ss);
 	}
-	void storeMove(string[] selectedF, string[] selectedS, FlagDir to, int[] dirIndices, string[] flagName, string[] stepName, FlagDir from, FlagDir[int] ds, Flag[] fs, Step[] ss, Flag[string] cFlags, Step[string] cSteps) {
+	void storeMove(string[] selectedF, string[] selectedS, FlagDir to, int[] dirIndices, string[] flagName, string[] stepName, FlagDir from, FlagDir[int] ds, Flag[] fs, Step[] ss, Flag[string] cFlags, Step[string] cSteps) { mixin(S_TRACE);
 		_undo ~= new UndoMove(flags, _comm, selectedF, selectedS, to, dirIndices, flagName, stepName, from, ds, fs, ss, cFlags, cSteps);
 	}
-	void storeEditDir(FlagDir dir, string oldName) {
+	void storeEditDir(FlagDir dir, string oldName) { mixin(S_TRACE);
 		_undo ~= new UndoEditDir(flags, _comm, dir, oldName);
 	}
-	void storeSwap(FlagDir par, int index1, int index2) {
+	void storeSwap(FlagDir par, int index1, int index2) { mixin(S_TRACE);
 		_undo ~= new UndoSwap(flags, _comm, cast(FlagDir) selectedItem.getData(), par, index1, index2);
 	}
 
@@ -57,7 +57,7 @@ private:
 	TreeEdit edit;
 
 	class DirSelection : SelectionAdapter {
-		public override void widgetSelected(SelectionEvent e) {
+		public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			flags.setDir(current);
 			_comm.refreshToolBar();
 		}
@@ -66,19 +66,19 @@ private:
 	FlagDir _moveDir = null;
 	class FlagDirDragListener : DragSourceListener {
 	public:
-		override void dragStart(DragSourceEvent e) {
+		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
 			e.doit = current != root && (cast(DragSource) e.getSource()).getControl().isFocusControl();
 		}
-		override void dragSetData(DragSourceEvent e) {
-			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
+		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
+			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
 				_moveDir = current;
 
 				// XML化して転送する。
 				e.data = bytesFromXML(getXML(prop.msgs.flagDirRoot, _moveDir));
 			}
 		}
-		override void dragFinished(DragSourceEvent e) {
-			if (e.detail == DND.DROP_MOVE) {
+		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
+			if (e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
 				_moveDir.parent.remove(_moveDir);
 				refresh();
 				_comm.delFlagAndStep.call(_moveDir.allFlags, _moveDir.allSteps);
@@ -89,21 +89,21 @@ private:
 	}
 	class FlagsDropListener : DropTargetAdapter {
 	private:
-		void move(DropTargetEvent e) {
+		void move(DropTargetEvent e) { mixin(S_TRACE);
 			e.detail = (e.item !is null && cast(TreeItem) e.item) ? DND.DROP_MOVE : DND.DROP_NONE;
 		}
 	public:
-		override void dragEnter(DropTargetEvent e){
+		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
 			move(e);
 		}
-		override void dragOver(DropTargetEvent e){
+		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
 			move(e);
 		}
 
-		override void drop(DropTargetEvent e){
+		override void drop(DropTargetEvent e){ mixin(S_TRACE);
 			if (!isXMLBytes(e.data)) return;
 			assert (cast(TreeItem) e.item);
-			if (cast(FlagDir) e.item.getData()) {
+			if (cast(FlagDir) e.item.getData()) { mixin(S_TRACE);
 				auto data = bytesToXML(e.data);
 				auto dir = cast(FlagDir) e.item.getData();
 				string newPath;
@@ -114,27 +114,27 @@ private:
 				Step[string] cSteps;
 				string[] tblSelsF, tblSelsS;
 				FlagDir moveDirParent = null;
-				if (current is dir) {
+				if (current is dir) { mixin(S_TRACE);
 					tblSelsF = flags.selectionFlagNames();
 					tblSelsS = flags.selectionStepNames();
 				}
 				int dirIndex = -1;
-				if (_moveDir) {
+				if (_moveDir) { mixin(S_TRACE);
 					moveDirParent = _moveDir.parent;
 					dirIndex = moveDirParent.indexOf(_moveDir.name);
 				}
 				@property
-				string[] flagName() {
+				string[] flagName() { mixin(S_TRACE);
 					string[] name;
-					foreach (f; cFlags) {
+					foreach (f; cFlags) { mixin(S_TRACE);
 						name ~= f.name;
 					}
 					return name;
 				}
 				@property
-				string[] stepName() {
+				string[] stepName() { mixin(S_TRACE);
 					string[] name;
-					foreach (s; cSteps) {
+					foreach (s; cSteps) { mixin(S_TRACE);
 						name ~= s.name;
 					}
 					return name;
@@ -145,13 +145,13 @@ private:
 				final switch (ret) {
 				case FlagDir.AppendXmlResult.DIR_SUCCESS:
 					string dirName = FlagDir.basename(newPath);
-					if (samePane) {
+					if (samePane) { mixin(S_TRACE);
 						e.detail = DND.DROP_MOVE;
 						assert (moveDirParent);
 						storeMove(tblSelsF, tblSelsS, dir, [dir.indexOf(dirName)], [], [], moveDirParent, [dirIndex:_moveDir], [], [], cFlags, cSteps);
 						_comm.delFlagDir.call(this.outer, [_moveDir]);
 						_comm.refFlagDir.call(this.outer, [_moveDir]);
-					} else {
+					} else { mixin(S_TRACE);
 						e.detail = DND.DROP_COPY;
 						storeInsert(dir, tblSelsF, tblSelsS, [dir.indexOf(dirName)], [], []);
 						_comm.refFlagDir.call(this.outer, [root.findPath(newPath, false)]);
@@ -159,11 +159,11 @@ private:
 					refresh(newPath);
 					break;
 				case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
-					if (samePane) {
+					if (samePane) { mixin(S_TRACE);
 						e.detail = DND.DROP_MOVE;
 						FlagDir[int] ds;
 						storeMove(tblSelsF, tblSelsS, dir, [], flagName, stepName, current, ds, fs, ss, cFlags, cSteps);
-					} else {
+					} else { mixin(S_TRACE);
 						e.detail = DND.DROP_COPY;
 						storeInsert(dir, tblSelsF, tblSelsS, [], flagName, stepName);
 					}
@@ -184,29 +184,29 @@ private:
 				}
 				if ((ret == FlagDir.AppendXmlResult.DIR_SUCCESS
 						|| ret == FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS)
-						&& samePane) {
-					foreach (oldPath; cFlags.keys) {
+						&& samePane) { mixin(S_TRACE);
+					foreach (oldPath; cFlags.keys) { mixin(S_TRACE);
 						uc.change(toFlagId(oldPath), toFlagId(cFlags[oldPath].path));
 					}
-					foreach (oldPath; cSteps.keys) {
+					foreach (oldPath; cSteps.keys) { mixin(S_TRACE);
 						uc.change(toStepId(oldPath), toStepId(cSteps[oldPath].path));
 					}
 					_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
 				}
 				_comm.refreshToolBar();
-			} else {
+			} else { mixin(S_TRACE);
 				e.detail = DND.DROP_NONE;
 			}
 		}
 	}
 
-	void editEnd(TreeItem itm, Control c) {
+	void editEnd(TreeItem itm, Control c) { mixin(S_TRACE);
 		auto dir = cast(FlagDir) itm.getData();
 		auto text = (cast(Text) c).getText();
 		if (!text) text = "";
 		string oldName = dir.name;
 		if (oldName == text) return;
-		if (dir.rename(text, uc)) {
+		if (dir.rename(text, uc)) { mixin(S_TRACE);
 			storeEditDir(dir, oldName);
 			itm.setText(dir.name);
 			_comm.refFlagDir.call(this, [dir]);
@@ -214,102 +214,102 @@ private:
 		}
 	}
 
-	Control createEditor(TreeItem itm) {
+	Control createEditor(TreeItem itm) { mixin(S_TRACE);
 		return itm.getData() != root ? createTextEditor(_comm, prop, dirs, itm.getText()) : null;
 	}
 
-	private void refreshDirs() {
+	private void refreshDirs() { mixin(S_TRACE);
 		if (!dirs || dirs.isDisposed()) return;
 		dirs.setRedraw(false);
 		scope (exit) dirs.setRedraw(true);
 		auto exAll = expandAll();
 		auto sel = current;
 		dirs.removeAll();
-		if (root) {
+		if (root) { mixin(S_TRACE);
 			newItem(root, dirs, exAll);
-			if (sel) {
+			if (sel) { mixin(S_TRACE);
 				current = sel;
 			}
 		}
 	}
-	private bool[string] expandAll() {
+	private bool[string] expandAll() { mixin(S_TRACE);
 		bool[string]  r;
-		void all(TreeItem itm) {
+		void all(TreeItem itm) { mixin(S_TRACE);
 			auto dir = cast(FlagDir) itm.getData();
 			r[dir.path.toLower()] = itm.getItemCount() == 0 || itm.getExpanded();
-			foreach (sub; itm.getItems()) {
+			foreach (sub; itm.getItems()) { mixin(S_TRACE);
 				all(sub);
 			}
 		}
-		foreach (itm; dirs.getItems()) {
+		foreach (itm; dirs.getItems()) { mixin(S_TRACE);
 			all(itm);
 		}
 		return r;
 	}
-	private void newItem(T)(FlagDir dir, T parent, bool[string] exAll) {
+	private void newItem(T)(FlagDir dir, T parent, bool[string] exAll) { mixin(S_TRACE);
 		auto sItm = new TreeItem(parent, SWT.NONE);
 		sItm.setImage(prop.images.flagDir);
 		static if (is(T : Tree)) {
 			sItm.setText(prop.msgs.flagDirRoot);
-		} else {
+		} else { mixin(S_TRACE);
 			sItm.setText(dir.name);
 		}
 		sItm.setData(dir);
-		foreach (sub; dir.subDirs) {
+		foreach (sub; dir.subDirs) { mixin(S_TRACE);
 			newItem(sub, sItm, exAll);
 		}
 		auto ep = toLower(dir.path) in exAll;
-		if (!ep || *ep) {
+		if (!ep || *ep) { mixin(S_TRACE);
 			sItm.setExpanded(true);
 		}
 	}
-	private void refreshDirs(FlagDir targ) {
+	private void refreshDirs(FlagDir targ) { mixin(S_TRACE);
 		dirs.setRedraw(false);
 		scope (exit) dirs.setRedraw(true);
 		auto itm = find(targ);
-		if (itm) {
+		if (itm) { mixin(S_TRACE);
 			auto exAll = expandAll();
 			auto sel = current;
 			itm.removeAll();
-			foreach (sub; targ.subDirs) {
+			foreach (sub; targ.subDirs) { mixin(S_TRACE);
 				newItem(sub, itm, exAll);
 			}
 			if (sel) current = sel;
 		}
 		_comm.refreshToolBar();
 	}
-	private TreeItem findImpl(TreeItem parent, FlagDir dir) {
+	private TreeItem findImpl(TreeItem parent, FlagDir dir) { mixin(S_TRACE);
 		if (parent.getData() is dir) return parent;
-		foreach (itm; parent.getItems()) {
+		foreach (itm; parent.getItems()) { mixin(S_TRACE);
 			auto r = findImpl(itm, dir);
 			if (r) return r;
 		}
 		return null;
 	}
-	private TreeItem find(FlagDir dir) {
+	private TreeItem find(FlagDir dir) { mixin(S_TRACE);
 		if (!root) return null;
 		if (!dirs || dirs.isDisposed()) return null;
 		return findImpl(dirs.getItem(0), dir);
 	}
 	@property
-	private void select(FlagDir dir) {
+	private void select(FlagDir dir) { mixin(S_TRACE);
 		auto itm = find(dir);
-		if (itm) {
+		if (itm) { mixin(S_TRACE);
 			dirs.select(itm);
 			_comm.refreshToolBar();
 		}
 	}
-	void refreshD(Object sender, FlagDir[] dirs) {
+	void refreshD(Object sender, FlagDir[] dirs) { mixin(S_TRACE);
 		if (sender is this) return;
 		refresh(null);
 	}
 	@property
-	TreeItem selectedItem() {
+	TreeItem selectedItem() { mixin(S_TRACE);
 		auto sels = dirs.getSelection();
 		return sels.length ? sels[0] : null;
 	}
 public:
-	this (Commons comm, Props prop, FlagTable flags, UndoManager undo) {
+	this (Commons comm, Props prop, FlagTable flags, UndoManager undo) { mixin(S_TRACE);
 		_undo = undo;
 		_comm = comm;
 		this.prop = prop;
@@ -319,11 +319,11 @@ public:
 	@property
 	Control widget() {return _comp;}
 
-	void refresh() {
+	void refresh() { mixin(S_TRACE);
 		refresh(null);
 	}
-	void refresh(string selPath) {
-		if (!selPath) {
+	void refresh(string selPath) { mixin(S_TRACE);
+		if (!selPath) { mixin(S_TRACE);
 			selPath = current.path;
 		}
 		refreshDirs();
@@ -331,11 +331,11 @@ public:
 	}
 
 	@property
-	void select(string path) {
+	void select(string path) { mixin(S_TRACE);
 		auto dir = FlagDir.searchPath(root, path);
-		if (!dir) {
+		if (!dir) { mixin(S_TRACE);
 			current = root;
-		} else {
+		} else { mixin(S_TRACE);
 			current = dir;
 		}
 	}
@@ -344,14 +344,14 @@ public:
 	/// Params:
 	/// uc = 使用回数カウンタ。
 	@property
-	void useCounter(UseCounter uc) {
+	void useCounter(UseCounter uc) { mixin(S_TRACE);
 		this.uc = uc;
 	}
 
 	/// コントロールを生成する。
 	/// Params:
 	/// parent = 親コントロール。
-	Control createControl(Composite parent) {
+	Control createControl(Composite parent) { mixin(S_TRACE);
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout(new FillLayout);
 		dirs = new Tree(_comp, SWT.SINGLE | SWT.BORDER);
@@ -381,11 +381,11 @@ public:
 		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.SET_STEP_UP), "U", "", false), prop.images.content(CType.SET_STEP_UP), &copyStepUpTree, () => current && current.hasStep);
 		createMenuItem2(_comm, mEvt, MenuProps.buildMenu(prop.msgs.contentName(CType.SET_STEP_DOWN), "D", "", false), prop.images.content(CType.SET_STEP_DOWN), &copyStepDownTree, () => current && current.hasStep);
 		new MenuItem(mEvt, SWT.SEPARATOR);
-		void ssValue(uint i) {
+		void ssValue(uint i) { mixin(S_TRACE);
 			string mnemonic = i < 10 ? .text(i) : "";
 			createMenuItem2(_comm, mEvt, MenuProps.buildMenu(.tryFormat(prop.msgs.setStepValue, .tryFormat(prop.msgs.dlgTxtStep, i)), mnemonic, "", false), prop.images.content(CType.SET_STEP), () => copyStepTree(i), () => current && current.hasStep);
 		}
-		foreach (i; 0..prop.looks.stepMaxCount) {
+		foreach (i; 0..prop.looks.stepMaxCount) { mixin(S_TRACE);
 			ssValue(i);
 		}
 
@@ -403,7 +403,7 @@ public:
 		_comm.refFlagDir.add(&refreshD);
 		_comm.delFlagDir.add(&refreshD);
 		dirs.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
+			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				_comm.replText.remove(&refresh);
 				_comm.refSortCondition.remove(&refresh);
 				_comm.refFlagDir.remove(&refreshD);
@@ -416,7 +416,7 @@ public:
 	/// 新規ディレクトリを生成する。
 	/// ディレクトリ名は「新しいフォルダ(Propsで定義)」となり、
 	/// すでに同名のディレクトリが存在する場合は"(2)"～をつける。
-	void createDir() {
+	void createDir() { mixin(S_TRACE);
 		auto cur = current;
 		if (!cur) return;
 		_comm.openCWXPath(cur.cwxPath(true), true);
@@ -431,9 +431,9 @@ public:
 	}
 
 	@property
-	private void current(FlagDir dir) {
+	private void current(FlagDir dir) { mixin(S_TRACE);
 		auto itm = find(dir);
-		if (itm) {
+		if (itm) { mixin(S_TRACE);
 			dirs.select(itm);
 			dirs.showSelection();
 		}
@@ -442,17 +442,17 @@ public:
 	}
 
 	@property
-	FlagDir current() {
-		if (dirs && !dirs.isDisposed()) {
+	FlagDir current() { mixin(S_TRACE);
+		if (dirs && !dirs.isDisposed()) { mixin(S_TRACE);
 			auto sels = dirs.getSelection();
-			if (sels.length) {
+			if (sels.length) { mixin(S_TRACE);
 				return cast(FlagDir) sels[0].getData();
 			}
 		}
 		return root;
 	}
 
-	private bool canUdImpl(int plus) {
+	private bool canUdImpl(int plus) { mixin(S_TRACE);
 		if (!dirs.isFocusControl()) return false;
 		auto sel = selectedItem;
 		if (!sel) return false;
@@ -465,7 +465,7 @@ public:
 		if (index2 < 0 || par.subDirs.length <= index2) return false;
 		return true;
 	}
-	private void udImpl(int plus) {
+	private void udImpl(int plus) { mixin(S_TRACE);
 		if (!dirs.isFocusControl()) return;
 		auto sel = selectedItem;
 		if (!sel) return;
@@ -490,41 +490,41 @@ public:
 		_comm.refFlagAndStep.call(dir1.allFlags ~ dir2.allFlags, dir1.allSteps ~ dir2.allSteps);
 		_comm.refreshToolBar();
 	}
-	void up() {
+	void up() { mixin(S_TRACE);
 		udImpl(-1);
 	}
-	void down() {
+	void down() { mixin(S_TRACE);
 		udImpl(1);
 	}
 	@property
-	bool canUp() {
+	bool canUp() { mixin(S_TRACE);
 		return canUdImpl(-1);
 	}
 	@property
-	bool canDown() {
+	bool canDown() { mixin(S_TRACE);
 		return canUdImpl(1);
 	}
 
 	override {
-		void cut(SelectionEvent se) {
+		void cut(SelectionEvent se) { mixin(S_TRACE);
 			if (!root) return;
-			if (current !is root) {
+			if (current !is root) { mixin(S_TRACE);
 				copy(se);
 				del(se);
 			}
 		}
-		void copy(SelectionEvent se) {
+		void copy(SelectionEvent se) { mixin(S_TRACE);
 			if (!root) return;
-			if (dirs.getSelection().length > 0) {
+			if (dirs.getSelection().length > 0) { mixin(S_TRACE);
 				XMLtoCB(prop, _comm.clipboard, getXML(prop.msgs.flagDirRoot, current));
 				_comm.refreshToolBar();
 			}
 		}
-		void paste(SelectionEvent se) {
+		void paste(SelectionEvent se) { mixin(S_TRACE);
 			if (!root) return;
 			auto c = CBtoXML(_comm.clipboard);
-			if (c) {
-				try {
+			if (c) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					auto cur = current;
 					string newPath;
 					string rootId;
@@ -545,10 +545,10 @@ public:
 					case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
 						string[] flagName;
 						string[] stepName;
-						foreach (f; cFlags) {
+						foreach (f; cFlags) { mixin(S_TRACE);
 							flagName ~= f.name;
 						}
-						foreach (s; cSteps) {
+						foreach (s; cSteps) { mixin(S_TRACE);
 							stepName ~= s.name;
 						}
 						storeInsert(cur, tblSelsF, tblSelsS, [], flagName, stepName);
@@ -566,10 +566,10 @@ public:
 				}
 			}
 		}
-		void del(SelectionEvent se) {
+		void del(SelectionEvent se) { mixin(S_TRACE);
 			if (!root) return;
 			auto cur = current;
-			if (cur != root) {
+			if (cur != root) { mixin(S_TRACE);
 				auto tblSelsF = flags.selectionFlagNames;
 				auto tblSelsS = flags.selectionStepNames;
 				int index = cur.parent.indexOf(cur.name);
@@ -585,79 +585,79 @@ public:
 				_comm.refreshToolBar();
 			}
 		}
-		void clone(SelectionEvent se) {
+		void clone(SelectionEvent se) { mixin(S_TRACE);
 			auto sel = dirs.getSelection();
 			if (!sel.length) return;
 			_comm.clipboard.memoryMode = true;
 			scope (exit) _comm.clipboard.memoryMode = false;
 			copy(se);
 			auto par = current.parent;
-			if (par) {
+			if (par) { mixin(S_TRACE);
 				current = par;
 			}
 			paste(se);
 		}
 		@property
-		bool canDoTCPD() {
+		bool canDoTCPD() { mixin(S_TRACE);
 			return _comm.summary && dirs.isFocusControl();
 		}
 		@property
-		bool canDoT() {
+		bool canDoT() { mixin(S_TRACE);
 			return dirs.getSelection().length > 0 && current !is root;
 		}
 		@property
-		bool canDoC() {
+		bool canDoC() { mixin(S_TRACE);
 			return dirs.getSelection().length > 0;
 		}
 		@property
-		bool canDoP() {
+		bool canDoP() { mixin(S_TRACE);
 			return _comm.summary !is null && CBisXML(_comm.clipboard);
 		}
 		@property
-		bool canDoD() {
+		bool canDoD() { mixin(S_TRACE);
 			return canDoT;
 		}
 		@property
-		bool canDoClone() {
+		bool canDoClone() { mixin(S_TRACE);
 			return canDoC;
 		}
 	}
-	void copyFlagTree(bool onOff) {
+	void copyFlagTree(bool onOff) { mixin(S_TRACE);
 		if (!current) return;
 		auto c = createSetFlagTree(current, onOff);
 		if (!c) return;
 		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
 		_comm.refreshToolBar();
 	}
-	void copyStepTree(int value) {
+	void copyStepTree(int value) { mixin(S_TRACE);
 		if (!current) return;
 		auto c = createSetStepTree(current, value);
 		if (!c) return;
 		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
 		_comm.refreshToolBar();
 	}
-	void copyInitTree() {
+	void copyInitTree() { mixin(S_TRACE);
 		if (!current) return;
 		auto c = createInitVariablesTree(current);
 		if (!c) return;
 		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
 		_comm.refreshToolBar();
 	}
-	void copyFlagReverseTree() {
+	void copyFlagReverseTree() { mixin(S_TRACE);
 		if (!current) return;
 		auto c = createReverseFlagTree(current);
 		if (!c) return;
 		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
 		_comm.refreshToolBar();
 	}
-	void copyStepUpTree() {
+	void copyStepUpTree() { mixin(S_TRACE);
 		if (!current) return;
 		auto c = createSetStepUpTree(current);
 		if (!c) return;
 		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
 		_comm.refreshToolBar();
 	}
-	void copyStepDownTree() {
+	void copyStepDownTree() { mixin(S_TRACE);
 		if (!current) return;
 		auto c = createSetStepDownTree(current);
 		if (!c) return;
@@ -667,7 +667,7 @@ public:
 
 	/// Returns: ルートディレクトリを返す。
 	@property
-	FlagDir rootDir() {
+	FlagDir rootDir() { mixin(S_TRACE);
 		return root;
 	}
 
@@ -675,52 +675,52 @@ public:
 	/// Params:
 	/// root = ルートディレクトリ。
 	@property
-	void rootDir(FlagDir root) {
+	void rootDir(FlagDir root) { mixin(S_TRACE);
 		this.root = root;
 		refreshDirs();
 		current = root;
-		if (dirs && !dirs.isDisposed()) {
+		if (dirs && !dirs.isDisposed()) { mixin(S_TRACE);
 			treeExpandedAll(dirs);
 		}
 		_comm.refreshToolBar();
 	}
 
-	private bool openCWXPathImpl(FlagDir dir, string path, bool shellActivate) {
+	private bool openCWXPathImpl(FlagDir dir, string path, bool shellActivate) { mixin(S_TRACE);
 		auto cate = cpcategory(path);
 		auto index = cpindex(path);
 		switch (cate) {
-		case "flag": {
+		case "flag": { mixin(S_TRACE);
 			if (index >= dir.flags.length) return false;
 			_comm.openFlagWin(shellActivate);
 			forceFocus(flags.widget, shellActivate);
 			current = dir;
-			if (cphasattr(path, "opendialog")) {
+			if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 				flags.edit(dir.flags[index]);
-			} else {
+			} else { mixin(S_TRACE);
 				flags.select(dir.flags[index], false);
 			}
 			_comm.refreshToolBar();
 			return true;
 		} break;
-		case "step": {
+		case "step": { mixin(S_TRACE);
 			if (index >= dir.steps.length) return false;
 			_comm.openFlagWin(shellActivate);
 			forceFocus(flags.widget, shellActivate);
 			current = dir;
-			if (cphasattr(path, "opendialog")) {
+			if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 				flags.edit(dir.steps[index]);
-			} else {
+			} else { mixin(S_TRACE);
 				flags.select(dir.steps[index], false);
 			}
 			_comm.refreshToolBar();
 			return true;
 		} break;
-		case "dir": {
+		case "dir": { mixin(S_TRACE);
 			if (index >= dir.subDirs.length) return false;
 			_comm.openFlagWin(shellActivate);
 			return openCWXPathImpl(dir.subDirs[index], cpbottom(path), shellActivate);
 		} break;
-		case "": {
+		case "": { mixin(S_TRACE);
 			_comm.openFlagWin(shellActivate);
 			forceFocus(dirs, shellActivate);
 			current = dir;
@@ -730,23 +730,23 @@ public:
 		}
 		return false;
 	}
-	bool openCWXPath(string path, bool shellActivate) {
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		return openCWXPathImpl(root, path, shellActivate);
 	}
 	@property
-	string[] openedCWXPath() {
+	string[] openedCWXPath() { mixin(S_TRACE);
 		string[] r;
 		auto cur = current;
-		if (cur) {
+		if (cur) { mixin(S_TRACE);
 			r ~= cur.cwxPath(true);
 		}
 		return r;
 	}
-	void undo() {
+	void undo() { mixin(S_TRACE);
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
-	void redo() {
+	void redo() { mixin(S_TRACE);
 		_undo.redo();
 		_comm.refreshToolBar();
 	}

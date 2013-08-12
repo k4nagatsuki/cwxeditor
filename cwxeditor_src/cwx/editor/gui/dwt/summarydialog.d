@@ -65,12 +65,12 @@ private:
 	// TODO Label
 
 	IncSearch _areaIncSearch;
-	void areaIncSearch() {
+	void areaIncSearch() { mixin(S_TRACE);
 		.forceFocus(_startArea, true);
 		_areaIncSearch.startIncSearch();
 	}
 
-	void refreshWarning()  {
+	void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 
 		ws ~= _imgPath.warnings;
@@ -78,28 +78,28 @@ private:
 		warning = ws;
 	}
 
-	void levMaxEnter(int enter) {
-		if (enter > 0 && _levMin.getSelection() != 0 && enter < _levMin.getSelection()) {
+	void levMaxEnter(int enter) { mixin(S_TRACE);
+		if (enter > 0 && _levMin.getSelection() != 0 && enter < _levMin.getSelection()) { mixin(S_TRACE);
 			_levMin.setSelection(enter);
 		}
 	}
-	void levMinEnter(int enter) {
-		if (enter > 0 && _levMax.getSelection() != 0 && enter > _levMax.getSelection()) {
+	void levMinEnter(int enter) { mixin(S_TRACE);
+		if (enter > 0 && _levMax.getSelection() != 0 && enter > _levMax.getSelection()) { mixin(S_TRACE);
 			_levMax.setSelection(enter);
 		}
 	}
 
 	@property
-	Skin selectedSkin() {
-		if (_typeSkin.getSelection()) {
+	Skin selectedSkin() { mixin(S_TRACE);
+		if (_typeSkin.getSelection()) { mixin(S_TRACE);
 			auto p = _type.getText() in skinTable(_prop);
-			if (p) {
+			if (p) { mixin(S_TRACE);
 				return *p;
 			}
-		} else if (_typeClassic.getSelection()) {
+		} else if (_typeClassic.getSelection()) { mixin(S_TRACE);
 			int i = _type.getSelectionIndex();
-			if (_hasLegacySkin) {
-				if (i == 0) {
+			if (_hasLegacySkin) { mixin(S_TRACE);
+				if (i == 0) { mixin(S_TRACE);
 					return .findSkin(_comm, _prop, _summ, null, "", false);
 				}
 				i--;
@@ -108,7 +108,7 @@ private:
 		}
 		return .findSkin2(_prop, _prop.var.etc.defaultSkin);
 	}
-	void constructImage(Composite area) {
+	void constructImage(Composite area) { mixin(S_TRACE);
 		_imgArea = area;
 
 		auto aComp = addition();
@@ -116,25 +116,25 @@ private:
 		auto prev = new Button(aComp, SWT.TOGGLE);
 		prev.setText(_prop.msgs.messagePreview);
 		prev.setSelection(_prop.var.etc.showSummaryPreview);
-		.listener(prev, SWT.Selection, {
+		.listener(prev, SWT.Selection, { mixin(S_TRACE);
 			showImagePreview(prev.getSelection());
 		});
 		showImagePreview(_prop.var.etc.showSummaryPreview, false);
 	}
-	void showImagePreview(bool visible, bool regWin = true) {
+	void showImagePreview(bool visible, bool regWin = true) { mixin(S_TRACE);
 		if (getShell().isVisible()) getShell().setRedraw(false);
 		scope (exit) {
 			if (getShell().isVisible()) getShell().setRedraw(true);
 		}
 
 		int w;
-		if (visible) {
+		if (visible) { mixin(S_TRACE);
 			if (_summImage) return;
 			_summImage = new SummaryPreview(_comm, _imgArea, SWT.NONE);
 			_summImage.setImageSelect(&_sname.getText, &_imgPath.image, &selectedSkin, {return _desc.getRRText();}, &_levMin.getSelection, &_levMax.getSelection);
 			_summImage.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			w = _summImage.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
-		} else {
+		} else { mixin(S_TRACE);
 			if (!_summImage) return;
 			w = _summImage.getSize().x;
 			if (_summImage) _summImage.dispose();
@@ -142,45 +142,45 @@ private:
 		}
 		_prop.var.etc.showSummaryPreview = visible;
 
-		if (regWin) {
+		if (regWin) { mixin(S_TRACE);
 			auto ws = getShell().getSize();
-			if (visible) {
+			if (visible) { mixin(S_TRACE);
 				ws.x += w;
-			} else {
+			} else { mixin(S_TRACE);
 				ws.x -= w;
 			}
 			getShell().setSize(ws);
 		}
 	}
-	void refreshPreview() {
-		if (_summImage) {
+	void refreshPreview() { mixin(S_TRACE);
+		if (_summImage) { mixin(S_TRACE);
 			_summImage.redrawImage();
 		}
 	}
-	void clearBuf() {
-		if (_summImage) {
+	void clearBuf() { mixin(S_TRACE);
+		if (_summImage) { mixin(S_TRACE);
 			_summImage.clearBuf();
 		}
 	}
-	private void setCDataX(Control c, GridData data) {
+	private void setCDataX(Control c, GridData data) { mixin(S_TRACE);
 		auto p = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		data.widthHint = p.x;
 		c.setLayoutData(data);
 	}
-	private void setCDataXY(Control c, GridData data) {
+	private void setCDataXY(Control c, GridData data) { mixin(S_TRACE);
 		auto p = c.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		data.widthHint = p.x;
 		data.heightHint = p.y;
 		c.setLayoutData(data);
 	}
-	void constructTab1(CTabFolder tabf) {
+	void constructTab1(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, true));
-		{
+		{ mixin(S_TRACE);
 			_tab2Sash = new SplitPane(comp, SWT.HORIZONTAL);
 			_tab2Sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto skin = _comm.skin;
-			{
+			{ mixin(S_TRACE);
 				bool including = isBinImg(_summ.imagePath);
 				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, SWT.NONE, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, () => _sname.getText(), &clearBuf);
@@ -190,10 +190,10 @@ private:
 				_imgPath.modEvent ~= &refreshPreview;
 				_imgPath.updateImageEvent ~= &refreshPreview;
 			}
-			{
+			{ mixin(S_TRACE);
 				auto comp2 = new Composite(_tab2Sash, SWT.NONE);
 				comp2.setLayout(zeroGridLayout(1, true));
-				{
+				{ mixin(S_TRACE);
 					auto grp = centerGroup(comp2, _prop.msgs.title, true, false, new GridData(GridData.FILL_BOTH));
 					grp.setLayout(new GridLayout(1, true));
 					_sname = new Text(grp, SWT.BORDER);
@@ -204,7 +204,7 @@ private:
 					checker(_sname);
 					.listener(_sname, SWT.Modify, &refreshPreview);
 				}
-				{
+				{ mixin(S_TRACE);
 					auto grp = centerGroup(comp2, _prop.msgs.author, true, false, new GridData(GridData.FILL_BOTH));
 					grp.setLayout(new GridLayout(1, true));
 					_author = new Text(grp, SWT.BORDER);
@@ -213,7 +213,7 @@ private:
 					setCDataX(_author, new GridData(GridData.FILL_HORIZONTAL));
 					_author.setText(_summ.author);
 				}
-				{
+				{ mixin(S_TRACE);
 					auto grp = centerGroup(comp2, _prop.msgs.targetLevel, false, false, new GridData(GridData.FILL_BOTH));
 					grp.setLayout(new GridLayout(4, false));
 					_levMin = new Spinner(grp, SWT.BORDER);
@@ -242,7 +242,7 @@ private:
 			}
 			_tab2Sash.setWeights([_prop.var.etc.summaryParamSashL, _prop.var.etc.summaryParamSashR]);
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
@@ -258,17 +258,17 @@ private:
 		tab.setText(_prop.msgs.baseData);
 		tab.setControl(comp);
 	}
-	void constructTab2(CTabFolder tabf) {
+	void constructTab2(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, true));
-		{
+		{ mixin(S_TRACE);
 			_tab3Sash = new SplitPane(comp, SWT.HORIZONTAL);
 			_tab3Sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto skin = _comm.skin;
-			{
+			{ mixin(S_TRACE);
 				auto comp2 = new Composite(_tab3Sash, SWT.NONE);
 				comp2.setLayout(zeroMarginGridLayout(1, true));
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(comp2, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					grp.setText(_prop.msgs.scenarioType);
@@ -289,12 +289,12 @@ private:
 					.listener(_typeClassic, SWT.Selection, &refreshPreview);
 					.listener(_type, SWT.Modify, &refreshPreview);
 				}
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(comp2, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setText(_prop.msgs.qualification);
 					grp.setLayout(new GridLayout(2, false));
-					{
+					{ mixin(S_TRACE);
 						auto lblN = new Label(grp, SWT.NONE);
 						lblN.setText(_prop.msgs.rCouponNum);
 						_rCouponNum = new Spinner(grp, SWT.BORDER);
@@ -305,14 +305,14 @@ private:
 						_rCouponNum.setMaximum(999);
 						_rCouponNum.setMinimum(0);
 					}
-					{
+					{ mixin(S_TRACE);
 						auto lblR = new Label(grp, SWT.NONE);
 						auto gd = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
 						gd.horizontalSpan = 2;
 						lblR.setLayoutData(gd);
 						lblR.setText(_prop.msgs.rCoupons);
 					}
-					{
+					{ mixin(S_TRACE);
 						_rCoupons = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.WRAP);
 						createTextMenu!Text(_comm, _prop, _rCoupons, &catchMod);
 						mod(_rCoupons);
@@ -320,7 +320,7 @@ private:
 						gd.horizontalSpan = 2;
 						setCDataXY(_rCoupons, gd);
 						string buf;
-						foreach (i, t; _summ.rCoupons) {
+						foreach (i, t; _summ.rCoupons) { mixin(S_TRACE);
 							buf ~= t;
 							buf ~= "\n";
 						}
@@ -328,7 +328,7 @@ private:
 					}
 				}
 			}
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(_tab3Sash, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setText(_prop.msgs.startArea);
@@ -340,11 +340,11 @@ private:
 				auto nameCol = new FullTableColumn(_startArea, SWT.NONE);
 				setCDataXY(_startArea, new GridData(GridData.FILL_BOTH));
 
-				.listener(_startArea, SWT.Selection, {
+				.listener(_startArea, SWT.Selection, { mixin(S_TRACE);
 					auto index = _startArea.getSelectionIndex();
-					if (-1 == index) {
+					if (-1 == index) { mixin(S_TRACE);
 						_startAreaID = index;
-					} else {
+					} else { mixin(S_TRACE);
 						auto a = cast(Area) _startArea.getItem(index).getData();
 						assert (a !is null);
 						_startAreaID = a.id;
@@ -370,12 +370,12 @@ private:
 		tab.setControl(comp);
 	}
 	class RefreshTypes : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			refreshTypes();
 		}
 	}
 	class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			auto ws1 = _tab2Sash.getWeights();
 			_prop.var.etc.summaryParamSashL = ws1[0];
 			_prop.var.etc.summaryParamSashR = ws1[1];
@@ -389,18 +389,18 @@ private:
 			_comm.refClassicSkin.remove(&refreshTypes);
 		}
 	}
-	void refreshAreas() {
+	void refreshAreas() { mixin(S_TRACE);
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 
 		ulong id = _startAreaID;
-		if (0 == id) {
+		if (0 == id) { mixin(S_TRACE);
 			id = _summ.startArea;
 		}
 		_startArea.removeAll();
 		bool has = false;
-		foreach (i, area; _summ.areas) {
-			if (!has && area.id == id) {
+		foreach (i, area; _summ.areas) { mixin(S_TRACE);
+			if (!has && area.id == id) { mixin(S_TRACE);
 				has = true;
 			}
 			if (!_areaIncSearch.match(area.name)) continue;
@@ -409,63 +409,63 @@ private:
 			itm.setImage(0, _prop.images.area);
 			itm.setText(0, to!(string)(area.id));
 			itm.setText(1, area.name);
-			if (area.id == id) {
+			if (area.id == id) { mixin(S_TRACE);
 				_startArea.setSelection(_startArea.getItemCount() - 1);
 			}
 		}
-		if (!has && -1 == _startArea.getSelectionIndex()) {
-			foreach (i, area; _summ.areas) {
-				if (area.id == _summ.startArea) {
+		if (!has && -1 == _startArea.getSelectionIndex()) { mixin(S_TRACE);
+			foreach (i, area; _summ.areas) { mixin(S_TRACE);
+				if (area.id == _summ.startArea) { mixin(S_TRACE);
 					_startArea.setSelection(i);
 					has = true;
 					break;
 				}
 			}
-			if (!has && _summ.areas.length) {
+			if (!has && _summ.areas.length) { mixin(S_TRACE);
 				_startArea.select(0);
 			}
 			int index = _startArea.getSelectionIndex();
-			if (-1 != index) {
+			if (-1 != index) { mixin(S_TRACE);
 				_startAreaID = _summ.areas[index].id;
 			}
 		}
 		_startArea.showSelection();
 	}
-	void refArea(Area area) {
+	void refArea(Area area) { mixin(S_TRACE);
 		refreshAreas();
 	}
-	void refScenario(Summary summ) {
+	void refScenario(Summary summ) { mixin(S_TRACE);
 		forceCancel();
 	}
-	void refSkin(Object sender) {
+	void refSkin(Object sender) { mixin(S_TRACE);
 		refreshPreview();
 		_desc.font = dwtData(_prop.looks.summaryDescFont(_summ.legacy));
 		if (sender is this) return;
 		refreshTypes();
 	}
-	void refreshTypes() {
+	void refreshTypes() { mixin(S_TRACE);
 		string selType = _summ.type;
 		string selClassic = null;
 
-		if (!_typeSkin.getSelection() && !_typeClassic.getSelection()) {
-			if (_comm.skin.legacy) {
+		if (!_typeSkin.getSelection() && !_typeClassic.getSelection()) { mixin(S_TRACE);
+			if (_comm.skin.legacy) { mixin(S_TRACE);
 				_typeClassic.setSelection(true);
-			} else {
+			} else { mixin(S_TRACE);
 				_typeSkin.setSelection(true);
 			}
 			selType = _summ.type;
 			selClassic = _comm.skin.legacyEngine.length ? _comm.skin.legacyEngine : null;
-		} else {
-			if (_typeSkin.getSelection()) {
+		} else { mixin(S_TRACE);
+			if (_typeSkin.getSelection()) { mixin(S_TRACE);
 				selType = _type.getText();
-			} else if (_typeClassic.getSelection()) {
+			} else if (_typeClassic.getSelection()) { mixin(S_TRACE);
 				int i = _type.getSelectionIndex();
-				if (-1 != i && i < _classicEngines.length) {
-					if (_hasLegacySkin) {
-						if (0 < i) {
+				if (-1 != i && i < _classicEngines.length) { mixin(S_TRACE);
+					if (_hasLegacySkin) { mixin(S_TRACE);
+						if (0 < i) { mixin(S_TRACE);
 							selClassic = _prop.toAppAbs(_classicEngines[i - 1].enginePath);
 						}
-					} else {
+					} else { mixin(S_TRACE);
 						selClassic = _prop.toAppAbs(_classicEngines[i].enginePath);
 					}
 				}
@@ -473,61 +473,61 @@ private:
 			}
 		}
 		_classicEngines = [];
-		foreach (e; _prop.var.etc.classicEngines) {
+		foreach (e; _prop.var.etc.classicEngines) { mixin(S_TRACE);
 			_classicEngines ~= e.dup;
 		}
 
 		_type.removeAll();
-		void initSkin() {
+		void initSkin() { mixin(S_TRACE);
 			// XML形式のスキン
 			string[] skins;
-			foreach (key, value; skinTable(_prop)) {
+			foreach (key, value; skinTable(_prop)) { mixin(S_TRACE);
 				skins ~= key;
 			}
 			// FIXME: リンクに失敗する
 //			auto skins = table.keys;
-			if (_prop.var.etc.logicalSort) {
+			if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
 				skins = sort!(ncmp)(skins);
-			} else {
+			} else { mixin(S_TRACE);
 				skins = sort!(cmp)(skins);
 			}
-			foreach (i, type; skins) {
+			foreach (i, type; skins) { mixin(S_TRACE);
 				_type.add(type);
-				if (type == selType) {
+				if (type == selType) { mixin(S_TRACE);
 					_type.select(i);
 				}
 			}
-			if (!_type.getItemCount()) {
+			if (!_type.getItemCount()) { mixin(S_TRACE);
 				// スキンが無い
 				_type.add(_prop.var.etc.defaultSkin);
 			}
 		}
 		_hasLegacySkin = false;
 		_typeClassic.setEnabled(true);
-		if (_typeSkin.getSelection()) {
+		if (_typeSkin.getSelection()) { mixin(S_TRACE);
 			initSkin();
-		} else {
+		} else { mixin(S_TRACE);
 			assert (_typeClassic.getSelection());
 			// クラシックエンジンのリソース
 			string resDir, lEnginePath;
 			auto curSkin = Skin.findLegacy(_summ.scenarioPath, resDir, lEnginePath, _prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey, _prop.var.etc.classicEngines);
 			lEnginePath = nabs(lEnginePath);
 			bool cur = 0 != lEnginePath.length;
-			foreach (i, ce; _classicEngines) {
+			foreach (i, ce; _classicEngines) { mixin(S_TRACE);
 				_type.add(ce.name);
-				if (selClassic && cfnmatch(selClassic, _prop.toAppAbs(ce.enginePath))) {
+				if (selClassic && cfnmatch(selClassic, _prop.toAppAbs(ce.enginePath))) { mixin(S_TRACE);
 					_type.select(i);
 				}
-				if (cur && cfnmatch(lEnginePath, _prop.toAppAbs(ce.enginePath))) {
+				if (cur && cfnmatch(lEnginePath, _prop.toAppAbs(ce.enginePath))) { mixin(S_TRACE);
 					cur = false;
 					if (-1 == _type.getSelectionIndex()) _type.select(i);
 				}
 			}
-			if (cur) {
+			if (cur) { mixin(S_TRACE);
 				_type.add(.tryFormat(_prop.msgs.currentEngineSkin, lEnginePath), 0);
 				_hasLegacySkin = true;
 			}
-			if (!_type.getItemCount()) {
+			if (!_type.getItemCount()) { mixin(S_TRACE);
 				// クラシックエンジンが無い
 				_typeClassic.setEnabled(false);
 				_typeClassic.setSelection(false);
@@ -536,22 +536,22 @@ private:
 			}
 		}
 		assert (_type.getItemCount());
-		if (-1 == _type.getSelectionIndex()) {
+		if (-1 == _type.getSelectionIndex()) { mixin(S_TRACE);
 			_type.select(0);
 		}
 	}
-	void openAreaAtView() {
+	void openAreaAtView() { mixin(S_TRACE);
 		auto i = _startArea.getSelectionIndex();
 		if (-1 == i) return;
 		auto a = cast(Area) _startArea.getItem(i).getData();
-		try {
+		try { mixin(S_TRACE);
 			_comm.openCWXPath(cpaddattr(a.cwxPath(true), "shallow"), false);
 		} catch (Exception e) {
 			debugln(e);
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ) {
+	this(Commons comm, Props prop, Shell shell, Summary summ) { mixin(S_TRACE);
 		assert (summ !is null);
 		_comm = comm;
 		_summ = summ;
@@ -561,7 +561,7 @@ public:
 	}
 
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(windowGridLayout(2, false));
 
 		auto tabf = new CTabFolder(area, SWT.BORDER);
@@ -578,7 +578,7 @@ protected:
 		area.addDisposeListener(new Dispose);
 	}
 
-	override bool apply() {
+	override bool apply() { mixin(S_TRACE);
 		string oldName = _summ.scenarioName;
 		string oldResDir = nabs(_comm.skin.resDir);
 		scope (exit) {
@@ -592,17 +592,17 @@ protected:
 		_summ.levelMin = _levMin.getSelection();
 		_summ.levelMax = _levMax.getSelection();
 		string[] rcs;
-		foreach (s; splitLines!string(_rCoupons.getText())) {
-			if (s.length > 0) {
+		foreach (s; splitLines!string(_rCoupons.getText())) { mixin(S_TRACE);
+			if (s.length > 0) { mixin(S_TRACE);
 				rcs ~= s;
 			}
 		}
 		_summ.rCoupons = rcs;
 		_summ.rCouponNum = _rCouponNum.getSelection();
 		_summ.startArea = _startAreaID;
-		if (_typeSkin.getSelection()) {
+		if (_typeSkin.getSelection()) { mixin(S_TRACE);
 			_summ.type = _type.getText();
-		} else {
+		} else { mixin(S_TRACE);
 			_summ.type = "";
 		}
 		_comm.skin = selectedSkin;
@@ -631,7 +631,7 @@ private class SummaryPreview : Composite {
 	private string _bufImagePath = null;
 
 	private class PListener : PaintListener {
-		override void paintControl(PaintEvent e) {
+		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			if (!_imgPath) return;
 			auto d = Display.getCurrent();
 			auto size = _prop.looks.summarySize;
@@ -644,7 +644,7 @@ private class SummaryPreview : Composite {
 			auto skin = _selectedSkin();
 			auto imgPath = _imgPath();
 			auto path = nabs(skin.findImagePath(imgPath, _summ.scenarioPath));
-			if (!_bufImagePath || !_summImageBuf || !.cfnmatch(_bufImagePath, path) || summary(skin) !is _bufImgData) {
+			if (!_bufImagePath || !_summImageBuf || !.cfnmatch(_bufImagePath, path) || summary(skin) !is _bufImgData) { mixin(S_TRACE);
 				if (_summImageBuf) _summImageBuf.dispose();
 				_bufImagePath = path;
 				_bufImgData = summary(skin);
@@ -652,16 +652,16 @@ private class SummaryPreview : Composite {
 			}
 			gc.drawImage(_summImageBuf, 0, 0);
 
-			if (imgPath !is null && imgPath.length > 0) {
+			if (imgPath !is null && imgPath.length > 0) { mixin(S_TRACE);
 				string p = skin.findImagePath(imgPath, _summ.scenarioPath);
-				if (p.length) {
+				if (p.length) { mixin(S_TRACE);
 					scope img = new Image(d, loadImage(_prop, skin, _summ, p));
 					gc.drawImage(img, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
 					img.dispose();
 				}
 			}
-			{
-				void drawCenterText(FontData fontData, string text, int y) {
+			{ mixin(S_TRACE);
+				void drawCenterText(FontData fontData, string text, int y) { mixin(S_TRACE);
 					scope font = new Font(d, fontData);
 					gc.setFont(font);
 					scope p = gc.stringExtent(text);
@@ -675,15 +675,15 @@ private class SummaryPreview : Composite {
 				int levL = _levMin();
 				int levH = _levMax();
 				string levText;
-				if (levL > 0 && levL == levH) {
+				if (levL > 0 && levL == levH) { mixin(S_TRACE);
 					levText = .tryFormat(_prop.msgs.targetLevelSame, levL);
-				} else if (levL > 0 && levH > 0) {
+				} else if (levL > 0 && levH > 0) { mixin(S_TRACE);
 					levText = .tryFormat(_prop.msgs.targetLevelHL, levL, levH);
-				} else if (levL > 0 && levH == 0) {
+				} else if (levL > 0 && levH == 0) { mixin(S_TRACE);
 					levText = .tryFormat(_prop.msgs.targetLevelL, levL);
-				} else if (levL == 0 && levH > 0) {
+				} else if (levL == 0 && levH > 0) { mixin(S_TRACE);
 					levText = .tryFormat(_prop.msgs.targetLevelH, levH);
-				} else {
+				} else { mixin(S_TRACE);
 					levText = "";
 				}
 				drawCenterText(dwtData(_prop.looks.summaryLevelFont(skin.legacy)),
@@ -698,12 +698,12 @@ private class SummaryPreview : Composite {
 				int x = _prop.looks.summaryDescXY.x;
 				int y = _prop.looks.summaryDescXY.y;
 				string desc = _desc();
-				if (_comm.skin.legacy) {
-					foreach (line; splitLines!string(desc)) {
+				if (_comm.skin.legacy) { mixin(S_TRACE);
+					foreach (line; splitLines!string(desc)) { mixin(S_TRACE);
 						gc.drawText(line, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
 						y += _prop.looks.summaryDescLineHeightClassic;
 					}
-				} else {
+				} else { mixin(S_TRACE);
 					gc.drawText(desc, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
 				}
 				gc.setFont(null);
@@ -711,21 +711,21 @@ private class SummaryPreview : Composite {
 				drawCenterText(dwtData(_prop.looks.summaryPageFont(skin.legacy)),
 					_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
 			}
-			if (rect.width < size.width || rect.height < size.height) {
+			if (rect.width < size.width || rect.height < size.height) { mixin(S_TRACE);
 				real wp = cast(real) rect.width / size.width;
 				real hp = cast(real) rect.height / size.height;
 				ImageData data;
-				if (wp < hp) {
+				if (wp < hp) { mixin(S_TRACE);
 					size.width = rect.width;
 					size.height = cast(int) (size.height * wp);
-				} else {
+				} else { mixin(S_TRACE);
 					size.width = cast(int) (size.width * hp);
 					size.height = rect.height;
 				}
 				data = _summImageBuf.getImageData().scaledTo(size.width, size.height);
 				_summImageBuf.dispose();
 				_summImageBuf = null;
-				if (size.width > 0 && size.height > 0) {
+				if (size.width > 0 && size.height > 0) { mixin(S_TRACE);
 					_summImageBuf = new Image(d, data);
 				}
 			}
@@ -735,7 +735,7 @@ private class SummaryPreview : Composite {
 		}
 	}
 
-	this (Commons comm, Composite parent, int style) {
+	this (Commons comm, Composite parent, int style) { mixin(S_TRACE);
 		super (parent, style);
 		_comm = comm;
 		_prop = comm.prop;
@@ -754,13 +754,13 @@ private class SummaryPreview : Composite {
 		_summImage.addPaintListener(new PListener);
 
 		_comm.refSkin.add(&clearBuf);
-		.listener(this, SWT.Dispose, {
+		.listener(this, SWT.Dispose, { mixin(S_TRACE);
 			_comm.refSkin.remove(&clearBuf);
 			clearBuf();
 		});
 	}
 
-	void setImageSelect(string delegate() sname, string delegate() imgPath, Skin delegate() selectedSkin, string delegate() desc, int delegate() levMin, int delegate() levMax) {
+	void setImageSelect(string delegate() sname, string delegate() imgPath, Skin delegate() selectedSkin, string delegate() desc, int delegate() levMin, int delegate() levMax) { mixin(S_TRACE);
 		_sname = sname;
 		_imgPath = imgPath;
 		_selectedSkin = selectedSkin;
@@ -769,11 +769,11 @@ private class SummaryPreview : Composite {
 		_levMax = levMax;
 	}
 
-	void redrawImage() {
+	void redrawImage() { mixin(S_TRACE);
 		_summImage.redraw();
 	}
 
-	void clearBuf() {
+	void clearBuf() { mixin(S_TRACE);
 		if (_summImageBuf) _summImageBuf.dispose();
 		_summImageBuf = null;
 		_bufImagePath = null;

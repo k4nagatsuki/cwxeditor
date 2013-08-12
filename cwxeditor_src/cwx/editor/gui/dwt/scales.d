@@ -23,7 +23,7 @@ class Scales : Composite {
 	private Canvas _hints;
 	private int[] _borderlines;
 
-	this (Composite parent, int style) {
+	this (Composite parent, int style) { mixin(S_TRACE);
 		super (parent, style);
 		_readOnly = (style & SWT.READ_ONLY) != 0;
 		setLayout(zeroMarginGridLayout(3, false));
@@ -31,10 +31,10 @@ class Scales : Composite {
 
 	/// パラメータを指定して初期化を行う。
 	/// 値の段階はstep_cで、最小値はminで設定する。
-	void setScales(uint step_c, in string[] names, int page, int min = 0) {
+	void setScales(uint step_c, in string[] names, int page, int min = 0) { mixin(S_TRACE);
 		auto scStyle = SWT.NONE;
 		auto spStyle = _readOnly ? SWT.BORDER|SWT.READ_ONLY : SWT.BORDER;
-		foreach (i; 0..names.length) {
+		foreach (i; 0..names.length) { mixin(S_TRACE);
 			auto label = new Label(this, SWT.NONE);
 			label.setText(names[i]);
 
@@ -77,14 +77,14 @@ class Scales : Composite {
 	private class Selection : SelectionAdapter {
 		private Scale _scale;
 		private Spinner _spn;
-		this (Scale scale, Spinner spn) {
+		this (Scale scale, Spinner spn) { mixin(S_TRACE);
 			_scale = scale;
 			_spn = spn;
 		}
-		override void widgetSelected(SelectionEvent e) {
-			if (_scale is e.widget) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+			if (_scale is e.widget) { mixin(S_TRACE);
 				_spn.setSelection(_scale.getSelection() + _spn.getMinimum());
-			} else {
+			} else { mixin(S_TRACE);
 				assert (_spn is e.widget);
 				_scale.setSelection(_spn.getSelection() - _spn.getMinimum());
 			}
@@ -92,7 +92,7 @@ class Scales : Composite {
 		}
 	}
 	private class PaintHints : PaintListener {
-		override void paintControl(PaintEvent e) {
+		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			auto ca = _hints.getClientArea();
 			version (Windows) {
 				import org.eclipse.swt.internal.win32.OS;
@@ -102,7 +102,7 @@ class Scales : Composite {
 				int left = rect.left;
 				OS.SendMessage(_scales[0].handle, TBM_GETTHUMBRECT, 0, &rect);
 				left += (rect.right - rect.left) / 2;
-			} else {
+			} else { mixin(S_TRACE);
 				int left = 15;
 			}
 			int w = ca.width - left * 2;
@@ -115,7 +115,7 @@ class Scales : Composite {
 			e.gc.drawText(maxStr, ca.width - left - e.gc.textExtent(maxStr).x / 2, 0);
 
 			int range = maxVal - minVal;
-			foreach (b; borderlines) {
+			foreach (b; borderlines) { mixin(S_TRACE);
 				auto bb = b - minVal;
 				auto s = .text(b);
 				auto x = cast(int)(w * (cast(real)bb / range)) + left - e.gc.textExtent(s).x / 2;
@@ -125,25 +125,25 @@ class Scales : Composite {
 	}
 
 	/// 値を設定する。
-	void setValue(int index, int value) {
+	void setValue(int index, int value) { mixin(S_TRACE);
 		int minVal = _spns[index].getMinimum();
 		_spns[index].setSelection(value);
 		_scales[index].setSelection(value - minVal);
 	}
 	/// 全ての値を設定する。
-	void setValues(in int[] value) {
-		foreach (i, v; value) {
+	void setValues(in int[] value) { mixin(S_TRACE);
+		foreach (i, v; value) { mixin(S_TRACE);
 			setValue(i, v);
 		}
 	}
 	/// 値を返す。
-	int getValue(int index) {
+	int getValue(int index) { mixin(S_TRACE);
 		return _spns[index].getSelection();
 	}
 	/// 全ての値を返す。
-	int[] getValues() {
+	int[] getValues() { mixin(S_TRACE);
 		int[] r;
-		foreach (i, s; _spns) {
+		foreach (i, s; _spns) { mixin(S_TRACE);
 			r ~= s.getSelection();
 		}
 		return r;
@@ -151,14 +151,14 @@ class Scales : Composite {
 
 	/// 強調表示する値。
 	@property
-	void borderlines(in int[] lines) {
+	void borderlines(in int[] lines) { mixin(S_TRACE);
 		_borderlines = lines.dup;
 		_hints.redraw();
 	}
 	/// ditto
 	@property
 	const
-	int[] borderlines() {
+	int[] borderlines() { mixin(S_TRACE);
 		return _borderlines.dup;
 	}
 }

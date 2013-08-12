@@ -1,6 +1,7 @@
 
 module cwx.features;
 
+import cwx.perf;
 import cwx.types;
 
 /// クーポンのタイプ
@@ -23,14 +24,14 @@ static const SEX_ALL = [
 	Sex.FEMALE,
 ];
 /// 性別を文字列に変換する。
-string fromSex(Sex e) {
+string fromSex(Sex e) { mixin(S_TRACE);
 	final switch (e) {
 	case Sex.MALE: return "Male";
 	case Sex.FEMALE: return "Female";
 	}
 }
 /// ditto
-Sex toSex(string e) {
+Sex toSex(string e) { mixin(S_TRACE);
 	final switch (e) {
 	case "Male": return Sex.MALE;
 	case "Female": return Sex.FEMALE;
@@ -52,7 +53,7 @@ static const PERIOD_ALL = [
 	Period.OLD,
 ];
 /// 年代を文字列に変換する。
-string fromPeriod(Period e) {
+string fromPeriod(Period e) { mixin(S_TRACE);
 	final switch (e) {
 	case Period.CHILD: return "Child";
 	case Period.YOUNG: return "Young";
@@ -61,7 +62,7 @@ string fromPeriod(Period e) {
 	}
 }
 /// ditto
-Period toPeriod(string e) {
+Period toPeriod(string e) { mixin(S_TRACE);
 	final switch (e) {
 	case "Child": return Period.CHILD;
 	case "Young": return Period.YOUNG;
@@ -86,7 +87,7 @@ enum Nature {
 	DIV, /// 神仙型。
 }
 /// 素質を文字列に変換する。
-string fromNature(Nature e) {
+string fromNature(Nature e) { mixin(S_TRACE);
 	final switch (e) {
 	case Nature.SPI: return "Spi";
 	case Nature.AGL: return "Agl";
@@ -103,7 +104,7 @@ string fromNature(Nature e) {
 	}
 }
 /// ditto
-Nature toNature(string e) {
+Nature toNature(string e) { mixin(S_TRACE);
 	final switch (e) {
 	case "Spi": return Nature.SPI;
 	case "Agl": return Nature.AGL;
@@ -191,7 +192,7 @@ enum Makings {
 	FAME_A, /// 愛に生きる。
 }
 /// 素質を文字列に変換する。
-string fromMakings(Makings e) {
+string fromMakings(Makings e) { mixin(S_TRACE);
 	final switch (e) {
 	case Makings.LOOKS_B: return "LooksB";
 	case Makings.LOOKS_U: return "LooksU";
@@ -244,7 +245,7 @@ string fromMakings(Makings e) {
 	}
 }
 /// 素質を文字列に変換する。
-Makings toMakings(string e) {
+Makings toMakings(string e) { mixin(S_TRACE);
 	final switch (e) {
 	case "LooksB": return Makings.LOOKS_B;
 	case "LooksU": return Makings.LOOKS_U;
@@ -324,7 +325,7 @@ static const MAKINGS_LEFT = [
 	Makings.FAME_H,
 ];
 /// 左辺に対応する右辺の特徴を返す。
-Makings reverseMakings(Makings m) {
+Makings reverseMakings(Makings m) { mixin(S_TRACE);
 	final switch (m) {
 	case Makings.LOOKS_B: return Makings.LOOKS_U;
 	case Makings.LOOKS_U: return Makings.LOOKS_B;

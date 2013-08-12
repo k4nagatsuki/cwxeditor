@@ -22,7 +22,7 @@ private:
 public:
 	/// 唯一のコンストラクタ
 	@property
-	this () {
+	this () { mixin(S_TRACE);
 		// Nothing
 	}
 
@@ -31,7 +31,7 @@ public:
 	/// key = キー。
 	/// Returns: 使用回数。
 	const
-	uint get(K key) {
+	uint get(K key) { mixin(S_TRACE);
 		auto p = key in _cont;
 		return p ? p.size : 0;
 	}
@@ -40,7 +40,7 @@ public:
 	/// Returns: キーの一覧。
 	@property
 	const
-	K[] keys() {
+	K[] keys() { mixin(S_TRACE);
 		return _cont.keys;
 	}
 
@@ -50,7 +50,7 @@ public:
 	/// Returns: 使用者の一覧。
 	@property
 	const
-	U[] values(K key) {
+	U[] values(K key) { mixin(S_TRACE);
 		auto p = key in _cont;
 		return p ? p.toArray() : cast(U[]) [];
 	}
@@ -59,11 +59,11 @@ public:
 	/// Params:
 	/// key = キー。
 	/// user = 使用者。
-	void add(K key, U user) {
+	void add(K key, U user) { mixin(S_TRACE);
 		HashSet!(U) set;
-		if (key in _cont) {
+		if (key in _cont) { mixin(S_TRACE);
 			set = _cont[key];
-		} else {
+		} else { mixin(S_TRACE);
 			set = new HashSet!(U);
 			_cont[key] = set;
 		}
@@ -73,10 +73,10 @@ public:
 	/// Params:
 	/// key = キー。
 	/// user = 使用者。
-	void remove(K key, U user) {
+	void remove(K key, U user) { mixin(S_TRACE);
 		auto set = _cont[key];
 		set.remove(user);
-		if (set.isEmpty) {
+		if (set.isEmpty) { mixin(S_TRACE);
 			_cont.remove(key);
 			destroy(set);
 		}
@@ -86,16 +86,16 @@ public:
 	/// oldKey = 変更前のキー。
 	/// newKey = 変更後のキー。
 	/// dup = 変更後の重複を許可するか。
-	void change(K oldKey, K newKey, bool dup = false) {
-		if (oldKey != newKey && (oldKey in _cont)) {
-			if (newKey in _cont) {
+	void change(K oldKey, K newKey, bool dup = false) { mixin(S_TRACE);
+		if (oldKey != newKey && (oldKey in _cont)) { mixin(S_TRACE);
+			if (newKey in _cont) { mixin(S_TRACE);
 				if (!dup) debugln(oldKey, " to ", newKey, " : ", _cont[newKey].size);
-				foreach (val; _cont[oldKey]) {
+				foreach (val; _cont[oldKey]) { mixin(S_TRACE);
 					val.change(newKey);
 					_cont[newKey].add(val);
 				}
-			} else {
-				foreach (val; _cont[oldKey]) {
+			} else { mixin(S_TRACE);
+				foreach (val; _cont[oldKey]) { mixin(S_TRACE);
 					val.change(newKey);
 				}
 				_cont[newKey] = _cont[oldKey];
@@ -120,27 +120,27 @@ alias TChgCallback!(PathId) ChgPathCallback;
 
 /// テキストをそのままキーとする場合のメソッド群を実装する。
 private mixin template StringId() {
-	string opCast() {
+	string opCast() { mixin(S_TRACE);
 		return id;
 	}
 	const
-	hash_t toHash() {
+	hash_t toHash() { mixin(S_TRACE);
 		hash_t hash = 0;
-		foreach (c; id) {
+		foreach (c; id) { mixin(S_TRACE);
 			hash = (hash * 9) + c;
 		}
 		return hash;
 	}
 	const
-	bool opEquals(ref const(typeof(this)) s) {
+	bool opEquals(ref const(typeof(this)) s) { mixin(S_TRACE);
 		return id == s.id;
 	}
 	const
-	int opCmp(ref const(typeof(this)) s) {
+	int opCmp(ref const(typeof(this)) s) { mixin(S_TRACE);
 		return cmp(this.id, s.id);
 	}
 	const
-	string toString() {
+	string toString() { mixin(S_TRACE);
 		return id;
 	}
 }
@@ -153,27 +153,27 @@ struct FlagId {
 		r.id = id;
 		return r;
 	}
-	string opCast() {
+	string opCast() { mixin(S_TRACE);
 		return id;
 	}
 	const
-	hash_t toHash() {
+	hash_t toHash() { mixin(S_TRACE);
 		hash_t hash = 0;
-		foreach (c; .toLower(id)) {
+		foreach (c; .toLower(id)) { mixin(S_TRACE);
 			hash = (hash * 9) + c;
 		}
 		return hash;
 	}
 	const
-	bool opEquals(ref const(FlagId) s) {
+	bool opEquals(ref const(FlagId) s) { mixin(S_TRACE);
 		return icmp(id, s.id) == 0;
 	}
 	const
-	int opCmp(ref const(FlagId) s) {
+	int opCmp(ref const(FlagId) s) { mixin(S_TRACE);
 		return icmp(this.id, s.id);
 	}
 	const
-	string toString() {
+	string toString() { mixin(S_TRACE);
 		return id;
 	}
 }
@@ -202,8 +202,8 @@ public:
 	/// IDを設定する。
 	/// 所有者がChgFlagCallbackであればコールバックが行われる。
 	@property
-	void id(FlagId newVal) {
-		if (cast(ChgFlagCallback) _cwxPath) {
+	void id(FlagId newVal) { mixin(S_TRACE);
+		if (cast(ChgFlagCallback) _cwxPath) { mixin(S_TRACE);
 			(cast(ChgFlagCallback) _cwxPath).changeCallback(toFlagId(_flag), newVal);
 		}
 		flag = newVal.id;
@@ -213,8 +213,8 @@ public:
 	/// Params:
 	/// flag = フラグ。
 	@property
-	void flag(string flag) {
-		if (_uc !is null) {
+	void flag(string flag) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_flag !is null) _uc.flag.remove(toFlagId(_flag), this);
 			if (flag !is null) _uc.flag.add(toFlagId(flag), this);
 		}
@@ -224,7 +224,7 @@ public:
 	/// Returns: フラグ。
 	@property
 	const
-	string flag() {
+	string flag() { mixin(S_TRACE);
 		return _flag;
 	}
 
@@ -233,24 +233,24 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (uc && _flag) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _flag) { mixin(S_TRACE);
 			uc.flag.add(toFlagId(_flag), this);
 		}
-		if (_uc && _flag) {
+		if (_uc && _flag) { mixin(S_TRACE);
 			_uc.flag.remove(toFlagId(_flag), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_uc && _flag !is null) {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _flag !is null) { mixin(S_TRACE);
 			_uc.flag.remove(toFlagId(_flag), this);
 		}
 		_uc = null;
 	}
-	override void change(FlagId newVal) {
-		if (cast(ChgFlagCallback) _cwxPath) {
+	override void change(FlagId newVal) { mixin(S_TRACE);
+		if (cast(ChgFlagCallback) _cwxPath) { mixin(S_TRACE);
 			(cast(ChgFlagCallback) _cwxPath).changeCallback(toFlagId(_flag), newVal);
 		}
 		_flag = cast(string) newVal;
@@ -265,27 +265,27 @@ struct StepId {
 		r.id = id;
 		return r;
 	}
-	string opCast() {
+	string opCast() { mixin(S_TRACE);
 		return id;
 	}
 	const
-	hash_t toHash() {
+	hash_t toHash() { mixin(S_TRACE);
 		hash_t hash = 0;
-		foreach (c; .toLower(id)) {
+		foreach (c; .toLower(id)) { mixin(S_TRACE);
 			hash = (hash * 9) + c;
 		}
 		return hash;
 	}
 	const
-	bool opEquals(ref const(StepId) s) {
+	bool opEquals(ref const(StepId) s) { mixin(S_TRACE);
 		return icmp(id, s.id) == 0;
 	}
 	const
-	int opCmp(ref const(StepId) s) {
+	int opCmp(ref const(StepId) s) { mixin(S_TRACE);
 		return icmp(this.id, s.id);
 	}
 	const
-	string toString() {
+	string toString() { mixin(S_TRACE);
 		return id;
 	}
 }
@@ -314,8 +314,8 @@ public:
 	/// IDを設定する。
 	/// 所有者がChgStepCallbackであればコールバックが行われる。
 	@property
-	void id(StepId newVal) {
-		if (cast(ChgStepCallback) _cwxPath) {
+	void id(StepId newVal) { mixin(S_TRACE);
+		if (cast(ChgStepCallback) _cwxPath) { mixin(S_TRACE);
 			(cast(ChgStepCallback) _cwxPath).changeCallback(toStepId(_step), newVal);
 		}
 		step = newVal.id;
@@ -325,8 +325,8 @@ public:
 	/// Params:
 	/// step = ステップ。
 	@property
-	void step(string step) {
-		if (_uc !is null) {
+	void step(string step) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_step !is null) _uc.step.remove(toStepId(_step), this);
 			if (step !is null) _uc.step.add(toStepId(step), this);
 		}
@@ -336,7 +336,7 @@ public:
 	/// Returns: ステップ。
 	@property
 	const
-	string step() {
+	string step() { mixin(S_TRACE);
 		return _step;
 	}
 
@@ -345,24 +345,24 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (uc && _step) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _step) { mixin(S_TRACE);
 			uc.step.add(toStepId(_step), this);
 		}
-		if (_uc && _step) {
+		if (_uc && _step) { mixin(S_TRACE);
 			_uc.step.remove(toStepId(_step), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_uc && _step !is null) {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _step !is null) { mixin(S_TRACE);
 			_uc.step.remove(toStepId(_step), this);
 		}
 		_uc = null;
 	}
-	override void change(StepId newVal) {
-		if (cast(ChgStepCallback) _cwxPath) {
+	override void change(StepId newVal) { mixin(S_TRACE);
+		if (cast(ChgStepCallback) _cwxPath) { mixin(S_TRACE);
 			(cast(ChgStepCallback) _cwxPath).changeCallback(toStepId(_step), newVal);
 		}
 		_step = cast(string) newVal;
@@ -398,7 +398,7 @@ public:
 
 	/// IDを設定する。
 	@property
-	void id(AreaId newVal) {
+	void id(AreaId newVal) { mixin(S_TRACE);
 		area = newVal;
 	}
 
@@ -406,8 +406,8 @@ public:
 	/// Params:
 	/// id = エリアID。
 	@property
-	void area(ulong id) {
-		if (_uc !is null) {
+	void area(ulong id) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.area.remove(toAreaId(_id), this);
 			if (id > 0) _uc.area.add(toAreaId(id), this);
 		}
@@ -417,7 +417,7 @@ public:
 	/// Returns: エリアID。
 	@property
 	const
-	ulong area() {
+	ulong area() { mixin(S_TRACE);
 		return _id;
 	}
 
@@ -426,23 +426,23 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (uc && _id > 0) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _id > 0) { mixin(S_TRACE);
 			uc.area.add(toAreaId(_id), this);
 		}
-		if (_uc && _id > 0) {
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.area.remove(toAreaId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_uc && _id > 0) {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.area.remove(toAreaId(_id), this);
 		}
 		_uc = null;
 	}
-	override void change(AreaId newVal) {
+	override void change(AreaId newVal) { mixin(S_TRACE);
 		if (_handleChange) _handleChange(newVal);
 		_id = newVal;
 	}
@@ -481,7 +481,7 @@ public:
 
 	/// IDを設定する。
 	@property
-	void id(BattleId newVal) {
+	void id(BattleId newVal) { mixin(S_TRACE);
 		battle = newVal;
 	}
 
@@ -489,8 +489,8 @@ public:
 	/// Params:
 	/// id = バトルID。
 	@property
-	void battle(ulong id) {
-		if (_uc !is null) {
+	void battle(ulong id) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.battle.remove(toBattleId(_id), this);
 			if (id > 0) _uc.battle.add(toBattleId(id), this);
 		}
@@ -500,7 +500,7 @@ public:
 	/// Returns: バトルID。
 	@property
 	const
-	ulong battle() {
+	ulong battle() { mixin(S_TRACE);
 		return _id;
 	}
 
@@ -509,23 +509,23 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (uc && _id > 0) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _id > 0) { mixin(S_TRACE);
 			uc.battle.add(toBattleId(_id), this);
 		}
-		if (_uc && _id > 0) {
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.battle.remove(toBattleId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_uc && _id > 0) {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.battle.remove(toBattleId(_id), this);
 		}
 		_uc = null;
 	}
-	override void change(BattleId newVal) {
+	override void change(BattleId newVal) { mixin(S_TRACE);
 		if (_handleChange) _handleChange(newVal);
 		_id = newVal;
 	}
@@ -564,7 +564,7 @@ public:
 
 	/// IDを設定する。
 	@property
-	void id(PackageId newVal) {
+	void id(PackageId newVal) { mixin(S_TRACE);
 		packages = newVal;
 	}
 
@@ -572,8 +572,8 @@ public:
 	/// Params:
 	/// id = パッケージID。
 	@property
-	void packages(ulong id) {
-		if (_uc !is null) {
+	void packages(ulong id) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.packages.remove(toPackageId(_id), this);
 			if (id > 0) _uc.packages.add(toPackageId(id), this);
 		}
@@ -583,7 +583,7 @@ public:
 	/// Returns: パッケージID。
 	@property
 	const
-	ulong packages() {
+	ulong packages() { mixin(S_TRACE);
 		return _id;
 	}
 
@@ -592,24 +592,24 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (uc && _id > 0) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _id > 0) { mixin(S_TRACE);
 			uc.packages.add(toPackageId(_id), this);
 		}
-		if (_uc && _id > 0) {
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.packages.remove(toPackageId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_uc && _id > 0) {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.packages.remove(toPackageId(_id), this);
 		}
 		_uc = null;
 	}
 
-	override void change(PackageId newVal) {
+	override void change(PackageId newVal) { mixin(S_TRACE);
 		_id = newVal;
 	}
 }
@@ -631,47 +631,47 @@ struct PathId {
 	}
 	@property
 	const
-	bool isBinImg() {
+	bool isBinImg() { mixin(S_TRACE);
 		return binImg.length > 0u;
 	}
 	@property
 	const
-	bool valid() {
+	bool valid() { mixin(S_TRACE);
 		return id.length || binImg.length;
 	}
 	const
-	string opCast() {
+	string opCast() { mixin(S_TRACE);
 		string id = this.id;
 		return isBinImg ? binImg : replace(id, "/", dirSeparator);
 	}
 	const
-	hash_t toHash() {
+	hash_t toHash() { mixin(S_TRACE);
 		hash_t hash = 0;
 		string s;
-		if (isBinImg) {
+		if (isBinImg) { mixin(S_TRACE);
 			s = binImg;
-		} else {
+		} else { mixin(S_TRACE);
 			static if (0 == filenameCharCmp('A', 'a')) {
 				s = .toLower(id);
-			} else {
+			} else { mixin(S_TRACE);
 				s = id;
 			}
 		}
-		foreach (char c; s) {
+		foreach (char c; s) { mixin(S_TRACE);
 			hash = (hash * 9) + c;
 		}
 		return hash;
 	}
 	const
-	bool opEquals(ref const(PathId) s) {
+	bool opEquals(ref const(PathId) s) { mixin(S_TRACE);
 		return (isBinImg || s.isBinImg) ? binImg == s.binImg : cfnmatch(this.id, s.id);
 	}
 	const
-	int opCmp(ref const(PathId) s) {
+	int opCmp(ref const(PathId) s) { mixin(S_TRACE);
 		if (isBinImg && !s.isBinImg) return -1;
 		if (!isBinImg && s.isBinImg) return 1;
-		if (isBinImg || s.isBinImg) {
-			foreach (i, char c; binImg) {
+		if (isBinImg || s.isBinImg) { mixin(S_TRACE);
+			foreach (i, char c; binImg) { mixin(S_TRACE);
 				if (c < s.binImg[i]) return -1;
 				if (c > s.binImg[i]) return 1;
 			}
@@ -681,16 +681,16 @@ struct PathId {
 		}
 		static if (0 == filenameCharCmp('A', 'a')) {
 			return std.string.icmp(this.id.encodePath(), s.id.encodePath());
-		} else {
+		} else { mixin(S_TRACE);
 			return std.string.cmp(this.id.encodePath(), s.id.encodePath());
 		}
 	}
 	const
-	string toString() {
+	string toString() { mixin(S_TRACE);
 		string buf = "PathId {";
-		if (isBinImg) {
+		if (isBinImg) { mixin(S_TRACE);
 			buf ~= "BinaryImage, hash: " ~ to!(string)(toHash());
-		} else {
+		} else { mixin(S_TRACE);
 			buf ~= id;
 		}
 		buf ~= "}";
@@ -698,10 +698,10 @@ struct PathId {
 	}
 }
 /// 文字列をファイルパスIDに変換。
-PathId toPathId(string id) {
-	if (isBinImg(id)) {
+PathId toPathId(string id) { mixin(S_TRACE);
+	if (isBinImg(id)) { mixin(S_TRACE);
 		return PathId(BI_PATH_ID, id);
-	} else {
+	} else { mixin(S_TRACE);
 		id = replace(id, dirSeparator, "/");
 		static if (altDirSeparator.length) {
 			id = replace(id, altDirSeparator, "/");
@@ -733,8 +733,8 @@ public:
 	/// IDを設定する。
 	/// 所有者がChgPathCallbackであればコールバックが行われる。
 	@property
-	void id(PathId newVal) {
-		if (cast(ChgPathCallback) _cwxPath) {
+	void id(PathId newVal) { mixin(S_TRACE);
+		if (cast(ChgPathCallback) _cwxPath) { mixin(S_TRACE);
 			(cast(ChgPathCallback) _cwxPath).changeCallback(_path, newVal);
 		}
 		path = cast(string) newVal;
@@ -742,12 +742,12 @@ public:
 
 	/// ファイルパスを設定する。
 	@property
-	void path(string path) {
-		if (_uc !is null) {
-			if (_path.valid) {
+	void path(string path) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
+			if (_path.valid) { mixin(S_TRACE);
 				_uc.path.remove(_path, this);
 			}
-			if (path.length) {
+			if (path.length) { mixin(S_TRACE);
 				_uc.path.add(toPathId(path), this);
 			}
 		}
@@ -764,25 +764,25 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (uc && _path.valid) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _path.valid) { mixin(S_TRACE);
 			uc.path.add(_path, this);
 		}
-		if (_uc && _path.valid) {
+		if (_uc && _path.valid) { mixin(S_TRACE);
 			_uc.path.remove(_path, this);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_uc && _path.valid) {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _path.valid) { mixin(S_TRACE);
 			_uc.path.remove(_path, this);
 		}
 		_uc = null;
 	}
 
-	override void change(PathId newVal) {
-		if (cast(ChgPathCallback) _cwxPath) {
+	override void change(PathId newVal) { mixin(S_TRACE);
+		if (cast(ChgPathCallback) _cwxPath) { mixin(S_TRACE);
 			(cast(ChgPathCallback) _cwxPath).changeCallback(_path, newVal);
 		}
 		_path = newVal;
@@ -818,7 +818,7 @@ public:
 
 	/// IDを設定する。
 	@property
-	void id(CastId newVal) {
+	void id(CastId newVal) { mixin(S_TRACE);
 		casts = newVal;
 	}
 
@@ -826,8 +826,8 @@ public:
 	/// Params:
 	/// id = キャストID。
 	@property
-	void casts(ulong id) {
-		if (_uc !is null) {
+	void casts(ulong id) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.casts.remove(toCastId(_id), this);
 			if (id > 0) _uc.casts.add(toCastId(id), this);
 		}
@@ -837,7 +837,7 @@ public:
 	/// Returns: キャストID。
 	@property
 	const
-	ulong casts() {
+	ulong casts() { mixin(S_TRACE);
 		return _id;
 	}
 
@@ -846,24 +846,24 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (uc && _id > 0) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _id > 0) { mixin(S_TRACE);
 			uc.casts.add(toCastId(_id), this);
 		}
-		if (_uc && _id > 0) {
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.casts.remove(toCastId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_uc && _id > 0) {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.casts.remove(toCastId(_id), this);
 		}
 		_uc = null;
 	}
 
-	override void change(CastId newVal) {
+	override void change(CastId newVal) { mixin(S_TRACE);
 		_id = newVal;
 	}
 }
@@ -896,7 +896,7 @@ public:
 
 	/// IDを設定する。
 	@property
-	void id(SkillId newVal) {
+	void id(SkillId newVal) { mixin(S_TRACE);
 		skill = newVal;
 	}
 
@@ -904,8 +904,8 @@ public:
 	/// Params:
 	/// id = スキルID。
 	@property
-	void skill(ulong id) {
-		if (_uc !is null) {
+	void skill(ulong id) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.skill.remove(toSkillId(_id), this);
 			if (id > 0) _uc.skill.add(toSkillId(id), this);
 		}
@@ -915,7 +915,7 @@ public:
 	/// Returns: スキルID。
 	@property
 	const
-	ulong skill() {
+	ulong skill() { mixin(S_TRACE);
 		return _id;
 	}
 
@@ -924,24 +924,24 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (uc && _id > 0) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _id > 0) { mixin(S_TRACE);
 			uc.skill.add(toSkillId(_id), this);
 		}
-		if (_uc && _id > 0) {
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.skill.remove(toSkillId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_uc && _id > 0) {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.skill.remove(toSkillId(_id), this);
 		}
 		_uc = null;
 	}
 
-	override void change(SkillId newVal) {
+	override void change(SkillId newVal) { mixin(S_TRACE);
 		_id = newVal;
 	}
 }
@@ -974,7 +974,7 @@ public:
 
 	/// IDを設定する。
 	@property
-	void id(ItemId newVal) {
+	void id(ItemId newVal) { mixin(S_TRACE);
 		item = newVal;
 	}
 
@@ -982,8 +982,8 @@ public:
 	/// Params:
 	/// id = アイテムID。
 	@property
-	void item(ulong id) {
-		if (_uc !is null) {
+	void item(ulong id) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.item.remove(toItemId(_id), this);
 			if (id > 0) _uc.item.add(toItemId(id), this);
 		}
@@ -993,7 +993,7 @@ public:
 	/// Returns: アイテムID。
 	@property
 	const
-	ulong item() {
+	ulong item() { mixin(S_TRACE);
 		return _id;
 	}
 
@@ -1002,24 +1002,24 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (uc && _id > 0) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _id > 0) { mixin(S_TRACE);
 			uc.item.add(toItemId(_id), this);
 		}
-		if (_uc && _id > 0) {
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.item.remove(toItemId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_uc && _id > 0) {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.item.remove(toItemId(_id), this);
 		}
 		_uc = null;
 	}
 
-	override void change(ItemId newVal) {
+	override void change(ItemId newVal) { mixin(S_TRACE);
 		_id = newVal;
 	}
 }
@@ -1052,7 +1052,7 @@ public:
 
 	/// IDを設定する。
 	@property
-	void id(BeastId newVal) {
+	void id(BeastId newVal) { mixin(S_TRACE);
 		beast = newVal;
 	}
 
@@ -1060,8 +1060,8 @@ public:
 	/// Params:
 	/// id = 召喚獣ID。
 	@property
-	void beast(ulong id) {
-		if (_uc !is null) {
+	void beast(ulong id) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.beast.remove(toBeastId(_id), this);
 			if (id > 0) _uc.beast.add(toBeastId(id), this);
 		}
@@ -1071,7 +1071,7 @@ public:
 	/// Returns: 召喚獣ID。
 	@property
 	const
-	ulong beast() {
+	ulong beast() { mixin(S_TRACE);
 		return _id;
 	}
 
@@ -1080,24 +1080,24 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (uc && _id > 0) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _id > 0) { mixin(S_TRACE);
 			uc.beast.add(toBeastId(_id), this);
 		}
-		if (_uc && _id > 0) {
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.beast.remove(toBeastId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_uc && _id > 0) {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.beast.remove(toBeastId(_id), this);
 		}
 		_uc = null;
 	}
 
-	override void change(BeastId newVal) {
+	override void change(BeastId newVal) { mixin(S_TRACE);
 		_id = newVal;
 	}
 }
@@ -1130,7 +1130,7 @@ public:
 
 	/// IDを設定する。
 	@property
-	void id(InfoId newVal) {
+	void id(InfoId newVal) { mixin(S_TRACE);
 		info = newVal;
 	}
 
@@ -1138,8 +1138,8 @@ public:
 	/// Params:
 	/// id = 情報カードID。
 	@property
-	void info(ulong id) {
-		if (_uc !is null) {
+	void info(ulong id) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.info.remove(toInfoId(_id), this);
 			if (id > 0) _uc.info.add(toInfoId(id), this);
 		}
@@ -1149,7 +1149,7 @@ public:
 	/// Returns: 情報カードID。
 	@property
 	const
-	ulong info() {
+	ulong info() { mixin(S_TRACE);
 		return _id;
 	}
 
@@ -1158,24 +1158,24 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (uc && _id > 0) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _id > 0) { mixin(S_TRACE);
 			uc.info.add(toInfoId(_id), this);
 		}
-		if (_uc && _id > 0) {
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.info.remove(toInfoId(_id), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_uc && _id > 0) {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _id > 0) { mixin(S_TRACE);
 			_uc.info.remove(toInfoId(_id), this);
 		}
 		_uc = null;
 	}
 
-	override void change(InfoId newVal) {
+	override void change(InfoId newVal) { mixin(S_TRACE);
 		_id = newVal;
 	}
 }
@@ -1212,8 +1212,8 @@ public:
 	/// Params:
 	/// coupon = クーポン。
 	@property
-	void coupon(string coupon) {
-		if (_uc !is null) {
+	void coupon(string coupon) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_coupon != "") _uc.coupon.remove(toCouponId(_coupon), this);
 			if (coupon != "") _uc.coupon.add(toCouponId(coupon), this);
 		}
@@ -1223,7 +1223,7 @@ public:
 	/// Returns: クーポン。
 	@property
 	const
-	string coupon() {
+	string coupon() { mixin(S_TRACE);
 		return _coupon;
 	}
 
@@ -1232,23 +1232,23 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (uc && _coupon != "") {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _coupon != "") { mixin(S_TRACE);
 			uc.coupon.add(toCouponId(_coupon), this);
 		}
-		if (_uc && _coupon != "") {
+		if (_uc && _coupon != "") { mixin(S_TRACE);
 			_uc.coupon.remove(toCouponId(_coupon), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_uc && _coupon != "") {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _coupon != "") { mixin(S_TRACE);
 			_uc.coupon.remove(toCouponId(_coupon), this);
 		}
 		_uc = null;
 	}
-	override void change(CouponId newVal) {
+	override void change(CouponId newVal) { mixin(S_TRACE);
 		_coupon = newVal.id;
 	}
 }
@@ -1285,8 +1285,8 @@ public:
 	/// Params:
 	/// gossip = ゴシップ。
 	@property
-	void gossip(string gossip) {
-		if (_uc !is null) {
+	void gossip(string gossip) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_gossip != "") _uc.gossip.remove(toGossipId(_gossip), this);
 			if (gossip != "") _uc.gossip.add(toGossipId(gossip), this);
 		}
@@ -1296,7 +1296,7 @@ public:
 	/// Returns: ゴシップ。
 	@property
 	const
-	string gossip() {
+	string gossip() { mixin(S_TRACE);
 		return _gossip;
 	}
 
@@ -1305,23 +1305,23 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (uc && _gossip != "") {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _gossip != "") { mixin(S_TRACE);
 			uc.gossip.add(toGossipId(_gossip), this);
 		}
-		if (_uc && _gossip != "") {
+		if (_uc && _gossip != "") { mixin(S_TRACE);
 			_uc.gossip.remove(toGossipId(_gossip), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_uc && _gossip != "") {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _gossip != "") { mixin(S_TRACE);
 			_uc.gossip.remove(toGossipId(_gossip), this);
 		}
 		_uc = null;
 	}
-	override void change(GossipId newVal) {
+	override void change(GossipId newVal) { mixin(S_TRACE);
 		_gossip = newVal.id;
 	}
 }
@@ -1358,8 +1358,8 @@ public:
 	/// Params:
 	/// completeStamp = 終了印。
 	@property
-	void completeStamp(string completeStamp) {
-		if (_uc !is null) {
+	void completeStamp(string completeStamp) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_completeStamp != "") _uc.completeStamp.remove(toCompleteStampId(_completeStamp), this);
 			if (completeStamp != "") _uc.completeStamp.add(toCompleteStampId(completeStamp), this);
 		}
@@ -1369,7 +1369,7 @@ public:
 	/// Returns: 終了印。
 	@property
 	const
-	string completeStamp() {
+	string completeStamp() { mixin(S_TRACE);
 		return _completeStamp;
 	}
 
@@ -1378,23 +1378,23 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (uc && _completeStamp != "") {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _completeStamp != "") { mixin(S_TRACE);
 			uc.completeStamp.add(toCompleteStampId(_completeStamp), this);
 		}
-		if (_uc && _completeStamp != "") {
+		if (_uc && _completeStamp != "") { mixin(S_TRACE);
 			_uc.completeStamp.remove(toCompleteStampId(_completeStamp), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_uc && _completeStamp != "") {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _completeStamp != "") { mixin(S_TRACE);
 			_uc.completeStamp.remove(toCompleteStampId(_completeStamp), this);
 		}
 		_uc = null;
 	}
-	override void change(CompleteStampId newVal) {
+	override void change(CompleteStampId newVal) { mixin(S_TRACE);
 		_completeStamp = newVal.id;
 	}
 }
@@ -1431,8 +1431,8 @@ public:
 	/// Params:
 	/// keyCode = キーコード。
 	@property
-	void keyCode(string keyCode) {
-		if (_uc !is null) {
+	void keyCode(string keyCode) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
 			if (_keyCode != "") _uc.keyCode.remove(toKeyCodeId(_keyCode), this);
 			if (keyCode != "") _uc.keyCode.add(toKeyCodeId(keyCode), this);
 		}
@@ -1442,7 +1442,7 @@ public:
 	/// Returns: キーコード。
 	@property
 	const
-	string keyCode() {
+	string keyCode() { mixin(S_TRACE);
 		return _keyCode;
 	}
 
@@ -1451,23 +1451,23 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを登録・除去する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		if (uc && _keyCode != "") {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _keyCode != "") { mixin(S_TRACE);
 			uc.keyCode.add(toKeyCodeId(_keyCode), this);
 		}
-		if (_uc && _keyCode != "") {
+		if (_uc && _keyCode != "") { mixin(S_TRACE);
 			_uc.keyCode.remove(toKeyCodeId(_keyCode), this);
 		}
 		_uc = uc;
 	}
 	/// ditto
-	void removeUseCounter() {
-		if (_uc && _keyCode != "") {
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _keyCode != "") { mixin(S_TRACE);
 			_uc.keyCode.remove(toKeyCodeId(_keyCode), this);
 		}
 		_uc = null;
 	}
-	override void change(KeyCodeId newVal) {
+	override void change(KeyCodeId newVal) { mixin(S_TRACE);
 		_keyCode = newVal.id;
 	}
 }
@@ -1494,10 +1494,10 @@ private:
 	UseCounter _child = null;
 public:
 	/// 唯一のコンストラクタ。
-	this () {
+	this () { mixin(S_TRACE);
 		this (true);
 	}
-	private this (bool useChild) {
+	private this (bool useChild) { mixin(S_TRACE);
 		_flag = new UCCont!(FlagId, FlagUser);
 		_step = new UCCont!(StepId, StepUser);
 		_area = new UCCont!(AreaId, AreaUser);
@@ -1513,14 +1513,14 @@ public:
 		_gossip = new UCCont!(GossipId, GossipUser);
 		_completeStamp = new UCCont!(CompleteStampId, CompleteStampUser);
 		_keyCode = new UCCont!(KeyCodeId, KeyCodeUser);
-		if (useChild) {
+		if (useChild) { mixin(S_TRACE);
 			_child = new UseCounter(false);
 		}
 	}
 	/// 「アンドゥリストの中にあるのでカウントはしないが、パスの更新は反映したい」
 	/// 等の場合に使う。
 	@property
-	UseCounter sub() {
+	UseCounter sub() { mixin(S_TRACE);
 		return _child;
 	}
 	/// 各種カウント対象の使用者のコンテナ。
@@ -1569,7 +1569,7 @@ public:
 	@property
 	UCCont!(KeyCodeId, KeyCodeUser) keyCode() {return _keyCode;}
 	/// ID・Tの変更を通知する。
-	void change(T)(T oldId, T newId, bool dup = false) {
+	void change(T)(T oldId, T newId, bool dup = false) { mixin(S_TRACE);
 		static if (is (T == FlagId)) {
 			flag.change(oldId, newId, dup);
 		} else static if (is (T == StepId)) {
@@ -1600,14 +1600,14 @@ public:
 			completeStamp.change(oldId, newId, dup);
 		} else static if (is (T == KeyCodeId)) {
 			keyCode.change(oldId, newId, dup);
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
 		if (_child) _child.change(oldId, newId, dup);
 	}
 	/// ID・Tの使用回数を返す。
 	const
-	uint get(T)(T id) {
+	uint get(T)(T id) { mixin(S_TRACE);
 		static if (is (T == FlagId)) {
 			return _flag.get(id);
 		} else static if (is (T == StepId)) {
@@ -1638,7 +1638,7 @@ public:
 			return _completeStamp.get(id);
 		} else static if (is (T == KeyCodeId)) {
 			return _keyCode.get(id);
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
 	}

@@ -17,10 +17,10 @@ import org.eclipse.swt.all;
 
 import java.lang.all;
 
-Text mnemonicText(Composite parent, int style) {
+Text mnemonicText(Composite parent, int style) { mixin(S_TRACE);
 	auto text = new Text(parent, style | SWT.READ_ONLY);
 	class Key : KeyAdapter {
-		override void keyPressed(KeyEvent e) {
+		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
 			text.setText(acceleratorText(e.keyCode));
 		}
 	}
@@ -32,36 +32,36 @@ Text mnemonicText(Composite parent, int style) {
 /// ホットキーを入力するためのフィールド。
 class HotKeyField {
 	private Text _char;
-	this (Composite parent, int style) {
+	this (Composite parent, int style) { mixin(S_TRACE);
 		_char = new Text(parent, style | SWT.READ_ONLY);
 		_char.addKeyListener(new StateMaskKey);
 		_char.setData(new CIgnoreHotkey);
 	}
 	private class StateMaskKey : KeyAdapter {
-		override void keyPressed(KeyEvent e) {
+		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
 			refText(e.keyCode | e.stateMask);
 		}
 	}
-	private void refText(int val) {
+	private void refText(int val) { mixin(S_TRACE);
 		string t = "";
-		void put(string a) {
+		void put(string a) { mixin(S_TRACE);
 			if (!a.length) return;
 			if (t.length) t ~= " + ";
 			t ~= a;
 		}
-		if (SWT.CONTROL & val) {
+		if (SWT.CONTROL & val) { mixin(S_TRACE);
 			put("Ctrl");
 			val &= ~SWT.CONTROL;
 		}
-		if (SWT.SHIFT & val) {
+		if (SWT.SHIFT & val) { mixin(S_TRACE);
 			put("Shift");
 			val &= ~SWT.SHIFT;
 		}
-		if (SWT.ALT & val) {
+		if (SWT.ALT & val) { mixin(S_TRACE);
 			put("Alt");
 			val &= ~SWT.ALT;
 		}
-		if (SWT.COMMAND & val) {
+		if (SWT.COMMAND & val) { mixin(S_TRACE);
 			put("Command");
 			val &= ~SWT.COMMAND;
 		}
@@ -71,11 +71,11 @@ class HotKeyField {
 	@property
 	Text widget() {return _char;}
 	@property
-	string acceleratorText() {
+	string acceleratorText() { mixin(S_TRACE);
 		return _char.getText().replace(" + ", "+");
 	}
 	@property
-	void accelerator(string hotkey) {
+	void accelerator(string hotkey) { mixin(S_TRACE);
 		refText(convertAccelerator2(hotkey));
 	}
 }
@@ -86,33 +86,33 @@ class FixedWidthText {
 	private GC _gc = null;
 	private int _width;
 	private int _num;
-	this (FontData fontData, int num, Composite parent, int style, bool wordWrap = false) {
+	this (FontData fontData, int num, Composite parent, int style, bool wordWrap = false) { mixin(S_TRACE);
 		_widget = new Text(parent, style | SWT.MULTI | SWT.WRAP);
 		_num = num;
 		font = fontData;
 
 		_widget.addListener(SWT.Dispose, new class Listener {
-			override void handleEvent(Event e) {
+			override void handleEvent(Event e) { mixin(S_TRACE);
 				_widget.getFont().dispose();
 				_gc.dispose();
 			}
 		});
 	}
 	@property
-	void num(int num) {
+	void num(int num) { mixin(S_TRACE);
 		_num = num;
 		calcWidth();
 	}
 	@property
-	void font(FontData fontData) {
-		if (_gc) {
+	void font(FontData fontData) { mixin(S_TRACE);
+		if (_gc) { mixin(S_TRACE);
 			_widget.getFont().dispose();
 		}
 		_widget.setFont(new Font(Display.getCurrent(), fontData));
 		calcWidth();
 	}
-	private void calcWidth() {
-		if (_gc) {
+	private void calcWidth() { mixin(S_TRACE);
+		if (_gc) { mixin(S_TRACE);
 			_gc.dispose();
 		}
 		_gc = new GC(_widget);
@@ -123,16 +123,16 @@ class FixedWidthText {
 		if (_num & 1) _width += _gc.textExtent(" ").x;
 	}
 	@property
-	Text widget() {
+	Text widget() { mixin(S_TRACE);
 		return _widget;
 	}
-	Point computeTextBaseSize(int line) {
+	Point computeTextBaseSize(int line) { mixin(S_TRACE);
 		return _widget.computeSize(_width, _gc.getFontMetrics().getHeight() * line);
 	}
-	string getRRText(bool lastRet = true) {
+	string getRRText(bool lastRet = true) { mixin(S_TRACE);
 		return toRRText(_widget.getText(), _width, _gc, lastRet);
 	}
-	static string toRRText(string targ, int num, FontData fontData, bool lastRet = true) {
+	static string toRRText(string targ, int num, FontData fontData, bool lastRet = true) { mixin(S_TRACE);
 		if (targ == "") return "";
 		scope img = new Image(Display.getCurrent(), 1, 1);
 		scope (exit) img.dispose();
@@ -144,34 +144,34 @@ class FixedWidthText {
 		int width = gc.getAdvanceWidth(' ') * num;
 		return toRRText(targ, width, gc, lastRet);
 	}
-	private static string toRRText(string targ, int width, GC gc, bool lastRet) {
+	private static string toRRText(string targ, int width, GC gc, bool lastRet) { mixin(S_TRACE);
 		if (targ == "") return "";
 		dstring[] buf;
 		string[] text = splitLines!string(targ);
-		foreach (t8; text) {
+		foreach (t8; text) { mixin(S_TRACE);
 			dstring t = toUTF32(t8);
-			if (gc.textExtent(t8).x > width) {
+			if (gc.textExtent(t8).x > width) { mixin(S_TRACE);
 				dchar[] lBuf;
-				while (t.length > 0) {
-					if (gc.textExtent(toUTF8(lBuf)).x + gc.textExtent(toUTF8(t[0 .. 1])).x > width) {
+				while (t.length > 0) { mixin(S_TRACE);
+					if (gc.textExtent(toUTF8(lBuf)).x + gc.textExtent(toUTF8(t[0 .. 1])).x > width) { mixin(S_TRACE);
 						buf ~= assumeUnique(lBuf);
 						lBuf = [];
 					}
 					lBuf ~= t[0];
 					t = t[1 .. $];
 				}
-				if (lBuf.length > 0) {
+				if (lBuf.length > 0) { mixin(S_TRACE);
 					buf ~= assumeUnique(lBuf);
 					lBuf = [];
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				buf ~= t;
 			}
 		}
-		foreach_reverse (i, t; buf) {
-			if (t.length > 0) {
+		foreach_reverse (i, t; buf) { mixin(S_TRACE);
+			if (t.length > 0) { mixin(S_TRACE);
 				string newText;
-				for (int j = 0; j < i + 1; j++) {
+				for (int j = 0; j < i + 1; j++) { mixin(S_TRACE);
 					newText ~= toUTF8(buf[j]);
 					if (lastRet || j + 1 < i + 1) newText ~= "\n";
 				}
@@ -180,13 +180,13 @@ class FixedWidthText {
 		}
 		return "";
 	}
-	void insert(string text) {
+	void insert(string text) { mixin(S_TRACE);
 		_widget.insert(text);
 	}
-	void setText(string text) {
+	void setText(string text) { mixin(S_TRACE);
 		_widget.setText(text);
 	}
-	string getText() {
+	string getText() { mixin(S_TRACE);
 		return _widget.getText();
 	}
 }
@@ -210,7 +210,7 @@ class GBLimitText {
 	/// font = 検証に使用するフォント。
 	/// num = 最大文字数。[' 'の幅 * num]が入力可能な文字列幅となる。
 	/// cut = trueの場合、制限を超えた分は無条件にカットする。
-	this (string font, int num, bool cut, Composite parent, int style) {
+	this (string font, int num, bool cut, Composite parent, int style) { mixin(S_TRACE);
 		_widget = new Text(parent, style | SWT.NO_BACKGROUND);
 		_cut = cut;
 		_gc = new GC(_widget);
@@ -218,37 +218,37 @@ class GBLimitText {
 		_width = _gc.textExtent(" ").x * num;
 
 		_widget.addListener(SWT.Verify, new class Listener {
-			override void handleEvent(Event e) {
-				if (!_cut) {
+			override void handleEvent(Event e) { mixin(S_TRACE);
+				if (!_cut) { mixin(S_TRACE);
 					e.doit = true;
 					return;
 				}
 				if (_ed) return;
 				dstring vText;
-				try {
+				try { mixin(S_TRACE);
 					vText = toUTF32(e.text);
-				} catch {
+				} catch { mixin(S_TRACE);
 					// FIXME: 時々壊れたテキストが来る
 					//        「情報」と入力したときなど
 					return;
 				}
-				if (vText.length < e.end - e.start) {
+				if (vText.length < e.end - e.start) { mixin(S_TRACE);
 					// 文字数が減少するなら無条件に通す
 					e.doit = true;
-				} else {
+				} else { mixin(S_TRACE);
 					auto text = toUTF32(_widget.getText());
 					auto p = _widget.getSelection();
 					text = text[0 .. p.x] ~ text[p.y .. $];
 					auto st = text[0 .. e.start];
 					auto el = text[e.end .. $];
-					if (vText.length > 1) {
+					if (vText.length > 1) { mixin(S_TRACE);
 						// 複数文字挿入。ペーストのみ。
-						while (_gc.textExtent(toUTF8(st ~ vText ~ el)).x > _width && vText.length > 0) {
+						while (_gc.textExtent(toUTF8(st ~ vText ~ el)).x > _width && vText.length > 0) { mixin(S_TRACE);
 							vText = vText[0 .. $ - 1];
 						}
 						e.text = toUTF8(vText);
 						e.doit = true;
-					} else {
+					} else { mixin(S_TRACE);
 						// 単字。FIXME: 日本語入力ではe.textが化けるみたい。
 						e.doit = _gc.textExtent(toUTF8(st ~ vText ~ el)).x <= _width;
 					}
@@ -257,23 +257,23 @@ class GBLimitText {
 		});
 		// FIXME: 全角スペース入力でVerifyEventが入力文字を取れないようなので暫定
 		_widget.addListener(SWT.Modify, new class Listener {
-			override void handleEvent(Event e) {
-				if (!_cut) {
+			override void handleEvent(Event e) { mixin(S_TRACE);
+				if (!_cut) { mixin(S_TRACE);
 					bool over = _gc.textExtent(getText()).x > _width;
-					if (_over != over) {
+					if (_over != over) { mixin(S_TRACE);
 						_over = over;
-						foreach (le; limitEvent) {
+						foreach (le; limitEvent) { mixin(S_TRACE);
 							le();
 						}
-					} else {
+					} else { mixin(S_TRACE);
 						_over = over;
 					}
 					return;
 				}
 				if (_ed) return;
-				if (_gc.textExtent(getText()).x <= _width) {
+				if (_gc.textExtent(getText()).x <= _width) { mixin(S_TRACE);
 					_old = _widget.getText();
-				} else {
+				} else { mixin(S_TRACE);
 					dstring old32 = toUTF32(_old);
 					int cur = _widget.getCaretPosition();
 					Point sel = _widget.getSelection();
@@ -287,29 +287,29 @@ class GBLimitText {
 			}
 		});
 		_widget.addListener(SWT.Dispose, new class Listener {
-			override void handleEvent(Event e) {
+			override void handleEvent(Event e) { mixin(S_TRACE);
 				_gc.getFont().dispose();
 				_gc.dispose();
 			}
 		});
 	}
 	@property
-	Text widget() {
+	Text widget() { mixin(S_TRACE);
 		return _widget;
 	}
-	Point computeSize(int wHint, int hHint) {
+	Point computeSize(int wHint, int hHint) { mixin(S_TRACE);
 		return _widget.computeSize(wHint == SWT.DEFAULT ? _width : wHint, hHint);
 	}
 	@property
 	bool over() {return _over;}
-	void insert(string text) {
+	void insert(string text) { mixin(S_TRACE);
 		_widget.insert(text);
 	}
-	void setText(string text) {
+	void setText(string text) { mixin(S_TRACE);
 		_widget.setText(text);
 		_old = text;
 	}
-	string getText() {
+	string getText() { mixin(S_TRACE);
 		return _widget.getText();
 	}
 }
@@ -343,7 +343,7 @@ struct TMM {
 		r.kind = TMM_CC;
 		return r;
 	}
-	string getText() {
+	string getText() { mixin(S_TRACE);
 		final switch (kind) {
 		case TMM_T:
 			return text.getText();
@@ -353,7 +353,7 @@ struct TMM {
 			return ccombo.getText();
 		}
 	}
-	void setText(string v) {
+	void setText(string v) { mixin(S_TRACE);
 		final switch (kind) {
 		case TMM_T:
 			text.setText(v);
@@ -366,7 +366,7 @@ struct TMM {
 			break;
 		}
 	}
-	Point getSelection() {
+	Point getSelection() { mixin(S_TRACE);
 		final switch (kind) {
 		case TMM_T:
 			return text.getSelection();
@@ -376,7 +376,7 @@ struct TMM {
 			return ccombo.getSelection();
 		}
 	}
-	void setSelection(Point v) {
+	void setSelection(Point v) { mixin(S_TRACE);
 		final switch (kind) {
 		case TMM_T:
 			text.setSelection(v);
@@ -389,7 +389,7 @@ struct TMM {
 			break;
 		}
 	}
-	void addListener(int type, Listener l) {
+	void addListener(int type, Listener l) { mixin(S_TRACE);
 		final switch (kind) {
 		case TMM_T:
 			text.addListener(type, l);
@@ -413,12 +413,12 @@ class TextMenuModify : ModifyListener {
 		private Object _apData = null;
 		private Point _sel;
 		private string _oldText;
-		this () {
+		this () { mixin(S_TRACE);
 			if (_apd.read) _apData = _oldApData;
 			_oldText = _oldTextBase;
 			_sel = _oldSel;
 		}
-		private void impl() {
+		private void impl() { mixin(S_TRACE);
 			_inProc = true;
 			scope (exit) _inProc = false;
 
@@ -440,7 +440,7 @@ class TextMenuModify : ModifyListener {
 		}
 		override void undo() {impl();}
 		override void redo() {impl();}
-		override void dispose() {
+		override void dispose() { mixin(S_TRACE);
 			// Nothing
 		}
 	}
@@ -455,24 +455,24 @@ class TextMenuModify : ModifyListener {
 	private UndoManager _undo;
 	private class SelectChanged : Listener {
 		private bool _mouseDown = false;
-		override void handleEvent(Event e) {
-			if (e.type is SWT.MouseMove) {
+		override void handleEvent(Event e) { mixin(S_TRACE);
+			if (e.type is SWT.MouseMove) { mixin(S_TRACE);
 				if (!_mouseDown) return;
-			} else if (e.type is SWT.MouseUp) {
+			} else if (e.type is SWT.MouseUp) { mixin(S_TRACE);
 				_mouseDown = false;
 				return;
-			} else if (e.type is SWT.MouseDown) {
+			} else if (e.type is SWT.MouseDown) { mixin(S_TRACE);
 				_mouseDown = true;
 			}
 			auto sel = _text.getSelection();
-			if (sel.x != _oldSel.x || sel.y != _oldSel.y) {
+			if (sel.x != _oldSel.x || sel.y != _oldSel.y) { mixin(S_TRACE);
 				_oldSel = sel;
 				if (selectChanged) selectChanged();
 			}
 		}
 	}
 
-	this (TMM text, bool delegate() canSaveHistory, UndoManager undo, TMAppendData apd) {
+	this (TMM text, bool delegate() canSaveHistory, UndoManager undo, TMAppendData apd) { mixin(S_TRACE);
 		_text = text;
 		_canSaveHistory = canSaveHistory;
 		_undo = undo;
@@ -487,7 +487,7 @@ class TextMenuModify : ModifyListener {
 
 		save();
 	}
-	private void save() {
+	private void save() { mixin(S_TRACE);
 		if (_apd.read) _oldApData = _apd.read(_oldApData);
 		_oldSel = _text.getSelection();
 		_oldTextBase = _text.getText();
@@ -498,17 +498,17 @@ class TextMenuModify : ModifyListener {
 
 	void delegate() selectChanged;
 
-	void reset() {
+	void reset() { mixin(S_TRACE);
 		_undo.reset();
 		save();
 	}
 
-	override void modifyText(ModifyEvent e) {
+	override void modifyText(ModifyEvent e) { mixin(S_TRACE);
 		if (_inProc) return;
 		if (_oldTextBase == _text.getText()) return;
-		if (!_canSaveHistory) {
+		if (!_canSaveHistory) { mixin(S_TRACE);
 			_undo ~= new TextMenuUndo;
-		} else if (_canSaveHistory()) {
+		} else if (_canSaveHistory()) { mixin(S_TRACE);
 			_undo ~= new TextMenuUndo;
 		}
 		save();

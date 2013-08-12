@@ -42,7 +42,7 @@ class MaterialSelect(MtType Type, D, C) {
 	/// イメージ格納時に呼び出される。
 	void delegate(string file)[] includeEvent;
 public:
-	this (Commons comm, Props prop, Summary summ, bool readOnly, void delegate() refresh, string[] defs, int including = -1, bool canInclude = false, bool isMenuCard = false) {
+	this (Commons comm, Props prop, Summary summ, bool readOnly, void delegate() refresh, string[] defs, int including = -1, bool canInclude = false, bool isMenuCard = false) { mixin(S_TRACE);
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		_comm = comm;
 		_prop = prop;
@@ -55,7 +55,7 @@ public:
 		_isMenuCard = isMenuCard;
 	}
 
-	D createDirsCombo(Composite parent) {
+	D createDirsCombo(Composite parent) { mixin(S_TRACE);
 		static if (is (D == Combo)) {
 			_dirs = new D(parent, SWT.BORDER | SWT.READ_ONLY | SWT.DROP_DOWN);
 			_dirs.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
@@ -63,7 +63,7 @@ public:
 			_dirs = new D(parent, SWT.BORDER | SWT.READ_ONLY);
 			_dirs.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			createTextMenu!D(_comm, _prop, _dirs, null);
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
 		_dirs.setEnabled(!_readOnly);
@@ -80,7 +80,7 @@ public:
 			stopBGMEvent ~= &stopBGM;
 		}
 		_dirs.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
+			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				_comm.refSkin.remove(&refresh);
 				_comm.refSkin.remove(&refreshFileListMenu);
 				_comm.refPaths.remove(&__refPaths);
@@ -99,13 +99,13 @@ public:
 		return _dirs;
 	}
 	static if (Type == MtType.BGM) {
-		private void stopBGM() {
-			if (_playing) {
+		private void stopBGM() { mixin(S_TRACE);
+			if (_playing) { mixin(S_TRACE);
 				playBGM();
 			}
 		}
 	}
-	C createFileList(Composite parent) {
+	C createFileList(Composite parent) { mixin(S_TRACE);
 		static if (is (C == Table)) {
 			_fileList = new C(parent, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
 			new FullTableColumn(_fileList, SWT.NONE);
@@ -116,7 +116,7 @@ public:
 			_fileList = new C(parent, SWT.BORDER | SWT.READ_ONLY);
 			_fileList.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			createTextMenu!CCombo(_comm, _prop, _fileList, null);
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
 		_fileList.setEnabled(!_readOnly);
@@ -131,7 +131,7 @@ public:
 				} else static if (Type == MtType.SE) {
 					_fileList.addDisposeListener(new StopSE);
 				} else static assert (0);
-			} else {
+			} else { mixin(S_TRACE);
 				auto open = new OpenMaterial;
 				_fileList.addMouseListener(open);
 				_fileList.addKeyListener(open);
@@ -139,41 +139,41 @@ public:
 		}
 		refreshFileListMenu();
 		new class(_fileList) FileDropTarget {
-			this(Control c) {
+			this(Control c) { mixin(S_TRACE);
 				super(c);
 			}
 		protected override:
 			bool canDrop() {return _summ !is null && !_readOnly;}
-			string[] doAll(string[] files) {
+			string[] doAll(string[] files) { mixin(S_TRACE);
 				assert (_summ !is null);
 				string[] r;
-				foreach (f; files) {
-					if (isTarg(f) && !hasPath(_summ.scenarioPath, f)) {
+				foreach (f; files) { mixin(S_TRACE);
+					if (isTarg(f) && !hasPath(_summ.scenarioPath, f)) { mixin(S_TRACE);
 						r ~= f;
 					}
 				}
-				if (r.length > 0) {
+				if (r.length > 0) { mixin(S_TRACE);
 					auto dlg = new MessageBox(control.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
-					if (1 == r.length) {
+					if (1 == r.length) { mixin(S_TRACE);
 						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDropFile, r[0]));
-					} else {
+					} else { mixin(S_TRACE);
 						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDropFiles, r.length));
 					}
 					dlg.setText(_prop.msgs.dlgTitDropFiles);
-					if (SWT.YES == dlg.open()) {
+					if (SWT.YES == dlg.open()) { mixin(S_TRACE);
 						return r;
 					}
 				}
 				return [];
 			}
-			bool doFile(string path, int x, int y) {
+			bool doFile(string path, int x, int y) { mixin(S_TRACE);
 				assert (_summ !is null);
 				auto cur = currentDir;
 				if (!cur) cur = summSkin.materialPath;
 				copyTo(_summ.scenarioPath, path, cur, false);
 				return true;
 			}
-			void doExit() {
+			void doExit() { mixin(S_TRACE);
 				assert (_summ !is null);
 				auto cur = currentDir;
 				if (!cur) cur = summSkin.materialPath;
@@ -182,12 +182,12 @@ public:
 			}
 		};
 		_incSearch = new IncSearch(_comm, _fileList);
-		_incSearch.modEvent ~= {
+		_incSearch.modEvent ~= { mixin(S_TRACE);
 			refreshList();
 		};
 		return _fileList;
 	}
-	private void refreshFileListMenu() {
+	private void refreshFileListMenu() { mixin(S_TRACE);
 		if (!_fileList) return;
 		auto menu = new Menu(_fileList.getShell(), SWT.POP_UP);
 		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, () => !_readOnly);
@@ -195,7 +195,7 @@ public:
 		createMenuItem(_comm, menu, MenuID.OpenAtFileView, &openFilePath, () => filePath.length > 0 && !_readOnly);
 		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath, () => filePath.length > 0);
 		static if (Type == MtType.CARD) {
-			if (_canInclude && _summ && _summ.legacy) {
+			if (_canInclude && _summ && _summ.legacy) { mixin(S_TRACE);
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.IncludeImage, &includeImage, () => filePath.length > 0 && !_readOnly);
 			}
@@ -213,16 +213,16 @@ public:
 	}
 	static if (Type == MtType.CARD) {
 		@property
-		void useNoCardSizeImage(bool noCardSize) {
+		void useNoCardSizeImage(bool noCardSize) { mixin(S_TRACE);
 			if (_noCardSize == noCardSize) return;
 			_noCardSize = noCardSize;
-			if (!_noCardSize && !isBinImg(filePath)) {
+			if (!_noCardSize && !isBinImg(filePath)) { mixin(S_TRACE);
 				auto p = summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "");
-				if (p.length) {
+				if (p.length) { mixin(S_TRACE);
 					uint w, h;
 					imageSize(p, w, h);
 					auto cs = _prop.looks.cardSize;
-					if (cs.width != w || cs.height != h) {
+					if (cs.width != w || cs.height != h) { mixin(S_TRACE);
 						path = "";
 					}
 				}
@@ -231,23 +231,23 @@ public:
 		}
 		@property
 		const
-		bool useNoCardSizeImage() {
+		bool useNoCardSizeImage() { mixin(S_TRACE);
 			return _noCardSize;
 		}
-		private void includeImage() {
+		private void includeImage() { mixin(S_TRACE);
 			if (!_canInclude) return;
 			string file = filePath;
 			if (!file.length) return;
 			auto dlg = new MessageBox(_fileList.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 			dlg.setText(_prop.msgs.dlgTitQuestion);
 			dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgIncludeImage, this.path));
-			if (SWT.YES == dlg.open()) {
-				try {
+			if (SWT.YES == dlg.open()) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					if (!file.exists()) return;
 					_binPath = bImgToStr(cast(ubyte[])readBinary(file));
 					refreshDefs();
 					selectDir(_including);
-					foreach (d; includeEvent) {
+					foreach (d; includeEvent) { mixin(S_TRACE);
 						d(file);
 					}
 				} catch (Exception e) {
@@ -256,30 +256,30 @@ public:
 			}
 		}
 		@property
-		uint pcNumber() {
+		uint pcNumber() { mixin(S_TRACE);
 			if (!_isMenuCard || !_summ || !_summ.legacy) return 0;
 			auto sel = _dirs.getSelectionIndex();
-			if (0 <= _including) {
+			if (0 <= _including) { mixin(S_TRACE);
 				sel--;
 			}
-			if (0 < sel && sel <= _prop.var.etc.partyMax) {
+			if (0 < sel && sel <= _prop.var.etc.partyMax) { mixin(S_TRACE);
 				return sel;
 			}
 			return 0;
 		}
 		@property
-		void pcNumber(uint pcNum) {
+		void pcNumber(uint pcNum) { mixin(S_TRACE);
 			if (0 == pcNum) return;
 			if (!_isMenuCard || !_summ || !_summ.legacy) return;
 			uint num = pcNum;
-			if (0 <= _including) {
+			if (0 <= _including) { mixin(S_TRACE);
 				num++;
 			}
 			_dirs.select(num);
 		}
 	}
-	private void refreshDefs() {
-		if (!_canInclude) {
+	private void refreshDefs() { mixin(S_TRACE);
+		if (!_canInclude) { mixin(S_TRACE);
 			refreshPaths();
 			return;
 		}
@@ -288,23 +288,23 @@ public:
 		static if (Type == MtType.CARD) {
 			uint pcNum = pcNumber;
 		}
-		if (isBinImg(_binPath)) {
+		if (isBinImg(_binPath)) { mixin(S_TRACE);
 			including = defs.length;
 			defs ~= _prop.msgs.imageIncluding;
 		}
 		static if (Type == MtType.CARD) {
-			if (_isMenuCard && _summ && _summ.legacy) {
-				foreach (num; 0 .. _prop.var.etc.partyMax) {
+			if (_isMenuCard && _summ && _summ.legacy) { mixin(S_TRACE);
+				foreach (num; 0 .. _prop.var.etc.partyMax) { mixin(S_TRACE);
 					defs ~= .tryFormat(_prop.msgs.pcNumber, num + 1);
 				}
-				if (pcNum <= 0 || _prop.var.etc.partyMax < pcNum) {
+				if (pcNum <= 0 || _prop.var.etc.partyMax < pcNum) { mixin(S_TRACE);
 					pcNum = 0;
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				pcNum = 0;
 			}
 		}
-		if (defs != _defs) {
+		if (defs != _defs) { mixin(S_TRACE);
 			_defs = defs;
 			_including = including;
 			static if (Type == MtType.CARD) {
@@ -320,12 +320,12 @@ public:
 		private MenuItem _bgmMenu;
 		private ToolItem _bgmTMenu;
 		string _playing = null;
-		void createPlayToolItem(ToolBar bar) {
+		void createPlayToolItem(ToolBar bar) { mixin(S_TRACE);
 			_bgmTMenu = createToolItem(_comm, bar, MenuID.PlayBGM, &playBGM, &canPlay, SWT.CHECK);
 			auto data = cast(MenuData) _bgmTMenu.getData();
 			data.format = (string t) {return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t;};
 		}
-		Button createPlayButton(Composite parent) {
+		Button createPlayButton(Composite parent) { mixin(S_TRACE);
 			_bgmBtn = new Button(parent, SWT.TOGGLE);
 			_bgmBtn.setLayoutData(new GridData);
 			_bgmBtn.setToolTipText(_prop.buildTool(MenuID.PlayBGM));
@@ -336,29 +336,29 @@ public:
 			return _bgmBtn;
 		}
 		@property
-		bool canPlay() {
+		bool canPlay() { mixin(S_TRACE);
 			return _playing ? true : filePath.length > 0;
 		}
-		void playBGM() {
+		void playBGM() { mixin(S_TRACE);
 			string p = filePath;
-			if (p.length > 0 && (!_playing || !cfnmatch(nabs(p), nabs(_playing)))) {
+			if (p.length > 0 && (!_playing || !cfnmatch(nabs(p), nabs(_playing)))) { mixin(S_TRACE);
 				bool inPlay = playBGMCW(_prop, p, _summ.legacy);
-				if (inPlay) {
+				if (inPlay) { mixin(S_TRACE);
 					_playing = p;
 					auto relPath = .encodePath(this.path);
-					if (_bgmMenu) {
+					if (_bgmMenu) { mixin(S_TRACE);
 						_bgmMenu.setText(.tryFormat(_prop.buildMenu(MenuID.StopBGM), .baseName(relPath)));
 						auto d = cast(MenuData) _bgmMenu.getData();
 						d.id = MenuID.StopBGM;
 						_bgmMenu.setImage(_prop.images.menu(MenuID.StopBGM));
 						_bgmMenu.setSelection(true);
 					}
-					if (_bgmTMenu) {
+					if (_bgmTMenu) { mixin(S_TRACE);
 						_bgmTMenu.setToolTipText(.tryFormat(_prop.buildTool(MenuID.StopBGM), relPath));
 						_bgmTMenu.setImage(_prop.images.menu(MenuID.StopBGM));
 						_bgmTMenu.setSelection(true);
 					}
-					if (_bgmBtn) {
+					if (_bgmBtn) { mixin(S_TRACE);
 						_bgmBtn.setToolTipText(.tryFormat(_prop.buildTool(MenuID.StopBGM), relPath));
 						_bgmBtn.setImage(_prop.images.menu(MenuID.StopBGM));
 						_bgmBtn.setSelection(true);
@@ -366,19 +366,19 @@ public:
 					return;
 				}
 			}
-			if (_bgmMenu) {
+			if (_bgmMenu) { mixin(S_TRACE);
 				_bgmMenu.setText(_prop.buildMenu(MenuID.PlayBGM));
 				auto d = cast(MenuData) _bgmMenu.getData();
 				d.id = MenuID.PlayBGM;
 				_bgmMenu.setImage(_prop.images.menu(MenuID.PlayBGM));
 				_bgmMenu.setSelection(false);
 			}
-			if (_bgmTMenu) {
+			if (_bgmTMenu) { mixin(S_TRACE);
 				_bgmTMenu.setToolTipText(_prop.buildTool(MenuID.PlayBGM));
 				_bgmTMenu.setImage(_prop.images.menu(MenuID.PlayBGM));
 				_bgmTMenu.setSelection(false);
 			}
-			if (_bgmBtn) {
+			if (_bgmBtn) { mixin(S_TRACE);
 				_bgmBtn.setToolTipText(_prop.buildTool(MenuID.PlayBGM));
 				_bgmBtn.setImage(_prop.images.menu(MenuID.PlayBGM));
 				_bgmBtn.setSelection(false);
@@ -389,26 +389,26 @@ public:
 		private class Play : SelectionAdapter, KeyListener, MouseListener {
 			override void mouseUp(MouseEvent e) {}
 			override void mouseDown(MouseEvent e) {}
-			override void mouseDoubleClick(MouseEvent e) {
-				if (e.button == 1) {
+			override void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
+				if (e.button == 1) { mixin(S_TRACE);
 					playBGM();
 				}
 			}
 			override void keyReleased(KeyEvent e) {}
-			override void keyPressed(KeyEvent e) {
-				if (e.character == SWT.CR) {
+			override void keyPressed(KeyEvent e) { mixin(S_TRACE);
+				if (e.character == SWT.CR) { mixin(S_TRACE);
 					playBGM();
 				}
 			}
-			override void widgetSelected(SelectionEvent e) {
+			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 				playBGM();
 			}
 		}
 	} else static if (Type == MtType.SE) {
-		void createPlayToolItem(ToolBar bar) {
+		void createPlayToolItem(ToolBar bar) { mixin(S_TRACE);
 			createToolItem(_comm, bar, MenuID.PlaySE, &playSE, &canPlay);
 		}
-		Button createPlayButton(Composite parent) {
+		Button createPlayButton(Composite parent) { mixin(S_TRACE);
 			_bgmBtn = new Button(parent, SWT.PUSH);
 			_bgmBtn.setToolTipText(_prop.buildTool(MenuID.PlaySE));
 			_bgmBtn.setImage(_prop.images.menu(MenuID.PlaySE));
@@ -417,7 +417,7 @@ public:
 			_comm.put(_bgmBtn, &canPlay);
 			return _bgmBtn;
 		}
-		Button createStopButton(Composite parent) {
+		Button createStopButton(Composite parent) { mixin(S_TRACE);
 			auto stop = new Button(parent, SWT.PUSH);
 			stop.setToolTipText(_prop.buildTool(MenuID.StopSE));
 			stop.setImage(_prop.images.menu(MenuID.StopSE));
@@ -427,87 +427,87 @@ public:
 			return stop;
 		}
 		@property
-		bool canPlay() {
+		bool canPlay() { mixin(S_TRACE);
 			return filePath.length > 0;
 		}
-		void playSE() {
+		void playSE() { mixin(S_TRACE);
 			string p = filePath;
-			if (p.length > 0) {
+			if (p.length > 0) { mixin(S_TRACE);
 				playSECW(_prop, p, _summ.legacy);
 			}
 		}
-		void stopSE() {
+		void stopSE() { mixin(S_TRACE);
 			.stopSE();
 		}
 		private class Play : SelectionAdapter, KeyListener, MouseListener {
 			override void mouseUp(MouseEvent e) {}
 			override void mouseDown(MouseEvent e) {}
-			override void mouseDoubleClick(MouseEvent e) {
-				if (e.button == 1) {
+			override void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
+				if (e.button == 1) { mixin(S_TRACE);
 					playSE();
 				}
 			}
 			override void keyReleased(KeyEvent e) {}
-			override void keyPressed(KeyEvent e) {
-				if (e.character == SWT.CR) {
+			override void keyPressed(KeyEvent e) { mixin(S_TRACE);
+				if (e.character == SWT.CR) { mixin(S_TRACE);
 					playSE();
 				}
 			}
-			override void widgetSelected(SelectionEvent e) {
+			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 				playSE();
 			}
 		}
 	}
-	Button createRefreshButton(Composite parent, bool text) {
+	Button createRefreshButton(Composite parent, bool text) { mixin(S_TRACE);
 		auto refBtn = new Button(parent, SWT.PUSH);
 		refBtn.setImage(_prop.images.menu(MenuID.Refresh));
-		if (text) {
+		if (text) { mixin(S_TRACE);
 			refBtn.setText(_prop.msgs.refreshS);
-		} else {
+		} else { mixin(S_TRACE);
 			refBtn.setToolTipText(_prop.buildTool(MenuID.Refresh));
 		}
 		refBtn.addSelectionListener(new RSListener);
 		return refBtn;
 	}
-	Button createDirectoryButton(Composite parent, bool text) {
+	Button createDirectoryButton(Composite parent, bool text) { mixin(S_TRACE);
 		_dirBtn = new Button(parent, SWT.PUSH);
 		_dirBtn.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 		_dirBtn.setImage(_prop.images.folder);
 		_dirBtn.addSelectionListener(new DSListener);
-		if (text) {
+		if (text) { mixin(S_TRACE);
 			_dirBtn.setText(_prop.buildTool(MenuID.OpenDir));
-		} else {
+		} else { mixin(S_TRACE);
 			_dirBtn.setToolTipText(_prop.buildTool(MenuID.OpenDir));
 		}
 		return _dirBtn;
 	}
 	@property
-	string path() {
-		if (_dirs.getSelectionIndex() == _including && isBinImg(_binPath)) {
+	string path() { mixin(S_TRACE);
+		if (_dirs.getSelectionIndex() == _including && isBinImg(_binPath)) { mixin(S_TRACE);
 			return _binPath;
 		}
 		return _path;
 	}
 	@property
-	string filePath() {
+	string filePath() { mixin(S_TRACE);
 		if (!_dirs || _dirs.isDisposed()) return "";
 		if (!_fileList || _fileList.isDisposed()) return "";
-		if (_dirs.getSelectionIndex() == _including && isBinImg(_binPath)) {
+		if (_dirs.getSelectionIndex() == _including && isBinImg(_binPath)) { mixin(S_TRACE);
 			return _binPath;
 		}
 		auto p = currentDir;
-		if (p && _fileList.getSelectionIndex() >= 0) {
+		if (p && _fileList.getSelectionIndex() >= 0) { mixin(S_TRACE);
 			string f = fileText(_fileList.getItem(_fileList.getSelectionIndex()));
-			if (_dirs.getSelectionIndex() == _tbl) {
+			if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
 				return std.path.buildPath(defDir, f);
-			} else {
+			} else { mixin(S_TRACE);
 				return std.path.buildPath(std.path.buildPath(_summ ? _summ.scenarioPath : "", p), f);
 			}
 		}
 		return "";
 	}
 	@property
-	void path(string path) {
+	void path(string path) { mixin(S_TRACE);
 		auto old = _path;
 		scope (exit) {
 			if (old != _path) {
@@ -517,13 +517,13 @@ public:
 		_path = path;
 		_binPath = isBinImg(path) ? path : "";
 		static if (Type is MtType.CARD) {
-			if (!useNoCardSizeImage && !_binPath.length) {
+			if (!useNoCardSizeImage && !_binPath.length) { mixin(S_TRACE);
 				auto p = summSkin.findImagePath(_path, _summ ? _summ.scenarioPath : "");
-				if (p.length) {
+				if (p.length) { mixin(S_TRACE);
 					uint w, h;
 					imageSize(p, w, h);
 					auto cs = _prop.looks.cardSize;
-					if (cs.width != w || cs.height != h) {
+					if (cs.width != w || cs.height != h) { mixin(S_TRACE);
 						useNoCardSizeImage = true;
 						if (_refresh) _refresh();
 					}
@@ -533,72 +533,72 @@ public:
 		refreshDefs();
 	}
 	@property
-	string binPath() {
+	string binPath() { mixin(S_TRACE);
 		return _binPath;
 	}
 	@property
-	D dirsCombo() {
+	D dirsCombo() { mixin(S_TRACE);
 		return _dirs;
 	}
 	@property
-	C fileList() {
+	C fileList() { mixin(S_TRACE);
 		return _fileList;
 	}
-	void refresh() {
+	void refresh() { mixin(S_TRACE);
 		refreshDefs();
 		if (_refresh) _refresh();
 	}
 
 	@property
-	string[] showingNames() {
+	string[] showingNames() { mixin(S_TRACE);
 		static if (is(C : Table)) {
 			TableItem[] itms;
-			if (_fnone) {
+			if (_fnone) { mixin(S_TRACE);
 				itms = _fileList.getItems()[1 .. $];
-			} else {
+			} else { mixin(S_TRACE);
 				itms = _fileList.getItems();
 			}
 			auto r = new string[itms.length];
-			foreach (i, ref s; r) {
+			foreach (i, ref s; r) { mixin(S_TRACE);
 				s = itms[i].getText();
 			}
 			return r;
 		} else static if (is(C : Combo) || is(C : CCombo)) {
-			if (_fnone) {
+			if (_fnone) { mixin(S_TRACE);
 				return _fileList.getItems()[1 .. $];
-			} else {
+			} else { mixin(S_TRACE);
 				return _fileList.getItems();
 			}
 		}
 	}
 	@property
-	string[] showingPaths() {
+	string[] showingPaths() { mixin(S_TRACE);
 		string[] r;
 		string curr = currentDir;
 		string[] paths = showingNames;
-		foreach (s; paths) {
-			if (curr) {
+		foreach (s; paths) { mixin(S_TRACE);
+			if (curr) { mixin(S_TRACE);
 				r ~= .encodePath(std.path.buildPath(curr, s));
-			} else if (s.startsWith("/")) {
+			} else if (s.startsWith("/")) { mixin(S_TRACE);
 				string file;
 				s = s["/".length .. $];
 				int i = s.lastIndexOf("/");
-				if (i != -1) {
+				if (i != -1) { mixin(S_TRACE);
 					file = s[i + "/".length .. $];
 					s = s[0 .. i];
-				} else {
+				} else { mixin(S_TRACE);
 					file = s;
 					s = "";
 				}
 				r ~= .encodePath(std.path.buildPath(s, file));
-			} else {
+			} else { mixin(S_TRACE);
 				r ~= s;
 			}
 		}
 		return r;
 	}
 
-	void copyFilePath() {
+	void copyFilePath() { mixin(S_TRACE);
 		auto p = path;
 		if (!p.length) return;
 		_comm.clipboard.setContents([new PathString(encodePath(p))],
@@ -607,25 +607,25 @@ public:
 	}
 
 	@property
-	bool selectedDefDir() {
+	bool selectedDefDir() { mixin(S_TRACE);
 		return _selDir == _tbl;
 	}
 
 	@property
-	void selectDir(int sel) {
+	void selectDir(int sel) { mixin(S_TRACE);
 		_dirs.select(sel);
 		refreshList();
 		scope (exit) {
 			refreshButtons();
 			if (_refresh) _refresh();
 		}
-		if (sel < _defs.length) {
+		if (sel < _defs.length) { mixin(S_TRACE);
 			_path = "";
-			if (_selDir != sel) {
+			if (_selDir != sel) { mixin(S_TRACE);
 				foreach (dlg; modEvent) dlg();
 			}
 			_selDir = sel;
-		} else {
+		} else { mixin(S_TRACE);
 			static if (is(C : Combo) || is(C : CCombo)) {
 				auto old = _path;
 				scope (exit) {
@@ -645,7 +645,7 @@ public:
 
 	@property
 	IncSearch incSearch() {return _incSearch;}
-	void startIncSearch() {
+	void startIncSearch() { mixin(S_TRACE);
 		.forceFocus(_fileList, true);
 		_incSearch.startIncSearch();
 	}
@@ -683,24 +683,24 @@ private:
 	} else static assert (0);
 
 	class RSListener : SelectionAdapter {
-		public override void widgetSelected(SelectionEvent e) {
+		public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			refreshPaths(null, true);
 			if (_refresh) _refresh();
 		}
 	}
 	class DSListener : SelectionAdapter {
-		public override void widgetSelected(SelectionEvent e) {
-			if (_dirs.getSelectionIndex() == _tbl) {
+		public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+			if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
 				openFolder(defDir);
-			} else if (_summ) {
+			} else if (_summ) { mixin(S_TRACE);
 				string cur = currentDir;
-				if (cur) {
+				if (cur) { mixin(S_TRACE);
 					openFolder(std.path.buildPath(_summ.scenarioPath, cur));
-				} else {
+				} else { mixin(S_TRACE);
 					scope p = std.path.buildPath(_summ.scenarioPath, summSkin.materialPath);
-					if (exists(p)) {
+					if (exists(p)) { mixin(S_TRACE);
 						openFolder(p);
-					} else {
+					} else { mixin(S_TRACE);
 						openFolder(_summ.scenarioPath);
 					}
 				}
@@ -708,12 +708,12 @@ private:
 		}
 	}
 	class CSListener : SelectionAdapter {
-		public override void widgetSelected(SelectionEvent e) {
+		public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			selectDir(_dirs.getSelectionIndex());
 		}
 	}
 	class LSListener : SelectionAdapter {
-		public override void widgetSelected(SelectionEvent e) {
+		public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			int index = _fileList.getSelectionIndex();
 			if (index < 0) return;
 			auto old = _path;
@@ -723,28 +723,28 @@ private:
 				}
 				refreshButtons();
 			}
-			if (_allList) {
+			if (_allList) { mixin(S_TRACE);
 				string s = fileText(_fileList.getItem(index));
 				string file;
-				if (s.startsWith("/")) {
+				if (s.startsWith("/")) { mixin(S_TRACE);
 					s = s["/".length .. $];
 					int i = s.lastIndexOf("/");
-					if (i != -1) {
+					if (i != -1) { mixin(S_TRACE);
 						file = s[i + "/".length .. $];
 						s = s[0 .. i];
-					} else {
+					} else { mixin(S_TRACE);
 						file = s;
 						s = "/";
 					}
 					_dirs.setText(s);
-				} else {
+				} else { mixin(S_TRACE);
 					_dirs.select(_tbl);
 					file = s;
 				}
 				refreshList();
 				int selIndex = -1;
-				foreach (i, itm; _fileList.getItems()) {
-					if (cfnmatch(fileText(itm), file)) {
+				foreach (i, itm; _fileList.getItems()) { mixin(S_TRACE);
+					if (cfnmatch(fileText(itm), file)) { mixin(S_TRACE);
 						selIndex = i;
 						break;
 					}
@@ -757,9 +757,9 @@ private:
 				_path = std.path.buildPath(p, file);
 				_selDir = _dirs.getSelectionIndex();
 				if (_refresh) _refresh();
-			} else {
+			} else { mixin(S_TRACE);
 				string p = currentDir;
-				if (!p) {
+				if (!p) { mixin(S_TRACE);
 					static if (is(C : Combo) || is(C : CCombo)) {
 						if (index == 0) return;
 						_fileList.remove(0);
@@ -767,7 +767,7 @@ private:
 					_dirs.select(_defs.length);
 					p = currentDir;
 				}
-				if (p) {
+				if (p) { mixin(S_TRACE);
 					_path = std.path.buildPath(p, fileText(_fileList.getItem(_fileList.getSelectionIndex())));
 					_selDir = _dirs.getSelectionIndex();
 					if (_refresh) _refresh();
@@ -776,98 +776,98 @@ private:
 		}
 	}
 	private class OpenMaterial : MouseAdapter, KeyListener {
-		override void mouseDoubleClick(MouseEvent e) {
-			if (1 == e.button) {
+		override void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
+			if (1 == e.button) { mixin(S_TRACE);
 				openFilePath();
 			}
 		}
 		override void keyReleased(KeyEvent e) {}
-		override void keyPressed(KeyEvent e) {
+		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
 			if (SWT.CR == e.character) openFilePath();
 		}
 	}
-	private void openFilePath() {
+	private void openFilePath() { mixin(S_TRACE);
 		auto dir = _dirs.getSelectionIndex();
 		if (dir < _defs.length) return;
 		if (dir == _tbl) return;
 		auto p = filePath;
-		if (p.length) {
+		if (p.length) { mixin(S_TRACE);
 			_comm.openFilePath(p, false);
 		}
 	}
-	private static string fromViewPath(string s) {
+	private static string fromViewPath(string s) { mixin(S_TRACE);
 		static if (dirSeparator != "/" && altDirSeparator == "/") {
 			return replace(s, "/", dirSeparator);
-		} else {
+		} else { mixin(S_TRACE);
 			return s;
 		}
 	}
-	private static string toViewPath(string s) {
+	private static string toViewPath(string s) { mixin(S_TRACE);
 		static if (dirSeparator != "/" && altDirSeparator == "/") {
 			return replace(replace(s, dirSeparator, "/"), altDirSeparator, "/");
-		} else {
+		} else { mixin(S_TRACE);
 			return s;
 		}
 	}
 	@property
-	private string currentDir() {
+	private string currentDir() { mixin(S_TRACE);
 		int sel = _dirs.getSelectionIndex();
-		if (sel >= _defs.length) {
-			if (sel == _tbl) {
+		if (sel >= _defs.length) { mixin(S_TRACE);
+			if (sel == _tbl) { mixin(S_TRACE);
 				return "";
-			} else {
+			} else { mixin(S_TRACE);
 				return _dirs.getText() == "/" ? "" : toViewPath(_dirs.getText());
 			}
 		}
 		return null;
 	}
-	private string fileText(T)(T itm) {
+	private string fileText(T)(T itm) { mixin(S_TRACE);
 		static if (is(T : TableItem)) {
 			return itm.getText();
 		} else static if (is(T : string)) {
 			return itm;
 		} else static assert (0);
 	}
-	int indexOf(T)(T list, string path) {
-		foreach (i, s; list.getItems()) {
-			if (cfnmatch(fileText(s), path)) {
+	int indexOf(T)(T list, string path) { mixin(S_TRACE);
+		foreach (i, s; list.getItems()) { mixin(S_TRACE);
+			if (cfnmatch(fileText(s), path)) { mixin(S_TRACE);
 				return i;
 			}
 		}
 		return -1;
 	}
-	int flIndexOf(string path) {
+	int flIndexOf(string path) { mixin(S_TRACE);
 		return indexOf(_fileList, path);
 	}
-	int dirsIndexOf(string path) {
+	int dirsIndexOf(string path) { mixin(S_TRACE);
 		return indexOf(_dirs, path);
 	}
-	string[] targs(string path, bool forceRefresh) {
+	string[] targs(string path, bool forceRefresh) { mixin(S_TRACE);
 		string[] r;
-		foreach (f; targsImpl(path, forceRefresh)) {
-			if (_incSearch.match(f.baseName())) {
+		foreach (f; targsImpl(path, forceRefresh)) { mixin(S_TRACE);
+			if (_incSearch.match(f.baseName())) { mixin(S_TRACE);
 				r ~= f;
 			}
 		}
 		return r;
 	}
-	void __refreshList(string path, bool forceRefresh) {
+	void __refreshList(string path, bool forceRefresh) { mixin(S_TRACE);
 		__refreshListImpl(targs(path, forceRefresh));
 		_allList = false;
 	}
-	void __refreshList(string[] paths, bool forceRefresh) {
+	void __refreshList(string[] paths, bool forceRefresh) { mixin(S_TRACE);
 		string[] tgs;
-		foreach (path; paths) {
+		foreach (path; paths) { mixin(S_TRACE);
 			string parent;
-			if (cfnmatch(path, defDir)) {
+			if (cfnmatch(path, defDir)) { mixin(S_TRACE);
 				parent = "";
-			} else {
+			} else { mixin(S_TRACE);
 				assert (_summ !is null);
 				parent = abs2rel(path, _summ.scenarioPath);
 				parent = dirSeparator.idup ~ parent;
 			}
 			string[] s = targs(path, forceRefresh);
-			foreach (ref f; s) {
+			foreach (ref f; s) { mixin(S_TRACE);
 				f = encodePath(std.path.buildPath(parent, f));
 			}
 			tgs ~= s;
@@ -875,8 +875,8 @@ private:
 		__refreshListImpl(tgs);
 		_allList = true;
 	}
-	void __refreshListImpl(string[] tgs) {
-		foreach (f; tgs) {
+	void __refreshListImpl(string[] tgs) { mixin(S_TRACE);
+		foreach (f; tgs) { mixin(S_TRACE);
 			static if (is(C : Table)) {
 				auto itm = new TableItem(_fileList, SWT.NONE);
 				itm.setText(f);
@@ -886,11 +886,11 @@ private:
 			} else static assert (0);
 		}
 		string sel = _path.length > 0 ? baseName(_path) : "";
-		if (sel.length > 0 && _dirs.getSelectionIndex() == _selDir) {
+		if (sel.length > 0 && _dirs.getSelectionIndex() == _selDir) { mixin(S_TRACE);
 			int index = flIndexOf(sel);
-			if (index >= 0) {
+			if (index >= 0) { mixin(S_TRACE);
 				_fileList.select(index);
-			} else if (_dirs.getSelectionIndex() == _tbl) {
+			} else if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
 				index = flIndexOf(setExtension(sel, defExt));
 				if (index >= 0) _fileList.select(index);
 			}
@@ -902,126 +902,126 @@ private:
 		}
 	}
 	@property
-	string[] allDirs() {
+	string[] allDirs() { mixin(S_TRACE);
 		string[] st;
-		foreach (i; _defs.length .. _dirs.getItemCount()) {
+		foreach (i; _defs.length .. _dirs.getItemCount()) { mixin(S_TRACE);
 			string t = _dirs.getItem(i);
-			if (i == _tbl) {
+			if (i == _tbl) { mixin(S_TRACE);
 				st ~= defDir;
-			} else if (t == "/") {
+			} else if (t == "/") { mixin(S_TRACE);
 				assert (_summ !is null);
 				st ~= nabs(_summ.scenarioPath);
-			} else {
+			} else { mixin(S_TRACE);
 				assert (_summ !is null);
 				st ~= nabs(std.path.buildPath(_summ.scenarioPath, fromViewPath(t)));
 			}
 		}
 		return st;
 	}
-	void refreshList(bool forceRefresh = false) {
+	void refreshList(bool forceRefresh = false) { mixin(S_TRACE);
 		_fileList.removeAll();
 		_fnone = false;
-		if (_dirs.getSelectionIndex() < _defs.length) {
+		if (_dirs.getSelectionIndex() < _defs.length) { mixin(S_TRACE);
 			auto dirs = allDirs;
-			if (!dirs.length) {
+			if (!dirs.length) { mixin(S_TRACE);
 				_fileList.setEnabled(false);
-			} else {
+			} else { mixin(S_TRACE);
 				_fileList.setEnabled(!_readOnly);
 				__refreshList(dirs, forceRefresh);
 				static if (is(C : Combo) || is(C : CCombo)) {
 					_fileList.add(_prop.msgs.fileNone, 0);
 					_fileList.select(0);
 					_fnone = true;
-				} else {
+				} else { mixin(S_TRACE);
 					_fileList.select(-1);
 				}
 			}
-		} else if (_dirs.getSelectionIndex() == _tbl) {
+		} else if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
 			__refreshList(defDir, forceRefresh);
-		} else if (_summ) {
+		} else if (_summ) { mixin(S_TRACE);
 			string st;
-			if (_dirs.getText() == "/") {
+			if (_dirs.getText() == "/") { mixin(S_TRACE);
 				st = _summ.scenarioPath;
-			} else {
+			} else { mixin(S_TRACE);
 				st = std.path.buildPath(_summ.scenarioPath, fromViewPath(_dirs.getText()));
 			}
 			__refreshList(st, forceRefresh);
 		}
 	}
-	void searchTarg(string dir, size_t cut) {
-		if (hasTarg(dir)) {
+	void searchTarg(string dir, size_t cut) { mixin(S_TRACE);
+		if (hasTarg(dir)) { mixin(S_TRACE);
 			_dirs.add(dir.length <= cut ? "/" : toViewPath(dir[cut .. $]));
 		}
-		foreach (f; clistdir(dir)) {
+		foreach (f; clistdir(dir)) { mixin(S_TRACE);
 			if (containsPath(_prop.var.etc.ignorePaths, f)) continue;
 			f = std.path.buildPath(dir, f);
-			if (isDir(f)) {
+			if (isDir(f)) { mixin(S_TRACE);
 				searchTarg(f, cut);
 			}
 		}
 	}
-	void refreshPaths(string select = null, bool forceRefresh = false) {
+	void refreshPaths(string select = null, bool forceRefresh = false) { mixin(S_TRACE);
 		int oldSel = _dirs.getSelectionIndex();
 		if (oldSel < 0) oldSel = 0;
 		string oldSelS = _dirs.getText();
 		_dirs.removeAll();
-		foreach (def; _defs) {
+		foreach (def; _defs) { mixin(S_TRACE);
 			_dirs.add(def);
 		}
 		auto tbl = defDir;
 		_tbl = -1;
-		if (hasTarg(tbl)) {
+		if (hasTarg(tbl)) { mixin(S_TRACE);
 			_tbl = _dirs.getItemCount();
 			_dirs.add(_prop.msgs.pathDef);
 		}
 		size_t cut = 0;
-		if (_summ) {
+		if (_summ) { mixin(S_TRACE);
 			string st = _summ.scenarioPath;
 			cut = st.length;
 			static if (altDirSeparator.length) {
 				if (!endsWith(st, dirSeparator) && !endsWith(st, altDirSeparator)) cut++;
-			} else {
+			} else { mixin(S_TRACE);
 				if (!endsWith(st, dirSeparator)) cut++;
 			}
 			searchTarg(_summ.scenarioPath, cut);
 		}
-		if (!select) {
-			void selectOld() {
-				if (oldSel < _defs.length) {
+		if (!select) { mixin(S_TRACE);
+			void selectOld() { mixin(S_TRACE);
+				if (oldSel < _defs.length) { mixin(S_TRACE);
 					_dirs.select(oldSel);
-				} else {
+				} else { mixin(S_TRACE);
 					int index = dirsIndexOf(oldSelS);
-					if (index >= 0) {
+					if (index >= 0) { mixin(S_TRACE);
 						_dirs.select(index);
-					} else if (_dirs.getItemCount() > 0) {
+					} else if (_dirs.getItemCount() > 0) { mixin(S_TRACE);
 						_dirs.select(0);
 					}
 				}
 			}
 			bool def;
-			if (isBinImg(_path)) {
+			if (isBinImg(_path)) { mixin(S_TRACE);
 				_dirs.select(_including);
-			} else {
+			} else { mixin(S_TRACE);
 				auto p = summSkin.findPathF(_path, defExt, defDir, _summ ? _summ.scenarioPath : "", def);
-				if (p.length > 0) {
-					if (def) {
-						if (_tbl == -1) {
+				if (p.length > 0) { mixin(S_TRACE);
+					if (def) { mixin(S_TRACE);
+						if (_tbl == -1) { mixin(S_TRACE);
 							// ファイルが無い
 							selectOld();
-						} else {
+						} else { mixin(S_TRACE);
 							_dirs.select(_tbl);
 						}
-					} else if (_summ) {
+					} else if (_summ) { mixin(S_TRACE);
 						string pt = dirName(p);
 						pt = pt.length <= cut ? dirSeparator.idup : pt[cut .. $];
 						pt = toViewPath(pt);
 						_dirs.select(dirsIndexOf(pt));
 					}
-				} else {
+				} else { mixin(S_TRACE);
 					selectOld();
 				}
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			select = toViewPath(select);
 			_dirs.setText(select);
 		}
@@ -1029,40 +1029,40 @@ private:
 		refreshList(forceRefresh);
 	}
 
-	void __refPaths(Object sender, string parent) {
-		if (this !is sender) {
+	void __refPaths(Object sender, string parent) { mixin(S_TRACE);
+		if (this !is sender) { mixin(S_TRACE);
 			refreshPaths();
 		}
 		if (_refresh) _refresh();
 	}
-	void __refPath(string o, string n, bool isDir) {
+	void __refPath(string o, string n, bool isDir) { mixin(S_TRACE);
 		auto old = _path;
 		scope (exit) {
 			if (old != _path) {
 				foreach (dlg; modEvent) dlg();
 			}
 		}
-		if (isDir) {
+		if (isDir) { mixin(S_TRACE);
 			int i = _defs.length;
 			if (_tbl >= 0) i++;
-			for (; i < _dirs.getItemCount(); i++) {
+			for (; i < _dirs.getItemCount(); i++) { mixin(S_TRACE);
 				string name = fromViewPath(_dirs.getItem(i));
-				if (startsWith(name, o)) {
+				if (startsWith(name, o)) { mixin(S_TRACE);
 					string nName = std.path.buildPath(n, name[o.length .. $]);
 					nName = toViewPath(nName);
 					_dirs.setItem(i, nName);
-					if (i == _dirs.getSelectionIndex()) {
+					if (i == _dirs.getSelectionIndex()) { mixin(S_TRACE);
 						_dirs.setText(nName);
 					}
 				}
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			if (o == _path) _path = n;
 			int di = _dirs.getSelectionIndex();
 			auto op = o;
-			if (di >= 0 && cfnmatch(fromViewPath(_dirs.getItems()[di]), dirName(o))) {
+			if (di >= 0 && cfnmatch(fromViewPath(_dirs.getItems()[di]), dirName(o))) { mixin(S_TRACE);
 				int index = flIndexOf(baseName(o));
-				if (index >= 0) {
+				if (index >= 0) { mixin(S_TRACE);
 					string nName = baseName(n);
 					static if (is(C : Table)) {
 						_fileList.getItem(index).setText(nName);
@@ -1075,19 +1075,19 @@ private:
 		}
 		if (_refresh) _refresh();
 	}
-	void __delPaths() {
+	void __delPaths() { mixin(S_TRACE);
 		refreshPaths();
 	}
-	void __replPath(string from, string to) {
-		if (_path == from) {
+	void __replPath(string from, string to) { mixin(S_TRACE);
+		if (_path == from) { mixin(S_TRACE);
 			refreshPaths();
 		}
 	}
-	void refreshButtons() {
+	void refreshButtons() { mixin(S_TRACE);
 		_comm.refreshToolBar();
 	}
 	@property
-	Skin summSkin() {
+	Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
 	}
 

@@ -61,14 +61,14 @@ private class LSFFThr(bool Array) {
 	static if (Array) {
 		string[] files;
 		string[] temps;
-		void clear() {
+		void clear() { mixin(S_TRACE);
 			foreach (temp; temps) delAll(temp);
 		}
 		void delegate(Summary[]) loaded;
 	} else {
 		Summary old;
 		string temp = "";
-		void clear() {
+		void clear() { mixin(S_TRACE);
 			if (temp.length) delAll(temp);
 		}
 		void delegate(Summary) loaded;
@@ -76,28 +76,28 @@ private class LSFFThr(bool Array) {
 	void delegate() failure;
 	void delegate(string) status;
 	class Start : Runnable {
-		void run() {
+		void run() { mixin(S_TRACE);
 			status(.tryFormat(prop.msgs.loading, fname));
 		}
 	}
 	class Exit : Runnable {
-		void run() {
-			try {
+		void run() { mixin(S_TRACE);
+			try { mixin(S_TRACE);
 				resetCursors(cursors);
-			} catch {
+			} catch { mixin(S_TRACE);
 				clear();
 			}
 		}
 	}
 	class Failed : Runnable {
-		void run() {
+		void run() { mixin(S_TRACE);
 			static if (Array) {
-				if (1 == files.length) {
+				if (1 == files.length) { mixin(S_TRACE);
 					status(.tryFormat(prop.msgs.loadErrorStatus, files[0]));
-				} else {
+				} else { mixin(S_TRACE);
 					status(.tryFormat(prop.msgs.loadErrorStatusCount, files.length));
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				status(.tryFormat(prop.msgs.loadErrorStatus, fname));
 			}
 			if (failure) failure();
@@ -106,10 +106,10 @@ private class LSFFThr(bool Array) {
 	uint worked = 0u;
 	uint max;
 	class Working : Runnable {
-		void run() {
-			try {
+		void run() { mixin(S_TRACE);
+			try { mixin(S_TRACE);
 				status(.tryFormat(prop.msgs.loadProgress, baseName(fname), roundTo!int(cast(real) worked / max * 100.0)));
-			} catch {
+			} catch { mixin(S_TRACE);
 				clear();
 			}
 		}
@@ -124,16 +124,16 @@ private class LSFFThr(bool Array) {
 			this (Summary r) {this.r = r;}
 			bool success() {return r !is null;}
 		}
-		void run() {
-			if (success()) {
-				try {
+		void run() { mixin(S_TRACE);
+			if (success()) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					static if (Array) {
-						if (r.length == 1) {
+						if (r.length == 1) { mixin(S_TRACE);
 							status(.tryFormat(prop.msgs.loaded, r[0].scenarioName));
-						} else {
+						} else { mixin(S_TRACE);
 							status(.tryFormat(prop.msgs.loadedCount, r.length));
 						}
-					} else {
+					} else { mixin(S_TRACE);
 						status(.tryFormat(prop.msgs.loaded, r.scenarioName));
 					}
 					loaded(r);
@@ -142,18 +142,18 @@ private class LSFFThr(bool Array) {
 					MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
 					static if (Array) {
 						string[] names;
-						foreach (s; r) {
+						foreach (s; r) { mixin(S_TRACE);
 							names ~= s.scenarioName;
 						}
-						if (1 == names.length) {
+						if (1 == names.length) { mixin(S_TRACE);
 							status(.tryFormat(prop.msgs.loadErrorStatus, names[0]));
-						} else {
+						} else { mixin(S_TRACE);
 							status(.tryFormat(prop.msgs.loadErrorStatusCount, names.length));
 						}
-					} else {
+					} else { mixin(S_TRACE);
 						status(.tryFormat(prop.msgs.loadErrorStatus, r.scenarioName));
 					}
-				} catch {
+				} catch { mixin(S_TRACE);
 					clear();
 				}
 			}
@@ -162,33 +162,33 @@ private class LSFFThr(bool Array) {
 	class SError : Runnable {
 		SummaryException e;
 		this (SummaryException e) {this.e = e;}
-		void run() {
-			try {
+		void run() { mixin(S_TRACE);
+			try { mixin(S_TRACE);
 				MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
-			} catch {
+			} catch { mixin(S_TRACE);
 				clear();
 			}
 			static if (Array) {
-				if (1 == files.length) {
+				if (1 == files.length) { mixin(S_TRACE);
 					status(.tryFormat(prop.msgs.loadErrorStatus, files[0]));
-				} else {
+				} else { mixin(S_TRACE);
 					status(.tryFormat(prop.msgs.loadErrorStatus, files.length));
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				status(.tryFormat(prop.msgs.loadErrorStatus, fname));
 			}
 		}
 	}
 	Runnable working;
-	void setMax(uint maxv) {
+	void setMax(uint maxv) { mixin(S_TRACE);
 		max = maxv;
 		display.syncExec(working);
 	}
-	void setWork(uint workedv) {
+	void setWork(uint workedv) { mixin(S_TRACE);
 		worked = workedv;
 		display.asyncExec(working);
 	}
-	void run() {
+	void run() { mixin(S_TRACE);
 		version (Console) {
 			debug std.stdio.writeln("Start Load Thread");
 		}
@@ -201,22 +201,22 @@ private class LSFFThr(bool Array) {
 		working = new Working;
 		static if (Array) {
 			Summary[] r;
-			foreach (i, path; files) {
+			foreach (i, path; files) { mixin(S_TRACE);
 				fname = path;
 				display.syncExec(new Start);
 				Summary s = loadScenarioFromFileImpl(prop, opt, w, status,
 					null, path, null, null, false, display, &setMax, &setWork);
-				if (s) {
+				if (s) { mixin(S_TRACE);
 					r ~= s;
 					if (s.useTemp) temps ~= s.scenarioPath;
-				} else {
+				} else { mixin(S_TRACE);
 					break;
 				}
 			}
 			display.syncExec(new Load(r));
-		} else {
+		} else { mixin(S_TRACE);
 			display.syncExec(new Start);
-			try {
+			try { mixin(S_TRACE);
 				Summary r = Summary.loadScenarioFromFile(prop.parent, opt,
 					fname, prop.tempPath, null, old, &setMax, &setWork,
 					isDir(fname) ? baseName(fname) : baseName(dirName(fname)));
@@ -233,21 +233,21 @@ private class LSFFThr(bool Array) {
 }
 
 @property
-string[] scenarioFilter() {
+string[] scenarioFilter() { mixin(S_TRACE);
 	string[] r;
-	if (canUncab) {
+	if (canUncab) { mixin(S_TRACE);
 		r ~= "*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm";
-	} else {
+	} else { mixin(S_TRACE);
 		r ~= "*.wsn;Summary.xml;*.zip;Summary.wsm";
 	}
 	r ~= "*.xml;*.wid";
 	return r;
 }
-string[] scenarioFilterDesc(Props prop) {
+string[] scenarioFilterDesc(Props prop) { mixin(S_TRACE);
 	string[] r;
-	if (canUncab) {
+	if (canUncab) { mixin(S_TRACE);
 		r ~= .tryFormat(prop.msgs.filterScenario, "*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm");
-	} else {
+	} else { mixin(S_TRACE);
 		r ~= .tryFormat(prop.msgs.filterScenario, "*.wsn;Summary.xml;*.zip;Summary.wsm");
 	}
 	r ~= .tryFormat(prop.msgs.filterParts, "*.xml;*.wid");
@@ -255,20 +255,20 @@ string[] scenarioFilterDesc(Props prop) {
 }
 
 Summary[] loadScenarios(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
-		string dlgTitle, void delegate(Summary[]) loaded = null, void delegate() failure = null, bool oThr = true) {
+		string dlgTitle, void delegate(Summary[]) loaded = null, void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
 	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.MULTI | SWT.OPEN);
 	dlg.setFilterExtensions(scenarioFilter);
 	dlg.setFilterNames(scenarioFilterDesc(prop));
 	dlg.setText(dlgTitle);
 	dlg.setFilterPath(scenarioFilterPath(prop));
 	string fname = dlg.open();
-	if (fname) {
+	if (fname) { mixin(S_TRACE);
 		auto put = new class Object {
 			Props prop;
 			string filterPath;
 			void delegate (Summary[]) loaded;
-			void put(Summary[] r) {
-				if (r.length) {
+			void put(Summary[] r) { mixin(S_TRACE);
+				if (r.length) { mixin(S_TRACE);
 					filterPath = nabs(filterPath);
 					prop.var.etc.scenarioPath = r[0u].useTemp ? filterPath : dirName(filterPath);
 				}
@@ -279,9 +279,9 @@ Summary[] loadScenarios(Props prop, in LoadOption opt, Shell w, void delegate(st
 		put.filterPath = dlg.getFilterPath();
 		put.loaded = loaded;
 		auto files = new HashSet!(string);
-		foreach (file; dlg.getFileNames()) {
+		foreach (file; dlg.getFileNames()) { mixin(S_TRACE);
 			auto ext = .extension(file);
-			if (cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex")) {
+			if (cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex")) { mixin(S_TRACE);
 				file = dirName(file);
 			}
 			files.add(nabs(std.path.buildPath(dlg.getFilterPath(), file)));
@@ -295,9 +295,9 @@ Summary[] loadScenarios(Props prop, in LoadOption opt, Shell w, void delegate(st
 }
 
 Summary[] loadScenariosFromFile(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
-		string[] files, void delegate(Summary[]) loaded = null, void delegate() failure = null, bool oThr = true) {
+		string[] files, void delegate(Summary[]) loaded = null, void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
 	auto display = Display.getCurrent();
-	if (oThr && loaded) {
+	if (oThr && loaded) { mixin(S_TRACE);
 		auto thr = new LSFFThr!(true);
 		thr.display = display;
 		thr.prop = prop;
@@ -311,15 +311,15 @@ Summary[] loadScenariosFromFile(Props prop, in LoadOption opt, Shell w, void del
 		auto t = new core.thread.Thread(&thr.run);
 		t.start();
 		return [];
-	} else {
+	} else { mixin(S_TRACE);
 		auto cursors = setWaitCursors(w);
 		scope (exit) resetCursors(cursors);
 		Summary[] r;
-		foreach (i, path; files) {
+		foreach (i, path; files) { mixin(S_TRACE);
 			Summary s = loadScenarioFromFileImpl(prop, opt, w, status, null, path, null, null, false, display);
-			if (s) {
+			if (s) { mixin(S_TRACE);
 				r ~= s;
-			} else {
+			} else { mixin(S_TRACE);
 				break;
 			}
 		}
@@ -327,16 +327,16 @@ Summary[] loadScenariosFromFile(Props prop, in LoadOption opt, Shell w, void del
 	}
 }
 
-string scenarioFilterPath(Props prop) {
-	if (prop.var.etc.scenarioPath.length == 0) {
+string scenarioFilterPath(Props prop) { mixin(S_TRACE);
+	if (prop.var.etc.scenarioPath.length == 0) { mixin(S_TRACE);
 		if (prop.enginePath.length == 0) return "";
 		return nabs(std.path.buildPath(dirName(prop.enginePath), "Scenario"));
-	} else {
+	} else { mixin(S_TRACE);
 		return nabs(prop.var.etc.scenarioPath);
 	}
 }
 
-string selectScenario(Props prop, Shell w, string dlgTitle) {
+string selectScenario(Props prop, Shell w, string dlgTitle) { mixin(S_TRACE);
 	auto dlg = new FileDialog(w, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.OPEN);
 	dlg.setFilterExtensions(scenarioFilter);
 	dlg.setFilterNames(scenarioFilterDesc(prop));
@@ -346,13 +346,13 @@ string selectScenario(Props prop, Shell w, string dlgTitle) {
 }
 
 Summary loadScenario(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
-		Summary old, string dlgTitle, ref string[] openPaths, void delegate(Summary) loaded = null, void delegate() failure = null, bool oThr = true) {
+		Summary old, string dlgTitle, ref string[] openPaths, void delegate(Summary) loaded = null, void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
 	string fname = selectScenario(prop, w, dlgTitle);
-	if (fname) {
+	if (fname) { mixin(S_TRACE);
 		decScenarioPath(fname, openPaths, prop.var.etc.clickIsOpenEvent);
 		auto put = new class Object {
 			void delegate(Summary) loaded;
-			void put(Summary r) {
+			void put(Summary r) { mixin(S_TRACE);
 				if (loaded) loaded(r);
 			}
 		};
@@ -365,13 +365,13 @@ Summary loadScenario(Props prop, in LoadOption opt, Shell w, void delegate(strin
 }
 
 Summary loadScenarioFromFile(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
-		Summary old, string fname, void delegate(Summary) loaded = null, void delegate() failure = null, bool oThr = true) {
+		Summary old, string fname, void delegate(Summary) loaded = null, void delegate() failure = null, bool oThr = true) { mixin(S_TRACE);
 	return loadScenarioFromFileImpl(prop, opt, w, status, old, fname, loaded, failure, oThr, null);
 }
 private Summary loadScenarioFromFileImpl(Props prop, in LoadOption opt, Shell w, void delegate(string) status,
 		Summary old, string fname, void delegate(Summary) loaded = null, void delegate() failure = null, bool oThr = true, Display current = null,
-		void delegate (uint) setMax = null, void delegate (uint) worked = null) {
-	if (oThr && loaded) {
+		void delegate (uint) setMax = null, void delegate (uint) worked = null) { mixin(S_TRACE);
+	if (oThr && loaded) { mixin(S_TRACE);
 		auto thr = new LSFFThr!(false);
 		thr.display = current ? current : Display.getCurrent();
 		thr.current = current;
@@ -383,21 +383,21 @@ private Summary loadScenarioFromFileImpl(Props prop, in LoadOption opt, Shell w,
 		thr.loaded = loaded;
 		thr.failure = failure;
 		thr.status = status;
-		if (!current) {
+		if (!current) { mixin(S_TRACE);
 			thr.cursors = setWaitCursors(w);
 		}
 		auto t = new core.thread.Thread(&thr.run);
 		t.start();
 		return null;
-	} else {
+	} else { mixin(S_TRACE);
 		Cursor[Shell] cursors;
-		if (!current) {
+		if (!current) { mixin(S_TRACE);
 			cursors = setWaitCursors(w);
 		}
 		scope (exit) {
 			if (!current) resetCursors(cursors);
 		}
-		try {
+		try { mixin(S_TRACE);
 			return Summary.loadScenarioFromFile(prop.parent, opt, fname,
 				prop.tempPath, null, old, setMax, worked,
 				isDir(fname) ? baseName(fname) : baseName(dirName(fname)));

@@ -77,7 +77,7 @@ version (Windows) {
 			char* name;
 		};
 	}
-} else {
+} else { mixin(S_TRACE);
 	import std.c.unix.unix;
 }
 
@@ -85,17 +85,17 @@ private struct FC {
 	string path;
 	SysTime time;
 	const
-	bool opEquals(ref const(FC) fc) {
+	bool opEquals(ref const(FC) fc) { mixin(S_TRACE);
 		return path == fc.path && time == fc.time;
 	}
 	const
-	int opCmp(ref const(FC) fc) {
+	int opCmp(ref const(FC) fc) { mixin(S_TRACE);
 		if (time < fc.time) return -1;
 		if (time > fc.time) return 1;
 		return 0;
 	}
 	const
-	string toString() {
+	string toString() { mixin(S_TRACE);
 		return path;
 	}
 }
@@ -103,26 +103,26 @@ private struct FC {
 class DirectoryWindow : TopLevelPanel, SashPanel, TCPD {
 private:
 	class FileNameObj {
-		private this () {
+		private this () { mixin(S_TRACE);
 			this.relPath = toRelPath(this.array);
 			this.ext = .extension(this.basename);
 			this.extl = .extension(this.basename).toLower();
 			this.pathId = toPathId(this.relPath);
 			this.dir = isDir(this.array) != 0;
-			if (this.dir) {
+			if (this.dir) { mixin(S_TRACE);
 				this.material = false;
-			} else {
+			} else { mixin(S_TRACE);
 				auto skin = _comm.skin;
 				this.material = skin.isMaterial(this.basename, false);
 			}
 			this.size = getSize(this.array);
 		}
-		this (string fullPath) {
+		this (string fullPath) { mixin(S_TRACE);
 			this.array = fullPath;
 			this.basename = baseName(this.array);
 			this ();
 		}
-		this (string parent, string basename) {
+		this (string parent, string basename) { mixin(S_TRACE);
 			this.array = std.path.buildPath(parent, basename);
 			this.basename = basename;
 			this ();
@@ -137,30 +137,30 @@ private:
 		bool material;
 		ulong size;
 	}
-	int comp(string a, string b) {
-		if (_prop.var.etc.logicalSort) {
+	int comp(string a, string b) { mixin(S_TRACE);
+		if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
 			return fnncmp(a, b);
-		} else {
+		} else { mixin(S_TRACE);
 			return fncmp(a, b);
 		}
 	}
 
-	bool compDirName(string a, string b) {
+	bool compDirName(string a, string b) { mixin(S_TRACE);
 		return comp(a, b) < 0;
 	}
-	bool compFullPath(string a, string b) {
+	bool compFullPath(string a, string b) { mixin(S_TRACE);
 		return compFNameS(baseName(a), baseName(b), isDir(a) != 0, isDir(b) != 0);
 	}
-	bool compFNameS(string a, string b, bool ad, bool bd) {
+	bool compFNameS(string a, string b, bool ad, bool bd) { mixin(S_TRACE);
 		if (ad && bd) return comp(a, b) < 0;
 		if (!ad && bd) return false;
 		if (ad && !bd) return true;
 		return comp(a, b) < 0;
 	}
-	bool compFName(in FileNameObj a, in FileNameObj b) {
+	bool compFName(in FileNameObj a, in FileNameObj b) { mixin(S_TRACE);
 		return compFNameS(a.basename, b.basename, a.dir, b.dir);
 	}
-	bool revCompFName(in FileNameObj a, in FileNameObj b) {
+	bool revCompFName(in FileNameObj a, in FileNameObj b) { mixin(S_TRACE);
 		auto ad = a.dir;
 		auto bd = b.dir;
 		if (ad && bd) return comp(a.basename, b.basename) < 0;
@@ -168,7 +168,7 @@ private:
 		if (ad && !bd) return true;
 		return comp(a.basename, b.basename) > 0;
 	}
-	bool compFExt(in FileNameObj a, in FileNameObj b) {
+	bool compFExt(in FileNameObj a, in FileNameObj b) { mixin(S_TRACE);
 		auto ad = a.dir;
 		auto bd = b.dir;
 		if (ad && bd) return comp(a.basename, b.basename) < 0;
@@ -177,7 +177,7 @@ private:
 		int r = comp(a.ext, b.ext);
 		return r != 0 ? r < 0 : comp(a.basename, b.basename) < 0;
 	}
-	bool revCompFExt(in FileNameObj a, in FileNameObj b) {
+	bool revCompFExt(in FileNameObj a, in FileNameObj b) { mixin(S_TRACE);
 		auto ad = a.dir;
 		auto bd = b.dir;
 		if (ad && bd) return comp(a.basename, b.basename) < 0;
@@ -186,7 +186,7 @@ private:
 		int r = comp(a.ext, b.ext);
 		return r != 0 ? r > 0 : comp(a.basename, b.basename) < 0;
 	}
-	bool compFCount(in FileNameObj a, in FileNameObj b) {
+	bool compFCount(in FileNameObj a, in FileNameObj b) { mixin(S_TRACE);
 		auto ad = !a.material;
 		auto bd = !b.material;
 		if (ad && bd) return compFExt(a, b);
@@ -197,7 +197,7 @@ private:
 		int r = ac - bc;
 		return r != 0 ? r < 0 : compFName(a, b);
 	}
-	bool revCompFCount(in FileNameObj a, in FileNameObj b) {
+	bool revCompFCount(in FileNameObj a, in FileNameObj b) { mixin(S_TRACE);
 		auto ad = !a.material;
 		auto bd = !b.material;
 		if (ad && bd) return compFExt(a, b);
@@ -209,20 +209,20 @@ private:
 		return r != 0 ? r > 0 : compFName(a, b);
 	}
 	@property
-	FC[] allPaths() {
+	FC[] allPaths() { mixin(S_TRACE);
 		FC[] fcs;
-		if (_summ) {
-			try {
-				void list(string path, string relPath) {
+		if (_summ) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
+				void list(string path, string relPath) { mixin(S_TRACE);
 					FC fc;
 					fc.path = relPath;
-					if (.isDir(path)) {
+					if (.isDir(path)) { mixin(S_TRACE);
 						fc.time = SysTime.init;
 						fcs ~= fc;
-						foreach (c; clistdir(path)) {
+						foreach (c; clistdir(path)) { mixin(S_TRACE);
 							list(std.path.buildPath(path, c), relPath.buildPath(c));
 						}
-					} else {
+					} else { mixin(S_TRACE);
 						fc.time = timeLastModified(path);
 						fcs ~= fc;
 					}
@@ -235,38 +235,38 @@ private:
 		return fcs.sort;
 	}
 	FC[] _checkPaths;
-	void refCheckPaths() {
-		if (_summ.useTemp) {
+	void refCheckPaths() { mixin(S_TRACE);
+		if (_summ.useTemp) { mixin(S_TRACE);
 	 		_checkPaths = allPaths;
 		}
 	}
 
-	bool isDef(string p, bool isDir) {
+	bool isDef(string p, bool isDir) { mixin(S_TRACE);
 		return _summ.isSystemFile(p, isDir) || isIgnore(p);
 	}
 
-	bool isIgnore(string p) {
+	bool isIgnore(string p) { mixin(S_TRACE);
 		return containsPath(_prop.var.etc.ignorePaths, baseName(p));
 	}
 
-	void refreshDirs(string sel) {
+	void refreshDirs(string sel) { mixin(S_TRACE);
 		if (!_win || _win.isDisposed()) return;
-		try {
+		try { mixin(S_TRACE);
 			scope (exit) refreshStatusLine();
-			if (!_summ) {
+			if (!_summ) { mixin(S_TRACE);
 				_dirs.removeAll();
 				return;
 			}
 			bool[string] expands;
-			void exps(TreeItem itm) {
-				if (itm.getExpanded()) {
+			void exps(TreeItem itm) { mixin(S_TRACE);
+				if (itm.getExpanded()) { mixin(S_TRACE);
 					expands[(cast(FileNameObj) itm.getData()).array] = true;
 				}
-				foreach (sub; itm.getItems()) {
+				foreach (sub; itm.getItems()) { mixin(S_TRACE);
 					exps(sub);
 				}
 			}
-			foreach (itm; _dirs.getItems()) {
+			foreach (itm; _dirs.getItems()) { mixin(S_TRACE);
 				exps(itm);
 			}
 			_dirs.setRedraw(false);
@@ -274,25 +274,25 @@ private:
 			int hs = _dirs.getHorizontalBar().getSelection();
 			auto topItm = _dirs.getTopItem();
 			string top = null;
-			if (topItm) {
+			if (topItm) { mixin(S_TRACE);
 				top = (cast(FileNameObj) topItm.getData()).array;
 				if (!.exists(top)) top = null;
 			}
 			TreeItem nTopItm = null;
 			_dirs.removeAll();
-			if (!addp(_dirs, _summ.scenarioPath, sel ? nabs(sel) : null, top, nTopItm)) {
+			if (!addp(_dirs, _summ.scenarioPath, sel ? nabs(sel) : null, top, nTopItm)) { mixin(S_TRACE);
 				_dirs.setSelection(_dirs.getItems()[0]);
 			}
 			if (nTopItm) _dirs.setTopItem(nTopItm);
-			void expst(TreeItem itm) {
-				if ((cast(FileNameObj) itm.getData()).array in expands) {
+			void expst(TreeItem itm) { mixin(S_TRACE);
+				if ((cast(FileNameObj) itm.getData()).array in expands) { mixin(S_TRACE);
 					itm.setExpanded(true);
 				}
-				foreach (sub; itm.getItems()) {
+				foreach (sub; itm.getItems()) { mixin(S_TRACE);
 					expst(sub);
 				}
 			}
-			foreach (itm; _dirs.getItems()) {
+			foreach (itm; _dirs.getItems()) { mixin(S_TRACE);
 				expst(itm);
 			}
 			_dirs.getHorizontalBar().setSelection(hs);
@@ -301,54 +301,54 @@ private:
 			debugln(e);
 		}
 	}
-	void refreshFiles(string[] sels) {
+	void refreshFiles(string[] sels) { mixin(S_TRACE);
 		if (!_win || _win.isDisposed()) return;
-		try {
+		try { mixin(S_TRACE);
 			scope (exit) refreshStatusLine();
-			if (!_summ) {
+			if (!_summ) { mixin(S_TRACE);
 				_files.removeAll();
 				return;
 			}
 			_files.setRedraw(false);
 			scope (exit) _files.setRedraw(true);
 			scope selset = new HashSet!(string);
-			if (sels) {
-				foreach (path; sels) {
-					if (.exists(path)) {
+			if (sels) { mixin(S_TRACE);
+				foreach (path; sels) { mixin(S_TRACE);
+					if (.exists(path)) { mixin(S_TRACE);
 						selset.add(nabs(path));
 					}
 				}
 			}
 			auto selDirs = _dirs.getSelection();
-			if (selDirs.length > 0) {
+			if (selDirs.length > 0) { mixin(S_TRACE);
 				_files.deselectAll();
 				_files.removeAll(); // 不要分だけremoveしようとすると Widget is disposed
 				auto path = (cast(FileNameObj) selDirs[0].getData()).array;
 				FileNameObj[] list;
-				foreach (f; clistdir(path)) {
-					if (_incSearch.match(f)) {
+				foreach (f; clistdir(path)) { mixin(S_TRACE);
+					if (_incSearch.match(f)) { mixin(S_TRACE);
 						list ~= new FileNameObj(path, f);
 					}
 				}
-				if (_files.getSortColumn() is _sortName.column) {
-					if (_files.getSortDirection() == SWT.UP) {
+				if (_files.getSortColumn() is _sortName.column) { mixin(S_TRACE);
+					if (_files.getSortDirection() == SWT.UP) { mixin(S_TRACE);
 						list = .sortDlg!(FileNameObj, typeof(&compFName))(list, &compFName);
-					} else {
+					} else { mixin(S_TRACE);
 						assert (_files.getSortDirection() == SWT.DOWN);
 						list = .sortDlg!(FileNameObj, typeof(&revCompFName))(list, &revCompFName);
 					}
-				} else if (_files.getSortColumn() is _sortExt.column) {
-					if (_files.getSortDirection() == SWT.UP) {
+				} else if (_files.getSortColumn() is _sortExt.column) { mixin(S_TRACE);
+					if (_files.getSortDirection() == SWT.UP) { mixin(S_TRACE);
 						list = .sortDlg!(FileNameObj, typeof(&compFExt))(list, &compFExt);
-					} else {
+					} else { mixin(S_TRACE);
 						assert (_files.getSortDirection() == SWT.DOWN);
 						list = .sortDlg!(FileNameObj, typeof(&revCompFExt))(list, &revCompFExt);
 					}
-				} else {
+				} else { mixin(S_TRACE);
 					assert (_files.getSortColumn() is _sortCount.column);
-					if (_files.getSortDirection() == SWT.UP) {
+					if (_files.getSortDirection() == SWT.UP) { mixin(S_TRACE);
 						list = .sortDlg!(FileNameObj, typeof(&compFCount))(list, &compFCount);
-					} else {
+					} else { mixin(S_TRACE);
 						assert (_files.getSortDirection() == SWT.DOWN);
 						list = .sortDlg!(FileNameObj, typeof(&revCompFCount))(list, &revCompFCount);
 					}
@@ -357,96 +357,96 @@ private:
 				int oldC = _files.getItemCount();
 				bool sp = cast(bool) cfnmatch(nabs(path), nabs(_summ.scenarioPath));
 				Skin skin = _comm.skin;
-				foreach (p; list) {
-					if (sp) {
+				foreach (p; list) { mixin(S_TRACE);
+					if (sp) { mixin(S_TRACE);
 						if (isDef(p.array, p.dir)) continue;
-					} else {
+					} else { mixin(S_TRACE);
 						if (isIgnore(p.array)) continue;
 					}
 					TableItem itm;
-					if (count < oldC) {
+					if (count < oldC) { mixin(S_TRACE);
 						itm = _files.getItem(count);
-					} else {
+					} else { mixin(S_TRACE);
 						itm = new TableItem(_files, SWT.NONE);
 					}
 					auto img = fimage(skin, p.array, p.dir);
 					itm.setImage(0, img);
-					string wrapExt(string ext) {
+					string wrapExt(string ext) { mixin(S_TRACE);
 						if (!ext.length) return ext;
 						if ('.' == ext[0]) return ext[1 .. $];
 						return ext;
 					}
-					if (p.dir) {
+					if (p.dir) { mixin(S_TRACE);
 						itm.setText(0, p.basename);
 						itm.setText(1, "");
 						itm.setText(2, "");
-					} else if (p.material) {
+					} else if (p.material) { mixin(S_TRACE);
 						itm.setText(0, stripExtension(p.basename));
 						itm.setText(1, wrapExt(p.ext));
 						itm.setText(2, to!(string)(_summ.useCounter.path.get(p.pathId)));
-					} else {
+					} else { mixin(S_TRACE);
 						itm.setText(0, stripExtension(p.basename));
 						itm.setText(1, wrapExt(p.ext));
 						itm.setText(2, "");
 					}
 					p.array = nabs(p.array);
 					itm.setData(p);
-					if (selset.size > 0) {
-						if (selset.contains(p.array)) {
+					if (selset.size > 0) { mixin(S_TRACE);
+						if (selset.contains(p.array)) { mixin(S_TRACE);
 							_files.select(count);
 						}
 					}
 					count++;
 				}
-				if (count > 0 && !sels) {
+				if (count > 0 && !sels) { mixin(S_TRACE);
 					_files.setTopIndex(0);
 				}
 				_files.showSelection();
-			} else {
+			} else { mixin(S_TRACE);
 				_files.removeAll();
 			}
 		} catch (Exception e) {
 			debugln(e);
 		}
 	}
-	bool addp(T)(T parItm, string path, string sel, string top, ref TreeItem topItm) {
+	bool addp(T)(T parItm, string path, string sel, string top, ref TreeItem topItm) { mixin(S_TRACE);
 		auto itm = new TreeItem(parItm, SWT.NONE);
 		auto full = nabs(path);
-		if (0 == filenameCharCmp('A', 'a') ? _cuts.contains(.toLower(full)) : _cuts.contains(full)) {
+		if (0 == filenameCharCmp('A', 'a') ? _cuts.contains(.toLower(full)) : _cuts.contains(full)) { mixin(S_TRACE);
 			itm.setImage(_sImgFolder);
-		} else {
+		} else { mixin(S_TRACE);
 			itm.setImage(_prop.images.folder);
 		}
 		string abs = nabs(_summ.scenarioPath);
 		bool sp = cast(bool) cfnmatch(full, abs);
-		if (sp) {
+		if (sp) { mixin(S_TRACE);
 			itm.setText("Scenario");
-		} else {
+		} else { mixin(S_TRACE);
 			itm.setText(baseName(path));
 		}
 		itm.setData(new FileNameObj(full));
 		string[] subs;
-		foreach (p; clistdir(path)) {
+		foreach (p; clistdir(path)) { mixin(S_TRACE);
 			p = std.path.buildPath(path, p);
 			if (isDir(p)) subs ~= p;
 		}
 		subs = .sortDlg!(string)(subs, &compDirName);
 		bool s = false;
-		foreach (p; subs) {
-			if (sp) {
+		foreach (p; subs) { mixin(S_TRACE);
+			if (sp) { mixin(S_TRACE);
 				if (isDef(p, cast(bool) isDir(p))) continue;
-			} else {
+			} else { mixin(S_TRACE);
 				if (isIgnore(p)) continue;
 			}
 			s |= addp(itm, p, sel, top, topItm);
 		}
-		if (sel) {
+		if (sel) { mixin(S_TRACE);
 			auto absp = nabs(path);
-			if (cfnmatch(sel, absp)) {
+			if (cfnmatch(sel, absp)) { mixin(S_TRACE);
 				itm.getParent().setSelection(itm);
 				s = true;
 			}
-			if (top && !topItm && cfnmatch(nabs(top), absp)) {
+			if (top && !topItm && cfnmatch(nabs(top), absp)) { mixin(S_TRACE);
 				topItm = itm;
 			}
 		}
@@ -455,142 +455,142 @@ private:
 
 	private Display _display = null;
 
-	Image fimage(Image img) {
-		if (img is _prop.images.folder || img is _sImgFolder) {
+	Image fimage(Image img) { mixin(S_TRACE);
+		if (img is _prop.images.folder || img is _sImgFolder) { mixin(S_TRACE);
 			return _prop.images.folder;
-		} else if (img is _prop.images.cards || img is _sImgCards) {
+		} else if (img is _prop.images.cards || img is _sImgCards) { mixin(S_TRACE);
 			return _prop.images.cards;
-		} else if (img is _prop.images.backs || img is _sImgBacks) {
+		} else if (img is _prop.images.backs || img is _sImgBacks) { mixin(S_TRACE);
 			return _prop.images.backs;
-		} else if (img is _prop.images.bgm || img is _sImgBgm) {
+		} else if (img is _prop.images.bgm || img is _sImgBgm) { mixin(S_TRACE);
 			return _prop.images.bgm;
-		} else if (img is _prop.images.se || img is _sImgSe) {
+		} else if (img is _prop.images.se || img is _sImgSe) { mixin(S_TRACE);
 			return _prop.images.se;
-		} else if (img is _prop.images.text || img is _sImgText) {
+		} else if (img is _prop.images.text || img is _sImgText) { mixin(S_TRACE);
 			return _prop.images.text;
-		} else if (img is _prop.images.unknown || img is _sImgUnknown) {
+		} else if (img is _prop.images.unknown || img is _sImgUnknown) { mixin(S_TRACE);
 			return _prop.images.unknown;
 		}
 		assert (0);
 	}
-	Image sfimage(Image img) {
-		if (img is _prop.images.folder || img is _sImgFolder) {
+	Image sfimage(Image img) { mixin(S_TRACE);
+		if (img is _prop.images.folder || img is _sImgFolder) { mixin(S_TRACE);
 			return _sImgFolder;
-		} else if (img is _prop.images.cards || img is _sImgCards) {
+		} else if (img is _prop.images.cards || img is _sImgCards) { mixin(S_TRACE);
 			return _sImgCards;
-		} else if (img is _prop.images.backs || img is _sImgBacks) {
+		} else if (img is _prop.images.backs || img is _sImgBacks) { mixin(S_TRACE);
 			return _sImgBacks;
-		} else if (img is _prop.images.bgm || img is _sImgBgm) {
+		} else if (img is _prop.images.bgm || img is _sImgBgm) { mixin(S_TRACE);
 			return _sImgBgm;
-		} else if (img is _prop.images.se || img is _sImgSe) {
+		} else if (img is _prop.images.se || img is _sImgSe) { mixin(S_TRACE);
 			return _sImgSe;
-		} else if (img is _prop.images.text || img is _sImgText) {
+		} else if (img is _prop.images.text || img is _sImgText) { mixin(S_TRACE);
 			return _sImgText;
-		} else if (img is _prop.images.unknown || img is _sImgUnknown) {
+		} else if (img is _prop.images.unknown || img is _sImgUnknown) { mixin(S_TRACE);
 			return _sImgUnknown;
 		}
 		assert (0);
 	}
-	Image fimage(Skin skin, string file) {
-		if (skin.isCardImage(file, false)) {
+	Image fimage(Skin skin, string file) { mixin(S_TRACE);
+		if (skin.isCardImage(file, false)) { mixin(S_TRACE);
 			return _prop.images.cards;
-		} else if (skin.isBgImage(file)) {
+		} else if (skin.isBgImage(file)) { mixin(S_TRACE);
 			return _prop.images.backs;
-		} else if (skin.isBGM(file) && !.cfnmatch(file.extension(), ".wav")) {
+		} else if (skin.isBGM(file) && !.cfnmatch(file.extension(), ".wav")) { mixin(S_TRACE);
 			return _prop.images.bgm;
-		} else if (skin.isSE(file)) {
+		} else if (skin.isSE(file)) { mixin(S_TRACE);
 			return _prop.images.se;
-		} else if (cfnmatch(.extension(file), ".txt")) {
+		} else if (cfnmatch(.extension(file), ".txt")) { mixin(S_TRACE);
 			return _prop.images.text;
-		} else {
+		} else { mixin(S_TRACE);
 			return _prop.images.unknown;
 		}
 	}
-	Image fimage(Skin skin, string file, bool dir) {
-		if (isCutted(file)) {
+	Image fimage(Skin skin, string file, bool dir) { mixin(S_TRACE);
+		if (isCutted(file)) { mixin(S_TRACE);
 			return sfimage(file);
 		}
-		if (dir) {
+		if (dir) { mixin(S_TRACE);
 			return _prop.images.folder;
-		} else {
+		} else { mixin(S_TRACE);
 			return fimage(skin, file);
 		}
 	}
-	Image fimage(string file) {
-		if (isCutted(file)) {
+	Image fimage(string file) { mixin(S_TRACE);
+		if (isCutted(file)) { mixin(S_TRACE);
 			return sfimage(file);
 		}
-		if (.isDir(file)) {
+		if (.isDir(file)) { mixin(S_TRACE);
 			return _prop.images.folder;
-		} else {
+		} else { mixin(S_TRACE);
 			return fimage(_comm.skin, file);
 		}
 	}
-	Image sfimage(string file) {
+	Image sfimage(string file) { mixin(S_TRACE);
 		auto skin = _comm.skin;
-		if (.isDir(file)) {
+		if (.isDir(file)) { mixin(S_TRACE);
 			return _sImgFolder;
-		} else if (skin.isCardImage(file, false)) {
+		} else if (skin.isCardImage(file, false)) { mixin(S_TRACE);
 			return _sImgCards;
-		} else if (skin.isBgImage(file)) {
+		} else if (skin.isBgImage(file)) { mixin(S_TRACE);
 			return _sImgBacks;
-		} else if (skin.isBGM(file)) {
+		} else if (skin.isBGM(file)) { mixin(S_TRACE);
 			return _sImgBgm;
-		} else if (skin.isSE(file)) {
+		} else if (skin.isSE(file)) { mixin(S_TRACE);
 			return _sImgSe;
-		} else if (cfnmatch(.extension(file), ".txt")) {
+		} else if (cfnmatch(.extension(file), ".txt")) { mixin(S_TRACE);
 			return _sImgText;
-		} else {
+		} else { mixin(S_TRACE);
 			return _sImgUnknown;
 		}
 	}
-	private bool isCutted(string file) {
+	private bool isCutted(string file) { mixin(S_TRACE);
 		static if (0 == filenameCharCmp('A', 'a')) {
 			file = .toLower(file);
 			file = file.nabs();
 			return _cuts.contains(file);
-		} else {
+		} else { mixin(S_TRACE);
 			return _cuts.contains(nabs(file));
 		}
 	}
-	string toRelPath(string file) {
+	string toRelPath(string file) { mixin(S_TRACE);
 		file = nabs(file);
 		auto sc = nabs(_summ.scenarioPath);
 		return file.length == sc.length ? "" : file[(sc ~ dirSeparator).length .. $];
 	}
 	class DirsSelection : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			refreshFiles([]);
 			_comm.refreshToolBar();
 		}
 	}
 	class FilesSelection : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			filesSelected();
 		}
 	}
-	void filesSelected() {
+	void filesSelected() { mixin(S_TRACE);
 		refreshStatusLine();
 		_comm.refreshToolBar();
 	}
 	class FileSelect : KeyAdapter, MouseListener {
 	private:
-		void select() {
+		void select() { mixin(S_TRACE);
 			int index = _files.getSelectionIndex();
-			if (index >= 0) {
+			if (index >= 0) { mixin(S_TRACE);
 				auto path = (cast(FileNameObj) _files.getItem(index).getData()).array;
-				if (.isDir(path)) {
+				if (.isDir(path)) { mixin(S_TRACE);
 					auto sels = _dirs.getSelection();
 					if (!sels.length) return;
-					foreach (itm; sels[0].getItems()) {
-						if (cfnmatch((cast(FileNameObj) itm.getData()).array, path)) {
+					foreach (itm; sels[0].getItems()) { mixin(S_TRACE);
+						if (cfnmatch((cast(FileNameObj) itm.getData()).array, path)) { mixin(S_TRACE);
 							_dirs.setSelection(itm);
 							refreshFiles([]);
 							return;
 						}
 					}
 					assert (0);
-				} else {
+				} else { mixin(S_TRACE);
 					Program.launch(path);
 				}
 			}
@@ -598,35 +598,35 @@ private:
 	public override:
 		void mouseUp(MouseEvent e) {}
 		void mouseDown(MouseEvent e) {}
-		void mouseDoubleClick(MouseEvent e) {
-			if ((cast(Control) e.widget).isFocusControl() && e.button == 1) {
+		void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
+			if ((cast(Control) e.widget).isFocusControl() && e.button == 1) { mixin(S_TRACE);
 				select();
 			}
 		}
-		void keyPressed(KeyEvent e) {
-			if (e.character == SWT.CR) {
+		void keyPressed(KeyEvent e) { mixin(S_TRACE);
+			if (e.character == SWT.CR) { mixin(S_TRACE);
 				select();
 			}
 		}
 	}
 
 	class FilesDrag(C) : DragSourceAdapter {
-		override void dragStart(DragSourceEvent e) {
+		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
 			e.doit = (cast(DragSource) e.getSource()).getControl().isFocusControl();
 		}
-		override void dragSetData(DragSourceEvent e) {
+		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
 			auto itms
 				= (cast(C) (cast(DragSource) e.getSource()).getControl()).getSelection();
 			if (itms.length == 0) return;
 			string[] data;
 			data.length = itms.length;
-			foreach (i, itm; itms) {
+			foreach (i, itm; itms) { mixin(S_TRACE);
 				data[i] = (cast(FileNameObj) itm.getData()).array;
 			}
 			e.data = new FileNames(data);
 		}
-		override void dragFinished(DragSourceEvent e) {
-			if (e.detail != DND.DROP_NONE) {
+		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
+			if (e.detail != DND.DROP_NONE) { mixin(S_TRACE);
 				auto sels = selFiles;
 				auto sdp = selDirPath;
 				refreshDirs(sdp);
@@ -639,16 +639,16 @@ private:
 	}
 	class FilesDrop(C) : DropTargetAdapter {
 	override:
-		void dragOver(DropTargetEvent e){
+		void dragOver(DropTargetEvent e){ mixin(S_TRACE);
 			static if (is (C == Table)) {
 				e.detail = DND.DROP_MOVE;
 			} else static if (is (C == Tree)) {
 				e.detail = e.item ? DND.DROP_MOVE : DND.DROP_NONE;
-			} else {
+			} else { mixin(S_TRACE);
 				static assert (0);
 			}
 		}
-		void drop(DropTargetEvent e){
+		void drop(DropTargetEvent e){ mixin(S_TRACE);
 			e.detail = DND.DROP_NONE;
 			auto files = cast(FileNames) e.data;
 			bool fromOut;
@@ -656,47 +656,47 @@ private:
 				auto toparP = e.item ? (cast(FileNameObj) e.item.getData()).array : selDirPath;
 			} else static if (is (C == Tree)) {
 				auto toparP = (cast(FileNameObj) e.item.getData()).array;
-			} else {
+			} else { mixin(S_TRACE);
 				static assert (0);
 			}
 			if (!toparP) return;
 			string topar = .isDir(toparP) ? toparP : dirName(toparP);
-			if (__paste(topar, files, true, fromOut)) {
+			if (__paste(topar, files, true, fromOut)) { mixin(S_TRACE);
 				e.detail = fromOut ? DND.DROP_COPY : DND.DROP_NONE;
 				clearCut();
 			}
 		}
 	}
-	bool __paste(string targ, FileNames files, bool move, out bool fromOut) {
-		if (files && files.array.length > 0) {
+	bool __paste(string targ, FileNames files, bool move, out bool fromOut) { mixin(S_TRACE);
+		if (files && files.array.length > 0) { mixin(S_TRACE);
 			pauseTrace();
 			scope (exit) resumeTrace();
 			fromOut = false;
 			scope pfull = nabs(_summ.scenarioPath);
 			bool top = cast(bool) cfnmatch(nabs(targ), pfull);
-			try {
+			try { mixin(S_TRACE);
 				string[] paths;
 				string[] exists;
 				string[] copys;
-				foreach (file; files.array) {
+				foreach (file; files.array) { mixin(S_TRACE);
 					file = nabs(file);
-					if (hasPath(file, targ)) {
+					if (hasPath(file, targ)) { mixin(S_TRACE);
 						// 自分の上位のディレクトリを持ってこようとした
 						continue;
 					}
 					auto to = std.path.buildPath(targ, baseName(file));
-					if (top) {
+					if (top) { mixin(S_TRACE);
 						if (isDef(to, cast(bool) isDir(file))) continue;
-					} else {
+					} else { mixin(S_TRACE);
 						if (isIgnore(to)) continue;
 					}
-					if (.exists(to)) {
+					if (.exists(to)) { mixin(S_TRACE);
 						bool tisdir = cast(bool) isDir(to);
-						if (tisdir ==  cast(bool) isDir(file)) {
+						if (tisdir ==  cast(bool) isDir(file)) { mixin(S_TRACE);
 							auto par = dirName(file);
-							if (cfnmatch(par, targ)) {
+							if (cfnmatch(par, targ)) { mixin(S_TRACE);
 								if (!move && !(0 == filenameCharCmp('A', 'a')
-										? _cuts.contains(.toLower(file)) : _cuts.contains(file))) {
+										? _cuts.contains(.toLower(file)) : _cuts.contains(file))) { mixin(S_TRACE);
 									copys ~= file;
 								}
 								continue;
@@ -708,61 +708,61 @@ private:
 				}
 				if (paths.length == 0 && copys.length == 0) return false;
 				bool over = false;
-				if (exists.length > 0) {
+				if (exists.length > 0) { mixin(S_TRACE);
 					auto dlg = new MessageBox
 						(_win.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
 					dlg.setText(_prop.msgs.dlgTitQuestion);
-					if (1 == exists.length) {
+					if (1 == exists.length) { mixin(S_TRACE);
 						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDropOverWriteFile, exists[0]));
-					} else {
+					} else { mixin(S_TRACE);
 						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDropOverWriteFiles, exists.length));
 					}
 					int r = dlg.open();
-					if (r == SWT.YES) {
+					if (r == SWT.YES) { mixin(S_TRACE);
 						over = true;
-					} else if (r == SWT.CANCEL) {
+					} else if (r == SWT.CANCEL) { mixin(S_TRACE);
 						return false;
 					}
 				}
 				paths = .sortDlg(paths, &compFullPath);
 				string dir = null;
 				string[] selfs;
-				foreach (file; paths) {
+				foreach (file; paths) { mixin(S_TRACE);
 					bool fout = !(0 == filenameCharCmp('A', 'a')
 						? _cuts.contains(.toLower(file))
 						: _cuts.contains(file))
 						&& (!move || !hasPath(pfull, file));
 					fromOut |= fout;
-					void copy(string parent, string from) {
+					void copy(string parent, string from) { mixin(S_TRACE);
 						auto to = std.path.buildPath(parent, baseName(from));
-						if (.exists(to) && cast(bool) isDir(to) == cast(bool) isDir(from) && !over) {
+						if (.exists(to) && cast(bool) isDir(to) == cast(bool) isDir(from) && !over) { mixin(S_TRACE);
 							return;
 						}
-						if (isDir(from)) {
+						if (isDir(from)) { mixin(S_TRACE);
 							if (!.exists(to)) std.file.mkdir(to);
-							foreach (child; clistdir(from)) {
+							foreach (child; clistdir(from)) { mixin(S_TRACE);
 								copy(to, std.path.buildPath(from, child));
 							}
 							if (!dir) dir = to;
-							if (!fout) {
+							if (!fout) { mixin(S_TRACE);
 								delAll(from);
 								string p1 = toRelPath(from);
 								string p2 = toRelPath(to);
 								_comm.refPath.call(p1, p2, true);
 							}
-						} else {
-							if (fout) {
+						} else { mixin(S_TRACE);
+							if (fout) { mixin(S_TRACE);
 								.copy(from, to);
-							} else {
+							} else { mixin(S_TRACE);
 								string p1 = toRelPath(from);
 								string p2 = toRelPath(to);
-								if (_summ.useCounter.get(toPathId(p1)) > 0) {
+								if (_summ.useCounter.get(toPathId(p1)) > 0) { mixin(S_TRACE);
 									_summ.useCounter.change(toPathId(p1), toPathId(p2), true);
 									_summ.changed();
 								}
 								_comm.refPath.call(p1, p2, false);
 								std.file.rename(from, to);
-								foreach (ref jpy; _jpyData) {
+								foreach (ref jpy; _jpyData) { mixin(S_TRACE);
 									jpy.renameFile(from, to);
 								}
 							}
@@ -771,18 +771,18 @@ private:
 					}
 					copy(targ, file);
 				}
-				foreach (file; copys) {
-					void renameCopy(string parent, string from) {
+				foreach (file; copys) { mixin(S_TRACE);
+					void renameCopy(string parent, string from) { mixin(S_TRACE);
 						bool isdir = cast(bool) isDir(from);
 						string to = std.path.buildPath(parent, baseName(from));
 						to = createNewFileName(to, isdir);
-						if (isdir) {
+						if (isdir) { mixin(S_TRACE);
 							std.file.mkdir(to);
-							foreach (child; clistdir(from)) {
+							foreach (child; clistdir(from)) { mixin(S_TRACE);
 								renameCopy(to, std.path.buildPath(from, child));
 							}
 							if (!dir) dir = to;
-						} else {
+						} else { mixin(S_TRACE);
 							std.file.copy(from, to);
 						}
 						if (cfnmatch(parent, targ)) selfs ~= to;
@@ -795,7 +795,7 @@ private:
 				updateJpy1Files();
 				updateJpy1List();
 
-				if (dir) {
+				if (dir) { mixin(S_TRACE);
 					refreshDirs(.exists(targ) ? targ : dir);
 					foreach (itm; _dirs.getSelection()) itm.setExpanded(true);
 				}
@@ -808,22 +808,22 @@ private:
 		return false;
 	}
 	@property
-	string selDirPath() {
-		if (_win && !_win.isDisposed()) {
+	string selDirPath() { mixin(S_TRACE);
+		if (_win && !_win.isDisposed()) { mixin(S_TRACE);
 			auto sels = _dirs.getSelection();
-			if (sels.length) {
+			if (sels.length) { mixin(S_TRACE);
 				return (cast(FileNameObj) sels[0].getData()).array;
 			}
 		}
 		return null;
 	}
 	@property
-	string[] selFiles() {
+	string[] selFiles() { mixin(S_TRACE);
 		string[] r;
-		if (_win && !_win.isDisposed()) {
+		if (_win && !_win.isDisposed()) { mixin(S_TRACE);
 			auto sels = _files.getSelection();
 			r.length = sels.length;
-			foreach (i, itm; sels) {
+			foreach (i, itm; sels) { mixin(S_TRACE);
 				r[i] = (cast(FileNameObj) itm.getData()).array;
 			}
 		}
@@ -854,22 +854,22 @@ private:
 	Preview _preview;
 	FileNameObj _previewO = null;
 	PileImage _previewI = null;
-	void closePreview() {
-		if (_previewI) {
+	void closePreview() { mixin(S_TRACE);
+		if (_previewI) { mixin(S_TRACE);
 			_preview.close();
 			_previewO = null;
 			_previewI.dispose();
 		}
 	}
-	void previewTrigger(int x, int y) {
+	void previewTrigger(int x, int y) { mixin(S_TRACE);
 		auto itm = _files.getItem(new Point(x, y));
-		if (!itm) {
+		if (!itm) { mixin(S_TRACE);
 			closePreview();
 			return;
 		}
 		assert (cast(FileNameObj)itm.getData() !is null);
 		auto path = cast(FileNameObj)itm.getData();
-		if (path is _previewO) {
+		if (path is _previewO) { mixin(S_TRACE);
 			return;
 		}
 		closePreview();
@@ -887,27 +887,27 @@ private:
 		_preview.show();
 	}
 	class ClosePreview : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			closePreview();
 		}
 	}
 	class PreviewTrigger : MouseTrackAdapter, MouseMoveListener {
-		override void mouseExit(MouseEvent e) {
+		override void mouseExit(MouseEvent e) { mixin(S_TRACE);
 			closePreview();
 		}
-		override void mouseMove(MouseEvent e) {
+		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
 			previewTrigger(e.x, e.y);
 		}
 	}
-	ImageData previewImage(string path) {
+	ImageData previewImage(string path) { mixin(S_TRACE);
 		auto data = loadImage(_prop, _comm.skin, _summ, path, false);
-		if (data.width == 1 && data.height == 1 && data.transparentPixel == data.getPixel(0, 0)) {
+		if (data.width == 1 && data.height == 1 && data.transparentPixel == data.getPixel(0, 0)) { mixin(S_TRACE);
 			return null;
 		}
 		return data;
 	}
 
-	string pathRename(T)(T itm, string newName) {
+	string pathRename(T)(T itm, string newName) { mixin(S_TRACE);
 		clearCut();
 		auto path = (cast(FileNameObj) itm.getData()).array;
 		string frp = toRelPath(path);
@@ -918,15 +918,15 @@ private:
 		}
 		auto to = std.path.buildPath(dirName(path), newName);
 		bool isdir = cast(bool) .isDir(path);
-		if (!isdir && .extension(path).length > 0) {
+		if (!isdir && .extension(path).length > 0) { mixin(S_TRACE);
 			to = to ~ .extension(path);
 		}
 		if (.exists(to) && cast(bool) .isDir(to) == cast(bool) .isDir(path)) return null;
-		try {
+		try { mixin(S_TRACE);
 			std.file.rename(path, to);
 			auto p1 = nabs(path);
 			auto p2 = nabs(to);
-			foreach (ref jpy; _jpyData) {
+			foreach (ref jpy; _jpyData) { mixin(S_TRACE);
 				jpy.renameFile(p1, p2);
 			}
 		} catch (Exception e) {
@@ -934,30 +934,30 @@ private:
 			debugln(e);
 			return null;
 		}
-		void updatePaths(string p1, string p2) {
+		void updatePaths(string p1, string p2) { mixin(S_TRACE);
 			if (_summ.useCounter.get(toPathId(p1)) == 0) return;
 			_summ.useCounter.change(toPathId(p1), toPathId(p2));
 			_summ.changed();
 		}
 		string trp = toRelPath(to);
-		if (isdir) {
+		if (isdir) { mixin(S_TRACE);
 			string tod = nabs(to);
-			void pchange(string file) {
+			void pchange(string file) { mixin(S_TRACE);
 				auto oldP = frd ~ nabs(file)[tod.length .. $];
-				if (.exists(file) && .isDir(file)) {
-					foreach (c; clistdir(file)) {
+				if (.exists(file) && .isDir(file)) { mixin(S_TRACE);
+					foreach (c; clistdir(file)) { mixin(S_TRACE);
 						pchange(std.path.buildPath(file, c));
 					}
-				} else {
+				} else { mixin(S_TRACE);
 					string p1 = toRelPath(oldP);
 					string p2 = toRelPath(file);
 					updatePaths(p1, p2);
 				}
 			}
-			foreach (c; clistdir(to)) {
+			foreach (c; clistdir(to)) { mixin(S_TRACE);
 				pchange(std.path.buildPath(to, c));
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			string p1 = frp;
 			string p2 = toRelPath(to);
 			updatePaths(p1, p2);
@@ -971,58 +971,58 @@ private:
 			itm.setText(baseName(stripExtension(to)));
 		} else static if (is (T == TableItem)) {
 			itm.setText(0, .isDir(to) ? baseName(to) : baseName(stripExtension(to)));
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
 		_comm.refPath.call(frp, trp, isdir);
 		_comm.refUseCount.call();
 		return to;
 	}
-	void dirsEditEnd(TreeItem itm, Control c) {
+	void dirsEditEnd(TreeItem itm, Control c) { mixin(S_TRACE);
 		string text = (cast(Text) c).getText();
 		if (!text) text = "";
 		if (text.length == 0) return;
 		auto from = (cast(FileNameObj) itm.getData()).array;
 		string frd = nabs(from);
 		auto to = pathRename(itm, text);
-		if (to) {
+		if (to) { mixin(S_TRACE);
 			string tod = nabs(to);
-			void drename(TreeItem itm) {
+			void drename(TreeItem itm) { mixin(S_TRACE);
 				itm.setData(new FileNameObj(tod ~ (cast(FileNameObj) itm.getData()).array[frd.length .. $]));
-				foreach (c; itm.getItems()) {
+				foreach (c; itm.getItems()) { mixin(S_TRACE);
 					drename(c);
 				}
 			}
-			foreach (cc; itm.getItems()) {
+			foreach (cc; itm.getItems()) { mixin(S_TRACE);
 				drename(cc);
 			}
-			foreach (t; _files.getItems()) {
+			foreach (t; _files.getItems()) { mixin(S_TRACE);
 				t.setData(new FileNameObj(std.path.buildPath(tod, (cast(FileNameObj) t.getData()).basename)));
 			}
 		}
 	}
-	Control dirsCreateEditor(TreeItem itm) {
+	Control dirsCreateEditor(TreeItem itm) { mixin(S_TRACE);
 		return itm.getParentItem() ? createTextEditor(_comm, _prop, _dirs, itm.getText()) : null;
 	}
-	void filesEditEnd(TableItem itm, int column, string newText) {
+	void filesEditEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
 		if (newText.length == 0) return;
 		assert (column == 0);
-		if (pathRename(itm, newText)) {
+		if (pathRename(itm, newText)) { mixin(S_TRACE);
 			refreshDirs(selDirPath);
 		}
 	}
-	void __refPaths(Object sender, string parent) {
-		if (sender !is this) {
+	void __refPaths(Object sender, string parent) { mixin(S_TRACE);
+		if (sender !is this) { mixin(S_TRACE);
 			refreshDirs(selDirPath);
-			if (selDirPath && cfnmatch(toRelPath(selDirPath), parent)) {
+			if (selDirPath && cfnmatch(toRelPath(selDirPath), parent)) { mixin(S_TRACE);
 				refreshFiles(selFiles);
 			}
 		}
 	}
 
-	void __refreshUseCount() {
-		foreach (itm; _files.getItems()) {
-			try {
+	void __refreshUseCount() { mixin(S_TRACE);
+		foreach (itm; _files.getItems()) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
 				auto file = cast(FileNameObj) itm.getData();
 				if (!.exists(file.array) || !file.material) continue;
 				auto c = _summ.useCounter.path.get(file.pathId);
@@ -1032,29 +1032,29 @@ private:
 			}
 		}
 	}
-	void __refreshTitle() {
+	void __refreshTitle() { mixin(S_TRACE);
 		_comm.setTitle(_win, title);
 	}
-	void __refresh() {
+	void __refresh() { mixin(S_TRACE);
 		updateJpy1List();
 		refreshDirs(selDirPath);
 		refreshFiles(selFiles);
 	}
-	void updateJpy1List() {
+	void updateJpy1List() { mixin(S_TRACE);
 		if (!_summ) return;
-		foreach (ref jpy; _jpyData) {
+		foreach (ref jpy; _jpyData) { mixin(S_TRACE);
 			jpy.removeUseCounter();
 		}
 		_jpyData.length = 0;
 		auto sPath = _summ.scenarioPath;
-		foreach (string file; sPath.dirEntries(SpanMode.depth)) {
+		foreach (string file; sPath.dirEntries(SpanMode.depth)) { mixin(S_TRACE);
 			if (!cfnmatch(file.extension(), ".jpy1")) continue;
-			try {
+			try { mixin(S_TRACE);
 				_jpyData ~= Jpy1.load(_prop.parent, sPath, file);
 				_jpyData[$-1].setUseCounter(_summ.useCounter);
 			} catch (EffectBoosterError e) {
 				debug {
-					foreach (err; e.errors) {
+					foreach (err; e.errors) { mixin(S_TRACE);
 						debugln(.tryFormat(_prop.msgs.jpyError, err.msg, file, err.line));
 					}
 				}
@@ -1063,28 +1063,28 @@ private:
 			}
 		}
 	}
-	void __delPaths(Object sender) {
-		if (sender !is this) {
+	void __delPaths(Object sender) { mixin(S_TRACE);
+		if (sender !is this) { mixin(S_TRACE);
 			refreshDirs(selDirPath);
 			refreshFiles(selFiles);
 		}
 	}
-	void saveScenario() {
+	void saveScenario() { mixin(S_TRACE);
 		_comm.save.call(dlgParShl.getShell());
 	}
-	void incSearch() {
+	void incSearch() { mixin(S_TRACE);
 		.forceFocus(_files, true);
 		_incSearch.startIncSearch();
 	}
 
-	void selectAll() {
-		foreach (i; 0 .. _files.getItemCount()) {
+	void selectAll() { mixin(S_TRACE);
+		foreach (i; 0 .. _files.getItemCount()) { mixin(S_TRACE);
 			_files.select(i);
 		}
 		filesSelected();
 	}
 
-	void createFilesMenu() {
+	void createFilesMenu() { mixin(S_TRACE);
 		if (_files.getMenu()) _files.getMenu().dispose();
 		auto menu = new Menu(_win.getShell(), SWT.POP_UP);
 		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, () => _summ !is null);
@@ -1095,7 +1095,7 @@ private:
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.CreateArchive, &createArchive, &canCreateArchive);
 		new MenuItem(menu, SWT.SEPARATOR);
-		foreach (i, tool; _prop.var.etc.outerTools) {
+		foreach (i, tool; _prop.var.etc.outerTools) { mixin(S_TRACE);
 			new Exec(this, menu, tool, i);
 		}
 		if (_prop.var.etc.outerTools.length > 0) new MenuItem(menu, SWT.SEPARATOR);
@@ -1109,26 +1109,26 @@ private:
 
 		_files.setMenu(menu);
 	}
-	string createDir() {
+	string createDir() { mixin(S_TRACE);
 		auto dir = selDirPath;
 		if (!dir) return null;
 		string fp;
-		createNewName(_prop.msgs.newFolder, (string name) {
+		createNewName(_prop.msgs.newFolder, (string name) { mixin(S_TRACE);
 			string p = std.path.buildPath(dir, name);
 			fp = p;
-			if (!.exists(fp)) {
+			if (!.exists(fp)) { mixin(S_TRACE);
 				std.file.mkdir(fp);
 				fp = nabs(fp);
 				if (_summ.useTemp) _summ.changed();
 				return true;
-			} else {
+			} else { mixin(S_TRACE);
 				return false;
 			}
 		}, false);
 		return fp;
 	}
-	void createDirDirs() {
-		if (!_win || _win.isDisposed()) {
+	void createDirDirs() { mixin(S_TRACE);
+		if (!_win || _win.isDisposed()) { mixin(S_TRACE);
 			_comm.openDirWin(false);
 		}
 		auto fp = createDir();
@@ -1138,8 +1138,8 @@ private:
 		.forceFocus(_dirs, true);
 		_dirsEdit.startEdit();
 	}
-	void createDirFiles() {
-		if (!_win || _win.isDisposed()) {
+	void createDirFiles() { mixin(S_TRACE);
+		if (!_win || _win.isDisposed()) { mixin(S_TRACE);
 			_comm.openDirWin(false);
 		}
 		auto fp = createDir();
@@ -1147,20 +1147,20 @@ private:
 		auto files = selFiles ~ fp;
 		refreshDirs(selDirPath);
 		refreshFiles(files);
-		foreach (itm; _files.getItems()) {
-			if (cfnmatch((cast(FileNameObj) itm.getData()).array, fp)) {
+		foreach (itm; _files.getItems()) { mixin(S_TRACE);
+			if (cfnmatch((cast(FileNameObj) itm.getData()).array, fp)) { mixin(S_TRACE);
 				.forceFocus(_files, true);
 				_filesEdit.startEdit(itm);
 				break;
 			}
 		}
 	}
-	void __replace(string sel) {
+	void __replace(string sel) { mixin(S_TRACE);
 		if (!_summ || !_win || _win.isDisposed()) return;
 		_comm.replacePath(sel);
 	}
 	class SClose : ShellAdapter {
-		override void shellClosed(ShellEvent e) {
+		override void shellClosed(ShellEvent e) { mixin(S_TRACE);
 			(cast(Shell) e.widget).setVisible(false);
 			e.doit = false;
 			_prop.var.dirWin.visible = false;
@@ -1176,26 +1176,26 @@ private:
 				_prop.var.etc.filesSortDirection = SortDir.Up;
 				break;
 			}
-			if (_files.getSortColumn() is _sortName.column) {
+			if (_files.getSortColumn() is _sortName.column) { mixin(S_TRACE);
 				_prop.var.etc.filesSortColumn = 0;
-			} else if (_files.getSortColumn() is _sortExt.column) {
+			} else if (_files.getSortColumn() is _sortExt.column) { mixin(S_TRACE);
 				_prop.var.etc.filesSortColumn = 1;
-			} else if (_files.getSortColumn() is _sortCount.column) {
+			} else if (_files.getSortColumn() is _sortCount.column) { mixin(S_TRACE);
 				_prop.var.etc.filesSortColumn = 2;
-			} else {
+			} else { mixin(S_TRACE);
 				_prop.var.etc.filesSortColumn = -1;
 			}
 		}
 	}
 	class FDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			closePreview();
 			_preview.dispose();
 			_comm.refOuterTools.remove(&createFilesMenu);
 		}
 	}
 	class DListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.refScenarioName.remove(&__refreshTitle);
 			_comm.refScenarioPath.remove(&__refreshTitle);
 			_comm.refUseCount.remove(&__refreshUseCount);
@@ -1215,7 +1215,7 @@ private:
 	}
 	private SDListener _sdl;
 	class SDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_prop.var.etc.directorySashL = _sash.getWeights()[0];
 			_prop.var.etc.directorySashR = _sash.getWeights()[1];
 			_prop.var.etc.directorySashV = (_sash.getStyle() & SWT.VERTICAL) != 0;
@@ -1224,14 +1224,14 @@ private:
 	}
 	private class RefreshThr : Runnable {
 		private bool _onRefresh = false;
-		override void run() {
+		override void run() { mixin(S_TRACE);
 			// syncExecを使うとたまに止まるのでここで制御する
 			if (_onRefresh) return;
 			_onRefresh = true;
 			scope (exit) _onRefresh = false;
 			if (_stopTrace) return;
 			if (_dirsEdit.isEditing() || _filesEdit.isEditing()) return;
-			try {
+			try { mixin(S_TRACE);
 				__refresh();
 				_comm.refPaths.call(this.outer, _summ.scenarioPath);
 			} catch (Exception e) {
@@ -1245,47 +1245,47 @@ private:
 	private bool _stopTrace = false;
 	version (Windows) {
 		private HANDLE _traceHandle = INVALID_HANDLE_VALUE;
-		private void closeTraceHandle() {
+		private void closeTraceHandle() { mixin(S_TRACE);
 			synchronized (_refreshThr) closeTraceHandleImpl();
 		}
-		private void closeTraceHandleImpl() {
+		private void closeTraceHandleImpl() { mixin(S_TRACE);
 			if (_traceHandle !is INVALID_HANDLE_VALUE) FindCloseChangeNotification(_traceHandle);
 			_traceHandle = INVALID_HANDLE_VALUE;
 		}
 	} else version (linux) {
 		private int _traceHandle = -1;
-		private void closeTraceHandle() {
+		private void closeTraceHandle() { mixin(S_TRACE);
 			synchronized (_refreshThr) closeTraceHandleImpl();
 		}
-		private void closeTraceHandleImpl() {
+		private void closeTraceHandleImpl() { mixin(S_TRACE);
 			if (_traceHandle !is -1) close(_traceHandle);
 			_traceHandle = -1;
 		}
-	} else {
+	} else { mixin(S_TRACE);
 		private void closeTraceHandle() {}
 	}
-	private void trace() {
-		try {
+	private void trace() { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			version (Console) {
 				debug std.stdio.writeln("Start Trace Thread");
 			}
 			Summary summ = null;
-			void sleep() {
+			void sleep() { mixin(S_TRACE);
 				version (Windows) {
 					Sleep(1000); // 1sec
-				} else {
+				} else { mixin(S_TRACE);
 					.sleep(1); // 1sec
 				}
 			}
 			@property
-			bool canDoChk() {
+			bool canDoChk() { mixin(S_TRACE);
 				return summ && !_display.isDisposed() && _prop.var.etc.traceDirectories && _win;
 			}
 			version (Windows) {
-				bool setup() {
-					synchronized (_refreshThr) {
+				bool setup() { mixin(S_TRACE);
+					synchronized (_refreshThr) { mixin(S_TRACE);
 						closeTraceHandleImpl();
-						if (summ) {
+						if (summ) { mixin(S_TRACE);
 							DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME;
 							_traceHandle = FindFirstChangeNotificationW(toUTFz!(wchar*)(summ.scenarioPath), TRUE, fs);
 							return _traceHandle !is INVALID_HANDLE_VALUE;
@@ -1298,45 +1298,45 @@ private:
 						if (_traceHandle !is INVALID_HANDLE_VALUE) FindCloseChangeNotification(_traceHandle);
 					}
 				}
-				void next() {
-					synchronized (_refreshThr) {
-						if (_traceHandle !is INVALID_HANDLE_VALUE) {
-							if (!FindNextChangeNotification(_traceHandle)) {
+				void next() { mixin(S_TRACE);
+					synchronized (_refreshThr) { mixin(S_TRACE);
+						if (_traceHandle !is INVALID_HANDLE_VALUE) { mixin(S_TRACE);
+							if (!FindNextChangeNotification(_traceHandle)) { mixin(S_TRACE);
 								debugln("FindNextChangeNotification failed: ", GetLastError());
 							}
 						}
 					}
 				}
-				while (_onTrace && _display && !_display.isDisposed()) {
-					try {
-						if (_stopTrace) {
+				while (_onTrace && _display && !_display.isDisposed()) { mixin(S_TRACE);
+					try { mixin(S_TRACE);
+						if (_stopTrace) { mixin(S_TRACE);
 							sleep();
 							continue;
 						}
-						if (summ !is _summ) {
+						if (summ !is _summ) { mixin(S_TRACE);
 							summ = _summ;
-							if (!setup()) {
+							if (!setup()) { mixin(S_TRACE);
 								debugln("FindFirstChangeNotification failed: ", GetLastError());
 								continue;
 							}
 						}
-						if (!canDoChk) {
+						if (!canDoChk) { mixin(S_TRACE);
 							sleep();
 							continue;
 						}
 						switch (WaitForSingleObject(_traceHandle, 1000)) {
-						case WAIT_TIMEOUT: {
+						case WAIT_TIMEOUT: { mixin(S_TRACE);
 							next();
 						} break;
-						case WAIT_ABANDONED: {
+						case WAIT_ABANDONED: { mixin(S_TRACE);
 							break;
 						}
-						case WAIT_OBJECT_0: {
+						case WAIT_OBJECT_0: { mixin(S_TRACE);
 							if (!canDoChk) continue;
 							_display.asyncExec(_refreshThr);
 							next();
 						} break;
-						case WAIT_FAILED: {
+						case WAIT_FAILED: { mixin(S_TRACE);
 							debugln("WaitForSingleObject failed: ", GetLastError());
 						} break;
 						default: break;
@@ -1347,15 +1347,15 @@ private:
 					}
 				}
 			} else version (linux) {
-				bool setup() {
-					synchronized (_refreshThr) {
+				bool setup() { mixin(S_TRACE);
+					synchronized (_refreshThr) { mixin(S_TRACE);
 						closeTraceHandleImpl();
 						_traceHandle = inotify_init();
 						if (_traceHandle is -1) return false;
-						void put(string path) {
-							foreach (file; clistdir(path)) {
+						void put(string path) { mixin(S_TRACE);
+							foreach (file; clistdir(path)) { mixin(S_TRACE);
 								file = std.path.buildPath(path, file);
-								if (isDir(file)) {
+								if (isDir(file)) { mixin(S_TRACE);
 									inotify_add_watch(_traceHandle, std.string.toStringz(file),
 										IN_MODIFY | IN_ATTRIB | IN_MOVED_FROM | IN_MOVED_TO
 										| IN_CREATE | IN_DELETE | IN_DELETE_SELF);
@@ -1372,26 +1372,26 @@ private:
 						if (_traceHandle !is -1) close(_traceHandle);
 					}
 				}
-				while (_onTrace && _display && !_display.isDisposed()) {
-					try {
-						if (_stopTrace) {
+				while (_onTrace && _display && !_display.isDisposed()) { mixin(S_TRACE);
+					try { mixin(S_TRACE);
+						if (_stopTrace) { mixin(S_TRACE);
 							sleep();
 							continue;
 						}
-						if (summ !is _summ) {
+						if (summ !is _summ) { mixin(S_TRACE);
 							summ = _summ;
-							if (!setup()) {
+							if (!setup()) { mixin(S_TRACE);
 								debugln("inotify_init() failed");
 								continue;
 							}
 						}
-						if (!canDoChk) {
+						if (!canDoChk) { mixin(S_TRACE);
 							sleep();
 							continue;
 						}
 						byte[inotify_event.sizeof * 1024] buf;
 						int len;
-						synchronized (_refreshThr) {
+						synchronized (_refreshThr) { mixin(S_TRACE);
 							timeval tout;
 							tout.tv_sec = 1;
 							tout.tv_usec = 0;
@@ -1400,18 +1400,18 @@ private:
 							FD_SET(_traceHandle, &fdr);
 							auto selret = .select(_traceHandle + 1, &fdr, null, null, &tout);
 							if (-1 == selret) break;
-							if (0 == selret) {
+							if (0 == selret) { mixin(S_TRACE);
 								sleep();
 								continue;
 							}
-							if (!FD_ISSET(_traceHandle, &fdr)) {
+							if (!FD_ISSET(_traceHandle, &fdr)) { mixin(S_TRACE);
 								sleep();
 								continue;
 							}
 							len = std.c.linux.linux.read(_traceHandle, buf.ptr, buf.sizeof);
 						}
 						if (-1 == len) break;
-						if (0 == len) {
+						if (0 == len) { mixin(S_TRACE);
 							sleep();
 							continue;
 						}
@@ -1422,18 +1422,18 @@ private:
 						break;
 					}
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				d_time[string] dirTimes;
-				void setup() {
+				void setup() { mixin(S_TRACE);
 					d_time[string] times;
-					if (summ) {
-						void refr(string path) {
+					if (summ) { mixin(S_TRACE);
+						void refr(string path) { mixin(S_TRACE);
 							if (summ.isSystemFile(path)
-									|| containsPath(_prop.var.etc.ignorePaths, baseName(path))) {
+									|| containsPath(_prop.var.etc.ignorePaths, baseName(path))) { mixin(S_TRACE);
 								return;
 							}
 							times[path] = lastModified(path);
-							foreach (sub; clistdir(path)) {
+							foreach (sub; clistdir(path)) { mixin(S_TRACE);
 								sub = std.path.buildPath(path, sub);
 								if (isDir(sub)) refr(sub);
 							}
@@ -1442,31 +1442,31 @@ private:
 					}
 					dirTimes = times;
 				}
-				while (_onTrace && _display && !_display.isDisposed()) {
-					try {
-						if (_stopTrace) {
+				while (_onTrace && _display && !_display.isDisposed()) { mixin(S_TRACE);
+					try { mixin(S_TRACE);
+						if (_stopTrace) { mixin(S_TRACE);
 							sleep();
 							continue;
 						}
-						if (summ !is _summ) {
+						if (summ !is _summ) { mixin(S_TRACE);
 							summ = _summ;
 							setup();
 						}
 						sleep();
 						if (!canDoChk) continue;
-						bool chk(string path) {
+						bool chk(string path) { mixin(S_TRACE);
 							if (summ.isSystemFile(path)
-									|| containsPath(_prop.var.etc.ignorePaths, baseName(path))) {
+									|| containsPath(_prop.var.etc.ignorePaths, baseName(path))) { mixin(S_TRACE);
 								return false;
 							}
 							if (dirTimes[path] != lastModified(path)) return true;
-							foreach (sub; clistdir(path)) {
+							foreach (sub; clistdir(path)) { mixin(S_TRACE);
 								sub = std.path.buildPath(path, sub);
 								if (isDir(sub) && chk(sub)) return true;
 							}
 							return false;
 						}
-						if (chk(nabs(summ.scenarioPath))) {
+						if (chk(nabs(summ.scenarioPath))) { mixin(S_TRACE);
 							_display.asyncExec(_refreshThr);
 							setup;
 						}
@@ -1483,10 +1483,10 @@ private:
 			debugln(e);
 		}
 	}
-	void refreshStatusLine() {
+	void refreshStatusLine() { mixin(S_TRACE);
 		if (!_win || _win.isDisposed()) return;
 		ulong size;
-		foreach (itm; _files.getItems()) {
+		foreach (itm; _files.getItems()) { mixin(S_TRACE);
 			auto d = cast(FileNameObj) itm.getData();
 			size += d.size;
 		}
@@ -1494,20 +1494,20 @@ private:
 		int fileCount = _files.getItemCount();
 		int selCount = selFiles.length;
 		string s;
-		if (0 < selCount) {
+		if (0 < selCount) { mixin(S_TRACE);
 			s = .tryFormat(_prop.msgs.dirStatusSel, fileCount, sizeKB, selCount);
-		} else {
+		} else { mixin(S_TRACE);
 			s = .tryFormat(_prop.msgs.dirStatus, fileCount, sizeKB);
 		}
 		_comm.setStatusLine(_win, s, _dirs.isFocusControl() || _files.isFocusControl());
 	}
 	@property
-	Shell dlgParShl() {
+	Shell dlgParShl() { mixin(S_TRACE);
 		if (_win && !_win.isDisposed()) return _win.getShell();
 		return _comm.mainWin.shell.getShell();
 	}
 public:
-	this (Commons comm, Props prop, Composite parent) {
+	this (Commons comm, Props prop, Composite parent) { mixin(S_TRACE);
 		_prop = prop;
 		_comm = comm;
 		_display = Display.getCurrent();
@@ -1519,24 +1519,24 @@ public:
 		_traceThr = new core.thread.Thread(&trace);
 		_traceThr.start();
 	}
-	void reconstruct(Composite parent) {
+	void reconstruct(Composite parent) { mixin(S_TRACE);
 		if (_win && !_win.isDisposed()) return;
 		construct(parent);
 		if (_summ) refresh(_summ);
 	}
-	private void construct(Composite parent) {
+	private void construct(Composite parent) { mixin(S_TRACE);
 		_cuts = new typeof(_cuts);
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
 		Composite contPane;
-		if (parShl) {
+		if (parShl) { mixin(S_TRACE);
 			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
 			shell = _sbshl.shell;
 			shell.setImage(_prop.images.app);
 			shell.addShellListener(new SClose);
 			_win = shell;
 			contPane = _sbshl.contentPane;
-		} else {
+		} else { mixin(S_TRACE);
 			_win = new Composite(parent, SWT.NONE);
 			contPane = _win;
 		}
@@ -1558,7 +1558,7 @@ public:
 		_sImgText = skeletonImage(_prop.images.text);
 		_sImgUnknown = skeletonImage(_prop.images.unknown);
 		_win.addDisposeListener(new DListener);
-		if (shell) {
+		if (shell) { mixin(S_TRACE);
 			auto bar = new Menu(shell, SWT.BAR);
 
 			auto mf = createMenu(_comm, bar, MenuID.File);
@@ -1583,7 +1583,7 @@ public:
 			createMenuItem(_comm, mv, MenuID.ChangeVH, &changeVHSide, null);
 
 			shell.setMenuBar(bar);
-		} else {
+		} else { mixin(S_TRACE);
 			appendMenuTCPD(_comm, this, this, true, true, true, true, true);
 			putMenuAction(MenuID.ReplFilePath, &replace, () => _summ !is null);
 			putMenuAction(MenuID.Refresh, &__refresh, () => _summ !is null);
@@ -1593,7 +1593,7 @@ public:
 			putMenuAction(MenuID.ChangeVH, &changeVHSide, null);
 			putMenuAction(MenuID.DelNotUsedFile, &deleteUnuse, &canDeleteUnuse);
 		}
-		if (shell) {
+		if (shell) { mixin(S_TRACE);
 			auto bar = new ToolBar(contPane, SWT.FLAT);
 			_comm.put(bar);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -1621,7 +1621,7 @@ public:
 		dirsComp.setLayout(new FillLayout);
 		_dirs = new Tree(dirsComp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
 		initTree(_comm, _dirs, false);
-		{
+		{ mixin(S_TRACE);
 			_dirs.addSelectionListener(new DirsSelection);
 			_dirsEdit = new TreeEdit(_comm, _dirs, &dirsEditEnd, &dirsCreateEditor);
 
@@ -1647,7 +1647,7 @@ public:
 		auto fComp = new Composite(_sash, SWT.NONE);
 		fComp.setLayout(new FillLayout);
 		_files = new Table(fComp, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
-		{
+		{ mixin(S_TRACE);
 			_files.addSelectionListener(new FilesSelection);
 			_files.setHeaderVisible(true);
 			auto namec = new TableColumn(_files, SWT.NONE);
@@ -1719,7 +1719,7 @@ public:
 		_sash.setWeights([_prop.var.etc.directorySashL, _prop.var.etc.directorySashR]);
 		_sdl = new SDListener;
 		_sash.addDisposeListener(_sdl);
-		if (shell) {
+		if (shell) { mixin(S_TRACE);
 			shell.setMaximized(_prop.var.dirWin.maximized);
 			shell.setMinimized(_prop.var.dirWin.minimized);
 			shell.pack();
@@ -1740,17 +1740,17 @@ public:
 		_incSearch.modEvent ~= {refreshFiles(null);};
 	}
 	private class SCListener : ControlAdapter {
-		override void controlMoved(ControlEvent e) {
+		override void controlMoved(ControlEvent e) { mixin(S_TRACE);
 			saveWin();
 		}
-		override void controlResized(ControlEvent e) {
+		override void controlResized(ControlEvent e) { mixin(S_TRACE);
 			saveWin();
 		}
 	}
-	private void saveWin() {
+	private void saveWin() { mixin(S_TRACE);
 		auto win = cast(Shell) _win;
-		if (win) {
-			if (!win.getMaximized() && !win.getMinimized()) {
+		if (win) { mixin(S_TRACE);
+			if (!win.getMaximized() && !win.getMinimized()) { mixin(S_TRACE);
 				_prop.var.dirWin.width = win.getSize().x;
 				_prop.var.dirWin.height = win.getSize().y;
 				_prop.var.dirWin.x = win.getBounds().x - win.getParent().getBounds().x;
@@ -1760,12 +1760,12 @@ public:
 			_prop.var.dirWin.minimized = win.getMinimized();
 		}
 	}
-	void removeFiles(in string[] file, bool recycle) {
+	void removeFiles(in string[] file, bool recycle) { mixin(S_TRACE);
 		pauseTrace();
 		scope (exit) resumeTrace();
 		version (Windows) {
 			wstring targ;
-			foreach (i, f; file) {
+			foreach (i, f; file) { mixin(S_TRACE);
 				targ ~= toUTF16(f);
 				targ ~= '\0';
 			}
@@ -1781,36 +1781,36 @@ public:
 			ope.hNameMappings = null;
 			ope.lpszProgressTitle = null;
 			if (0 != SHFileOperationW(&ope)) return;
-		} else {
-			foreach (f; file) {
+		} else { mixin(S_TRACE);
+			foreach (f; file) { mixin(S_TRACE);
 				delAll(f);
 			}
 		}
 	}
-	bool canDeleteUnuse() {
+	bool canDeleteUnuse() { mixin(S_TRACE);
 		return _summ !is null;
 	}
-	void deleteUnuse(SelectionEvent se) {
+	void deleteUnuse(SelectionEvent se) { mixin(S_TRACE);
 		if (!_summ) return;
 		auto files = _summ.notUsedFiles(_comm.skin, _prop.var.etc.ignorePaths, _prop.var.etc.logicalSort);
 		if (!files.length) return;
-		foreach (ref file; files) {
+		foreach (ref file; files) { mixin(S_TRACE);
 			file = _summ.scenarioPath.buildPath(file);
 		}
 		bool recycle = (se.stateMask & SWT.SHIFT) == 0;
 		auto shl = dlgParShl.getShell();
 		auto dlg = new MessageBox(shl, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 		version (Windows) {
-			if (recycle) {
+			if (recycle) { mixin(S_TRACE);
 				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteRecycleUnuse, files.length));
-			} else {
+			} else { mixin(S_TRACE);
 				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteUnuse, files.length));
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteUnuse, files.length));
 		}
 		dlg.setText(_prop.msgs.dlgTitQuestion);
-		if (SWT.YES == dlg.open()) {
+		if (SWT.YES == dlg.open()) { mixin(S_TRACE);
 			removeFiles(files, recycle);
 			_comm.refreshToolBar();
 		}
@@ -1822,14 +1822,14 @@ public:
 
 	@property
 	override
-	Image image() {
+	Image image() { mixin(S_TRACE);
 		return _prop.images.menu(MenuID.FileView);
 	}
 	@property
 	override
-	string title() {
+	string title() { mixin(S_TRACE);
 		auto shl = cast(Shell) _win;
-		if (shl) {
+		if (shl) { mixin(S_TRACE);
 			return .tryFormat(_prop.msgs.dirWindowName, _summ.scenarioName, _summ.scenarioPath);
 		}
 		return _prop.msgs.dirTabName;
@@ -1838,7 +1838,7 @@ public:
 	override
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
-	void copyFilePath() {
+	void copyFilePath() { mixin(S_TRACE);
 		if (!_summ) return;
 		int sel = _files.getSelectionIndex();
 		if (-1 == sel) return;
@@ -1847,29 +1847,29 @@ public:
 			[TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
 	}
-	void replace() {
+	void replace() { mixin(S_TRACE);
 		if (!_summ) return;
-		if (_files.getSelectionIndex() >= 0) {
+		if (_files.getSelectionIndex() >= 0) { mixin(S_TRACE);
 			__replace((cast(FileNameObj) _files.getItem(_files.getSelectionIndex()).getData()).relPath);
-		} else {
+		} else { mixin(S_TRACE);
 			__replace(null);
 		}
 	}
-	private void changeVHSide() {
+	private void changeVHSide() { mixin(S_TRACE);
 		_sash.removeDisposeListener(_sdl);
 		_sash = .changeVHSide(_sash);
 		_sash.addDisposeListener(_sdl);
 	}
 
-	void stopTrace() {
+	void stopTrace() { mixin(S_TRACE);
 		closeTraceHandle();
 		_stopTrace = true;
 	}
 	void resumeTrace() {_stopTrace = false;}
 	void pauseTrace() {_stopTrace = true;}
 
-	void refresh(Summary summ) {
-		foreach (ref jpy; _jpyData) {
+	void refresh(Summary summ) { mixin(S_TRACE);
+		foreach (ref jpy; _jpyData) { mixin(S_TRACE);
 			jpy.removeUseCounter();
 		}
 		_jpyData.length = 0;
@@ -1878,12 +1878,12 @@ public:
 
 		updateJpy1List();
 		refCheckPaths();
-		if (_win && !_win.isDisposed()) {
+		if (_win && !_win.isDisposed()) { mixin(S_TRACE);
 			refreshDirs(std.path.buildPath(_summ.scenarioPath, _comm.skin.materialPath));
 			refreshFiles(null);
 			auto root = _dirs.getItem(0);
 			root.setExpanded(true);
-			if (!_dirs.getSelection().length) {
+			if (!_dirs.getSelection().length) { mixin(S_TRACE);
 				_dirs.setSelection([root]);
 				refreshFiles(null);
 			}
@@ -1894,88 +1894,88 @@ public:
 	}
 
 	@property
-	bool isChanged() {
-		if (_summ.useTemp) {
+	bool isChanged() { mixin(S_TRACE);
+		if (_summ.useTemp) { mixin(S_TRACE);
 			return _summ.isChanged || _checkPaths != allPaths;
 		}
 		return _summ.isChanged;
 	}
 
-	private void clearCut() {
+	private void clearCut() { mixin(S_TRACE);
 		_cuts.clear();
-		void titm(TreeItem itm) {
-			if (itm.getImage() is _sImgFolder) {
+		void titm(TreeItem itm) { mixin(S_TRACE);
+			if (itm.getImage() is _sImgFolder) { mixin(S_TRACE);
 				itm.setImage(_prop.images.folder);
 			}
-			foreach (child; itm.getItems()) {
+			foreach (child; itm.getItems()) { mixin(S_TRACE);
 				titm(child);
 			}
 		}
-		foreach (itm; _dirs.getItems()) {
+		foreach (itm; _dirs.getItems()) { mixin(S_TRACE);
 			titm(itm);
 		}
-		foreach (itm; _files.getItems()) {
+		foreach (itm; _files.getItems()) { mixin(S_TRACE);
 			auto img = fimage(itm.getImage());
-			if (itm.getImage() !is img) {
+			if (itm.getImage() !is img) { mixin(S_TRACE);
 				itm.setImage(img);
 			}
 		}
 	}
 
 	@property
-	bool canOpenDirectory() {
+	bool canOpenDirectory() { mixin(S_TRACE);
 		return _summ !is null;
 	}
-	void openDirectory() {
+	void openDirectory() { mixin(S_TRACE);
 		auto dir = selDirPath;
 		if (dir) openFolder(dir);
 	}
 	@property
-	bool canCreateNewFolder() {
+	bool canCreateNewFolder() { mixin(S_TRACE);
 		return _summ !is null;
 	}
-	void createNewFolder() {
-		if (!_win || _win.isDisposed()) {
+	void createNewFolder() { mixin(S_TRACE);
+		if (!_win || _win.isDisposed()) { mixin(S_TRACE);
 			_comm.openDirWin(false);
 		}
-		if (_files.isFocusControl()) {
+		if (_files.isFocusControl()) { mixin(S_TRACE);
 			createDirFiles();
-		} else {
+		} else { mixin(S_TRACE);
 			createDirDirs();
 		}
 	}
 
-	private bool selectImpl(T)(T tree, string path) {
-		foreach (itm; tree.getItems()) {
+	private bool selectImpl(T)(T tree, string path) { mixin(S_TRACE);
+		foreach (itm; tree.getItems()) { mixin(S_TRACE);
 			auto fno = cast(FileNameObj) itm.getData();
-			if (cfnmatch(fno.array, path)) {
+			if (cfnmatch(fno.array, path)) { mixin(S_TRACE);
 				_dirs.select(itm);
 				refreshFiles(selFiles);
 				_comm.refreshToolBar();
 				return true;
 			}
-			if (selectImpl(itm, path)) {
+			if (selectImpl(itm, path)) { mixin(S_TRACE);
 				return true;
 			}
 		}
 		return false;
 	}
-	bool select(string path) {
-		try {
-			if (!path.isAbsolute()) {
+	bool select(string path) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
+			if (!path.isAbsolute()) { mixin(S_TRACE);
 				path = _summ.scenarioPath.buildPath(path);
 			}
-			if (.exists(path)) {
+			if (.exists(path)) { mixin(S_TRACE);
 				path = nabs(path);
 				auto isdir = .isDir(path);
 				string dir = isdir ? path : dirName(path);
 				bool r = selectImpl(_dirs, dir);
-				if (r) {
+				if (r) { mixin(S_TRACE);
 					_dirs.showSelection();
-					if (!isdir) {
-						foreach (i, itm; _files.getItems()) {
+					if (!isdir) { mixin(S_TRACE);
+						foreach (i, itm; _files.getItems()) { mixin(S_TRACE);
 							auto fno = cast(FileNameObj) itm.getData();
-							if (cfnmatch(fno.array, path)) {
+							if (cfnmatch(fno.array, path)) { mixin(S_TRACE);
 								_files.select(i);
 								_files.showSelection();
 								_comm.refreshToolBar();
@@ -1993,10 +1993,10 @@ public:
 		return false;
 	}
 
-	void quitTrace() {
+	void quitTrace() { mixin(S_TRACE);
 		if (!_traceThr) return;
 		_onTrace = false;
-		try {
+		try { mixin(S_TRACE);
 			_traceThr.join();
 		} catch (Throwable e) {
 			debugln(e);
@@ -2004,20 +2004,20 @@ public:
 	}
 
 	/// シナリオ内にあるJpy1ファイルの内容の上書きが必要であれば更新する。
-	void updateJpy1Files() {
-		foreach (ref jpy; _jpyData) {
+	void updateJpy1Files() { mixin(S_TRACE);
+		foreach (ref jpy; _jpyData) { mixin(S_TRACE);
 			jpy.updateJpy1File(_prop.parent, _prop.var.etc.autoUpdateJpy1File);
 		}
 	}
 
 	@property
-	bool canCreateArchive() {
+	bool canCreateArchive() { mixin(S_TRACE);
 		return _summ !is null;
 	}
-	void createArchive() {
+	void createArchive() { mixin(S_TRACE);
 		if (!_summ) return;
 		auto shl = dlgParShl.getShell();
-		if (_comm.isChanged) {
+		if (_comm.isChanged) { mixin(S_TRACE);
 			auto dlg = new MessageBox(shl, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
 			dlg.setText(_prop.msgs.dlgTitQuestion);
 			dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgIsSaveBeforeCreateArchive, _summ.scenarioName));
@@ -2035,13 +2035,13 @@ public:
 		}
 		auto dlg = new FileDialog(shl, SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
 		int zip, cab, wsn;
-		if (canUncab) {
+		if (canUncab) { mixin(S_TRACE);
 			dlg.setFilterExtensions(["*.zip", "*.cab", "*.wsn"]);
 			dlg.setFilterNames([_prop.msgs.filterDescZip, _prop.msgs.filterDescCab, _prop.msgs.filterDescWsn]);
 			zip = 0;
 			cab = 1;
 			wsn = 2;
-		} else {
+		} else { mixin(S_TRACE);
 			dlg.setFilterExtensions(["*.zip", "*.wsn"]);
 			dlg.setFilterNames([_prop.msgs.filterDescZip, _prop.msgs.filterDescWsn]);
 			zip = 0;
@@ -2049,15 +2049,15 @@ public:
 			wsn = 1;
 		}
 		dlg.setText(_prop.msgs.dlgTitCreateArchive);
-		if (_prop.var.etc.archivePath.length) {
+		if (_prop.var.etc.archivePath.length) { mixin(S_TRACE);
 			dlg.setFilterPath(_prop.var.etc.archivePath);
-		} else {
+		} else { mixin(S_TRACE);
 			dlg.setFilterPath(getcwd());
 		}
 		string filter = _prop.var.etc.selectedArchiveFilter;
 		switch (filter) {
 		case ".cab":
-			if (!canUncab) {
+			if (!canUncab) { mixin(S_TRACE);
 				goto default;
 			}
 			dlg.setFilterIndex(cab);
@@ -2076,22 +2076,22 @@ public:
 		string fname = dlg.open();
 		if (!fname) return;
 
-		try {
+		try { mixin(S_TRACE);
 			switch (dlg.getFilterIndex()) {
 			case cab:
-				synchronized (_comm.saveSync) {
+				synchronized (_comm.saveSync) { mixin(S_TRACE);
 					_summ.createCab(fname, _prop.var.etc.ignorePaths);
 				}
 				_prop.var.etc.selectedArchiveFilter = ".cab";
 				break;
 			case wsn:
-				synchronized (_comm.saveSync) {
+				synchronized (_comm.saveSync) { mixin(S_TRACE);
 					_summ.createZip(fname, _prop.var.etc.ignorePaths, false);
 				}
 				_prop.var.etc.selectedArchiveFilter = ".wsn";
 				break;
 			default:
-				synchronized (_comm.saveSync) {
+				synchronized (_comm.saveSync) { mixin(S_TRACE);
 					_summ.createZip(fname, _prop.var.etc.ignorePaths, true);
 				}
 				_prop.var.etc.selectedArchiveFilter = ".zip";
@@ -2104,33 +2104,33 @@ public:
 		}
 	}
 
-	override void cut(SelectionEvent se) {
+	override void cut(SelectionEvent se) { mixin(S_TRACE);
 		if (!canDoTCPD) return;
-		if (_dirs.isFocusControl()) {
+		if (_dirs.isFocusControl()) { mixin(S_TRACE);
 			auto sels = _dirs.getSelection();
 			if (!sels.length) return;
 			if (!sels[0].getParentItem()) return;
 		}
-		if (__copy()) {
-			if (_dirs.isFocusControl()) {
+		if (__copy()) { mixin(S_TRACE);
+			if (_dirs.isFocusControl()) { mixin(S_TRACE);
 				auto sels = _dirs.getSelection();
 				if (!sels.length) return;
 				auto dir = selDirPath;
 				sels[0].setImage(sfimage(dir));
 				static if (0 == filenameCharCmp('A', 'a')) {
 					_cuts.add(.toLower(nabs(dir)));
-				} else {
+				} else { mixin(S_TRACE);
 					_cuts.add(nabs(dir));
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				assert (_files.isFocusControl());
 				bool isdir = false;
-				foreach (itm; _files.getSelection()) {
+				foreach (itm; _files.getSelection()) { mixin(S_TRACE);
 					auto p = (cast(FileNameObj) itm.getData()).array;
 					itm.setImage(sfimage(itm.getImage()));
 					static if (0 == filenameCharCmp('A', 'a')) {
 						_cuts.add(.toLower(nabs(p)));
-					} else {
+					} else { mixin(S_TRACE);
 						_cuts.add(nabs(p));
 					}
 					if (!isdir && .isDir(p)) isdir = true;
@@ -2140,23 +2140,23 @@ public:
 			_comm.refreshToolBar();
 		}
 	}
-	override void copy(SelectionEvent se) {
+	override void copy(SelectionEvent se) { mixin(S_TRACE);
 		if (!canDoTCPD) return;
 		__copy();
 	}
-	private string[] copyImpl() {
-		if (_dirs.isFocusControl()) {
+	private string[] copyImpl() { mixin(S_TRACE);
+		if (_dirs.isFocusControl()) { mixin(S_TRACE);
 			auto dir = selDirPath;
-			if (dir) {
+			if (dir) { mixin(S_TRACE);
 				return [nabs(dir)];
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			assert (_files.isFocusControl());
 			auto files = selFiles;
-			if (files.length > 0) {
+			if (files.length > 0) { mixin(S_TRACE);
 				string[] arr;
 				arr.length = files.length;
-				foreach (i, f; files) {
+				foreach (i, f; files) { mixin(S_TRACE);
 					arr[i] = nabs(f);
 				}
 				return arr;
@@ -2164,10 +2164,10 @@ public:
 		}
 		return [];
 	}
-	private bool __copy() {
+	private bool __copy() { mixin(S_TRACE);
 		clearCut();
 		auto arr = copyImpl();
-		if (arr.length) {
+		if (arr.length) { mixin(S_TRACE);
 			_comm.clipboard.setContents([new FileNames(arr)],
 				[FileTransfer.getInstance()]);
 			_comm.refreshToolBar();
@@ -2175,27 +2175,27 @@ public:
 		}
 		return false;
 	}
-	override void paste(SelectionEvent se) {
+	override void paste(SelectionEvent se) { mixin(S_TRACE);
 		if (!canDoTCPD) return;
 		auto c = _comm.clipboard.getContents(FileTransfer.getInstance());
-		if (c && cast(FileNames) c) {
+		if (c && cast(FileNames) c) { mixin(S_TRACE);
 			pasteImpl((cast(FileNames) c).array);
 		}
 	}
-	private void pasteImpl(string[] array) {
+	private void pasteImpl(string[] array) { mixin(S_TRACE);
 		if (!canDoTCPD) return;
 		if (!array.length) return;
 		bool fromOut;
-		if (__paste(selDirPath, new FileNames(array), false, fromOut)) {
+		if (__paste(selDirPath, new FileNames(array), false, fromOut)) { mixin(S_TRACE);
 			clearCut();
 			if (_summ.useTemp) _summ.changed();
 			.forceFocus(_files, false);
 			_comm.refreshToolBar();
 		}
 	}
-	override void del(SelectionEvent se) {
+	override void del(SelectionEvent se) { mixin(S_TRACE);
 		if (!canDoTCPD) return;
-		if (_dirs.isFocusControl()) {
+		if (_dirs.isFocusControl()) { mixin(S_TRACE);
 			auto sels = _dirs.getSelection();
 			if (!sels.length) return;
 			if (!sels[0].getParentItem()) return;
@@ -2206,53 +2206,53 @@ public:
 		auto file = selFiles;
 		string[] fileNames;
 		fileNames.length = file.length;
-		foreach (i, f; file) {
+		foreach (i, f; file) { mixin(S_TRACE);
 			fileNames[i] = nabs(f);
 		}
 		bool recycle = (se.stateMask & SWT.SHIFT) == 0;
-		if (_dirs.isFocusControl()) {
+		if (_dirs.isFocusControl()) { mixin(S_TRACE);
 			if (!dir) return;
 			version (Windows) {
-				if (recycle) {
+				if (recycle) { mixin(S_TRACE);
 					dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFileRecycle, nabs(dir)));
-				} else {
+				} else { mixin(S_TRACE);
 					dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFile, nabs(dir)));
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFile, nabs(dir)));
 			}
-			if (SWT.OK == dlg.open()) {
+			if (SWT.OK == dlg.open()) { mixin(S_TRACE);
 				removeFiles([nabs(dir)], recycle);
-			} else {
+			} else { mixin(S_TRACE);
 				return;
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			assert (_files.isFocusControl());
 			if (file.length == 0) return;
 			version (Windows) {
-				if (1 == fileNames.length) {
-					if (recycle) {
+				if (1 == fileNames.length) { mixin(S_TRACE);
+					if (recycle) { mixin(S_TRACE);
 						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFileRecycle, fileNames[0]));
-					} else {
+					} else { mixin(S_TRACE);
 						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFile, fileNames[0]));
 					}
-				} else {
-					if (recycle) {
+				} else { mixin(S_TRACE);
+					if (recycle) { mixin(S_TRACE);
 						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFilesRecycle, fileNames.length));
-					} else {
+					} else { mixin(S_TRACE);
 						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFiles, fileNames.length));
 					}
 				}
-			} else {
-				if (1 == fileNames.length) {
+			} else { mixin(S_TRACE);
+				if (1 == fileNames.length) { mixin(S_TRACE);
 					dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFile, fileNames[0]));
-				} else {
+				} else { mixin(S_TRACE);
 					dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteFiles, fileNames.length));
 				}
 			}
-			if (SWT.OK == dlg.open()) {
+			if (SWT.OK == dlg.open()) { mixin(S_TRACE);
 				removeFiles(file, recycle);
-			} else {
+			} else { mixin(S_TRACE);
 				return;
 			}
 		}
@@ -2263,63 +2263,63 @@ public:
 		clearCut();
 		_comm.refreshToolBar();
 	}
-	override void clone(SelectionEvent se) {
+	override void clone(SelectionEvent se) { mixin(S_TRACE);
 		auto files = copyImpl();
 		if (!files.length) return;
-		if (_dirs.isFocusControl()) {
+		if (_dirs.isFocusControl()) { mixin(S_TRACE);
 			auto parItm = _dirs.getSelection()[0].getParentItem();
-			if (parItm) {
+			if (parItm) { mixin(S_TRACE);
 				select((cast(FileNameObj) parItm.getData()).array);
 			}
 		}
 		pasteImpl(files);
 	}
 	@property
-	override bool canDoTCPD() {
+	override bool canDoTCPD() { mixin(S_TRACE);
 		return _dirs.isFocusControl() || _files.isFocusControl();
 	}
 	@property
-	bool canDoT() {
+	bool canDoT() { mixin(S_TRACE);
 		if (!_summ) return false;
-		if (_dirs.isFocusControl()) {
+		if (_dirs.isFocusControl()) { mixin(S_TRACE);
 			auto sels = _dirs.getSelection();
 			return sels.length > 0 && sels[0].getParentItem();
-		} else if (_files.isFocusControl()) {
+		} else if (_files.isFocusControl()) { mixin(S_TRACE);
 			return _files.getSelectionIndex() != -1;
 		}
 		return false;
 	}
 	@property
-	bool canDoC() {
+	bool canDoC() { mixin(S_TRACE);
 		if (!_summ) return false;
-		if (_dirs.isFocusControl()) {
+		if (_dirs.isFocusControl()) { mixin(S_TRACE);
 			return _dirs.getSelection().length > 0;
-		} else if (_files.isFocusControl()) {
+		} else if (_files.isFocusControl()) { mixin(S_TRACE);
 			return _files.getSelectionIndex() != -1;
 		}
 		return false;
 	}
 	@property
-	bool canDoP() {
+	bool canDoP() { mixin(S_TRACE);
 		return _summ !is null && CBisFile(_comm.clipboard);
 	}
 	@property
-	bool canDoD() {
+	bool canDoD() { mixin(S_TRACE);
 		return canDoT;
 	}
 	@property
-	bool canDoClone() {
+	bool canDoClone() { mixin(S_TRACE);
 		if (!_summ) return false;
-		if (_dirs.isFocusControl()) {
+		if (_dirs.isFocusControl()) { mixin(S_TRACE);
 			auto sels = _dirs.getSelection();
 			return sels.length > 0 && sels[0].getParentItem();
-		} else if (_files.isFocusControl()) {
+		} else if (_files.isFocusControl()) { mixin(S_TRACE);
 			return _files.getSelectionIndex() != -1;
 		}
 		return false;
 	}
 
-	override bool openCWXPath(string path, bool shellActivate) {
+	override bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		auto cate = cpcategory(path);
 		switch (cate) {
 		case "fileview":
@@ -2330,7 +2330,7 @@ public:
 		}
 	}
 	@property
-	override string[] openedCWXPath() {
+	override string[] openedCWXPath() { mixin(S_TRACE);
 		return ["fileview"];
 	}
 }
@@ -2365,31 +2365,31 @@ version (Windows) {
 class Exec {
 	private DirectoryWindow _dirWin;
 	private OuterTool _tool;
-	private void run() {
+	private void run() { mixin(S_TRACE);
 		string file = "";
 		string[] sf = _dirWin.selFiles;
-		foreach (i, f; sf) {
+		foreach (i, f; sf) { mixin(S_TRACE);
 			file ~= `"` ~ f ~ `"`;
 			if (i + 1 < sf.length) file ~= " ";
 		}
 		string sp = _dirWin._summ ? _dirWin._summ.scenarioPath : std.file.getcwd();
 		auto cwd = std.file.getcwd();
 		string wd = OuterTool.parse(_tool.workDir, file, sp);
-		if (wd.length > 0) {
-			if (!isAbsolute(wd)) {
+		if (wd.length > 0) { mixin(S_TRACE);
+			if (!isAbsolute(wd)) { mixin(S_TRACE);
 				wd = std.path.buildPath(std.path.dirName(_dirWin._prop.parent.appPath), wd);
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			wd = dirName(_dirWin._prop.parent.appPath);
 		}
 		auto cmd = OuterTool.parse(_tool.command, file, sp);
-		if (!exec(cmd, wd)) {
+		if (!exec(cmd, wd)) { mixin(S_TRACE);
 			MessageBox.showWarning
 				(.tryFormat(_dirWin._prop.msgs.errorExec, _tool.name),
 				_dirWin._prop.msgs.dlgTitWarning, _dirWin._win.getShell());
 		}
 	}
-	this (DirectoryWindow dirWin, Menu menu, OuterTool tool, int index) {
+	this (DirectoryWindow dirWin, Menu menu, OuterTool tool, int index) { mixin(S_TRACE);
 		auto display = menu.getDisplay();
 		auto icon = dirWin._prop.images.menu(MenuID.OuterTools);
 		string name = MenuProps.buildMenu(tool.name, tool.mnemonic, tool.hotkey, false);
@@ -2400,7 +2400,7 @@ class Exec {
 			bool rmv = false;
 			MenuAdapter mShown;
 			mShown = new class MenuAdapter {
-				override void menuShown(MenuEvent e) {
+				override void menuShown(MenuEvent e) { mixin(S_TRACE);
 					auto com = toUTF16(tool.command);
 					auto wcom = new wchar[com.length + 1];
 					wcom[0 .. com.length] = com[];
@@ -2408,21 +2408,21 @@ class Exec {
 					PathRemoveArgsW(wcom.ptr);
 					PathUnquoteSpacesW(wcom.ptr);
 					com = wcom[0 .. std.algorithm.countUntil(wcom, '\0')].idup;
-					if (com.length) {
-						auto thr = new core.thread.Thread({
-							auto exeIcon = loadIcon(to!string(com), 16, 16, (void delegate() dlg) {
+					if (com.length) { mixin(S_TRACE);
+						auto thr = new core.thread.Thread({ mixin(S_TRACE);
+							auto exeIcon = loadIcon(to!string(com), 16, 16, (void delegate() dlg) { mixin(S_TRACE);
 								display.syncExec(new class Runnable {
-									void run() {
+									void run() { mixin(S_TRACE);
 										dlg();
 									}
 								});
 							});
-							if (exeIcon) {
+							if (exeIcon) { mixin(S_TRACE);
 								display.syncExec(new class Runnable {
-									void run() {
+									void run() { mixin(S_TRACE);
 										if (mi.isDisposed()) return;
 										auto img = new Image(mi.getDisplay(), exeIcon);
-										listener(mi, SWT.Dispose, {
+										listener(mi, SWT.Dispose, { mixin(S_TRACE);
 											img.dispose();
 										});
 										mi.setImage(img);
@@ -2438,11 +2438,11 @@ class Exec {
 			};
 			menu.addMenuListener(mShown);
 			mi.addDisposeListener(new class DisposeListener {
-				override void widgetDisposed(DisposeEvent e) {
+				override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 					if (!rmv) menu.removeMenuListener(mShown);
 				}
 			});
-		} else {
+		} else { mixin(S_TRACE);
 			createMenuItem2(dirWin._comm, menu, name, icon, &run, null);
 		}
 		_dirWin = dirWin;

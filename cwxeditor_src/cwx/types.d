@@ -1,10 +1,12 @@
 
 module cwx.types;
 
+import cwx.perf;
+
 /// 効果関連の例外。
 class MotionException : Exception {
 public:
-	this(string msg) {
+	this(string msg) { mixin(S_TRACE);
 		super(msg);
 	}
 }
@@ -19,7 +21,7 @@ enum Mentality {
 	PANIC /// 恐慌。
 }
 /// ditto
-Mentality toMentality(string s) {
+Mentality toMentality(string s) { mixin(S_TRACE);
 	switch (s) {
 	case "Normal": return Mentality.NORMAL;
 	case "Panic": return Mentality.PANIC;
@@ -31,7 +33,7 @@ Mentality toMentality(string s) {
 	}
 }
 /// ditto
-string fromMentality(Mentality m) {
+string fromMentality(Mentality m) { mixin(S_TRACE);
 	final switch (m) {
 	case Mentality.NORMAL: return "Normal";
 	case Mentality.PANIC: return "Panic";
@@ -51,7 +53,7 @@ enum EffectType {
 	NONE, /// 無。
 }
 /// 文字列から効果属性を生成。
-EffectType toEffectType(string name) {
+EffectType toEffectType(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Physic":
 		return EffectType.PHYSIC;
@@ -68,7 +70,7 @@ EffectType toEffectType(string name) {
 	}
 }
 /// 効果属性を文字列に変換。
-string fromEffectType(EffectType etyp) {
+string fromEffectType(EffectType etyp) { mixin(S_TRACE);
 	final switch (etyp) {
 	case EffectType.PHYSIC:
 		return "Physic";
@@ -89,7 +91,7 @@ enum Resist {
 	UNFAIL, /// 必中。
 }
 /// 文字列から抵抗属性を生成。
-Resist toResist(string name) {
+Resist toResist(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Avoid":
 		return Resist.AVOID;
@@ -102,7 +104,7 @@ Resist toResist(string name) {
 	}
 }
 /// 抵抗属性から文字列へ変換。
-string fromResist(Resist resist) {
+string fromResist(Resist resist) { mixin(S_TRACE);
 	final switch (resist) {
 	case Resist.AVOID:
 		return "Avoid";
@@ -120,7 +122,7 @@ enum CardVisual {
 	VERTICAL, /// 縦振動。
 }
 /// 文字列から視覚効果を生成。
-CardVisual toCardVisual(string name) {
+CardVisual toCardVisual(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "None":
 		return CardVisual.NONE;
@@ -135,7 +137,7 @@ CardVisual toCardVisual(string name) {
 	}
 }
 /// 視覚効果から文字列へ変換。
-string fromCardVisual(CardVisual vis) {
+string fromCardVisual(CardVisual vis) { mixin(S_TRACE);
 	final switch (vis) {
 	case CardVisual.NONE:
 		return "None";
@@ -158,7 +160,7 @@ enum Element {
 	ICE, /// 冷気。
 }
 /// 文字列から効果属性を生成。
-Element toElement(string name) {
+Element toElement(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "All":
 		return Element.ALL;
@@ -179,7 +181,7 @@ Element toElement(string name) {
 	}
 }
 /// 効果属性から文字列へ変換。
-string fromElement(Element el) {
+string fromElement(Element el) { mixin(S_TRACE);
 	final switch (el) {
 	case Element.ALL:
 		return "All";
@@ -204,7 +206,7 @@ enum DamageType {
 	MAX, /// 最大値。
 }
 /// 文字列から効果計算方式を生成。
-DamageType toDamageType(string name) {
+DamageType toDamageType(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "LevelRatio":
 		return DamageType.LEVEL_RATIO;
@@ -217,7 +219,7 @@ DamageType toDamageType(string name) {
 	}
 }
 /// 効果計算方式を文字列へ変換。
-string fromDamageType(DamageType dtyp) {
+string fromDamageType(DamageType dtyp) { mixin(S_TRACE);
 	final switch (dtyp) {
 	case DamageType.LEVEL_RATIO:
 		return "LevelRatio";
@@ -248,13 +250,13 @@ public:
 		return r;
 	}
 	const
-	bool opEquals(const(Target) t) {
+	bool opEquals(const(Target) t) { mixin(S_TRACE);
 		return t.m == m && t.sleep == sleep;
 	}
 private:
 }
 /// 文字列から対象メンバを生成。
-Target toTarget(string name) {
+Target toTarget(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Selected":
 		return Target(Target.M.SELECTED, false);
@@ -277,8 +279,8 @@ Target toTarget(string name) {
 	}
 }
 /// 対象メンバを文字列へ変換。
-string fromTarget(Target targ) {
-	string targetText(string text, bool sleep) {
+string fromTarget(Target targ) { mixin(S_TRACE);
+	string targetText(string text, bool sleep) { mixin(S_TRACE);
 		return sleep ? text ~ "Sleep" : text;
 	}
 	final switch (targ.m) {
@@ -307,7 +309,7 @@ enum Mental {
 	UNTRICKISH, /// 正直
 }
 /// 文字列から精神要素を生成。
-Mental toMental(string name) {
+Mental toMental(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Aggressive":
 		return Mental.AGGRESSIVE;
@@ -334,7 +336,7 @@ Mental toMental(string name) {
 	}
 }
 ///精神要素を文字列へ変換。
-string fromMental(Mental m) {
+string fromMental(Mental m) { mixin(S_TRACE);
 	final switch (m) {
 	case Mental.AGGRESSIVE:
 		return "Aggressive";
@@ -359,7 +361,7 @@ string fromMental(Mental m) {
 	}
 }
 /// 精神要素の対立側を返す。
-Mental reverseMental(Mental m) {
+Mental reverseMental(Mental m) { mixin(S_TRACE);
 	final switch (m) {
 	case Mental.AGGRESSIVE:
 		return Mental.UNAGGRESSIVE;
@@ -393,7 +395,7 @@ enum Physical {
 	MIN, /// 精神力。
 }
 /// 文字列から肉体要素を生成。
-Physical toPhysical(string name) {
+Physical toPhysical(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Dex":
 		return Physical.DEX;
@@ -412,7 +414,7 @@ Physical toPhysical(string name) {
 	}
 }
 /// 肉体要素を文字列へ変換。
-string fromPhysical(Physical p) {
+string fromPhysical(Physical p) { mixin(S_TRACE);
 	final switch (p) {
 	case Physical.DEX:
 		return "Dex";
@@ -460,7 +462,7 @@ enum Status {
 	NONE, /// 状態指定無し。
 }
 /// 文字列から状態を生成。
-Status toStatus(string name) {
+Status toStatus(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Active":
 		return Status.ACTIVE;
@@ -523,7 +525,7 @@ Status toStatus(string name) {
 	}
 }
 /// 状態を文字列へ変換。
-string fromStatus(Status stat) {
+string fromStatus(Status stat) { mixin(S_TRACE);
 	final switch (stat) {
 	case Status.ACTIVE:
 		return "Active";
@@ -593,7 +595,7 @@ enum Range {
 	FIELD, /// フィールド全体。
 }
 /// 文字列から適用範囲を生成。
-Range toRange(string name) {
+Range toRange(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Selected":
 		return Range.SELECTED;
@@ -612,7 +614,7 @@ Range toRange(string name) {
 	}
 }
 /// 適用範囲を文字列へ変換。
-string fromRange(Range r) {
+string fromRange(Range r) { mixin(S_TRACE);
 	final switch (r) {
 	case Range.SELECTED:
 		return "Selected";
@@ -638,7 +640,7 @@ enum CastRange {
 	NPC   = 0b0100, /// 同行キャスト全体。
 }
 /// 文字列からキャスト選択範囲を生成。
-CastRange toCastRange(string name) {
+CastRange toCastRange(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Party":
 		return CastRange.PARTY;
@@ -651,7 +653,7 @@ CastRange toCastRange(string name) {
 	}
 }
 /// キャスト選択範囲を文字列へ変換。
-string fromCastRange(CastRange r) {
+string fromCastRange(CastRange r) { mixin(S_TRACE);
 	final switch (r) {
 	case CastRange.PARTY:
 		return "Party";
@@ -669,7 +671,7 @@ enum Enhance {
 	DEFENSE, /// 防御。
 }
 /// 文字列から能力修正種別を生成。
-Enhance toEnhance(string name) {
+Enhance toEnhance(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Action":
 		return Enhance.ACTION;
@@ -684,7 +686,7 @@ Enhance toEnhance(string name) {
 	}
 }
 /// 能力修正種別を文字列へ変換。
-string fromEnhance(Enhance r) {
+string fromEnhance(Enhance r) { mixin(S_TRACE);
 	final switch (r) {
 	case Enhance.ACTION:
 		return "Action";
@@ -703,7 +705,7 @@ enum Premium {
 	PREMIUM, /// 貴重品。
 }
 /// 文字列から希少度を生成。
-Premium toPremium(string name) {
+Premium toPremium(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Normal":
 		return Premium.NORMAL;
@@ -716,7 +718,7 @@ Premium toPremium(string name) {
 	}
 }
 /// 希少度を文字列へ変換。
-string fromPremium(Premium r) {
+string fromPremium(Premium r) { mixin(S_TRACE);
 	final switch (r) {
 	case Premium.NORMAL:
 		return "Normal";
@@ -735,7 +737,7 @@ enum CardTarget {
 	BOTH, /// 双方。
 }
 /// 文字列からカード効果標的を生成。
-CardTarget toCardTarget(string name) {
+CardTarget toCardTarget(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "None":
 		return CardTarget.NONE;
@@ -752,7 +754,7 @@ CardTarget toCardTarget(string name) {
 	}
 }
 /// カード効果標的を文字列へ変換。
-string fromCardTarget(CardTarget r) {
+string fromCardTarget(CardTarget r) { mixin(S_TRACE);
 	final switch (r) {
 	case CardTarget.NONE:
 		return "None";
@@ -795,7 +797,7 @@ Transition[] ALL_TRANSITION = [
 	Transition.BLINDS
 ];
 /// 文字列から背景遷移エフェクトを生成。
-Transition toTransition(string name) {
+Transition toTransition(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Default":
 		return Transition.DEFAULT;
@@ -812,7 +814,7 @@ Transition toTransition(string name) {
 	}
 }
 /// 背景遷移エフェクトを文字列へ変換。
-string fromTransition(Transition t) {
+string fromTransition(Transition t) { mixin(S_TRACE);
 	final switch (t) {
 	case Transition.DEFAULT:
 		return "Default";
@@ -835,7 +837,7 @@ enum EffectCardType {
 	BEAST, /// 召喚獣。
 }
 /// ditto
-EffectCardType toEffectCardType(string name) {
+EffectCardType toEffectCardType(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "All":   return EffectCardType.ALL;
 	case "Skill": return EffectCardType.SKILL;
@@ -845,7 +847,7 @@ EffectCardType toEffectCardType(string name) {
 	}
 }
 /// ditto
-string fromEffectCardType(EffectCardType t) {
+string fromEffectCardType(EffectCardType t) { mixin(S_TRACE);
 	final switch (t) {
 	case EffectCardType.ALL:   return "All";
 	case EffectCardType.SKILL: return "Skill";
@@ -862,7 +864,7 @@ enum Comparison4 {
 	Gt, /// nより小さければ。
 }
 /// ditto
-Comparison4 toComparison4(string name) {
+Comparison4 toComparison4(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "=": return Comparison4.Eq;
 	case "<>": return Comparison4.Ne;
@@ -872,7 +874,7 @@ Comparison4 toComparison4(string name) {
 	}
 }
 /// ditto
-string fromComparison4(Comparison4 t) {
+string fromComparison4(Comparison4 t) { mixin(S_TRACE);
 	final switch (t) {
 	case Comparison4.Eq: return "=";
 	case Comparison4.Ne: return "<>";
@@ -888,7 +890,7 @@ enum Comparison3 {
 	Gt, /// nより小さい。
 }
 /// ditto
-Comparison3 toComparison3(string name) {
+Comparison3 toComparison3(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "=": return Comparison3.Eq;
 	case "<": return Comparison3.Lt;
@@ -897,7 +899,7 @@ Comparison3 toComparison3(string name) {
 	}
 }
 /// ditto
-string fromComparison3(Comparison3 t) {
+string fromComparison3(Comparison3 t) { mixin(S_TRACE);
 	final switch (t) {
 	case Comparison3.Eq: return "=";
 	case Comparison3.Lt: return "<";
@@ -914,7 +916,7 @@ enum BlendMode {
 	Multiply, /// 乗算。
 }
 /// ditto
-BlendMode toBlendMode(string name) {
+BlendMode toBlendMode(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "Normal": return BlendMode.Normal;
 	case "Mask": return BlendMode.Mask;
@@ -925,7 +927,7 @@ BlendMode toBlendMode(string name) {
 	}
 }
 /// ditto
-string fromBlendMode(BlendMode t) {
+string fromBlendMode(BlendMode t) { mixin(S_TRACE);
 	final switch (t) {
 	case BlendMode.Normal: return "Normal";
 	case BlendMode.Mask: return "Mask";
@@ -942,7 +944,7 @@ enum GradientDir {
 	TopToBottom, /// 上から下へ。
 }
 /// ditto
-GradientDir toGradientDir(string name) {
+GradientDir toGradientDir(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "None": return GradientDir.None;
 	case "LeftToRight": return GradientDir.LeftToRight;
@@ -951,7 +953,7 @@ GradientDir toGradientDir(string name) {
 	}
 }
 /// ditto
-string fromGradientDir(GradientDir t) {
+string fromGradientDir(GradientDir t) { mixin(S_TRACE);
 	final switch (t) {
 	case GradientDir.None: return "None";
 	case GradientDir.LeftToRight: return "LeftToRight";
@@ -966,7 +968,7 @@ enum BorderingType {
 	Inline, /// 内側を縁取り。
 }
 /// ditto
-BorderingType toBorderingType(string name) {
+BorderingType toBorderingType(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "None": return BorderingType.None;
 	case "Outline": return BorderingType.Outline;
@@ -975,7 +977,7 @@ BorderingType toBorderingType(string name) {
 	}
 }
 /// ditto
-string fromBorderingType(BorderingType t) {
+string fromBorderingType(BorderingType t) { mixin(S_TRACE);
 	final switch (t) {
 	case BorderingType.None: return "None";
 	case BorderingType.Outline: return "Outline";
@@ -1148,7 +1150,7 @@ enum CNextType {
 	TRIO, /// 大なり、少なり、一致(CardWirth Extender 1.30～)。
 }
 /// ditto
-CNextType toCNextType(string name) {
+CNextType toCNextType(string name) { mixin(S_TRACE);
 	switch (name) {
 	case "None": return CNextType.NONE;
 	case "Text": return CNextType.TEXT;
@@ -1161,7 +1163,7 @@ CNextType toCNextType(string name) {
 	}
 }
 /// ditto
-string fromCNextType(CNextType t) {
+string fromCNextType(CNextType t) { mixin(S_TRACE);
 	final switch (t) {
 	case CNextType.NONE: return "None";
 	case CNextType.TEXT: return "Text";

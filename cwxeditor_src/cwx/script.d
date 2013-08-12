@@ -40,7 +40,7 @@ struct CWXSError {
 
 /// ditto
 class CWXScriptException : Exception {
-	this (string file, size_t line, string text, const CWXSError[] errors, bool over100) {
+	this (string file, size_t line, string text, const CWXSError[] errors, bool over100) { mixin(S_TRACE);
 		super ("cwx script error", file, line);
 		_text = text;
 		_errors = errors;
@@ -80,7 +80,7 @@ struct CompileOption {
 
 /// スクリプトを解析し、コンテント群にして返す。
 /// 解析中にエラーがあった場合はCWXScriptExceptionを投げる。
-Content[] compile(const(CProps) prop, const(Summary) summ, string script, in CompileOption opt) {
+Content[] compile(const(CProps) prop, const(Summary) summ, string script, in CompileOption opt) { mixin(S_TRACE);
 	auto compiler = new CWXScript(prop, summ, script);
 	auto tokens = compiler.tokenize(script, opt);
 	if (compiler.errors.length) throw new CWXScriptException(__FILE__, __LINE__, script, compiler.errors, false);
@@ -93,16 +93,16 @@ Content[] compile(const(CProps) prop, const(Summary) summ, string script, in Com
 
 /// スクリプトに含まれる最初のイベントコンテントのタイプを返す。
 /// タイプが検出できない場合は-1を返す。
-CType firstContentType(const(CProps) prop, const(Summary) summ, string script) {
+CType firstContentType(const(CProps) prop, const(Summary) summ, string script) { mixin(S_TRACE);
 	CompileOption opt;
 	auto compiler = new CWXScript(prop, summ, script);
 	auto tokens = compiler.tokenize(script, opt);
 	if (compiler.errors.length) return cast(CType)-1;
-	foreach (ref token; tokens) {
+	foreach (ref token; tokens) { mixin(S_TRACE);
 		if (token.kind is CWXScript.Kind.START) return CType.START;
-		if (token.kind is CWXScript.Kind.SYMBOL) {
+		if (token.kind is CWXScript.Kind.SYMBOL) { mixin(S_TRACE);
 			auto p = token.value.toLower() in CWXScript.KEYS.keywords;
-			if (p) {
+			if (p) { mixin(S_TRACE);
 				return *p;
 			}
 		}
@@ -118,7 +118,7 @@ class CWXScript {
 	private size_t _maxError;
 	private size_t _autoWrap;
 	/// 唯一のコンストラクタ。
-	this (const(CProps) prop, const(Summary) summ, string text = "", size_t maxError = 100, size_t autoWrap = 250) {
+	this (const(CProps) prop, const(Summary) summ, string text = "", size_t maxError = 100, size_t autoWrap = 250) { mixin(S_TRACE);
 		_prop = prop;
 		_summ = summ;
 		_text = text;
@@ -132,28 +132,28 @@ class CWXScript {
 	const(CWXSError[]) errors() {return _errors;}
 
 	/// sをスクリプト内での文字列表現に変換する。
-	static string createString(string s) {
+	static string createString(string s) { mixin(S_TRACE);
 		return "\"" ~ std.array.replace(s, "\"", "\"\"") ~ "\"";
 	}
 
 	private void throwError(string File = __FILE__, size_t Line = __LINE__)
-			(lazy string message, in Token tok) {
+			(lazy string message, in Token tok) { mixin(S_TRACE);
 		throwErrorToken!(File, Line)(message, tok.line, tok.pos, tok.value);
 	}
 	private void throwErrorToken(string File = __FILE__, size_t Line = __LINE__)
-			(lazy string message, int line, int pos, string value) {
+			(lazy string message, int line, int pos, string value) { mixin(S_TRACE);
 		if (!_maxError) return;
-		if (_errors.length && _errors[$ - 1].errLine == line && _errors[$ - 1].errPos == pos) {
+		if (_errors.length && _errors[$ - 1].errLine == line && _errors[$ - 1].errPos == pos) { mixin(S_TRACE);
 			// 同一箇所でのエラーは一つだけにする
 			return;
 		}
 		string msg;
-		if (!_prop || !_prop.msgs) {
+		if (!_prop || !_prop.msgs) { mixin(S_TRACE);
 			msg = "";
-		} else {
+		} else { mixin(S_TRACE);
 			msg = message;
 		}
-		if (_maxError <= _errors.length) {
+		if (_maxError <= _errors.length) { mixin(S_TRACE);
 			throw new CWXScriptException(__FILE__, __LINE__, _text, errors, true);
 		}
 		_errors ~= CWXSError(msg, line, pos, File, Line);
@@ -195,21 +195,21 @@ class CWXScript {
 		string comment = ""; /// 直前のコメント。
 		/// 文字列表現。
 		const
-		string toString() {
+		string toString() { mixin(S_TRACE);
 			return .format("Token {line %d : %d, %d, %s, %s, %s}", line, pos, index, to!(string)(kind), value, comment);
 		}
 		/// oと等しいか。
 		const
-		bool opEquals(ref const(Token) o) {
+		bool opEquals(ref const(Token) o) { mixin(S_TRACE);
 			return line == o.line && pos == o.pos && index == o.index && kind == o.kind && value == o.value && comment == o.comment;
 		}
 	}
-	private static string[] wrap(string line, size_t width) {
-		if (width > 0) {
+	private static string[] wrap(string line, size_t width) { mixin(S_TRACE);
+		if (width > 0) { mixin(S_TRACE);
 			string[] lines;
-			while (lengthJ(line) > width) {
+			while (lengthJ(line) > width) { mixin(S_TRACE);
 				auto l = sliceJ(line, 0, width);
-				if (!l.length) {
+				if (!l.length) { mixin(S_TRACE);
 					l = sliceJ(line, 0, width + 1);
 				}
 				lines ~= l;
@@ -221,21 +221,21 @@ class CWXScript {
 		return [line];
 	}
 	const
-	private size_t stringCenter(string[] linesBase, size_t width) {
+	private size_t stringCenter(string[] linesBase, size_t width) { mixin(S_TRACE);
 		string[] lines;
-		if (width > 0) {
-			foreach (line; linesBase) {
+		if (width > 0) { mixin(S_TRACE);
+			foreach (line; linesBase) { mixin(S_TRACE);
 				lines ~= wrap(line, width);
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			lines = linesBase;
 		}
 		int ln;
 		int lc = cast(int) lineCount(lines);
-		if (lc > 0 && lc < _prop.looks.messageLine) {
+		if (lc > 0 && lc < _prop.looks.messageLine) { mixin(S_TRACE);
 			int lnt = cast(int) _prop.looks.messageLine - (lc - 1);
 			ln = lnt / 2 + 1;
-		} else {
+		} else { mixin(S_TRACE);
 			ln = 0;
 		}
 		return ln > 0 ? ln : 0;
@@ -243,70 +243,70 @@ class CWXScript {
 	/// Tokenの値を文字列として解釈して返す。
 	/// 文字列を囲う記号に加え、
 	/// 行頭にあるタブ文字や一定数の空白が取り除かれる。
-	private string stringValue(in Token tok, size_t width) {
-		string decode(in char[] s, char esc) {
+	private string stringValue(in Token tok, size_t width) { mixin(S_TRACE);
+		string decode(in char[] s, char esc) { mixin(S_TRACE);
 			char[] buf = new char[s.length];
 			size_t len = 0;
 			bool escape = false;
-			foreach (char c; s) {
-				if (!escape && c == esc) {
+			foreach (char c; s) { mixin(S_TRACE);
+				if (!escape && c == esc) { mixin(S_TRACE);
 					escape = true;
-				} else {
+				} else { mixin(S_TRACE);
 					buf[len] = c;
 					len++;
 					escape = false;
 				}
 			}
-			if (escape) {
+			if (escape) { mixin(S_TRACE);
 				buf[len] = esc;
 				len++;
 			}
 			buf = buf[0 .. len];
 			return assumeUnique(buf);
 		}
-		if (tok.kind !is Kind.STRING || tok.value.length < 2) {
+		if (tok.kind !is Kind.STRING || tok.value.length < 2) { mixin(S_TRACE);
 			throwError(_prop.msgs.scriptErrorInvalidString, tok);
 		}
-		if (tok.value[0] == '@') {
+		if (tok.value[0] == '@') { mixin(S_TRACE);
 			char[] buf;
 			auto linesBase = .splitLines!string(tok.value[0 .. $ - 1].idup);
 			string firstLine = linesBase[0];
 			string[] lines;
 			string[] resultLines;
-			foreach (i, line; linesBase[1 .. $]) {
+			foreach (i, line; linesBase[1 .. $]) { mixin(S_TRACE);
 				line = .astripl(line);
 				line = decode(line, tok.value[0]);
-				if (line.length >= 1 && line[0] == '\\') {
+				if (line.length >= 1 && line[0] == '\\') { mixin(S_TRACE);
 					line = line[1 .. $];
 				}
 				resultLines ~= line;
 				lines ~= wrap(line, width);
 			}
-			if (firstLine.length > 1) {
+			if (firstLine.length > 1) { mixin(S_TRACE);
 				auto lnStr = std.string.toLower(.astrip(firstLine[1 .. $]));
 				bool isNum = std.string.isNumeric(lnStr);
-				if (!isNum && icmp(lnStr, "c") != 0 && icmp(lnStr, "center") != 0) {
+				if (!isNum && icmp(lnStr, "c") != 0 && icmp(lnStr, "center") != 0) { mixin(S_TRACE);
 					throwError(_prop.msgs.scriptErrorInvalidStr, tok);
 				}
 				int ln;
-				if (isNum) {
+				if (isNum) { mixin(S_TRACE);
 					ln = .to!(int)(lnStr);
-				} else {
+				} else { mixin(S_TRACE);
 					ln = stringCenter(lines, 0);
 				}
-				if (ln > 0) {
+				if (ln > 0) { mixin(S_TRACE);
 					buf.length = ln - 1;
 				}
 				buf[] = '\n';
 			}
-			foreach (i, line; resultLines) {
+			foreach (i, line; resultLines) { mixin(S_TRACE);
 				if (i > 0) buf ~= '\n';
 				buf ~= line;
 			}
 			return assumeUnique(buf);
 		}
 		return decode(tok.value[1 .. $ - 1], tok.value[0]);
-	} unittest {
+	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		auto s = new CWXScript(new CProps("", null), null);
 		assert (s.stringValue(Token(0, 0, 0, Kind.STRING, `"abc"`), 0) == "abc");
@@ -319,12 +319,12 @@ class CWXScript {
 
 	/// textから冒頭の空変数群を取得する。
 	/// 読込まれた分のスクリプトはtextから除かれる。
-	string[] eatEmptyVars(ref string text, ref CompileOption opt) {
+	string[] eatEmptyVars(ref string text, ref CompileOption opt) { mixin(S_TRACE);
 		auto tokens = tokenizeImpl(text, true, opt);
 		// コメントを取り除く
 		Token[] tokens2;
-		foreach (tok; tokens) {
-			if (tok.kind !is Kind.COMMENT) {
+		foreach (tok; tokens) { mixin(S_TRACE);
+			if (tok.kind !is Kind.COMMENT) { mixin(S_TRACE);
 				tokens2 ~= tok;
 			}
 		}
@@ -334,12 +334,12 @@ class CWXScript {
 		opt.startLine = 0;
 		opt.startPos = 0;
 		// 空の変数のみを取得するため、'='が現れたらその場で処理終了
-		foreach (i, tok; tokens2) {
-			if (tok.kind is Kind.EQ) {
+		foreach (i, tok; tokens2) { mixin(S_TRACE);
+			if (tok.kind is Kind.EQ) { mixin(S_TRACE);
 				throwError(_prop.msgs.scriptErrorInvalidSyntax, tok);
 				break;
-			} else if (tok.kind is Kind.VAR_NAME) {
-				if (i + 1 < tokens2.length && tokens2[i + 1].kind is Kind.EQ) {
+			} else if (tok.kind is Kind.VAR_NAME) { mixin(S_TRACE);
+				if (i + 1 < tokens2.length && tokens2[i + 1].kind is Kind.EQ) { mixin(S_TRACE);
 					break;
 				}
 				index = tok.index;
@@ -351,7 +351,7 @@ class CWXScript {
 		}
 		text = text[index + len .. $];
 		return r;
-	} unittest {
+	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		CompileOption opt;
 		auto s = new CWXScript(new CProps("", null), null);
@@ -363,10 +363,10 @@ class CWXScript {
 		assert (opt.startPos == 6);
 	}
 	/// textに変数 = 初期化値の定義を追加する。
-	static string pushVars(string text, in VarSet[] varTable, ref CompileOption opt) {
+	static string pushVars(string text, in VarSet[] varTable, ref CompileOption opt) { mixin(S_TRACE);
 		string[] lines;
 		opt.addLines = 0;
-		foreach (t; varTable) {
+		foreach (t; varTable) { mixin(S_TRACE);
 			string v = t.value;
 			if (!v.length) v = `""`;
 			auto l = t.var ~ " = " ~ v;
@@ -376,7 +376,7 @@ class CWXScript {
 		lines ~= text;
 		opt.startLine -= opt.addLines;
 		return lines.join("\n");
-	} unittest {
+	} unittest { mixin(S_TRACE);
 		CompileOption opt;
 		VarSet[] varSet = [VarSet("$a", "1"), VarSet("$b", "2")];
 		auto r = pushVars("aaa bbb", varSet, opt);
@@ -385,9 +385,9 @@ class CWXScript {
 	}
 
 	/// textをTokenに分割する。
-	Token[] tokenize(string text, in CompileOption opt = CompileOption.init) {
+	Token[] tokenize(string text, in CompileOption opt = CompileOption.init) { mixin(S_TRACE);
 		return tokenizeImpl(text, false, opt);
-	} unittest {
+	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		auto s = new CWXScript(new CProps("", null), null);
 		auto tokens = s.tokenize("");
@@ -425,7 +425,7 @@ class CWXScript {
 				Token(6, 12, 77, Kind.C_PAR, ")")
 			], to!string(tokens));
 	}
-	private Token[] tokenizeImpl(ref string text, bool eatEmptyVarMode, in CompileOption opt) {
+	private Token[] tokenizeImpl(ref string text, bool eatEmptyVarMode, in CompileOption opt) { mixin(S_TRACE);
 		if (!text.length) return [];
 		Token[] r;
 		text = std.array.replace(text, "\r\n", "\n");
@@ -446,49 +446,49 @@ class CWXScript {
 		string fullComment = "";
 		@property int sLine() {return cast(int) i + opt.startLine;}
 		@property int sPos() {return (cast(int) i == opt.addLines) ? (cast(int) pos + opt.startPos) : pos;}
-		foreach (token; .match(dtext, reg)) {
+		foreach (token; .match(dtext, reg)) { mixin(S_TRACE);
 			post = token.post;
 			string pre = token.pre;
 			index = pre.length;
 			auto dstr = token.hit;
-			void retCount2(string dstr) {
+			void retCount2(string dstr) { mixin(S_TRACE);
 				size_t count = .count(dstr, "\n");
-				if (count > 0) {
+				if (count > 0) { mixin(S_TRACE);
 					pos = dstr.length - std.string.lastIndexOf(dstr, '\n') - 1;
 					i += count;
-				} else {
+				} else { mixin(S_TRACE);
 					pos += dstr.length;
 				}
 			}
-			void retCount() {
+			void retCount() { mixin(S_TRACE);
 				retCount2(dstr);
 			}
 			auto c = dstr[0];
 			string str = to!string(dstr);
 
-			if (cast(int) pre.length - cast(int) hits > 0) {
-				if (0 < commentLevel) {
+			if (cast(int) pre.length - cast(int) hits > 0) { mixin(S_TRACE);
+				if (0 < commentLevel) { mixin(S_TRACE);
 					/// in comment
 					retCount2(pre[hits .. $]);
 					hits = pre.length;
-				} else {
+				} else { mixin(S_TRACE);
 					string lpre = pre;
-					if (lpre.length && (lpre[$ - 1] == '@' || lpre[$ - 1] == '"' || lpre[$ - 1] == '\'')) {
+					if (lpre.length && (lpre[$ - 1] == '@' || lpre[$ - 1] == '"' || lpre[$ - 1] == '\'')) { mixin(S_TRACE);
 						throwErrorToken(_prop.msgs.scriptErrorUnCloseString, sLine, sPos, "");
 						return r;
-					} else {
+					} else { mixin(S_TRACE);
 						throwErrorToken(_prop.msgs.scriptErrorInvalidToken, sLine, sPos, "");
 					}
 				}
 			}
-			if (0 < commentLevel) {
+			if (0 < commentLevel) { mixin(S_TRACE);
 				fullComment ~= .text(pre[hits .. $]) ~ str;
 			}
 			bool commentStart = false;
-			if (str == "/*") {
+			if (str == "/*") { mixin(S_TRACE);
 				// multi line comment (open)
 				spaceAfter = true;
-				if (commentLevel == 0) {
+				if (commentLevel == 0) { mixin(S_TRACE);
 					commentStart = true;
 					lastCommentLine = i;
 					lastCommentPos = pos;
@@ -497,21 +497,21 @@ class CWXScript {
 				pos += dstr.length;
 				if (0 == commentLevel) fullComment = str;
 				commentLevel++;
-			} else if (str == "*/") {
+			} else if (str == "*/") { mixin(S_TRACE);
 				// multi line comment (close)
 				spaceAfter = true;
 				pos += dstr.length;
-				if (commentLevel <= 0) {
+				if (commentLevel <= 0) { mixin(S_TRACE);
 					throwErrorToken(_prop.msgs.scriptErrorUnOpenComment, sLine, sPos, str);
 				}
 				commentLevel--;
-				if (0 == commentLevel) {
+				if (0 == commentLevel) { mixin(S_TRACE);
 					r ~= Token(lastCommentLine, lastCommentPos, lastCommentIndex, Kind.COMMENT, fullComment, "");
 				}
-			} else if (0 < commentLevel) {
+			} else if (0 < commentLevel) { mixin(S_TRACE);
 				spaceAfter = true;
 				retCount();
- 			} else if (isAlpha(c) || c == '_') {
+ 			} else if (isAlpha(c) || c == '_') { mixin(S_TRACE);
  				if (eatEmptyVarMode) return r;
 				spaceAfter = false;
 				// symbol
@@ -537,84 +537,84 @@ class CWXScript {
 				}
 				pos += dstr.length;
  				docComment = "";
-			} else if (c == '$') {
+			} else if (c == '$') { mixin(S_TRACE);
 				spaceAfter = false;
 				r ~= Token(sLine, sPos, index, Kind.VAR_NAME, str, docComment);
 				pos += dstr.length;
  				docComment = "";
-			} else if (c == '=') {
+			} else if (c == '=') { mixin(S_TRACE);
 				spaceAfter = false;
 				r ~= Token(sLine, sPos, index, Kind.EQ, str, docComment);
 				pos += dstr.length;
  				docComment = "";
-			} else if (c == '[') {
+			} else if (c == '[') { mixin(S_TRACE);
  				if (eatEmptyVarMode) return r;
 				// open bracket
 				spaceAfter = false;
 				r ~= Token(sLine, sPos, index, Kind.O_BRA, str, docComment);
 				pos += dstr.length;
  				docComment = "";
-			} else if (c == ']') {
+			} else if (c == ']') { mixin(S_TRACE);
  				if (eatEmptyVarMode) return r;
 				// close bracket
 				spaceAfter = false;
 				r ~= Token(sLine, sPos, index, Kind.C_BRA, str, docComment);
 				pos += dstr.length;
  				docComment = "";
-			} else if (isDigit(c)) {
+			} else if (isDigit(c)) { mixin(S_TRACE);
  				if (eatEmptyVarMode) return r;
 				// number
 				spaceAfter = false;
 				r ~= Token(sLine, sPos, index, Kind.NUMBER, str, docComment);
 				pos += dstr.length;
  				docComment = "";
-			} else if (c == '@' || c == '"' || c == '\'') {
+			} else if (c == '@' || c == '"' || c == '\'') { mixin(S_TRACE);
  				if (eatEmptyVarMode) return r;
 				// string
 				if (!spaceAfter && r.length && r[$ - 1].kind is Kind.STRING
-						&& r[$ - 1].value[$ - 1] == c) {
+						&& r[$ - 1].value[$ - 1] == c) { mixin(S_TRACE);
 					// 直前のstringに結合
 					r[$ - 1].value ~= str;
-				} else {
+				} else { mixin(S_TRACE);
 					r ~= Token(sLine, sPos, index, Kind.STRING, str, docComment);
 				}
 				spaceAfter = false;
 				retCount();
  				docComment = "";
-			} else if (isWhite(c)) {
+			} else if (isWhite(c)) { mixin(S_TRACE);
 				// whitespace
 				spaceAfter = true;
 				retCount();
-			} else if (c == '+') {
+			} else if (c == '+') { mixin(S_TRACE);
  				if (eatEmptyVarMode) return r;
 				// plus
 				spaceAfter = false;
 				r ~= Token(sLine, sPos, index, Kind.PLU, str, docComment);
 				pos += dstr.length;
  				docComment = "";
-			} else if (c == '-') {
+			} else if (c == '-') { mixin(S_TRACE);
  				if (eatEmptyVarMode) return r;
 				// minus
 				spaceAfter = false;
 				r ~= Token(sLine, sPos, index, Kind.MIN, str, docComment);
 				pos += dstr.length;
  				docComment = "";
-			} else if (c == '*') {
+			} else if (c == '*') { mixin(S_TRACE);
  				if (eatEmptyVarMode) return r;
 				// multiply
 				spaceAfter = false;
 				r ~= Token(sLine, sPos, index, Kind.MUL, str, docComment);
 				pos += dstr.length;
  				docComment = "";
-			} else if (c == '/') {
-				if (dstr.length >= 2 && str[1] == '/') {
+			} else if (c == '/') { mixin(S_TRACE);
+				if (dstr.length >= 2 && str[1] == '/') { mixin(S_TRACE);
 					// line comment
 					spaceAfter = true;
 					r ~= Token(sLine, sPos, index, Kind.COMMENT, str, "");
 					i++;
 					pos = 0;
 					if (2 < str.length) docComment ~= str[2 .. $];
-				} else {
+				} else { mixin(S_TRACE);
  					if (eatEmptyVarMode) return r;
 					// divide
 					spaceAfter = false;
@@ -622,50 +622,50 @@ class CWXScript {
 					pos += dstr.length;
  					docComment = "";
 				}
-			} else if (c == '%') {
+			} else if (c == '%') { mixin(S_TRACE);
  				if (eatEmptyVarMode) return r;
 				// residue
 				spaceAfter = false;
 				r ~= Token(sLine, sPos, index, Kind.RES, str, docComment);
 				pos += dstr.length;
  				docComment = "";
-			} else if (c == '~') {
+			} else if (c == '~') { mixin(S_TRACE);
  				if (eatEmptyVarMode) return r;
 				// cat
 				spaceAfter = false;
 				r ~= Token(sLine, sPos, index, Kind.CAT, str, docComment);
 				pos += dstr.length;
  				docComment = "";
-			} else if (c == '(') {
+			} else if (c == '(') { mixin(S_TRACE);
  				if (eatEmptyVarMode) return r;
 				// open paren
 				spaceAfter = false;
 				r ~= Token(sLine, sPos, index, Kind.O_PAR, str, docComment);
 				pos += dstr.length;
  				docComment = "";
-			} else if (c == ')') {
+			} else if (c == ')') { mixin(S_TRACE);
  				if (eatEmptyVarMode) return r;
 				// close paren
 				spaceAfter = false;
 				r ~= Token(sLine, sPos, index, Kind.C_PAR, str, docComment);
 				pos += dstr.length;
  				docComment = "";
-			} else if (c == ',') {
+			} else if (c == ',') { mixin(S_TRACE);
  				if (eatEmptyVarMode) return r;
 				// comma
 				spaceAfter = false;
 				r ~= Token(sLine, sPos, index, Kind.COMMA, str, docComment);
 				pos += dstr.length;
  				docComment = "";
-			} else {
+			} else { mixin(S_TRACE);
 				assert (0);
 			}
-			if (!commentStart && 0 < commentLevel) {
+			if (!commentStart && 0 < commentLevel) { mixin(S_TRACE);
 				docComment ~= str;
 			}
 			hits += dstr.length;
 		}
-		if (0 < commentLevel) {
+		if (0 < commentLevel) { mixin(S_TRACE);
 			throwErrorToken(_prop.msgs.scriptErrorUnCloseComment, lastCommentLine, lastCommentPos, "");
 		}
 		if (post.length) throwErrorToken(_prop.msgs.scriptErrorInvalidToken, sLine, sPos, "");
@@ -680,10 +680,10 @@ class CWXScript {
 			long numInt;
 			real numReal;
 		}
-		this () {
+		this () { mixin(S_TRACE);
 			numInt = 0;
 		}
-		void cat(in CProps prop, in Token tok, in CalcResult rval) {
+		void cat(in CProps prop, in Token tok, in CalcResult rval) { mixin(S_TRACE);
 			switch (kind) {
 			case CRKind.STR: break;
 			case CRKind.INT: str = to!(string)(numInt); break;
@@ -704,23 +704,23 @@ class CWXScript {
 			}
 			kind = CRKind.STR;
 		}
-		private void calc(string Calc, bool ChkDiv)(in CProps prop, in Token tok, in CalcResult rval) {
-			if (kind is CRKind.STR || rval.kind is CRKind.STR) {
+		private void calc(string Calc, bool ChkDiv)(in CProps prop, in Token tok, in CalcResult rval) { mixin(S_TRACE);
+			if (kind is CRKind.STR || rval.kind is CRKind.STR) { mixin(S_TRACE);
 				throwError(prop.msgs.scriptErrorInvalidNumber, tok);
 			}
 			static if (ChkDiv) {
-				if ((rval.kind is CRKind.REAL ? rval.numReal : rval.numInt) == 0) {
+				if ((rval.kind is CRKind.REAL ? rval.numReal : rval.numInt) == 0) { mixin(S_TRACE);
 					throwError(prop.msgs.scriptErrorZeroDivision, tok);
 				}
 			}
-			if (kind is CRKind.REAL || rval.kind is CRKind.REAL) {
+			if (kind is CRKind.REAL || rval.kind is CRKind.REAL) { mixin(S_TRACE);
 				real lvalue = kind is CRKind.REAL ? numReal : numInt;
 				real rvalue = rval.kind is CRKind.REAL ? rval.numReal : rval.numInt;
 				mixin ("numReal = lvalue " ~ Calc ~ " rvalue;");
 				kind = CRKind.REAL;
-			} else if (kind is CRKind.INT && rval.kind is CRKind.INT) {
+			} else if (kind is CRKind.INT && rval.kind is CRKind.INT) { mixin(S_TRACE);
 				mixin ("numInt " ~ Calc ~ "= rval.numInt;");
-			} else {
+			} else { mixin(S_TRACE);
 				throwError(prop.msgs.scriptErrorInvalidNumber, tok);
 			}
 		}
@@ -730,7 +730,7 @@ class CWXScript {
 		public alias calc!("/", true) div;
 		public alias calc!("%", true) res;
 		const
-		bool opEquals(ref const(CalcResult) val) {
+		bool opEquals(ref const(CalcResult) val) { mixin(S_TRACE);
 			if (kind !is val.kind) return false;
 			final switch (kind) {
 			case CRKind.STR: return str == val.str;
@@ -739,11 +739,11 @@ class CWXScript {
 			}
 		}
 		const
-		bool opEquals(int val) {
+		bool opEquals(int val) { mixin(S_TRACE);
 			return opEquals(cast(long) val);
 		}
 		const
-		bool opEquals(long val) {
+		bool opEquals(long val) { mixin(S_TRACE);
 			final switch (kind) {
 			case CRKind.STR: return false;
 			case CRKind.INT: return numInt == val;
@@ -751,7 +751,7 @@ class CWXScript {
 			}
 		}
 		const
-		bool opEquals(real val) {
+		bool opEquals(real val) { mixin(S_TRACE);
 			final switch (kind) {
 			case CRKind.STR: return false;
 			case CRKind.INT: return numInt == val;
@@ -759,12 +759,12 @@ class CWXScript {
 			}
 		}
 		const
-		bool opEquals(string val) {
+		bool opEquals(string val) { mixin(S_TRACE);
 			return kind is CRKind.STR && str == val;
 		}
 		override
 		const
-		string toString() {
+		string toString() { mixin(S_TRACE);
 			final switch (kind) {
 			case CRKind.STR: return str;
 			case CRKind.INT: return to!(string)(numInt);
@@ -773,21 +773,21 @@ class CWXScript {
 		}
 	}
 	private const OPE_LEVEL_MAX = 2;
-	private CalcResult calcNum(in Token[] tokens, ref size_t i, in const(Node)[][string] varTable, size_t strWidth) {
+	private CalcResult calcNum(in Token[] tokens, ref size_t i, in const(Node)[][string] varTable, size_t strWidth) { mixin(S_TRACE);
 		assert (i < tokens.length);
 		auto tok = tokens[i];
-		if (tok.kind is Kind.VAR_NAME) {
+		if (tok.kind is Kind.VAR_NAME) { mixin(S_TRACE);
 			i++;
-			try {
+			try { mixin(S_TRACE);
 				auto vt = var(tok, varTable);
 				auto r = new CalcResult;
-				if (vt.kind is Kind.STRING) {
+				if (vt.kind is Kind.STRING) { mixin(S_TRACE);
 					r.kind = CRKind.STR;
 					r.str = stringValue(vt, strWidth);
-				} else if (std.string.indexOf(vt.value, '.') != -1) {
+				} else if (std.string.indexOf(vt.value, '.') != -1) { mixin(S_TRACE);
 					r.kind = CRKind.REAL;
 					r.numReal = to!(real)(vt.value);
-				} else {
+				} else { mixin(S_TRACE);
 					r.kind = CRKind.INT;
 					r.numInt = to!(long)(vt.value);
 				}
@@ -801,37 +801,37 @@ class CWXScript {
 			}
 		}
 		bool min = false;
-		if (tok.kind is Kind.PLU) {
+		if (tok.kind is Kind.PLU) { mixin(S_TRACE);
 			i++;
-			if (tokens[i].kind !is Kind.NUMBER) {
+			if (tokens[i].kind !is Kind.NUMBER) { mixin(S_TRACE);
 				throwError(_prop.msgs.scriptErrorInvalidNumber, tok);
 			}
-		} else if (tok.kind is Kind.MIN) {
+		} else if (tok.kind is Kind.MIN) { mixin(S_TRACE);
 			i++;
-			if (tokens[i].kind !is Kind.NUMBER) {
+			if (tokens[i].kind !is Kind.NUMBER) { mixin(S_TRACE);
 				throwError(_prop.msgs.scriptErrorInvalidNumber, tok);
 			}
 			min = true;
 		}
-		if (tokens.length <= i || !(tokens[i].kind is Kind.NUMBER || tokens[i].kind is Kind.STRING)) {
+		if (tokens.length <= i || !(tokens[i].kind is Kind.NUMBER || tokens[i].kind is Kind.STRING)) { mixin(S_TRACE);
 			throwError(_prop.msgs.scriptErrorInvalidNumber, tok);
 		}
 		auto r = new CalcResult;
-		try {
-			if (tokens[i].kind is Kind.NUMBER) {
-				if (std.string.indexOf(tokens[i].value, '.') != -1) {
+		try { mixin(S_TRACE);
+			if (tokens[i].kind is Kind.NUMBER) { mixin(S_TRACE);
+				if (std.string.indexOf(tokens[i].value, '.') != -1) { mixin(S_TRACE);
 					r.kind = CRKind.REAL;
 					r.numReal = to!(real)(tokens[i].value);
 					if (min) r.numReal = -r.numReal;
-				} else {
+				} else { mixin(S_TRACE);
 					r.kind = CRKind.INT;
 					r.numInt = to!(long)(tokens[i].value);
 					if (min) r.numInt = -r.numInt;
 				}
-			} else if (tokens[i].kind is Kind.STRING) {
+			} else if (tokens[i].kind is Kind.STRING) { mixin(S_TRACE);
 				r.kind = CRKind.STR;
 				r.str = stringValue(tokens[i], strWidth);
-			} else {
+			} else { mixin(S_TRACE);
 				throwError(_prop.msgs.scriptErrorReqNumber, tokens[i]);
 			}
 			i++;
@@ -841,14 +841,14 @@ class CWXScript {
 		}
 		return r;
 	}
-	private CalcResult calcPar(in Token[] tokens, ref size_t i, in const(Node)[][string] varTable, size_t strWidth) {
+	private CalcResult calcPar(in Token[] tokens, ref size_t i, in const(Node)[][string] varTable, size_t strWidth) { mixin(S_TRACE);
 		assert (i < tokens.length);
 		auto tok = tokens[i];
 		switch (tok.kind) {
 		case Kind.O_PAR:
 			i++;
 			auto r = calcImpl(0, tokens, i, varTable, strWidth);
-			if (tokens[i].kind !is Kind.C_PAR) {
+			if (tokens[i].kind !is Kind.C_PAR) { mixin(S_TRACE);
 				throwError(_prop.msgs.scriptErrorCloseParenNotFound, tok);
 			}
 			i++;
@@ -857,22 +857,22 @@ class CWXScript {
 			return calcNum(tokens, i, varTable, strWidth);
 		}
 	}
-	private CalcResult calcImpl(size_t opeLevel, in Token[] tokens, ref size_t i, in const(Node)[][string] varTable, size_t strWidth) {
+	private CalcResult calcImpl(size_t opeLevel, in Token[] tokens, ref size_t i, in const(Node)[][string] varTable, size_t strWidth) { mixin(S_TRACE);
 		assert (i < tokens.length);
 		CalcResult r;
-		if (opeLevel >= OPE_LEVEL_MAX) {
+		if (opeLevel >= OPE_LEVEL_MAX) { mixin(S_TRACE);
 			r = calcPar(tokens, i, varTable, strWidth);
-		} else {
+		} else { mixin(S_TRACE);
 			r = calcImpl(opeLevel + 1, tokens, i, varTable, strWidth);
 		}
-		while (i < tokens.length) {
+		while (i < tokens.length) { mixin(S_TRACE);
 			auto tok = tokens[i];
 			switch (opeLevel) {
 			case 0:
 				switch (tok.kind) {
 				case Kind.CAT:
 					i++;
-					if (tokens.length < i) {
+					if (tokens.length < i) { mixin(S_TRACE);
 						throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 						return r;
 					}
@@ -886,7 +886,7 @@ class CWXScript {
 				switch (tok.kind) {
 				case Kind.PLU:
 					i++;
-					if (tokens.length < i) {
+					if (tokens.length < i) { mixin(S_TRACE);
 						throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 						return r;
 					}
@@ -894,7 +894,7 @@ class CWXScript {
 					break;
 				case Kind.MIN:
 					i++;
-					if (tokens.length < i) {
+					if (tokens.length < i) { mixin(S_TRACE);
 						throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 						return r;
 					}
@@ -908,7 +908,7 @@ class CWXScript {
 				switch (tok.kind) {
 				case Kind.MUL:
 					i++;
-					if (tokens.length <= i) {
+					if (tokens.length <= i) { mixin(S_TRACE);
 						throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 						return r;
 					}
@@ -916,7 +916,7 @@ class CWXScript {
 					break;
 				case Kind.DIV:
 					i++;
-					if (tokens.length <= i) {
+					if (tokens.length <= i) { mixin(S_TRACE);
 						throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 						return r;
 					}
@@ -924,7 +924,7 @@ class CWXScript {
 					break;
 				case Kind.RES:
 					i++;
-					if (tokens.length <= i) {
+					if (tokens.length <= i) { mixin(S_TRACE);
 						throwError(_prop.msgs.scriptErrorInvalidCalc, tok);
 						return r;
 					}
@@ -940,10 +940,10 @@ class CWXScript {
 		return r;
 	}
 	/// tokensを計算式と看做し、計算結果の値を返す。
-	CalcResult calc(in Token[] tokens, ref size_t i, in const(Node)[][string] varTable, size_t strWidth) {
+	CalcResult calc(in Token[] tokens, ref size_t i, in const(Node)[][string] varTable, size_t strWidth) { mixin(S_TRACE);
 		assert (i < tokens.length);
 		return calcImpl(0, tokens, i, varTable, strWidth);
-	} unittest {
+	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		size_t i;
 		Token[] tokens;
@@ -996,7 +996,7 @@ class CWXScript {
 		immutable string[CType] commands;
 	}
 	private static shared immutable Keywords KEYS;
-	shared static this () {
+	shared static this () { mixin(S_TRACE);
 		auto keywords = [
 			cast(string) "start":CType.START,
 			cast(string) "gobattle":CType.START_BATTLE,
@@ -1074,7 +1074,7 @@ class CWXScript {
 			cast(string) "brround":CType.BRANCH_ROUND,
 		];
 		string[CType] commands;
-		foreach (name, type; keywords) {
+		foreach (name, type; keywords) { mixin(S_TRACE);
 			commands[type] = name;
 		}
 		KEYS = Keywords(.assumeUnique(keywords), .assumeUnique(commands));
@@ -1104,7 +1104,7 @@ class CWXScript {
 		const(Node)[] beforeVars; /// ノードの直前に宣言された変数群。
 		/// oと等しいか。
 		const
-		bool opEquals(ref const(Node) o) {
+		bool opEquals(ref const(Node) o) { mixin(S_TRACE);
 			return type == o.type && token == o.token && texts == o.texts
 				&& attr == o.attr && childs == o.childs && calc == o.calc
 				&& beforeVars == o.beforeVars;
@@ -1112,7 +1112,7 @@ class CWXScript {
 		/// コピーを生成する。
 		@property
 		const
-		Node dup() {
+		Node dup() { mixin(S_TRACE);
 			return Node(type, token, texts.dup, attr.dup, childs.dup, nextIsChild, calc.dup, beforeVars.dup);
 		}
 		/// 文字列表現。
@@ -1120,15 +1120,15 @@ class CWXScript {
 		string toString() {return token.toString();}
 		/// ノード群をスクリプトコードにして返す。
 		static string code(string indent, in Node[] array) {return code("    ", "", "", array, "sif");}
-		private static string code(string indent, string bIndentValue, string indentValue, in Node[] array, string ifString) {
-			string calcCode(in Node[] calc) {
+		private static string code(string indent, string bIndentValue, string indentValue, in Node[] array, string ifString) { mixin(S_TRACE);
+			string calcCode(in Node[] calc) { mixin(S_TRACE);
 				char[] calcBuf;
 				enforce(1 == calc.length);
-				foreach (i, tok; calc[0].calc) {
+				foreach (i, tok; calc[0].calc) { mixin(S_TRACE);
 					if ((tok.kind is Kind.C_PAR)
-							|| (i > 0 && calc[0].calc[i - 1].kind is Kind.O_PAR)) {
+							|| (i > 0 && calc[0].calc[i - 1].kind is Kind.O_PAR)) { mixin(S_TRACE);
 						calcBuf ~= tok.value;
-					} else {
+					} else { mixin(S_TRACE);
 						if (i > 0) calcBuf ~= " ";
 						calcBuf ~= tok.value;
 					}
@@ -1138,32 +1138,32 @@ class CWXScript {
 			string buf = "";
 			if (!array.length) return buf;
 
-			foreach (node; array) {
-				if (buf.length) {
+			foreach (node; array) { mixin(S_TRACE);
+				if (buf.length) { mixin(S_TRACE);
 					buf ~= "\n";
 				}
-				if (node.type is NodeType.COMMAND && node.texts.length) {
+				if (node.type is NodeType.COMMAND && node.texts.length) { mixin(S_TRACE);
 					buf ~= .format("%s%s %s\n", ifString == "sif" ? indentValue : bIndentValue, ifString, calcCode(node.texts));
 					ifString = "sif";
 				}
-				if (node.type is NodeType.VAR_SET) {
+				if (node.type is NodeType.VAR_SET) { mixin(S_TRACE);
 					enforce(node.value.length > 0, new Exception("Invalid node", __FILE__, __LINE__));
-					if (node.value[0].token.kind is Kind.STRING) {
+					if (node.value[0].token.kind is Kind.STRING) { mixin(S_TRACE);
 						buf ~= .format("%s%s = %s", indentValue, node.token.value, node.value[0].token.value);
-					} else {
+					} else { mixin(S_TRACE);
 						buf ~= .format("%s%s = %s", node.token.value, indentValue, calcCode(node.value));
 					}
 					continue;
-				} else if (node.type is NodeType.VALUE) {
-					if (node.var.length <= 1) {
+				} else if (node.type is NodeType.VALUE) { mixin(S_TRACE);
+					if (node.var.length <= 1) { mixin(S_TRACE);
 						buf ~= node.token.value;
-					} else {
+					} else { mixin(S_TRACE);
 						buf ~= calcCode([node]);
 					}
 					continue;
-				} else if (node.type is NodeType.VALUES) {
+				} else if (node.type is NodeType.VALUES) { mixin(S_TRACE);
 					string vals = "[";
-					foreach (i, c; node.values) {
+					foreach (i, c; node.values) { mixin(S_TRACE);
 						if (i > 0) vals ~= ", ";
 						vals ~= Node.code(indent, [c]);
 					}
@@ -1171,21 +1171,21 @@ class CWXScript {
 					buf ~= vals;
 					continue;
 				}
-				foreach (i, var; node.beforeVars) {
+				foreach (i, var; node.beforeVars) { mixin(S_TRACE);
 					buf ~= .format("%s%s\n", indentValue, Node.code(indent, [var]));
 				}
 				string attrs = "";
-				if (node.token.kind is Kind.START) {
+				if (node.token.kind is Kind.START) { mixin(S_TRACE);
 					attrs = " " ~ calcCode(node.texts);
-				} else {
-					foreach (i, a; node.attr) {
+				} else { mixin(S_TRACE);
+					foreach (i, a; node.attr) { mixin(S_TRACE);
 						auto ac = Node.code(indent, [a]);
-						if (a.type is NodeType.VALUES && i > 0) {
+						if (a.type is NodeType.VALUES && i > 0) { mixin(S_TRACE);
 							attrs ~= "\n";
 							attrs ~= indentValue;
 							attrs ~= .rightJustify("", node.token.value.length + 1);
 							attrs ~= ac;
-						} else {
+						} else { mixin(S_TRACE);
 							attrs ~= i == 0 ? " " : ", ";
 							attrs ~= ac;
 						}
@@ -1198,26 +1198,26 @@ class CWXScript {
 				bool startBlock = true;
 				bool nextIsStartPoint = true;
 				const(Node)[][] block;
-				foreach (i, c; node.childs) {
-					if (startBlock && nextIsStartPoint) {
+				foreach (i, c; node.childs) { mixin(S_TRACE);
+					if (startBlock && nextIsStartPoint) { mixin(S_TRACE);
 						block ~= new const(Node)[0];
 					}
 					startBlock = false;
-					if (c.type !is NodeType.VAR_SET) {
+					if (c.type !is NodeType.VAR_SET) { mixin(S_TRACE);
 						nextIsStartPoint = !c.nextIsChild;
 						startBlock = true;
 					}
 					block[$ - 1] ~= c;
 				}
-				if (block.length > 1) {
-					foreach (i, b; block) {
+				if (block.length > 1) { mixin(S_TRACE);
+					foreach (i, b; block) { mixin(S_TRACE);
 						string f = i == 0 ? "if" : "elif";
 						buf ~= "\n";
 						buf ~= Node.code(indent, indentValue, indentValue ~ indent, b, f);
 					}
 					buf ~= "\n";
 					buf ~= indentValue ~ "fi";
-				} else if (block.length == 1) {
+				} else if (block.length == 1) { mixin(S_TRACE);
 					buf ~= "\n";
 					buf ~= Node.code(indent, indentValue, node.token.kind is Kind.START ? indentValue ~ indent : indentValue, block[0], "sif");
 				}
@@ -1227,7 +1227,7 @@ class CWXScript {
 	}
 
 	/// 属性値を文字列にして返す。
-	private string attrValue(in Node node, in const(Node)[][string] varTable, size_t strWidth) {
+	private string attrValue(in Node node, in const(Node)[][string] varTable, size_t strWidth) { mixin(S_TRACE);
 		switch (node.token.kind) {
 		case Kind.SYMBOL: return std.string.toLower(node.token.value);
 		case Kind.VAR_NAME:
@@ -1235,9 +1235,9 @@ class CWXScript {
 			auto nodes = var(node, varTable);
 			if (!nodes.length) return "";
 			auto tok = nodes[0].token;
-			if (tok.kind is Kind.STRING) {
+			if (tok.kind is Kind.STRING) { mixin(S_TRACE);
 				return stringValue(tok, strWidth);
-			} else if (tok.kind is Kind.SYMBOL) {
+			} else if (tok.kind is Kind.SYMBOL) { mixin(S_TRACE);
 				return std.string.toLower(tok.value);
 			}
 			return attrValue(nodes[0], varTable, strWidth);
@@ -1258,20 +1258,20 @@ class CWXScript {
 		assert (0);
 	}
 	/// 変数値を返す。
-	private const(Node)[] varValue(in Node node, const(Node)[] values, in const(Node)[][string] varTable, size_t strWidth) {
-		if (!values.length) {
+	private const(Node)[] varValue(in Node node, const(Node)[] values, in const(Node)[][string] varTable, size_t strWidth) { mixin(S_TRACE);
+		if (!values.length) { mixin(S_TRACE);
 			throwError(_prop.msgs.scriptErrorInvalidVar, node.token);
 			return values;
 		}
 		const(Node)[] r;
-		foreach (v; values) {
+		foreach (v; values) { mixin(S_TRACE);
 			const(Node)[] vs;
-			if (v.token.kind is Kind.VAR_NAME) {
+			if (v.token.kind is Kind.VAR_NAME) { mixin(S_TRACE);
 				vs ~= var(v, varTable);
-			} else {
+			} else { mixin(S_TRACE);
 				vs = [v];
 			}
-			foreach (v2; vs) {
+			foreach (v2; vs) { mixin(S_TRACE);
 				switch (v2.token.kind) {
 				case Kind.STRING, Kind.NUMBER, Kind.PLU, Kind.MIN, Kind.O_PAR:
 					// 値。計算もここで行う
@@ -1300,19 +1300,19 @@ class CWXScript {
 		}
 		return r;
 	}
-	private const(Node)[] var(in Node[] nodes, in const(Node)[][string] varTable) {
+	private const(Node)[] var(in Node[] nodes, in const(Node)[][string] varTable) { mixin(S_TRACE);
 		const(Node)[] r;
-		foreach (node; nodes) {
+		foreach (node; nodes) { mixin(S_TRACE);
 			r ~= var(node, varTable);
 		}
 		return r;
 	}
-	private const(Node)[] var(in Node node, in const(Node)[][string] varTable) {
-		if (node.token.kind is Kind.VAR_NAME) {
+	private const(Node)[] var(in Node node, in const(Node)[][string] varTable) { mixin(S_TRACE);
+		if (node.token.kind is Kind.VAR_NAME) { mixin(S_TRACE);
 			auto ptr = std.string.toLower(node.token.value) in varTable;
-			if (ptr) {
+			if (ptr) { mixin(S_TRACE);
 				const(Node)[] r;
-				foreach (v; *ptr) {
+				foreach (v; *ptr) { mixin(S_TRACE);
 					r ~= var(v, varTable);
 				}
 				return r;
@@ -1322,10 +1322,10 @@ class CWXScript {
 		}
 		return [node];
 	}
-	private Token var(in Token tok, in const(Node)[][string] varTable) {
-		if (tok.kind is Kind.VAR_NAME) {
+	private Token var(in Token tok, in const(Node)[][string] varTable) { mixin(S_TRACE);
+		if (tok.kind is Kind.VAR_NAME) { mixin(S_TRACE);
 			auto ptr = std.string.toLower(tok.value) in varTable;
-			if (ptr && ptr.length) {
+			if (ptr && ptr.length) { mixin(S_TRACE);
 				return var((*ptr)[0].token, varTable);
 			}
 			throwError(_prop.msgs.scriptErrorUndefinedVar, tok);
@@ -1334,23 +1334,23 @@ class CWXScript {
 	}
 
 	/// tokensを解釈し、Nodeのツリーに再編成する。
-	Node[] analyzeSyntax(in Token[] tokens) {
+	Node[] analyzeSyntax(in Token[] tokens) { mixin(S_TRACE);
 		Node[] r;
 		size_t i = 0;
 		Node[] vars;
 		const(Token)[] tokens2;
-		foreach (ref tok; tokens) {
-			if (tok.kind !is Kind.COMMENT) {
+		foreach (ref tok; tokens) { mixin(S_TRACE);
+			if (tok.kind !is Kind.COMMENT) { mixin(S_TRACE);
 				tokens2 ~= tok;
 			}
 		}
-		while (i < tokens2.length) {
+		while (i < tokens2.length) { mixin(S_TRACE);
 			vars ~= eatVarSet(tokens2, i, KEYS);
-			if (tokens2.length <= i) {
+			if (tokens2.length <= i) { mixin(S_TRACE);
 				break;
 			}
 			Token tok = tokens2[i];
-			if (tok.kind !is Kind.START) {
+			if (tok.kind !is Kind.START) { mixin(S_TRACE);
 				r ~= analyzeSyntaxBranch(tokens2, i, KEYS, vars);
 				continue;
 			}
@@ -1359,13 +1359,13 @@ class CWXScript {
 			node.type = NodeType.START;
 			node.token = tok;
 			node.texts = analyzeSyntaxAttr(tokens2, i, KEYS);
-			if (!node.texts.length) {
+			if (!node.texts.length) { mixin(S_TRACE);
 				throwError(_prop.msgs.scriptErrorNoStartText, tok);
 			}
 			node.beforeVars = vars;
 			vars = [];
 			node.nextIsChild = false;
-			c: while (i < tokens2.length) {
+			c: while (i < tokens2.length) { mixin(S_TRACE);
 				vars ~= eatVarSet(tokens2, i, KEYS);
 				string cText = "";
 				switch (tokens2[i].kind) {
@@ -1381,7 +1381,7 @@ class CWXScript {
 			r ~= node;
 		}
 		return r;
-	} unittest {
+	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		auto s = new CWXScript(new CProps("", null), null);
 		string statement
@@ -1489,26 +1489,26 @@ fi`;
 		assert (!contents2[1].nextIsChild);
 	}
 
-	private Node[] analyzeSyntaxBranch(in Token[] tokens, ref size_t i, in Keywords keys, ref Node[] vars) {
+	private Node[] analyzeSyntaxBranch(in Token[] tokens, ref size_t i, in Keywords keys, ref Node[] vars) { mixin(S_TRACE);
 		Node[] r;
 		auto tok = tokens[i];
 		switch (tok.kind) {
 		case Kind.START: return r;
 		case Kind.IF, Kind.VAR_NAME:
-			while (i < tokens.length) {
+			while (i < tokens.length) { mixin(S_TRACE);
 				Node[] texts;
-				if (tokens[i].kind is Kind.IF || tokens[i].kind is Kind.ELIF) {
+				if (tokens[i].kind is Kind.IF || tokens[i].kind is Kind.ELIF) { mixin(S_TRACE);
 					i++;
 					texts = analyzeSyntaxAttr(tokens, i, keys);
-					if (!texts.length) {
+					if (!texts.length) { mixin(S_TRACE);
 						throwError(_prop.msgs.scriptErrorNoIfText, tok);
 					}
-					if (tokens.length <= i) {
+					if (tokens.length <= i) { mixin(S_TRACE);
 						throwError(_prop.msgs.scriptErrorNoIfContents, tok);
 					}
 				}
 				auto node = analyzeSyntaxStatement(tokens, i, keys, vars);
-				if (node.length) {
+				if (node.length) { mixin(S_TRACE);
 					node[0].texts = texts;
 				}
 				r ~= node;
@@ -1536,32 +1536,32 @@ fi`;
 		}
 		return r;
 	}
-	private Node[] eatVarSet(in Token[] tokens, ref size_t i, in Keywords keys) {
+	private Node[] eatVarSet(in Token[] tokens, ref size_t i, in Keywords keys) { mixin(S_TRACE);
 		Node[] r;
-		while (i < tokens.length && tokens[i].kind is Kind.VAR_NAME) {
+		while (i < tokens.length && tokens[i].kind is Kind.VAR_NAME) { mixin(S_TRACE);
 			r ~= analyzeSyntaxVar(tokens, i, keys);
 		}
 		return r;
 	}
-	private Node[] analyzeSyntaxStatement(in Token[] tokens, ref size_t i, in Keywords keys, ref Node[] vars) {
+	private Node[] analyzeSyntaxStatement(in Token[] tokens, ref size_t i, in Keywords keys, ref Node[] vars) { mixin(S_TRACE);
 		Node[] r;
-		while (true) {
+		while (true) { mixin(S_TRACE);
 			assert (i < tokens.length);
 			vars ~= eatVarSet(tokens, i, keys);
 			Token tok = tokens[i];
 			Node[] sifTexts;
-			if (tok.kind is Kind.SIF) {
+			if (tok.kind is Kind.SIF) { mixin(S_TRACE);
 				i++;
-				if (tokens.length <= i) {
+				if (tokens.length <= i) { mixin(S_TRACE);
 					throwError(_prop.msgs.scriptErrorNoSifText, tok);
 					return r;
 				}
 				sifTexts = analyzeSyntaxAttr(tokens, i, keys);
-				if (tokens.length <= i) {
+				if (tokens.length <= i) { mixin(S_TRACE);
 					throwError(_prop.msgs.scriptErrorInvalidSif, tok);
 				}
 				tok = tokens[i];
-			} else if (tok.kind !is Kind.SYMBOL) {
+			} else if (tok.kind !is Kind.SYMBOL) { mixin(S_TRACE);
 				throwError(_prop.msgs.scriptErrorInvalidStatement, tok);
 			}
 			Node node;
@@ -1570,7 +1570,7 @@ fi`;
 			node.texts = sifTexts;
 			node.nextIsChild = false;
 			auto symbol = std.string.toLower(tok.value);
-			if (!(symbol in keys.keywords)) {
+			if (!(symbol in keys.keywords)) { mixin(S_TRACE);
 				throwError(_prop.msgs.scriptErrorInvalidKeyword, tok);
 			}
 			node.beforeVars = vars;
@@ -1597,11 +1597,11 @@ fi`;
 		}
 		return r;
 	}
-	private Node[] analyzeSyntaxAttr(in Token[] tokens, ref size_t i, in Keywords keys) {
+	private Node[] analyzeSyntaxAttr(in Token[] tokens, ref size_t i, in Keywords keys) { mixin(S_TRACE);
 		Node[] r;
-		while (i < tokens.length) {
+		while (i < tokens.length) { mixin(S_TRACE);
 			Token tok = tokens[i];
-			if (r.length > 0 && tok.kind is Kind.COMMA) {
+			if (r.length > 0 && tok.kind is Kind.COMMA) { mixin(S_TRACE);
 				i++;
 				tok = tokens[i];
 			}
@@ -1621,7 +1621,7 @@ fi`;
 				r ~= node;
 				break;
 			case Kind.VAR_NAME:
-				if (i + 1 < tokens.length && tokens[i + 1].kind is Kind.EQ) {
+				if (i + 1 < tokens.length && tokens[i + 1].kind is Kind.EQ) { mixin(S_TRACE);
 					return r;
 				}
 				goto case Kind.SYMBOL;
@@ -1639,7 +1639,7 @@ fi`;
 			}
 		}
 		return r;
-	} unittest {
+	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		auto s = new CWXScript(new CProps("", null), null);
 		Token[] tokens;
@@ -1664,23 +1664,23 @@ fi`;
 		assert (s.analyzeSyntaxAttr(tokens, i, KEYS) == arr);
 		assert (tokens[i].value == "Start");
 	}
-	private Node analyzeSyntaxBrackets(in Token[] tokens, ref size_t i, in Keywords keys) {
+	private Node analyzeSyntaxBrackets(in Token[] tokens, ref size_t i, in Keywords keys) { mixin(S_TRACE);
 		assert (i < tokens.length);
 		auto o = tokens[i];
-		if (o.kind !is Kind.O_BRA) {
+		if (o.kind !is Kind.O_BRA) { mixin(S_TRACE);
 			throwError(_prop.msgs.scriptErrorInvalidValuesOpen, o);
 		}
 		Node r;
 		r.type = NodeType.VALUES;
 		r.token = o;
 		i++;
-		while (i < tokens.length) {
+		while (i < tokens.length) { mixin(S_TRACE);
 			Token tok = tokens[i];
-			if (tok.kind is Kind.C_BRA) {
+			if (tok.kind is Kind.C_BRA) { mixin(S_TRACE);
 				return r;
 			}
-			if (r.values.length > 0) {
-				if (tok.kind is Kind.COMMA) {
+			if (r.values.length > 0) { mixin(S_TRACE);
+				if (tok.kind is Kind.COMMA) { mixin(S_TRACE);
 					i++;
 				}
 				tok = tokens[i];
@@ -1703,31 +1703,31 @@ fi`;
 		throwError(_prop.msgs.scriptErrorCloseBracketNotFound, o);
 		return r;
 	}
-	private Node analyzeSyntaxVar(in Token[] tokens, ref size_t i, in Keywords keys) {
+	private Node analyzeSyntaxVar(in Token[] tokens, ref size_t i, in Keywords keys) { mixin(S_TRACE);
 		assert (i < tokens.length);
 		auto tok = tokens[i];
-		if (tok.kind !is Kind.VAR_NAME) {
+		if (tok.kind !is Kind.VAR_NAME) { mixin(S_TRACE);
 			throwError(_prop.msgs.scriptErrorInvalidVar, tok);
 		}
 		i++;
-		if (tokens.length <= i || tokens[i].kind !is Kind.EQ) {
+		if (tokens.length <= i || tokens[i].kind !is Kind.EQ) { mixin(S_TRACE);
 			throwError(_prop.msgs.scriptErrorNoVarSet, tokens[i]);
 		}
 		Node node;
 		node.type = NodeType.VAR_SET;
 		node.token = tok;
 		i++;
-		if (tokens.length <= i) {
+		if (tokens.length <= i) { mixin(S_TRACE);
 			throwError(_prop.msgs.scriptErrorNoVarVal, tok);
 		}
 		node.value = analyzeSyntaxAttr(tokens, i, keys);
 		return node;
 	}
-	private Token[] analyzeSyntaxValue(in Token[] tokens, ref size_t i, in Keywords keys) {
+	private Token[] analyzeSyntaxValue(in Token[] tokens, ref size_t i, in Keywords keys) { mixin(S_TRACE);
 		Token[] r;
 		bool calcin = false;
 		bool num = true;
-		while (i < tokens.length) {
+		while (i < tokens.length) { mixin(S_TRACE);
 			auto tok = tokens[i];
 			switch (tok.kind) {
 			case Kind.VAR_NAME:
@@ -1741,7 +1741,7 @@ fi`;
 				num = false;
 				break;
 			case Kind.PLU, Kind.MIN:
-				if (num) {
+				if (num) { mixin(S_TRACE);
 					r ~= tok;
 					i++;
 					r ~= tokens[i];
@@ -1749,7 +1749,7 @@ fi`;
 					calcin = true;
 					num = false;
 					break;
-				} else {
+				} else { mixin(S_TRACE);
 					goto case Kind.MUL;
 				}
 			case Kind.O_PAR:
@@ -1773,7 +1773,7 @@ fi`;
 				if (!r.length) throwError(_prop.msgs.scriptErrorInvalidValue, tok);
 				return r;
 			case Kind.SYMBOL:
-				if (!calcin) {
+				if (!calcin) { mixin(S_TRACE);
 					r ~= tok;
 					i++;
 				}
@@ -1789,15 +1789,15 @@ fi`;
 		return r;
 	}
 
-	private T parseAttr(T, bool Within = false)(in CompileOption opt, in Node[] attr, ref size_t i, lazy T defValue, in const(Node)[][string] varTable, size_t msgWidth) {
+	private T parseAttr(T, bool Within = false)(in CompileOption opt, in Node[] attr, ref size_t i, lazy T defValue, in const(Node)[][string] varTable, size_t msgWidth) { mixin(S_TRACE);
 		if (attr.length <= i) return defValue;
 		static if (is(T == string)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
-			if (attr[i].token.kind is Kind.SYMBOL && value == "stop") {
+			if (attr[i].token.kind is Kind.SYMBOL && value == "stop") { mixin(S_TRACE);
 				/// BGM停止用
 				i++;
 				return "";
-			} else if (attr[i].token.kind is Kind.SYMBOL && value == "random") {
+			} else if (attr[i].token.kind is Kind.SYMBOL && value == "random") { mixin(S_TRACE);
 				/// ステップ・フラグ代入のランダム値
 				i++;
 				return _prop.sys.randomValue;
@@ -1806,7 +1806,7 @@ fi`;
 			return value;
 		} else static if (is(T == CastRange[])) {
 			T r;
-			crw: while (i < attr.length) {
+			crw: while (i < attr.length) { mixin(S_TRACE);
 				auto value = attrValue(attr[i], varTable, msgWidth);
 				switch (value) {
 				case "field": r ~= [CastRange.PARTY, CastRange.ENEMY, CastRange.NPC]; break;
@@ -1821,13 +1821,13 @@ fi`;
 			return r;
 		} else static if (isVArray!(T)) {
 			T r;
-			while (i < attr.length) {
+			while (i < attr.length) { mixin(S_TRACE);
 				auto values = var(attr[i], varTable);
 				size_t i2 = 0;
 				if (values.length <= i2 || values[0].type !is NodeType.VALUES) break;
-				while (i2 < values.length) {
+				while (i2 < values.length) { mixin(S_TRACE);
 					if (!values.length) break;
-					if (values[0].token.kind is Kind.COMMA) {
+					if (values[0].token.kind is Kind.COMMA) { mixin(S_TRACE);
 						// 空の配列
 						break;
 					}
@@ -2102,7 +2102,7 @@ fi`;
 			default: throwError(_prop.msgs.scriptErrorInvalidGradientDir, attr[i].token);
 			}
 		} else static if (is(T == CRGB)) {
-			if (attr[i].type is NodeType.VALUES) {
+			if (attr[i].type is NodeType.VALUES) { mixin(S_TRACE);
 				auto vals = attr[i].values;
 				size_t j = 0;
 				int r = parseAttr!(int)(opt, vals, j, defValue.r, varTable, msgWidth);
@@ -2111,12 +2111,12 @@ fi`;
 				int a = parseAttr!(int)(opt, vals, j, defValue.a, varTable, msgWidth);
 				i++;
 				return CRGB(r, g, b, a);
-			} else {
+			} else { mixin(S_TRACE);
 				string value = parseAttr!(string)(opt, attr, i, "#000000", varTable, msgWidth);
 				value = value.toLower();
-				if (value.startsWith("#") && (7 == value.length || 9 == value.length)) {
-					foreach (c; value[1..$]) {
-						if (!(('0' <= c && c <= '9') || ('a' <= c && c <= 'f'))) {
+				if (value.startsWith("#") && (7 == value.length || 9 == value.length)) { mixin(S_TRACE);
+					foreach (c; value[1..$]) { mixin(S_TRACE);
+						if (!(('0' <= c && c <= '9') || ('a' <= c && c <= 'f'))) { mixin(S_TRACE);
 							throwError(_prop.msgs.scriptErrorInvalidColor, attr[i].token);
 							return defValue;
 						}
@@ -2128,24 +2128,24 @@ fi`;
 					val = value[5..7];
 					int b = parse!int(val, 16);
 					int a = 255;
-					if (9 == value.length) {
+					if (9 == value.length) { mixin(S_TRACE);
 						val = value[7..9];
 						a = parse!int(val, 16);
 					}
 					return CRGB(r, g, b, a);
-				} else {
+				} else { mixin(S_TRACE);
 					throwError(_prop.msgs.scriptErrorInvalidColor, attr[i].token);
 					return defValue;
 				}
 			}
 		} else static if (is(T == BgImage)) {
-			if (attr[i].type !is NodeType.VALUES) {
+			if (attr[i].type !is NodeType.VALUES) { mixin(S_TRACE);
 				throwError(_prop.msgs.scriptErrorInvalidBgImage, attr[i].token);
 				return defValue;
 			}
 			auto vals = attr[i].values.dup;
 			string type = "image";
-			if (vals && vals[0].token.kind is Kind.SYMBOL) {
+			if (vals && vals[0].token.kind is Kind.SYMBOL) { mixin(S_TRACE);
 				type = attrValue(vals[0], varTable, msgWidth);
 				vals = vals[1..$];
 			}
@@ -2170,7 +2170,7 @@ fi`;
 				CRGB color = parseAttr!(CRGB)(opt, vals, j, CRGB(0, 0, 0, 255), varTable, msgWidth);
 				bool bold = false, italic = false, underline = false, strike = false, vertical = false;
 				BorderingType borderingType = BorderingType.None;
-				bgtw: while (j < vals.length) {
+				bgtw: while (j < vals.length) { mixin(S_TRACE);
 					if (vals[j].token.kind !is Kind.SYMBOL) break;
 					switch (attrValue(vals[j], varTable, msgWidth)) {
 					case "bold": j++; bold = true; break;
@@ -2208,7 +2208,7 @@ fi`;
 				CRGB color1 = parseAttr!(CRGB)(opt, vals, j, CRGB(255, 255, 255, 255), varTable, msgWidth);
 				GradientDir gradientDir = GradientDir.None;
 				CRGB color2 = CRGB(0, 0, 0, 255);
-				if (j < vals.length && vals[j].token.kind is Kind.SYMBOL) {
+				if (j < vals.length && vals[j].token.kind is Kind.SYMBOL) { mixin(S_TRACE);
 					gradientDir = parseAttr!(GradientDir)(opt, vals, j, gradientDir, varTable, msgWidth);
 					color2 = parseAttr!(CRGB)(opt, vals, j, color2, varTable, msgWidth);
 				}
@@ -2227,7 +2227,7 @@ fi`;
 			i++;
 			return r;
 		} else static if (is(T == Motion)) {
-			if (attr[i].type !is NodeType.VALUES) {
+			if (attr[i].type !is NodeType.VALUES) { mixin(S_TRACE);
 				throwError(_prop.msgs.scriptErrorInvalidMotion, attr[i].token);
 			}
 			size_t j = 0;
@@ -2235,25 +2235,25 @@ fi`;
 			MType type = parseAttr!(MType)(opt, vals, j, MType.HEAL, varTable, msgWidth);
 			auto r = new Motion(type, Element.ALL);
 			auto detail = r.detail;
-			if (detail.use(MArg.VALUE_TYPE)) {
+			if (detail.use(MArg.VALUE_TYPE)) { mixin(S_TRACE);
 				r.damageType = parseAttr!(DamageType)(opt, vals, j, r.damageType, varTable, msgWidth);
 			}
-			if (detail.use(MArg.U_VALUE)) {
+			if (detail.use(MArg.U_VALUE)) { mixin(S_TRACE);
 				r.uValue = parseAttr!(int)(opt, vals, j, cast(int) r.uValue, varTable, msgWidth);
 			}
-			if (detail.use(MArg.A_VALUE)) {
+			if (detail.use(MArg.A_VALUE)) { mixin(S_TRACE);
 				r.aValue = parseAttr!(int)(opt, vals, j, r.aValue, varTable, msgWidth);
 			}
-			if (detail.use(MArg.ROUND)) {
+			if (detail.use(MArg.ROUND)) { mixin(S_TRACE);
 				r.round = parseAttr!(int)(opt, vals, j, r.round, varTable, msgWidth);
 			}
-			if (detail.use(MArg.BEAST)) {
+			if (detail.use(MArg.BEAST)) { mixin(S_TRACE);
 				ulong beast = parseAttr!(ulong)(opt, vals, j, 0UL, varTable, msgWidth);
-				if (beast != 0 && _summ) {
-					if (opt.linkId) {
+				if (beast != 0 && _summ) { mixin(S_TRACE);
+					if (opt.linkId) { mixin(S_TRACE);
 						r.beast = new BeastCard(1UL, "", "", "");
 						r.beast.linkId = beast;
-					} else {
+					} else { mixin(S_TRACE);
 						r.beast = _summ.beast(beast);
 					}
 				}
@@ -2262,30 +2262,30 @@ fi`;
 			i++;
 			return r;
 		} else static if (is(T == SDialog)) {
-			if (attr[i].type !is NodeType.VALUES) {
+			if (attr[i].type !is NodeType.VALUES) { mixin(S_TRACE);
 				throwError(_prop.msgs.scriptErrorInvalidDialog, attr[i].token);
 			}
 			size_t j = 0;
 			auto vals = attr[i].values;
 			auto r = new SDialog;
-			if (vals.length > 2) {
+			if (vals.length > 2) { mixin(S_TRACE);
 				// 複数の条件クーポン
 				string[] cs;
-				foreach (v; vals[0 .. $ - 1]) {
+				foreach (v; vals[0 .. $ - 1]) { mixin(S_TRACE);
 					cs ~= parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
 				}
 				r.rCoupons = cs;
-			} else if (vals.length > 1) {
+			} else if (vals.length > 1) { mixin(S_TRACE);
 				// 一つの条件クーポン
-				if (vals[j].type is NodeType.VALUES) {
+				if (vals[j].type is NodeType.VALUES) { mixin(S_TRACE);
 					// 互換性のため、複合パラメータを解釈する
 					string[] cs;
-					foreach (v; vals[j].values) {
+					foreach (v; vals[j].values) { mixin(S_TRACE);
 						cs ~= attrValue(v, varTable, 0);
 					}
 					r.rCoupons = cs;
 					j++;
-				} else {
+				} else { mixin(S_TRACE);
 					// ';'で分割されるパターン
 					r.rCoupons = std.string.split(parseAttr!(string)(opt, vals, j, "", varTable, msgWidth), ";");
 				}
@@ -2294,7 +2294,7 @@ fi`;
 			i++;
 			return r;
 		} else static if (is(T == Coupon)) {
-			if (attr[i].type !is NodeType.VALUES) {
+			if (attr[i].type !is NodeType.VALUES) { mixin(S_TRACE);
 				string name = attrValue(attr[i], varTable, msgWidth);
 				i++;
 				return new Coupon(name, 1);
@@ -2308,10 +2308,10 @@ fi`;
 			return r;
 		} else static if (is(T == int)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
-			if (attr[i].token.kind is Kind.SYMBOL && value == "all") {
+			if (attr[i].token.kind is Kind.SYMBOL && value == "all") { mixin(S_TRACE);
 				return 0; // カード削除用
 			}
-			try {
+			try { mixin(S_TRACE);
 				auto r = to!(int)(value);
 				i++;
 				return r;
@@ -2320,7 +2320,7 @@ fi`;
 			}
 		} else static if (is(T == ulong)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
-			try {
+			try { mixin(S_TRACE);
 				auto r = to!(ulong)(value);
 				i++;
 				return r;
@@ -2330,11 +2330,11 @@ fi`;
 		} else static assert (0, T.stringof);
 		return T.init;
 	}
-	private void parseAttrTalker(in Node[] attr, ref size_t i, ref Talker t, ref string cardPath, in const(Node)[][string] varTable) {
+	private void parseAttrTalker(in Node[] attr, ref size_t i, ref Talker t, ref string cardPath, in const(Node)[][string] varTable) { mixin(S_TRACE);
 		if (attr.length <= i) return;
 		auto nodes = var(attr[i], varTable);
 		auto value = attrValue(attr[i], varTable, 0);
-		if (nodes.length && nodes[0].token.kind is Kind.STRING) {
+		if (nodes.length && nodes[0].token.kind is Kind.STRING) { mixin(S_TRACE);
 			t = Talker.IMAGE;
 			cardPath = value;
 			i++;
@@ -2343,7 +2343,7 @@ fi`;
 		cardPath = "";
 		t = parseTalker!(false)(attr, i, varTable);
 	}
-	private Talker parseTalker(bool Within)(in Node[] attr, ref size_t i, in const(Node)[][string] varTable) {
+	private Talker parseTalker(bool Within)(in Node[] attr, ref size_t i, in const(Node)[][string] varTable) { mixin(S_TRACE);
 		auto node = attr[i];
 		auto value = attrValue(node, varTable, 0);
 		switch (value) {
@@ -2365,15 +2365,15 @@ fi`;
 		}
 		return Talker.NARRATION;
 	}
-	private string parseNextValue(in Node node, in Keywords keys, in const(Node)[][string] varTable) {
+	private string parseNextValue(in Node node, in Keywords keys, in const(Node)[][string] varTable) { mixin(S_TRACE);
 		if (!node.texts.length) return "";
 		auto nodes = varValue(node, node.texts, varTable, 0);
 		if (!nodes.length) return "";
 		auto value = nodes[0].token;
 		string r;
-		if (value.kind is Kind.SYMBOL) {
+		if (value.kind is Kind.SYMBOL) { mixin(S_TRACE);
 			auto valStr = std.string.toLower(value.value);
-			if (valStr in keys.keywords) {
+			if (valStr in keys.keywords) { mixin(S_TRACE);
 				throwError(_prop.msgs.scriptErrorUndefinedSymbol, node.token);
 			}
 			switch (valStr) {
@@ -2389,7 +2389,7 @@ fi`;
 			default:
 				throwError(_prop.msgs.scriptErrorUndefinedSymbol, node.token);
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			switch (value.kind) {
 			case Kind.STRING: r = stringValue(value, 0); break;
 			case Kind.NUMBER: r = to!(string)(value.value); break;
@@ -2400,24 +2400,24 @@ fi`;
 	}
 
 	/// Nodeツリーをコンテント群にして返す。
-	Content[] analyzeSemantics(in Node[] nodes, in CompileOption opt) {
+	Content[] analyzeSemantics(in Node[] nodes, in CompileOption opt) { mixin(S_TRACE);
 		const(Node)[][string] varTable;
 		size_t autoWrapCount = 0;
 		string[] startNames;
 		Content[] dummy;
 		return analyzeSemanticsImpl(opt, nodes, KEYS, varTable, 0, autoWrapCount, startNames, dummy, true);
 	}
-	private Content[] analyzeSemanticsImpl(in CompileOption opt, in Node[] nodes, in Keywords keys, ref const(Node)[][string] varTable, size_t stack, ref size_t autoWrapCount, ref string[] startNames, ref Content[] topGroup, bool isTop) {
+	private Content[] analyzeSemanticsImpl(in CompileOption opt, in Node[] nodes, in Keywords keys, ref const(Node)[][string] varTable, size_t stack, ref size_t autoWrapCount, ref string[] startNames, ref Content[] topGroup, bool isTop) { mixin(S_TRACE);
 		Content[] r;
 		auto commentReg = .regex(`^[\s|\*|\/]*(.*)[\s|\*|\/]*$`);
-		string parseComment(string comment) {
+		string parseComment(string comment) { mixin(S_TRACE);
 			string r = "";
-			foreach (i, line; splitLines!string(comment)) {
+			foreach (i, line; splitLines!string(comment)) { mixin(S_TRACE);
 				auto m = .match(line, commentReg);
-				if (!m.empty) {
+				if (!m.empty) { mixin(S_TRACE);
 					line = m.captures[1];
 				}
-				if (r.length || line.length) {
+				if (r.length || line.length) { mixin(S_TRACE);
 					r ~= line;
 					r ~= "\n";
 				}
@@ -2426,42 +2426,42 @@ fi`;
 		}
 		Content lastParent = null;
 		bool nextIsChild = false;
-		foreach (node; nodes) {
-			foreach (var; node.beforeVars) {
-				if (var.type !is NodeType.VAR_SET) {
+		foreach (node; nodes) { mixin(S_TRACE);
+			foreach (var; node.beforeVars) { mixin(S_TRACE);
+				if (var.type !is NodeType.VAR_SET) { mixin(S_TRACE);
 					throwError(_prop.msgs.scriptErrorInvalidVar, var.token);
 				}
-				if (var.value.length) {
+				if (var.value.length) { mixin(S_TRACE);
 					varTable[std.string.toLower(var.token.value)] = this.var(var.value, varTable);
-				} else {
+				} else { mixin(S_TRACE);
 					throwError(_prop.msgs.scriptErrorNoVarVal, var.token);
 				}
 			}
-			if (node.type is NodeType.VAR_SET) {
-				if (node.value.length) {
+			if (node.type is NodeType.VAR_SET) { mixin(S_TRACE);
+				if (node.value.length) { mixin(S_TRACE);
 					varTable[std.string.toLower(node.token.value)] = var(node.value, varTable);
-				} else {
+				} else { mixin(S_TRACE);
 					throwError(_prop.msgs.scriptErrorNoVarVal, node.token);
 				}
 				continue;
 			}
-			if (node.type !is NodeType.COMMAND && node.type !is NodeType.START) {
+			if (node.type !is NodeType.COMMAND && node.type !is NodeType.START) { mixin(S_TRACE);
 				throwError(_prop.msgs.scriptErrorInvalidCommand, node.token);
 			}
-			if (node.type is NodeType.START) {
+			if (node.type is NodeType.START) { mixin(S_TRACE);
 				stack = 0;
 			}
 			string val = std.string.toLower(node.token.value);
 			auto cmdPtr = val in KEYS.keywords;
-			if (!cmdPtr) {
+			if (!cmdPtr) { mixin(S_TRACE);
 				throwError(_prop.msgs.scriptErrorInvalidCommand, node.token);
 			}
 			string comment = node.token.comment;
 			auto c = new Content(*cmdPtr, parseNextValue(node, keys, varTable));
-			if (node.type is NodeType.START) {
-				c.setName(_prop, createNewName(c.name, (string name) {
-					foreach (sn; startNames) {
-						if (0 == icmp(sn, name)) {
+			if (node.type is NodeType.START) { mixin(S_TRACE);
+				c.setName(_prop, createNewName(c.name, (string name) { mixin(S_TRACE);
+					foreach (sn; startNames) { mixin(S_TRACE);
+						if (0 == icmp(sn, name)) { mixin(S_TRACE);
 							return false;
 						}
 					}
@@ -2472,207 +2472,207 @@ fi`;
 			c.comment = parseComment(comment);
 			size_t i = 0;
 			auto detail = c.detail;
-			if (detail.use(CArg.TALKER_C)) {
+			if (detail.use(CArg.TALKER_C)) { mixin(S_TRACE);
 				Talker t = c.talkerC;
 				string path = encodePath(c.cardPath);
 				parseAttrTalker(node.attr, i, t, path, varTable);
 				c.talkerC = t;
 				c.cardPath = decodePath(path);
 			}
-			if (detail.use(CArg.TEXT)) {
+			if (detail.use(CArg.TEXT)) { mixin(S_TRACE);
 				c.text = parseAttr!(string)(opt, node.attr, i, c.text, varTable,
 					c.talkerC is Talker.NARRATION ? _prop.looks.messageLen : _prop.looks.messageImageLen);
 			}
-			if (detail.use(CArg.TALKER_NC)) {
+			if (detail.use(CArg.TALKER_NC)) { mixin(S_TRACE);
 				c.talkerNC = parseAttr!(Talker, true)(opt, node.attr, i, c.talkerNC, varTable, 0);
 			}
-			if (detail.use(CArg.DIALOGS)) {
+			if (detail.use(CArg.DIALOGS)) { mixin(S_TRACE);
 				c.dialogs = parseAttr!(SDialog[])(opt, node.attr, i, c.dialogs, varTable, _prop.looks.messageImageLen);
-				if (!c.dialogs.length) {
+				if (!c.dialogs.length) { mixin(S_TRACE);
 					c.dialogs = [new SDialog];
 				}
 			}
-			if (detail.use(CArg.BG_IMAGES)) {
+			if (detail.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
 				c.backs = parseAttr!(BgImage[])(opt, node.attr, i, c.backs, varTable, 0);
 			}
-			if (detail.use(CArg.TARGET_NS)) {
+			if (detail.use(CArg.TARGET_NS)) { mixin(S_TRACE);
 				c.targetNS = parseAttr!(Target, true)(opt, node.attr, i, c.targetNS, varTable, 0);
 			}
-			if (detail.use(CArg.TARGET_S)) {
+			if (detail.use(CArg.TARGET_S)) { mixin(S_TRACE);
 				c.targetS = parseAttr!(Target)(opt, node.attr, i, c.targetS, varTable, 0);
 			}
-			if (detail.use(CArg.RANGE)) {
+			if (detail.use(CArg.RANGE)) { mixin(S_TRACE);
 				c.range = parseAttr!(Range)(opt, node.attr, i, c.range, varTable, 0);
 			}
-			if (detail.use(CArg.CAST_RANGE)) {
+			if (detail.use(CArg.CAST_RANGE)) { mixin(S_TRACE);
 				c.castRange = parseAttr!(CastRange[])(opt, node.attr, i, c.castRange, varTable, 0);
 			}
-			if (detail.use(CArg.KEY_CODE_RANGE)) {
+			if (detail.use(CArg.KEY_CODE_RANGE)) { mixin(S_TRACE);
 				c.keyCodeRange = parseAttr!(Range)(opt, node.attr, i, c.keyCodeRange, varTable, 0);
 			}
-			if (detail.use(CArg.EFFECT_CARD_TYPE)) {
+			if (detail.use(CArg.EFFECT_CARD_TYPE)) { mixin(S_TRACE);
 				c.effectCardType = parseAttr!(EffectCardType)(opt, node.attr, i, c.effectCardType, varTable, 0);
 			}
-			if (detail.use(CArg.AREA)) {
+			if (detail.use(CArg.AREA)) { mixin(S_TRACE);
 				c.area = parseAttr!(ulong)(opt, node.attr, i, c.area, varTable, 0);
 			}
-			if (detail.use(CArg.BATTLE)) {
+			if (detail.use(CArg.BATTLE)) { mixin(S_TRACE);
 				c.battle = parseAttr!(ulong)(opt, node.attr, i, c.battle, varTable, 0);
 			}
-			if (detail.use(CArg.PACKAGE)) {
+			if (detail.use(CArg.PACKAGE)) { mixin(S_TRACE);
 				c.packages = parseAttr!(ulong)(opt, node.attr, i, c.packages, varTable, 0);
 			}
-			if (detail.use(CArg.CAST)) {
+			if (detail.use(CArg.CAST)) { mixin(S_TRACE);
 				c.casts = parseAttr!(ulong)(opt, node.attr, i, c.casts, varTable, 0);
 			}
-			if (detail.use(CArg.ITEM)) {
+			if (detail.use(CArg.ITEM)) { mixin(S_TRACE);
 				c.item = parseAttr!(ulong)(opt, node.attr, i, c.item, varTable, 0);
 			}
-			if (detail.use(CArg.SKILL)) {
+			if (detail.use(CArg.SKILL)) { mixin(S_TRACE);
 				c.skill = parseAttr!(ulong)(opt, node.attr, i, c.skill, varTable, 0);
 			}
-			if (detail.use(CArg.INFO)) {
+			if (detail.use(CArg.INFO)) { mixin(S_TRACE);
 				c.info = parseAttr!(ulong)(opt, node.attr, i, c.info, varTable, 0);
 			}
-			if (detail.use(CArg.BEAST)) {
+			if (detail.use(CArg.BEAST)) { mixin(S_TRACE);
 				c.beast = parseAttr!(ulong)(opt, node.attr, i, c.beast, varTable, 0);
 			}
-			if (detail.use(CArg.START)) {
+			if (detail.use(CArg.START)) { mixin(S_TRACE);
 				c.start = parseAttr!(string)(opt, node.attr, i, c.start, varTable, 0);
 			}
-			if (detail.use(CArg.COMPLETE)) {
+			if (detail.use(CArg.COMPLETE)) { mixin(S_TRACE);
 				c.complete = parseAttr!(bool)(opt, node.attr, i, c.complete, varTable, 0);
 			}
-			if (detail.use(CArg.MONEY)) {
+			if (detail.use(CArg.MONEY)) { mixin(S_TRACE);
 				c.money = parseAttr!(int)(opt, node.attr, i, c.money, varTable, 0);
 			}
-			if (detail.use(CArg.COUPON)) {
+			if (detail.use(CArg.COUPON)) { mixin(S_TRACE);
 				c.coupon = parseAttr!(string)(opt, node.attr, i, c.coupon, varTable, 0);
 			}
-			if (detail.use(CArg.COUPON_VALUE)) {
+			if (detail.use(CArg.COUPON_VALUE)) { mixin(S_TRACE);
 				c.couponValue = parseAttr!(int)(opt, node.attr, i, c.couponValue, varTable, 0);
 			}
-			if (detail.use(CArg.COMPLETE_STAMP)) {
+			if (detail.use(CArg.COMPLETE_STAMP)) { mixin(S_TRACE);
 				c.completeStamp = parseAttr!(string)(opt, node.attr, i, c.completeStamp, varTable, 0);
 			}
-			if (detail.use(CArg.GOSSIP)) {
+			if (detail.use(CArg.GOSSIP)) { mixin(S_TRACE);
 				c.gossip = parseAttr!(string)(opt, node.attr, i, c.gossip, varTable, 0);
 			}
-			if (detail.use(CArg.KEY_CODE)) {
+			if (detail.use(CArg.KEY_CODE)) { mixin(S_TRACE);
 				c.keyCode = parseAttr!(string)(opt, node.attr, i, c.keyCode, varTable, 0);
 			}
-			if (detail.use(CArg.FLAG)) {
+			if (detail.use(CArg.FLAG)) { mixin(S_TRACE);
 				c.flag = parseAttr!(string)(opt, node.attr, i, c.flag, varTable, 0);
 			}
-			if (detail.use(CArg.FLAG_2)) {
+			if (detail.use(CArg.FLAG_2)) { mixin(S_TRACE);
 				c.flag2 = parseAttr!(string)(opt, node.attr, i, c.flag2, varTable, 0);
 			}
-			if (detail.use(CArg.STEP)) {
+			if (detail.use(CArg.STEP)) { mixin(S_TRACE);
 				c.step = parseAttr!(string)(opt, node.attr, i, c.step, varTable, 0);
 			}
-			if (detail.use(CArg.STEP_2)) {
+			if (detail.use(CArg.STEP_2)) { mixin(S_TRACE);
 				c.step2 = parseAttr!(string)(opt, node.attr, i, c.step2, varTable, 0);
 			}
-			if (detail.use(CArg.COMPARISON_4)) {
+			if (detail.use(CArg.COMPARISON_4)) { mixin(S_TRACE);
 				c.comparison4 = parseAttr!(Comparison4)(opt, node.attr, i, c.comparison4, varTable, 0);
 			}
-			if (detail.use(CArg.COMPARISON_3)) {
+			if (detail.use(CArg.COMPARISON_3)) { mixin(S_TRACE);
 				c.comparison3 = parseAttr!(Comparison3)(opt, node.attr, i, c.comparison3, varTable, 0);
 			}
-			if (detail.use(CArg.FLAG_VALUE)) {
+			if (detail.use(CArg.FLAG_VALUE)) { mixin(S_TRACE);
 				c.flagValue = parseAttr!(bool)(opt, node.attr, i, c.flagValue, varTable, 0);
 			}
-			if (detail.use(CArg.STEP_VALUE)) {
+			if (detail.use(CArg.STEP_VALUE)) { mixin(S_TRACE);
 				c.stepValue = parseAttr!(int)(opt, node.attr, i, c.stepValue, varTable, 0);
 			}
-			if (detail.use(CArg.CARD_NUMBER)) {
+			if (detail.use(CArg.CARD_NUMBER)) { mixin(S_TRACE);
 				c.cardNumber = parseAttr!(int)(opt, node.attr, i, c.cardNumber, varTable, 0);
 			}
-			if (detail.use(CArg.MOTIONS)) {
+			if (detail.use(CArg.MOTIONS)) { mixin(S_TRACE);
 				c.motions = parseAttr!(Motion[])(opt, node.attr, i, c.motions, varTable, 0);
 			}
-			if (detail.use(CArg.CARD_VISUAL)) {
+			if (detail.use(CArg.CARD_VISUAL)) { mixin(S_TRACE);
 				c.cardVisual = parseAttr!(CardVisual)(opt, node.attr, i, c.cardVisual, varTable, 0);
 			}
-			if (detail.use(CArg.UNSIGNED_LEVEL)) {
+			if (detail.use(CArg.UNSIGNED_LEVEL)) { mixin(S_TRACE);
 				c.unsignedLevel = parseAttr!(int)(opt, node.attr, i, c.unsignedLevel, varTable, 0);
 			}
-			if (detail.use(CArg.SIGNED_LEVEL)) {
+			if (detail.use(CArg.SIGNED_LEVEL)) { mixin(S_TRACE);
 				c.signedLevel = parseAttr!(int)(opt, node.attr, i, c.signedLevel, varTable, 0);
 			}
-			if (detail.use(CArg.LEVEL_MIN)) {
+			if (detail.use(CArg.LEVEL_MIN)) { mixin(S_TRACE);
 				c.levelMin = parseAttr!(int)(opt, node.attr, i, c.levelMin, varTable, 0);
 			}
-			if (detail.use(CArg.LEVEL_MAX)) {
+			if (detail.use(CArg.LEVEL_MAX)) { mixin(S_TRACE);
 				c.levelMax = parseAttr!(int)(opt, node.attr, i, c.levelMax, varTable, 0);
 			}
-			if (detail.use(CArg.PHYSICAL)) {
+			if (detail.use(CArg.PHYSICAL)) { mixin(S_TRACE);
 				c.physical = parseAttr!(Physical)(opt, node.attr, i, c.physical, varTable, 0);
 			}
-			if (detail.use(CArg.MENTAL)) {
+			if (detail.use(CArg.MENTAL)) { mixin(S_TRACE);
 				c.mental = parseAttr!(Mental)(opt, node.attr, i, c.mental, varTable, 0);
 			}
-			if (detail.use(CArg.WAIT)) {
+			if (detail.use(CArg.WAIT)) { mixin(S_TRACE);
 				c.wait = parseAttr!(int)(opt, node.attr, i, c.wait, varTable, 0);
 			}
-			if (detail.use(CArg.PERCENT)) {
+			if (detail.use(CArg.PERCENT)) { mixin(S_TRACE);
 				c.percent = parseAttr!(int)(opt, node.attr, i, c.percent, varTable, 0);
 			}
-			if (detail.use(CArg.TARGET_ALL)) {
+			if (detail.use(CArg.TARGET_ALL)) { mixin(S_TRACE);
 				c.targetAll = parseAttr!(bool)(opt, node.attr, i, c.targetAll, varTable, 0);
 			}
-			if (detail.use(CArg.RANDOM)) {
+			if (detail.use(CArg.RANDOM)) { mixin(S_TRACE);
 				c.random = parseAttr!(bool)(opt, node.attr, i, c.random, varTable, 0);
 			}
-			if (detail.use(CArg.AVERAGE)) {
+			if (detail.use(CArg.AVERAGE)) { mixin(S_TRACE);
 				c.average = parseAttr!(bool)(opt, node.attr, i, c.average, varTable, 0);
 			}
-			if (detail.use(CArg.PARTY_NUMBER)) {
+			if (detail.use(CArg.PARTY_NUMBER)) { mixin(S_TRACE);
 				c.partyNumber = parseAttr!(int)(opt, node.attr, i, c.partyNumber, varTable, 0);
 			}
-			if (detail.use(CArg.SUCCESS_RATE)) {
+			if (detail.use(CArg.SUCCESS_RATE)) { mixin(S_TRACE);
 				c.successRate = parseAttr!(int)(opt, node.attr, i, c.successRate, varTable, 0);
 			}
-			if (detail.use(CArg.EFFECT_TYPE)) {
+			if (detail.use(CArg.EFFECT_TYPE)) { mixin(S_TRACE);
 				c.effectType = parseAttr!(EffectType)(opt, node.attr, i, c.effectType, varTable, 0);
 			}
-			if (detail.use(CArg.RESIST)) {
+			if (detail.use(CArg.RESIST)) { mixin(S_TRACE);
 				c.resist = parseAttr!(Resist)(opt, node.attr, i, c.resist, varTable, 0);
 			}
-			if (detail.use(CArg.STATUS)) {
+			if (detail.use(CArg.STATUS)) { mixin(S_TRACE);
 				c.status = parseAttr!(Status)(opt, node.attr, i, c.status, varTable, 0);
 			}
-			if (detail.use(CArg.BGM_PATH)) {
+			if (detail.use(CArg.BGM_PATH)) { mixin(S_TRACE);
 				c.bgmPath = encodePath(parseAttr!(string)(opt, node.attr, i, decodePath(c.bgmPath), varTable, 0));
 			}
-			if (detail.use(CArg.SOUND_PATH)) {
+			if (detail.use(CArg.SOUND_PATH)) { mixin(S_TRACE);
 				c.soundPath = encodePath(parseAttr!(string)(opt, node.attr, i, decodePath(c.soundPath), varTable, 0));
 			}
-			if (detail.use(CArg.TRANSITION_SPEED)) {
+			if (detail.use(CArg.TRANSITION_SPEED)) { mixin(S_TRACE);
 				c.transitionSpeed = parseAttr!(int)(opt, node.attr, i, c.transitionSpeed, varTable, 0);
 			}
-			if (detail.use(CArg.TRANSITION)) {
+			if (detail.use(CArg.TRANSITION)) { mixin(S_TRACE);
 				c.transition = parseAttr!(Transition)(opt, node.attr, i, c.transition, varTable, 0);
 			}
-			if (detail.use(CArg.INIT_VALUE)) {
+			if (detail.use(CArg.INIT_VALUE)) { mixin(S_TRACE);
 				c.initValue = parseAttr!(int)(opt, node.attr, i, c.initValue, varTable, 0);
 			}
-			if (detail.use(CArg.COUPONS)) {
+			if (detail.use(CArg.COUPONS)) { mixin(S_TRACE);
 				c.coupons = parseAttr!(Coupon[])(opt, node.attr, i, c.coupons, varTable, 0);
 			}
-			if (detail.use(CArg.ROUND)) {
+			if (detail.use(CArg.ROUND)) { mixin(S_TRACE);
 				c.round = parseAttr!(int)(opt, node.attr, i, c.round, varTable, 0);
 			}
-			Content autoWrap(Content c) {
-				if (!c.detail.owner) {
+			Content autoWrap(Content c) { mixin(S_TRACE);
+				if (!c.detail.owner) { mixin(S_TRACE);
 					throwError(_prop.msgs.scriptErrorCanNotHaveContent, node.token);
 				}
-				if (_autoWrap <= stack) {
+				if (_autoWrap <= stack) { mixin(S_TRACE);
 					autoWrapCount++;
 					stack = 0;
-					auto s = new Content(CType.START, .createNewName(.format("Auto wrap (%d)", autoWrapCount), (string name) {
-						foreach (sn; startNames) {
-							if (0 == icmp(sn, name)) {
+					auto s = new Content(CType.START, .createNewName(.format("Auto wrap (%d)", autoWrapCount), (string name) { mixin(S_TRACE);
+						foreach (sn; startNames) { mixin(S_TRACE);
+							if (0 == icmp(sn, name)) { mixin(S_TRACE);
 								return false;
 							}
 						}
@@ -2682,95 +2682,95 @@ fi`;
 					auto link = new Content(CType.LINK_START, c.name);
 					link.start = s.name;
 					c.add(_prop, link);
-					if (isTop) {
+					if (isTop) { mixin(S_TRACE);
 						r ~= s;
-					} else {
+					} else { mixin(S_TRACE);
 						topGroup ~= s;
 					}
 					return s;
 				}
 				return c;
 			}
-			if (nextIsChild) {
+			if (nextIsChild) { mixin(S_TRACE);
 				/// 一つ前の分析結果は nextIsChild is true 。
 				auto parent = autoWrap(lastParent);
 				parent.add(_prop, c);
 				stack++;
-			} else {
+			} else { mixin(S_TRACE);
 				r ~= c;
 			}
-			if (node.childs.length) {
+			if (node.childs.length) { mixin(S_TRACE);
 				auto parent = autoWrap(c);
-				foreach (chld; analyzeSemanticsImpl(opt, node.childs, keys, varTable, stack + 1, autoWrapCount, startNames, isTop ? r : topGroup, false)) {
+				foreach (chld; analyzeSemanticsImpl(opt, node.childs, keys, varTable, stack + 1, autoWrapCount, startNames, isTop ? r : topGroup, false)) { mixin(S_TRACE);
 					parent.add(_prop, chld);
 				}
 			}
 			nextIsChild = node.nextIsChild;
-			if (nextIsChild) {
+			if (nextIsChild) { mixin(S_TRACE);
 				lastParent = c;
 			}
 		}
 		return r;
 	}
 	const
-	string toScript(in Content[] cs, string evtChildOK, bool legacy, string indent = "\t") {
+	string toScript(in Content[] cs, string evtChildOK, bool legacy, string indent = "\t") { mixin(S_TRACE);
 		char[] buf;
 		auto table = new VarTable;
 		toScriptImpl(evtChildOK, buf, cs, indent, "", KEYS, table, legacy);
 		auto vars = table.vars();
-		if (vars.length) {
+		if (vars.length) { mixin(S_TRACE);
 			buf = std.string.join(vars, "\n") ~ "\n\n" ~ buf;
 		}
 		return assumeUnique(buf);
 	}
 	const
-	private string[] toAttr(bool Within = false, T)(T value, string command, string indentValue, VarTable vars, size_t strWidth = 0) {
+	private string[] toAttr(bool Within = false, T)(T value, string command, string indentValue, VarTable vars, size_t strWidth = 0) { mixin(S_TRACE);
 		string[] attrs;
 		static if (is(Unqual!(T) == Symbol)) {
 			attrs ~= value;
 		} else static if (is(Unqual!(T) == string)) {
 			string attr;
 			auto lines = splitLines!string(value.idup);
-			if (lines.length == 0) {
+			if (lines.length == 0) { mixin(S_TRACE);
 				attr ~= `""`;
-			} else if (lines.length == 1) {
+			} else if (lines.length == 1) { mixin(S_TRACE);
 				attr ~= createString(lines[0]);
-			} else {
+			} else { mixin(S_TRACE);
 				size_t lns = 0;
-				foreach (i, line; lines) {
-					if (line.length) {
+				foreach (i, line; lines) { mixin(S_TRACE);
+					if (line.length) { mixin(S_TRACE);
 						lns = i;
 						break;
 					}
 				}
 				attr ~= "@";
-				if (lns > 0) {
-					if (vars.useCenter && lns + 1 == stringCenter(lines, strWidth)) {
+				if (lns > 0) { mixin(S_TRACE);
+					if (vars.useCenter && lns + 1 == stringCenter(lines, strWidth)) { mixin(S_TRACE);
 						attr ~= " center";
-					} else {
+					} else { mixin(S_TRACE);
 						attr ~= " " ~ to!(string)(lns + 1);
 					}
 					lines = lines[lns .. $];
 				}
 				attr ~= "\n";
 				bool spaceLine = false;
-				foreach (line; lines) {
+				foreach (line; lines) { mixin(S_TRACE);
 					line = std.array.replace(line, "@", "@@");
-					if (line.length && (line[0] == ' ' || line[0] == '\t' || line[0] == '\\')) {
+					if (line.length && (line[0] == ' ' || line[0] == '\t' || line[0] == '\\')) { mixin(S_TRACE);
 						line = "\\" ~ line;
 					}
 					attr ~= indentValue ~ line ~ "\n";
 					spaceLine = line.length == 0;
 				}
-				if (spaceLine) {
+				if (spaceLine) { mixin(S_TRACE);
 					attr ~= "@";
-				} else {
+				} else { mixin(S_TRACE);
 					attr ~= indentValue ~ "@";
 				}
 			}
 			attrs ~= attr;
 		} else static if (isVArray!(T)) {
-			foreach (i, v; value) {
+			foreach (i, v; value) { mixin(S_TRACE);
 				attrs ~= toAttr(v, command, indentValue, vars, strWidth);
 			}
 			attrs = [attrs.join(" ")];
@@ -2995,19 +2995,19 @@ fi`;
 			case GradientDir.TopToBottom: attrs ~= "vertical"; break;
 			}
 		} else static if (is(T : CRGB)) {
-			if (value.a == 255) {
+			if (value.a == 255) { mixin(S_TRACE);
 				attrs ~= createString(.tryFormat("#%02X%02X%02X", value.r, value.g, value.b));
-			} else {
+			} else { mixin(S_TRACE);
 				attrs ~= createString(.tryFormat("#%02X%02X%02X%02X", value.r, value.g, value.b, value.a));
 			}
 		} else static if (is(Unqual!(T) : BgImage)) {
 			string[] attrs2;
 			auto ic = cast(ImageCell) value;
-			if (ic) {
+			if (ic) { mixin(S_TRACE);
 				attrs2 ~= toAttr(encodePath(ic.path), command, indentValue, vars);
 			}
 			auto tc = cast(TextCell) value;
-			if (tc) {
+			if (tc) { mixin(S_TRACE);
 				attrs2 ~= "text";
 				attrs2 ~= toAttr(tc.text, command, indentValue, vars);
 				attrs2 ~= toAttr(tc.fontName, command, indentValue, vars);
@@ -3037,7 +3037,7 @@ fi`;
 				}
 			}
 			auto cc = cast(ColorCell) value;
-			if (cc) {
+			if (cc) { mixin(S_TRACE);
 				attrs2 ~= "color";
 				attrs2 ~= toAttr(cc.blendMode, command, indentValue, vars);
 				attrs2 ~= toAttr(cc.color1, command, indentValue, vars);
@@ -3056,7 +3056,7 @@ fi`;
 			attrs2 ~= toAttr(value.y, command, indentValue, vars);
 			attrs2 ~= toAttr(value.width, command, indentValue, vars);
 			attrs2 ~= toAttr(value.height, command, indentValue, vars);
-			if (ic) {
+			if (ic) { mixin(S_TRACE);
 				attrs2 ~= toAttr(ic.mask, command, indentValue, vars);
 			}
 			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
@@ -3064,22 +3064,22 @@ fi`;
 			auto detail = value.detail;
 			string[] attrs2;
 			attrs2 ~= toAttr(value.type, command, indentValue, vars);
-			if (detail.use(MArg.VALUE_TYPE)) {
+			if (detail.use(MArg.VALUE_TYPE)) { mixin(S_TRACE);
 				attrs2 ~= toAttr(value.damageType, command, indentValue, vars);
 			}
-			if (detail.use(MArg.U_VALUE)) {
+			if (detail.use(MArg.U_VALUE)) { mixin(S_TRACE);
 				attrs2 ~= toAttr(value.uValue, command, indentValue, vars);
 			}
-			if (detail.use(MArg.A_VALUE)) {
+			if (detail.use(MArg.A_VALUE)) { mixin(S_TRACE);
 				attrs2 ~= toAttr(value.aValue, command, indentValue, vars);
 			}
-			if (detail.use(MArg.ROUND)) {
+			if (detail.use(MArg.ROUND)) { mixin(S_TRACE);
 				attrs2 ~= toAttr(value.round, command, indentValue, vars);
 			}
-			if (detail.use(MArg.BEAST)) {
-				if (value.beast) {
+			if (detail.use(MArg.BEAST)) { mixin(S_TRACE);
+				if (value.beast) { mixin(S_TRACE);
 					attrs2 ~= toAttr(vars.id(_summ.findSameBeast(value.beast), value.beast.linkId), command, indentValue, vars);
-				} else {
+				} else { mixin(S_TRACE);
 					attrs2 ~= toAttr(cast(Symbol) "0", command, indentValue, vars);
 				}
 			}
@@ -3088,15 +3088,15 @@ fi`;
 		} else static if (is(Unqual!(T) : SDialog)) {
 			string[] attrs2;
 			bool semic = false;
-			foreach (c; value.rCoupons) {
-				if (std.string.indexOf(c, ";") >= 0) {
+			foreach (c; value.rCoupons) { mixin(S_TRACE);
+				if (std.string.indexOf(c, ";") >= 0) { mixin(S_TRACE);
 					semic = true;
 					break;
 				}
 			}
-			if (semic) {
+			if (semic) { mixin(S_TRACE);
 				attrs2 ~= "[" ~ std.string.join(toAttr(value.rCoupons, command, indentValue, vars), ", ") ~ "]";
-			} else {
+			} else { mixin(S_TRACE);
 				attrs2 ~= createString(std.string.join(value.rCoupons.dup, ";"));
 			}
 			attrs2 ~= toAttr(value.text, command, indentValue, vars, strWidth);
@@ -3116,7 +3116,7 @@ fi`;
 		return attrs;
 	}
 	const
-	private string toAttrTalker(Talker t, string cardPath) {
+	private string toAttrTalker(Talker t, string cardPath) { mixin(S_TRACE);
 		switch (t) {
 		case Talker.NARRATION: return "none";
 		case Talker.SELECTED: return "M";
@@ -3135,14 +3135,14 @@ fi`;
 	private static class VarTable {
 		bool useVar = true;
 		bool useCenter = true;
-		private Symbol idVar(string Name, A)(in A a, ulong id, ref string[ulong] tbl, ref ulong[string] tblR) {
+		private Symbol idVar(string Name, A)(in A a, ulong id, ref string[ulong] tbl, ref ulong[string] tblR) { mixin(S_TRACE);
 			if (!useVar || !a) return Symbol(to!(string)(id));
 			auto p = a.id in tbl;
 			if (p) return Symbol(*p);
 			string base = "$" ~ Name ~ "_" ~ validVarName(a.name);
 			string name = base;
 			size_t i = 1;
-			while (name in tblR) {
+			while (name in tblR) { mixin(S_TRACE);
 				i++;
 				name = base ~ "_" ~ to!(string)(i);
 			}
@@ -3174,15 +3174,15 @@ fi`;
 		Symbol id(in ItemCard a, ulong id) {return idVar!("item")(a, id, _items, _itemsR);}
 		Symbol id(in BeastCard a, ulong id) {return idVar!("beast")(a, id, _beasts, _beastsR);}
 		Symbol id(in InfoCard a, ulong id) {return idVar!("info")(a, id, _infos, _infosR);}
-		private static string[] vars(in string[ulong] arr) {
+		private static string[] vars(in string[ulong] arr) { mixin(S_TRACE);
 			string[] r;
-			foreach (id; arr.keys.sort) {
+			foreach (id; arr.keys.sort) { mixin(S_TRACE);
 				r ~= arr[id] ~ " = " ~ to!(string)(id);
 			}
 			return r;
 		}
 		const
-		string[] vars() {
+		string[] vars() { mixin(S_TRACE);
 			string[] r;
 			r ~= vars(_areas);
 			r ~= vars(_battles);
@@ -3196,13 +3196,13 @@ fi`;
 		}
 	}
 	const
-	private void toScriptImpl(string evtChildOK, ref char[] buf, in Content[] cs, string indent, string indentValue, in Keywords keys, VarTable vars, bool legacy) {
-		foreach (i, c; cs) {
+	private void toScriptImpl(string evtChildOK, ref char[] buf, in Content[] cs, string indent, string indentValue, in Keywords keys, VarTable vars, bool legacy) { mixin(S_TRACE);
+		foreach (i, c; cs) { mixin(S_TRACE);
 			if (i > 0) buf ~= "\n\n";
 			buf ~= indentValue;
 			auto detail = c.detail;
-			if (c.comment.length) {
-				foreach (line; splitLines!string(lastRet(c.comment))) {
+			if (c.comment.length) { mixin(S_TRACE);
+				foreach (line; splitLines!string(lastRet(c.comment))) { mixin(S_TRACE);
 					buf ~= "// " ~ line;
 					buf ~= "\n";
 					buf ~= indentValue;
@@ -3211,242 +3211,242 @@ fi`;
 			string command = keys.commands[c.type];
 			buf ~= command;
 			string[] attrs;
-			if (c.type is CType.START) {
+			if (c.type is CType.START) { mixin(S_TRACE);
 				attrs ~= createString(c.name);
 			}
 			size_t msgLen = 0;
-			if (detail.use(CArg.TALKER_C)) {
+			if (detail.use(CArg.TALKER_C)) { mixin(S_TRACE);
 				attrs ~= toAttrTalker(c.talkerC, c.cardPath);
-				if (c.talkerC is Talker.NARRATION) {
+				if (c.talkerC is Talker.NARRATION) { mixin(S_TRACE);
 					msgLen = _prop.looks.messageLen;
-				} else {
+				} else { mixin(S_TRACE);
 					msgLen = _prop.looks.messageImageLen;
 				}
 			}
-			if (detail.use(CArg.TEXT)) {
+			if (detail.use(CArg.TEXT)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.text, command, indentValue, vars, msgLen);
 			}
-			if (detail.use(CArg.TALKER_NC)) {
+			if (detail.use(CArg.TALKER_NC)) { mixin(S_TRACE);
 				attrs ~= toAttr!(true)(c.talkerNC, command, indentValue, vars);
 				msgLen = _prop.looks.messageImageLen;
 			}
-			if (detail.use(CArg.DIALOGS)) {
+			if (detail.use(CArg.DIALOGS)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.dialogs, command, indentValue, vars, msgLen);
 			}
-			if (detail.use(CArg.BG_IMAGES)) {
+			if (detail.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.backs, command, indentValue, vars);
 			}
-			if (detail.use(CArg.TARGET_NS)) {
+			if (detail.use(CArg.TARGET_NS)) { mixin(S_TRACE);
 				attrs ~= toAttr!(true)(c.targetNS, command, indentValue, vars);
 			}
-			if (detail.use(CArg.TARGET_S)) {
+			if (detail.use(CArg.TARGET_S)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.targetS, command, indentValue, vars);
 			}
-			if (detail.use(CArg.RANGE)) {
+			if (detail.use(CArg.RANGE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.range, command, indentValue, vars);
 			}
-			if (detail.use(CArg.CAST_RANGE)) {
+			if (detail.use(CArg.CAST_RANGE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.castRange, command, indentValue, vars);
 			}
-			if (detail.use(CArg.KEY_CODE_RANGE)) {
+			if (detail.use(CArg.KEY_CODE_RANGE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.keyCodeRange, command, indentValue, vars);
 			}
-			if (detail.use(CArg.EFFECT_CARD_TYPE)) {
+			if (detail.use(CArg.EFFECT_CARD_TYPE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.effectCardType, command, indentValue, vars);
 			}
-			if (detail.use(CArg.AREA)) {
+			if (detail.use(CArg.AREA)) { mixin(S_TRACE);
 				auto a = _summ.area(c.area);
 				attrs ~= toAttr(vars.id(a, c.area), command, indentValue, vars);
 			}
-			if (detail.use(CArg.BATTLE)) {
+			if (detail.use(CArg.BATTLE)) { mixin(S_TRACE);
 				auto a = _summ.battle(c.battle);
 				attrs ~= toAttr(vars.id(a, c.battle), command, indentValue, vars);
 			}
-			if (detail.use(CArg.PACKAGE)) {
+			if (detail.use(CArg.PACKAGE)) { mixin(S_TRACE);
 				auto a = _summ.cwPackage(c.packages);
 				attrs ~= toAttr(vars.id(a, c.packages), command, indentValue, vars);
 			}
-			if (detail.use(CArg.CAST)) {
+			if (detail.use(CArg.CAST)) { mixin(S_TRACE);
 				auto a = _summ.cwCast(c.casts);
 				attrs ~= toAttr(vars.id(a, c.casts), command, indentValue, vars);
 			}
-			if (detail.use(CArg.ITEM)) {
+			if (detail.use(CArg.ITEM)) { mixin(S_TRACE);
 				auto a = _summ.item(c.item);
 				attrs ~= toAttr(vars.id(a, c.item), command, indentValue, vars);
 			}
-			if (detail.use(CArg.SKILL)) {
+			if (detail.use(CArg.SKILL)) { mixin(S_TRACE);
 				auto a = _summ.skill(c.skill);
 				attrs ~= toAttr(vars.id(a, c.skill), command, indentValue, vars);
 			}
-			if (detail.use(CArg.INFO)) {
+			if (detail.use(CArg.INFO)) { mixin(S_TRACE);
 				auto a = _summ.info(c.info);
 				attrs ~= toAttr(vars.id(a, c.info), command, indentValue, vars);
 			}
-			if (detail.use(CArg.BEAST)) {
+			if (detail.use(CArg.BEAST)) { mixin(S_TRACE);
 				auto a = _summ.beast(c.beast);
 				attrs ~= toAttr(vars.id(a, c.beast), command, indentValue, vars);
 			}
-			if (detail.use(CArg.START)) {
+			if (detail.use(CArg.START)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.start, command, indentValue, vars);
 			}
-			if (detail.use(CArg.COMPLETE)) {
+			if (detail.use(CArg.COMPLETE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.complete, command, indentValue, vars);
 			}
-			if (detail.use(CArg.MONEY)) {
+			if (detail.use(CArg.MONEY)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.money, command, indentValue, vars);
 			}
-			if (detail.use(CArg.COUPON)) {
+			if (detail.use(CArg.COUPON)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.coupon, command, indentValue, vars);
 			}
-			if (detail.use(CArg.COUPON_VALUE)) {
+			if (detail.use(CArg.COUPON_VALUE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.couponValue, command, indentValue, vars);
 			}
-			if (detail.use(CArg.COMPLETE_STAMP)) {
+			if (detail.use(CArg.COMPLETE_STAMP)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.completeStamp, command, indentValue, vars);
 			}
-			if (detail.use(CArg.KEY_CODE)) {
+			if (detail.use(CArg.KEY_CODE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.keyCode, command, indentValue, vars);
 			}
-			if (detail.use(CArg.GOSSIP)) {
+			if (detail.use(CArg.GOSSIP)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.gossip, command, indentValue, vars);
 			}
-			if (detail.use(CArg.FLAG)) {
-				if (_prop && _prop.sys.randomValue == c.flag) {
+			if (detail.use(CArg.FLAG)) { mixin(S_TRACE);
+				if (_prop && _prop.sys.randomValue == c.flag) { mixin(S_TRACE);
 					attrs ~= toAttr(Symbol("random"), command, indentValue, vars);
-				} else {
+				} else { mixin(S_TRACE);
 					attrs ~= toAttr(c.flag, command, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.FLAG_2)) {
-				if (_prop && _prop.sys.randomValue == c.flag2) {
+			if (detail.use(CArg.FLAG_2)) { mixin(S_TRACE);
+				if (_prop && _prop.sys.randomValue == c.flag2) { mixin(S_TRACE);
 					attrs ~= toAttr(Symbol("random"), command, indentValue, vars);
-				} else {
+				} else { mixin(S_TRACE);
 					attrs ~= toAttr(c.flag2, command, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.STEP)) {
-				if (_prop && _prop.sys.randomValue == c.step) {
+			if (detail.use(CArg.STEP)) { mixin(S_TRACE);
+				if (_prop && _prop.sys.randomValue == c.step) { mixin(S_TRACE);
 					attrs ~= toAttr(Symbol("random"), command, indentValue, vars);
-				} else {
+				} else { mixin(S_TRACE);
 					attrs ~= toAttr(c.step, command, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.STEP_2)) {
-				if (_prop && _prop.sys.randomValue == c.step2) {
+			if (detail.use(CArg.STEP_2)) { mixin(S_TRACE);
+				if (_prop && _prop.sys.randomValue == c.step2) { mixin(S_TRACE);
 					attrs ~= toAttr(Symbol("random"), command, indentValue, vars);
-				} else {
+				} else { mixin(S_TRACE);
 					attrs ~= toAttr(c.step2, command, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.COMPARISON_4)) {
+			if (detail.use(CArg.COMPARISON_4)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.comparison4, command, indentValue, vars);
 			}
-			if (detail.use(CArg.COMPARISON_3)) {
+			if (detail.use(CArg.COMPARISON_3)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.comparison3, command, indentValue, vars);
 			}
-			if (detail.use(CArg.FLAG_VALUE)) {
+			if (detail.use(CArg.FLAG_VALUE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.flagValue, command, indentValue, vars);
 			}
-			if (detail.use(CArg.STEP_VALUE)) {
+			if (detail.use(CArg.STEP_VALUE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.stepValue, command, indentValue, vars);
 			}
-			if (detail.use(CArg.CARD_NUMBER)) {
-				if (c.cardNumber != 0) {
+			if (detail.use(CArg.CARD_NUMBER)) { mixin(S_TRACE);
+				if (c.cardNumber != 0) { mixin(S_TRACE);
 					attrs ~= toAttr(c.cardNumber, command, indentValue, vars);
-				} else {
+				} else { mixin(S_TRACE);
 					attrs ~= toAttr(Symbol("all"), command, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.MOTIONS)) {
+			if (detail.use(CArg.MOTIONS)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.motions, command, indentValue, vars);
 			}
-			if (detail.use(CArg.CARD_VISUAL)) {
+			if (detail.use(CArg.CARD_VISUAL)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.cardVisual, command, indentValue, vars);
 			}
-			if (detail.use(CArg.UNSIGNED_LEVEL)) {
+			if (detail.use(CArg.UNSIGNED_LEVEL)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.unsignedLevel, command, indentValue, vars);
 			}
-			if (detail.use(CArg.SIGNED_LEVEL)) {
+			if (detail.use(CArg.SIGNED_LEVEL)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.signedLevel, command, indentValue, vars);
 			}
-			if (detail.use(CArg.LEVEL_MIN)) {
+			if (detail.use(CArg.LEVEL_MIN)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.levelMin, command, indentValue, vars);
 			}
-			if (detail.use(CArg.LEVEL_MAX)) {
+			if (detail.use(CArg.LEVEL_MAX)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.levelMax, command, indentValue, vars);
 			}
-			if (detail.use(CArg.PHYSICAL)) {
+			if (detail.use(CArg.PHYSICAL)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.physical, command, indentValue, vars);
 			}
-			if (detail.use(CArg.MENTAL)) {
+			if (detail.use(CArg.MENTAL)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.mental, command, indentValue, vars);
 			}
-			if (detail.use(CArg.WAIT)) {
+			if (detail.use(CArg.WAIT)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.wait, command, indentValue, vars);
 			}
-			if (detail.use(CArg.PERCENT)) {
+			if (detail.use(CArg.PERCENT)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.percent, command, indentValue, vars);
 			}
-			if (detail.use(CArg.TARGET_ALL)) {
+			if (detail.use(CArg.TARGET_ALL)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.targetAll, command, indentValue, vars);
 			}
-			if (detail.use(CArg.RANDOM)) {
+			if (detail.use(CArg.RANDOM)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.random, command, indentValue, vars);
 			}
-			if (detail.use(CArg.AVERAGE)) {
+			if (detail.use(CArg.AVERAGE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.average, command, indentValue, vars);
 			}
-			if (detail.use(CArg.PARTY_NUMBER)) {
+			if (detail.use(CArg.PARTY_NUMBER)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.partyNumber, command, indentValue, vars);
 			}
-			if (detail.use(CArg.SUCCESS_RATE)) {
+			if (detail.use(CArg.SUCCESS_RATE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.successRate, command, indentValue, vars);
 			}
-			if (detail.use(CArg.EFFECT_TYPE)) {
+			if (detail.use(CArg.EFFECT_TYPE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.effectType, command, indentValue, vars);
 			}
-			if (detail.use(CArg.RESIST)) {
+			if (detail.use(CArg.RESIST)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.resist, command, indentValue, vars);
 			}
-			if (detail.use(CArg.STATUS)) {
+			if (detail.use(CArg.STATUS)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.status, command, indentValue, vars);
 			}
-			if (detail.use(CArg.BGM_PATH)) {
-				if (c.bgmPath.length) {
+			if (detail.use(CArg.BGM_PATH)) { mixin(S_TRACE);
+				if (c.bgmPath.length) { mixin(S_TRACE);
 					attrs ~= toAttr(encodePath(c.bgmPath), command, indentValue, vars);
-				} else {
+				} else { mixin(S_TRACE);
 					attrs ~= toAttr(Symbol("stop"), command, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.SOUND_PATH)) {
+			if (detail.use(CArg.SOUND_PATH)) { mixin(S_TRACE);
 				attrs ~= toAttr(encodePath(c.soundPath), command, indentValue, vars);
 			}
-			if (!legacy) {
-				if (detail.use(CArg.TRANSITION_SPEED)) {
+			if (!legacy) { mixin(S_TRACE);
+				if (detail.use(CArg.TRANSITION_SPEED)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.transitionSpeed, command, indentValue, vars);
 				}
-				if (detail.use(CArg.TRANSITION)) {
+				if (detail.use(CArg.TRANSITION)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.transition, command, indentValue, vars);
 				}
 			}
-			if (c.talkerNC is Talker.VALUED) {
+			if (c.talkerNC is Talker.VALUED) { mixin(S_TRACE);
 				// 評価メンバ
-				if (detail.use(CArg.INIT_VALUE)) {
+				if (detail.use(CArg.INIT_VALUE)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.initValue, command, indentValue, vars);
 				}
-				if (detail.use(CArg.COUPONS) && c.coupons.length) {
+				if (detail.use(CArg.COUPONS) && c.coupons.length) { mixin(S_TRACE);
 					attrs ~= toAttr(c.coupons, command, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.ROUND)) {
+			if (detail.use(CArg.ROUND)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.round, command, indentValue, vars);
 			}
 			bool useIf = c.next.length > 1;
 			bool useSif = c.next.length == 1 && c.next[0].name.length;
-			if (!useIf) {
-				foreach (chld; c.next) {
-					if (chld.name.length) {
-						if (detail.nextType is CNextType.TEXT && chld.name == evtChildOK) {
+			if (!useIf) { mixin(S_TRACE);
+				foreach (chld; c.next) { mixin(S_TRACE);
+					if (chld.name.length) { mixin(S_TRACE);
+						if (detail.nextType is CNextType.TEXT && chld.name == evtChildOK) { mixin(S_TRACE);
 							continue;
 						}
 						useIf = true;
@@ -3454,15 +3454,15 @@ fi`;
 					}
 				}
 			}
-			if (attrs.length) {
+			if (attrs.length) { mixin(S_TRACE);
 				buf ~= " " ~ std.string.join(attrs, ", ");
 			}
-			foreach (idx, chld; c.next) {
-				if (useIf) {
+			foreach (idx, chld; c.next) { mixin(S_TRACE);
+				if (useIf) { mixin(S_TRACE);
 					buf ~= "\n" ~ indentValue;
-					if (useSif) {
+					if (useSif) { mixin(S_TRACE);
 						buf ~= "sif ";
-					} else {
+					} else { mixin(S_TRACE);
 						buf ~= idx == 0 ? "if " : "elif ";
 					}
 					final switch (detail.nextType) {
@@ -3478,9 +3478,9 @@ fi`;
 					case CNextType.STEP:
 					case CNextType.ID_AREA:
 					case CNextType.ID_BATTLE:
-						if (icmp(chld.name, _prop.sys.evtChildDefault) == 0) {
+						if (icmp(chld.name, _prop.sys.evtChildDefault) == 0) { mixin(S_TRACE);
 							buf ~= "default";
-						} else {
+						} else { mixin(S_TRACE);
 							buf ~= chld.name;
 						}
 						break;
@@ -3491,26 +3491,26 @@ fi`;
 					buf ~= "\n";
 					auto nextIndent = useSif ? indentValue : indentValue ~ indent;
 					toScriptImpl(evtChildOK, buf, [chld], indent, nextIndent, keys, vars, legacy);
-				} else {
+				} else { mixin(S_TRACE);
 					buf ~= "\n";
-					if (c.type is CType.START) {
+					if (c.type is CType.START) { mixin(S_TRACE);
 						toScriptImpl(evtChildOK, buf, [chld], indent, indentValue ~ indent, keys, vars, legacy);
-					} else {
+					} else { mixin(S_TRACE);
 						toScriptImpl(evtChildOK, buf, [chld], indent, indentValue, keys, vars, legacy);
 					}
 				}
 			}
-			if (useIf && !useSif) {
+			if (useIf && !useSif) { mixin(S_TRACE);
 				buf ~= "\n" ~ indentValue ~ "fi";
 			}
 		}
 	}
 }
 
-private string validVarName(string name) {
+private string validVarName(string name) { mixin(S_TRACE);
 	char[] buf;
 	buf.length = name.length;
-	foreach (i, char c; name) {
+	foreach (i, char c; name) { mixin(S_TRACE);
 		switch (c) {
 			case '\0', '\b', '\t', '\n', '\v', '\f', '\r', ' ', '!',
 				'"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',',

@@ -21,7 +21,7 @@ class MenuProps : Properties {
 	private immutable string[] _hotkey_init;
 
 	/// 唯一のコンストラクタ。
-	this () {
+	this () { mixin(S_TRACE);
 		_mnemonic.length = MenuID.max + 1;
 		_hotkey.length = MenuID.max + 1;
 
@@ -413,28 +413,28 @@ class MenuProps : Properties {
 
 	/// アクセスキー。
 	const
-	string mnemonic(MenuID id) {
+	string mnemonic(MenuID id) { mixin(S_TRACE);
 		return _mnemonic[id];
 	}
 	/// ditto
-	void mnemonic(MenuID id, string key) {
+	void mnemonic(MenuID id, string key) { mixin(S_TRACE);
 		_mnemonic[id] = key;
 	}
 	/// ショートカットキー。
 	const
-	string hotkey(MenuID id) {
+	string hotkey(MenuID id) { mixin(S_TRACE);
 		return _hotkey[id];
 	}
 	/// ditto
-	void hotkey(MenuID id, string key) {
+	void hotkey(MenuID id, string key) { mixin(S_TRACE);
 		_hotkey[id] = key;
 	}
 
 	/// ツール文字列を構築する。
 	const
-	string buildTool(in CProps prop, MenuID id) {
+	string buildTool(in CProps prop, MenuID id) { mixin(S_TRACE);
 		string r = prop.msgs.menuText(id);
-		if (isPMenu(id)) {
+		if (isPMenu(id)) { mixin(S_TRACE);
 			r ~= "...";
 		}
 		return r;
@@ -442,27 +442,27 @@ class MenuProps : Properties {
 
 	/// メニュー文字列を構築する。
 	const
-	string buildMenu(in CProps prop, MenuID id) {
+	string buildMenu(in CProps prop, MenuID id) { mixin(S_TRACE);
 		return buildMenu(prop, id, _mnemonic[id], _hotkey[id]);
 	}
 	/// ditto
-	static string buildMenu(in CProps prop, MenuID id, string mnemonic, string hotkey) {
+	static string buildMenu(in CProps prop, MenuID id, string mnemonic, string hotkey) { mixin(S_TRACE);
 		return buildMenu(prop.msgs.menuText(id), mnemonic, hotkey, isPMenu(id));
 	}
 	/// ditto
-	static string buildMenu(string r, string mnemonic, string hotkey, bool m) {
+	static string buildMenu(string r, string mnemonic, string hotkey, bool m) { mixin(S_TRACE);
 		r = r.replace("&", "&&");
 		string a = mnemonic;
 		string h = hotkey;
-		if (a.length) {
+		if (a.length) { mixin(S_TRACE);
 			int i = r.indexOf(a, CaseSensitive.no);
-			if (-1 == i) {
+			if (-1 == i) { mixin(S_TRACE);
 				r ~= "(&" ~ a ~ ")";
-			} else {
+			} else { mixin(S_TRACE);
 				r = r[0 .. i] ~ "&" ~ r[i .. $];
 			}
 		}
-		if (m) {
+		if (m) { mixin(S_TRACE);
 			r ~= "...";
 		}
 		if (h.length) r ~= "\t" ~ h;
@@ -470,31 +470,31 @@ class MenuProps : Properties {
 	}
 	/// ditto
 	const
-	string buildMenuSample(in CProps prop, MenuID id) {
+	string buildMenuSample(in CProps prop, MenuID id) { mixin(S_TRACE);
 		return buildMenuSample(prop, id, _mnemonic[id], _hotkey[id]);
 	}
 	/// ditto
-	static string buildMenuSample(in CProps prop, MenuID id, string mnemonic, string hotkey) {
+	static string buildMenuSample(in CProps prop, MenuID id, string mnemonic, string hotkey) { mixin(S_TRACE);
 		string r = prop.msgs.menuText(id);
-		if (MenuID.StopBGM is id) {
+		if (MenuID.StopBGM is id) { mixin(S_TRACE);
 			// 唯一パラメータを持つメニューテキスト
 			r = .tryFormat(r, prop.msgs.bgm);
 		}
 		return buildMenuSample(r, mnemonic, hotkey, isPMenu(id));
 	}
 	/// ditto
-	static string buildMenuSample(string r, string mnemonic, string hotkey, bool m) {
+	static string buildMenuSample(string r, string mnemonic, string hotkey, bool m) { mixin(S_TRACE);
 		string a = mnemonic;
 		string h = hotkey;
-		if (a.length) {
+		if (a.length) { mixin(S_TRACE);
 			int i = r.indexOf(a, CaseSensitive.no);
-			if (-1 == i) {
+			if (-1 == i) { mixin(S_TRACE);
 				r ~= "(&" ~ a ~ ")";
-			} else {
+			} else { mixin(S_TRACE);
 				r = r[0 .. i] ~ "&" ~ r[i .. $];
 			}
 		}
-		if (m) {
+		if (m) { mixin(S_TRACE);
 			r ~= "...";
 		}
 		if (h.length) r ~= " " ~ h;
@@ -503,43 +503,43 @@ class MenuProps : Properties {
 
 	/// XMLノードとして取り扱うための関数群。
 	const
-	XNode toNode() {
+	XNode toNode() { mixin(S_TRACE);
 		auto e = XNode.create(XML_NAME);
 		toNodeImpl(e);
 		return e;
 	}
 	/// ditto
 	const
-	void toNode(ref XNode node) {
+	void toNode(ref XNode node) { mixin(S_TRACE);
 		auto e = node.newElement(XML_NAME);
 		toNodeImpl(e);
 	}
 	/// ditto
 	const
-	private void toNodeImpl(ref XNode e) {
-		foreach (id; EnumMembers!MenuID) {
+	private void toNodeImpl(ref XNode e) { mixin(S_TRACE);
+		foreach (id; EnumMembers!MenuID) { mixin(S_TRACE);
 			if (isNoKeyBindMenu(id)) continue;
 			string a = _mnemonic[id];
 			string h = _hotkey[id];
 			string ainit = _mnemonic_init[id];
 			string hinit = _hotkey_init[id];
-			if (a != ainit || h != hinit) {
+			if (a != ainit || h != hinit) { mixin(S_TRACE);
 				auto me = e.newElement("menuItem");
 				me.newAttr("name", enumToString(id));
-				if (a != ainit) {
+				if (a != ainit) { mixin(S_TRACE);
 					me.newAttr("mnemonic", a);
 				}
-				if (h != hinit) {
+				if (h != hinit) { mixin(S_TRACE);
 					me.newAttr("hotkey", h);
 				}
 			}
 		}
 	}
 	/// ditto
-	static MenuProps fromNode(ref XNode node) {
+	static MenuProps fromNode(ref XNode node) { mixin(S_TRACE);
 		auto r = new MenuProps;
-		node.onTag["menu"] = (ref XNode node) {
-			node.onTag["menuItem"] = (ref XNode me) {
+		node.onTag["menu"] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag["menuItem"] = (ref XNode me) { mixin(S_TRACE);
 				auto id = stringToEnum!MenuID(me.attr!string("name", true));
 				if (isNoKeyBindMenu(id)) return;
 				auto a = me.attr!string("mnemonic", false, null);
@@ -556,7 +556,7 @@ class MenuProps : Properties {
 
 /// 継続操作が必要なメニューか。
 /// 該当するメニューのテキストには"..."が付加される。
-bool isPMenu(MenuID id) {
+bool isPMenu(MenuID id) { mixin(S_TRACE);
 	switch (id) {
 	case MenuID.New:
 	case MenuID.Open:
@@ -591,12 +591,12 @@ bool isPMenu(MenuID id) {
 }
 
 /// キーバインドを設定できないメニュー。
-bool isNoKeyBindMenu(MenuID id) {
+bool isNoKeyBindMenu(MenuID id) { mixin(S_TRACE);
 	return id is MenuID.None;
 }
 
 /// CTypeGroupに対応するMenuIDを返す。
-MenuID cTypeGroupToMenuID(CTypeGroup g) {
+MenuID cTypeGroupToMenuID(CTypeGroup g) { mixin(S_TRACE);
 	final switch (g) {
 	case CTypeGroup.Terminal: return MenuID.CGroupTerminal;
 	case CTypeGroup.Standard: return MenuID.CGroupStandard;

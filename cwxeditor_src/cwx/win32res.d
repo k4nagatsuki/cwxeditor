@@ -2,6 +2,8 @@
 /// 恐らくWin64でも有効。
 module cwx.win32res;
 
+import cwx.perf;
+
 import std.algorithm;
 import std.conv;
 import std.exception;
@@ -24,13 +26,13 @@ version (Windows) {
 @property
 private ubyte[] le(T)(T val) if (isIntegral!T) {
 	auto arr = new ubyte[T.sizeof];
-	version(BigEndian) {
-		foreach_reverse (i; 0..T.sizeof) {
+	version(BigEndian) { mixin(S_TRACE);
+		foreach_reverse (i; 0..T.sizeof) { mixin(S_TRACE);
 			arr[i] = val & 0xFF;
 			val >>>= 8;
 		}
-	} else {
-		foreach (i; 0..T.sizeof) {
+	} else { mixin(S_TRACE);
+		foreach (i; 0..T.sizeof) { mixin(S_TRACE);
 			arr[i] = val & 0xFF;
 			val >>>= 8;
 		}
@@ -39,17 +41,17 @@ private ubyte[] le(T)(T val) if (isIntegral!T) {
 }
 
 @property
-private auto le(T)(in ubyte[] arr, size_t start = 0) {
+private auto le(T)(in ubyte[] arr, size_t start = 0) { mixin(S_TRACE);
 	version (BigEndian) {
 		return cast(T)0.reduce!("cast(" ~ T.stringof ~ ")((a << 8) | b)")(arr[start..start+T.sizeof]);
-	} else {
+	} else { mixin(S_TRACE);
 		T t = 0;
-		foreach (i; 0..T.sizeof) {
+		foreach (i; 0..T.sizeof) { mixin(S_TRACE);
 			t |= arr[start+i] << i * 8;
 		}
 		return t;
 	}
-} unittest {
+} unittest { mixin(S_TRACE);
 	assert ([0x15, 0xcd, 0x5b, 0x07].le!uint == 123456789);
 }
 
@@ -102,45 +104,45 @@ struct ResID {
 
 	@property
 	const
-	const(wchar)* lpcwstr() {
-		if (nameIsString) {
+	const(wchar)* lpcwstr() { mixin(S_TRACE);
+		if (nameIsString) { mixin(S_TRACE);
 			return name.toUTFz!(wchar*)();
-		} else {
+		} else { mixin(S_TRACE);
 			return cast(typeof(return))id;
 		}
 	}
 
 	const
-	hash_t toHash() {
+	hash_t toHash() { mixin(S_TRACE);
 		hash_t hash = 0;
-		foreach (c; name) {
+		foreach (c; name) { mixin(S_TRACE);
 			hash = hash * 37 + c;
 		}
 		hash = hash * 37 + id;
 		return hash;
 	}
 	const
-	bool opEquals(ref const ResID res) {
+	bool opEquals(ref const ResID res) { mixin(S_TRACE);
 		return nameIsString == res.nameIsString
 			&& name == res.name
 			&& id == res.id;
 	}
 	const
-	int opCmp(ref const ResID res) {
-		if (nameIsString == res.nameIsString) {
+	int opCmp(ref const ResID res) { mixin(S_TRACE);
+		if (nameIsString == res.nameIsString) { mixin(S_TRACE);
 			return name.cmp(res.name);
-		} else {
+		} else { mixin(S_TRACE);
 			if (id < res.id) return -1;
 			if (id > res.id) return 1;
 			return 0;
 		}
 	}
 	const
-	string toString() {
-		if (nameIsString) {
+	string toString() { mixin(S_TRACE);
+		if (nameIsString) { mixin(S_TRACE);
 			return name;
 		}
-		if (ResType.min <= id && id <= ResType.max) {
+		if (ResType.min <= id && id <= ResType.max) { mixin(S_TRACE);
 			return "%s(%d)".format(.text(cast(ResType)id), id);
 		}
 		return id.text();
@@ -153,14 +155,14 @@ struct Win32Res {
 	}
 	private const(ubyte)[][ResID][ResID] _table;
 
-	this (string file) {
+	this (string file) { mixin(S_TRACE);
 		laodResModule(file);
 	}
-	~this () {
+	~this () { mixin(S_TRACE);
 		dispose();
 	}
 
-	void laodResModule(string file) {
+	void laodResModule(string file) { mixin(S_TRACE);
 		dispose();
 
 		version (Windows) {
@@ -189,9 +191,9 @@ struct Win32Res {
 		data = data[sizeOfOptHead..$];
 		uint resSize = 0;
 		uint resAddr = 0;
-		foreach (i; 0..numOfSec) {
+		foreach (i; 0..numOfSec) { mixin(S_TRACE);
 			auto rva = data[12..$].le!uint;
-			if (".rsrc" == data[0..5] || resAddrRVA == rva) {
+			if (".rsrc" == data[0..5] || resAddrRVA == rva) { mixin(S_TRACE);
 				resAddrRVA = rva;
 				resSize = data[16..$].le!uint;
 				resAddr = data[20..$].le!uint;
@@ -206,7 +208,7 @@ struct Win32Res {
 		auto numberOfNameEntries = data[12..$].le!ushort;
 		auto numberOfIDEntries = data[14..$].le!ushort;
 		data = data[16..$];
-		foreach (i; 0..numberOfNameEntries+numberOfIDEntries) {
+		foreach (i; 0..numberOfNameEntries+numberOfIDEntries) { mixin(S_TRACE);
 			// IMAGE_RESOURCE_DIRECTORY_ENTRY (Frame 1)
 			auto w1 = data[0..$].le!uint;
 			auto w2 = data[4..$].le!uint;
@@ -219,7 +221,7 @@ struct Win32Res {
 			numberOfNameEntries = data2[12..$].le!ushort;
 			numberOfIDEntries = data2[14..$].le!ushort;
 			data2 = data2[16..$];
-			foreach (j; 0..numberOfNameEntries+numberOfIDEntries) {
+			foreach (j; 0..numberOfNameEntries+numberOfIDEntries) { mixin(S_TRACE);
 				// IMAGE_RESOURCE_DIRECTORY_ENTRY (Frame 2)
 				w1 = data2[0..$].le!uint;
 				w2 = data2[4..$].le!uint;
@@ -251,33 +253,33 @@ struct Win32Res {
 		}
 	}
 
-	private static ResID resName(in ubyte[] base, uint resAddr, uint w1) {
-		if (w1 & 0x80000000) {
+	private static ResID resName(in ubyte[] base, uint resAddr, uint w1) { mixin(S_TRACE);
+		if (w1 & 0x80000000) { mixin(S_TRACE);
 			// Name is String
 			auto offset = (w1 & ~0x80000000) + resAddr;
 			auto len = base[offset..$].le!ushort;
 			// wide chars
 			auto wstr = cast(const(wchar)[])base[(offset+2)..(offset+2)+(len*2)];
 			return ResID(wstr.text());
-		} else {
+		} else { mixin(S_TRACE);
 			// ID
 			return ResID(w1);
 		}
 	}
 
-	void dispose() {
+	void dispose() { mixin(S_TRACE);
 		_table = typeof(_table).init;
 		version (Windows) {
-			if (_winhandle) {
+			if (_winhandle) { mixin(S_TRACE);
 				FreeLibrary(_winhandle);
 				_winhandle = null;
 			}
 		}
 	}
 
-	const(ubyte)[] getRCData(in ResID type, in ResID name) {
+	const(ubyte)[] getRCData(in ResID type, in ResID name) { mixin(S_TRACE);
 		version (Windows) {
-			if (_winhandle) {
+			if (_winhandle) { mixin(S_TRACE);
 				auto hsrc = FindResourceW(_winhandle, name.lpcwstr, type.lpcwstr);
 				if (!hsrc) return null;
 				auto size = SizeofResource(_winhandle, hsrc);
@@ -292,7 +294,7 @@ struct Win32Res {
 		return _table.get(type, typeof(_table[ResID("")]).init).get(name, null);
 	}
 
-	const(ubyte)[] getBitmap(in ResID name) {
+	const(ubyte)[] getBitmap(in ResID name) { mixin(S_TRACE);
 		static immutable BITMAPFILEHEADER_SIZE = 14;
 		static immutable RGBQUAD_SIZE = 4;
 
@@ -306,7 +308,7 @@ struct Win32Res {
 		auto clrUsed = data[32..$].le!uint;
 
 		// calclates data offset
-		if (0 == clrUsed) {
+		if (0 == clrUsed) { mixin(S_TRACE);
 			switch (bitCount) {
 			case 1:
 				headerSize += RGBQUAD_SIZE * (0x01 << 1);
@@ -320,7 +322,7 @@ struct Win32Res {
 			default:
 				.enforce(false);
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			headerSize += RGBQUAD_SIZE * clrUsed;
 		}
 		headerSize += BITMAPFILEHEADER_SIZE;

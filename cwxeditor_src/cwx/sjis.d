@@ -19,13 +19,13 @@ private wstring SJIS_UNICODE = "\u0000\u0000\u0001\u0001\u0002\u0002\u0003\u0003
 
 private wchar[] SJIS_UNI, UNI_SJIS;
 
-private void init() {
-	synchronized {
+private void init() { mixin(S_TRACE);
+	synchronized { mixin(S_TRACE);
 		if (SJIS_UNI.length) return;
 	}
 	SJIS_UNI.length = 64588;
 	UNI_SJIS.length = 65510;
-	for (size_t i = 0; i < SJIS_UNICODE.length; i += 2) {
+	for (size_t i = 0; i < SJIS_UNICODE.length; i += 2) { mixin(S_TRACE);
 		wchar sjis = SJIS_UNICODE[i];
 		wchar uni = SJIS_UNICODE[i + 1];
 		SJIS_UNI[sjis] = uni;
@@ -45,14 +45,14 @@ enum CP {
 }
 
 /// CPに対してcが妥当な文字であればtrue。
-bool valid(CP CPage)(dchar c) {
+bool valid(CP CPage)(dchar c) { mixin(S_TRACE);
 	init();
 	static if (CPage == CP.SJIS) {
 		return c < SJIS_UNI.length && SJIS_UNI[c] != 0xFFFF;
 	} else static if (CPage == CP.UNI) {
 		return std.utf.isValidDchar(c);
 	} else static assert (0);
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (valid!(CP.SJIS)(0xB1));
 	assert (!valid!(CP.SJIS)(0xFC4C));
@@ -62,24 +62,24 @@ bool valid(CP CPage)(dchar c) {
 }
 
 /// CP2の文字列をCP1に変換。
-char[] convTo(CP CP1, CP CP2)(in char[] s, bool throwError = true) {
+char[] convTo(CP CP1, CP CP2)(in char[] s, bool throwError = true) { mixin(S_TRACE);
 	static if (CP1 == CP2) {
 		return s;
-	} else {
+	} else { mixin(S_TRACE);
 		static if (CP1 == CP.SJIS) {
 			init();
 			static assert (CP2 == CP.UNI);
 			char[] buf;
 			buf.length = s.length;
 			size_t len = 0;
-			foreach (wchar c; s) {
+			foreach (wchar c; s) { mixin(S_TRACE);
 				wchar sc = UNI_SJIS[c];
-				if (sc == 0xFFFF) {
+				if (sc == 0xFFFF) { mixin(S_TRACE);
 					buf[len] = cast(char) 0x3F; // '?'
 					len++;
-				} else {
+				} else { mixin(S_TRACE);
 					char top = cast(char) (sc >> 8);
-					if (top) {
+					if (top) { mixin(S_TRACE);
 						buf[len] = top;
 						len++;
 					}
@@ -89,62 +89,62 @@ char[] convTo(CP CP1, CP CP2)(in char[] s, bool throwError = true) {
 			}
 			buf.length = len;
 			return buf;
-		} else {
+		} else { mixin(S_TRACE);
 			init();
 			static assert (CP1 == CP.UNI);
 			static assert (CP2 == CP.SJIS);
 			char[] buf;
 			buf.length = s.length * 3;
 			size_t len = 0;
-			void put(wchar c) {
-				if (c > 0x7FF) {
+			void put(wchar c) { mixin(S_TRACE);
+				if (c > 0x7FF) { mixin(S_TRACE);
 					buf[len] = cast(char) ((c >> 12) | 0xE0); len++;
 					buf[len] = cast(char) (((c >> 6) & 0x3F) | 0x80); len++;
 					buf[len] = cast(char) ((c & 0x3F) | 0x80); len++;
-				} else if (c > 0x7F) {
+				} else if (c > 0x7F) { mixin(S_TRACE);
 					buf[len] = cast(char) ((c >> 6) | 0xC0); len++;
 					buf[len] = cast(char) ((c & 0x3F) | 0x80); len++;
-				} else {
+				} else { mixin(S_TRACE);
 					buf[len] = cast(char) c; len++;
 				}
 			}
 			wchar cbuf = 0;
 			size_t count = 0;
-			foreach (char c; s) {
+			foreach (char c; s) { mixin(S_TRACE);
 				cbuf <<= 8;
 				cbuf |= c;
 				count++;
-				if (count >= 2) {
+				if (count >= 2) { mixin(S_TRACE);
 					wchar uc = SJIS_UNI[cbuf];
-					if (uc == 0xFFFF) {
+					if (uc == 0xFFFF) { mixin(S_TRACE);
 						uc = SJIS_UNI[cbuf >> 8];
-						if (uc == 0xFFFF) {
-							if (throwError) {
+						if (uc == 0xFFFF) { mixin(S_TRACE);
+							if (throwError) { mixin(S_TRACE);
 								throw new Exception("Invalid UTF character: 0x" ~ .format("%x", (cbuf >> 8)));
-							} else {
+							} else { mixin(S_TRACE);
 								put('?');
 							}
-						} else {
+						} else { mixin(S_TRACE);
 							put(uc);
 						}
 						cbuf &= 0xFF;
 						count--;
-					} else {
+					} else { mixin(S_TRACE);
 						put(uc);
 						count = 0;
 						cbuf = 0;
 					}
 				}
 			}
-			if (count >= 1) {
+			if (count >= 1) { mixin(S_TRACE);
 				wchar uc = SJIS_UNI[cbuf];
-				if (uc == 0xFFFF) {
-					if (throwError) {
+				if (uc == 0xFFFF) { mixin(S_TRACE);
+					if (throwError) { mixin(S_TRACE);
 						throw new Exception("Invalid UTF character: 0x" ~ .format("%x", cbuf));
-					} else {
+					} else { mixin(S_TRACE);
 						put('?');
 					}
-				} else {
+				} else { mixin(S_TRACE);
 					put(uc);
 				}
 			}
@@ -152,7 +152,7 @@ char[] convTo(CP CP1, CP CP2)(in char[] s, bool throwError = true) {
 			return buf;
 		}
 	}
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (convTo!(CP.UNI, CP.SJIS)(cast(char[]) [0x95, 0x5C, 0x8E, 0xA6]) == "表示");
 	assert (convTo!(CP.SJIS, CP.UNI)("表示") == cast(char[]) [0x95, 0x5C, 0x8E, 0xA6]);
@@ -164,23 +164,23 @@ char[] convTo(CP CP1, CP CP2)(in char[] s, bool throwError = true) {
 }
 
 /// UTF-8文字列をShift JISに変換。
-string tosjis(in char[] s, bool throwError = true) {
+string tosjis(in char[] s, bool throwError = true) { mixin(S_TRACE);
 	auto r = tosjism(s, throwError);
 	return assumeUnique(r);
 }
 alias convTo!(CP.SJIS, CP.UNI) tosjism;
 /// Shift JIS文字列をUTF-8に変換。
-string touni(in char[] s, bool throwError = true) {
+string touni(in char[] s, bool throwError = true) { mixin(S_TRACE);
 	auto r = tounim(s, throwError);
 	return assumeUnique(r);
 }
 alias convTo!(CP.UNI, CP.SJIS) tounim;
 
 /// UTF-8文字列を0終端のShift JIS文字列に変換。
-const(char)* tosjisz(in char[] s, bool throwError = true) {
+const(char)* tosjisz(in char[] s, bool throwError = true) { mixin(S_TRACE);
 	return (tosjis(s.dup, throwError) ~ '\0').ptr;
 }
 /// ditto
-char* tosjismz(in char[] s, bool throwError = true) {
+char* tosjismz(in char[] s, bool throwError = true) { mixin(S_TRACE);
 	return (tosjism(s.dup, throwError) ~ '\0').ptr;
 }

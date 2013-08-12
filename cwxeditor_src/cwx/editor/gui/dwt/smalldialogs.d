@@ -54,39 +54,39 @@ private:
 	string _dirVal;
 	bool _classic = false;
 
-	void enabledClassicDir() {
+	void enabledClassicDir() { mixin(S_TRACE);
 		_dir.setEnabled(legacy);
 		_dirRef.setEnabled(legacy);
 		_createScDir.setEnabled(legacy);
 	}
-	void refSkinVal() {
-		if (_skinC.getSelectionIndex() == _skinC.getItemCount() - 1) {
+	void refSkinVal() { mixin(S_TRACE);
+		if (_skinC.getSelectionIndex() == _skinC.getItemCount() - 1) { mixin(S_TRACE);
 			_skinVal = "";
-		} else {
+		} else { mixin(S_TRACE);
 			_skinVal = _skinC.getText();
 		}
 	}
-	void refClassic() {
+	void refClassic() { mixin(S_TRACE);
 		refSkinVal();
 		scope (exit) enabledClassicDir();
-		if (_baseTemplate.getSelection()) {
+		if (_baseTemplate.getSelection()) { mixin(S_TRACE);
 			string tPath = _tTbl[_templateC.getSelectionIndex()].path;
-			if (!.exists(tPath)) {
+			if (!.exists(tPath)) { mixin(S_TRACE);
 				_classic = false;
-			} else {
+			} else { mixin(S_TRACE);
 				auto p = tPath in _isClassic;
-				if (p) {
+				if (p) { mixin(S_TRACE);
 					_classic = *p;
-				} else {
+				} else { mixin(S_TRACE);
 					bool r;
-					if (.isDir(tPath)) {
+					if (.isDir(tPath)) { mixin(S_TRACE);
 						r = tPath.buildPath("Summary.wsm").exists();
-					} else if (.fnstartsWith(tPath.baseName(), "Summary")) {
+					} else if (.fnstartsWith(tPath.baseName(), "Summary")) { mixin(S_TRACE);
 						r = tPath.baseName().cfnmatch("Summary.wsm");
-					} else {
-						if (.extension(tPath).cfnmatch(".cab") && canUncab) {
+					} else { mixin(S_TRACE);
+						if (.extension(tPath).cfnmatch(".cab") && canUncab) { mixin(S_TRACE);
 							r = cabHasFile(tPath, "Summary.wsm");
-						} else {
+						} else { mixin(S_TRACE);
 							r = zipHasFile(tPath, "Summary.wsm");
 						}
 					}
@@ -94,12 +94,12 @@ private:
 					_classic = r;
 				}
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			_classic = skin.length == 0;
 		}
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, bool currentWin) {
+	this (Commons comm, Props prop, Shell shell, bool currentWin) { mixin(S_TRACE);
 		_comm = comm;
 		_prop = prop;
 		_useTemplate = currentWin;
@@ -110,39 +110,39 @@ public:
 	}
 
 	@property
-	string name() {
+	string name() { mixin(S_TRACE);
 		return _nameVal;
 	}
 	@property
-	string skin() {
+	string skin() { mixin(S_TRACE);
 		return _skinVal;
 	}
 	@property
-	Summary fromTemplate() {
+	Summary fromTemplate() { mixin(S_TRACE);
 		return _fromTemplate;
 	}
 	@property
-	bool legacy() {
+	bool legacy() { mixin(S_TRACE);
 		return _classic;
 	}
 	@property
-	string classicDir() {
+	string classicDir() { mixin(S_TRACE);
 		auto dir = nabs(_prop.toAppAbs(_dirVal));
-		if (_prop.var.etc.createScenarioDir) {
+		if (_prop.var.etc.createScenarioDir) { mixin(S_TRACE);
 			dir = dir.buildPath(toFileName(name)).createNewFileName(true);
 		}
 		return dir;
 	}
 
-	static string createClassicDir(Props prop, Shell parent) {
+	static string createClassicDir(Props prop, Shell parent) { mixin(S_TRACE);
 		auto dlg = new DirectoryDialog(parent);
 		dlg.setText(prop.msgs.newClassicDir);
 		dlg.setMessage(prop.msgs.newClassicDirDesc);
 		dlg.setFilterPath(prop.var.etc.scenarioPath);
-		while (true) {
+		while (true) { mixin(S_TRACE);
 			auto path = dlg.open();
-			if (path) {
-				if (clistdir(path).length) {
+			if (path) { mixin(S_TRACE);
+				if (clistdir(path).length) { mixin(S_TRACE);
 					auto q = new MessageBox(parent, SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
 					q.setText(prop.msgs.dlgTitQuestion);
 					q.setMessage(.tryFormat(prop.msgs.notEmptyDir, path));
@@ -156,13 +156,13 @@ public:
 		return null;
 	}
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 		cl.fillHorizontal = true;
 		area.setLayout(cl);
 		auto comp = new Composite(area, SWT.NONE);
 		comp.setLayout(new GridLayout(1, true));
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.scenarioName);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -174,13 +174,13 @@ protected:
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_name.setLayoutData(gd);
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.initialize);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new GridLayout(2, false));
 
-			void refRadio() {
+			void refRadio() { mixin(S_TRACE);
 				_skinC.setEnabled(_baseSkin.getSelection());
 				_templateC.setEnabled(_baseTemplate.getSelection());
 				enabledClassicDir();
@@ -192,20 +192,20 @@ protected:
 			_skinC = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			_skinC.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			string[] skins;
-			foreach (key, value; skinTable(_prop)) {
+			foreach (key, value; skinTable(_prop)) { mixin(S_TRACE);
 				skins ~= key;
 			}
 			// FIXME: リンクに失敗する
 //			auto skins = skinTable(_prop).keys;
-			if (_prop.var.etc.logicalSort) {
+			if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
 				skins = sort!(ncmp)(skins);
-			} else {
+			} else { mixin(S_TRACE);
 				skins = sort!(cmp)(skins);
 			}
-			foreach (type; skins) {
+			foreach (type; skins) { mixin(S_TRACE);
 				_skinC.add(type);
 			}
-			if (!_skinC.getItemCount()) {
+			if (!_skinC.getItemCount()) { mixin(S_TRACE);
 				// スキンが無い
 				_skinC.add(_prop.var.etc.defaultSkin);
 			}
@@ -222,9 +222,9 @@ protected:
 			auto tgd = new GridData(GridData.FILL_HORIZONTAL);
 			tgd.widthHint = 0;
 			_templateC.setLayoutData(tgd);
-			foreach (i, sct; _prop.var.etc.scenarioTemplates) {
+			foreach (i, sct; _prop.var.etc.scenarioTemplates) { mixin(S_TRACE);
 				_templateC.add(.tryFormat(_prop.msgs.templateDesc, sct.name, sct.path));
-				if (cfnmatch(sct.path, _prop.var.etc.defaultScenarioTemplate)) {
+				if (cfnmatch(sct.path, _prop.var.etc.defaultScenarioTemplate)) { mixin(S_TRACE);
 					_templateC.select(i);
 				}
 				_tTbl[i] = sct;
@@ -243,21 +243,21 @@ protected:
 			.listener(_baseTemplate, SWT.Selection, &refClassic);
 			.listener(_templateC, SWT.Selection, &refClassic);
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.createClassicDir);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new GridLayout(3, false));
 
 			_dir = new Text(grp, SWT.BORDER);
-			.listener(_dir, SWT.Modify, {
+			.listener(_dir, SWT.Modify, { mixin(S_TRACE);
 				_dirVal = _dir.getText();
 			});
 			createTextMenu!Text(_comm, _prop, _dir, &catchMod);
 			_dir.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			_dirRef = new Button(grp, SWT.PUSH);
 			_dirRef.setText(_prop.msgs.reference);
-			.listener(_dirRef, SWT.Selection, {
+			.listener(_dirRef, SWT.Selection, { mixin(S_TRACE);
 				selectDir(_prop, _dir, _prop.msgs.newClassicDir, _prop.msgs.newClassicDirDesc, _dir.getText());
 			});
 			_dirOpen = createOpenButton(_comm, grp, {return _prop.toAppAbs(_dir.getText());}, true);
@@ -267,7 +267,7 @@ protected:
 			auto gd = new GridData;
 			gd.horizontalSpan = 3;
 			_createScDir.setLayoutData(gd);
-			.listener(_createScDir, SWT.Selection, {
+			.listener(_createScDir, SWT.Selection, { mixin(S_TRACE);
 				_prop.var.etc.createScenarioDir = _createScDir.getSelection();
 			});
 
@@ -280,31 +280,31 @@ protected:
 		refClassic();
 	}
 
-	override bool close(bool ok, out bool cancel) {
-		if (ok) {
+	override bool close(bool ok, out bool cancel) { mixin(S_TRACE);
+		if (ok) { mixin(S_TRACE);
 			_nameVal = _name.getText();
 			if (!_nameVal.length) _nameVal = _prop.msgs.newScenarioName;
 
 			auto dir = classicDir;
-			if (legacy) {
-				if (dir.exists() && clistdir(dir).length) {
+			if (legacy) { mixin(S_TRACE);
+				if (dir.exists() && clistdir(dir).length) { mixin(S_TRACE);
 					auto q = new MessageBox(getShell(), SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
 					q.setText(_prop.msgs.dlgTitQuestion);
 					q.setMessage(.tryFormat(_prop.msgs.notEmptyDir, dir));
-					if (SWT.OK != q.open()) {
+					if (SWT.OK != q.open()) { mixin(S_TRACE);
 						cancel = true;
 						return false;
 					}
 				}
 			}
 
-			if (_baseTemplate.getSelection()) {
+			if (_baseTemplate.getSelection()) { mixin(S_TRACE);
 				Summary summ = null;
 				string tPath = _tTbl[_templateC.getSelectionIndex()].path;
-				if (!.exists(tPath)) {
+				if (!.exists(tPath)) { mixin(S_TRACE);
 					if (!dir.exists()) mkdirRecurse(dir);
 					summ = new Summary(_nameVal, skin, dir, false, true);
-				} else if (.isDir(tPath) && !tPath.buildPath("Summary.wsm").exists && !tPath.buildPath("Summary.xml").exists) {
+				} else if (.isDir(tPath) && !tPath.buildPath("Summary.wsm").exists && !tPath.buildPath("Summary.xml").exists) { mixin(S_TRACE);
 					auto cursors = setWaitCursors(topShell(getShell()));
 					scope (exit) {
 						resetCursors(cursors);
@@ -312,12 +312,12 @@ protected:
 					// 非シナリオのディレクトリをベースとする
 					summ = Summary.createScenario(_prop.sys, _prop.tempPath, name, findSkin2(_prop, skin));
 					tPath.copyAll(summ.scenarioPath);
-				} else {
+				} else { mixin(S_TRACE);
 					auto cursors = setWaitCursors(topShell(getShell()));
 					scope (exit) {
 						resetCursors(cursors);
 					}
-					try {
+					try { mixin(S_TRACE);
 						LoadOption opt;
 						opt.cardOnly = false;
 						opt.textOnly = false;
@@ -329,8 +329,8 @@ protected:
 						debugln(e);
 					}
 				}
-				if (ok) {
-					if (!summ) {
+				if (ok) { mixin(S_TRACE);
+					if (!summ) { mixin(S_TRACE);
 						summ = Summary.createScenario(_prop.sys, _prop.tempPath, name, findSkin2(_prop, skin));
 					}
 					summ.setBaseParams(name, _prop.var.etc.defaultAuthor);
@@ -338,7 +338,7 @@ protected:
 					_prop.var.etc.defaultIsTemplate = true;
 					_fromTemplate = summ;
 				}
-			} else if (ok) {
+			} else if (ok) { mixin(S_TRACE);
 				_prop.var.etc.defaultIsTemplate = false;
 			}
 		}
@@ -352,13 +352,13 @@ private:
 	Props _prop;
 
 	class OpenLink : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto prog = Program.findProgram("html");
 			if (prog) prog.execute(e.text);
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell) {
+	this(Commons comm, Props prop, Shell shell) { mixin(S_TRACE);
 		super(prop, shell, true, prop.msgs.dlgTitVersion, prop.images.menu(MenuID.VersionInfo), false, null, false, false);
 		_comm = comm;
 		_prop = prop;
@@ -366,7 +366,7 @@ public:
 		firstFocusIsOK = true;
 	}
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		auto gl = new GridLayout(2, false);
 		gl.marginWidth = 10;
 		gl.horizontalSpacing = 15;
@@ -380,7 +380,7 @@ protected:
 		gd.heightHint = rect.height;
 		gd.verticalSpan = 2;
 		img.setLayoutData(gd);
-		{
+		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			comp.setLayout(zeroGridLayout(1, true));
@@ -404,7 +404,7 @@ class ErrorDialog : AbsDialog {
 	private Props _prop;
 	private string _desc;
 
-	this (Commons comm, Props prop, Shell shell, string desc) {
+	this (Commons comm, Props prop, Shell shell, string desc) { mixin(S_TRACE);
 		auto size = new class DSize {
 			void width(int v) {}
 			void height(int v) {}
@@ -418,13 +418,13 @@ class ErrorDialog : AbsDialog {
 		_desc = desc;
 	}
 
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		auto d = area.getDisplay();
 		auto gl = new GridLayout(2, false);
 		gl.horizontalSpacing = 0;
 		area.setLayout(gl);
 
-		{
+		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
 			auto cgl = new GridLayout(1, true);
 			cgl.marginWidth = 10;
@@ -436,15 +436,15 @@ class ErrorDialog : AbsDialog {
 		auto l = new Link(area, SWT.WRAP);
 		l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		l.setText(.tryFormat(_prop.msgs.unknownError, "<a>" ~ nabs(cwx.utils.debugLog) ~ "</a>"));
-		.listener(l, SWT.Selection, (Event e) {
+		.listener(l, SWT.Selection, (Event e) { mixin(S_TRACE);
 			auto prog = Program.findProgram("log");
-			if (prog) {
+			if (prog) { mixin(S_TRACE);
 				prog.execute(e.text);
-			} else {
+			} else { mixin(S_TRACE);
 				prog = Program.findProgram("txt");
-				if (prog) {
+				if (prog) { mixin(S_TRACE);
 					prog.execute(e.text);
-				} else {
+				} else { mixin(S_TRACE);
 					openFolder(cwx.utils.debugLog.dirName());
 				}
 			}
@@ -469,7 +469,7 @@ private:
 
 	ulong _newId;
 public:
-	this (Props prop, Shell shell, A area, ulong minId) {
+	this (Props prop, Shell shell, A area, ulong minId) { mixin(S_TRACE);
 		_prop = prop;
 		_area = area;
 		_minId = minId;
@@ -478,13 +478,13 @@ public:
 	}
 
 	@property
-	ulong newId() {
+	ulong newId() { mixin(S_TRACE);
 		return _newId;
 	}
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(new GridLayout(1, false));
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setText(_prop.msgs.reNumbering);
@@ -502,8 +502,8 @@ protected:
 			l2.setText(.tryFormat(_prop.msgs.reNumbering2, cName, _area.name));
 		}
 	}
-	override bool close(bool ok) {
-		if (ok) {
+	override bool close(bool ok) { mixin(S_TRACE);
+		if (ok) { mixin(S_TRACE);
 			_newId = _id.getSelection();
 		}
 		return ok;
@@ -544,77 +544,77 @@ private:
 
 	Content[] _contents;
 
-	void editEnd(TableItem itm, int column, string text) {
+	void editEnd(TableItem itm, int column, string text) { mixin(S_TRACE);
 		int i = _editor.getSelectionIndex();
 		auto row = itm.getParent().indexOf(itm);
-		if (-1 == i) {
+		if (-1 == i) { mixin(S_TRACE);
 			_values[row] = text;
-		} else {
+		} else { mixin(S_TRACE);
 			_values[row] = _editorTable[i];
 		}
 		itm.setText(column, _values[row]);
 	}
-	Control createEditor(TableItem itm, int column) {
+	Control createEditor(TableItem itm, int column) { mixin(S_TRACE);
 		string[] strs;
 		_editorTable.length = 0;
 		strs ~= "true";
 		_editorTable ~= "true";
 		strs ~= "false";
 		_editorTable ~= "false";
-		if (_summ) {
-			foreach (f; _summ.flagDirRoot.allFlags) {
+		if (_summ) { mixin(S_TRACE);
+			foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
 				strs ~= objName!(typeof(f))(_comm.prop) ~ " - " ~ f.path;
 				_editorTable ~= CWXScript.createString(f.path);
 			}
-			foreach (f; _summ.flagDirRoot.allSteps) {
+			foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
 				strs ~= objName!(typeof(f))(_comm.prop) ~ " - " ~ f.path;
 				_editorTable ~= CWXScript.createString(f.path);
 			}
-			foreach (a; _summ.areas) {
+			foreach (a; _summ.areas) { mixin(S_TRACE);
 				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
 				_editorTable ~= .text(a.id);
 			}
-			foreach (a; _summ.battles) {
+			foreach (a; _summ.battles) { mixin(S_TRACE);
 				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
 				_editorTable ~= .text(a.id);
 			}
-			foreach (a; _summ.packages) {
+			foreach (a; _summ.packages) { mixin(S_TRACE);
 				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
 				_editorTable ~= .text(a.id);
 			}
-			foreach (a; _summ.casts) {
+			foreach (a; _summ.casts) { mixin(S_TRACE);
 				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
 				_editorTable ~= .text(a.id);
 			}
-			foreach (a; _summ.skills) {
+			foreach (a; _summ.skills) { mixin(S_TRACE);
 				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
 				_editorTable ~= .text(a.id);
 			}
-			foreach (a; _summ.items) {
+			foreach (a; _summ.items) { mixin(S_TRACE);
 				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
 				_editorTable ~= .text(a.id);
 			}
-			foreach (a; _summ.beasts) {
+			foreach (a; _summ.beasts) { mixin(S_TRACE);
 				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
 				_editorTable ~= .text(a.id);
 			}
-			foreach (a; _summ.infos) {
+			foreach (a; _summ.infos) { mixin(S_TRACE);
 				strs ~= objName!(typeof(a))(_comm.prop) ~ " - " ~ .text(a.id) ~ "." ~ a.name;
 				_editorTable ~= .text(a.id);
 			}
-			foreach (a; _summ.useCounter.coupon.keys.sort) {
+			foreach (a; _summ.useCounter.coupon.keys.sort) { mixin(S_TRACE);
 				strs ~= _comm.prop.msgs.coupon ~ " - " ~ a;
 				_editorTable ~= CWXScript.createString(a);
 			}
-			foreach (a; _summ.useCounter.gossip.keys.sort) {
+			foreach (a; _summ.useCounter.gossip.keys.sort) { mixin(S_TRACE);
 				strs ~= _comm.prop.msgs.gossip ~ " - " ~ a;
 				_editorTable ~= CWXScript.createString(a);
 			}
-			foreach (a; _summ.useCounter.completeStamp.keys.sort) {
+			foreach (a; _summ.useCounter.completeStamp.keys.sort) { mixin(S_TRACE);
 				strs ~= _comm.prop.msgs.completeStamp ~ " - " ~ a;
 				_editorTable ~= CWXScript.createString(a);
 			}
-			foreach (p; _summ.allMaterials(_comm.skin, _comm.prop.var.etc.ignorePaths, _comm.prop.var.etc.logicalSort, false)) {
+			foreach (p; _summ.allMaterials(_comm.skin, _comm.prop.var.etc.ignorePaths, _comm.prop.var.etc.logicalSort, false)) { mixin(S_TRACE);
 				strs ~= _comm.prop.msgs.material ~ " - " ~ p;
 				_editorTable ~= CWXScript.createString(p);
 			}
@@ -624,7 +624,7 @@ private:
 	}
 
 public:
-	this (Commons comm, Summary summ, Shell shell, in string[] vars, string script, string base, in CompileOption opt) {
+	this (Commons comm, Summary summ, Shell shell, in string[] vars, string script, string base, in CompileOption opt) { mixin(S_TRACE);
 		_comm = comm;
 		_summ = summ;
 		_vars = vars;
@@ -638,11 +638,11 @@ public:
 	}
 
 	@property
-	Content[] contents() {
+	Content[] contents() { mixin(S_TRACE);
 		return _contents;
 	}
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(new GridLayout(1, false));
 
 		auto grp = new Group(area, SWT.NONE);
@@ -661,7 +661,7 @@ protected:
 		auto valueCol = new FullTableColumn(_table, SWT.NONE);
 		valueCol.column.setText(_comm.prop.msgs.scriptVarValueColumn);
 
-		foreach (var; _vars) {
+		foreach (var; _vars) { mixin(S_TRACE);
 			auto itm = new TableItem(_table, SWT.NONE);
 			itm.setText(var);
 		}
@@ -669,12 +669,12 @@ protected:
 
 		new TableTextEdit(_comm, _comm.prop, _table, 1, &editEnd, null, &createEditor);
 	}
-	override bool close(bool ok, out bool cancel) {
-		if (ok) {
+	override bool close(bool ok, out bool cancel) { mixin(S_TRACE);
+		if (ok) { mixin(S_TRACE);
 			CompileOption opt = _opt;
-			try {
+			try { mixin(S_TRACE);
 				VarSet[] varTable;
-				foreach (i, var; _vars) {
+				foreach (i, var; _vars) { mixin(S_TRACE);
 					varTable ~= VarSet(var, _values[i]);
 				}
 				_contents = cwx.script.compile(_comm.prop.parent, _summ, CWXScript.pushVars(_script, varTable, opt), opt);

@@ -29,7 +29,7 @@ class ImageListWindow(MtType Type) {
 
 	private void delegate(string) _selection;
 
-	this (Props prop, Commons comm, Summary summ, Shell parent, void delegate(string) selection) {
+	this (Props prop, Commons comm, Summary summ, Shell parent, void delegate(string) selection) { mixin(S_TRACE);
 		_prop = prop;
 		_comm = comm;
 		_summ = summ;
@@ -43,13 +43,13 @@ class ImageListWindow(MtType Type) {
 			auto s = _prop.looks.cardSize;
 			_list.init(s.width, s.height, &createImage);
 			_list.mask = true;
-		} else {
+		} else { mixin(S_TRACE);
 			_list.init(_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, &createImage);
 		}
 		_list.addMouseListener(new MouseDown);
 	}
 	private class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			auto size = _shl.getSize();
 			_prop.var.etc.imageListWidth = size.x;
 			_prop.var.etc.imageListHeight = size.y;
@@ -61,7 +61,7 @@ class ImageListWindow(MtType Type) {
 	@property
 	ImageList widget() {return _list;}
 
-	private ImageData createImage(string path, bool mask) {
+	private ImageData createImage(string path, bool mask) { mixin(S_TRACE);
 		bool def;
 		auto imgPath = _comm.skin.findPathF(path, defExt, defDir, _summ ? _summ.scenarioPath : "", def);
 		return loadImage(imgPath, mask);
@@ -78,7 +78,7 @@ class ImageListWindow(MtType Type) {
 		private string defDir() {return _comm.skin.tableDir;}
 	}
 
-	void images(string dir, string[] path) {
+	void images(string dir, string[] path) { mixin(S_TRACE);
 		if (_shl.isVisible()) _shl.setRedraw(false);
 		scope (exit) {
 			if (_shl.isVisible()) _shl.setRedraw(true);
@@ -89,7 +89,7 @@ class ImageListWindow(MtType Type) {
 		_list.add(path);
 	}
 	@property
-	void select(string path) {
+	void select(string path) { mixin(S_TRACE);
 		_list.select(path);
 		_list.showSelection();
 	}
@@ -98,10 +98,10 @@ class ImageListWindow(MtType Type) {
 	void mask(bool mask) {_list.mask = mask;}
 
 	private class MouseDown : MouseAdapter {
-		override void mouseDown(MouseEvent e) {
+		override void mouseDown(MouseEvent e) { mixin(S_TRACE);
 			if (1 != e.button) return;
 			int i = _list.indexOf(e.x, e.y);
-			if (-1 != i) {
+			if (-1 != i) { mixin(S_TRACE);
 				_selection(_list.path(i));
 			}
 			_shl.close();
@@ -122,7 +122,7 @@ class ImageList : Composite {
 
 	private bool _showSelection = false;
 
-	this (Composite parent, int style) {
+	this (Composite parent, int style) { mixin(S_TRACE);
 		super (parent, style | SWT.V_SCROLL | SWT.DOUBLE_BUFFERED);
 		addControlListener(new Resize);
 		addPaintListener(new Paint);
@@ -130,7 +130,7 @@ class ImageList : Composite {
 		setForeground(getDisplay().getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 		setBackground(getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
 	}
-	void init(int imgW, int imgH, ImageData delegate(string path, bool mask) createImage) {
+	void init(int imgW, int imgH, ImageData delegate(string path, bool mask) createImage) { mixin(S_TRACE);
 		_imgW = imgW;
 		_imgH = imgH;
 		_createImage = createImage;
@@ -138,7 +138,7 @@ class ImageList : Composite {
 		auto vs = getVerticalBar();
 		vs.setIncrement(_imgH / 4);
 	}
-	private int calcCountPerLine() {
+	private int calcCountPerLine() { mixin(S_TRACE);
 		auto ca = getClientArea();
 
 		int w = SPACING + _imgW;
@@ -146,7 +146,7 @@ class ImageList : Composite {
 		if (ca.width % w < SPACING) countPerLine--;
 		return max(1, countPerLine);
 	}
-	private void calcScrollParams() {
+	private void calcScrollParams() { mixin(S_TRACE);
 		auto ca = getClientArea();
 		auto vs = getVerticalBar();
 		vs.setPageIncrement(max(vs.getIncrement(), ca.height / 2));
@@ -165,50 +165,50 @@ class ImageList : Composite {
 	}
 
 	private class MouseMove : MouseMoveListener {
-		override void mouseMove(MouseEvent e) {
+		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
 			int i = indexOf(e.x, e.y);
-			if (-1 == i) {
+			if (-1 == i) { mixin(S_TRACE);
 				setCursor(null);
 				setToolTipText("");
-			} else {
+			} else { mixin(S_TRACE);
 				setCursor(getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 				setToolTipText(_path[i]);
 			}
 		}
 	}
 	private class Redraw : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			redraw();
 		}
 	}
 	private class Resize : ControlAdapter {
-		override void controlResized(ControlEvent e) {
+		override void controlResized(ControlEvent e) { mixin(S_TRACE);
 			calcScrollParams();
-			if (isVisible() && _showSelection) {
+			if (isVisible() && _showSelection) { mixin(S_TRACE);
 				showSelection();
 				_showSelection = false;
 			}
 		}
 	}
 	private class Paint : PaintListener {
-		override void paintControl(PaintEvent e) {
+		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			onPaint(e);
 		}
 	}
-	private void onPaint(PaintEvent e) {
+	private void onPaint(PaintEvent e) { mixin(S_TRACE);
 		auto ca = getClientArea();
 		int x = SPACING;
 		int y = SPACING - getVerticalBar().getSelection();
 		int fh = e.gc.getFontMetrics().getHeight();
-		foreach (i, ref imgData; _image) {
-			if (ca.intersects(x, y, _imgW, fh + _imgH)) {
+		foreach (i, ref imgData; _image) { mixin(S_TRACE);
+			if (ca.intersects(x, y, _imgW, fh + _imgH)) { mixin(S_TRACE);
 				int iw, ih;
-				if (imgData) {
+				if (imgData) { mixin(S_TRACE);
 					iw = imgData.width;
 					ih = imgData.height;
-				} else {
+				} else { mixin(S_TRACE);
 					imgData = _createImage(_path[i], _mask);
-					if (_imgW < imgData.width || _imgH < imgData.height) {
+					if (_imgW < imgData.width || _imgH < imgData.height) { mixin(S_TRACE);
 						real wr = cast(real) _imgW / imgData.width;
 						real hr = cast(real) _imgH / imgData.height;
 						iw = cast(int) (imgData.width * min(wr, hr));
@@ -217,7 +217,7 @@ class ImageList : Composite {
 						imgData = imgData.scaledTo(iw, ih);
 						data2.data[] = 0;
 						delete data2.data;
-					} else {
+					} else { mixin(S_TRACE);
 						iw = imgData.width;
 						ih = imgData.height;
 					}
@@ -230,7 +230,7 @@ class ImageList : Composite {
 				string name = .cutText(_path[i].baseName(), e.gc, _imgW);
 				auto te = e.gc.textExtent(name);
 				e.gc.drawText(name, x + (_imgW - te.x) / 2, y + _imgH);
-				if (i == _sel) {
+				if (i == _sel) { mixin(S_TRACE);
 					e.gc.drawRectangle(x - 2, y - 2, _imgW + 3, _imgH + fh + 3);
 				}
 			}
@@ -239,7 +239,7 @@ class ImageList : Composite {
 			_bounds[i].width = _imgW;
 			_bounds[i].height = fh + _imgH;
 			x += _imgW + SPACING;
-			if (ca.width < x + _imgW + SPACING) {
+			if (ca.width < x + _imgW + SPACING) { mixin(S_TRACE);
 				x = SPACING;
 				y += fh + _imgH + SPACING;
 			}
@@ -248,21 +248,21 @@ class ImageList : Composite {
 
 	@property
 	const
-	string path(size_t index) {
+	string path(size_t index) { mixin(S_TRACE);
 		return _path[index];
 	}
 	@property
-	void select(string path) {
-		if (path == "") {
+	void select(string path) { mixin(S_TRACE);
+		if (path == "") { mixin(S_TRACE);
 			_sel = -1;
 		}
 		int i = countUntil(_path, path);
 		if (-1 == i) return;
 		_sel = i;
 	}
-	void showSelection() {
+	void showSelection() { mixin(S_TRACE);
 		if (-1 == _sel) return;
-		if (!isVisible()) {
+		if (!isVisible()) { mixin(S_TRACE);
 			_showSelection = true;
 			return;
 		}
@@ -276,15 +276,15 @@ class ImageList : Composite {
 
 		int h = SPACING + _imgH + fh;
 		int y = _sel / countPerLine * h;
-		if (y < vs.getSelection()) {
+		if (y < vs.getSelection()) { mixin(S_TRACE);
 			vs.setSelection(y);
-		} else if (vs.getSelection() + vs.getThumb() < y + h + SPACING) {
+		} else if (vs.getSelection() + vs.getThumb() < y + h + SPACING) { mixin(S_TRACE);
 			vs.setSelection(y + h + SPACING - vs.getThumb());
 		}
 		redraw();
 	}
 
-	int indexOf(int x, int y) {
+	int indexOf(int x, int y) { mixin(S_TRACE);
 		auto vs = getVerticalBar();
 		y += vs.getSelection();
 
@@ -305,23 +305,23 @@ class ImageList : Composite {
 	}
 
 	@property
-	void mask(bool mask) {
+	void mask(bool mask) { mixin(S_TRACE);
 		if (_mask == mask) return;
 		_mask = mask;
-		foreach (ref imgData; _image) {
+		foreach (ref imgData; _image) { mixin(S_TRACE);
 			imgData = null;
 		}
 		redraw();
 	}
 
-	void add(string[] path) {
+	void add(string[] path) { mixin(S_TRACE);
 		_path ~= path;
 		_image.length += path.length;
 		_bounds.length += path.length;
 		calcScrollParams();
 		redraw();
 	}
-	void removeAll() {
+	void removeAll() { mixin(S_TRACE);
 		_path.length = 0;
 		_image.length = 0;
 		_bounds.length = 0;

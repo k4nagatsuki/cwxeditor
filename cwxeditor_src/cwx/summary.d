@@ -34,7 +34,7 @@ public:
 /// 貼り紙関連の例外。
 class SummaryException : Exception {
 public:
-	this (string msg) {
+	this (string msg) { mixin(S_TRACE);
 		super (msg);
 	}
 }
@@ -76,8 +76,7 @@ struct SaveOption {
 }
 
 /// 貼り紙。シナリオの情報が入る。
-class Summary : CWXPath, AreaOwner, BattleOwner, PackageOwner,
-		CastOwner, SkillOwner, ItemOwner, BeastOwner, InfoOwner {
+class Summary : CWXPath, AreaOwner, BattleOwner, PackageOwner, CastOwner, SkillOwner, ItemOwner, BeastOwner, InfoOwner {
 private:
 	string _id;
 
@@ -138,19 +137,19 @@ private:
 	UseCounter _uc;
 	bool _change = false;
 
-	void changeHandler() {
-		if (!_change) {
+	void changeHandler() { mixin(S_TRACE);
+		if (!_change) { mixin(S_TRACE);
 			_change = true;
-			foreach (dlg; changedEvent) {
+			foreach (dlg; changedEvent) { mixin(S_TRACE);
 				dlg();
 			}
 		}
-		foreach (dlg; changedEventForce) {
+		foreach (dlg; changedEventForce) { mixin(S_TRACE);
 			dlg();
 		}
 	}
 
-	this (string sPath) {
+	this (string sPath) { mixin(S_TRACE);
 		_sPath = sPath;
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_uc = new UseCounter;
@@ -163,13 +162,13 @@ private:
 	}
 public:
 	/// シナリオ名、スキン、シナリオのパスを指定してインスタンスを生成。
-	this (string sname, string type, string sPath, bool temp, bool legacy) {
+	this (string sname, string type, string sPath, bool temp, bool legacy) { mixin(S_TRACE);
 		this(sPath);
 		_type = type;
 		_sname = sname;
 		_legacy = legacy;
 		_useTemp = temp;
-		if (_useTemp) {
+		if (_useTemp) { mixin(S_TRACE);
 			_tempPath = _sPath;
 			lock(_tempPath, _useTemp);
 		}
@@ -196,13 +195,13 @@ public:
 	bool legacy() {return _legacy;}
 
 	/// 一時ディレクトリを作成する。
-	static string createTempDirFromName(string tempPath, string name) {
+	static string createTempDirFromName(string tempPath, string name) { mixin(S_TRACE);
 		auto temp = createNewFileName(std.path.buildPath(tempPath, name), true);
 		mkdirRecurse(temp);
 		return temp;
 	}
 	/// 一時ディレクトリを展開する。
-	static string createTempDir(string tempPath, string name, bool createLockFile = true) {
+	static string createTempDir(string tempPath, string name, bool createLockFile = true) { mixin(S_TRACE);
 		string base = cwx.utils.toHex(name);
 		base = base.length > 15 ? base[0 .. 15] : base;
 		base = "cwxeditor_temp_" ~ base;
@@ -212,17 +211,17 @@ public:
 		return temp;
 	}
 	/// tempにロックファイルを作成する。
-	static void createLockFile(string temp) {
+	static void createLockFile(string temp) { mixin(S_TRACE);
 		std.file.write(std.path.buildPath(temp, "cwxeditor.lock"), []);
 	}
 
 	/// tempPathにシナリオを新規作成する。
-	static Summary createScenario(const System sys, string tempPath, string name, Skin skin) {
+	static Summary createScenario(const System sys, string tempPath, string name, Skin skin) { mixin(S_TRACE);
 		auto p = Summary.createTempDir(tempPath, name);
 		auto mFPath = std.path.buildPath(p, skin.materialPath);
 		if (!exists(mFPath) || !isDir(mFPath)) std.file.mkdir(mFPath);
 		auto summ = new Summary(name, skin.type, p, true, false);
-		if (summ.expandXMLs) {
+		if (summ.expandXMLs) { mixin(S_TRACE);
 			SaveOption opt;
 			summ.saveXMLs(summ.scenarioPath, sys, opt);
 		}
@@ -232,21 +231,21 @@ public:
 	/// シナリオを読込む。
 	static Summary loadScenarioFromFile(in CProps prop, in LoadOption opt, string fname, string tempPath,
 			string delegate() classicDir = null,
-			Summary old = null, void delegate(uint) setMax = null, void delegate(uint) worked = null, string newName = null) {
+			Summary old = null, void delegate(uint) setMax = null, void delegate(uint) worked = null, string newName = null) { mixin(S_TRACE);
 		string[string][string] xmls;
 		bool expand = opt.expandXMLs;
 		bool scTemplate = classicDir !is null;
 		bool classic = false;
 
-		bool isXMLSystem(string path) {
+		bool isXMLSystem(string path) { mixin(S_TRACE);
 			return cfnmatch(.extension(path), ".xml") && isScenarioSystemDir(dirName(path));
 		}
 		string expandDir;
-		string expandName(string path, bool isDir) {
-			if (opt.summaryOnly) {
-				if (classic) {
+		string expandName(string path, bool isDir) { mixin(S_TRACE);
+			if (opt.summaryOnly) { mixin(S_TRACE);
+				if (classic) { mixin(S_TRACE);
 					if (cfnmatch(path.baseName(), "Summary.wsm")) return path;
-				} else {
+				} else { mixin(S_TRACE);
 					if (cfnmatch(path.baseName(), "Summary.xml")) return path;
 				}
 				return "";
@@ -254,13 +253,13 @@ public:
 			if (!opt.textOnly) return path;
 			auto ext = path.extension();
 			if (cfnmatch(ext, ".jptx")) return path;
-			if (classic) {
+			if (classic) { mixin(S_TRACE);
 				if (cfnmatch(ext, ".wsm") || cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex")) return path;
-			} else {
+			} else { mixin(S_TRACE);
 				if (cfnmatch(path.baseName(), "Summary.xml")) return path;
 				if (isXMLSystem(path)) return path;
 			}
-			if (!isDir) {
+			if (!isDir) { mixin(S_TRACE);
 				// 素材が見つからないというエラーを避けるため、ダミーの空ファイルを作る
 				auto p = expandDir.buildPath(path);
 				string dir = p.dirName();
@@ -269,28 +268,28 @@ public:
 			}
 			return "";
 		}
-		string sunzip(string fname, ZipArchive arc, out bool cancel) {
+		string sunzip(string fname, ZipArchive arc, out bool cancel) { mixin(S_TRACE);
 			cancel = false;
 			auto temp = createTempDir(tempPath, baseName(stripExtension(fname)));
 			expandDir = temp;
-			if (expand) {
+			if (expand) { mixin(S_TRACE);
 				.unzip(temp, arc, &expandName, setMax, worked);
-			} else {
-				.unzip(arc, (string path, ubyte[] data, bool isDir) {
+			} else { mixin(S_TRACE);
+				.unzip(arc, (string path, ubyte[] data, bool isDir) { mixin(S_TRACE);
 					path = expandName(path, isDir);
 					if (!path.length) return;
-					if (!isDir) {
-						if (cfnmatch(path, "Summary.xml")) {
+					if (!isDir) { mixin(S_TRACE);
+						if (cfnmatch(path, "Summary.xml")) { mixin(S_TRACE);
 							xmls[""][path] = cast(string) data;
-						} else if (isXMLSystem(path)) {
+						} else if (isXMLSystem(path)) { mixin(S_TRACE);
 							xmls[dirName(path)][baseName(path)] = cast(string) data;
-						} else {
+						} else { mixin(S_TRACE);
 							path = std.path.buildPath(temp, path);
 							string parent = dirName(path);
 							if (!exists(parent)) mkdirRecurse(parent);
 							std.file.write(path, data);
 						}
-					} else if (!isScenarioSystemDir(path)) {
+					} else if (!isScenarioSystemDir(path)) { mixin(S_TRACE);
 						path = std.path.buildPath(temp, path);
 						if (!exists(path)) mkdirRecurse(path);
 					}
@@ -298,82 +297,82 @@ public:
 			}
 			return temp;
 		}
-		ZipArchive scArc(string fname, string ext) {
+		ZipArchive scArc(string fname, string ext) { mixin(S_TRACE);
 			auto arc = new ZipArchive(readBinary(fname));
-			foreach (am; arc.directory) {
+			foreach (am; arc.directory) { mixin(S_TRACE);
 				string name;
-				try {
+				try { mixin(S_TRACE);
 					.validate(am.name);
 					name = am.name;
-				} catch {
+				} catch { mixin(S_TRACE);
 					name = touni(am.name);
 				}
 				name = replace(name, "/", dirSeparator);
-				if (cfnmatch(baseName(name), setExtension("Summary", ext))) {
+				if (cfnmatch(baseName(name), setExtension("Summary", ext))) { mixin(S_TRACE);
 					return arc;
 				}
 			}
 			return null;
 		}
-		string suncab(string fname, out string summPath) {
+		string suncab(string fname, out string summPath) { mixin(S_TRACE);
 			classic = true;
 			string temp;
-			if (cfnmatch(.extension(fname), ".cab")) {
+			if (cfnmatch(.extension(fname), ".cab")) { mixin(S_TRACE);
 				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
 				expandDir = temp;
-				if (!.uncab(fname, temp, (string file) {return expandName(file, false);})) {
+				if (!.uncab(fname, temp, (string file) {return expandName(file, false);})) { mixin(S_TRACE);
 					delAll(temp);
 					return null;
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				// zipと仮定
 				auto arc = scArc(fname, ".wsm");
 				if (!arc) return null;
 				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
-				try {
+				try { mixin(S_TRACE);
 					expandDir = temp;
 					.unzip(temp, arc, &expandName);
-				} catch {
+				} catch { mixin(S_TRACE);
 					delAll(temp);
 					return null;
 				}
 			}
 			summPath = temp;
 			auto ld = clistdir(temp);
-			if (ld.length == 1 && isDir(std.path.buildPath(temp, ld[0]))) {
+			if (ld.length == 1 && isDir(std.path.buildPath(temp, ld[0]))) { mixin(S_TRACE);
 				// ディレクトリを一つ挟んでいる
 				summPath = std.path.buildPath(temp, ld[0]);
 			}
-			if (!.exists(std.path.buildPath(summPath, "Summary.wsm"))) {
+			if (!.exists(std.path.buildPath(summPath, "Summary.wsm"))) { mixin(S_TRACE);
 				delAll(temp);
 				return null;
 			}
-			if (!scTemplate) {
+			if (!scTemplate) { mixin(S_TRACE);
 				createLockFile(temp);
 			}
 			return temp;
 		}
-		Summary load(string p) {
+		Summary load(string p) { mixin(S_TRACE);
 			Summary r;
-			if (expand) {
+			if (expand) { mixin(S_TRACE);
 				r = Summary.fromXMLs(prop.sys, std.path.buildPath(p, "Summary.xml"), opt);
-			} else {
+			} else { mixin(S_TRACE);
 				r = Summary.fromXMLs(prop.sys, p, xmls, opt);
 				r._oldXMLs = xmls;
 			}
 			return r;
 		}
-		Summary loadLegacy(string p) {
+		Summary loadLegacy(string p) { mixin(S_TRACE);
 			Summary r = loadLScenario(p, "", prop.sys, opt, newName);
 			return r;
 		}
-		Summary createFromTemplate(Summary r) {
+		Summary createFromTemplate(Summary r) { mixin(S_TRACE);
 			// テンプレートからの生成
 			string scDir = classicDir();
 			if (!.exists(scDir)) mkdirRecurse(scDir);
-			if (scDir) {
+			if (scDir) { mixin(S_TRACE);
 				copyAll(r.scenarioPath, scDir);
-				if (r.useTemp) {
+				if (r.useTemp) { mixin(S_TRACE);
 					r._useTemp = false;
 					delAll(r.scenarioPath);
 				}
@@ -384,20 +383,20 @@ public:
 			}
 			return null;
 		}
-		Summary legacyCommon() {
+		Summary legacyCommon() { mixin(S_TRACE);
 			string summPath;
 			string fn = suncab(fname, summPath);
-			if (fn) {
-				try {
+			if (fn) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					Summary r = loadLegacy(summPath);
 					r._expandXMLs = false;
 					r._useTemp = true;
 					r._legacy = true;
 					r._zipName = fname;
 					r._tempPath = fn;
-					if (scTemplate) {
+					if (scTemplate) { mixin(S_TRACE);
 						return createFromTemplate(r);
-					} else {
+					} else { mixin(S_TRACE);
 						r.lock(r._tempPath, r._useTemp);
 						return r;
 					}
@@ -409,40 +408,40 @@ public:
 			if (opt.textOnly) return null;
 			throw new SummaryException(.tryFormat(prop.msgs.notScenario, fname));
 		}
-		if (fname) {
-			if (newName || exists(fname)) {
-				try {
-					if (isDir(fname)) {
-						if (exists(std.path.buildPath(fname, "Summary.xml"))) {
+		if (fname) { mixin(S_TRACE);
+			if (newName || exists(fname)) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
+					if (isDir(fname)) { mixin(S_TRACE);
+						if (exists(std.path.buildPath(fname, "Summary.xml"))) { mixin(S_TRACE);
 							fname = std.path.buildPath(fname, "Summary.xml");
-						} else if (exists(std.path.buildPath(fname, "Summary.wsm"))) {
+						} else if (exists(std.path.buildPath(fname, "Summary.wsm"))) { mixin(S_TRACE);
 							fname = std.path.buildPath(fname, "Summary.wsm");
 						}
 					}
-					Summary ll(string fname) {
+					Summary ll(string fname) { mixin(S_TRACE);
 						auto r = loadLegacy(fname);
 						r._expandXMLs = false;
 						r._useTemp = false;
 						r._legacy = true;
 						r._zipName = "";
-						if (scTemplate) {
+						if (scTemplate) { mixin(S_TRACE);
 							return createFromTemplate(r);
-						} else {
+						} else { mixin(S_TRACE);
 							return r;
 						}
 					}
-					if (cfnmatch(baseName(fname), "Summary.wsm")) {
+					if (cfnmatch(baseName(fname), "Summary.wsm")) { mixin(S_TRACE);
 						return ll(dirName(fname));
- 					} else if (canUncab && cfnmatch(.extension(fname), ".cab")) {
+ 					} else if (canUncab && cfnmatch(.extension(fname), ".cab")) { mixin(S_TRACE);
  						return legacyCommon();
-					} else if (cfnmatch(baseName(fname), "Summary.xml")) {
+					} else if (cfnmatch(baseName(fname), "Summary.xml")) { mixin(S_TRACE);
 						expand = true;
 						auto r = load(dirName(fname));
 						r._expandXMLs = true;
 						r._useTemp = false;
 						r._legacy = false;
 						r._zipName = "";
-						if (scTemplate) {
+						if (scTemplate) { mixin(S_TRACE);
 							auto temp = createTempDir(tempPath, r.scenarioName);
 							copyAll(r.scenarioPath, temp);
 							r._tempPath = temp;
@@ -450,17 +449,17 @@ public:
 							r.lock(r._tempPath, r._useTemp);
 						}
 						return r;
-					} else if (isDir(fname)) {
+					} else if (isDir(fname)) { mixin(S_TRACE);
 						return ll(fname);
-					} else {
+					} else { mixin(S_TRACE);
 						auto arc = scArc(fname, ".xml");
-						if (arc) {
+						if (arc) { mixin(S_TRACE);
 							bool cancel;
 							string zipname = fname;
 							classic = false;
 							fname = sunzip(baseName(fname), arc, cancel);
-							if (fname.length) {
-								try {
+							if (fname.length) { mixin(S_TRACE);
+								try { mixin(S_TRACE);
 									Summary r = load(fname);
 									r._expandXMLs = expand;
 									r._useTemp = true;
@@ -468,7 +467,7 @@ public:
 									r._tempPath = fname;
 									r._legacy = false;
 									r.lock(r._tempPath, r._useTemp);
-									if (scTemplate) {
+									if (scTemplate) { mixin(S_TRACE);
 										r._zipName = "";
 									}
 									return r;
@@ -476,11 +475,11 @@ public:
 									delAll(fname);
 									throw e;
 								}
-							} else if (cancel) {
+							} else if (cancel) { mixin(S_TRACE);
 								delAll(dirName(fname));
 								return null;
 							}
-						} else {
+						} else { mixin(S_TRACE);
 							return legacyCommon();
 						}
 					}
@@ -494,24 +493,24 @@ public:
 					debugln(e);
 					throw new SummaryException(.tryFormat(prop.msgs.loadError, fname));
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				throw new SummaryException(.tryFormat(prop.msgs.loadError, fname));
 			}
 		}
 		return null;
 	}
-	private void lock(string tempPath, bool useTemp) {
+	private void lock(string tempPath, bool useTemp) { mixin(S_TRACE);
 		assert (!_lock);
-		if (useTemp) {
+		if (useTemp) { mixin(S_TRACE);
 			_lock = new File(std.path.buildPath(tempPath, "cwxeditor.lock"), FileMode.OutNew);
 		}
 	}
 	/// 一時展開先を削除する。
-	void delTemp() {
-		if (useTemp) {
+	void delTemp() { mixin(S_TRACE);
+		if (useTemp) { mixin(S_TRACE);
 			_lock.close();
 			_lock = null;
-			try {
+			try { mixin(S_TRACE);
 				delAll(_tempPath.length ? _tempPath : scenarioPath, true);
 				_useTemp = false;
 				_zipName = null;
@@ -532,75 +531,75 @@ public:
 
 	@property
 	override string cwxPath(bool id) {return "";}
-	override CWXPath findCWXPath(string path) {
+	override CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
-		case "area": {
+		case "area": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			return index < areas.length ? areas[index].findCWXPath(cpbottom(path)) : null;
 		}
-		case "area:id": {
+		case "area:id": { mixin(S_TRACE);
 			auto area = area(cpindex(path));
 			return area ? area.findCWXPath(cpbottom(path)) : null;
 		}
-		case "battle": {
+		case "battle": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			return index < battles.length ? battles[index].findCWXPath(cpbottom(path)) : null;
 		}
-		case "battle:id": {
+		case "battle:id": { mixin(S_TRACE);
 			auto area = battle(cpindex(path));
 			return area ? area.findCWXPath(cpbottom(path)) : null;
 		}
-		case "package": {
+		case "package": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			return index < packages.length ? packages[index].findCWXPath(cpbottom(path)) : null;
 		}
-		case "package:id": {
+		case "package:id": { mixin(S_TRACE);
 			auto area = cwPackage(cpindex(path));
 			return area ? area.findCWXPath(cpbottom(path)) : null;
 		}
-		case "castcard": {
+		case "castcard": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			return index < casts.length ? casts[index].findCWXPath(cpbottom(path)) : null;
 		}
-		case "castcard:id": {
+		case "castcard:id": { mixin(S_TRACE);
 			auto card = cwCast(cpindex(path));
 			return card ? card.findCWXPath(cpbottom(path)) : null;
 		}
-		case "skillcard": {
+		case "skillcard": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			return index < skills.length ? skills[index].findCWXPath(cpbottom(path)) : null;
 		}
-		case "skillcard:id": {
+		case "skillcard:id": { mixin(S_TRACE);
 			auto card = skill(cpindex(path));
 			return card ? card.findCWXPath(cpbottom(path)) : null;
 		}
-		case "itemcard": {
+		case "itemcard": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			return index < items.length ? items[index].findCWXPath(cpbottom(path)) : null;
 		}
-		case "itemcard:id": {
+		case "itemcard:id": { mixin(S_TRACE);
 			auto card = item(cpindex(path));
 			return card ? card.findCWXPath(cpbottom(path)) : null;
 		}
-		case "beastcard": {
+		case "beastcard": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			return index < beasts.length ? beasts[index].findCWXPath(cpbottom(path)) : null;
 		}
-		case "beastcard:id": {
+		case "beastcard:id": { mixin(S_TRACE);
 			auto card = beast(cpindex(path));
 			return card ? card.findCWXPath(cpbottom(path)) : null;
 		}
-		case "infocard": {
+		case "infocard": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			return index < infos.length ? infos[index].findCWXPath(cpbottom(path)) : null;
 		}
-		case "infocard:id": {
+		case "infocard:id": { mixin(S_TRACE);
 			auto card = info(cpindex(path));
 			return card ? card.findCWXPath(cpbottom(path)) : null;
 		}
-		case "variable": {
+		case "variable": { mixin(S_TRACE);
 			return flagDirRoot.findCWXPath(cpbottom(path));
 		}
 		default: break;
@@ -609,7 +608,7 @@ public:
 	}
 	@property
 	const
-	override const(CWXPath)[] cwxChilds() {
+	override const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
 		r ~= cast(const CWXPath[]) _area;
 		r ~= cast(const CWXPath[]) _btl;
@@ -628,48 +627,48 @@ public:
 	/// マシン上で一意なID。
 	@property
 	const
-	string id() {
+	string id() { mixin(S_TRACE);
 		return _id;
 	}
 	/// このシナリオが変更済みであればtrueを返す。
 	@property
 	const
-	bool isChanged() {
+	bool isChanged() { mixin(S_TRACE);
 		return _change;
 	}
 	/// 変更状態をリセットする。
-	void resetChanged() {
+	void resetChanged() { mixin(S_TRACE);
 		_change = false;
 	}
 	/// 変更を通知する。
-	void changed() {
+	void changed() { mixin(S_TRACE);
 		changeHandler();
 	}
 	/// このシナリオが持つ使用回数カウンタ。
 	@property
-	UseCounter useCounter() {
+	UseCounter useCounter() { mixin(S_TRACE);
 		return _uc;
 	}
 
 	/// シナリオのシステムファイルまたはディレクトリであればtrueを返す。
 	const
-	bool isSystemFile(string p) {
+	bool isSystemFile(string p) { mixin(S_TRACE);
 		return isSystemFile(p, cast(bool) .isDir(p));
 	}
 	const
-	bool isSystemFile(string p, bool isdir) {
-		if (!isdir && useTemp && .cfnmatch(baseName(p), "cwxeditor.lock")) {
+	bool isSystemFile(string p, bool isdir) { mixin(S_TRACE);
+		if (!isdir && useTemp && .cfnmatch(baseName(p), "cwxeditor.lock")) { mixin(S_TRACE);
 			return true;
 		}
-		if (legacy) {
+		if (legacy) { mixin(S_TRACE);
 			if (isdir) return false;
 			auto ext = .extension(p);
 			return .cfnmatch(ext, ".wid") || .cfnmatch(ext, ".wex") || .cfnmatch(ext, ".wsm");
-		} else {
+		} else { mixin(S_TRACE);
 			string fl = baseName(p);
-			if (isdir) {
+			if (isdir) { mixin(S_TRACE);
 				return isScenarioSystemDir(fl);
-			} else {
+			} else { mixin(S_TRACE);
 				return cast(bool) .cfnmatch(fl, "Summary.xml");
 			}
 		}
@@ -677,7 +676,7 @@ public:
 	}
 
 	/// 圧縮して保存した事を通知する。
-	private void toArchive(string zipName, string scenarioPath, bool expandXMLs) {
+	private void toArchive(string zipName, string scenarioPath, bool expandXMLs) { mixin(S_TRACE);
 		_expandXMLs = expandXMLs;
 		_useTemp = true;
 		_zipName = zipName;
@@ -695,42 +694,42 @@ public:
 	/// ditto
 	private void dataVersion(string ver) {_dataVersion = ver;}
 
-	private void setNamesOne(C : EffectCard)(ref C card, string newAuthor, string newScenario) {
-		if (card.scenario == scenarioName && card.author == author) {
+	private void setNamesOne(C : EffectCard)(ref C card, string newAuthor, string newScenario) { mixin(S_TRACE);
+		if (card.scenario == scenarioName && card.author == author) { mixin(S_TRACE);
 			card.author = newAuthor;
 			card.scenario = newScenario;
 		}
 	}
-	private void setNames(C)(C[] cards, string newAuthor, string newScenario) {
-		foreach (ref card; cards) {
+	private void setNames(C)(C[] cards, string newAuthor, string newScenario) { mixin(S_TRACE);
+		foreach (ref card; cards) { mixin(S_TRACE);
 			setNamesOne(card, newAuthor, newScenario);
 		}
 		setContentNames(cards, newAuthor, newScenario);
 	}
-	private void setContentNames(C : EventTreeOwner)(C[] etos, string newAuthor, string newScenario) {
-		void setContentNames(Content c) {
-			foreach (m; c.motions) {
+	private void setContentNames(C : EventTreeOwner)(C[] etos, string newAuthor, string newScenario) { mixin(S_TRACE);
+		void setContentNames(Content c) { mixin(S_TRACE);
+			foreach (m; c.motions) { mixin(S_TRACE);
 				auto beast = m.beast;
-				if (beast) {
+				if (beast) { mixin(S_TRACE);
 					setNamesOne(beast, newAuthor, newScenario);
 				}
 			}
 			foreach (n; c.next) setContentNames(n);
 		}
-		foreach (ref eto; etos) {
-			foreach (ref tree; eto.trees) {
-				foreach (ref start; tree.starts) {
+		foreach (ref eto; etos) { mixin(S_TRACE);
+			foreach (ref tree; eto.trees) { mixin(S_TRACE);
+				foreach (ref start; tree.starts) { mixin(S_TRACE);
 					setContentNames(start);
 				}
 			}
 		}
 	}
 	/// シナリオ名と作者名を設定する。
-	void setBaseParams(string newScenarioName, string newAuthor) {
+	void setBaseParams(string newScenarioName, string newAuthor) { mixin(S_TRACE);
 		setNames(skills, newAuthor, newScenarioName);
 		setNames(items, newAuthor, newScenarioName);
 		setNames(beasts, newAuthor, newScenarioName);
-		foreach (card; casts) {
+		foreach (card; casts) { mixin(S_TRACE);
 			setNames(card.skills, newAuthor, newScenarioName);
 			setNames(card.items, newAuthor, newScenarioName);
 			setNames(card.beasts, newAuthor, newScenarioName);
@@ -748,24 +747,24 @@ public:
 	/// シナリオの作者名。
 	@property
 	const
-	string author() {
+	string author() { mixin(S_TRACE);
 		return _author;
 	}
 	/// ditto
 	@property
-	void author(string author) {
+	void author(string author) { mixin(S_TRACE);
 		setBaseParams(scenarioName, author);
 	}
 
 	/// シナリオのタイプ。スキンを決定する。
 	@property
 	const
-	string type() {
+	string type() { mixin(S_TRACE);
 		return _type;
 	}
 	/// ditto
 	@property
-	void type(string type) {
+	void type(string type) { mixin(S_TRACE);
 		/// クラシックなシナリオの場合はタイプは保存されない
 		if (_type != type && !legacy) changeHandler();
 		_type = type;
@@ -773,82 +772,82 @@ public:
 
 	/// 貼り紙の画像パス。
 	@property
-	void imagePath(string imgPath) {
+	void imagePath(string imgPath) { mixin(S_TRACE);
 		if (_imgPath.path != imgPath) changeHandler();
 		_imgPath.path = imgPath;
 	}
 	/// ditto
 	@property
 	const
-	string imagePath() {
+	string imagePath() { mixin(S_TRACE);
 		return _imgPath.path;
 	}
 
 	/// シナリオの解説。
 	@property
-	void desc(string desc) {
+	void desc(string desc) { mixin(S_TRACE);
 		if (_desc != desc) changeHandler();
 		_desc = desc;
 	}
 	/// ditto
 	@property
 	const
-	string desc() {
+	string desc() { mixin(S_TRACE);
 		return _desc;
 	}
 
 	/// 推奨レベル(低)
 	@property
-	void levelMin(uint levMin) {
+	void levelMin(uint levMin) { mixin(S_TRACE);
 		if (_levMin != levMin) changeHandler();
 		_levMin = levMin;
 	}
 	/// ditto
 	@property
 	const
-	uint levelMin() {
+	uint levelMin() { mixin(S_TRACE);
 		return _levMin;
 	}
 
 	/// 推奨レベル(高)
 	@property
-	void levelMax(uint levMax) {
+	void levelMax(uint levMax) { mixin(S_TRACE);
 		if (_levMax != levMax) changeHandler();
 		_levMax = levMax;
 	}
 	/// ditto
 	@property
 	const
-	uint levelMax() {
+	uint levelMax() { mixin(S_TRACE);
 		return _levMax;
 	}
 
 	/// 開始条件クーポンの必要数。
 	@property
-	void rCouponNum(uint rCouponNum) {
+	void rCouponNum(uint rCouponNum) { mixin(S_TRACE);
 		if (_rCouponNum != rCouponNum) changeHandler();
 		_rCouponNum = rCouponNum;
 	}
 	/// ditto
 	@property
 	const
-	uint rCouponNum() {
+	uint rCouponNum() { mixin(S_TRACE);
 		return _rCouponNum;
 	}
 
 	/// 開始条件クーポンの一覧。
 	@property
-	void rCoupons(string[] rCoupons) {
-		if (this.rCoupons != rCoupons) {
+	void rCoupons(string[] rCoupons) { mixin(S_TRACE);
+		if (this.rCoupons != rCoupons) { mixin(S_TRACE);
 			changeHandler();
-			foreach (c; _rCoupons) {
+			foreach (c; _rCoupons) { mixin(S_TRACE);
 				c.removeUseCounter();
 			}
 			_rCoupons.length = rCoupons.length;
-			foreach (i, ref c; _rCoupons) {
+			foreach (i, ref c; _rCoupons) { mixin(S_TRACE);
 				c = new CouponUser(this);
 				c.coupon = rCoupons[i];
-				if (useCounter) {
+				if (useCounter) { mixin(S_TRACE);
 					c.setUseCounter = useCounter;
 				}
 			}
@@ -857,9 +856,9 @@ public:
 	/// ditto
 	@property
 	const
-	string[] rCoupons() {
+	string[] rCoupons() { mixin(S_TRACE);
 		auto r = new string[_rCoupons.length];
-		foreach (i, ref c; r) {
+		foreach (i, ref c; r) { mixin(S_TRACE);
 			c = _rCoupons[i].coupon;
 		}
 		return r;
@@ -867,36 +866,36 @@ public:
 
 	/// シナリオの開始エリア。
 	@property
-	void startArea(ulong startAreaId) {
+	void startArea(ulong startAreaId) { mixin(S_TRACE);
 		if (_startAreaId.area != startAreaId) changeHandler();
 		_startAreaId.area = startAreaId;
 	}
 	/// ditto
 	@property
 	const
-	ulong startArea() {
+	ulong startArea() { mixin(S_TRACE);
 		return _startAreaId.area;
 	}
 
 	/// シナリオに含まれるエリア。
 	@property
-	Area[] areas() {
+	Area[] areas() { mixin(S_TRACE);
 		return _area;
 	}
 	/// シナリオに含まれるパッケージ。
 	@property
-	Package[] packages() {
+	Package[] packages() { mixin(S_TRACE);
 		return _pkg;
 	}
 	/// シナリオに含まれるバトル。
 	@property
-	Battle[] battles() {
+	Battle[] battles() { mixin(S_TRACE);
 		return _btl;
 	}
 
-	private static C find(C)(C[] arr, ulong id) {
-		foreach (c; arr) {
-			if (c.id == id) {
+	private static C find(C)(C[] arr, ulong id) { mixin(S_TRACE);
+		foreach (c; arr) { mixin(S_TRACE);
+			if (c.id == id) { mixin(S_TRACE);
 				return c;
 			}
 		}
@@ -905,111 +904,111 @@ public:
 
 	/// キャスト。
 	@property
-	CastCard[] casts() {
+	CastCard[] casts() { mixin(S_TRACE);
 		return _cast;
 	}
 	/// ditto
 	@property
 	const
-	const(CastCard)[] casts() {
+	const(CastCard)[] casts() { mixin(S_TRACE);
 		return _cast;
 	}
 	/// ditto
-	CastCard cwCast(ulong id) {
+	CastCard cwCast(ulong id) { mixin(S_TRACE);
 		return find(_cast, id);
 	}
 	/// ditto
 	const
-	const(CastCard) cwCast(ulong id) {
+	const(CastCard) cwCast(ulong id) { mixin(S_TRACE);
 		return find!(const CastCard)(_cast, id);
 	}
 
 	/// スキル。
 	@property
-	SkillCard[] skills() {
+	SkillCard[] skills() { mixin(S_TRACE);
 		return _skl;
 	}
 	/// ditto
 	@property
 	const
-	const(SkillCard)[] skills() {
+	const(SkillCard)[] skills() { mixin(S_TRACE);
 		return _skl;
 	}
 	/// ditto
-	SkillCard skill(ulong id) {
+	SkillCard skill(ulong id) { mixin(S_TRACE);
 		return find(_skl, id);
 	}
 	/// ditto
 	const
-	const(SkillCard) skill(ulong id) {
+	const(SkillCard) skill(ulong id) { mixin(S_TRACE);
 		return find!(const SkillCard)(_skl, id);
 	}
 
 	/// アイテム。
 	@property
-	ItemCard[] items() {
+	ItemCard[] items() { mixin(S_TRACE);
 		return _itm;
 	}
 	/// ditto
 	@property
 	const
-	const(ItemCard)[] items() {
+	const(ItemCard)[] items() { mixin(S_TRACE);
 		return _itm;
 	}
 	/// ditto
-	ItemCard item(ulong id) {
+	ItemCard item(ulong id) { mixin(S_TRACE);
 		return find(_itm, id);
 	}
 	/// ditto
 	const
-	const(ItemCard) item(ulong id) {
+	const(ItemCard) item(ulong id) { mixin(S_TRACE);
 		return find!(const ItemCard)(_itm, id);
 	}
 
 	/// 召喚獣。
 	@property
-	BeastCard[] beasts() {
+	BeastCard[] beasts() { mixin(S_TRACE);
 		return _bst;
 	}
 	/// ditto
 	@property
 	const
-	const(BeastCard)[] beasts() {
+	const(BeastCard)[] beasts() { mixin(S_TRACE);
 		return _bst;
 	}
 	/// ditto
-	BeastCard beast(ulong id) {
+	BeastCard beast(ulong id) { mixin(S_TRACE);
 		return find(_bst, id);
 	}
 	const
-	const(BeastCard) beast(ulong id) {
+	const(BeastCard) beast(ulong id) { mixin(S_TRACE);
 		return find!(const BeastCard)(_bst, id);
 	}
 
 	/// 情報カード。
 	@property
-	InfoCard[] infos() {
+	InfoCard[] infos() { mixin(S_TRACE);
 		return _info;
 	}
 	/// ditto
 	@property
 	const
-	const(InfoCard)[] infos() {
+	const(InfoCard)[] infos() { mixin(S_TRACE);
 		return _info;
 	}
 	/// ditto
-	InfoCard info(ulong id) {
+	InfoCard info(ulong id) { mixin(S_TRACE);
 		return find(_info, id);
 	}
 	/// ditto
 	const
-	const(InfoCard) info(ulong id) {
+	const(InfoCard) info(ulong id) { mixin(S_TRACE);
 		return find!(const InfoCard)(_info, id);
 	}
 
-	private static bool hasId(T)(const T[] arr, ulong id) {
-		foreach (a; arr) {
-			if (a.id == id) {
+	private static bool hasId(T)(const T[] arr, ulong id) { mixin(S_TRACE);
+		foreach (a; arr) { mixin(S_TRACE);
+			if (a.id == id) { mixin(S_TRACE);
 				return true;
 			}
 		}
@@ -1018,7 +1017,7 @@ public:
 
 	/// 指定された要素のindexを検索する。
 	const
-	int indexOf(T)(in T c) {
+	int indexOf(T)(in T c) { mixin(S_TRACE);
 		static if (is (T == CastCard)) {
 			return .cCountUntil!("a is b")(_cast, c);
 		} else static if (is (T == SkillCard)) {
@@ -1035,72 +1034,72 @@ public:
 			return .cCountUntil!("a is b")(_btl, c);
 		} else static if (is (T == Package)) {
 			return .cCountUntil!("a is b")(_pkg, c);
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
 	}
 
 	/// エリア。
-	Area area(ulong id) {
+	Area area(ulong id) { mixin(S_TRACE);
 		return find(_area, id);
 	}
 	const
-	const(Area) area(ulong id) {
+	const(Area) area(ulong id) { mixin(S_TRACE);
 		return find!(const Area)(_area, id);
 	}
 	/// バトル。
-	Battle battle(ulong id) {
+	Battle battle(ulong id) { mixin(S_TRACE);
 		return find(_btl, id);
 	}
 	const
-	const(Battle) battle(ulong id) {
+	const(Battle) battle(ulong id) { mixin(S_TRACE);
 		return find!(const Battle)(_btl, id);
 	}
 	/// パッケージ。
-	Package cwPackage(ulong id) {
+	Package cwPackage(ulong id) { mixin(S_TRACE);
 		return find(_pkg, id);
 	}
 	const
-	const(Package) cwPackage(ulong id) {
+	const(Package) cwPackage(ulong id) { mixin(S_TRACE);
 		return find!(const Package)(_pkg, id);
 	}
 
 	/// 指定されたIDのエリア・バトル・パッケージがあればtrue。
 	const
-	bool hasAreaId(ulong id) {
+	bool hasAreaId(ulong id) { mixin(S_TRACE);
 		return hasId!(const Area)(_area, id);
 	}
 	/// ditto
 	const
-	bool hasBattleId(ulong id) {
+	bool hasBattleId(ulong id) { mixin(S_TRACE);
 		return hasId!(const Battle)(_btl, id);
 	}
 	/// ditto
 	const
-	bool hasPackageId(ulong id) {
+	bool hasPackageId(ulong id) { mixin(S_TRACE);
 		return hasId!(const Package)(_pkg, id);
 	}
 
 	/// 指定された召喚獣カードと同等の性能を持つ召喚獣カードを探して返す。
 	/// 見つからなければnullを返す。
 	const
-	const(BeastCard) findSameBeast(in BeastCard beast) {
-		if (0 != beast.linkId) {
+	const(BeastCard) findSameBeast(in BeastCard beast) { mixin(S_TRACE);
+		if (0 != beast.linkId) { mixin(S_TRACE);
 			return this.beast(beast.linkId);
 		}
-		foreach (b; _bst) {
+		foreach (b; _bst) { mixin(S_TRACE);
 			if (beast.equalsExcludeId(b)) return b;
 		}
 		return null;
 	}
 
-	private static ulong newIdImpl(T)(in T[] arr) {
+	private static ulong newIdImpl(T)(in T[] arr) { mixin(S_TRACE);
 		return arr.length > 0 ? arr[$ - 1].id + 1 : 1;
 	}
 	/// 今現在このシナリオに含まれていないTのIDを生成して返す。
 	@property
 	const
-	ulong newId(T)() {
+	ulong newId(T)() { mixin(S_TRACE);
 		static if (is (T == CastCard)) {
 			return newIdImpl!(const CastCard)(_cast);
 		} else static if (is (T == SkillCard)) {
@@ -1117,37 +1116,37 @@ public:
 			return newIdImpl!(const Battle)(_btl);
 		} else static if (is (T == Package)) {
 			return newIdImpl!(const Package)(_pkg);
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
 	}
 	/// ditto
 	@property
 	const
-	ulong newAreaId() {
+	ulong newAreaId() { mixin(S_TRACE);
 		return newIdImpl!(const Area)(_area);
 	}
 	/// ditto
 	@property
 	const
-	ulong newBattleId() {
+	ulong newBattleId() { mixin(S_TRACE);
 		return newIdImpl!(const Battle)(_btl);
 	}
 	/// ditto
 	@property
 	const
-	ulong newPackageId() {
+	ulong newPackageId() { mixin(S_TRACE);
 		return newIdImpl!(const Package)(_pkg);
 	}
 
-	private ulong insertImpl(T, alias ToID)(ref T[] arr, int index, T c) {
-		if (arr.length == index) {
+	private ulong insertImpl(T, alias ToID)(ref T[] arr, int index, T c) { mixin(S_TRACE);
+		if (arr.length == index) { mixin(S_TRACE);
 			return addImpl!(T, ToID)(arr, c, true);
-		} else {
+		} else { mixin(S_TRACE);
 			ulong tempId = 0;
 			bool remv = false;
-			foreach (i, c_; arr) {
-				if (c_ is c) {
+			foreach (i, c_; arr) { mixin(S_TRACE);
+				if (c_ is c) { mixin(S_TRACE);
 					if (i == index) return c.id;
 					remv = true;
 					tempId = arr[$ - 1].id + 2L;
@@ -1161,8 +1160,8 @@ public:
 			c.id(index == 0 ? 1L : arr[index - 1].id() + 1L);
 			arr = arr[0 .. index] ~ c ~ arr[index .. $];
 			ulong chg[ulong];
-			for (size_t i = index + 1; i < arr.length; i++) {
-				if (arr[i - 1].id == arr[i].id) {
+			for (size_t i = index + 1; i < arr.length; i++) { mixin(S_TRACE);
+				if (arr[i - 1].id == arr[i].id) { mixin(S_TRACE);
 					ulong o = arr[i].id();
 					arr[i].id = arr[i].id + 1L;
 					chg[o] = arr[i].id;
@@ -1178,56 +1177,56 @@ public:
 			c.changeHandler = &changeHandler;
 			c.owner = this;
 			changeHandler();
-			foreach_reverse (o; chg.keys.sort) {
+			foreach_reverse (o; chg.keys.sort) { mixin(S_TRACE);
 				_uc.change(ToID(o), ToID(chg[o]));
 			}
-			if (remv) {
+			if (remv) { mixin(S_TRACE);
 				_uc.change(ToID(tempId), ToID(c.id));
 			}
 			return oldId;
 		}
 	}
 	/// このシナリオにカード・エリア等を挿入する。
-	ulong insert(int index, CastCard c) {
+	ulong insert(int index, CastCard c) { mixin(S_TRACE);
 		return insertImpl!(CastCard, toCastId)(_cast, index, c);
 	}
 	/// ditto
-	ulong insert(int index, SkillCard c) {
+	ulong insert(int index, SkillCard c) { mixin(S_TRACE);
 		return insertImpl!(SkillCard, toSkillId)(_skl, index, c);
 	}
 	/// ditto
-	ulong insert(int index, ItemCard c) {
+	ulong insert(int index, ItemCard c) { mixin(S_TRACE);
 		return insertImpl!(ItemCard, toItemId)(_itm, index, c);
 	}
 	/// ditto
-	ulong insert(int index, BeastCard c) {
+	ulong insert(int index, BeastCard c) { mixin(S_TRACE);
 		return insertImpl!(BeastCard, toBeastId)(_bst, index, c);
 	}
 	/// ditto
-	ulong insert(int index, InfoCard c) {
+	ulong insert(int index, InfoCard c) { mixin(S_TRACE);
 		return insertImpl!(InfoCard, toInfoId)(_info, index, c);
 	}
 	/// ditto
-	ulong insert(int index, Area c) {
+	ulong insert(int index, Area c) { mixin(S_TRACE);
 		return insertImpl!(Area, toAreaId)(_area, index, c);
 	}
 	/// ditto
-	ulong insert(int index, Battle c) {
+	ulong insert(int index, Battle c) { mixin(S_TRACE);
 		return insertImpl!(Battle, toBattleId)(_btl, index, c);
 	}
 	/// ditto
-	ulong insert(int index, Package c) {
+	ulong insert(int index, Package c) { mixin(S_TRACE);
 		return insertImpl!(Package, toPackageId)(_pkg, index, c);
 	}
 
-	private ulong addImpl(T, alias ToID)(ref T[] arr, T area, bool forceNewId) {
+	private ulong addImpl(T, alias ToID)(ref T[] arr, T area, bool forceNewId) { mixin(S_TRACE);
 		if (arr.length > 0 && arr[$ - 1] is area) return area.id;
 		auto oldId = area.id;
-		if (forceNewId || (arr.length > 0 && arr[$ - 1].id >= area.id) ) {
+		if (forceNewId || (arr.length > 0 && arr[$ - 1].id >= area.id) ) { mixin(S_TRACE);
 			area.id = newIdImpl(arr);
 		}
-		foreach (i, c_; arr) {
-			if (c_ is area) {
+		foreach (i, c_; arr) { mixin(S_TRACE);
+			if (c_ is area) { mixin(S_TRACE);
 				removeImpl(arr, area);
 				_uc.change(ToID(oldId), ToID(area.id));
 				break;
@@ -1248,45 +1247,45 @@ public:
 	}
 
 	/// このシナリオにカード・エリア等を追加する。
-	ulong add(Area area, bool forceNewId = true) {
+	ulong add(Area area, bool forceNewId = true) { mixin(S_TRACE);
 		auto id = addImpl!(Area, toAreaId)(_area, area, forceNewId);
-		if (areas.length == 1) {
+		if (areas.length == 1) { mixin(S_TRACE);
 			startArea = area.id;
 		}
 		return id;
 	}
 	/// ditto
-	ulong add(Battle btl, bool forceNewId = true) {
+	ulong add(Battle btl, bool forceNewId = true) { mixin(S_TRACE);
 		return addImpl!(Battle, toBattleId)(_btl, btl, forceNewId);
 	}
 	/// ditto
-	ulong add(Package pkg, bool forceNewId = true) {
+	ulong add(Package pkg, bool forceNewId = true) { mixin(S_TRACE);
 		return addImpl!(Package, toPackageId)(_pkg, pkg, forceNewId);
 	}
 	/// ditto
-	ulong add(CastCard c, bool forceNewId = true) {
+	ulong add(CastCard c, bool forceNewId = true) { mixin(S_TRACE);
 		return addImpl!(CastCard, toCastId)(_cast, c, forceNewId);
 	}
 	/// ditto
-	ulong add(SkillCard c, bool forceNewId = true) {
+	ulong add(SkillCard c, bool forceNewId = true) { mixin(S_TRACE);
 		return addImpl!(SkillCard, toSkillId)(_skl, c, forceNewId);
 	}
 	/// ditto
-	ulong add(ItemCard c, bool forceNewId = true) {
+	ulong add(ItemCard c, bool forceNewId = true) { mixin(S_TRACE);
 		return addImpl!(ItemCard, toItemId)(_itm, c, forceNewId);
 	}
 	/// ditto
-	ulong add(BeastCard c, bool forceNewId = true) {
+	ulong add(BeastCard c, bool forceNewId = true) { mixin(S_TRACE);
 		return addImpl!(BeastCard, toBeastId)(_bst, c, forceNewId);
 	}
 	/// ditto
-	ulong add(InfoCard c, bool forceNewId = true) {
+	ulong add(InfoCard c, bool forceNewId = true) { mixin(S_TRACE);
 		return addImpl!(InfoCard, toInfoId)(_info, c, forceNewId);
 	}
 
-	private void removeImpl(T)(ref T[] arr, T area) {
-		foreach (i, a; arr) {
-			if (a.id == area.id) {
+	private void removeImpl(T)(ref T[] arr, T area) { mixin(S_TRACE);
+		foreach (i, a; arr) { mixin(S_TRACE);
+			if (a.id == area.id) { mixin(S_TRACE);
 				arr = arr[0 .. i] ~ arr[i + 1 .. $];
 				area.removeUseCounter();
 				area.changeHandler = null;
@@ -1298,54 +1297,54 @@ public:
 	}
 
 	/// カード・エリア等を除去する。
-	void remove(CastCard c) {
+	void remove(CastCard c) { mixin(S_TRACE);
 		removeImpl(_cast, c);
 	}
 	/// ditto
-	void remove(SkillCard c) {
+	void remove(SkillCard c) { mixin(S_TRACE);
 		removeImpl(_skl, c);
 	}
 	/// ditto
-	void remove(ItemCard c) {
+	void remove(ItemCard c) { mixin(S_TRACE);
 		removeImpl(_itm, c);
 	}
 	/// ditto
-	void remove(BeastCard c) {
+	void remove(BeastCard c) { mixin(S_TRACE);
 		removeImpl(_bst, c);
 	}
 	/// ditto
-	void remove(InfoCard c) {
+	void remove(InfoCard c) { mixin(S_TRACE);
 		removeImpl(_info, c);
 	}
 	/// ditto
-	void remove(Area a) {
+	void remove(Area a) { mixin(S_TRACE);
 		removeImpl(_area, a);
-		if (a.id == startArea) {
+		if (a.id == startArea) { mixin(S_TRACE);
 			startArea = areas.length > 0 ? areas[0].id : 0;
 		}
 	}
 	/// ditto
-	void remove(Battle a) {
+	void remove(Battle a) { mixin(S_TRACE);
 		removeImpl(_btl, a);
 	}
 	/// ditto
-	void remove(Package a) {
+	void remove(Package a) { mixin(S_TRACE);
 		removeImpl(_pkg, a);
 	}
 	/// ditto
-	void remove(AbstractArea area) {
-		if (cast(Area) area) {
+	void remove(AbstractArea area) { mixin(S_TRACE);
+		if (cast(Area) area) { mixin(S_TRACE);
 			remove(cast(Area) area);
-		} else if (cast(Package) area) {
+		} else if (cast(Package) area) { mixin(S_TRACE);
 			remove(cast(Package) area);
-		} else {
+		} else { mixin(S_TRACE);
 			assert (cast(Battle) area);
 			remove(cast(Battle) area);
 		}
 	}
 
 	/// index1とindex2を交換する。
-	void swap(A)(int index1, int index2) {
+	void swap(A)(int index1, int index2) { mixin(S_TRACE);
 		if (index1 == index2) return;
 		enforce(0 <= index1 && index1 < CArray!A.length);
 		enforce(0 <= index2 && index2 < CArray!A.length);
@@ -1375,7 +1374,7 @@ public:
 	alias swap!InfoCard swapInfo;
 
 	const
-	private string summaryToXML(in XMLOption opt) {
+	private string summaryToXML(in XMLOption opt) { mixin(S_TRACE);
 		auto root = XNode.create("Summary");
 		auto pNode = root.newElement("Property");
 		pNode.newElement("Name", _sname);
@@ -1407,7 +1406,7 @@ public:
 	/// ]
 	/// ---
 	const
-	string[string][string] toXMLs(const System sys) {
+	string[string][string] toXMLs(const System sys) { mixin(S_TRACE);
 		auto opt = new XMLOption(sys);
 		opt.includeCard = true;
 		opt.skill = &skill;
@@ -1418,8 +1417,8 @@ public:
 		string[string] s = ["Summary.xml":summaryToXML(opt)];
 		string[string][string] r = [e:s];
 
-		void put(string parent, string[string] p) {
-			if (p.length) {
+		void put(string parent, string[string] p) { mixin(S_TRACE);
+			if (p.length) { mixin(S_TRACE);
 				r[parent] = p;
 			}
 		}
@@ -1435,9 +1434,9 @@ public:
 
 		return r;
 	}
-	private static string[string] toXMLsImpl(A)(in A[] targs, XMLOption opt) {
+	private static string[string] toXMLsImpl(A)(in A[] targs, XMLOption opt) { mixin(S_TRACE);
 		string[string] r;
-		foreach (targ; targs) {
+		foreach (targ; targs) { mixin(S_TRACE);
 			auto fname = format("%02d", targ.id) ~ ".xml";
 			r[fname] = targ.toXML(opt);
 		}
@@ -1450,15 +1449,15 @@ public:
 	/// path = 保存先のパス。
 	/// Throws:
 	/// FileException = ファイル削除時・保存時例外発生時。
-	void saveXMLs(string path, const System sys, in SaveOption opt) {
+	void saveXMLs(string path, const System sys, in SaveOption opt) { mixin(S_TRACE);
 		string summFile = std.path.buildPath(path, "Summary.xml");
 
 		bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
-		if (canBackup) {
-			foreach (file; clistdir(opt.backupDir)) {
+		if (canBackup) { mixin(S_TRACE);
+			foreach (file; clistdir(opt.backupDir)) { mixin(S_TRACE);
 				.delAll(opt.backupDir.buildPath(file));
 			}
-			if (summFile.exists() && !summFile.isDir()) {
+			if (summFile.exists() && !summFile.isDir()) { mixin(S_TRACE);
 				summFile.copy(opt.backupDir.buildPath(summFile.baseName()));
 			}
 		}
@@ -1481,20 +1480,20 @@ public:
 		saveXML(std.path.buildPath(path, PATH_INFO), _info, opt, xOpt);
 	}
 	/// ditto
-	void saveXMLs(const System sys, in SaveOption opt) {
+	void saveXMLs(const System sys, in SaveOption opt) { mixin(S_TRACE);
 		saveXMLs(_sPath, sys, opt);
 	}
-	private static void delAllXML(string p, in SaveOption opt) {
+	private static void delAllXML(string p, in SaveOption opt) { mixin(S_TRACE);
 		bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
 		string backupDir = "";
-		if (canBackup) {
+		if (canBackup) { mixin(S_TRACE);
 			backupDir = opt.backupDir.buildPath(p.baseName());
 		}
-		foreach (t; clistdir(p)) {
+		foreach (t; clistdir(p)) { mixin(S_TRACE);
 			auto file = std.path.buildPath(p, t);
 			if (isDir(file) || !cfnmatch(.extension(file), ".xml")) continue;
 
-			if (canBackup) {
+			if (canBackup) { mixin(S_TRACE);
 				if (!backupDir.exists()) backupDir.mkdirRecurse();
 				auto backFile = backupDir.buildPath(t);
 				file.copy(backFile);
@@ -1503,44 +1502,44 @@ public:
 			std.file.remove(file);
 		}
 	}
-	private static void saveXML(A)(string path, A[] targs, in SaveOption opt, XMLOption xOpt) {
-		if (targs.length == 0) {
-			if (exists(path) && isDir(path)) {
+	private static void saveXML(A)(string path, A[] targs, in SaveOption opt, XMLOption xOpt) { mixin(S_TRACE);
+		if (targs.length == 0) { mixin(S_TRACE);
+			if (exists(path) && isDir(path)) { mixin(S_TRACE);
 				delAllXML(path, opt);
-				if (clistdir(path).length == 0) {
+				if (clistdir(path).length == 0) { mixin(S_TRACE);
 					rmdir(path);
 				}
 			}
-		} else {
-			if (exists(path) && isDir(path)) {
+		} else { mixin(S_TRACE);
+			if (exists(path) && isDir(path)) { mixin(S_TRACE);
 				delAllXML(path, opt);
-			} else {
+			} else { mixin(S_TRACE);
 				mkdir(path);
 			}
-			foreach (targ; targs) {
+			foreach (targ; targs) { mixin(S_TRACE);
 				auto p = createFileI(path, targ.name, ".xml", format("%02d", targ.id) ~ "_");
 				std.file.write(p, targ.toXML(xOpt));
 			}
 		}
 	}
 
-	private static Summary summaryFromXML(const System sys, string sPath, string xml) {
+	private static Summary summaryFromXML(const System sys, string sPath, string xml) { mixin(S_TRACE);
 		scope summNode = XNode.parse(xml);
-		if (summNode.name == "Summary") {
+		if (summNode.name == "Summary") { mixin(S_TRACE);
 			auto summ = new Summary(sPath);
 			string ver = summNode.attr("dataVersion", false);
 			summ.dataVersion = ver ? ver : "";
-			summNode.onTag["Property"] = (ref XNode propNode) {
+			summNode.onTag["Property"] = (ref XNode propNode) { mixin(S_TRACE);
 				propNode.onTag["Name"] = (ref XNode node) {summ._sname = node.value;};
 				propNode.onTag["ImagePath"] = (ref XNode node) {summ._imgPath.path = decodePath(node.value);};
 				propNode.onTag["Author"] = (ref XNode node) {summ._author = node.value;};
 				propNode.onTag["Description"] = (ref XNode node) {summ._desc = decodeLf2(node.value);};
-				propNode.onTag["Level"] = (ref XNode node) {
+				propNode.onTag["Level"] = (ref XNode node) { mixin(S_TRACE);
 					summ._levMin = node.attr!(uint)("min", true);
 					summ._levMax = node.attr!(uint)("max", true);
 				};
 				string[] rCoupons;
-				propNode.onTag["RequiredCoupons"] = (ref XNode node) {
+				propNode.onTag["RequiredCoupons"] = (ref XNode node) { mixin(S_TRACE);
 					summ._rCouponNum = node.attr!(uint)("number", true);
 					rCoupons = decodeLf(node.value);
 				};
@@ -1554,9 +1553,9 @@ public:
 		}
 		throw new SummaryException("File is not summary: " ~ sPath);
 	}
-	private void checkStartArea() {
-		foreach (area; areas) {
-			if (area.id == startArea) {
+	private void checkStartArea() { mixin(S_TRACE);
+		foreach (area; areas) { mixin(S_TRACE);
+			if (area.id == startArea) { mixin(S_TRACE);
 				return;
 			}
 		}
@@ -1564,9 +1563,9 @@ public:
 	}
 
 	private void loadXMLCommon(A)(string xml, string name, ref A[] areas,
-			UseCounter uc, void delegate() change, in XMLInfo ver) {
+			UseCounter uc, void delegate() change, in XMLInfo ver) { mixin(S_TRACE);
 		auto doc = XNode.parse(xml);
-		if (doc.name == name) {
+		if (doc.name == name) { mixin(S_TRACE);
 			auto area = A.createFromNode(doc, ver);
 			if (uc) area.setUseCounter = uc;
 			if (change) area.changeHandler = change;
@@ -1575,12 +1574,12 @@ public:
 		}
 	}
 	private void loadXML1(A)(string targPath, string name, ref A[] areas,
-			UseCounter uc, void delegate() change, in XMLInfo ver) {
-		if (exists(targPath)) {
-			foreach (p; clistdir(targPath)) {
+			UseCounter uc, void delegate() change, in XMLInfo ver) { mixin(S_TRACE);
+		if (exists(targPath)) { mixin(S_TRACE);
+			foreach (p; clistdir(targPath)) { mixin(S_TRACE);
 				p = std.path.buildPath(targPath, p);
-				if (!isDir(p) && cfnmatch(.extension(p), ".xml")) {
-					try {
+				if (!isDir(p) && cfnmatch(.extension(p), ".xml")) { mixin(S_TRACE);
+					try { mixin(S_TRACE);
 						loadXMLCommon(std.file.readText(p), name, areas, uc, change, ver);
 					} catch (Exception e) {
 						throw new FileLoadException(p, e);
@@ -1593,11 +1592,11 @@ public:
 	}
 	private void loadXML2(A)(string[string][string] xmls,
 			string dirName, string name, ref A[] areas,
-			UseCounter uc, void delegate() change, in XMLInfo ver) {
+			UseCounter uc, void delegate() change, in XMLInfo ver) { mixin(S_TRACE);
 		auto dir = dirName in xmls;
 		if (!dir) return;
-		foreach (file, xml; *dir) {
-			try {
+		foreach (file, xml; *dir) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
 				loadXMLCommon(xml, name, areas, uc, change, ver);
 			} catch (Exception e) {
 				throw new Exception(std.path.buildPath(dirName, file));
@@ -1615,7 +1614,7 @@ public:
 	/// SummaryException = xmlsにSummary定義のXML文書が含まれていない、または壊れている。
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	private static Summary fromXMLs(const System sys, string sPath, string[string][string] xmls, in LoadOption opt) {
+	private static Summary fromXMLs(const System sys, string sPath, string[string][string] xmls, in LoadOption opt) { mixin(S_TRACE);
 		auto parent = "" in xmls;
 		if (!parent) throw new SummaryException("invalid xmls");
 		auto summXML = "Summary.xml" in *parent;
@@ -1624,7 +1623,7 @@ public:
 
 		auto ver = new XMLInfo(sys, summ.dataVersion);
 		if (opt.summaryOnly) return summ;
-		if (!opt.cardOnly) {
+		if (!opt.cardOnly) { mixin(S_TRACE);
 			summ.loadXML2(xmls, PATH_AREA, "Area", summ._area, summ.useCounter, &summ.changeHandler, ver);
 			summ.checkStartArea();
 			summ.loadXML2(xmls, PATH_BATTLE, "Battle", summ._btl, summ.useCounter, &summ.changeHandler, ver);
@@ -1639,11 +1638,11 @@ public:
 
 		return summ;
 	}
-	private static void fromXMLs(const System sys, Summary summ, in LoadOption opt) {
+	private static void fromXMLs(const System sys, Summary summ, in LoadOption opt) { mixin(S_TRACE);
 		if (opt.summaryOnly) return;
 		auto path = summ.scenarioPath;
 		auto ver = new XMLInfo(sys, summ.dataVersion);
-		if (!opt.cardOnly) {
+		if (!opt.cardOnly) { mixin(S_TRACE);
 			summ.loadXML1(std.path.buildPath(path, PATH_AREA), "Area", summ._area, summ.useCounter, &summ.changeHandler, ver);
 			summ.checkStartArea();
 			summ.loadXML1(std.path.buildPath(path, PATH_BATTLE), "Battle", summ._btl, summ.useCounter, &summ.changeHandler, ver);
@@ -1666,7 +1665,7 @@ public:
 	/// XmlException = XMLパースエラー発生時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	/// FileLoadException = Summary.xml以外での読込例外発生時。
-	private static Summary fromXMLs(const System sys, string path, in LoadOption opt) {
+	private static Summary fromXMLs(const System sys, string path, in LoadOption opt) { mixin(S_TRACE);
 		auto summ = summaryFromXML(sys, dirName(path), std.file.readText(path));
 		if (opt.summaryOnly) return summ;
 		fromXMLs(sys, summ, opt);
@@ -1674,11 +1673,11 @@ public:
 	}
 
 	/// XMLファイルまたはクラシックなシナリオを再読込し、新しいSummaryを生成して返す。
-	Summary reloadXMLs(const System sys, in LoadOption opt) {
+	Summary reloadXMLs(const System sys, in LoadOption opt) { mixin(S_TRACE);
 		Summary summ;
-		if (legacy) {
+		if (legacy) { mixin(S_TRACE);
 			summ = loadLScenario(scenarioPath, "", sys, opt, scenarioName);
-		} else {
+		} else { mixin(S_TRACE);
 			summ = summaryFromXML(sys, scenarioPath,
 				std.file.readText(std.path.buildPath(scenarioPath, "Summary.xml")));
 			fromXMLs(sys, summ, opt);
@@ -1687,7 +1686,7 @@ public:
 		summ._zipName = zipName;
 		summ._useTemp = useTemp;
 		summ._legacy = legacy;
-		if (useTemp) {
+		if (useTemp) { mixin(S_TRACE);
 			summ._lock = _lock;
 		}
 		return summ;
@@ -1695,68 +1694,68 @@ public:
 
 	/// フラグとステップのルートディレクトリ。
 	@property
-	FlagDir flagDirRoot() {
+	FlagDir flagDirRoot() { mixin(S_TRACE);
 		return _froot;
 	}
 	/// ditto
 	@property
 	const
-	const(FlagDir) flagDirRoot() {
+	const(FlagDir) flagDirRoot() { mixin(S_TRACE);
 		return _froot;
 	}
 
 	/// シナリオのディレクトリ。
 	@property
 	const
-	string scenarioPath() {
+	string scenarioPath() { mixin(S_TRACE);
 		return _sPath;
 	}
 	/// シナリオのディレクトリ。
 	@property
-	void scenarioPath(string sPath) {
+	void scenarioPath(string sPath) { mixin(S_TRACE);
 		_sPath = sPath;
 	}
 	/// シナリオ名。
 	@property
 	const
-	string scenarioName() {
+	string scenarioName() { mixin(S_TRACE);
 		return _sname;
 	}
 	/// ditto
 	@property
-	void scenarioName(string scenarioName) {
+	void scenarioName(string scenarioName) { mixin(S_TRACE);
 		setBaseParams(scenarioName, author);
 	}
 
 	/// カード画像のマップを生成して返す。
 	const
-	private string[][immutable(ubyte[])] cardImgTable(string mtdir, Skin skin, UseCounter uc) {
+	private string[][immutable(ubyte[])] cardImgTable(string mtdir, Skin skin, UseCounter uc) { mixin(S_TRACE);
 		string[][immutable(ubyte[])] r;
-		foreach (file; clistdir(mtdir)) {
-			if (skin.isCardImage(std.path.buildPath(mtdir, file), true)) {
+		foreach (file; clistdir(mtdir)) { mixin(S_TRACE);
+			if (skin.isCardImage(std.path.buildPath(mtdir, file), true)) { mixin(S_TRACE);
 				auto mBytes = cast(ubyte[])readBinary(std.path.buildPath(mtdir, file));
 				auto bytes = assumeUnique(mBytes);
 				r[bytes] ~= std.path.buildPath(skin.materialPath, file);
 			}
 		}
-		foreach (key, v; r.values) {
-			if (v.length > 1u) {
+		foreach (key, v; r.values) { mixin(S_TRACE);
+			if (v.length > 1u) { mixin(S_TRACE);
 				string[] nv;
-				foreach (file; v) {
-					if (!cwx.utils.fnstartsWith(baseName(file), "font_")) {
+				foreach (file; v) { mixin(S_TRACE);
+					if (!cwx.utils.fnstartsWith(baseName(file), "font_")) { mixin(S_TRACE);
 						/// font_X.bmpはやむを得ずコピーした可能性があるため優先的に除外
 						nv ~= file;
 					}
 				}
 				r.values[key] = nv;
 			}
-			if (v.length > 1u) {
+			if (v.length > 1u) { mixin(S_TRACE);
 				string[] nv;
 				int maxCount = -1;
-				foreach (file; v) {
+				foreach (file; v) { mixin(S_TRACE);
 					/// 使用回数が多い方を優先
 					int c = cast(int) uc.path.values(toPathId(file)).length;
-					if (c >= maxCount) {
+					if (c >= maxCount) { mixin(S_TRACE);
 						nv ~= file;
 						maxCount = c;
 					}
@@ -1767,15 +1766,15 @@ public:
 		return r;
 	}
 	const
-	private bool moveBinImg(ref string[][immutable(ubyte[])] cis, PathUser targ, string fname, string mt, Skin toSkin) {
+	private bool moveBinImg(ref string[][immutable(ubyte[])] cis, PathUser targ, string fname, string mt, Skin toSkin) { mixin(S_TRACE);
 		string img = targ.path;
-		if (isBinImg(img)) {
+		if (isBinImg(img)) { mixin(S_TRACE);
 			auto bytes = strToBImg(img);
 			string[] *files = bytes in cis;
-			if (files) {
+			if (files) { mixin(S_TRACE);
 				assert (files.length);
 				targ.path = (*files)[0u];
-			} else {
+			} else { mixin(S_TRACE);
 				auto file = createFileI(mt, fname, ".bmp", "");
 				std.file.write(file, bytes);
 				targ.path = std.path.buildPath(toSkin.materialPath, baseName(file));
@@ -1786,43 +1785,43 @@ public:
 		return false;
 	}
 	/// クラシックなシナリオをXML形式のシナリオに変換する。
-	public string classicToX(in CProps prop, string temp, string tempPath, Skin toSkin, out string[] copyFail) {
+	public string classicToX(in CProps prop, string temp, string tempPath, Skin toSkin, out string[] copyFail) { mixin(S_TRACE);
 		.enforce(legacy);
 		copyFail = [];
 		auto uc = useCounter;
 		string mt;
-		if (std.path.buildPath(scenarioPath, toSkin.materialPath).exists()) {
+		if (std.path.buildPath(scenarioPath, toSkin.materialPath).exists()) { mixin(S_TRACE);
 			// 元々Materialディレクトリが存在する
 			mt = temp;
-		} else {
+		} else { mixin(S_TRACE);
 			mt = std.path.buildPath(temp, toSkin.materialPath);
-			try {
+			try { mixin(S_TRACE);
 				if (!mt.exists()) mkdirRecurse(mt);
 			} catch (Exception e) {
 				// 稀な条件でMaterialだけ生成されない場合がある模様
 				debugln(e);
 			}
-			if (!.exists(mt)) {
+			if (!.exists(mt)) { mixin(S_TRACE);
 				mt = temp;
 			}
 		}
-		foreach (file; clistdir(scenarioPath)) {
-			if (cfnmatch(file, "cwxeditor.lock")) {
+		foreach (file; clistdir(scenarioPath)) { mixin(S_TRACE);
+			if (cfnmatch(file, "cwxeditor.lock")) { mixin(S_TRACE);
 				continue;
 			}
 			auto p = std.path.buildPath(scenarioPath, file);
-			try {
-				if (isDir(p)) {
+			try { mixin(S_TRACE);
+				if (isDir(p)) { mixin(S_TRACE);
 					auto top = std.path.buildPath(mt, baseName(p));
 					mkdir(top);
 					copyAll(p, top, true);
-				} else if (!cfnmatch(.extension(p), ".wsm") && !cfnmatch(.extension(p), ".wid") && !cfnmatch(.extension(p), ".wex")) {
+				} else if (!cfnmatch(.extension(p), ".wsm") && !cfnmatch(.extension(p), ".wid") && !cfnmatch(.extension(p), ".wex")) { mixin(S_TRACE);
 					if (toSkin.isCardImage(p, true)
 							|| toSkin.isBgImage(p)
 							|| toSkin.isBGM(p)
-							|| toSkin.isSE(p)) {
+							|| toSkin.isSE(p)) { mixin(S_TRACE);
 						copy(p, std.path.buildPath(mt, baseName(p)));
-					} else {
+					} else { mixin(S_TRACE);
 						copy(p, std.path.buildPath(temp, baseName(p)));
 					}
 				}
@@ -1831,18 +1830,18 @@ public:
 				copyFail ~= p;
 			}
 		}
-		if (!mt.cfnmatch(temp)) {
-			foreach (key; uc.path.keys) {
+		if (!mt.cfnmatch(temp)) { mixin(S_TRACE);
+			foreach (key; uc.path.keys) { mixin(S_TRACE);
 				uc.change(key, toPathId(std.path.buildPath(toSkin.materialPath, cast(string) key)));
 			}
 			scope table = cardImgTable(mt, toSkin, uc);
-			foreach (p; uc.path.keys) {
-				if (p.isBinImg) {
+			foreach (p; uc.path.keys) { mixin(S_TRACE);
+				if (p.isBinImg) { mixin(S_TRACE);
 					int i = 0;
-					foreach (ipu; uc.path.values(p)) {
+					foreach (ipu; uc.path.values(p)) { mixin(S_TRACE);
 						auto v = cast(PathUser) ipu;
 						assert (v);
-						if (moveBinImg(table, v, "@simage(" ~ to!(string)(i + 1) ~ ")", mt, toSkin)) {
+						if (moveBinImg(table, v, "@simage(" ~ to!(string)(i + 1) ~ ")", mt, toSkin)) { mixin(S_TRACE);
 							i++;
 						}
 					}
@@ -1852,30 +1851,30 @@ public:
 		return temp;
 	}
 	/// 新規にシナリオのディレクトリを作成し、現在のファイルをコピーする。
-	private string toNewDirectory(in CProps prop, string fileOrDir, string tempPath, out string[] copyFail, out bool useTemp) {
+	private string toNewDirectory(in CProps prop, string fileOrDir, string tempPath, out string[] copyFail, out bool useTemp) { mixin(S_TRACE);
 		copyFail = [];
 		bool isDir;
 		string sPath, zipName;
 		string ext = fileOrDir.extension();
 		string baseName = fileOrDir.baseName();
-		if (.cfnmatch(baseName, "Summary.wsm") || .cfnmatch(baseName, "Summary.xml")) {
+		if (.cfnmatch(baseName, "Summary.wsm") || .cfnmatch(baseName, "Summary.xml")) { mixin(S_TRACE);
 			isDir = true;
 			sPath = fileOrDir.dirName();
 			zipName = "";
-		} else if (!(.exists(fileOrDir) && .isDir(fileOrDir)) && (ext.cfnmatch(".zip") || ext.cfnmatch(".cab") || ext.cfnmatch(".wsn"))) {
+		} else if (!(.exists(fileOrDir) && .isDir(fileOrDir)) && (ext.cfnmatch(".zip") || ext.cfnmatch(".cab") || ext.cfnmatch(".wsn"))) { mixin(S_TRACE);
 			isDir = false;
 			sPath = Summary.createTempDirFromName(tempPath, scenarioName);
 			zipName = fileOrDir;
-		} else {
+		} else { mixin(S_TRACE);
 			isDir = true;
 			sPath = fileOrDir;
 			zipName = "";
 		}
 		if (!.exists(sPath)) mkdirRecurse(sPath);
 		useTemp = !isDir;
-		foreach (file; clistdir(scenarioPath)) {
+		foreach (file; clistdir(scenarioPath)) { mixin(S_TRACE);
 			string p;
-			try {
+			try { mixin(S_TRACE);
 				auto full = scenarioPath.buildPath(file);
 				if (isSystemFile(full)) continue;
 				p = sPath.buildPath(file);
@@ -1890,24 +1889,24 @@ public:
 	/// 保存場所が決まっている場合はtrue。
 	@property
 	const
-	bool isSaved() {
+	bool isSaved() { mixin(S_TRACE);
 		return !useTemp || zipName.length;
 	}
 	/// 上書き保存。
-	void saveOverwrite(in CProps prop, in Skin skin, in SaveOption opt) in {
+	void saveOverwrite(in CProps prop, in Skin skin, in SaveOption opt) in { mixin(S_TRACE);
 		assert (isSaved);
-	} body {
+	} body { mixin(S_TRACE);
 		saveProc(prop, skin, opt, false, zipName, scenarioPath, scenarioPath, legacy, false, expandXMLs, false);
 	}
 	/// 名前をつけて保存。
 	void saveWithName(in CProps prop, in Skin skin, in SaveOption opt, string fname, string tempPath,
-			bool defExpandXMLs, Skin defSkin, void delegate(string) showWarn, bool classic) {
-		if (classic) {
+			bool defExpandXMLs, Skin defSkin, void delegate(string) showWarn, bool classic) { mixin(S_TRACE);
+		if (classic) { mixin(S_TRACE);
 			// クラシック形式で保存
 			string[] copyFail;
 			bool useTemp;
 			auto sPath = toNewDirectory(prop, fname, tempPath, copyFail, useTemp);
-			foreach (fail; copyFail) {
+			foreach (fail; copyFail) { mixin(S_TRACE);
 				// 一部コピー失敗しても中断しない
 				showWarn(.tryFormat(prop.msgs.fileCopyError, fail));
 			}
@@ -1917,7 +1916,7 @@ public:
 				if (useTemp) delAll(temp);
 			}
 			saveProc(prop, skin, opt, useTemp, zipName, temp, sPath, true, false, defExpandXMLs, true);
-		} else if (fname.baseName().cfnmatch("Summary.xml") || (fname.exists() && fname.isDir())) {
+		} else if (fname.baseName().cfnmatch("Summary.xml") || (fname.exists() && fname.isDir())) { mixin(S_TRACE);
 			// 新しく指定ディレクトリに保存(クラシック形式からXML形式への変換も含む)
 			string[] copyFail;
 			bool useTemp = false;
@@ -1925,42 +1924,42 @@ public:
 			string temp = (fname.exists() && fname.isDir()) ? fname : fname.dirName();
 			if (!temp.exists()) temp.mkdirRecurse();
 			bool toX = false;
-			if (this.legacy) {
+			if (this.legacy) { mixin(S_TRACE);
 				sPath = classicToX(prop, temp, tempPath, defSkin, copyFail);
 				toX = true;
-			} else {
+			} else { mixin(S_TRACE);
 				sPath = toNewDirectory(prop, fname, tempPath, copyFail, useTemp);
 			}
-			foreach (fail; copyFail) {
+			foreach (fail; copyFail) { mixin(S_TRACE);
 				// 一部コピー失敗しても中断しない
 				showWarn(.tryFormat(prop.msgs.fileCopyError, fail));
 			}
 			assert (!useTemp);
 			string zipName = "";
 			saveProc(prop, skin, opt, useTemp, zipName, temp, sPath, false, false, defExpandXMLs, true);
-			if (!type.length) {
+			if (!type.length) { mixin(S_TRACE);
 				type = defSkin.type;
 				resetChanged();
 			}
-		} else if (this.legacy) {
+		} else if (this.legacy) { mixin(S_TRACE);
 			// クラシック形式からXML形式に変換
 			string[] copyFail;
 			auto temp = Summary.createTempDir(tempPath, scenarioName);
 			temp = classicToX(prop, temp, tempPath, defSkin, copyFail);
-			foreach (fail; copyFail) {
+			foreach (fail; copyFail) { mixin(S_TRACE);
 				// 一部コピー失敗しても中断しない
 				showWarn(.tryFormat(prop.msgs.fileCopyError, fail));
 			}
 			scope (failure) delAll(temp);
 			if (!type.length) type = defSkin.type;
 			saveProc(prop, skin, opt, true, fname, temp, scenarioPath, legacy, true, defExpandXMLs, true);
-		} else if (useTemp) {
+		} else if (useTemp) { mixin(S_TRACE);
 			// 新しいアーカイブを作成
 			string oldZip = _zipName;
 			_zipName = fname;
 			scope (failure) _zipName = oldZip;
 			saveProc(prop, skin, opt, false, zipName, scenarioPath, scenarioPath, legacy, false, defExpandXMLs, true);
-		} else {
+		} else { mixin(S_TRACE);
 			// 展開済みシナリオからアーカイブに変換
 			auto oldPath = scenarioPath;
 			auto p = createTempDir(tempPath, scenarioName);
@@ -1974,33 +1973,33 @@ public:
 		}
 	}
 	private void saveProc(in CProps prop, in Skin skin, in SaveOption opt, bool archive,
-			string zipName, string temp, string sPath, bool legacy, bool legacyToX, bool defExpandXMLs, bool releaseLock) {
-		try {
-			void releaseLockFile() {
-				if (releaseLock && _lock) {
+			string zipName, string temp, string sPath, bool legacy, bool legacyToX, bool defExpandXMLs, bool releaseLock) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
+			void releaseLockFile() { mixin(S_TRACE);
+				if (releaseLock && _lock) { mixin(S_TRACE);
 					_lock.close();
 					_lock = null;
 				}
 			}
 			bool expand = false;
-			if (legacy && !legacyToX) {
+			if (legacy && !legacyToX) { mixin(S_TRACE);
 				auto oldPath = scenarioPath;
 				scenarioPath = sPath;
 				scope (failure) scenarioPath = oldPath;
 				saveLScenario(this, skin, prop.sys, opt);
 				bool useTemp = archive;
 				.enforce(useTemp == (0 < zipName.length));
-				if (useTemp) {
-					if (cfnmatch(.extension(zipName), ".cab")) {
-						.cab(temp, zipName, (string file) {
+				if (useTemp) { mixin(S_TRACE);
+					if (cfnmatch(.extension(zipName), ".cab")) { mixin(S_TRACE);
+						.cab(temp, zipName, (string file) { mixin(S_TRACE);
 							return !cfnmatch(baseName(file), "cwxeditor.lock");
 						});
-					} else {
+					} else { mixin(S_TRACE);
 						.zip(temp, zipName, true, [std.path.buildPath(temp, "cwxeditor.lock")], true);
 					}
 				}
 				releaseLockFile();
-				if (useTemp && !_lock) {
+				if (useTemp && !_lock) { mixin(S_TRACE);
 					lock(sPath, useTemp);
 				}
 				_expandXMLs = false;
@@ -2009,12 +2008,12 @@ public:
 				_tempPath = temp;
 				_legacy = true;
 				_type = "";
-			} else if (archive || useTemp || legacyToX) {
+			} else if (archive || useTemp || legacyToX) { mixin(S_TRACE);
 				auto oldPath = scenarioPath;
-				if (expandXMLs) {
+				if (expandXMLs) { mixin(S_TRACE);
 					saveXMLs(prop.sys, opt);
 					expand = true;
-				} else if (legacyToX && defExpandXMLs) {
+				} else if (legacyToX && defExpandXMLs) { mixin(S_TRACE);
 					scenarioPath = temp;
 					scope (failure) scenarioPath = oldPath;
 					saveXMLs(prop.sys, opt);
@@ -2023,10 +2022,10 @@ public:
 				auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
 				ubyte[][] data;
 				scope arc = .zip(scenarioPath, false, [lock], false, data);
-				if (!expand) {
+				if (!expand) { mixin(S_TRACE);
 					auto xmls = toXMLs(prop.sys);
-					foreach (path, files; xmls) {
-						foreach (name, xml; files) {
+					foreach (path, files; xmls) { mixin(S_TRACE);
+						foreach (name, xml; files) { mixin(S_TRACE);
 							auto p = std.path.buildPath(path, name);
 							arc.addMember(.archive(p, cast(ubyte[]) xml, false));
 						}
@@ -2038,13 +2037,13 @@ public:
 				std.file.write(zipName, b);
 				(cast(ubyte[])b)[] = 0;
 				delete b;
-				foreach (d; data) {
+				foreach (d; data) { mixin(S_TRACE);
 					(cast(ubyte[])d)[] = 0;
 					delete d;
 				}
 				(cast(ubyte[])data)[] = 0;
 				delete data;
-			} else if (expandXMLs || !useTemp) {
+			} else if (expandXMLs || !useTemp) { mixin(S_TRACE);
 				auto oldPath = scenarioPath;
 				scenarioPath = sPath;
 				scope (failure) scenarioPath = oldPath;
@@ -2057,7 +2056,7 @@ public:
 			}
 			dataVersion = LATEST_VERSION;
 			resetChanged();
-			if (legacyToX || (!useTemp && archive)) {
+			if (legacyToX || (!useTemp && archive)) { mixin(S_TRACE);
 				toArchive(zipName, temp, expand);
 			}
 		} catch (Exception e) {
@@ -2066,16 +2065,16 @@ public:
 		}
 	}
 	/// シナリオのフォルダのアーカイブを作成する。
-	void[] createZipData(in string[] ignorePaths, bool useSysEnc) {
+	void[] createZipData(in string[] ignorePaths, bool useSysEnc) { mixin(S_TRACE);
 		auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
 		ubyte[][] data;
-		auto arc = .zip(scenarioPath, true, (string file) {
+		auto arc = .zip(scenarioPath, true, (string file) { mixin(S_TRACE);
 			return cfnmatch(file, lock)
 				|| containsPath(ignorePaths, file.baseName());
 		}, useSysEnc, data);
-		if (useTemp && !expandXMLs) {
-			foreach (path, files; _oldXMLs) {
-				foreach (name, xml; files) {
+		if (useTemp && !expandXMLs) { mixin(S_TRACE);
+			foreach (path, files; _oldXMLs) { mixin(S_TRACE);
+				foreach (name, xml; files) { mixin(S_TRACE);
 					auto p = std.path.buildPath(path, name);
 					arc.addMember(.archive(p, cast(ubyte[]) xml, false, useSysEnc));
 				}
@@ -2083,7 +2082,7 @@ public:
 		}
 		auto r = arc.build();
 		destroy(arc);
-		foreach (d; data) {
+		foreach (d; data) { mixin(S_TRACE);
 			(cast(ubyte[])d)[] = 0;
 			delete d;
 		}
@@ -2092,7 +2091,7 @@ public:
 		return r;
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
-	void createZip(string zipName, in string[] ignorePaths, bool useSysEnc) {
+	void createZip(string zipName, in string[] ignorePaths, bool useSysEnc) { mixin(S_TRACE);
 		auto data = createZipData(ignorePaths, useSysEnc);
 		std.file.write(zipName, data);
 		(cast(ubyte[])data)[] = 0;
@@ -2100,15 +2099,15 @@ public:
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
 	/// 非展開のXMLファイルは一時的に展開される。
-	void createCab(string cabName, in string[] ignorePaths) {
+	void createCab(string cabName, in string[] ignorePaths) { mixin(S_TRACE);
 		string[] tempDirs;
 		string[] tempFiles;
-		if (useTemp && !expandXMLs) {
-			foreach (path, files; _oldXMLs) {
-				foreach (name, xml; files) {
+		if (useTemp && !expandXMLs) { mixin(S_TRACE);
+			foreach (path, files; _oldXMLs) { mixin(S_TRACE);
+				foreach (name, xml; files) { mixin(S_TRACE);
 					auto dir = std.path.buildPath(scenarioPath, path);
 					auto p = std.path.buildPath(dir, name);
-					if (!.exists(dir)) {
+					if (!.exists(dir)) { mixin(S_TRACE);
 						mkdir(dir);
 						tempDirs ~= p;
 					}
@@ -2126,7 +2125,7 @@ public:
 			}
 		}
 
-		.cab(scenarioPath, cabName, (string file) {
+		.cab(scenarioPath, cabName, (string file) { mixin(S_TRACE);
 			return !cfnmatch(baseName(file), "cwxeditor.lock")
 				&& !containsPath(ignorePaths, file.baseName());
 		});
@@ -2136,39 +2135,39 @@ public:
 	private string[string][string] _oldXMLs;
 
 	/// シナリオディレクトリ内の未使用ファイル・ディレクトリのリストを返す。
-	string[] notUsedFiles(in Skin skin, in string[] ignorePaths, bool logicalSort) {
+	string[] notUsedFiles(in Skin skin, in string[] ignorePaths, bool logicalSort) { mixin(S_TRACE);
 		string[] r;
-		int dirS(string p) {
-			if (.isDir(p)) {
+		int dirS(string p) { mixin(S_TRACE);
+			if (.isDir(p)) { mixin(S_TRACE);
 				string[] list = clistdir(p);
-				if (logicalSort) {
+				if (logicalSort) { mixin(S_TRACE);
 					list = sort!(fnncmp)(list);
-				} else {
+				} else { mixin(S_TRACE);
 					list = sort!(fncmp)(list);
 				}
 				int c = 0;
-				foreach (string file; list) {
+				foreach (string file; list) { mixin(S_TRACE);
 					c += dirS(p.buildPath(file));
 				}
 				auto rel = abs2rel(p, scenarioPath);
-				if ("" == rel || cfnmatch(rel, skin.materialPath)) {
+				if ("" == rel || cfnmatch(rel, skin.materialPath)) { mixin(S_TRACE);
 					c++;
 				}
-				if (0 == c) {
+				if (0 == c) { mixin(S_TRACE);
 					// 未使用ディレクトリ
 					r ~= rel;
 				}
 				return c;
-			} else {
-				if (isSystemFile(p) || containsPath(ignorePaths, baseName(p))) {
+			} else { mixin(S_TRACE);
+				if (isSystemFile(p) || containsPath(ignorePaths, baseName(p))) { mixin(S_TRACE);
 					return 1;
 				}
-				if (!skin.isMaterial(p)) {
+				if (!skin.isMaterial(p)) { mixin(S_TRACE);
 					return 1;
 				}
 				auto p2 = abs2rel(p, scenarioPath);
 				auto pathId = toPathId(p2);
-				if (0 == useCounter.get(pathId)) {
+				if (0 == useCounter.get(pathId)) { mixin(S_TRACE);
 					r ~= p2;
 					return 0;
 				}
@@ -2179,47 +2178,47 @@ public:
 		return r;
 	}
 	/// 素材の一覧を返す。
-	string[] allMaterials(in Skin skin, in string[] ignorePaths, bool logicalSort, bool scenarioOnly) {
+	string[] allMaterials(in Skin skin, in string[] ignorePaths, bool logicalSort, bool scenarioOnly) { mixin(S_TRACE);
 		auto sPath = nabs(scenarioPath);
 		auto tbl = new HashSet!(PathId);
 		string[] paths;
-		void find(string p) {
-			if (isSystemFile(p) || .containsPath(ignorePaths, baseName(p))) {
+		void find(string p) { mixin(S_TRACE);
+			if (isSystemFile(p) || .containsPath(ignorePaths, baseName(p))) { mixin(S_TRACE);
 				return;
 			}
-			if (.isDir(p)) {
+			if (.isDir(p)) { mixin(S_TRACE);
 				string[] list = clistdir(p);
-				if (logicalSort) {
+				if (logicalSort) { mixin(S_TRACE);
 					list = sort!(fnncmp)(list);
-				} else {
+				} else { mixin(S_TRACE);
 					list = sort!(fncmp)(list);
 				}
-				foreach (l; list) {
+				foreach (l; list) { mixin(S_TRACE);
 					find(std.path.buildPath(p, l));
 				}
-			} else if (skin.isMaterial(p)) {
+			} else if (skin.isMaterial(p)) { mixin(S_TRACE);
 				auto path = abs2rel(p, sPath);
 				paths ~= encodePath(path);
 				tbl.add(toPathId(path));
 			}
 		}
 		find(sPath);
-		if (!scenarioOnly) {
-			foreach (p; skin.tables(logicalSort)) {
+		if (!scenarioOnly) { mixin(S_TRACE);
+			foreach (p; skin.tables(logicalSort)) { mixin(S_TRACE);
 				tbl.add(toPathId(p));
 				paths ~= encodePath(p);
 			}
-			foreach (p; skin.musics(logicalSort)) {
+			foreach (p; skin.musics(logicalSort)) { mixin(S_TRACE);
 				tbl.add(toPathId(p));
 				paths ~= encodePath(p);
 			}
-			foreach (p; skin.sounds(logicalSort)) {
+			foreach (p; skin.sounds(logicalSort)) { mixin(S_TRACE);
 				tbl.add(toPathId(p));
 				paths ~= encodePath(p);
 			}
-			foreach (path; useCounter.path.keys) {
+			foreach (path; useCounter.path.keys) { mixin(S_TRACE);
 				auto p = cast(string) path;
-				if (!path.isBinImg && !tbl.contains(path)) {
+				if (!path.isBinImg && !tbl.contains(path)) { mixin(S_TRACE);
 					paths ~= encodePath(p);
 				}
 			}
@@ -2235,7 +2234,7 @@ private:
 	Exception _e;
 public:
 	/// 読み込み対象のパスと発生した例外からインスタンスを生成。
-	this (string path, Exception e) {
+	this (string path, Exception e) { mixin(S_TRACE);
 		super(e.msg);
 		_path = path;
 		_e = e;
@@ -2243,17 +2242,17 @@ public:
 	/// 読み込み対象パス。
 	@property
 	const
-	string path() {
+	string path() { mixin(S_TRACE);
 		return _path;
 	}
 	/// 例外。
 	@property
-	Exception e() {
+	Exception e() { mixin(S_TRACE);
 		return _e;
 	}
 	@property
 	const
-	const(Exception) e() {
+	const(Exception) e() { mixin(S_TRACE);
 		return _e;
 	}
 }
@@ -2261,7 +2260,7 @@ public:
 /// シナリオのシステムディレクトリ
 /// (Area, Battle, Package, CastCard, SkillCard, ItemCard, BeastCard, InfoCard)
 /// であればtrueを返す。
-bool isScenarioSystemDir(string dir) {
+bool isScenarioSystemDir(string dir) { mixin(S_TRACE);
 	return cfnmatch(dir, PATH_AREA)
 		|| cfnmatch(dir, PATH_PACKAGE)
 		|| cfnmatch(dir, PATH_BATTLE)
@@ -2274,41 +2273,41 @@ bool isScenarioSystemDir(string dir) {
 
 /// シナリオ関連ファイルのパスを分解し、シナリオフォルダと
 /// パスに含まれるリソースパスに分ける。
-void decScenarioPath(ref string scenarioPath, ref string[] openPaths, bool eventPriority) {
-	if (scenarioPath && cfnmatch(.extension(scenarioPath), ".wid")) {
+void decScenarioPath(ref string scenarioPath, ref string[] openPaths, bool eventPriority) { mixin(S_TRACE);
+	if (scenarioPath && cfnmatch(.extension(scenarioPath), ".wid")) { mixin(S_TRACE);
 		ulong id;
 		auto type = cwx.cwl.getType(scenarioPath, id);
-		if (type) {
+		if (type) { mixin(S_TRACE);
 			string ts;
-			if (type is typeid(Area)) {
+			if (type is typeid(Area)) { mixin(S_TRACE);
 				ts = "area";
-			} else if (type is typeid(Battle)) {
+			} else if (type is typeid(Battle)) { mixin(S_TRACE);
 				ts = "battle";
-			} else if (type is typeid(Package)) {
+			} else if (type is typeid(Package)) { mixin(S_TRACE);
 				ts = "package";
-			} else if (type is typeid(CastCard)) {
+			} else if (type is typeid(CastCard)) { mixin(S_TRACE);
 				ts = "castcard";
-			} else if (type is typeid(SkillCard)) {
+			} else if (type is typeid(SkillCard)) { mixin(S_TRACE);
 				ts = "skillcard";
-			} else if (type is typeid(ItemCard)) {
+			} else if (type is typeid(ItemCard)) { mixin(S_TRACE);
 				ts = "itemcard";
-			} else if (type is typeid(BeastCard)) {
+			} else if (type is typeid(BeastCard)) { mixin(S_TRACE);
 				ts = "beastcard";
-			} else if (type is typeid(InfoCard)) {
+			} else if (type is typeid(InfoCard)) { mixin(S_TRACE);
 				ts = "infocard";
 			}
 			ts ~= ":id:" ~ to!(string)(id);
-			if (eventPriority) {
-				if (type is typeid(Area)) {
+			if (eventPriority) { mixin(S_TRACE);
+				if (type is typeid(Area)) { mixin(S_TRACE);
 					ts = cpaddattr(ts, "eventview");
-				} else if (type is typeid(Battle)) {
+				} else if (type is typeid(Battle)) { mixin(S_TRACE);
 					ts = cpaddattr(ts, "eventview");
 				}
 			}
 			openPaths ~= ts;
 		}
 		scenarioPath = dirName(scenarioPath);
-	} else if (scenarioPath && cfnmatch(.extension(scenarioPath), ".wex")) {
+	} else if (scenarioPath && cfnmatch(.extension(scenarioPath), ".wex")) { mixin(S_TRACE);
 		scenarioPath = dirName(scenarioPath);
 	}
 }

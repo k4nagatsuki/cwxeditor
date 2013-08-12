@@ -147,9 +147,9 @@ private:
 		ToCardOwner _toc;
 	}
 	static if (EditMode) {
-		void create(int Index)() {
+		void create(int Index)() { mixin(S_TRACE);
 			static if (1 < Cards.length) {
-				if (_tabf && !_tabf.isDisposed()) {
+				if (_tabf && !_tabf.isDisposed()) { mixin(S_TRACE);
 					_tabf.setSelection(_tab[Index]);
 				}
 			}
@@ -157,75 +157,75 @@ private:
 		}
 	}
 	static if (EditMode) {
-		void open(int Index)(bool shellActivate) {
+		void open(int Index)(bool shellActivate) { mixin(S_TRACE);
 			static if (is(CardOwner : Summary)) {
 				static if (1 < Cards.length) {
 					_comm.openBindCardWin(shellActivate);
 					_tabf.setSelection(_tab[Index]);
-				} else {
+				} else { mixin(S_TRACE);
 					static if (UseCast && CAST == Index) {
 						_comm.openCastWin(shellActivate);
-					} else static if(UseSkill && SKILL == Index) {
+					} else static if(UseSkill && SKILL == Index) { mixin(S_TRACE);
 						_comm.openSkillWin(shellActivate);
-					} else static if(UseItem && ITEM == Index) {
+					} else static if(UseItem && ITEM == Index) { mixin(S_TRACE);
 						_comm.openItemWin(shellActivate);
-					} else static if(UseBeast && BEAST == Index) {
+					} else static if(UseBeast && BEAST == Index) { mixin(S_TRACE);
 						_comm.openBeastWin(shellActivate);
-					} else static if(UseInfo && INFO == Index) {
+					} else static if(UseInfo && INFO == Index) { mixin(S_TRACE);
 						_comm.openInfoWin(shellActivate);
 					} else static assert (0);
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				_tabf.setSelection(_tab[Index]);
 			}
 		}
 	}
 
-	void __refresh() {
-		foreach (f; _pane) {
+	void __refresh() { mixin(S_TRACE);
+		foreach (f; _pane) { mixin(S_TRACE);
 			f.refresh();
 		}
 		refreshTitle();
 	}
 	static if (EditMode && is (CardOwner == Summary)) {
-		void addScenario() {
+		void addScenario() { mixin(S_TRACE);
 			_comm.addScenario(_prop);
 		}
 		class DropScenario : DropTargetAdapter {
-			override void dragEnter(DropTargetEvent e){
+			override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
 				e.detail = DND.DROP_LINK;
 			}
-			override void drop(DropTargetEvent e) {
+			override void drop(DropTargetEvent e) { mixin(S_TRACE);
 				auto arr = cast(FileNames) e.data;
-				if (arr && arr.array.length > 0) {
+				if (arr && arr.array.length > 0) { mixin(S_TRACE);
 					_comm.addScenario(_prop, arr.array);
 				}
 			}
 		}
 	}
 	@property
-	Shell dlgParShl() {
+	Shell dlgParShl() { mixin(S_TRACE);
 		if (_win && !_win.isDisposed()) return _win.getShell();
 		return _comm.mainWin.shell.getShell();
 	}
 	static if (!EditMode) {
-		void addCard() {
+		void addCard() { mixin(S_TRACE);
 			static if (1 < Cards.length) {
-				foreach (i, f; _pane) {
-					if (_tabf.getSelection() is _tab[i]) {
+				foreach (i, f; _pane) { mixin(S_TRACE);
+					if (_tabf.getSelection() is _tab[i]) { mixin(S_TRACE);
 						f.addCard();
 						return;
 					}
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				_pane[0].addCard();
 			}
 		}
 	}
 	static if (UseCast && !EditMode) {
-		void openHand() {
+		void openHand() { mixin(S_TRACE);
 			auto sels = _pane[CAST].selectedCards;
-			foreach (sel; sels) {
+			foreach (sel; sels) { mixin(S_TRACE);
 				auto ahcw = _comm.openAddHands(_prop, _summ, sel, _toc, true);
 				ahcw.setAddSkill(_pane[SKILL].getAddCard());
 				ahcw.setAddItem(_pane[ITEM].getAddCard());
@@ -236,33 +236,33 @@ private:
 public:
 	static if (EditMode) {
 		static if (is (CardOwner == Summary)) {
-			this (Commons comm, Props prop, Composite parent) {
+			this (Commons comm, Props prop, Composite parent) { mixin(S_TRACE);
 				_comm = comm;
 				_prop = prop;
-				if (parent) {
+				if (parent) { mixin(S_TRACE);
 					construct(comm, prop, null, parent);
-				} else {
+				} else { mixin(S_TRACE);
 					initPane!(0)();
 				}
 			}
-			void reconstruct(Composite parent) {
+			void reconstruct(Composite parent) { mixin(S_TRACE);
 				if (_win && !_win.isDisposed()) return;
 				construct(_comm, _prop, _summ, parent);
 				if (_owner) refresh(_owner);
 			}
 		} else {
-			this(Commons comm, Props prop, PCardOwner summ, Composite parent) {
+			this(Commons comm, Props prop, PCardOwner summ, Composite parent) { mixin(S_TRACE);
 				construct(comm, prop, summ, parent);
 			}
 		}
-		void construct(Commons comm, Props prop, PCardOwner summ, Composite parent) {
+		void construct(Commons comm, Props prop, PCardOwner summ, Composite parent) { mixin(S_TRACE);
 			_viewMode = CViewMode.INIT;
 			construct1(comm, prop, parent);
 			static if (is (CardOwner == Summary)) {
 				auto shell = cast(Shell) _win;
-				if (shell) {
+				if (shell) { mixin(S_TRACE);
 					shell.addShellListener(new class ShellAdapter {
-						override void shellClosed(ShellEvent e) {
+						override void shellClosed(ShellEvent e) { mixin(S_TRACE);
 							(cast(Shell) e.widget).setVisible(false);
 							e.doit = false;
 							_prop.var.cardWin.visible = false;
@@ -274,7 +274,7 @@ public:
 				_comm.refCast.add(&__refOwner);
 				_comm.delCast.add(&__delOwner);
 				_win.addDisposeListener(new class DisposeListener {
-					override void widgetDisposed(DisposeEvent e) {
+					override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 						_comm.refCast.remove(&__refOwner);
 						_comm.delCast.remove(&__delOwner);
 					}
@@ -284,23 +284,23 @@ public:
 			_comm.refScenarioName.add(&refreshTitle);
 			_comm.refScenarioPath.add(&refreshTitle);
 			_win.addDisposeListener(new class DisposeListener {
-				override void widgetDisposed(DisposeEvent e) {
+				override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 					_comm.refScenarioName.remove(&refreshTitle);
 					_comm.refScenarioPath.remove(&refreshTitle);
 				}
 			});
 		}
-		void initPane(int Index)() {
+		void initPane(int Index)() { mixin(S_TRACE);
 			assert (!_pane[Index]);
 			_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, SWT.BORDER);
 			static if (Index + 1 < Cards.length) {
 				initPane!(Index + 1)();
 			}
 		}
-		void newPane(int Index)() {
-			if (_pane[Index]) {
+		void newPane(int Index)() { mixin(S_TRACE);
+			if (_pane[Index]) { mixin(S_TRACE);
 				_pane[Index].reconstruct(_tabf, SWT.BORDER);
-			} else {
+			} else { mixin(S_TRACE);
 				_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, SWT.BORDER);
 				_pane[Index].construct();
 			}
@@ -309,13 +309,13 @@ public:
 			}
 		}
 	} else {
-		void newPane(int Index)() {
-			if (_pane[Index]) {
+		void newPane(int Index)() { mixin(S_TRACE);
+			if (_pane[Index]) { mixin(S_TRACE);
 				_pane[Index].reconstruct(_tabf, SWT.BORDER);
-			} else {
+			} else { mixin(S_TRACE);
 				static if (UseCast && Index == CAST) {
 					_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, SWT.BORDER, _toc, &openHand);
-				} else {
+				} else { mixin(S_TRACE);
 					_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, SWT.BORDER, _toc);
 				}
 				_pane[Index].construct();
@@ -325,20 +325,20 @@ public:
 			}
 		}
 		this (Commons comm, Props prop,
-				Composite parent, PCardOwner summ, CardOwner owner, ToCardOwner toc) {
+				Composite parent, PCardOwner summ, CardOwner owner, ToCardOwner toc) { mixin(S_TRACE);
 			_toc = toc;
 			construct1(comm, prop, parent);
 			static if (is (CardOwner == CastCard)) {
 				_comm.closeAdds.add(&__closeAdds);
 				_win.addDisposeListener(new class DisposeListener {
-					override void widgetDisposed(DisposeEvent e) {
+					override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 						_comm.closeAdds.remove(&__closeAdds);
 					}
 				});
 			}
 			static if (is (CardOwner == Summary)) {
 				_win.addDisposeListener(new class DisposeListener {
-					override void widgetDisposed(DisposeEvent e) {
+					override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 						_comm.closeAdds.call(_summ);
 					}
 				});
@@ -348,19 +348,19 @@ public:
 			__refreshAll(summ, owner);
 		}
 	}
-	private void construct1(Commons comm, Props prop, Composite parent) {
+	private void construct1(Commons comm, Props prop, Composite parent) { mixin(S_TRACE);
 		_comm = comm;
 		_prop = prop;
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
 		Composite contPane;
-		if (parShl) {
+		if (parShl) { mixin(S_TRACE);
 			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
 			shell = _sbshl.shell;
 			shell.setImage(prop.images.app);
 			_win = shell;
 			contPane = _sbshl.contentPane;
-		} else {
+		} else { mixin(S_TRACE);
 			_win = new Composite(parent, SWT.NONE);
 			contPane = _win;
 		}
@@ -368,8 +368,8 @@ public:
 		contPane.setLayout(new FillLayout);
 		_comp = new Composite(contPane, SWT.NONE);
 		_comp.setLayout(windowGridLayout(1, true));
-		if (shell) {
-			{
+		if (shell) { mixin(S_TRACE);
+			{ mixin(S_TRACE);
 				auto bar = new Menu(shell, SWT.BAR);
 
 				auto mf = createMenu(_comm, bar, MenuID.File);
@@ -384,7 +384,7 @@ public:
 					new MenuItem(me, SWT.SEPARATOR);
 					createMenuItem(_comm, me, MenuID.Up, &up, &canUp);
 					createMenuItem(_comm, me, MenuID.Down, &down, &canDown);
-				} else {
+				} else { mixin(S_TRACE);
 					createMenuItem(_comm, me, MenuID.Import, &addCard, &isSelected);
 					new MenuItem(me, SWT.SEPARATOR);
 					appendMenuTCPD(_comm, me, this, false, true, false, false, false);
@@ -413,7 +413,7 @@ public:
 				}
 				shell.setMenuBar(bar);
 			}
-			{
+			{ mixin(S_TRACE);
 				auto bar = new ToolBar(_comp, SWT.FLAT);
 				_comm.put(bar);
 				static if (EditMode) {
@@ -433,7 +433,7 @@ public:
 					static if (UseItem) createToolItem(_comm, bar, MenuID.NewItem, &create!(ITEM), () => _summ !is null);
 					static if (UseBeast) createToolItem(_comm, bar, MenuID.NewBeast, &create!(BEAST), () => _summ !is null);
 					static if (UseInfo) createToolItem(_comm, bar, MenuID.NewInfo, &create!(INFO), () => _summ !is null);
-				} else {
+				} else { mixin(S_TRACE);
 					createToolItem(_comm, bar, MenuID.Import, &addCard, &isSelected);
 				}
 				new ToolItem(bar, SWT.SEPARATOR);
@@ -441,7 +441,7 @@ public:
 				_listT = createToolItem(_comm, bar, MenuID.ShowCardImage, &showCardList, null, SWT.RADIO);
 				_tblT = createToolItem(_comm, bar, MenuID.ShowCardDetail, &showCardTable, null, SWT.RADIO);
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			static if (EditMode) {
 				appendMenuTCPD(_comm, this, this, true, true, true, true, true);
 				putMenuAction(MenuID.Refresh, &__refresh, () => _summ !is null);
@@ -457,7 +457,7 @@ public:
 				static if (UseInfo) putMenuAction(MenuID.NewInfo, &create!(INFO), () => _summ !is null);
 				putMenuAction(MenuID.Up, &up, &canUp);
 				putMenuAction(MenuID.Down, &down, &canDown);
-			} else {
+			} else { mixin(S_TRACE);
 				appendMenuTCPD(_comm, this, this, false, true, false, false, false);
 			}
 			putMenuChecked(MenuID.ShowCardProp, &showCardLife, &isViewLife, null);
@@ -476,14 +476,14 @@ public:
 			refMenuC.add(_prop.msgs.importLinkConditionNoChange);
 			refMenuC.add(_prop.msgs.importLinkConditionInclude);
 			refMenuC.select(0 == _prop.var.etc.importLinkCondition ? 0 : 1);
-			.listener(refMenuC, SWT.Selection, {
+			.listener(refMenuC, SWT.Selection, { mixin(S_TRACE);
 				_prop.var.etc.importLinkCondition = (1 == refMenuC.getSelectionIndex() ? 1 : 0);
 			});
 		}
 		static if (1 < Cards.length) {
 			_tabf = new CTabFolder(_comp, SWT.BORDER);
 			_tabf.addSelectionListener(new SelChanged);
-		} else {
+		} else { mixin(S_TRACE);
 			_tabf = new Composite(_comp, SWT.NONE);
 			_tabf.setLayout(zeroGridLayout(1, true));
 		}
@@ -497,24 +497,24 @@ public:
 	}
 	static if (1 < Cards.length) {
 		private class SelChanged : SelectionAdapter {
-			override void widgetSelected(SelectionEvent e) {
+			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 				refreshStatusLine();
 				_comm.refreshToolBar();
 			}
 		}
 	}
 	static if (EditMode) {
-		void reNumberingAll() {
-			foreach (f; _pane) {
+		void reNumberingAll() { mixin(S_TRACE);
+			foreach (f; _pane) { mixin(S_TRACE);
 				f.reNumbering(0, 1);
 			}
 		}
 	}
-	void showCardLife() {
-		if (_viewMode != CViewMode.LIFE) {
+	void showCardLife() { mixin(S_TRACE);
+		if (_viewMode != CViewMode.LIFE) { mixin(S_TRACE);
 			_viewMode = CViewMode.LIFE;
-			if (_win && !_win.isDisposed()) {
-				if (_listM) {
+			if (_win && !_win.isDisposed()) { mixin(S_TRACE);
+				if (_listM) { mixin(S_TRACE);
 					_lifeM.setSelection(true);
 					_lifeT.setSelection(true);
 					_listM.setSelection(false);
@@ -522,7 +522,7 @@ public:
 					_tblM.setSelection(false);
 					_tblT.setSelection(false);
 				}
-				foreach (i, f; _pane) {
+				foreach (i, f; _pane) { mixin(S_TRACE);
 					f.showCardLife();
 				}
 			}
@@ -533,11 +533,11 @@ public:
 			refreshStatusLine();
 		}
 	}
-	void showCardList() {
-		if (_viewMode != CViewMode.CARD) {
+	void showCardList() { mixin(S_TRACE);
+		if (_viewMode != CViewMode.CARD) { mixin(S_TRACE);
 			_viewMode = CViewMode.CARD;
-			if (_win && !_win.isDisposed()) {
-				if (_listM) {
+			if (_win && !_win.isDisposed()) { mixin(S_TRACE);
+				if (_listM) { mixin(S_TRACE);
 					_lifeM.setSelection(false);
 					_lifeT.setSelection(false);
 					_listM.setSelection(true);
@@ -545,7 +545,7 @@ public:
 					_tblM.setSelection(false);
 					_tblT.setSelection(false);
 				}
-				foreach (i, f; _pane) {
+				foreach (i, f; _pane) { mixin(S_TRACE);
 					f.showCardList();
 				}
 			}
@@ -556,11 +556,11 @@ public:
 			refreshStatusLine();
 		}
 	}
-	void showCardTable() {
-		if (_viewMode != CViewMode.TABLE) {
+	void showCardTable() { mixin(S_TRACE);
+		if (_viewMode != CViewMode.TABLE) { mixin(S_TRACE);
 			_viewMode = CViewMode.TABLE;
-			if (_win && !_win.isDisposed()) {
-				if (_listM) {
+			if (_win && !_win.isDisposed()) { mixin(S_TRACE);
+				if (_listM) { mixin(S_TRACE);
 					_lifeM.setSelection(false);
 					_lifeT.setSelection(false);
 					_listM.setSelection(false);
@@ -568,7 +568,7 @@ public:
 					_tblM.setSelection(true);
 					_tblT.setSelection(true);
 				}
-				foreach (i, f; _pane) {
+				foreach (i, f; _pane) { mixin(S_TRACE);
 					f.showCardTable();
 				}
 			}
@@ -580,123 +580,123 @@ public:
 		}
 	}
 
-	void setStatusLine(string status) {
+	void setStatusLine(string status) { mixin(S_TRACE);
 		auto w = _win;
-		if (w.isDisposed()) {
+		if (w.isDisposed()) { mixin(S_TRACE);
 			w = null;
 		}
 		_comm.setStatusLine(w, status);
 	}
 
 	static if (EditMode && is(CardOwner : Summary)) {
-		CastCardPane!(PCardOwner, CardOwner, ToCardOwner) openCast(bool shellActivate) {
+		CastCardPane!(PCardOwner, CardOwner, ToCardOwner) openCast(bool shellActivate) { mixin(S_TRACE);
 			static if (UseCast) {
 				open!(CAST)(shellActivate);
 				return _pane[CAST];
-			} else {
+			} else { mixin(S_TRACE);
 				throw new Exception("can not open cast");
 			}
 		}
-		SkillCardPane!(PCardOwner, CardOwner, ToCardOwner) openSkill(bool shellActivate) {
+		SkillCardPane!(PCardOwner, CardOwner, ToCardOwner) openSkill(bool shellActivate) { mixin(S_TRACE);
 			static if (UseSkill) {
 				open!(SKILL)(shellActivate);
 				return _pane[SKILL];
-			} else {
+			} else { mixin(S_TRACE);
 				throw new Exception("can not open skill");
 			}
 		}
-		ItemCardPane!(PCardOwner, CardOwner, ToCardOwner) openItem(bool shellActivate) {
+		ItemCardPane!(PCardOwner, CardOwner, ToCardOwner) openItem(bool shellActivate) { mixin(S_TRACE);
 			static if (UseItem) {
 				open!(ITEM)(shellActivate);
 				return _pane[ITEM];
-			} else {
+			} else { mixin(S_TRACE);
 				throw new Exception("can not open item");
 			}
 		}
-		BeastCardPane!(PCardOwner, CardOwner, ToCardOwner) openBeast(bool shellActivate) {
+		BeastCardPane!(PCardOwner, CardOwner, ToCardOwner) openBeast(bool shellActivate) { mixin(S_TRACE);
 			static if (UseBeast) {
 				open!(BEAST)(shellActivate);
 				return _pane[BEAST];
-			} else {
+			} else { mixin(S_TRACE);
 				throw new Exception("can not open beast");
 			}
 		}
-		InfoCardPane!(PCardOwner, CardOwner, ToCardOwner) openInfo(bool shellActivate) {
+		InfoCardPane!(PCardOwner, CardOwner, ToCardOwner) openInfo(bool shellActivate) { mixin(S_TRACE);
 			static if (UseInfo) {
 				open!(INFO)(shellActivate);
 				return _pane[INFO];
-			} else {
+			} else { mixin(S_TRACE);
 				throw new Exception("can not open info");
 			}
 		}
 		static if (UseCast) {
 			@property
-			CastCardPane!(PCardOwner, CardOwner, ToCardOwner) paneCast() {
+			CastCardPane!(PCardOwner, CardOwner, ToCardOwner) paneCast() { mixin(S_TRACE);
 				return _pane[CAST];
 			}
 		}
 		static if (UseSkill) {
 			@property
-			SkillCardPane!(PCardOwner, CardOwner, ToCardOwner) paneSkill() {
+			SkillCardPane!(PCardOwner, CardOwner, ToCardOwner) paneSkill() { mixin(S_TRACE);
 				return _pane[SKILL];
 			}
 		}
 		static if (UseItem) {
 			@property
-			ItemCardPane!(PCardOwner, CardOwner, ToCardOwner) paneItem() {
+			ItemCardPane!(PCardOwner, CardOwner, ToCardOwner) paneItem() { mixin(S_TRACE);
 				return _pane[ITEM];
 			}
 		}
 		static if (UseBeast) {
 			@property
-			BeastCardPane!(PCardOwner, CardOwner, ToCardOwner) paneBeast() {
+			BeastCardPane!(PCardOwner, CardOwner, ToCardOwner) paneBeast() { mixin(S_TRACE);
 				return _pane[BEAST];
 			}
 		}
 		static if (UseInfo) {
 			@property
-			InfoCardPane!(PCardOwner, CardOwner, ToCardOwner) paneInfo() {
+			InfoCardPane!(PCardOwner, CardOwner, ToCardOwner) paneInfo() { mixin(S_TRACE);
 				return _pane[INFO];
 			}
 		}
 	}
-	void createCast() {
+	void createCast() { mixin(S_TRACE);
 		if (!_summ) return;
 		static if (EditMode && UseCast) {
 			create!(CAST)();
-		} else {
+		} else { mixin(S_TRACE);
 			throw new Exception("can not create cast");
 		}
 	}
-	void createSkill() {
+	void createSkill() { mixin(S_TRACE);
 		if (!_summ) return;
 		static if (EditMode && UseSkill) {
 			create!(SKILL)();
-		} else {
+		} else { mixin(S_TRACE);
 			throw new Exception("can not create skill");
 		}
 	}
-	void createItem() {
+	void createItem() { mixin(S_TRACE);
 		if (!_summ) return;
 		static if (EditMode && UseItem) {
 			create!(ITEM)();
-		} else {
+		} else { mixin(S_TRACE);
 			throw new Exception("can not create item");
 		}
 	}
-	void createBeast() {
+	void createBeast() { mixin(S_TRACE);
 		if (!_summ) return;
 		static if (EditMode && UseBeast) {
 			create!(BEAST)();
-		} else {
+		} else { mixin(S_TRACE);
 			throw new Exception("can not create beast");
 		}
 	}
-	void createInfo() {
+	void createInfo() { mixin(S_TRACE);
 		if (!_summ) return;
 		static if (EditMode && UseInfo) {
 			create!(INFO)();
-		} else {
+		} else { mixin(S_TRACE);
 			throw new Exception("can not create info");
 		}
 	}
@@ -711,15 +711,15 @@ public:
 	@property
 	bool canCreateInfo() {return EditMode && UseInfo;}
 	@property
-	private bool isViewLife() {
+	private bool isViewLife() { mixin(S_TRACE);
 		return _viewMode == CViewMode.LIFE;
 	}
 	@property
-	private bool isViewList() {
+	private bool isViewList() { mixin(S_TRACE);
 		return _viewMode == CViewMode.CARD;
 	}
 	@property
-	private bool isViewTable() {
+	private bool isViewTable() { mixin(S_TRACE);
 		return _viewMode == CViewMode.TABLE;
 	}
 	static if (!EditMode || !is(CardOwner : Summary)) {
@@ -727,27 +727,27 @@ public:
 			bool procRefColWidth = false;
 			Commons comm;
 			TableColumn[] cols;
-			override void controlResized(ControlEvent e) {
+			override void controlResized(ControlEvent e) { mixin(S_TRACE);
 				if (procRefColWidth) return;
 				procRefColWidth = true;
 				scope (exit) procRefColWidth = false;
 				auto c = cast(TableColumn) e.widget;
 				int width = c.getWidth();
-				foreach (col; cols) {
-					if (c !is col) {
+				foreach (col; cols) { mixin(S_TRACE);
+					if (c !is col) { mixin(S_TRACE);
 						col.setWidth(width);
 					}
 				}
 			}
 		}
 	}
-	private void construct2() {
+	private void construct2() { mixin(S_TRACE);
 		newPane!(0)();
 		static if (!EditMode || !is(CardOwner : Summary)) {
 			ColResize[CardTableColumn] colR;
-			void addTable(TableColumn[CardTableColumn] columns) {
-				foreach (i, col; columns) {
-					if (i !in colR) {
+			void addTable(TableColumn[CardTableColumn] columns) { mixin(S_TRACE);
+				foreach (i, col; columns) { mixin(S_TRACE);
+					if (i !in colR) { mixin(S_TRACE);
 						colR[i] = new ColResize;
 						colR[i].comm = _comm;
 					}
@@ -756,41 +756,41 @@ public:
 				}
 			}
 		}
-		foreach (i, f; _pane) {
+		foreach (i, f; _pane) { mixin(S_TRACE);
 			static if (1 < Cards.length) {
 				_tab[i] = new CTabItem(_tabf, SWT.NONE);
 				static if (UseCast) {
-					if (i == CAST) {
+					if (i == CAST) { mixin(S_TRACE);
 						_tab[i].setText(_prop.msgs.cwCast);
 						_tab[i].setImage(_prop.images.casts);
 					}
 				}
 				static if (UseSkill) {
-					if (i == SKILL) {
+					if (i == SKILL) { mixin(S_TRACE);
 						_tab[i].setText(_prop.msgs.skill);
 						_tab[i].setImage(_prop.images.skill);
 					}
 				}
 				static if (UseItem) {
-					if (i == ITEM) {
+					if (i == ITEM) { mixin(S_TRACE);
 						_tab[i].setText(_prop.msgs.item);
 						_tab[i].setImage(_prop.images.item);
 					}
 				}
 				static if (UseBeast) {
-					if (i == BEAST) {
+					if (i == BEAST) { mixin(S_TRACE);
 						_tab[i].setText(_prop.msgs.beast);
 						_tab[i].setImage(_prop.images.beast);
 					}
 				}
 				static if (UseInfo) {
-					if (i == INFO) {
+					if (i == INFO) { mixin(S_TRACE);
 						_tab[i].setText(_prop.msgs.info);
 						_tab[i].setImage(_prop.images.info);
 					}
 				}
 				_tab[i].setControl(_pane[i].pane);
-			} else {
+			} else { mixin(S_TRACE);
 				_pane[i].pane.setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
 			_tcpd ~= f;
@@ -805,14 +805,14 @@ public:
 		}
 		bool life = _prop.var.etc.cardLife;
 		bool detail = _prop.var.etc.cardDetails;
-		if (!life && detail) {
+		if (!life && detail) { mixin(S_TRACE);
 			showCardTable();
-		} else if (life) {
+		} else if (life) { mixin(S_TRACE);
 			showCardLife();
-		} else {
+		} else { mixin(S_TRACE);
 			showCardList();
 		}
-		if (shell) {
+		if (shell) { mixin(S_TRACE);
 			scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			int width = _prop.var.cardWin.width == SWT.DEFAULT ? wp.x : _prop.var.cardWin.width;
 			static if (EditMode && is (CardOwner == Summary)) {
@@ -823,16 +823,16 @@ public:
 				intoDisplay(x, y, width, _prop.var.cardWin.height);
 				shell.setBounds(x, y, width, _prop.var.cardWin.height);
 				shell.addControlListener(new SizeL);
-			} else {
+			} else { mixin(S_TRACE);
 				shell.setSize(width, _prop.var.cardWin.height);
 			}
 		}
 	}
 	private class SizeL : ControlAdapter {
-		private void saveCardWin() {
+		private void saveCardWin() { mixin(S_TRACE);
 			auto shell = cast(Shell) _win;
-			if (shell) {
-				if (!shell.getMaximized() && !shell.getMinimized()) {
+			if (shell) { mixin(S_TRACE);
+				if (!shell.getMaximized() && !shell.getMinimized()) { mixin(S_TRACE);
 					_prop.var.cardWin.width = shell.getSize().x;
 					_prop.var.cardWin.height = shell.getSize().y;
 					_prop.var.cardWin.x = shell.getBounds().x - shell.getParent().getBounds().x;
@@ -842,16 +842,16 @@ public:
 				_prop.var.cardWin.minimized = shell.getMinimized();
 			}
 		}
-		override void controlMoved(ControlEvent e) {
+		override void controlMoved(ControlEvent e) { mixin(S_TRACE);
 			saveCardWin();
 		}
-		override void controlResized(ControlEvent e) {
+		override void controlResized(ControlEvent e) { mixin(S_TRACE);
 			saveCardWin();
 		}
 	}
 	static if (!EditMode && is(CardOwner == CastCard)) {
-		private void __closeAdds(Summary importable) {
-			if (_summ is importable) {
+		private void __closeAdds(Summary importable) { mixin(S_TRACE);
+			if (_summ is importable) { mixin(S_TRACE);
 				_comm.close(_win);
 			}
 		}
@@ -859,26 +859,26 @@ public:
 
 	@property
 	override
-	Composite shell() {
+	Composite shell() { mixin(S_TRACE);
 		return _win;
 	}
 	@property
-	CardOwner owner() {
+	CardOwner owner() { mixin(S_TRACE);
 		return _owner;
 	}
 	@property
-	PCardOwner summary() {
+	PCardOwner summary() { mixin(S_TRACE);
 		return _summ;
 	}
 	static if (EditMode && is (CardOwner == CastCard) && is (PCardOwner == Summary)) {
-		private void __refOwner(CastCard c) {
-			if (_owner is c) {
+		private void __refOwner(CastCard c) { mixin(S_TRACE);
+			if (_owner is c) { mixin(S_TRACE);
 				__refresh();
 				refreshTitle();
 			}
 		}
-		private void __delOwner(CastCard c) {
-			if (_owner is c) {
+		private void __delOwner(CastCard c) { mixin(S_TRACE);
+			if (_owner is c) { mixin(S_TRACE);
 				_comm.close(_win);
 			}
 		}
@@ -886,7 +886,7 @@ public:
 
 	@property
 	override
-	Image image() {
+	Image image() { mixin(S_TRACE);
 		final switch (CWKind) {
 		case CardWindowKind.Main: return _prop.images.menu(MenuID.CardView);
 		case CardWindowKind.Cast: return _prop.images.menu(MenuID.CastView);
@@ -901,25 +901,25 @@ public:
 	}
 	@property
 	override
-	string title() {
+	string title() { mixin(S_TRACE);
 		auto shl = cast(Shell) _win;
-		if (shl) {
+		if (shl) { mixin(S_TRACE);
 			static if (CWKind == CardWindowKind.Main) {
-				if (_summ) {
+				if (_summ) { mixin(S_TRACE);
 					return .tryFormat(_prop.msgs.mainCardWindowName, _summ.scenarioName, _summ.scenarioPath);
-				} else {
+				} else { mixin(S_TRACE);
 					return _prop.msgs.mainCardWindowNameNoSummary;
 				}
 			} else static if (CWKind == CardWindowKind.Cast || CWKind == CardWindowKind.Skill || CWKind == CardWindowKind.Item || CWKind == CardWindowKind.Beast || CWKind == CardWindowKind.Info) {
-				if (_summ) {
+				if (_summ) { mixin(S_TRACE);
 					return .tryFormat(_prop.msgs.cardWindowName, .objName!(Cards[0])(_prop), _summ.scenarioName, _summ.scenarioPath);
-				} else {
+				} else { mixin(S_TRACE);
 					return .tryFormat(_prop.msgs.cardWindowNameNoSummary, .objName!(Cards[0])(_prop));
 				}
 			} else static if (CWKind == CardWindowKind.Hand) {
 				static if (CWKind == CardWindowKind.Hand) {
 					return .tryFormat(_prop.msgs.handCardWindowName, owner.id, owner.name);
-				} else {
+				} else { mixin(S_TRACE);
 					assert (0);
 				}
 			} else static if (CWKind == CardWindowKind.ImportSource) {
@@ -946,92 +946,92 @@ public:
 	override
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
-	void refreshTitle() {
+	void refreshTitle() { mixin(S_TRACE);
 		if (_win && !_win.isDisposed()) _comm.setTitle(shell, title);
 	}
 
 	static if (EditMode) {
 		static if (is (PCardOwner == Summary) && is (CardOwner == Summary)) {
-			void refresh(Summary summ) {
+			void refresh(Summary summ) { mixin(S_TRACE);
 				__refreshAll(summ, summ);
 			}
 		} else {
-			void refresh(PCardOwner summ, CardOwner owner) {
+			void refresh(PCardOwner summ, CardOwner owner) { mixin(S_TRACE);
 				__refreshAll(summ, owner);
 			}
 		}
 	}
-	private void __refreshAll(PCardOwner summ, CardOwner owner) {
+	private void __refreshAll(PCardOwner summ, CardOwner owner) { mixin(S_TRACE);
 		_owner = owner;
 		_summ = summ;
-		foreach (f; _pane) {
+		foreach (f; _pane) { mixin(S_TRACE);
 			f.refreshAll(summ, owner);
 		}
-		if (_win && !_win.isDisposed()) {
+		if (_win && !_win.isDisposed()) { mixin(S_TRACE);
 			refreshTitle();
 		}
 	}
 	static if (EditMode) {
-		void add(int Index)(ref XNode node, in XMLInfo ver) {
-			if (_pane[Index].addFromNode(node, ver)) {
+		void add(int Index)(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
+			if (_pane[Index].addFromNode(node, ver)) { mixin(S_TRACE);
 				static if (1 < Cards.length) {
 					_tabf.setSelection(_tab[Index]);
 				}
 			}
 		}
 		static if (UseCast) {
-			void addCast(ref XNode node, in XMLInfo ver) {
+			void addCast(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 				_pane[CAST].addFromNode(node, ver);
 			}
 		}
 		static if (UseSkill) {
-			void addSkill(ref XNode node, in XMLInfo ver) {
+			void addSkill(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 				_pane[SKILL].addFromNode(node, ver);
 			}
 		}
 		static if (UseItem) {
-			void addItem(ref XNode node, in XMLInfo ver) {
+			void addItem(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 				_pane[ITEM].addFromNode(node, ver);
 			}
 		}
 		static if (UseBeast) {
-			void addBeast(ref XNode node, in XMLInfo ver) {
+			void addBeast(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 				_pane[BEAST].addFromNode(node, ver);
 			}
 		}
 		static if (UseInfo) {
-			void addInfo(ref XNode node, in XMLInfo ver) {
+			void addInfo(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 				_pane[INFO].addFromNode(node, ver);
 			}
 		}
 	} else {
 		static if (UseCast) {
-			void setAddCast(void delegate(ref XNode node, in XMLInfo) addc) {
+			void setAddCast(void delegate(ref XNode node, in XMLInfo) addc) { mixin(S_TRACE);
 				_pane[CAST].setAddCard(addc);
 			}
 		}
 		static if (UseSkill) {
-			void setAddSkill(void delegate(ref XNode node, in XMLInfo) addc) {
+			void setAddSkill(void delegate(ref XNode node, in XMLInfo) addc) { mixin(S_TRACE);
 				_pane[SKILL].setAddCard(addc);
 			}
 		}
 		static if (UseItem) {
-			void setAddItem(void delegate(ref XNode node, in XMLInfo) addc) {
+			void setAddItem(void delegate(ref XNode node, in XMLInfo) addc) { mixin(S_TRACE);
 				_pane[ITEM].setAddCard(addc);
 			}
 		}
 		static if (UseBeast) {
-			void setAddBeast(void delegate(ref XNode node, in XMLInfo) addc) {
+			void setAddBeast(void delegate(ref XNode node, in XMLInfo) addc) { mixin(S_TRACE);
 				_pane[BEAST].setAddCard(addc);
 			}
 		}
 		static if (UseInfo) {
-			void setAddInfo(void delegate(ref XNode node, in XMLInfo) addc) {
+			void setAddInfo(void delegate(ref XNode node, in XMLInfo) addc) { mixin(S_TRACE);
 				_pane[INFO].setAddCard(addc);
 			}
 		}
 	}
-	private void refreshStatusLine() {
+	private void refreshStatusLine() { mixin(S_TRACE);
 		if (!_win || _win.isDisposed()) return;
 		static if (1 < Cards.length) {
 			int i = _tabf.getSelectionIndex();
@@ -1042,96 +1042,96 @@ public:
 			static if (UseBeast) if (i == BEAST) s = _pane[BEAST].statusLine;
 			static if (UseInfo) if (i == INFO) s = _pane[INFO].statusLine;
 			_comm.setStatusLine(_tabf, s);
-		} else {
+		} else { mixin(S_TRACE);
 			_comm.setStatusLine(_comp, _pane[0].statusLine);
 		}
 	}
 
 	override {
-		void cut(SelectionEvent se) {
+		void cut(SelectionEvent se) { mixin(S_TRACE);
 			static if (EditMode) {
-				foreach (c; _tcpd) {
-					if (c.canDoTCPD) {
+				foreach (c; _tcpd) { mixin(S_TRACE);
+					if (c.canDoTCPD) { mixin(S_TRACE);
 						c.cut(se);
 					}
 				}
 			}
 		}
-		void copy(SelectionEvent se) {
-			foreach (c; _tcpd) {
-				if (c.canDoTCPD) {
+		void copy(SelectionEvent se) { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
+				if (c.canDoTCPD) { mixin(S_TRACE);
 					c.copy(se);
 				}
 			}
 		}
-		void paste(SelectionEvent se) {
+		void paste(SelectionEvent se) { mixin(S_TRACE);
 			static if (EditMode) {
-				foreach (c; _tcpd) {
-					if (c.canDoTCPD) {
+				foreach (c; _tcpd) { mixin(S_TRACE);
+					if (c.canDoTCPD) { mixin(S_TRACE);
 						c.paste(se);
 					}
 				}
 			}
 		}
-		void del(SelectionEvent se) {
+		void del(SelectionEvent se) { mixin(S_TRACE);
 			static if (EditMode) {
-				foreach (c; _tcpd) {
-					if (c.canDoTCPD) {
+				foreach (c; _tcpd) { mixin(S_TRACE);
+					if (c.canDoTCPD) { mixin(S_TRACE);
 						c.del(se);
 					}
 				}
 			}
 		}
-		void clone(SelectionEvent se) {
+		void clone(SelectionEvent se) { mixin(S_TRACE);
 			static if (EditMode) {
-				foreach (c; _tcpd) {
-					if (c.canDoTCPD) {
+				foreach (c; _tcpd) { mixin(S_TRACE);
+					if (c.canDoTCPD) { mixin(S_TRACE);
 						c.clone(se);
 					}
 				}
 			}
 		}
-		bool canDoTCPD() {
+		bool canDoTCPD() { mixin(S_TRACE);
 			return EditMode;
 		}
 		@property
-		bool canDoT() {
-			foreach (c; _tcpd) {
+		bool canDoT() { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
 				if (c.canDoTCPD) return c.canDoT;
 			}
 			return false;
 		}
 		@property
-		bool canDoC() {
-			foreach (c; _tcpd) {
+		bool canDoC() { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
 				if (c.canDoTCPD) return c.canDoC;
 			}
 			return false;
 		}
 		@property
-		bool canDoP() {
-			foreach (c; _tcpd) {
+		bool canDoP() { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
 				if (c.canDoTCPD) return c.canDoP;
 			}
 			return false;
 		}
 		@property
-		bool canDoD() {
-			foreach (c; _tcpd) {
+		bool canDoD() { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
 				if (c.canDoTCPD) return c.canDoD;
 			}
 			return false;
 		}
 		@property
-		bool canDoClone() {
-			foreach (c; _tcpd) {
+		bool canDoClone() { mixin(S_TRACE);
+			foreach (c; _tcpd) { mixin(S_TRACE);
 				if (c.canDoTCPD) return c.canDoClone;
 			}
 			return false;
 		}
 	}
 	static if (EditMode) {
-		bool canUndo() {
+		bool canUndo() { mixin(S_TRACE);
 			static if (1 < Cards.length) {
 				int i = _tabf.getSelectionIndex();
 				static if (UseCast) {
@@ -1150,11 +1150,11 @@ public:
 					if (i == INFO) return _pane[INFO].canUndo();
 				}
 				return false;
-			} else {
+			} else { mixin(S_TRACE);
 				return _pane[0].canUndo();
 			}
 		}
-		bool canRedo() {
+		bool canRedo() { mixin(S_TRACE);
 			static if (1 < Cards.length) {
 				int i = _tabf.getSelectionIndex();
 				static if (UseCast) {
@@ -1173,11 +1173,11 @@ public:
 					if (i == INFO) return _pane[INFO].canRedo();
 				}
 				return false;
-			} else {
+			} else { mixin(S_TRACE);
 				return _pane[0].canRedo();
 			}
 		}
-		void undo() {
+		void undo() { mixin(S_TRACE);
 			static if (1 < Cards.length) {
 				int i = _tabf.getSelectionIndex();
 				static if (UseCast) {
@@ -1195,11 +1195,11 @@ public:
 				static if (UseInfo) {
 					if (i == INFO) _pane[INFO].undo();
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				_pane[0].undo();
 			}
 		}
-		void redo() {
+		void redo() { mixin(S_TRACE);
 			static if (1 < Cards.length) {
 				int i = _tabf.getSelectionIndex();
 				static if (UseCast) {
@@ -1217,11 +1217,11 @@ public:
 				static if (UseInfo) {
 					if (i == INFO) _pane[INFO].redo();
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				_pane[0].redo();
 			}
 		}
-		bool canUp() {
+		bool canUp() { mixin(S_TRACE);
 			static if (1 < Cards.length) {
 				int i = _tabf.getSelectionIndex();
 				static if (UseCast) {
@@ -1240,11 +1240,11 @@ public:
 					if (i == INFO) return _pane[INFO].canUp();
 				}
 				return false;
-			} else {
+			} else { mixin(S_TRACE);
 				return _pane[0].canUp();
 			}
 		}
-		bool canDown() {
+		bool canDown() { mixin(S_TRACE);
 			static if (1 < Cards.length) {
 				int i = _tabf.getSelectionIndex();
 				static if (UseCast) {
@@ -1263,11 +1263,11 @@ public:
 					if (i == INFO) return _pane[INFO].canDown();
 				}
 				return false;
-			} else {
+			} else { mixin(S_TRACE);
 				return _pane[0].canDown();
 			}
 		}
-		void up() {
+		void up() { mixin(S_TRACE);
 			static if (1 < Cards.length) {
 				int i = _tabf.getSelectionIndex();
 				static if (UseCast) {
@@ -1285,11 +1285,11 @@ public:
 				static if (UseInfo) {
 					if (i == INFO) _pane[INFO].up();
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				_pane[0].up();
 			}
 		}
-		void down() {
+		void down() { mixin(S_TRACE);
 			static if (1 < Cards.length) {
 				int i = _tabf.getSelectionIndex();
 				static if (UseCast) {
@@ -1307,12 +1307,12 @@ public:
 				static if (UseInfo) {
 					if (i == INFO) _pane[INFO].down();
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				_pane[0].down();
 			}
 		}
 	}
-	bool isSelected() {
+	bool isSelected() { mixin(S_TRACE);
 		static if (1 < Cards.length) {
 			int i = _tabf.getSelectionIndex();
 			static if (UseCast) {
@@ -1331,14 +1331,14 @@ public:
 				if (i == INFO) return _pane[INFO].isSelected();
 			}
 			return false;
-		} else {
+		} else { mixin(S_TRACE);
 			return _pane[0].isSelected();
 		}
 	}
 
-	private bool openCWXPathEff(int C)(string path, bool shellActivate) {
+	private bool openCWXPathEff(int C)(string path, bool shellActivate) { mixin(S_TRACE);
 		auto cate = cpcategory(path);
-		if (std.string.endsWith(cate, "view")) {
+		if (std.string.endsWith(cate, "view")) { mixin(S_TRACE);
 			.forceFocus(_pane[C].widget, shellActivate);
 			return true;
 		}
@@ -1346,24 +1346,24 @@ public:
 		bool isId = std.string.endsWith(cate, ":id") != 0;
 		alias typeof(_pane[C].cards()[0]) CType;
 		CType card;
-		if (isId) {
+		if (isId) { mixin(S_TRACE);
 			card = _pane[C].card(index);
 			if (!card) return false;
 			index = .cCountUntil!("a is b")(_pane[C].cards, card);
-		} else {
+		} else { mixin(S_TRACE);
 			if (index >= _pane[C].cards.length) return false;
 			card = _pane[C].cards[index];
 		}
 		path = cpbottom(path);
-		if (cpempty(path) || (is(CType : MotionOwner) && "motion" == cpcategory(path))) {
+		if (cpempty(path) || (is(CType : MotionOwner) && "motion" == cpcategory(path))) { mixin(S_TRACE);
 			.forceFocus(_pane[C].widget, shellActivate);
 			_pane[C].select(index);
 			_comm.refreshToolBar();
 			static if (EditMode) {
-				if (cphasattr(path, "opendialog")) {
+				if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 					auto dlg = _pane[C].edit();
 					if (!dlg) return false;
-					if (!cpempty(path)) {
+					if (!cpempty(path)) { mixin(S_TRACE);
 						return dlg.openCWXPath(path, shellActivate);
 					}
 				}
@@ -1376,14 +1376,14 @@ public:
 				switch (cate) {
 				case "skillcard", "itemcard", "beastcard",
 						"skillcard:id", "itemcard:id", "beastcard:id",
-						"skillcardview", "itemcardview", "beastcardview": {
+						"skillcardview", "itemcardview", "beastcardview": { mixin(S_TRACE);
 					forceFocus(_pane[C].widget, shellActivate);
 					return _comm.openHands(_prop, _summ, card, shellActivate).openCWXPath(path, shellActivate);
 				} break;
 				default: break;
 				}
 			} else static if (!UseInfo || C != INFO) {
-				if (cpcategory(path) == "event") {
+				if (cpcategory(path) == "event") { mixin(S_TRACE);
 					forceFocus(_pane[C].widget, shellActivate);
 					return _comm.openUseEvents(_prop, _summ, card, shellActivate).openCWXPath(path, shellActivate);
 				}
@@ -1392,30 +1392,30 @@ public:
 		return false;
 	}
 	override
-	bool openCWXPath(string path, bool shellActivate) {
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		auto cate = cpcategory(path);
 		switch (cate) {
-		case "castcard", "castcard:id", "castcardview": {
+		case "castcard", "castcard:id", "castcardview": { mixin(S_TRACE);
 			static if (UseCast) {
 				return openCWXPathEff!(CAST)(path, shellActivate);
 			}
 		} break;
-		case "skillcard", "skillcard:id", "skillcardview": {
+		case "skillcard", "skillcard:id", "skillcardview": { mixin(S_TRACE);
 			static if (UseSkill) {
 				return openCWXPathEff!(SKILL)(path, shellActivate);
 			}
 		} break;
-		case "itemcard", "itemcard:id", "itemcardview": {
+		case "itemcard", "itemcard:id", "itemcardview": { mixin(S_TRACE);
 			static if (UseItem) {
 				return openCWXPathEff!(ITEM)(path, shellActivate);
 			}
 		} break;
-		case "beastcard", "beastcard:id", "beastcardview": {
+		case "beastcard", "beastcard:id", "beastcardview": { mixin(S_TRACE);
 			static if (UseBeast) {
 				return openCWXPathEff!(BEAST)(path, shellActivate);
 			}
 		} break;
-		case "infocard", "infocard:id", "infocardview": {
+		case "infocard", "infocard:id", "infocardview": { mixin(S_TRACE);
 			static if (UseInfo) {
 				return openCWXPathEff!(INFO)(path, shellActivate);
 			}
@@ -1426,20 +1426,20 @@ public:
 	}
 	@property
 	override
-	string[] openedCWXPath() {
+	string[] openedCWXPath() { mixin(S_TRACE);
 		string[] r;
 		static if (EditMode) {
 			static if (1 < Cards.length) {
 				string[] last;
-				foreach (i, pane; _pane) {
-					if (_tabf.getSelectionIndex() == i) {
+				foreach (i, pane; _pane) { mixin(S_TRACE);
+					if (_tabf.getSelectionIndex() == i) { mixin(S_TRACE);
 						last = pane.openedCWXPath;
-					} else {
+					} else { mixin(S_TRACE);
 						r ~= pane.openedCWXPath;
 					}
 				}
 				r ~= last;
-			} else {
+			} else { mixin(S_TRACE);
 				r ~= _pane[0].openedCWXPath;
 			}
 		}
@@ -1458,11 +1458,11 @@ alias CardWindow!(CardWindowKind.Info, Summary, Summary, void, InfoCard) InfoCar
 
 private class DelTemp : DisposeListener {
 	private Summary _cc;
-	this (Summary cc) {
+	this (Summary cc) { mixin(S_TRACE);
 		_cc = cc;
 	}
-	override void widgetDisposed(DisposeEvent dse) {
-		try {
+	override void widgetDisposed(DisposeEvent dse) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			_cc.delTemp();
 		} catch (Exception e) {
 			debugln(e);
@@ -1479,17 +1479,17 @@ private:
 		Summary toc;
 		void delegate(Object[]) addScenario;
 		this (Commons comm, Props prop,
-				Composite parent, Summary toc, void delegate(Object[]) addScenario) {
+				Composite parent, Summary toc, void delegate(Object[]) addScenario) { mixin(S_TRACE);
 			this.comm = comm;
 			this.prop = prop;
 			this.parent = parent;
 			this.toc = toc;
 			this.addScenario = addScenario;
 		}
-		void addS(Summary[] ccs) {
+		void addS(Summary[] ccs) { mixin(S_TRACE);
 			ACW[] r;
-			foreach (i, cc; ccs) {
-				if (cc) {
+			foreach (i, cc; ccs) { mixin(S_TRACE);
+				if (cc) { mixin(S_TRACE);
 					auto shl = cast(Shell) parent;
 					auto pane = shl && !comm.singleWindowMode(prop) ? parent : comm.sidePane;
 					auto acw = new ACW(comm, prop, pane, cc, cc, toc);
@@ -1501,15 +1501,15 @@ private:
 		}
 	}
 	this() {}
-	static Composite pane(Composite parent) {
+	static Composite pane(Composite parent) { mixin(S_TRACE);
 		auto shl = cast(Shell) parent;
-		if (shl) {
+		if (shl) { mixin(S_TRACE);
 			return topShell(shl);
-		} else {
+		} else { mixin(S_TRACE);
 			return parent;
 		}
 	}
-	static LoadOption loadOption(in Props prop) {
+	static LoadOption loadOption(in Props prop) { mixin(S_TRACE);
 		LoadOption opt;
 		opt.cardOnly = true;
 		opt.textOnly = false;
@@ -1519,13 +1519,13 @@ private:
 	}
 public:
 	static void openScenario(Commons comm, Props prop, Composite parent, void delegate(string) status,
-			Summary summ, Summary toc, void delegate(Object[]) addScenario) {
+			Summary summ, Summary toc, void delegate(Object[]) addScenario) { mixin(S_TRACE);
 		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
 		loadScenarios(prop, loadOption(prop), comm.mainShell, status, prop.msgs.dlgTitAddScenario, &addS.addS);
 	}
 	static void openScenario(Commons comm, Props prop, Composite parent, void delegate(string) status,
-			Summary summ, Summary toc, string[] files, void delegate(Object[]) addScenario) {
+			Summary summ, Summary toc, string[] files, void delegate(Object[]) addScenario) { mixin(S_TRACE);
 		parent = pane(parent);
 		auto addS = new AddS(comm, prop, parent, toc, addScenario);
 		loadScenariosFromFile(prop, loadOption(prop), comm.mainShell, status, files, &addS.addS);

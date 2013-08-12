@@ -131,7 +131,7 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (string path, int x, int y, int baseW, int baseH) {
+	this (string path, int x, int y, int baseW, int baseH) { mixin(S_TRACE);
 		this._type = ImageType.Image;
 		this.path = path;
 		rect = new Rectangle(x, y, baseW, baseH);
@@ -144,7 +144,7 @@ public:
 	/// path = 画像のファイルパス。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (string path, int baseW, int baseH) {
+	this (string path, int baseW, int baseH) { mixin(S_TRACE);
 		this(path, 0, 0, baseW, baseH);
 	}
 	/// 画像のデータ、位置、サイズを指定してインスタンスを生成する。
@@ -154,7 +154,7 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (ImageData data, int x, int y, int baseW, int baseH, bool dataResizable) {
+	this (ImageData data, int x, int y, int baseW, int baseH, bool dataResizable) { mixin(S_TRACE);
 		this._type = ImageType.Image;
 		this.data = data;
 		rect = new Rectangle(x, y, baseW, baseH);
@@ -167,12 +167,12 @@ public:
 	/// data = 画像のデータ。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (ImageData data, int baseW, int baseH) {
+	this (ImageData data, int baseW, int baseH) { mixin(S_TRACE);
 		this(data, 0, 0, baseW, baseH, true);
 	}
 
 	/// サイズのみを指定してインスタンスを生成する。
-	this (ImageType type, int x, int y, int baseW, int baseH) {
+	this (ImageType type, int x, int y, int baseW, int baseH) { mixin(S_TRACE);
 		this._type = type;
 		rect = new Rectangle(x, y, baseW, baseH);
 		initW = baseW;
@@ -183,7 +183,7 @@ public:
 	this (string text, string fontName, int size, CRGB color,
 			bool bold, bool italic, bool underline, bool strike, bool vertical,
 			BorderingType borderingType, CRGB borderingColor, uint borderingWidth,
-			int x, int y, int baseW, int baseH) {
+			int x, int y, int baseW, int baseH) { mixin(S_TRACE);
 		this (ImageType.Text, x, y, baseW, baseH);
 
 		setTitle(text, fontName, size, bold, italic, vertical);
@@ -203,25 +203,25 @@ public:
 	/// Returns: ベースとなる幅。
 	@property
 	const
-	int baseWidth() {
+	int baseWidth() { mixin(S_TRACE);
 		return initW;
 	}
 	/// Returns: ベースとなる高さ。
 	@property
 	const
-	int baseHeight() {
+	int baseHeight() { mixin(S_TRACE);
 		return initH;
 	}
 	/// Params:
 	/// initW = ベースとなる幅。
 	@property
-	void baseWidth(int initW) {
+	void baseWidth(int initW) { mixin(S_TRACE);
 		this.initW = initW;
 	}
 	/// Params:
 	/// initH = ベースとなる高さ。
 	@property
-	void baseHeight(int initH) {
+	void baseHeight(int initH) { mixin(S_TRACE);
 		this.initH = initH;
 	}
 
@@ -233,7 +233,7 @@ public:
 	/// maskX = マスク色のX位置。
 	/// maskY = マスク色のY位置。
 	/// See_Also: createImage();
-	void append(string path, CInsets insets, ScaleType scaleType, bool transparent, int maskX = 0, int maskY = 0, byte alpha = cast(byte) 0xFF) {
+	void append(string path, CInsets insets, ScaleType scaleType, bool transparent, int maskX = 0, int maskY = 0, byte alpha = cast(byte) 0xFF) { mixin(S_TRACE);
 		AppImg append;
 		append.insets = insets;
 		append.path = path;
@@ -245,7 +245,7 @@ public:
 		appends ~= append;
 	}
 	/// ditto
-	void append(ImageData data, CInsets insets, ScaleType scaleType, byte alpha = cast(byte) 0xFF) {
+	void append(ImageData data, CInsets insets, ScaleType scaleType, byte alpha = cast(byte) 0xFF) { mixin(S_TRACE);
 		AppImg append;
 		append.insets = insets;
 		append.data = data;
@@ -254,14 +254,14 @@ public:
 		appends ~= append;
 	}
 	/// ditto
-	void append(ImageData data, CPoint point, ScaleType scaleType, byte alpha = cast(byte) 0xFF) {
+	void append(ImageData data, CPoint point, ScaleType scaleType, byte alpha = cast(byte) 0xFF) { mixin(S_TRACE);
 		append(data, CInsets(point.y,
 			initW - (point.x + data.width),
 			initH - (point.y + data.height),
 			point.x), scaleType, alpha);
 	}
 	/// ditto
-	void append(FontData fontData, string text, CInsets insets) {
+	void append(FontData fontData, string text, CInsets insets) { mixin(S_TRACE);
 		AppImg append;
 		append.fontData = fontData;
 		append.text = text;
@@ -269,7 +269,7 @@ public:
 		appends ~= append;
 	}
 	/// 前面に文字列を追加する。
-	void append(string text, CInsets insets, CFont font, CRGB fontColor, TPos pos = TPos.LEFT) {
+	void append(string text, CInsets insets, CFont font, CRGB fontColor, TPos pos = TPos.LEFT) { mixin(S_TRACE);
 		AppImg append;
 		append.text = text;
 		append.insets = insets;
@@ -279,25 +279,25 @@ public:
 		appends ~= append;
 	}
 	/// ditto
-	void append(string text, CPoint point, CFont font, CRGB fontColor) {
+	void append(string text, CPoint point, CFont font, CRGB fontColor) { mixin(S_TRACE);
 		append(text, CInsets(point.y, 0, 0, point.x), font, fontColor, TPos.LEFT);
 	}
-	void setPath(string path) {
+	void setPath(string path) { mixin(S_TRACE);
 		this.path = path;
 		this.data = null;
 	}
-	void setPath(int index, string path) {
+	void setPath(int index, string path) { mixin(S_TRACE);
 		appends[index].path = path;
 		appends[index].data = null;
 	}
-	void setTransparent(int index, bool mask) {
+	void setTransparent(int index, bool mask) { mixin(S_TRACE);
 		appends[index].transparent = mask;
 	}
-	void setImageData(ImageData data) {
+	void setImageData(ImageData data) { mixin(S_TRACE);
 		this.path = "";
 		this.data = data;
 	}
-	void setImageData(int index, ImageData data) {
+	void setImageData(int index, ImageData data) { mixin(S_TRACE);
 		appends[index].path = "";
 		appends[index].data = data;
 	}
@@ -307,12 +307,12 @@ public:
 	/// font = 表示時のフォント。
 	/// titPoint = タイトルの表示位置。
 	/// See_Also: createImage();
-	void setTitle(string title, FontData font, Point titPoint) {
+	void setTitle(string title, FontData font, Point titPoint) { mixin(S_TRACE);
 		this._title = title;
 		this.titFont = font;
 		this.titPoint = titPoint;
 	}
-	void setTitle(string title, string fontName, int size, bool bold, bool italic, bool vertical) {
+	void setTitle(string title, string fontName, int size, bool bold, bool italic, bool vertical) { mixin(S_TRACE);
 		this.vertical = vertical;
 		int style = SWT.NORMAL;
 		if (bold) style |= SWT.BOLD;
@@ -324,18 +324,18 @@ public:
 		setTitle(title, font, new Point(0, 0));
 	}
 	@property
-	void title(string title) {
+	void title(string title) { mixin(S_TRACE);
 		assert (titFont !is null);
 		assert (titPoint);
 		_title = title;
 	}
 	@property
 	const
-	string title() {
+	string title() { mixin(S_TRACE);
 		return this._title;
 	}
 	@property
-	FontData font() {
+	FontData font() { mixin(S_TRACE);
 		return titFont;
 	}
 	@property
@@ -343,7 +343,7 @@ public:
 	int fontPixelSize() { return _fontPixelSize; }
 
 	/// 全体に指定された色のフィルタをかける。
-	void colorMask(int r, int g, int b, int a) {
+	void colorMask(int r, int g, int b, int a) { mixin(S_TRACE);
 		_maskR = r;
 		_maskG = g;
 		_maskB = b;
@@ -433,9 +433,9 @@ public:
 	/// イメージ・タイトル・透明色の設定有無を設定した後に
 	/// このメソッドを呼び出すことで、画像が生成される。
 	/// See_Also: append(), setTitle(), transparent()
-	void createImage() {
+	void createImage() { mixin(S_TRACE);
 		auto cur = Display.getCurrent();
-		if (_imgData) {
+		if (_imgData) { mixin(S_TRACE);
 			del(_imgData);
 		}
 		if (_img) _img.dispose();
@@ -445,10 +445,10 @@ public:
 	/// イメージ・タイトル・透明色の設定有無を設定した後に
 	/// このメソッドを呼び出すことで、ImageDataが生成される。
 	/// See_Also: append(), setTitle(), transparent()
-	ImageData createImageData() {
+	ImageData createImageData() { mixin(S_TRACE);
 		if (width == 0 || height == 0 || initW == 0 || initH == 0) return null;
 
-		try {
+		try { mixin(S_TRACE);
 			final switch (_type) {
 			case ImageType.Image:
 				return createImageDataImpl();
@@ -462,24 +462,24 @@ public:
 			return blankImage;
 		}
 	}
-	private ImageData createImageDataImpl() {
+	private ImageData createImageDataImpl() { mixin(S_TRACE);
 		auto cur = Display.getCurrent();
 
 		auto dataSet = new HashSet!ImageData;
 		if (_baseSizeData) dataSet.add(_baseSizeData);
-		ImageData getMat() {
+		ImageData getMat() { mixin(S_TRACE);
 			ImageData matImgData;
-			if (this.data) {
+			if (this.data) { mixin(S_TRACE);
 				matImgData = this.data;
-			} else {
-				if (isBinImg(path) || (path !is null && .exists(path))) {
+			} else { mixin(S_TRACE);
+				if (isBinImg(path) || (path !is null && .exists(path))) { mixin(S_TRACE);
 					matImgData = loadImage(path, false);
 					dataSet.add(matImgData);
-					if (matImgData.width != initW || matImgData.height != initH) {
+					if (matImgData.width != initW || matImgData.height != initH) { mixin(S_TRACE);
 						matImgData = matImgData.scaledTo(initW, initH);
 						dataSet.add(matImgData);
 					}
-				} else {
+				} else { mixin(S_TRACE);
 					// ファイルが無い場合は単に表示しない。
 					matImgData = blankImage(initW, initH);
 				}
@@ -488,7 +488,7 @@ public:
 		}
 		ImageData matImgData;
 		bool noTransparent = false;
-		void matNoTransparent() {
+		void matNoTransparent() { mixin(S_TRACE);
 			auto data = blankImage(initW, initH);
 			data.transparentPixel = -1;
 			data.data[] = cast(byte) 255;
@@ -504,33 +504,33 @@ public:
 			dataSet.add(matImgData);
 			if (mat.depth == 32) noTransparent = true;
 		}
-		if (!appends.length && !_title && !this.data && transparent) {
+		if (!appends.length && !_title && !this.data && transparent) { mixin(S_TRACE);
 			// FIXME: 1.29の挙動に合わせ、マスク有効なら透明色を無効にする
 			matNoTransparent();
-		} else if (appends.length || _title !is null) {
+		} else if (appends.length || _title !is null) { mixin(S_TRACE);
 			matNoTransparent();
-		} else {
+		} else { mixin(S_TRACE);
 			matImgData = getMat();
 		}
 		auto bmp = new Image(cur, matImgData);
 		scope (exit) bmp.dispose();
 		ImageData bmpData;
-		if (appends.length || _title !is null) {
+		if (appends.length || _title !is null) { mixin(S_TRACE);
 			auto dc = new GC(bmp);
 			scope (exit) dc.dispose();
 
-			foreach (a; appends) {
-				if (a.fontData) {
+			foreach (a; appends) { mixin(S_TRACE);
+				if (a.fontData) { mixin(S_TRACE);
 					// 中央にテキストを表示
 					auto ca = new Rectangle(a.insets.w, a.insets.n, initW - a.insets.w - a.insets.e, initH - a.insets.n - a.insets.s);
 					drawCenterText(a.fontData, dc, ca, a.text);
-				} else {
-					if (a.path.length || a.data) {
-						try {
+				} else { mixin(S_TRACE);
+					if (a.path.length || a.data) { mixin(S_TRACE);
+						try { mixin(S_TRACE);
 							ImageData imgData;
-							if (a.data) {
+							if (a.data) { mixin(S_TRACE);
 								imgData = a.data;
-							} else {
+							} else { mixin(S_TRACE);
 								imgData = loadImage(a.path, a.transparent, a.maskX, a.maskY);
 								dataSet.add(imgData);
 							}
@@ -540,17 +540,17 @@ public:
 							}
 							int bw = initW - a.insets.w - a.insets.e;
 							int bh = initH - a.insets.n - a.insets.s;
-							if (imgData.width == bw && imgData.height == bh) {
+							if (imgData.width == bw && imgData.height == bh) { mixin(S_TRACE);
 								auto img = new Image(cur, imgData);
 								scope (exit) img.dispose();
 								dc.drawImage(img, a.insets.w, a.insets.n);
-							} else if (a.scaleType is ScaleType.Cut) {
+							} else if (a.scaleType is ScaleType.Cut) { mixin(S_TRACE);
 								auto img = new Image(cur, imgData);
 								scope (exit) img.dispose();
 								int dw = imgData.width;
 								int dh = imgData.height;
 								dc.drawImage(img, 0, 0, dw, dh, a.insets.w, a.insets.n, dw, dh);
-							} else if (a.scaleType is ScaleType.Center) {
+							} else if (a.scaleType is ScaleType.Center) { mixin(S_TRACE);
 								auto img = new Image(cur, imgData);
 								scope (exit) img.dispose();
 								int dw = imgData.width;
@@ -558,7 +558,7 @@ public:
 								int x = a.insets.w + (bw - dw) / 2;
 								int y = a.insets.n + (bh - dh) / 2;
 								dc.drawImage(img, 0, 0, dw, dh, x, y, dw, dh);
-							} else {
+							} else { mixin(S_TRACE);
 								assert (a.scaleType is ScaleType.Scale);
 								imgData = imgData.scaledTo
 									(initW - a.insets.w - a.insets.e,
@@ -572,8 +572,8 @@ public:
 							debugln(e);
 						}
 					}
-					if (a.text.length) {
-						try {
+					if (a.text.length) { mixin(S_TRACE);
+						try { mixin(S_TRACE);
 							auto font = new Font(cur, dwtData(a.font));
 							scope (exit) font.dispose();
 							dc.setFont(font);
@@ -587,10 +587,10 @@ public:
 							dc.setAlpha(alpha);
 							scope (exit) dc.setAlpha(255);
 							switch (a.textPos) {
-							case TPos.LEFT: {
+							case TPos.LEFT: { mixin(S_TRACE);
 								dc.drawText(a.text, a.insets.w, a.insets.n, true);
 							} break;
-							case TPos.RIGHT: {
+							case TPos.RIGHT: { mixin(S_TRACE);
 								int tw = dc.textExtent(a.text).x;
 								dc.drawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
 							} break;
@@ -603,7 +603,7 @@ public:
 				}
 			}
 
-			if (0 != _maskA) {
+			if (0 != _maskA) { mixin(S_TRACE);
 				auto color = new Color(cur, _maskR, _maskG, _maskB);
 				scope (exit) color.dispose();
 				dc.setAlpha(_maskA);
@@ -615,7 +615,7 @@ public:
 			// フォントがおかしくなる
 			dc.dispose();
 			dc = new GC(bmp);
-			if (_title !is null) {
+			if (_title !is null) { mixin(S_TRACE);
 				auto font = new Font(cur, titFont);
 				scope (exit) font.dispose();
 				dc.setFont(font);
@@ -626,19 +626,19 @@ public:
 			bmpData = bmp.getImageData();
 			dataSet.add(bmpData);
 			_baseSizeData = bmpData;
-		} else {
+		} else { mixin(S_TRACE);
 			bmpData = matImgData;
 			_baseSizeData = matImgData;
 		}
 		dataSet.add(bmpData);
 
-		if (transparent && !noTransparent) {
+		if (transparent && !noTransparent) { mixin(S_TRACE);
 			bmpData.transparentPixel = bmpData.getPixel(0, 0);
 			_baseSizeData.transparentPixel = _baseSizeData.getPixel(0, 0);
 		}
-		if (_dataResizable && (bmpData.width != width || bmpData.height != height)) {
+		if (_dataResizable && (bmpData.width != width || bmpData.height != height)) { mixin(S_TRACE);
 			dataSet.add(bmpData);
-			if (smoothing) {
+			if (smoothing) { mixin(S_TRACE);
 				auto data = cast(ubyte[]) bmpData.data;
 				auto alpha = cast(ubyte[]) bmpData.alphaData;
 				size_t bpl;
@@ -648,19 +648,19 @@ public:
 				bmpData.width = width;
 				bmpData.height = height;
 				bmpData.bytesPerLine = bpl;
-			} else {
+			} else { mixin(S_TRACE);
 				bmpData = bmpData.scaledTo(width, height);
 			}
 			dataSet.add(bmpData);
 		}
-		foreach (d; dataSet) {
-			if (bmpData !is d) {
+		foreach (d; dataSet) { mixin(S_TRACE);
+			if (bmpData !is d) { mixin(S_TRACE);
 				del(d);
 			}
 		}
 		return bmpData;
 	}
-	private ImageData createTextImageData() {
+	private ImageData createTextImageData() { mixin(S_TRACE);
 		// BorderingType.Inlineの場合のみ、予め画像を生成する
 		// (アンチエイリアスがかからないため可能)
 		if (borderingType !is BorderingType.Inline) return null;
@@ -668,15 +668,15 @@ public:
 
 		// 文字色でも縁取り色でもない色
 		auto back = CRGB(255, 255, 255, 255);
-		while (textColor == back || borderingColor == back) {
+		while (textColor == back || borderingColor == back) { mixin(S_TRACE);
 			back.r--;
 		}
 
 		int w, h;
-		if (vertical) {
+		if (vertical) { mixin(S_TRACE);
 			w = height;
 			h = width;
-		} else {
+		} else { mixin(S_TRACE);
 			w = width;
 			h = height;
 		}
@@ -722,22 +722,22 @@ public:
 		gc.setBackground(textColor);
 		gc.setForeground(borderColor);
 		auto text = _title;
-		if (_previewText) {
+		if (_previewText) { mixin(S_TRACE);
 			text = _previewText(text);
 		}
-		foreach (line; .splitLines(text)) {
-			foreach (dchar c; line) {
+		foreach (line; .splitLines(text)) { mixin(S_TRACE);
+			foreach (dchar c; line) { mixin(S_TRACE);
 				immutable s = [c].toUTF8();
 				pathL.addString(s, x, y, font);
 				pathF.addString(s, x + hb, y + hb, font);
 				x += gc.textExtent(s).x;
 			}
-			if (underline) {
+			if (underline) { mixin(S_TRACE);
 				int ly = y + ulinePos;
 				pathL.addRectangle(0, ly, x, ulineWidth);
 				pathF.addRectangle(hb, ly + hb, x, ulineWidth);
 			}
-			if (strike) {
+			if (strike) { mixin(S_TRACE);
 				int ly = y + slinePos;
 				pathL.addRectangle(0, ly, x, slineWidth);
 				pathF.addRectangle(hb, ly + hb, x, slineWidth);
@@ -749,15 +749,15 @@ public:
 
 		// 描画
 		gc.fillPath(pathF);
-		if (borderingWidth <= fontPixelSize / 2) {
+		if (borderingWidth <= fontPixelSize / 2) { mixin(S_TRACE);
 			gc.drawPath(pathL);
-		} else {
+		} else { mixin(S_TRACE);
 			// FIXME: 何層にも重なり合った部分に隙間が生じてしまう減少に対処
 			auto p = pathL.getPathData();
 			size_t pi = 0;
 			auto rPath = new Path(cur);
 			scope (exit) rPath.dispose();
-			void newRPath() {
+			void newRPath() { mixin(S_TRACE);
 				gc.drawPath(rPath);
 				float[2] curPos;
 				rPath.getCurrentPoint(curPos);
@@ -765,7 +765,7 @@ public:
 				rPath = new Path(cur);
 				rPath.moveTo(curPos[0], curPos[1]);
 			}
-			foreach (type; p.types) {
+			foreach (type; p.types) { mixin(S_TRACE);
 				switch (type) {
 				case SWT.PATH_MOVE_TO:
 					rPath.moveTo(p.points[pi], p.points[pi + 1]);
@@ -799,7 +799,7 @@ public:
 
 		auto imgData = img.getImageData();
 
-		if (vertical) {
+		if (vertical) { mixin(S_TRACE);
 			turnImpl(imgData, Turn.LEFT);
 		}
 
@@ -808,7 +808,7 @@ public:
 
 		return imgData;
 	}
-	private ImageData createFilterImageData() {
+	private ImageData createFilterImageData() { mixin(S_TRACE);
 		// カラーフィルタは常に画像無し
 		return null;
 	}
@@ -816,7 +816,7 @@ public:
 	/// 画像を描画する。
 	/// Params:
 	/// dc = キャンバス。
-	void draw(ref Image buf, ref GC gc, Rectangle range) {
+	void draw(ref Image buf, ref GC gc, Rectangle range) { mixin(S_TRACE);
 		if (!_visible) return;
 		if (!range.intersects(rect)) return;
 		if (!_dataResizable) gc.setClipping(new Rectangle(x, y, width, height));
@@ -832,12 +832,12 @@ public:
 			gc.drawImage(_img, x, y);
 			break;
 		case ImageType.Text:
-			if (_img) {
+			if (_img) { mixin(S_TRACE);
 				int olda = gc.getAlpha();
 				gc.setAlpha(alpha);
 				scope (exit) gc.setAlpha(olda);
 				gc.drawImage(_img, x, y);
-			} else {
+			} else { mixin(S_TRACE);
 				drawText(buf, gc, range);
 			}
 			break;
@@ -846,7 +846,7 @@ public:
 			break;
 		}
 	}
-	private void lineMetrics(GC gc, out int height, out int ulineWidth, out int ulinePos, out int slineWidth, out int slinePos) {
+	private void lineMetrics(GC gc, out int height, out int ulineWidth, out int ulinePos, out int slineWidth, out int slinePos) { mixin(S_TRACE);
 		auto mt = gc.getFontMetrics();
 		height = mt.getHeight();
 		ulineWidth = .max(1, fontPixelSize / 16);
@@ -854,26 +854,26 @@ public:
 		slineWidth = .max(1, fontPixelSize / 16);
 		slinePos = height - mt.getAscent() / 2 + slineWidth / 2;
 	}
-	private void drawTextImpl(GC gc, in string[] lines, int xm, int ym) {
+	private void drawTextImpl(GC gc, in string[] lines, int xm, int ym) { mixin(S_TRACE);
 		int x = xm;
 		int y = ym;
 		int height, ulineWidth, ulinePos, slineWidth, slinePos;
 		lineMetrics(gc, height, ulineWidth, ulinePos, slineWidth, slinePos);
-		foreach (line; lines) {
+		foreach (line; lines) { mixin(S_TRACE);
 			gc.drawText(line, x, y, true);
-			if (underline || strike) {
+			if (underline || strike) { mixin(S_TRACE);
 				auto ts = gc.textExtent(line);
-				if (underline) {
+				if (underline) { mixin(S_TRACE);
 					gc.fillRectangle(0, y + ulinePos, ts.x, ulineWidth);
 				}
-				if (strike) {
+				if (strike) { mixin(S_TRACE);
 					gc.fillRectangle(0, y + slinePos, ts.x, slineWidth);
 				}
 			}
 			y += height;
 		}
 	}
-	private void turnImpl(ImageData imgData, Turn turn) {
+	private void turnImpl(ImageData imgData, Turn turn) { mixin(S_TRACE);
 		auto data = cast(ubyte[]) imgData.data;
 		auto alphaData = cast(ubyte[]) imgData.alphaData;
 		size_t iWidth = imgData.width;
@@ -887,7 +887,7 @@ public:
 		imgData.bytesPerLine = bytesPerLine;
 	}
 	// BorderingType.Inline以外のテキストの描画を行う。
-	private void drawText(ref Image buf, ref GC gc, Rectangle range) {
+	private void drawText(ref Image buf, ref GC gc, Rectangle range) { mixin(S_TRACE);
 		auto cur = Display.getCurrent();
 		auto img2 = new Image(cur, width, height);
 		auto gc2 = new GC(img2);
@@ -898,20 +898,20 @@ public:
 		int sh = height;
 		int dx = 0;
 		int dy = 0;
-		if (sx < range.x) {
+		if (sx < range.x) { mixin(S_TRACE);
 			dx = range.x - sx;
 			sw -= dx;
 			sx = range.x;
 		}
-		if (sy < range.y) {
+		if (sy < range.y) { mixin(S_TRACE);
 			dy = range.y - sy;
 			sh -= dy;
 			sy = range.y;
 		}
-		if (range.x + range.width < sx + sw) {
+		if (range.x + range.width < sx + sw) { mixin(S_TRACE);
 			sw -= (sx + sw) - (range.x + range.width);
 		}
-		if (range.y + range.height < sy + sh) {
+		if (range.y + range.height < sy + sh) { mixin(S_TRACE);
 			sh -= (sy + sh) - (range.y + range.height);
 		}
 		gc2.drawImage(buf, sx, sy, sw, sh, dx, dy, sw, sh);
@@ -919,7 +919,7 @@ public:
 		auto imgData = img2.getImageData();
 		img2.dispose();
 
-		if (vertical) {
+		if (vertical) { mixin(S_TRACE);
 			turnImpl(imgData, Turn.RIGHT);
 		}
 
@@ -941,12 +941,12 @@ public:
 		gc2.setFont(font);
 
 		auto text = _title;
-		if (_previewText) {
+		if (_previewText) { mixin(S_TRACE);
 			text = _previewText(text);
 		}
 		auto lines = .splitLines(text);
 
-		if (borderingType is BorderingType.Outline) {
+		if (borderingType is BorderingType.Outline) { mixin(S_TRACE);
 			// 縁取り色で描画
 			gc2.setForeground(borderColor);
 			gc2.setBackground(borderColor);
@@ -965,7 +965,7 @@ public:
 		gc2.setBackground(textColor);
 		drawTextImpl(gc2, lines,  0,  0);
 
-		if (vertical) {
+		if (vertical) { mixin(S_TRACE);
 			imgData = img2.getImageData();
 			img2.dispose();
 			turnImpl(imgData, Turn.LEFT);
@@ -975,18 +975,18 @@ public:
 		// 元のバッファへ描き戻す
 		gc.drawImage(img2, 0, 0, width, height, x, y, width, height);
 	}
-	private static ubyte roundColor(T)(T c) {
+	private static ubyte roundColor(T)(T c) { mixin(S_TRACE);
 		return cast(ubyte) .max(0, .min(255, c));
 	}
 	/// カラーフィルタの描画を行う。
-	private void drawFilter(ref Image buf, ref GC gc, Rectangle range) {
+	private void drawFilter(ref Image buf, ref GC gc, Rectangle range) { mixin(S_TRACE);
 		auto iRect = rect.intersection(range);
 		auto bMode = this.blendMode;
-		if (transparent) {
+		if (transparent) { mixin(S_TRACE);
 			bMode = BlendMode.Mask;
 		}
-		ubyte calcN(int f, int t, real per) {
-			if (f == t) {
+		ubyte calcN(int f, int t, real per) { mixin(S_TRACE);
+			if (f == t) { mixin(S_TRACE);
 				return roundColor(f);
 			}
 			return roundColor(f + .roundTo!int((t - f) * per));
@@ -1013,33 +1013,33 @@ public:
 				int cg = _color1.g;
 				int cb = _color1.b;
 				int from, width, iFrom, iWidth;
-				if (gradientDir is GradientDir.LeftToRight) {
+				if (gradientDir is GradientDir.LeftToRight) { mixin(S_TRACE);
 					from = this.x;
 					width = this.width;
 					iFrom = iRect.x;
 					iWidth = iRect.width;
-				} else {
+				} else { mixin(S_TRACE);
 					from = this.y;
 					width = this.height;
 					iFrom = iRect.y;
 					iWidth = iRect.height;
 				}
-				foreach (ip; iFrom .. iFrom + iWidth) {
+				foreach (ip; iFrom .. iFrom + iWidth) { mixin(S_TRACE);
 					int p = ip - from;
 					real per = cast(real) p / width;
 					ubyte r = calcN(_color1.r, _color2.r, per);
 					ubyte g = calcN(_color1.g, _color2.g, per);
 					ubyte b = calcN(_color1.b, _color2.b, per);
 					ubyte a = calcN(_color1.a, _color2.a, per);
-					if (cr != r || cg != g || cb != b) {
+					if (cr != r || cg != g || cb != b) { mixin(S_TRACE);
 						color.dispose();
 						color = new Color(cur, r, g, b);
 					}
 					gc.setAlpha(a);
 					gc.setForeground(color);
-					if (gradientDir is GradientDir.LeftToRight) {
+					if (gradientDir is GradientDir.LeftToRight) { mixin(S_TRACE);
 						gc.drawLine(ip, iRect.y, ip, iRect.y + iRect.height - 1);
-					} else {
+					} else { mixin(S_TRACE);
 						gc.drawLine(iRect.x, ip, iRect.x + iRect.width - 1, ip);
 					}
 				}
@@ -1067,19 +1067,19 @@ public:
 				break;
 			case GradientDir.LeftToRight:
 			case GradientDir.TopToBottom:
-				if (gradientDir is GradientDir.LeftToRight) {
+				if (gradientDir is GradientDir.LeftToRight) { mixin(S_TRACE);
 					from = this.x;
 					width = this.width;
 					iFrom = iRect.x;
 					iWidth = iRect.width;
-				} else {
+				} else { mixin(S_TRACE);
 					from = this.y;
 					width = this.height;
 					iFrom = iRect.y;
 					iWidth = iRect.height;
 				}
 				colorLine = new FC[iWidth];
-				foreach (ip; iFrom .. iFrom + iWidth) {
+				foreach (ip; iFrom .. iFrom + iWidth) { mixin(S_TRACE);
 					int p = ip - from;
 					real per = cast(real) p / width;
 					ubyte r = calcN(_color1.r, _color2.r, per);
@@ -1091,7 +1091,7 @@ public:
 			}
 
 			// このセルにおける該当箇所の色を取得
-			FC color(int ix, int iy) {
+			FC color(int ix, int iy) { mixin(S_TRACE);
 				final switch (gradientDir) {
 				case GradientDir.None:
 					return fc1;
@@ -1103,9 +1103,9 @@ public:
 			}
 
 			// 色を加算または減算または乗算。
-			foreach (ix; iRect.x .. iRect.x + iRect.width) {
+			foreach (ix; iRect.x .. iRect.x + iRect.width) { mixin(S_TRACE);
 				int x = ix - this.x;
-				foreach (iy; iRect.y .. iRect.y + iRect.height) {
+				foreach (iy; iRect.y .. iRect.y + iRect.height) { mixin(S_TRACE);
 					int y = iy - this.y;
 					auto fc = px.get(ix, iy);
 					auto tfc = color(ix, iy);
@@ -1116,7 +1116,7 @@ public:
 					case BlendMode.Mask:
 						assert (0);
 					case BlendMode.Add:
-						if (tfc.a != 255) {
+						if (tfc.a != 255) { mixin(S_TRACE);
 							// アルファブレンド
 							// 一般的な方式ではないが1.50の処理に合わせる
 /+							fc.r = roundColor(fc.r + (tfc.r * tfc.a >>> 8));
@@ -1125,14 +1125,14 @@ public:
 +/							fc.r = roundColor((fc.r * (255 - tfc.a) >>> 8) + (roundColor(fc.r + tfc.r) * tfc.a >>> 8));
 							fc.g = roundColor((fc.g * (255 - tfc.a) >>> 8) + (roundColor(fc.g + tfc.g) * tfc.a >>> 8));
 							fc.b = roundColor((fc.b * (255 - tfc.a) >>> 8) + (roundColor(fc.b + tfc.b) * tfc.a >>> 8));
-						} else {
+						} else { mixin(S_TRACE);
 							fc.r = roundColor(fc.r + tfc.r);
 							fc.g = roundColor(fc.g + tfc.g);
 							fc.b = roundColor(fc.b + tfc.b);
 						}
 						break;
 					case BlendMode.Subtract:
-						if (tfc.a != 255) {
+						if (tfc.a != 255) { mixin(S_TRACE);
 							// アルファブレンド
 							// 一般的な方式ではないが1.50の処理に合わせる
 /+							fc.r = roundColor(fc.r - (tfc.r * tfc.a >>> 8));
@@ -1141,14 +1141,14 @@ public:
 +/							fc.r = max(roundColor(fc.r * (255 - tfc.a) >>> 8), roundColor(fc.r - (tfc.r * tfc.a >>> 8)));
 							fc.g = max(roundColor(fc.g * (255 - tfc.a) >>> 8), roundColor(fc.g - (tfc.g * tfc.a >>> 8)));
 							fc.b = max(roundColor(fc.b * (255 - tfc.a) >>> 8), roundColor(fc.b - (tfc.b * tfc.a >>> 8)));
-						} else {
+						} else { mixin(S_TRACE);
 							fc.r = roundColor(fc.r - tfc.r);
 							fc.g = roundColor(fc.g - tfc.g);
 							fc.b = roundColor(fc.b - tfc.b);
 						}
 						break;
 					case BlendMode.Multiply:
-						if (tfc.a != 255) {
+						if (tfc.a != 255) { mixin(S_TRACE);
 							// アルファブレンド
 							tfc.r = roundColor(((tfc.r * tfc.a) + (((1 << 8) - tfc.a) << 8)) >>> 8);
 							tfc.g = roundColor(((tfc.g * tfc.a) + (((1 << 8) - tfc.a) << 8)) >>> 8);
@@ -1171,47 +1171,47 @@ public:
 
 	/// 画像。
 	@property
-	Image image() {
+	Image image() { mixin(S_TRACE);
 		return _img;
 	}
 	/// リサイズ前の画像。
 	@property
-	ImageData baseSizeData() {
+	ImageData baseSizeData() { mixin(S_TRACE);
 		return _baseSizeData;
 	}
 	/// Returns: 表示するか。
 	@property
 	const
-	bool visible() {
+	bool visible() { mixin(S_TRACE);
 		return _visible;
 	}
 	/// Params:
 	/// v = 表示するか。
 	@property
-	void visible(bool v) {
+	void visible(bool v) { mixin(S_TRACE);
 		_visible = v;
 	}
 	/// Returns: 拡大・縮小時に平滑化するか。
 	@property
 	const
-	bool smoothing() {
+	bool smoothing() { mixin(S_TRACE);
 		return _smoothing;
 	}
 	/// Params:
 	/// smoothing = 平滑化するか。
 	@property
-	void smoothing(bool smoothing) {
+	void smoothing(bool smoothing) { mixin(S_TRACE);
 		_smoothing = smoothing;
 	}
 	/// 透明色を使用するか。
 	@property
 	const
-	bool transparent() {
+	bool transparent() { mixin(S_TRACE);
 		return t;
 	}
 	/// ditto
 	@property
-	void transparent(bool t) {
+	void transparent(bool t) { mixin(S_TRACE);
 		this.t = t;
 	}
 	/// 透明度。0(透明)～255(不透明)。
@@ -1224,40 +1224,40 @@ public:
 	/// Returns: 横位置。
 	@property
 	const
-	int x() {
+	int x() { mixin(S_TRACE);
 		return rect.x;
 	}
 	/// 横位置を変更する。
 	/// Params:
 	/// x = 横位置。
 	@property
-	void x(int x) {
+	void x(int x) { mixin(S_TRACE);
 		rect.x = x;
 	}
 	/// Returns: 縦位置。
 	@property
 	const
-	int y() {
+	int y() { mixin(S_TRACE);
 		return rect.y;
 	}
 	/// 縦位置を変更する。
 	/// Params:
 	/// y = 縦位置。
 	@property
-	void y(int y) {
+	void y(int y) { mixin(S_TRACE);
 		rect.y = y;
 	}
 	/// 幅を設定する。
 	/// Params:
 	/// w = 幅。
 	@property
-	void width(int w) {
+	void width(int w) { mixin(S_TRACE);
 		rect.width = w;
 	}
 	/// Returns: 幅。
 	@property
 	const
-	int width() {
+	int width() { mixin(S_TRACE);
 		return rect.width;
 	}
 
@@ -1265,13 +1265,13 @@ public:
 	/// Params:
 	/// h = 高さ。
 	@property
-	void height(int h) {
+	void height(int h) { mixin(S_TRACE);
 		rect.height = h;
 	}
 	/// Returns: 高さ。
 	@property
 	const
-	int height() {
+	int height() { mixin(S_TRACE);
 		return rect.height;
 	}
 
@@ -1279,7 +1279,7 @@ public:
 	/// Params:
 	/// rect = 位置とサイズ。
 	@property
-	void bounds(Rectangle rect) {
+	void bounds(Rectangle rect) { mixin(S_TRACE);
 		this.rect.x = rect.x;
 		this.rect.y = rect.y;
 		this.rect.width = rect.width;
@@ -1289,12 +1289,12 @@ public:
 	/// Returns: 位置とサイズ。
 	@property
 	const
-	Rectangle bounds() {
+	Rectangle bounds() { mixin(S_TRACE);
 		return new Rectangle(x, y, width, height);
 	}
 
-	private void del(ImageData data) {
-		if (_baseSizeData !is data && this.data !is data) {
+	private void del(ImageData data) { mixin(S_TRACE);
+		if (_baseSizeData !is data && this.data !is data) { mixin(S_TRACE);
 			data.data[] = 0;
 			delete data.data;
 			data.alphaData[] = 0;
@@ -1305,8 +1305,8 @@ public:
 	}
 
 	/// 全てのリソースを解放する。
-	void dispose() {
-		void del(ImageData data) {
+	void dispose() { mixin(S_TRACE);
+		void del(ImageData data) { mixin(S_TRACE);
 			if (this.data is data) return;
 			data.data[] = 0;
 			delete data.data;
@@ -1350,7 +1350,7 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (string path, int x, int y, int baseW, int baseH) {
+	this (string path, int x, int y, int baseW, int baseH) { mixin(S_TRACE);
 		super (path, x, y, baseW, baseH);
 		newR = new Rectangle(x, y, baseW, baseH);
 	}
@@ -1361,7 +1361,7 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (ImageData data, int x, int y, int baseW, int baseH, bool dataResizable) {
+	this (ImageData data, int x, int y, int baseW, int baseH, bool dataResizable) { mixin(S_TRACE);
 		super (data, x, y, baseW, baseH, dataResizable);
 		newR = new Rectangle(x, y, baseW, baseH);
 	}
@@ -1370,14 +1370,14 @@ public:
 	this (string text, string fontName, int size, CRGB color,
 			bool bold, bool italic, bool underline, bool strike, bool vertical,
 			BorderingType borderingType, CRGB borderingColor, uint borderingWidth,
-			int x, int y, int baseW, int baseH) {
+			int x, int y, int baseW, int baseH) { mixin(S_TRACE);
 		super (text, fontName, size, color, bold, italic, underline, strike, vertical,
 			borderingType, borderingColor, borderingWidth, x, y, baseW, baseH);
 		newR = new Rectangle(x, y, baseW, baseH);
 	}
 	/// カラーフィルタ用のインスタンスを生成する。
 	this (BlendMode blendMode, GradientDir gradientDir, CRGB color1, CRGB color2,
-			int x, int y, int baseW, int baseH) {
+			int x, int y, int baseW, int baseH) { mixin(S_TRACE);
 		super (ImageType.ColorFilter, x, y, baseW, baseH);
 		newR = new Rectangle(x, y, baseW, baseH);
 		this.blendMode = blendMode;
@@ -1389,60 +1389,60 @@ public:
 	/// Returns: 最小の幅。初期値は1。
 	@property
 	const
-	int minimumWidth() {
+	int minimumWidth() { mixin(S_TRACE);
 		return minW;
 	}
 	/// Params:
 	/// minW = 最小の幅。
 	@property
-	void minimumWidth(int minW) {
+	void minimumWidth(int minW) { mixin(S_TRACE);
 		this.minW = minW;
 	}
 	/// Returns: 最小の高さ。初期値は1。
 	@property
 	const
-	int minimumHeight() {
+	int minimumHeight() { mixin(S_TRACE);
 		return minH;
 	}
 	/// Params:
 	/// minW = 最小の高さ。
 	@property
-	void minimumHeight(int minH) {
+	void minimumHeight(int minH) { mixin(S_TRACE);
 		this.minH = minH;
 	}
 	/// Returns: 最大の幅。初期値は65536。
 	@property
 	const
-	int maximumWidth() {
+	int maximumWidth() { mixin(S_TRACE);
 		return maxW;
 	}
 	/// Params:
 	/// minW = 最大の幅。
 	@property
-	void maximumWidth(int maxW) {
+	void maximumWidth(int maxW) { mixin(S_TRACE);
 		this.maxW = maxW;
 	}
 	/// Returns: 最大の高さ。初期値は65536。
 	@property
 	const
-	int maximumHeight() {
+	int maximumHeight() { mixin(S_TRACE);
 		return maxH;
 	}
 	/// Params:
 	/// minW = 最大の高さ。
 	@property
-	void maximumHeight(int maxH) {
+	void maximumHeight(int maxH) { mixin(S_TRACE);
 		this.maxH = maxH;
 	}
 	/// 縦横比固定か。
 	@property
 	const
-	bool ratioFix() {
+	bool ratioFix() { mixin(S_TRACE);
 		return whconst;
 	}
 	/// ditto
 	@property
-	void ratioFix(bool whconst) {
+	void ratioFix(bool whconst) { mixin(S_TRACE);
 		this.whconst = whconst;
 	}
 	/// サイズ・位置固定モードか。
@@ -1451,25 +1451,25 @@ public:
 	bool fixed() {return _fixed;}
 	/// ditto
 	@property
-	void fixed(bool value) {
+	void fixed(bool value) { mixin(S_TRACE);
 		_fixed = value;
-		if (value) {
+		if (value) { mixin(S_TRACE);
 			reset();
-		} else {
+		} else { mixin(S_TRACE);
 			retoggle();
 		}
 	}
 	/// サイズ変更/移動更作業を終えてサイズ/位置を確定し、画像をその位置に配置する。
 	/// 配置後、createImage()が実行される。
 	/// See_Also: createImage();
-	void resize(bool callListeners = true) {
+	void resize(bool callListeners = true) { mixin(S_TRACE);
 		bool resize = bounds.width != newR.width || bounds.height != newR.height;
 		bounds = newR;
-		if (callListeners) {
-			foreach (l; l_resizes) {
+		if (callListeners) { mixin(S_TRACE);
+			foreach (l; l_resizes) { mixin(S_TRACE);
 				l(this, x, y, width, height);
 			}
-			foreach (l; lc_resizes) {
+			foreach (l; lc_resizes) { mixin(S_TRACE);
 				l(this, x, y, cast(real) width / initW);
 			}
 		}
@@ -1477,7 +1477,7 @@ public:
 		retoggle();
 	}
 	/// サイズと移動の仮設定を最初の状態に戻す。
-	void reset() {
+	void reset() { mixin(S_TRACE);
 		newR.x = x;
 		newR.y = y;
 		newR.width = width;
@@ -1485,12 +1485,12 @@ public:
 		retoggle();
 	}
 	/// トグルを描画する。
-	void drawToggle(GC gc) {
-		if (visible && selected) {
+	void drawToggle(GC gc) { mixin(S_TRACE);
+		if (visible && selected) { mixin(S_TRACE);
 			gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
 			gc.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
 			gc.drawFocus(newX, newY, newWidth, newHeight);
-			foreach (rect; tgls.values) {
+			foreach (rect; tgls.values) { mixin(S_TRACE);
 				gc.fillRectangle(rect.x + 1, rect.y + 1, tglSize - 1, tglSize - 1);
 				gc.drawRectangle(rect);
 			}
@@ -1500,25 +1500,25 @@ public:
 	/// Returns: 選択中か。
 	@property
 	const
-	bool selected() {
+	bool selected() { mixin(S_TRACE);
 		return s;
 	}
 	/// Params:
 	/// s = 選択状態。
 	@property
-	private void selected(bool s) {
+	private void selected(bool s) { mixin(S_TRACE);
 		this.s = s;
 	}
-	private void doSelected(bool s) {
+	private void doSelected(bool s) { mixin(S_TRACE);
 		selected = s;
-		foreach (func; l_selected) {
+		foreach (func; l_selected) { mixin(S_TRACE);
 			func(this);
 		}
 	}
 	/// Returns: 仮の横位置。
 	@property
 	const
-	int newX() {
+	int newX() { mixin(S_TRACE);
 		return newR.x;
 	}
 	/// 横位置を仮に変更する。確定するにはresize()を使用。
@@ -1526,14 +1526,14 @@ public:
 	/// x = 横位置。
 	/// See_Also: resize()
 	@property
-	void newX(int x) {
+	void newX(int x) { mixin(S_TRACE);
 		newR.x = x;
 		retoggle();
 	}
 	/// Returns: 仮の縦位置。
 	@property
 	const
-	int newY() {
+	int newY() { mixin(S_TRACE);
 		return newR.y;
 	}
 	/// 縦位置を仮に変更する。確定するにはresize()を使用。
@@ -1541,14 +1541,14 @@ public:
 	/// y = 縦位置。
 	/// See_Also: resize()
 	@property
-	void newY(int y) {
+	void newY(int y) { mixin(S_TRACE);
 		newR.y = y;
 		retoggle();
 	}
 	/// 幅を設定可能な値に丸めて返す。
 	/// 縦横比固定の影響を受けない。
 	const
-	int roundMWidth(int w) {
+	int roundMWidth(int w) { mixin(S_TRACE);
 		w = minW > w ? minW : w;
 		w = maxW < w ? maxW : w;
 		return w;
@@ -1558,26 +1558,26 @@ public:
 	/// w = 幅。
 	/// Returns: 丸めた幅。
 	const
-	int roundWidth(int w) {
-		if (whconst) {
+	int roundWidth(int w) { mixin(S_TRACE);
+		if (whconst) { mixin(S_TRACE);
 			// 縦横比固定
 			real scale = newHeight / cast(real) initH;
 			return cast(int) rndtol(initW * scale);
-		} else {
+		} else { mixin(S_TRACE);
 			return roundMWidth(w);
 		}
 	}
 	/// Returns: 仮の幅。
 	@property
 	const
-	int newWidth() {
+	int newWidth() { mixin(S_TRACE);
 		return newR.width;
 	}
 	/// 幅を仮に設定する。確定するにはresize()を使用。
 	/// Params:
 	/// w = 幅。
 	@property
-	void newWidth(int w) {
+	void newWidth(int w) { mixin(S_TRACE);
 		newR.width = roundMWidth(w);
 		newR.height = roundHeight(newR.height);
 		retoggle();
@@ -1585,7 +1585,7 @@ public:
 	/// 高さを設定可能な値に丸めて返す。
 	/// 縦横比固定の影響を受けない。
 	const
-	int roundMHeight(int h) {
+	int roundMHeight(int h) { mixin(S_TRACE);
 		h = minH > h ? minH : h;
 		h = maxH < h ? maxH : h;
 		return h;
@@ -1595,26 +1595,26 @@ public:
 	/// h = 高さ。
 	/// Returns: 丸めた高さ。
 	const
-	int roundHeight(int h) {
-		if (whconst) {
+	int roundHeight(int h) { mixin(S_TRACE);
+		if (whconst) { mixin(S_TRACE);
 			// 縦横比固定
 			real scale = newWidth / cast(real) initW;
 			return cast(int) rndtol(initH * scale);
-		} else {
+		} else { mixin(S_TRACE);
 			return roundMHeight(h);
 		}
 	}
 	/// Returns: 仮の高さ。
 	@property
 	const
-	int newHeight() {
+	int newHeight() { mixin(S_TRACE);
 		return newR.height;
 	}
 	/// 高さを仮に設定する。確定するにはresize()を使用。
 	/// Params:
 	/// h = 高さ。
 	@property
-	void newHeight(int h) {
+	void newHeight(int h) { mixin(S_TRACE);
 		newR.height = roundMHeight(h);
 		newR.width = roundWidth(newR.width);
 		retoggle();
@@ -1623,13 +1623,13 @@ public:
 	/// Params:
 	/// rect = 位置とサイズ。
 	@property
-	void newBounds(Rectangle rect) {
+	void newBounds(Rectangle rect) { mixin(S_TRACE);
 		newR.x = rect.x;
 		newR.y = rect.y;
-		if (newR.width >= newR.height) {
+		if (newR.width >= newR.height) { mixin(S_TRACE);
 			newR.width = roundMWidth(rect.width);
 			newR.height = roundHeight(rect.height);
-		} else {
+		} else { mixin(S_TRACE);
 			newR.height = roundMHeight(rect.height);
 			newR.width = roundWidth(rect.width);
 		}
@@ -1639,7 +1639,7 @@ public:
 	/// Params:
 	/// scale = 元のサイズに対するスケール
 	@property
-	void scale(real scale) {
+	void scale(real scale) { mixin(S_TRACE);
 		newR.width = cast(int) rndtol(initW * scale);
 		newR.height = roundHeight(cast(int) rndtol(initH * rect.height));
 		retoggle();
@@ -1647,7 +1647,7 @@ public:
 	/// Returns: 仮の位置とサイズ。
 	@property
 	const
-	Rectangle newBounds() {
+	Rectangle newBounds() { mixin(S_TRACE);
 		return new Rectangle(newR.x, newR.y, newR.width, newR.height);
 	}
 
@@ -1658,18 +1658,18 @@ public:
 	/// y = 縦位置。
 	/// Returns: トグル。
 	const
-	Toggle inToggle(int x, int y, bool move) {
-		foreach (key; tgls.keys) {
+	Toggle inToggle(int x, int y, bool move) { mixin(S_TRACE);
+		foreach (key; tgls.keys) { mixin(S_TRACE);
 			auto rect = tgls[key];
 			if (rect.x <= x && x <= (rect.x + rect.width)
-					&& rect.y <= y && y <= (rect.y + rect.height)) {
+					&& rect.y <= y && y <= (rect.y + rect.height)) { mixin(S_TRACE);
 				return key;
 			}
 		}
 		if (move && this.x <= x && x <= (this.x + this.width)
-				&& this.y <= y && y <= (this.y + this.height)) {
+				&& this.y <= y && y <= (this.y + this.height)) { mixin(S_TRACE);
 			return Toggle.MOVE;
-		} else {
+		} else { mixin(S_TRACE);
 			return Toggle.NONE;
 		}
 	}
@@ -1681,23 +1681,23 @@ public:
 		Toggle.RIGHT_TOP, Toggle.RIGHT_MIDDLE, Toggle.RIGHT_BOTTOM
 	];
 
-	private void retoggle() {
-		if (fixed) {
+	private void retoggle() { mixin(S_TRACE);
+		if (fixed) { mixin(S_TRACE);
 			typeof(this.tgls) tgls;
 			this.tgls = tgls;
-		} else {
+		} else { mixin(S_TRACE);
 			Toggle[] tgls = RESIZE_TOGGLES;
-			foreach (key; this.tgls.keys) {
+			foreach (key; this.tgls.keys) { mixin(S_TRACE);
 				this.tgls.remove(key);
 			}
-			foreach (tgl; tgls) {
+			foreach (tgl; tgls) { mixin(S_TRACE);
 				this.tgls[tgl] = toggleRect(tgl);
 			}
 		}
 	}
 
 	const
-	private Rectangle toggleRect(Toggle tgl) {
+	private Rectangle toggleRect(Toggle tgl) { mixin(S_TRACE);
 		int tglX;
 		int tglY;
 		int tglWidth = tglSize;
@@ -1735,10 +1735,10 @@ public:
 	/// Returns: 描画する領域。
 	@property
 	const
-	Rectangle drawNewArea() {
-		if (fixed) {
+	Rectangle drawNewArea() { mixin(S_TRACE);
+		if (fixed) { mixin(S_TRACE);
 			return new Rectangle(newR.x - 1, newR.y - 1, newR.width + 2, newR.height + 2);
-		} else {
+		} else { mixin(S_TRACE);
 			return new Rectangle(newR.x - tglSize, newR.y - tglSize,
 				newR.width + tglSize * 2, newR.height + tglSize * 2);
 		}
@@ -1747,7 +1747,7 @@ public:
 	/// Returns: 描画する領域。
 	@property
 	const
-	Rectangle drawArea() {
+	Rectangle drawArea() { mixin(S_TRACE);
 		auto r = bounds;
 		if (fixed) return r;
 		return new Rectangle(r.x - tglSize, r.y - tglSize,
@@ -1757,23 +1757,23 @@ public:
 	/// リサイズの確定時に呼び出す関数を追加する。
 	/// Params:
 	/// サイズ確定時に呼び出す関数。
-	void addResizeListener(void delegate(FlexImage img, int x, int y, int w, int h) func) {
+	void addResizeListener(void delegate(FlexImage img, int x, int y, int w, int h) func) { mixin(S_TRACE);
 		l_resizes ~= func;
 	}
 	/// ditto
-	void addResizeListener(void delegate(FlexImage img, int x, int y, real scale) func) {
+	void addResizeListener(void delegate(FlexImage img, int x, int y, real scale) func) { mixin(S_TRACE);
 		lc_resizes ~= func;
 	}
 	/// 選択状態変更時に呼び出す関数を追加する。
 	/// Params:
 	/// 選択状態変更時に呼び出す関数。
-	void addSelectionListener(void delegate(FlexImage img) func) {
+	void addSelectionListener(void delegate(FlexImage img) func) { mixin(S_TRACE);
 		l_selected ~= func;
 	}
 
 	/// 全てのリソースを解放する。
 	override
-	void dispose() {
+	void dispose() { mixin(S_TRACE);
 		super.dispose();
 	}
 }
@@ -1791,7 +1791,7 @@ private:
 	/// Returns:
 	/// サイズ変更が行える場合はその方向を示すカーソル、
 	/// 移動が行える場合は手型のカーソル、それ以外の場合は通常のカーソル。
-	Cursor getToggleCursor(Toggle tgl) {
+	Cursor getToggleCursor(Toggle tgl) { mixin(S_TRACE);
 		return toggleCursors[tgl];
 	}
 
@@ -1816,121 +1816,121 @@ private:
 	Rectangle _lastClientArea = null;
 
 	class DListener : DisposeListener {
-		public override void widgetDisposed(DisposeEvent e)  {
-			foreach (img; backs) {
+		public override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+			foreach (img; backs) { mixin(S_TRACE);
 				img.dispose();
 			}
 		}
 	}
 	class KListener : KeyAdapter {
-		override void keyPressed(KeyEvent ke) {
+		override void keyPressed(KeyEvent ke) { mixin(S_TRACE);
 			int point = (ke.stateMask & SWT.CTRL) && (ke.stateMask & SWT.ALT) ? 10 : 1;
 			switch (ke.keyCode) {
-			case SWT.ARROW_UP: {
-				redrawProcMove((FlexImage img) {
-					if (ke.stateMask & SWT.SHIFT) {
+			case SWT.ARROW_UP: { mixin(S_TRACE);
+				redrawProcMove((FlexImage img) { mixin(S_TRACE);
+					if (ke.stateMask & SWT.SHIFT) { mixin(S_TRACE);
 						img.newHeight = img.newHeight - point;
-					} else {
+					} else { mixin(S_TRACE);
 						img.newY = img.newY - point;
 					}
 				}, false);
 			} break;
-			case SWT.ARROW_RIGHT: {
-				redrawProcMove((FlexImage img) {
-					if (ke.stateMask & SWT.SHIFT) {
+			case SWT.ARROW_RIGHT: { mixin(S_TRACE);
+				redrawProcMove((FlexImage img) { mixin(S_TRACE);
+					if (ke.stateMask & SWT.SHIFT) { mixin(S_TRACE);
 						img.newWidth = img.newWidth + point;
-					} else {
+					} else { mixin(S_TRACE);
 						img.newX = img.newX + point;
 					}
 				}, false);
 			} break;
-			case SWT.ARROW_DOWN: {
-				redrawProcMove((FlexImage img) {
-					if (ke.stateMask & SWT.SHIFT) {
+			case SWT.ARROW_DOWN: { mixin(S_TRACE);
+				redrawProcMove((FlexImage img) { mixin(S_TRACE);
+					if (ke.stateMask & SWT.SHIFT) { mixin(S_TRACE);
 						img.newHeight = img.newHeight + point;
-					} else {
+					} else { mixin(S_TRACE);
 						img.newY = img.newY + point;
 					}
 				}, false);
 			} break;
-			case SWT.ARROW_LEFT: {
-				redrawProcMove((FlexImage img) {
-					if (ke.stateMask & SWT.SHIFT) {
+			case SWT.ARROW_LEFT: { mixin(S_TRACE);
+				redrawProcMove((FlexImage img) { mixin(S_TRACE);
+					if (ke.stateMask & SWT.SHIFT) { mixin(S_TRACE);
 						img.newWidth = img.newWidth - point;
-					} else {
+					} else { mixin(S_TRACE);
 						img.newX = img.newX - point;
 					}
 				}, false);
 			} break;
-			case SWT.ESC: {
+			case SWT.ESC: { mixin(S_TRACE);
 				redrawProcMove((FlexImage img) {img.reset();}, false);
 			} break;
-			case SWT.CR: {
+			case SWT.CR: { mixin(S_TRACE);
 				redrawProc((FlexImage img) {img.resize();}, true);
 			} break;
-			default: {
-				if (ke.character == ' ') {
+			default: { mixin(S_TRACE);
+				if (ke.character == ' ') { mixin(S_TRACE);
 					redrawProc((FlexImage img) {img.resize();}, true);
 				}
 			} break;
 			}
 		}
 	}
-	int toGridX(int p) {
-		if (1 < _gridX) {
+	int toGridX(int p) { mixin(S_TRACE);
+		if (1 < _gridX) { mixin(S_TRACE);
 			p += _gridX / 2.0;
 			p = p - (p % _gridX);
 		}
 		return p;
 	}
-	int toGridY(int p) {
-		if (1 < _gridY) {
+	int toGridY(int p) { mixin(S_TRACE);
+		if (1 < _gridY) { mixin(S_TRACE);
 			p += _gridY / 2.0;
 			p = p - (p % _gridY);
 		}
 		return p;
 	}
-	void redrawGridHighlight() {
+	void redrawGridHighlight() { mixin(S_TRACE);
 		auto size = getSize();
-		foreach (x; _gridXH) {
+		foreach (x; _gridXH) { mixin(S_TRACE);
 			redraw(x, 0, 1, size.y, false);
 		}
-		foreach (y; _gridYH) {
+		foreach (y; _gridYH) { mixin(S_TRACE);
 			redraw(0, y, size.x, 1, false);
 		}
 	}
-	void resetGrid() {
+	void resetGrid() { mixin(S_TRACE);
 		redrawGridHighlight();
 		_gridXH = [];
 		_gridYH = [];
 	}
-	void redrawGrid(in Rectangle rect) {
-		if (1 < _gridX) {
+	void redrawGrid(in Rectangle rect) { mixin(S_TRACE);
+		if (1 < _gridX) { mixin(S_TRACE);
 			int r = rect.x + rect.width;
 			if (rect.x == toGridX(rect.x)) _gridXH ~= rect.x;
 			if (r == toGridX(r)) _gridXH ~= r;
 		}
-		if (1 < _gridY) {
+		if (1 < _gridY) { mixin(S_TRACE);
 			int b = rect.y + rect.height;
 			if (rect.y == toGridY(rect.y)) _gridYH ~= rect.y;
 			if (b == toGridY(b)) _gridYH ~= b;
 		}
 	}
 	class MMListener : MouseMoveListener {
-		override void mouseMove(MouseEvent me) {
+		override void mouseMove(MouseEvent me) { mixin(S_TRACE);
 			int x = me.x;
 			int y = me.y;
-			if (dragTgl != Toggle.NONE) {
+			if (dragTgl != Toggle.NONE) { mixin(S_TRACE);
 				assert (_mouseP !is null);
-				if (_ctrl && _mouseP) {
+				if (_ctrl && _mouseP) { mixin(S_TRACE);
 					doSelect(_mouseP);
 				}
 				int movX = x - dragStartX;
 				int movY = y - dragStartY;
 				bool ratioFix = (me.stateMask & SWT.SHIFT) != 0;
 				resetGrid();
-				foreach (img; dragImgs.keys) {
-					if (img.selected && !img.fixed && img.visible) {
+				foreach (img; dragImgs.keys) { mixin(S_TRACE);
+					if (img.selected && !img.fixed && img.visible) { mixin(S_TRACE);
 						auto rect = dragImgs[img];
 						auto newRect = new Rectangle(img.x, img.y, img.width, img.height);
 						switch (dragTgl) {
@@ -1957,17 +1957,17 @@ private:
 						default:
 							break;
 						}
-						void roundH() {
+						void roundH() { mixin(S_TRACE);
 							real scale = newRect.width / cast(real) img.width;
 							newRect.height = cast(int) rndtol(img.height * scale);
 						}
-						void roundW() {
+						void roundW() { mixin(S_TRACE);
 							real scale = newRect.height / cast(real) img.height;
 							newRect.width = cast(int) rndtol(img.width * scale);
 						}
 						/// 縦横比固定のための調整。
-						void round(void delegate() roundW, void delegate() roundH) {
-							if (ratioFix || img.ratioFix) {
+						void round(void delegate() roundW, void delegate() roundH) { mixin(S_TRACE);
+							if (ratioFix || img.ratioFix) { mixin(S_TRACE);
 								// イメージ自体が縦横比固定でない場合、トグルによっては縦横比の変更を許可する
 								switch (dragTgl) {
 								case Toggle.LEFT_MIDDLE, Toggle.RIGHT_MIDDLE:
@@ -1978,9 +1978,9 @@ private:
 									break;
 								default:
 									// 元のサイズによって縦横の優先順を変更
-									if (rect.width >= rect.height) {
+									if (rect.width >= rect.height) { mixin(S_TRACE);
 										roundH();
-									} else {
+									} else { mixin(S_TRACE);
 										roundW();
 									}
 								}
@@ -2007,76 +2007,76 @@ private:
 						default:
 							break;
 						}
-						if (1 < _gridX || 1 < _gridY) {
-							if (dragTgl is Toggle.MOVE) {
+						if (1 < _gridX || 1 < _gridY) { mixin(S_TRACE);
+							if (dragTgl is Toggle.MOVE) { mixin(S_TRACE);
 								int gx = toGridX(newRect.x);
 								int gy = toGridY(newRect.y);
 								int r = newRect.x + newRect.width;
 								int b = newRect.y + newRect.height;
 								int gr = toGridX(r);
 								int gb = toGridY(b);
-								if (.abs(gx - newRect.x) <= .abs(gr - r)) {
+								if (.abs(gx - newRect.x) <= .abs(gr - r)) { mixin(S_TRACE);
 									if (.abs(gx - newRect.x) <= _gridRange) newRect.x = gx;
-								} else {
+								} else { mixin(S_TRACE);
 									if (.abs(gr - r) <= _gridRange) newRect.x = gr - newRect.width;
 								}
-								if (.abs(gy - newRect.y) <= .abs(gb - b)) {
+								if (.abs(gy - newRect.y) <= .abs(gb - b)) { mixin(S_TRACE);
 									if (.abs(gy - newRect.y) <= _gridRange) newRect.y = gy;
-								} else {
+								} else { mixin(S_TRACE);
 									if (.abs(gb - b) <= _gridRange) newRect.y = gb - newRect.height;
 								}
-							} else {
+							} else { mixin(S_TRACE);
 								@property
-								bool isLeft() {
+								bool isLeft() { mixin(S_TRACE);
 									return dragTgl is Toggle.LEFT_TOP || dragTgl is Toggle.LEFT_MIDDLE || dragTgl is Toggle.LEFT_BOTTOM;
 								}
 								@property
-								bool isTop() {
+								bool isTop() { mixin(S_TRACE);
 									return dragTgl is Toggle.LEFT_TOP || dragTgl is Toggle.MIDDLE_TOP || dragTgl is Toggle.RIGHT_TOP;
 								}
 								@property
-								bool isRight() {
+								bool isRight() { mixin(S_TRACE);
 									return dragTgl is Toggle.RIGHT_TOP || dragTgl is Toggle.RIGHT_MIDDLE || dragTgl is Toggle.RIGHT_BOTTOM;
 								}
 								@property
-								bool isBottom() {
+								bool isBottom() { mixin(S_TRACE);
 									return dragTgl is Toggle.LEFT_BOTTOM || dragTgl is Toggle.MIDDLE_BOTTOM || dragTgl is Toggle.RIGHT_BOTTOM;
 								}
 								int r = newRect.x + newRect.width;
 								int b = newRect.y + newRect.height;
-								if (isLeft) {
+								if (isLeft) { mixin(S_TRACE);
 									int gx = toGridX(newRect.x);
-									if (.abs(newRect.x - gx) <= _gridRange) {
+									if (.abs(newRect.x - gx) <= _gridRange) { mixin(S_TRACE);
 										newRect.width += newRect.x - gx;
 										newRect.x = gx;
 									}
 								}
-								if (isRight) {
+								if (isRight) { mixin(S_TRACE);
 									int gr = toGridX(newRect.x + newRect.width);
-									if (.abs(r - gr) <= _gridRange) {
+									if (.abs(r - gr) <= _gridRange) { mixin(S_TRACE);
 										newRect.width = gr - newRect.x;
 									}
 								}
-								if (isTop) {
+								if (isTop) { mixin(S_TRACE);
 									int gy = toGridY(newRect.y);
-									if (.abs(newRect.y - gy) <= _gridRange) {
+									if (.abs(newRect.y - gy) <= _gridRange) { mixin(S_TRACE);
 										newRect.height += newRect.y - gy;
 										newRect.y = gy;
 									}
 								}
-								if (isBottom) {
+								if (isBottom) { mixin(S_TRACE);
 									int gb = toGridY(newRect.y + newRect.height);
-									if (.abs(b - gb) <= _gridRange) {
+									if (.abs(b - gb) <= _gridRange) { mixin(S_TRACE);
 										newRect.height = gb - newRect.y;
 									}
 								}
 
-								void roundH2() {
+								void roundH2() { mixin(S_TRACE);
 									if (isLeft) newRect.x = r - newRect.width;
 									roundH();
 									if (isTop) newRect.y = b - newRect.height;
 								}
-								void roundW2() {
+								void roundW2() { mixin(S_TRACE);
 									if (isTop) newRect.y = b - newRect.height;
 									roundW();
 									if (isLeft) newRect.x = r - newRect.width;
@@ -2095,14 +2095,14 @@ private:
 				}
 				redrawGridHighlight();
 				moved = true;
-			} else {
+			} else { mixin(S_TRACE);
 				// サイズ変更は下に隠れているセルでも優先的に受け付ける
-				foreach (move; [false, true]) {
-					foreach_reverse (pimg; backs) {
-						if (cast(FlexImage) pimg && pimg.visible) {
+				foreach (move; [false, true]) { mixin(S_TRACE);
+					foreach_reverse (pimg; backs) { mixin(S_TRACE);
+						if (cast(FlexImage) pimg && pimg.visible) { mixin(S_TRACE);
 							auto img = cast(FlexImage) pimg;
 							Toggle tgl = img.inToggle(x, y, move);
-							if (tgl != Toggle.NONE) {
+							if (tgl != Toggle.NONE) { mixin(S_TRACE);
 								setCursor(getToggleCursor(tgl));
 								return;
 							}
@@ -2115,43 +2115,43 @@ private:
 	}
 
 	class MouseDown : Listener {
-		override void handleEvent(Event me) {
+		override void handleEvent(Event me) { mixin(S_TRACE);
 			setFocus();
 			moved = false;
 			_ctrl = (me.stateMask & SWT.SHIFT) != 0 || (me.stateMask & SWT.CTRL) != 0;
 			int x = me.x;
 			int y = me.y;
-			if (me.button == 1) {
-				foreach (img, rect; dragImgs) {
+			if (me.button == 1) { mixin(S_TRACE);
+				foreach (img, rect; dragImgs) { mixin(S_TRACE);
 					dragImgs[img] = new Rectangle(img.x, img.y, img.width, img.height);
 				}
 				dragStartX = x;
 				dragStartY = y;
 				auto tgl = Toggle.NONE;
 				FlexImage img = null;
-				foreach (move; [false, true]) {
+				foreach (move; [false, true]) { mixin(S_TRACE);
 					if (tgl !is Toggle.NONE) break;
-					foreach_reverse (i, pimg; backs) {
-						if (cast(FlexImage) pimg) {
+					foreach_reverse (i, pimg; backs) { mixin(S_TRACE);
+						if (cast(FlexImage) pimg) { mixin(S_TRACE);
 							img = cast(FlexImage) pimg;
-							if (img.visible) {
+							if (img.visible) { mixin(S_TRACE);
 								tgl = img.inToggle(x, y, move);
-								if (tgl !is Toggle.NONE) {
+								if (tgl !is Toggle.NONE) { mixin(S_TRACE);
 									break;
 								}
 							}
 						}
 					}
 				}
-				if (tgl !is Toggle.NONE) {
+				if (tgl !is Toggle.NONE) { mixin(S_TRACE);
 					_mouseP = img;
-					if (me.button == 1) {
-						if (!_ctrl) {
+					if (me.button == 1) { mixin(S_TRACE);
+						if (!_ctrl) { mixin(S_TRACE);
 							if (!img.selected) doDeselectAll();
 							doSelect(img);
 						}
 						dragTgl = tgl;
-					} else if (me.button == 3) {
+					} else if (me.button == 3) { mixin(S_TRACE);
 						if (!img.selected) doDeselectAll();
 						doSelect(img);
 					}
@@ -2159,32 +2159,32 @@ private:
 				}
 				doDeselectAll();
 				_mouseP = null;
-			} else if (me.button == 2) {
+			} else if (me.button == 2) { mixin(S_TRACE);
 				auto ids = selectedIndices;
-				if (ids.length == 0 || !changeSelect(x, y)) {
+				if (ids.length == 0 || !changeSelect(x, y)) { mixin(S_TRACE);
 					int i = findIndex(x, y);
-					if (i >= 0) {
+					if (i >= 0) { mixin(S_TRACE);
 						doDeselectAll();
 						doSelect(cast(FlexImage) images[i]);
 					}
 				}
-			} else if (me.button == 3) {
+			} else if (me.button == 3) { mixin(S_TRACE);
 				dragTgl = Toggle.NONE;
 				resetGrid();
 				redrawProc((FlexImage img) {img.reset();}, false);
 			}
 		}
 	}
-	void redrawProcBefore() {
-		foreach (img; dragImgs.keys) {
-			if (img.x != img.newX || img.y != img.newY || img.width != img.newWidth || img.height != img.newHeight) {
+	void redrawProcBefore() { mixin(S_TRACE);
+		foreach (img; dragImgs.keys) { mixin(S_TRACE);
+			if (img.x != img.newX || img.y != img.newY || img.width != img.newWidth || img.height != img.newHeight) { mixin(S_TRACE);
 				callChangingImages();
 			}
 		}
 	}
-	void redrawProcMove(void delegate(FlexImage) proc, bool resize) {
+	void redrawProcMove(void delegate(FlexImage) proc, bool resize) { mixin(S_TRACE);
 		if (resize) redrawProcBefore();
-		foreach (img; dragImgs.keys) {
+		foreach (img; dragImgs.keys) { mixin(S_TRACE);
 			auto oldArea = img.drawNewArea;
 			proc(img);
 			auto newArea = img.drawNewArea;
@@ -2192,9 +2192,9 @@ private:
 			redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
 		}
 	}
-	void redrawProc(void delegate(FlexImage) proc, bool resize) {
+	void redrawProc(void delegate(FlexImage) proc, bool resize) { mixin(S_TRACE);
 		if (resize) redrawProcBefore();
-		foreach (img; dragImgs.keys) {
+		foreach (img; dragImgs.keys) { mixin(S_TRACE);
 			auto oldArea = img.drawArea;
 			proc(img);
 			auto newArea = img.drawNewArea;
@@ -2203,24 +2203,24 @@ private:
 		}
 	}
 	class FocusLost : Listener {
-		override void handleEvent(Event me) {
+		override void handleEvent(Event me) { mixin(S_TRACE);
 			dragTgl = Toggle.NONE;
 			resetGrid();
 			redrawProc((FlexImage img) {img.resize();}, true);
 		}
 	}
 	class MouseUp : Listener {
-		override void handleEvent(Event me) {
+		override void handleEvent(Event me) { mixin(S_TRACE);
 			int x = me.x;
 			int y = me.y;
-			if (me.button == 1) {
+			if (me.button == 1) { mixin(S_TRACE);
 				bool ci = false;
-				foreach_reverse (i, pimg; backs) {
+				foreach_reverse (i, pimg; backs) { mixin(S_TRACE);
 					auto img = cast(FlexImage) pimg;
-					if (img && img.selected) {
+					if (img && img.selected) { mixin(S_TRACE);
 						scope oldRect = img.bounds;
-						if (oldRect != img.newBounds) {
-							if (!ci) {
+						if (oldRect != img.newBounds) { mixin(S_TRACE);
+							if (!ci) { mixin(S_TRACE);
 								callChangingImages();
 								ci = true;
 							}
@@ -2232,14 +2232,14 @@ private:
 						}
 					}
 				}
-				if (!moved && _mouseP) {
-					if (_ctrl) {
-						if (_mouseP.selected) {
+				if (!moved && _mouseP) { mixin(S_TRACE);
+					if (_ctrl) { mixin(S_TRACE);
+						if (_mouseP.selected) { mixin(S_TRACE);
 							doDeselect(_mouseP);
-						} else {
+						} else { mixin(S_TRACE);
 							doSelect(_mouseP);
 						}
-					} else {
+					} else { mixin(S_TRACE);
 						doDeselectAll();
 						doSelect(_mouseP);
 					}
@@ -2253,33 +2253,33 @@ private:
 	}
 	bool _ctrl = false;
 	FlexImage _mouseP = null;
-	void __setSelected(FlexImage img) {
-		if (img.selected) {
+	void __setSelected(FlexImage img) { mixin(S_TRACE);
+		if (img.selected) { mixin(S_TRACE);
 			dragImgs[img] = new Rectangle(img.x, img.y, img.width, img.height);
 			auto area = img.drawArea;
 			redraw(area.x, area.y, area.width, area.height, false);
 		}
 	}
 	class PListener : PaintListener {
-		override void paintControl(PaintEvent e) {
+		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			auto d = getShell().getDisplay();
 			auto backImg = getBackgroundImage();
 			auto rect = getClientArea();
-			if (!_background || backImg !is _lastWallpaper || rect != _lastClientArea) {
+			if (!_background || backImg !is _lastWallpaper || rect != _lastClientArea) { mixin(S_TRACE);
 				// 背景の初期化
 				auto buf = new Image(d, rect.width, rect.height);
 				auto gc = new GC(buf);
 				scope (exit) gc.dispose();
 				scope (exit) buf.dispose();
 
-				if (_backColor) {
+				if (_backColor) { mixin(S_TRACE);
 					gc.setBackground(_backColor);
 					gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
-				} else {
+				} else { mixin(S_TRACE);
 					gc.setBackground(d.getSystemColor(SWT.COLOR_DARK_BLUE));
 					gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
 				}
-				if (backImg) {
+				if (backImg) { mixin(S_TRACE);
 					drawWallpaper(gc, backImg, rect, _wallpaperStyle);
 				}
 				_background = buf.getImageData();
@@ -2300,48 +2300,48 @@ private:
 			scope (exit) buf.dispose();
 			auto gc = new GC(buf);
 			scope (exit) gc.dispose();
-			foreach (bmp; backs) {
+			foreach (bmp; backs) { mixin(S_TRACE);
 				bmp.draw(buf, gc, range);
 			}
-			foreach (bmp; backs) {
+			foreach (bmp; backs) { mixin(S_TRACE);
 				auto fi = cast(FlexImage) bmp;
 				if (fi) fi.drawToggle(gc);
 			}
-			if (_showAppends) {
-				foreach (a; _appends) {
+			if (_showAppends) { mixin(S_TRACE);
+				foreach (a; _appends) { mixin(S_TRACE);
 					auto img = new Image(d, a);
 					scope (exit) img.dispose();
 					gc.drawImage(img, 0, 0);
 				}
 			}
 
-			if (1 < _gridX || 1 < _gridY) {
+			if (1 < _gridX || 1 < _gridY) { mixin(S_TRACE);
 				gc.dispose();
 				gc = new GC(buf);
-				void drawLines() {
-					if (1 < _gridX) {
+				void drawLines() { mixin(S_TRACE);
+					if (1 < _gridX) { mixin(S_TRACE);
 						int x = _gridX;
-						while (x < rect.width) {
+						while (x < rect.width) { mixin(S_TRACE);
 							gc.drawLine(x, rect.y, x, rect.height);
 							x += _gridX;
 						}
 					}
-					if (1 < _gridY) {
+					if (1 < _gridY) { mixin(S_TRACE);
 						int y = _gridY;
-						while (y < rect.height) {
+						while (y < rect.height) { mixin(S_TRACE);
 							gc.drawLine(rect.x, y, rect.width, y);
 							y += _gridY;
 						}
 					}
 				}
-				void drawHLines() {
-					if (1 < _gridX) {
-						foreach (x; _gridXH) {
+				void drawHLines() { mixin(S_TRACE);
+					if (1 < _gridX) { mixin(S_TRACE);
+						foreach (x; _gridXH) { mixin(S_TRACE);
 							gc.drawLine(x, rect.y, x, rect.height);
 						}
 					}
-					if (1 < _gridY) {
-						foreach (y; _gridYH) {
+					if (1 < _gridY) { mixin(S_TRACE);
+						foreach (y; _gridYH) { mixin(S_TRACE);
 							gc.drawLine(rect.x, y, rect.width, y);
 						}
 					}
@@ -2349,7 +2349,7 @@ private:
 				gc.setForeground(_gridColor ? _gridColor : d.getSystemColor(SWT.COLOR_DARK_GRAY));
 				gc.setLineStyle(SWT.LINE_DOT);
 				drawLines();
-				if (_gridXH.length || _gridYH.length) {
+				if (_gridXH.length || _gridYH.length) { mixin(S_TRACE);
 					gc.setForeground(_gridHighlightColor ? _gridHighlightColor : d.getSystemColor(SWT.COLOR_GRAY));
 					gc.setLineStyle(SWT.LINE_SOLID);
 					drawHLines();
@@ -2360,7 +2360,7 @@ private:
 		}
 	}
 	class Traverse : Listener {
-		public override void handleEvent(Event e) {
+		public override void handleEvent(Event e) { mixin(S_TRACE);
 			switch (e.detail) {
 			case SWT.TRAVERSE_ARROW_NEXT, SWT.TRAVERSE_ARROW_PREVIOUS:
 				e.doit = false;
@@ -2372,10 +2372,10 @@ private:
 	}
 
 	/// 選択イメージが一つだけの場合、背後のイメージに切り替える。
-	bool changeSelect(int x, int y) {
+	bool changeSelect(int x, int y) { mixin(S_TRACE);
 		auto tsels = findSelectedIndices(x, y);
 		auto imgs = findIndices(x, y);
-		if (tsels.length == 1 && selectedIndices.length == 1 && imgs.length > 1) {
+		if (tsels.length == 1 && selectedIndices.length == 1 && imgs.length > 1) { mixin(S_TRACE);
 			int i = countUntil(imgs, tsels[0]);
 			assert (i >= 0);
 			doDeselect(cast(FlexImage) images[tsels[0]]);
@@ -2400,142 +2400,142 @@ public:
 	Color gridHighlightColor() {return _gridHighlightColor;}
 
 	@property
-	PileImage[] images() {
+	PileImage[] images() { mixin(S_TRACE);
 		return backs;
 	}
 	@property
 	const
-	const(PileImage)[] images() {
+	const(PileImage)[] images() { mixin(S_TRACE);
 		return backs;
 	}
 
-	void swap(int index1, int index2) {
+	void swap(int index1, int index2) { mixin(S_TRACE);
 		auto temp = backs[index1];
 		backs[index1] = backs[index2];
 		backs[index2] = temp;
 	}
 
 	@property
-	void select(FlexImage[] imgs) {
-		foreach (img; imgs) {
+	void select(FlexImage[] imgs) { mixin(S_TRACE);
+		foreach (img; imgs) { mixin(S_TRACE);
 			select(img);
 		}
 	}
 	@property
-	void select(FlexImage img) {
-		if (!img.selected) {
+	void select(FlexImage img) { mixin(S_TRACE);
+		if (!img.selected) { mixin(S_TRACE);
 			img.selected = true;
 			__setSelected(img);
 		}
 	}
 	@property
-	void select(int[] indices) {
+	void select(int[] indices) { mixin(S_TRACE);
 		deselectAll();
-		foreach (i; indices) {
+		foreach (i; indices) { mixin(S_TRACE);
 			auto fi = cast(FlexImage) backs[i];
 			select(fi);
 		}
 	}
-	private void doSelect(FlexImage img) {
-		if (!img.selected) {
+	private void doSelect(FlexImage img) { mixin(S_TRACE);
+		if (!img.selected) { mixin(S_TRACE);
 			img.doSelected(true);
 			__setSelected(img);
 		}
 	}
-	void deselect(FlexImage img) {
-		if (img.selected) {
+	void deselect(FlexImage img) { mixin(S_TRACE);
+		if (img.selected) { mixin(S_TRACE);
 			img.selected = false;
 			deselAfter(img);
 		}
 	}
-	private void doDeselect(FlexImage img) {
-		if (img.selected) {
+	private void doDeselect(FlexImage img) { mixin(S_TRACE);
+		if (img.selected) { mixin(S_TRACE);
 			img.doSelected(false);
 			deselAfter(img);
 		}
 	}
-	private void deselAfter(FlexImage img) {
+	private void deselAfter(FlexImage img) { mixin(S_TRACE);
 		removeDragImage(img);
 		auto area = img.drawArea;
 		redraw(area.x, area.y, area.width, area.height, false);
 	}
-	private void doDeselectAll() {
-		foreach_reverse (pimg; backs) {
+	private void doDeselectAll() { mixin(S_TRACE);
+		foreach_reverse (pimg; backs) { mixin(S_TRACE);
 			auto img = cast(FlexImage) pimg;
 			if (img) doDeselect(img);
 		}
 	}
-	void deselectAll() {
-		foreach_reverse (pimg; backs) {
+	void deselectAll() { mixin(S_TRACE);
+		foreach_reverse (pimg; backs) { mixin(S_TRACE);
 			auto img = cast(FlexImage) pimg;
 			if (img) deselect(img);
 		}
 	}
-	void deselectRange(int from, int to) {
-		for (int i = from; i < to; i++) {
+	void deselectRange(int from, int to) { mixin(S_TRACE);
+		for (int i = from; i < to; i++) { mixin(S_TRACE);
 			auto img = cast(FlexImage) backs[i];
 			if (img) deselect(img);
 		}
 	}
 	@property
-	int[] selectedIndices() {
+	int[] selectedIndices() { mixin(S_TRACE);
 		int[] r;
-		foreach (i, img; backs) {
+		foreach (i, img; backs) { mixin(S_TRACE);
 			auto fi = cast(FlexImage) img;
 			if (fi && fi.selected) r ~= i;
 		}
 		return r;
 	}
 	@property
-	int selectedIndex() {
-		foreach_reverse (i, img; backs) {
+	int selectedIndex() { mixin(S_TRACE);
+		foreach_reverse (i, img; backs) { mixin(S_TRACE);
 			auto fi = cast(FlexImage) img;
 			if (fi && fi.selected) return i;
 		}
 		return -1;
 	}
-	int findIndex(int x, int y) {
-		foreach_reverse (i, img; backs) {
+	int findIndex(int x, int y) { mixin(S_TRACE);
+		foreach_reverse (i, img; backs) { mixin(S_TRACE);
 			auto fi = cast(FlexImage) img;
 			if (fi && fi.visible && fi.bounds.contains(x, y)) return i;
 		}
 		return -1;
 	}
-	int[] findIndices(int x, int y) {
+	int[] findIndices(int x, int y) { mixin(S_TRACE);
 		int[] r;
-		foreach (i, img; backs) {
+		foreach (i, img; backs) { mixin(S_TRACE);
 			auto fi = cast(FlexImage) img;
 			if (fi && fi.visible && fi.bounds.contains(x, y)) r ~= i;
 		}
 		return r;
 	}
-	int findSelectedIndex(int x, int y) {
-		foreach_reverse (i, img; backs) {
+	int findSelectedIndex(int x, int y) { mixin(S_TRACE);
+		foreach_reverse (i, img; backs) { mixin(S_TRACE);
 			auto fi = cast(FlexImage) img;
 			if (fi && fi.visible && fi.selected && fi.bounds.contains(x, y)) return i;
 		}
 		return -1;
 	}
-	int[] findSelectedIndices(int x, int y) {
+	int[] findSelectedIndices(int x, int y) { mixin(S_TRACE);
 		int[] r;
-		foreach (i, img; backs) {
+		foreach (i, img; backs) { mixin(S_TRACE);
 			auto fi = cast(FlexImage) img;
 			if (fi && fi.visible && fi.selected && fi.bounds.contains(x, y)) r ~= i;
 		}
 		return r;
 	}
 
-	private void removeDragImage(PileImage img) {
+	private void removeDragImage(PileImage img) { mixin(S_TRACE);
 		auto fi = cast(FlexImage) img;
-		if (fi && (fi in dragImgs)) {
+		if (fi && (fi in dragImgs)) { mixin(S_TRACE);
 			dragImgs.remove(fi);
 		}
 	}
 
-	void fixedRange(bool fixed, int from, int to) {
-		foreach (img; images[from .. to]) {
+	void fixedRange(bool fixed, int from, int to) { mixin(S_TRACE);
+		foreach (img; images[from .. to]) { mixin(S_TRACE);
 			auto fi = cast(FlexImage) img;
-			if (fi) {
+			if (fi) { mixin(S_TRACE);
 				auto newArea = fi.drawNewArea;
 				auto oldArea = fi.drawArea;
 				fi.fixed = fixed;
@@ -2545,85 +2545,85 @@ public:
 		}
 	}
 
-	void remove(int index) {
+	void remove(int index) { mixin(S_TRACE);
 		backs[index].dispose();
 		removeDragImage(backs[index]);
 		backs = backs[0 .. index] ~ backs[index + 1 .. $];
 	}
 
-	void removeRange(int fromIndex, int toIndex) {
-		for (int i = fromIndex; i < toIndex; i++) {
+	void removeRange(int fromIndex, int toIndex) { mixin(S_TRACE);
+		for (int i = fromIndex; i < toIndex; i++) { mixin(S_TRACE);
 			backs[i].dispose();
 			removeDragImage(backs[i]);
 		}
 		backs = backs[0 .. fromIndex] ~ backs[toIndex .. $];
 	}
 
-	void insert(int index, PileImage img) {
-		if (index == backs.length) {
+	void insert(int index, PileImage img) { mixin(S_TRACE);
+		if (index == backs.length) { mixin(S_TRACE);
 			append(img);
-		} else {
+		} else { mixin(S_TRACE);
 			backs = backs[0 .. index] ~ img ~ backs[index .. $];
 			if (cast(FlexImage) img) __setSelected(cast(FlexImage) img);
 		}
 	}
-	void insert(int index, PileImage[] imgs) {
-		if (index == backs.length) {
+	void insert(int index, PileImage[] imgs) { mixin(S_TRACE);
+		if (index == backs.length) { mixin(S_TRACE);
 			append(imgs);
-		} else {
+		} else { mixin(S_TRACE);
 			backs = backs[0 .. index] ~ imgs ~ backs[index .. $];
-			foreach (img; imgs) {
+			foreach (img; imgs) { mixin(S_TRACE);
 				if (cast(FlexImage) img) __setSelected(cast(FlexImage) img);
 			}
 		}
 	}
-	void set(int index, PileImage img) {
+	void set(int index, PileImage img) { mixin(S_TRACE);
 		backs[index].dispose();
 		removeDragImage(backs[index]);
 		this.backs[index] = img;
 		if (cast(FlexImage) img) __setSelected(cast(FlexImage) img);
 	}
-	void append(PileImage img) {
+	void append(PileImage img) { mixin(S_TRACE);
 		this.backs ~= img;
 		if (cast(FlexImage) img) __setSelected(cast(FlexImage) img);
 	}
-	void append(PileImage[] imgs) {
+	void append(PileImage[] imgs) { mixin(S_TRACE);
 		this.backs ~= imgs;
-		foreach (img; imgs) {
+		foreach (img; imgs) { mixin(S_TRACE);
 			if (cast(FlexImage) img) __setSelected(cast(FlexImage) img);
 		}
 	}
 
 	private void delegate()[] _changingImages;
 	@property
-	void changingImages(void delegate() changingImages) {
+	void changingImages(void delegate() changingImages) { mixin(S_TRACE);
 		_changingImages ~= changingImages;
 	}
-	private void callChangingImages() {
+	private void callChangingImages() { mixin(S_TRACE);
 		foreach (ci; _changingImages) ci();
 	}
 
 	/// 壁紙表示モード。
 	@property
 	const
-	WallpaperStyle wallpaperStyle() {
+	WallpaperStyle wallpaperStyle() { mixin(S_TRACE);
 		return _wallpaperStyle;
 	}
 	/// ditto
 	@property
-	void wallpaperStyle(WallpaperStyle v) {
+	void wallpaperStyle(WallpaperStyle v) { mixin(S_TRACE);
 		_wallpaperStyle = v;
 		redraw();
 	}
 
 	/// 追加的に表示するイメージ。
 	@property
-	ImageData[] appends() {
+	ImageData[] appends() { mixin(S_TRACE);
 		return _appends;
 	}
 	/// ditto
 	@property
-	void appends(ImageData[] v) {
+	void appends(ImageData[] v) { mixin(S_TRACE);
 		_appends = v;
 		redraw();
 	}
@@ -2631,12 +2631,12 @@ public:
 	/// 追加イメージを表示するか。
 	@property
 	const
-	bool showAppends() {
+	bool showAppends() { mixin(S_TRACE);
 		return _showAppends;
 	}
 	/// ditto
 	@property
-	void showAppends(bool v) {
+	void showAppends(bool v) { mixin(S_TRACE);
 		_showAppends = v;
 		redraw();
 	}
@@ -2644,12 +2644,12 @@ public:
 	/// グリッド間隔。1以下の場合はグリッドは無効。
 	@property
 	const
-	int gridX() {
+	int gridX() { mixin(S_TRACE);
 		return _gridX;
 	}
 	/// ditto
 	@property
-	void gridX(int v) {
+	void gridX(int v) { mixin(S_TRACE);
 		_gridX = v;
 		resetGrid();
 		redraw();
@@ -2657,12 +2657,12 @@ public:
 	/// ditto
 	@property
 	const
-	int gridY() {
+	int gridY() { mixin(S_TRACE);
 		return _gridY;
 	}
 	/// ditto
 	@property
-	void gridY(int v) {
+	void gridY(int v) { mixin(S_TRACE);
 		_gridY = v;
 		resetGrid();
 		redraw();
@@ -2670,23 +2670,23 @@ public:
 	/// グリッドに吸着する範囲。
 	@property
 	const
-	int gridRange() {
+	int gridRange() { mixin(S_TRACE);
 		return _gridRange;
 	}
 	/// ditto
 	@property
-	void gridRange(int v) {
+	void gridRange(int v) { mixin(S_TRACE);
 		_gridRange = v;
 	}
 
 	/// 含まれるFlexImageが移動・サイズ変更中か。
 	@property
 	const
-	bool isMoving() {
-		foreach (pi; images) {
+	bool isMoving() { mixin(S_TRACE);
+		foreach (pi; images) { mixin(S_TRACE);
 			auto img = cast(const(FlexImage))pi;
 			if (!img) continue;
-			if (img.x != img.newX || img.y != img.newY || img.width != img.newWidth || img.height != img.newHeight) {
+			if (img.x != img.newX || img.y != img.newY || img.width != img.newWidth || img.height != img.newHeight) { mixin(S_TRACE);
 				return true;
 			}
 		}
@@ -2694,7 +2694,7 @@ public:
 	}
 
 	/// 唯一のコンストラクタ。
-	this (Composite parent, int style) {
+	this (Composite parent, int style) { mixin(S_TRACE);
 		super(parent, style);
 		addListener(SWT.MouseDown, new MouseDown);
 		addListener(SWT.MouseUp, new MouseUp);

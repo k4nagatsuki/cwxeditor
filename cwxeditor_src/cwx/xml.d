@@ -1,6 +1,7 @@
 
 module cwx.xml;
 
+import cwx.perf;
 import cwx.utils : debugln;
 
 import std.conv;
@@ -11,7 +12,7 @@ import d2std.xml;
 struct XNode {
 	private Element _el;
 
-	private static E ps(E)(ElementParser ep) {
+	private static E ps(E)(ElementParser ep) { mixin(S_TRACE);
 		auto e = new E(ep.tag);
 		ep.onText((string text) {e ~= new Text(text);});
 		ep.onCData((string cdata) {e ~= new CData(cdata);});
@@ -23,13 +24,13 @@ struct XNode {
 		return e;
 	}
 	/// xmlの処理を開始する。
-	static XNode parse(string xml) {
+	static XNode parse(string xml) { mixin(S_TRACE);
 		XNode node;
 		node._el = ps!(Document)(new DocumentParser(xml));
 		return node;
 	}
 	/// 新規にDOMを生成する。
-	static XNode create(string rootName, string value = "") {
+	static XNode create(string rootName, string value = "") { mixin(S_TRACE);
 		XNode node;
 		node._el = new Document(new Tag(rootName));
 		node._el ~= new Text(value);
@@ -43,14 +44,14 @@ struct XNode {
 	/// 現在処理中の要素のテキスト。
 	@property
 	const
-	string value() {
+	string value() { mixin(S_TRACE);
 		string r = _el.text();
 		if (r == "\n") r = "";
 		return r;
 	}
 	/// ditto
 	@property
-	void value(string text) {
+	void value(string text) { mixin(S_TRACE);
 		_el ~= new Text(text);
 	}
 	/// ditto
@@ -59,19 +60,19 @@ struct XNode {
 	T valueTo(T)() {return to!(T)(value);}
 
 	/// 子要素を生成する。
-	XNode newElement(T = string)(string name, T value = T.init) {
+	XNode newElement(T = string)(string name, T value = T.init) { mixin(S_TRACE);
 		auto e = new Element(name, to!(string)(value));
 		_el ~= e;
 		return XNode(e, null);
 	}
 	/// 属性を生成する。
-	void newAttr(T)(string name, T value) {
+	void newAttr(T)(string name, T value) { mixin(S_TRACE);
 		_el.tag.attr[name] = to!(string)(value);
 	}
 	/// 属性nameの値を返す。
 	/// nothingIsErrorにtrueを指定すると、nameが存在しなかった際に例外を投げる。
 	const
-	T attr(T = string)(string name, bool nothingIsError, lazy T defaultValue = T.init) {
+	T attr(T = string)(string name, bool nothingIsError, lazy T defaultValue = T.init) { mixin(S_TRACE);
 		auto p = name in _el.tag.attr;
 		if (nothingIsError && !p) throw new Exception(name ~ " not found");
 		if (!p) return defaultValue;
@@ -81,14 +82,14 @@ struct XNode {
 	const
 	bool hasAttr(string name) { return (name in _el.tag.attr) !is null; }
 	/// 子要素nameを一つだけ探し出してテキストを返す。
-	T childText(T = string)(string name, bool nothingIsError) {
+	T childText(T = string)(string name, bool nothingIsError) { mixin(S_TRACE);
 		auto node = child(name, nothingIsError);
 		return node.valid ? node.value : null;
 	}
 	/// 子要素nameを一つだけ探し出して返す。
-	XNode child(string name, bool nothingIsError) {
-		foreach (el; _el.elements) {
-			if (el.tag.name == name) {
+	XNode child(string name, bool nothingIsError) { mixin(S_TRACE);
+		foreach (el; _el.elements) { mixin(S_TRACE);
+			if (el.tag.name == name) { mixin(S_TRACE);
 				return XNode(el);
 			}
 		}
@@ -104,8 +105,8 @@ struct XNode {
 	/// 処理するハンドラを登録できる。
 	void delegate(ref XNode)[string] onTag;
 	/// 子要素を探し、結果をハンドラに渡す。
-	void parse() {
-		foreach (el; _el.elements) {
+	void parse() { mixin(S_TRACE);
+		foreach (el; _el.elements) { mixin(S_TRACE);
 			auto p = el.tag.name in onTag;
 			if (!p) p = null in onTag;
 			XNode node;
@@ -125,7 +126,7 @@ struct XNode {
 	/// ルート要素以外では使用不可。
 	@property
 	const
-	string text() {
+	string text() { mixin(S_TRACE);
 		if (!isRoot) throw new Exception("Node is not Root: " ~ name);
 		return (cast(Document) _el).prolog ~ "\n" ~ std.string.join(_el.pretty(0), "\n");
 	}

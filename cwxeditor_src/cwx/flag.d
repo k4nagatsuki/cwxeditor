@@ -26,25 +26,25 @@ private static const {
 /// フラグ関連の例外。
 public class FlagException : Exception {
 public:
-	this (string msg) {
+	this (string msg) { mixin(S_TRACE);
 		super(msg);
 	}
 }
 
 /// フラグとステップの集合をXMLにして返す。
-public string getXML(FlagDir parent, Flag[] flags, Step[] steps) {
+public string getXML(FlagDir parent, Flag[] flags, Step[] steps) { mixin(S_TRACE);
 	auto e = XNode.create(XML_ROOT_FLAGS_AND_STEPS);
 	auto _root = parent.root;
 	e.newAttr(XML_ATT_PATH, parent.path);
 	e.newAttr( XML_ATT_ROOT_ID, _root.id);
 	auto fe = e.newElement("Flags");
-	foreach (flag; flags) {
+	foreach (flag; flags) { mixin(S_TRACE);
 		assert (flag.parent.root == _root);
 		assert (flag.parent == parent);
 		flag.toNode(fe);
 	}
 	auto se = e.newElement("Steps");
-	foreach (step; steps) {
+	foreach (step; steps) { mixin(S_TRACE);
 		assert (step.parent.root == _root);
 		assert (step.parent == parent);
 		step.toNode(se);
@@ -53,31 +53,31 @@ public string getXML(FlagDir parent, Flag[] flags, Step[] steps) {
 }
 
 /// フラグのディレクトリとその配下の内容をXMLにして返す。
-public string getXML(string rootName, FlagDir dir) {
+public string getXML(string rootName, FlagDir dir) { mixin(S_TRACE);
 	return toNode(rootName, dir).text;
 }
 /// ditto
-XNode toNode(string rootName, FlagDir dir) {
+XNode toNode(string rootName, FlagDir dir) { mixin(S_TRACE);
 	auto ret = XNode.create(XML_ROOT_FLAG_DIRECTORY);
 	toNode(ret, dir);
 	auto _root = dir.root;
 	ret.newAttr(XML_ATT_ROOT_ID, _root.id);
-	if (_root == dir) {
+	if (_root == dir) { mixin(S_TRACE);
 		ret.newAttr(XML_ATT_ROOT_NAME, rootName);
 	}
 	return ret;
 }
-private void toNode(ref XNode ret, FlagDir dir) {
+private void toNode(ref XNode ret, FlagDir dir) { mixin(S_TRACE);
 	ret.newAttr(XML_ATT_PATH, dir.path);
 	auto fe = ret.newElement("Flags");
-	foreach (flag; dir.flags) {
+	foreach (flag; dir.flags) { mixin(S_TRACE);
 		flag.toNode(fe);
 	}
 	auto se = ret.newElement("Steps");
-	foreach (step; dir.steps) {
+	foreach (step; dir.steps) { mixin(S_TRACE);
 		step.toNode(se);
 	}
-	foreach (subdir; dir.subDirs) {
+	foreach (subdir; dir.subDirs) { mixin(S_TRACE);
 		auto e = ret.newElement(XML_ROOT_FLAG_DIRECTORY);
 		toNode(e, subdir);
 	}
@@ -97,21 +97,21 @@ public:
 	alias toFlagId toID;
 
 	/// コピーコンストラクタ。
-	this (Flag copyBase) {
+	this (Flag copyBase) { mixin(S_TRACE);
 		_name = copyBase.name;
 		_on = copyBase.on;
 		_off = copyBase.off;
 		_onOff = copyBase.onOff;
 	}
 	/// 名前・On/Off時のテキスト・On/Off状態を指定してインスタンスを生成。
-	this (string name, string on, string off, bool onOff) {
+	this (string name, string on, string off, bool onOff) { mixin(S_TRACE);
 		_on = on;
 		_off = off;
 		_onOff = onOff;
 		_name = FlagDir.validName(name);
 	}
 	/// flagのパラメータをコピーする。
-	void copyFrom(Flag flag) {
+	void copyFrom(Flag flag) { mixin(S_TRACE);
 		name = flag.name;
 		on = flag.on;
 		off = flag.off;
@@ -119,48 +119,48 @@ public:
 	}
 	/// このフラグの親ディレクトリ。
 	@property
-	FlagDir parent() {
+	FlagDir parent() { mixin(S_TRACE);
 		return _parent;
 	}
 	/// ditto
 	@property
 	const
-	const(FlagDir) parent() {
+	const(FlagDir) parent() { mixin(S_TRACE);
 		return _parent;
 	}
 	/// ditto
 	@property
-	private void parent(FlagDir parent) {
+	private void parent(FlagDir parent) { mixin(S_TRACE);
 		assert (!parent || !parent.getFlag(name));
 		_parent = parent;
 	}
 	/// 最上位のディレクトリ。
 	@property
-	FlagDir root() {
+	FlagDir root() { mixin(S_TRACE);
 		return _parent.root;
 	}
 	/// ditto
 	@property
 	const
-	const(FlagDir) root() {
+	const(FlagDir) root() { mixin(S_TRACE);
 		return _parent.root;
 	}
 	/// 変更ハンドラを設定する。
 	@property
-	void changeHandler(void delegate() change) {
+	void changeHandler(void delegate() change) { mixin(S_TRACE);
 		_change = change;
 	}
 	/// フラグ名。同一のディレクトリ内では重複しない。
 	@property
 	const
-	string name() {
+	string name() { mixin(S_TRACE);
 		return _name;
 	}
 	/// ditto
 	@property
-	bool name(string name) {
+	bool name(string name) { mixin(S_TRACE);
 		name = FlagDir.validName(name);
-		if (!_parent || _parent.canAppend!Flag(name)) {
+		if (!_parent || _parent.canAppend!Flag(name)) { mixin(S_TRACE);
 			if (_change && _name != name) _change();
 			_name = name;
 			return true;
@@ -170,59 +170,59 @@ public:
 	/// On時のテキスト。
 	@property
 	const
-	string on() {
+	string on() { mixin(S_TRACE);
 		return _on;
 	}
 	/// ditto
 	@property
-	void on(string on) {
+	void on(string on) { mixin(S_TRACE);
 		if (_change && _on != on) _change();
 		_on = on;
 	}
 	/// Off時のテキスト。
 	@property
 	const
-	string off() {
+	string off() { mixin(S_TRACE);
 		return _off;
 	}
 	/// ditto
 	@property
-	void off(string off) {
+	void off(string off) { mixin(S_TRACE);
 		if (_change && _off != off) _change();
 		_off = off;
 	}
 	/// On/Off初期状態。
 	@property
 	const
-	bool onOff() {
+	bool onOff() { mixin(S_TRACE);
 		return _onOff;
 	}
 	/// ditto
 	@property
-	void onOff(bool onOff) {
+	void onOff(bool onOff) { mixin(S_TRACE);
 		if (_change && _onOff != onOff) _change();
 		_onOff = onOff;
 	}
 	const
-	override int opCmp(Object o) {
+	override int opCmp(Object o) { mixin(S_TRACE);
 		return icmp(name, (cast(Flag) o).name);
 	}
 	/// このフラグのフルパスを返す。
 	@property
 	const
-	string path() {
+	string path() { mixin(S_TRACE);
 		return _parent.path ~ _name;
 	}
 
 	/// このフラグをXMLテキストにする。
 	const
-	string toXml() {
+	string toXml() { mixin(S_TRACE);
 		auto doc = XNode.create(XML_ROOT_FLAG_DIRECTORY);
 		toNode(doc);
 		return doc.text;
 	}
 	/// XMLノードからインスタンスを生成。
-	static Flag createFromNode(ref XNode fe, in XMLInfo ver) {
+	static Flag createFromNode(ref XNode fe, in XMLInfo ver) { mixin(S_TRACE);
 		string name = null;
 		string tv = "TRUE";
 		string fv = "FALSE";
@@ -236,7 +236,7 @@ public:
 	}
 	/// XMLノードへこのフラグのデータを追加する。
 	const
-	void toNode(ref XNode node) {
+	void toNode(ref XNode node) { mixin(S_TRACE);
 		auto e = node.newElement("Flag");
 		e.newAttr("default", fromBool(_onOff));
 		e.newElement("Name", path);
@@ -244,10 +244,10 @@ public:
 		e.newElement("False", off);
 	}
 	@property
-	override string cwxPath(bool id) {
+	override string cwxPath(bool id) { mixin(S_TRACE);
 		return cpjoin(_parent, "flag", .cCountUntil!("a is b")(_parent.flags, this), id);
 	}
-	override CWXPath findCWXPath(string path) {
+	override CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		return null;
 	}
@@ -271,66 +271,66 @@ public:
 	alias toStepId toID;
 
 	/// コピーコンストラクタ。
-	this (Step copyBase) {
+	this (Step copyBase) { mixin(S_TRACE);
 		_name = copyBase.name;
 		_vals = copyBase._vals.dup;
 		_select = copyBase._select;
 	}
 	/// ステップ名、各段階のステップ値、選択状態を指定してインスタンスを生成。
-	this (string name, string[] vals, uint select) {
+	this (string name, string[] vals, uint select) { mixin(S_TRACE);
 		_vals = vals;
 		_select = select;
 		_name = FlagDir.validName(name);
 	}
 	/// stepのパラメータをコピーする。
-	void copyFrom(Step step) {
+	void copyFrom(Step step) { mixin(S_TRACE);
 		name = step.name;
 		setValues(step.values, step.select);
 	}
 	/// このステップの親ディレクトリ。
 	@property
-	FlagDir parent() {
+	FlagDir parent() { mixin(S_TRACE);
 		return _parent;
 	}
 	/// ditto
 	@property
 	const
-	const(FlagDir) parent() {
+	const(FlagDir) parent() { mixin(S_TRACE);
 		return _parent;
 	}
 	/// ditto
 	@property
-	private void parent(FlagDir parent) {
+	private void parent(FlagDir parent) { mixin(S_TRACE);
 		assert (!parent || !parent.getStep(name));
 		_parent = parent;
 	}
 	/// 最上位のディレクトリ。
 	@property
-	FlagDir root() {
+	FlagDir root() { mixin(S_TRACE);
 		return _parent.root;
 	}
 	/// ditto
 	@property
 	const
-	const(FlagDir) root() {
+	const(FlagDir) root() { mixin(S_TRACE);
 		return _parent.root;
 	}
 	/// 変更ハンドラを設定する。
 	@property
-	void changeHandler(void delegate() change) {
+	void changeHandler(void delegate() change) { mixin(S_TRACE);
 		_change = change;
 	}
 	/// ステップ名。
 	@property
 	const
-	string name() {
+	string name() { mixin(S_TRACE);
 		return _name;
 	}
 	/// ditto
 	@property
-	bool name(string name) {
+	bool name(string name) { mixin(S_TRACE);
 		name = FlagDir.validName(name);
-		if (!_parent || _parent.canAppend!Step(name)) {
+		if (!_parent || _parent.canAppend!Step(name)) { mixin(S_TRACE);
 			if (_change && _name != name) _change();
 			_name = name;
 			return true;
@@ -339,32 +339,32 @@ public:
 	}
 
 	/// ステップ値のテキストを変更する。
-	void setValue(uint index, string value) {
+	void setValue(uint index, string value) { mixin(S_TRACE);
 		if (_change && _vals[index] != value) _change();
 		_vals[index] = value;
 	}
 	/// ステップ値のテキストを返す。
 	const
-	string getValue(uint index) {
+	string getValue(uint index) { mixin(S_TRACE);
 		return _vals[index];
 	}
 
 	/// ステップの段階数を返す。
 	@property
 	const
-	uint count() {
+	uint count() { mixin(S_TRACE);
 		return _vals.length;
 	}
 
 	/// ステップの選択状態を返す。
 	@property
 	const
-	uint select() {
+	uint select() { mixin(S_TRACE);
 		return _select;
 	}
 	/// ditto
 	@property
-	void select(uint select) {
+	void select(uint select) { mixin(S_TRACE);
 		if (_change && _select != select) _change();
 		_select = .min(select, _vals.length - 1);
 	}
@@ -372,21 +372,21 @@ public:
 	/// 選択中の値のテキストを返す。
 	@property
 	const
-	string value() {
+	string value() { mixin(S_TRACE);
 		return _vals[_select];
 	}
 	/// ステップ値群を返す。
 	@property
-	string[] values() {
+	string[] values() { mixin(S_TRACE);
 		return _vals;
 	}
 	@property
 	const
-	const(string)[] values() {
+	const(string)[] values() { mixin(S_TRACE);
 		return _vals;
 	}
 	/// ステップ値群と選択状態を設定する。
-	void setValues(string[] vals, int select) {
+	void setValues(string[] vals, int select) { mixin(S_TRACE);
 		assert (select < vals.length);
 		if (_change && (_vals != vals || _select != select)) _change();
 		_vals = vals;
@@ -394,34 +394,34 @@ public:
 	}
 
 	const
-	override int opCmp(Object o) {
+	override int opCmp(Object o) { mixin(S_TRACE);
 		return icmp(name, (cast(Step) o).name);
 	}
 
 	/// ステップのフルパス。
 	@property
 	const
-	string path() {
+	string path() { mixin(S_TRACE);
 		return _parent.path ~ _name;
 	}
 
 	/// このステップをXMLテキストにする。
 	const
-	string toXml() {
+	string toXml() { mixin(S_TRACE);
 		auto doc = XNode.create(XML_ROOT_FLAG_DIRECTORY);
 		toNode(doc);
 		return doc.text;
 	}
 	/// XMLノードからステップを生成する。
-	static Step createFromNode(ref XNode se, in XMLInfo ver) {
+	static Step createFromNode(ref XNode se, in XMLInfo ver) { mixin(S_TRACE);
 		string[] vals;
 		string name = null;
 		int def = se.attr!(int)("default", true);
 		se.onTag["Name"] = (ref XNode n) {name = FlagDir.basename(n.value);};
-		se.onTag[null] = (ref XNode n) {
-			if (startsWith(n.name, "Value")) {
+		se.onTag[null] = (ref XNode n) { mixin(S_TRACE);
+			if (startsWith(n.name, "Value")) { mixin(S_TRACE);
 				auto numStr = n.name[5 .. $];
-				if (isNumeric(numStr)) {
+				if (isNumeric(numStr)) { mixin(S_TRACE);
 					int num = to!(int)(numStr);
 					if (num < 0) return;
 					if (vals.length <= num) vals.length = num + 1;
@@ -431,26 +431,26 @@ public:
 		};
 		se.parse();
 		if (!name) throw new FlagException("Step name not found.");
-		if (def < 0 || vals.length <= def) {
+		if (def < 0 || vals.length <= def) { mixin(S_TRACE);
 			throw new FlagException("Step default value invalid. Count: " ~ to!(string)(vals.length) ~ ", default: " ~ to!(string)(def));
 		}
 		return new Step(name, vals, def);
 	}
 	/// 指定されたXMLノードにこのステップのデータを追加する。
 	const
-	void toNode(ref XNode node) {
+	void toNode(ref XNode node) { mixin(S_TRACE);
 		auto e = node.newElement("Step");
 		e.newAttr("default", _select);
 		e.newElement("Name", path);
-		for (int i = 0; i < _vals.length; i++) {
+		for (int i = 0; i < _vals.length; i++) { mixin(S_TRACE);
 			e.newElement("Value" ~ to!(string)(i), _vals[i]);
 		}
 	}
 	@property
-	override string cwxPath(bool id) {
+	override string cwxPath(bool id) { mixin(S_TRACE);
 		return cpjoin(_parent, "step", .cCountUntil!("a is b")(_parent.steps, this), id);
 	}
-	override CWXPath findCWXPath(string path) {
+	override CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		return null;
 	}
@@ -479,65 +479,65 @@ public:
 	/// ditto
 	static immutable string SEPARATOR_REGEX = "\\\\";
 	/// パスを結合する。
-	static string join(string parent, string path) {
-		if (!parent.length) {
+	static string join(string parent, string path) { mixin(S_TRACE);
+		if (!parent.length) { mixin(S_TRACE);
 			return path;
 		}
-		if (parent.endsWith(SEPARATOR.dup)) {
+		if (parent.endsWith(SEPARATOR.dup)) { mixin(S_TRACE);
 			return parent ~ path;
 		}
 		return parent ~ SEPARATOR ~ path;
 	}
 	/// ルートディレクトリを生成する。
-	package this (CWXPath owner) {
+	package this (CWXPath owner) { mixin(S_TRACE);
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_owner = owner;
 	}
 	/// サブディレクトリを生成する。
 	/// Params:
 	/// name = ディレクトリ名。
-	this (string name) {
+	this (string name) { mixin(S_TRACE);
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_name = validName(name);
 	}
 	/// コピーコンストラクタ。
 	/// サブディレクトリ等も全てコピーされる。
-	this (FlagDir copyBase) {
+	this (FlagDir copyBase) { mixin(S_TRACE);
 		name = copyBase.name;
-		foreach (d; copyBase.subDirs) {
+		foreach (d; copyBase.subDirs) { mixin(S_TRACE);
 			add(new FlagDir(d));
 		}
-		foreach (f; copyBase.flags) {
+		foreach (f; copyBase.flags) { mixin(S_TRACE);
 			add(new Flag(f));
 		}
-		foreach (s; copyBase.steps) {
+		foreach (s; copyBase.steps) { mixin(S_TRACE);
 			add(new Step(s));
 		}
 	}
 	@property
-	override string cwxPath(bool id) {
-		if (_owner) {
+	override string cwxPath(bool id) { mixin(S_TRACE);
+		if (_owner) { mixin(S_TRACE);
 			return cpjoin(_owner, "variable", id);
-		} else if (_parent) {
+		} else if (_parent) { mixin(S_TRACE);
 			return cpjoin(_parent, "dir", .cCountUntil!("a is b")(_parent.subDirs, this), id);
 		}
 		return "";
 	}
-	override CWXPath findCWXPath(string path) {
+	override CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
-		case "flag": {
+		case "flag": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= flags.length) return null;
 			return flags[index].findCWXPath(cpbottom(path));
 		}
-		case "step": {
+		case "step": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= steps.length) return null;
 			return steps[index].findCWXPath(cpbottom(path));
 		}
-		case "dir": {
+		case "dir": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= subDirs.length) return null;
 			return subDirs[index].findCWXPath(cpbottom(path));
@@ -548,7 +548,7 @@ public:
 	}
 	@property
 	const
-	override const(CWXPath)[] cwxChilds() {
+	override const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
 		r ~= cast(const CWXPath[]) _flags;
 		r ~= cast(const CWXPath[]) _steps;
@@ -561,44 +561,44 @@ public:
 	/// 子要素をソートする際に使用する比較関数を設定する。
 	/// 親ディレクトリを持つ場合は例外を投げる。
 	@property
-	void sorter(int delegate(string, string) sorter) {
+	void sorter(int delegate(string, string) sorter) { mixin(S_TRACE);
 		if (parent) throw new Exception("FlagDir sorter");
 		sorterImpl(sorter);
 	}
 	@property
-	private void sorterImpl(int delegate(string, string) sorter) {
+	private void sorterImpl(int delegate(string, string) sorter) { mixin(S_TRACE);
 		_sorter = sorter;
-		foreach (sub; subDirs) {
+		foreach (sub; subDirs) { mixin(S_TRACE);
 			sub.sorterImpl(sorter);
 		}
 	}
 	/// 親ディレクトリ。
 	@property
-	FlagDir parent() {
+	FlagDir parent() { mixin(S_TRACE);
 		return _parent;
 	}
 	/// ditto
 	@property
 	const
-	const(FlagDir) parent() {
+	const(FlagDir) parent() { mixin(S_TRACE);
 		return _parent;
 	}
 	/// ditto
 	@property
-	private void parent(FlagDir parent) {
+	private void parent(FlagDir parent) { mixin(S_TRACE);
 		assert (!parent || !parent.getSubDir(name));
 		_parent = parent;
 	}
 	/// 変更ハンドラを登録する。
 	@property
-	void changeHandler(void delegate() change) {
-		foreach (f; _flags) {
+	void changeHandler(void delegate() change) { mixin(S_TRACE);
+		foreach (f; _flags) { mixin(S_TRACE);
 			f.changeHandler = change;
 		}
-		foreach (s; _steps) {
+		foreach (s; _steps) { mixin(S_TRACE);
 			s.changeHandler = change;
 		}
-		foreach (s; _subdir) {
+		foreach (s; _subdir) { mixin(S_TRACE);
 			s.changeHandler = change;
 		}
 		_change = change;
@@ -606,9 +606,9 @@ public:
 
 	/// 最上位のディレクトリ。
 	@property
-	FlagDir root() {
+	FlagDir root() { mixin(S_TRACE);
 		auto dir = this;
-		while (dir.parent !is null) {
+		while (dir.parent !is null) { mixin(S_TRACE);
 			dir = dir.parent;
 		}
 		return dir;
@@ -616,9 +616,9 @@ public:
 	/// ditto
 	@property
 	const
-	const(FlagDir) root() {
+	const(FlagDir) root() { mixin(S_TRACE);
 		Rebindable!(const(FlagDir)) dir = this;
-		while (dir.parent !is null) {
+		while (dir.parent !is null) { mixin(S_TRACE);
 			dir = dir.parent;
 		}
 		return dir;
@@ -627,21 +627,21 @@ public:
 	/// マシン上で一意なID。ドラッグ&ドロップ等で使用する。
 	@property
 	const
-	string id() {
+	string id() { mixin(S_TRACE);
 		return _id;
 	}
 
 	/// ディレクトリ名。
 	@property
 	const
-	string name() {
+	string name() { mixin(S_TRACE);
 		return _name;
 	}
 	/// ditto
 	@property
-	bool name(string name) {
+	bool name(string name) { mixin(S_TRACE);
 		name = FlagDir.validName(name);
-		if (!_parent || _parent.canAppendSub(name)) {
+		if (!_parent || _parent.canAppendSub(name)) { mixin(S_TRACE);
 			if (_change && _name != name) _change();
 			_name = name;
 			return true;
@@ -652,52 +652,52 @@ public:
 	/// 指定された名前のフラグ・ステップ・サブディレクトリが
 	/// 追加可能であればtrueを返す。
 	const
-	private bool canAppend(F)(string name) {
+	private bool canAppend(F)(string name) { mixin(S_TRACE);
 		static if (is(F:Flag)) {
 			name = validName(name);
-			if (name.length == 0) {
+			if (name.length == 0) { mixin(S_TRACE);
 				return false;
 			}
-			foreach (flag; _flags) {
-				if (icmp(flag.name, name) == 0) {
+			foreach (flag; _flags) { mixin(S_TRACE);
+				if (icmp(flag.name, name) == 0) { mixin(S_TRACE);
 					return false;
 				}
 			}
 			return true;
 		} else static if (is(F:Step)) {
 			name = validName(name);
-			if (name.length == 0) {
+			if (name.length == 0) { mixin(S_TRACE);
 				return false;
 			}
-			foreach (step; _steps) {
-				if (icmp(step.name, name) == 0) {
+			foreach (step; _steps) { mixin(S_TRACE);
+				if (icmp(step.name, name) == 0) { mixin(S_TRACE);
 					return false;
 				}
 			}
 			return true;
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (is(F:FlagDir));
 			return canAppendSub(name);
 		}
 	}
 	const
-	private bool canAppendFlag(in Flag f) {
+	private bool canAppendFlag(in Flag f) { mixin(S_TRACE);
 		return canAppend!Flag(f.name);
 	}
 	/// ditto
 	const
-	private bool canAppendStep(in Step f) {
+	private bool canAppendStep(in Step f) { mixin(S_TRACE);
 		return canAppend!Step(f.name);
 	}
 	/// ditto
 	const
-	bool canAppendSub(string name) {
+	bool canAppendSub(string name) { mixin(S_TRACE);
 		name = validName(name);
-		if (name.length == 0) {
+		if (name.length == 0) { mixin(S_TRACE);
 			return false;
 		}
-		foreach (dir; _subdir) {
-			if (icmp(dir.name, name) == 0) {
+		foreach (dir; _subdir) { mixin(S_TRACE);
+			if (icmp(dir.name, name) == 0) { mixin(S_TRACE);
 				return false;
 			}
 		}
@@ -706,13 +706,13 @@ public:
 	/// 指定されたディレクトリが追加可能であればtrueを返す。
 	/// 自分と自分より上位にあるディレクトリを自分の下に持ってくることはできない。
 	const
-	bool canAppendSub2(in FlagDir ndir) {
-		if (this == ndir.parent) {
+	bool canAppendSub2(in FlagDir ndir) { mixin(S_TRACE);
+		if (this == ndir.parent) { mixin(S_TRACE);
 			return true;
 		}
 		Rebindable!(const(FlagDir)) p = this;
-		do {
-			if (p.get == ndir) {
+		do { mixin(S_TRACE);
+			if (p.get == ndir) { mixin(S_TRACE);
 				// 自分と自分より上位にあるディレクトリを自分の下に持ってくることはできない
 				return false;
 			}
@@ -721,10 +721,10 @@ public:
 		return canAppendSub(ndir.name);
 	}
 
-	private bool __add(F)(ref F[] arr, F item, bool delegate(in F) canAppend) {
-		if (canAppend(item) || item.parent is this) {
+	private bool __add(F)(ref F[] arr, F item, bool delegate(in F) canAppend) { mixin(S_TRACE);
+		if (canAppend(item) || item.parent is this) { mixin(S_TRACE);
 			if (item.parent is this && arr[$ - 1] is item) return true;
-			if (item.parent !is null) {
+			if (item.parent !is null) { mixin(S_TRACE);
 				item.parent.remove(item);
 			}
 			item.parent = this;
@@ -736,27 +736,27 @@ public:
 		return false;
 	}
 	/// フラグ・ステップ・サブディレクトリを追加する。
-	bool add(Flag flag) {
+	bool add(Flag flag) { mixin(S_TRACE);
 		return __add!(Flag)(_flags, flag, &canAppendFlag);
 	}
 	/// ditto
-	bool add(Step step) {
+	bool add(Step step) { mixin(S_TRACE);
 		return __add!(Step)(_steps, step, &canAppendStep);
 	}
 	/// ditto
-	bool add(FlagDir sub) {
-		if (__add!(FlagDir)(_subdir, sub, &canAppendSub2)) {
+	bool add(FlagDir sub) { mixin(S_TRACE);
+		if (__add!(FlagDir)(_subdir, sub, &canAppendSub2)) { mixin(S_TRACE);
 			sub.sorterImpl = _sorter;
 			return true;
 		}
 		return false;
 	}
 	/// ditto
-	bool insert(int index, FlagDir sub) {
+	bool insert(int index, FlagDir sub) { mixin(S_TRACE);
 		if (_subdir.length == index) return add(sub);
-		if (canAppendSub2(sub) || sub.parent is this) {
+		if (canAppendSub2(sub) || sub.parent is this) { mixin(S_TRACE);
 			if (sub.parent is this && _subdir[index] is sub) return true;
-			if (sub.parent !is null) {
+			if (sub.parent !is null) { mixin(S_TRACE);
 				sub.parent.remove(sub);
 			}
 			sub.parent = this;
@@ -767,9 +767,9 @@ public:
 		}
 		return false;
 	}
-	private bool __remove(T)(ref T[] arr, T e) {
-		for (int i = 0; i < arr.length; i++) {
-			if (icmp(e.name, arr[i].name) == 0) {
+	private bool __remove(T)(ref T[] arr, T e) { mixin(S_TRACE);
+		for (int i = 0; i < arr.length; i++) { mixin(S_TRACE);
+			if (icmp(e.name, arr[i].name) == 0) { mixin(S_TRACE);
 				e.parent = null;
 				arr[i].changeHandler = null;
 				arr = arr[0 .. i] ~ arr[i + 1 .. $];
@@ -780,59 +780,59 @@ public:
 		return false;
 	}
 	/// フラグ・ステップ・サブディレクトリを除去する。
-	void remove(Flag flag) {
+	void remove(Flag flag) { mixin(S_TRACE);
 		__remove(_flags, flag);
 	}
 	/// ditto
-	void remove(Step step) {
+	void remove(Step step) { mixin(S_TRACE);
 		__remove(_steps, step);
 	}
 	/// ditto
-	void remove(FlagDir dir) {
-		if (__remove(_subdir, dir)) {
+	void remove(FlagDir dir) { mixin(S_TRACE);
+		if (__remove(_subdir, dir)) { mixin(S_TRACE);
 			dir.sorterImpl = null;
 		}
 	}
 
 	/// サブディレクトリ群。
 	@property
-	FlagDir[] subDirs() {
+	FlagDir[] subDirs() { mixin(S_TRACE);
 		return _subdir;
 	}
 	/// フラグ群。
 	@property
-	Flag[] flags() {
+	Flag[] flags() { mixin(S_TRACE);
 		return _flags;
 	}
 	/// ステップ群。
 	@property
-	Step[] steps() {
+	Step[] steps() { mixin(S_TRACE);
 		return _steps;
 	}
 	/// 指定された名前のフラグ・ステップ・サブディレクトリが存在すればtrue。
 	const
-	bool containsFlag(string name) {
+	bool containsFlag(string name) { mixin(S_TRACE);
 		return getFlag(name) !is null;
 	}
 	/// ditto
 	const
-	bool containsStep(string name) {
+	bool containsStep(string name) { mixin(S_TRACE);
 		return getStep(name) !is null;
 	}
 	/// ditto
 	const
-	bool containsSubDir(string name) {
+	bool containsSubDir(string name) { mixin(S_TRACE);
 		return getStep(name) !is null;
 	}
 	/// 指定された名前のサブディレクトリのindexを返す。
 	/// 存在しない場合は-1を返す。
 	const
-	int indexOf(string name) {
+	int indexOf(string name) { mixin(S_TRACE);
 		return .cCountUntil!("0 == icmp(a.name, b)")(_subdir, name);
 	}
 
 	/// サブディレクトリの位置を交換する。
-	void swapDir(int index1, int index2) {
+	void swapDir(int index1, int index2) { mixin(S_TRACE);
 		if (index1 == index2) return;
 		enforce(0 <= index1 && index1 < _subdir.length);
 		enforce(0 <= index2 && index2 < _subdir.length);
@@ -840,9 +840,9 @@ public:
 		std.algorithm.swap(_subdir[index1], _subdir[index2]);
 	}
 
-	private static F __get(F)(F[] arr, string name) {
-		foreach (f; arr) {
-			if (icmp(f.name, name) == 0) {
+	private static F __get(F)(F[] arr, string name) { mixin(S_TRACE);
+		foreach (f; arr) { mixin(S_TRACE);
+			if (icmp(f.name, name) == 0) { mixin(S_TRACE);
 				return f;
 			}
 		}
@@ -850,42 +850,42 @@ public:
 	}
 	/// フラグ・ステップ・サブディレクトリを名前で検索して取得する。
 	/// 存在しない場合はnullを返す。
-	Flag getFlag(string name) {
+	Flag getFlag(string name) { mixin(S_TRACE);
 		return __get!(Flag)(_flags, name);
 	}
 	/// ditto
 	const
-	const(Flag) getFlag(string name) {
+	const(Flag) getFlag(string name) { mixin(S_TRACE);
 		return __get!(const Flag)(_flags, name);
 	}
 	/// ditto
-	Step getStep(string name) {
+	Step getStep(string name) { mixin(S_TRACE);
 		return __get!(Step)(_steps, name);
 	}
 	/// ditto
 	const
-	const(Step) getStep(string name) {
+	const(Step) getStep(string name) { mixin(S_TRACE);
 		return __get!(const Step)(_steps, name);
 	}
 	/// ditto
-	FlagDir getSubDir(string name) {
+	FlagDir getSubDir(string name) { mixin(S_TRACE);
 		return __get!(FlagDir)(_subdir, name);
 	}
 	/// ditto
 	const
-	const(FlagDir) getSubDir(string name) {
+	const(FlagDir) getSubDir(string name) { mixin(S_TRACE);
 		return __get!(const FlagDir)(_subdir, name);
 	}
 
 	/// このディレクトリとサブディレクトリの中にある
 	/// すべてのフラグ・ステップを返す。
 	@property
-	Flag[] allFlags() {
+	Flag[] allFlags() { mixin(S_TRACE);
 		Flag[] r;
-		foreach (flg; _flags) {
+		foreach (flg; _flags) { mixin(S_TRACE);
 			r ~= flg;
 		}
-		foreach (dir; _subdir) {
+		foreach (dir; _subdir) { mixin(S_TRACE);
 			r ~= dir.allFlags;
 		}
 		return r;
@@ -893,24 +893,24 @@ public:
 	/// ditto
 	@property
 	const
-	const(Flag)[] allFlags() {
+	const(Flag)[] allFlags() { mixin(S_TRACE);
 		const(Flag)[] r;
-		foreach (flg; _flags) {
+		foreach (flg; _flags) { mixin(S_TRACE);
 			r ~= flg;
 		}
-		foreach (dir; _subdir) {
+		foreach (dir; _subdir) { mixin(S_TRACE);
 			r ~= dir.allFlags;
 		}
 		return r;
 	}
 	/// ditto
 	@property
-	Step[] allSteps() {
+	Step[] allSteps() { mixin(S_TRACE);
 		Step[] r;
-		foreach (step; _steps) {
+		foreach (step; _steps) { mixin(S_TRACE);
 			r ~= step;
 		}
-		foreach (dir; _subdir) {
+		foreach (dir; _subdir) { mixin(S_TRACE);
 			r ~= dir.allSteps;
 		}
 		return r;
@@ -918,12 +918,12 @@ public:
 	/// ditto
 	@property
 	const
-	const(Step)[] allSteps() {
+	const(Step)[] allSteps() { mixin(S_TRACE);
 		const(Step)[] r;
-		foreach (step; _steps) {
+		foreach (step; _steps) { mixin(S_TRACE);
 			r ~= step;
 		}
-		foreach (dir; _subdir) {
+		foreach (dir; _subdir) { mixin(S_TRACE);
 			r ~= dir.allSteps;
 		}
 		return r;
@@ -932,9 +932,9 @@ public:
 	/// フラグ・ステップを所持していればtrue。
 	@property
 	const
-	bool hasFlag() {
+	bool hasFlag() { mixin(S_TRACE);
 		if (_flags.length) return true;
-		foreach (dir; _subdir) {
+		foreach (dir; _subdir) { mixin(S_TRACE);
 			if (dir.hasFlag) return true;
 		}
 		return false;
@@ -942,48 +942,48 @@ public:
 	/// ditto
 	@property
 	const
-	bool hasStep() {
+	bool hasStep() { mixin(S_TRACE);
 		if (_steps.length) return true;
-		foreach (dir; _subdir) {
+		foreach (dir; _subdir) { mixin(S_TRACE);
 			if (dir.hasStep) return true;
 		}
 		return false;
 	}
 
 	/// フラグ・ステップを名前順にソートする。
-	void sortFlags(bool sub = false) {
-		bool cmps(in Flag a, in Flag b) {
-			if (_sorter) {
+	void sortFlags(bool sub = false) { mixin(S_TRACE);
+		bool cmps(in Flag a, in Flag b) { mixin(S_TRACE);
+			if (_sorter) { mixin(S_TRACE);
 				return _sorter(a.name, b.name) < 0;
-			} else {
+			} else { mixin(S_TRACE);
 				return cmp(a.name, b.name) < 0;
 			}
 		}
-		if (!isSortedDlg!(Flag)(_flags, &cmps)) {
+		if (!isSortedDlg!(Flag)(_flags, &cmps)) { mixin(S_TRACE);
 			if (_change) _change();
 			_flags = sortDlg!(Flag)(_flags, &cmps);
 		}
-		if (sub) {
-			foreach (d; _subdir) {
+		if (sub) { mixin(S_TRACE);
+			foreach (d; _subdir) { mixin(S_TRACE);
 				d.sortFlags(true);
 			}
 		}
 	}
 	/// ditto
-	void sortSteps(bool sub = false) {
-		bool cmps(in Step a, in Step b) {
-			if (_sorter) {
+	void sortSteps(bool sub = false) { mixin(S_TRACE);
+		bool cmps(in Step a, in Step b) { mixin(S_TRACE);
+			if (_sorter) { mixin(S_TRACE);
 				return _sorter(a.name, b.name) < 0;
-			} else {
+			} else { mixin(S_TRACE);
 				return cmp(a.name, b.name) < 0;
 			}
 		}
-		if (!isSortedDlg!(Step)(_steps, &cmps)) {
+		if (!isSortedDlg!(Step)(_steps, &cmps)) { mixin(S_TRACE);
 			if (_change) _change();
 			_steps = sortDlg!(Step)(_steps, &cmps);
 		}
-		if (sub) {
-			foreach (d; _subdir) {
+		if (sub) { mixin(S_TRACE);
+			foreach (d; _subdir) { mixin(S_TRACE);
 				d.sortSteps(true);
 			}
 		}
@@ -992,32 +992,32 @@ public:
 	/// このディレクトリのフルパスを返す。
 	@property
 	const
-	string path() {
-		if (_parent !is null) {
+	string path() { mixin(S_TRACE);
+		if (_parent !is null) { mixin(S_TRACE);
 			return _parent.path ~ _name ~ SEPARATOR;
-		} else {
+		} else { mixin(S_TRACE);
 			return "";
 		}
 	}
 	/// 指定されたノードにこのディレクトリ内のフラグとステップのデータを追加する。
-	void toNode(ref XNode e) {
+	void toNode(ref XNode e) { mixin(S_TRACE);
 		auto fe = e.newElement("Flags");
 		toNodeFlags(fe);
 		auto se = e.newElement("Steps");
 		toNodeSteps(se);
 	}
-	private void toNodeFlags(ref XNode e) {
-		foreach (flag; flags) {
+	private void toNodeFlags(ref XNode e) { mixin(S_TRACE);
+		foreach (flag; flags) { mixin(S_TRACE);
 			flag.toNode(e);
-			foreach (dir; _subdir) {
+			foreach (dir; _subdir) { mixin(S_TRACE);
 				dir.toNodeFlags(e);
 			}
 		}
 	}
-	private void toNodeSteps(ref XNode e) {
-		foreach (step; steps) {
+	private void toNodeSteps(ref XNode e) { mixin(S_TRACE);
+		foreach (step; steps) { mixin(S_TRACE);
 			step.toNode(e);
-			foreach (dir; _subdir) {
+			foreach (dir; _subdir) { mixin(S_TRACE);
 				dir.toNodeSteps(e);
 			}
 		}
@@ -1025,21 +1025,21 @@ public:
 
 	/// フラグパスからフラグ名・ステップ名・サブディレクトリ名だけを
 	/// 抜き出して返す。
-	static string basename(string path) {
+	static string basename(string path) { mixin(S_TRACE);
 		int sepLen = SEPARATOR.length;
-		if (path.length < sepLen) {
+		if (path.length < sepLen) { mixin(S_TRACE);
 			return path;
 		}
-		if (endsWith(path, SEPARATOR.dup)) {
+		if (endsWith(path, SEPARATOR.dup)) { mixin(S_TRACE);
 			path = path[0 .. $ - sepLen];
 		}
-		for (int i = path.length - sepLen; i >= 0; i--) {
-			if (path[i .. i + sepLen] == SEPARATOR) {
+		for (int i = path.length - sepLen; i >= 0; i--) { mixin(S_TRACE);
+			if (path[i .. i + sepLen] == SEPARATOR) { mixin(S_TRACE);
 				return path[i + sepLen .. $];
 			}
 		}
 		return path;
-	} unittest {
+	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		assert (FlagDir.basename("\\test\\") == "test");
 		assert (FlagDir.basename("\\aaa\\test") == "test");
@@ -1051,14 +1051,14 @@ public:
 	/// 自分以下のディレクトリツリーに
 	/// 指定されたパスのディレクトリが含まれていればtrueを返す。
 	/// 同一のディレクトリツリーかどうかは考慮されない。
-	bool has(string path) {
+	bool has(string path) { mixin(S_TRACE);
 		path = .toLower(path);
 		auto tpath = .toLower(this.path);
 		int len = path.length;
 		int tlen = tpath.length;
 		int sepLen = SEPARATOR.length;
 		return (len <= tlen) && (tpath[0 .. len] == path);
-	} unittest {
+	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		auto dir1 = new FlagDir(cast(CWXPath) null);
 		auto dir2 = new FlagDir("aaaaA");
@@ -1116,21 +1116,21 @@ public:
 	}
 
 	/// pathの一つ上のディレクトリを指すパスを返す。
-	static string up(string path) {
+	static string up(string path) { mixin(S_TRACE);
 		int sepLen = SEPARATOR.length;
-		if (path.length < sepLen) {
+		if (path.length < sepLen) { mixin(S_TRACE);
 			return null;
 		}
-		if (path[$ - sepLen .. $] == SEPARATOR) {
+		if (path[$ - sepLen .. $] == SEPARATOR) { mixin(S_TRACE);
 			path = path[0 .. $ - sepLen];
 		}
-		for (int i = path.length - sepLen; i >= 0; i--) {
-			if (path[i .. i + sepLen] == SEPARATOR) {
+		for (int i = path.length - sepLen; i >= 0; i--) { mixin(S_TRACE);
+			if (path[i .. i + sepLen] == SEPARATOR) { mixin(S_TRACE);
 				return path[0 .. i + sepLen];
 			}
 		}
 		return "";
-	} unittest {
+	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		assert (FlagDir.up("test\\") == "");
 		assert (FlagDir.up("\\aaa\\test") == "\\aaa\\");
@@ -1155,17 +1155,17 @@ public:
 	}
 
 	private static bool __loadFS(string Fs, string Fg, F)
-			(ref XNode node, FlagDir p, out F[string] c, string delegate(string, string) createNewName, bool copy, in XMLInfo ver) {
+			(ref XNode node, FlagDir p, out F[string] c, string delegate(string, string) createNewName, bool copy, in XMLInfo ver) { mixin(S_TRACE);
 		bool ret = true;
-		node.onTag[Fs] = (ref XNode node) {
+		node.onTag[Fs] = (ref XNode node) { mixin(S_TRACE);
 			if (!ret) return;
-			node.onTag[Fg] = (ref XNode n) {
+			node.onTag[Fg] = (ref XNode n) { mixin(S_TRACE);
 				if (!ret) return;
 				auto f = F.createFromNode(n, ver);
-				if (!p.canAppend!F(f.name)) {
-					if (copy) {
+				if (!p.canAppend!F(f.name)) { mixin(S_TRACE);
+					if (copy) { mixin(S_TRACE);
 						f.name = createNewName(f.name, "");
-					} else {
+					} else { mixin(S_TRACE);
 						ret = false;
 						return;
 					}
@@ -1178,22 +1178,22 @@ public:
 		return ret;
 	}
 	private bool loadFlagAndSteps
-			(ref XNode node, out Flag[string] cFlags, out Step[string] cSteps, bool copy, in XMLInfo ver) {
-		try {
-			if (!__loadFS!("Flags", "Flag", Flag)(node, this, cFlags, &createNewFlagName, copy, ver)) {
+			(ref XNode node, out Flag[string] cFlags, out Step[string] cSteps, bool copy, in XMLInfo ver) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
+			if (!__loadFS!("Flags", "Flag", Flag)(node, this, cFlags, &createNewFlagName, copy, ver)) { mixin(S_TRACE);
 				removeAll(cFlags);
 				removeAll(cSteps);
 				return false;
 			}
-			if (!__loadFS!("Steps", "Step", Step)(node, this, cSteps, &createNewStepName, copy, ver)) {
+			if (!__loadFS!("Steps", "Step", Step)(node, this, cSteps, &createNewStepName, copy, ver)) { mixin(S_TRACE);
 				removeAll(cFlags);
 				removeAll(cSteps);
 				return false;
 			}
-			foreach (v; cFlags.values) {
+			foreach (v; cFlags.values) { mixin(S_TRACE);
 				this.add(v);
 			}
-			foreach (v; cSteps.values) {
+			foreach (v; cSteps.values) { mixin(S_TRACE);
 				this.add(v);
 			}
 			return true;
@@ -1204,35 +1204,35 @@ public:
 		}
 	}
 	private FlagDir loadSubs
-			(ref XNode node, out Flag[string] cFlags, out Step[string] cSteps, bool copy, in XMLInfo ver) {
-		try {
+			(ref XNode node, out Flag[string] cFlags, out Step[string] cSteps, bool copy, in XMLInfo ver) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			auto subName = basename(node.attr("path", true));
-			if (subName.length == 0) {
+			if (subName.length == 0) { mixin(S_TRACE);
 				subName = validName(node.attr("rootName", true));
 			}
-			if (!canAppendSub(subName)) {
-				if (copy) {
+			if (!canAppendSub(subName)) { mixin(S_TRACE);
+				if (copy) { mixin(S_TRACE);
 					subName = createNewDirName(subName, "");
-				} else {
+				} else { mixin(S_TRACE);
 					return null;
 				}
 			}
 			auto sub = new FlagDir(subName);
-			if (!sub.loadFlagAndSteps(node, cFlags, cSteps, false, ver)) {
+			if (!sub.loadFlagAndSteps(node, cFlags, cSteps, false, ver)) { mixin(S_TRACE);
 				assert (cFlags.length == 0);
 				assert (cSteps.length == 0);
 				return null;
 			}
 			bool ret = true;
-			node.onTag["FlagDirectory"] = (ref XNode n) {
+			node.onTag["FlagDirectory"] = (ref XNode n) { mixin(S_TRACE);
 				if (!ret) return;
-				if (!sub.loadSubs(n, cFlags, cSteps, false, ver)) {
+				if (!sub.loadSubs(n, cFlags, cSteps, false, ver)) { mixin(S_TRACE);
 					ret = false;
 					return;
 				}
 			};
 			node.parse();
-			if (ret) {
+			if (ret) { mixin(S_TRACE);
 				this.add(sub);
 				return sub;
 			}
@@ -1242,15 +1242,15 @@ public:
 		removeAll(cSteps);
 		return null;
 	}
-	private bool readAtt(in XNode node, out string rootId, out string path, out bool sameTree) {
+	private bool readAtt(in XNode node, out string rootId, out string path, out bool sameTree) { mixin(S_TRACE);
 		path = null;
 		sameTree = false;
 		rootId = node.attr(XML_ATT_ROOT_ID, false);
 		path = node.attr(XML_ATT_PATH, false);
-		if (rootId !is null && path !is null) {
+		if (rootId !is null && path !is null) { mixin(S_TRACE);
 			sameTree = this.root.id == rootId;
 			return true;
-		} else {
+		} else { mixin(S_TRACE);
 			return false;
 		}
 	}
@@ -1272,27 +1272,27 @@ public:
 	/// Returns: XMLからの追加を試みた結果。
 	/// See_Also: getXml(FlagDir, Flag[], Step[]), getXml(FlagDir)
 	AppendXmlResult appendFromXML(string xml, in XMLInfo ver, bool copy, bool dirMode,
-			out Flag[string] cFlags, out Step[string] cSteps, out string newPath, out string rootId) {
+			out Flag[string] cFlags, out Step[string] cSteps, out string newPath, out string rootId) { mixin(S_TRACE);
 		newPath = null;
 		rootId = "";
-		try {
+		try { mixin(S_TRACE);
 			scope doc = XNode.parse(xml);
 			rootId = doc.attr(XML_ATT_ROOT_ID, false, "");
 
-			if (doc.name == XML_ROOT_FLAGS_AND_STEPS) {
+			if (doc.name == XML_ROOT_FLAGS_AND_STEPS) { mixin(S_TRACE);
 				string path;
 				bool sameTree;
-				if (readAtt(doc, rootId, path, sameTree)) {
-					if (!copy && sameTree && icmp(this.path, path) == 0) {
+				if (readAtt(doc, rootId, path, sameTree)) { mixin(S_TRACE);
+					if (!copy && sameTree && icmp(this.path, path) == 0) { mixin(S_TRACE);
 						// 転送されてきたのが自分自身の場合は末尾に移し変えて終了
-						doc.onTag["Flags"] = (ref XNode node) {
-							doc.onTag["Flag"] = (ref XNode node) {
+						doc.onTag["Flags"] = (ref XNode node) { mixin(S_TRACE);
+							doc.onTag["Flag"] = (ref XNode node) { mixin(S_TRACE);
 								add(getFlag(node.childText("Name", true)));
 							};
 							node.parse();
 						};
-						doc.onTag["Steps"] = (ref XNode node) {
-							doc.onTag["Step"] = (ref XNode node) {
+						doc.onTag["Steps"] = (ref XNode node) { mixin(S_TRACE);
+							doc.onTag["Step"] = (ref XNode node) { mixin(S_TRACE);
 								add(getStep(node.childText("Name", true)));
 							};
 							node.parse();
@@ -1300,13 +1300,13 @@ public:
 						doc.parse();
 						return AppendXmlResult.FLAG_STEP_ON_DIR;
 					}
-					if (loadFlagAndSteps(doc, cFlags, cSteps, copy, ver)) {
+					if (loadFlagAndSteps(doc, cFlags, cSteps, copy, ver)) { mixin(S_TRACE);
 						return AppendXmlResult.FLAG_STEP_SUCCESS;
 					}
 				}
 				return AppendXmlResult.FAIL;
 			}
-			if (dirMode && doc.name == XML_ROOT_FLAG_DIRECTORY) {
+			if (dirMode && doc.name == XML_ROOT_FLAG_DIRECTORY) { mixin(S_TRACE);
 				return loadRootFlagDirectory(doc, ver, copy, cFlags, cSteps, newPath);
 			}
 		} catch (Exception e) {
@@ -1314,38 +1314,38 @@ public:
 		return AppendXmlResult.FAIL;
 	}
 	private AppendXmlResult loadRootFlagDirectory(ref XNode node, in XMLInfo ver, bool copy,
-			out Flag[string] cFlags, out Step[string] cSteps, out string newPath) {
+			out Flag[string] cFlags, out Step[string] cSteps, out string newPath) { mixin(S_TRACE);
 		newPath = null;
 		string rootId;
 		string path;
 		bool sameTree;
-		if (readAtt(node, rootId, path, sameTree)) {
+		if (readAtt(node, rootId, path, sameTree)) { mixin(S_TRACE);
 			auto dirName = basename(path);
-			if (!copy) {
-				if (path.length == 0) {
+			if (!copy) { mixin(S_TRACE);
+				if (path.length == 0) { mixin(S_TRACE);
 					// ルートディレクトリは移動不可
 					return AppendXmlResult.FAIL;
 				}
-				if (sameTree && icmp(this.path, up(path)) == 0) {
+				if (sameTree && icmp(this.path, up(path)) == 0) { mixin(S_TRACE);
 					// 転送されてきたのが自分自身の場合は末尾に移し変えて終了
 					auto d = getSubDir(dirName);
 					add(d);
 					newPath = d.path;
 					return AppendXmlResult.ON_DIR;
 				}
-				if (sameTree && has(path)) {
+				if (sameTree && has(path)) { mixin(S_TRACE);
 					// 同一ツリー内で送り手と受け手が矛盾する
 					return AppendXmlResult.FAIL;
 				}
-				if (!canAppendSub(dirName)) {
+				if (!canAppendSub(dirName)) { mixin(S_TRACE);
 					// 同一名のサブディレクトリがすでに存在する
 					return AppendXmlResult.FAIL;
 				}
 			}
 			auto sub = loadSubs(node, cFlags, cSteps, copy, ver);
-			if (sub) {
+			if (sub) { mixin(S_TRACE);
 				newPath = sub.path;
-			}  else {
+			}  else { mixin(S_TRACE);
 				return AppendXmlResult.FAIL;
 			}
 			return AppendXmlResult.DIR_SUCCESS;
@@ -1355,22 +1355,22 @@ public:
 
 	/// 指定されたディレクトリ以下のサブディレクトリに
 	/// pathと一致するものがあれば返す。
-	static FlagDir searchPath(FlagDir root, string path) {
+	static FlagDir searchPath(FlagDir root, string path) { mixin(S_TRACE);
 		assert (root.parent is null);
 		int sepLen = SEPARATOR.length;
-		if (endsWith(path, FlagDir.SEPARATOR.dup)) {
+		if (endsWith(path, FlagDir.SEPARATOR.dup)) { mixin(S_TRACE);
 			path = path[0 .. $ - sepLen];
 		}
 		auto paths = std.string.split(path, SEPARATOR.dup);
 		auto dir = root;
 
-		loop: for (int lev = 0; lev < paths.length; lev++) {
-			foreach (sub; dir.subDirs) {
-				if (icmp(paths[lev], sub.name) == 0) {
-					if (lev < paths.length - 1) {
+		loop: for (int lev = 0; lev < paths.length; lev++) { mixin(S_TRACE);
+			foreach (sub; dir.subDirs) { mixin(S_TRACE);
+				if (icmp(paths[lev], sub.name) == 0) { mixin(S_TRACE);
+					if (lev < paths.length - 1) { mixin(S_TRACE);
 						dir = sub;
 						continue loop;
-					} else {
+					} else { mixin(S_TRACE);
 						return sub;
 					}
 				}
@@ -1383,8 +1383,8 @@ public:
 	/// 指定された文字列をフラグ・ステップ・ディレクトリ名として
 	/// 正当な名前に変換する。
 	/// フラグ・ステップ・ディレクトリ名にパス区切り文字'\'を使う事は出来ない。
-	static string validName(string name) {
-		if (!name.length) {
+	static string validName(string name) { mixin(S_TRACE);
+		if (!name.length) { mixin(S_TRACE);
 			name = "_";
 		}
 		string fsep = SEPARATOR;
@@ -1395,37 +1395,37 @@ public:
 	/// base = xxxxの場合、xxxxというフラグがすでに存在すればxxxx (2)、
 	/// さらにxxxx (2)というフラグが存在すればxxxx (3)……というように、
 	/// 付記した数字をインクリメントしていく。
-	string createNewFlagName(string base, string oldName) {
-		return createNewName(validName(base), (string name) {
+	string createNewFlagName(string base, string oldName) { mixin(S_TRACE);
+		return createNewName(validName(base), (string name) { mixin(S_TRACE);
 			if (oldName && oldName.length && oldName == name) return true;
 			return canAppend!Flag(name);
 		});
 	}
 	/// ditto
-	string createNewStepName(string base, string oldName) {
-		return createNewName(validName(base), (string name) {
+	string createNewStepName(string base, string oldName) { mixin(S_TRACE);
+		return createNewName(validName(base), (string name) { mixin(S_TRACE);
 			if (oldName && oldName.length && oldName == name) return true;
 			return canAppend!Step(name);
 		});
 	}
 	/// ditto
-	string createNewDirName(string base, string oldName) {
-		return createNewName(validName(base), (string name) {
+	string createNewDirName(string base, string oldName) { mixin(S_TRACE);
+		return createNewName(validName(base), (string name) { mixin(S_TRACE);
 			if (oldName && oldName.length && oldName == name) return true;
 			return canAppendSub(name);
 		});
 	}
 	/// 新しい名前をn件生成して返す。
 	private string[] createNewNames(F)(string base, size_t n, in string[] oldNames)
-	out (value) {
+	out (value) { mixin(S_TRACE);
 		assert (value.length == n);
-	} body {
+	} body { mixin(S_TRACE);
 		auto oldSet = new HashSet!string;
 		foreach (name; oldNames) oldSet.add(name.toLower());
 		auto set = new HashSet!string;
 		string[] r;
-		foreach (i; 0..n) {
-			auto name = createNewName(validName(base), (string name) {
+		foreach (i; 0..n) { mixin(S_TRACE);
+			auto name = createNewName(validName(base), (string name) { mixin(S_TRACE);
 				return (canAppend!F(name) || oldSet.contains(name.toLower())) && !set.contains(name.toLower());
 			});
 			set.add(name.toLower());
@@ -1435,23 +1435,23 @@ public:
 	}
 	/// ditto
 	string[] createNewFlagNames(string base, size_t n, in string[] oldNames)
-	out (value) {
+	out (value) { mixin(S_TRACE);
 		assert (value.length == n);
-	} body {
+	} body { mixin(S_TRACE);
 		return createNewNames!Flag(base, n, oldNames);
 	}
 	/// ditto
 	string[] createNewStepNames(string base, size_t n, in string[] oldNames)
-	out (value) {
+	out (value) { mixin(S_TRACE);
 		assert (value.length == n);
-	} body {
+	} body { mixin(S_TRACE);
 		return createNewNames!Step(base, n, oldNames);
 	}
 	/// ditto
 	string[] createNewDirNames(string base, size_t n, in string[] oldNames)
-	out (value) {
+	out (value) { mixin(S_TRACE);
 		assert (value.length == n);
-	} body {
+	} body { mixin(S_TRACE);
 		return createNewNames!FlagDir(base, n, oldNames);
 	}
 
@@ -1460,60 +1460,60 @@ public:
 	/// path = パス。
 	/// create = trueの場合、見つからなかったときに生成する。
 	/// Returns: 見つかったパス。見つからず、生成もしない場合はnull。
-	FlagDir findPath(string path, bool create) {
-		if (path.length == 0) {
+	FlagDir findPath(string path, bool create) { mixin(S_TRACE);
+		if (path.length == 0) { mixin(S_TRACE);
 			return root;
-		} else {
+		} else { mixin(S_TRACE);
 			string fsep = SEPARATOR;
 			auto paths = std.string.split(path, fsep);
-			if (paths.length == 0) {
+			if (paths.length == 0) { mixin(S_TRACE);
 				return root;
 			}
 			return root.__findPath(paths[0 .. $ - 1], create);
 		}
 	}
 	const
-	const(FlagDir) findPath(string path) {
-		if (path.length == 0) {
+	const(FlagDir) findPath(string path) { mixin(S_TRACE);
+		if (path.length == 0) { mixin(S_TRACE);
 			return root;
-		} else {
+		} else { mixin(S_TRACE);
 			string fsep = SEPARATOR;
 			auto paths = std.string.split(path, fsep);
-			if (paths.length == 0) {
+			if (paths.length == 0) { mixin(S_TRACE);
 				return root;
 			}
 			return root.__findPath(paths[0 .. $ - 1]);
 		}
 	}
-	private FlagDir __findPath(string[] paths, bool create) {
+	private FlagDir __findPath(string[] paths, bool create) { mixin(S_TRACE);
 		auto sub = getSubDir(paths[0]);
-		if (sub is null) {
-			if (create) {
-				if (canAppendSub(paths[0])) {
+		if (sub is null) { mixin(S_TRACE);
+			if (create) { mixin(S_TRACE);
+				if (canAppendSub(paths[0])) { mixin(S_TRACE);
 					sub = new FlagDir(paths[0]);
 					this.add(sub);
-				} else {
+				} else { mixin(S_TRACE);
 					return null;
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				return null;
 			}
 		}
-		if (paths.length == 1) {
+		if (paths.length == 1) { mixin(S_TRACE);
 			return sub;
-		} else {
+		} else { mixin(S_TRACE);
 			return sub.__findPath(paths[1 .. $], create);
 		}
 	}
 	const
-	private const(FlagDir) __findPath(string[] paths) {
+	private const(FlagDir) __findPath(string[] paths) { mixin(S_TRACE);
 		auto sub = getSubDir(paths[0]);
-		if (sub is null) {
+		if (sub is null) { mixin(S_TRACE);
 			return null;
 		}
-		if (paths.length == 1) {
+		if (paths.length == 1) { mixin(S_TRACE);
 			return sub;
-		} else {
+		} else { mixin(S_TRACE);
 			return sub.__findPath(paths[1 .. $]);
 		}
 	}
@@ -1521,10 +1521,10 @@ public:
 	/// Params:
 	/// path = パス。
 	/// Returns: 見つかったフラグ。見つからなかった場合はnull。
-	Flag findFlag(string path) {
-		if (path.length > 0) {
+	Flag findFlag(string path) { mixin(S_TRACE);
+		if (path.length > 0) { mixin(S_TRACE);
 			auto dir = findPath(up(path), false);
-			if (dir !is null) {
+			if (dir !is null) { mixin(S_TRACE);
 				return dir.getFlag(basename(path));
 			}
 		}
@@ -1532,10 +1532,10 @@ public:
 	}
 	/// ditto
 	const
-	const(Flag) findFlag(string path) {
-		if (path.length > 0) {
+	const(Flag) findFlag(string path) { mixin(S_TRACE);
+		if (path.length > 0) { mixin(S_TRACE);
 			auto dir = findPath(up(path));
-			if (dir !is null) {
+			if (dir !is null) { mixin(S_TRACE);
 				return dir.getFlag(basename(path));
 			}
 		}
@@ -1545,20 +1545,20 @@ public:
 	/// Params:
 	/// path = パス。
 	/// Returns: 見つかったステップ。見つからなかった場合はnull。
-	Step findStep(string path) {
-		if (path.length > 0) {
+	Step findStep(string path) { mixin(S_TRACE);
+		if (path.length > 0) { mixin(S_TRACE);
 			auto dir = findPath(up(path), false);
-			if (dir !is null) {
+			if (dir !is null) { mixin(S_TRACE);
 				return dir.getStep(basename(path));
 			}
 		}
 		return null;
 	}
 	const
-	const(Step) findStep(string path) {
-		if (path.length > 0) {
+	const(Step) findStep(string path) { mixin(S_TRACE);
+		if (path.length > 0) { mixin(S_TRACE);
 			auto dir = findPath(up(path));
-			if (dir !is null) {
+			if (dir !is null) { mixin(S_TRACE);
 				return dir.getStep(basename(path));
 			}
 		}
@@ -1567,13 +1567,13 @@ public:
 
 	/// 配下にある全てのフラグとステップのデータをノードに追加する。
 	const
-	void toNodeAll(ref XNode node) {
+	void toNodeAll(ref XNode node) { mixin(S_TRACE);
 		auto fe = node.newElement("Flags");
-		foreach (flag; allFlags) {
+		foreach (flag; allFlags) { mixin(S_TRACE);
 			flag.toNode(fe);
 		}
 		auto se = node.newElement("Steps");
-		foreach (step; allSteps) {
+		foreach (step; allSteps) { mixin(S_TRACE);
 			step.toNode(se);
 		}
 	}
@@ -1583,12 +1583,12 @@ public:
 	/// node = ノード。
 	/// change = 変更を通知するハンドラ。
 	/// Returns: ディレクトリツリー。
-	static FlagDir fromXmlNode(ref XNode node, CWXPath owner, void delegate() change, in XMLInfo ver) {
+	static FlagDir fromXmlNode(ref XNode node, CWXPath owner, void delegate() change, in XMLInfo ver) { mixin(S_TRACE);
 		auto root = new FlagDir(owner);
-		node.onTag["Flags"] = (ref XNode node) {
+		node.onTag["Flags"] = (ref XNode node) { mixin(S_TRACE);
 			__fromXmlNode!(Flag)(node, root, "Flag", &Flag.createFromNode, ver);
 		};
-		node.onTag["Steps"] = (ref XNode node) {
+		node.onTag["Steps"] = (ref XNode node) { mixin(S_TRACE);
 			__fromXmlNode!(Step)(node, root, "Step", &Step.createFromNode, ver);
 		};
 		node.parse();
@@ -1596,18 +1596,18 @@ public:
 		return root;
 	}
 	private static void __fromXmlNode(E)(ref XNode node,
-			FlagDir root, string es, E function(ref XNode, in XMLInfo) pfunc, in XMLInfo ver) {
-		node.onTag[es] = (ref XNode e) {
+			FlagDir root, string es, E function(ref XNode, in XMLInfo) pfunc, in XMLInfo ver) { mixin(S_TRACE);
+		node.onTag[es] = (ref XNode e) { mixin(S_TRACE);
 			string path = e.childText("Name", false);
-			if (path) {
+			if (path) { mixin(S_TRACE);
 				auto parent = up(path);
 				auto dir = parent !is null ? root.findPath(parent, true) : root;
 				auto f = pfunc(e, ver);
-				if (!f || !dir.canAppend!E(f.name)) {
+				if (!f || !dir.canAppend!E(f.name)) { mixin(S_TRACE);
 					throw new FlagException(es ~ " parse error: " ~ path);
 				}
 				dir.add(f);
-			} else {
+			} else { mixin(S_TRACE);
 				throw new FlagException(es ~ " name not found.");
 			}
 		};
@@ -1619,32 +1619,32 @@ public:
 	/// ディレクトリの名前を変更する。
 	/// 配下のすべてのフラグとステップのパス変更が
 	/// ucによって通知される。
-	bool rename(string name, UseCounter uc) {
+	bool rename(string name, UseCounter uc) { mixin(S_TRACE);
 		auto flags = allFlags;
 		auto oldFlagPaths = new string[flags.length];
-		foreach (i, flag; flags) {
+		foreach (i, flag; flags) { mixin(S_TRACE);
 			oldFlagPaths[i] = flag.path;
 		}
 		auto steps = allSteps;
 		auto oldStepPaths = new string[steps.length];
-		foreach (i, step; steps) {
+		foreach (i, step; steps) { mixin(S_TRACE);
 			oldStepPaths[i] = step.path;
 		}
 		string p = this.path;
 		size_t plen = p.length;
-		if (!.endsWith(p, FlagDir.SEPARATOR.idup)) {
+		if (!.endsWith(p, FlagDir.SEPARATOR.idup)) { mixin(S_TRACE);
 			plen += FlagDir.SEPARATOR.length;
 		}
 
-		if (!this.name(name)) {
+		if (!this.name(name)) { mixin(S_TRACE);
 			return false;
 		}
 		p = this.path;
-		foreach (path; oldFlagPaths) {
+		foreach (path; oldFlagPaths) { mixin(S_TRACE);
 			auto newPath = FlagDir.join(p, path[plen .. $]);
 			uc.change(toFlagId(path), toFlagId(newPath));
 		}
-		foreach (path; oldStepPaths) {
+		foreach (path; oldStepPaths) { mixin(S_TRACE);
 			auto newPath = FlagDir.join(p, path[plen .. $]);
 			uc.change(toStepId(path), toStepId(newPath));
 		}

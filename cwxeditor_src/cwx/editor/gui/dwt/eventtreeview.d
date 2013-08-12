@@ -108,27 +108,27 @@ private:
 
 	Skin _summSkin;
 	@property
-	Skin summSkin() {
+	Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
 	}
 
-	void autoOpen() {
+	void autoOpen() { mixin(S_TRACE);
 		_autoOpen = _autoOpenTI.getSelection();
 		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
 	}
-	void updatePutMode() {
+	void updatePutMode() { mixin(S_TRACE);
 		if (!_constructTools) return;
-		if (_putQuickMI.getSelection()) {
+		if (_putQuickMI.getSelection()) { mixin(S_TRACE);
 			_putMode = MenuID.PutQuick;
 			arrow();
-			foreach (ti; _radioGroup.set) {
+			foreach (ti; _radioGroup.set) { mixin(S_TRACE);
 				ti.setSelection(false);
 			}
 			_arrowTI.setSelection(false);
-		} else if (_putSelectMI.getSelection()) {
+		} else if (_putSelectMI.getSelection()) { mixin(S_TRACE);
 			_putMode = MenuID.PutSelect;
 			if (!_arrowTI.getEnabled()) arrow();
-		} else if (_putContinueMI.getSelection()) {
+		} else if (_putContinueMI.getSelection()) { mixin(S_TRACE);
 			_putMode = MenuID.PutContinue;
 			if (!_arrowTI.getEnabled()) arrow();
 		}
@@ -137,81 +137,81 @@ private:
 		_putModeTI.setImage(_prop.images.menu(_putMode));
 		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
 	}
-	void insertFirst() {
+	void insertFirst() { mixin(S_TRACE);
 		_insertFirst = _insertFirstTI.getSelection();
 		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
 	}
 
 	@property
-	Item selection() {
+	Item selection() { mixin(S_TRACE);
 		if (!_tree.control || _tree.control.isDisposed()) return null;
 		auto sels = _tree.getSelection();
-		if (sels.length > 0) {
+		if (sels.length > 0) { mixin(S_TRACE);
 			return sels[0];
 		}
 		return null;
 	}
 
 	class EditL : MouseAdapter, KeyListener {
-		private void __edit() {
+		private void __edit() { mixin(S_TRACE);
 			if (_readOnly) return;
 			edit();
 		}
-		override void keyPressed(KeyEvent e) {
-			if (e.character == SWT.CR) {
+		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
+			if (e.character == SWT.CR) { mixin(S_TRACE);
 				__edit();
 			}
 		}
 		override void keyReleased(KeyEvent e) {}
-		override void mouseDoubleClick(MouseEvent e) {
-			if (e.button == 1 && !_tree.control.getCursor()) {
+		override void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
+			if (e.button == 1 && !_tree.control.getCursor()) { mixin(S_TRACE);
 				__edit();
 			}
 		}
-		override void mouseUp(MouseEvent e) {
-			if (e.button == 1 && _clickStart) {
+		override void mouseUp(MouseEvent e) { mixin(S_TRACE);
+			if (e.button == 1 && _clickStart) { mixin(S_TRACE);
 				__edit();
 			}
 		}
 	}
 	class CreateL : MouseAdapter {
-		override void mouseDown(MouseEvent e) {
+		override void mouseDown(MouseEvent e) { mixin(S_TRACE);
 			if (_readOnly) return;
 			if (_putMode is MenuID.PutQuick) return;
-			if (e.button == 1) {
+			if (e.button == 1) { mixin(S_TRACE);
 				create(null);
-			} else if (e.button == 2 && !_arrowMode) {
+			} else if (e.button == 2 && !_arrowMode) { mixin(S_TRACE);
 				auto itm = _tree.getItem(new Point(e.x, e.y));
-				if (itm && CDetail.fromType(_cType).owner) {
+				if (itm && CDetail.fromType(_cType).owner) { mixin(S_TRACE);
 					auto c = cast(Content) itm.getData();
-					if (c.parent) {
+					if (c.parent) { mixin(S_TRACE);
 						_tree.setSelection([itm]);
 						create(itm);
 						_comm.refreshToolBar();
 					}
 				}
-			} else if (e.button == 3) {
+			} else if (e.button == 3) { mixin(S_TRACE);
 				arrow();
 				_comm.refreshToolBar();
 			}
 		}
 	}
 	class MouseMove : MouseTrackAdapter, MouseMoveListener {
-		override void mouseMove(MouseEvent e) {
+		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
 			_clickStart = null;
-			if (!_readOnly && _arrowMode && _prop.var.etc.clickIconIsStartEdit) {
+			if (!_readOnly && _arrowMode && _prop.var.etc.clickIconIsStartEdit) { mixin(S_TRACE);
 				auto itm = _tree.getItem(new Point(e.x, e.y));
-				if (itm) {
+				if (itm) { mixin(S_TRACE);
 					auto c = cast(Content)itm.getData();
 					auto d = _tree.control.getDisplay();
 					auto hand = d.getSystemCursor(SWT.CURSOR_HAND);
-					if (_tree.getImageBounds(itm).contains(e.x, e.y) && hasDialog(c.type) && checkOpenDialog(c.type)) {
+					if (_tree.getImageBounds(itm).contains(e.x, e.y) && hasDialog(c.type) && checkOpenDialog(c.type)) { mixin(S_TRACE);
 						_clickStart = itm;
-						if (_tree.editor) {
+						if (_tree.editor) { mixin(S_TRACE);
 							_tree.control.setCursor(hand);
 						}
-					} else {
-						if (_tree.editor && _tree.control.getCursor() is hand) {
+					} else { mixin(S_TRACE);
+						if (_tree.editor && _tree.control.getCursor() is hand) { mixin(S_TRACE);
 							_tree.control.setCursor(null);
 						}
 					}
@@ -219,31 +219,31 @@ private:
 			}
 			updateToolTip();
 		}
-		override void mouseExit(MouseEvent e) {
+		override void mouseExit(MouseEvent e) { mixin(S_TRACE);
 			clearClickStart();
 		}
 	}
-	void clearClickStart() {
+	void clearClickStart() { mixin(S_TRACE);
 		auto d = _tree.control.getDisplay();
 		auto hand = d.getSystemCursor(SWT.CURSOR_HAND);
-		if (_clickStart && _tree.editor && _tree.editor && _tree.control.getCursor() is hand) {
+		if (_clickStart && _tree.editor && _tree.editor && _tree.control.getCursor() is hand) { mixin(S_TRACE);
 			_tree.control.setCursor(null);
 		}
 	}
-	void updateToolTip() {
+	void updateToolTip() { mixin(S_TRACE);
 		if (!_tree.tree) return;
 		auto p = _tree.control.getDisplay().getCursorLocation();
 		p = _tree.control.toControl(p);
 		string toolTip = "";
-		if (_tree.control.getClientArea().contains(p)) {
-			foreach (warn; _warningRects) {
-				if (warn.rect.contains(p)) {
+		if (_tree.control.getClientArea().contains(p)) { mixin(S_TRACE);
+			foreach (warn; _warningRects) { mixin(S_TRACE);
+				if (warn.rect.contains(p)) { mixin(S_TRACE);
 					toolTip = std.string.join(warn.warnings, .newline);
 					break;
 				}
 			}
 		}
-		if (_tree.control.getToolTipText() != toolTip) {
+		if (_tree.control.getToolTipText() != toolTip) { mixin(S_TRACE);
 			_tree.control.setToolTipText(toolTip);
 		}
 	}
@@ -256,39 +256,39 @@ private:
 		protected Commons comm;
 		protected Props prop;
 		protected Summary summ;
-		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et) {
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et) { mixin(S_TRACE);
 			this.et = et;
 			this.comm = comm;
 			this.prop = prop;
 			this.summ = summ;
 			_etPath = et.areaPath;
-			if (v) {
+			if (v) { mixin(S_TRACE);
 				auto sel = v.selection;
 				_selPath = sel ? (cast(Content) sel.getData()).ctPath : null;
 			}
 		}
-		void udb(EventTreeView v) {
+		void udb(EventTreeView v) { mixin(S_TRACE);
 			if (!v) return;
 			.forceFocus(v._tree.control, false);
 			v._forceSel(_etPath);
 			auto sel = v.selection;
 			_selPath2 = sel ? (cast(Content) sel.getData()).ctPath : null;
 		}
-		void uda(EventTreeView v) {
+		void uda(EventTreeView v) { mixin(S_TRACE);
 			scope (exit) comm.refreshToolBar();
 			if (!v) return;
 			if (_selPath) v._tree.select(v.fromPath(_selPath));
 			_selPath = _selPath2;
 			v.refreshStatusLine();
 		}
-		EventTreeView view() {
+		EventTreeView view() { mixin(S_TRACE);
 			return comm.eventTreeViewFrom(et.cwxPath(true), false);
 		}
 		abstract override void undo();
 		abstract override void redo();
 		abstract override void dispose();
 	}
-	private static void insertStart(EventTreeView v, Commons comm, EventTree et, int index, Content c) {
+	private static void insertStart(EventTreeView v, Commons comm, EventTree et, int index, Content c) { mixin(S_TRACE);
 		if (v) v._tree.control.setRedraw(false);
 		scope (exit) if (v) v._tree.control.setRedraw(true);
 		bool empty = et.owner.isEmpty;
@@ -296,12 +296,12 @@ private:
 			if (empty != et.owner.isEmpty) comm.refEventTree.call(et);
 		}
 		et.insert(index, c);
-		if (v) {
-			if (v._tree.tree) {
+		if (v) { mixin(S_TRACE);
+			if (v._tree.tree) { mixin(S_TRACE);
 				auto itm = createTreeItem(v._tree.tree, c, c.name, v._prop.images.content(c.type), index);
 				v.createChilds(itm, c);
 				v._tree.setExpanded(itm, true);
-			} else {
+			} else { mixin(S_TRACE);
 				v._tree.editor.updateEventTree();
 			}
 			v.refreshStatusLine();
@@ -314,15 +314,15 @@ private:
 	static class UndoContent : ETVUndo {
 		private size_t[][] _path;
 		private Content[] _c;
-		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, Content[] cs) {
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, Content[] cs) { mixin(S_TRACE);
 			super (v, comm, prop, summ, et);
-			foreach (c; cs) {
+			foreach (c; cs) { mixin(S_TRACE);
 				_path ~= c.ctPath;
 				_c ~= c.dup;
 				_c[$ - 1].setUseCounter(summ.useCounter.sub);
 			}
 		}
-		private void impl() {
+		private void impl() { mixin(S_TRACE);
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
@@ -330,41 +330,41 @@ private:
 			scope (exit) {
 				if (empty != et.owner.isEmpty) comm.refEventTree.call(et);
 			}
-			foreach (i, c; _c.dup) {
+			foreach (i, c; _c.dup) { mixin(S_TRACE);
 				int index = _path[i][$ - 1];
 				auto tc = et.fromPath(_path[i]);
 				_c[i] = tc.dup;
 				_c[i].setUseCounter(summ.useCounter.sub);
 				auto pc = tc.parent;
 				string text;
-				if (pc) {
+				if (pc) { mixin(S_TRACE);
 					pc.insert(prop.parent, index, c);
 					text = .eventText(comm, summ, pc, c, false);
-				} else {
+				} else { mixin(S_TRACE);
 					et.insert(index, c);
 					text = c.name;
 				}
 				if (v) v._tree.control.setRedraw(false);
 				scope (exit) if (v) v._tree.control.setRedraw(true);
-				if (v) {
-					if (v._tree.tree) {
+				if (v) { mixin(S_TRACE);
+					if (v._tree.tree) { mixin(S_TRACE);
 						auto now = cast(TreeItem)v.fromPath(_path[i]);
 						auto par = now.getParentItem();
 						TreeItem itm;
-						if (par) {
+						if (par) { mixin(S_TRACE);
 							itm = createTreeItem(par, c, text, prop.images.content(c.type), index);
-						} else {
+						} else { mixin(S_TRACE);
 							itm = createTreeItem(v._tree.tree, c, text, prop.images.content(c.type), index);
 						}
 						v.procTreeItem(itm);
 						v.createChilds(itm, c);
 						v._tree.setExpanded(itm, true);
-					} else {
+					} else { mixin(S_TRACE);
 						v._tree.editor.updateEventTree();
 					}
 				}
 				delImpl(v, comm, et, tc);
-				if (v && !pc) {
+				if (v && !pc) { mixin(S_TRACE);
 					v._refreshTopStart();
 				}
 			}
@@ -373,22 +373,22 @@ private:
 		}
 		override void undo() {impl();}
 		override void redo() {impl();}
-		override void dispose() {
-			foreach (c; _c) {
+		override void dispose() { mixin(S_TRACE);
+			foreach (c; _c) { mixin(S_TRACE);
 				c.removeUseCounter();
 			}
 		}
 	}
-	void store(Content[] evt ...) {
+	void store(Content[] evt ...) { mixin(S_TRACE);
 		_undo ~= new UndoContent(this, _comm, _prop, _summ, _et, evt);
 	}
 	static class UndoSwap : ETVUndo {
 		private int _upIndex;
-		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int swapIndex1, int swapIndex2) {
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int swapIndex1, int swapIndex2) { mixin(S_TRACE);
 			super (v, comm, prop, summ, et);
 			_upIndex = swapIndex1 > swapIndex2 ? swapIndex1 : swapIndex2;
 		}
-		private void impl() {
+		private void impl() { mixin(S_TRACE);
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
@@ -398,25 +398,25 @@ private:
 		override void redo() {impl();}
 		override void dispose() {}
 	}
-	void storeSwap(int swapIndex1, int swapIndex2) {
+	void storeSwap(int swapIndex1, int swapIndex2) { mixin(S_TRACE);
 		_undo ~= new UndoSwap(this, _comm, _prop, _summ, _et, swapIndex1, swapIndex2);
 	}
 	static class UndoInsert : ETVUndo {
 		private int _index;
 		private size_t _count;
 		private Content[] _c;
-		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int index, size_t count) {
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int index, size_t count) { mixin(S_TRACE);
 			super (v, comm, prop, summ, et);
 			_index = index;
 			_count = count;
 		}
-		override void undo() {
+		override void undo() { mixin(S_TRACE);
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
 			if (v) v._tree.control.setRedraw(false);
 			scope (exit) if (v) v._tree.control.setRedraw(true);
-			for (size_t i = 0; i < _count; i++) {
+			for (size_t i = 0; i < _count; i++) { mixin(S_TRACE);
 				auto node = et.starts[_index].toNode(new XMLOption(prop.sys));
 				auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
 				auto c = Content.createFromNode(node, ver);
@@ -425,33 +425,33 @@ private:
 				delImpl(v, comm, et, et.starts[_index]);
 			}
 			comm.refUseCount.call();
-			if (v) {
+			if (v) { mixin(S_TRACE);
 				v.refreshStatusLine();
 				v._refreshTopStart();
 			}
 		}
-		override void redo() {
+		override void redo() { mixin(S_TRACE);
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			foreach_reverse (c; _c) {
+			foreach_reverse (c; _c) { mixin(S_TRACE);
 				insertStart(v, comm, et, _index, c);
 			}
 			_c = [];
 		}
-		override void dispose() {
-			foreach (c; _c) {
+		override void dispose() { mixin(S_TRACE);
+			foreach (c; _c) { mixin(S_TRACE);
 				c.removeUseCounter();
 			}
 		}
 	}
-	void storeInsert(int insertIndex, size_t count = 1) {
+	void storeInsert(int insertIndex, size_t count = 1) { mixin(S_TRACE);
 		_undo ~= new UndoInsert(this, _comm, _prop, _summ, _et, insertIndex, count);
 	}
 	static class UndoDelete : ETVUndo {
 		private int _index;
 		private Content _c;
-		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int index, Content del) {
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int index, Content del) { mixin(S_TRACE);
 			super (v, comm, prop, summ, et);
 			_index = index;
 			auto node = del.toNode(new XMLOption(prop.sys));
@@ -459,13 +459,13 @@ private:
 			_c = Content.createFromNode(node, ver);
 			_c.setUseCounter(summ.useCounter.sub);
 		}
-		override void undo() {
+		override void undo() { mixin(S_TRACE);
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
 			insertStart(v, comm, et, _index, _c);
 		}
-		override void redo() {
+		override void redo() { mixin(S_TRACE);
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
@@ -473,25 +473,25 @@ private:
 			scope (exit) if (v) v._tree.control.setRedraw(true);
 			delImpl(v, comm, et, et.starts[_index]);
 			comm.refUseCount.call();
-			if (v) {
+			if (v) { mixin(S_TRACE);
 				v.refreshStatusLine();
 				v._refreshTopStart();
 			}
 		}
-		override void dispose() {
+		override void dispose() { mixin(S_TRACE);
 			_c.removeUseCounter();
 		}
 	}
-	void storeDelete(int index, Content del) {
+	void storeDelete(int index, Content del) { mixin(S_TRACE);
 		_undo ~= new UndoDelete(this, _comm, _prop, _summ, _et, index, del);
 	}
-	private Item fromPath(string cwxPath) {
+	private Item fromPath(string cwxPath) { mixin(S_TRACE);
 		return fromPathImpl(_tree, cwxPath);
 	}
-	private Item fromPathImpl(T)(T tree, string cwxPath) {
+	private Item fromPathImpl(T)(T tree, string cwxPath) { mixin(S_TRACE);
 		if (cpempty(cwxPath)) return null;
 		string cate = cpcategory(cwxPath);
-		while ("" != cate) {
+		while ("" != cate) { mixin(S_TRACE);
 			cwxPath = cpbottom(cwxPath);
 			if (cpempty(cwxPath)) return null;
 			cate = cpcategory(cwxPath);
@@ -501,10 +501,10 @@ private:
 		if (cpempty(cwxPath)) return itm;
 		return fromPathImpl(itm, cwxPath);
 	}
-	private Item fromPath(size_t[] path) {
+	private Item fromPath(size_t[] path) { mixin(S_TRACE);
 		return fromPathImpl(_tree, path);
 	}
-	private Item fromPathImpl(T)(T tree, size_t[] path) {
+	private Item fromPathImpl(T)(T tree, size_t[] path) { mixin(S_TRACE);
 		if (!path.length) return null;
 		auto itm = _tree.getItem(tree, path[0]);
 		if (path.length == 1) return itm;
@@ -513,19 +513,19 @@ private:
 	static class UndoCP : Undo {
 		private UndoContent _undoC;
 		private UndoDelete _undoD;
-		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, Content[] conts, int index, Content start) {
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, Content[] conts, int index, Content start) { mixin(S_TRACE);
 			_undoC = new UndoContent(v, comm, prop, summ, et, conts);
 			_undoD = new UndoDelete(v, comm, prop, summ, et, index, start);
 		}
-		override void undo() {
+		override void undo() { mixin(S_TRACE);
 			_undoD.undo();
 			_undoC.undo();
 		}
-		override void redo() {
+		override void redo() { mixin(S_TRACE);
 			_undoC.redo();
 			_undoD.redo();
 		}
-		override void dispose() {
+		override void dispose() { mixin(S_TRACE);
 			_undoC.dispose();
 			_undoD.dispose();
 		}
@@ -533,34 +533,34 @@ private:
 	static class UndoContentAndInsert : ETVUndo {
 		private UndoContent _undoC;
 		private UndoInsert _undoI;
-		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, Content owner, int insertIndex, int count) {
+		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, Content owner, int insertIndex, int count) { mixin(S_TRACE);
 			super (v, comm, prop, summ, et);
 			_undoC = new UndoContent(v, comm, prop, summ, et, [owner]);
 			_undoI = new UndoInsert(v, comm, prop, summ, et, insertIndex, count);
 		}
-		override void undo() {
+		override void undo() { mixin(S_TRACE);
 			_undoI.undo();
 			_undoC.undo();
 		}
-		override void redo() {
+		override void redo() { mixin(S_TRACE);
 			_undoC.redo();
 			_undoI.redo();
 		}
-		override void dispose() {
+		override void dispose() { mixin(S_TRACE);
 			_undoC.dispose();
 			_undoI.dispose();
 		}
 	}
-	void storeContentAndInsert(Content owner, int insertIndex, int count) {
+	void storeContentAndInsert(Content owner, int insertIndex, int count) { mixin(S_TRACE);
 		_undo ~= new UndoContentAndInsert(this, _comm, _prop, _summ, _et, owner, insertIndex, count);
 	}
 
 	private EventDialog[Content] _editDlgs;
-	void appliedEdit(UndoContent undo, Content c) {
+	void appliedEdit(UndoContent undo, Content c) { mixin(S_TRACE);
 		_undo ~= undo;
 		auto itm = fromPath(c.cwxPath(true));
 		assert (c is itm.getData());
-		foreach (childItm; _tree.getItems(itm)) {
+		foreach (childItm; _tree.getItems(itm)) { mixin(S_TRACE);
 			auto par = cast(Content)itm.getData();
 			assert (par.detail.owner);
 			childItm.setText(eventText(par, cast(Content) childItm.getData()));
@@ -576,24 +576,24 @@ private:
 		_comm.refreshToolBar();
 	}
 	void editM() {edit();}
-	EventDialog edit() {
+	EventDialog edit() { mixin(S_TRACE);
 		if (_readOnly) return null;
 		auto sels = _tree.getSelection();
-		if (sels.length > 0) {
+		if (sels.length > 0) { mixin(S_TRACE);
 			auto c = cast(Content) sels[0].getData();
 			return edit(c);
 		}
 		return null;
 	}
-	void create(Item insertTo) {
+	void create(Item insertTo) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!_tree.getItemCount()) return;
-		if (!_arrowMode || _putMode is MenuID.PutQuick) {
+		if (!_arrowMode || _putMode is MenuID.PutQuick) { mixin(S_TRACE);
 			_tree.control.setRedraw(false);
 			scope (exit) _tree.control.setRedraw(true);
-			if (_cType == CType.START) {
+			if (_cType == CType.START) { mixin(S_TRACE);
 				if (insertTo) return;
-				create(null, _cType, "", (Content evt) {
+				create(null, _cType, "", (Content evt) { mixin(S_TRACE);
 					assert (evt);
 					bool empty = _et.owner.isEmpty;
 					scope (exit) {
@@ -601,17 +601,17 @@ private:
 					}
 					auto sel = selection;
 					int index;
-					if (sel) {
+					if (sel) { mixin(S_TRACE);
 						index = _tree.indexOf(_tree.topItem(sel)) + 1;
-					} else {
+					} else { mixin(S_TRACE);
 						index = -1;
 					}
 					storeInsert(index);
 					_et.insert(index, cast(Content)evt);
 					Item sItm;
-					if (_tree.tree) {
+					if (_tree.tree) { mixin(S_TRACE);
 						sItm = createTreeItem(_tree.tree, evt, evt.name, _prop.images.content(CType.START), index);
-					} else {
+					} else { mixin(S_TRACE);
 						_tree.editor.updateEventTree();
 						sItm = EventEditorItem.valueOf(_tree.editor, evt);
 					}
@@ -624,58 +624,58 @@ private:
 					if (_putMode !is MenuID.PutContinue) arrow();
 					_comm.refreshToolBar();
 				});
-			} else {
+			} else { mixin(S_TRACE);
 				if (insertTo && !CDetail.fromType(_cType).owner) return;
 				auto sel = selection;
-				if (!insertTo && sel && !(cast(Content)sel.getData()).detail.owner) {
+				if (!insertTo && sel && !(cast(Content)sel.getData()).detail.owner) { mixin(S_TRACE);
 					sel = _tree.getParentItem(sel);
 					if (!sel) return;
 				}
-				if (insertTo || (sel && (cast(Content)sel.getData()).detail.owner)) {
+				if (insertTo || (sel && (cast(Content)sel.getData()).detail.owner)) { mixin(S_TRACE);
 					Item oItm;
 					int insertIndex = -1;
-					if (insertTo) {
+					if (insertTo) { mixin(S_TRACE);
 						oItm = _tree.getParentItem(insertTo);
 						if (!oItm) return;
 						insertIndex = _tree.indexOf(oItm, insertTo);
-					} else {
+					} else { mixin(S_TRACE);
 						oItm = sel;
 					}
 					auto owner = cast(Content) oItm.getData();
-					void applied(Content evt) {
+					void applied(Content evt) { mixin(S_TRACE);
 						bool empty = _et.owner.isEmpty;
 						scope (exit) {
 							if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
 						}
 						store(owner);
-						if (insertIndex == -1) {
-							if (_insertFirst) {
+						if (insertIndex == -1) { mixin(S_TRACE);
+							if (_insertFirst) { mixin(S_TRACE);
 								owner.insert(_prop.parent, 0, evt);
-							} else {
+							} else { mixin(S_TRACE);
 								owner.add(_prop.parent, evt);
 							}
-						} else {
+						} else { mixin(S_TRACE);
 							owner.insert(_prop.parent, insertIndex, evt);
 						}
 						Item itm;
-						if (_tree.tree) {
+						if (_tree.tree) { mixin(S_TRACE);
 							itm = createTreeItem(cast(TreeItem)oItm, evt, eventText(owner, evt), _prop.images.content(evt.type), insertIndex);
 							_tree.setExpanded(oItm, true);
-						} else {
+						} else { mixin(S_TRACE);
 							_tree.editor.updateEventTree();
 							itm = EventEditorItem.valueOf(_tree.editor, evt);
 						}
 						_tree.setSelection([itm]);
-						if (insertTo) {
+						if (insertTo) { mixin(S_TRACE);
 							auto ic = cast(Content) insertTo.getData();
 							_comm.delContent.call(ic);
 							ic.parent.remove(ic);
-							if (_prop.var.etc.adjustContentName) {
+							if (_prop.var.etc.adjustContentName) { mixin(S_TRACE);
 								ic.setName(_prop.parent, "");
 							}
-							if (_insertFirst) {
+							if (_insertFirst) { mixin(S_TRACE);
 								evt.insert(_prop.parent, 0, ic);
-							} else {
+							} else { mixin(S_TRACE);
 								evt.add(_prop.parent, ic);
 							}
 							insertTo.dispose();
@@ -692,61 +692,61 @@ private:
 						if (_putMode !is MenuID.PutContinue) arrow();
 						_comm.refreshToolBar();
 					}
-					if (insertTo) {
+					if (insertTo) { mixin(S_TRACE);
 						create(owner, _cType, (cast(Content) insertTo.getData()).name, &applied);
-					} else {
+					} else { mixin(S_TRACE);
 						create(owner, _cType, "", &applied);
 					}
 				}
 			}
 		}
 	}
-	void arrow() {
+	void arrow() { mixin(S_TRACE);
 		if (_readOnly) return;
 		constructTools();
 		_arrowMode = true;
 		_comp.setCursor(null);
-		if (_toolWin && !_toolWin.isDisposed()) {
+		if (_toolWin && !_toolWin.isDisposed()) { mixin(S_TRACE);
 			_toolWin.setCursor(null);
 		}
-		if (_autoHideTools) {
+		if (_autoHideTools) { mixin(S_TRACE);
 			_autoHideTools.setCursor(null);
 		}
 		if (_radioGroup && _putMode !is MenuID.PutQuick) _radioGroup.select(_arrowTI);
 		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
 	}
-	void selContentTool(Object sender, bool arrowMode, CType cType, MenuID putMode, bool autoOpen, bool insertFirst) {
+	void selContentTool(Object sender, bool arrowMode, CType cType, MenuID putMode, bool autoOpen, bool insertFirst) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!_prop.var.etc.connContentTools) return;
 		if (sender is this) return;
 		constructTools();
-		if (!_arrowMode && arrowMode) {
+		if (!_arrowMode && arrowMode) { mixin(S_TRACE);
 			arrow();
 		}
-		if (((_arrowMode && !arrowMode) || (_cType != cType)) && MenuID.PutQuick !is putMode) {
+		if (((_arrowMode && !arrowMode) || (_cType != cType)) && MenuID.PutQuick !is putMode) { mixin(S_TRACE);
 			assert (cType in _conts, .format("%s, putMode", cType));
 			auto ce = _conts[cType];
 			_radioGroup.select(ce.ti);
 			ce.create(null);
 		}
-		if (_autoOpen != autoOpen) {
+		if (_autoOpen != autoOpen) { mixin(S_TRACE);
 			_autoOpenTI.setSelection(autoOpen);
 			this.autoOpen();
 		}
-		if (_putMode != putMode) {
+		if (_putMode != putMode) { mixin(S_TRACE);
 			_putMode = putMode;
 			_putQuickMI.setSelection(_putMode is MenuID.PutQuick);
 			_putSelectMI.setSelection(_putMode is MenuID.PutSelect);
 			_putContinueMI.setSelection(_putMode is MenuID.PutContinue);
 			this.updatePutMode();
 		}
-		if (_insertFirst != insertFirst) {
+		if (_insertFirst != insertFirst) { mixin(S_TRACE);
 			_insertFirstTI.setSelection(insertFirst);
 			this.insertFirst();
 		}
 	}
 
-	bool hasDialog(CType type) {
+	bool hasDialog(CType type) { mixin(S_TRACE);
 		switch (type) {
 		case CType.START:
 		case CType.END_BAD_END:
@@ -762,73 +762,73 @@ private:
 			return true;
 		}
 	}
-	bool checkOpenDialog(CType type) {
+	bool checkOpenDialog(CType type) { mixin(S_TRACE);
 		if (_readOnly) return false;
 		switch (type) {
-		case CType.START_BATTLE: {
+		case CType.START_BATTLE: { mixin(S_TRACE);
 			return _summ.battles.length > 0;
-		} case CType.CHANGE_AREA: {
+		} case CType.CHANGE_AREA: { mixin(S_TRACE);
 			return _summ.areas.length > 0;
-		} case CType.LINK_PACKAGE, CType.CALL_PACKAGE: {
+		} case CType.LINK_PACKAGE, CType.CALL_PACKAGE: { mixin(S_TRACE);
 			return _summ.packages.length > 0;
-		} case CType.BRANCH_FLAG, CType.SET_FLAG, CType.REVERSE_FLAG, CType.CHECK_FLAG, CType.SUBSTITUTE_FLAG, CType.BRANCH_FLAG_CMP: {
+		} case CType.BRANCH_FLAG, CType.SET_FLAG, CType.REVERSE_FLAG, CType.CHECK_FLAG, CType.SUBSTITUTE_FLAG, CType.BRANCH_FLAG_CMP: { mixin(S_TRACE);
 			return _summ.flagDirRoot.allFlags.length > 0;
-		} case CType.BRANCH_MULTI_STEP, CType.BRANCH_STEP, CType.SET_STEP, CType.SET_STEP_UP, CType.SET_STEP_DOWN, CType.SUBSTITUTE_STEP, CType.BRANCH_STEP_CMP: {
+		} case CType.BRANCH_MULTI_STEP, CType.BRANCH_STEP, CType.SET_STEP, CType.SET_STEP_UP, CType.SET_STEP_DOWN, CType.SUBSTITUTE_STEP, CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
 			return _summ.flagDirRoot.allSteps.length > 0;
-		} case CType.BRANCH_CAST, CType.GET_CAST, CType.LOSE_CAST: {
+		} case CType.BRANCH_CAST, CType.GET_CAST, CType.LOSE_CAST: { mixin(S_TRACE);
 			return _summ.casts.length > 0;
-		} case CType.BRANCH_ITEM, CType.GET_ITEM, CType.LOSE_ITEM: {
+		} case CType.BRANCH_ITEM, CType.GET_ITEM, CType.LOSE_ITEM: { mixin(S_TRACE);
 			return _summ.items.length > 0;
-		} case CType.BRANCH_SKILL, CType.GET_SKILL, CType.LOSE_SKILL: {
+		} case CType.BRANCH_SKILL, CType.GET_SKILL, CType.LOSE_SKILL: { mixin(S_TRACE);
 			return _summ.skills.length > 0;
-		} case CType.BRANCH_INFO, CType.GET_INFO, CType.LOSE_INFO: {
+		} case CType.BRANCH_INFO, CType.GET_INFO, CType.LOSE_INFO: { mixin(S_TRACE);
 			return _summ.infos.length > 0;
-		} case CType.BRANCH_BEAST, CType.GET_BEAST, CType.LOSE_BEAST: {
+		} case CType.BRANCH_BEAST, CType.GET_BEAST, CType.LOSE_BEAST: { mixin(S_TRACE);
 			return _summ.beasts.length > 0;
-		} case CType.REDISPLAY: {
+		} case CType.REDISPLAY: { mixin(S_TRACE);
 			return !_summ.legacy;
-		} default: {
+		} default: { mixin(S_TRACE);
 			return true;
 		}
 		}
 	}
 
-	void create(Content parent, CType type, string name, void delegate(Content) applied) {
+	void create(Content parent, CType type, string name, void delegate(Content) applied) { mixin(S_TRACE);
 		if (_readOnly) return;
 		assert (parent is null || parent.detail.owner);
-		if (_putMode !is MenuID.PutContinue) {
+		if (_putMode !is MenuID.PutContinue) { mixin(S_TRACE);
 			arrow();
 			_comm.refreshToolBar();
 		}
-		void initial(Content c) {
-			if (type is CType.CHANGE_BG_IMAGE) {
+		void initial(Content c) { mixin(S_TRACE);
+			if (type is CType.CHANGE_BG_IMAGE) { mixin(S_TRACE);
 				c.backs = createBgImages(summSkin, _prop.var.etc.bgImagesDefault);
-			} else if (type is CType.TALK_DIALOG) {
+			} else if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
 				c.dialogs = [new SDialog];
-			} else if (type is CType.BRANCH_SKILL || type is CType.BRANCH_ITEM || type is CType.BRANCH_BEAST) {
+			} else if (type is CType.BRANCH_SKILL || type is CType.BRANCH_ITEM || type is CType.BRANCH_BEAST) { mixin(S_TRACE);
 				c.range = Range.FIELD;
-			} else if (type is CType.LOSE_SKILL || type is CType.LOSE_ITEM || type is CType.LOSE_BEAST) {
+			} else if (type is CType.LOSE_SKILL || type is CType.LOSE_ITEM || type is CType.LOSE_BEAST) { mixin(S_TRACE);
 				c.range = Range.FIELD;
 			}
 		}
-		if (hasDialog(type)) {
-			if (!_autoOpen || !checkOpenDialog(type)) {
+		if (hasDialog(type)) { mixin(S_TRACE);
+			if (!_autoOpen || !checkOpenDialog(type)) { mixin(S_TRACE);
 				auto c = new Content(type, name);
 				initial(c);
 				applied(c);
 				return;
 			}
-		} else {
-			if (type is CType.START) {
+		} else { mixin(S_TRACE);
+			if (type is CType.START) { mixin(S_TRACE);
 				string startName = _prop.msgs.defaultStartName;
 				auto sel = selection;
-				if (_prop.var.etc.useCurrentStartName && sel) {
-					if (auto s = (cast(Content)sel.getData()).parentStart) {
+				if (_prop.var.etc.useCurrentStartName && sel) { mixin(S_TRACE);
+					if (auto s = (cast(Content)sel.getData()).parentStart) { mixin(S_TRACE);
 						startName = s.name;
 					}
 				}
-				name = createNewName(startName, (string name) {
-					foreach (start; _et.starts) {
+				name = createNewName(startName, (string name) { mixin(S_TRACE);
+					foreach (start; _et.starts) { mixin(S_TRACE);
 						if (icmp(start.name, name) == 0) return false;
 					}
 					return true;
@@ -841,466 +841,466 @@ private:
 		initial(evt);
 		EventDialog dlg;
 		switch (type) {
-		case CType.START_BATTLE: {
+		case CType.START_BATTLE: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.START_BATTLE, Battle, "summary.battles")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.END: {
+		} case CType.END: { mixin(S_TRACE);
 			dlg = new ClearEventDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.CHANGE_AREA: {
+		} case CType.CHANGE_AREA: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.CHANGE_AREA, Area, "summary.areas")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.CHANGE_BG_IMAGE: {
+		} case CType.CHANGE_BG_IMAGE: { mixin(S_TRACE);
 			auto c = new Content(type, name);
 			c.backs = createBgImages(summSkin, _prop.var.etc.bgImagesDefault);
 			dlg = new BgImagesDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, c, refTarget);
 			break;
-		} case CType.EFFECT: {
+		} case CType.EFFECT: { mixin(S_TRACE);
 			dlg = new EffectDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LINK_START: {
+		} case CType.LINK_START: { mixin(S_TRACE);
 			dlg = new StartSelectDialog!(CType.LINK_START)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LINK_PACKAGE: {
+		} case CType.LINK_PACKAGE: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.LINK_PACKAGE, Package, "summary.packages")(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.TALK_MESSAGE: {
+		} case CType.TALK_MESSAGE: { mixin(S_TRACE);
 			dlg = new MessageDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.TALK_DIALOG: {
+		} case CType.TALK_DIALOG: { mixin(S_TRACE);
 			dlg = new SpeakDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.PLAY_BGM: {
+		} case CType.PLAY_BGM: { mixin(S_TRACE);
 			dlg = new BgmDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.PLAY_SOUND: {
+		} case CType.PLAY_SOUND: { mixin(S_TRACE);
 			dlg = new SeDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.WAIT: {
+		} case CType.WAIT: { mixin(S_TRACE);
 			dlg = new WaitEventDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.CALL_START: {
+		} case CType.CALL_START: { mixin(S_TRACE);
 			dlg = new StartSelectDialog!(CType.CALL_START)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.CALL_PACKAGE: {
+		} case CType.CALL_PACKAGE: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.CALL_PACKAGE, Package, "summary.packages")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_FLAG: {
+		} case CType.BRANCH_FLAG: { mixin(S_TRACE);
 			dlg = new BrFlagDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.BRANCH_MULTI_STEP: {
+		} case CType.BRANCH_MULTI_STEP: { mixin(S_TRACE);
 			dlg = new BrStepNDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.BRANCH_STEP: {
+		} case CType.BRANCH_STEP: { mixin(S_TRACE);
 			dlg = new BrStepULDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.BRANCH_SELECT: {
+		} case CType.BRANCH_SELECT: { mixin(S_TRACE);
 			dlg = new BrMemberDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_ABILITY: {
+		} case CType.BRANCH_ABILITY: { mixin(S_TRACE);
 			dlg = new BrPowerDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_RANDOM: {
+		} case CType.BRANCH_RANDOM: { mixin(S_TRACE);
 			dlg = new BrRandomEventDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_LEVEL: {
+		} case CType.BRANCH_LEVEL: { mixin(S_TRACE);
 			dlg = new BrLevelDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_STATUS: {
+		} case CType.BRANCH_STATUS: { mixin(S_TRACE);
 			dlg = new BrStateDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_PARTY_NUMBER: {
+		} case CType.BRANCH_PARTY_NUMBER: { mixin(S_TRACE);
 			dlg = new BrNumEventDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_CAST: {
+		} case CType.BRANCH_CAST: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.BRANCH_CAST, CastCard, "summary.casts")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_ITEM: {
+		} case CType.BRANCH_ITEM: { mixin(S_TRACE);
 			dlg = new BrItemDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_SKILL: {
+		} case CType.BRANCH_SKILL: { mixin(S_TRACE);
 			dlg = new BrSkillDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_INFO: {
+		} case CType.BRANCH_INFO: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.BRANCH_INFO, InfoCard, "summary.infos")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_BEAST: {
+		} case CType.BRANCH_BEAST: { mixin(S_TRACE);
 			dlg = new BrBeastDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_MONEY: {
+		} case CType.BRANCH_MONEY: { mixin(S_TRACE);
 			dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_COUPON: {
+		} case CType.BRANCH_COUPON: { mixin(S_TRACE);
 			dlg = new BranchCouponDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_COMPLETE_STAMP: {
+		} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
 			dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_GOSSIP: {
+		} case CType.BRANCH_GOSSIP: { mixin(S_TRACE);
 			dlg = new GossipEventDialog!(CType.BRANCH_GOSSIP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.SET_FLAG: {
+		} case CType.SET_FLAG: { mixin(S_TRACE);
 			dlg = new FlagSetDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.SET_STEP: {
+		} case CType.SET_STEP: { mixin(S_TRACE);
 			dlg = new StepSetDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.SET_STEP_UP: {
+		} case CType.SET_STEP_UP: { mixin(S_TRACE);
 			dlg = new StepPlusDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.SET_STEP_DOWN: {
+		} case CType.SET_STEP_DOWN: { mixin(S_TRACE);
 			dlg = new StepMinusDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.REVERSE_FLAG: {
+		} case CType.REVERSE_FLAG: { mixin(S_TRACE);
 			dlg = new FlagRDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.CHECK_FLAG: {
+		} case CType.CHECK_FLAG: { mixin(S_TRACE);
 			dlg = new FlagJudgeDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.GET_CAST: {
+		} case CType.GET_CAST: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.GET_CAST, CastCard, "summary.casts")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_ITEM: {
+		} case CType.GET_ITEM: { mixin(S_TRACE);
 			dlg = new GetItemDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_SKILL: {
+		} case CType.GET_SKILL: { mixin(S_TRACE);
 			dlg = new GetSkillDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_INFO: {
+		} case CType.GET_INFO: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.GET_INFO, InfoCard, "summary.infos")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_BEAST: {
+		} case CType.GET_BEAST: { mixin(S_TRACE);
 			dlg = new GetBeastDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_MONEY: {
+		} case CType.GET_MONEY: { mixin(S_TRACE);
 			dlg = new MoneyEventDialog!(CType.GET_MONEY)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_COUPON: {
+		} case CType.GET_COUPON: { mixin(S_TRACE);
 			dlg = new GetCouponDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_COMPLETE_STAMP: {
+		} case CType.GET_COMPLETE_STAMP: { mixin(S_TRACE);
 			dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_GOSSIP: {
+		} case CType.GET_GOSSIP: { mixin(S_TRACE);
 			dlg = new GossipEventDialog!(CType.GET_GOSSIP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_CAST: {
+		} case CType.LOSE_CAST: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.LOSE_CAST, CastCard, "summary.casts")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_ITEM: {
+		} case CType.LOSE_ITEM: { mixin(S_TRACE);
 			dlg = new LostItemDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_SKILL: {
+		} case CType.LOSE_SKILL: { mixin(S_TRACE);
 			dlg = new LostSkillDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_INFO: {
+		} case CType.LOSE_INFO: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.LOSE_INFO, InfoCard, "summary.infos")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_BEAST: {
+		} case CType.LOSE_BEAST: { mixin(S_TRACE);
 			dlg = new LostBeastDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_MONEY: {
+		} case CType.LOSE_MONEY: { mixin(S_TRACE);
 			dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_COUPON: {
+		} case CType.LOSE_COUPON: { mixin(S_TRACE);
 			dlg = new LoseCouponDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_COMPLETE_STAMP: {
+		} case CType.LOSE_COMPLETE_STAMP: { mixin(S_TRACE);
 			dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_GOSSIP: {
+		} case CType.LOSE_GOSSIP: { mixin(S_TRACE);
 			dlg = new GossipEventDialog!(CType.LOSE_GOSSIP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.REDISPLAY: {
+		} case CType.REDISPLAY: { mixin(S_TRACE);
 			dlg = new RefreshDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.SUBSTITUTE_STEP: {
+		} case CType.SUBSTITUTE_STEP: { mixin(S_TRACE);
 			dlg = new SubstituteStepDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.SUBSTITUTE_FLAG: {
+		} case CType.SUBSTITUTE_FLAG: { mixin(S_TRACE);
 			dlg = new SubstituteFlagDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.BRANCH_STEP_CMP: {
+		} case CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
 			dlg = new BrStepCmpDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.BRANCH_FLAG_CMP: {
+		} case CType.BRANCH_FLAG_CMP: { mixin(S_TRACE);
 			dlg = new BrFlagCmpDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.BRANCH_RANDOM_SELECT: {
+		} case CType.BRANCH_RANDOM_SELECT: { mixin(S_TRACE);
 			dlg = new BrRandomSelectDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_KEY_CODE: {
+		} case CType.BRANCH_KEY_CODE: { mixin(S_TRACE);
 			dlg = new BrKeyCodeDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.CHECK_STEP: {
+		} case CType.CHECK_STEP: { mixin(S_TRACE);
 			dlg = new CheckStepDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.BRANCH_ROUND: {
+		} case CType.BRANCH_ROUND: { mixin(S_TRACE);
 			dlg = new BranchRoundDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
 		} default: assert (0, to!string(type));
 		}
 		assert (applied);
-		dlg.appliedEvent ~= {
+		dlg.appliedEvent ~= { mixin(S_TRACE);
 			auto evt = dlg.event;
 			applied(evt);
 
 			auto undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
 			dlg.appliedEvent.length = 0;
-			dlg.appliedEvent ~= {
+			dlg.appliedEvent ~= { mixin(S_TRACE);
 				appliedEdit(undo, evt);
 				undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
 			};
 		};
 		_editDlgs[evt] = dlg;
-		dlg.closeEvent ~= {
+		dlg.closeEvent ~= { mixin(S_TRACE);
 			_editDlgs.remove(evt);
 		};
 		dlg.open();
 	}
 
 	@property
-	bool canEdit() {
+	bool canEdit() { mixin(S_TRACE);
 		if (_readOnly) return false;
 		auto itm = selection;
 		if (!itm) return false;
 		auto evt = cast(Content) itm.getData();
 		return hasDialog(evt.type) && checkOpenDialog(evt.type);
 	}
-	EventDialog edit(Content evt) {
+	EventDialog edit(Content evt) { mixin(S_TRACE);
 		if (_readOnly) return null;
 		if (!hasDialog(evt.type) || !checkOpenDialog(evt.type)) return null;
 		auto p = evt in _editDlgs;
-		if (p) {
+		if (p) { mixin(S_TRACE);
 			p.active();
 			return *p;
 		}
 		EventDialog dlg;
 		auto parent = evt.parent;
 		switch (evt.type) {
-		case CType.START_BATTLE: {
+		case CType.START_BATTLE: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.START_BATTLE, Battle, "summary.battles")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.END: {
+		} case CType.END: { mixin(S_TRACE);
 			dlg = new ClearEventDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.CHANGE_AREA: {
+		} case CType.CHANGE_AREA: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.CHANGE_AREA, Area, "summary.areas")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.CHANGE_BG_IMAGE: {
+		} case CType.CHANGE_BG_IMAGE: { mixin(S_TRACE);
 			dlg = new BgImagesDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, refTarget);
 			break;
-		} case CType.EFFECT: {
+		} case CType.EFFECT: { mixin(S_TRACE);
 			dlg = new EffectDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LINK_START: {
+		} case CType.LINK_START: { mixin(S_TRACE);
 			dlg = new StartSelectDialog!(CType.LINK_START)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LINK_PACKAGE: {
+		} case CType.LINK_PACKAGE: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.LINK_PACKAGE, Package, "summary.packages")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.TALK_MESSAGE: {
+		} case CType.TALK_MESSAGE: { mixin(S_TRACE);
 			dlg = new MessageDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.TALK_DIALOG: {
+		} case CType.TALK_DIALOG: { mixin(S_TRACE);
 			dlg = new SpeakDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.PLAY_BGM: {
+		} case CType.PLAY_BGM: { mixin(S_TRACE);
 			dlg = new BgmDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.PLAY_SOUND: {
+		} case CType.PLAY_SOUND: { mixin(S_TRACE);
 			dlg = new SeDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.WAIT: {
+		} case CType.WAIT: { mixin(S_TRACE);
 			dlg = new WaitEventDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.CALL_START: {
+		} case CType.CALL_START: { mixin(S_TRACE);
 			dlg = new StartSelectDialog!(CType.CALL_START)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.CALL_PACKAGE: {
+		} case CType.CALL_PACKAGE: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.CALL_PACKAGE, Package, "summary.packages")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_FLAG: {
+		} case CType.BRANCH_FLAG: { mixin(S_TRACE);
 			dlg = new BrFlagDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.BRANCH_MULTI_STEP: {
+		} case CType.BRANCH_MULTI_STEP: { mixin(S_TRACE);
 			dlg = new BrStepNDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.BRANCH_STEP: {
+		} case CType.BRANCH_STEP: { mixin(S_TRACE);
 			dlg = new BrStepULDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.BRANCH_SELECT: {
+		} case CType.BRANCH_SELECT: { mixin(S_TRACE);
 			dlg = new BrMemberDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_ABILITY: {
+		} case CType.BRANCH_ABILITY: { mixin(S_TRACE);
 			dlg = new BrPowerDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_RANDOM: {
+		} case CType.BRANCH_RANDOM: { mixin(S_TRACE);
 			dlg = new BrRandomEventDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_LEVEL: {
+		} case CType.BRANCH_LEVEL: { mixin(S_TRACE);
 			dlg = new BrLevelDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_STATUS: {
+		} case CType.BRANCH_STATUS: { mixin(S_TRACE);
 			dlg = new BrStateDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_PARTY_NUMBER: {
+		} case CType.BRANCH_PARTY_NUMBER: { mixin(S_TRACE);
 			dlg = new BrNumEventDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_CAST: {
+		} case CType.BRANCH_CAST: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.BRANCH_CAST, CastCard, "summary.casts")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_ITEM: {
+		} case CType.BRANCH_ITEM: { mixin(S_TRACE);
 			dlg = new BrItemDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_SKILL: {
+		} case CType.BRANCH_SKILL: { mixin(S_TRACE);
 			dlg = new BrSkillDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_INFO: {
+		} case CType.BRANCH_INFO: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.BRANCH_INFO, InfoCard, "summary.infos")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_BEAST: {
+		} case CType.BRANCH_BEAST: { mixin(S_TRACE);
 			dlg = new BrBeastDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_MONEY: {
+		} case CType.BRANCH_MONEY: { mixin(S_TRACE);
 			dlg = new MoneyEventDialog!(CType.BRANCH_MONEY)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_COUPON: {
+		} case CType.BRANCH_COUPON: { mixin(S_TRACE);
 			dlg = new BranchCouponDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_COMPLETE_STAMP: {
+		} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
 			dlg = new EndEventDialog!(CType.BRANCH_COMPLETE_STAMP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_GOSSIP: {
+		} case CType.BRANCH_GOSSIP: { mixin(S_TRACE);
 			dlg = new GossipEventDialog!(CType.BRANCH_GOSSIP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.SET_FLAG: {
+		} case CType.SET_FLAG: { mixin(S_TRACE);
 			dlg = new FlagSetDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.SET_STEP: {
+		} case CType.SET_STEP: { mixin(S_TRACE);
 			dlg = new StepSetDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.SET_STEP_UP: {
+		} case CType.SET_STEP_UP: { mixin(S_TRACE);
 			dlg = new StepPlusDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.SET_STEP_DOWN: {
+		} case CType.SET_STEP_DOWN: { mixin(S_TRACE);
 			dlg = new StepMinusDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.REVERSE_FLAG: {
+		} case CType.REVERSE_FLAG: { mixin(S_TRACE);
 			dlg = new FlagRDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.CHECK_FLAG: {
+		} case CType.CHECK_FLAG: { mixin(S_TRACE);
 			dlg = new FlagJudgeDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.GET_CAST: {
+		} case CType.GET_CAST: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.GET_CAST, CastCard, "summary.casts")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_ITEM: {
+		} case CType.GET_ITEM: { mixin(S_TRACE);
 			dlg = new GetItemDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_SKILL: {
+		} case CType.GET_SKILL: { mixin(S_TRACE);
 			dlg = new GetSkillDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_INFO: {
+		} case CType.GET_INFO: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.GET_INFO, InfoCard, "summary.infos")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_BEAST: {
+		} case CType.GET_BEAST: { mixin(S_TRACE);
 			dlg = new GetBeastDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_MONEY: {
+		} case CType.GET_MONEY: { mixin(S_TRACE);
 			dlg = new MoneyEventDialog!(CType.GET_MONEY)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_COUPON: {
+		} case CType.GET_COUPON: { mixin(S_TRACE);
 			dlg = new GetCouponDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_COMPLETE_STAMP: {
+		} case CType.GET_COMPLETE_STAMP: { mixin(S_TRACE);
 			dlg = new EndEventDialog!(CType.GET_COMPLETE_STAMP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.GET_GOSSIP: {
+		} case CType.GET_GOSSIP: { mixin(S_TRACE);
 			dlg = new GossipEventDialog!(CType.GET_GOSSIP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_CAST: {
+		} case CType.LOSE_CAST: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.LOSE_CAST, CastCard, "summary.casts")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_ITEM: {
+		} case CType.LOSE_ITEM: { mixin(S_TRACE);
 			dlg = new LostItemDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_SKILL: {
+		} case CType.LOSE_SKILL: { mixin(S_TRACE);
 			dlg = new LostSkillDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_INFO: {
+		} case CType.LOSE_INFO: { mixin(S_TRACE);
 			dlg = new AreaSelectDialog!(CType.LOSE_INFO, InfoCard, "summary.infos")
 				(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_BEAST: {
+		} case CType.LOSE_BEAST: { mixin(S_TRACE);
 			dlg = new LostBeastDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_MONEY: {
+		} case CType.LOSE_MONEY: { mixin(S_TRACE);
 			dlg = new MoneyEventDialog!(CType.LOSE_MONEY)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_COUPON: {
+		} case CType.LOSE_COUPON: { mixin(S_TRACE);
 			dlg = new LoseCouponDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_COMPLETE_STAMP: {
+		} case CType.LOSE_COMPLETE_STAMP: { mixin(S_TRACE);
 			dlg = new EndEventDialog!(CType.LOSE_COMPLETE_STAMP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.LOSE_GOSSIP: {
+		} case CType.LOSE_GOSSIP: { mixin(S_TRACE);
 			dlg = new GossipEventDialog!(CType.LOSE_GOSSIP)(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.REDISPLAY: {
+		} case CType.REDISPLAY: { mixin(S_TRACE);
 			dlg = new RefreshDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.SUBSTITUTE_STEP: {
+		} case CType.SUBSTITUTE_STEP: { mixin(S_TRACE);
 			dlg = new SubstituteStepDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.SUBSTITUTE_FLAG: {
+		} case CType.SUBSTITUTE_FLAG: { mixin(S_TRACE);
 			dlg = new SubstituteFlagDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.BRANCH_STEP_CMP: {
+		} case CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
 			dlg = new BrStepCmpDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.BRANCH_FLAG_CMP: {
+		} case CType.BRANCH_FLAG_CMP: { mixin(S_TRACE);
 			dlg = new BrFlagCmpDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.BRANCH_RANDOM_SELECT: {
+		} case CType.BRANCH_RANDOM_SELECT: { mixin(S_TRACE);
 			dlg = new BrRandomSelectDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.BRANCH_KEY_CODE: {
+		} case CType.BRANCH_KEY_CODE: { mixin(S_TRACE);
 			dlg = new BrKeyCodeDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
-		} case CType.CHECK_STEP: {
+		} case CType.CHECK_STEP: { mixin(S_TRACE);
 			dlg = new CheckStepDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt, _summ.flagDirRoot);
 			break;
-		} case CType.BRANCH_ROUND: {
+		} case CType.BRANCH_ROUND: { mixin(S_TRACE);
 			dlg = new BranchRoundDialog(_comm, _prop, _tree.control.getShell(), _summ, parent, evt);
 			break;
 		} default: assert (0);
 		}
 		auto undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
-		dlg.appliedEvent ~= {
+		dlg.appliedEvent ~= { mixin(S_TRACE);
 			appliedEdit(undo, evt);
 			undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
 		};
 		_editDlgs[evt] = dlg;
-		dlg.closeEvent ~= {
+		dlg.closeEvent ~= { mixin(S_TRACE);
 			_editDlgs.remove(evt);
 		};
 		dlg.open();
@@ -1308,8 +1308,8 @@ private:
 	}
 
 	@property
-	AbstractArea refTarget() {
-		if (_et && _et.owner) {
+	AbstractArea refTarget() { mixin(S_TRACE);
+		if (_et && _et.owner) { mixin(S_TRACE);
 			auto a = cast(Area) _et.owner;
 			if (a) return a;
 			auto b = cast(Battle) _et.owner;
@@ -1322,25 +1322,25 @@ private:
 		return null;
 	}
 
-	void refreshStatusLine() {
+	void refreshStatusLine() { mixin(S_TRACE);
 		auto itm = selection;
-		if (itm) {
+		if (itm) { mixin(S_TRACE);
 			_statusLine = .contentText(_comm, cast(Content) itm.getData());
-		} else {
+		} else { mixin(S_TRACE);
 			_statusLine = "";
 		}
 		_comm.setStatusLine(_tree.control, _statusLine);
 	}
 	class TListener : TreeListener {
-		override void treeCollapsed(TreeEvent e) {
+		override void treeCollapsed(TreeEvent e) { mixin(S_TRACE);
 			_comm.refreshToolBar();
 		}
-		override void treeExpanded(TreeEvent e) {
+		override void treeExpanded(TreeEvent e) { mixin(S_TRACE);
 			_comm.refreshToolBar();
 		}
 	}
 	class SListener : SelectionAdapter {
-		public override void widgetSelected(SelectionEvent e) {
+		public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			assert (cast(Content) e.item.getData());
 			refreshConvMenu();
 			refreshStatusLine();
@@ -1353,44 +1353,44 @@ private:
 		Item _parItm;
 		Item _targ;
 	public:
-		override void dragStart(DragSourceEvent e) {
+		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
 			auto itm = selection;
 			e.doit = !_readOnly && itm && (cast(Content) itm.getData()).type != CType.START
 				&& (cast(DragSource) e.getSource()).getControl().isFocusControl();
-			if (e.doit) {
+			if (e.doit) { mixin(S_TRACE);
 				_targ = itm;
 				_parItm = _tree.getParentItem(itm);
 				_dragItm = _targ;
 			}
 		}
-		override void dragSetData(DragSourceEvent e) {
+		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
 			auto itm = selection;
-			if (itm && XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
+			if (itm && XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
 				e.data = bytesFromXML(toXML((cast(Content)itm.getData())));
 			}
 		}
-		override void dragFinished(DragSourceEvent e) {
+		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
 			_dragItm = null;
 			auto itm = _targ;
-			if (itm && e.detail == DND.DROP_MOVE) {
+			if (itm && e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
 				bool empty = _et.owner.isEmpty;
 				scope (exit) {
 					if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
 				}
 				auto c = cast(Content) itm.getData();
 				_comm.delContent.call(c);
-				if (_parItm) {
+				if (_parItm) { mixin(S_TRACE);
 					assert (_parItm.getData());
 					assert (itm.getData());
 					assert ((cast(Content) _parItm.getData()).detail.owner);
 					assert (cast(Content) itm.getData());
 					(cast(Content) _parItm.getData()).remove(c);
-				} else {
+				} else { mixin(S_TRACE);
 					_et.remove(c);
 				}
 				_tree.control.setRedraw(false);
 				itm.dispose();
-				if (_tree.editor) {
+				if (_tree.editor) { mixin(S_TRACE);
 					_tree.editor.updateEventTree();
 				}
 				_tree.control.setRedraw(true);
@@ -1401,14 +1401,14 @@ private:
 	}
 	class EventDropTarget : DropTargetAdapter {
 	private:
-		void move(DropTargetEvent e) {
-			if (_readOnly) {
+		void move(DropTargetEvent e) { mixin(S_TRACE);
+			if (_readOnly) { mixin(S_TRACE);
 				e.detail = DND.DROP_NONE;
 				return;
 			}
-			if (_tree.tree) {
+			if (_tree.tree) { mixin(S_TRACE);
 				e.detail = e.item ? DND.DROP_MOVE : DND.DROP_NONE;
-			} else {
+			} else { mixin(S_TRACE);
 				auto p = _tree.editor.toControl(new Point(e.x, e.y));
 				auto c = _tree.editor.getContent(p.x, p.y);
 				_tree.editor.updateLightup();
@@ -1416,17 +1416,17 @@ private:
 			}
 		}
 	public:
-		override void dragEnter(DropTargetEvent e){
+		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
 			move(e);
 		}
-		override void dragOver(DropTargetEvent e){
+		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
 			move(e);
 		}
-		override void drop(DropTargetEvent e){
+		override void drop(DropTargetEvent e){ mixin(S_TRACE);
 			if (_readOnly) return;
 			e.detail = DND.DROP_NONE;
 			if (!isXMLBytes(e.data)) return;
-			if (!_tree.tree) {
+			if (!_tree.tree) { mixin(S_TRACE);
 				auto p = _tree.editor.toControl(new Point(e.x, e.y));
 				auto c = _tree.editor.getContent(p.x, p.y);
 				if (!c) return;
@@ -1434,52 +1434,52 @@ private:
 			}
 			assert (cast(Item)e.item);
 			auto ti = cast(Item)e.item;
-			if (!(cast(Content)ti.getData()).detail.owner) {
+			if (!(cast(Content)ti.getData()).detail.owner) { mixin(S_TRACE);
 				ti = _tree.getParentItem(ti);
 				if (!ti) return;
 			}
-			if ((cast(Content)ti.getData()).detail.owner) {
-				try {
+			if ((cast(Content)ti.getData()).detail.owner) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					auto node = XNode.parse(bytesToXML(e.data));
 					bool samePane = _id == node.attr("paneId", false, "");
 					string id = node.attr("contentId", false, "");
 					string lastNextType = node.attr("lastNextType", false, "");
 					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 					auto evt = Content.createFromNode(node, ver);
-					if (evt) {
+					if (evt) { mixin(S_TRACE);
 						auto owner = cast(Content)ti.getData();
 						assert (owner.detail.owner);
 						auto sp = selParent(ti);
-						if (!sp || sp.eventId != id) {
+						if (!sp || sp.eventId != id) { mixin(S_TRACE);
 							// 転送先が自分の子コンテントではないなら転送成功
 							bool empty = _et.owner.isEmpty;
 							scope (exit) {
 								if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
 							}
-							if (_dragItm) {
+							if (_dragItm) { mixin(S_TRACE);
 								auto top = _tree.topItem(ti);
-								if (top == _tree.topItem(_dragItm)) {
+								if (top == _tree.topItem(_dragItm)) { mixin(S_TRACE);
 									store(cast(Content)top.getData());
-								} else {
+								} else { mixin(S_TRACE);
 									store(cast(Content)_tree.getParentItem(_dragItm).getData(), owner);
 								}
-							} else {
+							} else { mixin(S_TRACE);
 								store(owner);
 							}
-							if (cast(Content)_tree.getParentItem(_dragItm).getData() !is owner) {
+							if (cast(Content)_tree.getParentItem(_dragItm).getData() !is owner) { mixin(S_TRACE);
 								adjustText(owner, evt, lastNextType);
 							}
-							if (_insertFirst) {
+							if (_insertFirst) { mixin(S_TRACE);
 								owner.insert(_prop.parent, 0, evt);
-							} else {
+							} else { mixin(S_TRACE);
 								owner.add(_prop.parent, evt);
 							}
 							_comm.refContent.call(evt);
 							_tree.control.setRedraw(false);
 							Item itm;
-							if (_tree.tree) {
+							if (_tree.tree) { mixin(S_TRACE);
 								itm = createTreeItem(cast(TreeItem)ti, evt, eventText(owner, evt), _prop.images.content(evt.type));
-							} else {
+							} else { mixin(S_TRACE);
 								_tree.editor.updateEventTree();
 								itm = EventEditorItem.valueOf(_tree.editor, evt);
 							}
@@ -1487,7 +1487,7 @@ private:
 							_tree.setSelection([itm]);
 							refreshStatusLine();
 							_comm.refUseCount.call();
-							if (evt.detail.owner) {
+							if (evt.detail.owner) { mixin(S_TRACE);
 								createChilds(itm, evt);
 								_tree.setExpanded(itm, true);
 							}
@@ -1502,11 +1502,11 @@ private:
 				}
 			}
 		}
-		private Content selParent(Item targ) {
+		private Content selParent(Item targ) { mixin(S_TRACE);
 			auto itm = selection;
-			if (itm) {
-				while (targ) {
-					if (itm == targ) {
+			if (itm) { mixin(S_TRACE);
+				while (targ) { mixin(S_TRACE);
+					if (itm == targ) { mixin(S_TRACE);
 						return cast(Content)itm.getData();
 					}
 					targ = _tree.getParentItem(targ);
@@ -1515,15 +1515,15 @@ private:
 			return null;
 		}
 	}
-	private void adjustText(in Content owner, Content evt, string lastNextType) {
+	private void adjustText(in Content owner, Content evt, string lastNextType) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!_prop.var.etc.adjustContentName) return;
-		if (lastNextType != "" && owner.detail.nextType !is toCNextType(lastNextType)) {
+		if (lastNextType != "" && owner.detail.nextType !is toCNextType(lastNextType)) { mixin(S_TRACE);
 			// 後続タイプが異なるので一端後続テキストをクリア
 			evt.setName(_prop.parent, "");
-		} else if (owner.detail.nextType !is CNextType.TEXT) {
-			foreach (ct; owner.next) {
-				if (ct.name == evt.name) {
+		} else if (owner.detail.nextType !is CNextType.TEXT) { mixin(S_TRACE);
+			foreach (ct; owner.next) { mixin(S_TRACE);
+				if (ct.name == evt.name) { mixin(S_TRACE);
 					// すでに同じテキストの後続コンテントがいるので
 					// 一端後続テキストをクリア
 					evt.setName(_prop.parent, "");
@@ -1542,26 +1542,26 @@ private:
 
 		private ToolItem _itm;
 		private Cursor _cursor;
-		this (EventTreeView v, CType type, Cursor cursor) {
+		this (EventTreeView v, CType type, Cursor cursor) { mixin(S_TRACE);
 			this.type = type;
 			_v = v;
 			_cursor = cursor;
 		}
-		void create(SelectionEvent e) {
+		void create(SelectionEvent e) { mixin(S_TRACE);
 			if (_readOnly) return;
-			if (_itm.getSelection()) {
+			if (_itm.getSelection()) { mixin(S_TRACE);
 				auto itm = _v.selection;
-				if (_v._putMode is MenuID.PutQuick && itm) {
+				if (_v._putMode is MenuID.PutQuick && itm) { mixin(S_TRACE);
 					putQuick(_v._shiftDown);
 					if (e) e.doit = false;
 					return;
 				}
 
 				_v._comp.setCursor(_cursor);
-				if (_v._toolWin && !_v._toolWin.isDisposed()) {
+				if (_v._toolWin && !_v._toolWin.isDisposed()) { mixin(S_TRACE);
 					_v._toolWin.setCursor(_cursor);
 				}
-				if (_v._autoHideTools) {
+				if (_v._autoHideTools) { mixin(S_TRACE);
 					_v._autoHideTools.setCursor(_cursor);
 				}
 				_v.clearClickStart();
@@ -1573,7 +1573,7 @@ private:
 			}
 		}
 		void middleClick() { putQuick(true); }
-		private void putQuick(bool insert) {
+		private void putQuick(bool insert) { mixin(S_TRACE);
 			if (_readOnly) return;
 			auto itm = _v.selection;
 			if (_v._putMode !is MenuID.PutQuick || !itm) return;
@@ -1585,25 +1585,25 @@ private:
 			_itm.setSelection(false);
 		}
 		@property
-		void ti(ToolItem ti) {
+		void ti(ToolItem ti) { mixin(S_TRACE);
 			_itm = ti;
 			auto listener = new class MouseAdapter {
-				override void mouseUp(MouseEvent e) {
+				override void mouseUp(MouseEvent e) { mixin(S_TRACE);
 					if (e.button != 2) return;
 					auto itm = _itm.getParent().getItem(new Point(e.x, e.y));
-					if (itm is _itm) {
+					if (itm is _itm) { mixin(S_TRACE);
 						middleClick();
 					}
 				}
 			};
 			_itm.getParent().addMouseListener(listener);
-			.listener(_itm, SWT.Dispose, {
+			.listener(_itm, SWT.Dispose, { mixin(S_TRACE);
 				_itm.getParent().removeMouseListener(listener);
 			});
 		}
 		@property
 		ToolItem ti() {return _itm;}
-		void convert() {
+		void convert() { mixin(S_TRACE);
 			if (_readOnly) return;
 			auto sel = selection;
 			if (!sel) return;
@@ -1615,14 +1615,14 @@ private:
 			auto oldd = c.detail;
 			c.convertType(type, _prop.parent);
 			auto newd = c.detail;
-			if (newd.use(CArg.BG_IMAGES) && !oldd.use(CArg.BG_IMAGES)) {
+			if (newd.use(CArg.BG_IMAGES) && !oldd.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
 				c.backs = createBgImages(summSkin, _prop.var.etc.bgImagesDefault);
 			}
-			if (newd.use(CArg.DIALOGS) && !oldd.use(CArg.DIALOGS)) {
+			if (newd.use(CArg.DIALOGS) && !oldd.use(CArg.DIALOGS)) { mixin(S_TRACE);
 				c.dialogs = [new SDialog];
 			}
 			sel.setImage(_prop.images.content(type));
-			foreach (itm; _tree.getItems(sel)) {
+			foreach (itm; _tree.getItems(sel)) { mixin(S_TRACE);
 				itm.setText(eventText(c, cast(Content) itm.getData()));
 				procTreeItem(itm);
 			}
@@ -1634,7 +1634,7 @@ private:
 			_comm.refreshToolBar();
 		}
 	}
-	ToolItem createEI(CType type, ToolBar bar, RadioGroup!(ToolItem) g) {
+	ToolItem createEI(CType type, ToolBar bar, RadioGroup!(ToolItem) g) { mixin(S_TRACE);
 		auto text = _prop.msgs.contentName(type);
 		auto img = _prop.images.content(type);
 		auto imgData = img.getImageData();
@@ -1647,27 +1647,27 @@ private:
 		_conts[type] = ce;
 		return itm;
 	}
-	void initConvMenu() {
+	void initConvMenu() { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!_conts.length) return;
-		foreach (cGrp, cs; CTYPE_GROUP) {
+		foreach (cGrp, cs; CTYPE_GROUP) { mixin(S_TRACE);
 			auto conv = convMenu(cGrp);
-			foreach (cType; cs) {
+			foreach (cType; cs) { mixin(S_TRACE);
 				initConvMenu(cType, cType is CType.START ? _convM : conv);
 			}
 		}
 	}
-	void initConvMenu(CType type, Menu convMenu) {
+	void initConvMenu(CType type, Menu convMenu) { mixin(S_TRACE);
 		auto text = _prop.msgs.contentName(type);
 		auto img = _prop.images.content(type);
 		auto ce = _conts[type];
-		if (type != CType.START) {
+		if (type != CType.START) { mixin(S_TRACE);
 			ce.convMenuItem = createMenuItem2(_comm, convMenu, text, img, &ce.convert, null);
 			ce.convMenuItem.setEnabled(false);
 		}
 	}
 	class CDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			auto cbar = cast(CoolBar) e.widget;
 			_prop.var.etc.contentsAutoOpen = _autoOpen;
 			switch (_putMode) {
@@ -1687,17 +1687,17 @@ private:
 		}
 	}
 	class TDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			assert (_toolWin);
 			if (_toolWin.isDisposed()) return;
-			if (_toolWin.getVisible()) {
+			if (_toolWin.getVisible()) { mixin(S_TRACE);
 				saveToolWinPos();
 			}
 		}
 	}
 	class TCListener : ControlAdapter {
-		override void controlMoved(ControlEvent e) {
-			if (_autoHideTools) {
+		override void controlMoved(ControlEvent e) { mixin(S_TRACE);
+			if (_autoHideTools) { mixin(S_TRACE);
 				calcAutoHideSize();
 				return;
 			}
@@ -1711,12 +1711,12 @@ private:
 		}
 	}
 	class AHTCListener : ControlAdapter {
-		override void controlResized(ControlEvent e) {
+		override void controlResized(ControlEvent e) { mixin(S_TRACE);
 			if (!_autoHideTools.isVisible()) return;
 			calcAutoHideSize();
 		}
 	}
-	void calcAutoHideSize() {
+	void calcAutoHideSize() { mixin(S_TRACE);
 		if (!_autoHideTools) return;
 		auto tb = _tree.control.getBounds();
 		auto ca1 = _contentsBoxArea.getBounds();
@@ -1726,15 +1726,15 @@ private:
 		_autoHideTools.setBounds(new Rectangle(x, y, size.x, size.y));
 	}
 	class MouseTrack : Listener {
-		override void handleEvent(Event e) {
+		override void handleEvent(Event e) { mixin(S_TRACE);
 			auto c = cast(Control) e.widget;
 			if (!c || !_autoHideTools) return;
-			if (!_et) {
+			if (!_et) { mixin(S_TRACE);
 				_autoHideTools.setVisible(false);
 				return;
 			}
 			if (e.type is SWT.MouseMove && _contentsBoxArea.isVisible()) return;
-			if (c !is _tree.control && !isDescendant(_autoHideTools, c) && !isDescendant(_contentsBoxArea, c)) {
+			if (c !is _tree.control && !isDescendant(_autoHideTools, c) && !isDescendant(_contentsBoxArea, c)) { mixin(S_TRACE);
 				_autoHideTools.setVisible(false);
 				return;
 			}
@@ -1742,7 +1742,7 @@ private:
 			auto ca2 = _autoHideTools.getBounds();
 			ca2.x = 0;
 			ca2.y = 0;
-			if (!_autoHideTools.isVisible()) {
+			if (!_autoHideTools.isVisible()) { mixin(S_TRACE);
 				ca2.width = 0;
 				ca2.height = 0;
 			}
@@ -1750,28 +1750,28 @@ private:
 			auto ca1 = _contentsBoxArea.getBounds();
 			ca1.x = 0;
 			ca1.y = 0;
-			if (0 == ca1.height) {
+			if (0 == ca1.height) { mixin(S_TRACE);
 				ca1.height = _prop.var.etc.showContentsBoxHeightWhenNoToolBar;
 			}
 			auto p1 = _contentsBoxArea.toControl(p);
-			if (ca1.contains(p1) || ca2.contains(p2)) {
-				if (e.type is SWT.MouseDown && _autoHideTools.isVisible()) {
+			if (ca1.contains(p1) || ca2.contains(p2)) { mixin(S_TRACE);
+				if (e.type is SWT.MouseDown && _autoHideTools.isVisible()) { mixin(S_TRACE);
 				_autoHideTools.setVisible(false);
- 				} else if ((e.type is SWT.MouseDown || _tree.control.isFocusControl()) && !_autoHideTools.isVisible()) {
+ 				} else if ((e.type is SWT.MouseDown || _tree.control.isFocusControl()) && !_autoHideTools.isVisible()) { mixin(S_TRACE);
 					calcAutoHideSize();
 					_autoHideTools.setVisible(true);
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				_autoHideTools.setVisible(false);
 			}
 		}
 	}
 	class PSListener : ShellAdapter {
-		override void shellActivated(ShellEvent e) {
+		override void shellActivated(ShellEvent e) { mixin(S_TRACE);
 			assert (_toolWin);
 			if (_toolWin.isDisposed()) return;
 			auto oldAct = _comm.actToolWin;
-			if (oldAct && !oldAct.isDisposed() && oldAct.isVisible()) {
+			if (oldAct && !oldAct.isDisposed() && oldAct.isVisible()) { mixin(S_TRACE);
 				oldAct.setVisible(false);
 			}
 			_comm.actToolWin = _toolWin;
@@ -1779,19 +1779,19 @@ private:
 			_comm.refreshToolBar();
 		}
 	}
-	void redraw() {
-		if (_tree.editor) {
+	void redraw() { mixin(S_TRACE);
+		if (_tree.editor) { mixin(S_TRACE);
 			_tree.editor.updateEventTree();
-		} else {
+		} else { mixin(S_TRACE);
 			_tree.control.redraw();
 		}
 	}
 	class TRDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
-			foreach (cur; _cursors) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+			foreach (cur; _cursors) { mixin(S_TRACE);
 				cur.dispose();
 			}
-			if (!_readOnly) {
+			if (!_readOnly) { mixin(S_TRACE);
 				_comm.refSkin.remove(&refSkin);
 				_comm.refCast.remove(&__refreshCast);
 				_comm.delCast.remove(&__refreshCast);
@@ -1826,31 +1826,31 @@ private:
 			_comm.refTargetVersion.remove(&redraw);
 			_comm.refEventTreeViewStyle.remove(&refEventTreeViewStyle);
 			if (_grayFont) _grayFont.dispose();
-			if (_toolWin) {
+			if (_toolWin) { mixin(S_TRACE);
 				saveToolWinPos();
 				_toolWin.dispose();
 			}
-			if (_autoHideTools && _mTrack) {
+			if (_autoHideTools && _mTrack) { mixin(S_TRACE);
 				_autoHideTools.getDisplay().removeFilter(SWT.MouseDown, _mTrack);
 				_autoHideTools.getDisplay().removeFilter(SWT.MouseEnter, _mTrack);
 				_autoHideTools.getDisplay().removeFilter(SWT.MouseExit, _mTrack);
 			}
-			if (_tcListener) {
+			if (_tcListener) { mixin(S_TRACE);
 				_autoHideTools.getParent().removeControlListener(_tcListener);
 			}
-			if (_autoHideTools) {
+			if (_autoHideTools) { mixin(S_TRACE);
 				_autoHideTools.dispose();
 			}
-			foreach (dlg; _editDlgs.values) {
+			foreach (dlg; _editDlgs.values) { mixin(S_TRACE);
 				dlg.forceCancel();
 			}
-			foreach (dlg; _commentDlgs.values) {
+			foreach (dlg; _commentDlgs.values) { mixin(S_TRACE);
 				dlg.forceCancel();
 			}
 		}
 	}
 	class TSListener : ShellAdapter {
-		public override void shellClosed(ShellEvent e) {
+		public override void shellClosed(ShellEvent e) { mixin(S_TRACE);
 			assert (_toolWin);
 			if (_toolWin.isDisposed()) return;
 			_toolWin.setVisible(false);
@@ -1858,8 +1858,8 @@ private:
 		}
 	}
 	class TMListener : MouseAdapter {
-		override void mouseDown(MouseEvent e) {
-			if (e.button == 3) {
+		override void mouseDown(MouseEvent e) { mixin(S_TRACE);
+			if (e.button == 3) { mixin(S_TRACE);
 				arrow();
 				_comm.refreshToolBar();
 			}
@@ -1868,27 +1868,27 @@ private:
 	private class PutScript {
 		private string _script;
 		private Image _img = null;
-		this (string script) {
+		this (string script) { mixin(S_TRACE);
 			_script = script;
 			auto type = cwx.script.firstContentType(_prop.parent, _summ, _script);
-			if (type != -1) {
+			if (type != -1) { mixin(S_TRACE);
 				_img = _prop.images.content(type);
 			}
 		}
-		void put(SelectionEvent se) {
+		void put(SelectionEvent se) { mixin(S_TRACE);
 			pasteScript(_script, (se.stateMask & SWT.SHIFT) != 0);
 		}
 		@property
-		Image image() {
+		Image image() { mixin(S_TRACE);
 			return _img;
 		}
 	}
-	void refreshTemplates() {
+	void refreshTemplates() { mixin(S_TRACE);
 		if (_readOnly) return;
-		foreach (itm; _templMenu.getItems()) {
+		foreach (itm; _templMenu.getItems()) { mixin(S_TRACE);
 			itm.dispose();
 		}
-		foreach (t; _prop.var.etc.eventTemplates) {
+		foreach (t; _prop.var.etc.eventTemplates) { mixin(S_TRACE);
 			// 設定でコンパイルオプションが変化する可能性があるため事前コンパイルは行わない
 			auto c = new PutScript(t.script);
 			createMenuItem2(_comm, _templMenu, t.name, c.image, &c.put, () => _et !is null);
@@ -1897,7 +1897,7 @@ private:
 	}
 
 	/// 使用数とツリー毎の区切り線の描画。
-	void drawStartInfo(PaintEvent e, Color lineColor, Color fontColor) {
+	void drawStartInfo(PaintEvent e, Color lineColor, Color fontColor) { mixin(S_TRACE);
 		if (!_et) return;
 		assert (_tree.tree !is null);
 		if (!_prop.var.etc.drawCountOfUseOfStart && !_prop.var.etc.drawContentTreeLine) return;
@@ -1910,8 +1910,8 @@ private:
 		auto ucExtent = e.gc.textExtent(_prop.msgs.startUseCount);
 		int maxW = 0;
 		int h = e.gc.getFontMetrics().getHeight();
-		if (_prop.var.etc.drawCountOfUseOfStart) {
-			foreach (i, itm; _tree.tree.getItems()) {
+		if (_prop.var.etc.drawCountOfUseOfStart) { mixin(S_TRACE);
+			foreach (i, itm; _tree.tree.getItems()) { mixin(S_TRACE);
 				auto c = cast(Content)itm.getData();
 				assert (c);
 				int count = suc.get(toStartId(c.name));
@@ -1921,16 +1921,16 @@ private:
 				maxW = max(maxW, extent.x);
 			}
 		}
-		foreach (i, itm; _tree.tree.getItems()) {
+		foreach (i, itm; _tree.tree.getItems()) { mixin(S_TRACE);
 			auto b = itm.getBounds();
 			if (b.y + b.height <= ca.y) continue;
 			if (ca.y + ca.height < b.y) break;
-			if (_prop.var.etc.drawContentTreeLine && 0 < i) {
+			if (_prop.var.etc.drawContentTreeLine && 0 < i) { mixin(S_TRACE);
 				e.gc.setForeground(lineColor);
 				scope (exit) e.gc.setForeground(fore);
 				e.gc.drawLine(0, b.y, ca.width, b.y);
 			}
-			if (_prop.var.etc.drawCountOfUseOfStart) {
+			if (_prop.var.etc.drawCountOfUseOfStart) { mixin(S_TRACE);
 				string t = counts[i];
 				int tx = ca.width - maxW - 5;
 				int ty = b.y + (b.height - h) / 2;
@@ -1942,7 +1942,7 @@ private:
 		}
 	}
 	/// コメントと警告の描画。
-	void drawComment(PaintEvent e, Color lineColor) {
+	void drawComment(PaintEvent e, Color lineColor) { mixin(S_TRACE);
 		assert (_tree.tree !is null);
 		auto fore = e.gc.getForeground();
 		auto back = e.gc.getBackground();
@@ -1952,16 +1952,16 @@ private:
 		scope (exit) e.gc.getFont().dispose();
 		Rectangle[] boxes;
 		TreeItem[] itms;
-		void recurse(TreeItem itm) {
+		void recurse(TreeItem itm) { mixin(S_TRACE);
 			boxes ~= itm.getBounds();
 			itms ~= itm;
-			if (_tree.getExpanded(itm)) {
-				foreach (chld; itm.getItems()) {
+			if (_tree.getExpanded(itm)) { mixin(S_TRACE);
+				foreach (chld; itm.getItems()) { mixin(S_TRACE);
 					recurse(chld);
 				}
 			}
 		}
-		foreach (itm; _tree.tree.getItems()) {
+		foreach (itm; _tree.tree.getItems()) { mixin(S_TRACE);
 			recurse(itm);
 		}
 		if (!itms.length) return;
@@ -1982,15 +1982,15 @@ private:
 			if (wImg) wImg.dispose();
 		}
 		_warningRects = [];
-		Image warningImage() {
-			if (!wImg) {
+		Image warningImage() { mixin(S_TRACE);
+			if (!wImg) { mixin(S_TRACE);
 				wImg = .warningImage(_prop, _tree.control.getDisplay());
 			}
 			return wImg;
 		}
 		auto dotExtent = e.gc.textExtent("...");
-		foreach (i, itm; itms) {
-			if (itm.getItemCount() && !itm.getExpanded()) {
+		foreach (i, itm; itms) { mixin(S_TRACE);
+			if (itm.getItemCount() && !itm.getExpanded()) { mixin(S_TRACE);
 				// アイテムを畳んでいる場合は明示する
 				e.gc.setAlpha(128);
 				scope (exit) e.gc.setAlpha(255);
@@ -2007,7 +2007,7 @@ private:
 			}
 			auto c = cast(Content) itm.getData();
 			string cm = c.comment;
-			if (cm.length) {
+			if (cm.length) { mixin(S_TRACE);
 				int dis = _prop.var.etc.commentBoxDistance;
 				auto ib = itm.getBounds();
 				cm = std.string.chomp(cm);
@@ -2016,7 +2016,7 @@ private:
 				// 測り直す
 				te.x = 0;
 				auto lines = splitLines!string(cm);
-				foreach (line; lines) {
+				foreach (line; lines) { mixin(S_TRACE);
 					te.x = max(e.gc.textExtent(line).x, te.x);
 				}
 				int tx = ib.x + ib.width + dis;
@@ -2025,17 +2025,17 @@ private:
 				int by = ty - MARGIN_T;
 				int bw = te.x + MARGIN_L * 2;
 				int bh = te.y + MARGIN_T * 2;
-				if (by < mny) {
+				if (by < mny) { mixin(S_TRACE);
 					ty += mny - by;
 					by = ty - MARGIN_T;
 				}
-				if (mxy < by + bh) {
+				if (mxy < by + bh) { mixin(S_TRACE);
 					ty -= by + bh - mxy;
 					by = ty - MARGIN_T;
 				}
 				auto box = new Rectangle(bx, by, bw, bh);
-				foreach (b; boxes) {
-					if (b.intersects(box)) {
+				foreach (b; boxes) { mixin(S_TRACE);
+					if (b.intersects(box)) { mixin(S_TRACE);
 						bx = b.x + b.width + MARGIN_L;
 						box.x = bx;
 						tx = bx + MARGIN_L;
@@ -2054,9 +2054,9 @@ private:
 				bs ~= box;
 				texts ~= lines;
 			}
-			if (_prop.var.etc.drawContentWarnings) {
+			if (_prop.var.etc.drawContentWarnings) { mixin(S_TRACE);
 				auto warnings = .warnings(_prop.parent, summSkin, _summ, c, _prop.var.etc.targetVersion);
-				if (warnings.length) {
+				if (warnings.length) { mixin(S_TRACE);
 					auto b = itm.getBounds();
 					if (b.y + b.height <= ca.y) continue;
 					if (ca.y + ca.height < b.y) continue;
@@ -2067,7 +2067,7 @@ private:
 					e.gc.drawImage(img, 0, 0, _prop.var.etc.warningImageWidth, 1, ix, b.y, ca.width - ix, itmH);
 					auto bounds = _prop.images.warning.getBounds();
 					int wx = .max(b.x + b.width, ca.width - bounds.width - 1);
-					if (wx < ca.width) {
+					if (wx < ca.width) { mixin(S_TRACE);
 						e.gc.drawImage(_prop.images.warning, wx, b.y + (itmH - bounds.height) / 2);
 					}
 					auto rect = new Rectangle(ix, b.y, _prop.var.etc.warningImageWidth, b.height);
@@ -2076,7 +2076,7 @@ private:
 			}
 		}
 		updateToolTip();
-		foreach (i, lines; texts) {
+		foreach (i, lines; texts) { mixin(S_TRACE);
 			auto b = bs[i];
 			int bx = b.x;
 			int by = b.y;
@@ -2091,7 +2091,7 @@ private:
 
 			// FIXME: 場合によって改行が反映されない
 //			e.gc.drawString(cm, tx, ty, true);
-			foreach (line; lines) {
+			foreach (line; lines) { mixin(S_TRACE);
 				e.gc.drawString(line, tx, ty, true);
 				ty += lineHeight;
 			}
@@ -2107,7 +2107,7 @@ private:
 		}
 	}
 	class PaintTree : PaintListener {
-		override void paintControl(PaintEvent e) {
+		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			auto d = _tree.control.getDisplay();
 			auto fore = e.gc.getForeground();
 			auto back = e.gc.getBackground();
@@ -2122,7 +2122,7 @@ public:
 	this (Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
 			void delegate() refreshTopStart,
-			Composite contentsBoxArea, bool readOnly) {
+			Composite contentsBoxArea, bool readOnly) { mixin(S_TRACE);
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 
 		_comm = comm;
@@ -2137,15 +2137,15 @@ public:
 
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout(zeroGridLayout(1, false));
-		if (!_readOnly) {
-			if (_prop.var.etc.contentsFloat) {
+		if (!_readOnly) { mixin(S_TRACE);
+			if (_prop.var.etc.contentsFloat) { mixin(S_TRACE);
 				_toolWin = new Shell(parent.getShell(), SWT.TITLE | SWT.RESIZE | SWT.TOOL);
 				_toolWin.setLayout(zeroGridLayout(1));
 				_toolWin.setText(prop.msgs.tools);
 				_toolWin.addShellListener(new TSListener);
 				_toolWin.addMouseListener(new TMListener);
 				_cbarPar = new Composite(_toolWin, SWT.NONE);
-			} else if (_prop.var.etc.contentsAutoHide) {
+			} else if (_prop.var.etc.contentsAutoHide) { mixin(S_TRACE);
 				_autoHideTools = new Shell(parent.getShell(), SWT.NO_TRIM);
 				_autoHideTools.setLayout(zeroGridLayout(1));
 				_autoHideTools.addMouseListener(new TMListener);
@@ -2154,7 +2154,7 @@ public:
 				_autoHideTools.getDisplay().addFilter(SWT.MouseDown, _mTrack);
 				_autoHideTools.getDisplay().addFilter(SWT.MouseEnter, _mTrack);
 				_autoHideTools.getDisplay().addFilter(SWT.MouseExit, _mTrack);
-			} else {
+			} else { mixin(S_TRACE);
 				_cbarPar = new Composite(_comp, SWT.NONE);
 			}
 		}
@@ -2173,7 +2173,7 @@ public:
 			_putMode = MenuID.PutSelect;
 		}
 		_insertFirst = _prop.var.etc.contentsInsertFirst;
-		if (_cbarPar) {
+		if (_cbarPar) { mixin(S_TRACE);
 			_cbarPar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			_cbarPar.setLayout(new FillLayout);
 		}
@@ -2181,19 +2181,19 @@ public:
 		_comp.addDisposeListener(new TRDListener);
 		refEventTreeViewStyle();
 
-		if (!_readOnly) {
+		if (!_readOnly) { mixin(S_TRACE);
 			auto shiftCaptcha = new class Listener {
-				override void handleEvent(Event e) {
-					if (e.type == SWT.KeyUp && e.keyCode == SWT.SHIFT) {
+				override void handleEvent(Event e) { mixin(S_TRACE);
+					if (e.type == SWT.KeyUp && e.keyCode == SWT.SHIFT) { mixin(S_TRACE);
 						_shiftDown = false;
-					} else if (e.type == SWT.KeyDown && e.keyCode == SWT.SHIFT) {
+					} else if (e.type == SWT.KeyDown && e.keyCode == SWT.SHIFT) { mixin(S_TRACE);
 						_shiftDown = true;
 					}
 				}
 			};
 			_comp.getDisplay().addFilter(SWT.KeyDown, shiftCaptcha);
 			_comp.getDisplay().addFilter(SWT.KeyUp, shiftCaptcha);
-			.listener(_comp, SWT.Dispose, {
+			.listener(_comp, SWT.Dispose, { mixin(S_TRACE);
 				_comp.getDisplay().removeFilter(SWT.KeyDown, shiftCaptcha);
 				_comp.getDisplay().removeFilter(SWT.KeyUp, shiftCaptcha);
 			});
@@ -2233,32 +2233,32 @@ public:
 
 		constructTools();
 	}
-	private void refEventTreeViewStyle() {
+	private void refEventTreeViewStyle() { mixin(S_TRACE);
 		_comp.setRedraw(false);
 		scope (exit) _comp.setRedraw(true);
 		auto sel = selection;
 		size_t[] ctPath = sel ? (cast(Content)sel.getData()).ctPath : [];
 		auto et = _et;
 		refresh(null);
-		if (_tree.tree) {
+		if (_tree.tree) { mixin(S_TRACE);
 			_tree.tree.dispose();
 			_tree.tree = null;
 		}
-		if (_tree.editor) {
+		if (_tree.editor) { mixin(S_TRACE);
 			_tree.editor.dispose();
 			_tree.editor = null;
 		}
-		if (_prop.var.etc.straightEventTreeView) {
+		if (_prop.var.etc.straightEventTreeView) { mixin(S_TRACE);
 			_tree.editor = new EventEditor(_comm, _comp, SWT.BORDER | _readOnly, _summ, null);
 			new EventEdit(_comm, _tree.editor, &editEnd, &createEditor);
-		} else {
+		} else { mixin(S_TRACE);
 			_tree.tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
 			initTree(_comm, _tree.tree, true);
-			if (!_readOnly) {
+			if (!_readOnly) { mixin(S_TRACE);
 				new TreeEdit(_comm, _tree.tree, &editEnd, &createEditor);
 			}
 			_tree.tree.addPaintListener(new PaintTree);
-			if (!_grayFont) {
+			if (!_grayFont) { mixin(S_TRACE);
 				_grayFont = new Color(_tree.control.getDisplay(), alphaColor(_tree.tree.getForeground().getRGB(), _tree.tree.getBackground().getRGB(), 128));
 			}
 		}
@@ -2272,15 +2272,15 @@ public:
 		_tree.control.addMouseListener(editl);
 		_tree.addTreeListener(new TListener);
 		_tree.addSelectionListener(new SListener);
-		.listener(_tree.control, SWT.KeyUp, {
+		.listener(_tree.control, SWT.KeyUp, { mixin(S_TRACE);
 			_comm.refreshToolBar();
 		});
-		if (_mTrack) {
+		if (_mTrack) { mixin(S_TRACE);
 			_tree.control.addListener(SWT.MouseMove, _mTrack);
 		}
 
 		auto shell = _tree.control.getShell();
-		{
+		{ mixin(S_TRACE);
 			auto popup = new Menu(shell, SWT.POP_UP);
 			createMenuItem(_comm, popup, MenuID.EditProp, &editM, &canEdit);
 			new MenuItem(popup, SWT.SEPARATOR);
@@ -2308,7 +2308,7 @@ public:
 			new MenuItem(popup, SWT.SEPARATOR);
 			createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, () => !_readOnly && 1 < _tree.getItemCount() && selection !is null);
 			void delegate() dlg = null;
-			auto convMI = createMenuItem(_comm, popup, MenuID.ConvertContent, dlg, {
+			auto convMI = createMenuItem(_comm, popup, MenuID.ConvertContent, dlg, { mixin(S_TRACE);
 				if (_readOnly) return false;
 				auto itm = selection;
 				if (!itm) return false;
@@ -2326,7 +2326,7 @@ public:
 			_tree.control.setMenu(popup);
 		}
 
-		if (!_readOnly) {
+		if (!_readOnly) { mixin(S_TRACE);
 			auto dt = new DropTarget(_tree.control, DND.DROP_DEFAULT | DND.DROP_MOVE);
 			dt.setTransfer([XMLBytesTransfer.getInstance()]);
 			dt.addDropListener(new EventDropTarget);
@@ -2337,14 +2337,14 @@ public:
 
 		_comp.layout();
 		refresh(et);
-		if (ctPath.length) {
+		if (ctPath.length) { mixin(S_TRACE);
 			sel = fromPath(ctPath);
 			_tree.setSelection([sel]);
 			_tree.showSelection();
 		}
 	}
 	private int _parX, _parY;
-	private void saveToolWinPos() {
+	private void saveToolWinPos() { mixin(S_TRACE);
 		if (!_constructTools) return;
 		assert (_toolWin);
 		if (_toolWin.isDisposed()) return;
@@ -2354,28 +2354,28 @@ public:
 	private Composite _cbarPar = null;
 	private Menu _convM;
 	private bool _constructTools = false;
-	private bool canConvTerminal() {
+	private bool canConvTerminal() { mixin(S_TRACE);
 		auto itm = selection;
 		if (!itm) return false;
 		auto evt = cast(Content) itm.getData();
 		return !evt.next.length;
 	}
-	private Menu convMenu(CTypeGroup g) {
+	private Menu convMenu(CTypeGroup g) { mixin(S_TRACE);
 		void delegate() dlg = null;
 		auto mi = createMenuItem(_comm, _convM, cTypeGroupToMenuID(g), dlg, g is CTypeGroup.Terminal ? &canConvTerminal : null, SWT.CASCADE);
 		auto m = new Menu(_tree.control.getShell(), SWT.DROP_DOWN);
 		mi.setMenu(m);
 		return m;
 	}
-	private void constructTools() {
+	private void constructTools() { mixin(S_TRACE);
 		if (_tree.control.isDisposed() || _constructTools) return;
 		_constructTools = true;
 		if (!_cbarPar) return;
-		auto cbar = createCoolBar!("contents")(_comm, _cbarPar, (CoolBar cbar) {
-			void createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) {
+		auto cbar = createCoolBar!("contents")(_comm, _cbarPar, (CoolBar cbar) { mixin(S_TRACE);
+			void createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) { mixin(S_TRACE);
 				.createCoolItem(cbar, tbar, index);
 			}
-			if (!_prop.var.etc.contentsFloat || _autoHideTools) {
+			if (!_prop.var.etc.contentsFloat || _autoHideTools) { mixin(S_TRACE);
 				cbar.addMouseListener(new TMListener);
 			}
 			auto g = new RadioGroup!(ToolItem);
@@ -2410,15 +2410,15 @@ public:
 			createCoolItem(cbar, mode);
 
 			auto tml = new TMListener;
-			foreach (cGrp, cs; CTYPE_GROUP) {
+			foreach (cGrp, cs; CTYPE_GROUP) { mixin(S_TRACE);
 				auto eBar = new ToolBar(cbar, SWT.FLAT);
 				eBar.addMouseListener(tml);
-				foreach (cType; cs) {
+				foreach (cType; cs) { mixin(S_TRACE);
 					createEI(cType, eBar, g);
 				}
-				if (cGrp is CTypeGroup.Visual) {
+				if (cGrp is CTypeGroup.Visual) { mixin(S_TRACE);
 					createCoolItem(cbar, eBar, 2);
-				} else {
+				} else { mixin(S_TRACE);
 					createCoolItem(cbar, eBar);
 				}
 			}
@@ -2427,7 +2427,7 @@ public:
 
 			cbar.addDisposeListener(new CDListener);
 		});
-		if (_toolWin) {
+		if (_toolWin) { mixin(S_TRACE);
 			auto dummy = new Composite(_toolWin, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.heightHint = 0;
@@ -2445,9 +2445,9 @@ public:
 			_toolWin.addDisposeListener(new TDListener);
 			_toolWin.getParent().addControlListener(new TCListener);
 			_tree.control.getShell().addShellListener(new PSListener);
-		} else if (_cbarPar) {
+		} else if (_cbarPar) { mixin(S_TRACE);
 			_cbarPar.getParent().layout(true);
-			if (_autoHideTools) {
+			if (_autoHideTools) { mixin(S_TRACE);
 				cbar.addControlListener(new AHTCListener);
 				_tcListener = new TCListener;
 				_autoHideTools.getParent().addControlListener(_tcListener);
@@ -2461,20 +2461,20 @@ public:
 	@property
 	string statusLine() {return _statusLine;}
 
-	void undo() {
+	void undo() { mixin(S_TRACE);
 		if (_readOnly) return;
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
-	void redo() {
+	void redo() { mixin(S_TRACE);
 		if (_readOnly) return;
 		_undo.redo();
 		_comm.refreshToolBar();
 	}
 	debug {
-		void createCWXPath() {
+		void createCWXPath() { mixin(S_TRACE);
 			auto itm = selection;
-			if (itm) {
+			if (itm) { mixin(S_TRACE);
 				auto c = cast(Content) itm.getData();
 				_comm.clipboard.setContents([new ArrayWrapperString(c.cwxPath(true))], [TextTransfer.getInstance()]);
 				_comm.refreshToolBar();
@@ -2482,14 +2482,14 @@ public:
 		}
 	}
 	@property
-	bool canToScript() {
+	bool canToScript() { mixin(S_TRACE);
 		return selection !is null;
 	}
 	@property
-	bool canToScriptAll() {
+	bool canToScriptAll() { mixin(S_TRACE);
 		return _et !is null;
 	}
-	void toScript() {
+	void toScript() { mixin(S_TRACE);
 		auto itm = selection;
 		if (!itm) return;
 		auto c = cast(Content) itm.getData();
@@ -2499,7 +2499,7 @@ public:
 		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
 	}
-	void toScriptAll() {
+	void toScriptAll() { mixin(S_TRACE);
 		if (!_et) return;
 		auto script = new CWXScript(_prop.parent, _summ);
 		auto text = script.toScript(_et.starts, summSkin.evtChildOK, _summ.legacy, "\t");
@@ -2509,49 +2509,49 @@ public:
 	}
 	private ContentCommentDialog[Content] _commentDlgs;
 	@property
-	bool canWriteComment() {
+	bool canWriteComment() { mixin(S_TRACE);
 		if (_readOnly) return false;
 		return selection !is null;
 	}
-	void writeComment() {
+	void writeComment() { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto itm = selection;
 		if (!itm) return;
 		.forceFocus(_tree.control, false);
 		auto c = cast(Content) itm.getData();
 		auto p = c in _commentDlgs;
-		if (p) {
+		if (p) { mixin(S_TRACE);
 			p.active();
 			return;
 		}
 		auto dlg = new ContentCommentDialog(_comm, _prop, _tree.control.getShell(), c.parent, c);
 		auto undo = new UndoContent(this, _comm, _prop, _summ, _et, [c]);
-		dlg.appliedEvent ~= {
+		dlg.appliedEvent ~= { mixin(S_TRACE);
 			_undo ~= undo;
 			undo = new UndoContent(this, _comm, _prop, _summ, _et, [c]);
 			redraw();
 		};
 		_commentDlgs[c] = dlg;
-		dlg.closeEvent ~= {
+		dlg.closeEvent ~= { mixin(S_TRACE);
 			_commentDlgs.remove(c);
 		};
 		dlg.open();
 	}
 
-	private void refreshConvMenu() {
+	private void refreshConvMenu() { mixin(S_TRACE);
 		if (_readOnly) return;
-		if (!_et || !selection) {
-			foreach (ce; _conts.values) {
+		if (!_et || !selection) { mixin(S_TRACE);
+			foreach (ce; _conts.values) { mixin(S_TRACE);
 				if (ce.convMenuItem) ce.convMenuItem.setEnabled(false);
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			auto c = cast(Content) selection.getData();
-			foreach (ce; _conts.values) {
+			foreach (ce; _conts.values) { mixin(S_TRACE);
 				if (ce.convMenuItem) ce.convMenuItem.setEnabled(c.canConvert(ce.type));
 			}
 		}
 	}
-	private void startToPackage() {
+	private void startToPackage() { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!_et || !selection) return;
 		if (_tree.getItemCount() <= 1) return;
@@ -2565,10 +2565,10 @@ public:
 		int index = _tree.indexOf(startItm);
 		Item[] users;
 		Content[] conts = [start];
-		void find(Item itm) {
+		void find(Item itm) { mixin(S_TRACE);
 			if (itm == startItm) return;
 			auto c = cast(Content)itm.getData();
-			if (c.start == start.name) {
+			if (c.start == start.name) { mixin(S_TRACE);
 				users ~= itm;
 				conts ~= c;
 			}
@@ -2577,20 +2577,20 @@ public:
 		foreach (itm; _tree.getItems()) find(itm);
 		auto ucp = new UndoCP(this, _comm, _prop, _summ, _et, conts, index, start);
 		auto id = _comm.createPackage(start, false);
-		if (id == 0) {
+		if (id == 0) { mixin(S_TRACE);
 			ucp.dispose();
 			return;
 		}
 		_undo ~= ucp;
 		delImpl(startItm, false);
-		foreach (itm; users) {
+		foreach (itm; users) { mixin(S_TRACE);
 			auto c = cast(Content) itm.getData();
 			switch (c.type) {
-			case CType.LINK_START: {
+			case CType.LINK_START: { mixin(S_TRACE);
 				c.convertType(CType.LINK_PACKAGE, _prop.parent);
 				c.packages = id;
 			} break;
-			case CType.CALL_START: {
+			case CType.CALL_START: { mixin(S_TRACE);
 				c.convertType(CType.CALL_PACKAGE, _prop.parent);
 				c.packages = id;
 			} break;
@@ -2603,38 +2603,38 @@ public:
 		_comm.refreshToolBar();
 	}
 
-	void refresh(EventTree et) {
+	void refresh(EventTree et) { mixin(S_TRACE);
 		_comm.setStatusLine(_tree.control, "");
 		_statusLine = "";
-		if (_et !is et) {
-			foreach (dlg; _editDlgs.values) {
+		if (_et !is et) { mixin(S_TRACE);
+			foreach (dlg; _editDlgs.values) { mixin(S_TRACE);
 				dlg.forceCancel();
 			}
-			foreach (dlg; _commentDlgs.values) {
+			foreach (dlg; _commentDlgs.values) { mixin(S_TRACE);
 				dlg.forceCancel();
 			}
 			_et = et;
 			_tree.control.setRedraw(false);
 			scope (exit) _tree.control.setRedraw(true);
-			if (_tree.tree) {
+			if (_tree.tree) { mixin(S_TRACE);
 				_tree.tree.removeAll();
-				if (et) {
-					foreach (start; et.starts) {
+				if (et) { mixin(S_TRACE);
+					foreach (start; et.starts) { mixin(S_TRACE);
 						auto itm = createTreeItem(_tree.tree, start, start.name, _prop.images.content(CType.START));
 						createChilds(itm, start);
 						_tree.setExpanded(itm, true);
 					}
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				_tree.editor.eventTree = _et;
 			}
-			if (0 < _tree.getItemCount()) {
+			if (0 < _tree.getItemCount()) { mixin(S_TRACE);
 				_tree.setSelection([_tree.getItem(0)]);
 				_tree.showSelection();
 			}
-			if (et) {
+			if (et) { mixin(S_TRACE);
 				openToolWindow();
-			} else {
+			} else { mixin(S_TRACE);
 				closeToolWindow();
 				if (_autoHideTools) _autoHideTools.setVisible(false);
 			}
@@ -2642,123 +2642,123 @@ public:
 			_comm.refreshToolBar();
 		}
 	}
-	void treeOpen() {
+	void treeOpen() { mixin(S_TRACE);
 		_tree.treeExpandedAll();
 		_comm.refreshToolBar();
 	}
-	void treeClose() {
-		foreach (itm; _tree.getItems()) {
+	void treeClose() { mixin(S_TRACE);
+		foreach (itm; _tree.getItems()) { mixin(S_TRACE);
 			_tree.setExpanded(itm, false);
 		}
 		_comm.refreshToolBar();
 	}
 	@property
-	bool canExpandTree() {
-		foreach (itm; _tree.getItems()) {
-			if (_tree.getItems(itm).length && !_tree.getExpanded(itm)) {
+	bool canExpandTree() { mixin(S_TRACE);
+		foreach (itm; _tree.getItems()) { mixin(S_TRACE);
+			if (_tree.getItems(itm).length && !_tree.getExpanded(itm)) { mixin(S_TRACE);
 				return true;
 			}
 		}
 		return false;
 	}
 	@property
-	bool canFoldTree() {
-		foreach (itm; _tree.getItems()) {
-			if (_tree.getItems(itm).length && _tree.getExpanded(itm)) {
+	bool canFoldTree() { mixin(S_TRACE);
+		foreach (itm; _tree.getItems()) { mixin(S_TRACE);
+			if (_tree.getItems(itm).length && _tree.getExpanded(itm)) { mixin(S_TRACE);
 				return true;
 			}
 		}
 		return false;
 	}
 	@property
-	bool canExpand() {
+	bool canExpand() { mixin(S_TRACE);
 		auto itm = selection;
 		if (!itm) return false;
 		auto c = cast(Content)itm.getData();
 		return c.next.length && !_tree.getExpanded(itm);
 	}
 	@property
-	bool canCollapse() {
+	bool canCollapse() { mixin(S_TRACE);
 		auto itm = selection;
 		if (!itm) return false;
 		auto c = cast(Content)itm.getData();
 		return c.next.length && _tree.getExpanded(itm);
 	}
-	void expand() {
+	void expand() { mixin(S_TRACE);
 		if (!canExpand) return;
 		auto itm = selection;
 		if (!itm) return;
 		_tree.setExpanded(itm, true);
 	}
-	void collapse() {
+	void collapse() { mixin(S_TRACE);
 		if (!canCollapse) return;
 		auto itm = selection;
 		if (!itm) return;
 		_tree.setExpanded(itm, false);
 	}
-	private void editEnd(TreeItem itm, Control c) {
+	private void editEnd(TreeItem itm, Control c) { mixin(S_TRACE);
 		editEnd(cast(Item)itm, c);
 	}
-	private void editEnd(EventEditorItem itm, Control c) {
+	private void editEnd(EventEditorItem itm, Control c) { mixin(S_TRACE);
 		editEnd(cast(Item)itm, c);
 	}
-	private void editEnd(Item itm, Control c) {
+	private void editEnd(Item itm, Control c) { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto t = cast(Text) c;
 		auto evt = (cast(Content) itm.getData());
-		if (t) {
+		if (t) { mixin(S_TRACE);
 			auto text = t.getText();
 			if (!text) text = "";
 			if (text == evt.name) return;
 			store(evt);
-			if (evt.type == CType.START) {
-				evt.setName(_prop.parent, createNewName(text, (string name) {
-					foreach (s; _et.starts) {
-						if (s !is evt && icmp(s.name, name) == 0) {
+			if (evt.type == CType.START) { mixin(S_TRACE);
+				evt.setName(_prop.parent, createNewName(text, (string name) { mixin(S_TRACE);
+					foreach (s; _et.starts) { mixin(S_TRACE);
+						if (s !is evt && icmp(s.name, name) == 0) { mixin(S_TRACE);
 							return false;
 						}
 					}
 					return true;
 				}, true));
 				itm.setText(evt.name);
-			} else {
+			} else { mixin(S_TRACE);
 				evt.setName(_prop.parent, text);
 				itm.setText(eventText(evt.parent, evt));
 			}
-			if (evt.type == CType.START && _tree.indexOf(itm) == 0) {
+			if (evt.type == CType.START && _tree.indexOf(itm) == 0) { mixin(S_TRACE);
 				_refreshTopStart();
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			auto combo = cast(Combo) c;
 			int index = combo.getSelectionIndex();
 			auto data = cast(Content)_tree.getParentItem(itm).getData();
 			string name;
 			switch (data.type) {
-			case CType.BRANCH_MULTI_STEP: {
-				if (index + 1 < combo.getItemCount()) {
+			case CType.BRANCH_MULTI_STEP: { mixin(S_TRACE);
+				if (index + 1 < combo.getItemCount()) { mixin(S_TRACE);
 					name = to!(string)(index);
-				} else {
+				} else { mixin(S_TRACE);
 					assert (index + 1 == combo.getItemCount());
 					name = _prop.sys.evtChildDefault;
 				}
 				break;
-			} case CType.BRANCH_AREA: {
-				if (index < _summ.areas.length) {
+			} case CType.BRANCH_AREA: { mixin(S_TRACE);
+				if (index < _summ.areas.length) { mixin(S_TRACE);
 					name = to!(string)(_summ.areas[index].id);
-				} else {
+				} else { mixin(S_TRACE);
 					assert (index == _summ.areas.length);
 					name = _prop.sys.evtChildDefault;
 				}
 				break;
-			} case CType.BRANCH_BATTLE: {
-				if (index < _summ.battles.length) {
+			} case CType.BRANCH_BATTLE: { mixin(S_TRACE);
+				if (index < _summ.battles.length) { mixin(S_TRACE);
 					name = to!(string)(_summ.battles[index].id);
-				} else {
+				} else { mixin(S_TRACE);
 					assert (index == _summ.battles.length);
 					name = _prop.sys.evtChildDefault;
 				}
 				break;
-			} case CType.BRANCH_STEP_CMP: {
+			} case CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
 				switch (combo.getSelectionIndex()) {
 				case 0:
 					name = _prop.sys.evtChildGreater;
@@ -2789,7 +2789,7 @@ public:
 		_comm.refreshToolBar();
 		_comm.refUseCount.call();
 	}
-	private Combo createBoolEditor(string Create)(Content evt, Content child) {
+	private Combo createBoolEditor(string Create)(Content evt, Content child) { mixin(S_TRACE);
 		if (_readOnly) return null;
 		string[] vals;
 		vals.length = 2;
@@ -2799,7 +2799,7 @@ public:
 		vals[1] = mixin (Create);
 		return createComboEditor(_comm, _prop, _tree.control, vals, vals[child.name == _prop.sys.evtChildTrue ? 0 : 1]);
 	}
-	private Combo createBoolEditor2(string Create)(Content evt, Content child) {
+	private Combo createBoolEditor2(string Create)(Content evt, Content child) { mixin(S_TRACE);
 		if (_readOnly) return null;
 		string[] vals;
 		vals.length = 2;
@@ -2809,15 +2809,15 @@ public:
 		vals[1] = mixin (Create);
 		return createComboEditor(_comm, _prop, _tree.control, vals, vals[child.name == _prop.sys.evtChildTrue ? 0 : 1]);
 	}
-	private Combo createNumEditor(string Create)(Content evt, Content child, ulong[] nums) {
+	private Combo createNumEditor(string Create)(Content evt, Content child, ulong[] nums) { mixin(S_TRACE);
 		if (_readOnly) return null;
 		string[] vals;
 		vals.length = nums.length + 1;
 		int index = nums.length;
-		foreach (i, n; nums) {
+		foreach (i, n; nums) { mixin(S_TRACE);
 			string name = to!(string)(n);
 			vals[i] = mixin (Create);
-			if (name == child.name) {
+			if (name == child.name) { mixin(S_TRACE);
 				index = i;
 			}
 		}
@@ -2825,16 +2825,16 @@ public:
 		vals[$ - 1] = mixin (Create);
 		return createComboEditor(_comm, _prop, _tree.control, vals, vals[index]);
 	}
-	private Combo createAreaSelectEditor(string Create, A)(Content evt, Content child, A[] areas) {
+	private Combo createAreaSelectEditor(string Create, A)(Content evt, Content child, A[] areas) { mixin(S_TRACE);
 		if (_readOnly) return null;
 		ulong[] nums;
 		nums.length = areas.length;
-		foreach (i, area; areas) {
+		foreach (i, area; areas) { mixin(S_TRACE);
 			nums[i] = area.id;
 		}
 		return createNumEditor!(Create)(evt, child, nums);
 	}
-	private Combo createTrioEditor(string Create)(Content evt, Content child) {
+	private Combo createTrioEditor(string Create)(Content evt, Content child) { mixin(S_TRACE);
 		if (_readOnly) return null;
 		string[] vals;
 		vals.length = 3;
@@ -2845,91 +2845,91 @@ public:
 		name = _prop.sys.evtChildEq;
 		vals[2] = mixin (Create);
 		size_t index;
-		if (child.name == _prop.sys.evtChildEq) {
+		if (child.name == _prop.sys.evtChildEq) { mixin(S_TRACE);
 			index = 2;
-		} else if (child.name == _prop.sys.evtChildLesser) {
+		} else if (child.name == _prop.sys.evtChildLesser) { mixin(S_TRACE);
 			index = 1;
-		} else {
+		} else { mixin(S_TRACE);
 			index = 0;
 		}
 		return createComboEditor(_comm, _prop, _tree.control, vals, vals[index]);
 	}
-	private Control createEditor(TreeItem itm) {
+	private Control createEditor(TreeItem itm) { mixin(S_TRACE);
 		return createEditor(cast(Item)itm);
 	}
-	private Control createEditor(EventEditorItem itm) {
+	private Control createEditor(EventEditorItem itm) { mixin(S_TRACE);
 		return createEditor(cast(Item)itm);
 	}
-	private Control createEditor(Item itm) {
+	private Control createEditor(Item itm) { mixin(S_TRACE);
 		if (_readOnly) return null;
 		auto parent = _tree.getParentItem(itm);
-		if (parent) {
-			if ((cast(Content)parent.getData()).detail.nextType == CNextType.TEXT) {
+		if (parent) { mixin(S_TRACE);
+			if ((cast(Content)parent.getData()).detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
 				return createTextEditor(_comm, _prop, _tree.control, (cast(Content)itm.getData()).name);
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			return createTextEditor(_comm, _prop, _tree.control, (cast(Content)itm.getData()).name);
 		}
 		auto data = cast(Content)parent.getData();
 		auto c = cast(Content)itm.getData();
 		switch (data.type) {
-		case CType.BRANCH_FLAG: {
+		case CType.BRANCH_FLAG: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrFlag(_prop, _summ, evt.flag, name)")(data, c);
-		} case CType.BRANCH_MULTI_STEP: {
+		} case CType.BRANCH_MULTI_STEP: { mixin(S_TRACE);
 			Step step = _summ.flagDirRoot.findStep(data.step);
 			ulong[] nums;
 			ulong count = step is null ? _prop.looks.stepMaxCount : step.count;
-			for (ulong i = 0; i < count; i++) {
+			for (ulong i = 0; i < count; i++) { mixin(S_TRACE);
 				nums ~= i;
 			}
 			return createNumEditor!("evtChildBrStepN(_prop, _summ, evt.step, name)")(data, c, nums);
-		} case CType.BRANCH_STEP: {
+		} case CType.BRANCH_STEP: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrStepUL(_prop, _summ, evt.step, evt.stepValue, name)")(data, c);
-		} case CType.BRANCH_SELECT: {
+		} case CType.BRANCH_SELECT: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrMember(_prop, evt.targetAll, evt.random, name)")(data, c);
-		} case CType.BRANCH_ABILITY: {
+		} case CType.BRANCH_ABILITY: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrPower(_prop, evt.targetS, evt.physical, evt.mental, evt.signedLevel, name)")(data, c);
-		} case CType.BRANCH_RANDOM: {
+		} case CType.BRANCH_RANDOM: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrRandom(_prop, evt.percent, name)")(data, c);
-		} case CType.BRANCH_LEVEL: {
+		} case CType.BRANCH_LEVEL: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrLevel(_prop, evt.unsignedLevel, evt.average, name)")(data, c);
-		} case CType.BRANCH_STATUS: {
+		} case CType.BRANCH_STATUS: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrState(_prop, evt.targetNS, evt.status, name)")(data, c);
-		} case CType.BRANCH_PARTY_NUMBER: {
+		} case CType.BRANCH_PARTY_NUMBER: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrNum(_prop, evt.partyNumber, name)")(data, c);
-		} case CType.BRANCH_AREA: {
+		} case CType.BRANCH_AREA: { mixin(S_TRACE);
 			return createAreaSelectEditor!("evtChildBrArea(_prop, _summ.areas, name)")(data, c, _summ.areas);
-		} case CType.BRANCH_BATTLE: {
+		} case CType.BRANCH_BATTLE: { mixin(S_TRACE);
 			return createAreaSelectEditor!("evtChildBrBattle(_prop, _summ.battles, name)")(data, c, _summ.battles);
-		} case CType.BRANCH_IS_BATTLE: {
+		} case CType.BRANCH_IS_BATTLE: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrOnBattle(_prop, name)")(data, c);
-		} case CType.BRANCH_CAST: {
+		} case CType.BRANCH_CAST: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrCast(_prop, _summ, evt.casts, name)")(data, c);
-		} case CType.BRANCH_ITEM: {
+		} case CType.BRANCH_ITEM: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrItem(_prop, _summ, evt.item, evt.range, evt.cardNumber, name)")(data, c);
-		} case CType.BRANCH_SKILL: {
+		} case CType.BRANCH_SKILL: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrSkill(_prop,  _summ, evt.skill, evt.range, evt.cardNumber, name)")(data, c);
-		} case CType.BRANCH_BEAST: {
+		} case CType.BRANCH_BEAST: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrBeast(_prop, _summ, evt.beast, evt.range, evt.cardNumber, name)")(data, c);
-		} case CType.BRANCH_INFO: {
+		} case CType.BRANCH_INFO: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrInfo(_prop, _summ, evt.info, name)")(data, c);
-		} case CType.BRANCH_MONEY: {
+		} case CType.BRANCH_MONEY: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrMoney(_prop, evt.money, name)")(data, c);
-		} case CType.BRANCH_COUPON: {
+		} case CType.BRANCH_COUPON: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrCoupon(_prop, evt.range, evt.coupon, name)")(data, c);
-		} case CType.BRANCH_COMPLETE_STAMP: {
+		} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrEnd(_prop, evt.completeStamp, name)")(data, c);
-		} case CType.BRANCH_GOSSIP: {
+		} case CType.BRANCH_GOSSIP: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrGossip(_prop, evt.gossip, name)")(data, c);
-		} case CType.BRANCH_STEP_CMP: {
+		} case CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
 			return createTrioEditor!("evtChildBrStepCmp(_prop, _summ, evt.step, evt.step2, name)")(data, c);
-		} case CType.BRANCH_FLAG_CMP: {
+		} case CType.BRANCH_FLAG_CMP: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrFlagCmp(_prop, _summ, evt.flag, evt.flag2, name)")(data, c);
-		} case CType.BRANCH_RANDOM_SELECT: {
+		} case CType.BRANCH_RANDOM_SELECT: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrRandomSelect(_prop, evt, name)")(data, c);
-		} case CType.BRANCH_KEY_CODE: {
+		} case CType.BRANCH_KEY_CODE: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrKeyCode(_prop, evt, name)")(data, c);
-		} case CType.BRANCH_ROUND: {
+		} case CType.BRANCH_ROUND: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrRound(_prop, evt, name)")(data, c);
 		} default:
 		}
@@ -2939,47 +2939,47 @@ public:
 	/// parent = 親イベント。
 	/// e = イベント。名称が書き換えられる。
 	/// Returns: テキスト。
-	private string eventText(Content parent, Content e) {
+	private string eventText(Content parent, Content e) { mixin(S_TRACE);
 		return .eventText(_comm, _summ, parent, e, _readOnly != SWT.NONE);
 	}
 	/// 空のテキストは入力ガイドを代わりに表示。
-	private void procTreeItem(Item targ) {
+	private void procTreeItem(Item targ) { mixin(S_TRACE);
 		auto itm = cast(TreeItem)targ;
 		if (!itm) return;
 		auto c = cast(Content) itm.getData();
 		assert (c !is null);
-		if (c.parent && c.parent.detail.nextType == CNextType.TEXT) {
-			if (c.name.length) {
+		if (c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
+			if (c.name.length) { mixin(S_TRACE);
 				itm.setForeground(_tree.control.getForeground());
-			} else {
+			} else { mixin(S_TRACE);
 				itm.setForeground(_grayFont);
-				if (_prop.var.etc.showInputGuide) {
+				if (_prop.var.etc.showInputGuide) { mixin(S_TRACE);
 					itm.setText(summSkin.evtChildOK);
-				} else {
+				} else { mixin(S_TRACE);
 					itm.setText(" ");
 				}
 			}
 		}
 	}
 	/// 末尾のアイテムを返す。
-	private Item createChilds(Item parentItm, Content evt) {
+	private Item createChilds(Item parentItm, Content evt) { mixin(S_TRACE);
 		if (!evt.detail.owner) return parentItm;
-		if (auto parent = cast(TreeItem)parentItm) {
+		if (auto parent = cast(TreeItem)parentItm) { mixin(S_TRACE);
 			parent.removeAll();
 			Item itm = parent;
-			foreach (c; evt.next) {
+			foreach (c; evt.next) { mixin(S_TRACE);
 				auto itm2 = createTreeItem(parent, c, eventText(evt, c), _prop.images.content(c.type));
 				itm = itm2;
-				if (c.detail.owner) {
+				if (c.detail.owner) { mixin(S_TRACE);
 					itm = createChilds(itm2, c);
 				}
 				procTreeItem(itm2);
 				_tree.setExpanded(itm2, true);
 			}
 			return itm;
-		} else {
+		} else { mixin(S_TRACE);
 			_tree.editor.updateEventTree();
-			while (evt.next.length) {
+			while (evt.next.length) { mixin(S_TRACE);
 				evt = evt.next[$ - 1];
 			}
 			return EventEditorItem.valueOf(_tree.editor, evt);
@@ -2987,74 +2987,74 @@ public:
 	}
 
 	@property
-	EventTree eventTree() {
+	EventTree eventTree() { mixin(S_TRACE);
 		return _et;
 	}
 	@property
-	bool isFocusControl() {
+	bool isFocusControl() { mixin(S_TRACE);
 		return _tree.control.isFocusControl();
 	}
 
-	private static void udImpl(int To)(EventTreeView v, Commons comm, EventTree et, Content c, bool store) {
+	private static void udImpl(int To)(EventTreeView v, Commons comm, EventTree et, Content c, bool store) { mixin(S_TRACE);
 		if (!et) return;
 		if (v) v._tree.control.setRedraw(false);
 		scope (exit) if (v) v._tree.control.setRedraw(true);
 		auto pc = c.parent;
 		int i, j;
 		auto path = c.ctPath;
-		if (pc) {
+		if (pc) { mixin(S_TRACE);
 			i = cCountUntil!("a is b")(pc.next, c);
 			j = i + To;
 			if (j < 0 || pc.next.length <= j) return;
-			if (v && store) {
+			if (v && store) { mixin(S_TRACE);
 				v.store(pc);
 			}
 			comm.delContent.call(pc.next[i]);
 			comm.delContent.call(pc.next[j]);
 			pc.swapContent(i, j);
-		} else {
+		} else { mixin(S_TRACE);
 			i = cCountUntil!("a is b")(et.starts, c);
 			j = i + To;
 			if (j < 0 || et.starts.length <= j) return;
-			if (v && store) {
+			if (v && store) { mixin(S_TRACE);
 				v.storeSwap(i, j);
 			}
 			comm.delContent.call(et.starts[i]);
 			comm.delContent.call(et.starts[j]);
 			et.swapStart(i, j);
 		}
-		if (v) {
-			if (v._tree.tree) {
+		if (v) { mixin(S_TRACE);
+			if (v._tree.tree) { mixin(S_TRACE);
 				static if (To == -1) {
 					treeItemUp(cast(TreeItem)v.fromPath(path));
 				} else static if (To == 1) {
 					treeItemDown(cast(TreeItem)v.fromPath(path));
 				} else static assert (0);
-			} else {
+			} else { mixin(S_TRACE);
 				v._tree.editor.updateEventTree();
 			}
 			v._tree.showSelection();
-			if (!pc && (i == 0 || j == 0)) {
+			if (!pc && (i == 0 || j == 0)) { mixin(S_TRACE);
 				v._refreshTopStart();
 			}
 		}
 	}
 	@property
-	bool canUp() {
+	bool canUp() { mixin(S_TRACE);
 		return canUpImpl(true);
 	}
 	@property
-	bool canDown() {
+	bool canDown() { mixin(S_TRACE);
 		return canDownImpl(true);
 	}
-	private bool canUpImpl(bool swapPC) {
+	private bool canUpImpl(bool swapPC) { mixin(S_TRACE);
 		if (_readOnly) return false;
 		auto itm = selection;
 		if (!itm) return false;
 		auto par = _tree.getParentItem(itm);
-		if (par) {
+		if (par) { mixin(S_TRACE);
 			if (0 < _tree.indexOf(par, itm)) return true;
-		} else {
+		} else { mixin(S_TRACE);
 			if (0 < _tree.indexOf(itm)) return true;
 		}
 		if (!swapPC) return false;
@@ -3062,14 +3062,14 @@ public:
 		// 垂直表示時は上下移動に加えて親子の入れ替えも試みる
 		return canSwapToParent;
 	}
-	private bool canDownImpl(bool swapPC) {
+	private bool canDownImpl(bool swapPC) { mixin(S_TRACE);
 		if (_readOnly) return false;
 		auto itm = selection;
 		if (!itm) return false;
 		auto par = _tree.getParentItem(itm);
-		if (par) {
+		if (par) { mixin(S_TRACE);
 			if (_tree.indexOf(par, itm) + 1 < _tree.getItemCount(par)) return true;
-		} else {
+		} else { mixin(S_TRACE);
 			if (_tree.indexOf(itm) + 1 < _tree.getItemCount()) return true;
 		}
 		if (!swapPC) return false;
@@ -3077,15 +3077,15 @@ public:
 		// 垂直表示時は上下移動に加えて親子の入れ替えも試みる
 		return canSwapToChild;
 	}
-	private void up(Item itm, bool store) {
+	private void up(Item itm, bool store) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!itm) return;
 		udImpl!(-1)(this, _comm, _et, cast(Content) itm.getData(), store);
 		_comm.refreshToolBar();
 	}
-	void up() {
-		if (!canUpImpl(false)) {
-			if (canSwapToParent) {
+	void up() { mixin(S_TRACE);
+		if (!canUpImpl(false)) { mixin(S_TRACE);
+			if (canSwapToParent) { mixin(S_TRACE);
 				swapToParent();
 			}
 			return;
@@ -3093,15 +3093,15 @@ public:
 		auto itm = selection;
 		if (itm) up(itm, true);
 	}
-	private void down(Item itm, bool store) {
+	private void down(Item itm, bool store) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!itm) return;
 		udImpl!(1)(this, _comm, _et, cast(Content) itm.getData(), store);
 		_comm.refreshToolBar();
 	}
-	void down() {
-		if (!canDownImpl(false)) {
-			if (canSwapToChild) {
+	void down() { mixin(S_TRACE);
+		if (!canDownImpl(false)) { mixin(S_TRACE);
+			if (canSwapToChild) { mixin(S_TRACE);
 				swapToChild();
 			}
 			return;
@@ -3111,7 +3111,7 @@ public:
 	}
 
 	@property
-	bool canSwapToParent() {
+	bool canSwapToParent() { mixin(S_TRACE);
 		if (_readOnly) return false;
 		auto itm = selection;
 		auto c = cast(Content)itm.getData();
@@ -3122,7 +3122,7 @@ public:
 		return true;
 	}
 	@property
-	bool canSwapToChild() {
+	bool canSwapToChild() { mixin(S_TRACE);
 		if (_readOnly) return false;
 		auto itm = selection;
 		auto c = cast(Content)itm.getData();
@@ -3132,7 +3132,7 @@ public:
 		return true;
 	}
 	/// イベントコンテントの親子を入れ替える。
-	private void swapToPCImpl(Item parent, Item child, Item selTarg) {
+	private void swapToPCImpl(Item parent, Item child, Item selTarg) { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto par = cast(Content)parent.getData();
 		auto next = cast(Content)child.getData();
@@ -3149,7 +3149,7 @@ public:
 		// 入れ替え
 		parPar.remove(par);
 		par.remove(next);
-		foreach (c; next.next.dup) {
+		foreach (c; next.next.dup) { mixin(S_TRACE);
 			next.remove(c);
 			adjustText(par, c, nextNType);
 			par.add(_prop.parent, c);
@@ -3162,7 +3162,7 @@ public:
 		next.add(_prop.parent, par);
 
 		// 表示の更新
-		if (_tree.tree) {
+		if (_tree.tree) { mixin(S_TRACE);
 			parent.setText(eventText(parPar, next));
 			child.setText(eventText(next, par));
 			parent.setData(next);
@@ -3171,24 +3171,24 @@ public:
 			child.setImage(_prop.images.content(par.type));
 			procTreeItem(parent);
 			procTreeItem(child);
-			foreach (cc; _tree.getItems(child)) {
+			foreach (cc; _tree.getItems(child)) { mixin(S_TRACE);
 				cc.setText(eventText(par, cast(Content)cc.getData()));
 				procTreeItem(cc);
 			}
 			_tree.setSelection([selTarg]);
-		} else {
+		} else { mixin(S_TRACE);
 			_tree.editor.updateEventTree();
 		}
 		_tree.showSelection();
 	}
-	private void swapToParent() {
+	private void swapToParent() { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!canSwapToParent) return;
 		auto itm = selection;
 		auto par = _tree.getParentItem(itm);
 		swapToPCImpl(par, itm, par);
 	}
-	private void swapToChild() {
+	private void swapToChild() { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!canSwapToChild) return;
 		auto par = selection;
@@ -3196,43 +3196,43 @@ public:
 		swapToPCImpl(par, itm, itm);
 	}
 
-	void openToolWindow() {
+	void openToolWindow() { mixin(S_TRACE);
 		constructTools();
 		if (_readOnly) return;
-		if (_toolWin) {
+		if (_toolWin) { mixin(S_TRACE);
 			if (_toolWin.isDisposed()) return;
-			if (_et) {
-				if (_opened) {
+			if (_et) { mixin(S_TRACE);
+				if (_opened) { mixin(S_TRACE);
 					_toolWin.setVisible(true);
 					_toolWinVisible = true;
-				} else {
+				} else { mixin(S_TRACE);
 					_opened = true;
 					_toolWin.setVisible(true);
 					_toolWinVisible = true;
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				_toolWinVisible = true;
 			}
 			_comm.refreshToolBar();
 		}
 	}
-	void closeToolWindow() {
+	void closeToolWindow() { mixin(S_TRACE);
 		if (_readOnly) return;
-		if (_toolWin) {
+		if (_toolWin) { mixin(S_TRACE);
 			if (_toolWin.isDisposed()) return;
 			_toolWin.setVisible(false);
 			_toolWinVisible = false;
 		}
 	}
 
-	void refreshTreeName() {
+	void refreshTreeName() { mixin(S_TRACE);
 		_tree.getItems()[0].setText(_et.name);
 		redraw();
 		refreshStatusLine();
 	}
 
 	@property
-	private Content insertOwner(bool tryInsert, ref Item itm) {
+	private Content insertOwner(bool tryInsert, ref Item itm) { mixin(S_TRACE);
 		if (!itm) return null;
 		auto owner = cast(Content)itm.getData();
 		assert (owner);
@@ -3240,7 +3240,7 @@ public:
 		itm = _tree.getParentItem(itm);
 		return owner.parent;
 	}
-	private void addContents(bool stored, Content[] cs, Content[] refCS, bool tryInsert, string lastNextType = "") {
+	private void addContents(bool stored, Content[] cs, Content[] refCS, bool tryInsert, string lastNextType = "") { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto itm = selection;
 		if (!itm) return;
@@ -3251,7 +3251,7 @@ public:
 			if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
 		}
 		Content[] cs2;
-		foreach (ct; cs) {
+		foreach (ct; cs) { mixin(S_TRACE);
 			if (ct.type is CType.START) continue;
 			cs2 ~= ct;
 		}
@@ -3259,19 +3259,19 @@ public:
 
 		Content last = null, allLast = null;
 		int index = -1;
-		if (tryInsert && owner.parent) {
+		if (tryInsert && owner.parent) { mixin(S_TRACE);
 			// cs2内に子コンテントを持てるコンテントが
 			// 含まれている場合は挿入する
-			void recurse(Content c) {
-				if (c.detail.owner) {
+			void recurse(Content c) { mixin(S_TRACE);
+				if (c.detail.owner) { mixin(S_TRACE);
 					last = c;
 				}
 				allLast = c;
-				foreach (cc; c.next) {
+				foreach (cc; c.next) { mixin(S_TRACE);
 					recurse(cc);
 				}
 			}
-			foreach (c; cs2) {
+			foreach (c; cs2) { mixin(S_TRACE);
 				recurse(c);
 			}
 		}
@@ -3280,12 +3280,12 @@ public:
 		_tree.control.setRedraw(false);
 		scope (exit) _tree.control.setRedraw(true);
 		if (stored) store(owner);
-		if (last) {
+		if (last) { mixin(S_TRACE);
 			cs2[0].setName(_prop.parent, owner.name);
 			auto parent = owner.parent;
 			index = parent.next.countUntil(owner);
 			parent.remove(owner);
-			if (_prop.var.etc.adjustContentName) {
+			if (_prop.var.etc.adjustContentName) { mixin(S_TRACE);
 				owner.setName(_prop.parent, "");
 			}
 			last.add(_prop.parent, owner);
@@ -3295,32 +3295,32 @@ public:
 		bool insertFirst = (index == -1 && _insertFirst);
 		Content lastCt = null;
 		int i = 0;
-		foreach (ct; cs2) {
-			if (index == -1) {
+		foreach (ct; cs2) { mixin(S_TRACE);
+			if (index == -1) { mixin(S_TRACE);
 				adjustText(owner, ct, lastNextType);
-				if (insertFirst) {
+				if (insertFirst) { mixin(S_TRACE);
 					owner.insert(_prop.parent, i, ct);
 					lastCt = ct;
 					i++;
-				} else {
+				} else { mixin(S_TRACE);
 					owner.add(_prop.parent, ct);
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				owner.insert(_prop.parent, index, ct);
 				index = -1;
 			}
 			_comm.refContent.call(ct);
 		}
 		auto lastItm = createChilds(itm, owner);
-		if (lastCt) {
-			while (lastCt.next.length) {
+		if (lastCt) { mixin(S_TRACE);
+			while (lastCt.next.length) { mixin(S_TRACE);
 				lastCt = lastCt.next[$ - 1];
 			}
-			Item find(Item itm) {
-				if (lastCt is itm.getData()) {
+			Item find(Item itm) { mixin(S_TRACE);
+				if (lastCt is itm.getData()) { mixin(S_TRACE);
 					return itm;
-				} else {
-					foreach (child; _tree.getItems(itm)) {
+				} else { mixin(S_TRACE);
+					foreach (child; _tree.getItems(itm)) { mixin(S_TRACE);
 						auto f = find(child);
 						if (f) return f;
 					}
@@ -3328,12 +3328,12 @@ public:
 				}
 			}
 			lastItm = find(itm);
-		} else if (last) {
-			Item findLast(Item itm) {
-				if (allLast is itm.getData()) {
+		} else if (last) { mixin(S_TRACE);
+			Item findLast(Item itm) { mixin(S_TRACE);
+				if (allLast is itm.getData()) { mixin(S_TRACE);
 					return itm;
-				} else {
-					foreach (child; _tree.getItems(itm)) {
+				} else { mixin(S_TRACE);
+					foreach (child; _tree.getItems(itm)) { mixin(S_TRACE);
 						auto f = findLast(child);
 						if (f) return f;
 					}
@@ -3350,15 +3350,15 @@ public:
 		_comm.refreshToolBar();
 	}
 	@property
-	private int insertStartIndex() {
+	private int insertStartIndex() { mixin(S_TRACE);
 		auto sel = selection;
-		if (sel) {
+		if (sel) { mixin(S_TRACE);
 			return _tree.indexOf(_tree.topItem(sel)) + 1;
-		} else {
+		} else { mixin(S_TRACE);
 			return 1;
 		}
 	}
-	private void addStarts(bool stored, Content[] cs, Content[] refCS = []) {
+	private void addStarts(bool stored, Content[] cs, Content[] refCS = []) { mixin(S_TRACE);
 		if (_readOnly) return;
 		_tree.control.setRedraw(false);
 		scope (exit) _tree.control.setRedraw(true);
@@ -3369,7 +3369,7 @@ public:
 		auto sel = selection;
 		int index = insertStartIndex;
 		Content[] cs2;
-		foreach (ct; cs) {
+		foreach (ct; cs) { mixin(S_TRACE);
 			if (ct.type !is CType.START) continue;
 			cs2 ~= ct;
 		}
@@ -3378,27 +3378,27 @@ public:
 		auto top = _tree.getTopItem();
 		if (stored) storeInsert(index, cs2.length);
 		Item sItm = null, lastItm = null;
-		foreach (i, c; cs2) {
+		foreach (i, c; cs2) { mixin(S_TRACE);
 			if (!c.type is CType.START) continue;
 			auto oldName = c.name;
-			c.setName(_prop.parent, createNewName(c.name, (string name) {
-				foreach (s; _et.starts) {
-					if (icmp(s.name, name) == 0) {
+			c.setName(_prop.parent, createNewName(c.name, (string name) { mixin(S_TRACE);
+				foreach (s; _et.starts) { mixin(S_TRACE);
+					if (icmp(s.name, name) == 0) { mixin(S_TRACE);
 						return false;
 					}
 				}
-				foreach (s; cs2) {
+				foreach (s; cs2) { mixin(S_TRACE);
 					if (s is c) continue;
-					if (icmp(s.name, name) == 0) {
+					if (icmp(s.name, name) == 0) { mixin(S_TRACE);
 						return false;
 					}
 				}
 				return true;
 			}, true));
-			if (c.name != oldName) {
-				void recurse(Content[] cs) {
-					foreach (ct; cs) {
-						if (ct.start == oldName) {
+			if (c.name != oldName) { mixin(S_TRACE);
+				void recurse(Content[] cs) { mixin(S_TRACE);
+					foreach (ct; cs) { mixin(S_TRACE);
+						if (ct.start == oldName) { mixin(S_TRACE);
 							ct.start = c.name;
 						}
 						recurse(ct.next);
@@ -3407,9 +3407,9 @@ public:
 				recurse(refCS);
 			}
 			_et.insert(index + i, c);
-			if (_tree.tree) {
+			if (_tree.tree) { mixin(S_TRACE);
 				sItm = createTreeItem(_tree.tree, c, c.name, _prop.images.content(c.type), index + i);
-			} else {
+			} else { mixin(S_TRACE);
 				sItm = EventEditorItem.valueOf(_tree.editor, c);
 			}
 			lastItm = createChilds(sItm, c);
@@ -3425,30 +3425,30 @@ public:
 	}
 
 	override {
-		void cut(SelectionEvent se) {
+		void cut(SelectionEvent se) { mixin(S_TRACE);
 			if (_readOnly) return;
 			auto itm = selection;
-			if (itm && itm !is _tree.getItems()[0]) {
+			if (itm && itm !is _tree.getItems()[0]) { mixin(S_TRACE);
 				copy(se);
 				del(se);
 			}
 		}
-		void copy(SelectionEvent se) {
+		void copy(SelectionEvent se) { mixin(S_TRACE);
 			auto itm = selection;
-			if (itm) {
+			if (itm) { mixin(S_TRACE);
 				auto c = cast(Content)itm.getData();
 				XMLtoCB(_prop, _comm.clipboard, toXML(c));
 				_comm.refreshToolBar();
 			}
 		}
-		void paste(SelectionEvent se) {
+		void paste(SelectionEvent se) { mixin(S_TRACE);
 			if (_readOnly) return;
 			pasteImpl(false);
 		}
-		void del(SelectionEvent se) {
+		void del(SelectionEvent se) { mixin(S_TRACE);
 			if (_readOnly) return;
 			auto itm = selection;
-			if (itm && itm !is _tree.getItems()[0]) {
+			if (itm && itm !is _tree.getItems()[0]) { mixin(S_TRACE);
 				_tree.control.setRedraw(false);
 				scope(exit) _tree.control.setRedraw(true);
 				delImpl(itm, true);
@@ -3456,52 +3456,52 @@ public:
 				_comm.refreshToolBar();
 			}
 		}
-		void clone(SelectionEvent se) {
+		void clone(SelectionEvent se) { mixin(S_TRACE);
 			if (_readOnly) return;
 			_comm.clipboard.memoryMode = true;
 			scope (exit) _comm.clipboard.memoryMode = false;
 			copy(se);
 			auto itm = selection;
 			auto parItm = _tree.getParentItem(itm);
-			if (parItm) {
+			if (parItm) { mixin(S_TRACE);
 				_tree.setSelection([parItm]);
 			}
 			paste(se);
 		}
 		@property
-		bool canDoTCPD() {
+		bool canDoTCPD() { mixin(S_TRACE);
 			return !_readOnly && _et !is null && _tree.control.isFocusControl();
 		}
 		@property
-		bool canDoT() {
+		bool canDoT() { mixin(S_TRACE);
 			auto itm = selection;
 			return !_readOnly && itm && itm !is _tree.getItems()[0];
 		}
 		@property
-		bool canDoC() {
+		bool canDoC() { mixin(S_TRACE);
 			return selection !is null;
 		}
 		@property
-		bool canDoP() {
+		bool canDoP() { mixin(S_TRACE);
 			return !_readOnly && _et !is null && (CBisXML(_comm.clipboard) || CBisText(_comm.clipboard));
 		}
 		@property
-		bool canDoD() {
+		bool canDoD() { mixin(S_TRACE);
 			return !_readOnly && canDoT;
 		}
 		@property
-		bool canDoClone() {
+		bool canDoClone() { mixin(S_TRACE);
 			return !_readOnly && canDoC;
 		}
 	}
-	private string toXML(in Content c, bool shallow = false) {
+	private string toXML(in Content c, bool shallow = false) { mixin(S_TRACE);
 		auto opt = new XMLOption(_prop.sys);
 		opt.shallow = shallow;
 		auto node = c.toNode(opt);
 		CNextType next;
-		if (c.parent) {
+		if (c.parent) { mixin(S_TRACE);
 			next = c.parent.detail.nextType;
-		} else {
+		} else { mixin(S_TRACE);
 			assert (c.type is CType.START);
 			next = CNextType.TEXT;
 		}
@@ -3509,31 +3509,31 @@ public:
 		node.newAttr("paneId", _id);
 		return node.text;
 	}
-	private void cut1Content() {
+	private void cut1Content() { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto itm = selection;
-		if (itm && _tree.getParentItem(itm)) {
+		if (itm && _tree.getParentItem(itm)) { mixin(S_TRACE);
 			copy1Content();
 			del1Content();
 		}
 	}
-	private void copy1Content() {
+	private void copy1Content() { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto itm = selection;
-		if (itm) {
+		if (itm) { mixin(S_TRACE);
 			auto c = cast(Content)itm.getData();
 			XMLtoCB(_prop, _comm.clipboard, toXML(c, true));
 			_comm.refreshToolBar();
 		}
 	}
-	private void pasteInsert() {
+	private void pasteInsert() { mixin(S_TRACE);
 		if (_readOnly) return;
 		pasteImpl(true);
 	}
-	private void del1Content() {
+	private void del1Content() { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto itm = selection;
-		if (itm && _tree.getParentItem(itm)) {
+		if (itm && _tree.getParentItem(itm)) { mixin(S_TRACE);
 			_tree.control.setRedraw(false);
 			scope(exit) _tree.control.setRedraw(true);
 
@@ -3545,9 +3545,9 @@ public:
 			int insertIndex = owner.next.countUntil(c);
 			owner.remove(c);
 			auto lastNextType = fromCNextType(c.detail.nextType);
-			foreach (i, next; c.next) {
-				if (_prop.var.etc.adjustContentName) {
-					if (c.next.length == 1 && lastNextType == fromCNextType(next.detail.nextType)) {
+			foreach (i, next; c.next) { mixin(S_TRACE);
+				if (_prop.var.etc.adjustContentName) { mixin(S_TRACE);
+					if (c.next.length == 1 && lastNextType == fromCNextType(next.detail.nextType)) { mixin(S_TRACE);
 						next.setName(_prop.parent, c.name);
 					}
 				}
@@ -3559,28 +3559,28 @@ public:
 			_comm.refreshToolBar();
 		}
 	}
-	private void pasteImpl(bool tryInsert) {
+	private void pasteImpl(bool tryInsert) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!_et) return;
 		string c;
-		try {
+		try { mixin(S_TRACE);
 			c = CBtoXML(_comm.clipboard);
 		} catch (Exception e) {
 			// たまにアクセス違反が起こる
 			debugln(e);
 			return;
 		}
-		if (c) {
-			try {
+		if (c) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
 				auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 				auto node = XNode.parse(c);
 				string id = node.attr("contentId", false);
 				string lastNextType = node.attr("lastNextType", false, "");
 				auto evt = Content.createFromNode(node, ver);
 				if (!evt) return;
-				if (evt.type == CType.START) {
+				if (evt.type == CType.START) { mixin(S_TRACE);
 					addStarts(true, [evt]);
-				} else {
+				} else { mixin(S_TRACE);
 					addContents(true, [evt], [], tryInsert, lastNextType);
 				}
 				redraw();
@@ -3591,28 +3591,28 @@ public:
 			}
 		}
 		auto script = cast(ArrayWrapperString) _comm.clipboard.getContents(TextTransfer.getInstance());
-		if (script) {
+		if (script) { mixin(S_TRACE);
 			pasteScript(script.array.idup, tryInsert);
 		}
 	}
-	void pasteScript(string script, bool tryInsert) {
+	void pasteScript(string script, bool tryInsert) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!_et) return;
 		string base = script;
 		CompileOption opt;
-		try {
-			try {
+		try { mixin(S_TRACE);
+			try { mixin(S_TRACE);
 				opt.linkId = _prop.var.etc.linkCard;
 
 				auto compiler = new CWXScript(_prop.parent, _summ);
 				auto vars = compiler.eatEmptyVars(script, opt);
-				if (vars.length) {
+				if (vars.length) { mixin(S_TRACE);
 					auto dlg = new ScriptVarSetDialog(_comm, _summ, _tree.control.getShell(), vars, script, base, opt);
-					dlg.appliedEvent ~= {
+					dlg.appliedEvent ~= { mixin(S_TRACE);
 						putContents(dlg.contents, tryInsert);
 					};
 					dlg.open();
-				} else {
+				} else { mixin(S_TRACE);
 					auto cs = cwx.script.compile(_prop.parent, _summ, script, opt);
 					putContents(cs, tryInsert);
 				}
@@ -3630,16 +3630,16 @@ public:
 			dlg.open();
 		}
 	}
-	void putContents(Content[] cs, bool tryInsert) {
+	void putContents(Content[] cs, bool tryInsert) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!_et) return;
 		if (!cs.length) return;
 		Content[] starts;
 		Content[] contents;
-		foreach (c; cs) {
-			if (c.type is CType.START) {
+		foreach (c; cs) { mixin(S_TRACE);
+			if (c.type is CType.START) { mixin(S_TRACE);
 				starts ~= c;
-			} else {
+			} else { mixin(S_TRACE);
 				contents ~= c;
 			}
 		}
@@ -3649,21 +3649,21 @@ public:
 		auto sel = selection;
 		auto owner = insertOwner(tryInsert, sel);
 		bool c = contents.length && owner;
-		if (s && c) {
+		if (s && c) { mixin(S_TRACE);
 			storeContentAndInsert(owner, si, starts.length);
 			addContents(false, contents, cs, tryInsert);
 			addStarts(false, starts, cs);
-		} else if (s) {
+		} else if (s) { mixin(S_TRACE);
 			addStarts(true, starts);
-		} else if (c) {
+		} else if (c) { mixin(S_TRACE);
 			addContents(true, contents, [], tryInsert);
-		} else {
+		} else { mixin(S_TRACE);
 			return;
 		}
 		redraw();
 		_comm.refreshToolBar();
 	}
-	private void delImpl(Item itm, bool store) {
+	private void delImpl(Item itm, bool store) { mixin(S_TRACE);
 		if (_readOnly) return;
 		bool empty = _et.owner.isEmpty;
 		scope (exit) {
@@ -3672,83 +3672,83 @@ public:
 		auto ownerItm = _tree.getParentItem(itm);
 		auto c = cast(Content) itm.getData();
 		_comm.delContent.call(c);
-		if (ownerItm) {
+		if (ownerItm) { mixin(S_TRACE);
 			auto owner = cast(Content) ownerItm.getData();
 			if (store) this.store(owner);
 			owner.remove(c);
-		} else {
+		} else { mixin(S_TRACE);
 			if (store) this.storeDelete(.cCountUntil!("a is b")(_et.starts, c), c);
 			_et.remove(c);
 		}
 		itm.dispose();
-		if (_tree.editor) {
+		if (_tree.editor) { mixin(S_TRACE);
 			_tree.editor.updateEventTree();
 		}
 	}
-	private static void delImpl(EventTreeView v, Commons comm, EventTree et, Content c) {
-		if (v) {
+	private static void delImpl(EventTreeView v, Commons comm, EventTree et, Content c) { mixin(S_TRACE);
+		if (v) { mixin(S_TRACE);
 			v.delImpl(v.fromPath(c.ctPath), false);
-		} else {
+		} else { mixin(S_TRACE);
 			bool empty = et.owner.isEmpty;
 			scope (exit) {
 				if (empty != et.owner.isEmpty) comm.refEventTree.call(et);
 			}
 			comm.delContent.call(c);
-			if (c.parent) {
+			if (c.parent) { mixin(S_TRACE);
 				c.parent.remove(c);
-			} else {
+			} else { mixin(S_TRACE);
 				et.remove(c);
 			}
 		}
 	}
-	private void __refreshCardImpl(Item evt) {
-		foreach (childItm; _tree.getItems(evt)) {
+	private void __refreshCardImpl(Item evt) { mixin(S_TRACE);
+		foreach (childItm; _tree.getItems(evt)) { mixin(S_TRACE);
 			auto child = cast(Content) childItm.getData();
 			childItm.setText(eventText(cast(Content) evt.getData(), child));
-			if (child.detail.owner) {
+			if (child.detail.owner) { mixin(S_TRACE);
 				__refreshCardImpl(childItm);
 			}
 			procTreeItem(childItm);
 		}
 	}
-	private void __refreshCard() {
+	private void __refreshCard() { mixin(S_TRACE);
 		if (_tree.control.isDisposed()) return;
-		if (_et) {
-			if (_tree.editor) {
+		if (_et) { mixin(S_TRACE);
+			if (_tree.editor) { mixin(S_TRACE);
 				_tree.editor.updateEventTree();
 				return;
 			}
-			foreach (itm; _tree.getItems()) {
+			foreach (itm; _tree.getItems()) { mixin(S_TRACE);
 				__refreshCardImpl(itm);
 			}
 			refreshStatusLine();
 		}
 	}
-	private void __refreshEventTextImpl(Content par, Item itm) in {
+	private void __refreshEventTextImpl(Content par, Item itm) in { mixin(S_TRACE);
 		assert (par.detail.owner);
-	} body {
+	} body { mixin(S_TRACE);
 		auto e = cast(Content) itm.getData();
 		itm.setText(eventText(par, e));
-		if (e.detail.owner) {
-			foreach (child; _tree.getItems(itm)) {
+		if (e.detail.owner) { mixin(S_TRACE);
+			foreach (child; _tree.getItems(itm)) { mixin(S_TRACE);
 				__refreshEventTextImpl(e, child);
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			assert (!_tree.getItems(itm).length);
 		}
 		procTreeItem(itm);
 	}
-	private void __refreshEventText() {
-		if (_et) {
-			if (_tree.editor) {
+	private void __refreshEventText() { mixin(S_TRACE);
+		if (_et) { mixin(S_TRACE);
+			if (_tree.editor) { mixin(S_TRACE);
 				_tree.editor.updateEventTree();
 				return;
 			}
-			foreach (itm; _tree.getItems()) {
+			foreach (itm; _tree.getItems()) { mixin(S_TRACE);
 				auto start = cast(Content) itm.getData();
 				assert (start.type == CType.START);
 				itm.setText(start.name);
-				foreach (child; _tree.getItems(itm)) {
+				foreach (child; _tree.getItems(itm)) { mixin(S_TRACE);
 					__refreshEventTextImpl(start, child);
 				}
 			}
@@ -3764,10 +3764,10 @@ public:
 	private void __refreshArea(Area c) {__refreshCard();}
 	private void __refreshPackage(Package c) {__refreshCard();}
 	private void __refreshBattle(Battle c) {__refreshCard();}
-	private void __refreshFlagAndStep(Flag[] flags, Step[] steps) {
-		if (flags.length || steps.length) {
+	private void __refreshFlagAndStep(Flag[] flags, Step[] steps) { mixin(S_TRACE);
+		if (flags.length || steps.length) { mixin(S_TRACE);
 			__refreshCard();
-			if (_prop.var.etc.showVariableValuesInEventText) {
+			if (_prop.var.etc.showVariableValuesInEventText) { mixin(S_TRACE);
 				__refreshEventText();
 			}
 		}
@@ -3777,50 +3777,50 @@ public:
 	private void __deletePaths() {refreshStatusLine();}
 	private void __replacePaths(string from, string to) {refreshStatusLine();}
 
-	private bool openCWXPathImpl(T)(T itm, string path, bool shellActivate) {
+	private bool openCWXPathImpl(T)(T itm, string path, bool shellActivate) { mixin(S_TRACE);
 		auto cate = cpcategory(path);
-		if (cate == "") {
+		if (cate == "") { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= _tree.getItemCount(itm)) return false;
 			auto child = _tree.getItem(itm, index);
 			path = cpbottom(path);
-			if (cpempty(path) || cpcategory(path) != "") {
+			if (cpempty(path) || cpcategory(path) != "") { mixin(S_TRACE);
 				forceFocus(_tree.control, shellActivate);
 				_tree.select(child);
 				_tree.showSelection();
 				refreshStatusLine();
-				if (cphasattr(path, "opendialog")) {
+				if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 					auto d = edit();
-					if (d) {
+					if (d) { mixin(S_TRACE);
 						// ダイアログ無し、もしくは開けない状態のコンテント
 						_comm.refreshToolBar();
 						return true;
 					}
-					if (!cpempty(path)) {
+					if (!cpempty(path)) { mixin(S_TRACE);
 						return d.openCWXPath(path, shellActivate);
 					}
 				}
 				_comm.refreshToolBar();
 				return true;
-			} else {
+			} else { mixin(S_TRACE);
 				return openCWXPathImpl(child, path, shellActivate);
 			}
 		}
 		return false;
 	}
-	bool openCWXPath(string path, bool shellActivate) {
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		return openCWXPathImpl(_tree, path, shellActivate);
 	}
 	@property
-	string[] openedCWXPath() {
+	string[] openedCWXPath() { mixin(S_TRACE);
 		string[] r;
-		if (_et) {
+		if (_et) { mixin(S_TRACE);
 			auto e = selection;
-			if (e) {
+			if (e) { mixin(S_TRACE);
 				auto c = cast(Content) e.getData();
 				assert (c);
 				r ~= c.cwxPath(true);
-			} else {
+			} else { mixin(S_TRACE);
 				r ~= _et.cwxPath(true);
 			}
 		}
@@ -3828,245 +3828,245 @@ public:
 	}
 }
 
-string eventText(Commons comm, Summary summ, Content parent, Content e, bool readOnly) in {
+string eventText(Commons comm, Summary summ, Content parent, Content e, bool readOnly) in { mixin(S_TRACE);
 	assert (!parent || parent.detail.owner);
-} body {
+} body { mixin(S_TRACE);
 	if (!parent) return e.name;
 	auto prop = comm.prop;
-	if (parent.detail.nextType == CNextType.TEXT) {
-		if (prop.var.etc.showVariableValuesInEventText) {
+	if (parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
+		if (prop.var.etc.showVariableValuesInEventText) { mixin(S_TRACE);
 			string[string] flags;
 			string[string] steps;
 			string[char] names;
 			getPreviewValues(prop, summ, SPCHAR_TEXT, names, flags, steps);
 			return simpleFormatMsg(e.name, flags, steps, names);
-		} else {
+		} else { mixin(S_TRACE);
 			return e.name;
 		}
 	}
 	string name = e.name;
 	string r;
 	switch (parent.type) {
-	case CType.BRANCH_FLAG: {
+	case CType.BRANCH_FLAG: { mixin(S_TRACE);
 		r = evtChildBrFlag(prop, summ, parent.flag, name);
 		break;
-	} case CType.BRANCH_MULTI_STEP: {
+	} case CType.BRANCH_MULTI_STEP: { mixin(S_TRACE);
 		r = evtChildBrStepN(prop, summ, parent.step, name);
 		break;
-	} case CType.BRANCH_STEP: {
+	} case CType.BRANCH_STEP: { mixin(S_TRACE);
 		r = evtChildBrStepUL(prop, summ, parent.step, parent.stepValue, name);
 		break;
-	} case CType.BRANCH_SELECT: {
+	} case CType.BRANCH_SELECT: { mixin(S_TRACE);
 		r = evtChildBrMember(prop, parent.targetAll, parent.random, name);
 		break;
-	} case CType.BRANCH_ABILITY: {
+	} case CType.BRANCH_ABILITY: { mixin(S_TRACE);
 		r = evtChildBrPower(prop, parent.targetS, parent.physical, parent.mental, parent.signedLevel, name);
 		break;
-	} case CType.BRANCH_RANDOM: {
+	} case CType.BRANCH_RANDOM: { mixin(S_TRACE);
 		r = evtChildBrRandom(prop, parent.percent, name);
 		break;
-	} case CType.BRANCH_LEVEL: {
+	} case CType.BRANCH_LEVEL: { mixin(S_TRACE);
 		r = evtChildBrLevel(prop, parent.unsignedLevel, parent.average, name);
 		break;
-	} case CType.BRANCH_STATUS: {
+	} case CType.BRANCH_STATUS: { mixin(S_TRACE);
 		r = evtChildBrState(prop, parent.targetNS, parent.status, name);
 		break;
-	} case CType.BRANCH_PARTY_NUMBER: {
+	} case CType.BRANCH_PARTY_NUMBER: { mixin(S_TRACE);
 		r = evtChildBrNum(prop, parent.partyNumber, name);
 		break;
-	} case CType.BRANCH_AREA: {
+	} case CType.BRANCH_AREA: { mixin(S_TRACE);
 		r = evtChildBrArea(prop, summ.areas, name);
 		break;
-	} case CType.BRANCH_BATTLE: {
+	} case CType.BRANCH_BATTLE: { mixin(S_TRACE);
 		r = evtChildBrBattle(prop, summ.battles, name);
 		break;
-	} case CType.BRANCH_IS_BATTLE: {
+	} case CType.BRANCH_IS_BATTLE: { mixin(S_TRACE);
 		r = evtChildBrOnBattle(prop, name);
 		break;
-	} case CType.BRANCH_CAST: {
+	} case CType.BRANCH_CAST: { mixin(S_TRACE);
 		r = evtChildBrCast(prop, summ, parent.casts, name);
 		break;
-	} case CType.BRANCH_ITEM: {
+	} case CType.BRANCH_ITEM: { mixin(S_TRACE);
 		r = evtChildBrItem(prop, summ, parent.item, parent.range, parent.cardNumber, name);
 		break;
-	} case CType.BRANCH_SKILL: {
+	} case CType.BRANCH_SKILL: { mixin(S_TRACE);
 		r = evtChildBrSkill(prop, summ, parent.skill, parent.range, parent.cardNumber, name);
 		break;
-	} case CType.BRANCH_BEAST: {
+	} case CType.BRANCH_BEAST: { mixin(S_TRACE);
 		r = evtChildBrBeast(prop, summ, parent.beast, parent.range, parent.cardNumber, name);
 		break;
-	} case CType.BRANCH_INFO: {
+	} case CType.BRANCH_INFO: { mixin(S_TRACE);
 		r = evtChildBrInfo(prop, summ, parent.info, name);
 		break;
-	} case CType.BRANCH_MONEY: {
+	} case CType.BRANCH_MONEY: { mixin(S_TRACE);
 		r = evtChildBrMoney(prop, parent.money, name);
 		break;
-	} case CType.BRANCH_COUPON: {
+	} case CType.BRANCH_COUPON: { mixin(S_TRACE);
 		r = evtChildBrCoupon(prop, parent.range, parent.coupon, name);
 		break;
-	} case CType.BRANCH_COMPLETE_STAMP: {
+	} case CType.BRANCH_COMPLETE_STAMP: { mixin(S_TRACE);
 		r = evtChildBrEnd(prop, parent.completeStamp, name);
 		break;
-	} case CType.BRANCH_GOSSIP: {
+	} case CType.BRANCH_GOSSIP: { mixin(S_TRACE);
 		r = evtChildBrGossip(prop, parent.gossip, name);
 		break;
-	} case CType.BRANCH_STEP_CMP: {
+	} case CType.BRANCH_STEP_CMP: { mixin(S_TRACE);
 		r = evtChildBrStepCmp(prop, summ, parent.step, parent.step2, name);
 		break;
-	} case CType.BRANCH_FLAG_CMP: {
+	} case CType.BRANCH_FLAG_CMP: { mixin(S_TRACE);
 		r = evtChildBrFlagCmp(prop, summ, parent.flag, parent.flag2, name);
 		break;
-	} case CType.BRANCH_RANDOM_SELECT: {
+	} case CType.BRANCH_RANDOM_SELECT: { mixin(S_TRACE);
 		r = evtChildBrRandomSelect(prop, parent, name);
 		break;
-	} case CType.BRANCH_KEY_CODE: {
+	} case CType.BRANCH_KEY_CODE: { mixin(S_TRACE);
 		r = evtChildBrKeyCode(prop, parent, name);
 		break;
-	} case CType.BRANCH_ROUND: {
+	} case CType.BRANCH_ROUND: { mixin(S_TRACE);
 		r = evtChildBrRound(prop, parent, name);
 		break;
 	} default:
 		name = "";
 		r = "";
 	}
-	if (e.name != name && !readOnly) {
+	if (e.name != name && !readOnly) { mixin(S_TRACE);
 		e.setName(prop.parent, name);
 		comm.refContent.call(e);
 	}
 	return r;
 }
 
-private string evtChildBrFlag(in Props prop, in Summary summ, string path, ref string text) {
+private string evtChildBrFlag(in Props prop, in Summary summ, string path, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string name = prop.msgs.noSelectFlag;
 	string on = prop.msgs.flagOn;
 	string off = prop.msgs.flagOff;
-	if (path.length) {
+	if (path.length) { mixin(S_TRACE);
 		auto o = summ.flagDirRoot.findFlag(path);
-		if (o) {
+		if (o) { mixin(S_TRACE);
 			name = path;
 			on = o.on;
 			off = o.off;
-		} else {
+		} else { mixin(S_TRACE);
 			name = .tryFormat(prop.msgs.noFlag, path);
 		}
 	}
 	return .tryFormat(prop.msgs.evtChildBrVar, name, (val ? on : off));
 }
-private string evtChildBrStepN(in Props prop, in Summary summ, string path, ref string text) {
+private string evtChildBrStepN(in Props prop, in Summary summ, string path, ref string text) { mixin(S_TRACE);
 	int val = -1;
-	try {
+	try { mixin(S_TRACE);
 		val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(int)(text) : -1);
-	} catch {
+	} catch { mixin(S_TRACE);
 		// Nothing
 	}
 	string name = prop.msgs.noSelectStep;
 	string value = val >= 0 ? .tryFormat(prop.msgs.dlgLblStep, val) : prop.msgs.etc;
-	if (path.length) {
+	if (path.length) { mixin(S_TRACE);
 		auto o = summ.flagDirRoot.findStep(path);
-		if (o) {
-			if (o.count <= val) {
+		if (o) { mixin(S_TRACE);
+			if (o.count <= val) { mixin(S_TRACE);
 				val = -1;
 				text = prop.sys.evtChildDefault;
 			}
 			name = path;
 			if (0 <= val) value = o.getValue(val);
-		} else {
+		} else { mixin(S_TRACE);
 			name = .tryFormat(prop.msgs.noStep, path);
 		}
 	}
 	return .tryFormat(prop.msgs.evtChildBrVar, name, value);
 }
-private string evtChildBrStepUL(in Props prop, in Summary summ, string path, int num, ref string text) {
+private string evtChildBrStepUL(in Props prop, in Summary summ, string path, int num, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string name = prop.msgs.noSelectStep;
 	string value = .tryFormat(prop.msgs.dlgLblStep, num);
-	if (path.length) {
+	if (path.length) { mixin(S_TRACE);
 		auto o = summ.flagDirRoot.findStep(path);
-		if (o) {
+		if (o) { mixin(S_TRACE);
 			name = path;
 			if (0 <= num && num < o.count) value = o.getValue(num);
-		} else {
+		} else { mixin(S_TRACE);
 			name = .tryFormat(prop.msgs.noStep, path);
 		}
 	}
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.stepMoreThan, name, value);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.stepLessThan, name, value);
 	}
 }
-private string evtChildBrMember(in Props prop, bool all, bool random, ref string text) {
+private string evtChildBrMember(in Props prop, bool all, bool random, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string mem = all ? prop.msgs.partyAll : prop.msgs.partyActive;
 	string am = random ? prop.msgs.autoSelect : prop.msgs.manualSelect;
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.selectMemberSuccess, mem, am);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.selectMemberFailure, mem, am);
 	}
 }
-private string evtChildBrPower(in Props prop, Target targ, Physical p, Mental m, int lev, ref string text) {
+private string evtChildBrPower(in Props prop, Target targ, Physical p, Mental m, int lev, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string tt = prop.msgs.targetName(targ.m);
 	string tp = prop.msgs.physicalName(p);
 	string tm = prop.msgs.mentalName(m);
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchAbilitySuccess, tt, lev, tp, tm);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchAbilityFailure, tt, lev, tp, tm);
 	}
 }
-private string evtChildBrRandom(in Props prop, int percent, ref string text) {
+private string evtChildBrRandom(in Props prop, int percent, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchRandomSuccess, percent);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchRandomFailure, percent);
 	}
 }
-private string evtChildBrLevel(in Props prop, int lev, bool avg, ref string text) {
+private string evtChildBrLevel(in Props prop, int lev, bool avg, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string ta = avg  ? prop.msgs.levelAverage : prop.msgs.levelSelected;
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchLevelSuccess, ta, lev);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchLevelFailure, ta, lev);
 	}
 }
-private string evtChildBrState(in Props prop, Target targ, Status stat, ref string text) {
+private string evtChildBrState(in Props prop, Target targ, Status stat, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string tt = prop.msgs.targetName(targ.m);
 	string ts = prop.msgs.statusName(stat);
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchStatusSuccess, tt, ts);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchStatusFailure, tt, ts);
 	}
 }
-private string evtChildBrNum(in Props prop, int num, ref string text) {
+private string evtChildBrNum(in Props prop, int num, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchNumberSuccess, num);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchNumberFailure, num);
 	}
 }
-private string evtChildBrArea(in Props prop, in Area[] areas, ref string text) {
-	if (text.length > 0) {
-		try {
+private string evtChildBrArea(in Props prop, in Area[] areas, ref string text) { mixin(S_TRACE);
+	if (text.length > 0) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			long val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
-			if (val >= 0) {
-				foreach (a; areas) {
-					if (a.id == val) {
+			if (val >= 0) { mixin(S_TRACE);
+				foreach (a; areas) { mixin(S_TRACE);
+					if (a.id == val) { mixin(S_TRACE);
 						return .tryFormat(prop.msgs.branchArea, a.name);
 					}
 				}
@@ -4076,13 +4076,13 @@ private string evtChildBrArea(in Props prop, in Area[] areas, ref string text) {
 	text = prop.sys.evtChildDefault;
 	return .tryFormat(prop.msgs.branchArea, prop.msgs.etc);
 }
-private string evtChildBrBattle(in Props prop, in Battle[] btls, ref string text) {
-	if (text.length > 0) {
-		try {
+private string evtChildBrBattle(in Props prop, in Battle[] btls, ref string text) { mixin(S_TRACE);
+	if (text.length > 0) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			long val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(long)(text) : -1);
-			if (val >= 0) {
-				foreach (b; btls) {
-					if (b.id == val) {
+			if (val >= 0) { mixin(S_TRACE);
+				foreach (b; btls) { mixin(S_TRACE);
+					if (b.id == val) { mixin(S_TRACE);
 						return .tryFormat(prop.msgs.branchBattle, b.name);
 					}
 				}
@@ -4092,147 +4092,147 @@ private string evtChildBrBattle(in Props prop, in Battle[] btls, ref string text
 	text = prop.sys.evtChildDefault;
 	return .tryFormat(prop.msgs.branchBattle, prop.msgs.etc);
 }
-private string evtChildBrOnBattle(in Props prop, ref string text) {
+private string evtChildBrOnBattle(in Props prop, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return prop.msgs.branchOnBattleSuccess;
-	} else {
+	} else { mixin(S_TRACE);
 		return prop.msgs.branchOnBattleFailure;
 	}
 }
-private string evtChildBrCast(in Props prop, in Summary summ, ulong id, ref string text) {
+private string evtChildBrCast(in Props prop, in Summary summ, ulong id, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string name = prop.msgs.noSelectCast;
-	if (0 != id) {
+	if (0 != id) { mixin(S_TRACE);
 		auto c = summ.cwCast(id);
 		name = c ? c.name : .tryFormat(prop.msgs.noCast, id);
 	}
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchCastSuccess, name);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchCastFailure, name);
 	}
 }
-private string evtChildBrItem(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
+private string evtChildBrItem(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string tr = prop.msgs.rangeName(r);
 	string name = prop.msgs.noSelectItem;
-	if (0 != id) {
+	if (0 != id) { mixin(S_TRACE);
 		auto c = summ.item(id);
 		name = c ? c.name : .tryFormat(prop.msgs.noItem, id);
 	}
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
 	}
 }
-private string evtChildBrSkill(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
+private string evtChildBrSkill(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string tr = prop.msgs.rangeName(r);
 	string name = prop.msgs.noSelectSkill;
-	if (0 != id) {
+	if (0 != id) { mixin(S_TRACE);
 		auto c = summ.skill(id);
 		name = c ? c.name : .tryFormat(prop.msgs.noSkill, id);
 	}
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
 	}
 }
-private string evtChildBrBeast(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) {
+private string evtChildBrBeast(in Props prop, in Summary summ, ulong id, Range r, uint num, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string tr = prop.msgs.rangeName(r);
 	string name = prop.msgs.noSelectBeast;
-	if (0 != id) {
+	if (0 != id) { mixin(S_TRACE);
 		auto c = summ.beast(id);
 		name = c ? c.name : .tryFormat(prop.msgs.noBeast, id);
 	}
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchEffectCardFailure, tr, name);
 	}
 }
-private string evtChildBrInfo(in Props prop, in Summary summ, ulong id, ref string text) {
+private string evtChildBrInfo(in Props prop, in Summary summ, ulong id, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string name = prop.msgs.noSelectInfo;
-	if (0 != id) {
+	if (0 != id) { mixin(S_TRACE);
 		auto c = summ.info(id);
 		name = c ? c.name : .tryFormat(prop.msgs.noInfo, id);
 	}
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchInfoSuccess, name);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchInfoFailure, name);
 	}
 }
-private string evtChildBrMoney(in Props prop, uint sp, ref string text) {
+private string evtChildBrMoney(in Props prop, uint sp, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchMoneySuccess, sp);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchMoneyFailure, sp);
 	}
 }
-private string evtChildBrCoupon(in Props prop, Range r, string coupon, ref string text) {
+private string evtChildBrCoupon(in Props prop, Range r, string coupon, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	if (!coupon || !coupon.length) coupon = prop.msgs.noSelectCoupon;
 	string tr = prop.msgs.rangeName(r);
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchCouponSuccess, tr, coupon);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchCouponFailure, tr, coupon);
 	}
 }
-private string evtChildBrEnd(in Props prop, string scenario, ref string text) {
+private string evtChildBrEnd(in Props prop, string scenario, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	if (!scenario || !scenario.length) scenario = prop.msgs.noSelectCompleteStamp;
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchCompleteSuccess, scenario);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchCompleteFailure, scenario);
 	}
 }
-private string evtChildBrGossip(in Props prop, string gossip, ref string text) {
+private string evtChildBrGossip(in Props prop, string gossip, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	if (!gossip || !gossip.length) gossip = prop.msgs.noSelectGossip;
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchGossipSuccess, gossip);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchGossipFailure, gossip);
 	}
 }
-private string evtChildBrStepCmp(in Props prop, in Summary summ, string step1, string step2, ref string text) {
+private string evtChildBrStepCmp(in Props prop, in Summary summ, string step1, string step2, ref string text) { mixin(S_TRACE);
 	int index;
-	if (text == prop.sys.evtChildEq) {
+	if (text == prop.sys.evtChildEq) { mixin(S_TRACE);
 		index = 2;
 		text = prop.sys.evtChildEq;
-	} else if (text == prop.sys.evtChildLesser) {
+	} else if (text == prop.sys.evtChildLesser) { mixin(S_TRACE);
 		index = 1;
 		text = prop.sys.evtChildLesser;
-	} else {
+	} else { mixin(S_TRACE);
 		index = 0;
 		text = prop.sys.evtChildGreater;
 	}
-	string nameFrom(string path) {
+	string nameFrom(string path) { mixin(S_TRACE);
 		string name = prop.msgs.noSelectStep;
-		if (path.length) {
+		if (path.length) { mixin(S_TRACE);
 			auto o = summ.flagDirRoot.findStep(path);
-			if (o) {
+			if (o) { mixin(S_TRACE);
 				name = path;
-			} else {
+			} else { mixin(S_TRACE);
 				name = .tryFormat(prop.msgs.noStep, path);
 			}
 		}
@@ -4251,16 +4251,16 @@ private string evtChildBrStepCmp(in Props prop, in Summary summ, string step1, s
 		assert (0);
 	}
 }
-private string evtChildBrFlagCmp(in Props prop, in Summary summ, string flag1, string flag2, ref string text) {
+private string evtChildBrFlagCmp(in Props prop, in Summary summ, string flag1, string flag2, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-	string nameFrom(string path) {
+	string nameFrom(string path) { mixin(S_TRACE);
 		string name = prop.msgs.noSelectFlag;
-		if (path.length) {
+		if (path.length) { mixin(S_TRACE);
 			auto o = summ.flagDirRoot.findFlag(path);
-			if (o) {
+			if (o) { mixin(S_TRACE);
 				name = path;
-			} else {
+			} else { mixin(S_TRACE);
 				name = .tryFormat(prop.msgs.noFlag, path);
 			}
 		}
@@ -4268,77 +4268,77 @@ private string evtChildBrFlagCmp(in Props prop, in Summary summ, string flag1, s
 	}
 	flag1 = nameFrom(flag1);
 	flag2 = nameFrom(flag2);
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchFlagCmpEq, flag1, flag2);
-	} else {
+	} else { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchFlagCmpNotEq, flag1, flag2);
 	}
 }
-private string evtChildBrRandomSelect(in Props prop, in Content evt, ref string text) {
+private string evtChildBrRandomSelect(in Props prop, in Content evt, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 
 	string r = castRangesName(prop, evt.castRange);
 	bool hasLevel = 0 < evt.levelMax;
 	bool hasStatus = evt.status !is Status.NONE;
-	if (hasLevel || hasStatus) {
+	if (hasLevel || hasStatus) { mixin(S_TRACE);
 		string s = prop.msgs.statusName(evt.status);
 		auto l1 = evt.levelMin, l2 = evt.levelMax;
 		string cond;
-		if (hasLevel && hasStatus) {
+		if (hasLevel && hasStatus) { mixin(S_TRACE);
 			cond = .tryFormat(prop.msgs.randomSelectCondition3, l1, l2, s);
-		} else if (hasLevel) {
+		} else if (hasLevel) { mixin(S_TRACE);
 			cond = .tryFormat(prop.msgs.randomSelectCondition1, l1, l2);
-		} else if (hasStatus) {
+		} else if (hasStatus) { mixin(S_TRACE);
 			cond = .tryFormat(prop.msgs.randomSelectCondition2, s);
 		} else assert (0);
-		if (val) {
+		if (val) { mixin(S_TRACE);
 			return .tryFormat(prop.msgs.branchRandomSelectSuccess, r, cond);
-		} else {
+		} else { mixin(S_TRACE);
 			return .tryFormat(prop.msgs.branchRandomSelectFailure, r, cond);
 		}
-	} else {
-		if (val) {
+	} else { mixin(S_TRACE);
+		if (val) { mixin(S_TRACE);
 			return .tryFormat(prop.msgs.branchRandomSelectSuccessN, r);
-		} else {
+		} else { mixin(S_TRACE);
 			return .tryFormat(prop.msgs.branchRandomSelectFailureN, r);
 		}
 	}
 }
-private string evtChildBrKeyCode(in Props prop, in Content evt, ref string text) {
+private string evtChildBrKeyCode(in Props prop, in Content evt, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 
 	string range = prop.msgs.rangeName(evt.keyCodeRange);
-	if (evt.effectCardType is EffectCardType.ALL) {
-		if (val) {
+	if (evt.effectCardType is EffectCardType.ALL) { mixin(S_TRACE);
+		if (val) { mixin(S_TRACE);
 			return .tryFormat(prop.msgs.branchKeyCodeAllTypeSuccess, evt.keyCode, range);
-		} else {
+		} else { mixin(S_TRACE);
 			return .tryFormat(prop.msgs.branchKeyCodeAllTypeFailure, evt.keyCode, range);
 		}
-	} else {
+	} else { mixin(S_TRACE);
 		string type = prop.msgs.effectCardTypeName(evt.effectCardType);
-		if (val) {
+		if (val) { mixin(S_TRACE);
 			return .tryFormat(prop.msgs.branchKeyCodeSuccess, evt.keyCode, type, range);
-		} else {
+		} else { mixin(S_TRACE);
 			return .tryFormat(prop.msgs.branchKeyCodeFailure, evt.keyCode, type, range);
 		}
 	}
 }
-private string evtChildBrRound(in Props prop, in Content evt, ref string text) {
+private string evtChildBrRound(in Props prop, in Content evt, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 
 	string cmp;
-	if (val) {
+	if (val) { mixin(S_TRACE);
 		cmp = prop.msgs.comparison3Name(evt.comparison3);
-	} else {
+	} else { mixin(S_TRACE);
 		cmp = prop.msgs.comparison3FalseName(evt.comparison3);
 	}
 	return .tryFormat(prop.msgs.branchRound, evt.round, cmp);
 }
 
-Image warningImage(Props prop, Display d) {
+Image warningImage(Props prop, Display d) { mixin(S_TRACE);
 	auto height = 1;
 	auto buf = new Image(d, prop.var.etc.warningImageWidth, height);
 	scope (exit) buf.dispose();
@@ -4352,7 +4352,7 @@ Image warningImage(Props prop, Display d) {
 	gc.setBackground(color);
 	gc.fillRectangle(0, 0, prop.var.etc.warningImageWidth, height);
 	auto alphas = new byte[prop.var.etc.warningImageWidth];
-	foreach (i, ref b; alphas) {
+	foreach (i, ref b; alphas) { mixin(S_TRACE);
 		b = cast(byte)(cast(real)i / prop.var.etc.warningImageWidth * alpha);
 	}
 	alphas = std.array.replicate(alphas, height);

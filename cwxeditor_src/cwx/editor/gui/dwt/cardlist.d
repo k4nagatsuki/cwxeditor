@@ -17,20 +17,20 @@ public:
 	/// Params:
 	/// parent = 親コンポーネント。
 	/// style = スタイル。使用可能なスタイルはSWT.MULTI、DWT.V_SCROLL、DWT.H_SCROLL。
-	this (Composite parent, int style) {
+	this (Composite parent, int style) { mixin(S_TRACE);
 		super(parent, style | SWT.NO_BACKGROUND);
 		_origin = new Point(0, 0);
 		setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
-		void setupBar(ScrollBar scr, void delegate(int) setOrigin) {
-			if (scr !is null) {
+		void setupBar(ScrollBar scr, void delegate(int) setOrigin) { mixin(S_TRACE);
+			if (scr !is null) { mixin(S_TRACE);
 				scr.addListener(SWT.Selection, new class(scr, setOrigin) Listener {
 					private ScrollBar _bar;
 					private void delegate(int) _setOrigin;
-					public this(ScrollBar bar, void delegate(int) setOrigin) {
+					public this(ScrollBar bar, void delegate(int) setOrigin) { mixin(S_TRACE);
 						_bar = bar;
 						_setOrigin = setOrigin;
 					}
-					public override void handleEvent(Event e) {
+					public override void handleEvent(Event e) { mixin(S_TRACE);
 						_setOrigin(_bar.getSelection());
 					}
 				});
@@ -39,12 +39,12 @@ public:
 		setupBar(getVerticalBar(), &scrollY);
 		setupBar(getHorizontalBar(), &scrollX);
 		addListener(SWT.Dispose, new class Listener {
-			public override void handleEvent(Event e) {
+			public override void handleEvent(Event e) { mixin(S_TRACE);
 				disposeItems();
 			}
 		});
 		addListener(SWT.Paint, new class Listener {
-			public override void handleEvent(Event e) {
+			public override void handleEvent(Event e) { mixin(S_TRACE);
 				auto area = getClientArea();
 				scope img = new Image(Display.getCurrent(), area.width, area.height);
 				scope gc = new GC(img);
@@ -57,12 +57,12 @@ public:
 			}
 		});
 		addListener(SWT.Resize, new class Listener {
-			public override void handleEvent(Event e) {
+			public override void handleEvent(Event e) { mixin(S_TRACE);
 				__resize();
 			}
 		});
 		addListener(SWT.Traverse, new class Listener {
-			public override void handleEvent(Event e) {
+			public override void handleEvent(Event e) { mixin(S_TRACE);
 				switch (e.detail) {
 				case SWT.TRAVERSE_ARROW_NEXT, SWT.TRAVERSE_ARROW_PREVIOUS:
 					e.doit = false;
@@ -73,46 +73,46 @@ public:
 			}
 		});
 		addListener(SWT.KeyDown, new class Listener {
-			public override void handleEvent(Event e) {
+			public override void handleEvent(Event e) { mixin(S_TRACE);
 				if (0 == count) return;
 				bool ctrl = (e.stateMask & SWT.CTRL) != 0;
-				if (e.character == SWT.CR && (getStyle() & SWT.MULTI) != 0) {
-					if (_cur in _sels) {
+				if (e.character == SWT.CR && (getStyle() & SWT.MULTI) != 0) { mixin(S_TRACE);
+					if (_cur in _sels) { mixin(S_TRACE);
 						deselect(_cur);
-					} else {
+					} else { mixin(S_TRACE);
 						select(_cur);
 					}
 					callSelectChanged();
-				} else {
+				} else { mixin(S_TRACE);
 					switch (e.keyCode) {
 					case SWT.PAGE_UP:
 						auto bar = getVerticalBar();
-						if (bar !is null) {
+						if (bar !is null) { mixin(S_TRACE);
 							scrollY(bar.getSelection() - bar.getPageIncrement());
 						}
 						break;
 					case SWT.PAGE_DOWN:
 						auto bar = getVerticalBar();
-						if (bar !is null) {
+						if (bar !is null) { mixin(S_TRACE);
 							scrollY(bar.getSelection() + bar.getPageIncrement());
 						}
 						break;
 					case SWT.HOME:
 						auto bar = getVerticalBar();
-						if (bar !is null) {
+						if (bar !is null) { mixin(S_TRACE);
 							scrollY(bar.getMinimum());
 						}
 						break;
 					case SWT.END:
 						auto bar = getVerticalBar();
-						if (bar !is null) {
+						if (bar !is null) { mixin(S_TRACE);
 							scrollY(bar.getMaximum() - bar.getThumb());
 						}
 						break;
 					case SWT.ARROW_UP:
 						if (ctrl) return;
 						int nCur = _cur - _wrap;
-						if (nCur < 0) {
+						if (nCur < 0) { mixin(S_TRACE);
 							nCur = _wrap * (_line - 1) + _cur;
 							if (_items.length <= nCur) nCur -= _wrap;
 						}
@@ -121,7 +121,7 @@ public:
 					case SWT.ARROW_DOWN:
 						if (ctrl) return;
 						int nCur = _cur + _wrap;
-						if (_items.length <= nCur) {
+						if (_items.length <= nCur) { mixin(S_TRACE);
 							nCur = _cur % _wrap;
 						}
 						setCursor(nCur, true);
@@ -129,10 +129,10 @@ public:
 					case SWT.ARROW_LEFT:
 						if (ctrl) return;
 						int nCur;
-						if (isFirstCol(_cur)) {
+						if (isFirstCol(_cur)) { mixin(S_TRACE);
 							nCur = _cur + _wrap - 1;
 							if (_items.length <= nCur) nCur = _items.length - 1;
-						} else {
+						} else { mixin(S_TRACE);
 							nCur = _cur - 1;
 						}
 						setCursor(nCur, true);
@@ -140,12 +140,12 @@ public:
 					case SWT.ARROW_RIGHT:
 						if (ctrl) return;
 						int nCur;
-						if (_cur == _items.length - 1) {
+						if (_cur == _items.length - 1) { mixin(S_TRACE);
 							int d = _items.length % _wrap;
 							nCur = _items.length - (d == 0 ? _wrap : d);
-						} else if (isLastCol(_cur)) {
+						} else if (isLastCol(_cur)) { mixin(S_TRACE);
 							nCur = _cur - _wrap + 1;
-						} else {
+						} else { mixin(S_TRACE);
 							nCur = _cur + 1;
 						}
 						setCursor(nCur, true);
@@ -157,17 +157,17 @@ public:
 			}
 		});
 		addListener(SWT.MouseUp, new class Listener {
-			public override void handleEvent(Event e) {
-				if (!_dragging && (getStyle() & SWT.MULTI) != 0 && e.button == 1 && _mouseP >= 0) {
-					if (_ctrl) {
-						if (isSelectedAt(_mouseP)) {
+			public override void handleEvent(Event e) { mixin(S_TRACE);
+				if (!_dragging && (getStyle() & SWT.MULTI) != 0 && e.button == 1 && _mouseP >= 0) { mixin(S_TRACE);
+					if (_ctrl) { mixin(S_TRACE);
+						if (isSelectedAt(_mouseP)) { mixin(S_TRACE);
 							deselect(_mouseP);
 							callSelectChanged();
-						} else {
+						} else { mixin(S_TRACE);
 							select(_mouseP);
 							callSelectChanged();
 						}
-					} else if (!_shift) {
+					} else if (!_shift) { mixin(S_TRACE);
 						deselectAll();
 						select(_mouseP);
 						callSelectChanged();
@@ -178,54 +178,54 @@ public:
 			}
 		});
 		addListener(SWT.MouseDown, new class Listener {
-			public override void handleEvent(Event e) {
-				if (e.button == 1 || e.button == 3) {
+			public override void handleEvent(Event e) { mixin(S_TRACE);
+				if (e.button == 1 || e.button == 3) { mixin(S_TRACE);
 					forceFocus();
 				}
 				_dragging = false;
 				_shift = (e.stateMask & SWT.SHIFT) != 0;
 				_ctrl = (e.stateMask & SWT.CTRL) != 0;
 				int i = searchIndex(e.x, e.y);
-				if (i >= 0) {
+				if (i >= 0) { mixin(S_TRACE);
 					_mouseP = i;
-					if ((getStyle() & SWT.MULTI) == 0) {
-						if (e.button == 1 || e.button == 3) {
+					if ((getStyle() & SWT.MULTI) == 0) { mixin(S_TRACE);
+						if (e.button == 1 || e.button == 3) { mixin(S_TRACE);
 							_mouseP = i;
 							// SINGLEモードではsetCursor()で同時に選択が行われる
 							setCursor(i);
 						}
-					} else {
-						if (e.button == 1) {
-							if (_ctrl) {
+					} else { mixin(S_TRACE);
+						if (e.button == 1) { mixin(S_TRACE);
+							if (_ctrl) { mixin(S_TRACE);
 								_shiftP = i;
-							} else if (_shift) {
-								if (_shiftP >= 0) {
+							} else if (_shift) { mixin(S_TRACE);
+								if (_shiftP >= 0) { mixin(S_TRACE);
 									int i1, i2;
-									if (_shiftP < i) {
+									if (_shiftP < i) { mixin(S_TRACE);
 										i1 = _shiftP;
 										i2 = i;
-									} else {
+									} else { mixin(S_TRACE);
 										i1 = i;
 										i2 = _shiftP;
 									}
 									deselectAll();
-									for (int j = i1; j <= i2; j++) {
+									for (int j = i1; j <= i2; j++) { mixin(S_TRACE);
 										select(j);
 									}
-								} else {
+								} else { mixin(S_TRACE);
 									select(i);
 									_shiftP = i;
 								}
 								callSelectChanged();
-							} else {
+							} else { mixin(S_TRACE);
 								if (!isSelectedAt(i)) deselectAll();
 								select(i);
 								_shiftP = i;
 								callSelectChanged();
 							}
 							setCursor(i);
-						} else if (e.button == 3) {
-							if (!_ctrl) {
+						} else if (e.button == 3) { mixin(S_TRACE);
+							if (!_ctrl) { mixin(S_TRACE);
 								if (!isSelectedAt(i)) deselectAll();
 								_shiftP = i;
 								select(i);
@@ -234,7 +234,7 @@ public:
 							}
 						}
 					}
-				} else if (e.button == 1 || e.button == 3) {
+				} else if (e.button == 1 || e.button == 3) { mixin(S_TRACE);
 					deselectAll();
 					_shiftP = -1;
 					_mouseP = -1;
@@ -243,9 +243,9 @@ public:
 			}
 		});
 		addListener(SWT.DragDetect, new class Listener {
-			public override void handleEvent(Event e) {
-				if ((getStyle() & SWT.MULTI) != 0) {
-					if (_ctrl && _mouseP >= 0) {
+			public override void handleEvent(Event e) { mixin(S_TRACE);
+				if ((getStyle() & SWT.MULTI) != 0) { mixin(S_TRACE);
+					if (_ctrl && _mouseP >= 0) { mixin(S_TRACE);
 						select(_mouseP);
 						callSelectChanged();
 					}
@@ -256,9 +256,9 @@ public:
 		setDragDetect(false);
 		setData(DragSource.DEFAULT_DRAG_SOURCE_EFFECT, new CardListDragSourceEffect!(C)(this));
 		addListener(SWT.MouseMove, new class Listener {
-			public override void handleEvent(Event e) {
+			public override void handleEvent(Event e) { mixin(S_TRACE);
 				int index = searchIndex(e.x, e.y);
-				if (_oldMoveIndex != index) {
+				if (_oldMoveIndex != index) { mixin(S_TRACE);
 					_oldMoveIndex = index;
 					setDragDetect(index >= 0);
 					__refreshToolTip();
@@ -266,8 +266,8 @@ public:
 			}
 		});
 		addListener(SWT.FocusIn, new class Listener {
-			public override void handleEvent(Event e) {
-				if ((getStyle() & SWT.MULTI) == 0 && _sels.length == 0 && _items.length > 0) {
+			public override void handleEvent(Event e) { mixin(S_TRACE);
+				if ((getStyle() & SWT.MULTI) == 0 && _sels.length == 0 && _items.length > 0) { mixin(S_TRACE);
 					select(0);
 					callSelectChanged();
 				}
@@ -275,23 +275,23 @@ public:
 			}
 		});
 		addListener(SWT.FocusOut, new class Listener {
-			public override void handleEvent(Event e) {
+			public override void handleEvent(Event e) { mixin(S_TRACE);
 				if (_cur >= 0) redrawCard(_cur);
 			}
 		});
 	}
 	/// 選択の変更をlistenerに通知する。
-	void addSelectionListener(SelectionListener listener) {
+	void addSelectionListener(SelectionListener listener) { mixin(S_TRACE);
 		auto tl = new TypedListener(listener);
 		addListener(SWT.Selection, tl);
 		addListener(SWT.DefaultSelection, tl);
 	}
 	/// ditto
-	void removeSelectionListener(SelectionListener listener) {
+	void removeSelectionListener(SelectionListener listener) { mixin(S_TRACE);
 		removeListener(SWT.Selection, listener);
 		removeListener(SWT.DefaultSelection, listener);
 	}
-	private void callSelectChanged() {
+	private void callSelectChanged() { mixin(S_TRACE);
 		if (isDisposed()) return;
 		auto se = new Event;
 		int index = selection;
@@ -306,13 +306,13 @@ public:
 	/// index = インデックス。
 	/// scroll = カーソル位置までスクロールするか。
 	/// select = 選択するか。
-	void setCursor(int index, bool scroll = false) {
-		if (_cur != index) {
+	void setCursor(int index, bool scroll = false) { mixin(S_TRACE);
+		if (_cur != index) { mixin(S_TRACE);
 			if (_cur >= 0) redrawCard(_cur);
 			if (index >= 0) redrawCard(index);
 			_cur = index;
 		}
-		if ((getStyle() & SWT.MULTI) == 0) {
+		if ((getStyle() & SWT.MULTI) == 0) { mixin(S_TRACE);
 			this.select(_cur);
 			callSelectChanged();
 		}
@@ -322,7 +322,7 @@ public:
 	/// 指定されたインデックスの領域を再描画するよう指示する。
 	/// Params:
 	/// index = インデックス。
-	void redrawCard(int index) {
+	void redrawCard(int index) { mixin(S_TRACE);
 		auto itm = _items[index];
 		super.redraw(itm.x - 1, itm.y, itm.width + 2, itm.height + 1, false);
 	}
@@ -330,9 +330,9 @@ public:
 	/// Params:
 	/// c = カード。
 	/// Returns: インデックス。見つからなかった場合は-1。
-	int indexOf(C c) {
-		foreach (i, itm; _items) {
-			if (itm.getData() is c) {
+	int indexOf(C c) { mixin(S_TRACE);
+		foreach (i, itm; _items) { mixin(S_TRACE);
+			if (itm.getData() is c) { mixin(S_TRACE);
 				return i;
 			}
 		}
@@ -342,7 +342,7 @@ public:
 	/// Params:
 	/// c = カード。
 	@property
-	void select(C c) {
+	void select(C c) { mixin(S_TRACE);
 		int i = indexOf(c);
 		if (i >= 0) select(i);
 	}
@@ -350,14 +350,14 @@ public:
 	/// Params:
 	/// index = インデックス。
 	@property
-	void select(int index) {
-		if (!(index in _sels)) {
-			if ((getStyle() & SWT.MULTI) == 0) {
+	void select(int index) { mixin(S_TRACE);
+		if (!(index in _sels)) { mixin(S_TRACE);
+			if ((getStyle() & SWT.MULTI) == 0) { mixin(S_TRACE);
 				deselectAll();
 				_sels[index] = _items[index];
 				_cur = index;
 				redraw();
-			} else {
+			} else { mixin(S_TRACE);
 				_sels[index] = _items[index];
 				redrawCard(index);
 			}
@@ -366,15 +366,15 @@ public:
 	/// 指定されたインデックスの選択を解除する。
 	/// Params:
 	/// index = インデックス。
-	void deselect(int index) {
-		if (index in _sels) {
+	void deselect(int index) { mixin(S_TRACE);
+		if (index in _sels) { mixin(S_TRACE);
 			_sels.remove(index);
 			redrawCard(index);
 		}
 	}
 	/// すべての選択を解除する。
-	void deselectAll() {
-		foreach (key; _sels.keys) {
+	void deselectAll() { mixin(S_TRACE);
+		foreach (key; _sels.keys) { mixin(S_TRACE);
 			_sels.remove(key);
 			redrawCard(key);
 		}
@@ -385,16 +385,16 @@ public:
 	/// createImage = 要素から画像を作成する関数。
 	/// createTitle = 要素から画像タイトルを作成する関数。
 	///               タイトルが不要な場合はnullを指定する。
-	void refresh(C[] cards, ImageData delegate(in C) createImage, string delegate(in C) createTitle) {
+	void refresh(C[] cards, ImageData delegate(in C) createImage, string delegate(in C) createTitle) { mixin(S_TRACE);
 		int ox = _origin.x;
 		int oy = _origin.y;
 		auto sels = new HashSet!(C);
-		foreach (itm; _sels.values) {
+		foreach (itm; _sels.values) { mixin(S_TRACE);
 			sels.add(cast(C) itm.getData());
 		}
 		deselectAll();
 		disposeItems();
-		foreach (c; cards) {
+		foreach (c; cards) { mixin(S_TRACE);
 			auto itm = new CardListItem!(C)(this, SWT.NONE, c, createImage, createTitle);
 			_items ~= itm;
 			if (_defItmW < 0 && _itmW < itm.width) _itmW = itm.width;
@@ -406,14 +406,14 @@ public:
 		if (vScr) vScr.setIncrement(_itmH / 4);
 		auto hScr = getHorizontalBar();
 		if (hScr) hScr.setIncrement(_itmW / 4);
-		if (_items.length > 0) {
+		if (_items.length > 0) { mixin(S_TRACE);
 			scroll(0);
 			_cur = 0;
-		} else {
+		} else { mixin(S_TRACE);
 			_cur = -1;
 		}
-		foreach (i, itm; _items) {
-			if (sels.contains(cast(C) itm.getData())) {
+		foreach (i, itm; _items) { mixin(S_TRACE);
+			if (sels.contains(cast(C) itm.getData())) { mixin(S_TRACE);
 				select(i);
 			}
 		}
@@ -423,46 +423,46 @@ public:
 		callSelectChanged();
 	}
 	@property
-	int count() {
+	int count() { mixin(S_TRACE);
 		return _items.length;
 	}
 	/// 選択中のアイテムの数。
 	@property
-	int selectionCount() {
+	int selectionCount() { mixin(S_TRACE);
 		return _sels.length;
 	}
 	/// Returns: 選択中のアイテムの配列。
 	@property
-	protected CardListItem!(C)[] selectionItems() {
+	protected CardListItem!(C)[] selectionItems() { mixin(S_TRACE);
 		return _sels.values;
 	}
 	/// Returns: 選択されているインデックスの配列。ソートされているとは限らない。
 	@property
-	int[] selectionIndices() {
+	int[] selectionIndices() { mixin(S_TRACE);
 		return _sels.keys;
 	}
 	/// ditto
 	@property
-	void selectionIndices(int[] indices) {
-		foreach (i; indices) {
+	void selectionIndices(int[] indices) { mixin(S_TRACE);
+		foreach (i; indices) { mixin(S_TRACE);
 			select(i);
 		}
 	}
 	/// Returns: 選択されているインデックスの最初の一件。選択が無い場合は-1。
 	@property
-	int selection() {
-		if (isSelected) {
+	int selection() { mixin(S_TRACE);
+		if (isSelected) { mixin(S_TRACE);
 			int i = int.max;
-			foreach (s; selectionIndices) {
+			foreach (s; selectionIndices) { mixin(S_TRACE);
 				if (s < i) i = s;
 			}
 			return i;
-		} else {
+		} else { mixin(S_TRACE);
 			return -1;
 		}
 	}
 	/// indexの画像を更新する。
-	void refresh(int index, C card) {
+	void refresh(int index, C card) { mixin(S_TRACE);
 		auto itm = _items[index];
 		itm.setData(card);
 		itm.createImage(true);
@@ -471,51 +471,51 @@ public:
 	}
 	/// Returns: カードの配列。
 	@property
-	C[] cards() {
+	C[] cards() { mixin(S_TRACE);
 		C[] cs;
 		cs.length = _items.length;
-		foreach (i, c; _items) {
+		foreach (i, c; _items) { mixin(S_TRACE);
 			cs[i] = cast(C) c.getData();
 		}
 		return cs;
 	}
 	/// Returns: 選択されているカードの配列。
 	@property
-	C[] selectionCards() {
+	C[] selectionCards() { mixin(S_TRACE);
 		C[] cs;
 		cs.length = _sels.length;
-		foreach (i, c; _sels.values) {
+		foreach (i, c; _sels.values) { mixin(S_TRACE);
 			cs[i] = cast(C) c.getData();
 		}
 		return cs;
 	}
 	/// Returns: 選択されているカードの最初の一件。選択が無い場合はnull。
 	@property
-	C selectionCard() {
+	C selectionCard() { mixin(S_TRACE);
 		int index = selection;
 		return index >= 0 ? cast(C) _items[index].getData() : null;
 	}
-	C card(int index) {
+	C card(int index) { mixin(S_TRACE);
 		return cast(C) _items[index].getData();
 	}
 	/// Returns: 選択があるか。
 	@property
-	bool isSelected() {
+	bool isSelected() { mixin(S_TRACE);
 		return _sels.length > 0;
 	}
 	/// Returns: 選択されているか。
-	bool isSelectedAt(int index) {
+	bool isSelectedAt(int index) { mixin(S_TRACE);
 		return (index in _sels) !is null;
 	}
 	/// Returns: 指定された座標に存在するカード。
-	C search(int x, int y) {
+	C search(int x, int y) { mixin(S_TRACE);
 		int i = searchIndex(x, y);
 		return i >= 0 ? (cast(C) _items[i].getData()) : null;
 	}
 	/// Returns: 指定された座標に存在するカードのインデックス。
-	int searchIndex(int x, int y) {
+	int searchIndex(int x, int y) { mixin(S_TRACE);
 		int index = searchIndexLoose(x, y);
-		if (index < _items.length) {
+		if (index < _items.length) { mixin(S_TRACE);
 			auto itm = _items[index];
 			if (itm.imageBounds.contains(x, y)) return index;
 			if (itm.titleBounds.contains(x, y)) return index;
@@ -524,16 +524,16 @@ public:
 	}
 	/// Returns: 指定された座標に近いカードのインデックス。
 	///          そのインデックスのカードは存在しない可能性がある。
-	int searchIndexLoose(int x, int y) {
+	int searchIndexLoose(int x, int y) { mixin(S_TRACE);
 		int col = ((x + _origin.x) - _marginX + _spaceX) / (_itmW + _spaceX);
 		int row = ((y + _origin.y) - _marginY + _spaceY) / (_itmH + _spaceY);
 		return row * _wrap + col;
 	}
-	void setCardSize(int cardW, int cardH, bool showTitle) {
+	void setCardSize(int cardW, int cardH, bool showTitle) { mixin(S_TRACE);
 		_cardW = cardW;
 		_cardH = cardH;
 		_showTitle = showTitle;
-		if (showTitle) {
+		if (showTitle) { mixin(S_TRACE);
 			auto gc = new GC(this);
 			scope (exit) gc.dispose();
 			_fontHeight = gc.getFontMetrics().getHeight();
@@ -545,7 +545,7 @@ public:
 		_itmH = cardH;
 		if (isVisible()) redraw();
 	}
-	void setLayoutValues(int marginX, int spaceX, int marginY, int spaceY, int titleSpace, int defWrap) {
+	void setLayoutValues(int marginX, int spaceX, int marginY, int spaceY, int titleSpace, int defWrap) { mixin(S_TRACE);
 		_marginX = marginX;
 		_spaceX = spaceX;
 		_marginY = marginY;
@@ -555,24 +555,24 @@ public:
 		setCardSize(_cardW, _cardH, _showTitle);
 	}
 	override {
-		Point computeSize(int wHint, int hHint) {
+		Point computeSize(int wHint, int hHint) { mixin(S_TRACE);
 			return computeSize(wHint, hHint, true);
 		}
-		Point computeSize(int wHint, int hHint, bool change) {
+		Point computeSize(int wHint, int hHint, bool change) { mixin(S_TRACE);
 			int x, y;
-			if (wHint != SWT.DEFAULT) {
+			if (wHint != SWT.DEFAULT) { mixin(S_TRACE);
 				x = wHint;
-			} else {
+			} else { mixin(S_TRACE);
 				x = _marginX * 2 + (_itmW * _defWrap) + (_spaceX * (_defWrap - 1));
 			}
-			if (hHint != SWT.DEFAULT) {
+			if (hHint != SWT.DEFAULT) { mixin(S_TRACE);
 				y = hHint;
-			} else {
-				if (_items.length > 0) {
+			} else { mixin(S_TRACE);
+				if (_items.length > 0) { mixin(S_TRACE);
 					int colH = _items.length / _defWrap;
 					if (_items.length % _defWrap > 0) colH++;
 					y = _marginY * 2 + (_itmH * colH) + (_spaceY * (colH - 1));
-				} else {
+				} else { mixin(S_TRACE);
 					y = _marginY * 2;
 				}
 			}
@@ -583,13 +583,13 @@ public:
 	/// 指定されたインデックスのカードが表示されるようにスクロールする。
 	/// Params:
 	/// index = インデックス。
-	void scroll(int index) {
+	void scroll(int index) { mixin(S_TRACE);
 		if (index < 0 || _items.length <= index) return;
 		calcBounds();
 		auto itm = _items[index];
 		void __scroll(ScrollBar bar, int left, int width, void delegate(int) scr,
-				bool delegate(int) isFirst, bool delegate(int) isLast, int margin, int space) {
-			if (bar !is null) {
+				bool delegate(int) isFirst, bool delegate(int) isLast, int margin, int space) { mixin(S_TRACE);
+			if (bar !is null) { mixin(S_TRACE);
 				int scLeft = bar.getSelection();
 				left += scLeft;
 				int right = left + width;
@@ -597,18 +597,18 @@ public:
 				right += isLast(index) ? margin : space;
 				int scWidth = bar.getThumb();
 				int scRight = scLeft + scWidth;
-				if (left <= scLeft && right >= scRight) {
+				if (left <= scLeft && right >= scRight) { mixin(S_TRACE);
 					// 両側にはみ出している
 					return;
 				}
 				// 片側のみはみ出しているならはみ出た分を描画領域に納める
-				if (left < scLeft) {
+				if (left < scLeft) { mixin(S_TRACE);
 					scr(left);
-				} else if (right > scRight) {
-					if (right - left > bar.getThumb()) {
+				} else if (right > scRight) { mixin(S_TRACE);
+					if (right - left > bar.getThumb()) { mixin(S_TRACE);
 						// スクロールした結果、左側がはみ出てしまうようなら
 						scr(left);
-					} else {
+					} else { mixin(S_TRACE);
 						int rs = right - scWidth;
 						scr(rs);
 					}
@@ -618,74 +618,74 @@ public:
 		__scroll(getVerticalBar(), itm.y, itm.height, &scrollY, &isFirstRow, &isLastRow, _marginY, _spaceY);
 		__scroll(getHorizontalBar(), itm.x, itm.width, &scrollX, &isFirstCol, &isLastCol, _marginX, _spaceX);
 	}
-	void setToolTip(string delegate(C) createToolTip) {
+	void setToolTip(string delegate(C) createToolTip) { mixin(S_TRACE);
 		_createToolTip = createToolTip;
 		__refreshToolTip();
 	}
-	Item getItem(int index) {
+	Item getItem(int index) { mixin(S_TRACE);
 		return _items[index];
 	}
-	int indexOf(Item item) {
+	int indexOf(Item item) { mixin(S_TRACE);
 		return .countUntil(_items, item);
 	}
-	Rectangle getBounds(int index) {
+	Rectangle getBounds(int index) { mixin(S_TRACE);
 		auto itm = _items[index];
 		return new Rectangle(itm.x, itm.y, itm.width, itm.height);
 	}
-	Rectangle getImageBounds(int index) {
+	Rectangle getImageBounds(int index) { mixin(S_TRACE);
 		return _items[index].imageBounds();
 	}
-	Rectangle getTitleBounds(int index) {
+	Rectangle getTitleBounds(int index) { mixin(S_TRACE);
 		return _items[index].titleBounds();
 	}
 private:
-	void __refreshToolTip() {
-		if (_createToolTip) {
-			if (0 <= _oldMoveIndex && _oldMoveIndex < _items.length) {
+	void __refreshToolTip() { mixin(S_TRACE);
+		if (_createToolTip) { mixin(S_TRACE);
+			if (0 <= _oldMoveIndex && _oldMoveIndex < _items.length) { mixin(S_TRACE);
 				setToolTipText(_createToolTip(cast(C) _items[_oldMoveIndex].getData()));
-			} else {
+			} else { mixin(S_TRACE);
 				setToolTipText(_createToolTip(null));
 			}
 		}
 	}
-	bool isFirstCol(int index) {
+	bool isFirstCol(int index) { mixin(S_TRACE);
 		return index % _wrap == 0;
 	}
-	bool isFirstRow(int index) {
+	bool isFirstRow(int index) { mixin(S_TRACE);
 		return index < _wrap;
 	}
-	bool isLastRow(int index) {
+	bool isLastRow(int index) { mixin(S_TRACE);
 		return index >= (_line - 1) * _wrap;
 	}
-	bool isLastCol(int index) {
+	bool isLastCol(int index) { mixin(S_TRACE);
 		return index % _wrap == _wrap - 1;
 	}
-	void scrollX(int x) {
+	void scrollX(int x) { mixin(S_TRACE);
 		auto bar = getHorizontalBar();
-		if (bar !is null) {
+		if (bar !is null) { mixin(S_TRACE);
 			bar.setSelection(x);
 			_origin.x = bar.getSelection();
 			redraw();
 		}
 	}
-	void scrollY(int y) {
+	void scrollY(int y) { mixin(S_TRACE);
 		auto bar = getVerticalBar();
-		if (bar !is null) {
+		if (bar !is null) { mixin(S_TRACE);
 			bar.setSelection(y);
 			_origin.y = bar.getSelection();
 			redraw();
 		}
 	}
-	void calcBounds() {
+	void calcBounds() { mixin(S_TRACE);
 		if (_items.length == 0) return;
 		auto rect = getClientArea();
 		int w = rect.width;
 		int index, iy, ix;
 		int x;
 		int y = _marginY - _origin.y;
-		for (iy = 0; iy < _line; iy++) {
+		for (iy = 0; iy < _line; iy++) { mixin(S_TRACE);
 			x = _marginX - _origin.x;
-			for (ix = 0; ix < _wrap && (index = iy * _wrap + ix) < _items.length; ix++) {
+			for (ix = 0; ix < _wrap && (index = iy * _wrap + ix) < _items.length; ix++) { mixin(S_TRACE);
 				auto itm = _items[index];
 				itm.x = x;
 				itm.y = y;
@@ -696,7 +696,7 @@ private:
 			y += _spaceY;
 		}
 	}
-	void __repaint(GC gc) {
+	void __repaint(GC gc) { mixin(S_TRACE);
 		if (_items.length == 0) return;
 		auto rect = getClientArea();
 		int w = rect.width;
@@ -704,14 +704,14 @@ private:
 		int x;
 		int y = _marginY - _origin.y;
 		auto d = getDisplay();
-		for (iy = 0; iy < _line; iy++) {
+		for (iy = 0; iy < _line; iy++) { mixin(S_TRACE);
 			x = _marginX - _origin.x;
-			for (ix = 0; ix < _wrap && (index = iy * _wrap + ix) < _items.length; ix++) {
+			for (ix = 0; ix < _wrap && (index = iy * _wrap + ix) < _items.length; ix++) { mixin(S_TRACE);
 				auto itm = _items[index];
 				itm.x = x;
 				itm.y = y;
-				if ((getStyle() | SWT.VIRTUAL) || y < rect.y + rect.height) {
-					if (gc) {
+				if ((getStyle() | SWT.VIRTUAL) || y < rect.y + rect.height) { mixin(S_TRACE);
+					if (gc) { mixin(S_TRACE);
 						itm.createImage();
 						auto image = itm.getImage();
 						gc.drawImage(image, x, y);
@@ -720,13 +720,13 @@ private:
 						auto title = itm.cutText(gc);
 						auto ib = itm.imageBounds();
 						auto tb = itm.titleBounds();
-						if (title != "") {
-							if (index in _sels) {
+						if (title != "") { mixin(S_TRACE);
+							if (index in _sels) { mixin(S_TRACE);
 								gc.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
 								gc.setForeground(d.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
 								gc.fillRectangle(tb);
 								gc.drawText(title, tb.x, tb.y, true);
-							} else {
+							} else { mixin(S_TRACE);
 								gc.setBackground(getBackground());
 								gc.setForeground(getForeground());
 								gc.drawText(title, tb.x, tb.y, true);
@@ -735,17 +735,17 @@ private:
 
 						gc.setForeground(getForeground());
 						gc.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
-						if (isFocusControl() && _cur == index) {
+						if (isFocusControl() && _cur == index) { mixin(S_TRACE);
 							int fx = ib.x + _focusLinePadding;
 							int fy = ib.y + _focusLinePadding;
 							int fw = ib.width - _focusLinePadding * 2;
 							int fh = ib.height - _focusLinePadding * 2;
 							gc.drawFocus(fx, fy, fw, fh);
-							if (title != "") {
+							if (title != "") { mixin(S_TRACE);
 								gc.drawFocus(tb.x - 1, tb.y - 1, tb.width + 2, tb.height + 2);
 							}
 						}
-						if (index in _sels) {
+						if (index in _sels) { mixin(S_TRACE);
 							gc.setAlpha(64);
 							gc.fillRectangle(ib);
 							gc.setAlpha(255);
@@ -759,16 +759,16 @@ private:
 			y += _spaceY;
 		}
 	}
-	void __resize() {
+	void __resize() { mixin(S_TRACE);
 		auto rect = getClientArea();
 		int prW, prH;
-		if (_items.length == 0) {
+		if (_items.length == 0) { mixin(S_TRACE);
 			auto s = computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			prW = s.x;
 			prH = s.y;
 			_wrap = _items.length;
 			_line = 1;
-		} else {
+		} else { mixin(S_TRACE);
 			int w = rect.width;
 			int colN = (w - (_marginX * 2) + _spaceX) / (_itmW + _spaceX);
 			if (colN < 1) colN = 1;
@@ -780,8 +780,8 @@ private:
 			prH = (_marginY * 2) + (_itmH * colH) + (_spaceY * (colH - 1));
 		}
 
-		void setupBar(ScrollBar bar, int pr, int size, void delegate(int) scr) {
-			if (bar !is null) {
+		void setupBar(ScrollBar bar, int pr, int size, void delegate(int) scr) { mixin(S_TRACE);
+			if (bar !is null) { mixin(S_TRACE);
 				bar.setMaximum(pr);
 				bar.setThumb(pr < size ? pr : size);
 				bar.setPageIncrement(size - bar.getIncrement());
@@ -796,8 +796,8 @@ private:
 		__repaint(null);
 		redraw();
 	}
-	void disposeItems() {
-		foreach (itm; _items) {
+	void disposeItems() { mixin(S_TRACE);
+		foreach (itm; _items) { mixin(S_TRACE);
 			itm.dispose();
 		}
 		_items.length = 0;
@@ -840,7 +840,7 @@ private:
 	string delegate(in C) _createTitle;
 	int _x, _y;
 public:
-	this (CardList!(C) parent, int style, C c, ImageData delegate(in C) createImage, string delegate(in C) createTitle) {
+	this (CardList!(C) parent, int style, C c, ImageData delegate(in C) createImage, string delegate(in C) createTitle) { mixin(S_TRACE);
 		super(parent, style);
 		setData(c);
 		_parent = parent;
@@ -848,61 +848,61 @@ public:
 		_createTitle = createTitle;
 		this.createTitle();
 	}
-	void createImage(bool force = false) {
-		if (!_imgData || force) {
+	void createImage(bool force = false) { mixin(S_TRACE);
+		if (!_imgData || force) { mixin(S_TRACE);
 			_imgData = _createImage(cast(C)getData());
 			auto img = getImage();
 			if (img) img.dispose();
 			setImage(new Image(Display.getCurrent(), _imgData));
 		}
 	}
-	void createTitle() {
-		if (_createTitle) {
+	void createTitle() { mixin(S_TRACE);
+		if (_createTitle) { mixin(S_TRACE);
 			setText(_createTitle(cast(C)getData()));
-		} else {
+		} else { mixin(S_TRACE);
 			setText("");
 		}
 	}
 
 	@property
-	int x() {
+	int x() { mixin(S_TRACE);
 		return _x;
 	}
 	@property
-	protected void x(int x) {
+	protected void x(int x) { mixin(S_TRACE);
 		_x = x;
 	}
 	@property
-	int y() {
+	int y() { mixin(S_TRACE);
 		return _y;
 	}
 	@property
-	protected void y(int y) {
+	protected void y(int y) { mixin(S_TRACE);
 		_y = y;
 	}
 	@property
-	int width() {
+	int width() { mixin(S_TRACE);
 		createImage();
 		return _imgData.width;
 	}
 	@property
-	int height() {
+	int height() { mixin(S_TRACE);
 		createImage();
 		createTitle();
-		if (_createTitle) {
+		if (_createTitle) { mixin(S_TRACE);
 			return _imgData.height + _parent._titleSpace + _parent._fontHeight + 1;
-		} else {
+		} else { mixin(S_TRACE);
 			return _imgData.height;
 		}
 	}
 
 	@property
-	Rectangle imageBounds() {
+	Rectangle imageBounds() { mixin(S_TRACE);
 		createImage();
 		return new Rectangle(x, y, _imgData.width, _imgData.height);
 	}
 	@property
-	Rectangle titleBounds() {
+	Rectangle titleBounds() { mixin(S_TRACE);
 		createImage();
 		createTitle();
 		if (getText() == "") return new Rectangle(0, 0, 0, 0);
@@ -914,11 +914,11 @@ public:
 		return new Rectangle(tx, ty, te.x, te.y);
 	}
 
-	string cutText(GC gc) {
+	string cutText(GC gc) { mixin(S_TRACE);
 		return .cutText(getText(), gc, width);
 	}
 
-	override void dispose() {
+	override void dispose() { mixin(S_TRACE);
 		auto img = getImage();
 		if (img) img.dispose();
 	}
@@ -926,36 +926,36 @@ public:
 
 private class CardListDragSourceEffect(C) : DragSourceEffect {
 public:
-	this (CardList!(C) list) {
+	this (CardList!(C) list) { mixin(S_TRACE);
 		super (list);
 	}
 private:
 	Image _dImg;
 	@property
-	CardList!(C) list() {
+	CardList!(C) list() { mixin(S_TRACE);
 		return cast(CardList!(C)) getControl();
 	}
-	void disposeImage() {
-		if (_dImg !is null) {
+	void disposeImage() { mixin(S_TRACE);
+		if (_dImg !is null) { mixin(S_TRACE);
 			_dImg.dispose();
 			_dImg = null;
 		}
 	}
 public override:
-	void dragFinished(DragSourceEvent event) {
+	void dragFinished(DragSourceEvent event) { mixin(S_TRACE);
 		disposeImage();
 	}
-	void dragStart(DragSourceEvent event) {
+	void dragStart(DragSourceEvent event) { mixin(S_TRACE);
 		auto clist = cast(CardList!(C)) getControl();
 		int i = clist.searchIndex(event.x, event.y);
-		if (i >= 0) {
+		if (i >= 0) { mixin(S_TRACE);
 			disposeImage();
 			auto sels = list.selectionItems;
 			int left = int.max;
 			int right = int.min;
 			int top = int.max;
 			int bottom = int.min;
-			foreach (s; sels) {
+			foreach (s; sels) { mixin(S_TRACE);
 				if (left > s.x) left = s.x;
 				if (right < s.x + s.width) right = s.x + s.width;
 				if (top > s.y) top = s.y;
@@ -972,13 +972,13 @@ public override:
 			auto d = clist.getDisplay();
 			gc.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
 			gc.setForeground(d.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
-			foreach (s; sels) {
+			foreach (s; sels) { mixin(S_TRACE);
 				s.createImage();
 				auto image = s.getImage();
 				gc.drawImage(image, s.x - left, s.y - top);
 
 				s.createTitle();
-				if (s.getText() != "") {
+				if (s.getText() != "") { mixin(S_TRACE);
 					auto tb = s.titleBounds();
 					string title = s.cutText(gc);
 					gc.fillRectangle(tb.x - left, tb.y - top, tb.width, tb.height);
@@ -991,14 +991,14 @@ public override:
 			scope byte[] alphas;
 			alphas.length = maxW;
 			alphas[] = cast(byte) 255;
-			foreach (s; sels) {
+			foreach (s; sels) { mixin(S_TRACE);
 				auto ib = s.imageBounds();
 				auto tb = s.titleBounds();
-				for (int y = ib.y - top; y < ib.y - top + ib.height; y++) {
+				for (int y = ib.y - top; y < ib.y - top + ib.height; y++) { mixin(S_TRACE);
 					data.setAlphas(ib.x - left, y, ib.width, alphas, 0);
 				}
-				if (s.getText() != "") {
-					for (int y = tb.y - top; y < tb.y - top + tb.height; y++) {
+				if (s.getText() != "") { mixin(S_TRACE);
+					for (int y = tb.y - top; y < tb.y - top + tb.height; y++) { mixin(S_TRACE);
 						data.setAlphas(tb.x - left, y, tb.width, alphas, 0);
 					}
 				}
@@ -1013,12 +1013,12 @@ public override:
 
 /// nameの表示幅がmaxWより大きくなる場合、
 /// はみ出す分を"..."に置換する。
-string cutText(string name, GC gc, int maxW) {
+string cutText(string name, GC gc, int maxW) { mixin(S_TRACE);
 	int tw = gc.textExtent(name).x;
-	if (tw > maxW) {
+	if (tw > maxW) { mixin(S_TRACE);
 		int dotw = gc.textExtent("...").x;
 		dstring dname = to!dstring(name);
-		while (dname.length && tw + dotw > maxW) {
+		while (dname.length && tw + dotw > maxW) { mixin(S_TRACE);
 			dname = dname[0 .. $ - 1];
 			tw = gc.textExtent(to!string(dname)).x;
 		}

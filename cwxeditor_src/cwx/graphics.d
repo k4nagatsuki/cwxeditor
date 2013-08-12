@@ -25,7 +25,7 @@ struct Pixels {
 	/// 1ピクセルのバイト数。
 	size_t bpp;
 	/// Pixelを取得する。
-	FC get(size_t x, size_t y) {
+	FC get(size_t x, size_t y) { mixin(S_TRACE);
 		size_t i = y * bytesPerLine + x * bpp;
 		ubyte a = alpha.length ? alpha[y * width + x] : 0;
 		switch (depth) {
@@ -44,7 +44,7 @@ struct Pixels {
 		}
 	}
 	/// Pixelを設定する。
-	void set(size_t x, size_t y, ubyte r, ubyte g, ubyte b, ubyte a) {
+	void set(size_t x, size_t y, ubyte r, ubyte g, ubyte b, ubyte a) { mixin(S_TRACE);
 		size_t i = y * bytesPerLine + x * bpp;
 		switch (depth) {
 		case 24, 32:
@@ -59,20 +59,20 @@ struct Pixels {
 		default:
 			throw new Exception(.format("bit depth: %d", depth), __FILE__, __LINE__);
 		}
-		if (alpha.length) {
+		if (alpha.length) { mixin(S_TRACE);
 			alpha[y * width + x] = a;
 		}
 	}
 	/// ditto
-	void set(size_t x, size_t y, uint r, uint g, uint b, uint a) {
+	void set(size_t x, size_t y, uint r, uint g, uint b, uint a) { mixin(S_TRACE);
 		set(x, y, cast(ubyte) r, cast(ubyte) g, cast(ubyte) b, cast(ubyte) a);
 	}
 	/// ditto
-	void set(size_t x, size_t y, in FC fc) {
+	void set(size_t x, size_t y, in FC fc) { mixin(S_TRACE);
 		set(x, y, fc.r, fc.g, fc.b, fc.a);
 	}
 	/// Pixelを交換する。
-	void swap(size_t x1, size_t y1, size_t x2, size_t y2) {
+	void swap(size_t x1, size_t y1, size_t x2, size_t y2) { mixin(S_TRACE);
 		auto temp = get(x1, y1);
 		set(x1, y1, get(x2, y2));
 		set(x2, y2, temp);
@@ -83,7 +83,7 @@ struct Pixels {
 struct FC {
 	ubyte r, g, b, a;
 	const
-	bool eqRgb(in FC fc) {
+	bool eqRgb(in FC fc) { mixin(S_TRACE);
 		return r == fc.r && g == fc.g && b == fc.b;
 	}
 }
@@ -93,25 +93,25 @@ struct FCu {
 	int r, g, b, a;
 	@property
 	const
-	FC fc() {
+	FC fc() { mixin(S_TRACE);
 		return FC(cast(ubyte) r, cast(ubyte) g, cast(ubyte) b, cast(ubyte) a);
 	}
 }
 
 /// Turnの効果を適用する。
-void turn(ref ubyte[] data, ref ubyte[] alpha, ref size_t width, ref size_t height, ref size_t bytesPerLine, Turn f, size_t depth) {
+void turn(ref ubyte[] data, ref ubyte[] alpha, ref size_t width, ref size_t height, ref size_t bytesPerLine, Turn f, size_t depth) { mixin(S_TRACE);
 	if (f is Turn.NONE || width < 1 || height < 1) return;
 	size_t bpp = bytesPerLine / width;
 	size_t nw = height;
 	size_t nh = width;
 	size_t newBytesPerLine = bpp * nw;
-	if (newBytesPerLine % 4 != 0) {
+	if (newBytesPerLine % 4 != 0) { mixin(S_TRACE);
 		newBytesPerLine = newBytesPerLine - (newBytesPerLine % 4) + 4;
 	}
 	auto base = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
 	auto r = Pixels(new ubyte[newBytesPerLine * nh], alpha.length ? new ubyte[nw * nh] : new ubyte[0], nw, nh, depth, newBytesPerLine, bpp);
-	for (size_t y = 0; y < height; y++) {
-		for (size_t x = 0; x < width; x++) {
+	for (size_t y = 0; y < height; y++) { mixin(S_TRACE);
+		for (size_t x = 0; x < width; x++) { mixin(S_TRACE);
 			size_t xt;
 			size_t yt;
 			switch (f) {
@@ -135,12 +135,12 @@ void turn(ref ubyte[] data, ref ubyte[] alpha, ref size_t width, ref size_t heig
 	bytesPerLine = newBytesPerLine;
 }
 /// Flipの効果を適用する。
-ubyte[] flip(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+ubyte[] flip(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) { mixin(S_TRACE);
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
 	auto r = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
-	for (size_t y1 = 0; y1 < height / 2; y1++) {
-		for (size_t x = 0; x < width; x++) {
+	for (size_t y1 = 0; y1 < height / 2; y1++) { mixin(S_TRACE);
+		for (size_t x = 0; x < width; x++) { mixin(S_TRACE);
 			size_t y2 = height - y1 - 1;
 			r.swap(x, y1, x, y2);
 		}
@@ -150,12 +150,12 @@ ubyte[] flip(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, si
 	return r.data;
 }
 /// Mirrorの効果を適用する。
-ubyte[] mirror(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+ubyte[] mirror(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) { mixin(S_TRACE);
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
 	auto r = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
-	for (size_t y = 0; y < height; y++) {
-		for (size_t x1 = 0; x1 < width / 2; x1++) {
+	for (size_t y = 0; y < height; y++) { mixin(S_TRACE);
+		for (size_t x1 = 0; x1 < width / 2; x1++) { mixin(S_TRACE);
 			size_t x2 = width - x1 - 1;
 			r.swap(x1, y, x2, y);
 		}
@@ -164,9 +164,9 @@ ubyte[] mirror(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, 
 	alpha = r.alpha;
 	return r.data;
 }
-void pixelProcImpl(T)(T f, ref FCu rgb) {
+void pixelProcImpl(T)(T f, ref FCu rgb) { mixin(S_TRACE);
 	static if (is(T == Colorexchange)) {
-		void push(int r, int g, int b) {
+		void push(int r, int g, int b) { mixin(S_TRACE);
 			rgb.r = r;
 			rgb.g = g;
 			rgb.b = b;
@@ -181,7 +181,7 @@ void pixelProcImpl(T)(T f, ref FCu rgb) {
 		default: assert (0);
 		}
 	} else static if (is(T == Colormap)) {
-		void push(int rp, int gp, int bp) {
+		void push(int rp, int gp, int bp) { mixin(S_TRACE);
 			pixelProcImpl(Colormap.GRAY_SCALE, rgb);
 			rgb.r += rp;
 			rgb.g += gp;
@@ -189,7 +189,7 @@ void pixelProcImpl(T)(T f, ref FCu rgb) {
 		}
 		switch (f) {
 		case Colormap.NONE: return;
-		case Colormap.GRAY_SCALE: {
+		case Colormap.GRAY_SCALE: { mixin(S_TRACE);
 			int v = (rgb.r + rgb.g + rgb.b) / 3;
 			rgb.r = v;
 			rgb.g = v;
@@ -214,27 +214,27 @@ void pixelProcImpl(T)(T f, ref FCu rgb) {
 		}
 		round(rgb);
 	} else static if (is(T == Filter)) {
-		void push(int r, int g, int b) {
+		void push(int r, int g, int b) { mixin(S_TRACE);
 			rgb.r = r;
 			rgb.g = g;
 			rgb.b = b;
 		}
 		switch (f) {
-		case Filter.MONO: {
-			if (rgb.r == 0 && rgb.g == 0 && rgb.b == 0) {
+		case Filter.MONO: { mixin(S_TRACE);
+			if (rgb.r == 0 && rgb.g == 0 && rgb.b == 0) { mixin(S_TRACE);
 				push(255, 255, 255);
-			} else {
+			} else { mixin(S_TRACE);
 				push(0, 0, 0);
 			}
 		} break;
-		case Filter.NEGA: {
+		case Filter.NEGA: { mixin(S_TRACE);
 			push(255 - rgb.r, 255 - rgb.g, 255 - rgb.b);
 		} break;
 		default: assert (0);
 		}
 	}
 }
-private void round(ref FCu rgb) {
+private void round(ref FCu rgb) { mixin(S_TRACE);
 	if (rgb.r < 0) rgb.r = 0;
 	if (rgb.r > 255) rgb.r = 255;
 	if (rgb.g < 0) rgb.g = 0;
@@ -245,12 +245,12 @@ private void round(ref FCu rgb) {
 	if (rgb.a > 255) rgb.a = 255;
 }
 /// Colorexchange・Colormap・Filter・Maskの効果を適用する。
-private ubyte[] pixelProc(T)(T f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+private ubyte[] pixelProc(T)(T f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) { mixin(S_TRACE);
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
 	auto r = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
-	for (size_t y = 0; y < height; y++) {
-		for (size_t x = 0; x < width; x++) {
+	for (size_t y = 0; y < height; y++) { mixin(S_TRACE);
+		for (size_t x = 0; x < width; x++) { mixin(S_TRACE);
 			auto rgb = r.get(x, y);
 			auto fc = FCu(rgb.r, rgb.g, rgb.b);
 			pixelProcImpl!(T)(f, fc);
@@ -262,19 +262,19 @@ private ubyte[] pixelProc(T)(T f, ref ubyte[] data, ref ubyte[] alpha, size_t de
 	return r.data;
 }
 /// Colorexchangeの効果を適用する。
-ubyte[] colorexchange(Colorexchange f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+ubyte[] colorexchange(Colorexchange f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) { mixin(S_TRACE);
 	return pixelProc(f, data, alpha, depth, width, height, bytesPerLine);
 }
 /// Colormapの効果を適用する。
-ubyte[] colormap(Colormap f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+ubyte[] colormap(Colormap f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) { mixin(S_TRACE);
 	return pixelProc(f, data, alpha, depth, width, height, bytesPerLine);
 }
-private ubyte[] emboss(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+private ubyte[] emboss(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) { mixin(S_TRACE);
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
 	auto r = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
-	for (size_t y = 0; y < height; y++) {
-		for (size_t x = 0; x < width; x++) {
+	for (size_t y = 0; y < height; y++) { mixin(S_TRACE);
+		for (size_t x = 0; x < width; x++) { mixin(S_TRACE);
 			int jx = x + 1 < width ? x + 1 : x;
 			int jy = y + 1 < height ? y + 1 : y;
 			auto i = r.get(x, y);
@@ -288,20 +288,20 @@ private ubyte[] emboss(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t
 	alpha = r.alpha;
 	return r.data;
 }
-private ubyte[] deffusion(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+private ubyte[] deffusion(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) { mixin(S_TRACE);
 	if (width < 1 || height < 1) return data;
 	Random rnd;
 	rnd.seed(1); // 拡散値を固定する
 	size_t bpp = bytesPerLine / width;
 	auto base = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
 	auto r = Pixels(new ubyte[data.length], new ubyte[alpha.length], width, height, depth, bytesPerLine, bpp);
-	for (size_t y = 0; y < height; y++) {
+	for (size_t y = 0; y < height; y++) { mixin(S_TRACE);
 		// cwconv.dllの実装では縦方向への拡散が微妙だがそれに合わせる
 		// 真に拡散させたい場合、jyの計算はxのループの内側にあるべき
 		int jy = y + uniform(0, 3, rnd);
 		if (jy < 0) jy = 0;
 		if (height <= jy) jy = height - 1;
-		for (size_t x = 0; x < width; x++) {
+		for (size_t x = 0; x < width; x++) { mixin(S_TRACE);
 			int jx = x + uniform(0, 3, rnd);
 			if (jx < 0) jx = 0;
 			if (width <= jx) jx = width - 1;
@@ -313,10 +313,10 @@ private ubyte[] deffusion(ref ubyte[] data, ref ubyte[] alpha, size_t depth, siz
 	return r.data;
 }
 /// Filterの効果を適用する。
-ubyte[] filter(Filter f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+ubyte[] filter(Filter f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) { mixin(S_TRACE);
 	if (f is Filter.NONE || width < 1 || height < 1) return data;
 	switch (f) {
-	case Filter.MONO, Filter.NEGA: {
+	case Filter.MONO, Filter.NEGA: { mixin(S_TRACE);
 		return pixelProc(f, data, alpha, depth, width, height, bytesPerLine);
 	}
 	case Filter.DIFFUSION: return deffusion(data, alpha, depth, width, height, bytesPerLine);
@@ -326,11 +326,11 @@ ubyte[] filter(Filter f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size
 	int[3][3] ft;
 	int en = 1, adj = 0;
 	switch (f) {
-	case Filter.SHADE: {
+	case Filter.SHADE: { mixin(S_TRACE);
 		en = 9;
 		foreach (ref ln; ft) ln[] = 1;
 	} break;
-	case Filter.SHARP: {
+	case Filter.SHARP: { mixin(S_TRACE);
 		en = 16;
 		ft[0][0] = -1;
 		ft[0][1] = -1;
@@ -342,7 +342,7 @@ ubyte[] filter(Filter f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size
 		ft[2][1] = -1;
 		ft[2][2] = -1;
 	} break;
-	case Filter.SUN: {
+	case Filter.SUN: { mixin(S_TRACE);
 		en = 16;
 		ft[0][0] = 1;
 		ft[0][1] = 3;
@@ -354,7 +354,7 @@ ubyte[] filter(Filter f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size
 		ft[2][1] = 3;
 		ft[2][2] = 1;
 	} break;
-	case Filter.C_EMBOSS: {
+	case Filter.C_EMBOSS: { mixin(S_TRACE);
 		ft[0][0] = -1;
 		ft[0][1] = -1;
 		ft[0][2] = -1;
@@ -365,7 +365,7 @@ ubyte[] filter(Filter f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size
 		ft[2][1] = 1;
 		ft[2][2] = 1;
 	} break;
-	case Filter.D_EMBOSS: {
+	case Filter.D_EMBOSS: { mixin(S_TRACE);
 		adj = 128;
 		ft[0][0] = -1;
 		ft[0][1] = -2;
@@ -377,7 +377,7 @@ ubyte[] filter(Filter f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size
 		ft[2][1] = 2;
 		ft[2][2] = 1;
 	} break;
-	case Filter.ELEC: {
+	case Filter.ELEC: { mixin(S_TRACE);
 		ft[0][0] = 1;
 		ft[0][1] = 1;
 		ft[0][2] = 1;
@@ -393,11 +393,11 @@ ubyte[] filter(Filter f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size
 	size_t bpp = bytesPerLine / width;
 	auto base = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
 	auto result = Pixels(new ubyte[data.length], alpha.length ? new ubyte[width * height] : new ubyte[0], width, height, depth, bytesPerLine, bpp);
-	for (size_t y = 0; y < height; y++) {
-		for (size_t x = 0; x < width; x++) {
+	for (size_t y = 0; y < height; y++) { mixin(S_TRACE);
+		for (size_t x = 0; x < width; x++) { mixin(S_TRACE);
 			int r = 0, g = 0, b = 0;
-			for (int xt = 0; xt < 3; xt++) {
-				for (int yt = 0; yt < 3; yt++) {
+			for (int xt = 0; xt < 3; xt++) { mixin(S_TRACE);
+				for (int yt = 0; yt < 3; yt++) { mixin(S_TRACE);
 					int xti = x + xt - 1;
 					if (xti < 0) xti = 0;
 					if (width <= xti) xti = width - 1;
@@ -423,15 +423,15 @@ ubyte[] filter(Filter f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size
 	return result.data;
 }
 /// Maskの効果を適用する。
-ubyte[] mask(Mask f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+ubyte[] mask(Mask f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) { mixin(S_TRACE);
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
 	auto r = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
-	for (size_t y = 0; y < height; y++) {
-		for (size_t x = 0; x < width; x++) {
+	for (size_t y = 0; y < height; y++) { mixin(S_TRACE);
+		for (size_t x = 0; x < width; x++) { mixin(S_TRACE);
 			size_t i = y * bytesPerLine + x * bpp;
 			if (((f is Mask.V_LINE || f is Mask.MESH) && !(x & 0x1))
-					|| ((f is Mask.H_LINE || f is Mask.MESH) && !(y & 0x1))) {
+					|| ((f is Mask.H_LINE || f is Mask.MESH) && !(y & 0x1))) { mixin(S_TRACE);
 				r.set(x, y, cast(ubyte) 0, cast(ubyte) 0, cast(ubyte) 0, cast(ubyte) 0);
 			}
 		}
@@ -440,39 +440,39 @@ ubyte[] mask(Mask f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t w
 	alpha = r.alpha;
 	return r.data;
 }
-void noiseImpl(ref Random rnd, Noise f, ref FCu rgb, int value) {
+void noiseImpl(ref Random rnd, Noise f, ref FCu rgb, int value) { mixin(S_TRACE);
 	switch (f) {
 	case Noise.NONE: return;
-	case Noise.LIGHT: {
+	case Noise.LIGHT: { mixin(S_TRACE);
 		rgb.r += value;
 		rgb.g += value;
 		rgb.b += value;
 	} break;
-	case Noise.MONO: {
+	case Noise.MONO: { mixin(S_TRACE);
 		int val = (rgb.r > value || rgb.g > value || rgb.b > value) ? 255 : 0;
 		rgb.r = val;
 		rgb.g = val;
 		rgb.b = val;
 	} break;
-	case Noise.NOISE: {
-		if (value >= 0) {
+	case Noise.NOISE: { mixin(S_TRACE);
+		if (value >= 0) { mixin(S_TRACE);
 			auto val = uniform(0, value, rnd);
 			rgb.r += val;
 			rgb.g += val;
 			rgb.b += val;
-		} else {
+		} else { mixin(S_TRACE);
 			int val = uniform(0, 2, rnd) ? 255 : 0;
 			rgb.r = val;
 			rgb.g = val;
 			rgb.b = val;
 		}
 	} break;
-	case Noise.C_NOISE: {
-		if (value >= 0) {
+	case Noise.C_NOISE: { mixin(S_TRACE);
+		if (value >= 0) { mixin(S_TRACE);
 			rgb.r += uniform(0, value, rnd);
 			rgb.g += uniform(0, value, rnd);
 			rgb.b += uniform(0, value, rnd);
-		} else {
+		} else { mixin(S_TRACE);
 			rgb.r = uniform(0, 2, rnd) ? 255 : 0;
 			rgb.g = uniform(0, 2, rnd) ? 255 : 0;
 			rgb.b = uniform(0, 2, rnd) ? 255 : 0;
@@ -483,8 +483,8 @@ void noiseImpl(ref Random rnd, Noise f, ref FCu rgb, int value) {
 	round(rgb);
 }
 /// Noiseの効果を適用する。
-ubyte[] noise(Noise f, int value, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
-	if (f is Noise.NONE || value == 0 || width < 1 || height < 1) {
+ubyte[] noise(Noise f, int value, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine) { mixin(S_TRACE);
+	if (f is Noise.NONE || value == 0 || width < 1 || height < 1) { mixin(S_TRACE);
 		return data;
 	}
 	value %= 256;
@@ -493,15 +493,15 @@ ubyte[] noise(Noise f, int value, ref ubyte[] data, ref ubyte[] alpha, size_t de
 	rnd.seed(42); // ノイズを固定する
 	size_t bpp = bytesPerLine / width;
 	auto r = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
-	for (size_t y = 0; y < height; y++) {
-		for (size_t x = 0; x < width; x++) {
-			if (f is Noise.MOSAIC) {
+	for (size_t y = 0; y < height; y++) { mixin(S_TRACE);
+		for (size_t x = 0; x < width; x++) { mixin(S_TRACE);
+			if (f is Noise.MOSAIC) { mixin(S_TRACE);
 				// cwconv.dllの実装では平均値を求めず左上の値を取っているので
 				// それに合わせる
 				size_t jx = x - x % value;
 				size_t jy = y - y % value;
 				r.set(x, y, r.get(jx, jy));
-			} else {
+			} else { mixin(S_TRACE);
 				auto rgb = r.get(x, y);
 				auto fc = FCu(rgb.r, rgb.g, rgb.b);
 				noiseImpl(rnd, f, fc, value);
@@ -517,9 +517,9 @@ ubyte[] noise(Noise f, int value, ref ubyte[] data, ref ubyte[] alpha, size_t de
 /// スムージングは行わない。
 ubyte[] resize(size_t newWidth, size_t newHeight,
 		ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine,
-		out size_t newBytesPerLine) {
+		out size_t newBytesPerLine) { mixin(S_TRACE);
 	if (width < 1 || height < 1) return data;
-	if (width == newWidth && height == newHeight) {
+	if (width == newWidth && height == newHeight) { mixin(S_TRACE);
 		newBytesPerLine = bytesPerLine;
 		return data;
 	}
@@ -527,14 +527,14 @@ ubyte[] resize(size_t newWidth, size_t newHeight,
 	real ph = cast(real) newHeight / height;
 	size_t bpp = bytesPerLine / width;
 	newBytesPerLine = bpp * newWidth;
-	if (newBytesPerLine % 4 != 0) {
+	if (newBytesPerLine % 4 != 0) { mixin(S_TRACE);
 		newBytesPerLine = newBytesPerLine - (newBytesPerLine % 4) + 4;
 	}
 	auto base = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
 	auto r = Pixels(new ubyte[newHeight * newBytesPerLine], alpha.length ? new ubyte[newWidth * newHeight] : new ubyte[0], newHeight, newHeight, depth, newBytesPerLine, bpp);
-	for (size_t y = 0; y < newHeight; y++) {
+	for (size_t y = 0; y < newHeight; y++) { mixin(S_TRACE);
 		size_t ty = cast(size_t) (y / ph);
-		for (size_t x = 0; x < newWidth; x++) {
+		for (size_t x = 0; x < newWidth; x++) { mixin(S_TRACE);
 			size_t tx = cast(size_t) (x / pw);
 			r.set(x, y, base.get(tx, ty));
 		}
@@ -547,9 +547,9 @@ ubyte[] resize(size_t newWidth, size_t newHeight,
 /// 滑らかに拡大・縮小した結果を返す。
 ubyte[] smoothResize(size_t newWidth, size_t newHeight,
 		ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine,
-		out size_t newBytesPerLine) {
+		out size_t newBytesPerLine) { mixin(S_TRACE);
 	if (width < 1 || height < 1) return data;
-	if (width == newWidth && height == newHeight) {
+	if (width == newWidth && height == newHeight) { mixin(S_TRACE);
 		newBytesPerLine = bytesPerLine;
 		return data;
 	}
@@ -558,24 +558,24 @@ ubyte[] smoothResize(size_t newWidth, size_t newHeight,
 	real ph = cast(real) newHeight / height;
 	size_t bpp = bytesPerLine / width;
 	newBytesPerLine = bpp * newWidth;
-	if (newBytesPerLine % 4 != 0) {
+	if (newBytesPerLine % 4 != 0) { mixin(S_TRACE);
 		newBytesPerLine = newBytesPerLine - (newBytesPerLine % 4) + 4;
 	}
 	auto base = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
 	auto result = Pixels(new ubyte[newHeight * newBytesPerLine], alpha.length ? new ubyte[newWidth * newHeight] : new ubyte[0], newWidth, newHeight, depth, newBytesPerLine, bpp);
-	for (size_t y = 0; y < newHeight; y++) {
+	for (size_t y = 0; y < newHeight; y++) { mixin(S_TRACE);
 		real ty = y / ph;
 		int bby = cast(int) ty;
 		real yb = ty % 1.0;
 		auto ybm = 1.0 - yb;
-		for (size_t x = 0; x < newWidth; x++) {
+		for (size_t x = 0; x < newWidth; x++) { mixin(S_TRACE);
 			real tx = x / pw;
 			int bbx = cast(int) tx;
 			real xb = tx % 1.0;
 			auto xbm = 1.0 - xb;
 			FC[2][2] a;
-			for (int i = 0; i < 2; i++) {
-				for (int j = 0; j < 2; j++) {
+			for (int i = 0; i < 2; i++) { mixin(S_TRACE);
+				for (int j = 0; j < 2; j++) { mixin(S_TRACE);
 					int by = bby + i;
 					int bx = bbx + j;
 					if (by < 0) by = 0;
@@ -608,15 +608,15 @@ ubyte[] smoothResize(size_t newWidth, size_t newHeight,
 }
 
 /// a部分へのbによる縁取り(bWidth幅)を行う。
-ubyte[] bordering(ubyte[] data, ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine, FC a, FC b, uint bWidth) {
+ubyte[] bordering(ubyte[] data, ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine, FC a, FC b, uint bWidth) { mixin(S_TRACE);
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
 	auto base = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
 	auto r = Pixels(data.dup, alpha.dup, width, height, depth, bytesPerLine, bpp);
 	auto w = width - 1;
 	auto h = height - 1;
-	foreach (y; 0..height) {
-		foreach (x; 0..width) {
+	foreach (y; 0..height) { mixin(S_TRACE);
+		foreach (x; 0..width) { mixin(S_TRACE);
 			if (base.get(x, y) == a) continue;
 
 			// 周囲にaがあるか探す
@@ -635,8 +635,8 @@ ubyte[] bordering(ubyte[] data, ubyte[] alpha, size_t depth, size_t width, size_
 			// 縁取り実行
 			int bx = x - bWidth / 2;
 			int by = y - bWidth / 2;
-			foreach (wy; .max(0, by) .. .min(height, by + bWidth)) {
-				foreach (wx; .max(0, bx) .. .min(width, bx + bWidth)) {
+			foreach (wy; .max(0, by) .. .min(height, by + bWidth)) { mixin(S_TRACE);
+				foreach (wx; .max(0, bx) .. .min(width, bx + bWidth)) { mixin(S_TRACE);
 					r.set(wx, wy, b);
 				}
 			}
@@ -646,18 +646,18 @@ ubyte[] bordering(ubyte[] data, ubyte[] alpha, size_t depth, size_t width, size_
 }
 
 /// aとbに同時に接触している色cをaによって上書きする。
-ubyte[] adjustBordering(ubyte[] data, ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine, FC a, FC b, FC c) {
+ubyte[] adjustBordering(ubyte[] data, ubyte[] alpha, size_t depth, size_t width, size_t height, size_t bytesPerLine, FC a, FC b, FC c) { mixin(S_TRACE);
 	if (width < 1 || height < 1) return data;
 	size_t bpp = bytesPerLine / width;
 	auto base = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
 	auto r = Pixels(data.dup, alpha.dup, width, height, depth, bytesPerLine, bpp);
 	auto w = width - 1;
 	auto h = height - 1;
-	foreach (y; 0..height) {
-		foreach (x; 0..width) {
+	foreach (y; 0..height) { mixin(S_TRACE);
+		foreach (x; 0..width) { mixin(S_TRACE);
 			if (!base.get(x, y).eqRgb(c)) continue;
 
-			bool find(in FC fc) {
+			bool find(in FC fc) { mixin(S_TRACE);
 				bool find = 0 < x && base.get(x - 1, y).eqRgb(fc);
 				find |= 0 < y && base.get(x, y - 1).eqRgb(fc);
 				find |= x < w && base.get(x + 1, y).eqRgb(fc);

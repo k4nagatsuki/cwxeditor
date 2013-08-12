@@ -29,7 +29,7 @@ class XMLOption {
 	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
 	bool shallow = false; /// イベントコンテントのコピーの際、子コンテントを無視する。
 
-	this (const System sys) {
+	this (const System sys) { mixin(S_TRACE);
 		this.sys = sys;
 	}
 }
@@ -84,7 +84,7 @@ interface InfoOwner : CWXPath {
 /// カード絡みの例外。
 class CardException : Exception {
 public:
-	this (string msg) {
+	this (string msg) { mixin(S_TRACE);
 		super(msg);
 	}
 }
@@ -104,7 +104,7 @@ public:
 	/// name = 名前。
 	/// imagePath = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, string imagePath, string desc) {
+	this (ulong id, string name, string imagePath, string desc) { mixin(S_TRACE);
 		_id = id;
 		_name = name;
 		_desc = desc;
@@ -112,7 +112,7 @@ public:
 		_path.path = imagePath;
 	}
 	/// cからパラメータをコピーする。
-	protected void shallowCopyCard(in Card c) {
+	protected void shallowCopyCard(in Card c) { mixin(S_TRACE);
 		id = c.id;
 		name = c.name;
 		desc = c.desc;
@@ -120,7 +120,7 @@ public:
 	}
 
 	const
-	bool opEquals(ref const(Object) o) {
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto c = cast(const Card) o;
 		if (!c) return false;
 		return id == c.id
@@ -128,7 +128,7 @@ public:
 	}
 	/// ID以外を比較する。
 	const
-	protected bool equalsExcludeIdCard(const(Card) c) {
+	protected bool equalsExcludeIdCard(const(Card) c) { mixin(S_TRACE);
 		if (!c) return false;
 		return name == c.name
 			&& desc == c.desc
@@ -136,7 +136,7 @@ public:
 	}
 
 	/// IDを除く内部データをクリアする。
-	protected void clearData() {
+	protected void clearData() { mixin(S_TRACE);
 		name = "";
 		desc = "";
 		path = "";
@@ -144,60 +144,60 @@ public:
 
 	/// 変更ハンドラを登録する。
 	@property
-	void changeHandler(void delegate() change) {
+	void changeHandler(void delegate() change) { mixin(S_TRACE);
 		_change = change;
 	}
 	/// 変更ハンドラを返す。
 	@property
-	protected void delegate() changeHandler() {
+	protected void delegate() changeHandler() { mixin(S_TRACE);
 		return _change;
 	}
 	/// 変更を通知する。
-	protected void changed() {
+	protected void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 
 	/// 使用回数カウンタ。
 	@property
-	UseCounter useCounter() {
+	UseCounter useCounter() { mixin(S_TRACE);
 		return _path.useCounter;
 	}
 	/// 使用回数カウンタを登録する。
 	@property
-	void setUseCounter(UseCounter uc) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		_path.setUseCounter(uc);
 	}
 	/// 使用回数カウンタを取り除く。
-	void removeUseCounter() {
+	void removeUseCounter() { mixin(S_TRACE);
 		_path.removeUseCounter();
 	}
 	/// 画像パスの変更を通知する。
-	void change(PathId id) {
+	void change(PathId id) { mixin(S_TRACE);
 		_path.change(id);
 	}
 
 	/// カードID。
 	@property
-	void id(ulong id) {
+	void id(ulong id) { mixin(S_TRACE);
 		if (_id != id) changed();
 		_id = id;
 	}
 	/// ditto
 	@property
 	const
-	ulong id() {
+	ulong id() { mixin(S_TRACE);
 		return _id;
 	}
 
 	/// カード名。
 	@property
 	const
-	string name() {
+	string name() { mixin(S_TRACE);
 		return _name;
 	}
 	/// ditto
 	@property
-	void name(string name) {
+	void name(string name) { mixin(S_TRACE);
 		if (_name != name) changed();
 		_name = name;
 	}
@@ -205,12 +205,12 @@ public:
 	/// カード画像。
 	@property
 	const
-	string path() {
+	string path() { mixin(S_TRACE);
 		return _path.path;
 	}
 	/// ditto
 	@property
-	void path(string path) {
+	void path(string path) { mixin(S_TRACE);
 		if (_path.path != path) changed();
 		_path.path = path;
 	}
@@ -218,18 +218,18 @@ public:
 	/// 解説。
 	@property
 	const
-	string desc() {
+	string desc() { mixin(S_TRACE);
 		return _desc;
 	}
 	/// ditto
 	@property
-	void desc(string desc) {
+	void desc(string desc) { mixin(S_TRACE);
 		if (_desc != desc) changed();
 		_desc = desc;
 	}
 
 	/// nodeからID情報を抽出する。存在しない場合は0。
-	static ulong readId(ref XNode node) {
+	static ulong readId(ref XNode node) { mixin(S_TRACE);
 		auto pNode = node.child("Property", false);
 		if (!pNode.valid) return 0UL;
 		string idStr = pNode.childText("Id", false);
@@ -237,19 +237,19 @@ public:
 		return to!(ulong)(idStr);
 	}
 	/// nodeからID、参照先ID、ホールド情報を抽出する。存在しない場合は0。
-	private static ulong readLinkInfo(ref XNode node, out ulong linkId, out bool hold) {
+	private static ulong readLinkInfo(ref XNode node, out ulong linkId, out bool hold) { mixin(S_TRACE);
 		auto pNode = node.child("Property", false);
 		if (!pNode.valid) return 0UL;
 		ulong id = 0UL;
 		linkId = 0UL;
 		hold = false;
-		pNode.onTag["Id"] = (ref XNode e) {
+		pNode.onTag["Id"] = (ref XNode e) { mixin(S_TRACE);
 			id = to!ulong(e.value);
 		};
-		pNode.onTag["LinkId"] = (ref XNode e) {
+		pNode.onTag["LinkId"] = (ref XNode e) { mixin(S_TRACE);
 			linkId = to!ulong(e.value);
 		};
-		pNode.onTag["Hold"] = (ref XNode e) {
+		pNode.onTag["Hold"] = (ref XNode e) { mixin(S_TRACE);
 			hold = parseBool(e.value);
 		};
 		pNode.parse();
@@ -258,7 +258,7 @@ public:
 
 	/// 指定されたXMLノードにProperty情報を追加する。
 	const
-	protected XNode setProp(ref XNode node, XMLOption opt, in OverData od = null) {
+	protected XNode setProp(ref XNode node, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
 		auto pNode = node.newElement("Property");
 		pNode.newElement("Id", od && od.id != 0UL ? od.id : id);
 		pNode.newElement("Name", name);
@@ -267,7 +267,7 @@ public:
 		return pNode;
 	}
 	/// 指定されたXMLノードからProperty情報を読み出す。
-	protected void loadProp(ref XNode pNode, in XMLInfo ver) {
+	protected void loadProp(ref XNode pNode, in XMLInfo ver) { mixin(S_TRACE);
 		string idStr = null;
 		pNode.onTag["Id"] = (ref XNode n) {idStr = n.value;};
 		pNode.onTag["ImagePath"] = (ref XNode n) {_path.path = decodePath(n.value);};
@@ -281,7 +281,7 @@ public:
 	}
 
 	const
-	override int opCmp(Object o) {
+	override int opCmp(Object o) { mixin(S_TRACE);
 		return cast(int) _id - cast(int) (cast(Card) o)._id;
 	}
 }
@@ -328,14 +328,14 @@ public:
 	@property
 	protected override void delegate() changeHandler() {return super.changeHandler;}
 	@property
-	override void changeHandler(void delegate() change) {
-		foreach (c; _items) {
+	override void changeHandler(void delegate() change) { mixin(S_TRACE);
+		foreach (c; _items) { mixin(S_TRACE);
 			c.changeHandler = change;
 		}
-		foreach (c; _skills) {
+		foreach (c; _skills) { mixin(S_TRACE);
 			c.changeHandler = change;
 		}
-		foreach (c; _beasts) {
+		foreach (c; _beasts) { mixin(S_TRACE);
 			c.changeHandler = change;
 		}
 		super.changeHandler = change;
@@ -348,7 +348,7 @@ public:
 	/// desc = 解説。
 	/// lev = レベル。
 	/// lifeMax = ヒットポイント最大値。
-	this (ulong id, string name, string imagePath, string desc, uint lev, uint lifeMax) {
+	this (ulong id, string name, string imagePath, string desc, uint lev, uint lifeMax) { mixin(S_TRACE);
 		super(id, name, imagePath, desc);
 		_lev = lev;
 		_life = lifeMax;
@@ -364,11 +364,11 @@ public:
 		_rEnhRound[Enhance.RESIST] = 0;
 		_rEnhRound[Enhance.DEFENSE] = 0;
 	}
-	this (ulong id, string name, string imagePath, string desc) {
+	this (ulong id, string name, string imagePath, string desc) { mixin(S_TRACE);
 		this (id, name, imagePath, desc, 1, 1);
 	}
 	/// cからパラメータをコピーする。
-	void shallowCopy(in CastCard c) {
+	void shallowCopy(in CastCard c) { mixin(S_TRACE);
 		shallowCopyCard(c);
 		copyRaceParam(c);
 		level = c.level;
@@ -391,28 +391,28 @@ public:
 		enhance(Enhance.DEFENSE, c.enhance(Enhance.DEFENSE));
 		enhanceRound(Enhance.DEFENSE, c.enhanceRound(Enhance.DEFENSE));
 		Coupon[] cps;
-		foreach (cp; c.coupons) {
+		foreach (cp; c.coupons) { mixin(S_TRACE);
 			cps ~= new Coupon(cp);
 		}
 		coupons = cps;
 	}
 	/// ditto
-	void deepCopy(in CastCard c) {
+	void deepCopy(in CastCard c) { mixin(S_TRACE);
 		shallowCopy(c);
-		foreach (s; skills) {
+		foreach (s; skills) { mixin(S_TRACE);
 			add(s.dup);
 		}
-		foreach (s; items) {
+		foreach (s; items) { mixin(S_TRACE);
 			add(s.dup);
 		}
-		foreach (s; beasts) {
+		foreach (s; beasts) { mixin(S_TRACE);
 			add(s.dup);
 		}
 	}
 
 	override
 	const
-	bool opEquals(ref const(Object) o) {
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto c = cast(const CastCard) o;
 		if (!c) return false;
 		if (!super.opEquals(o)) return false;
@@ -420,12 +420,12 @@ public:
 	}
 	/// ID以外を比較する。
 	const
-	bool equalsExcludeId(const(CastCard) c) {
+	bool equalsExcludeId(const(CastCard) c) { mixin(S_TRACE);
 		if (!super.equalsExcludeIdCard(c)) return false;
 		return eqImpl(c);
 	}
 	const
-	private bool eqImpl(ref const(CastCard) c) {
+	private bool eqImpl(ref const(CastCard) c) { mixin(S_TRACE);
 		if (!equalsRace(c)) return false;
 		return level == c.level
 			&& life == c.life
@@ -455,7 +455,7 @@ public:
 	/// ディープコピーを作成する。
 	@property
 	const
-	CastCard dup() {
+	CastCard dup() { mixin(S_TRACE);
 		auto copy = new CastCard(0UL, "", "", "");
 		copy.deepCopy(this);
 		return copy;
@@ -463,17 +463,17 @@ public:
 	/// 使用回数カウンタ。
 	@property
 	override
-	void setUseCounter(UseCounter uc) {
-		foreach (c; _items) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		foreach (c; _items) { mixin(S_TRACE);
 			c.setUseCounter = uc;
 		}
-		foreach (c; _skills) {
+		foreach (c; _skills) { mixin(S_TRACE);
 			c.setUseCounter = uc;
 		}
-		foreach (c; _beasts) {
+		foreach (c; _beasts) { mixin(S_TRACE);
 			c.setUseCounter = uc;
 		}
-		foreach (c; _coupons) {
+		foreach (c; _coupons) { mixin(S_TRACE);
 			c.setUseCounter = uc;
 		}
 		super.setUseCounter = uc;
@@ -481,22 +481,22 @@ public:
 	/// ditto
 	@property
 	override
-	UseCounter useCounter() {
+	UseCounter useCounter() { mixin(S_TRACE);
 		return super.useCounter;
 	}
 	/// ditto
 	override
-	void removeUseCounter() {
-		foreach (c; _items) {
+	void removeUseCounter() { mixin(S_TRACE);
+		foreach (c; _items) { mixin(S_TRACE);
 			c.removeUseCounter();
 		}
-		foreach (c; _skills) {
+		foreach (c; _skills) { mixin(S_TRACE);
 			c.removeUseCounter();
 		}
-		foreach (c; _beasts) {
+		foreach (c; _beasts) { mixin(S_TRACE);
 			c.removeUseCounter();
 		}
-		foreach (c; _coupons) {
+		foreach (c; _coupons) { mixin(S_TRACE);
 			c.removeUseCounter();
 		}
 		super.removeUseCounter();
@@ -507,7 +507,7 @@ public:
 	uint level() {return _lev;}
 	/// ditto
 			@property
-	void level(uint lev) {
+	void level(uint lev) { mixin(S_TRACE);
 		if (_lev != lev) changed();
 		_lev = lev;
 	}
@@ -517,7 +517,7 @@ public:
 	uint life() {return _life;}
 	/// ditto
 			@property
-	void life(uint life) {
+	void life(uint life) { mixin(S_TRACE);
 		if (_life != life) changed();
 		_life = life;
 	}
@@ -527,13 +527,13 @@ public:
 	uint lifeMax() {return _lifeMax;}
 	/// ditto
 			@property
-	void lifeMax(uint lifeMax) {
+	void lifeMax(uint lifeMax) { mixin(S_TRACE);
 		if (_lifeMax != lifeMax) changed();
 		_lifeMax = lifeMax;
 	}
 	// 適性値を返す。
 	const
-	int aptitude(Physical phy, Mental m) {
+	int aptitude(Physical phy, Mental m) { mixin(S_TRACE);
 		return physical(phy) + mental(m);
 	}
 
@@ -543,30 +543,30 @@ public:
 	const(Coupon)[] coupons() {return _coupons;}
 	/// ditto
 	@property
-	void coupons(Coupon[] coupons) {
+	void coupons(Coupon[] coupons) { mixin(S_TRACE);
 		if (_coupons != coupons) changed();
-		foreach (c; _coupons) {
+		foreach (c; _coupons) { mixin(S_TRACE);
 			c.owner = null;
 			c.removeUseCounter();
 		}
-		foreach (c; coupons) {
+		foreach (c; coupons) { mixin(S_TRACE);
 			c.owner = this;
-			if (useCounter) {
+			if (useCounter) { mixin(S_TRACE);
 				c.setUseCounter = useCounter;
 			}
 		}
 		_coupons = coupons;
 	}
 
-	private C __add(C)(ref C[] arr, C c) {
-		if (contains!("a is b")(arr, c)) {
+	private C __add(C)(ref C[] arr, C c) { mixin(S_TRACE);
+		if (contains!("a is b")(arr, c)) { mixin(S_TRACE);
 			remove(c);
 		}
 		c = c.dup;
-		if (arr.length > 0 && arr[$ - 1].id >= c.id) {
+		if (arr.length > 0 && arr[$ - 1].id >= c.id) { mixin(S_TRACE);
 			c.id = arr[$ - 1].id + 1L;
 		}
-		if (useCounter) {
+		if (useCounter) { mixin(S_TRACE);
 			c.setUseCounter = useCounter;
 		}
 		c.changeHandler = changeHandler;
@@ -575,9 +575,9 @@ public:
 		changed();
 		return c;
 	}
-	private void __removeC(C)(ref C[] arr, C card) {
-		foreach (i, c; arr) {
-			if (c is card) {
+	private void __removeC(C)(ref C[] arr, C card) { mixin(S_TRACE);
+		foreach (i, c; arr) { mixin(S_TRACE);
+			if (c is card) { mixin(S_TRACE);
 				arr[i].removeUseCounter();
 				arr[i].changeHandler = null;
 				arr[i].owner = null;
@@ -586,9 +586,9 @@ public:
 			}
 		}
 	}
-	private void __remove(C)(ref C[] arr, ulong id) {
-		foreach (i, c; arr) {
-			if (c.id == id) {
+	private void __remove(C)(ref C[] arr, ulong id) { mixin(S_TRACE);
+		foreach (i, c; arr) { mixin(S_TRACE);
+			if (c.id == id) { mixin(S_TRACE);
 				arr[i].removeUseCounter();
 				arr[i].changeHandler = null;
 				arr[i].owner = null;
@@ -598,27 +598,27 @@ public:
 		}
 	}
 	const
-	private C __find(C)(C[] arr, ulong id) {
-		foreach (c; arr) {
-			if (c.id == id) {
+	private C __find(C)(C[] arr, ulong id) { mixin(S_TRACE);
+		foreach (c; arr) { mixin(S_TRACE);
+			if (c.id == id) { mixin(S_TRACE);
 				return c;
 			}
 		}
 		return null;
 	}
-	private T __insert(T, alias ToID)(ref T[] arr, int index, T c) {
-		if (arr.length == index) {
+	private T __insert(T, alias ToID)(ref T[] arr, int index, T c) { mixin(S_TRACE);
+		if (arr.length == index) { mixin(S_TRACE);
 			return __add!(T)(arr, c);
-		} else {
+		} else { mixin(S_TRACE);
 			int oldIdx = indexOf(c);
-			if (oldIdx >= 0) {
+			if (oldIdx >= 0) { mixin(S_TRACE);
 				remove(c);
 				if (oldIdx < index) index--;
 			}
 			c.id(index == 0 ? 1L : arr[index - 1].id() + 1L);
 			arr = arr[0 .. index] ~ c ~ arr[index .. $];
-			for (size_t i = index + 1; i < arr.length; i++) {
-				if (arr[i - 1].id == arr[i].id) {
+			for (size_t i = index + 1; i < arr.length; i++) { mixin(S_TRACE);
+				if (arr[i - 1].id == arr[i].id) { mixin(S_TRACE);
 					ulong o = arr[i].id();
 					arr[i].id = arr[i].id + 1L;
 				}
@@ -643,15 +643,15 @@ public:
 	/// ditto
 	void removeItem(ulong id) {__remove(_items, id);}
 	/// ditto
-	ItemCard item(ulong id) {
+	ItemCard item(ulong id) { mixin(S_TRACE);
 		return __find(_items, id);
 	}
 	/// ditto
-	void remove(ItemCard c) {
+	void remove(ItemCard c) { mixin(S_TRACE);
 		__removeC(_items, c);
 	}
 	/// ditto
-	ItemCard insert(int index, ItemCard c) {
+	ItemCard insert(int index, ItemCard c) { mixin(S_TRACE);
 		return __insert!(ItemCard, toItemId)(_items, index, c);
 	}
 	/// 所持スキル。
@@ -666,15 +666,15 @@ public:
 	/// ditto
 	void removeSkill(ulong id) {__remove(_skills, id);}
 	/// ditto
-	SkillCard skill(ulong id) {
+	SkillCard skill(ulong id) { mixin(S_TRACE);
 		return __find(_skills, id);
 	}
 	/// ditto
-	void remove(SkillCard c) {
+	void remove(SkillCard c) { mixin(S_TRACE);
 		__removeC(_skills, c);
 	}
 	/// ditto
-	SkillCard insert(int index, SkillCard c) {
+	SkillCard insert(int index, SkillCard c) { mixin(S_TRACE);
 		return __insert!(SkillCard, toSkillId)(_skills, index, c);
 	}
 	/// 所持召喚獣。
@@ -689,34 +689,34 @@ public:
 	/// ditto
 	void removeBeast(ulong id) {__remove(_beasts, id);}
 	/// ditto
-	BeastCard beast(ulong id) {
+	BeastCard beast(ulong id) { mixin(S_TRACE);
 		return __find(_beasts, id);
 	}
 	/// ditto
-	void remove(BeastCard c) {
+	void remove(BeastCard c) { mixin(S_TRACE);
 		__removeC(_beasts, c);
 	}
 	/// ditto
-	BeastCard insert(int index, BeastCard c) {
+	BeastCard insert(int index, BeastCard c) { mixin(S_TRACE);
 		return __insert!(BeastCard, toBeastId)(_beasts, index, c);
 	}
 
 	/// 指定された要素のindexを検索する。
 	const
-	int indexOf(T)(in T c) {
+	int indexOf(T)(in T c) { mixin(S_TRACE);
 		static if (is (T == SkillCard)) {
 			return .cCountUntil!("a is b")(_skills, c);
 		} else static if (is (T == ItemCard)) {
 			return .cCountUntil!("a is b")(_items, c);
 		} else static if (is (T == BeastCard)) {
 			return .cCountUntil!("a is b")(_beasts, c);
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
 	}
 
 	/// index1とindex2を交換する。
-	void swap(C)(int index1, int index2) {
+	void swap(C)(int index1, int index2) { mixin(S_TRACE);
 		if (index1 == index2) return;
 		enforce(0 <= index1 && index1 < CArray!C.length);
 		enforce(0 <= index2 && index2 < CArray!C.length);
@@ -742,7 +742,7 @@ public:
 	Mentality mentality() {return _mentali;}
 	/// ditto
 	@property
-	void mentality(Mentality mentali) {
+	void mentality(Mentality mentali) { mixin(S_TRACE);
 		if (_mentali != mentali) changed();
 		_mentali = mentali;
 	}
@@ -752,7 +752,7 @@ public:
 	uint mentalityRound() {return _mentaliRound;}
 	/// ditto
 	@property
-	void mentalityRound(uint round) {
+	void mentalityRound(uint round) { mixin(S_TRACE);
 		if (_mentaliRound != round) changed();
 		_mentaliRound = round;
 	}
@@ -762,7 +762,7 @@ public:
 	uint paralyze() {return _para;}
 	/// ditto
 	@property
-	void paralyze(uint value) {
+	void paralyze(uint value) { mixin(S_TRACE);
 		if (_para != value) changed();
 		_para = value;
 	}
@@ -772,7 +772,7 @@ public:
 	uint poison() {return _poi;}
 	/// ditto
 	@property
-	void poison(uint value) {
+	void poison(uint value) { mixin(S_TRACE);
 		if (_poi != value) changed();
 		_poi = value;
 	}
@@ -782,7 +782,7 @@ public:
 	uint bindRound() {return _bindRound;}
 	/// ditto
 	@property
-	void bindRound(uint round) {
+	void bindRound(uint round) { mixin(S_TRACE);
 		if (_bindRound != round) changed();
 		_bindRound = round;
 	}
@@ -792,7 +792,7 @@ public:
 	uint silenceRound() {return _slntRound;}
 	/// ditto
 	@property
-	void silenceRound(uint round) {
+	void silenceRound(uint round) { mixin(S_TRACE);
 		if (_slntRound != round) changed();
 		_slntRound = round;
 	}
@@ -802,7 +802,7 @@ public:
 	uint faceUpRound() {return _faceUpRound;}
 	/// ditto
 	@property
-	void faceUpRound(uint round) {
+	void faceUpRound(uint round) { mixin(S_TRACE);
 		if (_faceUpRound != round) changed();
 		_faceUpRound = round;
 	}
@@ -812,7 +812,7 @@ public:
 	uint antiMagicRound() {return _antiMgcRound;}
 	/// ditto
 	@property
-	void antiMagicRound(uint round) {
+	void antiMagicRound(uint round) { mixin(S_TRACE);
 		if (_antiMgcRound != round) changed();
 		_antiMgcRound = round;
 	}
@@ -820,7 +820,7 @@ public:
 	const
 	int enhance(Enhance enh) {return _rEnh[enh];}
 	/// ditto
-	void enhance(Enhance enh, int value) {
+	void enhance(Enhance enh, int value) { mixin(S_TRACE);
 		if (_rEnh[enh] != value) changed();
 		_rEnh[enh] = value;
 	}
@@ -828,38 +828,38 @@ public:
 	const
 	uint enhanceRound(Enhance enh) {return _rEnhRound[enh];}
 	/// ditto
-	void enhanceRound(Enhance enh, uint round) {
+	void enhanceRound(Enhance enh, uint round) { mixin(S_TRACE);
 		if (_rEnhRound[enh] != round) changed();
 		_rEnhRound[enh] = round;
 	}
 
 	/// XMLテキストに変換する。
 	const
-	string toXML(XMLOption opt) {
+	string toXML(XMLOption opt) { mixin(S_TRACE);
 		return toNode(opt).text;
 	}
 	/// XMLノードに変換する。
 	const
-	XNode toNode(XMLOption opt) {
+	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
 		toNodeImpl(n, opt);
 		return n;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
-	XNode toNode(ref XNode parent, XMLOption opt) {
+	XNode toNode(ref XNode parent, XMLOption opt) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
 		toNodeImpl(cNode, opt);
 		return cNode;
 	}
 	const
-	private void toNodeImpl(ref XNode cNode, XMLOption opt) {
+	private void toNodeImpl(ref XNode cNode, XMLOption opt) { mixin(S_TRACE);
 		auto pNode = setProp(cNode, opt, null);
 		pNode.newElement("Level", level);
 		pNode.newElement("Life", life).newAttr("max", lifeMax);
 		setFeature(pNode);
 		setAbility(pNode);
-		{
+		{ mixin(S_TRACE);
 			auto sNode = pNode.newElement("Status");
 			sNode.newElement("Mentality", fromMentality(mentality)).newAttr("duration", mentalityRound);
 			sNode.newElement("Paralyze", paralyze);
@@ -869,7 +869,7 @@ public:
 			sNode.newElement("FaceUp").newAttr("duration", faceUpRound);
 			sNode.newElement("AntiMagic").newAttr("duration", antiMagicRound);
 		}
-		{
+		{ mixin(S_TRACE);
 			auto eNode = pNode.newElement("Enhance");
 			eNode.newElement("Action", enhance(Enhance.ACTION))
 				.newAttr("duration", enhanceRound(Enhance.ACTION));
@@ -880,27 +880,27 @@ public:
 			eNode.newElement("Defense", enhance(Enhance.DEFENSE))
 				.newAttr("duration", enhanceRound(Enhance.DEFENSE));
 		}
-		{
+		{ mixin(S_TRACE);
 			auto cpNode = pNode.newElement("Coupons");
-			foreach (c; _coupons) {
+			foreach (c; _coupons) { mixin(S_TRACE);
 				c.toNode(cpNode);
 			}
 		}
-		{
+		{ mixin(S_TRACE);
 			auto cardNode = cNode.newElement("ItemCards");
-			foreach (c; _items) {
+			foreach (c; _items) { mixin(S_TRACE);
 				c.toNode(cardNode, opt);
 			}
 		}
-		{
+		{ mixin(S_TRACE);
 			auto cardNode = cNode.newElement("SkillCards");
-			foreach (c; _skills) {
+			foreach (c; _skills) { mixin(S_TRACE);
 				c.toNode(cardNode, opt);
 			}
 		}
-		{
+		{ mixin(S_TRACE);
 			auto cardNode = cNode.newElement("BeastCards");
-			foreach (c; _beasts) {
+			foreach (c; _beasts) { mixin(S_TRACE);
 				c.toNode(cardNode, opt);
 			}
 		}
@@ -910,45 +910,45 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static CastCard createFromNode(XNode cNode, in XMLInfo ver) {
+	static CastCard createFromNode(XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (cNode.name != XML_NAME) throw new CardException("Node is not cast card: " ~ cNode.name);
 		auto r = new CastCard(0, "", "", "", 1, 1);
-		cNode.onTag["Property"] = (ref XNode pNode) {
+		cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 			pNode.onTag["Level"] = (ref XNode n) {r._lev = n.valueTo!(int);};
-			pNode.onTag["Life"] = (ref XNode n) {
+			pNode.onTag["Life"] = (ref XNode n) { mixin(S_TRACE);
 				r._life = n.valueTo!(int);
 				r._lifeMax = n.attr!(int)("max", true);
 			};
 			pNode.onTag["Feature"] = (ref XNode n) {r.loadFeature(n, ver);};
 			pNode.onTag["Ability"] = (ref XNode n) {r.loadAbility(n, ver);};
 
-			pNode.onTag["Status"] = (ref XNode sNode) {
-				sNode.onTag["Mentality"] = (ref XNode n) {
+			pNode.onTag["Status"] = (ref XNode sNode) { mixin(S_TRACE);
+				sNode.onTag["Mentality"] = (ref XNode n) { mixin(S_TRACE);
 					r.mentality = toMentality(n.value);
 					r.mentalityRound = n.attr!(int)("duration", true);
 				};
-				sNode.onTag["Paralyze"] = (ref XNode n) {
+				sNode.onTag["Paralyze"] = (ref XNode n) { mixin(S_TRACE);
 					r.paralyze = n.valueTo!(int);
 				};
-				sNode.onTag["Poison"] = (ref XNode n) {
+				sNode.onTag["Poison"] = (ref XNode n) { mixin(S_TRACE);
 					r.poison = n.valueTo!(int);
 				};
-				sNode.onTag["Bind"] = (ref XNode n) {
+				sNode.onTag["Bind"] = (ref XNode n) { mixin(S_TRACE);
 					r.bindRound =  n.attr!(int)("duration", true);
 				};
-				sNode.onTag["Silence"] = (ref XNode n) {
+				sNode.onTag["Silence"] = (ref XNode n) { mixin(S_TRACE);
 					r.silenceRound =  n.attr!(int)("duration", true);
 				};
-				sNode.onTag["FaceUp"] = (ref XNode n) {
+				sNode.onTag["FaceUp"] = (ref XNode n) { mixin(S_TRACE);
 					r.faceUpRound =  n.attr!(int)("duration", true);
 				};
-				sNode.onTag["AntiMagic"] = (ref XNode n) {
+				sNode.onTag["AntiMagic"] = (ref XNode n) { mixin(S_TRACE);
 					r.antiMagicRound =  n.attr!(int)("duration", true);
 				};
 				sNode.parse();
 			};
-			pNode.onTag["Enhance"] = (ref XNode n) {
-				void setEnh(ref XNode n, Enhance enh) {
+			pNode.onTag["Enhance"] = (ref XNode n) { mixin(S_TRACE);
+				void setEnh(ref XNode n, Enhance enh) { mixin(S_TRACE);
 					r.enhance(enh, n.valueTo!(int));
 					r.enhanceRound(enh, n.attr!(int)("duration", true));
 				}
@@ -959,8 +959,8 @@ public:
 				n.parse();
 			};
 			Coupon[] coupons;
-			pNode.onTag["Coupons"] = (ref XNode n) {
-				n.onTag["Coupon"] = (ref XNode n) {
+			pNode.onTag["Coupons"] = (ref XNode n) { mixin(S_TRACE);
+				n.onTag["Coupon"] = (ref XNode n) { mixin(S_TRACE);
 					coupons ~= Coupon.fromNode(n, ver);
 				};
 				n.parse();
@@ -969,22 +969,22 @@ public:
 			r.coupons = coupons;
 		};
 
-		cNode.onTag["ItemCards"] = (ref XNode n) {
-			n.onTag[ItemCard.XML_NAME] = (ref XNode n) {
+		cNode.onTag["ItemCards"] = (ref XNode n) { mixin(S_TRACE);
+			n.onTag[ItemCard.XML_NAME] = (ref XNode n) { mixin(S_TRACE);
 				r._items ~= ItemCard.createFromNode(n, ver);
 			};
 			n.parse();
 			r._items.sort;
 		};
-		cNode.onTag["SkillCards"] = (ref XNode n) {
-			n.onTag[SkillCard.XML_NAME] = (ref XNode n) {
+		cNode.onTag["SkillCards"] = (ref XNode n) { mixin(S_TRACE);
+			n.onTag[SkillCard.XML_NAME] = (ref XNode n) { mixin(S_TRACE);
 				r._skills ~= SkillCard.createFromNode(n, ver);
 			};
 			n.parse();
 			r._skills.sort;
 		};
-		cNode.onTag["BeastCards"] = (ref XNode n) {
-			n.onTag[BeastCard.XML_NAME] = (ref XNode n) {
+		cNode.onTag["BeastCards"] = (ref XNode n) { mixin(S_TRACE);
+			n.onTag[BeastCard.XML_NAME] = (ref XNode n) { mixin(S_TRACE);
 				r._beasts ~= BeastCard.createFromNode(n, ver);
 			};
 			n.parse();
@@ -998,41 +998,41 @@ public:
 	@property
 	package void owner(CastOwner owner) {_owner = owner;}
 	@property
-	string cwxPath(bool id) {
-		if (id) {
+	string cwxPath(bool id) { mixin(S_TRACE);
+		if (id) { mixin(S_TRACE);
 			return _owner ? cpjoinid(_owner, "castcard", this.id) : "";
-		} else {
+		} else { mixin(S_TRACE);
 			return _owner ? cpjoin(_owner, "castcard", .cCountUntil!("a is b")(_owner.casts, this), id) : "";
 		}
 	}
-	CWXPath findCWXPath(string path) {
+	CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
-		case "skillcard": {
+		case "skillcard": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= skills.length) return null;
 			return skills[index].findCWXPath(cpbottom(path));
 		}
-		case "skillcard:id": {
+		case "skillcard:id": { mixin(S_TRACE);
 			auto card = skill(cpindex(path));
 			return card ? card.findCWXPath(cpbottom(path)) : null;
 		}
-		case "itemcard": {
+		case "itemcard": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= items.length) return null;
 			return items[index].findCWXPath(cpbottom(path));
 		}
-		case "itemcard:id": {
+		case "itemcard:id": { mixin(S_TRACE);
 			auto card = item(cpindex(path));
 			return card ? card.findCWXPath(cpbottom(path)) : null;
 		}
-		case "beastcard": {
+		case "beastcard": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= beasts.length) return null;
 			return beasts[index].findCWXPath(cpbottom(path));
 		}
-		case "beastcard:id": {
+		case "beastcard:id": { mixin(S_TRACE);
 			auto card = beast(cpindex(path));
 			return card ? card.findCWXPath(cpbottom(path)) : null;
 		}
@@ -1042,7 +1042,7 @@ public:
 	}
 	@property
 	const
-	const(CWXPath)[] cwxChilds() {
+	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
 		r ~= cast(const CWXPath[]) skills;
 		r ~= cast(const CWXPath[]) items;
@@ -1113,7 +1113,7 @@ public:
 	/// name = 名前。
 	/// imagePath = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, string imagePath, string desc) {
+	this (ulong id, string name, string imagePath, string desc) { mixin(S_TRACE);
 		super(id, name, imagePath, desc);
 		_ceto = new CETO;
 		_muser = new MotionUser(this);
@@ -1122,7 +1122,7 @@ public:
 		_enh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
 	}
 	/// cからパラメータをコピーする。
-	protected void shallowCopyEffectCard(in EffectCard c) {
+	protected void shallowCopyEffectCard(in EffectCard c) { mixin(S_TRACE);
 		shallowCopyCard(c);
 		linkId = c.linkId;
 		scenario = c.scenario;
@@ -1144,20 +1144,20 @@ public:
 		keyCodes = c.keyCodes;
 		premium = c.premium;
 		Motion[] ms;
-		foreach (m; c.motions) {
+		foreach (m; c.motions) { mixin(S_TRACE);
 			ms ~= m.dup;
 		}
 		motions = ms;
 	}
 	/// ditto
-	protected void deepCopyEffectCard(in EffectCard c) {
+	protected void deepCopyEffectCard(in EffectCard c) { mixin(S_TRACE);
 		shallowCopyEffectCard(c);
-		foreach (tree; c.trees) {
+		foreach (tree; c.trees) { mixin(S_TRACE);
 			add(tree.dup);
 		}
 	}
 	/// IDを除く内部データをクリアする。
-	protected override void clearData() {
+	protected override void clearData() { mixin(S_TRACE);
 		super.clearData();
 		linkId = 0;
 		scenario = "";
@@ -1183,7 +1183,7 @@ public:
 
 	override
 	const
-	bool opEquals(ref const(Object) o) {
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto c = cast(const EffectCard) o;
 		if (!c) return false;
 		if (0 != linkId) return linkId == c.linkId;
@@ -1192,14 +1192,14 @@ public:
 	}
 	/// ID以外を比較する。
 	const
-	protected bool equalsExcludeIdEffect(const(EffectCard) c) {
+	protected bool equalsExcludeIdEffect(const(EffectCard) c) { mixin(S_TRACE);
 		if (!c) return false;
 		if (0 != linkId) return linkId == c.linkId;
 		if (!super.equalsExcludeIdCard(c)) return false;
 		return eqImpl(c);
 	}
 	const
-	private bool eqImpl(const(EffectCard) c) {
+	private bool eqImpl(const(EffectCard) c) { mixin(S_TRACE);
 		return linkId == c.linkId
 			&& scenario == c.scenario
 			&& author == c.author
@@ -1237,7 +1237,7 @@ public:
 	string scenario() {return _scenario;}
 	/// ditto
 	@property
-	void scenario(string scenario) {
+	void scenario(string scenario) { mixin(S_TRACE);
 		if (_scenario != scenario) changed();
 		_scenario = scenario;
 	}
@@ -1247,7 +1247,7 @@ public:
 	string author() {return _author;}
 	/// ditto
 	@property
-	void author(string author) {
+	void author(string author) { mixin(S_TRACE);
 		if (_author != author) changed();
 		_author = author;
 	}
@@ -1258,7 +1258,7 @@ public:
 	Physical physical() {return _phy;}
 	/// ditto
 	@property
-	void physical(Physical phy) {
+	void physical(Physical phy) { mixin(S_TRACE);
 		if (_phy != phy) changed();
 		_phy = phy;
 	}
@@ -1268,7 +1268,7 @@ public:
 	Mental mental() {return _mtl;}
 	/// ditto
 	@property
-	void mental(Mental mtl) {
+	void mental(Mental mtl) { mixin(S_TRACE);
 		if (_mtl != mtl) changed();
 		_mtl = mtl;
 	}
@@ -1279,7 +1279,7 @@ public:
 	CardTarget target() {return _targ;}
 	/// ditto
 	@property
-	void target(CardTarget targ) {
+	void target(CardTarget targ) { mixin(S_TRACE);
 		if (_targ != targ) changed();
 		_targ = targ;
 	}
@@ -1289,7 +1289,7 @@ public:
 	bool allRange() {return _allRange;}
 	/// ditto
 	@property
-	void allRange(bool allRange) {
+	void allRange(bool allRange) { mixin(S_TRACE);
 		if (_allRange != allRange) changed();
 		_allRange = allRange;
 	}
@@ -1299,7 +1299,7 @@ public:
 	bool spell() {return _spell;}
 	/// ditto
 	@property
-	void spell(bool spell) {
+	void spell(bool spell) { mixin(S_TRACE);
 		if (_spell != spell) changed();
 		_spell = spell;
 	}
@@ -1309,7 +1309,7 @@ public:
 	EffectType effectType() {return _effTyp;}
 	/// ditto
 	@property
-	void effectType(EffectType effTyp) {
+	void effectType(EffectType effTyp) { mixin(S_TRACE);
 		if (_effTyp != effTyp) changed();
 		_effTyp = effTyp;
 	}
@@ -1319,7 +1319,7 @@ public:
 	Resist resist() {return _res;}
 	/// ditto
 	@property
-	void resist(Resist res) {
+	void resist(Resist res) { mixin(S_TRACE);
 		if (_res != res) changed();
 		_res = res;
 	}
@@ -1329,7 +1329,7 @@ public:
 	int successRate() {return _suc;}
 	/// ditto
 	@property
-	void successRate(int suc) {
+	void successRate(int suc) { mixin(S_TRACE);
 		if (_suc != suc) changed();
 		_suc = suc;
 	}
@@ -1339,7 +1339,7 @@ public:
 	CardVisual visual() {return _vis;}
 	/// ditto
 	@property
-	void visual(CardVisual vis) {
+	void visual(CardVisual vis) { mixin(S_TRACE);
 		if (_vis != vis) changed();
 		_vis = vis;
 	}
@@ -1347,7 +1347,7 @@ public:
 	const
 	int enhance(Enhance enh) {return _enh[enh];}
 	/// ditto
-	void enhance(Enhance enh, int val) {
+	void enhance(Enhance enh, int val) { mixin(S_TRACE);
 		if (_enh[enh] != val) changed();
 		_enh[enh] = val;
 	}
@@ -1357,7 +1357,7 @@ public:
 	string soundPath1() {return _se1.path;}
 	/// ditto
 	@property
-	void soundPath1(string path) {
+	void soundPath1(string path) { mixin(S_TRACE);
 		if (_se1.path != path) changed();
 		_se1.path = path;
 	}
@@ -1367,33 +1367,33 @@ public:
 	string soundPath2() {return _se2.path;}
 	/// ditto
 	@property
-	void soundPath2(string path) {
+	void soundPath2(string path) { mixin(S_TRACE);
 		if (_se2.path != path) changed();
 		_se2.path = path;
 	}
 	/// キーコード。
 	@property
 	const
-	string[] keyCodes() {
+	string[] keyCodes() { mixin(S_TRACE);
 		auto r = new string[_keyCodes.length];
-		foreach (i, ref kc; r) {
+		foreach (i, ref kc; r) { mixin(S_TRACE);
 			kc = _keyCodes[i].keyCode;
 		}
 		return r;
 	}
 	/// ditto
 	@property
-	void keyCodes(string[] keyCodes) {
-		if (this.keyCodes != keyCodes) {
+	void keyCodes(string[] keyCodes) { mixin(S_TRACE);
+		if (this.keyCodes != keyCodes) { mixin(S_TRACE);
 			changed();
-			foreach (c; _keyCodes) {
+			foreach (c; _keyCodes) { mixin(S_TRACE);
 				c.removeUseCounter();
 			}
 			_keyCodes.length = keyCodes.length;
-			foreach (i, ref c; _keyCodes) {
+			foreach (i, ref c; _keyCodes) { mixin(S_TRACE);
 				c = new KeyCodeUser(this);
 				c.keyCode = keyCodes[i];
-				if (useCounter) {
+				if (useCounter) { mixin(S_TRACE);
 					c.setUseCounter = useCounter;
 				}
 			}
@@ -1405,7 +1405,7 @@ public:
 	Premium premium() {return _premi;}
 	/// ditto
 	@property
-	void premium(Premium premi) {
+	void premium(Premium premi) { mixin(S_TRACE);
 		if (_premi != premi) changed();
 		_premi = premi;
 	}
@@ -1418,35 +1418,35 @@ public:
 	const(Motion)[] motions() {return _muser.motions;}
 	/// ditto
 	@property
-	void motions(Motion[] motions) {
+	void motions(Motion[] motions) { mixin(S_TRACE);
 		_muser.motions = motions;
 	}
 	@property
-	override void changeHandler(void delegate() change) {
+	override void changeHandler(void delegate() change) { mixin(S_TRACE);
 		_ceto.changeHandler = change;
 		_muser.changeHandler = change;
 		super.changeHandler = change;
 	}
 	@property
-	protected override void delegate() changeHandler() {
+	protected override void delegate() changeHandler() { mixin(S_TRACE);
 		return super.changeHandler;
 	}
 	@property
-	override void setUseCounter(UseCounter uc) {
+	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		setUseCounterImpl(uc);
 		_ceto.setUseCounter = uc;
 		_muser.setUseCounter = uc;
-		foreach (ref kc; _keyCodes) {
+		foreach (ref kc; _keyCodes) { mixin(S_TRACE);
 			kc.setUseCounter = uc;
 		}
 		super.setUseCounter = uc;
 	}
 	@property
-	override void removeUseCounter() {
+	override void removeUseCounter() { mixin(S_TRACE);
 		removeUseCounterImpl();
 		_ceto.removeUseCounter();
 		_muser.removeUseCounter();
-		foreach (ref kc; _keyCodes) {
+		foreach (ref kc; _keyCodes) { mixin(S_TRACE);
 			kc.removeUseCounter();
 		}
 		super.removeUseCounter();
@@ -1483,8 +1483,8 @@ public:
 	override bool canHasFireKeyCode() {return _ceto.canHasFireKeyCode;}
 	@property
 	override size_t[] areaPath() {return _ceto.areaPath;}
-	EventTree etFromPath(size_t[] path) {
-		if (path[0] == 0) {
+	EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
+		if (path[0] == 0) { mixin(S_TRACE);
 			return trees[path[1]];
 		}
 		assert (0);
@@ -1501,7 +1501,7 @@ public:
 
 	/// 指定されたXMLノードに効果カード関連の情報を追加する。
 	const
-	protected XNode setEffProp(ref XNode node, XMLOption opt, in OverData od = null) {
+	protected XNode setEffProp(ref XNode node, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
 		auto pNode = setProp(node, opt, od);
 		pNode.newElement("LinkId", od && od.linkId != 0UL ? od.linkId : linkId);
 		pNode.newElement("Scenario", scenario);
@@ -1523,34 +1523,34 @@ public:
 		pNode.newElement("KeyCodes", encodeLf(keyCodes, false));
 		pNode.newElement("Premium", fromPremium(premium));
 		auto mNode = node.newElement("Motions");
-		foreach (m; _muser.motions) {
+		foreach (m; _muser.motions) { mixin(S_TRACE);
 			m.toNode(mNode, opt);
 		}
 		_ceto.appendEventsToNode(node, opt);
 		return pNode;
 	}
 	/// 指定されたXMLノードから効果カード関連のデータを読み出す。
-	protected void loadEffProp(ref XNode pNode, in XMLInfo ver) {
+	protected void loadEffProp(ref XNode pNode, in XMLInfo ver) { mixin(S_TRACE);
 		assert (pNode.name == "Property");
 		pNode.onTag["LinkId"] = (ref XNode n) {linkId = .to!ulong(n.value);};
 		pNode.onTag["Scenario"] = (ref XNode n) {_scenario = n.value;};
 		pNode.onTag["Author"] = (ref XNode n) {_author = n.value;};
-		pNode.onTag["Ability"] = (ref XNode n) {
+		pNode.onTag["Ability"] = (ref XNode n) { mixin(S_TRACE);
 			_phy = toPhysical(n.attr("physical", true));
 			_mtl = toMental(n.attr("mental", true));
 		};
-		pNode.onTag["Target"] = (ref XNode n) {
+		pNode.onTag["Target"] = (ref XNode n) { mixin(S_TRACE);
 			_targ = toCardTarget(n.value);
 			_allRange = parseBool(n.attr("allrange", true));
 		};
-		pNode.onTag["EffectType"] = (ref XNode n) {
+		pNode.onTag["EffectType"] = (ref XNode n) { mixin(S_TRACE);
 			_effTyp = toEffectType(n.value);
 			_spell = parseBool(n.attr("spell", true));
 		};
 		pNode.onTag["ResistType"] = (ref XNode n) {_res = toResist(n.value);};
 		pNode.onTag["SuccessRate"] = (ref XNode n) {_suc = n.valueTo!(int);};
 		pNode.onTag["VisualEffect"] = (ref XNode n) {_vis = toCardVisual(n.value);};
-		pNode.onTag["Enhance"] = (ref XNode n) {
+		pNode.onTag["Enhance"] = (ref XNode n) { mixin(S_TRACE);
 			_enh[Enhance.AVOID] = n.attr!(int)("avoid", true);
 			_enh[Enhance.RESIST] = n.attr!(int)("resist", true);
 			_enh[Enhance.DEFENSE] = n.attr!(int)("defense", true);
@@ -1562,28 +1562,28 @@ public:
 		loadProp(pNode, ver);
 	}
 	/// ditto
-	protected void loadEffV(ref XNode node, in XMLInfo ver) {
-		node.onTag["Motions"] = (ref XNode n) {
+	protected void loadEffV(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
+		node.onTag["Motions"] = (ref XNode n) { mixin(S_TRACE);
 			Motion[] motions;
-			n.onTag["Motion"] = (ref XNode n) {
+			n.onTag["Motion"] = (ref XNode n) { mixin(S_TRACE);
 				motions ~= Motion.createFromNode(n, ver);
 			};
 			n.parse();
 			_muser.motions = motions;
 		};
-		node.onTag["Events"] = (ref XNode n) {
+		node.onTag["Events"] = (ref XNode n) { mixin(S_TRACE);
 			_ceto.addAll(AbstractEventTreeOwner.loadEventsFromNode(n, ver));
 		};
 		node.parse();
 	}
-	CWXPath findCWXPath(string path) {
+	CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
-		case "event": {
+		case "event": { mixin(S_TRACE);
 			return _ceto.findCWXPath(path);
 		}
-		case "motion": {
+		case "motion": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= motions.length) return null;
 			return motions[index].findCWXPath(cpbottom(path));
@@ -1594,7 +1594,7 @@ public:
 	}
 	@property
 	const
-	const(CWXPath)[] cwxChilds() {
+	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
 		r ~= cast(const CWXPath[]) motions;
 		r ~= _ceto.cwxChilds;
@@ -1621,26 +1621,26 @@ public:
 	/// name = 名前。
 	/// imagePath = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, string imagePath, string desc) {
+	this (ulong id, string name, string imagePath, string desc) { mixin(S_TRACE);
 		super(id, name, imagePath, desc);
 		_linkId = new SkillUser(this);
 	}
 	/// cからパラメータをコピーする。
-	void shallowCopy(in SkillCard c) {
+	void shallowCopy(in SkillCard c) { mixin(S_TRACE);
 		shallowCopyEffectCard(c);
 		level = c.level;
 		hold = c.hold;
 		useLimit = c.useLimit;
 	}
 	/// ditto
-	void deepCopy(in SkillCard c) {
+	void deepCopy(in SkillCard c) { mixin(S_TRACE);
 		deepCopyEffectCard(c);
 		level = c.level;
 		hold = c.hold;
 		useLimit = c.useLimit;
 	}
 	/// IDを除く内部データをクリアする。
-	override void clearData() {
+	override void clearData() { mixin(S_TRACE);
 		super.clearData();
 		level = 0;
 		hold = false;
@@ -1649,7 +1649,7 @@ public:
 
 	override
 	const
-	bool opEquals(ref const(Object) o) {
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto c = cast(const SkillCard) o;
 		if (!c) return false;
 		if (0 != linkId) return linkId == c.linkId && hold == c.hold;
@@ -1657,13 +1657,13 @@ public:
 	}
 	/// ID以外を比較する。
 	const
-	bool equalsExcludeId(const(SkillCard) c) {
+	bool equalsExcludeId(const(SkillCard) c) { mixin(S_TRACE);
 		if (!c) return false;
 		if (0 != linkId) return linkId == c.linkId && hold == c.hold;
 		return eqImpl(c) && super.equalsExcludeIdEffect(c);
 	}
 	const
-	private bool eqImpl(const(SkillCard) c) {
+	private bool eqImpl(const(SkillCard) c) { mixin(S_TRACE);
 		return level == c.level
 			&& hold == c.hold
 			&& useLimit == c.useLimit;
@@ -1675,14 +1675,14 @@ public:
 	override ulong linkId() {return _linkId.skill;}
 	/// ditto
 	@property
-	override void linkId(ulong linkId) {
+	override void linkId(ulong linkId) { mixin(S_TRACE);
 		if (_linkId.skill != linkId) changed();
 		_linkId.skill = linkId;
 	}
-	protected override void setUseCounterImpl(UseCounter uc) {
+	protected override void setUseCounterImpl(UseCounter uc) { mixin(S_TRACE);
 		_linkId.setUseCounter(uc);
 	}
-	protected override void removeUseCounterImpl() {
+	protected override void removeUseCounterImpl() { mixin(S_TRACE);
 		_linkId.removeUseCounter();
 	}
 
@@ -1692,7 +1692,7 @@ public:
 	uint level() {return _level;}
 	/// ditto
 	@property
-	void level(uint level) {
+	void level(uint level) { mixin(S_TRACE);
 		if (_level != level) changed();
 		_level = level;
 	}
@@ -1703,7 +1703,7 @@ public:
 	uint useLimit() {return _useLimit;}
 	/// ditto
 	@property
-	void useLimit(uint useLimit) {
+	void useLimit(uint useLimit) { mixin(S_TRACE);
 		if (_useLimit != useLimit) changed();
 		_useLimit = useLimit;
 	}
@@ -1714,41 +1714,41 @@ public:
 	bool hold() {return _hold;}
 	/// ditto
 	@property
-	void hold(bool hold) {
+	void hold(bool hold) { mixin(S_TRACE);
 		if (_hold != hold) changed();
 		_hold = hold;
 	}
 
 	/// XMLテキストに変換する。
 	const
-	string toXML(XMLOption opt) {
+	string toXML(XMLOption opt) { mixin(S_TRACE);
 		return toNode(opt).text;
 	}
 	/// コピーを生成する。
 	@property
 	const
-	SkillCard dup() {
+	SkillCard dup() { mixin(S_TRACE);
 		auto copy = new SkillCard(0UL, "", "", "");
 		copy.deepCopy(this);
 		return copy;
 	}
 	/// XMLノードに変換する。
 	const
-	XNode toNode(XMLOption opt) {
+	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
 		toNodeImpl(n, opt, null);
 		return n;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
-	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) {
+	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
 		toNodeImpl(cNode, opt, od);
 		return cNode;
 	}
 	const
-	private void toNodeImpl(ref XNode cNode, XMLOption opt, in OverData od = null) {
-		if (0 != linkId && opt && opt.includeCard) {
+	private void toNodeImpl(ref XNode cNode, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
+		if (0 != linkId && opt && opt.includeCard) { mixin(S_TRACE);
 			auto od2 = new OverData;
 			od2.id = id;
 			if (!opt.noLinkId) od2.linkId = linkId;
@@ -1769,19 +1769,19 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static SkillCard createFromNode(ref XNode cNode, in XMLInfo ver) {
+	static SkillCard createFromNode(ref XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (cNode.name != XML_NAME) throw new CardException("Node is not skill card: " ~ cNode.name);
 		auto r = new SkillCard(0, "", "", "");
 		ulong id = 0UL, linkId = 0UL;
 		bool hold = false;
 		id = readLinkInfo(cNode, linkId, hold);
-		if (0 != linkId) {
+		if (0 != linkId) { mixin(S_TRACE);
 			r.id = id;
 			r.linkId = linkId;
 			r.hold = hold;
 			return r;
 		}
-		cNode.onTag["Property"] = (ref XNode pNode) {
+		cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 			pNode.onTag["Level"] = (ref XNode n) {r._level = n.valueTo!(int);};
 			pNode.onTag["UseLimit"] = (ref XNode n) {r._useLimit = n.valueTo!(int);};
 			pNode.onTag["Hold"] = (ref XNode n) {r._hold = parseBool(n.value);};
@@ -1795,10 +1795,10 @@ public:
 	@property
 	package void owner(SkillOwner owner) {_owner = owner;}
 	@property
-	string cwxPath(bool id) {
-		if (id) {
+	string cwxPath(bool id) { mixin(S_TRACE);
+		if (id) { mixin(S_TRACE);
 			return _owner ? cpjoinid(_owner, "skillcard", this.id) : "";
-		} else {
+		} else { mixin(S_TRACE);
 			return _owner ? cpjoin(_owner, "skillcard", .cCountUntil!("a is b")(_owner.skills, this), id) : "";
 		}
 	}
@@ -1827,12 +1827,12 @@ public:
 	/// name = 名前。
 	/// imagePath = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, string imagePath, string desc) {
+	this (ulong id, string name, string imagePath, string desc) { mixin(S_TRACE);
 		super(id, name, imagePath, desc);
 		_linkId = new ItemUser(this);
 		_oEnh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
 	}
-	private void copyImpl(in ItemCard c) {
+	private void copyImpl(in ItemCard c) { mixin(S_TRACE);
 		enhanceOwner(Enhance.AVOID, c.enhanceOwner(Enhance.AVOID));
 		enhanceOwner(Enhance.RESIST, c.enhanceOwner(Enhance.RESIST));
 		enhanceOwner(Enhance.DEFENSE, c.enhanceOwner(Enhance.DEFENSE));
@@ -1842,17 +1842,17 @@ public:
 		hold = c.hold;
 	}
 	/// cからパラメータをコピーする。
-	void shallowCopy(in ItemCard c) {
+	void shallowCopy(in ItemCard c) { mixin(S_TRACE);
 		shallowCopyEffectCard(c);
 		copyImpl(c);
 	}
 	/// ditto
-	void deepCopy(in ItemCard c) {
+	void deepCopy(in ItemCard c) { mixin(S_TRACE);
 		deepCopyEffectCard(c);
 		copyImpl(c);
 	}
 	/// IDを除く内部データをクリアする。
-	override void clearData() {
+	override void clearData() { mixin(S_TRACE);
 		super.clearData();
 		enhanceOwner(Enhance.AVOID, 0);
 		enhanceOwner(Enhance.RESIST, 0);
@@ -1865,7 +1865,7 @@ public:
 
 	override
 	const
-	bool opEquals(ref const(Object) o) {
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto c = cast(const ItemCard) o;
 		if (!c) return false;
 		if (0 != linkId) return linkId == c.linkId && hold == c.hold;
@@ -1873,13 +1873,13 @@ public:
 	}
 	/// ID以外を比較する。
 	const
-	bool equalsExcludeId(const(ItemCard) c) {
+	bool equalsExcludeId(const(ItemCard) c) { mixin(S_TRACE);
 		if (!c) return false;
 		if (0 != linkId) return linkId == c.linkId && hold == c.hold;
 		return eqImpl(c) && super.equalsExcludeIdEffect(c);
 	}
 	const
-	private bool eqImpl(const(ItemCard) c) {
+	private bool eqImpl(const(ItemCard) c) { mixin(S_TRACE);
 		return enhanceOwner(Enhance.AVOID) == c.enhanceOwner(Enhance.AVOID)
 			&& enhanceOwner(Enhance.RESIST) == c.enhanceOwner(Enhance.RESIST)
 			&& enhanceOwner(Enhance.DEFENSE) == c.enhanceOwner(Enhance.DEFENSE)
@@ -1895,14 +1895,14 @@ public:
 	override ulong linkId() {return _linkId.item;}
 	/// ditto
 	@property
-	override void linkId(ulong linkId) {
+	override void linkId(ulong linkId) { mixin(S_TRACE);
 		if (_linkId.item != linkId) changed();
 		_linkId.item = linkId;
 	}
-	protected override void setUseCounterImpl(UseCounter uc) {
+	protected override void setUseCounterImpl(UseCounter uc) { mixin(S_TRACE);
 		_linkId.setUseCounter(uc);
 	}
-	protected override void removeUseCounterImpl() {
+	protected override void removeUseCounterImpl() { mixin(S_TRACE);
 		_linkId.removeUseCounter();
 	}
 
@@ -1912,7 +1912,7 @@ public:
 	uint useLimit() {return _useLimit;}
 	/// ditto
 	@property
-	void useLimit(uint useLimit) {
+	void useLimit(uint useLimit) { mixin(S_TRACE);
 		if (_useLimit != useLimit) changed();
 		_useLimit = useLimit;
 	}
@@ -1923,7 +1923,7 @@ public:
 	uint useLimitMax() {return _useLimitMax;}
 	/// ditto
 	@property
-	void useLimitMax(uint useLimitMax) {
+	void useLimitMax(uint useLimitMax) { mixin(S_TRACE);
 		if (_useLimitMax != useLimitMax) changed();
 		_useLimitMax = useLimitMax;
 	}
@@ -1934,7 +1934,7 @@ public:
 	uint price() {return _price;}
 	/// ditto
 	@property
-	void price(uint price) {
+	void price(uint price) { mixin(S_TRACE);
 		if (_price != price) changed();
 		_price = price;
 	}
@@ -1943,7 +1943,7 @@ public:
 	const
 	int enhanceOwner(Enhance enh) {return _oEnh[enh];}
 	/// ditto
-	void enhanceOwner(Enhance enh, int val) {
+	void enhanceOwner(Enhance enh, int val) { mixin(S_TRACE);
 		if (_oEnh[enh] != val) changed();
 		_oEnh[enh] = val;
 	}
@@ -1954,41 +1954,41 @@ public:
 	bool hold() {return _hold;}
 	/// ditto
 	@property
-	void hold(bool hold) {
+	void hold(bool hold) { mixin(S_TRACE);
 		if (_hold != hold) changed();
 		_hold = hold;
 	}
 
 	/// XMLテキストに変換する。
 	const
-	string toXML(XMLOption opt) {
+	string toXML(XMLOption opt) { mixin(S_TRACE);
 		return toNode(opt).text;
 	}
 	/// コピーを生成する。
 	@property
 	const
-	ItemCard dup() {
+	ItemCard dup() { mixin(S_TRACE);
 		auto copy = new ItemCard(0UL, "", "", "");
 		copy.deepCopy(this);
 		return copy;
 	}
 	/// XMLノードに変換する。
 	const
-	XNode toNode(XMLOption opt) {
+	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
 		toNodeImpl(n, opt, null);
 		return n;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
-	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) {
+	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
 		toNodeImpl(cNode, opt, od);
 		return cNode;
 	}
 	const
-	private void toNodeImpl(ref XNode cNode, XMLOption opt, in OverData od) {
-		if (0 != linkId && opt && opt.includeCard) {
+	private void toNodeImpl(ref XNode cNode, XMLOption opt, in OverData od) { mixin(S_TRACE);
+		if (0 != linkId && opt && opt.includeCard) { mixin(S_TRACE);
 			auto od2 = new OverData;
 			od2.id = id;
 			if (!opt.noLinkId) od2.linkId = linkId;
@@ -2015,25 +2015,25 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static ItemCard createFromNode(ref XNode cNode, in XMLInfo ver) {
+	static ItemCard createFromNode(ref XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (cNode.name != XML_NAME) throw new CardException("Node is not item card: " ~ cNode.name);
 		auto r = new ItemCard(0, "", "", "");
 		ulong id = 0UL, linkId = 0UL;
 		bool hold = false;
 		id = readLinkInfo(cNode, linkId, hold);
-		if (0 != linkId) {
+		if (0 != linkId) { mixin(S_TRACE);
 			r.id = id;
 			r.linkId = linkId;
 			r.hold = hold;
 			return r;
 		}
-		cNode.onTag["Property"] = (ref XNode pNode) {
-			pNode.onTag["UseLimit"] = (ref XNode n) {
+		cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
+			pNode.onTag["UseLimit"] = (ref XNode n) { mixin(S_TRACE);
 				r._useLimit = n.valueTo!(int);
 				r._useLimitMax = n.attr!(int)("max", true);
 			};
 			pNode.onTag["Price"] = (ref XNode n) {r._price = n.valueTo!(int);};
-			pNode.onTag["EnhanceOwner"] = (ref XNode n) {
+			pNode.onTag["EnhanceOwner"] = (ref XNode n) { mixin(S_TRACE);
 				r._oEnh[Enhance.AVOID] = n.attr!(int)("avoid", true);
 				r._oEnh[Enhance.RESIST] = n.attr!(int)("resist", true);
 				r._oEnh[Enhance.DEFENSE] = n.attr!(int)("defense", true);
@@ -2049,10 +2049,10 @@ public:
 	@property
 	package void owner(ItemOwner owner) {_owner = owner;}
 	@property
-	string cwxPath(bool id) {
-		if (id) {
+	string cwxPath(bool id) { mixin(S_TRACE);
+		if (id) { mixin(S_TRACE);
 			return _owner ? cpjoinid(_owner, "itemcard", this.id) : "";
-		} else {
+		} else { mixin(S_TRACE);
 			return _owner ? cpjoin(_owner, "itemcard", .cCountUntil!("a is b")(_owner.items, this), id) : "";
 		}
 	}
@@ -2077,29 +2077,29 @@ public:
 	/// name = 名前。
 	/// imagePath = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, string imagePath, string desc) {
+	this (ulong id, string name, string imagePath, string desc) { mixin(S_TRACE);
 		super(id, name, imagePath, desc);
 		_linkId = new BeastUser(this);
 	}
 	/// cからパラメータをコピーする。
-	void shallowCopy(in BeastCard c) {
+	void shallowCopy(in BeastCard c) { mixin(S_TRACE);
 		shallowCopyEffectCard(c);
 		useLimit = c.useLimit;
 	}
 	/// ditto
-	void deepCopy(in BeastCard c) {
+	void deepCopy(in BeastCard c) { mixin(S_TRACE);
 		deepCopyEffectCard(c);
 		useLimit = c.useLimit;
 	}
 	/// IDを除く内部データをクリアする。
-	override void clearData() {
+	override void clearData() { mixin(S_TRACE);
 		super.clearData();
 		useLimit = 0;
 	}
 
 	override
 	const
-	bool opEquals(ref const(Object) o) {
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto c = cast(const BeastCard) o;
 		if (!c) return false;
 		if (0 != linkId) return linkId == c.linkId;
@@ -2107,13 +2107,13 @@ public:
 	}
 	/// ID以外を比較する。
 	const
-	bool equalsExcludeId(const(BeastCard) c) {
+	bool equalsExcludeId(const(BeastCard) c) { mixin(S_TRACE);
 		if (!c) return false;
 		if (0 != linkId) return linkId == c.linkId;
 		return eqImpl(c) && super.equalsExcludeIdEffect(c);
 	}
 	const
-	private bool eqImpl(const(BeastCard) c) {
+	private bool eqImpl(const(BeastCard) c) { mixin(S_TRACE);
 		return useLimit == c.useLimit;
 	}
 
@@ -2123,14 +2123,14 @@ public:
 	override ulong linkId() {return _linkId.beast;}
 	/// ditto
 	@property
-	override void linkId(ulong linkId) {
+	override void linkId(ulong linkId) { mixin(S_TRACE);
 		if (_linkId.beast != linkId) changed();
 		_linkId.beast = linkId;
 	}
-	protected override void setUseCounterImpl(UseCounter uc) {
+	protected override void setUseCounterImpl(UseCounter uc) { mixin(S_TRACE);
 		_linkId.setUseCounter(uc);
 	}
-	protected override void removeUseCounterImpl() {
+	protected override void removeUseCounterImpl() { mixin(S_TRACE);
 		_linkId.removeUseCounter();
 	}
 
@@ -2140,34 +2140,34 @@ public:
 	uint useLimit() {return _useLimit;}
 	/// ditto
 	@property
-	void useLimit(uint useLimit) {
+	void useLimit(uint useLimit) { mixin(S_TRACE);
 		if (_useLimit != useLimit) changed();
 		_useLimit = useLimit;
 	}
 
 	/// XMLテキストに変換する。
 	const
-	string toXML(XMLOption opt) {
+	string toXML(XMLOption opt) { mixin(S_TRACE);
 		return toNode(opt).text;
 	}
 	/// XMLノードに変換する。
 	const
-	XNode toNode(XMLOption opt) {
+	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
 		toNodeImpl(n, opt, null);
 		return n;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
-	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) {
+	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
 		toNodeImpl(cNode, opt, od);
 		return cNode;
 	}
 	const
-	private void toNodeImpl(ref XNode cNode, XMLOption opt, in OverData od) {
+	private void toNodeImpl(ref XNode cNode, XMLOption opt, in OverData od) { mixin(S_TRACE);
 		assert (cNode.name == XML_NAME);
-		if (0 != linkId && opt && opt.includeCard) {
+		if (0 != linkId && opt && opt.includeCard) { mixin(S_TRACE);
 			auto od2 = new OverData;
 			od2.id = id;
 			if (!opt.noLinkId) od2.linkId = linkId;
@@ -2182,14 +2182,14 @@ public:
 	/// コピーを生成する。
 	@property
 	const
-	BeastCard dup() {
+	BeastCard dup() { mixin(S_TRACE);
 		auto copy = new BeastCard(0UL, "", "", "");
 		copy.deepCopy(this);
 		return copy;
 	}
 	/// XMLテキストに変換する。
 	const
-	string toXML(XMLOption opt, in OverData od = null) {
+	string toXML(XMLOption opt, in OverData od = null) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
 		toNodeImpl(n, opt, od);
 		return n.text;
@@ -2200,18 +2200,18 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static BeastCard createFromNode(ref XNode cNode, in XMLInfo ver) {
+	static BeastCard createFromNode(ref XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (cNode.name != XML_NAME) throw new CardException("Node is not beast card: " ~ cNode.name);
 		auto r = new BeastCard(0, "", "", "");
 		ulong id = 0UL, linkId = 0UL;
 		bool hold = false;
 		id = readLinkInfo(cNode, linkId, hold);
-		if (0 != linkId) {
+		if (0 != linkId) { mixin(S_TRACE);
 			r.id = id;
 			r.linkId = linkId;
 			return r;
 		}
-		cNode.onTag["Property"] = (ref XNode pNode) {
+		cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 			pNode.onTag["UseLimit"] = (ref XNode n) {r._useLimit = n.valueTo!(int);};
 			r.loadEffProp(pNode, ver);
 		};
@@ -2223,10 +2223,10 @@ public:
 	@property
 	package void owner(BeastOwner owner) {_owner = owner;}
 	@property
-	string cwxPath(bool id) {
-		if (id) {
+	string cwxPath(bool id) { mixin(S_TRACE);
+		if (id) { mixin(S_TRACE);
 			return _owner ? cpjoinid(_owner, "beastcard", this.id) : "";
-		} else {
+		} else { mixin(S_TRACE);
 			return _owner ? cpjoin(_owner, "beastcard", .cCountUntil!("a is b")(_owner.beasts, this), id) : "";
 		}
 	}
@@ -2248,11 +2248,11 @@ public:
 	/// name = 名前。
 	/// imagePath = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, string imagePath, string desc) {
+	this (ulong id, string name, string imagePath, string desc) { mixin(S_TRACE);
 		super(id, name, imagePath, desc);
 	}
 	/// cからパラメータをコピーする。
-	void shallowCopy(in InfoCard c) {
+	void shallowCopy(in InfoCard c) { mixin(S_TRACE);
 		shallowCopyCard(c);
 	}
 	/// ditto
@@ -2260,14 +2260,14 @@ public:
 
 	override
 	const
-	bool opEquals(ref const(Object) o) {
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto c = cast(const InfoCard) o;
 		if (!c) return false;
 		return super.opEquals(o);
 	}
 	/// ID以外を比較する。
 	const
-	bool equalsExcludeId(const(InfoCard) c) {
+	bool equalsExcludeId(const(InfoCard) c) { mixin(S_TRACE);
 		if (!c) return false;
 		return super.equalsExcludeIdCard(c);
 	}
@@ -2275,7 +2275,7 @@ public:
 	/// ディープコピーを作成する。
 	@property
 	const
-	InfoCard dup() {
+	InfoCard dup() { mixin(S_TRACE);
 		auto copy = new InfoCard(0UL, "", "", "");
 		copy.deepCopy(this);
 		return copy;
@@ -2283,25 +2283,25 @@ public:
 
 	/// XMLテキストに変換する。
 	const
-	string toXML(XMLOption opt) {
+	string toXML(XMLOption opt) { mixin(S_TRACE);
 		return toNode(opt).text;
 	}
 	/// XMLノードに変換する。
 	const
-	XNode toNode(XMLOption opt) {
+	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
 		toNodeImpl(n, opt);
 		return n;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
-	XNode toNode(ref XNode parent, XMLOption opt) {
+	XNode toNode(ref XNode parent, XMLOption opt) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
 		toNodeImpl(cNode, opt);
 		return cNode;
 	}
 	const
-	private void toNodeImpl(ref XNode cNode, XMLOption opt) {
+	private void toNodeImpl(ref XNode cNode, XMLOption opt) { mixin(S_TRACE);
 		setProp(cNode, opt);
 	}
 	/// XMLノードからインスタンスを生成する。
@@ -2310,10 +2310,10 @@ public:
 	/// Throws:
 	/// AreaException = XML内のデータ不足時。
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
-	static InfoCard createFromNode(ref XNode cNode, in XMLInfo ver) {
+	static InfoCard createFromNode(ref XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (cNode.name != XML_NAME) throw new CardException("Node is not info card: " ~ cNode.name);
 		auto r = new InfoCard(0, "", "", "");
-		cNode.onTag["Property"] = (ref XNode node) {
+		cNode.onTag["Property"] = (ref XNode node) { mixin(S_TRACE);
 			r.loadProp(node, ver);
 		};
 		cNode.parse();
@@ -2324,14 +2324,14 @@ public:
 	@property
 	package void owner(InfoOwner owner) {_owner = owner;}
 	@property
-	string cwxPath(bool id) {
-		if (id) {
+	string cwxPath(bool id) { mixin(S_TRACE);
+		if (id) { mixin(S_TRACE);
 			return _owner ? cpjoinid(_owner, "infocard", this.id) : "";
-		} else {
+		} else { mixin(S_TRACE);
 			return _owner ? cpjoin(_owner, "infocard", .cCountUntil!("a is b")(_owner.infos, this), id) : "";
 		}
 	}
-	CWXPath findCWXPath(string path) {
+	CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		return null;
 	}

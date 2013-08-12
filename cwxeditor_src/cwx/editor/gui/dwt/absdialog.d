@@ -35,28 +35,28 @@ abstract class AbsDialog {
 	private Composite _rightGroup;
 	private bool _modal;
 	private bool _hasApply;
-	this (Props prop, Shell parent, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true, ButtonInfo[] button = []) {
+	this (Props prop, Shell parent, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true, ButtonInfo[] button = []) { mixin(S_TRACE);
 		this (prop, parent, true, text, img, resizable, size, apply, cancel, button);
 	}
-	this (Props prop, Shell parent, bool modal, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true, ButtonInfo[] button = [], bool rightGroup = false) {
+	this (Props prop, Shell parent, bool modal, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true, ButtonInfo[] button = [], bool rightGroup = false) { mixin(S_TRACE);
 		this (prop, parent, SWT.NONE, modal, text, img, resizable, size, apply, cancel, button, rightGroup);
 	}
-	this (Props prop, Shell parent, int styleFlag, bool modal, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true, ButtonInfo[] button = [], bool rightGroup = false) {
+	this (Props prop, Shell parent, int styleFlag, bool modal, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true, ButtonInfo[] button = [], bool rightGroup = false) { mixin(S_TRACE);
 		_prop = prop;
 		_size = size;
 		_modal = modal;
 		_hasApply = apply;
 		int style = resizable ? SWT.SHELL_TRIM : SWT.DIALOG_TRIM;
-		if (modal) {
+		if (modal) { mixin(S_TRACE);
 			style |= SWT.APPLICATION_MODAL;
 		}
 		_win = new Shell(parent, style);
 		_win.setText(text);
 		_win.setImage(img);
 		_win.setData(this);
-		if (rightGroup) {
+		if (rightGroup) { mixin(S_TRACE);
 			_win.setLayout(zeroGridLayout(3, false));
-		} else {
+		} else { mixin(S_TRACE);
 			_win.setLayout(zeroGridLayout(2, false));
 		}
 		_win.addShellListener(new SListener);
@@ -66,7 +66,7 @@ abstract class AbsDialog {
 		agd.horizontalSpan = 2;
 		_area.setLayoutData(agd);
 
-		if (rightGroup) {
+		if (rightGroup) { mixin(S_TRACE);
 			_rightGroup = new Composite(_win, SWT.NONE);
 			auto rgd = new GridData(GridData.FILL_VERTICAL);
 			rgd.verticalSpan = 3;
@@ -87,7 +87,7 @@ abstract class AbsDialog {
 		auto buttons = new Composite(_win, SWT.NONE);
 		buttons.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 		int gll = 1;
-		if (!(styleFlag & SWT.READ_ONLY)) {
+		if (!(styleFlag & SWT.READ_ONLY)) { mixin(S_TRACE);
 			if (apply) gll++;
 			if (cancel) gll++;
 		}
@@ -95,18 +95,18 @@ abstract class AbsDialog {
 		buttons.setLayout(new GridLayout(gll, true));
 		auto okComp = new Composite(buttons, SWT.NONE);
 		okComp.setLayout(new FillLayout);
-		if (styleFlag & SWT.READ_ONLY) {
+		if (styleFlag & SWT.READ_ONLY) { mixin(S_TRACE);
 			_okBtn = createButton(okComp, prop.msgs.dlgTextClose, &this.cancel);
-		} else {
+		} else { mixin(S_TRACE);
 			_okBtn = createButton(okComp, prop.msgs.dlgTextOK, &this.ok);
-			if (cancel) {
+			if (cancel) { mixin(S_TRACE);
 				createButton(buttons, prop.msgs.dlgTextCancel, &this.cancel);
 			}
-			if (apply) {
+			if (apply) { mixin(S_TRACE);
 				_apply = createButton(buttons, prop.msgs.dlgTextApply, &this.forceApply);
 			}
 		}
-		foreach (info; button) {
+		foreach (info; button) { mixin(S_TRACE);
 			createButton(buttons, info.name, info.func);
 		}
 	}
@@ -114,7 +114,7 @@ abstract class AbsDialog {
 	Composite addition() {return _addition;}
 	@property
 	Composite rightGroup() {return _rightGroup;}
-	void rightGroupSize(int width, int height) {
+	void rightGroupSize(int width, int height) { mixin(S_TRACE);
 		if (!_rightGroup) throw new Exception("rightGroup is null", __FILE__, __LINE__);
 
 		if (getShell().isVisible()) getShell().setRedraw(false);
@@ -127,13 +127,13 @@ abstract class AbsDialog {
 		_rightGroup.getParent().layout();
 	}
 
-	private Button createButton(Composite parent, string text, void delegate() push) {
+	private Button createButton(Composite parent, string text, void delegate() push) { mixin(S_TRACE);
 		auto b = new Button(parent, SWT.PUSH);
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.widthHint = 100;
-		if (cast(GridLayout) parent.getLayout()) {
+		if (cast(GridLayout) parent.getLayout()) { mixin(S_TRACE);
 			b.setLayoutData(gd);
-		} else {
+		} else { mixin(S_TRACE);
 			parent.setLayoutData(gd);
 		}
 		b.setText(text);
@@ -144,25 +144,25 @@ abstract class AbsDialog {
 	}
 	private class Push : SelectionAdapter {
 		private void delegate() push;
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			push();
 		}
 	}
 	private class Mod : SelectionAdapter, ModifyListener {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			mod();
 		}
-		override void modifyText(ModifyEvent e) {
+		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
 			mod();
 		}
-		void mod() {
+		void mod() { mixin(S_TRACE);
 			if (!ignoreMod) applyEnabled();
 		}
 	}
 	private Mod _mod = null;
 	/// ctrlの押下時・テキスト変更時に適用ボタンを有効化する。
-	void mod(C)(C ctrl) {
-		if (!_mod) {
+	void mod(C)(C ctrl) { mixin(S_TRACE);
+		if (!_mod) { mixin(S_TRACE);
 			_mod = new Mod;
 		}
 		static if (is(typeof(ctrl.modEvent))) {
@@ -187,36 +187,36 @@ abstract class AbsDialog {
 	private int _imeMode = SWT.NONE;
 	private bool _inCloseEvent = false;
 	private class SListener : ShellAdapter {
-		override void shellClosed(ShellEvent e) {
+		override void shellClosed(ShellEvent e) { mixin(S_TRACE);
 			if (_inCloseEvent) return;
 			_inCloseEvent = true;
 			scope (exit) _inCloseEvent = false;
-			if (_forceCancel) {
+			if (_forceCancel) { mixin(S_TRACE);
 				e.doit = true;
-				foreach (dlg; closeEvent) {
+				foreach (dlg; closeEvent) { mixin(S_TRACE);
 					dlg();
 				}
 				return;
 			}
 			_imeMode = _win.getImeInputMode();
-			if (_ret) {
-				foreach (dlg; applyEvent) {
+			if (_ret) { mixin(S_TRACE);
+				foreach (dlg; applyEvent) { mixin(S_TRACE);
 					dlg();
 				}
 			}
 			bool cancel;
 			_ret = close(_ret, cancel);
 			e.doit = !cancel;
-			if (e.doit && _size) {
+			if (e.doit && _size) { mixin(S_TRACE);
 				saveWin();
 			}
-			if (e.doit) {
-				if (_ret) {
-					foreach (dlg; appliedEvent) {
+			if (e.doit) { mixin(S_TRACE);
+				if (_ret) { mixin(S_TRACE);
+					foreach (dlg; appliedEvent) { mixin(S_TRACE);
 						dlg();
 					}
 				}
-				foreach (dlg; closeEvent) {
+				foreach (dlg; closeEvent) { mixin(S_TRACE);
 					dlg();
 				}
 				auto parShl = cast(Shell) _win.getParent();
@@ -224,31 +224,31 @@ abstract class AbsDialog {
 			}
 		}
 	}
-	private void saveWin() {
+	private void saveWin() { mixin(S_TRACE);
 		if (!_size) return;
 		auto ws = cast(WSize) _size;
 		auto p = _win.getParent();
-		if (!_win.getMaximized() && !_win.getMinimized()) {
+		if (!_win.getMaximized() && !_win.getMinimized()) { mixin(S_TRACE);
 			auto b = _win.getBounds();
 			_size.width = b.width;
 			_size.height = b.height;
-			if (ws) {
-				if (p) {
+			if (ws) { mixin(S_TRACE);
+				if (p) { mixin(S_TRACE);
 					auto pb = p.getBounds();
 					ws.x = b.x - pb.x;
 					ws.y = b.y - pb.y;
-				} else {
+				} else { mixin(S_TRACE);
 					ws.x = b.x;
 					ws.y = b.y;
 				}
 			}
 		}
-		if (ws) {
+		if (ws) { mixin(S_TRACE);
 			ws.maximized = _win.getMaximized();
 		}
 	}
 	private bool _ret = false;
-	private void ok() {
+	private void ok() { mixin(S_TRACE);
 		if (_inCloseEvent) return;
 		_ret = true;
 		_win.close();
@@ -263,80 +263,80 @@ abstract class AbsDialog {
 	void firstFocusIsOK(bool ffio) {_ffio = true;}
 	@property
 	bool firstFocusIsOK() {return _ffio;}
-	private void cancel() {
+	private void cancel() { mixin(S_TRACE);
 		if (_inCloseEvent) return;
 		_win.close();
 	}
 	private bool _forceCancel = false;
-	void forceCancel() {
+	void forceCancel() { mixin(S_TRACE);
 		if (_inCloseEvent) return;
 		_forceCancel = true;
 		if (!_win.isDisposed()) _win.close();
 	}
 
-	private void calcBounds() {
+	private void calcBounds() { mixin(S_TRACE);
 		auto par = _win.getParent();
 		auto winProps = cast(WSize) _size;
 		scope wp = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		int width = !_size || _size.width == SWT.DEFAULT ? wp.x : _size.width;
 		int height = !_size || _size.height == SWT.DEFAULT ? wp.y : _size.height;
 		int x, y;
-		if (par) {
+		if (par) { mixin(S_TRACE);
 			auto pb = par.getBounds();
-			if (winProps && winProps.x != SWT.DEFAULT) {
+			if (winProps && winProps.x != SWT.DEFAULT) { mixin(S_TRACE);
 				x = winProps.x + pb.x;
-			} else {
+			} else { mixin(S_TRACE);
 				x = pb.x + (pb.width - width) / 2;
 			}
-			if (winProps && winProps.y != SWT.DEFAULT) {
+			if (winProps && winProps.y != SWT.DEFAULT) { mixin(S_TRACE);
 				y = winProps.y + pb.y;
-			} else {
+			} else { mixin(S_TRACE);
 				y = pb.y + (pb.height - height) / 2;
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			auto pb = _win.getDisplay().getBounds();
-			if (winProps && winProps.x != SWT.DEFAULT) {
+			if (winProps && winProps.x != SWT.DEFAULT) { mixin(S_TRACE);
 				x = winProps.x;
-			} else {
+			} else { mixin(S_TRACE);
 				x = (pb.width - width) / 2;
 			}
-			if (winProps && winProps.y != SWT.DEFAULT) {
+			if (winProps && winProps.y != SWT.DEFAULT) { mixin(S_TRACE);
 				y = winProps.y;
-			} else {
+			} else { mixin(S_TRACE);
 				y = (pb.height - height) / 2;
 			}
 		}
 		intoDisplay(x, y, width, height);
 		_win.setBounds(x, y, width, height);
-		if (winProps) {
+		if (winProps) { mixin(S_TRACE);
 			_win.setMaximized(winProps.maximized);
 		}
 		_win.layout(true);
-		foreach (dlg; calcBoundsEvent) {
+		foreach (dlg; calcBoundsEvent) { mixin(S_TRACE);
 			dlg(x, y, width, height);
 		}
 	}
 	@property
-	void imeMode(int imeMode) {
+	void imeMode(int imeMode) { mixin(S_TRACE);
 		_imeMode = imeMode;
 		_win.setImeInputMode(_imeMode);
 	}
-	bool open() {
+	bool open() { mixin(S_TRACE);
 		setup(_area);
-		if (_enterClose) {
+		if (_enterClose) { mixin(S_TRACE);
 			_win.setDefaultButton(_okBtn);
 		}
 		calcBounds();
 		if (_apply) _apply.setEnabled(false);
 		_win.open();
 		auto par = cast(Shell)_win.getParent();
-		if (par) {
+		if (par) { mixin(S_TRACE);
 			_imeMode = par.getImeInputMode();
 			_win.setImeInputMode(_imeMode);
 		}
 		if (firstFocusIsOK) _okBtn.setFocus();
 		opened();
-		foreach (dlg; openedEvent) {
+		foreach (dlg; openedEvent) { mixin(S_TRACE);
 			dlg();
 		}
 		if (!_modal) return false;
@@ -344,69 +344,69 @@ abstract class AbsDialog {
 		scope (failure) {
 			if (!_win.isDisposed()) _win.close();
 		}
-		while (!_win.isDisposed()) {
-			try {
+		while (!_win.isDisposed()) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
 				if (!d.readAndDispatch()) d.sleep();
 			} catch (Throwable e) {
 				throw e;
 			}
 		}
-		if (par) {
+		if (par) { mixin(S_TRACE);
 			par.setImeInputMode(_imeMode);
 		}
 		return _ret || _applied;
 	}
-	void active() {
-		if (!_win.isDisposed()) {
+	void active() { mixin(S_TRACE);
+		if (!_win.isDisposed()) { mixin(S_TRACE);
 			_win.setActive();
 		}
 	}
-	bool close() {
+	bool close() { mixin(S_TRACE);
 		if (_inCloseEvent) return false;
 		_win.close();
 		return _win.isDisposed();
 	}
 
-	void forceApply() {
-		foreach (dlg; applyEvent) {
+	void forceApply() { mixin(S_TRACE);
+		foreach (dlg; applyEvent) { mixin(S_TRACE);
 			dlg();
 		}
-		if (apply()) {
+		if (apply()) { mixin(S_TRACE);
 			_apply.setEnabled(false);
 			_applied = true;
-			foreach (dlg; appliedEvent) {
+			foreach (dlg; appliedEvent) { mixin(S_TRACE);
 				dlg();
 			}
 		}
 	}
-	private void check() {
+	private void check() { mixin(S_TRACE);
 		bool enbl = true;
-		for (size_t i = 0; enbl && i < _chk1.length; i++) {
+		for (size_t i = 0; enbl && i < _chk1.length; i++) { mixin(S_TRACE);
 			enbl &= _chk1[i].getText() && _chk1[i].getText().length > 0;
 		}
-		for (size_t i = 0; enbl && i < _chk2.length; i++) {
+		for (size_t i = 0; enbl && i < _chk2.length; i++) { mixin(S_TRACE);
 			enbl &= _chk2[i].getText() && _chk2[i].getText().length > 0;
 		}
-		for (size_t i = 0; enbl && i < _chk3.length; i++) {
+		for (size_t i = 0; enbl && i < _chk3.length; i++) { mixin(S_TRACE);
 			enbl &= _chk3[i].getText() && _chk3[i].getText().length > 0;
 		}
 		_okBtn.setEnabled(enbl);
 		if (_apply) _apply.setEnabled(_apply.getEnabled() && enbl);
 	}
 	private class MListener : ModifyListener {
-		override void modifyText(ModifyEvent e) {
+		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
 			auto t = cast(Text) e.widget;
 			check();
 		}
 	}
-	protected final void applyEnabled() {
+	protected final void applyEnabled() { mixin(S_TRACE);
 		check();
 		if (_apply) _apply.setEnabled(_okBtn.getEnabled());
 	}
 
 	@property
-	protected final void warning(string[] ws) {
-		if ((_okBtn.getImage() !is null) != (0 != ws.length)) {
+	protected final void warning(string[] ws) { mixin(S_TRACE);
+		if ((_okBtn.getImage() !is null) != (0 != ws.length)) { mixin(S_TRACE);
 			// FIXME:
 			// 画像の有無を切り替えるとOKボタンの文字が
 			// ずれてしまうため、作り直す
@@ -415,23 +415,23 @@ abstract class AbsDialog {
 			bool focus = _okBtn.isFocusControl();
 			_okBtn.dispose();
 			_okBtn = createButton(parent, _prop.msgs.dlgTextOK, &this.ok);
-			if (_enterClose) {
+			if (_enterClose) { mixin(S_TRACE);
 				_win.setDefaultButton(_okBtn);
 			}
 			_okBtn.setEnabled(enbl);
 			if (focus) _okBtn.setFocus();
 			parent.layout(true);
 		}
-		if (ws.length) {
+		if (ws.length) { mixin(S_TRACE);
 			_okBtn.setImage(_prop.images.warning);
 			_okBtn.setToolTipText(std.string.join(ws, "\n"));
-		} else {
+		} else { mixin(S_TRACE);
 			_okBtn.setImage(null);
 			_okBtn.setToolTipText(null);
 		}
 	}
 
-	protected void checkerImpl(T)(T text) {
+	protected void checkerImpl(T)(T text) { mixin(S_TRACE);
 		check();
 		text.addModifyListener(new MListener);
 	}
@@ -439,32 +439,32 @@ abstract class AbsDialog {
 	private CCombo[] _chk2;
 	private Text[] _chk3;
 	@property
-	protected void checker(Combo text) {
+	protected void checker(Combo text) { mixin(S_TRACE);
 		_chk1 ~= text;
 		checkerImpl(text);
 	}
 	@property
-	protected void checker(CCombo text) {
+	protected void checker(CCombo text) { mixin(S_TRACE);
 		_chk2 ~= text;
 		checkerImpl(text);
 	}
 	@property
-	protected void checker(Text text) {
+	protected void checker(Text text) { mixin(S_TRACE);
 		_chk3 ~= text;
 		checkerImpl(text);
 	}
 	protected void setup(Composite area);
-	protected bool apply() {
+	protected bool apply() { mixin(S_TRACE);
 		return true;
 	}
-	protected bool close(bool ok, out bool cancel) {
-		if (_hasApply) {
-			if (ok) {
+	protected bool close(bool ok, out bool cancel) { mixin(S_TRACE);
+		if (_hasApply) { mixin(S_TRACE);
+			if (ok) { mixin(S_TRACE);
 				ok = apply();
 				if (!ok) cancel = true;
 			}
 			return ok;
-		} else {
+		} else { mixin(S_TRACE);
 			cancel = false;
 			return close(ok);
 		}

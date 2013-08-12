@@ -68,6 +68,8 @@ class FlexEtcProps : Properties {
 	auto showGrid = Prop!(bool)("showGrid", false);
 	auto areaSashT = Prop!(int)("areaSashT", 5);
 	auto areaSashB = Prop!(int)("areaSashB", 4);
+	auto areaSashL = Prop!(int)("areaSashL", 1);
+	auto areaSashR = Prop!(int)("areaSashR", 4);
 	auto flagSashL = Prop!(int)("flagSashL", 1);
 	auto flagSashR = Prop!(int)("flagSashR", 4);
 	auto flagSashV = Prop!(bool)("flagSashV", false);
@@ -296,7 +298,7 @@ class FlexEtcProps : Properties {
 	version (Windows) {
 		auto engine = Prop!(string, true)("engine", "CardWirthPy.exe");
 		auto enginePath = Prop!(string)("enginePath", "");
-	} else {
+	} else { mixin(S_TRACE);
 		auto engine = Prop!(string, true)("engine", "CardWirthPy");
 		auto enginePath = Prop!(string)("enginePath", "");
 	}
@@ -339,6 +341,7 @@ class FlexEtcProps : Properties {
 	auto straightEventTreeView = Prop!(bool)("straightEventTreeView", false);
 	auto showTerminalMark = Prop!(bool)("showTerminalMark", true);
 	auto clickIconIsStartEdit = Prop!(bool)("clickIconIsStartEdit", false);
+	auto showAreaDirTree = Prop!(bool)("showAreaDirTree", false);
 
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
 
@@ -573,12 +576,12 @@ class FlexEtcProps : Properties {
 			OuterTool("メモ帳", "notepad $F", "", "", ""),
 			OuterTool("ペイント", "mspaint $F", "", "", "")
 		]);
-	} else {
+	} else { mixin(S_TRACE);
 		auto outerTools = Prop!(OuterTool[])("outerTools", []);
 	}
 	version (Windows) {
 		auto ignorePaths = Prop!(string[])("ignorePaths", [".*", "Thumbs.db"]);
-	} else {
+	} else { mixin(S_TRACE);
 		auto ignorePaths = Prop!(string[])("ignorePaths", [".*"]);
 	}
 

@@ -30,19 +30,19 @@ private:
 	const(CompileOption) _opt;
 
 	class ParentClose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			forceCancel();
 		}
 	}
 
 	class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_result.getFont().dispose();
 			_parent.removeDisposeListener(_parentClose);
 		}
 	}
 public:
-	this (Commons comm, Props prop, Control parent, CWXScriptException ex, string base, in CompileOption opt) {
+	this (Commons comm, Props prop, Control parent, CWXScriptException ex, string base, in CompileOption opt) { mixin(S_TRACE);
 		_comm = comm;
 		_prop = prop;
 		_parent = parent;
@@ -57,7 +57,7 @@ public:
 	}
 
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		auto cl = new CenterLayout;
 		cl.fillHorizontal = true;
 		cl.fillVertical = true;
@@ -65,17 +65,17 @@ protected:
 		string buf = _prop.msgs.scriptError ~ "\n";
 		auto lines = splitLines!string(_base);
 		auto lines2 = _base != _ex.text ? splitLines!string(_ex.text) : lines;
-		foreach (err; _ex.errors) {
+		foreach (err; _ex.errors) { mixin(S_TRACE);
 			buf ~= "\n";
 			buf ~= err.message ~ "\n";
 			debug {
 				buf ~= .format("Debug info: %s, %d\n", err.file, err.line);
 			}
 			string line, lStr;
-			if ((err.errLine - _opt.startLine) < _opt.addLines) {
+			if ((err.errLine - _opt.startLine) < _opt.addLines) { mixin(S_TRACE);
 				line = lines2[err.errLine - _opt.startLine];
 				lStr = .format("Line %s: ", "---");
-			} else {
+			} else { mixin(S_TRACE);
 				line = lines[err.errLine];
 				lStr = .format("Line %d: ", err.errLine + 1);
 			}
@@ -84,10 +84,10 @@ protected:
 
 			auto left = line[0 .. err.errPos];
 			string btm;
-			foreach (i, dchar c; left) {
-				if (c == '\t') {
+			foreach (i, dchar c; left) { mixin(S_TRACE);
+				if (c == '\t') { mixin(S_TRACE);
 					btm ~= "\t";
-				} else {
+				} else { mixin(S_TRACE);
 					char[] str;
 					std.utf.encode(str, c);
 					btm ~= rightJustify("", lengthJ(str));
@@ -96,7 +96,7 @@ protected:
 			buf ~= "\n";
 			buf ~= rightJustify("", lStr.length) ~ btm ~ "^";
 		}
-		if (_ex.over100) {
+		if (_ex.over100) { mixin(S_TRACE);
 			buf ~= "\n";
 			buf ~= _prop.msgs.scriptErrorOver100Error ~ "\n";
 		}

@@ -58,21 +58,21 @@ private:
 		class UndoU : Undo {
 			private T[] _old;
 			private int _selected;
-			this () {
+			this () { mixin(S_TRACE);
 				save();
 			}
-			private void save() {
+			private void save() { mixin(S_TRACE);
 				static if (is(typeof(_array[0].dup))) {
 					_old = [];
-					foreach (a; _array) {
+					foreach (a; _array) { mixin(S_TRACE);
 						_old ~= a.dup;
 					}
-				} else {
+				} else { mixin(S_TRACE);
 					_old = _array.dup;
 				}
 				_selected = _list.getSelectionIndex();
 			}
-			private void impl() {
+			private void impl() { mixin(S_TRACE);
 				auto old = _old;
 				auto sels = _selected;
 				save();
@@ -80,7 +80,7 @@ private:
 				scope (exit) _list.setRedraw(true);
 				_array = old;
 				_list.removeAll();
-				foreach (o; old) {
+				foreach (o; old) { mixin(S_TRACE);
 					_list.add(createName(o));
 				}
 				_list.select(sels);
@@ -90,11 +90,11 @@ private:
 			}
 			override void undo() {impl();}
 			override void redo() {impl();}
-			override void dispose() {
+			override void dispose() { mixin(S_TRACE);
 				// Nothing
 			}
 		}
-		void store() {
+		void store() { mixin(S_TRACE);
 			_undo ~= new UndoU;
 		}
 
@@ -141,12 +141,12 @@ private:
 			TableItem[Period] _periodName;
 			TableItem[Nature] _natureName;
 			TableItem[Makings] _makingsName;
-			void refAlt() {
-				if (0 < _list.getItemCount()) {
+			void refAlt() { mixin(S_TRACE);
+				if (0 < _list.getItemCount()) { mixin(S_TRACE);
 					_alt.setEnabled(true);
 				}
 			}
-			void featuresEnd(TableItem itm, int column, string newText) {
+			void featuresEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
 				if (itm.getText(column) == newText) return;
 				storeFeatures();
 				itm.setText(column, newText);
@@ -155,23 +155,23 @@ private:
 			class UndoFeature : Undo {
 				private string[] _features;
 				private int[] _selected;
-				this () {
+				this () { mixin(S_TRACE);
 					save();
 				}
-				private void save() {
+				private void save() { mixin(S_TRACE);
 					_features = [];
-					foreach (itm; _featureName.getItems()) {
+					foreach (itm; _featureName.getItems()) { mixin(S_TRACE);
 						_features ~= itm.getText(2);
 					}
 					_selected = _featureName.getSelectionIndices();
 				}
-				private void impl() {
+				private void impl() { mixin(S_TRACE);
 					auto features = _features.dup;
 					auto selected = _selected.dup;
 					save();
 					_featureName.setRedraw(false);
 					scope (exit) _featureName.setRedraw(true);
-					foreach (i, itm; _featureName.getItems()) {
+					foreach (i, itm; _featureName.getItems()) { mixin(S_TRACE);
 						itm.setText(2, features[i]);
 					}
 					_featureName.deselectAll();
@@ -181,30 +181,30 @@ private:
 				}
 				void undo() {impl();}
 				void redo() {impl();}
-				override void dispose() {
+				override void dispose() { mixin(S_TRACE);
 					// Nothing
 				}
 			}
-			void storeFeatures() {
+			void storeFeatures() { mixin(S_TRACE);
 				_featureUndo ~= new UndoFeature;
 			}
-			void undoFeatures() {
+			void undoFeatures() { mixin(S_TRACE);
 				_featureUndo.undo();
 			}
-			void redoFeatures() {
+			void redoFeatures() { mixin(S_TRACE);
 				_featureUndo.redo();
 			}
 			class FTCPD : TCPD {
-				void cut(SelectionEvent e) {
+				void cut(SelectionEvent e) { mixin(S_TRACE);
 					copy(e);
 					del(e);
 				}
-				private string copyImpl() {
+				private string copyImpl() { mixin(S_TRACE);
 					auto indices = _featureName.getSelectionIndices().sort;
 					if (!indices.length) return [];
 					string text;
 					int i = 0;
-					foreach (sel; indices[0] .. indices[$ - 1] + 1) {
+					foreach (sel; indices[0] .. indices[$ - 1] + 1) { mixin(S_TRACE);
 						auto itm = _featureName.getItem(sel);
 						text ~= itm.getText(2);
 						text ~= newline;
@@ -212,18 +212,18 @@ private:
 					}
 					return text;
 				}
-				void copy(SelectionEvent e) {
+				void copy(SelectionEvent e) { mixin(S_TRACE);
 					auto t = copyImpl();
 					if (!t.length) return;
 					_comm.clipboard.setContents([new ArrayWrapperString(t)], [TextTransfer.getInstance()]);
 					_comm.refreshToolBar();
 				}
-				void paste(SelectionEvent e) {
+				void paste(SelectionEvent e) { mixin(S_TRACE);
 					auto a = cast(ArrayWrapperString) _comm.clipboard.getContents(TextTransfer.getInstance());
 					if (!a) return;
 					pasteImpl(a.array);
 				}
-				void pasteImpl(in char[] array) {
+				void pasteImpl(in char[] array) { mixin(S_TRACE);
 					auto indices = _featureName.getSelectionIndices().sort;
 					if (!indices.length) return;
 					int i = indices[0];
@@ -232,7 +232,7 @@ private:
 					storeFeatures();
 					auto lines = assumeUnique(linesu);
 					int[] sels;
-					foreach (line; lines) {
+					foreach (line; lines) { mixin(S_TRACE);
 						if (_featureName.getItemCount() <= i) break;
 						_featureName.getItem(i).setText(2, line);
 						sels ~= i;
@@ -244,40 +244,40 @@ private:
 					refAlt();
 					_comm.refreshToolBar();
 				}
-				void del(SelectionEvent e) {
+				void del(SelectionEvent e) { mixin(S_TRACE);
 					if(-1 == _featureName.getSelectionIndex()) return;
 					storeFeatures();
-					foreach (itm; _featureName.getSelection()) {
+					foreach (itm; _featureName.getSelection()) { mixin(S_TRACE);
 						itm.setText(2, "");
 					}
 					refAlt();
 					_comm.refreshToolBar();
 				}
-				void clone(SelectionEvent e) {
+				void clone(SelectionEvent e) { mixin(S_TRACE);
 					return;
 				}
 				@property
-				bool canDoTCPD() {
+				bool canDoTCPD() { mixin(S_TRACE);
 					return _featureName.isFocusControl();
 				}
 				@property
-				bool canDoT() {
+				bool canDoT() { mixin(S_TRACE);
 					return -1 != _featureName.getSelectionIndex();
 				}
 				@property
-				bool canDoC() {
+				bool canDoC() { mixin(S_TRACE);
 					return canDoT;
 				}
 				@property
-				bool canDoP() {
+				bool canDoP() { mixin(S_TRACE);
 					return -1 != _featureName.getSelectionIndex() && CBisText(_comm.clipboard);
 				}
 				@property
-				bool canDoD() {
+				bool canDoD() { mixin(S_TRACE);
 					return canDoT;
 				}
 				@property
-				bool canDoClone() {
+				bool canDoClone() { mixin(S_TRACE);
 					return false;
 				}
 			}
@@ -293,7 +293,7 @@ private:
 		Button _del;
 		TextMenuModify[] _tms;
 
-		void upImpl(List list, ref T[] array) {
+		void upImpl(List list, ref T[] array) { mixin(S_TRACE);
 			int i = list.getSelectionIndex();
 			if (i <= 0) return;
 			string tempS = list.getItem(i - 1);
@@ -306,7 +306,7 @@ private:
 			applyEnabled();
 			_comm.refreshToolBar();
 		}
-		void downImpl(T)(List list, ref T[] array) {
+		void downImpl(T)(List list, ref T[] array) { mixin(S_TRACE);
 			int i = list.getSelectionIndex();
 			if (i < 0 || array.length <= i + 1) return;
 			string tempS = list.getItem(i + 1);
@@ -319,21 +319,21 @@ private:
 			applyEnabled();
 			_comm.refreshToolBar();
 		}
-		void up() {
+		void up() { mixin(S_TRACE);
 			store();
 			upImpl(_list, _array);
 		}
-		void down() {
+		void down() { mixin(S_TRACE);
 			store();
 			downImpl(_list, _array);
 		}
 
-		void selected() {
+		void selected() { mixin(S_TRACE);
 			ignoreMod = true;
 			scope (exit) ignoreMod = false;
 			int i = _list.getSelectionIndex();
 			_del.setEnabled(i >= 0);
-			if (i >= 0) {
+			if (i >= 0) { mixin(S_TRACE);
 				_name.setText(_array[i].name);
 				static if (is(T:BgImageSetting)) {
 					_bgImgX.setSelection(_array[i].x);
@@ -356,19 +356,19 @@ private:
 					auto n = _array[i].legacyName;
 					_okText.setText(1, _prop.sys.evtChildOK(n));
 					_okText.setText(2, _array[i].okText is null ? "" : _array[i].okText);
-					foreach (f, itm; _sexName) {
+					foreach (f, itm; _sexName) { mixin(S_TRACE);
 						itm.setText(1, _prop.sys.sexName(f, n));
 						itm.setText(2, _array[i].sexName.get(_prop.sys.sexName(f, ""), ""));
 					}
-					foreach (f, itm; _periodName) {
+					foreach (f, itm; _periodName) { mixin(S_TRACE);
 						itm.setText(1, _prop.sys.periodName(f, n));
 						itm.setText(2, _array[i].periodName.get(_prop.sys.periodName(f, ""), ""));
 					}
-					foreach (f, itm; _natureName) {
+					foreach (f, itm; _natureName) { mixin(S_TRACE);
 						itm.setText(1, _prop.sys.natureName(f, n));
 						itm.setText(2, _array[i].natureName.get(_prop.sys.natureName(f, ""), ""));
 					}
-					foreach (f, itm; _makingsName) {
+					foreach (f, itm; _makingsName) { mixin(S_TRACE);
 						itm.setText(1, _prop.sys.makingsName(f, n));
 						itm.setText(2, _array[i].makingsName.get(_prop.sys.makingsName(f, ""), ""));
 					}
@@ -378,7 +378,7 @@ private:
 				} else static if (is(T:EvTemplate)) {
 					_templScript.setText(_array[i].script);
 				} else static assert (0);
-			} else {
+			} else { mixin(S_TRACE);
 				_name.setText("");
 				static if (is(T:BgImageSetting)) {
 					_bgImgX.setSelection(0);
@@ -404,13 +404,13 @@ private:
 				} else static assert (0);
 			}
 			_alt.setEnabled(false);
-			foreach (tm; _tms) {
+			foreach (tm; _tms) { mixin(S_TRACE);
 				tm.reset();
 			}
 			_comm.refreshToolBar();
 		}
 
-		void add(T t) {
+		void add(T t) { mixin(S_TRACE);
 			store();
 			int index = _list.getItemCount();
 			_array ~= t;
@@ -420,7 +420,7 @@ private:
 			applyEnabled();
 			_comm.refreshToolBar();
 		}
-		void create() {
+		void create() { mixin(S_TRACE);
 			if (!checkData()) return;
 			string name = _name.getText();
 			static if (is(T:BgImageSetting)) {
@@ -451,7 +451,7 @@ private:
 				add(EvTemplate(name, script));
 			} else static assert (0);
 		}
-		void alt() {
+		void alt() { mixin(S_TRACE);
 			int i = _list.getSelectionIndex();
 			if (-1 == i) return;
 			if (!checkData()) return;
@@ -476,19 +476,19 @@ private:
 				_array[i].hotkey = _hotkey.acceleratorText();
 				_array[i].clearFeatures();
 				if (_okText.getText(2).length) _array[i].okText = _okText.getText(2);
-				foreach (f; SEX_ALL) {
+				foreach (f; SEX_ALL) { mixin(S_TRACE);
 					auto t = _sexName[f].getText(2);
 					if (t.length) _array[i].sexName[_prop.sys.sexName(f, "")] = t;
 				}
-				foreach (f; PERIOD_ALL) {
+				foreach (f; PERIOD_ALL) { mixin(S_TRACE);
 					auto t = _periodName[f].getText(2);
 					if (t.length) _array[i].periodName[_prop.sys.periodName(f, "")] = t;
 				}
-				foreach (f; NATURE_DEF ~ NATURE_EXT) {
+				foreach (f; NATURE_DEF ~ NATURE_EXT) { mixin(S_TRACE);
 					auto t = _natureName[f].getText(2);
 					if (t.length) _array[i].natureName[_prop.sys.natureName(f, "")] = t;
 				}
-				foreach (Makings f; MAKINGS_LEFT) {
+				foreach (Makings f; MAKINGS_LEFT) { mixin(S_TRACE);
 					auto t = _makingsName[f].getText(2);
 					if (t.length) _array[i].makingsName[_prop.sys.makingsName(f, "")] = t;
 					f = reverseMakings(f);
@@ -505,13 +505,13 @@ private:
 			applyEnabled();
 			_comm.refreshToolBar();
 		}
-		void del() {
+		void del() { mixin(S_TRACE);
 			int i = _list.getSelectionIndex();
 			if (i < 0) return;
 			store();
 			_list.remove(i);
 			_array = _array[0 .. i] ~ _array[i + 1 .. $];
-			if (_array.length > 0) {
+			if (_array.length > 0) { mixin(S_TRACE);
 				_list.select(i < _array.length ? i : _array.length - 1);
 			}
 			selected();
@@ -520,24 +520,24 @@ private:
 		}
 
 		class UTCPD : TCPD {
-			void cut(SelectionEvent se) {
+			void cut(SelectionEvent se) { mixin(S_TRACE);
 				int i = _list.getSelectionIndex();
 				if (i < 0) return;
 				copy(se);
 				del(se);
 			}
-			void copy(SelectionEvent se) {
+			void copy(SelectionEvent se) { mixin(S_TRACE);
 				int i = _list.getSelectionIndex();
 				if (i < 0) return;
 				XMLtoCB(_prop, _comm.clipboard, _array[i].toNode().text);
 				_comm.refreshToolBar();
 			}
-			void paste(SelectionEvent se) {
+			void paste(SelectionEvent se) { mixin(S_TRACE);
 				auto xml = CBtoXML(_comm.clipboard);
-				if (xml) {
-					try {
+				if (xml) { mixin(S_TRACE);
+					try { mixin(S_TRACE);
 						auto node = XNode.parse(xml);
-						if (node.name == T.XML_NAME) {
+						if (node.name == T.XML_NAME) { mixin(S_TRACE);
 							T t;
 							t.fromNode(node);
 							add(t);
@@ -547,60 +547,60 @@ private:
 					}
 				}
 			}
-			void del(SelectionEvent se) {
+			void del(SelectionEvent se) { mixin(S_TRACE);
 				this.outer.del();
 			}
-			void clone(SelectionEvent se) {
+			void clone(SelectionEvent se) { mixin(S_TRACE);
 				_comm.clipboard.memoryMode = true;
 				scope (exit) _comm.clipboard.memoryMode = false;
 				copy(se);
 				paste(se);
 			}
 			@property
-			bool canDoTCPD() {
+			bool canDoTCPD() { mixin(S_TRACE);
 				return _list.isFocusControl();
 			}
 			@property
-			bool canDoT() {
+			bool canDoT() { mixin(S_TRACE);
 				return _list.getSelectionIndex() > 0;
 			}
 			@property
-			bool canDoC() {
+			bool canDoC() { mixin(S_TRACE);
 				return canDoT;
 			}
 			@property
-			bool canDoP() {
+			bool canDoP() { mixin(S_TRACE);
 				return CBisXML(_comm.clipboard);
 			}
 			@property
-			bool canDoD() {
+			bool canDoD() { mixin(S_TRACE);
 				return canDoT;
 			}
 			@property
-			bool canDoClone() {
+			bool canDoClone() { mixin(S_TRACE);
 				return canDoC;
 			}
 		}
 		/// ここでfalseを返した場合は不正なデータと見做す。現在未使用。
 		bool checkData() {return true;}
-		void refUndoMax() {
+		void refUndoMax() { mixin(S_TRACE);
 			_undo.max = _prop.var.etc.undoMaxEtc;
 		}
 
 		class KeyDownFilter : Listener {
-			this () {
+			this () { mixin(S_TRACE);
 				refMenu(MenuID.Undo);
 				refMenu(MenuID.Redo);
 			}
-			override void handleEvent(Event e) {
+			override void handleEvent(Event e) { mixin(S_TRACE);
 				auto c = cast(Control) e.widget;
 				if (!c || c.getShell() !is getShell()) return;
-				if (isDescendant(this.outer, c)) {
+				if (isDescendant(this.outer, c)) { mixin(S_TRACE);
 					if (c.getMenu() && findMenu(c.getMenu(), e.keyCode, e.character, e.stateMask)) return;
-					if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
+					if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
 						_undo.undo();
 						e.doit = false;
-					} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) {
+					} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
 						_undo.redo();
 						e.doit = false;
 					}
@@ -609,16 +609,16 @@ private:
 		}
 		private int _undoAcc;
 		private int _redoAcc;
-		void refMenu(MenuID id) {
+		void refMenu(MenuID id) { mixin(S_TRACE);
 			if (id == MenuID.Undo) _undoAcc = convertAccelerator(_prop.buildMenu(MenuID.Undo));
 			if (id == MenuID.Redo) _redoAcc = convertAccelerator(_prop.buildMenu(MenuID.Redo));
 		}
 
 		static if (is(T:OuterTool) || is(T:ClassicEngine)) {
-			string createName(ref const T t) {
+			string createName(ref const T t) { mixin(S_TRACE);
 				return MenuProps.buildMenuSample(t.name, t.mnemonic, t.hotkey, false);
 			}
-			void setupShortcut(Composite parent) {
+			void setupShortcut(Composite parent) { mixin(S_TRACE);
 				auto l1 = new Label(parent, SWT.NONE);
 				l1.setText(_prop.msgs.mnemonic);
 
@@ -638,14 +638,14 @@ private:
 
 				static if (is(T:OuterTool)) {
 					sash.setWeights([_prop.var.etc.outerToolShortcutSashL, _prop.var.etc.outerToolShortcutSashR]);
-					.listener(sash, SWT.Dispose, {
+					.listener(sash, SWT.Dispose, { mixin(S_TRACE);
 						auto ws = sash.getWeights();
 						_prop.var.etc.outerToolShortcutSashL = ws[0];
 						_prop.var.etc.outerToolShortcutSashR = ws[1];
 					});
 				} else static if (is(T:ClassicEngine)) {
 					sash.setWeights([_prop.var.etc.classicEngineShortcutSashL, _prop.var.etc.classicEngineShortcutSashR]);
-					.listener(sash, SWT.Dispose, {
+					.listener(sash, SWT.Dispose, { mixin(S_TRACE);
 						auto ws = sash.getWeights();
 						_prop.var.etc.classicEngineShortcutSashL = ws[0];
 						_prop.var.etc.classicEngineShortcutSashR = ws[1];
@@ -653,12 +653,12 @@ private:
 				} else static assert (0);
 			}
 		} else {
-			string createName(ref const T t) {
+			string createName(ref const T t) { mixin(S_TRACE);
 				return t.name;
 			}
 		}
 		static if (is(T:BgImageSetting)) {
-			void setupRight(Composite parent) {
+			void setupRight(Composite parent) { mixin(S_TRACE);
 				auto comp3 = new Composite(parent, SWT.NONE);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 4;
@@ -677,23 +677,23 @@ private:
 				_bgImgH = createS(parent, _prop.msgs.height, _prop.var.etc.backHeightMax, 0);
 			}
 		} else static if (is(T:OuterTool)) {
-			void selectProgram() {
+			void selectProgram() { mixin(S_TRACE);
 				string[] desc;
 				string[] ext;
 				version (Windows) {
 					desc = [_prop.msgs.exeFileDescExe, _prop.msgs.exeFileDescAll];
 					ext = ["*.exe", "*.*"];
-				} else {
+				} else { mixin(S_TRACE);
 					desc = [_prop.msgs.exeFileDescAll];
 					ext = ["*.*"];
 				}
 				selectFile(_toolCommand, desc, ext, "", _prop.msgs.dlgTitOuterTool, _toolCommand.getText());
 			}
-			void selectWorkDir() {
+			void selectWorkDir() { mixin(S_TRACE);
 				selectDir(_prop, _toolWorkDir, _prop.msgs.toolWorkDir, _prop.msgs.toolWorkDirDesc, _toolWorkDir.getText());
 			}
-			void setupRight(Composite parent) {
-				{
+			void setupRight(Composite parent) { mixin(S_TRACE);
+				{ mixin(S_TRACE);
 					auto l = new Label(parent, SWT.NONE);
 					l.setText(_prop.msgs.outerToolName);
 					_name = new Text(parent, SWT.BORDER);
@@ -703,7 +703,7 @@ private:
 					_name.setLayoutData(gd);
 				}
 				setupShortcut(parent);
-				{
+				{ mixin(S_TRACE);
 					auto l = new Label(parent, SWT.NONE);
 					l.setText(_prop.msgs.outerToolCommand);
 					_toolCommand = new Text(parent, SWT.BORDER);
@@ -717,7 +717,7 @@ private:
 					_toolCommandDirOpen = createOpenButton(_comm, parent, &_toolCommand.getText, false);
 					setupDropFile(_toolCommand, _toolCommand, toDelegate(&dropDefault));
 				}
-				{
+				{ mixin(S_TRACE);
 					auto l = new Label(parent, SWT.NONE);
 					l.setText(_prop.msgs.outerToolWorkDir);
 					_toolWorkDir = new Text(parent, SWT.BORDER);
@@ -731,7 +731,7 @@ private:
 					_toolWorkDirOpen = createOpenButton(_comm, parent, &_toolWorkDir.getText, true);
 					setupDropFile(_toolWorkDir, _toolWorkDir, toDelegate(&dropDir));
 				}
-				{
+				{ mixin(S_TRACE);
 					auto dummy = new Composite(parent, SWT.NONE);
 					auto gd = new GridData;
 					gd.verticalSpan = 3;
@@ -756,12 +756,12 @@ private:
 				}
 			}
 		} else static if (is(T:ClassicEngine)) {
-			string dropCEnginePath(string[] files) {
+			string dropCEnginePath(string[] files) { mixin(S_TRACE);
 				if (!files.length) return "";
 				string file = files[0];
-				if (.exists(file) && .isDir(file)) {
+				if (.exists(file) && .isDir(file)) { mixin(S_TRACE);
 					string resDir, lEnginePath;
-					if (Skin.hasClassicEngine(file, resDir, lEnginePath, _prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey, _array)) {
+					if (Skin.hasClassicEngine(file, resDir, lEnginePath, _prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey, _array)) { mixin(S_TRACE);
 						return lEnginePath;
 					}
 					return file;
@@ -769,112 +769,112 @@ private:
 				return file;
 			}
 			@property
-			string curCEnginePath() {
+			string curCEnginePath() { mixin(S_TRACE);
 				string path = _cEnginePath.getText();
 				if (!path.length) return path;
 				if (isAbsolute(path)) return path;
 				return std.path.buildPath(nabs(_prop.parent.appPath).dirName(), path);
 			}
-			string dropCEngineSub(string file) {
+			string dropCEngineSub(string file) { mixin(S_TRACE);
 				string engine = curCEnginePath;
 				if (!engine.length) return file;
 				return abs2rel(file, engine.dirName());
 			}
-			string dropCEngineDataDir(string[] files) {
+			string dropCEngineDataDir(string[] files) { mixin(S_TRACE);
 				return dropCEngineSub(dropDir(files));
 			}
-			string dropCEngineExecute(string[] files) {
+			string dropCEngineExecute(string[] files) { mixin(S_TRACE);
 				return dropCEngineSub(dropDefault(files));
 			}
-			void selectCEnginePath() {
+			void selectCEnginePath() { mixin(S_TRACE);
 				string[] desc;
 				string[] ext;
 				version (Windows) {
 					desc = [_prop.msgs.exeFileDescExe, _prop.msgs.exeFileDescAll];
 					ext = ["*.exe", "*.*"];
-				} else {
+				} else { mixin(S_TRACE);
 					desc = [_prop.msgs.exeFileDescAll];
 					ext = ["*.*"];
 				}
 				string fname = selectFile(_cEnginePath, desc, ext, "", _prop.msgs.dlgTitClassicEnginePath, _cEnginePath.getText());
-				if (fname) {
+				if (fname) { mixin(S_TRACE);
 					dropCEnginePath(fname);
 				}
 			}
-			void dropCEnginePath(string path) {
+			void dropCEnginePath(string path) { mixin(S_TRACE);
 				string resDir = Skin.findResDir(path.dirName(), _prop.var.etc.classicDataDirRegex,  _prop.var.etc.classicMatchKey);
-				if (resDir.length) {
+				if (resDir.length) { mixin(S_TRACE);
 					_cEngineDataDir.setText(resDir);
 				}
 			}
-			void selectCEngineDataDir() {
+			void selectCEngineDataDir() { mixin(S_TRACE);
 				string path = _cEngineDataDir.getText();
-				if (_cEnginePath.getText().length && !isAbsolute(path)) {
+				if (_cEnginePath.getText().length && !isAbsolute(path)) { mixin(S_TRACE);
 					path = std.path.buildPath(_cEnginePath.getText().dirName(), path);
 				}
 				path = nabs(path);
 				string fname = selectDir(_prop, _cEngineDataDir, _prop.msgs.classicEngineDataDirName, _prop.msgs.classicEngineDataDirNameDesc, path, false);
-				if (fname) {
+				if (fname) { mixin(S_TRACE);
 					fname = dropCEngineSub(fname);
 					_cEngineDataDir.setText(fname);
 				}
 			}
-			void selectCEngineExecute() {
+			void selectCEngineExecute() { mixin(S_TRACE);
 				string[] desc;
 				string[] ext;
 				version (Windows) {
 					desc = [_prop.msgs.exeFileDescExe, _prop.msgs.exeFileDescAll];
 					ext = ["*.exe", "*.*"];
-				} else {
+				} else { mixin(S_TRACE);
 					desc = [_prop.msgs.exeFileDescAll];
 					ext = ["*.*"];
 				}
 				string path = _cEngineExecute.getText();
 				string fileName = "";
-				if (path.length) {
+				if (path.length) { mixin(S_TRACE);
 					fileName = path.baseName();
-					if (_cEnginePath.getText().length && !isAbsolute(path)) {
+					if (_cEnginePath.getText().length && !isAbsolute(path)) { mixin(S_TRACE);
 						path = std.path.buildPath(_cEnginePath.getText().dirName(), path);
 					}
-				} else {
+				} else { mixin(S_TRACE);
 					path = std.path.buildPath(_cEnginePath.getText().dirName(), "*.exe");
 				}
 				path = nabs(path);
 				string fname = selectFile(_cEngineExecute, desc, ext, fileName, _prop.msgs.dlgTitClassicEngineExecute, path);
-				if (fname) {
+				if (fname) { mixin(S_TRACE);
 					fname = dropCEngineSub(fname);
 					_cEngineExecute.setText(fname);
 				}
 			}
 			private class CEOpenDir : SelectionAdapter {
 				private Text _text;
-				this (Text text) {
+				this (Text text) { mixin(S_TRACE);
 					_text = text;
 				}
-				override void widgetSelected(SelectionEvent e) {
+				override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 					string file = _text.getText();
-					if (!isAbsolute(file)) {
+					if (!isAbsolute(file)) { mixin(S_TRACE);
 						auto engine = _cEngines.curCEnginePath;
-						if (engine.length) {
+						if (engine.length) { mixin(S_TRACE);
 							file = std.path.buildPath(engine.dirName(), file);
 						}
 					}
-					if (!.exists(file) || !isDir(file)) {
+					if (!.exists(file) || !isDir(file)) { mixin(S_TRACE);
 						file = file.dirName();
 					}
 					if (!.exists(file)) return;
 					openFolder(file);
 				}
 			}
-			Button createCEngineSubOpenButton(Composite parent, Text path, bool dir) {
+			Button createCEngineSubOpenButton(Composite parent, Text path, bool dir) { mixin(S_TRACE);
 				auto open = new Button(parent, SWT.PUSH);
 				open.setToolTipText(_prop.buildTool(dir ? MenuID.OpenDir : MenuID.OpenPlace));
 				open.setImage(_prop.images.menu(MenuID.OpenDir));
 				open.addSelectionListener(new CEOpenDir(path));
 				return open;
 			}
-			void setupRight(Composite parent) {
-				{
+			void setupRight(Composite parent) { mixin(S_TRACE);
+				{ mixin(S_TRACE);
 					auto l = new Label(parent, SWT.NONE);
 					l.setText(_prop.msgs.classicEngineName);
 					_name = new Text(parent, SWT.BORDER);
@@ -884,7 +884,7 @@ private:
 					_name.setLayoutData(gd);
 				}
 				setupShortcut(parent);
-				{
+				{ mixin(S_TRACE);
 					auto l = new Label(parent, SWT.NONE);
 					l.setText(_prop.msgs.classicEnginePath);
 					_cEnginePath = new Text(parent, SWT.BORDER);
@@ -898,7 +898,7 @@ private:
 					_cEnginePathDirOpen = createOpenButton(_comm, parent, &_cEnginePath.getText, false);
 					setupDropFile(_cEnginePath, _cEnginePath, &dropCEnginePath, &dropCEnginePath);
 				}
-				{
+				{ mixin(S_TRACE);
 					auto l = new Label(parent, SWT.NONE);
 					l.setText(_prop.msgs.classicEngineDataDirName);
 					_cEngineDataDir = new Text(parent, SWT.BORDER);
@@ -911,7 +911,7 @@ private:
 					_cEngineDataDirOpen = createCEngineSubOpenButton(parent, _cEngineDataDir, true);
 					setupDropFile(_cEngineDataDir, _cEngineDataDir, &dropCEngineDataDir);
 				}
-				{
+				{ mixin(S_TRACE);
 					auto l = new Label(parent, SWT.NONE);
 					l.setText(_prop.msgs.classicEngineExecute);
 					_cEngineExecute = new Text(parent, SWT.BORDER);
@@ -924,7 +924,7 @@ private:
 					_cEngineExecuteDirOpen = createCEngineSubOpenButton(parent, _cEngineExecute, true);
 					setupDropFile(_cEngineExecute, _cEngineExecute, &dropCEngineExecute);
 				}
-				{
+				{ mixin(S_TRACE);
 					auto hint1 = new Label(parent, SWT.NONE);
 					hint1.setText(_prop.msgs.classicEngineHint1);
 					auto gd1 = new GridData;
@@ -933,27 +933,27 @@ private:
 				}
 			}
 		} else static if (is(T:ScTemplate)) {
-			string dropTemplate(string[] files) {
+			string dropTemplate(string[] files) { mixin(S_TRACE);
 				if (!files.length) return "";
 				string file = files[0];
 				if (.isDir(file)) return file;
 				auto bn = file.baseName();
-				if (cfnmatch(bn, "Summary.wsm") || cfnmatch(bn, "Summary.xml")) {
+				if (cfnmatch(bn, "Summary.wsm") || cfnmatch(bn, "Summary.xml")) { mixin(S_TRACE);
 					return file;
 				}
 				auto ext = .extension(bn);
-				if (cfnmatch(ext, ".zip") || cfnmatch(ext, ".wsn") || (cfnmatch(ext, ".cab") && canUncab)) {
+				if (cfnmatch(ext, ".zip") || cfnmatch(ext, ".wsn") || (cfnmatch(ext, ".cab") && canUncab)) { mixin(S_TRACE);
 					return file;
 				}
 				return "";
 			}
-			void selectTemplate() {
+			void selectTemplate() { mixin(S_TRACE);
 				string[] desc = scenarioFilterDesc(_prop);
 				string[] ext = scenarioFilter;
 				selectFile(_templPath, desc, ext, "", _prop.msgs.dlgTitScTemplate, _templPath.getText());
 			}
-			void setupRight(Composite parent) {
-				{
+			void setupRight(Composite parent) { mixin(S_TRACE);
+				{ mixin(S_TRACE);
 					auto l = new Label(parent, SWT.NONE);
 					l.setText(_prop.msgs.scenarioTemplateName);
 					_name = new Text(parent, SWT.BORDER);
@@ -962,7 +962,7 @@ private:
 					gd.horizontalSpan = 3;
 					_name.setLayoutData(gd);
 				}
-				{
+				{ mixin(S_TRACE);
 					auto l = new Label(parent, SWT.NONE);
 					l.setText(_prop.msgs.scenarioTemplatePath);
 					_templPath = new Text(parent, SWT.BORDER);
@@ -978,9 +978,9 @@ private:
 				}
 			}
 		} else static if (is(T:EvTemplate)) {
-			void setupRight(Composite parent) {
+			void setupRight(Composite parent) { mixin(S_TRACE);
 				parent.setLayoutData(new GridData(GridData.FILL_BOTH));
-				{
+				{ mixin(S_TRACE);
 					auto l = new Label(parent, SWT.NONE);
 					l.setText(_prop.msgs.eventTemplateName);
 					_name = new Text(parent, SWT.BORDER);
@@ -989,7 +989,7 @@ private:
 					gd.horizontalSpan = 3;
 					_name.setLayoutData(gd);
 				}
-				{
+				{ mixin(S_TRACE);
 					auto l = new Label(parent, SWT.NONE);
 					l.setText(_prop.msgs.eventTemplateScript);
 					_templScript = new Text(parent, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.H_SCROLL | SWT.V_SCROLL);
@@ -1003,19 +1003,19 @@ private:
 					auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
 					auto font2 = new Font(Display.getCurrent(), dwtData(CFont(_prop.looks.monospace, fSize, false, false)));
 					_templScript.setFont(font2);
-					listener(_templScript, SWT.Dispose, {
+					listener(_templScript, SWT.Dispose, { mixin(S_TRACE);
 						font2.dispose();
 					});
 				}
 			}
 		} else static assert (0);
 	public:
-		this (Composite parent, int style) {
+		this (Composite parent, int style) { mixin(S_TRACE);
 			super (parent, style);
 			_undo = new UndoManager(_prop.var.etc.undoMaxEtc);
 		}
 
-		void setup(CTabItem tab) {
+		void setup(CTabItem tab) { mixin(S_TRACE);
 			this.setLayout(zeroMarginGridLayout(1, true));
 
 			auto grp = new Group(this, SWT.NONE);
@@ -1034,7 +1034,7 @@ private:
 			} else static assert (0);
 			auto leftSash = new SplitPane(grp, SWT.HORIZONTAL);
 			leftSash.setLayoutData(new GridData(GridData.FILL_BOTH));
-			{
+			{ mixin(S_TRACE);
 				auto left = new Composite(leftSash, SWT.NONE);
 				left.setLayout(zeroMarginGridLayout(2, true));
 				_list = new List(left, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL);
@@ -1049,10 +1049,10 @@ private:
 				createMenuItem(_comm, menu, MenuID.Undo, {_undo.undo();}, &_undo.canUndo);
 				createMenuItem(_comm, menu, MenuID.Redo, {_undo.redo();}, &_undo.canRedo);
 				new MenuItem(menu, SWT.SEPARATOR);
-				bool canUp() {
+				bool canUp() { mixin(S_TRACE);
 					return _list.getSelectionIndex() != -1 && 0 < _list.getSelectionIndex();
 				}
-				bool canDown() {
+				bool canDown() { mixin(S_TRACE);
 					return _list.getSelectionIndex() != -1 && _list.getSelectionIndex() + 1 < _list.getItemCount();
 				}
 				createMenuItem(_comm, menu, MenuID.Up, &up, &canUp);
@@ -1077,7 +1077,7 @@ private:
 
 			auto right = new Composite(leftSash, SWT.NONE);
 			right.setLayout(zeroMarginGridLayout(2, false));
-			{
+			{ mixin(S_TRACE);
 				auto comp2 = new Composite(right, SWT.NONE);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 2;
@@ -1090,7 +1090,7 @@ private:
 				features.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING));
 				features.setText(_prop.msgs.featureName);
 			}
-			{
+			{ mixin(S_TRACE);
 				auto buttons = new Composite(right, SWT.NONE);
 				auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
 				static if (!is(T:ClassicEngine)) {
@@ -1112,11 +1112,11 @@ private:
 				listener(_del, SWT.Selection, &del);
 			}
 			static if (is(T:ClassicEngine)) {
-				{
+				{ mixin(S_TRACE);
 					_ceNameWin = new Shell(parent.getShell(), SWT.TITLE | SWT.RESIZE | SWT.TOOL | SWT.CLOSE);
 					_ceNameWin.setLayout(new FillLayout);
 					_ceNameWin.setText(_prop.msgs.dlgTitFeatureName);
-					.listener(_ceNameWin, SWT.Close, (Event e) {
+					.listener(_ceNameWin, SWT.Close, (Event e) { mixin(S_TRACE);
 						_ceNameWin.setVisible(false);
 						features.setSelection(false);
 						e.doit = false;
@@ -1129,7 +1129,7 @@ private:
 					new MenuItem(menu, SWT.SEPARATOR);
 					appendMenuTCPD(_comm, menu, new FTCPD, true, true, true, true, false);
 					new MenuItem(menu, SWT.SEPARATOR);
-					createMenuItem(_comm, menu, MenuID.SelectAll, {
+					createMenuItem(_comm, menu, MenuID.SelectAll, { mixin(S_TRACE);
 						_featureName.select(iota(0, _featureName.getItemCount(), 1).array());
 					}, () => _featureName.getSelection().length < _featureName.getItemCount());
 					_featureName.setMenu(menu);
@@ -1148,22 +1148,22 @@ private:
 
 					_okText = new TableItem(_featureName, SWT.NONE);
 					_okText.setText(0, _prop.sys.evtChildOK(""));
-					foreach (f; SEX_ALL) {
+					foreach (f; SEX_ALL) { mixin(S_TRACE);
 						auto itm = new TableItem(_featureName, SWT.NONE);
 						itm.setText(0, _prop.sys.sexName(f, ""));
 						_sexName[f] = itm;
 					}
-					foreach (f; PERIOD_ALL) {
+					foreach (f; PERIOD_ALL) { mixin(S_TRACE);
 						auto itm = new TableItem(_featureName, SWT.NONE);
 						itm.setText(0, _prop.sys.periodName(f, ""));
 						_periodName[f] = itm;
 					}
-					foreach (f; NATURE_DEF ~ NATURE_EXT) {
+					foreach (f; NATURE_DEF ~ NATURE_EXT) { mixin(S_TRACE);
 						auto itm = new TableItem(_featureName, SWT.NONE);
 						itm.setText(0, _prop.sys.natureName(f, ""));
 						_natureName[f] = itm;
 					}
-					foreach (Makings f; MAKINGS_LEFT) {
+					foreach (Makings f; MAKINGS_LEFT) { mixin(S_TRACE);
 						auto itm = new TableItem(_featureName, SWT.NONE);
 						itm.setText(0, _prop.sys.makingsName(f, ""));
 						_makingsName[f] = itm;
@@ -1177,7 +1177,7 @@ private:
 					auto winProps = _prop.var.featuresWin;
 					auto shell = _ceNameWin;
 					bool first = true;
-					.listener(_ceNameWin, SWT.Dispose, {
+					.listener(_ceNameWin, SWT.Dispose, { mixin(S_TRACE);
 						if (first) return;
 						winProps.width = shell.getSize().x;
 						winProps.height = shell.getSize().y;
@@ -1185,8 +1185,8 @@ private:
 						winProps.y = shell.getBounds().y - shell.getParent().getBounds().y;
 					});
 					int parX, parY;
-					.listener(features, SWT.Selection, {
-						if (first) {
+					.listener(features, SWT.Selection, { mixin(S_TRACE);
+						if (first) { mixin(S_TRACE);
 							first = false;
 							auto pb = _ceNameWin.getParent().getBounds();
 							int px = pb.x;
@@ -1201,12 +1201,12 @@ private:
 							int height = winProps.height == SWT.DEFAULT ? wp.y : winProps.height;
 							int x = winProps.x == SWT.DEFAULT ? SWT.DEFAULT : winProps.x + shell.getParent().getBounds().x;
 							int y = winProps.y == SWT.DEFAULT ? SWT.DEFAULT : winProps.y + shell.getParent().getBounds().y;
-							if (SWT.DEFAULT == x) {
+							if (SWT.DEFAULT == x) { mixin(S_TRACE);
 								auto fb = features.getBounds();
 								auto p = features.toDisplay(fb.x, fb.y);
 								x = p.x + fb.width;
 							}
-							if (SWT.DEFAULT == y) {
+							if (SWT.DEFAULT == y) { mixin(S_TRACE);
 								y = py + ph - height;
 							}
 							intoDisplay(x, y, width, height);
@@ -1215,7 +1215,7 @@ private:
 
 						_ceNameWin.setVisible(features.getSelection());
 					});
-					.listener(getShell(), SWT.Move, {
+					.listener(getShell(), SWT.Move, { mixin(S_TRACE);
 						if (!getShell().isVisible()) return;
 						auto pb = _ceNameWin.getParent().getBounds();
 						auto tb = _ceNameWin.getBounds();
@@ -1223,8 +1223,8 @@ private:
 						parX = pb.x;
 						parY = pb.y;
 					});
-					.listener(_tabf, SWT.Selection, {
-						if (_tabf.getSelection() !is tab && _ceNameWin.getVisible()) {
+					.listener(_tabf, SWT.Selection, { mixin(S_TRACE);
+						if (_tabf.getSelection() !is tab && _ceNameWin.getVisible()) { mixin(S_TRACE);
 							_ceNameWin.setVisible(false);
 							features.setSelection(false);
 						}
@@ -1236,7 +1236,7 @@ private:
 			this.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
 			_comm.refMenu.add(&refMenu);
 			_comm.refUndoMax.add(&refUndoMax);
-			listener(this, SWT.Dispose, {
+			listener(this, SWT.Dispose, { mixin(S_TRACE);
 				this.getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 				_comm.refMenu.remove(&refMenu);
 				_comm.refUndoMax.remove(&refUndoMax);
@@ -1250,7 +1250,7 @@ private:
 				modB(_alt, _list, _bgImgW);
 				modB(_alt, _list, _bgImgH);
 				leftSash.setWeights([_prop.var.etc.bgImageSettingsSashL, _prop.var.etc.bgImageSettingsSashR]);
-				listener(leftSash, SWT.Dispose, (Event e) {
+				listener(leftSash, SWT.Dispose, (Event e) { mixin(S_TRACE);
 					auto ws = (cast(SplitPane) e.widget).getWeights();
 					_prop.var.etc.bgImageSettingsSashL = ws[0];
 					_prop.var.etc.bgImageSettingsSashR = ws[1];
@@ -1262,7 +1262,7 @@ private:
 				modB(_alt, _list, _mnemonic);
 				modB(_alt, _list, _hotkey.widget);
 				leftSash.setWeights([_prop.var.etc.outerToolsSashL, _prop.var.etc.outerToolsSashR]);
-				listener(leftSash, SWT.Dispose, (Event e) {
+				listener(leftSash, SWT.Dispose, (Event e) { mixin(S_TRACE);
 					auto ws = (cast(SplitPane) e.widget).getWeights();
 					_prop.var.etc.outerToolsSashL = ws[0];
 					_prop.var.etc.outerToolsSashR = ws[1];
@@ -1275,7 +1275,7 @@ private:
 				modB(_alt, _list, _mnemonic);
 				modB(_alt, _list, _hotkey.widget);
 				leftSash.setWeights([_prop.var.etc.classicEnginesSashL, _prop.var.etc.classicEnginesSashR]);
-				listener(leftSash, SWT.Dispose, (Event e) {
+				listener(leftSash, SWT.Dispose, (Event e) { mixin(S_TRACE);
 					auto ws = (cast(SplitPane) e.widget).getWeights();
 					_prop.var.etc.classicEnginesSashL = ws[0];
 					_prop.var.etc.classicEnginesSashR = ws[1];
@@ -1284,7 +1284,7 @@ private:
 			} else static if (is(T:ScTemplate)) {
 				modB(_alt, _list, _templPath);
 				leftSash.setWeights([_prop.var.etc.scenarioTemplatesSashL, _prop.var.etc.scenarioTemplatesSashR]);
-				listener(leftSash, SWT.Dispose, (Event e) {
+				listener(leftSash, SWT.Dispose, (Event e) { mixin(S_TRACE);
 					auto ws = (cast(SplitPane) e.widget).getWeights();
 					_prop.var.etc.scenarioTemplatesSashL = ws[0];
 					_prop.var.etc.scenarioTemplatesSashR = ws[1];
@@ -1293,7 +1293,7 @@ private:
 			} else static if (is(T:EvTemplate)) {
 				modB(_alt, _list, _templScript);
 				leftSash.setWeights([_prop.var.etc.eventTemplatesSashL, _prop.var.etc.eventTemplatesSashR]);
-				listener(leftSash, SWT.Dispose, (Event e) {
+				listener(leftSash, SWT.Dispose, (Event e) { mixin(S_TRACE);
 					auto ws = (cast(SplitPane) e.widget).getWeights();
 					_prop.var.etc.eventTemplatesSashL = ws[0];
 					_prop.var.etc.eventTemplatesSashR = ws[1];
@@ -1302,11 +1302,11 @@ private:
 			} else static assert (0);
 
 			_array.length = l.length;
-			foreach (i, t; l) {
+			foreach (i, t; l) { mixin(S_TRACE);
 				_list.add(createName(t));
 				static if (is(typeof(t.dup))) {
 					_array[i] = t.dup;
-				} else {
+				} else { mixin(S_TRACE);
 					_array[i] = t;
 				}
 			}
@@ -1316,13 +1316,13 @@ private:
 
 		@property
 		const
-		T[] array() {
+		T[] array() { mixin(S_TRACE);
 			T[] arr;
 			arr.length = _array.length;
-			foreach (i, t; _array) {
+			foreach (i, t; _array) { mixin(S_TRACE);
 				static if (is(typeof(t.dup))) {
 					arr[i] = t.dup;
-				} else {
+				} else { mixin(S_TRACE);
 					arr[i] = t;
 				}
 			}
@@ -1459,24 +1459,24 @@ private:
 		string hotkey;
 	}
 	IncSearch _menuIncSearch;
-	void menuIncSearch() {
+	void menuIncSearch() { mixin(S_TRACE);
 		_menuIncSearch.startIncSearch();
 	}
 
 	class RefE : SelectionAdapter, ModifyListener {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			refreshEnabled();
 		}
-		override void modifyText(ModifyEvent e) {
+		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
 			refreshEnabled();
 		}
 	}
-	string dropEngine(string[] files) {
+	string dropEngine(string[] files) { mixin(S_TRACE);
 		if (!files.length) return "";
 		string file = files[0];
-		if (cfnmatch(baseName(file), _prop.var.etc.engine)) {
+		if (cfnmatch(baseName(file), _prop.var.etc.engine)) { mixin(S_TRACE);
 			return file;
-		} else {
+		} else { mixin(S_TRACE);
 			return "";
 		}
 	}
@@ -1488,11 +1488,11 @@ private:
 		".voc", // VOC
 		".wav" // WAV/RIFF
 	];
-	string dropSysSound(string[] files) {
+	string dropSysSound(string[] files) { mixin(S_TRACE);
 		if (!files.length) return "";
-		foreach (file; files) {
+		foreach (file; files) { mixin(S_TRACE);
 			string ext = .toLower(.extension(file));
-			if (.contains!("a == b", string, string)(SYSTEM_SOUND_EXT, ext)) {
+			if (.contains!("a == b", string, string)(SYSTEM_SOUND_EXT, ext)) { mixin(S_TRACE);
 				return file;
 			}
 		}
@@ -1500,23 +1500,23 @@ private:
 	}
 
 	const WALLPAPER_EXT = [".bmp", ".ico", ".icon", ".jpg", ".jpeg", ".gif", ".png", ".tif", ".tiff"];
-	string dropWallpaper(string[] files) {
+	string dropWallpaper(string[] files) { mixin(S_TRACE);
 		if (!files.length) return "";
-		foreach (file; files) {
-			if (.contains!("a == b", string, string)(WALLPAPER_EXT, .toLower(.extension(file)))) {
+		foreach (file; files) { mixin(S_TRACE);
+			if (.contains!("a == b", string, string)(WALLPAPER_EXT, .toLower(.extension(file)))) { mixin(S_TRACE);
 				return file;
 			}
 		}
 		return "";
 	}
-	void selectEngine() {
+	void selectEngine() { mixin(S_TRACE);
 		selectFile(_enginePath, [_prop.var.etc.engine], [_prop.var.etc.engine],
 			_prop.var.etc.engine, .tryFormat(_prop.msgs.dlgTitEnginePath, _prop.var.etc.engine),
 			_prop.var.etc.enginePath);
 	}
-	void selectSysSound(Text widget) {
+	void selectSysSound(Text widget) { mixin(S_TRACE);
 		string[] extArr;
-		foreach (sse; SYSTEM_SOUND_EXT) {
+		foreach (sse; SYSTEM_SOUND_EXT) { mixin(S_TRACE);
 			extArr ~= "*." ~ sse;
 		}
 		string exts = std.string.join(extArr, ";");
@@ -1524,16 +1524,16 @@ private:
 			baseName(widget.getText()), _prop.msgs.dlgTitSystemSound,
 			widget.getText());
 	}
-	void selectTemp() {
+	void selectTemp() { mixin(S_TRACE);
 		selectDir(_prop, _tempDir, _prop.msgs.tempDir, _prop.msgs.tempDirDesc, _prop.tempPath);
 	}
-	void selectBackup() {
+	void selectBackup() { mixin(S_TRACE);
 		selectDir(_prop, _backupDir, _prop.msgs.backupDir, _prop.msgs.backupDirDesc, _prop.backupPath);
 	}
-	void selectBackupBeforeSave() {
+	void selectBackupBeforeSave() { mixin(S_TRACE);
 		selectDir(_prop, _backupBeforeSaveDir, _prop.msgs.backupBeforeSaveDir, _prop.msgs.backupBeforeSaveDirDesc, _prop.backupBeforeSavePath);
 	}
-	void selectWallpaper() {
+	void selectWallpaper() { mixin(S_TRACE);
 		string[] filterName = [_prop.msgs.filterWallpaper, _prop.msgs.filterAll];
 		string[] filter = [
 			"*" ~ std.string.join(WALLPAPER_EXT.dup, ";*"),
@@ -1558,25 +1558,25 @@ private:
 	}
 	class SelSysSound : SelectionAdapter {
 		private Text _text;
-		this (Text text) {
+		this (Text text) { mixin(S_TRACE);
 			_text = text;
 		}
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			selectSysSound(_text);
 		}
 	}
-	void refHistories() {
+	void refHistories() { mixin(S_TRACE);
 		_clearHist.setEnabled(_prop.var.etc.openHistories.length > 0);
 	}
-	void refSearchHistories() {
+	void refSearchHistories() { mixin(S_TRACE);
 		_clearSHist.setEnabled(_prop.var.etc.searchHistories.length || _prop.var.etc.replaceHistories.length);
 	}
 	class ClearHist : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto dlg = new MessageBox(_histMax.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
 			dlg.setText(_prop.msgs.dlgTitQuestion);
 			dlg.setMessage(_prop.msgs.dlgMsgHistoryClear);
-			if (SWT.OK == dlg.open()) {
+			if (SWT.OK == dlg.open()) { mixin(S_TRACE);
 				_prop.var.etc.openHistories = [];
 				_comm.refHistories.call();
 				_prop.var.save(_dock);
@@ -1585,11 +1585,11 @@ private:
 		}
 	}
 	class ClearSHist : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto dlg = new MessageBox(_sHistMax.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
 			dlg.setText(_prop.msgs.dlgTitQuestion);
 			dlg.setMessage(_prop.msgs.dlgMsgSearchHistoryClear);
-			if (SWT.OK == dlg.open()) {
+			if (SWT.OK == dlg.open()) { mixin(S_TRACE);
 				_prop.var.etc.searchHistories = [];
 				_prop.var.etc.replaceHistories = [];
 				_prop.var.etc.grepDirHistories = [];
@@ -1599,17 +1599,17 @@ private:
 			}
 		}
 	}
-	void construct1(CTabFolder tabf) {
+	void construct1(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
 		_tabB = new CTabItem(tabf, SWT.NONE);
 		_tabB.setText(_prop.msgs.baseSettings);
 		_tabB.setControl(comp);
-		{
+		{ mixin(S_TRACE);
 			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			comp2.setLayout(zeroMarginGridLayout(2, false));
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new GridLayout(3, false));
@@ -1630,15 +1630,15 @@ private:
 				_findEnginePath.setLayoutData(gd);
 				setupDropFile(grp, _enginePath, &dropEngine);
 
-				.listener(_enginePath, SWT.Modify, {
+				.listener(_enginePath, SWT.Modify, { mixin(S_TRACE);
 					_findEnginePath.setEnabled(0 == _enginePath.getText().length);
 				});
-				.listener(_findEnginePath, SWT.Selection, {
+				.listener(_findEnginePath, SWT.Selection, { mixin(S_TRACE);
 					_enginePath.setEnabled(!_findEnginePath.getSelection());
 					_refEnginePath.setEnabled(!_findEnginePath.getSelection());
 				});
 			}
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				grp.setText(_prop.msgs.languageSetting);
@@ -1652,11 +1652,11 @@ private:
 				_language.add(_prop.msgs.languageSystem);
 				_language.select(0);
 				string curLocale = _prop.msgs.locale;
-				foreach (locale; msgsTable.keys.sort) {
+				foreach (locale; msgsTable.keys.sort) { mixin(S_TRACE);
 					_language.add(msgsTable[locale].localeName);
 					int index = _language.getItemCount() - 1;
 					_msgsTableIndex[index] = locale;
-					if (!_prop.var.etc.useSystemLanguage && 0 == icmp(curLocale, locale)) {
+					if (!_prop.var.etc.useSystemLanguage && 0 == icmp(curLocale, locale)) { mixin(S_TRACE);
 						_language.select(index);
 					}
 				}
@@ -1664,7 +1664,7 @@ private:
 				l.setText(_prop.msgs.languageCaution);
 			}
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setLayout(new GridLayout(3, false));
@@ -1679,7 +1679,7 @@ private:
 			createOpenButton(_comm, grp, &_tempDir.getText, true);
 			setupDropFile(grp, _tempDir, toDelegate(&dropDir));
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setText(_prop.msgs.backupDir);
@@ -1687,13 +1687,13 @@ private:
 			gl.horizontalSpacing = 10;
 			grp.setLayout(gl);
 
-			{
+			{ mixin(S_TRACE);
 				_backupEnabled = new Button(grp, SWT.CHECK);
 				_backupEnabled.setText(_prop.msgs.backupEnabled);
 				mod(_backupEnabled);
 				_backupEnabled.addSelectionListener(_refe);
 			}
-			{
+			{ mixin(S_TRACE);
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				comp2.setLayout(zeroMarginGridLayout(3, false));
@@ -1707,7 +1707,7 @@ private:
 				auto l2 = new Label(comp2, SWT.CENTER);
 				l2.setText(_prop.msgs.minute);
 			}
-			{
+			{ mixin(S_TRACE);
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				comp2.setLayout(zeroMarginGridLayout(2, false));
@@ -1719,7 +1719,7 @@ private:
 				_backupCount.setMaximum(99);
 				mod(_backupCount);
 			}
-			{
+			{ mixin(S_TRACE);
 				auto comp2 = new Composite(grp, SWT.NONE);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 3;
@@ -1737,7 +1737,7 @@ private:
 				_backupDirOpen = createOpenButton(_comm, comp2, &_backupDir.getText, true);
 				setupDropFile(grp, _backupDir, toDelegate(&dropDir));
 			}
-			{
+			{ mixin(S_TRACE);
 				auto comp2 = new Composite(grp, SWT.NONE);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 3;
@@ -1758,19 +1758,19 @@ private:
 				_backupArchived.addSelectionListener(_refe);
 			}
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setText(_prop.msgs.backupBeforeSaveDir);
 			grp.setLayout(new GridLayout(1, false));
 
-			{
+			{ mixin(S_TRACE);
 				_backupBeforeSaveEnabled = new Button(grp, SWT.CHECK);
 				_backupBeforeSaveEnabled.setText(_prop.msgs.backupBeforeSaveEnabled);
 				mod(_backupBeforeSaveEnabled);
 				_backupBeforeSaveEnabled.addSelectionListener(_refe);
 			}
-			{
+			{ mixin(S_TRACE);
 				auto comp2 = new Composite(grp, SWT.NONE);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.horizontalSpan = 3;
@@ -1789,15 +1789,15 @@ private:
 				setupDropFile(grp, _backupBeforeSaveDir, toDelegate(&dropDir));
 			}
 		}
-		{
+		{ mixin(S_TRACE);
 			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			comp2.setLayout(zeroMarginGridLayout(2, false));
-			{
+			{ mixin(S_TRACE);
 				auto comp3 = new Composite(comp2, SWT.NONE);
 				comp3.setLayoutData(new GridData(GridData.FILL_BOTH));
 				comp3.setLayout(zeroMarginGridLayout(1, false));
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(comp3, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					auto cl = new CenterLayout;
@@ -1808,12 +1808,12 @@ private:
 					createTextMenu!Text(_comm, _prop, _author, &catchMod);
 					mod(_author);
 				}
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(comp3, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setLayout(new GridLayout(1, true));
 					grp.setText(_prop.msgs.wallpaper);
-					{
+					{ mixin(S_TRACE);
 						auto comp4 = new Composite(grp, SWT.NONE);
 						comp4.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 						comp4.setLayout(zeroMarginGridLayout(3, false));
@@ -1826,14 +1826,14 @@ private:
 						refr.addSelectionListener(new SelWallpaper);
 						createOpenButton(_comm, comp4, &_wallpaper.getText, false);
 					}
-					{
+					{ mixin(S_TRACE);
 						auto comp4 = new Composite(grp, SWT.NONE);
 						comp4.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 						comp4.setLayout(zeroMarginGridLayout(2, false));
 
 						int[] styles;
 						string[] names;
-						foreach (s; [WallpaperStyle.Center, WallpaperStyle.Tile, WallpaperStyle.ExpandFull, WallpaperStyle.Expand]) {
+						foreach (s; [WallpaperStyle.Center, WallpaperStyle.Tile, WallpaperStyle.ExpandFull, WallpaperStyle.Expand]) { mixin(S_TRACE);
 							styles ~= cast(int) s;
 							names ~= _prop.msgs.wallpaperStyleName(s);
 						}
@@ -1841,7 +1841,7 @@ private:
 					}
 					setupDropFile(grp, _wallpaper, &dropWallpaper);
 				}
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(comp3, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setText(_prop.msgs.systemSounds);
@@ -1866,30 +1866,30 @@ private:
 					auto play = new Button(grp, SWT.PUSH);
 					play.setToolTipText(_prop.msgs.menuText(MenuID.PlaySE));
 					play.setImage(_prop.images.menu(MenuID.PlaySE));
-					.listener(play, SWT.Selection, {
+					.listener(play, SWT.Selection, { mixin(S_TRACE);
 						string file = _savedSound.getText();
-						if (file.length && .exists(file)) {
+						if (file.length && .exists(file)) { mixin(S_TRACE);
 							playSE(file, SOUND_TYPE_SDL);
 						}
 					});
 					auto stop = new Button(grp, SWT.PUSH);
 					stop.setToolTipText(_prop.msgs.menuText(MenuID.StopSE));
 					stop.setImage(_prop.images.menu(MenuID.StopSE));
-					.listener(stop, SWT.Selection, {
+					.listener(stop, SWT.Selection, { mixin(S_TRACE);
 						stopSE();
 					});
 				}
 			}
-			{
+			{ mixin(S_TRACE);
 				auto comp3 = new Composite(comp2, SWT.NONE);
 				comp3.setLayout(zeroMarginGridLayout(1, true));
 				comp3.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(comp3, SWT.NONE);
 					grp.setText(_prop.msgs.historiesSettings);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setLayout(new GridLayout(3, false));
-					{
+					{ mixin(S_TRACE);
 						auto lComp = new Composite(grp, SWT.NONE);
 						auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 						cl.fillHorizontal = true;
@@ -1908,7 +1908,7 @@ private:
 						_clearHist.setText(_prop.msgs.openHistoryClear);
 						_clearHist.addSelectionListener(new ClearHist);
 					}
-					{
+					{ mixin(S_TRACE);
 						auto lComp = new Composite(grp, SWT.NONE);
 						auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 						cl.fillHorizontal = true;
@@ -1928,12 +1928,12 @@ private:
 						_clearSHist.addSelectionListener(new ClearSHist);
 					}
 				}
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(comp3, SWT.NONE);
 					grp.setText(_prop.msgs.undoMax);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setLayout(new GridLayout(2, false));
-					Spinner createUndoMax(string title) {
+					Spinner createUndoMax(string title) { mixin(S_TRACE);
 						auto l = new Label(grp, SWT.NONE);
 						l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 						l.setText(title);
@@ -1952,7 +1952,7 @@ private:
 			}
 		}
 	}
-	Spinner createS(Composite parent, string name, int max, int min) {
+	Spinner createS(Composite parent, string name, int max, int min) { mixin(S_TRACE);
 		auto l = new Label(parent, SWT.NONE);
 		l.setText(name);
 		auto spn = new Spinner(parent, SWT.BORDER);
@@ -1965,56 +1965,56 @@ private:
 	}
 	class DefBgSetting : SelectionAdapter {
 		private DefBgImgDialog _dlg = null;
-		override void widgetSelected(SelectionEvent e) {
-			if (_dlg) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+			if (_dlg) { mixin(S_TRACE);
 				_dlg.active();
 				return;
 			}
 			_dlg = new DefBgImgDialog(_comm, _prop, getShell(), _bgImagesDefault);
-			_dlg.appliedEvent ~= {
+			_dlg.appliedEvent ~= { mixin(S_TRACE);
 				_bgImagesDefault = _dlg.backs;
 				applyEnabled();
 			};
-			_dlg.closeEvent ~= {
+			_dlg.closeEvent ~= { mixin(S_TRACE);
 				_dlg = null;
 			};
 			_dlg.open();
 		}
 	}
 	class DBgImgStg : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			auto ws = (cast(SplitPane) e.widget).getWeights();
 			_prop.var.etc.bgImageSettingsSashL = ws[0];
 			_prop.var.etc.bgImageSettingsSashR = ws[1];
 		}
 	}
 	class DBgImgKeyCodeSash : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			auto ws = (cast(SplitPane) e.widget).getWeights();
 			_prop.var.etc.bgImageKeyCodeSashL = ws[0];
 			_prop.var.etc.bgImageKeyCodeSashR = ws[1];
 		}
 	}
-	void modB(C)(Button button, List list, C ctrl) {
+	void modB(C)(Button button, List list, C ctrl) { mixin(S_TRACE);
 		static if (is(C : Button)) {
 			ctrl.addSelectionListener(new class SelectionAdapter {
-				override void widgetSelected(SelectionEvent e) {
-					if (0 < list.getItemCount()) {
+				override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+					if (0 < list.getItemCount()) { mixin(S_TRACE);
 						button.setEnabled(true);
 					}
 				}
 			});
-		} else {
+		} else { mixin(S_TRACE);
 			ctrl.addModifyListener(new class ModifyListener {
-				override void modifyText(ModifyEvent e) {
-					if (0 < list.getItemCount()) {
+				override void modifyText(ModifyEvent e) { mixin(S_TRACE);
+					if (0 < list.getItemCount()) { mixin(S_TRACE);
 						button.setEnabled(true);
 					}
 				}
 			});
 		}
 	}
-	void construct2(CTabFolder tabf) {
+	void construct2(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		_tabS = new CTabItem(tabf, SWT.NONE);
 		_tabS.setText(_prop.msgs.bgImageAndKeyCode);
@@ -2024,7 +2024,7 @@ private:
 		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto back = new Composite(sash, SWT.NONE);
 		back.setLayout(zeroMarginGridLayout(1, true));
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(back, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			auto cl = new CenterLayout;
@@ -2035,11 +2035,11 @@ private:
 			defBtn.setText(_prop.msgs.setBgImagesDefault);
 			defBtn.addSelectionListener(new DefBgSetting);
 		}
-		{
+		{ mixin(S_TRACE);
 			_bgStgs = new ToolsPane!BgImageSetting(back, SWT.NONE);
 			_bgStgs.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(sash, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new GridLayout(1, false));
@@ -2056,7 +2056,7 @@ private:
 		sash.addDisposeListener(new DBgImgKeyCodeSash);
 	}
 
-	void construct3(CTabFolder tabf) {
+	void construct3(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
 		_tabT = new CTabItem(tabf, SWT.NONE);
@@ -2072,14 +2072,14 @@ private:
 		_scTempls.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		sash.setWeights([_prop.var.etc.templatesSashL, _prop.var.etc.templatesSashR]);
-		listener(sash, SWT.Dispose, {
+		listener(sash, SWT.Dispose, { mixin(S_TRACE);
 			auto ws = sash.getWeights();
 			_prop.var.etc.templatesSashL = ws[0];
 			_prop.var.etc.templatesSashR = ws[1];
 		});
 	}
 
-	void construct4(CTabFolder tabf) {
+	void construct4(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
 		_tabC = new CTabItem(tabf, SWT.NONE);
@@ -2095,14 +2095,14 @@ private:
 		_cEngines.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		sash.setWeights([_prop.var.etc.toolsClassicEnginesSashL, _prop.var.etc.toolsClassicEnginesSashR]);
-		listener(sash, SWT.Dispose, {
+		listener(sash, SWT.Dispose, { mixin(S_TRACE);
 			auto ws = sash.getWeights();
 			_prop.var.etc.toolsClassicEnginesSashL = ws[0];
 			_prop.var.etc.toolsClassicEnginesSashR = ws[1];
 		});
 	}
 
-	Combo createEnumC(I)(Composite grp, string title, in I[] values, in string[] names, ref int[I] tblA, ref I[int] tblB, int hSpan = 1) {
+	Combo createEnumC(I)(Composite grp, string title, in I[] values, in string[] names, ref int[I] tblA, ref I[int] tblB, int hSpan = 1) { mixin(S_TRACE);
 		assert (values.length == names.length);
 		auto l = new Label(grp, SWT.NONE);
 		l.setText(title);
@@ -2112,7 +2112,7 @@ private:
 		gd.horizontalSpan = hSpan;
 		combo.setLayoutData(gd);
 		combo.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
-		foreach (i, val; values) {
+		foreach (i, val; values) { mixin(S_TRACE);
 			tblA[val] = i;
 			tblB[i] = val;
 			combo.add(names[i]);
@@ -2120,13 +2120,13 @@ private:
 		return combo;
 	}
 	class DMISash : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			auto ws = (cast(SplitPane) e.widget).getWeights();
 			_prop.var.etc.ignoreMenuSashL = ws[0];
 			_prop.var.etc.ignoreMenuSashR = ws[1];
 		}
 	}
-	void selectMenu() {
+	void selectMenu() { mixin(S_TRACE);
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		auto i = _menu.getSelectionIndex();
@@ -2138,7 +2138,7 @@ private:
 		_menuApply.setEnabled(false);
 		_menuDel.setEnabled(_mnemonic.getText().length || _hotkey.widget.getText().length);
 	}
-	void applyMenu() {
+	void applyMenu() { mixin(S_TRACE);
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		auto i = _menu.getSelectionIndex();
@@ -2151,14 +2151,14 @@ private:
 		_menuApply.setEnabled(false);
 		applyEnabled();
 	}
-	void refreshMenu() {
+	void refreshMenu() { mixin(S_TRACE);
 		auto selID = MenuID.None;
 		int selIndex = _menu.getSelectionIndex();
-		if (-1 != selIndex) {
+		if (-1 != selIndex) { mixin(S_TRACE);
 			selID = (cast(SMenuData) _menu.getItem(selIndex).getData()).id;
 		}
 		_menu.removeAll();
-		foreach (id; EnumMembers!MenuID) {
+		foreach (id; EnumMembers!MenuID) { mixin(S_TRACE);
 			if (id == MenuID.None) continue;
 			if (isNoKeyBindMenu(id)) continue;
 			string name = _prop.var.menu.buildMenuSample(_prop.parent, id);
@@ -2171,7 +2171,7 @@ private:
 			data.mnemonic = _prop.var.menu.mnemonic(id);
 			data.hotkey = _prop.var.menu.hotkey(id);
 			itm.setData(data);
-			if (id == selID) {
+			if (id == selID) { mixin(S_TRACE);
 				_menu.select(_menu.getItemCount() - 1);
 			}
 		}
@@ -2180,19 +2180,19 @@ private:
 		selectMenu();
 	}
 	class SelectMenu : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			selectMenu();
 		}
 	}
 	class ModMenu : ModifyListener {
-		override void modifyText(ModifyEvent e) {
+		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
 			if (ignoreMod) return;
 			_menuApply.setEnabled(true);
 			_menuDel.setEnabled(_mnemonic.getText().length || _hotkey.widget.getText().length);
 		}
 	}
 	class DelMenuAccel : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			ignoreMod = true;
 			scope (exit) ignoreMod = false;
 			_mnemonic.setText("");
@@ -2202,29 +2202,29 @@ private:
 		}
 	}
 	class ApplyMenu : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			applyMenu();
 		}
 	}
 	class SelBoolTable : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			if (e.detail != SWT.CHECK) return;
 			applyEnabled();
-			if (e.item is _contentsFloat && _contentsFloat.getChecked()) {
+			if (e.item is _contentsFloat && _contentsFloat.getChecked()) { mixin(S_TRACE);
 				_contentsAutoHide.setChecked(false);
 			}
-			if (e.item is _contentsAutoHide && _contentsAutoHide.getChecked()) {
+			if (e.item is _contentsAutoHide && _contentsAutoHide.getChecked()) { mixin(S_TRACE);
 				_contentsFloat.setChecked(false);
 			}
 		}
 	}
-	void construct5(CTabFolder tabf) {
+	void construct5(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		_tabE = new CTabItem(tabf, SWT.NONE);
 		_tabE.setText(_prop.msgs.etcSettings);
 		_tabE.setControl(comp);
 		comp.setLayout(new GridLayout(2, false));
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			grp.setText(_prop.msgs.etcSettingsTitle);
@@ -2237,12 +2237,12 @@ private:
 			tgd.horizontalSpan = 5;
 			tgd.heightHint = 0;
 			boolTable.setLayoutData(tgd);
-			TableItem createB(string text) {
+			TableItem createB(string text) { mixin(S_TRACE);
 				auto itm = new TableItem(boolTable, SWT.NONE);
 				itm.setText(text);
 				return itm;
 			}
-			if (!_comm.singleWindowMode(_prop)) {
+			if (!_comm.singleWindowMode(_prop)) { mixin(S_TRACE);
 				_singleWindow = createB(_prop.msgs.singleWindow);
 			}
 			_showSummaryInAreaTable = createB(_prop.msgs.showSummaryInAreaTable);
@@ -2322,7 +2322,7 @@ private:
 					_prop.msgs.soundPlayTypeMCI,
 					_prop.msgs.soundPlayTypeApp
 				];
-			} else {
+			} else { mixin(S_TRACE);
 				immutable int[] soundPlayTypeVals = [
 					SOUND_TYPE_AUTO,
 					SOUND_TYPE_SDL,
@@ -2334,7 +2334,7 @@ private:
 					_prop.msgs.soundPlayTypeApp
 				];
 			}
-			Spinner createVolume() {
+			Spinner createVolume() { mixin(S_TRACE);
 				auto l1 = new Label(grp, SWT.CENTER);
 				l1.setText(_prop.msgs.soundVolume);
 				auto spn = new Spinner(grp, SWT.BORDER);
@@ -2372,10 +2372,10 @@ private:
 				_prop.msgs.dialogStatusName(DialogStatus.UnderWithCoupon),
 			], _dialogStatusTbl, _dialogStatusTbl2, 4);
 		}
-		{
+		{ mixin(S_TRACE);
 			auto sash = new SplitPane(comp, SWT.VERTICAL);
 			sash.setLayoutData(new GridData(GridData.FILL_BOTH));
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(sash, SWT.NONE);
 				grp.setText(_prop.msgs.keyBind);
 				grp.setLayout(new GridLayout(4, false));
@@ -2421,7 +2421,7 @@ private:
 
 				grp.setTabList([_menuApply, _menuDel, _menu]);
 			}
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(sash, SWT.NONE);
 				grp.setText(_prop.msgs.ignorePaths);
 				grp.setLayout(new GridLayout(1, false));
@@ -2438,10 +2438,10 @@ private:
 		}
 	}
 	private RefE _refe;
-	private void refreshScenario(Summary summ) {
+	private void refreshScenario(Summary summ) { mixin(S_TRACE);
 		_summ = summ;
 	}
-	private void refreshEnabled() {
+	private void refreshEnabled() { mixin(S_TRACE);
 		_backupDir.setEnabled(_backupEnabled.getSelection());
 		_backupInterval.setEnabled(_backupEnabled.getSelection());
 		_backupCount.setEnabled(_backupEnabled.getSelection());
@@ -2453,13 +2453,13 @@ private:
 		_backupBeforeSaveDir.setEnabled(_backupBeforeSaveEnabled.getSelection());
 		_backupBeforeSaveRef.setEnabled(_backupBeforeSaveEnabled.getSelection());
 	}
-	void refEngineEnabled() {
+	void refEngineEnabled() { mixin(S_TRACE);
 		_findEnginePath.setEnabled(0 == _enginePath.getText().length);
 		_enginePath.setEnabled(!_findEnginePath.getSelection() || _enginePath.getText().length);
 		_refEnginePath.setEnabled(_enginePath.getEnabled());
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, DockingFolderCTC dock, Summary summ, void delegate() sendReloadProps) {
+	this (Commons comm, Props prop, Shell shell, DockingFolderCTC dock, Summary summ, void delegate() sendReloadProps) { mixin(S_TRACE);
 		super(prop, shell, false, prop.msgs.dlgTitSettings, prop.images.menu(MenuID.Settings), true, prop.var.settingsDlg, true);
 		_comm = comm;
 		_prop = prop;
@@ -2469,13 +2469,13 @@ public:
 	}
 
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(windowGridLayout(1, true));
 		_comm.refScenario.add(&refreshScenario);
 		_comm.refHistories.add(&refHistories);
 		_comm.refSearchHistories.add(&refSearchHistories);
 		area.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
+			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				_comm.refScenario.remove(&refreshScenario);
 				_comm.refHistories.remove(&refHistories);
 				_comm.refSearchHistories.remove(&refSearchHistories);
@@ -2515,9 +2515,9 @@ protected:
 		_author.setText(_prop.var.etc.defaultAuthor);
 		_wallpaper.setText(_prop.var.etc.wallpaper);
 		auto wsp = _prop.var.etc.wallpaperStyle in _wallpaperStyleTbl;
-		if (wsp) {
+		if (wsp) { mixin(S_TRACE);
 			_wallpaperStyle.select(*wsp);
-		} else {
+		} else { mixin(S_TRACE);
 			_wallpaperStyle.select(WallpaperStyle.Tile);
 		}
 		_histMax.setSelection(_prop.var.etc.historyMax);
@@ -2527,7 +2527,7 @@ protected:
 		_undoMaxReplace.setSelection(_prop.var.etc.undoMaxReplace);
 		_undoMaxEtc.setSelection(_prop.var.etc.undoMaxEtc);
 		string ipbuf = "";
-		foreach (path; _prop.var.etc.ignorePaths) {
+		foreach (path; _prop.var.etc.ignorePaths) { mixin(S_TRACE);
 			ipbuf ~= path ~ "\n";
 		}
 		_ignorePaths.setText(ipbuf);
@@ -2546,7 +2546,7 @@ protected:
 		_showCardListTitle.setChecked(_prop.var.etc.showCardListTitle);
 		_showSkillCardLevel.setChecked(_prop.var.etc.showSkillCardLevel);
 		_ignoreEmptyStart.setChecked(_prop.var.etc.ignoreEmptyStart);
-		if (_singleWindow) {
+		if (_singleWindow) { mixin(S_TRACE);
 			_singleWindow.setChecked(_prop.var.etc.singleWindow);
 		}
 		_contentsFloat.setChecked(_prop.var.etc.contentsFloat);
@@ -2578,36 +2578,36 @@ protected:
 		_showTerminalMark.setChecked(_prop.var.etc.showTerminalMark);
 		_clickIconIsStartEdit.setChecked(_prop.var.etc.clickIconIsStartEdit);
 		auto tVer = _prop.var.etc.targetVersion in _targetVersionTbl;
-		if (tVer) {
+		if (tVer) { mixin(S_TRACE);
 			_targetVersion.select(*tVer);
-		} else {
+		} else { mixin(S_TRACE);
 			_targetVersion.select(0);
 		}
 		auto sptp = _prop.var.etc.soundPlayType in _soundPlayTypeTbl;
-		if (sptp) {
+		if (sptp) { mixin(S_TRACE);
 			_soundPlayType.select(*sptp);
-		} else {
+		} else { mixin(S_TRACE);
 			_soundPlayType.select(0);
 		}
 		_bgmVolume.setSelection(_prop.var.etc.bgmVolume);
 		auto septp = _prop.var.etc.soundEffectPlayType in _soundEffectPlayTypeTbl;
-		if (septp) {
+		if (septp) { mixin(S_TRACE);
 			_soundEffectPlayType.select(*septp);
-		} else {
+		} else { mixin(S_TRACE);
 			_soundEffectPlayType.select(0);
 		}
 		_seVolume.setSelection(_prop.var.etc.seVolume);
 		auto dsp = _prop.var.etc.dialogStatus in _dialogStatusTbl;
-		if (dsp) {
+		if (dsp) { mixin(S_TRACE);
 			_dialogStatus.select(*dsp);
-		} else {
+		} else { mixin(S_TRACE);
 			_dialogStatus.select(DialogStatus.Top);
 		}
 		_savedSound.setText(_prop.var.etc.savedSound);
 		_bgImagesDefault = _prop.var.etc.bgImagesDefault.dup;
 
 		string buf = "";
-		foreach (kc; _prop.var.etc.standardKeyCodes) {
+		foreach (kc; _prop.var.etc.standardKeyCodes) { mixin(S_TRACE);
 			buf ~= kc ~ "\n";
 		}
 		_keyCodes.setText(buf);
@@ -2615,8 +2615,8 @@ protected:
 		refreshEnabled();
 	}
 
-	override bool apply() {
-		void err(CTabItem tab, Text t, string msg) {
+	override bool apply() { mixin(S_TRACE);
+		void err(CTabItem tab, Text t, string msg) { mixin(S_TRACE);
 			auto dlg = new MessageBox(t.getShell(), SWT.ICON_WARNING | SWT.OK);
 			dlg.setText(_prop.msgs.dlgTitWarning);
 			dlg.setMessage(msg);
@@ -2625,36 +2625,36 @@ protected:
 			t.setFocus();
 		}
 		string engine;
-		try {
+		try { mixin(S_TRACE);
 			engine = _enginePath.getText();
-		} catch {
+		} catch { mixin(S_TRACE);
 			err(_tabB, _enginePath, .tryFormat(_prop.msgs.errorEnginePath, _prop.var.etc.engine));
 			return false;
 		}
-		if (engine.length) {
-			if (!.exists(engine) || .isDir(engine)) {
+		if (engine.length) { mixin(S_TRACE);
+			if (!.exists(engine) || .isDir(engine)) { mixin(S_TRACE);
 				err(_tabB, _enginePath, .tryFormat(_prop.msgs.errorEnginePath, _prop.var.etc.engine));
 				return false;
 			}
 		}
 		string temp;
-		try {
+		try { mixin(S_TRACE);
 			temp = _tempDir.getText();
-		} catch {
+		} catch { mixin(S_TRACE);
 			err(_tabB, _tempDir, _prop.msgs.errorTempPath);
 			return false;
 		}
 		string backup;
-		try {
+		try { mixin(S_TRACE);
 			backup = _backupDir.getText();
-		} catch {
+		} catch { mixin(S_TRACE);
 			err(_tabB, _backupDir, _prop.msgs.errorBackupPath);
 			return false;
 		}
 		string backupBeforeSave;
-		try {
+		try { mixin(S_TRACE);
 			backupBeforeSave = _backupBeforeSaveDir.getText();
-		} catch {
+		} catch { mixin(S_TRACE);
 			err(_tabB, _backupBeforeSaveDir, _prop.msgs.errorBackupBeforeSavePath);
 			return false;
 		}
@@ -2664,10 +2664,10 @@ protected:
 		}
 		_prop.var.etc.enginePath = engine;
 		_prop.var.etc.findEnginePath = _findEnginePath.getSelection();
-		if (_language.getSelectionIndex() <= 0) {
+		if (_language.getSelectionIndex() <= 0) { mixin(S_TRACE);
 			_prop.var.etc.languageFile = "";
 			_prop.var.etc.useSystemLanguage = true;
-		} else {
+		} else { mixin(S_TRACE);
 			_prop.var.etc.languageFile = _msgsTableFile[_msgsTableIndex[_language.getSelectionIndex()]];
 			_prop.var.etc.useSystemLanguage = false;
 		}
@@ -2694,16 +2694,16 @@ protected:
 		_prop.var.etc.undoMaxReplace = _undoMaxReplace.getSelection();
 		_prop.var.etc.undoMaxEtc = _undoMaxEtc.getSelection();
 		string[] ipLines = splitLines!string(_ignorePaths.getText());
-		if (ipLines.length > 0) {
+		if (ipLines.length > 0) { mixin(S_TRACE);
 			int i;
-			for (i = ipLines.length - 1; i >= 0 && ipLines[i].length == 0; i--) {
+			for (i = ipLines.length - 1; i >= 0 && ipLines[i].length == 0; i--) { mixin(S_TRACE);
 				;
 			}
 			_prop.var.etc.ignorePaths = ipLines[0 .. i + 1];
-		} else {
+		} else { mixin(S_TRACE);
 			_prop.var.etc.ignorePaths = [];
 		}
-		if (_singleWindow) {
+		if (_singleWindow) { mixin(S_TRACE);
 			_prop.var.etc.singleWindow = _singleWindow.getChecked();
 		}
 		_prop.var.etc.showSummaryInAreaTable = _showSummaryInAreaTable.getChecked();
@@ -2755,40 +2755,40 @@ protected:
 		_prop.var.etc.seVolume = _seVolume.getSelection();
 		_prop.var.etc.dialogStatus = cast(DialogStatus) _dialogStatusTbl2[_dialogStatus.getSelectionIndex()];
 		_prop.var.etc.savedSound = _savedSound.getText();
-		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) {
+		if (_prop.var.etc.historyMax < _prop.var.etc.openHistories.length) { mixin(S_TRACE);
 			_prop.var.etc.openHistories
 				= _prop.var.etc.openHistories[0 .. _prop.var.etc.historyMax].dup;
 		}
-		if (_prop.var.etc.searchHistoryMax < _prop.var.etc.searchHistories.length) {
+		if (_prop.var.etc.searchHistoryMax < _prop.var.etc.searchHistories.length) { mixin(S_TRACE);
 			_prop.var.etc.searchHistories
 				= _prop.var.etc.searchHistories[0 .. _prop.var.etc.searchHistoryMax].dup;
 		}
-		if (_prop.var.etc.searchHistoryMax < _prop.var.etc.grepDirHistories.length) {
+		if (_prop.var.etc.searchHistoryMax < _prop.var.etc.grepDirHistories.length) { mixin(S_TRACE);
 			_prop.var.etc.grepDirHistories
 				= _prop.var.etc.grepDirHistories[0 .. _prop.var.etc.searchHistoryMax].dup;
 		}
 		_prop.var.etc.bgImageSettings = _bgStgs.array;
 		_prop.var.etc.bgImagesDefault = _bgImagesDefault;
 		string[] lines = splitLines!string(_keyCodes.getText());
-		if (lines.length > 0) {
+		if (lines.length > 0) { mixin(S_TRACE);
 			int i;
-			for (i = lines.length - 1; i >= 0 && lines[i].length == 0; i--) {
+			for (i = lines.length - 1; i >= 0 && lines[i].length == 0; i--) { mixin(S_TRACE);
 				;
 			}
 			_prop.var.etc.standardKeyCodes = lines[0 .. i + 1];
-		} else {
+		} else { mixin(S_TRACE);
 			_prop.var.etc.standardKeyCodes = [];
 		}
 		_prop.var.etc.outerTools = _tools.array;
 		_prop.var.etc.classicEngines = _cEngines.array;
 		_prop.var.etc.eventTemplates = _evTempls.array;
 		_prop.var.etc.scenarioTemplates = _scTempls.array;
-		foreach (itm; _menu.getItems()) {
+		foreach (itm; _menu.getItems()) { mixin(S_TRACE);
 			auto data = cast(SMenuData) itm.getData();
 			_prop.var.menu.mnemonic(data.id, data.mnemonic);
 			_prop.var.menu.hotkey(data.id, data.hotkey);
 		}
-		if (_summ && findCWPy(_prop, _summ.useTemp ? _summ.zipName : _summ.scenarioPath)) {
+		if (_summ && findCWPy(_prop, _summ.useTemp ? _summ.zipName : _summ.scenarioPath)) { mixin(S_TRACE);
 			_enginePath.setText(_prop.var.etc.enginePath);
 			_findEnginePath.setSelection(_prop.var.etc.findEnginePath);
 			refEngineEnabled();
@@ -2843,7 +2843,7 @@ struct OldSettings {
 	bool straightEventTreeView;
 	bool showTerminalMark;
 	bool showSummaryInAreaTable;
-	this (Props prop) {
+	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
 		this.targetVersion = prop.var.etc.targetVersion;
 		this.oldEnginePath = prop.var.etc.enginePath;
@@ -2865,7 +2865,7 @@ struct OldSettings {
 		this.oldUndoMaxReplace = prop.var.etc.undoMaxReplace;
 		this.oldUndoMaxEtc = prop.var.etc.undoMaxEtc;
 		this.oldDialogStatus = prop.var.etc.dialogStatus;
-		foreach (id; EnumMembers!MenuID) {
+		foreach (id; EnumMembers!MenuID) { mixin(S_TRACE);
 			if (isNoKeyBindMenu(id)) continue;
 			oldMnemonic[id] = prop.var.menu.mnemonic(id);
 			oldHotkey[id] = prop.var.menu.hotkey(id);
@@ -2890,135 +2890,135 @@ struct OldSettings {
 		this.showTerminalMark = prop.var.etc.showTerminalMark;
 		this.showSummaryInAreaTable = prop.var.etc.showSummaryInAreaTable;
 	}
-	void raiseEvent(Commons comm) {
+	void raiseEvent(Commons comm) { mixin(S_TRACE);
 		bool refSkin = false;
-		if (targetVersion != prop.var.etc.targetVersion) {
+		if (targetVersion != prop.var.etc.targetVersion) { mixin(S_TRACE);
 			comm.refTargetVersion.call();
 		}
-		if (comm.summary && oldEnginePath != prop.var.etc.enginePath) {
+		if (comm.summary && oldEnginePath != prop.var.etc.enginePath) { mixin(S_TRACE);
 			refSkin = true;
 		}
-		if (oldWallpaper != prop.var.etc.wallpaper || oldWallpaperStyle != prop.var.etc.wallpaperStyle) {
-			if (oldWallpaper != prop.var.etc.wallpaper) {
+		if (oldWallpaper != prop.var.etc.wallpaper || oldWallpaperStyle != prop.var.etc.wallpaperStyle) { mixin(S_TRACE);
+			if (oldWallpaper != prop.var.etc.wallpaper) { mixin(S_TRACE);
 				comm.refreshWallpaper(prop);
 			}
 			comm.refWallpaper.call();
 		}
-		if (oldKeyCodes != prop.var.etc.standardKeyCodes) {
+		if (oldKeyCodes != prop.var.etc.standardKeyCodes) { mixin(S_TRACE);
 			comm.refStandardKeyCodes.call();
 		}
-		if (tools != prop.var.etc.outerTools) {
+		if (tools != prop.var.etc.outerTools) { mixin(S_TRACE);
 			comm.refOuterTools.call();
 		}
-		if (cEngines != prop.var.etc.classicEngines) {
+		if (cEngines != prop.var.etc.classicEngines) { mixin(S_TRACE);
 			refSkin = true;
 		}
-		if (eventTemplates != prop.var.etc.eventTemplates) {
+		if (eventTemplates != prop.var.etc.eventTemplates) { mixin(S_TRACE);
 			comm.refEventTemplates.call();
 		}
-		if (oldIgnorePaths != prop.var.etc.ignorePaths) {
+		if (oldIgnorePaths != prop.var.etc.ignorePaths) { mixin(S_TRACE);
 			comm.refIgnorePaths.call();
 		}
-		if (oldSmoothingCard != prop.var.etc.smoothingCard) {
+		if (oldSmoothingCard != prop.var.etc.smoothingCard) { mixin(S_TRACE);
 			comm.refCardState.call();
 		}
-		if (oldLogicalSort != prop.var.etc.logicalSort) {
-			if (comm.summary) {
-				if (prop.var.etc.logicalSort) {
-					comm.summary.flagDirRoot.sorter = (string a, string b) {
+		if (oldLogicalSort != prop.var.etc.logicalSort) { mixin(S_TRACE);
+			if (comm.summary) { mixin(S_TRACE);
+				if (prop.var.etc.logicalSort) { mixin(S_TRACE);
+					comm.summary.flagDirRoot.sorter = (string a, string b) { mixin(S_TRACE);
 						return ncmp(a, b);
 					};
-				} else {
-					comm.summary.flagDirRoot.sorter = (string a, string b) {
+				} else { mixin(S_TRACE);
+					comm.summary.flagDirRoot.sorter = (string a, string b) { mixin(S_TRACE);
 						return cmp(a, b);
 					};
 				}
 			}
 			comm.refSortCondition.call();
 		}
-		if (refSkin) {
+		if (refSkin) { mixin(S_TRACE);
 			comm.skin = findSkin(comm, prop, comm.summary, null, comm.skin.legacyEngine, false);
 			comm.refSkin.call();
 		}
 		comm.refClassicSkin.call();
-		if (oldOpenHistories != prop.var.etc.openHistories) {
+		if (oldOpenHistories != prop.var.etc.openHistories) { mixin(S_TRACE);
 			comm.refHistories.call();
 		}
-		if (oldSearchHistories != prop.var.etc.searchHistories || oldReplaceHistories != prop.var.etc.replaceHistories || oldGrepDirHistories != prop.var.etc.grepDirHistories) {
+		if (oldSearchHistories != prop.var.etc.searchHistories || oldReplaceHistories != prop.var.etc.replaceHistories || oldGrepDirHistories != prop.var.etc.grepDirHistories) { mixin(S_TRACE);
 			comm.refSearchHistories.call();
 		}
 		if (oldUndoMaxMainView != prop.var.etc.undoMaxMainView
 				|| oldUndoMaxEvent != prop.var.etc.undoMaxEvent
 				|| oldUndoMaxReplace != prop.var.etc.undoMaxReplace
-				|| oldUndoMaxEtc != prop.var.etc.undoMaxEtc) {
+				|| oldUndoMaxEtc != prop.var.etc.undoMaxEtc) { mixin(S_TRACE);
 			comm.refUndoMax.call();
 		}
-		if (oldDialogStatus != prop.var.etc.dialogStatus) {
+		if (oldDialogStatus != prop.var.etc.dialogStatus) { mixin(S_TRACE);
 			comm.refContentText.call();
 		}
-		foreach (id; EnumMembers!MenuID) {
+		foreach (id; EnumMembers!MenuID) { mixin(S_TRACE);
 			if (isNoKeyBindMenu(id)) continue;
-			if (oldMnemonic[id] != prop.var.menu.mnemonic(id) || oldHotkey[id] != prop.var.menu.hotkey(id)) {
+			if (oldMnemonic[id] != prop.var.menu.mnemonic(id) || oldHotkey[id] != prop.var.menu.hotkey(id)) { mixin(S_TRACE);
 				comm.refMenu.call(id);
 			}
 		}
-		if (this.floatMessagePreview != prop.var.etc.floatMessagePreview) {
+		if (this.floatMessagePreview != prop.var.etc.floatMessagePreview) { mixin(S_TRACE);
 			int wg;
-			if (prop.var.etc.floatMessagePreview) {
+			if (prop.var.etc.floatMessagePreview) { mixin(S_TRACE);
 				wg = -(cast(int) prop.looks.messageBounds.width);
-			} else {
+			} else { mixin(S_TRACE);
 				wg = prop.looks.messageBounds.width;
 			}
-			if (prop.var.etc.showMessagePreview) {
+			if (prop.var.etc.showMessagePreview) { mixin(S_TRACE);
 				prop.var.msgDlg.width = prop.var.msgDlg.width + wg;
 			}
-			if (prop.var.etc.showDialogPreview) {
+			if (prop.var.etc.showDialogPreview) { mixin(S_TRACE);
 				prop.var.speakDlg.width = prop.var.speakDlg.width + wg;
 			}
 		}
-		if (this.bgmVolume != prop.var.etc.bgmVolume) {
+		if (this.bgmVolume != prop.var.etc.bgmVolume) { mixin(S_TRACE);
 			.bgmVolume = prop.var.etc.bgmVolume;
 		}
-		if (this.seVolume != prop.var.etc.seVolume) {
+		if (this.seVolume != prop.var.etc.seVolume) { mixin(S_TRACE);
 			.seVolume = prop.var.etc.seVolume;
 		}
-		if (this.soundPlayType != prop.var.etc.soundPlayType || this.soundEffectPlayType != prop.var.etc.soundEffectPlayType) {
+		if (this.soundPlayType != prop.var.etc.soundPlayType || this.soundEffectPlayType != prop.var.etc.soundEffectPlayType) { mixin(S_TRACE);
 			comm.refSoundType.call();
 		}
-		if (this.showEventTreeMark != prop.var.etc.showEventTreeMark || this.showSkillCardLevel != prop.var.etc.showSkillCardLevel || this.ignoreEmptyStart != prop.var.etc.ignoreEmptyStart) {
+		if (this.showEventTreeMark != prop.var.etc.showEventTreeMark || this.showSkillCardLevel != prop.var.etc.showSkillCardLevel || this.ignoreEmptyStart != prop.var.etc.ignoreEmptyStart) { mixin(S_TRACE);
 			comm.refCardImageStatus.call();
 		}
-		if (this.classicStyleTree != prop.var.etc.classicStyleTree) {
+		if (this.classicStyleTree != prop.var.etc.classicStyleTree) { mixin(S_TRACE);
 			comm.refEventTreeStyle.call();
 		}
-		if (this.radarStyleParams != prop.var.etc.radarStyleParams) {
+		if (this.radarStyleParams != prop.var.etc.radarStyleParams) { mixin(S_TRACE);
 			comm.refRadarStyle.call();
 		}
-		if (this.showSpNature != prop.var.etc.showSpNature || this.useNamesAfterStandard != prop.var.etc.useNamesAfterStandard) {
+		if (this.showSpNature != prop.var.etc.showSpNature || this.useNamesAfterStandard != prop.var.etc.useNamesAfterStandard) { mixin(S_TRACE);
 			comm.refCoupons.call();
 		}
-		if (this.useNamesAfterStandard != prop.var.etc.useNamesAfterStandard) {
+		if (this.useNamesAfterStandard != prop.var.etc.useNamesAfterStandard) { mixin(S_TRACE);
 			comm.refKeyCodes.call();
 		}
-		if (this.showVariableValuesInEventText != prop.var.etc.showVariableValuesInEventText) {
+		if (this.showVariableValuesInEventText != prop.var.etc.showVariableValuesInEventText) { mixin(S_TRACE);
 			comm.refPreviewValues.call();
 		}
-		if (this.showCardListHeader != prop.var.etc.showCardListHeader) {
+		if (this.showCardListHeader != prop.var.etc.showCardListHeader) { mixin(S_TRACE);
 			comm.refShowCardListHeader.call();
 		}
-		if (this.showCardListTitle != prop.var.etc.showCardListTitle) {
+		if (this.showCardListTitle != prop.var.etc.showCardListTitle) { mixin(S_TRACE);
 			comm.refShowCardListTitle.call();
 		}
-		if (this.selectVariableWithTree != prop.var.etc.selectVariableWithTree) {
+		if (this.selectVariableWithTree != prop.var.etc.selectVariableWithTree) { mixin(S_TRACE);
 			comm.refVarSelectStyle.call();
 		}
-		if (this.straightEventTreeView != prop.var.etc.straightEventTreeView) {
+		if (this.straightEventTreeView != prop.var.etc.straightEventTreeView) { mixin(S_TRACE);
 			comm.refEventTreeViewStyle.call();
 		}
-		if (this.showTerminalMark != prop.var.etc.showTerminalMark) {
+		if (this.showTerminalMark != prop.var.etc.showTerminalMark) { mixin(S_TRACE);
 			comm.refTerminalMark.call();
 		}
-		if (this.showSummaryInAreaTable != prop.var.etc.showSummaryInAreaTable) {
+		if (this.showSummaryInAreaTable != prop.var.etc.showSummaryInAreaTable) { mixin(S_TRACE);
 			comm.refAreaTable.call();
 		}
 	}
@@ -3033,7 +3033,7 @@ private:
 	BgImagesView _view;
 
 public:
-	this (Commons comm, Props prop, Shell shell, BgImageS[] bgImagesDefault) {
+	this (Commons comm, Props prop, Shell shell, BgImageS[] bgImagesDefault) { mixin(S_TRACE);
 		super(prop, shell, false, prop.msgs.dlgTitBgImagesDefault,
 			prop.images.menu(MenuID.Settings), true, prop.var.bgImagesDlg, true);
 		_comm = comm;
@@ -3047,16 +3047,16 @@ public:
 	@property
 	BgImageS[] backs() {return createBgImageSs(_cont.backs);}
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(new GridLayout(1, false));
-		{
+		{ mixin(S_TRACE);
 			_view = createBgImagesViewAndMenu(_comm, _prop, null, _cont, area, null);
 			mod(_view);
 			_view.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 	}
 
-	override bool apply() {
+	override bool apply() { mixin(S_TRACE);
 		return true;
 	}
 }

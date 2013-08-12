@@ -78,7 +78,7 @@ version (Windows) {
 		const PIPE_READMODE_BYTE = 0x0;
 		const PIPE_WAIT = 0x0;
 	}
-} else {
+} else { mixin(S_TRACE);
 	import core.stdc.errno;
 	version (linux) {
 		import std.c.linux.linux;
@@ -86,7 +86,7 @@ version (Windows) {
 		alias std.c.linux.linux.read cread;
 		alias std.c.linux.linux.write cwrite;
 		alias std.c.linux.socket.bind cbind;
-	} else {
+	} else { mixin(S_TRACE);
 		import std.c.unix.unix;
 		alias std.c.unix.unix.read cread;
 		alias std.c.unix.unix.write cwrite;
@@ -133,15 +133,15 @@ private:
 	Menu _mExecEngine;
 	Menu _tmExecEngine;
 	ToolItem _tiExecEngine;
-	void refreshExecEngine() {
+	void refreshExecEngine() { mixin(S_TRACE);
 		refreshExecEngineImpl(_mExecEngine, true);
 		auto ePath = refreshExecEngineImpl(_tmExecEngine, false);
 		version (Windows) {
 			// ツールボタンのアイコン
 			auto exeIcon = loadIcon(ePath, 16, 16);
-			if (exeIcon) {
+			if (exeIcon) { mixin(S_TRACE);
 				auto img = _tiExecEngine.getImage();
-				if (_prop.images.menu(MenuID.ExecEngineAuto) !is img) {
+				if (_prop.images.menu(MenuID.ExecEngineAuto) !is img) { mixin(S_TRACE);
 					img.dispose();
 				}
 				auto img2 = new Image(_tiExecEngine.getDisplay(), exeIcon);
@@ -151,33 +151,33 @@ private:
 		setupMenu(_menu);
 		setupMenu(_tool);
 	}
-	string refreshExecEngineImpl(Menu menu, bool autoSelect) {
-		foreach (itm; menu.getItems()) {
+	string refreshExecEngineImpl(Menu menu, bool autoSelect) { mixin(S_TRACE);
+		foreach (itm; menu.getItems()) { mixin(S_TRACE);
 			itm.dispose();
 		}
-		void putIcon(MenuItem mi, string ePath) {
+		void putIcon(MenuItem mi, string ePath) { mixin(S_TRACE);
 			version (Windows) {
 				// loadIcon()は低速のため、メニューを開いた際に呼ぶようにする
 				bool rmv = false;
 				MenuAdapter mShown;
 				mShown = new class MenuAdapter {
-					override void menuShown(MenuEvent e) {
+					override void menuShown(MenuEvent e) { mixin(S_TRACE);
 						// 実行ファイルのアイコンを取得
-						auto thr = new core.thread.Thread({
-							auto exeIcon = loadIcon(ePath, 16, 16, (void delegate() dlg) {
+						auto thr = new core.thread.Thread({ mixin(S_TRACE);
+							auto exeIcon = loadIcon(ePath, 16, 16, (void delegate() dlg) { mixin(S_TRACE);
 								_display.syncExec(new class Runnable {
-									void run() {
+									void run() { mixin(S_TRACE);
 										if (!_win || _win.isDisposed()) return;
 										dlg();
 									}
 								});
 							});
-							if (exeIcon) {
+							if (exeIcon) { mixin(S_TRACE);
 								_display.syncExec(new class Runnable {
-									void run() {
+									void run() { mixin(S_TRACE);
 										if (mi.isDisposed()) return;
 										auto img2 = new Image(mi.getDisplay(), exeIcon);
-										listener(mi, SWT.Dispose, {
+										listener(mi, SWT.Dispose, { mixin(S_TRACE);
 											img2.dispose();
 										});
 										mi.setImage(img2);
@@ -192,7 +192,7 @@ private:
 				};
 				menu.addMenuListener(mShown);
 				mi.addDisposeListener(new class DisposeListener {
-					override void widgetDisposed(DisposeEvent e) {
+					override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 						if (!rmv) menu.removeMenuListener(mShown);
 					}
 				});
@@ -200,45 +200,45 @@ private:
 		}
 		MenuItem autoMI = null;
 		string autoE = nabs(execEnginePath);
-		if (autoSelect) {
+		if (autoSelect) { mixin(S_TRACE);
 			autoMI = createMenuItem(_comm, menu, MenuID.ExecEngineAuto, &execEngine, &canExecEngine);
 			_menu[MenuID.ExecEngine] = autoMI;
 		}
-		void putMenu(string path, string ePath, string name, Image img) {
-			auto mi = createMenuItem2(_comm, menu, name, img, {
-				if (path.length) {
+		void putMenu(string path, string ePath, string name, Image img) { mixin(S_TRACE);
+			auto mi = createMenuItem2(_comm, menu, name, img, { mixin(S_TRACE);
+				if (path.length) { mixin(S_TRACE);
 					execEngineP(path);
 				}
 			}, () => path.length > 0);
 			putIcon(mi, ePath);
 		}
-		if (_prop.var.etc.enginePath.length) {
-			if (0 < menu.getItemCount()) {
+		if (_prop.var.etc.enginePath.length) { mixin(S_TRACE);
+			if (0 < menu.getItemCount()) { mixin(S_TRACE);
 				new MenuItem(menu, SWT.SEPARATOR);
 			}
-			auto mi = createMenuItem(_comm, menu, MenuID.ExecEngineMain, {
-				if (_prop.enginePath.length) {
+			auto mi = createMenuItem(_comm, menu, MenuID.ExecEngineMain, { mixin(S_TRACE);
+				if (_prop.enginePath.length) { mixin(S_TRACE);
 					execEngineP(_prop.enginePath);
 				}
 			}, () => _prop.enginePath.length > 0);
 			putIcon(mi, _prop.enginePath);
 		}
-		if (_prop.var.etc.classicEngines.length) {
-			if (0 < menu.getItemCount()) {
+		if (_prop.var.etc.classicEngines.length) { mixin(S_TRACE);
+			if (0 < menu.getItemCount()) { mixin(S_TRACE);
 				new MenuItem(menu, SWT.SEPARATOR);
 			}
-			foreach (i, ce; _prop.var.etc.classicEngines) {
+			foreach (i, ce; _prop.var.etc.classicEngines) { mixin(S_TRACE);
 				string name = MenuProps.buildMenu(ce.name, ce.mnemonic, ce.hotkey, false);
 				auto p = nabs(ce.executePath(_prop.parent.appPath, false)); // 代替実行
 				auto e = ce.executePath(_prop.parent.appPath, true); // エンジン本体
-				if (autoE.length && cfnmatch(p, autoE)) {
+				if (autoE.length && cfnmatch(p, autoE)) { mixin(S_TRACE);
 					// 自動実行のアイコンは代替実行ファイルではなくエンジン本体のものとする
 					autoE = e;
 				}
 				putMenu(p, e, name, _prop.images.classicEngine);
 			}
 		}
-		if (autoMI) {
+		if (autoMI) { mixin(S_TRACE);
 			putIcon(autoMI, autoE);
 		}
 		return autoE;
@@ -246,49 +246,49 @@ private:
 
 	Menu _mOuterTools;
 	Menu _tmOuterTools;
-	void refreshOuterTools() {
+	void refreshOuterTools() { mixin(S_TRACE);
 		refreshOuterToolsImpl(_mOuterTools);
 		refreshOuterToolsImpl(_tmOuterTools);
 		setupMenu(_menu);
 		setupMenu(_tool);
 	}
-	void refreshOuterToolsImpl(Menu menu) {
-		foreach (itm; menu.getItems()) {
+	void refreshOuterToolsImpl(Menu menu) { mixin(S_TRACE);
+		foreach (itm; menu.getItems()) { mixin(S_TRACE);
 			itm.dispose();
 		}
-		foreach (i, tool; _prop.var.etc.outerTools) {
+		foreach (i, tool; _prop.var.etc.outerTools) { mixin(S_TRACE);
 			new Exec(_dirWin, menu, tool, i);
 		}
 	}
 
 	class RefreshTitle : Runnable {
-		void run() {
+		void run() { mixin(S_TRACE);
 			if (!_win || _win.isDisposed()) return;
-			if (summary) {
+			if (summary) { mixin(S_TRACE);
 				string path = summary.scenarioPath;
-				if (summary.isChanged) {
+				if (summary.isChanged) { mixin(S_TRACE);
 					_win.setText(.tryFormat(_prop.msgs.mainWindowNameChanged, summary.scenarioName, path));
-				} else {
+				} else { mixin(S_TRACE);
 					_win.setText(.tryFormat(_prop.msgs.mainWindowName, summary.scenarioName, path));
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				_win.setText(_prop.msgs.mainWindowNameEmpty);
 			}
 		}
 	}
-	void refreshTitle() {
+	void refreshTitle() { mixin(S_TRACE);
 		_display.syncExec(_refreshTitle);
 	}
 
 	private SysTime _lastBackup;
-	void backupThr() {
-		try {
+	void backupThr() { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			version (Console) {
 				debug std.stdio.writeln("Start Backup Thread");
 			}
 			_lastBackup = Clock.currTime();
-			while (!_quit) {
-				if (_lastBackup + dur!"minutes"(_prop.var.etc.backupInterval) <= Clock.currTime()) {
+			while (!_quit) { mixin(S_TRACE);
+				if (_lastBackup + dur!"minutes"(_prop.var.etc.backupInterval) <= Clock.currTime()) { mixin(S_TRACE);
 					createBackup();
 					_lastBackup = Clock.currTime();
 				}
@@ -298,35 +298,36 @@ private:
 				debug writeln("Exit Backup Thread");
 			}
 		} catch (Throwable e) {
+			printStackTrace();
 			fdebugln(e);
 		}
 	}
 	private string _oldMD5 = "";
-	void createBackup() {
+	void createBackup() { mixin(S_TRACE);
 		/// dir内の全てのファイルとディレクトリの更新日時のMD5値を得る。
 		@property
-		static string filesMD5(string dir) {
+		static string filesMD5(string dir) { mixin(S_TRACE);
 			ByteIO io;
 			io.writeL(dir.timeLastModified().stdTime);
-			foreach (file; dir.dirEntries(SpanMode.depth)) {
+			foreach (file; dir.dirEntries(SpanMode.depth)) { mixin(S_TRACE);
 				io.writeL(file.timeLastModified.stdTime);
 			}
 			return md5Digest(io.bytes);
 		}
 		string dStr = .text(__LINE__);
-		try {
+		try { mixin(S_TRACE);
 			if (_quit) return;
 			if (!_prop.var.etc.backupEnabled) return;
 			auto summ = summary;
 			if (!summ) return;
 
-			if (_prop.var.etc.backupRefAuthor) {
+			if (_prop.var.etc.backupRefAuthor) { mixin(S_TRACE);
 				if (summ.author != _prop.var.etc.defaultAuthor) return;
 			}
-			if (_prop.var.etc.autoSave && summ.isChanged) {
+			if (_prop.var.etc.autoSave && summ.isChanged) { mixin(S_TRACE);
 				// バックアップ前に自動セーブ
 				_display.syncExec(new class Runnable {
-					override void run() {
+					override void run() { mixin(S_TRACE);
 						if (!_win || _win.isDisposed()) return;
 						save(_win, true);
 					}
@@ -341,12 +342,12 @@ private:
 			auto files = clistdir(parent);
 			alias Tuple!(string, "name", string, "file", bool, "isDir") Info;
 			Info[] backup;
-			foreach (name; files) {
+			foreach (name; files) { mixin(S_TRACE);
 				auto f = parent.buildPath(name);
-				if (f.isFile) {
+				if (f.isFile) { mixin(S_TRACE);
 					if (match(to!dstring(name), fReg).empty) continue;
 					backup ~= Info(name, f, false);
-				} else {
+				} else { mixin(S_TRACE);
 					if (match(to!dstring(name), dReg).empty) continue;
 					backup ~= Info(name, f, true);
 				}
@@ -356,34 +357,34 @@ private:
 			backup = cwx.utils.sort!(sorter)(backup);
 
 			auto bc = _prop.var.etc.backupCount;
-			if (0 < bc) {
+			if (0 < bc) { mixin(S_TRACE);
 				string sPath = summ.scenarioPath;
 				auto d = Clock.currTime();
 				string name = .format("cwxeditor_backup_%04d%02d%02d%02d%02d%02d[%s]",
 					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.baseName());
-				if (_prop.var.etc.backupArchived) {
+				if (_prop.var.etc.backupArchived) { mixin(S_TRACE);
 					name ~= ".zip";
 				}
 				string writePath = std.path.buildPath(parent, name);
 
-				if (_oldMD5 == "" && backup.length) {
+				if (_oldMD5 == "" && backup.length) { mixin(S_TRACE);
 					auto before = backup[$ - 1];
-					if (before.isDir) {
+					if (before.isDir) { mixin(S_TRACE);
 						_oldMD5 = filesMD5(before.file);
-					} else {
+					} else { mixin(S_TRACE);
 						auto lastData = readBinary(before.file);
 						_oldMD5 = md5Digest(lastData);
 						(cast(ubyte[])lastData)[] = 0;
 						delete lastData;
 					}
 				}
-				if (_prop.var.etc.backupArchived) {
+				if (_prop.var.etc.backupArchived) { mixin(S_TRACE);
 					void[] data;
-					synchronized (_saveSync) {
+					synchronized (_saveSync) { mixin(S_TRACE);
 						data = summ.createZipData([], true);
 					}
 					auto md5 = md5Digest(data);
-					if (_oldMD5 != md5) {
+					if (_oldMD5 != md5) { mixin(S_TRACE);
 						// 前回のバックアップと異なっていれば保存
 						if (!parent.exists()) mkdirRecurse(parent);
 						std.file.write(writePath, data);
@@ -392,12 +393,12 @@ private:
 					}
 					(cast(ubyte[])data)[] = 0;
 					delete data;
-				} else {
+				} else { mixin(S_TRACE);
 					auto md5 = filesMD5(summ.scenarioPath);
-					if (_oldMD5 != md5) {
+					if (_oldMD5 != md5) { mixin(S_TRACE);
 						// 前回のバックアップと異なっていればコピー
 						if (!parent.exists()) mkdirRecurse(parent);
-						synchronized (_saveSync) {
+						synchronized (_saveSync) { mixin(S_TRACE);
 							copyAll(summ.scenarioPath, writePath);
 						}
 						_oldMD5 = md5;
@@ -409,8 +410,8 @@ private:
 			if (backup.length <= bc) return;
 
 			// 古いバックアップを削除する
-			foreach (f; backup[0 .. backup.length - bc]) {
-				try {
+			foreach (f; backup[0 .. backup.length - bc]) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					delAll(f.file);
 				} catch (Exception e) {
 					debugln(e);
@@ -419,48 +420,49 @@ private:
 		} catch (Exception e) {
 			debugln(e);
 		} catch (Throwable e) {
+			printStackTrace();
 			fdebugln(e);
 			throw e;
 		}
 	}
 
-	void openScenarioNewWin() {
+	void openScenarioNewWin() { mixin(S_TRACE);
 		auto fname = selectScenario(_prop, _win, _prop.msgs.dlgTitOpenScenarioAtNewWin);
 		if (!fname) return;
 		bool r = exec(_prop.parent.appPath ~ " " ~ fname);
-		if (!r) {
+		if (!r) { mixin(S_TRACE);
 			MessageBox.showWarning
 				(.tryFormat(_prop.msgs.errorExec, baseName(_prop.parent.appPath)),
 				_prop.msgs.dlgTitWarning, _win);
 		}
 	}
-	void createScenarioNewWin() {
+	void createScenarioNewWin() { mixin(S_TRACE);
 		auto dlg = new CreateScenarioDialog(_comm, _prop, _win, false);
 		if (!dlg.open()) return;
 		bool r;
-		if (dlg.legacy) {
+		if (dlg.legacy) { mixin(S_TRACE);
 			r = exec(_prop.parent.appPath ~ " -createclassic " ~ dlg.name ~ " " ~ dlg.classicDir);
-		} else {
+		} else { mixin(S_TRACE);
 			r = exec(_prop.parent.appPath ~ " -create " ~ dlg.name ~ " " ~ dlg.skin);
 		}
-		if (!r) {
+		if (!r) { mixin(S_TRACE);
 			MessageBox.showWarning
 				(.tryFormat(_prop.msgs.errorExec, baseName(_prop.parent.appPath)),
 				_prop.msgs.dlgTitWarning, _win);
 		}
 	}
-	void createScenario() {
-		if (qSave()) {
+	void createScenario() { mixin(S_TRACE);
+		if (qSave()) { mixin(S_TRACE);
 			auto dlg = new CreateScenarioDialog(_comm, _prop, _win, true);
 			if (!dlg.open()) return;
 			Summary summ;
-			if (dlg.fromTemplate) {
+			if (dlg.fromTemplate) { mixin(S_TRACE);
 				summ = dlg.fromTemplate;
-			} else if (dlg.legacy) {
+			} else if (dlg.legacy) { mixin(S_TRACE);
 				auto dir = dlg.classicDir;
 				if (!dir.exists()) mkdirRecurse(dir);
 				summ = new Summary(dlg.name, dlg.skin, dir, false, true);
-			} else {
+			} else { mixin(S_TRACE);
 				summ = Summary.createScenario(_prop.sys, _prop.tempPath, dlg.name, findSkin2(_prop, dlg.skin));
 			}
 			summ.author = _prop.var.etc.defaultAuthor;
@@ -469,20 +471,20 @@ private:
 		}
 	}
 	class DTListener : DropTargetAdapter {
-		override void dragEnter(DropTargetEvent e){
+		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
 			e.detail = DND.DROP_LINK;
 		}
-		override void drop(DropTargetEvent e) {
+		override void drop(DropTargetEvent e) { mixin(S_TRACE);
 			auto arr = cast(FileNames) e.data;
-			if (arr && arr.array.length > 0) {
-				if (qSave()) {
+			if (arr && arr.array.length > 0) { mixin(S_TRACE);
+				if (qSave()) { mixin(S_TRACE);
 					openScenario(arr.array[0], &resetOpt);
 				}
 			}
 		}
 	}
 	@property
-	LoadOption loadOption(in Summary old) {
+	LoadOption loadOption(in Summary old) { mixin(S_TRACE);
 		LoadOption opt;
 		opt.cardOnly = false;
 		opt.textOnly = false;
@@ -490,20 +492,20 @@ private:
 		opt.expandXMLs = old ? old.expandXMLs : _prop.var.etc.expandXMLs;
 		return opt;
 	}
-	void reload() {
+	void reload() { mixin(S_TRACE);
 		if (!summary) return;
 		auto old = summary;
-		if (old.useTemp && !old.zipName.length) {
+		if (old.useTemp && !old.zipName.length) { mixin(S_TRACE);
 			MessageBox.showWarning(.tryFormat(_prop.msgs.reloadBeforeSaveError, old.scenarioName),
 				_prop.msgs.dlgTitWarning, _win);
 			return;
 		}
-		if (old && qSave(true)) {
+		if (old && qSave(true)) { mixin(S_TRACE);
 			bool expand = old.expandXMLs;
-			if (old.legacy) {
+			if (old.legacy) { mixin(S_TRACE);
 				auto wsm = std.path.buildPath(old.scenarioPath, "Summary.wsm");
-				if (old.useTemp) {
-					try {
+				if (old.useTemp) { mixin(S_TRACE);
+					try { mixin(S_TRACE);
 						openScenario(old.reloadXMLs(_prop.sys, loadOption(old)));
 					} catch (Exception e) {
 						debugln(e);
@@ -511,12 +513,12 @@ private:
 							~ "\n" ~ e.msg,
 							_prop.msgs.dlgTitWarning, _win);
 					}
-				} else {
+				} else { mixin(S_TRACE);
 					if (!.exists(wsm)) wsm = old.scenarioPath;
 					loadScenarioFromFile(_prop, loadOption(old), _comm.mainShell, &setStatusLine, old, wsm, &openScenario, &resetOpt);
 				}
-			} else if (expand) {
-				try {
+			} else if (expand) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					openScenario(old.reloadXMLs(_prop.sys, loadOption(old)));
 				} catch (Exception e) {
 					debugln(e);
@@ -524,39 +526,39 @@ private:
 						~ "\n" ~ e.msg,
 						_prop.msgs.dlgTitWarning, _win);
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				assert (old.zipName.length);
 				loadScenarioFromFile(_prop, loadOption(old), _comm.mainShell, &setStatusLine, old, old.zipName, &openScenario, &resetOpt);
 			}
 		}
 	}
-	void openScenarioM() {
-		if (qSave()) {
+	void openScenarioM() { mixin(S_TRACE);
+		if (qSave()) { mixin(S_TRACE);
 			openScenario();
 		}
 	}
-	int cmp(string a, string b) {
+	int cmp(string a, string b) { mixin(S_TRACE);
 		return std.string.cmp(a, b);
 	}
-	int ncmp(string a, string b) {
+	int ncmp(string a, string b) { mixin(S_TRACE);
 		return cwx.utils.ncmp(a, b);
 	}
-	public Skin findSkinFromHistory(in Summary summ, out OpenHistory hist) {
+	public Skin findSkinFromHistory(in Summary summ, out OpenHistory hist) { mixin(S_TRACE);
 		hist = findHist(createHistString(summ));
-		if (summ.legacy && hist.path.length && (hist.skinName.length || hist.skinEngine.length)) {
+		if (summ.legacy && hist.path.length && (hist.skinName.length || hist.skinEngine.length)) { mixin(S_TRACE);
 			return findSkin(_comm, _prop, summ, hist.skinName, hist.skinEngine);
 		}
 		return findSkin(_comm, _prop, summ);
 	}
-	void openScenario(Summary summ) {
+	void openScenario(Summary summ) { mixin(S_TRACE);
 		string dStr = .text(__LINE__);
-		try {
+		try { mixin(S_TRACE);
 			assert (summ);
 			dStr ~= " - " ~ .text(__LINE__);
 			OpenHistory hist;
 			auto skin = findSkinFromHistory(summ, hist);
 			dStr ~= " - " ~ .text(__LINE__);
-			if (summ.legacy && hist.path.length && (hist.skinName.length || hist.skinEngine.length)) {
+			if (summ.legacy && hist.path.length && (hist.skinName.length || hist.skinEngine.length)) { mixin(S_TRACE);
 				summ.type = hist.skinName;
 			}
 			dStr ~= " - " ~ .text(__LINE__);
@@ -566,9 +568,9 @@ private:
 			dStr ~= " - " ~ .text(__LINE__);
 			scope (exit) _dirWin.resumeTrace();
 			dStr ~= " - " ~ .text(__LINE__);
-			if (_prop.var.etc.logicalSort) {
+			if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
 				summ.flagDirRoot.sorter = &ncmp;
-			} else {
+			} else { mixin(S_TRACE);
 				summ.flagDirRoot.sorter = &cmp;
 			}
 			dStr ~= " - " ~ .text(__LINE__);
@@ -576,12 +578,12 @@ private:
 			summ.flagDirRoot.sortSteps(true);
 			dStr ~= " - " ~ .text(__LINE__);
 			auto old = summary;
-			if (old) {
+			if (old) { mixin(S_TRACE);
 				addHistory();
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 			if (summ.type.length && !hasSkin(_prop, summ.type)
-					&& summ.type != _prop.var.etc.defaultSkin) {
+					&& summ.type != _prop.var.etc.defaultSkin) { mixin(S_TRACE);
 				MessageBox.showWarning(.tryFormat(_prop.msgs.useDefaultSkin, summ.type, _prop.var.etc.defaultSkin),
 					_prop.msgs.dlgTitWarning, _win);
 				summ.type = _prop.var.etc.defaultSkin;
@@ -593,10 +595,10 @@ private:
 			dStr ~= " - " ~ .text(__LINE__);
 			_comm.closeAll();
 			dStr ~= " - " ~ .text(__LINE__);
-			if (_dataWin) {
+			if (_dataWin) { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
 				_dataWin.load(summ);
-			} else {
+			} else { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
 				_tableWin.load(summ);
 				dStr ~= " - " ~ .text(__LINE__);
@@ -623,7 +625,7 @@ private:
 			dStr ~= " - " ~ .text(__LINE__);
 			_comm.refScenarioPath.call();
 			dStr ~= " - " ~ .text(__LINE__);
-			if (!dock) {
+			if (!dock) { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
 				if (_prop.var.dataWin.visible) _comm.openDataWin(false);
 				dStr ~= " - " ~ .text(__LINE__);
@@ -641,21 +643,21 @@ private:
 			dStr ~= " - " ~ .text(__LINE__);
 			string openedS = "";
 			dStr ~= " - " ~ .text(__LINE__);
-			if (_prop.var.etc.reconstruction && !_opt.noload) {
+			if (_prop.var.etc.reconstruction && !_opt.noload) { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
 				auto paths = fullHistToCWXPaths(hist.path);
 				dStr ~= " - " ~ .text(__LINE__);
-				if (paths.length) {
+				if (paths.length) { mixin(S_TRACE);
 					statusLine = .tryFormat(_prop.msgs.reconstructionStatus, 0, paths.length);
 					dStr ~= " - " ~ .text(__LINE__);
-					foreach (i, cwxPath; paths) {
+					foreach (i, cwxPath; paths) { mixin(S_TRACE);
 						dStr ~= " - " ~ .text(__LINE__);
 						dStr ~= " - " ~ cwxPath;
-						if (openCWXPath(cwxPath, false)) {
+						if (openCWXPath(cwxPath, false)) { mixin(S_TRACE);
 							opened = true;
 							openedS = statusLine;
 							statusLine = .tryFormat(_prop.msgs.reconstructionStatus, i + 1, paths.length);
-						} else {
+						} else { mixin(S_TRACE);
 							statusLine = .tryFormat(_prop.msgs.reconstructionStatus, i + 1, paths.length);
 						}
 					}
@@ -663,13 +665,13 @@ private:
 				dStr ~= " - " ~ .text(__LINE__);
 			}
 			dStr ~= " - " ~ .text(__LINE__);
-			if (_opt.selectfile.length) {
+			if (_opt.selectfile.length) { mixin(S_TRACE);
 				_comm.openCWXPath("fileview", false);
 				_dirWin.select(_opt.selectfile);
 			}
-			foreach (path; _opt.openPaths) {
-				try {
-					if (openCWXPath(path, true)) {
+			foreach (path; _opt.openPaths) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
+					if (openCWXPath(path, true)) { mixin(S_TRACE);
 						continue;
 					}
 				} catch (Exception e) {
@@ -682,9 +684,9 @@ private:
 			dStr ~= " - " ~ .text(__LINE__);
 			addHistory();
 			dStr ~= " - " ~ .text(__LINE__);
-			try {
-				if (old && !.cfnmatch(old.scenarioPath.nabs(), summary.scenarioPath.nabs())) {
-					synchronized (_saveSync) {
+			try { mixin(S_TRACE);
+				if (old && !.cfnmatch(old.scenarioPath.nabs(), summary.scenarioPath.nabs())) { mixin(S_TRACE);
+					synchronized (_saveSync) { mixin(S_TRACE);
 						old.delTemp();
 					}
 				}
@@ -692,31 +694,31 @@ private:
 				debugln(e);
 			}
 			dStr ~= " - " ~ .text(__LINE__);
-			if (!opened || !openedS.length) {
+			if (!opened || !openedS.length) { mixin(S_TRACE);
 				statusLine = .tryFormat(_prop.msgs.loaded, summ.scenarioName);
-			} else {
+			} else { mixin(S_TRACE);
 				statusLine = openedS;
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 			auto chgEvtForce = new class Runnable {
-				override void run() {
+				override void run() { mixin(S_TRACE);
 					if (!_win || _win.isDisposed()) return;
 					_comm.changed.call();
 				}
 			};
 			dStr ~= " - " ~ .text(__LINE__);
 			auto chgEvt = new class Runnable {
-				override void run() {
+				override void run() { mixin(S_TRACE);
 					if (!_win || _win.isDisposed()) return;
 					refreshTitle();
 				}
 			};
 			dStr ~= " - " ~ .text(__LINE__);
-			summ.changedEventForce ~= {
+			summ.changedEventForce ~= { mixin(S_TRACE);
 				_display.syncExec(chgEvtForce);
 			};
 			dStr ~= " - " ~ .text(__LINE__);
-			summ.changedEvent ~= {
+			summ.changedEvent ~= { mixin(S_TRACE);
 				_display.syncExec(chgEvt);
 			};
 			dStr ~= " - " ~ .text(__LINE__);
@@ -729,24 +731,25 @@ private:
 			_win.redraw();
 			dStr ~= " - " ~ .text(__LINE__);
 		} catch (Throwable e) {
+			printStackTrace();
 			fdebugln(dStr);
 			fdebugln(e);
 			throw e;
 		}
 	}
 	LaunchOption _opt;
-	void resetOpt() {
+	void resetOpt() { mixin(S_TRACE);
 		_opt.openPaths.length = 0u;
 		_opt.selectfile = "";
 		_opt.noload = false;
 	}
 
-	void openScenarioImpl(Summary summ) {
-		if (summ) {
+	void openScenarioImpl(Summary summ) { mixin(S_TRACE);
+		if (summ) { mixin(S_TRACE);
 			openScenario(summ);
-			foreach (path; _opt.openPaths) {
-				try {
-					if (openCWXPath(path, true)) {
+			foreach (path; _opt.openPaths) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
+					if (openCWXPath(path, true)) { mixin(S_TRACE);
 						continue;
 					}
 				} catch (Exception e) {
@@ -758,14 +761,14 @@ private:
 			_comm.refreshToolBar();
 		}
 	}
-	void openScenario() {
+	void openScenario() { mixin(S_TRACE);
 		auto old = summary;
 		loadScenario(_prop, loadOption(null), _comm.mainShell, &setStatusLine,
 			old, _prop.msgs.dlgTitOpenScenario,
 			_opt.openPaths, &openScenarioImpl, &resetOpt);
 	}
-	void openScenario(string fname, void delegate() failure) {
-		if (cfnmatch(.extension(fname), ".wsm") && !.exists(fname)) {
+	void openScenario(string fname, void delegate() failure) { mixin(S_TRACE);
+		if (cfnmatch(.extension(fname), ".wsm") && !.exists(fname)) { mixin(S_TRACE);
 			fname = dirName(fname);
 		}
 		decScenarioPath(fname, _opt.openPaths, _prop.var.etc.clickIsOpenEvent);
@@ -773,20 +776,20 @@ private:
 		loadScenarioFromFile(_prop, loadOption(null), _comm.mainShell, &setStatusLine,
 			old, fname, &openScenarioImpl, failure);
 	}
-	void playSavedSound() {
+	void playSavedSound() { mixin(S_TRACE);
 		string file = _prop.var.etc.savedSound;
-		if (file.length && .exists(file)) {
+		if (file.length && .exists(file)) { mixin(S_TRACE);
 			playSE(file, SOUND_TYPE_SDL);
 		}
 	}
-	void saveScenario() {
+	void saveScenario() { mixin(S_TRACE);
 		auto fc = _win.getDisplay().getFocusControl();
 		save(fc.getShell());
 	}
-	void savec(Shell shell) {
+	void savec(Shell shell) { mixin(S_TRACE);
 		save(shell);
 	}
-	SaveOption createSaveOpt() {
+	SaveOption createSaveOpt() { mixin(S_TRACE);
 		SaveOption opt;
 		opt.doubleIO = _prop.var.etc.doubleIO;
 		opt.saveInnerImagePath = _prop.var.etc.saveInnerImagePath;
@@ -794,33 +797,33 @@ private:
 		opt.backupDir = _prop.backupBeforeSavePath.buildPath(_prop.var.etc.backupBeforeSaveDir);
 		return opt;
 	}
-	void beforeSave() {
-		if (_prop.var.etc.applyDialogsBeforeSave) {
-			foreach (shell; _display.getShells()) {
+	void beforeSave() { mixin(S_TRACE);
+		if (_prop.var.etc.applyDialogsBeforeSave) { mixin(S_TRACE);
+			foreach (shell; _display.getShells()) { mixin(S_TRACE);
 				auto dlg = cast(AbsDialog)shell.getData();
 				if (!dlg) continue;
 				dlg.forceApply();
 			}
 		}
 	}
-	bool save(Shell shell, bool backupSave = false) {
-		if (summary) {
+	bool save(Shell shell, bool backupSave = false) { mixin(S_TRACE);
+		if (summary) { mixin(S_TRACE);
 			_dirWin.pauseTrace();
 			scope (exit) {
 				_dirWin.resumeTrace();
 			}
-			if (!summary.isSaved) {
+			if (!summary.isSaved) { mixin(S_TRACE);
 				// いまだ保存されていない場合は名前をつけて保存
 				if (backupSave) return false;
 				return __saveScenarioA(shell);
-			} else {
+			} else { mixin(S_TRACE);
 				auto cursors = setWaitCursors(shell);
 				scope (exit) {
 					resetCursors(cursors);
 				}
-				try {
+				try { mixin(S_TRACE);
 					beforeSave();
-					synchronized (_saveSync) {
+					synchronized (_saveSync) { mixin(S_TRACE);
 						summary.saveOverwrite(_prop.parent, _comm.skin, createSaveOpt());
 					}
 					_comm.saved.call();
@@ -838,11 +841,11 @@ private:
 		}
 		return true;
 	}
-	void saveScenarioA() {
+	void saveScenarioA() { mixin(S_TRACE);
 		__saveScenarioA(_win);
 	}
-	bool __saveScenarioA(Shell shell) {
-		if (summary) {
+	bool __saveScenarioA(Shell shell) { mixin(S_TRACE);
+		if (summary) { mixin(S_TRACE);
 			static immutable FILTER_WSN = 0;
 			static immutable FILTER_XML = 1;
 			static immutable FILTER_WSM = 2;
@@ -850,19 +853,19 @@ private:
 			static immutable FILTER_CAB = 4;
 			string[] filters = ["*.wsn", "Summary.xml", "Summary.wsm", "*.zip"];
 			string[] names = [_prop.msgs.filterScenarioSave, _prop.msgs.filterScenarioSaveDir, _prop.msgs.filterScenarioSaveClassic, _prop.msgs.filterScenarioSaveZip];
-			if (canUncab) {
+			if (canUncab) { mixin(S_TRACE);
 				filters ~= "*.cab";
 				names ~= _prop.msgs.filterScenarioSaveCab;
 			}
 			string fname = null;
 			int filter = _prop.var.etc.lastSaveFilter;
-			if (filter < 0 || filters.length <= filter) {
+			if (filter < 0 || filters.length <= filter) { mixin(S_TRACE);
 				filter = 0;
 			}
 			bool classic;
 			string filterPath = scenarioFilterPath(_prop);
 			string fileName = toFileName(setExtension(summary.scenarioName, ".wsn"));
-			while (true) {
+			while (true) { mixin(S_TRACE);
 				auto fileDlg = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
 				fileDlg.setFilterExtensions(filters);
 				fileDlg.setFilterNames(names);
@@ -877,12 +880,12 @@ private:
 				fileName = fileDlg.getFileName();
 				filter = fileDlg.getFilterIndex();
 				string dir = fname.dirName();
-				bool checkDir() {
-					if (dir.clistdir().length) {
+				bool checkDir() { mixin(S_TRACE);
+					if (dir.clistdir().length) { mixin(S_TRACE);
 						auto dlg = new MessageBox(shell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 						dlg.setMessage(.tryFormat(_prop.msgs.saveToNotEmptyDir, dir));
 						dlg.setText(_prop.msgs.dlgTitQuestion);
-						if (SWT.YES != dlg.open()) {
+						if (SWT.YES != dlg.open()) { mixin(S_TRACE);
 							return false;
 						}
 					}
@@ -903,11 +906,11 @@ private:
 					classic = true;
 					goto case FILTER_ZIP;
 				case FILTER_ZIP, FILTER_CAB:
-					if (!summary.legacy) {
+					if (!summary.legacy) { mixin(S_TRACE);
 						auto dlg = new MessageBox(shell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 						dlg.setMessage(_prop.msgs.warningXToClassic);
 						dlg.setText(_prop.msgs.dlgTitQuestion);
-						if (SWT.YES != dlg.open()) {
+						if (SWT.YES != dlg.open()) { mixin(S_TRACE);
 							continue;
 						}
 					}
@@ -916,7 +919,7 @@ private:
 				}
 				break;
 			}
-			if (fname) {
+			if (fname) { mixin(S_TRACE);
 				auto cursors = setWaitCursors(shell);
 				scope (exit) resetCursors(cursors);
 				_dirWin.pauseTrace();
@@ -924,11 +927,11 @@ private:
 				string tempPath = _prop.tempPath;
 				bool expandXMLs = _prop.var.etc.expandXMLs;
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin);
-				try {
+				try { mixin(S_TRACE);
 					beforeSave();
-					synchronized (_saveSync) {
+					synchronized (_saveSync) { mixin(S_TRACE);
 						summary.saveWithName(_prop.parent, _comm.skin, createSaveOpt(),
-							fname, tempPath, expandXMLs, defSkin, (string msg) {
+							fname, tempPath, expandXMLs, defSkin, (string msg) { mixin(S_TRACE);
 								MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
 							}, classic);
 					}
@@ -950,75 +953,75 @@ private:
 		}
 		return false;
 	}
-	void execEngineP(string path) {
-		if (!exec(path, dirName(nabs(path)))) {
+	void execEngineP(string path) { mixin(S_TRACE);
+		if (!exec(path, dirName(nabs(path)))) { mixin(S_TRACE);
 			MessageBox.showWarning(.tryFormat(_prop.msgs.errorExecEngine, .baseName(path)),
 				_prop.msgs.dlgTitWarning, _win);
 		}
 	}
 	@property
-	bool canExecEngine() {
+	bool canExecEngine() { mixin(S_TRACE);
 		string engine = execEnginePath;
 		return engine.length > 0;
 	}
-	void execEngine() {
+	void execEngine() { mixin(S_TRACE);
 		string engine = execEnginePath;
-		if (engine.length) {
+		if (engine.length) { mixin(S_TRACE);
 			execEngineP(engine);
 		}
 	}
 	@property
-	string execEnginePath() {
+	string execEnginePath() { mixin(S_TRACE);
 		return summary ? _comm.skin.executeEngine : _prop.enginePath;
 	}
-	private void openDataWindow() {
-		if (summary || dock) {
+	private void openDataWindow() { mixin(S_TRACE);
+		if (summary || dock) { mixin(S_TRACE);
 			_prop.var.dataWin.visible = true;
 			_comm.openDataWin(true);
 		}
 	}
-	private void openFlagWindow() {
-		if (dock) {
+	private void openFlagWindow() { mixin(S_TRACE);
+		if (dock) { mixin(S_TRACE);
 			_comm.openFlagWin(true);
 		}
 	}
-	private void openCardWindow() {
+	private void openCardWindow() { mixin(S_TRACE);
 		assert (_cardWin);
-		if (summary || dock) {
+		if (summary || dock) { mixin(S_TRACE);
 			_prop.var.cardWin.visible = true;
 			_comm.openBindCardWin(true);
 		}
 	}
-	private void openDirWindow() {
-		if (summary || dock) {
+	private void openDirWindow() { mixin(S_TRACE);
+		if (summary || dock) { mixin(S_TRACE);
 			_prop.var.dirWin.visible = true;
 			_comm.openDirWin(true);
 		}
 	}
-	void exitAll() {
-		if (qSave()) {
+	void exitAll() { mixin(S_TRACE);
+		if (qSave()) { mixin(S_TRACE);
 			_win.close();
 		}
 	}
 	private ReplaceDialog _replDlg = null;
-	void replaceText() {
+	void replaceText() { mixin(S_TRACE);
 		openReplWin();
 	}
-	void clipboardToXML() {
+	void clipboardToXML() { mixin(S_TRACE);
 		auto c = _comm.clipboard.getContents(XMLBytesTransfer.getInstance());
-		if (c !is null && isXMLBytes(c)) {
+		if (c !is null && isXMLBytes(c)) { mixin(S_TRACE);
 			_comm.clipboard.setContents([new ArrayWrapperString(bytesToXML(c))], [TextTransfer.getInstance()]);
 			_comm.refreshToolBar();
 		}
 	}
 
-	bool qSave(bool reload = false) {
-		if (_comm.isChanged) {
+	bool qSave(bool reload = false) { mixin(S_TRACE);
+		if (_comm.isChanged) { mixin(S_TRACE);
 			MessageBox dlg;
-			if (reload) {
+			if (reload) { mixin(S_TRACE);
 				dlg = new MessageBox(_win, SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
 				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgIsSaveBeforeReload, summary.scenarioName));
-			} else {
+			} else { mixin(S_TRACE);
 				dlg = new MessageBox(_win, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
 				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgIsSaveBeforeExit, summary.scenarioName));
 			}
@@ -1037,33 +1040,33 @@ private:
 		return true;
 	}
 
-	void revShowMainToolBar(SelectionEvent e) {
+	void revShowMainToolBar(SelectionEvent e) { mixin(S_TRACE);
 		if (!_comm.singleWindowMode(_prop)) return;
 		auto item = cast(MenuItem) e.widget;
 		_prop.var.etc.showMainToolBar = item.getSelection();
 		_comm.refShowToolBar.call();
 	}
-	void revShowSceneToolBar(SelectionEvent e) {
+	void revShowSceneToolBar(SelectionEvent e) { mixin(S_TRACE);
 		if (!_comm.singleWindowMode(_prop)) return;
 		auto item = cast(MenuItem) e.widget;
 		_prop.var.etc.showSceneToolBar = item.getSelection();
 		_comm.refShowToolBar.call();
 	}
-	void revShowEventToolBar(SelectionEvent e) {
+	void revShowEventToolBar(SelectionEvent e) { mixin(S_TRACE);
 		if (!_comm.singleWindowMode(_prop)) return;
 		auto item = cast(MenuItem) e.widget;
 		_prop.var.etc.showEventToolBar = item.getSelection();
 		_comm.refShowToolBar.call();
 	}
 
-	void refShowMainToolBar() {
+	void refShowMainToolBar() { mixin(S_TRACE);
 		if (!_comm.singleWindowMode(_prop)) return;
 		if (_win.isVisible()) _win.setRedraw(false);
 		scope (exit) {
 			if (_win.isVisible()) _win.setRedraw(true);
 		}
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
-		if (!_prop.var.etc.showMainToolBar) {
+		if (!_prop.var.etc.showMainToolBar) { mixin(S_TRACE);
 			gd.heightHint = 0;
 		}
 		_toolComp.setLayoutData(gd);
@@ -1073,10 +1076,10 @@ private:
 	Composite _toolComp;
 	private CoolBar _cbar = null;
 	class SListener : ShellAdapter {
-		override void shellClosed(ShellEvent e) {
+		override void shellClosed(ShellEvent e) { mixin(S_TRACE);
 			e.doit = qSave();
-			if (e.doit) {
-				if (summary && !_comm.isChanged) {
+			if (e.doit) { mixin(S_TRACE);
+				if (summary && !_comm.isChanged) { mixin(S_TRACE);
 					writeDock();
 				}
 				_comm.closeAll();
@@ -1084,7 +1087,7 @@ private:
 		}
 	}
 	class DListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_quit = true;
 			_prop.var.etc.lastScenario = summary ? createHistString(summary) : "";
 			_comm.save.remove(&savec);
@@ -1102,9 +1105,9 @@ private:
 			auto b = _win.getBounds();
 			_prop.var.mainWin.x = b.x;
 			_prop.var.mainWin.y = b.y;
-			if (dock) {
+			if (dock) { mixin(S_TRACE);
 				_prop.var.mainWin.maximized = _win.getMaximized();
-				if (!_prop.var.mainWin.maximized) {
+				if (!_prop.var.mainWin.maximized) { mixin(S_TRACE);
 					_prop.var.mainWin.width = b.width;
 					_prop.var.mainWin.height = b.height;
 				}
@@ -1112,13 +1115,13 @@ private:
 			stopSE();
 			stopBGM();
 			_win.setVisible(false);
-			try {
+			try { mixin(S_TRACE);
 				_comm.refScenario.call(null);
 				_comm.closeAll();
-				if (summary && summary.useTemp) {
+				if (summary && summary.useTemp) { mixin(S_TRACE);
 					_dirWin.stopTrace();
-					try {
-						synchronized (_saveSync) {
+					try { mixin(S_TRACE);
+						synchronized (_saveSync) { mixin(S_TRACE);
 							summary.delTemp();
 						}
 					} catch (Exception e) {
@@ -1131,17 +1134,17 @@ private:
 			}
 		}
 	}
-	void sendReloadProps() {
-		sendToPipe((string recv) {
-			if (!recv) {
+	void sendReloadProps() { mixin(S_TRACE);
+		sendToPipe((string recv) { mixin(S_TRACE);
+			if (!recv) { mixin(S_TRACE);
 				return "reload settings";
 			}
 			return "";
-		}, {
+		}, { mixin(S_TRACE);
 			return true;
 		});
 	}
-	void reloadProps() {
+	void reloadProps() { mixin(S_TRACE);
 		auto oldStgs = OldSettings(_prop);
 		scope (exit) {
 			oldStgs.raiseEvent(_comm);
@@ -1149,25 +1152,25 @@ private:
 		_prop.var.reload();
 	}
 	private SettingsDialog _stgDlg = null;
-	void settings() {
-		if (_stgDlg) {
+	void settings() { mixin(S_TRACE);
+		if (_stgDlg) { mixin(S_TRACE);
 			_stgDlg.active();
-		} else {
+		} else { mixin(S_TRACE);
 			_stgDlg = new SettingsDialog(_comm, _prop, _win, _dock, summary, &sendReloadProps);
-			_stgDlg.closeEvent ~= {
+			_stgDlg.closeEvent ~= { mixin(S_TRACE);
 				_stgDlg = null;
 			};
 			_stgDlg.open();
 		}
 	}
 
-	void setHistSkin() {
+	void setHistSkin() { mixin(S_TRACE);
 		string skinName = summary.type;
 		string skinEngine = _comm.skin.legacyEngine;
 		auto hist = createHistString(summary);
 		auto hists = _prop.var.etc.openHistories.dup;
-		foreach (i, ref h; hists) {
-			if (cfnmatch(fullHistToHist(h.path), hist)) {
+		foreach (i, ref h; hists) { mixin(S_TRACE);
+			if (cfnmatch(fullHistToHist(h.path), hist)) { mixin(S_TRACE);
 				h.skinName = skinName;
 				h.skinEngine = skinEngine;
 				break;
@@ -1175,53 +1178,53 @@ private:
 		}
 		_prop.var.etc.openHistories = hists;
 	}
-	OpenHistory findHist(string hist) {
+	OpenHistory findHist(string hist) { mixin(S_TRACE);
 		if ("" == hist) return OpenHistory("");
 		auto hists = _prop.var.etc.openHistories;
-		foreach (i, h; hists) {
-			if (cfnmatch(fullHistToHist(h.path), hist)) {
+		foreach (i, h; hists) { mixin(S_TRACE);
+			if (cfnmatch(fullHistToHist(h.path), hist)) { mixin(S_TRACE);
 				return h;
 			}
 		}
 		return OpenHistory("");
 	}
-	string findFullHist(string hist) {
+	string findFullHist(string hist) { mixin(S_TRACE);
 		return findHist(hist).path;
 	}
-	static string createHistString(in Summary summary) {
+	static string createHistString(in Summary summary) { mixin(S_TRACE);
 		if (!summary) return "";
 		string hist;
-		if (summary.legacy) {
-			if (summary.useTemp) {
+		if (summary.legacy) { mixin(S_TRACE);
+			if (summary.useTemp) { mixin(S_TRACE);
 				hist = summary.zipName;
-			} else {
+			} else { mixin(S_TRACE);
 				hist = std.path.buildPath(summary.scenarioPath, "Summary.wsm");
 			}
-		} else if (summary.useTemp) {
+		} else if (summary.useTemp) { mixin(S_TRACE);
 			hist = summary.zipName;
 			if (!hist.length) return "";
-		} else {
+		} else { mixin(S_TRACE);
 			hist = std.path.buildPath(summary.scenarioPath, "Summary.xml");
 		}
 		return nabs(hist);
 	}
-	string createFullHistString() {
+	string createFullHistString() { mixin(S_TRACE);
 		string hist = createHistString(summary);
 		if ("" == hist) return "";
-		if (_prop.var.etc.reconstruction) {
+		if (_prop.var.etc.reconstruction) { mixin(S_TRACE);
 			hist = "\"" ~ hist ~ "\" " ~ std.string.join(openedCWXPath, CWXPATH_SEP.idup);
 		}
 		return hist;
 	}
-	void writeDock() {
+	void writeDock() { mixin(S_TRACE);
 		string hist = createHistString(summary);
 		if ("" == hist) return;
 		auto hists = _prop.var.etc.openHistories.dup;
-		foreach (i, h; hists) {
-			if (cfnmatch(fullHistToHist(h.path), hist)) {
-				if (_prop.var.etc.reconstruction) {
+		foreach (i, h; hists) { mixin(S_TRACE);
+			if (cfnmatch(fullHistToHist(h.path), hist)) { mixin(S_TRACE);
+				if (_prop.var.etc.reconstruction) { mixin(S_TRACE);
 					hists[i].path = createFullHistString();
-				} else {
+				} else { mixin(S_TRACE);
 					hists[i].path = hist;
 				}
 				_prop.var.etc.openHistories = hists;
@@ -1230,40 +1233,40 @@ private:
 		}
 	}
 	/// `"/foo/bar" /cwx:0/path:0...` -> `/foo/bar`
-	static string fullHistToHist(string hist) {
-		if (std.string.startsWith(hist, "\"")) {
+	static string fullHistToHist(string hist) { mixin(S_TRACE);
+		if (std.string.startsWith(hist, "\"")) { mixin(S_TRACE);
 			int i = std.string.indexOf(hist["\"".length .. $], "\"");
-			if (-1 != i) {
+			if (-1 != i) { mixin(S_TRACE);
 				return hist["\"".length .. i + "\"".length];
 			}
 		}
 		return hist;
-	} unittest {
+	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		assert (fullHistToHist(r"C:\test\test1") == r"C:\test\test1");
 		assert (fullHistToHist(`"C:\test\test1" aaa`) == r"C:\test\test1");
 	}
 	/// `"/foo/bar" /cwx:0/path:0&/cwx:1/path1:0` -> [`/cwx:0/path:0`, `/cwx:1/path:1`]
-	static string[] fullHistToCWXPaths(string hist) {
-		if (std.string.startsWith(hist, "\"")) {
+	static string[] fullHistToCWXPaths(string hist) { mixin(S_TRACE);
+		if (std.string.startsWith(hist, "\"")) { mixin(S_TRACE);
 			int i = std.string.indexOf(hist["\"".length .. $], "\"");
-			if (-1 != i) {
+			if (-1 != i) { mixin(S_TRACE);
 				return std.string.split(strip(hist[i + "\"".length + 1 .. $]), CWXPATH_SEP.idup);
 			}
 		}
 		return [];
-	} unittest {
+	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		assert (fullHistToCWXPaths(r"C:\test\test1") == []);
 		assert (fullHistToCWXPaths(`"C:\test\test1" aaa&bbb`) == ["aaa", "bbb"]);
 		assert (fullHistToCWXPaths(`"C:\test\test1" &aaa&bbb&&`) == ["", "aaa", "bbb", "", ""]);
 	}
-	void delHist(string fullHist) {
+	void delHist(string fullHist) { mixin(S_TRACE);
 		auto hists = _prop.var.etc.openHistories.dup;
 		string hist = fullHistToHist(fullHist);
 		OpenHistory[] hists2;
-		foreach (i, h; hists) {
-			if (!cfnmatch(fullHistToHist(h.path), hist)) {
+		foreach (i, h; hists) { mixin(S_TRACE);
+			if (!cfnmatch(fullHistToHist(h.path), hist)) { mixin(S_TRACE);
 				hists2 ~= h;
 			}
 		}
@@ -1273,14 +1276,14 @@ private:
 		sendReloadProps();
 		_comm.refHistories.call();
 	}
-	void addHistory() {
+	void addHistory() { mixin(S_TRACE);
 		auto hist = OpenHistory(createFullHistString());
 		if ("" == hist.path) return;
 		string p = fullHistToHist(hist.path);
 		_prop.var.etc.scenarioPath = summary.useTemp ? dirName(p) : dirName(dirName(p));
 		auto hists = _prop.var.etc.openHistories.dup;
-		foreach (i, h; hists) {
-			if (cfnmatch(fullHistToHist(h.path), p)) {
+		foreach (i, h; hists) { mixin(S_TRACE);
+			if (cfnmatch(fullHistToHist(h.path), p)) { mixin(S_TRACE);
 				// すでに履歴中に存在するため、最新位置に移動
 				hist = h;
 				_prop.var.etc.openHistories = hists[0 .. i] ~ hists[i + 1 .. $];
@@ -1298,71 +1301,71 @@ private:
 	}
 	class Hist {
 		private string _hist;
-		this(Menu menu, int num, string hist) {
+		this(Menu menu, int num, string hist) { mixin(S_TRACE);
 			hist = fullHistToHist(hist);
 			string text;
 			Image img;
 			auto snipLen = _prop.var.etc.historySnipLength;
-			if (cfnmatch(baseName(hist), "Summary.xml")) {
+			if (cfnmatch(baseName(hist), "Summary.xml")) { mixin(S_TRACE);
 				text = cuthist(hist[0u .. $ - "Summary.xml".length - std.path.dirSeparator.length], snipLen);
 				img = _prop.images.summaryFile;
-			} else if (cfnmatch(.extension(hist), ".wsn")) {
+			} else if (cfnmatch(.extension(hist), ".wsn")) { mixin(S_TRACE);
 				text = cuthist(hist, snipLen);
 				img = _prop.images.scenarioArchive;
-			} else if (cfnmatch(baseName(hist), "Summary.wsm")) {
+			} else if (cfnmatch(baseName(hist), "Summary.wsm")) { mixin(S_TRACE);
 				text = cuthist(hist[0u .. $ - "Summary.wsm".length - std.path.dirSeparator.length], snipLen);
 				img = _prop.images.classic;
-			} else if (cfnmatch(.extension(hist), ".cab") || cfnmatch(.extension(hist), ".zip")) {
+			} else if (cfnmatch(.extension(hist), ".cab") || cfnmatch(.extension(hist), ".zip")) { mixin(S_TRACE);
 				text = cuthist(hist, snipLen);
 				img = _prop.images.scenarioArchive;
-			} else {
+			} else { mixin(S_TRACE);
 				text = cuthist(hist, snipLen);
 				img = _prop.images.unknown;
 			}
 			string nstr;
-			if (num < 10) {
+			if (num < 10) { mixin(S_TRACE);
 				nstr = "&" ~ to!(string)(num);
-			} else {
+			} else { mixin(S_TRACE);
 				nstr = to!(string)(num);
 			}
 			createMenuItem2(_comm, menu, nstr ~ " " ~ text, img, &run, null);
 			_hist = hist;
 		}
-		private void run() {
-			if (qSave()) {
-				openScenario(_hist, {
+		private void run() { mixin(S_TRACE);
+			if (qSave()) { mixin(S_TRACE);
+				openScenario(_hist, { mixin(S_TRACE);
 					delHist();
 					resetOpt();
 				});
 			}
 		}
-		private void delHist() {
+		private void delHist() { mixin(S_TRACE);
 			auto dlg = new MessageBox(_win, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 			string h = _hist;
 			string ext = .extension(h);
-			if (cfnmatch(ext, ".xml") || cfnmatch(ext, ".wsm") || cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex")) {
+			if (cfnmatch(ext, ".xml") || cfnmatch(ext, ".wsm") || cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex")) { mixin(S_TRACE);
 				h = dirName(h);
 			}
 			dlg.setMessage(.tryFormat(_prop.msgs.scenarioNotFound, h));
 			dlg.setText(_prop.msgs.dlgTitQuestion);
-			if (SWT.YES == dlg.open()) {
+			if (SWT.YES == dlg.open()) { mixin(S_TRACE);
 				this.outer.delHist(_hist);
 			}
 		}
-		private static string cuthist(string hist, int cut) {
+		private static string cuthist(string hist, int cut) { mixin(S_TRACE);
 			hist = nabs(hist);
 			scope dhist = toUTF32(hist);
-			if (dhist.length > cut + "..."d.length) {
+			if (dhist.length > cut + "..."d.length) { mixin(S_TRACE);
 				auto drive = driveName(hist);
 				int rlen = drive ? toUTF32(drive).length + 1 : 1;
 				int flen = toUTF32(baseName(hist)).length + 1;
 				int plen = cut - flen;
 				if (plen < rlen) plen = rlen;
 				return toUTF8(dhist[0 .. plen] ~ "..." ~ dhist[$ - flen .. $]);
-			} else {
+			} else { mixin(S_TRACE);
 				return hist;
 			}
-		} unittest {
+		} unittest { mixin(S_TRACE);
 			debug mixin(UTPerf);
 			version (Windows) {
 				string result;
@@ -1400,8 +1403,8 @@ private:
 		}
 	}
 	private Menu _menuFile;
-	void createFileMenu() {
-		foreach (itm; _menuFile.getItems()) {
+	void createFileMenu() { mixin(S_TRACE);
+		foreach (itm; _menuFile.getItems()) { mixin(S_TRACE);
 			itm.dispose();
 		}
 		mixin (MenuAction!("_menuFile", MenuID.New, SWT.PUSH, "createScenario", "null"));
@@ -1417,7 +1420,7 @@ private:
 		mixin (MenuAction!("_menuFile", MenuID.Reload, SWT.PUSH, "reload", "() => summary !is null"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		auto hists = _prop.var.etc.openHistories;
-		foreach (i, hist; hists) {
+		foreach (i, hist; hists) { mixin(S_TRACE);
 			new Hist(_menuFile, i + 1, hist.path);
 		}
 		if (hists.length > 0) new MenuItem(_menuFile, SWT.SEPARATOR);
@@ -1427,12 +1430,12 @@ private:
 	string _pipeName = "";
 	class OpenCWXPath : Runnable {
 		string path;
-		override void run() {
+		override void run() { mixin(S_TRACE);
 			if (!_win || _win.isDisposed()) return;
 			auto paths = std.string.split(path, CWXPATH_SEP.idup);
 			if (!paths.length) paths = [""];
-			foreach (p; paths) {
-				try {
+			foreach (p; paths) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					openCWXPath(p, true);
 				} catch (Throwable e) {
 					debugln(e);
@@ -1441,9 +1444,9 @@ private:
 		}
 	}
 	class ReloadSettings : Runnable {
-		override void run() {
+		override void run() { mixin(S_TRACE);
 			if (!_win || _win.isDisposed()) return;
-			try {
+			try { mixin(S_TRACE);
 				reloadProps();
 			} catch (Throwable e) {
 				debugln(e);
@@ -1452,9 +1455,9 @@ private:
 	}
 	class SelectFile : Runnable {
 		string path;
-		override void run() {
+		override void run() { mixin(S_TRACE);
 			if (!_win || _win.isDisposed()) return;
-			try {
+			try { mixin(S_TRACE);
 				_comm.openCWXPath("fileview", false);
 				_dirWin.select(path);
 			} catch (Throwable e) {
@@ -1462,9 +1465,9 @@ private:
 			}
 		}
 	}
-	void pipeThr() {
+	void pipeThr() { mixin(S_TRACE);
 		if (0 >= _prop.var.etc.pipeAppMax) return;
-		try {
+		try { mixin(S_TRACE);
 			version (Console) {
 				debug std.stdio.writeln("Start Pipe Thread");
 			}
@@ -1472,30 +1475,30 @@ private:
 			auto reloadSettings = new ReloadSettings;
 			auto selectFile = new SelectFile;
 			Summary summ = null;
-			string recvSend(in char[] recv, out bool quit) {
+			string recvSend(in char[] recv, out bool quit) { mixin(S_TRACE);
 				quit = false;
-				if (recv == "quit") {
+				if (recv == "quit") { mixin(S_TRACE);
 					quit = true;
 					return null;
-				} else if (recv == "get opened scenario") {
+				} else if (recv == "get opened scenario") { mixin(S_TRACE);
 					summ = summary;
 					if (!summ) return null;
 					string send = "opened scenario ";
-					if (summ.useTemp) {
+					if (summ.useTemp) { mixin(S_TRACE);
 						send ~= summ.zipName;
-					} else {
+					} else { mixin(S_TRACE);
 						send ~= summ.scenarioPath;
 					}
 					return send;
-				} else if (std.string.startsWith(recv.idup, "open cwxpath ")) {
+				} else if (std.string.startsWith(recv.idup, "open cwxpath ")) { mixin(S_TRACE);
 					openPath.path = recv["open cwxpath ".length .. $].idup;
 					_display.asyncExec(openPath);
 					return "opened cwxpath";
-				} else if (std.string.startsWith(recv, "select file ")) {
+				} else if (std.string.startsWith(recv, "select file ")) { mixin(S_TRACE);
 					selectFile.path = recv["select file ".length .. $].idup;
 					_display.asyncExec(selectFile);
 					return "selected file";
-				} else if (recv == "reload settings") {
+				} else if (recv == "reload settings") { mixin(S_TRACE);
 					_display.asyncExec(reloadSettings);
 				}
 				return null;
@@ -1509,9 +1512,9 @@ private:
 				char[MAX_PATH] buf;
 				DWORD len;
 				bool quit = false;
-				while (!quit && ConnectNamedPipe(pipe, null)) {
+				while (!quit && ConnectNamedPipe(pipe, null)) { mixin(S_TRACE);
 					scope (exit) DisconnectNamedPipe(pipe);
-					while (true) {
+					while (true) { mixin(S_TRACE);
 						if (!ReadFile(pipe, buf.ptr, buf.length, &len, null)) break;
 						auto recv = buf[0 .. len];
 						string send = recvSend(recv, quit);
@@ -1520,7 +1523,7 @@ private:
 						if (!WriteFile(pipe, send.ptr, send.length, &len, null)) break;
 					}
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				unlink(std.string.toStringz(_pipeName));
 				auto pipe = socket(AF_UNIX, SOCK_STREAM, 0);
 				if (pipe == -1) return;
@@ -1540,7 +1543,7 @@ private:
 				sockaddr_un raddr;
 				socklen_t rsocklen;
 				bool quit = false;
-				while (!quit && !_quit) {
+				while (!quit && !_quit) { mixin(S_TRACE);
 					timeval tout;
 					tout.tv_sec = 1;
 					tout.tv_usec = 0;
@@ -1555,7 +1558,7 @@ private:
 					rsock = accept(pipe, cast(sockaddr*) &raddr, &rsocklen);
 					if (-1 == rsock) break;
 					scope (exit) close(rsock);
-					while (true) {
+					while (true) { mixin(S_TRACE);
 						if (-1 == (len = cread(pipe, buf.ptr, buf.length))) break;
 						char[] recv = buf[0 .. len];
 						string send = recvSend(recv, quit);
@@ -1574,19 +1577,19 @@ private:
 	}
 
 	/// このプロセスが待ち受けする際のパイプ名を生成。
-	string createPipeName() {
+	string createPipeName() { mixin(S_TRACE);
 		version (Windows) {
-			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) {
+			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) { mixin(S_TRACE);
 				string pipeName = r"\\.\pipe\cwxeditor_" ~ to!(string)(i);
 				auto p = CreateFileW(toUTFz!(wchar*)(pipeName),
 					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
-				if (p == INVALID_HANDLE_VALUE) {
+				if (p == INVALID_HANDLE_VALUE) { mixin(S_TRACE);
 					return pipeName;
 				}
 				CloseHandle(p);
 			}
-		} else {
-			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) {
+		} else { mixin(S_TRACE);
+			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) { mixin(S_TRACE);
 				string pipeName = r"cwxeditor_" ~ to!(string)(i);
 				auto p = socket(AF_UNIX, SOCK_STREAM, 0);
 				if (-1 == p) continue;
@@ -1597,7 +1600,7 @@ private:
 				sockaddr_un raddr;
 				raddr.sun_family = AF_INET;
 				strcpy(&(raddr.sun_path[1]), pipeName.ptr);
-				if (-1 == connect(p, cast(sockaddr*) &raddr, raddr.sizeof)) {
+				if (-1 == connect(p, cast(sockaddr*) &raddr, raddr.sizeof)) { mixin(S_TRACE);
 					return pipeName;
 				}
 			}
@@ -1605,22 +1608,22 @@ private:
 		return "";
 	}
 	/// CWXEditorのプロセスに対してパイプを通じてメッセージを送る。
-	void sendToPipe(string delegate(string) sendRecv, bool delegate() next) {
+	void sendToPipe(string delegate(string) sendRecv, bool delegate() next) { mixin(S_TRACE);
 		version (Windows) {
 			char[MAX_PATH] buf;
 			DWORD len;
-			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) {
+			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) { mixin(S_TRACE);
 				if (!next()) break;
 				string pipeName = r"\\.\pipe\cwxeditor_" ~ to!(string)(i);
 				if (_pipeName == pipeName) continue;
 				auto p = CreateFileW(toUTFz!(wchar*)(pipeName),
 					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
-				if (p == INVALID_HANDLE_VALUE) {
+				if (p == INVALID_HANDLE_VALUE) { mixin(S_TRACE);
 					continue;
 				}
 				scope (exit) CloseHandle(p);
 				string recv = null;
-				while (true) {
+				while (true) { mixin(S_TRACE);
 					string send = sendRecv(recv);
 					if (!send || !send.length) break;
 					if (!WriteFile(p, send.ptr, send.length, &len, null)) break;
@@ -1628,9 +1631,9 @@ private:
 					recv = buf[0 .. len].idup;
 				}
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			char[4096] buf;
-			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) {
+			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) { mixin(S_TRACE);
 				if (!next()) break;
 				string pipeName = r"cwxeditor_" ~ to!(string)(i);
 				if (_pipeName == pipeName) continue;
@@ -1640,11 +1643,11 @@ private:
 				sockaddr_un raddr;
 				raddr.sun_family = AF_INET;
 				strcpy(&(raddr.sun_path[1]), pipeName.ptr);
-				if (-1 == connect(p, cast(sockaddr*) &raddr, raddr.sizeof)) {
+				if (-1 == connect(p, cast(sockaddr*) &raddr, raddr.sizeof)) { mixin(S_TRACE);
 					continue;
 				}
 				string recv = null;
-				while (true) {
+				while (true) { mixin(S_TRACE);
 					string send = sendRecv(recv);
 					if (!send || !send.length) break;
 					if (-1 == cwrite(p, send.ptr, send.length)) break;
@@ -1655,22 +1658,22 @@ private:
 			}
 		}
 	}
-	void refSkin() {
+	void refSkin() { mixin(S_TRACE);
 		refSoundType();
 		setHistSkin();
 	}
-	void refScenario(Summary summ) {
+	void refScenario(Summary summ) { mixin(S_TRACE);
 		assert (summ is summary);
 		refSoundType();
 	}
 	/// 音声再生方式を判別し、関係DLLの初期化・解放を行う。
-	void refSoundType() {
+	void refSoundType() { mixin(S_TRACE);
 		// FIXME: BGM再生中にBASSから他形式へ切替えた後、
 		//        再生ボタンを連打(停止->再生)すると落ちる事があるため、
 		//        ここで停止しておく
 		stopBGM();
 		stopSE();
-		if (!summary) {
+		if (!summary) { mixin(S_TRACE);
 			toggleDisposeBass();
 			_bassDir = "";
 			return;
@@ -1681,13 +1684,13 @@ private:
 		version (Windows) {
 			int engineTypeBGM = summary.legacy ? SOUND_TYPE_SDL : SOUND_TYPE_MCI;
 			string sfont[] = [];
-		} else {
+		} else { mixin(S_TRACE);
 			int engineTypeBGM = SOUND_TYPE_SDL;
 		}
 		int engineTypeSE = engineTypeBGM;
-		if (SOUND_TYPE_AUTO == bgmType || SOUND_TYPE_AUTO == seType) {
+		if (SOUND_TYPE_AUTO == bgmType || SOUND_TYPE_AUTO == seType) { mixin(S_TRACE);
 			version (Windows) {
-				if (summary.legacy) {
+				if (summary.legacy) { mixin(S_TRACE);
 					auto settings = _comm.skin.loadEngineSettings();
 					switch (.toLower(settings.get("musicapi", settings.get("soundapibgm", "")))) {
 					case "winmm":
@@ -1709,10 +1712,10 @@ private:
 					default:
 						break;
 					}
-					if (SOUND_TYPE_BASS == engineTypeBGM || SOUND_TYPE_BASS == engineTypeSE) {
-						try {
-							foreach (rec; .csvReader!string(settings.get("soundfont", "").strip())) {
-								foreach (s; rec) {
+					if (SOUND_TYPE_BASS == engineTypeBGM || SOUND_TYPE_BASS == engineTypeSE) { mixin(S_TRACE);
+						try { mixin(S_TRACE);
+							foreach (rec; .csvReader!string(settings.get("soundfont", "").strip())) { mixin(S_TRACE);
+								foreach (s; rec) { mixin(S_TRACE);
 									sfont ~= s;
 								}
 							}
@@ -1726,32 +1729,32 @@ private:
 		if (SOUND_TYPE_AUTO == bgmType) bgmType = engineTypeBGM;
 		if (SOUND_TYPE_AUTO == seType) seType = engineTypeSE;
 		version (Windows) {
-			if (SOUND_TYPE_BASS == bgmType || SOUND_TYPE_BASS == seType) {
+			if (SOUND_TYPE_BASS == bgmType || SOUND_TYPE_BASS == seType) { mixin(S_TRACE);
 				string dir = _comm.skin.legacyEngine.nabs().dirName();
-				foreach (ref s; sfont) {
-					if (!isAbsolute(s)) {
+				foreach (ref s; sfont) { mixin(S_TRACE);
+					if (!isAbsolute(s)) { mixin(S_TRACE);
 						s = dir.buildPath(s);
 					}
 				}
-				if (_bassDir != dir) {
-					if (initBass(dir, sfont)) {
+				if (_bassDir != dir) { mixin(S_TRACE);
+					if (initBass(dir, sfont)) { mixin(S_TRACE);
 						_bassDir = dir;
-					} else {
+					} else { mixin(S_TRACE);
 						if (SOUND_TYPE_BASS == bgmType) bgmType = SOUND_TYPE_MCI;
 						if (SOUND_TYPE_BASS == seType) seType = SOUND_TYPE_MCI;
 					}
 				}
 			}
-			if (SOUND_TYPE_BASS != bgmType && SOUND_TYPE_BASS != seType) {
+			if (SOUND_TYPE_BASS != bgmType && SOUND_TYPE_BASS != seType) { mixin(S_TRACE);
 				toggleDisposeBass();
 				_bassDir = "";
 			}
 		}
 	}
 public:
-	this (string appPath, cwx.system.System sys, Props prop, LaunchOption opt) {
+	this (string appPath, cwx.system.System sys, Props prop, LaunchOption opt) { mixin(S_TRACE);
 		string dStr = .text(__LINE__); // 起動ログ
-		try {
+		try { mixin(S_TRACE);
 			_prop = prop;
 			_opt = opt;
 			dStr ~= " - " ~ .text(__LINE__);
@@ -1761,63 +1764,63 @@ public:
 			/// そちらを開くようにする。
 			string path1 = "";
 			dStr ~= " - " ~ .text(__LINE__);
-			if (opt.scenario && .exists(opt.scenario)) {
+			if (opt.scenario && .exists(opt.scenario)) { mixin(S_TRACE);
 				path1 = nabs(opt.scenario);
 				auto ext = .extension(path1);
 				if (!.isDir(path1)
-						&& (cfnmatch(ext, ".xml") || cfnmatch(ext, ".wsm") || cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex"))) {
+						&& (cfnmatch(ext, ".xml") || cfnmatch(ext, ".wsm") || cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex"))) { mixin(S_TRACE);
 					path1 = nabs(dirName(path1));
 				}
 			}
 			bool execute = true;
 			dStr ~= " - " ~ .text(__LINE__);
-			sendToPipe((string recv) {
-				if (!recv) {
+			sendToPipe((string recv) { mixin(S_TRACE);
+				if (!recv) { mixin(S_TRACE);
 					return "get opened scenario";
-				} else if (std.string.startsWith(recv, "opened scenario ")) {
-					if (cfnmatch(path1, nabs(recv["opened scenario ".length .. $]))) {
+				} else if (std.string.startsWith(recv, "opened scenario ")) { mixin(S_TRACE);
+					if (cfnmatch(path1, nabs(recv["opened scenario ".length .. $]))) { mixin(S_TRACE);
 						string send = "open cwxpath ";
-						foreach (j, s; opt.openPaths) {
+						foreach (j, s; opt.openPaths) { mixin(S_TRACE);
 							if (j > 0) send ~= CWXPATH_SEP;
 							send ~= s;
 						}
 						path1 = "";
 						execute = false;
 						return send;
-					} else {
+					} else { mixin(S_TRACE);
 						return "";
 					}
-				} else if (std.string.startsWith(recv, "opened cwxpath")) {
-					if (_opt.selectfile.length) {
+				} else if (std.string.startsWith(recv, "opened cwxpath")) { mixin(S_TRACE);
+					if (_opt.selectfile.length) { mixin(S_TRACE);
 						string send = "select file " ~ _opt.selectfile;
 						execute = false;
 						return send;
-					} else {
+					} else { mixin(S_TRACE);
 						return "";
 					}
-				} else {
+				} else { mixin(S_TRACE);
 					return "";
 				}
-			}, {
+			}, { mixin(S_TRACE);
 				return path1.length > 0;
 			});
 			dStr ~= " - " ~ .text(__LINE__);
 			if (!execute) return;
 			_saveSync = new Object;
 			dStr ~= " - " ~ .text(__LINE__);
-			if (exists(_prop.tempPath)) {
+			if (exists(_prop.tempPath)) { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
-				foreach (temp; clistdir(_prop.tempPath)) {
+				foreach (temp; clistdir(_prop.tempPath)) { mixin(S_TRACE);
 					temp = std.path.buildPath(_prop.tempPath, temp);
-					if (exists(temp) && isDir(temp)) {
+					if (exists(temp) && isDir(temp)) { mixin(S_TRACE);
 						auto lock = std.path.buildPath(temp, "cwxeditor.lock");
-						if (exists(lock)) {
-							try {
+						if (exists(lock)) { mixin(S_TRACE);
+							try { mixin(S_TRACE);
 								std.file.remove(lock);
 								delAll(temp);
 							} catch (Exception e) {}
-						} else if (fnstartsWith(baseName(temp), "cwxeditor_temp_")) {
-							try {
+						} else if (fnstartsWith(baseName(temp), "cwxeditor_temp_")) { mixin(S_TRACE);
+							try { mixin(S_TRACE);
 								delAll(temp);
 							} catch (Exception e) {}
 						}
@@ -1837,20 +1840,20 @@ public:
 			dStr ~= " - " ~ .text(__LINE__);
 
 			string engineDir = "";
-			if (_prop.enginePath.length && .exists(_prop.enginePath)) {
+			if (_prop.enginePath.length && .exists(_prop.enginePath)) { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
 				engineDir = dirName(nabs(_prop.enginePath));
 				auto skinTable = .skinTable(_prop);
-				if (!(_prop.var.etc.defaultSkin in skinTable)) {
+				if (!(_prop.var.etc.defaultSkin in skinTable)) { mixin(S_TRACE);
 					MessageBox.showWarning(.tryFormat(_prop.msgs.loadSkinError, _prop.var.etc.defaultSkin),
 						_prop.msgs.dlgTitWarning, null);
 				}
 			}
 
-			if (_prop.var.etc.singleWindow) {
+			if (_prop.var.etc.singleWindow) { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
 				_sbshl = new SBShell(null, SWT.SHELL_TRIM);
-			} else {
+			} else { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
 				_sbshl = new SBShell(null, SWT.DIALOG_TRIM | SWT.MIN);
 			}
@@ -1876,29 +1879,29 @@ public:
 			_win.addShellListener(new SListener);
 			_comm.refreshWallpaper(_prop);
 			dStr ~= " - " ~ .text(__LINE__);
-			foreach (f; _prop.looks.fontFiles) {
+			foreach (f; _prop.looks.fontFiles) { mixin(S_TRACE);
 				d.loadFont(std.path.buildPath(engineDir, f));
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 			_win.setText(_prop.msgs.mainWindowNameEmpty);
-			if (_prop.var.etc.singleWindow) {
+			if (_prop.var.etc.singleWindow) { mixin(S_TRACE);
 				_sbshl.contentPane.setLayout(zeroGridLayout(1, true));
-			} else {
+			} else { mixin(S_TRACE);
 				_sbshl.contentPane.setLayout(windowGridLayout(1, true));
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 			_toolComp = new Composite(_sbshl.contentPane, SWT.NONE);
 			_toolComp.setLayout(new FillLayout);
-			if (_prop.var.etc.singleWindow) {
+			if (_prop.var.etc.singleWindow) { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
 				_tableWin = new TableWindow(_comm, _prop, _win, null);
 				dStr ~= " - " ~ .text(__LINE__);
 				_flagWin = new FlagWindow(_comm, _prop, _win, null);
 				dStr ~= " - " ~ .text(__LINE__);
-				if (_prop.var.etc.bindCardViews) {
+				if (_prop.var.etc.bindCardViews) { mixin(S_TRACE);
 					dStr ~= " - " ~ .text(__LINE__);
 					_cardWin = new MainCardWindow(_comm, _prop, null);
-				} else {
+				} else { mixin(S_TRACE);
 					dStr ~= " - " ~ .text(__LINE__);
 					_castWin = new CastCardWindow(_comm, _prop, null);
 					dStr ~= " - " ~ .text(__LINE__);
@@ -1919,70 +1922,70 @@ public:
 				dockComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				dockComp.setLayout(windowGridLayout(1, true));
 				dStr ~= " - " ~ .text(__LINE__);
-				_dock = _prop.var.loadDock(dockComp, SWT.NONE, &dockCanVanish, delegate Control(Composite parent, string key) {
+				_dock = _prop.var.loadDock(dockComp, SWT.NONE, &dockCanVanish, delegate Control(Composite parent, string key) { mixin(S_TRACE);
 					scope (exit) {
 						dStr ~= " - " ~ .text(__LINE__);
 					}
 					switch (key) {
-					case "data": {
+					case "data": { mixin(S_TRACE);
 						dStr ~= " - " ~ .text(__LINE__);
 						_tableWin.reconstruct(parent);
 						return _tableWin.shell;
 					}
-					case "flag": {
+					case "flag": { mixin(S_TRACE);
 						dStr ~= " - " ~ .text(__LINE__);
 						_flagWin.reconstruct(parent);
 						return _flagWin.shell;
 					}
-					case "card": {
+					case "card": { mixin(S_TRACE);
 						dStr ~= " - " ~ .text(__LINE__);
-						if (_prop.var.etc.bindCardViews) {
+						if (_prop.var.etc.bindCardViews) { mixin(S_TRACE);
 							_cardWin.reconstruct(parent);
 							return _cardWin.shell;
 						}
 						return null;
 					}
-					case "castCard": {
+					case "castCard": { mixin(S_TRACE);
 						dStr ~= " - " ~ .text(__LINE__);
-						if (!_prop.var.etc.bindCardViews) {
+						if (!_prop.var.etc.bindCardViews) { mixin(S_TRACE);
 							_castWin.reconstruct(parent);
 							return _castWin.shell;
 						}
 						return null;
 					}
-					case "skillCard": {
+					case "skillCard": { mixin(S_TRACE);
 						dStr ~= " - " ~ .text(__LINE__);
-						if (!_prop.var.etc.bindCardViews) {
+						if (!_prop.var.etc.bindCardViews) { mixin(S_TRACE);
 							_skillWin.reconstruct(parent);
 							return _skillWin.shell;
 						}
 						return null;
 					}
-					case "itemCard": {
+					case "itemCard": { mixin(S_TRACE);
 						dStr ~= " - " ~ .text(__LINE__);
-						if (!_prop.var.etc.bindCardViews) {
+						if (!_prop.var.etc.bindCardViews) { mixin(S_TRACE);
 							_itemWin.reconstruct(parent);
 							return _itemWin.shell;
 						}
 						return null;
 					}
-					case "beastCard": {
+					case "beastCard": { mixin(S_TRACE);
 						dStr ~= " - " ~ .text(__LINE__);
-						if (!_prop.var.etc.bindCardViews) {
+						if (!_prop.var.etc.bindCardViews) { mixin(S_TRACE);
 							_beastWin.reconstruct(parent);
 							return _beastWin.shell;
 						}
 						return null;
 					}
-					case "infoCard": {
+					case "infoCard": { mixin(S_TRACE);
 						dStr ~= " - " ~ .text(__LINE__);
-						if (!_prop.var.etc.bindCardViews) {
+						if (!_prop.var.etc.bindCardViews) { mixin(S_TRACE);
 							_infoWin.reconstruct(parent);
 							return _infoWin.shell;
 						}
 						return null;
 					}
-					case "file": {
+					case "file": { mixin(S_TRACE);
 						dStr ~= " - " ~ .text(__LINE__);
 						_dirWin.reconstruct(parent);
 						return _dirWin.shell;
@@ -1994,11 +1997,11 @@ public:
 					}
 				});
 				dStr ~= " - " ~ .text(__LINE__);
-				bool isSystemPaneName(string key) {
+				bool isSystemPaneName(string key) { mixin(S_TRACE);
 					return std.string.startsWith(key, "data")
 						|| std.string.startsWith(key, "side");
 				}
-				bool isSystemCtrlName(string key) {
+				bool isSystemCtrlName(string key) { mixin(S_TRACE);
 					if (std.string.startsWith(key, "data")
 							|| std.string.startsWith(key, "flag")
 							|| std.string.startsWith(key, "card")
@@ -2007,17 +2010,17 @@ public:
 							|| std.string.startsWith(key, "itemCard")
 							|| std.string.startsWith(key, "beastCard")
 							|| std.string.startsWith(key, "infoCard")
-							|| std.string.startsWith(key, "file")) {
+							|| std.string.startsWith(key, "file")) { mixin(S_TRACE);
 						return true;
 					}
-					if (std.string.startsWith(key, "side")) {
+					if (std.string.startsWith(key, "side")) { mixin(S_TRACE);
 						return _dock.findCtrl("side").length == 1;
 					}
 					return false;
 				}
-				void initDock() {
+				void initDock() { mixin(S_TRACE);
 					dStr ~= " - " ~ .text(__LINE__);
-					if (!_dock.findPane("work").length) {
+					if (!_dock.findPane("work").length) { mixin(S_TRACE);
 						_dock.addPane(_dock.first, Dir.N, 3, 1, "work");
 					}
 					dStr ~= " - " ~ .text(__LINE__);
@@ -2034,7 +2037,7 @@ public:
 					dStr ~= " - " ~ .text(__LINE__);
 					_prop.var.delNodeTemp();
 				}
-				if (_dock) {
+				if (_dock) { mixin(S_TRACE);
 					dStr ~= " - " ~ .text(__LINE__);
 					initDock();
 					dStr ~= " - " ~ .text(__LINE__);
@@ -2046,11 +2049,11 @@ public:
 					_dock.tabImage("flag", _flagWin.image);
 					_dock.tabText("flag", _flagWin.title);
 					dStr ~= " - " ~ .text(__LINE__);
-					if (_prop.var.etc.bindCardViews) {
+					if (_prop.var.etc.bindCardViews) { mixin(S_TRACE);
 						dStr ~= " - " ~ .text(__LINE__);
 						_dock.tabImage("card", _cardWin.image);
 						_dock.tabText("card", _cardWin.title);
-					} else {
+					} else { mixin(S_TRACE);
 						dStr ~= " - " ~ .text(__LINE__);
 						_dock.tabImage("castCard", _castWin.image);
 						_dock.tabText("castCard", _castWin.title);
@@ -2071,7 +2074,7 @@ public:
 					_dock.tabImage("file", _dirWin.image);
 					_dock.tabText("file", _dirWin.title);
 					dStr ~= " - " ~ .text(__LINE__);
-				} else {
+				} else { mixin(S_TRACE);
 					dStr ~= " - " ~ .text(__LINE__);
 					_dock = new DockingFolderCTC(dockComp, SWT.NONE, "work");
 					initDock();
@@ -2082,10 +2085,10 @@ public:
 					_flagWin = new FlagWindow(_comm, _prop, _win, data);
 					_dock.add(_flagWin.shell, _flagWin.title, _flagWin.image, "flag", false);
 					dStr ~= " - " ~ .text(__LINE__);
-					if (_prop.var.etc.bindCardViews) {
+					if (_prop.var.etc.bindCardViews) { mixin(S_TRACE);
 						_cardWin = new MainCardWindow(_comm, _prop, data);
 						_dock.add(_cardWin.shell, _cardWin.title, _cardWin.image, "card", false);
-					} else {
+					} else { mixin(S_TRACE);
 						auto card = _dock.addPane(data, Dir.E, 5, 7, "data_2");
 						dStr ~= " - " ~ .text(__LINE__);
 						_castWin = new CastCardWindow(_comm, _prop, card);
@@ -2104,7 +2107,7 @@ public:
 					_dock.add(_dirWin.shell, _dirWin.title, _dirWin.image, "file", false);
 					dStr ~= " - " ~ .text(__LINE__);
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				_toolComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				dStr ~= " - " ~ .text(__LINE__);
 				_dataWin = new DataWindow(_comm, _prop, _win, _win);
@@ -2120,7 +2123,7 @@ public:
 			_noSummMenu.add(MenuID.Close);
 			_noSummMenu.add(MenuID.Find);
 			_noSummMenu.add(MenuID.ToXMLText);
-			if (_prop.var.etc.singleWindow) {
+			if (_prop.var.etc.singleWindow) { mixin(S_TRACE);
 				_noSummMenu.add(MenuID.TableView);
 				_noSummMenu.add(MenuID.VarView);
 				_noSummMenu.add(MenuID.CardView);
@@ -2143,7 +2146,7 @@ public:
 			_noSummMenu.add(MenuID.VersionInfo);
 
 			dStr ~= " - " ~ .text(__LINE__);
-			{
+			{ mixin(S_TRACE);
 				_mainMenu = new HashSet!(MenuID);
 				auto bar = new Menu(_win, SWT.BAR);
 				dStr ~= " - " ~ .text(__LINE__);
@@ -2156,7 +2159,7 @@ public:
 
 				auto me = createMenu(_comm, bar, MenuID.Edit);
 				setupMenuListener(me);
-				if (_prop.var.etc.singleWindow) {
+				if (_prop.var.etc.singleWindow) { mixin(S_TRACE);
 					mixin (MenuAction!("me", MenuID.OpenDir, SWT.PUSH, "openDirectory", "&canOpenDirectory"));
 					new MenuItem(me, SWT.SEPARATOR);
 					mixin (MenuAction!("me", MenuID.Undo));
@@ -2184,7 +2187,7 @@ public:
 				mixin (MenuAction!("me", MenuID.ReNumberingAll, SWT.PUSH, "reNumberingAll", "() => summary !is null"));
 				mixin (MenuAction!("me", MenuID.ToXMLText, SWT.PUSH, "clipboardToXML", "() => CBisXMLOnly(_comm.clipboard)"));
 				dStr ~= " - " ~ .text(__LINE__);
-				if (_prop.var.etc.singleWindow) {
+				if (_prop.var.etc.singleWindow) { mixin(S_TRACE);
 					new MenuItem(me, SWT.SEPARATOR);
 					mixin (MenuAction!("me", MenuID.NewDir, SWT.PUSH, "_dirWin.createNewFolder", "&_dirWin.canCreateNewFolder"));
 					new MenuItem(me, SWT.SEPARATOR);
@@ -2194,12 +2197,12 @@ public:
 				auto mv = createMenu(_comm, bar, MenuID.View);
 				setupMenuListener(mv);
 				mixin (MenuAction!("mv", MenuID.TableView, SWT.PUSH, "openDataWindow", "null"));
-				if (_prop.var.etc.singleWindow) {
+				if (_prop.var.etc.singleWindow) { mixin(S_TRACE);
 					mixin (MenuAction!("mv", MenuID.VarView, SWT.PUSH, "openFlagWindow", "null"));
 				}
-				if (!_prop.var.etc.singleWindow || _prop.var.etc.bindCardViews) {
+				if (!_prop.var.etc.singleWindow || _prop.var.etc.bindCardViews) { mixin(S_TRACE);
 					mixin (MenuAction!("mv", MenuID.CardView, SWT.PUSH, "openCardWindow", "null"));
-				} else {
+				} else { mixin(S_TRACE);
 					new MenuItem(mv, SWT.SEPARATOR);
 					mixin (MenuAction!("mv", MenuID.CastView, SWT.PUSH, "openCast", "null"));
 					mixin (MenuAction!("mv", MenuID.SkillView, SWT.PUSH, "openSkill", "null"));
@@ -2209,7 +2212,7 @@ public:
 					new MenuItem(mv, SWT.SEPARATOR);
 				}
 				mixin (MenuAction!("mv", MenuID.FileView, SWT.PUSH, "openDirWindow", "null"));
-				if (_prop.var.etc.singleWindow) {
+				if (_prop.var.etc.singleWindow) { mixin(S_TRACE);
 					dStr ~= " - " ~ .text(__LINE__);
 					new MenuItem(mv, SWT.SEPARATOR);
 					mixin (MenuAction!("mv", MenuID.Refresh, SWT.PUSH, "refreshAll", "() => summary !is null"));
@@ -2228,12 +2231,12 @@ public:
 				}
 				dStr ~= " - " ~ .text(__LINE__);
 
-				if (_prop.var.etc.singleWindow) {
+				if (_prop.var.etc.singleWindow) { mixin(S_TRACE);
 					auto ma = createMenu(_comm, bar, MenuID.Table);
 					setupMenuListener(ma);
 					mixin (MenuAction!("ma", MenuID.EditSummary, SWT.PUSH, "_tableWin.editSummary", "&_tableWin.canEditSummary"));
 					new MenuItem(ma, SWT.SEPARATOR);
-					if (!_prop.var.etc.bindSceneWithEvent) {
+					if (!_prop.var.etc.bindSceneWithEvent) { mixin(S_TRACE);
 						mixin (MenuAction!("ma", MenuID.EditScene));
 						mixin (MenuAction!("ma", MenuID.EditEvent));
 						new MenuItem(ma, SWT.SEPARATOR);
@@ -2260,11 +2263,11 @@ public:
 					mixin (MenuAction!("mc", MenuID.ShowCardDetail, SWT.RADIO, "showCardTable", "null"));
 					auto sct = _menu[MenuID.ShowCardDetail];
 					g.append(sct);
-					if (_prop.var.etc.cardLife) {
+					if (_prop.var.etc.cardLife) { mixin(S_TRACE);
 						scf.setSelection(true);
-	 				} else if (_prop.var.etc.cardDetails) {
+	 				} else if (_prop.var.etc.cardDetails) { mixin(S_TRACE);
 						sct.setSelection(true);
-					} else {
+					} else { mixin(S_TRACE);
 						scl.setSelection(true);
 					}
 					_menuRG ~= g;
@@ -2302,7 +2305,7 @@ public:
 			dStr ~= " - " ~ .text(__LINE__);
 
 			Menu tmOpenCardWin;
-			void createCardWinTI(ToolBar bar) {
+			void createCardWinTI(ToolBar bar) { mixin(S_TRACE);
 				_mainMenu.add(MenuID.CardView);
 				auto ti = createDropDownItem(_comm, bar, MenuID.CardView, &openCardWindow, tmOpenCardWin, null);
 				_tool[MenuID.CardView] = ti;
@@ -2312,31 +2315,31 @@ public:
 				createMenuItem2(_comm, tmOpenCardWin, _prop.msgs.beast, _prop.images.beast, &openBeast, null);
 				createMenuItem2(_comm, tmOpenCardWin, _prop.msgs.info, _prop.images.info, &openInfo, null);
 			}
-			void createExecEngineTI(ToolBar bar) {
+			void createExecEngineTI(ToolBar bar) { mixin(S_TRACE);
 				_mainMenu.add(MenuID.ExecEngine);
 				_tiExecEngine = createDropDownItem(_comm, bar, MenuID.ExecEngine, &execEngine, _tmExecEngine, () => canExecEngine || _prop.var.etc.classicEngines.length);
 				_tool[MenuID.ExecEngine] = _tiExecEngine;
-				listener(_tiExecEngine, SWT.Dispose, {
+				listener(_tiExecEngine, SWT.Dispose, { mixin(S_TRACE);
 					auto img = _tiExecEngine.getImage();
-					if (_prop.images.menu(MenuID.ExecEngineAuto) !is img) {
+					if (_prop.images.menu(MenuID.ExecEngineAuto) !is img) { mixin(S_TRACE);
 						img.dispose();
 					}
 				});
 			}
-			void createOuterToolsTI(ToolBar bar) {
+			void createOuterToolsTI(ToolBar bar) { mixin(S_TRACE);
 				_mainMenu.add(MenuID.OuterTools);
 				auto ti = createDropDownItem(_comm, bar, MenuID.OuterTools, null, _tmOuterTools, () => _prop.var.etc.outerTools.length > 0);
 				_tool[MenuID.OuterTools] = ti;
 			}
 
-			if (_prop.var.etc.singleWindow) {
+			if (_prop.var.etc.singleWindow) { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
-				_cbar = createCoolBar!("tools")(_comm, _toolComp, (CoolBar cbar) {
-					void createCoolItem(CoolBar cbar, ToolBar tbar) {
+				_cbar = createCoolBar!("tools")(_comm, _toolComp, (CoolBar cbar) { mixin(S_TRACE);
+					void createCoolItem(CoolBar cbar, ToolBar tbar) { mixin(S_TRACE);
 						.createCoolItem(cbar, tbar);
 						_toolBar ~= tbar;
 					}
-					{
+					{ mixin(S_TRACE);
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						mixin (ToolAction!("bar", MenuID.New, SWT.PUSH, "createScenario", "null"));
 						mixin (ToolAction!("bar", MenuID.Open, SWT.PUSH, "openScenarioM", "null"));
@@ -2348,18 +2351,18 @@ public:
 						mixin (ToolAction!("bar", MenuID.Reload, SWT.PUSH, "reload", "() => summary !is null"));
 						createCoolItem(cbar, bar);
 					}
-					{
+					{ mixin(S_TRACE);
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						mixin (ToolAction!("bar", MenuID.Refresh, SWT.PUSH, "refreshAll", "() => summary !is null"));
 						createCoolItem(cbar, bar);
 					}
-					{
+					{ mixin(S_TRACE);
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						mixin (ToolAction!("bar", MenuID.Undo));
 						mixin (ToolAction!("bar", MenuID.Redo));
 						createCoolItem(cbar, bar);
 					}
-					{
+					{ mixin(S_TRACE);
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						mixin (ToolAction!("bar", MenuID.Cut));
 						mixin (ToolAction!("bar", MenuID.Copy));
@@ -2369,13 +2372,13 @@ public:
 						mixin (ToolAction!("bar", MenuID.Clone));
 						createCoolItem(cbar, bar);
 					}
-					{
+					{ mixin(S_TRACE);
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						mixin (ToolAction!("bar", MenuID.Up));
 						mixin (ToolAction!("bar", MenuID.Down));
 						createCoolItem(cbar, bar);
 					}
-					{
+					{ mixin(S_TRACE);
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						mixin (ToolAction!("bar", MenuID.Find, SWT.PUSH, "replaceText", "null"));
 						new ToolItem(bar, SWT.SEPARATOR);
@@ -2384,13 +2387,13 @@ public:
 						mixin (ToolAction!("bar", MenuID.ToXMLText, SWT.PUSH, "clipboardToXML", "() => CBisXMLOnly(_comm.clipboard)"));
 						createCoolItem(cbar, bar);
 					}
-					{
+					{ mixin(S_TRACE);
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						mixin (ToolAction!("bar", MenuID.TableView, SWT.PUSH, "openDataWindow", "null"));
 						mixin (ToolAction!("bar", MenuID.VarView, SWT.PUSH, "openFlagWindow", "null"));
-						if (_prop.var.etc.bindCardViews) {
+						if (_prop.var.etc.bindCardViews) { mixin(S_TRACE);
 							createCardWinTI(bar);
-						} else {
+						} else { mixin(S_TRACE);
 							new ToolItem(bar, SWT.SEPARATOR);
 							mixin (ToolAction!("bar", MenuID.CastView, SWT.PUSH, "openCast", "null"));
 							mixin (ToolAction!("bar", MenuID.SkillView, SWT.PUSH, "openSkill", "null"));
@@ -2402,12 +2405,12 @@ public:
 						mixin (ToolAction!("bar", MenuID.FileView, SWT.PUSH, "openDirWindow", "null"));
 						createCoolItem(cbar, bar);
 					}
-					{
+					{ mixin(S_TRACE);
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						mixin (ToolAction!("bar", MenuID.ChangeVH));
 						createCoolItem(cbar, bar);
 					}
-					{
+					{ mixin(S_TRACE);
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						mixin (ToolAction!("bar", MenuID.EditSummary, SWT.PUSH, "_tableWin.editSummary", "() => summary !is null"));
 						new ToolItem(bar, SWT.SEPARATOR);
@@ -2420,7 +2423,7 @@ public:
 						mixin (ToolAction!("bar", MenuID.NewStep, SWT.PUSH, "_flagWin.createStep", "&_flagWin.canCreateStep"));
 						createCoolItem(cbar, bar);
 					}
-					{
+					{ mixin(S_TRACE);
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						auto g = new RadioGroup!(ToolItem);
 						mixin (ToolAction!("bar", MenuID.ShowCardProp, SWT.RADIO, "showCardLife", "null"));
@@ -2432,11 +2435,11 @@ public:
 						mixin (ToolAction!("bar", MenuID.ShowCardDetail, SWT.RADIO, "showCardTable", "null"));
 						auto sct = _tool[MenuID.ShowCardDetail];
 						g.append(sct);
-						if (_prop.var.etc.cardLife) {
+						if (_prop.var.etc.cardLife) { mixin(S_TRACE);
 							scf.setSelection(true);
-						} else if (_prop.var.etc.cardDetails) {
+						} else if (_prop.var.etc.cardDetails) { mixin(S_TRACE);
 							sct.setSelection(true);
-						} else {
+						} else { mixin(S_TRACE);
 							scl.setSelection(true);
 						}
 						_toolRG ~= g;
@@ -2450,13 +2453,13 @@ public:
 						mixin (ToolAction!("bar", MenuID.OpenImportSource, SWT.PUSH, "addScenario", "&canAddScenario"));
 						createCoolItem(cbar, bar);
 					}
-					{
+					{ mixin(S_TRACE);
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						mixin (ToolAction!("bar", MenuID.OpenDir, SWT.PUSH, "openDirectory", "&canOpenDirectory"));
 						mixin (ToolAction!("bar", MenuID.NewDir, SWT.PUSH, "_dirWin.createNewFolder", "&_dirWin.canCreateNewFolder"));
 						createCoolItem(cbar, bar);
 					}
-					{
+					{ mixin(S_TRACE);
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						createExecEngineTI(bar);
 						new ToolItem(bar, SWT.SEPARATOR);
@@ -2473,7 +2476,7 @@ public:
 
 				_comm.baseShell(this, _tableWin, _flagWin, _castWin, _skillWin, _itemWin, _beastWin, _infoWin, _dirWin);
 				dStr ~= " - " ~ .text(__LINE__);
-			} else {
+			} else { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
 				auto bar = new ToolBar(_toolComp, SWT.FLAT);
 				mixin (ToolAction!("bar", MenuID.New, SWT.PUSH, "createScenario", "null"));
@@ -2510,27 +2513,27 @@ public:
 				dStr ~= " - " ~ .text(__LINE__);
 			}
 			auto selectFilter = new class Listener {
-				override void handleEvent(Event e) {
-					if (cast(CTabFolder) e.widget || cast(TabFolder) e.widget) {
+				override void handleEvent(Event e) { mixin(S_TRACE);
+					if (cast(CTabFolder) e.widget || cast(TabFolder) e.widget) { mixin(S_TRACE);
 						_comm.refreshToolBar();
 					}
 				}
 			};
 			auto focusInOut = new class Listener {
 				private int[Shell] _imeMode;
-				override void handleEvent(Event e) {
+				override void handleEvent(Event e) { mixin(S_TRACE);
 					auto control = cast(Control) e.widget;
 					if (!control) return;
 					auto shl = control.getShell();
-					if (e.type is SWT.KeyUp || e.type is SWT.KeyDown) {
-						if (cast(Spinner) control || cast(NoIME) control) {
+					if (e.type is SWT.KeyUp || e.type is SWT.KeyDown) { mixin(S_TRACE);
+						if (cast(Spinner) control || cast(NoIME) control) { mixin(S_TRACE);
 							shl.setImeInputMode(SWT.NONE);
 						}
-					} else if (e.type is SWT.FocusIn) {
-						if (cast(Spinner) control || cast(NoIME) control) {
-							if (shl !in _imeMode) {
-								.listener(shl, SWT.Dispose, {
-									if (shl in _imeMode) {
+					} else if (e.type is SWT.FocusIn) { mixin(S_TRACE);
+						if (cast(Spinner) control || cast(NoIME) control) { mixin(S_TRACE);
+							if (shl !in _imeMode) { mixin(S_TRACE);
+								.listener(shl, SWT.Dispose, { mixin(S_TRACE);
+									if (shl in _imeMode) { mixin(S_TRACE);
 										_imeMode.remove(shl);
 									}
 								});
@@ -2539,11 +2542,11 @@ public:
 							shl.setImeInputMode(SWT.NONE);
 						}
 						_comm.refreshToolBar();
-					} else {
+					} else { mixin(S_TRACE);
 						assert (e.type is SWT.FocusOut);
-						if (cast(Spinner) control || cast(NoIME) control) {
+						if (cast(Spinner) control || cast(NoIME) control) { mixin(S_TRACE);
 							auto p = shl in _imeMode;
-							if (p) {
+							if (p) { mixin(S_TRACE);
 								shl.setImeInputMode(*p);
 								_imeMode.remove(shl);
 							}
@@ -2561,7 +2564,7 @@ public:
 			d.addFilter(SWT.KeyDown, keyDownFilter);
 			d.addFilter(SWT.MouseWheel, switchTab);
 			d.addFilter(SWT.Traverse, switchTab);
-			.listener(_win, SWT.Dispose, {
+			.listener(_win, SWT.Dispose, { mixin(S_TRACE);
 				d.removeFilter(SWT.Selection, selectFilter);
 				d.removeFilter(SWT.FocusIn, focusInOut);
 				d.removeFilter(SWT.FocusOut, focusInOut);
@@ -2577,12 +2580,12 @@ public:
 			dStr ~= " - " ~ .text(__LINE__);
 			int tx = _prop.var.mainWin.x == SWT.DEFAULT ? _win.getBounds().x : _prop.var.mainWin.x;
 			int ty = _prop.var.mainWin.y == SWT.DEFAULT ? _win.getBounds().y : _prop.var.mainWin.y;
-			if (_prop.var.etc.singleWindow) {
+			if (_prop.var.etc.singleWindow) { mixin(S_TRACE);
 				_win.setMaximized(_prop.var.mainWin.maximized);
 				intoDisplay(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
 				_win.setBounds(tx, ty, _prop.var.mainWin.width, _prop.var.mainWin.height);
 				_win.layout(true);
-			} else {
+			} else { mixin(S_TRACE);
 				_win.pack();
 				intoDisplay(tx, ty, _win.getSize().x, _win.getSize().y);
 				_win.setBounds(tx, ty, _win.getSize().x, _win.getSize().y);
@@ -2594,24 +2597,24 @@ public:
 			dStr ~= " - " ~ .text(__LINE__);
 			refShowMainToolBar();
 			dStr ~= " - " ~ .text(__LINE__);
-			if (_dock) {
-				if (_dock.pane("data")) {
+			if (_dock) { mixin(S_TRACE);
+				if (_dock.pane("data")) { mixin(S_TRACE);
 					dockSelect("data");
-				} else if (_dock.pane("card")) {
+				} else if (_dock.pane("card")) { mixin(S_TRACE);
 					dockSelect("card");
-				} else if (_dock.pane("flag")) {
+				} else if (_dock.pane("flag")) { mixin(S_TRACE);
 					dockSelect("flag");
-				} else if (_dock.pane("castCard")) {
+				} else if (_dock.pane("castCard")) { mixin(S_TRACE);
 					dockSelect("castCard");
-				} else if (_dock.pane("skillCard")) {
+				} else if (_dock.pane("skillCard")) { mixin(S_TRACE);
 					dockSelect("skillCard");
-				} else if (_dock.pane("itemCard")) {
+				} else if (_dock.pane("itemCard")) { mixin(S_TRACE);
 					dockSelect("itemCard");
-				} else if (_dock.pane("beastCard")) {
+				} else if (_dock.pane("beastCard")) { mixin(S_TRACE);
 					dockSelect("beastCard");
-				} else if (_dock.pane("infoCard")) {
+				} else if (_dock.pane("infoCard")) { mixin(S_TRACE);
 					dockSelect("infoCard");
-				} else if (_dock.pane("file")) {
+				} else if (_dock.pane("file")) { mixin(S_TRACE);
 					dockSelect("file");
 				}
 				dStr ~= " - " ~ .text(__LINE__);
@@ -2620,15 +2623,16 @@ public:
 			}
 		} catch (Throwable e) {
 			// 起動失敗
+			printStackTrace();
 			fdebugln(dStr);
 			fdebugln(e);
 			throw e;
 		}
 	}
 	private class KeyDownFilter : Listener {
-		override void handleEvent(Event e) {
+		override void handleEvent(Event e) { mixin(S_TRACE);
 			auto text = cast(Text) e.widget;
-			if (text && cast(CCombo) text.getParent()) {
+			if (text && cast(CCombo) text.getParent()) { mixin(S_TRACE);
 				// CComboは本体に加えて内部のTextからもイベントが発生する
 				return;
 			}
@@ -2642,26 +2646,26 @@ public:
 			auto fc = d.getFocusControl();
 			if (!fc) return;
 			bool ro = !(fc.getStyle() & SWT.READ_ONLY);
-			if (ro && cast(Spinner) fc) {
+			if (ro && cast(Spinner) fc) { mixin(S_TRACE);
 				return;
 			}
-			if (ro && (cast(Spinner) fc || cast(Text) fc || cast(Combo) fc || cast(CCombo) fc)) {
-				if (!(e.stateMask & SWT.CTRL) && !.contains!("a == b", int, int)(F, e.keyCode)) {
+			if (ro && (cast(Spinner) fc || cast(Text) fc || cast(Combo) fc || cast(CCombo) fc)) { mixin(S_TRACE);
+				if (!(e.stateMask & SWT.CTRL) && !.contains!("a == b", int, int)(F, e.keyCode)) { mixin(S_TRACE);
 					return;
 				}
 			}
-			if (cast(IgnoreHotkey) fc.getData()) {
+			if (cast(IgnoreHotkey) fc.getData()) { mixin(S_TRACE);
 				return;
 			}
-			void raiseEvent(MenuItem menu) {
-				if (menu.getStyle() & SWT.CHECK) {
+			void raiseEvent(MenuItem menu) { mixin(S_TRACE);
+				if (menu.getStyle() & SWT.CHECK) { mixin(S_TRACE);
 					menu.setSelection(!menu.getSelection());
 				}
-				if (menu.getStyle() & SWT.RADIO) {
+				if (menu.getStyle() & SWT.RADIO) { mixin(S_TRACE);
 					menu.setSelection(!menu.getSelection());
-					if (menu.getSelection()) {
-						foreach (etc; menu.getParent().getItems()) {
-							if (etc !is menu) {
+					if (menu.getSelection()) { mixin(S_TRACE);
+						foreach (etc; menu.getParent().getItems()) { mixin(S_TRACE);
+							if (etc !is menu) { mixin(S_TRACE);
 								menu.setSelection(false);
 							}
 						}
@@ -2676,9 +2680,9 @@ public:
 				menu.notifyListeners(SWT.Selection, se);
 				e.doit = false;
 			}
-			if (fc.getMenu()) {
+			if (fc.getMenu()) { mixin(S_TRACE);
 				auto menu = findMenu(fc.getMenu(), e.keyCode, e.character, e.stateMask);
-				if (menu && menu.getEnabled()) {
+				if (menu && menu.getEnabled()) { mixin(S_TRACE);
 					raiseEvent(menu);
 					return;
 				}
@@ -2689,18 +2693,18 @@ public:
 			// 順に上位のShellを探索する
 			auto shl = fc.getShell();
 			MenuItem menu = null;
-			while (!menu && shl) {
+			while (!menu && shl) { mixin(S_TRACE);
 				menu = findMenu(shl, e.keyCode, e.character, e.stateMask);
 				if (menu) break;
 				if (shl is _win) break;
 				int s = shl.getStyle();
-				if ((s & SWT.PRIMARY_MODAL) || (s & SWT.APPLICATION_MODAL) || (s & SWT.SYSTEM_MODAL)) {
+				if ((s & SWT.PRIMARY_MODAL) || (s & SWT.APPLICATION_MODAL) || (s & SWT.SYSTEM_MODAL)) { mixin(S_TRACE);
 					break;
 				}
 				shl = cast(Shell) shl.getParent();
 				if (!shl) break;
 			}
-			if (menu && menu.getEnabled()) {
+			if (menu && menu.getEnabled()) { mixin(S_TRACE);
 				raiseEvent(menu);
 				return;
 			}
@@ -2709,22 +2713,22 @@ public:
 	private class SwitchTab : Listener {
 		private Control _oldFocus = null;
 
-		private bool switchTab(TabF, Tab)(TabF tabf, Tab tab, Event e) {
+		private bool switchTab(TabF, Tab)(TabF tabf, Tab tab, Event e) { mixin(S_TRACE);
 			if (!tab || 0 == e.count) return false;
 			auto w = cast(Control) e.widget;
 			if (!w) return false;
 			if (tabf.getItemCount() <= 1) return false;
-			if (e.type is SWT.MouseWheel) {
+			if (e.type is SWT.MouseWheel) { mixin(S_TRACE);
 				auto p = w.toDisplay(e.x, e.y);
 				auto ca = tabf.getClientArea();
 				if (ca.y <= tabf.toControl(p).y) return false;
 			}
 			int index = tabf.indexOf(tab);
 			assert (-1 != index);
-			if (e.count < 0) {
+			if (e.count < 0) { mixin(S_TRACE);
 				index++;
 				if (tabf.getItemCount() <= index) index = 0;
-			} else if (0 < e.count) {
+			} else if (0 < e.count) { mixin(S_TRACE);
 				index--;
 				if (index < 0) index = tabf.getItemCount() - 1;
 			}
@@ -2740,18 +2744,18 @@ public:
 			e.doit = se.doit;
 			return true;
 		}
-		private void spinUpDown(Event e, Spinner spn) {
+		private void spinUpDown(Event e, Spinner spn) { mixin(S_TRACE);
 			if (!e.doit) return;
 			int val = spn.getSelection();
-			if (e.count < 0) {
+			if (e.count < 0) { mixin(S_TRACE);
 				val -= spn.getIncrement();
-			} else if (0 < e.count) {
+			} else if (0 < e.count) { mixin(S_TRACE);
 				val += spn.getIncrement();
-			} else {
+			} else { mixin(S_TRACE);
 				return;
 			}
 			spn.setSelection(val);
-			if (spn.getSelection() != val) {
+			if (spn.getSelection() != val) { mixin(S_TRACE);
 				auto se = new Event;
 				se.type = SWT.Selection;
 				se.widget = spn;
@@ -2763,17 +2767,17 @@ public:
 			}
 		}
 
-		override void handleEvent(Event e) {
+		override void handleEvent(Event e) { mixin(S_TRACE);
 			if (!_prop.var.etc.switchTabWheel) return;
 			if (e.type != SWT.MouseWheel && e.type != SWT.Traverse) return;
 			auto d = Display.getCurrent();
 
 			Control c;
-			if (e.type is SWT.MouseWheel) {
+			if (e.type is SWT.MouseWheel) { mixin(S_TRACE);
 				c = d.getCursorControl();
-			} else if (e.type is SWT.Traverse) {
+			} else if (e.type is SWT.Traverse) { mixin(S_TRACE);
 				c = d.getFocusControl();
-				while (c) {
+				while (c) { mixin(S_TRACE);
 					if (cast(CTabFolder) c) break;
 					c = c.getParent();
 				}
@@ -2781,32 +2785,32 @@ public:
 			if (!c) return;
 			if (!.isDescendant(_win, c.getShell())) return;
 
-			if (e.type is SWT.Traverse && (e.stateMask & SWT.CTRL)) {
-				if (e.detail is SWT.TRAVERSE_TAB_NEXT) {
+			if (e.type is SWT.Traverse && (e.stateMask & SWT.CTRL)) { mixin(S_TRACE);
+				if (e.detail is SWT.TRAVERSE_TAB_NEXT) { mixin(S_TRACE);
 					e.count = -1;
-				} else if (e.detail is SWT.TRAVERSE_TAB_PREVIOUS) {
+				} else if (e.detail is SWT.TRAVERSE_TAB_PREVIOUS) { mixin(S_TRACE);
 					e.count = 1;
-				} else {
+				} else { mixin(S_TRACE);
 					return;
 				}
 			}
 
 			auto ctabf = cast(CTabFolder) c;
-			if (ctabf) {
-				if (switchTab(ctabf, ctabf.getSelection(), e)) {
+			if (ctabf) { mixin(S_TRACE);
+				if (switchTab(ctabf, ctabf.getSelection(), e)) { mixin(S_TRACE);
 					e.doit = false;
 				}
 			}
 			auto tabf = cast(TabFolder) c;
-			if (tabf && tabf.getSelection() && 0 < tabf.getSelection().length) {
-				if (switchTab(tabf, tabf.getSelection()[0], e)) {
+			if (tabf && tabf.getSelection() && 0 < tabf.getSelection().length) { mixin(S_TRACE);
+				if (switchTab(tabf, tabf.getSelection()[0], e)) { mixin(S_TRACE);
 					e.doit = false;
 				}
 			}
 
-			if (e.type == SWT.MouseWheel && _prop.var.etc.spinnerUpDownWithWheel) {
+			if (e.type == SWT.MouseWheel && _prop.var.etc.spinnerUpDownWithWheel) { mixin(S_TRACE);
 				auto spn = cast(Spinner)e.widget;
-				if (spn) {
+				if (spn) { mixin(S_TRACE);
 					spinUpDown(e, spn);
 					return;
 				}
@@ -2814,13 +2818,13 @@ public:
 		}
 	}
 
-	private void redrawAll() {
+	private void redrawAll() { mixin(S_TRACE);
 		_win.redraw(true);
 	}
-	private bool canAddScenario() {
+	private bool canAddScenario() { mixin(S_TRACE);
 		return summary !is null;
 	}
-	private void addScenario() {
+	private void addScenario() { mixin(S_TRACE);
 		_comm.addScenario(_prop);
 	}
 	private template NewCard(string Name) {
@@ -2833,29 +2837,29 @@ public:
 			~ "    _" ~ .toLower(Name) ~ "Win.create" ~ Name ~ "();"
 			~ "}";
 	}
-	private void openCast() {
+	private void openCast() { mixin(S_TRACE);
 		if (!summary && !_comm.singleWindowMode(_prop)) return;
 		_comm.openCastWin(true);
 	}
-	private void openSkill() {
+	private void openSkill() { mixin(S_TRACE);
 		if (!summary && !_comm.singleWindowMode(_prop)) return;
 		_comm.openSkillWin(true);
 	}
-	private void openItem() {
+	private void openItem() { mixin(S_TRACE);
 		if (!summary && !_comm.singleWindowMode(_prop)) return;
 		_comm.openItemWin(true);
 	}
-	private void openBeast() {
+	private void openBeast() { mixin(S_TRACE);
 		if (!summary && !_comm.singleWindowMode(_prop)) return;
 		_comm.openBeastWin(true);
 	}
-	private void openInfo() {
+	private void openInfo() { mixin(S_TRACE);
 		if (!summary && !_comm.singleWindowMode(_prop)) return;
 		_comm.openInfoWin(true);
 	}
-	private void refreshAll(SelectionEvent se) {
+	private void refreshAll(SelectionEvent se) { mixin(S_TRACE);
 		if (!_dock) return;
-		foreach (ctrl; _dock.showingControls) {
+		foreach (ctrl; _dock.showingControls) { mixin(S_TRACE);
 			auto tlpData = cast(TLPData) ctrl.getData();
 			if (!tlpData) continue;
 			auto act = tlpData.tlp.menuAction(MenuID.Refresh);
@@ -2863,12 +2867,12 @@ public:
 		}
 	}
 	private class TabfPaint : PaintListener {
-		override void paintControl(PaintEvent e) {
+		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			if (!_comm.wallpaper) return;
 			auto tabf = cast(CTabFolder) e.widget;
 			if (!tabf || tabf.getItemCount() > 0) return;
 			auto rect = tabf.getClientArea();
-			if (_prop.var.etc.wallpaperStyle < WallpaperStyle.min || WallpaperStyle.max < _prop.var.etc.wallpaperStyle) {
+			if (_prop.var.etc.wallpaperStyle < WallpaperStyle.min || WallpaperStyle.max < _prop.var.etc.wallpaperStyle) { mixin(S_TRACE);
 				_prop.var.etc.wallpaperStyle = WallpaperStyle.Tile;
 			}
 			auto style = cast(WallpaperStyle) _prop.var.etc.wallpaperStyle;
@@ -2877,7 +2881,7 @@ public:
 	}
 	private class TabMenu {
 		private string _paneKey;
-		this (string paneKey) {
+		this (string paneKey) { mixin(S_TRACE);
 			_paneKey = paneKey;
 			auto comp = _dock.pane(paneKey);
 			comp.addPaintListener(new TabfPaint);
@@ -2895,78 +2899,78 @@ public:
 			_dock.setMenu(paneKey, menu);
 		}
 		@property
-		bool canWalkTab() {
+		bool canWalkTab() { mixin(S_TRACE);
 			return 1 < _dock.controlCount(_paneKey) && 0 < _dock.selectedCtrl(_paneKey).length;
 		}
 		@property
-		bool canClose() {
+		bool canClose() { mixin(S_TRACE);
 			return _dock.selectedCtrl(_paneKey).length > 0;
 		}
 		@property
-		bool canCloseEtc() {
+		bool canCloseEtc() { mixin(S_TRACE);
 			auto ctrl = _dock.selectedCtrl(_paneKey);
 			return ctrl.length && _dock.hasEtc(ctrl);
 		}
 		@property
-		bool canCloseLeft() {
+		bool canCloseLeft() { mixin(S_TRACE);
 			auto ctrl = _dock.selectedCtrl(_paneKey);
 			return ctrl.length && _dock.hasLeft(ctrl);
 		}
 		@property
-		bool canCloseRight() {
+		bool canCloseRight() { mixin(S_TRACE);
 			auto ctrl = _dock.selectedCtrl(_paneKey);
 			return ctrl.length && _dock.hasRight(ctrl);
 		}
-		void leftTab(SelectionEvent se) {
+		void leftTab(SelectionEvent se) { mixin(S_TRACE);
 			auto ctrl = _dock.selectedCtrl(_paneKey);
 			if (ctrl.length) _dock.walkLeft(ctrl);
 		}
-		void rightTab(SelectionEvent se) {
+		void rightTab(SelectionEvent se) { mixin(S_TRACE);
 			auto ctrl = _dock.selectedCtrl(_paneKey);
 			if (ctrl.length) _dock.walkRight(ctrl);
 		}
-		void close(SelectionEvent se) {
+		void close(SelectionEvent se) { mixin(S_TRACE);
 			auto ctrl = _dock.selectedCtrl(_paneKey);
 			if (ctrl.length) _dock.close(ctrl);
 		}
-		void closeEtc(SelectionEvent se) {
+		void closeEtc(SelectionEvent se) { mixin(S_TRACE);
 			auto ctrl = _dock.selectedCtrl(_paneKey);
 			if (ctrl.length) _dock.closeEtc(ctrl);
 		}
-		void closeLeft(SelectionEvent se) {
+		void closeLeft(SelectionEvent se) { mixin(S_TRACE);
 			auto ctrl = _dock.selectedCtrl(_paneKey);
 			if (ctrl.length) _dock.closeLeft(ctrl);
 		}
-		void closeRight(SelectionEvent se) {
+		void closeRight(SelectionEvent se) { mixin(S_TRACE);
 			auto ctrl = _dock.selectedCtrl(_paneKey);
 			if (ctrl.length) _dock.closeRight(ctrl);
 		}
-		void closeAll(SelectionEvent se) {
+		void closeAll(SelectionEvent se) { mixin(S_TRACE);
 			auto ctrl = _dock.selectedCtrl(_paneKey);
 			if (ctrl.length) _dock.closeAll(ctrl);
 		}
 	}
-	private void createPaneEvent(string paneKey) {
+	private void createPaneEvent(string paneKey) { mixin(S_TRACE);
 		new TabMenu(paneKey);
 	}
 	private bool canOpenDirectory() {return summary !is null;}
-	private void openDirectory() {
+	private void openDirectory() { mixin(S_TRACE);
 		if (!summary) return;
 		auto dirWin = cast(DirectoryWindow) _tlp;
-		if (dirWin) {
+		if (dirWin) { mixin(S_TRACE);
 			dirWin.openDirectory();
-		} else {
+		} else { mixin(S_TRACE);
 			openFolder(summary.scenarioPath);
 		}
 	}
-	private bool isMainCardWin(ICardWindow cw) {
+	private bool isMainCardWin(ICardWindow cw) { mixin(S_TRACE);
 		return cast(MainCardWindow) cw || cast(CastCardWindow) cw || cast(SkillCardWindow) cw || cast(ItemCardWindow) cw || cast(BeastCardWindow) cw || cast(InfoCardWindow) cw;
 	}
-	private void showCardLife(SelectionEvent se) {
+	private void showCardLife(SelectionEvent se) { mixin(S_TRACE);
 		auto cw = cast(ICardWindow) _tlp;
-		if (cw && !isMainCardWin(cw)) {
+		if (cw && !isMainCardWin(cw)) { mixin(S_TRACE);
 			menuAction!(MenuID.ShowCardProp)(se);
-		} else {
+		} else { mixin(S_TRACE);
 			if (_cardWin) _cardWin.showCardLife();
 			if (_castWin) _castWin.showCardLife();
 			if (_skillWin) _skillWin.showCardLife();
@@ -2976,11 +2980,11 @@ public:
 			menuActionAfter!(MenuID.ShowCardProp)();
 		}
 	}
-	private void showCardList(SelectionEvent se) {
+	private void showCardList(SelectionEvent se) { mixin(S_TRACE);
 		auto cw = cast(ICardWindow) _tlp;
-		if (cw && !isMainCardWin(cw)) {
+		if (cw && !isMainCardWin(cw)) { mixin(S_TRACE);
 			menuAction!(MenuID.ShowCardImage)(se);
-		} else {
+		} else { mixin(S_TRACE);
 			if (_cardWin) _cardWin.showCardList();
 			if (_castWin) _castWin.showCardList();
 			if (_skillWin) _skillWin.showCardList();
@@ -2990,11 +2994,11 @@ public:
 			menuActionAfter!(MenuID.ShowCardImage)();
 		}
 	}
-	private void showCardTable(SelectionEvent se) {
+	private void showCardTable(SelectionEvent se) { mixin(S_TRACE);
 		auto cw = cast(ICardWindow) _tlp;
-		if (cw && !isMainCardWin(cw)) {
+		if (cw && !isMainCardWin(cw)) { mixin(S_TRACE);
 			menuAction!(MenuID.ShowCardDetail)(se);
-		} else {
+		} else { mixin(S_TRACE);
 			if (_cardWin) _cardWin.showCardTable();
 			if (_castWin) _castWin.showCardTable();
 			if (_skillWin) _skillWin.showCardTable();
@@ -3015,7 +3019,7 @@ public:
 	private void newItem() {mixin (NewCard!("Item"));}
 	private void newBeast() {mixin (NewCard!("Beast"));}
 	private void newInfo() {mixin (NewCard!("Info"));}
-	private void versionInfo() {
+	private void versionInfo() { mixin(S_TRACE);
 		(new VersionDialog(_comm, _prop, _win)).open();
 	}
 
@@ -3047,19 +3051,19 @@ public:
 				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ to!string(Style) ~ ");";
 		}
 	}
-	void refreshToolBar(bool delegate()[MenuID] cMenuTbl) {
-		foreach (bar; _toolBar) {
-			foreach (itm; bar.getItems()) {
+	void refreshToolBar(bool delegate()[MenuID] cMenuTbl) { mixin(S_TRACE);
+		foreach (bar; _toolBar) { mixin(S_TRACE);
+			foreach (itm; bar.getItems()) { mixin(S_TRACE);
 				if (itm.getStyle() & SWT.SEPARATOR) continue;
 				auto d = cast(MenuData) itm.getData();
 				if (!d) continue;
-				try {
+				try { mixin(S_TRACE);
 					auto cMenuE = d.id in cMenuTbl;
-					if (cMenuE) {
+					if (cMenuE) { mixin(S_TRACE);
 						itm.setEnabled((*cMenuE)());
-					} else if (d.enabled) {
+					} else if (d.enabled) { mixin(S_TRACE);
 						itm.setEnabled(d.enabled());
-					} else if (_tlp) {
+					} else if (_tlp) { mixin(S_TRACE);
 						auto enabled = _tlp.menuEnabled(d.id);
 						if (enabled) itm.setEnabled(enabled());
 					}
@@ -3071,9 +3075,9 @@ public:
 		}
 	}
 	private class MenuShown : MenuAdapter {
-		override void menuShown(MenuEvent e) {
+		override void menuShown(MenuEvent e) { mixin(S_TRACE);
 			auto menu = cast(Menu) e.widget;
-			foreach (itm; menu.getItems()) {
+			foreach (itm; menu.getItems()) { mixin(S_TRACE);
 				if (itm.getStyle() & SWT.SEPARATOR) continue;
 				auto d = cast(MenuData) itm.getData();
 				assert (d !is null);
@@ -3084,18 +3088,18 @@ public:
 			}
 		}
 	}
-	private void setupMenuListener(Menu menu) {
+	private void setupMenuListener(Menu menu) { mixin(S_TRACE);
 		menu.addMenuListener(new MenuShown);
 	}
-	private void menuActionAfterImpl(MenuID ID, T)(T[MenuID] tools, RadioGroup!(T)[] rg) {
+	private void menuActionAfterImpl(MenuID ID, T)(T[MenuID] tools, RadioGroup!(T)[] rg) { mixin(S_TRACE);
 		if (!_tlp) return;
-		if (_tlp.menuChecked(ID)) {
+		if (_tlp.menuChecked(ID)) { mixin(S_TRACE);
 			auto p = ID in tools;
-			if (p) {
+			if (p) { mixin(S_TRACE);
 				auto b = *p;
-				foreach (g; rg) {
-					if (g.contains(b)) {
-						foreach (gb; g.set()) {
+				foreach (g; rg) { mixin(S_TRACE);
+					if (g.contains(b)) { mixin(S_TRACE);
+						foreach (gb; g.set()) { mixin(S_TRACE);
 							gb.setSelection(gb is b);
 						}
 						return;
@@ -3105,47 +3109,47 @@ public:
 			}
 		}
 	}
-	private void menuAction(MenuID ID)(SelectionEvent se) {
+	private void menuAction(MenuID ID)(SelectionEvent se) { mixin(S_TRACE);
 		if (!_tlp) return;
 		auto act = _tlp.menuAction(ID);
 		assert (act, .text(ID) ~ " " ~ .text(_tlp));
 		act(se);
 		menuActionAfter!(ID)();
 	}
-	private void menuActionAfter(MenuID ID)() {
+	private void menuActionAfter(MenuID ID)() { mixin(S_TRACE);
 		menuActionAfterImpl!(ID)(_menu, _menuRG);
 		menuActionAfterImpl!(ID)(_tool, _toolRG);
 	}
 
-	private void setupMenu(M)(M[MenuID] menus) {
-		foreach (id, itm; menus) {
-			if (id is MenuID.ExecEngine) {
+	private void setupMenu(M)(M[MenuID] menus) { mixin(S_TRACE);
+		foreach (id, itm; menus) { mixin(S_TRACE);
+			if (id is MenuID.ExecEngine) { mixin(S_TRACE);
 				itm.setEnabled(_prop.var.etc.enginePath.length || _prop.var.etc.classicEngines.length);
 				continue;
 			}
-			if (id is MenuID.OuterTools) {
+			if (id is MenuID.OuterTools) { mixin(S_TRACE);
 				itm.setEnabled(_prop.var.etc.outerTools.length > 0);
 				continue;
 			}
-			if (_tlp) {
+			if (_tlp) { mixin(S_TRACE);
 				auto s = itm.getStyle();
-				if ((s & SWT.RADIO) || (s & SWT.CHECK)) {
+				if ((s & SWT.RADIO) || (s & SWT.CHECK)) { mixin(S_TRACE);
 					auto chk = _tlp.menuChecked(id);
 					if (chk) itm.setSelection(chk());
 				}
 			}
-			if (!summary && !_noSummMenu.contains(id)) {
+			if (!summary && !_noSummMenu.contains(id)) { mixin(S_TRACE);
 				itm.setEnabled(false);
 				continue;
 			}
-			if (_mainMenu.contains(id)) {
+			if (_mainMenu.contains(id)) { mixin(S_TRACE);
 				itm.setEnabled(true);
 				continue;
 			}
 			itm.setEnabled(_tlp && _tlp.menuAction(id));
 		}
 	}
-	private void dockSelect(string key) {
+	private void dockSelect(string key) { mixin(S_TRACE);
 		if (!_dock) return;
 		if (!_dock.control(key)) return;
 		auto tlp = (cast(TLPData) _dock.control(key).getData()).tlp;
@@ -3155,47 +3159,47 @@ public:
 		setupMenu(_menu);
 		setupMenu(_tool);
 	}
-	private bool dockCanMove(string ctrlKey, string dropPaneKey) {
+	private bool dockCanMove(string ctrlKey, string dropPaneKey) { mixin(S_TRACE);
 		if (!dropPaneKey.length) return true;
 		bool iswa = std.string.startsWith(dropPaneKey, "work");
-		if (std.string.startsWith(ctrlKey, "work")) {
+		if (std.string.startsWith(ctrlKey, "work")) { mixin(S_TRACE);
 			return iswa;
-		} else {
+		} else { mixin(S_TRACE);
 			return !iswa;
 		}
 	}
-	private bool dockCanVanish(DockingFolderCTC dock, string key) {
-		if (std.string.startsWith(key, "work")) {
+	private bool dockCanVanish(DockingFolderCTC dock, string key) { mixin(S_TRACE);
+		if (std.string.startsWith(key, "work")) { mixin(S_TRACE);
 			return dock.findPane("work").length > 1;
 		}
 		return true;
 	}
-	private bool dockCanVanish(string key) {
-		if (std.string.startsWith(key, "work")) {
+	private bool dockCanVanish(string key) { mixin(S_TRACE);
+		if (std.string.startsWith(key, "work")) { mixin(S_TRACE);
 			return _dock.findPane("work").length > 1;
 		}
-		if (_dock.panes.length == 2) {
+		if (_dock.panes.length == 2) { mixin(S_TRACE);
 			statusLine = "";
 		}
 		return true;
 	}
-	private bool dockCloseCtrl(string key) {
+	private bool dockCloseCtrl(string key) { mixin(S_TRACE);
 		statusLine = "";
 		return true;
 	}
-	private string dockNewPaneName(string ctrlKey, string basePane, Dir dir) {
-		if (std.string.startsWith(ctrlKey, "work")) {
+	private string dockNewPaneName(string ctrlKey, string basePane, Dir dir) { mixin(S_TRACE);
+		if (std.string.startsWith(ctrlKey, "work")) { mixin(S_TRACE);
 			return _dock.newPaneKey("work");
-		} else if (std.string.startsWith(basePane, "work")) {
-			if (dir == Dir.E || dir == Dir.W) {
+		} else if (std.string.startsWith(basePane, "work")) { mixin(S_TRACE);
+			if (dir == Dir.E || dir == Dir.W) { mixin(S_TRACE);
 				return _dock.newPaneKey("side");
-			} else if (dir == Dir.N || dir == Dir.S) {
+			} else if (dir == Dir.N || dir == Dir.S) { mixin(S_TRACE);
 				return _dock.newPaneKey("data");
 			}
 		}
 		return "";
 	}
-	void setStatusLine(string status) {
+	void setStatusLine(string status) { mixin(S_TRACE);
 		_comm.setStatusLine(_win, status);
 	}
 
@@ -3217,10 +3221,10 @@ public:
 	@property
 	Summary summary() {return _dataWin ? _dataWin.summary : _tableWin.summary;}
 
-	void reNumberingHands(A)(A[] arr) {
+	void reNumberingHands(A)(A[] arr) { mixin(S_TRACE);
 		ulong newId = 1;
-		foreach (a; arr) {
-			if (a.id != newId) {
+		foreach (a; arr) { mixin(S_TRACE);
+			if (a.id != newId) { mixin(S_TRACE);
 				a.id = newId;
 				static if (is (A : Area)) {
 					_comm.refArea.call(a);
@@ -3243,31 +3247,31 @@ public:
 			newId++;
 		}
 	}
-	void reNumberingAll() {
+	void reNumberingAll() { mixin(S_TRACE);
 		if (!summary) return;
 		auto dlg = new MessageBox(_win, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
 		dlg.setText(_prop.msgs.dlgTitQuestion);
 		dlg.setMessage(_prop.msgs.reNumberingAll);
-		if (SWT.OK == dlg.open()) {
-			if (_dataWin) {
+		if (SWT.OK == dlg.open()) { mixin(S_TRACE);
+			if (_dataWin) { mixin(S_TRACE);
 				_dataWin.reNumberingAll();
-			} else if (_tableWin) {
+			} else if (_tableWin) { mixin(S_TRACE);
 				_tableWin.reNumberingAll();
 			} else assert (0);
-			if (_cardWin) {
+			if (_cardWin) { mixin(S_TRACE);
 				_cardWin.reNumberingAll();
-			} else {
+			} else { mixin(S_TRACE);
 				_castWin.reNumberingAll();
 				_skillWin.reNumberingAll();
 				_itemWin.reNumberingAll();
 				_beastWin.reNumberingAll();
 				_infoWin.reNumberingAll();
 			}
-			foreach (c; summary.casts) {
+			foreach (c; summary.casts) { mixin(S_TRACE);
 				auto w = _comm.handCardWindowFrom(_prop, summary, c, false, false);
-				if (w) {
+				if (w) { mixin(S_TRACE);
 					w.reNumberingAll();
-				} else {
+				} else { mixin(S_TRACE);
 					reNumberingHands(c.skills);
 					reNumberingHands(c.items);
 					reNumberingHands(c.beasts);
@@ -3276,11 +3280,11 @@ public:
 		}
 	}
 
-	ReplaceDialog openReplWin() {
-		if (!_replDlg || _replDlg.widget.isDisposed()) {
+	ReplaceDialog openReplWin() { mixin(S_TRACE);
+		if (!_replDlg || _replDlg.widget.isDisposed()) { mixin(S_TRACE);
 			_replDlg = new ReplaceDialog(_comm, _prop, _win, summary);
 			_replDlg.open();
-		} else {
+		} else { mixin(S_TRACE);
 			_replDlg.widget.setMinimized(false);
 			_replDlg.widget.setActive();
 		}
@@ -3288,20 +3292,20 @@ public:
 	}
 
 	override
-	bool openCWXPath(string path, bool shellActivate) {
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		if (!summary) return false;
 		if (!_win || _win.isDisposed()) return false;
 		if (_win.isVisible()) _win.setRedraw(false);
 		scope (exit) {
 			if (_win.isVisible()) _win.setRedraw(true);
 		}
-		bool open() {
+		bool open() { mixin(S_TRACE);
 			path = .toLower(path);
-			if (cpempty(path)) {
-				if (cphasattr(path, "opendialog")) {
-					if (_dataWin) {
+			if (cpempty(path)) { mixin(S_TRACE);
+				if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
+					if (_dataWin) { mixin(S_TRACE);
 						_dataWin.editSummary();
-					} else {
+					} else { mixin(S_TRACE);
 						_tableWin.editSummary();
 					}
 					return true;
@@ -3310,20 +3314,20 @@ public:
 			auto cate = cpcategory(path);
 			switch (cate) {
 			case "", "area", "battle", "package", "area:id", "battle:id", "package:id", "variable",
-					"tableview", "variableview": {
-				if (_dataWin) {
+					"tableview", "variableview": { mixin(S_TRACE);
+				if (_dataWin) { mixin(S_TRACE);
 					return _dataWin.openCWXPath(path, shellActivate);
-				} else if (cate == "variable" || cate == "variableview") {
+				} else if (cate == "variable" || cate == "variableview") { mixin(S_TRACE);
 					return _flagWin.openCWXPath(path, shellActivate);
-				} else {
+				} else { mixin(S_TRACE);
 					return _tableWin.openCWXPath(path, shellActivate);
 				}
 			} case "castcard", "skillcard", "itemcard", "beastcard", "infocard",
 					"castcard:id", "skillcard:id", "itemcard:id", "beastcard:id", "infocard:id",
-					"castcardview", "skillcardview", "itemcardview", "beastcardview", "infocardview": {
-				if (_cardWin) {
+					"castcardview", "skillcardview", "itemcardview", "beastcardview", "infocardview": { mixin(S_TRACE);
+				if (_cardWin) { mixin(S_TRACE);
 					return _cardWin.openCWXPath(path, shellActivate);
-				} else {
+				} else { mixin(S_TRACE);
 					assert (_castWin);
 					assert (_skillWin);
 					assert (_itemWin);
@@ -3344,8 +3348,8 @@ public:
 						return false;
 					}
 				}
-			} case "fileview": {
-				if (_dirWin) {
+			} case "fileview": { mixin(S_TRACE);
+				if (_dirWin) { mixin(S_TRACE);
 					return _dirWin.openCWXPath(path, shellActivate);
 				}
 			} default: return false;
@@ -3353,16 +3357,16 @@ public:
 		}
 		bool r = true;
 		string[] paths;
-		if (path.length) {
+		if (path.length) { mixin(S_TRACE);
 			paths = std.string.split(path, CWXPATH_SEP.idup);
-		} else {
+		} else { mixin(S_TRACE);
 			paths = [path];
 		}
-		foreach (p; paths) {
-			if (open()) {
+		foreach (p; paths) { mixin(S_TRACE);
+			if (open()) { mixin(S_TRACE);
 				_win.setMinimized(false);
 				if (shellActivate) _win.forceActive();
-			} else {
+			} else { mixin(S_TRACE);
 				r = false;
 			}
 		}
@@ -3370,11 +3374,11 @@ public:
 	}
 	@property
 	override
-	string[] openedCWXPath() {
+	string[] openedCWXPath() { mixin(S_TRACE);
 		string[] r;
 		if (!_dock) return r;
-		foreach (paneKey; _dock.paneKeys) {
-			foreach (ctrl; _dock.controls(paneKey)) {
+		foreach (paneKey; _dock.paneKeys) { mixin(S_TRACE);
+			foreach (ctrl; _dock.controls(paneKey)) { mixin(S_TRACE);
 				auto tlpData = cast(TLPData) ctrl.getData();
 				if (tlpData.tlp is this) continue;
 				assert (tlpData);
@@ -3382,12 +3386,12 @@ public:
 			}
 			// ペイン内で選択中のタブを末尾に追加
 			string ctrlKey = _dock.selectedCtrl(paneKey);
-			if ("" != ctrlKey) {
+			if ("" != ctrlKey) { mixin(S_TRACE);
 				auto ctrl = _dock.control(ctrlKey);
 				assert (ctrl);
 				auto tlpData = cast(TLPData) ctrl.getData();
 				assert (tlpData);
-				if (tlpData.tlp !is this) {
+				if (tlpData.tlp !is this) { mixin(S_TRACE);
 					r ~= tlpData.tlp.openedCWXPath;
 				}
 			}
@@ -3395,9 +3399,9 @@ public:
 		// 現在フォーカスのあるコントロールを末尾に追加
 		auto d = _win.getDisplay();
 		auto fc = d.getFocusControl();
-		while (fc) {
+		while (fc) { mixin(S_TRACE);
 			auto tlpData = cast(TLPData) fc.getData();
-			if (tlpData && tlpData.tlp !is this) {
+			if (tlpData && tlpData.tlp !is this) { mixin(S_TRACE);
 				r ~= tlpData.tlp.openedCWXPath;
 				break;
 			}
@@ -3406,31 +3410,31 @@ public:
 		return array(uniq(r));
 	}
 
-	void doCWX() {
+	void doCWX() { mixin(S_TRACE);
 		if (!_win) return;
 		string dStr = .text(__LINE__);
-		try {
+		try { mixin(S_TRACE);
 			version (Console) {
 				debug std.stdio.writeln("Start Main Thread");
 			}
 			auto d = _win.getDisplay();
 			_win.open();
 			dStr ~= " - " ~ .text(__LINE__);
-			if (_opt.create) {
+			if (_opt.create) { mixin(S_TRACE);
 				string name = _opt.createName is null ? _prop.msgs.newScenarioName : _opt.createName;
 				string skin = _opt.createSkin is null ? _prop.var.etc.defaultSkin : _opt.createSkin;
 				auto summ = Summary.createScenario(_prop.sys, _prop.tempPath, name, findSkin2(_prop, skin));
 				summ.author = _prop.var.etc.defaultAuthor;
 				openScenario(summ);
 				statusLine = "";
-			} else if (_opt.createclassic) {
+			} else if (_opt.createclassic) { mixin(S_TRACE);
 				string name = _opt.createName is null ? _prop.msgs.newScenarioName : _opt.createName;
-				if (_opt.createclassicPath is null || !_opt.createclassicPath.length) {
+				if (_opt.createclassicPath is null || !_opt.createclassicPath.length) { mixin(S_TRACE);
 					_opt.createclassicPath = CreateScenarioDialog.createClassicDir(_prop, _win);
 				}
-				if (_opt.createclassicPath !is null && _opt.createclassicPath.length) {
-					try {
-						if (!.exists(_opt.createclassicPath)) {
+				if (_opt.createclassicPath !is null && _opt.createclassicPath.length) { mixin(S_TRACE);
+					try { mixin(S_TRACE);
+						if (!.exists(_opt.createclassicPath)) { mixin(S_TRACE);
 							mkdirRecurse(_opt.createclassicPath);
 						}
 						auto summ = new Summary(name, "", _opt.createclassicPath, false, true);
@@ -3441,10 +3445,10 @@ public:
 						debugln(e);
 					}
 				}
-			} else if (_opt.scenario) {
+			} else if (_opt.scenario) { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
 				openScenario(_opt.scenario, &resetOpt);
-			} else if (_prop.var.etc.openLastScenario && _prop.var.etc.lastScenario.length) {
+			} else if (_prop.var.etc.openLastScenario && _prop.var.etc.lastScenario.length) { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
 				openScenario(_prop.var.etc.lastScenario, &resetOpt);
 			}
@@ -3452,7 +3456,7 @@ public:
 
 			_pipeName = createPipeName();
 			auto pipe = new core.thread.Thread(&pipeThr);
-			if (_pipeName.length) {
+			if (_pipeName.length) { mixin(S_TRACE);
 				pipe.start();
 			}
 			auto backup = new core.thread.Thread(&backupThr);
@@ -3468,7 +3472,7 @@ public:
 						WriteFile(p, pmsg.ptr, pmsg.length, &len, null);
 					}
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				scope (exit) {
 					auto fd = open(std.string.toStringz(_pipeName), O_WRONLY, 0);
 					if (fd != -1) {
@@ -3500,8 +3504,9 @@ public:
 							// 際限の無い連続発生を抑制
 							openErrDlg = true;
 							_win.setVisible(true);
+							string s = printStackTrace();
 							fdebugln(e);
-							string s = createDebugln(e);
+							s ~= "\n--------\n" ~ createDebugln(e);
 							auto dlg = new ErrorDialog(_comm, _prop, _win, s);
 							dlg.closeEvent ~= {
 								openErrDlg = false;
@@ -3535,6 +3540,7 @@ public:
 			}
 		} catch (Throwable e) {
 			// 起動・終了失敗
+			printStackTrace();
 			fdebugln(dStr);
 			fdebugln(e);
 			throw e;

@@ -10,7 +10,7 @@ import cwx.system;
 /// 種族関連の例外。
 class RaceException : Exception {
 public:
-	this (string msg) {
+	this (string msg) { mixin(S_TRACE);
 		super(msg);
 	}
 }
@@ -25,15 +25,15 @@ private:
 	this () {}
 public:
 	/// XMLノードから種族を生成。
-	static Race fromNode(ref XNode node, in XMLInfo ver) {
+	static Race fromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		auto r = new Race;
 		r._name = null;
 		node.onTag["Name"] = (ref XNode node) {r._name = node.value;};
 		node.onTag["Description"] = (ref XNode node) {r._desc = decodeLf2(node.value);};
 		node.onTag["Feature"] = (ref XNode node) {r.loadFeature(node, ver);};
 		node.onTag["Ability"] = (ref XNode node) {r.loadAbility(node, ver);};
-		node.onTag["Coupons"] = (ref XNode node) {
-			node.onTag["Coupon"] = (ref XNode node) {
+		node.onTag["Coupons"] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag["Coupon"] = (ref XNode node) { mixin(S_TRACE);
 				auto coupon = Coupon.fromNode(node, ver);
 				coupon.owner = r;
 				r._coupons ~= coupon;
@@ -73,7 +73,7 @@ template RaceParam(bool Set) {
 	}
 
 	/// rからパラメータをコピーする。
-	void copyRaceParam(T)(T r) {
+	void copyRaceParam(T)(T r) { mixin(S_TRACE);
 		automaton = r.automaton;
 		constructure = r.constructure;
 		undead = r.undead;
@@ -102,7 +102,7 @@ template RaceParam(bool Set) {
 
 	/// パラメータを比較する。
 	const
-	bool equalsRace(T)(T r) {
+	bool equalsRace(T)(T r) { mixin(S_TRACE);
 		return automaton == r.automaton
 			&& constructure == r.constructure
 			&& undead == r.undead
@@ -137,7 +137,7 @@ template RaceParam(bool Set) {
 		static if (Set) {
 			/// ditto
 			@property
-			void undead(bool undead) {
+			void undead(bool undead) { mixin(S_TRACE);
 				if (_undead != undead) changed();
 				_undead = undead;
 			}
@@ -149,7 +149,7 @@ template RaceParam(bool Set) {
 		static if (Set) {
 			/// ditto
 			@property
-			void automaton(bool automaton) {
+			void automaton(bool automaton) { mixin(S_TRACE);
 				if (_automaton != automaton) changed();
 				_automaton = automaton;
 			}
@@ -161,7 +161,7 @@ template RaceParam(bool Set) {
 		static if (Set) {
 			/// ditto
 			@property
-			void unholy(bool unholy) {
+			void unholy(bool unholy) { mixin(S_TRACE);
 				if (_unholy != unholy) changed();
 				_unholy = unholy;
 			}
@@ -173,7 +173,7 @@ template RaceParam(bool Set) {
 		static if (Set) {
 			/// ditto
 			@property
-			void constructure(bool constructure) {
+			void constructure(bool constructure) { mixin(S_TRACE);
 				if (_constructure != constructure) changed();
 				_constructure = constructure;
 			}
@@ -185,7 +185,7 @@ template RaceParam(bool Set) {
 		static if (Set) {
 			/// ditto
 			@property
-			void weaponResist(bool weaponRes) {
+			void weaponResist(bool weaponRes) { mixin(S_TRACE);
 				if (_weaponRes != weaponRes) changed();
 				_weaponRes = weaponRes;
 			}
@@ -197,7 +197,7 @@ template RaceParam(bool Set) {
 		static if (Set) {
 			/// ditto
 			@property
-			void magicResist(bool magicRes) {
+			void magicResist(bool magicRes) { mixin(S_TRACE);
 				if (_magicRes != magicRes) changed();
 				_magicRes = magicRes;
 			}
@@ -207,7 +207,7 @@ template RaceParam(bool Set) {
 		bool resist(Element el) {return _res[el];}
 		static if (Set) {
 			/// ditto
-			void resist(Element el, bool res) {
+			void resist(Element el, bool res) { mixin(S_TRACE);
 				if (_res[el] != res) changed();
 				_res[el] = res;
 				if (res) weakness(el, false);
@@ -218,7 +218,7 @@ template RaceParam(bool Set) {
 		bool weakness(Element el) {return _weak[el];}
 		static if (Set) {
 			/// ditto
-			void weakness(Element el, bool weak) {
+			void weakness(Element el, bool weak) { mixin(S_TRACE);
 				if (_weak[el] != weak) changed();
 				_weak[el] = weak;
 				if (weak) resist(el, false);
@@ -229,14 +229,14 @@ template RaceParam(bool Set) {
 		uint physical(Physical phy) {return _phy[phy];}
 		static if (Set) {
 			/// ditto
-			void physical(Physical phy, uint val) {
+			void physical(Physical phy, uint val) { mixin(S_TRACE);
 				if (_phy[phy] != val) changed();
 				_phy[phy] = val;
 			}
 		}
 		/// 精神傾向。
 		const
-		int mental(Mental m) {
+		int mental(Mental m) { mixin(S_TRACE);
 			final switch (m) {
 			case Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE, Mental.CAUTIOUS, Mental.TRICKISH:
 				return _mtl[m];
@@ -254,7 +254,7 @@ template RaceParam(bool Set) {
 		}
 		static if (Set) {
 			/// ditto
-			void mental(Mental m, int val) {
+			void mental(Mental m, int val) { mixin(S_TRACE);
 				final switch (m) {
 				case Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE, Mental.CAUTIOUS, Mental.TRICKISH:
 					if (_mtl[m] != val) changed();
@@ -272,13 +272,13 @@ template RaceParam(bool Set) {
 		int defaultEnhance(Enhance enh) {return _dEnh[enh];}
 		static if (Set) {
 			/// ditto
-			void defaultEnhance(Enhance enh, int dEnh) {
+			void defaultEnhance(Enhance enh, int dEnh) { mixin(S_TRACE);
 				if (_dEnh[enh] != dEnh) changed();
 				_dEnh[enh] = dEnh;
 			}
 		}
 	}
-	private void constructRace() {
+	private void constructRace() { mixin(S_TRACE);
 		_res[Element.FIRE] = false;
 		_res[Element.ICE] = false;
 		_weak[Element.FIRE] = false;
@@ -299,7 +299,7 @@ template RaceParam(bool Set) {
 		_dEnh[Enhance.DEFENSE] = 0;
 	}
 	const
-	private void setFeature(ref XNode parent) {
+	private void setFeature(ref XNode parent) { mixin(S_TRACE);
 		auto fNode = parent.newElement("Feature");
 		auto t = fNode.newElement("Type");
 		t.newAttr("undead", fromBool(_undead));
@@ -317,7 +317,7 @@ template RaceParam(bool Set) {
 		w.newAttr("ice", fromBool(_weak[Element.ICE]));
 	}
 	const
-	private void setAbility(ref XNode parent) {
+	private void setAbility(ref XNode parent) { mixin(S_TRACE);
 		auto aNode = parent.newElement("Ability");
 		auto phy = aNode.newElement("Physical");
 		phy.newAttr("dex", _phy[Physical.DEX]);
@@ -337,31 +337,31 @@ template RaceParam(bool Set) {
 		enh.newAttr("resist", _dEnh[Enhance.RESIST]);
 		enh.newAttr("defense", _dEnh[Enhance.DEFENSE]);
 	}
-	private void loadFeature(ref XNode fNode, in XMLInfo ver) {
+	private void loadFeature(ref XNode fNode, in XMLInfo ver) { mixin(S_TRACE);
 		assert (fNode.name == "Feature");
-		fNode.onTag["Type"] = (ref XNode tNode) {
+		fNode.onTag["Type"] = (ref XNode tNode) { mixin(S_TRACE);
 			_undead = parseBool(tNode.attr("undead", true));
 			_automaton = parseBool(tNode.attr("automaton", true));
 			_unholy = parseBool(tNode.attr("unholy", true));
 			_constructure = parseBool(tNode.attr("constructure", true));
 		};
-		fNode.onTag["NoEffect"] = (ref XNode neNode) {
+		fNode.onTag["NoEffect"] = (ref XNode neNode) { mixin(S_TRACE);
 			_weaponRes = parseBool(neNode.attr("weapon", true));
 			_magicRes = parseBool(neNode.attr("magic", true));
 		};
-		fNode.onTag["Resist"] = (ref XNode rNode) {
+		fNode.onTag["Resist"] = (ref XNode rNode) { mixin(S_TRACE);
 			_res[Element.FIRE] = parseBool(rNode.attr("fire", true));
 			_res[Element.ICE] = parseBool(rNode.attr("ice", true));
 		};
-		fNode.onTag["Weakness"] = (ref XNode wNode) {
+		fNode.onTag["Weakness"] = (ref XNode wNode) { mixin(S_TRACE);
 			_weak[Element.FIRE] = parseBool(wNode.attr("fire", true));
 			_weak[Element.ICE] = parseBool(wNode.attr("ice", true));
 		};
 		fNode.parse();
 	}
-	private void loadAbility(ref XNode aNode, in XMLInfo ver) {
+	private void loadAbility(ref XNode aNode, in XMLInfo ver) { mixin(S_TRACE);
 		assert (aNode.name == "Ability");
-		aNode.onTag["Physical"] = (ref XNode phyNode) {
+		aNode.onTag["Physical"] = (ref XNode phyNode) { mixin(S_TRACE);
 			_phy[Physical.DEX] = phyNode.attr!(int)("dex", true);
 			_phy[Physical.AGL] = phyNode.attr!(int)("agl", true);
 			_phy[Physical.INT] = phyNode.attr!(int)("int", true);
@@ -369,14 +369,14 @@ template RaceParam(bool Set) {
 			_phy[Physical.VIT] = phyNode.attr!(int)("vit", true);
 			_phy[Physical.MIN] = phyNode.attr!(int)("min", true);
 		};
-		aNode.onTag["Mental"] = (ref XNode mtlNode) {
+		aNode.onTag["Mental"] = (ref XNode mtlNode) { mixin(S_TRACE);
 			_mtl[Mental.AGGRESSIVE] = mtlNode.attr!(int)("aggressive", true);
 			_mtl[Mental.CHEERFUL] = mtlNode.attr!(int)("cheerful", true);
 			_mtl[Mental.BRAVE] = mtlNode.attr!(int)("brave", true);
 			_mtl[Mental.CAUTIOUS] = mtlNode.attr!(int)("cautious", true);
 			_mtl[Mental.TRICKISH] = mtlNode.attr!(int)("trickish", true);
 		};
-		aNode.onTag["Enhance"] = (ref XNode enhNode) {
+		aNode.onTag["Enhance"] = (ref XNode enhNode) { mixin(S_TRACE);
 			_dEnh[Enhance.AVOID] = enhNode.attr!(int)("avoid", true);
 			_dEnh[Enhance.RESIST] = enhNode.attr!(int)("resist", true);
 			_dEnh[Enhance.DEFENSE] = enhNode.attr!(int)("defense", true);

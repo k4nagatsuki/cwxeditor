@@ -15,7 +15,7 @@ import std.string;
 
 public class Looks {
 public:
-	@property const string[] fontFiles() {
+	@property const string[] fontFiles() { mixin(S_TRACE);
 		return [
 			"Data" ~ dirSeparator.idup ~ "Font" ~ dirSeparator.idup ~ "gothic.ttf",
 			"Data" ~ dirSeparator.idup ~ "Font" ~ dirSeparator.idup ~ "mincho.ttf",
@@ -38,7 +38,7 @@ public:
 	@property const CInsets castCardInsets(){return CInsets(18, 11, 18, 10);}
 	@property const CInsets menuCardInsets(){return CInsets(13, 3, 3, 3);}
 	@property const CInsets cardInsets(){return menuCardInsets;}
-	@property const CPoint[] partyCardXY() {
+	@property const CPoint[] partyCardXY() { mixin(S_TRACE);
 		return [
 			CPoint(8, 285),
 			CPoint(112, 285),
@@ -51,10 +51,10 @@ public:
 
 	@property const CRect messageBounds() {return CRect(81, 50, 470, 180);}
 	@property const int messageButtonHeight() {return 25;}
-	const CPoint messageStartPos(bool legacy, bool withTalker) {
-		if (legacy) {
+	const CPoint messageStartPos(bool legacy, bool withTalker) { mixin(S_TRACE);
+		if (legacy) { mixin(S_TRACE);
 			return withTalker ? CPoint(115, 11) : CPoint(16, 11);
-		} else {
+		} else { mixin(S_TRACE);
 			return withTalker ? CPoint(115, 15) : CPoint(15, 15);
 		}
 	}
@@ -71,15 +71,15 @@ public:
 	@property const CPoint eventTreeXYWithCount() {return CPoint(7, 71);}
 
 	@property const CPoint premiumXY() {return CPoint(5, 5);}
-	@property const uint itemCardMaxNum(uint lev) {
+	@property const uint itemCardMaxNum(uint lev) { mixin(S_TRACE);
 		int r = (lev + 1) / 2 + 2;
 		return r <= 10 ? r : 10;
 	}
-	@property const uint skillCardMaxNum(uint lev) {
+	@property const uint skillCardMaxNum(uint lev) { mixin(S_TRACE);
 		int r = (lev + 1) / 2 + 2;
 		return r <= 10 ? r : 10;
 	}
-	@property const uint beastCardMaxNum(uint lev) {
+	@property const uint beastCardMaxNum(uint lev) { mixin(S_TRACE);
 		int r = (lev + 1) / 4 + 1;
 		return r <= 10 ? r : 10;
 	}
@@ -94,7 +94,7 @@ public:
 
 	@property const uint castNameLimit() {return 14;}
 	@property const uint nameLimit() {return 12;}
-	const uint lifeCalc(uint lev, uint vit, uint spi) {
+	const uint lifeCalc(uint lev, uint vit, uint spi) { mixin(S_TRACE);
 		return cast(uint) (((lev + 1.0) * (vit / 2.0 + 4.0)) + (spi / 2.0));
 	}
 	@property const uint physicalCutMin() {return 1;}
@@ -116,38 +116,38 @@ public:
 	@property const CSize viewSize() {return CSize(632, 420);}
 	@property const uint partyTop() {return 280;}
 
-	@property const string monospace() {
+	@property const string monospace() { mixin(S_TRACE);
 		version (Windows) {
 			return "ＭＳ ゴシック";
 		}
 		return "IPAゴシック";
 	}
 
-	private static string gothic(bool legacy) {
+	private static string gothic(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			if (legacy) return "ＭＳ ゴシック";
 		}
 		return "IPAゴシック";
 	}
-	private static string pgothic(bool legacy) {
+	private static string pgothic(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			if (legacy) return "ＭＳ Ｐゴシック";
 		}
 		return "IPA Pゴシック";
 	}
-	private static string mincho(bool legacy) {
+	private static string mincho(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			if (legacy) return "ＭＳ 明朝";
 		}
 		return "IPA明朝";
 	}
-	private static string uigothic(bool legacy) {
+	private static string uigothic(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			if (legacy) return "MS UI Gothic";
 		}
 		return "IPA UIゴシック";
 	}
-	const CFont textDlgFont(uint defSize) {
+	const CFont textDlgFont(uint defSize) { mixin(S_TRACE);
 		return CFont(gothic(true), defSize <= 0 ? 12 : defSize, false, false);
 	}
 	const CFont castCardNameFont(bool legacy) {return CFont(uigothic(legacy), 9, true, false);}
@@ -171,30 +171,30 @@ public:
 	@property const CRGB recycleNumColor() {return CRGB(255, 255, 0);}
 	const CFont summaryLevelFont(bool legacy) {return CFont(mincho(legacy), 10, true, true);}
 	const CFont summaryTitleFont(bool legacy) {return CFont(mincho(legacy), 16, true, false);}
-	const CFont summaryDescFont(bool legacy) {
+	const CFont summaryDescFont(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			if (legacy) return CFont(mincho(legacy), 10, true, false);
 		}
 		return CFont(gothic(legacy), 10, true, false);
 	}
-	@property const uint summaryDescLineHeightClassic() {
+	@property const uint summaryDescLineHeightClassic() { mixin(S_TRACE);
 		return 15;
 	}
 	const CFont summaryPageFont(bool legacy) {return CFont(gothic(legacy), 9, true, false);}
 	const CFont cardDescFont(bool legacy) {return CFont(gothic(legacy), 10, false, false);}
-	const CFont messageFont(bool legacy) {
+	const CFont messageFont(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			if (legacy) return CFont(mincho(legacy), 15, true, false);
 		}
 		return CFont(gothic(legacy), 16, false, false);
 	}
-	const CFont messageSelectFont(bool legacy) {
+	const CFont messageSelectFont(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
 			if (legacy) return CFont(pgothic(legacy), 11, true, false);
 		}
 		return CFont(pgothic(legacy), 14, false, false);
 	}
-	const CFont scriptErrorFont(uint defSize) {
+	const CFont scriptErrorFont(uint defSize) { mixin(S_TRACE);
 		return textDlgFont(defSize);
 	}
 }
@@ -206,9 +206,9 @@ private:
 	Looks _looks;
 	string _appPath;
 public:
-	this (string appPath, cwx.system.System sys) {
+	this (string appPath, cwx.system.System sys) { mixin(S_TRACE);
 		string dStr = .text(__LINE__);
-		try {
+		try { mixin(S_TRACE);
 			dStr ~= " - " ~ .text(__LINE__);
 			_appPath = appPath;
 			_sys = sys;
@@ -235,15 +235,15 @@ public:
 	@property const const(Looks) looks() {return _looks;}
 
 	/// pathをアプリケーションの実行ファイルからの相対パスと見做してフルパスに変換する。
-	const string toAppAbs(string path) {
+	const string toAppAbs(string path) { mixin(S_TRACE);
 		if (.isAbsolute(path)) return nabs(path);
 		return nabs(std.path.buildPath(_appPath.dirName(), path));
 	}
 
 	/// 言語ファイルを読み込む。
-	void loadMsgs(string relPath) {
+	void loadMsgs(string relPath) { mixin(S_TRACE);
 		auto path = toAppAbs(relPath);
-		try {
+		try { mixin(S_TRACE);
 			_msgs = Msgs.fromXML(std.file.readText(path), 0);
 		} catch (Exception e) {
 			debugln(e);
@@ -252,24 +252,24 @@ public:
 
 	/// 言語ファイルの一覧を得る。
 	const
-	Msgs[string] msgsTable(string languageDir, ref string[string] msgsTableFile, out string defLocale) {
+	Msgs[string] msgsTable(string languageDir, ref string[string] msgsTableFile, out string defLocale) { mixin(S_TRACE);
 		Msgs[string] msgsTable;
 		auto def = new Msgs;
 		string loc = def.locale;
 		defLocale = .toLower(loc);
 		msgsTableFile[defLocale] = "";
-		try {
+		try { mixin(S_TRACE);
 			auto dir = toAppAbs(languageDir);
-			if (.exists(dir)) {
-				foreach (file; clistdir(dir)) {
+			if (.exists(dir)) { mixin(S_TRACE);
+				foreach (file; clistdir(dir)) { mixin(S_TRACE);
 					if (!cfnmatch(extension(file), ".xml")) continue;
-					try {
+					try { mixin(S_TRACE);
 						auto msgs = Msgs.fromXML(std.file.readText(dir.buildPath(file)), 0);
 						loc = msgs.locale;
 						auto msgsLocale = .toLower(loc);
-						if (defLocale == msgsLocale) {
+						if (defLocale == msgsLocale) { mixin(S_TRACE);
 							def = msgs;
-						} else {
+						} else { mixin(S_TRACE);
 							msgsTable[msgsLocale] = msgs;
 						}
 						msgsTableFile[msgsLocale] = file;
@@ -288,7 +288,7 @@ public:
 	/// verがターゲットとなる環境のバージョン
 	/// targVer以下であればtrueを返す。
 	const
-	bool targetVersion(string ver, string targVer) {
+	bool targetVersion(string ver, string targVer) { mixin(S_TRACE);
 		immutable VER_TABLE = [
 			"1.20": 0,
 			"1.28": 1,

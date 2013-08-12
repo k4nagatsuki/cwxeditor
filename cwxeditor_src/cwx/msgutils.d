@@ -12,14 +12,14 @@ import std.algorithm;
 import std.string;
 
 /// "font_X.bmp"から"X"の部分を抽出する。
-dchar decodeFontPath(string path) {
+dchar decodeFontPath(string path) { mixin(S_TRACE);
 	enforce(istartsWith(path, "font_"));
 	auto dpath = to!dstring(path["font_".length .. $].stripExtension());
 	enforce(1 == dpath.length);
 	return std.uni.toUpper(dpath[0]);
 }
 /// cを"font_X.bmp"等に変換する。
-string encodeFontPath(dchar c, string ext) {
+string encodeFontPath(dchar c, string ext) { mixin(S_TRACE);
 	return ("font_" ~ to!string(c)).setExtension(ext);
 }
 
@@ -31,31 +31,31 @@ string formatMsg(in string text,
 		string delegate(char) getName,
 		bool delegate(string) hasMaterial,
 		out string[size_t] fonts,
-		out char[size_t] colors) {
+		out char[size_t] colors) { mixin(S_TRACE);
 	return formatMsgImpl(text, getFlag, getStep, getName, hasMaterial, fonts, colors, true);
 }
 /// ditto
-string simpleFormatMsg(in string text, string[string] flags, string[string] steps, string[char] names) {
+string simpleFormatMsg(in string text, string[string] flags, string[string] steps, string[char] names) { mixin(S_TRACE);
 	string[size_t] fonts;
 	char[size_t] colors;
-	return formatMsgImpl(text, (string path) {
-			foreach (f, v; flags) {
-				if (0 == icmp(f, path)) {
+	return formatMsgImpl(text, (string path) { mixin(S_TRACE);
+			foreach (f, v; flags) { mixin(S_TRACE);
+				if (0 == icmp(f, path)) { mixin(S_TRACE);
 					return v;
 				}
 			}
 			return "%" ~ path ~ "%";
-		}, (string path) {
-			foreach (f, v; steps) {
-				if (0 == icmp(f, path)) {
+		}, (string path) { mixin(S_TRACE);
+			foreach (f, v; steps) { mixin(S_TRACE);
+				if (0 == icmp(f, path)) { mixin(S_TRACE);
 					return v;
 				}
 			}
 			return "$" ~ path ~ "$";
-		}, delegate string (char name) {
+		}, delegate string (char name) { mixin(S_TRACE);
 			auto dc = std.ascii.toUpper(name);
-			foreach (c, v; names) {
-				if (std.ascii.toUpper(c) == dc) {
+			foreach (c, v; names) { mixin(S_TRACE);
+				if (std.ascii.toUpper(c) == dc) { mixin(S_TRACE);
 					return v;
 				}
 			}
@@ -69,12 +69,12 @@ private string formatMsgImpl(in string text,
 		bool delegate(string) hasMaterial,
 		out string[size_t] fonts,
 		out char[size_t] colors,
-		bool full) {
+		bool full) { mixin(S_TRACE);
 	dchar[] result;
 	dstring dtext = to!dstring(text);
-	for (size_t i = 0; i < dtext.length; i++) {
+	for (size_t i = 0; i < dtext.length; i++) { mixin(S_TRACE);
 		dchar c = dtext[i];
-		bool flag_step(string delegate(string) get, dchar c) {
+		bool flag_step(string delegate(string) get, dchar c) { mixin(S_TRACE);
 			int next = .countUntil(dtext[i + 1 .. $], c);
 			if (next < 0) return false;
 			dstring fl = dtext[i + 1 .. i + 1 + next];
@@ -87,7 +87,7 @@ private string formatMsgImpl(in string text,
 			if (i + 1 == dtext.length) goto default;
 			if ('\n' == dtext[i + 1]) goto default;
 			auto nc = std.ascii.toUpper(dtext[i + 1]);
-			if (full) {
+			if (full) { mixin(S_TRACE);
 				switch (nc) {
 				case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
 					result ~= to!dstring(getName(cast(char) nc));
@@ -95,12 +95,12 @@ private string formatMsgImpl(in string text,
 					continue;
 				default:
 					string path = encodeFontPath(dtext[i + 1], ".bmp");
-					if (!hasMaterial || hasMaterial(path)) {
+					if (!hasMaterial || hasMaterial(path)) { mixin(S_TRACE);
 						fonts[result.length] = path;
 					}
 					break;
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				switch (nc) {
 				case 'M', 'R', 'U', 'T', 'Y':
 					result ~= to!dstring(getName(cast(char) nc));
@@ -137,17 +137,17 @@ private string formatMsgImpl(in string text,
 		}
 	}
 	return to!string(assumeUnique(result));
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	string[size_t] rFonts;
 	char[size_t] rColors;
-	string result = formatMsg("%flag1%, %flag2%, $step1$, $step2$, &R, &W, #m, #r, #v, #+", (string flag) {
+	string result = formatMsg("%flag1%, %flag2%, $step1$, $step2$, &R, &W, #m, #r, #v, #+", (string flag) { mixin(S_TRACE);
 		if ("flag1" == flag) return "f1test";
 		return "f2";
-	}, (string step) {
+	}, (string step) { mixin(S_TRACE);
 		if ("step1" == step) return "s1test";
 		return " ";
-	}, (char name) {
+	}, (char name) { mixin(S_TRACE);
 		if (name == 'R') return "R_test";
 		return "";
 	}, null, rFonts, rColors);
@@ -157,20 +157,20 @@ private string formatMsgImpl(in string text,
 }
 /// テキストの中で使用されているフラグ・ステップ・画像パスを抽出する。
 void textUseItems(in string text,
-		out string[] flags, out string[] steps, out string[] fonts) {
+		out string[] flags, out string[] steps, out string[] fonts) { mixin(S_TRACE);
 	string[size_t] rFonts;
 	char[size_t] rColors;
-	formatMsg(text, (string flag) {
+	formatMsg(text, (string flag) { mixin(S_TRACE);
 		flags ~= flag;
 		return "";
-	}, (string step) {
+	}, (string step) { mixin(S_TRACE);
 		steps ~= step;
 		return "";
-	}, (char name) {
+	}, (char name) { mixin(S_TRACE);
 		return "";
 	}, null, rFonts, rColors);
 	fonts = rFonts.values;
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	string[] flags, steps, fonts;
 	textUseItems("#M#R#U#C#I#T#Yaaa$test$$あああ\t2$$#tes%t3$%tes#t%#a#Z#1#2#33d$dd%aaa%%#%#;%vv%#表%#", flags, steps, fonts);
@@ -179,48 +179,48 @@ void textUseItems(in string text,
 	assert(fonts.sort == ["font_a.bmp", "font_Z.bmp", "font_1.bmp", "font_2.bmp", "font_3.bmp", "font_;.bmp", "font_表.bmp"].sort, .text(fonts));
 }
 
-private void __replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring dold, dstring dnew, dchar targC) {
+private void __replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring dold, dstring dnew, dchar targC) { mixin(S_TRACE);
 	int next = .countUntil(dtext[i + 1 .. $], targC);
-	if (next >= 0) {
+	if (next >= 0) { mixin(S_TRACE);
 		next = i + 1 + next;
-		if (dtext[i + 1 .. next] == dold) {
+		if (dtext[i + 1 .. next] == dold) { mixin(S_TRACE);
 			buf ~= [targC] ~ dnew ~ [targC];
-		} else {
+		} else { mixin(S_TRACE);
 			buf ~= dtext[i .. next + 1];
 		}
-		if (next < dtext.length) {
+		if (next < dtext.length) { mixin(S_TRACE);
 			dtext = dtext[next .. $];
 			i = 0;
 		}
-	} else {
+	} else { mixin(S_TRACE);
 		buf ~= dtext[i];
 	}
 }
-private void __replOff(ref dstring dtext, ref dstring buf, ref size_t i, dchar targC) {
+private void __replOff(ref dstring dtext, ref dstring buf, ref size_t i, dchar targC) { mixin(S_TRACE);
 	int next = .countUntil(dtext[i + 1 .. $], targC);
-	if (next >= 0) {
+	if (next >= 0) { mixin(S_TRACE);
 		next = i + 1 + next;
 		buf ~= [targC] ~ dtext[i + 1 .. next] ~ [targC];
-		if (next < dtext.length) {
+		if (next < dtext.length) { mixin(S_TRACE);
 			dtext = dtext[next .. $];
 			i = 0;
 		}
-	} else {
+	} else { mixin(S_TRACE);
 		buf ~= dtext[i];
 	}
 }
 private string __replTextFlagStep(char Ch1, char Ch2)
-		(string text, string oldFlag, string newFlag) {
+		(string text, string oldFlag, string newFlag) { mixin(S_TRACE);
 	dstring dtext = toUTF32(text);
 	dstring dold = toUTF32(oldFlag);
 	dstring dnew = toUTF32(newFlag);
 	dstring buf;
-	for (size_t i; i < dtext.length; i++) {
+	for (size_t i; i < dtext.length; i++) { mixin(S_TRACE);
 		dchar c = dtext[i];
 		switch (c) {
 		case '#':
 			buf ~= c;
-			if (i + 1 < dtext.length) {
+			if (i + 1 < dtext.length) { mixin(S_TRACE);
 				buf ~= dtext[i + 1];
 				i++;
 			}
@@ -243,9 +243,9 @@ private string __replTextFlagStep(char Ch1, char Ch2)
 /// text = テキスト。
 /// oldFlag = 置換前のフラグパス。
 /// newFlag = 置換後のフラグパス。
-string replTextUseFlag(string text, string oldFlag, string newFlag) {
+string replTextUseFlag(string text, string oldFlag, string newFlag) { mixin(S_TRACE);
 	return __replTextFlagStep!('%', '$')(text, oldFlag, newFlag);
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert(replTextUseFlag("「%置 換 前%」", "置 換 前", "置 換 後") == "「%置 換 後%」");
 	assert(replTextUseFlag("aaa%aaa%$%置換前%$%置換前%a#%置換前%%aa$%置換前%", "置換前", "置換no後")
@@ -256,9 +256,9 @@ string replTextUseFlag(string text, string oldFlag, string newFlag) {
 /// text = テキスト。
 /// oldStep = 置換前のステップパス。
 /// newStep = 置換後のステップパス。
-string replTextUseStep(string text, string oldStep, string newStep) {
+string replTextUseStep(string text, string oldStep, string newStep) { mixin(S_TRACE);
 	return __replTextFlagStep!('$', '%')(text, oldStep, newStep);
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert(replTextUseStep("「$置 換 前$」", "置 換 前", "置 換 後") == "「$置 換 後$」");
 	assert(replTextUseStep("aaa$aaa$%$置換前$%$置換前$a#$置換前$$aa%$置換前$", "置換前", "置換no後")
@@ -270,7 +270,7 @@ string replTextUseStep(string text, string oldStep, string newStep) {
 /// oldFont = 置換前の画像パス。
 /// newFont = 置換後の画像パス。
 string replTextUseFont(string text, string oldFont, string newFont)
-in {
+in { mixin(S_TRACE);
 	dstring dold = toUTF32(.toLower(oldFont.baseName()));
 	dstring dnew = toUTF32(.toLower(newFont.baseName()));
 	assert(dold.length == 10, .text(dold));
@@ -279,20 +279,20 @@ in {
 	assert(dnew.length == 10, .text(dnew));
 	assert(startsWith(dnew, "font_"d));
 	assert(endsWith(dnew, ".bmp"d));
-} body {
+} body { mixin(S_TRACE);
 	dstring dtext = toUTF32(text);
 	dchar dold = toUTF32(oldFont.baseName())[5];
 	dchar dnew = toUTF32(newFont.baseName())[5];
 	dstring buf;
-	for (size_t i; i < dtext.length; i++) {
+	for (size_t i; i < dtext.length; i++) { mixin(S_TRACE);
 		dchar c = dtext[i];
 		switch (c) {
 		case '#':
 			buf ~= c;
-			if (i + 1 < dtext.length) {
-				if (.toLower([dtext[i + 1]]) == .toLower([dold])) {
+			if (i + 1 < dtext.length) { mixin(S_TRACE);
+				if (.toLower([dtext[i + 1]]) == .toLower([dold])) { mixin(S_TRACE);
 					buf ~= dnew;
-				} else {
+				} else { mixin(S_TRACE);
 					buf ~= dtext[i + 1];
 				}
 				i++;
@@ -310,7 +310,7 @@ in {
 		}
 	}
 	return toUTF8(buf);
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert(replTextUseFont("#a#置$#置$#b%#置%#置", "font_置.bmp", "Font_換.bmp")
 		== "#a#換$#置$#b%#置%#換");
@@ -319,17 +319,17 @@ in {
 }
 /// textのstart .. end範囲内の色をcolorにする。
 /// %%・$$区間は通常のテキストとして扱う。
-dstring putColor(dstring text, dchar color, size_t start, size_t end) {
-	if (start == end) {
+dstring putColor(dstring text, dchar color, size_t start, size_t end) { mixin(S_TRACE);
+	if (start == end) { mixin(S_TRACE);
 		return text[0u .. start] ~ cast(dchar) '&' ~ color ~ text[end .. $];
 	}
 	dchar defColor = 'W';
-	if (start >= 1) {
-		l: foreach_reverse (i, dchar c; text[1u .. start]) {
+	if (start >= 1) { mixin(S_TRACE);
+		l: foreach_reverse (i, dchar c; text[1u .. start]) { mixin(S_TRACE);
 			switch (c) {
 			case 'W', 'R', 'B', 'G', 'Y':
 			case 'O', 'P', 'L', 'D': // CardWirth 1.50
-				if (text[i] == '&') {
+				if (text[i] == '&') { mixin(S_TRACE);
 					defColor = c;
 					break l;
 				}
@@ -341,7 +341,7 @@ dstring putColor(dstring text, dchar color, size_t start, size_t end) {
 	if (defColor == color) return text;
 	return text[0u .. start] ~ cast(dchar) '&' ~ color
 		~ text[start .. end] ~ cast(dchar) '&' ~ defColor ~ text[end .. $];
-} unittest {
+} unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (putColor("テストテスト"d, 'R', 1, 4) == "テ&Rストテ&Wスト"d);
 	assert (putColor("テストテスト"d, 'B', 2, 5) == "テス&Bトテス&Wト"d);

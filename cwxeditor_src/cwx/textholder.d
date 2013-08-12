@@ -14,35 +14,35 @@ public:
 	/// コンストラクタ。
 	this () {}
 	/// コピーコンストラクタ。
-	this (in TextHolder base) {
+	this (in TextHolder base) { mixin(S_TRACE);
 		this.text = base.text;
 	}
 	alias SimpleTextHolder.text text;
 	@property
 	override
-	void text(string text) {
-		if (_text != text) {
+	void text(string text) { mixin(S_TRACE);
+		if (_text != text) { mixin(S_TRACE);
 			string[] flags;
 			string[] steps;
 			string[] fonts;
 			textUseItems(text, flags, steps, fonts);
 			removeTextUseCounter();
 			_fontusers = [];
-			foreach (f; fonts) {
+			foreach (f; fonts) { mixin(S_TRACE);
 				auto u = new PathUser(this);
 				if (_uc !is null) u.setUseCounter(_uc);
 				u.path = f;
 				_fontusers ~= u;
 			}
 			_flagusers = [];
-			foreach (f; flags) {
+			foreach (f; flags) { mixin(S_TRACE);
 				auto u = new FlagUser(this);
 				if (_uc !is null) u.setUseCounter(_uc);
 				u.flag = f;
 				_flagusers ~= u;
 			}
 			_stepusers = [];
-			foreach (s; steps) {
+			foreach (s; steps) { mixin(S_TRACE);
 				auto u = new StepUser(this);
 				if (_uc !is null) u.setUseCounter(_uc);
 				u.step = s;
@@ -55,9 +55,9 @@ public:
 	// テキスト内で使用されているfont_X.png等のパス。
 	@property
 	const
-	string[] fontsInText() {
+	string[] fontsInText() { mixin(S_TRACE);
 		string[] r;
-		foreach (u; _fontusers) {
+		foreach (u; _fontusers) { mixin(S_TRACE);
 			r ~= u.path;
 		}
 		return r;
@@ -66,33 +66,33 @@ public:
 	/// 使用回数カウンタを設定する。
 	@property
 	override
-	void setUseCounter(UseCounter uc) {
-		foreach (u; _fontusers) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		foreach (u; _fontusers) { mixin(S_TRACE);
 			u.setUseCounter(uc);
 		}
 		super.setUseCounter(uc);
 	}
 	override
-	protected void removeTextUseCounter() {
-		if (_uc) {
-			foreach (u; _fontusers) {
+	protected void removeTextUseCounter() { mixin(S_TRACE);
+		if (_uc) { mixin(S_TRACE);
+			foreach (u; _fontusers) { mixin(S_TRACE);
 				u.removeUseCounter();
 			}
 		}
 		super.removeTextUseCounter();
 	}
 	alias SimpleTextHolder.change change;
-	void change(PathId id) {
-		foreach (u; _fontusers) {
+	void change(PathId id) { mixin(S_TRACE);
+		foreach (u; _fontusers) { mixin(S_TRACE);
 			u.change(id);
 		}
 	}
 	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
-	void change(size_t index, PathId id) {
+	void change(size_t index, PathId id) { mixin(S_TRACE);
 		_fontusers[index].change(id);
 	}
 	alias SimpleTextHolder.changeCallback changeCallback;
-	override void changeCallback(PathId oldVal, PathId newVal) {
+	override void changeCallback(PathId oldVal, PathId newVal) { mixin(S_TRACE);
 		_text = replTextUseFont(_text, cast(string) oldVal, cast(string) newVal);
 	}
 }
@@ -118,33 +118,33 @@ public:
 	/// コンストラクタ。
 	this () {}
 	/// コピーコンストラクタ。
-	this (in SimpleTextHolder base) {
+	this (in SimpleTextHolder base) { mixin(S_TRACE);
 		this.text = base.text;
 	}
 	/// テキスト。
 	@property
 	const
-	string text() {
+	string text() { mixin(S_TRACE);
 		return _text;
 	}
 	/// ditto
 	@property
-	void text(string text) {
-		if (_text != text) {
+	void text(string text) { mixin(S_TRACE);
+		if (_text != text) { mixin(S_TRACE);
 			string[] flags;
 			string[] steps;
 			string[] fonts;
 			textUseItems(text, flags, steps, fonts);
 			removeTextUseCounter();
 			_flagusers = [];
-			foreach (f; flags) {
+			foreach (f; flags) { mixin(S_TRACE);
 				auto u = new FlagUser(this);
 				if (_uc !is null) u.setUseCounter(_uc);
 				u.flag = f;
 				_flagusers ~= u;
 			}
 			_stepusers = [];
-			foreach (s; steps) {
+			foreach (s; steps) { mixin(S_TRACE);
 				auto u = new StepUser(this);
 				if (_uc !is null) u.setUseCounter(_uc);
 				u.step = s;
@@ -157,9 +157,9 @@ public:
 	// テキスト内で使用されているフラグのパス。
 	@property
 	const
-	string[] flagsInText() {
+	string[] flagsInText() { mixin(S_TRACE);
 		string[] r;
-		foreach (u; _flagusers) {
+		foreach (u; _flagusers) { mixin(S_TRACE);
 			r ~= u.flag;
 		}
 		return r;
@@ -167,9 +167,9 @@ public:
 	// テキスト内で使用されているステップのパス。
 	@property
 	const
-	string[] stepsInText() {
+	string[] stepsInText() { mixin(S_TRACE);
 		string[] r;
-		foreach (u; _stepusers) {
+		foreach (u; _stepusers) { mixin(S_TRACE);
 			r ~= u.step;
 		}
 		return r;
@@ -180,52 +180,52 @@ public:
 	UseCounter useCounter() {return _uc;}
 	/// 使用回数カウンタを設定する。
 	@property
-	void setUseCounter(UseCounter uc) {
-		foreach (u; _flagusers) {
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		foreach (u; _flagusers) { mixin(S_TRACE);
 			u.setUseCounter(uc);
 		}
-		foreach (u; _stepusers) {
+		foreach (u; _stepusers) { mixin(S_TRACE);
 			u.setUseCounter(uc);
 		}
 		_uc = uc;
 	}
-	protected void removeTextUseCounter() {
-		if (_uc) {
-			foreach (u; _flagusers) {
+	protected void removeTextUseCounter() { mixin(S_TRACE);
+		if (_uc) { mixin(S_TRACE);
+			foreach (u; _flagusers) { mixin(S_TRACE);
 				u.removeUseCounter();
 			}
-			foreach (u; _stepusers) {
+			foreach (u; _stepusers) { mixin(S_TRACE);
 				u.removeUseCounter();
 			}
 		}
 	}
 	/// 使用回数カウンタを除去。
-	void removeUseCounter() {
+	void removeUseCounter() { mixin(S_TRACE);
 		removeTextUseCounter();
 		_uc = null;
 	}
-	void change(FlagId id) {
-		foreach (u; _flagusers) {
+	void change(FlagId id) { mixin(S_TRACE);
+		foreach (u; _flagusers) { mixin(S_TRACE);
 			u.change(id);
 		}
 	}
-	void change(StepId id) {
-		foreach (u; _stepusers) {
+	void change(StepId id) { mixin(S_TRACE);
+		foreach (u; _stepusers) { mixin(S_TRACE);
 			u.change(id);
 		}
 	}
 	/// ditto
-	void change(size_t index, FlagId id) {
+	void change(size_t index, FlagId id) { mixin(S_TRACE);
 		_flagusers[index].change(id);
 	}
 	/// ditto
-	void change(size_t index, StepId id) {
+	void change(size_t index, StepId id) { mixin(S_TRACE);
 		_stepusers[index].change(id);
 	}
-	override void changeCallback(FlagId oldVal, FlagId newVal) {
+	override void changeCallback(FlagId oldVal, FlagId newVal) { mixin(S_TRACE);
 		_text = replTextUseFlag(_text, cast(string) oldVal, cast(string) newVal);
 	}
-	override void changeCallback(StepId oldVal, StepId newVal) {
+	override void changeCallback(StepId oldVal, StepId newVal) { mixin(S_TRACE);
 		_text = replTextUseStep(_text, cast(string) oldVal, cast(string) newVal);
 	}
 	/// このSimpleTextHolderの所持者。
@@ -235,13 +235,13 @@ public:
 	@property
 	package void owner(CWXPath owner) {_owner = owner;}
 	@property
-	string cwxPath(bool id) {
-		if (_owner) {
+	string cwxPath(bool id) { mixin(S_TRACE);
+		if (_owner) { mixin(S_TRACE);
 			return cpjoin(_owner, "text", id);
 		}
 		return "";
 	}
-	CWXPath findCWXPath(string path) {
+	CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		return null;
 	}

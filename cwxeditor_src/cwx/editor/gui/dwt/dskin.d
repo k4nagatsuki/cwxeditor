@@ -19,14 +19,14 @@ import std.path;
 
 import org.eclipse.swt.all;
 
-Skin createClassicSkin(in Props prop, in ClassicEngine ce) {
+Skin createClassicSkin(in Props prop, in ClassicEngine ce) { mixin(S_TRACE);
 	return Skin.createLegacySkin(prop.parent, prop.enginePath, ce.enginePath, ce.dataDirName, ce.execute, [ce]);
 }
 
-bool findCWPy(Props prop, string sPath) {
-	if (prop.var.etc.findEnginePath && !prop.var.etc.enginePath.length) {
+bool findCWPy(Props prop, string sPath) { mixin(S_TRACE);
+	if (prop.var.etc.findEnginePath && !prop.var.etc.enginePath.length) { mixin(S_TRACE);
 		auto p = Skin.findCardWirthPy(sPath, prop.var.etc.engine, prop.var.etc.dataDir);
-		if (p.length) {
+		if (p.length) { mixin(S_TRACE);
 			prop.var.etc.enginePath = p;
 			prop.var.etc.findEnginePath = false;
 			return true;
@@ -35,7 +35,7 @@ bool findCWPy(Props prop, string sPath) {
 	return false;
 }
 
-Skin findSkin2(const(Props) prop, string type) {
+Skin findSkin2(const(Props) prop, string type) { mixin(S_TRACE);
 	auto p = type in skinTable(prop);
 	if (p) return *p;
 	static Skin[string] emptySkins;
@@ -45,23 +45,23 @@ Skin findSkin2(const(Props) prop, string type) {
 	emptySkins[prop.enginePath] = r;
 	return r;
 }
-bool hasSkin(in Props prop, string type) {
+bool hasSkin(in Props prop, string type) { mixin(S_TRACE);
 	return (type in skinTable(prop)) !is null;
 }
-Skin[string] skinTable(const(Props) prop) {
+Skin[string] skinTable(const(Props) prop) { mixin(S_TRACE);
 	return Skin.table(prop.parent, prop.enginePath);
 }
 
-private static ImageData imgd(string path, MaskType maskType) {
+private static ImageData imgd(string path, MaskType maskType) { mixin(S_TRACE);
 	mixin FileCache!(ImageData);
 	auto ca = cache(path);
-	if (ca) {
+	if (ca) { mixin(S_TRACE);
 		return ca.value;
-	} else {
+	} else { mixin(S_TRACE);
 		auto data = loadImage(path, maskType is MaskType.NormalMask);
-		if (maskType is MaskType.Mask1_1) {
+		if (maskType is MaskType.Mask1_1) { mixin(S_TRACE);
 			data.transparentPixel = data.getPixel(1, 1);
-		} else if (maskType is MaskType.RightMask) {
+		} else if (maskType is MaskType.RightMask) { mixin(S_TRACE);
 			data.transparentPixel = data.getPixel(data.width - 1, 0);
 		}
 		putCache(path, data);
@@ -94,16 +94,16 @@ version (Windows) {
 		void PathUnquoteSpacesW(LPWSTR);
 	}
 
-	ImageData loadIcon(string exe, int w, int h, void delegate(void delegate()) syncExec = null) {
+	ImageData loadIcon(string exe, int w, int h, void delegate(void delegate()) syncExec = null) { mixin(S_TRACE);
 		alias org.eclipse.swt.internal.win32.OS.OS OS;
 		alias org.eclipse.swt.internal.win32.WINAPI WINAPI;
 		alias org.eclipse.swt.internal.win32.WINTYPES WINTYPES;
 		mixin FileCache!(ImageData);
 		auto ca = cache(exe);
-		if (ca) {
+		if (ca) { mixin(S_TRACE);
 			return ca.value;
-		} else {
-			if (!isAbsolute(exe)) {
+		} else { mixin(S_TRACE);
+			if (!isAbsolute(exe)) { mixin(S_TRACE);
 				auto path = new wchar[MAX_PATH];
 				DWORD cchOut = path.length;
 				auto r = WINAPI.AssocQueryStringW(ASSOCSTR_EXECUTABLE, OS.ASSOCSTR_COMMAND, toUTFz!(wchar*)(exe), null, path.ptr, &cchOut);
@@ -119,23 +119,23 @@ version (Windows) {
 			if (!hbmp) return null;
 			scope (exit) DeleteObject(hbmp);
 			ImageData data = null;
-			void put() {
+			void put() { mixin(S_TRACE);
 				auto img = Image.win32_new(Display.getCurrent(), SWT.ICON, hbmp);
 				data = img.getImageData();
 				img.destroy();
 			}
-			if (syncExec) {
+			if (syncExec) { mixin(S_TRACE);
 				syncExec(&put);
-			} else {
+			} else { mixin(S_TRACE);
 				put();
 			}
 			putCache(exe, data);
 			return data;
 		}
 	}
-	private static ImageData imgr(string legacyEngine, string resName, MaskType maskType) {
+	private static ImageData imgr(string legacyEngine, string resName, MaskType maskType) { mixin(S_TRACE);
 		mixin FileCache!(ImageData);
-		void setMask(ImageData data) {
+		void setMask(ImageData data) { mixin(S_TRACE);
 			final switch (maskType) {
 			case MaskType.NoMask:
 				break;
@@ -146,7 +146,7 @@ version (Windows) {
 				data.transparentPixel = data.getPixel(data.width - 1, 0);
 				break;
 			case MaskType.Mask1_1:
-				if (1 < data.width && 1 < data.height) {
+				if (1 < data.width && 1 < data.height) { mixin(S_TRACE);
 					data.transparentPixel = data.getPixel(1, 1);
 				}
 				break;
@@ -155,11 +155,11 @@ version (Windows) {
 
 		/// リソースオーバーライドに対応
 		string oPath = legacyEngine.dirName().buildPath("Data").buildPath("Resource").buildPath(resName.setExtension(".bmp"));
-		if (.exists(oPath)) {
+		if (.exists(oPath)) { mixin(S_TRACE);
 			auto ca = cache(oPath);
-			if (ca) {
+			if (ca) { mixin(S_TRACE);
 				return ca.value;
-			} else {
+			} else { mixin(S_TRACE);
 				auto data = loadImage(oPath, false);
 				setMask(data);
 				putCache(oPath, data);
@@ -169,9 +169,9 @@ version (Windows) {
 
 		string path = std.path.buildPath(legacyEngine, resName);
 		auto ca = cache(path);
-		if (ca) {
+		if (ca) { mixin(S_TRACE);
 			return ca.value;
-		} else {
+		} else { mixin(S_TRACE);
 			if (!.exists(legacyEngine)) return null;
 			// lEnginePathからリソース読込み
 			HINSTANCE handle;
@@ -196,16 +196,16 @@ version (Windows) {
 /// Params:
 /// path = ファイルパス。
 /// Returns: 背景画像。背景画像でないならnull。
-ImageData loadBgImage(Props prop, in Skin skin, in Summary summ, string path) {
+ImageData loadBgImage(Props prop, in Skin skin, in Summary summ, string path) { mixin(S_TRACE);
  	return skin.isBgImage(path) ? loadImage(prop, skin, summ, path) : null;
 }
 
 private ImageData createImg(T ...)(string lEnginePath, string resName,
-		string delegate(out MaskType, T) res, T t) {
+		string delegate(out MaskType, T) res, T t) { mixin(S_TRACE);
 	MaskType maskType;
 	auto path = res(maskType, t);
 	version (Windows) {
-		if (lEnginePath.length && resName.length) {
+		if (lEnginePath.length && resName.length) { mixin(S_TRACE);
 			auto img = imgr(lEnginePath, resName, maskType);
 			if (img) return img;
 		}
@@ -226,7 +226,7 @@ ImageData castCardPetrif(Skin skin) {return createImg(skin.legacyEngine, "CARD_P
 ImageData castCardSleep(Skin skin) {return createImg(skin.legacyEngine, "CARD_SLEEP", &skin.resCastCardSleep);}
 ImageData lifeBar(Skin skin) {return createImg(skin.legacyEngine, "STATUS_LIFEBAR", &skin.resLifeBar);}
 ImageData lifeGuage(Skin skin) {return createImg(skin.legacyEngine, "STATUS_LIFEGUAGE", &skin.resLifeGuage);}
-ImageData enhanceUp(Skin skin, Enhance enh) {
+ImageData enhanceUp(Skin skin, Enhance enh) { mixin(S_TRACE);
 	string res;
 	switch (enh) {
 	case Enhance.ACTION: res = "STATUS_UP0"; break;
@@ -237,7 +237,7 @@ ImageData enhanceUp(Skin skin, Enhance enh) {
 	}
 	return createImg(skin.legacyEngine, res, &skin.resEnhanceUp, enh);
 }
-ImageData enhanceDown(Skin skin, Enhance enh) {
+ImageData enhanceDown(Skin skin, Enhance enh) { mixin(S_TRACE);
 	string res;
 	switch (enh) {
 	case Enhance.ACTION: res = "STATUS_DOWN0"; break;
@@ -248,7 +248,7 @@ ImageData enhanceDown(Skin skin, Enhance enh) {
 	}
 	return createImg(skin.legacyEngine, res, &skin.resEnhanceDown, enh);
 }
-ImageData mentality(Skin skin, Mentality mtly) {
+ImageData mentality(Skin skin, Mentality mtly) { mixin(S_TRACE);
 	string res;
 	switch (mtly) {
 	case Mentality.NORMAL: res = "STATUS_MIND0"; break;
@@ -290,14 +290,14 @@ ImageData use2(Skin skin) {return createImg(skin.legacyEngine, "STONE_HAND7", &s
 ImageData use3(Skin skin) {return createImg(skin.legacyEngine, "STONE_HAND8", &skin.resUse3);}
 ImageData use4(Skin skin) {return createImg(skin.legacyEngine, "STONE_HAND9", &skin.resUse4);}
 
-private ImageData createImg(T ...)(string delegate(out MaskType, T) res, T t) {
+private ImageData createImg(T ...)(string delegate(out MaskType, T) res, T t) { mixin(S_TRACE);
 	MaskType maskType;
 	auto path = res(maskType, t);
 	return imgd(path, maskType);
 }
 
 /// 特殊文字の画像。
-ImageData spChar(Skin skin, dchar c) {
+ImageData spChar(Skin skin, dchar c) { mixin(S_TRACE);
 	string res;
 	switch (c) {
 	case 'A', 'a': res = "FONT_ANGRY"; break;
@@ -320,12 +320,12 @@ ImageData spChar(Skin skin, dchar c) {
 	case 'Z', 'z': res = "FONT_ZAP"; break;
 	default: res = "";
 	}
-	return createImg(skin.legacyEngine, res, delegate string (out MaskType maskType) {
+	return createImg(skin.legacyEngine, res, delegate string (out MaskType maskType) { mixin(S_TRACE);
 		auto p = c in skin.spChars;
-		if (p) {
+		if (p) { mixin(S_TRACE);
 			maskType = MaskType.NormalMask;
 			return *p;
-		} else {
+		} else { mixin(S_TRACE);
 			maskType = MaskType.NoMask;
 			return null;
 		}

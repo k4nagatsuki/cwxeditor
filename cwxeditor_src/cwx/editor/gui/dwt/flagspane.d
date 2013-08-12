@@ -39,14 +39,14 @@ private:
 
 	UndoManager _undo;
 
-	void refScenario(Summary summ) {
+	void refScenario(Summary summ) { mixin(S_TRACE);
 		_undo.reset();
 	}
-	void refUndoMax() {
+	void refUndoMax() { mixin(S_TRACE);
 		_undo.max = _prop.var.etc.undoMaxMainView;
 	}
 public:
-	this(Commons comm, Props prop) {
+	this(Commons comm, Props prop) { mixin(S_TRACE);
 		_comm = comm;
 		_prop = prop;
 
@@ -55,7 +55,7 @@ public:
 		_dirs = new FlagDirTree(comm, prop, _flags, _undo);
 	}
 
-	void construct(Composite parent) {
+	void construct(Composite parent) { mixin(S_TRACE);
 		_undo.reset();
 		_comm.refScenario.add(&refScenario);
 		_comm.refUndoMax.add(&refUndoMax);
@@ -74,7 +74,7 @@ public:
 	}
 	private DListener _sdl;
 	private class DListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refUndoMax.remove(&refUndoMax);
 			_prop.var.etc.flagSashL = _sash.getWeights()[0];
@@ -82,19 +82,19 @@ public:
 			_prop.var.etc.flagSashV = (_sash.getStyle() & SWT.VERTICAL) != 0;
 		}
 	}
-	void setupTLP(TopLevelPanel tlp) {
+	void setupTLP(TopLevelPanel tlp) { mixin(S_TRACE);
 		tlp.putMenuAction(MenuID.ChangeVH, &changeVHSide, null);
 	}
 
 	@property
-	Control widget() {
+	Control widget() { mixin(S_TRACE);
 		return _comp;
 	}
 
 	@property
 	string statusLine() {return _flags.statusLine;}
 
-	void changeVHSide() {
+	void changeVHSide() { mixin(S_TRACE);
 		_sash.removeDisposeListener(_sdl);
 		_sash = .changeVHSide(_sash);
 		_sash.addDisposeListener(_sdl);
@@ -105,17 +105,17 @@ public:
 	/// Params:
 	/// root = ツリーのルートディレクトリ。
 	/// uc = 使用回数カウンタ。
-	void setFlagDirTree(FlagDir root, UseCounter uc) {
+	void setFlagDirTree(FlagDir root, UseCounter uc) { mixin(S_TRACE);
 		_flags.useCounter = uc;
 		_dirs.useCounter = uc;
 		_dirs.rootDir = root;
 	}
 
-	bool openCWXPath(string path, bool shellActivate) {
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		return _dirs.openCWXPath(path, shellActivate);
 	}
 	@property
-	string[] openedCWXPath() {
+	string[] openedCWXPath() { mixin(S_TRACE);
 		string[] r;
 		r ~= _dirs.openedCWXPath;
 		r ~= _flags.openedCWXPath;
@@ -123,43 +123,43 @@ public:
 	}
 
 	@property
-	FlagDirTree dirs() {
+	FlagDirTree dirs() { mixin(S_TRACE);
 		return _dirs;
 	}
 
 	@property
-	FlagTable flags() {
+	FlagTable flags() { mixin(S_TRACE);
 		return _flags;
 	}
 
 	@property
-	bool canUp() {
+	bool canUp() { mixin(S_TRACE);
 		return _dirs.canUp;
 	}
 	@property
-	bool canDown() {
+	bool canDown() { mixin(S_TRACE);
 		return _dirs.canDown;
 	}
-	void up() {
+	void up() { mixin(S_TRACE);
 		_dirs.up();
 	}
-	void down() {
+	void down() { mixin(S_TRACE);
 		_dirs.down();
 	}
 
 	@property
-	bool canUndo() {
+	bool canUndo() { mixin(S_TRACE);
 		return _undo.canUndo();
 	}
 	@property
-	bool canRedo() {
+	bool canRedo() { mixin(S_TRACE);
 		return _undo.canRedo();
 	}
-	void undo() {
+	void undo() { mixin(S_TRACE);
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
-	void redo() {
+	void redo() { mixin(S_TRACE);
 		_undo.redo();
 		_comm.refreshToolBar();
 	}

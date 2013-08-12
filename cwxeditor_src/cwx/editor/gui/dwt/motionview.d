@@ -50,44 +50,44 @@ private:
 
 		private int _selected = -1, _selectedB = -1;
 
-		this (MotionView v, Commons comm) {
+		this (MotionView v, Commons comm) { mixin(S_TRACE);
 			_v = v;
 			this.comm = comm;
 
 			save(v);
 		}
-		private void save(MotionView v) {
+		private void save(MotionView v) { mixin(S_TRACE);
 			if (!v || v.isDisposed()) return;
 			_selected = v._motions.getSelectionIndex();
 		}
 		abstract override void undo();
 		abstract override void redo();
 		abstract override void dispose();
-		protected void udb(MotionView v) {
+		protected void udb(MotionView v) { mixin(S_TRACE);
 			_selectedB = _selected;
 			save(v);
 		}
-		protected void uda(MotionView v) {
+		protected void uda(MotionView v) { mixin(S_TRACE);
 			scope (exit) comm.refreshToolBar();
 			if (!v || v.isDisposed()) return;
 			v._motions.select(_selectedB);
 			v._motions.showSelection();
 			v.refreshSels(true);
 		}
-		protected MotionView view() {
+		protected MotionView view() { mixin(S_TRACE);
 			return _v;
 		}
 	}
 	static class UndoEdit : MVUndo {
 		private Motion _old;
 		private int _index;
-		this (MotionView v, Commons comm, int index) {
+		this (MotionView v, Commons comm, int index) { mixin(S_TRACE);
 			super (v, comm);
 			_old = v.motion(index).dup;
 			_old.setUseCounter(comm.summary.useCounter.sub);
 			_index = index;
 		}
-		private void impl() {
+		private void impl() { mixin(S_TRACE);
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
@@ -101,21 +101,21 @@ private:
 		}
 		override void undo() {impl();}
 		override void redo() {impl();}
-		override void dispose() {
+		override void dispose() { mixin(S_TRACE);
 			_old.removeUseCounter();
 		}
 	}
-	void storeEdit(int index) {
+	void storeEdit(int index) { mixin(S_TRACE);
 		_undo ~= new UndoEdit(this, _comm, index);
 	}
 	static class UndoSwap : MVUndo {
 		private int _index1, _index2;
-		this (MotionView v, Commons comm, int index1, int index2) {
+		this (MotionView v, Commons comm, int index1, int index2) { mixin(S_TRACE);
 			super (v, comm);
 			_index1 = index1;
 			_index2 = index2;
 		}
-		private void impl() {
+		private void impl() { mixin(S_TRACE);
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
@@ -126,18 +126,18 @@ private:
 		override void redo() {impl();}
 		override void dispose() {}
 	}
-	void storeSwap(int index1, int index2) {
+	void storeSwap(int index1, int index2) { mixin(S_TRACE);
 		_undo ~= new UndoSwap(this, _comm, index1, index2);
 	}
 	static class UndoMove : MVUndo {
 		private int _from, _to;
-		this (MotionView v, Commons comm, int from, int to) {
+		this (MotionView v, Commons comm, int from, int to) { mixin(S_TRACE);
 			super (v, comm);
 			_from = from;
 			_to = to;
 			if (_from < _to) _to--;
 		}
-		private void impl() {
+		private void impl() { mixin(S_TRACE);
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
@@ -153,7 +153,7 @@ private:
 		override void redo() {impl();}
 		override void dispose() {}
 	}
-	void storeMove(int from, int to) {
+	void storeMove(int from, int to) { mixin(S_TRACE);
 		_undo ~= new UndoMove(this, _comm, from, to);
 	}
 	static class UndoInsertDelete : MVUndo {
@@ -163,21 +163,21 @@ private:
 
 		private Motion _m = null;
 
-		this (MotionView v, Commons comm, int index, bool insert) {
+		this (MotionView v, Commons comm, int index, bool insert) { mixin(S_TRACE);
 			super (v, comm);
 			_insert = insert;
 			_index = index;
 
-			if (!insert) {
+			if (!insert) { mixin(S_TRACE);
 				initUndoDelete(v);
 			}
 		}
-		private void initUndoDelete(MotionView v) {
+		private void initUndoDelete(MotionView v) { mixin(S_TRACE);
 			if (!v || v.isDisposed()) return;
 			_m = v.motion(_index).dup;
 			_m.setUseCounter(comm.summary.useCounter.sub);
 		}
-		private void undoInsert() {
+		private void undoInsert() { mixin(S_TRACE);
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
@@ -186,7 +186,7 @@ private:
 			if (!v || v.isDisposed()) return;
 			v.removeMotion(_index, true, true, false);
 		}
-		void undoDelete() {
+		void undoDelete() { mixin(S_TRACE);
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
@@ -197,26 +197,26 @@ private:
 			_insert = true;
 			v.appendMotion(m, _index, true, true, false);
 		}
-		override void undo() {
-			if (_insert) {
+		override void undo() { mixin(S_TRACE);
+			if (_insert) { mixin(S_TRACE);
 				undoInsert();
-			} else {
+			} else { mixin(S_TRACE);
 				undoDelete();
 			}
 		}
-		override void redo() {
+		override void redo() { mixin(S_TRACE);
 			undo();
 		}
-		override void dispose() {
-			if (_m) {
+		override void dispose() { mixin(S_TRACE);
+			if (_m) { mixin(S_TRACE);
 				_m.removeUseCounter();
 			}
 		}
 	}
-	void storeInsert(int index) {
+	void storeInsert(int index) { mixin(S_TRACE);
 		_undo ~= new UndoInsertDelete(this, _comm, index, true);
 	}
-	void storeDelete(int index) {
+	void storeDelete(int index) { mixin(S_TRACE);
 		_undo ~= new UndoInsertDelete(this, _comm, index, false);
 	}
 
@@ -234,7 +234,7 @@ private:
 	BeastCard _selectedBeast = null;
 	BeastCard[int] _beastTbl;
 	IncSearch _beastIncSearch;
-	void beastIncSearch() {
+	void beastIncSearch() { mixin(S_TRACE);
 		.forceFocus(_beasts, true);
 		_beastIncSearch.startIncSearch();
 	}
@@ -253,13 +253,13 @@ private:
 	Image[Element] _imgElm;
 	Skin _summSkin;
 	@property
-	Skin summSkin() {
+	Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
 	}
 
 	HashSet!BeastEventWindow _beWin;
-	BeastEventWindow openBeastEventWin(BeastCard beast) {
-		if (0 != beast.linkId) {
+	BeastEventWindow openBeastEventWin(BeastCard beast) { mixin(S_TRACE);
+		if (0 != beast.linkId) { mixin(S_TRACE);
 			auto b = _summ.beast(beast.linkId);
 			if (!b) return null;
 			return _comm.openUseEvents(_prop, _summ, b, true);
@@ -270,52 +270,52 @@ private:
 		_beWin.add(w);
 		return w;
 	}
-	void editBeastUseEvent() {
+	void editBeastUseEvent() { mixin(S_TRACE);
 		auto m = selection;
 		if (!m || !m.detail.use(MArg.BEAST)) return;
 		auto b = m.beast;
 		if (!b) return;
 		openBeastEventWin(b);
 	}
-	bool canEditBeast() {
+	bool canEditBeast() { mixin(S_TRACE);
 		auto m = selection;
 		if (!m || !m.beast) return false;
 		if (0 != m.beast.linkId && !_summ.beast(m.beast.linkId)) return false;
 		return true;
 	}
 
-	Motion motion(int index) {
+	Motion motion(int index) { mixin(S_TRACE);
 		return cast(Motion) _motions.getItem(index).getData();
 	}
-	void motion(int index, Motion m, bool store) {
+	void motion(int index, Motion m, bool store) { mixin(S_TRACE);
 		if (store) storeEdit(index);
 		auto itm = _motions.getItem(index);
 		auto o = cast(Motion) itm.getData();
 		assert (o);
-		if (o.beast) {
+		if (o.beast) { mixin(S_TRACE);
 			_comm.delBeast.call(o.beast);
 		}
 		itm.setData(m);
-		if (index == _motions.getSelectionIndex()) {
+		if (index == _motions.getSelectionIndex()) { mixin(S_TRACE);
 			refreshSels();
 		}
 		foreach (dlg; modEvent) dlg();
 		foreach (dlg; warningEvent) dlg();
 	}
 	@property
-	Motion selection() {
+	Motion selection() { mixin(S_TRACE);
 		int i = _motions.getSelectionIndex();
-		if (i >= 0) {
+		if (i >= 0) { mixin(S_TRACE);
 			return motion(i);
 		}
 		return null;
 	}
 	class DamageTypeListener : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto m = selection;
 			if (!m) return;
 			auto val = getRadioValue!(DamageType)(_dmgTyp);
-			if (m.damageType != val) {
+			if (m.damageType != val) { mixin(S_TRACE);
 				storeEdit(_motions.getSelectionIndex());
 				m.damageType = val;
 				foreach (dlg; modEvent) dlg();
@@ -323,52 +323,52 @@ private:
 		}
 	}
 	class AbiValListener : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto m = selection;
 			if (!m) return;
 			auto val = _abiVal.getSelection() - Motion.aValue_max;
-			if (m.aValue != val) {
+			if (m.aValue != val) { mixin(S_TRACE);
 				storeEdit(_motions.getSelectionIndex());
 				m.aValue = val;
 				foreach (dlg; modEvent) dlg();
 			}
 		}
 	}
-	void roundEnter(int value) {
+	void roundEnter(int value) { mixin(S_TRACE);
 		auto m = selection;
 		if (!m) return;
-		if (m.round != value) {
+		if (m.round != value) { mixin(S_TRACE);
 			storeEdit(_motions.getSelectionIndex());
 			m.round = value;
 			foreach (dlg; modEvent) dlg();
 		}
 	}
-	int roundCancel(int oldVal) {
+	int roundCancel(int oldVal) { mixin(S_TRACE);
 		roundEnter(oldVal);
 		return oldVal;
 	}
-	void valEnter(int value) {
+	void valEnter(int value) { mixin(S_TRACE);
 		auto m = selection;
 		if (!m) return;
-		if (m.uValue != value) {
+		if (m.uValue != value) { mixin(S_TRACE);
 			storeEdit(_motions.getSelectionIndex());
 			m.uValue = value;
 			foreach (dlg; modEvent) dlg();
 		}
 	}
-	int valCancel(int oldVal) {
+	int valCancel(int oldVal) { mixin(S_TRACE);
 		valEnter(oldVal);
 		return oldVal;
 	}
 
-	void createMT(MotionView v, ToolBar tbar, string group, MType type) {
+	void createMT(MotionView v, ToolBar tbar, string group, MType type) { mixin(S_TRACE);
 		string tt = _prop.msgs.motionName(type);
 		_descs[type] = .tryFormat(_prop.msgs.msnDesc, group, tt);
 		class MT {
 			// FIXME: アクセス違反に対処
 			MotionView v;
 			MType type;
-			void create() {
+			void create() { mixin(S_TRACE);
 				auto m = new Motion(type, Element.ALL);
 				m.damageType = DamageType.LEVEL_RATIO;
 				m.uValue = 1u;
@@ -386,48 +386,48 @@ private:
 		mt.type = type;
 		createToolItem2(_comm, tbar, tt, _prop.images.motion(type), &mt.create, () => !_readOnly);
 	}
-	int indexOf(Motion m) {
-		foreach (i, itm; _motions.getItems()) {
+	int indexOf(Motion m) { mixin(S_TRACE);
+		foreach (i, itm; _motions.getItems()) { mixin(S_TRACE);
 			if (m is itm.getData()) return i;
 		}
 		return -1;
 	}
 	private EffectCardDialog!(BeastCard) _beastDlg = null;
-	void editBeastM() {
+	void editBeastM() { mixin(S_TRACE);
 		editBeast();
 	}
-	EffectCardDialog!BeastCard editBeast() {
+	EffectCardDialog!BeastCard editBeast() { mixin(S_TRACE);
 		auto m = selection;
-		if (m && m.detail.use(MArg.BEAST)) {
+		if (m && m.detail.use(MArg.BEAST)) { mixin(S_TRACE);
 			auto b = m.beast;
-			if (b) {
-				if (0 != b.linkId) {
-					if (_readOnly) {
+			if (b) { mixin(S_TRACE);
+				if (0 != b.linkId) { mixin(S_TRACE);
+					if (_readOnly) { mixin(S_TRACE);
 						b = _summ.beast(b.linkId);
 						if (!b) return null;
-					} else {
+					} else { mixin(S_TRACE);
 						auto b2 = _summ.beast(b.linkId);
-						if (b2) {
+						if (b2) { mixin(S_TRACE);
 							_comm.openCWXPath(b2.cwxPath(true), false);
 							return _comm.openBeastWin(false).edit(b2);
 						}
 					}
 					return null;
 				}
-				if (_beastDlg) {
+				if (_beastDlg) { mixin(S_TRACE);
 					_beastDlg.active();
-				} else {
+				} else { mixin(S_TRACE);
 					_beastDlg = new EffectCardDialog!(BeastCard)(_comm, _prop, getShell(), _summ, b, _readOnly != SWT.NONE);
 					_beastDlg.open();
-					if (!_readOnly) {
-						_beastDlg.applyEvent ~= {
+					if (!_readOnly) { mixin(S_TRACE);
+						_beastDlg.applyEvent ~= { mixin(S_TRACE);
 							storeEdit(indexOf(m));
 						};
-						_beastDlg.appliedEvent ~= {
+						_beastDlg.appliedEvent ~= { mixin(S_TRACE);
 							foreach (dlg; modEvent) dlg();
 						};
 					}
-					_beastDlg.closeEvent ~= {
+					_beastDlg.closeEvent ~= { mixin(S_TRACE);
 						_beastDlg = null;
 					};
 				}
@@ -438,25 +438,25 @@ private:
 	}
 	class EditBeast : MouseAdapter, KeyListener {
 	override:
-		void mouseDoubleClick(MouseEvent e) {
-			if (e.button == 1) {
+		void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
+			if (e.button == 1) { mixin(S_TRACE);
 				editBeast();
 			}
 		}
-		void mouseDown(MouseEvent e) {
+		void mouseDown(MouseEvent e) { mixin(S_TRACE);
 			auto ctrl = cast(Control) e.widget;
 			ctrl.setFocus();
 		}
 		void keyReleased(KeyEvent e) {}
-		void keyPressed(KeyEvent e) {
-			if (e.character == SWT.CR) {
-				if (editBeast()) {
+		void keyPressed(KeyEvent e) { mixin(S_TRACE);
+			if (e.character == SWT.CR) { mixin(S_TRACE);
+				if (editBeast()) { mixin(S_TRACE);
 					e.doit = false;
 				}
 			}
 		}
 	}
-	void swap(int index1, int index2, bool store) {
+	void swap(int index1, int index2, bool store) { mixin(S_TRACE);
 		if (store) storeSwap(index1, index2);
 		auto itm1 = _motions.getItem(index1);
 		auto itm2 = _motions.getItem(index2);
@@ -471,26 +471,26 @@ private:
 		itm2.setData(data);
 		foreach (dlg; modEvent) dlg();
 	}
-	void up() {
+	void up() { mixin(S_TRACE);
 		int index = _motions.getSelectionIndex();
-		if (index > 0) {
+		if (index > 0) { mixin(S_TRACE);
 			swap(index, index - 1, true);
 			_motions.select(index - 1);
 			_comm.refreshToolBar();
 		}
 	}
-	void down() {
+	void down() { mixin(S_TRACE);
 		int index = _motions.getSelectionIndex();
-		if (index >= 0 && index + 1 < _motions.getItemCount()) {
+		if (index >= 0 && index + 1 < _motions.getItemCount()) { mixin(S_TRACE);
 			swap(index, index + 1, true);
 			_motions.select(index + 1);
 			_comm.refreshToolBar();
 		}
 	}
-	void removeMotion() {
+	void removeMotion() { mixin(S_TRACE);
 		removeMotion(-1, true, true, true);
 	}
-	void removeMotion(int index, bool callEvent, bool callMod, bool store) {
+	void removeMotion(int index, bool callEvent, bool callMod, bool store) { mixin(S_TRACE);
 		bool oldVan = hasVan;
 		scope (exit) {
 			if (callEvent && oldVan != hasVan) {
@@ -498,32 +498,32 @@ private:
 			}
 			_comm.refreshToolBar();
 		}
-		if (-1 == index) {
+		if (-1 == index) { mixin(S_TRACE);
 			index = _motions.getSelectionIndex();
 		}
-		if (index >= 0) {
+		if (index >= 0) { mixin(S_TRACE);
 			if (store) storeDelete(index);
 			auto m = cast(Motion) _motions.getItem(index).getData();
 			assert (m);
-			if (m.beast) {
+			if (m.beast) { mixin(S_TRACE);
 				_comm.delBeast.call(m.beast);
 			}
 			_motions.remove(index);
 			if (index >= _motions.getItemCount()) index--;
-			if (index >= 0) {
+			if (index >= 0) { mixin(S_TRACE);
 				_motions.select(index);
 			}
 			_oldIndex = -1;
 			_motions.redraw();
 			refreshSels();
-			if (callMod) {
+			if (callMod) { mixin(S_TRACE);
 				foreach (dlg; modEvent) dlg();
 			}
 		}
 	}
-	void appendMotion(Motion motion, int index = -1, bool callEvent = true, bool callMod = false, bool store = true) {
+	void appendMotion(Motion motion, int index = -1, bool callEvent = true, bool callMod = false, bool store = true) { mixin(S_TRACE);
 		bool oldVan;
-		if (callEvent) {
+		if (callEvent) { mixin(S_TRACE);
 			oldVan = hasVan;
 		}
 		scope (exit) {
@@ -533,18 +533,18 @@ private:
 			_comm.refreshToolBar();
 		}
 		TableItem itm;
-		if (store) {
+		if (store) { mixin(S_TRACE);
 			storeInsert(0 <= index ? index : _motions.getItemCount());
 		}
-		if (0 <= index) {
+		if (0 <= index) { mixin(S_TRACE);
 			itm = new TableItem(_motions, SWT.NONE, index);
-		} else {
+		} else { mixin(S_TRACE);
 			itm = new TableItem(_motions, SWT.NONE);
 		}
 		itm.setImage(_prop.images.motion(motion.type));
 		itm.setText(_descs[motion.type]);
 		itm.setData(motion);
-		if (callMod) {
+		if (callMod) { mixin(S_TRACE);
 			foreach (dlg; modEvent) dlg();
 		}
 	}
@@ -555,59 +555,59 @@ private:
 	Composite _abilityComp;
 	Composite _summonComp;
 	int _oldIndex = -1;
-	void refreshSels(bool force = false) {
+	void refreshSels(bool force = false) { mixin(S_TRACE);
 		scope(exit) refEnabled();
 		auto sels = _motions.getSelection();
 		auto stack = cast(StackLayout) _editComp.getLayout();
 		_motionElm.setEnabled(!_readOnly && sels.length > 0);
-		if (sels.length == 0) {
+		if (sels.length == 0) { mixin(S_TRACE);
 			_motionElm.deselectAll();
 			stack.topControl = _noneComp;
 			_editComp.layout();
 			_oldIndex = -1;
-		} else if (force || _oldIndex != _motions.getSelectionIndex()) {
+		} else if (force || _oldIndex != _motions.getSelectionIndex()) { mixin(S_TRACE);
 			_oldIndex = _motions.getSelectionIndex();
 			auto m = cast(Motion) _motions.getItem(_oldIndex).getData();
-			foreach (i, itm; _motionElm.getItems()) {
-				if ((cast(Element) (cast(Integer) itm.getData()).intValue()) == m.element) {
+			foreach (i, itm; _motionElm.getItems()) { mixin(S_TRACE);
+				if ((cast(Element) (cast(Integer) itm.getData()).intValue()) == m.element) { mixin(S_TRACE);
 					_motionElm.select(i);
 					break;
 				}
 			}
 			auto d = m.detail;
-			if (d.use(MArg.BEAST)) {
+			if (d.use(MArg.BEAST)) { mixin(S_TRACE);
 				_beasts.select(0);
 				_selectedBeast = null;
 				_maxNest.setSelection(m.maxNest);
 				_beastImg.redraw();
-				if (stack.topControl !is _summonComp) {
+				if (stack.topControl !is _summonComp) { mixin(S_TRACE);
 					stack.topControl = _summonComp;
 					_editComp.layout();
 				}
-			} else if (d.use(MArg.ROUND) && d.use(MArg.A_VALUE)) {
+			} else if (d.use(MArg.ROUND) && d.use(MArg.A_VALUE)) { mixin(S_TRACE);
 				_abiVal.setSelection(m.aValue + Motion.aValue_max);
 				_abiRound.setSelection(m.round);
-				if (stack.topControl !is _abilityComp) {
+				if (stack.topControl !is _abilityComp) { mixin(S_TRACE);
 					stack.topControl = _abilityComp;
 					_editComp.layout();
 				}
-			} else if (d.use(MArg.ROUND)) {
+			} else if (d.use(MArg.ROUND)) { mixin(S_TRACE);
 				_rndRound.setSelection(m.round);
-				if (stack.topControl !is _roundComp) {
+				if (stack.topControl !is _roundComp) { mixin(S_TRACE);
 					stack.topControl = _roundComp;
 					_editComp.layout();
 				}
-			} else if (d.use(MArg.U_VALUE)) {
-				foreach (typ, radio; _dmgTyp) {
+			} else if (d.use(MArg.U_VALUE)) { mixin(S_TRACE);
+				foreach (typ, radio; _dmgTyp) { mixin(S_TRACE);
 					_dmgTyp[typ].setSelection((typ == m.damageType));
 				}
 				_valValue.setSelection(m.uValue);
-				if (stack.topControl !is _valueComp) {
+				if (stack.topControl !is _valueComp) { mixin(S_TRACE);
 					stack.topControl = _valueComp;
 					_editComp.layout();
 				}
-			} else {
-				if (stack.topControl !is _noneComp) {
+			} else { mixin(S_TRACE);
+				if (stack.topControl !is _noneComp) { mixin(S_TRACE);
 					stack.topControl = _noneComp;
 					_editComp.layout();
 				}
@@ -616,11 +616,11 @@ private:
 		_comm.refreshToolBar();
 	}
 	class ParamPaneChange : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			refreshSels();
 		}
 	}
-	bool canSetBeast() {
+	bool canSetBeast() { mixin(S_TRACE);
 		if (_readOnly) return false;
 		if (_selectedBeast) return true;
 		int mi = _motions.getSelectionIndex();
@@ -630,22 +630,22 @@ private:
 		return sb.beast !is null;
 	}
 	class SetBeast : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto b = _selectedBeast;
 			int mi = _motions.getSelectionIndex();
 			assert (-1 != mi);
 			auto sb = cast(Motion) _motions.getItem(mi).getData();
-			if (b) {
+			if (b) { mixin(S_TRACE);
 				if (!sb.beast && !b) return;
 				storeEdit(mi);
 				if (sb.beast) _comm.delBeast.call(sb.beast);
-				if (_prop.var.etc.linkCard) {
+				if (_prop.var.etc.linkCard) { mixin(S_TRACE);
 					sb.beast = new BeastCard(1UL, "", "", "");
 					sb.beast.linkId = b.id;
-				} else {
+				} else { mixin(S_TRACE);
 					sb.beast = b;
 				}
-			} else {
+			} else { mixin(S_TRACE);
 				if (!sb.beast) return;
 				storeEdit(mi);
 				_comm.delBeast.call(sb.beast);
@@ -658,7 +658,7 @@ private:
 			_comm.refreshToolBar();
 		}
 	}
-	void removeRef() {
+	void removeRef() { mixin(S_TRACE);
 		auto m = selection;
 		if (!m || !m.beast || 0 == m.beast.linkId) return;
 		auto targ = _summ.beast(m.beast.linkId);
@@ -674,9 +674,9 @@ private:
 		refEnabled();
 	}
 	class PaintBeast : PaintListener {
-		override void paintControl(PaintEvent e) {
+		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			auto beast = selection.beast;
-			if (beast) {
+			if (beast) { mixin(S_TRACE);
 				scope img = new Image(Display.getCurrent(),
 					cardImage!(BeastCard)(_prop, summSkin, beast, _summ.scenarioPath, null, &_summ.beast, true, false));
 				scope data = img.getImageData();
@@ -686,7 +686,7 @@ private:
 				int y = (rect.height - data.height) / 2;
 				e.gc.drawImage(img, x, y);
 				img.dispose();
-				if (pane.isFocusControl()) {
+				if (pane.isFocusControl()) { mixin(S_TRACE);
 					e.gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_SELECTION));
 					e.gc.setAlpha(64);
 					e.gc.fillRectangle(x, y, data.width, data.height);
@@ -696,17 +696,17 @@ private:
 		}
 	}
 	class MDropListener : DropTargetAdapter {
-		override void dragEnter(DropTargetEvent e){
+		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
 			e.detail = _readOnly ? DND.DROP_NONE : DND.DROP_MOVE;
 		}
-		override void dragOver(DropTargetEvent e){
+		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
 			e.detail = _readOnly ? DND.DROP_NONE : DND.DROP_MOVE;
 		}
-		override void drop(DropTargetEvent e){
+		override void drop(DropTargetEvent e){ mixin(S_TRACE);
 			if (!isXMLBytes(e.data)) return;
 			e.detail = DND.DROP_NONE;
 			string xml = bytesToXML(e.data);
-			try {
+			try { mixin(S_TRACE);
 				auto node = XNode.parse(xml);
 				if (node.name != Motion.XML_NAME) return;
 				scope p = (cast(DropTarget) e.getSource()).getControl().toControl(e.x, e.y);
@@ -714,17 +714,17 @@ private:
 				int index = t ? _motions.indexOf(t) : _motions.getItemCount();
 				auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 				auto m = Motion.createFromNode(node, ver);
-				if (_id == node.attr("paneId", false)) {
-					if (-1 != _dragIndex) {
+				if (_id == node.attr("paneId", false)) { mixin(S_TRACE);
+					if (-1 != _dragIndex) { mixin(S_TRACE);
 						storeMove(_dragIndex, index);
 						appendMotion(m, index, true, false, false);
-					} else {
+					} else { mixin(S_TRACE);
 						appendMotion(m, index, true, false, true);
 					}
 					_motions.select(index);
 					refreshSels();
 					e.detail = DND.DROP_MOVE;
-				} else {
+				} else { mixin(S_TRACE);
 					appendMotion(m, index, true, false, true);
 				}
 				foreach (dlg; modEvent) dlg();
@@ -734,14 +734,14 @@ private:
 	private int _dragIndex = -1;
 	class MDragListener : DragSourceAdapter {
 		private TableItem _itm;
-		override void dragStart(DragSourceEvent e) {
+		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
 			e.doit = (cast(DragSource) e.getSource()).getControl().isFocusControl();
 		}
-		override void dragSetData(DragSourceEvent e){
-			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) {
+		override void dragSetData(DragSourceEvent e){ mixin(S_TRACE);
+			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
 				auto c = cast(Table) (cast(DragSource) e.getSource()).getControl();
 				int index = c.getSelectionIndex();
-				if (index >= 0) {
+				if (index >= 0) { mixin(S_TRACE);
 					auto m = cast(Motion) c.getItem(index).getData();
 					_dragIndex = index;
 					auto node = m.toNode(new XMLOption(_prop.sys));
@@ -751,9 +751,9 @@ private:
 				}
 			}
 		}
-		override void dragFinished(DragSourceEvent e) {
+		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
 			_dragIndex = -1;
-			if (!_readOnly && e.detail == DND.DROP_MOVE) {
+			if (!_readOnly && e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
 				bool oldVan = hasVan;
 				scope (exit) {
 					if (oldVan != hasVan) {
@@ -768,20 +768,20 @@ private:
 		}
 	}
 	@property
-	bool hasVan() {
-		foreach (itm; _motions.getItems()) {
+	bool hasVan() { mixin(S_TRACE);
+		foreach (itm; _motions.getItems()) { mixin(S_TRACE);
 			auto m = cast(Motion) itm.getData();
 			assert (m);
-			if ((m.element !is Element.MIRACLE) && (m.type is MType.VANISH_TARGET)) {
+			if ((m.element !is Element.MIRACLE) && (m.type is MType.VANISH_TARGET)) { mixin(S_TRACE);
 				return true;
 			}
 		}
 		return false;
 	}
 	class SelElement : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto m = selection;
-			if (m) {
+			if (m) { mixin(S_TRACE);
 				int i = _motionElm.getSelectionIndex();
 				if (-1 == i) return;
 				storeEdit(_motions.getSelectionIndex());
@@ -797,30 +797,30 @@ private:
 		}
 	}
 	class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.refMenu.remove(&refMenu);
 			_comm.refBeast.remove(&refBeast);
 			_comm.delBeast.remove(&refBeast);
 			_comm.refUndoMax.remove(&refUndoMax);
 			getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
-			foreach (w; _beWin.toArray()) {
+			foreach (w; _beWin.toArray()) { mixin(S_TRACE);
 				_comm.close(w.shell);
 			}
 		}
 	}
 	class KeyDownFilter : Listener {
-		this () {
+		this () { mixin(S_TRACE);
 			refMenu(MenuID.Undo);
 			refMenu(MenuID.Redo);
 		}
-		override void handleEvent(Event e) {
+		override void handleEvent(Event e) { mixin(S_TRACE);
 			auto c = cast(Control) e.widget;
 			if (!c || c.getShell() !is getShell()) return;
 			if (!isDescendant(this.outer, c)) return;
-			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) {
+			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
 				_undo.undo();
 				e.doit = false;
-			} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) {
+			} else if (eqAcc(_redoAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
 				_undo.redo();
 				e.doit = false;
 			}
@@ -828,14 +828,14 @@ private:
 	}
 	private int _undoAcc;
 	private int _redoAcc;
-	void refMenu(MenuID id) {
+	void refMenu(MenuID id) { mixin(S_TRACE);
 		if (id == MenuID.Undo) _undoAcc = convertAccelerator(_prop.buildMenu(MenuID.Undo));
 		if (id == MenuID.Redo) _redoAcc = convertAccelerator(_prop.buildMenu(MenuID.Redo));
 	}
-	void refBeast(BeastCard beast) {
+	void refBeast(BeastCard beast) { mixin(S_TRACE);
 		refBeasts();
 	}
-	void refBeasts() {
+	void refBeasts() { mixin(S_TRACE);
 		setRedraw(false);
 		scope (exit) setRedraw(true);
 		ulong selId = 0;
@@ -848,40 +848,40 @@ private:
 		_beastTbl[0] = null;
 		size_t i = 0;
 		bool has = false;
-		foreach (c; _summ.beasts) {
-			if (!has && selId == c.id) {
+		foreach (c; _summ.beasts) { mixin(S_TRACE);
+			if (!has && selId == c.id) { mixin(S_TRACE);
 				has = true;
 			}
 			if (!_beastIncSearch.match(c.name)) continue;
 			_beastTbl[i + 1] = c;
 			_beasts.add(to!string(c.id) ~ "." ~ c.name);
-			if (c.id == selId) {
+			if (c.id == selId) { mixin(S_TRACE);
 				_beasts.select(_beasts.getItemCount() - 1);
 				_selectedBeast = c;
 			}
 			i++;
 		}
-		if (!has) {
+		if (!has) { mixin(S_TRACE);
 			_beasts.select(0);
 			_selectedBeast = null;
 		}
 		refEnabled();
 	}
-	void openBeastCardView() {
+	void openBeastCardView() { mixin(S_TRACE);
 		if (!_selectedBeast) return;
-		try {
+		try { mixin(S_TRACE);
 			_comm.openCWXPath(cpaddattr(_selectedBeast.cwxPath(true), "shallow"), false);
 		} catch (Exception e) {
 			debugln(e);
 		}
 	}
 	bool _refUndo = false;
-	void refUndoMax() {
+	void refUndoMax() { mixin(S_TRACE);
 		if (!_refUndo) return;
 		_undo.max = _prop.var.etc.undoMaxEtc;
 	}
 public:
-	this (Commons comm, Props prop, Summary summ, Composite parent, int style, UndoManager undo = null) {
+	this (Commons comm, Props prop, Summary summ, Composite parent, int style, UndoManager undo = null) { mixin(S_TRACE);
 		super(parent, SWT.NONE);
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 		_readOnly = style & SWT.READ_ONLY;
@@ -894,13 +894,13 @@ public:
 		_beWin = new typeof(_beWin);
 
 		setLayout(zeroMarginGridLayout(3, false));
-		{
+		{ mixin(S_TRACE);
 			auto mtabf = new CTabFolder(this, SWT.FLAT | SWT.BORDER);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = 0;
 			gd.horizontalSpan = 3;
 			mtabf.setLayoutData(gd);
-			ToolBar createBar(string name) {
+			ToolBar createBar(string name) { mixin(S_TRACE);
 				auto bar = new ToolBar(mtabf, SWT.FLAT);
 				_comm.put(bar);
 				bar.setEnabled(!_readOnly);
@@ -920,14 +920,14 @@ public:
 				tab.setText(name);
 				return bar;
 			}
-			{
+			{ mixin(S_TRACE);
 				string g = _prop.msgs.msnGroupVitality;
 				auto bar = createBar(g);
 				createMT(this, bar, g, MType.HEAL);
 				createMT(this, bar, g, MType.DAMAGE);
 				createMT(this, bar, g, MType.ABSORB);
 			}
-			{
+			{ mixin(S_TRACE);
 				string g = _prop.msgs.msnGroupPhysical;
 				auto bar = createBar(g);
 				createMT(this, bar, g, MType.PARALYZE);
@@ -935,13 +935,13 @@ public:
 				createMT(this, bar, g, MType.POISON);
 				createMT(this, bar, g, MType.DIS_POISON);
 			}
-			{
+			{ mixin(S_TRACE);
 				string g = _prop.msgs.msnGroupSkill;
 				auto bar = createBar(g);
 				createMT(this, bar, g, MType.GET_SKILL_POWER);
 				createMT(this, bar, g, MType.LOSE_SKILL_POWER);
 			}
-			{
+			{ mixin(S_TRACE);
 				string g = _prop.msgs.msnGroupMental;
 				auto bar = createBar(g);
 				createMT(this, bar, g, MType.SLEEP);
@@ -951,7 +951,7 @@ public:
 				createMT(this, bar, g, MType.PANIC);
 				createMT(this, bar, g, MType.NORMAL);
 			}
-			{
+			{ mixin(S_TRACE);
 				string g = _prop.msgs.msnGroupMagic;
 				auto bar = createBar(g);
 				createMT(this, bar, g, MType.BIND);
@@ -963,7 +963,7 @@ public:
 				createMT(this, bar, g, MType.ANTI_MAGIC);
 				createMT(this, bar, g, MType.DIS_ANTI_MAGIC);
 			}
-			{
+			{ mixin(S_TRACE);
 				string g = _prop.msgs.msnGroupEnhance;
 				auto bar = createBar(g);
 				createMT(this, bar, g, MType.ENHANCE_ACTION);
@@ -971,14 +971,14 @@ public:
 				createMT(this, bar, g, MType.ENHANCE_DEFENSE);
 				createMT(this, bar, g, MType.ENHANCE_RESIST);
 			}
-			{
+			{ mixin(S_TRACE);
 				string g = _prop.msgs.msnGroupVanish;
 				auto bar = createBar(g);
 				createMT(this, bar, g, MType.VANISH_TARGET);
 				createMT(this, bar, g, MType.VANISH_CARD);
 				createMT(this, bar, g, MType.VANISH_BEAST);
 			}
-			{
+			{ mixin(S_TRACE);
 				string g = _prop.msgs.msnGroupCard;
 				auto bar = createBar(g);
 				createMT(this, bar, g, MType.DEAL_ATTACK_CARD);
@@ -991,14 +991,14 @@ public:
 				createMT(this, bar, g, MType.DEAL_SKILL_CARD);
 				createMT(this, bar, g, MType.CANCEL_ACTION); // CardWirthNext
 			}
-			{
+			{ mixin(S_TRACE);
 				string g = _prop.msgs.msnGroupBeast;
 				auto bar = createBar(g);
 				createMT(this, bar, g, MType.SUMMON_BEAST);
 			}
 			mtabf.setSelection(0);
 		}
-		{
+		{ mixin(S_TRACE);
 			_motions = new Table(this, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.motionsWidth;
@@ -1016,7 +1016,7 @@ public:
 			auto col = new FullTableColumn(_motions, SWT.NONE);
 			col.column.setText(_prop.msgs.motionKind);
 		}
-		{
+		{ mixin(S_TRACE);
 			_motionElm = new Table(this, SWT.BORDER | SWT.SINGLE | SWT.NO_SCROLL | SWT.FULL_SELECTION);
 			_motionElm.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			_motionElm.setHeaderVisible(true);
@@ -1026,18 +1026,18 @@ public:
 			col.column.setText(_prop.msgs.motionElement);
 			string[] toolTip;
 			foreach (i, elm; [Element.ALL, Element.HEALTH, Element.MIND,
-					Element.MIRACLE, Element.MAGIC, Element.FIRE, Element.ICE]) {
+					Element.MIRACLE, Element.MAGIC, Element.FIRE, Element.ICE]) { mixin(S_TRACE);
 				auto itm = new TableItem(_motionElm, SWT.NONE);
 				itm.setImage(_prop.images.element(elm));
 				itm.setText(_prop.msgs.elementName(elm));
 				itm.setData(new Integer(elm));
 				toolTip ~= _prop.msgs.elementDesc(elm);
 			}
-			.listener(_motionElm, SWT.MouseMove, (Event e) {
+			.listener(_motionElm, SWT.MouseMove, (Event e) { mixin(S_TRACE);
 				auto itm = _motionElm.getItem(new Point(e.x, e.y));
-				if (itm) {
+				if (itm) { mixin(S_TRACE);
 					_motionElm.setToolTipText(toolTip[_motionElm.indexOf(itm)]);
-				} else {
+				} else { mixin(S_TRACE);
 					_motionElm.setToolTipText(null);
 				}
 			});
@@ -1046,18 +1046,18 @@ public:
 			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);
 			_motionElm.setMenu(menu);
 		}
-		{
+		{ mixin(S_TRACE);
 			_editComp = new Composite(this, SWT.NONE);
 			_editComp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			auto motionStack = new StackLayout;
 			_editComp.setLayout(motionStack);
-			Composite createC() {
+			Composite createC() { mixin(S_TRACE);
 				auto c = new Composite(_editComp, SWT.NONE);
 				c.setLayout(zeroMarginGridLayout(1, false));
 				return c;
 			}
 			_summonComp = createC();
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(_summonComp, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new GridLayout(2, false));
@@ -1066,7 +1066,7 @@ public:
 				_beasts.setEnabled(!_readOnly);
 				_beasts.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_beasts.addSelectionListener(new class SelectionAdapter {
-					override void widgetSelected(SelectionEvent e) {
+					override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 						auto index = _beasts.getSelectionIndex();
 						_selectedBeast = -1 != index ? _beastTbl[index] : null;
 						_comm.refreshToolBar();
@@ -1074,7 +1074,7 @@ public:
 				});
 				_beastIncSearch = new IncSearch(_comm, _beasts);
 				_beastIncSearch.modEvent ~= &refBeasts;
-				{
+				{ mixin(S_TRACE);
 					auto menu = new Menu(_beasts.getShell(), SWT.POP_UP);
 					createMenuItem(_comm, menu, MenuID.IncSearch, &beastIncSearch, () => !_readOnly && 1 < _beasts.getItemCount());
 					new MenuItem(menu, SWT.SEPARATOR);
@@ -1091,27 +1091,27 @@ public:
 				_comm.put(setBeast, &canSetBeast);
 				_beastImg = new Canvas(grp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
 				_beastImg.addListener(SWT.Traverse, new class Listener {
-					override void handleEvent(Event e) {
+					override void handleEvent(Event e) { mixin(S_TRACE);
 						e.doit = true;
 					}
 				});
 				_beastImg.addListener(SWT.KeyDown, new class Listener {
-					override void handleEvent(Event e) {
+					override void handleEvent(Event e) { mixin(S_TRACE);
 						e.doit = true;
 					}
 				});
 				_beastImg.addListener(SWT.MouseDown, new class Listener {
-					override void handleEvent(Event e) {
+					override void handleEvent(Event e) { mixin(S_TRACE);
 						if (e.button == 1) (cast(Canvas) e.widget).setFocus();
 					}
 				});
 				_beastImg.addListener(SWT.FocusOut, new class Listener {
-					override void handleEvent(Event e) {
+					override void handleEvent(Event e) { mixin(S_TRACE);
 						(cast(Canvas) e.widget).redraw();
 					}
 				});
 				_beastImg.addListener(SWT.FocusIn, new class Listener {
-					override void handleEvent(Event e) {
+					override void handleEvent(Event e) { mixin(S_TRACE);
 						(cast(Canvas) e.widget).redraw();
 					}
 				});
@@ -1120,9 +1120,9 @@ public:
 				_beastImg.addMouseListener(eb);
 				_beastImg.addKeyListener(eb);
 				auto menu = new Menu(_beastImg);
-				if (_readOnly) {
+				if (_readOnly) { mixin(S_TRACE);
 					createMenuItem(_comm, menu, MenuID.ShowProp, &editBeastM, &canEditBeast);
-				} else {
+				} else { mixin(S_TRACE);
 					createMenuItem(_comm, menu, MenuID.EditProp, &editBeastM, &canEditBeast);
 				}
 				new MenuItem(menu, SWT.SEPARATOR);
@@ -1158,7 +1158,7 @@ public:
 				l.setText(_prop.msgs.beastMaxNest);
 				_maxNest = new Spinner(comp2, SWT.BORDER);
 				initSpinner(_maxNest);
-				.listener(_maxNest, SWT.Modify, {
+				.listener(_maxNest, SWT.Modify, { mixin(S_TRACE);
 					auto m = selection;
 					if (!m) return;
 					m.maxNest = _maxNest.getSelection();
@@ -1168,7 +1168,7 @@ public:
 				_maxNest.setMaximum(_prop.var.etc.beastMaxNest);
 			}
 			Spinner createSpinner(Composite parent, string name, int max, string hint,
-					void delegate(int) edit, int delegate(int) cancel) {
+					void delegate(int) edit, int delegate(int) cancel) { mixin(S_TRACE);
 				auto rgrp = new Group(parent, SWT.NONE);
 				rgrp.setText(name);
 				rgrp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -1184,12 +1184,12 @@ public:
 				l_round.setText(hint);
 				return round;
 			}
-			Spinner createRoundC(Composite parent) {
+			Spinner createRoundC(Composite parent) { mixin(S_TRACE);
 				return createSpinner(parent, _prop.msgs.motionRound, _prop.var.etc.roundMax,
 					.tryFormat(_prop.msgs.rangeHint, 1, _prop.var.etc.roundMax), &roundEnter, &roundCancel);
 			}
 			_abilityComp = createC();
-			{
+			{ mixin(S_TRACE);
 				auto vgrp = new Group(_abilityComp, SWT.NONE);
 				vgrp.setText(_prop.msgs.motionEnhValue);
 				vgrp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
@@ -1213,11 +1213,11 @@ public:
 				_abiRound = createRoundC(_abilityComp);
 			}
 			_roundComp = createC();
-			{
+			{ mixin(S_TRACE);
 				_rndRound = createRoundC(_roundComp);
 			}
 			_valueComp = createC();
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(_valueComp, SWT.NONE);
 				grp.setText(_prop.msgs.motionDamageType);
 				grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
@@ -1225,7 +1225,7 @@ public:
 				auto comp = new Composite(grp, SWT.NONE);
 				comp.setLayout(new GridLayout(1, false));
 				auto dtl = new DamageTypeListener;
-				foreach (typ; [DamageType.LEVEL_RATIO, DamageType.NORMAL, DamageType.MAX]) {
+				foreach (typ; [DamageType.LEVEL_RATIO, DamageType.NORMAL, DamageType.MAX]) { mixin(S_TRACE);
 					auto radio = new Button(comp, SWT.RADIO);
 					radio.setEnabled(!_readOnly);
 					radio.setText(_prop.msgs.damageTypeName(typ));
@@ -1254,12 +1254,12 @@ public:
 		_comm.refUndoMax.add(&refUndoMax);
 		getDisplay().addFilter(SWT.KeyDown, _kdFilter);
 	}
-	void refEnabled() {
+	void refEnabled() { mixin(S_TRACE);
 		auto m = selection();
 		if (_maxNest) _maxNest.setEnabled(!_readOnly && m && m.beast && 0 != m.beast.linkId);
 	}
 	@property
-	void motions(Motion[] motions) {
+	void motions(Motion[] motions) { mixin(S_TRACE);
 		bool oldVan = hasVan;
 		scope (exit) {
 			if (oldVan != hasVan) {
@@ -1268,7 +1268,7 @@ public:
 		}
 		_motions.setRedraw(false);
 		_undo.reset();
-		foreach (i, m; motions) {
+		foreach (i, m; motions) { mixin(S_TRACE);
 			appendMotion(m.dup, -1, false, false, false);
 			if (0 == i) _motions.select(0);
 		}
@@ -1278,88 +1278,88 @@ public:
 		_comm.refreshToolBar();
 	}
 	@property
-	Motion[] motions() {
+	Motion[] motions() { mixin(S_TRACE);
 		Motion[] r;
 		r.length = _motions.getItemCount();
-		foreach (i, itm; _motions.getItems()) {
+		foreach (i, itm; _motions.getItems()) { mixin(S_TRACE);
 			r[i] = cast(Motion) itm.getData();
 		}
 		return r;
 	}
 	private class MotionTCPD : TCPD {
-		override void cut(SelectionEvent se) {
+		override void cut(SelectionEvent se) { mixin(S_TRACE);
 			auto m = selection;
-			if (m) {
+			if (m) { mixin(S_TRACE);
 				copy(se);
 				del(se);
 			}
 		}
-		override void copy(SelectionEvent se) {
+		override void copy(SelectionEvent se) { mixin(S_TRACE);
 			auto m = selection;
-			if (m) {
+			if (m) { mixin(S_TRACE);
 				XMLtoCB(_prop, _comm.clipboard, m.toXML(new XMLOption(_prop.sys)));
 				_comm.refreshToolBar();
 			}
 		}
-		override void paste(SelectionEvent se) {
+		override void paste(SelectionEvent se) { mixin(S_TRACE);
 			auto xml = CBtoXML(_comm.clipboard);
-			if (xml) {
-				try {
+			if (xml) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					auto node = XNode.parse(xml);
-					if (node.name == Motion.XML_NAME) {
+					if (node.name == Motion.XML_NAME) { mixin(S_TRACE);
 						auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 						appendMotion(Motion.createFromNode(node, ver));
 						_motions.select(_motions.getItemCount() - 1);
 						refreshSels();
 						foreach (dlg; modEvent) dlg();
-					} else {
+					} else { mixin(S_TRACE);
 						pasteBeast(node);
 					}
 					_comm.refreshToolBar();
 				} catch {}
 			}
 		}
-		override void del(SelectionEvent se) {
+		override void del(SelectionEvent se) { mixin(S_TRACE);
 			removeMotion();
 		}
-		override void clone(SelectionEvent se) {
+		override void clone(SelectionEvent se) { mixin(S_TRACE);
 			_comm.clipboard.memoryMode = true;
 			scope (exit) _comm.clipboard.memoryMode = false;
 			copy(se);
 			paste(se);
 		}
 		@property
-		override bool canDoTCPD() {
+		override bool canDoTCPD() { mixin(S_TRACE);
 			return _motions.isFocusControl();
 		}
 		@property
-		override bool canDoT() {
+		override bool canDoT() { mixin(S_TRACE);
 			return !_readOnly && _motions.getSelectionIndex() >= 0;
 		}
 		@property
-		override bool canDoC() {
+		override bool canDoC() { mixin(S_TRACE);
 			return _motions.getSelectionIndex() >= 0;
 		}
 		@property
-		override bool canDoP() {
+		override bool canDoP() { mixin(S_TRACE);
 			return !_readOnly && CBisXML(_comm.clipboard);
 		}
 		@property
-		override bool canDoD() {
+		override bool canDoD() { mixin(S_TRACE);
 			return canDoT;
 		}
 		@property
-		override bool canDoClone() {
+		override bool canDoClone() { mixin(S_TRACE);
 			return !_readOnly && canDoC;
 		}
 	}
-	private void pasteBeast(ref XNode node) {
+	private void pasteBeast(ref XNode node) { mixin(S_TRACE);
 		auto m = selection;
-		if (m && m.detail.use(MArg.BEAST)) {
-			try {
+		if (m && m.detail.use(MArg.BEAST)) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
 				bool sameSc = _summ.id == node.attr("summId", false);
 				bool topLevel = node.attr!bool("topLevel", false, false);
-				if (node.name == BeastCard.XML_NAME_M) {
+				if (node.name == BeastCard.XML_NAME_M) { mixin(S_TRACE);
 					auto bNode = node.child(BeastCard.XML_NAME, false);
 					if (!bNode.valid) return;
 					storeEdit(_motions.getSelectionIndex());
@@ -1367,7 +1367,7 @@ public:
 					m.beast = null;
 					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 					auto bid = m.setBeastFromNode(bNode, ver);
-					if (bid && sameSc && topLevel && _prop.var.etc.linkCard) {
+					if (bid && sameSc && topLevel && _prop.var.etc.linkCard) { mixin(S_TRACE);
 						m.beast = new BeastCard(1UL, "", "", "");
 						m.beast.linkId = bid;
 					}
@@ -1381,18 +1381,18 @@ public:
 			}
 		}
 	}
-	private void resetMaxNest(Motion m) {
-		if (!m.beast || 0 == m.beast.linkId) {
+	private void resetMaxNest(Motion m) { mixin(S_TRACE);
+		if (!m.beast || 0 == m.beast.linkId) { mixin(S_TRACE);
 			m.maxNest = Motion.maxNest_init;
 			_maxNest.setSelection(m.maxNest);
 		}
 	}
 	private class BeastTCPD : TCPD {
-		private bool __copy() {
+		private bool __copy() { mixin(S_TRACE);
 			auto m = selection;
-			if (m) {
+			if (m) { mixin(S_TRACE);
 				assert (m.detail.use(MArg.BEAST));
-				if (m.beast) {
+				if (m.beast) { mixin(S_TRACE);
 					auto node = XNode.create(BeastCard.XML_NAME_M);
 					node.newAttr("summId", _summ.id);
 					node.newAttr("paneId", "");
@@ -1405,29 +1405,29 @@ public:
 			}
 			return false;
 		}
-		override void cut(SelectionEvent se) {
-			if (__copy()) {
+		override void cut(SelectionEvent se) { mixin(S_TRACE);
+			if (__copy()) { mixin(S_TRACE);
 				del(se);
 			}
 		}
-		override void copy(SelectionEvent se) {
+		override void copy(SelectionEvent se) { mixin(S_TRACE);
 			__copy();
 		}
-		override void paste(SelectionEvent se) {
+		override void paste(SelectionEvent se) { mixin(S_TRACE);
 			auto xml = CBtoXML(_comm.clipboard);
-			if (xml) {
-				try {
+			if (xml) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
 					auto node = XNode.parse(xml);
 					pasteBeast(node);
 					_comm.refreshToolBar();
 				} catch {}
 			}
 		}
-		override void del(SelectionEvent se) {
+		override void del(SelectionEvent se) { mixin(S_TRACE);
 			auto m = selection;
-			if (m) {
+			if (m) { mixin(S_TRACE);
 				assert (m.detail.use(MArg.BEAST));
-				if (m.beast) {
+				if (m.beast) { mixin(S_TRACE);
 					storeEdit(_motions.getSelectionIndex());
 					if (m.beast) _comm.delBeast.call(m.beast);
 					m.beast = null;
@@ -1439,59 +1439,59 @@ public:
 				}
 			}
 		}
-		override void clone(SelectionEvent se) {
+		override void clone(SelectionEvent se) { mixin(S_TRACE);
 			_comm.clipboard.memoryMode = true;
 			scope (exit) _comm.clipboard.memoryMode = false;
 			copy(se);
 			paste(se);
 		}
 		@property
-		override bool canDoTCPD() {
+		override bool canDoTCPD() { mixin(S_TRACE);
 			return _beastImg.isFocusControl();
 		}
 		@property
-		override bool canDoT() {
+		override bool canDoT() { mixin(S_TRACE);
 			return !_readOnly && selection !is null;
 		}
 		@property
-		override bool canDoC() {
+		override bool canDoC() { mixin(S_TRACE);
 			return selection !is null;
 		}
 		@property
-		override bool canDoP() {
+		override bool canDoP() { mixin(S_TRACE);
 			return !_readOnly && CBisXML(_comm.clipboard);
 		}
 		@property
-		override bool canDoD() {
+		override bool canDoD() { mixin(S_TRACE);
 			return !_readOnly && selection !is null;
 		}
 		@property
-		override bool canDoClone() {
+		override bool canDoClone() { mixin(S_TRACE);
 			return false;
 		}
 	}
-	void undo() {
+	void undo() { mixin(S_TRACE);
 		_undo.undo();
 	}
-	void redo() {
+	void redo() { mixin(S_TRACE);
 		_undo.redo();
 	}
 
-	bool openCWXPath(string path, bool shellActivate) {
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		auto cate = cpcategory(path);
-		if (cate == "motion") {
+		if (cate == "motion") { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= _motions.getItemCount()) return false;
 			_motions.select(index);
 			refreshSels();
 			path = cpbottom(path);
 			.forceFocus(_motions, shellActivate);
-			if (cpempty(path)) {
+			if (cpempty(path)) { mixin(S_TRACE);
 				_comm.refreshToolBar();
 				return true;
 			}
 			auto m = selection;
-			if (m.beast) {
+			if (m.beast) { mixin(S_TRACE);
 				switch (cpcategory(path)) {
 				case "beastcard":
 					if (0 != cpindex(path)) return false;
@@ -1502,13 +1502,13 @@ public:
 				default: return false;
 				}
 				path = cpbottom(path);
-				if ("event" == cpcategory(path)) {
+				if ("event" == cpcategory(path)) { mixin(S_TRACE);
 					auto w = openBeastEventWin(m.beast);
 					if (!w) return false;
 					_comm.refreshToolBar();
 					return w.openCWXPath(path, shellActivate);
-				} else {
-					if (cphasattr(path, "opendialog")) {
+				} else { mixin(S_TRACE);
+					if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 						auto d = editBeast();
 						if (!d) return false;
 						return d.openCWXPath(path, shellActivate);

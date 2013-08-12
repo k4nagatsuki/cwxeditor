@@ -39,11 +39,11 @@ private:
 
 	Skin _summSkin;
 	@property
-	Skin summSkin() {
+	Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
 	}
 
-	void refreshWarning() {
+	void refreshWarning() { mixin(S_TRACE);
 		// 情報カード名はメッセージに表示されないため長さ制限無し
 		string[] ws;
 
@@ -52,26 +52,26 @@ private:
 		warning = ws;
 	}
 
-	void delCard(InfoCard c) {
-		if (_card is c) {
+	void delCard(InfoCard c) { mixin(S_TRACE);
+		if (_card is c) { mixin(S_TRACE);
 			forceCancel();
 		}
 	}
-	void refScenario(Summary summ) {
+	void refScenario(Summary summ) { mixin(S_TRACE);
 		forceCancel();
 	}
-	void refSkin() {
+	void refSkin() { mixin(S_TRACE);
 		_desc.font = dwtData(_prop.looks.cardDescFont(_summ.legacy));
 	}
 	class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.delInfo.remove(&delCard);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSkin.remove(&refSkin);
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, InfoCard card, bool readOnly) {
+	this(Commons comm, Props prop, Shell shell, Summary summ, InfoCard card, bool readOnly) { mixin(S_TRACE);
 		assert (summ !is null);
 		_comm = comm;
 		_summ = summ;
@@ -85,17 +85,17 @@ public:
 	}
 
 	@property
-	InfoCard card() {
+	InfoCard card() { mixin(S_TRACE);
 		return _card;
 	}
 
-	bool openCWXPath(string path, bool shellActivate) {
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		return cpempty(path);
 	}
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(new GridLayout(1, false));
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setLayout(new GridLayout(1, false));
@@ -109,7 +109,7 @@ protected:
 			gd.widthHint = _name.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 			_name.widget.setLayoutData(gd);
 		}
-		{
+		{ mixin(S_TRACE);
 			auto skin = summSkin;
 			bool including = _card && isBinImg(_card.path);
 			_imgPath = new ImageSelect!(MtType.CARD)(area, _readOnly, _comm, _prop, _summ,
@@ -118,7 +118,7 @@ protected:
 			_imgPath.modEvent ~= &refreshWarning;
 			_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
@@ -135,25 +135,25 @@ protected:
 
 		refCard(_card);
 	}
-	private void refCard(InfoCard card) {
+	private void refCard(InfoCard card) { mixin(S_TRACE);
 		if (_card && _card !is card) return;
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		if (_card) {
+		if (_card) { mixin(S_TRACE);
 			_imgPath.image = _card.path;
 			_name.setText(_card.name);
 			_desc.setText(_card.desc);
-		} else {
+		} else { mixin(S_TRACE);
 			_imgPath.image = "";
 		}
 	}
 
-	override bool apply() {
-		if (_card) {
+	override bool apply() { mixin(S_TRACE);
+		if (_card) { mixin(S_TRACE);
 			_card.name = _name.getText();
 			_card.path = _imgPath.image;
 			_card.desc = wrapReturnCode(_desc.getText());
-		} else {
+		} else { mixin(S_TRACE);
 			_card = new InfoCard(_summ.newId!(InfoCard), _name.getText(),
 				_imgPath.image, wrapReturnCode(_desc.getText()));
 		}

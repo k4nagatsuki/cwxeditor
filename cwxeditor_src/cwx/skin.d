@@ -25,9 +25,9 @@ import std.array;
 import std.regex : regex, match;
 
 /// BgImageをBgImageSに変換する。
-BgImageS[] createBgImageSs(in BgImage[] bgs) {
+BgImageS[] createBgImageSs(in BgImage[] bgs) { mixin(S_TRACE);
 	BgImageS[] r;
-	foreach (i, bg; bgs) {
+	foreach (i, bg; bgs) { mixin(S_TRACE);
 		BgImageS s;
 		s.x = bg.x;
 		s.y = bg.y;
@@ -35,12 +35,12 @@ BgImageS[] createBgImageSs(in BgImage[] bgs) {
 		s.height = bg.height;
 		s.mask = bg.mask;
 		auto ic = cast(ImageCell) bg;
-		if (ic) {
+		if (ic) { mixin(S_TRACE);
 			s.type = "image";
 			s.name = stripExtension(ic.path);
 		}
 		auto tc = cast(TextCell) bg;
-		if (tc) {
+		if (tc) { mixin(S_TRACE);
 			s.type = "text";
 			s.text = tc.text;
 			s.fontName = tc.fontName;
@@ -56,7 +56,7 @@ BgImageS[] createBgImageSs(in BgImage[] bgs) {
 			s.borderingWidth = tc.borderingWidth;
 		}
 		auto cc = cast(ColorCell) bg;
-		if (cc) {
+		if (cc) { mixin(S_TRACE);
 			s.type = "color";
 			s.blendMode = cc.blendMode;
 			s.gradientDir = cc.gradientDir;
@@ -67,16 +67,16 @@ BgImageS[] createBgImageSs(in BgImage[] bgs) {
 	return r;
 }
 /// BgImageSをBgImageに変換する。
-BgImage[] createBgImages(in Skin skin, in BgImageS[] bgs) {
+BgImage[] createBgImages(in Skin skin, in BgImageS[] bgs) { mixin(S_TRACE);
 	BgImage[] r;
 	r.length = bgs.length;
-	foreach (i, b; bgs) {
+	foreach (i, b; bgs) { mixin(S_TRACE);
 		switch (b.type) {
 		case "image":
 			auto path = skin.findImagePath(setExtension(b.name, skin.extImage), "");
-			if (path.length) {
+			if (path.length) { mixin(S_TRACE);
 				path = abs2rel(nabs(path), skin.tableDir);
-			} else {
+			} else { mixin(S_TRACE);
 				path = setExtension(b.name, skin.extImage);
 			}
 			r[i] = new ImageCell(path, "", b.x, b.y, b.width, b.height, b.mask);
@@ -109,8 +109,8 @@ enum MaskType {
 /// シナリオの外観の情報。
 class Skin {
 	/// 設定に該当するスキンを探す。
-	static Skin find(in CProps prop, string enginePath, string type, string sPath, bool legacy, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {
-		if (legacy && !type.length) {
+	static Skin find(in CProps prop, string enginePath, string type, string sPath, bool legacy, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) { mixin(S_TRACE);
+		if (legacy && !type.length) { mixin(S_TRACE);
 			return findLegacySkin(prop, enginePath, sPath, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines);
 		}
 		static Skin[string] emptySkins;
@@ -126,26 +126,26 @@ class Skin {
 
 	private static Skin[string][string] skinTable;
 	/// スキンの一覧を返す。
-	static Skin[string] table(const(CProps) prop, string enginePath) {
-		if (!enginePath.length || !.exists(enginePath)) {
+	static Skin[string] table(const(CProps) prop, string enginePath) { mixin(S_TRACE);
+		if (!enginePath.length || !.exists(enginePath)) { mixin(S_TRACE);
 			Skin[string] tbl;
 			return tbl;
 		}
 		enginePath = nabs(enginePath);
 		auto p = enginePath in skinTable;
-		if (p) {
+		if (p) { mixin(S_TRACE);
 			return *p;
-		} else {
+		} else { mixin(S_TRACE);
 			auto skinsDir = std.path.buildPath(dirName(enginePath), buildPath("Data", "Skin"));
 			Skin[string] r;
-			if (.exists(skinsDir) && .isDir(skinsDir)) {
-				try {
-					foreach (skinDir; clistdir(skinsDir)) {
+			if (.exists(skinsDir) && .isDir(skinsDir)) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
+					foreach (skinDir; clistdir(skinsDir)) { mixin(S_TRACE);
 						skinDir = std.path.buildPath(skinsDir, skinDir);
 						if (!isDir(skinDir)) continue;
 						auto file = std.path.buildPath(skinDir, "Skin.xml");
 						if (!exists(file)) continue;
-						try {
+						try { mixin(S_TRACE);
 							auto skin = new Skin(prop, file, enginePath);
 							r[skin.type] = skin;
 						} catch (Exception e) {
@@ -161,23 +161,23 @@ class Skin {
 		}
 	}
 	/// クラシックなエンジンのスキンを返す。
-	static Skin createLegacySkin(in CProps prop, string enginePath, string lEnginePath, string dataDirName, string execute, in ClassicEngine[] cEngines) {
+	static Skin createLegacySkin(in CProps prop, string enginePath, string lEnginePath, string dataDirName, string execute, in ClassicEngine[] cEngines) { mixin(S_TRACE);
 		// 標準のスキンをベースにする
 		if (enginePath.length) enginePath = prop.toAppAbs(enginePath);
 		if (lEnginePath.length) lEnginePath = nabs(prop.toAppAbs(lEnginePath));
 		auto tbl = table(prop, enginePath);
 		auto sp = "MedievalFantasy" in tbl;
 		ClassicEngine cEngine;
-		foreach (ce; cEngines) {
-			if (cfnmatch(nabs(prop.toAppAbs(ce.enginePath)), lEnginePath)) {
+		foreach (ce; cEngines) { mixin(S_TRACE);
+			if (cfnmatch(nabs(prop.toAppAbs(ce.enginePath)), lEnginePath)) { mixin(S_TRACE);
 				cEngine = ce.dup;
 				break;
 			}
 		}
 		Skin skin;
-		if (sp) {
+		if (sp) { mixin(S_TRACE);
 			skin = new Skin(prop, sp.skinFile, enginePath);
-		} else {
+		} else { mixin(S_TRACE);
 			skin = new Skin(prop, enginePath);
 		}
 		skin.setupLegacy(lEnginePath, lEnginePath.dirName().buildPath(dataDirName), cEngine);
@@ -185,7 +185,7 @@ class Skin {
 		return skin;
 	}
 	/// クラシックなエンジンのスキンを探して返す。
-	static Skin findLegacySkin(in CProps prop, string enginePath, string sPath, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {
+	static Skin findLegacySkin(in CProps prop, string enginePath, string sPath, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) { mixin(S_TRACE);
 		string resDir, lEnginePath;
 		findLegacy(sPath, resDir, lEnginePath, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines);
 		resDir = resDir.length ? nabs(resDir) : "";
@@ -194,7 +194,7 @@ class Skin {
 		string dataDirName = resDir.length ? abs2rel(resDir, lEnginePath.dirName()) : "";
 		return createLegacySkin(prop, enginePath, lEnginePath, dataDirName, "", cEngines);
 	}
-	private void setupLegacy(string lEnginePath, string resDir, ClassicEngine cEngine) {
+	private void setupLegacy(string lEnginePath, string resDir, ClassicEngine cEngine) { mixin(S_TRACE);
 		_cEngine = cEngine;
 		_extImg = ".bmp";
 		_extBgm = ".mid";
@@ -222,11 +222,11 @@ class Skin {
 		if (!('Z' in _spChars)) _spChars['Z'] = "";
 	}
 	/// ファイルにアクセス可能か。
-	private static bool canAccess(string file) {
+	private static bool canAccess(string file) { mixin(S_TRACE);
 		version (Windows) {
 			import std.c.windows.windows;
 			immutable INVALID_FILE_ATTRIBUTES = -1;
-			if (INVALID_FILE_ATTRIBUTES == GetFileAttributesW(toUTFz!(wchar*)(file))) {
+			if (INVALID_FILE_ATTRIBUTES == GetFileAttributesW(toUTFz!(wchar*)(file))) { mixin(S_TRACE);
 				return false;
 			}
 		}
@@ -234,15 +234,15 @@ class Skin {
 	}
 	/// 指定されたディレクトリにリソースディレクトリが
 	/// 含まれていればディレクトリ名を返す。
-	static string findResDir(string path, string classicDataDirRegex, string classicMatchKey) {
+	static string findResDir(string path, string classicDataDirRegex, string classicMatchKey) { mixin(S_TRACE);
 		auto p = path;
 		auto regDir = .regex(to!dstring(classicDataDirRegex), 0 == filenameCharCmp('A', 'a') ? "i" : "");
-		foreach (dir; clistdir(path)) {
+		foreach (dir; clistdir(path)) { mixin(S_TRACE);
 			auto pd = path.buildPath(dir);
 			if (!canAccess(pd)) continue;
-			try {
-				if (.isDir(pd)) {
-					if (!to!dstring(dir).match(regDir).empty && pd.buildPath(classicMatchKey).exists()) {
+			try { mixin(S_TRACE);
+				if (.isDir(pd)) { mixin(S_TRACE);
+					if (!to!dstring(dir).match(regDir).empty && pd.buildPath(classicMatchKey).exists()) { mixin(S_TRACE);
 						return dir;
 					}
 				}
@@ -254,12 +254,12 @@ class Skin {
 	}
 	/// 指定されたディレクトリにクラシックエンジンとリソースディレクトリが
 	/// 含まれていればtrueを返す。
-	static bool hasClassicEngine(string path, out string resDir, out string enginePath, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {
-		foreach (cEngine; cEngines) {
+	static bool hasClassicEngine(string path, out string resDir, out string enginePath, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) { mixin(S_TRACE);
+		foreach (cEngine; cEngines) { mixin(S_TRACE);
 			string e = cEngine.enginePath.baseName();
-			if (.isAbsolute(cEngine.dataDirName) ? true : .exists(path.buildPath(cEngine.dataDirName))) {
+			if (.isAbsolute(cEngine.dataDirName) ? true : .exists(path.buildPath(cEngine.dataDirName))) { mixin(S_TRACE);
 				auto p = path.buildPath(e);
-				if (p.exists()) {
+				if (p.exists()) { mixin(S_TRACE);
 					enginePath = p;
 					resDir = path.buildPath(cEngine.dataDirName);
 					return true;
@@ -272,11 +272,11 @@ class Skin {
 
 		auto regExe = .regex(to!dstring(classicEngineRegex), 0 == filenameCharCmp('A', 'a') ? "i" : "");
 
-		foreach (file; clistdir(path)) {
+		foreach (file; clistdir(path)) { mixin(S_TRACE);
 			string p = path.buildPath(file);
 			if (!canAccess(p)) continue;
-			try {
-				if (!.isDir(p) && !to!dstring(file).match(regExe).empty) {
+			try { mixin(S_TRACE);
+				if (!.isDir(p) && !to!dstring(file).match(regExe).empty) { mixin(S_TRACE);
 					enginePath = p;
 					return true;
 				}
@@ -292,12 +292,12 @@ class Skin {
 
 	/// 指定されたシナリオが属すCardWirthを検索し、
 	/// そのリソースディレクトリとエンジンのパスを返す。
-	static bool findLegacy(string scPath, out string resDir, out string enginePath, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) {
+	static bool findLegacy(string scPath, out string resDir, out string enginePath, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) { mixin(S_TRACE);
 		auto path = dirName(scPath);
-		while (!hasClassicEngine(path, resDir, enginePath, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines)) {
+		while (!hasClassicEngine(path, resDir, enginePath, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines)) { mixin(S_TRACE);
 			auto old = path;
 			path = dirName(path);
-			if (old == path) {
+			if (old == path) { mixin(S_TRACE);
 				resDir ="";
 				enginePath = "";
 				return false;
@@ -306,12 +306,12 @@ class Skin {
 		return true;
 	}
 	/// 指定されたシナリオが属すCardWirthPyを検索し、そのパスを返す。
-	static string findCardWirthPy(string scPath, string exeName, string dataName) {
+	static string findCardWirthPy(string scPath, string exeName, string dataName) { mixin(S_TRACE);
 		auto path = dirName(scPath);
-		while (!path.buildPath(exeName).exists() || !path.buildPath(dataName).exists()) {
+		while (!path.buildPath(exeName).exists() || !path.buildPath(dataName).exists()) { mixin(S_TRACE);
 			auto old = path;
 			path = dirName(path);
-			if (old == path) {
+			if (old == path) { mixin(S_TRACE);
 				return "";
 			}
 		}
@@ -343,13 +343,13 @@ class Skin {
 	private Race[] _races;
 
 	/// 空のスキンを生成する。
-	this (const(CProps) prop, string enginePath) {
+	this (const(CProps) prop, string enginePath) { mixin(S_TRACE);
 		_prop = prop;
 		_enginePath = enginePath;
 	}
-	private this (const(CProps) prop, string skinFile, string enginePath) {
+	private this (const(CProps) prop, string skinFile, string enginePath) { mixin(S_TRACE);
 		this (prop, enginePath);
-		if (skinFile.length) {
+		if (skinFile.length) { mixin(S_TRACE);
 			loadFromXML(skinFile, new XMLInfo(prop.sys, LATEST_VERSION));
 		}
 	}
@@ -365,80 +365,80 @@ class Skin {
 
 	/// リソース画像のパス。
 	const
-	string resSummary(out MaskType maskType) {
+	string resSummary(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(tableDir, setExtension("Bill", _legacyPath.length ? extImage : resExtImage));
 	}
 	/// ditto
 	const
-	string resMenuCard(out MaskType maskType) {
+	string resMenuCard(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "NORMAL"), resExtImage));
 	}
 
 	/// ditto
 	const
-	string resCastCard(out MaskType maskType) {
+	string resCastCard(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "LARGE"), resExtImage));
 	}
 	/// ditto
 	const
-	string resCastCardInjury(out MaskType maskType) {
+	string resCastCardInjury(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "INJURY"), resExtImage));
 	}
 	/// ditto
 	const
-	string resCastCardDanger(out MaskType maskType) {
+	string resCastCardDanger(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "DANGER"), resExtImage));
 	}
 	/// ditto
 	const
-	string resCastCardFaint(out MaskType maskType) {
+	string resCastCardFaint(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "FAINT"), resExtImage));
 	}
 	/// ditto
 	const
-	string resCastCardBind(out MaskType maskType) {
+	string resCastCardBind(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "BIND"), resExtImage));
 	}
 	/// ditto
 	const
-	string resCastCardParaly(out MaskType maskType) {
+	string resCastCardParaly(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "PARALY"), resExtImage));
 	}
 	/// ditto
 	const
-	string resCastCardPetrif(out MaskType maskType) {
+	string resCastCardPetrif(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "PETRIF"), resExtImage));
 	}
 	/// ditto
 	const
-	string resCastCardSleep(out MaskType maskType) {
+	string resCastCardSleep(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "SLEEP"), resExtImage));
 	}
 	/// ditto
 	const
-	string resLifeBar(out MaskType maskType) {
+	string resLifeBar(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("Status", "LIFEBAR"), resExtImage));
 	}
 	/// ditto
 	const
-	string resLifeGuage(out MaskType maskType) {
+	string resLifeGuage(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("Status", "LIFEGUAGE"), resExtImage));
 	}
 	/// ditto
 	const
-	string resEnhanceUp(out MaskType maskType, Enhance enh) {
+	string resEnhanceUp(out MaskType maskType, Enhance enh) { mixin(S_TRACE);
 		maskType = MaskType.Mask1_1;
 		switch (enh) {
 		case Enhance.ACTION: return buildPath(resourceDir, setExtension(buildPath("Status", "UP0"), resExtImage));
@@ -450,7 +450,7 @@ class Skin {
 	}
 	/// ditto
 	const
-	string resEnhanceDown(out MaskType maskType, Enhance enh) {
+	string resEnhanceDown(out MaskType maskType, Enhance enh) { mixin(S_TRACE);
 		maskType = MaskType.Mask1_1;
 		switch (enh) {
 		case Enhance.ACTION: return buildPath(resourceDir, setExtension(buildPath("Status", "DOWN0"), resExtImage));
@@ -462,7 +462,7 @@ class Skin {
 	}
 	/// ditto
 	const
-	string resMentality(out MaskType maskType, Mentality mtly) {
+	string resMentality(out MaskType maskType, Mentality mtly) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		switch (mtly) {
 		case Mentality.NORMAL: return buildPath(resourceDir, setExtension(buildPath("Status", "MIND0"), resExtImage));
@@ -476,146 +476,146 @@ class Skin {
 	}
 	/// ditto
 	const
-	string resBind(out MaskType maskType) {
+	string resBind(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC0"), resExtImage));
 	}
 	/// ditto
 	const
-	string resSilence(out MaskType maskType) {
+	string resSilence(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC1"), resExtImage));
 	}
 	/// ditto
 	const
-	string resFaceUp(out MaskType maskType) {
+	string resFaceUp(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC2"), resExtImage));
 	}
 	/// ditto
 	const
-	string resAntiMagic(out MaskType maskType) {
+	string resAntiMagic(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("Status", "MAGIC3"), resExtImage));
 	}
 	/// ditto
 	const
-	string resParalyze(out MaskType maskType) {
+	string resParalyze(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("Status", "BODY1"), resExtImage));
 	}
 	/// ditto
 	const
-	string resPoison(out MaskType maskType) {
+	string resPoison(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("Status", "BODY0"), resExtImage));
 	}
 	/// ditto
 	const
-	string resSummon(out MaskType maskType) {
+	string resSummon(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("Status", "SUMMON"), resExtImage));
 	}
 
 	/// ditto
 	const
-	string resItemCard(out MaskType maskType) {
+	string resItemCard(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "ITEM"), resExtImage));
 	}
 	/// ditto
 	const
-	string resSkillCard(out MaskType maskType) {
+	string resSkillCard(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "SKILL"), resExtImage));
 	}
 	/// ditto
 	const
-	string resBeastCard(out MaskType maskType) {
+	string resBeastCard(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "BEAST"), resExtImage));
 	}
 	/// ditto
 	const
-	string resInfoCard(out MaskType maskType) {
+	string resInfoCard(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "INFO"), resExtImage));
 	}
 	/// ditto
 	const
-	string resCardHold(out MaskType maskType) {
+	string resCardHold(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "HOLD"), resExtImage));
 	}
 	/// ditto
 	const
-	string resCardPenalty(out MaskType maskType) {
+	string resCardPenalty(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "PENALTY"), resExtImage));
 	}
 	/// ditto
 	const
-	string resRare(out MaskType maskType) {
+	string resRare(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.RightMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "RARE"), resExtImage));
 	}
 	/// ditto
 	const
-	string resPremier(out MaskType maskType) {
+	string resPremier(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.RightMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "PREMIER"), resExtImage));
 	}
 	/// ditto
 	const
-	string resAptVeryHigh(out MaskType maskType) {
+	string resAptVeryHigh(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND3"), resExtImage));
 	}
 	/// ditto
 	const
-	string resAptHigh(out MaskType maskType) {
+	string resAptHigh(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND2"), resExtImage));
 	}
 	/// ditto
 	const
-	string resAptNormal(out MaskType maskType) {
+	string resAptNormal(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND1"), resExtImage));
 	}
 	/// ditto
 	const
-	string resAptLow(out MaskType maskType) {
+	string resAptLow(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND0"), resExtImage));
 	}
 	/// ditto
 	const
-	string resUse0(out MaskType maskType) {
+	string resUse0(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND5"), resExtImage));
 	}
 	/// ditto
 	const
-	string resUse1(out MaskType maskType) {
+	string resUse1(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND6"), resExtImage));
 	}
 	/// ditto
 	const
-	string resUse2(out MaskType maskType) {
+	string resUse2(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND7"), resExtImage));
 	}
 	/// ditto
 	const
-	string resUse3(out MaskType maskType) {
+	string resUse3(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND8"), resExtImage));
 	}
 	/// ditto
 	const
-	string resUse4(out MaskType maskType) {
+	string resUse4(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NormalMask;
 		return buildPath(resourceDir, setExtension(buildPath("Stone", "HAND9"), resExtImage));
 	}
@@ -625,10 +625,10 @@ class Skin {
 	/// 属すと思われるパスを返す。
 	@property
 	const
-	string engine() {
-		if (_legacyEngine.length) {
+	string engine() { mixin(S_TRACE);
+		if (_legacyEngine.length) { mixin(S_TRACE);
 			return legacyEngine();
-		} else {
+		} else { mixin(S_TRACE);
 			return _enginePath;
 		}
 	}
@@ -637,7 +637,7 @@ class Skin {
 	/// 所属エンジンが無いか、クラシックでないシナリオの編集中であれば""を返す。
 	@property
 	const
-	string legacyEngine() {
+	string legacyEngine() { mixin(S_TRACE);
 		if (!_legacyEngine.length) return "";
 		return _legacyEngine;
 	}
@@ -645,13 +645,13 @@ class Skin {
 	/// エンジンを実行する際のパス。
 	@property
 	const
-	string executeEngine() {
-		if (_legacyEngine.length) {
-			if (_execute.length) {
+	string executeEngine() { mixin(S_TRACE);
+		if (_legacyEngine.length) { mixin(S_TRACE);
+			if (_execute.length) { mixin(S_TRACE);
 				return _legacyEngine.dirName().buildPath(_execute);
 			}
 			return legacyEngine();
-		} else {
+		} else { mixin(S_TRACE);
 			return _enginePath;
 		}
 	}
@@ -674,20 +674,20 @@ class Skin {
 
 	/// エンジンの設定を読み込んで返す。
 	const
-	string[string] loadEngineSettings() {
+	string[string] loadEngineSettings() { mixin(S_TRACE);
 		typeof(return) r;
-		if (_legacyEngine.length) {
+		if (_legacyEngine.length) { mixin(S_TRACE);
 			auto ini = _legacyEngine.dirName().buildPath("cwex.ini");
 			if (!ini.exists()) return r;
 			string iniText;
-			try {
+			try { mixin(S_TRACE);
 				iniText = std.file.readText(ini);
 			} catch (UTFException e) {
 				// ここではMS932を想定
 				iniText = .touni(cast(char[])readBinary(ini));
 			}
 			/// UTF-8とは限らないため、バイナリで読み込む
-			foreach (line; iniText.splitLines()) {
+			foreach (line; iniText.splitLines()) { mixin(S_TRACE);
 				auto ln = line.split("=");
 				if (2 != ln.length) continue;
 				auto key = ln[0].strip();
@@ -701,7 +701,7 @@ class Skin {
 	/// エンジン内のリソースを使用している場合はtrue。
 	@property
 	const
-	bool useLegacyRes() {
+	bool useLegacyRes() { mixin(S_TRACE);
 		version (Windows) {
 			return legacyEngine.length > 0;
 		}
@@ -711,7 +711,7 @@ class Skin {
 	/// シナリオの素材を置くディレクトリの標準。シナリオのルートからの相対パス。
 	@property
 	const
-	string materialPath() {
+	string materialPath() { mixin(S_TRACE);
 		return legacy ? "" : "Material";
 	}
 
@@ -720,15 +720,15 @@ class Skin {
 	/// checkをtrueにすると、ファイルの存在と内容をチェックする。
 	/// (現行バージョンでは内容チェックは背景イメージのみ)
 	const
-	bool isMaterial(string path, bool check = false) {
+	bool isMaterial(string path, bool check = false) { mixin(S_TRACE);
 		return isSE(path, check) || isBGM(path, check) || isBgImage(path, check);
 	}
 
 	/// pathが効果音として使用可能か。
 	const
-	bool isSE(string path, bool check = false) {
+	bool isSE(string path, bool check = false) { mixin(S_TRACE);
 		auto ext = .toLower(.extension(path));
-		if (legacy) {
+		if (legacy) { mixin(S_TRACE);
 			switch (ext) {
 			case ".mp3": // MP3
 			case ".ogg", ".ogv", ".oga", ".ogx": // Ogg
@@ -752,12 +752,12 @@ class Skin {
 		}
 	}
 	/// pathを使用する際の警告(一部環境で再生不可等)。
-	static string[] warningSE(in CProps prop, string path, bool legacy, string targVer) {
+	static string[] warningSE(in CProps prop, string path, bool legacy, string targVer) { mixin(S_TRACE);
 		auto ext = .toLower(.extension(path));
-		if (legacy) {
+		if (legacy) { mixin(S_TRACE);
 			switch (ext) {
 			case ".ogg", ".ogv", ".oga", ".ogx": // Ogg
-				if (!prop.targetVersion("1.50", targVer)) {
+				if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 					return [prop.msgs.oggMayNotCorrespond];
 				}
 				break;
@@ -769,9 +769,9 @@ class Skin {
 	}
 	/// pathがBGMとして使用可能か。
 	const
-	bool isBGM(string path, bool check = false) {
+	bool isBGM(string path, bool check = false) { mixin(S_TRACE);
 		auto ext = .toLower(.extension(path));
-		if (legacy) {
+		if (legacy) { mixin(S_TRACE);
 			switch (ext) {
 			case ".mid", ".midi": // MIDI
 			case ".mp3": // MP3
@@ -798,17 +798,17 @@ class Skin {
 		}
 	}
 	/// pathを使用する際の警告(一部環境で再生不可等)。
-	static string[] warningBGM(in CProps prop, string path, bool legacy, string targVer) {
+	static string[] warningBGM(in CProps prop, string path, bool legacy, string targVer) { mixin(S_TRACE);
 		auto ext = .toLower(.extension(path));
-		if (legacy) {
+		if (legacy) { mixin(S_TRACE);
 			switch (ext) {
 			case ".mp3": // MP3
-				if (!prop.targetVersion("1.29", targVer)) {
+				if (!prop.targetVersion("1.29", targVer)) { mixin(S_TRACE);
 					return [prop.msgs.mp3LoopMayNotCorrespond];
 				}
 				break;
 			case ".ogg", ".ogv", ".oga", ".ogx": // Ogg
-				if (!prop.targetVersion("1.50", targVer)) {
+				if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 					return [prop.msgs.oggMayNotCorrespond];
 				}
 				break;
@@ -820,14 +820,14 @@ class Skin {
 	}
 	/// pathがカード画像として使用可能か。
 	const
-	bool isCardImage(string path, bool ignoreSize) {
+	bool isCardImage(string path, bool ignoreSize) { mixin(S_TRACE);
 		if (isBinImg(path)) return true;
 		auto ext = .toLower(.extension(path));
-		if (legacy && ext != ".bmp" && ext != ".png" && ext != ".gif") {
+		if (legacy && ext != ".bmp" && ext != ".png" && ext != ".gif") { mixin(S_TRACE);
 			return false;
 		}
 		if (ignoreSize) return true;
-		try {
+		try { mixin(S_TRACE);
 			uint x, y;
 			return imageSize(path, x, y)
 				&& x == _prop.looks.cardSize.width && y == _prop.looks.cardSize.height;
@@ -838,45 +838,45 @@ class Skin {
 
 	/// pathが背景画像として使用可能か。
 	const
-	bool isBgImage(string path, bool check = false) {
+	bool isBgImage(string path, bool check = false) { mixin(S_TRACE);
 		auto ext = .toLower(.extension(path));
 		if (ext == ".jpy1"
 				|| ext == ".jptx"
-				|| ext == ".jpdc") {
+				|| ext == ".jpdc") { mixin(S_TRACE);
 			return true;
 		}
 		if (legacy && ext != ".bmp"
 				&& ext != ".jpg"
 				&& ext != ".jpeg"
 				&& ext != ".png"
-				&& ext != ".gif") {
+				&& ext != ".gif") { mixin(S_TRACE);
 			return false;
 		}
-		if (check) {
-			try {
+		if (check) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
 				uint x, y;
 				return imageSize(path, x, y);
 			} catch (Exception e) {
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			return isImageExt(path);
 		}
 		return false;
 	}
 	/// pathを使用する際の警告(一部環境で表示不可等)。
-	static string[] warningImage(in CProps prop, string path, bool legacy, string targVer) {
+	static string[] warningImage(in CProps prop, string path, bool legacy, string targVer) { mixin(S_TRACE);
 		auto ext = .toLower(.extension(path));
-		if (legacy) {
+		if (legacy) { mixin(S_TRACE);
 			switch (ext) {
 			case ".png": // PNG
 				// FIXME: 少なくとも1.50までは使用不可
-/+				if (!prop.targetVersion("1.50", targVer)) {
+/+				if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 +/					return [prop.msgs.pngMayNotCorrespond];
 /+				}
 +/				break;
 			case ".gif": // GIF
 				// FIXME: 少なくとも1.50までは使用不可
-/+				if (!prop.targetVersion("1.50", targVer)) {
+/+				if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 +/					return [prop.msgs.gifMayNotCorrespond];
 /+				}
 +/				break;
@@ -893,8 +893,8 @@ class Skin {
 	const(string[dchar]) spChars() {return _spChars;}
 
 	const
-	private bool has(alias isT, Arg ...)(string dir, Arg args) {
-		foreach (file; clistdir(dir)) {
+	private bool has(alias isT, Arg ...)(string dir, Arg args) { mixin(S_TRACE);
+		foreach (file; clistdir(dir)) { mixin(S_TRACE);
 			if (isT(std.path.buildPath(dir, file), args)) return true;
 		}
 		return false;
@@ -914,36 +914,36 @@ class Skin {
 	bool hasSE(string dir) {return has!(isSE)(dir);}
 
 	const
-	private string[] list(alias isT, bool UseFlag = false)(string dir, bool logicalSort, bool forceRefresh, bool flag) {
-		synchronized {
+	private string[] list(alias isT, bool UseFlag = false)(string dir, bool logicalSort, bool forceRefresh, bool flag) { mixin(S_TRACE);
+		synchronized { mixin(S_TRACE);
 			static struct Files {
 				bool logicalSort;
 				bool flag;
 				string[] files;
 			}
 			mixin FileCache!(Files);
-			if (!forceRefresh) {
+			if (!forceRefresh) { mixin(S_TRACE);
 				auto ca = cache(dir);
-				if (ca && ca.value.logicalSort == logicalSort && ca.value.flag == flag) {
+				if (ca && ca.value.logicalSort == logicalSort && ca.value.flag == flag) { mixin(S_TRACE);
 					return ca.value.files;
 				}
 			}
 			string[] r;
-			foreach (fp; clistdir(dir)) {
+			foreach (fp; clistdir(dir)) { mixin(S_TRACE);
 				fp = std.path.buildPath(dir, fp);
 				static if (UseFlag) {
-					if (isT(fp, flag)) {
+					if (isT(fp, flag)) { mixin(S_TRACE);
 						r ~= baseName(fp);
 					}
-				} else {
-					if (isT(fp)) {
+				} else { mixin(S_TRACE);
+					if (isT(fp)) { mixin(S_TRACE);
 						r ~= baseName(fp);
 					}
 				}
 			}
-			if (logicalSort) {
+			if (logicalSort) { mixin(S_TRACE);
 				r = sort!(fnncmp)(r);
-			} else {
+			} else { mixin(S_TRACE);
 				r = sort!(fncmp)(r);
 			}
 			putCache(dir, Files(logicalSort, flag, r));
@@ -982,8 +982,8 @@ class Skin {
 	/// 標準素材ディレクトリのルート。
 	@property
 	const
-	string resDir() {
-		if (_legacyPath.length) {
+	string resDir() { mixin(S_TRACE);
+		if (_legacyPath.length) { mixin(S_TRACE);
 			return _legacyPath;
 		}
 		return _path;
@@ -991,8 +991,8 @@ class Skin {
 	/// 標準の背景画像のディレクトリ。
 	@property
 	const
-	string tableDir() {
-		if (_legacyPath.length) {
+	string tableDir() { mixin(S_TRACE);
+		if (_legacyPath.length) { mixin(S_TRACE);
 			return std.path.buildPath(_legacyPath, "Table");
 		}
 		return std.path.buildPath(_path, "Table");
@@ -1000,8 +1000,8 @@ class Skin {
 	/// 標準のBGMのディレクトリ。
 	@property
 	const
-	string bgmDir() {
-		if (_legacyPath.length) {
+	string bgmDir() { mixin(S_TRACE);
+		if (_legacyPath.length) { mixin(S_TRACE);
 			return std.path.buildPath(_legacyPath, "Midi");
 		}
 		return std.path.buildPath(_path, "Bgm");
@@ -1009,8 +1009,8 @@ class Skin {
 	/// 標準のSEのディレクトリ。
 	@property
 	const
-	string seDir() {
-		if (_legacyPath.length) {
+	string seDir() { mixin(S_TRACE);
+		if (_legacyPath.length) { mixin(S_TRACE);
 			return std.path.buildPath(_legacyPath, "Wave");
 		}
 		return std.path.buildPath(_path, "Sound");
@@ -1018,7 +1018,7 @@ class Skin {
 	/// その他リソースのディレクトリ。
 	@property
 	const
-	string resourceDir() {
+	string resourceDir() { mixin(S_TRACE);
 		return std.path.buildPath(_path, buildPath("Resource", "Image"));
 	}
 
@@ -1041,7 +1041,7 @@ class Skin {
 
 	/// 種族。
 	@property
-	Race[] races() {
+	Race[] races() { mixin(S_TRACE);
 		return _races.dup;
 	}
 
@@ -1062,46 +1062,46 @@ class Skin {
 	///       本体の付属ディレクトリ内であればtrueが入る。
 	/// Returns: ファイルパス。見つからなかった場合は""。
 	const
-	string findImagePathF(string path, string sPath, out bool def) {
+	string findImagePathF(string path, string sPath, out bool def) { mixin(S_TRACE);
 		def = false;
 		return findPathF(path, extImage, tableDir, sPath, def);
 	}
 	/// ditto
 	const
-	string findImagePath(string path, string sPath) {
+	string findImagePath(string path, string sPath) { mixin(S_TRACE);
 		bool dummy;
 		return findImagePathF(path, sPath, dummy);
 	}
 	/// ditto
 	const
-	string findPathF(string path, string ext, string defDir, string sPath, out bool def) {
+	string findPathF(string path, string ext, string defDir, string sPath, out bool def) { mixin(S_TRACE);
 		def = false;
 		if (path.length == 0) return "";
 		if (isBinImg(path)) return path;
 		string p;
-		if (sPath && sPath.length) {
+		if (sPath && sPath.length) { mixin(S_TRACE);
 			p = std.path.buildPath(sPath, path);
-			if (exists(p)) {
+			if (exists(p)) { mixin(S_TRACE);
 				return p;
 			}
 		}
 		def = true;
 		p = std.path.buildPath(defDir, baseName(path));
-		if (exists(p)) {
+		if (exists(p)) { mixin(S_TRACE);
 			return p;
 		}
-		if (!legacy) {
-			string f(string ext) {
+		if (!legacy) { mixin(S_TRACE);
+			string f(string ext) { mixin(S_TRACE);
 				p = setExtension(p, ext);
 				return exists(p) ? p : "";
 			}
 			string r = f(ext);
 			if (r.length) return r;
-			if (cfnmatch(ext, _extImg)) {
+			if (cfnmatch(ext, _extImg)) { mixin(S_TRACE);
 				return f(_resExtImg);
-			} else if (cfnmatch(ext, _extBgm)) {
+			} else if (cfnmatch(ext, _extBgm)) { mixin(S_TRACE);
 				return f(_resExtBgm);
-			} else if (cfnmatch(ext, _extSound)) {
+			} else if (cfnmatch(ext, _extSound)) { mixin(S_TRACE);
 				return f(_resExtSound);
 			}
 		}
@@ -1109,7 +1109,7 @@ class Skin {
 	}
 	/// ditto
 	const
-	string findPath(string path, string ext, string defDir, string sPath) {
+	string findPath(string path, string ext, string defDir, string sPath) { mixin(S_TRACE);
 		bool dummy;
 		return findPathF(path, ext, defDir, sPath, dummy);
 	}
@@ -1121,27 +1121,27 @@ class Skin {
 
 	/// このスキンでの特徴の名前を返す。
 	const
-	string sexName(Sex e) {
+	string sexName(Sex e) { mixin(S_TRACE);
 		return _cEngine.sexName.get(_prop.sys.sexName(e, ""), _prop.sys.sexName(e, legacyName));
 	}
 	/// ditto
 	const
-	string periodName(Period e) {
+	string periodName(Period e) { mixin(S_TRACE);
 		return _cEngine.periodName.get(_prop.sys.periodName(e, ""), _prop.sys.periodName(e, legacyName));
 	}
 	/// ditto
 	const
-	string natureName(Nature e) {
+	string natureName(Nature e) { mixin(S_TRACE);
 		return _cEngine.natureName.get(_prop.sys.natureName(e, ""), _prop.sys.natureName(e, legacyName));
 	}
 	/// ditto
 	const
-	string makingsName(Makings e) {
+	string makingsName(Makings e) { mixin(S_TRACE);
 		return _cEngine.makingsName.get(_prop.sys.makingsName(e, ""), _prop.sys.makingsName(e, legacyName));
 	}
 	/// ditto
 	const
-	string featureName(E)(E e) {
+	string featureName(E)(E e) { mixin(S_TRACE);
 		static if (is(E:Sex)) {
 			return sexName(e);
 		} else static if (is(E:Period)) {
@@ -1155,28 +1155,28 @@ class Skin {
 
 	/// このスキンでの特徴のクーポンを返す。
 	const
-	string sexCoupon(Sex e) {
+	string sexCoupon(Sex e) { mixin(S_TRACE);
 		return _prop.sys.convCoupon(sexName(e), CouponType.Hide, false);
 	}
 	/// ditto
 	const
-	string periodCoupon(Period e) {
+	string periodCoupon(Period e) { mixin(S_TRACE);
 		return _prop.sys.convCoupon(periodName(e), CouponType.Hide, false);
 	}
 	/// ditto
 	const
-	string natureCoupon(Nature e) {
+	string natureCoupon(Nature e) { mixin(S_TRACE);
 		return _prop.sys.convCoupon(natureName(e), CouponType.Hide, false);
 	}
 	/// ditto
 	const
-	string makingsCoupon(Makings e) {
+	string makingsCoupon(Makings e) { mixin(S_TRACE);
 		return _prop.sys.convCoupon(makingsName(e), CouponType.Hide, false);
 	}
 
 	/// 特徴の能力修正値を返す。
 	const
-	int physicalMod(E)(E e, Physical phy) {
+	int physicalMod(E)(E e, Physical phy) { mixin(S_TRACE);
 		static if (is(E:Sex)) {
 			auto arr = _cEngine.physicalModSex;
 		} else static if (is(E:Period)) {
@@ -1187,8 +1187,8 @@ class Skin {
 			auto arr = _cEngine.physicalModMakings;
 		} else static assert (0);
 
-		if (auto p1 = (e in arr)) {
-			if (auto p2 = (phy in *p1)) {
+		if (auto p1 = (e in arr)) { mixin(S_TRACE);
+			if (auto p2 = (phy in *p1)) { mixin(S_TRACE);
 				return *p2;
 			}
 		}
@@ -1198,7 +1198,7 @@ class Skin {
 	}
 	/// ditto
 	const
-	real mentalMod(E)(E e, Mental mtl) {
+	real mentalMod(E)(E e, Mental mtl) { mixin(S_TRACE);
 		switch (mtl) {
 		case Mental.UNAGGRESSIVE, Mental.UNCHEERFUL, Mental.UNBRAVE,
 				Mental.UNCAUTIOUS, Mental.UNTRICKISH:
@@ -1216,8 +1216,8 @@ class Skin {
 			auto arr = _cEngine.mentalModMakings;
 		} else static assert (0);
 
-		if (auto p1 = (e in arr)) {
-			if (auto p2 = (mtl in *p1)) {
+		if (auto p1 = (e in arr)) { mixin(S_TRACE);
+			if (auto p2 = (mtl in *p1)) { mixin(S_TRACE);
 				return *p2;
 			}
 		}
@@ -1227,19 +1227,19 @@ class Skin {
 	}
 
 	/// XMLファイルからスキンデータをロードする。
-	void loadFromXML(string fname, in XMLInfo ver) {
-		try {
+	void loadFromXML(string fname, in XMLInfo ver) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			_path = dirName(fname);
 			_skinFile = fname;
 			scope sNode = XNode.parse(std.file.readText(fname));
 			_races.length = 0;
-			sNode.onTag["Property"] = (ref XNode pNode) {
+			sNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 				pNode.onTag["Name"] = (ref XNode n) {_name = n.value;};
 				pNode.onTag["Type"] = (ref XNode n) {_type = n.value;};
 				pNode.onTag["Author"] = (ref XNode n) {_author = n.value;};
 				pNode.onTag["Description"] = (ref XNode n) {_desc = n.value;};
-				pNode.onTag["Extension"] = (ref XNode n) {
-					void readExt(string name, ref string ext1, ref string ext2) {
+				pNode.onTag["Extension"] = (ref XNode n) { mixin(S_TRACE);
+					void readExt(string name, ref string ext1, ref string ext2) { mixin(S_TRACE);
 						string ext = n.attr(name, false);
 						if (!ext && !ext.length) return;
 						if (ext[0] != '.') ext = "." ~ ext;
@@ -1252,8 +1252,8 @@ class Skin {
 				};
 				pNode.parse();
 			};
-			sNode.onTag["Races"] = (ref XNode node) {
-				node.onTag["Race"] = (ref XNode node) {
+			sNode.onTag["Races"] = (ref XNode node) { mixin(S_TRACE);
+				node.onTag["Race"] = (ref XNode node) { mixin(S_TRACE);
 					_races ~= Race.fromNode(node, ver);
 				};
 				node.parse();
@@ -1262,9 +1262,9 @@ class Skin {
 			typeof(_spChars) spCharsInit;
 			_spChars = spCharsInit;
 			auto fd = std.path.buildPath(resourceDir, "Font");
-			foreach (path; clistdir(fd)) {
+			foreach (path; clistdir(fd)) { mixin(S_TRACE);
 				path = std.path.buildPath(fd, path);
-				if (!isDir(path) && cfnmatch(.extension(path), _resExtImg)) {
+				if (!isDir(path) && cfnmatch(.extension(path), _resExtImg)) { mixin(S_TRACE);
 					auto dp = toUTF32(stripExtension(baseName(path)));
 					auto c = std.uni.toUpper(dp[0]);
 					switch (c) {

@@ -61,12 +61,12 @@ private:
 	Button[Mental] _mtl;
 	static if (is (C == SkillCard)) {
 		Spinner _level;
-		void calcPrice(int value) {
+		void calcPrice(int value) { mixin(S_TRACE);
 			_price.setMinimum(_prop.looks.skillPrice(value));
 			_price.setMaximum(_prop.looks.skillPrice(value));
 			_price.setSelection(_prop.looks.skillPrice(value));
 		}
-		int priceCancel(int oldVal) {
+		int priceCancel(int oldVal) { mixin(S_TRACE);
 			calcPrice(oldVal);
 			return oldVal;
 		}
@@ -76,9 +76,9 @@ private:
 		static if (SetUseCountCur) {
 			Spinner _useCountCur;
 			Button _useCountIsMax;
-			void updateUseLimitMax() {
+			void updateUseLimitMax() { mixin(S_TRACE);
 				_useCountCur.setMaximum(_useCount.getSelection());
-				if (_useCountIsMax.getSelection()) {
+				if (_useCountIsMax.getSelection()) { mixin(S_TRACE);
 					_useCountCur.setSelection(_useCount.getSelection());
 				}
 			}
@@ -86,12 +86,12 @@ private:
 	}
 	static if (is (C == BeastCard)) {
 		Spinner _useCount;
-		void calcPrice(int value) {
+		void calcPrice(int value) { mixin(S_TRACE);
 			_price.setMinimum(_prop.looks.beastPrice);
 			_price.setMaximum(_prop.looks.beastPrice);
 			_price.setSelection(_prop.looks.beastPrice);
 		}
-		int priceCancel(int oldVal) {
+		int priceCancel(int oldVal) { mixin(S_TRACE);
 			calcPrice(oldVal);
 			return oldVal;
 		}
@@ -124,11 +124,11 @@ private:
 	TextMenuModify _authorTM;
 	Skin _summSkin;
 	@property
-	Skin summSkin() {
+	Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
 	}
 	class ResetSource : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			ignoreMod = true;
 			scope (exit) ignoreMod = false;
 			_scenario.setText(_summ.scenarioName);
@@ -138,35 +138,35 @@ private:
 		}
 	}
 	class ModSource : ModifyListener {
-		override void modifyText(ModifyEvent e) {
+		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
 			refreshWarning();
 		}
 	}
-	void refEventTree(EventTree et) {
-		if (et.owner is _card || et.owner is null) {
+	void refEventTree(EventTree et) { mixin(S_TRACE);
+		if (et.owner is _card || et.owner is null) { mixin(S_TRACE);
 			refreshWarning();
 		}
 	}
-	void refreshWarning() {
+	void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-		if (_name.over) {
+		if (_name.over) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningNameLenOver, _prop.looks.nameLimit, _prop.looks.nameLimit / 2);
 		}
 		ws ~= _imgPath.warnings;
-		if (_effTyp[EffectType.NONE].getSelection()) {
+		if (_effTyp[EffectType.NONE].getSelection()) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningEffectTypeNone;
 		}
-		foreach (m; _motions.motions) {
-			if (m.type == MType.VANISH_TARGET && m.element != cast(int) Element.MIRACLE) {
+		foreach (m; _motions.motions) { mixin(S_TRACE);
+			if (m.type == MType.VANISH_TARGET && m.element != cast(int) Element.MIRACLE) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningVanishCast;
 				break;
 			}
 		}
-		if ((_se1.path != "" && !_se1.selectedDefDir) || (_se2.path != "" && !_se2.selectedDefDir)) {
+		if ((_se1.path != "" && !_se1.selectedDefDir) || (_se2.path != "" && !_se2.selectedDefDir)) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningNotDefaultSE;
 		}
-		if (_card && _card.trees.length) {
-			if (_scenario.getText() != _summ.scenarioName || _author.getText() != _summ.author) {
+		if (_card && _card.trees.length) { mixin(S_TRACE);
+			if (_scenario.getText() != _summ.scenarioName || _author.getText() != _summ.author) { mixin(S_TRACE);
 				ws ~= _prop.msgs.diffSource;
 			}
 		}
@@ -175,24 +175,24 @@ private:
 	}
 
 	class OASelect : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			__refreshEnblOneAll();
 		}
 	}
 	class SelEffectType : SelectionAdapter {
-		override void widgetSelected(SelectionEvent e) {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			refreshWarning();
 		}
 	}
 
-	CTabItem constructMain(CTabFolder tabf) {
+	CTabItem constructMain(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(2, false));
-		{
+		{ mixin(S_TRACE);
 			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
 			comp2.setLayout(zeroMarginGridLayout(1, false));
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				grp.setLayout(new GridLayout(2, false));
@@ -208,7 +208,7 @@ private:
 				auto l = new Label(grp, SWT.NONE);
 				l.setText(.tryFormat(_prop.msgs.nameLimit, _prop.looks.nameLimit, _prop.looks.nameLimit / 2));
 			}
-			{
+			{ mixin(S_TRACE);
 				auto skin = summSkin;
 				bool including = _card && isBinImg(_card.path);
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, _readOnly, _comm, _prop, _summ,
@@ -218,11 +218,11 @@ private:
 				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
 		}
-		{
+		{ mixin(S_TRACE);
 			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			comp2.setLayout(zeroMarginGridLayout(1, false));
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new CenterLayout(SWT.VERTICAL));
@@ -232,22 +232,22 @@ private:
 				_needSpell.setEnabled(!_readOnly);
 				_needSpell.setText(_prop.msgs.needSpell);
 			}
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setText(_prop.msgs.elementProps);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new GridLayout(2, true));
 				foreach (i, eff; [EffectType.PHYSIC, EffectType.MAGIC,
 						EffectType.MAGICAL_PHYSIC, EffectType.PHYSICAL_MAGIC,
-						EffectType.NONE]) {
+						EffectType.NONE]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
 					radio.setEnabled(!_readOnly);
-					if (2 <= i) {
+					if (2 <= i) { mixin(S_TRACE);
 						auto gd = new GridData(GridData.FILL_BOTH);
 						gd.horizontalSpan = 2;
 						radio.setLayoutData(gd);
-					} else {
+					} else { mixin(S_TRACE);
 						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 					}
 					radio.setText(.tryFormat(_prop.msgs.effectTypeElement, _prop.msgs.effectTypeName(eff)));
@@ -256,12 +256,12 @@ private:
 					_effTyp[eff] = radio;
 				}
 			}
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setText(_prop.msgs.resistProps);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new GridLayout(2, true));
-				foreach (res; [Resist.AVOID, Resist.RESIST, Resist.UNFAIL]) {
+				foreach (res; [Resist.AVOID, Resist.RESIST, Resist.UNFAIL]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
 					radio.setEnabled(!_readOnly);
@@ -277,14 +277,14 @@ private:
 		tab.setControl(comp);
 		return tab;
 	}
-	CTabItem constructDesc(CTabFolder tabf) {
+	CTabItem constructDesc(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, true));
 		auto top = new Composite(comp, SWT.NONE);
 		top.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		top.setLayout(zeroMarginGridLayout(2, false));
 		static if (is (C == SkillCard)) {
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(top, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new CenterLayout);
@@ -300,7 +300,7 @@ private:
 				l.setText(.tryFormat(_prop.msgs.rangeHint, 0, _prop.var.etc.skillLevelMax));
 			}
 		} else static if (is (C == ItemCard) || is (C == BeastCard)) {
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(top, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new CenterLayout);
@@ -330,13 +330,13 @@ private:
 					_useCountIsMax = new Button(comp2, SWT.CHECK);
 					_useCountIsMax.setEnabled(!_readOnly);
 					_useCountIsMax.setText(_prop.msgs.useCountIsMax);
-					.listener(_useCountIsMax, SWT.Selection, {
+					.listener(_useCountIsMax, SWT.Selection, { mixin(S_TRACE);
 						_useCountCur.setEnabled(!_readOnly && !_useCountIsMax.getSelection());
-						if (_useCountIsMax.getSelection()) {
+						if (_useCountIsMax.getSelection()) { mixin(S_TRACE);
 							_useCountCur.setSelection(_useCount.getSelection());
 						}
 					});
-				} else {
+				} else { mixin(S_TRACE);
 					comp2.setLayout(new GridLayout(2, false));
 					_useCount = new Spinner(comp2, SWT.BORDER | _readOnly);
 					initSpinner(_useCount);
@@ -347,10 +347,10 @@ private:
 					l.setText(.tryFormat(_prop.msgs.useCountRange, _prop.var.etc.useCountMax));
 				}
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(top, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new CenterLayout);
@@ -365,7 +365,7 @@ private:
 					new SpinnerEdit(_level, &calcPrice, &calcPrice, &priceCancel);
 				} else static if (is (C == BeastCard)) {
 					new SpinnerEdit(_useCount, &calcPrice, &calcPrice, &priceCancel);
-				} else {
+				} else { mixin(S_TRACE);
 					static assert (0);
 				}
 				auto l = new Label(comp2, SWT.NONE);
@@ -378,11 +378,11 @@ private:
 				_price.setMinimum(0);
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText(.tryFormat(_prop.msgs.rangeHint, 0, _prop.var.etc.priceMax));
-			} else {
+			} else { mixin(S_TRACE);
 				static assert (0);
 			}
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.horizontalSpan = 2;
@@ -394,14 +394,14 @@ private:
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.horizontalSpan = 2;
 			grp.setLayoutData(gd);
 			grp.setLayout(new GridLayout(2, false));
 			grp.setText(_prop.msgs.source);
-			Text createLine(string title, out TextMenuModify tm) {
+			Text createLine(string title, out TextMenuModify tm) { mixin(S_TRACE);
 				auto l = new Label(grp, SWT.NONE);
 				l.setText(title);
 				auto text = new Text(grp, SWT.BORDER | _readOnly);
@@ -432,10 +432,10 @@ private:
 		tab.setControl(comp);
 		return tab;
 	}
-	CTabItem constructApt(CTabFolder tabf) {
+	CTabItem constructApt(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(2, false));
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.aptPhysical);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -445,7 +445,7 @@ private:
 			auto comp2 = new Composite(grp, SWT.NONE);
 			comp2.setLayout(new GridLayout(1, true));
 			foreach (phy; [Physical.DEX, Physical.AGL, Physical.INT,
-					Physical.STR, Physical.VIT, Physical.MIN]) {
+					Physical.STR, Physical.VIT, Physical.MIN]) { mixin(S_TRACE);
 				auto radio = new Button(comp2, SWT.RADIO);
 				mod(radio);
 				radio.setEnabled(!_readOnly);
@@ -454,7 +454,7 @@ private:
 				_phy[phy] = radio;
 			}
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.aptMental);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -469,7 +469,7 @@ private:
 				Mental.CHEERFUL, Mental.UNCHEERFUL,
 				Mental.BRAVE, Mental.UNBRAVE, Mental.CAUTIOUS, Mental.UNCAUTIOUS,
 				Mental.TRICKISH, Mental.UNTRICKISH];
-			foreach (i, m; Ms) {
+			foreach (i, m; Ms) { mixin(S_TRACE);
 				auto radio = new Button(comp2, SWT.RADIO);
 				mod(radio);
 				radio.setEnabled(!_readOnly);
@@ -483,7 +483,7 @@ private:
 		tab.setControl(comp);
 		return tab;
 	}
-	Composite createModParent(Composite comp, string title) {
+	Composite createModParent(Composite comp, string title) { mixin(S_TRACE);
 		auto grp = new Group(comp, SWT.NONE);
 		grp.setText(title);
 		grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -493,14 +493,14 @@ private:
 		grp.setLayout(cl);
 		return grp;
 	}
-	void createMod(Composite parent, ref int[Enhance] tbl, ref RadarSpinner useModR, ref Scales useModS) {
+	void createMod(Composite parent, ref int[Enhance] tbl, ref RadarSpinner useModR, ref Scales useModS) { mixin(S_TRACE);
 		int[] values = [];
-		if (useModR) {
+		if (useModR) { mixin(S_TRACE);
 			values = useModR.getValues();
 			useModR.dispose();
 			useModR = null;
 		}
-		if (useModS) {
+		if (useModS) { mixin(S_TRACE);
 			values = useModS.getValues();
 			useModS.dispose();
 			useModS = null;
@@ -509,7 +509,7 @@ private:
 		static const Es = [Enhance.AVOID, Enhance.RESIST, Enhance.DEFENSE];
 		string[] names;
 		names.length = Es.length;
-		foreach (i, enh; Es) {
+		foreach (i, enh; Es) { mixin(S_TRACE);
 			tbl[enh] = i;
 			names[i] = .tryFormat(_prop.msgs.enhanceBonus, _prop.msgs.enhanceName(enh));
 		}
@@ -517,7 +517,7 @@ private:
 		int stepC = _prop.var.etc.enhanceMax * 2 + 1;
 		int min = cast(int) _prop.var.etc.enhanceMax * -1;
 		int page = _prop.var.etc.enhanceMax / 2;
-		if (_prop.var.etc.radarStyleParams) {
+		if (_prop.var.etc.radarStyleParams) { mixin(S_TRACE);
 			useModR = new RadarSpinner(parent, _readOnly);
 			useModR.setRadar(stepC, names, min);
 			useModR.antialias = true;
@@ -525,7 +525,7 @@ private:
 			useModR.lineStep = page;
 			if (values.length) useModR.setValues(values);
 			mod(useModR);
-		} else {
+		} else { mixin(S_TRACE);
 			useModS = new Scales(parent, _readOnly);
 			useModS.setScales(stepC, names, page, min);
 			useModS.borderlines = [0];
@@ -534,13 +534,13 @@ private:
 		}
 		parent.layout();
 	}
-	void initUseMod() {
+	void initUseMod() { mixin(S_TRACE);
 		createMod(_useModParent, _useModTbl, _useModR, _useModS);
 	}
-	CTabItem constructUseModify(CTabFolder tabf) {
+	CTabItem constructUseModify(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(2, false));
-		{
+		{ mixin(S_TRACE);
 			_useModParent = createModParent(comp, _prop.msgs.useModify);
 			initUseMod();
 		}
@@ -550,13 +550,13 @@ private:
 		return tab;
 	}
 	static if (is (C == ItemCard)) {
-		void initHasMod() {
+		void initHasMod() { mixin(S_TRACE);
 			createMod(_hasModParent, _hasModTbl, _hasModR, _hasModS);
 		}
-		CTabItem constructHaveModify(CTabFolder tabf) {
+		CTabItem constructHaveModify(CTabFolder tabf) { mixin(S_TRACE);
 			auto comp = new Composite(tabf, SWT.NONE);
 			comp.setLayout(new GridLayout(2, false));
-			{
+			{ mixin(S_TRACE);
 				_hasModParent = createModParent(comp, _prop.msgs.haveModify);
 				initHasMod();
 			}
@@ -566,10 +566,10 @@ private:
 			return tab;
 		}
 	}
-	CTabItem constructMotion(CTabFolder tabf) {
+	CTabItem constructMotion(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
-		{
+		{ mixin(S_TRACE);
 			_motions = new MotionView(_comm, _prop, _summ, comp, _readOnly);
 			mod(_motions);
 			_motions.warningEvent ~= &refreshWarning;
@@ -580,20 +580,20 @@ private:
 		tab.setText(_prop.msgs.motion);
 		return tab;
 	}
-	CTabItem constructProps(CTabFolder tabf) {
+	CTabItem constructProps(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
-		{
+		{ mixin(S_TRACE);
 			auto tcomp = new Composite(comp, SWT.NONE);
 			tcomp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			tcomp.setLayout(zeroMarginGridLayout(2, false));
-			{
+			{ mixin(S_TRACE);
 				auto comp2 = new Composite(tcomp, SWT.NONE);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.verticalSpan = 2;
 				comp2.setLayoutData(gd);
 				comp2.setLayout(zeroMarginGridLayout(1, false));
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(comp2, SWT.NONE);
 					grp.setText(_prop.msgs.effectTarget);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -603,7 +603,7 @@ private:
 					auto comp3 = new Composite(grp, SWT.NONE);
 					comp3.setLayout(new GridLayout(2, false));
 					foreach (t; [CardTarget.NONE, CardTarget.USER,
-							CardTarget.PARTY, CardTarget.ENEMY, CardTarget.BOTH]) {
+							CardTarget.PARTY, CardTarget.ENEMY, CardTarget.BOTH]) { mixin(S_TRACE);
 						auto radio = new Button(comp3, SWT.RADIO);
 						mod(radio);
 						radio.setEnabled(!_readOnly);
@@ -613,7 +613,7 @@ private:
 						_targ[t] = radio;
 					}
 				}
-				{
+				{ mixin(S_TRACE);
 					auto grp = new Group(comp2, SWT.NONE);
 					grp.setText(_prop.msgs.effectRange);
 					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -637,13 +637,13 @@ private:
 					_oneAllGrp = grp;
 				}
 			}
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(tcomp, SWT.NONE);
 				grp.setText(_prop.msgs.effectVisual);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new GridLayout(2, false));
 				foreach (v; [CardVisual.NONE, CardVisual.HORIZONTAL,
-						CardVisual.REVERSE, CardVisual.VERTICAL]) {
+						CardVisual.REVERSE, CardVisual.VERTICAL]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
 					radio.setEnabled(!_readOnly);
@@ -652,12 +652,12 @@ private:
 					_vis[v] = radio;
 				}
 			}
-			{
+			{ mixin(S_TRACE);
 				auto grp = new Group(tcomp, SWT.NONE);
 				grp.setText(_prop.msgs.cardPremium);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setLayout(new GridLayout(1, false));
-				foreach (p; [Premium.NORMAL, Premium.RARE, Premium.PREMIUM]) {
+				foreach (p; [Premium.NORMAL, Premium.RARE, Premium.PREMIUM]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
 					radio.setEnabled(!_readOnly);
@@ -667,7 +667,7 @@ private:
 				}
 			}
 		}
-		{
+		{ mixin(S_TRACE);
 			createSuccessRateScale(_prop, comp, _sucRate)
 				.setLayoutData(new GridData(GridData.FILL_BOTH));
 			mod(_sucRate);
@@ -678,18 +678,18 @@ private:
 		tab.setControl(comp);
 		return tab;
 	}
-	CTabItem constructKeyCode(CTabFolder tabf) {
+	CTabItem constructKeyCode(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, true));
 		auto sash = new SplitPane(comp, SWT.HORIZONTAL);
 		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto skin = summSkin;
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(sash, SWT.NONE);
 			grp.setText(_prop.msgs.se);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new GridLayout(1, false));
-			MaterialSelect!(MtType.SE, Combo, Combo) createSE(string title) {
+			MaterialSelect!(MtType.SE, Combo, Combo) createSE(string title) { mixin(S_TRACE);
 				auto comp = new Composite(grp, SWT.NONE);
 				comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				comp.setLayout(zeroMarginGridLayout(2, true));
@@ -717,13 +717,13 @@ private:
 			_se1 = createSE(_prop.msgs.se1);
 			_se2 = createSE(_prop.msgs.se2);
 		}
-		{
+		{ mixin(S_TRACE);
 			auto grp = new Group(sash, SWT.NONE);
 			grp.setText(_prop.msgs.keyCodes);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			_keyCodes.length = _prop.looks.keyCodesMax;
 			grp.setLayout(new GridLayout(_keyCodes.length >= 8 ? 2 : 1, true));
-			for (int i = 0; i < _keyCodes.length; i++) {
+			for (int i = 0; i < _keyCodes.length; i++) { mixin(S_TRACE);
 				_keyCodes[i] = createKeyCodeCombo(_comm, grp, &catchMod);
 				mod(_keyCodes[i]);
 				_keyCodes[i].setEnabled(!_readOnly);
@@ -733,7 +733,7 @@ private:
 		}
 		sash.setWeights([_prop.var.etc.seKeyCodeSashL, _prop.var.etc.seKeyCodeSashR]);
 		class Dispose : DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
+			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				auto ws = sash.getWeights();
 				_prop.var.etc.seKeyCodeSashL = ws[0];
 				_prop.var.etc.seKeyCodeSashR = ws[1];
@@ -746,20 +746,20 @@ private:
 		tab.setControl(comp);
 		return tab;
 	}
-	void delCard(C c) {
-		if (_card is c) {
+	void delCard(C c) { mixin(S_TRACE);
+		if (_card is c) { mixin(S_TRACE);
 			forceCancel();
 		}
 	}
-	void refScenario(Summary summ) {
+	void refScenario(Summary summ) { mixin(S_TRACE);
 		forceCancel();
 	}
-	void refSkin() {
+	void refSkin() { mixin(S_TRACE);
 		_desc.font = dwtData(_prop.looks.cardDescFont(_summ.legacy));
 		setKeyCodesEnabled();
 	}
 	class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			static if (is(C : SkillCard)) {
 				_comm.delSkill.remove(&delCard);
 			} else static if (is(C : ItemCard)) {
@@ -777,18 +777,18 @@ private:
 			}
 		}
 	}
-	void setKeyCodesEnabled() {
+	void setKeyCodesEnabled() { mixin(S_TRACE);
 		int big = max(_prop.looks.keyCodesMaxLegacy, _prop.looks.keyCodesMax);
-		foreach (i, kc; _keyCodes) {
-			if (_summ.legacy) {
+		foreach (i, kc; _keyCodes) { mixin(S_TRACE);
+			if (_summ.legacy) { mixin(S_TRACE);
 				kc.setEnabled(!_readOnly && i < _prop.looks.keyCodesMaxLegacy);
-			} else {
+			} else { mixin(S_TRACE);
 				kc.setEnabled(!_readOnly && i < _prop.looks.keyCodesMax);
 			}
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ, C card, bool readOnly) {
+	this(Commons comm, Props prop, Shell shell, Summary summ, C card, bool readOnly) { mixin(S_TRACE);
 		assert (summ !is null);
 		_comm = comm;
 		_summ = summ;
@@ -808,26 +808,26 @@ public:
 			string text = _card ? .tryFormat(_prop.msgs.dlgTitBeast, _card.name) : _prop.msgs.dlgTitNewBeast;
 			auto img = _prop.images.beast;
 			auto size = _prop.var.beastCardDlg;
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
 		super(prop, shell, _readOnly, false, text, img, true, size, true);
 	}
 
 	@property
-	C card() {
+	C card() { mixin(S_TRACE);
 		return _card;
 	}
 	@property
-	void card(C v) {
+	void card(C v) { mixin(S_TRACE);
 		_card = v;
 	}
 
-	bool openCWXPath(string path, bool shellActivate) {
+	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		return _motions.openCWXPath(path, shellActivate);
 	}
 protected:
-	override void setup(Composite area) {
+	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(windowGridLayout(1));
 		auto tabf = new CTabFolder(area, SWT.BORDER);
 
@@ -861,7 +861,7 @@ protected:
 
 		// Windows Vistaだとタブの横幅が凄いことになったので必要最低限にする。
 		scope maxSize = new Point(0, 0);
-		foreach (tab; tabf.getItems()) {
+		foreach (tab; tabf.getItems()) { mixin(S_TRACE);
 			scope size = tab.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			if (maxSize.x < size.x) maxSize.x = size.x;
 			if (maxSize.y < size.y) maxSize.y = size.y;
@@ -874,12 +874,12 @@ protected:
 
 		refCard(_card);
 	}
-	private void refCard(C card) {
+	private void refCard(C card) { mixin(S_TRACE);
 		if (_card && _card !is card) return;
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		auto skin = summSkin;
-		if (_card) {
+		if (_card) { mixin(S_TRACE);
 			_imgPath.image = _card.path;
 			_desc.setText(_card.desc);
 			_scenario.setText(_card.scenario);
@@ -908,18 +908,18 @@ protected:
 				_price.setSelection(_card.price);
 			}
 			_motions.motions = _card.motions;
-			foreach (e, index; _useModTbl) {
-				if (_useModR) {
+			foreach (e, index; _useModTbl) { mixin(S_TRACE);
+				if (_useModR) { mixin(S_TRACE);
 					_useModR.setValue(index, _card.enhance(e));
-				} else {
+				} else { mixin(S_TRACE);
 					_useModS.setValue(index, _card.enhance(e));
 				}
 			}
 			static if (is (C == ItemCard)) {
-				foreach (e, index; _hasModTbl) {
-					if (_hasModR) {
+				foreach (e, index; _hasModTbl) { mixin(S_TRACE);
+					if (_hasModR) { mixin(S_TRACE);
 						_hasModR.setValue(index, _card.enhanceOwner(e));
-					} else {
+					} else { mixin(S_TRACE);
 						_hasModS.setValue(index, _card.enhanceOwner(e));
 					}
 				}
@@ -931,19 +931,19 @@ protected:
 			_vis[_card.visual].setSelection(true);
 			_prem[_card.premium].setSelection(true);
 			_sucRate.setSelection(_card.successRate + Content.successRate_max);
-			string findPath(string path) {
+			string findPath(string path) { mixin(S_TRACE);
 				return baseName(skin.findPath(baseName(path), skin.extSound, skin.seDir, ""));
 			}
 			_se1.path = _card.soundPath1;
 			_se2.path = _card.soundPath2;
-			foreach (i, kc; _card.keyCodes) {
+			foreach (i, kc; _card.keyCodes) { mixin(S_TRACE);
 				_keyCodes[i].setText(kc);
-				if (!contains(_keyCodes[i].getItems(), kc)) {
+				if (!contains(_keyCodes[i].getItems(), kc)) { mixin(S_TRACE);
 					_keyCodes[i].add(kc, 0);
 				}
 			}
 			refreshWarning();
-		} else {
+		} else { mixin(S_TRACE);
 			_imgPath.image = "";
 			_scenario.setText(_summ.scenarioName);
 			_author.setText(_summ.author);
@@ -954,18 +954,18 @@ protected:
 			static if (is (C == SkillCard)) {
 				_level.setSelection(1);
 			}
-			foreach (e, index; _useModTbl) {
-				if (_useModR) {
+			foreach (e, index; _useModTbl) { mixin(S_TRACE);
+				if (_useModR) { mixin(S_TRACE);
 					_useModR.setValue(index, 0);
-				} else {
+				} else { mixin(S_TRACE);
 					_useModS.setValue(index, 0);
 				}
 			}
 			static if (is (C == ItemCard)) {
-				foreach (e, index; _hasModTbl) {
-					if (_hasModR) {
+				foreach (e, index; _hasModTbl) { mixin(S_TRACE);
+					if (_hasModR) { mixin(S_TRACE);
 						_hasModR.setValue(index, 0);
-					} else {
+					} else { mixin(S_TRACE);
 						_hasModS.setValue(index, 0);
 					}
 				}
@@ -985,7 +985,7 @@ protected:
 			calcPrice(_useCount.getSelection());
 		}
 	}
-	private void __refreshEnblOneAll() {
+	private void __refreshEnblOneAll() { mixin(S_TRACE);
 		_oneAllGrp.setEnabled(_targ[CardTarget.PARTY].getSelection()
 			|| _targ[CardTarget.ENEMY].getSelection()
 			|| _targ[CardTarget.BOTH].getSelection());
@@ -993,12 +993,12 @@ protected:
 		_all.setEnabled(!_readOnly && _oneAllGrp.getEnabled());
 	}
 
-	override bool apply() {
-		if (_card) {
+	override bool apply() { mixin(S_TRACE);
+		if (_card) { mixin(S_TRACE);
 			_card.path = _imgPath.image;
 			_card.desc = wrapReturnCode(_desc.getText());
 			_card.name = _name.getText();
-		} else {
+		} else { mixin(S_TRACE);
 			_card = new C(_summ.newId!(C), _name.getText(),
 				_imgPath.image, wrapReturnCode(_desc.getText()));
 		}
@@ -1014,7 +1014,7 @@ protected:
 			_card.useLimitMax = _useCount.getSelection();
 			static if (SetUseCountCur) {
 				_card.useLimit = _useCountCur.getSelection();
-			} else {
+			} else { mixin(S_TRACE);
 				_card.useLimit = _card.useLimitMax;
 			}
 		} else static if (is (C == BeastCard)) {
@@ -1024,18 +1024,18 @@ protected:
 			_card.price = _price.getSelection();
 		}
 		_card.motions = _motions.motions;
-		foreach (e, index; _useModTbl) {
-			if (_useModR) {
+		foreach (e, index; _useModTbl) { mixin(S_TRACE);
+			if (_useModR) { mixin(S_TRACE);
 				_card.enhance(e, _useModR.getValue(index));
-			} else {
+			} else { mixin(S_TRACE);
 				_card.enhance(e, _useModS.getValue(index));
 			}
 		}
 		static if (is (C == ItemCard)) {
-			foreach (e, index; _hasModTbl) {
-				if (_hasModR) {
+			foreach (e, index; _hasModTbl) { mixin(S_TRACE);
+				if (_hasModR) { mixin(S_TRACE);
 					_card.enhanceOwner(e, _hasModR.getValue(index));
-				} else {
+				} else { mixin(S_TRACE);
 					_card.enhanceOwner(e, _hasModS.getValue(index));
 				}
 			}
@@ -1049,7 +1049,7 @@ protected:
 		_card.soundPath2 = _se2.path;
 		string[] keyCodes;
 		int last = 0;
-		foreach (i, c; _keyCodes) {
+		foreach (i, c; _keyCodes) { mixin(S_TRACE);
 			keyCodes ~= c.getText();
 			if (c.getText().length > 0) last = i + 1;
 		}
@@ -1066,7 +1066,7 @@ protected:
 			string text = .tryFormat(_prop.msgs.dlgTitItem, _card.name);
 		} else static if (is (C == BeastCard)) {
 			string text = .tryFormat(_prop.msgs.dlgTitBeast, _card.name);
-		} else {
+		} else { mixin(S_TRACE);
 			static assert (0);
 		}
 		getShell().setText(text);

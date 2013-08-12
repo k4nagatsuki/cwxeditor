@@ -1,6 +1,7 @@
 
 module cwx.structs;
 
+import cwx.perf;
 import cwx.features;
 import cwx.types;
 import cwx.xml;
@@ -51,10 +52,10 @@ struct LaunchOption {
 	bool noload = false;
 	bool help = false;
 
-	void parseStrings(string[] args) {
+	void parseStrings(string[] args) { mixin(S_TRACE);
 		size_t sc = 0u;
-		for (int i = 0; i < args.length; i++) {
-			try {
+		for (int i = 0; i < args.length; i++) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
 				switch (args[i]) {
 				case "-a": // エリア表示
 					if (i + 1 < args.length) openPaths ~= "area:id:" ~ args[i + 1];
@@ -100,7 +101,7 @@ struct LaunchOption {
 					help = true;
 					break;
 				default:
-					if (i > sc) {
+					if (i > sc) { mixin(S_TRACE);
 						openPaths ~= args[i];
 					}
 					break;
@@ -109,10 +110,10 @@ struct LaunchOption {
 				debugln(e);
 			}
 		}
-		if (sc < args.length) {
+		if (sc < args.length) { mixin(S_TRACE);
 			scenario = args[sc];
 		}
-		if (create || createclassic) {
+		if (create || createclassic) { mixin(S_TRACE);
 			scenario = null;
 		}
 	}
@@ -161,12 +162,12 @@ struct CPoint {
 	int x;
 	int y;
 	const
-	void toNode(ref XNode e, string name = "point") {
+	void toNode(ref XNode e, string name = "point") { mixin(S_TRACE);
 		auto r = e.newElement(name);
 		r.newAttr("x", x);
 		r.newAttr("y", y);
 	}
-	void fromNode(ref XNode node) {
+	void fromNode(ref XNode node) { mixin(S_TRACE);
 		if (node.name != "point") throw new Exception("Node is not point");
 		x = node.attr!(int)("x", true);
 		y = node.attr!(int)("y", true);
@@ -178,12 +179,12 @@ struct CSize {
 	uint width;
 	uint height;
 	const
-	void toNode(ref XNode e, string name = "size") {
+	void toNode(ref XNode e, string name = "size") { mixin(S_TRACE);
 		auto r = e.newElement(name);
 		r.newAttr("width", width);
 		r.newAttr("height", height);
 	}
-	void fromNode(ref XNode node) {
+	void fromNode(ref XNode node) { mixin(S_TRACE);
 		width = node.attr!(uint)("width", true);
 		height = node.attr!(uint)("height", true);
 	}
@@ -196,14 +197,14 @@ struct CRect {
 	int width;
 	int height;
 	const
-	void toNode(ref XNode e, string name = "rect") {
+	void toNode(ref XNode e, string name = "rect") { mixin(S_TRACE);
 		auto r = e.newElement(name);
 		r.newAttr("x", x);
 		r.newAttr("y", y);
 		r.newAttr("width", width);
 		r.newAttr("height", height);
 	}
-	void fromNode(ref XNode node) {
+	void fromNode(ref XNode node) { mixin(S_TRACE);
 		x = node.attr!(int)("x", true);
 		y = node.attr!(int)("y", true);
 		width = node.attr!(int)("width", true);
@@ -218,14 +219,14 @@ struct CInsets {
 	int s; /// 下。
 	int w; /// 左。
 	const
-	void toNode(ref XNode e, string name = "insets") {
+	void toNode(ref XNode e, string name = "insets") { mixin(S_TRACE);
 		auto r = e.newElement(name);
 		r.newAttr("n", n);
 		r.newAttr("e", this.e);
 		r.newAttr("s", s);
 		r.newAttr("w", w);
 	}
-	void fromNode(ref XNode node) {
+	void fromNode(ref XNode node) { mixin(S_TRACE);
 		n = node.attr!(int)("n", true);
 		e = node.attr!(int)("e", true);
 		s = node.attr!(int)("s", true);
@@ -240,14 +241,14 @@ struct CRGB {
 	uint b;
 	uint a = 255;
 	const
-	void toNode(ref XNode e, string name = "rgb") {
+	void toNode(ref XNode e, string name = "rgb") { mixin(S_TRACE);
 		auto r = e.newElement(name);
 		r.newAttr("r", this.r);
 		r.newAttr("g", g);
 		r.newAttr("b", b);
 		r.newAttr("a", a);
 	}
-	void fromNode(ref XNode node) {
+	void fromNode(ref XNode node) { mixin(S_TRACE);
 		r = node.attr!(uint)("r", true);
 		g = node.attr!(uint)("g", true);
 		b = node.attr!(uint)("b", true);
@@ -262,14 +263,14 @@ struct CFont {
 	bool bold;
 	bool italic;
 	const
-	void toNode(ref XNode e, string name = "font") {
+	void toNode(ref XNode e, string name = "font") { mixin(S_TRACE);
 		auto r = e.newElement(name);
 		r.newAttr("name", name);
 		r.newAttr("point", point);
 		r.newAttr("bold", bold);
 		r.newAttr("italic", italic);
 	}
-	void fromNode(ref XNode node) {
+	void fromNode(ref XNode node) { mixin(S_TRACE);
 		name = node.attr!(string)("name", true);
 		point = node.attr!(uint)("point", true);
 		bold = node.attr!(bool)("bold", true);
@@ -289,7 +290,7 @@ struct BgImageSetting {
 	/// コピーを作成する。
 	@property
 	const
-	BgImageSetting dup() {
+	BgImageSetting dup() { mixin(S_TRACE);
 		BgImageSetting r;
 		r.name = name;
 		r.x = x;
@@ -311,20 +312,20 @@ struct BgImageSetting {
 	}
 	/// XMLノードとして取り扱うための関数群。
 	const
-	XNode toNode() {
+	XNode toNode() { mixin(S_TRACE);
 		auto e = XNode.create(XML_NAME);
 		toNodeImpl(e);
 		return e;
 	}
 	/// ditto
 	const
-	void toNode(ref XNode node) {
+	void toNode(ref XNode node) { mixin(S_TRACE);
 		auto e = node.newElement(XML_NAME);
 		toNodeImpl(e);
 	}
 	/// ditto
 	const
-	private void toNodeImpl(ref XNode e) {
+	private void toNodeImpl(ref XNode e) { mixin(S_TRACE);
 		e.newElement("name", name);
 		e.newElement("x", x);
 		e.newElement("y", y);
@@ -333,7 +334,7 @@ struct BgImageSetting {
 		e.newElement("mask", mask);
 	}
 	/// ditto
-	void fromNode(ref XNode node) {
+	void fromNode(ref XNode node) { mixin(S_TRACE);
 		name = node.childText("name", true);
 		x = to!(int)(node.childText("x", true));
 		y = to!(int)(node.childText("y", true));
@@ -354,7 +355,7 @@ struct OuterTool {
 	/// コピーを作成する。
 	@property
 	const
-	OuterTool dup() {
+	OuterTool dup() { mixin(S_TRACE);
 		OuterTool r;
 		r.name = name;
 		r.command = command;
@@ -374,20 +375,20 @@ struct OuterTool {
 	}
 	/// XMLノードとして取り扱うための関数群。
 	const
-	XNode toNode() {
+	XNode toNode() { mixin(S_TRACE);
 		auto e = XNode.create(XML_NAME);
 		toNodeImpl(e);
 		return e;
 	}
 	/// ditto
 	const
-	void toNode(ref XNode node) {
+	void toNode(ref XNode node) { mixin(S_TRACE);
 		auto e = node.newElement(XML_NAME);
 		toNodeImpl(e);
 	}
 	/// ditto
 	const
-	private void toNodeImpl(ref XNode e) {
+	private void toNodeImpl(ref XNode e) { mixin(S_TRACE);
 		e.newElement("name", name);
 		e.newElement("command", command);
 		e.newElement("workDir", workDir);
@@ -395,7 +396,7 @@ struct OuterTool {
 		if (hotkey.length) e.newAttr("hotkey", hotkey);
 	}
 	/// ditto
-	void fromNode(ref XNode node) {
+	void fromNode(ref XNode node) { mixin(S_TRACE);
 		name = node.childText("name", true);
 		command = node.childText("command", true);
 		workDir = node.childText("workDir", true);
@@ -403,30 +404,30 @@ struct OuterTool {
 		hotkey = node.attr!string("hotkey", false, "");
 	}
 	/// コマンドをパースする。$Fをファイル名に置換、$Sをシナリオ名に置換する。
-	static string parse(string str, string file, string sPath) {
+	static string parse(string str, string file, string sPath) { mixin(S_TRACE);
 		dstring buf;
 		bool bs = false;
-		foreach (dchar c; str) {
-			if (bs) {
-				if (c == 'f' || c == 'F') {
+		foreach (dchar c; str) { mixin(S_TRACE);
+			if (bs) { mixin(S_TRACE);
+				if (c == 'f' || c == 'F') { mixin(S_TRACE);
 					buf ~= to!dstring(file);
-				} else if (c == 's' || c == 'S') {
+				} else if (c == 's' || c == 'S') { mixin(S_TRACE);
 					buf ~= to!dstring(sPath);
-				} else if (c == '$') {
+				} else if (c == '$') { mixin(S_TRACE);
 					buf ~= "$"d;
-				} else {
+				} else { mixin(S_TRACE);
 					buf ~= "$"d ~ c;
 				}
 				bs = false;
-			} else {
-				if (c == '$') {
+			} else { mixin(S_TRACE);
+				if (c == '$') { mixin(S_TRACE);
 					bs = true;
-				} else {
+				} else { mixin(S_TRACE);
 					buf ~= c;
 				}
 			}
 		}
-		if (bs) {
+		if (bs) { mixin(S_TRACE);
 			buf ~= "$";
 		}
 		return to!string(buf);
@@ -480,7 +481,7 @@ struct BgImageS {
 
 	/// XMLノードとして取り扱うための関数群。
 	const
-	void toNode(ref XNode e) {
+	void toNode(ref XNode e) { mixin(S_TRACE);
 		auto r = e.newElement("background");
 		r.newAttr("type", type);
 		r.newAttr("x", x);
@@ -502,7 +503,7 @@ struct BgImageS {
 			if (strike) f.newAttr("strike", strike);
 			if (vertical) f.newAttr("vertical", vertical);
 			color.toNode(r);
-			if (borderingType !is BorderingType.None) {
+			if (borderingType !is BorderingType.None) { mixin(S_TRACE);
 				auto b = r.newElement("bordering");
 				b.newAttr("type", fromBorderingType(borderingType));
 				b.newAttr("width", borderingWidth);
@@ -512,7 +513,7 @@ struct BgImageS {
 		case "color":
 			r.newAttr("blendMode", fromBlendMode(blendMode));
 			color1.toNode(r);
-			if (gradientDir !is GradientDir.None) {
+			if (gradientDir !is GradientDir.None) { mixin(S_TRACE);
 				auto g = r.newElement("gradient");
 				g.newAttr("direction", fromGradientDir(gradientDir));
 				color2.toNode(g);
@@ -523,7 +524,7 @@ struct BgImageS {
 		}
 	}
 	/// ditto
-	void fromNode(ref XNode node) {
+	void fromNode(ref XNode node) { mixin(S_TRACE);
 		if (node.name != "background") throw new Exception("Node is not background");
 		type = node.attr!(string)("type", false, "image");
 		x = node.attr!(int)("x", true);
@@ -537,7 +538,7 @@ struct BgImageS {
 			break;
 		case "text":
 			text = node.value;
-			node.onTag["font"] = (ref XNode node) {
+			node.onTag["font"] = (ref XNode node) { mixin(S_TRACE);
 				fontName = node.value;
 				size = node.attr!uint("size", true);
 				bold = node.attr!bool("bold", false, bold);
@@ -546,13 +547,13 @@ struct BgImageS {
 				strike = node.attr!bool("strike", false, strike);
 				vertical = node.attr!bool("vertical", false, vertical);
 			};
-			node.onTag["rgb"] = (ref XNode node) {
+			node.onTag["rgb"] = (ref XNode node) { mixin(S_TRACE);
 				color.fromNode(node);
 			};
-			node.onTag["bordering"] = (ref XNode node) {
+			node.onTag["bordering"] = (ref XNode node) { mixin(S_TRACE);
 				borderingType = toBorderingType(node.attr("type", true));
 				borderingWidth = node.attr!uint("width", true);
-				node.onTag["rgb"] = (ref XNode node) {
+				node.onTag["rgb"] = (ref XNode node) { mixin(S_TRACE);
 					borderingColor.fromNode(node);
 				};
 				node.parse();
@@ -561,12 +562,12 @@ struct BgImageS {
 			break;
 		case "color":
 			blendMode = toBlendMode(node.attr("blendMode", true));
-			node.onTag["rgb"] = (ref XNode node) {
+			node.onTag["rgb"] = (ref XNode node) { mixin(S_TRACE);
 				color1.fromNode(node);
 			};
-			node.onTag["gradient"] = (ref XNode node) {
+			node.onTag["gradient"] = (ref XNode node) { mixin(S_TRACE);
 				gradientDir = toGradientDir(node.attr("direction", true));
-				node.onTag["rgb"] = (ref XNode node) {
+				node.onTag["rgb"] = (ref XNode node) { mixin(S_TRACE);
 					color2.fromNode(node);
 				};
 				node.parse();
@@ -604,11 +605,11 @@ struct ClassicEngine {
 	real[Mental][Nature] mentalModNature;
 	real[Mental][Makings] mentalModMakings;
 
-	private static R[P][E] dupAA(P, E, R)(in R[P][E] aa) {
+	private static R[P][E] dupAA(P, E, R)(in R[P][E] aa) { mixin(S_TRACE);
 		R[P][E] r;
-		foreach (key1, value1; aa) {
+		foreach (key1, value1; aa) { mixin(S_TRACE);
 			R[P] arr;
-			foreach (key2, value2; value1) {
+			foreach (key2, value2; value1) { mixin(S_TRACE);
 				arr[key2] = value2;
 			}
 			r[key1] = arr;
@@ -619,7 +620,7 @@ struct ClassicEngine {
 	/// コピーを生成する。
 	@property
 	const
-	ClassicEngine dup() {
+	ClassicEngine dup() { mixin(S_TRACE);
 		ClassicEngine ce;
 		ce.name = name;
 		ce.enginePath = enginePath;
@@ -648,17 +649,17 @@ struct ClassicEngine {
 
 	/// エンジンを実行する。
 	const
-	string executePath(string appPath, bool engine) {
+	string executePath(string appPath, bool engine) { mixin(S_TRACE);
 		if (!enginePath.length) return "";
 		string path = enginePath;
-		if (!.isAbsolute(path)) {
+		if (!.isAbsolute(path)) { mixin(S_TRACE);
 			auto dir = appPath.dirName();
 			path = std.path.buildPath(dir, path);
 		}
-		if (!engine && execute.length) {
-			if (.isAbsolute(execute)) {
+		if (!engine && execute.length) { mixin(S_TRACE);
+			if (.isAbsolute(execute)) { mixin(S_TRACE);
 				path = execute;
-			} else {
+			} else { mixin(S_TRACE);
 				path = std.path.buildPath(path.dirName(), execute);
 			}
 		}
@@ -666,20 +667,20 @@ struct ClassicEngine {
 	}
 	/// XMLノードとして取り扱うための関数群。
 	const
-	XNode toNode() {
+	XNode toNode() { mixin(S_TRACE);
 		auto e = XNode.create(XML_NAME);
 		toNodeImpl(e);
 		return e;
 	}
 	/// ditto
 	const
-	void toNode(ref XNode node) {
+	void toNode(ref XNode node) { mixin(S_TRACE);
 		auto e = node.newElement(XML_NAME);
 		toNodeImpl(e);
 	}
 	/// ditto
 	const
-	private void toNodeImpl(ref XNode e) {
+	private void toNodeImpl(ref XNode e) { mixin(S_TRACE);
 		e.newAttr("name", name);
 		e.newAttr("enginePath", enginePath);
 		e.newAttr("dataDirName", dataDirName);
@@ -687,30 +688,30 @@ struct ClassicEngine {
 		if (mnemonic.length) e.newAttr("mnemonic", mnemonic);
 		if (hotkey.length) e.newAttr("hotkey", hotkey);
 		if (okText !is null) e.newAttr("okText", okText);
-		if (sexName.length) {
+		if (sexName.length) { mixin(S_TRACE);
 			auto ee = e.newElement("sexName");
-			foreach (key, value; sexName) {
+			foreach (key, value; sexName) { mixin(S_TRACE);
 				auto ne = ee.newElement("name", value);
 				ne.newAttr("key", key);
 			}
 		}
-		if (periodName.length) {
+		if (periodName.length) { mixin(S_TRACE);
 			auto ee = e.newElement("periodName");
-			foreach (key, value; periodName) {
+			foreach (key, value; periodName) { mixin(S_TRACE);
 				auto ne = ee.newElement("name", value);
 				ne.newAttr("key", key);
 			}
 		}
-		if (natureName.length) {
+		if (natureName.length) { mixin(S_TRACE);
 			auto ee = e.newElement("natureName");
-			foreach (key, value; natureName) {
+			foreach (key, value; natureName) { mixin(S_TRACE);
 				auto ne = ee.newElement("name", value);
 				ne.newAttr("key", key);
 			}
 		}
-		if (makingsName.length) {
+		if (makingsName.length) { mixin(S_TRACE);
 			auto ee = e.newElement("makingsName");
-			foreach (key, value; makingsName) {
+			foreach (key, value; makingsName) { mixin(S_TRACE);
 				auto ne = ee.newElement("name", value);
 				ne.newAttr("key", key);
 			}
@@ -724,7 +725,7 @@ struct ClassicEngine {
 		putAA!(Mental, Nature, real)(e, "natureMental", mentalModNature);
 		putAA!(Mental, Makings, real)(e, "makingsMental", mentalModMakings);
 	}
-	private static void putAA(P, E, R)(ref XNode e, string eName, in R[P][E] aa) {
+	private static void putAA(P, E, R)(ref XNode e, string eName, in R[P][E] aa) { mixin(S_TRACE);
 		static if (is(E:Sex)) {
 			alias fromSex toNameE;
 		} else static if (is(E:Period)) {
@@ -741,11 +742,11 @@ struct ClassicEngine {
 		} else static assert (0);
 		if (!aa.length) return;
 		auto ee = e.newElement(eName);
-		foreach (key1, value1; aa) {
+		foreach (key1, value1; aa) { mixin(S_TRACE);
 			if (!value1.length) continue;
 			auto pe = ee.newElement("params");
 			pe.newAttr("key", toNameE(key1));
-			foreach (key2, value2; value1) {
+			foreach (key2, value2; value1) { mixin(S_TRACE);
 				auto ve = pe.newElement("value", .text(value2));
 				ve.newAttr("key", toNameP(key2));
 			}
@@ -755,12 +756,12 @@ struct ClassicEngine {
 	/// エンジンの実行ファイル名から拡張子を取り戻した文字列を返す。
 	@property
 	const
-	string legacyName() {
+	string legacyName() { mixin(S_TRACE);
 		return enginePath.baseName().stripExtension();
 	}
 
 	/// 特徴名をクリアする。
-	void clearFeatures() {
+	void clearFeatures() { mixin(S_TRACE);
 		okText = null;
 		typeof(this.sexName) sexName;
 		this.sexName = sexName;
@@ -790,7 +791,7 @@ struct ClassicEngine {
 	}
 
 	/// ditto
-	void fromNode(ref XNode node) {
+	void fromNode(ref XNode node) { mixin(S_TRACE);
 		if (node.name != "classicEngine") throw new Exception("Node is not classicEngine");
 		clearFeatures();
 
@@ -801,29 +802,29 @@ struct ClassicEngine {
 		mnemonic = node.attr!string("mnemonic", false, "");
 		hotkey = node.attr!string("hotkey", false, "");
 		okText = node.attr!string("okText", false, null);
-		node.onTag["sexName"] = (ref XNode node) {
-			node.onTag["name"] = (ref XNode node) {
+		node.onTag["sexName"] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag["name"] = (ref XNode node) { mixin(S_TRACE);
 				string key = node.attr!string("key", false, null);
 				if (key !is null) sexName[key] = node.value;
 			};
 			node.parse();
 		};
-		node.onTag["periodName"] = (ref XNode node) {
-			node.onTag["name"] = (ref XNode node) {
+		node.onTag["periodName"] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag["name"] = (ref XNode node) { mixin(S_TRACE);
 				string key = node.attr!string("key", false, null);
 				if (key !is null) periodName[key] = node.value;
 			};
 			node.parse();
 		};
-		node.onTag["natureName"] = (ref XNode node) {
-			node.onTag["name"] = (ref XNode node) {
+		node.onTag["natureName"] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag["name"] = (ref XNode node) { mixin(S_TRACE);
 				string key = node.attr!string("key", false, null);
 				if (key !is null) natureName[key] = node.value;
 			};
 			node.parse();
 		};
-		node.onTag["makingsName"] = (ref XNode node) {
-			node.onTag["name"] = (ref XNode node) {
+		node.onTag["makingsName"] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag["name"] = (ref XNode node) { mixin(S_TRACE);
 				string key = node.attr!string("key", false, null);
 				if (key !is null) makingsName[key] = node.value;
 			};
@@ -839,7 +840,7 @@ struct ClassicEngine {
 		getAA(node, "makingsMental", mentalModMakings);
 		node.parse();
 	}
-	private static void getAA(P, E, R)(ref XNode node, string eName, ref R[P][E] aa) {
+	private static void getAA(P, E, R)(ref XNode node, string eName, ref R[P][E] aa) { mixin(S_TRACE);
 		static if (is(E:Sex)) {
 			alias toSex fromNameE;
 		} else static if (is(E:Period)) {
@@ -854,20 +855,20 @@ struct ClassicEngine {
 		} else static if (is(P:Mental)) {
 			alias toMental fromName;
 		} else static assert (0);
-		node.onTag[eName] = (ref XNode node) {
+		node.onTag[eName] = (ref XNode node) { mixin(S_TRACE);
 			R[P] arr;
 			string keyStr = node.attr!string("key", false, "");
-			if (keyStr.length) {
+			if (keyStr.length) { mixin(S_TRACE);
 				auto key = fromNameE(keyStr);
-				node.onTag["params"] = (ref XNode node) {
+				node.onTag["params"] = (ref XNode node) { mixin(S_TRACE);
 					auto keyStr = node.attr!string("key", false, "");
-					if (keyStr.length) {
+					if (keyStr.length) { mixin(S_TRACE);
 						auto key = fromName(keyStr);
 						arr[key] = to!R(node.value);
 					}
 				};
 				node.parse();
-				if (arr.length) {
+				if (arr.length) { mixin(S_TRACE);
 					aa[key] = arr;
 				}
 			}
@@ -882,25 +883,25 @@ struct ScTemplate {
 	string path = ""; /// ファイル・ディレクトリのパス。
 	/// XMLノードとして取り扱うための関数群。
 	const
-	XNode toNode() {
+	XNode toNode() { mixin(S_TRACE);
 		auto e = XNode.create(XML_NAME);
 		toNodeImpl(e);
 		return e;
 	}
 	/// ditto
 	const
-	void toNode(ref XNode node) {
+	void toNode(ref XNode node) { mixin(S_TRACE);
 		auto e = node.newElement(XML_NAME);
 		toNodeImpl(e);
 	}
 	/// ditto
 	const
-	private void toNodeImpl(ref XNode e) {
+	private void toNodeImpl(ref XNode e) { mixin(S_TRACE);
 		e.newAttr("name", name);
 		e.newAttr("path", path);
 	}
 	/// ditto
-	void fromNode(ref XNode node) {
+	void fromNode(ref XNode node) { mixin(S_TRACE);
 		if (node.name != XML_NAME) throw new Exception("Node is not scenarioTemplate");
 		name = node.attr!(string)("name", true);
 		path = node.attr!(string)("path", true);
@@ -915,24 +916,24 @@ struct EvTemplate {
 
 	/// XMLノードとして取り扱うための関数群。
 	const
-	XNode toNode() {
+	XNode toNode() { mixin(S_TRACE);
 		auto e = XNode.create(XML_NAME, script);
 		toNodeImpl(e);
 		return e;
 	}
 	/// ditto
 	const
-	void toNode(ref XNode node) {
+	void toNode(ref XNode node) { mixin(S_TRACE);
 		auto e = node.newElement(XML_NAME, script);
 		toNodeImpl(e);
 	}
 	/// ditto
 	const
-	private void toNodeImpl(ref XNode e) {
+	private void toNodeImpl(ref XNode e) { mixin(S_TRACE);
 		e.newAttr("name", name);
 	}
 	/// ditto
-	void fromNode(ref XNode node) {
+	void fromNode(ref XNode node) { mixin(S_TRACE);
 		if (node.name != XML_NAME) throw new Exception("Node is not eventTemplate");
 		name = node.attr!(string)("name", true);
 		script = node.value;
@@ -948,25 +949,25 @@ struct OpenHistory {
 
 	/// XMLノードとして取り扱うための関数群。
 	const
-	XNode toNode() {
+	XNode toNode() { mixin(S_TRACE);
 		auto e = XNode.create(XML_NAME, path);
 		toNodeImpl(e);
 		return e;
 	}
 	/// ditto
 	const
-	void toNode(ref XNode node) {
+	void toNode(ref XNode node) { mixin(S_TRACE);
 		auto e = node.newElement(XML_NAME, path);
 		toNodeImpl(e);
 	}
 	/// ditto
 	const
-	private void toNodeImpl(ref XNode e) {
+	private void toNodeImpl(ref XNode e) { mixin(S_TRACE);
 		if (skinName.length) e.newAttr("skinName", skinName);
 		if (skinEngine.length) e.newAttr("skinEngine", skinEngine);
 	}
 	/// ditto
-	void fromNode(ref XNode node) {
+	void fromNode(ref XNode node) { mixin(S_TRACE);
 		// 以前のバージョンでは要素名が"value"になっている
 		// 可能性があるため、チェックしない
 

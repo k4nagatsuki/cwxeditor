@@ -1,6 +1,7 @@
 
 module cwx.editor.gui.dwt.sbshell;
 
+import cwx.perf;
 import cwx.sjis;
 
 import org.eclipse.swt.all;
@@ -22,7 +23,7 @@ version (Windows) {
 class SBShell {
 	private Shell _shl;
 	private Composite _contentPane;
-	this (Shell parent, int style) {
+	this (Shell parent, int style) { mixin(S_TRACE);
 		_shl = new Shell(parent, style);
 		scope (failure) _shl.dispose();
 		initStatusBar();
@@ -34,12 +35,12 @@ class SBShell {
 
 	version (Windows) {
 		private HWND _hsbar = INVALID_HANDLE_VALUE;
-		private void initStatusBar() {
+		private void initStatusBar() { mixin(S_TRACE);
 			OS.InitCommonControls();
 			_hsbar = CreateStatusWindowW
 				(OS.WS_CHILD | OS.WS_VISIBLE | CCS_BOTTOM | SBARS_SIZEGRIP,
 				toUTFz!(wchar*)(""), cast(HANDLE) _shl.handle, 1);
-			if (_hsbar == INVALID_HANDLE_VALUE) {
+			if (_hsbar == INVALID_HANDLE_VALUE) { mixin(S_TRACE);
 				throw new Exception("CreateStatusWindowW()");
 			}
 			_shl.addDisposeListener(new DL);
@@ -57,32 +58,32 @@ class SBShell {
 			_contentPane.setLayoutData(fd);
 		}
 		private class DL : DisposeListener {
-			override void widgetDisposed(DisposeEvent e) {
+			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				if (_hsbar == INVALID_HANDLE_VALUE) return;
 				OS.CloseHandle(_hsbar);
 			}
 		}
 		private class CL : ControlAdapter {
-			override void controlResized(ControlEvent e) {
+			override void controlResized(ControlEvent e) { mixin(S_TRACE);
 				if (_hsbar == INVALID_HANDLE_VALUE) return;
 				if (_shl.getMinimized()) return;
 				auto p = _shl.getSize();
 				auto s = (p.y << 16) | p.x;
-				if (_shl.getMaximized()) {
+				if (_shl.getMaximized()) { mixin(S_TRACE);
 					OS.SendMessage(_hsbar, OS.WM_SIZE, OS.SIZE_MAXIMIZED, s);
-				} else {
+				} else { mixin(S_TRACE);
 					OS.SendMessage(_hsbar, OS.WM_SIZE, OS.SIZE_RESTORED, s);
 				}
 			}
 		}
 		@property
-		void statusLine(string text) {
+		void statusLine(string text) { mixin(S_TRACE);
 			if (_hsbar == INVALID_HANDLE_VALUE) return;
 			OS.SendMessage(_hsbar, SB_SETTEXT, 0, tosjismz(text));
 		}
-	} else {
+	} else { mixin(S_TRACE);
 		private Label _sbar;
-		private void initStatusBar() {
+		private void initStatusBar() { mixin(S_TRACE);
 			auto gl = new GridLayout(1, true);
 			gl.marginWidth = 0;
 			gl.marginHeight = 0;
@@ -95,7 +96,7 @@ class SBShell {
 			_sbar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 		@property
-		void statusLine(string text) {
+		void statusLine(string text) { mixin(S_TRACE);
 			_sbar.setText(std.array.replace(text, "&", "&&"));
 		}
 	}

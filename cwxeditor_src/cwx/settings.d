@@ -1,6 +1,7 @@
 
 module cwx.settings;
 
+import cwx.perf;
 import cwx.xml;
 
 import std.conv;

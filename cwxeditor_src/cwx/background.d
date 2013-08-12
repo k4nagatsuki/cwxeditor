@@ -17,7 +17,7 @@ import std.string;
 /// エリア絡みの例外。
 public class AreaException : Exception {
 public:
-	this(string msg) {
+	this(string msg) { mixin(S_TRACE);
 		super(msg);
 	}
 }
@@ -31,14 +31,14 @@ public:
 	static immutable XML_NAME = "BgImage";
 
 	const
-	bool opEquals(ref const(Object) o) {
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto b = cast(ImageCell) o;
 		return b && mask == b.mask && path == b.path
 			&& x == b.x && y == b.y && width == b.width && height == b.height;
 	}
 
 	/// 空のインスタンスを生成する。
-	this () {
+	this () { mixin(S_TRACE);
 		this ("", "", 0, 0, 0, 0, false);
 	}
 
@@ -51,7 +51,7 @@ public:
 	/// w = 幅。
 	/// h = 高さ。
 	/// mask = 透明色を使用するか。
-	this (string path, string flag, int x, int y, int w, int h, bool mask) {
+	this (string path, string flag, int x, int y, int w, int h, bool mask) { mixin(S_TRACE);
 		super (flag, x, y, w, h, mask);
 		_user = new PathUser(this);
 		_user.path = path;
@@ -65,39 +65,39 @@ public:
 	@property
 	const
 	override
-	BgImage dup() {
+	BgImage dup() { mixin(S_TRACE);
 		return new ImageCell(path, flag, x, y, width, height, mask);
 	}
 
 	/// 画像ファイルパス。
 	@property
 	const
-	string path() {
+	string path() { mixin(S_TRACE);
 		return _user.path;
 	}
 	/// ditto
 	@property
-	void path(string path) {
+	void path(string path) { mixin(S_TRACE);
 		if (_user.path != path) changed();
 		_user.path = path;
 	}
 
 	@property
-	override void setUseCounter(UseCounter uc) {
+	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		_user.setUseCounter(uc);
 		super.setUseCounter(uc);
 	}
-	override void removeUseCounter() {
+	override void removeUseCounter() { mixin(S_TRACE);
 		_user.removeUseCounter();
 		super.removeUseCounter();
 	}
-	override void change(PathId id) {
+	override void change(PathId id) { mixin(S_TRACE);
 		_user.change(id);
 	}
 
 	override
 	const
-	void toNode(ref XNode node, XMLOption opt) {
+	void toNode(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
 		auto e = node.newElement(XML_NAME);
 		e.newAttr("mask", fromBool(_mask));
@@ -110,24 +110,24 @@ public:
 		sn.newAttr("width", _w);
 		sn.newAttr("height", _h);
 	}
-	static ImageCell createFromNode(ref XNode node, in XMLInfo ver) {
+	static ImageCell createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		if (node.name != XML_NAME) throw new AreaException("Node is not BgImage");
 		bool mask = parseBool(node.attr("mask", true));
 		string path = "";
 		string flag = "";
 		int x = 0, y = 0;
 		int w = 0, h = 0;
-		node.onTag["ImagePath"] = (ref XNode n) {
+		node.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
 			path = decodePath(n.value);
 		};
-		node.onTag["Flag"] = (ref XNode n) {
+		node.onTag["Flag"] = (ref XNode n) { mixin(S_TRACE);
 			flag = n.value;
 		};
-		node.onTag["Location"] = (ref XNode n) {
+		node.onTag["Location"] = (ref XNode n) { mixin(S_TRACE);
 			x = n.attr!(int)("left", true);
 			y = n.attr!(int)("top", true);
 		};
-		node.onTag["Size"] = (ref XNode n) {
+		node.onTag["Size"] = (ref XNode n) { mixin(S_TRACE);
 			w = n.attr!(int)("width", true);
 			h = n.attr!(int)("height", true);
 		};
@@ -156,7 +156,7 @@ public:
 	static immutable XML_NAME = "TextCell";
 
 	/// 空のインスタンスを生成する。
-	this () {
+	this () { mixin(S_TRACE);
 		super ("", 0, 0, 0, 0, false);
 		_text = new SimpleTextHolder;
 		_text.owner = this;
@@ -166,7 +166,7 @@ public:
 	this (string text, string fontName, uint size, CRGB color,
 			bool bold, bool italic, bool underline, bool strike, bool vertical,
 			BorderingType borderingType, CRGB borderingColor, uint borderingWidth,
-			string flag, int x, int y, int w, int h, bool mask) {
+			string flag, int x, int y, int w, int h, bool mask) { mixin(S_TRACE);
 		super (flag, x, y, w, h, mask);
 		_text = new SimpleTextHolder;
 		_text.text = text;
@@ -185,7 +185,7 @@ public:
 	}
 
 	const
-	bool opEquals(ref const(Object) o) {
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto b = cast(TextCell) o;
 		return b
 			&& text == b.text
@@ -216,7 +216,7 @@ public:
 	@property
 	const
 	override
-	BgImage dup() {
+	BgImage dup() { mixin(S_TRACE);
 		return new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
 			borderingType, borderingColor, borderingWidth, flag, x, y, width, height, mask);
 	}
@@ -226,8 +226,8 @@ public:
 	const
 	string text() { return _text.text; }
 	@property
-	void text(string value) {
-		if (_text.text != value) {
+	void text(string value) { mixin(S_TRACE);
+		if (_text.text != value) { mixin(S_TRACE);
 			changed();
 			_text.text = value;
 		}
@@ -238,8 +238,8 @@ public:
 	const
 	string fontName() { return _fontName; }
 	@property
-	void fontName(string value) {
-		if (_fontName != value) {
+	void fontName(string value) { mixin(S_TRACE);
+		if (_fontName != value) { mixin(S_TRACE);
 			changed();
 			_fontName = value;
 		}
@@ -249,8 +249,8 @@ public:
 	const
 	uint size() { return _size; }
 	@property
-	void size(uint value) {
-		if (_size != value) {
+	void size(uint value) { mixin(S_TRACE);
+		if (_size != value) { mixin(S_TRACE);
 			changed();
 			_size = value;
 		}
@@ -261,8 +261,8 @@ public:
 	const
 	CRGB color() { return _color; }
 	@property
-	void color(CRGB value) {
-		if (_color != value) {
+	void color(CRGB value) { mixin(S_TRACE);
+		if (_color != value) { mixin(S_TRACE);
 			changed();
 			_color = value;
 		}
@@ -273,8 +273,8 @@ public:
 	const
 	bool bold() { return _bold; }
 	@property
-	void bold(bool value) {
-		if (_bold != value) {
+	void bold(bool value) { mixin(S_TRACE);
+		if (_bold != value) { mixin(S_TRACE);
 			changed();
 			_bold = value;
 		}
@@ -284,8 +284,8 @@ public:
 	const
 	bool italic() { return _italic; }
 	@property
-	void italic(bool value) {
-		if (_italic != value) {
+	void italic(bool value) { mixin(S_TRACE);
+		if (_italic != value) { mixin(S_TRACE);
 			changed();
 			_italic = value;
 		}
@@ -295,8 +295,8 @@ public:
 	const
 	bool underline() { return _underline; }
 	@property
-	void underline(bool value) {
-		if (_underline != value) {
+	void underline(bool value) { mixin(S_TRACE);
+		if (_underline != value) { mixin(S_TRACE);
 			changed();
 			_underline = value;
 		}
@@ -306,8 +306,8 @@ public:
 	const
 	bool strike() { return _strike; }
 	@property
-	void strike(bool value) {
-		if (_strike != value) {
+	void strike(bool value) { mixin(S_TRACE);
+		if (_strike != value) { mixin(S_TRACE);
 			changed();
 			_strike = value;
 		}
@@ -317,8 +317,8 @@ public:
 	const
 	bool vertical() { return _vertical; }
 	@property
-	void vertical(bool value) {
-		if (_vertical != value) {
+	void vertical(bool value) { mixin(S_TRACE);
+		if (_vertical != value) { mixin(S_TRACE);
 			changed();
 			_vertical = value;
 		}
@@ -329,8 +329,8 @@ public:
 	const
 	BorderingType borderingType() { return _borderingType; }
 	@property
-	void borderingType(BorderingType value) {
-		if (_borderingType != value) {
+	void borderingType(BorderingType value) { mixin(S_TRACE);
+		if (_borderingType != value) { mixin(S_TRACE);
 			changed();
 			_borderingType = value;
 		}
@@ -340,8 +340,8 @@ public:
 	const
 	CRGB borderingColor() { return _borderingColor; }
 	@property
-	void borderingColor(CRGB value) {
-		if (_borderingColor != value) {
+	void borderingColor(CRGB value) { mixin(S_TRACE);
+		if (_borderingColor != value) { mixin(S_TRACE);
 			changed();
 			_borderingColor = value;
 		}
@@ -351,8 +351,8 @@ public:
 	const
 	uint borderingWidth() { return _borderingWidth; }
 	@property
-	void borderingWidth(uint value) {
-		if (_borderingWidth != value) {
+	void borderingWidth(uint value) { mixin(S_TRACE);
+		if (_borderingWidth != value) { mixin(S_TRACE);
 			changed();
 			_borderingWidth = value;
 		}
@@ -374,7 +374,7 @@ public:
 
 	override
 	const
-	void toNode(ref XNode node, XMLOption opt) {
+	void toNode(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
 		auto e = node.newElement(XML_NAME);
 
@@ -392,7 +392,7 @@ public:
 		clr.newAttr("b", color.b);
 		clr.newAttr("a", color.a);
 
-		if (borderingType !is BorderingType.None) {
+		if (borderingType !is BorderingType.None) { mixin(S_TRACE);
 			auto bdr = e.newElement("Bordering");
 			bdr.newAttr("type", fromBorderingType(borderingType));
 			bdr.newAttr("width", borderingWidth);
@@ -411,7 +411,7 @@ public:
 		sn.newAttr("width", _w);
 		sn.newAttr("height", _h);
 	}
-	static TextCell createFromNode(ref XNode node, in XMLInfo ver) {
+	static TextCell createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		if (node.name != XML_NAME) throw new AreaException("Node is not TextCell");
 		string text = "";
 		string fontName = "";
@@ -426,10 +426,10 @@ public:
 		CRGB borderingColor = CRGB(255, 255, 255, 255);
 		uint borderingWidth = 1;
 
-		node.onTag["Text"] = (ref XNode n) {
+		node.onTag["Text"] = (ref XNode n) { mixin(S_TRACE);
 			text = n.value;
 		};
-		node.onTag["Font"] = (ref XNode n) {
+		node.onTag["Font"] = (ref XNode n) { mixin(S_TRACE);
 			fontName = n.value;
 			size = n.attr!uint("size", true);
 			bold = n.attr!bool("bold", false, bold);
@@ -437,19 +437,19 @@ public:
 			underline = n.attr!bool("underline", false, underline);
 			strike = n.attr!bool("strike", false, strike);
 		};
-		node.onTag["Vertical"] = (ref XNode n) {
+		node.onTag["Vertical"] = (ref XNode n) { mixin(S_TRACE);
 			vertical = n.valueTo!bool();
 		};
-		node.onTag["Color"] = (ref XNode n) {
+		node.onTag["Color"] = (ref XNode n) { mixin(S_TRACE);
 			color.r = n.attr!uint("r", true);
 			color.g = n.attr!uint("g", true);
 			color.b = n.attr!uint("b", true);
 			color.a = n.attr!uint("a", false, color.a);
 		};
-		node.onTag["Bordering"] = (ref XNode n) {
+		node.onTag["Bordering"] = (ref XNode n) { mixin(S_TRACE);
 			borderingType = toBorderingType(n.attr("type", true));
 			borderingWidth = n.attr("width", false, borderingWidth);
-			n.onTag["Color"] = (ref XNode n) {
+			n.onTag["Color"] = (ref XNode n) { mixin(S_TRACE);
 				borderingColor.r = n.attr!uint("r", true);
 				borderingColor.g = n.attr!uint("g", true);
 				borderingColor.b = n.attr!uint("b", true);
@@ -462,14 +462,14 @@ public:
 		int x = 0, y = 0;
 		int w = 0, h = 0;
 
-		node.onTag["Flag"] = (ref XNode n) {
+		node.onTag["Flag"] = (ref XNode n) { mixin(S_TRACE);
 			flag = n.value;
 		};
-		node.onTag["Location"] = (ref XNode n) {
+		node.onTag["Location"] = (ref XNode n) { mixin(S_TRACE);
 			x = n.attr!(int)("left", true);
 			y = n.attr!(int)("top", true);
 		};
-		node.onTag["Size"] = (ref XNode n) {
+		node.onTag["Size"] = (ref XNode n) { mixin(S_TRACE);
 			w = n.attr!(int)("width", true);
 			h = n.attr!(int)("height", true);
 		};
@@ -491,13 +491,13 @@ public:
 	static immutable XML_NAME = "ColorCell";
 
 	/// 空のインスタンスを生成する。
-	this () {
+	this () { mixin(S_TRACE);
 		super ("", 0, 0, 0, 0, false);
 	}
 
 	/// パラメータを指定してインスタンスを生成する。
 	this (BlendMode blendMode, GradientDir gradientDir, CRGB color1, CRGB color2,
-			string flag, int x, int y, int w, int h, bool mask) {
+			string flag, int x, int y, int w, int h, bool mask) { mixin(S_TRACE);
 		super (flag, x, y, w, h, mask);
 		_blendMode = blendMode;
 		_gradientDir = gradientDir;
@@ -506,7 +506,7 @@ public:
 	}
 
 	const
-	bool opEquals(ref const(Object) o) {
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto b = cast(ColorCell) o;
 		return b
 			&& blendMode == b.blendMode
@@ -518,9 +518,9 @@ public:
 	@property
 	const
 	override
-	string name() {
+	string name() { mixin(S_TRACE);
 		string name = .tryFormat("#%02X%02X%02X", color1.r, color1.g, color1.b);
-		if (gradientDir is GradientDir.None) {
+		if (gradientDir is GradientDir.None) { mixin(S_TRACE);
 			return name;
 		}
 		return name ~ .tryFormat("-#%02X%02X%02X", color2.r, color2.g, color2.b);
@@ -529,7 +529,7 @@ public:
 	@property
 	const
 	override
-	BgImage dup() {
+	BgImage dup() { mixin(S_TRACE);
 		return new ColorCell(blendMode, gradientDir, color1, color2, flag, x, y, width, height, mask);
 	}
 
@@ -539,8 +539,8 @@ public:
 	BlendMode blendMode() { return _blendMode; }
 	/// ditto
 	@property
-	void blendMode(BlendMode value) {
-		if (_blendMode != value) {
+	void blendMode(BlendMode value) { mixin(S_TRACE);
+		if (_blendMode != value) { mixin(S_TRACE);
 			changed();
 			_blendMode = value;
 		}
@@ -552,8 +552,8 @@ public:
 	GradientDir gradientDir() { return _gradientDir; }
 	/// ditto
 	@property
-	void gradientDir(GradientDir value) {
-		if (_gradientDir != value) {
+	void gradientDir(GradientDir value) { mixin(S_TRACE);
+		if (_gradientDir != value) { mixin(S_TRACE);
 			changed();
 			_gradientDir = value;
 		}
@@ -565,8 +565,8 @@ public:
 	CRGB color1() { return _color1; }
 	/// ditto
 	@property
-	void color1(CRGB value) {
-		if (_color1 != value) {
+	void color1(CRGB value) { mixin(S_TRACE);
+		if (_color1 != value) { mixin(S_TRACE);
 			changed();
 			_color1 = value;
 		}
@@ -577,8 +577,8 @@ public:
 	CRGB color2() { return _color2; }
 	/// ditto
 	@property
-	void color2(CRGB value) {
-		if (_color2 != value) {
+	void color2(CRGB value) { mixin(S_TRACE);
+		if (_color2 != value) { mixin(S_TRACE);
 			changed();
 			_color2 = value;
 		}
@@ -586,7 +586,7 @@ public:
 
 	override
 	const
-	void toNode(ref XNode node, XMLOption opt) {
+	void toNode(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
 		auto e = node.newElement(XML_NAME);
 
@@ -596,7 +596,7 @@ public:
 		clr1.newAttr("g", color1.g);
 		clr1.newAttr("b", color1.b);
 		clr1.newAttr("a", color1.a);
-		if (gradientDir !is GradientDir.None) {
+		if (gradientDir !is GradientDir.None) { mixin(S_TRACE);
 			auto ge = e.newElement("Gradient");
 			ge.newAttr("direction", fromGradientDir(gradientDir));
 			auto clr2 = ge.newElement("EndColor");
@@ -614,26 +614,26 @@ public:
 		sn.newAttr("width", _w);
 		sn.newAttr("height", _h);
 	}
-	static ColorCell createFromNode(ref XNode node, in XMLInfo ver) {
+	static ColorCell createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		if (node.name != XML_NAME) throw new AreaException("Node is not TextCell");
 		BlendMode blendMode = BlendMode.Normal;
 		GradientDir gradientDir = GradientDir.None;
 		CRGB color1 = CRGB(255, 255, 255, 255);
 		CRGB color2 = CRGB(0, 0, 0, 255);
 
-		node.onTag["BlendMode"] = (ref XNode n) {
+		node.onTag["BlendMode"] = (ref XNode n) { mixin(S_TRACE);
 			blendMode = toBlendMode(n.value);
 		};
-		node.onTag["Color"] = (ref XNode n) {
+		node.onTag["Color"] = (ref XNode n) { mixin(S_TRACE);
 			color1.r = n.attr!uint("r", true);
 			color1.g = n.attr!uint("g", true);
 			color1.b = n.attr!uint("b", true);
 			color1.a = n.attr!uint("a", false, color1.a);
 		};
 		node.parse();
-		node.onTag["Gradient"] = (ref XNode n) {
+		node.onTag["Gradient"] = (ref XNode n) { mixin(S_TRACE);
 			gradientDir = toGradientDir(n.attr("direction", true));
-			n.onTag["EndColor"] = (ref XNode n) {
+			n.onTag["EndColor"] = (ref XNode n) { mixin(S_TRACE);
 				color2.r = n.attr!uint("r", true);
 				color2.g = n.attr!uint("g", true);
 				color2.b = n.attr!uint("b", true);
@@ -646,14 +646,14 @@ public:
 		int x = 0, y = 0;
 		int w = 0, h = 0;
 
-		node.onTag["Flag"] = (ref XNode n) {
+		node.onTag["Flag"] = (ref XNode n) { mixin(S_TRACE);
 			flag = n.value;
 		};
-		node.onTag["Location"] = (ref XNode n) {
+		node.onTag["Location"] = (ref XNode n) { mixin(S_TRACE);
 			x = n.attr!(int)("left", true);
 			y = n.attr!(int)("top", true);
 		};
-		node.onTag["Size"] = (ref XNode n) {
+		node.onTag["Size"] = (ref XNode n) { mixin(S_TRACE);
 			w = n.attr!(int)("width", true);
 			h = n.attr!(int)("height", true);
 		};
@@ -672,7 +672,7 @@ public:
 	/// XML要素名(複数)。
 	static immutable XML_NAME_M = "BgImages";
 
-	protected this (string flag, int x, int y, int w, int h, bool mask) {
+	protected this (string flag, int x, int y, int w, int h, bool mask) { mixin(S_TRACE);
 		super (this);
 		super.flag = flag;
 		_x = x;
@@ -695,47 +695,47 @@ public:
 
 	/// 変更ハンドラを登録する。
 	@property
-	void changeHandler(void delegate() change) {
+	void changeHandler(void delegate() change) { mixin(S_TRACE);
 		_change = change;
 	}
 	/// 変更を通知。
-	protected void changed() {
+	protected void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 
 	/// 透明色を使用するか。
 	@property
 	const
-	bool mask() {
+	bool mask() { mixin(S_TRACE);
 		return _mask;
 	}
 	/// ditto
 	@property
-	void mask(bool mask) {
+	void mask(bool mask) { mixin(S_TRACE);
 		if (_mask != mask) changed();
 		_mask = mask;
 	}
 	/// X座標。
 	@property
 	const
-	int x() {
+	int x() { mixin(S_TRACE);
 		return _x;
 	}
 	/// ditto
 	@property
-	void x(int x) {
+	void x(int x) { mixin(S_TRACE);
 		if (_x != x) changed();
 		_x = x;
 	}
 	/// Y座標。
 	@property
 	const
-	int y() {
+	int y() { mixin(S_TRACE);
 		return _y;
 	}
 	/// ditto
 	@property
-	void y(int y) {
+	void y(int y) { mixin(S_TRACE);
 		if (_y != y) changed();
 		_y = y;
 	}
@@ -743,12 +743,12 @@ public:
 	/// 幅。
 	@property
 	const
-	int width() {
+	int width() { mixin(S_TRACE);
 		return _w;
 	}
 	/// ditto
 	@property
-	void width(int w) {
+	void width(int w) { mixin(S_TRACE);
 		if (w < 0) w = 0;
 		if (_w != w) changed();
 		_w = w;
@@ -756,37 +756,37 @@ public:
 	/// 高さ。
 	@property
 	const
-	int height() {
+	int height() { mixin(S_TRACE);
 		return _h;
 	}
 	/// ditto
 	@property
-	void height(int h) {
+	void height(int h) { mixin(S_TRACE);
 		if (h < 0) h = 0;
 		if (_h != h) changed();
 		_h = h;
 	}
 
-	override void change(FlagId id) {
+	override void change(FlagId id) { mixin(S_TRACE);
 		super.change(id);
 	}
 
-	static BgImage[] bgImagesFromNode(ref XNode node, in XMLInfo ver) {
+	static BgImage[] bgImagesFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		assert (node.name == XML_NAME_M);
 		BgImage[] bgImgs;
-		node.onTag[ImageCell.XML_NAME] = (ref XNode bgn) {
+		node.onTag[ImageCell.XML_NAME] = (ref XNode bgn) { mixin(S_TRACE);
 			auto bg = ImageCell.createFromNode(bgn, ver);
-			if (bg.path.length > 0) {
+			if (bg.path.length > 0) { mixin(S_TRACE);
 				bgImgs ~= bg;
 			}
 		};
-		node.onTag[TextCell.XML_NAME] = (ref XNode bgn) {
+		node.onTag[TextCell.XML_NAME] = (ref XNode bgn) { mixin(S_TRACE);
 			auto bg = TextCell.createFromNode(bgn, ver);
-			if (bg.text.length > 0) {
+			if (bg.text.length > 0) { mixin(S_TRACE);
 				bgImgs ~= bg;
 			}
 		};
-		node.onTag[ColorCell.XML_NAME] = (ref XNode bgn) {
+		node.onTag[ColorCell.XML_NAME] = (ref XNode bgn) { mixin(S_TRACE);
 			bgImgs ~= ColorCell.createFromNode(bgn, ver);
 		};
 		node.parse();
@@ -794,17 +794,17 @@ public:
 	}
 
 	/// 指定されたノードに背景イメージ群のデータを追加する。
-	static void toNode(in BgImage[] bgImgs, ref XNode e, XMLOption opt) {
+	static void toNode(in BgImage[] bgImgs, ref XNode e, XMLOption opt) { mixin(S_TRACE);
 		auto bge = e.newElement(XML_NAME_M);
-		if (bgImgs.length > 0) {
+		if (bgImgs.length > 0) { mixin(S_TRACE);
 			// FIXME: このサイズはCPropsに持たせているがコンパイラのバグで参照できない。暫定。
-			if (bgImgs[0].width != 632 || bgImgs[0].height != 420) {
+			if (bgImgs[0].width != 632 || bgImgs[0].height != 420) { mixin(S_TRACE);
 				BgImage.appendEmptyToNode(bge, opt);
 			}
-			foreach (bg; bgImgs) {
+			foreach (bg; bgImgs) { mixin(S_TRACE);
 				bg.toNode(bge, opt);
 			}
-		} else {
+		} else { mixin(S_TRACE);
 			BgImage.appendEmptyToNode(bge, opt);
 		}
 	}
@@ -814,7 +814,7 @@ public:
 	abstract
 	void toNode(ref XNode node, XMLOption opt);
 	/// 背景イメージが一枚も無い場合。
-	static void appendEmptyToNode(ref XNode node, XMLOption opt) {
+	static void appendEmptyToNode(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
 		auto e = node.newElement(ImageCell.XML_NAME);
 		e.newAttr("mask", "False");
@@ -829,12 +829,12 @@ public:
 	}
 	
 	/// nodeから適切なインスタンスを生成して返す。
-	static BgImage createFromNode(ref XNode node, in XMLInfo ver) {
-		if (node.name == ImageCell.XML_NAME) {
+	static BgImage createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
+		if (node.name == ImageCell.XML_NAME) { mixin(S_TRACE);
 			return ImageCell.createFromNode(node, ver);
-		} else if (node.name == TextCell.XML_NAME) {
+		} else if (node.name == TextCell.XML_NAME) { mixin(S_TRACE);
 			return TextCell.createFromNode(node, ver);
-		} else if (node.name == ColorCell.XML_NAME) {
+		} else if (node.name == ColorCell.XML_NAME) { mixin(S_TRACE);
 			return ColorCell.createFromNode(node, ver);
 		} else assert (0, node.name);
 	}
@@ -843,10 +843,10 @@ public:
 	@property
 	package void owner(BgImageOwner owner) {_owner = owner;}
 	@property
-	override string cwxPath(bool id) {
+	override string cwxPath(bool id) { mixin(S_TRACE);
 		return _owner ? cpjoin(_owner, "background", .cCountUntil!("a is b")(_owner.backs, this), id) : "";
 	}
-	override CWXPath findCWXPath(string path) {
+	override CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		return null;
 	}
@@ -872,16 +872,16 @@ private:
 	BgImage[] _bgImgs;
 public:
 	/// 唯一のコンストラクタ。
-	this (BgImage[] bgImgs) {
+	this (BgImage[] bgImgs) { mixin(S_TRACE);
 		_bgImgs = bgImgs;
 	}
 	@property
 	override string cwxPath(bool id) {return "";}
-	override CWXPath findCWXPath(string path) {
+	override CWXPath findCWXPath(string path) { mixin(S_TRACE);
 		if (cpempty(path)) return this;
 		auto cate = cpcategory(path);
 		switch (cate) {
-		case "background": {
+		case "background": { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= _bgImgs.length) return null;
 			return _bgImgs[index].findCWXPath(cpbottom(path));
@@ -892,7 +892,7 @@ public:
 	}
 	@property
 	const
-	const(CWXPath)[] cwxChilds() {
+	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
 		r ~= cast(const CWXPath[]) backs;
 		return r;
@@ -902,75 +902,75 @@ public:
 
 	/// 背景イメージ群。
 	@property
-	BgImage[] backs() {
+	BgImage[] backs() { mixin(S_TRACE);
 		return _bgImgs;
 	}
 	/// ditto
 	@property
 	const
-	const(BgImage)[] backs() {
+	const(BgImage)[] backs() { mixin(S_TRACE);
 		return _bgImgs;
 	}
 	/// ditto
 	@property
-	void backs(BgImage[] bgImgs) {
-		foreach (b; _bgImgs) {
+	void backs(BgImage[] bgImgs) { mixin(S_TRACE);
+		foreach (b; _bgImgs) { mixin(S_TRACE);
 			b.owner = null;
 		}
-		foreach (b; bgImgs) {
+		foreach (b; bgImgs) { mixin(S_TRACE);
 			b.owner = this;
 		}
 		_bgImgs = bgImgs;
 	}
 	/// 背景イメージを追加。
-	void append(BgImage back) {
+	void append(BgImage back) { mixin(S_TRACE);
 		back.owner = this;
 		_bgImgs ~= back;
 	}
 	/// ditto
-	void insert(int index, BgImage back) {
-		if (_bgImgs.length == index) {
+	void insert(int index, BgImage back) { mixin(S_TRACE);
+		if (_bgImgs.length == index) { mixin(S_TRACE);
 			append(back);
-		} else {
+		} else { mixin(S_TRACE);
 			back.owner = this;
 			_bgImgs = _bgImgs[0 .. index] ~ back ~ _bgImgs[index .. $];
 		}
 	}
 	/// ditto
-	void set(int index, BgImage back) {
+	void set(int index, BgImage back) { mixin(S_TRACE);
 		_bgImgs[index].owner = null;
 		back.owner = this;
 		_bgImgs[index] = back;
 	}
 	/// 背景イメージを除外。
-	void removeBgImage(int index) {
+	void removeBgImage(int index) { mixin(S_TRACE);
 		_bgImgs[index].owner = null;
 		_bgImgs = _bgImgs[0 .. index] ~ _bgImgs[index + 1 .. $];
 	}
 	/// 背景イメージのインデックスを交換。
-	void swapBacks(int index1, int index2) {
+	void swapBacks(int index1, int index2) { mixin(S_TRACE);
 		auto temp = _bgImgs[index1];
 		_bgImgs[index1] = _bgImgs[index2];
 		_bgImgs[index2] = temp;
 	}
 	/// 背景イメージ群をXMLノードにする。
-	static string BtoXML(BgImage[] backs, XMLOption opt) {
+	static string BtoXML(BgImage[] backs, XMLOption opt) { mixin(S_TRACE);
 		scope doc = XNode.create("MenuCardsAndBgImages");
-		if (backs.length) {
+		if (backs.length) { mixin(S_TRACE);
 			auto be = doc.newElement(BgImage.XML_NAME_M);
-			foreach (b; backs) {
+			foreach (b; backs) { mixin(S_TRACE);
 				b.toNode(be, opt);
 			}
 		}
 		return doc.text;
 	}
 	/// XMLノードから背景イメージ群を読み出す。
-	static bool BfromXML(string xml, out BgImage[] backs, in XMLInfo ver) {
-		try {
+	static bool BfromXML(string xml, out BgImage[] backs, in XMLInfo ver) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
 			scope doc = XNode.parse(xml);
-			if (doc.name == "MenuCardsAndBgImages") {
-				doc.onTag[BgImage.XML_NAME_M] = (ref XNode node) {
-					node.onTag[null] = (ref XNode node) {
+			if (doc.name == "MenuCardsAndBgImages") { mixin(S_TRACE);
+				doc.onTag[BgImage.XML_NAME_M] = (ref XNode node) { mixin(S_TRACE);
+					node.onTag[null] = (ref XNode node) { mixin(S_TRACE);
 						backs ~= BgImage.createFromNode(node, ver);
 					};
 					node.parse();
