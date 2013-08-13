@@ -1315,6 +1315,7 @@ enum MenuID {
 	CGroupLost,
 	CGroupVisual,
 	EditSummary,
+	NewAreaDir,
 	NewArea,
 	NewBattle,
 	NewPackage,

@@ -768,6 +768,7 @@ class Msgs : Properties {
 
 	/// エリアのテーブル。
 	auto areaDirRoot = Msg("areaDirRoot", "Scenario");
+	auto areaDirNew = Msg("areaDirNew", "新規フォルダ");
 	auto areaId = Msg("areaId", "ID");
 	auto areaName = Msg("areaName", "名称");
 	auto areaCount = Msg("areaCount", "利用数");
@@ -1848,6 +1849,7 @@ class Msgs : Properties {
 	auto menuTextCGroupLost = Msg("menuTextCGroupLost", "喪失");
 	auto menuTextCGroupVisual = Msg("menuTextCGroupVisual", "外観操作");
 	auto menuTextEditSummary = Msg("menuTextEditSummary", "シナリオの設定");
+	auto menuTextNewAreaDir = Msg("menuTextNewAreaDir", "フォルダの作成");
 	auto menuTextNewArea = Msg("menuTextNewArea", "エリアの作成");
 	auto menuTextNewBattle = Msg("menuTextNewBattle", "バトルの作成");
 	auto menuTextNewPackage = Msg("menuTextNewPackage", "パッケージの作成");

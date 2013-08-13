@@ -34,6 +34,7 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.splitpane;
+import cwx.editor.gui.dwt.centerlayout;
 
 import std.algorithm : max, min;
 import std.array : split;
@@ -311,6 +312,10 @@ private:
 		void dispose() { mixin(S_TRACE);
 			foreach (u; _array) u.dispose();
 		}
+	}
+
+	void storeEmpty() { mixin(S_TRACE);
+		_undo ~= new UndoIDs(this, _comm, _summ);
 	}
 
 	static class UndoIDs : ATUndo {
@@ -1657,10 +1662,20 @@ public:
 		_parent = parent;
 		if (_prop.var.etc.showAreaDirTree) { mixin (S_TRACE);
 			_dirMode = true;
-			auto sash = new SplitPane(parent, SWT.HORIZONTAL);
-			_dirTree = new Tree(sash, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
+			auto sash = new SplitPane(parent, _prop.var.etc.areaSashV ? SWT.VERTICAL : SWT.HORIZONTAL);
+			auto cl1 = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
+			cl1.fillHorizontal = true;
+			cl1.fillVertical = true;
+			auto cl2 = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
+			cl2.fillHorizontal = true;
+			cl2.fillVertical = true;
+			auto panel1 = new Composite(sash, SWT.NONE);
+			panel1.setLayout(cl1);
+			auto panel2 = new Composite(sash, SWT.NONE);
+			panel2.setLayout(cl2);
+			tableParent = panel2;
+			_dirTree = new Tree(panel1, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
 			initTree(_comm, _dirTree, false);
-			tableParent = sash;
 			.listener(_dirTree, SWT.Selection, &updateDirSel);
 			_areaDirEdit = new TreeEdit(_comm, _dirTree, &dirEditEnd, (itm) { mixin (S_TRACE);
 				auto dir = cast(DirTree)itm.getData();
@@ -1680,7 +1695,6 @@ public:
 			_dirTree.setMenu(menu);
 
 			// TODO drag & drop
-			// 縦横入れ替え
 		}
 
 		_areas = new Table(tableParent, SWT.BORDER | SWT.FULL_SELECTION);
@@ -1803,7 +1817,7 @@ public:
 		_ucSorter.sortedEvent ~= &_comm.refreshToolBar;
 
 		if (_dirTree) { mixin (S_TRACE);
-			auto sash = cast(SplitPane)_dirTree.getParent();
+			auto sash = cast(SplitPane)_dirTree.getParent().getParent();
 			sash.setWeights([_prop.var.etc.areaSashL, _prop.var.etc.areaSashR]);
 			.listener(sash, SWT.Dispose, {
 				auto ws = sash.getWeights();
@@ -1827,6 +1841,41 @@ public:
 		return (index >= 0 && index < _summ.areas.length
 			+ _summ.battles.length + _summ.packages.length)
 			? index - _summ.areas.length - _summ.battles.length : -1;
+	}
+
+	@property
+	bool canChangeVH() { mixin(S_TRACE);
+		return _dirTree && !_dirTree.isDisposed();
+	}
+	void changeVHSide() { mixin(S_TRACE);
+		if (!canChangeVH) return;
+		auto sash = cast(SplitPane)_dirTree.getParent().getParent();
+		.changeVHSide(sash);
+		_prop.var.etc.areaSashV = (sash.getStyle() & SWT.VERTICAL) != 0;
+	}
+
+	@property
+	bool canCreateDir() { mixin(S_TRACE);
+		return _summ && _dirTree && !_dirTree.isDisposed();
+	}
+	void createDir() { mixin(S_TRACE);
+		if (!canCreateDir) return;
+		_incSearch.close();
+		storeEmpty();
+		auto itm = findDirTree(_dir);
+		auto dir = cast(DirTree)itm.getData();
+		auto sub = new DirTree(dir, createNewName(_prop.msgs.areaDirNew, (s) { mixin(S_TRACE);
+			foreach (dir; dir.subDirs) { mixin(S_TRACE);
+				if (0 == icmp(dir.name, s)) return false;
+			}
+			return true;
+		}));
+		.forceFocus(_dirTree, false);
+		refreshDirTree();
+		itm = findDirTree(sub.path);
+		_dirTree.setSelection([itm]);
+		updateDirSel();
+		_areaDirEdit.startEdit();
 	}
 
 	void reNumberingAll() { mixin(S_TRACE);
@@ -1958,7 +2007,7 @@ public:
 	}
 	@property
 	Control panel() { mixin(S_TRACE);
-		return _dirMode ? _areas.getParent() : _areas;
+		return _dirMode ? _areas.getParent().getParent() : _areas;
 	}
 
 	@property
@@ -2492,13 +2541,14 @@ public:
 					_comm.delPackage.call(cast(Package) area);
 				}
 			}
+			if (!undos.length) storeEmpty();
+			if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
+				auto itm = findDirTree(_dir).getParentItem();
+				delDirTree(_dir);
+				_dirTree.setSelection([itm]);
+				updateDirSel();
+			}
 			if (undos.length) { mixin(S_TRACE);
-				if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
-					auto itm = findDirTree(_dir).getParentItem();
-					delDirTree(_dir);
-					_dirTree.setSelection([itm]);
-					updateDirSel();
-				}
 				refreshAreas();
 				if (_flags) _flags.refresh();
 				_comm.refUseCount.call();

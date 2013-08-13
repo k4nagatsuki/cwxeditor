@@ -2241,6 +2241,7 @@ public:
 						mixin (MenuAction!("ma", MenuID.EditEvent));
 						new MenuItem(ma, SWT.SEPARATOR);
 					}
+					mixin (MenuAction!("ma", MenuID.NewAreaDir, SWT.PUSH, "_tableWin.createAreaDir", "&_tableWin.canCreateAreaDir"));
 					mixin (MenuAction!("ma", MenuID.NewArea, SWT.PUSH, "_tableWin.createArea", "&_tableWin.canCreateArea"));
 					mixin (MenuAction!("ma", MenuID.NewBattle, SWT.PUSH, "_tableWin.createBattle", "&_tableWin.canCreateBattle"));
 					mixin (MenuAction!("ma", MenuID.NewPackage, SWT.PUSH, "_tableWin.createPackage", "&_tableWin.canCreatePackage"));
@@ -2414,6 +2415,7 @@ public:
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						mixin (ToolAction!("bar", MenuID.EditSummary, SWT.PUSH, "_tableWin.editSummary", "() => summary !is null"));
 						new ToolItem(bar, SWT.SEPARATOR);
+						mixin (ToolAction!("bar", MenuID.NewAreaDir, SWT.PUSH, "_tableWin.createAreaDir", "&_tableWin.canCreateAreaDir"));
 						mixin (ToolAction!("bar", MenuID.NewArea, SWT.PUSH, "_tableWin.createArea", "&_tableWin.canCreateArea"));
 						mixin (ToolAction!("bar", MenuID.NewBattle, SWT.PUSH, "_tableWin.createBattle", "&_tableWin.canCreateBattle"));
 						mixin (ToolAction!("bar", MenuID.NewPackage, SWT.PUSH, "_tableWin.createPackage", "&_tableWin.canCreatePackage"));

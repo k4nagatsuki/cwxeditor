@@ -441,6 +441,7 @@ public:
 		case MenuID.CGroupLost: return imgd!("evt_j_lost.png");
 		case MenuID.CGroupVisual: return imgd!("evt_j_vis.png");
 		case MenuID.EditSummary: return imgd!("summary.png");
+		case MenuID.NewAreaDir: return imgd!("areadir_new.png");
 		case MenuID.NewArea: return imgd!("area_new.png");
 		case MenuID.NewBattle: return imgd!("battle_new.png");
 		case MenuID.NewPackage: return imgd!("package_new.png");

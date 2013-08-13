@@ -70,6 +70,7 @@ class FlexEtcProps : Properties {
 	auto areaSashB = Prop!(int)("areaSashB", 4);
 	auto areaSashL = Prop!(int)("areaSashL", 1);
 	auto areaSashR = Prop!(int)("areaSashR", 4);
+	auto areaSashV = Prop!(bool)("areaSashV", false);
 	auto flagSashL = Prop!(int)("flagSashL", 1);
 	auto flagSashR = Prop!(int)("flagSashR", 4);
 	auto flagSashV = Prop!(bool)("flagSashV", false);

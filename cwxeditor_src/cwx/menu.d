@@ -111,6 +111,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.CGroupLost] = "L";
 		_mnemonic[MenuID.CGroupVisual] = "V";
 		_mnemonic[MenuID.EditSummary] = "M";
+		_mnemonic[MenuID.NewAreaDir] = "D";
 		_mnemonic[MenuID.NewArea] = "A";
 		_mnemonic[MenuID.NewBattle] = "B";
 		_mnemonic[MenuID.NewPackage] = "K";
@@ -301,6 +302,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.CGroupLost] = "";
 		_hotkey[MenuID.CGroupVisual] = "";
 		_hotkey[MenuID.EditSummary] = "";
+		_hotkey[MenuID.NewAreaDir] = "";
 		_hotkey[MenuID.NewArea] = "";
 		_hotkey[MenuID.NewBattle] = "";
 		_hotkey[MenuID.NewPackage] = "";

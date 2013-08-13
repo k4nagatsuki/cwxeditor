@@ -152,6 +152,8 @@ public:
 						createMenuItem(_comm, mt, MenuID.EditSummary, &editSummary, &canEditSummary);
 						new MenuItem(mt, SWT.SEPARATOR);
 					}
+					createMenuItem(_comm, mt, MenuID.NewAreaDir, &createAreaDir, &canCreateAreaDir);
+					new MenuItem(mt, SWT.SEPARATOR);
 					createMenuItem(_comm, mt, MenuID.NewArea, &createArea, &canCreateArea);
 					createMenuItem(_comm, mt, MenuID.NewBattle, &createBattle, &canCreateBattle);
 					createMenuItem(_comm, mt, MenuID.NewPackage, &createPackage, &canCreatePackage);
@@ -177,6 +179,8 @@ public:
 				createToolItem(_comm, bar, MenuID.Down, &down, &canDown);
 				static if (UseArea) {
 					new ToolItem(bar, SWT.SEPARATOR);
+					createToolItem(_comm, bar, MenuID.NewAreaDir, &createAreaDir, &canCreateAreaDir);
+					new ToolItem(bar, SWT.SEPARATOR);
 					createToolItem(_comm, bar, MenuID.NewArea, &createArea, &canCreateArea);
 					createToolItem(_comm, bar, MenuID.NewBattle, &createBattle, &canCreateBattle);
 					createToolItem(_comm, bar, MenuID.NewPackage, &createPackage, &canCreatePackage);
@@ -201,6 +205,7 @@ public:
 				putMenuAction(MenuID.NewArea, &createArea, &canCreateArea);
 				putMenuAction(MenuID.NewBattle, &createBattle, &canCreateBattle);
 				putMenuAction(MenuID.NewPackage, &createPackage, &canCreatePackage);
+				putMenuAction(MenuID.ChangeVH, &_areas.changeVHSide, &_areas.canChangeVH);
 			}
 			static if (UseFlag) {
 				putMenuAction(MenuID.NewFlagDir, &createFlagDir, &canCreateFlagDir);
@@ -295,6 +300,10 @@ public:
 			return _summ !is null;
 		}
 		@property
+		bool canCreateAreaDir() { mixin(S_TRACE);
+			return _summ !is null && _areas.canCreateDir;
+		}
+		@property
 		bool canCreateArea() { mixin(S_TRACE);
 			return _summ !is null;
 		}
@@ -337,6 +346,11 @@ public:
 		/// ditto
 		void openPackage(ulong id, bool shellActivate) { mixin(S_TRACE);
 			_areas.openPackage(id, shellActivate);
+		}
+		void createAreaDir() { mixin(S_TRACE);
+			if (!_summ) return;
+			_comm.openDataWin(false);
+			_areas.createDir();
 		}
 		void createArea() { mixin(S_TRACE);
 			if (!_summ) return;
