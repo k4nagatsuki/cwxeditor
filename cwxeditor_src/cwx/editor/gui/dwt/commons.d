@@ -467,6 +467,7 @@ class Commons {
 			} catch (Throwable e) {
 				if (auto t = cast(ToolItem)itm) debugln(t.getText());
 				if (auto t = cast(MenuItem)itm) debugln(t.getText());
+				printStackTrace();
 				debugln(std.conv.text(d.id));
 				debugln(e);
 			}

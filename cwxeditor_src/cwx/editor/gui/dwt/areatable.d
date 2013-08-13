@@ -235,6 +235,7 @@ private:
 			if (v && v._areas && !v._areas.isDisposed()) { mixin(S_TRACE);
 				.forceFocus(v._areas, false);
 			}
+			if (v._parent) v._parent.setRedraw(false);
 		}
 		private void resetID(alias ToID, A)(AreaTable v, A[] arr, ulong[] ids) { mixin(S_TRACE);
 			ulong[] oldIDs;
@@ -277,6 +278,7 @@ private:
 			}
 			comm.refUseCount.call();
 			comm.refreshToolBar();
+			if (v._parent) v._parent.setRedraw(true);
 		}
 		protected AreaTable view() { mixin(S_TRACE);
 			return _v;
@@ -593,9 +595,7 @@ private:
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			scope (exit) {
-				_area = null;
-			}
+			scope (exit) _area = null;
 			_insert = true;
 			_area.removeUseCounter();
 			auto a = cast(Area) _area;
@@ -767,6 +767,7 @@ private:
 
 	Commons _comm;
 	Props _prop;
+	Composite _parent = null;
 	FlagTable _flags = null;
 	Summary _summ;
 	TableSorter!Object _idSorter;
@@ -852,21 +853,17 @@ private:
 		}
 	}
 	void selectFromInfo(ulong id, in TypeInfo type) { mixin(S_TRACE);
-		Object area = null;
 		if (type is typeid(Area)) { mixin(S_TRACE);
-			area = _summ.area(id);
+			select(_summ.area(id));
 		} else if (type is typeid(Battle)) { mixin(S_TRACE);
-			area = _summ.battle(id);
+			select(_summ.battle(id));
 		} else if (type is typeid(Package)) { mixin(S_TRACE);
-			area = _summ.cwPackage(id);
+			select(_summ.cwPackage(id));
 		} else { mixin(S_TRACE);
-			area = _summ;
-		}
-		foreach (i, itm; _areas.getItems()) { mixin(S_TRACE);
-			if (itm.getData() is area) { mixin(S_TRACE);
-				_areas.select(i);
-				_areas.showSelection();
-				break;
+			if (_dirMode) { mixin(S_TRACE);
+				_dirTree.setSelection([_dirTree.getItem(0)]);
+			} else { mixin(S_TRACE);
+				if (_areas.getItemCount()) _areas.select(0);
 			}
 		}
 	}
@@ -1467,6 +1464,8 @@ private:
 	}
 	private void refreshAreasImpl(bool selDir) { mixin(S_TRACE);
 		if (!_areas || _areas.isDisposed()) return;
+		_parent.setRedraw(false);
+		scope (exit) _parent.setRedraw(true);
 		if (!selDir) refreshDirTree();
 		int topIndex = _areas.getTopIndex();
 		auto sel = _areas.getSelectionIndex();
@@ -1648,6 +1647,7 @@ public:
 		_comm.refUndoMax.add(&refUndoMax);
 		_comm.refAreaTable.add(&refreshAreas);
 		auto tableParent = parent;
+		_parent = parent;
 		if (_prop.var.etc.showAreaDirTree) { mixin (S_TRACE);
 			_dirMode = true;
 			auto sash = new SplitPane(parent, SWT.HORIZONTAL);
@@ -2311,6 +2311,8 @@ public:
 		return canUdImpl(sel, sel + 1);
 	}
 	void up() { mixin(S_TRACE);
+		_parent.setRedraw(false);
+		scope (exit) _parent.setRedraw(true);
 		if (!canUp) return;
 		if (!_areas.isFocusControl()) return;
 		if (_areaDirEdit) _areaDirEdit.cancel();
@@ -2320,6 +2322,8 @@ public:
 		udImpl(sel, sel - 1);
 	}
 	void down() { mixin(S_TRACE);
+		_parent.setRedraw(false);
+		scope (exit) _parent.setRedraw(true);
 		if (!canDown) return;
 		if (!_areas.isFocusControl()) return;
 		if (_areaDirEdit) _areaDirEdit.cancel();
@@ -2331,10 +2335,14 @@ public:
 
 	override {
 		void cut(SelectionEvent se) { mixin(S_TRACE);
+			_parent.setRedraw(false);
+			scope (exit) _parent.setRedraw(true);
 			copy(se);
 			del(se);
 		}
 		void copy(SelectionEvent se) { mixin(S_TRACE);
+			_parent.setRedraw(false);
+			scope (exit) _parent.setRedraw(true);
 			if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
 				AbstractArea[] areas;
 				auto path = _dir == "" ? _dir : _dir ~ "\\";
@@ -2360,6 +2368,8 @@ public:
 			}
 		}
 		void paste(SelectionEvent se) { mixin(S_TRACE);
+			_parent.setRedraw(false);
+			scope (exit) _parent.setRedraw(true);
 			auto c = CBtoXML(_comm.clipboard);
 			if (c) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
@@ -2369,13 +2379,29 @@ public:
 					auto areas = createAreasFromXML(c, _summ.id, sameSummary, fromTable, ver);
 					ATUndo[] undos;
 					AbstractArea sel = null;
+					auto existsDirs = new HashSet!string;
+					void eRecurse(DirTree dir) { mixin(S_TRACE);
+						existsDirs.add(dir.path.toLower());
+						foreach (sub; dir.subDirs) eRecurse(sub);
+					}
+					eRecurse(_dirs);
 					foreach (area; areas) { mixin(S_TRACE);
 						sel = area;
 						if (_dirMode) { mixin(S_TRACE);
 							if (fromTable) { mixin(S_TRACE);
 								// フォルダ構造をそのまま貼り付け
-								// TODO すでに存在するフォルダをどうにかする
-								if (_dir != "") {
+								auto dir = area.dirName;
+								if (dir != "") { mixin(S_TRACE);
+									// すでに存在するフォルダであれば(2)等をつける
+									auto dirs = dir.split("\\");
+									auto firstDir = dirs[0];
+									firstDir = createNewName(firstDir, (s) { mixin(S_TRACE);
+										if (_dir != "") s = _dir ~ "\\" ~ s;
+										return !existsDirs.contains(s.toLower());
+									});
+									area.dirName = ([firstDir] ~ dirs[1..$]).join("\\");
+								}
+								if (_dir != "") { mixin(S_TRACE);
 									area.name = _dir ~ "\\" ~ area.name;
 								}
 							} else { mixin(S_TRACE);
@@ -2427,6 +2453,8 @@ public:
 			}
 		}
 		void del(SelectionEvent se) { mixin(S_TRACE);
+			_parent.setRedraw(false);
+			scope (exit) _parent.setRedraw(true);
 			AbstractArea[] areas;
 			if (_dirTree && _dirTree.isFocusControl()) {
 				auto path = _dir == "" ? _dir : _dir ~ "\\";
@@ -2458,7 +2486,7 @@ public:
 				}
 			}
 			if (undos.length) { mixin(S_TRACE);
-				if (_dirMode) { mixin(S_TRACE);
+				if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
 					auto itm = findDirTree(_dir).getParentItem();
 					delDirTree(_dir);
 					_dirTree.setSelection([itm]);
@@ -2473,9 +2501,21 @@ public:
 			}
 		}
 		void clone(SelectionEvent se) { mixin(S_TRACE);
+			_parent.setRedraw(false);
+			scope (exit) _parent.setRedraw(true);
 			_comm.clipboard.memoryMode = true;
 			scope (exit) _comm.clipboard.memoryMode = false;
 			copy(se);
+			if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
+				// 同じ階層にコピーするため、一つ上のディレクトリを選択
+				auto sels = _dirTree.getSelection();
+				assert (sels.length);
+				auto itm = sels[0].getParentItem();
+				if (itm) {
+					_dirTree.setSelection([itm]);
+					_dir = (cast(DirTree)itm.getData()).path;
+				}
+			}
 			paste(se);
 		}
 		@property
@@ -2488,10 +2528,10 @@ public:
 		}
 		@property
 		bool canDoC() { mixin(S_TRACE);
-			if (_dirTree && _dirTree.isFocusControl()) {
+			if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
 				auto sels = _dirTree.getSelection();
 				return sels.length && cast(DirTree)sels[0].getData();
-			} else {
+			} else { mixin(S_TRACE);
 				return (showSummary ? 1 : 0) <= _areas.getSelectionIndex();
 			}
 		}
@@ -2505,12 +2545,12 @@ public:
 		}
 		@property
 		bool canDoD() { mixin(S_TRACE);
-			if (_dirTree && _dirTree.isFocusControl()) {
+			if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
 				auto sels = _dirTree.getSelection();
 				if (!sels.length) return false;
 				auto dir = cast(DirTree)sels[0].getData();
-				return dir.parent !is null;
-			} else {
+				return dir && dir.parent !is null;
+			} else { mixin(S_TRACE);
 				return (showSummary ? 1 : 0) <= _areas.getSelectionIndex();
 			}
 		}

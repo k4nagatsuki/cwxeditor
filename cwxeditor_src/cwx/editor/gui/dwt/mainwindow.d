@@ -3068,6 +3068,7 @@ public:
 						if (enabled) itm.setEnabled(enabled());
 					}
 				} catch (Throwable e) {
+					printStackTrace();
 					debugln(.text(d.id));
 					debugln(e);
 				}
