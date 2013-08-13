@@ -594,10 +594,10 @@ private:
 			udb(v);
 			scope (exit) uda(v);
 			scope (exit) {
-				_area.removeUseCounter();
 				_area = null;
 			}
 			_insert = true;
+			_area.removeUseCounter();
 			auto a = cast(Area) _area;
 			if (a) { mixin(S_TRACE);
 				summ.insert(_delIndex, a);
