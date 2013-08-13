@@ -194,10 +194,13 @@ private:
 
 		private ulong[] _areaIDs;
 		private ulong[] _areaIDsB;
-		private ulong[] _battleIDsB;
+		private ulong[AbstractArea] _areaOldIDs;
 		private ulong[] _battleIDs;
+		private ulong[] _battleIDsB;
+		private ulong[AbstractArea] _battleOldIDs;
 		private ulong[] _packageIDs;
 		private ulong[] _packageIDsB;
+		private ulong[AbstractArea] _packageOldIDs;
 		private ulong _sel;
 		private TypeInfo _selType;
 		private ulong _selB;
@@ -231,27 +234,31 @@ private:
 			_selTypeB = _selType;
 			_dirsB = _dirs;
 			saveIDs(v);
+			storeID!toAreaId(summ.areas, _areaOldIDs);
+			storeID!toBattleId(summ.battles, _battleOldIDs);
+			storeID!toPackageId(summ.packages, _packageOldIDs);
 			if (!one) return;
 			if (v && v._areas && !v._areas.isDisposed()) { mixin(S_TRACE);
 				.forceFocus(v._areas, false);
 			}
 			if (v._parent) v._parent.setRedraw(false);
 		}
-		private void resetID(alias ToID, A)(AreaTable v, A[] arr, ulong[] ids) { mixin(S_TRACE);
-			ulong[] oldIDs;
+		private void storeID(alias ToID, A)(A[] arr, out ulong[AbstractArea] oldIDs) {
 			foreach (i, a; arr) { mixin(S_TRACE);
 				auto oID = a.id;
 				a.id = ulong.max - arr.length + i;
 				summ.useCounter.change(ToID(oID), ToID(a.id));
-				oldIDs ~= oID;
+				oldIDs[a] = oID;
 			}
+		}
+		private void resetID(alias ToID, A)(AreaTable v, A[] arr, ulong[] ids, ulong[AbstractArea] oldIDs) { mixin(S_TRACE);
 			foreach (i, a; arr) { mixin(S_TRACE);
 				auto oID = a.id;
 				a.id = ids[i];
 				summ.useCounter.change(ToID(oID), ToID(a.id));
 			}
 			foreach (i, a; arr) { mixin(S_TRACE);
-				if (a.id != oldIDs[i]) { mixin(S_TRACE);
+				if (a.id != oldIDs.get(a, 0UL)) { mixin(S_TRACE);
 					static if (is(A : Area)) {
 						comm.refArea.call(v, a);
 					} else static if (is(A : Battle)) {
@@ -263,9 +270,9 @@ private:
 			}
 		}
 		protected void uda(AreaTable v) { mixin(S_TRACE);
-			resetID!toAreaId(v, summ.areas, _areaIDsB);
-			resetID!toBattleId(v, summ.battles, _battleIDsB);
-			resetID!toPackageId(v, summ.packages, _packageIDsB);
+			resetID!toAreaId(v, summ.areas, _areaIDsB, _areaOldIDs);
+			resetID!toBattleId(v, summ.battles, _battleIDsB, _battleOldIDs);
+			resetID!toPackageId(v, summ.packages, _packageIDsB, _packageOldIDs);
 			if (!one) return;
 			if (v) {
 				v._dirs = _dirsB.dup;
