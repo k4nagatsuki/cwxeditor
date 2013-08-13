@@ -323,6 +323,7 @@ class Commons {
 	Dlg!() refEventTreeViewStyle;
 	Dlg!() refTerminalMark;
 
+	Dlg!() refTableViewStyle;
 	Dlg!(Area) refArea;
 	Dlg!(Area) delArea;
 	Dlg!(Battle) refBattle;

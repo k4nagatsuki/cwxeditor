@@ -31,7 +31,7 @@ private:
 	Shell _parentShell;
 	Commons _comm;
 	SBShell _sbshl;
-	Composite _win;
+	Composite _win, _contPane;
 	static if (UseArea) {
 		AreaTable _areas;
 	}
@@ -107,14 +107,21 @@ public:
 			_win = new Composite(parent, SWT.NONE);
 			contPane = _win;
 		}
+		_contPane = contPane;
 		_win.setData(new TLPData(this));
 		contPane.setLayout(windowGridLayout(1, true));
 
+		static if (UseArea) {
+			_comm.refTableViewStyle.add(&refTableViewStyle);
+		}
 		_comm.refScenarioName.add(&__refreshTitle);
 		_comm.refScenarioPath.add(&__refreshTitle);
 		_comm.replText.add(&__refreshTitle);
 		_win.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+				static if (UseArea) {
+					_comm.refTableViewStyle.remove(&refTableViewStyle);
+				}
 				_comm.refScenarioName.remove(&__refreshTitle);
 				_comm.refScenarioPath.remove(&__refreshTitle);
 				_comm.replText.remove(&__refreshTitle);
@@ -274,6 +281,21 @@ public:
 				_comm.refScenarioName.remove(&__refreshTitle);
 			}
 		});
+	}
+	static if (UseArea) {
+		void refTableViewStyle() { mixin(S_TRACE);
+			static if (UseFlag) {
+				tabA.getControl().dispose();
+				_areas.construct(tabf, _flags.flags);
+				tabA.setControl(_areas.panel);
+			} else {
+				_areas.panel.dispose();
+				_areas.construct(_contPane, null);
+				_areas.panel.setLayoutData(new GridData(GridData.FILL_BOTH));
+				_contPane.layout();
+			}
+			_areas.summary = _summ;
+		}
 	}
 	static if (UseArea && UseFlag) {
 		private void saveDataWin() { mixin(S_TRACE);

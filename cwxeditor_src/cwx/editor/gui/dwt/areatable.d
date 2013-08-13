@@ -1422,6 +1422,10 @@ private:
 	}
 	class ADListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+			_dirs = null;
+			_dir = "";
+			_areas = null;
+			_dirTree = null;
 			_comm.refArea.remove(&refArea);
 			_comm.refBattle.remove(&refBattle);
 			_comm.refPackage.remove(&refPackage);
@@ -1510,6 +1514,9 @@ private:
 		foreach (a; _summ.packages) put(a.dirName);
 		foreach (s; stored) put(s);
 
+		sortDirTree();
+	}
+	private void sortDirTree() {
 		void recurse(DirTree dir) { mixin(S_TRACE);
 			if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
 				.sortDlg(dir.subDirs, (DirTree a, DirTree b) => incmp(a.name, b.name) < 0);
@@ -1780,6 +1787,7 @@ public:
 		_comm.refAreaTable.add(&refreshAreas);
 		auto tableParent = parent;
 		_parent = parent;
+		_dirMode = false;
 		if (_prop.var.etc.showAreaDirTree) { mixin (S_TRACE);
 			_dirMode = true;
 			auto sash = new SplitPane(parent, _prop.var.etc.areaSashV ? SWT.HORIZONTAL : SWT.VERTICAL);
@@ -1914,8 +1922,9 @@ public:
 			st.doSort(SWT.UP);
 			break;
 		}
-		.listener(_areas, SWT.Dispose, { mixin(S_TRACE);
-			switch (_areas.getSortDirection()) {
+		.listener(_areas, SWT.Dispose, (Event e) { mixin(S_TRACE);
+			auto areas = cast(Table)e.widget;
+			switch (areas.getSortDirection()) {
 			case SWT.UP:
 				_prop.var.etc.areasSortDirection = SortDir.Up;
 				break;
@@ -1927,11 +1936,11 @@ public:
 				_prop.var.etc.areasSortDirection = SortDir.Up;
 				break;
 			}
-			if (_areas.getSortColumn() is _idSorter.column) { mixin(S_TRACE);
+			if (areas.getSortColumn() is _idSorter.column) { mixin(S_TRACE);
 				_prop.var.etc.areasSortColumn = ID;
-			} else if (_areas.getSortColumn() is _nameSorter.column) { mixin(S_TRACE);
+			} else if (areas.getSortColumn() is _nameSorter.column) { mixin(S_TRACE);
 				_prop.var.etc.areasSortColumn = NAME;
-			} else if (_areas.getSortColumn() is _ucSorter.column) { mixin(S_TRACE);
+			} else if (areas.getSortColumn() is _ucSorter.column) { mixin(S_TRACE);
 				_prop.var.etc.areasSortColumn = UC;
 			} else { mixin(S_TRACE);
 				_prop.var.etc.areasSortColumn = -1;

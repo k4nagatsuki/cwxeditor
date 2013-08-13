@@ -1390,6 +1390,7 @@ private:
 	Text _ignorePaths;
 	TableItem _singleWindow = null;
 
+	TableItem _showAreaDirTree;
 	TableItem _showSummaryInAreaTable;
 	TableItem _clickIsOpenEvent;
 	TableItem _smoothingCard;
@@ -2245,6 +2246,7 @@ private:
 			if (!_comm.singleWindowMode(_prop)) { mixin(S_TRACE);
 				_singleWindow = createB(_prop.msgs.singleWindow);
 			}
+			_showAreaDirTree = createB(_prop.msgs.showAreaDirTree);
 			_showSummaryInAreaTable = createB(_prop.msgs.showSummaryInAreaTable);
 			_clickIsOpenEvent = createB(_prop.msgs.clickIsOpenEvent);
 			_smoothingCard = createB(_prop.msgs.smoothingCard);
@@ -2532,6 +2534,7 @@ protected:
 		}
 		_ignorePaths.setText(ipbuf);
 
+		_showAreaDirTree.setChecked(_prop.var.etc.showAreaDirTree);
 		_showSummaryInAreaTable.setChecked(_prop.var.etc.showSummaryInAreaTable);
 		_clickIsOpenEvent.setChecked(_prop.var.etc.clickIsOpenEvent);
 		_expandXMLs.setChecked(_prop.var.etc.expandXMLs);
@@ -2706,6 +2709,7 @@ protected:
 		if (_singleWindow) { mixin(S_TRACE);
 			_prop.var.etc.singleWindow = _singleWindow.getChecked();
 		}
+		_prop.var.etc.showAreaDirTree = _showAreaDirTree.getChecked();
 		_prop.var.etc.showSummaryInAreaTable = _showSummaryInAreaTable.getChecked();
 		_prop.var.etc.clickIsOpenEvent = _clickIsOpenEvent.getChecked();
 		_prop.var.etc.smoothingCard = _smoothingCard.getChecked();
@@ -2843,6 +2847,7 @@ struct OldSettings {
 	bool straightEventTreeView;
 	bool showTerminalMark;
 	bool showSummaryInAreaTable;
+	bool showAreaDirTree;
 	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
 		this.targetVersion = prop.var.etc.targetVersion;
@@ -2889,6 +2894,7 @@ struct OldSettings {
 		this.straightEventTreeView = prop.var.etc.straightEventTreeView;
 		this.showTerminalMark = prop.var.etc.showTerminalMark;
 		this.showSummaryInAreaTable = prop.var.etc.showSummaryInAreaTable;
+		this.showAreaDirTree = prop.var.etc.showAreaDirTree;
 	}
 	void raiseEvent(Commons comm) { mixin(S_TRACE);
 		bool refSkin = false;
@@ -3020,6 +3026,9 @@ struct OldSettings {
 		}
 		if (this.showSummaryInAreaTable != prop.var.etc.showSummaryInAreaTable) { mixin(S_TRACE);
 			comm.refAreaTable.call();
+		}
+		if (this.showAreaDirTree != prop.var.etc.showAreaDirTree) { mixin(S_TRACE);
+			comm.refTableViewStyle.call();
 		}
 	}
 }
