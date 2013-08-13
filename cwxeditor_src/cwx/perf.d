@@ -7,17 +7,19 @@ struct StackTrace {
 }
 StackTrace[] tStack, stStack;
 size_t tStackLen = 0;
-immutable S_TRACE = `
+immutable S_TRACE = `.putStack(__FILE__, __LINE__);
+	scope (exit) .tStackLen--;
+	scope (failure) .saveStack();
+`;
+void putStack(string file, size_t line) {
 	if (!.tStack.length) {
 		.tStack = new StackTrace[8];
 	} else if (.tStack.length <= .tStackLen) {
 		.tStack.length *= 2;
 	}
-	.tStack[.tStackLen] = StackTrace(__FILE__, __LINE__ - 6);
+	.tStack[.tStackLen] = StackTrace(file, line);
 	.tStackLen++;
-	scope (exit) .tStackLen--;
-	scope (failure) .saveStack();
-`;
+}
 void saveStack() {
 	if (!stStack.length) {
 		stStack = tStack[0 .. tStackLen];

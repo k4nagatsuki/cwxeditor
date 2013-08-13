@@ -90,7 +90,7 @@ public:
 	@property Image folder() {return imgd!("folder.png");}
 	@property Image scenario() {return imgd!("scenario.png");}
 
-	@property Image areaDir() {return imgd!("folder.png");}
+	@property Image areaDir() {return imgd!("areadir.png");}
 	@property Image area() {return imgd!("area.png");}
 	@property Image battle() {return imgd!("battle.png");}
 	@property Image packages() {return imgd!("package.png");}

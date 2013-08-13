@@ -32,7 +32,7 @@ import std.stream;
 debug {
 	version (Console) {
 		private immutable DR = "Debug / Console";
-	} else { mixin(S_TRACE);
+	} else {
 		private immutable DR = "Debug";
 	}
 } else { mixin(S_TRACE);
@@ -717,7 +717,11 @@ string abs2rel(string p1, string p2) { mixin(S_TRACE);
 
 /// 大/小文字を区別しないstartsWith。
 bool istartsWith(in char[] a, in char[] b) { mixin(S_TRACE);
-	return a.length >= b.length && icmp(a[0 .. b.length], b) == 0;
+	if (a.length < b.length) return false;
+	auto da = a.to!dstring();
+	auto db = b.to!dstring();
+	if (da.length < db.length) return false;
+	return icmp(da[0 .. db.length], db) == 0;
 }
 
 /// 大/小文字を区別しないendsWith。

@@ -851,12 +851,17 @@ public:
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
+	@property
 	bool isEditing() { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			return _tee !is null;
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
+	}
+	void cancel() { mixin(S_TRACE);
+		if (!isEditing) return;
+		_tee.cancel();
 	}
 }
 

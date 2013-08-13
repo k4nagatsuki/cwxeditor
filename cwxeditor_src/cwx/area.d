@@ -40,20 +40,44 @@ interface PackageOwner : CWXPath {
 /// Throws:
 /// XmlException = パース失敗。
 /// IllegalArgumentException = 数値であるべきデータが数値でない。
-AbstractArea createAreaFromXML(string xml, string summId, out bool sameSummary, in XMLInfo ver) { mixin(S_TRACE);
+AbstractArea[] createAreasFromXML(string xml, string summId, out bool sameSummary, out bool fromTable, in XMLInfo ver) { mixin(S_TRACE);
 	try { mixin(S_TRACE);
-		scope e = XNode.parse(xml);
+		auto e = XNode.parse(xml);
 		auto id = e.attr("summaryId", false);
 		sameSummary = id && id == summId;
-		switch (e.name) {
-		case "Area": return Area.createFromNode(e, ver);
-		case "Battle": return Battle.createFromNode(e, ver);
-		case "Package": return Package.createFromNode(e, ver);
-		default: return null;
+		AbstractArea[] areas;
+		void load(ref XNode e) { mixin(S_TRACE);
+			switch (e.name) {
+			case "Area": areas ~= Area.createFromNode(e, ver); break;
+			case "Battle": areas ~= Battle.createFromNode(e, ver); break;
+			case "Package": areas ~= Package.createFromNode(e, ver); break;
+			default: break;
+			}
 		}
+		switch (e.name) {
+		case "Table":
+			fromTable = true;
+			e.onTag[null] = &load;
+			e.parse();
+			break;
+		default:
+			fromTable = false;
+			load(e);
+			break;
+		}
+		return areas;
 	} catch (Exception e) {
-		return null;
+		return [];
 	}
+}
+/// 一群のエリア・バトル・パッケージをXMLノードに変換する。
+XNode areasToNode(string parentPath, string cutPath, in AbstractArea[] areas, XMLOption opt, string summId = null) { mixin(S_TRACE);
+	auto doc = XNode.create("Table");
+	if (summId) doc.newAttr("summaryId", summId);
+	foreach (area; areas) { mixin(S_TRACE);
+		area.toNode(doc, opt, parentPath, cutPath);
+	}
+	return doc;
 }
 
 /// メニューカードとエネミーカードの親クラス。
@@ -696,13 +720,13 @@ public:
 		return e;
 	}
 	const
-	XNode toNode(ref XNode parent, XMLOption opt) { mixin(S_TRACE);
+	XNode toNode(ref XNode parent, XMLOption opt, string parentPath = "", string cutPath = "") { mixin(S_TRACE);
 		auto e = parent.newElement(rootName);
-		toNodeImpl(e, opt);
+		toNodeImpl(e, opt, parentPath, cutPath);
 		return e;
 	}
 	const
-	abstract void toNodeImpl(ref XNode e, XMLOption opt);
+	abstract void toNodeImpl(ref XNode e, XMLOption opt, string parentPath = "", string cutPath = "");
 
 	/// toXML()でsummIdを指定されたノードを渡すと、summIdを読み出して返す。
 	static string summaryId(in XNode node) { mixin(S_TRACE);
@@ -711,10 +735,17 @@ public:
 
 	/// 指定されたノードにProperty情報を追加する。
 	const
-	protected void appendProp(ref XNode pNode, XMLOption opt) { mixin(S_TRACE);
+	protected void appendProp(ref XNode pNode, XMLOption opt, string parentPath, string cutPath) { mixin(S_TRACE);
 		assert (pNode.name == "Property", pNode.name ~ " != Property");
 		pNode.newElement("Id", _id);
-		pNode.newElement("Name", _name);
+		string name = _name;
+		if (cutPath != "" && istartsWith(name, cutPath ~ "\\")) {
+			name = name[cutPath.length + 1 .. $];
+		}
+		if (parentPath != "") {
+			name = parentPath ~ "\\" ~ name;
+		}
+		pNode.newElement("Name", name);
 	}
 	/// 指定されたノードからProperty情報を読み出す。
 	protected static void loadProp(ref XNode aNode, out ulong id, out string name, out string path) { mixin(S_TRACE);
@@ -940,9 +971,9 @@ public:
 	override string rootName() {return "Area";}
 
 	const
-	override void toNodeImpl(ref XNode e, XMLOption opt) { mixin(S_TRACE);
+	override void toNodeImpl(ref XNode e, XMLOption opt, string parentPath = "", string cutPath = "") { mixin(S_TRACE);
 		auto pNode = e.newElement("Property");
-		appendProp(pNode, opt);
+		appendProp(pNode, opt, parentPath, cutPath);
 
 		BgImage.toNode(_bgImgs, e, opt);
 		auto ce = e.newElement("MenuCards");
@@ -1180,9 +1211,9 @@ public:
 	const
 	override string rootName() {return "Package";}
 	const
-	override void toNodeImpl(ref XNode e, XMLOption opt) { mixin(S_TRACE);
+	override void toNodeImpl(ref XNode e, XMLOption opt, string parentPath = "", string cutPath = "") { mixin(S_TRACE);
 		auto pNode = e.newElement("Property");
-		appendProp(pNode, opt);
+		appendProp(pNode, opt, parentPath, cutPath);
 		appendEventsToNode(e, opt);
 	}
 
@@ -1384,9 +1415,9 @@ public:
 	const
 	override string rootName() {return "Battle";}
 	const
-	override void toNodeImpl(ref XNode e, XMLOption opt) { mixin(S_TRACE);
+	override void toNodeImpl(ref XNode e, XMLOption opt, string parentPath = "", string cutPath = "") { mixin(S_TRACE);
 		auto pe = e.newElement("Property");
-		appendProp(pe, opt);
+		appendProp(pe, opt, parentPath, cutPath);
 		pe.newElement("MusicPath", encodePath(_music.path));
 	
 		auto ce = e.newElement("EnemyCards");
