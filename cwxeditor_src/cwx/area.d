@@ -40,9 +40,8 @@ interface PackageOwner : CWXPath {
 /// Throws:
 /// XmlException = パース失敗。
 /// IllegalArgumentException = 数値であるべきデータが数値でない。
-AbstractArea[] createAreasFromXML(string xml, string summId, out bool sameSummary, out bool fromTable, in XMLInfo ver) { mixin(S_TRACE);
+AbstractArea[] createAreasFromNode(ref XNode e, string summId, out bool sameSummary, out bool fromTable, in XMLInfo ver) { mixin(S_TRACE);
 	try { mixin(S_TRACE);
-		auto e = XNode.parse(xml);
 		auto id = e.attr("summaryId", false);
 		sameSummary = id && id == summId;
 		AbstractArea[] areas;
@@ -670,7 +669,7 @@ public:
 	@property
 	void dirName(string name) { mixin(S_TRACE);
 		if (name != "" && name[$ - 1] != '\\') name ~= "\\";
-		_name = name ~ baseName;
+		this.name = name ~ baseName;
 	}
 
 	/// 名前を'\'で分割してディレクトリ構造と看做した時、
@@ -686,7 +685,7 @@ public:
 	@property
 	void baseName(string name) { mixin(S_TRACE);
 		name = name.replace("\\", "");
-		_name = _name[0 .. $ - baseName.length] ~ name;
+		this.name = _name[0 .. $ - baseName.length] ~ name;
 	}
 
 	const

@@ -196,12 +196,15 @@ private:
 		private ulong[] _areaIDs;
 		private ulong[] _areaIDsB;
 		private ulong[AbstractArea] _areaOldIDs;
+		private ulong[ulong] _areaRefIDs;
 		private ulong[] _battleIDs;
 		private ulong[] _battleIDsB;
 		private ulong[AbstractArea] _battleOldIDs;
+		private ulong[ulong] _battleRefIDs;
 		private ulong[] _packageIDs;
 		private ulong[] _packageIDsB;
 		private ulong[AbstractArea] _packageOldIDs;
+		private ulong[ulong] _packageRefIDs;
 		private ulong _sel;
 		private TypeInfo _selType;
 		private ulong _selB;
@@ -235,21 +238,22 @@ private:
 			_selTypeB = _selType;
 			_dirsB = _dirs;
 			saveIDs(v);
-			storeID!toAreaId(summ.areas, _areaOldIDs);
-			storeID!toBattleId(summ.battles, _battleOldIDs);
-			storeID!toPackageId(summ.packages, _packageOldIDs);
+			storeID!toAreaId(summ.areas, _areaOldIDs, _areaRefIDs);
+			storeID!toBattleId(summ.battles, _battleOldIDs, _battleRefIDs);
+			storeID!toPackageId(summ.packages, _packageOldIDs, _packageRefIDs);
 			if (!one) return;
 			if (v && v._areas && !v._areas.isDisposed()) { mixin(S_TRACE);
 				.forceFocus(v._areas, false);
 			}
 			if (v._parent) v._parent.setRedraw(false);
 		}
-		private void storeID(alias ToID, A)(A[] arr, out ulong[AbstractArea] oldIDs) {
+		private void storeID(alias ToID, A)(A[] arr, out ulong[AbstractArea] oldIDs, out ulong[ulong] refIDs) {
 			foreach (i, a; arr) { mixin(S_TRACE);
 				auto oID = a.id;
 				a.id = ulong.max - arr.length + i;
 				summ.useCounter.change(ToID(oID), ToID(a.id));
 				oldIDs[a] = oID;
+				refIDs[oID] = a.id;
 			}
 		}
 		private void resetID(alias ToID, A)(AreaTable v, A[] arr, ulong[] ids, ulong[AbstractArea] oldIDs) { mixin(S_TRACE);
@@ -270,12 +274,21 @@ private:
 				}
 			}
 		}
+		protected ulong uid(ulong id, TypeInfo type) { mixin(S_TRACE);
+			if (type is typeid(Area)) { mixin(S_TRACE);
+				return _areaRefIDs[id];
+			} else if (type is typeid(Battle)) { mixin(S_TRACE);
+				return _battleRefIDs[id];
+			} else if (type is typeid(Package)) { mixin(S_TRACE);
+				return _packageRefIDs[id];
+			} else assert (0);
+		}
 		protected void uda(AreaTable v) { mixin(S_TRACE);
 			resetID!toAreaId(v, summ.areas, _areaIDsB, _areaOldIDs);
 			resetID!toBattleId(v, summ.battles, _battleIDsB, _battleOldIDs);
 			resetID!toPackageId(v, summ.packages, _packageIDsB, _packageOldIDs);
 			if (!one) return;
-			if (v) {
+			if (v) { mixin(S_TRACE);
 				v._dirs = _dirsB.dup;
 				v.refreshDirTree();
 			}
@@ -399,18 +412,18 @@ private:
 				_summData.toSummary(comm, summ);
 				_summData = oldData;
 				if (v && v._areas && !v._areas.isDisposed()) { mixin(S_TRACE);
-					auto itm = v.getItemFrom(_id, _type);
+					auto itm = v.getItemFrom(uid(_id, _type), _type);
 					if (itm) itm.setText(NAME, summ.scenarioName);
 				}
 				comm.refScenarioName.call(v);
 				if (refSkin) comm.refSkin.call();
 			} else { mixin(S_TRACE);
-				auto area = areaFromInfo(summ, _id, _type);
+				auto area = areaFromInfo(summ, uid(_id, _type), _type);
 				string oldName = area.name;
 				area.name = _name;
 				_name = oldName;
 				if (v && v._areas && !v._areas.isDisposed()) { mixin(S_TRACE);
-					auto itm = v.getItemFrom(_id, _type);
+					auto itm = v.getItemFrom(uid(_id, _type), _type);
 					if (itm) itm.setText(NAME, area.name);
 				}
 				auto a = cast(Area) area;
@@ -557,8 +570,8 @@ private:
 			}
 		}
 		private void initUndoDelete() { mixin(S_TRACE);
-			auto area = areaFromInfo(summ, _id, _type);
-			_delIndex = toIndexFrom(summ, _id, _type);
+			auto area = areaFromInfo(summ, uid(_id, _type), _type);
+			_delIndex = toIndexFrom(summ, uid(_id, _type), _type);
 			_isStartArea = cast(Area) area && summ.startArea == area.id;
 			auto node = area.toNode(new XMLOption(comm.prop.sys));
 			auto ver = new XMLInfo(comm.prop.sys, LATEST_VERSION);
@@ -584,10 +597,10 @@ private:
 			_insert = false;
 			initUndoDelete();
 			if (v && v._areas && !v._areas.isDisposed()) { mixin(S_TRACE);
-				auto itm = v.getItemFrom(_id, _type);
+				auto itm = v.getItemFrom(uid(_id, _type), _type);
 				if (itm) itm.dispose();
 			}
-			auto area = areaFromInfo(summ, _id, _type);
+			auto area = areaFromInfo(summ, uid(_id, _type), _type);
 			summ.remove(area);
 			auto a = cast(Area) area;
 			if (a) { mixin(S_TRACE);
@@ -1030,6 +1043,126 @@ private:
 		} else assert (0);
 	}
 
+	@property
+	bool showSummary() { mixin(S_TRACE);
+		if (!_areas || _areas.isDisposed()) return false;
+		return 0 < _areas.getItemCount() && cast(Summary)_areas.getItem(0).getData();
+	}
+	@property
+	int countAllAreas() { mixin(S_TRACE);
+		auto c = areaCount + battleCount + packageCount;
+		if (showSummary) { mixin(S_TRACE);
+			return 1 + c;
+		}
+		return c;
+	}
+
+	class DragDir : DragSourceAdapter {
+		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
+			e.doit = false;
+			auto tree = cast(Tree)(cast(DragSource) e.getSource()).getControl();
+			if (!tree) return;
+			if (!tree.isFocusControl()) return;
+			auto sels = tree.getSelection();
+			if (!sels.length) return;
+			auto dir = cast(DirTree)sels[0].getData();
+			if (!dir) return;
+			if (!dir.parent) return;
+			e.doit = true;
+		}
+		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
+			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
+				auto tree = cast(Tree)(cast(DragSource) e.getSource()).getControl();
+				auto dir = cast(DirTree)tree.getSelection()[0].getData();
+				auto doc = XNode.create("TablePath", dir.path);
+				doc.newAttr("summaryId", _summ.id);
+				e.data = bytesFromXML(doc.text);
+			}
+		}
+		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
+			// 処理無し
+		}
+	}
+	class DropDir : DropTargetAdapter {
+		private void move(DropTargetEvent e) { mixin(S_TRACE);
+			e.detail = (e.item !is null && cast(TreeItem)e.item && cast(DirTree)(cast(TreeItem)e.item).getData()) ? DND.DROP_MOVE : DND.DROP_NONE;
+		}
+		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
+			move(e);
+		}
+		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
+			move(e);
+		}
+		override void drop(DropTargetEvent e){ mixin(S_TRACE);
+			if (!isXMLBytes(e.data)) return;
+			string xml = bytesToXML(e.data);
+			e.detail = DND.DROP_NONE;
+			try { mixin(S_TRACE);
+				// フォルダ変更
+				auto node = XNode.parse(xml);
+				auto itm = cast(TreeItem)e.item;
+				auto dir = cast(DirTree)itm.getData();
+				auto path = dir.path;
+				if (node.name == "TablePath") {
+					if (_summ.id != AbstractArea.summaryId(node)) return;
+					auto oldPath = node.value;
+					auto removePath = node.value;
+					if (oldPath == "") return;
+					if (0 == icmp(path, oldPath)) return;
+					auto nDir = oldPath.split("\\")[$ - 1];
+					oldPath ~= "\\";
+					if (istartsWith(path, oldPath)) return; // 下位のフォルダに移動しようとした
+					// 同一名がある場合は移動禁止
+					foreach (sub; dir.subDirs) {
+						if (0 == icmp(sub.name, nDir)) return;
+					}
+					ATUndo[] undos;
+					void put(AbstractArea area) {
+						if (area.name.istartsWith(oldPath)) {
+							ulong id;
+							TypeInfo type;
+							getInfoFromArea(area, id, type);
+							undos ~= new UndoEdit(this.outer, _comm, _summ, id, type);
+							auto p = path;
+							if (p != "") p ~= "\\";
+							area.name = p ~ nDir ~ "\\" ~ area.name[oldPath.length .. $];
+						}
+					}
+					foreach (a; _summ.areas) put(a);
+					foreach (a; _summ.battles) put(a);
+					foreach (a; _summ.packages) put(a);
+
+					if (!undos.length) {
+						undos ~= new UndoIDs(this.outer, _comm, _summ);
+					}
+
+					auto removeItm = findDirTree(removePath);
+					auto removeDir = cast(DirTree)removeItm.getData();
+					removeDir.parent.subDirs.remove(removeDir);
+					new DirTree(dir, removeItm.getText());
+
+					_undo ~= new ATUndoArr(undos);
+				} else if (_summ.id == AbstractArea.summaryId(node)) {
+					auto area = getSelectionArea();
+					ulong id;
+					TypeInfo type;
+					getInfoFromArea(area, id, type);
+					storeEdit(id, type);
+					area.dirName = dir.path;
+				} else {
+					_dirTree.setSelection([itm]);
+					updateDirSel();
+					pasteImpl(node);
+				}
+				refreshAreas();
+				sort();
+				refreshStatusLine();
+				_comm.refreshToolBar();
+			} catch (Exception e) { mixin (S_TRACE);
+				debugln(e);
+			}
+		}
+	}
 	class DragArea : DragSourceAdapter {
 		AbstractArea _data;
 		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
@@ -1063,19 +1196,6 @@ private:
 				_comm.refreshToolBar();
 			}
 		}
-	}
-	@property
-	bool showSummary() { mixin(S_TRACE);
-		if (!_areas || _areas.isDisposed()) return false;
-		return 0 < _areas.getItemCount() && cast(Summary)_areas.getItem(0).getData();
-	}
-	@property
-	int countAllAreas() { mixin(S_TRACE);
-		auto c = areaCount + battleCount + packageCount;
-		if (showSummary) { mixin(S_TRACE);
-			return 1 + c;
-		}
-		return c;
 	}
 	class DropArea : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
@@ -1662,7 +1782,7 @@ public:
 		_parent = parent;
 		if (_prop.var.etc.showAreaDirTree) { mixin (S_TRACE);
 			_dirMode = true;
-			auto sash = new SplitPane(parent, _prop.var.etc.areaSashV ? SWT.VERTICAL : SWT.HORIZONTAL);
+			auto sash = new SplitPane(parent, _prop.var.etc.areaSashV ? SWT.HORIZONTAL : SWT.VERTICAL);
 			auto cl1 = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 			cl1.fillHorizontal = true;
 			cl1.fillVertical = true;
@@ -1694,7 +1814,12 @@ public:
 			appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
 			_dirTree.setMenu(menu);
 
-			// TODO drag & drop
+			auto drag = new DragSource(_dirTree, DND.DROP_MOVE | DND.DROP_COPY);
+			drag.setTransfer([XMLBytesTransfer.getInstance()]);
+			drag.addDragListener(new DragDir);
+			auto drop = new DropTarget(_dirTree, DND.DROP_DEFAULT | DND.DROP_MOVE);
+			drop.setTransfer([XMLBytesTransfer.getInstance()]);
+			drop.addDropListener(new DropDir);
 		}
 
 		_areas = new Table(tableParent, SWT.BORDER | SWT.FULL_SELECTION);
@@ -2429,80 +2554,8 @@ public:
 			auto c = CBtoXML(_comm.clipboard);
 			if (c) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
-					bool sameSummary;
-					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
-					bool fromTable;
-					auto areas = createAreasFromXML(c, _summ.id, sameSummary, fromTable, ver);
-					ATUndo[] undos;
-					AbstractArea sel = null;
-					auto existsDirs = new HashSet!string;
-					void eRecurse(DirTree dir) { mixin(S_TRACE);
-						existsDirs.add(dir.path.toLower());
-						foreach (sub; dir.subDirs) eRecurse(sub);
-					}
-					eRecurse(_dirs);
-					foreach (area; areas) { mixin(S_TRACE);
-						sel = area;
-						if (_dirMode) { mixin(S_TRACE);
-							if (fromTable) { mixin(S_TRACE);
-								// フォルダ構造をそのまま貼り付け
-								auto dir = area.dirName;
-								if (dir != "") { mixin(S_TRACE);
-									// すでに存在するフォルダであれば(2)等をつける
-									auto dirs = dir.split("\\");
-									auto firstDir = dirs[0];
-									firstDir = createNewName(firstDir, (s) { mixin(S_TRACE);
-										if (_dir != "") s = _dir ~ "\\" ~ s;
-										return !existsDirs.contains(s.toLower());
-									});
-									area.dirName = ([firstDir] ~ dirs[1..$]).join("\\");
-								}
-								if (_dir != "") { mixin(S_TRACE);
-									area.name = _dir ~ "\\" ~ area.name;
-								}
-							} else { mixin(S_TRACE);
-								area.dirName = _dir;
-							}
-						}
-						auto oldId = area.id;
-						ulong[] a, b, p;
-						saveIDs(_summ, a, b, p);
-						if (cast(Area)area) { mixin(S_TRACE);
-							_summ.add(cast(Area)area);
-							undos ~= new UndoInsertDelete(this, _comm, _summ, area.id, typeid(Area), true, a, b, p);
-							_comm.refArea.call(cast(Area)area);
-							if (sameSummary && !_summ.hasAreaId(oldId)) { mixin(S_TRACE);
-								_summ.useCounter.change(toAreaId(oldId), toAreaId(area.id));
-							}
-						} else if (cast(Battle)area) { mixin(S_TRACE);
-							_summ.add(cast(Battle) area);
-							undos ~= new UndoInsertDelete(this, _comm, _summ, area.id, typeid(Battle), true, a, b, p);
-							_comm.refBattle.call(cast(Battle)area);
-							if (sameSummary && !_summ.hasBattleId(oldId)) { mixin(S_TRACE);
-								_summ.useCounter.change(toBattleId(oldId), toBattleId(area.id));
-							}
-						} else if (cast(Package)area) { mixin(S_TRACE);
-							_summ.add(cast(Package) area);
-							undos ~= new UndoInsertDelete(this, _comm, _summ, area.id, typeid(Package), true, a, b, p);
-							_comm.refPackage.call(cast(Package)area);
-							if (sameSummary && !_summ.hasPackageId(oldId)) { mixin(S_TRACE);
-								_summ.useCounter.change(toPackageId(oldId), toPackageId(area.id));
-							}
-						} else assert (0);
-					}
-					if (sel) { mixin (S_TRACE);
-						if (_dirMode) { mixin (S_TRACE);
-							constructDirTree(true);
-						}
-						refreshAreas();
-						sort();
-						select(sel);
-						if (_flags) _flags.refresh();
-						_comm.refUseCount.call();
-						refreshStatusLine();
-						_comm.refreshToolBar();
-						_undo ~= new ATUndoArr(undos);
-					}
+					auto node = XNode.parse(c);
+					pasteImpl(node);
 				} catch (Exception e) { mixin (S_TRACE);
 					debugln(e);
 				}
@@ -2610,6 +2663,84 @@ public:
 			} else { mixin(S_TRACE);
 				return (showSummary ? 1 : 0) <= _areas.getSelectionIndex();
 			}
+		}
+	}
+	private void pasteImpl(ref XNode node) {
+		_parent.setRedraw(false);
+		scope (exit) _parent.setRedraw(true);
+		bool sameSummary;
+		auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+		bool fromTable;
+		auto areas = createAreasFromNode(node, _summ.id, sameSummary, fromTable, ver);
+		ATUndo[] undos;
+		AbstractArea sel = null;
+		auto existsDirs = new HashSet!string;
+		void eRecurse(DirTree dir) { mixin(S_TRACE);
+			existsDirs.add(dir.path.toLower());
+			foreach (sub; dir.subDirs) eRecurse(sub);
+		}
+		eRecurse(_dirs);
+		foreach (area; areas) { mixin(S_TRACE);
+			sel = area;
+			if (_dirMode) { mixin(S_TRACE);
+				if (fromTable) { mixin(S_TRACE);
+					// フォルダ構造をそのまま貼り付け
+					auto dir = area.dirName;
+					if (dir != "") { mixin(S_TRACE);
+						// すでに存在するフォルダであれば(2)等をつける
+						auto dirs = dir.split("\\");
+						auto firstDir = dirs[0];
+						firstDir = createNewName(firstDir, (s) { mixin(S_TRACE);
+							if (_dir != "") s = _dir ~ "\\" ~ s;
+							return !existsDirs.contains(s.toLower());
+						});
+						area.dirName = ([firstDir] ~ dirs[1..$]).join("\\");
+					}
+					if (_dir != "") { mixin(S_TRACE);
+						area.name = _dir ~ "\\" ~ area.name;
+					}
+				} else { mixin(S_TRACE);
+					area.dirName = _dir;
+				}
+			}
+			auto oldId = area.id;
+			ulong[] a, b, p;
+			saveIDs(_summ, a, b, p);
+			if (cast(Area)area) { mixin(S_TRACE);
+				_summ.add(cast(Area)area);
+				undos ~= new UndoInsertDelete(this, _comm, _summ, area.id, typeid(Area), true, a, b, p);
+				_comm.refArea.call(cast(Area)area);
+				if (sameSummary && !_summ.hasAreaId(oldId)) { mixin(S_TRACE);
+					_summ.useCounter.change(toAreaId(oldId), toAreaId(area.id));
+				}
+			} else if (cast(Battle)area) { mixin(S_TRACE);
+				_summ.add(cast(Battle) area);
+				undos ~= new UndoInsertDelete(this, _comm, _summ, area.id, typeid(Battle), true, a, b, p);
+				_comm.refBattle.call(cast(Battle)area);
+				if (sameSummary && !_summ.hasBattleId(oldId)) { mixin(S_TRACE);
+					_summ.useCounter.change(toBattleId(oldId), toBattleId(area.id));
+				}
+			} else if (cast(Package)area) { mixin(S_TRACE);
+				_summ.add(cast(Package) area);
+				undos ~= new UndoInsertDelete(this, _comm, _summ, area.id, typeid(Package), true, a, b, p);
+				_comm.refPackage.call(cast(Package)area);
+				if (sameSummary && !_summ.hasPackageId(oldId)) { mixin(S_TRACE);
+					_summ.useCounter.change(toPackageId(oldId), toPackageId(area.id));
+				}
+			} else assert (0);
+		}
+		if (sel) { mixin (S_TRACE);
+			if (_dirMode) { mixin (S_TRACE);
+				constructDirTree(true);
+			}
+			refreshAreas();
+			sort();
+			select(sel);
+			if (_flags) _flags.refresh();
+			_comm.refUseCount.call();
+			refreshStatusLine();
+			_comm.refreshToolBar();
+			_undo ~= new ATUndoArr(undos);
 		}
 	}
 	private void delItem(in AbstractArea area) { mixin(S_TRACE);
