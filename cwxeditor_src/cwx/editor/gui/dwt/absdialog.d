@@ -186,9 +186,10 @@ abstract class AbsDialog {
 				foreach (dlg; closeEvent) {
 					dlg();
 				}
+				auto parShl = cast(Shell) _win.getParent();
+				if (parShl) parShl.setImeInputMode(_imeMode);
 				return;
 			}
-			_imeMode = _win.getImeInputMode();
 			if (_ret) {
 				foreach (dlg; applyEvent) {
 					dlg();
@@ -317,7 +318,10 @@ abstract class AbsDialog {
 		_win.open();
 		if (par) {
 			_imeMode = par.getImeInputMode();
-			_win.setImeInputMode(_imeMode);
+			auto fc = _win.getDisplay().getFocusControl();
+			if (!cast(Spinner)fc && !cast(NoIME)fc) {
+				_win.setImeInputMode(_imeMode);
+			}
 		}
 		if (firstFocusIsOK) _okBtn.setFocus();
 		opened();
