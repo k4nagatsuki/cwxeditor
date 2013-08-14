@@ -1416,6 +1416,7 @@ enum MenuID {
 	PutContinue,
 	ToScript,
 	ToScriptAll,
+	ToScript1Content,
 	EvTemplates,
 	Expand,
 	Collapse,

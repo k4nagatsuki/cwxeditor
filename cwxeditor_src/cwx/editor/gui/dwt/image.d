@@ -543,6 +543,7 @@ public:
 		case MenuID.PutContinue: return imgd!("evt_add_continue.png");
 		case MenuID.ToScript: return imgd!("script.png");
 		case MenuID.ToScriptAll: return imgd!("script_all.png");
+		case MenuID.ToScript1Content: return imgd!("script_1content.png");
 		case MenuID.EvTemplates: return imgd!("ev_tmpl.png");
 		case MenuID.Expand: return imgd!("expanded.png");
 		case MenuID.Collapse: return imgd!("collapsed.png");

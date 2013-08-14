@@ -2304,6 +2304,7 @@ public:
 			createMenuItem(_comm, popup, MenuID.Collapse, &collapse, &canCollapse);
 			new MenuItem(popup, SWT.SEPARATOR);
 			createMenuItem(_comm, popup, MenuID.ToScript, &toScript, &canToScript);
+			createMenuItem(_comm, popup, MenuID.ToScript1Content, &toScript1Content, &canToScript);
 			createMenuItem(_comm, popup, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
 			new MenuItem(popup, SWT.SEPARATOR);
 			createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, () => !_readOnly && 1 < _tree.getItemCount() && selection !is null);
@@ -2503,6 +2504,18 @@ public:
 		if (!_et) return;
 		auto script = new CWXScript(_prop.parent, _summ);
 		auto text = script.toScript(_et.starts, summSkin.evtChildOK, _summ.legacy, "\t");
+		text = std.array.replace(text ~ "\n", "\n", .newline);
+		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
+		_comm.refreshToolBar();
+	}
+	void toScript1Content() { mixin(S_TRACE);
+		auto itm = selection;
+		if (!itm) return;
+		auto c = cast(Content) itm.getData();
+		auto script = new CWXScript(_prop.parent, _summ);
+		auto c2 = new Content(c.type, c.name);
+		c2.shallowCopy(c);
+		auto text = script.toScript([c2], summSkin.evtChildOK, _summ.legacy, "\t");
 		text = std.array.replace(text ~ "\n", "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();

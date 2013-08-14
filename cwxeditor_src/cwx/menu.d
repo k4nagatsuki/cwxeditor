@@ -212,6 +212,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.PutContinue] = "C";
 		_mnemonic[MenuID.ToScript] = "S";
 		_mnemonic[MenuID.ToScriptAll] = "Y";
+		_mnemonic[MenuID.ToScript1Content] = "O";
 		_mnemonic[MenuID.EvTemplates] = "";
 		_mnemonic[MenuID.Expand] = "X";
 		_mnemonic[MenuID.Collapse] = "O";
@@ -405,6 +406,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.PutContinue] = "";
 		_hotkey[MenuID.ToScript] = "Ctrl+G";
 		_hotkey[MenuID.ToScriptAll] = "Ctrl+B";
+		_hotkey[MenuID.ToScript1Content] = "Ctrl+Shift+G";
 		_hotkey[MenuID.EvTemplates] = "";
 		_hotkey[MenuID.Expand] = "Ctrl+Arrow_Right";
 		_hotkey[MenuID.Collapse] = "Ctrl+Arrow_Left";

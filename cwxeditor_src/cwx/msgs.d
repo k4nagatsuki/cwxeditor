@@ -1950,6 +1950,7 @@ class Msgs : Properties {
 	auto menuTextPutSelect = Msg("menuTextPutSelect", "配置先を選択する");
 	auto menuTextPutContinue = Msg("menuTextPutContinue", "配置先を選択して連続で配置する");
 	auto menuTextToScript = Msg("menuTextToScript", "スクリプトに変換してコピー");
+	auto menuTextToScript1Content = Msg("menuTextToScript1Content", "1コンテントをスクリプトに変換");
 	auto menuTextToScriptAll = Msg("menuTextToScriptAll", "全てをスクリプトに変換してコピー");
 	auto menuTextEvTemplates = Msg("menuTextEvTemplates", "テンプレートから作成");
 	auto menuTextExpand = Msg("menuTextExpand", "ツリーを開く");

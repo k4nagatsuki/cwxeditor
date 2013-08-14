@@ -459,105 +459,109 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_name.owner = this;
 		validate();
 	}
-	/// ディープコピーを生成する。
-	@property
-	const
-	Content dup() { mixin(S_TRACE);
-		auto copy = new Content(type, name);
-		copy.comment = comment;
+	/// cからパラメータをコピーする。
+	void shallowCopy(in Content c) { mixin(S_TRACE);
+		this.comment = comment;
 
-		copy.area = area;
-		copy.battle = battle;
-		copy.packages = packages;
-		copy.flag = flag;
-		copy.step = step;
-		copy.cardPath = cardPath;
-		copy.bgmPath = bgmPath;
-		copy.soundPath = soundPath;
-		copy.casts = casts;
-		copy.item = item;
-		copy.skill = skill;
-		copy.beast = beast;
-		copy.info = info;
+		this.area = area;
+		this.battle = battle;
+		this.packages = packages;
+		this.flag = flag;
+		this.step = step;
+		this.cardPath = cardPath;
+		this.bgmPath = bgmPath;
+		this.soundPath = soundPath;
+		this.casts = casts;
+		this.item = item;
+		this.skill = skill;
+		this.beast = beast;
+		this.info = info;
 
-		copy.start = start;
-		copy.coupon = coupon;
-		copy.gossip = gossip;
-		copy.completeStamp = completeStamp;
+		this.start = start;
+		this.coupon = coupon;
+		this.gossip = gossip;
+		this.completeStamp = completeStamp;
 
-		copy.mental = mental;
-		copy.physical = physical;
-		copy.status = status;
-		copy.range = range;
-		copy.cardVisual = cardVisual;
-		copy.effectType = effectType;
-		copy.resist = resist;
-		copy.transition = transition;
+		this.mental = mental;
+		this.physical = physical;
+		this.status = status;
+		this.range = range;
+		this.cardVisual = cardVisual;
+		this.effectType = effectType;
+		this.resist = resist;
+		this.transition = transition;
 
-		copy.targetAll = targetAll;
-		copy.random = random;
-		copy.average = average;
-		copy.complete = complete;
+		this.targetAll = targetAll;
+		this.random = random;
+		this.average = average;
+		this.complete = complete;
 
-		copy.unsignedLevel = unsignedLevel;
-		copy.signedLevel = signedLevel;
-		copy.successRate = successRate;
-		copy.transitionSpeed = transitionSpeed;
-		copy.percent = percent;
-		copy.flagValue = flagValue;
-		copy.stepValue = stepValue;
-		copy.couponValue = couponValue;
-		copy.partyNumber = partyNumber;
-		copy.cardNumber = cardNumber;
-		copy.money = money;
-		copy.wait = wait;
+		this.unsignedLevel = unsignedLevel;
+		this.signedLevel = signedLevel;
+		this.successRate = successRate;
+		this.transitionSpeed = transitionSpeed;
+		this.percent = percent;
+		this.flagValue = flagValue;
+		this.stepValue = stepValue;
+		this.couponValue = couponValue;
+		this.partyNumber = partyNumber;
+		this.cardNumber = cardNumber;
+		this.money = money;
+		this.wait = wait;
 
-		copy.flag2 = flag2;
-		copy.step2 = step2;
-		copy.castRange = castRange.dup;
-		copy.levelMin = levelMin;
-		copy.levelMax = levelMax;
+		this.flag2 = flag2;
+		this.step2 = step2;
+		this.castRange = castRange.dup;
+		this.levelMin = levelMin;
+		this.levelMax = levelMax;
 
-		copy.keyCodeRange = keyCodeRange;
-		copy.effectCardType = effectCardType;
-		copy.keyCode = keyCode;
+		this.keyCodeRange = keyCodeRange;
+		this.effectCardType = effectCardType;
+		this.keyCode = keyCode;
 
-		copy.initValue = initValue;
+		this.initValue = initValue;
 
-		copy.comparison4 = comparison4;
-		copy.comparison3 = comparison3;
+		this.comparison4 = comparison4;
+		this.comparison3 = comparison3;
 
-		copy.round = round;
+		this.round = round;
 
 		Motion[] motions;
 		foreach (m; this.motions) { mixin(S_TRACE);
 			motions ~= m.dup;
 		}
-		copy.motions = motions;
+		this.motions = motions;
 
-		copy.text = text;
+		this.text = text;
 		SDialog[] dialogs;
 		foreach (d; this.dialogs) { mixin(S_TRACE);
 			dialogs ~= new SDialog(d);
 		}
-		copy.dialogs = dialogs;
+		this.dialogs = dialogs;
 
-		copy.targetS = targetS;
-		copy.targetNS = targetNS;
-		copy.talkerC = talkerC;
-		copy.talkerNC = talkerNC;
+		this.targetS = targetS;
+		this.targetNS = targetNS;
+		this.talkerC = talkerC;
+		this.talkerNC = talkerNC;
 
 		BgImage[] backs;
 		foreach (b; this.backs) { mixin(S_TRACE);
 			backs ~= b.dup;
 		}
-		copy.backs = backs;
+		this.backs = backs;
 
 		Coupon[] coupons;
-		foreach (c; this.coupons) { mixin(S_TRACE);
-			coupons ~= new Coupon(c);
+		foreach (coupon; this.coupons) { mixin(S_TRACE);
+			coupons ~= new Coupon(coupon);
 		}
-		copy.coupons = coupons;
+		this.coupons = coupons;
+	}
+	/// ディープコピーを生成する。
+	@property
+	const
+	Content dup() { mixin(S_TRACE);
+		auto copy = new Content(type, name);
+		copy.shallowCopy(this);
 
 		foreach (c; next) { mixin(S_TRACE);
 			copy.add(null, c.dup);
