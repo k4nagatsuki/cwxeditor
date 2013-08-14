@@ -196,9 +196,10 @@ abstract class AbsDialog {
 				foreach (dlg; closeEvent) { mixin(S_TRACE);
 					dlg();
 				}
+				auto parShl = cast(Shell) _win.getParent();
+				if (parShl) parShl.setImeInputMode(_imeMode);
 				return;
 			}
-			_imeMode = _win.getImeInputMode();
 			if (_ret) { mixin(S_TRACE);
 				foreach (dlg; applyEvent) { mixin(S_TRACE);
 					dlg();
@@ -316,11 +317,6 @@ abstract class AbsDialog {
 			dlg(x, y, width, height);
 		}
 	}
-	@property
-	void imeMode(int imeMode) { mixin(S_TRACE);
-		_imeMode = imeMode;
-		_win.setImeInputMode(_imeMode);
-	}
 	bool open() { mixin(S_TRACE);
 		setup(_area);
 		if (_enterClose) { mixin(S_TRACE);
@@ -328,11 +324,15 @@ abstract class AbsDialog {
 		}
 		calcBounds();
 		if (_apply) _apply.setEnabled(false);
-		_win.open();
 		auto par = cast(Shell)_win.getParent();
+		_win.open();
+		if (par) _imeMode = par.getImeInputMode();
 		if (par) { mixin(S_TRACE);
 			_imeMode = par.getImeInputMode();
-			_win.setImeInputMode(_imeMode);
+			auto fc = _win.getDisplay().getFocusControl();
+			if (!cast(Spinner)fc && !cast(NoIME)fc) { mixin(S_TRACE);
+				_win.setImeInputMode(_imeMode);
+			}
 		}
 		if (firstFocusIsOK) _okBtn.setFocus();
 		opened();
