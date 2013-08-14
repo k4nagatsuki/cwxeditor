@@ -163,80 +163,32 @@ class ContentCommentDialog : AbsDialog {
 /// エリア・バトル・パッケージ・キャスト・情報の選択を行うダイアログ。
 class AreaSelectDialog(CType Type, A, string Areas) : EventDialog {
 private:
-	ulong _selectedID = 0;
-	Table _list;
-	IncSearch _incSearch;
-	void incSearch() { mixin(S_TRACE);
-		.forceFocus(_list, true);
-		_incSearch.startIncSearch();
-	}
+	AreaChooser!(A, false) _list;
 
 	static if (Type == CType.CHANGE_AREA) {
 		Combo _ts;
 		Spinner _tsSpeed;
 		Transition[int] _tsTbl;
 	}
-	void selected() { mixin(S_TRACE);
-		auto index = _list.getSelectionIndex();
-		if (-1 != index) { mixin(S_TRACE);
-			_selectedID = (cast(A) _list.getItem(index).getData()).id;
-		}
-	}
-	void refreshList() { mixin(S_TRACE);
-		auto summary = _summ;
-		ulong id = _selectedID;
-		_list.removeAll();
-		size_t i = 0;
-		foreach (a; mixin (Areas)) { mixin(S_TRACE);
-			if (!_incSearch.match(a.name)) continue;
-			auto itm = new TableItem(_list, SWT.NONE);
-			itm.setData(a);
-			static if (Type == CType.CHANGE_AREA) {
-				itm.setImage(0, _prop.images.area);
-			} else static if (Type == CType.START_BATTLE) {
-				itm.setImage(0, _prop.images.battle);
-			} else static if (Type == CType.CALL_PACKAGE || Type == CType.LINK_PACKAGE) {
-				itm.setImage(0, _prop.images.packages);
-			} else static if (Type == CType.BRANCH_CAST || Type == CType.GET_CAST || Type == CType.LOSE_CAST) {
-				itm.setImage(0, _prop.images.casts);
-			} else static if (Type == CType.BRANCH_INFO || Type == CType.GET_INFO || Type == CType.LOSE_INFO) {
-				itm.setImage(0, _prop.images.info);
-			} else { mixin(S_TRACE);
-				static assert (0);
-			}
-			itm.setText(0, to!(string)(a.id));
-			itm.setText(1, a.name);
-			if (id == a.id) _list.select(i);
-			i++;
-		}
-		_list.showSelection();
-	}
-	void refA(A a) {refreshList();}
+
 	void delA(A a) { mixin(S_TRACE);
 		auto summary = _summ;
 		auto areas = mixin (Areas);
-		if (areas.length) { mixin(S_TRACE);
-			refreshList();
-		} else { mixin(S_TRACE);
+		if (!areas.length) { mixin(S_TRACE);
 			forceCancel();
 		}
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			static if (is(A : Area)) {
-				_comm.refArea.remove(&refA);
 				_comm.delArea.remove(&delA);
 			} else static if (is(A : Battle)) {
-				_comm.refBattle.remove(&refA);
 				_comm.delBattle.remove(&delA);
 			} else static if (is(A : Package)) {
-				_comm.refPackage.remove(&refA);
 				_comm.delPackage.remove(&delA);
 			} else static if (is(A : CastCard)) {
-				_comm.refCast.remove(&refA);
 				_comm.delCast.remove(&delA);
 			} else static if (is(A : InfoCard)) {
-				_comm.refInfo.remove(&refA);
 				_comm.delInfo.remove(&delA);
 			} else static assert (0);
 		}
@@ -250,22 +202,6 @@ private:
 			_tsSpeed.setEnabled(!_summ.legacy);
 		}
 	}
-	void openView() { mixin(S_TRACE);
-		auto i = _list.getSelectionIndex();
-		if (-1 == i) return;
-		auto a = cast(A) _list.getItem(i).getData();
-		try { mixin(S_TRACE);
-			_comm.openCWXPath(cpaddattr(a.cwxPath(true), "shallow"), false);
-		} catch (Exception e) {
-			debugln(e);
-		}
-	}
-	class OpenView : MouseAdapter {
-		override void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
-			if (1 != e.button) return;
-			openView();
-		}
-	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, Type, parent, evt, true, prop.var.selEvtDlg, true);
@@ -273,29 +209,12 @@ public:
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(new GridLayout(1, false));
-		_list = new Table(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+		_list = new AreaChooser!(A, false)(comm, area);
 		mod(_list);
-		auto idCol = new TableColumn(_list, SWT.NONE);
-		saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
-		auto nameCol = new FullTableColumn(_list, SWT.NONE);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = _prop.var.etc.nameTableWidth;
 		gd.heightHint = _prop.var.etc.nameTableHeight;
 		_list.setLayoutData(gd);
-		_list.addMouseListener(new OpenView);
-		.listener(_list, SWT.Selection, &selected);
-		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
-		createMenuItem(comm, menu, MenuID.IncSearch, &incSearch, null);
-		new MenuItem(menu, SWT.SEPARATOR);
-		static if (is(A : Area) || is(A : Battle) || is(A : Package)) {
-			createMenuItem(comm, menu, MenuID.OpenAtTableView, &openView, () => _list.getSelectionIndex() != -1);
-		} else static if (is(A : CastCard) || is(A : InfoCard)) {
-			createMenuItem(comm, menu, MenuID.OpenAtCardView, &openView, () => _list.getSelectionIndex() != -1);
-		} else static assert (0);
-		_list.setMenu(menu);
-		_incSearch = new IncSearch(comm, _list);
-		_incSearch.modEvent ~= &refreshList;
-		refreshList();
 		static if (Type == CType.CHANGE_AREA) {
 			{ mixin(S_TRACE);
 				auto comp = new Composite(area, SWT.NONE);
@@ -333,19 +252,14 @@ protected:
 			refreshTS();
 		}
 		static if (is(A : Area)) {
-			_comm.refArea.add(&refA);
 			_comm.delArea.add(&delA);
 		} else static if (is(A : Battle)) {
-			_comm.refBattle.add(&refA);
 			_comm.delBattle.add(&delA);
 		} else static if (is(A : Package)) {
-			_comm.refPackage.add(&refA);
 			_comm.delPackage.add(&delA);
 		} else static if (is(A : CastCard)) {
-			_comm.refCast.add(&refA);
 			_comm.delCast.add(&delA);
 		} else static if (is(A : InfoCard)) {
-			_comm.refInfo.add(&refA);
 			_comm.delInfo.add(&delA);
 		} else static assert (0);
 		_list.addDisposeListener(new Dispose);
@@ -354,36 +268,24 @@ protected:
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
 			static if (Type == CType.CHANGE_AREA) {
-				_selectedID = _evt.area;
+				_list.selected = _evt.area;
 			} else static if (Type == CType.START_BATTLE) {
-				_selectedID = _evt.battle;
+				_list.selected = _evt.battle;
 			} else static if (Type == CType.CALL_PACKAGE || Type == CType.LINK_PACKAGE) {
-				_selectedID = _evt.packages;
+				_list.selected = _evt.packages;
 			} else static if (Type == CType.BRANCH_CAST || Type == CType.GET_CAST || Type == CType.LOSE_CAST) {
-				_selectedID = _evt.casts;
+				_list.selected = _evt.casts;
 			} else static if (Type == CType.BRANCH_INFO || Type == CType.GET_INFO || Type == CType.LOSE_INFO) {
-				_selectedID = _evt.info;
+				_list.selected = _evt.info;
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
-			foreach (i, itm; _list.getItems()) { mixin(S_TRACE);
-				if (_selectedID == (cast(A) itm.getData()).id) { mixin(S_TRACE);
-					_list.select(i);
-					break;
-				}
-			}
 		}
-		if (-1 == _list.getSelectionIndex()) { mixin(S_TRACE);
-			_list.select(0);
-			_selectedID = (cast(A) _list.getItem(0).getData()).id;
-		}
-
-		_list.showSelection();
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		assert (_list.getItemCount() > 0);
-		auto id = _selectedID;
+		assert (_list.selected != 0UL);
+		auto id = _list.selected;
 		if (!_evt) { mixin(S_TRACE);
 			_evt = new Content(Type, "");
 		}

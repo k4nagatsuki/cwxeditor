@@ -6,6 +6,8 @@ import cwx.types;
 import cwx.summary;
 import cwx.flag;
 import cwx.path;
+import cwx.area;
+import cwx.card;
 
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtext;
@@ -14,6 +16,10 @@ import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
+
+import std.conv;
+import std.string;
+import std.typecons : Tuple;
 
 import org.eclipse.swt.all;
 
@@ -548,4 +554,330 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		}
 		return _selected;
 	}
+}
+
+class AreaChooser(A, bool StartArea) : Composite {
+	void delegate()[] modEvent;
+
+	private Tree _tree = null;
+	private Table _list = null;
+
+	private Commons _comm;
+	private Props _prop;
+	private Summary _summ = null;
+	private ulong _selected = 0UL;
+	private IncSearch _areaIncSearch;
+	private bool _canIncSearch = false;
+
+	@property
+	private Control widget() { mixin(S_TRACE);
+		return _tree ? _tree : _list;
+	}
+
+	private void areaIncSearch() { mixin(S_TRACE);
+		.forceFocus(widget, true);
+		_areaIncSearch.startIncSearch();
+	}
+
+	private void refA(A a) { mixin(S_TRACE);
+		if (!_summ) return;
+		refreshAreas();
+	}
+	private void refreshAreas() { mixin(S_TRACE);
+		ulong sel = _selected;
+		_selected = 0UL;
+		if (_tree) { mixin(S_TRACE);
+			_tree.removeAll();
+		} else { mixin(S_TRACE);
+			_list.removeAll();
+		}
+		_canIncSearch = false;
+		bool has = false;
+		Item firstItem = null;
+		static if (is(A:Area)) {
+			auto arr = _summ.areas;
+		} else static if (is(A:Battle)) {
+			auto arr = _summ.battles;
+		} else static if (is(A:Package)) {
+			auto arr = _summ.packages;
+		} else static if (is(A:CastCard)) {
+			auto arr = _summ.casts;
+		} else static if (is(A:InfoCard)) {
+			auto arr = _summ.infos;
+		} else static assert (0);
+		if (_tree) { mixin(S_TRACE);
+			static if (is(A:AbstractArea)) {
+				TreeItem[string] itmTable;
+				auto root = new TreeItem(_tree, SWT.NONE);
+				root.setText(_prop.msgs.areaDirRoot);
+				root.setImage(_prop.images.areaDir);
+				root.setData(null);
+				itmTable[""] = root;
+				Tuple!(TreeItem, A)[] creates;
+				foreach (a; arr) { mixin (S_TRACE);
+					if (!has && a.id == sel) { mixin(S_TRACE);
+						has = true;
+					}
+					if (!_areaIncSearch.match(a.name)) continue;
+
+					auto dirs = .split(a.dirName, "\\");
+					auto itm = root;
+					foreach (i, dir; dirs) { mixin (S_TRACE);
+						auto fPath = dirs[0 .. i + 1].join("\\");
+						auto path = fPath.toLower();
+						auto p = path in itmTable;
+						if (p) { mixin (S_TRACE);
+							itm = *p;
+						} else { mixin (S_TRACE);
+							auto sub = new TreeItem(itm, SWT.NONE);
+							sub.setText(dir);
+							sub.setImage(_prop.images.areaDir);
+							sub.setData(null);
+							itm = sub;
+							itmTable[path] = sub;
+						}
+					}
+					creates ~= Tuple!(TreeItem, A)(itm, a);
+				}
+				foreach (t; creates) {
+					auto itm = t[0];
+					auto a = t[1];
+					auto aItm = new TreeItem(itm, SWT.NONE);
+					aItm.setData(a);
+					aItm.setText(.tryFormat("%s.%s", a.id, a.baseName));
+					if (!_tree.getSelection().length && a.id == sel) { mixin(S_TRACE);
+						_tree.setSelection([aItm]);
+						_selected = a.id;
+					}
+					if (!firstItem) firstItem = itm;
+					_canIncSearch = true;
+					aItm.setImage(image(aItm));
+				}
+				_tree.treeExpandedAll();
+			} else {
+				assert (0);
+			}
+		} else { mixin(S_TRACE);
+			foreach (a; arr) { mixin(S_TRACE);
+				if (!has && a.id == sel) { mixin(S_TRACE);
+					has = true;
+				}
+				if (!_areaIncSearch.match(a.name)) continue;
+				auto itm = new TableItem(_list, SWT.NONE);
+				itm.setData(a);
+				itm.setText(0, .to!string(a.id));
+				itm.setText(1, a.name);
+				if (!_list.getSelectionCount() && a.id == sel) { mixin(S_TRACE);
+					_list.select(_list.getItemCount() - 1);
+					_selected = a.id;
+				}
+				itm.setImage(image(itm));
+				if (!firstItem) firstItem = itm;
+				_canIncSearch = true;
+			}
+		}
+		if (!has && firstItem) { mixin(S_TRACE);
+			if (_tree) { mixin(S_TRACE);
+				_tree.setSelection([cast(TreeItem)firstItem]);
+				_tree.showSelection();
+			} else { mixin(S_TRACE);
+				_list.setSelection([cast(TableItem)firstItem]);
+				_list.showSelection();
+			}
+			auto a = cast(A)firstItem.getData();
+			if (a) { mixin(S_TRACE);
+				_selected = a.id;
+			} else { mixin(S_TRACE);
+				_selected = 0UL;
+			}
+			firstItem.setImage(image(firstItem));
+		}
+		if (_selected != sel) { mixin(S_TRACE);
+			foreach (dlg; modEvent) dlg();
+		}
+	}
+	private void updateImages() { mixin(S_TRACE);
+		static if (StartArea) {
+			if (_tree) {
+				void recurse(T)(T tree) {
+					foreach (itm; tree.getItems()) {
+						if (!itm.getData()) continue;
+						itm.setImage(image(itm));
+						recurse(itm);
+					}
+				}
+				recurse(_tree);
+			} else {
+				foreach (itm; _list.getItems()) {
+					itm.setImage(image(itm));
+				}
+			}
+		}
+	}
+	private Image image(Item itm) { mixin(S_TRACE);
+		if (!itm.getData()) return _prop.images.areaDir;
+		static if (is(A:Area)) {
+			static if (StartArea) {
+				if (_tree) { mixin(S_TRACE);
+					if (_tree.getSelection().contains(itm)) { mixin(S_TRACE);
+						return _prop.images.startArea;
+					}
+				} else { mixin(S_TRACE);
+					if (_list.getSelection().contains(itm)) { mixin(S_TRACE);
+						return _prop.images.startArea;
+					}
+				}
+			}
+			return _prop.images.area;
+		} else static if (is(A:Battle)) {
+			return _prop.images.battle;
+		} else static if (is(A:Package)) {
+			return _prop.images.packages;
+		} else static if (is(A:CastCard)) {
+			return _prop.images.casts;
+		} else static if (is(A:InfoCard)) {
+			return _prop.images.info;
+		} else static assert (0);
+	}
+
+	private void openAreaView() { mixin(S_TRACE);
+		Item[] sels;
+		if (_tree) { mixin(S_TRACE);
+			sels = cast(Item[])_tree.getSelection();
+		} else { mixin(S_TRACE);
+			sels = cast(Item[])_list.getSelection();
+		}
+		if (!sels.length) return;
+		string cwxPath = "";
+		auto a = cast(A)sels[0].getData();
+		if (a) cwxPath = a.cwxPath(true);
+		try { mixin(S_TRACE);
+			_comm.openCWXPath(cpaddattr(cwxPath, "shallow"), false);
+		} catch (Exception e) {
+			debugln(e);
+		}
+	}
+	private bool canOpenView() { mixin(S_TRACE);
+		Item[] sels;
+		if (_tree) { mixin(S_TRACE);
+			sels = cast(Item[])_tree.getSelection();
+		} else { mixin(S_TRACE);
+			sels = cast(Item[])_list.getSelection();
+		}
+		if (!sels.length) return false;
+		return cast(A)sels[0].getData() !is null;
+	}
+
+	private void initControl() { mixin(S_TRACE);
+		if (_tree) { mixin(S_TRACE);
+			_tree.dispose();
+			_tree = null;
+		}
+		if (_list) { mixin(S_TRACE);
+			_list.dispose();
+			_list = null;
+		}
+		if (is(A:AbstractArea) && _prop.var.etc.showAreaDirTree) { mixin(S_TRACE);
+			_tree = new Tree(this, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
+			initTree(_comm, _tree, false);
+		} else { mixin(S_TRACE);
+			_list = new Table(this, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
+			auto idCol = new TableColumn(_list, SWT.NONE);
+			saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
+			auto nameCol = new FullTableColumn(_list, SWT.NONE);
+		}
+		auto gd = new GridData(GridData.FILL_BOTH);
+		gd.widthHint = _prop.var.etc.nameTableWidth;
+		gd.heightHint = _prop.var.etc.nameTableHeight;
+		widget.setLayoutData(gd);
+
+		.listener(widget, SWT.Selection, { mixin(S_TRACE);
+			Item[] sels;
+			if (_tree) { mixin(S_TRACE);
+				sels = cast(Item[])_tree.getSelection();
+			} else { mixin(S_TRACE);
+				sels = cast(Item[])_list.getSelection();
+			}
+			if (sels.length && cast(A)sels[0].getData()) { mixin(S_TRACE);
+				auto a = cast(A)sels[0].getData();
+				if (a) {
+					_selected = a.id;
+					updateImages();
+				}
+			}
+			foreach (dlg; modEvent) dlg();
+		});
+		.listener(widget, SWT.MouseDoubleClick, &openAreaView);
+
+		auto menu = new Menu(getShell(), SWT.POP_UP);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &areaIncSearch, () => _canIncSearch);
+		new MenuItem(menu, SWT.SEPARATOR);
+		static if (is(A:AbstractArea)) {
+			createMenuItem(_comm, menu, MenuID.OpenAtTableView, &openAreaView, &canOpenView);
+		} else static if (is(A : CastCard) || is(A : InfoCard)) {
+			createMenuItem(_comm, menu, MenuID.OpenAtCardView, &openAreaView, &canOpenView);
+		} else static assert (0);
+		widget.setMenu(menu);
+
+		refreshAreas();
+		layout();
+	}
+
+	this (Commons comm, Composite parent) { mixin(S_TRACE);
+		super (parent, SWT.NONE);
+		_comm = comm;
+		_prop = comm.prop;
+		_summ = comm.summary;
+		setLayout(zeroMarginGridLayout(1, true));
+		_areaIncSearch = new IncSearch(_comm, this);
+		_areaIncSearch.modEvent ~= &refreshAreas;
+
+		initControl();
+
+		_comm.refTableViewStyle.add(&initControl);
+		static if (is(A : Area)) {
+			_comm.refArea.add(&refA);
+			_comm.delArea.add(&refA);
+		} else static if (is(A : Battle)) {
+			_comm.refBattle.add(&refA);
+			_comm.delBattle.add(&refA);
+		} else static if (is(A : Package)) {
+			_comm.refPackage.add(&refA);
+			_comm.delPackage.add(&refA);
+		} else static if (is(A : CastCard)) {
+			_comm.refCast.add(&refA);
+			_comm.delCast.add(&refA);
+		} else static if (is(A : InfoCard)) {
+			_comm.refInfo.add(&refA);
+			_comm.delInfo.add(&refA);
+		} else static assert (0);
+		.listener(this, SWT.Dispose, { mixin(S_TRACE);
+			_comm.refTableViewStyle.remove(&initControl);
+			static if (is(A : Area)) {
+				_comm.refArea.remove(&refA);
+				_comm.delArea.remove(&refA);
+			} else static if (is(A : Battle)) {
+				_comm.refBattle.remove(&refA);
+				_comm.delBattle.remove(&refA);
+			} else static if (is(A : Package)) {
+				_comm.refPackage.remove(&refA);
+				_comm.delPackage.remove(&refA);
+			} else static if (is(A : CastCard)) {
+				_comm.refCast.remove(&refA);
+				_comm.delCast.remove(&refA);
+			} else static if (is(A : InfoCard)) {
+				_comm.refInfo.remove(&refA);
+				_comm.delInfo.remove(&refA);
+			} else static assert (0);
+		});
+	}
+
+	@property
+	void selected(ulong id) { mixin(S_TRACE);
+		_selected = id;
+		refreshAreas();
+	}
+	@property
+	const
+	ulong selected() { return _selected; }
 }

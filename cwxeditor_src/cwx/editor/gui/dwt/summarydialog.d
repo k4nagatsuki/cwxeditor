@@ -27,6 +27,7 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.chooser;
 
 import std.conv;
 import std.string;
@@ -51,8 +52,7 @@ private:
 	FixedWidthText _desc;
 	Text _author;
 	Spinner _levMin, _levMax;
-	Table _startArea;
-	ulong _startAreaID = 0;
+	AreaChooser!(Area, true) _startArea;
 	Spinner _rCouponNum;
 	Text _rCoupons;
 	Button _typeSkin;
@@ -63,12 +63,6 @@ private:
 	SplitPane _tab2Sash, _tab3Sash;
 	// TODO Tag
 	// TODO Label
-
-	IncSearch _areaIncSearch;
-	void areaIncSearch() { mixin(S_TRACE);
-		.forceFocus(_startArea, true);
-		_areaIncSearch.startIncSearch();
-	}
 
 	void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
@@ -333,35 +327,11 @@ private:
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setText(_prop.msgs.startArea);
 				grp.setLayout(new GridLayout(1, false));
-				_startArea = new Table(grp, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+				_startArea = new AreaChooser!(Area, true)(_comm, grp);
 				mod(_startArea);
-				auto idCol = new TableColumn(_startArea, SWT.NONE);
-				saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
-				auto nameCol = new FullTableColumn(_startArea, SWT.NONE);
 				setCDataXY(_startArea, new GridData(GridData.FILL_BOTH));
 
-				.listener(_startArea, SWT.Selection, { mixin(S_TRACE);
-					auto index = _startArea.getSelectionIndex();
-					if (-1 == index) { mixin(S_TRACE);
-						_startAreaID = index;
-					} else { mixin(S_TRACE);
-						auto a = cast(Area) _startArea.getItem(index).getData();
-						assert (a !is null);
-						_startAreaID = a.id;
-					}
-				});
-
-				auto menu = new Menu(_startArea.getShell(), SWT.POP_UP);
-				createMenuItem(_comm, menu, MenuID.IncSearch, &areaIncSearch, null);
-				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.OpenAtTableView, &openAreaAtView, () => _startArea.getSelectionIndex() != -1);
-				_startArea.setMenu(menu);
-
-				_areaIncSearch = new IncSearch(_comm, _startArea);
-				_areaIncSearch.modEvent ~= &refreshAreas;
-
-				_startAreaID = _summ.startArea;
-				refreshAreas();
+				_startArea.selected = _summ.startArea;
 			}
 			_tab3Sash.setWeights([_prop.var.etc.rCouponsStartAreaSashL, _prop.var.etc.rCouponsStartAreaSashR]);
 		}
@@ -382,58 +352,12 @@ private:
 			auto ws2 = _tab3Sash.getWeights();
 			_prop.var.etc.rCouponsStartAreaSashL = ws2[0];
 			_prop.var.etc.rCouponsStartAreaSashR = ws2[1];
-			_comm.refArea.remove(&refArea);
-			_comm.delArea.remove(&refArea);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSkin.remove(&refSkin);
 			_comm.refClassicSkin.remove(&refreshTypes);
 		}
 	}
-	void refreshAreas() { mixin(S_TRACE);
-		ignoreMod = true;
-		scope (exit) ignoreMod = false;
 
-		ulong id = _startAreaID;
-		if (0 == id) { mixin(S_TRACE);
-			id = _summ.startArea;
-		}
-		_startArea.removeAll();
-		bool has = false;
-		foreach (i, area; _summ.areas) { mixin(S_TRACE);
-			if (!has && area.id == id) { mixin(S_TRACE);
-				has = true;
-			}
-			if (!_areaIncSearch.match(area.name)) continue;
-			auto itm = new TableItem(_startArea, SWT.NONE);
-			itm.setData(area);
-			itm.setImage(0, _prop.images.area);
-			itm.setText(0, to!(string)(area.id));
-			itm.setText(1, area.name);
-			if (area.id == id) { mixin(S_TRACE);
-				_startArea.setSelection(_startArea.getItemCount() - 1);
-			}
-		}
-		if (!has && -1 == _startArea.getSelectionIndex()) { mixin(S_TRACE);
-			foreach (i, area; _summ.areas) { mixin(S_TRACE);
-				if (area.id == _summ.startArea) { mixin(S_TRACE);
-					_startArea.setSelection(i);
-					has = true;
-					break;
-				}
-			}
-			if (!has && _summ.areas.length) { mixin(S_TRACE);
-				_startArea.select(0);
-			}
-			int index = _startArea.getSelectionIndex();
-			if (-1 != index) { mixin(S_TRACE);
-				_startAreaID = _summ.areas[index].id;
-			}
-		}
-		_startArea.showSelection();
-	}
-	void refArea(Area area) { mixin(S_TRACE);
-		refreshAreas();
-	}
 	void refScenario(Summary summ) { mixin(S_TRACE);
 		forceCancel();
 	}
@@ -540,16 +464,6 @@ private:
 			_type.select(0);
 		}
 	}
-	void openAreaAtView() { mixin(S_TRACE);
-		auto i = _startArea.getSelectionIndex();
-		if (-1 == i) return;
-		auto a = cast(Area) _startArea.getItem(i).getData();
-		try { mixin(S_TRACE);
-			_comm.openCWXPath(cpaddattr(a.cwxPath(true), "shallow"), false);
-		} catch (Exception e) {
-			debugln(e);
-		}
-	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ) { mixin(S_TRACE);
 		assert (summ !is null);
@@ -570,8 +484,6 @@ protected:
 		constructTab2(tabf);
 		constructImage(area);
 
-		_comm.refArea.add(&refArea);
-		_comm.delArea.add(&refArea);
 		_comm.refScenario.add(&refScenario);
 		_comm.refSkin.add(&refSkin);
 		_comm.refClassicSkin.add(&refreshTypes);
@@ -599,7 +511,7 @@ protected:
 		}
 		_summ.rCoupons = rcs;
 		_summ.rCouponNum = _rCouponNum.getSelection();
-		_summ.startArea = _startAreaID;
+		_summ.startArea = _startArea.selected;
 		if (_typeSkin.getSelection()) { mixin(S_TRACE);
 			_summ.type = _type.getText();
 		} else { mixin(S_TRACE);

@@ -1129,6 +1129,7 @@ private:
 							auto p = path;
 							if (p != "") p ~= "\\";
 							area.name = p ~ nDir ~ "\\" ~ area.name[oldPath.length .. $];
+							callRefArea(area);
 						}
 					}
 					foreach (a; _summ.areas) put(a);
@@ -1152,6 +1153,7 @@ private:
 					getInfoFromArea(area, id, type);
 					storeEdit(id, type);
 					area.dirName = dir.path;
+					callRefArea(area);
 				} else {
 					_dirTree.setSelection([itm]);
 					updateDirSel();
