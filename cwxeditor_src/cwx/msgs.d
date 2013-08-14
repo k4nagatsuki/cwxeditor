@@ -1858,6 +1858,7 @@ class Msgs : Properties {
 	auto menuTextReNumbering = Msg("menuTextReNumbering", "IDの振り直し");
 	auto menuTextEditScene = Msg("menuTextEditScene", "シーンビューを開く");
 	auto menuTextEditEvent = Msg("menuTextEditEvent", "イベントビューを開く");
+	auto menuTextSetStartArea = Msg("menuTextSetStartArea", "開始エリアにする");
 	auto menuTextNewFlagDir = Msg("menuTextNewFlagDir", "フォルダの作成");
 	auto menuTextNewFlag = Msg("menuTextNewFlag", "フラグの作成");
 	auto menuTextNewStep = Msg("menuTextNewStep", "ステップの作成");

@@ -275,6 +275,7 @@ private:
 			}
 		}
 		protected ulong uid(ulong id, TypeInfo type) { mixin(S_TRACE);
+			if (type is null) return id;
 			if (type is typeid(Area)) { mixin(S_TRACE);
 				return _areaRefIDs[id];
 			} else if (type is typeid(Battle)) { mixin(S_TRACE);
@@ -1609,6 +1610,9 @@ private:
 		_dirTree.treeExpandedAll();
 		_dirTree.showSelection();
 	}
+	private Image areaImage(in Area a) {
+		return _summ.startArea == a.id ? _prop.images.startArea : _prop.images.area;
+	}
 	private void updateDirSel() { mixin(S_TRACE);
 		auto sels = _dirTree.getSelection();
 		if (!sels.length) return;
@@ -1682,6 +1686,13 @@ private:
 		itm.setText(UC, "-");
 		itm.setData(_summ);
 	}
+	void updateAreaImage() { mixin(S_TRACE);
+		foreach (itm; _areas.getItems()) { mixin(S_TRACE);
+			if (auto a = cast(Area)itm.getData()) { mixin(S_TRACE);
+				itm.setImage(0, areaImage(a));
+			}
+		}
+	}
 	void item(AbstractArea a, Image img, int uc, int index = -1) { mixin(S_TRACE);
 		TableItem itm;
 		if (index >= 0) { mixin(S_TRACE);
@@ -1697,7 +1708,7 @@ private:
 	}
 	void refData2(AbstractArea a, TableItem itm) { mixin(S_TRACE);
 		if (auto area = cast(Area)a) { mixin(S_TRACE);
-			itm.setImage(0, _prop.images.area);
+			itm.setImage(0, areaImage(area));
 			refData(area, itm);
 		} else if (auto btl = cast(Battle)a) { mixin(S_TRACE);
 			itm.setImage(0, _prop.images.battle);
@@ -1717,7 +1728,7 @@ private:
 		_incSearch.close();
 		auto a = _summ.areas[index];
 		if (showSummary) index++;
-		item(a, _prop.images.area, _summ.useCounter.get(toAreaId(a.id)), index);
+		item(a, areaImage(a), _summ.useCounter.get(toAreaId(a.id)), index);
 		return index;
 	}
 	private int newBattleItem(int index) { mixin(S_TRACE);
@@ -1743,7 +1754,7 @@ private:
 		for (; index < _areas.getItemCount(); index++) { mixin(S_TRACE);
 			if (!cast(Area)_areas.getItem(index).getData()) break;
 		}
-		item(a, _prop.images.area, _summ.useCounter.get(toAreaId(a.id)), index);
+		item(a, areaImage(a), _summ.useCounter.get(toAreaId(a.id)), index);
 	}
 	private void addBattleItem(int index) { mixin(S_TRACE);
 		auto a = _summ.battles[index];
@@ -1892,6 +1903,8 @@ public:
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.EditSummary, &editSummary, () => _summ !is null);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.SetStartArea, &setStartArea, &canSetStartArea);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.Undo, &undo, &_undo.canUndo);
 		createMenuItem(_comm, menu, MenuID.Redo, &redo, &_undo.canRedo);
@@ -2147,6 +2160,7 @@ public:
 		};
 		_summDlg.appliedEvent ~= { mixin(S_TRACE);
 			if (showSummary) refresh();
+			updateAreaImage();
 		};
 		_summDlg.closeEvent ~= { mixin(S_TRACE);
 			_summDlg = null;
@@ -2540,6 +2554,21 @@ public:
 		int sel = _areas.getSelectionIndex();
 		if (sel < (showSummary ? 1 : 0)) return;
 		udImpl(sel, sel + 1);
+	}
+
+	@property
+	bool canSetStartArea() {
+		if (auto a = cast(Area)getSelectionArea()) {
+			return _summ.startArea != a.id;
+		}
+		return false;
+	}
+	void setStartArea() {
+		if (auto a = cast(Area)getSelectionArea()) {
+			storeEdit(0UL, null);
+			_summ.startArea = a.id;
+			updateAreaImage();
+		}
 	}
 
 	override {

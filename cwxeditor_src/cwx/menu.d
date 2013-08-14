@@ -119,6 +119,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ReNumbering] = "B";
 		_mnemonic[MenuID.EditScene] = "S";
 		_mnemonic[MenuID.EditEvent] = "N";
+		_mnemonic[MenuID.SetStartArea] = "E";
 		_mnemonic[MenuID.NewFlagDir] = "N";
 		_mnemonic[MenuID.NewFlag] = "F";
 		_mnemonic[MenuID.NewStep] = "S";
@@ -310,6 +311,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ReNumbering] = "";
 		_hotkey[MenuID.EditScene] = "F3";
 		_hotkey[MenuID.EditEvent] = "F4";
+		_hotkey[MenuID.SetStartArea] = "";
 		_hotkey[MenuID.NewFlagDir] = "";
 		_hotkey[MenuID.NewFlag] = "Ctrl+L";
 		_hotkey[MenuID.NewStep] = "Ctrl+P";

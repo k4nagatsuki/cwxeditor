@@ -94,6 +94,7 @@ public:
 	@property Image area() {return imgd!("area.png");}
 	@property Image battle() {return imgd!("battle.png");}
 	@property Image packages() {return imgd!("package.png");}
+	@property Image startArea() {return imgd!("start_area.png");}
 
 	@property Image areaSceneView() {return imgd!("area_cards.png");}
 	@property Image areaEventTreeView() {return imgd!("area_event.png");}
@@ -449,6 +450,7 @@ public:
 		case MenuID.ReNumbering: return imgd!("renum.png");
 		case MenuID.EditScene: return imgd!("area_cards.png");
 		case MenuID.EditEvent: return imgd!("area_event.png");
+		case MenuID.SetStartArea: return imgd!("start_area.png");
 		case MenuID.NewFlagDir: return imgd!("flagdir_new.png");
 		case MenuID.NewFlag: return imgd!("flag_new.png");
 		case MenuID.NewStep: return imgd!("step_new.png");

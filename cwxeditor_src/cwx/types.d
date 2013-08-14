@@ -1323,6 +1323,7 @@ enum MenuID {
 	ReNumbering,
 	EditScene,
 	EditEvent,
+	SetStartArea,
 	NewFlagDir,
 	NewFlag,
 	NewStep,
