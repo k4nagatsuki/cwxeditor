@@ -22,7 +22,7 @@ void putStack(string file, size_t line) {
 }
 void saveStack() {
 	if (!stStack.length) {
-		stStack = tStack[0 .. tStackLen];
+		stStack = tStack[0 .. tStackLen].dup;
 	}
 }
 

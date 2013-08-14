@@ -734,6 +734,7 @@ private:
 			auto oldPath = dir.path;
 			dir.name = createNewName(newText, (s) {
 				foreach (n; dir.parent.subDirs) {
+					if (n is dir) continue;
 					if (0 == icmp(n.name, s)) {
 						return false;
 					}
@@ -741,7 +742,7 @@ private:
 				return true;
 			});
 			auto path = dir.path;
-			itm.setText(newText);
+			itm.setText(dir.name);
 			storeRenameDir(oldPath, path);
 			void put(AbstractArea area) {
 				if (area.dirName == oldPath) {
@@ -752,6 +753,7 @@ private:
 			foreach (a; _summ.areas) put(a);
 			foreach (a; _summ.battles) put(a);
 			foreach (a; _summ.packages) put(a);
+			updateDirSel();
 		}
 		_comm.refreshToolBar();
 	}
@@ -1515,6 +1517,23 @@ private:
 		foreach (s; stored) put(s);
 
 		sortDirTree();
+	}
+	private string putDir(DirTree parent, string dirName) { mixin (S_TRACE);
+		auto dirs = .split(dirName, "\\");
+		foreach (i, dir; dirs) { mixin (S_TRACE);
+			bool exists = false;
+			foreach (sub; parent.subDirs) { mixin (S_TRACE);
+				if (0 == icmp(sub.name, dir)) { mixin (S_TRACE);
+					parent = sub;
+					exists = true;
+					break;
+				}
+			}
+			if (!exists) {
+				parent = new DirTree(parent, dir);
+			}
+		}
+		return parent.path;
 	}
 	private void sortDirTree() {
 		void recurse(DirTree dir) { mixin(S_TRACE);
@@ -2544,11 +2563,28 @@ public:
 				foreach (a; _summ.areas) put(a);
 				foreach (a; _summ.battles) put(a);
 				foreach (a; _summ.packages) put(a);
+				XNode doc;
+				string parentPath = _dir == "" ? _prop.msgs.areaDirRoot : _dir.split("\\")[$ - 1];
 				if (areas.length) { mixin(S_TRACE);
-					string parentPath = _dir == "" ? _prop.msgs.areaDirRoot : _dir.split("\\")[$ - 1];
-					XMLtoCB(_prop, _comm.clipboard, areasToNode(parentPath, _dir, areas, new XMLOption(_prop.sys), _summ.id).text);
-					_comm.refreshToolBar();
+					doc = areasToNode(parentPath, _dir, areas, new XMLOption(_prop.sys), _summ.id);
+				} else {
+					doc = XNode.create("Table");
+					doc.newAttr("summaryId", _summ.id);
 				}
+				// フォルダ構造を転送
+				auto parent = cast(DirTree)findDirTree(_dir).getData();
+				void recurse(DirTree dir) { mixin(S_TRACE);
+					auto p = dir.path;
+					if (0 == icmp(p, _dir)) { mixin(S_TRACE);
+						doc.newElement("TablePath", parentPath);
+					} else { mixin(S_TRACE);
+						doc.newElement("TablePath", parentPath ~ "\\" ~ p[path.length .. $]);
+					}
+					foreach (sub; dir.subDirs) recurse(sub);
+				}
+				recurse(parent);
+				XMLtoCB(_prop, _comm.clipboard, doc.text);
+				_comm.refreshToolBar();
 			} else { mixin(S_TRACE);
 				auto area = getSelectionArea();
 				if (area !is null) { mixin(S_TRACE);
@@ -2689,22 +2725,35 @@ public:
 			foreach (sub; dir.subDirs) eRecurse(sub);
 		}
 		eRecurse(_dirs);
+
+		string renameDir(string dir) { mixin(S_TRACE);
+			if (dir == "") return dir;
+			// すでに存在するフォルダであれば(2)等をつける
+			auto dirs = dir.split("\\");
+			auto firstDir = dirs[0];
+			firstDir = createNewName(firstDir, (s) { mixin(S_TRACE);
+				if (_dir != "") s = _dir ~ "\\" ~ s;
+				return !existsDirs.contains(s.toLower());
+			});
+			return ([firstDir] ~ dirs[1..$]).join("\\");
+		}
+		auto curItm = findDirTree(_dir);
+		auto curDir = cast(DirTree)curItm.getData();
+		string lastPutDir = "";
+		node.onTag["TablePath"] = (ref XNode node) { mixin(S_TRACE);
+			auto dir = renameDir(node.value);
+			if (dir == "") return;
+			if (!undos.length) undos ~= new UndoIDs(this, _comm, _summ);
+			lastPutDir = putDir(curDir, dir);
+		};
+		node.parse();
+
 		foreach (area; areas) { mixin(S_TRACE);
 			sel = area;
 			if (_dirMode) { mixin(S_TRACE);
 				if (fromTable) { mixin(S_TRACE);
 					// フォルダ構造をそのまま貼り付け
-					auto dir = area.dirName;
-					if (dir != "") { mixin(S_TRACE);
-						// すでに存在するフォルダであれば(2)等をつける
-						auto dirs = dir.split("\\");
-						auto firstDir = dirs[0];
-						firstDir = createNewName(firstDir, (s) { mixin(S_TRACE);
-							if (_dir != "") s = _dir ~ "\\" ~ s;
-							return !existsDirs.contains(s.toLower());
-						});
-						area.dirName = ([firstDir] ~ dirs[1..$]).join("\\");
-					}
+					area.dirName = renameDir(area.dirName);
 					if (_dir != "") { mixin(S_TRACE);
 						area.name = _dir ~ "\\" ~ area.name;
 					}
@@ -2738,11 +2787,11 @@ public:
 				}
 			} else assert (0);
 		}
-		if (sel) { mixin (S_TRACE);
-			if (_dirMode) { mixin (S_TRACE);
-				constructDirTree(true);
-			}
+		if ((lastPutDir != "" || sel) && _dirMode) { mixin (S_TRACE);
+			constructDirTree(true);
 			refreshAreas();
+		}
+		if (sel) { mixin (S_TRACE);
 			sort();
 			select(sel);
 			if (_flags) _flags.refresh();
@@ -2750,6 +2799,10 @@ public:
 			refreshStatusLine();
 			_comm.refreshToolBar();
 			_undo ~= new ATUndoArr(undos);
+		}
+		if (_dirMode && !sel && lastPutDir != "") {
+			_dirTree.setSelection([findDirTree(lastPutDir)]);
+			updateDirSel();
 		}
 	}
 	private void delItem(in AbstractArea area) { mixin(S_TRACE);
