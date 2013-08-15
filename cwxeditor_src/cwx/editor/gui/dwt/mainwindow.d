@@ -490,6 +490,14 @@ private:
 		opt.textOnly = false;
 		opt.doubleIO = _prop.var.etc.doubleIO;
 		opt.expandXMLs = old ? old.expandXMLs : _prop.var.etc.expandXMLs;
+		auto d = _win.getDisplay();
+		opt.processFunc = (string sName, string fileName) {
+			d.asyncExec(new class Runnable {
+				override void run() {
+					statusLine = .tryFormat(_prop.msgs.loadingWithFile, sName, fileName);
+				}
+			});
+		};
 		return opt;
 	}
 	void reload() { mixin(S_TRACE);

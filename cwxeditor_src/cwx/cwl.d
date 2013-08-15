@@ -106,6 +106,7 @@ Summary loadLScenario(string p, string skin, const System sys, in LoadOption opt
 					auto f = ByteIO(bytes);
 					scope (exit) f.dispose();
 					auto base = baseName(file);
+					if (opt.processFunc) opt.processFunc(summ.scenarioName, base);
 					ulong id;
 					if (!d.cardOnly) { mixin(S_TRACE);
 						if (sWith(base, "Area", id)) { mixin(S_TRACE);

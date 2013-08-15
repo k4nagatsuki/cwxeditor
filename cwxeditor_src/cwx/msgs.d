@@ -78,6 +78,7 @@ class Msgs : Properties {
 	auto reloadError = Msg("reloadError", "%1$sの再読込中にエラーが発生しました。");
 	auto loadProgress = Msg("loadProgress", "%2$s%% 完了 - %1$sを展開中");
 	auto loading = Msg("loading", "%1$sの読込みを開始");
+	auto loadingWithFile = Msg("loading", "%1$sを読込んでいます... (%2$s)");
 	auto loaded = Msg("loaded", "%1$sの読込みを完了");
 	auto loadedCount = Msg("loadedCount", "%1$s件の読込みを完了");
 	auto reconstructionStatus = Msg("reconstructionStatus", "編集状態を復元中 (%1$s/%2$s)");

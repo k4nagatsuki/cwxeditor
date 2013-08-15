@@ -65,6 +65,8 @@ struct LoadOption {
 	bool textOnly = false; /// 素材を無視するか。
 	bool expandXMLs = true; /// XMLファイルを展開するか。
 	bool summaryOnly = false; /// 概要のみを読み込むか。
+	/// ロードが進行する毎に呼び出される関数を指定する。
+	void delegate(string sName, string fileName) processFunc = null;
 }
 
 /// 保存時オプション。
