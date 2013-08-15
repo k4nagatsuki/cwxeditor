@@ -697,6 +697,13 @@ public:
 		if (card.scenario == scenarioName && card.author == author) {
 			card.author = newAuthor;
 			card.scenario = newScenario;
+			foreach (m; card.motions) {
+				auto beast = m.beast;
+				if (beast) {
+					setNamesOne(beast, newAuthor, newScenario);
+					setContentNames([beast], newAuthor, newScenario);
+				}
+			}
 		}
 	}
 	private void setNames(C)(C[] cards, string newAuthor, string newScenario) {
@@ -706,19 +713,20 @@ public:
 		setContentNames(cards, newAuthor, newScenario);
 	}
 	private void setContentNames(C : EventTreeOwner)(C[] etos, string newAuthor, string newScenario) {
-		void setContentNames(Content c) {
+		void setContentNames2(Content c) {
 			foreach (m; c.motions) {
 				auto beast = m.beast;
 				if (beast) {
 					setNamesOne(beast, newAuthor, newScenario);
+					setContentNames([beast], newAuthor, newScenario);
 				}
 			}
-			foreach (n; c.next) setContentNames(n);
+			foreach (n; c.next) setContentNames2(n);
 		}
 		foreach (ref eto; etos) {
 			foreach (ref tree; eto.trees) {
 				foreach (ref start; tree.starts) {
-					setContentNames(start);
+					setContentNames2(start);
 				}
 			}
 		}
