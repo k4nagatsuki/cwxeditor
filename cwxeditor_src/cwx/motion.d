@@ -258,7 +258,7 @@ public:
 		r.round = round;
 		r.maxNest = maxNest;
 		if (_beast) {
-			r.beast = _beast.dup;
+			r.newBeast = _beast.dup;
 		}
 		return r;
 	}
