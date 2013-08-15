@@ -294,7 +294,7 @@ public:
 				_areas.panel.setLayoutData(new GridData(GridData.FILL_BOTH));
 				_contPane.layout();
 			}
-			_areas.summary = _summ;
+			if (_summ) _areas.summary = _summ;
 		}
 	}
 	static if (UseArea && UseFlag) {

@@ -1790,7 +1790,7 @@ public:
 		_dirMode = false;
 		if (_prop.var.etc.showAreaDirTree) { mixin (S_TRACE);
 			_dirMode = true;
-			auto sash = new SplitPane(parent, _prop.var.etc.areaSashV ? SWT.HORIZONTAL : SWT.VERTICAL);
+			auto sash = new SplitPane(parent, _prop.var.etc.areaSashV ? SWT.VERTICAL : SWT.HORIZONTAL);
 			auto cl1 = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 			cl1.fillHorizontal = true;
 			cl1.fillVertical = true;
@@ -1986,7 +1986,7 @@ public:
 	void changeVHSide() { mixin(S_TRACE);
 		if (!canChangeVH) return;
 		auto sash = cast(SplitPane)_dirTree.getParent().getParent();
-		.changeVHSide(sash);
+		sash = .changeVHSide(sash);
 		_prop.var.etc.areaSashV = (sash.getStyle() & SWT.VERTICAL) != 0;
 	}
 
