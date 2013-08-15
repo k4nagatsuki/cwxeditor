@@ -373,6 +373,7 @@ struct Jpy1 {
 
 		foreach (ref sec; r.sections) { mixin(S_TRACE);
 			sec.path = sec.toMaterialPath();
+			sec.needUpdate = false;
 		}
 		return r;
 	}
@@ -508,30 +509,27 @@ class Jpy1Sec : PathUser, CWXPath {
 	}
 
 	private string fromMaterialPath(string filename) { mixin(S_TRACE);
-		string relPath(string path) { mixin(S_TRACE);
+		string relPath(string sPath, string path) { mixin(S_TRACE);
 			auto nsPath = nabs(sPath);
 			auto nPath = nabs(path);
-			if (nPath.fnstartsWith(nsPath)) { mixin(S_TRACE);
-				return nPath.abs2rel(nsPath);
-			}
-			return path;
+			return nPath.abs2rel(nsPath);
 		}
 		switch (dirtype) {
 		case Dirtype.CURRENT: { mixin(S_TRACE);
-			return relPath(dirName(fPath).buildPath(filename));
+			return relPath(dirName(fPath.abs2rel(sPath)), filename);
 		} break;
 		case Dirtype.TABLE: return filename.decodePath();
 		case Dirtype.SCHEME: return filename.decodePath();
 		case Dirtype.SCENARIO: { mixin(S_TRACE);
-			return relPath(sPath.buildPath(filename));
+			return relPath(sPath, sPath.buildPath(filename));
 		} break;
 		case Dirtype.WAV: return filename.decodePath();
 		case Dirtype.PARENT: { mixin(S_TRACE);
-			string dir = dirName(dirName(fPath));
+			string dir = dirName(dirName(fPath.abs2rel(sPath)));
 			for (int dp = 0; dp < dirdepth; dp++) { mixin(S_TRACE);
 				dir = dirName(dir);
 			}
-			return relPath(dir.buildPath(filename));
+			return relPath(dir, filename);
 		} break;
 		case Dirtype.PROGRAM: return filename.decodePath();
 		default: return filename.decodePath();
