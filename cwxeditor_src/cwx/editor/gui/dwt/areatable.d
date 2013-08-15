@@ -2741,7 +2741,7 @@ public:
 			}
 		}
 	}
-	private void pasteImpl(ref XNode node) {
+	private void pasteImpl(ref XNode node) { mixin(S_TRACE);
 		_parent.setRedraw(false);
 		scope (exit) _parent.setRedraw(true);
 		bool sameSummary;
@@ -2755,7 +2755,7 @@ public:
 			existsDirs.add(dir.path.toLower());
 			foreach (sub; dir.subDirs) eRecurse(sub);
 		}
-		eRecurse(_dirs);
+		if (_dirMode) eRecurse(_dirs);
 
 		string renameDir(string dir) { mixin(S_TRACE);
 			if (dir == "") return dir;
@@ -2768,16 +2768,18 @@ public:
 			});
 			return ([firstDir] ~ dirs[1..$]).join("\\");
 		}
-		auto curItm = findDirTree(_dir);
-		auto curDir = cast(DirTree)curItm.getData();
 		string lastPutDir = "";
-		node.onTag["TablePath"] = (ref XNode node) { mixin(S_TRACE);
-			auto dir = renameDir(node.value);
-			if (dir == "") return;
-			if (!undos.length) undos ~= new UndoIDs(this, _comm, _summ);
-			lastPutDir = putDir(curDir, dir);
-		};
-		node.parse();
+		if (_dirMode) {
+			auto curItm = findDirTree(_dir);
+			auto curDir = cast(DirTree)curItm.getData();
+			node.onTag["TablePath"] = (ref XNode node) { mixin(S_TRACE);
+				auto dir = renameDir(node.value);
+				if (dir == "") return;
+				if (!undos.length) undos ~= new UndoIDs(this, _comm, _summ);
+				lastPutDir = putDir(curDir, dir);
+			};
+			node.parse();
+		}
 
 		foreach (area; areas) { mixin(S_TRACE);
 			sel = area;
@@ -2818,8 +2820,10 @@ public:
 				}
 			} else assert (0);
 		}
-		if ((lastPutDir != "" || sel) && _dirMode) { mixin (S_TRACE);
-			constructDirTree(true);
+		if (lastPutDir != "" || sel) { mixin (S_TRACE);
+			if (_dirMode) {
+				constructDirTree(true);
+			}
 			refreshAreas();
 		}
 		if (sel) { mixin (S_TRACE);
