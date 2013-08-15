@@ -719,6 +719,8 @@ private:
 			foreach (a; _summ.areas) put(a);
 			foreach (a; _summ.battles) put(a);
 			foreach (a; _summ.packages) put(a);
+			sortDirTree();
+			refreshDirTree();
 			updateDirSel();
 		}
 		_comm.refreshToolBar();
@@ -1530,6 +1532,7 @@ private:
 	}
 	private void refreshDirTree() { mixin(S_TRACE);
 		if (!_dirTree) return;
+		_areaDirEdit.cancel();
 		bool selSummary = false;
 		auto sel = "";
 		auto sels = _dirTree.getSelection();

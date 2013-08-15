@@ -431,10 +431,12 @@ public:
 		}
 	}
 	void enter() { mixin(S_TRACE);
+		if (!ctrl || ctrl.isDisposed()) return;
 		try { mixin(S_TRACE);
 			try { mixin(S_TRACE);
 				end(ctrl);
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 			ctrl.dispose();
@@ -443,7 +445,9 @@ public:
 		}
 	}
 	void cancel() { mixin(S_TRACE);
-		ctrl.dispose();
+		if (ctrl && !ctrl.isDisposed()) { mixin(S_TRACE);
+			ctrl.dispose();
+		}
 	}
 }
 
@@ -793,6 +797,7 @@ private:
 	}
 
 	void end(Control ctrl) { mixin(S_TRACE);
+		if (!ctrl || ctrl.isDisposed()) return;
 		try { mixin(S_TRACE);
 			editEnd(editor.getItem(), ctrl);
 			_tee = null;
