@@ -844,7 +844,7 @@ private Motion readMotion(ref RData d, ref ByteIO f, size_t index) { mixin(S_TRA
 			beast = loadBeast(d2, f, 1);
 		}
 		auto m = new Motion(MType.SUMMON_BEAST, el);
-		m.beast = beast;
+		m.newBeast = beast;
 		return m;
 	}
 	default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));

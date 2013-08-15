@@ -373,6 +373,20 @@ public:
 			_beast = null;
 		}
 	}
+	/// ditto
+	@property
+	package void newBeast(BeastCard beast) { mixin(S_TRACE);
+		if (_beast) { mixin(S_TRACE);
+			_beast.changeHandler = null;
+			_beast.removeUseCounter();
+			_beast.owner = null;
+		}
+		if (beast) { mixin(S_TRACE);
+			setBeastImpl(beast);
+		} else { mixin(S_TRACE);
+			_beast = null;
+		}
+	}
 	/// XMLノードから召喚獣を読み出して設定する。
 	/// ノードから生成された召喚獣のIDを返す。
 	ulong setBeastFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
