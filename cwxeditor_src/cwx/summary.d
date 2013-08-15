@@ -700,6 +700,13 @@ public:
 		if (card.scenario == scenarioName && card.author == author) { mixin(S_TRACE);
 			card.author = newAuthor;
 			card.scenario = newScenario;
+			foreach (m; card.motions) { mixin(S_TRACE);
+				auto beast = m.beast;
+				if (beast) { mixin(S_TRACE);
+					setNamesOne(beast, newAuthor, newScenario);
+					setContentNames([beast], newAuthor, newScenario);
+				}
+			}
 		}
 	}
 	private void setNames(C)(C[] cards, string newAuthor, string newScenario) { mixin(S_TRACE);
@@ -709,19 +716,20 @@ public:
 		setContentNames(cards, newAuthor, newScenario);
 	}
 	private void setContentNames(C : EventTreeOwner)(C[] etos, string newAuthor, string newScenario) { mixin(S_TRACE);
-		void setContentNames(Content c) { mixin(S_TRACE);
+		void setContentNames2(Content c) { mixin(S_TRACE);
 			foreach (m; c.motions) { mixin(S_TRACE);
 				auto beast = m.beast;
 				if (beast) { mixin(S_TRACE);
 					setNamesOne(beast, newAuthor, newScenario);
+					setContentNames([beast], newAuthor, newScenario);
 				}
 			}
-			foreach (n; c.next) setContentNames(n);
+			foreach (n; c.next) setContentNames2(n);
 		}
 		foreach (ref eto; etos) { mixin(S_TRACE);
 			foreach (ref tree; eto.trees) { mixin(S_TRACE);
 				foreach (ref start; tree.starts) { mixin(S_TRACE);
-					setContentNames(start);
+					setContentNames2(start);
 				}
 			}
 		}
