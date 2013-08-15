@@ -23,6 +23,8 @@ import std.typecons : Tuple;
 
 import org.eclipse.swt.all;
 
+import java.lang.all;
+
 enum CouponComboType {
 	AllCoupons, /// 全てのクーポンを選択肢とする。
 	Talker, /// 話者用のクーポンを選択肢とする。
@@ -228,6 +230,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 
 	private Tree _tree = null;
 	private Table _list = null;
+	private Button _allExpanded = null;
 
 	static if (Random) {
 		private Item _random = null;
@@ -318,10 +321,17 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		if (_tree) { mixin(S_TRACE);
 			bool recurse(T)(T parent, FlagDir dir, string name) { mixin(S_TRACE);
 				bool selItm = false;
-				auto dirItm = new TreeItem(parent, SWT.NONE);
-				dirItm.setData(dir);
-				dirItm.setImage(_prop.images.flagDir);
-				dirItm.setText(name);
+				TreeItem dirItm = null;
+				if (dir !is _summ.flagDirRoot) {
+					if (parent) {
+						dirItm = new TreeItem(parent, SWT.NONE);
+					} else {
+						dirItm = new TreeItem(_tree, SWT.NONE);
+					}
+					dirItm.setData(dir);
+					dirItm.setImage(_prop.images.flagDir);
+					dirItm.setText(name);
+				}
 				foreach (child; dir.subDirs) { mixin(S_TRACE);
 					static if (is(F:Flag)) {
 						auto flags = child.allFlags;
@@ -348,7 +358,12 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 						has = true;
 					}
 					if (!_flagIncSearch.match(path)) continue;
-					auto itm = new TreeItem(dirItm, SWT.NONE);
+					TreeItem itm;
+					if (dirItm) {
+						itm = new TreeItem(dirItm, SWT.NONE);
+					} else {
+						itm = new TreeItem(_tree, SWT.NONE);
+					}
 					itm.setData(flag);
 					itm.setImage(icon);
 					itm.setText(flag.name);
@@ -360,10 +375,13 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					if (!firstItem) firstItem = itm;
 					_canIncSearch = true;
 				}
-				dirItm.setExpanded(selItm || _comm.flagDirExpanded.get(dir.path, true));
+				if (dirItm) {
+					dirItm.setExpanded(selItm || _comm.flagDirExpanded.get(dir.path, true));
+				}
 				return selItm;
 			}
 			recurse(_tree, _summ.flagDirRoot, _prop.msgs.flagDirRoot);
+			checkAllExpanded(_allExpanded, _tree);
 		} else { mixin(S_TRACE);
 			static if (is(F:Flag)) {
 				auto flags = _summ.flagDirRoot.allFlags;
@@ -446,6 +464,8 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		if (_tree) { mixin(S_TRACE);
 			_tree.dispose();
 			_tree = null;
+			_allExpanded.dispose();
+			_allExpanded = null;
 		}
 		if (_list) { mixin(S_TRACE);
 			_list.dispose();
@@ -453,7 +473,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		}
 		if (_prop.var.etc.selectVariableWithTree) { mixin(S_TRACE);
 			_tree = new Tree(this, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
-			initTree(_comm, _tree, false);
+			initTree(_comm, _tree, false, false);
 			if (_saveExpanded) { mixin(S_TRACE);
 				.listener(_tree, SWT.Dispose, { mixin(S_TRACE);
 					bool[string] flagDirExpanded;
@@ -470,6 +490,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					_comm.flagDirExpanded = flagDirExpanded;
 				});
 			}
+			_allExpanded = createAllExpandedButton(_comm.prop, this, _tree);
 		} else { mixin(S_TRACE);
 			_list = new Table(this, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
 			auto colN = new FullTableColumn(_list, SWT.NONE);
@@ -561,6 +582,7 @@ class AreaChooser(A, bool StartArea) : Composite {
 
 	private Tree _tree = null;
 	private Table _list = null;
+	private Button _allExpanded = null;
 
 	private Commons _comm;
 	private Props _prop;
@@ -608,11 +630,6 @@ class AreaChooser(A, bool StartArea) : Composite {
 		if (_tree) { mixin(S_TRACE);
 			static if (is(A:AbstractArea)) {
 				TreeItem[string] itmTable;
-				auto root = new TreeItem(_tree, SWT.NONE);
-				root.setText(_prop.msgs.areaDirRoot);
-				root.setImage(_prop.images.areaDir);
-				root.setData(null);
-				itmTable[""] = root;
 				Tuple!(TreeItem, A)[] creates;
 				foreach (a; arr) { mixin (S_TRACE);
 					if (!has && a.id == sel) { mixin(S_TRACE);
@@ -621,7 +638,7 @@ class AreaChooser(A, bool StartArea) : Composite {
 					if (!_areaIncSearch.match(a.name)) continue;
 
 					auto dirs = .split(a.dirName, "\\");
-					auto itm = root;
+					TreeItem itm = null;
 					foreach (i, dir; dirs) { mixin (S_TRACE);
 						auto fPath = dirs[0 .. i + 1].join("\\");
 						auto path = fPath.toLower();
@@ -629,7 +646,12 @@ class AreaChooser(A, bool StartArea) : Composite {
 						if (p) { mixin (S_TRACE);
 							itm = *p;
 						} else { mixin (S_TRACE);
-							auto sub = new TreeItem(itm, SWT.NONE);
+							TreeItem sub;
+							if (itm) {
+								sub = new TreeItem(itm, SWT.NONE);
+							} else {
+								sub = new TreeItem(_tree, SWT.NONE);
+							}
 							sub.setText(dir);
 							sub.setImage(_prop.images.areaDir);
 							sub.setData(null);
@@ -639,10 +661,15 @@ class AreaChooser(A, bool StartArea) : Composite {
 					}
 					creates ~= Tuple!(TreeItem, A)(itm, a);
 				}
-				foreach (t; creates) {
+				foreach (t; creates) { mixin(S_TRACE);
 					auto itm = t[0];
 					auto a = t[1];
-					auto aItm = new TreeItem(itm, SWT.NONE);
+					TreeItem aItm;
+					if (itm) {
+						aItm = new TreeItem(itm, SWT.NONE);
+					} else {
+						aItm = new TreeItem(_tree, SWT.NONE);
+					}
 					aItm.setData(a);
 					aItm.setText(.tryFormat("%s.%s", a.id, a.baseName));
 					if (!_tree.getSelection().length && a.id == sel) { mixin(S_TRACE);
@@ -654,6 +681,7 @@ class AreaChooser(A, bool StartArea) : Composite {
 					aItm.setImage(image(aItm));
 				}
 				_tree.treeExpandedAll();
+				checkAllExpanded(_allExpanded, _tree);
 			} else {
 				assert (0);
 			}
@@ -772,6 +800,8 @@ class AreaChooser(A, bool StartArea) : Composite {
 		if (_tree) { mixin(S_TRACE);
 			_tree.dispose();
 			_tree = null;
+			_allExpanded.dispose();
+			_allExpanded = null;
 		}
 		if (_list) { mixin(S_TRACE);
 			_list.dispose();
@@ -779,7 +809,8 @@ class AreaChooser(A, bool StartArea) : Composite {
 		}
 		if (is(A:AbstractArea) && _prop.var.etc.showAreaDirTree) { mixin(S_TRACE);
 			_tree = new Tree(this, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
-			initTree(_comm, _tree, false);
+			initTree(_comm, _tree, false, false);
+			_allExpanded = createAllExpandedButton(_comm.prop, this, _tree);
 		} else { mixin(S_TRACE);
 			_list = new Table(this, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
 			auto idCol = new TableColumn(_list, SWT.NONE);
@@ -880,4 +911,39 @@ class AreaChooser(A, bool StartArea) : Composite {
 	@property
 	const
 	ulong selected() { return _selected; }
+}
+
+void checkAllExpanded(Button b, Tree tree) { mixin(S_TRACE);
+	bool expanded = true;
+	void recurse(TreeItem itm) { mixin(S_TRACE);
+		if (itm.getItems().length && !itm.getExpanded()) { mixin(S_TRACE);
+			expanded = false;
+			return;
+		}
+		foreach (child; itm.getItems()) recurse(child);
+	}
+	foreach (itm; tree.getItems()) recurse(itm);
+	b.setSelection(expanded);
+}
+
+Button createAllExpandedButton(Props prop, Composite parent, Tree tree) { mixin(S_TRACE);
+	auto b = new Button(parent, SWT.CHECK);
+	b.setText(prop.msgs.allExpanded);
+	void check() { mixin(S_TRACE);
+		tree.getDisplay().asyncExec(new class Runnable {
+			override void run () { mixin(S_TRACE);
+				checkAllExpanded(b, tree);
+			}
+		});
+	}
+	.listener(tree, SWT.Expand, &check);
+	.listener(tree, SWT.Collapse, &check);
+	.listener(b, SWT.Selection, { mixin(S_TRACE);
+		void recurse(TreeItem itm) { mixin(S_TRACE);
+			itm.setExpanded(b.getSelection());
+			foreach (child; itm.getItems()) recurse(child);
+		}
+		foreach (itm; tree.getItems()) recurse(itm);
+	});
+	return b;
 }

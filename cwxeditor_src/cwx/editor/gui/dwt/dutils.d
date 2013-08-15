@@ -1883,7 +1883,7 @@ void setComboItems(C)(C combo, string[] items) { mixin(S_TRACE);
 }
 
 /// Windows Vista以降で、Treeに点線を表示する。
-void initTree(Commons comm, Tree tree, bool eventTree) { mixin(S_TRACE);
+void initTree(Commons comm, Tree tree, bool eventTree, bool hideRootLine = true) { mixin(S_TRACE);
 	version (Windows) {
 		if (eventTree) { mixin(S_TRACE);
 			Listener keyDown = null, mouseDoubleClick = null, collapse = null;
@@ -1974,7 +1974,7 @@ void initTree(Commons comm, Tree tree, bool eventTree) { mixin(S_TRACE);
 		} else { mixin(S_TRACE);
 			auto style = OS.GetWindowLong(tree.handle, GWL_STYLE);
 			style |= OS.TVS_HASLINES;
-			style &= ~OS.TVS_LINESATROOT;
+			if (hideRootLine) style &= ~OS.TVS_LINESATROOT;
 			style = OS.SetWindowLong(tree.handle, GWL_STYLE, style);
 			OS.SetWindowPos(tree.handle, null, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 		}

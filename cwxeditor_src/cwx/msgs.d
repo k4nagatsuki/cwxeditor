@@ -465,6 +465,8 @@ class Msgs : Properties {
 	/// イベント。
 	auto evtArrow = Msg("evtArrow", "イベント編集");
 
+	auto allExpanded = Msg("allExpanded", "全て開く/全て閉じる(&E)");
+
 	auto evtAutoOpen = Msg("evtAutoOpen", "配置と同時に編集");
 	auto evtInsertFirst = Msg("evtInsertFirst", "他の子コンテントより前に配置");
 
