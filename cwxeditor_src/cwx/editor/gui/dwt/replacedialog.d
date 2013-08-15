@@ -43,6 +43,7 @@ import std.regex : Regex, regex, RegexMatch, match;
 import std.utf;
 import std.algorithm : uniq, swap;
 import std.traits;
+import std.typecons : Tuple;
 
 import org.eclipse.swt.all;
 
@@ -1116,13 +1117,25 @@ private:
 		refFunc!true(a);
 	}
 	void refArea(Area a) { mixin(S_TRACE);
-		refFunc!false(a);
+		if (_prop.var.etc.showAreaDirTree) {
+			refreshRangeTree();
+		} else {
+			refFunc!false(a);
+		}
 	}
 	void refBattle(Battle a) { mixin(S_TRACE);
-		refFunc!false(a);
+		if (_prop.var.etc.showAreaDirTree) {
+			refreshRangeTree();
+		} else {
+			refFunc!false(a);
+		}
 	}
 	void refPackage(Package a) { mixin(S_TRACE);
-		refFunc!false(a);
+		if (_prop.var.etc.showAreaDirTree) {
+			refreshRangeTree();
+		} else {
+			refFunc!false(a);
+		}
 	}
 	void refCast(CastCard a) { mixin(S_TRACE);
 		refFunc!false(a);
@@ -1168,6 +1181,8 @@ private:
 		return r;
 	}
 	void refreshRangeTree() { mixin(S_TRACE);
+		_range.setRedraw(false);
+		scope (exit) _range.setRedraw(true);
 		if (!_summ) { mixin(S_TRACE);
 			_range.removeAll();
 			return;
@@ -1175,7 +1190,7 @@ private:
 		CWXPath sel = null;
 		auto selItm = _range.getSelection();
 		if (selItm.length) { mixin(S_TRACE);
-			sel = cast(CWXPath) selItm[0].getData();
+			sel = cast(CWXPath)selItm[0].getData();
 		}
 		_range.removeAll();
 		TreeItem add(TreeItem par, string name, CWXPath path) { mixin(S_TRACE);
@@ -1199,43 +1214,77 @@ private:
 		}
 		add(null, _prop.msgs.summary, _summ);
 		add(null, _prop.msgs.flagsAndSteps, _summ.flagDirRoot);
-		foreach (a; _summ.areas) { mixin(S_TRACE);
-			add(null, a.name, a);
-		}
-		foreach (a; _summ.battles) { mixin(S_TRACE);
-			add(null, a.name, a);
-		}
-		foreach (a; _summ.packages) { mixin(S_TRACE);
-			add(null, a.name, a);
+		if (_prop.var.etc.showAreaDirTree) { mixin(S_TRACE);
+			TreeItem[string] itmTable;
+			Tuple!(TreeItem, AbstractArea)[] creates;
+			void put(A)(A[] arr) { mixin (S_TRACE);
+				foreach (a; arr) { mixin (S_TRACE);
+					auto dirs = .split(a.dirName, "\\");
+					TreeItem itm = null;
+					foreach (i, dir; dirs) { mixin (S_TRACE);
+						auto fPath = dirs[0 .. i + 1].join("\\");
+						auto path = fPath.toLower();
+						auto p = path in itmTable;
+						if (p) { mixin (S_TRACE);
+							itm = *p;
+						} else { mixin (S_TRACE);
+							TreeItem sub;
+							if (itm) {
+								sub = new TreeItem(itm, SWT.NONE);
+							} else {
+								sub = new TreeItem(_range, SWT.NONE);
+							}
+							sub.setText(dir);
+							sub.setImage(_prop.images.areaDir);
+							sub.setChecked(true);
+							itm = sub;
+							itmTable[path] = sub;
+						}
+					}
+					creates ~= Tuple!(TreeItem, AbstractArea)(itm, a);
+				}
+			}
+			put(_summ.areas);
+			put(_summ.battles);
+			put(_summ.packages);
+			foreach (t; creates) {
+				auto itm = t[0];
+				auto a = t[1];
+				add(itm, .tryFormat("%s.%s", a.id, a.baseName), a);
+			}
+		} else { mixin(S_TRACE);
+			foreach (a; _summ.areas) add(null, a.name, a);
+			foreach (a; _summ.battles) add(null, a.name, a);
+			foreach (a; _summ.packages) add(null, a.name, a);
 		}
 		foreach (a; _summ.casts) { mixin(S_TRACE);
-			auto par = add(null, a.name, a);
+			auto par = add(null, .tryFormat("%s.%s", a.id, a.name), a);
 			foreach (c; a.skills) { mixin(S_TRACE);
 				if (0 != c.linkId) continue;
-				add(par, c.name, c);
+				add(par, .tryFormat("%s.%s", c.id, c.name), c);
 			}
 			foreach (c; a.items) { mixin(S_TRACE);
 				if (0 != c.linkId) continue;
-				add(par, c.name, c);
+				add(par, .tryFormat("%s.%s", c.id, c.name), c);
 			}
 			foreach (c; a.beasts) { mixin(S_TRACE);
 				if (0 != c.linkId) continue;
-				add(par, c.name, c);
+				add(par, .tryFormat("%s.%s", c.id, c.name), c);
 			}
-			par.setExpanded(true);
 		}
 		foreach (a; _summ.skills) { mixin(S_TRACE);
-			add(null, a.name, a);
+			add(null, .tryFormat("%s.%s", a.id, a.name), a);
 		}
 		foreach (a; _summ.items) { mixin(S_TRACE);
-			add(null, a.name, a);
+			add(null, .tryFormat("%s.%s", a.id, a.name), a);
 		}
 		foreach (a; _summ.beasts) { mixin(S_TRACE);
-			add(null, a.name, a);
+			add(null, .tryFormat("%s.%s", a.id, a.name), a);
 		}
 		foreach (a; _summ.infos) { mixin(S_TRACE);
-			add(null, a.name, a);
+			add(null, .tryFormat("%s.%s", a.id, a.name), a);
 		}
+		_range.treeExpandedAll();
 		_range.showSelection();
 		_comm.refreshToolBar();
 	}
@@ -1263,6 +1312,36 @@ private:
 	class RefRangeAllCheck : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			if (SWT.CHECK != e.detail) return;
+			auto par = (cast(TreeItem)e.item);
+			// アイテムが単なるコンテナであれば
+			// 下のアイテムの状態を一括で切り替える
+			if (par && !par.getData()) { mixin(S_TRACE);
+				void recurse(TreeItem itm) { mixin(S_TRACE);
+					itm.setChecked(par.getChecked());
+					foreach (child; itm.getItems()) recurse(child);
+				}
+				foreach (itm; par.getItems()) { mixin(S_TRACE);
+					recurse(itm);
+				}
+			}
+			// 上のアイテムが単なるコンテナであれば
+			// 下のアイテムの状態によってチェック状態を切り替える
+			while (par && par.getParentItem() && !par.getParentItem().getData()) { mixin(S_TRACE);
+				bool same = true;
+				void recurse2(TreeItem itm) { mixin(S_TRACE);
+					if (itm.getChecked() != par.getChecked()) { mixin(S_TRACE);
+						same = false;
+						return;
+					}
+					foreach (child; itm.getItems()) recurse2(child);
+				}
+				foreach (itm; par.getParentItem().getItems()) { mixin(S_TRACE);
+					recurse2(itm);
+				}
+				if (!same) break;
+				par.getParentItem().setChecked(par.getChecked());
+				par = par.getParentItem();
+			}
 			refreshRangeAllCheck();
 		}
 	}
@@ -1366,7 +1445,9 @@ public:
 	private void openRangePath() { mixin(S_TRACE);
 		auto sels = _range.getSelection();
 		if (!sels.length) return;
-		string path = (cast(CWXPath) sels[0].getData()).cwxPath(true);
+		auto data = cast(CWXPath)sels[0].getData();
+		if (!data) return;
+		string path = data.cwxPath(true);
 		path = cpaddattr(path, "shallow");
 		auto r = _comm.openCWXPath(path, false);
 		if (!r) { mixin(S_TRACE);
@@ -1475,7 +1556,7 @@ public:
 			_range.addKeyListener(openPath);
 			_range.addMouseListener(openPath);
 			auto menu = new Menu(_win, SWT.POP_UP);
-			createMenuItem(_comm, menu, MenuID.OpenAtView, &openRangePath, () => _range.getSelection().length > 0);
+			createMenuItem(_comm, menu, MenuID.OpenAtView, &openRangePath, () => _range.getSelection().length > 0 && cast(CWXPath)_range.getSelection()[0].getData());
 			_range.setMenu(menu);
 		}
 		{ mixin(S_TRACE);
@@ -1669,6 +1750,7 @@ public:
 		sash.addDisposeListener(new SashDispose);
 		sash.setWeights([_prop.var.etc.replaceRangeSashL, _prop.var.etc.replaceRangeSashR]);
 
+		_comm.refTableViewStyle.add(&refreshRangeTree);
 		_comm.refArea.add(&refArea);
 		_comm.refBattle.add(&refBattle);
 		_comm.refPackage.add(&refPackage);
@@ -1845,6 +1927,7 @@ public:
 			_prop.var.etc.searchUnusedStart = _unuseStart.getSelection();
 			_prop.var.etc.searchUnusedPath = _unusePath.getSelection();
 
+			_comm.refTableViewStyle.remove(&refreshRangeTree);
 			_comm.refArea.remove(&refArea);
 			_comm.refBattle.remove(&refBattle);
 			_comm.refPackage.remove(&refPackage);
@@ -2057,7 +2140,8 @@ public:
 	private CWXPath[] searchRange() { mixin(S_TRACE);
 		CWXPath[] r;
 		void recurse(TreeItem itm) { mixin(S_TRACE);
-			r ~= cast(CWXPath) itm.getData();
+			auto data = cast(CWXPath)itm.getData();
+			if (data) r ~= data;
 			foreach (child; itm.getItems()) { mixin(S_TRACE);
 				if (child.getChecked()) { mixin(S_TRACE);
 					recurse(child);
@@ -2164,7 +2248,8 @@ public:
 	private bool[CWXPath] rangeTable() { mixin(S_TRACE);
 		bool[CWXPath] range;
 		void recurse(TreeItem itm) { mixin(S_TRACE);
-			range[cast(CWXPath) itm.getData()] = itm.getChecked();
+			auto data = cast(CWXPath)itm.getData();
+			if (data) range[data] = itm.getChecked();
 			foreach (cItm; itm.getItems()) { mixin(S_TRACE);
 				recurse(cItm);
 			}
