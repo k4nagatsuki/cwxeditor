@@ -192,19 +192,14 @@ private:
 		protected Commons comm;
 		protected Summary summ;
 		protected bool one = true;
+		protected AbstractArea[] calls, delCalls;
 
 		private ulong[] _areaIDs;
 		private ulong[] _areaIDsB;
-		private ulong[AbstractArea] _areaOldIDs;
-		private ulong[ulong] _areaRefIDs;
 		private ulong[] _battleIDs;
 		private ulong[] _battleIDsB;
-		private ulong[AbstractArea] _battleOldIDs;
-		private ulong[ulong] _battleRefIDs;
 		private ulong[] _packageIDs;
 		private ulong[] _packageIDsB;
-		private ulong[AbstractArea] _packageOldIDs;
-		private ulong[ulong] _packageRefIDs;
 		private ulong _sel;
 		private TypeInfo _selType;
 		private ulong _selB;
@@ -238,56 +233,54 @@ private:
 			_selTypeB = _selType;
 			_dirsB = _dirs;
 			saveIDs(v);
-			storeID!toAreaId(summ.areas, _areaOldIDs, _areaRefIDs);
-			storeID!toBattleId(summ.battles, _battleOldIDs, _battleRefIDs);
-			storeID!toPackageId(summ.packages, _packageOldIDs, _packageRefIDs);
 			if (!one) return;
 			if (v && v._areas && !v._areas.isDisposed()) { mixin(S_TRACE);
 				.forceFocus(v._areas, false);
 			}
 			if (v._parent) v._parent.setRedraw(false);
 		}
-		private void storeID(alias ToID, A)(A[] arr, out ulong[AbstractArea] oldIDs, out ulong[ulong] refIDs) {
+		private void resetID(alias ToID, A)(AreaTable v, A[] arr, ulong[] ids) { mixin(S_TRACE);
+			ulong[] oldIDs;
 			foreach (i, a; arr) { mixin(S_TRACE);
 				auto oID = a.id;
 				a.id = ulong.max - arr.length + i;
 				summ.useCounter.change(ToID(oID), ToID(a.id));
-				oldIDs[a] = oID;
-				refIDs[oID] = a.id;
+				oldIDs ~= oID;
 			}
-		}
-		private void resetID(alias ToID, A)(AreaTable v, A[] arr, ulong[] ids, ulong[AbstractArea] oldIDs) { mixin(S_TRACE);
 			foreach (i, a; arr) { mixin(S_TRACE);
 				auto oID = a.id;
 				a.id = ids[i];
 				summ.useCounter.change(ToID(oID), ToID(a.id));
 			}
 			foreach (i, a; arr) { mixin(S_TRACE);
-				if (a.id != oldIDs.get(a, 0UL)) { mixin(S_TRACE);
-					static if (is(A : Area)) {
-						comm.refArea.call(v, a);
-					} else static if (is(A : Battle)) {
-						comm.refBattle.call(v, a);
-					} else static if (is(A : Package)) {
-						comm.refPackage.call(v, a);
-					} else static assert (0);
+				if (a.id != oldIDs[i] || calls.contains(a)) { mixin(S_TRACE);
+					staticCallRefArea(v, comm, a);
 				}
 			}
 		}
 		protected ulong uid(ulong id, TypeInfo type) { mixin(S_TRACE);
-			if (type is null) return id;
-			if (type is typeid(Area)) { mixin(S_TRACE);
-				return _areaRefIDs[id];
-			} else if (type is typeid(Battle)) { mixin(S_TRACE);
-				return _battleRefIDs[id];
-			} else if (type is typeid(Package)) { mixin(S_TRACE);
-				return _packageRefIDs[id];
-			} else assert (0);
+			return id;
 		}
 		protected void uda(AreaTable v) { mixin(S_TRACE);
-			resetID!toAreaId(v, summ.areas, _areaIDsB, _areaOldIDs);
-			resetID!toBattleId(v, summ.battles, _battleIDsB, _battleOldIDs);
-			resetID!toPackageId(v, summ.packages, _packageIDsB, _packageOldIDs);
+			resetID!toAreaId(v, summ.areas, _areaIDsB);
+			resetID!toBattleId(v, summ.battles, _battleIDsB);
+			resetID!toPackageId(v, summ.packages, _packageIDsB);
+			foreach (area; delCalls) {
+				auto a = cast(Area) area;
+				if (a) { mixin(S_TRACE);
+					comm.delArea.call(v, a);
+				}
+				auto b = cast(Battle) area;
+				if (b) { mixin(S_TRACE);
+					comm.delBattle.call(v, b);
+				}
+				auto p = cast(Package) area;
+				if (p) { mixin(S_TRACE);
+					comm.delPackage.call(v, p);
+				}
+			}
+			calls = [];
+			delCalls = [];
 			if (!one) return;
 			if (v) { mixin(S_TRACE);
 				v._dirs = _dirsB.dup;
@@ -427,18 +420,7 @@ private:
 					auto itm = v.getItemFrom(uid(_id, _type), _type);
 					if (itm) itm.setText(NAME, area.name);
 				}
-				auto a = cast(Area) area;
-				if (a) { mixin(S_TRACE);
-					comm.refArea.call(v, a);
-				}
-				auto b = cast(Battle) area;
-				if (b) { mixin(S_TRACE);
-					comm.refBattle.call(v, b);
-				}
-				auto p = cast(Package) area;
-				if (p) { mixin(S_TRACE);
-					comm.refPackage.call(v, p);
-				}
+				calls ~= area;
 			}
 			comm.refUseCount.call();
 		}
@@ -518,21 +500,17 @@ private:
 			auto a = cast(Area) area1;
 			if (a) { mixin(S_TRACE);
 				summ.swap!Area(toAreaIndex(summ, _index1), toAreaIndex(summ, _index2));
-				comm.refArea.call(cast(Area) area1);
-				comm.refArea.call(cast(Area) area2);
 			}
 			auto b = cast(Battle) area1;
 			if (b) { mixin(S_TRACE);
 				summ.swap!Battle(toBattleIndex(summ, _index1), toBattleIndex(summ, _index2));
-				comm.refBattle.call(cast(Battle) area1);
-				comm.refBattle.call(cast(Battle) area2);
 			}
 			auto p = cast(Package) area1;
 			if (p) { mixin(S_TRACE);
 				summ.swap!Package(toPackageIndex(summ, _index1), toPackageIndex(summ, _index2));
-				comm.refPackage.call(cast(Package) area1);
-				comm.refPackage.call(cast(Package) area2);
 			}
+			calls ~= area1;
+			calls ~= area2;
 			std.algorithm.swap(_index1, _index2);
 		}
 		override void undo() { mixin(S_TRACE);
@@ -602,19 +580,8 @@ private:
 				if (itm) itm.dispose();
 			}
 			auto area = areaFromInfo(summ, uid(_id, _type), _type);
+			delCalls ~= area;
 			summ.remove(area);
-			auto a = cast(Area) area;
-			if (a) { mixin(S_TRACE);
-				comm.delArea.call(v, a);
-			}
-			auto b = cast(Battle) area;
-			if (b) { mixin(S_TRACE);
-				comm.delBattle.call(v, b);
-			}
-			auto p = cast(Package) area;
-			if (p) { mixin(S_TRACE);
-				comm.delPackage.call(v, p);
-			}
 			comm.refUseCount.call();
 		}
 		void undoDelete() { mixin(S_TRACE);
@@ -625,6 +592,7 @@ private:
 			_insert = true;
 			_area.removeUseCounter();
 			auto a = cast(Area) _area;
+			calls ~= _area;
 			if (a) { mixin(S_TRACE);
 				summ.insert(_delIndex, a);
 				if (v && v._areas && !v._areas.isDisposed()) v.refreshAreas();
@@ -632,21 +600,18 @@ private:
 					summ.startArea = a.id;
 					_isStartArea = false;
 				}
-				comm.refArea.call(v, a);
 				return;
 			}
 			auto b = cast(Battle) _area;
 			if (b) { mixin(S_TRACE);
 				summ.insert(_delIndex, b);
 				if (v && v._areas && !v._areas.isDisposed()) v.refreshAreas();
-				comm.refBattle.call(v, b);
 				return;
 			}
 			auto p = cast(Package) _area;
 			if (p) { mixin(S_TRACE);
 				summ.insert(_delIndex, p);
 				if (v && v._areas && !v._areas.isDisposed()) v.refreshAreas();
-				comm.refPackage.call(v, p);
 				return;
 			}
 			assert (0);
@@ -690,7 +655,7 @@ private:
 			void put(AbstractArea area) { mixin(S_TRACE);
 				if (area.dirName == _newPath) { mixin(S_TRACE);
 					area.dirName = _oldPath;
-					staticCallRefArea(v, comm, area);
+					calls ~= area;
 				}
 			}
 			foreach (a; summ.areas) put(a);

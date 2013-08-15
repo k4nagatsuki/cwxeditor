@@ -371,7 +371,7 @@ public:
 		escape = escStr ? parseBool(escStr) : false;
 		node.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 			pNode.onTag["Id"] = (ref XNode n) { mixin(S_TRACE);
-				id = to!(long)(n.value);
+				id = to!(ulong)(n.value);
 				getId = true;
 			};
 			loadProp(pNode, flag, x, y, scale);
@@ -766,7 +766,7 @@ public:
 		aNode.parse();
 		if (idStr is null) throw new AreaException("Id not found");
 		if (name is null) throw new AreaException("Name not found");
-		id = to!(long)(idStr);
+		id = to!(ulong)(idStr);
 	}
 }
 

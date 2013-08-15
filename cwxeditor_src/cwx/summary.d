@@ -1157,7 +1157,9 @@ public:
 				}
 			}
 			ulong oldId = c.id;
-			c.id(index == 0 ? 1L : arr[index - 1].id() + 1L);
+			if ((0 < index && c.id <= arr[index - 1].id) || (index < arr.length && arr[index].id <= c.id)) {
+				c.id = index == 0 ? 1L : arr[index - 1].id() + 1L;
+			}
 			arr = arr[0 .. index] ~ c ~ arr[index .. $];
 			ulong chg[ulong];
 			for (size_t i = index + 1; i < arr.length; i++) { mixin(S_TRACE);

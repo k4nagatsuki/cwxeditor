@@ -277,7 +277,7 @@ public:
 		pNode.parse();
 		if (!idStr) throw new CardException("Id not found");
 		if (!_name) _name = "";
-		_id = to!(long)(idStr);
+		_id = to!(ulong)(idStr);
 	}
 
 	const
