@@ -261,7 +261,7 @@ public:
 		r.round = round;
 		r.maxNest = maxNest;
 		if (_beast) { mixin(S_TRACE);
-			r.beast = _beast.dup;
+			r.newBeast = _beast.dup;
 		}
 		return r;
 	}
