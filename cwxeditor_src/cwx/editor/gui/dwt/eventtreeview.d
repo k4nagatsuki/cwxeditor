@@ -3558,13 +3558,17 @@ public:
 			int insertIndex = owner.next.countUntil(c);
 			owner.remove(c);
 			auto lastNextType = fromCNextType(c.detail.nextType);
-			foreach (i, next; c.next) { mixin(S_TRACE);
+			foreach (i, next; c.next.dup) { mixin(S_TRACE);
+				c.remove(next);
 				if (_prop.var.etc.adjustContentName) { mixin(S_TRACE);
-					if (c.next.length == 1 && lastNextType == fromCNextType(next.detail.nextType)) { mixin(S_TRACE);
+					if (i == 0 && lastNextType != fromCNextType(owner.detail.nextType)) { mixin(S_TRACE);
 						next.setName(_prop.parent, c.name);
+					} else { mixin(S_TRACE);
+						adjustText(owner, next, lastNextType);
 					}
+				} else { mixin(S_TRACE);
+					adjustText(owner, next, lastNextType);
 				}
-				adjustText(owner, next, lastNextType);
 				owner.insert(_prop.parent, insertIndex + i, next);
 			}
 			createChilds(ownerItm, owner);
