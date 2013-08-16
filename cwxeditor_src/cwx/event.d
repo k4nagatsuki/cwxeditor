@@ -2103,8 +2103,11 @@ public:
 		copy.enter = fireEnter;
 		copy.escape = fireEscape;
 		copy.lose = fireLose;
+		copy.everyRound = fireEveryRound;
+		copy.round0 = fireRound0;
 		copy.rounds = rounds.dup;
 		copy.keyCodes = keyCodes;
+		copy.keyCodeMatchingType = keyCodeMatchingType;
 		foreach (s; starts) { mixin(S_TRACE);
 			copy.add(s.dup);
 		}
@@ -2118,8 +2121,11 @@ public:
 		return fireEnter == c.fireEnter
 			&& fireEscape == c.fireEscape
 			&& fireLose == c.fireLose
+			&& fireEveryRound == c.fireEveryRound
+			&& fireRound0 == c.fireRound0
 			&& rounds == c.rounds
 			&& keyCodes == c.keyCodes
+			&& keyCodeMatchingType == c.keyCodeMatchingType
 			&& starts == c.starts;
 	}
 
@@ -2834,6 +2840,14 @@ public:
 		const(CWXPath)[] r;
 		r ~= cast(const CWXPath[]) trees;
 		return r;
+	}
+
+	/// ownerのイベントツリーをコピーしてこのインスタンスに上書きする。
+	protected void deepCopyEventTreeOwner(in EventTreeOwner owner) { mixin(S_TRACE);
+		while (trees.length) removeEvent(0);
+		EventTree[] evts;
+		foreach (tree; owner.trees) evts ~= tree.dup;
+		addAll(evts);
 	}
 
 	/// 使用回数カウンタ。

@@ -138,6 +138,7 @@ private class LSFFThr(bool Array) {
 					}
 					loaded(r);
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 					MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
 					static if (Array) {
@@ -223,6 +224,8 @@ private class LSFFThr(bool Array) {
 				temp = r.useTemp ? r.scenarioPath : "";
 				display.syncExec(new Load(r));
 			} catch (SummaryException e) {
+				printStackTrace();
+				debugln(e);
 				display.syncExec(new SError(e));
 			}
 		}
@@ -402,6 +405,8 @@ private Summary loadScenarioFromFileImpl(Props prop, in LoadOption opt, Shell w,
 				prop.tempPath, null, old, setMax, worked,
 				isDir(fname) ? baseName(fname) : baseName(dirName(fname)));
 		} catch (SummaryException e) {
+			printStackTrace();
+			debugln(e);
 			status(.tryFormat(prop.msgs.loadErrorStatus, fname));
 			if (failure) failure();
 		}

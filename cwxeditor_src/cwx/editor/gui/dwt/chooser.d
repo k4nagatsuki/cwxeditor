@@ -30,11 +30,11 @@ enum CouponComboType {
 	Talker, /// 話者用のクーポンを選択肢とする。
 	Cast, /// キャストの経歴用のクーポンを選択肢とする。
 }
-T createCouponCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod, CouponComboType type) { mixin(S_TRACE);
+T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, CouponComboType type) { mixin(S_TRACE);
 	TextMenuModify tmm;
-	return createCouponCombo!T(comm, parent, catchMod, type, tmm);
+	return createCouponCombo!T(comm, summ, parent, catchMod, type, tmm);
 }
-T createCouponCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod, CouponComboType type, out TextMenuModify tmm) { mixin(S_TRACE);
+T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, CouponComboType type, out TextMenuModify tmm) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	auto incSearch = new IncSearch(comm, combo);
@@ -50,7 +50,7 @@ T createCouponCombo(T = Combo)(Commons comm, Composite parent, bool delegate() c
 
 		string[] dcs;
 		if (comm.prop.var.etc.usedCouponToCombo) { mixin(S_TRACE);
-			foreach (coupon; comm.summary.useCounter.coupon.keys.sort) { mixin(S_TRACE);
+			foreach (coupon; summ.useCounter.coupon.keys.sort) { mixin(S_TRACE);
 				if (!.contains(cs, coupon.id)) dcs ~= coupon;
 			}
 		}
@@ -94,7 +94,7 @@ T createCouponCombo(T = Combo)(Commons comm, Composite parent, bool delegate() c
 	return combo;
 }
 
-T createGossipCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
+T createGossipCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	auto incSearch = new IncSearch(comm, combo);
@@ -103,7 +103,7 @@ T createGossipCombo(T = Combo)(Commons comm, Composite parent, bool delegate() c
 		string id = combo.getText();
 		combo.removeAll();
 
-		foreach (gossip; comm.summary.useCounter.gossip.keys.sort) { mixin(S_TRACE);
+		foreach (gossip; summ.useCounter.gossip.keys.sort) { mixin(S_TRACE);
 			if (!incSearch.match(gossip)) continue;
 			combo.add(gossip);
 		}
@@ -130,7 +130,7 @@ T createGossipCombo(T = Combo)(Commons comm, Composite parent, bool delegate() c
 	return combo;
 }
 
-T createCompleteStampCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
+T createCompleteStampCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	auto incSearch = new IncSearch(comm, combo);
@@ -139,7 +139,7 @@ T createCompleteStampCombo(T = Combo)(Commons comm, Composite parent, bool deleg
 		string id = combo.getText();
 		combo.removeAll();
 
-		foreach (stamp; comm.summary.useCounter.completeStamp.keys.sort) { mixin(S_TRACE);
+		foreach (stamp; summ.useCounter.completeStamp.keys.sort) { mixin(S_TRACE);
 			if (!incSearch.match(stamp)) continue;
 			combo.add(stamp);
 		}
@@ -166,7 +166,7 @@ T createCompleteStampCombo(T = Combo)(Commons comm, Composite parent, bool deleg
 	return combo;
 }
 
-T createKeyCodeCombo(T = Combo)(Commons comm, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
+T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	auto incSearch = new IncSearch(comm, combo);
@@ -177,7 +177,7 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Composite parent, bool delegate() 
 
 		string[] stdKCs = comm.prop.var.etc.standardKeyCodes.dup;
 
-		auto kcs = comm.summary.useCounter.keyCode.keys;
+		auto kcs = summ.useCounter.keyCode.keys;
 		string[] kcs2;
 		foreach (string kc; kcs.sort) { mixin(S_TRACE);
 			if (!.contains(stdKCs, kc)) { mixin(S_TRACE);
@@ -534,11 +534,11 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		layout();
 	}
 
-	this (Commons comm, Composite parent, bool saveExpanded = true) { mixin(S_TRACE);
+	this (Commons comm, Summary summ, Composite parent, bool saveExpanded = true) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 		_comm = comm;
 		_prop = comm.prop;
-		_summ = comm.summary;
+		_summ = summ;
 		_saveExpanded = saveExpanded;
 		setLayout(zeroMarginGridLayout(1, true));
 		_flagIncSearch = new IncSearch(_comm, this);
@@ -854,11 +854,11 @@ class AreaChooser(A, bool StartArea) : Composite {
 		layout();
 	}
 
-	this (Commons comm, Composite parent) { mixin(S_TRACE);
+	this (Commons comm, Summary summ, Composite parent) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 		_comm = comm;
 		_prop = comm.prop;
-		_summ = comm.summary;
+		_summ = summ;
 		setLayout(zeroMarginGridLayout(1, true));
 		_areaIncSearch = new IncSearch(_comm, this);
 		_areaIncSearch.modEvent ~= &refreshAreas;

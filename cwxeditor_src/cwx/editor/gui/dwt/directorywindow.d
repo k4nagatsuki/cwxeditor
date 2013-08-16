@@ -285,7 +285,7 @@ private:
 			}
 			if (nTopItm) _dirs.setTopItem(nTopItm);
 			void expst(TreeItem itm) { mixin(S_TRACE);
-				if ((cast(FileNameObj) itm.getData()).array in expands) { mixin(S_TRACE);
+				if (expands.get((cast(FileNameObj)itm.getData()).array, true)) { mixin(S_TRACE);
 					itm.setExpanded(true);
 				}
 				foreach (sub; itm.getItems()) { mixin(S_TRACE);

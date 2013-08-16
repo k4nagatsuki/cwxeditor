@@ -204,6 +204,12 @@ class Msgs : Properties {
 	auto replIDItem = Msg("replIDItem", "アイテムカード");
 	auto replIDBeast = Msg("replIDBeast", "召喚獣カード");
 	auto replIDInfo = Msg("replIDInfo", "情報カード");
+	auto replIDFlag = Msg("replIDFlag", "フラグ");
+	auto replIDStep = Msg("replIDStep", "ステップ");
+	auto replIDCoupon = Msg("replIDCoupon", "クーポン");
+	auto replIDGossip = Msg("replIDGossip", "ゴシップ");
+	auto replIDCompleteStamp = Msg("replIDCompleteStamp", "終了印");
+	auto replIDKeyCode = Msg("replIDKeyCode", "キーコード");
 	auto replSetID = Msg("replSetID", "[IDを直接指定]");
 
 	auto replPath = Msg("replPath", "検索/置換する素材");

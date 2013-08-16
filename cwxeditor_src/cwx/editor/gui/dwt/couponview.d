@@ -13,6 +13,7 @@ import cwx.path;
 import cwx.menu;
 import cwx.types;
 import cwx.system;
+import cwx.summary;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -56,6 +57,7 @@ class CouponView(CVType Type) : Composite {
 	private int _readOnly = 0;
 	private Commons _comm;
 	private Props _prop;
+	private Summary _summ;
 	private KeyDownFilter _kdFilter;
 
 	private UndoManager _undoCoupons;
@@ -403,13 +405,14 @@ class CouponView(CVType Type) : Composite {
 	private class HTBKeyDown : Listener {
 		override void handleEvent(Event e) {e.doit = true;}
 	}
-	this (Commons comm, Composite parent, int style, bool delegate() catchMod) { mixin(S_TRACE);
+	this (Commons comm, Summary summ, Composite parent, int style, bool delegate() catchMod) { mixin(S_TRACE);
 		super (parent, style);
 
 		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
 
 		_readOnly = style & SWT.READ_ONLY;
 		_comm = comm;
+		_summ = summ;
 		_prop = comm.prop;
 		_undoCoupons = new UndoManager(_prop.var.etc.undoMaxEtc);
 		this.setLayout(new GridLayout(3, false));
@@ -459,10 +462,10 @@ class CouponView(CVType Type) : Composite {
 		}
 		{ mixin(S_TRACE);
 			static if (CVType.Cast == Type) {
-				_newCoupon = createCouponCombo!Combo(_comm, this, catchMod, CouponComboType.Cast, _newCouponTM);
+				_newCoupon = createCouponCombo!Combo(_comm, _summ, this, catchMod, CouponComboType.Cast, _newCouponTM);
 				.listener(_newCoupon, SWT.Modify, &updateCouponType);
 			} else { mixin(S_TRACE);
-				_newCoupon = createCouponCombo!Combo(_comm, this, catchMod, CouponComboType.Talker, _newCouponTM);
+				_newCoupon = createCouponCombo!Combo(_comm, _summ, this, catchMod, CouponComboType.Talker, _newCouponTM);
 				.listener(_newCoupon, SWT.Modify, &updateCouponType);
 			}
 			_newCoupon.setEnabled(!_readOnly);

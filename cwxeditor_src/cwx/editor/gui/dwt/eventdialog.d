@@ -209,7 +209,7 @@ public:
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(new GridLayout(1, false));
-		_list = new AreaChooser!(A, false)(comm, area);
+		_list = new AreaChooser!(A, false)(comm, summ, area);
 		mod(_list);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = _prop.var.etc.nameTableWidth;
@@ -569,7 +569,7 @@ protected:
 				auto comp = new Composite(grp, SWT.NONE);
 				comp.setLayout(new GridLayout(3, false));
 				{ mixin(S_TRACE);
-					_name = createCouponCombo(comm, comp, &catchMod, CouponComboType.AllCoupons);
+					_name = createCouponCombo(comm, summ, comp, &catchMod, CouponComboType.AllCoupons);
 					mod(_name);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
@@ -684,9 +684,9 @@ protected:
 			comp.setLayout(new GridLayout(1, true));
 
 			if (CDetail.fromType(Type).use(CArg.GOSSIP)) { mixin(S_TRACE);
-				_name = createGossipCombo(comm, comp, &catchMod);
+				_name = createGossipCombo(comm, summ, comp, &catchMod);
 			} else if (CDetail.fromType(Type).use(CArg.COMPLETE_STAMP)) { mixin(S_TRACE);
-				_name = createCompleteStampCombo(comm, comp, &catchMod);
+				_name = createCompleteStampCombo(comm, summ, comp, &catchMod);
 			} else assert (0);
 			mod(_name);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -1364,7 +1364,7 @@ protected:
 			l2.setLayoutData(gd);
 		}
 		{ mixin(S_TRACE);
-			_flags = new FlagChooser!(F, false, false)(comm, left);
+			_flags = new FlagChooser!(F, false, false)(comm, summ, left);
 			mod(_flags);
 			_flags.modEvent ~= &selectedFlag;
 			_flags.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1542,9 +1542,9 @@ protected:
 				static assert (0);
 			}
 		}
-		_flags1 = new FlagChooser!(F, false, Random)(comm, left);
+		_flags1 = new FlagChooser!(F, false, Random)(comm, summ, left);
 		_flags1.setLayoutData(new GridData(GridData.FILL_BOTH));
-		_flags2 = new FlagChooser!(F, false, false)(comm, right, false);
+		_flags2 = new FlagChooser!(F, false, false)(comm, summ, right, false);
 		_flags2.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		_comm.delFlagAndStep.add(&delFS);
@@ -2499,7 +2499,7 @@ protected:
 			grp.setLayoutData(gd);
 			grp.setLayout(new GridLayout(1, true));
 
-			_keyCode = createKeyCodeCombo(comm, grp, &catchMod);
+			_keyCode = createKeyCodeCombo(comm, summ, grp, &catchMod);
 			mod(_keyCode);
 			auto kgd = new GridData(GridData.FILL_HORIZONTAL);
 			kgd.widthHint = _prop.var.etc.nameWidth;

@@ -552,21 +552,7 @@ private:
 			auto area = areaFromInfo(summ, uid(_id, _type), _type);
 			_delIndex = toIndexFrom(summ, uid(_id, _type), _type);
 			_isStartArea = cast(Area) area && summ.startArea == area.id;
-			auto node = area.toNode(new XMLOption(comm.prop.sys));
-			auto ver = new XMLInfo(comm.prop.sys, LATEST_VERSION);
-			auto a = cast(Area) area;
-			if (a) { mixin(S_TRACE);
-				_area = Area.createFromNode(node, ver);
-			}
-			auto b = cast(Battle) area;
-			if (b) { mixin(S_TRACE);
-				_area = Battle.createFromNode(node, ver);
-			}
-			auto p = cast(Package) area;
-			if (p) { mixin(S_TRACE);
-				_area = Package.createFromNode(node, ver);
-			}
-			assert (_area);
+			_area = area.dup;
 			_area.setUseCounter(summ.useCounter.sub);
 		}
 		private void undoInsert() { mixin(S_TRACE);

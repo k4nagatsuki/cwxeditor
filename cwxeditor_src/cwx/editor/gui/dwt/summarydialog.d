@@ -327,7 +327,7 @@ private:
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setText(_prop.msgs.startArea);
 				grp.setLayout(new GridLayout(1, false));
-				_startArea = new AreaChooser!(Area, true)(_comm, grp);
+				_startArea = new AreaChooser!(Area, true)(_comm, _summ, grp);
 				mod(_startArea);
 				setCDataXY(_startArea, new GridData(GridData.FILL_BOTH));
 

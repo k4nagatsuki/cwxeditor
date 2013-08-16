@@ -33,8 +33,14 @@ public:
 	const
 	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto b = cast(ImageCell) o;
-		return b && mask == b.mask && path == b.path
-			&& x == b.x && y == b.y && width == b.width && height == b.height;
+		return b
+			&& path == b.path
+			&& flag == b.flag
+			&& x == b.x
+			&& y == b.y
+			&& width == b.width
+			&& height == b.height
+			&& mask == b.mask;
 	}
 
 	/// 空のインスタンスを生成する。
@@ -512,7 +518,13 @@ public:
 			&& blendMode == b.blendMode
 			&& gradientDir == b.gradientDir
 			&& color1 == b.color1
-			&& color2 == b.color2;
+			&& color2 == b.color2
+			&& flag == b.flag
+			&& x == b.x
+			&& y == b.y
+			&& width == b.width
+			&& height == b.height
+			&& mask == b.mask;
 	}
 
 	@property

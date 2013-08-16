@@ -102,6 +102,11 @@ public:
 	const
 	const(AbstractArea) abstractOwner();
 
+	/// ディープコピーを返す。
+	@property
+	const
+	AbstractSpCard dup();
+
 	@property
 	const
 	override bool canHasFireLose() {return false;}
@@ -244,6 +249,15 @@ public:
 	}
 	@property
 	CWXPath cwxParent() {return _owner;}
+
+	@property
+	const
+	override
+	AbstractSpCard dup() {
+		auto r = new EnemyCard(id, escape, flag, x, y, scale);
+		r.deepCopyEventTreeOwner(this);
+		return r;
+	}
 
 	@property
 	override size_t[] areaPath() { mixin(S_TRACE);
@@ -428,6 +442,16 @@ public:
 	}
 	@property
 	CWXPath cwxParent() {return _owner;}
+
+	@property
+	const
+	override
+	AbstractSpCard dup() {
+		auto r = new MenuCard(name, path, desc, flag, x, y, scale);
+		r.pcNumber = pcNumber;
+		r.deepCopyEventTreeOwner(this);
+		return r;
+	}
 
 	@property
 	override size_t[] areaPath() { mixin(S_TRACE);
@@ -631,6 +655,12 @@ public:
 		_id = id;
 		_name = name;
 	}
+
+	/// ディープコピーを返す。
+	@property
+	const
+	abstract AbstractArea dup();
+
 	/// エリアID。
 	@property
 	const
@@ -796,6 +826,18 @@ public:
 			c.changeHandler = change;
 		}
 		super.changeHandler = change;
+	}
+
+	@property
+	const
+	override
+	AbstractArea dup() { mixin(S_TRACE);
+		auto r = new Area(id, name);
+		r.spAuto = spAuto;
+		foreach (c; cards) r.append(cast(MenuCard)c.dup);
+		foreach (b; backs) r.append(b.dup);
+		r.deepCopyEventTreeOwner(this);
+		return r;
 	}
 
 	@property
@@ -1170,6 +1212,16 @@ public:
 	this (ulong id, string name) { mixin(S_TRACE);
 		super (id, name);
 	}
+
+	@property
+	const
+	override
+	AbstractArea dup() { mixin(S_TRACE);
+		auto r = new Package(id, name);
+		r.deepCopyEventTreeOwner(this);
+		return r;
+	}
+
 	@property
 	const
 	override bool canHasFireEnter() {return false;}
@@ -1295,6 +1347,18 @@ public:
 		}
 		super.changeHandler = change;
 	}
+
+	@property
+	const
+	override
+	AbstractArea dup() { mixin(S_TRACE);
+		auto r = new Battle(id, name, music);
+		r.spAuto = spAuto;
+		foreach (c; cards) r.append(cast(EnemyCard)c.dup);
+		r.deepCopyEventTreeOwner(this);
+		return r;
+	}
+
 	@property
 	const
 	override bool canHasFireLose() {return true;}
@@ -1373,6 +1437,12 @@ public:
 	/// エネミーカード群。
 	@property
 	EnemyCard[] cards() { mixin(S_TRACE);
+		return _cards;
+	}
+	/// ditto
+	@property
+	const
+	const(EnemyCard)[] cards() { mixin(S_TRACE);
 		return _cards;
 	}
 

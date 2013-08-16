@@ -799,7 +799,7 @@ protected:
 			_initValue.setSelection(1);
 			_initValue.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			.listener(_initValue, SWT.Selection, &updateValue);
-			_couponView = new CouponView!(CVType.Valued)(comm, grp, SWT.NONE, &catchMod);
+			_couponView = new CouponView!(CVType.Valued)(comm, summ, grp, SWT.NONE, &catchMod);
 			mod(_couponView);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.horizontalSpan = 2;
@@ -1144,7 +1144,7 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 		string[] coupons, out Text couponList, out Combo couponCombo) { mixin(S_TRACE);
 	auto comp = new Composite(parent, SWT.NONE);
 	comp.setLayout(zeroMarginGridLayout(2, false));
-	couponCombo = createCouponCombo(comm, comp, null, CouponComboType.Talker);
+	couponCombo = createCouponCombo(comm, summ, comp, null, CouponComboType.Talker);
 	auto push = new Button(comp, SWT.PUSH);
 	auto skin = comm.skin;
 	{ mixin(S_TRACE);

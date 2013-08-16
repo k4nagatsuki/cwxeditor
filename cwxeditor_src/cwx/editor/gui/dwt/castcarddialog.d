@@ -365,7 +365,7 @@ private:
 			grp.setText(_prop.msgs.coupons);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new GridLayout(1, true));
-			_couponView = new CouponView!(CVType.Cast)(_comm, grp, _readOnly, &catchMod);
+			_couponView = new CouponView!(CVType.Cast)(_comm, _summ, grp, _readOnly, &catchMod);
 			_couponView.setLayoutData(new GridData(GridData.FILL_BOTH));
 			mod(_couponView);
 		}

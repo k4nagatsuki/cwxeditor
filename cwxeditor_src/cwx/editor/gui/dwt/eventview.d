@@ -1597,7 +1597,7 @@ public:
 		setFireControl(c);
 	}
 	private void createKCCombo() { mixin(S_TRACE);
-		auto combo = createKeyCodeCombo!CCombo(_comm, _toolbar, null);
+		auto combo = createKeyCodeCombo!CCombo(_comm, _summ, _toolbar, null);
 		combo.setEnabled(!_readOnly);
 		setFireControl(combo);
 		if (combo.getItemCount()) { mixin(S_TRACE);

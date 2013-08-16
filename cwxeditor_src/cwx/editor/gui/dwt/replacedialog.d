@@ -188,9 +188,11 @@ private:
 	Combo _to;
 	Combo _idKind;
 	Combo _fromID;
+	Composite _fromIDComp;
 	Spinner _fromIDVal;
 	ulong[int] _fromIDTbl;
 	Combo _toID;
+	Composite _toIDComp;
 	Spinner _toIDVal;
 	ulong[int] _toIDTbl;
 	Combo _fromPath;
@@ -435,28 +437,85 @@ private:
 	static const ID_ITEM = 5;
 	static const ID_BEAST = 6;
 	static const ID_INFO = 7;
-	private void setupIDsImpl2(T)(T[] arr, Combo combo, Spinner spn, ref ulong[int] tbl) { mixin(S_TRACE);
+	static const ID_FLAG = 8;
+	static const ID_STEP = 9;
+	static const ID_COUPON = 10;
+	static const ID_GOSSIP = 11;
+	static const ID_COMPLETE_STAMP = 12;
+	static const ID_KEY_CODE = 13;
+	private void setupIDsImpl2(T)(T[] arr, Combo combo, Spinner spn, ref ulong[int] tbl, bool clear) { mixin(S_TRACE);
 		ulong[int] tbl2;
-		string oldSel = combo.getText();
+		string oldSel = clear ? "" : combo.getText();
 		combo.removeAll();
-		combo.add(_prop.msgs.replSetID);
-		foreach (i, a; arr) { mixin(S_TRACE);
-			combo.add(to!(string)(a.id) ~ "." ~ a.name);
-			tbl2[i + 1] = a.id;
+		static if (is(T:Flag) || is(T:Step)) {
+			auto set = new HashSet!string;
+			if (_summ) { mixin(S_TRACE);
+				static if (is(T:Flag)) {
+					foreach (key; _summ.useCounter.flag.keys) { mixin(S_TRACE);
+						if (_prop.sys.randomValue == cast(string)key) continue;
+						set.add(cast(string)key);
+					}
+				} else static if (is(T:Step)) {
+					foreach (key; _summ.useCounter.step.keys) { mixin(S_TRACE);
+						if (_prop.sys.randomValue == cast(string)key) continue;
+						set.add(cast(string)key);
+					}
+				} else static assert (0);
+			}
+			foreach (i, a; arr) { mixin(S_TRACE);
+				auto p = a.path;
+				combo.add(p);
+				set.remove(p);
+			}
+			bool delegate(string a, string b) cmps;
+			if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
+				cmps = (a, b) => incmp(a, b) < 0;
+			} else { mixin(S_TRACE);
+				cmps = (a, b) => icmp(a, b) < 0;
+			}
+			foreach (p; .sortDlg(set.array(), cmps)) { mixin(S_TRACE);
+				combo.add(p);
+			}
+			combo.setText(oldSel);
+			if (combo.getText() == "" && combo.getItemCount()) { mixin(S_TRACE);
+				combo.select(0);
+			}
+			spn.setEnabled(false);
+		} else static if (is(T:CouponId) || is(T:GossipId) || is(T:CompleteStampId) || is(T:KeyCodeId)) {
+			bool delegate(T a, T b) cmps;
+			if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
+				cmps = (a, b) => incmp(cast(string)a, cast(string)b) < 0;
+			} else { mixin(S_TRACE);
+				cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
+			}
+			foreach (key; .sortDlg(arr, cmps)) {
+				combo.add(cast(string)key);
+			}
+			combo.setText(oldSel);
+			if (combo.getText() == "" && combo.getItemCount()) { mixin(S_TRACE);
+				combo.select(0);
+			}
+			spn.setEnabled(false);
+		} else {
+			combo.add(_prop.msgs.replSetID);
+			foreach (i, a; arr) { mixin(S_TRACE);
+				combo.add(to!(string)(a.id) ~ "." ~ a.name);
+				tbl2[i + 1] = a.id;
+			}
+			combo.select(arr.length ? 1 : 0);
+			if (oldSel) { mixin(S_TRACE);
+				auto i = combo.indexOf(oldSel);
+				if (i >= 0) combo.select(i);
+			}
+			spn.setEnabled(combo.getSelectionIndex() == 0);
 		}
-		combo.select(arr.length ? 1 : 0);
-		if (oldSel) { mixin(S_TRACE);
-			auto i = combo.indexOf(oldSel);
-			if (i >= 0) combo.select(i);
-		}
-		spn.setEnabled(combo.getSelectionIndex() == 0);
 		tbl = tbl2;
 	}
-	private void setupIDsImpl1(T)(T[] arr) { mixin(S_TRACE);
-		setupIDsImpl2(arr, _fromID, _fromIDVal, _fromIDTbl);
-		setupIDsImpl2(arr, _toID, _toIDVal, _toIDTbl);
+	private void setupIDsImpl1(T)(T[] arr, bool clear) { mixin(S_TRACE);
+		setupIDsImpl2(arr, _fromID, _fromIDVal, _fromIDTbl, clear);
+		setupIDsImpl2(arr, _toID, _toIDVal, _toIDTbl, clear);
 	}
-	private void setupIDs() { mixin(S_TRACE);
+	private void setupIDs(bool clear) { mixin(S_TRACE);
 		if (!_summ) { mixin(S_TRACE);
 			_fromID.removeAll();
 			_fromID.setEnabled(false);
@@ -469,14 +528,20 @@ private:
 		_fromID.setEnabled(true);
 		_toID.setEnabled(true);
 		switch (_idKind.getSelectionIndex()) {
-		case ID_AREA: setupIDsImpl1(_summ.areas); break;
-		case ID_BATTLE: setupIDsImpl1(_summ.battles); break;
-		case ID_PACKAGE: setupIDsImpl1(_summ.packages); break;
-		case ID_CAST: setupIDsImpl1(_summ.casts); break;
-		case ID_SKILL: setupIDsImpl1(_summ.skills); break;
-		case ID_ITEM: setupIDsImpl1(_summ.items); break;
-		case ID_BEAST: setupIDsImpl1(_summ.beasts); break;
-		case ID_INFO: setupIDsImpl1(_summ.infos); break;
+		case ID_AREA: setupIDsImpl1(_summ.areas, clear); break;
+		case ID_BATTLE: setupIDsImpl1(_summ.battles, clear); break;
+		case ID_PACKAGE: setupIDsImpl1(_summ.packages, clear); break;
+		case ID_CAST: setupIDsImpl1(_summ.casts, clear); break;
+		case ID_SKILL: setupIDsImpl1(_summ.skills, clear); break;
+		case ID_ITEM: setupIDsImpl1(_summ.items, clear); break;
+		case ID_BEAST: setupIDsImpl1(_summ.beasts, clear); break;
+		case ID_INFO: setupIDsImpl1(_summ.infos, clear); break;
+		case ID_FLAG: setupIDsImpl1(_summ.flagDirRoot.allFlags, clear); break;
+		case ID_STEP: setupIDsImpl1(_summ.flagDirRoot.allSteps, clear); break;
+		case ID_COUPON: setupIDsImpl1(_summ.useCounter.coupon.keys, clear); break;
+		case ID_GOSSIP: setupIDsImpl1(_summ.useCounter.gossip.keys, clear); break;
+		case ID_COMPLETE_STAMP: setupIDsImpl1(_summ.useCounter.completeStamp.keys, clear); break;
+		case ID_KEY_CODE: setupIDsImpl1(_summ.useCounter.keyCode.keys, clear); break;
 		default: assert (0);
 		}
 	}
@@ -500,7 +565,7 @@ private:
 	}
 	class SListener : ShellAdapter {
 		override void shellActivated(ShellEvent e) { mixin(S_TRACE);
-			setupIDs();
+			setupIDs(false);
 			setupPaths();
 			_comm.refreshToolBar();
 		}
@@ -516,10 +581,43 @@ private:
 	}
 	class SelIDKind : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			setupIDs();
+			updateIDCombo();
+			setupIDs(true);
 			_prop.var.etc.searchIDKind = _idKind.getSelectionIndex();
 			_comm.refreshToolBar();
 		}
+	}
+	@property
+	private bool idKindIsString() {
+		auto index = _idKind.getSelectionIndex();
+		return index == ID_FLAG || index == ID_STEP || index == ID_COUPON || index == ID_GOSSIP || index == ID_COMPLETE_STAMP || index == ID_KEY_CODE;
+	}
+	private void updateIDCombo() { mixin(S_TRACE);
+		if (idKindIsString) { mixin(S_TRACE);
+			if (_fromID && !(_fromID.getStyle() & SWT.READ_ONLY)) return;
+			if (_fromID) { mixin(S_TRACE);
+				_fromID.dispose();
+				_toID.dispose();
+			}
+			_fromID = new Combo(_fromIDComp, SWT.BORDER | SWT.DROP_DOWN);
+			_fromID.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+			_toID = new Combo(_toIDComp, SWT.BORDER | SWT.DROP_DOWN);
+			_toID.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+		} else { mixin(S_TRACE);
+			if (_fromID && (_fromID.getStyle() & SWT.READ_ONLY)) return;
+			if (_fromID) { mixin(S_TRACE);
+				_fromID.dispose();
+				_toID.dispose();
+			}
+			_fromID = new Combo(_fromIDComp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+			_fromID.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+			_fromID.addSelectionListener(new SelID(_fromIDVal));
+			_toID = new Combo(_toIDComp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+			_toID.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+			_toID.addSelectionListener(new SelID(_toIDVal));
+		}
+		_fromIDComp.layout();
+		_toIDComp.layout();
 	}
 	private void tabChanged() { mixin(S_TRACE);
 		auto sel = _tabf.getSelection();
@@ -739,6 +837,12 @@ private:
 				_idKind.add(_prop.msgs.replIDItem);
 				_idKind.add(_prop.msgs.replIDBeast);
 				_idKind.add(_prop.msgs.replIDInfo);
+				_idKind.add(_prop.msgs.replIDFlag);
+				_idKind.add(_prop.msgs.replIDStep);
+				_idKind.add(_prop.msgs.replIDCoupon);
+				_idKind.add(_prop.msgs.replIDGossip);
+				_idKind.add(_prop.msgs.replIDCompleteStamp);
+				_idKind.add(_prop.msgs.replIDKeyCode);
 				_idKind.select(0);
 				if (0 <= _prop.var.etc.searchIDKind && _prop.var.etc.searchIDKind < _idKind.getItemCount()) { mixin(S_TRACE);
 					_idKind.select(_prop.var.etc.searchIDKind);
@@ -754,22 +858,25 @@ private:
 				gd.horizontalSpan = 3;
 				sep.setLayoutData(gd);
 			}
-			void setupID(string text, ref Combo combo, ref Spinner spn) { mixin(S_TRACE);
+			void setupID(string text, ref Composite comboComp, ref Spinner spn) { mixin(S_TRACE);
 				auto l = new Label(grp, SWT.NONE);
 				l.setText(text);
-				combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-				combo.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+				comboComp = new Composite(grp, SWT.NONE);
+				auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
+				cl.fillHorizontal = true;
+				cl.fillVertical = true;
+				comboComp.setLayout(cl);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _prop.var.etc.nameWidth;
-				combo.setLayoutData(gd);
+				comboComp.setLayoutData(gd);
 				spn = new Spinner(grp, SWT.BORDER);
 				initSpinner(spn);
 				spn.setMinimum(1);
 				spn.setMaximum(_prop.looks.idMax);
-				combo.addSelectionListener(new SelID(spn));
 			}
-			setupID(_prop.msgs.replFrom, _fromID, _fromIDVal);
-			setupID(_prop.msgs.replTo, _toID, _toIDVal);
+			setupID(_prop.msgs.replFrom, _fromIDComp, _fromIDVal);
+			setupID(_prop.msgs.replTo, _toIDComp, _toIDVal);
+			updateIDCombo();
 		}
 
 		auto tab = new CTabItem(tabf, SWT.NONE);
@@ -1394,7 +1501,7 @@ public:
 			_summ = summ;
 			reset();
 			refreshRangeTree();
-			setupIDs();
+			setupIDs(true);
 		}
 		_undo.reset();
 		_comm.refreshToolBar();
@@ -2032,7 +2139,7 @@ public:
 		if (sel is _tabText) { mixin(S_TRACE);
 			return _summ && _from.getText().length > 0;
 		} else if (sel is _tabID) { mixin(S_TRACE);
-			return _summ && getID(_fromID, _fromIDVal, _fromIDTbl) !is 0;
+			return _summ && canReplID();
 		} else if (sel is _tabPath) { mixin(S_TRACE);
 			return _summ && _fromPath.getText().length > 0;
 		} else if (sel is _tabContents) { mixin(S_TRACE);
@@ -2307,8 +2414,28 @@ public:
 				foreach (u; users) { mixin(S_TRACE);
 					if (!dec(u.owner, range)) continue;
 					if (_replMode) { mixin(S_TRACE);
-						u.id = to;
-						storeID(u.owner, u, from, to, &u.id);
+						static if (is(ID:FlagId)) {
+							u.flag = cast(string)to;
+							storeID(u.owner, u, cast(string)from, cast(string)to, &u.flag);
+						} else static if (is(ID:StepId)) {
+							u.step = cast(string)to;
+							storeID(u.owner, u, cast(string)from, cast(string)to, &u.step);
+						} else static if (is(ID:CouponId)) {
+							u.coupon = cast(string)to;
+							storeID(u.owner, u, cast(string)from, cast(string)to, &u.coupon);
+						} else static if (is(ID:GossipId)) {
+							u.gossip = cast(string)to;
+							storeID(u.owner, u, cast(string)from, cast(string)to, &u.gossip);
+						} else static if (is(ID:CompleteStampId)) {
+							u.completeStamp = cast(string)to;
+							storeID(u.owner, u, cast(string)from, cast(string)to, &u.completeStamp);
+						} else static if (is(ID:KeyCodeId)) {
+							u.keyCode = cast(string)to;
+							storeID(u.owner, u, cast(string)from, cast(string)to, &u.keyCode);
+						} else {
+							u.id = to;
+							storeID(u.owner, u, from, to, &u.id);
+						}
 					}
 					addResult(u.owner, count);
 				}
@@ -2317,6 +2444,13 @@ public:
 			}
 		});
 		thr.start();
+	}
+	private bool canReplID() {
+		if (idKindIsString) {
+			return _fromID.getText() != "";
+		} else {
+			return getID(_fromID, _fromIDVal, _fromIDTbl) !is 0;
+		}
 	}
 	private ulong getID(Combo combo, Spinner spn, ulong[int] tbl) { mixin(S_TRACE);
 		if (!_summ) return 0;
@@ -2339,21 +2473,39 @@ public:
 	}
 	private void replaceIDImpl() { mixin(S_TRACE);
 		if (!_summ) return;
-		ulong from = getID(_fromID, _fromIDVal, _fromIDTbl);
-		ulong to = getID(_toID, _toIDVal, _toIDTbl);
-		if (0 == from) return;
-		if (from == to) _replMode = false;
-		if (!cautionReplace(getIDName(_fromID, _fromIDVal), getIDName(_toID, _toIDVal))) return;
-		switch (_idKind.getSelectionIndex()) {
-		case ID_AREA: replaceIDImpl2(toAreaId(from), toAreaId(to)); break;
-		case ID_BATTLE: replaceIDImpl2(toBattleId(from), toBattleId(to)); break;
-		case ID_PACKAGE: replaceIDImpl2(toPackageId(from), toPackageId(to)); break;
-		case ID_CAST: replaceIDImpl2(toCastId(from), toCastId(to)); break;
-		case ID_SKILL: replaceIDImpl2(toSkillId(from), toSkillId(to)); break;
-		case ID_ITEM: replaceIDImpl2(toItemId(from), toItemId(to)); break;
-		case ID_BEAST: replaceIDImpl2(toBeastId(from), toBeastId(to)); break;
-		case ID_INFO: replaceIDImpl2(toInfoId(from), toInfoId(to)); break;
-		default: assert (0);
+		int index = _idKind.getSelectionIndex();
+		if (idKindIsString) {
+			string from = _fromID.getText();
+			string to = _toID.getText();
+			if (from == "") return;
+			if (from == to) _replMode = false;
+			if (!cautionReplace(from, to)) return;
+			switch (_idKind.getSelectionIndex()) {
+			case ID_FLAG: replaceIDImpl2(toFlagId(from), toFlagId(to)); break;
+			case ID_STEP: replaceIDImpl2(toStepId(from), toStepId(to)); break;
+			case ID_COUPON: replaceIDImpl2(toCouponId(from), toCouponId(to)); break;
+			case ID_GOSSIP: replaceIDImpl2(toGossipId(from), toGossipId(to)); break;
+			case ID_COMPLETE_STAMP: replaceIDImpl2(toCompleteStampId(from), toCompleteStampId(to)); break;
+			case ID_KEY_CODE: replaceIDImpl2(toKeyCodeId(from), toKeyCodeId(to)); break;
+			default: assert (0);
+			}
+		} else {
+			ulong from = getID(_fromID, _fromIDVal, _fromIDTbl);
+			ulong to = getID(_toID, _toIDVal, _toIDTbl);
+			if (0 == from) return;
+			if (from == to) _replMode = false;
+			if (!cautionReplace(getIDName(_fromID, _fromIDVal), getIDName(_toID, _toIDVal))) return;
+			switch (_idKind.getSelectionIndex()) {
+			case ID_AREA: replaceIDImpl2(toAreaId(from), toAreaId(to)); break;
+			case ID_BATTLE: replaceIDImpl2(toBattleId(from), toBattleId(to)); break;
+			case ID_PACKAGE: replaceIDImpl2(toPackageId(from), toPackageId(to)); break;
+			case ID_CAST: replaceIDImpl2(toCastId(from), toCastId(to)); break;
+			case ID_SKILL: replaceIDImpl2(toSkillId(from), toSkillId(to)); break;
+			case ID_ITEM: replaceIDImpl2(toItemId(from), toItemId(to)); break;
+			case ID_BEAST: replaceIDImpl2(toBeastId(from), toBeastId(to)); break;
+			case ID_INFO: replaceIDImpl2(toInfoId(from), toInfoId(to)); break;
+			default: assert (0);
+			}
 		}
 	}
 	private void replacePathImpl() { mixin(S_TRACE);

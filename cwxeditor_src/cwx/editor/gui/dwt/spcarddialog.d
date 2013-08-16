@@ -294,7 +294,7 @@ protected:
 					auto grp = new Group(sash, SWT.NONE);
 					grp.setLayout(new GridLayout(2, false));
 					grp.setText(_prop.msgs.refFlag);
-					_flag = new FlagChooser!(Flag, true)(_comm, grp);
+					_flag = new FlagChooser!(Flag, true)(_comm, _summ, grp);
 					mod(_flag);
 					_flag.setLayoutData(new GridData(GridData.FILL_BOTH));
 				}

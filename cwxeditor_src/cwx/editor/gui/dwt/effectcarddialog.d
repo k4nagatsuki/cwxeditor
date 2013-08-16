@@ -724,7 +724,7 @@ private:
 			_keyCodes.length = _prop.looks.keyCodesMax;
 			grp.setLayout(new GridLayout(_keyCodes.length >= 8 ? 2 : 1, true));
 			for (int i = 0; i < _keyCodes.length; i++) { mixin(S_TRACE);
-				_keyCodes[i] = createKeyCodeCombo(_comm, grp, &catchMod);
+				_keyCodes[i] = createKeyCodeCombo(_comm, _summ, grp, &catchMod);
 				mod(_keyCodes[i]);
 				_keyCodes[i].setEnabled(!_readOnly);
 				_keyCodes[i].setLayoutData(new GridData(GridData.FILL_BOTH));
