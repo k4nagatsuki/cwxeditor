@@ -2143,6 +2143,8 @@ public:
 	@property
 	void summary(Summary summ) { mixin(S_TRACE);
 		_summ = summ;
+		_dirs = null;
+		_dir = "";
 		constructDirTree(false);
 		refreshAreas();
 		_comm.refreshToolBar();
