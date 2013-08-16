@@ -8,6 +8,7 @@ import cwx.flag;
 import cwx.path;
 import cwx.area;
 import cwx.card;
+import cwx.usecounter;
 
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtext;
@@ -43,29 +44,7 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 		string id = combo.getText();
 		combo.removeAll();
 
-		string[] cs;
-		if (type !is CouponComboType.Cast) { mixin(S_TRACE);
-			cs = castCoupons(comm, type is CouponComboType.Talker, comm.skin.legacyName);
-		}
-
-		string[] dcs;
-		if (comm.prop.var.etc.usedCouponToCombo) { mixin(S_TRACE);
-			foreach (coupon; summ.useCounter.coupon.keys.sort) { mixin(S_TRACE);
-				if (!.contains(cs, coupon.id)) dcs ~= coupon;
-			}
-		}
-		if (comm.prop.var.etc.useNamesAfterStandard) { mixin(S_TRACE);
-			if (dcs.length && cs.length) { mixin(S_TRACE);
-				cs ~= "";
-			}
-			dcs = cs ~ dcs;
-		} else { mixin(S_TRACE);
-			if (dcs.length && cs.length) { mixin(S_TRACE);
-				dcs ~= "";
-			}
-			dcs ~= cs;
-		}
-		foreach (coupon; dcs) { mixin(S_TRACE);
+		foreach (coupon; allCoupons(comm, summ, type)) { mixin(S_TRACE);
 			if (!incSearch.match(coupon)) continue;
 			combo.add(coupon);
 		}
@@ -94,6 +73,38 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 	return combo;
 }
 
+string[] allCoupons(Commons comm, Summary summ, CouponComboType type) {
+	string[] cs;
+	if (type !is CouponComboType.Cast) { mixin(S_TRACE);
+		cs = castCoupons(comm, type is CouponComboType.Talker, comm.skin.legacyName);
+	}
+
+	string[] dcs;
+	if (comm.prop.var.etc.usedCouponToCombo) { mixin(S_TRACE);
+		bool delegate(CouponId a, CouponId b) cmps;
+		if (comm.prop.var.etc.logicalSort) { mixin(S_TRACE);
+			cmps = (a, b) => incmp(cast(string)a, cast(string)b) < 0;
+		} else { mixin(S_TRACE);
+			cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
+		}
+		foreach (coupon; .sortDlg(summ.useCounter.coupon.keys, cmps)) { mixin(S_TRACE);
+			if (!.contains(cs, coupon.id)) dcs ~= coupon;
+		}
+	}
+	if (comm.prop.var.etc.useNamesAfterStandard) { mixin(S_TRACE);
+		if (dcs.length && cs.length) { mixin(S_TRACE);
+			cs ~= "";
+		}
+		dcs = cs ~ dcs;
+	} else { mixin(S_TRACE);
+		if (dcs.length && cs.length) { mixin(S_TRACE);
+			dcs ~= "";
+		}
+		dcs ~= cs;
+	}
+	return dcs;
+}
+
 T createGossipCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
@@ -103,7 +114,7 @@ T createGossipCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 		string id = combo.getText();
 		combo.removeAll();
 
-		foreach (gossip; summ.useCounter.gossip.keys.sort) { mixin(S_TRACE);
+		foreach (gossip; allGossips(comm, summ)) { mixin(S_TRACE);
 			if (!incSearch.match(gossip)) continue;
 			combo.add(gossip);
 		}
@@ -130,6 +141,21 @@ T createGossipCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 	return combo;
 }
 
+string[] allGossips(Commons comm, Summary summ) {
+	string[] cs;
+
+	bool delegate(GossipId a, GossipId b) cmps;
+	if (comm.prop.var.etc.logicalSort) { mixin(S_TRACE);
+		cmps = (a, b) => incmp(cast(string)a, cast(string)b) < 0;
+	} else { mixin(S_TRACE);
+		cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
+	}
+	foreach (gossip; .sortDlg(summ.useCounter.gossip.keys, cmps)) { mixin(S_TRACE);
+		cs ~= gossip;
+	}
+	return cs;
+}
+
 T createCompleteStampCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
@@ -139,7 +165,7 @@ T createCompleteStampCombo(T = Combo)(Commons comm, Summary summ, Composite pare
 		string id = combo.getText();
 		combo.removeAll();
 
-		foreach (stamp; summ.useCounter.completeStamp.keys.sort) { mixin(S_TRACE);
+		foreach (stamp; allCompleteStamps(comm, summ)) { mixin(S_TRACE);
 			if (!incSearch.match(stamp)) continue;
 			combo.add(stamp);
 		}
@@ -164,6 +190,21 @@ T createCompleteStampCombo(T = Combo)(Commons comm, Summary summ, Composite pare
 	refCompleteStamp();
 
 	return combo;
+}
+
+string[] allCompleteStamps(Commons comm, Summary summ) {
+	string[] cs;
+
+	bool delegate(CompleteStampId a, CompleteStampId b) cmps;
+	if (comm.prop.var.etc.logicalSort) { mixin(S_TRACE);
+		cmps = (a, b) => incmp(cast(string)a, cast(string)b) < 0;
+	} else { mixin(S_TRACE);
+		cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
+	}
+	foreach (compStamp; .sortDlg(summ.useCounter.completeStamp.keys, cmps)) { mixin(S_TRACE);
+		cs ~= compStamp;
+	}
+	return cs;
 }
 
 T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
@@ -223,6 +264,37 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 	refStandardKeyCodes();
 
 	return combo;
+}
+
+string[] allKeyCodes(Commons comm, Summary summ) {
+	string[] stdKCs = comm.prop.var.etc.standardKeyCodes.dup;
+
+	bool delegate(KeyCodeId a, KeyCodeId b) cmps;
+	if (comm.prop.var.etc.logicalSort) {
+		cmps = (a, b) => incmp(cast(string)a, cast(string)b) < 0;
+	} else {
+		cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
+	}
+	auto kcs = summ.useCounter.keyCode.keys;
+	string[] kcs2;
+	foreach (string kc; .sortDlg(kcs, cmps)) { mixin(S_TRACE);
+		if (!.contains(stdKCs, kc)) { mixin(S_TRACE);
+			kcs2 ~= kc;
+		}
+	}
+
+	if (comm.prop.var.etc.useNamesAfterStandard) { mixin(S_TRACE);
+		if (kcs2.length && stdKCs.length) { mixin(S_TRACE);
+			stdKCs ~= "";
+		}
+		kcs2 = stdKCs ~ kcs2;
+	} else { mixin(S_TRACE);
+		if (kcs2.length) { mixin(S_TRACE);
+			kcs2 ~= "";
+		}
+		kcs2 ~= stdKCs;
+	}
+	return kcs2;
 }
 
 class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {

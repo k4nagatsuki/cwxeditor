@@ -32,6 +32,7 @@ import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.chooser;
 
 import std.ascii;
 import std.conv;
@@ -464,6 +465,7 @@ private:
 			}
 			foreach (i, a; arr) { mixin(S_TRACE);
 				auto p = a.path;
+				if (p == "") continue;
 				combo.add(p);
 				set.remove(p);
 			}
@@ -474,6 +476,7 @@ private:
 				cmps = (a, b) => icmp(a, b) < 0;
 			}
 			foreach (p; .sortDlg(set.array(), cmps)) { mixin(S_TRACE);
+				if (p == "") continue;
 				combo.add(p);
 			}
 			combo.setText(oldSel);
@@ -482,14 +485,18 @@ private:
 			}
 			spn.setEnabled(false);
 		} else static if (is(T:CouponId) || is(T:GossipId) || is(T:CompleteStampId) || is(T:KeyCodeId)) {
-			bool delegate(T a, T b) cmps;
-			if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
-				cmps = (a, b) => incmp(cast(string)a, cast(string)b) < 0;
-			} else { mixin(S_TRACE);
-				cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
-			}
-			foreach (key; .sortDlg(arr, cmps)) {
-				combo.add(cast(string)key);
+			string[] arr2;
+			static if (is(T:CouponId)) {
+				arr2 = .allCoupons(_comm, _summ, CouponComboType.AllCoupons);
+			} else static if (is(T:GossipId)) {
+				arr2 = .allGossips(_comm, _summ);
+			} else static if (is(T:CompleteStampId)) {
+				arr2 = .allCompleteStamps(_comm, _summ);
+			} else static if (is(T:KeyCodeId)) {
+				arr2 = .allKeyCodes(_comm, _summ);
+			} else static assert (0);
+			foreach (a; arr2) {
+				combo.add(a);
 			}
 			combo.setText(oldSel);
 			if (combo.getText() == "" && combo.getItemCount()) { mixin(S_TRACE);
