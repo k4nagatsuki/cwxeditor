@@ -33,6 +33,7 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.incsearch;
 
 import std.ascii;
 import std.conv;
@@ -187,6 +188,9 @@ private:
 	Composite _textGrp1, _textGrp2, _textFromComp, _grepFromComp;
 	Combo _from;
 	Combo _to;
+	IncSearch _fromIncSearch = null;
+	IncSearch _toIncSearch = null;
+
 	Combo _idKind;
 	Combo _fromID;
 	Composite _fromIDComp;
@@ -196,8 +200,14 @@ private:
 	Composite _toIDComp;
 	Spinner _toIDVal;
 	ulong[int] _toIDTbl;
+	IncSearch _fromIDIncSearch = null;
+	IncSearch _toIDIncSearch = null;
+
 	Combo _fromPath;
 	Combo _toPath;
+	IncSearch _fromPathIncSearch = null;
+	IncSearch _toPathIncSearch = null;
+
 	Combo _grepDir;
 	Button _grepSubDir;
 
@@ -444,7 +454,7 @@ private:
 	static const ID_GOSSIP = 11;
 	static const ID_COMPLETE_STAMP = 12;
 	static const ID_KEY_CODE = 13;
-	private void setupIDsImpl2(T)(T[] arr, Combo combo, Spinner spn, ref ulong[int] tbl, bool clear) { mixin(S_TRACE);
+	private void setupIDsImpl2(T)(T[] arr, Combo combo, Spinner spn, ref ulong[int] tbl, bool clear, IncSearch incSearch) { mixin(S_TRACE);
 		ulong[int] tbl2;
 		string oldSel = clear ? "" : combo.getText();
 		combo.removeAll();
@@ -454,11 +464,13 @@ private:
 				static if (is(T:Flag)) {
 					foreach (key; _summ.useCounter.flag.keys) { mixin(S_TRACE);
 						if (_prop.sys.randomValue == cast(string)key) continue;
+						if (!incSearch.match(cast(string)key)) continue;
 						set.add(cast(string)key);
 					}
 				} else static if (is(T:Step)) {
 					foreach (key; _summ.useCounter.step.keys) { mixin(S_TRACE);
 						if (_prop.sys.randomValue == cast(string)key) continue;
+						if (!incSearch.match(cast(string)key)) continue;
 						set.add(cast(string)key);
 					}
 				} else static assert (0);
@@ -466,6 +478,7 @@ private:
 			foreach (i, a; arr) { mixin(S_TRACE);
 				auto p = a.path;
 				if (p == "") continue;
+				if (!incSearch.match(p)) continue;
 				combo.add(p);
 				set.remove(p);
 			}
@@ -477,6 +490,7 @@ private:
 			}
 			foreach (p; .sortDlg(set.array(), cmps)) { mixin(S_TRACE);
 				if (p == "") continue;
+				if (!incSearch.match(p)) continue;
 				combo.add(p);
 			}
 			combo.setText(oldSel);
@@ -496,6 +510,7 @@ private:
 				arr2 = .allKeyCodes(_comm, _summ);
 			} else static assert (0);
 			foreach (a; arr2) {
+				if (!incSearch.match(a)) continue;
 				combo.add(a);
 			}
 			combo.setText(oldSel);
@@ -506,10 +521,11 @@ private:
 		} else {
 			combo.add(_prop.msgs.replSetID);
 			foreach (i, a; arr) { mixin(S_TRACE);
+				if (!incSearch.match(a.name)) continue;
 				combo.add(to!(string)(a.id) ~ "." ~ a.name);
 				tbl2[i + 1] = a.id;
 			}
-			combo.select(arr.length ? 1 : 0);
+			combo.select(1 < combo.getItemCount() ? 1 : 0);
 			if (oldSel) { mixin(S_TRACE);
 				auto i = combo.indexOf(oldSel);
 				if (i >= 0) combo.select(i);
@@ -518,11 +534,11 @@ private:
 		}
 		tbl = tbl2;
 	}
-	private void setupIDsImpl1(T)(T[] arr, bool clear) { mixin(S_TRACE);
-		setupIDsImpl2(arr, _fromID, _fromIDVal, _fromIDTbl, clear);
-		setupIDsImpl2(arr, _toID, _toIDVal, _toIDTbl, clear);
+	private void setupIDsImpl1(T)(T[] arr, bool clear, bool from, bool to) { mixin(S_TRACE);
+		if (from) setupIDsImpl2(arr, _fromID, _fromIDVal, _fromIDTbl, clear, _fromIDIncSearch);
+		if (to) setupIDsImpl2(arr, _toID, _toIDVal, _toIDTbl, clear, _toIDIncSearch);
 	}
-	private void setupIDs(bool clear) { mixin(S_TRACE);
+	private void setupIDs(bool clear, bool from, bool to) { mixin(S_TRACE);
 		if (!_summ) { mixin(S_TRACE);
 			_fromID.removeAll();
 			_fromID.setEnabled(false);
@@ -532,26 +548,36 @@ private:
 			_toIDVal.setEnabled(false);
 			return;
 		}
-		_fromID.setEnabled(true);
-		_toID.setEnabled(true);
+		if (from) _fromID.setEnabled(true);
+		if (to) _toID.setEnabled(true);
 		switch (_idKind.getSelectionIndex()) {
-		case ID_AREA: setupIDsImpl1(_summ.areas, clear); break;
-		case ID_BATTLE: setupIDsImpl1(_summ.battles, clear); break;
-		case ID_PACKAGE: setupIDsImpl1(_summ.packages, clear); break;
-		case ID_CAST: setupIDsImpl1(_summ.casts, clear); break;
-		case ID_SKILL: setupIDsImpl1(_summ.skills, clear); break;
-		case ID_ITEM: setupIDsImpl1(_summ.items, clear); break;
-		case ID_BEAST: setupIDsImpl1(_summ.beasts, clear); break;
-		case ID_INFO: setupIDsImpl1(_summ.infos, clear); break;
-		case ID_FLAG: setupIDsImpl1(_summ.flagDirRoot.allFlags, clear); break;
-		case ID_STEP: setupIDsImpl1(_summ.flagDirRoot.allSteps, clear); break;
-		case ID_COUPON: setupIDsImpl1(_summ.useCounter.coupon.keys, clear); break;
-		case ID_GOSSIP: setupIDsImpl1(_summ.useCounter.gossip.keys, clear); break;
-		case ID_COMPLETE_STAMP: setupIDsImpl1(_summ.useCounter.completeStamp.keys, clear); break;
-		case ID_KEY_CODE: setupIDsImpl1(_summ.useCounter.keyCode.keys, clear); break;
+		case ID_AREA: setupIDsImpl1(_summ.areas, clear, from, to); break;
+		case ID_BATTLE: setupIDsImpl1(_summ.battles, clear, from, to); break;
+		case ID_PACKAGE: setupIDsImpl1(_summ.packages, clear, from, to); break;
+		case ID_CAST: setupIDsImpl1(_summ.casts, clear, from, to); break;
+		case ID_SKILL: setupIDsImpl1(_summ.skills, clear, from, to); break;
+		case ID_ITEM: setupIDsImpl1(_summ.items, clear, from, to); break;
+		case ID_BEAST: setupIDsImpl1(_summ.beasts, clear, from, to); break;
+		case ID_INFO: setupIDsImpl1(_summ.infos, clear, from, to); break;
+		case ID_FLAG: setupIDsImpl1(_summ.flagDirRoot.allFlags, clear, from, to); break;
+		case ID_STEP: setupIDsImpl1(_summ.flagDirRoot.allSteps, clear, from, to); break;
+		case ID_COUPON: setupIDsImpl1(_summ.useCounter.coupon.keys, clear, from, to); break;
+		case ID_GOSSIP: setupIDsImpl1(_summ.useCounter.gossip.keys, clear, from, to); break;
+		case ID_COMPLETE_STAMP: setupIDsImpl1(_summ.useCounter.completeStamp.keys, clear, from, to); break;
+		case ID_KEY_CODE: setupIDsImpl1(_summ.useCounter.keyCode.keys, clear, from, to); break;
 		default: assert (0);
 		}
 	}
+	private void fromIDIncSearch() { mixin(S_TRACE);
+		.forceFocus(_fromID, true);
+		_fromIDIncSearch.startIncSearch();
+	}
+	private void toIDIncSearch() { mixin(S_TRACE);
+		.forceFocus(_toID, true);
+		_toIDIncSearch.startIncSearch();
+	}
+
+	private string[] _lastMaterialPaths;
 	private string[] allMaterials(bool scenarioOnly) { mixin(S_TRACE);
 		if (!_summ) return [];
 		return _summ.allMaterials(_comm.skin, _prop.var.etc.ignorePaths, _prop.var.etc.logicalSort, scenarioOnly);
@@ -561,18 +587,25 @@ private:
 		ignoreMod = true;
 		scope (exit) ignoreMod = oldIgnoreMod;
 
-		string[] paths = [""] ~ allMaterials(false);
-		void setPaths(Combo combo) { mixin(S_TRACE);
+		_lastMaterialPaths = [""] ~ allMaterials(false);
+		setupPathsImpl(true, true);
+	}
+	private void setupPathsImpl(bool from, bool to) {
+		void setPaths(Combo combo, IncSearch incSearch) { mixin(S_TRACE);
 			auto old = combo.getText();
-			setComboItems(combo, paths);
+			combo.removeAll();
+			foreach (path; _lastMaterialPaths) {
+				if (!incSearch.match(path)) continue;
+				combo.add(path);
+			}
 			combo.setText(old);
 		}
-		setPaths(_fromPath);
-		setPaths(_toPath);
+		if (from) setPaths(_fromPath, _fromPathIncSearch);
+		if (to) setPaths(_toPath, _toPathIncSearch);
 	}
 	class SListener : ShellAdapter {
 		override void shellActivated(ShellEvent e) { mixin(S_TRACE);
-			setupIDs(false);
+			setupIDs(false, true, true);
 			setupPaths();
 			_comm.refreshToolBar();
 		}
@@ -589,7 +622,7 @@ private:
 	class SelIDKind : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			updateIDCombo();
-			setupIDs(true);
+			setupIDs(true, true, true);
 			_prop.var.etc.searchIDKind = _idKind.getSelectionIndex();
 			_comm.refreshToolBar();
 		}
@@ -606,6 +639,7 @@ private:
 				_fromID.dispose();
 				_toID.dispose();
 			}
+			
 			_fromID = new Combo(_fromIDComp, SWT.BORDER | SWT.DROP_DOWN);
 			_fromID.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_toID = new Combo(_toIDComp, SWT.BORDER | SWT.DROP_DOWN);
@@ -623,6 +657,23 @@ private:
 			_toID.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_toID.addSelectionListener(new SelID(_toIDVal));
 		}
+		auto fMenu = new Menu(_win, SWT.POP_UP);
+		_fromID.setMenu(fMenu);
+		createMenuItem(_comm, fMenu, MenuID.IncSearch, &fromIDIncSearch, null);
+		new MenuItem(fMenu, SWT.SEPARATOR);
+		createTextMenu!Combo(_comm, _prop, _fromID, &catchMod);
+
+		auto tMenu = new Menu(_win, SWT.POP_UP);
+		_toID.setMenu(tMenu);
+		createMenuItem(_comm, tMenu, MenuID.IncSearch, &toIDIncSearch, null);
+		new MenuItem(tMenu, SWT.SEPARATOR);
+		createTextMenu!Combo(_comm, _prop, _toID, &catchMod);
+
+		_fromIDIncSearch = new IncSearch(_comm, _fromID);
+		_fromIDIncSearch.modEvent ~= () => setupIDs(false, true, false);
+		_toIDIncSearch = new IncSearch(_comm, _toID);
+		_toIDIncSearch.modEvent ~= () => setupIDs(false, false, true);
+
 		_fromIDComp.layout();
 		_toIDComp.layout();
 	}
@@ -732,7 +783,6 @@ private:
 			_textFromComp.setLayout(new FillLayout);
 			_from = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 			_from.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
-			createTextMenu!Combo(_comm, _prop, _from, &catchMod);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_textFromComp.setLayoutData(gd);
@@ -740,8 +790,30 @@ private:
 			lt.setText(_prop.msgs.replTo);
 			_to = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 			_to.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
-			createTextMenu!Combo(_comm, _prop, _to, &catchMod);
 			_to.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+			auto fMenu = new Menu(_win, SWT.POP_UP);
+			_from.setMenu(fMenu);
+			createMenuItem(_comm, fMenu, MenuID.IncSearch, {
+				.forceFocus(_from, true);
+				_fromIncSearch.startIncSearch();
+			}, null);
+			new MenuItem(fMenu, SWT.SEPARATOR);
+			createTextMenu!Combo(_comm, _prop, _from, &catchMod);
+
+			auto tMenu = new Menu(_win, SWT.POP_UP);
+			_to.setMenu(tMenu);
+			createMenuItem(_comm, tMenu, MenuID.IncSearch, {
+				.forceFocus(_to, true);
+				_toIncSearch.startIncSearch();
+			}, null);
+			new MenuItem(tMenu, SWT.SEPARATOR);
+			createTextMenu!Combo(_comm, _prop, _to, &catchMod);
+
+			_fromIncSearch = new IncSearch(_comm, _from);
+			_fromIncSearch.modEvent ~= &updateFromHistory;
+			_toIncSearch = new IncSearch(_comm, _to);
+			_toIncSearch.modEvent ~= &updateToHistory;
 		}
 		{ mixin(S_TRACE);
 			auto grp = new Group(comp2, SWT.NONE);
@@ -906,19 +978,32 @@ private:
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setText(_prop.msgs.replPath);
 			grp.setLayout(new GridLayout(2, false));
-			Combo setupPath(string text) { mixin(S_TRACE);
+			Combo setupPath(string text, ref IncSearch incSearch) { mixin(S_TRACE);
 				auto l = new Label(grp, SWT.NONE);
 				l.setText(text);
 				auto combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 				combo.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
-				createTextMenu!Combo(_comm, _prop, combo, &catchMod);
 				auto gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.widthHint = _prop.var.etc.nameWidth;
 				combo.setLayoutData(gd);
+
+				auto menu = new Menu(_win, SWT.POP_UP);
+				combo.setMenu(menu);
+				createMenuItem(_comm, menu, MenuID.IncSearch, {
+					.forceFocus(combo, true);
+					incSearch.startIncSearch();
+				}, null);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createTextMenu!Combo(_comm, _prop, combo, &catchMod);
+
+				incSearch = new IncSearch(_comm, combo);
+
 				return combo;
 			}
-			_fromPath = setupPath(_prop.msgs.replFrom);
-			_toPath = setupPath(_prop.msgs.replTo);
+			_fromPath = setupPath(_prop.msgs.replFrom, _fromPathIncSearch);
+			_fromPathIncSearch.modEvent ~= () => setupPathsImpl(true, false);
+			_toPath = setupPath(_prop.msgs.replTo, _toPathIncSearch);
+			_fromPathIncSearch.modEvent ~= () => setupPathsImpl(false, true);
 		}
 
 		auto tab = new CTabItem(tabf, SWT.NONE);
@@ -1508,7 +1593,7 @@ public:
 			_summ = summ;
 			reset();
 			refreshRangeTree();
-			setupIDs(true);
+			setupIDs(true, true, true);
 		}
 		_undo.reset();
 		_comm.refreshToolBar();
@@ -3396,12 +3481,26 @@ public:
 	}
 	private void refSearchHistories(Object sender) { mixin(S_TRACE);
 		if (sender is this) return;
-		string ft = _from.getText();
-		string tt = _to.getText();
-		setComboItems(_from, _prop.var.etc.searchHistories.dup);
-		setComboItems(_to, _prop.var.etc.replaceHistories.dup);
+		updateFromHistory();
+		updateToHistory();
 		setComboItems(_grepDir, _prop.var.etc.grepDirHistories.dup);
+	}
+	private void updateFromHistory() {
+		string ft = _from.getText();
+		_from.removeAll();
+		foreach (hist; _prop.var.etc.searchHistories) {
+			if (!_fromIncSearch.match(hist)) continue;
+			_from.add(hist);
+		}
 		_from.setText(ft);
+	}
+	private void updateToHistory() {
+		string tt = _to.getText();
+		_to.removeAll();
+		foreach (hist; _prop.var.etc.replaceHistories) {
+			if (!_toIncSearch.match(hist)) continue;
+			_to.add(hist);
+		}
 		_to.setText(tt);
 	}
 	private Regex!(dchar) _regex;
