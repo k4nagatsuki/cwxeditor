@@ -2119,7 +2119,9 @@ public:
 					new MenuItem(me, SWT.SEPARATOR);
 				}
 				mixin (MenuAction!("me", MenuID.Find, SWT.PUSH, "replaceText", "null"));
+				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", MenuID.ReNumberingAll, SWT.PUSH, "reNumberingAll", "() => summary !is null"));
+				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", MenuID.ToXMLText, SWT.PUSH, "clipboardToXML", "() => CBisXMLOnly(_comm.clipboard)"));
 				dStr ~= " - " ~ .text(__LINE__);
 				if (_prop.var.etc.singleWindow) {
