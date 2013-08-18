@@ -1093,9 +1093,13 @@ class Commons {
 		openDirWin(shellActivate);
 		return _dirWin.select(path);
 	}
-	void replacePath(string from) { mixin(S_TRACE);
+	void replacePath(string from, bool start) { mixin(S_TRACE);
 		auto replWin = _main.openReplWin();
-		if (replWin) replWin.replacePath(from);
+		if (replWin) replWin.replacePath(from, start);
+	}
+	void replaceID(ID)(ID id, bool start) { mixin(S_TRACE);
+		auto replWin = _main.openReplWin();
+		if (replWin) replWin.replaceID(id, start);
 	}
 
 	void selectSummary(bool shellActivate) { mixin(S_TRACE);

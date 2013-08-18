@@ -457,6 +457,7 @@ public:
 				static if (UseInfo) putMenuAction(MenuID.NewInfo, &create!(INFO), () => _summ !is null);
 				putMenuAction(MenuID.Up, &up, &canUp);
 				putMenuAction(MenuID.Down, &down, &canDown);
+				putMenuAction(MenuID.FindID, &replaceID, &canReplaceID);
 			} else { mixin(S_TRACE);
 				appendMenuTCPD(_comm, this, this, false, true, false, false, false);
 			}
@@ -1309,6 +1310,53 @@ public:
 				}
 			} else { mixin(S_TRACE);
 				_pane[0].down();
+			}
+		}
+
+		void replaceID() {
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseCast) {
+					if (i == CAST) _pane[CAST].replaceID();
+				}
+				static if (UseSkill) {
+					if (i == SKILL) _pane[SKILL].replaceID();
+				}
+				static if (UseItem) {
+					if (i == ITEM) _pane[ITEM].replaceID();
+				}
+				static if (UseBeast) {
+					if (i == BEAST) _pane[BEAST].replaceID();
+				}
+				static if (UseInfo) {
+					if (i == INFO) _pane[INFO].replaceID();
+				}
+			} else { mixin(S_TRACE);
+				_pane[0].replaceID();
+			}
+		}
+		@property
+		bool canReplaceID() {
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseCast) {
+					if (i == CAST) return _pane[CAST].canReplaceID;
+				}
+				static if (UseSkill) {
+					if (i == SKILL) return _pane[SKILL].canReplaceID;
+				}
+				static if (UseItem) {
+					if (i == ITEM) return _pane[ITEM].canReplaceID;
+				}
+				static if (UseBeast) {
+					if (i == BEAST) return _pane[BEAST].canReplaceID;
+				}
+				static if (UseInfo) {
+					if (i == INFO) return _pane[INFO].canReplaceID;
+				}
+				return false;
+			} else { mixin(S_TRACE);
+				return _pane[0].canReplaceID;
 			}
 		}
 	}

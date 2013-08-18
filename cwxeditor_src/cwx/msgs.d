@@ -1811,6 +1811,7 @@ class Msgs : Properties {
 	auto menuTextShowEventToolBar = Msg("menuTextShowEventToolBar", "イベントビューのツールバーを表示");
 	auto menuTextChangeVH = Msg("menuTextChangeVH", "分割領域の縦横を切替");
 	auto menuTextFind = Msg("menuTextFind", "検索と置換");
+	auto menuTextFindID = Msg("menuTextFindID", "参照を検索");
 	auto menuTextIncSearch = Msg("menuTextIncSearch", "絞り込み検索");
 	auto menuTextCloseIncSearch = Msg("menuTextCloseIncSearch", "閉じる");
 	auto menuTextEditProp = Msg("menuTextEditProp", "編集");

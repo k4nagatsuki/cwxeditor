@@ -1089,8 +1089,6 @@ private:
 		auto menu = new Menu(_win.getShell(), SWT.POP_UP);
 		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, () => _summ !is null);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.ReplFilePath, &replace, () => _summ !is null);
-		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.NewDir, &createDirFiles, () => _summ !is null);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.CreateArchive, &createArchive, &canCreateArchive);
@@ -1102,6 +1100,8 @@ private:
 		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, () => _files.getItemCount() && _files.getSelectionCount() != _files.getItemCount());
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.FindID, &replaceID, &canReplaceID);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath, () => _files.getSelectionIndex() != -1);
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -1157,8 +1157,9 @@ private:
 	}
 	void __replace(string sel) { mixin(S_TRACE);
 		if (!_summ || !_win || _win.isDisposed()) return;
-		_comm.replacePath(sel);
+		_comm.replacePath(sel, true);
 	}
+
 	class SClose : ShellAdapter {
 		override void shellClosed(ShellEvent e) { mixin(S_TRACE);
 			(cast(Shell) e.widget).setVisible(false);
@@ -1567,7 +1568,7 @@ public:
 			createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close, null);
 
 			auto me = createMenu(_comm, bar, MenuID.Edit);
-			createMenuItem(_comm, me, MenuID.ReplFilePath, &replace, () => _summ !is null);
+			createMenuItem(_comm, me, MenuID.FindID, &replaceID, &canReplaceID);
 			new MenuItem(me, SWT.SEPARATOR);
 			createMenuItem(_comm, me, MenuID.NewDir, &createNewFolder, &canCreateNewFolder);
 			new MenuItem(me, SWT.SEPARATOR);
@@ -1585,13 +1586,13 @@ public:
 			shell.setMenuBar(bar);
 		} else { mixin(S_TRACE);
 			appendMenuTCPD(_comm, this, this, true, true, true, true, true);
-			putMenuAction(MenuID.ReplFilePath, &replace, () => _summ !is null);
 			putMenuAction(MenuID.Refresh, &__refresh, () => _summ !is null);
 			putMenuAction(MenuID.OpenDir, &openDirectory, &canOpenDirectory);
 			putMenuAction(MenuID.NewDir, &createNewFolder, &canCreateNewFolder);
 			putMenuAction(MenuID.CreateArchive, &createArchive, &canCreateArchive);
 			putMenuAction(MenuID.ChangeVH, &changeVHSide, null);
 			putMenuAction(MenuID.DelNotUsedFile, &deleteUnuse, &canDeleteUnuse);
+			putMenuAction(MenuID.FindID, &replaceID, &canReplaceID);
 		}
 		if (shell) { mixin(S_TRACE);
 			auto bar = new ToolBar(contPane, SWT.FLAT);
@@ -1601,8 +1602,6 @@ public:
 			createToolItem(_comm, bar, MenuID.OpenDir, &openDirectory, &canOpenDirectory);
 			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(_comm, bar, MenuID.Refresh, &__refresh, () => _summ !is null);
-			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(_comm, bar, MenuID.ReplFilePath, &replace, () => _summ !is null);
 			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(_comm, bar, MenuID.NewDir, &createNewFolder, &canCreateNewFolder);
 			new ToolItem(bar, SWT.SEPARATOR);
@@ -1855,6 +1854,18 @@ public:
 			__replace(null);
 		}
 	}
+
+	void replaceID() {
+		int index = _files.getSelectionIndex();
+		if (index <= -1) return;
+		_comm.replacePath((cast(FileNameObj)_files.getItem(index).getData()).relPath, true);
+	}
+	@property
+	bool canReplaceID() {
+		int index = _files.getSelectionIndex();
+		return 0 <= index;
+	}
+
 	private void changeVHSide() { mixin(S_TRACE);
 		_sash.removeDisposeListener(_sdl);
 		_sash = .changeVHSide(_sash);

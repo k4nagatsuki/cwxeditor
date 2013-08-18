@@ -394,6 +394,7 @@ public:
 		case MenuID.ShowEventToolBar: return imgd!("event_tools.png");
 		case MenuID.ChangeVH: return imgd!("chg_vh.png");
 		case MenuID.Find: return imgd!("replace.png");
+		case MenuID.FindID: return imgd!("find_id.png");
 		case MenuID.IncSearch: return imgd!("inc_search.png");
 		case MenuID.CloseIncSearch: return imgd!("close_win.png");
 		case MenuID.EditProp: return imgd!("edit.png");
@@ -536,7 +537,6 @@ public:
 		case MenuID.StopSE: return imgd!("sound_stop.png");
 		case MenuID.NewDir: return imgd!("folder_new.png");
 		case MenuID.CopyFilePath: return imgd!("copy_path.png");
-		case MenuID.ReplFilePath: return imgd!("replace.png");
 		case MenuID.CreateArchive: return imgd!("create_archive.png");
 		case MenuID.PutQuick: return imgd!("evt_put_quick.png");
 		case MenuID.PutSelect: return imgd!("evt_put_select.png");

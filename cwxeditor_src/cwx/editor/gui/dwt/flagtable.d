@@ -1424,6 +1424,8 @@ public:
 		}
 
 		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.FindID, &replaceID, &canReplaceID);
+		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.CopyVariablePath, &copyVariablePath, () => 0 < flags.getSelectionCount());
 		flags.setMenu(menu);
 
@@ -1771,6 +1773,21 @@ public:
 	void redo() { mixin(S_TRACE);
 		_undo.redo();
 		_comm.refreshToolBar();
+	}
+
+	void replaceID() {
+		auto index = flags.getSelectionIndex();
+		if (index <= -1) return;
+		auto data = flags.getItem(index).getData();
+		if (auto f = cast(Flag)data) _comm.replaceID(toFlagId(f.path), true);
+		if (auto f = cast(Step)data) _comm.replaceID(toStepId(f.path), true);
+	}
+	@property
+	bool canReplaceID() {
+		auto index = flags.getSelectionIndex();
+		if (index <= -1) return false;
+		auto data = flags.getItem(index).getData();
+		return cast(Flag)data || cast(Step)data;
 	}
 
 	@property

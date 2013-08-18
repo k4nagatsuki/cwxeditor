@@ -63,6 +63,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ShowEventToolBar] = "T";
 		_mnemonic[MenuID.ChangeVH] = "H";
 		_mnemonic[MenuID.Find] = "F";
+		_mnemonic[MenuID.FindID] = "I";
 		_mnemonic[MenuID.IncSearch] = "N";
 		_mnemonic[MenuID.CloseIncSearch] = "X";
 		_mnemonic[MenuID.EditProp] = "E";
@@ -205,7 +206,6 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.StopSE] = "S";
 		_mnemonic[MenuID.NewDir] = "I";
 		_mnemonic[MenuID.CopyFilePath] = "M";
-		_mnemonic[MenuID.ReplFilePath] = "R";
 		_mnemonic[MenuID.CreateArchive] = "V";
 		_mnemonic[MenuID.PutQuick] = "Q";
 		_mnemonic[MenuID.PutSelect] = "S";
@@ -256,6 +256,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ShowEventToolBar] = "Ctrl+Shift+E";
 		_hotkey[MenuID.ChangeVH] = "";
 		_hotkey[MenuID.Find] = "Ctrl+F";
+		_hotkey[MenuID.FindID] = "Ctrl+Shift+F";
 		_hotkey[MenuID.IncSearch] = "Ctrl+I";
 		_hotkey[MenuID.CloseIncSearch] = "Escape";
 		_hotkey[MenuID.EditProp] = "Enter";
@@ -399,7 +400,6 @@ class MenuProps : Properties {
 		_hotkey[MenuID.StopSE] = "";
 		_hotkey[MenuID.NewDir] = "";
 		_hotkey[MenuID.CopyFilePath] = "";
-		_hotkey[MenuID.ReplFilePath] = "";
 		_hotkey[MenuID.CreateArchive] = "";
 		_hotkey[MenuID.PutQuick] = "";
 		_hotkey[MenuID.PutSelect] = "";
@@ -570,6 +570,7 @@ bool isPMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.OpenAtNewWindow:
 	case MenuID.SaveAs:
 	case MenuID.Find:
+	case MenuID.FindID:
 	case MenuID.Settings:
 	case MenuID.EditSummary:
 	case MenuID.EditProp:
@@ -588,7 +589,6 @@ bool isPMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.NewItem:
 	case MenuID.NewBeast:
 	case MenuID.NewInfo:
-	case MenuID.ReplFilePath:
 	case MenuID.CreateArchive:
 		return true;
 	default:

@@ -1867,6 +1867,8 @@ public:
 		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
 		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.FindID, &replaceID, &canReplaceID);
+		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.ReNumbering, &reNumbering, () => (showSummary ? 1 : 0) <= _areas.getSelectionIndex());
 		_areas.setMenu(menu);
 
@@ -2819,6 +2821,18 @@ public:
 	void redo() { mixin(S_TRACE);
 		_undo.redo();
 		_comm.refreshToolBar();
+	}
+
+	void replaceID() {
+		auto area = getSelectionArea();
+		if (cast(Area)area) _comm.replaceID(toAreaId(area.id), true);
+		if (cast(Battle)area) _comm.replaceID(toBattleId(area.id), true);
+		if (cast(Package)area) _comm.replaceID(toPackageId(area.id), true);
+	}
+	@property
+	bool canReplaceID() {
+		auto area = getSelectionArea();
+		return cast(Area)area || cast(Battle)area || cast(Package)area;
 	}
 
 	@property

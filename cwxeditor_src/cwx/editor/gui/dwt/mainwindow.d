@@ -1015,6 +1015,56 @@ private:
 	void replaceText() { mixin(S_TRACE);
 		openReplWin();
 	}
+	void replaceID() { mixin(S_TRACE);
+		if (!_tlp) return;
+		if (_dataWin is _tlp) { mixin(S_TRACE);
+			_dataWin.replaceID();
+		} else if (_tableWin is _tlp) { mixin(S_TRACE);
+			_tableWin.replaceID();
+		} else if (_flagWin is _tlp) { mixin(S_TRACE);
+			_flagWin.replaceID();
+		} else if (_cardWin is _tlp) { mixin(S_TRACE);
+			_cardWin.replaceID();
+		} else if (_castWin is _tlp) { mixin(S_TRACE);
+			_castWin.replaceID();
+		} else if (_skillWin is _tlp) { mixin(S_TRACE);
+			_skillWin.replaceID();
+		} else if (_itemWin is _tlp) { mixin(S_TRACE);
+			_itemWin.replaceID();
+		} else if (_beastWin is _tlp) { mixin(S_TRACE);
+			_beastWin.replaceID();
+		} else if (_infoWin is _tlp) { mixin(S_TRACE);
+			_infoWin.replaceID();
+		} else if (_dirWin is _tlp) { mixin(S_TRACE);
+			_dirWin.replaceID();
+		}
+	}
+	@property
+	bool canReplaceID() { mixin(S_TRACE);
+		if (!_tlp) return false;
+		if (_dataWin is _tlp) { mixin(S_TRACE);
+			return _dataWin.canReplaceID;
+		} else if (_tableWin is _tlp) { mixin(S_TRACE);
+			return _tableWin.canReplaceID;
+		} else if (_flagWin is _tlp) { mixin(S_TRACE);
+			return _flagWin.canReplaceID;
+		} else if (_cardWin is _tlp) { mixin(S_TRACE);
+			return _cardWin.canReplaceID;
+		} else if (_castWin is _tlp) { mixin(S_TRACE);
+			return _castWin.canReplaceID;
+		} else if (_skillWin is _tlp) { mixin(S_TRACE);
+			return _skillWin.canReplaceID;
+		} else if (_itemWin is _tlp) { mixin(S_TRACE);
+			return _itemWin.canReplaceID;
+		} else if (_beastWin is _tlp) { mixin(S_TRACE);
+			return _beastWin.canReplaceID;
+		} else if (_infoWin is _tlp) { mixin(S_TRACE);
+			return _infoWin.canReplaceID;
+		} else if (_dirWin is _tlp) { mixin(S_TRACE);
+			return _dirWin.canReplaceID;
+		}
+		return false;
+	}
 	void clipboardToXML() { mixin(S_TRACE);
 		auto c = _comm.clipboard.getContents(XMLBytesTransfer.getInstance());
 		if (c !is null && isXMLBytes(c)) { mixin(S_TRACE);
@@ -2192,7 +2242,10 @@ public:
 					new MenuItem(me, SWT.SEPARATOR);
 				}
 				mixin (MenuAction!("me", MenuID.Find, SWT.PUSH, "replaceText", "null"));
+				mixin (MenuAction!("me", MenuID.FindID, SWT.PUSH, "replaceID", "&canReplaceID"));
+				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", MenuID.ReNumberingAll, SWT.PUSH, "reNumberingAll", "() => summary !is null"));
+				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", MenuID.ToXMLText, SWT.PUSH, "clipboardToXML", "() => CBisXMLOnly(_comm.clipboard)"));
 				dStr ~= " - " ~ .text(__LINE__);
 				if (_prop.var.etc.singleWindow) { mixin(S_TRACE);
@@ -2390,6 +2443,7 @@ public:
 					{ mixin(S_TRACE);
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						mixin (ToolAction!("bar", MenuID.Find, SWT.PUSH, "replaceText", "null"));
+						mixin (ToolAction!("bar", MenuID.FindID, SWT.PUSH, "replaceID", "&canReplaceID"));
 						new ToolItem(bar, SWT.SEPARATOR);
 						mixin (ToolAction!("bar", MenuID.ReNumberingAll, SWT.PUSH, "reNumberingAll", "() => summary !is null"));
 						new ToolItem(bar, SWT.SEPARATOR);
@@ -2495,6 +2549,7 @@ public:
 				mixin (ToolAction!("bar", MenuID.SaveAs, SWT.PUSH, "saveScenarioA", "() => summary !is null"));
 				new ToolItem(bar, SWT.SEPARATOR);
 				mixin (ToolAction!("bar", MenuID.Find, SWT.PUSH, "replaceText", "null"));
+				mixin (ToolAction!("bar", MenuID.FindID, SWT.PUSH, "replaceID", "&canReplaceID"));
 				mixin (ToolAction!("bar", MenuID.ReNumberingAll, SWT.PUSH, "reNumberingAll", "() => summary !is null"));
 				mixin (ToolAction!("bar", MenuID.ToXMLText, SWT.PUSH, "clipboardToXML", "() => CBisXMLOnly(_comm.clipboard)"));
 				new ToolItem(bar, SWT.SEPARATOR);

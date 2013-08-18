@@ -223,6 +223,7 @@ public:
 			putMenuAction(MenuID.Redo, &redo, &canRedo);
 			putMenuAction(MenuID.Up, &up, &canUp);
 			putMenuAction(MenuID.Down, &down, &canDown);
+			putMenuAction(MenuID.FindID, &replaceID, &canReplaceID);
 		}
 		{ mixin(S_TRACE);
 			static if (UseArea && UseFlag) {
@@ -882,6 +883,35 @@ public:
 			_areas.redo();
 		} else static if (UseFlag) {
 			_flags.redo();
+		} else static assert (0);
+	}
+	void replaceID() {
+		static if (UseArea && UseFlag) {
+			if (tabf.getSelection() is tabA) { mixin(S_TRACE);
+				_areas.replaceID();
+			} else { mixin(S_TRACE);
+				assert (tabf.getSelection() is tabF);
+				_flags.replaceID();
+			}
+		} else static if (UseArea) {
+			_areas.replaceID();
+		} else static if (UseFlag) {
+			_flags.replaceID();
+		} else static assert (0);
+	}
+	@property
+	bool canReplaceID() {
+		static if (UseArea && UseFlag) {
+			if (tabf.getSelection() is tabA) { mixin(S_TRACE);
+				return _areas.canReplaceID;
+			} else { mixin(S_TRACE);
+				assert (tabf.getSelection() is tabF);
+				return _flags.canReplaceID;
+			}
+		} else static if (UseArea) {
+			return _areas.canReplaceID;
+		} else static if (UseFlag) {
+			return _flags.canReplaceID;
 		} else static assert (0);
 	}
 }

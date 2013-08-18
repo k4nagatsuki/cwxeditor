@@ -621,11 +621,14 @@ private:
 	}
 	class SelIDKind : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			updateIDCombo();
-			setupIDs(true, true, true);
-			_prop.var.etc.searchIDKind = _idKind.getSelectionIndex();
-			_comm.refreshToolBar();
+			selIDKind();
 		}
+	}
+	void selIDKind() {
+		updateIDCombo();
+		setupIDs(true, true, true);
+		_prop.var.etc.searchIDKind = _idKind.getSelectionIndex();
+		_comm.refreshToolBar();
 	}
 	@property
 	private bool idKindIsString() {
@@ -1632,13 +1635,68 @@ public:
 			search();
 		}
 	}
-	void replacePath(string from) { mixin(S_TRACE);
+	void replacePath(string from, bool start = false) { mixin(S_TRACE);
 		reset();
 		_fromPath.setText(from);
 		_toPath.setText("");
 		_tabf.setSelection(_tabPath);
 		tabChanged();
 		_fromPath.setFocus();
+		if (start) { mixin(S_TRACE);
+			search();
+		}
+	}
+	void replaceID(ID)(ID from, bool start = false) { mixin(S_TRACE);
+		reset();
+		static if (is(ID:AreaId)) {
+			_idKind.select(ID_AREA);
+		} else static if (is(ID:BattleId)) {
+			_idKind.select(ID_BATTLE);
+		} else static if (is(ID:PackageId)) {
+			_idKind.select(ID_PACKAGE);
+		} else static if (is(ID:CastId)) {
+			_idKind.select(ID_CAST);
+		} else static if (is(ID:SkillId)) {
+			_idKind.select(ID_SKILL);
+		} else static if (is(ID:ItemId)) {
+			_idKind.select(ID_ITEM);
+		} else static if (is(ID:BeastId)) {
+			_idKind.select(ID_BEAST);
+		} else static if (is(ID:InfoId)) {
+			_idKind.select(ID_INFO);
+		} else static if (is(ID:FlagId)) {
+			_idKind.select(ID_FLAG);
+		} else static if (is(ID:StepId)) {
+			_idKind.select(ID_STEP);
+		} else static if (is(ID:CouponId)) {
+			_idKind.select(ID_COUPON);
+		} else static if (is(ID:GossipId)) {
+			_idKind.select(ID_GOSSIP);
+		} else static if (is(ID:CompleteStampId)) {
+			_idKind.select(ID_COMPLETE_STAMP);
+		} else static if (is(ID:KeyCodeId)) {
+			_idKind.select(ID_KEY_CODE);
+		} else static assert (0);
+		selIDKind();
+		static if (is(typeof(from.id):ulong)) {
+			bool sel = false;
+			foreach (index, id; _fromIDTbl) { mixin(S_TRACE);
+				if (id == from.id) { mixin(S_TRACE);
+					_fromID.select(index);
+					sel = true;
+					break;
+				}
+			}
+			if (!sel) return;
+		} else {
+			_fromID.setText(cast(string)from);
+		}
+		_tabf.setSelection(_tabID);
+		tabChanged();
+		_fromID.setFocus();
+		if (start) { mixin(S_TRACE);
+			search();
+		}
 	}
 
 	private void openRangePath() { mixin(S_TRACE);

@@ -163,4 +163,12 @@ public:
 		_undo.redo();
 		_comm.refreshToolBar();
 	}
+
+	void replaceID() {
+		_flags.replaceID();
+	}
+	@property
+	bool canReplaceID() {
+		return _flags.canReplaceID;
+	}
 }

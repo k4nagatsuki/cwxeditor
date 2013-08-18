@@ -2111,6 +2111,8 @@ public:
 			new MenuItem(pop, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, pop, this, true, true, true, true, true);
 			new MenuItem(pop, SWT.SEPARATOR);
+			createMenuItem(_comm, pop, MenuID.FindID, &replaceID, &canReplaceID);
+			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.ReNumbering, &reNumbering, () => selection !is null);
 		} else { mixin(S_TRACE);
 			auto pop = new Menu(parent.getShell(), SWT.POP_UP);
@@ -2835,6 +2837,15 @@ public:
 		}
 		bool canRedo() { mixin(S_TRACE);
 			return _undo.canRedo();
+		}
+
+		void replaceID() {
+			auto sel = selection;
+			if (sel) _comm.replaceID(C.toID(sel.id), true);
+		}
+		@property
+		bool canReplaceID() {
+			return selection !is null;
 		}
 	}
 
