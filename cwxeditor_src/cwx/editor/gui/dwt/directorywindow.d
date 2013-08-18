@@ -1614,7 +1614,10 @@ public:
 			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(_comm, bar, MenuID.ChangeVH, &changeVHSide, null);
 		}
-		_sash = new SplitPane(contPane, _prop.var.etc.directorySashV ? SWT.VERTICAL : SWT.HORIZONTAL);
+		auto sashPane = new Composite(contPane, SWT.NONE);
+		sashPane.setLayout(zeroGridLayout(1, true));
+		sashPane.setLayoutData(new GridData(GridData.FILL_BOTH));
+		_sash = new SplitPane(sashPane, _prop.var.etc.directorySashV ? SWT.VERTICAL : SWT.HORIZONTAL);
 		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto dirsComp = new Composite(_sash, SWT.NONE);
 		dirsComp.setLayout(new FillLayout);
@@ -1735,7 +1738,7 @@ public:
 			shell.setBounds(x, y, width, height);
 			shell.addControlListener(new SCListener);
 		}
-		_incSearch = new IncSearch(_comm, _files);
+		_incSearch = new IncSearch(_comm, sashPane);
 		_incSearch.modEvent ~= {refreshFiles(null);};
 	}
 	private class SCListener : ControlAdapter {

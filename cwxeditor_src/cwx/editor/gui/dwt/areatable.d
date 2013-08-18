@@ -1831,14 +1831,7 @@ public:
 		saveColumnWidth!("prop.var.etc.areaCountColumn")(_prop, countCol);
 
 		_areasEdit = new TableTextEdit(_comm, _prop, _areas, 1, &editEnd);
-
-		auto matchers = [
-			AdditionMatcher(MenuProps.buildMenu(.objName!Area(_prop), "A", "", false), (o) => cast(Area)o !is null),
-			AdditionMatcher(MenuProps.buildMenu(.objName!Battle(_prop), "B", "", false), (o) => cast(Battle)o !is null),
-			AdditionMatcher(MenuProps.buildMenu(.objName!Package(_prop), "P", "", false), (o) => cast(Package)o !is null)
-		];
-		_incSearch = new IncSearch(_comm, _areas, matchers);
-		_incSearch.modEvent ~= &refreshAreas;
+		updateIncSearchParent();
 
 		auto menu = new Menu(parent.getShell(), SWT.POP_UP);
 		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, null);
@@ -1950,6 +1943,19 @@ public:
 			});
 		}
 	}
+	private void updateIncSearchParent() { mixin(S_TRACE);
+		auto matchers = [
+			AdditionMatcher(MenuProps.buildMenu(.objName!Area(_prop), "A", "", false), (o) => cast(Area)o !is null),
+			AdditionMatcher(MenuProps.buildMenu(.objName!Battle(_prop), "B", "", false), (o) => cast(Battle)o !is null),
+			AdditionMatcher(MenuProps.buildMenu(.objName!Package(_prop), "P", "", false), (o) => cast(Package)o !is null)
+		];
+		if (_dirMode) { mixin(S_TRACE);
+			_incSearch = new IncSearch(_comm, _dirTree.getParent().getParent(), matchers);
+		} else { mixin(S_TRACE);
+			_incSearch = new IncSearch(_comm, _areas, matchers);
+		}
+		_incSearch.modEvent ~= &refreshAreas;
+	}
 
 	private int toAreaIndex(int index) { mixin(S_TRACE);
 		index--;
@@ -1976,6 +1982,7 @@ public:
 		auto sash = cast(SplitPane)_dirTree.getParent().getParent();
 		sash = .changeVHSide(sash);
 		_prop.var.etc.areaSashV = (sash.getStyle() & SWT.VERTICAL) != 0;
+		updateIncSearchParent();
 	}
 
 	@property
