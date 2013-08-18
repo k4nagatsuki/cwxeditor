@@ -3407,16 +3407,22 @@ public:
 		}
 		auto ski = cast(SkillCard) path;
 		if (ski) {
+			if (ski.linkId != 0) ski = summ.skill(ski.linkId);
+			if (!ski) return;
 			img = _prop.images.skill;
 			text = .tryFormat(_prop.msgs.searchResultIds, _prop.msgs.skill, ski.id, ski.name);
 		}
 		auto ite = cast(ItemCard) path;
 		if (ite) {
+			if (ite.linkId != 0) ite = summ.item(ite.linkId);
+			if (!ite) return;
 			img = _prop.images.item;
 			text = .tryFormat(_prop.msgs.searchResultIds, _prop.msgs.item, ite.id, ite.name);
 		}
 		auto bea = cast(BeastCard) path;
 		if (bea) {
+			if (bea.linkId != 0) bea = summ.beast(bea.linkId);
+			if (!bea) return;
 			img = _prop.images.beast;
 			text = .tryFormat(_prop.msgs.searchResultIds, _prop.msgs.beast, bea.id, bea.name);
 		}
@@ -3682,6 +3688,9 @@ public:
 	}
 	private bool replCard(C)(CWXPath path, C card, ref size_t count, ref Undo[] uArr) {
 		bool r = false;
+		static if (is(typeof(card.linkId))) {
+			if (card.linkId != 0) return r;
+		}
 		Undo[] uArr2;
 		if (_cardNameSel) {
 			r |= repl(null, card.name, &card.name, count, uArr2);
