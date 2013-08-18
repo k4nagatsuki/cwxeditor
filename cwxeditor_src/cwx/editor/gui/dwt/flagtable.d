@@ -1379,12 +1379,7 @@ public:
 		countCol.setText(prop.msgs.flagCount);
 		saveColumnWidth!("prop.var.etc.flagCountColumn")(prop, countCol);
 
-		auto matchers = [
-			AdditionMatcher(MenuProps.buildMenu(.objName!Step(prop), "S", "", false), (o) => cast(Step)o !is null),
-			AdditionMatcher(MenuProps.buildMenu(.objName!Flag(prop), "F", "", false), (o) => cast(Flag)o !is null),
-		];
-		_incSearch = new IncSearch(_comm, incSearchParent, matchers);
-		_incSearch.modEvent ~= &refresh;
+		updateIncSearchParent(incSearchParent);
 
 		flags.addKeyListener(new KListener);
 		flags.addMouseListener(new MListener);
@@ -1444,6 +1439,14 @@ public:
 		_comp.addDisposeListener(new Dispose);
 
 		return _comp;
+	}
+	void updateIncSearchParent(Composite incSearchParent) {
+		auto matchers = [
+			AdditionMatcher(MenuProps.buildMenu(.objName!Step(prop), "S", "", false), (o) => cast(Step)o !is null),
+			AdditionMatcher(MenuProps.buildMenu(.objName!Flag(prop), "F", "", false), (o) => cast(Flag)o !is null),
+		];
+		_incSearch = new IncSearch(_comm, incSearchParent, matchers);
+		_incSearch.modEvent ~= &refresh;
 	}
 	private Composite _comp = null;
 	@property

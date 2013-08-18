@@ -98,6 +98,7 @@ public:
 		_sash.removeDisposeListener(_sdl);
 		_sash = .changeVHSide(_sash);
 		_sash.addDisposeListener(_sdl);
+		_flags.updateIncSearchParent(_sash);
 	}
 
 	/// フラグのディレクトリツリーを設定し、各コンポーネントに
