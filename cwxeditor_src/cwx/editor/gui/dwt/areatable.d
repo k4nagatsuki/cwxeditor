@@ -2444,7 +2444,7 @@ public:
 			int lastIndex = indexOf(a1);
 			ATUndo[] undos;
 			do { mixin(S_TRACE);
-				undos ~= new UndoSwap(this, _comm, _summ, i1, i2);
+				undos ~= new UndoSwap(this, _comm, _summ, indexFrom!A(_summ, i1), indexFrom!A(_summ, i2));
 				a2 = array[i2];
 				_summ.swap!A(i1, i2);
 				int mv = i2 - i1;
