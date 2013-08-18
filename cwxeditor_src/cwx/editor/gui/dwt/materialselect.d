@@ -181,7 +181,7 @@ public:
 				_comm.refPaths.call(this.outer, summSkin.materialPath);
 			}
 		};
-		_incSearch = new IncSearch(_comm, _fileList);
+		_incSearch = new IncSearch(_comm, parent);
 		_incSearch.modEvent ~= { mixin(S_TRACE);
 			refreshList();
 		};

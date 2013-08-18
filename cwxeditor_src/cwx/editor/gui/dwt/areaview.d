@@ -3618,11 +3618,13 @@ public:
 			new ToolItem(bar, SWT.SEPARATOR);
 			auto skin = _comm.skin;
 			_bgm = new MaterialSelect!(MtType.BGM, CCombo, CCombo)(_comm, _prop, _summ, false, &selectBGM, [_prop.msgs.bgmNone]);
-			auto dirs = _bgm.createDirsCombo(bar);
-			createToolItemC(bar, dirs);
-			auto files = _bgm.createFileList(bar);
-			createToolItemC(bar, files);
-			_bgm.createPlayToolItem(bar);
+			auto comp = new Composite(bar, SWT.NONE);
+			comp.setLayout(zeroGridLayout(3, false));
+			auto dirs = _bgm.createDirsCombo(comp);
+			auto files = _bgm.createFileList(comp);
+			auto playBar = new ToolBar(comp, SWT.FLAT);
+			_bgm.createPlayToolItem(playBar);
+			createToolItemC(bar, comp);
 			_bgm.path = _area.music;
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
