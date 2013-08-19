@@ -343,6 +343,7 @@ class FlexEtcProps : Properties {
 	auto showTerminalMark = Prop!(bool)("showTerminalMark", true);
 	auto clickIconIsStartEdit = Prop!(bool)("clickIconIsStartEdit", false);
 	auto showAreaDirTree = Prop!(bool)("showAreaDirTree", false);
+	auto sortFlagDirs = Prop!(bool)("sortFlagDirs", true);
 
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
 

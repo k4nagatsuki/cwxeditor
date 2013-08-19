@@ -156,6 +156,7 @@ private:
 						storeInsert(dir, tblSelsF, tblSelsS, [dir.indexOf(dirName)], [], []);
 						_comm.refFlagDir.call(this.outer, [root.findPath(newPath, false)]);
 					}
+					if (prop.var.etc.sortFlagDirs) dir.sortSubDirs();
 					refresh(newPath);
 					break;
 				case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
@@ -208,8 +209,10 @@ private:
 		if (oldName == text) return;
 		if (dir.rename(text, uc)) { mixin(S_TRACE);
 			storeEditDir(dir, oldName);
-			itm.setText(dir.name);
 			_comm.refFlagDir.call(this, [dir]);
+			assert (dir.parent !is null);
+			if (prop.var.etc.sortFlagDirs) dir.parent.sortSubDirs();
+			refresh();
 			_comm.refreshToolBar();
 		}
 	}
@@ -424,6 +427,7 @@ public:
 		storeInsert(cur, flags.selectionFlagNames, flags.selectionStepNames, [cast(int) cur.subDirs.length], [], []);
 		auto dir = new FlagDir(name);
 		cur.add(dir);
+		if (prop.var.etc.sortFlagDirs) cur.sortSubDirs();
 		refreshDirs(cur);
 		current = dir;
 		edit.startEdit();
@@ -454,6 +458,7 @@ public:
 
 	private bool canUdImpl(int plus) { mixin(S_TRACE);
 		if (!dirs.isFocusControl()) return false;
+		if (prop.var.etc.sortFlagDirs) return false;
 		auto sel = selectedItem;
 		if (!sel) return false;
 		auto dir = cast(FlagDir) sel.getData();
@@ -467,6 +472,7 @@ public:
 	}
 	private void udImpl(int plus) { mixin(S_TRACE);
 		if (!dirs.isFocusControl()) return;
+		if (prop.var.etc.sortFlagDirs) return;
 		auto sel = selectedItem;
 		if (!sel) return;
 		auto dir = cast(FlagDir) sel.getData();
@@ -539,6 +545,8 @@ public:
 						auto dir = root.findPath(newPath, false);
 						storeInsert(dir.parent, tblSelsF, tblSelsS, [dir.parent.indexOf(dir.name)], [], []);
 						_comm.refFlagDir.call(this, [dir]);
+						if (prop.var.etc.sortFlagDirs) dir.parent.sortSubDirs();
+						refresh();
 						auto itm = find(current);
 						if (itm) treeExpandedAll(itm);
 						break;

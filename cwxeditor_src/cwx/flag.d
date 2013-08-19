@@ -951,6 +951,25 @@ public:
 	}
 
 	/// フラグ・ステップを名前順にソートする。
+	void sortSubDirs(bool sub = false) { mixin(S_TRACE);
+		bool cmps(in FlagDir a, in FlagDir b) { mixin(S_TRACE);
+			if (_sorter) { mixin(S_TRACE);
+				return _sorter(a.name, b.name) < 0;
+			} else { mixin(S_TRACE);
+				return cmp(a.name, b.name) < 0;
+			}
+		}
+		if (!isSortedDlg!(FlagDir)(_subdir, &cmps)) { mixin(S_TRACE);
+			if (_change) _change();
+			_subdir = sortDlg!(FlagDir)(_subdir, &cmps);
+		}
+		if (sub) { mixin(S_TRACE);
+			foreach (d; _subdir) { mixin(S_TRACE);
+				d.sortSubDirs(true);
+			}
+		}
+	}
+	/// ditto
 	void sortFlags(bool sub = false) { mixin(S_TRACE);
 		bool cmps(in Flag a, in Flag b) { mixin(S_TRACE);
 			if (_sorter) { mixin(S_TRACE);
@@ -1612,6 +1631,7 @@ public:
 			}
 		};
 		node.parse();
+		root.sortSubDirs(true);
 		root.sortFlags(true);
 		root.sortSteps(true);
 	}
