@@ -367,6 +367,7 @@ class FlexEtcProps : Properties {
 	auto replaceTextRegExp = Prop!(bool)("replaceTextRegExp", false);
 	auto replaceTextWildcard = Prop!(bool)("replaceTextWildcard", false);
 	auto replaceTextExactMatch = Prop!(bool)("replaceTextExactMatch", false);
+	auto replaceTextIgnoreReturnCode = Prop!(bool)("replaceTextIgnoreReturnCode", false);
 	auto grepDir = Prop!(string)("grepDir", "");
 	auto grepDirHistories = Prop!(string[])("grepDirHistories", []);
 	auto grepSubDir = Prop!(bool)("grepSubDir", true);

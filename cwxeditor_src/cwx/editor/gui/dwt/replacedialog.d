@@ -215,6 +215,7 @@ private:
 	Button _useRegex;
 	Button _useWildcard;
 	Button _exact;
+	Button _ignoreReturnCode;
 	class SelRegex : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			if (_useRegex.getSelection()) { mixin(S_TRACE);
@@ -227,6 +228,11 @@ private:
 			if (_useWildcard.getSelection()) { mixin(S_TRACE);
 				_useRegex.setSelection(false);
 			}
+		}
+	}
+	class SelIgnoreReturnCode : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+			_comm.refreshToolBar();
 		}
 	}
 	@property
@@ -298,6 +304,7 @@ private:
 
 	bool _notIgnoreCaseSel;
 	bool _exactSel;
+	bool _ignoreReturnCodeSel;
 	bool _summarySel;
 	bool _msgSel;
 	bool _cardNameSel;
@@ -706,7 +713,7 @@ private:
 			}
 		}
 		_parent.layout(true);
-		_replace.setEnabled(sel !is _tabContents && sel !is _tabCoupon && sel !is _tabUnuse && sel !is _tabError);
+		_replace.setEnabled(!(sel is _tabText && _ignoreReturnCode.getSelection()) && sel !is _tabContents && sel !is _tabCoupon && sel !is _tabUnuse && sel !is _tabError);
 		_range.setEnabled(sel !is _tabUnuse && sel !is _tabGrep);
 		_rangeAllCheck.setEnabled(_range.getEnabled());
 		_comm.refreshToolBar();
@@ -825,22 +832,25 @@ private:
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			grp.setLayoutData(gd);
 			grp.setText(_prop.msgs.replCond);
-			grp.setLayout(new GridLayout(2, false));
+			grp.setLayout(new GridLayout(3, false));
 			_notIgnoreCase = new Button(grp, SWT.CHECK);
 			_notIgnoreCase.setText(_prop.msgs.replNotIgnoreCase);
 			_exact = new Button(grp, SWT.CHECK);
 			_exact.setText(_prop.msgs.replExactMatch);
+			_ignoreReturnCode = new Button(grp, SWT.CHECK);
+			_ignoreReturnCode.setText(_prop.msgs.replIgnoreReturnCode);
+			_ignoreReturnCode.addSelectionListener(new SelIgnoreReturnCode);
 			_useWildcard = new Button(grp, SWT.CHECK);
 			_useWildcard.setText(_prop.msgs.replWildcard);
 			_useWildcard.addSelectionListener(new SelWildcard);
 			auto gdw = new GridData;
-			gdw.horizontalSpan = 2;
+			gdw.horizontalSpan = 3;
 			_useWildcard.setLayoutData(gdw);
 			_useRegex = new Button(grp, SWT.CHECK);
 			_useRegex.setText(_prop.msgs.replRegExp);
 			_useRegex.addSelectionListener(new SelRegex);
 			auto gdr = new GridData;
-			gdr.horizontalSpan = 2;
+			gdr.horizontalSpan = 3;
 			_useRegex.setLayoutData(gdr);
 		}
 		{ mixin(S_TRACE);
@@ -1880,6 +1890,7 @@ public:
 		setComboItems(_grepDir, _prop.var.etc.grepDirHistories.dup);
 		_notIgnoreCase.setSelection(_prop.var.etc.replaceTextNotIgnoreCase);
 		_exact.setSelection(_prop.var.etc.replaceTextExactMatch);
+		_ignoreReturnCode.setSelection(_prop.var.etc.replaceTextIgnoreReturnCode);
 		_useRegex.setSelection(_prop.var.etc.replaceTextRegExp);
 		_useWildcard.setSelection(_prop.var.etc.replaceTextWildcard);
 		_summary.setSelection(_prop.var.etc.replaceTextSummary);
@@ -2073,6 +2084,7 @@ public:
 			saveWin();
 			_prop.var.etc.replaceTextNotIgnoreCase = _notIgnoreCase.getSelection();
 			_prop.var.etc.replaceTextExactMatch = _exact.getSelection();
+			_prop.var.etc.replaceTextIgnoreReturnCode = _ignoreReturnCode.getSelection();
 			_prop.var.etc.replaceTextRegExp = _useRegex.getSelection();
 			_prop.var.etc.replaceTextWildcard = _useWildcard.getSelection();
 			_prop.var.etc.replaceTextSummary = _summary.getSelection();
@@ -2311,7 +2323,7 @@ public:
 		auto sel = _tabf.getSelection();
 		if (!sel) return false;
 		if (!_summ) return false;
-		return canFind && (sel is _tabText || sel is _tabID || sel is _tabPath);
+		return canFind && ((sel is _tabText && !_ignoreReturnCode.getSelection()) || sel is _tabID || sel is _tabPath);
 	}
 	private bool canCancel() { mixin(S_TRACE);
 		return _inProc;
@@ -2323,6 +2335,7 @@ public:
 
 		_notIgnoreCaseSel = _notIgnoreCase.getSelection();
 		_exactSel = _exact.getSelection();
+		_ignoreReturnCodeSel = _ignoreReturnCode.getSelection();
 		_summarySel = _summary.getSelection();
 		_msgSel = _msg.getSelection();
 		_cardNameSel = _cardName.getSelection();
@@ -3589,6 +3602,7 @@ public:
 		}
 	}
 	private size_t fTextCount(string s) { mixin(S_TRACE);
+		if (_ignoreReturnCodeSel) s = .singleLine(s);
 		if (_regexTarg) { mixin(S_TRACE);
 			size_t c = 0;
 			try { mixin(S_TRACE);

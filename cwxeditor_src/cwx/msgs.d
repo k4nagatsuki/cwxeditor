@@ -233,6 +233,7 @@ class Msgs : Properties {
 	auto regexError = Msg("regexError", "正規表現が正しくありません。");
 	auto replWildcard = Msg("replWildcard", "ワイルドカード(&W) (* = 任意文字列, ? = 任意1文字, \\* = *, \\? = ?, \\\\ = \\)");
 	auto replExactMatch = Msg("replExactMatch", "完全一致(&X)");
+	auto replIgnoreReturnCode = Msg("replIgnoreReturnCode", "改行と前後の空白を無視(&I) (置換はできません)");
 	auto replCond = Msg("replCond", "検索条件");
 	auto search = Msg("search", "検索(&F)");
 	auto replace = Msg("replace", "全て置換(&R)");
