@@ -2161,10 +2161,10 @@ private:
 				_mouseP = null;
 			} else if (me.button == 2) { mixin(S_TRACE);
 				auto ids = selectedIndices;
-				if (ids.length == 0 || !changeSelect(x, y)) { mixin(S_TRACE);
+				if (ids.length == 0 || !changeSelect(x, y, _ctrl)) { mixin(S_TRACE);
 					int i = findIndex(x, y);
 					if (i >= 0) { mixin(S_TRACE);
-						doDeselectAll();
+						if (!_ctrl) doDeselectAll();
 						doSelect(cast(FlexImage) images[i]);
 					}
 				}
@@ -2372,10 +2372,10 @@ private:
 	}
 
 	/// 選択イメージが一つだけの場合、背後のイメージに切り替える。
-	bool changeSelect(int x, int y) { mixin(S_TRACE);
+	bool changeSelect(int x, int y, bool ctrl) { mixin(S_TRACE);
 		auto tsels = findSelectedIndices(x, y);
 		auto imgs = findIndices(x, y);
-		if (tsels.length == 1 && selectedIndices.length == 1 && imgs.length > 1) { mixin(S_TRACE);
+		if (tsels.length == 1 && (selectedIndices.length == 1 || ctrl) && imgs.length > 1) { mixin(S_TRACE);
 			int i = countUntil(imgs, tsels[0]);
 			assert (i >= 0);
 			doDeselect(cast(FlexImage) images[tsels[0]]);
