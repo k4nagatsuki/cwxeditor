@@ -1249,7 +1249,9 @@ int fnncmp(C1, C2)(in C1[] a, in C2[] b) {
 	return ncmpImpl!(C1, C2, fncmp)(a, b);
 }
 
-private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a, in C2[] b) {
+private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a0, in C2[] b0) {
+	auto a = to!dstring(a0);
+	auto b = to!dstring(b0);
 	for (size_t i = 0, j = 0; i < a.length || j < b.length;) {
 		if (i >= a.length) return -1;
 		if (j >= b.length) return 1;
@@ -1275,8 +1277,8 @@ private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a, in C2[] b) {
 			i += buf1.length;
 			j += buf2.length;
 		} else {
-			if (a[i] < b[j]) return -1;
-			if (a[i] > b[j]) return 1;
+			if (Cmp(a[i..i+1], b[j..j+1]) < 0) return -1;
+			if (Cmp(a[i..i+1], b[j..j+1]) > 0) return 1;
 			i++;
 			j++;
 		}
