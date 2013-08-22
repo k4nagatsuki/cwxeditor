@@ -149,7 +149,7 @@ class FlexEtcProps : Properties {
 	auto backHeightMax = Prop!(uint, true)("backHeightMax", 9999);
 	auto levelMax = Prop!(uint, true)("levelMax", 15);
 	auto castLevelMax = Prop!(uint, true)("castLevelMax", 99);
-	auto lifeMax = Prop!(uint, true)("lifeMax", 999);
+	auto lifeMax = Prop!(uint, true)("lifeMax", 9999);
 	auto couponValueMax = Prop!(uint, true)("couponValueMax", 999);
 	auto physicalMax = Prop!(uint, true)("physicalMax", 15);
 	auto mentalMax = Prop!(uint, true)("mentalMax", 4);

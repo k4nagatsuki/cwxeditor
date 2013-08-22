@@ -364,6 +364,8 @@ public:
 
 		dirs.addSelectionListener(new DirSelection);
 		auto menu = new Menu(dirs.getShell(), SWT.POP_UP);
+		createMenuItem(_comm, menu, MenuID.NewFlagDir, &createDir, () => current !is null);
+		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
 		createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);

@@ -2079,12 +2079,24 @@ public:
 				createMenuItem(_comm, pop, MenuID.EditProp, &editM, &canEdit);
 				new MenuItem(pop, SWT.SEPARATOR);
 				createMenuItem(_comm, pop, MenuID.OpenHand, &editHand, &canEdit);
+				new MenuItem(pop, SWT.SEPARATOR);
+				createMenuItem(_comm, pop, MenuID.NewCast, &create, () => _summ !is null);
 			} else static if (is (C == SkillCard) || is (C == ItemCard) || is (C == BeastCard)) {
 				createMenuItem(_comm, pop, MenuID.EditProp, &editM, &canEdit);
 				new MenuItem(pop, SWT.SEPARATOR);
 				createMenuItem(_comm, pop, MenuID.EditEventAtTimeOfUsing, &editUseEvent, &canEdit);
+				new MenuItem(pop, SWT.SEPARATOR);
+				static if (is(C:SkillCard)) {
+					createMenuItem(_comm, pop, MenuID.NewSkill, &create, () => _summ !is null);
+				} else static if (is(C:ItemCard)) {
+					createMenuItem(_comm, pop, MenuID.NewItem, &create, () => _summ !is null);
+				} else static if (is(C:BeastCard)) {
+					createMenuItem(_comm, pop, MenuID.NewBeast, &create, () => _summ !is null);
+				} else static assert (0);
 			} else static if (is (C == InfoCard)) {
 				createMenuItem(_comm, pop, MenuID.EditProp, &editM, &canEdit);
+				new MenuItem(pop, SWT.SEPARATOR);
+				createMenuItem(_comm, pop, MenuID.NewInfo, &create, () => _summ !is null);
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}

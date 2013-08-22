@@ -1802,6 +1802,8 @@ public:
 			_dirTree.addKeyListener(new TreeKListener);
 
 			auto menu = new Menu(_dirTree.getShell(), SWT.POP_UP);
+			createMenuItem(_comm, menu, MenuID.NewAreaDir, &createDir, () => _dirMode && _summ !is null);
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
 			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
 			new MenuItem(menu, SWT.SEPARATOR);
@@ -1852,6 +1854,10 @@ public:
 		}
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.EditSummary, &editSummary, () => _summ !is null);
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.NewArea, &createArea, () => _summ !is null);
+		createMenuItem(_comm, menu, MenuID.NewBattle, &createBattle, () => _summ !is null);
+		createMenuItem(_comm, menu, MenuID.NewPackage, &createPackage, () => _summ !is null);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.SetStartArea, &setStartArea, &canSetStartArea);
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -2205,7 +2211,11 @@ public:
 	}
 
 	/// 新規パッケージが作成され、名前の入力待ちになる。
-	ulong createPackage(Content baseStart = null) { mixin(S_TRACE);
+	void createPackage() { mixin(S_TRACE);
+		createPackage(null);
+	}
+	/// ditto
+	ulong createPackage(Content baseStart) { mixin(S_TRACE);
 		ulong[] a, b, p;
 		saveIDs(_summ, a, b, p);
 		auto pkg = new Package(_summ.newPackageId, baseStart ? baseStart.name : _prop.msgs.packageNew);

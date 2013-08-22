@@ -1501,6 +1501,19 @@ private:
 		{ mixin(S_TRACE);
 			auto menu = new Menu(parent.getShell(), SWT.POP_UP);
 			createMenuItem(_comm, menu, MenuID.EditProp, &edit, () => _imgp.selectedIndex != -1 && !_imgp.isMoving);
+			static if (is(A : Area)) {
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.NewMenuCard, &createCard, null);
+			} else static if (is(A : Battle)) {
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.NewEnemyCard, &createCard, null);
+			}
+			static if (UseBacks) {
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.NewBack, &createBackground, null);
+				createMenuItem(_comm, menu, MenuID.NewTextCell, &createTextCell, null);
+				createMenuItem(_comm, menu, MenuID.NewColorCell, &createColorCell, null);
+			}
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, menu, _tcpd, true, true, true, true, true);
 			static if (is(A : Area)) {
@@ -2122,6 +2135,16 @@ private:
 			createMenuItem(_comm, menu, MenuID.EditProp, { mixin(S_TRACE);
 				edit(list.getSelectionIndices());
 			}, () => list.getSelectionIndex() != -1);
+			new MenuItem(menu, SWT.SEPARATOR);
+			static if (is(C:MenuCard)) {
+				createMenuItem(_comm, menu, MenuID.NewMenuCard, &createCard, null);
+			} else static if (is(C:EnemyCard)) {
+				createMenuItem(_comm, menu, MenuID.NewEnemyCard, &createCard, null);
+			} else {
+				createMenuItem(_comm, menu, MenuID.NewBack, &createBackground, null);
+				createMenuItem(_comm, menu, MenuID.NewTextCell, &createTextCell, null);
+				createMenuItem(_comm, menu, MenuID.NewColorCell, &createColorCell, null);
+			}
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, menu, tcpd, true, true, true, true, true);
 			new MenuItem(menu, SWT.SEPARATOR);

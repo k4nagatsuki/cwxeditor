@@ -444,7 +444,6 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 						_tree.setSelection([itm]);
 						_selected = path;
 					}
-					if (!firstItem) firstItem = itm;
 					_canIncSearch = true;
 				}
 				if (dirItm) {
@@ -454,6 +453,24 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			}
 			recurse(_tree, _summ.flagDirRoot, _prop.msgs.flagDirRoot);
 			checkAllExpanded(_allExpanded, _tree);
+
+			void selRecurse(TreeItem itm, bool forceExpand) { mixin(S_TRACE);
+				if (firstItem) return;
+				if (cast(F)itm.getData()) { mixin(S_TRACE);
+					firstItem = itm;
+					return;
+				}
+				if (forceExpand || itm.getExpanded()) {
+					foreach (child; itm.getItems()) selRecurse(child, forceExpand);
+				}
+			}
+			if (!firstItem) { mixin(S_TRACE);
+				foreach (itm; _tree.getItems()) selRecurse(itm, false);
+			}
+			if (!firstItem) { mixin(S_TRACE);
+				foreach (itm; _tree.getItems()) selRecurse(itm, true);
+			}
+
 		} else { mixin(S_TRACE);
 			static if (is(F:Flag)) {
 				auto flags = _summ.flagDirRoot.allFlags;
@@ -702,14 +719,27 @@ class AreaChooser(A, bool StartArea) : Composite {
 		if (_tree) { mixin(S_TRACE);
 			static if (is(A:AbstractArea)) {
 				TreeItem[string] itmTable;
-				Tuple!(TreeItem, A)[] creates;
-				foreach (a; arr) { mixin (S_TRACE);
+				auto dirSet = new HashSet!string;
+				auto dirSet2 = new HashSet!string;
+				foreach (a; arr) {
 					if (!has && a.id == sel) { mixin(S_TRACE);
 						has = true;
 					}
 					if (!_areaIncSearch.match(a.name)) continue;
-
-					auto dirs = .split(a.dirName, "\\");
+					auto dirName = a.dirName;
+					auto l = dirName.toLower();
+					if (dirSet2.contains(l)) continue;
+					dirSet.add(dirName);
+					dirSet2.add(l);
+				}
+				bool delegate(string, string) cmps;
+				if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
+					cmps = (a, b) => incmp(a, b) < 0;
+				} else { mixin(S_TRACE);
+					cmps = (a, b) => icmp(a, b) < 0;
+				}
+				foreach (dirName; .sortDlg(dirSet.toArray(), cmps)) { mixin(S_TRACE);
+					auto dirs = .split(dirName, "\\");
 					TreeItem itm = null;
 					foreach (i, dir; dirs) { mixin (S_TRACE);
 						auto fPath = dirs[0 .. i + 1].join("\\");
@@ -731,11 +761,12 @@ class AreaChooser(A, bool StartArea) : Composite {
 							itmTable[path] = sub;
 						}
 					}
-					creates ~= Tuple!(TreeItem, A)(itm, a);
+					itmTable[dirName.toLower()] = itm;
 				}
-				foreach (t; creates) { mixin(S_TRACE);
-					auto itm = t[0];
-					auto a = t[1];
+				foreach (a; arr) { mixin(S_TRACE);
+					if (!_areaIncSearch.match(a.name)) continue;
+
+					auto itm = itmTable[a.dirName().toLower()];
 					TreeItem aItm;
 					if (itm) {
 						aItm = new TreeItem(itm, SWT.NONE);
@@ -748,9 +779,19 @@ class AreaChooser(A, bool StartArea) : Composite {
 						_tree.setSelection([aItm]);
 						_selected = a.id;
 					}
-					if (!firstItem) firstItem = itm;
 					_canIncSearch = true;
 					aItm.setImage(image(aItm));
+				}
+				void selRecurse(TreeItem itm) { mixin(S_TRACE);
+					if (firstItem) return;
+					if (cast(A)itm.getData()) { mixin(S_TRACE);
+						firstItem = itm;
+						return;
+					}
+					foreach (child; itm.getItems()) selRecurse(child);
+				}
+				if (!firstItem) { mixin(S_TRACE);
+					foreach (itm; _tree.getItems()) selRecurse(itm);
 				}
 				_tree.treeExpandedAll();
 				checkAllExpanded(_allExpanded, _tree);

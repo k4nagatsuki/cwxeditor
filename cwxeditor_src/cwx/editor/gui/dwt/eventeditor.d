@@ -334,13 +334,14 @@ class EventEditor : Composite {
 		foreach (i, ref pos; _pos) { mixin(S_TRACE);
 			auto c = pos.content;
 			if (c.comment == "") continue;
-			int rx = itemRect(pos).x;
+			auto cRect = itemRect(pos);
+			int rx = cRect.x + cRect.width;
 			if (!_expanded.get(c, true)) { mixin(S_TRACE);
 				rx += 14 + gc.textExtent("...").x + 3;
 			} else { mixin(S_TRACE);
 				rx += 2;
 			}
-			auto cm = std.string.chomp(c.comment);
+			auto cm = std.string.chomp(.lastRet(c.comment));
 			auto te = gc.textExtent(cm);
 			// 改行文字があると横幅がおかしくなるため
 			// 測り直す

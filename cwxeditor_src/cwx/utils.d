@@ -1266,13 +1266,18 @@ int ncmp(C1, C2)(in C1[] a, in C2[] b) { mixin(S_TRACE);
 /// ditto
 int incmp(C1, C2)(in C1[] a, in C2[] b) { mixin(S_TRACE);
 	return ncmpImpl!(C1, C2, std.string.icmp)(a, b);
+} unittest {
+	assert (incmp("a1", "A2") < 0);
+	assert (incmp("A1", "a2") < 0);
 }
 /// ditto
 int fnncmp(C1, C2)(in C1[] a, in C2[] b) { mixin(S_TRACE);
 	return ncmpImpl!(C1, C2, fncmp)(a, b);
 }
 
-private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a, in C2[] b) { mixin(S_TRACE);
+private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a0, in C2[] b0) { mixin(S_TRACE);
+	auto a = to!dstring(a0);
+	auto b = to!dstring(b0);
 	for (size_t i = 0, j = 0; i < a.length || j < b.length;) { mixin(S_TRACE);
 		if (i >= a.length) return -1;
 		if (j >= b.length) return 1;
@@ -1298,8 +1303,8 @@ private int ncmpImpl(C1, C2, alias Cmp)(in C1[] a, in C2[] b) { mixin(S_TRACE);
 			i += buf1.length;
 			j += buf2.length;
 		} else { mixin(S_TRACE);
-			if (a[i] < b[j]) return -1;
-			if (a[i] > b[j]) return 1;
+			if (Cmp(a[i..i+1], b[j..j+1]) < 0) return -1;
+			if (Cmp(a[i..i+1], b[j..j+1]) > 0) return 1;
 			i++;
 			j++;
 		}

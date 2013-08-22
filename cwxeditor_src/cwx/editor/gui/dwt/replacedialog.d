@@ -1428,42 +1428,56 @@ private:
 		add(null, _prop.msgs.flagsAndSteps, _summ.flagDirRoot);
 		if (_prop.var.etc.showAreaDirTree) { mixin(S_TRACE);
 			TreeItem[string] itmTable;
-			Tuple!(TreeItem, AbstractArea)[] creates;
+			auto dirSet = new HashSet!string;
+			auto dirSet2 = new HashSet!string;
+			void put1(string dirName) { mixin(S_TRACE);
+				auto l = dirName.toLower();
+				if (dirSet2.contains(l)) return;
+				dirSet.add(dirName);
+				dirSet2.add(l);
+			}
+			foreach (a; _summ.areas) put1(a.dirName);
+			foreach (a; _summ.battles) put1(a.dirName);
+			foreach (a; _summ.packages) put1(a.dirName);
+			bool delegate(string, string) cmps;
+			if (_prop.var.etc.logicalSort) {
+				cmps = (a, b) => incmp(a, b) < 0;
+			} else {
+				cmps = (a, b) => icmp(a, b) < 0;
+			}
+			foreach (dirName; .sortDlg(dirSet.toArray(), cmps)) { mixin (S_TRACE);
+				auto dirs = .split(dirName, "\\");
+				TreeItem itm = null;
+				foreach (i, dir; dirs) { mixin (S_TRACE);
+					auto fPath = dirs[0 .. i + 1].join("\\");
+					auto path = fPath.toLower();
+					auto p = path in itmTable;
+					if (p) { mixin (S_TRACE);
+						itm = *p;
+					} else { mixin (S_TRACE);
+						TreeItem sub;
+						if (itm) { mixin (S_TRACE);
+							sub = new TreeItem(itm, SWT.NONE);
+						} else { mixin (S_TRACE);
+							sub = new TreeItem(_range, SWT.NONE);
+						}
+						sub.setText(dir);
+						sub.setImage(_prop.images.areaDir);
+						sub.setChecked(true);
+						itm = sub;
+						itmTable[path] = sub;
+					}
+				}
+				itmTable[dirName.toLower()] = itm;
+			}
 			void put(A)(A[] arr) { mixin (S_TRACE);
 				foreach (a; arr) { mixin (S_TRACE);
-					auto dirs = .split(a.dirName, "\\");
-					TreeItem itm = null;
-					foreach (i, dir; dirs) { mixin (S_TRACE);
-						auto fPath = dirs[0 .. i + 1].join("\\");
-						auto path = fPath.toLower();
-						auto p = path in itmTable;
-						if (p) { mixin (S_TRACE);
-							itm = *p;
-						} else { mixin (S_TRACE);
-							TreeItem sub;
-							if (itm) {
-								sub = new TreeItem(itm, SWT.NONE);
-							} else {
-								sub = new TreeItem(_range, SWT.NONE);
-							}
-							sub.setText(dir);
-							sub.setImage(_prop.images.areaDir);
-							sub.setChecked(true);
-							itm = sub;
-							itmTable[path] = sub;
-						}
-					}
-					creates ~= Tuple!(TreeItem, AbstractArea)(itm, a);
+					add(itmTable[a.dirName.toLower()], .tryFormat("%s.%s", a.id, a.baseName), a);
 				}
 			}
 			put(_summ.areas);
 			put(_summ.battles);
 			put(_summ.packages);
-			foreach (t; creates) {
-				auto itm = t[0];
-				auto a = t[1];
-				add(itm, .tryFormat("%s.%s", a.id, a.baseName), a);
-			}
 		} else { mixin(S_TRACE);
 			foreach (a; _summ.areas) add(null, a.name, a);
 			foreach (a; _summ.battles) add(null, a.name, a);

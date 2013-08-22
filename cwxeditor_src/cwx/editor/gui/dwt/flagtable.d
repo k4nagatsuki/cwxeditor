@@ -1388,6 +1388,9 @@ public:
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.EditProp, &edit, () => flags.getSelectionIndex() != -1);
 		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(_comm, menu, MenuID.NewFlag, &createFlag, () => _dir !is null);
+		createMenuItem(_comm, menu, MenuID.NewStep, &createStep, () => _dir !is null);
+		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
 		createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);
