@@ -1328,7 +1328,7 @@ private:
 		}
 	}
 	class MListener : MouseAdapter {
-		public override void mouseDown(MouseEvent e) { mixin(S_TRACE);
+		public override void mouseUp(MouseEvent e) { mixin(S_TRACE);
 			if (e.button == 2) { mixin(S_TRACE);
 				auto itm = _areas.getItem(new Point(e.x, e.y));
 				if (itm && cast(Summary)itm.getData()) { mixin(S_TRACE);

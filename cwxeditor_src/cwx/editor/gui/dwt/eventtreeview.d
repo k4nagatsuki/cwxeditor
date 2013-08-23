@@ -175,7 +175,7 @@ private:
 		}
 	}
 	class CreateL : MouseAdapter {
-		override void mouseDown(MouseEvent e) { mixin(S_TRACE);
+		override void mouseUp(MouseEvent e) { mixin(S_TRACE);
 			if (_readOnly) return;
 			if (_putMode is MenuID.PutQuick) return;
 			if (e.button == 1) { mixin(S_TRACE);
@@ -1858,7 +1858,7 @@ private:
 		}
 	}
 	class TMListener : MouseAdapter {
-		override void mouseDown(MouseEvent e) { mixin(S_TRACE);
+		override void mouseUp(MouseEvent e) { mixin(S_TRACE);
 			if (e.button == 3) { mixin(S_TRACE);
 				arrow();
 				_comm.refreshToolBar();

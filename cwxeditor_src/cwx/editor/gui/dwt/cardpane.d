@@ -1406,7 +1406,7 @@ private:
 	}
 	class LMouse : MouseAdapter {
 		static if (EditMode && is(C:EventTreeOwner)) {
-			override void mouseDown(MouseEvent e) { mixin(S_TRACE);
+			override void mouseUp(MouseEvent e) { mixin(S_TRACE);
 				if (e.button == 1) { mixin(S_TRACE);
 					if (_openEventTarget) { mixin(S_TRACE);
 						editUseEvent(_openEventTarget);
@@ -1433,7 +1433,7 @@ private:
 	}
 	class TMouse : MouseAdapter {
 		static if (EditMode && is(C:EventTreeOwner)) {
-			override void mouseDown(MouseEvent e) { mixin(S_TRACE);
+			override void mouseUp(MouseEvent e) { mixin(S_TRACE);
 				if (e.button == 1) { mixin(S_TRACE);
 					if (_openEventTarget) { mixin(S_TRACE);
 						editUseEvent(_openEventTarget);
