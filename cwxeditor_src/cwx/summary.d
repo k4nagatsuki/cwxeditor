@@ -1908,7 +1908,7 @@ public:
 	void saveOverwrite(in CProps prop, in Skin skin, in SaveOption opt) in { mixin(S_TRACE);
 		assert (isSaved);
 	} body { mixin(S_TRACE);
-		saveProc(prop, skin, opt, false, zipName, scenarioPath, scenarioPath, legacy, false, expandXMLs, false);
+		saveProc(prop, skin, opt, useTemp, zipName, scenarioPath, scenarioPath, legacy, false, expandXMLs, false);
 	}
 	/// 名前をつけて保存。
 	void saveWithName(in CProps prop, in Skin skin, in SaveOption opt, string fname, string tempPath,
