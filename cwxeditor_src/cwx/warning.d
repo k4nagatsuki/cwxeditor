@@ -321,6 +321,21 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.soundPath != "") { mixin(S_TRACE);
 			r ~= skin.warningSE(prop, c.soundPath, summ.legacy, targVer);
 		}
+		uint maxNextLen(in Content c) {
+			if (c.type is CType.TALK_MESSAGE) { mixin(S_TRACE);
+				return c.text == "" ? prop.looks.selectionBarMax : prop.looks.selectionBarMaxWithMessage;
+			} else if (c.type is CType.TALK_DIALOG) { mixin(S_TRACE);
+				foreach (dlg; c.dialogs) { mixin(S_TRACE);
+					if (dlg.text != "") return prop.looks.selectionBarMaxWithMessage;
+				}
+				return prop.looks.selectionBarMax;
+			}
+			return uint.max;
+		}
+		if (c.detail.nextType is CNextType.TEXT && maxNextLen(c) < c.next.length) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningSelectionBarIsMany, c.next.length, maxNextLen(c));
+		}
+
 		if (c.talkerC is Talker.VALUED && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningValuedTalker;
 		}

@@ -59,6 +59,8 @@ public:
 		}
 	}
 	@property const CPoint messageTalkerPos() {return CPoint(15, 43);}
+	@property const uint selectionBarMaxWithMessage() { return 7; }
+	@property const uint selectionBarMax() { return 13; }
 
 	@property const int aptVeryHigh() {return 15;}
 	@property const int aptHigh() {return 9;}
