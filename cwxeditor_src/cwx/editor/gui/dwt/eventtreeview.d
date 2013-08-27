@@ -76,35 +76,18 @@ private:
 	bool _toolWinVisible = false;
 	bool _opened = false;
 	Composite _contentsBoxArea;
-	Menu _templMenu;
-	ToolItem _templTI;
-
-	auto _putMode = MenuID.PutSelect;
-	bool _autoOpen;
-	bool _insertFirst;
-	MenuItem _putQuickMI;
-	MenuItem _putSelectMI;
-	MenuItem _putContinueMI;
-	ToolItem _putModeTI;
-	ToolItem _autoOpenTI;
-	ToolItem _insertFirstTI;
-
-	bool _arrowMode = true;
-	CType _cType;
-	ToolItem _arrowTI;
-	ToolItem _evtTI = null;
-	RadioGroup!(ToolItem) _radioGroup;
+	ContentsToolBox _box;
+	Menu _convM;
+	Converter[CType] _conts;
 
 	void delegate(size_t[]) _forceSel;
 	void delegate() _refreshTopStart;
 
-	Cursor[] _cursors;
 	Warning[] _warningRects;
 
 	string _statusLine;
 
 	Item _clickStart = null;
-	bool _shiftDown = false;
 
 	Skin _summSkin;
 	@property
@@ -112,34 +95,89 @@ private:
 		return _summSkin ? _summSkin : _comm.skin;
 	}
 
-	void autoOpen() { mixin(S_TRACE);
-		_autoOpen = _autoOpenTI.getSelection();
-		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
-	}
-	void updatePutMode() { mixin(S_TRACE);
-		if (!_constructTools) return;
-		if (_putQuickMI.getSelection()) { mixin(S_TRACE);
-			_putMode = MenuID.PutQuick;
-			arrow();
-			foreach (ti; _radioGroup.set) { mixin(S_TRACE);
-				ti.setSelection(false);
+	private void initConvMenu() { mixin(S_TRACE);
+		if (!_conts.length) return;
+		foreach (cGrp, cs; CTYPE_GROUP) { mixin(S_TRACE);
+			auto conv = convMenu(cGrp);
+			foreach (cType; cs) { mixin(S_TRACE);
+				initConvMenu(cType, cType is CType.START ? _convM : conv);
 			}
-			_arrowTI.setSelection(false);
-		} else if (_putSelectMI.getSelection()) { mixin(S_TRACE);
-			_putMode = MenuID.PutSelect;
-			if (!_arrowTI.getEnabled()) arrow();
-		} else if (_putContinueMI.getSelection()) { mixin(S_TRACE);
-			_putMode = MenuID.PutContinue;
-			if (!_arrowTI.getEnabled()) arrow();
 		}
-		_arrowTI.setEnabled(_putMode !is MenuID.PutQuick);
-		_putModeTI.setToolTipText(_prop.buildTool(_putMode));
-		_putModeTI.setImage(_prop.images.menu(_putMode));
-		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
 	}
-	void insertFirst() { mixin(S_TRACE);
-		_insertFirst = _insertFirstTI.getSelection();
-		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
+	private void initConvMenu(CType type, Menu convMenu) { mixin(S_TRACE);
+		auto text = _prop.msgs.contentName(type);
+		auto img = _prop.images.content(type);
+		auto ce = _conts[type];
+		if (type != CType.START) { mixin(S_TRACE);
+			ce.convMenuItem = createMenuItem2(_comm, convMenu, text, img, &ce.convert, null);
+			ce.convMenuItem.setEnabled(false);
+		}
+	}
+	private bool canConvTerminal() { mixin(S_TRACE);
+		auto itm = selection;
+		if (!itm) return false;
+		auto evt = cast(Content) itm.getData();
+		return !evt.next.length;
+	}
+	private Menu convMenu(CTypeGroup g) { mixin(S_TRACE);
+		void delegate() dlg = null;
+		auto mi = createMenuItem(_comm, _convM, cTypeGroupToMenuID(g), dlg, g is CTypeGroup.Terminal ? &canConvTerminal : null, SWT.CASCADE);
+		auto m = new Menu(_tree.control.getShell(), SWT.DROP_DOWN);
+		mi.setMenu(m);
+		return m;
+	}
+	private void refreshConvMenu() { mixin(S_TRACE);
+		if (_readOnly) return;
+		if (!_et || !selection) { mixin(S_TRACE);
+			foreach (ce; _conts.values) { mixin(S_TRACE);
+				if (ce.convMenuItem) ce.convMenuItem.setEnabled(false);
+			}
+		} else { mixin(S_TRACE);
+			auto c = cast(Content) selection.getData();
+			foreach (ce; _conts.values) { mixin(S_TRACE);
+				if (ce.convMenuItem) ce.convMenuItem.setEnabled(c.canConvert(ce.type));
+			}
+		}
+	}
+
+	private class Converter {
+		CType type;
+		MenuItem convMenuItem;
+		Cursor cursor;
+		this (CType type) { mixin(S_TRACE);
+			this.type = type;
+			auto imgData = _prop.images.content(type).getImageData();
+			this.cursor = new Cursor(Display.getCurrent(), imgData, imgData.width / 2, imgData.height / 2);
+		}
+		void convert() { mixin(S_TRACE);
+			auto sel = selection;
+			if (!sel) return;
+			auto c = cast(Content) sel.getData();
+			if (c.type == type) return;
+			store(c);
+			_comm.delContent.call(c);
+			assert (c.canConvert(type), "convert menu item enabled");
+			auto oldd = c.detail;
+			c.convertType(type, _prop.parent);
+			auto newd = c.detail;
+			if (newd.use(CArg.BG_IMAGES) && !oldd.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
+				c.backs = createBgImages(summSkin, _prop.var.etc.bgImagesDefault);
+			}
+			if (newd.use(CArg.DIALOGS) && !oldd.use(CArg.DIALOGS)) { mixin(S_TRACE);
+				c.dialogs = [new SDialog];
+			}
+			sel.setImage(_prop.images.content(type));
+			foreach (itm; _tree.getItems(sel)) { mixin(S_TRACE);
+				itm.setText(eventText(c, cast(Content) itm.getData()));
+				procTreeItem(itm);
+			}
+			procTreeItem(sel);
+			refreshConvMenu();
+			refreshStatusLine();
+			redraw();
+			_comm.refUseCount.call();
+			_comm.refreshToolBar();
+		}
 	}
 
 	@property
@@ -176,13 +214,14 @@ private:
 	}
 	class CreateL : MouseAdapter {
 		override void mouseUp(MouseEvent e) { mixin(S_TRACE);
+			if (!_box) return;
 			if (_readOnly) return;
-			if (_putMode is MenuID.PutQuick) return;
+			if (_box._putMode is MenuID.PutQuick) return;
 			if (e.button == 1) { mixin(S_TRACE);
 				create(null);
-			} else if (e.button == 2 && !_arrowMode) { mixin(S_TRACE);
+			} else if (e.button == 2 && !_box._arrowMode) { mixin(S_TRACE);
 				auto itm = _tree.getItem(new Point(e.x, e.y));
-				if (itm && CDetail.fromType(_cType).owner) { mixin(S_TRACE);
+				if (itm && CDetail.fromType(_box._cType).owner) { mixin(S_TRACE);
 					auto c = cast(Content) itm.getData();
 					if (c.parent) { mixin(S_TRACE);
 						_tree.setSelection([itm]);
@@ -191,15 +230,16 @@ private:
 					}
 				}
 			} else if (e.button == 3) { mixin(S_TRACE);
-				arrow();
+				_box.arrow();
 				_comm.refreshToolBar();
 			}
 		}
 	}
 	class MouseMove : MouseTrackAdapter, MouseMoveListener {
 		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
+			if (!_box) return;
 			_clickStart = null;
-			if (!_readOnly && _arrowMode && _prop.var.etc.clickIconIsStartEdit) { mixin(S_TRACE);
+			if (!_readOnly && _box._arrowMode && _prop.var.etc.clickIconIsStartEdit) { mixin(S_TRACE);
 				auto itm = _tree.getItem(new Point(e.x, e.y));
 				if (itm) { mixin(S_TRACE);
 					auto c = cast(Content)itm.getData();
@@ -586,14 +626,15 @@ private:
 		return null;
 	}
 	void create(Item insertTo) { mixin(S_TRACE);
+		if (!_box) return;
 		if (_readOnly) return;
 		if (!_tree.getItemCount()) return;
-		if (!_arrowMode || _putMode is MenuID.PutQuick) { mixin(S_TRACE);
+		if (!_box._arrowMode || _box._putMode is MenuID.PutQuick) { mixin(S_TRACE);
 			_tree.control.setRedraw(false);
 			scope (exit) _tree.control.setRedraw(true);
-			if (_cType == CType.START) { mixin(S_TRACE);
+			if (_box._cType == CType.START) { mixin(S_TRACE);
 				if (insertTo) return;
-				create(null, _cType, "", (Content evt) { mixin(S_TRACE);
+				create(null, _box._cType, "", (Content evt) { mixin(S_TRACE);
 					assert (evt);
 					bool empty = _et.owner.isEmpty;
 					scope (exit) {
@@ -621,11 +662,11 @@ private:
 					_comm.refContent.call(evt);
 					refreshConvMenu();
 					refreshStatusLine();
-					if (_putMode !is MenuID.PutContinue) arrow();
+					if (_box._putMode !is MenuID.PutContinue) _box.arrow();
 					_comm.refreshToolBar();
 				});
 			} else { mixin(S_TRACE);
-				if (insertTo && !CDetail.fromType(_cType).owner) return;
+				if (insertTo && !CDetail.fromType(_box._cType).owner) return;
 				auto sel = selection;
 				if (!insertTo && sel && !(cast(Content)sel.getData()).detail.owner) { mixin(S_TRACE);
 					sel = _tree.getParentItem(sel);
@@ -649,7 +690,7 @@ private:
 						}
 						store(owner);
 						if (insertIndex == -1) { mixin(S_TRACE);
-							if (_insertFirst) { mixin(S_TRACE);
+							if (_box._insertFirst) { mixin(S_TRACE);
 								owner.insert(_prop.parent, 0, evt);
 							} else { mixin(S_TRACE);
 								owner.add(_prop.parent, evt);
@@ -673,7 +714,7 @@ private:
 							if (_prop.var.etc.adjustContentName) { mixin(S_TRACE);
 								ic.setName(_prop.parent, "");
 							}
-							if (_insertFirst) { mixin(S_TRACE);
+							if (_box._insertFirst) { mixin(S_TRACE);
 								evt.insert(_prop.parent, 0, ic);
 							} else { mixin(S_TRACE);
 								evt.add(_prop.parent, ic);
@@ -689,60 +730,16 @@ private:
 						_comm.refUseCount.call();
 						refreshConvMenu();
 						refreshStatusLine();
-						if (_putMode !is MenuID.PutContinue) arrow();
+						if (_box._putMode !is MenuID.PutContinue) _box.arrow();
 						_comm.refreshToolBar();
 					}
 					if (insertTo) { mixin(S_TRACE);
-						create(owner, _cType, (cast(Content) insertTo.getData()).name, &applied);
+						create(owner, _box._cType, (cast(Content) insertTo.getData()).name, &applied);
 					} else { mixin(S_TRACE);
-						create(owner, _cType, "", &applied);
+						create(owner, _box._cType, "", &applied);
 					}
 				}
 			}
-		}
-	}
-	void arrow() { mixin(S_TRACE);
-		if (_readOnly) return;
-		constructTools();
-		_arrowMode = true;
-		_comp.setCursor(null);
-		if (_toolWin && !_toolWin.isDisposed()) { mixin(S_TRACE);
-			_toolWin.setCursor(null);
-		}
-		if (_autoHideTools) { mixin(S_TRACE);
-			_autoHideTools.setCursor(null);
-		}
-		if (_radioGroup && _putMode !is MenuID.PutQuick) _radioGroup.select(_arrowTI);
-		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
-	}
-	void selContentTool(Object sender, bool arrowMode, CType cType, MenuID putMode, bool autoOpen, bool insertFirst) { mixin(S_TRACE);
-		if (_readOnly) return;
-		if (!_prop.var.etc.connContentTools) return;
-		if (sender is this) return;
-		constructTools();
-		if (!_arrowMode && arrowMode) { mixin(S_TRACE);
-			arrow();
-		}
-		if (((_arrowMode && !arrowMode) || (_cType != cType)) && MenuID.PutQuick !is putMode) { mixin(S_TRACE);
-			assert (cType in _conts, .format("%s, putMode", cType));
-			auto ce = _conts[cType];
-			_radioGroup.select(ce.ti);
-			ce.create(null);
-		}
-		if (_autoOpen != autoOpen) { mixin(S_TRACE);
-			_autoOpenTI.setSelection(autoOpen);
-			this.autoOpen();
-		}
-		if (_putMode != putMode) { mixin(S_TRACE);
-			_putMode = putMode;
-			_putQuickMI.setSelection(_putMode is MenuID.PutQuick);
-			_putSelectMI.setSelection(_putMode is MenuID.PutSelect);
-			_putContinueMI.setSelection(_putMode is MenuID.PutContinue);
-			this.updatePutMode();
-		}
-		if (_insertFirst != insertFirst) { mixin(S_TRACE);
-			_insertFirstTI.setSelection(insertFirst);
-			this.insertFirst();
 		}
 	}
 
@@ -794,10 +791,11 @@ private:
 	}
 
 	void create(Content parent, CType type, string name, void delegate(Content) applied) { mixin(S_TRACE);
+		if (!_box) return;
 		if (_readOnly) return;
 		assert (parent is null || parent.detail.owner);
-		if (_putMode !is MenuID.PutContinue) { mixin(S_TRACE);
-			arrow();
+		if (_box._putMode !is MenuID.PutContinue) { mixin(S_TRACE);
+			_box.arrow();
 			_comm.refreshToolBar();
 		}
 		void initial(Content c) { mixin(S_TRACE);
@@ -812,7 +810,7 @@ private:
 			}
 		}
 		if (hasDialog(type)) { mixin(S_TRACE);
-			if (!_autoOpen || !checkOpenDialog(type)) { mixin(S_TRACE);
+			if (!_box._autoOpen || !checkOpenDialog(type)) { mixin(S_TRACE);
 				auto c = new Content(type, name);
 				initial(c);
 				applied(c);
@@ -1469,7 +1467,7 @@ private:
 							if (cast(Content)_tree.getParentItem(_dragItm).getData() !is owner) { mixin(S_TRACE);
 								adjustText(owner, evt, lastNextType);
 							}
-							if (_insertFirst) { mixin(S_TRACE);
+							if (_box._insertFirst) { mixin(S_TRACE);
 								owner.insert(_prop.parent, 0, evt);
 							} else { mixin(S_TRACE);
 								owner.add(_prop.parent, evt);
@@ -1530,160 +1528,6 @@ private:
 					break;
 				}
 			}
-		}
-	}
-	private CreateEvent[CType] _conts;
-	private class CreateEvent {
-		CType type;
-		MenuItem convMenuItem;
-
-		/* FIXME: インタフェース外の変数に触るとアクセス違反 */
-		private EventTreeView _v;
-
-		private ToolItem _itm;
-		private Cursor _cursor;
-		this (EventTreeView v, CType type, Cursor cursor) { mixin(S_TRACE);
-			this.type = type;
-			_v = v;
-			_cursor = cursor;
-		}
-		void create(SelectionEvent e) { mixin(S_TRACE);
-			if (_readOnly) return;
-			if (_itm.getSelection()) { mixin(S_TRACE);
-				auto itm = _v.selection;
-				if (_v._putMode is MenuID.PutQuick && itm) { mixin(S_TRACE);
-					putQuick(_v._shiftDown);
-					if (e) e.doit = false;
-					return;
-				}
-
-				_v._comp.setCursor(_cursor);
-				if (_v._toolWin && !_v._toolWin.isDisposed()) { mixin(S_TRACE);
-					_v._toolWin.setCursor(_cursor);
-				}
-				if (_v._autoHideTools) { mixin(S_TRACE);
-					_v._autoHideTools.setCursor(_cursor);
-				}
-				_v.clearClickStart();
-				_v._arrowMode = false;
-				_v._cType = type;
-				_v._evtTI = _itm;
-				_v._comm.refreshToolBar();
-				_v._comm.selContentTool.call(_v._arrowMode, _v._cType, _v._putMode, _v._autoOpen, _v._insertFirst);
-			}
-		}
-		void middleClick() { putQuick(true); }
-		private void putQuick(bool insert) { mixin(S_TRACE);
-			if (_readOnly) return;
-			auto itm = _v.selection;
-			if (_v._putMode !is MenuID.PutQuick || !itm) return;
-			_v._cType = type;
-			_v._evtTI = _itm;
-			this.outer.create(insert ? itm : null);
-			_v.clearClickStart();
-			_v.arrow();
-			_itm.setSelection(false);
-		}
-		@property
-		void ti(ToolItem ti) { mixin(S_TRACE);
-			_itm = ti;
-			auto listener = new class MouseAdapter {
-				override void mouseUp(MouseEvent e) { mixin(S_TRACE);
-					if (e.button != 2) return;
-					auto itm = _itm.getParent().getItem(new Point(e.x, e.y));
-					if (itm is _itm) { mixin(S_TRACE);
-						middleClick();
-					}
-				}
-			};
-			_itm.getParent().addMouseListener(listener);
-			.listener(_itm, SWT.Dispose, { mixin(S_TRACE);
-				_itm.getParent().removeMouseListener(listener);
-			});
-		}
-		@property
-		ToolItem ti() {return _itm;}
-		void convert() { mixin(S_TRACE);
-			if (_readOnly) return;
-			auto sel = selection;
-			if (!sel) return;
-			auto c = cast(Content) sel.getData();
-			if (c.type == type) return;
-			store(c);
-			_comm.delContent.call(c);
-			assert (c.canConvert(type), "convert menu item enabled");
-			auto oldd = c.detail;
-			c.convertType(type, _prop.parent);
-			auto newd = c.detail;
-			if (newd.use(CArg.BG_IMAGES) && !oldd.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
-				c.backs = createBgImages(summSkin, _prop.var.etc.bgImagesDefault);
-			}
-			if (newd.use(CArg.DIALOGS) && !oldd.use(CArg.DIALOGS)) { mixin(S_TRACE);
-				c.dialogs = [new SDialog];
-			}
-			sel.setImage(_prop.images.content(type));
-			foreach (itm; _tree.getItems(sel)) { mixin(S_TRACE);
-				itm.setText(eventText(c, cast(Content) itm.getData()));
-				procTreeItem(itm);
-			}
-			procTreeItem(sel);
-			refreshConvMenu();
-			refreshStatusLine();
-			redraw();
-			_comm.refUseCount.call();
-			_comm.refreshToolBar();
-		}
-	}
-	ToolItem createEI(CType type, ToolBar bar, RadioGroup!(ToolItem) g) { mixin(S_TRACE);
-		auto text = _prop.msgs.contentName(type);
-		auto img = _prop.images.content(type);
-		auto imgData = img.getImageData();
-		auto cursor = new Cursor(Display.getCurrent(), imgData, imgData.width / 2, imgData.height / 2);
-		_cursors ~= cursor;
-		auto ce = new CreateEvent(this, type, cursor);
-		auto itm = createToolItem2(_comm, bar, text, img, &ce.create, null, SWT.RADIO);
-		ce.ti = itm;
-		g.append(itm);
-		_conts[type] = ce;
-		return itm;
-	}
-	void initConvMenu() { mixin(S_TRACE);
-		if (_readOnly) return;
-		if (!_conts.length) return;
-		foreach (cGrp, cs; CTYPE_GROUP) { mixin(S_TRACE);
-			auto conv = convMenu(cGrp);
-			foreach (cType; cs) { mixin(S_TRACE);
-				initConvMenu(cType, cType is CType.START ? _convM : conv);
-			}
-		}
-	}
-	void initConvMenu(CType type, Menu convMenu) { mixin(S_TRACE);
-		auto text = _prop.msgs.contentName(type);
-		auto img = _prop.images.content(type);
-		auto ce = _conts[type];
-		if (type != CType.START) { mixin(S_TRACE);
-			ce.convMenuItem = createMenuItem2(_comm, convMenu, text, img, &ce.convert, null);
-			ce.convMenuItem.setEnabled(false);
-		}
-	}
-	class CDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			auto cbar = cast(CoolBar) e.widget;
-			_prop.var.etc.contentsAutoOpen = _autoOpen;
-			switch (_putMode) {
-			case MenuID.PutQuick:
-				_prop.var.etc.contentsPutMode = 0;
-				break;
-			case MenuID.PutSelect:
-				_prop.var.etc.contentsPutMode = 1;
-				break;
-			case MenuID.PutContinue:
-				_prop.var.etc.contentsPutMode = 1;
-				break;
-			default:
-				assert (0);
-			}
-			_prop.var.etc.contentsInsertFirst = _insertFirst;
 		}
 	}
 	class TDListener : DisposeListener {
@@ -1755,9 +1599,9 @@ private:
 			}
 			auto p1 = _contentsBoxArea.toControl(p);
 			if (ca1.contains(p1) || ca2.contains(p2)) { mixin(S_TRACE);
-				if (e.type is SWT.MouseDown && _autoHideTools.isVisible()) { mixin(S_TRACE);
+				if (e.type is SWT.MouseUp && _autoHideTools.isVisible()) { mixin(S_TRACE);
 				_autoHideTools.setVisible(false);
- 				} else if ((e.type is SWT.MouseDown || _tree.control.isFocusControl()) && !_autoHideTools.isVisible()) { mixin(S_TRACE);
+ 				} else if ((e.type is SWT.MouseUp || _tree.control.isFocusControl()) && !_autoHideTools.isVisible()) { mixin(S_TRACE);
 					calcAutoHideSize();
 					_autoHideTools.setVisible(true);
 				}
@@ -1775,6 +1619,7 @@ private:
 				oldAct.setVisible(false);
 			}
 			_comm.actToolWin = _toolWin;
+			if (_toolWinVisible) getContentsBox();
 			_toolWin.setVisible(_toolWinVisible);
 			_comm.refreshToolBar();
 		}
@@ -1788,8 +1633,9 @@ private:
 	}
 	class TRDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			foreach (cur; _cursors) { mixin(S_TRACE);
-				cur.dispose();
+			if (_box) _comm.poolContentsToolBox(_box);
+			foreach (conv; _conts.values) { mixin(S_TRACE);
+				conv.cursor.dispose();
 			}
 			if (!_readOnly) { mixin(S_TRACE);
 				_comm.refSkin.remove(&refSkin);
@@ -1820,7 +1666,6 @@ private:
 				_comm.replID.remove(&__refreshCard);
 				_comm.refContentText.remove(&refreshStatusLine);
 				_comm.refPreviewValues.remove(&__refreshEventText);
-				_comm.refEventTemplates.remove(&refreshTemplates);
 				_comm.selContentTool.remove(&selContentTool);
 			}
 			_comm.refTargetVersion.remove(&redraw);
@@ -1856,44 +1701,6 @@ private:
 			_toolWin.setVisible(false);
 			e.doit = false;
 		}
-	}
-	class TMListener : MouseAdapter {
-		override void mouseUp(MouseEvent e) { mixin(S_TRACE);
-			if (e.button == 3) { mixin(S_TRACE);
-				arrow();
-				_comm.refreshToolBar();
-			}
-		}
-	}
-	private class PutScript {
-		private string _script;
-		private Image _img = null;
-		this (string script) { mixin(S_TRACE);
-			_script = script;
-			auto type = cwx.script.firstContentType(_prop.parent, _summ, _script);
-			if (type != -1) { mixin(S_TRACE);
-				_img = _prop.images.content(type);
-			}
-		}
-		void put(SelectionEvent se) { mixin(S_TRACE);
-			pasteScript(_script, (se.stateMask & SWT.SHIFT) != 0);
-		}
-		@property
-		Image image() { mixin(S_TRACE);
-			return _img;
-		}
-	}
-	void refreshTemplates() { mixin(S_TRACE);
-		if (_readOnly) return;
-		foreach (itm; _templMenu.getItems()) { mixin(S_TRACE);
-			itm.dispose();
-		}
-		foreach (t; _prop.var.etc.eventTemplates) { mixin(S_TRACE);
-			// 設定でコンパイルオプションが変化する可能性があるため事前コンパイルは行わない
-			auto c = new PutScript(t.script);
-			createMenuItem2(_comm, _templMenu, t.name, c.image, &c.put, () => _et !is null);
-		}
-		_templTI.setEnabled(0 < _templMenu.getItemCount());
 	}
 
 	/// 使用数とツリー毎の区切り線の描画。
@@ -2118,6 +1925,19 @@ private:
 			drawComment(e, lineColor);
 		}
 	}
+	private void selContentTool(bool arrowMode, CType cType, MenuID putMode, bool autoOpen, bool insertFirst) {
+		Cursor cursor = null;
+		if (!arrowMode) {
+			cursor = _conts[cType].cursor;
+		}
+		_comp.setCursor(cursor);
+		if (_toolWin && !_toolWin.isDisposed()) { mixin(S_TRACE);
+			_toolWin.setCursor(cursor);
+		}
+		if (_autoHideTools) { mixin(S_TRACE);
+			_autoHideTools.setCursor(cursor);
+		}
+	}
 public:
 	this (Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
@@ -2143,36 +1963,19 @@ public:
 				_toolWin.setLayout(zeroGridLayout(1));
 				_toolWin.setText(prop.msgs.tools);
 				_toolWin.addShellListener(new TSListener);
-				_toolWin.addMouseListener(new TMListener);
 				_cbarPar = new Composite(_toolWin, SWT.NONE);
 			} else if (_prop.var.etc.contentsAutoHide) { mixin(S_TRACE);
 				_autoHideTools = new Shell(parent.getShell(), SWT.NO_TRIM);
 				_autoHideTools.setLayout(zeroGridLayout(1));
-				_autoHideTools.addMouseListener(new TMListener);
 				_cbarPar = new Composite(_autoHideTools, SWT.NONE);
 				_mTrack = new MouseTrack;
-				_autoHideTools.getDisplay().addFilter(SWT.MouseDown, _mTrack);
+				_autoHideTools.getDisplay().addFilter(SWT.MouseUp, _mTrack);
 				_autoHideTools.getDisplay().addFilter(SWT.MouseEnter, _mTrack);
 				_autoHideTools.getDisplay().addFilter(SWT.MouseExit, _mTrack);
 			} else { mixin(S_TRACE);
 				_cbarPar = new Composite(_comp, SWT.NONE);
 			}
 		}
-		_autoOpen = _prop.var.etc.contentsAutoOpen;
-		switch (_prop.var.etc.contentsPutMode.value) {
-		case 0:
-			_putMode = MenuID.PutQuick;
-			break;
-		case 1:
-			_putMode = MenuID.PutSelect;
-			break;
-		case 2:
-			_putMode = MenuID.PutContinue;
-			break;
-		default:
-			_putMode = MenuID.PutSelect;
-		}
-		_insertFirst = _prop.var.etc.contentsInsertFirst;
 		if (_cbarPar) { mixin(S_TRACE);
 			_cbarPar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			_cbarPar.setLayout(new FillLayout);
@@ -2182,21 +1985,6 @@ public:
 		refEventTreeViewStyle();
 
 		if (!_readOnly) { mixin(S_TRACE);
-			auto shiftCaptcha = new class Listener {
-				override void handleEvent(Event e) { mixin(S_TRACE);
-					if (e.type == SWT.KeyUp && e.keyCode == SWT.SHIFT) { mixin(S_TRACE);
-						_shiftDown = false;
-					} else if (e.type == SWT.KeyDown && e.keyCode == SWT.SHIFT) { mixin(S_TRACE);
-						_shiftDown = true;
-					}
-				}
-			};
-			_comp.getDisplay().addFilter(SWT.KeyDown, shiftCaptcha);
-			_comp.getDisplay().addFilter(SWT.KeyUp, shiftCaptcha);
-			.listener(_comp, SWT.Dispose, { mixin(S_TRACE);
-				_comp.getDisplay().removeFilter(SWT.KeyDown, shiftCaptcha);
-				_comp.getDisplay().removeFilter(SWT.KeyUp, shiftCaptcha);
-			});
 			_comm.refSkin.add(&refSkin);
 			_comm.refCast.add(&__refreshCast);
 			_comm.delCast.add(&__refreshCast);
@@ -2225,13 +2013,43 @@ public:
 			_comm.replID.add(&__refreshCard);
 			_comm.refContentText.add(&refreshStatusLine);
 			_comm.refPreviewValues.add(&__refreshEventText);
-			_comm.refEventTemplates.add(&refreshTemplates);
 			_comm.selContentTool.add(&selContentTool);
 		}
 		_comm.refTargetVersion.add(&redraw);
 		_comm.refEventTreeViewStyle.add(&refEventTreeViewStyle);
 
-		constructTools();
+		foreach (cGrp, cs; CTYPE_GROUP) { mixin(S_TRACE);
+			foreach (cType; cs) { mixin(S_TRACE);
+				_conts[cType] = new Converter(cType);
+			}
+		}
+		initConvMenu();
+		if (_toolWin) { mixin(S_TRACE);
+			auto dummy = new Composite(_toolWin, SWT.NONE);
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.heightHint = 0;
+			dummy.setLayoutData(gd);
+			_toolWin.setVisible(false);
+			auto pb = _toolWin.getParent().getBounds();
+			auto size = _toolWin.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			auto ts = _toolWin.getBounds();
+			int tx = _prop.var.contentsWin.x == SWT.DEFAULT ? ts.x : pb.x + _prop.var.contentsWin.x;
+			int ty = _prop.var.contentsWin.y == SWT.DEFAULT ? ts.y : pb.y + _prop.var.contentsWin.y;
+			intoDisplay(tx, ty, size.x, size.y);
+			_parX = pb.x;
+			_parY = pb.y;
+			_toolWin.setBounds(tx, ty, size.x, size.y);
+			_toolWin.addDisposeListener(new TDListener);
+			_toolWin.getParent().addControlListener(new TCListener);
+			_tree.control.getShell().addShellListener(new PSListener);
+		} else if (_cbarPar) { mixin(S_TRACE);
+			_cbarPar.getParent().layout(true);
+			if (_autoHideTools) { mixin(S_TRACE);
+				_cbarPar.addControlListener(new AHTCListener);
+				_tcListener = new TCListener;
+				_autoHideTools.getParent().addControlListener(_tcListener);
+			}
+		}
 	}
 	private void refEventTreeViewStyle() { mixin(S_TRACE);
 		_comp.setRedraw(false);
@@ -2343,121 +2161,25 @@ public:
 			_tree.setSelection([sel]);
 			_tree.showSelection();
 		}
+		_box = new ContentsToolBox(this);
 	}
 	private int _parX, _parY;
 	private void saveToolWinPos() { mixin(S_TRACE);
-		if (!_constructTools) return;
 		assert (_toolWin);
 		if (_toolWin.isDisposed()) return;
 		_prop.var.contentsWin.x = _toolWin.getBounds().x - _toolWin.getParent().getBounds().x;
 		_prop.var.contentsWin.y = _toolWin.getBounds().y - _toolWin.getParent().getBounds().y;
 	}
 	private Composite _cbarPar = null;
-	private Menu _convM;
-	private bool _constructTools = false;
-	private bool canConvTerminal() { mixin(S_TRACE);
-		auto itm = selection;
-		if (!itm) return false;
-		auto evt = cast(Content) itm.getData();
-		return !evt.next.length;
-	}
-	private Menu convMenu(CTypeGroup g) { mixin(S_TRACE);
-		void delegate() dlg = null;
-		auto mi = createMenuItem(_comm, _convM, cTypeGroupToMenuID(g), dlg, g is CTypeGroup.Terminal ? &canConvTerminal : null, SWT.CASCADE);
-		auto m = new Menu(_tree.control.getShell(), SWT.DROP_DOWN);
-		mi.setMenu(m);
-		return m;
-	}
-	private void constructTools() { mixin(S_TRACE);
-		if (_tree.control.isDisposed() || _constructTools) return;
-		_constructTools = true;
-		if (!_cbarPar) return;
-		auto cbar = createCoolBar!("contents")(_comm, _cbarPar, (CoolBar cbar) { mixin(S_TRACE);
-			void createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) { mixin(S_TRACE);
-				.createCoolItem(cbar, tbar, index);
-			}
-			if (!_prop.var.etc.contentsFloat || _autoHideTools) { mixin(S_TRACE);
-				cbar.addMouseListener(new TMListener);
-			}
-			auto g = new RadioGroup!(ToolItem);
-			_radioGroup = g;
-
-			auto atm = new ToolBar(cbar, SWT.FLAT);
-			atm.addMouseListener(new TMListener);
-			_arrowTI = createToolItem2(_comm, atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, null, SWT.RADIO);
-			if (_putMode !is MenuID.PutQuick) _arrowTI.setSelection(true);
-			g.append(_arrowTI);
-			createCoolItem(cbar, atm);
-
-			auto mode = new ToolBar(cbar, SWT.FLAT);
-			mode.addMouseListener(new TMListener);
-			Menu putModeMenu;
-			void delegate() dlg = null;
-			_putModeTI = createDropDownItem2(_comm, mode, _prop.buildTool(_putMode), _prop.images.menu(_putMode), dlg, putModeMenu, MenuID.None, null);
-			_putQuickMI = createMenuItem(_comm, putModeMenu, MenuID.PutQuick, &updatePutMode, null, SWT.RADIO);
-			_putSelectMI = createMenuItem(_comm, putModeMenu, MenuID.PutSelect, &updatePutMode, null, SWT.RADIO);
-			_putContinueMI = createMenuItem(_comm, putModeMenu, MenuID.PutContinue, &updatePutMode, null, SWT.RADIO);
-			_autoOpenTI = createToolItem2(_comm, mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, null, SWT.CHECK);
-			_autoOpenTI.setSelection(_autoOpen);
-			_insertFirstTI = createToolItem2(_comm, mode, _prop.msgs.evtInsertFirst, _prop.images.evtInsertFirst, &insertFirst, null, SWT.CHECK);
-			_insertFirstTI.setSelection(_insertFirst);
-			new ToolItem(mode, SWT.SEPARATOR);
-			_templTI = createDropDownItem(_comm, mode, MenuID.EvTemplates, null, _templMenu, () => _et && _prop.var.etc.eventTemplates.length > 0);
-
-			_putQuickMI.setSelection(_putMode is MenuID.PutQuick);
-			_putSelectMI.setSelection(_putMode is MenuID.PutSelect);
-			_putContinueMI.setSelection(_putMode is MenuID.PutContinue);
-			refreshTemplates();
-			createCoolItem(cbar, mode);
-
-			auto tml = new TMListener;
-			foreach (cGrp, cs; CTYPE_GROUP) { mixin(S_TRACE);
-				auto eBar = new ToolBar(cbar, SWT.FLAT);
-				eBar.addMouseListener(tml);
-				foreach (cType; cs) { mixin(S_TRACE);
-					createEI(cType, eBar, g);
-				}
-				if (cGrp is CTypeGroup.Visual) { mixin(S_TRACE);
-					createCoolItem(cbar, eBar, 2);
-				} else { mixin(S_TRACE);
-					createCoolItem(cbar, eBar);
-				}
-			}
-			initConvMenu();
-			updatePutMode();
-
-			cbar.addDisposeListener(new CDListener);
-		});
-		if (_toolWin) { mixin(S_TRACE);
-			auto dummy = new Composite(_toolWin, SWT.NONE);
-			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.heightHint = 0;
-			dummy.setLayoutData(gd);
-			_toolWin.setVisible(false);
-			auto pb = _toolWin.getParent().getBounds();
-			auto size = _toolWin.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-			auto ts = _toolWin.getBounds();
-			int tx = _prop.var.contentsWin.x == SWT.DEFAULT ? ts.x : pb.x + _prop.var.contentsWin.x;
-			int ty = _prop.var.contentsWin.y == SWT.DEFAULT ? ts.y : pb.y + _prop.var.contentsWin.y;
-			intoDisplay(tx, ty, size.x, size.y);
-			_parX = pb.x;
-			_parY = pb.y;
-			_toolWin.setBounds(tx, ty, size.x, size.y);
-			_toolWin.addDisposeListener(new TDListener);
-			_toolWin.getParent().addControlListener(new TCListener);
-			_tree.control.getShell().addShellListener(new PSListener);
-		} else if (_cbarPar) { mixin(S_TRACE);
-			_cbarPar.getParent().layout(true);
-			if (_autoHideTools) { mixin(S_TRACE);
-				cbar.addControlListener(new AHTCListener);
-				_tcListener = new TCListener;
-				_autoHideTools.getParent().addControlListener(_tcListener);
-			}
-		}
-	}
 
 	@property
 	Control widget() {return _comp;}
+
+	@property
+	ContentsToolBox contentsToolBox() { return _box; }
+
+	@property
+	private Composite boxOwner() { return _cbarPar; }
 
 	@property
 	string statusLine() {return _statusLine;}
@@ -2551,19 +2273,6 @@ public:
 		dlg.open();
 	}
 
-	private void refreshConvMenu() { mixin(S_TRACE);
-		if (_readOnly) return;
-		if (!_et || !selection) { mixin(S_TRACE);
-			foreach (ce; _conts.values) { mixin(S_TRACE);
-				if (ce.convMenuItem) ce.convMenuItem.setEnabled(false);
-			}
-		} else { mixin(S_TRACE);
-			auto c = cast(Content) selection.getData();
-			foreach (ce; _conts.values) { mixin(S_TRACE);
-				if (ce.convMenuItem) ce.convMenuItem.setEnabled(c.canConvert(ce.type));
-			}
-		}
-	}
 	private void startToPackage() { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!_et || !selection) return;
@@ -3209,9 +2918,23 @@ public:
 		swapToPCImpl(par, itm, itm);
 	}
 
+	private void getContentsBox() { mixin(S_TRACE);
+		if (!_toolWin && !_cbarPar.isVisible()) return;
+		if (_box) return;
+		if (_toolWin) _toolWin.setRedraw(false);
+		scope (exit) {
+			if (_toolWin) _toolWin.setRedraw(true);
+		}
+		_box = _comm.getContentsToolBox(this);
+		if (_toolWin) { mixin(S_TRACE);
+			_toolWin.pack();
+		}
+	}
 	void openToolWindow() { mixin(S_TRACE);
-		constructTools();
 		if (_readOnly) return;
+		_comp.setRedraw(false);
+		scope (exit) _comp.setRedraw(true);
+		getContentsBox();
 		if (_toolWin) { mixin(S_TRACE);
 			if (_toolWin.isDisposed()) return;
 			if (_et) { mixin(S_TRACE);
@@ -3254,6 +2977,7 @@ public:
 		return owner.parent;
 	}
 	private void addContents(bool stored, Content[] cs, Content[] refCS, bool tryInsert, string lastNextType = "") { mixin(S_TRACE);
+		if (!_box) return;
 		if (_readOnly) return;
 		auto itm = selection;
 		if (!itm) return;
@@ -3305,7 +3029,7 @@ public:
 			owner = parent;
 			itm = _tree.getParentItem(itm);
 		}
-		bool insertFirst = (index == -1 && _insertFirst);
+		bool insertFirst = (index == -1 && _box._insertFirst);
 		Content lastCt = null;
 		int i = 0;
 		foreach (ct; cs2) { mixin(S_TRACE);
@@ -4377,4 +4101,351 @@ Image warningImage(Props prop, Display d) { mixin(S_TRACE);
 	auto imgData = buf.getImageData();
 	imgData.setAlphas(0, 0, prop.var.etc.warningImageWidth * height, alphas, 0);
 	return new Image(d, imgData);
+}
+
+class ContentsToolBox {
+	private Commons _comm;
+	private Props _prop;
+	private Summary _summ;
+	private EventTreeView _parent = null;
+	private CoolBar _cbar;
+
+	private Menu _templMenu;
+	private ToolItem _templTI;
+
+	private auto _putMode = MenuID.PutSelect;
+	private bool _autoOpen;
+	private bool _insertFirst;
+	private MenuItem _putQuickMI;
+	private MenuItem _putSelectMI;
+	private MenuItem _putContinueMI;
+	private ToolItem _putModeTI;
+	private ToolItem _autoOpenTI;
+	private ToolItem _insertFirstTI;
+
+	private bool _arrowMode = true;
+
+	private CType _cType;
+	private ToolItem _arrowTI;
+	private ToolItem _evtTI = null;
+	private RadioGroup!(ToolItem) _radioGroup;
+
+	private Cursor[] _cursors;
+
+	private CreateEvent[CType] _conts;
+	bool _shiftDown = false;
+
+	private void autoOpen() { mixin(S_TRACE);
+		_autoOpen = _autoOpenTI.getSelection();
+		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
+	}
+	private void updatePutMode() { mixin(S_TRACE);
+		if (_putQuickMI.getSelection()) { mixin(S_TRACE);
+			_putMode = MenuID.PutQuick;
+			arrow();
+			foreach (ti; _radioGroup.set) { mixin(S_TRACE);
+				ti.setSelection(false);
+			}
+			_arrowTI.setSelection(false);
+		} else if (_putSelectMI.getSelection()) { mixin(S_TRACE);
+			_putMode = MenuID.PutSelect;
+			if (!_arrowTI.getEnabled()) arrow();
+		} else if (_putContinueMI.getSelection()) { mixin(S_TRACE);
+			_putMode = MenuID.PutContinue;
+			if (!_arrowTI.getEnabled()) arrow();
+		}
+		_arrowTI.setEnabled(_putMode !is MenuID.PutQuick);
+		_putModeTI.setToolTipText(_prop.buildTool(_putMode));
+		_putModeTI.setImage(_prop.images.menu(_putMode));
+		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
+	}
+	private void insertFirst() { mixin(S_TRACE);
+		_insertFirst = _insertFirstTI.getSelection();
+		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
+	}
+
+	private void arrow() { mixin(S_TRACE);
+		_arrowMode = true;
+		if (_radioGroup && _putMode !is MenuID.PutQuick) _radioGroup.select(_arrowTI);
+		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
+	}
+	private void selContentTool(Object sender, bool arrowMode, CType cType, MenuID putMode, bool autoOpen, bool insertFirst) { mixin(S_TRACE);
+		if (!_prop.var.etc.connContentTools) return;
+		if (sender is this) return;
+		if (!_arrowMode && arrowMode) { mixin(S_TRACE);
+			arrow();
+		}
+		if (((_arrowMode && !arrowMode) || (_cType != cType)) && MenuID.PutQuick !is putMode) { mixin(S_TRACE);
+			assert (cType in _conts, .format("%s, putMode", cType));
+			auto ce = _conts[cType];
+			_radioGroup.select(ce.ti);
+			ce.create(null);
+		}
+		if (_autoOpen != autoOpen) { mixin(S_TRACE);
+			_autoOpenTI.setSelection(autoOpen);
+			this.autoOpen();
+		}
+		if (_putMode != putMode) { mixin(S_TRACE);
+			_putMode = putMode;
+			_putQuickMI.setSelection(_putMode is MenuID.PutQuick);
+			_putSelectMI.setSelection(_putMode is MenuID.PutSelect);
+			_putContinueMI.setSelection(_putMode is MenuID.PutContinue);
+			this.updatePutMode();
+		}
+		if (_insertFirst != insertFirst) { mixin(S_TRACE);
+			_insertFirstTI.setSelection(insertFirst);
+			this.insertFirst();
+		}
+	}
+
+	private class CreateEvent {
+		CType type;
+
+		private ToolItem _itm;
+		private Cursor _cursor;
+		this (CType type, Cursor cursor) { mixin(S_TRACE);
+			this.type = type;
+			_cursor = cursor;
+		}
+		void create(SelectionEvent e) { mixin(S_TRACE);
+			if (_itm.getSelection()) { mixin(S_TRACE);
+				auto itm = _parent.selection;
+				if (_putMode is MenuID.PutQuick && itm) { mixin(S_TRACE);
+					putQuick(_shiftDown);
+					if (e) e.doit = false;
+					return;
+				}
+
+				_parent.clearClickStart();
+				_arrowMode = false;
+				_cType = type;
+				_evtTI = _itm;
+				_comm.refreshToolBar();
+				_comm.selContentTool.call(_arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
+			}
+		}
+		void middleClick() { putQuick(true); }
+		private void putQuick(bool insert) { mixin(S_TRACE);
+			auto itm = _parent.selection;
+			if (_putMode !is MenuID.PutQuick || !itm) return;
+			_cType = type;
+			_evtTI = _itm;
+			_parent.create(insert ? itm : null);
+			_parent.clearClickStart();
+			arrow();
+			_itm.setSelection(false);
+		}
+		@property
+		void ti(ToolItem ti) { mixin(S_TRACE);
+			_itm = ti;
+			auto listener = new class MouseAdapter {
+				override void mouseUp(MouseEvent e) { mixin(S_TRACE);
+					if (e.button != 2) return;
+					auto itm = _itm.getParent().getItem(new Point(e.x, e.y));
+					if (itm is _itm) { mixin(S_TRACE);
+						middleClick();
+					}
+				}
+			};
+			_itm.getParent().addMouseListener(listener);
+			.listener(_itm, SWT.Dispose, { mixin(S_TRACE);
+				_itm.getParent().removeMouseListener(listener);
+			});
+		}
+		@property
+		ToolItem ti() {return _itm;}
+	}
+	private ToolItem createEI(CType type, ToolBar bar, RadioGroup!(ToolItem) g) { mixin(S_TRACE);
+		auto text = _prop.msgs.contentName(type);
+		auto img = _prop.images.content(type);
+		auto imgData = _prop.images.content(type).getImageData();
+		auto cursor = new Cursor(Display.getCurrent(), imgData, imgData.width / 2, imgData.height / 2);
+		_cursors ~= cursor;
+		auto ce = new CreateEvent(type, cursor);
+		auto itm = createToolItem2(_comm, bar, text, img, &ce.create, null, SWT.RADIO);
+		ce.ti = itm;
+		g.append(itm);
+		_conts[type] = ce;
+		return itm;
+	}
+	private class CDListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+			auto cbar = cast(CoolBar) e.widget;
+			_prop.var.etc.contentsAutoOpen = _autoOpen;
+			switch (_putMode) {
+			case MenuID.PutQuick:
+				_prop.var.etc.contentsPutMode = 0;
+				break;
+			case MenuID.PutSelect:
+				_prop.var.etc.contentsPutMode = 1;
+				break;
+			case MenuID.PutContinue:
+				_prop.var.etc.contentsPutMode = 1;
+				break;
+			default:
+				assert (0);
+			}
+			_prop.var.etc.contentsInsertFirst = _insertFirst;
+		}
+	}
+
+	private class TRDListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+			foreach (cur; _cursors) { mixin(S_TRACE);
+				cur.dispose();
+			}
+			_comm.refEventTemplates.remove(&refreshTemplates);
+			_comm.selContentTool.remove(&selContentTool);
+		}
+	}
+
+	private class TMListener : MouseAdapter {
+		override void mouseUp(MouseEvent e) { mixin(S_TRACE);
+			if (e.button == 3) { mixin(S_TRACE);
+				arrow();
+				_comm.refreshToolBar();
+			}
+		}
+	}
+	private class PutScript {
+		private string _script;
+		private Image _img = null;
+		this (string script) { mixin(S_TRACE);
+			_script = script;
+			auto type = cwx.script.firstContentType(_prop.parent, _summ, _script);
+			if (type != -1) { mixin(S_TRACE);
+				_img = _prop.images.content(type);
+			}
+		}
+		void put(SelectionEvent se) { mixin(S_TRACE);
+			_parent.pasteScript(_script, (se.stateMask & SWT.SHIFT) != 0);
+		}
+		@property
+		Image image() { mixin(S_TRACE);
+			return _img;
+		}
+	}
+	private void refreshTemplates() { mixin(S_TRACE);
+		foreach (itm; _templMenu.getItems()) { mixin(S_TRACE);
+			itm.dispose();
+		}
+		foreach (t; _prop.var.etc.eventTemplates) { mixin(S_TRACE);
+			// 設定でコンパイルオプションが変化する可能性があるため事前コンパイルは行わない
+			auto c = new PutScript(t.script);
+			createMenuItem2(_comm, _templMenu, t.name, c.image, &c.put, () => _parent._et !is null);
+		}
+		_templTI.setEnabled(0 < _templMenu.getItemCount());
+	}
+
+	this (EventTreeView parent) {
+		_comm = parent._comm;
+		_prop = parent._prop;
+		_summ = parent._summ;
+		_parent = parent;
+
+		_autoOpen = _prop.var.etc.contentsAutoOpen;
+		switch (_prop.var.etc.contentsPutMode.value) {
+		case 0:
+			_putMode = MenuID.PutQuick;
+			break;
+		case 1:
+			_putMode = MenuID.PutSelect;
+			break;
+		case 2:
+			_putMode = MenuID.PutContinue;
+			break;
+		default:
+			_putMode = MenuID.PutSelect;
+		}
+		_insertFirst = _prop.var.etc.contentsInsertFirst;
+
+		auto shiftCaptcha = new class Listener {
+			override void handleEvent(Event e) { mixin(S_TRACE);
+				if (e.type == SWT.KeyUp && e.keyCode == SWT.SHIFT) { mixin(S_TRACE);
+					_shiftDown = false;
+				} else if (e.type == SWT.KeyDown && e.keyCode == SWT.SHIFT) { mixin(S_TRACE);
+					_shiftDown = true;
+				}
+			}
+		};
+		_comm.refEventTemplates.add(&refreshTemplates);
+		_comm.selContentTool.add(&selContentTool);
+
+		_cbar = createCoolBar!("contents")(_comm, _parent.boxOwner, (CoolBar cbar) { mixin(S_TRACE);
+			void createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) { mixin(S_TRACE);
+				.createCoolItem(cbar, tbar, index);
+			}
+			if (!_prop.var.etc.contentsFloat || _parent._autoHideTools) { mixin(S_TRACE);
+				cbar.addMouseListener(new TMListener);
+			}
+			auto g = new RadioGroup!(ToolItem);
+			_radioGroup = g;
+
+			auto atm = new ToolBar(cbar, SWT.FLAT);
+			atm.addMouseListener(new TMListener);
+			_arrowTI = createToolItem2(_comm, atm, _prop.msgs.evtArrow, _prop.images.evtArrow, &arrow, null, SWT.RADIO);
+			if (_putMode !is MenuID.PutQuick) _arrowTI.setSelection(true);
+			g.append(_arrowTI);
+			createCoolItem(cbar, atm);
+
+			auto mode = new ToolBar(cbar, SWT.FLAT);
+			mode.addMouseListener(new TMListener);
+			Menu putModeMenu;
+			void delegate() dlg = null;
+			_putModeTI = createDropDownItem2(_comm, mode, _prop.buildTool(_putMode), _prop.images.menu(_putMode), dlg, putModeMenu, MenuID.None, null);
+			_putQuickMI = createMenuItem(_comm, putModeMenu, MenuID.PutQuick, &updatePutMode, null, SWT.RADIO);
+			_putSelectMI = createMenuItem(_comm, putModeMenu, MenuID.PutSelect, &updatePutMode, null, SWT.RADIO);
+			_putContinueMI = createMenuItem(_comm, putModeMenu, MenuID.PutContinue, &updatePutMode, null, SWT.RADIO);
+			_autoOpenTI = createToolItem2(_comm, mode, _prop.msgs.evtAutoOpen, _prop.images.evtAutoOpen, &autoOpen, null, SWT.CHECK);
+			_autoOpenTI.setSelection(_autoOpen);
+			_insertFirstTI = createToolItem2(_comm, mode, _prop.msgs.evtInsertFirst, _prop.images.evtInsertFirst, &insertFirst, null, SWT.CHECK);
+			_insertFirstTI.setSelection(_insertFirst);
+			new ToolItem(mode, SWT.SEPARATOR);
+			_templTI = createDropDownItem(_comm, mode, MenuID.EvTemplates, null, _templMenu, () => _parent._et && _prop.var.etc.eventTemplates.length > 0);
+
+			_putQuickMI.setSelection(_putMode is MenuID.PutQuick);
+			_putSelectMI.setSelection(_putMode is MenuID.PutSelect);
+			_putContinueMI.setSelection(_putMode is MenuID.PutContinue);
+			refreshTemplates();
+			createCoolItem(cbar, mode);
+
+			auto tml = new TMListener;
+			foreach (cGrp, cs; CTYPE_GROUP) { mixin(S_TRACE);
+				auto eBar = new ToolBar(cbar, SWT.FLAT);
+				eBar.addMouseListener(tml);
+				foreach (cType; cs) { mixin(S_TRACE);
+					createEI(cType, eBar, g);
+				}
+				if (cGrp is CTypeGroup.Visual) { mixin(S_TRACE);
+					createCoolItem(cbar, eBar, 2);
+				} else { mixin(S_TRACE);
+					createCoolItem(cbar, eBar);
+				}
+			}
+			updatePutMode();
+
+		});
+		_cbar.addDisposeListener(new CDListener);
+		_cbar.addDisposeListener(new TRDListener);
+		_cbar.addMouseListener(new TMListener);
+		_cbar.getDisplay().addFilter(SWT.KeyDown, shiftCaptcha);
+		_cbar.getDisplay().addFilter(SWT.KeyUp, shiftCaptcha);
+		.listener(_cbar, SWT.Dispose, { mixin(S_TRACE);
+			_cbar.getDisplay().removeFilter(SWT.KeyDown, shiftCaptcha);
+			_cbar.getDisplay().removeFilter(SWT.KeyUp, shiftCaptcha);
+		});
+		_parent.boxOwner.layout();
+	}
+
+	@property
+	void owner(EventTreeView owner) {
+		_parent._box = null;
+		_parent = owner;
+		_cbar.setParent(_parent.boxOwner);
+		if (_cbar.getSize() != _parent.boxOwner.getSize()) {
+			_parent.boxOwner.layout();
+		}
+	}
+	@property
+	EventTreeView owner() { return _parent; }
 }

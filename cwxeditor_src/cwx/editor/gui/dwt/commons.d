@@ -976,6 +976,49 @@ class Commons {
 		}
 		return null;
 	}
+	ContentsToolBox getContentsToolBox(EventTreeView eventTreeView) {
+		EventTreeView view = null;
+		foreach (w; _ws) { mixin(S_TRACE);
+			auto tlpData = (cast(TLPData)w.getData());
+			if (cast(EventTreeOwner)tlpData.main && eventTreeView !is tlpData.main) { mixin(S_TRACE);
+				auto aw = cast(AreaWindow)tlpData.tlp;
+				if (aw) view = aw.eventView.eventTreeView;
+				auto bw = cast(BattleWindow)tlpData.tlp;
+				if (bw) view = aw.eventView.eventTreeView;
+				auto ew = cast(IEventWindow)tlpData.tlp;
+				if (ew) view = ew.eventTreeView;
+				if (view && !view.widget.isVisible() && view.contentsToolBox) { mixin(S_TRACE);
+					break;
+				}
+			}
+		}
+		if (view && !view.widget.isVisible() && view.contentsToolBox) { mixin(S_TRACE);
+			auto box = view.contentsToolBox;
+			box.owner = eventTreeView;
+			return box;
+		}
+		return new ContentsToolBox(eventTreeView);
+	}
+	void poolContentsToolBox(ContentsToolBox box) {
+		EventTreeView view = null;
+		foreach (w; _ws) { mixin(S_TRACE);
+			auto tlpData = (cast(TLPData)w.getData());
+			if (cast(EventTreeOwner)tlpData.main && box.owner !is tlpData.main) { mixin(S_TRACE);
+				auto aw = cast(AreaWindow)tlpData.tlp;
+				if (aw) view = aw.eventView.eventTreeView;
+				auto bw = cast(BattleWindow)tlpData.tlp;
+				if (bw) view = aw.eventView.eventTreeView;
+				auto ew = cast(IEventWindow)tlpData.tlp;
+				if (ew) view = ew.eventTreeView;
+				if (view && !view.contentsToolBox) { mixin(S_TRACE);
+					break;
+				}
+			}
+		}
+		if (view && !view.contentsToolBox) { mixin(S_TRACE);
+			box.owner = view;
+		}
+	}
 
 	private HashSet!(Composite) _aws;
 	private void addScenarioImpl(Object[] ws) { mixin(S_TRACE);
