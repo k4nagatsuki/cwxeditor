@@ -514,6 +514,9 @@ public:
 	}
 	@property
 	void path(string path) { mixin(S_TRACE);
+		path2(path, true);
+	}
+	void path2(string path, bool updateBinImg) { mixin(S_TRACE);
 		auto old = _path;
 		scope (exit) {
 			if (old != _path) {
@@ -521,7 +524,9 @@ public:
 			}
 		}
 		_path = path;
-		_binPath = isBinImg(path) ? path : "";
+		if (updateBinImg) {
+			_binPath = isBinImg(path) ? path : "";
+		}
 		static if (Type is MtType.CARD) {
 			if (!useNoCardSizeImage && !_binPath.length) { mixin(S_TRACE);
 				auto p = summSkin.findImagePath(_path, _summ ? _summ.scenarioPath : "");
