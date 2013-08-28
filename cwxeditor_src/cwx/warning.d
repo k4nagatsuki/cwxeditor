@@ -14,6 +14,9 @@ import cwx.skin;
 import cwx.background;
 import cwx.types;
 import cwx.features;
+import cwx.imagesize;
+
+import std.path;
 
 /// pathの内容を調査し、警告すべき点があればメッセージ群を返す。
 string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path, string targVer) { mixin(S_TRACE);
@@ -169,6 +172,18 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	if (mc) { mixin(S_TRACE);
 		if (mc.path != "" && !isBinImg(mc.path) && !skin.findPath(mc.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorImageNotFound;
+		}
+		if (mc.path != "") {
+			if (isBinImg(mc.path)) { mixin(S_TRACE);
+				auto bin =  cast(ubyte[])strToBImg(mc.path);
+				auto type = imageType(bin);
+				if (type != "") {
+					auto img = "image".setExtension(type);
+					r ~= skin.warningImage(prop, img, summ.legacy, true, targVer);
+				}
+			} else {
+				r ~= skin.warningImage(prop, mc.path, summ.legacy, false, targVer);
+			}
 		}
 		if (mc.flag != "" && !froot.findFlag(mc.flag)) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorFlagNotFound;
