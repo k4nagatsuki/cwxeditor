@@ -60,10 +60,7 @@ class EventTreeView : TCPD {
 private:
 	string _id = "";
 
-	MouseTrack _mTrack = null;
-	Shell _toolWin = null;
-	Shell _autoHideTools = null;
-	TCListener _tcListener = null;
+	Composite _contentsBoxArea;
 	Composite _comp;
 	TreeViewWrapper _tree;
 	Color _grayFont;
@@ -73,9 +70,6 @@ private:
 	Commons _comm;
 	Summary _summ;
 	EventTree _et;
-	bool _toolWinVisible = false;
-	bool _opened = false;
-	Composite _contentsBoxArea;
 	ContentsToolBox _box;
 	Menu _convM;
 	Converter[CType] _conts;
@@ -1530,100 +1524,6 @@ private:
 			}
 		}
 	}
-	class TDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			assert (_toolWin);
-			if (_toolWin.isDisposed()) return;
-			if (_toolWin.getVisible()) { mixin(S_TRACE);
-				saveToolWinPos();
-			}
-		}
-	}
-	class TCListener : ControlAdapter {
-		override void controlMoved(ControlEvent e) { mixin(S_TRACE);
-			if (_autoHideTools) { mixin(S_TRACE);
-				calcAutoHideSize();
-				return;
-			}
-			assert (_toolWin);
-			if (!_toolWin || _toolWin.isDisposed()) return;
-			auto pb = _toolWin.getParent().getBounds();
-			auto tb = _toolWin.getBounds();
-			_toolWin.setBounds(tb.x + pb.x - _parX, tb.y + pb.y - _parY, tb.width, tb.height);
-			_parX = pb.x;
-			_parY = pb.y;
-		}
-	}
-	class AHTCListener : ControlAdapter {
-		override void controlResized(ControlEvent e) { mixin(S_TRACE);
-			if (!_autoHideTools.isVisible()) return;
-			calcAutoHideSize();
-		}
-	}
-	void calcAutoHideSize() { mixin(S_TRACE);
-		if (!_autoHideTools) return;
-		auto tb = _tree.control.getBounds();
-		auto ca1 = _contentsBoxArea.getBounds();
-		int x = _tree.control.toDisplay(tb.x, tb.y).x;
-		int y = _contentsBoxArea.toDisplay(0, ca1.y).y + ca1.height;
-		auto size = _autoHideTools.computeSize(tb.width, SWT.DEFAULT);
-		_autoHideTools.setBounds(new Rectangle(x, y, size.x, size.y));
-	}
-	class MouseTrack : Listener {
-		override void handleEvent(Event e) { mixin(S_TRACE);
-			auto c = cast(Control) e.widget;
-			if (!c || !_autoHideTools) return;
-			if (!_et) { mixin(S_TRACE);
-				_autoHideTools.setVisible(false);
-				return;
-			}
-			if (e.type is SWT.MouseMove && _contentsBoxArea.isVisible()) return;
-			if (c !is _tree.control && !isDescendant(_autoHideTools, c) && !isDescendant(_contentsBoxArea, c)) { mixin(S_TRACE);
-				_autoHideTools.setVisible(false);
-				return;
-			}
-			auto p = c.toDisplay(e.x, e.y);
-			auto ca2 = _autoHideTools.getBounds();
-			ca2.x = 0;
-			ca2.y = 0;
-			if (!_autoHideTools.isVisible()) { mixin(S_TRACE);
-				ca2.width = 0;
-				ca2.height = 0;
-			}
-			auto p2 = _autoHideTools.toControl(p);
-			auto ca1 = _contentsBoxArea.getBounds();
-			ca1.x = 0;
-			ca1.y = 0;
-			if (0 == ca1.height) { mixin(S_TRACE);
-				ca1.height = _prop.var.etc.showContentsBoxHeightWhenNoToolBar;
-			}
-			auto p1 = _contentsBoxArea.toControl(p);
-			if (ca1.contains(p1) || ca2.contains(p2)) { mixin(S_TRACE);
-				if (e.type is SWT.MouseUp && _autoHideTools.isVisible()) { mixin(S_TRACE);
-				_autoHideTools.setVisible(false);
- 				} else if ((e.type is SWT.MouseUp || _tree.control.isFocusControl()) && !_autoHideTools.isVisible()) { mixin(S_TRACE);
-					calcAutoHideSize();
-					_autoHideTools.setVisible(true);
-				}
-			} else { mixin(S_TRACE);
-				_autoHideTools.setVisible(false);
-			}
-		}
-	}
-	class PSListener : ShellAdapter {
-		override void shellActivated(ShellEvent e) { mixin(S_TRACE);
-			assert (_toolWin);
-			if (_toolWin.isDisposed()) return;
-			auto oldAct = _comm.actToolWin;
-			if (oldAct && !oldAct.isDisposed() && oldAct.isVisible()) { mixin(S_TRACE);
-				oldAct.setVisible(false);
-			}
-			_comm.actToolWin = _toolWin;
-			if (_toolWinVisible) getContentsBox();
-			_toolWin.setVisible(_toolWinVisible);
-			_comm.refreshToolBar();
-		}
-	}
 	void redraw() { mixin(S_TRACE);
 		if (_tree.editor) { mixin(S_TRACE);
 			_tree.editor.updateEventTree();
@@ -1633,7 +1533,6 @@ private:
 	}
 	class TRDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			if (_box) _comm.poolContentsToolBox(_box);
 			foreach (conv; _conts.values) { mixin(S_TRACE);
 				conv.cursor.dispose();
 			}
@@ -1671,35 +1570,12 @@ private:
 			_comm.refTargetVersion.remove(&redraw);
 			_comm.refEventTreeViewStyle.remove(&refEventTreeViewStyle);
 			if (_grayFont) _grayFont.dispose();
-			if (_toolWin) { mixin(S_TRACE);
-				saveToolWinPos();
-				_toolWin.dispose();
-			}
-			if (_autoHideTools && _mTrack) { mixin(S_TRACE);
-				_autoHideTools.getDisplay().removeFilter(SWT.MouseDown, _mTrack);
-				_autoHideTools.getDisplay().removeFilter(SWT.MouseEnter, _mTrack);
-				_autoHideTools.getDisplay().removeFilter(SWT.MouseExit, _mTrack);
-			}
-			if (_tcListener) { mixin(S_TRACE);
-				_autoHideTools.getParent().removeControlListener(_tcListener);
-			}
-			if (_autoHideTools) { mixin(S_TRACE);
-				_autoHideTools.dispose();
-			}
 			foreach (dlg; _editDlgs.values) { mixin(S_TRACE);
 				dlg.forceCancel();
 			}
 			foreach (dlg; _commentDlgs.values) { mixin(S_TRACE);
 				dlg.forceCancel();
 			}
-		}
-	}
-	class TSListener : ShellAdapter {
-		public override void shellClosed(ShellEvent e) { mixin(S_TRACE);
-			assert (_toolWin);
-			if (_toolWin.isDisposed()) return;
-			_toolWin.setVisible(false);
-			e.doit = false;
 		}
 	}
 
@@ -1931,12 +1807,6 @@ private:
 			cursor = _conts[cType].cursor;
 		}
 		_comp.setCursor(cursor);
-		if (_toolWin && !_toolWin.isDisposed()) { mixin(S_TRACE);
-			_toolWin.setCursor(cursor);
-		}
-		if (_autoHideTools) { mixin(S_TRACE);
-			_autoHideTools.setCursor(cursor);
-		}
 	}
 public:
 	this (Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
@@ -1957,29 +1827,7 @@ public:
 
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout(zeroGridLayout(1, false));
-		if (!_readOnly) { mixin(S_TRACE);
-			if (_prop.var.etc.contentsFloat) { mixin(S_TRACE);
-				_toolWin = new Shell(parent.getShell(), SWT.TITLE | SWT.RESIZE | SWT.TOOL);
-				_toolWin.setLayout(zeroGridLayout(1));
-				_toolWin.setText(prop.msgs.tools);
-				_toolWin.addShellListener(new TSListener);
-				_cbarPar = new Composite(_toolWin, SWT.NONE);
-			} else if (_prop.var.etc.contentsAutoHide) { mixin(S_TRACE);
-				_autoHideTools = new Shell(parent.getShell(), SWT.NO_TRIM);
-				_autoHideTools.setLayout(zeroGridLayout(1));
-				_cbarPar = new Composite(_autoHideTools, SWT.NONE);
-				_mTrack = new MouseTrack;
-				_autoHideTools.getDisplay().addFilter(SWT.MouseUp, _mTrack);
-				_autoHideTools.getDisplay().addFilter(SWT.MouseEnter, _mTrack);
-				_autoHideTools.getDisplay().addFilter(SWT.MouseExit, _mTrack);
-			} else { mixin(S_TRACE);
-				_cbarPar = new Composite(_comp, SWT.NONE);
-			}
-		}
-		if (_cbarPar) { mixin(S_TRACE);
-			_cbarPar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			_cbarPar.setLayout(new FillLayout);
-		}
+		_cbarPar = new Composite(_comp, SWT.NONE);
 
 		_comp.addDisposeListener(new TRDListener);
 		refEventTreeViewStyle();
@@ -2024,32 +1872,6 @@ public:
 			}
 		}
 		initConvMenu();
-		if (_toolWin) { mixin(S_TRACE);
-			auto dummy = new Composite(_toolWin, SWT.NONE);
-			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.heightHint = 0;
-			dummy.setLayoutData(gd);
-			_toolWin.setVisible(false);
-			auto pb = _toolWin.getParent().getBounds();
-			auto size = _toolWin.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-			auto ts = _toolWin.getBounds();
-			int tx = _prop.var.contentsWin.x == SWT.DEFAULT ? ts.x : pb.x + _prop.var.contentsWin.x;
-			int ty = _prop.var.contentsWin.y == SWT.DEFAULT ? ts.y : pb.y + _prop.var.contentsWin.y;
-			intoDisplay(tx, ty, size.x, size.y);
-			_parX = pb.x;
-			_parY = pb.y;
-			_toolWin.setBounds(tx, ty, size.x, size.y);
-			_toolWin.addDisposeListener(new TDListener);
-			_toolWin.getParent().addControlListener(new TCListener);
-			_tree.control.getShell().addShellListener(new PSListener);
-		} else if (_cbarPar) { mixin(S_TRACE);
-			_cbarPar.getParent().layout(true);
-			if (_autoHideTools) { mixin(S_TRACE);
-				_cbarPar.addControlListener(new AHTCListener);
-				_tcListener = new TCListener;
-				_autoHideTools.getParent().addControlListener(_tcListener);
-			}
-		}
 	}
 	private void refEventTreeViewStyle() { mixin(S_TRACE);
 		_comp.setRedraw(false);
@@ -2093,9 +1915,6 @@ public:
 		.listener(_tree.control, SWT.KeyUp, { mixin(S_TRACE);
 			_comm.refreshToolBar();
 		});
-		if (_mTrack) { mixin(S_TRACE);
-			_tree.control.addListener(SWT.MouseMove, _mTrack);
-		}
 
 		auto shell = _tree.control.getShell();
 		{ mixin(S_TRACE);
@@ -2154,6 +1973,7 @@ public:
 		ds.setTransfer([XMLBytesTransfer.getInstance()]);
 		ds.addDragListener(new EventDragSource);
 
+		getContentsBox();
 		_comp.layout();
 		refresh(et);
 		if (ctPath.length) { mixin(S_TRACE);
@@ -2161,14 +1981,6 @@ public:
 			_tree.setSelection([sel]);
 			_tree.showSelection();
 		}
-		_box = new ContentsToolBox(this);
-	}
-	private int _parX, _parY;
-	private void saveToolWinPos() { mixin(S_TRACE);
-		assert (_toolWin);
-		if (_toolWin.isDisposed()) return;
-		_prop.var.contentsWin.x = _toolWin.getBounds().x - _toolWin.getParent().getBounds().x;
-		_prop.var.contentsWin.y = _toolWin.getBounds().y - _toolWin.getParent().getBounds().y;
 	}
 	private Composite _cbarPar = null;
 
@@ -2355,10 +2167,9 @@ public:
 				_tree.showSelection();
 			}
 			if (et) { mixin(S_TRACE);
-				openToolWindow();
+				openToolWindow(true);
 			} else { mixin(S_TRACE);
 				closeToolWindow();
-				if (_autoHideTools) _autoHideTools.setVisible(false);
 			}
 			refreshStatusLine();
 			_comm.refreshToolBar();
@@ -2919,52 +2730,31 @@ public:
 	}
 
 	private void getContentsBox() { mixin(S_TRACE);
-		if (!_toolWin && !_cbarPar.isVisible()) return;
 		if (_box) return;
-		if (_toolWin) _toolWin.setRedraw(false);
-		scope (exit) {
-			if (_toolWin) _toolWin.setRedraw(true);
-		}
-		_box = _comm.getContentsToolBox(this);
-		if (_toolWin) { mixin(S_TRACE);
-			_toolWin.pack();
-		}
-	}
-	void openToolWindow() { mixin(S_TRACE);
-		if (_readOnly) return;
-		_comp.setRedraw(false);
-		scope (exit) _comp.setRedraw(true);
-		getContentsBox();
-		if (_toolWin) { mixin(S_TRACE);
-			if (_toolWin.isDisposed()) return;
-			if (_et) { mixin(S_TRACE);
-				if (_opened) { mixin(S_TRACE);
-					_toolWin.setVisible(true);
-					_toolWinVisible = true;
-				} else { mixin(S_TRACE);
-					_opened = true;
-					_toolWin.setVisible(true);
-					_toolWinVisible = true;
-				}
-			} else { mixin(S_TRACE);
-				_toolWinVisible = true;
-			}
-			_comm.refreshToolBar();
-		}
-	}
-	void closeToolWindow() { mixin(S_TRACE);
-		if (_readOnly) return;
-		if (_toolWin) { mixin(S_TRACE);
-			if (_toolWin.isDisposed()) return;
-			_toolWin.setVisible(false);
-			_toolWinVisible = false;
-		}
+		_comm.getContentsToolBox(this);
 	}
 
 	void refreshTreeName() { mixin(S_TRACE);
 		_tree.getItems()[0].setText(_et.name);
 		redraw();
 		refreshStatusLine();
+	}
+
+	void openToolWindow(bool focusInEventView) { mixin(S_TRACE);
+		if (_readOnly) return;
+		_comp.setRedraw(false);
+		scope (exit) _comp.setRedraw(true);
+		if (focusInEventView) { mixin(S_TRACE);
+			getContentsBox();
+		}
+		if (_box) { mixin(S_TRACE);
+			_box.openToolWindow();
+		}
+	}
+	void closeToolWindow() { mixin(S_TRACE);
+		if (_readOnly) return;
+		if (!_box) return;
+		_box.closeToolWindow();
 	}
 
 	@property
@@ -4128,12 +3918,21 @@ class ContentsToolBox {
 	private CType _cType;
 	private ToolItem _arrowTI;
 	private ToolItem _evtTI = null;
-	private RadioGroup!(ToolItem) _radioGroup;
+	private ToolItemGroup _radioGroup;
 
 	private Cursor[] _cursors;
 
 	private CreateEvent[CType] _conts;
-	bool _shiftDown = false;
+	private bool _shiftDown = false;
+
+	private MouseTrack _mTrack = null;
+	private Shell _toolWin = null;
+	private Shell _autoHideTools = null;
+	private TCListener _tcListener = null;
+	private bool _opened = false;
+	private int _parX, _parY;
+	private DisposeListener _disposeParent = null;
+	private AHTCListener _autoResize = null;
 
 	private void autoOpen() { mixin(S_TRACE);
 		_autoOpen = _autoOpenTI.getSelection();
@@ -4170,8 +3969,16 @@ class ContentsToolBox {
 		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
 	}
 	private void selContentTool(Object sender, bool arrowMode, CType cType, MenuID putMode, bool autoOpen, bool insertFirst) { mixin(S_TRACE);
-		if (!_prop.var.etc.connContentTools) return;
+		auto cursor = arrowMode ? null : _conts[cType]._cursor;
+		if (_toolWin && !_toolWin.isDisposed()) { mixin(S_TRACE);
+			_toolWin.setCursor(cursor);
+		}
+		if (_autoHideTools) { mixin(S_TRACE);
+			_autoHideTools.setCursor(cursor);
+		}
+
 		if (sender is this) return;
+
 		if (!_arrowMode && arrowMode) { mixin(S_TRACE);
 			arrow();
 		}
@@ -4255,7 +4062,7 @@ class ContentsToolBox {
 		@property
 		ToolItem ti() {return _itm;}
 	}
-	private ToolItem createEI(CType type, ToolBar bar, RadioGroup!(ToolItem) g) { mixin(S_TRACE);
+	private ToolItem createEI(CType type, ToolBar bar, ToolItemGroup g) { mixin(S_TRACE);
 		auto text = _prop.msgs.contentName(type);
 		auto img = _prop.images.content(type);
 		auto imgData = _prop.images.content(type).getImageData();
@@ -4291,11 +4098,28 @@ class ContentsToolBox {
 
 	private class TRDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			foreach (cur; _cursors) { mixin(S_TRACE);
-				cur.dispose();
+			if (_comm.poolContentsToolBox(this.outer)) { mixin(S_TRACE);
+				return;
 			}
-			_comm.refEventTemplates.remove(&refreshTemplates);
-			_comm.selContentTool.remove(&selContentTool);
+			disposeParent();
+		}
+	}
+	private void disposeParent() {
+		foreach (cur; _cursors) { mixin(S_TRACE);
+			cur.dispose();
+		}
+		_comm.refEventTemplates.remove(&refreshTemplates);
+		_comm.selContentTool.remove(&selContentTool);
+
+		if (_toolWin) { mixin(S_TRACE);
+			saveToolWinPos();
+			_toolWin.dispose();
+		}
+		if (_tcListener) { mixin(S_TRACE);
+			_autoHideTools.getParent().removeControlListener(_tcListener);
+		}
+		if (_autoHideTools) { mixin(S_TRACE);
+			_autoHideTools.dispose();
 		}
 	}
 
@@ -4337,11 +4161,119 @@ class ContentsToolBox {
 		_templTI.setEnabled(0 < _templMenu.getItemCount());
 	}
 
+	private class TDListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+			assert (_toolWin);
+			if (_toolWin.isDisposed()) return;
+			if (_toolWin.getVisible()) { mixin(S_TRACE);
+				saveToolWinPos();
+			}
+		}
+	}
+	private class TCListener : ControlAdapter {
+		override void controlMoved(ControlEvent e) { mixin(S_TRACE);
+			if (_autoHideTools) { mixin(S_TRACE);
+				calcAutoHideSize();
+				return;
+			}
+			assert (_toolWin);
+			if (!_toolWin || _toolWin.isDisposed()) return;
+			auto pb = _toolWin.getParent().getBounds();
+			auto tb = _toolWin.getBounds();
+			_toolWin.setBounds(tb.x + pb.x - _parX, tb.y + pb.y - _parY, tb.width, tb.height);
+			_parX = pb.x;
+			_parY = pb.y;
+		}
+	}
+	private class AHTCListener : ControlAdapter {
+		override void controlResized(ControlEvent e) { mixin(S_TRACE);
+			if (!_autoHideTools.isVisible()) return;
+			calcAutoHideSize();
+		}
+	}
+	private class MouseTrack : Listener {
+		override void handleEvent(Event e) { mixin(S_TRACE);
+			auto c = cast(Control) e.widget;
+			if (!c || !_autoHideTools) return;
+			if (!_parent._et) { mixin(S_TRACE);
+				_autoHideTools.setVisible(false);
+				return;
+			}
+			if (e.type is SWT.MouseMove && _parent._contentsBoxArea.isVisible()) return;
+			if (c !is _parent._tree.control && !isDescendant(_autoHideTools, c) && !isDescendant(_parent._contentsBoxArea, c)) { mixin(S_TRACE);
+				_autoHideTools.setVisible(false);
+				return;
+			}
+			auto p = c.toDisplay(e.x, e.y);
+			auto ca2 = _autoHideTools.getBounds();
+			ca2.x = 0;
+			ca2.y = 0;
+			if (!_autoHideTools.isVisible()) { mixin(S_TRACE);
+				ca2.width = 0;
+				ca2.height = 0;
+			}
+			auto p2 = _autoHideTools.toControl(p);
+			auto ca1 = _parent._contentsBoxArea.getBounds();
+			ca1.x = 0;
+			ca1.y = 0;
+			if (0 == ca1.height) { mixin(S_TRACE);
+				ca1.height = _prop.var.etc.showContentsBoxHeightWhenNoToolBar;
+			}
+			auto p1 = _parent._contentsBoxArea.toControl(p);
+			if (ca1.contains(p1) || ca2.contains(p2)) { mixin(S_TRACE);
+				if (e.type is SWT.MouseUp && _autoHideTools.isVisible()) { mixin(S_TRACE);
+				_autoHideTools.setVisible(false);
+ 				} else if ((e.type is SWT.MouseUp || _parent._tree.control.isFocusControl()) && !_autoHideTools.isVisible()) { mixin(S_TRACE);
+					calcAutoHideSize();
+					_autoHideTools.setVisible(true);
+				}
+			} else { mixin(S_TRACE);
+				_autoHideTools.setVisible(false);
+			}
+		}
+	}
+	private class TSListener : ShellAdapter {
+		public override void shellClosed(ShellEvent e) { mixin(S_TRACE);
+			assert (_toolWin);
+			if (_toolWin.isDisposed()) return;
+			_toolWin.setVisible(false);
+			e.doit = false;
+		}
+	}
+
 	this (EventTreeView parent) {
 		_comm = parent._comm;
 		_prop = parent._prop;
 		_summ = parent._summ;
 		_parent = parent;
+
+		Composite cbarPar;
+		if (_prop.var.etc.contentsFloat) { mixin(S_TRACE);
+			_toolWin = new Shell(parent.widget.getShell(), SWT.TITLE | SWT.RESIZE | SWT.TOOL);
+			_toolWin.setLayout(zeroGridLayout(1));
+			_toolWin.setText(_prop.msgs.tools);
+			_toolWin.addShellListener(new TSListener);
+			cbarPar = new Composite(_toolWin, SWT.NONE);
+			cbarPar.setLayoutData(new GridData(GridData.FILL_BOTH));
+		} else if (_prop.var.etc.contentsAutoHide) { mixin(S_TRACE);
+			_autoHideTools = new Shell(parent.widget.getShell(), SWT.NO_TRIM);
+			_autoHideTools.setLayout(zeroGridLayout(1));
+			cbarPar = new Composite(_autoHideTools, SWT.NONE);
+			cbarPar.setLayoutData(new GridData(GridData.FILL_BOTH));
+			_mTrack = new MouseTrack;
+			_autoHideTools.getDisplay().addFilter(SWT.MouseUp, _mTrack);
+			_autoHideTools.getDisplay().addFilter(SWT.MouseEnter, _mTrack);
+			_autoHideTools.getDisplay().addFilter(SWT.MouseExit, _mTrack);
+			.listener(_autoHideTools, SWT.Dispose, {
+				_autoHideTools.getDisplay().removeFilter(SWT.MouseUp, _mTrack);
+				_autoHideTools.getDisplay().removeFilter(SWT.MouseEnter, _mTrack);
+				_autoHideTools.getDisplay().removeFilter(SWT.MouseExit, _mTrack);
+			});
+		} else {
+			cbarPar = _parent.boxOwner;
+		}
+		cbarPar.setLayout(new FillLayout);
+		_disposeParent = new TRDListener;
 
 		_autoOpen = _prop.var.etc.contentsAutoOpen;
 		switch (_prop.var.etc.contentsPutMode.value) {
@@ -4371,14 +4303,14 @@ class ContentsToolBox {
 		_comm.refEventTemplates.add(&refreshTemplates);
 		_comm.selContentTool.add(&selContentTool);
 
-		_cbar = createCoolBar!("contents")(_comm, _parent.boxOwner, (CoolBar cbar) { mixin(S_TRACE);
+		_cbar = createCoolBar!("contents")(_comm, cbarPar, (CoolBar cbar) { mixin(S_TRACE);
 			void createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) { mixin(S_TRACE);
 				.createCoolItem(cbar, tbar, index);
 			}
-			if (!_prop.var.etc.contentsFloat || _parent._autoHideTools) { mixin(S_TRACE);
+			if (!_prop.var.etc.contentsFloat || _autoHideTools) { mixin(S_TRACE);
 				cbar.addMouseListener(new TMListener);
 			}
-			auto g = new RadioGroup!(ToolItem);
+			auto g = new ToolItemGroup;
 			_radioGroup = g;
 
 			auto atm = new ToolBar(cbar, SWT.FLAT);
@@ -4426,7 +4358,6 @@ class ContentsToolBox {
 
 		});
 		_cbar.addDisposeListener(new CDListener);
-		_cbar.addDisposeListener(new TRDListener);
 		_cbar.addMouseListener(new TMListener);
 		_cbar.getDisplay().addFilter(SWT.KeyDown, shiftCaptcha);
 		_cbar.getDisplay().addFilter(SWT.KeyUp, shiftCaptcha);
@@ -4434,18 +4365,122 @@ class ContentsToolBox {
 			_cbar.getDisplay().removeFilter(SWT.KeyDown, shiftCaptcha);
 			_cbar.getDisplay().removeFilter(SWT.KeyUp, shiftCaptcha);
 		});
-		_parent.boxOwner.layout();
+
+		if (_toolWin) { mixin(S_TRACE);
+			auto dummy = new Composite(_toolWin, SWT.NONE);
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.heightHint = 0;
+			dummy.setLayoutData(gd);
+			_toolWin.setVisible(false);
+			auto pb = _toolWin.getParent().getBounds();
+			auto size = _toolWin.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			auto ts = _toolWin.getBounds();
+			int tx = _prop.var.contentsWin.x == SWT.DEFAULT ? ts.x : pb.x + _prop.var.contentsWin.x;
+			int ty = _prop.var.contentsWin.y == SWT.DEFAULT ? ts.y : pb.y + _prop.var.contentsWin.y;
+			intoDisplay(tx, ty, size.x, size.y);
+			_parX = pb.x;
+			_parY = pb.y;
+			_toolWin.setBounds(tx, ty, size.x, size.y);
+			_toolWin.addDisposeListener(new TDListener);
+			_toolWin.getParent().addControlListener(new TCListener);
+		} else if (cbarPar) { mixin(S_TRACE);
+			if (_autoHideTools) { mixin(S_TRACE);
+				_autoResize = new AHTCListener;
+				_tcListener = new TCListener;
+				_autoHideTools.getParent().addControlListener(_tcListener);
+			}
+		}
+
+		_parent._box = this;
+		addListenersToOwner();
+		relayout();
+	}
+
+	void dispose() { mixin(S_TRACE);
+		removeListenersToOwner();
+		_cbar.dispose();
+		disposeParent();
+		_parent._box = null;
+	}
+
+	private void addListenersToOwner() { mixin(S_TRACE);
+		if (_autoHideTools) {
+			owner.boxOwner.addControlListener(_autoResize);
+		}
+		owner.boxOwner.addDisposeListener(_disposeParent);
+	}
+	private void removeListenersToOwner() { mixin(S_TRACE);
+		if (_autoHideTools) {
+			owner.boxOwner.removeControlListener(_autoResize);
+		}
+		owner.boxOwner.removeDisposeListener(_disposeParent);
+	}
+	private void relayout() { mixin(S_TRACE);
+		if (isSingleton) { mixin(S_TRACE);
+			auto parGd = new GridData(GridData.FILL_HORIZONTAL);
+			parGd.heightHint = 0;
+			_parent.boxOwner.setLayoutData(parGd);
+			_parent.boxOwner.getParent().layout();
+		} else {
+			_cbar.setParent(_parent.boxOwner);
+			_parent.boxOwner.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			_parent.boxOwner.getParent().layout();
+		}
 	}
 
 	@property
-	void owner(EventTreeView owner) {
+	void owner(EventTreeView owner) { mixin(S_TRACE);
+		removeListenersToOwner();
 		_parent._box = null;
 		_parent = owner;
-		_cbar.setParent(_parent.boxOwner);
-		if (_cbar.getSize() != _parent.boxOwner.getSize()) {
-			_parent.boxOwner.layout();
-		}
+		owner._box = this;
+		relayout();
+		addListenersToOwner();
 	}
 	@property
 	EventTreeView owner() { return _parent; }
+
+	@property
+	const
+	bool isSingleton() {
+		return _prop.var.etc.contentsAutoHide || _prop.var.etc.contentsFloat;
+	}
+
+	private void calcAutoHideSize() { mixin(S_TRACE);
+		if (!_autoHideTools) return;
+		auto tb = _parent._tree.control.getBounds();
+		auto ca1 =_parent. _contentsBoxArea.getBounds();
+		int x = _parent._tree.control.toDisplay(tb.x, tb.y).x;
+		int y = _parent._contentsBoxArea.toDisplay(0, ca1.y).y + ca1.height;
+		auto size = _autoHideTools.computeSize(tb.width, SWT.DEFAULT);
+		_autoHideTools.setBounds(new Rectangle(x, y, size.x, size.y));
+	}
+	private void saveToolWinPos() { mixin(S_TRACE);
+		assert (_toolWin);
+		if (_toolWin.isDisposed()) return;
+		_prop.var.contentsWin.x = _toolWin.getBounds().x - _toolWin.getParent().getBounds().x;
+		_prop.var.contentsWin.y = _toolWin.getBounds().y - _toolWin.getParent().getBounds().y;
+	}
+	private void openToolWindow() { mixin(S_TRACE);
+		if (_toolWin) { mixin(S_TRACE);
+			if (_toolWin.isDisposed()) return;
+			if (_parent._et) { mixin(S_TRACE);
+				if (_opened) { mixin(S_TRACE);
+					_toolWin.setVisible(true);
+				} else { mixin(S_TRACE);
+					_opened = true;
+					_toolWin.setVisible(true);
+				}
+			}
+			_comm.refreshToolBar();
+		}
+	}
+	private void closeToolWindow() { mixin(S_TRACE);
+		if (_toolWin) { mixin(S_TRACE);
+			if (_toolWin.isDisposed()) return;
+			_toolWin.setVisible(false);
+		} else if (_autoHideTools) { mixin(S_TRACE);
+			_autoHideTools.setVisible(false);
+		}
+	}
 }

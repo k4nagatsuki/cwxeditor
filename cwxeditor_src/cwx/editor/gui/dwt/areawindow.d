@@ -124,7 +124,6 @@ private:
 				_eview.openToolWindow();
 			} else { mixin(S_TRACE);
 				_comm.setStatusLine(_win, _aview.statusLine);
-				_eview.closeToolWindow();
 			}
 			_comm.refreshToolBar();
 		}

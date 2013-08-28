@@ -54,6 +54,12 @@ public:
 		_canInclude = canInclude;
 		_isMenuCard = isMenuCard;
 	}
+	@property
+	const
+	bool canInclude() { return _canInclude; }
+	@property
+	const
+	bool isMenuCard() { return _isMenuCard; }
 
 	D createDirsCombo(Composite parent) { mixin(S_TRACE);
 		static if (is (D == Combo)) {

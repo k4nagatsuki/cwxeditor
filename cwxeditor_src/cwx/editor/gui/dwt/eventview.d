@@ -1158,6 +1158,23 @@ public:
 			static assert (0);
 		}
 		refShowToolBar();
+
+		auto track = new class Listener {
+			override void handleEvent(Event e) { mixin(S_TRACE);
+				if (_prop.var.etc.contentsAutoHide || _prop.var.etc.contentsFloat) {
+					auto c = cast(Control)e.widget;
+					if (c && .isDescendant(this.outer, c)) {
+						_etree.openToolWindow(true);
+					}
+				}
+			}
+		};
+		auto d = getDisplay();
+		d.addFilter(SWT.MouseEnter, track);
+		.listener(this, SWT.Dispose, {
+			d.removeFilter(SWT.MouseEnter, track);
+		});
+
 	}
 	@property
 	EventTreeView eventTreeView() { mixin(S_TRACE);
@@ -1645,7 +1662,9 @@ public:
 	}
 
 	void openToolWindow() { mixin(S_TRACE);
-		_etree.openToolWindow();
+		auto fc = this.getDisplay().getFocusControl();
+		bool focusInEventView = this.isDescendant(fc);
+		_etree.openToolWindow(focusInEventView);
 	}
 	void closeToolWindow() { mixin(S_TRACE);
 		_etree.closeToolWindow();

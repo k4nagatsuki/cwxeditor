@@ -263,7 +263,7 @@ private:
 	ImageSelect!(MtType.BG_IMG) _imgPath;
 
 	void refreshWarning() { mixin(S_TRACE);
-		warning = _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ ? _summ.legacy : false, _prop.var.etc.targetVersion);
+		warning = _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ ? _summ.legacy : false, false, _prop.var.etc.targetVersion);
 	}
 
 	class SDListener : DisposeListener {

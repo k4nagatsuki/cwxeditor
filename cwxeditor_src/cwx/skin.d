@@ -864,22 +864,30 @@ class Skin {
 		return false;
 	}
 	/// pathを使用する際の警告(一部環境で表示不可等)。
-	static string[] warningImage(in CProps prop, string path, bool legacy, string targVer) { mixin(S_TRACE);
+	static string[] warningImage(in CProps prop, string path, bool legacy, bool includeType, string targVer) { mixin(S_TRACE);
 		auto ext = .toLower(.extension(path));
 		if (legacy) { mixin(S_TRACE);
 			switch (ext) {
 			case ".png": // PNG
-				// FIXME: 少なくとも1.50までは使用不可
-/+				if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
-+/					return [prop.msgs.pngMayNotCorrespond];
-/+				}
-+/				break;
+				if (includeType) {
+					// 格納画像は少なくとも1.50までは使用不可
+					return [prop.msgs.pngMayNotCorrespond];
+				} else {
+					if (!prop.targetVersion("1.30", targVer)) { mixin(S_TRACE);
+						return [prop.msgs.pngMayNotCorrespond];
+					}
+				}
+				break;
 			case ".gif": // GIF
-				// FIXME: 少なくとも1.50までは使用不可
-/+				if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
-+/					return [prop.msgs.gifMayNotCorrespond];
-/+				}
-+/				break;
+				if (includeType) {
+					// 格納画像は少なくとも1.50までは使用不可
+					return [prop.msgs.gifMayNotCorrespond];
+				} else {
+					if (!prop.targetVersion("1.30", targVer)) { mixin(S_TRACE);
+						return [prop.msgs.gifMayNotCorrespond];
+					}
+				}
+				break;
 			default:
 				return [];
 			}

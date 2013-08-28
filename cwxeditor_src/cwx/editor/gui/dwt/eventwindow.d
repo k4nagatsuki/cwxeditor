@@ -211,13 +211,11 @@ public:
 		auto d = contPane.getDisplay();
 		auto tl = new class Listener {
 			override void handleEvent(Event e) { mixin(S_TRACE);
-				auto tabf = cast(CTabFolder) contPane.getParent();
+				auto tabf = cast(CTabFolder)contPane.getParent();
 				if (!tabf) return;
 				if (!tabf.getSelection()) return;
 				if (eventTreeView.eventTree && contPane is tabf.getSelection().getControl()) { mixin(S_TRACE);
 					_eview.openToolWindow();
-				} else { mixin(S_TRACE);
-					_eview.closeToolWindow();
 				}
 			}
 		};

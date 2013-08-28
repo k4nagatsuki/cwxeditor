@@ -284,7 +284,7 @@ public:
 			auto type = imageType(bin);
 			if ("" != type) { mixin(S_TRACE);
 				img = "image".setExtension(type);
-				ws ~= summSkin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false, _prop.var.etc.targetVersion);
+				ws ~= summSkin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false, _msel.canInclude, _prop.var.etc.targetVersion);
 				static if (Type is MtType.CARD) {
 					uint w, h;
 					imageSize(bin, w, h);
@@ -295,7 +295,7 @@ public:
 				}
 			}
 		} else { mixin(S_TRACE);
-			ws ~= summSkin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false, _prop.var.etc.targetVersion);
+			ws ~= summSkin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false, _msel.canInclude && !_msel.isMenuCard, _prop.var.etc.targetVersion);
 			static if (Type is MtType.CARD) {
 				if (img.length) { mixin(S_TRACE);
 					uint w, h;

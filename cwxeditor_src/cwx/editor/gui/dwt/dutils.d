@@ -1041,6 +1041,8 @@ private:
 	}
 }
 
+alias RadioGroup!ToolItem ToolItemGroup;
+
 TreeItem createTreeItem(T)(T parent, Object data, string text, Image img, int index = -1) { mixin(S_TRACE);
 	TreeItem r;
 	if (index >= 0) { mixin(S_TRACE);

@@ -322,6 +322,7 @@ class Commons {
 	Dlg!() refVarSelectStyle;
 	Dlg!() refEventTreeViewStyle;
 	Dlg!() refTerminalMark;
+	Dlg!() refContentsToolBoxStyle;
 
 	Dlg!() refTableViewStyle;
 	Dlg!(Area) refArea;
@@ -381,6 +382,7 @@ class Commons {
 		}
 		refScenario.add(&clearFlagDirExpandedS);
 		refVarSelectStyle.add(&clearFlagDirExpanded);
+		refContentsToolBoxStyle.add(&reconstructContentsToolBox);
 	}
 	private void clearFlagDirExpandedS(Summary summ) { mixin(S_TRACE);
 		flagDirExpanded = null;
@@ -397,6 +399,7 @@ class Commons {
 		if (_wallpaper) _wallpaper.dispose();
 		refScenario.remove(&clearFlagDirExpandedS);
 		refVarSelectStyle.remove(&clearFlagDirExpanded);
+		refContentsToolBoxStyle.remove(&reconstructContentsToolBox);
 	}
 
 	private MainWindow _main = null;
@@ -572,13 +575,6 @@ class Commons {
 		OpenHistory hist;
 		return _main.findSkinFromHistory(summ, hist);
 	}
-
-	/// アクティブなコンテントツールボックス。
-	@property
-	void actToolWin(Shell v) {_actToolWin = v;}
-	@property
-	Shell actToolWin() {return _actToolWin;}
-	private Shell _actToolWin = null;
 
 	private void activate(Composite w, bool shellActivate) { mixin(S_TRACE);
 		auto shl = cast(Shell) w;
@@ -976,48 +972,71 @@ class Commons {
 		}
 		return null;
 	}
-	ContentsToolBox getContentsToolBox(EventTreeView eventTreeView) {
-		EventTreeView view = null;
+	private void foreachEventTreeView(bool delegate(EventTreeView view) dlg) { mixin(S_TRACE);
 		foreach (w; _ws) { mixin(S_TRACE);
 			auto tlpData = (cast(TLPData)w.getData());
-			if (cast(EventTreeOwner)tlpData.main && eventTreeView !is tlpData.main) { mixin(S_TRACE);
+			if (cast(EventTreeOwner)tlpData.main) { mixin(S_TRACE);
+				EventTreeView view = null;
 				auto aw = cast(AreaWindow)tlpData.tlp;
 				if (aw) view = aw.eventView.eventTreeView;
 				auto bw = cast(BattleWindow)tlpData.tlp;
 				if (bw) view = aw.eventView.eventTreeView;
 				auto ew = cast(IEventWindow)tlpData.tlp;
 				if (ew) view = ew.eventTreeView;
-				if (view && !view.widget.isVisible() && view.contentsToolBox) { mixin(S_TRACE);
-					break;
+				if (view) { mixin(S_TRACE);
+					if (!dlg(view)) continue;
 				}
 			}
 		}
-		if (view && !view.widget.isVisible() && view.contentsToolBox) { mixin(S_TRACE);
+	}
+	ContentsToolBox getContentsToolBox(EventTreeView eventTreeView) {
+		EventTreeView view = null;
+		if (_prop.var.etc.contentsFloat || _prop.var.etc.contentsAutoHide) {
+			foreachEventTreeView((v) { mixin(S_TRACE);
+				if (v && v !is eventTreeView && v.contentsToolBox) { mixin(S_TRACE);
+					view = v;
+					return false;
+				}
+				return true;
+			});
+		}
+		if (view) { mixin(S_TRACE);
 			auto box = view.contentsToolBox;
 			box.owner = eventTreeView;
 			return box;
 		}
 		return new ContentsToolBox(eventTreeView);
 	}
-	void poolContentsToolBox(ContentsToolBox box) {
+	bool poolContentsToolBox(ContentsToolBox box) {
 		EventTreeView view = null;
-		foreach (w; _ws) { mixin(S_TRACE);
-			auto tlpData = (cast(TLPData)w.getData());
-			if (cast(EventTreeOwner)tlpData.main && box.owner !is tlpData.main) { mixin(S_TRACE);
-				auto aw = cast(AreaWindow)tlpData.tlp;
-				if (aw) view = aw.eventView.eventTreeView;
-				auto bw = cast(BattleWindow)tlpData.tlp;
-				if (bw) view = aw.eventView.eventTreeView;
-				auto ew = cast(IEventWindow)tlpData.tlp;
-				if (ew) view = ew.eventTreeView;
-				if (view && !view.contentsToolBox) { mixin(S_TRACE);
-					break;
-				}
+		foreachEventTreeView((v) { mixin(S_TRACE);
+			if (v && !v.contentsToolBox && box.owner !is v) { mixin(S_TRACE);
+				view = v;
+				return false;
 			}
-		}
-		if (view && !view.contentsToolBox) { mixin(S_TRACE);
+			return true;
+		});
+		if (view) { mixin(S_TRACE);
 			box.owner = view;
+			return true;
+		} else {
+			return false;
 		}
+	}
+	private void reconstructContentsToolBox() {
+		foreachEventTreeView((v) { mixin(S_TRACE);
+			if (v && v.contentsToolBox) { mixin(S_TRACE);
+				v.contentsToolBox.dispose();
+			}
+			return true;
+		});
+		foreachEventTreeView((v) { mixin(S_TRACE);
+			if (v && v.widget.isVisible()) { mixin(S_TRACE);
+				assert (v.contentsToolBox is null);
+				getContentsToolBox(v);
+			}
+			return true;
+		});
 	}
 
 	private HashSet!(Composite) _aws;

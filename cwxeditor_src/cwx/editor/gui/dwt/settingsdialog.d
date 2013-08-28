@@ -2848,6 +2848,8 @@ struct OldSettings {
 	bool showTerminalMark;
 	bool showSummaryInAreaTable;
 	bool showAreaDirTree;
+	bool contentsFloat;
+	bool contentsAutoHide;
 	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
 		this.targetVersion = prop.var.etc.targetVersion;
@@ -2895,6 +2897,8 @@ struct OldSettings {
 		this.showTerminalMark = prop.var.etc.showTerminalMark;
 		this.showSummaryInAreaTable = prop.var.etc.showSummaryInAreaTable;
 		this.showAreaDirTree = prop.var.etc.showAreaDirTree;
+		this.contentsFloat = prop.var.etc.contentsFloat;
+		this.contentsAutoHide = prop.var.etc.contentsAutoHide;
 	}
 	void raiseEvent(Commons comm) { mixin(S_TRACE);
 		bool refSkin = false;
@@ -3029,6 +3033,9 @@ struct OldSettings {
 		}
 		if (this.showAreaDirTree != prop.var.etc.showAreaDirTree) { mixin(S_TRACE);
 			comm.refTableViewStyle.call();
+		}
+		if (this.contentsFloat != prop.var.etc.contentsFloat || this.contentsAutoHide != prop.var.etc.contentsAutoHide) {
+			comm.refContentsToolBoxStyle.call();
 		}
 	}
 }

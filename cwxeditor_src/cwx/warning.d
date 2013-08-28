@@ -34,7 +34,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.searchErrorStartAreaNotFound;
 		}
 		if (psumm.imagePath != "") { mixin(S_TRACE);
-			r ~= skin.warningImage(prop, psumm.imagePath, summ.legacy, targVer);
+			r ~= skin.warningImage(prop, psumm.imagePath, summ.legacy, true, targVer);
 		}
 	}
 	auto flagDir = cast(FlagDir) path;
@@ -92,7 +92,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.searchErrorImageNotFound;
 		}
 		if (card.path != "") { mixin(S_TRACE);
-			r ~= skin.warningImage(prop, card.path, summ.legacy, targVer);
+			r ~= skin.warningImage(prop, card.path, summ.legacy, true, targVer);
 		}
 	}
 	auto effCard = cast(EffectCard) path;
@@ -140,7 +140,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.searchErrorImageNotFound;
 		}
 		if (ic.path != "") { mixin(S_TRACE);
-			r ~= skin.warningImage(prop, ic.path, summ.legacy, targVer);
+			r ~= skin.warningImage(prop, ic.path, summ.legacy, true, targVer);
 		}
 	}
 	auto tc = cast(TextCell) path;
@@ -313,7 +313,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 		if (c.cardPath != "") { mixin(S_TRACE);
-			r ~= skin.warningImage(prop, c.cardPath, summ.legacy, targVer);
+			r ~= skin.warningImage(prop, c.cardPath, summ.legacy, false, targVer);
 		}
 		if (c.bgmPath != "") { mixin(S_TRACE);
 			r ~= skin.warningBGM(prop, c.bgmPath, summ.legacy, targVer);
