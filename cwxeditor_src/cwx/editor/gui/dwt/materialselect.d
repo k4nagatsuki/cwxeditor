@@ -500,6 +500,9 @@ public:
 	}
 	@property
 	void path(string path) {
+		path2(path, true);
+	}
+	void path2(string path, bool updateBinImg) {
 		auto old = _path;
 		scope (exit) {
 			if (old != _path) {
@@ -507,7 +510,9 @@ public:
 			}
 		}
 		_path = path;
-		_binPath = isBinImg(path) ? path : "";
+		if (updateBinImg) {
+			_binPath = isBinImg(path) ? path : "";
+		}
 		static if (Type is MtType.CARD) {
 			if (!useNoCardSizeImage && !_binPath.length) {
 				auto p = _comm.skin.findImagePath(_path, _summ ? _summ.scenarioPath : "");

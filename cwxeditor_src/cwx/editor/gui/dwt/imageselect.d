@@ -342,7 +342,8 @@ private:
 				}
 				auto parent = (cast(Control) e.widget).getShell();
 				_imgList = new ImageListWindow!Type(_prop, _comm, _summ, parent, (string path) {
-					image(path);
+					_msel.path2(path, false);
+					_image.redraw();
 					__refresh();
 				});
 				.listener(_imgList.shell, SWT.Dispose, {
