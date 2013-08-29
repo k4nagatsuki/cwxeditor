@@ -576,13 +576,15 @@ ToolItem createToolItem(Commons comm, ToolBar bar, MenuID id,
 	return createToolItemImpl(comm, bar, comm.prop.buildTool(id), null, comm.prop.images.menu(id), func, style, id, enabled);
 }
 
-private class CBarListener(string Name) : ControlAdapter, DisposeListener {
+private class CBarListener(string Name) : MouseMoveListener, DisposeListener {
 	private Props _prop;
 	private CoolBar _cbar;
-	MenuItem _lock;
+	private MenuItem _lock;
+	private int[] _wrapIndices;
 	this (Props prop, CoolBar cbar) { mixin(S_TRACE);
 		_prop = prop;
 		_cbar = cbar;
+		_wrapIndices = _cbar.getWrapIndices();
 	}
 	override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 		auto cbar = cast(CoolBar) e.widget;
@@ -598,8 +600,11 @@ private class CBarListener(string Name) : ControlAdapter, DisposeListener {
 		}
 		mixin ("_prop.var.etc." ~ Name ~ "WrapIndices = cbar.getWrapIndices();");
 	}
-	override void controlResized(ControlEvent e) { mixin(S_TRACE);
-		auto cbar = cast(CoolBar) e.widget;
+	override void mouseMove(MouseEvent e) { mixin(S_TRACE);
+		if (e.getSource() !is _cbar) return;
+		if (_wrapIndices == _cbar.getWrapIndices()) return;
+		_wrapIndices = _cbar.getWrapIndices();
+		auto cbar = cast(CoolBar)e.widget;
 		cbar.getShell().layout(true, true);
 	}
 	void reset() { mixin(S_TRACE);
@@ -627,19 +632,6 @@ CoolBar createCoolBar(string Name)(Commons comm, Composite parent,
 
 	setupItems(cbar);
 
-	auto ls = new CBarListener!(Name)(comm.prop, cbar);
-	cbar.addControlListener(ls);
-	cbar.addDisposeListener(ls);
-
-	auto menu = new Menu(parent.getShell(), SWT.POP_UP);
-	ls._lock = createMenuItem(comm, menu, MenuID.LockToolBar, &ls.lock, null, SWT.CHECK);
-	new MenuItem(menu, SWT.SEPARATOR);
-	createMenuItem(comm, menu, MenuID.ResetToolBar, &ls.reset, null);
-	cbar.setMenu(menu);
-
-	foreach (itm; cbar.getItems()) { mixin(S_TRACE);
-		itm.getControl().setMenu(menu);
-	}
 	if (mixin ("comm.prop.var.etc." ~ Name ~ "Order.length") == cbar.getItemCount()) { mixin(S_TRACE);
 		cbar.setItemOrder(mixin ("comm.prop.var.etc." ~ Name ~ "Order.dup"));
 	}
@@ -649,7 +641,21 @@ CoolBar createCoolBar(string Name)(Commons comm, Composite parent,
 	}
 	if (wi != cbar.getWrapIndices()) cbar.setWrapIndices(wi);
 	cbar.setLocked(mixin ("comm.prop.var.etc." ~ Name ~ "Lock"));
+
+	auto ls = new CBarListener!(Name)(comm.prop, cbar);
+	cbar.addMouseMoveListener(ls);
+	cbar.addDisposeListener(ls);
+
+	auto menu = new Menu(parent.getShell(), SWT.POP_UP);
+	ls._lock = createMenuItem(comm, menu, MenuID.LockToolBar, &ls.lock, null, SWT.CHECK);
+	new MenuItem(menu, SWT.SEPARATOR);
+	createMenuItem(comm, menu, MenuID.ResetToolBar, &ls.reset, null);
+	cbar.setMenu(menu);
+	foreach (itm; cbar.getItems()) { mixin(S_TRACE);
+		itm.getControl().setMenu(menu);
+	}
 	ls._lock.setSelection(cbar.getLocked());
+
 	return cbar;
 }
 

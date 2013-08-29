@@ -662,6 +662,7 @@ private:
 			} else { mixin(S_TRACE);
 				if (insertTo && !CDetail.fromType(_box._cType).owner) return;
 				auto sel = selection;
+				if (!sel) return;
 				if (!insertTo && sel && !(cast(Content)sel.getData()).detail.owner) { mixin(S_TRACE);
 					sel = _tree.getParentItem(sel);
 					if (!sel) return;
@@ -2647,6 +2648,7 @@ public:
 	bool canSwapToParent() { mixin(S_TRACE);
 		if (_readOnly) return false;
 		auto itm = selection;
+		if (!itm) return false;
 		auto c = cast(Content)itm.getData();
 		if (!c.parent) return false;
 		if (c.parent.type == CType.START) return false;
@@ -2658,6 +2660,7 @@ public:
 	bool canSwapToChild() { mixin(S_TRACE);
 		if (_readOnly) return false;
 		auto itm = selection;
+		if (!itm) return false;
 		auto c = cast(Content)itm.getData();
 		if (c.type == CType.START) return false;
 		if (c.next.length != 1) return false;
@@ -2744,7 +2747,7 @@ public:
 		if (_readOnly) return;
 		_comp.setRedraw(false);
 		scope (exit) _comp.setRedraw(true);
-		if (focusInEventView) { mixin(S_TRACE);
+		if (focusInEventView || (widget.isVisible() && !(_prop.var.etc.contentsFloat || _prop.var.etc.contentsAutoHide))) { mixin(S_TRACE);
 			getContentsBox();
 		}
 		if (_box) { mixin(S_TRACE);
@@ -4017,7 +4020,7 @@ class ContentsToolBox {
 		void create(SelectionEvent e) { mixin(S_TRACE);
 			if (_itm.getSelection()) { mixin(S_TRACE);
 				auto itm = _parent.selection;
-				if (_putMode is MenuID.PutQuick && itm) { mixin(S_TRACE);
+				if (_putMode is MenuID.PutQuick) { mixin(S_TRACE);
 					putQuick(_shiftDown);
 					if (e) e.doit = false;
 					return;
@@ -4034,7 +4037,11 @@ class ContentsToolBox {
 		void middleClick() { putQuick(true); }
 		private void putQuick(bool insert) { mixin(S_TRACE);
 			auto itm = _parent.selection;
-			if (_putMode !is MenuID.PutQuick || !itm) return;
+			if (_putMode !is MenuID.PutQuick || !itm) { mixin(S_TRACE);
+				arrow();
+				_itm.setSelection(false);
+				return;
+			}
 			_cType = type;
 			_evtTI = _itm;
 			_parent.create(insert ? itm : null);
@@ -4069,7 +4076,7 @@ class ContentsToolBox {
 		auto cursor = new Cursor(Display.getCurrent(), imgData, imgData.width / 2, imgData.height / 2);
 		_cursors ~= cursor;
 		auto ce = new CreateEvent(type, cursor);
-		auto itm = createToolItem2(_comm, bar, text, img, &ce.create, null, SWT.RADIO);
+		auto itm = createToolItem2(_comm, bar, text, img, &ce.create, () => _parent.selection !is null, SWT.RADIO);
 		ce.ti = itm;
 		g.append(itm);
 		_conts[type] = ce;
@@ -4353,9 +4360,9 @@ class ContentsToolBox {
 				} else { mixin(S_TRACE);
 					createCoolItem(cbar, eBar);
 				}
+				_comm.put(eBar);
 			}
 			updatePutMode();
-
 		});
 		_cbar.addDisposeListener(new CDListener);
 		_cbar.addMouseListener(new TMListener);
@@ -4425,6 +4432,7 @@ class ContentsToolBox {
 			_cbar.setParent(_parent.boxOwner);
 			_parent.boxOwner.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			_parent.boxOwner.getParent().layout();
+			_parent.boxOwner.layout();
 		}
 	}
 
@@ -4471,15 +4479,15 @@ class ContentsToolBox {
 					_opened = true;
 					_toolWin.setVisible(true);
 				}
+			} else {
+				closeToolWindow();
 			}
-			_comm.refreshToolBar();
 		}
+		_comm.refreshToolBar();
 	}
 	private void closeToolWindow() { mixin(S_TRACE);
-		if (_toolWin) { mixin(S_TRACE);
-			if (_toolWin.isDisposed()) return;
-			_toolWin.setVisible(false);
-		} else if (_autoHideTools) { mixin(S_TRACE);
+		// 別ウィンドウで表示している場合は閉じない
+		if (_autoHideTools) { mixin(S_TRACE);
 			_autoHideTools.setVisible(false);
 		}
 	}

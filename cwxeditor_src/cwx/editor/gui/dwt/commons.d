@@ -366,6 +366,10 @@ class Commons {
 	private Props _prop = null;
 
 	bool[string] flagDirExpanded;
+	bool[string] stepDirExpanded;
+	bool[string] flagAreaExpanded;
+	bool[string] flagBattleExpanded;
+	bool[string] flagPackageExpanded;
 
 	private HashSet!(Composite) _ws;
 	private Object[Composite] _wos;
@@ -381,15 +385,28 @@ class Commons {
 			}
 		}
 		refScenario.add(&clearFlagDirExpandedS);
+		refScenario.add(&clearStepDirExpandedS);
+		refScenario.add(&clearAreaDirExpandedS);
+		refScenario.add(&clearBattleDirExpandedS);
+		refScenario.add(&clearPackageDirExpandedS);
 		refVarSelectStyle.add(&clearFlagDirExpanded);
+		refVarSelectStyle.add(&clearStepDirExpanded);
+		refVarSelectStyle.add(&clearAreaDirExpanded);
+		refVarSelectStyle.add(&clearBattleDirExpanded);
+		refVarSelectStyle.add(&clearPackageDirExpanded);
 		refContentsToolBoxStyle.add(&reconstructContentsToolBox);
 	}
-	private void clearFlagDirExpandedS(Summary summ) { mixin(S_TRACE);
-		flagDirExpanded = null;
-	}
-	private void clearFlagDirExpanded() { mixin(S_TRACE);
-		flagDirExpanded = null;
-	}
+	private void clearFlagDirExpandedS(Summary summ) { flagDirExpanded = null; }
+	private void clearFlagDirExpanded() { flagDirExpanded = null; }
+	private void clearStepDirExpandedS(Summary summ) { stepDirExpanded = null; }
+	private void clearStepDirExpanded() { stepDirExpanded = null; }
+	private void clearAreaDirExpandedS(Summary summ) { flagDirExpanded = null; }
+	private void clearAreaDirExpanded() { flagDirExpanded = null; }
+	private void clearBattleDirExpandedS(Summary summ) { flagDirExpanded = null; }
+	private void clearBattleDirExpanded() { flagDirExpanded = null; }
+	private void clearPackageDirExpandedS(Summary summ) { flagDirExpanded = null; }
+	private void clearPackageDirExpanded() { flagDirExpanded = null; }
+
 	@property
 	Props prop() {return _prop;}
 	@property
@@ -398,7 +415,15 @@ class Commons {
 	void dispose() { mixin(S_TRACE);
 		if (_wallpaper) _wallpaper.dispose();
 		refScenario.remove(&clearFlagDirExpandedS);
+		refScenario.remove(&clearStepDirExpandedS);
+		refScenario.remove(&clearAreaDirExpandedS);
+		refScenario.remove(&clearBattleDirExpandedS);
+		refScenario.remove(&clearPackageDirExpandedS);
 		refVarSelectStyle.remove(&clearFlagDirExpanded);
+		refVarSelectStyle.remove(&clearStepDirExpanded);
+		refVarSelectStyle.remove(&clearAreaDirExpanded);
+		refVarSelectStyle.remove(&clearBattleDirExpanded);
+		refVarSelectStyle.remove(&clearPackageDirExpanded);
 		refContentsToolBoxStyle.remove(&reconstructContentsToolBox);
 	}
 
@@ -993,7 +1018,7 @@ class Commons {
 		EventTreeView view = null;
 		if (_prop.var.etc.contentsFloat || _prop.var.etc.contentsAutoHide) {
 			foreachEventTreeView((v) { mixin(S_TRACE);
-				if (v && v !is eventTreeView && v.contentsToolBox) { mixin(S_TRACE);
+				if (v && v !is eventTreeView && v.contentsToolBox && (v.contentsToolBox.isSingleton || !v.widget.isVisible())) { mixin(S_TRACE);
 					view = v;
 					return false;
 				}

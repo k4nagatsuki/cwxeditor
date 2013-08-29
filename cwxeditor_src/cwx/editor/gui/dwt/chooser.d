@@ -333,6 +333,9 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		} else static if (is(F:Step)) {
 			if (!s.length) return;
 		} else static assert (0);
+		auto exp = expandedTable.dup;
+		scope (exit) expandedTable = exp;
+		saveExpanded();
 		refreshFlags();
 	}
 	private void delFlags(Flag[] f, Step[] s) { mixin(S_TRACE);
@@ -342,7 +345,18 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		} else static if (is(F:Step)) {
 			if (!s.length) return;
 		} else static assert (0);
+		auto exp = expandedTable.dup;
+		scope (exit) expandedTable = exp;
+		saveExpanded();
 		refreshFlags();
+	}
+	@property
+	private ref bool[string] expandedTable() {
+		static if (is(F:Flag)) {
+			return _comm.flagDirExpanded;
+		} else static if (is(F:Step)) {
+			return _comm.stepDirExpanded;
+		} else static assert (0);
 	}
 	private void refreshFlags() { mixin(S_TRACE);
 		static if (is(F:Flag)) {
@@ -447,7 +461,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					_canIncSearch = true;
 				}
 				if (dirItm) {
-					dirItm.setExpanded(selItm || _comm.flagDirExpanded.get(dir.path, true));
+					dirItm.setExpanded(selItm || expandedTable.get(dir.path, true));
 				}
 				return selItm;
 			}
@@ -549,6 +563,20 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		return a || d;
 	}
 
+	private void saveExpanded() { mixin(S_TRACE);
+		bool[string] flagDirExpanded;
+		void recurse(TreeItem itm) { mixin(S_TRACE);
+			auto dir = cast(FlagDir)itm.getData();
+			if (dir && dir.path != "") { mixin(S_TRACE);
+				flagDirExpanded[dir.path] = itm.getExpanded();
+			}
+			foreach (child; itm.getItems()) recurse(child);
+		}
+		foreach (itm; _tree.getItems()) { mixin(S_TRACE);
+			recurse(itm);
+		}
+		expandedTable = flagDirExpanded;
+	}
 	private void initControl() { mixin(S_TRACE);
 		if (_tree) { mixin(S_TRACE);
 			_tree.dispose();
@@ -564,20 +592,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			_tree = new Tree(this, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
 			initTree(_comm, _tree, false, false);
 			if (_saveExpanded) { mixin(S_TRACE);
-				.listener(_tree, SWT.Dispose, { mixin(S_TRACE);
-					bool[string] flagDirExpanded;
-					void recurse(TreeItem itm) { mixin(S_TRACE);
-						auto dir = cast(FlagDir)itm.getData();
-						if (dir && dir.path != "") { mixin(S_TRACE);
-							flagDirExpanded[dir.path] = itm.getExpanded();
-						}
-						foreach (child; itm.getItems()) recurse(child);
-					}
-					foreach (itm; _tree.getItems()) { mixin(S_TRACE);
-						recurse(itm);
-					}
-					_comm.flagDirExpanded = flagDirExpanded;
-				});
+				.listener(_tree, SWT.Dispose, &saveExpanded);
 			}
 			_allExpanded = createAllExpandedButton(_comm.prop, this, _tree);
 		} else { mixin(S_TRACE);
@@ -692,7 +707,38 @@ class AreaChooser(A, bool StartArea) : Composite {
 
 	private void refA(A a) { mixin(S_TRACE);
 		if (!_summ) return;
+		static if (is(A:AbstractArea)) {
+			auto exp = expandedTable.dup;
+			scope (exit) expandedTable = exp;
+			saveExpanded();
+		}
 		refreshAreas();
+	}
+	static if (is(A:AbstractArea)) {
+		@property
+		private ref bool[string] expandedTable() { mixin(S_TRACE);
+			static if (is(A:Area)) {
+				return _comm.flagAreaExpanded;
+			} else static if (is(A:Battle)) {
+				return _comm.flagBattleExpanded;
+			} else static if (is(A:Package)) {
+				return _comm.flagPackageExpanded;
+			} else static assert (0);
+		}
+		private void saveExpanded() { mixin(S_TRACE);
+			if (!_tree) return;
+			expandedTable = null;
+			void saveExpandedImpl(string parentPath, TreeItem itm) { mixin(S_TRACE);
+				if (cast(A)itm.getData()) return;
+				auto dirName = parentPath == "" ? itm.getText() : parentPath ~ "\\" ~ itm.getText();
+				dirName = dirName.toLower();
+				expandedTable[dirName] = itm.getExpanded();
+				foreach (child; itm.getItems()) { mixin(S_TRACE);
+					saveExpandedImpl(dirName, child);
+				}
+			}
+			foreach (itm; _tree.getItems()) saveExpandedImpl("", itm);
+		}
 	}
 	private void refreshAreas() { mixin(S_TRACE);
 		ulong sel = _selected;
@@ -782,18 +828,26 @@ class AreaChooser(A, bool StartArea) : Composite {
 					_canIncSearch = true;
 					aItm.setImage(image(aItm));
 				}
-				void selRecurse(TreeItem itm) { mixin(S_TRACE);
+				foreach (dirName, itm; itmTable) {
+					if (!itm) continue;
+					itm.setExpanded(expandedTable.get(dirName, true));
+				}
+				void selRecurse(TreeItem itm, bool forceExpand) { mixin(S_TRACE);
 					if (firstItem) return;
 					if (cast(A)itm.getData()) { mixin(S_TRACE);
 						firstItem = itm;
 						return;
 					}
-					foreach (child; itm.getItems()) selRecurse(child);
+					if (itm.getExpanded() || forceExpand) { mixin(S_TRACE);
+						foreach (child; itm.getItems()) selRecurse(child, forceExpand);
+					}
 				}
 				if (!firstItem) { mixin(S_TRACE);
-					foreach (itm; _tree.getItems()) selRecurse(itm);
+					foreach (itm; _tree.getItems()) selRecurse(itm, false);
 				}
-				_tree.treeExpandedAll();
+				if (!firstItem) { mixin(S_TRACE);
+					foreach (itm; _tree.getItems()) selRecurse(itm, true);
+				}
 				checkAllExpanded(_allExpanded, _tree);
 			} else {
 				assert (0);
@@ -996,6 +1050,9 @@ class AreaChooser(A, bool StartArea) : Composite {
 			_comm.delInfo.add(&refA);
 		} else static assert (0);
 		.listener(this, SWT.Dispose, { mixin(S_TRACE);
+			static if (is(A:AbstractArea)) {
+				saveExpanded();
+			}
 			_comm.refTableViewStyle.remove(&initControl);
 			static if (is(A : Area)) {
 				_comm.refArea.remove(&refA);
