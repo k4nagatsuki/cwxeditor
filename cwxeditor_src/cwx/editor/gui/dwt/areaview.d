@@ -121,6 +121,7 @@ private:
 	TCPD _tcpd;
 	UndoManager _undo;
 	Preview _preview;
+	IncSearch _flagIncSearch;
 
 	void previewTrigger(Table list, int x, int y) { mixin(S_TRACE);
 		auto itm = list.getItem(new Point(x, y));
@@ -609,10 +610,10 @@ private:
 	ImagePane _imgp;
 	Table _flagList;
 	Button _flagAllCheck;
-	IncSearch _flagIncSearch;
+	IncSearch _refFlagIncSearch;
 	void flagIncSearch() { mixin(S_TRACE);
 		.forceFocus(_flagList, true);
-		_flagIncSearch.startIncSearch();
+		_refFlagIncSearch.startIncSearch();
 	}
 
 	bool _viewMsg = false;
@@ -1595,8 +1596,8 @@ private:
 		gd.heightHint = 0;
 		_flagList.setLayoutData(gd);
 
-		_flagIncSearch = new IncSearch(_comm, _flagList);
-		_flagIncSearch.modEvent ~= &refreshFlags;
+		_refFlagIncSearch = new IncSearch(_comm, _flagList);
+		_refFlagIncSearch.modEvent ~= &refreshFlags;
 
 		auto menu = new Menu(_flagList.getShell(), SWT.POP_UP);
 		createMenuItem(_comm, menu, MenuID.IncSearch, &flagIncSearch, { mixin(S_TRACE);
@@ -1677,7 +1678,7 @@ private:
 				if (!has && path == sel) { mixin(S_TRACE);
 					has = true;
 				}
-				if (!_flagIncSearch.match(path)) continue;
+				if (!_refFlagIncSearch.match(path)) continue;
 				auto itm = new TableItem(_flagList, SWT.NONE);
 				itm.setData(flag);
 				if (flag) { mixin(S_TRACE);
@@ -2447,16 +2448,24 @@ public:
 			_flag.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_flag.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			_flag.add(_prop.msgs.noFlagRef);
-			refreshFlag();
 			_flag.addSelectionListener(new SelFlag);
 			_comm.refFlagAndStep.add(&refFlag);
 			_comm.delFlagAndStep.add(&refFlag);
 			_flag.addDisposeListener(new FlagsDispose);
 			{ mixin(S_TRACE);
+				_flagIncSearch = new IncSearch(_comm, _flag);
+				_flagIncSearch.modEvent ~= &refreshFlag;
+
 				auto menu = new Menu(_flag.getShell(), SWT.POP_UP);
+				createMenuItem(_comm, menu, MenuID.IncSearch, {
+					.forceFocus(_flag, true);
+					_flagIncSearch.startIncSearch();
+				}, () => 1 < _flag.getItemCount());
+				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagView, () => _flag.getSelectionIndex() > 0);
 				_flag.setMenu(menu);
 			}
+			refreshFlag();
 			static if (RefCards) {
 				auto lRef = new Label(left, SWT.NONE);
 				lRef.setText(_prop.msgs.areaViewRefAreaDesc);
@@ -3726,6 +3735,7 @@ public:
 		_flag.select(0);
 		foreach (i, fl; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
 			auto path = fl.path;
+			if (!_flagIncSearch.match(path)) continue;
 			_flag.add(path);
 			if (path == f) _flag.setText(path);
 		}

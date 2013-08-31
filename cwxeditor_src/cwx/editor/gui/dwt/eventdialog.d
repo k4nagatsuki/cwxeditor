@@ -208,18 +208,27 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, false));
-		_list = new AreaChooser!(A, false)(comm, summ, area);
-		mod(_list);
-		auto gd = new GridData(GridData.FILL_BOTH);
-		gd.widthHint = _prop.var.etc.nameTableWidth;
-		gd.heightHint = _prop.var.etc.nameTableHeight;
-		_list.setLayoutData(gd);
+		area.setLayout(zeroGridLayout(1, false));
+		{ mixin(S_TRACE);
+			auto listComp = new Composite(area, SWT.NONE);
+			listComp.setLayout(new GridLayout(1, true));
+			listComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			_list = new AreaChooser!(A, false)(comm, summ, listComp);
+			mod(_list);
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.widthHint = _prop.var.etc.nameTableWidth;
+			gd.heightHint = _prop.var.etc.nameTableHeight;
+			_list.setLayoutData(gd);
+		}
 		static if (Type == CType.CHANGE_AREA) {
+			{ mixin(S_TRACE);
+				auto sep = new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL);
+				sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			}
 			{ mixin(S_TRACE);
 				auto comp = new Composite(area, SWT.NONE);
 				comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-				comp.setLayout(zeroMarginGridLayout(3, false));
+				comp.setLayout(new GridLayout(3, false));
 				auto lt = new Label(comp, SWT.NONE);
 				lt.setText(_prop.msgs.transition);
 				_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
@@ -830,24 +839,27 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(4, false));
+		area.setLayout(new GridLayout(1, true));
+		auto comp = new Composite(area, SWT.NONE);
+		comp.setLayout(zeroMarginGridLayout(4, false));
+		comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		{ mixin(S_TRACE);
 			auto skin = _comm.skin;
 			_msel = new MaterialSelect!(MtType.BGM, Combo, Table)
 				(_comm, _prop, _summ, false, null, [_prop.msgs.bgmStop]);
-			_msel.createDirsCombo(area).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			_msel.createDirsCombo(comp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
 			_msel.modEvent ~= &refreshWarning;
 
-			_msel.createPlayButton(area).setLayoutData(new GridData);
-			_msel.createRefreshButton(area, false).setLayoutData(new GridData);
-			_msel.createDirectoryButton(area, false).setLayoutData(new GridData);
+			_msel.createPlayButton(comp).setLayoutData(new GridData);
+			_msel.createRefreshButton(comp, false).setLayoutData(new GridData);
+			_msel.createDirectoryButton(comp, false).setLayoutData(new GridData);
 
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.horizontalSpan = 4;
 			gd.widthHint = _prop.var.etc.nameTableWidth;
 			gd.heightHint = _prop.var.etc.nameTableHeight;
-			auto list = _msel.createFileList(area);
+			auto list = _msel.createFileList(comp);
 			list.setLayoutData(gd);
 		}
 		ignoreMod = true;
@@ -877,25 +889,28 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(5, false));
+		area.setLayout(new GridLayout(1, true));
+		auto comp = new Composite(area, SWT.NONE);
+		comp.setLayout(zeroMarginGridLayout(5, false));
+		comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		{ mixin(S_TRACE);
 			auto skin = _comm.skin;
 			_msel = new MaterialSelect!(MtType.SE, Combo, Table)
 				(_comm, _prop, _summ, false, null, []);
-			_msel.createDirsCombo(area).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			_msel.createDirsCombo(comp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
 			_msel.modEvent ~= &refreshWarning;
 
-			_msel.createStopButton(area).setLayoutData(new GridData);
-			_msel.createPlayButton(area).setLayoutData(new GridData);
-			_msel.createRefreshButton(area, false).setLayoutData(new GridData);
-			_msel.createDirectoryButton(area, false).setLayoutData(new GridData);
+			_msel.createStopButton(comp).setLayoutData(new GridData);
+			_msel.createPlayButton(comp).setLayoutData(new GridData);
+			_msel.createRefreshButton(comp, false).setLayoutData(new GridData);
+			_msel.createDirectoryButton(comp, false).setLayoutData(new GridData);
 
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.horizontalSpan = 5;
 			gd.widthHint = _prop.var.etc.nameTableWidth;
 			gd.heightHint = _prop.var.etc.nameTableHeight;
-			auto list = _msel.createFileList(area);
+			auto list = _msel.createFileList(comp);
 			list.setLayoutData(gd);
 		}
 		ignoreMod = true;
