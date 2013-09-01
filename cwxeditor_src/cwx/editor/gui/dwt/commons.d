@@ -127,7 +127,7 @@ class Dlg(Arg ...) {
 			assert (_dlg.length == _fileDlg.length);
 			assert (_dlg.length == _lineDlg.length);
 		}
-	} else { mixin(S_TRACE);
+	} else {
 		void add(void delegate(Arg) dlg) { mixin(S_TRACE);
 			addImpl(dlg);
 		}

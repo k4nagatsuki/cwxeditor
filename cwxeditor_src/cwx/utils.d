@@ -35,7 +35,7 @@ debug {
 	} else {
 		private immutable DR = "Debug";
 	}
-} else { mixin(S_TRACE);
+} else {
 	@property
 	private immutable DR = "Release";
 }
