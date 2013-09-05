@@ -3448,7 +3448,9 @@ public:
 				auto tlpData = cast(TLPData) ctrl.getData();
 				if (tlpData.tlp is this) continue;
 				assert (tlpData);
-				r ~= tlpData.tlp.openedCWXPath;
+				foreach (cwxPath; tlpData.tlp.openedCWXPath) {
+					r ~= cpaddattr(cwxPath, "nofocus");
+				}
 			}
 			// ペイン内で選択中のタブを末尾に追加
 			string ctrlKey = _dock.selectedCtrl(paneKey);

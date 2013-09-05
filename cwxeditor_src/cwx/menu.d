@@ -214,6 +214,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ToScriptAll] = "Y";
 		_mnemonic[MenuID.ToScript1Content] = "O";
 		_mnemonic[MenuID.EvTemplates] = "";
+		_mnemonic[MenuID.EvTemplatesOfScenario] = "E";
 		_mnemonic[MenuID.Expand] = "X";
 		_mnemonic[MenuID.Collapse] = "O";
 		_mnemonic[MenuID.ResetPreviewValues] = "R";
@@ -408,6 +409,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ToScriptAll] = "Ctrl+B";
 		_hotkey[MenuID.ToScript1Content] = "Ctrl+Shift+G";
 		_hotkey[MenuID.EvTemplates] = "";
+		_hotkey[MenuID.EvTemplatesOfScenario] = "";
 		_hotkey[MenuID.Expand] = "Ctrl+Arrow_Right";
 		_hotkey[MenuID.Collapse] = "Ctrl+Arrow_Left";
 		_hotkey[MenuID.ResetPreviewValues] = "";

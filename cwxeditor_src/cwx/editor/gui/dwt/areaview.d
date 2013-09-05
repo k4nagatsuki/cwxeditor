@@ -4816,7 +4816,7 @@ public:
 
 	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		if (cpempty(path)) { mixin(S_TRACE);
-			.forceFocus(_imgp, shellActivate);
+			if (!cphasattr(path, "nofocus")) .forceFocus(_imgp, shellActivate);
 			_comm.refreshToolBar();
 			return true;
 		}
@@ -4824,7 +4824,7 @@ public:
 		auto index = cpindex(path);
 		bool sel(Table list) { mixin(S_TRACE);
 			if (index >= list.getItemCount()) return false;
-			.forceFocus(_imgp, shellActivate);
+			if (!cphasattr(path, "nofocus")) .forceFocus(_imgp, shellActivate);
 			list.select(index);
 			list.showSelection();
 			_comm.refreshToolBar();

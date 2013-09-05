@@ -1404,7 +1404,7 @@ public:
 		}
 		path = cpbottom(path);
 		if (cpempty(path) || (is(CType : MotionOwner) && "motion" == cpcategory(path))) { mixin(S_TRACE);
-			.forceFocus(_pane[C].widget, shellActivate);
+			if (!cphasattr(path, "nofocus")) .forceFocus(_pane[C].widget, shellActivate);
 			_pane[C].select(index);
 			_comm.refreshToolBar();
 			static if (EditMode) {
@@ -1425,14 +1425,14 @@ public:
 				case "skillcard", "itemcard", "beastcard",
 						"skillcard:id", "itemcard:id", "beastcard:id",
 						"skillcardview", "itemcardview", "beastcardview": { mixin(S_TRACE);
-					forceFocus(_pane[C].widget, shellActivate);
+					if (!cphasattr(path, "nofocus")) forceFocus(_pane[C].widget, shellActivate);
 					return _comm.openHands(_prop, _summ, card, shellActivate).openCWXPath(path, shellActivate);
 				} break;
 				default: break;
 				}
 			} else static if (!UseInfo || C != INFO) {
 				if (cpcategory(path) == "event") { mixin(S_TRACE);
-					forceFocus(_pane[C].widget, shellActivate);
+					if (!cphasattr(path, "nofocus")) forceFocus(_pane[C].widget, shellActivate);
 					return _comm.openUseEvents(_prop, _summ, card, shellActivate).openCWXPath(path, shellActivate);
 				}
 			}

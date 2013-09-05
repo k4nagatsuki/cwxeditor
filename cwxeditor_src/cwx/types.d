@@ -1418,6 +1418,7 @@ enum MenuID {
 	ToScriptAll,
 	ToScript1Content,
 	EvTemplates,
+	EvTemplatesOfScenario,
 	Expand,
 	Collapse,
 	ResetPreviewValues,

@@ -214,6 +214,7 @@ public class FlexProps {
 	WindowProps!("messagePreview", SWT.DEFAULT, 500) msgPrev;
 	WindowProps!("scriptVariablesDialog", 400, 400) scriptVarSetDlg;
 	DialogParam!("flagCombiDialog", 350) flagCombiDlg;
+	DialogParam!("eventTemplateDialog", 600, 400) evTemplDlg;
 	MenuProps menu;
 	FlexEtcProps etc;
 

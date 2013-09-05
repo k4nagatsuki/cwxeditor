@@ -16,6 +16,7 @@ import cwx.cab;
 import cwx.sjis;
 import cwx.event;
 import cwx.system;
+import cwx.structs;
 
 import std.array;
 import std.file;
@@ -91,29 +92,31 @@ private:
 
 	string _sPath = null;
 	string _sname = "";
-	string _author = ""; /// 作者名
-	PathUser _imgPath; /// 貼り紙画像のパス
-	string _desc = ""; /// 貼り紙の文章
-	uint _levMin = 0; /// 推奨レベル(下)
-	uint _levMax = 0; /// 推奨レベル(上)
-	uint _rCouponNum = 0; /// 前提クーポン必要数
-	CouponUser[] _rCoupons = []; /// 前提クーポン
-	AreaUser _startAreaId; /// スタートエリアのID
+	string _author = ""; /// 作者名。
+	PathUser _imgPath; /// 貼り紙画像のパス。
+	string _desc = ""; /// 貼り紙の文章。
+	uint _levMin = 0; /// 推奨レベル(下)。
+	uint _levMax = 0; /// 推奨レベル(上)。
+	uint _rCouponNum = 0; /// 前提クーポン必要数。
+	CouponUser[] _rCoupons = []; /// 前提クーポン。
+	AreaUser _startAreaId; /// スタートエリアのID。
 	// TODO Tag
 	string _type;
 	string _dataVersion;
 
-	FlagDir _froot; /// フラグとステップのデータ
+	FlagDir _froot; /// フラグとステップのデータ。
 
-	Area[] _area; /// エリア
-	Package[] _pkg; /// パッケージ
-	Battle[] _btl; /// バトル
+	Area[] _area; /// エリア。
+	Package[] _pkg; /// パッケージ。
+	Battle[] _btl; /// バトル。
 
-	CastCard[] _cast; /// キャスト
-	SkillCard[] _skl; /// スキル
-	ItemCard[] _itm; /// アイテム
-	BeastCard[] _bst; /// 召喚獣
-	InfoCard[] _info; /// 情報
+	CastCard[] _cast; /// キャスト。
+	SkillCard[] _skl; /// スキル。
+	ItemCard[] _itm; /// アイテム。
+	BeastCard[] _bst; /// 召喚獣。
+	InfoCard[] _info; /// 情報。
+
+	EvTemplate[] _eventTemplates; /// イベントテンプレート。
 
 	/// Aに対応する配列。
 	template CArray(A) {
@@ -1385,6 +1388,19 @@ public:
 	/// ditto
 	alias swap!InfoCard swapInfo;
 
+	/// シナリオに付属するイベントテンプレート。
+	@property
+	void eventTemplates(EvTemplate[] v) { mixin(S_TRACE);
+		if (_eventTemplates != v) { mixin(S_TRACE);
+			changeHandler();
+			_eventTemplates = v;
+		}
+	}
+	/// ditto
+	@property
+	inout
+	inout(EvTemplate)[] eventTemplates() { return _eventTemplates; }
+
 	const
 	private string summaryToXML(in XMLOption opt) { mixin(S_TRACE);
 		auto root = XNode.create("Summary");
@@ -1403,6 +1419,10 @@ public:
 		pNode.newElement("Type", _type);
 		flagDirRoot.toNodeAll(root);
 		root.newElement("Labels");
+		auto et = root.newElement("EventTemplates");
+		foreach (t; _eventTemplates) { mixin(S_TRACE);
+			t.toNode(et);
+		}
 		return root.text;
 	}
 	/// XML形式のシナリオデータを返す。
@@ -1560,7 +1580,17 @@ public:
 				propNode.parse();
 				summ.rCoupons = rCoupons;
 			};
+			EvTemplate[] evTemps;
+			summNode.onTag["EventTemplates"] = (ref XNode node) { mixin(S_TRACE);
+				node.onTag["eventTemplate"] = (ref XNode node) { mixin(S_TRACE);
+					EvTemplate tmpl;
+					tmpl.fromNode(node);
+					evTemps ~= tmpl;
+				};
+				node.parse();
+			};
 			summ._froot = FlagDir.fromXmlNode(summNode, summ, &summ.changeHandler, new XMLInfo(sys, summ.dataVersion));
+			summ._eventTemplates = evTemps;
 			return summ;
 		}
 		throw new SummaryException("File is not summary: " ~ sPath);

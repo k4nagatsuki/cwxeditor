@@ -702,7 +702,7 @@ public:
 		case "flag": { mixin(S_TRACE);
 			if (index >= dir.flags.length) return false;
 			_comm.openFlagWin(shellActivate);
-			forceFocus(flags.widget, shellActivate);
+			if (!cphasattr(path, "nofocus")) forceFocus(flags.widget, shellActivate);
 			current = dir;
 			if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 				flags.edit(dir.flags[index]);
@@ -715,7 +715,7 @@ public:
 		case "step": { mixin(S_TRACE);
 			if (index >= dir.steps.length) return false;
 			_comm.openFlagWin(shellActivate);
-			forceFocus(flags.widget, shellActivate);
+			if (!cphasattr(path, "nofocus")) forceFocus(flags.widget, shellActivate);
 			current = dir;
 			if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 				flags.edit(dir.steps[index]);

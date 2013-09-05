@@ -1994,7 +1994,7 @@ public:
 				auto itm = _cards.getItem(index + 1);
 				path = cpbottom(path);
 				if (cpempty(path)) { mixin(S_TRACE);
-					.forceFocus(_cards, shellActivate);
+					if (!cphasattr(path, "nofocus")) .forceFocus(_cards, shellActivate);
 					__select(itm);
 					return true;
 				} else { mixin(S_TRACE);

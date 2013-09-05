@@ -267,6 +267,8 @@ class FlexEtcProps : Properties {
 	auto featureManualNameWidth = Prop!(int)("featureManualNameWidth", 100);
 	auto eventTemplatesSashL = Prop!(int)("eventTemplatesSashL", 1);
 	auto eventTemplatesSashR = Prop!(int)("eventTemplatesSashR", 2);
+	auto eventTemplatesOfScenarioSashL = Prop!(int)("eventTemplatesOfScenarioSashL", 1);
+	auto eventTemplatesOfScenarioSashR = Prop!(int)("eventTemplatesOfScenarioSashR", 2);
 	auto scenarioTemplatesSashL = Prop!(int)("scenarioTemplatesSashL", 1);
 	auto scenarioTemplatesSashR = Prop!(int)("scenarioTemplatesSashR", 2);
 	auto templatesSashL = Prop!(int)("templatesSashL", 1);

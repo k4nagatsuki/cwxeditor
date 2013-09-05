@@ -1056,7 +1056,7 @@ class Commons {
 			return true;
 		});
 		foreachEventTreeView((v) { mixin(S_TRACE);
-			if (v && v.widget.isVisible()) { mixin(S_TRACE);
+			if (v && (v.widget.isVisible() || !(_prop.var.etc.contentsFloat || _prop.var.etc.contentsAutoHide))) { mixin(S_TRACE);
 				assert (v.contentsToolBox is null);
 				getContentsToolBox(v);
 			}

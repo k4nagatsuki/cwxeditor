@@ -188,6 +188,7 @@ Summary loadLScenario(string p, string skin, const System sys, in LoadOption opt
 	loadComment(summ);
 	loadImageRef(summ);
 	loadCardRef(summ);
+	loadTemplate(summ);
 	summ.startArea = startAreaId;
 	summ.resetChanged();
 	return summ;
@@ -282,6 +283,25 @@ void loadCardRef(Summary summ) { mixin(S_TRACE);
 			} catch (ConvException e) {
 				debugln(e);
 			}
+		};
+		node.parse();
+	}
+}
+/// 拡張情報"Template.wex"を読み込む。
+void loadTemplate(Summary summ) { mixin(S_TRACE);
+	string file = summ.scenarioPath.buildPath("Template.wex");
+	if (!.exists(file)) return;
+	auto node = XNode.parse(readText(file));
+	if ("templates" == node.name) { mixin(S_TRACE);
+		node.onTag["eventTemplates"] = (ref XNode node) { mixin(S_TRACE);
+			EvTemplate[] tmpls;
+			node.onTag["eventTemplate"] = (ref XNode node) { mixin(S_TRACE);
+				EvTemplate tmpl;
+				tmpl.fromNode(node);
+				tmpls ~= tmpl;
+			};
+			node.parse();
+			summ.eventTemplates = tmpls;
 		};
 		node.parse();
 	}
@@ -2053,23 +2073,29 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 	string comment = saveComment(d);
 	if (comment.length) { mixin(S_TRACE);
 		auto file = "~Comment.wex";
-		std.file.write(d.sPath.buildPath(file), cast(immutable byte[]) comment);
+		std.file.write(d.sPath.buildPath(file), cast(immutable byte[])comment);
 		renames ~= file;
 	}
 	string imageRef = saveImageRef(d);
 	if (imageRef.length) { mixin(S_TRACE);
 		auto file = "~ImageRef.wex";
-		std.file.write(d.sPath.buildPath(file), cast(immutable byte[]) imageRef);
+		std.file.write(d.sPath.buildPath(file), cast(immutable byte[])imageRef);
 		renames ~= file;
 	}
 	string cardRef = saveCardRef(d);
 	if (cardRef.length) { mixin(S_TRACE);
 		auto file = "~CardRef.wex";
-		std.file.write(d.sPath.buildPath(file), cast(immutable byte[]) cardRef);
+		std.file.write(d.sPath.buildPath(file), cast(immutable byte[])cardRef);
+		renames ~= file;
+	}
+	string templates = saveTemplate(summ);
+	if (templates.length) { mixin(S_TRACE);
+		auto file = "~Template.wex";
+		std.file.write(d.sPath.buildPath(file), cast(immutable byte[])templates);
 		renames ~= file;
 	}
 
-	auto sysFName = .regex!(dstring)("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef|CardRef)\\.wex))$"d);
+	auto sysFName = .regex!(dstring)("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef|CardRef|Template)\\.wex))$"d);
 	bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
 	if (canBackup) { mixin(S_TRACE);
 		foreach (file; clistdir(opt.backupDir)) { mixin(S_TRACE);
@@ -2130,6 +2156,17 @@ string saveCardRef(in SData d) { mixin(S_TRACE);
 	foreach (cwxPath, linkId; d.cardRef) { mixin(S_TRACE);
 		auto e = node.newElement("cardRef", .text(linkId));
 		e.newAttr("path", cwxPath);
+	}
+	return node.text;
+}
+/// 拡張情報"Template.wex"を保存する。
+string saveTemplate(in Summary summ) { mixin(S_TRACE);
+	if (!summ.eventTemplates.length) return "";
+	auto node = XNode.create("templates");
+	node.newAttr("dataVersion", 1);
+	auto e = node.newElement("eventTemplates");
+	foreach (t; summ.eventTemplates) { mixin(S_TRACE);
+		t.toNode(e);
 	}
 	return node.text;
 }

@@ -21,6 +21,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.scripterrordialog;
+import cwx.editor.gui.dwt.settingsdialog;
 
 import std.string;
 import std.conv;
@@ -686,5 +687,63 @@ protected:
 			}
 		}
 		return ok;
+	}
+}
+
+class EventTemplateDialog : AbsDialog {
+	private Commons _comm;
+	private Props _prop;
+	private Summary _summ;
+	private ToolsPane!EvTemplate _evTempls;
+	EvTemplate[] _tmpls;
+
+	this (Commons comm, Props prop, Summary summ, Shell shell, EvTemplate[] tmpls) { mixin(S_TRACE);
+		_comm = comm;
+		_prop = prop;
+		_summ = summ;
+		_tmpls = tmpls;
+		auto size = comm.prop.var.evTemplDlg;
+		super (prop, shell, false, title, prop.images.menu(MenuID.EvTemplates), true, size, true, true);
+	}
+
+	@property
+	private string title() { mixin(S_TRACE);
+		return .tryFormat(_prop.msgs.dlgTitEvTemplates, _summ.scenarioName);
+	}
+
+	@property
+	EvTemplate[] eventTemplates() { return _tmpls; }
+
+	private void refScenarioName() { mixin(S_TRACE);
+		getShell().setText(title);
+	}
+	private void refScenario(Summary summ) { mixin(S_TRACE);
+		if (_summ !is summ) forceCancel();
+	}
+
+	protected override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(windowGridLayout(1, true));
+		_evTempls = new ToolsPane!EvTemplate(_comm, (b) { ignoreMod = b; }, &catchMod, &applyEnabled, area, SWT.NONE);
+		_evTempls.setup(_tmpls, _prop.var.etc.eventTemplatesOfScenarioSashL.value, _prop.var.etc.eventTemplatesOfScenarioSashR.value);
+		_evTempls.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+		_comm.refScenarioName.add(&refScenarioName);
+		_comm.refScenario.add(&refScenario);
+		.listener(_evTempls, SWT.Dispose, {
+			_comm.refScenarioName.remove(&refScenarioName);
+			_comm.refScenario.remove(&refScenario);
+		});
+	}
+
+	protected override bool apply() { mixin(S_TRACE);
+		if (_evTempls.noApply) {
+			auto dlg = new MessageBox(getShell(), SWT.YES | SWT.NO | SWT.ICON_QUESTION);
+			dlg.setText(_prop.msgs.dlgTitQuestion);
+			dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgExistsNoApplySettingsSingle, _evTempls.boxName));
+			if (SWT.YES != dlg.open()) return false;
+		}
+
+		_tmpls = _evTempls.array;
+		return true;
 	}
 }

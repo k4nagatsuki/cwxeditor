@@ -1616,6 +1616,8 @@ class Msgs : Properties {
 	auto sNew = Msg("sNew", "新規作成");
 	auto sAlt = Msg("sAlt", "上書き");
 	auto sDel = Msg("sDel", "削除");
+	auto dlgMsgExistsNoApplySettings = Msg("dlgMsgExistsNoApplySettings", "次の設定が変更されたまま適用されていません。これらを無視して設定を更新しますか？\n%1$s");
+	auto dlgMsgExistsNoApplySettingsSingle = Msg("dlgMsgExistsNoApplySettingsSingle", "%1$sが変更されたまま適用されていません。無視して設定を更新しますか？");
 
 	auto outerToolsAndClassicEngines = Msg("outerToolsAndClassicEngines", "外部ツールとクラシックエンジン");
 	auto outerToolsTitle = Msg("outerToolsTitle", "外部ツールの設定");
@@ -1680,6 +1682,8 @@ class Msgs : Properties {
 	auto dialogStatusNameTop = Msg("dialogStatusNameTop", "最上位の台詞");
 	auto dialogStatusNameUnder = Msg("dialogStatusNameUnder", "最下位の台詞");
 	auto dialogStatusNameUnderWithCoupon = Msg("dialogStatusNameUnderWithCoupon", "最下位の台詞(条件クーポン設定あり)");
+
+	auto dlgTitEvTemplates = Msg("dlgTitEvTemplates", "イベントテンプレート - %1$s");
 
 	/// スクリプト関係。
 	auto dlgTitScriptError = Msg("dlgTitScriptError", "CWXスクリプトエラー");
@@ -1964,7 +1968,8 @@ class Msgs : Properties {
 	auto menuTextToScript = Msg("menuTextToScript", "スクリプトに変換してコピー");
 	auto menuTextToScript1Content = Msg("menuTextToScript1Content", "1コンテントをスクリプトに変換");
 	auto menuTextToScriptAll = Msg("menuTextToScriptAll", "全てをスクリプトに変換してコピー");
-	auto menuTextEvTemplates = Msg("menuTextEvTemplates", "テンプレートから作成");
+	auto menuTextEvTemplates = Msg("menuTextEvTemplates", "イベントテンプレート");
+	auto menuTextEvTemplatesOfScenario = Msg("menuTextEvTemplatesOfScenario", "シナリオのテンプレートを作成");
 	auto menuTextExpand = Msg("menuTextExpand", "ツリーを開く");
 	auto menuTextCollapse = Msg("menuTextCollapse", "ツリーを閉じる");
 	auto menuTextResetPreviewValues = Msg("menuTextResetPreviewValues", "初期値に戻す");

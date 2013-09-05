@@ -1485,7 +1485,7 @@ public:
 			_motions.select(index);
 			refreshSels();
 			path = cpbottom(path);
-			.forceFocus(_motions, shellActivate);
+			if (!cphasattr(path, "nofocus")) .forceFocus(_motions, shellActivate);
 			if (cpempty(path)) { mixin(S_TRACE);
 				_comm.refreshToolBar();
 				return true;

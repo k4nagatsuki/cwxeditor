@@ -1974,7 +1974,9 @@ public:
 		ds.setTransfer([XMLBytesTransfer.getInstance()]);
 		ds.addDragListener(new EventDragSource);
 
-		getContentsBox();
+		.listener(widget, SWT.Paint, { mixin(S_TRACE);
+			if (!(_prop.var.etc.contentsFloat || _prop.var.etc.contentsAutoHide)) getContentsBox();
+		});
 		_comp.layout();
 		refresh(et);
 		if (ctPath.length) { mixin(S_TRACE);
@@ -2734,6 +2736,8 @@ public:
 
 	private void getContentsBox() { mixin(S_TRACE);
 		if (_box) return;
+		_comp.setRedraw(false);
+		scope (exit) _comp.setRedraw(true);
 		_comm.getContentsToolBox(this);
 	}
 
@@ -2745,6 +2749,7 @@ public:
 
 	void openToolWindow(bool focusInEventView) { mixin(S_TRACE);
 		if (_readOnly) return;
+		if (!(_prop.var.etc.contentsFloat || _prop.var.etc.contentsAutoHide)) return;
 		_comp.setRedraw(false);
 		scope (exit) _comp.setRedraw(true);
 		if (focusInEventView || (widget.isVisible() && !(_prop.var.etc.contentsFloat || _prop.var.etc.contentsAutoHide))) { mixin(S_TRACE);
@@ -3319,7 +3324,7 @@ public:
 			auto child = _tree.getItem(itm, index);
 			path = cpbottom(path);
 			if (cpempty(path) || cpcategory(path) != "") { mixin(S_TRACE);
-				forceFocus(_tree.control, shellActivate);
+				if (!cphasattr(path, "nofocus")) .forceFocus(_tree.control, shellActivate);
 				_tree.select(child);
 				_tree.showSelection();
 				refreshStatusLine();
@@ -4160,12 +4165,31 @@ class ContentsToolBox {
 		foreach (itm; _templMenu.getItems()) { mixin(S_TRACE);
 			itm.dispose();
 		}
-		foreach (t; _prop.var.etc.eventTemplates) { mixin(S_TRACE);
-			// 設定でコンパイルオプションが変化する可能性があるため事前コンパイルは行わない
+		// 設定でコンパイルオプションが変化する可能性があるため事前コンパイルは行わない
+		foreach (t; _summ.eventTemplates) { mixin(S_TRACE);
 			auto c = new PutScript(t.script);
 			createMenuItem2(_comm, _templMenu, t.name, c.image, &c.put, () => _parent._et !is null);
 		}
+		if (_prop.var.etc.eventTemplates.length && _summ.eventTemplates.length) { mixin(S_TRACE);
+			new MenuItem(_templMenu, SWT.SEPARATOR);
+		}
+		foreach (t; _prop.var.etc.eventTemplates) { mixin(S_TRACE);
+			auto c = new PutScript(t.script);
+			createMenuItem2(_comm, _templMenu, t.name, c.image, &c.put, () => _parent._et !is null);
+		}
+		if (_prop.var.etc.eventTemplates.length || _summ.eventTemplates.length) { mixin(S_TRACE);
+			new MenuItem(_templMenu, SWT.SEPARATOR);
+		}
+		createMenuItem(_comm, _templMenu, MenuID.EvTemplatesOfScenario, &editScEvTemplate, () => _parent._et !is null);
 		_templTI.setEnabled(0 < _templMenu.getItemCount());
+	}
+	private void editScEvTemplate() { mixin(S_TRACE);
+		auto dlg = new EventTemplateDialog(_comm, _prop, _summ, _parent.widget.getShell(), _summ.eventTemplates);
+		dlg.appliedEvent ~= { mixin(S_TRACE);
+			_summ.eventTemplates = dlg.eventTemplates;
+			_comm.refEventTemplates.call();
+		};
+		dlg.open();
 	}
 
 	private class TDListener : DisposeListener {
@@ -4340,7 +4364,7 @@ class ContentsToolBox {
 			_insertFirstTI = createToolItem2(_comm, mode, _prop.msgs.evtInsertFirst, _prop.images.evtInsertFirst, &insertFirst, null, SWT.CHECK);
 			_insertFirstTI.setSelection(_insertFirst);
 			new ToolItem(mode, SWT.SEPARATOR);
-			_templTI = createDropDownItem(_comm, mode, MenuID.EvTemplates, null, _templMenu, () => _parent._et && _prop.var.etc.eventTemplates.length > 0);
+			_templTI = createDropDownItem(_comm, mode, MenuID.EvTemplates, null, _templMenu, () => _summ && _parent._et && (_prop.var.etc.eventTemplates.length || _summ.eventTemplates.length));
 
 			_putQuickMI.setSelection(_putMode is MenuID.PutQuick);
 			_putSelectMI.setSelection(_putMode is MenuID.PutSelect);

@@ -654,7 +654,7 @@ public:
 	private bool openCWXPathAfCommon(A)(A a, ref string path, bool shellActivate) { mixin(S_TRACE);
 		path = cpbottom(path);
 		if (cpattr(path).contains("shallow") && cpempty(path)) { mixin(S_TRACE);
-			.forceFocus(_areas.table, shellActivate);
+			if (!cphasattr(path, "nofocus")) .forceFocus(_areas.table, shellActivate);
 			_areas.select(a);
 			_comm.refreshToolBar();
 			return true;
@@ -713,7 +713,7 @@ public:
 		if (cpempty(path)) { mixin(S_TRACE);
 			static if (UseArea) {
 				_comm.selectSummary(shellActivate);
-				.forceFocus(_areas.table, shellActivate);
+				if (!cphasattr(path, "nofocus")) .forceFocus(_areas.table, shellActivate);
 				if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 					editSummary();
 				}
