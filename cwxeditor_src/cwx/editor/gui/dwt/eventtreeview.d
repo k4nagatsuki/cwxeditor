@@ -82,6 +82,8 @@ private:
 	string _statusLine;
 
 	Item _clickStart = null;
+	bool _arrowMode = true;
+	CType _cType = CType.START;
 
 	Skin _summSkin;
 	@property
@@ -1808,6 +1810,8 @@ private:
 			cursor = _conts[cType].cursor;
 		}
 		_comp.setCursor(cursor);
+		_arrowMode = arrowMode;
+		_cType = cType;
 	}
 public:
 	this (Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
@@ -3976,13 +3980,34 @@ class ContentsToolBox {
 		if (_radioGroup && _putMode !is MenuID.PutQuick) _radioGroup.select(_arrowTI);
 		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
 	}
-	private void selContentTool(Object sender, bool arrowMode, CType cType, MenuID putMode, bool autoOpen, bool insertFirst) { mixin(S_TRACE);
-		auto cursor = arrowMode ? null : _conts[cType]._cursor;
+	private void updateCursor() {
+		auto cursor = _arrowMode ? null : _conts[_cType]._cursor;
 		if (_toolWin && !_toolWin.isDisposed()) { mixin(S_TRACE);
 			_toolWin.setCursor(cursor);
 		}
 		if (_autoHideTools) { mixin(S_TRACE);
 			_autoHideTools.setCursor(cursor);
+		}
+	}
+	private void selContentTool(Object sender, bool arrowMode, CType cType, MenuID putMode, bool autoOpen, bool insertFirst) { mixin(S_TRACE);
+		scope (exit) {
+			updateCursor();
+
+			_prop.var.etc.contentsAutoOpen = _autoOpen;
+			switch (_putMode) {
+			case MenuID.PutQuick:
+				_prop.var.etc.contentsPutMode = 0;
+				break;
+			case MenuID.PutSelect:
+				_prop.var.etc.contentsPutMode = 1;
+				break;
+			case MenuID.PutContinue:
+				_prop.var.etc.contentsPutMode = 1;
+				break;
+			default:
+				assert (0);
+			}
+			_prop.var.etc.contentsInsertFirst = _insertFirst;
 		}
 
 		if (sender is this) return;
@@ -4035,6 +4060,7 @@ class ContentsToolBox {
 				_arrowMode = false;
 				_cType = type;
 				_evtTI = _itm;
+
 				_comm.refreshToolBar();
 				_comm.selContentTool.call(_arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
 			}
@@ -4086,26 +4112,6 @@ class ContentsToolBox {
 		g.append(itm);
 		_conts[type] = ce;
 		return itm;
-	}
-	private class CDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			auto cbar = cast(CoolBar) e.widget;
-			_prop.var.etc.contentsAutoOpen = _autoOpen;
-			switch (_putMode) {
-			case MenuID.PutQuick:
-				_prop.var.etc.contentsPutMode = 0;
-				break;
-			case MenuID.PutSelect:
-				_prop.var.etc.contentsPutMode = 1;
-				break;
-			case MenuID.PutContinue:
-				_prop.var.etc.contentsPutMode = 1;
-				break;
-			default:
-				assert (0);
-			}
-			_prop.var.etc.contentsInsertFirst = _insertFirst;
-		}
 	}
 
 	private class TRDListener : DisposeListener {
@@ -4306,6 +4312,9 @@ class ContentsToolBox {
 		cbarPar.setLayout(new FillLayout);
 		_disposeParent = new TRDListener;
 
+		_arrowMode = _parent._arrowMode;
+		_cType = _parent._cType;
+
 		_autoOpen = _prop.var.etc.contentsAutoOpen;
 		switch (_prop.var.etc.contentsPutMode.value) {
 		case 0:
@@ -4388,7 +4397,6 @@ class ContentsToolBox {
 			}
 			updatePutMode();
 		});
-		_cbar.addDisposeListener(new CDListener);
 		_cbar.addMouseListener(new TMListener);
 		_cbar.getDisplay().addFilter(SWT.KeyDown, shiftCaptcha);
 		_cbar.getDisplay().addFilter(SWT.KeyUp, shiftCaptcha);
@@ -4422,6 +4430,11 @@ class ContentsToolBox {
 			}
 		}
 
+		updateCursor();
+		if (!_arrowMode) {
+			_evtTI = _conts[_cType].ti;
+			_radioGroup.select(_evtTI);
+		}
 		_parent._box = this;
 		addListenersToOwner();
 		relayout();

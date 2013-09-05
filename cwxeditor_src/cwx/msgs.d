@@ -1969,7 +1969,7 @@ class Msgs : Properties {
 	auto menuTextToScript1Content = Msg("menuTextToScript1Content", "1コンテントをスクリプトに変換");
 	auto menuTextToScriptAll = Msg("menuTextToScriptAll", "全てをスクリプトに変換してコピー");
 	auto menuTextEvTemplates = Msg("menuTextEvTemplates", "イベントテンプレート");
-	auto menuTextEvTemplatesOfScenario = Msg("menuTextEvTemplatesOfScenario", "シナリオのテンプレートを作成");
+	auto menuTextEvTemplatesOfScenario = Msg("menuTextEvTemplatesOfScenario", "シナリオのテンプレートを編集");
 	auto menuTextExpand = Msg("menuTextExpand", "ツリーを開く");
 	auto menuTextCollapse = Msg("menuTextCollapse", "ツリーを閉じる");
 	auto menuTextResetPreviewValues = Msg("menuTextResetPreviewValues", "初期値に戻す");
