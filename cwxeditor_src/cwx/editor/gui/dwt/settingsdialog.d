@@ -562,7 +562,7 @@ private:
 			}
 			@property
 			bool canDoT() {
-				return _list.getSelectionIndex() > 0;
+				return _list.getSelectionIndex() >= 0;
 			}
 			@property
 			bool canDoC() {
