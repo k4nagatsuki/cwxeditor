@@ -725,6 +725,7 @@ class EventTemplateDialog : AbsDialog {
 		area.setLayout(windowGridLayout(1, true));
 		_evTempls = new ToolsPane!EvTemplate(_comm, (b) { ignoreMod = b; }, &catchMod, &applyEnabled, area, SWT.NONE);
 		_evTempls.setup(_tmpls, _prop.var.etc.eventTemplatesOfScenarioSashL.value, _prop.var.etc.eventTemplatesOfScenarioSashR.value);
+		_evTempls.setShortcutWeights(_prop.var.etc.eventTemplateOfScenarioShortcutSashL.value, _prop.var.etc.eventTemplateOfScenarioShortcutSashR.value);
 		_evTempls.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		_comm.refScenarioName.add(&refScenarioName);

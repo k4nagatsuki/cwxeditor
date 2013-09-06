@@ -881,6 +881,7 @@ struct ScTemplate {
 	static const XML_NAME = "scenarioTemplate";
 	string name; /// 情報名。
 	string path = ""; /// ファイル・ディレクトリのパス。
+
 	/// XMLノードとして取り扱うための関数群。
 	const
 	XNode toNode() { mixin(S_TRACE);
@@ -913,6 +914,8 @@ struct EvTemplate {
 	static const XML_NAME = "eventTemplate";
 	string name; /// 情報名。
 	string script = ""; /// スクリプト。
+	string mnemonic = ""; /// アクセスキー。
+	string hotkey = ""; /// ショートカット。
 
 	/// XMLノードとして取り扱うための関数群。
 	const
@@ -931,11 +934,15 @@ struct EvTemplate {
 	const
 	private void toNodeImpl(ref XNode e) { mixin(S_TRACE);
 		e.newAttr("name", name);
+		if (mnemonic.length) e.newAttr("mnemonic", mnemonic);
+		if (hotkey.length) e.newAttr("hotkey", hotkey);
 	}
 	/// ditto
 	void fromNode(ref XNode node) { mixin(S_TRACE);
 		if (node.name != XML_NAME) throw new Exception("Node is not eventTemplate");
 		name = node.attr!(string)("name", true);
+		mnemonic = node.attr!string("mnemonic", false, "");
+		hotkey = node.attr!string("hotkey", false, "");
 		script = node.value;
 	}
 }

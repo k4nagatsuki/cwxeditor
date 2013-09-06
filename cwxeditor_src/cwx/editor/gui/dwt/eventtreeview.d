@@ -71,7 +71,9 @@ private:
 	Summary _summ;
 	EventTree _et;
 	ContentsToolBox _box;
-	Menu _convM;
+	Menu _createM = null;
+	Menu _convM = null;
+	Menu _evTemplM = null;
 	Converter[CType] _conts;
 
 	void delegate(size_t[]) _forceSel;
@@ -93,16 +95,40 @@ private:
 
 	private void initConvMenu() { mixin(S_TRACE);
 		if (!_conts.length) return;
+		if (!_createM) return;
+		if (!_convM) return;
 		foreach (cGrp, cs; CTYPE_GROUP) { mixin(S_TRACE);
-			auto conv = convMenu(cGrp);
-			foreach (cType; cs) { mixin(S_TRACE);
-				initConvMenu(cType, cType is CType.START ? _convM : conv);
+			auto create = cTypeGroupMenu(_createM, cGrp);
+			auto conv = cTypeGroupMenu(_convM, cGrp);
+			foreach (i, cType; cs) { mixin(S_TRACE);
+				string mnemonic;
+				if (i + 1 < 10) {
+					mnemonic = .format("%s", i + 1);
+				} else {
+					mnemonic = .format("%s", cast(char)('A' + (i + 1 - 10)));
+				}
+				auto text = MenuProps.buildMenu(_prop.msgs.contentName(cType), mnemonic, "", false);
+				auto img = _prop.images.content(cType);
+				initCreateMenu(cType, create, text, img);
+				initConvMenu(cType, cType is CType.START ? _convM : conv, text, img);
 			}
 		}
 	}
-	private void initConvMenu(CType type, Menu convMenu) { mixin(S_TRACE);
-		auto text = _prop.msgs.contentName(type);
-		auto img = _prop.images.content(type);
+	private void initCreateMenu(CType type, Menu menu, string text, Image img) {
+		createMenuItem2(_comm, menu, text, img, {
+			if (!_box) return;
+			auto itm = selection;
+			bool insert = _box && _box._shiftDown;
+			auto oldType = _box._cType;
+			_box._cType = type;
+			scope (exit) _box._cType = oldType;
+			auto oldMode = _box._putMode;
+			_box._putMode = MenuID.PutQuick;
+			scope (exit) _box._putMode = oldMode;
+			create(insert ? itm : null);
+		}, () => _et !is null);
+	}
+	private void initConvMenu(CType type, Menu convMenu, string text, Image img) { mixin(S_TRACE);
 		auto ce = _conts[type];
 		if (type != CType.START) { mixin(S_TRACE);
 			ce.convMenuItem = createMenuItem2(_comm, convMenu, text, img, &ce.convert, null);
@@ -115,9 +141,9 @@ private:
 		auto evt = cast(Content) itm.getData();
 		return !evt.next.length;
 	}
-	private Menu convMenu(CTypeGroup g) { mixin(S_TRACE);
+	private Menu cTypeGroupMenu(Menu menu, CTypeGroup g) { mixin(S_TRACE);
 		void delegate() dlg = null;
-		auto mi = createMenuItem(_comm, _convM, cTypeGroupToMenuID(g), dlg, g is CTypeGroup.Terminal ? &canConvTerminal : null, SWT.CASCADE);
+		auto mi = createMenuItem(_comm, menu, cTypeGroupToMenuID(g), dlg, g is CTypeGroup.Terminal ? &canConvTerminal : null, SWT.CASCADE);
 		auto m = new Menu(_tree.control.getShell(), SWT.DROP_DOWN);
 		mi.setMenu(m);
 		return m;
@@ -142,8 +168,7 @@ private:
 		Cursor cursor;
 		this (CType type) { mixin(S_TRACE);
 			this.type = type;
-			auto imgData = _prop.images.content(type).getImageData();
-			this.cursor = new Cursor(Display.getCurrent(), imgData, imgData.width / 2, imgData.height / 2);
+			this.cursor = _prop.images.cursor(type);
 		}
 		void convert() { mixin(S_TRACE);
 			auto sel = selection;
@@ -1536,9 +1561,6 @@ private:
 	}
 	class TRDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			foreach (conv; _conts.values) { mixin(S_TRACE);
-				conv.cursor.dispose();
-			}
 			if (!_readOnly) { mixin(S_TRACE);
 				_comm.refSkin.remove(&refSkin);
 				_comm.refCast.remove(&__refreshCast);
@@ -1569,6 +1591,7 @@ private:
 				_comm.refContentText.remove(&refreshStatusLine);
 				_comm.refPreviewValues.remove(&__refreshEventText);
 				_comm.selContentTool.remove(&selContentTool);
+				_comm.refEventTemplates.remove(&refreshTemplates);
 			}
 			_comm.refTargetVersion.remove(&redraw);
 			_comm.refEventTreeViewStyle.remove(&refEventTreeViewStyle);
@@ -1813,6 +1836,10 @@ private:
 		_arrowMode = arrowMode;
 		_cType = cType;
 	}
+	private void refreshTemplates() { mixin(S_TRACE);
+		if (!_evTemplM) return;
+		ContentsToolBox.refreshTemplates(_comm, _prop, _summ, _evTemplM, widget.getShell(), () => _et !is null, &pasteScript);
+	}
 public:
 	this (Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
@@ -1835,7 +1862,6 @@ public:
 		_cbarPar = new Composite(_comp, SWT.NONE);
 
 		_comp.addDisposeListener(new TRDListener);
-		refEventTreeViewStyle();
 
 		if (!_readOnly) { mixin(S_TRACE);
 			_comm.refSkin.add(&refSkin);
@@ -1867,6 +1893,7 @@ public:
 			_comm.refContentText.add(&refreshStatusLine);
 			_comm.refPreviewValues.add(&__refreshEventText);
 			_comm.selContentTool.add(&selContentTool);
+			_comm.refEventTemplates.add(&refreshTemplates);
 		}
 		_comm.refTargetVersion.add(&redraw);
 		_comm.refEventTreeViewStyle.add(&refEventTreeViewStyle);
@@ -1876,7 +1903,7 @@ public:
 				_conts[cType] = new Converter(cType);
 			}
 		}
-		initConvMenu();
+		refEventTreeViewStyle();
 	}
 	private void refEventTreeViewStyle() { mixin(S_TRACE);
 		_comp.setRedraw(false);
@@ -1921,8 +1948,8 @@ public:
 			_comm.refreshToolBar();
 		});
 
-		auto shell = _tree.control.getShell();
-		{ mixin(S_TRACE);
+		void initMenu() { mixin(S_TRACE);
+			auto shell = _tree.control.getShell();
 			auto popup = new Menu(shell, SWT.POP_UP);
 			createMenuItem(_comm, popup, MenuID.EditProp, &editM, &canEdit);
 			new MenuItem(popup, SWT.SEPARATOR);
@@ -1950,7 +1977,11 @@ public:
 			createMenuItem(_comm, popup, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
 			new MenuItem(popup, SWT.SEPARATOR);
 			createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, () => !_readOnly && 1 < _tree.getItemCount() && selection !is null);
+			new MenuItem(popup, SWT.SEPARATOR);
 			void delegate() dlg = null;
+			auto createMI = createMenuItem(_comm, popup, MenuID.CreateContent, dlg, () => _et !is null, SWT.CASCADE);
+			_createM = new Menu(_tree.control.getShell(), SWT.DROP_DOWN);
+			createMI.setMenu(_createM);
 			auto convMI = createMenuItem(_comm, popup, MenuID.ConvertContent, dlg, { mixin(S_TRACE);
 				if (_readOnly) return false;
 				auto itm = selection;
@@ -1959,15 +1990,37 @@ public:
 				return evt.type !is CType.START;
 			}, SWT.CASCADE);
 			_convM = new Menu(_tree.control.getShell(), SWT.DROP_DOWN);
+			convMI.setMenu(_convM);
+			new MenuItem(popup, SWT.SEPARATOR);
+			auto evTemplMI = createMenuItem(_comm, popup, MenuID.EvTemplates, dlg, () => _summ && _et && (_prop.var.etc.eventTemplates.length || _summ.eventTemplates.length), SWT.CASCADE);
+			_evTemplM = new Menu(_tree.control.getShell(), SWT.DROP_DOWN);
+			evTemplMI.setMenu(_evTemplM);
 /+			debug {
 				new MenuItem(popup, SWT.SEPARATOR);
 				createMenuItem2(_comm, popup, "debug: Create CWX &Path", null, &createCWXPath, () => selection !is null);
 			}
-+/			convMI.setMenu(_convM);
-			initConvMenu();
++/
+			// initConvMenu()の処理に時間がかかるため遅延実行
+			auto shown = new class MenuAdapter {
+				override void menuShown(MenuEvent e) { mixin(S_TRACE);
+					initConvMenu();
+					_createM.removeMenuListener(this);
+					_convM.removeMenuListener(this);
+				}
+			};
+			_createM.addMenuListener(shown);
+			_convM.addMenuListener(shown);
 
+			refreshTemplates();
 			_tree.control.setMenu(popup);
 		}
+		auto im = new class PaintListener {
+			override void paintControl(PaintEvent e) { mixin(S_TRACE);
+				_tree.control.removePaintListener(this);
+				initMenu();
+			}
+		};
+		_tree.control.addPaintListener(im);
 
 		if (!_readOnly) { mixin(S_TRACE);
 			auto dt = new DropTarget(_tree.control, DND.DROP_DEFAULT | DND.DROP_MOVE);
@@ -4103,8 +4156,7 @@ class ContentsToolBox {
 	private ToolItem createEI(CType type, ToolBar bar, ToolItemGroup g) { mixin(S_TRACE);
 		auto text = _prop.msgs.contentName(type);
 		auto img = _prop.images.content(type);
-		auto imgData = _prop.images.content(type).getImageData();
-		auto cursor = new Cursor(Display.getCurrent(), imgData, imgData.width / 2, imgData.height / 2);
+		auto cursor = _prop.images.cursor(type);
 		_cursors ~= cursor;
 		auto ce = new CreateEvent(type, cursor);
 		auto itm = createToolItem2(_comm, bar, text, img, &ce.create, () => _parent.selection !is null, SWT.RADIO);
@@ -4123,10 +4175,7 @@ class ContentsToolBox {
 		}
 	}
 	private void disposeParent() {
-		foreach (cur; _cursors) { mixin(S_TRACE);
-			cur.dispose();
-		}
-		_comm.refEventTemplates.remove(&refreshTemplates);
+		_comm.refEventTemplates.remove(&refreshTemplatesM);
 		_comm.selContentTool.remove(&selContentTool);
 
 		if (_toolWin) { mixin(S_TRACE);
@@ -4149,53 +4198,62 @@ class ContentsToolBox {
 			}
 		}
 	}
-	private class PutScript {
+	private static class PutScript {
 		private string _script;
+		private void delegate(string, bool) _pasteScript;
 		private Image _img = null;
-		this (string script) { mixin(S_TRACE);
+		this (Props prop, in Summary summ, string script, void delegate(string, bool) pasteScript) { mixin(S_TRACE);
 			_script = script;
-			auto type = cwx.script.firstContentType(_prop.parent, _summ, _script);
+			_pasteScript = pasteScript;
+			auto type = cwx.script.firstContentType(prop.parent, summ, _script);
 			if (type != -1) { mixin(S_TRACE);
-				_img = _prop.images.content(type);
+				_img = prop.images.content(type);
 			}
 		}
 		void put(SelectionEvent se) { mixin(S_TRACE);
-			_parent.pasteScript(_script, (se.stateMask & SWT.SHIFT) != 0);
+			_pasteScript(_script, (se.stateMask & SWT.SHIFT) != 0);
 		}
 		@property
 		Image image() { mixin(S_TRACE);
 			return _img;
 		}
 	}
-	private void refreshTemplates() { mixin(S_TRACE);
-		foreach (itm; _templMenu.getItems()) { mixin(S_TRACE);
+	static void refreshTemplates(Commons comm, Props prop, Summary summ, Menu menu, Shell shell, bool delegate() enabled, void delegate(string, bool) pasteScript) { mixin(S_TRACE);
+		foreach (itm; menu.getItems()) { mixin(S_TRACE);
 			itm.dispose();
 		}
 		// 設定でコンパイルオプションが変化する可能性があるため事前コンパイルは行わない
-		foreach (t; _summ.eventTemplates) { mixin(S_TRACE);
-			auto c = new PutScript(t.script);
-			createMenuItem2(_comm, _templMenu, t.name, c.image, &c.put, () => _parent._et !is null);
+		foreach (t; summ.eventTemplates) { mixin(S_TRACE);
+			auto c = new PutScript(prop, summ, t.script, pasteScript);
+			auto text = MenuProps.buildMenu(t.name, t.mnemonic, t.hotkey, false);
+			createMenuItem2(comm, menu, text, c.image, &c.put, enabled);
 		}
-		if (_prop.var.etc.eventTemplates.length && _summ.eventTemplates.length) { mixin(S_TRACE);
-			new MenuItem(_templMenu, SWT.SEPARATOR);
+		if (prop.var.etc.eventTemplates.length && summ.eventTemplates.length) { mixin(S_TRACE);
+			new MenuItem(menu, SWT.SEPARATOR);
 		}
-		foreach (t; _prop.var.etc.eventTemplates) { mixin(S_TRACE);
-			auto c = new PutScript(t.script);
-			createMenuItem2(_comm, _templMenu, t.name, c.image, &c.put, () => _parent._et !is null);
+		foreach (t; prop.var.etc.eventTemplates) { mixin(S_TRACE);
+			auto c = new PutScript(prop, summ, t.script, pasteScript);
+			auto text = MenuProps.buildMenu(t.name, t.mnemonic, t.hotkey, false);
+			createMenuItem2(comm, menu, text, c.image, &c.put, enabled);
 		}
-		if (_prop.var.etc.eventTemplates.length || _summ.eventTemplates.length) { mixin(S_TRACE);
-			new MenuItem(_templMenu, SWT.SEPARATOR);
+		if (prop.var.etc.eventTemplates.length || summ.eventTemplates.length) { mixin(S_TRACE);
+			new MenuItem(menu, SWT.SEPARATOR);
 		}
-		createMenuItem(_comm, _templMenu, MenuID.EvTemplatesOfScenario, &editScEvTemplate, () => _parent._et !is null);
-		_templTI.setEnabled(0 < _templMenu.getItemCount());
+		void editScEvTemplate() { mixin(S_TRACE);
+			auto dlg = new EventTemplateDialog(comm, prop, summ, shell, summ.eventTemplates);
+			dlg.appliedEvent ~= { mixin(S_TRACE);
+				summ.eventTemplates = dlg.eventTemplates;
+				comm.refEventTemplates.call();
+			};
+			dlg.open();
+		}
+		createMenuItem(comm, menu, MenuID.EvTemplatesOfScenario, &editScEvTemplate, enabled);
 	}
-	private void editScEvTemplate() { mixin(S_TRACE);
-		auto dlg = new EventTemplateDialog(_comm, _prop, _summ, _parent.widget.getShell(), _summ.eventTemplates);
-		dlg.appliedEvent ~= { mixin(S_TRACE);
-			_summ.eventTemplates = dlg.eventTemplates;
-			_comm.refEventTemplates.call();
-		};
-		dlg.open();
+	private void refreshTemplatesM() { mixin(S_TRACE);
+		refreshTemplates(_comm, _prop, _summ, _templMenu, _parent.widget.getShell(), () => _parent._et !is null, (string script, bool tryInsert) {
+			_parent.pasteScript(script, tryInsert);
+		});
+		_templTI.setEnabled(0 < _templMenu.getItemCount());
 	}
 
 	private class TDListener : DisposeListener {
@@ -4340,7 +4398,7 @@ class ContentsToolBox {
 				}
 			}
 		};
-		_comm.refEventTemplates.add(&refreshTemplates);
+		_comm.refEventTemplates.add(&refreshTemplatesM);
 		_comm.selContentTool.add(&selContentTool);
 
 		_cbar = createCoolBar!("contents")(_comm, cbarPar, (CoolBar cbar) { mixin(S_TRACE);
@@ -4378,7 +4436,7 @@ class ContentsToolBox {
 			_putQuickMI.setSelection(_putMode is MenuID.PutQuick);
 			_putSelectMI.setSelection(_putMode is MenuID.PutSelect);
 			_putContinueMI.setSelection(_putMode is MenuID.PutContinue);
-			refreshTemplates();
+			refreshTemplatesM();
 			createCoolItem(cbar, mode);
 
 			auto tml = new TMListener;

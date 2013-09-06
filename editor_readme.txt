@@ -211,11 +211,16 @@ CWXEditor本体のフォルダにあるcwxeditor.xmlをユーザ毎のフォルダにコピーします。
 ・Comment.wex
 ・ImageRef.wex
 ・CardRef.wex
+・Template.wex
 
 　これらはクラシックなCardWirthEditorでは作成されない、CWXEditor特有の拡張
-情報ファイルです。Comment.wexにはイベントコンテントにつけたコメント、
-ImageRef.wexにはカードに格納された画像のファイルパスが、CardRef.wexにはキャ
-ストの所有カード等の参照先IDが保存されています。
+情報ファイルです。次のようなデータが保存されています。
+
+・Comment.wex  ... イベントコンテントにつけたコメント。
+・ImageRef.wex ... カードに格納された画像のファイルパス。
+・CardRef.wex  ... キャストの所有カード等の参照先ID。
+・Template.wex ... シナリオに付属するイベントテンプレート。
+
 　これらを生成したくない場合は、以下のようにしてください。
 
 # Comment.wex
@@ -237,11 +242,17 @@ ImageRef.wexにはカードに格納された画像のファイルパスが、CardRef.wexにはキャ
 　すでに参照式になっているカードを格納に戻したい場合、CardRef.wexを削除し
 てシナリオを再読込してください。
 
+# Template.wex
+　シナリオのテンプレートが存在しなければ保存されません。
+　イベントツリービューのコンテントボックスのイベントテンプレートメニュー
+から、シナリオのテンプレートの編集を行う事ができます。そこですべてのテン
+プレートを削除すれば、ファイルもシナリオの保存時に削除されます。
+
 # 内部構造  ※ この項の内容は技術者向けです。
 　wexファイルの内容は、ごく普通のXMLです。
-　拡張情報の配置箇所をCWXPathで持つという構造が全てに共通しています。
-　従って、*.wexを更新せずにイベントコンテントツリーなどの構造を変更すると、
-ずれた場所に拡張情報が配置されてしまいます。
+　Template.wex以外は、拡張情報の配置箇所をCWXPathで持つという構造が共通し
+ています。従って、*.wexを更新せずにイベントコンテントツリーなどの構造を変
+更すると、ずれた場所に拡張情報が配置されてしまいます。
 　Comment.wexは以下のような構造になっています:
 ---
 <!DOCTYPE comments[
@@ -311,6 +322,28 @@ ImageRef.wexにはカードに格納された画像のファイルパスが、CardRef.wexにはキャ
 「無し」に設定されます。
 　CardRef.wex中でネスト可能数が設定されていない召喚獣召喚効果は、ネスト可
 能数 = 1 として扱います。
+　Template.wexは次のような構造になっています:
+---
+<!DOCTYPE templates[
+	<!ELEMENT templates (eventTemplates*)>
+	<!ATTLIST templates dataVersion CDATA #FIXED "1">
+	<!ELEMENT eventTemplate (eventTemplate*)>
+	<!ATTLIST eventTemplate name CDATA #REQUIRED><!-- テンプレート名 -->
+	<!ATTLIST eventTemplate mnemonic CDATA #IMPLIED><!-- アクセスキー -->
+	<!ATTLIST eventTemplate hotkey CDATA #IMPLIED><!-- ショートカット -->
+	<!ELEMENT eventTemplate (#PCDATA)><!-- CWXスクリプト -->
+]>
+---
+　実際のデータは以下のようになります。
+---
+<?xml version="1.0"?>
+<templates dataVersion="1">
+  <eventTemplates>
+    <eventTemplate name="1秒ウェイト" mnemonic="1" hotkey="Ctrl+Shift+1">wait 10</eventTemplate>
+    <eventTemplate name="3秒ウェイト" mnemonic="2" >wait 30</eventTemplate>
+  </eventTemplates>
+</templates>
+---
 
 ---------------------------------------------------------------------------
 [ 12. CWXPathについて ]

@@ -21,6 +21,7 @@ class Images {
 private:
 	string _appPath;
 	Image[string] _imgReg;
+	Cursor[CType] _curReg;
 	@property Image imgd(string Path)() { mixin(S_TRACE);
 		auto p = Path in _imgReg;
 		if (p) { mixin(S_TRACE);
@@ -58,8 +59,11 @@ public:
 		foreach (p, img; _imgReg) { mixin(S_TRACE);
 			img.dispose();
 		}
-		typeof(_imgReg) imgReg;
-		_imgReg = imgReg;
+		foreach (p, cur; _curReg) { mixin(S_TRACE);
+			cur.dispose();
+		}
+		_imgReg = null;
+		_curReg = null;
 	}
 	@property Image emptyIcon() {return imgd!("empty.png");}
 
@@ -433,6 +437,7 @@ public:
 		case MenuID.CopyAsText: return imgd!("copy.png");
 		case MenuID.OpenAtView: return imgd!("view.png");
 		case MenuID.StartToPackage: return imgd!("s_to_p.png");
+		case MenuID.CreateContent: return imgd!("evt_put_quick.png");
 		case MenuID.ConvertContent: return imgd!("conv_cont.png");
 		case MenuID.CGroupTerminal: return imgd!("evt_j_term.png");
 		case MenuID.CGroupStandard: return imgd!("evt_j_std.png");
@@ -551,5 +556,16 @@ public:
 		case MenuID.ResetPreviewValues: return imgd!("reset.png");
 		case MenuID.ResetPreviewValuesAll: return imgd!("reset_all.png");
 		}
+	}
+
+	Cursor cursor(CType cType) { mixin(S_TRACE);
+		auto p = cType in _curReg;
+		if (p) return *p;
+		auto img = content(cType);
+		if (!img) return null;
+		auto imgData = img.getImageData();
+		auto cur = new Cursor(Display.getCurrent(), imgData, imgData.width / 2, imgData.height / 2);
+		_curReg[cType] = cur;
+		return cur;
 	}
 }

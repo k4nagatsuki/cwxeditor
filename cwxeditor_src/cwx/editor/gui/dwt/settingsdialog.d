@@ -1196,6 +1196,9 @@ protected:
 		_tools.setup(_prop.var.etc.outerTools, _prop.var.etc.outerToolsSashL.value, _prop.var.etc.outerToolsSashR.value);
 		_scTempls.setup(_prop.var.etc.scenarioTemplates, _prop.var.etc.scenarioTemplatesSashL.value, _prop.var.etc.scenarioTemplatesSashR.value);
 		_evTempls.setup(_prop.var.etc.eventTemplates, _prop.var.etc.eventTemplatesSashL.value, _prop.var.etc.eventTemplatesSashR.value);
+		_tools.setShortcutWeights(_prop.var.etc.outerToolShortcutSashL.value, _prop.var.etc.outerToolShortcutSashR.value);
+		_cEngines.setShortcutWeights(_prop.var.etc.classicEngineShortcutSashL.value, _prop.var.etc.classicEngineShortcutSashR.value);
+		_evTempls.setShortcutWeights(_prop.var.etc.eventTemplateShortcutSashL.value, _prop.var.etc.eventTemplateShortcutSashR.value);
 
 		_enginePath.setText(_prop.var.etc.enginePath);
 		_findEnginePath.setSelection(_prop.var.etc.findEnginePath);
@@ -2036,6 +2039,8 @@ private:
 		Button _templPathDirOpen;
 	} else static if (is(T:EvTemplate)) {
 		Text _templScript;
+		Text _mnemonic;
+		HotKeyField _hotkey;
 	} else static assert (0);
 
 	Button _alt;
@@ -2126,6 +2131,8 @@ private:
 				_templPath.setText(_array[i].path);
 			} else static if (is(T:EvTemplate)) {
 				_templScript.setText(_array[i].script);
+				_mnemonic.setText(_array[i].mnemonic);
+				_hotkey.accelerator = _array[i].hotkey;
 			} else static assert (0);
 		} else { mixin(S_TRACE);
 			_name.setText("");
@@ -2150,6 +2157,8 @@ private:
 				_templPath.setText("");
 			} else static if (is(T:EvTemplate)) {
 				_templScript.setText("");
+				_mnemonic.setText("");
+				_hotkey.accelerator = "";
 			} else static assert (0);
 		}
 		_alt.setEnabled(false);
@@ -2198,7 +2207,9 @@ private:
 			add(ScTemplate(name, path));
 		} else static if (is(T:EvTemplate)) {
 			string script = _templScript.getText();
-			add(EvTemplate(name, script));
+			string mnemonic = _mnemonic.getText();
+			string hotkey = _hotkey.acceleratorText();
+			add(EvTemplate(name, script, mnemonic, hotkey));
 		} else static assert (0);
 	}
 	void alt() { mixin(S_TRACE);
@@ -2248,7 +2259,9 @@ private:
 		} else static if (is(T:ScTemplate)) {
 			_array[i].path = _templPath.getText();
 		} else static if (is(T:EvTemplate)) {
-			_array[i].script = _templScript.getText();
+			_array[i].script = .wrapReturnCode(_templScript.getText());
+			_array[i].mnemonic = _mnemonic.getText();
+			_array[i].hotkey = _hotkey.acceleratorText();
 		} else static assert (0);
 		_list.setItem(i, createName(_array[i]));
 		_alt.setEnabled(false);
@@ -2398,7 +2411,8 @@ private:
 		if (id == MenuID.Redo) _redoAcc = convertAccelerator(_prop.buildMenu(MenuID.Redo));
 	}
 
-	static if (is(T:OuterTool) || is(T:ClassicEngine)) {
+	static if (is(T:OuterTool) || is(T:ClassicEngine) || is(T:EvTemplate)) {
+		SplitPane _shortcutSash;
 		string createName(ref const T t) { mixin(S_TRACE);
 			return MenuProps.buildMenuSample(t.name, t.mnemonic, t.hotkey, false);
 		}
@@ -2406,35 +2420,19 @@ private:
 			auto l1 = new Label(parent, SWT.NONE);
 			l1.setText(_prop.msgs.mnemonic);
 
-			auto sash = new SplitPane(parent, SWT.HORIZONTAL);
+			_shortcutSash = new SplitPane(parent, SWT.HORIZONTAL);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.horizontalSpan = 3;
-			sash.setLayoutData(gd);
-			_mnemonic = mnemonicText(sash, SWT.BORDER);
+			_shortcutSash.setLayoutData(gd);
+			_mnemonic = mnemonicText(_shortcutSash, SWT.BORDER);
 			createTextMenu!Text(_comm, _prop, _mnemonic, _catchMod);
-			auto hotkeyComp = new Composite(sash, SWT.NONE);
+			auto hotkeyComp = new Composite(_shortcutSash, SWT.NONE);
 			hotkeyComp.setLayout(zeroMarginGridLayout(2, false));
 			auto l2 = new Label(hotkeyComp, SWT.NONE);
 			l2.setText(_prop.msgs.hotkey);
 			_hotkey = new HotKeyField(hotkeyComp, SWT.BORDER);
 			createTextMenu!Text(_comm, _prop, _hotkey.widget, _catchMod);
 			_hotkey.widget.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-			static if (is(T:OuterTool)) {
-				sash.setWeights([_prop.var.etc.outerToolShortcutSashL, _prop.var.etc.outerToolShortcutSashR]);
-				.listener(sash, SWT.Dispose, { mixin(S_TRACE);
-					auto ws = sash.getWeights();
-					_prop.var.etc.outerToolShortcutSashL = ws[0];
-					_prop.var.etc.outerToolShortcutSashR = ws[1];
-				});
-			} else static if (is(T:ClassicEngine)) {
-				sash.setWeights([_prop.var.etc.classicEngineShortcutSashL, _prop.var.etc.classicEngineShortcutSashR]);
-				.listener(sash, SWT.Dispose, { mixin(S_TRACE);
-					auto ws = sash.getWeights();
-					_prop.var.etc.classicEngineShortcutSashL = ws[0];
-					_prop.var.etc.classicEngineShortcutSashR = ws[1];
-				});
-			} else static assert (0);
 		}
 	} else {
 		string createName(ref const T t) { mixin(S_TRACE);
@@ -2773,6 +2771,7 @@ private:
 				gd.horizontalSpan = 3;
 				_name.setLayoutData(gd);
 			}
+			setupShortcut(parent);
 			{ mixin(S_TRACE);
 				auto l = new Label(parent, SWT.NONE);
 				l.setText(_prop.msgs.eventTemplateScript);
@@ -3037,6 +3036,8 @@ public:
 			modB(_alt, _list, _templPath, _canApply);
 		} else static if (is(T:EvTemplate)) {
 			modB(_alt, _list, _templScript, _canApply);
+			modB(_alt, _list, _mnemonic, _canApply);
+			modB(_alt, _list, _hotkey.widget, _canApply);
 		} else static assert (0);
 		leftSash.setWeights([sashL, sashR]);
 		listener(leftSash, SWT.Dispose, (Event e) { mixin(S_TRACE);
@@ -3098,5 +3099,15 @@ public:
 		Shell ceNameWin() { return _ceNameWin; }
 		@property
 		Button features() { return _features; }
+	}
+	static if (is(typeof(_shortcutSash))) {
+		void setShortcutWeights(ref int sashL, ref int sashR) {
+			_shortcutSash.setWeights([sashL, sashR]);
+			.listener(_shortcutSash, SWT.Dispose, { mixin(S_TRACE);
+				auto ws = _shortcutSash.getWeights();
+				sashL = ws[0];
+				sashR = ws[1];
+			});
+		}
 	}
 }

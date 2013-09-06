@@ -269,6 +269,10 @@ class FlexEtcProps : Properties {
 	auto eventTemplatesSashR = Prop!(int)("eventTemplatesSashR", 2);
 	auto eventTemplatesOfScenarioSashL = Prop!(int)("eventTemplatesOfScenarioSashL", 1);
 	auto eventTemplatesOfScenarioSashR = Prop!(int)("eventTemplatesOfScenarioSashR", 2);
+	auto eventTemplateShortcutSashL = Prop!(int)("eventTemplateShortcutSashL", 1);
+	auto eventTemplateShortcutSashR = Prop!(int)("eventTemplateShortcutSashR", 3);
+	auto eventTemplateOfScenarioShortcutSashL = Prop!(int)("eventTemplateOfScenarioShortcutSashL", 1);
+	auto eventTemplateOfScenarioShortcutSashR = Prop!(int)("eventTemplateOfScenarioShortcutSashR", 3);
 	auto scenarioTemplatesSashL = Prop!(int)("scenarioTemplatesSashL", 1);
 	auto scenarioTemplatesSashR = Prop!(int)("scenarioTemplatesSashR", 2);
 	auto templatesSashL = Prop!(int)("templatesSashL", 1);

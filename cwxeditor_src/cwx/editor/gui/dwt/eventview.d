@@ -360,22 +360,24 @@ private:
 
 	void __select(TreeItem itm, bool sel = true) { mixin(S_TRACE);
 		if (sel) _cards.setSelection([itm]);
-		if (cast(EventTree) itm.getData()) { mixin(S_TRACE);
+		if (cast(EventTree)itm.getData()) { mixin(S_TRACE);
 			_selItm = itm;
 			_etree.refresh(cast(EventTree) itm.getData());
 		}
 		static if (UseFire) {
-			auto parItm = selectionParent;
-			if (parItm && (!_oldSelP || _oldSelP != parItm) && _treeKind.getSelectionIndex() == 0) { mixin(S_TRACE);
-				auto c = cast(CCombo) _fireItm.getControl();
-				c.removeAll();
-				string[] vals;
-				if (cast(EventTreeOwner) parItm.getData()) { mixin(S_TRACE);
-					vals = startDefVals;
-				}
-				foreach (i, v; vals) { mixin(S_TRACE);
-					c.add(v);
-					if (i == 0) c.setText(v);
+			if (_fireItm) { mixin(S_TRACE);
+				auto parItm = selectionParent;
+				if (parItm && (!_oldSelP || _oldSelP != parItm) && _treeKind.getSelectionIndex() == 0) { mixin(S_TRACE);
+					auto c = cast(CCombo)_fireItm.getControl();
+					c.removeAll();
+					string[] vals;
+					if (cast(EventTreeOwner)parItm.getData()) { mixin(S_TRACE);
+						vals = startDefVals;
+					}
+					foreach (i, v; vals) { mixin(S_TRACE);
+						c.add(v);
+						if (i == 0) c.setText(v);
+					}
 				}
 			}
 		}
@@ -1144,7 +1146,16 @@ public:
 			if (!_readOnly) { mixin(S_TRACE);
 				auto _edit = new TreeEdit(_comm, _cards, &editEnd, &createEditor);
 			}
-			setupToolBar();
+			// 遅延実行
+			auto initTools = new class PaintListener {
+				override void paintControl(PaintEvent e) { mixin(S_TRACE);
+					_cards.removePaintListener(this);
+					_toolbar.setRedraw(false);
+					scope (exit) _toolbar.setRedraw(true);
+					setupToolBar();
+				}
+			};
+			_cards.addPaintListener(initTools);
 		}
 		static if (is (A == Area)) {
 			_sash.setWeights([_prop.var.areaWin.eventSashL, _prop.var.areaWin.eventSashR]);
@@ -1174,7 +1185,6 @@ public:
 		.listener(this, SWT.Dispose, {
 			d.removeFilter(SWT.MouseEnter, track);
 		});
-
 	}
 	@property
 	EventTreeView eventTreeView() { mixin(S_TRACE);
@@ -2031,11 +2041,7 @@ public:
 	string[] openedCWXPath() { mixin(S_TRACE);
 		string[] r;
 		auto etItm = selectionEventTree;
-		if (etItm) { mixin(S_TRACE);
-			auto et = cast(EventTree) etItm.getData();
-			assert (et);
-			r ~= et.cwxPath(true);
-		} else { mixin(S_TRACE);
+		if (!etItm) { mixin(S_TRACE);
 			auto cardItm = selectionParent;
 			if (cardItm) { mixin(S_TRACE);
 				auto d = cardItm.getData();

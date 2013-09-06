@@ -1808,6 +1808,7 @@ private:
 	}
 
 	void refreshControls() { mixin(S_TRACE);
+		if (!_xSpn) return;
 		string f = null;
 		if (_flag) _flag.setText(_flag.getItem(0));
 		void flag(string f2) { mixin(S_TRACE);
@@ -2558,7 +2559,16 @@ public:
 				_imgp.showAppends = _prop.var.etc.viewReferenceCards;
 			}
 		}
-		setupToolBar(_toolbar);
+		// 遅延実行
+		_imgp.addPaintListener(new class PaintListener {
+			override void paintControl(PaintEvent e) {
+				_imgp.removePaintListener(this);
+				_toolbar.setRedraw(false);
+				scope (exit) _toolbar.setRedraw(true);
+				setupToolBar(_toolbar);
+				refreshControls();
+			}
+		});
 		static if (is(A : Battle) && is(C : EnemyCard)) {
 			{ mixin(S_TRACE);
 				auto target = new DropTarget(imagePane, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);

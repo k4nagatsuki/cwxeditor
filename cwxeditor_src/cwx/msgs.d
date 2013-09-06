@@ -1856,6 +1856,7 @@ class Msgs : Properties {
 	auto menuTextCopyAsText = Msg("menuTextCopyAsText", "テキストとしてコピー");
 	auto menuTextOpenAtView = Msg("menuTextOpenAtView", "ビューで開く");
 	auto menuTextStartToPackage = Msg("menuTextStartToPackage", "このツリーをパッケージ化する");
+	auto menuTextCreateContent = Msg("menuTextCreateContent", "コンテントの作成");
 	auto menuTextConvertContent = Msg("menuTextConvertContent", "変換");
 	auto menuTextCGroupTerminal = Msg("menuTextCGroupTerminal", "開始/終端");
 	auto menuTextCGroupStandard = Msg("menuTextCGroupStandard", "基本");

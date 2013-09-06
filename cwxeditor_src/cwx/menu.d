@@ -102,6 +102,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.CopyAsText] = "C";
 		_mnemonic[MenuID.OpenAtView] = "V";
 		_mnemonic[MenuID.StartToPackage] = "G";
+		_mnemonic[MenuID.CreateContent] = "A";
 		_mnemonic[MenuID.ConvertContent] = "O";
 		_mnemonic[MenuID.CGroupTerminal] = "T";
 		_mnemonic[MenuID.CGroupStandard] = "S";
@@ -296,6 +297,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.CopyAsText] = "Ctrl+C";
 		_hotkey[MenuID.OpenAtView] = "";
 		_hotkey[MenuID.StartToPackage] = "";
+		_hotkey[MenuID.CreateContent] = "";
 		_hotkey[MenuID.ConvertContent] = "";
 		_hotkey[MenuID.CGroupTerminal] = "";
 		_hotkey[MenuID.CGroupStandard] = "";
