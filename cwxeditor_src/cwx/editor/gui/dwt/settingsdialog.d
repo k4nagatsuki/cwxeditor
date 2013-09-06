@@ -447,7 +447,7 @@ private:
 				string path = _templPath.getText();
 				add(ScTemplate(name, path));
 			} else static if (is(T:EvTemplate)) {
-				string script = _templScript.getText();
+				string script = wrapReturnCode(_templScript.getText());
 				add(EvTemplate(name, script));
 			} else static assert (0);
 		}
