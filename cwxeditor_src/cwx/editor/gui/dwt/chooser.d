@@ -1102,6 +1102,7 @@ Button createAllExpandedButton(Props prop, Composite parent, Tree tree) { mixin(
 	void check() { mixin(S_TRACE);
 		tree.getDisplay().asyncExec(new class Runnable {
 			override void run () { mixin(S_TRACE);
+				if (tree.isDisposed()) return;
 				checkAllExpanded(b, tree);
 			}
 		});
