@@ -62,6 +62,7 @@ void main(string[] args) {
 				dlg.open();
 				dStr ~= " - " ~ .text(__LINE__);
 				prop.images.disposeImages();
+				comm.dispose();
 			} catch (Exception e) {
 				debugln(e);
 			}
