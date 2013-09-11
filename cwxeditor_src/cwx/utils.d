@@ -207,7 +207,8 @@ void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) { mixin(S
 			debugLogFile.flush();
 		}
 	} catch (Throwable e) {
-		std.stdio.writeln(__FILE__, " ", __LINE__, " ", e.msg);
+		std.stdio.writeln(__FILE__, " ", __LINE__, " ", e, e.msg);
+		std.stdio.writeln(F, " ", L, " ");
 	}
 }
 shared static ~this () { mixin(S_TRACE);

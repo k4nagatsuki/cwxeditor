@@ -374,9 +374,9 @@ protected:
 		area.setLayout(gl);
 		auto d = Display.getCurrent();
 		auto img = new Label(area, SWT.CENTER);
-		img.setImage(_prop.images.icon);
+		img.setImage(_prop.images.largeIcon);
 		auto gd = new GridData;
-		auto rect = _prop.images.icon.getBounds();
+		auto rect = _prop.images.largeIcon.getBounds();
 		gd.widthHint = rect.width;
 		gd.heightHint = rect.height;
 		gd.verticalSpan = 2;

@@ -1918,7 +1918,7 @@ public:
 			dStr ~= " - " ~ .text(__LINE__);
 			_win = _sbshl.shell();
 			_win.setData(new TLPData(this));
-			_win.setImage(_prop.images.app);
+			_win.setImages(_prop.images.icon);
 
 			dStr ~= " - " ~ .text(__LINE__);
 			_comm.save.add(&savec);

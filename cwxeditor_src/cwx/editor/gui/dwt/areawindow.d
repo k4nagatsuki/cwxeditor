@@ -172,7 +172,7 @@ public:
 		if (parShl) { mixin(S_TRACE);
 			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
 			shell = _sbshl.shell;
-			shell.setImage(prop.images.app);
+			shell.setImages(_prop.images.icon);
 			_win = shell;
 			contPane = _sbshl.contentPane;
 		} else { mixin(S_TRACE);

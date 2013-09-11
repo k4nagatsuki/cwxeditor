@@ -22,6 +22,8 @@ private:
 	string _appPath;
 	Image[string] _imgReg;
 	Cursor[CType] _curReg;
+	Image[] _icon;
+	Image _largeIcon;
 	@property Image imgd(string Path)() { mixin(S_TRACE);
 		auto p = Path in _imgReg;
 		if (p) { mixin(S_TRACE);
@@ -50,6 +52,20 @@ private:
 			return img;
 		}
 	}
+	void initIcon() { mixin(S_TRACE);
+		if (_icon.length) return;
+		auto s = new ByteArrayInputStream(cast(byte[])getImportData!("cwxeditor.ico").data);
+		scope (exit) s.close();
+		int w = 0;
+		foreach (data; (new ImageLoader).load(s)) { mixin(S_TRACE);
+			auto img = new Image(Display.getCurrent(), data);
+			_icon ~= img;
+			if (!_largeIcon || w < data.width) { mixin(S_TRACE);
+				_largeIcon = img;
+				w = data.width;
+			}
+		}
+	}
 public:
 	this (string appPath) { mixin(S_TRACE);
 		_appPath = appPath;
@@ -64,11 +80,22 @@ public:
 		}
 		_imgReg = null;
 		_curReg = null;
+		foreach (i; _icon) { mixin(S_TRACE);
+			i.dispose();
+		}
+		if (_largeIcon) _largeIcon = null;
 	}
 	@property Image emptyIcon() {return imgd!("empty.png");}
 
 	@property Image app() {return imgd!("cwxeditor.png");}
-	@property Image icon() {return imgd!("cwxeditor.ico");}
+	@property Image[] icon() { mixin(S_TRACE);
+		initIcon();
+		return _icon;
+	}
+	@property Image largeIcon() { mixin(S_TRACE);
+		initIcon();
+		return _largeIcon;
+	}
 
 	@property Image text() {return imgd!("text.png");}
 

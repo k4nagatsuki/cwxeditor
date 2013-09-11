@@ -58,11 +58,16 @@ void main(string[] args) {
 				dStr ~= " - " ~ .text(__LINE__);
 				auto comm = new Commons(prop);
 				dStr ~= " - " ~ .text(__LINE__);
-				auto dlg = new TextDialog(comm, prop, null, prop.msgs.dlgTitUsage, prop.images.app, prop.msgs.usage ~ "\n");
+				auto dlg = new TextDialog(comm, prop, null, prop.msgs.dlgTitUsage, null, prop.msgs.usage ~ "\n");
+				dlg.setImages(prop.images.icon);
 				dlg.open();
 				dStr ~= " - " ~ .text(__LINE__);
+				dlg.close();
+				dStr ~= " - " ~ .text(__LINE__);
 				prop.images.disposeImages();
+				comm.dispose();
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 			dStr ~= " - " ~ .text(__LINE__);

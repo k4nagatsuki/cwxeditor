@@ -127,6 +127,10 @@ abstract class AbsDialog {
 		_rightGroup.getParent().layout();
 	}
 
+	void setImages(Image[] images) {
+		_win.setImages(images);
+	}
+
 	private Button createButton(Composite parent, string text, void delegate() push) { mixin(S_TRACE);
 		auto b = new Button(parent, SWT.PUSH);
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -363,7 +367,9 @@ abstract class AbsDialog {
 	}
 	bool close() { mixin(S_TRACE);
 		if (_inCloseEvent) return false;
-		_win.close();
+		if (!_win.isDisposed()) { mixin(S_TRACE);
+			_win.close();
+		}
 		return _win.isDisposed();
 	}
 

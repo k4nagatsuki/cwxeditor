@@ -91,7 +91,7 @@ public:
 		if (parShl) { mixin(S_TRACE);
 			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
 			shell = _sbshl.shell;
-			shell.setImage(_prop.images.app);
+			shell.setImages(_prop.images.icon);
 			shell.addShellListener(new class ShellAdapter {
 				public override void shellClosed(ShellEvent e) { mixin(S_TRACE);
 					(cast(Shell) e.widget).setVisible(false);
