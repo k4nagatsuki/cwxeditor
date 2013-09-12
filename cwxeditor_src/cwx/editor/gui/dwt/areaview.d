@@ -171,6 +171,7 @@ private:
 		Combo _refAreas;
 		AbstractArea[] _refAreasArr;
 		AbstractArea _refTarget = null;
+		IncSearch _refAreaIncSearch;
 		void refreshRefAreas() { mixin(S_TRACE);
 			if (!_summ) return;
 			_refAreasArr.length = 0;
@@ -178,25 +179,34 @@ private:
 			if (!_area) return;
 			_refAreas.add(_prop.msgs.noRefArea);
 			_refAreas.select(0);
+			bool has = _refTarget is null;
 			foreach (a; _summ.areas) { mixin(S_TRACE);
+				if(_refTarget is a) has = true;
+				if (!_refAreaIncSearch.match(a.name)) continue;
 				_refAreasArr ~= a;
 				_refAreas.add(to!string(a.id) ~ "." ~ a.name);
 				if(_refTarget is a) _refAreas.select(_refAreas.getItemCount() - 1);
 			}
 			foreach (a; _summ.battles) { mixin(S_TRACE);
+				if(_refTarget is a) has = true;
+				if (!_refAreaIncSearch.match(a.name)) continue;
 				_refAreasArr ~= a;
 				_refAreas.add(to!string(a.id) ~ "." ~ a.name);
 				if(_refTarget is a) _refAreas.select(_refAreas.getItemCount() - 1);
 			}
 			if (0 == _refAreas.getSelectionIndex()) { mixin(S_TRACE);
-				_refTarget = null;
-				foreach (a; _imgp.appends) { mixin(S_TRACE);
-					a.data[] = 0;
-					delete a.data;
-					a.alphaData[] = 0;
-					delete a.alphaData;
+				if (has) { mixin(S_TRACE);
+					_refAreas.select(-1);
+				} else {
+					_refTarget = null;
+					foreach (a; _imgp.appends) { mixin(S_TRACE);
+						a.data[] = 0;
+						delete a.data;
+						a.alphaData[] = 0;
+						delete a.alphaData;
+					}
+					_imgp.appends = [];
 				}
-				_imgp.appends = [];
 			}
 		}
 		void refreshRefAreasA(Area a) {refreshRefAreas();}
@@ -2386,7 +2396,7 @@ public:
 				} else static if (is (C == EnemyCard)) {
 					_cards = createList(listsP, prop.msgs.enemyCards,
 						prop.images.cards, ctcpd, &editCard, &_area.cards, &selectAllC);
-					new TableComboEdit!CCombo(_comm, _prop, _cards, 0, &createEnemyCombo, &enemyEditEnd);
+					new TableComboEdit!Combo(_comm, _prop, _cards, 0, &createEnemyCombo, &enemyEditEnd, (itm, column) => 0 < _summ.casts.length, &enemyIncSearch);
 				}
 				_cards.addSelectionListener(new SCListener);
 				static if (is (C == MenuCard)) {
@@ -2401,7 +2411,7 @@ public:
 				_backs = createList(listsP, prop.msgs.backs,
 					prop.images.backs, btcpd, &editBack, &_area.backs, &selectAllB);
 				_backs.addSelectionListener(new SBListener);
-				new TableComboEdit!CCombo(_comm, _prop, _backs, 0, &createBgImageCombo, &bgImageEditEnd, &bgImageCanEdit);
+				new TableComboEdit!Combo(_comm, _prop, _backs, 0, &createBgImageCombo, &bgImageEditEnd, &bgImageCanEdit, &bgImageIncSearch);
 				auto backDrop = new DropTarget(_backs, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
 				backDrop.setTransfer([cast(Transfer) FileTransfer.getInstance(), XMLBytesTransfer.getInstance()]);
 				backDrop.addDropListener(new BLDropTarget);
@@ -2490,6 +2500,15 @@ public:
 				});
 				{ mixin(S_TRACE);
 					auto menu = new Menu(_refAreas.getShell(), SWT.POP_UP);
+
+					_refAreaIncSearch = new IncSearch(_comm, _refAreas);
+					_refAreaIncSearch.modEvent ~= &refreshRefAreas;
+					createMenuItem(_comm, menu, MenuID.IncSearch, {
+						.forceFocus(_refAreas, true);
+						_refAreaIncSearch.startIncSearch();
+					}, () => 1 < _flag.getItemCount());
+					new MenuItem(menu, SWT.SEPARATOR);
+
 					createMenuItem(_comm, menu, MenuID.OpenAtTableView, &openRefAreaView, () => _refAreas.getSelectionIndex() > 0);
 					_refAreas.setMenu(menu);
 				}
@@ -3173,7 +3192,7 @@ public:
 				_comm.refreshToolBar();
 			}
 		} else static if (is(C : EnemyCard)) {
-			void enemyEditEnd(TableItem selItm, int column, CCombo combo) { mixin(S_TRACE);
+			void enemyEditEnd(TableItem selItm, int column, Combo combo) { mixin(S_TRACE);
 				assert (_summ);
 				int i = combo.getSelectionIndex();
 				if (-1 == i) return;
@@ -3207,6 +3226,16 @@ public:
 						str = s;
 					}
 				}
+			}
+			string[] enemyIncSearch(IncSearch incSearch) { mixin(S_TRACE);
+				assert (_summ);
+				string[] strs;
+				foreach (cc; _summ.casts) { mixin(S_TRACE);
+					if (!incSearch.match(cc.name)) continue;
+					string s = to!string(cc.id) ~ "." ~ cc.name;
+					strs ~= s;
+				}
+				return strs;
 			}
 		} else static assert (0);
 		@property
@@ -3373,8 +3402,10 @@ public:
 			};
 			dlg.open();
 		}
-		void bgImageEditEnd(TableItem itm, int column, CCombo combo) { mixin(S_TRACE);
+		string[] _selectableBgImages;
+		void bgImageEditEnd(TableItem itm, int column, Combo combo) { mixin(S_TRACE);
 			int i = combo.getSelectionIndex();
+			_selectableBgImages = [];
 			if (-1 == i) return;
 			auto b = cast(ImageCell) itm.getData();
 			assert (b !is null);
@@ -3402,6 +3433,7 @@ public:
 			return (cast(ImageCell) itm.getData()) !is null;
 		}
 		void createBgImageCombo(TableItem itm, int column, out string[] strs, out string str) { mixin(S_TRACE);
+			_selectableBgImages = [];
 			auto b = cast(ImageCell) itm.getData();
 			if (!b) return;
 			strs ~= _prop.msgs.imageNone;
@@ -3415,6 +3447,7 @@ public:
 					str = t;
 				}
 			}
+			_selectableBgImages = strs;
 			if (!_summ) return;
 			void recurse(string dir, string sDir) { mixin(S_TRACE);
 				foreach (file; clistdir(dir)) { mixin(S_TRACE);
@@ -3434,6 +3467,17 @@ public:
 				}
 			}
 			recurse(_summ.scenarioPath, std.path.dirSeparator);
+			_selectableBgImages = strs;
+		}
+		string[] bgImageIncSearch(IncSearch incSearch) { mixin(S_TRACE);
+			string[] r;
+			r ~= _prop.msgs.imageNone;
+			foreach (s; _selectableBgImages) { mixin(S_TRACE);
+				if (incSearch.match(s)) { mixin(S_TRACE);
+					r ~= s;
+				}
+			}
+			return r;
 		}
 		bool isViewBacks() { mixin(S_TRACE);
 			return _viewBacks;

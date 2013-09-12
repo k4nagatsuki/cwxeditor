@@ -37,6 +37,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.cardlist;
+import cwx.editor.gui.dwt.incsearch;
 
 import core.thread;
 
@@ -378,6 +379,16 @@ public:
 			this.ctrl = ctrl;
 			ctrl.addFocusListener(this);
 			ctrl.addKeyListener(this);
+
+			auto focusIn = new class Listener {
+				override void handleEvent(Event e) {
+					focusOut();
+				}
+			};
+			ctrl.getDisplay().addFilter(SWT.FocusIn, focusIn);
+			.listener(ctrl, SWT.Dispose, {
+				ctrl.getDisplay().removeFilter(SWT.FocusIn, focusIn);
+			});
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
@@ -406,10 +417,16 @@ public:
 	override void focusGained(FocusEvent e) {}
 	override void focusLost(FocusEvent e) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
-			enter();
+			focusOut();
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
+	}
+	private void focusOut() {
+		auto fc = ctrl.getDisplay().getFocusControl();
+		if (fc is ctrl) return;
+		if (fc && cast(IncSearch)fc.getShell().getData()) return;
+		enter();
 	}
 	override void keyPressed(KeyEvent e) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
@@ -463,12 +480,36 @@ Text createTextEditor(Commons comm, Props prop, Composite parent, string str) { 
 	}
 }
 
-C createComboEditor(C = Combo)(Commons comm, Props prop, Composite parent, string[] strs, string str, bool readOnly = true) { mixin(S_TRACE);
+C createComboEditor(C = Combo)(Commons comm, Props prop, Composite parent, string[] strs, string str, bool readOnly = true, string[] delegate(IncSearch) filter = null) { mixin(S_TRACE);
 	try { mixin(S_TRACE);
 		int style = SWT.BORDER;
 		if (readOnly) style |= SWT.READ_ONLY;
 		auto combo = new C(parent, style);
 		combo.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+		if (filter) {
+			auto menu = new Menu(combo.getShell(), SWT.POP_UP);
+			auto incSearch = new IncSearch(comm, combo);
+			incSearch.modEvent ~= { mixin(S_TRACE);
+				auto t = combo.getText();
+				combo.removeAll();
+				bool hasStr = false;
+				foreach (s; filter(incSearch)) { mixin(S_TRACE);
+					if (s == str) hasStr = true;
+					combo.add(s);
+					if (s == t) { mixin(S_TRACE);
+						combo.setText(t);
+					}
+				}
+				if (hasStr && combo.getText() == "") combo.setText(str);
+			};
+			createMenuItem(comm, menu, MenuID.IncSearch, {
+				incSearch.startIncSearch();
+			}, () => 0 < strs.length);
+			combo.setMenu(menu);
+			static if (is(C : CCombo)) {
+				new MenuItem(menu, SWT.SEPARATOR);
+			}
+		}
 		static if (is(C : CCombo)) {
 			createTextMenu!C(comm, prop, combo, null);
 		}
@@ -670,6 +711,7 @@ private:
 	Props _prop;
 	void delegate(TableItem itm, int column, out string[] strs, out string str) createCombo;
 	void delegate(TableItem itm, int column, C combo) editEnd = null;
+	string[] delegate(IncSearch) _filter = null;
 
 public:
 	/// Params:
@@ -683,13 +725,15 @@ public:
 	this(Commons comm, Props prop, Table table, int editC,
 			void delegate(TableItem itm, int column, out string[] strs, out string str) createCombo,
 			void delegate(TableItem itm, int column, C combo) editEnd = null,
-			bool delegate(TableItem itm, int column) canEdit = null) { mixin(S_TRACE);
+			bool delegate(TableItem itm, int column) canEdit = null,
+			string[] delegate(IncSearch) filter = null) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			super (comm, table, editC, canEdit);
 			_comm = comm;
 			_prop = prop;
 			this.createCombo = createCombo;
 			this.editEnd = editEnd;
+			_filter = filter;
 		} catch (Exception e) {
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
@@ -699,7 +743,7 @@ public:
 		string[] strs;
 		string str;
 		createCombo(itm, editC, strs, str);
-		return createComboEditor!C(_comm, _prop, itm.getParent(), strs, str);
+		return createComboEditor!C(_comm, _prop, itm.getParent(), strs, str, true, _filter);
 	}
 	protected override void end(Control c) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
@@ -1755,6 +1799,7 @@ private void forceFocusImpl(Widget widget, Widget child, bool shellActivate) { m
 	auto ctl = cast(Control) widget;
 	if (ctl) { mixin(S_TRACE);
 		forceFocusImpl(ctl.getParent(), ctl, shellActivate);
+		if (ctl.isDisposed()) return;
 		if (!shellActivate) { mixin(S_TRACE);
 			if (ctl.getShell() is d.getActiveShell()) { mixin(S_TRACE);
 				ctl.setFocus();

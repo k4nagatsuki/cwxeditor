@@ -1237,7 +1237,7 @@ private:
 			return;
 		}
 	}
-	void initEditEnd(TableItem selItm, int column, CCombo combo) { mixin(S_TRACE);
+	void initEditEnd(TableItem selItm, int column, Combo combo) { mixin(S_TRACE);
 		int i = combo.getSelectionIndex();
 		if (-1 == i) return;
 		auto selFlag = cast(Flag)selItm.getData();
@@ -1437,7 +1437,7 @@ public:
 		flags.addDisposeListener(new DListener);
 
 		new TableTextEdit(_comm, prop, flags, 0, &nameEditEnd, null);
-		new TableComboEdit!CCombo(_comm, prop, flags, 1, &initCombo, &initEditEnd, null);
+		new TableComboEdit!Combo(_comm, prop, flags, 1, &initCombo, &initEditEnd, null);
 
 		_comp.addDisposeListener(new Dispose);
 

@@ -73,6 +73,7 @@ class IncSearch {
 	}
 	private void initialize() { mixin(S_TRACE);
 		_win = new Shell(_parent.getShell(), SWT.BORDER | SWT.MODELESS);
+		_win.setData(this);
 		auto wgl = windowGridLayout(3, false);
 		wgl.marginWidth = 0;
 		wgl.marginHeight = 0;
@@ -228,7 +229,7 @@ class IncSearch {
 			resize();
 			_win.setVisible(true);
 		}
-		.forceFocus(_text, true);
+		_text.setFocus();
 		_open = true;
 	}
 	void close() { mixin(S_TRACE);
