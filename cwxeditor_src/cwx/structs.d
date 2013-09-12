@@ -983,3 +983,92 @@ struct OpenHistory {
 		path = node.value;
 	}
 }
+
+/// ツールバーの設定。
+struct ToolBarSettings {
+	/// ツールバーの設定。二次元配列になっており、
+	/// 移動可能なツールバー一つを一単位として
+	/// それを複数含む構造を表現する。
+	Tool[][] tools;
+
+	/// インスタンスを生成する。
+	static ToolBarSettings opCall(Tool[][] tools) {
+		ToolBarSettings settings;
+		settings.tools = tools;
+		return settings;
+	}
+
+	/// XMLノードとして取り扱うための関数群。
+	const
+	void toNode(ref XNode e, string name = "toolBarSettings") { mixin(S_TRACE);
+		foreach (toolbar; tools) {
+			auto node = e.newElement("toolBar");
+			foreach (tool; toolbar) {
+				tool.toNode(node);
+			}
+		}
+	}
+	/// ditto
+	void fromNode(ref XNode node) { mixin(S_TRACE);
+		tools = [];
+		node.onTag["toolBar"] = (ref XNode node) {
+			Tool[] toolbar;
+			node.onTag[Tool.XML_NAME] = (ref XNode node) {
+				Tool tool;
+				tool.fromNode(node);
+				toolbar ~= tool;
+			};
+			node.parse();
+			tools ~= toolbar;
+		};
+		node.parse();
+	}
+}
+
+/// ツールアイテムの設定。
+struct Tool {
+	static immutable XML_NAME = "toolItem";
+
+	/// このツールアイテムが単なる区切りであればtrue。
+	bool separator;
+	/// このツールアイテムがどのようなメニューとして機能するか。
+	MenuID menu;
+
+	/// ツールとしてのインスタンスを生成する。
+	static Tool opCall(MenuID id) {
+		Tool tool;
+		tool.separator = false;
+		tool.menu = id;
+		return tool;
+	}
+	/// 区切りとしてのインスタンスを生成する。
+	static Tool opCall() {
+		Tool tool;
+		tool.separator = true;
+		return tool;
+	}
+
+	/// XMLノードとして取り扱うための関数群。
+	const
+	XNode toNode() { mixin(S_TRACE);
+		auto e = XNode.create(XML_NAME, separator ? "" : to!string(menu));
+		toNodeImpl(e);
+		return e;
+	}
+	/// ditto
+	const
+	void toNode(ref XNode node) { mixin(S_TRACE);
+		auto e = node.newElement(XML_NAME, separator ? "" : to!string(menu));
+		toNodeImpl(e);
+	}
+	/// ditto
+	const
+	private void toNodeImpl(ref XNode e) { mixin(S_TRACE);
+		if (separator) e.newAttr("separator", true);
+	}
+	/// ditto
+	void fromNode(ref XNode node) { mixin(S_TRACE);
+		separator = node.attr!bool("separator", false, false);
+		menu = node.valueTo!MenuID;
+	}
+}

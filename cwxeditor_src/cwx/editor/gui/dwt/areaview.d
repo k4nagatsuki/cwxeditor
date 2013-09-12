@@ -638,7 +638,7 @@ private:
 		MenuItem _dbgMenu;
 		ToolItem _dbgTMenu;
 		@property
-		protected bool debugMode() {return _dbgMode;}
+		public bool debugMode() {return _dbgMode;}
 		bool _dbgMode = false;
 		void reverseDebugMode() { mixin(S_TRACE);
 			_dbgMode = !_dbgMode;

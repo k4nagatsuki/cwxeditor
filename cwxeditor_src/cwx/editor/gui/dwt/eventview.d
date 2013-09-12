@@ -31,6 +31,8 @@ import cwx.editor.gui.dwt.eventwindow;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.areaviewutils;
+import cwx.editor.gui.dwt.images;
 
 import std.algorithm : max;
 import std.string;
@@ -70,6 +72,74 @@ private:
 	TCPD[] _tcpd;
 	TreeItem _oldSelP = null;
 	TreeItem _selItm = null;
+
+	static if (!is(C:void)) {
+		Preview _preview;
+		C _previewC = null;
+		PileImage _previewI = null;
+		void closePreview() { mixin(S_TRACE);
+			if (_previewI) { mixin(S_TRACE);
+				_preview.close();
+				_previewC = null;
+				_previewI.dispose();
+			}
+		}
+		void previewTrigger(int x, int y) { mixin(S_TRACE);
+			auto itm = _cards.getItem(new Point(x, y));
+			if (!itm) { mixin(S_TRACE);
+				closePreview();
+				return;
+			}
+			auto c = cast(C)itm.getData();
+			if (!c) { mixin(S_TRACE);
+				closePreview();
+				return;
+			}
+			if (c is _previewC) { mixin(S_TRACE);
+				return;
+			}
+			closePreview();
+			_previewC = c;
+			_previewI = createCardImage(c);
+
+			auto b = itm.getBounds();
+			auto p = _cards.toDisplay(b.x, b.y + b.height);
+			_preview.image(_previewI, p.x, p.y, b.height);
+			_preview.show();
+		}
+		PileImage createCardImage(in C card) { mixin(S_TRACE);
+			static if (is(C:MenuCard)) {
+				auto path = _comm.skin.findImagePath(card.path, _summ.scenarioPath);
+				return createMenuCardImage!PileImage(_prop, _comm.skin, card.name,
+					path, 0, 0, 1.0, _prop.var.etc.smoothingCard, card.pcNumber);
+			} else static if (is(C:EnemyCard)) {
+				auto skin = _comm.skin;
+				auto castCard = _summ.cwCast(card.id);
+				auto areaView = _comm.areaViewFrom!(A, C, true, is(typeof(_area.backs)))(_area.cwxPath(true), false);
+				bool dbgMode = areaView ? areaView.debugMode : _prop.var.etc.viewEnemyCardDebug;
+				if (castCard) { mixin(S_TRACE);
+					return createCastCardImage!PileImage(_prop, skin, castCard, _summ.scenarioPath,
+						0, 0, 1.0, _prop.var.etc.smoothingCard, dbgMode);
+				} else { mixin(S_TRACE);
+					return createCastCardImage!PileImage(_prop, skin, null, _summ.scenarioPath,
+						0, 0, 1.0, _prop.var.etc.smoothingCard, dbgMode);
+				}
+			} else static assert (0, C);
+		}
+		class ClosePreview : SelectionAdapter {
+			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+				closePreview();
+			}
+		}
+		class PreviewTrigger : MouseTrackAdapter, MouseMoveListener {
+			override void mouseExit(MouseEvent e) { mixin(S_TRACE);
+				closePreview();
+			}
+			override void mouseMove(MouseEvent e) { mixin(S_TRACE);
+				previewTrigger(e.x, e.y);
+			}
+		}
+	}
 
 	static EventTreeOwner[] etos(A area) { mixin(S_TRACE);
 		EventTreeOwner[] r;
@@ -1055,6 +1125,11 @@ public:
 		}
 		_sash.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+				static if (!is(C:void)) {
+					closePreview();
+					_preview.dispose();
+				}
+
 				int[] ws = _sash.getWeights();
 				static if (is (A == Area)) {
 					_prop.var.areaWin.eventSashL = ws[0];
@@ -1140,6 +1215,16 @@ public:
 				});
 			}
 			_cards.setMenu(menu);
+
+			static if (!is(C:void)) {
+				_preview = new Preview(_prop, _cards.getShell());
+				auto closePreview = new ClosePreview;
+				_cards.getVerticalBar().addSelectionListener(closePreview);
+				_cards.getHorizontalBar().addSelectionListener(closePreview);
+				auto prevTrig = new PreviewTrigger;
+				_cards.addMouseTrackListener(prevTrig);
+				_cards.addMouseMoveListener(prevTrig);
+			}
 		}
 		{ mixin(S_TRACE);
 			_etree = new EventTreeView(comm, prop, summ, _sash, _undo, &forceSel, &refreshTopStart, _toolbar, _readOnly != SWT.NONE);

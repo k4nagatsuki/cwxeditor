@@ -1543,13 +1543,6 @@ private:
 		_preview.image(_previewI, p.x, p.y, b.height);
 		_preview.show();
 	}
-	class FocusOut : Listener {
-		override void handleEvent(Event e) { mixin(S_TRACE);
-			if (!_tbl.isVisible()) { mixin(S_TRACE);
-				closePreview();
-			}
-		}
-	}
 	class ClosePreview : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			closePreview();

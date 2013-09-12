@@ -4,6 +4,7 @@ module cwx.variables;
 import cwx.xml;
 import cwx.structs;
 import cwx.settings;
+import cwx.types;
 
 import std.path;
 
@@ -659,6 +660,97 @@ class FlexEtcProps : Properties {
 	auto scriptVarTableHeight = Prop!(int, true)("scriptVarTableHeight", 300);
 
 	auto archivePath = Prop!(string)("archivePath", "");
+
+	auto mainToolBar = Prop!(ToolBarSettings)("mainToolBar", ToolBarSettings([
+		[
+			Tool(MenuID.New),
+			Tool(MenuID.Open),
+			Tool(MenuID.Save),
+			Tool(MenuID.SaveAs),
+			Tool(),
+			Tool(MenuID.CreateArchive),
+			Tool(),
+			Tool(MenuID.Reload),
+		],
+		[
+			Tool(MenuID.Refresh),
+		],
+		[
+			Tool(MenuID.Undo),
+			Tool(MenuID.Redo),
+		],
+		[
+			Tool(MenuID.Cut),
+			Tool(MenuID.Copy),
+			Tool(MenuID.Paste),
+			Tool(MenuID.Delete),
+			Tool(),
+			Tool(MenuID.Clone),
+		],
+		[
+			Tool(MenuID.Up),
+			Tool(MenuID.Down),
+		],
+		[
+			Tool(MenuID.Find),
+			Tool(MenuID.FindID),
+			Tool(),
+			Tool(MenuID.ReNumberingAll),
+			Tool(),
+			Tool(MenuID.ToXMLText),
+		],
+		[
+			Tool(MenuID.TableView),
+			Tool(MenuID.VarView),
+			Tool(),
+			Tool(MenuID.CastView),
+			Tool(MenuID.SkillView),
+			Tool(MenuID.ItemView),
+			Tool(MenuID.BeastView),
+			Tool(MenuID.InfoView),
+			Tool(),
+			Tool(MenuID.FileView),
+		],
+		[
+			Tool(MenuID.ChangeVH),
+		],
+		[
+			Tool(MenuID.EditSummary),
+			Tool(),
+			Tool(MenuID.NewAreaDir),
+			Tool(MenuID.NewArea),
+			Tool(MenuID.NewBattle),
+			Tool(MenuID.NewPackage),
+			Tool(),
+			Tool(MenuID.NewFlagDir),
+			Tool(MenuID.NewFlag),
+			Tool(MenuID.NewStep),
+		],
+		[
+			Tool(MenuID.ShowCardProp),
+			Tool(MenuID.ShowCardImage),
+			Tool(MenuID.ShowCardDetail),
+			Tool(),
+			Tool(MenuID.NewCast),
+			Tool(MenuID.NewSkill),
+			Tool(MenuID.NewItem),
+			Tool(MenuID.NewBeast),
+			Tool(MenuID.NewInfo),
+			Tool(),
+			Tool(MenuID.OpenImportSource),
+		],
+		[
+			Tool(MenuID.OpenDir),
+			Tool(MenuID.NewDir),
+		],
+		[
+			Tool(MenuID.ExecEngine),
+			Tool(),
+			Tool(MenuID.OuterTools),
+			Tool(),
+			Tool(MenuID.Settings),
+		],
+	]));
 
 	mixin XMLFuncs!(FlexEtcProps);
 }
