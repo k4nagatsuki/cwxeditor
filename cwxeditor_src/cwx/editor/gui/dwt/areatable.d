@@ -1097,6 +1097,8 @@ private:
 					auto removeDir = cast(DirTree)removeItm.getData();
 					removeDir.parent.subDirs.remove(removeDir);
 					new DirTree(dir, removeItm.getText());
+					sortDirTree();
+					refreshDirTree();
 
 					_undo ~= new ATUndoArr(undos);
 				} else if (_summ.id == AbstractArea.summaryId(node)) {
