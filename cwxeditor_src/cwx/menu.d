@@ -220,6 +220,11 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.Collapse] = "O";
 		_mnemonic[MenuID.ResetPreviewValues] = "R";
 		_mnemonic[MenuID.ResetPreviewValuesAll] = "E";
+		_mnemonic[MenuID.CustomizeToolBar] = "Z";
+		_mnemonic[MenuID.AddTool] = "O";
+		_mnemonic[MenuID.AddToolBar] = "B";
+		_mnemonic[MenuID.AddToolGroup] = "G";
+		_mnemonic[MenuID.ResetToolBarSettings] = "R";
 
 		_hotkey[MenuID.None] = "";
 		_hotkey[MenuID.File] = "";
@@ -416,6 +421,11 @@ class MenuProps : Properties {
 		_hotkey[MenuID.Collapse] = "Ctrl+Arrow_Left";
 		_hotkey[MenuID.ResetPreviewValues] = "";
 		_hotkey[MenuID.ResetPreviewValuesAll] = "";
+		_hotkey[MenuID.CustomizeToolBar] = "";
+		_hotkey[MenuID.AddTool] = "";
+		_hotkey[MenuID.AddToolBar] = "";
+		_hotkey[MenuID.AddToolGroup] = "";
+		_hotkey[MenuID.ResetToolBarSettings] = "";
 
 		_mnemonic_init = _mnemonic.idup;
 		_hotkey_init = _hotkey.idup;
@@ -443,6 +453,11 @@ class MenuProps : Properties {
 	/// ツール文字列を構築する。
 	const
 	string buildTool(in CProps prop, MenuID id) { mixin(S_TRACE);
+		return buildTool(prop, id, _mnemonic[id], _hotkey[id]);
+	}
+	/// ditto
+	const
+	static string buildTool(in CProps prop, MenuID id, string mnemonic, string hotkey) { mixin(S_TRACE);
 		string r = prop.msgs.menuText(id);
 		if (isPMenu(id)) { mixin(S_TRACE);
 			r ~= "...";
@@ -624,4 +639,210 @@ class MenuData {
 	MenuID id = MenuID.None;
 	string delegate(string) format = null;
 	bool delegate() enabled = null;
+}
+
+bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
+	final switch (id) {
+	case MenuID.DelNotUsedFile:
+	case MenuID.New:
+	case MenuID.Open:
+	case MenuID.NewAtNewWindow:
+	case MenuID.OpenAtNewWindow:
+	case MenuID.Close:
+	case MenuID.Save:
+	case MenuID.SaveAs:
+	case MenuID.Reload:
+	case MenuID.OpenDir:
+	case MenuID.OpenPlace:
+	case MenuID.ShowMainToolBar:
+	case MenuID.ShowSceneToolBar:
+	case MenuID.ShowEventToolBar:
+	case MenuID.ChangeVH:
+	case MenuID.Find:
+	case MenuID.FindID:
+	case MenuID.IncSearch:
+	case MenuID.EditProp:
+	case MenuID.ShowProp:
+	case MenuID.Refresh:
+	case MenuID.Undo:
+	case MenuID.Redo:
+	case MenuID.Cut:
+	case MenuID.Copy:
+	case MenuID.Paste:
+	case MenuID.Delete:
+	case MenuID.Cut1Content:
+	case MenuID.Copy1Content:
+	case MenuID.Delete1Content:
+	case MenuID.PasteInsert:
+	case MenuID.Clone:
+	case MenuID.SelectAll:
+	case MenuID.ToXMLText:
+	case MenuID.TableView:
+	case MenuID.VarView:
+	case MenuID.CardView:
+	case MenuID.CastView:
+	case MenuID.SkillView:
+	case MenuID.ItemView:
+	case MenuID.BeastView:
+	case MenuID.InfoView:
+	case MenuID.FileView:
+	case MenuID.ExecEngine:
+	case MenuID.OuterTools:
+	case MenuID.Settings:
+	case MenuID.VersionInfo:
+	case MenuID.EditSummary:
+	case MenuID.NewAreaDir:
+	case MenuID.NewArea:
+	case MenuID.NewBattle:
+	case MenuID.NewPackage:
+	case MenuID.ReNumberingAll:
+	case MenuID.ReNumbering:
+	case MenuID.EditScene:
+	case MenuID.EditEvent:
+	case MenuID.SetStartArea:
+	case MenuID.NewFlagDir:
+	case MenuID.NewFlag:
+	case MenuID.NewStep:
+	case MenuID.CopyVariablePath:
+	case MenuID.Up:
+	case MenuID.Down:
+	case MenuID.SwapToParent:
+	case MenuID.SwapToChild:
+	case MenuID.Comment:
+	case MenuID.ShowCardProp:
+	case MenuID.ShowCardImage:
+	case MenuID.ShowCardDetail:
+	case MenuID.OpenImportSource:
+	case MenuID.NewCast:
+	case MenuID.NewSkill:
+	case MenuID.NewItem:
+	case MenuID.NewBeast:
+	case MenuID.NewInfo:
+	case MenuID.Import:
+	case MenuID.OpenHand:
+	case MenuID.AddHand:
+	case MenuID.RemoveRef:
+	case MenuID.EditEventAtTimeOfUsing:
+	case MenuID.Hold:
+	case MenuID.NewDir:
+	case MenuID.CopyFilePath:
+	case MenuID.CreateArchive:
+	case MenuID.ToScript:
+	case MenuID.ToScriptAll:
+	case MenuID.ToScript1Content:
+		return true;
+	case MenuID.None:
+	case MenuID.File:
+	case MenuID.Edit:
+	case MenuID.View:
+	case MenuID.Tool:
+	case MenuID.Table:
+	case MenuID.Variable:
+	case MenuID.Help:
+	case MenuID.Card:
+	case MenuID.CardsAndBacks:
+	case MenuID.LeftPane:
+	case MenuID.RightPane:
+	case MenuID.ClosePane:
+	case MenuID.ClosePaneExcept:
+	case MenuID.ClosePaneLeft:
+	case MenuID.ClosePaneRight:
+	case MenuID.ClosePaneAll:
+	case MenuID.CloseWin:
+	case MenuID.SaveImage:
+	case MenuID.IncludeImage:
+	case MenuID.LookImages:
+	case MenuID.CloseIncSearch:
+	case MenuID.ExecEngineAuto:
+	case MenuID.ExecEngineMain:
+	case MenuID.LockToolBar:
+	case MenuID.ResetToolBar:
+	case MenuID.CopyAsText:
+	case MenuID.OpenAtView:
+	case MenuID.StartToPackage:
+	case MenuID.CreateContent:
+	case MenuID.ConvertContent:
+	case MenuID.CGroupTerminal:
+	case MenuID.CGroupStandard:
+	case MenuID.CGroupData:
+	case MenuID.CGroupUtility:
+	case MenuID.CGroupBranch:
+	case MenuID.CGroupGet:
+	case MenuID.CGroupLost:
+	case MenuID.CGroupVisual:
+	case MenuID.CreateVariableEventTree:
+	case MenuID.InitVariablesTree:
+	case MenuID.OverDialog:
+	case MenuID.UnderDialog:
+	case MenuID.ShowParty:
+	case MenuID.ShowMsg:
+	case MenuID.ShowRefCards:
+	case MenuID.FixedCards:
+	case MenuID.FixedCells:
+	case MenuID.ShowGrid:
+	case MenuID.ShowEnemyCardProp:
+	case MenuID.ShowCard:
+	case MenuID.ShowBack:
+	case MenuID.NewMenuCard:
+	case MenuID.NewEnemyCard:
+	case MenuID.NewBack:
+	case MenuID.NewTextCell:
+	case MenuID.NewColorCell:
+	case MenuID.AutoArrange:
+	case MenuID.ManualArrange:
+	case MenuID.Mask:
+	case MenuID.Escape:
+	case MenuID.ChangePos:
+	case MenuID.PosTop:
+	case MenuID.PosBottom:
+	case MenuID.PosLeft:
+	case MenuID.PosRight:
+	case MenuID.PosEven:
+	case MenuID.NearTop:
+	case MenuID.NearBottom:
+	case MenuID.NearLeft:
+	case MenuID.NearRight:
+	case MenuID.NearCenterH:
+	case MenuID.NearCenterV:
+	case MenuID.NearCenter:
+	case MenuID.ScaleMin:
+	case MenuID.ScaleMiddle:
+	case MenuID.ScaleMax:
+	case MenuID.ScaleBig:
+	case MenuID.ScaleSmall:
+	case MenuID.ExpandBack:
+	case MenuID.StopBGM:
+	case MenuID.PlayBGM:
+	case MenuID.KeyCodeTiming:
+	case MenuID.KeyCodeTimingUse:
+	case MenuID.KeyCodeTimingSuccess:
+	case MenuID.KeyCodeTimingFailure:
+	case MenuID.KeyCodeTimingHasNot:
+	case MenuID.KeyCodeCond:
+	case MenuID.KeyCodeCondOr:
+	case MenuID.KeyCodeCondAnd:
+	case MenuID.AddRangeOfRound:
+	case MenuID.OpenAtTableView:
+	case MenuID.OpenAtVarView:
+	case MenuID.OpenAtCardView:
+	case MenuID.OpenAtFileView:
+	case MenuID.OpenAtEventView:
+	case MenuID.PlaySE:
+	case MenuID.StopSE:
+	case MenuID.PutQuick:
+	case MenuID.PutSelect:
+	case MenuID.PutContinue:
+	case MenuID.EvTemplates:
+	case MenuID.EvTemplatesOfScenario:
+	case MenuID.Expand:
+	case MenuID.Collapse:
+	case MenuID.ResetPreviewValues:
+	case MenuID.ResetPreviewValuesAll:
+	case MenuID.CustomizeToolBar:
+	case MenuID.AddTool:
+	case MenuID.AddToolBar:
+	case MenuID.AddToolGroup:
+	case MenuID.ResetToolBarSettings:
+		return false;
+	}
 }

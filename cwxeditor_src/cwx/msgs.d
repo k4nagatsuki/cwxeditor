@@ -1685,6 +1685,10 @@ class Msgs : Properties {
 
 	auto dlgTitEvTemplates = Msg("dlgTitEvTemplates", "イベントテンプレート - %1$s");
 
+	auto dlgTitCustomizeToolBar = Msg("dlgTitCustomizeToolBar", "ツールバーの編集");
+	auto toolBarName = Msg("toolBarName", "ツールバー (%1$s)");
+	auto toolGroupName = Msg("toolGroupName", "グループ (%1$s)");
+
 	/// スクリプト関係。
 	auto dlgTitScriptError = Msg("dlgTitScriptError", "CWXスクリプトエラー");
 	auto scriptError = Msg("scriptError", "CWXスクリプトのコンパイル中にエラーが発生しました。");
@@ -1975,6 +1979,11 @@ class Msgs : Properties {
 	auto menuTextCollapse = Msg("menuTextCollapse", "ツリーを閉じる");
 	auto menuTextResetPreviewValues = Msg("menuTextResetPreviewValues", "初期値に戻す");
 	auto menuTextResetPreviewValuesAll = Msg("menuTextResetPreviewValuesAll", "全て初期値に戻す");
+	auto menuTextCustomizeToolBar = Msg("menuTextCustomizeToolBar", "ツールバーの編集");
+	auto menuTextAddTool = Msg("menuTextAddTool", "追加");
+	auto menuTextAddToolBar = Msg("menuTextAddToolBar", "バーの追加");
+	auto menuTextAddToolGroup = Msg("menuTextAddToolGroup", "グループの追加");
+	auto menuTextResetToolBarSettings = Msg("menuTextResetToolBarSettings", "初期設定に戻す");
 
 	auto setFlagTrue = Msg("setFlagTrue", "TRUEを設定");
 	auto setFlagFalse = Msg("setFlagFalse", "FALSEを設定");

@@ -42,6 +42,7 @@ import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.loader;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.customtoolbar;
 
 import core.memory;
 import core.thread;
@@ -2346,102 +2347,122 @@ public:
 
 			if (_prop.var.etc.singleWindow) { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
-				_cbar = createCoolBar!("tools")(_comm, _toolComp, (CoolBar cbar) { mixin(S_TRACE);
-					void createCoolItem(CoolBar cbar, ToolBar tbar) { mixin(S_TRACE);
-						.createCoolItem(cbar, tbar);
-						_toolBar ~= tbar;
-					}
-					auto cardRG = new ToolItemGroup;
-					foreach (toolbar; _prop.var.etc.mainToolBar.tools) { mixin(S_TRACE);
-						auto bar = new ToolBar(cbar, SWT.FLAT);
-						foreach (tool; toolbar) { mixin(S_TRACE);
-							if (tool.separator) { mixin(S_TRACE);
-								new ToolItem(bar, SWT.SEPARATOR);
-							} else { mixin(S_TRACE);
-								void delegate(SelectionEvent se) actS = null;
-								void delegate() act = null;
-								bool delegate() can = null;
-								int style = SWT.PUSH;
-
-								switch (tool.menu) {
-								case MenuID.New: act = &createScenario; can = null; break;
-								case MenuID.Open: act = &openScenarioM; can = null; break;
-								case MenuID.Save: act = &saveScenario; can = () => summary !is null; break;
-								case MenuID.SaveAs: act = &saveScenarioA; can = () => summary !is null; break;
-								case MenuID.CreateArchive: act = &_dirWin.createArchive; can = &_dirWin.canCreateArchive; break;
-								case MenuID.Reload: act = &reload; can = () => summary !is null; break;
-								case MenuID.Refresh: actS = &refreshAll; can = () => summary !is null; break;
-								case MenuID.Find: act = &replaceText; can = null; break;
-								case MenuID.ReNumberingAll: act = &reNumberingAll; can = () => summary !is null; break;
-								case MenuID.ToXMLText: act = &clipboardToXML; can = () => CBisXMLOnly(_comm.clipboard); break;
-								case MenuID.TableView: act = &openDataWindow; can = null; break;
-								case MenuID.VarView: act = &openFlagWindow; can = null; break;
-								case MenuID.CastView: act = &openCast; can = null; break;
-								case MenuID.SkillView: act = &openSkill; can = null; break;
-								case MenuID.ItemView: act = &openItem; can = null; break;
-								case MenuID.BeastView: act = &openBeast; can = null; break;
-								case MenuID.InfoView: act = &openInfo; can = null; break;
-								case MenuID.FileView: act = &openDirWindow; can = null; break;
-								case MenuID.EditSummary: act = &_tableWin.editSummary; can = () => summary !is null; break;
-								case MenuID.NewAreaDir: act = &_tableWin.createAreaDir; can = &_tableWin.canCreateAreaDir; break;
-								case MenuID.NewArea: act = &_tableWin.createArea; can = &_tableWin.canCreateArea; break;
-								case MenuID.NewBattle: act = &_tableWin.createBattle; can = &_tableWin.canCreateBattle; break;
-								case MenuID.NewPackage: act = &_tableWin.createPackage; can = &_tableWin.canCreatePackage; break;
-								case MenuID.NewFlagDir: act = &_flagWin.createFlagDir; can = &_flagWin.canCreateFlagDir; break;
-								case MenuID.NewFlag: act = &_flagWin.createFlag; can = &_flagWin.canCreateFlag; break;
-								case MenuID.NewStep: act = &_flagWin.createStep; can = &_flagWin.canCreateStep; break;
-								case MenuID.ShowCardProp: actS = &showCardLife; can = null; style = SWT.RADIO; break;
-								case MenuID.ShowCardImage: actS = &showCardList; can = null; style = SWT.RADIO; break;
-								case MenuID.ShowCardDetail: actS = &showCardTable; can = null; style = SWT.RADIO; break;
-								case MenuID.NewCast: act = &newCast; can = &canNewCast; break;
-								case MenuID.NewSkill: act = &newSkill; can = &canNewSkill; break;
-								case MenuID.NewItem: act = &newItem; can = &canNewItem; break;
-								case MenuID.NewBeast: act = &newBeast; can = &canNewBeast; break;
-								case MenuID.NewInfo: act = &newInfo; can = &canNewInfo; break;
-								case MenuID.OpenImportSource: act = &addScenario; can = &canAddScenario; break;
-								case MenuID.OpenDir: act = &openDirectory; can = &canOpenDirectory; break;
-								case MenuID.NewDir: act = &_dirWin.createNewFolder; can = &_dirWin.canCreateNewFolder; break;
-								case MenuID.ExecEngine: createExecEngineTI(bar); continue;
-								case MenuID.OuterTools: createOuterToolsTI(bar); continue;
-								case MenuID.Settings: act = &settings; can = null; break;
-								default: break;
-								}
-
-								if (act) { mixin(S_TRACE);
-									_mainMenu.add(tool.menu);
-									_tool[tool.menu] = createToolItem(_comm, bar, tool.menu, act, can, style);
-								} else if (actS) { mixin(S_TRACE);
-									_mainMenu.add(tool.menu);
-									_tool[tool.menu] = createToolItem(_comm, bar, tool.menu, actS, can, style);
+				void createMainToolBar() { mixin(S_TRACE);
+					_toolRG = [];
+					_toolBar = [];
+					_tool = null;
+					if (_cbar) _cbar.dispose();
+					_cbar = createCoolBar!("tools")(_comm, _toolComp, (CoolBar cbar) { mixin(S_TRACE);
+						void createCoolItem(CoolBar cbar, ToolBar tbar) { mixin(S_TRACE);
+							.createCoolItem(cbar, tbar);
+							_toolBar ~= tbar;
+						}
+						auto cardRG = new ToolItemGroup;
+						foreach (toolbar; _prop.var.etc.mainToolBar.tools) { mixin(S_TRACE);
+							auto bar = new ToolBar(cbar, SWT.FLAT);
+							foreach (tool; toolbar) { mixin(S_TRACE);
+								if (tool.separator) { mixin(S_TRACE);
+									new ToolItem(bar, SWT.SEPARATOR);
 								} else { mixin(S_TRACE);
-									_tool[tool.menu] = createToolItem(_comm, bar, tool.menu, menuActionDlg(tool.menu), can, style);
+									void delegate(SelectionEvent se) actS = null;
+									void delegate() act = null;
+									bool delegate() can = null;
+									int style = SWT.PUSH;
+
+									switch (tool.menu) {
+									case MenuID.New: act = &createScenario; can = null; break;
+									case MenuID.Open: act = &openScenarioM; can = null; break;
+									case MenuID.Save: act = &saveScenario; can = () => summary !is null; break;
+									case MenuID.SaveAs: act = &saveScenarioA; can = () => summary !is null; break;
+									case MenuID.CreateArchive: act = &_dirWin.createArchive; can = &_dirWin.canCreateArchive; break;
+									case MenuID.Reload: act = &reload; can = () => summary !is null; break;
+									case MenuID.Refresh: actS = &refreshAll; can = () => summary !is null; break;
+									case MenuID.Find: act = &replaceText; can = null; break;
+									case MenuID.ReNumberingAll: act = &reNumberingAll; can = () => summary !is null; break;
+									case MenuID.ToXMLText: act = &clipboardToXML; can = () => CBisXMLOnly(_comm.clipboard); break;
+									case MenuID.TableView: act = &openDataWindow; can = null; break;
+									case MenuID.VarView: act = &openFlagWindow; can = null; break;
+									case MenuID.CastView: act = &openCast; can = null; break;
+									case MenuID.SkillView: act = &openSkill; can = null; break;
+									case MenuID.ItemView: act = &openItem; can = null; break;
+									case MenuID.BeastView: act = &openBeast; can = null; break;
+									case MenuID.InfoView: act = &openInfo; can = null; break;
+									case MenuID.FileView: act = &openDirWindow; can = null; break;
+									case MenuID.EditSummary: act = &_tableWin.editSummary; can = () => summary !is null; break;
+									case MenuID.NewAreaDir: act = &_tableWin.createAreaDir; can = &_tableWin.canCreateAreaDir; break;
+									case MenuID.NewArea: act = &_tableWin.createArea; can = &_tableWin.canCreateArea; break;
+									case MenuID.NewBattle: act = &_tableWin.createBattle; can = &_tableWin.canCreateBattle; break;
+									case MenuID.NewPackage: act = &_tableWin.createPackage; can = &_tableWin.canCreatePackage; break;
+									case MenuID.NewFlagDir: act = &_flagWin.createFlagDir; can = &_flagWin.canCreateFlagDir; break;
+									case MenuID.NewFlag: act = &_flagWin.createFlag; can = &_flagWin.canCreateFlag; break;
+									case MenuID.NewStep: act = &_flagWin.createStep; can = &_flagWin.canCreateStep; break;
+									case MenuID.ShowCardProp: actS = &showCardLife; can = null; style = SWT.RADIO; break;
+									case MenuID.ShowCardImage: actS = &showCardList; can = null; style = SWT.RADIO; break;
+									case MenuID.ShowCardDetail: actS = &showCardTable; can = null; style = SWT.RADIO; break;
+									case MenuID.NewCast: act = &newCast; can = &canNewCast; break;
+									case MenuID.NewSkill: act = &newSkill; can = &canNewSkill; break;
+									case MenuID.NewItem: act = &newItem; can = &canNewItem; break;
+									case MenuID.NewBeast: act = &newBeast; can = &canNewBeast; break;
+									case MenuID.NewInfo: act = &newInfo; can = &canNewInfo; break;
+									case MenuID.OpenImportSource: act = &addScenario; can = &canAddScenario; break;
+									case MenuID.OpenDir: act = &openDirectory; can = &canOpenDirectory; break;
+									case MenuID.NewDir: act = &_dirWin.createNewFolder; can = &_dirWin.canCreateNewFolder; break;
+									case MenuID.ExecEngine: createExecEngineTI(bar); continue;
+									case MenuID.OuterTools: createOuterToolsTI(bar); continue;
+									case MenuID.Settings: act = &settings; can = null; break;
+									default: break;
+									}
+
+									if (act) { mixin(S_TRACE);
+										_mainMenu.add(tool.menu);
+										_tool[tool.menu] = createToolItem(_comm, bar, tool.menu, act, can, style);
+									} else if (actS) { mixin(S_TRACE);
+										_mainMenu.add(tool.menu);
+										_tool[tool.menu] = createToolItem(_comm, bar, tool.menu, actS, can, style);
+									} else { mixin(S_TRACE);
+										_tool[tool.menu] = createToolItem(_comm, bar, tool.menu, menuActionDlg(tool.menu), can, style);
+									}
 								}
 							}
+							createCoolItem(cbar, bar);
 						}
-						createCoolItem(cbar, bar);
-					}
-					// カードビューの表示方法(ラジオボタン)
-					auto scf = _tool.get(MenuID.ShowCardProp, null);
-					if (scf) cardRG.append(scf);
-					auto scl = _tool.get(MenuID.ShowCardImage, null);
-					if (scl) cardRG.append(scl);
-					auto sct = _tool.get(MenuID.ShowCardDetail, null);
-					if (sct) cardRG.append(sct);
-					if (_prop.var.etc.cardLife) { mixin(S_TRACE);
-						if (scf) scf.setSelection(true);
-					} else if (_prop.var.etc.cardDetails) { mixin(S_TRACE);
-						if (scl) sct.setSelection(true);
-					} else { mixin(S_TRACE);
-						if (sct) scl.setSelection(true);
-					}
-					if (cardRG.set.size) {
-						_toolRG ~= cardRG;
-					}
-				});
+						// カードビューの表示方法(ラジオボタン)
+						auto scf = _tool.get(MenuID.ShowCardProp, null);
+						if (scf) cardRG.append(scf);
+						auto scl = _tool.get(MenuID.ShowCardImage, null);
+						if (scl) cardRG.append(scl);
+						auto sct = _tool.get(MenuID.ShowCardDetail, null);
+						if (sct) cardRG.append(sct);
+						if (_prop.var.etc.cardLife) { mixin(S_TRACE);
+							if (scf) scf.setSelection(true);
+						} else if (_prop.var.etc.cardDetails) { mixin(S_TRACE);
+							if (scl) sct.setSelection(true);
+						} else { mixin(S_TRACE);
+							if (sct) scl.setSelection(true);
+						}
+						if (cardRG.set.size) { mixin(S_TRACE);
+							_toolRG ~= cardRG;
+						}
+					}, (menu) { mixin(S_TRACE);
+						createMenuItem(_comm, menu, MenuID.CustomizeToolBar, { mixin(S_TRACE);
+							auto dlg = new ToolBarCustomDialog(_comm, _win, _prop.var.etc.mainToolBar, _prop.var.etc.mainToolBar.INIT);
+							dlg.appliedEvent ~= { mixin(S_TRACE);
+								_prop.var.etc.mainToolBar = dlg.tools;
+								createMainToolBar();
+								_toolComp.layout();
+								_toolComp.getParent().layout(true);
+								_comm.refreshToolBar();
+							};
+							dlg.open();
+						}, null);
+						new MenuItem(menu, SWT.SEPARATOR);
+					});
 
-				auto drop = new DropTarget(_cbar, DND.DROP_DEFAULT | DND.DROP_LINK);
-				drop.setTransfer([FileTransfer.getInstance()]);
-				drop.addDropListener(new DTListener);
+					auto drop = new DropTarget(_cbar, DND.DROP_DEFAULT | DND.DROP_LINK);
+					drop.setTransfer([FileTransfer.getInstance()]);
+					drop.addDropListener(new DTListener);
+				}
+				createMainToolBar();
 
 				_comm.baseShell(this, _tableWin, _flagWin, _castWin, _skillWin, _itemWin, _beastWin, _infoWin, _dirWin);
 				dStr ~= " - " ~ .text(__LINE__);

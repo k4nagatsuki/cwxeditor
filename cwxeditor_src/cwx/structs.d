@@ -998,6 +998,17 @@ struct ToolBarSettings {
 		return settings;
 	}
 
+	/// コピーを生成する。
+	@property
+	const
+	ToolBarSettings dup() {
+		Tool[][] tools;
+		foreach (bar; this.tools) {
+			tools ~= bar.dup;
+		}
+		return ToolBarSettings(tools);
+	}
+
 	/// XMLノードとして取り扱うための関数群。
 	const
 	void toNode(ref XNode e, string name = "toolBarSettings") { mixin(S_TRACE);

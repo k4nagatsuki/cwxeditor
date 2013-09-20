@@ -1424,4 +1424,9 @@ enum MenuID {
 	Collapse,
 	ResetPreviewValues,
 	ResetPreviewValuesAll,
+	CustomizeToolBar,
+	AddTool,
+	AddToolBar,
+	AddToolGroup,
+	ResetToolBarSettings,
 }

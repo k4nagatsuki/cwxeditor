@@ -215,6 +215,7 @@ public class FlexProps {
 	WindowProps!("scriptVariablesDialog", 400, 400) scriptVarSetDlg;
 	DialogParam!("flagCombiDialog", 350) flagCombiDlg;
 	DialogParam!("eventTemplateDialog", 600, 400) evTemplDlg;
+	DialogParam!("toolBarCustomizeDialog", 650, 400) toolBarCustomDlg;
 	MenuProps menu;
 	FlexEtcProps etc;
 

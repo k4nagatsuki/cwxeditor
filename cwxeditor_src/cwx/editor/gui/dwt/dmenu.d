@@ -627,7 +627,7 @@ private class CBarListener(string Name) : MouseMoveListener, DisposeListener {
 	}
 }
 CoolBar createCoolBar(string Name)(Commons comm, Composite parent,
-		void delegate(CoolBar) setupItems) { mixin(S_TRACE);
+		void delegate(CoolBar) setupItems, void delegate(Menu) putMenu = null) { mixin(S_TRACE);
 	auto cbar = new CoolBar(parent, SWT.NONE);
 
 	setupItems(cbar);
@@ -647,6 +647,9 @@ CoolBar createCoolBar(string Name)(Commons comm, Composite parent,
 	cbar.addDisposeListener(ls);
 
 	auto menu = new Menu(parent.getShell(), SWT.POP_UP);
+	if (putMenu) { mixin(S_TRACE);
+		putMenu(menu);
+	}
 	ls._lock = createMenuItem(comm, menu, MenuID.LockToolBar, &ls.lock, null, SWT.CHECK);
 	new MenuItem(menu, SWT.SEPARATOR);
 	createMenuItem(comm, menu, MenuID.ResetToolBar, &ls.reset, null);

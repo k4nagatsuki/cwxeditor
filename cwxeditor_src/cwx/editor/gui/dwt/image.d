@@ -97,6 +97,9 @@ public:
 		return _largeIcon;
 	}
 
+	@property Image toolBar() {return imgd!("tool_bar.png");}
+	@property Image toolGroup() {return imgd!("tool_group.png");}
+
 	@property Image text() {return imgd!("text.png");}
 
 	@property Image classicEngine() {return imgd!("classic_engine.png");}
@@ -582,6 +585,11 @@ public:
 		case MenuID.Collapse: return imgd!("collapsed.png");
 		case MenuID.ResetPreviewValues: return imgd!("reset.png");
 		case MenuID.ResetPreviewValuesAll: return imgd!("reset_all.png");
+		case MenuID.CustomizeToolBar: return imgd!("custom_tools.png");
+		case MenuID.AddTool: return imgd!("add_menu.png");
+		case MenuID.AddToolBar: return imgd!("add_bar.png");
+		case MenuID.AddToolGroup: return imgd!("add_group.png");
+		case MenuID.ResetToolBarSettings: return imgd!("reset_all.png");
 		}
 	}
 

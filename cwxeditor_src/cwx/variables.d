@@ -140,6 +140,8 @@ class FlexEtcProps : Properties {
 	auto showEventToolBar = Prop!(bool)("showEventToolBar", true);
 	auto flagCombiSashL = Prop!(int)("flagCombiSashL", 1);
 	auto flagCombiSashR = Prop!(int)("flagCombiSashR", 1);
+	auto mainToolBarCustomSashL = Prop!(int)("mainToolBarCustomSashL", 1);
+	auto mainToolBarCustomSashR = Prop!(int)("mainToolBarCustomSashR", 1);
 
 	auto partyMax = Prop!(uint, true)("partyMax", 6);
 	auto cardScaleMax = Prop!(int)("cardScaleMax", 300);
