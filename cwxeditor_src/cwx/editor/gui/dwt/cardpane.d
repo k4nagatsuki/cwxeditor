@@ -781,6 +781,7 @@ private:
 						storeMove(oldIndex, oldIndex < index ? index - 1 : index);
 						_owner.insert(index, card);
 						insert(card, true);
+						refCard(card);
 						refreshStatusLine();
 					} else {
 						e.detail = DND.DROP_NONE;
@@ -804,6 +805,9 @@ private:
 							}
 							storeInsert(indices);
 							insert(adds[$ - 1], false);
+							foreach (i, card; adds) {
+								refCard(card);
+							}
 							_comm.refUseCount.call();
 							refreshStatusLine();
 						}
@@ -1319,6 +1323,7 @@ private:
 			if (!card || 0 == card.linkId) return;
 			auto targ = pOwnerCard(card.linkId);
 			if (!targ) return;
+			storeEdit(selectionIndex);
 			auto id = card.id;
 			static if (is(typeof(card.hold))) auto hold = card.hold;
 			card.deepCopy(targ);

@@ -650,6 +650,7 @@ private:
 		if (!m || !m.beast || 0 == m.beast.linkId) return;
 		auto targ = _summ.beast(m.beast.linkId);
 		if (!targ) return;
+		storeEdit(_motions.getSelectionIndex());
 		auto id = m.beast.id;
 		m.beast.deepCopy(targ);
 		m.beast.id = id;
