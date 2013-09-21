@@ -450,7 +450,10 @@ public:
 				}
 				putMenuAction(MenuID.Undo, &undo, &canUndo);
 				putMenuAction(MenuID.Redo, &redo, &canRedo);
-				static if (UseCast) putMenuAction(MenuID.NewCast, &create!(CAST), () => _summ !is null);
+				static if (UseCast) {
+					putMenuAction(MenuID.NewCast, &create!(CAST), () => _summ !is null);
+					putMenuAction(MenuID.OpenHand, &editHand, &canEditHand);
+				}
 				static if (UseSkill) putMenuAction(MenuID.NewSkill, &create!(SKILL), () => _summ !is null);
 				static if (UseItem) putMenuAction(MenuID.NewItem, &create!(ITEM), () => _summ !is null);
 				static if (UseBeast) putMenuAction(MenuID.NewBeast, &create!(BEAST), () => _summ !is null);
@@ -458,8 +461,21 @@ public:
 				putMenuAction(MenuID.Up, &up, &canUp);
 				putMenuAction(MenuID.Down, &down, &canDown);
 				putMenuAction(MenuID.FindID, &replaceID, &canReplaceID);
+				putMenuAction(MenuID.EditProp, &edit, &canEdit);
+				putMenuAction(MenuID.ReNumbering, &reNumbering, &canReNumbering);
+				static if (is(CardOwner:CastCard)) {
+					putMenuAction(MenuID.RemoveRef, &removeRef, &canRemoveRef);
+				}
 			} else { mixin(S_TRACE);
 				appendMenuTCPD(_comm, this, this, false, true, false, false, false);
+				putMenuAction(MenuID.ShowProp, &edit, &canEdit);
+				static if (UseCast) {
+					putMenuAction(MenuID.OpenHand, &editHand, &canEditHand);
+				}
+				putMenuAction(MenuID.Import, &addCard, &canAddCard);
+			}
+			static if (UseSkill || UseItem || UseBeast) {
+				putMenuAction(MenuID.EditEventAtTimeOfUsing, &editUseEvent, &canEditUseEvent);
 			}
 			putMenuChecked(MenuID.ShowCardProp, &showCardLife, &isViewLife, null);
 			putMenuChecked(MenuID.ShowCardImage, &showCardList, &isViewList, null);
@@ -1131,7 +1147,123 @@ public:
 			return false;
 		}
 	}
+	void edit() { mixin(S_TRACE);
+		static if (1 < Cards.length) {
+			int i = _tabf.getSelectionIndex();
+			static if (UseCast) {
+				if (i == CAST) _pane[CAST].edit();
+			}
+			static if (UseSkill) {
+				if (i == SKILL) _pane[SKILL].edit();
+			}
+			static if (UseItem) {
+				if (i == ITEM) _pane[ITEM].edit();
+			}
+			static if (UseBeast) {
+				if (i == BEAST) _pane[BEAST].edit();
+			}
+			static if (UseInfo) {
+				if (i == INFO) _pane[INFO].edit();
+			}
+		} else { mixin(S_TRACE);
+			_pane[0].edit();
+		}
+	}
+	@property
+	bool canEdit() { mixin(S_TRACE);
+		static if (1 < Cards.length) {
+			int i = _tabf.getSelectionIndex();
+			static if (UseCast) {
+				if (i == CAST) return _pane[CAST].canEdit;
+			}
+			static if (UseSkill) {
+				if (i == SKILL) return _pane[SKILL].canEdit;
+			}
+			static if (UseItem) {
+				if (i == ITEM) return _pane[ITEM].canEdit;
+			}
+			static if (UseBeast) {
+				if (i == BEAST) return _pane[BEAST].canEdit;
+			}
+			static if (UseInfo) {
+				if (i == INFO) return _pane[INFO].canEdit;
+			}
+			return false;
+		} else { mixin(S_TRACE);
+			return _pane[0].canEdit;
+		}
+	}
+	static if (UseCast) {
+		void editHand() { mixin(S_TRACE);
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseCast) {
+					if (i == CAST) _pane[CAST].edit();
+				}
+			} else { mixin(S_TRACE);
+				_pane[0].editHand();
+			}
+		}
+		@property
+		bool canEditHand() { mixin(S_TRACE);
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseCast) {
+					if (i == CAST) return _pane[CAST].canEdit;
+				}
+				return false;
+			} else { mixin(S_TRACE);
+				return _pane[0].canEdit;
+			}
+		}
+	}
 	static if (EditMode) {
+		void reNumbering() { mixin(S_TRACE);
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseCast) {
+					if (i == CAST) _pane[CAST].reNumbering();
+				}
+				static if (UseSkill) {
+					if (i == SKILL) _pane[SKILL].reNumbering();
+				}
+				static if (UseItem) {
+					if (i == ITEM) _pane[ITEM].reNumbering();
+				}
+				static if (UseBeast) {
+					if (i == BEAST) _pane[BEAST].reNumbering();
+				}
+				static if (UseInfo) {
+					if (i == INFO) _pane[INFO].reNumbering();
+				}
+			} else { mixin(S_TRACE);
+				_pane[0].reNumbering();
+			}
+		}
+		@property
+		bool canReNumbering() { mixin(S_TRACE);
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseCast) {
+					if (i == CAST) return _pane[CAST].canReNumbering;
+				}
+				static if (UseSkill) {
+					if (i == SKILL) return _pane[SKILL].canReNumbering;
+				}
+				static if (UseItem) {
+					if (i == ITEM) return _pane[ITEM].canReNumbering;
+				}
+				static if (UseBeast) {
+					if (i == BEAST) return _pane[BEAST].canReNumbering;
+				}
+				static if (UseInfo) {
+					if (i == INFO) return _pane[INFO].canReNumbering;
+				}
+				return false;
+			} else { mixin(S_TRACE);
+				return _pane[0].canReNumbering;
+			}
+		}
 		bool canUndo() { mixin(S_TRACE);
 			static if (1 < Cards.length) {
 				int i = _tabf.getSelectionIndex();
@@ -1357,6 +1489,137 @@ public:
 				return false;
 			} else { mixin(S_TRACE);
 				return _pane[0].canReplaceID;
+			}
+		}
+	} else {
+		void addCard() { mixin(S_TRACE);
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseCast) {
+					if (i == CAST) _pane[CAST].addCard();
+				}
+				static if (UseSkill) {
+					if (i == SKILL) _pane[SKILL].addCard();
+				}
+				static if (UseItem) {
+					if (i == ITEM) _pane[ITEM].addCard();
+				}
+				static if (UseBeast) {
+					if (i == BEAST) _pane[BEAST].addCard();
+				}
+				static if (UseInfo) {
+					if (i == INFO) _pane[INFO].addCard();
+				}
+			} else { mixin(S_TRACE);
+				_pane[0].addCard();
+			}
+		}
+		@property
+		bool canAddCard() { mixin(S_TRACE);
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseCast) {
+					if (i == CAST) return _pane[CAST].canAddCard;
+				}
+				static if (UseSkill) {
+					if (i == SKILL) return _pane[SKILL].canAddCard;
+				}
+				static if (UseItem) {
+					if (i == ITEM) return _pane[ITEM].canAddCard;
+				}
+				static if (UseBeast) {
+					if (i == BEAST) return _pane[BEAST].canAddCard;
+				}
+				static if (UseInfo) {
+					if (i == INFO) return _pane[INFO].canAddCard;
+				}
+				return false;
+			} else { mixin(S_TRACE);
+				return _pane[0].canAddCard;
+			}
+		}
+	}
+	static if (is(CardOwner:CastCard) && EditMode) {
+		void removeRef() { mixin(S_TRACE);
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseCast) {
+					if (i == CAST) _pane[CAST].removeRef();
+				}
+				static if (UseSkill) {
+					if (i == SKILL) _pane[SKILL].removeRef();
+				}
+				static if (UseItem) {
+					if (i == ITEM) _pane[ITEM].removeRef();
+				}
+				static if (UseBeast) {
+					if (i == BEAST) _pane[BEAST].removeRef();
+				}
+				static if (UseInfo) {
+					if (i == INFO) _pane[INFO].removeRef();
+				}
+			} else { mixin(S_TRACE);
+				_pane[0].removeRef();
+			}
+		}
+		@property
+		bool canRemoveRef() { mixin(S_TRACE);
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseCast) {
+					if (i == CAST) return _pane[CAST].canRemoveRef;
+				}
+				static if (UseSkill) {
+					if (i == SKILL) return _pane[SKILL].canRemoveRef;
+				}
+				static if (UseItem) {
+					if (i == ITEM) return _pane[ITEM].canRemoveRef;
+				}
+				static if (UseBeast) {
+					if (i == BEAST) return _pane[BEAST].canRemoveRef;
+				}
+				static if (UseInfo) {
+					if (i == INFO) return _pane[INFO].canRemoveRef;
+				}
+				return false;
+			} else { mixin(S_TRACE);
+				return _pane[0].canRemoveRef;
+			}
+		}
+	}
+	static if (UseSkill || UseItem || UseBeast) {
+		void editUseEvent() { mixin(S_TRACE);
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseSkill) {
+					if (i == SKILL) _pane[SKILL].editUseEvent();
+				}
+				static if (UseItem) {
+					if (i == ITEM) _pane[ITEM].editUseEvent();
+				}
+				static if (UseBeast) {
+					if (i == BEAST) _pane[BEAST].editUseEvent();
+				}
+			} else { mixin(S_TRACE);
+				_pane[0].editUseEvent();
+			}
+		}
+		@property
+		bool canEditUseEvent() { mixin(S_TRACE);
+			static if (1 < Cards.length) {
+				int i = _tabf.getSelectionIndex();
+				static if (UseSkill) {
+					if (i == SKILL) return _pane[SKILL].canEdit;
+				}
+				static if (UseItem) {
+					if (i == ITEM) return _pane[ITEM].canEdit;
+				}
+				static if (UseBeast) {
+					if (i == BEAST) return _pane[BEAST].canEdit;
+				}
+				return false;
+			} else { mixin(S_TRACE);
+				return _pane[0].canEdit;
 			}
 		}
 	}

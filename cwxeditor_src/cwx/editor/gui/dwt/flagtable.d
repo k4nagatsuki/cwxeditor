@@ -1386,7 +1386,7 @@ public:
 		auto menu = new Menu(flags.getShell(), SWT.POP_UP);
 		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, null);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.EditProp, &edit, () => flags.getSelectionIndex() != -1);
+		createMenuItem(_comm, menu, MenuID.EditProp, &edit, &canEdit);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.NewFlag, &createFlag, () => _dir !is null);
 		createMenuItem(_comm, menu, MenuID.NewStep, &createStep, () => _dir !is null);
@@ -1603,6 +1603,10 @@ public:
 				} else assert (0);
 			}
 		}
+	}
+	@property
+	bool canEdit() { mixin(S_TRACE);
+		return flags.getSelectionIndex() != -1;
 	}
 	/// 指定されたフラグの編集を開始する。
 	void edit(Flag flag) { mixin(S_TRACE);

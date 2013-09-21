@@ -1841,15 +1841,7 @@ public:
 		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, null);
 		new MenuItem(menu, SWT.SEPARATOR);
 		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) { mixin(S_TRACE);
-			createMenuItem(_comm, menu, MenuID.EditProp, { mixin(S_TRACE);
-				int index = _areas.getSelectionIndex();
-				if (index == -1) return;
-				if (cast(Summary)_areas.getItem(index).getData()) { mixin(S_TRACE);
-					editSummary();
-				} else { mixin(S_TRACE);
-					openAreaScene(true);
-				}
-			}, () => _areas.getSelectionIndex() != -1);
+			createMenuItem(_comm, menu, MenuID.EditProp, &editProp, &canEditProp);
 		} else { mixin(S_TRACE);
 			createMenuItem(_comm, menu, MenuID.EditScene, {openAreaScene(true);}, &canOpenAreaScene);
 			createMenuItem(_comm, menu, MenuID.EditEvent, {openAreaEvent(true);}, &canOpenAreaEvent);
@@ -1870,7 +1862,7 @@ public:
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.FindID, &replaceID, &canReplaceID);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.ReNumbering, &reNumbering, () => (showSummary ? 1 : 0) <= _areas.getSelectionIndex());
+		createMenuItem(_comm, menu, MenuID.ReNumbering, &reNumbering, &canReNumbering);
 		_areas.setMenu(menu);
 
 		_areas.addMouseListener(new MListener);
@@ -2017,6 +2009,22 @@ public:
 		_areaDirEdit.startEdit();
 	}
 
+	void editProp() { mixin(S_TRACE);
+		int index = _areas.getSelectionIndex();
+		if (index == -1) return;
+		if (cast(Summary)_areas.getItem(index).getData()) { mixin(S_TRACE);
+			editSummary();
+		} else { mixin(S_TRACE);
+			openAreaScene(true);
+		}
+	}
+	@property
+	bool canEditProp() { mixin(S_TRACE);
+		return _areas.getSelectionIndex() != -1;
+	}
+
+	@property
+	bool canReNumbering() { return (showSummary ? 1 : 0) <= _areas.getSelectionIndex(); }
 	void reNumberingAll() { mixin(S_TRACE);
 		auto undo = new UndoIDs(this, _comm, _summ);
 		bool reNum = false;

@@ -1427,8 +1427,12 @@ private:
 			}
 		}
 	}
-	void edit() { mixin(S_TRACE);
+	public void edit() { mixin(S_TRACE);
 		editImagePane(_imgp.selectedIndices);
+	}
+	@property
+	public bool canEdit() { mixin(S_TRACE);
+		return _imgp.selectedIndex != -1 && !_imgp.isMoving;
 	}
 	void editImagePane(int[] indices) { mixin(S_TRACE);
 		if (_imgp.isMoving) return;
@@ -1511,7 +1515,7 @@ private:
 		_imgp.changingImages(&changingImages);
 		{ mixin(S_TRACE);
 			auto menu = new Menu(parent.getShell(), SWT.POP_UP);
-			createMenuItem(_comm, menu, MenuID.EditProp, &edit, () => _imgp.selectedIndex != -1 && !_imgp.isMoving);
+			createMenuItem(_comm, menu, MenuID.EditProp, &edit, &canEdit);
 			static if (is(A : Area)) {
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.NewMenuCard, &createCard, null);

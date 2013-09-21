@@ -765,7 +765,7 @@ private:
 				_comm.refreshToolBar();
 			}
 		}
-		bool canEdit(TableItem itm, int column) { mixin(S_TRACE);
+		bool canEditT(TableItem itm, int column) { mixin(S_TRACE);
 			auto c = cast(C) itm.getData();
 			static if (is(CardOwner:CastCard) && is(typeof(c.linkId))) {
 				return 0 == c.linkId;
@@ -1135,6 +1135,7 @@ private:
 						storeMove(oldIndex, oldIndex < index ? index - 1 : index);
 						_owner.insert(index, card);
 						insert(card, true);
+						refCard(card);
 						refreshStatusLine();
 					} else { mixin(S_TRACE);
 						e.detail = DND.DROP_NONE;
@@ -1165,6 +1166,9 @@ private:
 							storeInsert(ids);
 							insert(adds[$ - 1], false);
 							sort();
+							foreach (i, card; adds) { mixin(S_TRACE);
+								refCard(card);
+							}
 							_comm.refUseCount.call();
 							refreshStatusLine();
 						}
@@ -1396,7 +1400,8 @@ private:
 	private void editM() { mixin(S_TRACE);
 		edit();
 	}
-	private bool canEdit() { mixin(S_TRACE);
+	@property
+	public bool canEdit() { mixin(S_TRACE);
 		auto c = selection;
 		if (!c) return false;
 		static if (is(typeof(c.linkId))) {
@@ -1732,9 +1737,9 @@ private:
 		_comm.refCardTableColumnWidth.add(&refColumnWidth);
 		_tbl.addDisposeListener(new DisposeTable);
 		static if (EditMode) {
-			new TableTextEdit(_comm, _prop, _tbl, COL_NAME, &nameEditEnd, &canEdit);
+			new TableTextEdit(_comm, _prop, _tbl, COL_NAME, &nameEditEnd, &canEditT);
 			static if (UseNum) {
-				new TableTCEdit(_comm, _tbl, COL_NUM, &numCreateEditor, &numEditEnd, &canEdit);
+				new TableTCEdit(_comm, _tbl, COL_NUM, &numCreateEditor, &numEditEnd, &canEditT);
 			}
 		}
 
@@ -1937,11 +1942,12 @@ private:
 				refAddHandMenu(card);
 			}
 		}
-		void removeRef() { mixin(S_TRACE);
+		public void removeRef() { mixin(S_TRACE);
 			auto card = selection;
 			if (!card || 0 == card.linkId) return;
 			auto targ = pOwnerCard(card.linkId);
 			if (!targ) return;
+			storeEdit(card.id);
 			auto id = card.id;
 			static if (is(typeof(card.hold))) auto hold = card.hold;
 			card.deepCopy(targ);
@@ -1952,6 +1958,10 @@ private:
 			refresh();
 			refCard(card);
 			_comm.refreshToolBar();
+		}
+		@property
+		public bool canRemoveRef() { mixin(S_TRACE);
+			return selection && 0 != selection.linkId && pOwnerCard(selection.linkId);
 		}
 	}
 public:
@@ -2108,7 +2118,7 @@ public:
 				_addHandMenu = new Menu(addHandMI);
 				addHandMI.setMenu(_addHandMenu);
 				new MenuItem(pop, SWT.SEPARATOR);
-				createMenuItem(_comm, pop, MenuID.RemoveRef, &removeRef, () => selection && 0 != selection.linkId && pOwnerCard(selection.linkId));
+				createMenuItem(_comm, pop, MenuID.RemoveRef, &removeRef, &canRemoveRef);
 			}
 			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.Undo, &undo, &_undo.canUndo);
@@ -2118,7 +2128,7 @@ public:
 			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.FindID, &replaceID, &canReplaceID);
 			new MenuItem(pop, SWT.SEPARATOR);
-			createMenuItem(_comm, pop, MenuID.ReNumbering, &reNumbering, () => selection !is null);
+			createMenuItem(_comm, pop, MenuID.ReNumbering, &reNumbering, &canReNumbering);
 		} else { mixin(S_TRACE);
 			auto pop = new Menu(parent.getShell(), SWT.POP_UP);
 			createMenuItem(_comm, pop, MenuID.IncSearch, &incSearch, null);
@@ -2133,7 +2143,7 @@ public:
 				createMenuItem(_comm, pop, MenuID.OpenHand, _openHand, () => selection !is null);
 				new MenuItem(pop, SWT.SEPARATOR);
 			}
-			createMenuItem(_comm, pop, MenuID.Import, &addCard, () => selection !is null);
+			createMenuItem(_comm, pop, MenuID.Import, &addCard, &canAddCard);
 			new MenuItem(pop, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, pop, this, false, true, false, false, false);
 			new MenuItem(pop, SWT.SEPARATOR);
@@ -2499,6 +2509,10 @@ public:
 			_addc(doc, ver);
 			_comm.refreshToolBar();
 		}
+		@property
+		bool canAddCard() { mixin(S_TRACE);
+			return selection !is null;
+		}
 	}
 	void refreshAll(PCardOwner summ, CardOwner owner) { mixin(S_TRACE);
 		_owner = owner;
@@ -2529,6 +2543,10 @@ public:
 	}
 
 	static if (EditMode) {
+		@property
+		bool canReNumbering() { mixin(S_TRACE);
+			return selection !is null;
+		}
 		void reNumbering() { mixin(S_TRACE);
 			_incSearch.close();
 			auto index = selectionIndex;

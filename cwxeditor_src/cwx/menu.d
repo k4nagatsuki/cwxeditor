@@ -653,7 +653,6 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.SaveAs:
 	case MenuID.Reload:
 	case MenuID.OpenDir:
-	case MenuID.OpenPlace:
 	case MenuID.ShowMainToolBar:
 	case MenuID.ShowSceneToolBar:
 	case MenuID.ShowEventToolBar:
@@ -679,7 +678,6 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.ToXMLText:
 	case MenuID.TableView:
 	case MenuID.VarView:
-	case MenuID.CardView:
 	case MenuID.CastView:
 	case MenuID.SkillView:
 	case MenuID.ItemView:
@@ -720,10 +718,8 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.NewInfo:
 	case MenuID.Import:
 	case MenuID.OpenHand:
-	case MenuID.AddHand:
 	case MenuID.RemoveRef:
 	case MenuID.EditEventAtTimeOfUsing:
-	case MenuID.Hold:
 	case MenuID.NewDir:
 	case MenuID.CopyFilePath:
 	case MenuID.CreateArchive:
@@ -749,10 +745,12 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.ClosePaneRight:
 	case MenuID.ClosePaneAll:
 	case MenuID.CloseWin:
+	case MenuID.OpenPlace:
 	case MenuID.SaveImage:
 	case MenuID.IncludeImage:
 	case MenuID.LookImages:
 	case MenuID.CloseIncSearch:
+	case MenuID.CardView:
 	case MenuID.ExecEngineAuto:
 	case MenuID.ExecEngineMain:
 	case MenuID.LockToolBar:
@@ -827,6 +825,8 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.OpenAtCardView:
 	case MenuID.OpenAtFileView:
 	case MenuID.OpenAtEventView:
+	case MenuID.AddHand:
+	case MenuID.Hold:
 	case MenuID.PlaySE:
 	case MenuID.StopSE:
 	case MenuID.PutQuick:

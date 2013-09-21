@@ -123,6 +123,14 @@ public:
 		return r;
 	}
 
+	void edit() { mixin(S_TRACE);
+		_flags.edit();
+	}
+	@property
+	bool canEdit() { mixin(S_TRACE);
+		return _flags.canEdit;
+	}
+
 	@property
 	FlagDirTree dirs() { mixin(S_TRACE);
 		return _dirs;

@@ -69,6 +69,7 @@ class ToolBarCustomizer : Composite, TCPD {
 				}
 				_toolTree.setSelection([itm]);
 			}
+			refreshMenu();
 		}
 		override void undo() { impl(); }
 		override void redo() { impl(); }
@@ -370,6 +371,7 @@ class ToolBarCustomizer : Composite, TCPD {
 		itm.setImage(_prop.images.toolBar);
 		updateBarAndGroupText();
 		_toolTree.setSelection([itm]);
+		_toolTree.showSelection();
 		_comm.refreshToolBar();
 	}
 	private void addGroup() { mixin(S_TRACE);
@@ -397,6 +399,7 @@ class ToolBarCustomizer : Composite, TCPD {
 		itm.setImage(_prop.images.toolGroup);
 		updateBarAndGroupText();
 		_toolTree.setSelection([itm]);
+		_toolTree.showSelection();
 		_comm.refreshToolBar();
 	}
 	@property
@@ -420,8 +423,9 @@ class ToolBarCustomizer : Composite, TCPD {
 		auto sel = sels[0];
 		auto parItm = sel.getParentItem();
 		void add(TreeItem parItm, int index) { mixin(S_TRACE);
+			TreeItem itm;
 			foreach (mItm; _menuList.getSelection()) { mixin(S_TRACE);
-				auto itm = new TreeItem(parItm, SWT.NONE, index);
+				itm = new TreeItem(parItm, SWT.NONE, index);
 				auto m = cast(MenuData)mItm.getData();
 				_added.add(m.id);
 				itm.setText(_prop.var.menu.buildTool(_prop.parent, m.id));
@@ -430,6 +434,8 @@ class ToolBarCustomizer : Composite, TCPD {
 				mItm.dispose();
 				index++;
 			}
+			if (itm) _toolTree.setSelection([itm]);
+			_toolTree.showSelection();
 			parItm.setExpanded(true);
 		}
 		if (!parItm) { mixin(S_TRACE);

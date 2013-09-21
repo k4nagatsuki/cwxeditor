@@ -1593,6 +1593,7 @@ public:
 			putMenuAction(MenuID.ChangeVH, &changeVHSide, null);
 			putMenuAction(MenuID.DelNotUsedFile, &deleteUnuse, &canDeleteUnuse);
 			putMenuAction(MenuID.FindID, &replaceID, &canReplaceID);
+			putMenuAction(MenuID.CopyFilePath, &copyFilePath, () => _files.getSelectionIndex() != -1);
 		}
 		if (shell) { mixin(S_TRACE);
 			auto bar = new ToolBar(contPane, SWT.FLAT);

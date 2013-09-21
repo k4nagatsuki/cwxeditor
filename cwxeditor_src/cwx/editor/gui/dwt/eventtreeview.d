@@ -637,7 +637,7 @@ private:
 		_comm.refreshToolBar();
 	}
 	void editM() {edit();}
-	EventDialog edit() { mixin(S_TRACE);
+	public EventDialog edit() { mixin(S_TRACE);
 		if (_readOnly) return null;
 		auto sels = _tree.getSelection();
 		if (sels.length > 0) { mixin(S_TRACE);
@@ -1089,7 +1089,7 @@ private:
 	}
 
 	@property
-	bool canEdit() { mixin(S_TRACE);
+	public bool canEdit() { mixin(S_TRACE);
 		if (_readOnly) return false;
 		auto itm = selection;
 		if (!itm) return false;
@@ -1960,11 +1960,11 @@ public:
 			new MenuItem(popup, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, popup, this, true, true, true, true, true);
 			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(_comm, popup, MenuID.Cut1Content, &cut1Content, () => canDoT && _tree.getParentItem(selection));
-			createMenuItem(_comm, popup, MenuID.Copy1Content, &copy1Content, &canDoC);
-			createMenuItem(_comm, popup, MenuID.Delete1Content, &del1Content, () => canDoD && _tree.getParentItem(selection));
+			createMenuItem(_comm, popup, MenuID.Cut1Content, &cut1Content, &canCut1Content);
+			createMenuItem(_comm, popup, MenuID.Copy1Content, &copy1Content, &canCopy1Content);
+			createMenuItem(_comm, popup, MenuID.Delete1Content, &del1Content, &canDel1Content);
 			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(_comm, popup, MenuID.PasteInsert, &pasteInsert, &canDoP);
+			createMenuItem(_comm, popup, MenuID.PasteInsert, &pasteInsert, &canPasteInsert);
 			new MenuItem(popup, SWT.SEPARATOR);
 			createMenuItem(_comm, popup, MenuID.SwapToParent, &swapToParent, &canSwapToParent);
 			createMenuItem(_comm, popup, MenuID.SwapToChild, &swapToChild, &canSwapToChild);
@@ -2776,14 +2776,14 @@ public:
 		}
 		_tree.showSelection();
 	}
-	private void swapToParent() { mixin(S_TRACE);
+	void swapToParent() { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!canSwapToParent) return;
 		auto itm = selection;
 		auto par = _tree.getParentItem(itm);
 		swapToPCImpl(par, itm, par);
 	}
-	private void swapToChild() { mixin(S_TRACE);
+	void swapToChild() { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!canSwapToChild) return;
 		auto par = selection;
@@ -3101,7 +3101,13 @@ public:
 		node.newAttr("paneId", _id);
 		return node.text;
 	}
-	private void cut1Content() { mixin(S_TRACE);
+	@property
+	bool canCut1Content() { return canDoT && _tree.getParentItem(selection); }
+	@property
+	bool canDel1Content() { return canDoD && _tree.getParentItem(selection); }
+	alias canDoC canCopy1Content;
+	alias canDoP canPasteInsert;
+	void cut1Content() { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto itm = selection;
 		if (itm && _tree.getParentItem(itm)) { mixin(S_TRACE);
@@ -3109,7 +3115,7 @@ public:
 			del1Content();
 		}
 	}
-	private void copy1Content() { mixin(S_TRACE);
+	void copy1Content() { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto itm = selection;
 		if (itm) { mixin(S_TRACE);
@@ -3118,11 +3124,11 @@ public:
 			_comm.refreshToolBar();
 		}
 	}
-	private void pasteInsert() { mixin(S_TRACE);
+	void pasteInsert() { mixin(S_TRACE);
 		if (_readOnly) return;
 		pasteImpl(true);
 	}
-	private void del1Content() { mixin(S_TRACE);
+	void del1Content() { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto itm = selection;
 		if (itm && _tree.getParentItem(itm)) { mixin(S_TRACE);

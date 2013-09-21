@@ -217,6 +217,28 @@ public:
 			} else assert (0);
 		}
 
+		{ mixin(S_TRACE);
+			static if (WithEventView) {
+				auto pane = _tabf;
+			} else { mixin(S_TRACE);
+				auto pane = contPane;
+			}
+			_aview = new V(comm, prop, summ, area, pane, shell ? null : this, _undo);
+			static if (WithEventView) {
+				_tabA.setControl(_aview);
+			} else { mixin(S_TRACE);
+				_aview.setLayoutData(new GridData(GridData.FILL_BOTH));
+			}
+			_tcpd ~= _aview;
+			if (shell) _aview.setupMenu(shell.getMenuBar());
+		}
+		static if (WithEventView) {
+			_eview = new EventView!(A, C, true)(comm, prop, summ, area, _tabf, _undo, _readOnly != SWT.NONE);
+			_tabE.setControl(_eview);
+			_tcpd ~= _eview;
+		}
+		__refreshTitle();
+
 		if (shell) { mixin(S_TRACE);
 			auto bar = new Menu(shell, SWT.BAR);
 
@@ -259,33 +281,22 @@ public:
 			static if (WithEventView) {
 				putMenuAction(MenuID.Comment, &writeComment, &canWriteComment);
 				putMenuAction(MenuID.ToScript, &toScript, &canToScript);
+				putMenuAction(MenuID.ToScript1Content, &toScript1Content, &canToScript);
 				putMenuAction(MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
 			} else { mixin(S_TRACE);
 				putMenuAction(MenuID.EditEvent, &openEvent, null);
 			}
 			putMenuAction(MenuID.Refresh, &refresh, null);
-		}
-		{ mixin(S_TRACE);
+			putMenuAction(MenuID.EditProp, &edit, &canEdit);
 			static if (WithEventView) {
-				auto pane = _tabf;
-			} else { mixin(S_TRACE);
-				auto pane = contPane;
+				putMenuAction(MenuID.Cut1Content, &_eview.cut1Content, () => _tabf.getSelection() is _tabE && _eview.canCut1Content);
+				putMenuAction(MenuID.Copy1Content, &_eview.copy1Content, () => _tabf.getSelection() is _tabE && _eview.canCopy1Content);
+				putMenuAction(MenuID.Delete1Content, &_eview.del1Content, () => _tabf.getSelection() is _tabE && _eview.canDel1Content);
+				putMenuAction(MenuID.PasteInsert, &_eview.pasteInsert, () => _tabf.getSelection() is _tabE && _eview.canPasteInsert);
+				putMenuAction(MenuID.SwapToParent, &_eview.swapToParent, () => _tabf.getSelection() is _tabE && &_eview.canSwapToParent);
+				putMenuAction(MenuID.SwapToChild, &_eview.swapToChild, () => _tabf.getSelection() is _tabE && &_eview.canSwapToChild);
 			}
-			_aview = new V(comm, prop, summ, area, pane, shell ? null : this, _undo);
-			static if (WithEventView) {
-				_tabA.setControl(_aview);
-			} else { mixin(S_TRACE);
-				_aview.setLayoutData(new GridData(GridData.FILL_BOTH));
-			}
-			_tcpd ~= _aview;
-			if (shell) _aview.setupMenu(shell.getMenuBar());
 		}
-		static if (WithEventView) {
-			_eview = new EventView!(A, C, true)(comm, prop, summ, area, _tabf, _undo, _readOnly != SWT.NONE);
-			_tabE.setControl(_eview);
-			_tcpd ~= _eview;
-		}
-		__refreshTitle();
 
 		if (shell) shell.pack();
 
@@ -451,6 +462,10 @@ public:
 			_eview.initial();
 			_eview.toScript();
 		}
+		private void toScript1Content() { mixin(S_TRACE);
+			_eview.initial();
+			_eview.toScript1Content();
+		}
 		private void toScriptAll() { mixin(S_TRACE);
 			_eview.initial();
 			_eview.toScriptAll();
@@ -459,6 +474,25 @@ public:
 			_eview.initial();
 			_eview.writeComment();
 		}
+		private void edit() { mixin(S_TRACE);
+			if (_tabf.getSelection() is _tabA) {
+				_aview.edit();
+			} else {
+				_aview.edit();
+			}
+		}
+		@property
+		private bool canEdit() { mixin(S_TRACE);
+			if (_tabf.getSelection() is _tabA) {
+				return _aview.canEdit;
+			} else {
+				return _eview.canEdit;
+			}
+		}
+	} else {
+		private void edit() { _aview.edit(); }
+		@property
+		private bool canEdit() { return _aview.canEdit; }
 	}
 
 	override {

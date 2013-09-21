@@ -127,6 +127,36 @@ public:
 				_comm.replText.remove(&__refreshTitle);
 			}
 		});
+		{ mixin(S_TRACE);
+			static if (UseArea && UseFlag) {
+				tabf = new CTabFolder(contPane, SWT.BORDER);
+				tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
+				tabf.addSelectionListener(new SListener);
+
+				_flags.construct(tabf);
+				_areas.construct(tabf, _flags.flags);
+
+				tabA = new CTabItem(tabf, SWT.NONE);
+				tabA.setText(_prop.msgs.scenarioView);
+				tabA.setControl(_areas.panel);
+				tabF = new CTabItem(tabf, SWT.NONE);
+				tabF.setText(_prop.msgs.variableView);
+				tabF.setControl(_flags.widget);
+
+				_tcpd ~= _areas;
+				_tcpd ~= _flags.flags;
+				_tcpd ~= _flags.dirs;
+			} else static if (UseArea) {
+				_areas.construct(contPane, null);
+				_areas.panel.setLayoutData(new GridData(GridData.FILL_BOTH));
+				_tcpd ~= _areas;
+			} else static if (UseFlag) {
+				_flags.construct(contPane);
+				_flags.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
+				_tcpd ~= _flags.flags;
+				_tcpd ~= _flags.dirs;
+			} else static assert (0);
+		}
 		if (shell) { mixin(S_TRACE);
 			{ mixin(S_TRACE);
 				auto bar = new Menu(shell, SWT.BAR);
@@ -213,48 +243,21 @@ public:
 				putMenuAction(MenuID.NewArea, &createArea, &canCreateArea);
 				putMenuAction(MenuID.NewBattle, &createBattle, &canCreateBattle);
 				putMenuAction(MenuID.NewPackage, &createPackage, &canCreatePackage);
-				putMenuAction(MenuID.ChangeVH, &_areas.changeVHSide, &_areas.canChangeVH);
+				putMenuAction(MenuID.ReNumbering, &_areas.reNumbering, &_areas.canReNumbering);
+				putMenuAction(MenuID.SetStartArea, &_areas.setStartArea, &_areas.canSetStartArea);
 			}
 			static if (UseFlag) {
 				putMenuAction(MenuID.NewFlagDir, &createFlagDir, &canCreateFlagDir);
 				putMenuAction(MenuID.NewFlag, &createFlag, &canCreateFlag);
 				putMenuAction(MenuID.NewStep, &createStep, &canCreateStep);
+				putMenuAction(MenuID.EditProp, &_flags.edit, &_flags.canEdit);
 			}
+			putMenuAction(MenuID.ChangeVH, &changeVHSide, &canChangeVH);
 			putMenuAction(MenuID.Undo, &undo, &canUndo);
 			putMenuAction(MenuID.Redo, &redo, &canRedo);
 			putMenuAction(MenuID.Up, &up, &canUp);
 			putMenuAction(MenuID.Down, &down, &canDown);
 			putMenuAction(MenuID.FindID, &replaceID, &canReplaceID);
-		}
-		{ mixin(S_TRACE);
-			static if (UseArea && UseFlag) {
-				tabf = new CTabFolder(contPane, SWT.BORDER);
-				tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
-				tabf.addSelectionListener(new SListener);
-
-				_flags.construct(tabf);
-				_areas.construct(tabf, _flags.flags);
-
-				tabA = new CTabItem(tabf, SWT.NONE);
-				tabA.setText(_prop.msgs.scenarioView);
-				tabA.setControl(_areas.panel);
-				tabF = new CTabItem(tabf, SWT.NONE);
-				tabF.setText(_prop.msgs.variableView);
-				tabF.setControl(_flags.widget);
-
-				_tcpd ~= _areas;
-				_tcpd ~= _flags.flags;
-				_tcpd ~= _flags.dirs;
-			} else static if (UseArea) {
-				_areas.construct(contPane, null);
-				_areas.panel.setLayoutData(new GridData(GridData.FILL_BOTH));
-				_tcpd ~= _areas;
-			} else static if (UseFlag) {
-				_flags.construct(contPane);
-				_flags.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
-				_tcpd ~= _flags.flags;
-				_tcpd ~= _flags.dirs;
-			} else static assert (0);
 		}
 		static if (UseArea && UseFlag) {
 			if (shell) { mixin(S_TRACE);
@@ -423,10 +426,6 @@ public:
 			if (!_summ) return;
 			_flags.flags.createStep();
 		}
-		private void changeVHSide() { mixin(S_TRACE);
-			.forceFocus(_flags.widget, false);
-			_flags.changeVHSide();
-		}
 	}
 	static if (UseArea && UseFlag) {
 		void selectData() { mixin(S_TRACE);
@@ -436,6 +435,34 @@ public:
 		void selectFlags() { mixin(S_TRACE);
 			tabf.setSelection(tabF);
 			selectedImpl();
+		}
+		private void changeVHSide() { mixin(S_TRACE);
+			if (tabf.getSelection() is tabA) {
+				_areas.changeVHSide();
+			} else {
+				_flags.changeVHSide();
+			}
+		}
+		private bool canChangeVH() { mixin(S_TRACE);
+			if (tabf.getSelection() is tabA) {
+				return _areas.canChangeVH();
+			} else {
+				return true;
+			}
+		}
+	} else static if (UseArea) {
+		private void changeVHSide() { mixin(S_TRACE);
+			_areas.changeVHSide();
+		}
+		private bool canChangeVH() { mixin(S_TRACE);
+			return _areas.canChangeVH();
+		}
+	} else static if (UseFlag) {
+		private void changeVHSide() { mixin(S_TRACE);
+			_flags.changeVHSide();
+		}
+		private bool canChangeVH() { mixin(S_TRACE);
+			return true;
 		}
 	}
 

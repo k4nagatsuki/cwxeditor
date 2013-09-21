@@ -183,7 +183,15 @@ public:
 			putMenuAction(MenuID.Down, &_eview.down, &_eview.canDown);
 			putMenuAction(MenuID.Comment, &_eview.writeComment, &_eview.canWriteComment);
 			putMenuAction(MenuID.ToScript, &_eview.toScript, &_eview.canToScript);
+			putMenuAction(MenuID.ToScript1Content, &_eview.toScript1Content, &_eview.canToScript);
 			putMenuAction(MenuID.ToScriptAll, &_eview.toScriptAll, &_eview.canToScriptAll);
+			putMenuAction(MenuID.EditProp, &_eview.edit, &_eview.canEdit);
+			putMenuAction(MenuID.Cut1Content, &_eview.cut1Content, &_eview.canCut1Content);
+			putMenuAction(MenuID.Copy1Content, &_eview.copy1Content, &_eview.canCopy1Content);
+			putMenuAction(MenuID.Delete1Content, &_eview.del1Content, &_eview.canDel1Content);
+			putMenuAction(MenuID.PasteInsert, &_eview.pasteInsert, &_eview.canPasteInsert);
+			putMenuAction(MenuID.SwapToParent, &_eview.swapToParent, &_eview.canSwapToParent);
+			putMenuAction(MenuID.SwapToChild, &_eview.swapToChild, &_eview.canSwapToChild);
 		}
 
 		if (shell) { mixin(S_TRACE);

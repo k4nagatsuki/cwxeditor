@@ -1770,8 +1770,38 @@ public:
 		return _etree.statusLine;
 	}
 
+	void edit() { mixin(S_TRACE);
+		_etree.edit();
+	}
+	@property
+	bool canEdit() { mixin(S_TRACE);
+		return _etree.canEdit();
+	}
+
+	@property
+	bool canCut1Content() { return _etree.canCut1Content; }
+	@property
+	bool canDel1Content() { return _etree.canDel1Content; }
+	@property
+	bool canCopy1Content() { return _etree.canCopy1Content; }
+	@property
+	bool canPasteInsert() { return _etree.canPasteInsert; }
+	@property
+	bool canSwapToParent() { return _etree.canSwapToParent; }
+	@property
+	bool canSwapToChild() { return _etree.canSwapToChild; }
+	void cut1Content() { _etree.cut1Content(); }
+	void copy1Content() { _etree.copy1Content(); }
+	void pasteInsert() { _etree.pasteInsert(); }
+	void del1Content() { _etree.del1Content(); }
+	void swapToParent() { _etree.swapToParent(); }
+	void swapToChild() { _etree.swapToChild(); }
+
 	void toScript() { mixin(S_TRACE);
 		_etree.toScript();
+	}
+	void toScript1Content() { mixin(S_TRACE);
+		_etree.toScript1Content();
 	}
 	void toScriptAll() { mixin(S_TRACE);
 		_etree.toScriptAll();

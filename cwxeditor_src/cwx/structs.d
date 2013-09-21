@@ -1012,10 +1012,11 @@ struct ToolBarSettings {
 	/// XMLノードとして取り扱うための関数群。
 	const
 	void toNode(ref XNode e, string name = "toolBarSettings") { mixin(S_TRACE);
+		auto node = e.newElement(name);
 		foreach (toolbar; tools) {
-			auto node = e.newElement("toolBar");
+			auto bar = node.newElement("toolBar");
 			foreach (tool; toolbar) {
-				tool.toNode(node);
+				tool.toNode(bar);
 			}
 		}
 	}
@@ -1080,6 +1081,8 @@ struct Tool {
 	/// ditto
 	void fromNode(ref XNode node) { mixin(S_TRACE);
 		separator = node.attr!bool("separator", false, false);
-		menu = node.valueTo!MenuID;
+		if (!separator) { mixin(S_TRACE);
+			menu = node.valueTo!MenuID;
+		}
 	}
 }
