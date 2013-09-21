@@ -202,7 +202,6 @@ class EventEditor : Composite {
 		.listener(this, SWT.MouseExit, &onMouseExit);
 		.listener(this, SWT.MouseDoubleClick, &onMouseDoubleClick);
 		.listener(this, SWT.KeyDown, &onKeyDown);
-		.listener(this, SWT.Resize, &onResize);
 		.listener(this, SWT.FocusIn, &onFocusInOut);
 		.listener(this, SWT.FocusOut, &onFocusInOut);
 		setDragDetect(true);
@@ -391,7 +390,7 @@ class EventEditor : Composite {
 		auto ca = getClientArea();
 
 		auto hbar = getHorizontalBar();
-		auto cw = ca.width - _comm.prop.var.etc.detailAreaWidth;
+		auto cw = ca.width - detailAreaWidth;
 		hbar.setVisible(cw < _widthSum);
 		hbar.setMaximum(_widthSum);
 		hbar.setThumb(cw);
@@ -415,7 +414,7 @@ class EventEditor : Composite {
 					break;
 				}
 			}
-			if (toolTip == "" && ca.width - _comm.prop.var.etc.detailAreaWidth <= p.x) { mixin(S_TRACE);
+			if (toolTip == "" && ca.width - detailAreaWidth <= p.x) { mixin(S_TRACE);
 				int index = indexOf(getVerticalBar().getSelection() * _lineHeight + p.y);
 				if (0 <= index && index < _pos.length) { mixin(S_TRACE);
 					auto pos = _pos[index];
@@ -424,7 +423,7 @@ class EventEditor : Composite {
 						auto s = .contentText(_comm, c);
 						auto gc = new GC(this);
 						scope (exit) gc.dispose();
-						int dw = _comm.prop.var.etc.detailAreaWidth - 2 - 18;
+						int dw = detailAreaWidth - 2 - 18;
 						if (dw < gc.textExtent(s).x) { mixin(S_TRACE);
 							toolTip = s;
 						}
@@ -682,15 +681,15 @@ class EventEditor : Composite {
 	private void onMouseMove(Event e) { mixin(S_TRACE);
 		auto ca = getClientArea();
 		if (_moveDetailLine) { mixin(S_TRACE);
-			int w = _comm.prop.var.etc.detailAreaWidth;
+			int w = detailAreaWidth;
 			_comm.prop.var.etc.detailAreaWidth = ca.width - e.x;
-			_comm.prop.var.etc.detailAreaWidth = .min(_comm.prop.var.etc.detailAreaWidth.value, ca.width - _imageWidth);
-			_comm.prop.var.etc.detailAreaWidth = .max(_comm.prop.var.etc.detailAreaWidth.value, _imageWidth);
-			w = .max(w, _comm.prop.var.etc.detailAreaWidth.value);
+			_comm.prop.var.etc.detailAreaWidth = .min(detailAreaWidth, ca.width - _imageWidth);
+			_comm.prop.var.etc.detailAreaWidth = .max(detailAreaWidth, _imageWidth);
+			w = .max(w, detailAreaWidth);
 			updateScrollBar();
 			redraw();
 		} else { mixin(S_TRACE);
-			auto linePos = ca.width - _comm.prop.var.etc.detailAreaWidth;
+			auto linePos = ca.width - detailAreaWidth;
 			if (linePos - 10 <= e.x && e.x < linePos + 10) { mixin(S_TRACE);
 				if (!_changeCursor) { mixin(S_TRACE);
 					auto d = getDisplay();
@@ -756,12 +755,6 @@ class EventEditor : Composite {
 		}
 	}
 
-	private void onResize(Event e) { mixin(S_TRACE);
-		auto ca = getClientArea();
-		_comm.prop.var.etc.detailAreaWidth = .min(_comm.prop.var.etc.detailAreaWidth.value, ca.width - _imageWidth);
-		_comm.prop.var.etc.detailAreaWidth = .max(_comm.prop.var.etc.detailAreaWidth.value, _imageWidth);
-	}
-
 	private void onMouseWheel(Event e) { mixin(S_TRACE);
 		clearLightup();
 		auto vbar = getVerticalBar();
@@ -775,12 +768,21 @@ class EventEditor : Composite {
 		updateLightup();
 	}
 
+	@property
+	private int detailAreaWidth() {
+		auto ca = getClientArea();
+		int detailAreaWidth = min(_comm.prop.var.etc.detailAreaWidth.value, ca.width - _imageWidth);
+		return .max(detailAreaWidth, _imageWidth);
+	}
+
 	private void onPaint(Event e) { mixin(S_TRACE);
 		if (!_et) return;
 		if (!_pos.length) return;
 		auto hw = _imageWidth / 2;
 		auto hh = _lineHeight / 2;
 		auto ca = getClientArea();
+
+		int detailAreaWidth = this.detailAreaWidth;
 
 		auto hbar = getHorizontalBar();
 		auto vbar = getVerticalBar();
@@ -814,7 +816,7 @@ class EventEditor : Composite {
 			gc.fillRectangle(0, 0, e.width, _lineHeight + 1);
 			if (isFocusControl()) { mixin(S_TRACE);
 				gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-				auto cw = .max(ca.width, _widthSum + _comm.prop.var.etc.detailAreaWidth);
+				auto cw = .max(ca.width, _widthSum + detailAreaWidth);
 				gc.drawFocus(2 - sx, 2, cw - 4, _lineHeight + 1 - 4);
 			}
 			e.gc.drawImage(buf, e.x, pos.y - sy);
@@ -908,7 +910,7 @@ class EventEditor : Composite {
 				if (_pos[0].content is c) count++;
 				auto uc = .text(count);
 				auto tw = e.gc.textExtent(uc).x;
-				int tx = ca.width - _comm.prop.var.etc.detailAreaWidth - 4 - tw;
+				int tx = ca.width - detailAreaWidth - 4 - tw;
 				e.gc.setForeground(getForeground());
 				e.gc.drawString(_comm.prop.msgs.startUseCount, tx - ucExtent.x - 4, pos.y - sy, true);
 				e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
@@ -930,9 +932,9 @@ class EventEditor : Composite {
 		// イベントコンテントの内容領域、警告
 		e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 		e.gc.setBackground(getBackground());
-		e.gc.drawLine(ca.width - _comm.prop.var.etc.detailAreaWidth, e.y, ca.width - _comm.prop.var.etc.detailAreaWidth, e.y + e.height);
+		e.gc.drawLine(ca.width - detailAreaWidth, e.y, ca.width - detailAreaWidth, e.y + e.height);
 		e.gc.setAlpha(192);
-		e.gc.fillRectangle(ca.width - _comm.prop.var.etc.detailAreaWidth, e.y, _comm.prop.var.etc.detailAreaWidth, e.height);
+		e.gc.fillRectangle(ca.width - detailAreaWidth, e.y, detailAreaWidth, e.height);
 		e.gc.setAlpha(255);
 
 		_warningRects = [];
@@ -940,7 +942,7 @@ class EventEditor : Composite {
 			// イベントコンテント内容
 			auto c = pos.content;
 			auto s = .contentText(_comm, c);
-			int x = ca.width - _comm.prop.var.etc.detailAreaWidth + 2;
+			int x = ca.width - detailAreaWidth + 2;
 			auto image = _comm.prop.images.content(c.type);
 			e.gc.setAlpha(128);
 			e.gc.drawImage(image, x, pos.y + _imgPos - sy);
@@ -951,12 +953,12 @@ class EventEditor : Composite {
 			auto warnings = .warnings(_comm.prop.parent, _comm.skin, _summ, c, _comm.prop.var.etc.targetVersion);
 			if (warnings.length) { mixin(S_TRACE);
 				int ww = _comm.prop.var.etc.warningImageWidth;
-				int wix = .max(0, ca.width - _comm.prop.var.etc.detailAreaWidth - ww);
-				int wiw = ca.width - _comm.prop.var.etc.detailAreaWidth - wix;
+				int wix = .max(0, ca.width - detailAreaWidth - ww);
+				int wiw = ca.width - detailAreaWidth - wix;
 				if (wiw <= 0) continue;
 				e.gc.drawImage(_warningImage, 0, 0, ww, 1, wix, pos.y - sy, wiw, _lineHeight);
 				e.gc.drawImage(_comm.prop.images.warning, wix + wiw - _imageWidth - 4, pos.y + _imgPos - sy);
-				auto rect = new Rectangle(ca.x, pos.y - sy, ca.width - _comm.prop.var.etc.detailAreaWidth, _lineHeight);
+				auto rect = new Rectangle(ca.x, pos.y - sy, ca.width - detailAreaWidth, _lineHeight);
 				_warningRects ~= Warning(rect, warnings);
 			}
 		}
@@ -1189,7 +1191,7 @@ private:
 		int index = _list.indexOf(c);
 		if (x < _list._pos[index].x + 20) return null;
 		auto ca = _list.getClientArea();
-		if (ca.width - _comm.prop.var.etc.detailAreaWidth <= x) return null;
+		if (ca.width - _list.detailAreaWidth <= x) return null;
 		return _list.getItem(new Point(x, y));
 	}
 	Item selectionK() { mixin(S_TRACE);
@@ -1235,7 +1237,7 @@ private:
 			w = size.x;
 		} else { mixin(S_TRACE);
 			auto ca = _list.getClientArea();
-			w = ca.width - _comm.prop.var.etc.detailAreaWidth - pos.x - 20;
+			w = ca.width - _list.detailAreaWidth - pos.x - 20;
 			w = .max(_comm.prop.var.etc.nameWidth.value, w);
 		}
 		int h = size.y;
