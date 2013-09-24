@@ -113,6 +113,7 @@ private:
 				initConvMenu(cType, cType is CType.START ? _convM : conv, text, img);
 			}
 		}
+		refreshConvMenu();
 	}
 	private void initCreateMenu(CType type, Menu menu, string text, Image img) {
 		createMenuItem2(_comm, menu, text, img, {
@@ -193,7 +194,6 @@ private:
 				procTreeItem(itm);
 			}
 			procTreeItem(sel);
-			refreshConvMenu();
 			refreshStatusLine();
 			redraw();
 			_comm.refUseCount.call();
@@ -681,7 +681,6 @@ private:
 					_tree.showSelection();
 					.forceFocus(_tree.control, false);
 					_comm.refContent.call(evt);
-					refreshConvMenu();
 					refreshStatusLine();
 					if (_box._putMode !is MenuID.PutContinue) _box.arrow();
 					_comm.refreshToolBar();
@@ -750,7 +749,6 @@ private:
 						.forceFocus(_tree.control, false);
 						_comm.refContent.call(evt);
 						_comm.refUseCount.call();
-						refreshConvMenu();
 						refreshStatusLine();
 						if (_box._putMode !is MenuID.PutContinue) _box.arrow();
 						_comm.refreshToolBar();
@@ -1362,7 +1360,6 @@ private:
 	class SListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			assert (cast(Content) e.item.getData());
-			refreshConvMenu();
 			refreshStatusLine();
 			_comm.refreshToolBar();
 		}
@@ -2010,6 +2007,7 @@ public:
 			};
 			_createM.addMenuListener(shown);
 			_convM.addMenuListener(shown);
+			.listener(_convM, SWT.Show, &refreshConvMenu);
 
 			refreshTemplates();
 			_tree.control.setMenu(popup);

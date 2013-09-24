@@ -5,6 +5,7 @@ import cwx.structs;
 import cwx.types;
 import cwx.menu;
 import cwx.utils;
+import cwx.xml;
 
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dutils;
@@ -17,12 +18,15 @@ import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.absdialog;
 
+import std.conv;
 import std.traits;
 
 import org.eclipse.swt.all;
 
 /// ツールバーのカスタマイズを行う。
 class ToolBarCustomizer : Composite, TCPD {
+	void delegate()[] modEvent;
+
 	private Commons _comm;
 	private Props _prop;
 	private ToolBarSettings _tools;
@@ -32,6 +36,7 @@ class ToolBarCustomizer : Composite, TCPD {
 
 	private Table _menuList;
 	private Tree _toolTree;
+	private TreeItem _dragItm;
 	private IncSearch _menuIncSearch;
 
 	private class CTUndo : Undo {
@@ -70,6 +75,7 @@ class ToolBarCustomizer : Composite, TCPD {
 				_toolTree.setSelection([itm]);
 			}
 			refreshMenu();
+			foreach (dlg; modEvent) dlg();
 		}
 		override void undo() { impl(); }
 		override void redo() { impl(); }
@@ -81,39 +87,249 @@ class ToolBarCustomizer : Composite, TCPD {
 		_undo ~= new CTUndo();
 	}
 
+	private class MenuListTCPD : TCPD {
+		override void cut(SelectionEvent se) { mixin(S_TRACE);
+			// 処理無し
+		}
+		override void copy(SelectionEvent se) { mixin(S_TRACE);
+			auto sels = _menuList.getSelection();
+			if (sels.length) { mixin(S_TRACE);
+				auto node = XNode.create("tools");
+				foreach (itm; sels) { mixin(S_TRACE);
+					auto m = cast(MenuData)itm.getData();
+					node.newElement("tool", .to!string(m.id));
+				}
+				XMLtoCB(_prop, _comm.clipboard, node.text);
+				_comm.refreshToolBar();
+			}
+		}
+		override void paste(SelectionEvent se) { mixin(S_TRACE);
+			// 処理無し
+		}
+		override void del(SelectionEvent se) { mixin(S_TRACE);
+			// 処理無し
+		}
+		override void clone(SelectionEvent se) { mixin(S_TRACE);
+			// 処理無し
+		}
+		@property
+		override bool canDoTCPD() { mixin(S_TRACE);
+			return _menuList.isFocusControl();
+		}
+		@property
+		override bool canDoT() { mixin(S_TRACE);
+			return false;
+		}
+		@property
+		override bool canDoC() { mixin(S_TRACE);
+			return _menuList.getSelectionCount() != 0;
+		}
+		@property
+		override bool canDoP() { mixin(S_TRACE);
+			return false;
+		}
+		@property
+		override bool canDoD() { mixin(S_TRACE);
+			return false;
+		}
+		@property
+		override bool canDoClone() { mixin(S_TRACE);
+			return false;
+		}
+	}
+
+	private class DragMenuList : DragSourceAdapter {
+		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
+			e.doit = 0 < _menuList.getSelectionCount();
+		}
+		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
+			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
+				auto node = XNode.create("tools");
+				foreach (itm; _menuList.getSelection()) { mixin(S_TRACE);
+					auto m = cast(MenuData)itm.getData();
+					node.newElement("tool", .to!string(m.id));
+				}
+				e.data = bytesFromXML(node.text);
+			}
+		}
+		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
+			// Nothing
+		}
+	}
 	private class DropRemoveMenu : DropTargetAdapter {
+		private void move(DropTargetEvent e) { mixin(S_TRACE);
+			e.detail = (e.item !is null && cast(TableItem)e.item) ? DND.DROP_MOVE : DND.DROP_NONE;
+		}
 		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
-			e.detail = DND.DROP_NONE;
-			// TODO
+			move(e);
 		}
 		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
-			// TODO
+			move(e);
 		}
 		override void drop(DropTargetEvent e){ mixin(S_TRACE);
-			// TODO
+			if (!isXMLBytes(e.data)) return;
+			string xml = bytesToXML(e.data);
+			e.detail = DND.DROP_NONE;
+			try { mixin(S_TRACE);
+				auto node = XNode.parse(xml);
+				switch (node.name) {
+				case "toolBar":
+				case "toolGroup":
+				case "tool":
+					e.detail = DND.DROP_MOVE;
+					break;
+				default:
+					break;
+				}
+			} catch (Exception e) { mixin (S_TRACE);
+				debugln(e);
+			}
 		}
 	}
 	private class DragMenu : DragSourceAdapter {
 		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
-			e.doit = false;
-			// TODO
+			auto sels = _toolTree.getSelection();
+			e.doit = 0 < sels.length;
+			if (e.doit) _dragItm = sels[0];
 		}
 		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
-			// TODO
+			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
+				assert (_dragItm !is null);
+				e.data = bytesFromXML(toNode(_dragItm).text);
+			}
 		}
 		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
-			// TODO
+			if (e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
+				store();
+				removeMenuImpl(_dragItm);
+				updateBarAndGroupText();
+				refreshMenu();
+				_toolTree.showSelection();
+				_comm.refreshToolBar();
+				foreach (dlg; modEvent) dlg();
+			}
+			_dragItm = null;
 		}
 	}
 	private class DropMenu : DropTargetAdapter {
+		private void move(DropTargetEvent e) { mixin(S_TRACE);
+			e.detail = (e.item !is null && cast(TreeItem)e.item) ? DND.DROP_MOVE : DND.DROP_NONE;
+		}
 		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
-			// TODO
+			move(e);
 		}
 		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
-			// TODO
+			move(e);
 		}
 		override void drop(DropTargetEvent e){ mixin(S_TRACE);
-			// TODO
+			if (!isXMLBytes(e.data)) return;
+			string xml = bytesToXML(e.data);
+			e.detail = DND.DROP_NONE;
+			try { mixin(S_TRACE);
+				auto itm = cast(TreeItem)e.item;
+				assert (itm !is null);
+				auto node = XNode.parse(xml);
+				if (_dragItm) { mixin(S_TRACE);
+					_toolTree.setRedraw(false);
+					scope (exit) _toolTree.setRedraw(true);
+					_menuList.setRedraw(false);
+					scope (exit) _menuList.setRedraw(true);
+					store();
+					removeMenuImpl(_dragItm);
+					fromNode(node, itm, false);
+					_dragItm = null;
+				} else {
+					fromNode(node, itm, true);
+					e.detail = DND.DROP_MOVE;
+				}
+			} catch (Exception e) { mixin (S_TRACE);
+				debugln(e);
+			}
+		}
+	}
+	private XNode toNode(TreeItem itm) { mixin(S_TRACE);
+		auto parItm = itm.getParentItem();
+		if (!parItm) { mixin(S_TRACE);
+			// バー
+			auto bNode = XNode.create("toolBar");
+			foreach (gItm; itm.getItems()) { mixin(S_TRACE);
+				auto gNode = bNode.newElement("toolGroup");
+				foreach (mItm; gItm.getItems()) { mixin(S_TRACE);
+					auto m = cast(MenuData)mItm.getData();
+					gNode.newElement("tool", .to!string(m.id));
+				}
+			}
+			return bNode;
+		} else if (auto parParItm = parItm.getParentItem()) { mixin(S_TRACE);
+			// ツール
+			auto m = cast(MenuData)itm.getData();
+			return XNode.create("tool", .to!string(m.id));
+		} else { mixin(S_TRACE);
+			// グループ
+			auto gNode = XNode.create("toolGroup");
+			foreach (mItm; itm.getItems()) { mixin(S_TRACE);
+				auto m = cast(MenuData)mItm.getData();
+				gNode.newElement("tool", .to!string(m.id));
+			}
+			return gNode;
+		}
+	}
+	private void fromNode(ref XNode node, TreeItem sel, bool storeBeforePaste) { mixin(S_TRACE);
+		TreeItem itm = null;
+		_toolTree.setRedraw(false);
+		scope (exit) _toolTree.setRedraw(true);
+		if (node.name == "toolBar") { mixin(S_TRACE);
+			if (storeBeforePaste) store();
+			itm = addBarImpl(sel);
+			auto bItm = itm;
+			node.onTag["toolGroup"] = (ref XNode node) { mixin(S_TRACE);
+				itm = addGroupImpl(bItm);
+				auto gItm = itm;
+				MenuID[] itms;
+				node.onTag["tool"] = (ref XNode node) { mixin(S_TRACE);
+					itms ~= node.valueTo!MenuID;
+				};
+				node.parse();
+				itm = addMenuImpl(gItm, itms);
+			};
+			node.parse();
+		} else if (node.name == "toolGroup") { mixin(S_TRACE);
+			if (!sel) return;
+			if (storeBeforePaste) store();
+			itm = addGroupImpl(sel);
+			auto gItm = itm;
+			MenuID[] itms;
+			node.onTag["tool"] = (ref XNode node) { mixin(S_TRACE);
+				itms ~= node.valueTo!MenuID();
+			};
+			node.parse();
+			itm = addMenuImpl(gItm, itms);
+		} else if (node.name == "tool") { mixin(S_TRACE);
+			if (!sel) return;
+			auto itms = [node.valueTo!MenuID()];
+			if (!canAppendMenu(itms[0])) return;
+			if (storeBeforePaste) store();
+			itm = addMenuImpl(sel, itms);
+		} else if (node.name == "tools") { mixin(S_TRACE);
+			if (!sel) return;
+			MenuID[] itms;
+			node.onTag["tool"] = (ref XNode node) { mixin(S_TRACE);
+				auto m = node.valueTo!MenuID();
+				if (!canAppendMenu(m)) return;
+				itms ~= m;
+			};
+			node.parse();
+			if (!itms.length) return;
+			if (storeBeforePaste) store();
+			itm = addMenuImpl(sel, itms);
+		}
+		if (itm) { mixin(S_TRACE);
+			updateBarAndGroupText();
+			refreshMenu();
+			_toolTree.setSelection([itm]);
+			_toolTree.showSelection();
+			_comm.refreshToolBar();
+			foreach (dlg; modEvent) dlg();
 		}
 	}
 
@@ -157,6 +373,12 @@ class ToolBarCustomizer : Composite, TCPD {
 			createMenuItem(_comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.AddTool, &addMenu, &canAddMenu);
+			new MenuItem(menu, SWT.SEPARATOR);
+			appendMenuTCPD(_comm, menu, new MenuListTCPD, false, true, false, false, false);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.SelectAll, { mixin(S_TRACE);
+				_menuList.setSelection(_menuList.getItems());
+			}, () => _menuList.getItemCount() != _menuList.getSelectionCount());
 			_menuList.setMenu(menu);
 
 			auto btnComp = new Composite(comp, SWT.NONE);
@@ -174,6 +396,9 @@ class ToolBarCustomizer : Composite, TCPD {
 			.listener(left, SWT.Selection, &removeMenu);
 			_comm.put(left, &canRemoveMenu);
 
+			auto drag = new DragSource(_menuList, DND.DROP_MOVE);
+			drag.setTransfer([XMLBytesTransfer.getInstance()]);
+			drag.addDragListener(new DragMenuList);
 			auto drop = new DropTarget(_menuList, DND.DROP_DEFAULT | DND.DROP_MOVE);
 			drop.setTransfer([XMLBytesTransfer.getInstance()]);
 			drop.addDropListener(new DropRemoveMenu);
@@ -215,7 +440,7 @@ class ToolBarCustomizer : Composite, TCPD {
 			createMenuItem(_comm, menu, MenuID.AddToolBar, &addBar, null);
 			createMenuItem(_comm, menu, MenuID.AddToolGroup, &addGroup, null);
 			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, menu, this, false, false, false, true, false);
+			appendMenuTCPD(_comm, menu, this, true, true, true, true, false);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.ResetToolBarSettings, &resetTools, () => tools != _init);
 			_toolTree.setMenu(menu);
@@ -291,9 +516,7 @@ class ToolBarCustomizer : Composite, TCPD {
 		}
 		_menuList.removeAll();
 		foreach (id; EnumMembers!MenuID) { mixin(S_TRACE);
-			if (id == MenuID.None) continue;
-			if (!isMainToolBarMenu(id)) continue;
-			if (_added.contains(id)) continue;
+			if (!canAppendMenu(id)) continue;
 			auto image = _prop.images.menu(id);
 			if (!image) continue;
 			string name = _prop.var.menu.buildTool(_prop.parent, id);
@@ -347,6 +570,7 @@ class ToolBarCustomizer : Composite, TCPD {
 		treeItemUp(sels[0]);
 		updateBarAndGroupText();
 		_comm.refreshToolBar();
+		foreach (dlg; modEvent) dlg();
 	}
 	private void down() { mixin(S_TRACE);
 		if (!canDown) return;
@@ -358,21 +582,31 @@ class ToolBarCustomizer : Composite, TCPD {
 		treeItemDown(sels[0]);
 		updateBarAndGroupText();
 		_comm.refreshToolBar();
+		foreach (dlg; modEvent) dlg();
 	}
 	private void addBar() { mixin(S_TRACE);
 		auto sels = _toolTree.getSelection();
-		if (!sels.length) return;
 		store();
 		_toolTree.setRedraw(false);
 		scope (exit) _toolTree.setRedraw(true);
-		auto top = topItem(sels[0]);
-		auto index = _toolTree.indexOf(top) + 1;
-		auto itm = new TreeItem(_toolTree, SWT.NONE, index);
-		itm.setImage(_prop.images.toolBar);
+		auto itm = addBarImpl(sels.length ? sels[0] : null);
 		updateBarAndGroupText();
 		_toolTree.setSelection([itm]);
 		_toolTree.showSelection();
 		_comm.refreshToolBar();
+		foreach (dlg; modEvent) dlg();
+	}
+	private TreeItem addBarImpl(TreeItem sel) { mixin(S_TRACE);
+		int index;
+		if (sel) { mixin(S_TRACE);
+			auto top = topItem(sel);
+			index = _toolTree.indexOf(top);
+		} else { mixin(S_TRACE);
+			index = _toolTree.getItemCount();
+		}
+		auto itm = new TreeItem(_toolTree, SWT.NONE, index);
+		itm.setImage(_prop.images.toolBar);
+		return itm;
 	}
 	private void addGroup() { mixin(S_TRACE);
 		auto sels = _toolTree.getSelection();
@@ -380,27 +614,31 @@ class ToolBarCustomizer : Composite, TCPD {
 		store();
 		_toolTree.setRedraw(false);
 		scope (exit) _toolTree.setRedraw(true);
-		auto sel = sels[0];
+		auto itm = addGroupImpl(sels[0]);
+		updateBarAndGroupText();
+		_toolTree.setSelection([itm]);
+		_toolTree.showSelection();
+		_comm.refreshToolBar();
+		foreach (dlg; modEvent) dlg();
+	}
+	private TreeItem addGroupImpl(TreeItem sel) { mixin(S_TRACE);
 		auto parItm = sel.getParentItem();
 		TreeItem itm;
 		if (!parItm) { mixin(S_TRACE);
-			itm = new TreeItem(sel, SWT.NONE, 0);
+			itm = new TreeItem(sel, SWT.NONE, sel.getItemCount());
 		} else { mixin(S_TRACE);
 			auto parParItm = parItm.getParentItem();
 			if (parParItm) { mixin(S_TRACE);
-				auto index = parParItm.indexOf(parItm) + 1;
+				auto index = parParItm.getItemCount();
 				itm = new TreeItem(parParItm, SWT.NONE, index);
 			} else { mixin(S_TRACE);
-				auto index = parItm.indexOf(sel) + 1;
+				auto index = parItm.indexOf(sel);
 				itm = new TreeItem(parItm, SWT.NONE, index);
 			}
 		}
 		itm.getParentItem().setExpanded(true);
 		itm.setImage(_prop.images.toolGroup);
-		updateBarAndGroupText();
-		_toolTree.setSelection([itm]);
-		_toolTree.showSelection();
-		_comm.refreshToolBar();
+		return itm;
 	}
 	@property
 	private bool canAddMenu() { mixin(S_TRACE);
@@ -420,72 +658,113 @@ class ToolBarCustomizer : Composite, TCPD {
 		_toolTree.setRedraw(false);
 		scope (exit) _toolTree.setRedraw(true);
 		store();
-		auto sel = sels[0];
+		auto itm = addMenuImpl(sels[0], _menuList.getSelection());
+		if (itm) _toolTree.setSelection([itm]);
+		_toolTree.showSelection();
+		_comm.refreshToolBar();
+		foreach (dlg; modEvent) dlg();
+	}
+	private TreeItem addMenuImpl(T)(TreeItem sel, T[] itms) { mixin(S_TRACE);
 		auto parItm = sel.getParentItem();
-		void add(TreeItem parItm, int index) { mixin(S_TRACE);
-			TreeItem itm;
-			foreach (mItm; _menuList.getSelection()) { mixin(S_TRACE);
+		TreeItem add(TreeItem parItm, int index) { mixin(S_TRACE);
+			TreeItem itm = null;
+			foreach (mItm; itms) { mixin(S_TRACE);
 				itm = new TreeItem(parItm, SWT.NONE, index);
-				auto m = cast(MenuData)mItm.getData();
+				static if (is(T:TableItem)) {
+					auto m = cast(MenuData)mItm.getData();
+					mItm.dispose();
+				} else {
+					auto m = new MenuData;
+					m.id = mItm;
+				}
+				if (!canAppendMenu(m.id)) continue;
 				_added.add(m.id);
 				itm.setText(_prop.var.menu.buildTool(_prop.parent, m.id));
 				itm.setImage(_prop.images.menu(m.id));
 				itm.setData(m);
-				mItm.dispose();
 				index++;
 			}
-			if (itm) _toolTree.setSelection([itm]);
-			_toolTree.showSelection();
 			parItm.setExpanded(true);
+			return itm;
 		}
 		if (!parItm) { mixin(S_TRACE);
 			if (!sel.getItemCount()) { mixin(S_TRACE);
-				addGroup();
+				addGroupImpl(sel);
 			}
-			add(sel.getItem(0), 0);
+			return add(sel.getItem(0), 0);
 		} else { mixin(S_TRACE);
 			auto parParItm = parItm.getParentItem();
 			if (parParItm) { mixin(S_TRACE);
-				auto index = parItm.indexOf(sel) + 1;
-				add(parItm, index);
+				auto index = parItm.indexOf(sel);
+				return add(parItm, index);
 			} else { mixin(S_TRACE);
-				add(sel, 0);
+				return add(sel, sel.getItemCount());
 			}
 		}
-		_comm.refreshToolBar();
+	}
+	private bool canAppendMenu(MenuID id) {
+		if (id == MenuID.None) return false;
+		if (!isMainToolBarMenu(id)) return false;
+		if (_added.contains(id)) return false;
+		return true;
 	}
 	private void removeMenu() { mixin(S_TRACE);
 		if (!canRemoveMenu) return;
-		store();
+		auto sels = _toolTree.getSelection();
+		if (!sels.length) return;
 		_toolTree.setRedraw(false);
 		scope (exit) _toolTree.setRedraw(true);
+		store();
+		removeMenuImpl(sels[0]);
+		refreshMenu();
+		_comm.refreshToolBar();
+		foreach (dlg; modEvent) dlg();
+	}
+	private void removeMenuImpl(TreeItem sel) { mixin(S_TRACE);
 		void recurse(TreeItem itm) { mixin(S_TRACE);
 			if (auto m = cast(MenuData)itm.getData()) { mixin(S_TRACE);
 				_added.remove(m.id);
 			}
 			foreach (sub; itm.getItems()) recurse(sub);
 		}
-		foreach (itm; _toolTree.getItems()) { mixin(S_TRACE);
-			recurse(itm);
-		}
-		_toolTree.getSelection()[0].dispose();
-		refreshMenu();
-		_comm.refreshToolBar();
+		recurse(sel);
+		sel.dispose();
 	}
 	private void resetTools() { mixin(S_TRACE);
-		store();
-		_tools = _init.dup;
-		updateTree();
+		if (_tools != _init) { mixin(S_TRACE);
+			store();
+			_tools = _init.dup;
+			updateTree();
+			foreach (dlg; modEvent) dlg();
+		}
 	}
 
 	override void cut(SelectionEvent se) { mixin(S_TRACE);
-		// TODO
+		_toolTree.setRedraw(false);
+		scope (exit) _toolTree.setRedraw(true);
+		_menuList.setRedraw(false);
+		scope (exit) _menuList.setRedraw(true);
+		copy(se);
+		del(se);
 	}
 	override void copy(SelectionEvent se) { mixin(S_TRACE);
-		// TODO
+		auto sels = _toolTree.getSelection();
+		if (sels.length) { mixin(S_TRACE);
+			XMLtoCB(_prop, _comm.clipboard, toNode(sels[0]).text);
+			_comm.refreshToolBar();
+		}
 	}
 	override void paste(SelectionEvent se) { mixin(S_TRACE);
-		// TODO
+		auto c = CBtoXML(_comm.clipboard);
+		if (c) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
+				auto node = XNode.parse(c);
+				auto sels = _toolTree.getSelection();
+				fromNode(node, sels.length ? sels[0] : null, true);
+			} catch (Exception e) { mixin (S_TRACE);
+				debugln(e);
+			}
+		}
 	}
 	override void del(SelectionEvent se) { mixin(S_TRACE);
 		removeMenu();
@@ -556,6 +835,7 @@ class ToolBarCustomDialog : AbsDialog {
 	protected override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(windowGridLayout(1, true));
 		_cTools = new ToolBarCustomizer(_comm, area, SWT.NONE, _tools, _init);
+		mod(_cTools);
 		_cTools.setLayoutData(new GridData(GridData.FILL_BOTH));
 	}
 
