@@ -222,6 +222,9 @@ private:
 			foreach (i, c; _c.dup) {
 				int index = _path[i][$ - 1];
 				auto tc = et.fromPath(_path[i]);
+				if (c.type == CType.START) {
+					et.startUseCounter.change(tc.name, c.name);
+				}
 				_c[i] = tc.dup;
 				_c[i].setUseCounter(summ.useCounter.sub);
 				auto pc = tc.parent;
