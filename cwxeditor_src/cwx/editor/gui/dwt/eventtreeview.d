@@ -394,6 +394,9 @@ private:
 			foreach (i, c; _c.dup) { mixin(S_TRACE);
 				int index = _path[i][$ - 1];
 				auto tc = et.fromPath(_path[i]);
+				if (c.type == CType.START) { mixin(S_TRACE);
+					et.startUseCounter.change(tc.name, c.name);
+				}
 				_c[i] = tc.dup;
 				_c[i].setUseCounter(summ.useCounter.sub);
 				auto pc = tc.parent;
