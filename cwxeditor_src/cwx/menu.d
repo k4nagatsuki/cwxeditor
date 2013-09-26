@@ -102,6 +102,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.CopyAsText] = "C";
 		_mnemonic[MenuID.OpenAtView] = "V";
 		_mnemonic[MenuID.StartToPackage] = "G";
+		_mnemonic[MenuID.WrapTree] = "W";
 		_mnemonic[MenuID.CreateContent] = "A";
 		_mnemonic[MenuID.ConvertContent] = "O";
 		_mnemonic[MenuID.CGroupTerminal] = "T";
@@ -302,6 +303,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.CopyAsText] = "Ctrl+C";
 		_hotkey[MenuID.OpenAtView] = "";
 		_hotkey[MenuID.StartToPackage] = "";
+		_hotkey[MenuID.WrapTree] = "";
 		_hotkey[MenuID.CreateContent] = "";
 		_hotkey[MenuID.ConvertContent] = "";
 		_hotkey[MenuID.CGroupTerminal] = "";
@@ -688,6 +690,8 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.OuterTools:
 	case MenuID.Settings:
 	case MenuID.VersionInfo:
+	case MenuID.StartToPackage:
+	case MenuID.WrapTree:
 	case MenuID.EditSummary:
 	case MenuID.NewAreaDir:
 	case MenuID.NewArea:
@@ -757,7 +761,6 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.ResetToolBar:
 	case MenuID.CopyAsText:
 	case MenuID.OpenAtView:
-	case MenuID.StartToPackage:
 	case MenuID.CreateContent:
 	case MenuID.ConvertContent:
 	case MenuID.CGroupTerminal:

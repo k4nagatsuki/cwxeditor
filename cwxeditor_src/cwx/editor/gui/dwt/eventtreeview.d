@@ -1976,7 +1976,8 @@ public:
 			createMenuItem(_comm, popup, MenuID.ToScript1Content, &toScript1Content, &canToScript);
 			createMenuItem(_comm, popup, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
 			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, () => !_readOnly && 1 < _tree.getItemCount() && selection !is null);
+			createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, &canStartToPackage);
+			createMenuItem(_comm, popup, MenuID.WrapTree, &wrapTree, &canWrapTree);
 			new MenuItem(popup, SWT.SEPARATOR);
 			void delegate() dlg = null;
 			auto createMI = createMenuItem(_comm, popup, MenuID.CreateContent, dlg, () => _et !is null, SWT.CASCADE);
@@ -2146,8 +2147,12 @@ public:
 		dlg.open();
 	}
 
-	private void startToPackage() { mixin(S_TRACE);
-		if (_readOnly) return;
+	@property
+	bool canStartToPackage() { mixin(S_TRACE);
+		return !_readOnly && 1 < _tree.getItemCount() && selection !is null;
+	}
+	void startToPackage() { mixin(S_TRACE);
+		if (!canStartToPackage) return;
 		if (!_et || !selection) return;
 		if (_tree.getItemCount() <= 1) return;
 		auto sel = selection;
@@ -2193,6 +2198,53 @@ public:
 			}
 			itm.setImage(_prop.images.content(c.type));
 		}
+		refreshStatusLine();
+		_comm.refUseCount.call();
+		_comm.refreshToolBar();
+	}
+	@property
+	bool canWrapTree() { mixin(S_TRACE);
+		return !_readOnly && selection && (cast(Content)selection.getData()).parent;
+	}
+	void wrapTree() { mixin(S_TRACE);
+		if (!canWrapTree) return;
+		auto sel = selection;
+		assert (sel !is null);
+		auto c = cast(Content)sel.getData();
+		auto parentStart = c.parentStart;
+		auto si = c.tree.starts.cCountUntil(parentStart) + 1;
+		storeContentAndInsert(c.parent, si, 1);
+
+		auto start = new Content(CType.START, createNewName(parentStart.name, (string name) { mixin(S_TRACE);
+			foreach (s; _et.starts) { mixin(S_TRACE);
+				if (icmp(s.name, name) == 0) { mixin(S_TRACE);
+					return false;
+				}
+			}
+			return true;
+		}, true));
+		_et.insert(si, start);
+		auto link = new Content(CType.LINK_START, c.name);
+		link.start = start.name;
+		c.parent.insert(_prop.parent, c.parent.next.cCountUntil(c), link);
+
+		c.parent.remove(c);
+		start.add(_prop.parent, c);
+		_comm.delContent.call(c);
+
+		Item sItm;
+		if (_tree.tree) { mixin(S_TRACE);
+			sItm = createTreeItem(_tree.tree, start, start.name, _prop.images.content(CType.START), si);
+			createChilds(sItm, start);
+		} else { mixin(S_TRACE);
+			_tree.editor.updateEventTree();
+			sItm = EventEditorItem.valueOf(_tree.editor, start);
+		}
+		_tree.select(sItm);
+		_tree.showSelection();
+		_comm.refContent.call(c);
+		_comm.refContent.call(link);
+
 		refreshStatusLine();
 		_comm.refUseCount.call();
 		_comm.refreshToolBar();

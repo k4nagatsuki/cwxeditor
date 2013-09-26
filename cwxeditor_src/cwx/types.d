@@ -1306,6 +1306,7 @@ enum MenuID {
 	CopyAsText,
 	OpenAtView,
 	StartToPackage,
+	WrapTree,
 	CreateContent,
 	ConvertContent,
 	CGroupTerminal,

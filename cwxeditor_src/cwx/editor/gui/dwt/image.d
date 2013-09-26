@@ -467,6 +467,7 @@ public:
 		case MenuID.CopyAsText: return imgd!("copy.png");
 		case MenuID.OpenAtView: return imgd!("view.png");
 		case MenuID.StartToPackage: return imgd!("s_to_p.png");
+		case MenuID.WrapTree: return imgd!("wrap_tree.png");
 		case MenuID.CreateContent: return imgd!("evt_put_quick.png");
 		case MenuID.ConvertContent: return imgd!("conv_cont.png");
 		case MenuID.CGroupTerminal: return imgd!("evt_j_term.png");

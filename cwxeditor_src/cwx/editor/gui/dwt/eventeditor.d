@@ -350,10 +350,10 @@ class EventEditor : Composite {
 				te.x = max(gc.textExtent(line).x, te.x);
 			}
 			// 前後n件のイベントコンテントに被らないようにする
-			int ba = (lines.length + 1) / 2;
+			int ba = lines.length;
 			Rectangle[] boxes2;
 			if (0 < ba) { mixin(S_TRACE);
-				foreach (j; .max(i - -ba, 0) .. i) { mixin(S_TRACE);
+				foreach (j; .max(i - ba, 0) .. i) { mixin(S_TRACE);
 					boxes2 ~= itemRect(_pos[j]);
 				}
 				foreach (j; i + 1 .. .min(_pos.length, i + ba + 1)) { mixin(S_TRACE);
@@ -361,10 +361,16 @@ class EventEditor : Composite {
 				}
 			}
 
+			int dis = 15;
 			int tw = te.x + 10;
 			int th = te.y + 6;
-			int dis = 15;
-			auto box = new Rectangle(rx + dis, pos.y - th / 2 + hh, tw, th);
+
+			// 画面外へ出ないようにY座標の調節
+			int ty = pos.y - th / 2 + hh;
+			ty = .min(ty, _heightSum * _lineHeight - th);
+			ty = .max(ty, 0);
+
+			auto box = new Rectangle(rx + dis, ty, tw, th);
 			foreach (b; boxes2 ~ boxes) { mixin(S_TRACE);
 				if (b.intersects(box)) { mixin(S_TRACE);
 					box.x = b.x + b.width + 4;

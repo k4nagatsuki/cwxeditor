@@ -283,6 +283,8 @@ public:
 				putMenuAction(MenuID.ToScript, &toScript, &canToScript);
 				putMenuAction(MenuID.ToScript1Content, &toScript1Content, &canToScript);
 				putMenuAction(MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
+				putMenuAction(MenuID.StartToPackage, &startToPackage, &canStartToPackage);
+				putMenuAction(MenuID.WrapTree, &wrapTree, &canWrapTree);
 			} else { mixin(S_TRACE);
 				putMenuAction(MenuID.EditEvent, &openEvent, null);
 			}
@@ -458,6 +460,14 @@ public:
 			_eview.initial();
 			return _eview.canWriteComment();
 		}
+		private bool canStartToPackage() { mixin(S_TRACE);
+			_eview.initial();
+			return _eview.canStartToPackage();
+		}
+		private bool canWrapTree() { mixin(S_TRACE);
+			_eview.initial();
+			return _eview.canWrapTree();
+		}
 		private void toScript() { mixin(S_TRACE);
 			_eview.initial();
 			_eview.toScript();
@@ -473,6 +483,14 @@ public:
 		private void writeComment() { mixin(S_TRACE);
 			_eview.initial();
 			_eview.writeComment();
+		}
+		private void startToPackage() { mixin(S_TRACE);
+			_eview.initial();
+			_eview.startToPackage();
+		}
+		private void wrapTree() { mixin(S_TRACE);
+			_eview.initial();
+			_eview.wrapTree();
 		}
 		private void edit() { mixin(S_TRACE);
 			if (_tabf.getSelection() is _tabA) {

@@ -28,6 +28,7 @@ import std.exception;
 import std.traits;
 import std.stdint;
 import std.stream;
+import std.range;
 
 debug {
 	version (Console) {
@@ -885,35 +886,50 @@ template isVArray(T) {
 /// space = falseの場合は括弧の前のスペースを付けない。
 /// Returns: 新しい名前。
 string createNewName(string base, bool delegate(string) use, bool space = true) { mixin(S_TRACE);
-	auto dbase = toUTF32(base);
-	if (!std.regex.match(dbase, .regex!(dstring)(`^-?[1-9][0-9]*$`d)).empty) { mixin(S_TRACE);
-		try { mixin(S_TRACE);
-			long i = to!(long)(base);
-			while (true) { mixin(S_TRACE);
-				auto s = to!(string)(i);
-				if (use(s)) return s;
-				if (i + 1 < i) break; // overflow
-				i++;
+	char[] digit;
+	int digitL = 0;
+	int digitR = -1;
+	foreach_reverse (i, c; base) { mixin(S_TRACE);
+		if (c == '-') { mixin(S_TRACE);
+			if (digitR != -1) { mixin(S_TRACE);
+				digit.insertInPlace(0, c);
+				digitL = i;
+				break;
 			}
-		} catch (Exception e) {
+		} else if (isDigit(c)) { mixin(S_TRACE);
+			digit.insertInPlace(0, c);
+			if (digitR == -1) { mixin(S_TRACE);
+				digitR = i + 1;
+			}
+		} else { mixin(S_TRACE);
+			if (digitR != -1) { mixin(S_TRACE);
+				digitL = i + 1;
+				break;
+			}
 		}
 	}
-	ulong i = 2;
-	dstring rexp = `\([0-9]+\)$`d;
-	if (space) rexp = " "d ~ rexp;
-	auto ni = std.regex.match(dbase, .regex!(dstring)(rexp));
-	auto name = base;
-	if (!ni.empty) { mixin(S_TRACE);
-		try { mixin(S_TRACE);
-			i = to!(ulong)(ni.hit[(space ? 2 : 1) .. $ - 1]) + 1;
-			base = toUTF8(ni.pre);
-		} catch (Exception e) {
+	string left, right;
+	long i = 2;
+	if (digit.length) { mixin(S_TRACE);
+		assert (digitR != -1);
+		left = base[0..digitL];
+		right = base[digitR..$];
+		i = to!long(digit);
+	} else { mixin(S_TRACE);
+		left = base ~ (space ? " (" : "(");
+		right = ")";
+	}
+	try {
+		while (true) { mixin(S_TRACE);
+			auto s = left ~ to!(string)(i) ~ right;
+			if (use(s)) return s;
+			if (i + 1 < i) break; // overflow
+			i++;
 		}
+	} catch (Exception e) {
+		debugln(e);
 	}
-	for (; !use(name); i++) { mixin(S_TRACE);
-		name = base ~ (space ? " (" : "(") ~ .to!(string)(i) ~ ")";
-	}
-	return name;
+	return base;
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (createNewName("aaa", (string n) {return n != "aaa" && n != "aaa (2)";}, true) == "aaa (3)");

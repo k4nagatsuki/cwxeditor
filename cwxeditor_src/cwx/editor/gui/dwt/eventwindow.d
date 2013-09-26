@@ -185,6 +185,8 @@ public:
 			putMenuAction(MenuID.ToScript, &_eview.toScript, &_eview.canToScript);
 			putMenuAction(MenuID.ToScript1Content, &_eview.toScript1Content, &_eview.canToScript);
 			putMenuAction(MenuID.ToScriptAll, &_eview.toScriptAll, &_eview.canToScriptAll);
+			putMenuAction(MenuID.StartToPackage, &_eview.startToPackage, &_eview.canStartToPackage);
+			putMenuAction(MenuID.WrapTree, &_eview.wrapTree, &_eview.canWrapTree);
 			putMenuAction(MenuID.EditProp, &_eview.edit, &_eview.canEdit);
 			putMenuAction(MenuID.Cut1Content, &_eview.cut1Content, &_eview.canCut1Content);
 			putMenuAction(MenuID.Copy1Content, &_eview.copy1Content, &_eview.canCopy1Content);

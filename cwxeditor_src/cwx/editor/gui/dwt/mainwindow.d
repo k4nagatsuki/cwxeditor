@@ -2482,6 +2482,8 @@ public:
 									case MenuID.ToScript1Content:
 									case MenuID.ChangeVH:
 									case MenuID.ReNumbering:
+									case MenuID.StartToPackage:
+									case MenuID.WrapTree:
 										break;
 									case MenuID.None:
 									case MenuID.File:
@@ -2513,7 +2515,6 @@ public:
 									case MenuID.ResetToolBar:
 									case MenuID.CopyAsText:
 									case MenuID.OpenAtView:
-									case MenuID.StartToPackage:
 									case MenuID.CreateContent:
 									case MenuID.ConvertContent:
 									case MenuID.CGroupTerminal:

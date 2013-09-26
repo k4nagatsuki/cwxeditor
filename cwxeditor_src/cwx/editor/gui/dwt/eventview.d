@@ -1821,6 +1821,20 @@ public:
 	void writeComment() { mixin(S_TRACE);
 		_etree.writeComment();
 	}
+	@property
+	bool canStartToPackage() { mixin(S_TRACE);
+		return _etree.canStartToPackage();
+	}
+	void startToPackage() { mixin(S_TRACE);
+		return _etree.startToPackage();
+	}
+	@property
+	bool canWrapTree() { mixin(S_TRACE);
+		return _etree.canWrapTree();
+	}
+	void wrapTree() { mixin(S_TRACE);
+		return _etree.wrapTree();
+	}
 
 	private void pasteScript(Clipboard cb) { mixin(S_TRACE);
 		if (_readOnly) return;
