@@ -886,6 +886,7 @@ template isVArray(T) {
 /// space = falseの場合は括弧の前のスペースを付けない。
 /// Returns: 新しい名前。
 string createNewName(string base, bool delegate(string) use, bool space = true) { mixin(S_TRACE);
+	if (use(base)) return base;
 	char[] digit;
 	int digitL = 0;
 	int digitR = -1;

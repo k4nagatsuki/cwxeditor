@@ -722,6 +722,7 @@ private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) { 
 		}
 	}
 	summ.flagDirRoot.sortFlags(true);
+	summ.flagDirRoot.sortSubDirs(true);
 	f.readUIntL;
 	if (d.dataVersion != 0) { mixin(S_TRACE);
 		summ.levelMin = f.readUIntL;
