@@ -1844,7 +1844,10 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	int x = start.x, y = start.y;
 	int lineH;
 	string old = "";
+	int msgLen =  talker ? prop.looks.messageImageLen : prop.looks.messageLen;
+	int writeLen = 0;
 	void ret() {
+		writeLen = 0;
 		x = start.x;
 		y += lineH;
 		old = "";
@@ -1911,7 +1914,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				i++;
 				string s2 = to!string(dmsg[i]);
 				auto w = (tgc.textExtent(s1).x - 1) + (tgc.textExtent(s2).x - 1);
-				if (rect.width - 6 < x + w) {
+				if (msgLen < writeLen + 2) {
 					// 列数オーバー
 					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) {
 						ret();
@@ -1921,6 +1924,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 						break;
 					}
 				}
+				writeLen += 2;
 				drawSPFont(gc, CPoint(x - 2, y - 2), *cf, tgc.getForeground().getRGB());
 				x += w;
 				continue;
@@ -1947,8 +1951,10 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				break;
 			default:
 				auto s = to!string(c);
-				int w = tgc.textExtent(s).x - 1;
-				if (rect.width - 6 < x + w) {
+				auto te = tgc.textExtent(s);
+				int w = te.x - 1;
+				int len = (te.x + 1) / tgc.textExtent("#").x;
+				if (msgLen < writeLen + (s == " " ? len - 1 : len)) {
 					// 列数オーバー
 					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) {
 						ret();
@@ -1958,6 +1964,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 						break;
 					}
 				}
+				writeLen += len;
 				tgc.drawText(s, x, y, true);
 				x += w;
 				break;
@@ -2043,7 +2050,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				i++;
 				string s2 = to!string(dmsg[i]);
 				auto w = (gc.textExtent(s1).x - 1) + (gc.textExtent(s2).x - 1);
-				if (rect.width - 6 < x + w) {
+				if (msgLen < writeLen + 2) {
 					// 列数オーバー
 					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) {
 						ret();
@@ -2053,6 +2060,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 						break;
 					}
 				}
+				writeLen += 2;
 				drawSPFont(gc, CPoint(x, y - 2), *cf, gc.getForeground().getRGB());
 				x += w;
 				continue;
@@ -2078,8 +2086,10 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				break;
 			default:
 				auto s = to!string(c);
-				int w = gc.textExtent(s).x;
-				if (rect.width - 6 < x + w) {
+				auto te = gc.textExtent(s);
+				int w = te.x - 1;
+				int len = (te.x + 1) / gc.textExtent("#").x;
+				if (msgLen < writeLen + (s == " " ? len - 1 : len)) {
 					// 列数オーバー
 					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) {
 						ret();
@@ -2089,6 +2099,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 						break;
 					}
 				}
+				writeLen += len;
 				drawText(s, x, y);
 				x += w;
 				break;
