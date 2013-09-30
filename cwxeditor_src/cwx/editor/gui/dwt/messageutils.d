@@ -1946,8 +1946,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			auto c = dmsg[i];
 			switch (c) {
 			case '\n':
-				x = start.x;
-				y += lineH;
+				ret();
 				break;
 			default:
 				auto s = to!string(c);
