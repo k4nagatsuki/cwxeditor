@@ -906,7 +906,7 @@ public:
 	const
 	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
-		r ~= cast(const CWXPath[]) backs;
+		foreach (a; backs) r ~= a;
 		return r;
 	}
 	@property

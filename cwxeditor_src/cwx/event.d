@@ -1009,12 +1009,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const
 	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
-		r ~= cast(const CWXPath[]) next;
-		r ~= cast(const CWXPath[]) dialogs;
+		foreach (a; next) r ~= a;
+		foreach (a; dialogs) r ~= a;
 		r ~= _text;
-		r ~= cast(const CWXPath[]) motions;
-		r ~= cast(const CWXPath[]) backs;
-		r ~= cast(const CWXPath[]) coupons;
+		foreach (a; motions) r ~= a;
+		foreach (a; backs) r ~= a;
+		foreach (a; coupons) r ~= a;
 		return r;
 	}
 	@property
@@ -2147,7 +2147,7 @@ public:
 	const
 	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
-		r ~= cast(const CWXPath[]) starts;
+		foreach (a; starts) r ~= a;
 		return r;
 	}
 	@property
@@ -2838,7 +2838,7 @@ public:
 	const
 	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
-		r ~= cast(const CWXPath[]) trees;
+		foreach (a; trees) r ~= a;
 		return r;
 	}
 

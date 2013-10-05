@@ -615,14 +615,14 @@ public:
 	const
 	override const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
-		r ~= cast(const CWXPath[]) _area;
-		r ~= cast(const CWXPath[]) _btl;
-		r ~= cast(const CWXPath[]) _pkg;
-		r ~= cast(const CWXPath[]) _cast;
-		r ~= cast(const CWXPath[]) _skl;
-		r ~= cast(const CWXPath[]) _itm;
-		r ~= cast(const CWXPath[]) _bst;
-		r ~= cast(const CWXPath[]) _info;
+		foreach (a; _area) r ~= a;
+		foreach (a; _btl) r ~= a;
+		foreach (a; _pkg) r ~= a;
+		foreach (a; _cast) r ~= a;
+		foreach (a; _skl) r ~= a;
+		foreach (a; _itm) r ~= a;
+		foreach (a; _bst) r ~= a;
+		foreach (a; _info) r ~= a;
 		r ~= flagDirRoot;
 		return r;
 	}

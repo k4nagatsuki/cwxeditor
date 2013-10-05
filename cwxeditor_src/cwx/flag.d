@@ -550,9 +550,9 @@ public:
 	const
 	override const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
-		r ~= cast(const CWXPath[]) _flags;
-		r ~= cast(const CWXPath[]) _steps;
-		r ~= cast(const CWXPath[]) _subdir;
+		foreach (a; _flags) r ~= a;
+		foreach (a; _steps) r ~= a;
+		foreach (a; _subdir) r ~= a;
 		return r;
 	}
 	@property

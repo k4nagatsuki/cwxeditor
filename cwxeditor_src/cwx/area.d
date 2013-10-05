@@ -1193,8 +1193,8 @@ public:
 	const
 	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
-		r ~= cast(const CWXPath[]) cards;
-		r ~= cast(const CWXPath[]) backs;
+		foreach (a; cards) r ~= a;
+		foreach (a; backs) r ~= a;
 		r ~= super.cwxChilds;
 		return r;
 	}
@@ -1621,7 +1621,7 @@ public:
 	const
 	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
-		r ~= cast(const CWXPath[]) _cards;
+		foreach (a; _cards) r ~= a;
 		r ~= super.cwxChilds;
 		return r;
 	}

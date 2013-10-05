@@ -399,13 +399,13 @@ public:
 	/// ditto
 	void deepCopy(in CastCard c) { mixin(S_TRACE);
 		shallowCopy(c);
-		foreach (s; skills) { mixin(S_TRACE);
+		foreach (s; c.skills) { mixin(S_TRACE);
 			add(s.dup);
 		}
-		foreach (s; items) { mixin(S_TRACE);
+		foreach (s; c.items) { mixin(S_TRACE);
 			add(s.dup);
 		}
-		foreach (s; beasts) { mixin(S_TRACE);
+		foreach (s; c.beasts) { mixin(S_TRACE);
 			add(s.dup);
 		}
 	}
@@ -1044,9 +1044,9 @@ public:
 	const
 	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
-		r ~= cast(const CWXPath[]) skills;
-		r ~= cast(const CWXPath[]) items;
-		r ~= cast(const CWXPath[]) beasts;
+		foreach (a; skills) r ~= a;
+		foreach (a; items) r ~= a;
+		foreach (a; beasts) r ~= a;
 		return r;
 	}
 	@property
@@ -1596,7 +1596,7 @@ public:
 	const
 	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
 		const(CWXPath)[] r;
-		r ~= cast(const CWXPath[]) motions;
+		foreach (a; motions) r ~= a;
 		r ~= _ceto.cwxChilds;
 		return r;
 	}
