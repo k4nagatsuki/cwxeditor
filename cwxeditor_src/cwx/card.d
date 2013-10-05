@@ -392,13 +392,13 @@ public:
 	/// ditto
 	void deepCopy(in CastCard c) {
 		shallowCopy(c);
-		foreach (s; skills) {
+		foreach (s; c.skills) {
 			add(s.dup);
 		}
-		foreach (s; items) {
+		foreach (s; c.items) {
 			add(s.dup);
 		}
-		foreach (s; beasts) {
+		foreach (s; c.beasts) {
 			add(s.dup);
 		}
 	}
