@@ -64,13 +64,20 @@ FlexImage createBackgroundImage
 		r = new FlexImage(data, x, y, data.width, data.height, resizable);
 	} else { mixin(S_TRACE);
 		uint baseW = w, baseH = h;
-		try { mixin(S_TRACE);
-			dwtImageSize(prop, skin, summ, path, baseW, baseH);
-		} catch { mixin(S_TRACE);
-			baseW = w;
-			baseH = h;
+		if (isBinImg(path)) {
+			auto imgData = loadImage(prop, skin, summ, path, false);
+			baseW = imgData.width;
+			baseH = imgData.height;
+			r = new FlexImage(imgData, x, y, baseW, baseH, true);
+		} else {
+			try { mixin(S_TRACE);
+				dwtImageSize(prop, skin, summ, path, baseW, baseH);
+			} catch { mixin(S_TRACE);
+				baseW = w;
+				baseH = h;
+			}
+			r = new FlexImage(path, x, y, baseW, baseH);
 		}
-		r = new FlexImage(path, x, y, baseW, baseH);
 	}
 	r.transparent = transparent;
 	r.newWidth = w;

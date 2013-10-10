@@ -2769,7 +2769,7 @@ protected:
 			_cellName.setText(_evt.cellName);
 			_positionType[_evt.positionType].setSelection(true);
 			_x.setSelection(_evt.x);
-			_x.setSelection(_evt.y);
+			_y.setSelection(_evt.y);
 			_sizeType[_evt.sizeType].setSelection(true);
 			_w.setSelection(_evt.width);
 			_h.setSelection(_evt.height);
@@ -2777,7 +2777,7 @@ protected:
 			_cellName.setText("");
 			_positionType[CoordinateType.None].setSelection(true);
 			_x.setSelection(0);
-			_x.setSelection(0);
+			_y.setSelection(0);
 			_sizeType[CoordinateType.None].setSelection(true);
 			_w.setSelection(0);
 			_h.setSelection(0);

@@ -137,6 +137,7 @@ Summary loadLScenario(string p, string skin, const System sys, in LoadOption opt
 						infos ~= .loadInfo(*d, f, id);
 					}
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(file ~ " - " ~ e.msg);
 					throw e;
 				}
@@ -1652,11 +1653,10 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 			// カラーセル
 			bool mask = false;
 			bool foreground = false;
+			auto blend = toBlendMode(f.readByte, mask);
 			if (7 <= dataVersion) { mixin(S_TRACE);
-				mask = readBool(f);
 				foreground = readBool(f);
 			}
-			auto blend = toBlendMode(f.readByte, mask);
 			auto gradient = toGradientDir(f.readByte);
 			auto b = f.readUByte;
 			auto g = f.readUByte;
@@ -3233,7 +3233,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e) { mixin(S_TRACE)
 		f.writeL(cast(uint) e.round);
 	} else if (e.type is CType.MOVE_BG_IMAGE) { mixin(S_TRACE);
 		wb(74);
-		writeString(f, e.cellName);
+		writeExString(f, e.cellName);
 		ubyte ctrl = 0b00;
 		if (e.positionType !is CoordinateType.None) { mixin(S_TRACE);
 			ctrl |= 0b01;
@@ -3254,12 +3254,11 @@ private void writeContent(ref SData d, ref ByteIO f, Content e) { mixin(S_TRACE)
 		}
 	} else if (e.type is CType.LOSE_BG_IMAGE) { mixin(S_TRACE);
 		wb(75);
-		writeString(f, e.cellName);
+		writeExString(f, e.cellName);
 	} else if (e.type is CType.REPLACE_BG_IMAGE) { mixin(S_TRACE);
 		wb(76);
-		writeString(f, e.cellName);
-		f.write(cast(ubyte).min(255, e.backs.length));
-		writeBgImages(d, f, e.backs.length <= 255 ? e.backs : e.backs[0..256]);
+		writeExString(f, e.cellName);
+		writeBgImages(d, f, e.backs.length <= 255 ? e.backs : e.backs[0..256], true);
 	} else { mixin(S_TRACE);
 		assert (0, "event");
 	}
@@ -3395,11 +3394,10 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 		}
 		f.writeL(cast(uint) cc.height);
 		f.write(cast(byte) 3);
+		f.write(fromBlendMode(cc.blendMode, cc.mask));
 		if (cc.foreground || cc.cellName != "") {
-			writeBool(f, cc.mask);
 			writeBool(f, cc.foreground);
 		}
-		f.write(fromBlendMode(cc.blendMode, cc.mask));
 		f.write(fromGradientDir(cc.gradientDir));
 		auto color1 = cc.color1;
 		f.write(cast(ubyte) color1.b);
@@ -3419,15 +3417,41 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 			writeExString(f, cc.cellName);
 		}
 	}
+	auto pc = cast(PCCell) b;
+	if (pc) { mixin(S_TRACE);
+		f.writeL(cast(int)pc.x);
+		f.writeL(cast(int)pc.y);
+		if (pc.foreground || pc.cellName != "") {
+			f.writeL(cast(uint)pc.width + 70000u);
+		} else {
+			f.writeL(cast(uint)pc.width + 60000u);
+		}
+		f.writeL(cast(uint)pc.height);
+		f.write(cast(byte)4);
+		writeBool(f, pc.mask);
+		if (pc.foreground || pc.cellName != "") {
+			writeBool(f, pc.foreground);
+		}
+		f.write(cast(ubyte)pc.pcNumber);
+		writeString(f, pc.flag);
+		f.writeL(cast(byte) 0x0);
+		if (pc.foreground || pc.cellName != "") {
+			writeExString(f, pc.cellName);
+		}
+	}
 }
-private void writeBgImages(ref SData d, ref ByteIO f, BgImage[] backs) { mixin(S_TRACE);
-	auto b = backs.length ? cast(ImageCell) backs[0] : null;
-	if (b && b.path != "" && b.flag == "" && b.x == 0 && b.y == 0
-			&& b.width == 632 && b.height == 420 && !b.mask) { mixin(S_TRACE);
-		f.writeL(cast(uint) backs.length);
+private void writeBgImages(ref SData d, ref ByteIO f, BgImage[] backs, bool replBgImg = false) { mixin(S_TRACE);
+	if (replBgImg)  { mixin(S_TRACE);
+		f.writeL(cast(ubyte)backs.length);
 	} else { mixin(S_TRACE);
-		f.writeL(cast(uint) backs.length + 1u);
-		writeBgImage(d, f, new ImageCell("", "", 0, 0, 632, 420, false));
+		auto b = backs.length ? cast(ImageCell) backs[0] : null;
+		if (b && b.path != "" && b.flag == "" && b.x == 0 && b.y == 0
+				&& b.width == 632 && b.height == 420 && !b.mask) { mixin(S_TRACE);
+			f.writeL(cast(uint) backs.length);
+		} else { mixin(S_TRACE);
+			f.writeL(cast(uint) backs.length + 1u);
+			writeBgImage(d, f, new ImageCell("", "", 0, 0, 632, 420, false));
+		}
 	}
 	foreach (back; backs) { mixin(S_TRACE);
 		writeBgImage(d, f, back);

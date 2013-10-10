@@ -65,10 +65,11 @@ public:
 	const
 	override
 	string name(in CProps prop) { mixin(S_TRACE);
+		string s = path == "" ? prop.msgs.noSelectImage : (isBinImg(path) ? prop.msgs.imageIncluding : baseName(path));
 		if (cellName == "") { mixin(S_TRACE);
-			return baseName(path);
+			return s;
 		} else { mixin(S_TRACE);
-			return .tryFormat(prop.msgs.nameWithCellName, cellName, baseName(path));
+			return .tryFormat(prop.msgs.nameWithCellName, cellName, s);
 		}
 	}
 
@@ -119,6 +120,7 @@ public:
 		node.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
 			path = decodePath(n.value);
 		};
+		node.parse();
 		auto r = new ImageCell(path, "", 0, 0, 0, 0, false);
 		r.fromNodeCommon(node);
 		return r;
@@ -442,6 +444,7 @@ public:
 			};
 			n.parse();
 		};
+		node.parse();
 
 		auto r = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
 			borderingType, borderingColor, borderingWidth, "", 0, 0, 0, 0, false);
@@ -612,6 +615,7 @@ public:
 			};
 			n.parse();
 		};
+		node.parse();
 
 		auto r = new ColorCell(blendMode, gradientDir, color1, color2, "", 0, 0, 0, 0, false);
 		r.fromNodeCommon(node);
@@ -696,6 +700,7 @@ public:
 		node.onTag["PCNumber"] = (ref XNode n) { mixin(S_TRACE);
 			pcNumber = to!uint(n.value);
 		};
+		node.parse();
 
 		auto r = new PCCell(pcNumber, "", 0, 0, 0, 0, false);
 		r.fromNodeCommon(node);
@@ -920,8 +925,8 @@ public:
 	}
 	/// サブクラスでfromNode()の実装を行う際の共通処理。
 	protected void fromNodeCommon(ref XNode node) { mixin(S_TRACE);
-		mask = parseBool(node.attr("mask", false, "false"));
-		foreground = parseBool(node.attr("foreground", false, "false"));
+		mask = parseBool(node.attr("mask", false, fromBool(false)));
+		foreground = parseBool(node.attr("foreground", false, fromBool(false)));
 		cellName = node.attr("cellname", false, "");
 		node.onTag["Flag"] = (ref XNode n) { mixin(S_TRACE);
 			flag = n.value;

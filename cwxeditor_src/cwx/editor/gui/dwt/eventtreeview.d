@@ -3049,6 +3049,7 @@ public:
 				_comm.refreshToolBar();
 				return;
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 		}
