@@ -19,6 +19,7 @@ import std.path;
 import std.conv;
 import std.string;
 import std.utf;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -99,6 +100,7 @@ private:
 	ImageData data = null;
 
 	bool _visible = true;
+	bool _foreground = false;
 	bool _smoothing = false;
 
 	int initW, initH;
@@ -1179,6 +1181,20 @@ public:
 	ImageData baseSizeData() { mixin(S_TRACE);
 		return _baseSizeData;
 	}
+
+	/// trueになっている場合、他のセルよりも優先して手前側に表示される。
+	/// 複数のセルが同時にtrueになっている場合は従来の描画順に従う。
+	@property
+	const
+	bool foreground() { mixin(S_TRACE);
+		return _foreground;
+	}
+	/// ditto
+	@property
+	void foreground(bool v) { mixin(S_TRACE);
+		_foreground = v;
+	}
+
 	/// Returns: 表示するか。
 	@property
 	const
@@ -1815,6 +1831,21 @@ private:
 	Image _lastWallpaper = null;
 	Rectangle _lastClientArea = null;
 
+	/// backsをPileImage#foregroundを考慮した順序にして返す。
+	@property
+	Tuple!(size_t, PileImage)[] fBacks() { mixin(S_TRACE);
+		typeof(return) arrB;
+		typeof(return) arrF;
+		foreach (i, img; backs) { mixin(S_TRACE);
+			if (img.foreground) { mixin(S_TRACE);
+				arrF ~= Tuple!(size_t, PileImage)(i, img);
+			} else { mixin(S_TRACE);
+				arrB ~= Tuple!(size_t, PileImage)(i, img);
+			}
+		}
+		return arrB ~ arrF;
+	}
+
 	class DListener : DisposeListener {
 		public override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			foreach (img; backs) { mixin(S_TRACE);
@@ -2098,7 +2129,8 @@ private:
 			} else { mixin(S_TRACE);
 				// サイズ変更は下に隠れているセルでも優先的に受け付ける
 				foreach (move; [false, true]) { mixin(S_TRACE);
-					foreach_reverse (pimg; backs) { mixin(S_TRACE);
+					foreach_reverse (t; fBacks) { mixin(S_TRACE);
+						auto pimg = t[1];
 						if (cast(FlexImage) pimg && pimg.visible) { mixin(S_TRACE);
 							auto img = cast(FlexImage) pimg;
 							Toggle tgl = img.inToggle(x, y, move);
@@ -2131,7 +2163,9 @@ private:
 				FlexImage img = null;
 				foreach (move; [false, true]) { mixin(S_TRACE);
 					if (tgl !is Toggle.NONE) break;
-					foreach_reverse (i, pimg; backs) { mixin(S_TRACE);
+					foreach_reverse (t; fBacks) { mixin(S_TRACE);
+						auto i = t[0];
+						auto pimg = t[1];
 						if (cast(FlexImage) pimg) { mixin(S_TRACE);
 							img = cast(FlexImage) pimg;
 							if (img.visible) { mixin(S_TRACE);
@@ -2215,7 +2249,9 @@ private:
 			int y = me.y;
 			if (me.button == 1) { mixin(S_TRACE);
 				bool ci = false;
-				foreach_reverse (i, pimg; backs) { mixin(S_TRACE);
+				foreach_reverse (t; fBacks) { mixin(S_TRACE);
+					auto i = t[0];
+					auto pimg = t[1];
 					auto img = cast(FlexImage) pimg;
 					if (img && img.selected) { mixin(S_TRACE);
 						scope oldRect = img.bounds;
@@ -2301,11 +2337,8 @@ private:
 			auto gc = new GC(buf);
 			scope (exit) gc.dispose();
 			foreach (bmp; backs) { mixin(S_TRACE);
+				if (bmp.foreground) continue;
 				bmp.draw(buf, gc, range);
-			}
-			foreach (bmp; backs) { mixin(S_TRACE);
-				auto fi = cast(FlexImage) bmp;
-				if (fi) fi.drawToggle(gc);
 			}
 			if (_showAppends) { mixin(S_TRACE);
 				foreach (a; _appends) { mixin(S_TRACE);
@@ -2313,6 +2346,14 @@ private:
 					scope (exit) img.dispose();
 					gc.drawImage(img, 0, 0);
 				}
+			}
+			foreach (bmp; backs) { mixin(S_TRACE);
+				if (!bmp.foreground) continue;
+				bmp.draw(buf, gc, range);
+			}
+			foreach (bmp; backs) { mixin(S_TRACE);
+				auto fi = cast(FlexImage) bmp;
+				if (fi) fi.drawToggle(gc);
 			}
 
 			if (1 < _gridX || 1 < _gridY) { mixin(S_TRACE);
@@ -2495,7 +2536,9 @@ public:
 		return -1;
 	}
 	int findIndex(int x, int y) { mixin(S_TRACE);
-		foreach_reverse (i, img; backs) { mixin(S_TRACE);
+		foreach_reverse (t; fBacks) { mixin(S_TRACE);
+			auto i = t[0];
+			auto img = t[1];
 			auto fi = cast(FlexImage) img;
 			if (fi && fi.visible && fi.bounds.contains(x, y)) return i;
 		}
@@ -2503,14 +2546,18 @@ public:
 	}
 	int[] findIndices(int x, int y) { mixin(S_TRACE);
 		int[] r;
-		foreach (i, img; backs) { mixin(S_TRACE);
+		foreach (t; fBacks) { mixin(S_TRACE);
+			auto i = t[0];
+			auto img = t[1];
 			auto fi = cast(FlexImage) img;
 			if (fi && fi.visible && fi.bounds.contains(x, y)) r ~= i;
 		}
 		return r;
 	}
 	int findSelectedIndex(int x, int y) { mixin(S_TRACE);
-		foreach_reverse (i, img; backs) { mixin(S_TRACE);
+		foreach_reverse (t; fBacks) { mixin(S_TRACE);
+			auto i = t[0];
+			auto img = t[1];
 			auto fi = cast(FlexImage) img;
 			if (fi && fi.visible && fi.selected && fi.bounds.contains(x, y)) return i;
 		}
@@ -2518,7 +2565,9 @@ public:
 	}
 	int[] findSelectedIndices(int x, int y) { mixin(S_TRACE);
 		int[] r;
-		foreach (i, img; backs) { mixin(S_TRACE);
+		foreach (t; fBacks) { mixin(S_TRACE);
+			auto i = t[0];
+			auto img = t[1];
 			auto fi = cast(FlexImage) img;
 			if (fi && fi.visible && fi.selected && fi.bounds.contains(x, y)) r ~= i;
 		}

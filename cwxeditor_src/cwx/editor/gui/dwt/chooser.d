@@ -18,6 +18,8 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
 
+import std.algorithm;
+import std.array;
 import std.conv;
 import std.string;
 import std.typecons : Tuple;
@@ -295,6 +297,53 @@ string[] allKeyCodes(Commons comm, Summary summ) {
 		kcs2 ~= stdKCs;
 	}
 	return kcs2;
+}
+
+T createCellNameCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
+	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
+	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
+	auto incSearch = new IncSearch(comm, combo);
+
+	void refCellNames() { mixin(S_TRACE);
+		string id = combo.getText();
+		combo.removeAll();
+
+		foreach (kc; allCellNames(comm, summ)) { mixin(S_TRACE);
+			if (!incSearch.match(kc)) continue;
+			combo.add(kc);
+		}
+		combo.setText(id);
+	}
+
+	incSearch.modEvent ~= &refCellNames;
+	comm.refCellNames.add(&refCellNames);
+	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
+		comm.refCellNames.remove(&refCellNames);
+	});
+
+	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
+	createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
+		.forceFocus(combo, true);
+		incSearch.startIncSearch();
+	}, null);
+	new MenuItem(menu, SWT.SEPARATOR);
+	combo.setMenu(menu);
+	createTextMenu!T(comm, comm.prop, combo, catchMod);
+
+	refCellNames();
+
+	return combo;
+}
+
+string[] allCellNames(Commons comm, Summary summ) {
+	bool delegate(CellNameId a, CellNameId b) cmps;
+	if (comm.prop.var.etc.logicalSort) {
+		cmps = (a, b) => incmp(cast(string)a, cast(string)b) < 0;
+	} else {
+		cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
+	}
+	auto s = .sortDlg(summ.useCounter.cellName.keys, cmps);
+	return .map!((a) => cast(string)a)(s).array();
 }
 
 class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {

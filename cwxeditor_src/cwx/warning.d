@@ -133,13 +133,27 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (bi.flag != "" && !froot.findFlag(bi.flag)) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorFlagNotFound;
 		}
+		if (bi.foreground) {
+			if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
+				r ~= prop.msgs.warningBgImageForeground;
+			}
+		}
+		if (bi.cellName != "") {
+			if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
+				r ~= prop.msgs.warningBgImageCellName;
+			}
+		}
 	}
 	auto ic = cast(ImageCell) path;
 	if (ic) { mixin(S_TRACE);
 		if (!ic.path.length) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorNoImage;
 		}
-		if (ic.path.length && !skin.findPath(ic.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
+		if (isBinImg(ic.path)) { mixin(S_TRACE);
+			if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
+				r ~= prop.msgs.warningBgImageIncluded;
+			}
+		} else if (ic.path.length && !skin.findPath(ic.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorImageNotFound;
 		}
 		if (ic.path != "") { mixin(S_TRACE);
@@ -160,6 +174,12 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	if (cc) { mixin(S_TRACE);
 		if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningColorCell;
+		}
+	}
+	auto pc = cast(PCCell) path;
+	if (pc) { mixin(S_TRACE);
+		if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
+			r ~= prop.msgs.warningPCCell;
 		}
 	}
 	auto btl = cast(Battle) path;

@@ -34,6 +34,8 @@ import cwx.imagesize;
 import cwx.structs;
 import cwx.system;
 
+import std.algorithm : min;
+
 private bool sWith(string f, string s, out ulong id) { mixin(S_TRACE);
 	if (!fnstartsWith(f, s)) return false;
 	if (!fnendsWith(f, ".wid")) return false;
@@ -388,7 +390,7 @@ private Range toRange(byte b) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
 	}
 }
-/// CardWirthNext
+/// CardWirth 1.50
 private Range toKeyCodeRange(byte b) { mixin(S_TRACE);
 	switch (b) {
 	case 0: return Range.SELECTED;
@@ -416,7 +418,7 @@ private CastRange[] toCastRanges(byte b) { mixin(S_TRACE);
 	if (b & 0b0100) r ~= CastRange.NPC;
 	return r;
 }
-/// CardWirthNext
+/// CardWirth 1.50
 private EffectCardType toEffectCardType(byte b) { mixin(S_TRACE);
 	switch (b) {
 	case 0: return EffectCardType.ALL;
@@ -426,7 +428,7 @@ private EffectCardType toEffectCardType(byte b) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown range: " ~ to!(string)(b));
 	}
 }
-/// CardWirthNext
+/// CardWirth 1.50
 private Comparison4 toComparison4(byte b) { mixin(S_TRACE);
 	switch (b) {
 	case 0: return Comparison4.Eq;
@@ -436,7 +438,7 @@ private Comparison4 toComparison4(byte b) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown 4 way comparison value: " ~ to!(string)(b));
 	}
 }
-/// CardWirthNext
+/// CardWirth 1.50
 private Comparison3 toComparison3(byte b) { mixin(S_TRACE);
 	switch (b) {
 	case 0: return Comparison3.Eq;
@@ -445,7 +447,7 @@ private Comparison3 toComparison3(byte b) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown 3 way comparison value: " ~ to!(string)(b));
 	}
 }
-/// CardWirthNext
+/// CardWirth 1.50
 private BorderingType toBorderingType(byte b) { mixin(S_TRACE);
 	switch (b) {
 	case 0: return BorderingType.Outline;
@@ -453,7 +455,7 @@ private BorderingType toBorderingType(byte b) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown bordering type value: " ~ to!(string)(b));
 	}
 }
-/// CardWirthNext
+/// CardWirth 1.50
 private BlendMode toBlendMode(byte b, out bool mask) { mixin(S_TRACE);
 	mask = false;
 	switch (b) {
@@ -465,13 +467,22 @@ private BlendMode toBlendMode(byte b, out bool mask) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown blend mode value: " ~ to!(string)(b));
 	}
 }
-/// CardWirthNext
+/// CardWirth 1.50
 private GradientDir toGradientDir(byte b) { mixin(S_TRACE);
 	switch (b) {
 	case 0: return GradientDir.None;
 	case 1: return GradientDir.LeftToRight;
 	case 2: return GradientDir.TopToBottom;
 	default: throw new SummaryException("Unknown gradient direction value: " ~ to!(string)(b));
+	}
+}
+/// CardWirth 1.60
+private CoordinateType toCoordinateType(byte b) { mixin(S_TRACE);
+	switch (b) {
+	case 0: return CoordinateType.Absolute;
+	case 1: return CoordinateType.Relative;
+	case 2: return CoordinateType.Percentage;
+	default: throw new SummaryException("Unknown coordinate type value: " ~ to!(string)(b));
 	}
 }
 private Status toStatus(byte b) { mixin(S_TRACE);
@@ -584,8 +595,14 @@ private Premium toPremium(byte b) { mixin(S_TRACE);
 private bool readBool(ref ByteIO f) { mixin(S_TRACE);
 	return f.readByte ? true : false;
 }
+private string readExImage(in RData d, ref ByteIO f) { mixin(S_TRACE);
+	return readStringImpl(d, f, () => cast(uint)f.readExInt);
+}
 private string readImage(in RData d, ref ByteIO f) { mixin(S_TRACE);
-	uint len = f.readUIntL;
+	return readStringImpl(d, f, &f.readUIntL);
+}
+private string readStringImpl(in RData d, ref ByteIO f, uint delegate() readSize) { mixin(S_TRACE);
+	uint len = readSize();
 	if (!len) return "";
 	ubyte[] img = f.read(len);
 	if (endsWith(img, cast(ubyte[]) B_IMG_REF)) { mixin(S_TRACE);
@@ -607,8 +624,14 @@ private string readImage(in RData d, ref ByteIO f) { mixin(S_TRACE);
 	}
 	return bImgToStr(img);
 }
+private string readExString(ref ByteIO f, bool lns = false, bool cutText = false) { mixin(S_TRACE);
+	return readStringImpl(f, lns, cutText, () => cast(uint)f.readExInt);
+}
 private string readString(ref ByteIO f, bool lns = false, bool cutText = false) { mixin(S_TRACE);
-	uint len = f.readUIntL;
+	return readStringImpl(f, lns, cutText, &f.readUIntL);
+}
+private string readStringImpl(ref ByteIO f, bool lns, bool cutText, uint delegate() readSize) { mixin(S_TRACE);
+	uint len = readSize();
 	if (!len) return "";
 	string str = cast(string) f.read(len);
 	if (!lns && str[$ - 1] == '\0') str = str[0 .. $ - 1];
@@ -852,7 +875,7 @@ private Motion readMotion(ref RData d, ref ByteIO f, size_t index) { mixin(S_TRA
 		case 5: return new Motion(MType.DEAL_DISTANCE_CARD, el);
 		case 6: return new Motion(MType.DEAL_CONFUSE_CARD, el);
 		case 7: return new Motion(MType.DEAL_SKILL_CARD, el);
-		case 8: return new Motion(MType.CANCEL_ACTION, el); // CardWirthNext
+		case 8: return new Motion(MType.CANCEL_ACTION, el); // CardWirth 1.50
 		default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 		}
 	}
@@ -1439,6 +1462,36 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		e.comparison3 = toComparison3(f.readByte);
 		e.round = f.readUIntL;
 		break;
+	case 74:
+		e = new Content(CType.MOVE_BG_IMAGE, name);
+		e.cellName = readExString(f);
+		ubyte ctrl = f.readUByte;
+		if (ctrl & 0b01) { mixin(S_TRACE);
+			e.positionType = toCoordinateType(f.readByte);
+			e.x = f.readExInt;
+			e.y = f.readExInt;
+		}
+		if (ctrl & 0b10) { mixin(S_TRACE);
+			e.sizeType = toCoordinateType(f.readByte);
+			e.width = f.readExInt;
+			e.height = f.readExInt;
+		}
+		e.transition = Transition.DEFAULT;
+		e.transitionSpeed = 5u;
+		break;
+	case 75:
+		e = new Content(CType.LOSE_BG_IMAGE, name);
+		e.cellName = readExString(f);
+		e.transition = Transition.DEFAULT;
+		e.transitionSpeed = 5u;
+		break;
+	case 76:
+		e = new Content(CType.REPLACE_BG_IMAGE, name);
+		e.cellName = readExString(f);
+		e.backs = readBgImages(d, f, false, true);
+		e.transition = Transition.DEFAULT;
+		e.transitionSpeed = 5u;
+		break;
 	default: throw new SummaryException("Unknown content type: " ~ to!(string)(type));
 	}
 	if (e.detail.owner) { mixin(S_TRACE);
@@ -1488,7 +1541,7 @@ private EventTree readEventTree(ref RData d, ref ByteIO f, bool enemyCard, size_
 	}
 	auto keyCodes = readStrings(f);
 	if (keyCodes.length && "MatchingType=All" == keyCodes[0]) { mixin(S_TRACE);
-		// CardWirthNext
+		// CardWirth 1.50
 		tree.keyCodeMatchingType = KeyCodeMatchingType.And;
 		keyCodes = keyCodes[1 .. $];
 	}
@@ -1505,7 +1558,10 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 	int y = f.readIntL;
 	int w = f.readUIntL;
 	uint dataVersion = 0;
-	if (60000u <= w) { mixin(S_TRACE);
+	if (70000u <= w) { mixin(S_TRACE);
+		w -= 70000u;
+		dataVersion = 7;
+	} else if (60000u <= w) { mixin(S_TRACE);
 		w -= 60000u;
 		dataVersion = 6;
 	} else if (40000u <= w) { mixin(S_TRACE);
@@ -1525,9 +1581,31 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 	} else { mixin(S_TRACE);
 		byte type = f.readByte;
 		switch (type) {
+		case 0:
+			// イメージセル
+			bool mask = readBool(f);
+			bool foreground = readBool(f);
+			bool included = readBool(f);
+			string imgPath;
+			if (included) { mixin(S_TRACE);
+				imgPath = readExImage(d, f);
+			} else { mixin(S_TRACE);
+				imgPath = readString(f);
+			}
+			string flag = readString(f);
+			f.readByte; // 不明(0)
+			string cellName = readExString(f);
+			auto cell = new ImageCell(imgPath, flag, x, y, w, h, mask);
+			cell.foreground = foreground;
+			cell.cellName = cellName;
+			return cell;
 		case 2:
 			// テキストセル
 			bool mask = readBool(f);
+			bool foreground = false;
+			if (7 <= dataVersion) { mixin(S_TRACE);
+				foreground = readBool(f);
+			}
 			string text = readString(f);
 			string fontName = readString(f);
 			uint size = f.readUIntL;
@@ -1561,11 +1639,23 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 			f.readByte; // 不明(縦書き時:2,他:0)
 			string flag = readString(f);
 			f.readByte; // 不明(0)
-			return new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
+			string cellName = "";
+			if (7 <= dataVersion) { mixin(S_TRACE);
+				cellName = readExString(f);
+			}
+			auto cell = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
 				borderingType, borderingColor, borderingWidth, flag, x, y, w, h, mask);
+			cell.foreground = foreground;
+			cell.cellName = cellName;
+			return cell;
 		case 3:
 			// カラーセル
-			bool mask;
+			bool mask = false;
+			bool foreground = false;
+			if (7 <= dataVersion) { mixin(S_TRACE);
+				mask = readBool(f);
+				foreground = readBool(f);
+			}
 			auto blend = toBlendMode(f.readByte, mask);
 			auto gradient = toGradientDir(f.readByte);
 			auto b = f.readUByte;
@@ -1583,18 +1673,47 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 			}
 			string flag = readString(f);
 			f.readByte; // 不明(0)
-			return new ColorCell(blend, gradient, color1, color2, flag, x, y, w, h, mask);
+			string cellName = "";
+			if (7 <= dataVersion) { mixin(S_TRACE);
+				cellName = readExString(f);
+			}
+			auto cell = new ColorCell(blend, gradient, color1, color2, flag, x, y, w, h, mask);
+			cell.foreground = foreground;
+			cell.cellName = cellName;
+			return cell;
+		case 4:
+			bool mask = readBool(f);
+			bool foreground = false;
+			if (7 <= dataVersion) { mixin(S_TRACE);
+				foreground = readBool(f);
+			}
+			ubyte pcNumber = f.readUByte;
+			string flag = readString(f);
+			f.readByte; // 不明(0)
+			string cellName = "";
+			if (7 <= dataVersion) { mixin(S_TRACE);
+				cellName = readExString(f);
+			}
+			auto cell = new PCCell(pcNumber, flag, x, y, w, h, mask);
+			cell.foreground = foreground;
+			cell.cellName = cellName;
+			return cell;
 		default:
 			throw new SummaryException("Unknown cell type: " ~ to!string(type));
 		}
 	}
 }
-private BgImage[] readBgImages(in RData d, ref ByteIO f, bool area) { mixin(S_TRACE);
+private BgImage[] readBgImages(in RData d, ref ByteIO f, bool area, bool replBgImg = false) { mixin(S_TRACE);
 	BgImage[] bgImgs;
-	bgImgs.length = f.readUIntL;
+	if (replBgImg) { mixin(S_TRACE);
+		bgImgs.length = f.readUByte;
+	} else { mixin(S_TRACE);
+		bgImgs.length = f.readUIntL;
+	}
 	for (uint i = 0u; i < bgImgs.length; i++) { mixin(S_TRACE);
 		bgImgs[i] = readBgImage(d, f, area, i);
 	}
+	if (replBgImg) return bgImgs;
 	if (!bgImgs.length) return bgImgs;
 	auto b = cast(ImageCell) bgImgs[0u];
 	if (b && b.path == "" && b.flag == ""
@@ -2246,7 +2365,7 @@ private byte fromRange(Range v) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
 	}
 }
-/// CardWirthNext
+/// CardWirth 1.50
 private byte fromKeyCodeRange(Range v) { mixin(S_TRACE);
 	switch (v) {
 	case Range.SELECTED: return 0;
@@ -2279,7 +2398,7 @@ private byte fromCastRanges(in CastRange[] v) { mixin(S_TRACE);
 	}
 	return r;
 }
-/// CardWirthNext
+/// CardWirth 1.50
 private byte fromEffectCardType(EffectCardType v) { mixin(S_TRACE);
 	switch (v) {
 	case EffectCardType.ALL: return 0;
@@ -2289,7 +2408,7 @@ private byte fromEffectCardType(EffectCardType v) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown range value: " ~ to!(string)(cast(int) v));
 	}
 }
-/// CardWirthNext
+/// CardWirth 1.50
 private byte fromComparison4(Comparison4 v) { mixin(S_TRACE);
 	switch (v) {
 	case Comparison4.Eq: return 0;
@@ -2299,7 +2418,7 @@ private byte fromComparison4(Comparison4 v) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown 4 way comparison value: " ~ to!(string)(cast(int) v));
 	}
 }
-/// CardWirthNext
+/// CardWirth 1.50
 private byte fromComparison3(Comparison3 v) { mixin(S_TRACE);
 	switch (v) {
 	case Comparison3.Eq: return 0;
@@ -2308,7 +2427,7 @@ private byte fromComparison3(Comparison3 v) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown 3 way comparison value: " ~ to!(string)(cast(int) v));
 	}
 }
-/// CardWirthNext
+/// CardWirth 1.50
 private byte fromBorderingType(BorderingType v) { mixin(S_TRACE);
 	switch (v) {
 	case BorderingType.Outline: return 0;
@@ -2316,7 +2435,7 @@ private byte fromBorderingType(BorderingType v) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown bordering type value: " ~ to!(string)(cast(int) v));
 	}
 }
-/// CardWirthNext
+/// CardWirth 1.50
 private byte fromBlendMode(BlendMode v, bool mask) { mixin(S_TRACE);
 	if (mask) return 1;
 	switch (v) {
@@ -2327,13 +2446,22 @@ private byte fromBlendMode(BlendMode v, bool mask) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown blend mode value: " ~ to!(string)(cast(int) v));
 	}
 }
-/// CardWirthNext
+/// CardWirth 1.50
 private byte fromGradientDir(GradientDir v) { mixin(S_TRACE);
 	switch (v) {
 	case GradientDir.None: return 0;
 	case GradientDir.LeftToRight: return 1;
 	case GradientDir.TopToBottom: return 2;
 	default: throw new SummaryException("Unknown gradient direction value: " ~ to!(string)(cast(int) v));
+	}
+}
+/// CardWirth 1.60
+private byte fromCoordinateType(CoordinateType v) { mixin(S_TRACE);
+	switch (v) {
+	case CoordinateType.Absolute: return 0;
+	case CoordinateType.Relative: return 1;
+	case CoordinateType.Percentage: return 2;
+	default: throw new SummaryException("Unknown coordinate type value: " ~ to!(string)(cast(int) v));
 	}
 }
 private byte fromStatus(Status v) { mixin(S_TRACE);
@@ -2447,9 +2575,15 @@ private const B_IMG_REF = ":INNER_BINARY_IMAGE";
 private void writeBool(ref ByteIO f, bool b) { mixin(S_TRACE);
 	f.writeL(cast(byte) (b ? 1 : 0));
 }
+private void writeExImage(ref SData d, ref ByteIO f, CWXPath cp, string imgPath) { mixin(S_TRACE);
+	writeImageImpl(d, f, cp, imgPath, (val) => f.writeExInt(val));
+}
 private void writeImage(ref SData d, ref ByteIO f, CWXPath cp, string imgPath) { mixin(S_TRACE);
+	writeImageImpl(d, f, cp, imgPath, &f.writeL);
+}
+private void writeImageImpl(ref SData d, ref ByteIO f, CWXPath cp, string imgPath, void delegate(uint) writeSize) { mixin(S_TRACE);
 	if (!imgPath.length) { mixin(S_TRACE);
-		f.writeL(cast(uint) 0);
+		writeSize(cast(uint)0);
 		return;
 	}
 	ubyte[] bytes;
@@ -2464,10 +2598,16 @@ private void writeImage(ref SData d, ref ByteIO f, CWXPath cp, string imgPath) {
 			d.imageRef[cp.cwxPath(true)] = encodePathLegacy(imgPath);
 		}
 	}
-	f.writeL(cast(uint) bytes.length);
+	writeSize(cast(uint)bytes.length);
 	f.write(bytes);
 }
+private void writeExString(ref ByteIO f, string str, bool lns = false, bool cutText = false) { mixin(S_TRACE);
+	writeStringImpl(f, str, lns, cutText, (val) => f.writeExInt(val));
+}
 private void writeString(ref ByteIO f, string str, bool lns = false, bool cutText = false) { mixin(S_TRACE);
+	writeStringImpl(f, str, lns, cutText, &f.writeL);
+}
+private void writeStringImpl(ref ByteIO f, string str, bool lns, bool cutText, void delegate(uint) writeSize) { mixin(S_TRACE);
 	str = replace(str, "\n", "\r\n");
 	if (cutText) { mixin(S_TRACE);
 		str = "TEXT\r\n" ~ str;
@@ -2475,13 +2615,13 @@ private void writeString(ref ByteIO f, string str, bool lns = false, bool cutTex
 	if (str.length) { mixin(S_TRACE);
 		str = tosjis(str);
 		if (!lns) str ~= "\0";
-		f.writeL(cast(uint) str.length);
+		writeSize(cast(uint) str.length);
 		f.writeL(cast(ubyte[]) str);
 	} else { mixin(S_TRACE);
 		if (lns) { mixin(S_TRACE);
-			f.writeL(cast(uint) 0);
+			writeSize(cast(uint) 0);
 		} else { mixin(S_TRACE);
-			f.writeL(cast(uint) 1);
+			writeSize(cast(uint) 1);
 			f.writeL(cast(char) 0x0);
 		}
 	}
@@ -2689,7 +2829,7 @@ private void writeMotion(ref SData d, ref ByteIO f, Motion m) { mixin(S_TRACE);
 		tType = 8;
 		type = 0;
 		break;
-	case MType.CANCEL_ACTION: // CardWirthNext
+	case MType.CANCEL_ACTION: // CardWirth 1.50
 		tType = 7;
 		type = 8;
 		break;
@@ -2810,7 +2950,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e) { mixin(S_TRACE)
 		writeString(f, encodePathLegacy(e.bgmPath));
 	} else if (e.type is CType.CHANGE_BG_IMAGE) { mixin(S_TRACE);
 		wb(8);
-		writeBgImages(f, e.backs);
+		writeBgImages(d, f, e.backs);
 	} else if (e.type is CType.PLAY_SOUND) { mixin(S_TRACE);
 		wb(9);
 		writeString(f, encodePathLegacy(e.soundPath));
@@ -3091,6 +3231,35 @@ private void writeContent(ref SData d, ref ByteIO f, Content e) { mixin(S_TRACE)
 		wb(73);
 		f.write(fromComparison3(e.comparison3));
 		f.writeL(cast(uint) e.round);
+	} else if (e.type is CType.MOVE_BG_IMAGE) { mixin(S_TRACE);
+		wb(74);
+		writeString(f, e.cellName);
+		ubyte ctrl = 0b00;
+		if (e.positionType !is CoordinateType.None) { mixin(S_TRACE);
+			ctrl |= 0b01;
+		}
+		if (e.sizeType !is CoordinateType.None) { mixin(S_TRACE);
+			ctrl |= 0b10;
+		}
+		f.write(ctrl);
+		if (e.positionType !is CoordinateType.None) { mixin(S_TRACE);
+			f.write(fromCoordinateType(e.positionType));
+			f.writeExInt(e.x);
+			f.writeExInt(e.y);
+		}
+		if (e.sizeType !is CoordinateType.None) { mixin(S_TRACE);
+			f.write(fromCoordinateType(e.sizeType));
+			f.writeExInt(e.width);
+			f.writeExInt(e.height);
+		}
+	} else if (e.type is CType.LOSE_BG_IMAGE) { mixin(S_TRACE);
+		wb(75);
+		writeString(f, e.cellName);
+	} else if (e.type is CType.REPLACE_BG_IMAGE) { mixin(S_TRACE);
+		wb(76);
+		writeString(f, e.cellName);
+		f.write(cast(ubyte).min(255, e.backs.length));
+		writeBgImages(d, f, e.backs.length <= 255 ? e.backs : e.backs[0..256]);
 	} else { mixin(S_TRACE);
 		assert (0, "event");
 	}
@@ -3124,32 +3293,59 @@ private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(S
 		keyCodes ~= d.sys.convFireKeyCode(keyCode.keyCode, keyCode.kind);
 	}
 	if (KeyCodeMatchingType.And is tree.keyCodeMatchingType) { mixin(S_TRACE);
-		// CardWirthNext
+		// CardWirth 1.50
 		writeStrings(f, ["MatchingType=All"] ~ keyCodes);
 	} else { mixin(S_TRACE);
 		writeStrings(f, keyCodes);
 	}
 }
-private void writeBgImage(ref ByteIO f, BgImage b) { mixin(S_TRACE);
+private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE);
 	auto ic = cast(ImageCell) b;
 	if (ic) { mixin(S_TRACE);
-		f.writeL(cast(int) ic.x);
-		f.writeL(cast(int) ic.y);
-		f.writeL(cast(uint) ic.width + 40000u);
-		f.writeL(cast(uint) ic.height);
-		writeString(f, encodePathLegacy(ic.path));
-		writeBool(f, ic.mask);
-		writeString(f, ic.flag);
-		f.writeL(cast(byte) 0x0);
+		bool included = isBinImg(ic.path);
+		if (included || ic.foreground || ic.cellName != "") { mixin(S_TRACE);
+			f.writeL(cast(int)ic.x);
+			f.writeL(cast(int)ic.y);
+			f.writeL(cast(uint)ic.width + 70000u);
+			f.writeL(cast(uint)ic.height);
+			f.write(cast(byte)0);
+			writeBool(f, ic.mask);
+			writeBool(f, ic.foreground);
+			writeBool(f, included);
+			if (included) { mixin(S_TRACE);
+				writeExImage(d, f, ic, ic.path);
+			} else { mixin(S_TRACE);
+				writeString(f, encodePathLegacy(ic.path));
+			}
+			writeString(f, ic.flag);
+			f.writeL(cast(byte) 0x0);
+			writeExString(f, ic.cellName);
+		} else { mixin(S_TRACE);
+			f.writeL(cast(int) ic.x);
+			f.writeL(cast(int) ic.y);
+			f.writeL(cast(uint) ic.width + 40000u);
+			f.writeL(cast(uint) ic.height);
+			writeString(f, encodePathLegacy(ic.path));
+			writeBool(f, ic.mask);
+			writeString(f, ic.flag);
+			f.writeL(cast(byte) 0x0);
+		}
 	}
 	auto tc = cast(TextCell) b;
 	if (tc) { mixin(S_TRACE);
 		f.writeL(cast(int) tc.x);
 		f.writeL(cast(int) tc.y);
-		f.writeL(cast(uint) tc.width + 60000u);
+		if (tc.foreground || tc.cellName != "") {
+			f.writeL(cast(uint)tc.width + 70000u);
+		} else {
+			f.writeL(cast(uint)tc.width + 60000u);
+		}
 		f.writeL(cast(uint) tc.height);
 		f.write(cast(byte) 2);
 		writeBool(f, tc.mask);
+		if (tc.foreground || tc.cellName != "") {
+			writeBool(f, tc.foreground);
+		}
 		writeString(f, tc.text);
 		writeString(f, tc.fontName);
 		f.writeL(cast(uint) tc.size);
@@ -3184,14 +3380,25 @@ private void writeBgImage(ref ByteIO f, BgImage b) { mixin(S_TRACE);
 
 		writeString(f, tc.flag);
 		f.writeL(cast(byte) 0x0);
+		if (tc.foreground || tc.cellName != "") {
+			writeExString(f, tc.cellName);
+		}
 	}
 	auto cc = cast(ColorCell) b;
 	if (cc) { mixin(S_TRACE);
 		f.writeL(cast(int) cc.x);
 		f.writeL(cast(int) cc.y);
-		f.writeL(cast(uint) cc.width + 60000u);
+		if (cc.foreground || cc.cellName != "") {
+			f.writeL(cast(uint)cc.width + 70000u);
+		} else {
+			f.writeL(cast(uint)cc.width + 60000u);
+		}
 		f.writeL(cast(uint) cc.height);
 		f.write(cast(byte) 3);
+		if (cc.foreground || cc.cellName != "") {
+			writeBool(f, cc.mask);
+			writeBool(f, cc.foreground);
+		}
 		f.write(fromBlendMode(cc.blendMode, cc.mask));
 		f.write(fromGradientDir(cc.gradientDir));
 		auto color1 = cc.color1;
@@ -3208,19 +3415,22 @@ private void writeBgImage(ref ByteIO f, BgImage b) { mixin(S_TRACE);
 		}
 		writeString(f, cc.flag);
 		f.writeL(cast(byte) 0x0);
+		if (cc.foreground || cc.cellName != "") {
+			writeExString(f, cc.cellName);
+		}
 	}
 }
-private void writeBgImages(ref ByteIO f, BgImage[] backs) { mixin(S_TRACE);
+private void writeBgImages(ref SData d, ref ByteIO f, BgImage[] backs) { mixin(S_TRACE);
 	auto b = backs.length ? cast(ImageCell) backs[0] : null;
 	if (b && b.path != "" && b.flag == "" && b.x == 0 && b.y == 0
 			&& b.width == 632 && b.height == 420 && !b.mask) { mixin(S_TRACE);
 		f.writeL(cast(uint) backs.length);
 	} else { mixin(S_TRACE);
 		f.writeL(cast(uint) backs.length + 1u);
-		writeBgImage(f, new ImageCell("", "", 0, 0, 632, 420, false));
+		writeBgImage(d, f, new ImageCell("", "", 0, 0, 632, 420, false));
 	}
 	foreach (back; backs) { mixin(S_TRACE);
-		writeBgImage(f, back);
+		writeBgImage(d, f, back);
 	}
 }
 private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
@@ -3271,7 +3481,7 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
 			writeString(f, .text(c.pcNumber));
 		}
 	}
-	writeBgImages(f, a.backs);
+	writeBgImages(d, f, a.backs);
 }
 private void writeBattle(ref SData d, ref ByteIO f, Battle a) { mixin(S_TRACE);
 	f.writeL(cast(byte) 0x1);

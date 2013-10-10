@@ -112,10 +112,20 @@ public:
 	@property Image cardsWithFlag() {return imgd!("cards_flag.png");}
 	@property Image backs() {return imgd!("backs.png");}
 	@property Image backsWithFlag() {return imgd!("backs_flag.png");}
+	@property Image backsFore() {return imgd!("backs_fore.png");}
+	@property Image backsForeWithFlag() {return imgd!("backs_fore_flag.png");}
 	@property Image colorCell() {return imgd!("color_cell.png");}
 	@property Image colorCellWithFlag() {return imgd!("color_cell_flag.png");}
+	@property Image colorCellFore() {return imgd!("color_cell_fore.png");}
+	@property Image colorCellForeWithFlag() {return imgd!("color_cell_fore_flag.png");}
 	@property Image textCell() {return imgd!("text_cell.png");}
 	@property Image textCellWithFlag() {return imgd!("text_cell_flag.png");}
+	@property Image textCellFore() {return imgd!("text_cell_fore.png");}
+	@property Image textCellForeWithFlag() {return imgd!("text_cell_fore_flag.png");}
+	@property Image pcCell() {return imgd!("pc_cell.png");}
+	@property Image pcCellWithFlag() {return imgd!("pc_cell_flag.png");}
+	@property Image pcCellFore() {return imgd!("pc_cell_fore.png");}
+	@property Image pcCellForeWithFlag() {return imgd!("pc_cell_fore_flag.png");}
 
 	@property Image bgm() {return imgd!("evt_bgm.png");}
 	@property Image se() {return imgd!("evt_se.png");}
@@ -160,7 +170,7 @@ public:
 	@property Image evtInsertFirst() {return imgd!("evt_insert_first.png");}
 
 	Image content(CType type) { mixin(S_TRACE);
-		switch (type) {
+		final switch (type) {
 		case CType.START: return imgd!("evt_start.png");
 		case CType.START_BATTLE: return imgd!("evt_battle.png");
 		case CType.END: return imgd!("evt_clear.png");
@@ -235,14 +245,16 @@ public:
 		case CType.BRANCH_KEY_CODE: return imgd!("evt_br_keycode.png");
 		case CType.CHECK_STEP: return imgd!("evt_check_step.png");
 		case CType.BRANCH_ROUND: return imgd!("evt_br_round.png");
-		default: assert (0);
+		case CType.MOVE_BG_IMAGE: return imgd!("evt_mv_back.png");
+		case CType.REPLACE_BG_IMAGE: return imgd!("evt_rpl_back.png");
+		case CType.LOSE_BG_IMAGE: return imgd!("evt_lose_back.png"); // TODO
 		}
 	}
 
 	@property Image msnDelete() {return imgd!("del_res.png");}
 
 	Image motion(MType type) { mixin(S_TRACE);
-		switch (type) {
+		final switch (type) {
 		case MType.HEAL: return imgd!("msn_heal.png");
 		case MType.DAMAGE: return imgd!("msn_damage.png");
 		case MType.ABSORB: return imgd!("msn_absorb.png");
@@ -282,8 +294,7 @@ public:
 		case MType.DEAL_CONFUSE_CARD: return imgd!("hand_confuse.png");
 		case MType.DEAL_SKILL_CARD: return imgd!("hand_skill.png");
 		case MType.SUMMON_BEAST: return imgd!("msn_summon.png");
-		case MType.CANCEL_ACTION: return imgd!("msn_cancel_action.png"); // CardWirthNext
-		default: assert (0);
+		case MType.CANCEL_ACTION: return imgd!("msn_cancel_action.png"); // CardWirth 1.50
 		}
 	}
 
@@ -514,6 +525,7 @@ public:
 		case MenuID.NewBack: return imgd!("back_new.png");
 		case MenuID.NewTextCell: return imgd!("text_cell_new.png");
 		case MenuID.NewColorCell: return imgd!("color_cell_new.png");
+		case MenuID.NewPCCell: return imgd!("pc_cell_new.png");
 		case MenuID.AutoArrange: return imgd!("auto.png");
 		case MenuID.ManualArrange: return imgd!("custom.png");
 		case MenuID.Mask: return imgd!("mask.png");

@@ -297,6 +297,7 @@ public:
 			"1.29": 2,
 			"1.30": 3,
 			"1.50": 4,
+			"1.60": 5,
 		];
 		return VER_TABLE.get(ver, int.min) <= VER_TABLE.get(targVer, int.max);
 	}

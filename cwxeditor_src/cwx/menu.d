@@ -149,6 +149,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.NewBack] = "B";
 		_mnemonic[MenuID.NewTextCell] = "T";
 		_mnemonic[MenuID.NewColorCell] = "L";
+		_mnemonic[MenuID.NewPCCell] = "P";
 		_mnemonic[MenuID.AutoArrange] = "A";
 		_mnemonic[MenuID.ManualArrange] = "U";
 		_mnemonic[MenuID.Mask] = "M";
@@ -350,6 +351,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.NewBack] = "";
 		_hotkey[MenuID.NewTextCell] = "";
 		_hotkey[MenuID.NewColorCell] = "";
+		_hotkey[MenuID.NewPCCell] = "";
 		_hotkey[MenuID.AutoArrange] = "";
 		_hotkey[MenuID.ManualArrange] = "";
 		_hotkey[MenuID.Mask] = "";
@@ -604,6 +606,7 @@ bool isPMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.NewBack:
 	case MenuID.NewTextCell:
 	case MenuID.NewColorCell:
+	case MenuID.NewPCCell:
 	case MenuID.OpenImportSource:
 	case MenuID.NewCast:
 	case MenuID.NewSkill:
@@ -789,6 +792,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.NewBack:
 	case MenuID.NewTextCell:
 	case MenuID.NewColorCell:
+	case MenuID.NewPCCell:
 	case MenuID.AutoArrange:
 	case MenuID.ManualArrange:
 	case MenuID.Mask:

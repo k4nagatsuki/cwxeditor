@@ -1472,6 +1472,79 @@ public:
 	}
 }
 
+/// セル名称のID。
+struct CellNameId {
+	string id;
+	alias id this;
+	mixin StringId;
+}
+/// 文字列をセル名称IDに変換。
+CellNameId toCellNameId(string id) {return CellNameId(id);}
+/// セル名称の使用者。
+interface ICellNameUser : User!(CellNameId) {
+}
+/// セル名称を使用するクラスの雛形。
+/// 継承か委譲により、セル名称の使用者を容易に実装できる。
+class CellNameUser : ICellNameUser {
+private:
+	UseCounter _uc;
+	string _cellName;
+	CWXPath _cwxPath;
+public:
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	/// このオブジェクトの所有者。
+	@property
+	CWXPath owner() {return _cwxPath;}
+	/// このオブジェクトの所有者のリソースパス。
+	@property
+	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+
+	/// セル名称を設定する。
+	/// Params:
+	/// cellName = セル名称。
+	@property
+	void cellName(string cellName) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
+			if (_cellName != "") _uc.cellName.remove(toCellNameId(_cellName), this);
+			if (cellName != "") _uc.cellName.add(toCellNameId(cellName), this);
+		}
+		_cellName = cellName;
+	}
+
+	/// Returns: セル名称。
+	@property
+	const
+	string cellName() { mixin(S_TRACE);
+		return _cellName;
+	}
+
+	/// 使用回数カウンタ。
+	@property
+	UseCounter useCounter() {return _uc;}
+	/// 使用回数カウンタを登録・除去する。
+	@property
+	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		if (uc && _cellName != "") { mixin(S_TRACE);
+			uc.cellName.add(toCellNameId(_cellName), this);
+		}
+		if (_uc && _cellName != "") { mixin(S_TRACE);
+			_uc.cellName.remove(toCellNameId(_cellName), this);
+		}
+		_uc = uc;
+	}
+	/// ditto
+	void removeUseCounter() { mixin(S_TRACE);
+		if (_uc && _cellName != "") { mixin(S_TRACE);
+			_uc.cellName.remove(toCellNameId(_cellName), this);
+		}
+		_uc = null;
+	}
+	override void change(CellNameId newVal) { mixin(S_TRACE);
+		_cellName = newVal.id;
+	}
+}
+
 /// 使用回数カウンタ。
 /// IDやパスの変更を通知する役割も持つ。
 class UseCounter {
@@ -1491,6 +1564,7 @@ private:
 	UCCont!(GossipId, GossipUser) _gossip;
 	UCCont!(CompleteStampId, CompleteStampUser) _completeStamp;
 	UCCont!(KeyCodeId, KeyCodeUser) _keyCode;
+	UCCont!(CellNameId, CellNameUser) _cellName;
 	UseCounter _child = null;
 public:
 	/// 唯一のコンストラクタ。
@@ -1513,6 +1587,7 @@ public:
 		_gossip = new UCCont!(GossipId, GossipUser);
 		_completeStamp = new UCCont!(CompleteStampId, CompleteStampUser);
 		_keyCode = new UCCont!(KeyCodeId, KeyCodeUser);
+		_cellName = new UCCont!(CellNameId, CellNameUser);
 		if (useChild) { mixin(S_TRACE);
 			_child = new UseCounter(false);
 		}
@@ -1568,6 +1643,9 @@ public:
 	/// ditto
 	@property
 	UCCont!(KeyCodeId, KeyCodeUser) keyCode() {return _keyCode;}
+	/// ditto
+	@property
+	UCCont!(CellNameId, CellNameUser) cellName() {return _cellName;}
 	/// ID・Tの変更を通知する。
 	void change(T)(T oldId, T newId, bool dup = false) { mixin(S_TRACE);
 		static if (is (T == FlagId)) {
@@ -1600,6 +1678,8 @@ public:
 			completeStamp.change(oldId, newId, dup);
 		} else static if (is (T == KeyCodeId)) {
 			keyCode.change(oldId, newId, dup);
+		} else static if (is (T == CellNameId)) {
+			cellName.change(oldId, newId, dup);
 		} else { mixin(S_TRACE);
 			static assert (0);
 		}
@@ -1638,6 +1718,8 @@ public:
 			return _completeStamp.get(id);
 		} else static if (is (T == KeyCodeId)) {
 			return _keyCode.get(id);
+		} else static if (is (T == CellNameId)) {
+			return _cellName.get(id);
 		} else { mixin(S_TRACE);
 			static assert (0);
 		}
@@ -1688,4 +1770,7 @@ public:
 	@property
 	const
 	KeyCodeUser[] values(KeyCodeId id) {return _keyCode.values(id);} /// ditto
+	@property
+	const
+	CellNameUser[] values(CellNameId id) {return _cellName.values(id);} /// ditto
 }

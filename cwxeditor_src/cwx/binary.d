@@ -256,6 +256,14 @@ struct ByteIO {
 	void writeL(short val) {writeBytesL(val);}
 	/// ditto
 	void writeL(ushort val) {writeBytesL(val);}
+
+	/// 可変長整数を読み込む。
+	@property
+	int readExInt() { return .readExInt(&readUByte); }
+
+	/// 可変長整数を書き込む。
+	@property
+	void writeExInt(int val) { .writeExInt(val, &write); }
 }
 
 private template ReadBytesB(I, size_t Len = I.sizeof) {
@@ -565,4 +573,115 @@ version (BigEndian) {
 	}
 } else { mixin(S_TRACE);
 	static assert (0);
+}
+
+/// inpから可変長整数の値を読む。
+int readExInt(InputStream inp) { mixin(S_TRACE);
+	ubyte b;
+	return .readExInt({ inp.read(b); return b; });
+}
+
+/// 可変長整数としてosへiの値を書く。
+void writeExInt(OutputStream os, int i) { mixin(S_TRACE);
+	.writeExInt(i, &os.write);
+}
+
+/// valueを可変長整数としてbytesへ書き込む。
+/// 可変長整数は整数値を7ビットずつに区切り、それぞれの頭に
+/// 「後続の値があるか(1)無いか(0)」を示す1ビットを加えて1バイトとし、
+/// リトルエンディアンで並べたもの。
+/// この形式では符号をビット群の先頭に置けないため、7ビットずつに
+/// 分割する前に全体を1ビット左へシフトし、右端に符号ビットを置く。
+/// offsetにはbytesのどの位置から書き込みを開始するかを指定し、
+/// 実際に読み込まれたバイト数が加算される。
+/// See_Also: readExInt()
+void writeExInt(int value, ubyte[] bytes, ref size_t offset) { mixin(S_TRACE);
+	writeExInt(value, (b) { bytes[offset++] = b; });
+}
+/// ditto
+private void writeExInt(int value, void delegate(ubyte b) write) { mixin(S_TRACE);
+	ubyte b;
+	uint value2;
+	if (value < 0) { mixin(S_TRACE);
+		value2 = -(value + 1) << 1;
+		value2 |= 0x1;
+	} else { mixin(S_TRACE);
+		value2 = value << 1;
+	}
+	do { mixin(S_TRACE);
+		b = value2 & 0x7F;
+		value2 >>= 7;
+		if (value2) b |= 0x80;
+		write(b);
+	} while (value2);
+}
+///
+unittest { mixin(S_TRACE);
+	mixin (UTPerf);
+	ubyte[] write(int value) { mixin(S_TRACE);
+		auto bytes = new ubyte[8];
+		size_t offset = 0;
+		writeExInt(value, bytes, offset);
+		return bytes[0..offset];
+	}
+	assert (write(5430)    == [cast(ubyte)0xEC, 0x54]);
+	assert (write(78)      == [cast(ubyte)0x9C, 0x01]);
+	assert (write(134)     == [cast(ubyte)0x8C, 0x02]);
+	assert (write(1094)    == [cast(ubyte)0x8C, 0x11]);
+	assert (write(102)     == [cast(ubyte)0xCC, 0x01]);
+	assert (write(124)     == [cast(ubyte)0xF8, 0x01]);
+	assert (write(1822798) == [cast(ubyte)0x9C, 0xC1, 0xDE, 0x01]);
+	assert (write(510)     == [cast(ubyte)0xFC, 0x07]);
+	assert (write(1)       == [cast(ubyte)0x02]);
+	assert (write(0)       == [cast(ubyte)0x00]);
+	assert (write(-1)      == [cast(ubyte)0x01]);
+	assert (write(-9)      == [cast(ubyte)0x11]);
+	assert (write(-5000)   == [cast(ubyte)0x8F, 0x4E]);
+	assert (write(-9999)   == [cast(ubyte)0x9D, 0x9C, 0x01]);
+}
+
+/// bytesから可変長整数を読み込む。
+/// offsetにはbytesのどの位置から読み込みを開始するかを指定する。
+/// See_Also: writeExInt()
+int readExInt(in ubyte[] bytes, ref size_t offset) { mixin(S_TRACE);
+	return readExInt(() => bytes[offset++]);
+}
+/// ditto
+private int readExInt(ubyte delegate() read) { mixin(S_TRACE);
+	uint r = 0;
+	size_t i = 0;
+	uint b, b2;
+	while (true) { mixin(S_TRACE);
+		b = read();
+		b2 = b & 0x7F;
+		r |= b2 << i;
+		if ((b & 0x80) == 0) { mixin(S_TRACE);
+			break;
+		}
+		i += 7;
+	}
+	if (r & 0x1) { mixin(S_TRACE);
+		return -(r >> 1) - 1;
+	} else { mixin(S_TRACE);
+		return r >> 1;
+	}
+}
+///
+unittest { mixin(S_TRACE);
+	mixin (UTPerf);
+	size_t offset = 0;
+	offset = 0; assert (readExInt([cast(ubyte)0xEC, 0x54], offset) == 5430);
+	offset = 0; assert (readExInt([cast(ubyte)0x9C, 0x01], offset) == 78);
+	offset = 0; assert (readExInt([cast(ubyte)0x8C, 0x02], offset) == 134);
+	offset = 0; assert (readExInt([cast(ubyte)0x8C, 0x11], offset) == 1094);
+	offset = 0; assert (readExInt([cast(ubyte)0xCC, 0x01], offset) == 102);
+	offset = 0; assert (readExInt([cast(ubyte)0xF8, 0x01], offset) == 124);
+	offset = 0; assert (readExInt([cast(ubyte)0x9C, 0xC1, 0xDE, 0x01], offset) == 1822798);
+	offset = 0; assert (readExInt([cast(ubyte)0xFC, 0x07], offset) == 510);
+	offset = 0; assert (readExInt([cast(ubyte)0x02], offset) == 1);
+	offset = 0; assert (readExInt([cast(ubyte)0x00], offset) == 0);
+	offset = 0; assert (readExInt([cast(ubyte)0x01], offset) == -1);
+	offset = 0; assert (readExInt([cast(ubyte)0x11], offset) == -9);
+	offset = 0; assert (readExInt([cast(ubyte)0x8F, 0x4E], offset) == -5000);
+	offset = 0; assert (readExInt([cast(ubyte)0x9D, 0x9C, 0x01], offset) == -9999);
 }

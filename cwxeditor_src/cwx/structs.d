@@ -442,6 +442,8 @@ struct BgImageS {
 	uint width; /// 幅。
 	uint height; /// 高さ。
 	bool mask; /// マスク。
+	bool foreground; /// カードの前景に描画するか。
+	string cellName; /// イベント操作用のセル名。
 
 	// ImageCell
 	string name; /// ファイル名。拡張子はスキンによるため、拡張子を含めない。
@@ -466,6 +468,9 @@ struct BgImageS {
 	CRGB color1;
 	CRGB color2;
 
+	// PCCell
+	uint pcNumber;
+
 	/// 背景画像セルの設定を生成する。
 	static BgImageS opCall(string name, int x, int y, int width, int height, bool mask) {
 		BgImageS s;
@@ -489,6 +494,8 @@ struct BgImageS {
 		r.newAttr("width", width);
 		r.newAttr("height", height);
 		r.newAttr("mask", mask);
+		r.newAttr("cellName", cellName);
+		r.newAttr("foreground", to!string(foreground));
 		switch (type) {
 		case "image":
 			r.newAttr("name", name);
@@ -519,6 +526,9 @@ struct BgImageS {
 				color2.toNode(g);
 			}
 			break;
+		case "pc":
+			r.newAttr("pcNumber", to!string(pcNumber));
+			break;
 		default:
 			throw new Exception("Unknown type: " ~ type);
 		}
@@ -531,7 +541,9 @@ struct BgImageS {
 		y = node.attr!(int)("y", true);
 		width = node.attr!(uint)("width", true);
 		height = node.attr!(uint)("height", true);
-		mask = node.attr!(bool)("mask", true);
+		mask = node.attr!(bool)("mask", false, false);
+		foreground = node.attr!(bool)("foreground", false, false);
+		cellName = node.attr("cellName", false, "");
 		switch (type) {
 		case "image":
 			name = node.attr!(string)("name", true);
@@ -572,6 +584,10 @@ struct BgImageS {
 				};
 				node.parse();
 			};
+			node.parse();
+			break;
+		case "pc":
+			pcNumber = node.attr!(uint)("pcNumber", true);
 			node.parse();
 			break;
 		default:

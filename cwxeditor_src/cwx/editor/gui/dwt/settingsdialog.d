@@ -997,18 +997,15 @@ private:
 
 			immutable string[] targetVersionVals = [
 				"CardWirthPy",
+				"1.60",
 				"1.50",
 				"1.30",
 				"1.29",
 				"1.28",
 			];
-			immutable string[] targetVersionNames = [
-				_prop.msgs.cardWirthPy,
-				.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[1]),
-				.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[2]),
-				.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[3]),
-				.tryFormat(_prop.msgs.cardWirthWithVersion, targetVersionVals[4]),
-			];
+			string[] targetVersionNames = [
+				_prop.msgs.cardWirthPy.value,
+			] ~ std.algorithm.map!((s) => .tryFormat(_prop.msgs.cardWirthWithVersion, s))(targetVersionVals[1..$]).array();
 			_targetVersion = createEnumC(grp, _prop.msgs.targetVersion, targetVersionVals, targetVersionNames, _targetVersionTbl, _targetVersionTbl2, 4);
 
 			version (Windows) {

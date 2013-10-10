@@ -461,6 +461,7 @@ private:
 	static const ID_GOSSIP = 11;
 	static const ID_COMPLETE_STAMP = 12;
 	static const ID_KEY_CODE = 13;
+	static const ID_CELL_NAME = 14;
 	private void setupIDsImpl2(T)(T[] arr, Combo combo, Spinner spn, ref ulong[int] tbl, bool clear, IncSearch incSearch) { mixin(S_TRACE);
 		ulong[int] tbl2;
 		string oldSel = clear ? "" : combo.getText();
@@ -505,7 +506,7 @@ private:
 				combo.select(0);
 			}
 			spn.setEnabled(false);
-		} else static if (is(T:CouponId) || is(T:GossipId) || is(T:CompleteStampId) || is(T:KeyCodeId)) {
+		} else static if (is(T:CouponId) || is(T:GossipId) || is(T:CompleteStampId) || is(T:KeyCodeId) || is(T:CellNameId)) {
 			string[] arr2;
 			static if (is(T:CouponId)) {
 				arr2 = .allCoupons(_comm, _summ, CouponComboType.AllCoupons);
@@ -515,6 +516,8 @@ private:
 				arr2 = .allCompleteStamps(_comm, _summ);
 			} else static if (is(T:KeyCodeId)) {
 				arr2 = .allKeyCodes(_comm, _summ);
+			} else static if (is(T:CellNameId)) {
+				arr2 = .allCellNames(_comm, _summ);
 			} else static assert (0);
 			foreach (a; arr2) {
 				if (!incSearch.match(a)) continue;
@@ -935,6 +938,7 @@ private:
 				_idKind.add(_prop.msgs.replIDGossip);
 				_idKind.add(_prop.msgs.replIDCompleteStamp);
 				_idKind.add(_prop.msgs.replIDKeyCode);
+				_idKind.add(_prop.msgs.replIDCellName);
 				_idKind.select(0);
 				if (0 <= _prop.var.etc.searchIDKind && _prop.var.etc.searchIDKind < _idKind.getItemCount()) { mixin(S_TRACE);
 					_idKind.select(_prop.var.etc.searchIDKind);
@@ -1700,6 +1704,8 @@ public:
 			_idKind.select(ID_COMPLETE_STAMP);
 		} else static if (is(ID:KeyCodeId)) {
 			_idKind.select(ID_KEY_CODE);
+		} else static if (is(ID:CellNameId)) {
+			_idKind.select(ID_CELL_NAME);
 		} else static assert (0);
 		selIDKind();
 		static if (is(typeof(from.id):ulong)) {
@@ -2609,6 +2615,9 @@ public:
 						} else static if (is(ID:KeyCodeId)) {
 							u.keyCode = cast(string)to;
 							storeID(u.owner, u, cast(string)from, cast(string)to, &u.keyCode);
+						} else static if (is(ID:CellNameId)) {
+							u.cellName = cast(string)to;
+							storeID(u.owner, u, cast(string)from, cast(string)to, &u.cellName);
 						} else {
 							u.id = to;
 							storeID(u.owner, u, from, to, &u.id);
@@ -2664,6 +2673,7 @@ public:
 			case ID_GOSSIP: replaceIDImpl2(toGossipId(from), toGossipId(to)); break;
 			case ID_COMPLETE_STAMP: replaceIDImpl2(toCompleteStampId(from), toCompleteStampId(to)); break;
 			case ID_KEY_CODE: replaceIDImpl2(toKeyCodeId(from), toKeyCodeId(to)); break;
+			case ID_CELL_NAME: replaceIDImpl2(toCellNameId(from), toCellNameId(to)); break;
 			default: assert (0);
 			}
 		} else {
@@ -2765,7 +2775,10 @@ public:
 		} else if (itm.getImage() is _prop.images.keyCode) { mixin(S_TRACE);
 			renameCoupon(itm, toKeyCodeId(itm.getText()), toKeyCodeId(text), uc.keyCode);
 			_comm.refKeyCodes.call();
-		} else assert (0);
+		} else { mixin(S_TRACE);
+			renameCoupon(itm, toCellNameId(itm.getText()), toCellNameId(text), uc.cellName);
+			_comm.refCellNames.call();
+		}
 		_comm.replText.call();
 	}
 	private bool canCouponEdit(TableItem itm, int column) { mixin(S_TRACE);
@@ -2818,6 +2831,7 @@ public:
 			.swap(_oldVal, _newVal);
 			refResultStatus(_result.getItemCount(), false);
 			_comm.replText.call();
+			_summ.changed();
 		}
 		void undo() { mixin(S_TRACE);
 			impl();
@@ -2856,6 +2870,7 @@ public:
 				break;
 			}
 		}
+		_summ.changed();
 	}
 	private void searchCouponImpl(KeyType)(in KeyType[] keys, UseCounter uc, in bool[CWXPath] rangeT, Image delegate() image, ref uint count) { mixin(S_TRACE);
 		foreach (key; keys.dup.sort) { mixin(S_TRACE);
@@ -3784,12 +3799,17 @@ public:
 			auto tc = cast(TextCell) bgi;
 			if (tc) { mixin(S_TRACE);
 				img = _prop.images.textCell;
-				text = .tryFormat(_prop.msgs.searchResultTextCell, tc.name);
+				text = .tryFormat(_prop.msgs.searchResultTextCell, tc.name(_prop.parent));
 			}
 			auto cc = cast(ColorCell) bgi;
 			if (cc) { mixin(S_TRACE);
 				img = _prop.images.colorCell;
-				text = .tryFormat(_prop.msgs.searchResultColorCell, cc.name);
+				text = .tryFormat(_prop.msgs.searchResultColorCell, cc.name(_prop.parent));
+			}
+			auto pc = cast(PCCell)bgi;
+			if (pc) { mixin(S_TRACE);
+				img = _prop.images.pcCell;
+				text = .tryFormat(_prop.msgs.searchResultPCCell, pc.name(_prop.parent));
 			}
 		}
 		auto are = cast(Area) path;

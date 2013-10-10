@@ -669,10 +669,21 @@ alias CouponEventDialog!(CType.BRANCH_COUPON, false, true) BranchCouponDialog;
 alias CouponEventDialog!(CType.GET_COUPON, true, false) GetCouponDialog;
 alias CouponEventDialog!(CType.LOSE_COUPON, false, false) LoseCouponDialog;
 
-/// 終了印とゴシップの設定を行うダイアログ。
-private class OneTextEventDialog(CType Type, string Name, string Get, string Set) : EventDialog {
+/// 一つのテキストの設定を行うダイアログ。
+private class OneTextEventDialog(CType Type, string Name, string Get, string Set, string EngineVersion = "") : EventDialog {
 private:
 	Combo _name;
+
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
+		string[] ws;
+		static if (EngineVersion != "") {
+			if (!_prop.targetVersion(EngineVersion)) { mixin(S_TRACE);
+				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(Type), EngineVersion);
+			}
+		}
+		warning = ws;
+	}
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
@@ -696,6 +707,8 @@ protected:
 				_name = createGossipCombo(comm, summ, comp, &catchMod);
 			} else if (CDetail.fromType(Type).use(CArg.COMPLETE_STAMP)) { mixin(S_TRACE);
 				_name = createCompleteStampCombo(comm, summ, comp, &catchMod);
+			} else if (CDetail.fromType(Type).use(CArg.CELL_NAME)) { mixin(S_TRACE);
+				_name = createCellNameCombo(comm, summ, comp, &catchMod);
 			} else assert (0);
 			mod(_name);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -706,6 +719,7 @@ protected:
 		if (_evt) { mixin(S_TRACE);
 			_name.setText(mixin (Get));
 		}
+		refreshWarning();
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -717,6 +731,9 @@ protected:
 		}
 		if (CDetail.fromType(Type).use(CArg.COMPLETE_STAMP)) { mixin(S_TRACE);
 			comm.refCompleteStamps.call();
+		}
+		if (CDetail.fromType(Type).use(CArg.CELL_NAME)) { mixin(S_TRACE);
+			comm.refCellNames.call();
 		}
 		return true;
 	}
@@ -732,7 +749,10 @@ template EndEventDialog(CType Type) {
 		"_evt.completeStamp", "_evt.completeStamp = text;") EndEventDialog;
 }
 
-/// 背景変更イベントの設定を行うダイアログ。
+alias OneTextEventDialog!(CType.LOSE_BG_IMAGE, "_prop.msgs.cellName",
+	"_evt.cellName", "_evt.cellName = text;", "1.60") LoseBgImageDialog;
+
+/// 背景変更・置換イベントの設定を行うダイアログ。
 class BgImagesDialog : EventDialog {
 private:
 	AbstractArea _refTarget;
@@ -744,6 +764,22 @@ private:
 
 	BgImagesView _view;
 
+	Combo _cellName = null;
+
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
+		string[] ws;
+		if (type is CType.REPLACE_BG_IMAGE) {
+			if (!_prop.targetVersion("1.60")) { mixin(S_TRACE);
+				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.REPLACE_BG_IMAGE), "1.60");
+			}
+			if (_summ.legacy && ubyte.max < _cont.backs.length) {
+				ws ~= .tryFormat(prop.msgs.warningClassicReplBgImageMaxIs255, ubyte.max);
+			}
+		}
+		warning = ws;
+	}
+
 	protected override void refSkin() { mixin(S_TRACE);
 		refreshTS();
 	}
@@ -752,9 +788,9 @@ private:
 		_tsSpeed.setEnabled(!_summ.legacy);
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, AbstractArea refTarget) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, AbstractArea refTarget, CType type) { mixin(S_TRACE);
 		_refTarget = refTarget;
-		super (comm, prop, shell, summ, CType.CHANGE_BG_IMAGE, parent, evt, true, prop.var.bgImagesDlg, false);
+		super (comm, prop, shell, summ, type, parent, evt, true, prop.var.bgImagesDlg, false);
 
 		BgImage[] bgImages;
 		if (evt) { mixin(S_TRACE);
@@ -777,11 +813,26 @@ protected:
 			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _cont, area, _refTarget);
 			mod(_view);
 			_view.setLayoutData(new GridData(GridData.FILL_BOTH));
+			_view.modEvent ~= &refreshWarning;
 		}
 		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
-			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-			comp.setLayout(zeroMarginGridLayout(5, false));
+			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+			if (CDetail.fromType(type).use(CArg.CELL_NAME)) {
+				comp.setLayout(zeroMarginGridLayout(8, false));
+				auto l = new Label(comp, SWT.NONE);
+				l.setText(_prop.msgs.cellName);
+				_cellName = createCellNameCombo(comm, summ, comp, &catchMod);
+				mod(_cellName);
+				_cellName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				auto gd = new GridData(GridData.FILL_VERTICAL);
+				gd.heightHint = 0;
+				(new Label(comp, SWT.SEPARATOR | SWT.VERTICAL)).setLayoutData(gd);
+			} else {
+				comp.setLayout(zeroMarginGridLayout(5, false));
+			}
+
 			auto lt = new Label(comp, SWT.NONE);
 			lt.setText(_prop.msgs.transition);
 			_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
@@ -807,8 +858,10 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
+			if (_cellName) _cellName.setText(_evt.cellName);
 			_tsSpeed.setSelection(_evt.transitionSpeed);
 		} else { mixin(S_TRACE);
+			if (_cellName) _cellName.setText("");
 			_ts.select(0);
 			_tsSpeed.setSelection(.transitionSpeedDef);
 		}
@@ -820,6 +873,9 @@ protected:
 		uint tsSpeed = _tsSpeed.getSelection();
 		_evt.transition = ts;
 		_evt.transitionSpeed = tsSpeed;
+		if (CDetail.fromType(type).use(CArg.CELL_NAME)) {
+			_evt.cellName = _cellName.getText();
+		}
 		return true;
 	}
 }
@@ -2615,6 +2671,130 @@ protected:
 		if (!_evt) _evt = new Content(CType.BRANCH_ROUND, "");
 		_evt.round = _value.getSelection();
 		_evt.comparison3 = _cmps[_cmp.getSelectionIndex()];
+		return true;
+	}
+}
+
+/// 背景再配置の設定を行うダイアログ。
+class MoveBgImageDialog : EventDialog {
+private:
+	Combo _cellName;
+	Button[CoordinateType] _positionType;
+	Spinner _x;
+	Spinner _y;
+	Button[CoordinateType] _sizeType;
+	Spinner _w;
+	Spinner _h;
+
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
+		string[] ws;
+		if (!_prop.targetVersion("1.60")) { mixin(S_TRACE);
+			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(type), "1.60");
+		}
+		warning = ws;
+	}
+
+	private void updateEnabled() { mixin(S_TRACE);
+		auto p = !_positionType[CoordinateType.None].getSelection();
+		_x.setEnabled(p);
+		_y.setEnabled(p);
+		auto s = !_sizeType[CoordinateType.None].getSelection();
+		_w.setEnabled(s);
+		_h.setEnabled(s);
+	}
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
+		super (comm, prop, shell, summ, CType.MOVE_BG_IMAGE, parent, evt, false, null, true);
+	}
+protected:
+	override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(new GridLayout(2, true));
+
+		{ mixin(S_TRACE);
+			auto grp = new Group(area, SWT.NONE);
+			auto ggd = new GridData(GridData.FILL_HORIZONTAL);
+			ggd.horizontalSpan = 2;
+			grp.setLayoutData(ggd);
+			grp.setLayout(new GridLayout(1, true));
+			grp.setText(prop.msgs.cellName);
+
+			_cellName = createCellNameCombo(comm, summ, grp, &catchMod);
+			mod(_cellName);
+			_cellName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		}
+
+		void createGrp(string name, ref Button[CoordinateType] type, ref Spinner x, ref Spinner y, int max1, int max2) { mixin(S_TRACE);
+			auto grp = new Group(area, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(name);
+			grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
+
+			auto comp = new Composite(grp, SWT.NONE);
+			comp.setLayout(new GridLayout(4, false));
+
+			void putRadio(CoordinateType ct) { mixin(S_TRACE);
+				auto radio = new Button(comp, SWT.RADIO);
+				mod(radio);
+				radio.setText(_prop.msgs.coordinateTypeName(ct));
+				.listener(radio, SWT.Selection, &updateEnabled);
+				auto gd = new GridData;
+				gd.horizontalSpan = 4;
+				radio.setLayoutData(gd);
+				type[ct] = radio;
+			}
+			foreach (ct; EnumMembers!CoordinateType) { mixin(S_TRACE);
+				putRadio(ct);
+			}
+
+			Spinner putSpinner(string name, int max) { mixin(S_TRACE);
+				auto l1 = new Label(comp, SWT.NONE);
+				l1.setText(name);
+				auto spn = new Spinner(comp, SWT.BORDER);
+				initSpinner(spn);
+				mod(spn);
+				spn.setMinimum(-max);
+				spn.setMaximum(max);
+				return spn;
+			}
+			x = putSpinner(prop.msgs.horizontalValue, max1);
+			y = putSpinner(prop.msgs.verticalValue, max2);
+		}
+		createGrp(prop.msgs.moveCell, _positionType, _x, _y, prop.var.etc.posLeftMax, prop.var.etc.posTopMax);
+		createGrp(prop.msgs.resizeCell, _sizeType, _w, _h, prop.var.etc.backWidthMax, prop.var.etc.backHeightMax);
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_evt) { mixin(S_TRACE);
+			_cellName.setText(_evt.cellName);
+			_positionType[_evt.positionType].setSelection(true);
+			_x.setSelection(_evt.x);
+			_x.setSelection(_evt.y);
+			_sizeType[_evt.sizeType].setSelection(true);
+			_w.setSelection(_evt.width);
+			_h.setSelection(_evt.height);
+		} else { mixin(S_TRACE);
+			_cellName.setText("");
+			_positionType[CoordinateType.None].setSelection(true);
+			_x.setSelection(0);
+			_x.setSelection(0);
+			_sizeType[CoordinateType.None].setSelection(true);
+			_w.setSelection(0);
+			_h.setSelection(0);
+		}
+		updateEnabled();
+		refreshWarning();
+	}
+
+	override bool apply() { mixin(S_TRACE);
+		if (!_evt) _evt = new Content(type, "");
+		_evt.cellName = _cellName.getText();
+		_evt.positionType = getRadioValue(_positionType);
+		_evt.x = _x.getSelection();
+		_evt.y = _y.getSelection();
+		_evt.sizeType = getRadioValue(_sizeType);
+		_evt.width = _w.getSelection();
+		_evt.height = _h.getSelection();
 		return true;
 	}
 }

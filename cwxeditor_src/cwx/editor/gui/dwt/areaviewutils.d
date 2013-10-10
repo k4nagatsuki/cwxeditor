@@ -189,6 +189,7 @@ PileImage createMessageImage(Commons comm, Props prop) { mixin(S_TRACE);
 	// 特殊文字が無いためシナリオパス不要
 	auto imgData = previewMessage(comm, prop, "", null, "", [""], names, flags, steps);
 	auto img = new PileImage(imgData, rect.x, rect.y, imgData.width, imgData.height, true);
+	img.foreground = true;
 	img.alpha = prop.var.etc.messageAlpha;
 	img.createImage();
 	return img;

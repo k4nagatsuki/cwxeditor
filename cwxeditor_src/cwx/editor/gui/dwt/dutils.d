@@ -709,7 +709,7 @@ class TableComboEdit(C = CCombo) : AbstractTableEdit {
 private:
 	Commons _comm;
 	Props _prop;
-	void delegate(TableItem itm, int column, out string[] strs, out string str) createCombo;
+	void delegate(TableItem itm, int column, out string[] strs, out string str, out bool canIncSearch) createCombo;
 	void delegate(TableItem itm, int column, C combo) editEnd = null;
 	string[] delegate(IncSearch) _filter = null;
 
@@ -723,7 +723,7 @@ public:
 	/// canEdit = テーブルアイテムが編集可能か否かを判定する関数。nullを指定した場合、
 	///           すべてのセルが編集可能になる。
 	this(Commons comm, Props prop, Table table, int editC,
-			void delegate(TableItem itm, int column, out string[] strs, out string str) createCombo,
+			void delegate(TableItem itm, int column, out string[] strs, out string str, out bool canIncSearch) createCombo,
 			void delegate(TableItem itm, int column, C combo) editEnd = null,
 			bool delegate(TableItem itm, int column) canEdit = null,
 			string[] delegate(IncSearch) filter = null) { mixin(S_TRACE);
@@ -738,12 +738,21 @@ public:
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
+	/// ditto
+	this(Commons comm, Props prop, Table table, int editC,
+			void delegate(TableItem itm, int column, out string[] strs, out string str) createCombo,
+			void delegate(TableItem itm, int column, C combo) editEnd = null,
+			bool delegate(TableItem itm, int column) canEdit = null,
+			string[] delegate(IncSearch) filter = null) { mixin(S_TRACE);
+		this (comm, prop, table, editC, (itm, column, out strs, out str, out canIncSearch) => createCombo(itm, column, strs, str), editEnd, canEdit, filter);
+	}
 
 	protected override Control createEditor(TableItem itm, int editC) { mixin(S_TRACE);
 		string[] strs;
 		string str;
-		createCombo(itm, editC, strs, str);
-		return createComboEditor!C(_comm, _prop, itm.getParent(), strs, str, true, _filter);
+		bool canIncSearch;
+		createCombo(itm, editC, strs, str, canIncSearch);
+		return createComboEditor!C(_comm, _prop, itm.getParent(), strs, str, true, canIncSearch ? _filter : null);
 	}
 	protected override void end(Control c) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
@@ -2453,6 +2462,20 @@ string contentText(Commons comm, in Content evt, Summary summ = null) { mixin(S_
 	string loseCardCount() { mixin(S_TRACE);
 		return evt.cardNumber == 0 ? comm.prop.msgs.ctLoseCardAll : .tryFormat(comm.prop.msgs.ctLoseCardCount, evt.cardNumber);
 	}
+	@property
+	string bgImageString() { mixin(S_TRACE);
+		string buf;
+		foreach (i, b; evt.backs) { mixin(S_TRACE);
+			auto ic = cast(ImageCell) b;
+			if (ic) { mixin(S_TRACE);
+				buf ~= contentTextUseID!(CIDKind.Image)(comm, summ, ic.path, comm.prop.msgs.ctChangeBgImageFile, null);
+			} else { mixin(S_TRACE);
+				buf ~= .tryFormat(comm.prop.msgs.ctChangeBgImageFile, b.name(comm.prop.parent));
+			}
+			if (i + 1 < evt.backs.length) buf ~= " ";
+		}
+		return buf;
+	}
 	final switch (evt.type) {
 	case CType.START: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctStart, evt.name);
@@ -2471,21 +2494,11 @@ string contentText(Commons comm, in Content evt, Summary summ = null) { mixin(S_
 			return .tryFormat(comm.prop.msgs.ctChangeArea, a, v, evt.transitionSpeed);
 		}
 	} case CType.CHANGE_BG_IMAGE: { mixin(S_TRACE);
-		string buf;
-		foreach (i, b; evt.backs) { mixin(S_TRACE);
-			auto ic = cast(ImageCell) b;
-			if (ic) { mixin(S_TRACE);
-				buf ~= contentTextUseID!(CIDKind.Image)(comm, summ, ic.path, comm.prop.msgs.ctChangeBgImageFile, null);
-			} else { mixin(S_TRACE);
-				buf ~= .tryFormat(comm.prop.msgs.ctChangeBgImageFile, b.name);
-			}
-			if (i + 1 < evt.backs.length) buf ~= " ";
-		}
 		if (summ && summ.legacy) { mixin(S_TRACE);
-			return .tryFormat(comm.prop.msgs.ctChangeBgImageClassic, buf);
+			return .tryFormat(comm.prop.msgs.ctChangeBgImageClassic, bgImageString);
 		} else { mixin(S_TRACE);
 			string v = comm.prop.msgs.transitionName(evt.transition);
-			return .tryFormat(comm.prop.msgs.ctChangeBgImage, buf, v, evt.transitionSpeed);
+			return .tryFormat(comm.prop.msgs.ctChangeBgImage, bgImageString, v, evt.transitionSpeed);
 		}
 	} case CType.EFFECT: { mixin(S_TRACE);
 		string tt = comm.prop.msgs.targetName(evt.targetNS.m);
@@ -2799,6 +2812,51 @@ string contentText(Commons comm, in Content evt, Summary summ = null) { mixin(S_
 	} case CType.BRANCH_ROUND: { mixin(S_TRACE);
 		string cmp = comm.prop.msgs.comparison3Name(evt.comparison3);
 		return .tryFormat(comm.prop.msgs.ctBranchRound, evt.round, cmp);
+	} case CType.MOVE_BG_IMAGE: { mixin(S_TRACE);
+		string cellName = evt.cellName;
+		if (!cellName || !cellName.length) cellName = comm.prop.msgs.noSelectCellName;
+		string posType = comm.prop.msgs.coordinateTypeName(evt.positionType);
+		string sizeType = comm.prop.msgs.coordinateTypeName(evt.sizeType);
+		string ts = comm.prop.msgs.transitionName(evt.transition);
+		if (evt.positionType !is CoordinateType.None && evt.sizeType !is CoordinateType.None) {
+			if (summ && summ.legacy) { mixin(S_TRACE);
+				return .tryFormat(comm.prop.msgs.ctMoveAndResizeBgImageClassic, cellName, posType, evt.x, evt.y, sizeType, evt.width, evt.height);
+			} else { mixin(S_TRACE);
+				return .tryFormat(comm.prop.msgs.ctMoveAndResizeBgImage, cellName, posType, evt.x, evt.y, sizeType, evt.width, evt.height, ts, evt.transitionSpeed);
+			}
+		} else if (evt.positionType !is CoordinateType.None) { mixin(S_TRACE);
+			if (summ && summ.legacy) { mixin(S_TRACE);
+				return .tryFormat(comm.prop.msgs.ctMoveBgImageClassic, cellName, posType, evt.x, evt.y);
+			} else { mixin(S_TRACE);
+				return .tryFormat(comm.prop.msgs.ctMoveBgImage, cellName, posType, evt.x, evt.y, ts, evt.transitionSpeed);
+			}
+		} else if (evt.sizeType !is CoordinateType.None) { mixin(S_TRACE);
+			if (summ && summ.legacy) { mixin(S_TRACE);
+				return .tryFormat(comm.prop.msgs.ctResizeBgImageClassic, cellName, sizeType, evt.width, evt.height);
+			} else { mixin(S_TRACE);
+				return .tryFormat(comm.prop.msgs.ctResizeBgImage, cellName, sizeType, evt.width, evt.height, ts, evt.transitionSpeed);
+			}
+		} else { mixin(S_TRACE);
+			return .tryFormat(comm.prop.msgs.ctMoveBgImageNoSet, cellName);
+		}
+	} case CType.REPLACE_BG_IMAGE: { mixin(S_TRACE);
+		string cellName = evt.cellName;
+		if (!cellName || !cellName.length) cellName = comm.prop.msgs.noSelectCellName;
+		if (summ && summ.legacy) { mixin(S_TRACE);
+			return .tryFormat(comm.prop.msgs.ctReplaceBgImageClassic, cellName, bgImageString);
+		} else { mixin(S_TRACE);
+			string ts = comm.prop.msgs.transitionName(evt.transition);
+			return .tryFormat(comm.prop.msgs.ctReplaceBgImage, cellName, bgImageString, ts, evt.transitionSpeed);
+		}
+	} case CType.LOSE_BG_IMAGE: { mixin(S_TRACE);
+		string cellName = evt.cellName;
+		if (!cellName || !cellName.length) cellName = comm.prop.msgs.noSelectCellName;
+		if (summ && summ.legacy) { mixin(S_TRACE);
+			return .tryFormat(comm.prop.msgs.ctLoseBgImageClassic, cellName);
+		} else { mixin(S_TRACE);
+			string ts = comm.prop.msgs.transitionName(evt.transition);
+			return .tryFormat(comm.prop.msgs.ctLoseBgImage, cellName, ts, evt.transitionSpeed);
+		}
 	}
 	}
 }

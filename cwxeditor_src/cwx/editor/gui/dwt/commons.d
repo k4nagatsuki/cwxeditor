@@ -358,6 +358,7 @@ class Commons {
 	Dlg!() refGossips;
 	Dlg!() refCompleteStamps;
 	Dlg!() refKeyCodes;
+	Dlg!() refCellNames;
 
 	Dlg!(Summary) closeAdds;
 

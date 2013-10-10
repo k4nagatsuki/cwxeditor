@@ -34,6 +34,8 @@ BgImageS[] createBgImageSs(in BgImage[] bgs) { mixin(S_TRACE);
 		s.width = bg.width;
 		s.height = bg.height;
 		s.mask = bg.mask;
+		s.foreground = bg.foreground;
+		s.cellName = bg.cellName;
 		auto ic = cast(ImageCell) bg;
 		if (ic) { mixin(S_TRACE);
 			s.type = "image";
@@ -63,6 +65,11 @@ BgImageS[] createBgImageSs(in BgImage[] bgs) { mixin(S_TRACE);
 			s.color1 = cc.color1;
 			s.color2 = cc.color2;
 		}
+		auto pc = cast(PCCell)bg;
+		if (pc) { mixin(S_TRACE);
+			s.type = "pc";
+			s.pcNumber = pc.pcNumber;
+		}
 	}
 	return r;
 }
@@ -91,9 +98,14 @@ BgImage[] createBgImages(in Skin skin, in BgImageS[] bgs) { mixin(S_TRACE);
 			r[i] = new ColorCell(b.blendMode, b.gradientDir, b.color1, b.color2,
 				"", b.x, b.y, b.width, b.height, b.mask);
 			break;
+		case "pc":
+			r[i] = new PCCell(b.pcNumber, "", b.x, b.y, b.width, b.height, b.mask);
+			break;
 		default:
 			throw new Exception("Unknown type: " ~ b.type);
 		}
+		r[i].foreground = b.foreground;
+		r[i].cellName = b.cellName;
 	}
 	return r;
 }

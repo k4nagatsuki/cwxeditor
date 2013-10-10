@@ -121,6 +121,7 @@ class Msgs : Properties {
 	auto fileNone = Msg("fileNone", "[ファイルを選択]");
 	auto imageIncluding = Msg("imageIncluding", "[イメージ格納]");
 	auto pcNumber = Msg("pcNumber", "[プレイヤー%1$s]");
+	auto pc = Msg("pc", "%1$s番目のメンバ");
 	auto seNone = Msg("seNone", "[サウンド無し]");
 	auto bgmStop = Msg("bgmStop", "[BGM停止]");
 	auto bgmNone = Msg("bgmNone", "[BGM無し]");
@@ -210,6 +211,7 @@ class Msgs : Properties {
 	auto replIDGossip = Msg("replIDGossip", "ゴシップ");
 	auto replIDCompleteStamp = Msg("replIDCompleteStamp", "終了印");
 	auto replIDKeyCode = Msg("replIDKeyCode", "キーコード");
+	auto replIDCellName = Msg("replIDCellName", "セル名称");
 	auto replSetID = Msg("replSetID", "[IDを直接指定]");
 
 	auto replPath = Msg("replPath", "検索/置換する素材");
@@ -275,6 +277,7 @@ class Msgs : Properties {
 	auto searchResultImageCell = Msg("searchResultBgImage", "背景画像 [%1$s]");
 	auto searchResultTextCell = Msg("searchResultTextCell", "テキストセル [%1$s]");
 	auto searchResultColorCell = Msg("searchResultColorCell", "カラーセル [%1$s]");
+	auto searchResultPCCell = Msg("searchResultPCCell", "プレイヤーキャラクタセル [%1$s]");
 	auto searchResultIds = Msg("searchResultIds", "%1$s [%2$s.%3$s]");
 
 	auto searchResultFlag = Msg("searchResultFlag", "フラグ [%1$s]");
@@ -340,6 +343,11 @@ class Msgs : Properties {
 	auto valued = Msg("valued", "評価条件");
 	auto valuedTalkerMaxMin = Msg("valuedTalkerMaxMin", "最大値 = %1$s\n最小値 = %2$s");
 	auto valuedTalkerMaxMinLess0 = Msg("valuedTalkerMaxMinLess0", "最大値 = %1$s\n最小値 = %2$s (発言しない)");
+	auto cellName = Msg("cellName", "対象セル名称");
+	auto moveCell = Msg("moveCell", "位置の変更");
+	auto resizeCell = Msg("resizeCell", "サイズの変更");
+	auto horizontalValue = Msg("horizontalValue", "横の値");
+	auto verticalValue = Msg("verticalValue", "縦の値");
 
 	auto couponHide = Msg("couponHide", "隠蔽クーポン");
 
@@ -470,6 +478,14 @@ class Msgs : Properties {
 	auto borderingTypeNameOutline = Msg("borderingTypeNameOutline", "形式1");
 	auto borderingTypeNameInline = Msg("borderingTypeNameInline", "形式2");
 
+	const string coordinateTypeName(CoordinateType id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(CoordinateType, "coordinateTypeName"));
+	}
+	auto coordinateTypeNameNone = Msg("coordinateTypeNameNone", "変更無し");
+	auto coordinateTypeNameAbsolute = Msg("coordinateTypeNameAbsolute", "直接指定");
+	auto coordinateTypeNameRelative = Msg("coordinateTypeNameRelative", "現在値基準");
+	auto coordinateTypeNamePercentage = Msg("coordinateTypeNamePercentage", "パーセンテージ");
+
 	/// イベント。
 	auto evtArrow = Msg("evtArrow", "イベント編集");
 
@@ -555,6 +571,9 @@ class Msgs : Properties {
 	auto contentNameBranchKeyCode = Msg("contentNameBranchKeyCode", "キーコード所持分岐");
 	auto contentNameCheckStep = Msg("contentNameCheckStep", "ステップ判定");
 	auto contentNameBranchRound = Msg("contentNameBranchRound", "ラウンド分岐");
+	auto contentNameMoveBgImage = Msg("contentNameMoveBgImage", "背景再配置");
+	auto contentNameReplaceBgImage = Msg("contentNameReplaceBgImage", "背景交換");
+	auto contentNameLoseBgImage = Msg("contentNameLoseBgImage", "背景削除");
 
 	auto msnGroupVitality = Msg("msnGroupVitality", "生命力");
 	auto msnGroupPhysical = Msg("msnGroupPhysical", "肉体");
@@ -612,7 +631,7 @@ class Msgs : Properties {
 	auto motionNameDealConfuseCard = Msg("motionNameDealConfuseCard", "混乱");
 	auto motionNameDealSkillCard = Msg("motionNameDealSkillCard", "特殊技能");
 	auto motionNameSummonBeast = Msg("motionNameSummonBeast", "召喚獣召喚");
-	auto motionNameCancelAction = Msg("motionNameCancelAction", "行動キャンセル"); // CardWirthNext
+	auto motionNameCancelAction = Msg("motionNameCancelAction", "行動キャンセル"); // CardWirth 1.50
 
 	auto dialogText = Msg("dialogText", "%2$s: %1$s");
 	auto dialogTextNoCoupon = Msg("dialogTextNoCoupon", "%1$s");
@@ -709,8 +728,8 @@ class Msgs : Properties {
 	auto ctSubstituteStepFromRandom = Msg("ctSubstituteStepFromRandom", "ランダム値をステップ [%1$s] に代入");
 	auto ctSubstituteFlagFromRandom = Msg("ctSubstituteFlagFromRandom", "ランダム値をフラグ [%1$s] に代入");
 	auto randomValue = Msg("randomValue", "[ランダム]");
-	auto ctRandomSelect = Msg("ctRandomSelect", "%2$sのキャラクターを選択(%1$s)");
-	auto ctRandomSelectN = Msg("ctRandomSelectN", "キャラクターを選択(%1$s)");
+	auto ctRandomSelect = Msg("ctRandomSelect", "%2$sのキャラクタを選択(%1$s)");
+	auto ctRandomSelectN = Msg("ctRandomSelectN", "キャラクタを選択(%1$s)");
 	auto castRange0 = Msg("castRange0", "対象無し");
 	auto castRange1 = Msg("castRange1", "%1$s全体");
 	auto castRange2 = Msg("castRange2", "%1$s全体または%2$s全体");
@@ -719,6 +738,17 @@ class Msgs : Properties {
 	auto ctBranchKeyCode = Msg("ctBranchKeyCode", "キーコード「%1$s」を含む%2$sの有無で分岐(%3$s)");
 	auto ctCheckStep = Msg("ctCheckStep", "ステップ「%1$s」が[%2$s]%3$s後続のイベントが出現");
 	auto ctBranchRound = Msg("ctBranchRound", "バトルが%1$sラウンド%2$sか否かで分岐");
+	auto ctMoveAndResizeBgImage = Msg("ctMoveAndResizeBgImage", "背景「%1$s」を%2$sで右へ%3$s、下へ%4$sポイント移動し、%5$sで%6$s×%7$sにリサイズ(切替方式 = %8$s ウェイト = %9$s)");
+	auto ctMoveBgImage = Msg("ctMoveBgImage", "背景「%1$s」を%2$sで右へ%3$s、下へ%4$sポイント移動(切替方式 = %5$s ウェイト = %6$s)");
+	auto ctResizeBgImage = Msg("ctResizeBgImage", "背景「%1$s」を%2$sで%3$s×%4$sにリサイズ(切替方式 = %5$s ウェイト = %6$s)");
+	auto ctMoveAndResizeBgImageClassic = Msg("ctMoveAndResizeBgImageClassic", "背景「%1$s」を%2$sで右へ%3$s、下へ%4$sポイント移動し、%5$sで%6$s×%7$sにリサイズ");
+	auto ctMoveBgImageClassic = Msg("ctMoveBgImageClassic", "背景「%1$s」を%2$sで右へ%3$s、下へ%4$sポイント移動");
+	auto ctResizeBgImageClassic = Msg("ctResizeBgImageClassic", "背景「%1$s」を%2$sで%3$s×%4$sにリサイズ");
+	auto ctMoveBgImageNoSet = Msg("ctMoveBgImageNoSet", "背景「%1$s」に対して何も行わない");
+	auto ctReplaceBgImage = Msg("ctReplaceBgImage", "背景「%1$s」を置換(背景ファイル = %2$s 切替方式 = %3$s ウェイト = %4$s)");
+	auto ctReplaceBgImageClassic = Msg("ctReplaceBgImageClassic", "背景「%1$s」を置換(背景ファイル = %2$s)");
+	auto ctLoseBgImage = Msg("ctLoseBgImage", "背景「%1$s」を削除(切替方式 = %2$s ウェイト = %3$s)");
+	auto ctLoseBgImageClassic = Msg("ctLoseBgImageClassic", "背景「%1$s」を削除");
 
 	auto nameWithID = Msg("nameWithID", "%1$s.%2$s");
 
@@ -849,6 +879,8 @@ class Msgs : Properties {
 	auto width = Msg("width", "幅");
 	auto height = Msg("height", "高");
 	auto scale = Msg("scale", "拡大率");
+	auto bgImageForeground = Msg("bgImageForeground", "カードよりも前に表示");
+	auto bgImageCellName = Msg("bgImageCellName", "セル名称");
 
 	auto areaViewStatus = Msg("areaViewStatus", "%1$s [%2$s] - %3$s");
 	auto areaViewStatusNoSummary = Msg("areaViewStatusNoSummary", "%1$s [%2$s]");
@@ -880,6 +912,11 @@ class Msgs : Properties {
 	auto back = Msg("back", "背景画像");
 	auto textCell = Msg("textCell", "テキストセル");
 	auto colorCell = Msg("colorCell", "カラーセル");
+	auto pcCell = Msg("pcCell", "プレイヤーキャラクタセル");
+	auto pcCellNoSet = Msg("pcCellNoSet", "(指定無し)");
+	auto cellPCNumber = Msg("cellPCNumber", "表示するキャラクタ");
+
+	auto nameWithCellName = Msg("nameWithCellName", "%1$s - %2$s");
 
 	/// カード/背景配置領域関連。
 	auto dlgTitDropCard = Msg("dlgTitDropCard", "カード画像の追加");
@@ -904,6 +941,8 @@ class Msgs : Properties {
 	auto dlgTitNewTextCell = Msg("dlgTitNewTextCell", "テキストセルの作成");
 	auto dlgTitColorCell = Msg("dlgTitColorCell", "カラーセルの設定");
 	auto dlgTitNewColorCell = Msg("dlgTitNewColorCell", "カラーセルの作成");
+	auto dlgTitPCCell = Msg("dlgTitPCCell", "プレイヤーキャラクタセルの設定");
+	auto dlgTitNewPCCell = Msg("dlgTitNewPCCell", "プレイヤーキャラクタセルの作成");
 	auto dlgTitEnemyCard = Msg("dlgTitEnemyCard", "エネミーカードの設定 [ %1$s ]");
 	auto dlgTitNewEnemyCard = Msg("dlgTitNewEnemyCard", "エネミーカードの作成");
 	auto alphaChannel = Msg("alphaChannel", "不透明度:");
@@ -978,8 +1017,8 @@ class Msgs : Properties {
 	auto partyActive = Msg("partyActive", "動けるメンバ");
 	auto autoSelect = Msg("autoSelect", "自動");
 	auto manualSelect = Msg("manualSelect", "手動");
-	auto selectMemberSuccess = Msg("selectMemberSuccess", "%1$sから%2$sでキャラクターを選択");
-	auto selectMemberFailure = Msg("selectMemberFailure", "%1$sから%2$sでのキャラクター選択をキャンセル");
+	auto selectMemberSuccess = Msg("selectMemberSuccess", "%1$sから%2$sでキャラクタを選択");
+	auto selectMemberFailure = Msg("selectMemberFailure", "%1$sから%2$sでのキャラクタ選択をキャンセル");
 	auto branchAbilitySuccess = Msg("branchAbilitySuccess", "%1$sがレベル%2$sで%3$sと%4$sで行う判定に成功");
 	auto branchAbilityFailure = Msg("branchAbilityFailure", "%1$sがレベル%2$sで%3$sと%4$sで行う判定に失敗");
 	auto branchRandomSuccess = Msg("branchRandomSuccess", "%1$s%%成功");
@@ -1015,10 +1054,10 @@ class Msgs : Properties {
 	auto branchStepCmpEq = Msg("branchStepCmpEq", "ステップ「%1$s」が「%2$s」と同値");
 	auto branchFlagCmpNotEq = Msg("branchFlagCmpNotEq", "フラグ「%1$s」と「%2$s」の値が異なる");
 	auto branchFlagCmpEq = Msg("branchFlagCmpEq", "フラグ「%1$s」が「%2$s」と同値");
-	auto branchRandomSelectSuccess = Msg("branchRandomSelectSuccess", "%2$sのキャラクターを選択(%1$s)");
-	auto branchRandomSelectFailure = Msg("branchRandomSelectFailure", "%2$sのキャラクター選択に失敗(%1$s)");
-	auto branchRandomSelectSuccessN = Msg("branchRandomSelectSuccessN", "キャラクターを選択(%1$s)");
-	auto branchRandomSelectFailureN = Msg("branchRandomSelectFailureN", "キャラクター選択に失敗(%1$s)");
+	auto branchRandomSelectSuccess = Msg("branchRandomSelectSuccess", "%2$sのキャラクタを選択(%1$s)");
+	auto branchRandomSelectFailure = Msg("branchRandomSelectFailure", "%2$sのキャラクタ選択に失敗(%1$s)");
+	auto branchRandomSelectSuccessN = Msg("branchRandomSelectSuccessN", "キャラクタを選択(%1$s)");
+	auto branchRandomSelectFailureN = Msg("branchRandomSelectFailureN", "キャラクタ選択に失敗(%1$s)");
 	auto randomSelectCondition1 = Msg("randomSelectCondition1", "レベル%1$s～%2$s");
 	auto randomSelectCondition2 = Msg("randomSelectCondition2", "状態が%1$s");
 	auto randomSelectCondition3 = Msg("randomSelectCondition3", "レベル%1$s～%2$sで状態が%3$s");
@@ -1319,6 +1358,7 @@ class Msgs : Properties {
 	auto noSelectCoupon = Msg("noSelectCoupon", "(指定無し)");
 	auto noSelectCompleteStamp = Msg("noSelectCompleteStamp", "(指定無し)");
 	auto noSelectGossip = Msg("noSelectGossip", "(指定無し)");
+	auto noSelectCellName = Msg("noSelectCellName", "(指定無し)");
 
 	auto cardId = Msg("cardId", "ID");
 	auto cardName = Msg("cardName", "名称");
@@ -1457,7 +1497,12 @@ class Msgs : Properties {
 	auto warningValuedTalker = Msg("warningValuedTalker", "評価メンバは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningTextCell = Msg("warningTextCell", "テキストセルは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningColorCell = Msg("warningColorCell", "カラーセルは、CardWirth 1.50より前のバージョンでは使用できません。");
+	auto warningPCCell = Msg("warningPCCell", "プレイヤーキャラクタセルは、CardWirth 1.60より前のバージョンでは使用できません。");
+	auto warningBgImageIncluded = Msg("warningBgImageForeground", "背景セルのイメージ格納は、CardWirth 1.60より前のバージョンでは行えません。");
+	auto warningBgImageForeground = Msg("warningBgImageForeground", "カードよりも前の表示は、CardWirth 1.60より前のバージョンでは行えません。");
+	auto warningBgImageCellName = Msg("warningBgImageCellName", "背景セル名称は、CardWirth 1.60より前のバージョンでは設定できません。");
 	auto warningSelectionBarIsMany = Msg("warningSelectionBarIsMany", "選択肢が%1$s件ありますが、%2$s件までしか表示できません。");
+	auto warningClassicReplBgImageMaxIs255 = Msg("warningClassicReplBgImageMaxIs255", "クラシックなシナリオでは置換で配置可能な背景セルは%1$s件までです。");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");
@@ -1751,6 +1796,7 @@ class Msgs : Properties {
 	auto scriptErrorReqID = Msg("scriptErrorReqID", "ここにIDが必要です。");
 	auto scriptErrorUndefinedVar = Msg("scriptErrorUndefinedVar", "存在しない変数です。");
 	auto scriptErrorInvalidValue = Msg("scriptErrorInvalidValue", "値が正しくありません。");
+	auto scriptErrorInvalidCoordinateType = Msg("scriptErrorInvalidCoordinateType", "未知の位置・サイズ形式です。");
 	auto scriptErrorSystem = Msg("scriptErrorSystem", "サイズが大きすぎるため、CWXスクリプトをコンパイルできません。");
 
 	auto dlgTitScriptVarSet = Msg("dlgTitScriptVarSet", "値が未決定の変数の設定");
@@ -1907,6 +1953,7 @@ class Msgs : Properties {
 	auto menuTextNewBack = Msg("menuTextNewBack", "背景の作成");
 	auto menuTextNewTextCell = Msg("menuTextNewTextCell", "テキストセルの作成");
 	auto menuTextNewColorCell = Msg("menuTextNewColorCell", "カラーセルの作成");
+	auto menuTextNewPCCell = Msg("menuTextNewPCCell", "プレイヤーキャラクタセルの作成");
 	auto menuTextAutoArrange = Msg("menuTextAutoArrange", "カードを自動的に並べる");
 	auto menuTextManualArrange = Msg("menuTextManualArrange", "カードの位置を自分で決定する");
 	auto menuTextMask = Msg("menuTextMask", "透明色を使用");

@@ -86,6 +86,7 @@ public:
 			auto cgd = new GridData(GridData.FILL_BOTH);
 			cgd.verticalSpan = 2;
 			compr.setLayoutData(cgd);
+			_group.setTabList([compr, compl]);
 		} else static if (is(C == Combo) || is(C == CCombo)) {
 			// 話者選択等
 			_group = new Composite(parent, style);

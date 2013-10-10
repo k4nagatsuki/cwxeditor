@@ -85,6 +85,7 @@ class FlexEtcProps : Properties {
 	auto backSashR = Prop!(int)("backSashR", 3);
 	auto bgImageSampleWidth = Prop!(int, true)("bgImageSampleWidth", 150);
 	auto bgImageSampleHeight = Prop!(int, true)("bgImageSampleHeight", 150);
+	auto cellPCNumberWidth = Prop!(int, true)("cellPCNumberWidth", 150, false);
 	auto textCellVSashT = Prop!(int)("textCellVSashT", 2);
 	auto textCellVSashB = Prop!(int)("textCellVSashB", 1);
 	auto textCellHSashL = Prop!(int)("textCellHSashL", 2);

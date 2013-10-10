@@ -448,17 +448,17 @@ enum Status {
 	OVERHEAT, /// 激昂(CardWirth Extender 1.30～)。
 	BRAVE, /// 勇敢(CardWirth Extender 1.30～)。
 	PANIC, /// 恐慌(CardWirth Extender 1.30～)。
-	SILENCE, /// 沈黙(CardWirthNext)。
-	FACE_UP, /// 暴露(CardWirthNext)。
-	ANTI_MAGIC, /// 魔法無効化(CardWirthNext)。
-	UP_ACTION, /// 行動力上昇(CardWirthNext)。
-	UP_AVOID, /// 回避力上昇(CardWirthNext)。
-	UP_RESIST, /// 抵抗力上昇(CardWirthNext)。
-	UP_DEFENSE, /// 防御力上昇(CardWirthNext)。
-	DOWN_ACTION, /// 行動力低下(CardWirthNext)。
-	DOWN_AVOID, /// 回避力低下(CardWirthNext)。
-	DOWN_RESIST, /// 抵抗力低下(CardWirthNext)。
-	DOWN_DEFENSE, /// 防御力低下(CardWirthNext)。
+	SILENCE, /// 沈黙(CardWirth 1.50)。
+	FACE_UP, /// 暴露(CardWirth 1.50)。
+	ANTI_MAGIC, /// 魔法無効化(CardWirth 1.50)。
+	UP_ACTION, /// 行動力上昇(CardWirth 1.50)。
+	UP_AVOID, /// 回避力上昇(CardWirth 1.50)。
+	UP_RESIST, /// 抵抗力上昇(CardWirth 1.50)。
+	UP_DEFENSE, /// 防御力上昇(CardWirth 1.50)。
+	DOWN_ACTION, /// 行動力低下(CardWirth 1.50)。
+	DOWN_AVOID, /// 回避力低下(CardWirth 1.50)。
+	DOWN_RESIST, /// 抵抗力低下(CardWirth 1.50)。
+	DOWN_DEFENSE, /// 防御力低下(CardWirth 1.50)。
 	NONE, /// 状態指定無し。
 }
 /// 文字列から状態を生成。
@@ -856,7 +856,7 @@ string fromEffectCardType(EffectCardType t) { mixin(S_TRACE);
 	}
 }
 
-/// 4路比較条件。
+/// 4路比較条件(CardWirth 1.30)。
 enum Comparison4 {
 	Eq, /// nであれば。
 	Ne, /// nでなければ。
@@ -883,7 +883,7 @@ string fromComparison4(Comparison4 t) { mixin(S_TRACE);
 	}
 }
 
-/// 3路比較条件。
+/// 3路比較条件(CardWirth 1.30)。
 enum Comparison3 {
 	Eq, /// nである。
 	Lt, /// nより大きい。
@@ -907,7 +907,7 @@ string fromComparison3(Comparison3 t) { mixin(S_TRACE);
 	}
 }
 
-/// 画像合成モード。
+/// 画像合成モード(CardWirth 1.50)。
 enum BlendMode {
 	Normal, /// 標準。
 	Mask, /// 無効。
@@ -937,7 +937,7 @@ string fromBlendMode(BlendMode t) { mixin(S_TRACE);
 	}
 }
 
-/// グラデーション方向。
+/// グラデーション方向(CardWirth 1.50)。
 enum GradientDir {
 	None, /// グラデーション無し。
 	LeftToRight, /// 左から右へ。
@@ -961,7 +961,7 @@ string fromGradientDir(GradientDir t) { mixin(S_TRACE);
 	}
 }
 
-/// 縁取りタイプ。
+/// 縁取りタイプ(CardWirth 1.50)。
 enum BorderingType {
 	None, /// 縁取り無し。
 	Outline, /// 外側を縁取り。
@@ -982,6 +982,33 @@ string fromBorderingType(BorderingType t) { mixin(S_TRACE);
 	case BorderingType.None: return "None";
 	case BorderingType.Outline: return "Outline";
 	case BorderingType.Inline: return "Inline";
+	}
+}
+
+/// 座標タイプ(CardWirth 1.60)。
+enum CoordinateType {
+	None, /// 座標指定無効。
+	Absolute, /// 絶対位置。
+	Relative, /// 相対位置。
+	Percentage, /// パーセンテージ。
+}
+/// ditto
+CoordinateType toCoordinateType(string name) { mixin(S_TRACE);
+	switch (name) {
+	case "None": return CoordinateType.None;
+	case "Absolute": return CoordinateType.Absolute;
+	case "Relative": return CoordinateType.Relative;
+	case "Percentage": return CoordinateType.Percentage;
+	default: throw new Exception("Unknown coordinate type: " ~ name);
+	}
+}
+/// ditto
+string fromCoordinateType(CoordinateType t) { mixin(S_TRACE);
+	final switch (t) {
+	case CoordinateType.None: return "None";
+	case CoordinateType.Absolute: return "Absolute";
+	case CoordinateType.Relative: return "Relative";
+	case CoordinateType.Percentage: return "Percentage";
 	}
 }
 
@@ -1058,9 +1085,12 @@ enum CType {
 	BRANCH_STEP_CMP, /// ステップ値分岐(CardWirth Extender 1.30～)。
 	BRANCH_FLAG_CMP, /// フラグ値分岐(CardWirth Extender 1.30～)。
 	BRANCH_RANDOM_SELECT, /// ランダム選択(CardWirth Extender 1.30～)。
-	BRANCH_KEY_CODE, /// キーコード所持分岐(CardWirthNext)。
-	CHECK_STEP, /// ステップ判定(CardWirthNext)。
-	BRANCH_ROUND, /// ラウンド分岐(CardWirthNext)。
+	BRANCH_KEY_CODE, /// キーコード所持分岐(CardWirth 1.50)。
+	CHECK_STEP, /// ステップ判定(CardWirth 1.50)。
+	BRANCH_ROUND, /// ラウンド分岐(CardWirth 1.50)。
+	MOVE_BG_IMAGE, /// 背景再配置(CardWirth 1.60)。
+	REPLACE_BG_IMAGE, /// 背景交換(CardWirth 1.60)。
+	LOSE_BG_IMAGE, /// 背景削除(CardWirth 1.60)。
 }
 
 /// コンテントタイプの分類。
@@ -1129,14 +1159,21 @@ enum CArg {
 	CAST_RANGE, /// キャスト選択範囲(CardWirth Extender 1.30～)。
 	LEVEL_MIN, /// 下限レベル(CardWirth Extender 1.30～)。
 	LEVEL_MAX, /// 上限レベル(CardWirth Extender 1.30～)。
-	KEY_CODE_RANGE, /// キーコード所持判定範囲(CardWirthNext)。
-	EFFECT_CARD_TYPE, /// 効果カード種別(CardWirthNext)。
-	KEY_CODE, /// キーコード(CardWirthNext)。
-	COUPONS, /// 得点付きクーポン群(CardWirthNext)。
-	INIT_VALUE, /// 評価メンバ初期点(CardWirthNext)。
-	COMPARISON_4, /// 4路比較条件(CardWirthNext)。
-	COMPARISON_3, /// 3路比較条件(CardWirthNext)。
-	ROUND, /// ラウンド(CardWirthNext)。
+	KEY_CODE_RANGE, /// キーコード所持判定範囲(CardWirth 1.50)。
+	EFFECT_CARD_TYPE, /// 効果カード種別(CardWirth 1.50)。
+	KEY_CODE, /// キーコード(CardWirth 1.50)。
+	COUPONS, /// 得点付きクーポン群(CardWirth 1.50)。
+	INIT_VALUE, /// 評価メンバ初期点(CardWirth 1.50)。
+	COMPARISON_4, /// 4路比較条件(CardWirth 1.50)。
+	COMPARISON_3, /// 3路比較条件(CardWirth 1.50)。
+	ROUND, /// ラウンド(CardWirth 1.50)。
+	CELL_NAME, /// セル名称(CardWirth 1.60)。
+	POSITION_TYPE, /// 位置形式(CardWirth 1.60)。
+	X, /// 位置(CardWirth 1.60)。
+	Y, /// 位置(CardWirth 1.60)。
+	SIZE_TYPE, /// サイズ形式(CardWirth 1.60)。
+	WIDTH, /// サイズ(CardWirth 1.60)。
+	HEIGHT, /// サイズ(CardWirth 1.60)。
 }
 
 /// 後続コンテントのnameの型。
@@ -1215,7 +1252,7 @@ enum MType {
 	DEAL_CONFUSE_CARD,
 	DEAL_SKILL_CARD,
 	SUMMON_BEAST,
-	CANCEL_ACTION, // CardWirthNext
+	CANCEL_ACTION, // CardWirth 1.50
 }
 
 enum MArg {
@@ -1353,6 +1390,7 @@ enum MenuID {
 	NewBack,
 	NewTextCell,
 	NewColorCell,
+	NewPCCell,
 	AutoArrange,
 	ManualArrange,
 	Mask,

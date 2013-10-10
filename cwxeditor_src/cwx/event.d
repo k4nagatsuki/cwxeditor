@@ -111,6 +111,9 @@ private void static_this () { mixin(S_TRACE);
 			CType.SHOW_PARTY,
 			CType.HIDE_PARTY,
 			CType.CHANGE_BG_IMAGE,
+			CType.MOVE_BG_IMAGE,
+			CType.REPLACE_BG_IMAGE,
+			CType.LOSE_BG_IMAGE,
 			CType.REDISPLAY,
 		]
 	];
@@ -192,6 +195,9 @@ private void static_this () { mixin(S_TRACE);
 		CType.BRANCH_KEY_CODE:CDetail("Branch", "KeyCode", CNextType.BOOL, true, [CArg.KEY_CODE_RANGE:"targetkc", CArg.EFFECT_CARD_TYPE:"effectCardType", CArg.KEY_CODE:"keyCode"]),
 		CType.CHECK_STEP:CDetail("Check", "Step", CNextType.BOOL, true, [CArg.STEP:"step", CArg.STEP_VALUE:"value", CArg.COMPARISON_4:"comparison"]),
 		CType.BRANCH_ROUND:CDetail("Branch", "Round", CNextType.BOOL, true, [CArg.ROUND:"round", CArg.COMPARISON_3:"comparison"]),
+		CType.MOVE_BG_IMAGE:CDetail("Move", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SIZE_TYPE:"sizetype", CArg.WIDTH:"width", CArg.WIDTH:"height", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
+		CType.REPLACE_BG_IMAGE:CDetail("Replace", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
+		CType.LOSE_BG_IMAGE:CDetail("Lose", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname"]),
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) { mixin(S_TRACE);
 		_CTYPE_MAP[detail.name][detail.type] = cType;
@@ -445,7 +451,7 @@ public:
 class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		IFlagUser, IStepUser,
 		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser,
-		ICouponUser, IGossipUser, ICompleteStampUser, IStartUser,
+		ICouponUser, IGossipUser, ICompleteStampUser, ICellNameUser, IStartUser,
 		MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHolder,
 		CouponsOwner {
 	private EventTree _tree = null;
@@ -525,6 +531,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.comparison3 = c.comparison3;
 
 		this.round = c.round;
+
+		this.cellName = c.cellName;
+		this.positionType = c.positionType;
+		this.x = c.x;
+		this.y = c.y;
+		this.sizeType = c.sizeType;
+		this.width = c.width;
+		this.height = c.height;
 
 		Motion[] motions;
 		foreach (m; c.motions) { mixin(S_TRACE);
@@ -640,6 +654,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& comparison3 == c.comparison3
 
 			&& round == c.round
+
+			&& cellName == c.cellName
+			&& positionType == c.positionType
+			&& x == c.x
+			&& y == c.y
+			&& sizeType == c.sizeType
+			&& width == c.width
+			&& height == c.height
 
 			&& motions == c.motions
 
@@ -778,6 +800,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.COMPARISON_3, Comparison3, Comparison3.Eq)(d, &comparison3);
 
 		resetValue!(CArg.ROUND, uint, 0)(d, &round);
+
+		resetValue!(CArg.CELL_NAME, string, "")(d, &cellName);
+		resetValue!(CArg.POSITION_TYPE, CoordinateType, CoordinateType.None)(d, &positionType);
+		resetValue!(CArg.X, int, 0)(d, &x);
+		resetValue!(CArg.Y, int, 0)(d, &y);
+		resetValue!(CArg.SIZE_TYPE, CoordinateType, CoordinateType.None)(d, &sizeType);
+		resetValue!(CArg.WIDTH, int, 0)(d, &width);
+		resetValue!(CArg.HEIGHT, int, 0)(d, &height);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
 
@@ -1408,7 +1438,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(int, "levelMax", 0);
 	mixin MaxMin!(int, "levelMax", int.max, 0);
 
-	/// キーコード所持判定範囲(CardWirthNext)。
+	/// キーコード所持判定範囲(CardWirth 1.50)。
 	mixin Prop!(Range, "keyCodeRange", Range.PARTY_AND_BACKPACK);
 	private bool check_keyCodeRange(Range val) { mixin(S_TRACE);
 		switch (val) {
@@ -1416,26 +1446,41 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		default: return false;
 		}
 	}
-	/// 効果カード種別(CardWirthNext)。
+	/// 効果カード種別(CardWirth 1.50)。
 	mixin Prop!(EffectCardType, "effectCardType", EffectCardType.ALL);
-	/// キーコード(CardWirthNext)。
+	/// キーコード(CardWirth 1.50)。
 	mixin Prop!(KeyCodeUser, string, "keyCode", "", ".keyCode", ".keyCode", true);
 
-	/// 評価メンバ初期値(CardWirthNext)。
+	/// 評価メンバ初期値(CardWirth 1.50)。
 	mixin Prop!(int, "initValue", 1);
 
-	/// 4路比較条件(CardWirthNext)。
+	/// 4路比較条件(CardWirth 1.50)。
 	mixin Prop!(Comparison4, "comparison4", Comparison4.Eq);
-	/// 3路比較条件(CardWirthNext)。
+	/// 3路比較条件(CardWirth 1.50)。
 	mixin Prop!(Comparison3, "comparison3", Comparison3.Eq);
 
-	/// ラウンド(CardWirthNext)。
+	/// ラウンド(CardWirth 1.50)。
 	mixin Prop!(uint, "round", 0);
+
+	/// セル名称(CardWirth 1.60)。
+	mixin Prop!(CellNameUser, string, "cellName", "", ".cellName", ".cellName", true);
+	/// 位置形式(CardWirth 1.60)。
+	mixin Prop!(CoordinateType, "positionType", CoordinateType.None);
+	/// X座標(CardWirth 1.60)。
+	mixin Prop!(int, "x", 0);
+	/// Y座標(CardWirth 1.60)。
+	mixin Prop!(int, "y", 0);
+	/// サイズ形式(CardWirth 1.60)。
+	mixin Prop!(CoordinateType, "sizeType", CoordinateType.None);
+	/// 幅(CardWirth 1.60)。
+	mixin Prop!(int, "width", 0);
+	/// 高さ(CardWirth 1.60)。
+	mixin Prop!(int, "height", 0);
 
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
 
-	/// 得点付きクーポン群(CardWirthNext)。
+	/// 得点付きクーポン群(CardWirth 1.50)。
 	mixin Prop!(Coupon[], "coupons", []);
 
 	private void delegate() _change;
@@ -1557,6 +1602,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	override void change(CouponId id) {idChange(id);}
 	override void change(GossipId id) {idChange(id);}
 	override void change(CompleteStampId id) {idChange(id);}
+	override void change(CellNameId id) {idChange(id);}
 
 	// テキスト内で使用されているfont_X.png等のパス。
 	@property
@@ -1693,6 +1739,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.COMPARISON_3, "comparison3", "fromComparison3")(e, d);
 
 		atnPut!(CArg.ROUND, "round", "")(e, d);
+
+		atnPut!(CArg.CELL_NAME, "cellName", "")(e, d);
+		atnPut!(CArg.POSITION_TYPE, "positionType", "fromCoordinateType")(e, d);
+		atnPut!(CArg.X, "x", "")(e, d);
+		atnPut!(CArg.Y, "y", "")(e, d);
+		atnPut!(CArg.SIZE_TYPE, "sizeType", "fromCoordinateType")(e, d);
+		atnPut!(CArg.WIDTH, "width", "")(e, d);
+		atnPut!(CArg.HEIGHT, "height", "")(e, d);
 
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
@@ -1847,6 +1901,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.COMPARISON_3, "comparison3", "toComparison3")(en, d, r);
 
 		cfnPut!(CArg.ROUND, "round", "to!(uint)")(en, d, r);
+
+		cfnPut!(CArg.CELL_NAME, "round", "to!(uint)")(en, d, r);
+		cfnPut!(CArg.POSITION_TYPE, "positionType", "toCoordinateType")(en, d, r);
+		cfnPut!(CArg.X, "x", "to!(int)")(en, d, r);
+		cfnPut!(CArg.Y, "y", "to!(int)")(en, d, r);
+		cfnPut!(CArg.SIZE_TYPE, "sizeType", "toCoordinateType")(en, d, r);
+		cfnPut!(CArg.WIDTH, "width", "to!(int)")(en, d, r);
+		cfnPut!(CArg.HEIGHT, "height", "to!(int)")(en, d, r);
 
 		// 多少複雑なもの
 		if (d.use(CArg.TRANSITION)) { mixin(S_TRACE);

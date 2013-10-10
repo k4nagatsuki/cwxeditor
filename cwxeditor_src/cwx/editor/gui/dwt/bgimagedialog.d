@@ -34,6 +34,7 @@ import cwx.editor.gui.dwt.chooser;
 
 import std.algorithm : countUntil;
 import std.traits;
+import std.conv;
 
 import org.eclipse.swt.all;
 
@@ -58,8 +59,22 @@ private:
 	Combo _easy;
 	bool _selected;
 
+	Button _foreground;
+	Combo _cellName;
+
 	void refreshWarning() { mixin(S_TRACE);
 		// 処理無し
+	}
+	@property
+	string[] warningCommon() { mixin(S_TRACE);
+		string[] ws;
+		if (_foreground.getSelection() && !_prop.targetVersion("1.60")) { mixin(S_TRACE);
+			ws ~= _prop.msgs.warningBgImageForeground;
+		}
+		if (_cellName.getText() != "" && !_prop.targetVersion("1.60")) { mixin(S_TRACE);
+			ws ~= _prop.msgs.warningBgImageCellName;
+		}
+		return ws;
 	}
 
 	class SModL : ModifyListener {
@@ -145,7 +160,7 @@ protected:
 		grp.setText(_prop.msgs.cardPosition);
 		grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 		auto comp2 = new Composite(grp, SWT.NONE);
-		comp2.setLayout(new GridLayout(mask ? 5 : 4, false));
+		comp2.setLayout(new GridLayout(mask ? 6 : 5, false));
 		Spinner createS(string name, int max, int min) { mixin(S_TRACE);
 			auto comp3 = new Composite(comp2, SWT.NONE);
 			auto gl = new GridLayout(2, false);
@@ -175,31 +190,49 @@ protected:
 			_mask.setToolTipText(_prop.buildTool(MenuID.Mask));
 			_mask.addSelectionListener(new MaskListener);
 		}
+		_foreground = new Button(comp2, SWT.CHECK);
+		mod(_foreground);
+		_foreground.setText(_prop.msgs.bgImageForeground);
+		.listener(_foreground, SWT.Selection, &refreshWarning);
 		return grp;
 	}
 	Composite createEasySettingsPanel(Composite comp) { mixin(S_TRACE);
 		auto comp2 = new Composite(comp, SWT.NONE);
 		comp2.setLayout(new GridLayout(2, false));
-		auto l = new Label(comp2, SWT.NONE);
-		l.setText(_prop.msgs.bgImageSettings);
-		_easy = new Combo(comp2, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-		_easy.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
-		_easy.add(_prop.msgs.bgImageSettingCustom);
-		if (cast(ImageCell) back) { mixin(S_TRACE);
-			_easy.add(_prop.msgs.bgImageSettingOriginal);
+		{
+			auto grp = new Group(comp2, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setLayout(new GridLayout(1, true));
+			grp.setText(_prop.msgs.bgImageCellName);
+			_cellName = createCellNameCombo(_comm, _summ, grp, &catchMod);
+			mod(_cellName);
+			_cellName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			.listener(_cellName, SWT.Selection, &refreshWarning);
 		}
-		foreach (bs; _prop.var.etc.bgImageSettings) { mixin(S_TRACE);
-			_easy.add(bs.name);
+		{
+			auto grp = new Group(comp2, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+			grp.setLayout(new GridLayout(1, true));
+			grp.setText(_prop.msgs.bgImageSettings);
+			_easy = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+			_easy.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+			_easy.add(_prop.msgs.bgImageSettingCustom);
+			if (cast(ImageCell) back) { mixin(S_TRACE);
+				_easy.add(_prop.msgs.bgImageSettingOriginal);
+			}
+			foreach (bs; _prop.var.etc.bgImageSettings) { mixin(S_TRACE);
+				_easy.add(bs.name);
+			}
+			_easy.addSelectionListener(new SettingsListener);
+			_easy.select(0);
 		}
-		_easy.addSelectionListener(new SettingsListener);
-		_easy.select(0);
 		return comp2;
 	}
 	void createPosPanel(Composite comp, bool mask) { mixin(S_TRACE);
 		auto posPanel = createPositionPanel(comp, mask);
 		posPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		auto easyPanel = createEasySettingsPanel(comp);
-		easyPanel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+		easyPanel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		scope p = comp.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = p.x;
@@ -222,6 +255,8 @@ protected:
 			_w.setSelection(back.width);
 			_h.setSelection(back.height);
 			if (_mask) _mask.setSelection(back.mask);
+			_foreground.setSelection(back.foreground);
+			_cellName.setText(back.cellName);
 		} else { mixin(S_TRACE);
 			if (_flag) { mixin(S_TRACE);
 				_flag.selected = "";
@@ -231,6 +266,8 @@ protected:
 			_w.setSelection(0);
 			_h.setSelection(0);
 			if (_mask) _mask.setSelection(false);
+			_foreground.setSelection(false);
+			_cellName.setText("");
 		}
 		auto spnl = new SModL;
 		_w.addModifyListener(spnl);
@@ -244,6 +281,8 @@ protected:
 		back.width = _w.getSelection();
 		back.height = _h.getSelection();
 		if (_mask) back.mask = _mask.getSelection();
+		back.foreground = _foreground.getSelection();
+		back.cellName = _cellName.getText();
 		_create = false;
 	}
 
@@ -263,7 +302,7 @@ private:
 	ImageSelect!(MtType.BG_IMG) _imgPath;
 
 	void refreshWarning() { mixin(S_TRACE);
-		warning = _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ ? _summ.legacy : false, false, _prop.var.etc.targetVersion);
+		warning = warningCommon ~ _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ ? _summ.legacy : false, false, _prop.var.etc.targetVersion);
 	}
 
 	class SDListener : DisposeListener {
@@ -300,9 +339,10 @@ protected:
 			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayout(new GridLayout(1, false));
 			void imgs(Composite parent) { mixin(S_TRACE);
+				bool including = _back && isBinImg(_back.path);
 				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, SWT.NONE, _comm, _prop, _summ,
-					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, false, false,
-					() => "", &selectEasySetting);
+					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, including, true,
+					() => _cellName.getText(), &selectEasySetting);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.modEvent ~= () =>_easy.select(0);
@@ -393,7 +433,7 @@ private:
 	Spinner _borderingWidth;
 
 	void refreshWarning() { mixin(S_TRACE);
-		string[] ws = [];
+		string[] ws = warningCommon;
 		if (!_prop.targetVersion("1.50")) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningTextCell;
 		}
@@ -758,7 +798,7 @@ private:
 	ColorPicker _color2;
 
 	void refreshWarning() { mixin(S_TRACE);
-		string[] ws = [];
+		string[] ws = warningCommon;
 		if (!_prop.targetVersion("1.50")) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningColorCell;
 		}
@@ -1039,5 +1079,105 @@ class ColorPicker : Composite {
 		_button.setEnabled(enabled);
 		if (_alpha) _alpha.setEnabled(enabled);
 		setEnabled(enabled);
+	}
+}
+
+/// プレイヤーキャラクタセルの設定を行う。
+class PCCellDialog : BgImageDialog {
+private:
+	PCCell _back;
+
+	Canvas _prevPanel;
+	Combo _pcNumber;
+
+	void refreshWarning() { mixin(S_TRACE);
+		string[] ws = warningCommon;
+		if (!_prop.targetVersion("1.60")) { mixin(S_TRACE);
+			ws ~= _prop.msgs.warningPCCell;
+		}
+		warning = ws;
+	}
+	class Paint : PaintListener {
+		override void paintControl(PaintEvent e) { mixin(S_TRACE);
+			auto pcNum = _pcNumber.getSelectionIndex() + 1;
+			drawCenterText(dwtData(_prop.looks.pcNumberFont(_comm.skin.legacy)), e.gc, _prevPanel.getClientArea(), .text(pcNum));
+		}
+	}
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, PCCell back, bool create) { mixin(S_TRACE);
+		_back = back;
+		DSize size;
+		if (summ) { mixin(S_TRACE);
+			size = prop.var.areaPCCellDlg;
+		} else { mixin(S_TRACE);
+			size = prop.var.areaPCCellNFDlg;
+		}
+		super (comm, summ, shell, create ? prop.msgs.dlgTitNewPCCell : prop.msgs.dlgTitPCCell,
+			prop.images.pcCell, true, size, create);
+	}
+
+	@property
+	override
+	BgImage back() { mixin(S_TRACE);
+		return _back;
+	}
+protected:
+	override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(zeroGridLayout(1));
+		auto comp = new Composite(area, SWT.NONE);
+		comp.setLayout(new GridLayout(1, false));
+		{ mixin(S_TRACE);
+			auto comp2 = new Composite(comp, SWT.NONE);
+			comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
+			comp2.setLayout(zeroMarginGridLayout(2, false));
+			{
+				auto grp = new Group(comp2, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				grp.setLayout(new GridLayout(1, true));
+				grp.setText(_prop.msgs.cellPCNumber);
+
+				_pcNumber = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+				mod(_pcNumber);
+				_pcNumber.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+				_pcNumber.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				foreach (i; 0 .. _prop.looks.partyCardXY.length) {
+					_pcNumber.add(.tryFormat(_prop.msgs.pc, i + 1));
+				}
+				_pcNumber.select(0);
+
+				_prevPanel = new Canvas(grp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
+				_prevPanel.addPaintListener(new Paint);
+				auto ppgd = new GridData(GridData.FILL_BOTH);
+				ppgd.widthHint = _prop.var.etc.cellPCNumberWidth;
+				_prevPanel.setLayoutData(ppgd);
+				.listener(_pcNumber, SWT.Selection, &_prevPanel.redraw);
+			}
+			if (_summ) { mixin(S_TRACE);
+				createFlagPanel(comp2).setLayoutData(new GridData(GridData.FILL_BOTH));
+			}
+		}
+		createPosPanel(comp, false);
+
+		setFirstParams(area);
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (!_create) { mixin(S_TRACE);
+			_pcNumber.select(.min(_back.pcNumber - 1, _pcNumber.getItemCount() - 1));
+		} else { mixin(S_TRACE);
+			_pcNumber.select(0);
+		}
+		refreshWarning();
+	}
+
+	override bool apply() { mixin(S_TRACE);
+		if (!_back) { mixin(S_TRACE);
+			_back = new PCCell;
+		}
+		_back.pcNumber = _pcNumber.getSelectionIndex() + 1;
+
+		applyParams(_back);
+		getShell().setText(_prop.msgs.dlgTitPCCell);
+		return true;
 	}
 }

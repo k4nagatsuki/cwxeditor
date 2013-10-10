@@ -891,13 +891,7 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 	int digitL = 0;
 	int digitR = -1;
 	foreach_reverse (i, c; base) { mixin(S_TRACE);
-		if (c == '-') { mixin(S_TRACE);
-			if (digitR != -1) { mixin(S_TRACE);
-				digit.insertInPlace(0, c);
-				digitL = i;
-				break;
-			}
-		} else if (isDigit(c)) { mixin(S_TRACE);
+		if (isDigit(c)) { mixin(S_TRACE);
 			digit.insertInPlace(0, c);
 			if (digitR == -1) { mixin(S_TRACE);
 				digitR = i + 1;
@@ -937,6 +931,7 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 	assert (createNewName("aaa", (string n) {return n != "aaa" && n != "aaa(2)";}, false) == "aaa(3)");
 	assert (createNewName("aaa (2)", (string n) {return n != "aaa (2)" && n != "aaa (3)";}, true) == "aaa (4)");
 	assert (createNewName("aaa(2)", (string n) {return n != "aaa(2)" && n != "aaa(3)";}, false) == "aaa(4)");
+	assert (createNewName("1-2", (string n) {return n != "1-2" && n != "1-3" && n != "1-4";}, false) == "1-5");
 }
 /// ditto
 string createNewFileName(string path, bool isdir) { mixin(S_TRACE);

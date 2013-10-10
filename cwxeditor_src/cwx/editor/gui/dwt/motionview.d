@@ -990,7 +990,7 @@ public:
 				createMT(this, bar, g, MType.DEAL_DISTANCE_CARD);
 				createMT(this, bar, g, MType.DEAL_CONFUSE_CARD);
 				createMT(this, bar, g, MType.DEAL_SKILL_CARD);
-				createMT(this, bar, g, MType.CANCEL_ACTION); // CardWirthNext
+				createMT(this, bar, g, MType.CANCEL_ACTION); // CardWirth 1.50
 			}
 			{ mixin(S_TRACE);
 				string g = _prop.msgs.msnGroupBeast;

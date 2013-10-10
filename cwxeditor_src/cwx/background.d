@@ -10,9 +10,11 @@ import cwx.types;
 import cwx.textholder;
 import cwx.card;
 import cwx.system;
+import cwx.props;
 
 import std.path;
 import std.string;
+import std.conv;
 
 /// エリア絡みの例外。
 public class AreaException : Exception {
@@ -30,17 +32,13 @@ public:
 	/// XML要素名。
 	static immutable XML_NAME = "BgImage";
 
+	override
 	const
 	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto b = cast(ImageCell) o;
 		return b
 			&& path == b.path
-			&& flag == b.flag
-			&& x == b.x
-			&& y == b.y
-			&& width == b.width
-			&& height == b.height
-			&& mask == b.mask;
+			&& super.opEquals(o);
 	}
 
 	/// 空のインスタンスを生成する。
@@ -66,7 +64,13 @@ public:
 	@property
 	const
 	override
-	string name() { return baseName(path); }
+	string name(in CProps prop) { mixin(S_TRACE);
+		if (cellName == "") { mixin(S_TRACE);
+			return baseName(path);
+		} else { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.nameWithCellName, cellName, baseName(path));
+		}
+	}
 
 	@property
 	const
@@ -106,43 +110,22 @@ public:
 	void toNode(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
 		auto e = node.newElement(XML_NAME);
-		e.newAttr("mask", fromBool(_mask));
 		e.newElement("ImagePath", encodePath(_user.path));
-		e.newElement("Flag", super.flag);
-		auto ln = e.newElement("Location");
-		ln.newAttr("left", _x);
-		ln.newAttr("top", _y);
-		auto sn = e.newElement("Size");
-		sn.newAttr("width", _w);
-		sn.newAttr("height", _h);
+		toNodeCommon(e, true);
 	}
 	static ImageCell createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		if (node.name != XML_NAME) throw new AreaException("Node is not BgImage");
-		bool mask = parseBool(node.attr("mask", true));
-		string path = "";
-		string flag = "";
-		int x = 0, y = 0;
-		int w = 0, h = 0;
+		string path;
 		node.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
 			path = decodePath(n.value);
 		};
-		node.onTag["Flag"] = (ref XNode n) { mixin(S_TRACE);
-			flag = n.value;
-		};
-		node.onTag["Location"] = (ref XNode n) { mixin(S_TRACE);
-			x = n.attr!(int)("left", true);
-			y = n.attr!(int)("top", true);
-		};
-		node.onTag["Size"] = (ref XNode n) { mixin(S_TRACE);
-			w = n.attr!(int)("width", true);
-			h = n.attr!(int)("height", true);
-		};
-		node.parse();
-		return new ImageCell(path, flag, x, y, w, h, mask);
+		auto r = new ImageCell(path, "", 0, 0, 0, 0, false);
+		r.fromNodeCommon(node);
+		return r;
 	}
 }
 
-/// テキストセル(CardWirthNext)。
+/// テキストセル(CardWirth 1.50)。
 public class TextCell : BgImage, ISimpleTextHolder {
 private:
 	SimpleTextHolder _text = null;
@@ -190,6 +173,7 @@ public:
 		_borderingWidth = borderingWidth;
 	}
 
+	override
 	const
 	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto b = cast(TextCell) o;
@@ -206,18 +190,19 @@ public:
 			&& borderingType == b.borderingType
 			&& borderingColor == b.borderingColor
 			&& borderingWidth == b.borderingWidth
-			&& flag == b.flag
-			&& x == b.x
-			&& y == b.y
-			&& width == b.width
-			&& height == b.height
-			&& mask == b.mask;
+			&& super.opEquals(o);
 	}
 
 	@property
 	const
 	override
-	string name() { return text.singleLine; }
+	string name(in CProps prop) { mixin(S_TRACE);
+		if (cellName == "") { mixin(S_TRACE);
+			return text.singleLine;
+		} else { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.nameWithCellName, cellName, text.singleLine);
+		}
+	}
 
 	@property
 	const
@@ -409,13 +394,7 @@ public:
 			bClr.newAttr("a", borderingColor.a);
 		}
 
-		e.newElement("Flag", super.flag);
-		auto ln = e.newElement("Location");
-		ln.newAttr("left", _x);
-		ln.newAttr("top", _y);
-		auto sn = e.newElement("Size");
-		sn.newAttr("width", _w);
-		sn.newAttr("height", _h);
+		toNodeCommon(e, true);
 	}
 	static TextCell createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		if (node.name != XML_NAME) throw new AreaException("Node is not TextCell");
@@ -464,28 +443,14 @@ public:
 			n.parse();
 		};
 
-		string flag = "";
-		int x = 0, y = 0;
-		int w = 0, h = 0;
-
-		node.onTag["Flag"] = (ref XNode n) { mixin(S_TRACE);
-			flag = n.value;
-		};
-		node.onTag["Location"] = (ref XNode n) { mixin(S_TRACE);
-			x = n.attr!(int)("left", true);
-			y = n.attr!(int)("top", true);
-		};
-		node.onTag["Size"] = (ref XNode n) { mixin(S_TRACE);
-			w = n.attr!(int)("width", true);
-			h = n.attr!(int)("height", true);
-		};
-		node.parse();
-		return new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
-			borderingType, borderingColor, borderingWidth, flag, x, y, w, h, false);
+		auto r = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
+			borderingType, borderingColor, borderingWidth, "", 0, 0, 0, 0, false);
+		r.fromNodeCommon(node);
+		return r;
 	}
 }
 
-/// カラーセル(CardWirthNext)。
+/// カラーセル(CardWirth 1.50)。
 public class ColorCell : BgImage {
 private:
 	BlendMode _blendMode = BlendMode.Normal;
@@ -511,6 +476,7 @@ public:
 		_color2 = color2;
 	}
 
+	override
 	const
 	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto b = cast(ColorCell) o;
@@ -519,23 +485,22 @@ public:
 			&& gradientDir == b.gradientDir
 			&& color1 == b.color1
 			&& color2 == b.color2
-			&& flag == b.flag
-			&& x == b.x
-			&& y == b.y
-			&& width == b.width
-			&& height == b.height
-			&& mask == b.mask;
+			&& super.opEquals(o);
 	}
 
 	@property
 	const
 	override
-	string name() { mixin(S_TRACE);
+	string name(in CProps prop) { mixin(S_TRACE);
 		string name = .tryFormat("#%02X%02X%02X", color1.r, color1.g, color1.b);
-		if (gradientDir is GradientDir.None) { mixin(S_TRACE);
-			return name;
+		if (gradientDir !is GradientDir.None) { mixin(S_TRACE);
+			name ~= .tryFormat("-#%02X%02X%02X", color2.r, color2.g, color2.b);
 		}
-		return name ~ .tryFormat("-#%02X%02X%02X", color2.r, color2.g, color2.b);
+		if (cellName == "") { mixin(S_TRACE);
+			return name;
+		} else { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.nameWithCellName, cellName, name);
+		}
 	}
 
 	@property
@@ -618,13 +583,7 @@ public:
 			clr2.newAttr("a", color2.a);
 		}
 
-		e.newElement("Flag", super.flag);
-		auto ln = e.newElement("Location");
-		ln.newAttr("left", _x);
-		ln.newAttr("top", _y);
-		auto sn = e.newElement("Size");
-		sn.newAttr("width", _w);
-		sn.newAttr("height", _h);
+		toNodeCommon(e, true);
 	}
 	static ColorCell createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		if (node.name != XML_NAME) throw new AreaException("Node is not TextCell");
@@ -654,31 +613,103 @@ public:
 			n.parse();
 		};
 
-		string flag = "";
-		int x = 0, y = 0;
-		int w = 0, h = 0;
-
-		node.onTag["Flag"] = (ref XNode n) { mixin(S_TRACE);
-			flag = n.value;
-		};
-		node.onTag["Location"] = (ref XNode n) { mixin(S_TRACE);
-			x = n.attr!(int)("left", true);
-			y = n.attr!(int)("top", true);
-		};
-		node.onTag["Size"] = (ref XNode n) { mixin(S_TRACE);
-			w = n.attr!(int)("width", true);
-			h = n.attr!(int)("height", true);
-		};
-		node.parse();
-		return new ColorCell(blendMode, gradientDir, color1, color2, flag, x, y, w, h, false);
+		auto r = new ColorCell(blendMode, gradientDir, color1, color2, "", 0, 0, 0, 0, false);
+		r.fromNodeCommon(node);
+		return r;
 	}
 }
 
-public abstract class BgImage : FlagUser, CWXPath {
+/// PCセル(CardWirth 1.60)。
+public class PCCell : BgImage {
+private:
+	uint _pcNumber = 0;
+public:
+	/// XML要素名。
+	static immutable XML_NAME = "PCCell";
+
+	/// 空のインスタンスを生成する。
+	this () { mixin(S_TRACE);
+		super ("", 0, 0, 0, 0, false);
+	}
+
+	/// パラメータを指定してインスタンスを生成する。
+	this (uint pcNumber, string flag, int x, int y, int w, int h, bool mask) { mixin(S_TRACE);
+		super (flag, x, y, w, h, mask);
+		_pcNumber = pcNumber;
+	}
+
+	override
+	const
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+		auto b = cast(PCCell) o;
+		return b
+			&& pcNumber == b.pcNumber
+			&& super.opEquals(o);
+	}
+
+	@property
+	const
+	override
+	string name(in CProps prop) { mixin(S_TRACE);
+		string name = _pcNumber == 0 ? prop.msgs.pcCellNoSet : .tryFormat(prop.msgs.pc, _pcNumber);
+		if (cellName == "") { mixin(S_TRACE);
+			return name;
+		} else { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.nameWithCellName, cellName, name);
+		}
+	}
+
+	@property
+	const
+	override
+	BgImage dup() { mixin(S_TRACE);
+		return new PCCell(pcNumber, flag, x, y, width, height, mask);
+	}
+
+	/// 表示するPCの位置(1～6)。
+	@property
+	const
+	uint pcNumber() { mixin(S_TRACE);
+		return _pcNumber;
+	}
+	/// ditto
+	@property
+	void pcNumber(uint pcNumber) { mixin(S_TRACE);
+		if (_pcNumber != pcNumber) changed();
+		_pcNumber = pcNumber;
+	}
+
+	override
+	const
+	void toNode(ref XNode node, XMLOption opt) { mixin(S_TRACE);
+		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
+		auto e = node.newElement(XML_NAME);
+
+		e.newElement("PCNumber", .text(pcNumber));
+
+		toNodeCommon(e, true);
+	}
+	static PCCell createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
+		if (node.name != XML_NAME) throw new AreaException("Node is not PCCell");
+		uint pcNumber = 0;
+
+		node.onTag["PCNumber"] = (ref XNode n) { mixin(S_TRACE);
+			pcNumber = to!uint(n.value);
+		};
+
+		auto r = new PCCell(pcNumber, "", 0, 0, 0, 0, false);
+		r.fromNodeCommon(node);
+		return r;
+	}
+}
+
+public abstract class BgImage : FlagUser, ICellNameUser, CWXPath {
 private:
 	bool _mask = false;
 	int _x, _y;
 	int _w, _h;
+	CellNameUser _cellName;
+	bool _foreground = false;
 	void delegate() _change;
 public:
 	/// XML要素名(複数)。
@@ -692,12 +723,27 @@ public:
 		_w = w;
 		_h = h;
 		_mask = mask;
+		_cellName = new CellNameUser(this);
+	}
+
+	const
+	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+		auto b = cast(BgImage)o;
+		return b
+			&& flag == b.flag
+			&& x == b.x
+			&& y == b.y
+			&& width == b.width
+			&& height == b.height
+			&& mask == b.mask
+			&& cellName == b.cellName
+			&& foreground == b.foreground;
 	}
 
 	/// この背景画像を簡単に表現した名前を返す。
 	@property
 	const
-	string name();
+	string name(in CProps prop);
 
 	/// コピーを生成する。
 	@property
@@ -713,6 +759,20 @@ public:
 	/// 変更を通知。
 	protected void changed() { mixin(S_TRACE);
 		if (_change) _change();
+	}
+
+	@property
+	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
+		super.setUseCounter(uc);
+		_cellName.setUseCounter(uc);
+	}
+	/// ditto
+	override void removeUseCounter() { mixin(S_TRACE);
+		super.removeUseCounter();
+		_cellName.removeUseCounter();
+	}
+	override void change(CellNameId newVal) { mixin(S_TRACE);
+		_cellName.change(newVal);
 	}
 
 	/// 透明色を使用するか。
@@ -779,6 +839,28 @@ public:
 		_h = h;
 	}
 
+	/// イベントでの操作に使用するためのセル名。
+	@property
+	const
+	string cellName() { return _cellName.cellName; }
+	/// ditto
+	@property
+	void cellName(string v) { mixin(S_TRACE);
+		if (_cellName.cellName != v) changed();
+		_cellName.cellName = v;
+	}
+
+	/// セルを前景として表示するか。
+	@property
+	const
+	bool foreground() { return _foreground; }
+	/// ditto
+	@property
+	void foreground(bool v) { mixin(S_TRACE);
+		if (_foreground != v) changed();
+		_foreground = v;
+	}
+
 	override void change(FlagId id) { mixin(S_TRACE);
 		super.change(id);
 	}
@@ -787,19 +869,16 @@ public:
 		assert (node.name == XML_NAME_M);
 		BgImage[] bgImgs;
 		node.onTag[ImageCell.XML_NAME] = (ref XNode bgn) { mixin(S_TRACE);
-			auto bg = ImageCell.createFromNode(bgn, ver);
-			if (bg.path.length > 0) { mixin(S_TRACE);
-				bgImgs ~= bg;
-			}
+			bgImgs ~= ImageCell.createFromNode(bgn, ver);
 		};
 		node.onTag[TextCell.XML_NAME] = (ref XNode bgn) { mixin(S_TRACE);
-			auto bg = TextCell.createFromNode(bgn, ver);
-			if (bg.text.length > 0) { mixin(S_TRACE);
-				bgImgs ~= bg;
-			}
+			bgImgs ~= TextCell.createFromNode(bgn, ver);
 		};
 		node.onTag[ColorCell.XML_NAME] = (ref XNode bgn) { mixin(S_TRACE);
 			bgImgs ~= ColorCell.createFromNode(bgn, ver);
+		};
+		node.onTag[PCCell.XML_NAME] = (ref XNode bgn) { mixin(S_TRACE);
+			bgImgs ~= PCCell.createFromNode(bgn, ver);
 		};
 		node.parse();
 		return bgImgs;
@@ -825,6 +904,39 @@ public:
 	const
 	abstract
 	void toNode(ref XNode node, XMLOption opt);
+	/// サブクラスでtoNode()の実装を行う際の共通処理。
+	const
+	protected void toNodeCommon(ref XNode e, bool useMask) {
+		if (useMask) e.newAttr("mask", fromBool(_mask));
+		if (foreground) e.newAttr("foreground", fromBool(foreground));
+		if (cellName != "") e.newAttr("cellname", cellName);
+		e.newElement("Flag", super.flag);
+		auto ln = e.newElement("Location");
+		ln.newAttr("left", _x);
+		ln.newAttr("top", _y);
+		auto sn = e.newElement("Size");
+		sn.newAttr("width", _w);
+		sn.newAttr("height", _h);
+	}
+	/// サブクラスでfromNode()の実装を行う際の共通処理。
+	protected void fromNodeCommon(ref XNode node) { mixin(S_TRACE);
+		mask = parseBool(node.attr("mask", false, "false"));
+		foreground = parseBool(node.attr("foreground", false, "false"));
+		cellName = node.attr("cellname", false, "");
+		node.onTag["Flag"] = (ref XNode n) { mixin(S_TRACE);
+			flag = n.value;
+		};
+		node.onTag["Location"] = (ref XNode n) { mixin(S_TRACE);
+			x = n.attr!(int)("left", true);
+			y = n.attr!(int)("top", true);
+		};
+		node.onTag["Size"] = (ref XNode n) { mixin(S_TRACE);
+			width = n.attr!(int)("width", true);
+			height = n.attr!(int)("height", true);
+		};
+		node.parse();
+	}
+
 	/// 背景イメージが一枚も無い場合。
 	static void appendEmptyToNode(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
@@ -848,6 +960,8 @@ public:
 			return TextCell.createFromNode(node, ver);
 		} else if (node.name == ColorCell.XML_NAME) { mixin(S_TRACE);
 			return ColorCell.createFromNode(node, ver);
+		} else if (node.name == PCCell.XML_NAME) { mixin(S_TRACE);
+			return PCCell.createFromNode(node, ver);
 		} else assert (0, node.name);
 	}
 

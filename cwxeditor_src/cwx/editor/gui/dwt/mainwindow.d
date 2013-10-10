@@ -2543,6 +2543,7 @@ public:
 									case MenuID.NewBack:
 									case MenuID.NewTextCell:
 									case MenuID.NewColorCell:
+									case MenuID.NewPCCell:
 									case MenuID.AutoArrange:
 									case MenuID.ManualArrange:
 									case MenuID.Mask:

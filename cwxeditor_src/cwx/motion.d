@@ -55,7 +55,7 @@ private void static_this () { mixin(S_TRACE);
 		MType.DEAL_CONFUSE_CARD:MDetail("DealConfuseCard"),
 		MType.DEAL_SKILL_CARD:MDetail("DealSkillCard"),
 		MType.SUMMON_BEAST:MDetail("SummonBeast", [MArg.BEAST:cast(string) null]),
-		MType.CANCEL_ACTION:MDetail("CancelAction"), // CardWirthNext
+		MType.CANCEL_ACTION:MDetail("CancelAction"), // CardWirth 1.50
 	];
 	foreach (type, detail; _MOTION_DETAILS) { mixin(S_TRACE);
 		_MTYPE_MAP[detail.name] = type;

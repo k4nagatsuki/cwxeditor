@@ -1072,6 +1072,9 @@ class CWXScript {
 			cast(string) "brkeycode":CType.BRANCH_KEY_CODE,
 			cast(string) "chkstep":CType.CHECK_STEP,
 			cast(string) "brround":CType.BRANCH_ROUND,
+			cast(string) "mvback":CType.MOVE_BG_IMAGE,
+			cast(string) "rplback":CType.REPLACE_BG_IMAGE,
+			cast(string) "loseback":CType.LOSE_BG_IMAGE,
 		];
 		string[CType] commands;
 		foreach (name, type; keywords) { mixin(S_TRACE);
@@ -2154,14 +2157,7 @@ fi`;
 			switch (type) {
 			case "image":
 				string path = decodePath(parseAttr!(string)(opt, vals, j, "", varTable, msgWidth));
-				string flag = parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
-				int x = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
-				int y = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
-				auto size = _prop.looks.viewSize;
-				int w = parseAttr!(int)(opt, vals, j, cast(int) size.width, varTable, msgWidth);
-				int h = parseAttr!(int)(opt, vals, j, cast(int) size.height, varTable, msgWidth);
-				bool mask = parseAttr!(bool)(opt, vals, j, false, varTable, msgWidth);
-				r = new ImageCell(path, flag, x, y, w, h, mask);
+				r = new ImageCell(path, "", 0, 0, 0, 0, false);
 				break;
 			case "text":
 				string text = parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
@@ -2195,13 +2191,8 @@ fi`;
 					borderingWidth = parseAttr!(int)(opt, vals, j, borderingWidth, varTable, msgWidth);
 					break;
 				}
-				string flag = parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
-				int x = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
-				int y = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
-				int w = parseAttr!(int)(opt, vals, j, cast(int) _prop.looks.viewSize.width, varTable, msgWidth);
-				int h = parseAttr!(int)(opt, vals, j, cast(int) _prop.looks.viewSize.height, varTable, msgWidth);
 				r = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
-					borderingType, borderingColor, borderingWidth, flag, x, y, w, h, false);
+					borderingType, borderingColor, borderingWidth, "", 0, 0, 0, 0, false);
 				break;
 			case "color":
 				BlendMode blendMode = parseAttr!(BlendMode)(opt, vals, j, BlendMode.Normal, varTable, msgWidth);
@@ -2212,18 +2203,26 @@ fi`;
 					gradientDir = parseAttr!(GradientDir)(opt, vals, j, gradientDir, varTable, msgWidth);
 					color2 = parseAttr!(CRGB)(opt, vals, j, color2, varTable, msgWidth);
 				}
-				string flag = parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
-				int x = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
-				int y = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
-				auto size = _prop.looks.viewSize;
-				int w = parseAttr!(int)(opt, vals, j, cast(int) size.width, varTable, msgWidth);
-				int h = parseAttr!(int)(opt, vals, j, cast(int) size.height, varTable, msgWidth);
-				r = new ColorCell(blendMode, gradientDir, color1, color2, flag, x, y, w, h, false);
+				r = new ColorCell(blendMode, gradientDir, color1, color2, "", 0, 0, 0, 0, false);
 				break;
+			case "pc":
+				auto pcNumber = parseAttr!(int)(opt, vals, j, 1, varTable, msgWidth);
+				r = new PCCell(pcNumber, "", 0, 0, 0, 0, false);
 			default:
 				throwError(_prop.msgs.scriptErrorInvalidBgImage, attr[i].token);
 				return defValue;
 			}
+			r.flag = parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
+			r.x = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
+			r.y = parseAttr!(int)(opt, vals, j, 0, varTable, msgWidth);
+			auto size = _prop.looks.viewSize;
+			r.width = parseAttr!(int)(opt, vals, j, cast(int) size.width, varTable, msgWidth);
+			r.height = parseAttr!(int)(opt, vals, j, cast(int) size.height, varTable, msgWidth);
+			if (cast(ImageCell)r) {
+				r.mask = parseAttr!(bool)(opt, vals, j, r.mask, varTable, msgWidth);
+			}
+			r.cellName = parseAttr!(string)(opt, vals, j, r.cellName, varTable, msgWidth);
+			r.foreground = parseAttr!(bool)(opt, vals, j, r.foreground, varTable, msgWidth);
 			i++;
 			return r;
 		} else static if (is(T == Motion)) {
@@ -2306,6 +2305,15 @@ fi`;
 			auto r = new Coupon(name, value);
 			i++;
 			return r;
+		} else static if (is(T:CoordinateType)) {
+			auto value = attrValue(attr[i], varTable, msgWidth);
+			switch (value) {
+			case "none": i++; return CoordinateType.None;
+			case "abs", "absolute": i++; return CoordinateType.Absolute;
+			case "rel", "relative": i++; return CoordinateType.Relative;
+			case "per", "percent", "percentage": i++; return CoordinateType.Percentage;
+			default: throwError(_prop.msgs.scriptErrorInvalidCoordinateType, attr[i].token);
+			}
 		} else static if (is(T == int)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			if (attr[i].token.kind is Kind.SYMBOL && value == "all") { mixin(S_TRACE);
@@ -2491,6 +2499,27 @@ fi`;
 				if (!c.dialogs.length) { mixin(S_TRACE);
 					c.dialogs = [new SDialog];
 				}
+			}
+			if (detail.use(CArg.CELL_NAME)) { mixin(S_TRACE);
+				c.cellName = parseAttr!(string)(opt, node.attr, i, c.cellName, varTable, 0);
+			}
+			if (detail.use(CArg.POSITION_TYPE)) { mixin(S_TRACE);
+				c.positionType = parseAttr!(CoordinateType)(opt, node.attr, i, c.positionType, varTable, 0);
+			}
+			if (detail.use(CArg.X)) { mixin(S_TRACE);
+				c.x = parseAttr!(int)(opt, node.attr, i, c.x, varTable, 0);
+			}
+			if (detail.use(CArg.Y)) { mixin(S_TRACE);
+				c.y = parseAttr!(int)(opt, node.attr, i, c.y, varTable, 0);
+			}
+			if (detail.use(CArg.SIZE_TYPE)) { mixin(S_TRACE);
+				c.sizeType = parseAttr!(CoordinateType)(opt, node.attr, i, c.sizeType, varTable, 0);
+			}
+			if (detail.use(CArg.WIDTH)) { mixin(S_TRACE);
+				c.width = parseAttr!(int)(opt, node.attr, i, c.width, varTable, 0);
+			}
+			if (detail.use(CArg.HEIGHT)) { mixin(S_TRACE);
+				c.height = parseAttr!(int)(opt, node.attr, i, c.height, varTable, 0);
 			}
 			if (detail.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
 				c.backs = parseAttr!(BgImage[])(opt, node.attr, i, c.backs, varTable, 0);
@@ -3051,6 +3080,11 @@ fi`;
 					break;
 				}
 			}
+			auto pc = cast(PCCell)value;
+			if (pc) { mixin(S_TRACE);
+				attrs2 ~= "pc";
+				attrs2 ~= toAttr(pc.pcNumber, command, indentValue, vars);
+			}
 			attrs2 ~= toAttr(value.flag, command, indentValue, vars);
 			attrs2 ~= toAttr(value.x, command, indentValue, vars);
 			attrs2 ~= toAttr(value.y, command, indentValue, vars);
@@ -3058,6 +3092,12 @@ fi`;
 			attrs2 ~= toAttr(value.height, command, indentValue, vars);
 			if (ic) { mixin(S_TRACE);
 				attrs2 ~= toAttr(ic.mask, command, indentValue, vars);
+			}
+			if (value.cellName != "") { mixin(S_TRACE);
+				attrs2 ~= toAttr(value.cellName, command, indentValue, vars);
+			}
+			if (value.foreground) { mixin(S_TRACE);
+				attrs2 ~= toAttr(value.foreground, command, indentValue, vars);
 			}
 			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
 		} else static if (is(Unqual!(T) : Motion)) {
@@ -3106,6 +3146,13 @@ fi`;
 			attrs2 ~= createString(value.name);
 			attrs2 ~= to!(string)(value.value);
 			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
+		} else static if (is(T:CoordinateType)) {
+			final switch (value) {
+			case CoordinateType.None: attrs ~= "none"; break;
+			case CoordinateType.Absolute: attrs ~= "abs"; break;
+			case CoordinateType.Relative: attrs ~= "rel"; break;
+			case CoordinateType.Percentage: attrs ~= "per"; break;
+			}
 		} else static if (is(T : int)) {
 			attrs ~= to!(string)(value);
 		} else static if (is(T : uint)) {
@@ -3232,6 +3279,27 @@ fi`;
 			}
 			if (detail.use(CArg.DIALOGS)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.dialogs, command, indentValue, vars, msgLen);
+			}
+			if (detail.use(CArg.CELL_NAME)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.cellName, command, indentValue, vars);
+			}
+			if (detail.use(CArg.POSITION_TYPE)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.positionType, command, indentValue, vars);
+			}
+			if (detail.use(CArg.X)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.x, command, indentValue, vars);
+			}
+			if (detail.use(CArg.Y)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.y, command, indentValue, vars);
+			}
+			if (detail.use(CArg.SIZE_TYPE)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.sizeType, command, indentValue, vars);
+			}
+			if (detail.use(CArg.WIDTH)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.width, command, indentValue, vars);
+			}
+			if (detail.use(CArg.HEIGHT)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.height, command, indentValue, vars);
 			}
 			if (detail.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.backs, command, indentValue, vars);

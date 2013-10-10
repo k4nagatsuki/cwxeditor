@@ -979,13 +979,37 @@ private:
 	}
 	static if (UseBacks) {
 		private Image backImg(BgImage bg) { mixin(S_TRACE);
+			Image normal, withFlag, fore, foreWithFlag;
 			if (cast(ImageCell) bg) { mixin(S_TRACE);
-				return bg.flag == "" ? _prop.images.backs : _prop.images.backsWithFlag;
+				normal = _prop.images.backs;
+				withFlag = _prop.images.backsWithFlag;
+				fore = _prop.images.backsFore;
+				foreWithFlag = _prop.images.backsForeWithFlag;
 			} else if (cast(TextCell) bg) { mixin(S_TRACE);
-				return bg.flag == "" ? _prop.images.textCell : _prop.images.textCellWithFlag;
+				normal = _prop.images.textCell;
+				withFlag = _prop.images.textCellWithFlag;
+				fore = _prop.images.textCellFore;
+				foreWithFlag = _prop.images.textCellForeWithFlag;
 			} else if (cast(ColorCell) bg) { mixin(S_TRACE);
-				return bg.flag == "" ? _prop.images.colorCell : _prop.images.colorCellWithFlag;
+				normal = _prop.images.colorCell;
+				withFlag = _prop.images.colorCellWithFlag;
+				fore = _prop.images.colorCellFore;
+				foreWithFlag = _prop.images.colorCellForeWithFlag;
+			} else if (cast(PCCell) bg) { mixin(S_TRACE);
+				normal = _prop.images.pcCell;
+				withFlag = _prop.images.pcCellWithFlag;
+				fore = _prop.images.pcCellFore;
+				foreWithFlag = _prop.images.pcCellForeWithFlag;
 			} else assert (0);
+			if (bg.flag && bg.foreground) { mixin(S_TRACE);
+				return foreWithFlag;
+			} else if (bg.flag) { mixin(S_TRACE);
+				return withFlag;
+			} else if (bg.foreground) { mixin(S_TRACE);
+				return fore;
+			} else { mixin(S_TRACE);
+				return normal;
+			}
 		}
 		private void refreshBacks() { mixin(S_TRACE);
 			_backs.setRedraw(false);
@@ -998,7 +1022,7 @@ private:
 				itm.setImage(backImg(c));
 				itm.setData(c);
 				itm.setChecked(true);
-				itm.setText(c.name);
+				itm.setText(c.name(_prop.parent));
 			}
 			_backs.setSelection(idx);
 		}
@@ -1528,6 +1552,7 @@ private:
 				createMenuItem(_comm, menu, MenuID.NewBack, &createBackground, null);
 				createMenuItem(_comm, menu, MenuID.NewTextCell, &createTextCell, null);
 				createMenuItem(_comm, menu, MenuID.NewColorCell, &createColorCell, null);
+				createMenuItem(_comm, menu, MenuID.NewPCCell, &createPCCell, null);
 			}
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, menu, _tcpd, true, true, true, true, true);
@@ -2017,12 +2042,17 @@ private:
 				auto tc = cast(TextCell) back;
 				if (tc) { mixin(S_TRACE);
 					name = _prop.msgs.textCell;
-					path = back.name;
+					path = back.name(_prop.parent);
 				}
 				auto cc = cast(ColorCell) back;
 				if (cc) { mixin(S_TRACE);
 					name = _prop.msgs.colorCell;
-					path = back.name;
+					path = back.name(_prop.parent);
+				}
+				auto pc = cast(PCCell) back;
+				if (pc) { mixin(S_TRACE);
+					name = _prop.msgs.pcCell;
+					path = back.name(_prop.parent);
 				}
 				if (_summ) { mixin(S_TRACE);
 					line = .tryFormat(_prop.msgs.areaViewStatus, name, path, flag(back.flag));
@@ -2160,6 +2190,7 @@ private:
 				createMenuItem(_comm, menu, MenuID.NewBack, &createBackground, null);
 				createMenuItem(_comm, menu, MenuID.NewTextCell, &createTextCell, null);
 				createMenuItem(_comm, menu, MenuID.NewColorCell, &createColorCell, null);
+				createMenuItem(_comm, menu, MenuID.NewPCCell, &createPCCell, null);
 			}
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, menu, tcpd, true, true, true, true, true);
@@ -2746,7 +2777,7 @@ public:
 				auto fi = create(b);
 				fi.visible = v;
 				_imgp.set(i, fi);
-				_backs.getItem(i).setText(b.name);
+				_backs.getItem(i).setText(b.name(_prop.parent));
 				_backs.getItem(i).setImage(backImg(b));
 				_backs.getItem(i).setData(b);
 				partyIndex++;
@@ -3294,7 +3325,7 @@ public:
 					auto fi = create(back);
 					_imgp.set(i, fi);
 					if (_backs.isSelected(i) && _viewBacks) _imgp.select(fi);
-					_backs.getItem(i).setText(back.name);
+					_backs.getItem(i).setText(back.name(_prop.parent));
 					_backs.getItem(i).setImage(backImg(back));
 					_backs.getItem(i).setData(b);
 					refreshControls();
@@ -3310,36 +3341,46 @@ public:
 			assert (0);
 		}
 		void createBackground() { mixin(S_TRACE);
-			createBackgroundImpl(ImageType.Image);
+			createBackgroundImpl(0);
 		}
 		void createTextCell() { mixin(S_TRACE);
-			createBackgroundImpl(ImageType.Text);
+			createBackgroundImpl(1);
 		}
 		void createColorCell() { mixin(S_TRACE);
-			createBackgroundImpl(ImageType.ColorFilter);
+			createBackgroundImpl(2);
 		}
-		void createBackgroundImpl(ImageType type) { mixin(S_TRACE);
+		void createPCCell() { mixin(S_TRACE);
+			createBackgroundImpl(3);
+		}
+		void createBackgroundImpl(int type) { mixin(S_TRACE);
 			BgImage b = null;
 			BgImageDialog dlg = null;
 			final switch (type) {
-			case ImageType.Image:
+			case 0:
 				auto ic = new ImageCell;
 				dlg = new ImageCellDialog(_comm, _prop, getShell(), _summ, ic, true);
 				b = ic;
 				break;
-			case ImageType.Text:
+			case 1:
 				auto tc = new TextCell;
 				tc.width = _prop.var.etc.textCellDefaultWidth;
 				tc.height = _prop.var.etc.textCellDefaultHeight;
 				dlg = new TextCellDialog(_comm, _prop, getShell(), _summ, tc, true);
 				b = tc;
 				break;
-			case ImageType.ColorFilter:
+			case 2:
 				auto cc = new ColorCell;
 				cc.width = _prop.var.etc.colorCellDefaultWidth;
 				cc.height = _prop.var.etc.colorCellDefaultHeight;
 				dlg = new ColorCellDialog(_comm, _prop, getShell(), _summ, cc, true);
 				b = cc;
+				break;
+			case 3:
+				auto pc = new PCCell;
+				pc.width = _prop.looks.cardSize.width;
+				pc.height = _prop.looks.cardSize.height;
+				dlg = new PCCellDialog(_comm, _prop, getShell(), _summ, pc, true);
+				b = pc;
 				break;
 			}
 			dlg.appliedEvent ~= { mixin(S_TRACE);
@@ -3394,6 +3435,10 @@ public:
 			if (cc) { mixin(S_TRACE);
 				dlg = new ColorCellDialog(_comm, _prop, getShell(), _summ, cc, false);
 			}
+			auto pc = cast(PCCell) back;
+			if (pc) { mixin(S_TRACE);
+				dlg = new PCCellDialog(_comm, _prop, getShell(), _summ, pc, false);
+			}
 			dlg.applyEvent ~= { mixin(S_TRACE);
 				undo = new UndoEdit(this, _comm, _area, _summ, [], [cCountUntil!("a is b")(_area.backs, back)]);
 			};
@@ -3411,33 +3456,52 @@ public:
 			int i = combo.getSelectionIndex();
 			_selectableBgImages = [];
 			if (-1 == i) return;
-			auto b = cast(ImageCell) itm.getData();
-			assert (b !is null);
-			if (0 == i) { mixin(S_TRACE);
-				if (b.path == "") return;
+			auto bg = cast(BgImage)itm.getData();
+			if (auto pc = cast(PCCell)bg) { mixin(S_TRACE);
+				auto pcNumber = combo.getSelectionIndex() + 1;
+				if (pc.pcNumber == pcNumber) return;
 				_undo ~= new UndoEdit(this, _comm, _area, _summ, [], [itm.getParent().indexOf(itm)]);
-				b.path = "";
-				itm.setText(column, "");
-			} else { mixin(S_TRACE);
-				string mt = combo.getText();
-				if (std.string.startsWith(mt, "/")) { mixin(S_TRACE);
-					mt = mt["/".length .. $];
+				pc.pcNumber = pcNumber;
+				itm.setText(column, pc.name(_prop.parent));
+			}
+			if (auto b = cast(ImageCell)bg) { mixin(S_TRACE);
+				if (0 == i) { mixin(S_TRACE);
+					if (b.path == "") return;
+					_undo ~= new UndoEdit(this, _comm, _area, _summ, [], [itm.getParent().indexOf(itm)]);
+					b.path = "";
+					itm.setText(column, "");
+				} else { mixin(S_TRACE);
+					string mt = combo.getText();
+					if (std.string.startsWith(mt, "/")) { mixin(S_TRACE);
+						mt = mt["/".length .. $];
+					}
+					if (b.path == mt) return;
+					_undo ~= new UndoEdit(this, _comm, _area, _summ, [], [itm.getParent().indexOf(itm)]);
+					b.path = mt;
+					itm.setText(column, b.name(_prop.parent));
 				}
-				if (b.path == mt) return;
-				_undo ~= new UndoEdit(this, _comm, _area, _summ, [], [itm.getParent().indexOf(itm)]);
-				b.path = mt;
-				itm.setText(column, baseName(decodePath(mt)));
 			}
 			refreshPanel();
-			_comm.refBgImage.call(b.cwxPath(true));
+			_comm.refBgImage.call(bg.cwxPath(true));
 			callModEvent();
 			_comm.refreshToolBar();
 		}
 		bool bgImageCanEdit(TableItem itm, int column) { mixin(S_TRACE);
-			return (cast(ImageCell) itm.getData()) !is null;
+			return (cast(ImageCell)itm.getData()) !is null || (cast(PCCell)itm.getData()) !is null;
 		}
-		void createBgImageCombo(TableItem itm, int column, out string[] strs, out string str) { mixin(S_TRACE);
+		void createBgImageCombo(TableItem itm, int column, out string[] strs, out string str, out bool canIncSearch) { mixin(S_TRACE);
 			_selectableBgImages = [];
+			if (auto pc = cast(PCCell)itm.getData()) { mixin(S_TRACE);
+				foreach (i; 0 .. _prop.looks.partyCardXY.length) { mixin(S_TRACE);
+					auto s = .tryFormat(_prop.msgs.pc, i + 1);
+					strs ~= s;
+					if (i + 1 == pc.pcNumber) {
+						str = s;
+					}
+				}
+				canIncSearch = false;
+				return;
+			}
 			auto b = cast(ImageCell) itm.getData();
 			if (!b) return;
 			strs ~= _prop.msgs.imageNone;
@@ -3472,6 +3536,7 @@ public:
 			}
 			recurse(_summ.scenarioPath, std.path.dirSeparator);
 			_selectableBgImages = strs;
+			canIncSearch = true;
 		}
 		string[] bgImageIncSearch(IncSearch incSearch) { mixin(S_TRACE);
 			string[] r;
@@ -3604,6 +3669,7 @@ public:
 			createMenuItem(_comm, mv, MenuID.NewBack, &createBackground, null);
 			createMenuItem(_comm, mv, MenuID.NewTextCell, &createTextCell, null);
 			createMenuItem(_comm, mv, MenuID.NewColorCell, &createColorCell, null);
+			createMenuItem(_comm, mv, MenuID.NewPCCell, &createPCCell, null);
 		}
 	}
 
@@ -3669,6 +3735,7 @@ public:
 			createToolItem(_comm, bar, MenuID.NewBack, &createBackground, null);
 			createToolItem(_comm, bar, MenuID.NewTextCell, &createTextCell, null);
 			createToolItem(_comm, bar, MenuID.NewColorCell, &createColorCell, null);
+			createToolItem(_comm, bar, MenuID.NewPCCell, &createPCCell, null);
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
 		_xSpn = createSpinner(bar, _prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax), 0,
@@ -4047,7 +4114,7 @@ public:
 				itm.setImage(v.backImg(back));
 				itm.setData(back);
 				itm.setChecked(check);
-				itm.setText(back.name);
+				itm.setText(back.name(comm.prop.parent));
 				if (select && v._viewBacks) { mixin(S_TRACE);
 					v._imgp.select(img);
 					if (refresh) { mixin(S_TRACE);
@@ -4071,10 +4138,13 @@ public:
 			if (tc) img = create(tc);
 			auto cc = cast(ColorCell) back;
 			if (cc) img = create(cc);
+			auto pc = cast(PCCell) back;
+			if (pc) img = create(pc);
 			assert (img !is null);
 			_backTbl[img] = back;
 			img.visible = _viewBacks;
 			img.fixed = isFixedCells;
+			img.foreground = back.foreground;
 			img.addSelectionListener(&selectImageB);
 			img.addResizeListener(&resizeImageB);
 			return img;
@@ -4101,6 +4171,22 @@ public:
 			r.transparent = back.mask;
 			return r;
 		}
+		private FlexImage create(PCCell back) { mixin(S_TRACE);
+			auto skin = _comm.skin;
+			auto size = _prop.looks.cardSize;
+			auto img = new Image(getDisplay(), size.width, size.height);
+			scope (exit) img.dispose();
+			auto gc = new GC(img);
+			scope (exit) gc.dispose();
+			gc.drawRectangle(0, 0, size.width - 1, size.height - 1);
+			drawCenterText(dwtData(_prop.looks.pcNumberFont(skin.legacy)), gc, new Rectangle(0, 0, size.width, size.height), .text(back.pcNumber));
+			auto r = new FlexImage(img.getImageData(), back.x, back.y, size.width, size.height, true);
+			r.transparent = false;
+			r.newWidth = back.width;
+			r.newHeight = back.height;
+			r.resize();
+			return r;
+		}
 		private void appendBgImages(int index, BgImage[] backs, bool select, bool raiseEvent) { mixin(S_TRACE);
 			FlexImage[] imgs;
 			foreach (back; backs) { mixin(S_TRACE);
@@ -4112,7 +4198,7 @@ public:
 				itm.setImage(backImg(b));
 				itm.setData(b);
 				itm.setChecked(true);
-				itm.setText(b.name);
+				itm.setText(b.name(_prop.parent));
 				if (raiseEvent) _comm.addBgImage.call(b.cwxPath(true));
 			}
 			if (select && _viewBacks) _imgp.select(imgs);
