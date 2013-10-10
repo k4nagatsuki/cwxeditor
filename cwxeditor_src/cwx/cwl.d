@@ -2601,8 +2601,8 @@ private void writeImageImpl(ref SData d, ref ByteIO f, CWXPath cp, string imgPat
 	writeSize(cast(uint)bytes.length);
 	f.write(bytes);
 }
-private void writeExString(ref ByteIO f, string str, bool lns = false, bool cutText = false) { mixin(S_TRACE);
-	writeStringImpl(f, str, lns, cutText, (val) => f.writeExInt(val));
+private void writeExString(ref ByteIO f, string str) { mixin(S_TRACE);
+	writeStringImpl(f, str, true, false, (val) => f.writeExInt(val));
 }
 private void writeString(ref ByteIO f, string str, bool lns = false, bool cutText = false) { mixin(S_TRACE);
 	writeStringImpl(f, str, lns, cutText, &f.writeL);
