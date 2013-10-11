@@ -188,7 +188,6 @@ abstract class AbsDialog {
 	private Button _okBtn;
 	private bool _applied = false;
 	private Button _apply = null;
-	private int _imeMode = SWT.NONE;
 	private bool _inCloseEvent = false;
 	private class SListener : ShellAdapter {
 		override void shellClosed(ShellEvent e) { mixin(S_TRACE);
@@ -200,8 +199,6 @@ abstract class AbsDialog {
 				foreach (dlg; closeEvent) { mixin(S_TRACE);
 					dlg();
 				}
-				auto parShl = cast(Shell) _win.getParent();
-				if (parShl) parShl.setImeInputMode(_imeMode);
 				return;
 			}
 			if (_ret) { mixin(S_TRACE);
@@ -224,8 +221,6 @@ abstract class AbsDialog {
 				foreach (dlg; closeEvent) { mixin(S_TRACE);
 					dlg();
 				}
-				auto parShl = cast(Shell) _win.getParent();
-				if (parShl) parShl.setImeInputMode(_imeMode);
 			}
 		}
 	}
@@ -330,14 +325,6 @@ abstract class AbsDialog {
 		if (_apply) _apply.setEnabled(false);
 		auto par = cast(Shell)_win.getParent();
 		_win.open();
-		if (par) _imeMode = par.getImeInputMode();
-		if (par) { mixin(S_TRACE);
-			_imeMode = par.getImeInputMode();
-			auto fc = _win.getDisplay().getFocusControl();
-			if (!cast(Spinner)fc && !cast(NoIME)fc) { mixin(S_TRACE);
-				_win.setImeInputMode(_imeMode);
-			}
-		}
 		if (firstFocusIsOK) _okBtn.setFocus();
 		opened();
 		foreach (dlg; openedEvent) { mixin(S_TRACE);
@@ -354,9 +341,6 @@ abstract class AbsDialog {
 			} catch (Throwable e) {
 				throw e;
 			}
-		}
-		if (par) { mixin(S_TRACE);
-			par.setImeInputMode(_imeMode);
 		}
 		return _ret || _applied;
 	}

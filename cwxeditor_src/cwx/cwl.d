@@ -1706,7 +1706,7 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 private BgImage[] readBgImages(in RData d, ref ByteIO f, bool area, bool replBgImg = false) { mixin(S_TRACE);
 	BgImage[] bgImgs;
 	if (replBgImg) { mixin(S_TRACE);
-		bgImgs.length = f.readUByte;
+		bgImgs.length = f.readExUInt;
 	} else { mixin(S_TRACE);
 		bgImgs.length = f.readUIntL;
 	}
@@ -3258,7 +3258,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e) { mixin(S_TRACE)
 	} else if (e.type is CType.REPLACE_BG_IMAGE) { mixin(S_TRACE);
 		wb(76);
 		writeExString(f, e.cellName);
-		writeBgImages(d, f, e.backs.length <= 255 ? e.backs : e.backs[0..256], true);
+		writeBgImages(d, f, e.backs, true);
 	} else { mixin(S_TRACE);
 		assert (0, "event");
 	}
@@ -3442,7 +3442,7 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 }
 private void writeBgImages(ref SData d, ref ByteIO f, BgImage[] backs, bool replBgImg = false) { mixin(S_TRACE);
 	if (replBgImg)  { mixin(S_TRACE);
-		f.writeL(cast(ubyte)backs.length);
+		f.writeExUInt(backs.length);
 	} else { mixin(S_TRACE);
 		auto b = backs.length ? cast(ImageCell) backs[0] : null;
 		if (b && b.path != "" && b.flag == "" && b.x == 0 && b.y == 0

@@ -773,9 +773,6 @@ private:
 			if (!_prop.targetVersion("1.60")) { mixin(S_TRACE);
 				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.REPLACE_BG_IMAGE), "1.60");
 			}
-			if (_summ.legacy && ubyte.max < _cont.backs.length) {
-				ws ~= .tryFormat(prop.msgs.warningClassicReplBgImageMaxIs255, ubyte.max);
-			}
 		}
 		warning = ws;
 	}

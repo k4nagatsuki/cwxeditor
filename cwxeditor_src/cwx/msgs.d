@@ -1502,7 +1502,6 @@ class Msgs : Properties {
 	auto warningBgImageForeground = Msg("warningBgImageForeground", "カードよりも前の表示は、CardWirth 1.60より前のバージョンでは行えません。");
 	auto warningBgImageCellName = Msg("warningBgImageCellName", "背景セル名称は、CardWirth 1.60より前のバージョンでは設定できません。");
 	auto warningSelectionBarIsMany = Msg("warningSelectionBarIsMany", "選択肢が%1$s件ありますが、%2$s件までしか表示できません。");
-	auto warningClassicReplBgImageMaxIs255 = Msg("warningClassicReplBgImageMaxIs255", "クラシックなシナリオでは置換で配置可能な背景セルは%1$s件までです。");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");

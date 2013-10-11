@@ -10,6 +10,7 @@ import cwx.path;
 import cwx.motion;
 import cwx.usecounter;
 import cwx.imagesize;
+import cwx.background;
 
 import std.path;
 
@@ -309,6 +310,10 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 					putBinImg(c.path);
 				}
 			} else if (auto c = cast(MenuCard)path) { mixin(S_TRACE);
+				if (c.path.isBinImg()) { mixin(S_TRACE);
+					putBinImg(c.path);
+				}
+			} else if (auto c = cast(ImageCell)path) { mixin(S_TRACE);
 				if (c.path.isBinImg()) { mixin(S_TRACE);
 					putBinImg(c.path);
 				}

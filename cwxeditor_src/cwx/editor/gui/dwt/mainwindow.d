@@ -2714,40 +2714,38 @@ public:
 				}
 			};
 			auto focusInOut = new class Listener {
-				private int[Shell] _imeMode;
+				private bool _noMode = false;
 				override void handleEvent(Event e) { mixin(S_TRACE);
-					auto control = cast(Control) e.widget;
+					auto control = cast(Control)e.widget;
 					if (!control) return;
 					auto shl = control.getShell();
+					assert (shl !is null);
 					if (e.type is SWT.KeyUp || e.type is SWT.KeyDown) { mixin(S_TRACE);
-						if (cast(Spinner) control || cast(NoIME) control) { mixin(S_TRACE);
+						if (cast(Spinner)control || cast(NoIME)control) { mixin(S_TRACE);
 							shl.setImeInputMode(SWT.NONE);
+							_noMode = true;
 						}
 					} else if (e.type is SWT.FocusIn) { mixin(S_TRACE);
-						if (cast(Spinner) control || cast(NoIME) control) { mixin(S_TRACE);
-							if (shl !in _imeMode) { mixin(S_TRACE);
-								.listener(shl, SWT.Dispose, { mixin(S_TRACE);
-									if (shl in _imeMode) { mixin(S_TRACE);
-										_imeMode.remove(shl);
-									}
-								});
-							}
-							_imeMode[shl] = shl.getImeInputMode();
+						if (cast(Spinner)control || cast(NoIME)control) { mixin(S_TRACE);
 							shl.setImeInputMode(SWT.NONE);
+							_noMode = true;
+						} else if (!_noMode) {
+							shl.setImeInputMode(_prop.var.etc.imeMode);
 						}
 						_comm.refreshToolBar();
 					} else { mixin(S_TRACE);
 						assert (e.type is SWT.FocusOut);
-						if (cast(Spinner) control || cast(NoIME) control) { mixin(S_TRACE);
-							auto p = shl in _imeMode;
-							if (p) { mixin(S_TRACE);
-								shl.setImeInputMode(*p);
-								_imeMode.remove(shl);
-							}
+						if (cast(Spinner)control || cast(NoIME)control) { mixin(S_TRACE);
+							shl.setImeInputMode(_prop.var.etc.imeMode);
+							_noMode = false;
+						} else if (!_noMode) { mixin(S_TRACE);
+							_prop.var.etc.imeMode = shl.getImeInputMode();
+							_noMode = false;
 						}
 					}
 				}
 			};
+			_win.setImeInputMode(_prop.var.etc.imeMode);
 			auto keyDownFilter = new KeyDownFilter;
 			auto switchTab = new SwitchTab;
 			d.addFilter(SWT.Selection, selectFilter);

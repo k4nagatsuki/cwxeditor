@@ -302,7 +302,14 @@ private:
 	ImageSelect!(MtType.BG_IMG) _imgPath;
 
 	void refreshWarning() { mixin(S_TRACE);
-		warning = warningCommon ~ _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ ? _summ.legacy : false, false, _prop.var.etc.targetVersion);
+		string[] ws = warningCommon;
+		if (_imgPath.image.isBinImg()) { mixin(S_TRACE);
+			if (!_prop.targetVersion("1.60")) { mixin(S_TRACE);
+				ws ~= _prop.msgs.warningBgImageIncluded;
+			}
+		}
+		ws ~= _comm.skin.warningImage(_prop.parent, _imgPath.filePath, _summ ? _summ.legacy : false, false, _prop.var.etc.targetVersion);
+		warning = ws;
 	}
 
 	class SDListener : DisposeListener {
@@ -1132,7 +1139,13 @@ protected:
 			comp2.setLayout(zeroMarginGridLayout(2, false));
 			{
 				auto grp = new Group(comp2, SWT.NONE);
-				grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				if (_summ) { mixin(S_TRACE);
+					grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				} else { mixin(S_TRACE);
+					auto ggd = new GridData(GridData.FILL_BOTH);
+					ggd.horizontalSpan = 2;
+					grp.setLayoutData(ggd);
+				}
 				grp.setLayout(new GridLayout(1, true));
 				grp.setText(_prop.msgs.cellPCNumber);
 

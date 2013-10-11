@@ -1599,9 +1599,6 @@ public:
 		_summ = summ;
 		_undo = new UndoManager(_prop.var.etc.undoMaxReplace);
 		_win = new Shell(shell, SWT.SHELL_TRIM);
-		if (shell) { mixin(S_TRACE);
-			_win.setImeInputMode(shell.getImeInputMode());
-		}
 		_win.setText(_prop.msgs.dlgTitReplaceText);
 		_win.setImage(prop.images.menu(MenuID.Find));
 

@@ -882,8 +882,10 @@ class Skin {
 			switch (ext) {
 			case ".png": // PNG
 				if (includeType) {
-					// 格納画像は少なくとも1.50までは使用不可
-					return [prop.msgs.pngMayNotCorrespond];
+					// 格納画像は1.50までは使用不可
+					if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
+						return [prop.msgs.pngMayNotCorrespond];
+					}
 				} else {
 					if (!prop.targetVersion("1.30", targVer)) { mixin(S_TRACE);
 						return [prop.msgs.pngMayNotCorrespond];
@@ -892,8 +894,10 @@ class Skin {
 				break;
 			case ".gif": // GIF
 				if (includeType) {
-					// 格納画像は少なくとも1.50までは使用不可
-					return [prop.msgs.gifMayNotCorrespond];
+					// 格納画像は1.50までは使用不可
+					if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
+						return [prop.msgs.gifMayNotCorrespond];
+					}
 				} else {
 					if (!prop.targetVersion("1.30", targVer)) { mixin(S_TRACE);
 						return [prop.msgs.gifMayNotCorrespond];

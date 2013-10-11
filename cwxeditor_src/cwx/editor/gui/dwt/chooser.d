@@ -305,6 +305,7 @@ T createCellNameCombo(T = Combo)(Commons comm, Summary summ, Composite parent, b
 	auto incSearch = new IncSearch(comm, combo);
 
 	void refCellNames() { mixin(S_TRACE);
+		if (!summ) return;
 		string id = combo.getText();
 		combo.removeAll();
 

@@ -1686,51 +1686,53 @@ class PreviewValues : Composite {
 			}
 			_values.remove(_targetChars.length, _values.getItemCount() - 1);
 		}
-		foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
-			auto itm = new TableItem(_values, SWT.NONE);
-			auto path = f.path;
-			itm.setImage(0, _prop.images.flag);
-			itm.setText(0, path);
-			itm.setText(1, f.onOff ? f.on : f.off);
-			auto d = new FlagData;
-			itm.setData(d);
-			d.flag = f;
-			d.onOff = f.onOff;
-			string lpath = .toLower(path);
-			auto p = lpath in pvs;
-			if (p) { mixin(S_TRACE);
-				if (*p == 1) { mixin(S_TRACE);
-					itm.setText(1, f.on);
-					d.onOff = true;
-				} else if (*p == 0) { mixin(S_TRACE);
-					itm.setText(1, f.off);
-					d.onOff = false;
+		if (_summ) { mixin(S_TRACE);
+			foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
+				auto itm = new TableItem(_values, SWT.NONE);
+				auto path = f.path;
+				itm.setImage(0, _prop.images.flag);
+				itm.setText(0, path);
+				itm.setText(1, f.onOff ? f.on : f.off);
+				auto d = new FlagData;
+				itm.setData(d);
+				d.flag = f;
+				d.onOff = f.onOff;
+				string lpath = .toLower(path);
+				auto p = lpath in pvs;
+				if (p) { mixin(S_TRACE);
+					if (*p == 1) { mixin(S_TRACE);
+						itm.setText(1, f.on);
+						d.onOff = true;
+					} else if (*p == 0) { mixin(S_TRACE);
+						itm.setText(1, f.off);
+						d.onOff = false;
+					}
+				}
+				if (selPath && selPath == lpath) { mixin(S_TRACE);
+					_values.select(_values.getItemCount() - 1);
 				}
 			}
-			if (selPath && selPath == lpath) { mixin(S_TRACE);
-				_values.select(_values.getItemCount() - 1);
-			}
-		}
-		foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
-			auto itm = new TableItem(_values, SWT.NONE);
-			auto path = f.path;
-			itm.setImage(0, _prop.images.step);
-			itm.setText(0, path);
-			itm.setText(1, f.values[f.select]);
-			auto d = new StepData;
-			itm.setData(d);
-			d.step = f;
-			d.select = f.select;
-			string lpath = .toLower(path);
-			auto p = lpath in pvs;
-			if (p) { mixin(S_TRACE);
-				if (0 <= *p && *p < f.values.length) { mixin(S_TRACE);
-					itm.setText(1, f.values[*p]);
-					d.select = *p;
+			foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
+				auto itm = new TableItem(_values, SWT.NONE);
+				auto path = f.path;
+				itm.setImage(0, _prop.images.step);
+				itm.setText(0, path);
+				itm.setText(1, f.values[f.select]);
+				auto d = new StepData;
+				itm.setData(d);
+				d.step = f;
+				d.select = f.select;
+				string lpath = .toLower(path);
+				auto p = lpath in pvs;
+				if (p) { mixin(S_TRACE);
+					if (0 <= *p && *p < f.values.length) { mixin(S_TRACE);
+						itm.setText(1, f.values[*p]);
+						d.select = *p;
+					}
 				}
-			}
-			if (selPath && selPath == lpath) { mixin(S_TRACE);
-				_values.select(_values.getItemCount() - 1);
+				if (selPath && selPath == lpath) { mixin(S_TRACE);
+					_values.select(_values.getItemCount() - 1);
+				}
 			}
 		}
 	}
@@ -1824,23 +1826,25 @@ class PreviewValues : Composite {
 			}
 			i++;
 		}
-		foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
-			if (i in set) { mixin(S_TRACE);
-				auto itm = _values.getItem(i);
-				itm.setText(1, f.onOff ? f.on : f.off);
-				auto data = cast(FlagData) itm.getData();
-				data.onOff = f.onOff;
+		if (_summ) { mixin(S_TRACE);
+			foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
+				if (i in set) { mixin(S_TRACE);
+					auto itm = _values.getItem(i);
+					itm.setText(1, f.onOff ? f.on : f.off);
+					auto data = cast(FlagData) itm.getData();
+					data.onOff = f.onOff;
+				}
+				i++;
 			}
-			i++;
-		}
-		foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
-			if (i in set) { mixin(S_TRACE);
-				auto itm = _values.getItem(i);
-				itm.setText(1, f.values[f.select]);
-				auto data = cast(StepData) itm.getData();
-				data.select = f.select;
+			foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
+				if (i in set) { mixin(S_TRACE);
+					auto itm = _values.getItem(i);
+					itm.setText(1, f.values[f.select]);
+					auto data = cast(StepData) itm.getData();
+					data.select = f.select;
+				}
+				i++;
 			}
-			i++;
 		}
 		raiseModEvent();
 	}
@@ -1883,21 +1887,23 @@ class PreviewValues : Composite {
 			}
 			i++;
 		}
-		foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
-			if (i in set) { mixin(S_TRACE);
-				auto itm = _values.getItem(i);
-				auto data = cast(FlagData) itm.getData();
-				if (data.onOff != f.onOff) return false;
+		if (_summ) { mixin(S_TRACE);
+			foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
+				if (i in set) { mixin(S_TRACE);
+					auto itm = _values.getItem(i);
+					auto data = cast(FlagData) itm.getData();
+					if (data.onOff != f.onOff) return false;
+				}
+				i++;
 			}
-			i++;
-		}
-		foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
-			if (i in set) { mixin(S_TRACE);
-				auto itm = _values.getItem(i);
-				auto data = cast(StepData) itm.getData();
-				if (data.select != f.select) return false;
+			foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
+				if (i in set) { mixin(S_TRACE);
+					auto itm = _values.getItem(i);
+					auto data = cast(StepData) itm.getData();
+					if (data.select != f.select) return false;
+				}
+				i++;
 			}
-			i++;
 		}
 		return true;
 	}

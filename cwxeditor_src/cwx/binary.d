@@ -259,11 +259,17 @@ struct ByteIO {
 
 	/// 可変長整数を読み込む。
 	@property
-	int readExInt() { return .readExInt(&readUByte); }
+	int readExInt() { return .readExInt(true, &readUByte); }
+	/// ditto
+	@property
+	int readExUInt() { return .readExInt(false, &readUByte); }
 
 	/// 可変長整数を書き込む。
 	@property
-	void writeExInt(int val) { .writeExInt(val, &write); }
+	void writeExInt(int val) { .writeExInt(val, true, &write); }
+	/// ditto
+	@property
+	void writeExUInt(int val) { .writeExInt(val, false, &write); }
 }
 
 private template ReadBytesB(I, size_t Len = I.sizeof) {
@@ -578,12 +584,21 @@ version (BigEndian) {
 /// inpから可変長整数の値を読む。
 int readExInt(InputStream inp) { mixin(S_TRACE);
 	ubyte b;
-	return .readExInt({ inp.read(b); return b; });
+	return .readExInt(true, { inp.read(b); return b; });
+}
+/// ditto
+int readExUInt(InputStream inp) { mixin(S_TRACE);
+	ubyte b;
+	return .readExInt(false, { inp.read(b); return b; });
 }
 
 /// 可変長整数としてosへiの値を書く。
 void writeExInt(OutputStream os, int i) { mixin(S_TRACE);
-	.writeExInt(i, &os.write);
+	.writeExInt(i, true, &os.write);
+}
+/// ditto
+void writeExUInt(OutputStream os, int i) { mixin(S_TRACE);
+	.writeExInt(i, false, &os.write);
 }
 
 /// valueを可変長整数としてbytesへ書き込む。
@@ -592,21 +607,30 @@ void writeExInt(OutputStream os, int i) { mixin(S_TRACE);
 /// リトルエンディアンで並べたもの。
 /// この形式では符号をビット群の先頭に置けないため、7ビットずつに
 /// 分割する前に全体を1ビット左へシフトし、右端に符号ビットを置く。
+/// 符号無し整数の場合は、シフトと右端に符号を置く手順を省略する。
 /// offsetにはbytesのどの位置から書き込みを開始するかを指定し、
 /// 実際に読み込まれたバイト数が加算される。
 /// See_Also: readExInt()
 void writeExInt(int value, ubyte[] bytes, ref size_t offset) { mixin(S_TRACE);
-	writeExInt(value, (b) { bytes[offset++] = b; });
+	writeExInt(value, true, (b) { bytes[offset++] = b; });
 }
 /// ditto
-private void writeExInt(int value, void delegate(ubyte b) write) { mixin(S_TRACE);
+void writeExUInt(int value, ubyte[] bytes, ref size_t offset) { mixin(S_TRACE);
+	writeExInt(value, false, (b) { bytes[offset++] = b; });
+}
+/// ditto
+private void writeExInt(int value, bool sign, void delegate(ubyte b) write) { mixin(S_TRACE);
 	ubyte b;
 	uint value2;
-	if (value < 0) { mixin(S_TRACE);
-		value2 = -(value + 1) << 1;
-		value2 |= 0x1;
+	if (sign) { mixin(S_TRACE);
+		if (value < 0) { mixin(S_TRACE);
+			value2 = -(value + 1) << 1;
+			value2 |= 0x1;
+		} else { mixin(S_TRACE);
+			value2 = value << 1;
+		}
 	} else { mixin(S_TRACE);
-		value2 = value << 1;
+		value2 = value;
 	}
 	do { mixin(S_TRACE);
 		b = value2 & 0x7F;
@@ -618,36 +642,41 @@ private void writeExInt(int value, void delegate(ubyte b) write) { mixin(S_TRACE
 ///
 unittest { mixin(S_TRACE);
 	mixin (UTPerf);
-	ubyte[] write(int value) { mixin(S_TRACE);
+	ubyte[] write(bool sign, int value) { mixin(S_TRACE);
 		auto bytes = new ubyte[8];
 		size_t offset = 0;
-		writeExInt(value, bytes, offset);
+		writeExInt(value, sign, (b) { bytes[offset++] = b; });
 		return bytes[0..offset];
 	}
-	assert (write(5430)    == [cast(ubyte)0xEC, 0x54]);
-	assert (write(78)      == [cast(ubyte)0x9C, 0x01]);
-	assert (write(134)     == [cast(ubyte)0x8C, 0x02]);
-	assert (write(1094)    == [cast(ubyte)0x8C, 0x11]);
-	assert (write(102)     == [cast(ubyte)0xCC, 0x01]);
-	assert (write(124)     == [cast(ubyte)0xF8, 0x01]);
-	assert (write(1822798) == [cast(ubyte)0x9C, 0xC1, 0xDE, 0x01]);
-	assert (write(510)     == [cast(ubyte)0xFC, 0x07]);
-	assert (write(1)       == [cast(ubyte)0x02]);
-	assert (write(0)       == [cast(ubyte)0x00]);
-	assert (write(-1)      == [cast(ubyte)0x01]);
-	assert (write(-9)      == [cast(ubyte)0x11]);
-	assert (write(-5000)   == [cast(ubyte)0x8F, 0x4E]);
-	assert (write(-9999)   == [cast(ubyte)0x9D, 0x9C, 0x01]);
+	assert (write(true, 5430)    == [cast(ubyte)0xEC, 0x54]);
+	assert (write(true, 78)      == [cast(ubyte)0x9C, 0x01]);
+	assert (write(true, 134)     == [cast(ubyte)0x8C, 0x02]);
+	assert (write(true, 1094)    == [cast(ubyte)0x8C, 0x11]);
+	assert (write(true, 102)     == [cast(ubyte)0xCC, 0x01]);
+	assert (write(true, 124)     == [cast(ubyte)0xF8, 0x01]);
+	assert (write(true, 1822798) == [cast(ubyte)0x9C, 0xC1, 0xDE, 0x01]);
+	assert (write(true, 510)     == [cast(ubyte)0xFC, 0x07]);
+	assert (write(true, 1)       == [cast(ubyte)0x02]);
+	assert (write(true, 0)       == [cast(ubyte)0x00]);
+	assert (write(true, -1)      == [cast(ubyte)0x01]);
+	assert (write(true, -9)      == [cast(ubyte)0x11]);
+	assert (write(true, -5000)   == [cast(ubyte)0x8F, 0x4E]);
+	assert (write(true, -9999)   == [cast(ubyte)0x9D, 0x9C, 0x01]);
+	assert (write(false, 839)    == [cast(ubyte)0xC7, 0x06]);
 }
 
 /// bytesから可変長整数を読み込む。
 /// offsetにはbytesのどの位置から読み込みを開始するかを指定する。
 /// See_Also: writeExInt()
 int readExInt(in ubyte[] bytes, ref size_t offset) { mixin(S_TRACE);
-	return readExInt(() => bytes[offset++]);
+	return readExInt(true, () => bytes[offset++]);
 }
 /// ditto
-private int readExInt(ubyte delegate() read) { mixin(S_TRACE);
+int readExUInt(in ubyte[] bytes, ref size_t offset) { mixin(S_TRACE);
+	return readExInt(false, () => bytes[offset++]);
+}
+/// ditto
+private int readExInt(bool sign, ubyte delegate() read) { mixin(S_TRACE);
 	uint r = 0;
 	size_t i = 0;
 	uint b, b2;
@@ -660,10 +689,14 @@ private int readExInt(ubyte delegate() read) { mixin(S_TRACE);
 		}
 		i += 7;
 	}
-	if (r & 0x1) { mixin(S_TRACE);
-		return -(r >> 1) - 1;
+	if (sign) { mixin(S_TRACE);
+		if (r & 0x1) { mixin(S_TRACE);
+			return -(r >> 1) - 1;
+		} else { mixin(S_TRACE);
+			return r >> 1;
+		}
 	} else { mixin(S_TRACE);
-		return r >> 1;
+		return r;
 	}
 }
 ///
@@ -684,4 +717,5 @@ unittest { mixin(S_TRACE);
 	offset = 0; assert (readExInt([cast(ubyte)0x11], offset) == -9);
 	offset = 0; assert (readExInt([cast(ubyte)0x8F, 0x4E], offset) == -5000);
 	offset = 0; assert (readExInt([cast(ubyte)0x9D, 0x9C, 0x01], offset) == -9999);
+	offset = 0; assert (readExUInt([cast(ubyte)0xC7, 0x06], offset) == 839);
 }
