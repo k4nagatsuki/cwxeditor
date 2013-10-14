@@ -2833,6 +2833,50 @@ public:
 			}
 		}
 	}
+
+	/// 外部からareasを追加する。
+	/// 既存のエリアとIDが重複してはいけない。
+	void addAreas(AbstractArea[] areas) {
+		_parent.setRedraw(false);
+		scope (exit) _parent.setRedraw(true);
+		ATUndo[] undos;
+		AbstractArea sel = null;
+
+		foreach (area; areas) { mixin(S_TRACE);
+			sel = area;
+			ulong[] a, b, p;
+			saveIDs(_summ, a, b, p);
+			if (cast(Area)area) { mixin(S_TRACE);
+				_summ.add(cast(Area)area);
+				undos ~= new UndoInsertDelete(this, _comm, _summ, area.id, typeid(Area), true, a, b, p);
+				_comm.refArea.call(cast(Area)area);
+			} else if (cast(Battle)area) { mixin(S_TRACE);
+				_summ.add(cast(Battle) area);
+				undos ~= new UndoInsertDelete(this, _comm, _summ, area.id, typeid(Battle), true, a, b, p);
+				_comm.refBattle.call(cast(Battle)area);
+			} else if (cast(Package)area) { mixin(S_TRACE);
+				_summ.add(cast(Package) area);
+				undos ~= new UndoInsertDelete(this, _comm, _summ, area.id, typeid(Package), true, a, b, p);
+				_comm.refPackage.call(cast(Package)area);
+			} else assert (0);
+		}
+		if (sel) { mixin (S_TRACE);
+			if (_dirMode) {
+				constructDirTree(true);
+			}
+			refreshAreas();
+		}
+		if (sel) { mixin (S_TRACE);
+			sort();
+			select(sel);
+			if (_flags) _flags.refresh();
+			_comm.refUseCount.call();
+			refreshStatusLine();
+			_comm.refreshToolBar();
+			_undo ~= new ATUndoArr(undos);
+		}
+	}
+
 	@property
 	bool canUndo() { mixin(S_TRACE);
 		return _undo.canUndo();

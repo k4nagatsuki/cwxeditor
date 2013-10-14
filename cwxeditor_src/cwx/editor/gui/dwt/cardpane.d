@@ -1378,16 +1378,6 @@ private:
 		}
 		sn.newAttr("scenarioPath", nabs(ownerScenarioPath));
 		auto opt = new XMLOption(_prop.sys);
-		static if (!is(ToCardOwner == void)) {
-			if (1 == _prop.var.etc.importLinkCondition) { mixin(S_TRACE);
-				// 参照先を格納
-				opt.includeCard = true;
-				opt.noLinkId = true;
-				opt.skill = &_summ.skill;
-				opt.item = &_summ.item;
-				opt.beast = &_summ.beast;
-			}
-		}
 		foreach (sel; sels) { mixin(S_TRACE);
 			sel.toNode(sn, opt);
 		}
@@ -1431,7 +1421,7 @@ private:
 				static if (EditMode) {
 					edit(_list.card(index));
 				} else { mixin(S_TRACE);
-					addCard();
+					doImport();
 				}
 			}
 		}
@@ -1459,7 +1449,7 @@ private:
 			static if (EditMode) {
 				edit(cast(C) itm.getData());
 			} else { mixin(S_TRACE);
-				addCard();
+				doImport();
 			}
 		}
 	}
@@ -1470,7 +1460,7 @@ private:
 				static if (EditMode) {
 					edit(_list.selectionCard);
 				} else { mixin(S_TRACE);
-					addCard();
+					doImport();
 				}
 			}
 		}
@@ -1483,7 +1473,7 @@ private:
 				static if (EditMode) {
 					edit(cast(C) _tbl.getItem(i).getData());
 				} else { mixin(S_TRACE);
-					addCard();
+					doImport();
 				}
 			}
 		}
@@ -2143,7 +2133,7 @@ public:
 				createMenuItem(_comm, pop, MenuID.OpenHand, _openHand, () => selection !is null);
 				new MenuItem(pop, SWT.SEPARATOR);
 			}
-			createMenuItem(_comm, pop, MenuID.Import, &addCard, &canAddCard);
+			createMenuItem(_comm, pop, MenuID.Import, &doImport, &canDoImport);
 			new MenuItem(pop, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, pop, this, false, true, false, false, false);
 			new MenuItem(pop, SWT.SEPARATOR);
@@ -2420,7 +2410,7 @@ public:
 		}
 		bool addFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 			C[] adds;
-			static if (is (CardOwner == Summary)) bool inPane = false;
+			bool inPane = false;
 			if (node.attr("summId", false) != ownerId) { mixin(S_TRACE);
 				node.onTag[C.XML_NAME] = (ref XNode cNode) { mixin(S_TRACE);
 					adds ~= C.createFromNode(cNode, ver);
@@ -2441,10 +2431,17 @@ public:
 			}
 			if (adds.length == 0) return false;
 			open(false);
-			ulong[] ids;
 			bool samePane = _id == node.attr("paneId", false);
 			bool sameSc = ownerId == node.attr("summId", false);
 			bool topLevel = node.attr!bool("topLevel", false, false);
+			addCardsImpl(adds, inPane, samePane, sameSc, topLevel);
+			return true;
+		}
+		void addCards(C[] cs) { mixin(S_TRACE);
+			addCardsImpl(cs, false, false, false, true);
+		}
+		void addCardsImpl(C[] adds, bool inPane, bool samePane, bool sameSc, bool topLevel) { mixin(S_TRACE);
+			ulong[] ids;
 			foreach (card; adds) { mixin(S_TRACE);
 				refreshLink(card, samePane, sameSc, topLevel);
 				static if (is(CardOwner:Summary)) {
@@ -2475,7 +2472,6 @@ public:
 			static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
 				_comm.refCast.call(_owner);
 			}
-			return true;
 		}
 		void pasteRefresh(C[] cs) { mixin(S_TRACE);
 			if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
@@ -2494,23 +2490,15 @@ public:
 			_comm.refreshToolBar();
 		}
 	} else {
-		private void delegate(ref XNode, in XMLInfo) _addc;
-		void setAddCard(void delegate(ref XNode, in XMLInfo) addc) { mixin(S_TRACE);
-			_addc = addc;
-		}
-		void delegate(ref XNode, in XMLInfo) getAddCard() { mixin(S_TRACE);
-			return _addc;
-		}
-		void addCard() { mixin(S_TRACE);
-			C[] cs = selectedCards;
-			auto doc = XNode.create(C.XML_NAME_M);
-			toNode(doc, cs);
-			auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
-			_addc(doc, ver);
-			_comm.refreshToolBar();
+		void doImport() { mixin(S_TRACE);
+			string[] paths;
+			foreach (card; selectedCards) { mixin(S_TRACE);
+				paths ~= card.cwxPath(true);
+			}
+			_comm.doImport(_toc, _summ, paths);
 		}
 		@property
-		bool canAddCard() { mixin(S_TRACE);
+		bool canDoImport() { mixin(S_TRACE);
 			return selection !is null;
 		}
 	}

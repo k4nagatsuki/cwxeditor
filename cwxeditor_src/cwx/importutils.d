@@ -11,31 +11,15 @@ import cwx.motion;
 import cwx.usecounter;
 import cwx.imagesize;
 import cwx.background;
+import cwx.types;
 
+import std.array;
 import std.path;
-
-/// 格納カード・イメージのインポートオプション。
-enum ImportTypeIncluded {
-	AsIs, /// 格納されたままにしておく。
-	Output, /// 外部出力する。
-}
-/// ファイル・状態変数のインポートオプション。
-enum ImportTypeReference1 {
-	Rename, /// インポートし、被った場合は名前を変更する。
-	NoOverwrite, /// インポートするが、被った場合はインポートしない。
-	Overwrite, /// インポートする。被った場合は上書きする。
-	NoImport, /// インポートしない。
-}
-/// エリア類・カード類のインポートオプション。
-enum ImportTypeReference2 {
-	Rename, /// 新しいIDでインポートする。
-	NoImport, /// インポートしない。
-}
 
 /// インポートのオプション。
 struct ImportOption {
-	ImportTypeReference1 variables = ImportTypeReference1.Rename; /// 状態変数。
 	ImportTypeReference1 materials = ImportTypeReference1.NoOverwrite; /// 外部素材。
+	ImportTypeReference1 variables = ImportTypeReference1.Rename; /// 状態変数。
 	ImportTypeReference2 casts = ImportTypeReference2.NoImport; /// キャストカード。
 	ImportTypeReference2 skills = ImportTypeReference2.NoImport; /// 特殊技能カード。
 	ImportTypeReference2 items = ImportTypeReference2.NoImport; /// アイテムカード。
@@ -45,6 +29,7 @@ struct ImportOption {
 	ImportTypeReference2 battles = ImportTypeReference2.NoImport; /// バトル。
 	ImportTypeReference2 packages = ImportTypeReference2.NoImport; /// パッケージ。
 	ImportTypeIncluded includedFiles = ImportTypeIncluded.AsIs; /// 格納イメージ。
+	ImportTypeIncluded includedBgImages = ImportTypeIncluded.AsIs; /// 格納イメージ(イメージセル)。
 	ImportTypeIncluded hands = ImportTypeIncluded.AsIs; /// キャストの手札カード。
 	ImportTypeIncluded beastsInMotions = ImportTypeIncluded.AsIs; /// 召喚獣召喚効果内の召喚獣カード。
 }
@@ -134,6 +119,8 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 			break;
 		}
 	}
+	auto sName = from.scenarioName.replace("\\", "");
+	if (sName == "") sName = "_";
 	bool ref2(T, U)(ImportTypeReference2 type, T ucf, U delegate(ulong) get, ref U[ulong] table) { mixin(S_TRACE);
 		bool r = false;
 		final switch (type) {
@@ -143,6 +130,9 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 					auto a = get(id.id);
 					if (!a) continue;
 					a = cast(U)a.dup;
+					static if (is(U:AbstractArea)) {
+						a.name = sName ~ "\\" ~ a.name;
+					}
 					a.setUseCounter(uc);
 					table[id] = a;
 					r = true;
@@ -205,10 +195,10 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 		if (path.isBinImg) return;
 		if (opt.variables is ImportTypeReference1.Rename) { mixin(S_TRACE);
 			auto newPath = newFolder.buildPath(cast(string)path);
-			r.materials ~= ImportFile(newPath, cast(string)path);
+			r.materials ~= ImportFile(to.scenarioPath.buildPath(newPath), from.scenarioPath.buildPath(cast(string)path));
 			uc.change(path, toPathId(newPath));
 		} else { mixin(S_TRACE);
-			r.materials ~= ImportFile(cast(string)path, cast(string)path);
+			r.materials ~= ImportFile(to.scenarioPath.buildPath(cast(string)path), from.scenarioPath.buildPath(cast(string)path));
 		}
 	});
 	// 状態変数のインポート。
@@ -218,11 +208,11 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 		if (!f) return;
 		auto o = new Flag(f);
 		if (opt.variables is ImportTypeReference1.Rename) { mixin(S_TRACE);
-			r.flags[FlagDir.up(cast(string)path)] ~= o;
-		} else { mixin(S_TRACE);
 			auto newPath = newFlagDir ~ "\\" ~ cast(string)path;
 			r.flags[FlagDir.up(newFlagDir)] ~= o;
 			uc.change(path, toFlagId(newPath));
+		} else { mixin(S_TRACE);
+			r.flags[FlagDir.up(cast(string)path)] ~= o;
 		}
 	});
 	ref1(opt.variables, uc.step, to.useCounter.step, (StepId path) { mixin(S_TRACE);
@@ -230,42 +220,55 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 		if (!f) return;
 		auto o = new Step(f);
 		if (opt.variables is ImportTypeReference1.Rename) { mixin(S_TRACE);
-			r.steps[FlagDir.up(cast(string)path)] ~= o;
-		} else { mixin(S_TRACE);
 			auto newPath = newFlagDir ~ "\\" ~ cast(string)path;
 			r.steps[FlagDir.up(newFlagDir)] ~= o;
 			uc.change(path, toStepId(newPath));
+		} else { mixin(S_TRACE);
+			r.steps[FlagDir.up(cast(string)path)] ~= o;
 		}
 	});
 
-	// 手札カードの外部化
-	if (opt.hands is ImportTypeIncluded.Output) { mixin(S_TRACE);
+	// 手札カードの外部化・内部化
+	if (opt.hands !is ImportTypeIncluded.AsIs) { mixin(S_TRACE);
 		foreach (cc; r.casts) { mixin(S_TRACE);
-			void outputRefCard(T)(T c, ref T[ulong] table, in T[] toArr) { mixin(S_TRACE);
-				if (c.linkId) return;
-				auto ids = table.keys().sort;
-				auto id = ids.length ? ids[$-1] + 1 : (toArr.length ? toArr[$-1].id + 1 : 1);
-				int index = cc.indexOf(c);
-				cc.remove(c);
-				auto nc = new T(c.id, "", "", "");
-				nc.linkId = id;
-				static if (is(typeof(c.hold))) nc.hold = c.hold;
-				cc.insert(index, nc);
-				c.id = id;
-				static if (is(typeof(c.hold))) c.hold = false;
-				table[id] = c;
+			void outputRefCard(T)(T c, ref T[ulong] table, in T[] toArr, T delegate(ulong) get) { mixin(S_TRACE);
+				if (opt.hands is ImportTypeIncluded.Exclude) {
+					if (c.linkId) return;
+					auto ids = table.keys().sort;
+					auto id = ids.length ? ids[$-1] + 1 : (toArr.length ? toArr[$-1].id + 1 : 1);
+					int index = cc.indexOf(c);
+					cc.remove(c);
+					auto nc = new T(c.id, "", "", "");
+					nc.linkId = id;
+					static if (is(typeof(c.hold))) nc.hold = c.hold;
+					cc.insert(index, nc);
+					c.id = id;
+					static if (is(typeof(c.hold))) c.hold = false;
+					table[id] = c;
+				} else if (opt.hands is ImportTypeIncluded.Include) {
+					if (!c.linkId) return;
+					auto p = c.linkId in table;
+					auto nc = p ? *p : get(c.linkId);
+					if (!nc) return;
+					nc = nc.dup;
+					nc.id = c.id;
+					static if (is(typeof(c.hold))) nc.hold = c.hold;
+					int index = cc.indexOf(c);
+					cc.remove(c);
+					cc.insert(index, nc);
+				}
 			}
-			foreach (c; cc.skills) outputRefCard(c, r.skills, to.skills);
-			foreach (c; cc.items) outputRefCard(c, r.items, to.items);
-			foreach (c; cc.beasts) outputRefCard(c, r.beasts, to.beasts);
+			foreach (c; cc.skills) outputRefCard(c, r.skills, to.skills, &from.skill);
+			foreach (c; cc.items) outputRefCard(c, r.items, to.items, &from.item);
+			foreach (c; cc.beasts) outputRefCard(c, r.beasts, to.beasts, &from.beast);
 		}
 	}
-	// 召喚獣召喚効果内の召喚獣の外部化
-	if (opt.beastsInMotions is ImportTypeIncluded.Output) { mixin(S_TRACE);
+	// 召喚獣召喚効果内の召喚獣の外部化・内部化
+	if (opt.beastsInMotions !is ImportTypeIncluded.AsIs) { mixin(S_TRACE);
 		void recurseB(CWXPath path) { mixin(S_TRACE);
 			auto childs = path.cwxChilds;
 			if (auto b = cast(Motion)path) { mixin(S_TRACE);
-				if (b.beast && !b.beast.linkId) { mixin(S_TRACE);
+				if (opt.beastsInMotions is ImportTypeIncluded.Exclude && b.beast && !b.beast.linkId) { mixin(S_TRACE);
 					auto ids = r.beasts.keys().sort;
 					auto id = ids.length ? ids[$-1] + 1 : 1;
 					auto c = b.beast;
@@ -274,6 +277,12 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 					b.newBeast = nc;
 					c.id = id;
 					r.beasts[id] = c;
+				} else if (opt.beastsInMotions is ImportTypeIncluded.Include && b.beast && b.beast.linkId) { mixin(S_TRACE);
+					auto p = b.beast.linkId in r.beasts;
+					auto beast = p ? *p : from.beast(b.beast.linkId);
+					if (beast) { mixin(S_TRACE);
+						b.newBeast = beast.dup;
+					}
 				}
 			}
 			foreach (child; childs) recurseB(cast(CWXPath)child);
@@ -287,8 +296,8 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 		foreach (a; r.beasts) recurseB(a);
 		foreach (a; r.infos) recurseB(a);
 	}
-	// 格納イメージの外部化
-	if (opt.includedFiles is ImportTypeIncluded.Output) { mixin(S_TRACE);
+	// 格納イメージの外部化・内部化
+	if (opt.includedFiles !is ImportTypeIncluded.AsIs || opt.includedBgImages is ImportTypeIncluded.AsIs) { mixin(S_TRACE);
 		void putBinImg(string binImg) { mixin(S_TRACE);
 			auto bytes = strToBImg(binImg);
 			auto ext = imageType(bytes);
@@ -301,21 +310,37 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 				}
 				return true;
 			});
-			r.materials ~= ImportFile(newFolder.buildPath(name), binImg);
+			r.materials ~= ImportFile(to.scenarioPath.buildPath(newFolder.buildPath(name)), binImg);
+		}
+		void includeImg(string path, void delegate(string) set) { mixin(S_TRACE);
+			try {
+				auto file = from.scenarioPath.buildPath(path);
+				set(bImgToStr(cast(ubyte[])readBinary(file)));
+			} catch (Exception e) {
+				debugln(e);
+			}
 		}
 		void recurseF(CWXPath path) { mixin(S_TRACE);
 			auto childs = path.cwxChilds;
 			if (auto c = cast(Card)path) { mixin(S_TRACE);
-				if (c.path.isBinImg()) { mixin(S_TRACE);
+				if (opt.includedFiles is ImportTypeIncluded.Exclude && c.path.isBinImg()) { mixin(S_TRACE);
 					putBinImg(c.path);
+				} else if (opt.includedFiles is ImportTypeIncluded.Include && c.path.length) { mixin(S_TRACE);
+					includeImg(c.path, &c.path);
 				}
-			} else if (auto c = cast(MenuCard)path) { mixin(S_TRACE);
-				if (c.path.isBinImg()) { mixin(S_TRACE);
+			}
+			if (auto c = cast(MenuCard)path) { mixin(S_TRACE);
+				if (opt.includedFiles is ImportTypeIncluded.Exclude && c.path.isBinImg()) { mixin(S_TRACE);
 					putBinImg(c.path);
+				} else if (opt.includedFiles is ImportTypeIncluded.Include && c.path.length) { mixin(S_TRACE);
+					includeImg(c.path, &c.path);
 				}
-			} else if (auto c = cast(ImageCell)path) { mixin(S_TRACE);
-				if (c.path.isBinImg()) { mixin(S_TRACE);
+			}
+			if (auto c = cast(ImageCell)path) { mixin(S_TRACE);
+				if (opt.includedBgImages !is ImportTypeIncluded.Exclude && c.path.isBinImg()) { mixin(S_TRACE);
 					putBinImg(c.path);
+				} else if (opt.includedBgImages is ImportTypeIncluded.Include && c.path.length) { mixin(S_TRACE);
+					includeImg(c.path, &c.path);
 				}
 			}
 			foreach (child; childs) recurseF(cast(CWXPath)child);

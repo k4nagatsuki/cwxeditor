@@ -288,6 +288,9 @@ public:
 		});
 	}
 	static if (UseArea) {
+		@property
+		AreaTable areas() { return _areas; }
+
 		void refTableViewStyle() { mixin(S_TRACE);
 			static if (UseFlag) {
 				tabA.getControl().dispose();
@@ -405,6 +408,9 @@ public:
 		}
 	}
 	static if (UseFlag) {
+		@property
+		FlagsPane flags() { return _flags; }
+
 		@property
 		bool canCreateFlagDir() { mixin(S_TRACE);
 			return _summ !is null;

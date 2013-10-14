@@ -489,6 +489,33 @@ private abstract class FTVUndo : Undo {
 	abstract override void redo();
 	abstract override void dispose();
 }
+package class UndoAllVariables : FTVUndo {
+	private FlagDir _root;
+	private FlagDir _copyRoot;
+	this (FlagTable v, Commons comm, FlagDir dir, FlagDir root) { mixin(S_TRACE);
+		super (v, comm, dir);
+		_copyRoot = new FlagDir(root);
+	}
+	private void impl() { mixin(S_TRACE);
+		auto v = view();
+		udb(v);
+		scope (exit) uda(v);
+		auto copy = _copyRoot;
+		_copyRoot = new FlagDir(_root);
+
+		_root.removeAll();
+		foreach (f; copy.flags) _root.add(f);
+		foreach (f; copy.steps) _root.add(f);
+		foreach (f; copy.subDirs) _root.add(f);
+		comm.refFlagAndStep.call(_root.allFlags, _root.allSteps);
+		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
+			v.refresh();
+		}
+	}
+	override void undo() {impl();}
+	override void redo() {impl();}
+	override void dispose() {}
+}
 package class UndoEditN {
 	private CWXPath _f;
 	private string _name;
@@ -1658,6 +1685,9 @@ public:
 	/// ステップを選択する。
 	void select(Step step, bool deselect) { mixin(S_TRACE);
 		selectImpl(step, deselect);
+	}
+	void deselectAll() { mixin(S_TRACE);
+		flags.deselectAll();
 	}
 
 	/// コントロールを解放する。

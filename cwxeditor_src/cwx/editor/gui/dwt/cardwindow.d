@@ -47,6 +47,8 @@ import java.lang.all;
 
 public:
 
+// TODO エリア類のインポート
+
 interface ICardWindow {
 	@property
 	bool canCreateCast();
@@ -208,28 +210,11 @@ private:
 		if (_win && !_win.isDisposed()) return _win.getShell();
 		return _comm.mainWin.shell.getShell();
 	}
-	static if (!EditMode) {
-		void addCard() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				foreach (i, f; _pane) { mixin(S_TRACE);
-					if (_tabf.getSelection() is _tab[i]) { mixin(S_TRACE);
-						f.addCard();
-						return;
-					}
-				}
-			} else { mixin(S_TRACE);
-				_pane[0].addCard();
-			}
-		}
-	}
 	static if (UseCast && !EditMode) {
 		void openHand() { mixin(S_TRACE);
 			auto sels = _pane[CAST].selectedCards;
 			foreach (sel; sels) { mixin(S_TRACE);
-				auto ahcw = _comm.openAddHands(_prop, _summ, sel, _toc, true);
-				ahcw.setAddSkill(_pane[SKILL].getAddCard());
-				ahcw.setAddItem(_pane[ITEM].getAddCard());
-				ahcw.setAddBeast(_pane[BEAST].getAddCard());
+				_comm.openAddHands(_prop, _summ, sel, _toc, true);
 			}
 		}
 	}
@@ -385,7 +370,7 @@ public:
 					createMenuItem(_comm, me, MenuID.Up, &up, &canUp);
 					createMenuItem(_comm, me, MenuID.Down, &down, &canDown);
 				} else { mixin(S_TRACE);
-					createMenuItem(_comm, me, MenuID.Import, &addCard, &isSelected);
+					createMenuItem(_comm, me, MenuID.Import, &doImport, &canDoImport);
 					new MenuItem(me, SWT.SEPARATOR);
 					appendMenuTCPD(_comm, me, this, false, true, false, false, false);
 				}
@@ -434,7 +419,7 @@ public:
 					static if (UseBeast) createToolItem(_comm, bar, MenuID.NewBeast, &create!(BEAST), () => _summ !is null);
 					static if (UseInfo) createToolItem(_comm, bar, MenuID.NewInfo, &create!(INFO), () => _summ !is null);
 				} else { mixin(S_TRACE);
-					createToolItem(_comm, bar, MenuID.Import, &addCard, &isSelected);
+					createToolItem(_comm, bar, MenuID.Import, &doImport, &canDoImport);
 				}
 				new ToolItem(bar, SWT.SEPARATOR);
 				_lifeT = createToolItem(_comm, bar, MenuID.ShowCardProp, &showCardLife, null, SWT.RADIO);
@@ -472,7 +457,7 @@ public:
 				static if (UseCast) {
 					putMenuAction(MenuID.OpenHand, &editHand, &canEditHand);
 				}
-				putMenuAction(MenuID.Import, &addCard, &canAddCard);
+				putMenuAction(MenuID.Import, &doImport, &canDoImport);
 			}
 			static if (UseSkill || UseItem || UseBeast) {
 				putMenuAction(MenuID.EditEventAtTimeOfUsing, &editUseEvent, &canEditUseEvent);
@@ -480,22 +465,6 @@ public:
 			putMenuChecked(MenuID.ShowCardProp, &showCardLife, &isViewLife, null);
 			putMenuChecked(MenuID.ShowCardImage, &showCardList, &isViewList, null);
 			putMenuChecked(MenuID.ShowCardDetail, &showCardTable, &isViewTable, null);
-		}
-		static if (CWKind == CardWindowKind.ImportSource || CWKind == CardWindowKind.ImportSourceHand) {
-			auto refMenu = new Composite(_comp, SWT.NONE);
-			refMenu.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			refMenu.setLayout(zeroMarginGridLayout(2, false));
-			auto refMenuL = new Label(refMenu, SWT.NONE);
-			refMenuL.setText(_prop.msgs.importLinkCondition);
-			auto refMenuC = new Combo(refMenu, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-			refMenuC.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
-			refMenuC.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			refMenuC.add(_prop.msgs.importLinkConditionNoChange);
-			refMenuC.add(_prop.msgs.importLinkConditionInclude);
-			refMenuC.select(0 == _prop.var.etc.importLinkCondition ? 0 : 1);
-			.listener(refMenuC, SWT.Selection, { mixin(S_TRACE);
-				_prop.var.etc.importLinkCondition = (1 == refMenuC.getSelectionIndex() ? 1 : 0);
-			});
 		}
 		static if (1 < Cards.length) {
 			_tabf = new CTabFolder(_comp, SWT.BORDER);
@@ -988,66 +957,6 @@ public:
 			refreshTitle();
 		}
 	}
-	static if (EditMode) {
-		void add(int Index)(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
-			if (_pane[Index].addFromNode(node, ver)) { mixin(S_TRACE);
-				static if (1 < Cards.length) {
-					_tabf.setSelection(_tab[Index]);
-				}
-			}
-		}
-		static if (UseCast) {
-			void addCast(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
-				_pane[CAST].addFromNode(node, ver);
-			}
-		}
-		static if (UseSkill) {
-			void addSkill(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
-				_pane[SKILL].addFromNode(node, ver);
-			}
-		}
-		static if (UseItem) {
-			void addItem(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
-				_pane[ITEM].addFromNode(node, ver);
-			}
-		}
-		static if (UseBeast) {
-			void addBeast(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
-				_pane[BEAST].addFromNode(node, ver);
-			}
-		}
-		static if (UseInfo) {
-			void addInfo(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
-				_pane[INFO].addFromNode(node, ver);
-			}
-		}
-	} else {
-		static if (UseCast) {
-			void setAddCast(void delegate(ref XNode node, in XMLInfo) addc) { mixin(S_TRACE);
-				_pane[CAST].setAddCard(addc);
-			}
-		}
-		static if (UseSkill) {
-			void setAddSkill(void delegate(ref XNode node, in XMLInfo) addc) { mixin(S_TRACE);
-				_pane[SKILL].setAddCard(addc);
-			}
-		}
-		static if (UseItem) {
-			void setAddItem(void delegate(ref XNode node, in XMLInfo) addc) { mixin(S_TRACE);
-				_pane[ITEM].setAddCard(addc);
-			}
-		}
-		static if (UseBeast) {
-			void setAddBeast(void delegate(ref XNode node, in XMLInfo) addc) { mixin(S_TRACE);
-				_pane[BEAST].setAddCard(addc);
-			}
-		}
-		static if (UseInfo) {
-			void setAddInfo(void delegate(ref XNode node, in XMLInfo) addc) { mixin(S_TRACE);
-				_pane[INFO].setAddCard(addc);
-			}
-		}
-	}
 	private void refreshStatusLine() { mixin(S_TRACE);
 		if (!_win || _win.isDisposed()) return;
 		static if (1 < Cards.length) {
@@ -1492,50 +1401,50 @@ public:
 			}
 		}
 	} else {
-		void addCard() { mixin(S_TRACE);
+		void doImport() { mixin(S_TRACE);
 			static if (1 < Cards.length) {
 				int i = _tabf.getSelectionIndex();
 				static if (UseCast) {
-					if (i == CAST) _pane[CAST].addCard();
+					if (i == CAST) _pane[CAST].doImport();
 				}
 				static if (UseSkill) {
-					if (i == SKILL) _pane[SKILL].addCard();
+					if (i == SKILL) _pane[SKILL].doImport();
 				}
 				static if (UseItem) {
-					if (i == ITEM) _pane[ITEM].addCard();
+					if (i == ITEM) _pane[ITEM].doImport();
 				}
 				static if (UseBeast) {
-					if (i == BEAST) _pane[BEAST].addCard();
+					if (i == BEAST) _pane[BEAST].doImport();
 				}
 				static if (UseInfo) {
-					if (i == INFO) _pane[INFO].addCard();
+					if (i == INFO) _pane[INFO].doImport();
 				}
 			} else { mixin(S_TRACE);
-				_pane[0].addCard();
+				_pane[0].doImport();
 			}
 		}
 		@property
-		bool canAddCard() { mixin(S_TRACE);
+		bool canDoImport() { mixin(S_TRACE);
 			static if (1 < Cards.length) {
 				int i = _tabf.getSelectionIndex();
 				static if (UseCast) {
-					if (i == CAST) return _pane[CAST].canAddCard;
+					if (i == CAST) return _pane[CAST].canDoImport;
 				}
 				static if (UseSkill) {
-					if (i == SKILL) return _pane[SKILL].canAddCard;
+					if (i == SKILL) return _pane[SKILL].canDoImport;
 				}
 				static if (UseItem) {
-					if (i == ITEM) return _pane[ITEM].canAddCard;
+					if (i == ITEM) return _pane[ITEM].canDoImport;
 				}
 				static if (UseBeast) {
-					if (i == BEAST) return _pane[BEAST].canAddCard;
+					if (i == BEAST) return _pane[BEAST].canDoImport;
 				}
 				static if (UseInfo) {
-					if (i == INFO) return _pane[INFO].canAddCard;
+					if (i == INFO) return _pane[INFO].canDoImport;
 				}
 				return false;
 			} else { mixin(S_TRACE);
-				return _pane[0].canAddCard;
+				return _pane[0].canDoImport;
 			}
 		}
 	}

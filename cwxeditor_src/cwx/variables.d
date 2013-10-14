@@ -248,7 +248,20 @@ class FlexEtcProps : Properties {
 	auto settingListWidth = Prop!(int, true)("settingListWidth", 150);
 	auto settingListHeight = Prop!(int, true)("settingListHeight", 150);
 
-	auto importLinkCondition = Prop!(int)("importLinkCondition", 1);
+	auto importOptionMaterials = Prop!(int)("importOptionMaterials", ImportTypeReference1.NoOverwrite);
+	auto importOptionVariables = Prop!(int)("importOptionVariables", ImportTypeReference1.Rename);
+	auto importOptionCasts = Prop!(int)("importOptionCasts", ImportTypeReference2.NoImport);
+	auto importOptionSkills = Prop!(int)("importOptionSkills", ImportTypeReference2.NoImport);
+	auto importOptionItems = Prop!(int)("importOptionItems", ImportTypeReference2.NoImport);
+	auto importOptionBeasts = Prop!(int)("importOptionBeasts", ImportTypeReference2.NoImport);
+	auto importOptionInfos = Prop!(int)("importOptionInfos", ImportTypeReference2.NoImport);
+	auto importOptionAreas = Prop!(int)("importOptionAreas", ImportTypeReference2.NoImport);
+	auto importOptionBattles = Prop!(int)("importOptionBattles", ImportTypeReference2.NoImport);
+	auto importOptionPackages = Prop!(int)("importOptionPackages", ImportTypeReference2.NoImport);
+	auto importOptionIncludedFiles = Prop!(int)("importOptionIncludedFiles", ImportTypeIncluded.AsIs);
+	auto importOptionIncludedBgImages = Prop!(int)("importOptionIncludedBgImages", ImportTypeIncluded.AsIs);
+	auto importOptionHands = Prop!(int)("importOptionHands", ImportTypeIncluded.AsIs);
+	auto importOptionBeastsInMotions = Prop!(int)("importOptionBeastsInMotions", ImportTypeIncluded.AsIs);
 	auto wallpaper = Prop!(string)("wallpaper", "");
 	auto wallpaperStyle = Prop!(int)("wallpaperStyle", WallpaperStyle.Tile);
 	auto wallColorR = Prop!(int)("wallColorR", 0);

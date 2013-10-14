@@ -11,6 +11,7 @@ import cwx.cab;
 import cwx.types;
 import cwx.script;
 import cwx.event;
+import cwx.importutils;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.absdialog;
@@ -28,6 +29,8 @@ import std.conv;
 import std.path;
 import std.file;
 import std.functional;
+import std.array;
+import std.traits;
 
 import org.eclipse.swt.all;
 
@@ -695,7 +698,7 @@ class EventTemplateDialog : AbsDialog {
 	private Props _prop;
 	private Summary _summ;
 	private ToolsPane!EvTemplate _evTempls;
-	EvTemplate[] _tmpls;
+	private EvTemplate[] _tmpls;
 
 	this (Commons comm, Props prop, Summary summ, Shell shell, EvTemplate[] tmpls) { mixin(S_TRACE);
 		_comm = comm;
@@ -748,3 +751,105 @@ class EventTemplateDialog : AbsDialog {
 		return true;
 	}
 }
+
+class ImportOptionDialog : AbsDialog {
+	private Commons _comm;
+	private ImportOption _opt;
+	private Props _prop;
+
+	private Combo _materials;
+	private Combo _variables;
+	private Combo _casts;
+	private Combo _skills;
+	private Combo _items;
+	private Combo _beasts;
+	private Combo _infos;
+	private Combo _areas;
+	private Combo _battles;
+	private Combo _packages;
+	private Combo _includedFiles;
+	private Combo _includedBgImages;
+	private Combo _hands;
+	private Combo _beastsInMotions;
+
+	this (Commons comm, Shell shell) { mixin(S_TRACE);
+		_comm = comm;
+		_prop = comm.prop;
+		super (_prop, shell, true, _prop.msgs.dlgTitImportOption, _prop.images.menu(MenuID.Import), false);
+	}
+
+	@property
+	ImportOption option() { return _opt; }
+
+	protected override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(new GridLayout(4, false));
+		Combo create(T)(string name, int opValue, T value) { mixin(S_TRACE);
+			if (opValue < value.min || value.max < opValue) opValue = value;
+			value = cast(T)opValue;
+			auto label = new Label(area, SWT.NONE);
+			label.setText(name);
+			auto combo = new Combo(area, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(combo);
+			combo.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+			foreach (t; EnumMembers!T) { mixin(S_TRACE);
+				static if (is(T:ImportTypeIncluded)) {
+					combo.add(_prop.msgs.importTypeIncludedName(t));
+				} else static if (is(T:ImportTypeReference1)) {
+					combo.add(_prop.msgs.importTypeReference1Name(t));
+				} else static if (is(T:ImportTypeReference2)) {
+					combo.add(_prop.msgs.importTypeReference2Name(t));
+				} else static assert (0);
+				if (t is value) { mixin(S_TRACE);
+					combo.select(combo.getItemCount() - 1);
+				}
+			}
+			combo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			return combo;
+		}
+		_materials = create(_prop.msgs.importOptionMaterials, _prop.var.etc.importOptionMaterials, _opt.materials);
+		_variables = create(_prop.msgs.importOptionVariables, _prop.var.etc.importOptionVariables, _opt.variables);
+		_casts = create(_prop.msgs.importOptionCasts, _prop.var.etc.importOptionCasts, _opt.casts);
+		_skills = create(_prop.msgs.importOptionSkills, _prop.var.etc.importOptionSkills, _opt.skills);
+		_items = create(_prop.msgs.importOptionItems, _prop.var.etc.importOptionItems, _opt.items);
+		_beasts = create(_prop.msgs.importOptionBeasts, _prop.var.etc.importOptionBeasts, _opt.beasts);
+		_infos = create(_prop.msgs.importOptionInfos, _prop.var.etc.importOptionInfos, _opt.infos);
+		_areas = create(_prop.msgs.importOptionAreas, _prop.var.etc.importOptionAreas, _opt.areas);
+		_battles = create(_prop.msgs.importOptionBattles, _prop.var.etc.importOptionBattles, _opt.battles);
+		_packages = create(_prop.msgs.importOptionPackages, _prop.var.etc.importOptionPackages, _opt.packages);
+		_includedFiles = create(_prop.msgs.importOptionIncludedFiles, _prop.var.etc.importOptionIncludedFiles, _opt.includedFiles);
+		_includedBgImages = create(_prop.msgs.importOptionIncludedBgImages, _prop.var.etc.importOptionIncludedBgImages, _opt.includedBgImages);
+		_hands = create(_prop.msgs.importOptionHands, _prop.var.etc.importOptionHands, _opt.hands);
+		_beastsInMotions = create(_prop.msgs.importOptionBeastsInMotions, _prop.var.etc.importOptionBeastsInMotions, _opt.beastsInMotions);
+	}
+
+	protected override bool apply() { mixin(S_TRACE);
+		void put(T)(Combo combo, ref int opValue, ref T value) { mixin(S_TRACE);
+			auto arr = EnumMembers!T;
+			auto index = combo.getSelectionIndex();
+			foreach (i, t; arr) { mixin(S_TRACE);
+				if (i == index) { mixin(S_TRACE);
+					opValue = cast(int)t;
+					value = t;
+					break;
+				}
+			}
+		}
+		put(_materials, _prop.var.etc.importOptionMaterials.value, _opt.materials);
+		put(_variables, _prop.var.etc.importOptionVariables.value, _opt.variables);
+		put(_casts, _prop.var.etc.importOptionCasts.value, _opt.casts);
+		put(_skills, _prop.var.etc.importOptionSkills.value, _opt.skills);
+		put(_items, _prop.var.etc.importOptionItems.value, _opt.items);
+		put(_beasts, _prop.var.etc.importOptionBeasts.value, _opt.beasts);
+		put(_infos, _prop.var.etc.importOptionInfos.value, _opt.infos);
+		put(_areas, _prop.var.etc.importOptionAreas.value, _opt.areas);
+		put(_battles, _prop.var.etc.importOptionBattles.value, _opt.battles);
+		put(_packages, _prop.var.etc.importOptionPackages.value, _opt.packages);
+		put(_includedFiles, _prop.var.etc.importOptionIncludedFiles.value, _opt.includedFiles);
+		put(_includedBgImages, _prop.var.etc.importOptionIncludedBgImages.value, _opt.includedBgImages);
+		put(_hands, _prop.var.etc.importOptionHands.value, _opt.hands);
+		put(_beastsInMotions, _prop.var.etc.importOptionBeastsInMotions.value, _opt.beastsInMotions);
+		return true;
+	}
+}
+
+// TODO インポート結果を表示するダイアログ

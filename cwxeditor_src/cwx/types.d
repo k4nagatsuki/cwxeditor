@@ -1469,3 +1469,22 @@ enum MenuID {
 	AddToolGroup,
 	ResetToolBarSettings,
 }
+
+/// 格納カード・イメージのインポートオプション。
+enum ImportTypeIncluded {
+	Exclude, /// 外部出力する。
+	Include, /// 外部にあれば格納する。
+	AsIs, /// 格納されたままにしておく。
+}
+/// ファイル・状態変数のインポートオプション。
+enum ImportTypeReference1 {
+	Rename, /// インポートし、被った場合は名前を変更する。
+	NoOverwrite, /// インポートするが、被った場合はインポートしない。
+	Overwrite, /// インポートする。被った場合は上書きする。
+	NoImport, /// インポートしない。
+}
+/// エリア類・カード類のインポートオプション。
+enum ImportTypeReference2 {
+	Rename, /// 新しいIDでインポートする。
+	NoImport, /// インポートしない。
+}

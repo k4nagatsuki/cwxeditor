@@ -13,6 +13,7 @@ import cwx.menu;
 import cwx.types;
 import cwx.structs;
 import cwx.system;
+import cwx.importutils;
 
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dprops;
@@ -32,6 +33,7 @@ import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.xmlbytestransfer;
+import cwx.editor.gui.dwt.smalldialogs;
 
 import std.exception;
 import std.path;
@@ -1067,31 +1069,8 @@ class Commons {
 
 	private HashSet!(Composite) _aws;
 	private void addScenarioImpl(Object[] ws) { mixin(S_TRACE);
-		void delegate(ref XNode, in XMLInfo) addCast;
-		void delegate(ref XNode, in XMLInfo) addSkill;
-		void delegate(ref XNode, in XMLInfo) addItem;
-		void delegate(ref XNode, in XMLInfo) addBeast;
-		void delegate(ref XNode, in XMLInfo) addInfo;
-		if (_cardWin) { mixin(S_TRACE);
-			addCast = &_cardWin.addCast;
-			addSkill = &_cardWin.addSkill;
-			addItem = &_cardWin.addItem;
-			addBeast = &_cardWin.addBeast;
-			addInfo = &_cardWin.addInfo;
-		} else { mixin(S_TRACE);
-			addCast = &_castWin.addCast;
-			addSkill = &_skillWin.addSkill;
-			addItem = &_itemWin.addItem;
-			addBeast = &_beastWin.addBeast;
-			addInfo = &_infoWin.addInfo;
-		}
 		foreach (wo; ws) { mixin(S_TRACE);
 			auto w = cast(AddCard.ACW) wo;
-			w.setAddCast(addCast);
-			w.setAddSkill(addSkill);
-			w.setAddItem(addItem);
-			w.setAddBeast(addBeast);
-			w.setAddInfo(addInfo);
 			w.shell.addDisposeListener(new CloseRemover!(Composite)(_aws, w.shell));
 			_aws.add(w.shell);
 			this.open(w, "side");
@@ -1120,6 +1099,60 @@ class Commons {
 			setStatusLine = &_cardWin.setStatusLine;
 		}
 		AddCard.openScenario(this, prop, parent, setStatusLine, summ, summ, paths, &addScenarioImpl);
+	}
+	/// ditto
+	void doImport(Summary to, Summary from, in string[] resCWXPath) { mixin(S_TRACE);
+		import std.array;
+		import std.algorithm;
+
+		auto dialog = new ImportOptionDialog(this, mainShell);
+		if (!dialog.open()) return;
+		auto opt = dialog.option;
+
+		auto result = .importResource(to, from, resCWXPath, opt);
+		if (result.materials.length) { mixin(S_TRACE);
+			foreach (r; result.materials) { mixin(S_TRACE);
+				try { mixin(S_TRACE);
+					if (isBinImg(r.src)) { mixin(S_TRACE);
+						std.file.write(r.dst, strToBImg(r.src));
+					} else { mixin(S_TRACE);
+						if (!r.dst.dirName().exists()) { mixin(S_TRACE);
+							std.file.mkdirRecurse(r.dst.dirName());
+						}
+						std.file.copy(r.src, r.dst);
+					}
+				} catch (Exception e) {
+					debugln(e);
+				}
+			}
+			_dirWin.refresh();
+		}
+		if (result.flags.length || result.steps.length) {
+			openFlagWin(false);
+			if (_flagWin) { mixin(S_TRACE);
+				_flagWin.flags.addFlagsAndSteps(result.flags, result.steps);
+			} else { mixin(S_TRACE);
+				_dataWin.flags.addFlagsAndSteps(result.flags, result.steps);
+			}
+		}
+		if (result.casts.length) openCastWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.casts.values).array());
+		if (result.skills.length) openSkillWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.skills.values).array());
+		if (result.items.length) openItemWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.items.values).array());
+		if (result.beasts.length) openBeastWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.beasts.values).array());
+		if (result.infos.length) openInfoWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.infos.values).array());
+		auto areas = std.algorithm.sort!("a.id < b.id")(result.areas.values).map!((a) => cast(AbstractArea)a)().array();
+		areas ~= std.algorithm.sort!("a.id < b.id")(result.battles.values).map!((a) => cast(AbstractArea)a)().array();
+		areas ~= std.algorithm.sort!("a.id < b.id")(result.packages.values).map!((a) => cast(AbstractArea)a)().array();
+		if (areas.length) { mixin(S_TRACE);
+			openDataWin(false);
+			if (_dataWin) { mixin(S_TRACE);
+				_dataWin.areas.addAreas(areas);
+			} else {
+				_tableWin.areas.addAreas(areas);
+			}
+		}
+		refreshToolBar();
+		// TODO インポート結果を表示するダイアログ
 	}
 
 	void setTitle(Composite comp, string text) { mixin(S_TRACE);

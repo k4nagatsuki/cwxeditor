@@ -247,7 +247,7 @@ public:
 		case CType.BRANCH_ROUND: return imgd!("evt_br_round.png");
 		case CType.MOVE_BG_IMAGE: return imgd!("evt_mv_back.png");
 		case CType.REPLACE_BG_IMAGE: return imgd!("evt_rpl_back.png");
-		case CType.LOSE_BG_IMAGE: return imgd!("evt_lose_back.png"); // TODO
+		case CType.LOSE_BG_IMAGE: return imgd!("evt_lose_back.png");
 		}
 	}
 

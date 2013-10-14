@@ -1307,12 +1307,41 @@ class Msgs : Properties {
 	auto importSourceWindowName = Msg("importSourceWindowName", "カードのインポート - [ %1$s ] - %2$s");
 	auto importSourceTabName = Msg("importSourceTabName", "%1$s");
 	auto cardTitle = Msg("cardTitle", "%1$s.%2$s");
+	auto dlgTitImportOption = Msg("dlgTitImportOption", "参照先のインポート");
+	auto importOptionMaterials = Msg("importOptionMaterials", "外部素材");
+	auto importOptionVariables = Msg("importOptionVariables", "状態変数");
+	auto importOptionCasts = Msg("importOptionCasts", "キャストカード");
+	auto importOptionSkills = Msg("importOptionSkills", "特殊技能カード");
+	auto importOptionItems = Msg("importOptionItems", "アイテムカード");
+	auto importOptionBeasts = Msg("importOptionBeasts", "召喚獣カード");
+	auto importOptionInfos = Msg("importOptionInfos", "情報カード");
+	auto importOptionAreas = Msg("importOptionAreas", "エリア");
+	auto importOptionBattles = Msg("importOptionBattles", "バトル");
+	auto importOptionPackages = Msg("importOptionPackages", "パッケージ");
+	auto importOptionIncludedFiles = Msg("importOptionIncludedFiles", "格納カードイメージ");
+	auto importOptionIncludedBgImages = Msg("importOptionIncludedBgImages", "格納背景イメージ");
+	auto importOptionHands = Msg("importOptionHands", "キャストの持ち札");
+	auto importOptionBeastsInMotions = Msg("importOptionBeastsInMotions", "効果中の召喚獣");
+	const string importTypeIncludedName(ImportTypeIncluded id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(ImportTypeIncluded, "importTypeIncludedName"));
+	}
+	auto importTypeIncludedNameExclude = Msg("importTypeIncludedNameExclude", "格納であれば外部出力する");
+	auto importTypeIncludedNameInclude = Msg("importTypeIncludedNameInclude", "参照であれば格納する");
+	auto importTypeIncludedNameAsIs = Msg("importTypeIncludedNameAsIs", "そのままにする");
+	const string importTypeReference1Name(ImportTypeReference1 id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(ImportTypeReference1, "importTypeReference1Name"));
+	}
+	auto importTypeReference1NameRename = Msg("importTypeReference1NameRename", "重複した場合は名前を変更する");
+	auto importTypeReference1NameNoOverwrite = Msg("importTypeReference1NameNoOverwrite", "重複した場合はインポートしない");
+	auto importTypeReference1NameOverwrite = Msg("importTypeReference1NameOverwrite", "重複した場合は上書きする");
+	auto importTypeReference1NameNoImport = Msg("importTypeReference1NameNoImport", "インポートしない");
+	const string importTypeReference2Name(ImportTypeReference2 id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(ImportTypeReference2, "importTypeReference2Name"));
+	}
+	auto importTypeReference2NameRename = Msg("importTypeReference1NameRename", "新しいIDでインポートする");
+	auto importTypeReference2NameNoImport = Msg("importTypeReference1NameNoImport", "インポートしない");
 
 	auto dlgTitAddScenario = Msg("dlgTitAddScenario", "インポート元の選択");
-
-	auto importLinkCondition = Msg("importLinkCondition", "参照先のカードを");
-	auto importLinkConditionNoChange = Msg("importLinkConditionNoChange", "参照のままにする");
-	auto importLinkConditionInclude = Msg("importLinkConditionInclude", "インポート時に格納する");
 
 	auto cardStatus = Msg("cardStatus", "%1$s枚のカード");
 	auto cardStatusSelOne = Msg("cardStatusSelOne", "%1$s枚のカード (ID = %2$s)");

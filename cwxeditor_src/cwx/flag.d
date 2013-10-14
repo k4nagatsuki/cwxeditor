@@ -793,6 +793,26 @@ public:
 			dir.sorterImpl = null;
 		}
 	}
+	void removeAll() { mixin(S_TRACE);
+		foreach (e; _flags) {
+			e.parent = null;
+			e.changeHandler = null;
+			if (_change) _change();
+		}
+		_flags = [];
+		foreach (e; _steps) {
+			e.parent = null;
+			e.changeHandler = null;
+			if (_change) _change();
+		}
+		_steps = [];
+		foreach (e; _subdir) {
+			e.parent = null;
+			e.changeHandler = null;
+			if (_change) _change();
+		}
+		_subdir = [];
+	}
 
 	/// サブディレクトリ群。
 	@property
@@ -1200,13 +1220,13 @@ public:
 			(ref XNode node, out Flag[string] cFlags, out Step[string] cSteps, bool copy, in XMLInfo ver) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			if (!__loadFS!("Flags", "Flag", Flag)(node, this, cFlags, &createNewFlagName, copy, ver)) { mixin(S_TRACE);
-				removeAll(cFlags);
-				removeAll(cSteps);
+				.removeAll(cFlags);
+				.removeAll(cSteps);
 				return false;
 			}
 			if (!__loadFS!("Steps", "Step", Step)(node, this, cSteps, &createNewStepName, copy, ver)) { mixin(S_TRACE);
-				removeAll(cFlags);
-				removeAll(cSteps);
+				.removeAll(cFlags);
+				.removeAll(cSteps);
 				return false;
 			}
 			foreach (v; cFlags.values) { mixin(S_TRACE);
@@ -1217,8 +1237,8 @@ public:
 			}
 			return true;
 		} catch (Exception e) {
-			removeAll(cFlags);
-			removeAll(cSteps);
+			.removeAll(cFlags);
+			.removeAll(cSteps);
 			return false;
 		}
 	}
@@ -1257,8 +1277,8 @@ public:
 			}
 		} catch (Exception e) {
 		}
-		removeAll(cFlags);
-		removeAll(cSteps);
+		.removeAll(cFlags);
+		.removeAll(cSteps);
 		return null;
 	}
 	private bool readAtt(in XNode node, out string rootId, out string path, out bool sameTree) { mixin(S_TRACE);

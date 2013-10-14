@@ -29,6 +29,10 @@ import java.lang.all;
 /// このコントロールを用いてフラグとステップの編集を行う。
 public class FlagsPane {
 private:
+	void storeAll() {
+		_undo ~= new UndoAllVariables(_flags, _comm, _dirs.current, _dirs.rootDir);
+	}
+
 	Composite _comp;
 	SplitPane _sash;
 	Commons _comm;
@@ -139,6 +143,57 @@ public:
 	@property
 	FlagTable flags() { mixin(S_TRACE);
 		return _flags;
+	}
+
+	/// 外部から状態変数を追加する。
+	/// 重複するパスのものがあれば、上書きする。
+	void addFlagsAndSteps(Flag[][string] flags, Step[][string]steps) { mixin(S_TRACE);
+		if (!flags.length && !steps.length) return;
+		storeAll();
+		Flag[] fr;
+		Step[] sr;
+		FlagDir lastDir = null;
+		foreach (path, fs; steps) { mixin(S_TRACE);
+			auto dir = _dirs.rootDir.findPath(path, true);
+			lastDir = dir;
+			foreach (f; fs) { mixin(S_TRACE);
+				auto f2 = dir.getStep(f.name);
+				if (f2) { mixin(S_TRACE);
+					f2.copyFrom(f);
+					sr ~= f2;
+				} else { mixin(S_TRACE);
+					dir.add(f);
+					sr ~= f;
+				}
+			}
+		}
+		foreach (path, fs; flags) { mixin(S_TRACE);
+			auto dir = _dirs.rootDir.findPath(path, true);
+			lastDir = dir;
+			foreach (f; fs) { mixin(S_TRACE);
+				auto f2 = dir.getFlag(f.name);
+				if (f2) { mixin(S_TRACE);
+					f2.copyFrom(f);
+					fr ~= f2;
+				} else { mixin(S_TRACE);
+					dir.add(f);
+					fr ~= f;
+				}
+			}
+		}
+		_dirs.rootDir.sortFlags(true);
+		_dirs.rootDir.sortSteps(true);
+		_dirs.rootDir.sortSubDirs(true);
+		if (lastDir) { mixin(S_TRACE);
+			_dirs.refresh(lastDir.path);
+			_flags.deselectAll();
+			foreach (f; fr) _flags.select(f, false);
+			foreach (f; sr) _flags.select(f, false);
+		} else { mixin(S_TRACE);
+			_dirs.refresh();
+		}
+		_comm.refUseCount.call();
+		_comm.refreshToolBar();
 	}
 
 	@property

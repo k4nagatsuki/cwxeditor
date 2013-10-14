@@ -1035,11 +1035,6 @@ private:
 	void __refreshTitle() { mixin(S_TRACE);
 		_comm.setTitle(_win, title);
 	}
-	void __refresh() { mixin(S_TRACE);
-		updateJpy1List();
-		refreshDirs(selDirPath);
-		refreshFiles(selFiles);
-	}
 	void updateJpy1List() { mixin(S_TRACE);
 		if (!_summ) return;
 		foreach (ref jpy; _jpyData) { mixin(S_TRACE);
@@ -1204,7 +1199,7 @@ private:
 			_comm.delPaths.remove(&__delPaths);
 			_comm.saved.remove(&refCheckPaths);
 			_comm.replText.remove(&__refreshTitle);
-			_comm.refIgnorePaths.remove(&__refresh);
+			_comm.refIgnorePaths.remove(&refresh);
 			_sImgFolder.dispose();
 			_sImgCards.dispose();
 			_sImgBacks.dispose();
@@ -1233,7 +1228,7 @@ private:
 			if (_stopTrace) return;
 			if (_dirsEdit.isEditing() || _filesEdit.isEditing()) return;
 			try { mixin(S_TRACE);
-				__refresh();
+				refresh();
 				_comm.refPaths.call(this.outer, _summ.scenarioPath);
 			} catch (Exception e) {
 				debugln(e);
@@ -1550,7 +1545,7 @@ public:
 		_comm.delPaths.add(&__delPaths);
 		_comm.saved.add(&refCheckPaths);
 		_comm.replText.add(&__refreshTitle);
-		_comm.refIgnorePaths.add(&__refresh);
+		_comm.refIgnorePaths.add(&refresh);
 		_sImgFolder = skeletonImage(_prop.images.folder);
 		_sImgCards = skeletonImage(_prop.images.cards);
 		_sImgBacks = skeletonImage(_prop.images.backs);
@@ -1579,14 +1574,14 @@ public:
 			createMenuItem(_comm, me, MenuID.DelNotUsedFile, &deleteUnuse, &canDeleteUnuse);
 
 			auto mv = createMenu(_comm, bar, MenuID.View);
-			createMenuItem(_comm, mv, MenuID.Refresh, &__refresh, () => _summ !is null);
+			createMenuItem(_comm, mv, MenuID.Refresh, &refresh, () => _summ !is null);
 			new MenuItem(mv, SWT.SEPARATOR);
 			createMenuItem(_comm, mv, MenuID.ChangeVH, &changeVHSide, null);
 
 			shell.setMenuBar(bar);
 		} else { mixin(S_TRACE);
 			appendMenuTCPD(_comm, this, this, true, true, true, true, true);
-			putMenuAction(MenuID.Refresh, &__refresh, () => _summ !is null);
+			putMenuAction(MenuID.Refresh, &refresh, () => _summ !is null);
 			putMenuAction(MenuID.OpenDir, &openDirectory, &canOpenDirectory);
 			putMenuAction(MenuID.NewDir, &createNewFolder, &canCreateNewFolder);
 			putMenuAction(MenuID.CreateArchive, &createArchive, &canCreateArchive);
@@ -1602,7 +1597,7 @@ public:
 
 			createToolItem(_comm, bar, MenuID.OpenDir, &openDirectory, &canOpenDirectory);
 			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(_comm, bar, MenuID.Refresh, &__refresh, () => _summ !is null);
+			createToolItem(_comm, bar, MenuID.Refresh, &refresh, () => _summ !is null);
 			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(_comm, bar, MenuID.NewDir, &createNewFolder, &canCreateNewFolder);
 			new ToolItem(bar, SWT.SEPARATOR);
@@ -1883,6 +1878,12 @@ public:
 	void resumeTrace() {_stopTrace = false;}
 	void pauseTrace() {_stopTrace = true;}
 
+	void refresh() { mixin(S_TRACE);
+		if (!_win || _win.isDisposed()) return;
+		updateJpy1List();
+		refreshDirs(selDirPath);
+		refreshFiles(selFiles);
+	}
 	void refresh(Summary summ) { mixin(S_TRACE);
 		foreach (ref jpy; _jpyData) { mixin(S_TRACE);
 			jpy.removeUseCounter();
