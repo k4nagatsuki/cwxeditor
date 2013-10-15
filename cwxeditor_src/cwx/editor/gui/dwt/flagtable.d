@@ -746,6 +746,7 @@ package class UndoEditDir : FTVUndo {
 		_oldName = oldName;
 
 		comm.refFlagDir.call([dir]);
+		_dir = dir.path;
 	}
 	override void undo() {impl();}
 	override void redo() {impl();}
