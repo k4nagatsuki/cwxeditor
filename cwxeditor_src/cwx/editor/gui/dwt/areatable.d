@@ -670,6 +670,7 @@ private:
 	}
 
 	void dirEditEnd(TreeItem itm, Control ctrl) { mixin(S_TRACE);
+		if (_readOnly) return;
 		assert (_dirMode);
 		auto t = cast(Text)ctrl;
 		if (!t) return;
@@ -713,6 +714,7 @@ private:
 	}
 
 	void editEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
+		if (_readOnly) return;
 		assert (column == 1);
 		if (!newText.length) return;
 		if (auto summ = cast(Summary) itm.getData()) { mixin(S_TRACE);
@@ -742,6 +744,8 @@ private:
 	private static const ID = 0;
 	private static const NAME = 1;
 	private static const UC = 2;
+
+	int _readOnly = SWT.NONE;
 
 	bool _dirMode = false;
 	string _dir = "";
@@ -940,18 +944,21 @@ private:
 		return null;
 	}
 	void refArea(Object sender, Area a) { mixin(S_TRACE);
+		if (_readOnly) return;
 		if (sender is this) return;
 		foreach (itm; _areas.getItems()) { mixin(S_TRACE);
 			if (itm.getData() is a) refData(a, itm);
 		}
 	}
 	void refBattle(Object sender, Battle a) { mixin(S_TRACE);
+		if (_readOnly) return;
 		if (sender is this) return;
 		foreach (itm; _areas.getItems()) { mixin(S_TRACE);
 			if (itm.getData() is a) refData(a, itm);
 		}
 	}
 	void refPackage(Object sender, Package a) { mixin(S_TRACE);
+		if (_readOnly) return;
 		if (sender is this) return;
 		foreach (itm; _areas.getItems()) { mixin(S_TRACE);
 			if (itm.getData() is a) refData(a, itm);
@@ -975,9 +982,11 @@ private:
 		}
 	}
 	void callRefArea(AbstractArea area) { mixin(S_TRACE);
+		if (_readOnly) return;
 		staticCallRefArea(this, _comm, area);
 	}
 	void refreshIDs(bool callRef) { mixin(S_TRACE);
+		if (_readOnly) return;
 		if (!_areas || _areas.isDisposed()) return;
 		if (callRef) _incSearch.close();
 		foreach (itm; _areas.getItems()) { mixin(S_TRACE);
@@ -1041,7 +1050,7 @@ private:
 	}
 	class DropDir : DropTargetAdapter {
 		private void move(DropTargetEvent e) { mixin(S_TRACE);
-			e.detail = (e.item !is null && cast(TreeItem)e.item && cast(DirTree)(cast(TreeItem)e.item).getData()) ? DND.DROP_MOVE : DND.DROP_NONE;
+			e.detail = (!_readOnly && e.item !is null && cast(TreeItem)e.item && cast(DirTree)(cast(TreeItem)e.item).getData()) ? DND.DROP_MOVE : DND.DROP_NONE;
 		}
 		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
 			move(e);
@@ -1050,6 +1059,7 @@ private:
 			move(e);
 		}
 		override void drop(DropTargetEvent e){ mixin(S_TRACE);
+			if (_readOnly) return;
 			if (!isXMLBytes(e.data)) return;
 			string xml = bytesToXML(e.data);
 			e.detail = DND.DROP_NONE;
@@ -1140,6 +1150,7 @@ private:
 			}
 		}
 		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
+			if (_readOnly) return;
 			if (e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
 				auto area = _data;
 				_summ.remove(area);
@@ -1159,12 +1170,13 @@ private:
 	}
 	class DropArea : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
-			e.detail = _areas.getItemCount() == countAllAreas ? DND.DROP_MOVE : DND.DROP_NONE;
+			e.detail = !_readOnly && _areas.getItemCount() == countAllAreas ? DND.DROP_MOVE : DND.DROP_NONE;
 		}
 		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
-			e.detail = _areas.getItemCount() == countAllAreas ? DND.DROP_MOVE : DND.DROP_NONE;
+			e.detail = !_readOnly && _areas.getItemCount() == countAllAreas ? DND.DROP_MOVE : DND.DROP_NONE;
 		}
 		override void drop(DropTargetEvent e){ mixin(S_TRACE);
+			if (_readOnly) return;
 			if (!isXMLBytes(e.data)) return;
 			e.detail = DND.DROP_NONE;
 			string xml = bytesToXML(e.data);
@@ -1386,15 +1398,17 @@ private:
 			_dir = "";
 			_areas = null;
 			_dirTree = null;
-			_comm.refArea.remove(&refArea);
-			_comm.refBattle.remove(&refBattle);
-			_comm.refPackage.remove(&refPackage);
-			_comm.refUseCount.remove(&__refreshUseCount);
-			_comm.replText.remove(&replText);
-			_comm.replText.remove(&refresh);
-			_comm.refScenario.remove(&refScenario);
-			_comm.refScenarioName.remove(&refScenarioName);
-			_comm.refUndoMax.remove(&refUndoMax);
+			if (!_readOnly) {
+				_comm.refArea.remove(&refArea);
+				_comm.refBattle.remove(&refBattle);
+				_comm.refPackage.remove(&refPackage);
+				_comm.refUseCount.remove(&__refreshUseCount);
+				_comm.replText.remove(&replText);
+				_comm.replText.remove(&refresh);
+				_comm.refScenario.remove(&refScenario);
+				_comm.refScenarioName.remove(&refScenarioName);
+				_comm.refUndoMax.remove(&refUndoMax);
+			}
 			_comm.refAreaTable.remove(&refreshAreas);
 		}
 	}
@@ -1430,6 +1444,7 @@ private:
 		}
 	}
 	private void delDirTree(string path) {
+		if (_readOnly) return;
 		if (path == "") return;
 		auto itm = findDirTree(path);
 		auto dir = cast(DirTree)itm.getData();
@@ -1439,6 +1454,7 @@ private:
 		itm.dispose();
 	}
 	private void replText() {
+		if (_readOnly) return;
 		constructDirTree(false);
 	}
 	private void constructDirTree(bool add) { mixin(S_TRACE);
@@ -1755,7 +1771,8 @@ private:
 		_undo.max = _prop.var.etc.undoMaxMainView;
 	}
 public:
-	this (Commons comm, Props prop) { mixin(S_TRACE);
+	this (Commons comm, Props prop, bool readOnly) { mixin(S_TRACE);
+		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		_comm = comm;
 		_prop = prop;
 		_undo = new UndoManager(_prop.var.etc.undoMaxMainView);
@@ -1763,15 +1780,17 @@ public:
 
 	void construct(Composite parent, FlagTable flags) { mixin(S_TRACE);
 		_flags = flags;
-		_comm.refArea.add(&refArea);
-		_comm.refBattle.add(&refBattle);
-		_comm.refPackage.add(&refPackage);
-		_comm.refUseCount.add(&__refreshUseCount);
-		_comm.replText.add(&replText);
-		_comm.replText.add(&refresh);
-		_comm.refScenario.add(&refScenario);
-		_comm.refScenarioName.add(&refScenarioName);
-		_comm.refUndoMax.add(&refUndoMax);
+		if (!_readOnly) { mixin(S_TRACE);
+			_comm.refArea.add(&refArea);
+			_comm.refBattle.add(&refBattle);
+			_comm.refPackage.add(&refPackage);
+			_comm.refUseCount.add(&__refreshUseCount);
+			_comm.replText.add(&replText);
+			_comm.replText.add(&refresh);
+			_comm.refScenario.add(&refScenario);
+			_comm.refScenarioName.add(&refScenarioName);
+			_comm.refUndoMax.add(&refUndoMax);
+		}
 		_comm.refAreaTable.add(&refreshAreas);
 		auto tableParent = parent;
 		_parent = parent;
@@ -1793,21 +1812,23 @@ public:
 			_dirTree = new Tree(panel1, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
 			initTree(_comm, _dirTree, false);
 			.listener(_dirTree, SWT.Selection, &updateDirSel);
-			_areaDirEdit = new TreeEdit(_comm, _dirTree, &dirEditEnd, (itm) { mixin (S_TRACE);
-				auto dir = cast(DirTree)itm.getData();
-				if (dir) { mixin (S_TRACE);
-					if (!dir.parent) return null;
-				} else assert (cast(Summary)itm.getData() !is null);
-				return createTextEditor(_comm, _prop, _dirTree, itm.getText());
-			});
+			if (!_readOnly) { mixin(S_TRACE);
+				_areaDirEdit = new TreeEdit(_comm, _dirTree, &dirEditEnd, (itm) { mixin (S_TRACE);
+					auto dir = cast(DirTree)itm.getData();
+					if (dir) { mixin (S_TRACE);
+						if (!dir.parent) return null;
+					} else assert (cast(Summary)itm.getData() !is null);
+					return createTextEditor(_comm, _prop, _dirTree, itm.getText());
+				});
+			}
 			_dirTree.addMouseListener(new TreeMListener);
 			_dirTree.addKeyListener(new TreeKListener);
 
 			auto menu = new Menu(_dirTree.getShell(), SWT.POP_UP);
-			createMenuItem(_comm, menu, MenuID.NewAreaDir, &createDir, () => _dirMode && _summ !is null);
+			createMenuItem(_comm, menu, MenuID.NewAreaDir, &createDir, () => !_readOnly && _dirMode && _summ !is null);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, &_undo.canUndo);
-			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, &_undo.canRedo);
+			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => !_readOnly && _undo.canUndo);
+			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
 			_dirTree.setMenu(menu);
@@ -1815,9 +1836,11 @@ public:
 			auto drag = new DragSource(_dirTree, DND.DROP_MOVE | DND.DROP_COPY);
 			drag.setTransfer([XMLBytesTransfer.getInstance()]);
 			drag.addDragListener(new DragDir);
-			auto drop = new DropTarget(_dirTree, DND.DROP_DEFAULT | DND.DROP_MOVE);
-			drop.setTransfer([XMLBytesTransfer.getInstance()]);
-			drop.addDropListener(new DropDir);
+			if (!_readOnly) { mixin (S_TRACE);
+				auto drop = new DropTarget(_dirTree, DND.DROP_DEFAULT | DND.DROP_MOVE);
+				drop.setTransfer([XMLBytesTransfer.getInstance()]);
+				drop.addDropListener(new DropDir);
+			}
 		}
 
 		_areas = new Table(tableParent, SWT.BORDER | SWT.FULL_SELECTION);
@@ -1849,14 +1872,14 @@ public:
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.EditSummary, &editSummary, () => _summ !is null);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.NewArea, &createArea, () => _summ !is null);
-		createMenuItem(_comm, menu, MenuID.NewBattle, &createBattle, () => _summ !is null);
-		createMenuItem(_comm, menu, MenuID.NewPackage, &createPackage, () => _summ !is null);
+		createMenuItem(_comm, menu, MenuID.NewArea, &createArea, () => !_readOnly && _summ !is null);
+		createMenuItem(_comm, menu, MenuID.NewBattle, &createBattle, () => !_readOnly && _summ !is null);
+		createMenuItem(_comm, menu, MenuID.NewPackage, &createPackage, () => !_readOnly && _summ !is null);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.SetStartArea, &setStartArea, &canSetStartArea);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.Undo, &undo, &_undo.canUndo);
-		createMenuItem(_comm, menu, MenuID.Redo, &redo, &_undo.canRedo);
+		createMenuItem(_comm, menu, MenuID.Undo, &undo, () => !_readOnly && _undo.canUndo);
+		createMenuItem(_comm, menu, MenuID.Redo, &redo, () => !_readOnly && _undo.canRedo);
 		new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -1870,9 +1893,11 @@ public:
 		auto drag = new DragSource(_areas, DND.DROP_MOVE | DND.DROP_COPY);
 		drag.setTransfer([XMLBytesTransfer.getInstance()]);
 		drag.addDragListener(new DragArea);
-		auto drop = new DropTarget(_areas, DND.DROP_DEFAULT | DND.DROP_MOVE);
-		drop.setTransfer([XMLBytesTransfer.getInstance()]);
-		drop.addDropListener(new DropArea);
+		if (!_readOnly) { mixin (S_TRACE);
+			auto drop = new DropTarget(_areas, DND.DROP_DEFAULT | DND.DROP_MOVE);
+			drop.setTransfer([XMLBytesTransfer.getInstance()]);
+			drop.addDropListener(new DropArea);
+		}
 
 		// ソート関係
 		_idSorter = new TableSorter!(Object)(idCol, &compID, &revCompID);
@@ -1987,9 +2012,10 @@ public:
 
 	@property
 	bool canCreateDir() { mixin(S_TRACE);
-		return _summ && _dirTree && !_dirTree.isDisposed();
+		return !_readOnly && _summ && _dirTree && !_dirTree.isDisposed();
 	}
 	void createDir() { mixin(S_TRACE);
+		if (_readOnly) return;
 		if (!canCreateDir) return;
 		_incSearch.close();
 		storeEmpty();
@@ -2024,8 +2050,9 @@ public:
 	}
 
 	@property
-	bool canReNumbering() { return (showSummary ? 1 : 0) <= _areas.getSelectionIndex(); }
+	bool canReNumbering() { return !_readOnly && (showSummary ? 1 : 0) <= _areas.getSelectionIndex(); }
 	void reNumberingAll() { mixin(S_TRACE);
+		if (_readOnly) return;
 		auto undo = new UndoIDs(this, _comm, _summ);
 		bool reNum = false;
 		reNum |= reNumberingAreaImpl(0, 1);
@@ -2034,16 +2061,19 @@ public:
 		if (reNum) _undo ~= undo;
 	}
 	void reNumberingArea(int index, ulong newId) { mixin(S_TRACE);
+		if (_readOnly) return;
 		auto undo = new UndoIDs(this, _comm, _summ);
 		bool reNum = reNumberingAreaImpl(index, newId);
 		if (reNum) _undo ~= undo;
 	}
 	void reNumberingBattle(int index, ulong newId) { mixin(S_TRACE);
+		if (_readOnly) return;
 		auto undo = new UndoIDs(this, _comm, _summ);
 		bool reNum = reNumberingBattleImpl(index, newId);
 		if (reNum) _undo ~= undo;
 	}
 	void reNumberingPackage(int index, ulong newId) { mixin(S_TRACE);
+		if (_readOnly) return;
 		auto undo = new UndoIDs(this, _comm, _summ);
 		bool reNum = reNumberingPackageImpl(index, newId);
 		if (reNum) _undo ~= undo;
@@ -2059,6 +2089,7 @@ public:
 		return oldIDs;
 	}
 	private bool reNumberingImpl(A)(int index, ulong newId, A[] arr) { mixin(S_TRACE);
+		if (_readOnly) return false;
 		if (index < 0 || arr.length <= index) return false;
 		if (newId == 0) return false;
 		if (index > 0 && arr[index - 1].id >= newId) return false;
@@ -2077,15 +2108,19 @@ public:
 		return reNum;
 	}
 	private bool reNumberingAreaImpl(int index, ulong newId) { mixin(S_TRACE);
+		if (_readOnly) return false;
 		return reNumberingImpl(index, newId, _summ.areas);
 	}
 	private bool reNumberingBattleImpl(int index, ulong newId) { mixin(S_TRACE);
+		if (_readOnly) return false;
 		return reNumberingImpl(index, newId, _summ.battles);
 	}
 	private bool reNumberingPackageImpl(int index, ulong newId) { mixin(S_TRACE);
+		if (_readOnly) return false;
 		return reNumberingImpl(index, newId, _summ.packages);
 	}
 	void reNumbering() { mixin(S_TRACE);
+		if (_readOnly) return;
 		if (!_summ) return;
 		ulong id;
 		TypeInfo type;
@@ -2135,7 +2170,7 @@ public:
 			_summDlg.active();
 			return;
 		}
-		_summDlg = new SummaryDialog(_comm, _prop, parent.getShell(), _summ);
+		_summDlg = new SummaryDialog(_comm, _prop, parent.getShell(), _summ, _readOnly == SWT.READ_ONLY);
 		_summDlg.applyEvent ~= { mixin(S_TRACE);
 			storeEdit(0UL, null);
 		};
@@ -2177,6 +2212,7 @@ public:
 
 	/// 新規エリアが作成され、名前の入力待ちになる。
 	void createArea() { mixin(S_TRACE);
+		if (_readOnly) return;
 		ulong[] a, b, p;
 		saveIDs(_summ, a, b, p);
 		auto area = new Area(_summ.newAreaId, _prop.msgs.areaNew);
@@ -2203,6 +2239,7 @@ public:
 
 	/// 新規バトルが作成され、名前の入力待ちになる。
 	void createBattle() { mixin(S_TRACE);
+		if (_readOnly) return;
 		ulong[] a, b, p;
 		saveIDs(_summ, a, b, p);
 		auto btl = new Battle(_summ.newBattleId, _prop.msgs.battleNew, _comm.skin.defBattle);
@@ -2222,10 +2259,12 @@ public:
 
 	/// 新規パッケージが作成され、名前の入力待ちになる。
 	void createPackage() { mixin(S_TRACE);
+		if (_readOnly) return;
 		createPackage(null);
 	}
 	/// ditto
 	ulong createPackage(Content baseStart) { mixin(S_TRACE);
+		if (_readOnly) return 0UL;
 		ulong[] a, b, p;
 		saveIDs(_summ, a, b, p);
 		auto pkg = new Package(_summ.newPackageId, baseStart ? baseStart.name : _prop.msgs.packageNew);
@@ -2417,6 +2456,7 @@ public:
 	}
 
 	private bool canUdImpl(int index1, int index2) { mixin(S_TRACE);
+		if (_readOnly) return false;
 		if (!_summ) return false;
 		if (_areas.getItemCount() != countAllAreas) return false;
 		if (index1 < (showSummary ? 1 : 0) || _areas.getItemCount() <= index1) return false;
@@ -2435,11 +2475,13 @@ public:
 		return false;
 	}
 	private bool canUdImpl2(A)(AbstractArea area1, AbstractArea area2) { mixin(S_TRACE);
+		if (_readOnly) return false;
 		auto a1 = cast(A)area1;
 		auto a2 = cast(A)area2;
 		return a1 && a2;
 	}
 	private void udImpl(int index1, int index2) { mixin(S_TRACE);
+		if (_readOnly) return;
 		if (!canUdImpl(index1, index2)) return;
 		auto area1 = cast(AbstractArea)_areas.getItem(index1).getData();
 		auto area2 = cast(AbstractArea)_areas.getItem(index2).getData();
@@ -2455,6 +2497,7 @@ public:
 		_comm.refreshToolBar();
 	}
 	private void udImpl2(A)(AbstractArea area1, AbstractArea area2) { mixin(S_TRACE);
+		if (_readOnly) return;
 		assert (_areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column);
 		auto a1 = cast(A)area1;
 		auto a2 = cast(A)area2;
@@ -2502,6 +2545,7 @@ public:
 	}
 	@property
 	bool canUp() { mixin(S_TRACE);
+		if (_readOnly) return false;
 		if (!_summ) return false;
 		if (_areas.getItemCount() != countAllAreas) return false;
 		if (!(_areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column)) return false;
@@ -2512,6 +2556,7 @@ public:
 	}
 	@property
 	bool canDown() { mixin(S_TRACE);
+		if (_readOnly) return false;
 		if (!_summ) return false;
 		if (_areas.getItemCount() != countAllAreas) return false;
 		if (!(_areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column)) return false;
@@ -2521,6 +2566,7 @@ public:
 		return canUdImpl(sel, sel + 1);
 	}
 	void up() { mixin(S_TRACE);
+		if (_readOnly) return;
 		_parent.setRedraw(false);
 		scope (exit) _parent.setRedraw(true);
 		if (!canUp) return;
@@ -2532,6 +2578,7 @@ public:
 		udImpl(sel, sel - 1);
 	}
 	void down() { mixin(S_TRACE);
+		if (_readOnly) return;
 		_parent.setRedraw(false);
 		scope (exit) _parent.setRedraw(true);
 		if (!canDown) return;
@@ -2545,12 +2592,14 @@ public:
 
 	@property
 	bool canSetStartArea() {
+		if (_readOnly) return false;
 		if (auto a = cast(Area)getSelectionArea()) {
 			return _summ.startArea != a.id;
 		}
 		return false;
 	}
 	void setStartArea() {
+		if (_readOnly) return;
 		if (auto a = cast(Area)getSelectionArea()) {
 			storeEdit(0UL, null);
 			_summ.startArea = a.id;
@@ -2695,7 +2744,7 @@ public:
 		}
 		@property
 		bool canDoT() { mixin(S_TRACE);
-			return canDoC && canDoD;
+			return !_readOnly && canDoC && canDoD;
 		}
 		@property
 		bool canDoC() { mixin(S_TRACE);
@@ -2708,14 +2757,15 @@ public:
 		}
 		@property
 		bool canDoP() { mixin(S_TRACE);
-			return _summ !is null && CBisXML(_comm.clipboard);
+			return !_readOnly && _summ !is null && CBisXML(_comm.clipboard);
 		}
 		@property
 		bool canDoClone() { mixin(S_TRACE);
-			return canDoC;
+			return !_readOnly && canDoC;
 		}
 		@property
 		bool canDoD() { mixin(S_TRACE);
+			if (_readOnly) return false;
 			if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
 				auto sels = _dirTree.getSelection();
 				if (!sels.length) return false;
@@ -2727,6 +2777,7 @@ public:
 		}
 	}
 	private void pasteImpl(ref XNode node) { mixin(S_TRACE);
+		if (_readOnly) return;
 		_parent.setRedraw(false);
 		scope (exit) _parent.setRedraw(true);
 		bool sameSummary;
@@ -2826,6 +2877,7 @@ public:
 		}
 	}
 	private void delItem(in AbstractArea area) { mixin(S_TRACE);
+		if (_readOnly) return;
 		foreach (itm; _areas.getItems()) { mixin(S_TRACE);
 			if (itm.getData() is area) { mixin(S_TRACE);
 				itm.dispose();
@@ -2837,6 +2889,7 @@ public:
 	/// 外部からareasを追加する。
 	/// 既存のエリアとIDが重複してはいけない。
 	void addAreas(AbstractArea[] areas) {
+		if (_readOnly) return;
 		_parent.setRedraw(false);
 		scope (exit) _parent.setRedraw(true);
 		ATUndo[] undos;
@@ -2879,22 +2932,25 @@ public:
 
 	@property
 	bool canUndo() { mixin(S_TRACE);
-		return _undo.canUndo();
+		return !_readOnly && _undo.canUndo();
 	}
 	@property
 	bool canRedo() { mixin(S_TRACE);
-		return _undo.canRedo();
+		return !_readOnly && _undo.canRedo();
 	}
 	void undo() { mixin(S_TRACE);
+		if (_readOnly) return;
 		_undo.undo();
 		_comm.refreshToolBar();
 	}
 	void redo() { mixin(S_TRACE);
+		if (_readOnly) return;
 		_undo.redo();
 		_comm.refreshToolBar();
 	}
 
 	void replaceID() {
+		if (_readOnly) return;
 		auto area = getSelectionArea();
 		if (cast(Area)area) _comm.replaceID(toAreaId(area.id), true);
 		if (cast(Battle)area) _comm.replaceID(toBattleId(area.id), true);
@@ -2902,6 +2958,7 @@ public:
 	}
 	@property
 	bool canReplaceID() {
+		if (_readOnly) return false;
 		auto area = getSelectionArea();
 		return cast(Area)area || cast(Battle)area || cast(Package)area;
 	}

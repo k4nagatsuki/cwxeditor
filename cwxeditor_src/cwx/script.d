@@ -511,7 +511,7 @@ class CWXScript {
 			} else if (0 < commentLevel) { mixin(S_TRACE);
 				spaceAfter = true;
 				retCount();
- 			} else if (isAlpha(c) || c == '_') { mixin(S_TRACE);
+ 			} else if (std.ascii.isAlpha(c) || c == '_') { mixin(S_TRACE);
  				if (eatEmptyVarMode) return r;
 				spaceAfter = false;
 				// symbol
@@ -581,7 +581,7 @@ class CWXScript {
 				spaceAfter = false;
 				retCount();
  				docComment = "";
-			} else if (isWhite(c)) { mixin(S_TRACE);
+			} else if (std.ascii.isWhite(c)) { mixin(S_TRACE);
 				// whitespace
 				spaceAfter = true;
 				retCount();

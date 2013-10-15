@@ -8,6 +8,7 @@ import cwx.usecounter;
 import cwx.path;
 import cwx.types;
 import cwx.menu;
+import cwx.importutils;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -147,7 +148,7 @@ public:
 
 	/// 外部から状態変数を追加する。
 	/// 重複するパスのものがあれば、上書きする。
-	void addFlagsAndSteps(Flag[][string] flags, Step[][string]steps) { mixin(S_TRACE);
+	void addFlagsAndSteps(ImportFlag[][string] flags, ImportStep[][string]steps) { mixin(S_TRACE);
 		if (!flags.length && !steps.length) return;
 		storeAll();
 		Flag[] fr;

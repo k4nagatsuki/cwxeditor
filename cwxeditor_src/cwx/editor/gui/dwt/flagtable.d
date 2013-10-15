@@ -494,6 +494,7 @@ package class UndoAllVariables : FTVUndo {
 	private FlagDir _copyRoot;
 	this (FlagTable v, Commons comm, FlagDir dir, FlagDir root) { mixin(S_TRACE);
 		super (v, comm, dir);
+		_root = root;
 		_copyRoot = new FlagDir(root);
 	}
 	private void impl() { mixin(S_TRACE);
@@ -508,9 +509,7 @@ package class UndoAllVariables : FTVUndo {
 		foreach (f; copy.steps) _root.add(f);
 		foreach (f; copy.subDirs) _root.add(f);
 		comm.refFlagAndStep.call(_root.allFlags, _root.allSteps);
-		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
-			v.refresh();
-		}
+		comm.openFlagWin(false).dirs.refresh();
 	}
 	override void undo() {impl();}
 	override void redo() {impl();}
@@ -822,9 +821,11 @@ package class UndoEditDir : FTVUndo {
 
 		string oldName = dir.name;
 		dir.rename(_oldName, comm.summary.useCounter);
+		if (dir.parent) dir.parent.sortSubDirs(false);
 		_oldName = oldName;
 
 		comm.refFlagDir.call([dir]);
+		_dir = dir.path;
 	}
 	override void undo() {impl();}
 	override void redo() {impl();}

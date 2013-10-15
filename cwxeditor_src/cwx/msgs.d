@@ -1342,6 +1342,9 @@ class Msgs : Properties {
 	auto importTypeReference2NameNoImport = Msg("importTypeReference1NameNoImport", "インポートしない");
 
 	auto dlgTitAddScenario = Msg("dlgTitAddScenario", "インポート元の選択");
+	auto dlgTitImportResult = Msg("dlgTitImportResult", "インポート対象の選択");
+	auto importResourceList = Msg("importResourceList", "次のリソースのうち、チェックを入れたものがインポートされます。");
+	auto overwriteMark = Msg("overwriteMark", "%1$s (上書き)");
 
 	auto cardStatus = Msg("cardStatus", "%1$s枚のカード");
 	auto cardStatusSelOne = Msg("cardStatusSelOne", "%1$s枚のカード (ID = %2$s)");

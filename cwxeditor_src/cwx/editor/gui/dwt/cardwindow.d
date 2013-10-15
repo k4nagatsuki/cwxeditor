@@ -1731,7 +1731,7 @@ private:
 	}
 	static LoadOption loadOption(in Props prop) { mixin(S_TRACE);
 		LoadOption opt;
-		opt.cardOnly = true;
+		opt.cardOnly = false; // 他のリソースを連鎖的にインポートする可能性がある
 		opt.textOnly = false;
 		opt.doubleIO = prop.var.etc.doubleIO;
 		opt.expandXMLs = false;

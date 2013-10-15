@@ -12,6 +12,7 @@ import cwx.types;
 import cwx.script;
 import cwx.event;
 import cwx.importutils;
+import cwx.flag;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.absdialog;
@@ -31,6 +32,7 @@ import std.file;
 import std.functional;
 import std.array;
 import std.traits;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -308,7 +310,7 @@ protected:
 				if (!.exists(tPath)) { mixin(S_TRACE);
 					if (!dir.exists()) mkdirRecurse(dir);
 					summ = new Summary(_nameVal, skin, dir, false, true);
-				} else if (.isDir(tPath) && !tPath.buildPath("Summary.wsm").exists && !tPath.buildPath("Summary.xml").exists) { mixin(S_TRACE);
+				} else if (.isDir(tPath) && !tPath.buildPath("Summary.wsm").exists() && !tPath.buildPath("Summary.xml").exists()) { mixin(S_TRACE);
 					auto cursors = setWaitCursors(topShell(getShell()));
 					scope (exit) {
 						resetCursors(cursors);
@@ -783,11 +785,12 @@ class ImportOptionDialog : AbsDialog {
 
 	protected override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(new GridLayout(4, false));
-		Combo create(T)(string name, int opValue, T value) { mixin(S_TRACE);
+		Combo create(T)(Image icon, string name, int opValue, T value) { mixin(S_TRACE);
 			if (opValue < value.min || value.max < opValue) opValue = value;
 			value = cast(T)opValue;
-			auto label = new Label(area, SWT.NONE);
+			auto label = new CLabel(area, SWT.NONE);
 			label.setText(name);
+			label.setImage(icon);
 			auto combo = new Combo(area, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			mod(combo);
 			combo.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
@@ -806,23 +809,25 @@ class ImportOptionDialog : AbsDialog {
 			combo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			return combo;
 		}
-		_materials = create(_prop.msgs.importOptionMaterials, _prop.var.etc.importOptionMaterials, _opt.materials);
-		_variables = create(_prop.msgs.importOptionVariables, _prop.var.etc.importOptionVariables, _opt.variables);
-		_casts = create(_prop.msgs.importOptionCasts, _prop.var.etc.importOptionCasts, _opt.casts);
-		_skills = create(_prop.msgs.importOptionSkills, _prop.var.etc.importOptionSkills, _opt.skills);
-		_items = create(_prop.msgs.importOptionItems, _prop.var.etc.importOptionItems, _opt.items);
-		_beasts = create(_prop.msgs.importOptionBeasts, _prop.var.etc.importOptionBeasts, _opt.beasts);
-		_infos = create(_prop.msgs.importOptionInfos, _prop.var.etc.importOptionInfos, _opt.infos);
-		_areas = create(_prop.msgs.importOptionAreas, _prop.var.etc.importOptionAreas, _opt.areas);
-		_battles = create(_prop.msgs.importOptionBattles, _prop.var.etc.importOptionBattles, _opt.battles);
-		_packages = create(_prop.msgs.importOptionPackages, _prop.var.etc.importOptionPackages, _opt.packages);
-		_includedFiles = create(_prop.msgs.importOptionIncludedFiles, _prop.var.etc.importOptionIncludedFiles, _opt.includedFiles);
-		_includedBgImages = create(_prop.msgs.importOptionIncludedBgImages, _prop.var.etc.importOptionIncludedBgImages, _opt.includedBgImages);
-		_hands = create(_prop.msgs.importOptionHands, _prop.var.etc.importOptionHands, _opt.hands);
-		_beastsInMotions = create(_prop.msgs.importOptionBeastsInMotions, _prop.var.etc.importOptionBeastsInMotions, _opt.beastsInMotions);
+		_materials = create(_prop.images.text, _prop.msgs.importOptionMaterials, _prop.var.etc.importOptionMaterials, _opt.materials);
+		_variables = create(_prop.images.flagDir, _prop.msgs.importOptionVariables, _prop.var.etc.importOptionVariables, _opt.variables);
+		_casts = create(_prop.images.casts, _prop.msgs.importOptionCasts, _prop.var.etc.importOptionCasts, _opt.casts);
+		_skills = create(_prop.images.skill, _prop.msgs.importOptionSkills, _prop.var.etc.importOptionSkills, _opt.skills);
+		_items = create(_prop.images.item, _prop.msgs.importOptionItems, _prop.var.etc.importOptionItems, _opt.items);
+		_beasts = create(_prop.images.beast, _prop.msgs.importOptionBeasts, _prop.var.etc.importOptionBeasts, _opt.beasts);
+		_infos = create(_prop.images.info, _prop.msgs.importOptionInfos, _prop.var.etc.importOptionInfos, _opt.infos);
+		_areas = create(_prop.images.area, _prop.msgs.importOptionAreas, _prop.var.etc.importOptionAreas, _opt.areas);
+		_battles = create(_prop.images.battle, _prop.msgs.importOptionBattles, _prop.var.etc.importOptionBattles, _opt.battles);
+		_packages = create(_prop.images.packages, _prop.msgs.importOptionPackages, _prop.var.etc.importOptionPackages, _opt.packages);
+		_includedFiles = create(_prop.images.cards, _prop.msgs.importOptionIncludedFiles, _prop.var.etc.importOptionIncludedFiles, _opt.includedFiles);
+		_includedBgImages = create(_prop.images.backs, _prop.msgs.importOptionIncludedBgImages, _prop.var.etc.importOptionIncludedBgImages, _opt.includedBgImages);
+		_hands = create(_prop.images.menu(MenuID.OpenHand), _prop.msgs.importOptionHands, _prop.var.etc.importOptionHands, _opt.hands);
+		_beastsInMotions = create(_prop.images.beast, _prop.msgs.importOptionBeastsInMotions, _prop.var.etc.importOptionBeastsInMotions, _opt.beastsInMotions);
 	}
 
-	protected override bool apply() { mixin(S_TRACE);
+	protected override bool close(bool ok) { mixin(S_TRACE);
+		if (!ok) return ok;
+
 		void put(T)(Combo combo, ref int opValue, ref T value) { mixin(S_TRACE);
 			auto arr = EnumMembers!T;
 			auto index = combo.getSelectionIndex();
@@ -848,8 +853,136 @@ class ImportOptionDialog : AbsDialog {
 		put(_includedBgImages, _prop.var.etc.importOptionIncludedBgImages.value, _opt.includedBgImages);
 		put(_hands, _prop.var.etc.importOptionHands.value, _opt.hands);
 		put(_beastsInMotions, _prop.var.etc.importOptionBeastsInMotions.value, _opt.beastsInMotions);
-		return true;
+
+		return ok;
 	}
 }
 
-// TODO インポート結果を表示するダイアログ
+/// インポート結果を表示・選択するダイアログ。
+class ImportResultDialog : AbsDialog {
+	private Commons _comm;
+	private Props _prop;
+	private Summary _summ;
+	private ImportResult _result;
+	private Table _list;
+
+	this (Commons comm, Summary summ, Shell shell, ImportResult result) { mixin(S_TRACE);
+		_comm = comm;
+		_prop = comm.prop;
+		_summ = summ;
+		_result = result;
+		auto size = _prop.var.importResultDlg;
+		super (_prop, shell, true, _prop.msgs.dlgTitImportResult, _prop.images.menu(MenuID.Import), true, size, false, true);
+	}
+
+	@property
+	ImportResult checkedResult() { return _result; }
+
+	private Tuple!(string, F)[] sortedVars(F)(F[][string] table) { mixin(S_TRACE);
+		Tuple!(string, F)[] flags;
+		auto sorter = _prop.var.etc.logicalSort ? (string a, string b) => ncmp(a, b) < 0 : (string a, string b) => cmp(a, b) < 0;
+		auto sorter2 = _prop.var.etc.logicalSort ? (F a, F b) => ncmp(a.name, b.name) < 0 : (F a, F b) => cmp(a.name, b.name) < 0;
+		foreach (dir; table.keys.sortDlg(sorter)) { mixin(S_TRACE);
+			foreach (f; table[dir].dup.sortDlg(sorter2)) { mixin(S_TRACE);
+				flags ~= Tuple!(string, F)(dir, f);
+			}
+		}
+		return flags;
+	}
+
+	protected override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(new GridLayout(1, false));
+		auto label = new Label(area, SWT.WRAP);
+		label.setText(_prop.msgs.importResourceList);
+		label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+		_list = new Table(area, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		_list.setLayoutData(new GridData(GridData.FILL_BOTH));
+		new FullTableColumn(_list, SWT.NONE);
+		.listener(_list, SWT.Selection, .toDelegate(&updateChecked!Event));
+
+		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
+		createMenuItem(_comm, menu, MenuID.SelectAll, &_list.selectAll, () => _list.getItemCount() && _list.getSelectionCount() != _list.getItemCount());
+		_list.setMenu(menu);
+
+		auto skin = _comm.skin;
+		foreach (m; _result.materials) { mixin(S_TRACE);
+			auto itm = new TableItem(_list, SWT.NONE);
+			itm.setImage(.fimage(_prop, m.src, skin));
+			auto text = m.dst.relativePath(_summ.scenarioPath).encodePath();
+			if (m.overwrite) text = .tryFormat(_prop.msgs.overwriteMark, text);
+			itm.setText(text);
+			itm.setChecked(true);
+		}
+		void putVars(F)(Image icon, F[string] table) { mixin(S_TRACE);
+			foreach (t; sortedVars(table)) { mixin(S_TRACE);
+				auto itm = new TableItem(_list, SWT.NONE);
+				itm.setImage(icon);
+				auto path = t[0].length ? FlagDir.join(t[0], t[1].name) : t[1].name;
+				auto text = .tryFormat(_prop.msgs.searchResultFlag, path);
+				if (t[1].overwrite) text = .tryFormat(_prop.msgs.overwriteMark, text);
+				itm.setText(text);
+				itm.setChecked(true);
+			}
+		}
+		putVars(_prop.images.flag, _result.flags);
+		putVars(_prop.images.step, _result.steps);
+		void putRes(T)(T[ulong] table) { mixin(S_TRACE);
+			foreach (id; table.keys.sort) { mixin(S_TRACE);
+				auto itm = new TableItem(_list, SWT.NONE);
+				Image icon, icon2;
+				string text, text2;
+				getSymbols(_comm, _summ, table[id], text, text2, icon, icon2);
+				itm.setImage(icon);
+				itm.setText(text);
+				itm.setChecked(true);
+			}
+		}
+		putRes(_result.casts);
+		putRes(_result.skills);
+		putRes(_result.items);
+		putRes(_result.beasts);
+		putRes(_result.infos);
+		putRes(_result.areas);
+		putRes(_result.battles);
+		putRes(_result.packages);
+	}
+
+	protected override bool close(bool ok) { mixin(S_TRACE);
+		if (!ok) return ok;
+
+		ImportResult result2;
+		int i = 0;
+
+		foreach (m; _result.materials) { mixin(S_TRACE);
+			if (_list.getItem(i).getChecked()) result2.materials ~= m;
+			i++;
+		}
+		void putVars(F)(Image icon, F[string] table, ref F[string] table2) { mixin(S_TRACE);
+			foreach (t; sortedVars(table)) { mixin(S_TRACE);
+				if (_list.getItem(i).getChecked()) table2[t[0]] ~= t[1];
+				i++;
+			}
+		}
+		putVars(_prop.images.flag, _result.flags, result2.flags);
+		putVars(_prop.images.step, _result.steps, result2.steps);
+		void putRes(T)(T[ulong] table, ref T[ulong] table2) { mixin(S_TRACE);
+			foreach (id; table.keys.sort) { mixin(S_TRACE);
+				if (_list.getItem(i).getChecked()) table2[id] = table[id];
+				i++;
+			}
+		}
+		putRes(_result.casts, result2.casts);
+		putRes(_result.skills, result2.skills);
+		putRes(_result.items, result2.items);
+		putRes(_result.beasts, result2.beasts);
+		putRes(_result.infos, result2.infos);
+		putRes(_result.areas, result2.areas);
+		putRes(_result.battles, result2.battles);
+		putRes(_result.packages, result2.packages);
+
+		_result = result2;
+
+		return ok;
+	}
+}

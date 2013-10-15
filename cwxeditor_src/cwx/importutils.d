@@ -38,13 +38,29 @@ struct ImportOption {
 struct ImportFile {
 	string dst; /// コピー先ファイル名。
 	string src; /// コピー元ファイル名。
+	bool overwrite; /// 上書きする場合はtrue。
+}
+
+/// フラグをインポートするための情報。
+struct ImportFlag {
+	string path; /// 追加先のディレクトリパス。
+	Flag flag; /// フラグ。
+	bool overwrite; /// 上書きする場合はtrue。
+	alias flag this;
+}
+/// ステップをインポートするための情報。
+struct ImportStep {
+	string path; /// 追加先のディレクトリパス。
+	Step step; /// ステップ。
+	bool overwrite; /// 上書きする場合はtrue。
+	alias step this;
 }
 
 /// インポート結果。実際の配置をこの情報に基づいて行う。
 struct ImportResult {
 	ImportFile[] materials; /// 外部素材。
-	Flag[][string] flags; /// 状態変数。
-	Step[][string] steps; /// ditto
+	ImportFlag[][string] flags; /// 状態変数。
+	ImportStep[][string] steps; /// ditto
 	CastCard[ulong] casts; /// キャストカード。
 	SkillCard[ulong] skills; /// 特殊技能カード。
 	ItemCard[ulong] items; /// アイテムカード。
@@ -193,12 +209,13 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 	auto newFolder = createNewFileName(to.scenarioPath.buildPath(createNewFileName(from.scenarioPath.buildPath(from.scenarioPath.dirName().baseName()), true).baseName()), true).baseName();
 	ref1(opt.materials, uc.path, to.useCounter.path, (PathId path) { mixin(S_TRACE);
 		if (path.isBinImg) return;
-		if (opt.variables is ImportTypeReference1.Rename) { mixin(S_TRACE);
+		if (opt.materials is ImportTypeReference1.Rename) { mixin(S_TRACE);
 			auto newPath = newFolder.buildPath(cast(string)path);
-			r.materials ~= ImportFile(to.scenarioPath.buildPath(newPath), from.scenarioPath.buildPath(cast(string)path));
+			r.materials ~= ImportFile(to.scenarioPath.buildPath(newPath), from.scenarioPath.buildPath(cast(string)path), false);
 			uc.change(path, toPathId(newPath));
 		} else { mixin(S_TRACE);
-			r.materials ~= ImportFile(to.scenarioPath.buildPath(cast(string)path), from.scenarioPath.buildPath(cast(string)path));
+			bool overwrite = 0 < uc.path.get(path);
+			r.materials ~= ImportFile(to.scenarioPath.buildPath(cast(string)path), from.scenarioPath.buildPath(cast(string)path), overwrite);
 		}
 	});
 	// 状態変数のインポート。
@@ -208,11 +225,14 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 		if (!f) return;
 		auto o = new Flag(f);
 		if (opt.variables is ImportTypeReference1.Rename) { mixin(S_TRACE);
-			auto newPath = newFlagDir ~ "\\" ~ cast(string)path;
-			r.flags[FlagDir.up(newFlagDir)] ~= o;
+			auto newPath = FlagDir.join(newFlagDir, cast(string)path);
+			auto dir = FlagDir.up(newPath);
+			r.flags[dir] ~= ImportFlag(dir, o, false);
 			uc.change(path, toFlagId(newPath));
 		} else { mixin(S_TRACE);
-			r.flags[FlagDir.up(cast(string)path)] ~= o;
+			bool overwrite = 0 < uc.flag.get(path);
+			auto dir = FlagDir.up(cast(string)path);
+			r.flags[dir] ~= ImportFlag(dir, o, overwrite);
 		}
 	});
 	ref1(opt.variables, uc.step, to.useCounter.step, (StepId path) { mixin(S_TRACE);
@@ -220,11 +240,14 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 		if (!f) return;
 		auto o = new Step(f);
 		if (opt.variables is ImportTypeReference1.Rename) { mixin(S_TRACE);
-			auto newPath = newFlagDir ~ "\\" ~ cast(string)path;
-			r.steps[FlagDir.up(newFlagDir)] ~= o;
+			auto newPath = FlagDir.join(newFlagDir, cast(string)path);
+			auto dir = FlagDir.up(newPath);
+			r.steps[dir] ~= ImportStep(dir, o, false);
 			uc.change(path, toStepId(newPath));
 		} else { mixin(S_TRACE);
-			r.steps[FlagDir.up(cast(string)path)] ~= o;
+			bool overwrite = 0 < uc.step.get(path);
+			auto dir = FlagDir.up(cast(string)path);
+			r.steps[dir] ~= ImportStep(dir, o, overwrite);
 		}
 	});
 

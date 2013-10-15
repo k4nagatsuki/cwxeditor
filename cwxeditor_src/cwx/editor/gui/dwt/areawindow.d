@@ -223,7 +223,7 @@ public:
 			} else { mixin(S_TRACE);
 				auto pane = contPane;
 			}
-			_aview = new V(comm, prop, summ, area, pane, shell ? null : this, _undo);
+			_aview = new V(comm, prop, summ, area, pane, shell ? null : this, _undo, _readOnly != SWT.NONE);
 			static if (WithEventView) {
 				_tabA.setControl(_aview);
 			} else { mixin(S_TRACE);

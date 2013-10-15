@@ -218,6 +218,7 @@ public class FlexProps {
 	DialogParam!("flagCombiDialog", 350) flagCombiDlg;
 	DialogParam!("eventTemplateDialog", 600, 400) evTemplDlg;
 	DialogParam!("toolBarCustomizeDialog", 650, 400) toolBarCustomDlg;
+	DialogParam!("importResultDialog", 400, 400) importResultDlg;
 	MenuProps menu;
 	FlexEtcProps etc;
 

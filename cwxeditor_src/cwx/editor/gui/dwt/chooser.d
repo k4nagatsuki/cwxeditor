@@ -383,7 +383,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		} else static if (is(F:Step)) {
 			if (!s.length) return;
 		} else static assert (0);
-		auto exp = expandedTable.dup;
+		auto exp = expandedTable.dup();
 		scope (exit) expandedTable = exp;
 		saveExpanded();
 		refreshFlags();
@@ -395,7 +395,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		} else static if (is(F:Step)) {
 			if (!s.length) return;
 		} else static assert (0);
-		auto exp = expandedTable.dup;
+		auto exp = expandedTable.dup();
 		scope (exit) expandedTable = exp;
 		saveExpanded();
 		refreshFlags();
@@ -758,7 +758,7 @@ class AreaChooser(A, bool StartArea) : Composite {
 	private void refA(A a) { mixin(S_TRACE);
 		if (!_summ) return;
 		static if (is(A:AbstractArea)) {
-			auto exp = expandedTable.dup;
+			auto exp = expandedTable.dup();
 			scope (exit) expandedTable = exp;
 			saveExpanded();
 		}

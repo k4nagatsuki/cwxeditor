@@ -1986,6 +1986,7 @@ public:
 							}
 						}
 					}
+					_comm.refUseCount.call();
 					_comm.refreshToolBar();
 				} catch (Exception e) {
 					debugln(e);

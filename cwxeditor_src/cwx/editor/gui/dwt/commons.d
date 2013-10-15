@@ -28,6 +28,7 @@ import cwx.editor.gui.dwt.eventview;
 import cwx.editor.gui.dwt.eventtreeview;
 import cwx.editor.gui.dwt.directorywindow;
 import cwx.editor.gui.dwt.datawindow;
+import cwx.editor.gui.dwt.flagspane;
 import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.undo;
@@ -815,12 +816,14 @@ class Commons {
 			openMain!("data", "data", Dir.N)(_tableWin, shellActivate);
 		}
 	}
-	void openFlagWin(bool shellActivate) { mixin(S_TRACE);
+	FlagsPane openFlagWin(bool shellActivate) { mixin(S_TRACE);
 		if (_flagWin) { mixin(S_TRACE);
 			openMain!("flag", "data", Dir.N)(_flagWin, shellActivate);
+			return _flagWin.flags;
 		} else { mixin(S_TRACE);
 			openMain!("data", "data", Dir.N)(_dataWin, shellActivate);
 			_dataWin.selectFlags();
+			return _dataWin.flags;
 		}
 	}
 	void openBindCardWin(bool shellActivate) { mixin(S_TRACE);
@@ -1110,6 +1113,10 @@ class Commons {
 		auto opt = dialog.option;
 
 		auto result = .importResource(to, from, resCWXPath, opt);
+		auto dialog2 = new ImportResultDialog(this, summary, mainShell, result);
+		if (!dialog2.open()) return;
+		result = dialog2.checkedResult;
+
 		if (result.materials.length) { mixin(S_TRACE);
 			foreach (r; result.materials) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
@@ -1128,12 +1135,7 @@ class Commons {
 			_dirWin.refresh();
 		}
 		if (result.flags.length || result.steps.length) {
-			openFlagWin(false);
-			if (_flagWin) { mixin(S_TRACE);
-				_flagWin.flags.addFlagsAndSteps(result.flags, result.steps);
-			} else { mixin(S_TRACE);
-				_dataWin.flags.addFlagsAndSteps(result.flags, result.steps);
-			}
+			openFlagWin(false).addFlagsAndSteps(result.flags, result.steps);
 		}
 		if (result.casts.length) openCastWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.casts.values).array());
 		if (result.skills.length) openSkillWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.skills.values).array());
@@ -1152,7 +1154,6 @@ class Commons {
 			}
 		}
 		refreshToolBar();
-		// TODO インポート結果を表示するダイアログ
 	}
 
 	void setTitle(Composite comp, string text) { mixin(S_TRACE);

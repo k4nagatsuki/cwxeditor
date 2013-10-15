@@ -40,6 +40,7 @@ public:
 /// シナリオの概略を設定するダイアログ。
 class SummaryDialog : AbsDialog {
 private:
+	int _readOnly = SWT.NONE;
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
@@ -64,6 +65,12 @@ private:
 	// TODO Tag
 	// TODO Label
 
+	Skin _summSkin;
+	@property
+	Skin summSkin() { mixin(S_TRACE);
+		return _summSkin ? _summSkin : _comm.skin;
+	}
+
 	void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 
@@ -73,11 +80,13 @@ private:
 	}
 
 	void levMaxEnter(int enter) { mixin(S_TRACE);
+		if (_readOnly) return;
 		if (enter > 0 && _levMin.getSelection() != 0 && enter < _levMin.getSelection()) { mixin(S_TRACE);
 			_levMin.setSelection(enter);
 		}
 	}
 	void levMinEnter(int enter) { mixin(S_TRACE);
+		if (_readOnly) return;
 		if (enter > 0 && _levMax.getSelection() != 0 && enter > _levMax.getSelection()) { mixin(S_TRACE);
 			_levMax.setSelection(enter);
 		}
@@ -173,10 +182,10 @@ private:
 		{ mixin(S_TRACE);
 			_tab2Sash = new SplitPane(comp, SWT.HORIZONTAL);
 			_tab2Sash.setLayoutData(new GridData(GridData.FILL_BOTH));
-			auto skin = _comm.skin;
+			auto skin = summSkin;
 			{ mixin(S_TRACE);
 				bool including = isBinImg(_summ.imagePath);
-				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, SWT.NONE, _comm, _prop, _summ,
+				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, _readOnly, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, () => _sname.getText(), &clearBuf);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
@@ -190,7 +199,7 @@ private:
 				{ mixin(S_TRACE);
 					auto grp = centerGroup(comp2, _prop.msgs.title, true, false, new GridData(GridData.FILL_BOTH));
 					grp.setLayout(new GridLayout(1, true));
-					_sname = new Text(grp, SWT.BORDER);
+					_sname = new Text(grp, SWT.BORDER | _readOnly);
 					createTextMenu!Text(_comm, _prop, _sname, &catchMod);
 					mod(_sname);
 					setCDataX(_sname, new GridData(GridData.FILL_HORIZONTAL));
@@ -201,7 +210,7 @@ private:
 				{ mixin(S_TRACE);
 					auto grp = centerGroup(comp2, _prop.msgs.author, true, false, new GridData(GridData.FILL_BOTH));
 					grp.setLayout(new GridLayout(1, true));
-					_author = new Text(grp, SWT.BORDER);
+					_author = new Text(grp, SWT.BORDER | _readOnly);
 					createTextMenu!Text(_comm, _prop, _author, &catchMod);
 					mod(_author);
 					setCDataX(_author, new GridData(GridData.FILL_HORIZONTAL));
@@ -210,25 +219,29 @@ private:
 				{ mixin(S_TRACE);
 					auto grp = centerGroup(comp2, _prop.msgs.targetLevel, false, false, new GridData(GridData.FILL_BOTH));
 					grp.setLayout(new GridLayout(4, false));
-					_levMin = new Spinner(grp, SWT.BORDER);
+					_levMin = new Spinner(grp, SWT.BORDER | _readOnly);
 					initSpinner(_levMin);
 					mod(_levMin);
 					_levMin.setSelection(_summ.levelMin);
 					_levMin.setMinimum(0);
 					_levMin.setMaximum(_prop.var.etc.levelMax);
-					new SpinnerEdit(_levMin, &levMinEnter);
+					if (!_readOnly) new SpinnerEdit(_levMin, &levMinEnter);
 					auto lbl = new Label(grp, SWT.NONE);
 					lbl.setText(_prop.msgs.levSep);
 					lbl.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-					_levMax = new Spinner(grp, SWT.BORDER);
+					_levMax = new Spinner(grp, SWT.BORDER | _readOnly);
 					initSpinner(_levMax);
 					mod(_levMax);
 					_levMax.setSelection(_summ.levelMax);
 					_levMax.setMinimum(0);
 					_levMax.setMaximum(_prop.var.etc.levelMax);
-					new SpinnerEdit(_levMax, &levMaxEnter);
-					.listener(_levMin, SWT.Modify, &refreshPreview);
-					.listener(_levMax, SWT.Modify, &refreshPreview);
+					if (!_readOnly) { mixin (S_TRACE);
+						new SpinnerEdit(_levMax, &levMaxEnter);
+					}
+					if (!_readOnly) { mixin (S_TRACE);
+						.listener(_levMin, SWT.Modify, &refreshPreview);
+						.listener(_levMax, SWT.Modify, &refreshPreview);
+					}
 
 					auto hint = new Label(grp, SWT.NONE);
 					hint.setText(.tryFormat(_prop.msgs.rangeHint, _levMin.getMinimum(), _levMin.getMaximum()));
@@ -241,7 +254,7 @@ private:
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText(dwtData(_prop.looks.summaryDescFont(_summ.legacy)), _prop.looks.summaryDescLen, grp, SWT.BORDER);
+			_desc = new FixedWidthText(dwtData(_prop.looks.summaryDescFont(_summ.legacy)), _prop.looks.summaryDescLen, grp, SWT.BORDER | _readOnly);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			mod(_desc.widget);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.summaryDescLine));
@@ -258,7 +271,7 @@ private:
 		{ mixin(S_TRACE);
 			_tab3Sash = new SplitPane(comp, SWT.HORIZONTAL);
 			_tab3Sash.setLayoutData(new GridData(GridData.FILL_BOTH));
-			auto skin = _comm.skin;
+			auto skin = summSkin;
 			{ mixin(S_TRACE);
 				auto comp2 = new Composite(_tab3Sash, SWT.NONE);
 				comp2.setLayout(zeroMarginGridLayout(1, true));
@@ -269,12 +282,15 @@ private:
 					grp.setLayout(new GridLayout(1, true));
 					auto refTypes = new RefreshTypes;
 					_typeSkin = new Button(grp, SWT.RADIO);
+					_typeSkin.setEnabled(!_readOnly);
 					_typeSkin.setText(_prop.msgs.sTypeXML);
 					_typeSkin.addSelectionListener(refTypes);
 					_typeClassic = new Button(grp, SWT.RADIO);
+					_typeClassic.setEnabled(!_readOnly);
 					_typeClassic.setText(_prop.msgs.sTypeClassic);
 					_typeClassic.addSelectionListener(refTypes);
 					_type = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+					_type.setEnabled(!_readOnly);
 					mod(_type);
 					_type.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 					_type.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -291,7 +307,7 @@ private:
 					{ mixin(S_TRACE);
 						auto lblN = new Label(grp, SWT.NONE);
 						lblN.setText(_prop.msgs.rCouponNum);
-						_rCouponNum = new Spinner(grp, SWT.BORDER);
+						_rCouponNum = new Spinner(grp, SWT.BORDER | _readOnly);
 						initSpinner(_rCouponNum);
 						mod(_rCouponNum);
 						_rCouponNum.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -307,7 +323,7 @@ private:
 						lblR.setText(_prop.msgs.rCoupons);
 					}
 					{ mixin(S_TRACE);
-						_rCoupons = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.WRAP);
+						_rCoupons = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.WRAP | _readOnly);
 						createTextMenu!Text(_comm, _prop, _rCoupons, &catchMod);
 						mod(_rCoupons);
 						auto gd = new GridData(GridData.FILL_BOTH);
@@ -328,6 +344,7 @@ private:
 				grp.setText(_prop.msgs.startArea);
 				grp.setLayout(new GridLayout(1, false));
 				_startArea = new AreaChooser!(Area, true)(_comm, _summ, grp);
+				_startArea.setEnabled(!_readOnly);
 				mod(_startArea);
 				setCDataXY(_startArea, new GridData(GridData.FILL_BOTH));
 
@@ -352,16 +369,20 @@ private:
 			auto ws2 = _tab3Sash.getWeights();
 			_prop.var.etc.rCouponsStartAreaSashL = ws2[0];
 			_prop.var.etc.rCouponsStartAreaSashR = ws2[1];
-			_comm.refScenario.remove(&refScenario);
+			if (!_readOnly) { mixin(S_TRACE);
+				_comm.refScenario.remove(&refScenario);
+			}
 			_comm.refSkin.remove(&refSkin);
 			_comm.refClassicSkin.remove(&refreshTypes);
 		}
 	}
 
 	void refScenario(Summary summ) { mixin(S_TRACE);
+		if (_readOnly) return;
 		forceCancel();
 	}
 	void refSkin(Object sender) { mixin(S_TRACE);
+		if (_readOnly) return;
 		refreshPreview();
 		_desc.font = dwtData(_prop.looks.summaryDescFont(_summ.legacy));
 		if (sender is this) return;
@@ -372,13 +393,13 @@ private:
 		string selClassic = null;
 
 		if (!_typeSkin.getSelection() && !_typeClassic.getSelection()) { mixin(S_TRACE);
-			if (_comm.skin.legacy) { mixin(S_TRACE);
+			if (summSkin.legacy) { mixin(S_TRACE);
 				_typeClassic.setSelection(true);
 			} else { mixin(S_TRACE);
 				_typeSkin.setSelection(true);
 			}
 			selType = _summ.type;
-			selClassic = _comm.skin.legacyEngine.length ? _comm.skin.legacyEngine : null;
+			selClassic = summSkin.legacyEngine.length ? summSkin.legacyEngine : null;
 		} else { mixin(S_TRACE);
 			if (_typeSkin.getSelection()) { mixin(S_TRACE);
 				selType = _type.getText();
@@ -427,7 +448,7 @@ private:
 			}
 		}
 		_hasLegacySkin = false;
-		_typeClassic.setEnabled(true);
+		_typeClassic.setEnabled(!_readOnly);
 		if (_typeSkin.getSelection()) { mixin(S_TRACE);
 			initSkin();
 		} else { mixin(S_TRACE);
@@ -465,12 +486,14 @@ private:
 		}
 	}
 public:
-	this(Commons comm, Props prop, Shell shell, Summary summ) { mixin(S_TRACE);
+	this(Commons comm, Props prop, Shell shell, Summary summ, bool readOnly) { mixin(S_TRACE);
 		assert (summ !is null);
+		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		_comm = comm;
 		_summ = summ;
 		_prop = prop;
-		super(prop, shell, false, .tryFormat(_prop.msgs.dlgTitSummary, _summ.scenarioName),
+		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
+		super(prop, shell, _readOnly, false, .tryFormat(_prop.msgs.dlgTitSummary, _summ.scenarioName),
 			_prop.images.summary, true, _prop.var.summaryDlg, true);
 	}
 
@@ -484,18 +507,21 @@ protected:
 		constructTab2(tabf);
 		constructImage(area);
 
-		_comm.refScenario.add(&refScenario);
+		if (!_readOnly) { mixin(S_TRACE);
+			_comm.refScenario.add(&refScenario);
+		}
 		_comm.refSkin.add(&refSkin);
 		_comm.refClassicSkin.add(&refreshTypes);
 		area.addDisposeListener(new Dispose);
 	}
 
 	override bool apply() { mixin(S_TRACE);
+		if (_readOnly) return true;
 		string oldName = _summ.scenarioName;
-		string oldResDir = nabs(_comm.skin.resDir);
+		string oldResDir = nabs(summSkin.resDir);
 		scope (exit) {
 			if (oldName != _summ.scenarioName) _comm.refScenarioName.call();
-			if (!cfnmatch(oldResDir, nabs(_comm.skin.resDir))) _comm.refSkin.call(this);
+			if (!cfnmatch(oldResDir, nabs(summSkin.resDir))) _comm.refSkin.call(this);
 			_comm.refUseCount.call();
 		}
 		_summ.setBaseParams(_sname.getText(), _author.getText());

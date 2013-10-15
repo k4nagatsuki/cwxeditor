@@ -71,7 +71,7 @@ public:
 		_prop = prop;
 		_comm = comm;
 		static if (UseArea) {
-			_areas = new AreaTable(_comm, _prop);
+			_areas = new AreaTable(_comm, _prop, false);
 		}
 		static if (UseFlag) {
 			_flags = new FlagsPane(_comm, _prop);

@@ -807,7 +807,7 @@ protected:
 		area.setLayout(new GridLayout(1, false));
 		auto skin = _comm.skin;
 		{ mixin(S_TRACE);
-			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _cont, area, _refTarget);
+			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _cont, area, _refTarget, false);
 			mod(_view);
 			_view.setLayoutData(new GridData(GridData.FILL_BOTH));
 			_view.modEvent ~= &refreshWarning;
