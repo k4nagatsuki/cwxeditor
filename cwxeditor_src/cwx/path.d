@@ -61,6 +61,10 @@ string cpjoinid(string ownerPath, string category, ulong id) { mixin(S_TRACE);
 	string cn = category ~ ":id:" ~ to!(string)(id);
 	return ownerPath.length ? ownerPath ~ "/" ~ cn : cn;
 }
+/// ditto
+string cpjoin(string ownerPath, string subPath) { mixin(S_TRACE);
+	return ownerPath.length ? ownerPath ~ "/" ~ subPath : subPath;
+}
 
 /// シナリオ内パスの属性を返す。
 string[] cpattr(string path) { mixin(S_TRACE);
@@ -187,6 +191,15 @@ size_t cpindex(string path) { mixin(S_TRACE);
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (cpindex("area:3/event:0/:5/:0/:1") == 3);
+}
+/// シナリオ内パスの末尾部分を返す。
+string cplast(string path) { mixin(S_TRACE);
+	string attrs = cpattrRef(path);
+	int index = std.string.lastIndexOf(path, "/");
+	return (index >= 0 ? path[index + 1 .. $] : path) ~ attrs;
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	assert (cptop("area:3/event:0/:5/:0/:1") == "area:3");
 }
 /// path1がpath2そのもの、
 /// もしくはpath2がpath1の子孫であればtrueを返す。

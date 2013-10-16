@@ -513,6 +513,12 @@ protected:
 		_comm.refSkin.add(&refSkin);
 		_comm.refClassicSkin.add(&refreshTypes);
 		area.addDisposeListener(new Dispose);
+
+		void closeAdds(Summary summ) { mixin(S_TRACE);
+			if (_summ is summ) forceCancel();
+		}
+		_comm.closeAdds.add(&closeAdds);
+		.listener(getShell(), SWT.Dispose, () => _comm.closeAdds.remove(&closeAdds));
 	}
 
 	override bool apply() { mixin(S_TRACE);

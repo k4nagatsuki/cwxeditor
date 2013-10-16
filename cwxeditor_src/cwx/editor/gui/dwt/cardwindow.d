@@ -32,6 +32,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.cardpane;
 import cwx.editor.gui.dwt.loader;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.areatable;
 
 import std.algorithm;
 import std.array;
@@ -46,8 +47,6 @@ import org.eclipse.swt.all;
 import java.lang.all;
 
 public:
-
-// TODO エリア類のインポート
 
 interface ICardWindow {
 	@property
@@ -80,7 +79,7 @@ enum CardWindowKind {
 }
 
 /// カード関係の表示・編集領域。
-class CardWindow(CardWindowKind CWKind, PCardOwner, CardOwner, ToCardOwner, Cards ...)
+class CardWindow(CardWindowKind CWKind, PCardOwner, CardOwner, ToCardOwner, bool WithArea, Cards ...)
 		: TopLevelPanel, TCPD, ICardWindow {
 private:
 	static const bool EditMode = is (ToCardOwner == void);
@@ -120,11 +119,15 @@ private:
 		}
 	}
 	PTypes!(Cards) _pane;
-	static if (1 < Cards.length) {
+	static if (1 < Cards.length || WithArea) {
 		CTabFolder _tabf;
 		CTabItem[Cards.length] _tab;
 	} else {
 		Composite _tabf;
+	}
+	static if (WithArea) {
+		AreaTable _areas;
+		CTabItem _aTab;
 	}
 
 	Props _prop;
@@ -330,7 +333,7 @@ public:
 			}
 			_summ = summ;
 			construct2();
-			__refreshAll(summ, owner);
+			refreshAll(summ, owner);
 		}
 	}
 	private void construct1(Commons comm, Props prop, Composite parent) { mixin(S_TRACE);
@@ -427,6 +430,12 @@ public:
 				_tblT = createToolItem(_comm, bar, MenuID.ShowCardDetail, &showCardTable, null, SWT.RADIO);
 			}
 		} else { mixin(S_TRACE);
+			static if (WithArea) {
+				putMenuAction(MenuID.EditSummary, () => _areas.editSummary(_areas.panel.getShell()), () => _summ !is null);
+				putMenuAction(MenuID.EditScene, () => _areas.openAreaScene(true), () => _areas.canOpenAreaScene);
+				putMenuAction(MenuID.EditEvent, () => _areas.openAreaEvent(true), () => _areas.canOpenAreaEvent);
+				putMenuAction(MenuID.ChangeVH, () => _areas.changeVHSide(), () => _areas.canChangeVH);
+			}
 			static if (EditMode) {
 				appendMenuTCPD(_comm, this, this, true, true, true, true, true);
 				putMenuAction(MenuID.Refresh, &__refresh, () => _summ !is null);
@@ -466,7 +475,7 @@ public:
 			putMenuChecked(MenuID.ShowCardImage, &showCardList, &isViewList, null);
 			putMenuChecked(MenuID.ShowCardDetail, &showCardTable, &isViewTable, null);
 		}
-		static if (1 < Cards.length) {
+		static if (1 < Cards.length || WithArea) {
 			_tabf = new CTabFolder(_comp, SWT.BORDER);
 			_tabf.addSelectionListener(new SelChanged);
 		} else { mixin(S_TRACE);
@@ -481,7 +490,7 @@ public:
 			drop.addDropListener(new DropScenario);
 		}
 	}
-	static if (1 < Cards.length) {
+	static if (1 < Cards.length || WithArea) {
 		private class SelChanged : SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 				refreshStatusLine();
@@ -729,6 +738,12 @@ public:
 	}
 	private void construct2() { mixin(S_TRACE);
 		newPane!(0)();
+		static if (WithArea) {
+			if (!_areas) { mixin(S_TRACE);
+				_areas = new AreaTable(_comm, _prop, !EditMode, _toc);
+			}
+			_areas.construct(_tabf, null);
+		}
 		static if (!EditMode || !is(CardOwner : Summary)) {
 			ColResize[CardTableColumn] colR;
 			void addTable(TableColumn[CardTableColumn] columns) { mixin(S_TRACE);
@@ -743,7 +758,7 @@ public:
 			}
 		}
 		foreach (i, f; _pane) { mixin(S_TRACE);
-			static if (1 < Cards.length) {
+			static if (1 < Cards.length || WithArea) {
 				_tab[i] = new CTabItem(_tabf, SWT.NONE);
 				static if (UseCast) {
 					if (i == CAST) { mixin(S_TRACE);
@@ -784,9 +799,17 @@ public:
 				addTable(f.columns);
 			}
 		}
+		static if (WithArea) {
+			_aTab = new CTabItem(_tabf, SWT.NONE, 0);
+			_aTab.setText(_prop.msgs.areasTabName);
+			_aTab.setImage(_prop.images.menu(MenuID.TableView));
+			_aTab.setControl(_areas.panel);
+			_tcpd ~= _areas;
+		}
+
 		auto shell = cast(Shell) _win;
 
-		static if (1 < Cards.length) {
+		static if (1 < Cards.length || WithArea) {
 			_tabf.setSelection(0);
 		}
 		bool life = _prop.var.etc.cardLife;
@@ -939,19 +962,22 @@ public:
 	static if (EditMode) {
 		static if (is (PCardOwner == Summary) && is (CardOwner == Summary)) {
 			void refresh(Summary summ) { mixin(S_TRACE);
-				__refreshAll(summ, summ);
+				refreshAll(summ, summ);
 			}
 		} else {
 			void refresh(PCardOwner summ, CardOwner owner) { mixin(S_TRACE);
-				__refreshAll(summ, owner);
+				refreshAll(summ, owner);
 			}
 		}
 	}
-	private void __refreshAll(PCardOwner summ, CardOwner owner) { mixin(S_TRACE);
+	private void refreshAll(PCardOwner summ, CardOwner owner) { mixin(S_TRACE);
 		_owner = owner;
 		_summ = summ;
 		foreach (f; _pane) { mixin(S_TRACE);
 			f.refreshAll(summ, owner);
+		}
+		static if (WithArea) {
+			_areas.summary = summ;
 		}
 		if (_win && !_win.isDisposed()) { mixin(S_TRACE);
 			refreshTitle();
@@ -959,9 +985,10 @@ public:
 	}
 	private void refreshStatusLine() { mixin(S_TRACE);
 		if (!_win || _win.isDisposed()) return;
-		static if (1 < Cards.length) {
-			int i = _tabf.getSelectionIndex();
+		static if (1 < Cards.length || WithArea) {
+			int i = selectionCardIndex;
 			string s = "";
+			static if (WithArea) if (_tabf.getSelectionIndex() == areaIndex) s = _areas.statusLine;
 			static if (UseCast) if (i == CAST) s = _pane[CAST].statusLine;
 			static if (UseSkill) if (i == SKILL) s = _pane[SKILL].statusLine;
 			static if (UseItem) if (i == ITEM) s = _pane[ITEM].statusLine;
@@ -1056,56 +1083,51 @@ public:
 			return false;
 		}
 	}
-	void edit() { mixin(S_TRACE);
-		static if (1 < Cards.length) {
-			int i = _tabf.getSelectionIndex();
+	private Ret selectPane(Ret, string Method, bool Area = true)() { mixin(S_TRACE);
+		static if (is(Ret:void)) {
+			static immutable R = "";
+		} else {
+			static immutable R = "r = ";
+			Ret r;
+		}
+		static if (1 < Cards.length || WithArea) {
+			int i = selectionCardIndex;
+			static if (WithArea && Area) {
+				if (i == areaIndex) mixin(R ~ "_areas." ~ Method ~ "();");
+			}
 			static if (UseCast) {
-				if (i == CAST) _pane[CAST].edit();
+				if (i == CAST) mixin(R ~ "_pane[CAST]." ~ Method ~ "();");
 			}
 			static if (UseSkill) {
-				if (i == SKILL) _pane[SKILL].edit();
+				if (i == SKILL) mixin(R ~ "_pane[SKILL]." ~ Method ~ "();");
 			}
 			static if (UseItem) {
-				if (i == ITEM) _pane[ITEM].edit();
+				if (i == ITEM) mixin(R ~ "_pane[ITEM]." ~ Method ~ "();");
 			}
 			static if (UseBeast) {
-				if (i == BEAST) _pane[BEAST].edit();
+				if (i == BEAST) mixin(R ~ "_pane[BEAST]." ~ Method ~ "();");
 			}
 			static if (UseInfo) {
-				if (i == INFO) _pane[INFO].edit();
+				if (i == INFO) mixin(R ~ "_pane[INFO]." ~ Method ~ "();");
 			}
 		} else { mixin(S_TRACE);
-			_pane[0].edit();
+			 mixin(R ~ "_pane[0]." ~ Method ~ "();");
 		}
+		static if (!is(Ret:void)) {
+			return r;
+		}
+	}
+	void edit() { mixin(S_TRACE);
+		selectPane!(void, "edit")();
 	}
 	@property
 	bool canEdit() { mixin(S_TRACE);
-		static if (1 < Cards.length) {
-			int i = _tabf.getSelectionIndex();
-			static if (UseCast) {
-				if (i == CAST) return _pane[CAST].canEdit;
-			}
-			static if (UseSkill) {
-				if (i == SKILL) return _pane[SKILL].canEdit;
-			}
-			static if (UseItem) {
-				if (i == ITEM) return _pane[ITEM].canEdit;
-			}
-			static if (UseBeast) {
-				if (i == BEAST) return _pane[BEAST].canEdit;
-			}
-			static if (UseInfo) {
-				if (i == INFO) return _pane[INFO].canEdit;
-			}
-			return false;
-		} else { mixin(S_TRACE);
-			return _pane[0].canEdit;
-		}
+		return selectPane!(bool, "canEdit")();
 	}
 	static if (UseCast) {
 		void editHand() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
+			static if (1 < Cards.length || WithArea) {
+				int i = selectionCardIndex;
 				static if (UseCast) {
 					if (i == CAST) _pane[CAST].edit();
 				}
@@ -1115,8 +1137,8 @@ public:
 		}
 		@property
 		bool canEditHand() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
+			static if (1 < Cards.length || WithArea) {
+				int i = selectionCardIndex;
 				static if (UseCast) {
 					if (i == CAST) return _pane[CAST].canEdit;
 				}
@@ -1128,378 +1150,66 @@ public:
 	}
 	static if (EditMode) {
 		void reNumbering() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) _pane[CAST].reNumbering();
-				}
-				static if (UseSkill) {
-					if (i == SKILL) _pane[SKILL].reNumbering();
-				}
-				static if (UseItem) {
-					if (i == ITEM) _pane[ITEM].reNumbering();
-				}
-				static if (UseBeast) {
-					if (i == BEAST) _pane[BEAST].reNumbering();
-				}
-				static if (UseInfo) {
-					if (i == INFO) _pane[INFO].reNumbering();
-				}
-			} else { mixin(S_TRACE);
-				_pane[0].reNumbering();
-			}
+			selectPane!(void, "reNumbering")();
 		}
 		@property
 		bool canReNumbering() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) return _pane[CAST].canReNumbering;
-				}
-				static if (UseSkill) {
-					if (i == SKILL) return _pane[SKILL].canReNumbering;
-				}
-				static if (UseItem) {
-					if (i == ITEM) return _pane[ITEM].canReNumbering;
-				}
-				static if (UseBeast) {
-					if (i == BEAST) return _pane[BEAST].canReNumbering;
-				}
-				static if (UseInfo) {
-					if (i == INFO) return _pane[INFO].canReNumbering;
-				}
-				return false;
-			} else { mixin(S_TRACE);
-				return _pane[0].canReNumbering;
-			}
+			return selectPane!(bool, "canReNumbering")();
 		}
 		bool canUndo() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) return _pane[CAST].canUndo();
-				}
-				static if (UseSkill) {
-					if (i == SKILL) return _pane[SKILL].canUndo();
-				}
-				static if (UseItem) {
-					if (i == ITEM) return _pane[ITEM].canUndo();
-				}
-				static if (UseBeast) {
-					if (i == BEAST) return _pane[BEAST].canUndo();
-				}
-				static if (UseInfo) {
-					if (i == INFO) return _pane[INFO].canUndo();
-				}
-				return false;
-			} else { mixin(S_TRACE);
-				return _pane[0].canUndo();
-			}
+			return selectPane!(bool, "canUndo")();
 		}
 		bool canRedo() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) return _pane[CAST].canRedo();
-				}
-				static if (UseSkill) {
-					if (i == SKILL) return _pane[SKILL].canRedo();
-				}
-				static if (UseItem) {
-					if (i == ITEM) return _pane[ITEM].canRedo();
-				}
-				static if (UseBeast) {
-					if (i == BEAST) return _pane[BEAST].canRedo();
-				}
-				static if (UseInfo) {
-					if (i == INFO) return _pane[INFO].canRedo();
-				}
-				return false;
-			} else { mixin(S_TRACE);
-				return _pane[0].canRedo();
-			}
+			return selectPane!(bool, "canRedo")();
 		}
 		void undo() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) _pane[CAST].undo();
-				}
-				static if (UseSkill) {
-					if (i == SKILL) _pane[SKILL].undo();
-				}
-				static if (UseItem) {
-					if (i == ITEM) _pane[ITEM].undo();
-				}
-				static if (UseBeast) {
-					if (i == BEAST) _pane[BEAST].undo();
-				}
-				static if (UseInfo) {
-					if (i == INFO) _pane[INFO].undo();
-				}
-			} else { mixin(S_TRACE);
-				_pane[0].undo();
-			}
+			selectPane!(void, "undo")();
 		}
 		void redo() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) _pane[CAST].redo();
-				}
-				static if (UseSkill) {
-					if (i == SKILL) _pane[SKILL].redo();
-				}
-				static if (UseItem) {
-					if (i == ITEM) _pane[ITEM].redo();
-				}
-				static if (UseBeast) {
-					if (i == BEAST) _pane[BEAST].redo();
-				}
-				static if (UseInfo) {
-					if (i == INFO) _pane[INFO].redo();
-				}
-			} else { mixin(S_TRACE);
-				_pane[0].redo();
-			}
+			selectPane!(void, "redo")();
 		}
 		bool canUp() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) return _pane[CAST].canUp();
-				}
-				static if (UseSkill) {
-					if (i == SKILL) return _pane[SKILL].canUp();
-				}
-				static if (UseItem) {
-					if (i == ITEM) return _pane[ITEM].canUp();
-				}
-				static if (UseBeast) {
-					if (i == BEAST) return _pane[BEAST].canUp();
-				}
-				static if (UseInfo) {
-					if (i == INFO) return _pane[INFO].canUp();
-				}
-				return false;
-			} else { mixin(S_TRACE);
-				return _pane[0].canUp();
-			}
+			return selectPane!(bool, "canUp")();
 		}
 		bool canDown() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) return _pane[CAST].canDown();
-				}
-				static if (UseSkill) {
-					if (i == SKILL) return _pane[SKILL].canDown();
-				}
-				static if (UseItem) {
-					if (i == ITEM) return _pane[ITEM].canDown();
-				}
-				static if (UseBeast) {
-					if (i == BEAST) return _pane[BEAST].canDown();
-				}
-				static if (UseInfo) {
-					if (i == INFO) return _pane[INFO].canDown();
-				}
-				return false;
-			} else { mixin(S_TRACE);
-				return _pane[0].canDown();
-			}
+			return selectPane!(bool, "canDown")();
 		}
 		void up() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) _pane[CAST].up();
-				}
-				static if (UseSkill) {
-					if (i == SKILL) _pane[SKILL].up();
-				}
-				static if (UseItem) {
-					if (i == ITEM) _pane[ITEM].up();
-				}
-				static if (UseBeast) {
-					if (i == BEAST) _pane[BEAST].up();
-				}
-				static if (UseInfo) {
-					if (i == INFO) _pane[INFO].up();
-				}
-			} else { mixin(S_TRACE);
-				_pane[0].up();
-			}
+			selectPane!(void, "up")();
 		}
 		void down() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) _pane[CAST].down();
-				}
-				static if (UseSkill) {
-					if (i == SKILL) _pane[SKILL].down();
-				}
-				static if (UseItem) {
-					if (i == ITEM) _pane[ITEM].down();
-				}
-				static if (UseBeast) {
-					if (i == BEAST) _pane[BEAST].down();
-				}
-				static if (UseInfo) {
-					if (i == INFO) _pane[INFO].down();
-				}
-			} else { mixin(S_TRACE);
-				_pane[0].down();
-			}
+			selectPane!(void, "down")();
 		}
 
 		void replaceID() {
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) _pane[CAST].replaceID();
-				}
-				static if (UseSkill) {
-					if (i == SKILL) _pane[SKILL].replaceID();
-				}
-				static if (UseItem) {
-					if (i == ITEM) _pane[ITEM].replaceID();
-				}
-				static if (UseBeast) {
-					if (i == BEAST) _pane[BEAST].replaceID();
-				}
-				static if (UseInfo) {
-					if (i == INFO) _pane[INFO].replaceID();
-				}
-			} else { mixin(S_TRACE);
-				_pane[0].replaceID();
-			}
+			selectPane!(void, "replaceID")();
 		}
 		@property
 		bool canReplaceID() {
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) return _pane[CAST].canReplaceID;
-				}
-				static if (UseSkill) {
-					if (i == SKILL) return _pane[SKILL].canReplaceID;
-				}
-				static if (UseItem) {
-					if (i == ITEM) return _pane[ITEM].canReplaceID;
-				}
-				static if (UseBeast) {
-					if (i == BEAST) return _pane[BEAST].canReplaceID;
-				}
-				static if (UseInfo) {
-					if (i == INFO) return _pane[INFO].canReplaceID;
-				}
-				return false;
-			} else { mixin(S_TRACE);
-				return _pane[0].canReplaceID;
-			}
+			return selectPane!(bool, "canReplaceID")();
 		}
 	} else {
 		void doImport() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) _pane[CAST].doImport();
-				}
-				static if (UseSkill) {
-					if (i == SKILL) _pane[SKILL].doImport();
-				}
-				static if (UseItem) {
-					if (i == ITEM) _pane[ITEM].doImport();
-				}
-				static if (UseBeast) {
-					if (i == BEAST) _pane[BEAST].doImport();
-				}
-				static if (UseInfo) {
-					if (i == INFO) _pane[INFO].doImport();
-				}
-			} else { mixin(S_TRACE);
-				_pane[0].doImport();
-			}
+			selectPane!(void, "doImport")();
 		}
 		@property
 		bool canDoImport() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) return _pane[CAST].canDoImport;
-				}
-				static if (UseSkill) {
-					if (i == SKILL) return _pane[SKILL].canDoImport;
-				}
-				static if (UseItem) {
-					if (i == ITEM) return _pane[ITEM].canDoImport;
-				}
-				static if (UseBeast) {
-					if (i == BEAST) return _pane[BEAST].canDoImport;
-				}
-				static if (UseInfo) {
-					if (i == INFO) return _pane[INFO].canDoImport;
-				}
-				return false;
-			} else { mixin(S_TRACE);
-				return _pane[0].canDoImport;
-			}
+			return selectPane!(bool, "canDoImport")();
 		}
 	}
 	static if (is(CardOwner:CastCard) && EditMode) {
 		void removeRef() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) _pane[CAST].removeRef();
-				}
-				static if (UseSkill) {
-					if (i == SKILL) _pane[SKILL].removeRef();
-				}
-				static if (UseItem) {
-					if (i == ITEM) _pane[ITEM].removeRef();
-				}
-				static if (UseBeast) {
-					if (i == BEAST) _pane[BEAST].removeRef();
-				}
-				static if (UseInfo) {
-					if (i == INFO) _pane[INFO].removeRef();
-				}
-			} else { mixin(S_TRACE);
-				_pane[0].removeRef();
-			}
+			selectPane!(void, "removeRef", false)();
 		}
 		@property
 		bool canRemoveRef() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
-				static if (UseCast) {
-					if (i == CAST) return _pane[CAST].canRemoveRef;
-				}
-				static if (UseSkill) {
-					if (i == SKILL) return _pane[SKILL].canRemoveRef;
-				}
-				static if (UseItem) {
-					if (i == ITEM) return _pane[ITEM].canRemoveRef;
-				}
-				static if (UseBeast) {
-					if (i == BEAST) return _pane[BEAST].canRemoveRef;
-				}
-				static if (UseInfo) {
-					if (i == INFO) return _pane[INFO].canRemoveRef;
-				}
-				return false;
-			} else { mixin(S_TRACE);
-				return _pane[0].canRemoveRef;
-			}
+			return selectPane!(bool, "canRemoveRef", false)();
 		}
 	}
 	static if (UseSkill || UseItem || UseBeast) {
 		void editUseEvent() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
+			static if (1 < Cards.length || WithArea) {
+				int i = selectionCardIndex;
 				static if (UseSkill) {
 					if (i == SKILL) _pane[SKILL].editUseEvent();
 				}
@@ -1515,8 +1225,8 @@ public:
 		}
 		@property
 		bool canEditUseEvent() { mixin(S_TRACE);
-			static if (1 < Cards.length) {
-				int i = _tabf.getSelectionIndex();
+			static if (1 < Cards.length || WithArea) {
+				int i = selectionCardIndex;
 				static if (UseSkill) {
 					if (i == SKILL) return _pane[SKILL].canEdit;
 				}
@@ -1533,27 +1243,21 @@ public:
 		}
 	}
 	bool isSelected() { mixin(S_TRACE);
-		static if (1 < Cards.length) {
+		return selectPane!(bool, "isSelected")();
+	}
+	@property
+	private int selectionCardIndex() { mixin(S_TRACE);
+		static if (1 < Cards.length || WithArea) {
 			int i = _tabf.getSelectionIndex();
-			static if (UseCast) {
-				if (i == CAST) return _pane[CAST].isSelected();
-			}
-			static if (UseSkill) {
-				if (i == SKILL) return _pane[SKILL].isSelected();
-			}
-			static if (UseItem) {
-				if (i == ITEM) return _pane[ITEM].isSelected();
-			}
-			static if (UseBeast) {
-				if (i == BEAST) return _pane[BEAST].isSelected();
-			}
-			static if (UseInfo) {
-				if (i == INFO) return _pane[INFO].isSelected();
-			}
-			return false;
-		} else { mixin(S_TRACE);
-			return _pane[0].isSelected();
+			static if (WithArea) i++;
+			return i;
+		} else {
+			return 0;
 		}
+	}
+	static if (WithArea) {
+		@property
+		private int areaIndex() { return 0; }
 	}
 
 	private bool openCWXPathEff(int C)(string path, bool shellActivate) { mixin(S_TRACE);
@@ -1649,10 +1353,10 @@ public:
 	string[] openedCWXPath() { mixin(S_TRACE);
 		string[] r;
 		static if (EditMode) {
-			static if (1 < Cards.length) {
+			static if (1 < Cards.length || WithArea) {
 				string[] last;
 				foreach (i, pane; _pane) { mixin(S_TRACE);
-					if (_tabf.getSelectionIndex() == i) { mixin(S_TRACE);
+					if (selectionCardIndex == i) { mixin(S_TRACE);
 						last = pane.openedCWXPath;
 					} else { mixin(S_TRACE);
 						r ~= pane.openedCWXPath;
@@ -1667,14 +1371,14 @@ public:
 	}
 }
 
-alias CardWindow!(CardWindowKind.ImportSourceHand, Summary, CastCard, Summary, SkillCard, ItemCard, BeastCard) AddHandCardWindow;
-alias CardWindow!(CardWindowKind.Hand, Summary, CastCard, void, SkillCard, ItemCard, BeastCard) HandCardWindow;
-alias CardWindow!(CardWindowKind.Main, Summary, Summary, void, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) MainCardWindow;
-alias CardWindow!(CardWindowKind.Cast, Summary, Summary, void, CastCard) CastCardWindow;
-alias CardWindow!(CardWindowKind.Skill, Summary, Summary, void, SkillCard) SkillCardWindow;
-alias CardWindow!(CardWindowKind.Item, Summary, Summary, void, ItemCard) ItemCardWindow;
-alias CardWindow!(CardWindowKind.Beast, Summary, Summary, void, BeastCard) BeastCardWindow;
-alias CardWindow!(CardWindowKind.Info, Summary, Summary, void, InfoCard) InfoCardWindow;
+alias CardWindow!(CardWindowKind.ImportSourceHand, Summary, CastCard, Summary, false, SkillCard, ItemCard, BeastCard) AddHandCardWindow;
+alias CardWindow!(CardWindowKind.Hand, Summary, CastCard, void, false, SkillCard, ItemCard, BeastCard) HandCardWindow;
+alias CardWindow!(CardWindowKind.Main, Summary, Summary, void, false, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) MainCardWindow;
+alias CardWindow!(CardWindowKind.Cast, Summary, Summary, void, false, CastCard) CastCardWindow;
+alias CardWindow!(CardWindowKind.Skill, Summary, Summary, void, false, SkillCard) SkillCardWindow;
+alias CardWindow!(CardWindowKind.Item, Summary, Summary, void, false, ItemCard) ItemCardWindow;
+alias CardWindow!(CardWindowKind.Beast, Summary, Summary, void, false, BeastCard) BeastCardWindow;
+alias CardWindow!(CardWindowKind.Info, Summary, Summary, void, false, InfoCard) InfoCardWindow;
 
 private class DelTemp : DisposeListener {
 	private Summary _cc;
@@ -1691,7 +1395,7 @@ private class DelTemp : DisposeListener {
 }
 class AddCard {
 private:
-	alias CardWindow!(CardWindowKind.ImportSource, Summary, Summary, Summary, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) ACW;
+	alias CardWindow!(CardWindowKind.ImportSource, Summary, Summary, Summary, true, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) ACW;
 	static class AddS {
 		Commons comm;
 		Props prop;

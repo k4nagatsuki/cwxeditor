@@ -33,6 +33,9 @@ class FlexEtcProps : Properties {
 	auto areaIdColumn = Prop!(int)("areaIdColumn", 50);
 	auto areaNameColumn = Prop!(int)("areaNameColumn", 280);
 	auto areaCountColumn = Prop!(int)("areaCountColumn", 60);
+	auto importAreaIdColumn = Prop!(int)("importAreaIdColumn", 50);
+	auto importAreaNameColumn = Prop!(int)("importAreaNameColumn", 280);
+	auto importAreaCountColumn = Prop!(int)("importAreaCountColumn", 60);
 	auto areasSortColumn = Prop!(int)("areasSortColumn", 0);
 	auto areasSortDirection = Prop!(int)("areasSortDirection", SortDir.Up);
 	auto summaryParamSashL = Prop!(int)("summaryParamSashL", 2, 2012101100);
@@ -72,7 +75,10 @@ class FlexEtcProps : Properties {
 	auto areaSashB = Prop!(int)("areaSashB", 4);
 	auto areaSashL = Prop!(int)("areaSashL", 1);
 	auto areaSashR = Prop!(int)("areaSashR", 4);
+	auto importAreaSashL = Prop!(int)("importAreaSashL", 1);
+	auto importAreaSashR = Prop!(int)("importAreaSashR", 3);
 	auto areaSashV = Prop!(bool)("areaSashV", false);
+	auto importAreaSashV = Prop!(bool)("importAreaSashV", true);
 	auto flagSashL = Prop!(int)("flagSashL", 1);
 	auto flagSashR = Prop!(int)("flagSashR", 4);
 	auto flagSashV = Prop!(bool)("flagSashV", false);
@@ -110,6 +116,7 @@ class FlexEtcProps : Properties {
 	auto importCardNameColumn = Prop!(int)("importCardNameColumn", 100);
 	auto importCardNumberColumn = Prop!(int)("importCardNumberColumn", 60);
 	auto importCardDescriptionColumn = Prop!(int)("importCardDescriptionColumn", 50);
+	auto importCardCountColumn = Prop!(int)("importCardCountColumn", 30);
 	auto mainCardsSortColumn = Prop!(int)("mainCardsSortColumn", 0);
 	auto mainCardsSortDirection = Prop!(int)("mainCardsSortDirection", SortDir.Up);
 	auto handCardsSortColumn = Prop!(int)("handCardsSortColumn", 0);
@@ -753,8 +760,6 @@ class FlexEtcProps : Properties {
 			Tool(MenuID.NewItem),
 			Tool(MenuID.NewBeast),
 			Tool(MenuID.NewInfo),
-			Tool(),
-			Tool(MenuID.OpenImportSource),
 		],
 		[
 			Tool(MenuID.OpenDir),
@@ -764,6 +769,8 @@ class FlexEtcProps : Properties {
 			Tool(MenuID.ExecEngine),
 			Tool(),
 			Tool(MenuID.OuterTools),
+			Tool(),
+			Tool(MenuID.OpenImportSource),
 			Tool(),
 			Tool(MenuID.Settings),
 		],

@@ -754,7 +754,7 @@ private:
 	Props _prop;
 	Composite _parent = null;
 	FlagTable _flags = null;
-	Summary _summ;
+	Summary _summ, _importTarget = null;
 	TableSorter!Object _idSorter;
 	TableSorter!Object _nameSorter;
 	TableSorter!Object _ucSorter;
@@ -942,6 +942,15 @@ private:
 			return cast(AbstractArea) _areas.getItem(i).getData();
 		}
 		return null;
+	}
+	AbstractArea[] getSelectionAreas() { mixin(S_TRACE);
+		AbstractArea[] areas;
+		foreach (itm; _areas.getSelection()) { mixin(S_TRACE);
+			if (auto a = cast(AbstractArea)itm.getData()) { mixin(S_TRACE);
+				areas ~= a;
+			}
+		}
+		return areas;
 	}
 	void refArea(Object sender, Area a) { mixin(S_TRACE);
 		if (_readOnly) return;
@@ -1536,7 +1545,7 @@ private:
 	}
 	private void refreshDirTree() { mixin(S_TRACE);
 		if (!_dirTree) return;
-		_areaDirEdit.cancel();
+		if (_areaDirEdit) _areaDirEdit.cancel();
 		bool selSummary = false;
 		auto sel = "";
 		auto sels = _dirTree.getSelection();
@@ -1771,10 +1780,11 @@ private:
 		_undo.max = _prop.var.etc.undoMaxMainView;
 	}
 public:
-	this (Commons comm, Props prop, bool readOnly) { mixin(S_TRACE);
+	this (Commons comm, Props prop, bool readOnly, Summary importTarget) { mixin(S_TRACE);
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		_comm = comm;
 		_prop = prop;
+		_importTarget = importTarget;
 		_undo = new UndoManager(_prop.var.etc.undoMaxMainView);
 	}
 
@@ -1797,7 +1807,7 @@ public:
 		_dirMode = false;
 		if (_prop.var.etc.showAreaDirTree) { mixin (S_TRACE);
 			_dirMode = true;
-			auto sash = new SplitPane(parent, _prop.var.etc.areaSashV ? SWT.VERTICAL : SWT.HORIZONTAL);
+			auto sash = new SplitPane(parent, (_readOnly ? _prop.var.etc.importAreaSashV : _prop.var.etc.areaSashV) ? SWT.VERTICAL : SWT.HORIZONTAL);
 			auto cl1 = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
 			cl1.fillHorizontal = true;
 			cl1.fillVertical = true;
@@ -1825,12 +1835,18 @@ public:
 			_dirTree.addKeyListener(new TreeKListener);
 
 			auto menu = new Menu(_dirTree.getShell(), SWT.POP_UP);
-			createMenuItem(_comm, menu, MenuID.NewAreaDir, &createDir, () => !_readOnly && _dirMode && _summ !is null);
-			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => !_readOnly && _undo.canUndo);
-			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);
-			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
+			if (_readOnly) { mixin (S_TRACE);
+				createMenuItem(_comm, menu, MenuID.Import, &doImport, &canDoImport);
+				new MenuItem(menu, SWT.SEPARATOR);
+				appendMenuTCPD(_comm, menu, this, false, true, false, false, false);
+			} else { mixin (S_TRACE);
+				createMenuItem(_comm, menu, MenuID.NewAreaDir, &createDir, () => !_readOnly && _dirMode && _summ !is null);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => !_readOnly && _undo.canUndo);
+				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);
+				new MenuItem(menu, SWT.SEPARATOR);
+				appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
+			}
 			_dirTree.setMenu(menu);
 
 			auto drag = new DragSource(_dirTree, DND.DROP_MOVE | DND.DROP_COPY);
@@ -1843,19 +1859,25 @@ public:
 			}
 		}
 
-		_areas = new Table(tableParent, SWT.BORDER | SWT.FULL_SELECTION);
+		_areas = new Table(tableParent, (_readOnly ? SWT.MULTI : SWT.SINGLE) | SWT.BORDER | SWT.FULL_SELECTION);
 		_areas.addDisposeListener(new ADListener);
 		_areas.addSelectionListener(new SListener);
 		_areas.setHeaderVisible(true);
 		auto idCol = new TableColumn(_areas, SWT.NULL);
 		idCol.setText(_prop.msgs.areaId);
-		saveColumnWidth!("prop.var.etc.areaIdColumn")(_prop, idCol);
 		auto nameCol = new TableColumn(_areas, SWT.NULL);
 		nameCol.setText(_prop.msgs.areaName);
-		saveColumnWidth!("prop.var.etc.areaNameColumn")(_prop, nameCol);
 		auto countCol = new TableColumn(_areas, SWT.NULL);
 		countCol.setText(_prop.msgs.areaCount);
-		saveColumnWidth!("prop.var.etc.areaCountColumn")(_prop, countCol);
+		if (_readOnly) { mixin (S_TRACE);
+			saveColumnWidth!("prop.var.etc.importAreaIdColumn")(_prop, idCol);
+			saveColumnWidth!("prop.var.etc.importAreaNameColumn")(_prop, nameCol);
+			saveColumnWidth!("prop.var.etc.importAreaCountColumn")(_prop, countCol);
+		} else { mixin (S_TRACE);
+			saveColumnWidth!("prop.var.etc.areaIdColumn")(_prop, idCol);
+			saveColumnWidth!("prop.var.etc.areaNameColumn")(_prop, nameCol);
+			saveColumnWidth!("prop.var.etc.areaCountColumn")(_prop, countCol);
+		}
 
 		_areasEdit = new TableTextEdit(_comm, _prop, _areas, 1, &editEnd);
 		updateIncSearchParent();
@@ -1863,8 +1885,12 @@ public:
 		auto menu = new Menu(parent.getShell(), SWT.POP_UP);
 		createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, null);
 		new MenuItem(menu, SWT.SEPARATOR);
+		if (_readOnly) {
+			createMenuItem(_comm, menu, MenuID.Import, &doImport, &canDoImport);
+			new MenuItem(menu, SWT.SEPARATOR);
+		}
 		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) { mixin(S_TRACE);
-			createMenuItem(_comm, menu, MenuID.EditProp, &editProp, &canEditProp);
+			createMenuItem(_comm, menu, MenuID.EditProp, &edit, &canEdit);
 		} else { mixin(S_TRACE);
 			createMenuItem(_comm, menu, MenuID.EditScene, {openAreaScene(true);}, &canOpenAreaScene);
 			createMenuItem(_comm, menu, MenuID.EditEvent, {openAreaEvent(true);}, &canOpenAreaEvent);
@@ -1872,20 +1898,24 @@ public:
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.EditSummary, &editSummary, () => _summ !is null);
 		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.NewArea, &createArea, () => !_readOnly && _summ !is null);
-		createMenuItem(_comm, menu, MenuID.NewBattle, &createBattle, () => !_readOnly && _summ !is null);
-		createMenuItem(_comm, menu, MenuID.NewPackage, &createPackage, () => !_readOnly && _summ !is null);
-		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.SetStartArea, &setStartArea, &canSetStartArea);
-		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.Undo, &undo, () => !_readOnly && _undo.canUndo);
-		createMenuItem(_comm, menu, MenuID.Redo, &redo, () => !_readOnly && _undo.canRedo);
-		new MenuItem(menu, SWT.SEPARATOR);
-		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
-		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.FindID, &replaceID, &canReplaceID);
-		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(_comm, menu, MenuID.ReNumbering, &reNumbering, &canReNumbering);
+		if (!_readOnly) { mixin(S_TRACE);
+			createMenuItem(_comm, menu, MenuID.NewArea, &createArea, () => !_readOnly && _summ !is null);
+			createMenuItem(_comm, menu, MenuID.NewBattle, &createBattle, () => !_readOnly && _summ !is null);
+			createMenuItem(_comm, menu, MenuID.NewPackage, &createPackage, () => !_readOnly && _summ !is null);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.SetStartArea, &setStartArea, &canSetStartArea);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.Undo, &undo, () => !_readOnly && _undo.canUndo);
+			createMenuItem(_comm, menu, MenuID.Redo, &redo, () => !_readOnly && _undo.canRedo);
+			new MenuItem(menu, SWT.SEPARATOR);
+			appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.FindID, &replaceID, &canReplaceID);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.ReNumbering, &reNumbering, &canReNumbering);
+		} else { mixin(S_TRACE);
+			appendMenuTCPD(_comm, menu, this, false, true, false, false, false);
+		}
 		_areas.setMenu(menu);
 
 		_areas.addMouseListener(new MListener);
@@ -1960,11 +1990,20 @@ public:
 
 		if (_dirTree) { mixin (S_TRACE);
 			auto sash = cast(SplitPane)_dirTree.getParent().getParent();
-			sash.setWeights([_prop.var.etc.areaSashL, _prop.var.etc.areaSashR]);
+			if (_readOnly) { mixin (S_TRACE);
+				sash.setWeights([_prop.var.etc.importAreaSashL, _prop.var.etc.importAreaSashR]);
+			} else { mixin (S_TRACE);
+				sash.setWeights([_prop.var.etc.areaSashL, _prop.var.etc.areaSashR]);
+			}
 			.listener(sash, SWT.Dispose, {
 				auto ws = sash.getWeights();
-				_prop.var.etc.areaSashL = ws[0];
-				_prop.var.etc.areaSashR = ws[1];
+				if (_readOnly) { mixin (S_TRACE);
+					_prop.var.etc.importAreaSashL = ws[0];
+					_prop.var.etc.importAreaSashR = ws[1];
+				} else { mixin (S_TRACE);
+					_prop.var.etc.areaSashL = ws[0];
+					_prop.var.etc.areaSashR = ws[1];
+				}
 			});
 		}
 	}
@@ -2006,7 +2045,11 @@ public:
 		if (!canChangeVH) return;
 		auto sash = cast(SplitPane)_dirTree.getParent().getParent();
 		sash = .changeVHSide(sash);
-		_prop.var.etc.areaSashV = (sash.getStyle() & SWT.VERTICAL) != 0;
+		if (_readOnly) { mixin(S_TRACE);
+			_prop.var.etc.importAreaSashV = (sash.getStyle() & SWT.VERTICAL) != 0;
+		} else { mixin(S_TRACE);
+			_prop.var.etc.areaSashV = (sash.getStyle() & SWT.VERTICAL) != 0;
+		}
 		updateIncSearchParent();
 	}
 
@@ -2035,7 +2078,7 @@ public:
 		_areaDirEdit.startEdit();
 	}
 
-	void editProp() { mixin(S_TRACE);
+	void edit() { mixin(S_TRACE);
 		int index = _areas.getSelectionIndex();
 		if (index == -1) return;
 		if (cast(Summary)_areas.getItem(index).getData()) { mixin(S_TRACE);
@@ -2045,7 +2088,7 @@ public:
 		}
 	}
 	@property
-	bool canEditProp() { mixin(S_TRACE);
+	bool canEdit() { mixin(S_TRACE);
 		return _areas.getSelectionIndex() != -1;
 	}
 
@@ -2321,7 +2364,6 @@ public:
 	private TreeItem rootDir() {
 		return _dirTree.getItem(showTreeSummary ? 1 : 0);
 	}
-	@property
 	bool select(AbstractArea a) { mixin(S_TRACE);
 		if (_dirMode) { mixin(S_TRACE);
 			_dirTree.setSelection([findDirTree(a.dirName)]);
@@ -2336,6 +2378,17 @@ public:
 		}
 		return false;
 	}
+	private void select(AbstractArea[] areas) { mixin(S_TRACE);
+		if (!areas.length) return;
+		select(areas[$-1]);
+		foreach (a; areas) {
+			int i = cCountUntil!("a.getData() is b")(_areas.getItems(), a);
+			if (0 <= i) { mixin(S_TRACE);
+				_areas.select(i);
+			}
+		}
+		_comm.refreshToolBar();
+	}
 
 	@property
 	bool canOpenAreaScene() { mixin(S_TRACE);
@@ -2346,22 +2399,20 @@ public:
 		return (showSummary ? 1 : 0) <= _areas.getSelectionIndex();
 	}
 	void openAreaScene(bool shellActivate) { mixin(S_TRACE);
-		auto area = getSelectionArea();
-		if (area) { mixin(S_TRACE);
-			auto a = cast(Area) area;
-			if (a) { mixin(S_TRACE);
-				openAreaSceneImpl(a, shellActivate);
-				return;
-			}
-			auto b = cast(Battle) area;
-			if (b) { mixin(S_TRACE);
-				openAreaSceneImpl(b, shellActivate);
-				return;
-			}
-			auto p = cast(Package) area;
-			if (p) { mixin(S_TRACE);
-				_comm.openArea(_prop, _summ, p, shellActivate);
-				return;
+		foreach (area; getSelectionAreas()) { mixin(S_TRACE);
+			if (area) { mixin(S_TRACE);
+				auto a = cast(Area) area;
+				if (a) { mixin(S_TRACE);
+					openAreaSceneImpl(a, shellActivate);
+				}
+				auto b = cast(Battle) area;
+				if (b) { mixin(S_TRACE);
+					openAreaSceneImpl(b, shellActivate);
+				}
+				auto p = cast(Package) area;
+				if (p) { mixin(S_TRACE);
+					_comm.openArea(_prop, _summ, p, shellActivate);
+				}
 			}
 		}
 	}
@@ -2384,8 +2435,7 @@ public:
 		}
 	}
 	void openAreaEvent(bool shellActivate) { mixin(S_TRACE);
-		auto area = getSelectionArea();
-		if (area) { mixin(S_TRACE);
+		foreach (area; getSelectionAreas()) { mixin(S_TRACE);
 			openAreaEvent(area, shellActivate);
 		}
 	}
@@ -2607,6 +2657,21 @@ public:
 		}
 	}
 
+	@property
+	private AbstractArea[] dirAreas() { mixin(S_TRACE);
+		AbstractArea[] areas;
+		auto path = _dir == "" ? _dir : _dir ~ "\\";
+		void put(AbstractArea area) { mixin(S_TRACE);
+			if (istartsWith(area.name, path)) { mixin(S_TRACE);
+				areas ~= area;
+			}
+		}
+		foreach (a; _summ.areas) put(a);
+		foreach (a; _summ.battles) put(a);
+		foreach (a; _summ.packages) put(a);
+		return areas;
+	}
+
 	override {
 		void cut(SelectionEvent se) { mixin(S_TRACE);
 			_parent.setRedraw(false);
@@ -2618,16 +2683,8 @@ public:
 			_parent.setRedraw(false);
 			scope (exit) _parent.setRedraw(true);
 			if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
-				AbstractArea[] areas;
 				auto path = _dir == "" ? _dir : _dir ~ "\\";
-				void put(AbstractArea area) { mixin(S_TRACE);
-					if (istartsWith(area.name, path)) { mixin(S_TRACE);
-						areas ~= area;
-					}
-				}
-				foreach (a; _summ.areas) put(a);
-				foreach (a; _summ.battles) put(a);
-				foreach (a; _summ.packages) put(a);
+				auto areas = dirAreas;
 				XNode doc;
 				string parentPath = _dir == "" ? _prop.msgs.areaDirRoot : _dir.split("\\")[$ - 1];
 				if (areas.length) { mixin(S_TRACE);
@@ -2651,9 +2708,10 @@ public:
 				XMLtoCB(_prop, _comm.clipboard, doc.text);
 				_comm.refreshToolBar();
 			} else { mixin(S_TRACE);
-				auto area = getSelectionArea();
-				if (area !is null) { mixin(S_TRACE);
-					XMLtoCB(_prop, _comm.clipboard, area.toXML(new XMLOption(_prop.sys), _summ.id));
+				auto areas = getSelectionAreas();
+				if (areas.length) { mixin(S_TRACE);
+					auto doc = areasToNode("", _dir, areas, new XMLOption(_prop.sys), _summ.id);
+					XMLtoCB(_prop, _comm.clipboard, doc.text);
 					_comm.refreshToolBar();
 				}
 			}
@@ -2686,7 +2744,7 @@ public:
 				foreach (a; _summ.battles) put(a);
 				foreach (a; _summ.packages) put(a);
 			} else {
-				areas = [getSelectionArea()];
+				areas = getSelectionAreas();
 			}
 			ATUndo[] undos;
 			foreach (area; areas) { mixin(S_TRACE);
@@ -2864,7 +2922,11 @@ public:
 		}
 		if (sel) { mixin (S_TRACE);
 			sort();
-			select(sel);
+			if (_readOnly) { mixin (S_TRACE);
+				select(areas);
+			} else { mixin (S_TRACE);
+				select(sel);
+			}
 			if (_flags) _flags.refresh();
 			_comm.refUseCount.call();
 			refreshStatusLine();
@@ -2949,7 +3011,7 @@ public:
 		_comm.refreshToolBar();
 	}
 
-	void replaceID() {
+	void replaceID() { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto area = getSelectionArea();
 		if (cast(Area)area) _comm.replaceID(toAreaId(area.id), true);
@@ -2957,11 +3019,37 @@ public:
 		if (cast(Package)area) _comm.replaceID(toPackageId(area.id), true);
 	}
 	@property
-	bool canReplaceID() {
+	bool canReplaceID() { mixin(S_TRACE);
 		if (_readOnly) return false;
 		auto area = getSelectionArea();
 		return cast(Area)area || cast(Battle)area || cast(Package)area;
 	}
+
+	void doImport() { mixin(S_TRACE);
+		AbstractArea[] areas;
+		string[] paths;
+		if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
+			areas = dirAreas;
+		} else { mixin(S_TRACE);
+			areas = getSelectionAreas();
+		}
+		if (!areas.length) return;
+		foreach (area; areas) { mixin(S_TRACE);
+			paths ~= area.cwxPath(true);
+		}
+		_comm.doImport(_importTarget, _summ, paths);
+	}
+	@property
+	bool canDoImport() { mixin(S_TRACE);
+		if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
+			return _importTarget && dirAreas.length;
+		} else { mixin(S_TRACE);
+			return _importTarget && getSelectionAreas().length;
+		}
+	}
+
+	@property
+	bool isSelected() { return _areas.getSelectionIndex() != -1; }
 
 	@property
 	string[] openedCWXPath() { mixin(S_TRACE);
@@ -2969,9 +3057,8 @@ public:
 		if (_summ && showSummary && 0 == _areas.getSelectionIndex()) { mixin(S_TRACE);
 			r ~= _summ.cwxPath(true);
 		}
-		auto a = getSelectionArea();
-		if (a) { mixin(S_TRACE);
-			r ~= cpaddattr(a.cwxPath(true), "shallow");
+		foreach (area; getSelectionAreas()) {
+			r ~= cpaddattr(area.cwxPath(true), "shallow");
 		}
 		return r;
 	}

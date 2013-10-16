@@ -201,7 +201,7 @@ public:
 		createMenuItem(_comm, menu, MenuID.OpenAtFileView, &openFilePath, () => filePath.length > 0 && !_readOnly);
 		createMenuItem(_comm, menu, MenuID.CopyFilePath, &copyFilePath, () => filePath.length > 0);
 		static if (Type == MtType.CARD) {
-			if (_canInclude && _summ && _summ.legacy) { mixin(S_TRACE);
+			if (!_readOnly && _canInclude && _summ && _summ.legacy) { mixin(S_TRACE);
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.IncludeImage, &includeImage, () => filePath.length > 0 && !_readOnly);
 			}

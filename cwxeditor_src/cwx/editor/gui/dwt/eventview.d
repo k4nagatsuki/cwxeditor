@@ -779,6 +779,7 @@ private:
 			}
 		}
 		Object addingFire(Object areaOrCard) { mixin(S_TRACE);
+			if (_readOnly) return null;
 			static if (!is (C == void)) {
 				Object addKeyCodes() { mixin(S_TRACE);
 					auto kc = (cast(CCombo) _fireItm.getControl()).getText();
@@ -1181,38 +1182,45 @@ public:
 
 			auto shell = _cards.getShell();
 			auto menu = new Menu(shell, SWT.POP_UP);
-			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => _undo.canUndo && !_readOnly);
-			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => _undo.canRedo && !_readOnly);
-			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
-			static if (is(A : Area) || is(A : Battle)) {
+			if (!_readOnly) { mixin (S_TRACE);
+				createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => _undo.canUndo && !_readOnly);
+				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => _undo.canRedo && !_readOnly);
 				new MenuItem(menu, SWT.SEPARATOR);
-				void delegate() dlg = null;
-				auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => !_readOnly && selectionKeyCode !is null, SWT.CASCADE);
-				auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
-				cascade.setMenu(sub);
-				createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &keyCodeTimUse, &canConvKeyCode!(FKCKind.Use));
-				createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &keyCodeTimSuccess, &canConvKeyCode!(FKCKind.Success));
-				createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &keyCodeTimFailure, &canConvKeyCode!(FKCKind.Failure));
-				createMenuItem(_comm, sub, MenuID.KeyCodeTimingHasNot, &keyCodeTimHasNot, &canConvKeyCode!(FKCKind.HasNot));
+				appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
+				static if (is(A : Area) || is(A : Battle)) {
+					new MenuItem(menu, SWT.SEPARATOR);
+					void delegate() dlg = null;
+					auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => !_readOnly && selectionKeyCode !is null, SWT.CASCADE);
+					auto sub = new Menu(parent.getShell(), SWT.DROP_DOWN);
+					cascade.setMenu(sub);
+					createMenuItem(_comm, sub, MenuID.KeyCodeTimingUse, &keyCodeTimUse, &canConvKeyCode!(FKCKind.Use));
+					createMenuItem(_comm, sub, MenuID.KeyCodeTimingSuccess, &keyCodeTimSuccess, &canConvKeyCode!(FKCKind.Success));
+					createMenuItem(_comm, sub, MenuID.KeyCodeTimingFailure, &keyCodeTimFailure, &canConvKeyCode!(FKCKind.Failure));
+					createMenuItem(_comm, sub, MenuID.KeyCodeTimingHasNot, &keyCodeTimHasNot, &canConvKeyCode!(FKCKind.HasNot));
 
-				auto cascade2 = createMenuItem(_comm, menu, MenuID.KeyCodeCond, dlg, () => !_readOnly && selectionEventTree !is null, SWT.CASCADE);
-				auto sub2 = new Menu(parent.getShell(), SWT.DROP_DOWN);
-				cascade2.setMenu(sub2);
-				createMenuItem(_comm, sub2, MenuID.KeyCodeCondOr, &setKeyCodeCond!(KeyCodeMatchingType.Or), &canSetKeyCodeCond!(KeyCodeMatchingType.Or));
-				createMenuItem(_comm, sub2, MenuID.KeyCodeCondAnd, &setKeyCodeCond!(KeyCodeMatchingType.And), &canSetKeyCodeCond!(KeyCodeMatchingType.And));
+					auto cascade2 = createMenuItem(_comm, menu, MenuID.KeyCodeCond, dlg, () => !_readOnly && selectionEventTree !is null, SWT.CASCADE);
+					auto sub2 = new Menu(parent.getShell(), SWT.DROP_DOWN);
+					cascade2.setMenu(sub2);
+					createMenuItem(_comm, sub2, MenuID.KeyCodeCondOr, &setKeyCodeCond!(KeyCodeMatchingType.Or), &canSetKeyCodeCond!(KeyCodeMatchingType.Or));
+					createMenuItem(_comm, sub2, MenuID.KeyCodeCondAnd, &setKeyCodeCond!(KeyCodeMatchingType.And), &canSetKeyCodeCond!(KeyCodeMatchingType.And));
+				}
+				new MenuItem(menu, SWT.SEPARATOR);
+			} else { mixin (S_TRACE);
+				appendMenuTCPD(_comm, menu, this, false, true, false, false, false);
+				new MenuItem(menu, SWT.SEPARATOR);
 			}
-			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.ToScript, &toScript, &canToScript);
 			createMenuItem(_comm, menu, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
 			static if (is (A == Battle)) {
-				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.AddRangeOfRound, &addManyRounds, { mixin(S_TRACE);
-					if (_readOnly) return false;
-					auto etItm = selectionEventTree;
-					if (!etItm) return false;
-					return (cast(EventTree) etItm.getData()).owner is _area;
-				});
+				if (!_readOnly) { mixin (S_TRACE);
+					new MenuItem(menu, SWT.SEPARATOR);
+					createMenuItem(_comm, menu, MenuID.AddRangeOfRound, &addManyRounds, { mixin(S_TRACE);
+						if (_readOnly) return false;
+						auto etItm = selectionEventTree;
+						if (!etItm) return false;
+						return (cast(EventTree) etItm.getData()).owner is _area;
+					});
+				}
 			}
 			_cards.setMenu(menu);
 
@@ -1573,7 +1581,7 @@ public:
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		}
-		if (!_comm.singleWindowMode(_prop)) { mixin(S_TRACE);
+		if (!_readOnly && !_comm.singleWindowMode(_prop)) { mixin(S_TRACE);
 			createToolItem(_comm, bar, MenuID.Undo, &undo, () => !_readOnly && _undo.canUndo);
 			createToolItem(_comm, bar, MenuID.Redo, &redo, () => !_readOnly && _undo.canRedo);
 			new ToolItem(bar, SWT.SEPARATOR);
@@ -1581,7 +1589,7 @@ public:
 			createToolItem(_comm, bar, MenuID.Down, &down, &canDown);
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
-		{ mixin(S_TRACE);
+		if (!_readOnly) { mixin(S_TRACE);
 			auto treeKindItm = new ToolItem(bar, SWT.SEPARATOR);
 			_treeKind = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			_treeKind.setEnabled(!_readOnly);
@@ -1597,51 +1605,36 @@ public:
 			treeKindItm.setControl(_treeKind);
 			treeKindItm.setWidth(_treeKind.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
 			_treeKind.addSelectionListener(new KSListener);
+			new ToolItem(bar, SWT.SEPARATOR);
 		}
-		new ToolItem(bar, SWT.SEPARATOR);
-		{ mixin(S_TRACE);
+		if (!_readOnly) { mixin(S_TRACE);
 			_fireItm = new ToolItem(bar, SWT.SEPARATOR);
 			_fireItm.setWidth(_prop.var.etc.firesWidth);
 			createCombo(true, areaDefVals);
-		}
-		static if (is (A == Area) || is (A == Battle)) {
-			new ToolItem(bar, SWT.SEPARATOR);
-			{ mixin(S_TRACE);
-				auto keyCodeTimItm = new ToolItem(bar, SWT.SEPARATOR);
-				_keyCodeTim = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-				createTextMenu!CCombo(_comm, _prop, _keyCodeTim, null);
-				_keyCodeTim.setEnabled(false);
-				_keyCodeTim.add(_prop.msgs.keyCodeTimingUse);
-				_keyCodeTim.add(_prop.msgs.keyCodeTimingSuccess);
-				_keyCodeTim.add(_prop.msgs.keyCodeTimingFailure);
-				_keyCodeTim.add(_prop.msgs.keyCodeTimingHasNot);
-				_keyCodeTim.select(0);
-				keyCodeTimItm.setControl(_keyCodeTim);
-				keyCodeTimItm.setWidth(_keyCodeTim.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
-			}
-		}
-		new ToolItem(bar, SWT.SEPARATOR);
-		createToolItem2(_comm, bar, _prop.msgs.newEvent, _prop.images.newEvent, &createEventTree, { mixin(S_TRACE);
-			if (_readOnly) return false;
-			auto par = selectionParent;
-			if (!par) return false;
-			static if (is(A:Battle)) {
-				auto eto = cast(EventTreeOwner) par.getData();
-				assert (eto !is null);
-				if (cast(C) eto && 2 == _treeKind.getSelectionIndex()) { mixin(S_TRACE);
-					// エネミーカード選択中、かつラウンド条件選択中
-					return false;
+			static if (is (A == Area) || is (A == Battle)) {
+				new ToolItem(bar, SWT.SEPARATOR);
+				{ mixin(S_TRACE);
+					auto keyCodeTimItm = new ToolItem(bar, SWT.SEPARATOR);
+					_keyCodeTim = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+					createTextMenu!CCombo(_comm, _prop, _keyCodeTim, null);
+					_keyCodeTim.setEnabled(false);
+					_keyCodeTim.add(_prop.msgs.keyCodeTimingUse);
+					_keyCodeTim.add(_prop.msgs.keyCodeTimingSuccess);
+					_keyCodeTim.add(_prop.msgs.keyCodeTimingFailure);
+					_keyCodeTim.add(_prop.msgs.keyCodeTimingHasNot);
+					_keyCodeTim.select(0);
+					keyCodeTimItm.setControl(_keyCodeTim);
+					keyCodeTimItm.setWidth(_keyCodeTim.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
 				}
 			}
-			return true;
-		});
-		static if (UseFire) {
-			createToolItem2(_comm, bar, _prop.msgs.newIgnition, _prop.images.newIgnition, &createEventFire, { mixin(S_TRACE);
+			new ToolItem(bar, SWT.SEPARATOR);
+		}
+		if (!_readOnly) { mixin(S_TRACE);
+			createToolItem2(_comm, bar, _prop.msgs.newEvent, _prop.images.newEvent, &createEventTree, { mixin(S_TRACE);
 				if (_readOnly) return false;
-				if (selectionEventTree is null) return false;
+				auto par = selectionParent;
+				if (!par) return false;
 				static if (is(A:Battle)) {
-					auto par = selectionParent;
-					assert (par !is null);
 					auto eto = cast(EventTreeOwner) par.getData();
 					assert (eto !is null);
 					if (cast(C) eto && 2 == _treeKind.getSelectionIndex()) { mixin(S_TRACE);
@@ -1651,12 +1644,30 @@ public:
 				}
 				return true;
 			});
+			static if (UseFire) {
+				createToolItem2(_comm, bar, _prop.msgs.newIgnition, _prop.images.newIgnition, &createEventFire, { mixin(S_TRACE);
+					if (_readOnly) return false;
+					if (selectionEventTree is null) return false;
+					static if (is(A:Battle)) {
+						auto par = selectionParent;
+						assert (par !is null);
+						auto eto = cast(EventTreeOwner) par.getData();
+						assert (eto !is null);
+						if (cast(C) eto && 2 == _treeKind.getSelectionIndex()) { mixin(S_TRACE);
+							// エネミーカード選択中、かつラウンド条件選択中
+							return false;
+						}
+					}
+					return true;
+				});
+			}
+			new ToolItem(bar, SWT.SEPARATOR);
 		}
-		new ToolItem(bar, SWT.SEPARATOR);
 		createToolItem2(_comm, bar, _prop.msgs.expandTree, _prop.images.expandTree, &_etree.treeOpen, &_etree.canExpandTree);
 		createToolItem2(_comm, bar,_prop.msgs.foldTree,  _prop.images.foldTree, &_etree.treeClose, &_etree.canFoldTree);
 	}
 	private void setFireControl(Control c) { mixin(S_TRACE);
+		if (_readOnly) return;
 		if (_fireItm.getControl()) _fireItm.getControl().dispose();
 		_fireItm.setControl(c);
 		_comm.refreshToolBar();

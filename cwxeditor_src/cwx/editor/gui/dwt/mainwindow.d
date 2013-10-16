@@ -2317,8 +2317,6 @@ public:
 					mixin (MenuAction!("mc", MenuID.NewItem, SWT.PUSH, "newItem", "&canNewItem"));
 					mixin (MenuAction!("mc", MenuID.NewBeast, SWT.PUSH, "newBeast", "&canNewBeast"));
 					mixin (MenuAction!("mc", MenuID.NewInfo, SWT.PUSH, "newInfo", "&canNewInfo"));
-					new MenuItem(mc, SWT.SEPARATOR);
-					mixin (MenuAction!("mc", MenuID.OpenImportSource, SWT.PUSH, "addScenario", "&canAddScenario"));
 				}
 				dStr ~= " - " ~ .text(__LINE__);
 
@@ -2332,6 +2330,8 @@ public:
 				auto otmi = createMenuItem(_comm, mt, MenuID.OuterTools, dummy, () => _prop.var.etc.outerTools.length > 0, SWT.CASCADE);
 				_mOuterTools = new Menu(otmi);
 				otmi.setMenu(_mOuterTools);
+				new MenuItem(mt, SWT.SEPARATOR);
+				mixin (MenuAction!("mt", MenuID.OpenImportSource, SWT.PUSH, "addScenario", "&canAddScenario"));
 				new MenuItem(mt, SWT.SEPARATOR);
 				mixin (MenuAction!("mt", MenuID.Settings, SWT.PUSH, "settings", "null"));
 

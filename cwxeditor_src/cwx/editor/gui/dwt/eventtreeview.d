@@ -1666,11 +1666,12 @@ public:
 
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout(zeroGridLayout(1, false));
-		_cbarPar = new Composite(_comp, SWT.NONE);
 
 		_comp.addDisposeListener(new TRDListener);
 
 		if (!_readOnly) { mixin(S_TRACE);
+			_cbarPar = new Composite(_comp, SWT.NONE);
+
 			_comm.refSkin.add(&refSkin);
 			_comm.refCast.add(&__refreshCast);
 			_comm.delCast.add(&__refreshCast);
@@ -1758,23 +1759,30 @@ public:
 		void initMenu() { mixin(S_TRACE);
 			auto shell = _tree.control.getShell();
 			auto popup = new Menu(shell, SWT.POP_UP);
-			createMenuItem(_comm, popup, MenuID.EditProp, &editM, &canEdit);
-			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(_comm, popup, MenuID.Comment, &writeComment, &canWriteComment);
-			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(_comm, popup, MenuID.Undo, &this.undo, () => !_readOnly && _undo.canUndo);
-			createMenuItem(_comm, popup, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);
-			new MenuItem(popup, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, popup, this, true, true, true, true, true);
-			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(_comm, popup, MenuID.Cut1Content, &cut1Content, &canCut1Content);
+			if (!_readOnly) { mixin (S_TRACE);
+				createMenuItem(_comm, popup, MenuID.EditProp, &editM, &canEdit);
+				new MenuItem(popup, SWT.SEPARATOR);
+				createMenuItem(_comm, popup, MenuID.Comment, &writeComment, &canWriteComment);
+				new MenuItem(popup, SWT.SEPARATOR);
+				createMenuItem(_comm, popup, MenuID.Undo, &this.undo, () => !_readOnly && _undo.canUndo);
+				createMenuItem(_comm, popup, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);
+				new MenuItem(popup, SWT.SEPARATOR);
+				appendMenuTCPD(_comm, popup, this, true, true, true, true, true);
+				new MenuItem(popup, SWT.SEPARATOR);
+				createMenuItem(_comm, popup, MenuID.Cut1Content, &cut1Content, &canCut1Content);
+			} else {
+				appendMenuTCPD(_comm, popup, this, false, true, false, false, false);
+				new MenuItem(popup, SWT.SEPARATOR);
+			}
 			createMenuItem(_comm, popup, MenuID.Copy1Content, &copy1Content, &canCopy1Content);
-			createMenuItem(_comm, popup, MenuID.Delete1Content, &del1Content, &canDel1Content);
-			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(_comm, popup, MenuID.PasteInsert, &pasteInsert, &canPasteInsert);
-			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(_comm, popup, MenuID.SwapToParent, &swapToParent, &canSwapToParent);
-			createMenuItem(_comm, popup, MenuID.SwapToChild, &swapToChild, &canSwapToChild);
+			if (!_readOnly) { mixin (S_TRACE);
+				createMenuItem(_comm, popup, MenuID.Delete1Content, &del1Content, &canDel1Content);
+				new MenuItem(popup, SWT.SEPARATOR);
+				createMenuItem(_comm, popup, MenuID.PasteInsert, &pasteInsert, &canPasteInsert);
+				new MenuItem(popup, SWT.SEPARATOR);
+				createMenuItem(_comm, popup, MenuID.SwapToParent, &swapToParent, &canSwapToParent);
+				createMenuItem(_comm, popup, MenuID.SwapToChild, &swapToChild, &canSwapToChild);
+			}
 			new MenuItem(popup, SWT.SEPARATOR);
 			createMenuItem(_comm, popup, MenuID.Expand, &expand, &canExpand);
 			createMenuItem(_comm, popup, MenuID.Collapse, &collapse, &canCollapse);
@@ -1782,45 +1790,48 @@ public:
 			createMenuItem(_comm, popup, MenuID.ToScript, &toScript, &canToScript);
 			createMenuItem(_comm, popup, MenuID.ToScript1Content, &toScript1Content, &canToScript);
 			createMenuItem(_comm, popup, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
-			new MenuItem(popup, SWT.SEPARATOR);
-			createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, &canStartToPackage);
-			createMenuItem(_comm, popup, MenuID.WrapTree, &wrapTree, &canWrapTree);
-			new MenuItem(popup, SWT.SEPARATOR);
-			void delegate() dlg = null;
-			auto createMI = createMenuItem(_comm, popup, MenuID.CreateContent, dlg, () => _et !is null, SWT.CASCADE);
-			_createM = new Menu(_tree.control.getShell(), SWT.DROP_DOWN);
-			createMI.setMenu(_createM);
-			auto convMI = createMenuItem(_comm, popup, MenuID.ConvertContent, dlg, { mixin(S_TRACE);
-				if (_readOnly) return false;
-				auto itm = selection;
-				if (!itm) return false;
-				auto evt = cast(Content) itm.getData();
-				return evt.type !is CType.START;
-			}, SWT.CASCADE);
-			_convM = new Menu(_tree.control.getShell(), SWT.DROP_DOWN);
-			convMI.setMenu(_convM);
-			new MenuItem(popup, SWT.SEPARATOR);
-			auto evTemplMI = createMenuItem(_comm, popup, MenuID.EvTemplates, dlg, () => _summ && _et && (_prop.var.etc.eventTemplates.length || _summ.eventTemplates.length), SWT.CASCADE);
-			_evTemplM = new Menu(_tree.control.getShell(), SWT.DROP_DOWN);
-			evTemplMI.setMenu(_evTemplM);
+			if (!_readOnly) { mixin (S_TRACE);
+				new MenuItem(popup, SWT.SEPARATOR);
+				createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, &canStartToPackage);
+				createMenuItem(_comm, popup, MenuID.WrapTree, &wrapTree, &canWrapTree);
+				new MenuItem(popup, SWT.SEPARATOR);
+				void delegate() dlg = null;
+				auto createMI = createMenuItem(_comm, popup, MenuID.CreateContent, dlg, () => _et !is null, SWT.CASCADE);
+				_createM = new Menu(_tree.control.getShell(), SWT.DROP_DOWN);
+				createMI.setMenu(_createM);
+				auto convMI = createMenuItem(_comm, popup, MenuID.ConvertContent, dlg, { mixin(S_TRACE);
+					if (_readOnly) return false;
+					auto itm = selection;
+					if (!itm) return false;
+					auto evt = cast(Content) itm.getData();
+					return evt.type !is CType.START;
+				}, SWT.CASCADE);
+				_convM = new Menu(_tree.control.getShell(), SWT.DROP_DOWN);
+				convMI.setMenu(_convM);
+				new MenuItem(popup, SWT.SEPARATOR);
+				auto evTemplMI = createMenuItem(_comm, popup, MenuID.EvTemplates, dlg, () => _summ && _et && (_prop.var.etc.eventTemplates.length || _summ.eventTemplates.length), SWT.CASCADE);
+				_evTemplM = new Menu(_tree.control.getShell(), SWT.DROP_DOWN);
+				evTemplMI.setMenu(_evTemplM);
+
+				// initConvMenu()の処理に時間がかかるため遅延実行
+				auto shown = new class MenuAdapter {
+					override void menuShown(MenuEvent e) { mixin(S_TRACE);
+						initConvMenu();
+						_createM.removeMenuListener(this);
+						_convM.removeMenuListener(this);
+					}
+				};
+				_createM.addMenuListener(shown);
+				_convM.addMenuListener(shown);
+				.listener(_convM, SWT.Show, &refreshConvMenu);
+
+				refreshTemplates();
+			}
 /+			debug {
 				new MenuItem(popup, SWT.SEPARATOR);
 				createMenuItem2(_comm, popup, "debug: Create CWX &Path", null, &createCWXPath, () => selection !is null);
 			}
 +/
-			// initConvMenu()の処理に時間がかかるため遅延実行
-			auto shown = new class MenuAdapter {
-				override void menuShown(MenuEvent e) { mixin(S_TRACE);
-					initConvMenu();
-					_createM.removeMenuListener(this);
-					_convM.removeMenuListener(this);
-				}
-			};
-			_createM.addMenuListener(shown);
-			_convM.addMenuListener(shown);
-			.listener(_convM, SWT.Show, &refreshConvMenu);
-
-			refreshTemplates();
 			_tree.control.setMenu(popup);
 		}
 		auto im = new class PaintListener {
@@ -1840,9 +1851,11 @@ public:
 		ds.setTransfer([XMLBytesTransfer.getInstance()]);
 		ds.addDragListener(new EventDragSource);
 
-		.listener(widget, SWT.Paint, { mixin(S_TRACE);
-			if (!(_prop.var.etc.contentsFloat || _prop.var.etc.contentsAutoHide)) getContentsBox();
-		});
+		if (!_readOnly) { mixin(S_TRACE);
+			.listener(widget, SWT.Paint, { mixin(S_TRACE);
+				if (!(_prop.var.etc.contentsFloat || _prop.var.etc.contentsAutoHide)) getContentsBox();
+			});
+		}
 		_comp.layout();
 		refresh(et);
 		if (ctPath.length) { mixin(S_TRACE);

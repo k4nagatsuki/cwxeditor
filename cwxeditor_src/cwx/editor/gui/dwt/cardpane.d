@@ -68,7 +68,7 @@ private:
 	} else {
 		static immutable COL_DESC = 2;
 	}
-	static if (EditMode && is (CardOwner == Summary)) {
+	static if (is(CardOwner:Summary)) {
 		static immutable COL_UC = COL_DESC + 1;
 	}
 	private static C[] cardsFrom(CardOwner)(CardOwner owner) { mixin(S_TRACE);
@@ -556,7 +556,7 @@ private:
 			return false;
 		}
 	}
-	static if (EditMode && is (CardOwner == Summary)) {
+	static if (is(typeof(COL_UC))) {
 		TableSorter!C _ucSorter;
 		bool compUC(const C c1, const C c2) { mixin(S_TRACE);
 			int uc1 = _summ.useCounter.get(C.toID(c1.id));
@@ -621,7 +621,7 @@ private:
 		case 1: return _tbl.getColumn(COL_NAME);
 		case 2: return _tbl.getColumn(COL_DESC);
 		case 3:
-			static if (EditMode && is(typeof(COL_UC))) {
+			static if (is(typeof(COL_UC))) {
 				return _tbl.getColumn(COL_UC);
 			}
 			goto default;
@@ -642,7 +642,7 @@ private:
 		} else if (_tbl.getSortColumn() is _descSorter.column) { mixin(S_TRACE);
 			_descSorter.doSort(_tbl.getSortDirection());
 		} else { mixin(S_TRACE);
-			static if (EditMode && is (CardOwner == Summary)) {
+			static if (is(typeof(COL_UC))) {
 				if (_tbl.getSortColumn() is _ucSorter.column) { mixin(S_TRACE);
 					_ucSorter.doSort(_tbl.getSortDirection());
 				}
@@ -663,7 +663,7 @@ private:
 		} else if (_tbl.getSortColumn() is _descSorter.column) { mixin(S_TRACE);
 			minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompDesc : &compDesc;
 		} else { mixin(S_TRACE);
-			static if (EditMode && is (CardOwner == Summary)) {
+			static if (is(typeof(COL_UC))) {
 				if (_tbl.getSortColumn() is _ucSorter.column) { mixin(S_TRACE);
 					minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompUC : &compUC;
 				}
@@ -855,7 +855,7 @@ private:
 			}
 		}
 		itm.setText(COL_DESC, desc);
-		static if (EditMode && is (CardOwner == Summary)) {
+		static if (is(typeof(COL_UC))) {
 			itm.setText(COL_UC, to!(string)(_summ.useCounter.get(C.toID(c.id))));
 		}
 		static if (UseNum) {
@@ -1418,11 +1418,7 @@ private:
 			if (e.button != 1) return;
 			int index = _list.searchIndex(e.x, e.y);
 			if (index >= 0) { mixin(S_TRACE);
-				static if (EditMode) {
-					edit(_list.card(index));
-				} else { mixin(S_TRACE);
-					doImport();
-				}
+				edit(_list.card(index));
 			}
 		}
 	}
@@ -1446,22 +1442,14 @@ private:
 			scope p = new Point(e.x, e.y);
 			auto itm = _tbl.getItem(p);
 			if (!itm) return;
-			static if (EditMode) {
-				edit(cast(C) itm.getData());
-			} else { mixin(S_TRACE);
-				doImport();
-			}
+			edit(cast(C) itm.getData());
 		}
 	}
 	class LKey : KeyAdapter {
 		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
 			bool keyMatch = e.character == SWT.CR;
 			if (keyMatch && _list.selection >= 0) { mixin(S_TRACE);
-				static if (EditMode) {
-					edit(_list.selectionCard);
-				} else { mixin(S_TRACE);
-					doImport();
-				}
+				edit(_list.selectionCard);
 			}
 		}
 	}
@@ -1470,11 +1458,7 @@ private:
 			bool keyMatch = e.character == SWT.CR;
 			int i = _tbl.getSelectionIndex();
 			if (keyMatch && -1 != i) { mixin(S_TRACE);
-				static if (EditMode) {
-					edit(cast(C) _tbl.getItem(i).getData());
-				} else { mixin(S_TRACE);
-					doImport();
-				}
+				edit(cast(C) _tbl.getItem(i).getData());
 			}
 		}
 	}
@@ -1720,7 +1704,7 @@ private:
 		auto descCol = new TableColumn(_tbl, SWT.NONE);
 		descCol.setText(_prop.msgs.cardDesc);
 
-		static if (EditMode && is (CardOwner == Summary)) {
+		static if (is(typeof(COL_UC))) {
 			auto ucCol = new TableColumn(_tbl, SWT.NONE);
 			ucCol.setText(_prop.msgs.cardCount);
 		}
@@ -1780,7 +1764,7 @@ private:
 		_nameSorter.sortedEvent ~= &sorted;
 		_descSorter = new TableSorter!C(descCol, &compDesc, &revCompDesc);
 		_descSorter.sortedEvent ~= &sorted;
-		static if (EditMode && is (CardOwner == Summary)) {
+		static if (is(typeof(COL_UC))) {
 			_ucSorter = new TableSorter!C(ucCol, &compUC, &revCompUC);
 			_ucSorter.sortedEvent ~= &sorted;
 		}
@@ -1829,6 +1813,10 @@ private:
 			nameCol.addControlListener(new ColResize!("importCardNameColumn"));
 			descCol.setWidth(_prop.var.etc.importCardDescriptionColumn);
 			descCol.addControlListener(new ColResize!("importCardDescriptionColumn"));
+			static if (is(typeof(COL_UC))) {
+				ucCol.setWidth(_prop.var.etc.importCardCountColumn);
+				ucCol.addControlListener(new ColResize!("importCardCountColumn"));
+			}
 			static if (UseNum) {
 				numCol.setWidth(_prop.var.etc.importCardNumberColumn);
 				numCol.addControlListener(new ColResize!("importCardNumberColumn"));
@@ -2023,11 +2011,11 @@ public:
 				}
 			});
 		}
-		static if (EditMode && is (CardOwner == Summary)) {
-			_comm.refUseCount.add(&__refreshUseCount);
+		static if (is(typeof(COL_UC))) {
+			_comm.refUseCount.add(&refreshUseCount);
 			_list.addDisposeListener(new class DisposeListener {
 				override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-					_comm.refUseCount.remove(&__refreshUseCount);
+					_comm.refUseCount.remove(&refreshUseCount);
 				}
 			});
 		}
@@ -2123,6 +2111,8 @@ public:
 			auto pop = new Menu(parent.getShell(), SWT.POP_UP);
 			createMenuItem(_comm, pop, MenuID.IncSearch, &incSearch, null);
 			new MenuItem(pop, SWT.SEPARATOR);
+			createMenuItem(_comm, pop, MenuID.Import, &doImport, &canDoImport);
+			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.ShowProp, &editM, &canEdit);
 			new MenuItem(pop, SWT.SEPARATOR);
 			static if (is (C : EffectCard)) {
@@ -2133,8 +2123,6 @@ public:
 				createMenuItem(_comm, pop, MenuID.OpenHand, _openHand, () => selection !is null);
 				new MenuItem(pop, SWT.SEPARATOR);
 			}
-			createMenuItem(_comm, pop, MenuID.Import, &doImport, &canDoImport);
-			new MenuItem(pop, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, pop, this, false, true, false, false, false);
 			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.SelectAll, &selectAll, () => cards.length && selectionCount != cards.length);
@@ -2314,6 +2302,16 @@ public:
 		}
 	}
 
+	static if (is(typeof(COL_UC))) {
+		private void refreshUseCount() { mixin(S_TRACE);
+			if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
+				foreach (itm; _tbl.getItems()) { mixin(S_TRACE);
+					auto c = cast(C) itm.getData();
+					itm.setText(COL_UC, to!(string)(_summ.useCounter.get(C.toID(c.id))));
+				}
+			}
+		}
+	}
 	static if (EditMode) {
 		void open(bool shellActivate) { mixin(S_TRACE);
 			static if (is(CardOwner : Summary)) {
@@ -2397,16 +2395,6 @@ public:
 				_editDlgs.remove(c);
 			};
 			dlg.open();
-		}
-		static if (is (CardOwner == Summary)) {
-			private void __refreshUseCount() { mixin(S_TRACE);
-				if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
-					foreach (itm; _tbl.getItems()) { mixin(S_TRACE);
-						auto c = cast(C) itm.getData();
-						itm.setText(COL_UC, to!(string)(_summ.useCounter.get(C.toID(c.id))));
-					}
-				}
-			}
 		}
 		bool addFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 			C[] adds;

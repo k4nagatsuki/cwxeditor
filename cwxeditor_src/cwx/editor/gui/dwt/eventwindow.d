@@ -158,16 +158,21 @@ public:
 			createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close, null);
 
 			auto me = createMenu(_comm, bar, MenuID.Edit);
-			createMenuItem(_comm, me, MenuID.Undo, &_eview.undo, () => !_readOnly && _undo.canUndo);
-			createMenuItem(_comm, me, MenuID.Redo, &_eview.redo, () => !_readOnly && _undo.canRedo);
-			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(_comm, me, MenuID.Up, &_eview.up, &_eview.canUp);
-			createMenuItem(_comm, me, MenuID.Down, &_eview.down, &_eview.canDown);
-			new MenuItem(me, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, me, this, true, true, true, true, true);
-			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(_comm, me, MenuID.Comment, &_eview.writeComment, &_eview.canWriteComment);
-			new MenuItem(me, SWT.SEPARATOR);
+			if (!_readOnly) { mixin (S_TRACE);
+				createMenuItem(_comm, me, MenuID.Undo, &_eview.undo, () => !_readOnly && _undo.canUndo);
+				createMenuItem(_comm, me, MenuID.Redo, &_eview.redo, () => !_readOnly && _undo.canRedo);
+				new MenuItem(me, SWT.SEPARATOR);
+				createMenuItem(_comm, me, MenuID.Up, &_eview.up, &_eview.canUp);
+				createMenuItem(_comm, me, MenuID.Down, &_eview.down, &_eview.canDown);
+				new MenuItem(me, SWT.SEPARATOR);
+				appendMenuTCPD(_comm, me, this, true, true, true, true, true);
+				new MenuItem(me, SWT.SEPARATOR);
+				createMenuItem(_comm, me, MenuID.Comment, &_eview.writeComment, &_eview.canWriteComment);
+				new MenuItem(me, SWT.SEPARATOR);
+			} else {
+				appendMenuTCPD(_comm, me, this, false, true, false, false, false);
+				new MenuItem(me, SWT.SEPARATOR);
+			}
 			createMenuItem(_comm, me, MenuID.ToScript, &_eview.toScript, &_eview.canToScript);
 			createMenuItem(_comm, me, MenuID.ToScriptAll, &_eview.toScriptAll, &_eview.canToScriptAll);
 

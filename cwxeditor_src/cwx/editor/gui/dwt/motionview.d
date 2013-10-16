@@ -1006,13 +1006,17 @@ public:
 			_motions.setLayoutData(gd);
 			_motions.setHeaderVisible(true);
 			auto menu = new Menu(_motions);
-			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => !_readOnly && _undo.canUndo);
-			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);
-			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.Up, &up, () => !_readOnly && _motions.getSelectionIndex() != -1 && 0 < _motions.getSelectionIndex());
-			createMenuItem(_comm, menu, MenuID.Down, &down, () => !_readOnly && _motions.getSelectionIndex() != -1 && _motions.getSelectionIndex() + 1 < _motions.getItemCount());
-			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, menu, new MotionTCPD, true, true, true, true, true);
+			if (!_readOnly) { mixin(S_TRACE);
+				createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => !_readOnly && _undo.canUndo);
+				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.Up, &up, () => !_readOnly && _motions.getSelectionIndex() != -1 && 0 < _motions.getSelectionIndex());
+				createMenuItem(_comm, menu, MenuID.Down, &down, () => !_readOnly && _motions.getSelectionIndex() != -1 && _motions.getSelectionIndex() + 1 < _motions.getItemCount());
+				new MenuItem(menu, SWT.SEPARATOR);
+				appendMenuTCPD(_comm, menu, new MotionTCPD, true, true, true, true, true);
+			} else { mixin(S_TRACE);
+				appendMenuTCPD(_comm, menu, new MotionTCPD, false, true, false, false, false);
+			}
 			_motions.setMenu(menu);
 			auto col = new FullTableColumn(_motions, SWT.NONE);
 			col.column.setText(_prop.msgs.motionKind);

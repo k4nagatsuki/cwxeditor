@@ -15,6 +15,7 @@ import cwx.types;
 
 import std.array;
 import std.path;
+import std.file;
 
 /// インポートのオプション。
 struct ImportOption {
@@ -209,6 +210,7 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 	auto newFolder = createNewFileName(to.scenarioPath.buildPath(createNewFileName(from.scenarioPath.buildPath(from.scenarioPath.dirName().baseName()), true).baseName()), true).baseName();
 	ref1(opt.materials, uc.path, to.useCounter.path, (PathId path) { mixin(S_TRACE);
 		if (path.isBinImg) return;
+		if (!from.scenarioPath.buildPath(cast(string)path).exists()) return;
 		if (opt.materials is ImportTypeReference1.Rename) { mixin(S_TRACE);
 			auto newPath = newFolder.buildPath(cast(string)path);
 			r.materials ~= ImportFile(to.scenarioPath.buildPath(newPath), from.scenarioPath.buildPath(cast(string)path), false);

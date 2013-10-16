@@ -254,16 +254,22 @@ public:
 			createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close, null);
 
 			auto me = createMenu(_comm, bar, MenuID.Edit);
-			createMenuItem(_comm, me, MenuID.Undo, &this.undo, &_undo.canUndo);
-			createMenuItem(_comm, me, MenuID.Redo, &this.redo, &_undo.canRedo);
-			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(_comm, me, MenuID.Up, &up, &canUp);
-			createMenuItem(_comm, me, MenuID.Down, &down, &canDown);
-			new MenuItem(me, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, me, this, true, true, true, true, true);
-			static if (WithEventView) {
+			if (!_readOnly) { mixin(S_TRACE);
+				createMenuItem(_comm, me, MenuID.Undo, &this.undo, &_undo.canUndo);
+				createMenuItem(_comm, me, MenuID.Redo, &this.redo, &_undo.canRedo);
 				new MenuItem(me, SWT.SEPARATOR);
-				createMenuItem(_comm, me, MenuID.Comment, &writeComment, &canWriteComment);
+				createMenuItem(_comm, me, MenuID.Up, &up, &canUp);
+				createMenuItem(_comm, me, MenuID.Down, &down, &canDown);
+				new MenuItem(me, SWT.SEPARATOR);
+				appendMenuTCPD(_comm, me, this, true, true, true, true, true);
+			} else { mixin(S_TRACE);
+				appendMenuTCPD(_comm, me, this, false, true, false, false, false);
+			}
+			static if (WithEventView) {
+				if (!_readOnly) { mixin(S_TRACE);
+					new MenuItem(me, SWT.SEPARATOR);
+					createMenuItem(_comm, me, MenuID.Comment, &writeComment, &canWriteComment);
+				}
 				new MenuItem(me, SWT.SEPARATOR);
 				createMenuItem(_comm, me, MenuID.ToScript, &toScript, &canToScript);
 				createMenuItem(_comm, me, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
@@ -299,6 +305,12 @@ public:
 				putMenuAction(MenuID.SwapToChild, &_eview.swapToChild, () => _tabf.getSelection() is _tabE && &_eview.canSwapToChild);
 			}
 		}
+
+		void closeAdds(Summary summ) { mixin(S_TRACE);
+			if (_summ is summ) _comm.close(_win);
+		}
+		_comm.closeAdds.add(&closeAdds);
+		.listener(_win, SWT.Dispose, () => _comm.closeAdds.remove(&closeAdds));
 
 		if (shell) shell.pack();
 

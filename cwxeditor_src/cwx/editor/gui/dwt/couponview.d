@@ -491,13 +491,17 @@ class CouponView(CVType Type) : Composite {
 			cv.setWidth(40);
 			saveColumnWidth!("prop.var.etc.couponValueColumn")(_prop, cv);
 			auto menu = new Menu(_coupons);
-			createMenuItem(_comm, menu, MenuID.Undo, &undoCoupons, () => !_readOnly && _undoCoupons.canUndo);
-			createMenuItem(_comm, menu, MenuID.Redo, &redoCoupons, () => !_readOnly && _undoCoupons.canRedo);
-			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.Up, &upCoupon, () => !_readOnly && _coupons.getSelectionIndex() != -1 && 0 < _coupons.getSelectionIndex());
-			createMenuItem(_comm, menu, MenuID.Down, &downCoupon, () => !_readOnly && _coupons.getSelectionIndex() != -1 && _coupons.getSelectionIndex() + 1 < _coupons.getItemCount());
-			new MenuItem(menu, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, menu, new CouponTCPD, true, true, true, true, true);
+			if (!_readOnly) { mixin(S_TRACE);
+				createMenuItem(_comm, menu, MenuID.Undo, &undoCoupons, () => !_readOnly && _undoCoupons.canUndo);
+				createMenuItem(_comm, menu, MenuID.Redo, &redoCoupons, () => !_readOnly && _undoCoupons.canRedo);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.Up, &upCoupon, () => !_readOnly && _coupons.getSelectionIndex() != -1 && 0 < _coupons.getSelectionIndex());
+				createMenuItem(_comm, menu, MenuID.Down, &downCoupon, () => !_readOnly && _coupons.getSelectionIndex() != -1 && _coupons.getSelectionIndex() + 1 < _coupons.getItemCount());
+				new MenuItem(menu, SWT.SEPARATOR);
+				appendMenuTCPD(_comm, menu, new CouponTCPD, true, true, true, true, true);
+			} else { mixin(S_TRACE);
+				appendMenuTCPD(_comm, menu, new CouponTCPD, false, true, false, false, false);
+			}
 			_coupons.setMenu(menu);
 		}
 		_coupons.addSelectionListener(new SelCoupon);
