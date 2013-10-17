@@ -2137,6 +2137,9 @@ public:
 	string[] notUsedFiles(in Skin skin, in string[] ignorePaths, bool logicalSort) {
 		string[] r;
 		int dirS(string p) {
+			if (isSystemFile(p) || containsPath(ignorePaths, baseName(p))) {
+				return 1;
+			}
 			if (.isDir(p)) {
 				string[] list = clistdir(p);
 				if (logicalSort) {
@@ -2158,9 +2161,6 @@ public:
 				}
 				return c;
 			} else {
-				if (isSystemFile(p) || containsPath(ignorePaths, baseName(p))) {
-					return 1;
-				}
 				if (!skin.isMaterial(p)) {
 					return 1;
 				}

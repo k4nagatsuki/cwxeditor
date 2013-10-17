@@ -3383,7 +3383,8 @@ public:
 		auto bgi = cast(BgImage) path;
 		if (bgi && !par) {
 			img = _prop.images.backs;
-			text = .tryFormat(_prop.msgs.searchResultBgImage, encodePath(bgi.path));
+			auto p = bgi.path == "" ? _prop.msgs.noSelectImage() : encodePath(bgi.path);
+			text = .tryFormat(_prop.msgs.searchResultBgImage, p);
 		}
 		auto are = cast(Area) path;
 		if (are) {
