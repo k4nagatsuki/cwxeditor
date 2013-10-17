@@ -3065,8 +3065,7 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out s
 		auto ic = cast(ImageCell) bgi;
 		if (ic) { mixin(S_TRACE);
 			img = prop.images.backs;
-			auto p = ic.path == "" ? prop.msgs.noSelectImage : encodePath(ic.path);
-			text = .tryFormat(prop.msgs.searchResultImageCell, p);
+			text = .tryFormat(prop.msgs.searchResultImageCell, ic.name(prop.parent));
 		}
 		auto tc = cast(TextCell) bgi;
 		if (tc) { mixin(S_TRACE);
