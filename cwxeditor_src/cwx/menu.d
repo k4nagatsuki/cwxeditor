@@ -269,7 +269,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.IncSearch] = "Ctrl+I";
 		_hotkey[MenuID.CloseIncSearch] = "Escape";
 		_hotkey[MenuID.EditProp] = "Enter";
-		_hotkey[MenuID.ShowProp] = "Ctrl+Enter";
+		_hotkey[MenuID.ShowProp] = "Enter";
 		_hotkey[MenuID.Refresh] = "F5";
 		_hotkey[MenuID.Undo] = "Ctrl+Z";
 		_hotkey[MenuID.Redo] = "Ctrl+Y";
@@ -402,7 +402,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.NewItem] = "";
 		_hotkey[MenuID.NewBeast] = "";
 		_hotkey[MenuID.NewInfo] = "";
-		_hotkey[MenuID.Import] = "Ctrl+I";
+		_hotkey[MenuID.Import] = "Ctrl+Enter";
 		_hotkey[MenuID.OpenHand] = "";
 		_hotkey[MenuID.AddHand] = "";
 		_hotkey[MenuID.RemoveRef] = "";

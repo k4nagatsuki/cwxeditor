@@ -2180,6 +2180,9 @@ public:
 	string[] notUsedFiles(in Skin skin, in string[] ignorePaths, bool logicalSort) { mixin(S_TRACE);
 		string[] r;
 		int dirS(string p) { mixin(S_TRACE);
+			if (isSystemFile(p) || .containsPath(ignorePaths, baseName(p))) { mixin(S_TRACE);
+				return 1;
+			}
 			if (.isDir(p)) { mixin(S_TRACE);
 				string[] list = clistdir(p);
 				if (logicalSort) { mixin(S_TRACE);
@@ -2201,9 +2204,6 @@ public:
 				}
 				return c;
 			} else { mixin(S_TRACE);
-				if (isSystemFile(p) || containsPath(ignorePaths, baseName(p))) { mixin(S_TRACE);
-					return 1;
-				}
 				if (!skin.isMaterial(p)) { mixin(S_TRACE);
 					return 1;
 				}

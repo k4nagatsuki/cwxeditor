@@ -337,6 +337,8 @@ class Commons {
 	Dlg!(CardTableColumn, int) refMainCardsSort;
 	Dlg!(CardTableColumn, int) refHandCardsSort;
 	Dlg!(CardTableColumn, int) refImportCardsSort;
+	Dlg!(CardTableColumn, int) refImportHandCardsSort;
+	Dlg!(int, int) refImportAreasSort;
 
 	Dlg!(string) addMenuCard;
 	Dlg!(string) refMenuCard;

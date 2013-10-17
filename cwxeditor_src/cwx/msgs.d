@@ -191,6 +191,7 @@ class Msgs : Properties {
 	auto replTextEndScenario = Msg("replTextEndScenario", "終了印");
 	auto replTextAreaName = Msg("replTextAreaName", "エリア/バトル/パッケージ名");
 	auto replTextKeyCode = Msg("replTextKeyCode", "キーコード");
+	auto replTextCellName = Msg("replTextCellName", "セル名称");
 	auto replTextFile = Msg("replTextFile", "ファイル名");
 	auto replTextComment = Msg("replTextComment", "コメント");
 	auto replTextJptx = Msg("replTextJptx", "JPTX/テキストセル");
@@ -250,7 +251,7 @@ class Msgs : Properties {
 	auto searchResultGrep1 = Msg("searchResultGrep1", "%1$s件のシナリオ内の%2$s件の検索結果(%3$sを読込中...)");
 	auto searchResultGrep2 = Msg("searchResultGrep2", "%1$s件のシナリオ内の%2$s件の検索結果(%3$sを検索中...)");
 	auto searchResultGrep3 = Msg("searchResultGrep3", "%1$s件のシナリオ内の%2$s件の検索結果(%3$s)");
-	auto searchResultRealtime = Msg("searchResultRealtime", "リアルタイム更新");
+	auto searchResultRealtime = Msg("searchResultRealtime", "リアルタイム更新(&R)");
 	auto replResultEmpty = Msg("replResultEmpty", "0箇所の置換");
 	auto replResult = Msg("replResult", "%1$s箇所の置換(%2$s)");
 	auto replaceUndo = Msg("replaceUndo", "%1$s件を元に戻しました");
@@ -285,6 +286,7 @@ class Msgs : Properties {
 	auto searchResultFlagDir = Msg("searchResultFlagDir", "ディレクトリ [%1$s]");
 	auto searchResultEventTree = Msg("searchResultEventTree", "イベントツリー [%1$s]");
 	auto searchResultMenuCard = Msg("searchResultMenuCard", "メニューカード [%1$s]");
+	auto searchResultMenuCardWithDesc = Msg("searchResultMenuCardWithDesc", "メニューカード [%1$s] - %2$s");
 	auto searchResultEnemyCard = Msg("searchResultEnemyCard", "エネミーカード [%1$s]");
 
 	auto searchResultJpy1 = Msg("searchResultJpy1", "JPY1ファイル [%1$s]");
@@ -320,7 +322,7 @@ class Msgs : Properties {
 	auto searchErrorKeyCodeMatchingAll = Msg("searchErrorKeyCodeMatchingAll", "「MatchingType=All」はシステムで使用されているキーコードのため、正しく機能しない場合があります。");
 	auto searchErrorBranchRoundInArea = Msg("searchErrorBranchRoundInArea", "ラウンド分岐がエリアイベントで使用されています。");
 
-	auto searchOpenDialog = Msg("searchOpenDialog", "検索結果へジャンプする時、ダイアログを開く");
+	auto searchOpenDialog = Msg("searchOpenDialog", "検索結果へジャンプする時、ダイアログを開く(&J)");
 
 	/// イベント設定。
 	auto dlgTitContent = Msg("dlgTitContent", "イベントの設定 [ %1$s ]");

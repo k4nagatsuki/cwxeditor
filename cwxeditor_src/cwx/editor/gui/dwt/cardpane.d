@@ -1609,7 +1609,7 @@ private:
 			_descSorter.doSort(dir);
 			break;
 		case CardTableColumn.UC:
-			static if (EditMode && is(CardOwner : Summary)) {
+			static if (is(typeof(COL_UC))) {
 				_ucSorter.doSort(dir);
 				break;
 			} else assert (0);
@@ -1641,10 +1641,14 @@ private:
 			_prop.var.etc.handCardsSortColumn = column;
 			_prop.var.etc.handCardsSortDirection = dir;
 			_comm.refHandCardsSort.call(this, columnVal, dir);
-		} else { mixin(S_TRACE);
+		} static if (is(CardOwner:Summary)) {
 			_prop.var.etc.importCardsSortColumn = column;
 			_prop.var.etc.importCardsSortDirection = dir;
 			_comm.refImportCardsSort.call(this, columnVal, dir);
+		} else { mixin(S_TRACE);
+			_prop.var.etc.importHandCardsSortColumn = column;
+			_prop.var.etc.importHandCardsSortDirection = dir;
+			_comm.refImportHandCardsSort.call(this, columnVal, dir);
 		}
 	}
 	static if (EditMode) {
@@ -1806,7 +1810,7 @@ private:
 			int dir = _prop.var.etc.handCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
 			_comm.refHandCardsSort.add(&refSortParams);
 			.listener(_tbl, SWT.Dispose, { _comm.refHandCardsSort.remove(&refSortParams); });
-		} else { mixin(S_TRACE);
+		} else static if (is(CardOwner:Summary)) {
 			idCol.setWidth(_prop.var.etc.importCardIdColumn);
 			idCol.addControlListener(new ColResize!("importCardIdColumn"));
 			nameCol.setWidth(_prop.var.etc.importCardNameColumn);
@@ -1826,6 +1830,22 @@ private:
 			int dir = _prop.var.etc.importCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
 			_comm.refImportCardsSort.add(&refSortParams);
 			.listener(_tbl, SWT.Dispose, { _comm.refImportCardsSort.remove(&refSortParams); });
+		} else {
+			idCol.setWidth(_prop.var.etc.importHandCardIdColumn);
+			idCol.addControlListener(new ColResize!("importHandCardIdColumn"));
+			nameCol.setWidth(_prop.var.etc.importHandCardNameColumn);
+			nameCol.addControlListener(new ColResize!("importHandCardNameColumn"));
+			descCol.setWidth(_prop.var.etc.importHandCardDescriptionColumn);
+			descCol.addControlListener(new ColResize!("importHandCardDescriptionColumn"));
+			static if (UseNum) {
+				numCol.setWidth(_prop.var.etc.importHandCardNumberColumn);
+				numCol.addControlListener(new ColResize!("importHandCardNumberColumn"));
+			}
+
+			int column = _prop.var.etc.importHandCardsSortColumn;
+			int dir = _prop.var.etc.importHandCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
+			_comm.refImportHandCardsSort.add(&refSortParams);
+			.listener(_tbl, SWT.Dispose, { _comm.refImportHandCardsSort.remove(&refSortParams); });
 		}
 		_tbl.setSortColumn(columnFromInt(column));
 		_tbl.setSortDirection(dir);

@@ -1761,6 +1761,31 @@ private:
 			_comm.refreshToolBar();
 		}
 	}
+	bool _sortProc = false;
+	void refSortParams(Object sender, int column, int dir) { mixin(S_TRACE);
+		if (sender is this) return;
+		if (_sortProc) return;
+		_sortProc = true;
+		scope (exit) _sortProc = false;
+		final switch (column) {
+		case ID:
+			_idSorter.doSort(dir);
+			break;
+		case NAME:
+			_nameSorter.doSort(dir);
+			break;
+		case UC:
+			_ucSorter.doSort(dir);
+			break;
+		}
+	}
+	void sorted() { mixin(S_TRACE);
+		if (_sortProc) return;
+		_sortProc = true;
+		scope (exit) _sortProc = false;
+		if (_areas.getSortColumn() is null) return;
+		_comm.refImportAreasSort.call(_areas.indexOf(_areas.getSortColumn()), _areas.getSortDirection());
+	}
 	void refScenario(Summary summ) { mixin(S_TRACE);
 		_undo.reset();
 	}
@@ -1931,10 +1956,13 @@ public:
 
 		// ソート関係
 		_idSorter = new TableSorter!(Object)(idCol, &compID, &revCompID);
+		if (_readOnly) _idSorter.sortedEvent ~= &sorted;
 		_nameSorter = new TableSorter!(Object)(nameCol, &compName, &revCompName);
+		if (_readOnly) _nameSorter.sortedEvent ~= &sorted;
 		_ucSorter = new TableSorter!(Object)(countCol, &compUC, &revCompUC);
+		if (_readOnly) _ucSorter.sortedEvent ~= &sorted;
 		auto st = _idSorter;
-		int sortColumn = _prop.var.etc.areasSortColumn;
+		int sortColumn = _readOnly ? _prop.var.etc.importAreasSortColumn : _prop.var.etc.areasSortColumn;
 		switch (sortColumn) {
 		case ID:
 			st = _idSorter;
@@ -1947,7 +1975,7 @@ public:
 			break;
 		default:
 		}
-		int sortDir = _prop.var.etc.areasSortDirection;
+		int sortDir = _readOnly ? _prop.var.etc.importAreasSortDirection : _prop.var.etc.areasSortDirection;
 		switch (sortDir) {
 		case SortDir.Up:
 			st.doSort(SWT.UP);
@@ -1960,28 +1988,56 @@ public:
 			st.doSort(SWT.UP);
 			break;
 		}
+		if (_readOnly) { mixin(S_TRACE);
+			_comm.refImportAreasSort.add(&refSortParams);
+		}
 		.listener(_areas, SWT.Dispose, (Event e) { mixin(S_TRACE);
 			auto areas = cast(Table)e.widget;
-			switch (areas.getSortDirection()) {
-			case SWT.UP:
-				_prop.var.etc.areasSortDirection = SortDir.Up;
-				break;
-			case SWT.DOWN:
-				_prop.var.etc.areasSortDirection = SortDir.Down;
-				break;
-			default:
-				// 必ずソートする
-				_prop.var.etc.areasSortDirection = SortDir.Up;
-				break;
-			}
-			if (areas.getSortColumn() is _idSorter.column) { mixin(S_TRACE);
-				_prop.var.etc.areasSortColumn = ID;
-			} else if (areas.getSortColumn() is _nameSorter.column) { mixin(S_TRACE);
-				_prop.var.etc.areasSortColumn = NAME;
-			} else if (areas.getSortColumn() is _ucSorter.column) { mixin(S_TRACE);
-				_prop.var.etc.areasSortColumn = UC;
+			if (_readOnly) { mixin(S_TRACE);
+				switch (areas.getSortDirection()) {
+				case SWT.UP:
+					_prop.var.etc.importAreasSortDirection = SortDir.Up;
+					break;
+				case SWT.DOWN:
+					_prop.var.etc.importAreasSortDirection = SortDir.Down;
+					break;
+				default:
+					// 必ずソートする
+					_prop.var.etc.importAreasSortDirection = SortDir.Up;
+					break;
+				}
+				if (areas.getSortColumn() is _idSorter.column) { mixin(S_TRACE);
+					_prop.var.etc.importAreasSortColumn = ID;
+				} else if (areas.getSortColumn() is _nameSorter.column) { mixin(S_TRACE);
+					_prop.var.etc.importAreasSortColumn = NAME;
+				} else if (areas.getSortColumn() is _ucSorter.column) { mixin(S_TRACE);
+					_prop.var.etc.importAreasSortColumn = UC;
+				} else { mixin(S_TRACE);
+					_prop.var.etc.importAreasSortColumn = -1;
+				}
+				_comm.refImportAreasSort.add(&refSortParams);
 			} else { mixin(S_TRACE);
-				_prop.var.etc.areasSortColumn = -1;
+				switch (areas.getSortDirection()) {
+				case SWT.UP:
+					_prop.var.etc.areasSortDirection = SortDir.Up;
+					break;
+				case SWT.DOWN:
+					_prop.var.etc.areasSortDirection = SortDir.Down;
+					break;
+				default:
+					// 必ずソートする
+					_prop.var.etc.areasSortDirection = SortDir.Up;
+					break;
+				}
+				if (areas.getSortColumn() is _idSorter.column) { mixin(S_TRACE);
+					_prop.var.etc.areasSortColumn = ID;
+				} else if (areas.getSortColumn() is _nameSorter.column) { mixin(S_TRACE);
+					_prop.var.etc.areasSortColumn = NAME;
+				} else if (areas.getSortColumn() is _ucSorter.column) { mixin(S_TRACE);
+					_prop.var.etc.areasSortColumn = UC;
+				} else { mixin(S_TRACE);
+					_prop.var.etc.areasSortColumn = -1;
+				}
 			}
 		});
 		_idSorter.sortedEvent ~= &_comm.refreshToolBar;

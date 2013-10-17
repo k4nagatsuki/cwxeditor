@@ -2288,9 +2288,33 @@ private:
 					itm.setImage(_prop.images.editEventBattle);
 				} else static assert (0);
 			}
+			static if (is(C:BgImage)) {
+				if (!_readOnly) { mixin (S_TRACE);
+					new MenuItem(menu, SWT.SEPARATOR);
+					createMenuItem(_comm, menu, MenuID.FindID, &findCellName, &canFindCellName);
+				}
+			}
 			list.setMenu(menu);
 		}
 		return list;
+	}
+	static if (UseBacks) {
+		void findCellName() { mixin (S_TRACE);
+			foreach (itm; _backs.getSelection()) { mixin (S_TRACE);
+				auto cellName = (cast(BgImage)itm.getData()).cellName;
+				if (cellName != "") { mixin (S_TRACE);
+					_comm.replaceID(toCellNameId(cellName), true);
+					break;
+				}
+			}
+		}
+		@property
+		bool canFindCellName() { mixin (S_TRACE);
+			foreach (itm; _backs.getSelection()) { mixin (S_TRACE);
+				if ((cast(BgImage)itm.getData()).cellName != "") return true;
+			}
+			return false;
+		}
 	}
 	static if (UseCards) {
 		void __setAuto(bool value) { mixin(S_TRACE);
@@ -2862,6 +2886,7 @@ public:
 		static if (UseBacks) {
 			foreach (i, b; _area.backs) { mixin(S_TRACE);
 				backList.getItem(i).setImage(backImg(b));
+				backList.getItem(i).setText(b.name(_prop.parent));
 			}
 		}
 	}

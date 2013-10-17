@@ -38,6 +38,8 @@ class FlexEtcProps : Properties {
 	auto importAreaCountColumn = Prop!(int)("importAreaCountColumn", 60);
 	auto areasSortColumn = Prop!(int)("areasSortColumn", 0);
 	auto areasSortDirection = Prop!(int)("areasSortDirection", SortDir.Up);
+	auto importAreasSortColumn = Prop!(int)("importAreasSortColumn", 0);
+	auto importAreasSortDirection = Prop!(int)("importAreasSortDirection", SortDir.Up);
 	auto summaryParamSashL = Prop!(int)("summaryParamSashL", 2, 2012101100);
 	auto summaryParamSashR = Prop!(int)("summaryParamSashR", 1, 2012101100);
 	auto rCouponsStartAreaSashL = Prop!(int)("rCouponsStartAreaSashL", 1, 2012101100);
@@ -117,12 +119,18 @@ class FlexEtcProps : Properties {
 	auto importCardNumberColumn = Prop!(int)("importCardNumberColumn", 60);
 	auto importCardDescriptionColumn = Prop!(int)("importCardDescriptionColumn", 50);
 	auto importCardCountColumn = Prop!(int)("importCardCountColumn", 30);
+	auto importHandCardIdColumn = Prop!(int)("importHandCardIdColumn", 50);
+	auto importHandCardNameColumn = Prop!(int)("importHandCardNameColumn", 100);
+	auto importHandCardNumberColumn = Prop!(int)("importHandCardNumberColumn", 60);
+	auto importHandCardDescriptionColumn = Prop!(int)("importHandCardDescriptionColumn", 50);
 	auto mainCardsSortColumn = Prop!(int)("mainCardsSortColumn", 0);
 	auto mainCardsSortDirection = Prop!(int)("mainCardsSortDirection", SortDir.Up);
 	auto handCardsSortColumn = Prop!(int)("handCardsSortColumn", 0);
 	auto handCardsSortDirection = Prop!(int)("handCardsSortDirection", SortDir.Up);
 	auto importCardsSortColumn = Prop!(int)("importCardsSortColumn", 0);
 	auto importCardsSortDirection = Prop!(int)("importCardsSortDirection", SortDir.Up);
+	auto importHandCardsSortColumn = Prop!(int)("importHandCardsSortColumn", 0);
+	auto importHandCardsSortDirection = Prop!(int)("importHandCardsSortDirection", SortDir.Up);
 	auto linkCardMaskColor = Prop!(CRGB)("linkCardMaskColor", CRGB(0, 255, 0, 64), true);
 	auto couponWidth = Prop!(int, true)("couponWidth", 150);
 	auto couponValueColumn = Prop!(int, true)("couponValueColumn", 40);
@@ -425,6 +433,7 @@ class FlexEtcProps : Properties {
 	auto replaceNameGossip = Prop!(bool)("replaceNameGossip", true);
 	auto replaceNameEndScenario = Prop!(bool)("replaceNameEndScenario", true);
 	auto replaceNameKeyCode = Prop!(bool)("replaceNameKeyCode", true);
+	auto replaceNameCellName = Prop!(bool)("replaceNameCellName", true);
 
 	auto searchContentsStart = Prop!(bool)("searchContentsStart", false);
 	auto searchContentsStartBattle = Prop!(bool)("searchContentsStartBattle", false);

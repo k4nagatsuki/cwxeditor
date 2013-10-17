@@ -282,7 +282,10 @@ protected:
 		back.height = _h.getSelection();
 		if (_mask) back.mask = _mask.getSelection();
 		back.foreground = _foreground.getSelection();
-		back.cellName = _cellName.getText();
+		if (back.cellName != _cellName.getText()) {
+			back.cellName = _cellName.getText();
+			_comm.refCellNames.call();
+		}
 		_create = false;
 	}
 

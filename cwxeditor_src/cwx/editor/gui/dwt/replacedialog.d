@@ -291,6 +291,7 @@ private:
 	Button _cGossip;
 	Button _cEnd;
 	Button _cKeyCode;
+	Button _cCellName;
 
 	Table _result;
 	TableTextEdit _edit;
@@ -575,6 +576,7 @@ private:
 		case ID_GOSSIP: setupIDsImpl1(_summ.useCounter.gossip.keys, clear, from, to); break;
 		case ID_COMPLETE_STAMP: setupIDsImpl1(_summ.useCounter.completeStamp.keys, clear, from, to); break;
 		case ID_KEY_CODE: setupIDsImpl1(_summ.useCounter.keyCode.keys, clear, from, to); break;
+		case ID_CELL_NAME: setupIDsImpl1(_summ.useCounter.cellName.keys, clear, from, to); break;
 		default: assert (0);
 		}
 	}
@@ -643,7 +645,7 @@ private:
 	@property
 	private bool idKindIsString() {
 		auto index = _idKind.getSelectionIndex();
-		return index == ID_FLAG || index == ID_STEP || index == ID_COUPON || index == ID_GOSSIP || index == ID_COMPLETE_STAMP || index == ID_KEY_CODE;
+		return index == ID_FLAG || index == ID_STEP || index == ID_COUPON || index == ID_GOSSIP || index == ID_COMPLETE_STAMP || index == ID_KEY_CODE || index == ID_CELL_NAME;
 	}
 	private void updateIDCombo() { mixin(S_TRACE);
 		if (idKindIsString) { mixin(S_TRACE);
@@ -1115,6 +1117,7 @@ private:
 				_cGossip = createB(_prop.msgs.replTextGossip, '2');
 				_cEnd = createB(_prop.msgs.replTextEndScenario, '3');
 				_cKeyCode = createB(_prop.msgs.replTextKeyCode, '4');
+				_cCellName = createB(_prop.msgs.replTextCellName, '5');
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -2011,6 +2014,7 @@ public:
 		_cGossip.setSelection(_prop.var.etc.replaceNameGossip);
 		_cEnd.setSelection(_prop.var.etc.replaceNameEndScenario);
 		_cKeyCode.setSelection(_prop.var.etc.replaceNameKeyCode);
+		_cCellName.setSelection(_prop.var.etc.replaceNameCellName);
 
 		_unuseFlag.setSelection(_prop.var.etc.searchUnusedFlag);
 		_unuseStep.setSelection(_prop.var.etc.searchUnusedStep);
@@ -2199,6 +2203,7 @@ public:
 			_prop.var.etc.replaceNameGossip = _cGossip.getSelection();
 			_prop.var.etc.replaceNameEndScenario = _cEnd.getSelection();
 			_prop.var.etc.replaceNameKeyCode = _cKeyCode.getSelection();
+			_prop.var.etc.replaceNameCellName = _cCellName.getSelection();
 
 			_prop.var.etc.searchUnusedFlag = _unuseFlag.getSelection();
 			_prop.var.etc.searchUnusedStep = _unuseStep.getSelection();
@@ -2901,6 +2906,7 @@ public:
 		bool cKeyCodeSel = _cKeyCode.getSelection();
 		bool cGossipSel = _cGossip.getSelection();
 		bool cEndSel = _cEnd.getSelection();
+		bool cCellName = _cCellName.getSelection();
 
 		auto rangeT = rangeTable;
 		auto uc = _summ.useCounter;
@@ -2916,6 +2922,9 @@ public:
 			}
 			if (cKeyCodeSel) { mixin(S_TRACE);
 				searchCouponImpl(uc.keyCode.keys, uc, rangeT, &_prop.images.keyCode, count);
+			}
+			if (cCellName) { mixin(S_TRACE);
+				searchCouponImpl(uc.cellName.keys, uc, rangeT, &_prop.images.backs, count);
 			}
 		}
 

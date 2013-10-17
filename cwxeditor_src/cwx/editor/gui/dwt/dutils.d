@@ -3065,7 +3065,8 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out s
 		auto ic = cast(ImageCell) bgi;
 		if (ic) { mixin(S_TRACE);
 			img = prop.images.backs;
-			text = .tryFormat(prop.msgs.searchResultImageCell, encodePath(ic.path));
+			auto p = ic.path == "" ? prop.msgs.noSelectImage : encodePath(ic.path);
+			text = .tryFormat(prop.msgs.searchResultImageCell, p);
 		}
 		auto tc = cast(TextCell) bgi;
 		if (tc) { mixin(S_TRACE);
@@ -3187,7 +3188,11 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out s
 	auto men = cast(MenuCard) path;
 	if (men) { mixin(S_TRACE);
 		img = prop.images.cards;
-		text = .tryFormat(prop.msgs.searchResultMenuCard, men.name);
+		if (men.desc == "") { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.searchResultMenuCard, men.name);
+		} else { mixin(S_TRACE);
+			text = .tryFormat(prop.msgs.searchResultMenuCardWithDesc, men.name, .singleLine(men.desc));
+		}
 	}
 	auto ene = cast(EnemyCard) path;
 	if (ene) { mixin(S_TRACE);
