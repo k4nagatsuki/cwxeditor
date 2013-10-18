@@ -280,6 +280,13 @@ private:
 	void refreshTitle() { mixin(S_TRACE);
 		_display.syncExec(_refreshTitle);
 	}
+	bool _catchedChanging = false;
+	uint _changeCount = 0;
+	void updateChangeCount() { mixin(S_TRACE);
+		if (_catchedChanging) return;
+		_catchedChanging = true;
+		_changeCount++;
+	}
 
 	private SysTime _lastBackup;
 	void backupThr() { mixin(S_TRACE);
@@ -712,6 +719,7 @@ private:
 			auto chgEvtForce = new class Runnable {
 				override void run() { mixin(S_TRACE);
 					if (!_win || _win.isDisposed()) return;
+					updateChangeCount();
 					_comm.changed.call();
 				}
 			};
@@ -3723,13 +3731,17 @@ public:
 			}
 			while (!_win.isDisposed()) {
 				version (nocatch) {
-					if (!d.readAndDispatch()) {
+					if (d.readAndDispatch()) {
+						_catchedChanging = false;
+					} else {
 						d.sleep();
 					}
 				} else {
 					// なるべくユーザデータを消さないよう、例外が発生しても処理を続行する。
 					try {
-						if (!d.readAndDispatch()) {
+						if (d.readAndDispatch()) {
+							_catchedChanging = false;
+						} else {
 							d.sleep();
 						}
 					} catch (Throwable e) {
