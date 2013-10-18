@@ -138,10 +138,7 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, boo
 		}
 		auto am = new ArchiveMember;
 		am.time = SysTimeToDosFileTime(timeLastModified(file));
-		// FIXME: 巨大なメモリ領域をGCが回収してくれないため
-		//        手動で各配列を開放していくが、compressionMethod = 8を
-		//        指定しているとそれも上手くいかない
-		//am.compressionMethod = 8;
+		am.compressionMethod = 8;
 		auto name = file;
 		if (isDir(file)) { mixin(S_TRACE);
 			name ~= dirSeparator;

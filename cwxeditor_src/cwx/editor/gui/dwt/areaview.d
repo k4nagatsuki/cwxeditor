@@ -3025,7 +3025,7 @@ public:
 	}
 	void refresh() { mixin(S_TRACE);
 		static if (UseCards && is (C == EnemyCard)) {
-			_bgm.refresh();
+			if (_bgm) _bgm.refresh();
 		}
 		refreshPanel();
 	}
