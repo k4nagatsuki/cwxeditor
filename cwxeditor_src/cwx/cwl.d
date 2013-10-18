@@ -2246,8 +2246,8 @@ string saveComment(in SData d) { mixin(S_TRACE);
 	if (!d.comment.length) return "";
 	auto node = XNode.create("comments");
 	node.newAttr("dataVersion", 1);
-	foreach (cwxPath, comment; d.comment) { mixin(S_TRACE);
-		auto e = node.newElement("comment", comment);
+	foreach (cwxPath; d.comment.keys.sort) { mixin(S_TRACE);
+		auto e = node.newElement("comment", d.comment[cwxPath]);
 		e.newAttr("path", cwxPath);
 	}
 	return node.text;
@@ -2258,8 +2258,8 @@ string saveImageRef(in SData d) { mixin(S_TRACE);
 	if (!d.imageRef.length) return "";
 	auto node = XNode.create("imageRefs");
 	node.newAttr("dataVersion", 1);
-	foreach (cwxPath, imgPath; d.imageRef) { mixin(S_TRACE);
-		auto e = node.newElement("imageRef", encodePath(imgPath));
+	foreach (cwxPath; d.imageRef.keys.sort) { mixin(S_TRACE);
+		auto e = node.newElement("imageRef", encodePath(d.imageRef[cwxPath]));
 		e.newAttr("path", cwxPath);
 	}
 	return node.text;
@@ -2269,12 +2269,12 @@ string saveCardRef(in SData d) { mixin(S_TRACE);
 	if (!d.cardRef.length && !d.maxNest.length) return "";
 	auto node = XNode.create("cardRefs");
 	node.newAttr("dataVersion", 1);
-	foreach (cwxPath, maxNest; d.maxNest) { mixin(S_TRACE);
-		auto e = node.newElement("maxNest", .text(maxNest));
+	foreach (cwxPath; d.maxNest.keys.sort) { mixin(S_TRACE);
+		auto e = node.newElement("maxNest", .text(d.maxNest[cwxPath]));
 		e.newAttr("path", cwxPath);
 	}
-	foreach (cwxPath, linkId; d.cardRef) { mixin(S_TRACE);
-		auto e = node.newElement("cardRef", .text(linkId));
+	foreach (cwxPath; d.cardRef.keys.sort) { mixin(S_TRACE);
+		auto e = node.newElement("cardRef", .text(d.cardRef[cwxPath]));
 		e.newAttr("path", cwxPath);
 	}
 	return node.text;
