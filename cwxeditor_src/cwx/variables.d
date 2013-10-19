@@ -318,7 +318,9 @@ class FlexEtcProps : Properties {
 	auto tempPath = Prop!(string)("tempPath", "temp");
 	auto backupPath = Prop!(string)("backupPath", "backup");
 	auto backupEnabled = Prop!(bool)("backupEnabled", true);
+	auto backupIntervalType = Prop!(int)("backupIntervalType", 0);
 	auto backupInterval = Prop!(int)("backupInterval", 15);
+	auto backupIntervalEdit = Prop!(int)("backupIntervalEdit", 50);
 	auto backupCount = Prop!(int)("backupCount", 10);
 	auto autoSave = Prop!(bool)("autoSave", false);
 	auto backupRefAuthor = Prop!(bool)("backupRefAuthor", false);

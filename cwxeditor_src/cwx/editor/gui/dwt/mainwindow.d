@@ -282,10 +282,15 @@ private:
 	}
 	bool _catchedChanging = false;
 	uint _changeCount = 0;
+	Summary _lastBackupSummary = null;
 	void updateChangeCount() { mixin(S_TRACE);
-		if (_catchedChanging) return;
-		_catchedChanging = true;
-		_changeCount++;
+		if (_prop.var.etc.backupIntervalType == BackupType.Edit) { mixin(S_TRACE);
+			if (_catchedChanging) return;
+			_catchedChanging = true;
+			_changeCount++;
+		} else {
+			_changeCount = 0;
+		}
 	}
 
 	private SysTime _lastBackup;
@@ -295,10 +300,31 @@ private:
 				debug std.stdio.writeln("Start Backup Thread");
 			}
 			_lastBackup = Clock.currTime();
+			_changeCount = 0;
 			while (!_quit) { mixin(S_TRACE);
-				if (_lastBackup + dur!"minutes"(_prop.var.etc.backupInterval) <= Clock.currTime()) { mixin(S_TRACE);
-					createBackup();
-					_lastBackup = Clock.currTime();
+				if (summary) { mixin(S_TRACE);
+					if (_lastBackupSummary !is summary) { mixin(S_TRACE);
+						_changeCount = 0;
+						_lastBackup = Clock.currTime();
+						_lastBackupSummary = summary;
+					}
+					void backup() { mixin(S_TRACE);
+						if (createBackup()) { mixin(S_TRACE);
+							_lastBackup = Clock.currTime();
+							_changeCount = 0;
+						}
+					}
+					if (_prop.var.etc.backupIntervalType == BackupType.Time) { mixin(S_TRACE);
+						if (0 < _prop.var.etc.backupInterval && _lastBackup + dur!"minutes"(_prop.var.etc.backupInterval) <= Clock.currTime()) { mixin(S_TRACE);
+							backup();
+						}
+						_changeCount = 0;
+					} else if (_prop.var.etc.backupIntervalType == BackupType.Edit) { mixin(S_TRACE);
+						if (0 < _prop.var.etc.backupIntervalEdit && _prop.var.etc.backupIntervalEdit <= _changeCount) { mixin(S_TRACE);
+							backup();
+						}
+						_lastBackup = Clock.currTime();
+					}
 				}
 				core.thread.Thread.sleep(dur!"seconds"(1));
 			}
@@ -311,7 +337,7 @@ private:
 		}
 	}
 	private string _oldMD5 = "";
-	void createBackup() { mixin(S_TRACE);
+	bool createBackup() { mixin(S_TRACE);
 		/// dir内の全てのファイルとディレクトリの更新日時のMD5値を得る。
 		@property
 		static string filesMD5(string dir) { mixin(S_TRACE);
@@ -324,13 +350,13 @@ private:
 		}
 		string dStr = .text(__LINE__);
 		try { mixin(S_TRACE);
-			if (_quit) return;
-			if (!_prop.var.etc.backupEnabled) return;
+			if (_quit) return true;
+			if (!_prop.var.etc.backupEnabled) return true;
 			auto summ = summary;
-			if (!summ) return;
+			if (!summ) return true;
 
 			if (_prop.var.etc.backupRefAuthor) { mixin(S_TRACE);
-				if (summ.author != _prop.var.etc.defaultAuthor) return;
+				if (summ.author != _prop.var.etc.defaultAuthor) return true;
 			}
 			if (_prop.var.etc.autoSave && summ.isChanged) { mixin(S_TRACE);
 				// バックアップ前に自動セーブ
@@ -364,6 +390,7 @@ private:
 			auto sorter = (Info a, Info b) => .fncmp(a.name, b.name);
 			backup = cwx.utils.sort!(sorter)(backup);
 
+			bool ret = false;
 			auto bc = _prop.var.etc.backupCount;
 			if (0 < bc) { mixin(S_TRACE);
 				string sPath = summ.scenarioPath;
@@ -398,6 +425,7 @@ private:
 						std.file.write(writePath, data);
 						_oldMD5 = md5;
 						bc--;
+						ret = true;
 					}
 					(cast(ubyte[])data)[] = 0;
 					delete data;
@@ -411,11 +439,12 @@ private:
 						}
 						_oldMD5 = md5;
 						bc--;
+						ret = true;
 					}
 				}
 			}
 
-			if (backup.length <= bc) return;
+			if (backup.length <= bc) return ret;
 
 			// 古いバックアップを削除する
 			foreach (f; backup[0 .. backup.length - bc]) { mixin(S_TRACE);
@@ -425,6 +454,7 @@ private:
 					debugln(e);
 				}
 			}
+			return ret;
 		} catch (Exception e) {
 			debugln(e);
 		} catch (Throwable e) {
@@ -432,6 +462,7 @@ private:
 			fdebugln(e);
 			throw e;
 		}
+		return true;
 	}
 
 	void openScenarioNewWin() { mixin(S_TRACE);

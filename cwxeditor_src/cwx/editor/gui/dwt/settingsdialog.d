@@ -51,6 +51,11 @@ import std.algorithm : iota;
 import org.eclipse.swt.all;
 import java.lang.all;
 
+enum BackupType {
+	Time = 0,
+	Edit = 1,
+}
+
 class SettingsDialog : AbsDialog {
 private:
 	Commons _comm;
@@ -66,7 +71,10 @@ private:
 	Text _tempDir;
 	Text _backupDir;
 	Button _backupEnabled;
-	Spinner _backupInterval;
+	Button _backupIntervalTypeTime;
+	Button _backupIntervalTypeEdit;
+	Spinner _backupIntervalTime;
+	Spinner _backupIntervalEdit;
 	Spinner _backupCount;
 	Button _backupRefAuthor;
 	Button _autoSave;
@@ -420,16 +428,29 @@ private:
 			{ mixin(S_TRACE);
 				auto comp2 = new Composite(grp, SWT.NONE);
 				comp2.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-				comp2.setLayout(zeroMarginGridLayout(3, false));
-				auto l = new Label(comp2, SWT.CENTER);
-				l.setText(_prop.msgs.backupInterval);
-				_backupInterval = new Spinner(comp2, SWT.BORDER);
-				initSpinner(_backupInterval);
-				_backupInterval.setMinimum(1);
-				_backupInterval.setMaximum(99);
-				mod(_backupInterval);
+				comp2.setLayout(zeroMarginGridLayout(6, false));
+
+				_backupIntervalTypeTime = new Button(comp2, SWT.RADIO);
+				_backupIntervalTypeTime.setText(_prop.msgs.backupIntervalTime);
+				_backupIntervalTime = new Spinner(comp2, SWT.BORDER);
+				initSpinner(_backupIntervalTime);
+				_backupIntervalTime.setMinimum(1);
+				_backupIntervalTime.setMaximum(99);
+				mod(_backupIntervalTime);
 				auto l2 = new Label(comp2, SWT.CENTER);
 				l2.setText(_prop.msgs.minute);
+				_backupIntervalTypeTime.addSelectionListener(_refe);
+
+				_backupIntervalTypeEdit = new Button(comp2, SWT.RADIO);
+				_backupIntervalTypeEdit.setText(_prop.msgs.backupIntervalEdit);
+				_backupIntervalEdit = new Spinner(comp2, SWT.BORDER);
+				initSpinner(_backupIntervalEdit);
+				_backupIntervalEdit.setMinimum(1);
+				_backupIntervalEdit.setMaximum(9999);
+				mod(_backupIntervalEdit);
+				auto l3 = new Label(comp2, SWT.CENTER);
+				l3.setText(_prop.msgs.count);
+				_backupIntervalTypeEdit.addSelectionListener(_refe);
 			}
 			{ mixin(S_TRACE);
 				auto comp2 = new Composite(grp, SWT.NONE);
@@ -1142,7 +1163,10 @@ private:
 	}
 	private void refreshEnabled() { mixin(S_TRACE);
 		_backupDir.setEnabled(_backupEnabled.getSelection());
-		_backupInterval.setEnabled(_backupEnabled.getSelection());
+		_backupIntervalTypeTime.setEnabled(_backupEnabled.getSelection());
+		_backupIntervalTypeEdit.setEnabled(_backupEnabled.getSelection());
+		_backupIntervalTime.setEnabled(_backupEnabled.getSelection() && _backupIntervalTypeTime.getSelection());
+		_backupIntervalEdit.setEnabled(_backupEnabled.getSelection() && _backupIntervalTypeEdit.getSelection());
 		_backupCount.setEnabled(_backupEnabled.getSelection());
 		_backupRef.setEnabled(_backupEnabled.getSelection());
 		_backupRefAuthor.setEnabled(_backupEnabled.getSelection());
@@ -1205,7 +1229,10 @@ protected:
 
 		_backupDir.setText(_prop.var.etc.backupPath);
 		_backupEnabled.setSelection(_prop.var.etc.backupEnabled);
-		_backupInterval.setSelection(_prop.var.etc.backupInterval);
+		_backupIntervalTypeTime.setSelection(_prop.var.etc.backupIntervalType != BackupType.Edit);
+		_backupIntervalTypeEdit.setSelection(_prop.var.etc.backupIntervalType == BackupType.Edit);
+		_backupIntervalTime.setSelection(_prop.var.etc.backupInterval);
+		_backupIntervalEdit.setSelection(_prop.var.etc.backupIntervalEdit);
 		_backupCount.setSelection(_prop.var.etc.backupCount);
 		_backupRefAuthor.setSelection(_prop.var.etc.backupRefAuthor);
 		_autoSave.setSelection(_prop.var.etc.autoSave);
@@ -1395,7 +1422,13 @@ protected:
 
 		_prop.var.etc.backupPath = backup;
 		_prop.var.etc.backupEnabled = _backupEnabled.getSelection();
-		_prop.var.etc.backupInterval = _backupInterval.getSelection();
+		if (_backupIntervalTypeEdit.getSelection()) { mixin(S_TRACE);
+			_prop.var.etc.backupIntervalType = cast(int)BackupType.Edit;
+		} else { mixin(S_TRACE);
+			_prop.var.etc.backupIntervalType = cast(int)BackupType.Time;
+		}
+		_prop.var.etc.backupInterval = _backupIntervalTime.getSelection();
+		_prop.var.etc.backupIntervalEdit = _backupIntervalEdit.getSelection();
 		_prop.var.etc.backupCount = _backupCount.getSelection();
 		_prop.var.etc.backupRefAuthor = _backupRefAuthor.getSelection();
 		_prop.var.etc.autoSave = _autoSave.getSelection();

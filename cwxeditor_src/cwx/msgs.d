@@ -1586,8 +1586,10 @@ class Msgs : Properties {
 	auto backupRefAuthor = Msg("backupRefAuthor", "作者が一致したシナリオのみバックアップする");
 	auto backupPath = Msg("backupPath", "保存先");
 	auto backupDirDesc = Msg("backupDirDesc", "シナリオを定期的に自動バックアップする" ~ DIR ~ "を選択してください。");
-	auto backupInterval = Msg("backupInterval", "保存間隔");
+	auto backupIntervalTime = Msg("backupIntervalTime", "時間間隔で行う");
+	auto backupIntervalEdit = Msg("backupIntervalEdit", "編集回数で行う");
 	auto minute = Msg("minute", "分");
+	auto count = Msg("count", "回");
 	auto backupCount = Msg("backupCount", "最大保存数");
 	auto backupBeforeSaveDir = Msg("backupBeforeSaveDir", "保存時バックアップ");
 	auto backupBeforeSave = Msg("backupBeforeSave", "保存時バックアップ");
