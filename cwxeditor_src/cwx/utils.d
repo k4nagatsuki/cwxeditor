@@ -780,20 +780,7 @@ T[] sort(alias Cmp, T)(T[] arr) {
 }
 /// ditto
 T[] sortDlg(T, Dlg)(T[] arr, Dlg lmin) {
-	if (arr.length <= 1u) return arr;
-	auto pv = arr[arr.length / 2u];
-	size_t l = 0u;
-	size_t r = arr.length - 1u;
-	while (r > l) {
-		while (lmin(arr[l], pv)) l++;
-		while (lmin(pv, arr[r])) r--;
-		if (r > l) {
-			auto tmp = arr[l];
-			arr[l] = arr[r];
-			arr[r] = tmp;
-		}
-	}
-	return sortDlg!(T)(arr[0u .. l], lmin) ~ sortDlg!(T)(arr[l .. $], lmin);
+	return std.algorithm.sort!(lmin)(arr).array();
 } unittest {
 	debug mixin(UTPerf);
 	assert (sortDlg!(int)([8, 1, 4, 6, 5, 3, 2, 9, 7, 0], (in int a, in int b) {return a < b;})
