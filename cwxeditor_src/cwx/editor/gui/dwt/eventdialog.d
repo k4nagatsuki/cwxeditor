@@ -578,7 +578,7 @@ protected:
 				auto comp = new Composite(grp, SWT.NONE);
 				comp.setLayout(new GridLayout(3, false));
 				{ mixin(S_TRACE);
-					_name = createCouponCombo(comm, summ, comp, &catchMod, CouponComboType.AllCoupons);
+					_name = createCouponCombo(comm, summ, comp, &catchMod, CouponComboType.AllCoupons, _evt ? _evt.coupon : "");
 					mod(_name);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;
@@ -704,11 +704,11 @@ protected:
 			comp.setLayout(new GridLayout(1, true));
 
 			if (CDetail.fromType(Type).use(CArg.GOSSIP)) { mixin(S_TRACE);
-				_name = createGossipCombo(comm, summ, comp, &catchMod);
+				_name = createGossipCombo(comm, summ, comp, &catchMod, _evt ? mixin(Get) : "");
 			} else if (CDetail.fromType(Type).use(CArg.COMPLETE_STAMP)) { mixin(S_TRACE);
-				_name = createCompleteStampCombo(comm, summ, comp, &catchMod);
+				_name = createCompleteStampCombo(comm, summ, comp, &catchMod, _evt ? mixin(Get) : "");
 			} else if (CDetail.fromType(Type).use(CArg.CELL_NAME)) { mixin(S_TRACE);
-				_name = createCellNameCombo(comm, summ, comp, &catchMod);
+				_name = createCellNameCombo(comm, summ, comp, &catchMod, _evt ? mixin(Get) : "");
 			} else assert (0);
 			mod(_name);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
@@ -820,7 +820,7 @@ protected:
 				comp.setLayout(zeroMarginGridLayout(8, false));
 				auto l = new Label(comp, SWT.NONE);
 				l.setText(_prop.msgs.cellName);
-				_cellName = createCellNameCombo(comm, summ, comp, &catchMod);
+				_cellName = createCellNameCombo(comm, summ, comp, &catchMod, _evt ? _evt.cellName : "");
 				mod(_cellName);
 				_cellName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				auto gd = new GridData(GridData.FILL_VERTICAL);
@@ -2567,7 +2567,7 @@ protected:
 			grp.setLayoutData(gd);
 			grp.setLayout(new GridLayout(1, true));
 
-			_keyCode = createKeyCodeCombo(comm, summ, grp, &catchMod);
+			_keyCode = createKeyCodeCombo(comm, summ, grp, &catchMod, _evt ? _evt.keyCode : "");
 			mod(_keyCode);
 			auto kgd = new GridData(GridData.FILL_HORIZONTAL);
 			kgd.widthHint = _prop.var.etc.nameWidth;
@@ -2716,7 +2716,7 @@ protected:
 			grp.setLayout(new GridLayout(1, true));
 			grp.setText(prop.msgs.cellName);
 
-			_cellName = createCellNameCombo(comm, summ, grp, &catchMod);
+			_cellName = createCellNameCombo(comm, summ, grp, &catchMod, _evt ? _evt.cellName : "");
 			mod(_cellName);
 			_cellName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}

@@ -1144,7 +1144,7 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 		string[] coupons, out Text couponList, out Combo couponCombo) { mixin(S_TRACE);
 	auto comp = new Composite(parent, SWT.NONE);
 	comp.setLayout(zeroMarginGridLayout(2, false));
-	couponCombo = createCouponCombo(comm, summ, comp, null, CouponComboType.Talker);
+	couponCombo = createCouponCombo(comm, summ, comp, null, CouponComboType.Talker, "");
 	auto push = new Button(comp, SWT.PUSH);
 	auto skin = comm.skin;
 	{ mixin(S_TRACE);

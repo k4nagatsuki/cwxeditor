@@ -204,7 +204,7 @@ protected:
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new GridLayout(1, true));
 			grp.setText(_prop.msgs.bgImageCellName);
-			_cellName = createCellNameCombo(_comm, _summ, grp, &catchMod);
+			_cellName = createCellNameCombo(_comm, _summ, grp, &catchMod, back ? back.cellName : "");
 			mod(_cellName);
 			_cellName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			.listener(_cellName, SWT.Selection, &refreshWarning);

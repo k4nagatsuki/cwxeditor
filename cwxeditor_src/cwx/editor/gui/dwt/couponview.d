@@ -462,10 +462,10 @@ class CouponView(CVType Type) : Composite {
 		}
 		{ mixin(S_TRACE);
 			static if (CVType.Cast == Type) {
-				_newCoupon = createCouponCombo!Combo(_comm, _summ, this, catchMod, CouponComboType.Cast, _newCouponTM);
+				_newCoupon = createCouponCombo!Combo(_comm, _summ, this, catchMod, CouponComboType.Cast, "", _newCouponTM);
 				.listener(_newCoupon, SWT.Modify, &updateCouponType);
 			} else { mixin(S_TRACE);
-				_newCoupon = createCouponCombo!Combo(_comm, _summ, this, catchMod, CouponComboType.Talker, _newCouponTM);
+				_newCoupon = createCouponCombo!Combo(_comm, _summ, this, catchMod, CouponComboType.Talker, "", _newCouponTM);
 				.listener(_newCoupon, SWT.Modify, &updateCouponType);
 			}
 			_newCoupon.setEnabled(!_readOnly);

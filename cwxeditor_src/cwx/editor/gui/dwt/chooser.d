@@ -33,11 +33,11 @@ enum CouponComboType {
 	Talker, /// 話者用のクーポンを選択肢とする。
 	Cast, /// キャストの経歴用のクーポンを選択肢とする。
 }
-T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, CouponComboType type) { mixin(S_TRACE);
+T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, CouponComboType type, string initValue) { mixin(S_TRACE);
 	TextMenuModify tmm;
-	return createCouponCombo!T(comm, summ, parent, catchMod, type, tmm);
+	return createCouponCombo!T(comm, summ, parent, catchMod, type, initValue, tmm);
 }
-T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, CouponComboType type, out TextMenuModify tmm) { mixin(S_TRACE);
+T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, CouponComboType type, string initValue, out TextMenuModify tmm) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	auto incSearch = new IncSearch(comm, combo);
@@ -46,7 +46,10 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 		string id = combo.getText();
 		combo.removeAll();
 
-		foreach (coupon; allCoupons(comm, summ, type)) { mixin(S_TRACE);
+		auto values = allCoupons(comm, summ, type);
+		if (initValue != "") values = cwx.utils.remove(values, initValue);
+		if (initValue != "") values = values.length ? ([initValue, ""] ~ values) : [initValue];
+		foreach (i, coupon; values) { mixin(S_TRACE);
 			if (!incSearch.match(coupon)) continue;
 			combo.add(coupon);
 		}
@@ -107,7 +110,7 @@ string[] allCoupons(Commons comm, Summary summ, CouponComboType type) {
 	return dcs;
 }
 
-T createGossipCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
+T createGossipCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	auto incSearch = new IncSearch(comm, combo);
@@ -116,7 +119,10 @@ T createGossipCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 		string id = combo.getText();
 		combo.removeAll();
 
-		foreach (gossip; allGossips(comm, summ)) { mixin(S_TRACE);
+		auto values = allGossips(comm, summ);
+		if (initValue != "") values = cwx.utils.remove(values, initValue);
+		if (initValue != "") values = values.length ? ([initValue, ""] ~ values) : [initValue];
+		foreach (i, gossip; values) { mixin(S_TRACE);
 			if (!incSearch.match(gossip)) continue;
 			combo.add(gossip);
 		}
@@ -158,7 +164,7 @@ string[] allGossips(Commons comm, Summary summ) {
 	return cs;
 }
 
-T createCompleteStampCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
+T createCompleteStampCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	auto incSearch = new IncSearch(comm, combo);
@@ -167,7 +173,10 @@ T createCompleteStampCombo(T = Combo)(Commons comm, Summary summ, Composite pare
 		string id = combo.getText();
 		combo.removeAll();
 
-		foreach (stamp; allCompleteStamps(comm, summ)) { mixin(S_TRACE);
+		auto values = allCompleteStamps(comm, summ);
+		if (initValue != "") values = cwx.utils.remove(values, initValue);
+		if (initValue != "") values = values.length ? ([initValue, ""] ~ values) : [initValue];
+		foreach (i, stamp; values) { mixin(S_TRACE);
 			if (!incSearch.match(stamp)) continue;
 			combo.add(stamp);
 		}
@@ -209,7 +218,7 @@ string[] allCompleteStamps(Commons comm, Summary summ) {
 	return cs;
 }
 
-T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
+T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	auto incSearch = new IncSearch(comm, combo);
@@ -239,7 +248,10 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 			}
 			kcs2 ~= stdKCs;
 		}
-		foreach (kc; kcs2) { mixin(S_TRACE);
+		auto values = kcs2;
+		if (initValue != "") values = cwx.utils.remove(values, initValue);
+		if (initValue != "") values = values.length ? ([initValue, ""] ~ values) : [initValue];
+		foreach (i, kc; values) { mixin(S_TRACE);
 			if (!incSearch.match(kc)) continue;
 			combo.add(kc);
 		}
@@ -299,7 +311,7 @@ string[] allKeyCodes(Commons comm, Summary summ) {
 	return kcs2;
 }
 
-T createCellNameCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod) { mixin(S_TRACE);
+T createCellNameCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, string initValue) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
 	auto incSearch = new IncSearch(comm, combo);
@@ -309,7 +321,10 @@ T createCellNameCombo(T = Combo)(Commons comm, Summary summ, Composite parent, b
 		string id = combo.getText();
 		combo.removeAll();
 
-		foreach (kc; allCellNames(comm, summ)) { mixin(S_TRACE);
+		auto values = allCellNames(comm, summ);
+		if (initValue != "") values = cwx.utils.remove(values, initValue);
+		if (initValue != "") values = values.length ? ([initValue, ""] ~ values) : [initValue];
+		foreach (i, kc; values) { mixin(S_TRACE);
 			if (!incSearch.match(kc)) continue;
 			combo.add(kc);
 		}
