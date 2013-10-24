@@ -77,7 +77,9 @@ public:
 	const
 	override
 	BgImage dup() { mixin(S_TRACE);
-		return new ImageCell(path, flag, x, y, width, height, mask);
+		auto cell = new ImageCell(path, flag, x, y, width, height, mask);
+		dupImpl(cell);
+		return cell;
 	}
 
 	/// 画像ファイルパス。
@@ -210,8 +212,10 @@ public:
 	const
 	override
 	BgImage dup() { mixin(S_TRACE);
-		return new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
+		auto cell = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
 			borderingType, borderingColor, borderingWidth, flag, x, y, width, height, mask);
+		dupImpl(cell);
+		return cell;
 	}
 
 	// テキスト。
@@ -510,7 +514,9 @@ public:
 	const
 	override
 	BgImage dup() { mixin(S_TRACE);
-		return new ColorCell(blendMode, gradientDir, color1, color2, flag, x, y, width, height, mask);
+		auto cell = new ColorCell(blendMode, gradientDir, color1, color2, flag, x, y, width, height, mask);
+		dupImpl(cell);
+		return cell;
 	}
 
 	/// 合成モード。
@@ -667,7 +673,9 @@ public:
 	const
 	override
 	BgImage dup() { mixin(S_TRACE);
-		return new PCCell(pcNumber, flag, x, y, width, height, mask);
+		auto cell = new PCCell(pcNumber, flag, x, y, width, height, mask);
+		dupImpl(cell);
+		return cell;
 	}
 
 	/// 表示するPCの位置(1～6)。
@@ -755,6 +763,19 @@ public:
 	const
 	abstract
 	BgImage dup();
+
+	/// コピーの共通部分。
+	const
+	protected void dupImpl(BgImage cell) {
+		cell.flag = flag;
+		cell.x = x;
+		cell.y = y;
+		cell.width = width;
+		cell.height = height;
+		cell.mask = mask;
+		cell.cellName = cellName;
+		cell.foreground = foreground;
+	}
 
 	/// 変更ハンドラを登録する。
 	@property

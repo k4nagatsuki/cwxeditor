@@ -939,11 +939,11 @@ string createNewFileName(string path, bool isdir) { mixin(S_TRACE);
 /// 複数行の文字列を単行へ変換する。各行の左右の空白は切り詰められる。
 @property
 string singleLine(string s) { mixin(S_TRACE);
-	string r = "";
+	string[] r;
 	foreach (line; s.splitLines()) { mixin(S_TRACE);
 		r ~= line.strip();
 	}
-	return r;
+	return r.join();
 }
 
 /// 改行文字を\nに置換する。
