@@ -291,8 +291,9 @@ private:
 	Button _cGossip;
 	Button _cEnd;
 	Button _cKeyCode;
-	Button _cCellName;
-
+	// FIXME: CardWirth 1.60 セル名称
+/+	Button _cCellName;
++/
 	Table _result;
 	TableTextEdit _edit;
 	Tree _range;
@@ -462,8 +463,9 @@ private:
 	static const ID_GOSSIP = 11;
 	static const ID_COMPLETE_STAMP = 12;
 	static const ID_KEY_CODE = 13;
-	static const ID_CELL_NAME = 14;
-	private void setupIDsImpl2(T)(T[] arr, Combo combo, Spinner spn, ref ulong[int] tbl, bool clear, IncSearch incSearch) { mixin(S_TRACE);
+	// FIXME: CardWirth 1.60 セル名称
+/+	static const ID_CELL_NAME = 14;
++/	private void setupIDsImpl2(T)(T[] arr, Combo combo, Spinner spn, ref ulong[int] tbl, bool clear, IncSearch incSearch) { mixin(S_TRACE);
 		ulong[int] tbl2;
 		string oldSel = clear ? "" : combo.getText();
 		combo.removeAll();
@@ -576,8 +578,9 @@ private:
 		case ID_GOSSIP: setupIDsImpl1(_summ.useCounter.gossip.keys, clear, from, to); break;
 		case ID_COMPLETE_STAMP: setupIDsImpl1(_summ.useCounter.completeStamp.keys, clear, from, to); break;
 		case ID_KEY_CODE: setupIDsImpl1(_summ.useCounter.keyCode.keys, clear, from, to); break;
-		case ID_CELL_NAME: setupIDsImpl1(_summ.useCounter.cellName.keys, clear, from, to); break;
-		default: assert (0);
+		// FIXME: CardWirth 1.60 セル名称
+/+		case ID_CELL_NAME: setupIDsImpl1(_summ.useCounter.cellName.keys, clear, from, to); break;
++/		default: assert (0);
 		}
 	}
 	private void fromIDIncSearch() { mixin(S_TRACE);
@@ -645,7 +648,10 @@ private:
 	@property
 	private bool idKindIsString() {
 		auto index = _idKind.getSelectionIndex();
-		return index == ID_FLAG || index == ID_STEP || index == ID_COUPON || index == ID_GOSSIP || index == ID_COMPLETE_STAMP || index == ID_KEY_CODE || index == ID_CELL_NAME;
+		// FIXME: CardWirth 1.60 セル名称 ここから
+/+		return index == ID_FLAG || index == ID_STEP || index == ID_COUPON || index == ID_GOSSIP || index == ID_COMPLETE_STAMP || index == ID_KEY_CODE || index == ID_CELL_NAME;
++/		return index == ID_FLAG || index == ID_STEP || index == ID_COUPON || index == ID_GOSSIP || index == ID_COMPLETE_STAMP || index == ID_KEY_CODE;
+		// FIXME: CardWirth 1.60 セル名称 ここまで
 	}
 	private void updateIDCombo() { mixin(S_TRACE);
 		if (idKindIsString) { mixin(S_TRACE);
@@ -940,8 +946,9 @@ private:
 				_idKind.add(_prop.msgs.replIDGossip);
 				_idKind.add(_prop.msgs.replIDCompleteStamp);
 				_idKind.add(_prop.msgs.replIDKeyCode);
-				_idKind.add(_prop.msgs.replIDCellName);
-				_idKind.select(0);
+				// FIXME: CardWirth 1.60 セル名称
+/+				_idKind.add(_prop.msgs.replIDCellName);
++/				_idKind.select(0);
 				if (0 <= _prop.var.etc.searchIDKind && _prop.var.etc.searchIDKind < _idKind.getItemCount()) { mixin(S_TRACE);
 					_idKind.select(_prop.var.etc.searchIDKind);
 				}
@@ -1117,8 +1124,9 @@ private:
 				_cGossip = createB(_prop.msgs.replTextGossip, '2');
 				_cEnd = createB(_prop.msgs.replTextEndScenario, '3');
 				_cKeyCode = createB(_prop.msgs.replTextKeyCode, '4');
-				_cCellName = createB(_prop.msgs.replTextCellName, '5');
-			}
+				// FIXME: CardWirth 1.60 セル名称
+/+				_cCellName = createB(_prop.msgs.replTextCellName, '5');
++/			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			{ mixin(S_TRACE);
@@ -1705,8 +1713,9 @@ public:
 		} else static if (is(ID:KeyCodeId)) {
 			_idKind.select(ID_KEY_CODE);
 		} else static if (is(ID:CellNameId)) {
-			_idKind.select(ID_CELL_NAME);
-		} else static assert (0);
+			// FIXME: CardWirth 1.60 セル名称
+/+			_idKind.select(ID_CELL_NAME);
++/		} else static assert (0);
 		selIDKind();
 		static if (is(typeof(from.id):ulong)) {
 			bool sel = false;
@@ -2014,8 +2023,9 @@ public:
 		_cGossip.setSelection(_prop.var.etc.replaceNameGossip);
 		_cEnd.setSelection(_prop.var.etc.replaceNameEndScenario);
 		_cKeyCode.setSelection(_prop.var.etc.replaceNameKeyCode);
-		_cCellName.setSelection(_prop.var.etc.replaceNameCellName);
-
+		// FIXME: CardWirth 1.60 セル名称
+/+		_cCellName.setSelection(_prop.var.etc.replaceNameCellName);
++/
 		_unuseFlag.setSelection(_prop.var.etc.searchUnusedFlag);
 		_unuseStep.setSelection(_prop.var.etc.searchUnusedStep);
 		_unuseArea.setSelection(_prop.var.etc.searchUnusedArea);
@@ -2203,8 +2213,9 @@ public:
 			_prop.var.etc.replaceNameGossip = _cGossip.getSelection();
 			_prop.var.etc.replaceNameEndScenario = _cEnd.getSelection();
 			_prop.var.etc.replaceNameKeyCode = _cKeyCode.getSelection();
-			_prop.var.etc.replaceNameCellName = _cCellName.getSelection();
-
+			// FIXME: CardWirth 1.60 セル名称
+/+			_prop.var.etc.replaceNameCellName = _cCellName.getSelection();
++/
 			_prop.var.etc.searchUnusedFlag = _unuseFlag.getSelection();
 			_prop.var.etc.searchUnusedStep = _unuseStep.getSelection();
 			_prop.var.etc.searchUnusedArea = _unuseArea.getSelection();
@@ -2617,10 +2628,11 @@ public:
 						} else static if (is(ID:KeyCodeId)) {
 							u.keyCode = cast(string)to;
 							storeID(u.owner, u, cast(string)from, cast(string)to, &u.keyCode);
-						} else static if (is(ID:CellNameId)) {
+						// FIXME: CardWirth 1.60 セル名称
+/+						} else static if (is(ID:CellNameId)) {
 							u.cellName = cast(string)to;
 							storeID(u.owner, u, cast(string)from, cast(string)to, &u.cellName);
-						} else {
++/						} else {
 							u.id = to;
 							storeID(u.owner, u, from, to, &u.id);
 						}
@@ -2675,8 +2687,9 @@ public:
 			case ID_GOSSIP: replaceIDImpl2(toGossipId(from), toGossipId(to)); break;
 			case ID_COMPLETE_STAMP: replaceIDImpl2(toCompleteStampId(from), toCompleteStampId(to)); break;
 			case ID_KEY_CODE: replaceIDImpl2(toKeyCodeId(from), toKeyCodeId(to)); break;
-			case ID_CELL_NAME: replaceIDImpl2(toCellNameId(from), toCellNameId(to)); break;
-			default: assert (0);
+			// FIXME: CardWirth 1.60 セル名称
+/+			case ID_CELL_NAME: replaceIDImpl2(toCellNameId(from), toCellNameId(to)); break;
++/			default: assert (0);
 			}
 		} else {
 			ulong from = getID(_fromID, _fromIDVal, _fromIDTbl);
@@ -2778,9 +2791,10 @@ public:
 			renameCoupon(itm, toKeyCodeId(itm.getText()), toKeyCodeId(text), uc.keyCode);
 			_comm.refKeyCodes.call();
 		} else { mixin(S_TRACE);
-			renameCoupon(itm, toCellNameId(itm.getText()), toCellNameId(text), uc.cellName);
+			// FIXME: CardWirth 1.60 セル名称
+/+			renameCoupon(itm, toCellNameId(itm.getText()), toCellNameId(text), uc.cellName);
 			_comm.refCellNames.call();
-		}
++/		}
 		_comm.replText.call();
 	}
 	private bool canCouponEdit(TableItem itm, int column) { mixin(S_TRACE);
@@ -2906,8 +2920,9 @@ public:
 		bool cKeyCodeSel = _cKeyCode.getSelection();
 		bool cGossipSel = _cGossip.getSelection();
 		bool cEndSel = _cEnd.getSelection();
-		bool cCellName = _cCellName.getSelection();
-
+		// FIXME: CardWirth 1.60 セル名称
+/+		bool cCellName = _cCellName.getSelection();
++/
 		auto rangeT = rangeTable;
 		auto uc = _summ.useCounter;
 		void search() { mixin(S_TRACE);
@@ -2923,10 +2938,11 @@ public:
 			if (cKeyCodeSel) { mixin(S_TRACE);
 				searchCouponImpl(uc.keyCode.keys, uc, rangeT, &_prop.images.keyCode, count);
 			}
-			if (cCellName) { mixin(S_TRACE);
+			// FIXME: CardWirth 1.60 セル名称
+/+			if (cCellName) { mixin(S_TRACE);
 				searchCouponImpl(uc.cellName.keys, uc, rangeT, &_prop.images.backs, count);
 			}
-		}
++/		}
 
 		_inProc = true;
 		_comm.refreshToolBar();

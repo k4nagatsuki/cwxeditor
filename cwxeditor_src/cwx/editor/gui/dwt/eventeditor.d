@@ -146,6 +146,7 @@ class EventEditor : Composite {
 	private Warning[] _warningRects;
 
 	private bool _expandedOperation = false;
+	private bool _showEventTreeDetail = true;
 
 	this (Commons comm, Composite parent, int style, Summary summ, EventTree et) { mixin(S_TRACE);
 		super (parent, style | SWT.V_SCROLL | SWT.H_SCROLL | SWT.DOUBLE_BUFFERED);
@@ -237,6 +238,17 @@ class EventEditor : Composite {
 		}
 	}
 
+	@property
+	const
+	bool showEventTreeDetail() { mixin(S_TRACE);
+		return _showEventTreeDetail;
+	}
+	@property
+	void showEventTreeDetail(bool v) { mixin(S_TRACE);
+		_showEventTreeDetail = v;
+		redraw();
+	}
+
 	void updateEventTree() { mixin(S_TRACE);
 		_items = null;
 		updatePosImpl();
@@ -286,8 +298,13 @@ class EventEditor : Composite {
 				expanded2[c] = false;
 				return;
 			}
-			if (type != CType.START && c.next.length == 1) { mixin(S_TRACE);
-				recurse(x, c.next[0]);
+			auto d = c.detail;
+			if (type != CType.START && c.next.length == 1 && (!_comm.prop.var.etc.forceIndentBranchContent || d.nextType == CNextType.NONE || d.nextType == CNextType.TEXT)) { mixin(S_TRACE);
+				if (_comm.prop.var.etc.gentleAngleEventTree) { mixin(S_TRACE);
+					recurse(x + _imageWidth / 2, c.next[0]);
+				} else { mixin(S_TRACE);
+					recurse(x, c.next[0]);
+				}
 			} else if (c.next.length) { mixin(S_TRACE);
 				foreach (next; c.next) { mixin(S_TRACE);
 					recurse(x + _imageWidth, next);
@@ -776,6 +793,7 @@ class EventEditor : Composite {
 
 	@property
 	private int detailAreaWidth() {
+		if (!_showEventTreeDetail) return 0;
 		auto ca = getClientArea();
 		int detailAreaWidth = min(_comm.prop.var.etc.detailAreaWidth.value, ca.width - _imageWidth);
 		return .max(detailAreaWidth, _imageWidth);
@@ -938,22 +956,26 @@ class EventEditor : Composite {
 		// イベントコンテントの内容領域、警告
 		e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 		e.gc.setBackground(getBackground());
-		e.gc.drawLine(ca.width - detailAreaWidth, e.y, ca.width - detailAreaWidth, e.y + e.height);
-		e.gc.setAlpha(192);
-		e.gc.fillRectangle(ca.width - detailAreaWidth, e.y, detailAreaWidth, e.height);
-		e.gc.setAlpha(255);
+		if (detailAreaWidth) {
+			e.gc.drawLine(ca.width - detailAreaWidth, e.y, ca.width - detailAreaWidth, e.y + e.height);
+			e.gc.setAlpha(192);
+			e.gc.fillRectangle(ca.width - detailAreaWidth, e.y, detailAreaWidth, e.height);
+			e.gc.setAlpha(255);
+		}
 
 		_warningRects = [];
 		foreach (ref pos; poss) { mixin(S_TRACE);
 			// イベントコンテント内容
 			auto c = pos.content;
-			auto s = .contentText(_comm, c);
-			int x = ca.width - detailAreaWidth + 2;
-			auto image = _comm.prop.images.content(c.type);
-			e.gc.setAlpha(128);
-			e.gc.drawImage(image, x, pos.y + _imgPos - sy);
-			e.gc.setAlpha(255);
-			e.gc.drawText(s, x + 18, pos.y - sy, true);
+			if (detailAreaWidth) {
+				auto s = .contentText(_comm, c);
+				int x = ca.width - detailAreaWidth + 2;
+				auto image = _comm.prop.images.content(c.type);
+				e.gc.setAlpha(128);
+				e.gc.drawImage(image, x, pos.y + _imgPos - sy);
+				e.gc.setAlpha(255);
+				e.gc.drawText(s, x + 18, pos.y - sy, true);
+			}
 
 			// 警告
 			auto warnings = .warnings(_comm.prop.parent, _comm.skin, _summ, c, _comm.prop.var.etc.targetVersion);

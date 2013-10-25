@@ -162,6 +162,8 @@ private:
 	TableItem _selectVariableWithTree;
 	TableItem _autoUpdateJpy1File;
 	TableItem _straightEventTreeView;
+	TableItem _gentleAngleEventTree;
+	TableItem _forceIndentBranchContent;
 	TableItem _showTerminalMark;
 	TableItem _clickIconIsStartEdit;
 	Combo _targetVersion;
@@ -1008,6 +1010,8 @@ private:
 			_selectVariableWithTree = createB(_prop.msgs.selectVariableWithTree);
 			_autoUpdateJpy1File = createB(_prop.msgs.autoUpdateJpy1File);
 			_straightEventTreeView = createB(_prop.msgs.straightEventTreeView);
+			_gentleAngleEventTree = createB(_prop.msgs.gentleAngleEventTree);
+			_forceIndentBranchContent = createB(_prop.msgs.forceIndentBranchContent);
 			_showTerminalMark = createB(_prop.msgs.showTerminalMark);
 			_clickIconIsStartEdit = createB(_prop.msgs.clickIconIsStartEdit);
 
@@ -1305,6 +1309,8 @@ protected:
 		_selectVariableWithTree.setChecked(_prop.var.etc.selectVariableWithTree);
 		_autoUpdateJpy1File.setChecked(_prop.var.etc.autoUpdateJpy1File);
 		_straightEventTreeView.setChecked(_prop.var.etc.straightEventTreeView);
+		_gentleAngleEventTree.setChecked(_prop.var.etc.gentleAngleEventTree);
+		_forceIndentBranchContent.setChecked(_prop.var.etc.forceIndentBranchContent);
 		_showTerminalMark.setChecked(_prop.var.etc.showTerminalMark);
 		_clickIconIsStartEdit.setChecked(_prop.var.etc.clickIconIsStartEdit);
 		auto tVer = _prop.var.etc.targetVersion in _targetVersionTbl;
@@ -1497,6 +1503,8 @@ protected:
 		_prop.var.etc.selectVariableWithTree = _selectVariableWithTree.getChecked();
 		_prop.var.etc.autoUpdateJpy1File = _autoUpdateJpy1File.getChecked();
 		_prop.var.etc.straightEventTreeView = _straightEventTreeView.getChecked();
+		_prop.var.etc.gentleAngleEventTree = _gentleAngleEventTree.getChecked();
+		_prop.var.etc.forceIndentBranchContent = _forceIndentBranchContent.getChecked();
 		_prop.var.etc.showTerminalMark = _showTerminalMark.getChecked();
 		_prop.var.etc.clickIconIsStartEdit = _clickIconIsStartEdit.getChecked();
 		_prop.var.etc.contentsFloat = _contentsFloat.getChecked();
@@ -1595,6 +1603,8 @@ struct OldSettings {
 	bool useNamesAfterStandard;
 	bool selectVariableWithTree;
 	bool straightEventTreeView;
+	bool gentleAngleEventTree;
+	bool forceIndentBranchContent;
 	bool showTerminalMark;
 	bool showSummaryInAreaTable;
 	bool showAreaDirTree;
@@ -1644,6 +1654,8 @@ struct OldSettings {
 		this.useNamesAfterStandard = prop.var.etc.useNamesAfterStandard;
 		this.selectVariableWithTree = prop.var.etc.selectVariableWithTree;
 		this.straightEventTreeView = prop.var.etc.straightEventTreeView;
+		this.gentleAngleEventTree = prop.var.etc.gentleAngleEventTree;
+		this.forceIndentBranchContent = prop.var.etc.forceIndentBranchContent;
 		this.showTerminalMark = prop.var.etc.showTerminalMark;
 		this.showSummaryInAreaTable = prop.var.etc.showSummaryInAreaTable;
 		this.showAreaDirTree = prop.var.etc.showAreaDirTree;
@@ -1772,7 +1784,7 @@ struct OldSettings {
 		if (this.selectVariableWithTree != prop.var.etc.selectVariableWithTree) { mixin(S_TRACE);
 			comm.refVarSelectStyle.call();
 		}
-		if (this.straightEventTreeView != prop.var.etc.straightEventTreeView) { mixin(S_TRACE);
+		if (this.straightEventTreeView != prop.var.etc.straightEventTreeView || this.gentleAngleEventTree != prop.var.etc.gentleAngleEventTree || this.forceIndentBranchContent != prop.var.etc.forceIndentBranchContent) { mixin(S_TRACE);
 			comm.refEventTreeViewStyle.call();
 		}
 		if (this.showTerminalMark != prop.var.etc.showTerminalMark) { mixin(S_TRACE);

@@ -1656,6 +1656,8 @@ class Msgs : Properties {
 	auto selectVariableWithTree = Msg("selectVariableWithTree", "状態変数選択ビューでディレクトリの階層表示を行う");
 	auto autoUpdateJpy1File = Msg("autoUpdateJpy1File", "ファイル名が変更された時に関係するJPY1ファイルを自動的に更新する");
 	auto straightEventTreeView = Msg("straightEventTreeView", "イベントツリーを垂直に表示する");
+	auto gentleAngleEventTree = Msg("gentleAngleEventTree", "垂直表示時に若干角度をつける");
+	auto forceIndentBranchContent = Msg("forceIndentBranchContent", "垂直表示時に分岐コンテントの後続コンテントは必ず右へ移動する");
 	auto showTerminalMark = Msg("showTerminalMark", "垂直表示時にイベントツリーの終端を明示する");
 	auto clickIconIsStartEdit = Msg("clickIconIsStartEdit", "イベントコンテントのアイコンのクリックでダイアログを開く");
 	auto soundPlayType = Msg("soundPlayType", "BGM再生方式");
@@ -2077,6 +2079,7 @@ class Msgs : Properties {
 	auto newIgnition = Msg("newIgnition", "イベント発火条件の作成");
 	auto expandTree = Msg("expandTree", "全コンテントツリーを開く");
 	auto foldTree = Msg("foldTree", "全コンテントツリーを閉じる");
+	auto showEventTreeDetail = Msg("showEventTreeDetail", "イベントコンテントの詳細を表示");
 
 	auto sex = AAMsg("sex", "key", "name");
 	auto period = AAMsg("period", "key", "name");

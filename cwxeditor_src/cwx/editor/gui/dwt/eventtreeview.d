@@ -75,6 +75,7 @@ private:
 	Menu _convM = null;
 	Menu _evTemplM = null;
 	Converter[CType] _conts;
+	bool _showEventTreeDetail = false;
 
 	void delegate(size_t[]) _forceSel;
 	void delegate() _refreshTopStart;
@@ -1409,6 +1410,7 @@ private:
 			foreach (dlg; _commentDlgs.values) { mixin(S_TRACE);
 				dlg.forceCancel();
 			}
+			_prop.var.etc.showEventTreeDetail = _showEventTreeDetail;
 		}
 	}
 
@@ -1668,6 +1670,7 @@ public:
 		_comp.setLayout(zeroGridLayout(1, false));
 
 		_comp.addDisposeListener(new TRDListener);
+		_showEventTreeDetail = _prop.var.etc.showEventTreeDetail;
 
 		if (!_readOnly) { mixin(S_TRACE);
 			_cbarPar = new Composite(_comp, SWT.NONE);
@@ -1730,6 +1733,7 @@ public:
 		}
 		if (_prop.var.etc.straightEventTreeView) { mixin(S_TRACE);
 			_tree.editor = new EventEditor(_comm, _comp, SWT.BORDER | _readOnly, _summ, null);
+			_tree.editor.showEventTreeDetail = _showEventTreeDetail;
 			new EventEdit(_comm, _tree.editor, &editEnd, &createEditor);
 		} else { mixin(S_TRACE);
 			_tree.tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
@@ -2574,6 +2578,13 @@ public:
 		}
 		auto itm = selection;
 		if (itm) down(itm, true);
+	}
+
+	void reverseShowEventTreeDetail() { mixin(S_TRACE);
+		_showEventTreeDetail = !_showEventTreeDetail;
+		if (_tree.editor) { mixin(S_TRACE);
+			_tree.editor.showEventTreeDetail = _showEventTreeDetail;
+		}
 	}
 
 	@property

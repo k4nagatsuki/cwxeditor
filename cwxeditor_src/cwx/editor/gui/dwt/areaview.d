@@ -1616,8 +1616,9 @@ private:
 					createMenuItem(_comm, menu, MenuID.NewBack, &createBackground, () => !_readOnly);
 					createMenuItem(_comm, menu, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
 					createMenuItem(_comm, menu, MenuID.NewColorCell, &createColorCell, () => !_readOnly);
-					createMenuItem(_comm, menu, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
-				}
+					// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
+/+					createMenuItem(_comm, menu, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
++/				}
 			}
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, menu, _tcpd, !_readOnly, true, !_readOnly, !_readOnly, !_readOnly);
@@ -2272,8 +2273,9 @@ private:
 					createMenuItem(_comm, menu, MenuID.NewBack, &createBackground, () => !_readOnly);
 					createMenuItem(_comm, menu, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
 					createMenuItem(_comm, menu, MenuID.NewColorCell, &createColorCell, () => !_readOnly);
-					createMenuItem(_comm, menu, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
-				}
+					// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
+/+					createMenuItem(_comm, menu, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
++/				}
 			}
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, menu, tcpd, !_readOnly, true, !_readOnly, !_readOnly, !_readOnly);
@@ -3843,8 +3845,9 @@ public:
 				createMenuItem(_comm, mv, MenuID.NewBack, &createBackground, () => !_readOnly);
 				createMenuItem(_comm, mv, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
 				createMenuItem(_comm, mv, MenuID.NewColorCell, &createColorCell, () => !_readOnly);
-				createMenuItem(_comm, mv, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
-			}
+				// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
+/+				createMenuItem(_comm, mv, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
++/			}
 		}
 	}
 
@@ -3906,6 +3909,7 @@ public:
 				} else { mixin(S_TRACE);
 					static assert (0);
 				}
+				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		}
 		if (!_readOnly) { mixin(S_TRACE);
@@ -3913,8 +3917,9 @@ public:
 				createToolItem(_comm, bar, MenuID.NewBack, &createBackground, () => !_readOnly);
 				createToolItem(_comm, bar, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
 				createToolItem(_comm, bar, MenuID.NewColorCell, &createColorCell, () => !_readOnly);
-				createToolItem(_comm, bar, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
-			}
+				// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
+/+				createToolItem(_comm, bar, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
++/			}
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
 		_xSpn = createSpinner(bar, _prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax), 0,

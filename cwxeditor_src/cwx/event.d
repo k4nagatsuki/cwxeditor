@@ -111,10 +111,11 @@ private void static_this () { mixin(S_TRACE);
 			CType.SHOW_PARTY,
 			CType.HIDE_PARTY,
 			CType.CHANGE_BG_IMAGE,
-			CType.MOVE_BG_IMAGE,
+			// FIXME: CardWirth 1.60 セル関係のイベントコンテント
+/+			CType.MOVE_BG_IMAGE,
 			CType.REPLACE_BG_IMAGE,
 			CType.LOSE_BG_IMAGE,
-			CType.REDISPLAY,
++/			CType.REDISPLAY,
 		]
 	];
 

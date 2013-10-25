@@ -1665,6 +1665,9 @@ public:
 		}
 		createToolItem2(_comm, bar, _prop.msgs.expandTree, _prop.images.expandTree, &_etree.treeOpen, &_etree.canExpandTree);
 		createToolItem2(_comm, bar,_prop.msgs.foldTree,  _prop.images.foldTree, &_etree.treeClose, &_etree.canFoldTree);
+		new ToolItem(bar, SWT.SEPARATOR);
+		auto dItm = createToolItem2(_comm, bar,_prop.msgs.showEventTreeDetail, _prop.images.showEventTreeDetail, &_etree.reverseShowEventTreeDetail, () => _prop.var.etc.straightEventTreeView.value, SWT.CHECK);
+		dItm.setSelection(_prop.var.etc.showEventTreeDetail);
 	}
 	private void setFireControl(Control c) { mixin(S_TRACE);
 		if (_readOnly) return;

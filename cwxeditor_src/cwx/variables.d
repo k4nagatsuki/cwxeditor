@@ -381,11 +381,14 @@ class FlexEtcProps : Properties {
 	auto useCurrentStartName = Prop!(bool)("useCurrentStartName", true);
 	auto autoUpdateJpy1File = Prop!(bool)("autoUpdateJpy1File", false);
 	auto straightEventTreeView = Prop!(bool)("straightEventTreeView", false);
+	auto gentleAngleEventTree = Prop!(bool)("gentleAngleEventTree", false);
+	auto forceIndentBranchContent = Prop!(bool)("forceIndentBranchContent", true);
 	auto showTerminalMark = Prop!(bool)("showTerminalMark", true);
 	auto clickIconIsStartEdit = Prop!(bool)("clickIconIsStartEdit", false);
-	auto showAreaDirTree = Prop!(bool)("showAreaDirTree", false);
+	auto showAreaDirTree = Prop!(bool)("showAreaDirTree", true);
 	auto sortFlagDirs = Prop!(bool)("sortFlagDirs", true);
 
+	auto showEventTreeDetail = Prop!(bool)("showEventTreeDetail", true);
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
 
 	auto spinnerUpDownWithWheel = Prop!(bool)("spinnerUpDownWithWheel", true);
