@@ -2717,7 +2717,16 @@ public:
 		{ mixin(S_TRACE);
 			if (_summ) { mixin(S_TRACE);
 				auto lrSash2 = new SplitPane(lrSash, SWT.HORIZONTAL);
-				createImagePane(lrSash2);
+				auto imagePaneComp = new Composite(lrSash2, SWT.NONE);
+				auto ipcl = windowGridLayout(1, true);
+				ipcl.marginWidth = 0;
+				ipcl.marginHeight = 0;
+				imagePaneComp.setLayout(ipcl);
+				createImagePane(imagePaneComp).setLayoutData(new GridData(GridData.FILL_BOTH));
+				if (!_readOnly) { mixin(S_TRACE);
+					auto l = new Label(imagePaneComp, SWT.NONE);
+					l.setText(_prop.msgs.areaViewKeyboardHint);
+				}
 				createFlagList(lrSash2);
 				static if (is(A:Area)) {
 					lrSash2.setWeights([_prop.var.etc.areaViewImageFlagL, _prop.var.etc.areaViewImageFlagR]);
