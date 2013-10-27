@@ -2832,6 +2832,31 @@ private:
 					font2.dispose();
 				});
 			}
+			{ mixin(S_TRACE);
+				void putDummy() { mixin(S_TRACE);
+					auto dummy1 = new Composite(parent, SWT.NONE);
+					auto dgd1 = new GridData;
+					dgd1.widthHint = 0;
+					dgd1.heightHint = 0;
+					dummy1.setLayoutData(dgd1);
+				}
+				putDummy();
+				auto hint1 = new Label(parent, SWT.WRAP);
+				hint1.setText(_prop.msgs.eventTemplateHint1);
+				auto gd1 = new GridData(GridData.FILL_HORIZONTAL);
+				gd1.widthHint = 0;
+				gd1.horizontalSpan = 3;
+				hint1.setLayoutData(gd1);
+
+				putDummy();
+				auto hint2 = new Text(parent, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.READ_ONLY);
+				hint2.setText(_prop.msgs.eventTemplateHint2);
+				createTextMenu!Text(_comm, _prop, hint2, _catchMod);
+				auto gd2 = new GridData(GridData.FILL_HORIZONTAL);
+				gd2.widthHint = 0;
+				gd2.horizontalSpan = 3;
+				hint2.setLayoutData(gd2);
+			}
 		}
 	} else static assert (0);
 public:

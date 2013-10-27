@@ -1768,6 +1768,8 @@ class Msgs : Properties {
 	auto dialogStatusNameUnderWithCoupon = Msg("dialogStatusNameUnderWithCoupon", "最下位の台詞(条件クーポン設定あり)");
 
 	auto dlgTitEvTemplates = Msg("dlgTitEvTemplates", "イベントテンプレート - %1$s");
+	auto eventTemplateHint1 = Msg("eventTemplateHint1", "下記のようにスクリプトの冒頭に値の無い変数を置くと、テンプレートからの配置時に値を設定できます。");
+	auto eventTemplateHint2 = Msg("eventTemplateHint2", "$時間\nwait $時間");
 
 	auto dlgTitCustomizeToolBar = Msg("dlgTitCustomizeToolBar", "ツールバーの編集");
 	auto toolBarName = Msg("toolBarName", "ツールバー (%1$s)");
