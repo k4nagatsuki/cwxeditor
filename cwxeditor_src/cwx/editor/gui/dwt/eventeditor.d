@@ -438,7 +438,7 @@ class EventEditor : Composite {
 				}
 			}
 			if (toolTip == "" && ca.width - detailAreaWidth <= p.x) { mixin(S_TRACE);
-				int index = indexOf(getVerticalBar().getSelection() * _lineHeight + p.y);
+				int index = indexOf(p.y);
 				if (0 <= index && index < _pos.length) { mixin(S_TRACE);
 					auto pos = _pos[index];
 					if (p.y - pos.y < _lineHeight) { mixin(S_TRACE);
