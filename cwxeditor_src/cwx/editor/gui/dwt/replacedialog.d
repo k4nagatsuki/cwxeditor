@@ -2987,6 +2987,16 @@ public:
 		auto cursors = setWaitCursors(_win);
 		bool[CType] contents;
 		foreach (type; EnumMembers!CType) { mixin(S_TRACE);
+			// FIXME: CardWirth 1.60 ここから
+			switch (type) {
+			case CType.MOVE_BG_IMAGE: /// 背景再配置(CardWirth 1.60)。
+			case CType.REPLACE_BG_IMAGE: /// 背景交換(CardWirth 1.60)。
+			case CType.LOSE_BG_IMAGE: /// 背景削除(CardWirth 1.60)。
+				continue;
+			default:
+				break;
+			}
+			// FIXME: CardWirth 1.60 ここまで
 			contents[type] = _contents[type].getSelection();
 		}
 		auto thr = new core.thread.Thread({ mixin(S_TRACE);
