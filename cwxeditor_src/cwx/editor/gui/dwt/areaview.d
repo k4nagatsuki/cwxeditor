@@ -1725,6 +1725,10 @@ public:
 		static if (UseCards) {
 			_comm.refCardState.add(&refreshCardState);
 		}
+		if (_summ) {
+			_comm.refFlagAndStep.add(&refFlag);
+			_comm.delFlagAndStep.add(&refFlag);
+		}
 		_preview = new Preview(_prop, parent.getShell());
 		addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) {
@@ -1745,6 +1749,10 @@ public:
 					foreach (dlg; _editDlgsB.values) {
 						dlg.forceCancel();
 					}
+				}
+				if (_summ) {
+					_comm.refFlagAndStep.remove(&refFlag);
+					_comm.delFlagAndStep.remove(&refFlag);
 				}
 			}
 		});
