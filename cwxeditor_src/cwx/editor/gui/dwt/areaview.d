@@ -1030,9 +1030,9 @@ private:
 				fore = _prop.images.pcCellFore;
 				foreWithFlag = _prop.images.pcCellForeWithFlag;
 			} else assert (0);
-			if (bg.flag && bg.foreground) { mixin(S_TRACE);
+			if (bg.flag && bg.flag != "" && bg.foreground) { mixin(S_TRACE);
 				return foreWithFlag;
-			} else if (bg.flag) { mixin(S_TRACE);
+			} else if (bg.flag && bg.flag != "") { mixin(S_TRACE);
 				return withFlag;
 			} else if (bg.foreground) { mixin(S_TRACE);
 				return fore;
@@ -2401,6 +2401,10 @@ public:
 				_comm.refPreviewValues.add(&refreshTextCell);
 				_comm.refFlagAndStep.add(&refreshTextCellF);
 			}
+			if (_summ) { mixin (S_TRACE);
+				_comm.refFlagAndStep.add(&refFlag);
+				_comm.delFlagAndStep.add(&refFlag);
+			}
 		}
 		_comm.refShowToolBar.add(&refShowToolBar);
 		_preview = new Preview(_prop, parent.getShell());
@@ -2425,6 +2429,10 @@ public:
 						foreach (dlg; _editDlgsB.values) { mixin(S_TRACE);
 							dlg.forceCancel();
 						}
+					}
+					if (_summ) { mixin (S_TRACE);
+						_comm.refFlagAndStep.remove(&refFlag);
+						_comm.delFlagAndStep.remove(&refFlag);
 					}
 				}
 				_comm.refShowToolBar.remove(&refShowToolBar);
