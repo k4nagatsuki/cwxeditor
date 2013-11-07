@@ -361,7 +361,7 @@ public class FlexProps {
 					break;
 				}
 				dStr ~= " - " ~ .text(__LINE__);
-				etc.backupBeforeSavePath = etc.backupPath;
+				etc.backupBeforeSavePath.value = etc.backupPath;
 			}
 		} catch (Throwable e) {
 			fdebugln(dStr);

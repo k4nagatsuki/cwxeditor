@@ -2,7 +2,7 @@
 [[[ CWXEditor ビルドガイド ]]]
 
 ビルドツール:
-	・dmd 2.063.2
+	・dmd 2.064.2
 	・Digital Mars rcc
 ライブラリ:
 	・DWT at GitHub
@@ -29,10 +29,18 @@ rdmd build base swt
 
 　後は、dmd2/windows/bin/sc.iniを弄くってDWTのインポートフォルダやら
 リソースフォルダやらを探しに行くようにしておきましょう。
+　DWTが今の所32bit版しかないので、cwxeditorも32bitでビルドする必要が
+あります。
 ---
-LIB="%@P%\..\lib";\dm\lib;"%@P%\..\..\dwt\lib"
+[Environment]
+
 DFLAGS="-I%@P%\..\..\src\phobos" "-I%@P%\..\..\src\druntime\import" "-I%@P%\..\..\import" "-I%@P%\..\..\dwt\imp" "-J%@P%\..\..\dwt\res"
-LINKCMD=%@P%\link.exe
+  :
+
+[Environment32]
+LIB="%@P%\..\lib";"%@P%\..\..\dwt\lib"
+  :
+
 ---
 
 　最後にリソースコンパイル用のrccを入手します。
