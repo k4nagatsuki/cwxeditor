@@ -304,7 +304,7 @@ protected:
 				if (!.exists(tPath)) {
 					if (!dir.exists()) mkdirRecurse(dir);
 					summ = new Summary(_nameVal, skin, dir, false, true);
-				} else if (.isDir(tPath) && !tPath.buildPath("Summary.wsm").exists && !tPath.buildPath("Summary.xml").exists) {
+				} else if (.isDir(tPath) && !tPath.buildPath("Summary.wsm").exists() && !tPath.buildPath("Summary.xml").exists()) {
 					auto cursors = setWaitCursors(topShell(getShell()));
 					scope (exit) {
 						resetCursors(cursors);

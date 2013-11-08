@@ -1722,17 +1722,17 @@ class Msgs : Properties {
 
 	/// 各連想配列を初期化する。
 	this () {
-		sex = [
+		sex.value = [
 			"♂":"♂",
 			"♀":"♀",
 		];
-		period = [
+		period.value = [
 			"子供":"子供",
 			"若者":"若者",
 			"大人":"大人",
 			"老人":"老人",
 		];
-		nature = [
+		nature.value = [
 			"他種族":"他種族", // darkwirth
 			"標準型":"標準型",
 			"理性型":"理性型", // s_c_wirth
@@ -1772,7 +1772,7 @@ class Msgs : Properties {
 			"神竜族":"神竜族", // darkwirth
 			"神仙型":"神仙型",
 		];
-		makings = [
+		makings.value = [
 			"秀麗":"秀麗",
 			"醜悪":"醜悪",
 			"高貴の出":"高貴の出",

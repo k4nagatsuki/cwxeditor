@@ -489,7 +489,7 @@ class CWXScript {
 			} else if (0 < commentLevel) {
 				spaceAfter = true;
 				retCount();
- 			} else if (isAlpha(c) || c == '_') {
+ 			} else if (std.ascii.isAlpha(c) || c == '_') {
  				if (eatEmptyVarMode) return r;
 				spaceAfter = false;
 				// symbol
@@ -559,7 +559,7 @@ class CWXScript {
 				spaceAfter = false;
 				retCount();
  				docComment = "";
-			} else if (isWhite(c)) {
+			} else if (std.ascii.isWhite(c)) {
 				// whitespace
 				spaceAfter = true;
 				retCount();
