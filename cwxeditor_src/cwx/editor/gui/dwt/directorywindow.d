@@ -1226,6 +1226,9 @@ private:
 			_onRefresh = true;
 			scope (exit) _onRefresh = false;
 			if (_stopTrace) return;
+			if (_summ && _summ.useTemp) { mixin(S_TRACE);
+				_summ.changed();
+			}
 			if (_dirsEdit.isEditing() || _filesEdit.isEditing()) return;
 			try { mixin(S_TRACE);
 				refresh();

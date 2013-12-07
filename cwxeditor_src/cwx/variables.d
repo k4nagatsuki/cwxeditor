@@ -387,6 +387,7 @@ class FlexEtcProps : Properties {
 	auto clickIconIsStartEdit = Prop!(bool)("clickIconIsStartEdit", false);
 	auto showAreaDirTree = Prop!(bool)("showAreaDirTree", true);
 	auto sortFlagDirs = Prop!(bool)("sortFlagDirs", true);
+	auto saveNeedChanged = Prop!(bool)("saveNeedChanged", true);
 
 	auto showEventTreeDetail = Prop!(bool)("showEventTreeDetail", true);
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);

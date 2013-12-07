@@ -61,6 +61,7 @@ class Msgs : Properties {
 	auto shutdown = Msg("shutdown", "強制終了");
 
 	auto targetVersion = Msg("targetVersion", "対象エンジン");
+	auto targetVersionHint = Msg("targetVersion", "※ 警告と誤り検索の結果に影響します");
 	auto cardWirthPy = Msg("cardWirthPy", "CardWirthPy");
 	auto cardWirthWithVersion = Msg("cardWirthWithVersion", "CardWirth %1$s");
 
@@ -1637,6 +1638,7 @@ class Msgs : Properties {
 	auto comboListVisible = Msg("comboListVisible", "コンボボックスでの編集開始時にリストを開く");
 	auto xmlCopy = Msg("xmlCopy", "コピーや切り取りを常にXML形式で行う");
 	auto showSpNature = Msg("showSpNature", "特殊型を表示する");
+	auto saveNeedChanged = Msg("saveNeedChanged", "変更があった時だけ上書き保存を有効にする");
 	auto saveInnerImagePath = Msg("saveInnerImagePath", "クラシックなシナリオで格納イメージのファイルパスを保存する");
 	auto linkCard = Msg("linkCard", "キャストの所有カードや召喚対象のカードを参照で設定する");
 	auto traceDirectories = Msg("traceDirectories", "ファイル・" ~ DIR ~ "の変更を自動的に追跡する");

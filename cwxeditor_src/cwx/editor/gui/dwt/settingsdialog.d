@@ -157,6 +157,7 @@ private:
 	TableItem _openLastScenario;
 	TableItem _showVariableValuesInEventText;
 	TableItem _cautionBeforeReplace;
+	TableItem _saveNeedChanged;
 	TableItem _applyDialogsBeforeSave;
 	TableItem _useNamesAfterStandard;
 	TableItem _selectVariableWithTree;
@@ -1005,6 +1006,7 @@ private:
 			_openLastScenario = createB(_prop.msgs.openLastScenario);
 			_showVariableValuesInEventText = createB(_prop.msgs.showVariableValuesInEventText);
 			_cautionBeforeReplace = createB(_prop.msgs.cautionBeforeReplace);
+			_saveNeedChanged = createB(_prop.msgs.saveNeedChanged);
 			_applyDialogsBeforeSave = createB(_prop.msgs.applyDialogsBeforeSave);
 			_useNamesAfterStandard = createB(_prop.msgs.useNamesAfterStandard);
 			_selectVariableWithTree = createB(_prop.msgs.selectVariableWithTree);
@@ -1033,6 +1035,16 @@ private:
 				_prop.msgs.cardWirthPy.value,
 			] ~ std.algorithm.map!((s) => .tryFormat(_prop.msgs.cardWirthWithVersion, s))(targetVersionVals[1..$]).array();
 			_targetVersion = createEnumC(grp, _prop.msgs.targetVersion, targetVersionVals, targetVersionNames, _targetVersionTbl, _targetVersionTbl2, 4);
+			auto dummy2 = new Composite(grp, SWT.NONE);
+			auto dgd2 = new GridData(GridData.FILL_HORIZONTAL);
+			dgd2.widthHint = 0;
+			dgd2.heightHint = 0;
+			dummy2.setLayoutData(dgd2);
+			auto tvHint = new Label(grp, SWT.NONE);
+			tvHint.setText(_prop.msgs.targetVersionHint);
+			auto tvHintGD = new GridData(GridData.FILL_HORIZONTAL);
+			tvHintGD.horizontalSpan = 4;
+			tvHint.setLayoutData(tvHintGD);
 
 			version (Windows) {
 				immutable int[] soundPlayTypeVals = [
@@ -1305,6 +1317,7 @@ protected:
 		_openLastScenario.setChecked(_prop.var.etc.openLastScenario);
 		_showVariableValuesInEventText.setChecked(_prop.var.etc.showVariableValuesInEventText);
 		_cautionBeforeReplace.setChecked(_prop.var.etc.cautionBeforeReplace);
+		_saveNeedChanged.setChecked(_prop.var.etc.saveNeedChanged);
 		_applyDialogsBeforeSave.setChecked(_prop.var.etc.applyDialogsBeforeSave);
 		_useNamesAfterStandard.setChecked(_prop.var.etc.useNamesAfterStandard);
 		_selectVariableWithTree.setChecked(_prop.var.etc.selectVariableWithTree);
@@ -1499,6 +1512,7 @@ protected:
 		_prop.var.etc.openLastScenario = _openLastScenario.getChecked();
 		_prop.var.etc.showVariableValuesInEventText = _showVariableValuesInEventText.getChecked();
 		_prop.var.etc.cautionBeforeReplace = _cautionBeforeReplace.getChecked();
+		_prop.var.etc.saveNeedChanged = _saveNeedChanged.getChecked();
 		_prop.var.etc.applyDialogsBeforeSave = _applyDialogsBeforeSave.getChecked();
 		_prop.var.etc.useNamesAfterStandard = _useNamesAfterStandard.getChecked();
 		_prop.var.etc.selectVariableWithTree = _selectVariableWithTree.getChecked();

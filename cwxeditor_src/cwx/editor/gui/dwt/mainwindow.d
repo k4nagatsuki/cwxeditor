@@ -1478,13 +1478,16 @@ private:
 		}
 	}
 	private Menu _menuFile;
+	bool canSaveOverwrite() { mixin(S_TRACE);
+		return summary !is null && (!_prop.var.etc.saveNeedChanged || summary.isChanged);
+	}
 	void createFileMenu() { mixin(S_TRACE);
 		foreach (itm; _menuFile.getItems()) { mixin(S_TRACE);
 			itm.dispose();
 		}
 		mixin (MenuAction!("_menuFile", MenuID.New, SWT.PUSH, "createScenario", "null"));
 		mixin (MenuAction!("_menuFile", MenuID.Open, SWT.PUSH, "openScenarioM", "null"));
-		mixin (MenuAction!("_menuFile", MenuID.Save, SWT.PUSH, "saveScenario", "() => summary !is null"));
+		mixin (MenuAction!("_menuFile", MenuID.Save, SWT.PUSH, "saveScenario", "&canSaveOverwrite"));
 		mixin (MenuAction!("_menuFile", MenuID.SaveAs, SWT.PUSH, "saveScenarioA", "() => summary !is null"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		mixin (MenuAction!("_menuFile", MenuID.NewAtNewWindow, SWT.PUSH, "createScenarioNewWin", "null"));
@@ -2438,7 +2441,7 @@ public:
 									final switch (tool.menu) {
 									case MenuID.New: act = &createScenario; can = null; break;
 									case MenuID.Open: act = &openScenarioM; can = null; break;
-									case MenuID.Save: act = &saveScenario; can = () => summary !is null; break;
+									case MenuID.Save: act = &saveScenario; can = &canSaveOverwrite; break;
 									case MenuID.SaveAs: act = &saveScenarioA; can = () => summary !is null; break;
 									case MenuID.CreateArchive: act = &_dirWin.createArchive; can = &_dirWin.canCreateArchive; break;
 									case MenuID.Reload: act = &reload; can = () => summary !is null; break;
@@ -2712,7 +2715,7 @@ public:
 				auto bar = new ToolBar(_toolComp, SWT.FLAT);
 				mixin (ToolAction!("bar", MenuID.New, SWT.PUSH, "createScenario", "null"));
 				mixin (ToolAction!("bar", MenuID.Open, SWT.PUSH, "openScenarioM", "null"));
-				mixin (ToolAction!("bar", MenuID.Save, SWT.PUSH, "saveScenario", "() => summary !is null"));
+				mixin (ToolAction!("bar", MenuID.Save, SWT.PUSH, "saveScenario", "&canSaveOverwrite"));
 				mixin (ToolAction!("bar", MenuID.SaveAs, SWT.PUSH, "saveScenarioA", "() => summary !is null"));
 				new ToolItem(bar, SWT.SEPARATOR);
 				mixin (ToolAction!("bar", MenuID.Find, SWT.PUSH, "replaceText", "null"));
