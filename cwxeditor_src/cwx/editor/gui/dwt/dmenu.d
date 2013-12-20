@@ -700,3 +700,13 @@ MenuItem findMenu(Menu menu, int keyCode, wchar character, int stateMask) { mixi
 	}
 	return null;
 }
+
+/// menuが有効状態か否かを返す。
+/// MenuDataが登録されている場合は有効状態を更新する。
+bool menuEnabled(MenuItem menu) {
+	auto data = cast(MenuData)menu.getData();
+	if (data && data.enabled) {
+		menu.setEnabled(data.enabled());
+	}
+	return menu.getEnabled();
+}

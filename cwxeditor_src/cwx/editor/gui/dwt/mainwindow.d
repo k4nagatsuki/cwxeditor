@@ -2950,7 +2950,7 @@ public:
 			}
 			if (fc.getMenu()) { mixin(S_TRACE);
 				auto menu = findMenu(fc.getMenu(), e.keyCode, e.character, e.stateMask);
-				if (menu && menu.getEnabled()) { mixin(S_TRACE);
+				if (menu && .menuEnabled(menu)) { mixin(S_TRACE);
 					raiseEvent(menu);
 					return;
 				}
@@ -2972,7 +2972,7 @@ public:
 				shl = cast(Shell) shl.getParent();
 				if (!shl) break;
 			}
-			if (menu && menu.getEnabled()) { mixin(S_TRACE);
+			if (menu && .menuEnabled(menu)) { mixin(S_TRACE);
 				raiseEvent(menu);
 				return;
 			}
