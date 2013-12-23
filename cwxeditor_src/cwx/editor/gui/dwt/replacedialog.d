@@ -76,6 +76,12 @@ private class FKeyCodesUndo : TUndo!(FKeyCode[]) {
 	}
 }
 
+private class CouponsUndo : TUndo!(Coupon[]) {
+	this (Coupon[] old, Coupon[] n, void delegate(Coupon[]) set) { mixin(S_TRACE);
+		super (old.dup, n.dup, set, (Coupon[] v) {return v.dup;});
+	}
+}
+
 /// 検索と置換を行うダイアログ。
 class ReplaceDialog {
 private:
@@ -142,6 +148,9 @@ private:
 	}
 	void store(CWXPath path, FKeyCode[] o, FKeyCode[] n, void delegate(FKeyCode[]) set) { mixin(S_TRACE);
 		_rUndo ~= new RUndo(path, [new FKeyCodesUndo(o, n, set)]);
+	}
+	void store(CWXPath path, Coupon[] o, Coupon[] n, void delegate(Coupon[]) set) { mixin(S_TRACE);
+		_rUndo ~= new RUndo(path, [new CouponsUndo(o, n, set)]);
 	}
 	void storeID(User, Id)(CWXPath path, User u, Id from, Id to, void delegate(Id) set) { mixin(S_TRACE);
 		_rUndo ~= new RUndo(path, [new TUndo!Id(from, to, set)]);
@@ -3971,6 +3980,31 @@ public:
 		}
 		return false;
 	}
+	private bool replCoupons(C)(CWXPath path, C targ, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
+		if (_couponSel) { mixin(S_TRACE);
+			auto coupons = targ.coupons.dup;
+			auto old = targ.coupons.dup;
+			bool r = false;
+			Undo[] nArr;
+			foreach (i, coupon; coupons) { mixin(S_TRACE);
+				r |= repl(null, coupon.name, (string t) {coupon = new Coupon(t, coupon.value);}, count, nArr);
+				if (_replMode) coupons[i] = coupon;
+			}
+			if (r) { mixin(S_TRACE);
+				if (_replMode) { mixin(S_TRACE);
+					if (!path) uArr ~= new CouponsUndo(old, coupons.dup, &targ.coupons);
+					targ.coupons = coupons;
+				}
+				if (path) { mixin(S_TRACE);
+					if (_replMode) store(path, old, coupons.dup, &targ.coupons);
+					size_t dmy = 0;
+					addResult(path, dmy);
+				}
+				return true;
+			}
+		}
+		return false;
+	}
 
 	private bool replBgImage(CWXPath path, BgImage back, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
 		bool r = false;
@@ -4114,6 +4148,7 @@ public:
 		}
 		if (_couponSel) { mixin(S_TRACE);
 			r |= repl(null, e.coupon, &e.coupon, count, uArr2);
+			r |= replCoupons(null, e, count, uArr2);
 		}
 		if (_gossipSel) { mixin(S_TRACE);
 			r |= repl(null, e.gossip, &e.gossip, count, uArr2);
