@@ -430,3 +430,35 @@ bool icoSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!
 	}
 	return false;
 }
+
+/// 一部バージョンのCardWirthNextが生成するBitmap(16 bit)は
+/// bfOffBitsが壊れているので予め訂正する。
+/// FIXME: 末尾に余計なデータがついている画像は却って
+///        上手くいかない可能性があるが、非常にレアな
+///        ケースなのでまず問題にはならないと思われる。
+void fixCWNext16BitBitmap(ref byte[] bytes) { mixin(S_TRACE);
+	if (bytes.length  < 14 + 40) return;
+	auto f = ByteIO(bytes);
+	if ('B' != f.readByteL()) return;
+	if ('M' != f.readByteL()) return;
+	auto bfSize = f.readUIntL();
+	auto bfReserved1 = f.readUShortL();
+	auto bfReserved2 = f.readUShortL();
+	auto bfOffBits = f.readUIntL();
+	if (bfOffBits == 0) return;
+	auto biSize = f.readUIntL();
+	if (biSize != 40) return;
+	auto biWidth = f.readUIntL();
+	auto biHeight = f.readIntL();
+	auto biPlanes = f.readUShortL();
+	auto biBitCount = f.readUShortL();
+	if (biBitCount != 16) return;
+	auto lineSize = ((biWidth * biBitCount + 31) / 32) * 4;
+	auto height = biHeight < 0 ? -biHeight : biHeight;
+	if (bytes.length - bfOffBits != lineSize * height) {
+		// bfOffBitsを現在位置に修正
+		bfOffBits = f.pointer;
+		f.pointer = 10;
+		f.writeL(cast(uint)bfOffBits);
+	}
+}

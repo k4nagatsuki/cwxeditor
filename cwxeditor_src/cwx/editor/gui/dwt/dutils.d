@@ -111,6 +111,7 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 					delete bytes;
 				}
 			}
+			.fixCWNext16BitBitmap(bytes);
 			auto s = new ByteArrayInputStream(bytes);
 			scope (exit) s.close();
 			auto data = new ImageData(s);
@@ -128,6 +129,7 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 			}
 			return data;
 		} catch (SWTException e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}

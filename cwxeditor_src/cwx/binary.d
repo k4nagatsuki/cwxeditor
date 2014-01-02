@@ -33,6 +33,12 @@ struct ByteIO {
 	/// 読込み・書込みを終えたByte数。
 	@property
 	size_t pointer() {return _pointer;}
+	/// ditto
+	@property
+	void pointer(size_t pos) {
+		_pointer = 0;
+		seek(pos);
+	}
 	/// void[]をByte列としてByteIOを生成。
 	static ByteIO opCall(void[] _bytes) {
 		ByteIO io;
@@ -58,7 +64,8 @@ struct ByteIO {
 	/// Byte列の終りに達していればtrue。
 	@property
 	bool eob() {return _pointer >= _bytes.length;}
-	/// seekする。
+	/// 相対位置でseekする。
+	/// 絶対位置へseekする場合はpointerへの代入を使う。
 	void seek(int bytes) { mixin(S_TRACE);
 		if (bytes < 0) { mixin(S_TRACE);
 			enforce(_pointer >= -bytes,
