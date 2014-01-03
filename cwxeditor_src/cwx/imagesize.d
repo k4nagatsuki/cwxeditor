@@ -453,8 +453,19 @@ void fixCWNext16BitBitmap(ref byte[] bytes) { mixin(S_TRACE);
 	auto biPlanes = f.readUShortL();
 	auto biBitCount = f.readUShortL();
 	if (biBitCount != 16) return;
+	auto biCompression = f.readUIntL();
+	auto biSizeImage = f.readUIntL();
+	auto biXPixPerMeter = f.readIntL();
+	auto biYPixPerMeter = f.readIntL();
+	auto biClrUsed = f.readUIntL();
+	auto biClrImporant = f.readUIntL();
 	auto lineSize = ((biWidth * biBitCount + 31) / 32) * 4;
 	auto height = biHeight < 0 ? -biHeight : biHeight;
+	if (biCompression == 3) {
+		auto bitFieldR = f.readUIntL();
+		auto bitFieldG = f.readUIntL();
+		auto bitFieldB = f.readUIntL();
+	}
 	if (bytes.length - bfOffBits != lineSize * height) {
 		// bfOffBitsを現在位置に修正
 		bfOffBits = f.pointer;

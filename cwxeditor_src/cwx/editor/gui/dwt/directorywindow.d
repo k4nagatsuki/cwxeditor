@@ -1048,12 +1048,15 @@ private:
 				_jpyData ~= Jpy1.load(_prop.parent, sPath, file);
 				_jpyData[$-1].setUseCounter(_summ.useCounter);
 			} catch (EffectBoosterError e) {
+				debugln(file);
+				debugln(e);
 				debug {
 					foreach (err; e.errors) { mixin(S_TRACE);
 						debugln(.tryFormat(_prop.msgs.jpyError, err.msg, file, err.line));
 					}
 				}
 			} catch (Exception e) {
+				debugln(file);
 				debugln(e);
 			}
 		}
@@ -1227,7 +1230,11 @@ private:
 			scope (exit) _onRefresh = false;
 			if (_stopTrace) return;
 			if (_summ && _summ.useTemp) { mixin(S_TRACE);
-				_summ.changed();
+				auto cp = _checkPaths;
+				refCheckPaths();
+				if (cp != _checkPaths) { mixin(S_TRACE);
+					_summ.changed();
+				}
 			}
 			if (_dirsEdit.isEditing() || _filesEdit.isEditing()) return;
 			try { mixin(S_TRACE);
