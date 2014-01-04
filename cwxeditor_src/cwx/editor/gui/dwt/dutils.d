@@ -119,6 +119,7 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 			} catch (Throwable e) {
 				// 壊れたビットマップとして再読込を試みる
 				debugln(e);
+				debugln("Image loading failure. Tries patch to the broken bitmap.");
 				.fixCWNext16BitBitmap(bytes);
 				auto s = new ByteArrayInputStream(bytes);
 				scope (exit) s.close();
