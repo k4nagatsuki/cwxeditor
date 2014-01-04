@@ -111,10 +111,19 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 					delete bytes;
 				}
 			}
-			.fixCWNext16BitBitmap(bytes);
-			auto s = new ByteArrayInputStream(bytes);
-			scope (exit) s.close();
-			auto data = new ImageData(s);
+			ImageData data = null;
+			try {
+				auto s = new ByteArrayInputStream(bytes);
+				scope (exit) s.close();
+				data = new ImageData(s);
+			} catch (Throwable e) {
+				// 壊れたビットマップとして再読込を試みる
+				debugln(e);
+				.fixCWNext16BitBitmap(bytes);
+				auto s = new ByteArrayInputStream(bytes);
+				scope (exit) s.close();
+				data = new ImageData(s);
+			}
 			if (32 == data.depth && 'B' == bytes[0] && 'M' == bytes[1]) { mixin(S_TRACE);
 				// アルファ値を正しく取れないので補完しておく
 				data.alphaData = new byte[data.width * data.height];
