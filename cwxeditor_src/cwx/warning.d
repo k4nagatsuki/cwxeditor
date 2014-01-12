@@ -267,10 +267,16 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			return false;
 		}
 		if (c.flag != "" && !froot.findFlag(c.flag)) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorFlagNotFound;
+			// 代入コンテントではランダム値有効
+			if (!c.type == CType.SUBSTITUTE_FLAG || prop.sys.randomValue != c.flag) { mixin(S_TRACE);
+				r ~= prop.msgs.searchErrorFlagNotFound;
+			}
 		}
 		if (c.step != "" && !froot.findStep(c.step)) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorStepNotFound;
+			// 代入コンテントではランダム値有効
+			if (!c.type == CType.SUBSTITUTE_STEP || prop.sys.randomValue != c.step) { mixin(S_TRACE);
+				r ~= prop.msgs.searchErrorStepNotFound;
+			}
 		}
 		if (c.type == CType.TALK_MESSAGE && c.talkerC == Talker.IMAGE
 				&& c.cardPath != "" && !skin.findPath(c.cardPath, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
