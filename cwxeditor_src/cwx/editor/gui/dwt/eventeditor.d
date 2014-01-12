@@ -257,6 +257,7 @@ class EventEditor : Composite {
 	}
 	private void updatePosImpl() { mixin(S_TRACE);
 		_updatePos = true;
+		redraw();
 	}
 	private void updatePosImpl2() { mixin(S_TRACE);
 		if (!_updatePos) return;
