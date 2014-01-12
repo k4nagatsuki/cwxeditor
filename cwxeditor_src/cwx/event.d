@@ -888,7 +888,19 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 					if (step) num = step.count;
 				}
 				string[] array;
-				foreach (i; .iota(0, num)) { mixin(S_TRACE);
+				uint start = 0;
+				foreach (ct; next) { mixin(S_TRACE);
+					if (std.string.isNumeric(ct.name)) { mixin(S_TRACE);
+						try {
+							auto value = .to!uint(ct.name);
+							start = .max(value + 1, start);
+						} catch (ConvException e) {
+							// 処理無し
+						}
+					}
+				}
+				start = .min(num, start);
+				foreach (i; .iota(start, num)) { mixin(S_TRACE);
 					array ~= .text(i);
 				}
 				array ~= prop.sys.evtChildDefault;
