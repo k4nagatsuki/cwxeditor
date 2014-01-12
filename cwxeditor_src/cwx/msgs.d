@@ -1539,6 +1539,8 @@ class Msgs : Properties {
 	auto warningBgImageForeground = Msg("warningBgImageForeground", "カードよりも前の表示は、CardWirth 1.60より前のバージョンでは行えません。");
 	auto warningBgImageCellName = Msg("warningBgImageCellName", "背景セル名称は、CardWirth 1.60より前のバージョンでは設定できません。");
 	auto warningSelectionBarIsMany = Msg("warningSelectionBarIsMany", "選択肢が%1$s件ありますが、%2$s件までしか表示できません。");
+	auto warningEveryRound = Msg("warningEveryRound", "イベント発火条件「毎ラウンド」は、CardWirth 1.50より前のバージョンでは使用できません。");
+	auto warningRound0 = Msg("warningRound0", "イベント発火条件「バトル開始」は、CardWirth 1.50より前のバージョンでは使用できません。");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");

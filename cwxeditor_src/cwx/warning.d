@@ -63,6 +63,12 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (eventTree.keyCodes.length && prop.sys.convFireKeyCode(eventTree.keyCodes[0]) == "MatchingType=All") { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorKeyCodeMatchingAll;
 		}
+		if (eventTree.fireEveryRound && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
+			r ~= prop.msgs.warningEveryRound;
+		}
+		if (eventTree.fireRound0 && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
+			r ~= prop.msgs.warningRound0;
+		}
 	}
 	auto casts = cast(CastCard) path;
 	if (casts) { mixin(S_TRACE);
