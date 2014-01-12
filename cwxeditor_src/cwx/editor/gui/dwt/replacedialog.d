@@ -2658,12 +2658,18 @@ public:
 					return false;
 				}
 				if (c.flag != "" && !froot.findFlag(c.flag)) {
-					addResult(path, count, _prop.msgs.searchErrorFlagNotFound);
-					return;
+					// 代入コンテントではランダム値有効
+					if (!c.type == CType.SUBSTITUTE_FLAG || _prop.sys.randomValue != c.flag) {
+						addResult(path, count, _prop.msgs.searchErrorFlagNotFound);
+						return;
+					}
 				}
 				if (c.step != "" && !froot.findStep(c.step)) {
-					addResult(path, count, _prop.msgs.searchErrorStepNotFound);
-					return;
+					// 代入コンテントではランダム値有効
+					if (!c.type == CType.SUBSTITUTE_STEP || _prop.sys.randomValue != c.step) {
+						addResult(path, count, _prop.msgs.searchErrorStepNotFound);
+						return;
+					}
 				}
 				if (c.type == CType.TALK_MESSAGE && c.talkerC == Talker.IMAGE
 						&& c.cardPath != "" && !skin.findPath(c.cardPath, skin.extImage, skin.tableDir, sPath).length) {
