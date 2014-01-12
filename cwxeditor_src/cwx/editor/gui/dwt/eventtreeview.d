@@ -2117,6 +2117,8 @@ public:
 		_comm.refreshToolBar();
 	}
 	void treeClose() { mixin(S_TRACE);
+		_tree.control.setRedraw(false);
+		scope (exit) _tree.control.setRedraw(true);
 		foreach (itm; _tree.getItems()) { mixin(S_TRACE);
 			_tree.setExpanded(itm, false);
 		}
