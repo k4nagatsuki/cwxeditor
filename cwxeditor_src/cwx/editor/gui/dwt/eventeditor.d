@@ -148,6 +148,8 @@ class EventEditor : Composite {
 	private bool _expandedOperation = false;
 	private bool _showEventTreeDetail = true;
 
+	private bool _updatePos = true;
+
 	this (Commons comm, Composite parent, int style, Summary summ, EventTree et) { mixin(S_TRACE);
 		super (parent, style | SWT.V_SCROLL | SWT.H_SCROLL | SWT.DOUBLE_BUFFERED);
 		auto d = getDisplay();
@@ -254,6 +256,11 @@ class EventEditor : Composite {
 		updatePosImpl();
 	}
 	private void updatePosImpl() { mixin(S_TRACE);
+		_updatePos = true;
+	}
+	private void updatePosImpl2() { mixin(S_TRACE);
+		if (!_updatePos) return;
+		_updatePos = false;
 		int x = 0;
 		int y = 0;
 		int selIndex = 0;
@@ -801,6 +808,7 @@ class EventEditor : Composite {
 
 	private void onPaint(Event e) { mixin(S_TRACE);
 		if (!_et) return;
+		updatePosImpl2();
 		if (!_pos.length) return;
 		auto hw = _imageWidth / 2;
 		auto hh = _lineHeight / 2;
