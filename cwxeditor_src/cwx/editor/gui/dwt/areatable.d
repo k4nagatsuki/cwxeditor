@@ -2015,7 +2015,7 @@ public:
 				} else { mixin(S_TRACE);
 					_prop.var.etc.importAreasSortColumn = -1;
 				}
-				_comm.refImportAreasSort.add(&refSortParams);
+				_comm.refImportAreasSort.remove(&refSortParams);
 			} else { mixin(S_TRACE);
 				switch (areas.getSortDirection()) {
 				case SWT.UP:

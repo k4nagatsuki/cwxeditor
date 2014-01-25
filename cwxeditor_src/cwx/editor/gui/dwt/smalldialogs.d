@@ -770,8 +770,9 @@ class ImportOptionDialog : AbsDialog {
 	private Combo _battles;
 	private Combo _packages;
 	private Combo _includedFiles;
-	private Combo _includedBgImages;
-	private Combo _hands;
+	// FIXME: CardWirth 1.60 格納イメージ
+/+	private Combo _includedBgImages;
++/	private Combo _hands;
 	private Combo _beastsInMotions;
 
 	this (Commons comm, Shell shell) { mixin(S_TRACE);
@@ -820,8 +821,9 @@ class ImportOptionDialog : AbsDialog {
 		_battles = create(_prop.images.battle, _prop.msgs.importOptionBattles, _prop.var.etc.importOptionBattles, _opt.battles);
 		_packages = create(_prop.images.packages, _prop.msgs.importOptionPackages, _prop.var.etc.importOptionPackages, _opt.packages);
 		_includedFiles = create(_prop.images.cards, _prop.msgs.importOptionIncludedFiles, _prop.var.etc.importOptionIncludedFiles, _opt.includedFiles);
-		_includedBgImages = create(_prop.images.backs, _prop.msgs.importOptionIncludedBgImages, _prop.var.etc.importOptionIncludedBgImages, _opt.includedBgImages);
-		_hands = create(_prop.images.menu(MenuID.OpenHand), _prop.msgs.importOptionHands, _prop.var.etc.importOptionHands, _opt.hands);
+		// FIXME: CardWirth 1.60 格納イメージ
+/+		_includedBgImages = create(_prop.images.backs, _prop.msgs.importOptionIncludedBgImages, _prop.var.etc.importOptionIncludedBgImages, _opt.includedBgImages);
++/		_hands = create(_prop.images.menu(MenuID.OpenHand), _prop.msgs.importOptionHands, _prop.var.etc.importOptionHands, _opt.hands);
 		_beastsInMotions = create(_prop.images.beast, _prop.msgs.importOptionBeastsInMotions, _prop.var.etc.importOptionBeastsInMotions, _opt.beastsInMotions);
 	}
 
@@ -850,8 +852,9 @@ class ImportOptionDialog : AbsDialog {
 		put(_battles, _prop.var.etc.importOptionBattles.value, _opt.battles);
 		put(_packages, _prop.var.etc.importOptionPackages.value, _opt.packages);
 		put(_includedFiles, _prop.var.etc.importOptionIncludedFiles.value, _opt.includedFiles);
-		put(_includedBgImages, _prop.var.etc.importOptionIncludedBgImages.value, _opt.includedBgImages);
-		put(_hands, _prop.var.etc.importOptionHands.value, _opt.hands);
+		// FIXME: CardWirth 1.60 格納イメージ
+/+		put(_includedBgImages, _prop.var.etc.importOptionIncludedBgImages.value, _opt.includedBgImages);
++/		put(_hands, _prop.var.etc.importOptionHands.value, _opt.hands);
 		put(_beastsInMotions, _prop.var.etc.importOptionBeastsInMotions.value, _opt.beastsInMotions);
 
 		return ok;
