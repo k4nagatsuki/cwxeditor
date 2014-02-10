@@ -2357,93 +2357,93 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 	bool use;
 	bool delegate() find;
 	string name;
-	static if (CIDKind.Area == Kind) {
+	static if (CIDKind.Area == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectArea;
 		noID = comm.prop.msgs.noArea;
 		use = 0 != id;
 		auto a = summ.area(id);
 		find = () => a !is null;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
-	} else static if (CIDKind.Battle == Kind) {
+	} else static if (CIDKind.Battle == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectBattle;
 		noID = comm.prop.msgs.noBattle;
 		use = 0 != id;
 		auto a = summ.battle(id);
 		find = () => a !is null;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
-	} else static if (CIDKind.Package == Kind) {
+	} else static if (CIDKind.Package == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectPackage;
 		noID = comm.prop.msgs.noPackage;
 		use = 0 != id;
 		auto a = summ.cwPackage(id);
 		find = () => a !is null;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
-	} else static if (CIDKind.Cast == Kind) {
+	} else static if (CIDKind.Cast == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectCast;
 		noID = comm.prop.msgs.noCast;
 		use = 0 != id;
 		auto a = summ.cwCast(id);
 		find = () => a !is null;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
-	} else static if (CIDKind.Skill == Kind) {
+	} else static if (CIDKind.Skill == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectSkill;
 		noID = comm.prop.msgs.noSkill;
 		auto a = summ.skill(id);
 		find = () => a !is null;
 		use = 0 != id;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
-	} else static if (CIDKind.Item == Kind) {
+	} else static if (CIDKind.Item == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectItem;
 		noID = comm.prop.msgs.noItem;
 		auto a = summ.item(id);
 		find = () => a !is null;
 		use = 0 != id;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
-	} else static if (CIDKind.Beast == Kind) {
+	} else static if (CIDKind.Beast == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectBeast;
 		noID = comm.prop.msgs.noBeast;
 		auto a = summ.beast(id);
 		find = () => a !is null;
 		use = 0 != id;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
-	} else static if (CIDKind.Info == Kind) {
+	} else static if (CIDKind.Info == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectInfo;
 		noID = comm.prop.msgs.noInfo;
 		auto a = summ.info(id);
 		find = () => a !is null;
 		use = 0 != id;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
-	} else static if (CIDKind.Image == Kind) {
+	} else static if (CIDKind.Image == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectImage;
 		noID = comm.prop.msgs.noImage;
 		find = () => comm.skin.findImagePath(id, summ.scenarioPath).length > 0;
 		use = id && id.length;
 		name = id;
-	} else static if (CIDKind.BGM == Kind) {
+	} else static if (CIDKind.BGM == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectBGM;
 		noID = comm.prop.msgs.noBGM;
 		find = () => comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, summ.scenarioPath).length > 0;
 		use = id && id.length;
 		name = id;
-	} else static if (CIDKind.SE == Kind) {
+	} else static if (CIDKind.SE == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectSE;
 		noID = comm.prop.msgs.noSE;
 		find = () => comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, summ.scenarioPath).length > 0;
 		use = id && id.length;
 		name = id;
-	} else static if (CIDKind.Flag == Kind) {
+	} else static if (CIDKind.Flag == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectFlag;
 		noID = comm.prop.msgs.noFlag;
 		find = () => summ.flagDirRoot.findFlag(id) !is null;
 		use = id && id.length;
 		name = id;
-	} else static if (CIDKind.Step == Kind) {
+	} else static if (CIDKind.Step == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectStep;
 		noID = comm.prop.msgs.noStep;
 		find = () => summ.flagDirRoot.findStep(id) !is null;
 		use = id && id.length;
 		name = id;
-	} else static if (CIDKind.Start == Kind) {
+	} else static if (CIDKind.Start == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectStart;
 		noID = comm.prop.msgs.noStart;
 		find = () => evt.tree.hasStart(id);

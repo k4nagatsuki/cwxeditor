@@ -433,7 +433,6 @@ private:
 					v._refreshTopStart();
 				}
 			}
-			if (v) v.refreshStatusLine();
 			comm.refUseCount.call();
 		}
 		override void undo() {impl();}
