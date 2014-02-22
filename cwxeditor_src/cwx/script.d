@@ -772,7 +772,7 @@ class CWXScript {
 			}
 		}
 	}
-	private const OPE_LEVEL_MAX = 2;
+	private static immutable OPE_LEVEL_MAX = 2;
 	private CalcResult calcNum(in Token[] tokens, ref size_t i, in const(Node)[][string] varTable, size_t strWidth) { mixin(S_TRACE);
 		assert (i < tokens.length);
 		auto tok = tokens[i];

@@ -13,7 +13,7 @@ import std.traits;
 
 /// エディタのメニュー。
 class MenuProps : Properties {
-	immutable XML_NAME = "menu";
+	static immutable XML_NAME = "menu";
 
 	private string[] _mnemonic;
 	private immutable string[] _mnemonic_init;

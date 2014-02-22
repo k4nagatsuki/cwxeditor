@@ -43,7 +43,6 @@ import cwx.editor.gui.dwt.incsearch;
 
 import core.thread;
 
-import std.algorithm : lastIndexOf;
 import std.array;
 import std.conv;
 import std.utf;
