@@ -1459,7 +1459,7 @@ private:
 			return "";
 		}
 	}
-	const SYSTEM_SOUND_EXT = [
+	static immutable SYSTEM_SOUND_EXT = [
 		".aiff", // AIFF
 		".mid", ".midi", // MIDI
 		".mod", ".s3m", ".xm", ".it", ".mt2", ".669", ".med", // MOD
@@ -1478,7 +1478,7 @@ private:
 		return "";
 	}
 
-	const WALLPAPER_EXT = [".bmp", ".ico", ".icon", ".jpg", ".jpeg", ".gif", ".png", ".tif", ".tiff"];
+	static immutable WALLPAPER_EXT = [".bmp", ".ico", ".icon", ".jpg", ".jpeg", ".gif", ".png", ".tif", ".tiff"];
 	string dropWallpaper(string[] files) {
 		if (!files.length) return "";
 		foreach (file; files) {

@@ -13,7 +13,6 @@ import cwx.editor.gui.dwt.undo;
 
 import core.thread;
 
-import std.algorithm : lastIndexOf;
 import std.exception;
 import std.array;
 import std.conv;

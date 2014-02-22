@@ -66,7 +66,7 @@ void unzip(ZipArchive arc,
 		string nml = replace(name, "/", dirSeparator);
 		if (name.length > 0 && !hasParDir(nml)) {
 			// 属性が不思議なことになってるので0x10だけで判断するのは避ける
-			bool isDir = ((am.externalAttributes & 0x10) != 0 || std.algorithm.endsWith(nml, dirSeparator)) && am.expandedSize == 0;
+			bool isDir = ((am.fileAttributes & 0x10) != 0 || std.algorithm.endsWith(nml, dirSeparator)) && am.expandedSize == 0;
 			fileProc(nml, arc.expand(am), isDir);
 		}
 		if (progress !is null) {
@@ -85,9 +85,9 @@ ArchiveMember archive(string name, ubyte[] data, bool isDir, bool useSysEnc = fa
 	}
 	auto am = new ArchiveMember;
 	am.time = SysTimeToDosFileTime(Clock.currTime());
-	am.compressionMethod = 8;
+	am.compressionMethod = CompressionMethod.deflate;
 	// Attributes: Directory = 0x10, File = 0x20, ReadOnly = 0x01
-	am.externalAttributes = isDir ? 0x10 : 0x20;
+	am.fileAttributes = isDir ? 0x10 : 0x20;
 	am.internalAttributes = 1;
 	if (useSysEnc) {
 		version (Windows) {
@@ -130,13 +130,13 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, boo
 		}
 		auto am = new ArchiveMember;
 		am.time = SysTimeToDosFileTime(timeLastModified(file));
-		am.compressionMethod = 8;
+		am.compressionMethod = CompressionMethod.deflate;
 		auto name = file;
 		if (isDir(file)) {
 			name ~= dirSeparator;
 		}
 		// Attributes: Directory = 0x10, File = 0x20, ReadOnly = 0x01
-		am.externalAttributes = getAttributes(file);
+		am.fileAttributes = getAttributes(file);
 		am.internalAttributes = 1;
 		name = name[cut .. $];
 		if (useSysEnc) {

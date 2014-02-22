@@ -224,8 +224,8 @@ class System {
 		return 0 < keyCodes.find("リサイクル").length;
 	}
 
-	private immutable FKC_SUCCESS = "○";
-	private immutable FKC_FAILURE = "×";
+	private static immutable FKC_SUCCESS = "○";
+	private static immutable FKC_FAILURE = "×";
 	/// キーコード発火条件の種別を返す。
 	const
 	FKCKind fireKeyCodeKind(string keyCode) {

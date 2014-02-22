@@ -110,7 +110,7 @@ class ImageListWindow(MtType Type) {
 }
 
 class ImageList : Composite {
-	private const SPACING = 10;
+	private static immutable SPACING = 10;
 	private string[] _path;
 	private ImageData[] _image;
 	private CRect[] _bounds;

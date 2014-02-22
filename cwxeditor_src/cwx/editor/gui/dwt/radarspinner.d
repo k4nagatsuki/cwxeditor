@@ -44,9 +44,9 @@ class RadarSpinner : Composite {
 	private int _min;
 	private int _onDrag = -1;
 	private int _ovalStep = 1;
-	private const int TOGGLE_SIZE = 5;
-	private const int TOGGLE_CATCH_SIZE = 11;
-	private const int MARGIN = 10;
+	private static immutable int TOGGLE_SIZE = 5;
+	private static immutable int TOGGLE_CATCH_SIZE = 11;
+	private static immutable int MARGIN = 10;
 	private int _antialias = SWT.DEFAULT;
 	private bool _side = true;
 	private bool _oval = false;

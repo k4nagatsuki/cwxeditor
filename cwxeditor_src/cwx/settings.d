@@ -51,10 +51,10 @@ private void fromNode(T)(ref XNode node, string key, ref T value) {
 
 /// T型のプロパティ。
 struct Prop(T, bool ReadOnly = false) {
-	immutable string KEY;
+	const string KEY;
 	const T INIT;
-	immutable bool READ_ONLY = ReadOnly;
-	immutable ulong CHG_VERSION;
+	static immutable bool READ_ONLY = ReadOnly;
+	const ulong CHG_VERSION;
 
 	T value;
 	alias value this;
@@ -81,10 +81,10 @@ struct Prop(T, bool ReadOnly = false) {
 }
 /// ditto
 struct PropAttr(T, bool ReadOnly = false) {
-	immutable string ATTR_KEY;
+	const string ATTR_KEY;
 	const T INIT;
-	immutable bool READ_ONLY = ReadOnly;
-	immutable ulong CHG_VERSION;
+	static immutable bool READ_ONLY = ReadOnly;
+	const ulong CHG_VERSION;
 
 	T value;
 	alias value this;
