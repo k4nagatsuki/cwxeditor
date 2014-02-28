@@ -1976,6 +1976,7 @@ class Msgs : Properties {
 	auto menuTextNewFlagDir = Msg("menuTextNewFlagDir", "フォルダの作成");
 	auto menuTextNewFlag = Msg("menuTextNewFlag", "フラグの作成");
 	auto menuTextNewStep = Msg("menuTextNewStep", "ステップの作成");
+	auto menuTextCreateStepValues = Msg("menuTextCreateStepValues", "ステップ値の自動生成");
 	auto menuTextCreateVariableEventTree = Msg("menuTextCreateVariableEventTree", "イベントツリーとしてコピー");
 	auto menuTextInitVariablesTree = Msg("menuTextInitVariablesTree", "初期値の設定");
 	auto menuTextCopyVariablePath = Msg("menuTextCopyVariablePath", "状態変数のパスをコピー");

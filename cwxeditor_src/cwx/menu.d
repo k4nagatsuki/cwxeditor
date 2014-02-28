@@ -126,6 +126,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.NewFlagDir] = "N";
 		_mnemonic[MenuID.NewFlag] = "F";
 		_mnemonic[MenuID.NewStep] = "S";
+		_mnemonic[MenuID.CreateStepValues] = "V";
 		_mnemonic[MenuID.CreateVariableEventTree] = "E";
 		_mnemonic[MenuID.InitVariablesTree] = "I";
 		_mnemonic[MenuID.CopyVariablePath] = "V";
@@ -329,6 +330,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.NewFlagDir] = "";
 		_hotkey[MenuID.NewFlag] = "Ctrl+L";
 		_hotkey[MenuID.NewStep] = "Ctrl+P";
+		_hotkey[MenuID.CreateStepValues] = "";
 		_hotkey[MenuID.CreateVariableEventTree] = "";
 		_hotkey[MenuID.InitVariablesTree] = "";
 		_hotkey[MenuID.CopyVariablePath] = "";
@@ -777,6 +779,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.CGroupGet:
 	case MenuID.CGroupLost:
 	case MenuID.CGroupVisual:
+	case MenuID.CreateStepValues:
 	case MenuID.CreateVariableEventTree:
 	case MenuID.InitVariablesTree:
 	case MenuID.OverDialog:

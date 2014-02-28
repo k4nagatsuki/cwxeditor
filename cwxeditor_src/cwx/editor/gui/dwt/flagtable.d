@@ -165,6 +165,11 @@ protected:
 				(new Label(valsComp, SWT.NULL)).setText(.tryFormat(prop.msgs.dlgLblStep, i));
 				auto t = new Text(valsComp, SWT.BORDER);
 				createTextMenu!Text(_comm, prop, t, &catchMod);
+				auto menu = t.getMenu();
+				new MenuItem(menu, SWT.SEPARATOR);
+				auto a = new CreateStepValues;
+				a.index = i;
+				createMenuItem(_comm, menu, MenuID.CreateStepValues, &a.createStepValues, &a.canCreateStepValues);
 				stepVals ~= t;
 				mod(t);
 				stepVals[i].addModifyListener(new ModValue(i));
@@ -209,6 +214,24 @@ protected:
 		stepName.selectAll();
 		setComboItems(stepInit, vals);
 		stepInit.select(_step is null ? 0 : _step.select);
+	}
+
+	private class CreateStepValues {
+		int index;
+		bool canCreateStepValues() { mixin(S_TRACE);
+			return index + 1 < stepVals.length;
+		}
+		void createStepValues() { mixin(S_TRACE);
+			assert (index < stepVals.length);
+			auto text = stepVals[index];
+			auto lastValue = text.getText();
+			foreach (text2; stepVals[index + 1 .. $]) { mixin(S_TRACE);
+				lastValue = createNewName(lastValue, (string name) { mixin(S_TRACE);
+					return name != lastValue;
+				});
+				text2.setText(lastValue);
+			}
+		}
 	}
 
 	override bool apply() { mixin(S_TRACE);

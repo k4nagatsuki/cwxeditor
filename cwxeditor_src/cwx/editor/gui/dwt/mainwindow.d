@@ -2567,6 +2567,7 @@ public:
 									case MenuID.CGroupGet:
 									case MenuID.CGroupLost:
 									case MenuID.CGroupVisual:
+									case MenuID.CreateStepValues:
 									case MenuID.CreateVariableEventTree:
 									case MenuID.InitVariablesTree:
 									case MenuID.OverDialog:
