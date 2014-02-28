@@ -1798,6 +1798,8 @@ public:
 				createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, &canStartToPackage);
 				createMenuItem(_comm, popup, MenuID.WrapTree, &wrapTree, &canWrapTree);
 				new MenuItem(popup, SWT.SEPARATOR);
+				createMenuItem(_comm, popup, MenuID.FindID, &findStartUsers, &canFindStartUsers);
+				new MenuItem(popup, SWT.SEPARATOR);
 				void delegate() dlg = null;
 				auto createMI = createMenuItem(_comm, popup, MenuID.CreateContent, dlg, () => _et !is null, SWT.CASCADE);
 				_createM = new Menu(_tree.control.getShell(), SWT.DROP_DOWN);
@@ -2025,6 +2027,24 @@ public:
 		_comm.refUseCount.call();
 		_comm.refreshToolBar();
 	}
+
+	@property
+	bool canFindStartUsers() {
+		return !_readOnly && selection && cast(Content)selection.getData() && (cast(Content)selection.getData()).type is CType.START;
+	}
+	void findStartUsers() {
+		if (!selection) return;
+		auto start = cast(Content)selection.getData();
+		if (!start) return;
+		if (start.type !is CType.START) return;
+		auto replWin = _comm.mainWin.openReplWin();
+		CWXPath[] arr;
+		foreach (s; start.tree.startUseCounter.values(start.name)) {
+			arr ~= cast(Content)s;
+		}
+		replWin.setFindResult(arr, _prop.msgs.replStartUsers);
+	}
+
 	@property
 	bool canWrapTree() { mixin(S_TRACE);
 		return !_readOnly && selection && (cast(Content)selection.getData()).parent;

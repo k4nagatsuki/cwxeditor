@@ -388,27 +388,30 @@ private:
 			if (cancel) return;
 			if (!_win || _win.isDisposed()) return;
 			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
-			auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
-			string text1, text2;
-			Image img1, img2;
-			getPathParams(path, text1, text2, img1, img2);
-			itm.setImage(0, img1);
-			itm.setText(0, text1);
-			itm.setImage(1, img2);
-			itm.setText(1, text2);
-			if (desc.length) { mixin(S_TRACE);
-				itm.setText(2, desc);
-				itm.setImage(2, _prop.images.warning);
-			}
-			string scPath = null;
-			if (_grepSumm) { mixin(S_TRACE);
-				scPath = _grepSumm.useTemp ? _grepSumm.zipName : _grepSumm.scenarioPath;
-				itm.setText(2, .tryFormat(_prop.msgs.grepScenario, _grepSumm.scenarioName, scPath));
-				itm.setImage(2, _prop.images.summary);
-			}
-			itm.setData(new CWXPathString(scPath, _grepSumm ? null : path, path.cwxPath(true)));
+			addResultImpl(path, index, desc);
 			refResultStatus(count, false);
 		}
+	}
+	private void addResultImpl(CWXPath path, int index = -1, string desc = "") {
+		auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
+		string text1, text2;
+		Image img1, img2;
+		getPathParams(path, text1, text2, img1, img2);
+		itm.setImage(0, img1);
+		itm.setText(0, text1);
+		itm.setImage(1, img2);
+		itm.setText(1, text2);
+		if (desc.length) { mixin(S_TRACE);
+			itm.setText(2, desc);
+			itm.setImage(2, _prop.images.warning);
+		}
+		string scPath = null;
+		if (_grepSumm) { mixin(S_TRACE);
+			scPath = _grepSumm.useTemp ? _grepSumm.zipName : _grepSumm.scenarioPath;
+			itm.setText(2, .tryFormat(_prop.msgs.grepScenario, _grepSumm.scenarioName, scPath));
+			itm.setImage(2, _prop.images.summary);
+		}
+		itm.setData(new CWXPathString(scPath, _grepSumm ? null : path, path.cwxPath(true)));
 	}
 	class AddResultMsg : Runnable {
 		string name;
@@ -2302,6 +2305,18 @@ public:
 		_undo.redo();
 		_comm.updateJpy1Files();
 	}
+	/// 外部で検索した結果を表示する。
+	void setFindResult(CWXPath[] paths, string kind) { mixin(S_TRACE);
+		if (!_win || _win.isDisposed()) return;
+		resultRedraw(false);
+		scope (exit) resultRedraw(true);
+		reset();
+		initReplaceText();
+		foreach (path; paths) { mixin(S_TRACE);
+			addResultImpl(path);
+		}
+		refResultStatusImpl(paths.length, kind);
+	}
 	private void search() { mixin(S_TRACE);
 		auto c = _win.getDisplay().getFocusControl();
 		_replMode = false;
@@ -2534,27 +2549,27 @@ public:
 			void run() { mixin(S_TRACE);
 				if (!_win || _win.isDisposed()) return;
 				if (!_tabf.getSelection()) return;
-				string text;
-				string num = .formatNum(count);
-				if (_replMode) { mixin(S_TRACE);
-					string kind = _tabf.getSelection().getText();
-					text = .tryFormat(_prop.msgs.replResult, num, kind);
-				} else { mixin(S_TRACE);
-					if (_grepSumm) { mixin(S_TRACE);
-						text = .tryFormat(_prop.msgs.searchResultGrep2, _grepCount, num, _grepFile);
-					} else if (_grepFile.length) { mixin(S_TRACE);
-						text = .tryFormat(_prop.msgs.searchResultGrep1, _grepCount, num, _grepFile);
-					} else if (0 <= _grepCount) { mixin(S_TRACE);
-						string kind = _tabf.getSelection().getText();
-						text = .tryFormat(_prop.msgs.searchResultGrep3, _grepCount, num, kind);
-					} else { mixin(S_TRACE);
-						string kind = _tabf.getSelection().getText();
-						text = .tryFormat(_prop.msgs.searchResult, num, kind);
-					}
-				}
-				_status.setText(text);
+				refResultStatusImpl(count, _tabf.getSelection().getText());
 			}
 		});
+	}
+	private void refResultStatusImpl(uint count, string kind) { mixin(S_TRACE);
+		string text;
+		string num = .formatNum(count);
+		if (_replMode) { mixin(S_TRACE);
+			text = .tryFormat(_prop.msgs.replResult, num, kind);
+		} else { mixin(S_TRACE);
+			if (_grepSumm) { mixin(S_TRACE);
+				text = .tryFormat(_prop.msgs.searchResultGrep2, _grepCount, num, _grepFile);
+			} else if (_grepFile.length) { mixin(S_TRACE);
+				text = .tryFormat(_prop.msgs.searchResultGrep1, _grepCount, num, _grepFile);
+			} else if (0 <= _grepCount) { mixin(S_TRACE);
+				text = .tryFormat(_prop.msgs.searchResultGrep3, _grepCount, num, kind);
+			} else { mixin(S_TRACE);
+				text = .tryFormat(_prop.msgs.searchResult, num, kind);
+			}
+		}
+		_status.setText(text);
 	}
 	@property
 	private bool[CWXPath] rangeTable() { mixin(S_TRACE);
@@ -3375,6 +3390,15 @@ public:
 			combo.select(0);
 		}
 	}
+	private void initReplaceText() {
+		_result.setHeaderVisible(true);
+		auto mainColumn = new TableColumn(_result, SWT.NONE);
+		mainColumn.setText(_prop.msgs.searchResultColumnMain);
+		saveColumnWidth!("prop.var.etc.searchResultColumnMain")(_prop, mainColumn);
+		auto subColumn = new TableColumn(_result, SWT.NONE);
+		subColumn.setText(_prop.msgs.searchResultColumnParent);
+		saveColumnWidth!("prop.var.etc.searchResultColumnParent")(_prop, subColumn);
+	}
 	private void replaceTextImpl() { mixin(S_TRACE);
 		if (!_summ) return;
 		string from = _from.getText();
@@ -3389,13 +3413,7 @@ public:
 		reset();
 		_lastFind = _tabf.getSelection();
 
-		_result.setHeaderVisible(true);
-		auto mainColumn = new TableColumn(_result, SWT.NONE);
-		mainColumn.setText(_prop.msgs.searchResultColumnMain);
-		saveColumnWidth!("prop.var.etc.searchResultColumnMain")(_prop, mainColumn);
-		auto subColumn = new TableColumn(_result, SWT.NONE);
-		subColumn.setText(_prop.msgs.searchResultColumnParent);
-		saveColumnWidth!("prop.var.etc.searchResultColumnParent")(_prop, subColumn);
+		initReplaceText();
 
 		auto range = searchRange;
 		_inProc = true;

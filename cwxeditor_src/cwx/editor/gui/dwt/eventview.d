@@ -1849,6 +1849,13 @@ public:
 	void wrapTree() { mixin(S_TRACE);
 		return _etree.wrapTree();
 	}
+	@property
+	bool canFindStartUsers() { mixin(S_TRACE);
+		return _etree.canFindStartUsers();
+	}
+	void findStartUsers() { mixin(S_TRACE);
+		return _etree.findStartUsers();
+	}
 
 	private void pasteScript(Clipboard cb) { mixin(S_TRACE);
 		if (_readOnly) return;

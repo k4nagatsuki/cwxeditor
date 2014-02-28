@@ -164,6 +164,7 @@ class Msgs : Properties {
 	auto replForUnuse = Msg("replForUnuse", "未使用検索");
 	auto replForError = Msg("replForError", "誤り検索");
 	auto replGrep = Msg("replGrep", "外部シナリオ");
+	auto replStartUsers = Msg("replStartUsers", "スタートの参照");
 
 	auto searchRange = Msg("searchRange", "検索対象");
 	auto flagsAndSteps = Msg("flagsAndSteps", "フラグとステップ");

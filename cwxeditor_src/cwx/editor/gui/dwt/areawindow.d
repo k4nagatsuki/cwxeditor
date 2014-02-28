@@ -291,6 +291,7 @@ public:
 				putMenuAction(MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
 				putMenuAction(MenuID.StartToPackage, &startToPackage, &canStartToPackage);
 				putMenuAction(MenuID.WrapTree, &wrapTree, &canWrapTree);
+				putMenuAction(MenuID.FindID, &findStartUsers, &canFindStartUsers);
 			} else { mixin(S_TRACE);
 				putMenuAction(MenuID.EditEvent, &openEvent, null);
 			}
@@ -480,6 +481,10 @@ public:
 			_eview.initial();
 			return _eview.canWrapTree();
 		}
+		private bool canFindStartUsers() { mixin(S_TRACE);
+			_eview.initial();
+			return _eview.canFindStartUsers();
+		}
 		private void toScript() { mixin(S_TRACE);
 			_eview.initial();
 			_eview.toScript();
@@ -503,6 +508,10 @@ public:
 		private void wrapTree() { mixin(S_TRACE);
 			_eview.initial();
 			_eview.wrapTree();
+		}
+		private void findStartUsers() { mixin(S_TRACE);
+			_eview.initial();
+			_eview.findStartUsers();
 		}
 		private void edit() { mixin(S_TRACE);
 			if (_tabf.getSelection() is _tabA) {
