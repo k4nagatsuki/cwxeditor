@@ -226,11 +226,13 @@ class EventEditor : Composite {
 	}
 
 	void showSelection() { mixin(S_TRACE);
+		updatePosImpl2();
 		if (!_selected) return;
 		if (_selected !in _posTable) return;
 		scroll(_posTable[_selected].y / _lineHeight, _posTable[_selected].height);
 	}
 	private void scroll(int pos, int height) { mixin(S_TRACE);
+		updatePosImpl2();
 		auto vbar = getVerticalBar();
 		int vPos = vbar.getSelection();
 		if (pos < vPos) { mixin(S_TRACE);
