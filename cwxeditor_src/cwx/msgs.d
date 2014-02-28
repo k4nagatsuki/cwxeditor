@@ -970,7 +970,7 @@ class Msgs : Properties {
 	auto borderingWidth = Msg("borderingWidth", "幅:");
 	auto borderingColor = Msg("borderingColor", "縁取り色");
 
-	auto areaViewKeyboardHint = Msg("areaViewKeyboardHint", "選択して上下左右: 移動, Shift+上下左右: サイズ変更, Ctrl+Altの同時押しで10ピクセル単位で操作");
+	auto areaViewKeyboardHint = Msg("areaViewKeyboardHint", "選択+上下左右: 移動, Shift+上下左右: サイズ変更, Ctrl+Altで10ピクセル単位操作, Ctrl+Shift+クリックで範囲選択");
 
 	/// イベントビュー。
 	auto tools = Msg("tools", "イベントコンテント");

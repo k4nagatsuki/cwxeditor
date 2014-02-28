@@ -1816,6 +1816,8 @@ private:
 	int dragStartX, dragStartY;
 	bool moved = false;
 	WallpaperStyle _wallpaperStyle = WallpaperStyle.Tile;
+	Point _rangeStartPos = null;
+	Point _rangeEndPos = null;
 
 	PileImage[] backs = [];
 	ImageData[] _appends = [];
@@ -1947,11 +1949,51 @@ private:
 			if (b == toGridY(b)) _gridYH ~= b;
 		}
 	}
+	private void redrawRangeLine() { mixin(S_TRACE);
+		if (!_rangeStartPos || !_rangeEndPos) return;
+		int x1 = .min(_rangeStartPos.x, _rangeEndPos.x);
+		int y1 = .min(_rangeStartPos.y, _rangeEndPos.y);
+		int x2 = .max(_rangeStartPos.x, _rangeEndPos.x);
+		int y2 = .max(_rangeStartPos.y, _rangeEndPos.y);
+		int w = x2 - x1;
+		int h = y2 - y1;
+		redraw(x1, y1, w, 1, false);
+		redraw(x1, y2 - 1, w, 1, false);
+		redraw(x1, y1, 1, h, false);
+		redraw(x2 - 1, y1, 1, h, false);
+	}
+	private void updateRangeSelection() { mixin(S_TRACE);
+		int x1 = .min(_rangeStartPos.x, _rangeEndPos.x);
+		int y1 = .min(_rangeStartPos.y, _rangeEndPos.y);
+		int x2 = .max(_rangeStartPos.x, _rangeEndPos.x);
+		int y2 = .max(_rangeStartPos.y, _rangeEndPos.y);
+		int w = x2 - x1;
+		int h = y2 - y1;
+		foreach_reverse (t; fBacks) { mixin(S_TRACE);
+			auto pimg = t[1];
+			if (cast(FlexImage)pimg && pimg.visible) { mixin(S_TRACE);
+				auto img = cast(FlexImage)pimg;
+				if (img.bounds.intersects(x1, y1, w, h)) { mixin(S_TRACE);
+					doSelect(img);
+				} else {
+					doDeselect(img);
+				}
+			}
+		}
+	}
 	class MMListener : MouseMoveListener {
 		override void mouseMove(MouseEvent me) { mixin(S_TRACE);
 			int x = me.x;
 			int y = me.y;
-			if (dragTgl != Toggle.NONE) { mixin(S_TRACE);
+			if (_rangeStartPos) { mixin(S_TRACE);
+				// 範囲選択
+				assert (_rangeEndPos !is null);
+				redrawRangeLine();
+				_rangeEndPos.x = me.x;
+				_rangeEndPos.y = me.y;
+				redrawRangeLine();
+				updateRangeSelection();
+			} else if (dragTgl != Toggle.NONE) { mixin(S_TRACE);
 				assert (_mouseP !is null);
 				if (_ctrl && _mouseP) { mixin(S_TRACE);
 					doSelect(_mouseP);
@@ -2161,23 +2203,31 @@ private:
 				dragStartY = y;
 				auto tgl = Toggle.NONE;
 				FlexImage img = null;
-				foreach (move; [false, true]) { mixin(S_TRACE);
-					if (tgl !is Toggle.NONE) break;
-					foreach_reverse (t; fBacks) { mixin(S_TRACE);
-						auto i = t[0];
-						auto pimg = t[1];
-						if (cast(FlexImage) pimg) { mixin(S_TRACE);
-							img = cast(FlexImage) pimg;
-							if (img.visible) { mixin(S_TRACE);
-								tgl = img.inToggle(x, y, move);
-								if (tgl !is Toggle.NONE) { mixin(S_TRACE);
-									break;
+				if (!((me.stateMask & SWT.SHIFT) != 0 && (me.stateMask & SWT.CTRL) != 0)) {
+					foreach (move; [false, true]) { mixin(S_TRACE);
+						if (tgl !is Toggle.NONE) break;
+						foreach_reverse (t; fBacks) { mixin(S_TRACE);
+							auto i = t[0];
+							auto pimg = t[1];
+							if (cast(FlexImage) pimg) { mixin(S_TRACE);
+								img = cast(FlexImage) pimg;
+								if (img.visible) { mixin(S_TRACE);
+									tgl = img.inToggle(x, y, move);
+									if (tgl !is Toggle.NONE) { mixin(S_TRACE);
+										break;
+									}
 								}
 							}
 						}
 					}
 				}
-				if (tgl !is Toggle.NONE) { mixin(S_TRACE);
+				if (tgl is Toggle.NONE) { mixin(S_TRACE);
+					doDeselectAll();
+					_mouseP = null;
+					_rangeStartPos = new Point(x, y);
+					_rangeEndPos = new Point(x, y);
+					updateRangeSelection();
+				} else {
 					_mouseP = img;
 					if (me.button == 1) { mixin(S_TRACE);
 						if (!_ctrl) { mixin(S_TRACE);
@@ -2191,8 +2241,6 @@ private:
 					}
 					return;
 				}
-				doDeselectAll();
-				_mouseP = null;
 			} else if (me.button == 2) { mixin(S_TRACE);
 				auto ids = selectedIndices;
 				if (ids.length == 0 || !changeSelect(x, y, _ctrl)) { mixin(S_TRACE);
@@ -2285,11 +2333,14 @@ private:
 			resetGrid();
 			moved = false;
 			_mouseP = null;
+			redrawRangeLine();
+			_rangeStartPos = null;
+			_rangeEndPos = null;
 		}
 	}
 	bool _ctrl = false;
 	FlexImage _mouseP = null;
-	void __setSelected(FlexImage img) { mixin(S_TRACE);
+	void setSelected(FlexImage img) { mixin(S_TRACE);
 		if (img.selected) { mixin(S_TRACE);
 			dragImgs[img] = new Rectangle(img.x, img.y, img.width, img.height);
 			auto area = img.drawArea;
@@ -2397,6 +2448,16 @@ private:
 				}
 			}
 
+			if (_rangeStartPos && _rangeEndPos) { mixin(S_TRACE);
+				int x1 = .min(_rangeStartPos.x, _rangeEndPos.x);
+				int y1 = .min(_rangeStartPos.y, _rangeEndPos.y);
+				int x2 = .max(_rangeStartPos.x, _rangeEndPos.x);
+				int y2 = .max(_rangeStartPos.y, _rangeEndPos.y);
+				int w = x2 - x1;
+				int h = y2 - y1;
+				gc.drawFocus(x1, y1, w, h);
+			}
+
 			e.gc.drawImage(buf, 0, 0);
 		}
 	}
@@ -2466,7 +2527,7 @@ public:
 	void select(FlexImage img) { mixin(S_TRACE);
 		if (!img.selected) { mixin(S_TRACE);
 			img.selected = true;
-			__setSelected(img);
+			setSelected(img);
 		}
 	}
 	@property
@@ -2480,7 +2541,7 @@ public:
 	private void doSelect(FlexImage img) { mixin(S_TRACE);
 		if (!img.selected) { mixin(S_TRACE);
 			img.doSelected(true);
-			__setSelected(img);
+			setSelected(img);
 		}
 	}
 	void deselect(FlexImage img) { mixin(S_TRACE);
@@ -2613,7 +2674,7 @@ public:
 			append(img);
 		} else { mixin(S_TRACE);
 			backs = backs[0 .. index] ~ img ~ backs[index .. $];
-			if (cast(FlexImage) img) __setSelected(cast(FlexImage) img);
+			if (cast(FlexImage) img) setSelected(cast(FlexImage) img);
 		}
 	}
 	void insert(int index, PileImage[] imgs) { mixin(S_TRACE);
@@ -2622,7 +2683,7 @@ public:
 		} else { mixin(S_TRACE);
 			backs = backs[0 .. index] ~ imgs ~ backs[index .. $];
 			foreach (img; imgs) { mixin(S_TRACE);
-				if (cast(FlexImage) img) __setSelected(cast(FlexImage) img);
+				if (cast(FlexImage) img) setSelected(cast(FlexImage) img);
 			}
 		}
 	}
@@ -2630,16 +2691,16 @@ public:
 		backs[index].dispose();
 		removeDragImage(backs[index]);
 		this.backs[index] = img;
-		if (cast(FlexImage) img) __setSelected(cast(FlexImage) img);
+		if (cast(FlexImage) img) setSelected(cast(FlexImage) img);
 	}
 	void append(PileImage img) { mixin(S_TRACE);
 		this.backs ~= img;
-		if (cast(FlexImage) img) __setSelected(cast(FlexImage) img);
+		if (cast(FlexImage) img) setSelected(cast(FlexImage) img);
 	}
 	void append(PileImage[] imgs) { mixin(S_TRACE);
 		this.backs ~= imgs;
 		foreach (img; imgs) { mixin(S_TRACE);
-			if (cast(FlexImage) img) __setSelected(cast(FlexImage) img);
+			if (cast(FlexImage) img) setSelected(cast(FlexImage) img);
 		}
 	}
 
