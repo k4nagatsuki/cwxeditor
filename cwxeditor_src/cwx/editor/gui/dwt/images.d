@@ -1818,6 +1818,7 @@ private:
 	WallpaperStyle _wallpaperStyle = WallpaperStyle.Tile;
 	Point _rangeStartPos = null;
 	Point _rangeEndPos = null;
+	bool[FlexImage] rangeSelectOlds;
 
 	PileImage[] backs = [];
 	ImageData[] _appends = [];
@@ -1973,10 +1974,18 @@ private:
 			auto pimg = t[1];
 			if (cast(FlexImage)pimg && pimg.visible) { mixin(S_TRACE);
 				auto img = cast(FlexImage)pimg;
-				if (img.bounds.intersects(x1, y1, w, h)) { mixin(S_TRACE);
-					doSelect(img);
-				} else {
-					doDeselect(img);
+				if (_ctrl) { mixin(S_TRACE);
+					if (img.bounds.intersects(x1, y1, w, h)) { mixin(S_TRACE);
+						img in rangeSelectOlds ? doDeselect(img) : doSelect(img);
+					} else { mixin(S_TRACE);
+						img in rangeSelectOlds ? doSelect(img) : doDeselect(img);
+					}
+				} else { mixin(S_TRACE);
+					if (img.bounds.intersects(x1, y1, w, h)) { mixin(S_TRACE);
+						doSelect(img);
+					} else if (!_shift) { mixin(S_TRACE);
+						doDeselect(img);
+					}
 				}
 			}
 		}
@@ -1999,7 +2008,7 @@ private:
 				setRedraw(false);
 				scope (exit) setRedraw(true);
 				assert (_mouseP !is null);
-				if (_ctrl && _mouseP) { mixin(S_TRACE);
+				if ((_ctrl || _shift) && _mouseP) { mixin(S_TRACE);
 					doSelect(_mouseP);
 				}
 				int movX = x - dragStartX;
@@ -2198,18 +2207,21 @@ private:
 		override void handleEvent(Event me) { mixin(S_TRACE);
 			setFocus();
 			moved = false;
-			_ctrl = (me.stateMask & SWT.SHIFT) != 0 || (me.stateMask & SWT.CTRL) != 0;
+			_ctrl = (me.stateMask & SWT.CTRL) != 0;
+			_shift = (me.stateMask & SWT.SHIFT) != 0;
 			int x = me.x;
 			int y = me.y;
 			if (me.button == 1) { mixin(S_TRACE);
+				rangeSelectOlds = null;
 				foreach (img, rect; dragImgs) { mixin(S_TRACE);
 					dragImgs[img] = new Rectangle(img.x, img.y, img.width, img.height);
+					rangeSelectOlds[img] = true;
 				}
 				dragStartX = x;
 				dragStartY = y;
 				auto tgl = Toggle.NONE;
 				FlexImage img = null;
-				if (!((me.stateMask & SWT.SHIFT) != 0 && (me.stateMask & SWT.CTRL) != 0)) {
+				if (!((me.stateMask & SWT.ALT) != 0)) {
 					foreach (move; [false, true]) { mixin(S_TRACE);
 						if (tgl !is Toggle.NONE) break;
 						foreach_reverse (t; fBacks) { mixin(S_TRACE);
@@ -2228,7 +2240,9 @@ private:
 					}
 				}
 				if (tgl is Toggle.NONE) { mixin(S_TRACE);
-					doDeselectAll();
+					if (!_ctrl && !_shift) { mixin(S_TRACE);
+						doDeselectAll();
+					}
 					_mouseP = null;
 					_rangeStartPos = new Point(x, y);
 					_rangeEndPos = new Point(x, y);
@@ -2236,7 +2250,7 @@ private:
 				} else {
 					_mouseP = img;
 					if (me.button == 1) { mixin(S_TRACE);
-						if (!_ctrl) { mixin(S_TRACE);
+						if (!_ctrl && !_shift) { mixin(S_TRACE);
 							if (!img.selected) doDeselectAll();
 							doSelect(img);
 						}
@@ -2249,10 +2263,10 @@ private:
 				}
 			} else if (me.button == 2) { mixin(S_TRACE);
 				auto ids = selectedIndices;
-				if (ids.length == 0 || !changeSelect(x, y, _ctrl)) { mixin(S_TRACE);
+				if (ids.length == 0 || !changeSelect(x, y, _ctrl || _shift)) { mixin(S_TRACE);
 					int i = findIndex(x, y);
 					if (i >= 0) { mixin(S_TRACE);
-						if (!_ctrl) doDeselectAll();
+						if (!(_ctrl || _shift)) doDeselectAll();
 						doSelect(cast(FlexImage) images[i]);
 					}
 				}
@@ -2323,7 +2337,7 @@ private:
 					}
 				}
 				if (!moved && _mouseP) { mixin(S_TRACE);
-					if (_ctrl) { mixin(S_TRACE);
+					if (_ctrl || _shift) { mixin(S_TRACE);
 						if (_mouseP.selected) { mixin(S_TRACE);
 							doDeselect(_mouseP);
 						} else { mixin(S_TRACE);
@@ -2345,6 +2359,7 @@ private:
 		}
 	}
 	bool _ctrl = false;
+	bool _shift = false;
 	FlexImage _mouseP = null;
 	void setSelected(FlexImage img) { mixin(S_TRACE);
 		if (img.selected) { mixin(S_TRACE);
