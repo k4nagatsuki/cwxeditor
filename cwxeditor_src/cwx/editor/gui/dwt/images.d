@@ -1988,12 +1988,16 @@ private:
 			if (_rangeStartPos) { mixin(S_TRACE);
 				// 範囲選択
 				assert (_rangeEndPos !is null);
+				setRedraw(false);
+				scope (exit) setRedraw(true);
 				redrawRangeLine();
 				_rangeEndPos.x = me.x;
 				_rangeEndPos.y = me.y;
 				redrawRangeLine();
 				updateRangeSelection();
 			} else if (dragTgl != Toggle.NONE) { mixin(S_TRACE);
+				setRedraw(false);
+				scope (exit) setRedraw(true);
 				assert (_mouseP !is null);
 				if (_ctrl && _mouseP) { mixin(S_TRACE);
 					doSelect(_mouseP);
@@ -2169,6 +2173,8 @@ private:
 				redrawGridHighlight();
 				moved = true;
 			} else { mixin(S_TRACE);
+				setRedraw(false);
+				scope (exit) setRedraw(true);
 				// サイズ変更は下に隠れているセルでも優先的に受け付ける
 				foreach (move; [false, true]) { mixin(S_TRACE);
 					foreach_reverse (t; fBacks) { mixin(S_TRACE);

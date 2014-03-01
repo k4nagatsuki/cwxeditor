@@ -1922,8 +1922,14 @@ private:
 		_comm.refreshToolBar();
 	}
 
+	private bool _refreshControls = false;
 	void refreshControls() { mixin(S_TRACE);
+		_refreshControls = true;
+	}
+	void refreshControlsImpl() { mixin(S_TRACE);
 		if (!_xSpn) return;
+		if (!_refreshControls) return;
+		_refreshControls = false;
 		string f = null;
 		if (_flag) _flag.setText(_flag.getItem(0));
 		void flag(string f2) { mixin(S_TRACE);
@@ -2540,6 +2546,7 @@ public:
 		if (_tlp) setupTLP(_tlp);
 		_toolbar = new ToolBar(this, SWT.FLAT);
 		_comm.put(_toolbar);
+		.listener(_toolbar, SWT.Paint, &refreshControlsImpl);
 
 		auto lrSash = new SplitPane(this, SWT.HORIZONTAL);
 		lrSash.setLayoutData(new GridData(GridData.FILL_BOTH));
