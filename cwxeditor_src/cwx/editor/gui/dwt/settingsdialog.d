@@ -126,6 +126,7 @@ private:
 	TableItem _clickIsOpenEvent;
 	TableItem _smoothingCard;
 	TableItem _showImagePreview;
+	TableItem _ignoreBackgroundInRange;
 	TableItem _editTriggerTypeIsQuick;
 	TableItem _classicStyleTree;
 	TableItem _adjustContentName;
@@ -975,6 +976,7 @@ private:
 			_clickIsOpenEvent = createB(_prop.msgs.clickIsOpenEvent);
 			_smoothingCard = createB(_prop.msgs.smoothingCard);
 			_showImagePreview = createB(_prop.msgs.showImagePreview);
+			_ignoreBackgroundInRange = createB(_prop.msgs.ignoreBackgroundInRange);
 			_editTriggerTypeIsQuick = createB(_prop.msgs.editTriggerTypeIsQuick);
 			_classicStyleTree = createB(_prop.msgs.classicStyleTree);
 			_adjustContentName = createB(_prop.msgs.adjustContentName);
@@ -1284,6 +1286,7 @@ protected:
 		_expandXMLs.setChecked(_prop.var.etc.expandXMLs);
 		_smoothingCard.setChecked(_prop.var.etc.smoothingCard);
 		_showImagePreview.setChecked(_prop.var.etc.showImagePreview);
+		_ignoreBackgroundInRange.setChecked(_prop.var.etc.ignoreBackgroundInRange);
 		_editTriggerTypeIsQuick.setChecked(_prop.var.etc.editTriggerType is EditTrigger.Quick);
 		_classicStyleTree.setChecked(_prop.var.etc.classicStyleTree);
 		_adjustContentName.setChecked(_prop.var.etc.adjustContentName);
@@ -1484,6 +1487,7 @@ protected:
 		_prop.var.etc.clickIsOpenEvent = _clickIsOpenEvent.getChecked();
 		_prop.var.etc.smoothingCard = _smoothingCard.getChecked();
 		_prop.var.etc.showImagePreview = _showImagePreview.getChecked();
+		_prop.var.etc.ignoreBackgroundInRange = _ignoreBackgroundInRange.getChecked();
 		_prop.var.etc.editTriggerType = _editTriggerTypeIsQuick.getChecked() ? EditTrigger.Quick : EditTrigger.Slow;
 		_prop.var.etc.classicStyleTree = _classicStyleTree.getChecked();
 		_prop.var.etc.adjustContentName = _adjustContentName.getChecked();

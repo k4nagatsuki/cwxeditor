@@ -1626,6 +1626,7 @@ class Msgs : Properties {
 	auto clickIsOpenEvent = Msg("clickIsOpenEvent", "左クリックでイベントビューを開く");
 	auto smoothingCard = Msg("smoothingCard", "カードのサイズ変更時にスムージングを行う");
 	auto showImagePreview = Msg("showImagePreview", "カードや背景のプレビュー表示を行う");
+	auto ignoreBackgroundInRange = Msg("ignoreBackgroundInRange", "範囲選択でフルサイズの背景セルを無視する");
 	auto classicStyleTree = Msg("classicStyleTree", "イベントツリーの開閉ボタンを省略する");
 	auto adjustContentName = Msg("adjustContentName", "イベントコンテントの移動時にテキストを再設定する");
 	auto radarStyleParams = Msg("radarStyleParams", "レーダー型コントロールでパラメータ値を設定する");

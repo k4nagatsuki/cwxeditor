@@ -759,8 +759,23 @@ private:
 			_comm.refMenuCard.call(card.cwxPath(true));
 			callModEvent();
 		}
+		private FlexImage[] _selectImageC = [];
 		void selectImageC(FlexImage img) { mixin(S_TRACE);
-			__selectImage!(C)(img, _area.cards, _cardTbl, _editC, _cards);
+			_selectImageC ~= img;
+			_cards.redraw();
+		}
+		private void selectImageCImpl() { mixin(S_TRACE);
+			if (!_selectImageC.length) return;
+			_cards.setRedraw(false);
+			scope (exit) _cards.setRedraw(true);
+			_toolbar.setRedraw(false);
+			scope (exit) _toolbar.setRedraw(true);
+			foreach (img; _selectImageC) { mixin(S_TRACE);
+				selectImage!(C)(img, _area.cards, _cardTbl, _editC, _cards);
+			}
+			_selectImageC.length = 0;
+			refreshControls();
+			_cards.showSelection();
 		}
 		void setAuto() { mixin(S_TRACE);
 			if (_readOnly) return;
@@ -838,8 +853,23 @@ private:
 			_comm.refBgImage.call(back.cwxPath(true));
 			callModEvent();
 		}
+		private FlexImage[] _selectImageB = [];
 		void selectImageB(FlexImage img) { mixin(S_TRACE);
-			__selectImage!(BgImage)(img, _area.backs, _backTbl, _editB, _backs);
+			_selectImageB ~= img;
+			_backs.redraw();
+		}
+		private void selectImageBImpl() { mixin(S_TRACE);
+			if (!_selectImageB.length) return;
+			_backs.setRedraw(false);
+			scope (exit) _backs.setRedraw(true);
+			_toolbar.setRedraw(false);
+			scope (exit) _toolbar.setRedraw(true);
+			foreach (img; _selectImageB) { mixin(S_TRACE);
+				selectImage!(BgImage)(img, _area.backs, _backTbl, _editB, _backs);
+			}
+			_selectImageB.length = 0;
+			refreshControls();
+			_backs.showSelection();
 		}
 		void setMask() { mixin(S_TRACE);
 			if (_readOnly) return;
@@ -953,19 +983,17 @@ private:
 		}
 	}
 
-	void __selectImage(T)(FlexImage img, T[] cols, T[PileImage] tbl, ref int[T] edits, Table list) { mixin(S_TRACE);
+	void selectImage(T)(FlexImage img, T[] cols, T[PileImage] tbl, ref int[T] edits, Table list) { mixin(S_TRACE);
 		auto c = tbl[img];
 		foreach (int i, b; cols) { mixin(S_TRACE);
 			if (b is c) { mixin(S_TRACE);
 				if (img.selected) { mixin(S_TRACE);
-					list.setSelection(list.getSelectionIndices() ~ i);
+					list.select(i);
 					edits[b] = i;
 				} else { mixin(S_TRACE);
 					list.deselect(i);
 					edits.remove(b);
 				}
-				refreshControls();
-				list.showSelection();
 				return;
 			}
 		}
@@ -1600,6 +1628,13 @@ private:
 		auto ipe = new IPEditListener;
 		_imgp.addMouseListener(ipe);
 		_imgp.changingImages(&changingImages);
+		_imgp.rangeSelectable = (in FlexImage img) { mixin(S_TRACE);
+			if (_prop.var.etc.ignoreBackgroundInRange) { mixin(S_TRACE);
+				auto vs = _prop.looks.viewSize;
+				return img.x != 0 || img.y != 0 || img.width != vs.width || img.height != vs.height;
+			}
+			return true;
+		};
 		{ mixin(S_TRACE);
 			auto menu = new Menu(parent.getShell(), SWT.POP_UP);
 			createMenuItem(_comm, menu, MenuID.EditProp, &edit, &canEdit);
@@ -1925,6 +1960,7 @@ private:
 	private bool _refreshControls = false;
 	void refreshControls() { mixin(S_TRACE);
 		_refreshControls = true;
+		_toolbar.redraw();
 	}
 	void refreshControlsImpl() { mixin(S_TRACE);
 		if (!_xSpn) return;
@@ -2593,6 +2629,7 @@ public:
 				}
 				_cards.addMouseTrackListener(prevTrig);
 				_cards.addMouseMoveListener(prevTrig);
+				.listener(_cards, SWT.Paint, &selectImageCImpl);
 			}
 			static if (UseBacks) {
 				_backs = createList(listsP, prop.msgs.backs,
@@ -2606,6 +2643,7 @@ public:
 				}
 				_backs.addMouseTrackListener(prevTrig);
 				_backs.addMouseMoveListener(prevTrig);
+				.listener(_backs, SWT.Paint, &selectImageBImpl);
 			}
 			static if (UseCards && UseBacks) {
 				_cards.addMouseListener(new class MouseAdapter {

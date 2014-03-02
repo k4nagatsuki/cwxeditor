@@ -363,6 +363,7 @@ class FlexEtcProps : Properties {
 	auto copyDesc = Prop!(bool)("copyDesc", false);
 	auto refCardsAtEditBgImage = Prop!(bool)("refCardsAtEditBgImage", true);
 	auto showImagePreview = Prop!(bool)("showImagePreview", true);
+	auto ignoreBackgroundInRange = Prop!(bool)("ignoreBackgroundInRange", true);
 	auto classicStyleTree = Prop!(bool)("classicStyleTree", false);
 	auto adjustContentName = Prop!(bool)("adjustContentName", true);
 	auto showEventTreeMark = Prop!(bool)("showEventTreeMark", true);

@@ -1974,6 +1974,7 @@ private:
 			auto pimg = t[1];
 			if (cast(FlexImage)pimg && pimg.visible) { mixin(S_TRACE);
 				auto img = cast(FlexImage)pimg;
+				if (_rangeSelectable && !_rangeSelectable(img)) continue;
 				if (_ctrl) { mixin(S_TRACE);
 					if (img.bounds.intersects(x1, y1, w, h)) { mixin(S_TRACE);
 						img in rangeSelectOlds ? doDeselect(img) : doSelect(img);
@@ -2209,6 +2210,7 @@ private:
 			moved = false;
 			_ctrl = (me.stateMask & SWT.CTRL) != 0;
 			_shift = (me.stateMask & SWT.SHIFT) != 0;
+			auto alt = (me.stateMask & SWT.ALT) != 0;
 			int x = me.x;
 			int y = me.y;
 			if (me.button == 1) { mixin(S_TRACE);
@@ -2221,7 +2223,7 @@ private:
 				dragStartY = y;
 				auto tgl = Toggle.NONE;
 				FlexImage img = null;
-				if (!((me.stateMask & SWT.ALT) != 0)) {
+				if (!alt) {
 					foreach (move; [false, true]) { mixin(S_TRACE);
 						if (tgl !is Toggle.NONE) break;
 						foreach_reverse (t; fBacks) { mixin(S_TRACE);
@@ -2726,12 +2728,16 @@ public:
 	}
 
 	private void delegate()[] _changingImages;
-	@property
 	void changingImages(void delegate() changingImages) { mixin(S_TRACE);
 		_changingImages ~= changingImages;
 	}
 	private void callChangingImages() { mixin(S_TRACE);
 		foreach (ci; _changingImages) ci();
+	}
+	private bool delegate(in FlexImage img) _rangeSelectable = null;
+	@property
+	void rangeSelectable(bool delegate(in FlexImage img) dlg) { mixin(S_TRACE);
+		_rangeSelectable = dlg;
 	}
 
 	/// 壁紙表示モード。
