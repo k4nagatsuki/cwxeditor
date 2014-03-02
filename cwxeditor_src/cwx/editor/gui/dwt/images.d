@@ -2668,7 +2668,7 @@ public:
 	void fixedRange(bool fixed, int from, int to) { mixin(S_TRACE);
 		foreach (img; images[from .. to]) { mixin(S_TRACE);
 			auto fi = cast(FlexImage) img;
-			if (fi) { mixin(S_TRACE);
+			if (fi && fi.fixed !is fixed) { mixin(S_TRACE);
 				auto newArea = fi.drawNewArea;
 				auto oldArea = fi.drawArea;
 				fi.fixed = fixed;

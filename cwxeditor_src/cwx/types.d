@@ -1382,6 +1382,7 @@ enum MenuID {
 	ShowRefCards,
 	FixedCards,
 	FixedCells,
+	FixedBackground,
 	ShowGrid,
 	ShowEnemyCardProp,
 	ShowCard,

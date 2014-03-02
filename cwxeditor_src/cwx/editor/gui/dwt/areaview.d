@@ -794,12 +794,15 @@ private:
 
 	static if (UseBacks) {
 		bool _fixedB = true;
+		bool _fixedFirstB = true;
 		bool _viewBacks = true;
 		BgImage[PileImage] _backTbl;
 		int[BgImage] _editB;
 		Table _backs;
 		MenuItem _vfbMenu;
 		ToolItem _vfbTMenu;
+		MenuItem _vffbMenu;
+		ToolItem _vffbTMenu;
 		MenuItem _vbMenu;
 		ToolItem _vbTMenu;
 		ToolItem _maskTMenu;
@@ -2284,6 +2287,8 @@ private:
 			if (!_readOnly) { mixin(S_TRACE);
 				_vfbTMenu = createToolItem(_comm, bar, MenuID.FixedCells, &reverseFixedCells, null, SWT.CHECK);
 				_vfbTMenu.setSelection(_fixedB);
+				_vffbTMenu = createToolItem(_comm, bar, MenuID.FixedBackground, &reverseFixedBackground, null, SWT.CHECK);
+				_vffbTMenu.setSelection(_fixedFirstB);
 			}
 		}
 
@@ -2498,6 +2503,7 @@ public:
 			if (!_readOnly) { mixin(S_TRACE);
 				_fixedC = _prop.var.etc.fixedImagesMenuCards;
 				_fixedB = _prop.var.etc.fixedImagesCells;
+				_fixedFirstB = _prop.var.etc.fixedImagesBackground;
 			}
 		} else static if (is (A == Battle)) {
 			_viewMsg = _prop.var.etc.viewMessageBattle;
@@ -2510,6 +2516,7 @@ public:
 			_viewParty = _prop.var.etc.viewPartyCardsEvent;
 			if (!_readOnly) { mixin(S_TRACE);
 				_fixedB = _prop.var.etc.fixedImagesEvent;
+				_fixedFirstB = _prop.var.etc.fixedImagesEventBackground;
 			}
 		} else { mixin(S_TRACE);
 			static assert (0);
@@ -2528,6 +2535,7 @@ public:
 					if (!_readOnly) { mixin(S_TRACE);
 						_prop.var.etc.fixedImagesMenuCards = _fixedC;
 						_prop.var.etc.fixedImagesCells = _fixedB;
+						_prop.var.etc.fixedImagesBackground = _fixedFirstB;
 					}
 				} else static if (is (A == Battle)) {
 					_prop.var.etc.viewMessageBattle = _viewMsg;
@@ -2540,6 +2548,7 @@ public:
 					_prop.var.etc.viewPartyCardsEvent = _viewParty;
 					if (!_readOnly) { mixin(S_TRACE);
 						_prop.var.etc.fixedImagesEvent = _fixedB;
+						_prop.var.etc.fixedImagesEventBackground = _fixedFirstB;
 					}
 				} else { mixin(S_TRACE);
 					static assert (0);
@@ -2990,6 +2999,7 @@ public:
 				_backs.getItem(i).setData(b);
 				partyIndex++;
 			}
+			updateFixedBackground();
 		}
 		_imgp.removeRange(partyIndex, _imgp.images.length);
 		appendPartyCards();
@@ -3558,6 +3568,7 @@ public:
 					_comm.refBgImage.call(b.cwxPath(true));
 					_comm.refUseCount.call();
 					refreshFlags();
+					updateFixedBackground();
 					_imgp.redraw();
 					callModEvent();
 					_comm.refreshToolBar();
@@ -3823,6 +3834,8 @@ public:
 	static if (UseBacks) {
 		@property
 		bool isFixedCells() {return _fixedB || _readOnly;}
+		@property
+		bool isFixedBackground() {return _fixedFirstB || _readOnly;}
 	}
 	@property
 	bool isShowGrid() {return _showGrid;}
@@ -3839,6 +3852,7 @@ public:
 		}
 		static if (UseBacks) {
 			_tlp.putMenuChecked(MenuID.FixedCells, &reverseFixedCells, &isFixedCells, null);
+			_tlp.putMenuChecked(MenuID.FixedBackground, &reverseFixedBackground, &isFixedBackground, null);
 		}
 		_tlp.putMenuChecked(MenuID.ShowGrid, &reverseShowGrid, &isShowGrid, null);
 		_tlp.putMenuAction(MenuID.Refresh, &refresh, null);
@@ -3870,6 +3884,8 @@ public:
 			static if (UseBacks) {
 				_vfbMenu = createMenuItem(_comm, mv, MenuID.FixedCells, &reverseFixedCells, null, SWT.CHECK);
 				_vfbMenu.setSelection(_fixedB);
+				_vffbMenu = createMenuItem(_comm, mv, MenuID.FixedBackground, &reverseFixedBackground, null, SWT.CHECK);
+				_vffbMenu.setSelection(_fixedFirstB);
 			}
 		}
 		static if (is(C : EnemyCard) || RefCards) {
@@ -4154,9 +4170,31 @@ public:
 		void reverseFixedCells() { mixin(S_TRACE);
 			if (_readOnly) return;
 			_fixedB = !_fixedB;
+			updateFixedBackground();
+			if (_vfbMenu) _vfbMenu.setSelection(_fixedFirstB);
+			if (_vfbTMenu) _vfbTMenu.setSelection(_fixedFirstB);
+		}
+		void reverseFixedBackground() { mixin(S_TRACE);
+			if (_readOnly) return;
+			_fixedFirstB = !_fixedFirstB;
+			updateFixedBackground();
+			if (_vffbMenu) _vffbMenu.setSelection(_fixedFirstB);
+			if (_vffbTMenu) _vffbTMenu.setSelection(_fixedFirstB);
+		}
+		private void updateFixedBackground() { mixin(S_TRACE);
+			if (isFixedBackground) { mixin(S_TRACE);
+				auto vs = _prop.looks.viewSize;
+				foreach (i, back; _area.backs) { mixin(S_TRACE);
+					if (0 == back.x && 0 == back.y && vs.width == back.width && vs.height == back.height) { mixin(S_TRACE);
+						_imgp.fixedRange(_fixedB, 0, i);
+						_imgp.fixedRange(_fixedFirstB, i, i + 1);
+						_imgp.fixedRange(_fixedB, i + 1, _area.backs.length);
+						_imgp.redraw();
+						return;
+					}
+				}
+			}
 			_imgp.fixedRange(_fixedB, 0, _area.backs.length);
-			if (_vfbMenu) _vfbMenu.setSelection(_fixedB);
-			if (_vfbTMenu) _vfbTMenu.setSelection(_fixedB);
 			_imgp.redraw();
 		}
 	}
@@ -4380,6 +4418,7 @@ public:
 			comm.refUseCount.call();
 			if (v) { mixin(S_TRACE);
 				v.refreshFlags();
+				v.updateFixedBackground();
 				v.callModEvent();
 			}
 		}
@@ -4396,7 +4435,6 @@ public:
 			assert (img !is null);
 			_backTbl[img] = back;
 			img.visible = _viewBacks;
-			img.fixed = isFixedCells;
 			img.foreground = back.foreground;
 			img.addSelectionListener(&selectImageB);
 			img.addResizeListener(&resizeImageB);
@@ -4455,6 +4493,7 @@ public:
 				if (raiseEvent) _comm.addBgImage.call(b.cwxPath(true));
 			}
 			if (select && _viewBacks) _imgp.select(imgs);
+			updateFixedBackground();
 			if (!initialize) callModEvent();
 		}
 		private int backFromFile(string fname, int x, int y, int w, int h, bool fromImgPane) { mixin(S_TRACE);

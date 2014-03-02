@@ -2577,6 +2577,7 @@ public:
 									case MenuID.ShowRefCards:
 									case MenuID.FixedCards:
 									case MenuID.FixedCells:
+									case MenuID.FixedBackground:
 									case MenuID.ShowGrid:
 									case MenuID.ShowEnemyCardProp:
 									case MenuID.ShowCard:

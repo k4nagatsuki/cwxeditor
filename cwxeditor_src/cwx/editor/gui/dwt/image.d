@@ -518,6 +518,7 @@ public:
 		case MenuID.ShowRefCards: return imgd!("view_ref.png");
 		case MenuID.FixedCards: return imgd!("fixed.png");
 		case MenuID.FixedCells: return imgd!("fixed_cell.png");
+		case MenuID.FixedBackground: return imgd!("fixed_background.png");
 		case MenuID.ShowGrid: return imgd!("grid.png");
 		case MenuID.ShowEnemyCardProp: return imgd!("card_life.png");
 		case MenuID.ShowCard: return imgd!("show_cards.png");

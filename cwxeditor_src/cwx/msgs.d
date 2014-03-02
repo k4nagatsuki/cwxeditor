@@ -1992,6 +1992,7 @@ class Msgs : Properties {
 	auto menuTextShowRefCards = Msg("menuTextShowRefCards", "カード参照の表示");
 	auto menuTextFixedCards = Msg("menuTextFixedCards", "カードの固定");
 	auto menuTextFixedCells = Msg("menuTextFixedCells", "背景の固定");
+	auto menuTextFixedBackground = Msg("menuTextFixedBackground", "最初のフルサイズ背景の固定");
 	auto menuTextShowGrid = Msg("menuTextShowGrid", "グリッドの表示");
 	auto menuTextShowEnemyCardProp = Msg("menuTextShowEnemyCardProp", "レベルとライフを表示");
 	auto menuTextShowCard = Msg("menuTextShowCard", "カードの表示");

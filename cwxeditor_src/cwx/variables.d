@@ -68,8 +68,10 @@ class FlexEtcProps : Properties {
 	auto viewReferenceCards = Prop!(bool)("viewReferenceCards", true);
 	auto fixedImagesMenuCards = Prop!(bool)("fixedImagesMenuCards", false);
 	auto fixedImagesCells = Prop!(bool)("fixedImagesCells", false);
+	auto fixedImagesBackground = Prop!(bool)("fixedImagesBackground", true);
 	auto fixedImagesBattle = Prop!(bool)("fixedImagesBattle", false);
 	auto fixedImagesEvent = Prop!(bool)("fixedImagesEvent", false);
+	auto fixedImagesEventBackground = Prop!(bool)("fixedImagesEventBackground", true);
 	auto viewCards = Prop!(bool)("viewCards", true);
 	auto viewBgImages = Prop!(bool)("viewBgImages", true);
 	auto showGrid = Prop!(bool)("showGrid", false);

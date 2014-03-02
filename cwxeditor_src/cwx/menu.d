@@ -141,6 +141,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ShowRefCards] = "R";
 		_mnemonic[MenuID.FixedCards] = "F";
 		_mnemonic[MenuID.FixedCells] = "I";
+		_mnemonic[MenuID.FixedBackground] = "B";
 		_mnemonic[MenuID.ShowGrid] = "G";
 		_mnemonic[MenuID.ShowEnemyCardProp] = "L";
 		_mnemonic[MenuID.ShowCard] = "V";
@@ -345,6 +346,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ShowRefCards] = "";
 		_hotkey[MenuID.FixedCards] = "";
 		_hotkey[MenuID.FixedCells] = "";
+		_hotkey[MenuID.FixedBackground] = "";
 		_hotkey[MenuID.ShowGrid] = "";
 		_hotkey[MenuID.ShowEnemyCardProp] = "";
 		_hotkey[MenuID.ShowCard] = "";
@@ -789,6 +791,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.ShowRefCards:
 	case MenuID.FixedCards:
 	case MenuID.FixedCells:
+	case MenuID.FixedBackground:
 	case MenuID.ShowGrid:
 	case MenuID.ShowEnemyCardProp:
 	case MenuID.ShowCard:
