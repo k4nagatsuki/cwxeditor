@@ -388,16 +388,30 @@ class System {
 	private static const(R[T]) mod(T, R)(in R[] values...) {
 		import std.traits;
 		R[T] r;
-		foreach (key; EnumMembers!T) {
-			int iKey = key;
-			static if (is(T:Mental)) {
-				iKey /= 2;
-			}
+		static if (is(T:Physical)) {
+			static immutable KEYS = [
+				Physical.DEX,
+				Physical.AGL,
+				Physical.INT,
+				Physical.STR,
+				Physical.VIT,
+				Physical.MIN,
+			];
+		} else static if (is(T:Mental)) {
+			static immutable KEYS = [
+				Mental.AGGRESSIVE,
+				Mental.CAUTIOUS,
+				Mental.BRAVE,
+				Mental.CHEERFUL,
+				Mental.TRICKISH,
+			];
+		} else static assert (0);
+		foreach (iKey, key; KEYS) {
 			R v = values[iKey];
-			static if (is(T:Mental)) {
-				if (iKey & 0b1) v = -v;
-			}
 			r[key] = v;
+			static if (is(T:Mental)) {
+				r[.reverseMental(key)] = -v;
+			}
 		}
 		return r;
 	}
