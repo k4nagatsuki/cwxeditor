@@ -297,8 +297,8 @@ string fromTarget(Target targ) { mixin(S_TRACE);
 
 /// 精神要素。
 enum Mental {
-	AGGRESSIVE,/// 好戦
-	UNAGGRESSIVE,/// 平和
+	AGGRESSIVE, /// 好戦
+	UNAGGRESSIVE, /// 平和
 	CHEERFUL, /// 社交
 	UNCHEERFUL, /// 内向
 	BRAVE, /// 勇敢
