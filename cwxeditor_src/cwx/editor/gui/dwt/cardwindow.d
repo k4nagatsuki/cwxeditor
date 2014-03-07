@@ -497,6 +497,12 @@ public:
 				_comm.refreshToolBar();
 			}
 		}
+	} else {
+		@property
+		override
+		Control focusControl() {
+			return _pane[0].widget;
+		}
 	}
 	static if (EditMode) {
 		void reNumberingAll() { mixin(S_TRACE);

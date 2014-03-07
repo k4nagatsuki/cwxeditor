@@ -187,6 +187,8 @@ abstract class TopLevelPanel {
 	@property
 	abstract Composite shell();
 	@property
+	Control focusControl() { return null; }
+	@property
 	protected abstract void delegate(string) statusText();
 
 	private static class WrapDlg {
@@ -786,7 +788,12 @@ class Commons {
 			shl.open();
 		} else { mixin(S_TRACE);
 			if (_main.dock.control(key)) { mixin(S_TRACE);
-				.forceFocus(c, shellActivate);
+				auto tlpData = cast(TLPData)c.getData();
+				if (tlpData && tlpData.tlp.focusControl) { mixin(S_TRACE);
+					.forceFocus(tlpData.tlp.focusControl, shellActivate);
+				} else {
+					.forceFocus(c, shellActivate);
+				}
 				return;
 			}
 			Image image;

@@ -1684,6 +1684,9 @@ private:
 				_tbl.getHorizontalBar().setVisible(_viewMode is CViewMode.TABLE);
 			}
 		});
+		.listener(_tbl, SWT.FocusIn, { mixin(S_TRACE);
+			if (_viewMode !is CViewMode.TABLE) _list.setFocus();
+		});
 
 		_preview = new Preview(_prop, _tbl.getShell());
 		auto closePreview = new ClosePreview;
