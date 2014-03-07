@@ -136,7 +136,7 @@ version (Windows) {
 	private static ImageData imgr(string legacyEngine, string resName, MaskType maskType) {
 		mixin FileCache!(ImageData);
 		void setMask(ImageData data) {
-			if (data.depth == 32) return;
+			if (data.depth == 32 && data.alphaData) return;
 			final switch (maskType) {
 			case MaskType.NoMask:
 				break;
