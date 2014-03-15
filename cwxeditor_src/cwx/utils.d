@@ -99,7 +99,7 @@ private version (Windows) {
 		const CSIDL_APPDATA = 0x1A;
 		const SHGFP_TYPE_CURRENT = 0;
 	}
-} else { mixin(S_TRACE);
+} else {
 	import core.sys.posix.unistd;
 	import core.sys.posix.pwd;
 	import std.c.string;
@@ -1244,7 +1244,7 @@ bool contains(string pred = "a == b", T1, T2)(in T1[] arr, in T2 a) { mixin(S_TR
 static if (0 == filenameCharCmp('A', 'a')) {
 	/// ファイル名を比較する。
 	alias icmp fncmp;
-} else { mixin(S_TRACE);
+} else {
 	/// ファイル名を比較する。
 	alias cmp fncmp;
 }
@@ -1432,7 +1432,7 @@ version (Windows) {
 		}
 		return false;
 	}
-} else { mixin(S_TRACE);
+} else {
 	private extern (C) {
 		intptr_t fork();
 	}
@@ -1717,8 +1717,12 @@ bool cglobMatch(string a, string b) { mixin(S_TRACE);
 	return Wildcard(b, 0 == filenameCharCmp('A', 'a')).match(a);
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
-	assert (cfnmatch(r"C:\path", r"C:\path"));
-	assert (cfnmatch(r"C:\path", r"C:/path"));
+	version (Windows) {
+		assert (cfnmatch(r"C:\path", r"C:\path"));
+		assert (cfnmatch(r"C:\path", r"C:/path"));
+	} else {
+		assert (cfnmatch(r"/path", r"/path"));
+	}
 }
 /// ファイル名が一致するか。
 bool cfnmatch(in char[] a, in char[] b) { mixin(S_TRACE);

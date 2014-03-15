@@ -12,7 +12,7 @@ version (Windows) {
 	private immutable CARD_WIRTH_PY_EXE = "CardWirthPy.exe";
 	private immutable CWX_EDITOR_EXE = "cwxeditor.exe";
 	private immutable DIR = "フォルダ";
-} else { mixin(S_TRACE);
+} else {
 	private immutable CARD_WIRTH_PY_EXE = "CardWirthPy";
 	private immutable CWX_EDITOR_EXE = "cwxeditor";
 	private immutable DIR = "ディレクトリ";

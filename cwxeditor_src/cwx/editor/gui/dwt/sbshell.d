@@ -81,7 +81,7 @@ class SBShell {
 			if (_hsbar == INVALID_HANDLE_VALUE) return;
 			OS.SendMessage(_hsbar, SB_SETTEXT, 0, tosjismz(text));
 		}
-	} else { mixin(S_TRACE);
+	} else {
 		private Label _sbar;
 		private void initStatusBar() { mixin(S_TRACE);
 			auto gl = new GridLayout(1, true);

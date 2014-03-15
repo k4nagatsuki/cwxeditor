@@ -24,7 +24,7 @@ version (Windows) {
 		SOUND_TYPE_MCI = 2,
 		SOUND_TYPE_BASS = 4,
 	}
-} else { mixin(S_TRACE);
+} else {
 	private alias uint DWORD;
 }
 
@@ -278,8 +278,8 @@ private ulong pos(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM 
 		if (chunk) { mixin(S_TRACE);
 			// TODO
 		}
-		return 0;
 	}
+	return 0;
 }
 private ulong len(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream) { mixin(S_TRACE);
 	version (Windows) {
@@ -295,29 +295,45 @@ private ulong len(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM 
 			auto bps = sdl_frequency * ((sdl_format & 0xFF) == 0x08 ? 1 : 2) * sdl_channels;
 			return chunk.alen * 1000UL / bps;
 		}
-		return 0;
 	}
+	return 0;
 }
 
 /// 現在再生中のBGMの再生位置(msecs)を取得する。
 @property
 ulong bgmPos() { mixin(S_TRACE);
-	return pos(bgmChunk, _bgmPlayingMCI, "cwbgm", bassBGMStream);
+	version (Windows) {
+		return pos(bgmChunk, _bgmPlayingMCI, "cwbgm", bassBGMStream);
+	} else {
+		return 0;
+	}
 }
 /// 現在再生中のBGMの再生時間(msecs)を取得する。
 @property
 ulong bgmLen() { mixin(S_TRACE);
-	return len(bgmChunk, _bgmPlayingMCI, "cwbgm", bassBGMStream);
+	version (Windows) {
+		return len(bgmChunk, _bgmPlayingMCI, "cwbgm", bassBGMStream);
+	} else {
+		return 0;
+	}
 }
 /// 現在再生中の効果音の再生位置(msecs)を取得する。
 @property
 ulong sePos() { mixin(S_TRACE);
-	return pos(seChunk, _sePlayingMCI, "cwse", bassSEStream);
+	version (Windows) {
+		return pos(seChunk, _sePlayingMCI, "cwse", bassSEStream);
+	} else {
+		return 0;
+	}
 }
 /// 現在再生中の効果音の再生時間(msecs)を取得する。
 @property
 ulong seLen() { mixin(S_TRACE);
-	return len(seChunk, _sePlayingMCI, "cwse", bassSEStream);
+	version (Windows) {
+		return len(seChunk, _sePlayingMCI, "cwse", bassSEStream);
+	} else {
+		return 0;
+	}
 }
 
 private void printSDLError(string File = __FILE__, int Line = __LINE__)() { mixin(S_TRACE);
@@ -371,15 +387,19 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t chann
 		if (sdl) { mixin(S_TRACE);
 			if (file.length > 0 && !music) { mixin(S_TRACE);
 				const char* filez = (file ~ "\0").ptr;
-				const char* filez2 = toMBSz(file);
+				version (Windows) {
+					const char* filez2 = toMBSz(file);
+				}
 
 				if (loop) { mixin(S_TRACE);
 					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(filez);
 					if (!music) { mixin(S_TRACE);
 						debugln("error: Mix_LoadMUS, 1" ~ file);
 						printSDLError();
-						// 別のエンコーディングで再トライ
-						music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(filez2);
+						version (Windows) {
+							// 別のエンコーディングで再トライ
+							music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(filez2);
+						}
 					}
 					if (!music) { mixin(S_TRACE);
 						debugln("error: Mix_LoadMUS, 2, " ~ file);
@@ -397,7 +417,9 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t chann
 					if (!ops) { mixin(S_TRACE);
 						debugln("error: SDL_RWFromFile 1, " ~ file);
 						printSDLError();
-						ops = getSymbol!(SDL_RWFromFile)(sdl, "SDL_RWFromFile")(filez2, "rb".toStringz());
+						version (Windows) {
+							ops = getSymbol!(SDL_RWFromFile)(sdl, "SDL_RWFromFile")(filez2, "rb".toStringz());
+						}
 					}
 					if (!ops) { mixin(S_TRACE);
 						debugln("error: SDL_RWFromFile 2, " ~ file);
@@ -713,7 +735,7 @@ version (Windows) {
 		alias QWORD function(HSTREAM handle, DWORD mode) BASS_StreamGetFilePosition;
 		BASS_StreamGetFilePosition _BASS_StreamGetFilePosition;
 	}
-} else { mixin(S_TRACE);
+} else {
 	private alias intptr_t HSTREAM;
 }
 

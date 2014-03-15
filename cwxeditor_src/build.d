@@ -72,8 +72,8 @@ version (Windows) {
 } else {
 	immutable EXE = NAME;
 	immutable LIB = [
-		"org.eclipse.swt.gtk.linux.x86.a",
-		"dwt-base.a",
+		"-L-lorg.eclipse.swt.gtk.linux.x86",
+		"-L-ldwt-base",
 		"-L-lgnomeui-2",
 		"-L-lcairo",
 		"-L-lglib-2.0",
@@ -99,6 +99,7 @@ version (Windows) {
 		"-L-latk-1.0",
 		"-L-lgdk-x11-2.0",
 		"-L-lgtk-x11-2.0",
+		"-L-lgnomevfs-2",
 	];
 	immutable DEBUG_FLAGS = [
 		"-g",

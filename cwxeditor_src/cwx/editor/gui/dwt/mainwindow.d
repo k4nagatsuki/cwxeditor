@@ -79,7 +79,7 @@ version (Windows) {
 		const PIPE_READMODE_BYTE = 0x0;
 		const PIPE_WAIT = 0x0;
 	}
-} else { mixin(S_TRACE);
+} else {
 	import core.stdc.errno;
 	version (linux) {
 		import std.c.linux.linux;

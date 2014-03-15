@@ -628,7 +628,7 @@ version (Windows) {
 			BYTE szName[0];
 		}
 	}
-} else { mixin(S_TRACE);
+} else {
 	/// uncab()が行える状態であればtrueを返す。
 	/// Windows以外のOSでは必ずfalseを返す。
 	@property

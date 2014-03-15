@@ -342,7 +342,7 @@ class FlexEtcProps : Properties {
 	version (Windows) {
 		auto engine = Prop!(string, true)("engine", "CardWirthPy.exe");
 		auto enginePath = Prop!(string)("enginePath", "");
-	} else { mixin(S_TRACE);
+	} else {
 		auto engine = Prop!(string, true)("engine", "CardWirthPy");
 		auto enginePath = Prop!(string)("enginePath", "");
 	}
@@ -628,12 +628,12 @@ class FlexEtcProps : Properties {
 			OuterTool("メモ帳", "notepad $F", "", "", ""),
 			OuterTool("ペイント", "mspaint $F", "", "", "")
 		]);
-	} else { mixin(S_TRACE);
+	} else {
 		auto outerTools = Prop!(OuterTool[])("outerTools", []);
 	}
 	version (Windows) {
 		auto ignorePaths = Prop!(string[])("ignorePaths", [".*", "Thumbs.db"]);
-	} else { mixin(S_TRACE);
+	} else {
 		auto ignorePaths = Prop!(string[])("ignorePaths", [".*"]);
 	}
 

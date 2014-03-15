@@ -238,7 +238,7 @@ public class FlexProps {
 	version (Windows) {
 		private static immutable CWX_DIR = "cwxeditor";
 		private static immutable CWX_DIR_NOS = "cwxeditor_no_settings";
-	} else { mixin(S_TRACE);
+	} else {
 		private static immutable CWX_DIR = ".cwxeditor";
 		private static immutable CWX_DIR_NOS = ".cwxeditor_no_settings";
 	}
