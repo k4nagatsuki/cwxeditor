@@ -455,6 +455,7 @@ version (Windows) {
 			&FNFCIGETTEMPFILE, &ccab, null);
 	}
 	private bool add(HFCI hfci, string file, string pathOnCab, TCOMP tcomp = tcompTYPE_MSZIP) { mixin(S_TRACE);
+		//pathOnCab = encodeArchiveName(pathOnCab);
 		return FCIAddFile(hfci, toMBSz(nabs(file)), toMBSz(pathOnCab), FALSE,
 			null, &FNFCISTATUS, &FNFCIGETOPENINFO, tcomp) != 0;
 	}

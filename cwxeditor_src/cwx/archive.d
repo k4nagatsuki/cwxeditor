@@ -13,6 +13,15 @@ import std.datetime;
 import std.string;
 import std.c.string : strlen;
 
+/// アーカイヴのメンバ名をencodeする。
+string encodeArchiveName(string name) { mixin(S_TRACE);
+	name = std.array.replace(name, dirSeparator, "/");
+	static if (altDirSeparator.length) { mixin(S_TRACE);
+		name = std.array.replace(name, altDirSeparator, "/");
+	}
+	return name;
+}
+
 /// ZIPファイルを展開する。
 /// Params:
 /// dir = 展開先のディレクトリ。
@@ -87,10 +96,7 @@ void unzip(ZipArchive arc,
 /// ファイルとしては存在しないデータをアーカイブ化する。
 ArchiveMember archive(string name, ubyte[] data, bool isDir, bool useSysEnc = false) { mixin(S_TRACE);
 	if (data.length && isDir) throw new Exception("not directory");
-	name = std.array.replace(name, dirSeparator, "/");
-	static if (altDirSeparator.length) {
-		name = std.array.replace(name, altDirSeparator, "/");
-	}
+	name = encodeArchiveName(name);
 	auto am = new ArchiveMember;
 	am.time = SysTimeToDosFileTime(Clock.currTime());
 	am.compressionMethod = CompressionMethod.deflate;
@@ -147,6 +153,7 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, boo
 		am.fileAttributes = getAttributes(file);
 		am.internalAttributes = 1;
 		name = name[cut .. $];
+		name = encodeArchiveName(name);
 		if (useSysEnc) { mixin(S_TRACE);
 			version (Windows) {
 				am.name = tosjis(name);
