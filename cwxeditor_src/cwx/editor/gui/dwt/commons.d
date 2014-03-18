@@ -1128,6 +1128,10 @@ class Commons {
 
 		if (result.materials.length) { mixin(S_TRACE);
 			foreach (r; result.materials) { mixin(S_TRACE);
+				auto dir = r.dst.dirName();
+				if (!dir.exists()) { mixin(S_TRACE);
+					dir.mkdirRecurse();
+				}
 				try { mixin(S_TRACE);
 					if (isBinImg(r.src)) { mixin(S_TRACE);
 						std.file.write(r.dst, strToBImg(r.src));

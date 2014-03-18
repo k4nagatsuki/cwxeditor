@@ -1108,19 +1108,21 @@ string getenv(string env) { mixin(S_TRACE);
 	return r;
 }
 
-private string createFileImpl(bool Dir)(string parent, string name, string ext, string prefix) { mixin(S_TRACE);
-	string clean(string name) { mixin(S_TRACE);
-		name = replace(name, dirSeparator, "");
-		static if (altDirSeparator.length) {
-			name = replace(name, altDirSeparator, "");
-		}
-		name = replace(name, ".", "");
-		name = replace(name, " ", "");
-		if (name.length == 0) { mixin(S_TRACE);
-			name = "noname";
-		}
-		return name;
+/// ファイル名として妥当な名前にして返す。
+string cleanFileName(string name) { mixin(S_TRACE);
+	name = replace(name, dirSeparator, "");
+	static if (altDirSeparator.length) {
+		name = replace(name, altDirSeparator, "");
 	}
+	name = replace(name, ".", "");
+	name = replace(name, " ", "");
+	if (name.length == 0) { mixin(S_TRACE);
+		name = "noname";
+	}
+	return name;
+}
+
+private string createFileImpl(bool Dir)(string parent, string name, string ext, string prefix) { mixin(S_TRACE);
 	string r;
 	void create() { mixin(S_TRACE);
 		r = prefix ~ name;
@@ -1129,7 +1131,7 @@ private string createFileImpl(bool Dir)(string parent, string name, string ext, 
 		r = std.path.buildPath(parent, r);
 		r = createNewFileName(r, Dir);
 	}
-	name = clean(name);
+	name = cleanFileName(name);
 	create();
 	return r;
 }

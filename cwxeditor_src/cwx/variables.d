@@ -279,6 +279,7 @@ class FlexEtcProps : Properties {
 	auto importOptionIncludedBgImages = Prop!(int)("importOptionIncludedBgImages", ImportTypeIncluded.AsIs);
 	auto importOptionHands = Prop!(int)("importOptionHands", ImportTypeIncluded.AsIs);
 	auto importOptionBeastsInMotions = Prop!(int)("importOptionBeastsInMotions", ImportTypeIncluded.AsIs);
+	auto importOptionOverwriteScenarioInfo = Prop!(bool)("importOptionOverwriteScenarioInfo", false);
 	auto wallpaper = Prop!(string)("wallpaper", "");
 	auto wallpaperStyle = Prop!(int)("wallpaperStyle", WallpaperStyle.Tile);
 	auto wallColorR = Prop!(int)("wallColorR", 0);

@@ -1346,6 +1346,7 @@ class Msgs : Properties {
 	}
 	auto importTypeReference2NameRename = Msg("importTypeReference1NameRename", "新しいIDでインポートする");
 	auto importTypeReference2NameNoImport = Msg("importTypeReference1NameNoImport", "インポートしない");
+	auto importOverwriteScenarioInfo = Msg("importOverwriteScenarioInfo", "カードのシナリオ名及びシナリオ作者の情報を書き換える");
 
 	auto dlgTitAddScenario = Msg("dlgTitAddScenario", "インポート元の選択");
 	auto dlgTitImportResult = Msg("dlgTitImportResult", "インポート対象の選択");

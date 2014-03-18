@@ -3041,7 +3041,13 @@ void updateChecked(Event)(Event e) { mixin(S_TRACE);
 /// ファイルタイプ別のアイコン。
 public static Image fimage(Props prop, string file, Skin skin) { mixin(S_TRACE);
 	try { mixin(S_TRACE);
-		if (.exists(file)) { mixin(S_TRACE);
+		if (.isBinImg(file)) { mixin(S_TRACE);
+			if (skin.isCardImage(file, false)) { mixin(S_TRACE);
+				return prop.images.cards;
+			} else if (skin.isBgImage(file)) { mixin(S_TRACE);
+				return prop.images.backs;
+			}
+		} else if (.exists(file)) { mixin(S_TRACE);
 			if (.isDir(file)) { mixin(S_TRACE);
 				return prop.images.folder;
 			} else if (skin.isCardImage(file, false)) { mixin(S_TRACE);

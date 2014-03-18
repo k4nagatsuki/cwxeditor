@@ -833,16 +833,27 @@ class Skin {
 	/// pathがカード画像として使用可能か。
 	const
 	bool isCardImage(string path, bool ignoreSize) { mixin(S_TRACE);
-		if (isBinImg(path)) return true;
-		auto ext = .toLower(.extension(path));
+		string ext;
+		ubyte[] bin;
+		if (isBinImg(path)) { mixin(S_TRACE);
+			bin = strToBImg(path);
+			ext = imageType(bin);
+		} else { mixin(S_TRACE);
+			ext = .extension(path);
+		}
+		ext = .toLower(ext);
 		if (legacy && ext != ".bmp" && ext != ".png" && ext != ".gif") { mixin(S_TRACE);
 			return false;
 		}
 		if (ignoreSize) return true;
 		try { mixin(S_TRACE);
 			uint x, y;
-			return imageSize(path, x, y)
-				&& x == _prop.looks.cardSize.width && y == _prop.looks.cardSize.height;
+			if (bin) { mixin(S_TRACE);
+				if (!imageSize(bin, x, y)) return false;
+			} else { mixin(S_TRACE);
+				if (!imageSize(path, x, y)) return false;
+			}
+			return x == _prop.looks.cardSize.width && y == _prop.looks.cardSize.height;
 		} catch (Exception e) {
 		}
 		return false;
@@ -851,6 +862,7 @@ class Skin {
 	/// pathが背景画像として使用可能か。
 	const
 	bool isBgImage(string path, bool check = false) { mixin(S_TRACE);
+		if (isBinImg(path)) return true;
 		auto ext = .toLower(.extension(path));
 		if (ext == ".jpy1"
 				|| ext == ".jptx"

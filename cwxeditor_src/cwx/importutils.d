@@ -33,6 +33,7 @@ struct ImportOption {
 	ImportTypeIncluded includedBgImages = ImportTypeIncluded.AsIs; /// 格納イメージ(イメージセル)。
 	ImportTypeIncluded hands = ImportTypeIncluded.AsIs; /// キャストの手札カード。
 	ImportTypeIncluded beastsInMotions = ImportTypeIncluded.AsIs; /// 召喚獣召喚効果内の召喚獣カード。
+	bool overwriteScenarioInfo = false; /// シナリオ名とシナリオ作者の情報を書き換えるか。
 }
 
 /// ファイルをインポートするための情報。
@@ -122,9 +123,7 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 			break;
 		case ImportTypeReference1.NoOverwrite:
 			foreach (path; ucf.keys()) { mixin(S_TRACE);
-				if (!uct.get(path)) {
-					put(path);
-				}
+				put(path);
 			}
 			break;
 		case ImportTypeReference1.Overwrite:
@@ -207,7 +206,7 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 	renumbering(to.infos, r.infos);
 
 	// 素材のインポート。
-	auto newFolder = createNewFileName(to.scenarioPath.buildPath(createNewFileName(from.scenarioPath.buildPath(from.scenarioPath.dirName().baseName()), true).baseName()), true).baseName();
+	auto newFolder = createNewFileName(to.scenarioPath.buildPath(createNewFileName(to.scenarioPath.buildPath(from.scenarioPath.baseName()), true).baseName()), true).baseName();
 	ref1(opt.materials, uc.path, to.useCounter.path, (PathId path) { mixin(S_TRACE);
 		if (path.isBinImg) return;
 		if (!from.scenarioPath.buildPath(cast(string)path).exists()) return;
@@ -216,8 +215,11 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 			r.materials ~= ImportFile(to.scenarioPath.buildPath(newPath), from.scenarioPath.buildPath(cast(string)path), false);
 			uc.change(path, toPathId(newPath));
 		} else { mixin(S_TRACE);
-			bool overwrite = 0 < uc.path.get(path);
-			r.materials ~= ImportFile(to.scenarioPath.buildPath(cast(string)path), from.scenarioPath.buildPath(cast(string)path), overwrite);
+			auto dst = to.scenarioPath.buildPath(cast(string)path);
+			bool overwrite = dst.exists();
+			if (opt.materials !is ImportTypeReference1.NoOverwrite) { mixin(S_TRACE);
+				r.materials ~= ImportFile(dst, from.scenarioPath.buildPath(cast(string)path), overwrite);
+			}
 		}
 	});
 	// 状態変数のインポート。
@@ -232,9 +234,11 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 			r.flags[dir] ~= ImportFlag(dir, o, false);
 			uc.change(path, toFlagId(newPath));
 		} else { mixin(S_TRACE);
-			bool overwrite = 0 < uc.flag.get(path);
-			auto dir = FlagDir.up(cast(string)path);
-			r.flags[dir] ~= ImportFlag(dir, o, overwrite);
+			bool overwrite = to.flagDirRoot.getFlag(cast(string)path) !is null;
+			if (opt.variables !is ImportTypeReference1.NoOverwrite) { mixin(S_TRACE);
+				auto dir = FlagDir.up(cast(string)path);
+				r.flags[dir] ~= ImportFlag(dir, o, overwrite);
+			}
 		}
 	});
 	ref1(opt.variables, uc.step, to.useCounter.step, (StepId path) { mixin(S_TRACE);
@@ -247,9 +251,11 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 			r.steps[dir] ~= ImportStep(dir, o, false);
 			uc.change(path, toStepId(newPath));
 		} else { mixin(S_TRACE);
-			bool overwrite = 0 < uc.step.get(path);
-			auto dir = FlagDir.up(cast(string)path);
-			r.steps[dir] ~= ImportStep(dir, o, overwrite);
+			bool overwrite = to.flagDirRoot.getStep(cast(string)path) !is null;
+			if (opt.variables !is ImportTypeReference1.NoOverwrite) { mixin(S_TRACE);
+				auto dir = FlagDir.up(cast(string)path);
+				r.steps[dir] ~= ImportStep(dir, o, overwrite);
+			}
 		}
 	});
 
@@ -321,21 +327,23 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 		foreach (a; r.beasts) recurseB(a);
 		foreach (a; r.infos) recurseB(a);
 	}
-	// 格納イメージの外部化・内部化
-	if (opt.includedFiles !is ImportTypeIncluded.AsIs || opt.includedBgImages is ImportTypeIncluded.AsIs) { mixin(S_TRACE);
-		void putBinImg(string binImg) { mixin(S_TRACE);
+	// 格納イメージの外部化・内部化及びシナリオ情報の書き換え
+	if (opt.includedFiles !is ImportTypeIncluded.AsIs || opt.includedBgImages is ImportTypeIncluded.AsIs || opt.overwriteScenarioInfo) { mixin(S_TRACE);
+		void putBinImg(string name, string binImg) { mixin(S_TRACE);
 			auto bytes = strToBImg(binImg);
 			auto ext = imageType(bytes);
-			auto name = createNewName("simage(1)" ~ ext, (name) { mixin(S_TRACE);
-				auto path = newFolder.buildPath(name);
+			auto fileName = createNewName(cleanFileName(name) ~ ext, (name) { mixin(S_TRACE);
+				auto path = to.scenarioPath.buildPath(newFolder.buildPath(name));
 				foreach (file; r.materials) {
 					if (cfnmatch(file.dst, path)) {
 						return false;
 					}
 				}
 				return true;
-			});
-			r.materials ~= ImportFile(to.scenarioPath.buildPath(newFolder.buildPath(name)), binImg);
+			}, false);
+			auto path = newFolder.buildPath(fileName);
+			r.materials ~= ImportFile(to.scenarioPath.buildPath(path), binImg);
+			uc.change(toPathId(binImg), toPathId(path));
 		}
 		void includeImg(string path, void delegate(string) set) { mixin(S_TRACE);
 			try {
@@ -345,39 +353,47 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 				debugln(e);
 			}
 		}
-		void recurseF(CWXPath path) { mixin(S_TRACE);
+		void recurseF(string name, CWXPath path) { mixin(S_TRACE);
 			auto childs = path.cwxChilds;
-			if (auto c = cast(Card)path) { mixin(S_TRACE);
-				if (opt.includedFiles is ImportTypeIncluded.Exclude && c.path.isBinImg()) { mixin(S_TRACE);
-					putBinImg(c.path);
-				} else if (opt.includedFiles is ImportTypeIncluded.Include && c.path.length) { mixin(S_TRACE);
-					includeImg(c.path, &c.path);
+			if (opt.includedFiles !is ImportTypeIncluded.AsIs || opt.includedBgImages is ImportTypeIncluded.AsIs) { mixin(S_TRACE);
+				if (auto c = cast(Card)path) { mixin(S_TRACE);
+					if (opt.includedFiles is ImportTypeIncluded.Exclude && c.path.isBinImg()) { mixin(S_TRACE);
+						putBinImg(name, c.path);
+					} else if (opt.includedFiles is ImportTypeIncluded.Include && c.path.length) { mixin(S_TRACE);
+						includeImg(c.path, &c.path);
+					}
+				}
+				if (auto c = cast(MenuCard)path) { mixin(S_TRACE);
+					if (opt.includedFiles is ImportTypeIncluded.Exclude && c.path.isBinImg()) { mixin(S_TRACE);
+						putBinImg(name, c.path);
+					} else if (opt.includedFiles is ImportTypeIncluded.Include && c.path.length) { mixin(S_TRACE);
+						includeImg(c.path, &c.path);
+					}
+				}
+				if (auto c = cast(ImageCell)path) { mixin(S_TRACE);
+					if (opt.includedBgImages !is ImportTypeIncluded.Exclude && c.path.isBinImg()) { mixin(S_TRACE);
+						putBinImg(name, c.path);
+					} else if (opt.includedBgImages is ImportTypeIncluded.Include && c.path.length) { mixin(S_TRACE);
+						includeImg(c.path, &c.path);
+					}
 				}
 			}
-			if (auto c = cast(MenuCard)path) { mixin(S_TRACE);
-				if (opt.includedFiles is ImportTypeIncluded.Exclude && c.path.isBinImg()) { mixin(S_TRACE);
-					putBinImg(c.path);
-				} else if (opt.includedFiles is ImportTypeIncluded.Include && c.path.length) { mixin(S_TRACE);
-					includeImg(c.path, &c.path);
+			if (opt.overwriteScenarioInfo) { mixin(S_TRACE);
+				if (auto c = cast(EffectCard)path) { mixin(S_TRACE);
+					c.scenario = to.scenarioName;
+					c.author = to.author;
 				}
 			}
-			if (auto c = cast(ImageCell)path) { mixin(S_TRACE);
-				if (opt.includedBgImages !is ImportTypeIncluded.Exclude && c.path.isBinImg()) { mixin(S_TRACE);
-					putBinImg(c.path);
-				} else if (opt.includedBgImages is ImportTypeIncluded.Include && c.path.length) { mixin(S_TRACE);
-					includeImg(c.path, &c.path);
-				}
-			}
-			foreach (child; childs) recurseF(cast(CWXPath)child);
+			foreach (child; childs) recurseF(name, cast(CWXPath)child);
 		}
-		foreach (a; r.areas) recurseF(a);
-		foreach (a; r.battles) recurseF(a);
-		foreach (a; r.packages) recurseF(a);
-		foreach (a; r.casts) recurseF(a);
-		foreach (a; r.skills) recurseF(a);
-		foreach (a; r.items) recurseF(a);
-		foreach (a; r.beasts) recurseF(a);
-		foreach (a; r.infos) recurseF(a);
+		foreach (a; r.areas) recurseF(a.name, a);
+		foreach (a; r.battles) recurseF(a.name, a);
+		foreach (a; r.packages) recurseF(a.name, a);
+		foreach (a; r.casts) recurseF(a.name, a);
+		foreach (a; r.skills) recurseF(a.name, a);
+		foreach (a; r.items) recurseF(a.name, a);
+		foreach (a; r.beasts) recurseF(a.name, a);
+		foreach (a; r.infos) recurseF(a.name, a);
 	}
 
 	return r;

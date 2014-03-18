@@ -774,6 +774,7 @@ class ImportOptionDialog : AbsDialog {
 /+	private Combo _includedBgImages;
 +/	private Combo _hands;
 	private Combo _beastsInMotions;
+	private Button _overwriteScenarioInfo;
 
 	this (Commons comm, Shell shell) { mixin(S_TRACE);
 		_comm = comm;
@@ -785,14 +786,21 @@ class ImportOptionDialog : AbsDialog {
 	ImportOption option() { return _opt; }
 
 	protected override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(4, false));
+		auto agd = new GridLayout(1, true);
+		agd.marginWidth = 0;
+		area.setLayout(agd);
+		auto comp = new Composite(area, SWT.NONE);
+		comp.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto cgd = new GridLayout(4, false);
+		cgd.marginHeight = 0;
+		comp.setLayout(cgd);
 		Combo create(T)(Image icon, string name, int opValue, T value) { mixin(S_TRACE);
 			if (opValue < value.min || value.max < opValue) opValue = value;
 			value = cast(T)opValue;
-			auto label = new CLabel(area, SWT.NONE);
+			auto label = new CLabel(comp, SWT.NONE);
 			label.setText(name);
 			label.setImage(icon);
-			auto combo = new Combo(area, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			auto combo = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			mod(combo);
 			combo.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			foreach (t; EnumMembers!T) { mixin(S_TRACE);
@@ -825,6 +833,12 @@ class ImportOptionDialog : AbsDialog {
 /+		_includedBgImages = create(_prop.images.backs, _prop.msgs.importOptionIncludedBgImages, _prop.var.etc.importOptionIncludedBgImages, _opt.includedBgImages);
 +/		_hands = create(_prop.images.menu(MenuID.OpenHand), _prop.msgs.importOptionHands, _prop.var.etc.importOptionHands, _opt.hands);
 		_beastsInMotions = create(_prop.images.beast, _prop.msgs.importOptionBeastsInMotions, _prop.var.etc.importOptionBeastsInMotions, _opt.beastsInMotions);
+		auto sep = new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL);
+		sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		_overwriteScenarioInfo = new Button(area, SWT.CHECK);
+		_overwriteScenarioInfo.setText(_prop.msgs.importOverwriteScenarioInfo);
+		_overwriteScenarioInfo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END));
+		_overwriteScenarioInfo.setSelection(_prop.var.etc.importOptionOverwriteScenarioInfo);
 	}
 
 	protected override bool close(bool ok) { mixin(S_TRACE);
@@ -856,6 +870,8 @@ class ImportOptionDialog : AbsDialog {
 /+		put(_includedBgImages, _prop.var.etc.importOptionIncludedBgImages.value, _opt.includedBgImages);
 +/		put(_hands, _prop.var.etc.importOptionHands.value, _opt.hands);
 		put(_beastsInMotions, _prop.var.etc.importOptionBeastsInMotions.value, _opt.beastsInMotions);
+		_opt.overwriteScenarioInfo = _overwriteScenarioInfo.getSelection();
+		_prop.var.etc.importOptionOverwriteScenarioInfo = _opt.overwriteScenarioInfo;
 
 		return ok;
 	}
