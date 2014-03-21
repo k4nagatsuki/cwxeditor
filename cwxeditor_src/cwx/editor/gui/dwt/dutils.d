@@ -101,7 +101,7 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 			if (isBinImg(path)) { mixin(S_TRACE);
 				bytes = cast(byte[])strToBImg(path);
 			} else { mixin(S_TRACE);
-				if (!.exists(path)) return blankImage;
+				if (!.isFile(path)) return blankImage;
 				bytes = cast(byte[])readBinary(path);
 			}
 			scope (exit) {

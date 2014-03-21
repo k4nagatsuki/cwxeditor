@@ -460,6 +460,7 @@ public:
 				return createFilterImageData();
 			}
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 			return blankImage;
 		}

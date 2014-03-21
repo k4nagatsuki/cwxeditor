@@ -20,8 +20,6 @@ struct ByteIO {
 	private ubyte[] _bytes;
 	/// バッファを解放する。
 	void dispose() { mixin(S_TRACE);
-		_bytes[] = 0;
-		delete _bytes;
 		_bytes = null;
 	}
 	/// 読込・書込済Byte列。
