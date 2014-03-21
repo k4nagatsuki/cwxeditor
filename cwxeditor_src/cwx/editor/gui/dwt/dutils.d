@@ -93,7 +93,7 @@ ImageData loadImage(Skin skin, in Summary summ, string path, bool mask = true, i
 			if (isBinImg(path)) {
 				bytes = cast(byte[])strToBImg(path);
 			} else {
-				if (!.exists(path)) return blankImage;
+				if (!.isFile(path)) return blankImage;
 				bytes = cast(byte[])std.file.read(path);
 			}
 			scope (exit) {

@@ -18,7 +18,6 @@ struct ByteIO {
 	private ubyte[] _bytes;
 	/// バッファを解放する。
 	void dispose() {
-		delete _bytes;
 		_bytes = null;
 	}
 	/// 読込・書込済Byte列。
