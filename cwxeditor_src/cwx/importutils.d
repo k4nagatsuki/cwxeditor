@@ -217,7 +217,7 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 		} else { mixin(S_TRACE);
 			auto dst = to.scenarioPath.buildPath(cast(string)path);
 			bool overwrite = dst.exists();
-			if (opt.materials !is ImportTypeReference1.NoOverwrite) { mixin(S_TRACE);
+			if (!overwrite || opt.materials !is ImportTypeReference1.NoOverwrite) { mixin(S_TRACE);
 				r.materials ~= ImportFile(dst, from.scenarioPath.buildPath(cast(string)path), overwrite);
 			}
 		}
@@ -235,7 +235,7 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 			uc.change(path, toFlagId(newPath));
 		} else { mixin(S_TRACE);
 			bool overwrite = to.flagDirRoot.getFlag(cast(string)path) !is null;
-			if (opt.variables !is ImportTypeReference1.NoOverwrite) { mixin(S_TRACE);
+			if (!overwrite || opt.variables !is ImportTypeReference1.NoOverwrite) { mixin(S_TRACE);
 				auto dir = FlagDir.up(cast(string)path);
 				r.flags[dir] ~= ImportFlag(dir, o, overwrite);
 			}
@@ -252,7 +252,7 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 			uc.change(path, toStepId(newPath));
 		} else { mixin(S_TRACE);
 			bool overwrite = to.flagDirRoot.getStep(cast(string)path) !is null;
-			if (opt.variables !is ImportTypeReference1.NoOverwrite) { mixin(S_TRACE);
+			if (!overwrite || opt.variables !is ImportTypeReference1.NoOverwrite) { mixin(S_TRACE);
 				auto dir = FlagDir.up(cast(string)path);
 				r.steps[dir] ~= ImportStep(dir, o, overwrite);
 			}
