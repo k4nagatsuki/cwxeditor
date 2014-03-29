@@ -81,10 +81,6 @@ void unzip(ZipArchive arc,
 			bool isDir = ((am.fileAttributes & 0x10) != 0 || std.algorithm.endsWith(nml, dirSeparator)) && am.expandedSize == 0;
 			auto data = arc.expand(am);
 			fileProc(nml, data, isDir);
-			scope (exit) {
-				data[] = 0;
-				delete data;
-			}
 		}
 		if (progress !is null) { mixin(S_TRACE);
 			progress(count);
