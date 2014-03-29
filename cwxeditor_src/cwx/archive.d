@@ -14,9 +14,9 @@ import std.string;
 import std.c.string : strlen;
 
 /// アーカイヴのメンバ名をencodeする。
-string encodeArchiveName(string name) { mixin(S_TRACE);
+string encodeArchiveName(string name) {
 	name = std.array.replace(name, dirSeparator, "/");
-	static if (altDirSeparator.length) { mixin(S_TRACE);
+	static if (altDirSeparator.length) {
 		name = std.array.replace(name, altDirSeparator, "/");
 	}
 	return name;
