@@ -302,7 +302,7 @@ public:
 			foreach (am; arc.directory) {
 				string name;
 				try {
-					.validate(am.name);
+					cwx.utils.validate(am.name);
 					name = am.name;
 				} catch {
 					name = touni(am.name);

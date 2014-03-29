@@ -147,7 +147,7 @@ private {
 	}
 	string strVal(string value) {
 		try {
-			validate(value);
+			cwx.utils.validate(value);
 			return value;
 		} catch {
 			return touni(value);
@@ -803,7 +803,7 @@ struct Jptx {
 					t ~= "\n";
 				}
 				try {
-					validate(line);
+					cwx.utils.validate(line);
 					t ~= line;
 				} catch {
 					t ~= touni(line);

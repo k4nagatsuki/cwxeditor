@@ -132,7 +132,7 @@ string debugString(T)(ref T v) {
 				try {
 					for (size_t i = 0; i < file.length; i++) {
 						char c = file[i];
-						.validate([c]);
+						cwx.utils.validate([c]);
 						trace ~= c;
 					}
 				} catch (Exception e) {
@@ -247,6 +247,24 @@ void cwriteln(string s) {
 				writeln(s);
 			}
 		}
+	}
+}
+
+// FIXME: たまにすり抜ける文字列がある
+//alias std.utf.validate validate;
+void validate(S)(in S s) { mixin(S_TRACE);
+	try {
+		foreach (dchar c; s) { }
+	} catch (Exception e) {
+		throw new UTFException(__FILE__, __LINE__);
+	}
+} unittest {
+	debug mixin(UTPerf);
+	try {
+		validate(tosjis("あ い"));
+		assert (0);
+	} catch (UTFException e) {
+		assert (true);
 	}
 }
 

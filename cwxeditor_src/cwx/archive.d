@@ -189,10 +189,10 @@ ZipArchive zip(string targ, bool top, string[] excludePath, bool useSysEnc, ref 
 // ファイル名の文字コードをUTF-8に統一する。
 string memberName(string name) {
 	try {
-		validate(name);
+		cwx.utils.validate(name);
 	} catch (Exception e) {
 		name = touni(name);
-		validate(name);
+		cwx.utils.validate(name);
 	}
 	return name;
 }
