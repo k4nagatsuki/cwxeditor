@@ -262,6 +262,24 @@ void cwriteln(string s) { mixin(S_TRACE);
 	}
 }
 
+// FIXME: たまにすり抜ける文字列がある
+//alias std.utf.validate validate;
+void validate(S)(in S s) { mixin(S_TRACE);
+	try {
+		foreach (dchar c; s) { }
+	} catch (Exception e) {
+		throw new UTFException(__FILE__, __LINE__);
+	}
+} unittest {
+	debug mixin(UTPerf);
+	try {
+		validate(tosjis("あ い"));
+		assert (0);
+	} catch (UTFException e) {
+		assert (true);
+	}
+}
+
 version (Windows) {
 	import core.sys.windows.windows;
 

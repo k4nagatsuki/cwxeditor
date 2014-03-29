@@ -201,7 +201,7 @@ private {
 	}
 	string strVal(string value, in CProps prop, string file, size_t line, EffectBoosterError errInfo) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
-			validate(value);
+			cwx.utils.validate(value);
 			return value;
 		} catch { mixin(S_TRACE);
 			try {
@@ -1116,7 +1116,7 @@ struct Jptx {
 					t ~= "\n";
 				}
 				try { mixin(S_TRACE);
-					validate(line);
+					cwx.utils.validate(line);
 					t ~= line;
 				} catch { mixin(S_TRACE);
 					t ~= touni(line);

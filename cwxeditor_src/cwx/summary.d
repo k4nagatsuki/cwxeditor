@@ -307,7 +307,7 @@ public:
 			foreach (am; arc.directory) { mixin(S_TRACE);
 				string name;
 				try { mixin(S_TRACE);
-					.validate(am.name);
+					cwx.utils.validate(am.name);
 					name = am.name;
 				} catch { mixin(S_TRACE);
 					name = touni(am.name);
