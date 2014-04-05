@@ -158,7 +158,7 @@ private:
 		abstract override void dispose();
 		protected Commons comm;
 		protected A area;
-		private int[] _selPath, _selPath2;
+		private int[][A] _selPath, _selPath2;
 		private int[] getSelPath(EventView v) { mixin(S_TRACE);
 			if (!v) return null;
 			auto itm = v.selection;
@@ -173,50 +173,55 @@ private:
 				return null;
 			}
 		}
-		this (EventView v, Commons comm, A area) { mixin(S_TRACE);
+		this (Commons comm, A area) { mixin(S_TRACE);
 			this.comm = comm;
 			this.area = area;
-			_selPath = getSelPath(v);
-		}
-		protected void udb(EventView v) { mixin(S_TRACE);
-			if (!v) return;
-			.forceFocus(v._cards, false);
-			_selPath2 = getSelPath(v);
-		}
-		protected void uda(EventView v) { mixin(S_TRACE);
-			scope (exit) comm.refreshToolBar();
-			if (!v) return;
-			if (_selPath) { mixin(S_TRACE);
-				auto itm = v._cards.getItem(_selPath[0]);
-				_selPath = _selPath[1 .. $];
-				while (_selPath.length) { mixin(S_TRACE);
-					itm = itm.getItem(_selPath[0]);
-					_selPath = _selPath[1 .. $];
-				}
-				auto eti = v.selectionEventTree;
-				v._cards.select(itm);
-				auto eti2 = v.selectionEventTree;
-				if (eti !is eti2) { mixin(S_TRACE);
-					if (eti2) { mixin(S_TRACE);
-						v.__select(eti2);
-					} else if (!eti) { mixin(S_TRACE);
-						v._etree.refresh(null);
-					}
-				}
-				_selPath = _selPath2;
-			} else { mixin(S_TRACE);
-				v._cards.deselectAll();
+			foreach (v; views()) { mixin(S_TRACE);
+				_selPath[v._area] = getSelPath(v);
 			}
 		}
-		protected EventView view() { mixin(S_TRACE);
-			return comm.eventViewFrom!(A, C, UseFire)(area.cwxPath(true), false);
+		protected void udb(EventView[] vs) { mixin(S_TRACE);
+			foreach (v; vs) { mixin(S_TRACE);
+				// TODO 複数開いている時のフォーカスを再考
+				.forceFocus(v._cards, false);
+				_selPath2[v._area] = getSelPath(v);
+			}
+		}
+		protected void uda(EventView[] vs) { mixin(S_TRACE);
+			scope (exit) comm.refreshToolBar();
+			foreach (v; vs) { mixin(S_TRACE);
+				auto selPath = _selPath[v._area];
+				if (selPath) { mixin(S_TRACE);
+					auto itm = v._cards.getItem(selPath[0]);
+					selPath = selPath[1 .. $];
+					while (selPath.length) { mixin(S_TRACE);
+						itm = itm.getItem(selPath[0]);
+						selPath = selPath[1 .. $];
+					}
+					auto eti = v.selectionEventTree;
+					v._cards.select(itm);
+					auto eti2 = v.selectionEventTree;
+					if (eti !is eti2) { mixin(S_TRACE);
+						if (eti2) { mixin(S_TRACE);
+							v.__select(eti2);
+						} else if (!eti) { mixin(S_TRACE);
+							v._etree.refresh(null);
+						}
+					}
+					_selPath[v._area] = _selPath2[v._area];
+				} else { mixin(S_TRACE);
+					v._cards.deselectAll();
+				}
+			}
+		}
+		protected EventView[] views() { mixin(S_TRACE);
+			return comm.eventViewsFrom!(A, C, UseFire)(area.cwxPath(true), false);
 		}
 	}
 	static class UndoTreeData : EVUndo {
 		private int _ownerIndex;
 		private int _index;
 		private static struct Vals {
-			bool expand = true;
 			string name;
 			bool enter;
 			bool escape;
@@ -228,15 +233,18 @@ private:
 			uint[] rounds;
 		}
 		private Vals _vals;
-		this (EventView v, Commons comm, A area, EventTree tree) { mixin(S_TRACE);
-			super (v, comm, area);
+		private bool _expand[A];
+		this (Commons comm, A area, EventTree tree) { mixin(S_TRACE);
+			super (comm, area);
 			auto eto = tree.owner;
 			_index = .cCountUntil!("a is b")(tree.owner.trees, tree);
 			_ownerIndex = .cCountUntil!("a is b")(etos(area), eto);
-			save(v, tree);
+			foreach (v; views()) { mixin(S_TRACE);
+				_expand[v._area] = getItem(v).getExpanded();
+			}
+			save(tree);
 		}
-		private void save(EventView v, EventTree tree) { mixin(S_TRACE);
-			if (v) _vals.expand = getItem(v).getExpanded();
+		private void save(EventTree tree) { mixin(S_TRACE);
 			_vals.name = tree.name;
 			_vals.enter = tree.fireEnter;
 			_vals.escape = tree.fireEscape;
@@ -252,12 +260,12 @@ private:
 			return v._cards.getItem(_ownerIndex).getItem(_index);
 		}
 		private void impl() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
 			auto tree = etos(area)[_ownerIndex].trees[_index];
 			auto vals = _vals;
-			save(v, tree);
+			save(tree);
 			tree.name = vals.name;
 			tree.enter = vals.enter;
 			tree.escape = vals.escape;
@@ -269,9 +277,11 @@ private:
 			tree.keyCodeMatchingType = vals.keyCodeMatchingType;
 			tree.removeRoundsAll();
 			foreach (rnd; vals.rounds) tree.addRound(rnd);
-			if (v) { mixin(S_TRACE);
+			foreach (v; vs) { mixin(S_TRACE);
 				auto itm = getItem(v);
-				itm.setExpanded(vals.expand);
+				auto expand = _expand[v._area];
+				_expand[v._area] = getItem(v).getExpanded();
+				itm.setExpanded(expand);
 				itm.setText(vals.name);
 				itm.setImage(v.etImage(tree));
 				v._etree.refreshTreeName();
@@ -287,31 +297,31 @@ private:
 		override void dispose() {}
 	}
 	void store(EventTree tree) { mixin(S_TRACE);
-		_undo ~= new UndoTreeData(this, _comm, _area, tree);
+		_undo ~= new UndoTreeData(_comm, _area, tree);
 	}
 	static class UndoInsert : EVUndo {
 		private int _ownerIndex;
 		private int _insertIndex;
 		private UndoDelete _delUndo = null;
 		private Summary _summ;
-		this (EventView v, Commons comm, A area, Summary summ, int ownerIndex, int insertIndex) { mixin(S_TRACE);
-			super (v, comm, area);
+		this (Commons comm, A area, Summary summ, int ownerIndex, int insertIndex) { mixin(S_TRACE);
+			super (comm, area);
 			_ownerIndex = ownerIndex;
 			_insertIndex = insertIndex;
 			_summ = summ;
 		}
 		override void undo() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
-			undoImpl(v);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
+			undoImpl(vs);
 		}
-		void undoImpl(EventView v) { mixin(S_TRACE);
+		void undoImpl(EventView[] vs) { mixin(S_TRACE);
 			auto owner = etos(area)[_ownerIndex];
 			auto tree = owner.trees[_insertIndex];
-			_delUndo = new UndoDelete(v, comm, area, _summ, tree);
+			_delUndo = new UndoDelete(comm, area, _summ, tree);
 			owner.removeEvent(_insertIndex);
-			if (v) { mixin(S_TRACE);
+			foreach (v; vs) { mixin(S_TRACE);
 				if (v._etree.eventTree && v._etree.eventTree.areaPath == tree.areaPath) { mixin(S_TRACE);
 					v._etree.refresh(null);
 				}
@@ -324,10 +334,10 @@ private:
 			comm.refUseCount.call();
 		}
 		override void redo() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
-			_delUndo.undoImpl(v);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
+			_delUndo.undoImpl(vs);
 			_delUndo = null;
 		}
 		override void dispose() { mixin(S_TRACE);
@@ -335,7 +345,7 @@ private:
 		}
 	}
 	void storeI(int ownerIndex, int insertIndex) { mixin(S_TRACE);
-		_undo ~= new UndoInsert(this, _comm, _area, _summ, ownerIndex, insertIndex);
+		_undo ~= new UndoInsert(_comm, _area, _summ, ownerIndex, insertIndex);
 	}
 	static class UndoDelete : EVUndo {
 		private int _ownerIndex;
@@ -343,8 +353,8 @@ private:
 		private EventTree _tree;
 		private UndoInsert _istUndo = null;
 		private Summary _summ;
-		this (EventView v, Commons comm, A area, Summary summ, EventTree tree) { mixin(S_TRACE);
-			super (v, comm, area);
+		this (Commons comm, A area, Summary summ, EventTree tree) { mixin(S_TRACE);
+			super (comm, area);
 			_summ = summ;
 			auto owner = tree.owner;
 			_ownerIndex = .cCountUntil!("a is b")(etos(area), owner);
@@ -353,26 +363,27 @@ private:
 			_tree.setUseCounter(summ.useCounter.sub);
 		}
 		override void undo() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
-			undoImpl(v);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
+			undoImpl(vs);
 		}
-		void undoImpl(EventView v) { mixin(S_TRACE);
-			_istUndo = new UndoInsert(v, comm, area, _summ, _ownerIndex, _treeIndex);
-			if (v) { mixin(S_TRACE);
-				auto parItm = v._cards.getItem(_ownerIndex);
-				v.appendTree(parItm, _tree, _treeIndex, null, false);
+		void undoImpl(EventView[] vs) { mixin(S_TRACE);
+			_istUndo = new UndoInsert(comm, area, _summ, _ownerIndex, _treeIndex);
+			if (vs.length) { mixin(S_TRACE);
+				TreeItem[] itms;
+				foreach (v; vs) itms ~= v._cards.getItem(_ownerIndex);
+				foreach (i, v; vs) v.appendTree(itms[i], _tree, _treeIndex, null, false, 0 < i);
 			} else { mixin(S_TRACE);
 				auto eto = etos(area)[_ownerIndex];
 				appendTreeImpl(comm, eto, _tree, _treeIndex);
 			}
 		}
 		override void redo() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
-			_istUndo.undoImpl(v);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
+			_istUndo.undoImpl(vs);
 			_istUndo = null;
 		}
 		override void dispose() { mixin(S_TRACE);
@@ -381,24 +392,26 @@ private:
 		}
 	}
 	void storeD(EventTree tree) { mixin(S_TRACE);
-		_undo ~= new UndoDelete(this, _comm, _area, _summ, tree);
+		_undo ~= new UndoDelete(_comm, _area, _summ, tree);
 	}
 	static class UndoSwap : EVUndo {
 		private int _ownerIndex;
 		private int _swapIndex1;
 		private int _swapIndex2;
-		this (EventView v, Commons comm, A area, int ownerIndex, int swapIndex1, int swapIndex2) { mixin(S_TRACE);
-			super (v, comm, area);
+		this (Commons comm, A area, int ownerIndex, int swapIndex1, int swapIndex2) { mixin(S_TRACE);
+			super (comm, area);
 			_ownerIndex = ownerIndex;
 			_swapIndex1 = swapIndex1;
 			_swapIndex2 = swapIndex2;
 		}
 		private void impl() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
-			if (v) { mixin(S_TRACE);
-				v.up(v._cards.getItem(_ownerIndex).getItem(max(_swapIndex1, _swapIndex2)), false);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
+			if (vs.length) { mixin(S_TRACE);
+				TreeItem[] itms;
+				foreach (v; vs) itms ~= v._cards.getItem(_ownerIndex).getItem(max(_swapIndex1, _swapIndex2));
+				foreach (i, v; vs) v.up(itms[i], false, true, 0 < i);
 			} else { mixin(S_TRACE);
 				staticUDImpl(comm, etos(area)[_ownerIndex], _swapIndex1, _swapIndex2);
 			}
@@ -408,7 +421,7 @@ private:
 		override void dispose() {}
 	}
 	void store(int ownerIndex, int swapIndex1, int swapIndex2) { mixin(S_TRACE);
-		_undo ~= new UndoSwap(this, _comm, _area, ownerIndex, swapIndex1, swapIndex2);
+		_undo ~= new UndoSwap(_comm, _area, ownerIndex, swapIndex1, swapIndex2);
 	}
 
 	void forceSel(size_t[] etAreaPath) { mixin(S_TRACE);
@@ -598,11 +611,13 @@ private:
 		comm.refEventTree.call(tree);
 		comm.refUseCount.call();
 	}
-	void appendTree(TreeItem parItm, EventTree tree, int index, Object defFire, bool store) { mixin(S_TRACE);
+	void appendTree(TreeItem parItm, EventTree tree, int index, Object defFire, bool store, bool viewOnly = false) { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto eto = cast(EventTreeOwner) parItm.getData();
-		if (store) storeI(_cards.indexOf(parItm), eto.trees.length);
-		appendTreeImpl(_comm, eto, tree, index);
+		if (!viewOnly) { mixin(S_TRACE);
+			if (store) storeI(_cards.indexOf(parItm), eto.trees.length);
+			appendTreeImpl(_comm, eto, tree, index);
+		}
 		auto treeItm = appendTreeItem(parItm, index, defFire);
 		__select(treeItm);
 	}
@@ -1466,7 +1481,7 @@ public:
 		return false;
 	}
 	private void udImpl(string BeforeAfter, string CanSwapKeyCode)
-			(TreeItem itm, int function(TreeItem) treeSwap, bool store) { mixin(S_TRACE);
+			(TreeItem itm, int function(TreeItem) treeSwap, bool store, bool viewOnly) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (itm && itm.getParentItem()) { mixin(S_TRACE);
 			auto data = itm.getData();
@@ -1477,15 +1492,17 @@ public:
 				if (cast(EventTree) data) { mixin(S_TRACE);
 					_cards.setRedraw(false);
 					scope (exit) _cards.setRedraw(true);
-					if (store) this.store(_cards.indexOf(parent), from, to);
 					// イベントツリー
 					auto eto = (cast(EventTreeOwner) parent.getData());
-					eto.swapEventTree(from, to);
+					if (!viewOnly) { mixin(S_TRACE);
+						if (store) this.store(_cards.indexOf(parent), from, to);
+						eto.swapEventTree(from, to);
+						_comm.refEventTree.call(eto.trees[from]);
+						_comm.refEventTree.call(eto.trees[to]);
+					}
 					treeSwap(itm);
 					_selItm = selection;
 					_cards.showSelection();
-					_comm.refEventTree.call(eto.trees[from]);
-					_comm.refEventTree.call(eto.trees[to]);
 				} else { mixin(S_TRACE);
 					static if (UseFire) {
 						if (cast(KeyCodeObj) data) { mixin(S_TRACE);
@@ -1493,16 +1510,18 @@ public:
 							scope (exit) _cards.setRedraw(true);
 							// キーコード
 							auto tree = cast(EventTree) parent.getData();
-							if (store) this.store(tree);
 							int keyCodeLen = tree.keyCodes.length;
 							from -= keyCodesIndex(parent);
 							to -= keyCodesIndex(parent);
 							if (mixin (CanSwapKeyCode)) { mixin(S_TRACE);
-								tree.swapKeyCode(from, to);
+								if (!viewOnly) { mixin(S_TRACE);
+									if (store) this.store(tree);
+									tree.swapKeyCode(from, to);
+									_comm.refEventTree.call(tree);
+								}
 								treeSwap(itm);
 								_cards.showSelection();
 							}
-							_comm.refEventTree.call(tree);
 						}
 					}
 				}
@@ -1536,34 +1555,34 @@ public:
 	}
 	void up() { mixin(S_TRACE);
 		initial();
-		up(selection, true);
+		up(selection, true, false, false);
 	}
-	private void up(TreeItem itm, bool store) { mixin(S_TRACE);
+	private void up(TreeItem itm, bool store, bool cards, bool viewOnly) { mixin(S_TRACE);
 		if (_readOnly) return;
-		if (_etree.isFocusControl()) { mixin(S_TRACE);
+		if (!cards && _etree.isFocusControl()) { mixin(S_TRACE);
 			_etree.up();
-		} else if (_cards.isFocusControl()) { mixin(S_TRACE);
-			udImpl!("before(parent, from)", "to >= 0")(itm, &treeItemUp, store);
+		} else if (cards || _cards.isFocusControl()) { mixin(S_TRACE);
+			udImpl!("before(parent, from)", "to >= 0")(itm, &treeItemUp, store, viewOnly);
 			_comm.refreshToolBar();
 		}
 	}
 	void down() { mixin(S_TRACE);
 		initial();
-		down(selection, true);
+		down(selection, true, false, false);
 	}
-	private void down(TreeItem itm, bool store) { mixin(S_TRACE);
+	private void down(TreeItem itm, bool store, bool cards, bool viewOnly) { mixin(S_TRACE);
 		if (_readOnly) return;
-		if (_etree.isFocusControl()) { mixin(S_TRACE);
+		if (!cards && _etree.isFocusControl()) { mixin(S_TRACE);
 			_etree.down();
-		} else if (_cards.isFocusControl()) { mixin(S_TRACE);
-			udImpl!("after(parent, from)", "to < keyCodeLen")(itm, &treeItemDown, store);
+		} else if (cards || _cards.isFocusControl()) { mixin(S_TRACE);
+			udImpl!("after(parent, from)", "to < keyCodeLen")(itm, &treeItemDown, store, viewOnly);
 			_comm.refreshToolBar();
 		}
 	}
 
 	static if (is(A : Area) || is(A : Battle)) {
 		private void openScene() { mixin(S_TRACE);
-			_comm.openAreaScene(_prop, _summ, _area, true);
+			_comm.openAreaScene(_prop, _summ, _area, true, false);
 		}
 	}
 

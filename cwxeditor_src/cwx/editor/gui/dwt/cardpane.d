@@ -1404,12 +1404,12 @@ private:
 			override void mouseUp(MouseEvent e) { mixin(S_TRACE);
 				if (e.button == 1) { mixin(S_TRACE);
 					if (_openEventTarget) { mixin(S_TRACE);
-						editUseEvent(_openEventTarget);
+						editUseEvent(_openEventTarget, false);
 					}
 				} else if (e.button == 2) { mixin(S_TRACE);
 					int index = _list.searchIndex(e.x, e.y);
 					if (index >= 0) { mixin(S_TRACE);
-						editUseEvent(_list.card(index));
+						editUseEvent(_list.card(index), false);
 					}
 				}
 			}
@@ -1427,13 +1427,13 @@ private:
 			override void mouseUp(MouseEvent e) { mixin(S_TRACE);
 				if (e.button == 1) { mixin(S_TRACE);
 					if (_openEventTarget) { mixin(S_TRACE);
-						editUseEvent(_openEventTarget);
+						editUseEvent(_openEventTarget, false);
 					}
 				} else if (e.button == 2) { mixin(S_TRACE);
 					scope p = new Point(e.x, e.y);
 					auto itm = _tbl.getItem(p);
 					if (!itm) return;
-					editUseEvent(cast(C) itm.getData());
+					editUseEvent(cast(C)itm.getData(), false);
 				}
 			}
 		}
@@ -2088,7 +2088,7 @@ public:
 			} else static if (is (C == SkillCard) || is (C == ItemCard) || is (C == BeastCard)) {
 				createMenuItem(_comm, pop, MenuID.EditProp, &editM, &canEdit);
 				new MenuItem(pop, SWT.SEPARATOR);
-				createMenuItem(_comm, pop, MenuID.EditEventAtTimeOfUsing, &editUseEvent, &canEdit);
+				createMenuItem(_comm, pop, MenuID.EditEventAtTimeOfUsing, () => editUseEvent(false), &canEdit);
 				new MenuItem(pop, SWT.SEPARATOR);
 				static if (is(C:SkillCard)) {
 					createMenuItem(_comm, pop, MenuID.NewSkill, &create, () => _summ !is null);
@@ -2139,7 +2139,7 @@ public:
 			createMenuItem(_comm, pop, MenuID.ShowProp, &editM, &canEdit);
 			new MenuItem(pop, SWT.SEPARATOR);
 			static if (is (C : EffectCard)) {
-				createMenuItem(_comm, pop, MenuID.EditEventAtTimeOfUsing, &editUseEvent, &canEdit);
+				createMenuItem(_comm, pop, MenuID.EditEventAtTimeOfUsing, () => editUseEvent(false), &canEdit);
 				new MenuItem(pop, SWT.SEPARATOR);
 			}
 			static if (is (C == CastCard)) {
@@ -2662,11 +2662,11 @@ public:
 		return null;
 	}
 	static if (is (C : EffectCard)) {
-		void editUseEvent() { mixin(S_TRACE);
+		void editUseEvent(bool canDuplicate = false) { mixin(S_TRACE);
 			auto sel = selection;
-			if (sel) editUseEvent(sel);
+			if (sel) editUseEvent(sel, canDuplicate);
 		}
-		void editUseEvent(C c) { mixin(S_TRACE);
+		void editUseEvent(C c, bool canDuplicate = false) { mixin(S_TRACE);
 			static if (is(typeof(c.linkId))) {
 				if (0 != c.linkId) { mixin(S_TRACE);
 					static if (EditMode) {
@@ -2674,11 +2674,11 @@ public:
 						if (c2) { mixin(S_TRACE);
 							_comm.openCWXPath(c2.cwxPath(true), false);
 							static if (is(C:SkillCard)) {
-								_comm.openSkillWin(false).editUseEvent(c2);
+								_comm.openSkillWin(false).editUseEvent(c2, canDuplicate);
 							} else static if (is(C:ItemCard)) {
-								_comm.openItemWin(false).editUseEvent(c2);
+								_comm.openItemWin(false).editUseEvent(c2, canDuplicate);
 							} else static if (is(C:BeastCard)) {
-								_comm.openBeastWin(false).editUseEvent(c2);
+								_comm.openBeastWin(false).editUseEvent(c2, canDuplicate);
 							} else static assert (0);
 							return;
 						}
@@ -2689,7 +2689,7 @@ public:
 					}
 				}
 			}
-			_comm.openUseEvents(_prop, _summ, c, true);
+			_comm.openUseEvents(_prop, _summ, c, true, canDuplicate);
 		}
 	}
 

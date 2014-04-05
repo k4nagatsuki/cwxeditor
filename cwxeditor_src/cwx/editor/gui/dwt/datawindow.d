@@ -166,8 +166,8 @@ public:
 
 				auto me = createMenu(_comm, bar, MenuID.Edit);
 				static if (UseArea) {
-					createMenuItem(_comm, me, MenuID.EditScene, &openAreaScene, &_areas.canOpenAreaScene);
-					createMenuItem(_comm, me, MenuID.EditEvent, &openAreaEvent, &_areas.canOpenAreaEvent);
+					createMenuItem(_comm, me, MenuID.EditScene, () => openAreaScene(), &_areas.canOpenAreaScene);
+					createMenuItem(_comm, me, MenuID.EditEvent, () => openAreaEvent(), &_areas.canOpenAreaEvent);
 					new MenuItem(me, SWT.SEPARATOR);
 				}
 				createMenuItem(_comm, me, MenuID.Undo, &undo, &canUndo);
@@ -237,8 +237,8 @@ public:
 				putMenuAction(MenuID.EditSummary, &editSummary, &canEditSummary);
 			}
 			static if (UseArea) {
-				putMenuAction(MenuID.EditScene, &openAreaScene, &_areas.canOpenAreaScene);
-				putMenuAction(MenuID.EditEvent, &openAreaEvent, &_areas.canOpenAreaEvent);
+				putMenuAction(MenuID.EditScene, () => openAreaScene(), &_areas.canOpenAreaScene);
+				putMenuAction(MenuID.EditEvent, () => openAreaEvent(), &_areas.canOpenAreaEvent);
 				putMenuAction(MenuID.NewAreaDir, &createAreaDir, &canCreateAreaDir);
 				putMenuAction(MenuID.NewArea, &createArea, &canCreateArea);
 				putMenuAction(MenuID.NewBattle, &createBattle, &canCreateBattle);
@@ -350,32 +350,32 @@ public:
 			}
 		}
 
-		private void openAreaScene() { mixin(S_TRACE);
-			_areas.openAreaScene(true);
+		private void openAreaScene(bool canDuplicate = false) { mixin(S_TRACE);
+			_areas.openAreaScene(true, canDuplicate);
 		}
-		private void openAreaEvent() { mixin(S_TRACE);
-			_areas.openAreaEvent(true);
+		private void openAreaEvent(bool canDuplicate = false) { mixin(S_TRACE);
+			_areas.openAreaEvent(true, canDuplicate);
 		}
 
 		/// エリアビューを開く。
-		void openAreaScene(ulong id, bool shellActivate) { mixin(S_TRACE);
-			_areas.openAreaScene(id, shellActivate);
+		void openAreaScene(ulong id, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
+			_areas.openAreaScene(id, shellActivate, canDuplicate);
 		}
 		/// ditto
-		void openAreaEvent(ulong id, bool shellActivate) { mixin(S_TRACE);
-			_areas.openAreaEvent(id, shellActivate);
+		void openAreaEvent(ulong id, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
+			_areas.openAreaEvent(id, shellActivate, canDuplicate);
 		}
 		/// ditto
-		void openBattleScene(ulong id, bool shellActivate) { mixin(S_TRACE);
-			_areas.openBattleScene(id, shellActivate);
+		void openBattleScene(ulong id, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
+			_areas.openBattleScene(id, shellActivate, canDuplicate);
 		}
 		/// ditto
-		void openBattleEvent(ulong id, bool shellActivate) { mixin(S_TRACE);
-			_areas.openBattleEvent(id, shellActivate);
+		void openBattleEvent(ulong id, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
+			_areas.openBattleEvent(id, shellActivate, canDuplicate);
 		}
 		/// ditto
-		void openPackage(ulong id, bool shellActivate) { mixin(S_TRACE);
-			_areas.openPackage(id, shellActivate);
+		void openPackage(ulong id, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
+			_areas.openPackage(id, shellActivate, canDuplicate);
 		}
 		void createAreaDir() { mixin(S_TRACE);
 			if (!_summ) return;
@@ -763,18 +763,18 @@ public:
 			static if (UseArea) {
 				if (index >= _summ.areas.length) return false;
 				auto a = _summ.areas[index];
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate),
-					_comm.openAreaScene(_prop, _summ, a, shellActivate),
-					_comm.openAreaEvent(_prop, _summ, a, shellActivate),
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, false),
+					_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
+					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
 			}
 		} break;
 		case "area:id": { mixin(S_TRACE);
 			static if (UseArea) {
 				auto a = _summ.area(index);
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate),
-					_comm.openAreaScene(_prop, _summ, a, shellActivate),
-					_comm.openAreaEvent(_prop, _summ, a, shellActivate),
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, false),
+					_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
+					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
 			}
 		} break;
@@ -782,18 +782,18 @@ public:
 			static if (UseArea) {
 				if (index >= _summ.battles.length) return false;
 				auto a = _summ.battles[index];
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate),
-					_comm.openAreaScene(_prop, _summ, a, shellActivate),
-					_comm.openAreaEvent(_prop, _summ, a, shellActivate),
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, false),
+					_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
+					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
 			}
 		} break;
 		case "battle:id": { mixin(S_TRACE);
 			static if (UseArea) {
 				auto a = _summ.battle(index);
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate),
-					_comm.openAreaScene(_prop, _summ, a, shellActivate),
-					_comm.openAreaEvent(_prop, _summ, a, shellActivate),
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, false),
+					_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
+					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
 			}
 		} break;
@@ -801,14 +801,14 @@ public:
 			static if (UseArea) {
 				if (index >= _summ.packages.length) return false;
 				auto a = _summ.packages[index];
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate),
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
 			}
 		} break;
 		case "package:id": { mixin(S_TRACE);
 			static if (UseArea) {
 				auto a = _summ.cwPackage(index);
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate),
+				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
 			}
 		} break;

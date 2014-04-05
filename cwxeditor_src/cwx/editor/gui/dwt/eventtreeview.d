@@ -313,52 +313,55 @@ private:
 	UndoManager _undo;
 	abstract static class ETVUndo : Undo {
 		private size_t[] _etPath;
-		private size_t[] _selPath = null, _selPath2 = null;
+		private size_t[][EventTree] _selPath = null, _selPath2 = null;
 		protected EventTree et;
 		protected Commons comm;
 		protected Props prop;
 		protected Summary summ;
-		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et) { mixin(S_TRACE);
+		this (Commons comm, Props prop, Summary summ, EventTree et) { mixin(S_TRACE);
 			this.et = et;
 			this.comm = comm;
 			this.prop = prop;
 			this.summ = summ;
 			_etPath = et.areaPath;
-			if (v) { mixin(S_TRACE);
+			foreach (v; views()) { mixin(S_TRACE);
 				auto sel = v.selection;
-				_selPath = sel ? (cast(Content) sel.getData()).ctPath : null;
+				_selPath[v._et] = sel ? (cast(Content)sel.getData()).ctPath : null;
 			}
 		}
-		void udb(EventTreeView v) { mixin(S_TRACE);
-			if (!v) return;
-			.forceFocus(v._tree.control, false);
-			v._forceSel(_etPath);
-			auto sel = v.selection;
-			_selPath2 = sel ? (cast(Content) sel.getData()).ctPath : null;
+		void udb(EventTreeView[] vs) { mixin(S_TRACE);
+			foreach (v; vs) { mixin(S_TRACE);
+				// TODO 複数開いている時のフォーカスを再考
+				.forceFocus(v._tree.control, false);
+				v._forceSel(_etPath);
+				auto sel = v.selection;
+				_selPath2[v._et] = sel ? (cast(Content)sel.getData()).ctPath : null;
+			}
 		}
-		void uda(EventTreeView v) { mixin(S_TRACE);
+		void uda(EventTreeView[] vs) { mixin(S_TRACE);
 			scope (exit) comm.refreshToolBar();
-			if (!v) return;
-			if (_selPath) v._tree.select(v.fromPath(_selPath));
-			_selPath = _selPath2;
-			v.refreshStatusLine();
+			foreach (v; vs) { mixin(S_TRACE);
+				if (_selPath) v._tree.select(v.fromPath(_selPath[v._et]));
+				_selPath[v._et] = _selPath2[v._et];
+				v.refreshStatusLine();
+			}
 		}
-		EventTreeView view() { mixin(S_TRACE);
+		EventTreeView[] views() { mixin(S_TRACE);
 			return comm.eventTreeViewFrom(et.cwxPath(true), false);
 		}
 		abstract override void undo();
 		abstract override void redo();
 		abstract override void dispose();
 	}
-	private static void insertStart(EventTreeView v, Commons comm, EventTree et, int index, Content c) { mixin(S_TRACE);
-		if (v) v._tree.control.setRedraw(false);
-		scope (exit) if (v) v._tree.control.setRedraw(true);
+	private static void insertStart(EventTreeView[] vs, Commons comm, EventTree et, int index, Content c) { mixin(S_TRACE);
+		foreach (v; vs) v._tree.control.setRedraw(false);
+		scope (exit) foreach (v; vs) v._tree.control.setRedraw(true);
 		bool empty = et.owner.isEmpty;
 		scope (exit) {
 			if (empty != et.owner.isEmpty) comm.refEventTree.call(et);
 		}
 		et.insert(index, c);
-		if (v) { mixin(S_TRACE);
+		foreach (v; vs) { mixin(S_TRACE);
 			if (v._tree.tree) { mixin(S_TRACE);
 				auto itm = createTreeItem(v._tree.tree, c, c.name, v._prop.images.content(c.type), index);
 				v.createChilds(itm, c);
@@ -376,8 +379,8 @@ private:
 	static class UndoContent : ETVUndo {
 		private size_t[][] _path;
 		private Content[] _c;
-		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, Content[] cs) { mixin(S_TRACE);
-			super (v, comm, prop, summ, et);
+		this (Commons comm, Props prop, Summary summ, EventTree et, Content[] cs) { mixin(S_TRACE);
+			super (comm, prop, summ, et);
 			foreach (c; cs) { mixin(S_TRACE);
 				_path ~= c.ctPath;
 				_c ~= c.dup;
@@ -385,9 +388,9 @@ private:
 			}
 		}
 		private void impl() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
 			bool empty = et.owner.isEmpty;
 			scope (exit) {
 				if (empty != et.owner.isEmpty) comm.refEventTree.call(et);
@@ -409,9 +412,9 @@ private:
 					et.insert(index, c);
 					text = c.name;
 				}
-				if (v) v._tree.control.setRedraw(false);
-				scope (exit) if (v) v._tree.control.setRedraw(true);
-				if (v) { mixin(S_TRACE);
+				foreach (v; vs) v._tree.control.setRedraw(false);
+				scope (exit) foreach (v; vs) v._tree.control.setRedraw(true);
+				foreach (v; vs) { mixin(S_TRACE);
 					if (v._tree.tree) { mixin(S_TRACE);
 						auto now = cast(TreeItem)v.fromPath(_path[i]);
 						auto par = now.getParentItem();
@@ -428,9 +431,11 @@ private:
 						v._tree.editor.updateEventTree();
 					}
 				}
-				delImpl(v, comm, et, tc);
-				if (v && !pc) { mixin(S_TRACE);
-					v._refreshTopStart();
+				delImpl(vs, comm, et, tc);
+				if (!pc) { mixin(S_TRACE);
+					foreach (v; vs) { mixin(S_TRACE);
+						v._refreshTopStart();
+					}
 				}
 			}
 			comm.refUseCount.call();
@@ -444,62 +449,62 @@ private:
 		}
 	}
 	void store(Content[] evt ...) { mixin(S_TRACE);
-		_undo ~= new UndoContent(this, _comm, _prop, _summ, _et, evt);
+		_undo ~= new UndoContent(_comm, _prop, _summ, _et, evt);
 	}
 	static class UndoSwap : ETVUndo {
 		private int _upIndex;
-		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int swapIndex1, int swapIndex2) { mixin(S_TRACE);
-			super (v, comm, prop, summ, et);
+		this (Commons comm, Props prop, Summary summ, EventTree et, int swapIndex1, int swapIndex2) { mixin(S_TRACE);
+			super (comm, prop, summ, et);
 			_upIndex = swapIndex1 > swapIndex2 ? swapIndex1 : swapIndex2;
 		}
 		private void impl() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
-			udImpl!(-1)(v, comm, et, et.starts[_upIndex], false);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
+			udImpl!(-1)(vs, comm, et, et.starts[_upIndex], false);
 		}
 		override void undo() {impl();}
 		override void redo() {impl();}
 		override void dispose() {}
 	}
 	void storeSwap(int swapIndex1, int swapIndex2) { mixin(S_TRACE);
-		_undo ~= new UndoSwap(this, _comm, _prop, _summ, _et, swapIndex1, swapIndex2);
+		_undo ~= new UndoSwap(_comm, _prop, _summ, _et, swapIndex1, swapIndex2);
 	}
 	static class UndoInsert : ETVUndo {
 		private int _index;
 		private size_t _count;
 		private Content[] _c;
-		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int index, size_t count) { mixin(S_TRACE);
-			super (v, comm, prop, summ, et);
+		this (Commons comm, Props prop, Summary summ, EventTree et, int index, size_t count) { mixin(S_TRACE);
+			super (comm, prop, summ, et);
 			_index = index;
 			_count = count;
 		}
 		override void undo() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
-			if (v) v._tree.control.setRedraw(false);
-			scope (exit) if (v) v._tree.control.setRedraw(true);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
+			foreach (v; vs) v._tree.control.setRedraw(false);
+			scope (exit) foreach (v; vs) v._tree.control.setRedraw(true);
 			for (size_t i = 0; i < _count; i++) { mixin(S_TRACE);
 				auto node = et.starts[_index].toNode(new XMLOption(prop.sys));
 				auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
 				auto c = Content.createFromNode(node, ver);
 				c.setUseCounter(summ.useCounter.sub);
 				_c ~= c;
-				delImpl(v, comm, et, et.starts[_index]);
+				delImpl(vs, comm, et, et.starts[_index]);
 			}
 			comm.refUseCount.call();
-			if (v) { mixin(S_TRACE);
+			foreach (v; vs) { mixin(S_TRACE);
 				v.refreshStatusLine();
 				v._refreshTopStart();
 			}
 		}
 		override void redo() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
 			foreach_reverse (c; _c) { mixin(S_TRACE);
-				insertStart(v, comm, et, _index, c);
+				insertStart(vs, comm, et, _index, c);
 			}
 			_c = [];
 		}
@@ -510,13 +515,13 @@ private:
 		}
 	}
 	void storeInsert(int insertIndex, size_t count = 1) { mixin(S_TRACE);
-		_undo ~= new UndoInsert(this, _comm, _prop, _summ, _et, insertIndex, count);
+		_undo ~= new UndoInsert(_comm, _prop, _summ, _et, insertIndex, count);
 	}
 	static class UndoDelete : ETVUndo {
 		private int _index;
 		private Content _c;
-		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, int index, Content del) { mixin(S_TRACE);
-			super (v, comm, prop, summ, et);
+		this (Commons comm, Props prop, Summary summ, EventTree et, int index, Content del) { mixin(S_TRACE);
+			super (comm, prop, summ, et);
 			_index = index;
 			auto node = del.toNode(new XMLOption(prop.sys));
 			auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
@@ -524,20 +529,20 @@ private:
 			_c.setUseCounter(summ.useCounter.sub);
 		}
 		override void undo() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
-			insertStart(v, comm, et, _index, _c);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
+			insertStart(vs, comm, et, _index, _c);
 		}
 		override void redo() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
-			if (v) v._tree.control.setRedraw(false);
-			scope (exit) if (v) v._tree.control.setRedraw(true);
-			delImpl(v, comm, et, et.starts[_index]);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
+			foreach (v; vs) v._tree.control.setRedraw(false);
+			scope (exit) foreach (v; vs) v._tree.control.setRedraw(true);
+			delImpl(vs, comm, et, et.starts[_index]);
 			comm.refUseCount.call();
-			if (v) { mixin(S_TRACE);
+			foreach (v; vs) { mixin(S_TRACE);
 				v.refreshStatusLine();
 				v._refreshTopStart();
 			}
@@ -547,7 +552,7 @@ private:
 		}
 	}
 	void storeDelete(int index, Content del) { mixin(S_TRACE);
-		_undo ~= new UndoDelete(this, _comm, _prop, _summ, _et, index, del);
+		_undo ~= new UndoDelete(_comm, _prop, _summ, _et, index, del);
 	}
 	private Item fromPath(string cwxPath) { mixin(S_TRACE);
 		return fromPathImpl(_tree, cwxPath);
@@ -577,9 +582,9 @@ private:
 	static class UndoCP : Undo {
 		private UndoContent _undoC;
 		private UndoDelete _undoD;
-		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, Content[] conts, int index, Content start) { mixin(S_TRACE);
-			_undoC = new UndoContent(v, comm, prop, summ, et, conts);
-			_undoD = new UndoDelete(v, comm, prop, summ, et, index, start);
+		this (Commons comm, Props prop, Summary summ, EventTree et, Content[] conts, int index, Content start) { mixin(S_TRACE);
+			_undoC = new UndoContent(comm, prop, summ, et, conts);
+			_undoD = new UndoDelete(comm, prop, summ, et, index, start);
 		}
 		override void undo() { mixin(S_TRACE);
 			_undoD.undo();
@@ -597,10 +602,10 @@ private:
 	static class UndoContentAndInsert : ETVUndo {
 		private UndoContent _undoC;
 		private UndoInsert _undoI;
-		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et, Content owner, int insertIndex, int count) { mixin(S_TRACE);
-			super (v, comm, prop, summ, et);
-			_undoC = new UndoContent(v, comm, prop, summ, et, [owner]);
-			_undoI = new UndoInsert(v, comm, prop, summ, et, insertIndex, count);
+		this (Commons comm, Props prop, Summary summ, EventTree et, Content owner, int insertIndex, int count) { mixin(S_TRACE);
+			super (comm, prop, summ, et);
+			_undoC = new UndoContent(comm, prop, summ, et, [owner]);
+			_undoI = new UndoInsert(comm, prop, summ, et, insertIndex, count);
 		}
 		override void undo() { mixin(S_TRACE);
 			_undoI.undo();
@@ -616,7 +621,7 @@ private:
 		}
 	}
 	void storeContentAndInsert(Content owner, int insertIndex, int count) { mixin(S_TRACE);
-		_undo ~= new UndoContentAndInsert(this, _comm, _prop, _summ, _et, owner, insertIndex, count);
+		_undo ~= new UndoContentAndInsert(_comm, _prop, _summ, _et, owner, insertIndex, count);
 	}
 
 	private EventDialog[Content] _editDlgs;
@@ -866,11 +871,11 @@ private:
 			auto evt = dlg.event;
 			applied(evt);
 
-			auto undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
+			auto undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
 			dlg.appliedEvent.length = 0;
 			dlg.appliedEvent ~= { mixin(S_TRACE);
 				appliedEdit(undo, evt);
-				undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
+				undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
 			};
 		};
 		_editDlgs[evt] = dlg;
@@ -897,10 +902,10 @@ private:
 			return *p;
 		}
 		auto dlg = createEventDialog(evt, evt.parent, false);
-		auto undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
+		auto undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
 		dlg.appliedEvent ~= { mixin(S_TRACE);
 			appliedEdit(undo, evt);
-			undo = new UndoContent(this, _comm, _prop, _summ, _et, [evt]);
+			undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
 		};
 		_editDlgs[evt] = dlg;
 		dlg.closeEvent ~= { mixin(S_TRACE);
@@ -1959,10 +1964,10 @@ public:
 			return;
 		}
 		auto dlg = new ContentCommentDialog(_comm, _prop, _tree.control.getShell(), c.parent, c);
-		auto undo = new UndoContent(this, _comm, _prop, _summ, _et, [c]);
+		auto undo = new UndoContent(_comm, _prop, _summ, _et, [c]);
 		dlg.appliedEvent ~= { mixin(S_TRACE);
 			_undo ~= undo;
-			undo = new UndoContent(this, _comm, _prop, _summ, _et, [c]);
+			undo = new UndoContent(_comm, _prop, _summ, _et, [c]);
 			redraw();
 		};
 		_commentDlgs[c] = dlg;
@@ -2000,7 +2005,7 @@ public:
 			foreach (cld; _tree.getItems(itm)) find(cld);
 		}
 		foreach (itm; _tree.getItems()) find(itm);
-		auto ucp = new UndoCP(this, _comm, _prop, _summ, _et, conts, index, start);
+		auto ucp = new UndoCP(_comm, _prop, _summ, _et, conts, index, start);
 		auto id = _comm.createPackage(start, false);
 		if (id == 0) { mixin(S_TRACE);
 			ucp.dispose();
@@ -2486,10 +2491,10 @@ public:
 		return _tree.control.isFocusControl();
 	}
 
-	private static void udImpl(int To)(EventTreeView v, Commons comm, EventTree et, Content c, bool store) { mixin(S_TRACE);
+	private static void udImpl(int To)(EventTreeView[] vs, Commons comm, EventTree et, Content c, bool store) { mixin(S_TRACE);
 		if (!et) return;
-		if (v) v._tree.control.setRedraw(false);
-		scope (exit) if (v) v._tree.control.setRedraw(true);
+		foreach (v; vs) v._tree.control.setRedraw(false);
+		scope (exit) foreach (v; vs) v._tree.control.setRedraw(true);
 		auto pc = c.parent;
 		int i, j;
 		auto path = c.ctPath;
@@ -2497,8 +2502,8 @@ public:
 			i = cCountUntil!("a is b")(pc.next, c);
 			j = i + To;
 			if (j < 0 || pc.next.length <= j) return;
-			if (v && store) { mixin(S_TRACE);
-				v.store(pc);
+			if (vs.length && store) { mixin(S_TRACE);
+				vs[0].store(pc);
 			}
 			comm.delContent.call(pc.next[i]);
 			comm.delContent.call(pc.next[j]);
@@ -2507,14 +2512,14 @@ public:
 			i = cCountUntil!("a is b")(et.starts, c);
 			j = i + To;
 			if (j < 0 || et.starts.length <= j) return;
-			if (v && store) { mixin(S_TRACE);
-				v.storeSwap(i, j);
+			if (vs.length && store) { mixin(S_TRACE);
+				vs[0].storeSwap(i, j);
 			}
 			comm.delContent.call(et.starts[i]);
 			comm.delContent.call(et.starts[j]);
 			et.swapStart(i, j);
 		}
-		if (v) { mixin(S_TRACE);
+		foreach (v; vs) { mixin(S_TRACE);
 			if (v._tree.tree) { mixin(S_TRACE);
 				static if (To == -1) {
 					treeItemUp(cast(TreeItem)v.fromPath(path));
@@ -2571,7 +2576,7 @@ public:
 	private void up(Item itm, bool store) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!itm) return;
-		udImpl!(-1)(this, _comm, _et, cast(Content) itm.getData(), store);
+		udImpl!(-1)([this], _comm, _et, cast(Content) itm.getData(), store);
 		_comm.refreshToolBar();
 	}
 	void up() { mixin(S_TRACE);
@@ -2587,7 +2592,7 @@ public:
 	private void down(Item itm, bool store) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!itm) return;
-		udImpl!(1)(this, _comm, _et, cast(Content) itm.getData(), store);
+		udImpl!(1)([this], _comm, _et, cast(Content) itm.getData(), store);
 		_comm.refreshToolBar();
 	}
 	void down() { mixin(S_TRACE);
@@ -3171,7 +3176,7 @@ public:
 		redraw();
 		_comm.refreshToolBar();
 	}
-	private void delImpl(Item itm, bool store) { mixin(S_TRACE);
+	private void delImpl(Item itm, bool store, bool viewOnly = false) { mixin(S_TRACE);
 		if (_readOnly) return;
 		bool empty = _et.owner.isEmpty;
 		scope (exit) {
@@ -3179,23 +3184,29 @@ public:
 		}
 		auto ownerItm = _tree.getParentItem(itm);
 		auto c = cast(Content) itm.getData();
-		_comm.delContent.call(c);
-		if (ownerItm) { mixin(S_TRACE);
-			auto owner = cast(Content) ownerItm.getData();
-			if (store) this.store(owner);
-			owner.remove(c);
-		} else { mixin(S_TRACE);
-			if (store) this.storeDelete(.cCountUntil!("a is b")(_et.starts, c), c);
-			_et.remove(c);
+		if (!viewOnly) { mixin(S_TRACE);
+			_comm.delContent.call(c);
+			if (ownerItm) { mixin(S_TRACE);
+				auto owner = cast(Content) ownerItm.getData();
+				if (store) this.store(owner);
+				owner.remove(c);
+			} else { mixin(S_TRACE);
+				if (store) this.storeDelete(.cCountUntil!("a is b")(_et.starts, c), c);
+				_et.remove(c);
+			}
 		}
 		itm.dispose();
 		if (_tree.editor) { mixin(S_TRACE);
 			_tree.editor.updateEventTree();
 		}
 	}
-	private static void delImpl(EventTreeView v, Commons comm, EventTree et, Content c) { mixin(S_TRACE);
-		if (v) { mixin(S_TRACE);
-			v.delImpl(v.fromPath(c.ctPath), false);
+	private static void delImpl(EventTreeView[] vs, Commons comm, EventTree et, Content c) { mixin(S_TRACE);
+		if (vs.length) { mixin(S_TRACE);
+			Item[] itms;
+			foreach (v; vs) itms ~= v.fromPath(c.ctPath);
+			foreach (i, v; vs) { mixin(S_TRACE);
+				v.delImpl(itms[i], false, 0 < i);
+			}
 		} else { mixin(S_TRACE);
 			bool empty = et.owner.isEmpty;
 			scope (exit) {

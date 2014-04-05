@@ -1315,7 +1315,7 @@ public:
 			} else static if (!UseInfo || C != INFO) {
 				if (cpcategory(path) == "event") { mixin(S_TRACE);
 					if (!cphasattr(path, "nofocus")) forceFocus(_pane[C].widget, shellActivate);
-					return _comm.openUseEvents(_prop, _summ, card, shellActivate).openCWXPath(path, shellActivate);
+					return _comm.openUseEvents(_prop, _summ, card, shellActivate, false).openCWXPath(path, shellActivate);
 				}
 			}
 		}

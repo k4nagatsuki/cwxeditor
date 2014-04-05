@@ -286,7 +286,7 @@ public:
 	}
 	static if (is(A : Area) || is(A : Battle)) {
 		private void openScene() { mixin(S_TRACE);
-			_comm.openAreaScene(_prop, _summ, _eto, true);
+			_comm.openAreaScene(_prop, _summ, _eto, true, false);
 		}
 	}
 	private void __deleteOwner(A a) { mixin(S_TRACE);

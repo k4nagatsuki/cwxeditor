@@ -1362,7 +1362,11 @@ enum MenuID {
 	ReNumberingAll,
 	ReNumbering,
 	EditScene,
+	// TODO シーン・イベントビューを複数開く
+//	EditSceneDup,
 	EditEvent,
+	// TODO シーン・イベントビューを複数開く
+//	EditEventDup,
 	SetStartArea,
 	NewFlagDir,
 	NewFlag,
@@ -1448,6 +1452,8 @@ enum MenuID {
 	AddHand,
 	RemoveRef,
 	EditEventAtTimeOfUsing,
+	// TODO シーン・イベントビューを複数開く
+//	EditEventAtTimeOfUsingDup,
 	Hold,
 	PlaySE,
 	StopSE,

@@ -2454,111 +2454,111 @@ public:
 	bool canOpenAreaEvent() { mixin(S_TRACE);
 		return (showSummary ? 1 : 0) <= _areas.getSelectionIndex();
 	}
-	void openAreaScene(bool shellActivate) { mixin(S_TRACE);
+	void openAreaScene(bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
 		foreach (area; getSelectionAreas()) { mixin(S_TRACE);
 			if (area) { mixin(S_TRACE);
 				auto a = cast(Area) area;
 				if (a) { mixin(S_TRACE);
-					openAreaSceneImpl(a, shellActivate);
+					openAreaSceneImpl(a, shellActivate, canDuplicate);
 				}
 				auto b = cast(Battle) area;
 				if (b) { mixin(S_TRACE);
-					openAreaSceneImpl(b, shellActivate);
+					openAreaSceneImpl(b, shellActivate, canDuplicate);
 				}
 				auto p = cast(Package) area;
 				if (p) { mixin(S_TRACE);
-					_comm.openArea(_prop, _summ, p, shellActivate);
+					_comm.openArea(_prop, _summ, p, shellActivate, canDuplicate);
 				}
 			}
 		}
 	}
-	void openAreaScene(int x, int y, bool shellActivate) { mixin(S_TRACE);
+	void openAreaScene(int x, int y, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
 		auto itm = _areas.getItem(new Point(x, y));
 		if (itm) { mixin(S_TRACE);
 			_areas.setSelection([itm]);
-			openAreaScene(cast(AbstractArea) itm.getData(), shellActivate);
+			openAreaScene(cast(AbstractArea)itm.getData(), shellActivate, canDuplicate);
 		} else { mixin(S_TRACE);
-			openAreaScene(shellActivate);
+			openAreaScene(shellActivate, canDuplicate);
 		}
 	}
-	void openAreaEvent(int x, int y, bool shellActivate) { mixin(S_TRACE);
+	void openAreaEvent(int x, int y, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
 		auto itm = _areas.getItem(new Point(x, y));
 		if (itm) { mixin(S_TRACE);
 			_areas.setSelection([itm]);
-			openAreaEvent(cast(AbstractArea) itm.getData(), shellActivate);
+			openAreaEvent(cast(AbstractArea)itm.getData(), shellActivate, canDuplicate);
 		} else { mixin(S_TRACE);
-			openAreaEvent(shellActivate);
+			openAreaEvent(shellActivate, canDuplicate);
 		}
 	}
-	void openAreaEvent(bool shellActivate) { mixin(S_TRACE);
+	void openAreaEvent(bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
 		foreach (area; getSelectionAreas()) { mixin(S_TRACE);
-			openAreaEvent(area, shellActivate);
+			openAreaEvent(area, shellActivate, canDuplicate);
 		}
 	}
-	void openAreaScene(AbstractArea area, bool shellActivate) { mixin(S_TRACE);
+	void openAreaScene(AbstractArea area, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
 		auto a = cast(Area) area;
 		if (a) { mixin(S_TRACE);
-			openAreaSceneImpl(a, shellActivate);
+			openAreaSceneImpl(a, shellActivate, canDuplicate);
 			return;
 		}
 		auto b = cast(Battle) area;
 		if (b) { mixin(S_TRACE);
-			openAreaSceneImpl(b, shellActivate);
+			openAreaSceneImpl(b, shellActivate, canDuplicate);
 			return;
 		}
 		auto p = cast(Package) area;
 		if (p) { mixin(S_TRACE);
-			_comm.openArea(_prop, _summ, p, shellActivate);
+			_comm.openArea(_prop, _summ, p, shellActivate, canDuplicate);
 			return;
 		}
 	}
-	void openAreaEvent(AbstractArea area, bool shellActivate) { mixin(S_TRACE);
+	void openAreaEvent(AbstractArea area, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
 		auto a = cast(Area) area;
 		if (a) { mixin(S_TRACE);
-			openAreaEventImpl(a, shellActivate);
+			openAreaEventImpl(a, shellActivate, canDuplicate);
 			return;
 		}
 		auto b = cast(Battle) area;
 		if (b) { mixin(S_TRACE);
-			openAreaEventImpl(b, shellActivate);
+			openAreaEventImpl(b, shellActivate, canDuplicate);
 			return;
 		}
 		auto p = cast(Package) area;
 		if (p) { mixin(S_TRACE);
-			_comm.openArea(_prop, _summ, p, shellActivate);
+			_comm.openArea(_prop, _summ, p, shellActivate, canDuplicate);
 			return;
 		}
 	}
 
-	void openAreaSceneImpl(A)(A a, bool shellActivate) { mixin(S_TRACE);
+	void openAreaSceneImpl(A)(A a, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
 		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) { mixin(S_TRACE);
-			_comm.openArea(_prop, _summ, a, shellActivate);
+			_comm.openArea(_prop, _summ, a, shellActivate, canDuplicate);
 		} else { mixin(S_TRACE);
-			_comm.openAreaScene(_prop, _summ, a, shellActivate);
+			_comm.openAreaScene(_prop, _summ, a, shellActivate, canDuplicate);
 		}
 	}
-	void openAreaEventImpl(A)(A a, bool shellActivate) { mixin(S_TRACE);
+	void openAreaEventImpl(A)(A a, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
 		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) { mixin(S_TRACE);
-			auto w = _comm.openArea(_prop, _summ, a, shellActivate);
+			auto w = _comm.openArea(_prop, _summ, a, shellActivate, canDuplicate);
 			w.selectEventView();
 		} else { mixin(S_TRACE);
-			_comm.openAreaEvent(_prop, _summ, a, shellActivate);
+			_comm.openAreaEvent(_prop, _summ, a, shellActivate, canDuplicate);
 		}
 	}
-	void openAreaScene(ulong id, bool shellActivate) { mixin(S_TRACE);
-		openAreaSceneImpl(_summ.area(id), shellActivate);
+	void openAreaScene(ulong id, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
+		openAreaSceneImpl(_summ.area(id), shellActivate, canDuplicate);
 	}
-	void openAreaEvent(ulong id, bool shellActivate) { mixin(S_TRACE);
-		openAreaEventImpl(_summ.area(id), shellActivate);
+	void openAreaEvent(ulong id, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
+		openAreaEventImpl(_summ.area(id), shellActivate, canDuplicate);
 	}
-	void openBattleScene(ulong id, bool shellActivate) { mixin(S_TRACE);
-		openAreaSceneImpl(_summ.battle(id), shellActivate);
+	void openBattleScene(ulong id, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
+		openAreaSceneImpl(_summ.battle(id), shellActivate, canDuplicate);
 	}
-	void openBattleEvent(ulong id, bool shellActivate) { mixin(S_TRACE);
-		openAreaEventImpl(_summ.area(id), shellActivate);
+	void openBattleEvent(ulong id, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
+		openAreaEventImpl(_summ.area(id), shellActivate, canDuplicate);
 	}
-	void openPackage(ulong id, bool shellActivate) { mixin(S_TRACE);
-		_comm.openArea(_prop, _summ, _summ.cwPackage(id), shellActivate);
+	void openPackage(ulong id, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
+		_comm.openArea(_prop, _summ, _summ.cwPackage(id), shellActivate, canDuplicate);
 	}
 
 	private bool canUdImpl(int index1, int index2) { mixin(S_TRACE);

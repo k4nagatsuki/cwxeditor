@@ -254,8 +254,8 @@ private:
 		void openRefAreaView() { mixin(S_TRACE);
 			if (!_refTarget) return;
 			try { mixin(S_TRACE);
-				if (auto a = cast(Area)_refTarget) _comm.openAreaScene(_prop, _summ, a, false);
-				if (auto a = cast(Battle)_refTarget) _comm.openAreaScene(_prop, _summ, a, false);
+				if (auto a = cast(Area)_refTarget) _comm.openAreaScene(_prop, _summ, a, false, false);
+				if (auto a = cast(Battle)_refTarget) _comm.openAreaScene(_prop, _summ, a, false, false);
 			} catch (Exception e) {
 				debugln(e);
 			}
@@ -2915,7 +2915,7 @@ public:
 	static if (is(A : Area) || is(A : Battle)) {
 		void openEvent() { mixin(S_TRACE);
 			if (!_summ) return;
-			auto tlp = _comm.openAreaEvent(_prop, _summ, _area, false);
+			auto tlp = _comm.openAreaEvent(_prop, _summ, _area, false, false);
 			auto i = _cards.getSelectionIndex();
 			if (-1 != i) { mixin(S_TRACE);
 				string path;
