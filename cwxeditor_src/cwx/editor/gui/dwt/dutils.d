@@ -1207,6 +1207,31 @@ void treeUnexpandedAll(Tree tree) { mixin(S_TRACE);
 	tree.setRedraw(true);
 }
 
+TreeItem anotherTreeItem(Tree anotherTree, TreeItem itm) { mixin(S_TRACE);
+	if (anotherTree is itm.getParent()) return itm;
+	return fromTreePath(anotherTree, toTreePath(itm));
+}
+
+int[] toTreePath(TreeItem itm) { mixin(S_TRACE);
+	int[] r;
+	while (itm.getParentItem()) { mixin(S_TRACE);
+		auto par = itm.getParentItem();
+		r ~= par.indexOf(itm);
+		itm = par;
+	}
+	r ~= itm.getParent().indexOf(itm);
+	return r.reverse;
+}
+
+TreeItem fromTreePath(Tree tree, in int[] path) { mixin(S_TRACE);
+	if (!path) return null;
+	auto itm = tree.getItem(path[0]);
+	foreach (index; path[1 .. $]) { mixin(S_TRACE);
+		itm = itm.getItem(index);
+	}
+	return itm;
+}
+
 version (Windows) {} else {
 	import org.eclipse.swt.program.Program;
 }

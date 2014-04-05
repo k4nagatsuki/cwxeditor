@@ -160,7 +160,7 @@ private:
 		abstract override void dispose();
 		protected Commons comm;
 		protected A area;
-		private int[][A] _selPath, _selPath2;
+		private int[] _selPath = [], _selPath2 = [];
 		private int[] getSelPath(EventView v) { mixin(S_TRACE);
 			if (!v) return null;
 			auto itm = v.selection;
@@ -178,21 +178,27 @@ private:
 		this (Commons comm, A area) { mixin(S_TRACE);
 			this.comm = comm;
 			this.area = area;
-			foreach (v; views()) { mixin(S_TRACE);
-				_selPath[v._area] = getSelPath(v);
-			}
+			auto vs = views();
+			if (vs.length) _selPath = getSelPath(vs[0]);
 		}
 		protected void udb(EventView[] vs) { mixin(S_TRACE);
+			if (!vs.length) return;
+			_selPath2 = getSelPath(vs[0]);
 			foreach (v; vs) { mixin(S_TRACE);
-				// TODO 複数開いている時のフォーカスを再考
-				.forceFocus(v._cards, false);
-				_selPath2[v._area] = getSelPath(v);
+				auto ct = Display.getCurrent().getFocusControl();
+				while (ct.getParent()) { mixin(S_TRACE);
+					if (ct is v) { mixin(S_TRACE);
+						return;
+					}
+					ct = ct.getParent();
+				}
 			}
+			.forceFocus(vs[0]._cards, false);
 		}
 		protected void uda(EventView[] vs) { mixin(S_TRACE);
 			scope (exit) comm.refreshToolBar();
 			foreach (v; vs) { mixin(S_TRACE);
-				auto selPath = _selPath[v._area];
+				auto selPath = _selPath.dup;
 				if (selPath) { mixin(S_TRACE);
 					auto itm = v._cards.getItem(selPath[0]);
 					selPath = selPath[1 .. $];
@@ -210,11 +216,11 @@ private:
 							v._etree.refresh(null);
 						}
 					}
-					_selPath[v._area] = _selPath2[v._area];
 				} else { mixin(S_TRACE);
 					v._cards.deselectAll();
 				}
 			}
+			_selPath = _selPath2;
 		}
 		protected EventView[] views() { mixin(S_TRACE);
 			return comm.eventViewsFrom!(A, C, UseFire)(area.cwxPath(true), false);
@@ -375,7 +381,7 @@ private:
 			if (vs.length) { mixin(S_TRACE);
 				TreeItem[] itms;
 				foreach (v; vs) itms ~= v._cards.getItem(_ownerIndex);
-				foreach (i, v; vs) v.appendTree(itms[i], _tree, _treeIndex, null, false, 0 < i);
+				foreach (i, v; vs) v.appendTree(itms[i], _tree, _treeIndex, null, false, 0 < i, true);
 			} else { mixin(S_TRACE);
 				auto eto = etos(area)[_ownerIndex];
 				appendTreeImpl(comm, eto, _tree, _treeIndex);
@@ -411,9 +417,8 @@ private:
 			udb(vs);
 			scope (exit) uda(vs);
 			if (vs.length) { mixin(S_TRACE);
-				TreeItem[] itms;
-				foreach (v; vs) itms ~= v._cards.getItem(_ownerIndex).getItem(max(_swapIndex1, _swapIndex2));
-				foreach (i, v; vs) v.up(itms[i], false, true, 0 < i);
+				auto itm = vs[0]._cards.getItem(_ownerIndex).getItem(max(_swapIndex1, _swapIndex2));
+				vs[0].up(itm, false, true, false);
 			} else { mixin(S_TRACE);
 				staticUDImpl(comm, etos(area)[_ownerIndex], _swapIndex1, _swapIndex2);
 			}
@@ -424,6 +429,12 @@ private:
 	}
 	void store(int ownerIndex, int swapIndex1, int swapIndex2) { mixin(S_TRACE);
 		_undo ~= new UndoSwap(_comm, _area, ownerIndex, swapIndex1, swapIndex2);
+	}
+
+	private EventView[] views() { mixin(S_TRACE);
+		auto vs = _comm.eventViewsFrom!(A, C, UseFire)(_area.cwxPath(true), false);
+		foreach (v; vs) v.setupToolBar();
+		return vs;
 	}
 
 	void forceSel(size_t[] etAreaPath) { mixin(S_TRACE);
@@ -546,6 +557,12 @@ private:
 		}
 		auto parItm = selectionParent;
 		if (!parItm) return;
+		auto index = parItm.getParent().indexOf(parItm);
+		auto vs = views();
+		TreeItem[] parItms;
+		foreach (v; vs) { mixin(S_TRACE);
+			parItms ~= v._cards.getItem(index);
+		}
 		string treeName;
 		static if (UseFire) {
 			auto fire = addingFire(parItm.getData());
@@ -602,7 +619,10 @@ private:
 		} else { mixin(S_TRACE);
 			tree = new EventTree(treeName);
 		}
-		appendTree(parItm, tree, owner.trees.length, fire, true);
+		auto appendIndex = owner.trees.length;
+		foreach (i, v; vs) { mixin(S_TRACE);
+			v.appendTree(parItms[i], tree, appendIndex, fire, true, 0 < i, true);
+		}
 		if (starts.length) { mixin(S_TRACE);
 			_comm.refUseCount.call();
 		}
@@ -613,22 +633,21 @@ private:
 		comm.refEventTree.call(tree);
 		comm.refUseCount.call();
 	}
-	void appendTree(TreeItem parItm, EventTree tree, int index, Object defFire, bool store, bool viewOnly = false) { mixin(S_TRACE);
+	void appendTree(TreeItem parItm, EventTree tree, int index, Object defFire, bool store, bool viewOnly, bool thisOnly) { mixin(S_TRACE);
 		if (_readOnly) return;
-		auto eto = cast(EventTreeOwner) parItm.getData();
+		auto eto = cast(EventTreeOwner)parItm.getData();
 		if (!viewOnly) { mixin(S_TRACE);
-			// TODO 同期
 			if (store) storeI(_cards.indexOf(parItm), eto.trees.length);
 			appendTreeImpl(_comm, eto, tree, index);
 		}
-		auto treeItm = appendTreeItem(parItm, index, defFire);
+		auto treeItm = appendTreeItem(parItm, index, defFire, thisOnly);
 		selectImpl(treeItm);
 	}
 	void refreshTrees(TreeItem parItm) { mixin(S_TRACE);
 		auto par = cast(EventTreeOwner) parItm.getData();
 		parItm.removeAll();
 		foreach (index, tree; par.trees) { mixin(S_TRACE);
-			appendTreeItem(parItm, index, null);
+			appendTreeItem(parItm, index, null, true);
 		}
 		parItm.setExpanded(true);
 		_comm.refreshToolBar();
@@ -639,13 +658,13 @@ private:
 		case KeyCodeMatchingType.And: return _prop.images.eventTreeAnd;
 		}
 	}
-	TreeItem appendTreeItem(TreeItem parItm, int index, Object defFire) { mixin(S_TRACE);
-		auto par = cast(EventTreeOwner) parItm.getData();
+	TreeItem appendTreeItem(TreeItem parItm, int index, Object defFire, bool thisOnly) { mixin(S_TRACE);
+		auto par = cast(EventTreeOwner)parItm.getData();
 		auto tree = par.trees[index];
 		auto treeItm = createTreeItem(parItm, tree, tree.name, etImage(tree), index);
 		static if (UseFire) {
 			if (defFire) addFire(treeItm, defFire);
-			refreshFires(treeItm);
+			refreshFires(treeItm, null, thisOnly);
 		}
 		return treeItm;
 	}
@@ -669,7 +688,6 @@ private:
 		auto tree = cast(EventTree) itm.getData();
 		if (tree) { mixin(S_TRACE);
 			if (text == tree.name) return;
-			// TODO 同期
 			store(tree);
 			text = createNewName(text, (string name) { mixin(S_TRACE);
 				if (!tree.starts.length) return true;
@@ -680,21 +698,23 @@ private:
 				}
 				return true;
 			}, true);
-			itm.setText(text);
 			tree.name = text;
 			_etree.refreshTreeName();
+			foreach (v; views()) { mixin(S_TRACE);
+				.anotherTreeItem(v._cards, itm).setText(text);
+			}
 			_comm.refEventTree.call(tree);
 			_comm.refreshToolBar();
 			return;
 		}
 		static if (UseFire) {
 			if ("" == text) return;
-			auto obj = cast(KeyCodeObj) itm.getData();
+			auto obj = cast(KeyCodeObj)itm.getData();
 			assert (obj);
 			auto p = itm.getParentItem();
 			foreach (child; p.getItems()) { mixin(S_TRACE);
 				if (itm is child) continue;
-				auto kco = cast(KeyCodeObj) child.getData();
+				auto kco = cast(KeyCodeObj)child.getData();
 				if (!kco) continue;
 				if (kco.array == text) { mixin(S_TRACE);
 					_cards.setSelection([child]);
@@ -705,97 +725,104 @@ private:
 			auto kcIndex = p.indexOf(itm) - keyCodesIndex(p);
 			auto old = tree.keyCodes[kcIndex];
 			if (_prop.sys.convFireKeyCode(old.keyCode, old.kind) == text) return;
-			// TODO 同期
 			store(tree);
 			tree.setKeyCode(kcIndex, _prop.sys.toFKeyCode(text));
-			itm.setImage(keyCodeImage(text));
-			itm.setText(text);
-			obj.array = text.dup;
+			foreach (v; views()) { mixin(S_TRACE);
+				auto another = .anotherTreeItem(v._cards, itm);
+				auto obj2 = cast(KeyCodeObj)another.getData();
+				another.setImage(v.keyCodeImage(text));
+				another.setText(text);
+				obj2.array = text.dup;
+			}
 			_comm.refEventTree.call(tree);
 			_comm.refKeyCodes.call();
 			_comm.refreshToolBar();
 		}
 	}
 	static if (UseFire) {
-		void refreshFires(TreeItem eItm, Object sel = null) { mixin(S_TRACE);
-			auto t = cast(EventTree) eItm.getData();
-			bool expand = eItm.getExpanded();
-			scope (exit) {
-				if (!sel) {
-					eItm.setExpanded(expand);
+		void refreshFires(TreeItem eItm, Object sel = null, bool thisOnly = false) { mixin(S_TRACE);
+			scope (exit) _comm.refreshToolBar();
+			auto t = cast(EventTree)eItm.getData();
+			auto vs = views();
+			auto initialize = !vs.contains!("a is b")(this);
+			if (thisOnly || initialize) vs = [this];
+			foreach (v; vs) { mixin(S_TRACE);
+				eItm = .anotherTreeItem(v._cards, eItm);
+				bool expand = eItm.getExpanded();
+				scope (exit) {
+					if (!sel) eItm.setExpanded(expand);
 				}
-				_comm.refreshToolBar();
-			}
-			eItm.removeAll();
-			static if (is (A == Area)) {
-				if (t.fireEnter) { mixin(S_TRACE);
-					if (cast(A) eItm.getParentItem().getData()) { mixin(S_TRACE);
-						createTreeItem(eItm, ENTER, _prop.msgs.startEnter, _prop.images.defStart);
-					} else { mixin(S_TRACE);
-						assert (cast(C) eItm.getParentItem().getData());
-						createTreeItem(eItm, ENTER, _prop.msgs.startSelect, _prop.images.defStart);
-					}
-				}
-				createKeyCodeItem(eItm, t);
-			} else static if (is (A == Battle)) {
-				if (cast(A) eItm.getParentItem().getData()) { mixin(S_TRACE);
+				eItm.removeAll();
+				static if (is (A == Area)) {
 					if (t.fireEnter) { mixin(S_TRACE);
-						createTreeItem(eItm, ENTER, _prop.msgs.startVictory, _prop.images.defStart);
+						if (cast(A)eItm.getParentItem().getData()) { mixin(S_TRACE);
+							createTreeItem(eItm, ENTER, _prop.msgs.startEnter, _prop.images.defStart);
+						} else { mixin(S_TRACE);
+							assert (cast(C)eItm.getParentItem().getData());
+							createTreeItem(eItm, ENTER, _prop.msgs.startSelect, _prop.images.defStart);
+						}
 					}
-					if (t.fireEscape) { mixin(S_TRACE);
-						createTreeItem(eItm, ESCAPE, _prop.msgs.startEscape, _prop.images.defStart);
+					v.createKeyCodeItem(eItm, t);
+				} else static if (is (A == Battle)) {
+					if (cast(A)eItm.getParentItem().getData()) { mixin(S_TRACE);
+						if (t.fireEnter) { mixin(S_TRACE);
+							createTreeItem(eItm, ENTER, _prop.msgs.startVictory, _prop.images.defStart);
+						}
+						if (t.fireEscape) { mixin(S_TRACE);
+							createTreeItem(eItm, ESCAPE, _prop.msgs.startEscape, _prop.images.defStart);
+						}
+						if (t.fireLose) { mixin(S_TRACE);
+							createTreeItem(eItm, LOSE, _prop.msgs.startLose, _prop.images.defStart);
+						}
+						if (t.fireEveryRound) { mixin(S_TRACE);
+							createTreeItem(eItm, EVERY_ROUND, _prop.msgs.startEveryRound, _prop.images.defStart);
+						}
+						if (t.fireRound0) { mixin(S_TRACE);
+							createTreeItem(eItm, ROUND_0, _prop.msgs.startRound0, _prop.images.defStart);
+						}
+					} else { mixin(S_TRACE);
+						assert (cast(C)eItm.getParentItem().getData());
+						if (t.fireEnter) { mixin(S_TRACE);
+							createTreeItem(eItm, ENTER, _prop.msgs.startDead, _prop.images.defStart);
+						}
 					}
-					if (t.fireLose) { mixin(S_TRACE);
-						createTreeItem(eItm, LOSE, _prop.msgs.startLose, _prop.images.defStart);
+					v.createKeyCodeItem(eItm, t);
+					if (cast(A)eItm.getParentItem().getData()) { mixin(S_TRACE);
+						foreach (r; t.rounds) { mixin(S_TRACE);
+							createTreeItem(eItm, new RoundObj(r), .tryFormat(_prop.msgs.startRound, r), _prop.images.round);
+						}
 					}
-					if (t.fireEveryRound) { mixin(S_TRACE);
-						createTreeItem(eItm, EVERY_ROUND, _prop.msgs.startEveryRound, _prop.images.defStart);
-					}
-					if (t.fireRound0) { mixin(S_TRACE);
-						createTreeItem(eItm, ROUND_0, _prop.msgs.startRound0, _prop.images.defStart);
+				} else static if (is (A == Package)) {
+					if (t.fireEnter) { mixin(S_TRACE);
+						createTreeItem(eItm, ENTER, _prop.msgs.startPackage, _prop.images.defStart);
 					}
 				} else { mixin(S_TRACE);
-					assert (cast(C) eItm.getParentItem().getData());
+					auto eItm = createTreeItem(aItm, t, t.name, etImage(t));
 					if (t.fireEnter) { mixin(S_TRACE);
-						createTreeItem(eItm, ENTER, _prop.msgs.startDead, _prop.images.defStart);
+						createTreeItem(eItm, ENTER, _prop.msgs.startUse, _prop.images.defStart);
 					}
 				}
-				createKeyCodeItem(eItm, t);
-				if (cast(A) eItm.getParentItem().getData()) { mixin(S_TRACE);
-					foreach (r; t.rounds) { mixin(S_TRACE);
-						createTreeItem(eItm, new RoundObj(r), .tryFormat(_prop.msgs.startRound, r), _prop.images.round);
-					}
-				}
-			} else static if (is (A == Package)) {
-				if (t.fireEnter) { mixin(S_TRACE);
-					createTreeItem(eItm, ENTER, _prop.msgs.startPackage, _prop.images.defStart);
-				}
-			} else { mixin(S_TRACE);
-				auto eItm = createTreeItem(aItm, t, t.name, etImage(t));
-				if (t.fireEnter) { mixin(S_TRACE);
-					createTreeItem(eItm, ENTER, _prop.msgs.startUse, _prop.images.defStart);
-				}
-			}
-			if (sel) { mixin(S_TRACE);
-				foreach (itm; eItm.getItems()) { mixin(S_TRACE);
-					auto data = itm.getData();
-					if (cast(KeyCodeObj) data && cast(KeyCodeObj) sel) { mixin(S_TRACE);
-						if ((cast(KeyCodeObj) data).array == (cast(KeyCodeObj) sel).array) { mixin(S_TRACE);
-							_cards.setSelection([itm]);
+				if (sel) { mixin(S_TRACE);
+					foreach (itm; eItm.getItems()) { mixin(S_TRACE);
+						auto data = itm.getData();
+						if (cast(KeyCodeObj)data && cast(KeyCodeObj)sel) { mixin(S_TRACE);
+							if ((cast(KeyCodeObj)data).array == (cast(KeyCodeObj)sel).array) { mixin(S_TRACE);
+								v._cards.setSelection([itm]);
+								break;
+							}
+						} else if (cast(RoundObj)data && cast(RoundObj)sel) { mixin(S_TRACE);
+							if ((cast(RoundObj)data).intValue() == (cast(RoundObj)sel).intValue()) { mixin(S_TRACE);
+								v._cards.setSelection([itm]);
+								break;
+							}
+						} else if (data is sel) { mixin(S_TRACE);
+							assert (data is ENTER || data is LOSE || data is ESCAPE || data is EVERY_ROUND || data is ROUND_0);
+							v._cards.setSelection([itm]);
 							break;
 						}
-					} else if (cast(RoundObj) data && cast(RoundObj) sel) { mixin(S_TRACE);
-						if ((cast(RoundObj) data).intValue() == (cast(RoundObj) sel).intValue()) { mixin(S_TRACE);
-							_cards.setSelection([itm]);
-							break;
-						}
-					} else if (data is sel) { mixin(S_TRACE);
-						assert (data is ENTER || data is LOSE || data is ESCAPE || data is EVERY_ROUND || data is ROUND_0);
-						_cards.setSelection([itm]);
-						break;
 					}
+					eItm.setExpanded(true);
 				}
-				eItm.setExpanded(true);
 			}
 		}
 		Object addingFire(Object areaOrCard) { mixin(S_TRACE);
@@ -874,7 +901,6 @@ private:
 			auto tree = cast(EventTree) treeItm.getData();
 			auto fire = addingFire(treeItm.getParentItem().getData());
 			if (!fire) return;
-			// TODO 同期
 			store(tree);
 			addFire(treeItm, fire);
 			refreshFires(treeItm, fire);
@@ -1006,7 +1032,6 @@ private:
 			auto dlg = new ManyRoundsDialog(_prop, _cards.getShell());
 			if (dlg.open()) { mixin(S_TRACE);
 				auto et = cast(EventTree) etItm.getData();
-				// TODO 同期
 				store(et);
 				assert (et);
 				et.addRounds(dlg.rounds);
@@ -1022,22 +1047,25 @@ private:
 			if (_readOnly) return;
 			auto itm = selection;
 			if (!itm) return;
-			auto kc = cast(KeyCodeObj) itm.getData();
+			auto kc = cast(KeyCodeObj)itm.getData();
 			if (!kc) return;
 			auto old = _prop.sys.toFKeyCode(kc.array.idup);
 			string keyCode = _prop.sys.convFireKeyCode(old.keyCode, kind);
-			kc.array = keyCode.dup;
 			auto etItm = selectionEventTree;
 			assert (etItm);
 			auto et = cast(EventTree) etItm.getData();
 			assert (et);
-			// TODO 同期
 			store(et);
 			int i = cCountUntil(et.keyCodes, old);
 			assert (-1 != i);
 			et.setKeyCode(i, _prop.sys.toFKeyCode(keyCode));
-			itm.setText(keyCode);
-			itm.setImage(keyCodeImage(keyCode));
+			foreach (v; views()) { mixin(S_TRACE);
+				auto itm2 = .anotherTreeItem(v._cards, itm);
+				itm2.setText(keyCode);
+				itm2.setImage(keyCodeImage(keyCode));
+				auto kc2 = cast(KeyCodeObj)itm2.getData();
+				kc2.array = keyCode.dup;
+			}
 			_comm.refKeyCodes.call();
 			_comm.refreshToolBar();
 		}
@@ -1078,12 +1106,14 @@ private:
 		if (_readOnly) return;
 		auto eItm = selectionEventTree;
 		if (!eItm) return;
-		auto et = cast(EventTree) eItm.getData();
+		auto et = cast(EventTree)eItm.getData();
 		assert (et !is null);
-		// TODO 同期
 		store(et);
 		et.keyCodeMatchingType = Type;
-		eItm.setImage(etImage(et));
+		foreach (v; views()) { mixin(S_TRACE);
+			auto itm = .anotherTreeItem(v._cards, eItm);
+			itm.setImage(v.etImage(et));
+		}
 	}
 	bool canSetKeyCodeCond(KeyCodeMatchingType Type)() { mixin(S_TRACE);
 		if (_readOnly) return false;
@@ -1502,17 +1532,20 @@ public:
 					_cards.setRedraw(false);
 					scope (exit) _cards.setRedraw(true);
 					// イベントツリー
-					auto eto = (cast(EventTreeOwner) parent.getData());
+					auto eto = (cast(EventTreeOwner)parent.getData());
 					if (!viewOnly) { mixin(S_TRACE);
-						// TODO 同期
 						if (store) this.store(_cards.indexOf(parent), from, to);
 						eto.swapEventTree(from, to);
 						_comm.refEventTree.call(eto.trees[from]);
 						_comm.refEventTree.call(eto.trees[to]);
 					}
-					treeSwap(itm);
-					_selItm = selection;
-					_cards.showSelection();
+					auto tPath = .toTreePath(itm);
+					foreach (v; views()) {
+						auto itm2 = .fromTreePath(v._cards, tPath);
+						treeSwap(itm2);
+						v._selItm = v.selection;
+						v._cards.showSelection();
+					}
 				} else { mixin(S_TRACE);
 					static if (UseFire) {
 						if (cast(KeyCodeObj) data) { mixin(S_TRACE);
@@ -1525,13 +1558,16 @@ public:
 							to -= keyCodesIndex(parent);
 							if (mixin (CanSwapKeyCode)) { mixin(S_TRACE);
 								if (!viewOnly) { mixin(S_TRACE);
-									// TODO 同期
 									if (store) this.store(tree);
 									tree.swapKeyCode(from, to);
 									_comm.refEventTree.call(tree);
 								}
-								treeSwap(itm);
-								_cards.showSelection();
+								auto tPath = .toTreePath(itm);
+								foreach (v; views()) {
+									auto itm2 = .fromTreePath(v._cards, tPath);
+									treeSwap(itm2);
+									v._cards.showSelection();
+								}
 							}
 						}
 					}
@@ -1597,7 +1633,10 @@ public:
 		}
 	}
 
+	private bool _setupToolBar = false;
 	private void setupToolBar() { mixin(S_TRACE);
+		if (_setupToolBar) return;
+		_setupToolBar = true;
 		auto bar = _toolbar;
 		static if (is(A : Area)) {
 			if (cast(AreaEventWindow) tlpData(this).tlp) { mixin(S_TRACE);
@@ -1991,18 +2030,20 @@ public:
 			auto parItm = selectionParent;
 			if (parItm) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
-					auto par = cast(EventTreeOwner) parItm.getData();
+					auto par = cast(EventTreeOwner)parItm.getData();
 					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 					EventTree tree = EventTree.fromXML(xml, ver);
 					if (tree) { mixin(S_TRACE);
-						// TODO 同期
 						storeI(_cards.indexOf(parItm), par.trees.length);
 						// イベントツリー
 						par.add(tree);
-						auto treeItm = createTreeItem(parItm, tree, tree.name, etImage(tree));
-						selectImpl(treeItm);
-						static if (UseFire) {
-							refreshFires(treeItm);
+						foreach (v; views()) { mixin(S_TRACE);
+							auto parItm2 = .anotherTreeItem(v._cards, parItm);
+							auto treeItm = createTreeItem(parItm2, tree, tree.name, v.etImage(tree));
+							v.selectImpl(treeItm);
+							static if (UseFire) {
+								if (v is this) refreshFires(treeItm);
+							}
 						}
 						_comm.refEventTree.call(tree);
 					} else { mixin(S_TRACE);
@@ -2011,7 +2052,6 @@ public:
 								// 開始条件
 								auto treeItm = cast(EventTree) itm.getData() ? itm : itm.getParentItem();
 								tree = cast(EventTree) treeItm.getData();
-								// TODO 同期
 								store(tree);
 								if (tree.enterFromXML(par, xml)) { mixin(S_TRACE);
 									refreshFires(treeItm, ENTER);
@@ -2059,20 +2099,22 @@ public:
 			if (!parItm) return;
 			auto par = parItm.getData();
 			auto data = itm.getData();
-			auto tree = cast(EventTree) data;
+			auto tree = cast(EventTree)data;
+			auto vs = views();
 			if (tree) { mixin(S_TRACE);
-				// TODO 同期
 				storeD(tree);
-				(cast(EventTreeOwner) par).remove(tree);
-				if (_selItm is itm) { mixin(S_TRACE);
-					_selItm = null;
-					_etree.refresh(null);
+				(cast(EventTreeOwner)par).remove(tree);
+				foreach (v; vs) { mixin(S_TRACE);
+					auto itm2 = .anotherTreeItem(v._cards, itm);
+					if (v._selItm is itm2) { mixin(S_TRACE);
+						v._selItm = null;
+						v._etree.refresh(null);
+					}
 				}
 				_comm.delEventTree.call(tree);
 			} else { mixin(S_TRACE);
 				static if (UseFire) {
-					tree = cast(EventTree) par;
-					// TODO 同期
+					tree = cast(EventTree)par;
 					store(tree);
 					if (ENTER is data) { mixin(S_TRACE);
 						tree.enter = false;
@@ -2094,7 +2136,11 @@ public:
 					_comm.refEventTree.call(tree);
 				}
 			}
-			itm.dispose();
+			auto tPath = .toTreePath(itm);
+			foreach (v; vs) { mixin(S_TRACE);
+				auto itm2 = .fromTreePath(v._cards, tPath);
+				itm2.dispose();
+			}
 			_comm.refUseCount.call();
 			_comm.refreshToolBar();
 		}

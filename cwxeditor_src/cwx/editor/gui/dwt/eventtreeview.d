@@ -331,13 +331,22 @@ private:
 			}
 		}
 		void udb(EventTreeView[] vs) { mixin(S_TRACE);
+			if (!vs.length) return;
 			foreach (v; vs) { mixin(S_TRACE);
-				// TODO 複数開いている時のフォーカスを再考
-				.forceFocus(v._tree.control, false);
 				v._forceSel(_etPath);
 				auto sel = v.selection;
 				_selPath2[v._et] = sel ? (cast(Content)sel.getData()).ctPath : null;
 			}
+			foreach (v; vs) { mixin(S_TRACE);
+				auto ct = Display.getCurrent().getFocusControl();
+				while (ct.getParent()) { mixin(S_TRACE);
+					if (ct is v) { mixin(S_TRACE);
+						return;
+					}
+					ct = ct.getParent();
+				}
+			}
+			.forceFocus(vs[0]._tree.control, false);
 		}
 		void uda(EventTreeView[] vs) { mixin(S_TRACE);
 			scope (exit) comm.refreshToolBar();
@@ -623,6 +632,10 @@ private:
 	}
 	void storeContentAndInsert(Content owner, int insertIndex, int count) { mixin(S_TRACE);
 		_undo ~= new UndoContentAndInsert(_comm, _prop, _summ, _et, owner, insertIndex, count);
+	}
+
+	private EventTreeView[] views() { mixin(S_TRACE);
+		return _comm.eventTreeViewFrom(_et.cwxPath(true), false);
 	}
 
 	private EventDialog[Content] _editDlgs;

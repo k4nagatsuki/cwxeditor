@@ -1360,7 +1360,7 @@ private:
 					if (_prop.var.etc.clickIsOpenEvent) { mixin(S_TRACE);
 						openAreaScene(e.x, e.y, true);
 					} else { mixin(S_TRACE);
-						openAreaEvent(e.x, e.y, true);
+						openAreaEvent(e.x, e.y, true, true);
 					}
 				}
 			}
