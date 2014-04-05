@@ -52,6 +52,7 @@ import std.traits;
 import std.datetime;
 import std.string;
 import std.conv;
+import std.range;
 
 import org.eclipse.swt.all;
 
@@ -278,29 +279,32 @@ private:
 		abstract override void undo();
 		abstract override void redo();
 		abstract override void dispose();
-		protected void udb(AbstractAreaView v) { mixin(S_TRACE);
-			if (!v) return;
+		protected void udb(AbstractAreaView[] vs) { mixin(S_TRACE);
 			auto ct = Display.getCurrent().getFocusControl();
-			while (ct.getParent()) { mixin(S_TRACE);
-				if (ct is v) { mixin(S_TRACE);
-					return;
+			foreach (v; vs) { mixin(S_TRACE);
+				// TODO 複数開いている時のフォーカスを再考
+				while (ct.getParent()) { mixin(S_TRACE);
+					if (ct is v) { mixin(S_TRACE);
+						return;
+					}
+					ct = ct.getParent();
 				}
-				ct = ct.getParent();
+				.forceFocus(v._imgp, false);
 			}
-			.forceFocus(v._imgp, false);
 		}
-		protected void uda(AbstractAreaView v) { mixin(S_TRACE);
+		protected void uda(AbstractAreaView[] vs) { mixin(S_TRACE);
 			scope (exit) comm.refreshToolBar();
-			if (!v) return;
-			static if (UseCards) if (!v._viewCards) v._cards.deselectAll();
-			static if (UseBacks) if (!v._viewBacks) v._backs.deselectAll();
-			v.refreshStatusLine();
+			foreach (v; vs) { mixin(S_TRACE);
+				static if (UseCards) if (!v._viewCards) v._cards.deselectAll();
+				static if (UseBacks) if (!v._viewBacks) v._backs.deselectAll();
+				v.refreshStatusLine();
+			}
 		}
-		protected AbstractAreaView view() { mixin(S_TRACE);
+		protected AbstractAreaView[] views() { mixin(S_TRACE);
 			static if (is(A : Area) || is(A : Battle)) {
-				return comm.areaViewFrom!(A, C, UseCards, UseBacks)(area.cwxPath(true), false);
+				return comm.areaViewsFrom!(A, C, UseCards, UseBacks)(area.cwxPath(true), false);
 			} else { mixin(S_TRACE);
-				return _v;
+				return [_v];
 			}
 		}
 	}
@@ -312,13 +316,13 @@ private:
 				_spAuto = area.spAuto;
 			}
 			private void impl() { mixin(S_TRACE);
-				auto v = view();
-				udb(v);
-				scope (exit) uda(v);
+				auto vs = views();
+				udb(vs);
+				scope (exit) uda(vs);
 				auto spAuto = area.spAuto;
 				area.spAuto = _spAuto;
 				_spAuto = spAuto;
-				if (v) { mixin(S_TRACE);
+				foreach (v; vs) { mixin(S_TRACE);
 					if (v._autoMenu) v._autoMenu.setSelection(area.spAuto);
 					if (v._autoTMenu) v._autoTMenu.setSelection(area.spAuto);
 					if (v._customMenu) v._customMenu.setSelection(!area.spAuto);
@@ -351,13 +355,13 @@ private:
 				_path.path = area.music;
 			}
 			private void impl() { mixin(S_TRACE);
-				auto v = view();
-				udb(v);
-				scope (exit) uda(v);
+				auto vs = views();
+				udb(vs);
+				scope (exit) uda(vs);
 				auto path = _path.path;
 				_path.path = area.music;
 				area.music = path;
-				if (v) { mixin(S_TRACE);
+				foreach (v; vs) { mixin(S_TRACE);
 					v._bgm.path = path;
 					v.callModEvent();
 				}
@@ -377,10 +381,11 @@ private:
 			_cIdcs = cIdcs;
 			_bIdcs = bIdcs;
 		}
-		private void reselect(AbstractAreaView v) { mixin(S_TRACE);
-			if (!v) return;
-			static if (UseCards) v._cards.select(_cIdcs);
-			static if (UseBacks) v._backs.select(_bIdcs);
+		private void reselect(AbstractAreaView[] vs) { mixin(S_TRACE);
+			foreach (v; vs) { mixin(S_TRACE);
+				static if (UseCards) v._cards.select(_cIdcs);
+				static if (UseBacks) v._backs.select(_bIdcs);
+			}
 		}
 		private void add(int i) { mixin(S_TRACE);
 			_cIdcs[] += i;
@@ -397,27 +402,27 @@ private:
 			_count = count;
 		}
 		override void undo() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
 			add(I * _count);
-			reselect(v);
+			reselect(vs);
 			static if (I < 0) {
-				downImpl(v, comm, area, _cIdcs, _bIdcs, _count, false);
+				downImpl(vs, comm, area, _cIdcs, _bIdcs, _count, false);
 			} else { mixin(S_TRACE);
-				upImpl(v, comm, area, _cIdcs, _bIdcs, _count, false);
+				upImpl(vs, comm, area, _cIdcs, _bIdcs, _count, false);
 			}
 			add(-I * _count);
 		}
 		override void redo() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
-			reselect(v);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
+			reselect(vs);
 			static if (I < 0) {
-				upImpl(v, comm, area, _cIdcs, _bIdcs, _count, false);
+				upImpl(vs, comm, area, _cIdcs, _bIdcs, _count, false);
 			} else { mixin(S_TRACE);
-				downImpl(v, comm, area, _cIdcs, _bIdcs, _count, false);
+				downImpl(vs, comm, area, _cIdcs, _bIdcs, _count, false);
 			}
 		}
 		override void dispose() {}
@@ -428,12 +433,12 @@ private:
 		mixin Reselect;
 		private UndoDelete _delUndo = null;
 		override void undo() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
-			reselect(v);
-			_delUndo = new UndoDelete(v, comm, area, summ, _cIdcs, _bIdcs);
-			delImpl2(v, comm, area, _cIdcs, _bIdcs, false);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
+			reselect(vs);
+			_delUndo = new UndoDelete(_v, comm, area, summ, _cIdcs, _bIdcs);
+			delImpl2(vs, comm, area, _cIdcs, _bIdcs, false);
 		}
 		override void redo() { mixin(S_TRACE);
 			_delUndo.undo();
@@ -474,30 +479,30 @@ private:
 			}
 		}
 		override void undo() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
 			static if (UseCards) {
 				foreach (i; _cs.keys.sort) { mixin(S_TRACE);
-					appendCardImpl(v, comm, area, i, _cs[i], true, false, _cChks[i]);
+					appendCardImpl(vs, comm, area, i, _cs[i], true, false, _cChks[i]);
 				}
 			}
 			static if (UseBacks) {
 				foreach (i; _bs.keys.sort) { mixin(S_TRACE);
-					appendBgImageImpl(v, comm, area, i, _bs[i], true, false, _bChks[i]);
+					appendBgImageImpl(vs, comm, area, i, _bs[i], true, false, _bChks[i]);
 				}
 			}
-			if (v) v.refreshSelected();
+			foreach (v; vs) v.refreshSelected();
 		}
 		override void redo() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
 			int[] cs;
 			int[] bs;
 			static if (UseCards) cs = _cs.keys;
 			static if (UseBacks) bs = _bs.keys;
-			delImpl2(v, comm, area, cs, bs, false);
+			delImpl2(vs, comm, area, cs, bs, false);
 		}
 		override void dispose() { mixin(S_TRACE);
 			static if (UseCards) {
@@ -545,9 +550,9 @@ private:
 			}
 		}
 		private void impl() { mixin(S_TRACE);
-			auto v = view();
-			udb(v);
-			scope (exit) uda(v);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
 			static if (UseCards) {
 				auto cs = saveC(_cs.keys);
 				foreach (i, c; _cs) { mixin(S_TRACE);
@@ -582,7 +587,7 @@ private:
 				}
 				_bs = bs;
 			}
-			if (v) { mixin(S_TRACE);
+			foreach (v; vs) { mixin(S_TRACE);
 				v.refreshPanel();
 				v.refreshControls();
 				v.callModEvent();
@@ -1087,16 +1092,16 @@ private:
 			_backs.setSelection(idx);
 		}
 	}
-	static void upImpl2(T)(AbstractAreaView v, Table list, void delegate(int, int) swap, int startIndex, int[] indices, int count) { mixin(S_TRACE);
+	static void upImpl2(T)(AbstractAreaView[] vs, Table[] lists, void delegate(int, int) swap, int startIndex, int[] indices, int count) { mixin(S_TRACE);
 		indices = indices.sort;
 		if (!indices.length) return;
 		if (indices[0] != 0) { mixin(S_TRACE);
 			foreach (j; 0 .. count) { mixin(S_TRACE);
 				foreach (i; indices) { mixin(S_TRACE);
 					i -= j;
-					if (v) v._imgp.swap(i + startIndex - 1, i + startIndex);
+					foreach (v; vs) v._imgp.swap(i + startIndex - 1, i + startIndex);
 					swap(i - 1, i);
-					if (list) { mixin(S_TRACE);
+					foreach (list; lists) { mixin(S_TRACE);
 						auto itm1 = list.getItem(i - 1);
 						auto itm2 = list.getItem(i);
 						string temp = itm1.getText();
@@ -1115,18 +1120,18 @@ private:
 				}
 			}
 		}
-		if (v) v.callModEvent();
+		foreach (v; vs) v.callModEvent();
 	}
-	static void downImpl2(T)(AbstractAreaView v, Table list, void delegate(int, int) swap, int startIndex, int[] indices, int cardsCount, int count) { mixin(S_TRACE);
+	static void downImpl2(T)(AbstractAreaView[] vs, Table[] lists, void delegate(int, int) swap, int startIndex, int[] indices, int cardsCount, int count) { mixin(S_TRACE);
 		indices = indices.sort;
 		if (!indices.length) return;
 		if (indices[$ - 1] + 1 < cardsCount) { mixin(S_TRACE);
 			foreach (j; 0 .. count) { mixin(S_TRACE);
 				foreach_reverse (i; indices) { mixin(S_TRACE);
 					i += j;
-					if (v) v._imgp.swap(i + startIndex + 1, i + startIndex);
+					foreach (v; vs) v._imgp.swap(i + startIndex + 1, i + startIndex);
 					swap(i + 1, i);
-					if (list) { mixin(S_TRACE);
+					foreach (list; lists) { mixin(S_TRACE);
 						auto itm1 = list.getItem(i + 1);
 						auto itm2 = list.getItem(i);
 						string temp = itm1.getText();
@@ -1145,7 +1150,7 @@ private:
 				}
 			}
 		}
-		if (v) v.callModEvent();
+		foreach (v; vs) v.callModEvent();
 	}
 
 	void __pos(int First, string Cmp, string Get, string Set, string CSet, T)(int startIndex, T[] cs) { mixin(S_TRACE);
@@ -3121,7 +3126,7 @@ public:
 	}
 	static if (UseCards) {
 		private static void removeCard(AbstractAreaView v, Commons comm, A area, ref C[PileImage] tbl, int index) { mixin(S_TRACE);
-			if (v) v.removeImpl(index, tbl, staticCardsIndex(area));
+			v.removeImpl(index, tbl, staticCardsIndex(area));
 			comm.delMenuCard.call(area.cards[index].cwxPath(true));
 		}
 		private void removeCardRange(int fromIndex, int toIndex) { mixin(S_TRACE);
@@ -3134,7 +3139,7 @@ public:
 	}
 	static if (UseBacks) {
 		private static void removeBack(AbstractAreaView v, Commons comm, A area, ref BgImage[PileImage] tbl, int index) { mixin(S_TRACE);
-			if (v) v.removeImpl(index, tbl, 0);
+			v.removeImpl(index, tbl, 0);
 			comm.delBgImage.call(area.backs[index].cwxPath(true));
 		}
 		private void removeBackRange(int fromIndex, int toIndex) { mixin(S_TRACE);
@@ -3225,19 +3230,23 @@ public:
 		}
 		if ((!cIdcs.length && !bIdcs.length) || 0 >= count) return;
 		_undo ~= new UndoUp(this, _comm, _area, _summ, cIdcs, bIdcs, count);
-		upImpl(this, _comm, _area, cIdcs, bIdcs, count, true);
+		upImpl([this], _comm, _area, cIdcs, bIdcs, count, true);
 		_comm.refreshToolBar();
 	}
-	private static void upImpl(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs, int count, bool sel) { mixin(S_TRACE);
+	private static void upImpl(AbstractAreaView[] vs, Commons comm, A area, int[] cIdcs, int[] bIdcs, int count, bool sel) { mixin(S_TRACE);
 		static if (UseCards) {
-			upImpl2!(C)(v, v ? v._cards : null, &area.swapCards, staticCardsIndex(area), cIdcs, count);
+			Table[] cards;
+			foreach (v; vs) cards ~= v._cards;
+			upImpl2!(C)(vs, cards, &area.swapCards, staticCardsIndex(area), cIdcs, count);
 			comm.upMenuCard.call(area.cwxPath(true), cIdcs, count);
 		}
 		static if (UseBacks) {
-			upImpl2!(BgImage)(v, v ? v._backs : null, &area.swapBacks, 0, bIdcs, count);
+			Table[] backs;
+			foreach (v; vs) backs ~= v._backs;
+			upImpl2!(BgImage)(vs, backs, &area.swapBacks, 0, bIdcs, count);
 			comm.upBgImage.call(area.cwxPath(true), bIdcs, count);
 		}
-		if (v) { mixin(S_TRACE);
+		foreach (v; vs) { mixin(S_TRACE);
 			if (sel) { mixin(S_TRACE);
 				int[] sels;
 				static if (UseCards) {
@@ -3285,19 +3294,23 @@ public:
 		}
 		if ((!cIdcs.length && !bIdcs.length) || 0 >= count) return;
 		_undo ~= new UndoDown(this, _comm, _area, _summ, cIdcs, bIdcs, count);
-		downImpl(this, _comm, _area, cIdcs, bIdcs, count, true);
+		downImpl([this], _comm, _area, cIdcs, bIdcs, count, true);
 		_comm.refreshToolBar();
 	}
-	private static void downImpl(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs, int count, bool sel) { mixin(S_TRACE);
+	private static void downImpl(AbstractAreaView[] vs, Commons comm, A area, int[] cIdcs, int[] bIdcs, int count, bool sel) { mixin(S_TRACE);
 		static if (UseCards) {
-			downImpl2!(C)(v, v ? v._cards : null, &area.swapCards, staticCardsIndex(area), cIdcs, area.cards.length, count);
+			Table[] cards;
+			foreach (v; vs) cards ~= v._cards;
+			downImpl2!(C)(vs, cards, &area.swapCards, staticCardsIndex(area), cIdcs, area.cards.length, count);
 			comm.downMenuCard.call(area.cwxPath(true), cIdcs, count);
 		}
 		static if (UseBacks) {
-			downImpl2!(BgImage)(v, v ? v._backs : null, &area.swapBacks, 0, bIdcs, area.backs.length, count);
+			Table[] backs;
+			foreach (v; vs) backs ~= v._backs;
+			downImpl2!(BgImage)(vs, backs, &area.swapBacks, 0, bIdcs, area.backs.length, count);
 			comm.downBgImage.call(area.cwxPath(true), bIdcs, count);
 		}
-		if (v) { mixin(S_TRACE);
+		foreach (v; vs) { mixin(S_TRACE);
 			if (sel) { mixin(S_TRACE);
 				int[] sels;
 				static if (UseCards) {
@@ -4227,12 +4240,12 @@ public:
 		}
 		/// ditto
 		private void appendCard(int index, C card, bool select, bool refresh, bool check = true) { mixin(S_TRACE);
-			appendCardImpl(this, _comm, _area, index, card, select, refresh, check);
+			appendCardImpl([this], _comm, _area, index, card, select, refresh, check);
 		}
 		/// ditto
-		private static void appendCardImpl(AbstractAreaView v, Commons comm, A area, int index, C card, bool select, bool refresh, bool check = true) { mixin(S_TRACE);
+		private static void appendCardImpl(AbstractAreaView[] vs, Commons comm, A area, int index, C card, bool select, bool refresh, bool check = true) { mixin(S_TRACE);
 			area.insert(index, card);
-			if (v) { mixin(S_TRACE);
+			foreach (v; vs) { mixin(S_TRACE);
 				auto img = v.create(card);
 				v._imgp.deselectAll();
 				v._imgp.insert(v.cardsIndex + index, img);
@@ -4252,7 +4265,7 @@ public:
 			}
 			comm.addMenuCard.call(card.cwxPath(true));
 			comm.refUseCount.call();
-			if (v) { mixin(S_TRACE);
+			foreach (v; vs) { mixin(S_TRACE);
 				v.refreshFlags();
 				v.callModEvent();
 			}
@@ -4391,12 +4404,12 @@ public:
 		}
 		/// ditto
 		private void appendBgImage(int index, BgImage back, bool select, bool refresh, bool check = true) { mixin(S_TRACE);
-			appendBgImageImpl(this, _comm, _area, index, back, select, refresh, check);
+			appendBgImageImpl([this], _comm, _area, index, back, select, refresh, check);
 		}
 		/// ditto
-		private static void appendBgImageImpl(AbstractAreaView v, Commons comm, A area, int index, BgImage back, bool select, bool refresh, bool check = true) { mixin(S_TRACE);
+		private static void appendBgImageImpl(AbstractAreaView[] vs, Commons comm, A area, int index, BgImage back, bool select, bool refresh, bool check = true) { mixin(S_TRACE);
 			area.insert(index, back);
-			if (v) { mixin(S_TRACE);
+			foreach (v; vs) { mixin(S_TRACE);
 				v._imgp.deselectAll();
 				auto img = v.create(back);
 				v._imgp.insert(index, img);
@@ -4416,7 +4429,7 @@ public:
 			}
 			comm.addBgImage.call(back.cwxPath(true));
 			comm.refUseCount.call();
-			if (v) { mixin(S_TRACE);
+			foreach (v; vs) { mixin(S_TRACE);
 				v.refreshFlags();
 				v.updateFixedBackground();
 				v.callModEvent();
@@ -4943,33 +4956,27 @@ public:
 		if (_readOnly) return;
 		_tcpd.clone(se);
 	}
-	private static void delImpl2(AbstractAreaView v, Commons comm, A area, int[] cIdcs, int[] bIdcs, bool store) { mixin(S_TRACE);
-		if (store && v) v._undo ~= new UndoDelete(v, comm, area, comm.summary, cIdcs, bIdcs);
+	private static void delImpl2(AbstractAreaView[] vs, Commons comm, A area, int[] cIdcs, int[] bIdcs, bool store) { mixin(S_TRACE);
+		if (store && vs.length) vs[0]._undo ~= new UndoDelete(vs[0], comm, area, comm.summary, cIdcs, bIdcs);
 		static if (UseCards) {
 			foreach_reverse (i; cIdcs.sort) { mixin(S_TRACE);
-				if (v) { mixin(S_TRACE);
+				foreach (v; vs) { mixin(S_TRACE);
 					removeCard(v, comm, area, v._cardTbl, i);
-				} else { mixin(S_TRACE);
-					C[PileImage] empty;
-					removeCard(v, comm, area, empty, i);
 				}
 				area.removeCard(i);
-				if (v) v._cards.remove(i);
+				foreach (v; vs) v._cards.remove(i);
 			}
 		}
 		static if (UseBacks) {
 			foreach_reverse (i; bIdcs.sort) { mixin(S_TRACE);
-				if (v) { mixin(S_TRACE);
+				foreach (v; vs) { mixin(S_TRACE);
 					removeBack(v, comm, area, v._backTbl, i);
-				} else { mixin(S_TRACE);
-					BgImage[PileImage] empty;
-					removeBack(v, comm, area, empty, i);
 				}
 				area.removeBgImage(i);
-				if (v) v._backs.remove(i);
+				foreach (v; vs)  v._backs.remove(i);
 			}
 		}
-		if (v) { mixin(S_TRACE);
+		foreach (v; vs) { mixin(S_TRACE);
 			v._imgp.redraw();
 			v.refreshSelected();
 			v.refreshFlags();
@@ -5061,7 +5068,7 @@ public:
 			}
 			void del(SelectionEvent se) { mixin(S_TRACE);
 				if (_readOnly) return;
-				delImpl2(this.outer, _comm, _area, _cards.getSelectionIndices(), _backs.getSelectionIndices(), true);
+				delImpl2([this.outer], _comm, _area, _cards.getSelectionIndices(), _backs.getSelectionIndices(), true);
 				_comm.refreshToolBar();
 			}
 			void clone(SelectionEvent se) { mixin(S_TRACE);
@@ -5150,7 +5157,7 @@ public:
 			}
 			void del(SelectionEvent se) { mixin(S_TRACE);
 				if (_readOnly) return;
-				delImpl2(this.outer, _comm, _area, _cards.getSelectionIndices(), [], true);
+				delImpl2([this.outer], _comm, _area, _cards.getSelectionIndices(), [], true);
 				_comm.refreshToolBar();
 			}
 			void clone(SelectionEvent se) { mixin(S_TRACE);
@@ -5238,7 +5245,7 @@ public:
 			}
 			void del(SelectionEvent se) { mixin(S_TRACE);
 				if (_readOnly) return;
-				delImpl2(this.outer, _comm, _area, [], _backs.getSelectionIndices(), true);
+				delImpl2([this.outer], _comm, _area, [], _backs.getSelectionIndices(), true);
 				_comm.refreshToolBar();
 			}
 			void clone(SelectionEvent se) { mixin(S_TRACE);

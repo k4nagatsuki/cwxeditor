@@ -115,8 +115,10 @@ private:
 			} else static if (is(C:EnemyCard)) {
 				auto skin = _comm.skin;
 				auto castCard = _summ.cwCast(card.id);
-				auto areaView = _comm.areaViewFrom!(A, C, true, is(typeof(_area.backs)))(_area.cwxPath(true), false);
-				bool dbgMode = areaView ? areaView.debugMode : _prop.var.etc.viewEnemyCardDebug;
+				bool dbgMode = _prop.var.etc.viewEnemyCardDebug;
+				foreach (areaView; _comm.areaViewsFrom!(A, C, true, is(typeof(_area.backs)))(_area.cwxPath(true), false)) { mixin(S_TRACE);
+					dbgMode |= areaView.debugMode;
+				}
 				if (castCard) { mixin(S_TRACE);
 					return createCastCardImage!PileImage(_prop, skin, castCard, _summ.scenarioPath,
 						0, 0, 1.0, _prop.var.etc.smoothingCard, dbgMode);
@@ -203,7 +205,7 @@ private:
 					auto eti2 = v.selectionEventTree;
 					if (eti !is eti2) { mixin(S_TRACE);
 						if (eti2) { mixin(S_TRACE);
-							v.__select(eti2);
+							v.selectImpl(eti2);
 						} else if (!eti) { mixin(S_TRACE);
 							v._etree.refresh(null);
 						}
@@ -433,7 +435,7 @@ private:
 				auto cet = cast(EventTree) tItm.getData();
 				assert (cet);
 				if (cet.areaPath == eta) { mixin(S_TRACE);
-					__select(tItm);
+					selectImpl(tItm);
 					return;
 				}
 			}
@@ -441,7 +443,7 @@ private:
 		assert (0);
 	}
 
-	void __select(TreeItem itm, bool sel = true) { mixin(S_TRACE);
+	void selectImpl(TreeItem itm, bool sel = true) { mixin(S_TRACE);
 		if (sel) _cards.setSelection([itm]);
 		if (cast(EventTree)itm.getData()) { mixin(S_TRACE);
 			_selItm = itm;
@@ -474,7 +476,7 @@ private:
 	}
 	class SListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			__select(cast(TreeItem) e.item, false);
+			selectImpl(cast(TreeItem) e.item, false);
 		}
 	}
 	static int before(T)(T parent, int index) { mixin(S_TRACE);
@@ -499,7 +501,7 @@ private:
 	}
 	@property
 	void selection(int index) { mixin(S_TRACE);
-		__select(_cards.getItems()[index]);
+		selectImpl(_cards.getItems()[index]);
 	}
 	@property
 	private TreeItem selectionParent() { mixin(S_TRACE);
@@ -619,7 +621,7 @@ private:
 			appendTreeImpl(_comm, eto, tree, index);
 		}
 		auto treeItm = appendTreeItem(parItm, index, defFire);
-		__select(treeItm);
+		selectImpl(treeItm);
 	}
 	void refreshTrees(TreeItem parItm) { mixin(S_TRACE);
 		auto par = cast(EventTreeOwner) parItm.getData();
@@ -1375,7 +1377,7 @@ public:
 					if (_selItm && _selItm.getParentItem() is _cards.getItems()[i + 1]) { mixin(S_TRACE);
 						int s = _selItm.getParentItem().indexOf(_selItm);
 						int newI = ud(_cards.getItems()[i + 1]) + udVal;
-						__select(_cards.getItems()[newI].getItems()[s]);
+						selectImpl(_cards.getItems()[newI].getItems()[s]);
 					} else { mixin(S_TRACE);
 						ud(_cards.getItems()[i + 1]);
 					}
@@ -1426,11 +1428,11 @@ public:
 					refreshFires(eItm);
 				}
 				if (i == 0) { mixin(S_TRACE);
-					__select(eItm);
+					selectImpl(eItm);
 				}
 			}
 			if (_area.trees.length == 0) { mixin(S_TRACE);
-				__select(aItm);
+				selectImpl(aItm);
 			}
 			aItm.setExpanded(true);
 		}
@@ -1988,7 +1990,7 @@ public:
 						// イベントツリー
 						par.add(tree);
 						auto treeItm = createTreeItem(parItm, tree, tree.name, etImage(tree));
-						__select(treeItm);
+						selectImpl(treeItm);
 						static if (UseFire) {
 							refreshFires(treeItm);
 						}
@@ -2163,7 +2165,7 @@ public:
 			if (index >= itm.getItemCount()) { mixin(S_TRACE);
 				return false;
 			}
-			__select(itm.getItem(index));
+			selectImpl(itm.getItem(index));
 			return _etree.openCWXPath(cpbottom(path), shellActivate);
 		}
 		static if (is(C : MenuCard) || is(C : EnemyCard)) {
@@ -2175,7 +2177,7 @@ public:
 				path = cpbottom(path);
 				if (cpempty(path)) { mixin(S_TRACE);
 					if (!cphasattr(path, "nofocus")) .forceFocus(_cards, shellActivate);
-					__select(itm);
+					selectImpl(itm);
 					return true;
 				} else { mixin(S_TRACE);
 					cate = cpcategory(path);

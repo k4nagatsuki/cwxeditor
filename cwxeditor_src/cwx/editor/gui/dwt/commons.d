@@ -953,27 +953,28 @@ class Commons {
 		}
 		return null;
 	}
-	AbstractAreaView!(A, C, UseCards, UseBacks) areaViewFrom(A, C, bool UseCards, bool UseBacks)(string cwxPath, bool shellActivate) { mixin(S_TRACE);
-		if (!mainWin.summary) return null;
+	AbstractAreaView!(A, C, UseCards, UseBacks)[] areaViewsFrom(A, C, bool UseCards, bool UseBacks)(string cwxPath, bool shellActivate) { mixin(S_TRACE);
+		if (!mainWin.summary) return [];
 		auto a = mainWin.summary.findCWXPath(cwxPath);
-		if (!a) return null;
+		if (!a) return [];
+		typeof(return) r;
 		foreach (w; _ws) { mixin(S_TRACE);
 			auto tlpData = (cast(TLPData) w.getData());
 			if (tlpData.main is cast(Object) a) { mixin(S_TRACE);
 				static if (is(A : Area)) {
 					auto aw = cast(AreaWindow) tlpData.tlp;
-					if (aw) return aw.areaView;
+					if (aw) r ~= aw.areaView;
 					auto asw = cast(AreaSceneWindow) tlpData.tlp;
-					if (asw) return asw.areaView;
+					if (asw) r ~= asw.areaView;
 				} else static if (is(A : Battle)) {
 					auto bw = cast(BattleWindow) tlpData.tlp;
-					if (bw) return bw.areaView;
+					if (bw) r ~= bw.areaView;
 					auto bsw = cast(BattleSceneWindow) tlpData.tlp;
-					if (bsw) return bsw.areaView;
+					if (bsw) r ~= bsw.areaView;
 				} else static assert (0);
 			}
 		}
-		return null;
+		return r;
 	}
 	EventView!(A, C, UseFire)[] eventViewsFrom(A, C, bool UseFire)(string cwxPath, bool shellActivate) { mixin(S_TRACE);
 		if (!mainWin.summary) return [];
