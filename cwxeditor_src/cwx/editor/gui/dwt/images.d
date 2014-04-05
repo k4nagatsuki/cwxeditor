@@ -446,6 +446,7 @@ public:
 			}
 			if (bmpData.width != width || bmpData.height != height) {
 				if (smoothing) {
+					bmpData = cast(ImageData)bmpData.clone();
 					auto data = cast(ubyte[]) bmpData.data;
 					auto alpha = cast(ubyte[]) bmpData.alphaData;
 					size_t bpl;
