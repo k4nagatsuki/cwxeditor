@@ -642,6 +642,7 @@ public:
 		if (_dataResizable && (bmpData.width != width || bmpData.height != height)) { mixin(S_TRACE);
 			dataSet.add(bmpData);
 			if (smoothing) { mixin(S_TRACE);
+				bmpData = cast(ImageData)bmpData.clone();
 				auto data = cast(ubyte[]) bmpData.data;
 				auto alpha = cast(ubyte[]) bmpData.alphaData;
 				size_t bpl;

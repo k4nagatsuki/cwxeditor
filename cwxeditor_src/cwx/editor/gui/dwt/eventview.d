@@ -617,6 +617,7 @@ private:
 		if (_readOnly) return;
 		auto eto = cast(EventTreeOwner) parItm.getData();
 		if (!viewOnly) { mixin(S_TRACE);
+			// TODO 同期
 			if (store) storeI(_cards.indexOf(parItm), eto.trees.length);
 			appendTreeImpl(_comm, eto, tree, index);
 		}
@@ -668,6 +669,7 @@ private:
 		auto tree = cast(EventTree) itm.getData();
 		if (tree) { mixin(S_TRACE);
 			if (text == tree.name) return;
+			// TODO 同期
 			store(tree);
 			text = createNewName(text, (string name) { mixin(S_TRACE);
 				if (!tree.starts.length) return true;
@@ -703,6 +705,7 @@ private:
 			auto kcIndex = p.indexOf(itm) - keyCodesIndex(p);
 			auto old = tree.keyCodes[kcIndex];
 			if (_prop.sys.convFireKeyCode(old.keyCode, old.kind) == text) return;
+			// TODO 同期
 			store(tree);
 			tree.setKeyCode(kcIndex, _prop.sys.toFKeyCode(text));
 			itm.setImage(keyCodeImage(text));
@@ -871,6 +874,7 @@ private:
 			auto tree = cast(EventTree) treeItm.getData();
 			auto fire = addingFire(treeItm.getParentItem().getData());
 			if (!fire) return;
+			// TODO 同期
 			store(tree);
 			addFire(treeItm, fire);
 			refreshFires(treeItm, fire);
@@ -1002,6 +1006,7 @@ private:
 			auto dlg = new ManyRoundsDialog(_prop, _cards.getShell());
 			if (dlg.open()) { mixin(S_TRACE);
 				auto et = cast(EventTree) etItm.getData();
+				// TODO 同期
 				store(et);
 				assert (et);
 				et.addRounds(dlg.rounds);
@@ -1026,6 +1031,7 @@ private:
 			assert (etItm);
 			auto et = cast(EventTree) etItm.getData();
 			assert (et);
+			// TODO 同期
 			store(et);
 			int i = cCountUntil(et.keyCodes, old);
 			assert (-1 != i);
@@ -1074,6 +1080,7 @@ private:
 		if (!eItm) return;
 		auto et = cast(EventTree) eItm.getData();
 		assert (et !is null);
+		// TODO 同期
 		store(et);
 		et.keyCodeMatchingType = Type;
 		eItm.setImage(etImage(et));
@@ -1497,6 +1504,7 @@ public:
 					// イベントツリー
 					auto eto = (cast(EventTreeOwner) parent.getData());
 					if (!viewOnly) { mixin(S_TRACE);
+						// TODO 同期
 						if (store) this.store(_cards.indexOf(parent), from, to);
 						eto.swapEventTree(from, to);
 						_comm.refEventTree.call(eto.trees[from]);
@@ -1517,6 +1525,7 @@ public:
 							to -= keyCodesIndex(parent);
 							if (mixin (CanSwapKeyCode)) { mixin(S_TRACE);
 								if (!viewOnly) { mixin(S_TRACE);
+									// TODO 同期
 									if (store) this.store(tree);
 									tree.swapKeyCode(from, to);
 									_comm.refEventTree.call(tree);
@@ -1986,6 +1995,7 @@ public:
 					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 					EventTree tree = EventTree.fromXML(xml, ver);
 					if (tree) { mixin(S_TRACE);
+						// TODO 同期
 						storeI(_cards.indexOf(parItm), par.trees.length);
 						// イベントツリー
 						par.add(tree);
@@ -2001,6 +2011,7 @@ public:
 								// 開始条件
 								auto treeItm = cast(EventTree) itm.getData() ? itm : itm.getParentItem();
 								tree = cast(EventTree) treeItm.getData();
+								// TODO 同期
 								store(tree);
 								if (tree.enterFromXML(par, xml)) { mixin(S_TRACE);
 									refreshFires(treeItm, ENTER);
@@ -2050,6 +2061,7 @@ public:
 			auto data = itm.getData();
 			auto tree = cast(EventTree) data;
 			if (tree) { mixin(S_TRACE);
+				// TODO 同期
 				storeD(tree);
 				(cast(EventTreeOwner) par).remove(tree);
 				if (_selItm is itm) { mixin(S_TRACE);
@@ -2060,6 +2072,7 @@ public:
 			} else { mixin(S_TRACE);
 				static if (UseFire) {
 					tree = cast(EventTree) par;
+					// TODO 同期
 					store(tree);
 					if (ENTER is data) { mixin(S_TRACE);
 						tree.enter = false;

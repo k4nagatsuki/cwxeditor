@@ -177,6 +177,7 @@ private:
 			if (!sel) return;
 			auto c = cast(Content) sel.getData();
 			if (c.type == type) return;
+			// TODO 同期
 			store(c);
 			_comm.delContent.call(c);
 			assert (c.canConvert(type), "convert menu item enabled");
@@ -676,6 +677,7 @@ private:
 					} else { mixin(S_TRACE);
 						index = -1;
 					}
+					// TODO 同期
 					storeInsert(index);
 					_et.insert(index, cast(Content)evt);
 					Item sItm;
@@ -717,6 +719,7 @@ private:
 						scope (exit) {
 							if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
 						}
+						// TODO 同期
 						store(owner);
 						if (insertIndex == -1) { mixin(S_TRACE);
 							if (_box._insertFirst) { mixin(S_TRACE);
@@ -871,10 +874,12 @@ private:
 			auto evt = dlg.event;
 			applied(evt);
 
+			// TODO 同期
 			auto undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
 			dlg.appliedEvent.length = 0;
 			dlg.appliedEvent ~= { mixin(S_TRACE);
 				appliedEdit(undo, evt);
+				// TODO 同期
 				undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
 			};
 		};
@@ -902,9 +907,11 @@ private:
 			return *p;
 		}
 		auto dlg = createEventDialog(evt, evt.parent, false);
+		// TODO 同期
 		auto undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
 		dlg.appliedEvent ~= { mixin(S_TRACE);
 			appliedEdit(undo, evt);
+			// TODO 同期
 			undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
 		};
 		_editDlgs[evt] = dlg;
@@ -1291,11 +1298,14 @@ private:
 							if (_dragItm) { mixin(S_TRACE);
 								auto top = _tree.topItem(ti);
 								if (top == _tree.topItem(_dragItm)) { mixin(S_TRACE);
+									// TODO 同期
 									store(cast(Content)top.getData());
 								} else { mixin(S_TRACE);
+									// TODO 同期
 									store(cast(Content)_tree.getParentItem(_dragItm).getData(), owner);
 								}
 							} else { mixin(S_TRACE);
+								// TODO 同期
 								store(owner);
 							}
 							if (cast(Content)_tree.getParentItem(_dragItm).getData() !is owner) { mixin(S_TRACE);
@@ -1964,9 +1974,11 @@ public:
 			return;
 		}
 		auto dlg = new ContentCommentDialog(_comm, _prop, _tree.control.getShell(), c.parent, c);
+		// TODO 同期
 		auto undo = new UndoContent(_comm, _prop, _summ, _et, [c]);
 		dlg.appliedEvent ~= { mixin(S_TRACE);
 			_undo ~= undo;
+			// TODO 同期
 			undo = new UndoContent(_comm, _prop, _summ, _et, [c]);
 			redraw();
 		};
@@ -2005,6 +2017,7 @@ public:
 			foreach (cld; _tree.getItems(itm)) find(cld);
 		}
 		foreach (itm; _tree.getItems()) find(itm);
+		// TODO 同期
 		auto ucp = new UndoCP(_comm, _prop, _summ, _et, conts, index, start);
 		auto id = _comm.createPackage(start, false);
 		if (id == 0) { mixin(S_TRACE);
@@ -2061,6 +2074,7 @@ public:
 		auto c = cast(Content)sel.getData();
 		auto parentStart = c.parentStart;
 		auto si = c.tree.starts.cCountUntil(parentStart) + 1;
+		// TODO 同期
 		storeContentAndInsert(c.parent, si, 1);
 
 		auto start = new Content(CType.START, createNewName(parentStart.name, (string name) { mixin(S_TRACE);
@@ -2206,6 +2220,7 @@ public:
 			auto text = t.getText();
 			if (!text) text = "";
 			if (text == evt.name) return;
+			// TODO 同期
 			store(evt);
 			if (evt.type == CType.START) { mixin(S_TRACE);
 				evt.setName(_prop.parent, createNewName(text, (string name) { mixin(S_TRACE);
@@ -2274,6 +2289,7 @@ public:
 				name = index == 0 ? _prop.sys.evtChildTrue : _prop.sys.evtChildFalse;
 			}
 			if (name == evt.name) return;
+			// TODO 同期
 			store(evt);
 			evt.setName(_prop.parent, name);
 			itm.setText(combo.getText());
@@ -2503,6 +2519,7 @@ public:
 			j = i + To;
 			if (j < 0 || pc.next.length <= j) return;
 			if (vs.length && store) { mixin(S_TRACE);
+				// TODO 同期
 				vs[0].store(pc);
 			}
 			comm.delContent.call(pc.next[i]);
@@ -2513,6 +2530,7 @@ public:
 			j = i + To;
 			if (j < 0 || et.starts.length <= j) return;
 			if (vs.length && store) { mixin(S_TRACE);
+				// TODO 同期
 				vs[0].storeSwap(i, j);
 			}
 			comm.delContent.call(et.starts[i]);
@@ -2649,6 +2667,7 @@ public:
 		auto parParNType = fromCNextType(parPar.detail.nextType);
 		auto parIndex = parPar.next.cCountUntil!"a is b"(par);
 
+		// TODO 同期
 		store(parPar);
 
 		// 入れ替え
@@ -2781,6 +2800,7 @@ public:
 
 		_tree.control.setRedraw(false);
 		scope (exit) _tree.control.setRedraw(true);
+		// TODO 同期
 		if (stored) store(owner);
 		if (last) { mixin(S_TRACE);
 			cs2[0].setName(_prop.parent, owner.name);
@@ -2878,6 +2898,7 @@ public:
 		if (!cs2.length) return;
 
 		auto top = _tree.getTopItem();
+		// TODO 同期
 		if (stored) storeInsert(index, cs2.length);
 		Item sItm = null, lastItm = null;
 		foreach (i, c; cs2) { mixin(S_TRACE);
@@ -3049,6 +3070,7 @@ public:
 			auto c = cast(Content)itm.getData();
 			_comm.delContent.call(c);
 			auto owner = cast(Content)ownerItm.getData();
+			// TODO 同期
 			this.store(owner);
 			int insertIndex = owner.next.countUntil(c);
 			owner.remove(c);
@@ -3163,6 +3185,7 @@ public:
 		auto owner = insertOwner(tryInsert, sel);
 		bool c = contents.length && owner;
 		if (s && c) { mixin(S_TRACE);
+			// TODO 同期
 			storeContentAndInsert(owner, si, starts.length);
 			addContents(false, contents, cs, tryInsert);
 			addStarts(false, starts, cs);
@@ -3188,9 +3211,11 @@ public:
 			_comm.delContent.call(c);
 			if (ownerItm) { mixin(S_TRACE);
 				auto owner = cast(Content) ownerItm.getData();
+				// TODO 同期
 				if (store) this.store(owner);
 				owner.remove(c);
 			} else { mixin(S_TRACE);
+				// TODO 同期
 				if (store) this.storeDelete(.cCountUntil!("a is b")(_et.starts, c), c);
 				_et.remove(c);
 			}
