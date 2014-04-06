@@ -620,7 +620,11 @@ private:
 
 	private AbstractAreaView[] views() { mixin(S_TRACE);
 		static if (is(A:Area) || is(A:Battle)) {
-			return _comm.areaViewsFrom!(A, C, UseCards, UseBacks)(_area.cwxPath(true), false);
+			auto vs = _comm.areaViewsFrom!(A, C, UseCards, UseBacks)(_area.cwxPath(true), false);
+			foreach (v; vs) { mixin(S_TRACE);
+				if (v.setupToolBar(v._toolbar)) _comm.refreshToolBar();
+			}
+			return vs;
 		} else { mixin(S_TRACE);
 			return [this];
 		}
@@ -1725,10 +1729,10 @@ private:
 			appendMenuTCPD(_comm, menu, _tcpd, !_readOnly, true, !_readOnly, !_readOnly, !_readOnly);
 			static if (is(A : Area)) {
 				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.EditEvent, &openEvent, null);
+				createMenuItem(_comm, menu, MenuID.EditEvent, () => openEvent(false), null);
 			} else static if (is(A : Battle)) {
 				new MenuItem(menu, SWT.SEPARATOR);
-				auto itm = createMenuItem(_comm, menu, MenuID.EditEvent, &openEvent, null);
+				auto itm = createMenuItem(_comm, menu, MenuID.EditEvent, () => openEvent(false), null);
 				itm.setImage(_prop.images.editEventBattle);
 			}
 			new MenuItem(menu, SWT.SEPARATOR);
@@ -2394,9 +2398,9 @@ private:
 			static if ((is(A : Area) || is(A : Battle)) && is(C : AbstractSpCard)) {
 				new MenuItem(menu, SWT.SEPARATOR);
 				static if (is(A : Area)) {
-					createMenuItem(_comm, menu, MenuID.EditEvent, &openEvent, null);
+					createMenuItem(_comm, menu, MenuID.EditEvent, () => openEvent(false), null);
 				} else static if (is(A : Battle)) {
-					auto itm = createMenuItem(_comm, menu, MenuID.EditEvent, &openEvent, null);
+					auto itm = createMenuItem(_comm, menu, MenuID.EditEvent, () => openEvent(false), null);
 					itm.setImage(_prop.images.editEventBattle);
 				} else static assert (0);
 			}
@@ -2979,9 +2983,9 @@ public:
 		return _summ;
 	}
 	static if (is(A : Area) || is(A : Battle)) {
-		void openEvent() { mixin(S_TRACE);
+		void openEvent(bool canDuplicate = false) { mixin(S_TRACE);
 			if (!_summ) return;
-			auto tlp = _comm.openAreaEvent(_prop, _summ, _area, false, false);
+			auto tlp = _comm.openAreaEvent(_prop, _summ, _area, false, canDuplicate);
 			auto i = _cards.getSelectionIndex();
 			if (-1 != i) { mixin(S_TRACE);
 				string path;
@@ -2992,6 +2996,9 @@ public:
 				}
 				tlp.openCWXPath(path, false);
 			}
+		}
+		void openDup() { mixin(S_TRACE);
+			_comm.openAreaScene(_prop, _summ, _area, false, true);
 		}
 	}
 	void refreshR(string from, string to) { mixin(S_TRACE);
@@ -4035,19 +4042,27 @@ public:
 		}
 	}
 
+	private bool _setupToolBar = false;
 	/// ツールバーにAreaViewで使用するアイテムを設定する。
 	/// Params:
 	/// bar = ツールバー。
-	private void setupToolBar(ToolBar bar) { mixin(S_TRACE);
+	private bool setupToolBar(ToolBar bar) { mixin(S_TRACE);
+		if (_setupToolBar) return false;
+		_setupToolBar = true;
 		static if (is(A : Area)) {
-			if (cast(AreaSceneWindow) tlpData(this).tlp) { mixin(S_TRACE);
-				createToolItem(_comm, bar, MenuID.EditEvent, &openEvent, null);
+			if (cast(AreaSceneWindow)tlpData(this).tlp) { mixin(S_TRACE);
+				createToolItem(_comm, bar, MenuID.EditEvent, () => openEvent(false), null);
+				new ToolItem(bar, SWT.SEPARATOR);
+				createToolItem(_comm, bar, MenuID.EditSceneDup, () => openDup(), null);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		} else static if (is(A : Battle)) {
-			if (cast(BattleSceneWindow) tlpData(this).tlp) { mixin(S_TRACE);
-				auto itm = createToolItem(_comm, bar, MenuID.EditEvent, &openEvent, null);
+			if (cast(BattleSceneWindow)tlpData(this).tlp) { mixin(S_TRACE);
+				auto itm = createToolItem(_comm, bar, MenuID.EditEvent, () => openEvent(false), null);
 				itm.setImage(_prop.images.editEventBattle);
+				new ToolItem(bar, SWT.SEPARATOR);
+				itm = createToolItem(_comm, bar, MenuID.EditSceneDup, () => openDup(), null);
+				itm.setImage(_prop.images.battleSceneViewDup);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		}
@@ -4179,6 +4194,7 @@ public:
 			refreshGrid();
 		});
 		createToolItemC(bar, gridY);
+		return true;
 	}
 	private class FlagsDispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);

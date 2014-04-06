@@ -449,7 +449,9 @@ private:
 
 	private EventView[] views() { mixin(S_TRACE);
 		auto vs = _comm.eventViewsFrom!(A, C, UseFire)(_area.cwxPath(true), false);
-		foreach (v; vs) v.setupToolBar();
+		foreach (v; vs) { mixin(S_TRACE);
+			if (v.setupToolBar()) _comm.refreshToolBar();
+		}
 		return vs;
 	}
 
@@ -1315,7 +1317,9 @@ public:
 					_cards.removePaintListener(this);
 					_toolbar.setRedraw(false);
 					scope (exit) _toolbar.setRedraw(true);
-					setupToolBar();
+					if (setupToolBar()) { mixin(S_TRACE);
+						_comm.refreshToolBar();
+					}
 				}
 			};
 			_cards.addPaintListener(initTools);
@@ -1643,26 +1647,64 @@ public:
 		}
 	}
 
-	static if (is(A : Area) || is(A : Battle)) {
-		private void openScene() { mixin(S_TRACE);
-			_comm.openAreaScene(_prop, _summ, _area, true, false);
+	static if (is(A:Area) || is(A:Battle)) {
+		private void openScene(bool canDuplicate = false) { mixin(S_TRACE);
+			_comm.openAreaScene(_prop, _summ, _area, true, canDuplicate);
+		}
+	}
+	void openDup() { mixin(S_TRACE);
+		static if (is(A:Area) || is(A:Battle)) {
+			_comm.openAreaEvent(_prop, _summ, _area, true, true);
+		} else static if (is(A:Package)) {
+			_comm.openArea(_prop, _summ, _area, true, true);
+		} else {
+			_comm.openUseEvents(_prop, _summ, _area, true, true);
 		}
 	}
 
 	private bool _setupToolBar = false;
-	private void setupToolBar() { mixin(S_TRACE);
-		if (_setupToolBar) return;
+	private bool setupToolBar() { mixin(S_TRACE);
+		if (_setupToolBar) return false;
 		_setupToolBar = true;
 		auto bar = _toolbar;
-		static if (is(A : Area)) {
+		static if (is(A:Area)) {
 			if (cast(AreaEventWindow) tlpData(this).tlp) { mixin(S_TRACE);
-				createToolItem(_comm, bar, MenuID.EditScene, &openScene, null);
+				createToolItem(_comm, bar, MenuID.EditScene, () => openScene(false), null);
+				new ToolItem(bar, SWT.SEPARATOR);
+				createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
-		} else static if (is(A : Battle)) {
-			if (cast(BattleEventWindow) tlpData(this).tlp) { mixin(S_TRACE);
-				auto itm = createToolItem(_comm, bar, MenuID.EditScene, &openScene, null);
+		} else static if (is(A:Battle)) {
+			if (cast(BattleEventWindow)tlpData(this).tlp) { mixin(S_TRACE);
+				auto itm = createToolItem(_comm, bar, MenuID.EditScene, () => openScene(false), null);
 				itm.setImage(_prop.images.editSceneBattle);
+				new ToolItem(bar, SWT.SEPARATOR);
+				itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
+				itm.setImage(_prop.images.battleEventTreeViewDup);
+				new ToolItem(bar, SWT.SEPARATOR);
+			}
+		} else static if (is(A:Package)) {
+			if (cast(PackageWindow)tlpData(this).tlp) { mixin(S_TRACE);
+				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
+				itm.setImage(_prop.images.packageDup);
+				new ToolItem(bar, SWT.SEPARATOR);
+			}
+		} else static if (is(A:SkillCard)) {
+			if (cast(SkillEventWindow)tlpData(this).tlp) { mixin(S_TRACE);
+				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
+				itm.setImage(_prop.images.skillDup);
+				new ToolItem(bar, SWT.SEPARATOR);
+			}
+		} else static if (is(A:ItemCard)) {
+			if (cast(ItemEventWindow)tlpData(this).tlp) { mixin(S_TRACE);
+				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
+				itm.setImage(_prop.images.itemDup);
+				new ToolItem(bar, SWT.SEPARATOR);
+			}
+		} else static if (is(A:BeastCard)) {
+			if (cast(BeastEventWindow)tlpData(this).tlp) { mixin(S_TRACE);
+				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
+				itm.setImage(_prop.images.beastDup);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		}
@@ -1753,6 +1795,7 @@ public:
 		new ToolItem(bar, SWT.SEPARATOR);
 		auto dItm = createToolItem2(_comm, bar,_prop.msgs.showEventTreeDetail, _prop.images.showEventTreeDetail, &_etree.reverseShowEventTreeDetail, () => _prop.var.etc.straightEventTreeView.value, SWT.CHECK);
 		dItm.setSelection(_prop.var.etc.showEventTreeDetail);
+		return true;
 	}
 	private void setFireControl(Control c) { mixin(S_TRACE);
 		if (_readOnly) return;

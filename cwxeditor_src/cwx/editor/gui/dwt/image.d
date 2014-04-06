@@ -17,6 +17,7 @@ import org.eclipse.swt.all;
 import java.lang.all;
 import java.io.ByteArrayInputStream;
 
+/// アイコン等のリソースを一括管理する。
 class Images {
 private:
 	string _appPath;
@@ -138,17 +139,25 @@ public:
 	@property Image area() {return imgd!("area.png");}
 	@property Image battle() {return imgd!("battle.png");}
 	@property Image packages() {return imgd!("package.png");}
+	@property Image packageDup() {return imgd!("package_dup.png");}
 	@property Image startArea() {return imgd!("start_area.png");}
 
 	@property Image areaSceneView() {return imgd!("area_cards.png");}
+	@property Image areaSceneViewDup() {return imgd!("area_cards_dup.png");}
 	@property Image areaEventTreeView() {return imgd!("area_event.png");}
+	@property Image areaEventTreeViewDup() {return imgd!("area_event_dup.png");}
 	@property Image battleSceneView() {return imgd!("battle_cards.png");}
+	@property Image battleSceneViewDup() {return imgd!("battle_cards_dup.png");}
 	@property Image battleEventTreeView() {return imgd!("battle_event.png");}
+	@property Image battleEventTreeViewDup() {return imgd!("battle_event_dup.png");}
 
 	@property Image casts() {return imgd!("cast.png");}
 	@property Image skill() {return imgd!("skill.png");}
+	@property Image skillDup() {return imgd!("skill_dup.png");}
 	@property Image item() {return imgd!("item.png");}
+	@property Image itemDup() {return imgd!("item_dup.png");}
 	@property Image beast() {return imgd!("beast.png");}
+	@property Image beastDup() {return imgd!("beast_dup.png");}
 	@property Image info() {return imgd!("info.png");}
 
 	@property Image flagDir() {return imgd!("flagdir.png");}
@@ -498,11 +507,9 @@ public:
 		case MenuID.ReNumberingAll: return imgd!("renum_all.png");
 		case MenuID.ReNumbering: return imgd!("renum.png");
 		case MenuID.EditScene: return imgd!("area_cards.png");
-		// TODO シーン・イベントビューを複数開く
-//		case MenuID.EditSceneDup: return imgd!("area_cards_dup.png");
+		case MenuID.EditSceneDup: return imgd!("area_cards_dup.png");
 		case MenuID.EditEvent: return imgd!("area_event.png");
-		// TODO シーン・イベントビューを複数開く
-//		case MenuID.EditEventDup: return imgd!("area_event_dup.png");
+		case MenuID.EditEventDup: return imgd!("area_event_dup.png");
 		case MenuID.SetStartArea: return imgd!("start_area.png");
 		case MenuID.NewFlagDir: return imgd!("flagdir_new.png");
 		case MenuID.NewFlag: return imgd!("flag_new.png");
@@ -588,8 +595,6 @@ public:
 		case MenuID.AddHand: return imgd!("add_hand.png");
 		case MenuID.RemoveRef: return imgd!("remove_ref.png");
 		case MenuID.EditEventAtTimeOfUsing: return imgd!("event_tree.png");
-		// TODO シーン・イベントビューを複数開く
-//		case MenuID.EditEventAtTimeOfUsingDup: return imgd!("event_tree_dup.png");
 		case MenuID.Hold: return imgd!("hold.png");
 		case MenuID.PlaySE: return imgd!("sound_play.png");
 		case MenuID.StopSE: return imgd!("sound_stop.png");

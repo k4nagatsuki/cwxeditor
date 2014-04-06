@@ -149,10 +149,10 @@ public:
 
 			auto mf = createMenu(_comm, bar, MenuID.File);
 			static if (is(A : Area)) {
-				createMenuItem(_comm, mf, MenuID.EditScene, &openScene, null);
+				createMenuItem(_comm, mf, MenuID.EditScene, () => openScene(false), null);
 				new MenuItem(mf, SWT.SEPARATOR);
 			} else static if (is(A : Battle)) {
-				createMenuItem(_comm, mf, MenuID.EditScene, &openScene, null);
+				createMenuItem(_comm, mf, MenuID.EditScene, () => openScene(false), null);
 				new MenuItem(mf, SWT.SEPARATOR);
 			}
 			createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close, null);
@@ -180,8 +180,10 @@ public:
 		} else { mixin(S_TRACE);
 			appendMenuTCPD(_comm, this, this, true, true, true, true, true);
 			static if (is(A : Area) || is(A : Battle)) {
-				putMenuAction(MenuID.EditScene, &openScene, null);
+				putMenuAction(MenuID.EditScene, () => openScene(false), null);
+				putMenuAction(MenuID.EditSceneDup, () => openScene(true), null);
 			}
+			putMenuAction(MenuID.EditEventDup, () => openDup(), null);
 			putMenuAction(MenuID.Undo, &_eview.undo, () => !_readOnly && _undo.canUndo);
 			putMenuAction(MenuID.Redo, &_eview.redo, () => !_readOnly && _undo.canRedo);
 			putMenuAction(MenuID.Up, &_eview.up, &_eview.canUp);
@@ -285,9 +287,12 @@ public:
 		return _undo;
 	}
 	static if (is(A : Area) || is(A : Battle)) {
-		private void openScene() { mixin(S_TRACE);
-			_comm.openAreaScene(_prop, _summ, _eto, true, false);
+		private void openScene(bool canDuplicate = false) { mixin(S_TRACE);
+			_comm.openAreaScene(_prop, _summ, _eto, true, canDuplicate);
 		}
+	}
+	private void openDup() { mixin(S_TRACE);
+		_eview.openDup();
 	}
 	private void __deleteOwner(A a) { mixin(S_TRACE);
 		if (_eto is a) { mixin(S_TRACE);

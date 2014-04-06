@@ -433,7 +433,9 @@ public:
 			static if (WithArea) {
 				putMenuAction(MenuID.EditSummary, () => _areas.editSummary(_areas.panel.getShell()), () => _summ !is null);
 				putMenuAction(MenuID.EditScene, () => _areas.openAreaScene(true), () => _areas.canOpenAreaScene);
+				putMenuAction(MenuID.EditSceneDup, () => _areas.openAreaScene(true, true), () => _areas.canOpenAreaScene);
 				putMenuAction(MenuID.EditEvent, () => _areas.openAreaEvent(true), () => _areas.canOpenAreaEvent);
+				putMenuAction(MenuID.EditEventDup, () => _areas.openAreaEvent(true, true), () => _areas.canOpenAreaEvent);
 				putMenuAction(MenuID.ChangeVH, () => _areas.changeVHSide(), () => _areas.canChangeVH);
 			}
 			static if (EditMode) {
@@ -469,7 +471,8 @@ public:
 				putMenuAction(MenuID.Import, &doImport, &canDoImport);
 			}
 			static if (UseSkill || UseItem || UseBeast) {
-				putMenuAction(MenuID.EditEventAtTimeOfUsing, &editUseEvent, &canEditUseEvent);
+				putMenuAction(MenuID.EditEventAtTimeOfUsing, () => editUseEvent(false), &canEditUseEvent);
+				putMenuAction(MenuID.EditEventDup, () => editUseEvent(true), &canEditUseEvent);
 			}
 			putMenuChecked(MenuID.ShowCardProp, &showCardLife, &isViewLife, null);
 			putMenuChecked(MenuID.ShowCardImage, &showCardList, &isViewList, null);
@@ -1213,20 +1216,20 @@ public:
 		}
 	}
 	static if (UseSkill || UseItem || UseBeast) {
-		void editUseEvent() { mixin(S_TRACE);
+		void editUseEvent(bool canDuplicate = false) { mixin(S_TRACE);
 			static if (1 < Cards.length || WithArea) {
 				int i = selectionCardIndex;
 				static if (UseSkill) {
-					if (i == SKILL) _pane[SKILL].editUseEvent();
+					if (i == SKILL) _pane[SKILL].editUseEvent(canDuplicate);
 				}
 				static if (UseItem) {
-					if (i == ITEM) _pane[ITEM].editUseEvent();
+					if (i == ITEM) _pane[ITEM].editUseEvent(canDuplicate);
 				}
 				static if (UseBeast) {
-					if (i == BEAST) _pane[BEAST].editUseEvent();
+					if (i == BEAST) _pane[BEAST].editUseEvent(canDuplicate);
 				}
 			} else { mixin(S_TRACE);
-				_pane[0].editUseEvent();
+				_pane[0].editUseEvent(canDuplicate);
 			}
 		}
 		@property

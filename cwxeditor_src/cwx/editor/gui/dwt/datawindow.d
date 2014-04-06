@@ -238,7 +238,9 @@ public:
 			}
 			static if (UseArea) {
 				putMenuAction(MenuID.EditScene, () => openAreaScene(), &_areas.canOpenAreaScene);
+				putMenuAction(MenuID.EditSceneDup, () => openAreaScene(true), &_areas.canOpenAreaScene);
 				putMenuAction(MenuID.EditEvent, () => openAreaEvent(), &_areas.canOpenAreaEvent);
+				putMenuAction(MenuID.EditEventDup, () => openAreaEvent(true), &_areas.canOpenAreaEvent);
 				putMenuAction(MenuID.NewAreaDir, &createAreaDir, &canCreateAreaDir);
 				putMenuAction(MenuID.NewArea, &createArea, &canCreateArea);
 				putMenuAction(MenuID.NewBattle, &createBattle, &canCreateBattle);

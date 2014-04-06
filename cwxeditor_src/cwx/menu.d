@@ -121,11 +121,9 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ReNumberingAll] = "A";
 		_mnemonic[MenuID.ReNumbering] = "B";
 		_mnemonic[MenuID.EditScene] = "S";
-		// TODO シーン・イベントビューを複数開く
-//		_mnemonic[MenuID.EditSceneDup] = "E";
+		_mnemonic[MenuID.EditSceneDup] = "E";
 		_mnemonic[MenuID.EditEvent] = "N";
-		// TODO シーン・イベントビューを複数開く
-//		_mnemonic[MenuID.EditEventDup] = "V";
+		_mnemonic[MenuID.EditEventDup] = "V";
 		_mnemonic[MenuID.SetStartArea] = "R";
 		_mnemonic[MenuID.NewFlagDir] = "N";
 		_mnemonic[MenuID.NewFlag] = "F";
@@ -211,8 +209,6 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.AddHand] = "A";
 		_mnemonic[MenuID.RemoveRef] = "I";
 		_mnemonic[MenuID.EditEventAtTimeOfUsing] = "N";
-		// TODO シーン・イベントビューを複数開く
-//		_mnemonic[MenuID.EditEventAtTimeOfUsingDup] = "A";
 		_mnemonic[MenuID.Hold] = "H";
 		_mnemonic[MenuID.PlaySE] = "P";
 		_mnemonic[MenuID.StopSE] = "S";
@@ -332,11 +328,9 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ReNumberingAll] = "";
 		_hotkey[MenuID.ReNumbering] = "";
 		_hotkey[MenuID.EditScene] = "F3";
-		// TODO シーン・イベントビューを複数開く
-//		_hotkey[MenuID.EditSceneDup] = "Ctrl+F3";
+		_hotkey[MenuID.EditSceneDup] = "Ctrl+F3";
 		_hotkey[MenuID.EditEvent] = "F4";
-		// TODO シーン・イベントビューを複数開く
-//		_hotkey[MenuID.EditEventDup] = "Ctrl+F4";
+		_hotkey[MenuID.EditEventDup] = "Ctrl+F4";
 		_hotkey[MenuID.SetStartArea] = "";
 		_hotkey[MenuID.NewFlagDir] = "";
 		_hotkey[MenuID.NewFlag] = "Ctrl+L";
@@ -423,8 +417,6 @@ class MenuProps : Properties {
 		_hotkey[MenuID.AddHand] = "";
 		_hotkey[MenuID.RemoveRef] = "";
 		_hotkey[MenuID.EditEventAtTimeOfUsing] = "";
-		// TODO シーン・イベントビューを複数開く
-//		_hotkey[MenuID.EditEventAtTimeOfUsingDup] = "";
 		_hotkey[MenuID.Hold] = "";
 		_hotkey[MenuID.PlaySE] = "";
 		_hotkey[MenuID.StopSE] = "";
@@ -722,11 +714,9 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.ReNumberingAll:
 	case MenuID.ReNumbering:
 	case MenuID.EditScene:
-	// TODO シーン・イベントビューを複数開く
-//	case MenuID.EditSceneDup:
+	case MenuID.EditSceneDup:
 	case MenuID.EditEvent:
-	// TODO シーン・イベントビューを複数開く
-//	case MenuID.EditEventDup:
+	case MenuID.EditEventDup:
 	case MenuID.SetStartArea:
 	case MenuID.NewFlagDir:
 	case MenuID.NewFlag:
@@ -750,8 +740,6 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.OpenHand:
 	case MenuID.RemoveRef:
 	case MenuID.EditEventAtTimeOfUsing:
-	// TODO シーン・イベントビューを複数開く
-//	case MenuID.EditEventAtTimeOfUsingDup:
 	case MenuID.NewDir:
 	case MenuID.CopyFilePath:
 	case MenuID.CreateArchive:

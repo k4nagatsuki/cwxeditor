@@ -244,10 +244,10 @@ public:
 
 			auto mf = createMenu(_comm, bar, MenuID.File);
 			static if (is(A : Area) && !WithEventView) {
-				createMenuItem(_comm, mf, MenuID.EditEvent, &openEvent, null);
+				createMenuItem(_comm, mf, MenuID.EditEvent, () => openEvent(false), null);
 				new MenuItem(mf, SWT.SEPARATOR);
 			} else static if (is(A : Battle) && !WithEventView) {
-				auto itm = createMenuItem(_comm, mf, MenuID.EditEvent, &openEvent, null);
+				auto itm = createMenuItem(_comm, mf, MenuID.EditEvent, () => openEvent(false), null);
 				itm.setImage(_prop.images.editEventBattle);
 				new MenuItem(mf, SWT.SEPARATOR);
 			}
@@ -293,8 +293,10 @@ public:
 				putMenuAction(MenuID.WrapTree, &wrapTree, &canWrapTree);
 				putMenuAction(MenuID.FindID, &findStartUsers, &canFindStartUsers);
 			} else { mixin(S_TRACE);
-				putMenuAction(MenuID.EditEvent, &openEvent, null);
+				putMenuAction(MenuID.EditEvent, () => openEvent(false), null);
 			}
+			putMenuAction(MenuID.EditSceneDup, () => openDup(), null);
+			putMenuAction(MenuID.EditEventDup, () => openEvent(true), null);
 			putMenuAction(MenuID.Refresh, &refresh, null);
 			putMenuAction(MenuID.EditProp, &edit, &canEdit);
 			static if (WithEventView) {
@@ -436,8 +438,11 @@ public:
 	void undo() {_undo.undo();}
 	void redo() {_undo.redo();}
 
-	void openEvent() { mixin(S_TRACE);
-		_aview.openEvent();
+	void openEvent(bool canDuplicate) { mixin(S_TRACE);
+		_aview.openEvent(canDuplicate);
+	}
+	void openDup() { mixin(S_TRACE);
+		_aview.openDup();
 	}
 
 	static if (WithEventView) {

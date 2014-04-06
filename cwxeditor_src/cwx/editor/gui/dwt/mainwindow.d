@@ -2503,11 +2503,9 @@ public:
 									case MenuID.Down:
 									case MenuID.FindID:
 									case MenuID.EditScene:
-									// TODO シーン・イベントビューを複数開く
-//									case MenuID.EditSceneDup:
+									case MenuID.EditSceneDup:
 									case MenuID.EditEvent:
-									// TODO シーン・イベントビューを複数開く
-//									case MenuID.EditEventDup:
+									case MenuID.EditEventDup:
 									case MenuID.EditProp:
 									case MenuID.ShowProp:
 									case MenuID.Cut1Content:
@@ -2523,8 +2521,6 @@ public:
 									case MenuID.AddHand:
 									case MenuID.RemoveRef:
 									case MenuID.EditEventAtTimeOfUsing:
-									// TODO シーン・イベントビューを複数開く
-//									case MenuID.EditEventAtTimeOfUsingDup:
 									case MenuID.Hold:
 									case MenuID.CopyFilePath:
 									case MenuID.ToScript1Content:
