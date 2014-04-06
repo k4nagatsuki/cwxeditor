@@ -376,9 +376,9 @@ private:
 			scope (exit) comm.refreshToolBar();
 			foreach (v; vs) { mixin(S_TRACE);
 				if (_selPath) v._tree.select(v.fromPath(_selPath));
-				_selPath = _selPath2;
 				v.refreshStatusLine();
 			}
+			_selPath = _selPath2;
 		}
 		EventTreeView[] views() { mixin(S_TRACE);
 			return comm.eventTreeViewFrom(et.cwxPath(true), false);
