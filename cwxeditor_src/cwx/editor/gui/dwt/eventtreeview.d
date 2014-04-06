@@ -177,7 +177,6 @@ private:
 			if (!sel) return;
 			auto c = cast(Content) sel.getData();
 			if (c.type == type) return;
-			// TODO 同期
 			store(c);
 			_comm.delContent.call(c);
 			assert (c.canConvert(type), "convert menu item enabled");
@@ -190,14 +189,23 @@ private:
 			if (newd.use(CArg.DIALOGS) && !oldd.use(CArg.DIALOGS)) { mixin(S_TRACE);
 				c.dialogs = [new SDialog];
 			}
-			sel.setImage(_prop.images.content(type));
-			foreach (itm; _tree.getItems(sel)) { mixin(S_TRACE);
-				itm.setText(eventText(c, cast(Content) itm.getData()));
-				procTreeItem(itm);
+			auto img = _prop.images.content(type);
+			foreach (v; views()) { mixin(S_TRACE);
+				if (v._tree.tree) { mixin(S_TRACE);
+					assert (cast(TreeItem)sel !is null);
+					auto sel2 = .anotherTreeItem(v._tree.tree, cast(TreeItem)sel);
+					sel2.setImage(img);
+					foreach (itm; v._tree.getItems(sel2)) { mixin(S_TRACE);
+						itm.setText(v.eventText(c, cast(Content)itm.getData()));
+						v.procTreeItem(itm);
+					}
+					v.procTreeItem(sel2);
+				} else { mixin(S_TRACE);
+					v._tree.editor.updateEventTree();
+				}
+				v.refreshStatusLine();
+				v.redraw();
 			}
-			procTreeItem(sel);
-			refreshStatusLine();
-			redraw();
 			_comm.refUseCount.call();
 			_comm.refreshToolBar();
 		}
@@ -311,10 +319,24 @@ private:
 		}
 	}
 
+	static EventTreeView mainEventTreeView(EventTreeView[] vs) { mixin(S_TRACE);
+		if (!vs.length) return null;
+		foreach (v; vs) { mixin(S_TRACE);
+			auto ct = Display.getCurrent().getFocusControl();
+			while (ct.getParent()) { mixin(S_TRACE);
+				if (ct is v) { mixin(S_TRACE);
+					return v;
+				}
+				ct = ct.getParent();
+			}
+		}
+		return vs[0];
+	}
+
 	UndoManager _undo;
 	abstract static class ETVUndo : Undo {
 		private size_t[] _etPath;
-		private size_t[][EventTree] _selPath = null, _selPath2 = null;
+		private size_t[] _selPath = null, _selPath2 = null;
 		protected EventTree et;
 		protected Commons comm;
 		protected Props prop;
@@ -325,17 +347,19 @@ private:
 			this.prop = prop;
 			this.summ = summ;
 			_etPath = et.areaPath;
-			foreach (v; views()) { mixin(S_TRACE);
-				auto sel = v.selection;
-				_selPath[v._et] = sel ? (cast(Content)sel.getData()).ctPath : null;
+			auto vs = views();
+			if (vs.length) { mixin(S_TRACE);
+				auto sel = mainEventTreeView(vs).selection;
+				_selPath = sel ? (cast(Content)sel.getData()).ctPath : null;
 			}
 		}
 		void udb(EventTreeView[] vs) { mixin(S_TRACE);
 			if (!vs.length) return;
+			auto mainV = mainEventTreeView(vs);
+			auto sel = mainV.selection;
+			_selPath2 = sel ? (cast(Content)sel.getData()).ctPath : null;
 			foreach (v; vs) { mixin(S_TRACE);
 				v._forceSel(_etPath);
-				auto sel = v.selection;
-				_selPath2[v._et] = sel ? (cast(Content)sel.getData()).ctPath : null;
 			}
 			foreach (v; vs) { mixin(S_TRACE);
 				auto ct = Display.getCurrent().getFocusControl();
@@ -346,13 +370,13 @@ private:
 					ct = ct.getParent();
 				}
 			}
-			.forceFocus(vs[0]._tree.control, false);
+			.forceFocus(mainV._tree.control, false);
 		}
 		void uda(EventTreeView[] vs) { mixin(S_TRACE);
 			scope (exit) comm.refreshToolBar();
 			foreach (v; vs) { mixin(S_TRACE);
-				if (_selPath) v._tree.select(v.fromPath(_selPath[v._et]));
-				_selPath[v._et] = _selPath2[v._et];
+				if (_selPath) v._tree.select(v.fromPath(_selPath));
+				_selPath = _selPath2;
 				v.refreshStatusLine();
 			}
 		}
@@ -641,21 +665,24 @@ private:
 	private EventDialog[Content] _editDlgs;
 	void appliedEdit(UndoContent undo, Content c) { mixin(S_TRACE);
 		_undo ~= undo;
-		auto itm = fromPath(c.cwxPath(true));
-		assert (c is itm.getData());
-		foreach (childItm; _tree.getItems(itm)) { mixin(S_TRACE);
-			auto par = cast(Content)itm.getData();
-			assert (par.detail.owner);
-			childItm.setText(eventText(par, cast(Content) childItm.getData()));
-			procTreeItem(childItm);
+		auto cwxPath = c.cwxPath(true);
+		foreach (v; views()) { mixin(S_TRACE);
+			auto itm = v.fromPath(cwxPath);
+			assert (c is itm.getData());
+			foreach (childItm; v._tree.getItems(itm)) { mixin(S_TRACE);
+				auto par = cast(Content)itm.getData();
+				assert (par.detail.owner);
+				childItm.setText(v.eventText(par, cast(Content)childItm.getData()));
+				v.procTreeItem(childItm);
+			}
+			v.procTreeItem(itm);
+			if (v is this) v._tree.select(itm);
+			v.redraw();
+			v.refreshStatusLine();
 		}
-		procTreeItem(itm);
-		_tree.select(itm);
 		.forceFocus(_tree.control, false);
-		redraw();
 		_comm.refContent.call(c);
 		_comm.refUseCount.call();
-		refreshStatusLine();
 		_comm.refreshToolBar();
 	}
 	void editM() {edit();}
@@ -690,22 +717,24 @@ private:
 					} else { mixin(S_TRACE);
 						index = -1;
 					}
-					// TODO 同期
 					storeInsert(index);
 					_et.insert(index, cast(Content)evt);
-					Item sItm;
-					if (_tree.tree) { mixin(S_TRACE);
-						sItm = createTreeItem(_tree.tree, evt, evt.name, _prop.images.content(CType.START), index);
-					} else { mixin(S_TRACE);
-						_tree.editor.updateEventTree();
-						sItm = EventEditorItem.valueOf(_tree.editor, evt);
+					auto img = _prop.images.content(CType.START);
+					foreach (v; views()) { mixin(S_TRACE);
+						Item sItm;
+						if (v._tree.tree) { mixin(S_TRACE);
+							sItm = createTreeItem(v._tree.tree, evt, evt.name, img, index);
+						} else { mixin(S_TRACE);
+							v._tree.editor.updateEventTree();
+							sItm = EventEditorItem.valueOf(v._tree.editor, evt);
+						}
+						if (v is this) v._tree.select(sItm);
+						if (v is this) v._tree.showSelection();
+						v.refreshStatusLine();
+						if (v._box._putMode !is MenuID.PutContinue) v._box.arrow();
 					}
-					_tree.select(sItm);
-					_tree.showSelection();
 					.forceFocus(_tree.control, false);
 					_comm.refContent.call(evt);
-					refreshStatusLine();
-					if (_box._putMode !is MenuID.PutContinue) _box.arrow();
 					_comm.refreshToolBar();
 				});
 			} else { mixin(S_TRACE);
@@ -732,10 +761,10 @@ private:
 						scope (exit) {
 							if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
 						}
-						// TODO 同期
 						store(owner);
 						if (insertIndex == -1) { mixin(S_TRACE);
 							if (_box._insertFirst) { mixin(S_TRACE);
+								insertIndex = 0;
 								owner.insert(_prop.parent, 0, evt);
 							} else { mixin(S_TRACE);
 								owner.add(_prop.parent, evt);
@@ -743,17 +772,26 @@ private:
 						} else { mixin(S_TRACE);
 							owner.insert(_prop.parent, insertIndex, evt);
 						}
-						Item itm;
-						if (_tree.tree) { mixin(S_TRACE);
-							itm = createTreeItem(cast(TreeItem)oItm, evt, eventText(owner, evt), _prop.images.content(evt.type), insertIndex);
-							_tree.setExpanded(oItm, true);
-						} else { mixin(S_TRACE);
-							_tree.editor.updateEventTree();
-							itm = EventEditorItem.valueOf(_tree.editor, evt);
+						auto vs = views();
+						auto text = eventText(owner, evt);
+						auto img = _prop.images.content(evt.type);
+						Item[] itms;
+						foreach (v; vs) { mixin(S_TRACE);
+							Item itm;
+							if (v._tree.tree) { mixin(S_TRACE);
+								assert (cast(TreeItem)oItm !is null);
+								auto oItm2 = .anotherTreeItem(v._tree.tree, cast(TreeItem)oItm);
+								itm = createTreeItem(cast(TreeItem)oItm2, evt, text, img, insertIndex);
+								v._tree.setExpanded(oItm2, true);
+							} else { mixin(S_TRACE);
+								v._tree.editor.updateEventTree();
+								itm = EventEditorItem.valueOf(v._tree.editor, evt);
+							}
+							if (v is this) v._tree.setSelection([itm]);
+							itms ~= itm;
 						}
-						_tree.setSelection([itm]);
 						if (insertTo) { mixin(S_TRACE);
-							auto ic = cast(Content) insertTo.getData();
+							auto ic = cast(Content)insertTo.getData();
 							_comm.delContent.call(ic);
 							ic.parent.remove(ic);
 							if (_prop.var.etc.adjustContentName) { mixin(S_TRACE);
@@ -764,17 +802,26 @@ private:
 							} else { mixin(S_TRACE);
 								evt.add(_prop.parent, ic);
 							}
-							insertTo.dispose();
-							createChilds(itm, evt);
-							_tree.setExpanded(itm, true);
+							foreach (i, v; vs) { mixin(S_TRACE);
+								auto itm = itms[i];
+								if (v._tree.tree) { mixin(S_TRACE);
+									assert (cast(TreeItem)insertTo !is null);
+									auto insertTo2 = .anotherTreeItem(v._tree.tree, cast(TreeItem)insertTo);
+									insertTo2.dispose();
+									v.createChilds(itm, evt);
+								}
+								v._tree.setExpanded(itm, true);
+							}
 						}
-						procTreeItem(itm);
-						_tree.showSelection();
+						foreach (i, v; vs) { mixin(S_TRACE);
+							procTreeItem(itms[i]);
+							if (v is this) v._tree.showSelection();
+							v.refreshStatusLine();
+							if (v._box._putMode !is MenuID.PutContinue) v._box.arrow();
+						}
 						.forceFocus(_tree.control, false);
 						_comm.refContent.call(evt);
 						_comm.refUseCount.call();
-						refreshStatusLine();
-						if (_box._putMode !is MenuID.PutContinue) _box.arrow();
 						_comm.refreshToolBar();
 					}
 					if (insertTo) { mixin(S_TRACE);
@@ -887,12 +934,10 @@ private:
 			auto evt = dlg.event;
 			applied(evt);
 
-			// TODO 同期
 			auto undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
 			dlg.appliedEvent.length = 0;
 			dlg.appliedEvent ~= { mixin(S_TRACE);
 				appliedEdit(undo, evt);
-				// TODO 同期
 				undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
 			};
 		};
@@ -920,11 +965,9 @@ private:
 			return *p;
 		}
 		auto dlg = createEventDialog(evt, evt.parent, false);
-		// TODO 同期
 		auto undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
 		dlg.appliedEvent ~= { mixin(S_TRACE);
 			appliedEdit(undo, evt);
-			// TODO 同期
 			undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
 		};
 		_editDlgs[evt] = dlg;
@@ -1229,23 +1272,27 @@ private:
 				scope (exit) {
 					if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
 				}
-				auto c = cast(Content) itm.getData();
+				auto c = cast(Content)itm.getData();
 				_comm.delContent.call(c);
 				if (_parItm) { mixin(S_TRACE);
 					assert (_parItm.getData());
 					assert (itm.getData());
-					assert ((cast(Content) _parItm.getData()).detail.owner);
-					assert (cast(Content) itm.getData());
-					(cast(Content) _parItm.getData()).remove(c);
+					assert ((cast(Content)_parItm.getData()).detail.owner);
+					assert (cast(Content)itm.getData());
+					(cast(Content)_parItm.getData()).remove(c);
 				} else { mixin(S_TRACE);
 					_et.remove(c);
 				}
-				_tree.control.setRedraw(false);
-				itm.dispose();
-				if (_tree.editor) { mixin(S_TRACE);
-					_tree.editor.updateEventTree();
+				auto tPath = _tree.tree ? .toTreePath(cast(TreeItem)itm) : [];
+				foreach (v; views()) { mixin(S_TRACE);
+					v._tree.control.setRedraw(false);
+					scope (exit) v._tree.control.setRedraw(true);
+					if (v._tree.tree) { mixin(S_TRACE);
+						.fromTreePath(v._tree.tree, tPath).dispose();
+					} else {
+						v._tree.editor.updateEventTree();
+					}
 				}
-				_tree.control.setRedraw(true);
 				_comm.refUseCount.call();
 				_comm.refreshToolBar();
 			}
@@ -1311,43 +1358,46 @@ private:
 							if (_dragItm) { mixin(S_TRACE);
 								auto top = _tree.topItem(ti);
 								if (top == _tree.topItem(_dragItm)) { mixin(S_TRACE);
-									// TODO 同期
 									store(cast(Content)top.getData());
 								} else { mixin(S_TRACE);
-									// TODO 同期
 									store(cast(Content)_tree.getParentItem(_dragItm).getData(), owner);
 								}
 							} else { mixin(S_TRACE);
-								// TODO 同期
 								store(owner);
 							}
 							if (cast(Content)_tree.getParentItem(_dragItm).getData() !is owner) { mixin(S_TRACE);
 								adjustText(owner, evt, lastNextType);
 							}
+							int insertIndex = -1;
 							if (_box._insertFirst) { mixin(S_TRACE);
 								owner.insert(_prop.parent, 0, evt);
+								insertIndex = 0;
 							} else { mixin(S_TRACE);
 								owner.add(_prop.parent, evt);
 							}
 							_comm.refContent.call(evt);
-							_tree.control.setRedraw(false);
-							Item itm;
-							if (_tree.tree) { mixin(S_TRACE);
-								itm = createTreeItem(cast(TreeItem)ti, evt, eventText(owner, evt), _prop.images.content(evt.type));
-							} else { mixin(S_TRACE);
-								_tree.editor.updateEventTree();
-								itm = EventEditorItem.valueOf(_tree.editor, evt);
+							foreach (v; views()) {
+								v._tree.control.setRedraw(false);
+								scope (exit) v._tree.control.setRedraw(true);
+								Item itm;
+								if (v._tree.tree) { mixin(S_TRACE);
+									assert (cast(TreeItem)ti !is null);
+									auto ti2 = .anotherTreeItem(v._tree.tree, cast(TreeItem)ti);
+									itm = createTreeItem(ti2, evt, v.eventText(owner, evt), _prop.images.content(evt.type), insertIndex);
+								} else { mixin(S_TRACE);
+									v._tree.editor.updateEventTree();
+									itm = EventEditorItem.valueOf(v._tree.editor, evt);
+								}
+								v.procTreeItem(itm);
+								if (v is this) v._tree.setSelection([itm]);
+								v.refreshStatusLine();
+								if (evt.detail.owner) { mixin(S_TRACE);
+									v.createChilds(itm, evt);
+									v._tree.setExpanded(itm, true);
+								}
+								v.refreshStatusLine();
 							}
-							procTreeItem(itm);
-							_tree.setSelection([itm]);
-							refreshStatusLine();
 							_comm.refUseCount.call();
-							if (evt.detail.owner) { mixin(S_TRACE);
-								createChilds(itm, evt);
-								_tree.setExpanded(itm, true);
-							}
-							_tree.control.setRedraw(true);
-							refreshStatusLine();
 							e.detail = samePane ? DND.DROP_MOVE : DND.DROP_COPY;
 							_comm.refreshToolBar();
 						}
@@ -1987,13 +2037,13 @@ public:
 			return;
 		}
 		auto dlg = new ContentCommentDialog(_comm, _prop, _tree.control.getShell(), c.parent, c);
-		// TODO 同期
 		auto undo = new UndoContent(_comm, _prop, _summ, _et, [c]);
 		dlg.appliedEvent ~= { mixin(S_TRACE);
 			_undo ~= undo;
-			// TODO 同期
 			undo = new UndoContent(_comm, _prop, _summ, _et, [c]);
-			redraw();
+			foreach (v; views()) { mixin(S_TRACE);
+				v.redraw();
+			}
 		};
 		_commentDlgs[c] = dlg;
 		dlg.closeEvent ~= { mixin(S_TRACE);
@@ -2030,7 +2080,6 @@ public:
 			foreach (cld; _tree.getItems(itm)) find(cld);
 		}
 		foreach (itm; _tree.getItems()) find(itm);
-		// TODO 同期
 		auto ucp = new UndoCP(_comm, _prop, _summ, _et, conts, index, start);
 		auto id = _comm.createPackage(start, false);
 		if (id == 0) { mixin(S_TRACE);
@@ -2038,9 +2087,19 @@ public:
 			return;
 		}
 		_undo ~= ucp;
+		auto tPath = _tree.tree ? .toTreePath(cast(TreeItem)startItm) : [];
 		delImpl(startItm, false);
+		auto vs = views();
+		foreach (v; vs) { mixin(S_TRACE);
+			if (v is this) continue;
+			if (v._tree.tree) { mixin(S_TRACE);
+				.fromTreePath(v._tree.tree, tPath).dispose();
+			} else { mixin(S_TRACE);
+				_tree.editor.updateEventTree();
+			}
+		}
 		foreach (itm; users) { mixin(S_TRACE);
-			auto c = cast(Content) itm.getData();
+			auto c = cast(Content)itm.getData();
 			switch (c.type) {
 			case CType.LINK_START: { mixin(S_TRACE);
 				c.convertType(CType.LINK_PACKAGE, _prop.parent);
@@ -2052,9 +2111,15 @@ public:
 			} break;
 			default: assert (0);
 			}
-			itm.setImage(_prop.images.content(c.type));
+			foreach (v; vs) { mixin(S_TRACE);
+				if (v._tree.tree) { mixin(S_TRACE);
+					.anotherTreeItem(v._tree.tree, cast(TreeItem)itm).setImage(_prop.images.content(c.type));
+				}
+			}
 		}
-		refreshStatusLine();
+		foreach (v; vs) { mixin(S_TRACE);
+			v.refreshStatusLine();
+		}
 		_comm.refUseCount.call();
 		_comm.refreshToolBar();
 	}
@@ -2087,7 +2152,6 @@ public:
 		auto c = cast(Content)sel.getData();
 		auto parentStart = c.parentStart;
 		auto si = c.tree.starts.cCountUntil(parentStart) + 1;
-		// TODO 同期
 		storeContentAndInsert(c.parent, si, 1);
 
 		auto start = new Content(CType.START, createNewName(parentStart.name, (string name) { mixin(S_TRACE);
@@ -2107,20 +2171,23 @@ public:
 		start.add(_prop.parent, c);
 		_comm.delContent.call(c);
 
-		Item sItm;
-		if (_tree.tree) { mixin(S_TRACE);
-			sItm = createTreeItem(_tree.tree, start, start.name, _prop.images.content(CType.START), si);
-			createChilds(sItm, start);
-		} else { mixin(S_TRACE);
-			_tree.editor.updateEventTree();
-			sItm = EventEditorItem.valueOf(_tree.editor, start);
+		foreach (v; views()) { mixin(S_TRACE);
+			Item sItm;
+			if (v._tree.tree) { mixin(S_TRACE);
+				sItm = createTreeItem(v._tree.tree, start, start.name, _prop.images.content(CType.START), si);
+				v.createChilds(sItm, start);
+			} else { mixin(S_TRACE);
+				v._tree.editor.updateEventTree();
+				sItm = EventEditorItem.valueOf(v._tree.editor, start);
+			}
+			if (v is this) { mixin(S_TRACE);
+				v._tree.select(sItm);
+				v._tree.showSelection();
+			}
+			v.refreshStatusLine();
 		}
-		_tree.select(sItm);
-		_tree.showSelection();
 		_comm.refContent.call(c);
 		_comm.refContent.call(link);
-
-		refreshStatusLine();
 		_comm.refUseCount.call();
 		_comm.refreshToolBar();
 	}
@@ -2227,13 +2294,13 @@ public:
 	}
 	private void editEnd(Item itm, Control c) { mixin(S_TRACE);
 		if (_readOnly) return;
-		auto t = cast(Text) c;
-		auto evt = (cast(Content) itm.getData());
+		auto t = cast(Text)c;
+		auto evt = (cast(Content)itm.getData());
+		auto vs = views();
 		if (t) { mixin(S_TRACE);
 			auto text = t.getText();
 			if (!text) text = "";
 			if (text == evt.name) return;
-			// TODO 同期
 			store(evt);
 			if (evt.type == CType.START) { mixin(S_TRACE);
 				evt.setName(_prop.parent, createNewName(text, (string name) { mixin(S_TRACE);
@@ -2244,13 +2311,22 @@ public:
 					}
 					return true;
 				}, true));
-				itm.setText(evt.name);
+				text = evt.name;
 			} else { mixin(S_TRACE);
 				evt.setName(_prop.parent, text);
-				itm.setText(eventText(evt.parent, evt));
+				text = eventText(evt.parent, evt);
 			}
-			if (evt.type == CType.START && _tree.indexOf(itm) == 0) { mixin(S_TRACE);
-				_refreshTopStart();
+			auto isTop = evt.type == CType.START && _tree.indexOf(itm) == 0;
+			foreach (v; vs) { mixin(S_TRACE);
+				if (v._tree.tree) {
+					assert (cast(TreeItem)itm !is null);
+					.anotherTreeItem(v._tree.tree, cast(TreeItem)itm).setText(text);
+				} else {
+					v._tree.editor.updateEventTree();
+				}
+				if (isTop) { mixin(S_TRACE);
+					v._refreshTopStart();
+				}
 			}
 		} else { mixin(S_TRACE);
 			auto combo = cast(Combo) c;
@@ -2302,15 +2378,26 @@ public:
 				name = index == 0 ? _prop.sys.evtChildTrue : _prop.sys.evtChildFalse;
 			}
 			if (name == evt.name) return;
-			// TODO 同期
 			store(evt);
 			evt.setName(_prop.parent, name);
-			itm.setText(combo.getText());
+			foreach (v; vs) { mixin(S_TRACE);
+				if (v._tree.tree) {
+					assert (cast(TreeItem)itm !is null);
+					.anotherTreeItem(v._tree.tree, cast(TreeItem)itm).setText(combo.getText());
+				} else {
+					v._tree.editor.updateEventTree();
+				}
+			}
 		}
-		procTreeItem(itm);
-		redraw();
+		foreach (v; vs) { mixin(S_TRACE);
+			if (v._tree.tree) {
+				assert (cast(TreeItem)itm !is null);
+				v.procTreeItem(.anotherTreeItem(v._tree.tree, cast(TreeItem)itm));
+			}
+			v.redraw();
+			v.refreshStatusLine();
+		}
 		_comm.refContent.call(evt);
-		refreshStatusLine();
 		_comm.refreshToolBar();
 		_comm.refUseCount.call();
 	}
@@ -2532,7 +2619,6 @@ public:
 			j = i + To;
 			if (j < 0 || pc.next.length <= j) return;
 			if (vs.length && store) { mixin(S_TRACE);
-				// TODO 同期
 				vs[0].store(pc);
 			}
 			comm.delContent.call(pc.next[i]);
@@ -2543,7 +2629,6 @@ public:
 			j = i + To;
 			if (j < 0 || et.starts.length <= j) return;
 			if (vs.length && store) { mixin(S_TRACE);
-				// TODO 同期
 				vs[0].storeSwap(i, j);
 			}
 			comm.delContent.call(et.starts[i]);
@@ -2560,11 +2645,12 @@ public:
 			} else { mixin(S_TRACE);
 				v._tree.editor.updateEventTree();
 			}
-			v._tree.showSelection();
 			if (!pc && (i == 0 || j == 0)) { mixin(S_TRACE);
 				v._refreshTopStart();
 			}
 		}
+		auto mainV = mainEventTreeView(vs);
+		if (mainV) mainV._tree.showSelection();
 	}
 	@property
 	bool canUp() { mixin(S_TRACE);
@@ -2680,7 +2766,6 @@ public:
 		auto parParNType = fromCNextType(parPar.detail.nextType);
 		auto parIndex = parPar.next.cCountUntil!"a is b"(par);
 
-		// TODO 同期
 		store(parPar);
 
 		// 入れ替え
@@ -2699,22 +2784,29 @@ public:
 		next.add(_prop.parent, par);
 
 		// 表示の更新
-		if (_tree.tree) { mixin(S_TRACE);
-			parent.setText(eventText(parPar, next));
-			child.setText(eventText(next, par));
-			parent.setData(next);
-			child.setData(par);
-			parent.setImage(_prop.images.content(next.type));
-			child.setImage(_prop.images.content(par.type));
-			procTreeItem(parent);
-			procTreeItem(child);
-			foreach (cc; _tree.getItems(child)) { mixin(S_TRACE);
-				cc.setText(eventText(par, cast(Content)cc.getData()));
-				procTreeItem(cc);
+		foreach (v; views()) { mixin(S_TRACE);
+			if (_tree.tree) { mixin(S_TRACE);
+				assert (cast(TreeItem)parent !is null);
+				auto parent2 = .anotherTreeItem(v._tree.tree, cast(TreeItem)parent);
+				auto child2 = parent2.getItem(_tree.indexOf(parent, child));
+				assert (parent2.getData() is parent.getData());
+				assert (child2.getData() is child.getData());
+				parent2.setText(v.eventText(parPar, next));
+				child2.setText(v.eventText(next, par));
+				parent2.setData(next);
+				child2.setData(par);
+				parent2.setImage(_prop.images.content(next.type));
+				child2.setImage(_prop.images.content(par.type));
+				v.procTreeItem(parent2);
+				v.procTreeItem(child2);
+				foreach (cc; v._tree.getItems(child2)) { mixin(S_TRACE);
+					cc.setText(v.eventText(par, cast(Content)cc.getData()));
+					v.procTreeItem(cc);
+				}
+				if (v is this) v._tree.setSelection([selTarg]);
+			} else { mixin(S_TRACE);
+				v._tree.editor.updateEventTree();
 			}
-			_tree.setSelection([selTarg]);
-		} else { mixin(S_TRACE);
-			_tree.editor.updateEventTree();
 		}
 		_tree.showSelection();
 	}
@@ -2811,9 +2903,9 @@ public:
 		}
 		if (!last && !owner.detail.owner) return;
 
-		_tree.control.setRedraw(false);
-		scope (exit) _tree.control.setRedraw(true);
-		// TODO 同期
+		auto vs = views();
+		foreach (v; vs) v._tree.control.setRedraw(false);
+		scope (exit) foreach (v; vs) v._tree.control.setRedraw(true);
 		if (stored) store(owner);
 		if (last) { mixin(S_TRACE);
 			cs2[0].setName(_prop.parent, owner.name);
@@ -2847,6 +2939,14 @@ public:
 			_comm.refContent.call(ct);
 		}
 		auto lastItm = createChilds(itm, owner);
+		foreach (v; vs) { mixin(S_TRACE);
+			if (v._tree.tree) { mixin(S_TRACE);
+				assert (cast(TreeItem)itm !is null);
+				v.createChilds(.anotherTreeItem(v._tree.tree, cast(TreeItem)itm), owner);
+			} else { mixin(S_TRACE);
+				v._tree.editor.updateEventTree();
+			}
+		}
 		if (lastCt) { mixin(S_TRACE);
 			while (lastCt.next.length) { mixin(S_TRACE);
 				lastCt = lastCt.next[$ - 1];
@@ -2880,8 +2980,8 @@ public:
 		}
 		_tree.setSelection([lastItm]);
 		_tree.showSelection();
+		foreach (v; vs) v.refreshStatusLine();
 		_comm.refUseCount.call();
-		refreshStatusLine();
 		_comm.refreshToolBar();
 	}
 	@property
@@ -2911,9 +3011,9 @@ public:
 		if (!cs2.length) return;
 
 		auto top = _tree.getTopItem();
-		// TODO 同期
 		if (stored) storeInsert(index, cs2.length);
 		Item sItm = null, lastItm = null;
+		auto vs = views();
 		foreach (i, c; cs2) { mixin(S_TRACE);
 			if (!c.type is CType.START) continue;
 			auto oldName = c.name;
@@ -2943,20 +3043,27 @@ public:
 				recurse(refCS);
 			}
 			_et.insert(index + i, c);
-			if (_tree.tree) { mixin(S_TRACE);
-				sItm = createTreeItem(_tree.tree, c, c.name, _prop.images.content(c.type), index + i);
-			} else { mixin(S_TRACE);
-				sItm = EventEditorItem.valueOf(_tree.editor, c);
+			foreach (v; vs) { mixin(S_TRACE);
+				Item sItm2;
+				if (v._tree.tree) { mixin(S_TRACE);
+					sItm2 = createTreeItem(v._tree.tree, c, c.name, _prop.images.content(c.type), index + i);
+				} else { mixin(S_TRACE);
+					sItm2 = EventEditorItem.valueOf(v._tree.editor, c);
+				}
+				auto lastItm2 = v.createChilds(sItm2, c);
+				v._tree.setExpanded(sItm2, true);
+				if (v is this) { mixin(S_TRACE);
+					sItm = sItm2;
+					lastItm = lastItm2;
+				}
 			}
-			lastItm = createChilds(sItm, c);
-			_tree.setExpanded(sItm, true);
 			_comm.refContent.call(c);
 		}
 		if (!sItm) return;
 		if (lastItm) _tree.setSelection([lastItm]);
 		_tree.showSelection();
+		foreach (v; vs) v.refreshStatusLine();
 		_comm.refUseCount.call();
-		refreshStatusLine();
 		_comm.refreshToolBar();
 	}
 
@@ -3083,7 +3190,6 @@ public:
 			auto c = cast(Content)itm.getData();
 			_comm.delContent.call(c);
 			auto owner = cast(Content)ownerItm.getData();
-			// TODO 同期
 			this.store(owner);
 			int insertIndex = owner.next.countUntil(c);
 			owner.remove(c);
@@ -3101,7 +3207,14 @@ public:
 				}
 				owner.insert(_prop.parent, insertIndex + i, next);
 			}
-			createChilds(ownerItm, owner);
+			foreach (v; views()) { mixin(S_TRACE);
+				if (v._tree.tree) { mixin(S_TRACE);
+					assert (cast(TreeItem)ownerItm !is null);
+					v.createChilds(.anotherTreeItem(v._tree.tree, cast(TreeItem)ownerItm), owner);
+				} else { mixin(S_TRACE);
+					v._tree.editor.updateEventTree();
+				}
+			}
 			_comm.refUseCount.call();
 			_comm.refreshToolBar();
 		}
@@ -3167,9 +3280,11 @@ public:
 			} catch (CWXScriptException e) {
 				throw e;
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 				throw e;
 			} catch (Throwable e) {
+				printStackTrace();
 				debugln(e);
 				throw new CWXScriptException(__FILE__, __LINE__, "", [CWXSError(_prop.msgs.scriptErrorSystem, 0, 0, __FILE__, __LINE__)], false);
 			}
@@ -3198,7 +3313,6 @@ public:
 		auto owner = insertOwner(tryInsert, sel);
 		bool c = contents.length && owner;
 		if (s && c) { mixin(S_TRACE);
-			// TODO 同期
 			storeContentAndInsert(owner, si, starts.length);
 			addContents(false, contents, cs, tryInsert);
 			addStarts(false, starts, cs);
@@ -3209,7 +3323,7 @@ public:
 		} else { mixin(S_TRACE);
 			return;
 		}
-		redraw();
+		foreach (v; views()) v.redraw();
 		_comm.refreshToolBar();
 	}
 	private void delImpl(Item itm, bool store, bool viewOnly = false) { mixin(S_TRACE);
@@ -3224,11 +3338,9 @@ public:
 			_comm.delContent.call(c);
 			if (ownerItm) { mixin(S_TRACE);
 				auto owner = cast(Content) ownerItm.getData();
-				// TODO 同期
 				if (store) this.store(owner);
 				owner.remove(c);
 			} else { mixin(S_TRACE);
-				// TODO 同期
 				if (store) this.storeDelete(.cCountUntil!("a is b")(_et.starts, c), c);
 				_et.remove(c);
 			}

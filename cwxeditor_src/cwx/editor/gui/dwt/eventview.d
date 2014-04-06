@@ -154,6 +154,20 @@ private:
 		return r;
 	}
 
+	static EventView mainEventView(EventView[] vs) { mixin(S_TRACE);
+		if (!vs.length) return null;
+		foreach (v; vs) { mixin(S_TRACE);
+			auto ct = Display.getCurrent().getFocusControl();
+			while (ct.getParent()) { mixin(S_TRACE);
+				if (ct is v) { mixin(S_TRACE);
+					return v;
+				}
+				ct = ct.getParent();
+			}
+		}
+		return vs[0];
+	}
+
 	abstract static class EVUndo : Undo {
 		abstract override void undo();
 		abstract override void redo();
@@ -179,11 +193,12 @@ private:
 			this.comm = comm;
 			this.area = area;
 			auto vs = views();
-			if (vs.length) _selPath = getSelPath(vs[0]);
+			if (vs.length) _selPath = getSelPath(mainEventView(vs));
 		}
 		protected void udb(EventView[] vs) { mixin(S_TRACE);
 			if (!vs.length) return;
-			_selPath2 = getSelPath(vs[0]);
+			auto mainV = mainEventView(vs);
+			_selPath2 = getSelPath(mainV);
 			foreach (v; vs) { mixin(S_TRACE);
 				auto ct = Display.getCurrent().getFocusControl();
 				while (ct.getParent()) { mixin(S_TRACE);
@@ -193,7 +208,7 @@ private:
 					ct = ct.getParent();
 				}
 			}
-			.forceFocus(vs[0]._cards, false);
+			.forceFocus(mainV._cards, false);
 		}
 		protected void uda(EventView[] vs) { mixin(S_TRACE);
 			scope (exit) comm.refreshToolBar();
@@ -417,8 +432,9 @@ private:
 			udb(vs);
 			scope (exit) uda(vs);
 			if (vs.length) { mixin(S_TRACE);
-				auto itm = vs[0]._cards.getItem(_ownerIndex).getItem(max(_swapIndex1, _swapIndex2));
-				vs[0].up(itm, false, true, false);
+				auto mainV = mainEventView(vs);
+				auto itm = mainV._cards.getItem(_ownerIndex).getItem(max(_swapIndex1, _swapIndex2));
+				mainV.up(itm, false, true, false);
 			} else { mixin(S_TRACE);
 				staticUDImpl(comm, etos(area)[_ownerIndex], _swapIndex1, _swapIndex2);
 			}
@@ -807,17 +823,17 @@ private:
 						auto data = itm.getData();
 						if (cast(KeyCodeObj)data && cast(KeyCodeObj)sel) { mixin(S_TRACE);
 							if ((cast(KeyCodeObj)data).array == (cast(KeyCodeObj)sel).array) { mixin(S_TRACE);
-								v._cards.setSelection([itm]);
+								if (v is this) v._cards.setSelection([itm]);
 								break;
 							}
 						} else if (cast(RoundObj)data && cast(RoundObj)sel) { mixin(S_TRACE);
 							if ((cast(RoundObj)data).intValue() == (cast(RoundObj)sel).intValue()) { mixin(S_TRACE);
-								v._cards.setSelection([itm]);
+								if (v is this) v._cards.setSelection([itm]);
 								break;
 							}
 						} else if (data is sel) { mixin(S_TRACE);
 							assert (data is ENTER || data is LOSE || data is ESCAPE || data is EVERY_ROUND || data is ROUND_0);
-							v._cards.setSelection([itm]);
+							if (v is this) v._cards.setSelection([itm]);
 							break;
 						}
 					}
@@ -1544,7 +1560,7 @@ public:
 						auto itm2 = .fromTreePath(v._cards, tPath);
 						treeSwap(itm2);
 						v._selItm = v.selection;
-						v._cards.showSelection();
+						if (v is this) v._cards.showSelection();
 					}
 				} else { mixin(S_TRACE);
 					static if (UseFire) {
@@ -1566,7 +1582,7 @@ public:
 								foreach (v; views()) {
 									auto itm2 = .fromTreePath(v._cards, tPath);
 									treeSwap(itm2);
-									v._cards.showSelection();
+									if (v is this) v._cards.showSelection();
 								}
 							}
 						}
@@ -2040,7 +2056,7 @@ public:
 						foreach (v; views()) { mixin(S_TRACE);
 							auto parItm2 = .anotherTreeItem(v._cards, parItm);
 							auto treeItm = createTreeItem(parItm2, tree, tree.name, v.etImage(tree));
-							v.selectImpl(treeItm);
+							if (v is this) v.selectImpl(treeItm);
 							static if (UseFire) {
 								if (v is this) refreshFires(treeItm);
 							}
