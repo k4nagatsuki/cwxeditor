@@ -2940,6 +2940,7 @@ public:
 		}
 		auto lastItm = createChilds(itm, owner);
 		foreach (v; vs) { mixin(S_TRACE);
+			if (v is this) continue;
 			if (v._tree.tree) { mixin(S_TRACE);
 				assert (cast(TreeItem)itm !is null);
 				v.createChilds(.anotherTreeItem(v._tree.tree, cast(TreeItem)itm), owner);
