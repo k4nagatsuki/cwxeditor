@@ -2943,7 +2943,9 @@ public:
 			if (v is this) continue;
 			if (v._tree.tree) { mixin(S_TRACE);
 				assert (cast(TreeItem)itm !is null);
-				v.createChilds(.anotherTreeItem(v._tree.tree, cast(TreeItem)itm), owner);
+				auto parItm = .anotherTreeItem(v._tree.tree, cast(TreeItem)itm);
+				v.createChilds(parItm, owner);
+				parItm.setExpanded(true);
 			} else { mixin(S_TRACE);
 				v._tree.editor.updateEventTree();
 			}
