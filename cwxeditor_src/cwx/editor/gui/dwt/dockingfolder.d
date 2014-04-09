@@ -6,6 +6,7 @@ import cwx.xml;
 
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.centerlayout;
+import cwx.editor.gui.dwt.dutils : intoDisplay;
 
 import org.eclipse.swt.all;
 
@@ -65,6 +66,12 @@ private struct PaneMemory {
 	Dir dir;
 	int lWeight = 1;
 	int rWeight = 1;
+	bool isSubWindow = false;
+	string subPaneKey = "";
+	int x = SWT.DEFAULT;
+	int y = SWT.DEFAULT;
+	int width = SWT.DEFAULT;
+	int height = SWT.DEFAULT;
 }
 
 class DockingFolder(TabF, int Style) {
@@ -76,6 +83,7 @@ class DockingFolder(TabF, int Style) {
 	private static const CLOSE = Style & SWT.CLOSE;
 	private enum DPos {N, E, S, W, C, NONE}
 
+	private int _style;
 	private Composite _comp, _area;
 
 	private string[Control] _ctrls;
@@ -90,27 +98,41 @@ class DockingFolder(TabF, int Style) {
 
 	private Canvas _canvas;
 
+	private Shell[] _subShells;
+	private Composite[Shell] _subAreas;
+	private Canvas[Shell] _subCanvas;
+	private bool[Shell] _inDisposeEvent;
+
 	private FocusL _fl;
 
 	private this (Composite parent, int style, bool createTabf, string firstPaneKey = "") { mixin(S_TRACE);
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
+		_style = style;
 
-		_canvas = new Canvas(_comp, SWT.TRANSPARENT | SWT.NO_BACKGROUND);
-		_canvas.setLayoutData(new CenterLayoutData(true, true));
-		_canvas.setVisible(false);
-		auto drop = new DropTarget(_canvas, DND.DROP_MOVE);
-		drop.setTransfer([TextTransfer.getInstance()]);
-		drop.addDropListener(new DTL);
-		_canvas.addPaintListener(new PL);
+		_canvas = createCanvas(_comp);
 
-		_area = new Composite(_comp, style);
+		_area = createArea(_comp);
 		_area.addListener(SWT.Dispose, new DListener);
-		_area.setLayoutData(new CenterLayoutData(true, true));
-		_area.setLayout(new FillLayout);
 		if (createTabf) newTabf(_area, firstPaneKey);
 		_fl = new FocusL;
 		Display.getCurrent().addFilter(SWT.FocusIn, _fl);
+	}
+	private Canvas createCanvas(Composite parent) { mixin(S_TRACE);
+		auto canvas = new Canvas(parent, SWT.TRANSPARENT | SWT.NO_BACKGROUND);
+		canvas.setLayoutData(new CenterLayoutData(true, true));
+		canvas.setVisible(false);
+		auto drop = new DropTarget(canvas, DND.DROP_MOVE);
+		drop.setTransfer([TextTransfer.getInstance()]);
+		drop.addDropListener(new DTL(canvas));
+		canvas.addPaintListener(new PL);
+		return canvas;
+	}
+	private Composite createArea(Composite parent) { mixin(S_TRACE);
+		auto area = new Composite(parent, _style);
+		area.setLayoutData(new CenterLayoutData(true, true));
+		area.setLayout(new FillLayout);
+		return area;
 	}
 	private bool _canSave = true;
 	private class DListener : Listener {
@@ -240,7 +262,6 @@ class DockingFolder(TabF, int Style) {
 	@property
 	Control[] allControls() {return _ctrls.keys;}
 	/// ditto
-	@property
 	string[] controlKeys() {return _keys.keys;}
 	/// 指定されたペインに含まれるControlの一覧。
 	Control[] controls(string key) { mixin(S_TRACE);
@@ -329,8 +350,14 @@ class DockingFolder(TabF, int Style) {
 	@property
 	string firstKey() {return _tabfs[cast(TabF) first];}
 	/// 全てのペインの親となるComposite。
+	/// paneを指定した場合、サブウィンドウのどれかになる可能性もある。
 	@property
 	Composite area() {return _comp;}
+	private Composite getArea(Control c) { mixin(S_TRACE);
+		auto shell = c.getShell();
+		return shell is _area.getShell() ? _area : _subAreas[shell];
+	}
+
 	private bool vanish(string key) { mixin(S_TRACE);
 		return canVanish ? canVanish(key) : true;
 	}
@@ -365,7 +392,7 @@ class DockingFolder(TabF, int Style) {
 		bool before = dir == Dir.N || dir == Dir.W;
 		if (!key.length) key = newTabfKey("t");
 		auto r = newSash(base, style, before, lWeight, rWeight, key);
-		_area.layout(true);
+		getArea(base).layout(true);
 		return r;
 	}
 	/// keyを接頭辞に持つペインが存在すればそれを返す。
@@ -382,6 +409,17 @@ class DockingFolder(TabF, int Style) {
 		}
 		auto base = base1;
 		if (memory) { mixin(S_TRACE);
+			if (memory.isSubWindow) { mixin(S_TRACE);
+				Shell shell;
+				TabF tabf;
+				createNewWindow(memory.subPaneKey, shell, tabf);
+				auto parPos = _comp.getShell().getLocation();
+				auto b = new Rectangle(memory.x + parPos.x, memory.y + parPos.y, memory.width, memory.height);
+				intoDisplay(b.x, b.y, b.width, b.height);
+				shell.setBounds(b);
+				shell.open();
+				return tabf;
+			}
 			dir = memory.dir;
 			base = memory.pairPane;
 			lWeight = memory.lWeight;
@@ -389,9 +427,9 @@ class DockingFolder(TabF, int Style) {
 		}
 		auto pair = findPane2(base);
 		if (!pair) { mixin(S_TRACE);
-			auto panes = findPane(base1);
+			auto panes = findPane(base1, true);
 			if (!panes.length) { mixin(S_TRACE);
-				panes = findPane(base2);
+				panes = findPane(base2, true);
 			}
 			pair = this.pane(panes[0]);
 		}
@@ -404,7 +442,7 @@ class DockingFolder(TabF, int Style) {
 	Composite addPaneFromCtrlMemory(string base, Dir dir, int lWeight, int rWeight, string paneKey, string ctrlKey) { mixin(S_TRACE);
 		auto s = findPane2(paneKey);
 		if (s) return s;
-		auto cs = findCtrl(ctrlKey);
+		auto cs = findCtrl(ctrlKey, true);
 		if (cs.length) { mixin(S_TRACE);
 			return tab(cs[0]).getParent();
 		}
@@ -501,9 +539,10 @@ class DockingFolder(TabF, int Style) {
 		if (p) p.setMenu(menu);
 	}
 	/// prefixから始まるペインのkeyを全て返す。
-	string[] findPane(string prefix) { mixin(S_TRACE);
+	string[] findPane(string prefix, bool includeSubShells) { mixin(S_TRACE);
 		string[] r;
 		foreach (key, pane; _tKeys) { mixin(S_TRACE);
+			if (!includeSubShells && pane.getShell() !is _area.getShell()) continue;
 			if (std.string.startsWith(key, prefix)) { mixin(S_TRACE);
 				r ~= key;
 			}
@@ -516,19 +555,125 @@ class DockingFolder(TabF, int Style) {
 		if (p) return *p;
 		auto p2 = prefix in _tKeys;
 		if (p2) return *p2;
-		auto panes = findPane(prefix);
+		auto panes = findPane(prefix, true);
 		return panes.length ? pane(panes[0]) : null;
 	}
 	/// prefixから始まるControlのkeyを全て返す。
-	string[] findCtrl(string prefix) { mixin(S_TRACE);
+	string[] findCtrl(string prefix, bool includeSubShells) { mixin(S_TRACE);
 		string[] r;
 		foreach (key, ctrl; _keys) { mixin(S_TRACE);
+			if (!includeSubShells && ctrl.getShell() !is _area.getShell()) continue;
 			if (std.string.startsWith(key, prefix)) { mixin(S_TRACE);
 				r ~= key;
 			}
 		}
 		return r;
 	}
+
+	/// 新規にサブウィンドウを作成する。
+	private void createNewWindow(out Shell shell, out Composite area) {
+		auto parShl = _comp.getShell();
+		shell = new Shell(parShl, SWT.TITLE | SWT.RESIZE | SWT.CLOSE | SWT.TOOL);
+		_subShells ~= shell;
+		shell.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
+		_subCanvas[shell] = createCanvas(shell);
+		_inDisposeEvent[shell] = false;
+		area = createArea(shell);
+		_subAreas[shell] = area;
+		shell.addDisposeListener(new class DisposeListener {
+			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+				// すべてのControlを閉じる
+				auto shell = cast(Shell)e.widget;
+				auto area = cast(Composite)shell.getChildren()[1];
+				_inDisposeEvent[shell] = true;
+
+				shell.setRedraw(false);
+				scope (exit) shell.setRedraw(true);
+				Tab[] tabs;
+				void recurse(Composite comp) { mixin(S_TRACE);
+					if (auto tabf = cast(TabF)comp) { mixin(S_TRACE);
+						foreach (tab; tabf.getItems()) { mixin(S_TRACE);
+							tabs ~= tab;
+						}
+					} else { mixin(S_TRACE);
+						foreach (child; comp.getChildren()) { mixin(S_TRACE);
+							if (auto comp2 = cast(Composite)child) recurse(comp2);
+						}
+					}
+				}
+				recurse(area);
+				foreach (tab; tabs) { mixin(S_TRACE);
+					close(tab);
+					tab.dispose();
+				}
+				_inDisposeEvent.remove(shell);
+				_subCanvas.remove(shell);
+				_subAreas.remove(shell);
+				cwx.utils.remove!("a is b")(_subShells, shell);
+			}
+		});
+	}
+	/// 新規にpaneKeyのペインを含むサブウィンドウを作成する。
+	private void createNewWindow(string tabfKey, out Shell shell, out TabF tabf) {
+		Composite area;
+		createNewWindow(shell, area);
+		tabf = newTabf(area, tabfKey);
+	}
+
+	/// keyのControlをペインから分離してサブウィンドウにする。
+	void createNewWindow(string key) { mixin(S_TRACE);
+		if (isSingleWindow(key)) return;
+		auto ctrl = control(key);
+		auto oldTabf = cast(TabF)ctrl.getParent();
+		auto size = oldTabf.getSize();
+		auto tabfKey = newTabfKey(prefix(this.key(oldTabf)));
+		auto tab = this.tab(key);
+
+		Shell shell;
+		TabF tabf;
+		createNewWindow(tabfKey, shell, tabf);
+		shell.setText(tab.getText());
+		newTab(tabf, tab, -1);
+		tab.dispose();
+		if (oldTabf.getItemCount() == 0 && vanish(_tabfs[oldTabf])) { mixin(S_TRACE);
+			removeTabf(oldTabf, false);
+		}
+
+		auto d = shell.getDisplay();
+		auto ca = shell.computeTrim(SWT.DEFAULT, SWT.DEFAULT, SWT.DEFAULT, SWT.DEFAULT);
+		auto cl = d.getCursorLocation();
+		cl.x -= size.x / 2;
+		cl.y += ca.y / 2;
+		size.x += ca.width;
+		size.y += ca.height;
+		intoDisplay(cl.x, cl.y, size.x, size.y);
+		shell.setLocation(cl);
+		shell.setSize(size);
+		shell.open();
+	}
+
+	/// 指定されたpaneKeyがサブウィンドウ内のものか。
+	bool isSubWindowPane(string paneKey) { mixin(S_TRACE);
+		auto pane = this.pane(paneKey);
+		if (!pane) return false;
+		return pane.getShell() !is _comp.getShell();
+	}
+	/// 指定されたkeyのControlがサブウィンドウ内のものか。
+	bool isSubWindowCtrl(string key) { mixin(S_TRACE);
+		auto ctrl = this.control(key);
+		if (!ctrl) return false;
+		return ctrl.getShell() !is _comp.getShell();
+	}
+	/// 指定されたkeyのControlがサブウィンドウ内で唯一のものか。
+	bool isSingleWindow(string key) { mixin(S_TRACE);
+		if (!isSubWindowCtrl(key)) return false;
+		auto ctrl = this.control(key);
+		if (!ctrl) return false;
+		auto area = getArea(ctrl);
+		auto children = area.getChildren();
+		return children.length == 1 && cast(TabF)children[0] && (cast(TabF)children[0]).getItemCount() == 1;
+	}
+
 	/// keyのControlを表示する。
 	bool select(string key) { mixin(S_TRACE);
 		auto tab = this.tab(key);
@@ -644,13 +789,13 @@ class DockingFolder(TabF, int Style) {
 	}
 
 	/// ペインが生成された際、ペインのkeyを引数に呼出される。
-	void delegate(string)[] createPaneEvent;
+	void delegate(Composite pane, string)[] createPaneEvent;
 	/// createPaneEventの追加と共に、
 	/// これまでに生成されたペインに対しての呼出しが行われる。
-	void addCreatePaneEvent(void delegate(string) createPaneEvent) { mixin(S_TRACE);
+	void addCreatePaneEvent(void delegate(Composite, string) createPaneEvent) { mixin(S_TRACE);
 		this.createPaneEvent ~= createPaneEvent;
-		foreach (key; _tabfs) { mixin(S_TRACE);
-			createPaneEvent(key);
+		foreach (key, pane; _tabfs) { mixin(S_TRACE);
+			createPaneEvent(key, pane);
 		}
 	}
 
@@ -680,7 +825,7 @@ class DockingFolder(TabF, int Style) {
 		drag.addDragListener(new DSL(tabf));
 
 		foreach (dlg; createPaneEvent) { mixin(S_TRACE);
-			dlg(key);
+			dlg(tabf, key);
 		}
 
 		return tabf;
@@ -690,26 +835,52 @@ class DockingFolder(TabF, int Style) {
 	private DPos _drawPos = DPos.NONE;
 	private TabF _drawTabf = null;
 	private void removeTabf(TabF tabf, bool memory) { mixin(S_TRACE);
+		auto shell = tabf.getShell();
+		auto area = getArea(tabf);
+		auto isSubShell = shell !is _comp.getShell();
+		auto key = _tabfs[tabf];
+
 		if (memory && memoryPane && memoryPane(_tabfs[tabf])) { mixin(S_TRACE);
 			PaneMemory m;
+			m.isSubWindow = false;
 			m.pairPane = pairKey(tabf, m.dir, m.lWeight, m.rWeight);
-			if ("" != m.pairPane) { mixin(S_TRACE);
+			if ("" == m.pairPane) { mixin(S_TRACE);
+				auto comp = area.getChildren()[0];
+				if (isSubShell && tabf is comp && tabf.getItemCount() == 1) {
+					// サブウィンドウの最後のタブ
+					m.isSubWindow = true;
+					m.subPaneKey = key;
+					auto parPos = _comp.getShell().getLocation();
+					auto bounds = shell.getBounds();
+					m.x = bounds.x - parPos.x;
+					m.y = bounds.y - parPos.y;
+					m.width = bounds.width;
+					m.height = bounds.height;
+					_pMemories[prefix(_tabfs[tabf])] = m;
+				}
+			} else {
 				_pMemories[prefix(_tabfs[tabf])] = m;
 			}
 		}
 
 		tabf.dispose();
 		_tabfList = cwx.utils.remove!("a is b")(_tabfList, tabf);
-		auto key = _tabfs[tabf];
 		_tKeys.remove(key);
 		_tabfs.remove(tabf);
-		reconstruct();
+
+		if (isSubShell && area.getChildren().length == 0) { mixin(S_TRACE);
+			if (!_inDisposeEvent[shell]) {
+				shell.close();
+			}
+		} else if (area.getChildren().length) { mixin(S_TRACE);
+			reconstruct(area.getChildren()[0]);
+		}
 	}
 	private class CTFL :  CTabFolderListener {
 		void itemClosed(CTabFolderEvent e) { mixin(S_TRACE);
 			_comp.setRedraw(false);
 			scope (exit) _comp.setRedraw(true);
-			close(cast(Tab) e.item);
+			close(cast(Tab)e.item);
 		}
 	}
 	/// tabfが分割領域の一部であれば分割相手のキーとtabfの方向を返す。
@@ -745,6 +916,9 @@ class DockingFolder(TabF, int Style) {
 		auto tabf = tab.getParent();
 		auto key = _tabfs[tabf];
 		auto van = vanish(key);
+		auto area = getArea(tabf);
+		auto shell = tabf.getShell();
+		auto isSubShell = shell !is _comp.getShell();
 
 		// 記録
 		if (van && memoryControl && memoryControl(ctrlKey)) { mixin(S_TRACE);
@@ -763,7 +937,29 @@ class DockingFolder(TabF, int Style) {
 		if (tabf.getItemCount() == 1 && _area.getChildren()[0] !is tabf) { mixin(S_TRACE);
 			if (van) { mixin(S_TRACE);
 				removeTabf(tabf, true);
-				_area.layout(true);
+			} else { mixin(S_TRACE);
+				area.layout(true);
+			}
+		}
+		if (isSubShell && !shell.isDisposed()) { mixin(S_TRACE);
+			// サブウィンドウのタイトルの更新
+			if (!tabf.isDisposed() && tabf.getItemCount() && selected(tabf)) { mixin(S_TRACE);
+				shell.setText(selected(tabf).getText());
+			} else { mixin(S_TRACE);
+				void recurse(Composite comp) { mixin(S_TRACE);
+					if (auto tabf = cast(TabF)comp) { mixin(S_TRACE);
+						auto tab = selected(tabf);
+						if (tab) { mixin(S_TRACE);
+							shell.setText(tab.getText());
+							return;
+						}
+					} else { mixin(S_TRACE);
+						foreach (child; comp.getChildren()) { mixin(S_TRACE);
+							if (auto comp2 = cast(Composite)child) recurse(comp2);
+						}
+					}
+				}
+				recurse(area);
 			}
 		}
 	}
@@ -787,7 +983,7 @@ class DockingFolder(TabF, int Style) {
 		});
 	}
 	/// Controlツリーの再構築。
-	private void reconstruct() { mixin(S_TRACE);
+	private void reconstruct(Control area) { mixin(S_TRACE);
 		void tree(Control ctrl) { mixin(S_TRACE);
 			auto comp = cast(SplitPane) ctrl;
 			if (!comp) return;
@@ -823,7 +1019,9 @@ class DockingFolder(TabF, int Style) {
 				comp.dispose();
 			}
 		}
-		tree(_area.getChildren()[0]);
+		auto parent = area.getParent();
+		tree(area);
+		parent.layout(true);
 	}
 	private void drawDropMark(GC gc, int x, int y, int w, int h) { mixin(S_TRACE);
 		auto d = Display.getCurrent();
@@ -855,7 +1053,9 @@ class DockingFolder(TabF, int Style) {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			if (!_drawTabf) return;
 			if (!canDrop(_drawTabf)) return;
-			auto pos = boundsOnCanvas(_drawTabf);
+			auto canvas = cast(Canvas)e.widget;
+			if (_drawTabf.getShell() !is canvas.getShell()) return;
+			auto pos = boundsOnCanvas(canvas, _drawTabf);
 			auto ca = _drawTabf.getClientArea();
 			drawDropMark(e.gc, pos.x + ca.x, pos.y + ca.y, ca.width, ca.height);
 		}
@@ -870,6 +1070,9 @@ class DockingFolder(TabF, int Style) {
 				_dragItm = itm;
 				e.doit = true;
 				_canvas.setVisible(true);
+				foreach (canvas; _subCanvas.byValue()) { mixin(S_TRACE);
+					canvas.setVisible(true);
+				}
 			}
 		}
 		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
@@ -880,15 +1083,20 @@ class DockingFolder(TabF, int Style) {
 		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
 			_drawTabf = null;
 			_canvas.setVisible(false);
-			_comp.layout(true);
+			foreach (canvas; _subCanvas.byValue()) { mixin(S_TRACE);
+				canvas.setVisible(false);
+			}
+			/+_comp.layout(true);+/
 			if (e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
+				auto area = getArea(_dragItm.getParent());
 				auto tabf = _dragItm.getParent();
 				_dragItm.dispose();
 				_dragItm = null;
 				if (tabf.getItemCount() == 0 && vanish(_tabfs[tabf])) { mixin(S_TRACE);
 					removeTabf(tabf, false);
+				} else { mixin(S_TRACE);
+					area.layout(true);
 				}
-				_area.layout(true);
 			}
 		}
 	}
@@ -918,18 +1126,39 @@ class DockingFolder(TabF, int Style) {
 			return tabs && tabs.length ? tabs[0] : null;
 		}
 	}
-	private Rectangle boundsOnDisplay(Control ctrl) { mixin(S_TRACE);
+	private static Rectangle boundsOnDisplay(Control ctrl) { mixin(S_TRACE);
 		auto p = ctrl.toDisplay(0, 0);
 		auto s = ctrl.getSize();
 		return new Rectangle(p.x, p.y, s.x, s.y);
 	}
-	private Rectangle boundsOnCanvas(Control ctrl) { mixin(S_TRACE);
-		auto cvp = _canvas.toDisplay(0, 0);
+	private static Rectangle boundsOnCanvas(Canvas canvas, Control ctrl) { mixin(S_TRACE);
+		auto cvp = canvas.toDisplay(0, 0);
 		auto cp = ctrl.toDisplay(0, 0);
 		auto s = ctrl.getSize();
 		return new Rectangle(cp.x - cvp.x, cp.y - cvp.y, s.x, s.y);
 	}
+	private void newTab(TabF tabf, Tab tab, int index) { mixin(S_TRACE);
+		auto newTab = index != -1
+			? new Tab(tabf, tab.getStyle(), index)
+			: new Tab(tabf, tab.getStyle());
+		auto c = tab.getControl();
+		c.setParent(tabf);
+		{ mixin(S_TRACE);
+			_onNewTab = true;
+			scope (exit) _onNewTab = false;
+			tab.setControl(null);
+		}
+		newTab.setControl(c);
+		newTab.setText(tab.getText());
+		newTab.setImage(tab.getImage());
+		tabf.setSelection(newTab);
+		if (tabf.getShell() is tabf.getDisplay().getActiveShell()) { mixin(S_TRACE);
+			tabf.setFocus();
+		}
+	}
 	private class DTL : DropTargetAdapter {
+		private Canvas _canvas;
+		this (Canvas canvas) { _canvas = canvas; }
 		override void dragEnter(DropTargetEvent e) { mixin(S_TRACE);
 			dragOver(e);
 		}
@@ -938,9 +1167,16 @@ class DockingFolder(TabF, int Style) {
 			_drawPos = DPos.NONE;
 			_drawTabf = null;
 			_canvas.redraw();
+			foreach (canvas; _subCanvas.byValue()) canvas.redraw();
 		}
 		private TabF getTabf(int x, int y) { mixin(S_TRACE);
+			auto d = _canvas.getDisplay();
+			auto cc = d.getCursorControl();
+			if (!cc) return null;
+			auto shell = cc.getShell();
+			auto isSubShell = shell !is _comp.getShell();
 			foreach (t; _tabfList) { mixin(S_TRACE);
+				if (isSubShell && t.getShell() !is shell) continue;
 				if (boundsOnDisplay(t).contains(x, y)) { mixin(S_TRACE);
 					return t;
 				}
@@ -991,6 +1227,7 @@ class DockingFolder(TabF, int Style) {
 			if (_dropPos != dropPos || _drawTabf !is drawTabf) { mixin(S_TRACE);
 				_drawPos = _dropPos;
 				_canvas.redraw();
+				foreach (canvas; _subCanvas.byValue()) canvas.redraw();
 			}
 		}
 		override void drop(DropTargetEvent e) { mixin(S_TRACE);
@@ -1005,25 +1242,6 @@ class DockingFolder(TabF, int Style) {
 			if (!dropTarg) return;
 			if (!canDrop(dropTarg)) return;
 			auto sash = dropTarg.getParent();
-			void newTab(TabF tabf, int index) { mixin(S_TRACE);
-				auto tab = index != -1
-					? new Tab(tabf, _dragItm.getStyle(), index)
-					: new Tab(tabf, _dragItm.getStyle());
-				auto c = _dragItm.getControl();
-				c.setParent(tabf);
-				{ mixin(S_TRACE);
-					_onNewTab = true;
-					scope (exit) _onNewTab = false;
-					_dragItm.setControl(null);
-				}
-				tab.setControl(c);
-				tab.setText(_dragItm.getText());
-				tab.setImage(_dragItm.getImage());
-				tabf.setSelection(tab);
-				if (tabf.getShell() is tabf.getDisplay().getActiveShell()) { mixin(S_TRACE);
-					tabf.setFocus();
-				}
-			}
 			int putCenter() { mixin(S_TRACE);
 				auto dropItm = dropTarg.getItem(dropTarg.toControl(e.x, e.y));
 				if (dropItm is _dragItm) return DND.DROP_NONE;
@@ -1032,7 +1250,7 @@ class DockingFolder(TabF, int Style) {
 					int i2 = .cCountUntil!("a is b")(dropTarg.getItems(), _dragItm);
 					if (i2 + 1 == i1) return DND.DROP_NONE;
 				}
-				newTab(dropTarg, dropItm ? i1 : -1);
+				newTab(dropTarg, _dragItm, dropItm ? i1 : -1);
 				return DND.DROP_MOVE;
 			}
 			int nSash(int style, bool before) { mixin(S_TRACE);
@@ -1052,10 +1270,11 @@ class DockingFolder(TabF, int Style) {
 				}
 				string newKey = newTabfKey(prefix(key(_dragItm.getParent())));
 				auto tabf = newSash(dropTarg, style, before, 1, 1, newKey);
-				newTab(tabf, -1);
+				newTab(tabf, _dragItm, -1);
 				if (tabf.getShell() is tabf.getDisplay().getActiveShell()) { mixin(S_TRACE);
 					tabf.setFocus();
 				}
+				getArea(tabf).layout(true);
 				return DND.DROP_MOVE;
 			}
 			switch (_dropPos) {
@@ -1110,7 +1329,8 @@ class DockingFolder(TabF, int Style) {
 	private class FocusL : Listener {
 		override void handleEvent(Event e) { mixin(S_TRACE);
 			void control(Control ctrl) { mixin(S_TRACE);
-				if (ctrl.getShell() !is area.getShell()) return;
+				auto shell = ctrl.getShell();
+				if (shell !is area.getShell() && !_subShells.contains!"a is b"(shell)) return;
 				auto pane = cast(Composite) ctrl;
 				if (!pane) pane = ctrl.getParent();
 				while (pane) { mixin(S_TRACE);
@@ -1136,6 +1356,10 @@ class DockingFolder(TabF, int Style) {
 		auto tab = selected(tabf);
 		if (!tab) return;
 		if (tab.isDisposed()) return;
+		auto shell = tabf.getShell();
+		if (shell !is _comp.getShell()) { mixin(S_TRACE);
+			shell.setText(tab.getText());
+		}
 		auto ctrl = tab.getControl();
 		auto key = keyFromCtrl(ctrl);
 		if (!key.length) return;
@@ -1168,7 +1392,7 @@ class DockingFolder(TabF, int Style) {
 		return r;
 	}
 
-	private static struct Tabf {
+	private static class Tabf {
 		string key;
 		int select;
 		Tabi[] tabs;
@@ -1177,28 +1401,43 @@ class DockingFolder(TabF, int Style) {
 		string key;
 		string name;
 	}
-	private static struct Sashf {
+	private static class Sashf {
 		string key;
 		bool vertical;
 		int lWeight;
 		int rWeight;
-		Sashf* lSash;
-		Tabf* lTabf;
-		Sashf* rSash;
-		Tabf* rTabf;
+		Sashf lSash;
+		Tabf lTabf;
+		Sashf rSash;
+		Tabf rTabf;
 	}
-	private static struct Area {
-		Sashf* sash;
-		Tabf* tabf;
+	private static class Area {
+		Sashf sash;
+		Tabf tabf;
+		SubWindow[] subShells;
 	}
-	private Area* _tree = null;
+	private static struct SubWindow {
+		Area area;
+		int x;
+		int y;
+		int width;
+		int height;
+	}
+	private Area _tree = null;
 	private void saveTree() { mixin(S_TRACE);
 		auto area = new Area;
 		saveTree(_area.getChildren()[0], area.sash, area.tabf);
 		assert ((area.sash || area.tabf) && !(area.sash && area.tabf), "dockingfolder#saveTree 1");
+		foreach (shell, subArea; _subAreas) {
+			auto bounds = shell.getBounds();
+			auto sub = new Area;
+			saveTree(subArea.getChildren()[0], sub.sash, sub.tabf);
+			auto parPos = _comp.getShell().getLocation();
+			area.subShells ~= SubWindow(sub, bounds.x - parPos.x, bounds.y - parPos.y, bounds.width, bounds.height);
+		}
 		_tree = area;
 	}
-	private void saveTree(Control c, out Sashf* sa, out Tabf* ta) { mixin(S_TRACE);
+	private void saveTree(Control c, out Sashf sa, out Tabf ta) { mixin(S_TRACE);
 		auto sash = cast(SplitPane) c;
 		if (sash) { mixin(S_TRACE);
 			sa = new Sashf;
@@ -1251,7 +1490,7 @@ class DockingFolder(TabF, int Style) {
 		toNodeImpl(r, exclude);
 		return r;
 	}
-	private XNode toNodeImpl(ref XNode r, string[] exclude) { mixin(S_TRACE);
+	private void toNodeImpl(ref XNode r, string[] exclude) { mixin(S_TRACE);
 		if (!_area.isDisposed()) { mixin(S_TRACE);
 			saveTree();
 		}
@@ -1271,27 +1510,48 @@ class DockingFolder(TabF, int Style) {
 			auto paneM = r.newElement("paneMemories");
 			foreach (key, memory; _pMemories) { mixin(S_TRACE);
 				auto e = paneM.newElement("paneMemory", key);
-				e.newAttr("pairPane", memory.pairPane);
-				e.newAttr("dir", dirToString(memory.dir));
-				e.newAttr("lWeight", memory.lWeight);
-				e.newAttr("rWeight", memory.rWeight);
+				if (memory.isSubWindow) { mixin(S_TRACE);
+					e.newAttr("x", memory.x);
+					e.newAttr("y", memory.y);
+					e.newAttr("width", memory.width);
+					e.newAttr("height", memory.height);
+				} else { mixin(S_TRACE);
+					e.newAttr("pairPane", memory.pairPane);
+					e.newAttr("dir", dirToString(memory.dir));
+					e.newAttr("lWeight", memory.lWeight);
+					e.newAttr("rWeight", memory.rWeight);
+				}
 			}
 		}
 
 		assert (_tree, "dockingfolder#toNodeImpl");
 		if (_tree.sash) { mixin(S_TRACE);
-			return toNodeImpl(r, _tree.sash, exclude);
+			toNodeImpl(r, _tree.sash, exclude);
 		} else { mixin(S_TRACE);
-			return toNodeImpl(r, _tree.tabf, exclude);
+			toNodeImpl(r, _tree.tabf, exclude);
+		}
+		if (_tree.subShells.length) { mixin(S_TRACE);
+			foreach (sub; _tree.subShells) { mixin(S_TRACE);
+				auto e = r.newElement("subWindow");
+				e.newAttr("x", sub.x);
+				e.newAttr("y", sub.y);
+				e.newAttr("width", sub.width);
+				e.newAttr("height", sub.height);
+				if (sub.area.sash) { mixin(S_TRACE);
+					toNodeImpl(e, sub.area.sash, exclude);
+				} else { mixin(S_TRACE);
+					toNodeImpl(e, sub.area.tabf, exclude);
+				}
+			}
 		}
 	}
-	private XNode toNodeImpl(ref XNode parent, Sashf* sa, string[] exclude) { mixin(S_TRACE);
+	private XNode toNodeImpl(ref XNode parent, Sashf sa, string[] exclude) { mixin(S_TRACE);
 		auto r = parent.newElement("sash");
 		r.newAttr("key", sa.key);
 		r.newAttr("type", sa.vertical ? VERTICAL : HORIZONTAL);
 		r.newAttr("lWeight", sa.lWeight);
 		r.newAttr("rWeight", sa.rWeight);
-		void n(Sashf* sa, Tabf* ta) { mixin(S_TRACE);
+		void n(Sashf sa, Tabf ta) { mixin(S_TRACE);
 			if (sa) { mixin(S_TRACE);
 				toNodeImpl(r, sa, exclude);
 			} else { mixin(S_TRACE);
@@ -1302,7 +1562,7 @@ class DockingFolder(TabF, int Style) {
 		n(sa.rSash, sa.rTabf);
 		return r;
 	}
-	private XNode toNodeImpl(ref XNode parent, Tabf* ta, string[] exclude) { mixin(S_TRACE);
+	private XNode toNodeImpl(ref XNode parent, Tabf ta, string[] exclude) { mixin(S_TRACE);
 		auto r = parent.newElement("tabs");
 		if (ta.select >= 0) r.newAttr("select", ta.select);
 		r.newAttr("key", ta.key);
@@ -1327,68 +1587,59 @@ class DockingFolder(TabF, int Style) {
 		Composite par;
 		Control delegate(Composite, string) create;
 		void delegate(string, TabF) addRemoveList;
+		/// サブウィンドウ用パラメータ。
+		int x = SWT.DEFAULT;
+		int y = SWT.DEFAULT; /// ditto
+		int width = SWT.DEFAULT; /// ditto
+		int height = SWT.DEFAULT; /// ditto
+		void delegate(Shell, Rectangle) addSubWindow = null; /// ditto
+		Shell shell = null; /// ditto
+		private void createSub() { mixin(S_TRACE);
+			if (par) return;
+			r.createNewWindow(shell, par);
+			addSubWindow(shell, new Rectangle(x, y, width, height));
+		}
 		void sash(ref XNode node) { mixin(S_TRACE);
-			string dStr = .text(__LINE__);
-			try { mixin(S_TRACE);
-				dStr ~= " - " ~ .text(__LINE__);
-				string type = node.attr("type", true);
-				/// FIXME: たまに type == VERTICAL の所でアクセス違反が起きる？
-				dStr ~= " - " ~ .text(__LINE__);
-				auto sash = new SplitPane(par, type == VERTICAL ? SWT.VERTICAL : SWT.HORIZONTAL);
-				r.putSashTable(sash, node.attr("key", false, r.newSashKey));
-				dStr ~= " - " ~ .text(__LINE__);
-				Proc proc;
-				proc.r = r;
-				proc.par = sash;
-				proc.create = create;
-				proc.addRemoveList = addRemoveList;
-				node.onTag["sash"] = &proc.sash;
-				node.onTag["tabs"] = &proc.tabs;
-				dStr ~= " - " ~ .text(__LINE__);
-				node.parse();
-				dStr ~= " - " ~ .text(__LINE__);
-				sash.setWeights([node.attr!(int)("lWeight", true), node.attr!(int)("rWeight", true)]);
-				dStr ~= " - " ~ .text(__LINE__);
-			} catch (Throwable e) {
-				fdebugln(dStr);
-				fdebugln(e);
-				throw new Exception(dStr, __FILE__, __LINE__);
-			}
+			createSub();
+			string type = node.attr("type", true);
+			auto key = node.attr("key", false, r.newSashKey);
+			/// FIXME: たまに type == VERTICAL の所でアクセス違反が起きる？
+			auto sash = new SplitPane(par, type == VERTICAL ? SWT.VERTICAL : SWT.HORIZONTAL);
+			r.putSashTable(sash, key);
+			Proc proc;
+			proc.r = r;
+			proc.par = sash;
+			proc.create = create;
+			proc.addRemoveList = addRemoveList;
+			proc.shell = shell;
+			node.onTag["sash"] = &proc.sash;
+			node.onTag["tabs"] = &proc.tabs;
+			node.parse();
+			sash.setWeights([node.attr!(int)("lWeight", true), node.attr!(int)("rWeight", true)]);
 		}
 		void tabs(ref XNode node) { mixin(S_TRACE);
-			string dStr = .text(__LINE__);
-			try { mixin(S_TRACE);
-				dStr ~= " - " ~ .text(__LINE__);
+			createSub();
+			auto key = node.attr("key", true);
+			auto tabf = r.newTabf(par, key);
+			node.onTag["tab"] = (ref XNode node) { mixin(S_TRACE);
 				auto key = node.attr("key", true);
-				dStr ~= " - " ~ key ~ " - " ~ .text(__LINE__);
-				auto tabf = r.newTabf(par, key);
-				dStr ~= " - " ~ .text(__LINE__);
-				node.onTag["tab"] = (ref XNode node) { mixin(S_TRACE);
-					dStr ~= " - " ~ .text(__LINE__);
-					auto key = node.attr("key", true);
-					dStr ~= " - " ~ .text(__LINE__);
-					auto v = create(tabf, key);
-					dStr ~= " - " ~ .text(__LINE__);
-					if (v) r.add(v, node.attr("name", true), key);
-					dStr ~= " - " ~ .text(__LINE__);
-				};
-				dStr ~= " - " ~ .text(__LINE__);
-				node.parse();
-				dStr ~= " - " ~ .text(__LINE__);
-				auto i = node.attr!(int)("select", false, -1);
-				if (0 < tabf.getItemCount()) { mixin(S_TRACE);
-					dStr ~= " - " ~ .text(__LINE__);
-					i = std.algorithm.max(i, 0);
-					i = std.algorithm.min(i, tabf.getItemCount() - 1);
-					tabf.setSelection(i);
-				} else { mixin(S_TRACE);
-					addRemoveList(key, tabf);
+				auto v = create(tabf, key);
+				if (v) { mixin(S_TRACE);
+					auto name = node.attr("name", true);
+					r.add(v, name, key);
+					if (shell && shell.getText() == "") { mixin(S_TRACE);
+						shell.setText(name);
+					}
 				}
-				dStr ~= " - " ~ .text(__LINE__);
-			} catch (Throwable e) {
-				fdebugln(dStr);
-				fdebugln(e);
-				throw new Exception(dStr, __FILE__, __LINE__);
+			};
+			node.parse();
+			auto i = node.attr!(int)("select", false, -1);
+			if (0 < tabf.getItemCount()) { mixin(S_TRACE);
+				i = std.algorithm.max(i, 0);
+				i = std.algorithm.min(i, tabf.getItemCount() - 1);
+				tabf.setSelection(i);
+			} else { mixin(S_TRACE);
+				addRemoveList(key, tabf);
 			}
 		}
 	}
@@ -1399,82 +1650,111 @@ class DockingFolder(TabF, int Style) {
 	static DockingFolder fromNode(ref XNode node, Composite parent, int style,
 			bool delegate(typeof(this), string) canVanish,
 			Control delegate(Composite, string) create,
-			void delegate(string) createPaneEvent = null) { mixin(S_TRACE);
-		string dStr = .text(__LINE__);
+			void delegate(Composite, string) createPaneEvent = null) { mixin(S_TRACE);
+		assert (node.name == "dockingFolder", "dockingfolder#fromNode");
+		DockingFolder r = null;
 		try { mixin(S_TRACE);
-			dStr ~= " - " ~ .text(__LINE__);
-			assert (node.name == "dockingFolder", "dockingfolder#fromNode");
-			DockingFolder r = null;
-			try { mixin(S_TRACE);
-				r = new DockingFolder(parent, style, false);
+			r = new DockingFolder(parent, style, false);
 
-				node.onTag["controlMemories"] = (ref XNode node) { mixin(S_TRACE);
-					node.onTag["controlMemory"] = (ref XNode e) { mixin(S_TRACE);
-						string key = e.value;
-						CtrlMemory memory;
-						memory.pane = e.attr("pane", false);
-						memory.pairPane = e.attr("pairPane", false);
+			node.onTag["controlMemories"] = (ref XNode node) { mixin(S_TRACE);
+				node.onTag["controlMemory"] = (ref XNode e) { mixin(S_TRACE);
+					string key = e.value;
+					CtrlMemory memory;
+					memory.pane = e.attr("pane", false);
+					memory.pairPane = e.attr("pairPane", false);
+					memory.dir = stringToDir(e.attr("dir", false));
+					string lw = e.attr("lWeight", false);
+					string rw = e.attr("rWeight", false);
+					if (lw.length && isNumeric(lw)) memory.lWeight = .parse!int(lw);
+					if (rw.length && isNumeric(rw)) memory.rWeight = .parse!int(rw);
+					r._cMemories[key] = memory;
+				};
+				node.parse();
+			};
+			node.onTag["paneMemories"] = (ref XNode node) { mixin(S_TRACE);
+				node.onTag["paneMemory"] = (ref XNode e) { mixin(S_TRACE);
+					string key = e.value;
+					PaneMemory memory;
+					memory.pairPane = e.attr("pairPane", false);
+					memory.isSubWindow = memory.pairPane == "";
+					if (memory.isSubWindow) { mixin(S_TRACE);
+						memory.x = e.attr!int("x", false, SWT.DEFAULT);
+						memory.y = e.attr!int("y", false, SWT.DEFAULT);
+						memory.width = e.attr!int("width", false, SWT.DEFAULT);
+						memory.height = e.attr!int("height", false, SWT.DEFAULT);
+					} else { mixin(S_TRACE);
 						memory.dir = stringToDir(e.attr("dir", false));
 						string lw = e.attr("lWeight", false);
 						string rw = e.attr("rWeight", false);
 						if (lw.length && isNumeric(lw)) memory.lWeight = .parse!int(lw);
 						if (rw.length && isNumeric(rw)) memory.rWeight = .parse!int(rw);
-						r._cMemories[key] = memory;
-					};
-					node.parse();
+					}
+					r._pMemories[key] = memory;
 				};
-				node.onTag["paneMemories"] = (ref XNode node) { mixin(S_TRACE);
-					node.onTag["paneMemory"] = (ref XNode e) { mixin(S_TRACE);
-						string key = e.value;
-						PaneMemory memory;
-						memory.pairPane = e.attr("pairPane", false);
-						memory.dir = stringToDir(e.attr("dir", false));
-						string lw = e.attr("lWeight", false);
-						string rw = e.attr("rWeight", false);
-						if (lw.length && isNumeric(lw)) memory.lWeight = .parse!int(lw);
-						if (rw.length && isNumeric(rw)) memory.rWeight = .parse!int(rw);
-						r._pMemories[key] = memory;
-					};
-					node.parse();
-				};
+				node.parse();
+			};
 
-				dStr ~= " - " ~ .text(__LINE__);
-				if (createPaneEvent) r.createPaneEvent ~= createPaneEvent;
-				TabF[] removeList;
+			if (createPaneEvent) r.createPaneEvent ~= createPaneEvent;
+			TabF[] removeList;
+			Shell[] subShells;
+			Rectangle[] subShellRects;
+			void addRemoveList(string key, TabF tabf) { mixin(S_TRACE);
+				if (!canVanish || canVanish(r, key)) { mixin(S_TRACE);
+					removeList ~= tabf;
+				}
+			}
+			Proc proc;
+			proc.r = r;
+			proc.par = r._area;
+			proc.create = create;
+			proc.addRemoveList = &addRemoveList;
+			node.onTag["sash"] = &proc.sash;
+			node.onTag["tabs"] = &proc.tabs;
+			node.onTag["subWindow"] = (ref XNode node) { mixin(S_TRACE);
 				Proc proc;
 				proc.r = r;
-				proc.par = r._area;
+				proc.par = null;
 				proc.create = create;
-				proc.addRemoveList = (string key, TabF tabf) { mixin(S_TRACE);
-					if (!canVanish || canVanish(r, key)) { mixin(S_TRACE);
-						removeList ~= tabf;
-					}
+				proc.addRemoveList = &addRemoveList;
+				proc.x = node.attr!int("x", false, SWT.DEFAULT);
+				proc.y = node.attr!int("y", false, SWT.DEFAULT);
+				proc.width = node.attr!int("width", false, SWT.DEFAULT);
+				proc.height = node.attr!int("height", false, SWT.DEFAULT);
+				proc.addSubWindow = (Shell shell, Rectangle rect) { mixin(S_TRACE);
+					subShells ~= shell;
+					subShellRects ~= rect;
 				};
 				node.onTag["sash"] = &proc.sash;
 				node.onTag["tabs"] = &proc.tabs;
-				dStr ~= " - " ~ .text(__LINE__);
 				node.parse();
-				dStr ~= " - " ~ .text(__LINE__);
-				foreach (tabf; removeList) { mixin(S_TRACE);
-					r.removeTabf(tabf, true);
-				}
-				dStr ~= " - " ~ .text(__LINE__);
-				return r;
-			} catch (Exception e) {
-				dStr ~= " - " ~ .text(__LINE__);
-				if (r && r.area) { mixin(S_TRACE);
-					dStr ~= " - " ~ .text(__LINE__);
-					r._canSave = false;
-					r.area.dispose();
-				}
-				dStr ~= " - " ~ .text(__LINE__);
-				throw e;
+			};
+			node.parse();
+			foreach (tabf; removeList) { mixin(S_TRACE);
+				r.removeTabf(tabf, true);
 			}
-			dStr ~= " - " ~ .text(__LINE__);
-		} catch (Throwable e) {
-			fdebugln(dStr);
-			fdebugln(e);
-			throw new Exception(dStr, __FILE__, __LINE__);
+			r._comp.getShell().addShellListener(new class ShellAdapter {
+				override void shellActivated(ShellEvent e) { mixin(S_TRACE);
+					r._comp.getShell().removeShellListener(this);
+					foreach (i, shell; subShells) { mixin(S_TRACE);
+						if (!shell.isDisposed()) { mixin(S_TRACE);
+							auto parPos = r._comp.getShell().getLocation();
+							auto b = subShellRects[i];
+							b.x += parPos.x;
+							b.y += parPos.y;
+							intoDisplay(b.x, b.y, b.width, b.height);
+							shell.setBounds(b);
+							shell.setVisible(true);
+						}
+					}
+				}
+			});
+			return r;
+		} catch (Exception e) {
+			if (r && r.area) { mixin(S_TRACE);
+				r._canSave = false;
+				r.area.dispose();
+			}
+			throw e;
 		}
 	}
 }

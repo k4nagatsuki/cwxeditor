@@ -2092,13 +2092,13 @@ public:
 						return true;
 					}
 					if (std.string.startsWith(key, "side")) { mixin(S_TRACE);
-						return _dock.findCtrl("side").length == 1;
+						return _dock.findCtrl("side", true).length == 1;
 					}
 					return false;
 				}
 				void initDock() { mixin(S_TRACE);
 					dStr ~= " - " ~ .text(__LINE__);
-					if (!_dock.findPane("work").length) { mixin(S_TRACE);
+					if (!_dock.findPane("work", true).length) { mixin(S_TRACE);
 						_dock.addPane(_dock.first, Dir.N, 3, 1, "work");
 					}
 					dStr ~= " - " ~ .text(__LINE__);
@@ -3222,7 +3222,7 @@ public:
 			if (ctrl.length) _dock.closeAll(ctrl);
 		}
 	}
-	private void createPaneEvent(string paneKey) { mixin(S_TRACE);
+	private void createPaneEvent(Composite parent, string paneKey) { mixin(S_TRACE);
 		new TabMenu(paneKey);
 	}
 	private bool canOpenDirectory() {return summary !is null;}
@@ -3447,14 +3447,14 @@ public:
 		}
 	}
 	private bool dockCanVanish(DockingFolderCTC dock, string key) { mixin(S_TRACE);
-		if (std.string.startsWith(key, "work")) { mixin(S_TRACE);
-			return dock.findPane("work").length > 1;
+		if (!dock.isSubWindowPane(key) && std.string.startsWith(key, "work")) { mixin(S_TRACE);
+			return dock.findPane("work", false).length > 1;
 		}
 		return true;
 	}
 	private bool dockCanVanish(string key) { mixin(S_TRACE);
-		if (std.string.startsWith(key, "work")) { mixin(S_TRACE);
-			return _dock.findPane("work").length > 1;
+		if (!dock.isSubWindowPane(key) && std.string.startsWith(key, "work")) { mixin(S_TRACE);
+			return _dock.findPane("work", false).length > 1;
 		}
 		if (_dock.panes.length == 2) { mixin(S_TRACE);
 			statusLine = "";
