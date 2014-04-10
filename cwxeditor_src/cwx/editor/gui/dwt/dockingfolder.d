@@ -359,7 +359,14 @@ class DockingFolder(TabF, int Style) {
 	}
 
 	private bool vanish(string key) { mixin(S_TRACE);
-		return canVanish ? canVanish(key) : true;
+		auto pane = this.pane(key);
+		assert (pane !is null);
+		if (pane.getShell() is _comp.getShell() && cast(TabF)_area.getChildren()[0]) { mixin(S_TRACE);
+			assert (_area.getChildren()[0] is pane);
+			assert (_area.getChildren().length == 1);
+			return false;
+		}
+		return canVanish ? canVanish([key]) : true;
 	}
 	/// 中ボタンクリックでタブを閉じようとした際に呼び出される。
 	/// falseを返すとキャンセルする。
@@ -367,7 +374,7 @@ class DockingFolder(TabF, int Style) {
 
 	/// keyのペインが空になった際に呼び出される。
 	/// falseを返す事で、ペインの消去を回避する事ができる。
-	bool delegate(string key) canVanish = null;
+	bool delegate(in string[] key) canVanish = null;
 
 	/// 位置を保存するべきコントロールまたはペインであればtrueを返す。
 	bool delegate(string key) memoryControl = null;
@@ -493,6 +500,9 @@ class DockingFolder(TabF, int Style) {
 		if (select) { mixin(S_TRACE);
 			this.select(key);
 		}
+		if (!tabf.getShell().isVisible()) { mixin(S_TRACE);
+			tabf.getShell().setVisible(true);
+		}
 	}
 	/// 指定されたControlが以前配置された事があればその場所に追加する。
 	/// 追加された事がなければまずpaneを探して追加しようと試み、
@@ -570,6 +580,23 @@ class DockingFolder(TabF, int Style) {
 		return r;
 	}
 
+	/// area配下のタブを全て返す。
+	private Tab[] getTabs(Composite area) {
+		Tab[] tabs;
+		void recurse(Composite comp) { mixin(S_TRACE);
+			if (auto tabf = cast(TabF)comp) { mixin(S_TRACE);
+				foreach (tab; tabf.getItems()) { mixin(S_TRACE);
+					tabs ~= tab;
+				}
+			} else { mixin(S_TRACE);
+				foreach (child; comp.getChildren()) { mixin(S_TRACE);
+					if (auto comp2 = cast(Composite)child) recurse(comp2);
+				}
+			}
+		}
+		recurse(area);
+		return tabs;
+	}
 	/// 新規にサブウィンドウを作成する。
 	private void createNewWindow(out Shell shell, out Composite area) {
 		auto parShl = _comp.getShell();
@@ -580,32 +607,31 @@ class DockingFolder(TabF, int Style) {
 		_inDisposeEvent[shell] = false;
 		area = createArea(shell);
 		_subAreas[shell] = area;
-		shell.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-				// すべてのControlを閉じる
+		void tabsClose(Composite area) {
+			foreach (tab; getTabs(area)) { mixin(S_TRACE);
+				close(tab);
+			}
+		}
+		shell.addShellListener(new class ShellAdapter {
+			override void shellClosed(ShellEvent e) { mixin(S_TRACE);
 				auto shell = cast(Shell)e.widget;
 				auto area = cast(Composite)shell.getChildren()[1];
 				_inDisposeEvent[shell] = true;
-
-				shell.setRedraw(false);
-				scope (exit) shell.setRedraw(true);
-				Tab[] tabs;
-				void recurse(Composite comp) { mixin(S_TRACE);
-					if (auto tabf = cast(TabF)comp) { mixin(S_TRACE);
-						foreach (tab; tabf.getItems()) { mixin(S_TRACE);
-							tabs ~= tab;
-						}
-					} else { mixin(S_TRACE);
-						foreach (child; comp.getChildren()) { mixin(S_TRACE);
-							if (auto comp2 = cast(Composite)child) recurse(comp2);
-						}
-					}
+				shell.setVisible(false);
+				// すべてのControlを閉じる
+				tabsClose(area);
+				if (getTabs(area).length) { mixin(S_TRACE);
+					// 閉じられないペインを含む場合は非表示にする
+					e.doit = false;
+					_inDisposeEvent[shell] = false;
+				} else {
+					e.doit = true;
 				}
-				recurse(area);
-				foreach (tab; tabs) { mixin(S_TRACE);
-					close(tab);
-					tab.dispose();
-				}
+			}
+		});
+		shell.addDisposeListener(new class DisposeListener {
+			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+				auto shell = cast(Shell)e.widget;
 				_inDisposeEvent.remove(shell);
 				_subCanvas.remove(shell);
 				_subAreas.remove(shell);
@@ -710,7 +736,6 @@ class DockingFolder(TabF, int Style) {
 		auto t = tab(key);
 		if (t) { mixin(S_TRACE);
 			close(t);
-			t.dispose();
 			return true;
 		}
 		return false;
@@ -730,7 +755,6 @@ class DockingFolder(TabF, int Style) {
 		foreach (i, t; tab.getParent().getItems()) { mixin(S_TRACE);
 			if (t !is tab) { mixin(S_TRACE);
 				close(t);
-				t.dispose();
 			}
 		}
 	}
@@ -752,7 +776,6 @@ class DockingFolder(TabF, int Style) {
 		if (i <= 0) return;
 		foreach (t; tab.getParent().getItems()[0 .. i]) { mixin(S_TRACE);
 			close(t);
-			t.dispose();
 		}
 	}
 	/// keyの右側のControlがあるか。
@@ -773,7 +796,6 @@ class DockingFolder(TabF, int Style) {
 		if (i >= tab.getParent().getItemCount() - 1) return;
 		foreach (t; tab.getParent().getItems()[i + 1 .. $]) { mixin(S_TRACE);
 			close(t);
-			t.dispose();
 		}
 	}
 	/// keyを含むペインの全てのControlを閉じる。
@@ -784,7 +806,6 @@ class DockingFolder(TabF, int Style) {
 		if (!tab) return;
 		foreach (t; tab.getParent().getItems()) { mixin(S_TRACE);
 			close(t);
-			t.dispose();
 		}
 	}
 
@@ -846,7 +867,7 @@ class DockingFolder(TabF, int Style) {
 			m.pairPane = pairKey(tabf, m.dir, m.lWeight, m.rWeight);
 			if ("" == m.pairPane) { mixin(S_TRACE);
 				auto comp = area.getChildren()[0];
-				if (isSubShell && tabf is comp && tabf.getItemCount() == 1) {
+				if (isSubShell && tabf is comp && !tabf.getItemCount()) {
 					// サブウィンドウの最後のタブ
 					m.isSubWindow = true;
 					m.subPaneKey = key;
@@ -875,11 +896,15 @@ class DockingFolder(TabF, int Style) {
 		} else if (area.getChildren().length) { mixin(S_TRACE);
 			reconstruct(area.getChildren()[0]);
 		}
+		if (isSubShell && !shell.isDisposed() && !getTabs(area).length) { mixin(S_TRACE);
+			shell.setVisible(false);
+		}
 	}
 	private class CTFL :  CTabFolderListener {
 		void itemClosed(CTabFolderEvent e) { mixin(S_TRACE);
 			_comp.setRedraw(false);
 			scope (exit) _comp.setRedraw(true);
+			e.doit = false;
 			close(cast(Tab)e.item);
 		}
 	}
@@ -934,7 +959,8 @@ class DockingFolder(TabF, int Style) {
 		_ctrls.remove(tab.getControl());
 		_keys.remove(ctrlKey);
 		tab.getControl().dispose();
-		if (tabf.getItemCount() == 1 && _area.getChildren()[0] !is tabf) { mixin(S_TRACE);
+		tab.dispose();
+		if (!tabf.getItemCount() && _area.getChildren()[0] !is tabf) { mixin(S_TRACE);
 			if (van) { mixin(S_TRACE);
 				removeTabf(tabf, true);
 			} else { mixin(S_TRACE);
@@ -946,20 +972,25 @@ class DockingFolder(TabF, int Style) {
 			if (!tabf.isDisposed() && tabf.getItemCount() && selected(tabf)) { mixin(S_TRACE);
 				shell.setText(selected(tabf).getText());
 			} else { mixin(S_TRACE);
-				void recurse(Composite comp) { mixin(S_TRACE);
+				bool recurse(Composite comp) { mixin(S_TRACE);
 					if (auto tabf = cast(TabF)comp) { mixin(S_TRACE);
 						auto tab = selected(tabf);
 						if (tab) { mixin(S_TRACE);
 							shell.setText(tab.getText());
-							return;
+							return true;
 						}
 					} else { mixin(S_TRACE);
 						foreach (child; comp.getChildren()) { mixin(S_TRACE);
-							if (auto comp2 = cast(Composite)child) recurse(comp2);
+							if (auto comp2 = cast(Composite)child) { mixin(S_TRACE);
+								if (recurse(comp2)) return true;
+							}
 						}
 					}
+					return false;
 				}
-				recurse(area);
+				if (!recurse(area)) { mixin(S_TRACE);
+					shell.setVisible(false);
+				}
 			}
 		}
 	}
@@ -1699,7 +1730,7 @@ class DockingFolder(TabF, int Style) {
 			Shell[] subShells;
 			Rectangle[] subShellRects;
 			void addRemoveList(string key, TabF tabf) { mixin(S_TRACE);
-				if (!canVanish || canVanish(r, key)) { mixin(S_TRACE);
+				if (r.vanish(key) && (!canVanish || canVanish(r, key))) { mixin(S_TRACE);
 					removeList ~= tabf;
 				}
 			}
@@ -1743,7 +1774,9 @@ class DockingFolder(TabF, int Style) {
 							b.y += parPos.y;
 							intoDisplay(b.x, b.y, b.width, b.height);
 							shell.setBounds(b);
-							shell.setVisible(true);
+							if (r.getTabs(cast(Composite)shell.getChildren()[1]).length) { mixin(S_TRACE);
+								shell.setVisible(true);
+							}
 						}
 					}
 				}

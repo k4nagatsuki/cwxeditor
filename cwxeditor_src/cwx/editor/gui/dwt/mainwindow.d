@@ -3447,19 +3447,17 @@ public:
 		}
 	}
 	private bool dockCanVanish(DockingFolderCTC dock, string key) { mixin(S_TRACE);
-		if (!dock.isSubWindowPane(key) && std.string.startsWith(key, "work")) { mixin(S_TRACE);
-			return dock.findPane("work", false).length > 1;
-		}
-		return true;
+		return !std.string.startsWith(key, "work") || dock.findPane("work", true).length > 1;
 	}
 	private bool dockCanVanish(string key) { mixin(S_TRACE);
-		if (!dock.isSubWindowPane(key) && std.string.startsWith(key, "work")) { mixin(S_TRACE);
-			return _dock.findPane("work", false).length > 1;
+		int works = 0;
+		foreach (key; keys) {
+			if (std.string.startsWith(key, "work")) works++;
 		}
-		if (_dock.panes.length == 2) { mixin(S_TRACE);
+		if (_dock.panes.length == works + 1) { mixin(S_TRACE);
 			statusLine = "";
 		}
-		return true;
+		return dock.findPane("work", true).length > works;
 	}
 	private bool dockCloseCtrl(string key) { mixin(S_TRACE);
 		statusLine = "";
