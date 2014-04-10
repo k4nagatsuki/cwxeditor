@@ -419,7 +419,7 @@ class DockingFolder(TabF, int Style) {
 			if (memory.isSubWindow) { mixin(S_TRACE);
 				Shell shell;
 				TabF tabf;
-				createNewWindow(memory.subPaneKey, shell, tabf);
+				createSubWindow(memory.subPaneKey, shell, tabf);
 				auto parPos = _comp.getShell().getLocation();
 				auto b = new Rectangle(memory.x + parPos.x, memory.y + parPos.y, memory.width, memory.height);
 				intoDisplay(b.x, b.y, b.width, b.height);
@@ -438,7 +438,17 @@ class DockingFolder(TabF, int Style) {
 			if (!panes.length) { mixin(S_TRACE);
 				panes = findPane(base2, true);
 			}
-			pair = this.pane(panes[0]);
+			if (!panes.length) { mixin(S_TRACE);
+				panes = findPane(prefix(base1), true);
+			}
+			if (!panes.length) { mixin(S_TRACE);
+				panes = findPane(prefix(base2), true);
+			}
+			if (panes.length) {
+				pair = this.pane(panes[0]);
+			} else {
+				pair = first;
+			}
 		}
 
 		return addPane(pair, dir, lWeight, rWeight, newPaneKey(key));
@@ -500,7 +510,8 @@ class DockingFolder(TabF, int Style) {
 		if (select) { mixin(S_TRACE);
 			this.select(key);
 		}
-		if (!tabf.getShell().isVisible()) { mixin(S_TRACE);
+		auto shell = tabf.getShell();
+		if (shell !is _area.getShell() && !shell.isVisible()) { mixin(S_TRACE);
 			tabf.getShell().setVisible(true);
 		}
 	}
@@ -598,7 +609,7 @@ class DockingFolder(TabF, int Style) {
 		return tabs;
 	}
 	/// 新規にサブウィンドウを作成する。
-	private void createNewWindow(out Shell shell, out Composite area) {
+	private void createSubWindow(out Shell shell, out Composite area) {
 		auto parShl = _comp.getShell();
 		shell = new Shell(parShl, SWT.TITLE | SWT.RESIZE | SWT.CLOSE | SWT.TOOL);
 		_subShells ~= shell;
@@ -615,7 +626,7 @@ class DockingFolder(TabF, int Style) {
 		shell.addShellListener(new class ShellAdapter {
 			override void shellClosed(ShellEvent e) { mixin(S_TRACE);
 				auto shell = cast(Shell)e.widget;
-				auto area = cast(Composite)shell.getChildren()[1];
+				auto area = _subAreas[shell];
 				_inDisposeEvent[shell] = true;
 				shell.setVisible(false);
 				// すべてのControlを閉じる
@@ -640,14 +651,14 @@ class DockingFolder(TabF, int Style) {
 		});
 	}
 	/// 新規にpaneKeyのペインを含むサブウィンドウを作成する。
-	private void createNewWindow(string tabfKey, out Shell shell, out TabF tabf) {
+	private void createSubWindow(string tabfKey, out Shell shell, out TabF tabf) {
 		Composite area;
-		createNewWindow(shell, area);
+		createSubWindow(shell, area);
 		tabf = newTabf(area, tabfKey);
 	}
 
 	/// keyのControlをペインから分離してサブウィンドウにする。
-	void createNewWindow(string key) { mixin(S_TRACE);
+	void createSubWindow(string key) { mixin(S_TRACE);
 		if (isSingleWindow(key)) return;
 		auto ctrl = control(key);
 		auto oldTabf = cast(TabF)ctrl.getParent();
@@ -657,7 +668,7 @@ class DockingFolder(TabF, int Style) {
 
 		Shell shell;
 		TabF tabf;
-		createNewWindow(tabfKey, shell, tabf);
+		createSubWindow(tabfKey, shell, tabf);
 		shell.setText(tab.getText());
 		newTab(tabf, tab, -1);
 		tab.dispose();
@@ -697,6 +708,13 @@ class DockingFolder(TabF, int Style) {
 		if (!ctrl) return false;
 		auto area = getArea(ctrl);
 		auto children = area.getChildren();
+		return children.length == 1 && cast(TabF)children[0] && (cast(TabF)children[0]).getItemCount() == 1;
+	}
+	/// 指定されたpaneKeyが持つControlがサブウィンドウ内で唯一のものか。
+	bool isSinglePane(string paneKey) { mixin(S_TRACE);
+		if (!isSubWindowPane(paneKey)) return false;
+		auto pane = this.pane(paneKey);
+		auto children = _subAreas[pane.getShell()].getChildren();
 		return children.length == 1 && cast(TabF)children[0] && (cast(TabF)children[0]).getItemCount() == 1;
 	}
 
@@ -1627,7 +1645,7 @@ class DockingFolder(TabF, int Style) {
 		Shell shell = null; /// ditto
 		private void createSub() { mixin(S_TRACE);
 			if (par) return;
-			r.createNewWindow(shell, par);
+			r.createSubWindow(shell, par);
 			addSubWindow(shell, new Rectangle(x, y, width, height));
 		}
 		void sash(ref XNode node) { mixin(S_TRACE);
@@ -1774,7 +1792,7 @@ class DockingFolder(TabF, int Style) {
 							b.y += parPos.y;
 							intoDisplay(b.x, b.y, b.width, b.height);
 							shell.setBounds(b);
-							if (r.getTabs(cast(Composite)shell.getChildren()[1]).length) { mixin(S_TRACE);
+							if (r.getTabs(r._subAreas[shell]).length) { mixin(S_TRACE);
 								shell.setVisible(true);
 							}
 						}
@@ -1782,7 +1800,8 @@ class DockingFolder(TabF, int Style) {
 				}
 			});
 			return r;
-		} catch (Exception e) {
+		} catch (Throwable e) {
+			printStackTrace();
 			if (r && r.area) { mixin(S_TRACE);
 				r._canSave = false;
 				r.area.dispose();

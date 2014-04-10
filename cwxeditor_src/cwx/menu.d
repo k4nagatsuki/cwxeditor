@@ -37,6 +37,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.Card] = "C";
 		_mnemonic[MenuID.CardsAndBacks] = "A";
 		_mnemonic[MenuID.DelNotUsedFile] = "E";
+		_mnemonic[MenuID.CreateSubWindow] = "S";
 		_mnemonic[MenuID.LeftPane] = "L";
 		_mnemonic[MenuID.RightPane] = "R";
 		_mnemonic[MenuID.ClosePane] = "C";
@@ -244,6 +245,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.Card] = "";
 		_hotkey[MenuID.CardsAndBacks] = "";
 		_hotkey[MenuID.DelNotUsedFile] = "";
+		_hotkey[MenuID.CreateSubWindow] = "Ctrl+Shift+N";
 		_hotkey[MenuID.LeftPane] = "Ctrl+Page_Up";
 		_hotkey[MenuID.RightPane] = "Ctrl+Page_Down";
 		_hotkey[MenuID.ClosePane] = "";
@@ -757,6 +759,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.Help:
 	case MenuID.Card:
 	case MenuID.CardsAndBacks:
+	case MenuID.CreateSubWindow:
 	case MenuID.LeftPane:
 	case MenuID.RightPane:
 	case MenuID.ClosePane:

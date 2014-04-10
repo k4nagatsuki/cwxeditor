@@ -1278,6 +1278,7 @@ enum MenuID {
 	CardsAndBacks,
 
 	DelNotUsedFile,
+	CreateSubWindow,
 	LeftPane,
 	RightPane,
 	ClosePane,

@@ -2539,6 +2539,7 @@ public:
 									case MenuID.Help:
 									case MenuID.Card:
 									case MenuID.CardsAndBacks:
+									case MenuID.CreateSubWindow:
 									case MenuID.LeftPane:
 									case MenuID.RightPane:
 									case MenuID.ClosePane:
@@ -3158,6 +3159,8 @@ public:
 			auto comp = _dock.pane(paneKey);
 			comp.addPaintListener(new TabfPaint);
 			auto menu = new Menu(comp.getShell(), SWT.POP_UP);
+			createMenuItem(_comm, menu, MenuID.CreateSubWindow, &createSubWindow, &canCreateSubWindow);
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.LeftPane, &leftTab, &canWalkTab);
 			createMenuItem(_comm, menu, MenuID.RightPane, &rightTab, &canWalkTab);
 			new MenuItem(menu, SWT.SEPARATOR);
@@ -3169,6 +3172,10 @@ public:
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.ClosePaneAll, &closeAll, &canClose);
 			_dock.setMenu(paneKey, menu);
+		}
+		@property
+		bool canCreateSubWindow() { mixin(S_TRACE);
+			return _dock.selectedCtrl(_paneKey).length > 0 && !_dock.isSinglePane(_paneKey);
 		}
 		@property
 		bool canWalkTab() { mixin(S_TRACE);
@@ -3192,6 +3199,10 @@ public:
 		bool canCloseRight() { mixin(S_TRACE);
 			auto ctrl = _dock.selectedCtrl(_paneKey);
 			return ctrl.length && _dock.hasRight(ctrl);
+		}
+		void createSubWindow(SelectionEvent se) {
+			auto ctrl = _dock.selectedCtrl(_paneKey);
+			if (ctrl.length) _dock.createSubWindow(ctrl);
 		}
 		void leftTab(SelectionEvent se) { mixin(S_TRACE);
 			auto ctrl = _dock.selectedCtrl(_paneKey);
@@ -3449,7 +3460,7 @@ public:
 	private bool dockCanVanish(DockingFolderCTC dock, string key) { mixin(S_TRACE);
 		return !std.string.startsWith(key, "work") || dock.findPane("work", true).length > 1;
 	}
-	private bool dockCanVanish(string key) { mixin(S_TRACE);
+	private bool dockCanVanish(in string[] keys) { mixin(S_TRACE);
 		int works = 0;
 		foreach (key; keys) {
 			if (std.string.startsWith(key, "work")) works++;

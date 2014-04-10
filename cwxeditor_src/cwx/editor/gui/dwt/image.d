@@ -423,6 +423,7 @@ public:
 		case MenuID.CardsAndBacks: return null;
 
 		case MenuID.DelNotUsedFile: return imgd!("del_unuse.png");
+		case MenuID.CreateSubWindow: return imgd!("sub_win.png");
 		case MenuID.LeftPane: return imgd!("left_tab.png");
 		case MenuID.RightPane: return imgd!("right_tab.png");
 		case MenuID.ClosePane: return imgd!("close_pane.png");

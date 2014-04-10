@@ -67,6 +67,7 @@ class SplitPane : Composite {
 		return true;
 	}
 	private void relo() { mixin(S_TRACE);
+		if (!_sash) return;
 		auto ca = getClientArea();
 		if (getStyle() & SWT.VERTICAL) { mixin(S_TRACE);
 			int lw = _sfd.top.offset;
