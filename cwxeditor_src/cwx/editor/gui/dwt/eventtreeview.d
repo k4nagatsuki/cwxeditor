@@ -731,7 +731,7 @@ private:
 						if (v is this) v._tree.select(sItm);
 						if (v is this) v._tree.showSelection();
 						v.refreshStatusLine();
-						if (v._box._putMode !is MenuID.PutContinue) v._box.arrow();
+						if (v._box && v._box._putMode !is MenuID.PutContinue) v._box.arrow();
 					}
 					.forceFocus(_tree.control, false);
 					_comm.refContent.call(evt);
@@ -817,7 +817,7 @@ private:
 							procTreeItem(itms[i]);
 							if (v is this) v._tree.showSelection();
 							v.refreshStatusLine();
-							if (v._box._putMode !is MenuID.PutContinue) v._box.arrow();
+							if (v._box && v._box._putMode !is MenuID.PutContinue) v._box.arrow();
 						}
 						.forceFocus(_tree.control, false);
 						_comm.refContent.call(evt);
@@ -885,7 +885,7 @@ private:
 		if (!_box) return;
 		if (_readOnly) return;
 		assert (parent is null || parent.detail.owner);
-		if (_box._putMode !is MenuID.PutContinue) { mixin(S_TRACE);
+		if (_box && _box._putMode !is MenuID.PutContinue) { mixin(S_TRACE);
 			_box.arrow();
 			_comm.refreshToolBar();
 		}

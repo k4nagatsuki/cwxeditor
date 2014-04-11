@@ -401,7 +401,11 @@ class DockingFolder(TabF, int Style) {
 	/// ditto
 	Composite addPane(Composite base, Dir dir, int lWeight = 1, int rWeight = 1, string key = "") { mixin(S_TRACE);
 		_comp.setRedraw(false);
-		scope (exit) _comp.setRedraw(true);
+		foreach (subShell; _subShells) subShell.setRedraw(false);
+		scope (exit) {
+			_comp.setRedraw(true);
+			foreach (subShell; _subShells) subShell.setRedraw(true);
+		}
 		if (key in _tKeys || key in _sKeys) throw new Exception("invalid key");
 		int style = dir == Dir.N || dir == Dir.S ? SWT.VERTICAL : SWT.HORIZONTAL;
 		bool before = dir == Dir.N || dir == Dir.W;
@@ -699,7 +703,12 @@ class DockingFolder(TabF, int Style) {
 		shell.setLocation(cl);
 		shell.setSize(size);
 		shell.open();
+		foreach (moveShell; moveShellEvent) { mixin(S_TRACE);
+			moveShell(key);
+		}
 	}
+	/// keyのControlのウィンドウ間の移動を通知する。
+	void delegate(string key)[] moveShellEvent;
 
 	/// 指定されたpaneKeyがサブウィンドウ内のものか。
 	bool isSubWindowPane(string paneKey) { mixin(S_TRACE);
@@ -764,7 +773,11 @@ class DockingFolder(TabF, int Style) {
 	/// Controlを閉じる。閉じる事が可能な該当するControlが無かった場合はfalseを返す。
 	bool close(string key) { mixin(S_TRACE);
 		_comp.setRedraw(false);
-		scope (exit) _comp.setRedraw(true);
+		foreach (subShell; _subShells) subShell.setRedraw(false);
+		scope (exit) {
+			_comp.setRedraw(true);
+			foreach (subShell; _subShells) subShell.setRedraw(true);
+		}
 		auto t = tab(key);
 		if (t) { mixin(S_TRACE);
 			close(t);
@@ -781,7 +794,11 @@ class DockingFolder(TabF, int Style) {
 	/// keyに該当しないControlを閉じる。
 	void closeEtc(string key) { mixin(S_TRACE);
 		_comp.setRedraw(false);
-		scope (exit) _comp.setRedraw(true);
+		foreach (subShell; _subShells) subShell.setRedraw(false);
+		scope (exit) {
+			_comp.setRedraw(true);
+			foreach (subShell; _subShells) subShell.setRedraw(true);
+		}
 		auto tab = this.tab(key);
 		if (!tab) return;
 		foreach (i, t; tab.getParent().getItems()) { mixin(S_TRACE);
@@ -801,7 +818,11 @@ class DockingFolder(TabF, int Style) {
 	/// keyの左側のControlを閉じる。
 	void closeLeft(string key) { mixin(S_TRACE);
 		_comp.setRedraw(false);
-		scope (exit) _comp.setRedraw(true);
+		foreach (subShell; _subShells) subShell.setRedraw(false);
+		scope (exit) {
+			_comp.setRedraw(true);
+			foreach (subShell; _subShells) subShell.setRedraw(true);
+		}
 		auto tab = this.tab(key);
 		if (!tab) return;
 		auto i = tab.getParent().indexOf(tab);
@@ -821,7 +842,11 @@ class DockingFolder(TabF, int Style) {
 	/// keyの右側のControlを閉じる。
 	void closeRight(string key) { mixin(S_TRACE);
 		_comp.setRedraw(false);
-		scope (exit) _comp.setRedraw(true);
+		foreach (subShell; _subShells) subShell.setRedraw(false);
+		scope (exit) {
+			_comp.setRedraw(true);
+			foreach (subShell; _subShells) subShell.setRedraw(true);
+		}
 		auto tab = this.tab(key);
 		if (!tab) return;
 		auto i = tab.getParent().indexOf(tab);
@@ -833,7 +858,11 @@ class DockingFolder(TabF, int Style) {
 	/// keyを含むペインの全てのControlを閉じる。
 	void closeAll(string key) { mixin(S_TRACE);
 		_comp.setRedraw(false);
-		scope (exit) _comp.setRedraw(true);
+		foreach (subShell; _subShells) subShell.setRedraw(false);
+		scope (exit) {
+			_comp.setRedraw(true);
+			foreach (subShell; _subShells) subShell.setRedraw(true);
+		}
 		auto tab = this.tab(key);
 		if (!tab) return;
 		foreach (t; tab.getParent().getItems()) { mixin(S_TRACE);
@@ -935,7 +964,11 @@ class DockingFolder(TabF, int Style) {
 	private class CTFL :  CTabFolderListener {
 		void itemClosed(CTabFolderEvent e) { mixin(S_TRACE);
 			_comp.setRedraw(false);
-			scope (exit) _comp.setRedraw(true);
+			foreach (subShell; _subShells) subShell.setRedraw(false);
+			scope (exit) {
+				_comp.setRedraw(true);
+				foreach (subShell; _subShells) subShell.setRedraw(true);
+			}
 			e.doit = false;
 			close(cast(Tab)e.item);
 		}
@@ -1309,6 +1342,7 @@ class DockingFolder(TabF, int Style) {
 			if (!dropTarg) return;
 			if (!canDrop(dropTarg)) return;
 			auto sash = dropTarg.getParent();
+			auto key = keyFromCtrl(_dragItm.getControl());
 			int putCenter() { mixin(S_TRACE);
 				auto dropItm = dropTarg.getItem(dropTarg.toControl(e.x, e.y));
 				if (dropItm is _dragItm) return DND.DROP_NONE;
@@ -1318,6 +1352,9 @@ class DockingFolder(TabF, int Style) {
 					if (i2 + 1 == i1) return DND.DROP_NONE;
 				}
 				newTab(dropTarg, _dragItm, dropItm ? i1 : -1);
+				foreach (moveShell; moveShellEvent) { mixin(S_TRACE);
+					moveShell(key);
+				}
 				return DND.DROP_MOVE;
 			}
 			int nSash(int style, bool before) { mixin(S_TRACE);
@@ -1335,13 +1372,16 @@ class DockingFolder(TabF, int Style) {
 					default: assert (0);
 					}
 				}
-				string newKey = newTabfKey(prefix(key(_dragItm.getParent())));
+				string newKey = newTabfKey(prefix(this.outer.key(_dragItm.getParent())));
 				auto tabf = newSash(dropTarg, style, before, 1, 1, newKey);
 				newTab(tabf, _dragItm, -1);
 				if (tabf.getShell() is tabf.getDisplay().getActiveShell()) { mixin(S_TRACE);
 					tabf.setFocus();
 				}
 				getArea(tabf).layout(true);
+				foreach (moveShell; moveShellEvent) { mixin(S_TRACE);
+					moveShell(key);
+				}
 				return DND.DROP_MOVE;
 			}
 			switch (_dropPos) {
@@ -1579,6 +1619,7 @@ class DockingFolder(TabF, int Style) {
 			foreach (key, memory; _pMemories) { mixin(S_TRACE);
 				auto e = paneM.newElement("paneMemory", key);
 				if (memory.isSubWindow) { mixin(S_TRACE);
+					e.newAttr("subPaneKey", memory.subPaneKey);
 					e.newAttr("x", memory.x);
 					e.newAttr("y", memory.y);
 					e.newAttr("width", memory.width);
@@ -1746,6 +1787,7 @@ class DockingFolder(TabF, int Style) {
 					memory.pairPane = e.attr("pairPane", false);
 					memory.isSubWindow = memory.pairPane == "";
 					if (memory.isSubWindow) { mixin(S_TRACE);
+						memory.subPaneKey = e.attr("subPaneKey", false, key);
 						memory.x = e.attr!int("x", false, SWT.DEFAULT);
 						memory.y = e.attr!int("y", false, SWT.DEFAULT);
 						memory.width = e.attr!int("width", false, SWT.DEFAULT);
