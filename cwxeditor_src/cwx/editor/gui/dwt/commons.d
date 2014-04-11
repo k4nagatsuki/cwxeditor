@@ -658,7 +658,8 @@ class Commons {
 	}
 	@property
 	private string workPaneKey() { mixin(S_TRACE);
-		return _main.dock.findPane("work", true)[0];
+		auto mainWorks = _main.dock.findPane("work", false);
+		return mainWorks.length ? mainWorks[0] : _main.dock.findPane("work", true)[0];
 	}
 	@property
 	private Composite workPane() { mixin(S_TRACE);

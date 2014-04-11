@@ -113,7 +113,7 @@ class DockingFolder(TabF, int Style) {
 		_canvas = createCanvas(_comp);
 
 		_area = createArea(_comp);
-		_area.addListener(SWT.Dispose, new DListener);
+		_area.getShell().addListener(SWT.Dispose, new DListener);
 		if (createTabf) newTabf(_area, firstPaneKey);
 		_fl = new FocusL;
 		Display.getCurrent().addFilter(SWT.FocusIn, _fl);
@@ -316,6 +316,10 @@ class DockingFolder(TabF, int Style) {
 		auto t = tab(key);
 		if (t) { mixin(S_TRACE);
 			t.setText(text);
+			auto shell = t.getControl().getShell();
+			if (shell !is _area.getShell()) { mixin(S_TRACE);
+				updateSubShellTitle(shell);
+			}
 			return true;
 		}
 		return false;
@@ -332,6 +336,10 @@ class DockingFolder(TabF, int Style) {
 		auto t = tab(key);
 		if (t) { mixin(S_TRACE);
 			t.setImage(image);
+			auto shell = t.getControl().getShell();
+			if (shell !is _area.getShell()) { mixin(S_TRACE);
+				updateSubShellTitle(shell);
+			}
 			return true;
 		}
 		return false;
@@ -366,7 +374,7 @@ class DockingFolder(TabF, int Style) {
 			assert (_area.getChildren().length == 1);
 			return false;
 		}
-		return canVanish ? canVanish([key]) : true;
+		return canVanish ? canVanish(key) : true;
 	}
 	/// 中ボタンクリックでタブを閉じようとした際に呼び出される。
 	/// falseを返すとキャンセルする。
@@ -374,7 +382,7 @@ class DockingFolder(TabF, int Style) {
 
 	/// keyのペインが空になった際に呼び出される。
 	/// falseを返す事で、ペインの消去を回避する事ができる。
-	bool delegate(in string[] key) canVanish = null;
+	bool delegate(string key) canVanish = null;
 
 	/// 位置を保存するべきコントロールまたはペインであればtrueを返す。
 	bool delegate(string key) memoryControl = null;
@@ -488,6 +496,9 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// ditto
 	void add(Control ctrl, string tabText, Image tabImage, string key, bool select = false, NewCtrlLocation loc = NewCtrlLocation.Last) { mixin(S_TRACE);
+		addImpl(ctrl, tabText, tabImage, key, select, loc, false);
+	}
+	void addImpl(Control ctrl, string tabText, Image tabImage, string key, bool select = false, NewCtrlLocation loc = NewCtrlLocation.Last, bool loading = false) { mixin(S_TRACE);
 		if (!key.length || (key in _keys)) throw new Exception("invalid key: " ~ key);
 		auto tabf = cast(TabF) ctrl.getParent();
 		if (!tabf) throw new Exception("no tabfolder");
@@ -512,7 +523,7 @@ class DockingFolder(TabF, int Style) {
 		}
 		auto shell = tabf.getShell();
 		if (shell !is _area.getShell() && !shell.isVisible()) { mixin(S_TRACE);
-			tabf.getShell().setVisible(true);
+			if (!loading) tabf.getShell().setVisible(true);
 		}
 	}
 	/// 指定されたControlが以前配置された事があればその場所に追加する。
@@ -631,7 +642,7 @@ class DockingFolder(TabF, int Style) {
 				shell.setVisible(false);
 				// すべてのControlを閉じる
 				tabsClose(area);
-				if (getTabs(area).length) { mixin(S_TRACE);
+				if (area.getChildren().length) { mixin(S_TRACE);
 					// 閉じられないペインを含む場合は非表示にする
 					e.doit = false;
 					_inDisposeEvent[shell] = false;
@@ -670,6 +681,7 @@ class DockingFolder(TabF, int Style) {
 		TabF tabf;
 		createSubWindow(tabfKey, shell, tabf);
 		shell.setText(tab.getText());
+		shell.setImage(tab.getImage());
 		newTab(tabf, tab, -1);
 		tab.dispose();
 		if (oldTabf.getItemCount() == 0 && vanish(_tabfs[oldTabf])) { mixin(S_TRACE);
@@ -723,6 +735,8 @@ class DockingFolder(TabF, int Style) {
 		auto tab = this.tab(key);
 		if (!tab) return false;
 		tab.getParent().setSelection(tab);
+		auto shell = tab.getParent().getShell();
+		if (shell !is _area.getShell()) updateSubShellTitle(shell);
 		return true;
 	}
 	/// keyの左のControlを表示する。
@@ -988,29 +1002,33 @@ class DockingFolder(TabF, int Style) {
 		if (isSubShell && !shell.isDisposed()) { mixin(S_TRACE);
 			// サブウィンドウのタイトルの更新
 			if (!tabf.isDisposed() && tabf.getItemCount() && selected(tabf)) { mixin(S_TRACE);
-				shell.setText(selected(tabf).getText());
+				auto tab2 = selected(tabf);
+				shell.setText(tab2.getText());
+				shell.setImage(tab2.getImage());
 			} else { mixin(S_TRACE);
-				bool recurse(Composite comp) { mixin(S_TRACE);
-					if (auto tabf = cast(TabF)comp) { mixin(S_TRACE);
-						auto tab = selected(tabf);
-						if (tab) { mixin(S_TRACE);
-							shell.setText(tab.getText());
-							return true;
-						}
-					} else { mixin(S_TRACE);
-						foreach (child; comp.getChildren()) { mixin(S_TRACE);
-							if (auto comp2 = cast(Composite)child) { mixin(S_TRACE);
-								if (recurse(comp2)) return true;
-							}
-						}
-					}
-					return false;
-				}
-				if (!recurse(area)) { mixin(S_TRACE);
-					shell.setVisible(false);
-				}
+				if (!updateSubShellTitle(shell)) shell.setVisible(false);
 			}
 		}
+	}
+	private bool updateSubShellTitle(Shell shell) { mixin(S_TRACE);
+		bool recurse(Composite comp) { mixin(S_TRACE);
+			if (auto tabf = cast(TabF)comp) { mixin(S_TRACE);
+				auto tab = selected(tabf);
+				if (tab) { mixin(S_TRACE);
+					shell.setText(tab.getText());
+					shell.setImage(tab.getImage());
+					return true;
+				}
+			} else { mixin(S_TRACE);
+				foreach (child; comp.getChildren()) { mixin(S_TRACE);
+					if (auto comp2 = cast(Composite)child) { mixin(S_TRACE);
+						if (recurse(comp2)) return true;
+					}
+				}
+			}
+			return false;
+		}
+		return recurse(_subAreas[shell]);
 	}
 	@property
 	private string newSashKey() { mixin(S_TRACE);
@@ -1408,6 +1426,7 @@ class DockingFolder(TabF, int Style) {
 		auto shell = tabf.getShell();
 		if (shell !is _comp.getShell()) { mixin(S_TRACE);
 			shell.setText(tab.getText());
+			shell.setImage(tab.getImage());
 		}
 		auto ctrl = tab.getControl();
 		auto key = keyFromCtrl(ctrl);
@@ -1675,7 +1694,7 @@ class DockingFolder(TabF, int Style) {
 				auto v = create(tabf, key);
 				if (v) { mixin(S_TRACE);
 					auto name = node.attr("name", true);
-					r.add(v, name, key);
+					r.addImpl(v, name, null, key, false, NewCtrlLocation.Last, true);
 					if (shell && shell.getText() == "") { mixin(S_TRACE);
 						shell.setText(name);
 					}
@@ -1793,6 +1812,7 @@ class DockingFolder(TabF, int Style) {
 							intoDisplay(b.x, b.y, b.width, b.height);
 							shell.setBounds(b);
 							if (r.getTabs(r._subAreas[shell]).length) { mixin(S_TRACE);
+								r.updateSubShellTitle(shell);
 								shell.setVisible(true);
 							}
 						}

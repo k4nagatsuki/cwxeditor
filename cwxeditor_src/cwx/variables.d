@@ -392,6 +392,7 @@ class FlexEtcProps : Properties {
 	auto showAreaDirTree = Prop!(bool)("showAreaDirTree", true);
 	auto sortFlagDirs = Prop!(bool)("sortFlagDirs", true);
 	auto saveNeedChanged = Prop!(bool)("saveNeedChanged", true);
+	auto canVanishWorkAreaInMainWindow = Prop!(bool)("canVanishWorkAreaInMainWindow", false);
 
 	auto showEventTreeDetail = Prop!(bool)("showEventTreeDetail", true);
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);

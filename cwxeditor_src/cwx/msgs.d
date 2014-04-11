@@ -1669,6 +1669,7 @@ class Msgs : Properties {
 	auto forceIndentBranchContent = Msg("forceIndentBranchContent", "垂直表示時に分岐コンテントの後続コンテントは必ず右へ移動する");
 	auto showTerminalMark = Msg("showTerminalMark", "垂直表示時にイベントツリーの終端を明示する");
 	auto clickIconIsStartEdit = Msg("clickIconIsStartEdit", "イベントコンテントのアイコンのクリックでダイアログを開く");
+	auto canVanishWorkAreaInMainWindow = Msg("canVanishWorkAreaInMainWindow", "サブウィンドウに編集エリアがあればメインウィンドウの編集エリアを閉じる");
 	auto soundPlayType = Msg("soundPlayType", "BGM再生方式");
 	auto soundPlayTypeDef = Msg("soundPlayTypeDef", "自動選択");
 	auto soundPlayTypeSDL = Msg("soundPlayTypeSDL", "SDL(CardWirthPy方式)");

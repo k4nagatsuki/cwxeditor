@@ -168,6 +168,7 @@ private:
 	TableItem _forceIndentBranchContent;
 	TableItem _showTerminalMark;
 	TableItem _clickIconIsStartEdit;
+	TableItem _canVanishWorkAreaInMainWindow;
 	Combo _targetVersion;
 	int[string] _targetVersionTbl;
 	string[int] _targetVersionTbl2;
@@ -1018,6 +1019,7 @@ private:
 			_forceIndentBranchContent = createB(_prop.msgs.forceIndentBranchContent);
 			_showTerminalMark = createB(_prop.msgs.showTerminalMark);
 			_clickIconIsStartEdit = createB(_prop.msgs.clickIconIsStartEdit);
+			_canVanishWorkAreaInMainWindow = createB(_prop.msgs.canVanishWorkAreaInMainWindow);
 
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			auto sepgd = new GridData(GridData.FILL_HORIZONTAL);
@@ -1330,6 +1332,7 @@ protected:
 		_forceIndentBranchContent.setChecked(_prop.var.etc.forceIndentBranchContent);
 		_showTerminalMark.setChecked(_prop.var.etc.showTerminalMark);
 		_clickIconIsStartEdit.setChecked(_prop.var.etc.clickIconIsStartEdit);
+		_canVanishWorkAreaInMainWindow.setChecked(_prop.var.etc.canVanishWorkAreaInMainWindow);
 		auto tVer = _prop.var.etc.targetVersion in _targetVersionTbl;
 		if (tVer) { mixin(S_TRACE);
 			_targetVersion.select(*tVer);
@@ -1526,6 +1529,7 @@ protected:
 		_prop.var.etc.forceIndentBranchContent = _forceIndentBranchContent.getChecked();
 		_prop.var.etc.showTerminalMark = _showTerminalMark.getChecked();
 		_prop.var.etc.clickIconIsStartEdit = _clickIconIsStartEdit.getChecked();
+		_prop.var.etc.canVanishWorkAreaInMainWindow = _canVanishWorkAreaInMainWindow.getChecked();
 		_prop.var.etc.contentsFloat = _contentsFloat.getChecked();
 		_prop.var.etc.contentsAutoHide = _contentsAutoHide.getChecked();
 		_prop.var.etc.comboListVisible = _comboListVisible.getChecked();
