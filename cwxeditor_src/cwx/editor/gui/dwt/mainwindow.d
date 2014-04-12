@@ -26,6 +26,7 @@ import cwx.editor.gui.dwt.images;
 import cwx.editor.gui.dwt.datawindow;
 import cwx.editor.gui.dwt.cardwindow;
 import cwx.editor.gui.dwt.directorywindow;
+import cwx.editor.gui.dwt.eventwindow;
 import cwx.editor.gui.dwt.settingsdialog;
 import cwx.editor.gui.dwt.replacedialog;
 import cwx.editor.gui.dwt.dockingfolder;
@@ -2107,6 +2108,7 @@ public:
 					_dock.canVanish = &dockCanVanish;
 					_dock.selectEvent ~= &dockSelect;
 					_dock.closeCtrlEvent ~= &dockCloseCtrl;
+					_dock.moveShellEvent ~= &dockMoveShellEvent;
 					_dock.memoryPane = &isSystemPaneName;
 					_dock.memoryControl = &isSystemCtrlName;
 					_dock.closeTabWithMiddleClick = (key) => _prop.var.etc.closeTabWithMiddleClick != false;
@@ -3472,6 +3474,13 @@ public:
 	private bool dockCloseCtrl(string key) { mixin(S_TRACE);
 		statusLine = "";
 		return true;
+	}
+	private void dockMoveShellEvent(Shell before, string key) { mixin(S_TRACE);
+		auto tlpData = cast(TLPData)dock.control(key).getData();
+		if (!tlpData) return;
+		if (auto ew = cast(IEventWindow)tlpData.tlp) { mixin(S_TRACE);
+			ew.eventTreeView().moveShell();
+		}
 	}
 	private string dockNewPaneName(string ctrlKey, string basePane, Dir dir) { mixin(S_TRACE);
 		if (std.string.startsWith(ctrlKey, "work")) { mixin(S_TRACE);

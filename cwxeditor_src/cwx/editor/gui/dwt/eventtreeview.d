@@ -2832,6 +2832,18 @@ public:
 		_comm.getContentsToolBox(this);
 	}
 
+	/// 所属するShellの変更を通知する。
+	void moveShell() { mixin(S_TRACE);
+		if (!_box) return;
+		if (_box.isSingleton) { mixin(S_TRACE);
+			if (!_comm.poolContentsToolBox(_box)) { mixin(S_TRACE);
+				_box.dispose();
+			}
+			_box = _comm.getContentsToolBox(this);
+			_box.openToolWindow();
+		}
+	}
+
 	void refreshTreeName() { mixin(S_TRACE);
 		_tree.getItems()[0].setText(_et.name);
 		redraw();
@@ -4255,7 +4267,6 @@ class ContentsToolBox {
 		_comm.selContentTool.remove(&selContentTool);
 
 		if (_toolWin) { mixin(S_TRACE);
-			saveToolWinPos();
 			_toolWin.dispose();
 		}
 		if (_tcListener) { mixin(S_TRACE);
@@ -4332,15 +4343,6 @@ class ContentsToolBox {
 		_templTI.setEnabled(0 < _templMenu.getItemCount());
 	}
 
-	private class TDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			assert (_toolWin);
-			if (_toolWin.isDisposed()) return;
-			if (_toolWin.getVisible()) { mixin(S_TRACE);
-				saveToolWinPos();
-			}
-		}
-	}
 	private class TCListener : ControlAdapter {
 		override void controlMoved(ControlEvent e) { mixin(S_TRACE);
 			if (_autoHideTools) { mixin(S_TRACE);
@@ -4354,6 +4356,14 @@ class ContentsToolBox {
 			_toolWin.setBounds(tb.x + pb.x - _parX, tb.y + pb.y - _parY, tb.width, tb.height);
 			_parX = pb.x;
 			_parY = pb.y;
+			saveToolWinPos();
+		}
+	}
+	private class TWCListener : ControlAdapter {
+		override void controlMoved(ControlEvent e) { mixin(S_TRACE);
+			assert (_toolWin);
+			if (!_toolWin || _toolWin.isDisposed()) return;
+			saveToolWinPos();
 		}
 	}
 	private class AHTCListener : ControlAdapter {
@@ -4545,17 +4555,26 @@ class ContentsToolBox {
 			gd.heightHint = 0;
 			dummy.setLayoutData(gd);
 			_toolWin.setVisible(false);
-			auto pb = _toolWin.getParent().getBounds();
+			auto sb = _parent.boxOwner.getShell().toDisplay(0, 0);
+			auto eParent = _parent._contentsBoxArea;
+			while (!cast(TLPData)eParent.getData()) eParent = eParent.getParent();
+			eParent = eParent.getParent();
+			auto tb = eParent.toDisplay(0, 0);
+			auto pb = _parent.boxOwner.getShell().getLocation();
+			pb.x += tb.x - sb.x;
+			pb.y += tb.y - sb.y;
+
 			auto size = _toolWin.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			auto ts = _toolWin.getBounds();
 			int tx = _prop.var.contentsWin.x == SWT.DEFAULT ? ts.x : pb.x + _prop.var.contentsWin.x;
 			int ty = _prop.var.contentsWin.y == SWT.DEFAULT ? ts.y : pb.y + _prop.var.contentsWin.y;
 			intoDisplay(tx, ty, size.x, size.y);
-			_parX = pb.x;
-			_parY = pb.y;
+			auto tpb = _toolWin.getParent().getBounds();
+			_parX = tpb.x;
+			_parY = tpb.y;
 			_toolWin.setBounds(tx, ty, size.x, size.y);
-			_toolWin.addDisposeListener(new TDListener);
 			_toolWin.getParent().addControlListener(new TCListener);
+			_toolWin.addControlListener(new TWCListener);
 		} else if (cbarPar) { mixin(S_TRACE);
 			if (_autoHideTools) { mixin(S_TRACE);
 				_autoResize = new AHTCListener;
@@ -4609,6 +4628,8 @@ class ContentsToolBox {
 
 	@property
 	void owner(EventTreeView owner) { mixin(S_TRACE);
+		auto shell1 = _parent.widget.getShell();
+		auto shell2 = owner.widget.getShell();
 		removeListenersToOwner();
 		_parent._box = null;
 		_parent = owner;
@@ -4637,8 +4658,16 @@ class ContentsToolBox {
 	private void saveToolWinPos() { mixin(S_TRACE);
 		assert (_toolWin);
 		if (_toolWin.isDisposed()) return;
-		_prop.var.contentsWin.x = _toolWin.getBounds().x - _toolWin.getParent().getBounds().x;
-		_prop.var.contentsWin.y = _toolWin.getBounds().y - _toolWin.getParent().getBounds().y;
+		auto sb = _parent.boxOwner.getShell().toDisplay(0, 0);
+		auto eParent = _parent._contentsBoxArea;
+		while (!cast(TLPData)eParent.getData()) eParent = eParent.getParent();
+		eParent = eParent.getParent();
+		auto tb = eParent.toDisplay(0, 0);
+		auto pb = _parent.boxOwner.getShell().getLocation();
+		pb.x += tb.x - sb.x;
+		pb.y += tb.y - sb.y;
+		_prop.var.contentsWin.x = _toolWin.getBounds().x - pb.x;
+		_prop.var.contentsWin.y = _toolWin.getBounds().y - pb.y;
 	}
 	private void openToolWindow() { mixin(S_TRACE);
 		if (_toolWin) { mixin(S_TRACE);

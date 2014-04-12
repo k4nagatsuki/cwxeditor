@@ -677,6 +677,7 @@ class DockingFolder(TabF, int Style) {
 		if (isSingleWindow(key)) return;
 		auto ctrl = control(key);
 		auto oldTabf = cast(TabF)ctrl.getParent();
+		auto oldShell = oldTabf.getShell();
 		auto size = oldTabf.getSize();
 		auto tabfKey = newTabfKey(prefix(this.key(oldTabf)));
 		auto tab = this.tab(key);
@@ -704,11 +705,11 @@ class DockingFolder(TabF, int Style) {
 		shell.setSize(size);
 		shell.open();
 		foreach (moveShell; moveShellEvent) { mixin(S_TRACE);
-			moveShell(key);
+			moveShell(oldShell, key);
 		}
 	}
 	/// keyのControlのウィンドウ間の移動を通知する。
-	void delegate(string key)[] moveShellEvent;
+	void delegate(Shell before, string key)[] moveShellEvent;
 
 	/// 指定されたpaneKeyがサブウィンドウ内のものか。
 	bool isSubWindowPane(string paneKey) { mixin(S_TRACE);
@@ -1343,6 +1344,8 @@ class DockingFolder(TabF, int Style) {
 			if (!canDrop(dropTarg)) return;
 			auto sash = dropTarg.getParent();
 			auto key = keyFromCtrl(_dragItm.getControl());
+			auto shell1 = _dragItm.getParent().getShell();
+			auto shell2 = dropTarg.getShell();
 			int putCenter() { mixin(S_TRACE);
 				auto dropItm = dropTarg.getItem(dropTarg.toControl(e.x, e.y));
 				if (dropItm is _dragItm) return DND.DROP_NONE;
@@ -1352,8 +1355,10 @@ class DockingFolder(TabF, int Style) {
 					if (i2 + 1 == i1) return DND.DROP_NONE;
 				}
 				newTab(dropTarg, _dragItm, dropItm ? i1 : -1);
-				foreach (moveShell; moveShellEvent) { mixin(S_TRACE);
-					moveShell(key);
+				if (shell1 !is shell2) { mixin(S_TRACE);
+					foreach (moveShell; moveShellEvent) { mixin(S_TRACE);
+						moveShell(shell1, key);
+					}
 				}
 				return DND.DROP_MOVE;
 			}
@@ -1379,8 +1384,10 @@ class DockingFolder(TabF, int Style) {
 					tabf.setFocus();
 				}
 				getArea(tabf).layout(true);
-				foreach (moveShell; moveShellEvent) { mixin(S_TRACE);
-					moveShell(key);
+				if (shell1 !is shell2) { mixin(S_TRACE);
+					foreach (moveShell; moveShellEvent) { mixin(S_TRACE);
+						moveShell(shell1, key);
+					}
 				}
 				return DND.DROP_MOVE;
 			}

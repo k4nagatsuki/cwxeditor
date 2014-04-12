@@ -1054,7 +1054,8 @@ class Commons {
 		EventTreeView view = null;
 		if (_prop.var.etc.contentsFloat || _prop.var.etc.contentsAutoHide) {
 			foreachEventTreeView((v) { mixin(S_TRACE);
-				if (v && v !is eventTreeView && v.contentsToolBox && (v.contentsToolBox.isSingleton || !v.widget.isVisible())) { mixin(S_TRACE);
+				if (v && v !is eventTreeView && v.widget.getShell() is eventTreeView.widget.getShell()
+						&& v.contentsToolBox && (v.contentsToolBox.isSingleton || !v.widget.isVisible())) { mixin(S_TRACE);
 					view = v;
 					return false;
 				}
@@ -1071,7 +1072,7 @@ class Commons {
 	bool poolContentsToolBox(ContentsToolBox box) {
 		EventTreeView view = null;
 		foreachEventTreeView((v) { mixin(S_TRACE);
-			if (v && !v.contentsToolBox && box.owner !is v) { mixin(S_TRACE);
+			if (v && !v.contentsToolBox && box.owner !is v && box.owner.widget.getShell() is v.widget.getShell()) { mixin(S_TRACE);
 				view = v;
 				return false;
 			}
