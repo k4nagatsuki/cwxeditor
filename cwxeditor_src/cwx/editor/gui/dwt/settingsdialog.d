@@ -1836,7 +1836,7 @@ private:
 public:
 	this (Commons comm, Props prop, Shell shell, BgImageS[] bgImagesDefault) { mixin(S_TRACE);
 		super(prop, shell, false, prop.msgs.dlgTitBgImagesDefault,
-			prop.images.menu(MenuID.Settings), true, prop.var.bgImagesDlg, true);
+			prop.images.menu(MenuID.Settings), true, prop.var.defBgImagesDlg, true);
 		_comm = comm;
 		_prop = prop;
 

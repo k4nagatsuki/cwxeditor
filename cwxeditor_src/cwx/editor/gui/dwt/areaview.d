@@ -2881,7 +2881,16 @@ public:
 					} else static assert (0);
 				});
 			} else { mixin(S_TRACE);
-				createImagePane(lrSash);
+				auto imagePaneComp = new Composite(lrSash, SWT.NONE);
+				auto ipcl = windowGridLayout(1, true);
+				ipcl.marginWidth = 0;
+				ipcl.marginHeight = 0;
+				imagePaneComp.setLayout(ipcl);
+				createImagePane(imagePaneComp).setLayoutData(new GridData(GridData.FILL_BOTH));
+				if (!_readOnly) { mixin(S_TRACE);
+					auto l = new Label(imagePaneComp, SWT.NONE);
+					l.setText(_prop.msgs.areaViewKeyboardHint);
+				}
 			}
 			static if (is (C == MenuCard) || UseBacks) {
 				if (!_readOnly) { mixin(S_TRACE);
