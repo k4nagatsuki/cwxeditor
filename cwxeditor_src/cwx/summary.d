@@ -180,7 +180,6 @@ public:
 			_tempPath = _sPath;
 			lock(_tempPath, _useTemp);
 		}
-		refCheckPaths();
 	}
 
 	/// XMLファイルを展開しているか。
@@ -234,6 +233,7 @@ public:
 			SaveOption opt;
 			summ.saveXMLs(summ.scenarioPath, sys, opt);
 		}
+		summ.refCheckPaths();
 		return summ;
 	}
 
@@ -498,12 +498,15 @@ public:
 						}
 					}
 				} catch (ZipException e) {
+					printStackTrace();
 					debugln(e);
 					throw new SummaryException(.tryFormat(prop.msgs.zipError, fname));
 				} catch (FileLoadException e) {
+					printStackTrace();
 					debugln(e);
 					throw new SummaryException(.tryFormat(prop.msgs.loadError, e.path));
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 					throw new SummaryException(.tryFormat(prop.msgs.loadError, fname));
 				}
@@ -530,6 +533,7 @@ public:
 				_zipName = null;
 				_tempPath = "";
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 				std.file.write(std.path.buildPath(_tempPath, "cwxeditor.lock"), []);
 			}
@@ -621,9 +625,9 @@ public:
 		return null;
 	}
 	@property
-	const
-	override const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
-		const(CWXPath)[] r;
+	inout
+	override inout(CWXPath)[] cwxChilds() { mixin(S_TRACE);
+		inout(CWXPath)[] r;
 		foreach (a; _area) r ~= a;
 		foreach (a; _btl) r ~= a;
 		foreach (a; _pkg) r ~= a;
@@ -646,17 +650,84 @@ public:
 	}
 	/// このシナリオが変更済みであればtrueを返す。
 	@property
+	const
 	bool isChanged() { mixin(S_TRACE);
 		return _change;
 	}
 	/// 変更状態をリセットする。
 	void resetChanged() { mixin(S_TRACE);
 		refCheckPaths();
-		_change = false;
+		if (_change) { mixin(S_TRACE);
+			_change = false;
+			void recurse(CWXPath path) { mixin(S_TRACE);
+				if (auto a = cast(AbstractArea)path) { mixin(S_TRACE);
+					a.resetChanged();
+				} else if (auto a = cast(Card)path) { mixin(S_TRACE);
+					a.resetChanged();
+				}
+				foreach (child; path.cwxChilds) recurse(child);
+			}
+			recurse(this);
+		}
 	}
 	/// 変更を通知する。
 	void changed() { mixin(S_TRACE);
 		changeHandler();
+	}
+	/// 変更されたファイル単位のリソースの一覧を返す。
+	@property
+	HashSet!Object changedResources() { mixin(S_TRACE);
+		Object topRes(CWXPath path) { mixin(S_TRACE);
+			while (!cast(Summary)path.cwxParent) { mixin(S_TRACE);
+				path = path.cwxParent;
+			}
+			return cast(Object)path;
+		}
+		auto set = new HashSet!Object;
+		if (isChanged) set.add(this);
+		foreach (a; _area) if (a.isChanged) set.add(a);
+		foreach (a; _btl) if (a.isChanged) set.add(a);
+		foreach (a; _pkg) if (a.isChanged) set.add(a);
+		foreach (a; _cast) if (a.isChanged) set.add(a);
+		foreach (a; _skl) { mixin(S_TRACE);
+			if (a.isChanged) { mixin(S_TRACE);
+				set.add(a);
+				foreach (user; useCounter.values(a.toID(a.id))) set.add(topRes(user.owner));
+			}
+		}
+		foreach (a; _itm) { mixin(S_TRACE);
+			if (a.isChanged) { mixin(S_TRACE);
+				set.add(a);
+				foreach (user; useCounter.values(a.toID(a.id))) set.add(topRes(user.owner));
+			}
+		}
+		foreach (a; _bst) { mixin(S_TRACE);
+			if (a.isChanged) { mixin(S_TRACE);
+				set.add(a);
+				foreach (user; useCounter.values(a.toID(a.id))) set.add(topRes(user.owner));
+			}
+		}
+		foreach (a; _info) if (a.isChanged) set.add(a);
+
+		auto newAllPaths = allPaths;
+		foreach (pathId; useCounter.path.keys) { mixin(S_TRACE);
+			if (pathId.isBinImg) continue;
+			auto path = cast(string)pathId;
+			static if (0 == filenameCharCmp('A', 'a')) {
+				path = path.toLower();
+			}
+			auto p1 = path in newAllPaths;
+			auto p2 = path in _checkPaths;
+			if ((!p1 && !p2) || (p1 && !p2) || (!p1 && p2) || (*p1 != *p2)) { mixin(S_TRACE);
+				foreach (user; useCounter.values(toPathId(path))) { mixin(S_TRACE);
+					auto owner = user.owner;
+					if (cast(Card)owner || cast(AbstractSpCard)owner) { mixin(S_TRACE);
+						set.add(topRes(user.owner));
+					}
+				}
+			}
+		}
+		return set;
 	}
 	/// このシナリオが持つ使用回数カウンタ。
 	@property
@@ -691,11 +762,16 @@ public:
 	/// シナリオ内に含まれるシステムファイル・ディレクトリ以外のパスを返す。
 	@property
 	SysTime[string] allPaths() { mixin(S_TRACE);
+		mixin(FPerf!0);
 		SysTime[string] fcs;
 		try { mixin(S_TRACE);
 			foreach (file; scenarioPath.dirEntries(SpanMode.depth)) { mixin(S_TRACE);
 				if (isSystemFile(file)) continue;
-				fcs[file[scenarioPath.length + 1 .. $]] = file.timeLastModified;
+				auto key = file[scenarioPath.length + 1 .. $];
+				static if (0 == filenameCharCmp('A', 'a')) {
+					key = key.toLower();
+				}
+				fcs[key] = file.timeLastModified;
 			}
 		} catch (Exception e) {
 			printStackTrace();
@@ -705,17 +781,23 @@ public:
 	}
 	/// シナリオ内のファイルまたはディレクトリが更新されているかチェックする。
 	void checkPathsIsChanged() { mixin(S_TRACE);
-		if (!useTemp) return;
-		auto cp = _checkPaths;
-		refCheckPaths();
-		if (cp != _checkPaths) { mixin(S_TRACE);
-			changed();
+		if (needCheckPaths) { mixin(S_TRACE);
+			auto cp = _checkPaths;
+			_checkPaths = allPaths;
+			if (cp != _checkPaths) { mixin(S_TRACE);
+				changed();
+			}
 		}
 	}
 	/// 更新チェック用のパス一覧を最新状態にする。
 	private void refCheckPaths() { mixin(S_TRACE);
-		if (!useTemp) return;
- 		_checkPaths = allPaths;
+		if (needCheckPaths) { mixin(S_TRACE);
+	 		_checkPaths = allPaths;
+		}
+	}
+	@property
+	private bool needCheckPaths() { mixin(S_TRACE);
+		return useTemp;
 	}
 
 	/// 圧縮して保存した事を通知する。
@@ -955,13 +1037,8 @@ public:
 
 	/// キャスト。
 	@property
-	CastCard[] casts() { mixin(S_TRACE);
-		return _cast;
-	}
-	/// ditto
-	@property
-	const
-	const(CastCard)[] casts() { mixin(S_TRACE);
+	inout
+	inout(CastCard)[] casts() { mixin(S_TRACE);
 		return _cast;
 	}
 	/// ditto
@@ -976,13 +1053,8 @@ public:
 
 	/// スキル。
 	@property
-	SkillCard[] skills() { mixin(S_TRACE);
-		return _skl;
-	}
-	/// ditto
-	@property
-	const
-	const(SkillCard)[] skills() { mixin(S_TRACE);
+	inout
+	inout(SkillCard)[] skills() { mixin(S_TRACE);
 		return _skl;
 	}
 	/// ditto
@@ -997,13 +1069,8 @@ public:
 
 	/// アイテム。
 	@property
-	ItemCard[] items() { mixin(S_TRACE);
-		return _itm;
-	}
-	/// ditto
-	@property
-	const
-	const(ItemCard)[] items() { mixin(S_TRACE);
+	inout
+	inout(ItemCard)[] items() { mixin(S_TRACE);
 		return _itm;
 	}
 	/// ditto
@@ -1018,13 +1085,8 @@ public:
 
 	/// 召喚獣。
 	@property
-	BeastCard[] beasts() { mixin(S_TRACE);
-		return _bst;
-	}
-	/// ditto
-	@property
-	const
-	const(BeastCard)[] beasts() { mixin(S_TRACE);
+	inout
+	inout(BeastCard)[] beasts() { mixin(S_TRACE);
 		return _bst;
 	}
 	/// ditto
@@ -1038,13 +1100,8 @@ public:
 
 	/// 情報カード。
 	@property
-	InfoCard[] infos() { mixin(S_TRACE);
-		return _info;
-	}
-	/// ditto
-	@property
-	const
-	const(InfoCard)[] infos() { mixin(S_TRACE);
+	inout
+	inout(InfoCard)[] infos() { mixin(S_TRACE);
 		return _info;
 	}
 	/// ditto
@@ -1295,7 +1352,7 @@ public:
 		area.setUseCounter = _uc;
 		area.changeHandler = &changeHandler;
 		area.owner = this;
-		changeHandler();
+		area.changed();
 		return oldId;
 	}
 
@@ -1775,13 +1832,8 @@ public:
 
 	/// フラグとステップのルートディレクトリ。
 	@property
-	FlagDir flagDirRoot() { mixin(S_TRACE);
-		return _froot;
-	}
-	/// ditto
-	@property
-	const
-	const(FlagDir) flagDirRoot() { mixin(S_TRACE);
+	inout
+	inout(FlagDir) flagDirRoot() { mixin(S_TRACE);
 		return _froot;
 	}
 
@@ -1880,6 +1932,7 @@ public:
 				if (!mt.exists()) mkdirRecurse(mt);
 			} catch (Exception e) {
 				// 稀な条件でMaterialだけ生成されない場合がある模様
+				printStackTrace();
 				debugln(e);
 			}
 			if (!.exists(mt)) { mixin(S_TRACE);
@@ -1907,6 +1960,7 @@ public:
 					}
 				}
 			} catch (Exception ex) {
+				printStackTrace();
 				debugln(ex);
 				copyFail ~= p;
 			}
@@ -1961,6 +2015,7 @@ public:
 				p = sPath.buildPath(file);
 				full.copyAll(p, true);
 			} catch (Exception ex) {
+				printStackTrace();
 				debugln(ex);
 				copyFail ~= p;
 			}
@@ -2142,6 +2197,7 @@ public:
 				toArchive(zipName, temp, expand);
 			}
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 			throw new SummaryException(.tryFormat(prop.msgs.saveError, scenarioName));
 		}

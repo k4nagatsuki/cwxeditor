@@ -252,8 +252,8 @@ public:
 		return null;
 	}
 	@property
-	const
-	override const(CWXPath)[] cwxChilds() {return [];}
+	inout
+	override inout(CWXPath)[] cwxChilds() {return [];}
 	@property
 	CWXPath cwxParent() {return _parent;}
 }
@@ -455,8 +455,8 @@ public:
 		return null;
 	}
 	@property
-	const
-	override const(CWXPath)[] cwxChilds() {return [];}
+	inout
+	override inout(CWXPath)[] cwxChilds() {return [];}
 	@property
 	CWXPath cwxParent() {return _parent;}
 }
@@ -547,9 +547,9 @@ public:
 		return null;
 	}
 	@property
-	const
-	override const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
-		const(CWXPath)[] r;
+	inout
+	override inout(CWXPath)[] cwxChilds() { mixin(S_TRACE);
+		inout(CWXPath)[] r;
 		foreach (a; _flags) r ~= a;
 		foreach (a; _steps) r ~= a;
 		foreach (a; _subdir) r ~= a;

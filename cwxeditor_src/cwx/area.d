@@ -649,11 +649,28 @@ public:
 public abstract class AbstractArea : AbstractEventTreeOwner {
 	ulong _id;
 	string _name;
+	bool _changed = false;
 public:
 	/// 唯一のコンストラクタ。
 	this (ulong id, string name) { mixin(S_TRACE);
 		_id = id;
 		_name = name;
+	}
+
+	/// 変更を通知する。
+	override void changed() { mixin(S_TRACE);
+		if (changeHandler) { mixin(S_TRACE);
+			_changed = true;
+			super.changed();
+		}
+	}
+	/// 変更されているか。
+	@property
+	const
+	bool isChanged() { return _changed; }
+	/// 変更状態をリセットする。
+	void resetChanged() { mixin(S_TRACE);
+		_changed = false;
 	}
 
 	/// ディープコピーを返す。
@@ -896,24 +913,14 @@ public:
 
 	/// メニューカード群。
 	@property
-	MenuCard[] cards() { mixin(S_TRACE);
-		return _cards;
-	}
-	/// ditto
-	@property
-	const
-	const(MenuCard)[] cards() { mixin(S_TRACE);
+	inout
+	inout(MenuCard)[] cards() { mixin(S_TRACE);
 		return _cards;
 	}
 	/// 背景画像群。
 	@property
-	BgImage[] backs() { mixin(S_TRACE);
-		return _bgImgs;
-	}
-	/// ditto
-	@property
-	const
-	const(BgImage)[] backs() { mixin(S_TRACE);
+	inout
+	inout(BgImage)[] backs() { mixin(S_TRACE);
 		return _bgImgs;
 	}
 
@@ -1190,9 +1197,9 @@ public:
 	}
 	@property
 	override
-	const
-	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
-		const(CWXPath)[] r;
+	inout
+	inout(CWXPath)[] cwxChilds() { mixin(S_TRACE);
+		inout(CWXPath)[] r;
 		foreach (a; cards) r ~= a;
 		foreach (a; backs) r ~= a;
 		r ~= super.cwxChilds;
@@ -1618,9 +1625,9 @@ public:
 	}
 	@property
 	override
-	const
-	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
-		const(CWXPath)[] r;
+	inout
+	inout(CWXPath)[] cwxChilds() { mixin(S_TRACE);
+		inout(CWXPath)[] r;
 		foreach (a; _cards) r ~= a;
 		r ~= super.cwxChilds;
 		return r;

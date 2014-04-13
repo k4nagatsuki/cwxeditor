@@ -53,8 +53,8 @@ public:
 	string desc() {return _desc;}
 	/// 初期クーポン。
 	@property
-	const
-	const(Coupon)[] coupons() {return _coupons;}
+	inout
+	inout(Coupon)[] coupons() {return _coupons;}
 }
 
 /// mixinによって種族絡みのパラメータを付与する。

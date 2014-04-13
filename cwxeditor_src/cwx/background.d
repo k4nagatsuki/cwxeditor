@@ -1003,8 +1003,8 @@ public:
 		return null;
 	}
 	@property
-	const
-	const(CWXPath)[] cwxChilds() {return [];}
+	inout
+	inout(CWXPath)[] cwxChilds() {return [];}
 	@property
 	CWXPath cwxParent() {return _owner;}
 }
@@ -1012,9 +1012,7 @@ public:
 /// BgImage所持者のインタフェース。
 interface BgImageOwner : CWXPath {
 	@property
-	BgImage[] backs();
-	@property
-	const const(BgImage)[] backs();
+	inout inout(BgImage)[] backs();
 }
 
 /// BgImageのコンテナ。背景変更イベントの編集で使用。
@@ -1043,9 +1041,9 @@ public:
 		return null;
 	}
 	@property
-	const
-	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
-		const(CWXPath)[] r;
+	inout
+	inout(CWXPath)[] cwxChilds() { mixin(S_TRACE);
+		inout(CWXPath)[] r;
 		foreach (a; backs) r ~= a;
 		return r;
 	}
@@ -1054,13 +1052,8 @@ public:
 
 	/// 背景イメージ群。
 	@property
-	BgImage[] backs() { mixin(S_TRACE);
-		return _bgImgs;
-	}
-	/// ditto
-	@property
-	const
-	const(BgImage)[] backs() { mixin(S_TRACE);
+	inout
+	inout(BgImage)[] backs() { mixin(S_TRACE);
 		return _bgImgs;
 	}
 	/// ditto

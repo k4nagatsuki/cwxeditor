@@ -341,8 +341,8 @@ private:
 			override string cwxPath(bool id) {return "";}
 			override CWXPath findCWXPath(string path) {return null;}
 			@property
-			const
-			override const(CWXPath)[] cwxChilds() {return [];}
+			inout
+			override inout(CWXPath)[] cwxChilds() {return [];}
 			@property
 			CWXPath cwxParent() {return null;}
 		}
@@ -2687,13 +2687,13 @@ public:
 			static if (UseCards) {
 				static if (is (C == MenuCard)) {
 					_cards = createList(listsP, prop.msgs.menuCards,
-						prop.images.cards, ctcpd, &editCard, &_area.cards, &selectAllC);
+						prop.images.cards, ctcpd, &editCard, () => _area.cards, &selectAllC);
 					if (!_readOnly) { mixin(S_TRACE);
 						new TableTextEdit(_comm, _prop, _cards, 0, &nameEditEnd);
 					}
 				} else static if (is (C == EnemyCard)) {
 					_cards = createList(listsP, prop.msgs.enemyCards,
-						prop.images.cards, ctcpd, &editCard, &_area.cards, &selectAllC);
+						prop.images.cards, ctcpd, &editCard, () => _area.cards, &selectAllC);
 					if (!_readOnly) { mixin(S_TRACE);
 						new TableComboEdit!Combo(_comm, _prop, _cards, 0, &createEnemyCombo, &enemyEditEnd, (itm, column) => 0 < _summ.casts.length, &enemyIncSearch);
 					}
@@ -2712,7 +2712,7 @@ public:
 			}
 			static if (UseBacks) {
 				_backs = createList(listsP, prop.msgs.backs,
-					prop.images.backs, btcpd, &editBack, &_area.backs, &selectAllB);
+					prop.images.backs, btcpd, &editBack, () => _area.backs, &selectAllB);
 				_backs.addSelectionListener(new SBListener);
 				if (!_readOnly) { mixin(S_TRACE);
 					new TableComboEdit!Combo(_comm, _prop, _backs, 0, &createBgImageCombo, &bgImageEditEnd, &bgImageCanEdit, &bgImageIncSearch);
@@ -3429,10 +3429,10 @@ public:
 			_imgp.redraw();
 		}
 		void reverseViewCards() { mixin(S_TRACE);
-			reverseView!(C)(_viewCards, _cards, _editC, &_area.cards, cardsIndex, _vcMenu, _vcTMenu);
+			reverseView!(C)(_viewCards, _cards, _editC, () => _area.cards, cardsIndex, _vcMenu, _vcTMenu);
 		}
 		void reverseViewBacks() { mixin(S_TRACE);
-			reverseView!(BgImage)(_viewBacks, _backs, _editB, &_area.backs, 0, _vbMenu, _vbTMenu);
+			reverseView!(BgImage)(_viewBacks, _backs, _editB, () => _area.backs, 0, _vbMenu, _vbTMenu);
 		}
 	}
 	static if (UseCards) {

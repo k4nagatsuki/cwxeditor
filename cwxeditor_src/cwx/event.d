@@ -443,8 +443,8 @@ public:
 		return null;
 	}
 	@property
-	const
-	const(CWXPath)[] cwxChilds() {return _text.cwxChilds;}
+	inout
+	inout(CWXPath)[] cwxChilds() {return _text.cwxChilds;}
 	@property
 	CWXPath cwxParent() {return _parent;}
 }
@@ -1049,12 +1049,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return null;
 	}
 	@property
-	const
-	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
-		const(CWXPath)[] r;
+	inout
+	inout(CWXPath)[] cwxChilds() { mixin(S_TRACE);
+		inout(CWXPath)[] r;
 		foreach (a; next) r ~= a;
 		foreach (a; dialogs) r ~= a;
-		r ~= _text;
+		if (_text) r ~= _text;
 		foreach (a; motions) r ~= a;
 		foreach (a; backs) r ~= a;
 		foreach (a; coupons) r ~= a;
@@ -1130,11 +1130,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	private Content[] _next = [];
 	/// 後続イベント群。
 	@property
-	Content[] next() {return _next;}
-	/// ditto
-	@property
-	const
-	const(Content)[] next() {return _next;}
+	inout
+	inout(Content)[] next() {return _next;}
 
 	/// 後続コンテントのインデックスを交換する。
 	void swapContent(int index1, int index2) { mixin(S_TRACE);
@@ -1265,16 +1262,18 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		static if (New) {
 			static if (is(T2 == string)) {
 				mixin ("@property const T2 " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
+			} else static if (isVArray!T2) {
+				mixin ("@property inout inout(ElementType!T2)[] " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : cast(typeof(return))Def;}");
 			} else {
-				mixin ("@property " ~ T2.stringof ~ " " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
-				mixin ("@property const const(T2) " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : Def;}");
+				mixin ("@property inout inout(T2) " ~ Name ~ "() {return _" ~ Name ~ " ? _" ~ Name ~ Get ~ " : " ~ Def.stringof ~ ";}");
 			}
 		} else {
 			static if (__VERSION__ <= 2060 && isVArray!T2) {
 				mixin ("@property " ~ ElementType!T.stringof ~ "[] " ~ Name ~ "() const {return cast(T2)_" ~ Name ~ Get ~ ";}");
+			} else static if (isVArray!T2) {
+				mixin ("@property inout inout(ElementType!T2)[] " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
 			} else {
-				mixin ("@property T2 " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
-				mixin ("@property const const(T2) " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
+				mixin ("@property inout inout(T2) " ~ Name ~ "() {return _" ~ Name ~ Get ~ ";}");
 			}
 		}
 	}
@@ -2219,9 +2218,9 @@ public:
 		return null;
 	}
 	@property
-	const
-	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
-		const(CWXPath)[] r;
+	inout
+	inout(CWXPath)[] cwxChilds() { mixin(S_TRACE);
+		inout(CWXPath)[] r;
 		foreach (a; starts) r ~= a;
 		return r;
 	}
@@ -2337,17 +2336,8 @@ public:
 	}
 	/// スタートコンテント群。
 	@property
-	Content[] starts() out (r) { mixin(S_TRACE);
-		foreach (c; r) { mixin(S_TRACE);
-			assert (c.type is CType.START);
-		}
-	} body { mixin(S_TRACE);
-		return _starts;
-	}
-	/// ditto
-	@property
-	const
-	const(Content)[] starts() out (r) { mixin(S_TRACE);
+	inout
+	inout(Content)[] starts() out (r) { mixin(S_TRACE);
 		foreach (c; r) { mixin(S_TRACE);
 			assert (c.type is CType.START);
 		}
@@ -2832,11 +2822,8 @@ public:
 public interface EventTreeOwner : CWXPath {
 	/// イベントツリー群。
 	@property
-	EventTree[] trees();
-	/// ditto
-	@property
-	const
-	const(EventTree)[] trees();
+	inout
+	inout(EventTree)[] trees();
 
 	/// 発火条件「到着時」に対応しているか。
 	@property
@@ -2910,9 +2897,9 @@ public:
 		return null;
 	}
 	@property
-	const
-	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
-		const(CWXPath)[] r;
+	inout
+	inout(CWXPath)[] cwxChilds() { mixin(S_TRACE);
+		inout(CWXPath)[] r;
 		foreach (a; trees) r ~= a;
 		return r;
 	}
@@ -2934,17 +2921,17 @@ public:
 	@property
 	void changeHandler(void delegate() change) { mixin(S_TRACE);
 		foreach (e; _evts) { mixin(S_TRACE);
-			e.changeHandler = change;
+			e.changeHandler = &changed;
 		}
 		_change = change;
 	}
 	/// 変更ハンドラ。
 	@property
 	protected void delegate() changeHandler() { mixin(S_TRACE);
-		return _change;
+		return &changed;
 	}
 	/// 変更を通知する。
-	protected void changed() { mixin(S_TRACE);
+	void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 	/// 委譲によって使用する場合は委譲元を返す。
@@ -2952,12 +2939,8 @@ public:
 	protected EventTreeOwner con() {return this;}
 
 	@property
-	EventTree[] trees() { mixin(S_TRACE);
-		return _evts;
-	}
-	@property
-	const
-	const(EventTree)[] trees() { mixin(S_TRACE);
+	inout
+	inout(EventTree)[] trees() { mixin(S_TRACE);
 		return _evts;
 	}
 

@@ -23,8 +23,8 @@ interface CWXPath {
 	CWXPath findCWXPath(string);
 	/// 直下のパスを全て返す。
 	@property
-	const
-	const(CWXPath)[] cwxChilds();
+	inout
+	inout(CWXPath)[] cwxChilds();
 	/// 親を返す。
 	@property
 	CWXPath cwxParent();

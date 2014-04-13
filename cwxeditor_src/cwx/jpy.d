@@ -450,8 +450,8 @@ class Jpy1Sec : PathUser, CWXPath {
 	}
 	@property
 	override
-	const
-	const(CWXPath)[] cwxChilds() {return [];}
+	inout
+	inout(CWXPath)[] cwxChilds() {return [];}
 	@property
 	override
 	CWXPath cwxParent() {return null;}

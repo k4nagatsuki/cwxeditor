@@ -47,38 +47,28 @@ public:
 /// カードの所持者である事を示すインタフェース。
 interface CastOwner : CWXPath {
 	@property
-	CastCard[] casts();
-	@property
-	const
-	const(CastCard)[] casts();
+	inout
+	inout(CastCard)[] casts();
 }
 interface SkillOwner : CWXPath {
 	@property
-	SkillCard[] skills();
-	@property
-	const
-	const(SkillCard)[] skills();
+	inout
+	inout(SkillCard)[] skills();
 }
 interface ItemOwner : CWXPath {
 	@property
-	ItemCard[] items();
-	@property
-	const
-	const(ItemCard)[] items();
+	inout
+	inout(ItemCard)[] items();
 }
 interface BeastOwner : CWXPath {
 	@property
-	BeastCard[] beasts();
-	@property
-	const
-	const(BeastCard)[] beasts();
+	inout
+	inout(BeastCard)[] beasts();
 }
 interface InfoOwner : CWXPath {
 	@property
-	InfoCard[] infos();
-	@property
-	const
-	const(InfoCard)[] infos();
+	inout
+	inout(InfoCard)[] infos();
 }
 
 /// カード絡みの例外。
@@ -96,6 +86,7 @@ private:
 	string _name;
 	string _desc;
 	void delegate() _change = null;
+	bool _changed = false;
 	PathUser _path;
 public:
 	/// 唯一のコンストラクタ。
@@ -150,11 +141,22 @@ public:
 	/// 変更ハンドラを返す。
 	@property
 	protected void delegate() changeHandler() { mixin(S_TRACE);
-		return _change;
+		return &changed;
 	}
 	/// 変更を通知する。
-	protected void changed() { mixin(S_TRACE);
-		if (_change) _change();
+	void changed() { mixin(S_TRACE);
+		if (_change) { mixin(S_TRACE);
+			_change();
+			_changed = true;
+		}
+	}
+	/// 変更されているか。
+	@property
+	const
+	bool isChanged() { return _changed; }
+	/// 変更状態をリセットする。
+	void resetChanged() { mixin(S_TRACE);
+		_changed = false;
 	}
 
 	/// 使用回数カウンタ。
@@ -325,21 +327,22 @@ public:
 	/// キャストカード群のXML要素名。
 	static const string XML_NAME_M = "CastCards";
 	static alias toCastId toID;
-	@property
-	protected override void delegate() changeHandler() {return super.changeHandler;}
+
+	alias Card.changeHandler changeHandler;
 	@property
 	override void changeHandler(void delegate() change) { mixin(S_TRACE);
+		super.changeHandler = change;
 		foreach (c; _items) { mixin(S_TRACE);
-			c.changeHandler = change;
+			c.changeHandler = changeHandler;
 		}
 		foreach (c; _skills) { mixin(S_TRACE);
-			c.changeHandler = change;
+			c.changeHandler = changeHandler;
 		}
 		foreach (c; _beasts) { mixin(S_TRACE);
-			c.changeHandler = change;
+			c.changeHandler = changeHandler;
 		}
-		super.changeHandler = change;
 	}
+
 	/// インスタンスを生成する。
 	/// Params:
 	/// id = カードID。
@@ -539,8 +542,8 @@ public:
 
 	/// 所持するクーポン。
 	@property
-	const
-	const(Coupon)[] coupons() {return _coupons;}
+	inout
+	inout(Coupon)[] coupons() {return _coupons;}
 	/// ditto
 	@property
 	void coupons(Coupon[] coupons) { mixin(S_TRACE);
@@ -626,18 +629,15 @@ public:
 			c.setUseCounter = useCounter;
 			c.changeHandler = changeHandler;
 			c.owner = this;
-			changeHandler;
+			changed();
 			return c;
 		}
 	}
 
 	/// 所持アイテム。
 	@property
-	ItemCard[] items() {return _items;}
-	/// ditto
-	@property
-	const
-	const(ItemCard)[] items() {return _items;}
+	inout
+	inout(ItemCard)[] items() {return _items;}
 	/// ditto
 	ItemCard add(ItemCard card) {return __add(_items, card);}
 	/// ditto
@@ -656,11 +656,8 @@ public:
 	}
 	/// 所持スキル。
 	@property
-	SkillCard[] skills() {return _skills;}
-	/// ditto
-	@property
-	const
-	const(SkillCard)[] skills() {return _skills;}
+	inout
+	inout(SkillCard)[] skills() {return _skills;}
 	/// ditto
 	SkillCard add(SkillCard card) {return __add(_skills, card);}
 	/// ditto
@@ -679,11 +676,8 @@ public:
 	}
 	/// 所持召喚獣。
 	@property
-	BeastCard[] beasts() {return _beasts;}
-	/// ditto
-	@property
-	const
-	const(BeastCard)[] beasts() {return _beasts;}
+	inout
+	inout(BeastCard)[] beasts() {return _beasts;}
 	/// ditto
 	BeastCard add(BeastCard card) {return __add(_beasts, card);}
 	/// ditto
@@ -1041,9 +1035,9 @@ public:
 		return null;
 	}
 	@property
-	const
-	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
-		const(CWXPath)[] r;
+	inout
+	inout(CWXPath)[] cwxChilds() { mixin(S_TRACE);
+		inout(CWXPath)[] r;
 		foreach (a; skills) r ~= a;
 		foreach (a; items) r ~= a;
 		foreach (a; beasts) r ~= a;
@@ -1411,25 +1405,19 @@ public:
 	}
 	/// カードの効果。
 	@property
-	Motion[] motions() {return _muser.motions;}
-	/// ditto
-	@property
-	const
-	const(Motion)[] motions() {return _muser.motions;}
+	inout
+	inout(Motion)[] motions() {return _muser.motions;}
 	/// ditto
 	@property
 	void motions(Motion[] motions) { mixin(S_TRACE);
 		_muser.motions = motions;
 	}
-	@property
+	alias Card.changeHandler changeHandler;
+ 	@property
 	override void changeHandler(void delegate() change) { mixin(S_TRACE);
-		_ceto.changeHandler = change;
-		_muser.changeHandler = change;
 		super.changeHandler = change;
-	}
-	@property
-	protected override void delegate() changeHandler() { mixin(S_TRACE);
-		return super.changeHandler;
+		_ceto.changeHandler = changeHandler;
+		_muser.changeHandler = changeHandler;
 	}
 	@property
 	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
@@ -1455,10 +1443,8 @@ public:
 	protected abstract void removeUseCounterImpl();
 
 	@property
-	override EventTree[] trees() {return _ceto.trees;}
-	@property
-	const
-	override const(EventTree)[] trees() {return _ceto.trees;}
+	inout
+	override inout(EventTree)[] trees() {return _ceto.trees;}
 
 	@property
 	const
@@ -1593,9 +1579,9 @@ public:
 		return null;
 	}
 	@property
-	const
-	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
-		const(CWXPath)[] r;
+	inout
+	inout(CWXPath)[] cwxChilds() { mixin(S_TRACE);
+		inout(CWXPath)[] r;
 		foreach (a; motions) r ~= a;
 		r ~= _ceto.cwxChilds;
 		return r;
@@ -2336,8 +2322,8 @@ public:
 		return null;
 	}
 	@property
-	const
-	const(CWXPath)[] cwxChilds() {return [];}
+	inout
+	inout(CWXPath)[] cwxChilds() {return [];}
 	@property
 	CWXPath cwxParent() {return _owner;}
 }

@@ -12,8 +12,8 @@ import std.conv;
 /// クーポンの所有者。
 interface CouponsOwner {
 	@property
-	const
-	const(Coupon)[] coupons();
+	inout
+	inout(Coupon)[] coupons();
 }
 
 /// クーポン。
@@ -70,8 +70,8 @@ public:
 		return null;
 	}
 	@property
-	const
-	const(CWXPath)[] cwxChilds() {return [];}
+	inout
+	inout(CWXPath)[] cwxChilds() {return [];}
 	@property
 	CWXPath cwxParent() {return cast(CWXPath) _owner;}
 

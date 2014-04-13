@@ -167,13 +167,8 @@ public:
 	}
 	/// ditto
 	@property
-	Motion[] motions() { mixin(S_TRACE);
-		return _motions;
-	}
-	/// ditto
-	@property
-	const
-	const(Motion)[] motions() { mixin(S_TRACE);
+	inout
+	inout(Motion)[] motions() { mixin(S_TRACE);
 		return _motions;
 	}
 }
@@ -181,10 +176,8 @@ public:
 /// 効果の所持者である事を示すインタフェース。
 interface MotionOwner : CWXPath {
 	@property
-	Motion[] motions();
-	@property
-	const
-	const(Motion)[] motions();
+	inout
+	inout(Motion)[] motions();
 }
 
 /// 効果クラス。
@@ -354,11 +347,8 @@ public:
 	const(BeastCard) beast() {return _beast;}
 	/// ditto
 	@property
-	BeastCard[] beasts() {return _beast ? [_beast] : [];}
-	/// ditto
-	@property
-	const
-	const(BeastCard)[] beasts() {return _beast ? [_beast] : [];}
+	inout
+	inout(BeastCard)[] beasts() {return _beast ? [_beast] : [];}
 	/// ditto
 	@property
 	void beast(in BeastCard beast) { mixin(S_TRACE);
@@ -526,9 +516,9 @@ public:
 		return null;
 	}
 	@property
-	const
-	const(CWXPath)[] cwxChilds() { mixin(S_TRACE);
-		const(CWXPath)[] r;
+	inout
+	inout(CWXPath)[] cwxChilds() { mixin(S_TRACE);
+		inout(CWXPath)[] r;
 		if (_beast) r ~= _beast;
 		return r;
 	}
