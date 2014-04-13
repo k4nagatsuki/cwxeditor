@@ -1257,7 +1257,7 @@ private:
 					synchronized (_refreshThr) { mixin(S_TRACE);
 						closeTraceHandleImpl();
 						if (summ) { mixin(S_TRACE);
-							DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME;
+							DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_LAST_WRITE;
 							_traceHandle = FindFirstChangeNotificationW(toUTFz!(wchar*)(summ.scenarioPath), TRUE, fs);
 							return _traceHandle !is INVALID_HANDLE_VALUE;
 						}

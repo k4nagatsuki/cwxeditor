@@ -117,6 +117,15 @@ string printStackTrace() {
 	stStack = [];
 	return createDebugln(s);
 }
+string printStackTraceNoError() {
+	string[] arr = ["Stack Trace --------"];
+	foreach (ref s; tStack[0 .. tStackLen]) {
+		arr ~= .format("%s, %s", s.file, s.line);
+	}
+	auto s = arr.join("\n");
+	fdebugln(s);
+	return createDebugln(s);
+}
 
 shared string debugLog = "cwxeditor_error.log";
 private __gshared BufferedFile debugLogFile = null;

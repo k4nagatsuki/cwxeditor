@@ -656,8 +656,8 @@ public:
 	}
 	/// 変更状態をリセットする。
 	void resetChanged() { mixin(S_TRACE);
-		refCheckPaths();
 		if (_change) { mixin(S_TRACE);
+			refCheckPaths();
 			_change = false;
 			void recurse(CWXPath path) { mixin(S_TRACE);
 				if (auto a = cast(AbstractArea)path) { mixin(S_TRACE);
@@ -709,20 +709,22 @@ public:
 		}
 		foreach (a; _info) if (a.isChanged) set.add(a);
 
-		auto newAllPaths = allPaths;
-		foreach (pathId; useCounter.path.keys) { mixin(S_TRACE);
-			if (pathId.isBinImg) continue;
-			auto path = cast(string)pathId;
-			static if (0 == filenameCharCmp('A', 'a')) {
-				path = path.toLower();
-			}
-			auto p1 = path in newAllPaths;
-			auto p2 = path in _checkPaths;
-			if ((!p1 && !p2) || (p1 && !p2) || (!p1 && p2) || (*p1 != *p2)) { mixin(S_TRACE);
-				foreach (user; useCounter.values(toPathId(path))) { mixin(S_TRACE);
-					auto owner = user.owner;
-					if (cast(Card)owner || cast(AbstractSpCard)owner) { mixin(S_TRACE);
-						set.add(topRes(user.owner));
+		if (legacy) { mixin(S_TRACE);
+			auto newAllPaths = allPaths;
+			foreach (pathId; useCounter.path.keys) { mixin(S_TRACE);
+				if (pathId.isBinImg) continue;
+				auto path = cast(string)pathId;
+				static if (0 == filenameCharCmp('A', 'a')) {
+					path = path.toLower();
+				}
+				auto p1 = path in newAllPaths;
+				auto p2 = path in _checkPaths;
+				if ((!p1 && !p2) || (p1 && !p2) || (!p1 && p2) || (*p1 != *p2)) { mixin(S_TRACE);
+					foreach (user; useCounter.values(toPathId(path))) { mixin(S_TRACE);
+						auto owner = user.owner;
+						if (cast(Card)owner || cast(AbstractSpCard)owner) { mixin(S_TRACE);
+							set.add(topRes(user.owner));
+						}
 					}
 				}
 			}
@@ -762,7 +764,6 @@ public:
 	/// シナリオ内に含まれるシステムファイル・ディレクトリ以外のパスを返す。
 	@property
 	SysTime[string] allPaths() { mixin(S_TRACE);
-		mixin(FPerf!0);
 		SysTime[string] fcs;
 		try { mixin(S_TRACE);
 			foreach (file; scenarioPath.dirEntries(SpanMode.depth)) { mixin(S_TRACE);
@@ -784,7 +785,7 @@ public:
 		if (needCheckPaths) { mixin(S_TRACE);
 			auto cp = _checkPaths;
 			_checkPaths = allPaths;
-			if (cp != _checkPaths) { mixin(S_TRACE);
+			if ((legacy || useTemp) && cp != _checkPaths) { mixin(S_TRACE);
 				changed();
 			}
 		}
@@ -797,7 +798,7 @@ public:
 	}
 	@property
 	private bool needCheckPaths() { mixin(S_TRACE);
-		return useTemp;
+		return true;
 	}
 
 	/// 圧縮して保存した事を通知する。

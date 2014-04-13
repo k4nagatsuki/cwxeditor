@@ -110,6 +110,7 @@ private:
 	Display _display = null;
 	bool _quit = false;
 	Object _saveSync = null;
+	private bool _isChanged = false;
 
 	SBShell _sbshl = null;
 	Shell _win = null;
@@ -270,11 +271,14 @@ private:
 				string path = summary.scenarioPath;
 				if (summary.isChanged) { mixin(S_TRACE);
 					_win.setText(.tryFormat(_prop.msgs.mainWindowNameChanged, summary.scenarioName, path));
+					_isChanged = true;
 				} else { mixin(S_TRACE);
 					_win.setText(.tryFormat(_prop.msgs.mainWindowName, summary.scenarioName, path));
+					_isChanged = false;
 				}
 			} else { mixin(S_TRACE);
 				_win.setText(_prop.msgs.mainWindowNameEmpty);
+				_isChanged = false;
 			}
 		}
 	}
@@ -1480,7 +1484,7 @@ private:
 	}
 	private Menu _menuFile;
 	bool canSaveOverwrite() { mixin(S_TRACE);
-		return summary !is null && (!_prop.var.etc.saveNeedChanged || summary.isChanged);
+		return summary !is null && (!_prop.var.etc.saveNeedChanged || _isChanged);
 	}
 	void createFileMenu() { mixin(S_TRACE);
 		foreach (itm; _menuFile.getItems()) { mixin(S_TRACE);
