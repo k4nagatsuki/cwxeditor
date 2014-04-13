@@ -846,6 +846,7 @@ private:
 		SaveOption opt;
 		opt.doubleIO = _prop.var.etc.doubleIO;
 		opt.saveInnerImagePath = _prop.var.etc.saveInnerImagePath;
+		opt.saveChangedOnly = _prop.var.etc.saveChangedOnly;
 		opt.backup = _prop.var.etc.backupBeforeSaveEnabled;
 		opt.backupDir = _prop.backupBeforeSavePath.buildPath(_prop.var.etc.backupBeforeSaveDir);
 		return opt;

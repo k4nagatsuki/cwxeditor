@@ -74,6 +74,7 @@ struct LoadOption {
 struct SaveOption {
 	bool doubleIO = false; /// 書込みの多重化を行うか。
 	bool saveInnerImagePath = false; /// 格納イメージの参照先を保存するか。
+	bool saveChangedOnly = false; /// 更新されたファイルだけを保存するか。
 	bool backup = false; /// 保存時バックアップを行うか。
 	string backupDir = ""; /// 保存時バックアップ先。
 }
@@ -91,7 +92,7 @@ private:
 	bool _legacy = false; /// クラシックなシナリオか。
 
 	/// ファイル・ディレクトリの更新チェック用のパス一覧。
-	SysTime[string] _checkPaths;
+	SysTime[string] _checkPaths, _noSaveCheckPaths;
 
 	string _sPath = null;
 	string _sname = "";
@@ -718,8 +719,9 @@ public:
 					path = path.toLower();
 				}
 				auto p1 = path in newAllPaths;
-				auto p2 = path in _checkPaths;
+				auto p2 = path in _noSaveCheckPaths;
 				if ((!p1 && !p2) || (p1 && !p2) || (!p1 && p2) || (*p1 != *p2)) { mixin(S_TRACE);
+					cdebugln(path);
 					foreach (user; useCounter.values(toPathId(path))) { mixin(S_TRACE);
 						auto owner = user.owner;
 						if (cast(Card)owner || cast(AbstractSpCard)owner) { mixin(S_TRACE);
@@ -794,6 +796,7 @@ public:
 	private void refCheckPaths() { mixin(S_TRACE);
 		if (needCheckPaths) { mixin(S_TRACE);
 	 		_checkPaths = allPaths;
+			_noSaveCheckPaths = _checkPaths;
 		}
 	}
 	@property

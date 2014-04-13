@@ -2066,6 +2066,16 @@ struct SData {
 /// 4.0形式のCardWirthシナリオを保存する。
 void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOption opt) { mixin(S_TRACE);
 	auto d = SData(sys, summ.scenarioPath, skin, opt.saveInnerImagePath, &summ.skill, &summ.item, &summ.beast, opt);
+	bool saveChangedOnly = d.opt.saveChangedOnly;
+
+	// TODO: 更新されたファイルのみ保存する場合、
+	//       saveComment(), saveImageRef(), saveCardRef()
+	//       のために情報を収集しなければならない
+	saveChangedOnly = false;
+
+	HashSet!Object changed = null;
+	if (saveChangedOnly) changed = summ.changedResources;
+
 	class Save {
 		Area[] areas;
 		Battle[] battles;
@@ -2076,73 +2086,47 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 		BeastCard[] beasts;
 		InfoCard[] infos;
 		string[] wids;
+		void writeFile(Object a, string name, void delegate(ref ByteIO f) write) { mixin(S_TRACE);
+			auto file = "~" ~ name;
+			auto path = std.path.buildPath(d.sPath, file);
+			auto path2 = std.path.buildPath(d.sPath, name);
+			if (!saveChangedOnly || !path2.exists() || !path2.isFile() || changed.contains(a)) { mixin(S_TRACE);
+				ByteIO f;
+				write(f);
+				std.file.write(path, f.bytes);
+				f.dispose();
+			} else { mixin(S_TRACE);
+				path2.rename(path);
+			}
+			wids ~= file;
+		}
 		void save() { mixin(S_TRACE);
 			version (Console) {
 				debug std.stdio.writeln("Start Classic Load Thread");
 			}
 			foreach (a; areas) { mixin(S_TRACE);
-				auto file = "~Area" ~ to!(string)(a.id) ~ ".wid";
-				ByteIO f;
-				writeArea(d, f, a);
-				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
-				f.dispose();
-				wids ~= file;
+				writeFile(a, "Area" ~ to!(string)(a.id) ~ ".wid", (ref f) => writeArea(d, f, a));
 			}
 			foreach (a; battles) { mixin(S_TRACE);
-				auto file = "~Battle" ~ to!(string)(a.id) ~ ".wid";
-				ByteIO f;
-				writeBattle(d, f, a);
-				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
-				f.dispose();
-				wids ~= file;
+				writeFile(a, "Battle" ~ to!(string)(a.id) ~ ".wid", (ref f) => writeBattle(d, f, a));
 			}
 			foreach (a; packages) { mixin(S_TRACE);
-				auto file = "~Package" ~ to!(string)(a.id) ~ ".wid";
-				ByteIO f;
-				writePackage(d, f, a);
-				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
-				f.dispose();
-				wids ~= file;
+				writeFile(a, "Package" ~ to!(string)(a.id) ~ ".wid", (ref f) => writePackage(d, f, a));
 			}
 			foreach (c; casts) { mixin(S_TRACE);
-				auto file = "~Mate" ~ to!(string)(c.id) ~ ".wid";
-				ByteIO f;
-				writeCast(d, f, c);
-				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
-				f.dispose();
-				wids ~= file;
+				writeFile(c, "Mate" ~ to!(string)(c.id) ~ ".wid", (ref f) => writeCast(d, f, c));
 			}
 			foreach (c; skills) { mixin(S_TRACE);
-				auto file = "~Skill" ~ to!(string)(c.id) ~ ".wid";
-				ByteIO f;
-				writeSkill(d, f, c);
-				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
-				f.dispose();
-				wids ~= file;
+				writeFile(c, "Skill" ~ to!(string)(c.id) ~ ".wid", (ref f) => writeSkill(d, f, c));
 			}
 			foreach (c; items) { mixin(S_TRACE);
-				auto file = "~Item" ~ to!(string)(c.id) ~ ".wid";
-				ByteIO f;
-				writeItem(d, f, c);
-				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
-				f.dispose();
-				wids ~= file;
+				writeFile(c, "Item" ~ to!(string)(c.id) ~ ".wid", (ref f) => writeItem(d, f, c));
 			}
 			foreach (c; beasts) { mixin(S_TRACE);
-				auto file = "~Beast" ~ to!(string)(c.id) ~ ".wid";
-				ByteIO f;
-				writeBeast(d, f, c);
-				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
-				f.dispose();
-				wids ~= file;
+				writeFile(c, "Beast" ~ to!(string)(c.id) ~ ".wid", (ref f) => writeBeast(d, f, c));
 			}
 			foreach (c; infos) { mixin(S_TRACE);
-				auto file = "~Info" ~ to!(string)(c.id) ~ ".wid";
-				ByteIO f;
-				writeInfo(d, f, c);
-				std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
-				f.dispose();
-				wids ~= file;
+				writeFile(c, "Info" ~ to!(string)(c.id) ~ ".wid", (ref f) => writeInfo(d, f, c));
 			}
 			version (Console) {
 				debug std.stdio.writeln("Exit Classic Save Thread");
@@ -2156,13 +2140,7 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 	}
 	auto save1 = new Save;
 	auto save2 = new Save;
-	{ mixin(S_TRACE);
-		auto file = "~Summary.wsm";
-		ByteIO f;
-		writeSummary(d, f, summ);
-		std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
-		save1.wids ~= file;
-	}
+	save1.writeFile(summ, "Summary.wsm", (ref f) => writeSummary(d, f, summ));
 	save1.areas = summ.areas[0 .. $ / 2];
 	save2.areas = summ.areas[$ / 2 .. $];
 	save1.battles = summ.battles[0 .. $ / 2];

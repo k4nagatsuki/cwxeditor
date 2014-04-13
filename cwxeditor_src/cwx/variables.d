@@ -359,6 +359,7 @@ class FlexEtcProps : Properties {
 	auto expandXMLs = Prop!(bool)("expandXMLs", false);
 	auto xmlCopy = Prop!(bool)("xmlCopy", false);
 	auto showSpNature = Prop!(bool)("showSpNature", false);
+	auto saveChangedOnly = Prop!(bool)("saveChangedOnly", false);
 	auto saveInnerImagePath = Prop!(bool)("saveInnerImagePath", false);
 	auto linkCard = Prop!(bool)("linkCard", false);
 	auto traceDirectories = Prop!(bool)("traceDirectories", true);
