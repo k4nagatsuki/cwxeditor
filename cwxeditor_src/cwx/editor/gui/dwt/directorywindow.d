@@ -90,6 +90,8 @@ private struct FC {
 	}
 	const
 	int opCmp(ref const(FC) fc) { mixin(S_TRACE);
+		auto c = cmp(path, fc.path);
+		if (c != 0) return c;
 		if (time < fc.time) return -1;
 		if (time > fc.time) return 1;
 		return 0;
@@ -213,21 +215,18 @@ private:
 		FC[] fcs;
 		if (_summ) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
-				void list(string path, string relPath) { mixin(S_TRACE);
+				foreach (file; _summ.scenarioPath.dirEntries(SpanMode.depth)) { mixin(S_TRACE);
+					if (_summ.isSystemFile(file)) continue;
 					FC fc;
-					fc.path = relPath;
-					if (.isDir(path)) { mixin(S_TRACE);
+					fc.path = file.abs2rel(_summ.scenarioPath);
+					if (file.isDir) { mixin(S_TRACE);
 						fc.time = SysTime.init;
 						fcs ~= fc;
-						foreach (c; clistdir(path)) { mixin(S_TRACE);
-							list(std.path.buildPath(path, c), relPath.buildPath(c));
-						}
 					} else { mixin(S_TRACE);
-						fc.time = timeLastModified(path);
+						fc.time = file.timeLastModified;
 						fcs ~= fc;
 					}
 				}
-				list(_summ.scenarioPath, "");
 			} catch (Exception e) {
 				debugln(e);
 			}
