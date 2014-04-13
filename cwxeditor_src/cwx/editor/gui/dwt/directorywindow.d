@@ -210,35 +210,6 @@ private:
 		int r = ac - bc;
 		return r != 0 ? r > 0 : compFName(a, b);
 	}
-	@property
-	FC[] allPaths() { mixin(S_TRACE);
-		FC[] fcs;
-		if (_summ) { mixin(S_TRACE);
-			try { mixin(S_TRACE);
-				foreach (file; _summ.scenarioPath.dirEntries(SpanMode.depth)) { mixin(S_TRACE);
-					if (_summ.isSystemFile(file)) continue;
-					FC fc;
-					fc.path = file.abs2rel(_summ.scenarioPath);
-					if (file.isDir) { mixin(S_TRACE);
-						fc.time = SysTime.init;
-						fcs ~= fc;
-					} else { mixin(S_TRACE);
-						fc.time = file.timeLastModified;
-						fcs ~= fc;
-					}
-				}
-			} catch (Exception e) {
-				debugln(e);
-			}
-		}
-		return fcs.sort;
-	}
-	FC[] _checkPaths;
-	void refCheckPaths() { mixin(S_TRACE);
-		if (_summ.useTemp) { mixin(S_TRACE);
-	 		_checkPaths = allPaths;
-		}
-	}
 
 	bool isDef(string p, bool isDir) { mixin(S_TRACE);
 		return _summ.isSystemFile(p, isDir) || isIgnore(p);
@@ -1199,7 +1170,6 @@ private:
 			_comm.refUseCount.remove(&__refreshUseCount);
 			_comm.refPaths.remove(&__refPaths);
 			_comm.delPaths.remove(&__delPaths);
-			_comm.saved.remove(&refCheckPaths);
 			_comm.replText.remove(&__refreshTitle);
 			_comm.refIgnorePaths.remove(&refresh);
 			_sImgFolder.dispose();
@@ -1228,12 +1198,8 @@ private:
 			_onRefresh = true;
 			scope (exit) _onRefresh = false;
 			if (_stopTrace) return;
-			if (_summ && _summ.useTemp) { mixin(S_TRACE);
-				auto cp = _checkPaths;
-				refCheckPaths();
-				if (cp != _checkPaths) { mixin(S_TRACE);
-					_summ.changed();
-				}
+			if (_summ) { mixin(S_TRACE);
+				_summ.checkPathsIsChanged();
 			}
 			if (_dirsEdit.isEditing() || _filesEdit.isEditing()) return;
 			try { mixin(S_TRACE);
@@ -1552,7 +1518,6 @@ public:
 		_comm.refUseCount.add(&__refreshUseCount);
 		_comm.refPaths.add(&__refPaths);
 		_comm.delPaths.add(&__delPaths);
-		_comm.saved.add(&refCheckPaths);
 		_comm.replText.add(&__refreshTitle);
 		_comm.refIgnorePaths.add(&refresh);
 		_sImgFolder = skeletonImage(_prop.images.folder);
@@ -1902,7 +1867,6 @@ public:
 		_summ = summ;
 
 		updateJpy1List();
-		refCheckPaths();
 		if (_win && !_win.isDisposed()) { mixin(S_TRACE);
 			refreshDirs(std.path.buildPath(_summ.scenarioPath, _comm.skin.materialPath));
 			refreshFiles(null);
@@ -1920,9 +1884,7 @@ public:
 
 	@property
 	bool isChanged() { mixin(S_TRACE);
-		if (_summ.useTemp) { mixin(S_TRACE);
-			return _summ.isChanged || _checkPaths != allPaths;
-		}
+		if (!_summ.isChanged) _summ.checkPathsIsChanged();
 		return _summ.isChanged;
 	}
 

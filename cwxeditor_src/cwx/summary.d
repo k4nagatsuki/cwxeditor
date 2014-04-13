@@ -90,6 +90,9 @@ private:
 	string _tempPath = ""; /// 圧縮されているシナリオなら、一時展開先のパス。
 	bool _legacy = false; /// クラシックなシナリオか。
 
+	/// ファイル・ディレクトリの更新チェック用のパス一覧。
+	SysTime[string] _checkPaths;
+
 	string _sPath = null;
 	string _sname = "";
 	string _author = ""; /// 作者名。
@@ -177,6 +180,7 @@ public:
 			_tempPath = _sPath;
 			lock(_tempPath, _useTemp);
 		}
+		refCheckPaths();
 	}
 
 	/// XMLファイルを展開しているか。
@@ -384,6 +388,7 @@ public:
 				r._sPath = scDir;
 				r._zipName = "";
 				r._tempPath = scDir;
+				r.refCheckPaths();
 				return r;
 			}
 			return null;
@@ -399,6 +404,7 @@ public:
 					r._legacy = true;
 					r._zipName = fname;
 					r._tempPath = fn;
+					r.refCheckPaths();
 					if (scTemplate) { mixin(S_TRACE);
 						return createFromTemplate(r);
 					} else { mixin(S_TRACE);
@@ -432,6 +438,7 @@ public:
 						if (scTemplate) { mixin(S_TRACE);
 							return createFromTemplate(r);
 						} else { mixin(S_TRACE);
+							r.refCheckPaths();
 							return r;
 						}
 					}
@@ -453,6 +460,7 @@ public:
 							r._useTemp = true;
 							r.lock(r._tempPath, r._useTemp);
 						}
+						r.refCheckPaths();
 						return r;
 					} else if (isDir(fname)) { mixin(S_TRACE);
 						return ll(fname);
@@ -475,6 +483,7 @@ public:
 									if (scTemplate) { mixin(S_TRACE);
 										r._zipName = "";
 									}
+									r.refCheckPaths();
 									return r;
 								} catch (Exception e) {
 									delAll(fname);
@@ -637,12 +646,12 @@ public:
 	}
 	/// このシナリオが変更済みであればtrueを返す。
 	@property
-	const
 	bool isChanged() { mixin(S_TRACE);
 		return _change;
 	}
 	/// 変更状態をリセットする。
 	void resetChanged() { mixin(S_TRACE);
+		refCheckPaths();
 		_change = false;
 	}
 	/// 変更を通知する。
@@ -678,6 +687,35 @@ public:
 			}
 		}
 		return false;
+	}
+	/// シナリオ内に含まれるシステムファイル・ディレクトリ以外のパスを返す。
+	@property
+	SysTime[string] allPaths() { mixin(S_TRACE);
+		SysTime[string] fcs;
+		try { mixin(S_TRACE);
+			foreach (file; scenarioPath.dirEntries(SpanMode.depth)) { mixin(S_TRACE);
+				if (isSystemFile(file)) continue;
+				fcs[file[scenarioPath.length + 1 .. $]] = file.timeLastModified;
+			}
+		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
+		}
+		return fcs;
+	}
+	/// シナリオ内のファイルまたはディレクトリが更新されているかチェックする。
+	void checkPathsIsChanged() { mixin(S_TRACE);
+		if (!useTemp) return;
+		auto cp = _checkPaths;
+		refCheckPaths();
+		if (cp != _checkPaths) { mixin(S_TRACE);
+			changed();
+		}
+	}
+	/// 更新チェック用のパス一覧を最新状態にする。
+	private void refCheckPaths() { mixin(S_TRACE);
+		if (!useTemp) return;
+ 		_checkPaths = allPaths;
 	}
 
 	/// 圧縮して保存した事を通知する。
@@ -1731,6 +1769,7 @@ public:
 		if (useTemp) { mixin(S_TRACE);
 			summ._lock = _lock;
 		}
+		summ.refCheckPaths();
 		return summ;
 	}
 
@@ -2097,6 +2136,7 @@ public:
 				_legacy = false;
 			}
 			dataVersion = LATEST_VERSION;
+			refCheckPaths();
 			resetChanged();
 			if (legacyToX || (!useTemp && archive)) { mixin(S_TRACE);
 				toArchive(zipName, temp, expand);
