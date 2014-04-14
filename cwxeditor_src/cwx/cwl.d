@@ -2066,15 +2066,9 @@ struct SData {
 /// 4.0形式のCardWirthシナリオを保存する。
 void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOption opt) { mixin(S_TRACE);
 	auto d = SData(sys, summ.scenarioPath, skin, opt.saveInnerImagePath, &summ.skill, &summ.item, &summ.beast, opt);
-	bool saveChangedOnly = d.opt.saveChangedOnly;
-
-	// TODO: 更新されたファイルのみ保存する場合、
-	//       saveComment(), saveImageRef(), saveCardRef()
-	//       のために情報を収集しなければならない
-	saveChangedOnly = false;
 
 	HashSet!Object changed = null;
-	if (saveChangedOnly) changed = summ.changedResources;
+	if (d.opt.saveChangedOnly) changed = summ.changedResources;
 
 	class Save {
 		Area[] areas;
@@ -2086,17 +2080,18 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 		BeastCard[] beasts;
 		InfoCard[] infos;
 		string[] wids;
-		void writeFile(Object a, string name, void delegate(ref ByteIO f) write) { mixin(S_TRACE);
+		void writeFile(CWXPath a, string name, void delegate(ref ByteIO f) write) { mixin(S_TRACE);
 			auto file = "~" ~ name;
 			auto path = std.path.buildPath(d.sPath, file);
 			auto path2 = std.path.buildPath(d.sPath, name);
-			if (!saveChangedOnly || !path2.exists() || !path2.isFile() || changed.contains(a)) { mixin(S_TRACE);
+			if (!d.opt.saveChangedOnly || !path2.exists() || !path2.isFile() || changed.contains(cast(Object)a)) { mixin(S_TRACE);
 				ByteIO f;
 				write(f);
 				std.file.write(path, f.bytes);
 				f.dispose();
 			} else { mixin(S_TRACE);
 				path2.rename(path);
+				putExData(d, a);
 			}
 			wids ~= file;
 		}
@@ -2267,6 +2262,46 @@ string saveTemplate(in Summary summ) { mixin(S_TRACE);
 		t.toNode(e);
 	}
 	return node.text;
+}
+
+/// 保存用の拡張データ情報をdへ記録する。
+void putExData(ref SData d, CWXPath cp) { mixin(S_TRACE);
+	void putInnerImagePath(ref SData d, CWXPath cp, string imgPath) { mixin(S_TRACE);
+		if (!d.saveInnerImagePath) return;
+		if (!imgPath.length) return;
+		if (isBinImg(imgPath)) return;
+		d.imageRef[cp.cwxPath(true)] = encodePathLegacy(imgPath);
+	}
+	if (auto summ = cast(Summary)cp) { mixin(S_TRACE);
+		putInnerImagePath(d, cp, summ.imagePath);
+	} else if (auto m = cast(Motion)cp) { mixin(S_TRACE);
+		if (Motion.maxNest_init != m.maxNest) { mixin(S_TRACE);
+			d.maxNest[m.cwxPath(true)] = m.maxNest;
+		}
+	} else if (auto e = cast(Content)cp) { mixin(S_TRACE);
+		if (e.comment.length) { mixin(S_TRACE);
+			d.comment[e.cwxPath(true)] = e.comment;
+		}
+	} else if (auto b = cast(ImageCell)cp) { mixin(S_TRACE);
+		putInnerImagePath(d, cp, b.path);
+	} else if (auto c = cast(MenuCard)cp) { mixin(S_TRACE);
+		if (!isBinImg(c.path)) { mixin(S_TRACE);
+			if (".bmp" != .toLower(c.path.extension())) { mixin(S_TRACE);
+				// Bitmapへの変換が行われた場合は必ずパスを保存する
+				d.imageRef[c.cwxPath(true)] = encodePathLegacy(c.path);
+			}
+		}
+	} else if (auto c = cast(Card)cp) { mixin(S_TRACE);
+		putInnerImagePath(d, cp, c.path);
+		if (auto ec = cast(EffectCard)cp) { mixin(S_TRACE);
+			if (0 != ec.linkId) {
+				d.cardRef[ec.cwxPath(true)] = ec.linkId;
+			}
+		}
+	}
+	foreach (child; cp.cwxChilds) { mixin(S_TRACE);
+		putExData(d, cp);
+	}
 }
 
 private byte fromTargetT(Target v) { mixin(S_TRACE);
