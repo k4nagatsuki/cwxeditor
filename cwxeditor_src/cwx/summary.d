@@ -715,13 +715,13 @@ public:
 			foreach (pathId; useCounter.path.keys) { mixin(S_TRACE);
 				if (pathId.isBinImg) continue;
 				auto path = cast(string)pathId;
+				if (path == "") continue;
 				static if (0 == filenameCharCmp('A', 'a')) {
 					path = path.toLower();
 				}
 				auto p1 = path in newAllPaths;
 				auto p2 = path in _noSaveCheckPaths;
 				if ((!p1 && !p2) || (p1 && !p2) || (!p1 && p2) || (*p1 != *p2)) { mixin(S_TRACE);
-					cdebugln(path);
 					foreach (user; useCounter.values(toPathId(path))) { mixin(S_TRACE);
 						auto owner = user.owner;
 						if (cast(Card)owner || cast(AbstractSpCard)owner) { mixin(S_TRACE);
@@ -1600,21 +1600,23 @@ public:
 		xOpt.beast = &beast;
 		std.file.write(summFile, summaryToXML(xOpt));
 
-		saveXML(std.path.buildPath(path, PATH_AREA), _area, opt, xOpt);
-		saveXML(std.path.buildPath(path, PATH_BATTLE), _btl, opt, xOpt);
-		saveXML(std.path.buildPath(path, PATH_PACKAGE), _pkg, opt, xOpt);
+		HashSet!Object changed = null;
+		if (opt.saveChangedOnly) changed = changedResources;
+		saveXML(std.path.buildPath(path, PATH_AREA), _area, opt, xOpt, changed);
+		saveXML(std.path.buildPath(path, PATH_BATTLE), _btl, opt, xOpt, changed);
+		saveXML(std.path.buildPath(path, PATH_PACKAGE), _pkg, opt, xOpt, changed);
 
-		saveXML(std.path.buildPath(path, PATH_CAST), _cast, opt, xOpt);
-		saveXML(std.path.buildPath(path, PATH_SKILL), _skl, opt, xOpt);
-		saveXML(std.path.buildPath(path, PATH_ITEM), _itm, opt, xOpt);
-		saveXML(std.path.buildPath(path, PATH_BEAST), _bst, opt, xOpt);
-		saveXML(std.path.buildPath(path, PATH_INFO), _info, opt, xOpt);
+		saveXML(std.path.buildPath(path, PATH_CAST), _cast, opt, xOpt, changed);
+		saveXML(std.path.buildPath(path, PATH_SKILL), _skl, opt, xOpt, changed);
+		saveXML(std.path.buildPath(path, PATH_ITEM), _itm, opt, xOpt, changed);
+		saveXML(std.path.buildPath(path, PATH_BEAST), _bst, opt, xOpt, changed);
+		saveXML(std.path.buildPath(path, PATH_INFO), _info, opt, xOpt, changed);
 	}
 	/// ditto
 	void saveXMLs(const System sys, in SaveOption opt) { mixin(S_TRACE);
 		saveXMLs(_sPath, sys, opt);
 	}
-	private static void delAllXML(string p, in SaveOption opt) { mixin(S_TRACE);
+	private static void delAllXML(A)(string p, in A[string] saveSet, in SaveOption opt) { mixin(S_TRACE);
 		bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
 		string backupDir = "";
 		if (canBackup) { mixin(S_TRACE);
@@ -1622,6 +1624,7 @@ public:
 		}
 		foreach (t; clistdir(p)) { mixin(S_TRACE);
 			auto file = std.path.buildPath(p, t);
+			if (saveSet && t in saveSet) continue;
 			if (isDir(file) || !cfnmatch(.extension(file), ".xml")) continue;
 
 			if (canBackup) { mixin(S_TRACE);
@@ -1633,23 +1636,30 @@ public:
 			std.file.remove(file);
 		}
 	}
-	private static void saveXML(A)(string path, A[] targs, in SaveOption opt, XMLOption xOpt) { mixin(S_TRACE);
+	private static void saveXML(A)(string path, A[] targs, in SaveOption opt, XMLOption xOpt, HashSet!Object changed) { mixin(S_TRACE);
 		if (targs.length == 0) { mixin(S_TRACE);
 			if (exists(path) && isDir(path)) { mixin(S_TRACE);
-				delAllXML(path, opt);
+				delAllXML!Object(path, null, opt);
 				if (clistdir(path).length == 0) { mixin(S_TRACE);
 					rmdir(path);
 				}
 			}
 		} else { mixin(S_TRACE);
+			A[string] saveSet;
+			foreach (targ; targs) { mixin(S_TRACE);
+				auto p = createFileI(path, targ.name, ".xml", format("%02d", targ.id) ~ "_", true);
+				saveSet[p.baseName()] = targ;
+			}
 			if (exists(path) && isDir(path)) { mixin(S_TRACE);
-				delAllXML(path, opt);
+				delAllXML!A(path, saveSet, opt);
 			} else { mixin(S_TRACE);
 				mkdir(path);
 			}
-			foreach (targ; targs) { mixin(S_TRACE);
-				auto p = createFileI(path, targ.name, ".xml", format("%02d", targ.id) ~ "_");
-				std.file.write(p, targ.toXML(xOpt));
+			foreach (name, a; saveSet) { mixin(S_TRACE);
+				auto p = path.buildPath(name);
+				if (!opt.saveChangedOnly || !p.exists() || !p.isFile() || changed.contains(cast(Object)a)) { mixin(S_TRACE);
+					std.file.write(p, a.toXML(xOpt));
+				}
 			}
 		}
 	}
@@ -1912,7 +1922,7 @@ public:
 				assert (files.length);
 				targ.path = (*files)[0u];
 			} else { mixin(S_TRACE);
-				auto file = createFileI(mt, fname, ".bmp", "");
+				auto file = createFileI(mt, fname, ".bmp", "", false);
 				std.file.write(file, bytes);
 				targ.path = std.path.buildPath(toSkin.materialPath, baseName(file));
 				cis[assumeUnique(bytes)] ~= targ.path;
@@ -2041,6 +2051,8 @@ public:
 	/// 名前をつけて保存。
 	void saveWithName(in CProps prop, in Skin skin, in SaveOption opt, string fname, string tempPath,
 			bool defExpandXMLs, Skin defSkin, void delegate(string) showWarn, bool classic) { mixin(S_TRACE);
+		SaveOption opt2 = opt;
+		opt2.saveChangedOnly = false; // 部分保存ができるのは上書き時のみ
 		if (classic) { mixin(S_TRACE);
 			// クラシック形式で保存
 			string[] copyFail;
@@ -2055,7 +2067,7 @@ public:
 			scope (failure) {
 				if (useTemp) delAll(temp);
 			}
-			saveProc(prop, skin, opt, useTemp, zipName, temp, sPath, true, false, defExpandXMLs, true);
+			saveProc(prop, skin, opt2, useTemp, zipName, temp, sPath, true, false, defExpandXMLs, true);
 		} else if (fname.baseName().cfnmatch("Summary.xml") || (fname.exists() && fname.isDir())) { mixin(S_TRACE);
 			// 新しく指定ディレクトリに保存(クラシック形式からXML形式への変換も含む)
 			string[] copyFail;
@@ -2076,7 +2088,7 @@ public:
 			}
 			assert (!useTemp);
 			string zipName = "";
-			saveProc(prop, skin, opt, useTemp, zipName, temp, sPath, false, false, defExpandXMLs, true);
+			saveProc(prop, skin, opt2, useTemp, zipName, temp, sPath, false, false, defExpandXMLs, true);
 			if (!type.length) { mixin(S_TRACE);
 				type = defSkin.type;
 				resetChanged();
@@ -2092,13 +2104,13 @@ public:
 			}
 			scope (failure) delAll(temp);
 			if (!type.length) type = defSkin.type;
-			saveProc(prop, skin, opt, true, fname, temp, scenarioPath, legacy, true, defExpandXMLs, true);
+			saveProc(prop, skin, opt2, true, fname, temp, scenarioPath, legacy, true, defExpandXMLs, true);
 		} else if (useTemp) { mixin(S_TRACE);
 			// 新しいアーカイブを作成
 			string oldZip = _zipName;
 			_zipName = fname;
 			scope (failure) _zipName = oldZip;
-			saveProc(prop, skin, opt, false, zipName, scenarioPath, scenarioPath, legacy, false, defExpandXMLs, true);
+			saveProc(prop, skin, opt2, false, zipName, scenarioPath, scenarioPath, legacy, false, defExpandXMLs, true);
 		} else { mixin(S_TRACE);
 			// 展開済みシナリオからアーカイブに変換
 			auto oldPath = scenarioPath;
@@ -2109,7 +2121,7 @@ public:
 				scenarioPath = oldPath;
 				delAll(p);
 			}
-			saveProc(prop, skin, opt, true, fname, p, scenarioPath, legacy, false, defExpandXMLs, true);
+			saveProc(prop, skin, opt2, true, fname, p, scenarioPath, legacy, false, defExpandXMLs, true);
 		}
 	}
 	private void saveProc(in CProps prop, in Skin skin, in SaveOption opt, bool archive,

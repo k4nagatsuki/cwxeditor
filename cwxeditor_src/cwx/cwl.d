@@ -2300,7 +2300,7 @@ void putExData(ref SData d, CWXPath cp) { mixin(S_TRACE);
 		}
 	}
 	foreach (child; cp.cwxChilds) { mixin(S_TRACE);
-		putExData(d, cp);
+		putExData(d, child);
 	}
 }
 

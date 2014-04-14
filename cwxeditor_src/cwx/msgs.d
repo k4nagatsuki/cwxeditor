@@ -1645,6 +1645,7 @@ class Msgs : Properties {
 	auto showSpNature = Msg("showSpNature", "特殊型を表示する");
 	auto saveNeedChanged = Msg("saveNeedChanged", "変更があった時だけ上書き保存を有効にする");
 	auto saveInnerImagePath = Msg("saveInnerImagePath", "クラシックなシナリオで格納イメージのファイルパスを保存する");
+	auto saveChangedOnly = Msg("saveChangedOnly", "上書き時に更新されたファイルだけを保存する");
 	auto linkCard = Msg("linkCard", "キャストの所有カードや召喚対象のカードを参照で設定する");
 	auto traceDirectories = Msg("traceDirectories", "ファイル・" ~ DIR ~ "の変更を自動的に追跡する");
 	auto logicalSort = Msg("logicalSort", "数値参照型ソートを行う(1, 10, 2, 3, ... → 1, 2, 3, 10, ...)");

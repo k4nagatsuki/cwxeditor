@@ -1149,14 +1149,14 @@ string cleanFileName(string name) { mixin(S_TRACE);
 	return name;
 }
 
-private string createFileImpl(bool Dir)(string parent, string name, string ext, string prefix) { mixin(S_TRACE);
+private string createFileImpl(bool Dir)(string parent, string name, string ext, string prefix, bool ignoreExistsFile) { mixin(S_TRACE);
 	string r;
 	void create() { mixin(S_TRACE);
 		r = prefix ~ name;
 		r = r.toFileName();
 		if (ext.length) r = setExtension(r, ext);
 		r = std.path.buildPath(parent, r);
-		r = createNewFileName(r, Dir);
+		if (!ignoreExistsFile) r = createNewFileName(r, Dir);
 	}
 	name = cleanFileName(name);
 	create();
@@ -1166,12 +1166,12 @@ private string createFileImpl(bool Dir)(string parent, string name, string ext, 
 /// 指定されたファイル名がすでに存在する場合、"test(2).txt"のように
 /// 括弧つき数字をつける。
 /// それでも存在する場合、括弧内の数値をインクリメントしてゆく。
-string createFileI(string parent, string name, string ext, string prefix) { mixin(S_TRACE);
-	return createFileImpl!(false)(parent, name, ext, prefix);
+string createFileI(string parent, string name, string ext, string prefix, bool ignoreExistsFile) { mixin(S_TRACE);
+	return createFileImpl!(false)(parent, name, ext, prefix, ignoreExistsFile);
 }
 /// ditto
-string createFolder(string parent, string name) { mixin(S_TRACE);
-	return createFileImpl!(true)(parent, name, "", "");
+string createFolder(string parent, string name, bool ignoreExistsFile) { mixin(S_TRACE);
+	return createFileImpl!(true)(parent, name, "", "", ignoreExistsFile);
 }
 
 /// ファイル削除の準備を行う。

@@ -561,7 +561,7 @@ public:
 		_coupons = coupons;
 	}
 
-	private C __add(C)(ref C[] arr, C c) { mixin(S_TRACE);
+	private C addImpl(C)(ref C[] arr, C c) { mixin(S_TRACE);
 		if (contains!("a is b")(arr, c)) { mixin(S_TRACE);
 			remove(c);
 		}
@@ -611,7 +611,7 @@ public:
 	}
 	private T __insert(T, alias ToID)(ref T[] arr, int index, T c) { mixin(S_TRACE);
 		if (arr.length == index) { mixin(S_TRACE);
-			return __add!(T)(arr, c);
+			return addImpl!(T)(arr, c);
 		} else { mixin(S_TRACE);
 			int oldIdx = indexOf(c);
 			if (oldIdx >= 0) { mixin(S_TRACE);
@@ -639,7 +639,7 @@ public:
 	inout
 	inout(ItemCard)[] items() {return _items;}
 	/// ditto
-	ItemCard add(ItemCard card) {return __add(_items, card);}
+	ItemCard add(ItemCard card) {return addImpl(_items, card);}
 	/// ditto
 	void removeItem(ulong id) {__remove(_items, id);}
 	/// ditto
@@ -659,7 +659,7 @@ public:
 	inout
 	inout(SkillCard)[] skills() {return _skills;}
 	/// ditto
-	SkillCard add(SkillCard card) {return __add(_skills, card);}
+	SkillCard add(SkillCard card) {return addImpl(_skills, card);}
 	/// ditto
 	void removeSkill(ulong id) {__remove(_skills, id);}
 	/// ditto
@@ -679,7 +679,7 @@ public:
 	inout
 	inout(BeastCard)[] beasts() {return _beasts;}
 	/// ditto
-	BeastCard add(BeastCard card) {return __add(_beasts, card);}
+	BeastCard add(BeastCard card) {return addImpl(_beasts, card);}
 	/// ditto
 	void removeBeast(ulong id) {__remove(_beasts, id);}
 	/// ditto
@@ -965,21 +965,27 @@ public:
 
 		cNode.onTag["ItemCards"] = (ref XNode n) { mixin(S_TRACE);
 			n.onTag[ItemCard.XML_NAME] = (ref XNode n) { mixin(S_TRACE);
-				r._items ~= ItemCard.createFromNode(n, ver);
+				auto c = ItemCard.createFromNode(n, ver);
+				c.owner = r;
+				r._items ~= c;
 			};
 			n.parse();
 			r._items.sort;
 		};
 		cNode.onTag["SkillCards"] = (ref XNode n) { mixin(S_TRACE);
 			n.onTag[SkillCard.XML_NAME] = (ref XNode n) { mixin(S_TRACE);
-				r._skills ~= SkillCard.createFromNode(n, ver);
+				auto c = SkillCard.createFromNode(n, ver);
+				c.owner = r;
+				r._skills ~= c;
 			};
 			n.parse();
 			r._skills.sort;
 		};
 		cNode.onTag["BeastCards"] = (ref XNode n) { mixin(S_TRACE);
 			n.onTag[BeastCard.XML_NAME] = (ref XNode n) { mixin(S_TRACE);
-				r._beasts ~= BeastCard.createFromNode(n, ver);
+				auto c = BeastCard.createFromNode(n, ver);
+				c.owner = r;
+				r._beasts ~= c;
 			};
 			n.parse();
 			r._beasts.sort;
