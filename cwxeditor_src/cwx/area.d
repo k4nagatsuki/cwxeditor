@@ -815,6 +815,15 @@ public:
 		if (name is null) throw new AreaException("Name not found");
 		id = to!(ulong)(idStr);
 	}
+
+	const
+	override hash_t toHash() {
+		hash_t hash = 0;
+		foreach (c; typeid(this).name) {
+			hash = hash * 37 + c;
+		}
+		return cast(hash_t)(hash * 37 + _id);
+	}
 }
 
 /// エリア。

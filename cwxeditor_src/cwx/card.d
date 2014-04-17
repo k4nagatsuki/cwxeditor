@@ -286,6 +286,15 @@ public:
 	override int opCmp(Object o) { mixin(S_TRACE);
 		return cast(int) _id - cast(int) (cast(Card) o)._id;
 	}
+
+	const
+	override hash_t toHash() {
+		hash_t hash = 0;
+		foreach (c; typeid(this).name) {
+			hash = hash * 37 + c;
+		}
+		return cast(hash_t)(hash * 37 + _id);
+	}
 }
 
 /// キャストカード。
