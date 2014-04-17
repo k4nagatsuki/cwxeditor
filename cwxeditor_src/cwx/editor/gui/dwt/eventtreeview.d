@@ -662,7 +662,7 @@ private:
 		return _comm.eventTreeViewFrom(_et.cwxPath(true), false);
 	}
 
-	private EventDialog[Content] _editDlgs;
+	private EventDialog[string] _editDlgs;
 	void appliedEdit(UndoContent undo, Content c) { mixin(S_TRACE);
 		_undo ~= undo;
 		auto cwxPath = c.cwxPath(true);
@@ -941,9 +941,9 @@ private:
 				undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
 			};
 		};
-		_editDlgs[evt] = dlg;
+		_editDlgs[evt.eventId] = dlg;
 		dlg.closeEvent ~= { mixin(S_TRACE);
-			_editDlgs.remove(evt);
+			_editDlgs.remove(evt.eventId);
 		};
 		dlg.open();
 	}
@@ -959,7 +959,7 @@ private:
 	EventDialog edit(Content evt) { mixin(S_TRACE);
 		if (_readOnly) return null;
 		if (!hasDialog(evt.type) || !checkOpenDialog(evt.type)) return null;
-		auto p = evt in _editDlgs;
+		auto p = evt.eventId in _editDlgs;
 		if (p) { mixin(S_TRACE);
 			p.active();
 			return *p;
@@ -970,9 +970,9 @@ private:
 			appliedEdit(undo, evt);
 			undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
 		};
-		_editDlgs[evt] = dlg;
+		_editDlgs[evt.eventId] = dlg;
 		dlg.closeEvent ~= { mixin(S_TRACE);
-			_editDlgs.remove(evt);
+			_editDlgs.remove(evt.eventId);
 		};
 		dlg.open();
 		return dlg;
@@ -2019,7 +2019,7 @@ public:
 		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
 	}
-	private ContentCommentDialog[Content] _commentDlgs;
+	private ContentCommentDialog[string] _commentDlgs;
 	@property
 	bool canWriteComment() { mixin(S_TRACE);
 		if (_readOnly) return false;
@@ -2031,7 +2031,7 @@ public:
 		if (!itm) return;
 		.forceFocus(_tree.control, false);
 		auto c = cast(Content) itm.getData();
-		auto p = c in _commentDlgs;
+		auto p = c.eventId in _commentDlgs;
 		if (p) { mixin(S_TRACE);
 			p.active();
 			return;
@@ -2045,9 +2045,9 @@ public:
 				v.redraw();
 			}
 		};
-		_commentDlgs[c] = dlg;
+		_commentDlgs[c.eventId] = dlg;
 		dlg.closeEvent ~= { mixin(S_TRACE);
-			_commentDlgs.remove(c);
+			_commentDlgs.remove(c.eventId);
 		};
 		dlg.open();
 	}
