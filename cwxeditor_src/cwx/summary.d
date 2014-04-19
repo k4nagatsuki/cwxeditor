@@ -18,6 +18,8 @@ import cwx.event;
 import cwx.system;
 import cwx.structs;
 
+import core.thread;
+
 import std.array;
 import std.file;
 import std.stream;
@@ -93,6 +95,7 @@ private:
 	string _zipName = ""; /// 圧縮されているシナリオなら、元ファイルのパス。
 	string _tempPath = ""; /// 圧縮されているシナリオなら、一時展開先のパス。
 	bool _legacy = false; /// クラシックなシナリオか。
+	bool _inSaving = false; /// 保存中ならtrue。
 
 	/// ファイル・ディレクトリの更新チェック用のパス一覧。
 	SysTime[string] _checkPaths, _noSaveCheckPaths;
@@ -529,6 +532,13 @@ public:
 	/// 一時展開先を削除する。
 	void delTemp() { mixin(S_TRACE);
 		if (useTemp) { mixin(S_TRACE);
+			if (_inSaving) { mixin(S_TRACE);
+				.task({ mixin(S_TRACE);
+					while (_inSaving) Thread.sleep(dur!"msecs"(1));
+					delTemp();
+				}).executeInNewThread();
+				return;
+			}
 			_lock.close();
 			_lock = null;
 			try { mixin(S_TRACE);
@@ -1587,7 +1597,13 @@ public:
 		saveXMLsImpl(path, sys, opt, true);
 	}
 	private void saveXMLsImpl(string path, const System sys, in SaveOption opt, bool callSaved) { mixin(S_TRACE);
-		scope (exit) if (callSaved && opt.savedCallback) opt.savedCallback();
+		if (callSaved) _inSaving = true;
+		scope (exit) {
+			if (callSaved) {
+				_inSaving = false;
+				if (opt.savedCallback) opt.savedCallback();
+			}
+		}
 		string summFile = std.path.buildPath(path, "Summary.xml");
 
 		bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
@@ -2135,10 +2151,14 @@ public:
 	private void saveProc(in CProps prop, in Skin skin, in SaveOption opt, bool archive,
 			string zipName, string temp, string sPath, bool legacy, bool legacyToX, bool defExpandXMLs, bool releaseLock, void delegate() after = null) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
+			_inSaving = true;
 			auto callSaved = true;
 			scope (exit) {
 				if (after) after();
-				if (callSaved && opt.savedCallback) opt.savedCallback();
+				if (callSaved) {
+					_inSaving = false;
+					if (opt.savedCallback) opt.savedCallback();
+				}
 			}
 			void releaseLockFile() { mixin(S_TRACE);
 				if (releaseLock && _lock) { mixin(S_TRACE);
@@ -2156,6 +2176,10 @@ public:
 				.enforce(useTemp == (0 < zipName.length));
 				if (useTemp) { mixin(S_TRACE);
 					void t1() { mixin(S_TRACE);
+						scope (exit) {
+							_inSaving = false;
+							if (opt.savedCallback) opt.savedCallback();
+						}
 						if (cfnmatch(.extension(zipName), ".cab")) { mixin(S_TRACE);
 							.cab(temp, zipName, (string file) { mixin(S_TRACE);
 								return !cfnmatch(baseName(file), "cwxeditor.lock");
@@ -2167,7 +2191,6 @@ public:
 						if (useTemp && !_lock) { mixin(S_TRACE);
 							lock(sPath, useTemp);
 						}
-						if (opt.savedCallback) opt.savedCallback();
 					}
 					if (opt.archiveInNewThread) { mixin(S_TRACE);
 						.task(&t1).executeInNewThread();
@@ -2199,6 +2222,10 @@ public:
 					expand = true;
 				}
 				void t2() { mixin(S_TRACE);
+					scope (exit) {
+						_inSaving = false;
+						if (opt.savedCallback) opt.savedCallback();
+					}
 					auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
 					ubyte[][] data;
 					scope arc = .zip(scenarioPath, false, [lock], false, data);
@@ -2223,7 +2250,6 @@ public:
 					}
 					(cast(ubyte[])data)[] = 0;
 					delete data;
-					if (opt.savedCallback) opt.savedCallback();
 				}
 				if (opt.archiveInNewThread) { mixin(S_TRACE);
 					.task(&t2).executeInNewThread();
@@ -2247,8 +2273,11 @@ public:
 			resetChanged();
 			if (legacyToX || (!useTemp && archive)) { mixin(S_TRACE);
 				void t3() { mixin(S_TRACE);
+					scope (exit) {
+						_inSaving = false;
+						if (opt.savedCallback) opt.savedCallback();
+					}
 					toArchive(zipName, temp, expand);
-					if (opt.savedCallback) opt.savedCallback();
 				}
 				if (opt.archiveInNewThread) { mixin(S_TRACE);
 					.task(&t3).executeInNewThread();

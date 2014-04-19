@@ -360,6 +360,7 @@ class FlexEtcProps : Properties {
 	auto xmlCopy = Prop!(bool)("xmlCopy", false);
 	auto showSpNature = Prop!(bool)("showSpNature", false);
 	auto saveChangedOnly = Prop!(bool)("saveChangedOnly", false);
+	auto archiveInNewThread = Prop!(bool)("archiveInNewThread", true);
 	auto saveInnerImagePath = Prop!(bool)("saveInnerImagePath", false);
 	auto linkCard = Prop!(bool)("linkCard", false);
 	auto traceDirectories = Prop!(bool)("traceDirectories", true);

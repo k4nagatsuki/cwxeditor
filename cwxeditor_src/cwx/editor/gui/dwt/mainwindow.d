@@ -110,6 +110,7 @@ private:
 	Display _display = null;
 	bool _quit = false;
 	Object _saveSync = null;
+	bool _inSaving = false;
 	private bool _isChanged = false;
 
 	SBShell _sbshl = null;
@@ -849,6 +850,15 @@ private:
 		opt.saveChangedOnly = _prop.var.etc.saveChangedOnly;
 		opt.backup = _prop.var.etc.backupBeforeSaveEnabled;
 		opt.backupDir = _prop.backupBeforeSavePath.buildPath(_prop.var.etc.backupBeforeSaveDir);
+		opt.archiveInNewThread = _prop.var.etc.archiveInNewThread;
+		opt.savedCallback = { mixin(S_TRACE);
+			_display.asyncExec(new class Runnable {
+				override void run() { mixin(S_TRACE);
+					_inSaving = false;
+					_comm.refreshToolBar();
+				}
+			});
+		};
 		return opt;
 	}
 	void beforeSave() { mixin(S_TRACE);
@@ -858,6 +868,10 @@ private:
 				if (!dlg) continue;
 				dlg.forceApply();
 			}
+		}
+		_inSaving = true;
+		if (_prop.var.etc.archiveInNewThread) { mixin(S_TRACE);
+			_comm.refreshToolBar();
 		}
 	}
 	bool save(Shell shell, bool backupSave = false) { mixin(S_TRACE);
@@ -1485,7 +1499,7 @@ private:
 	}
 	private Menu _menuFile;
 	bool canSaveOverwrite() { mixin(S_TRACE);
-		return summary !is null && (!_prop.var.etc.saveNeedChanged || _isChanged);
+		return summary !is null && !_inSaving && (!_prop.var.etc.saveNeedChanged || _isChanged);
 	}
 	void createFileMenu() { mixin(S_TRACE);
 		foreach (itm; _menuFile.getItems()) { mixin(S_TRACE);
@@ -1494,7 +1508,7 @@ private:
 		mixin (MenuAction!("_menuFile", MenuID.New, SWT.PUSH, "createScenario", "null"));
 		mixin (MenuAction!("_menuFile", MenuID.Open, SWT.PUSH, "openScenarioM", "null"));
 		mixin (MenuAction!("_menuFile", MenuID.Save, SWT.PUSH, "saveScenario", "&canSaveOverwrite"));
-		mixin (MenuAction!("_menuFile", MenuID.SaveAs, SWT.PUSH, "saveScenarioA", "() => summary !is null"));
+		mixin (MenuAction!("_menuFile", MenuID.SaveAs, SWT.PUSH, "saveScenarioA", "() => summary !is null && !_inSaving"));
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		mixin (MenuAction!("_menuFile", MenuID.NewAtNewWindow, SWT.PUSH, "createScenarioNewWin", "null"));
 		mixin (MenuAction!("_menuFile", MenuID.OpenAtNewWindow, SWT.PUSH, "openScenarioNewWin", "null"));
@@ -2449,7 +2463,7 @@ public:
 									case MenuID.New: act = &createScenario; can = null; break;
 									case MenuID.Open: act = &openScenarioM; can = null; break;
 									case MenuID.Save: act = &saveScenario; can = &canSaveOverwrite; break;
-									case MenuID.SaveAs: act = &saveScenarioA; can = () => summary !is null; break;
+									case MenuID.SaveAs: act = &saveScenarioA; can = () => summary !is null && !_inSaving; break;
 									case MenuID.CreateArchive: act = &_dirWin.createArchive; can = &_dirWin.canCreateArchive; break;
 									case MenuID.Reload: act = &reload; can = () => summary !is null; break;
 									case MenuID.Refresh: actS = &refreshAll; can = () => summary !is null; break;
@@ -2728,7 +2742,7 @@ public:
 				mixin (ToolAction!("bar", MenuID.New, SWT.PUSH, "createScenario", "null"));
 				mixin (ToolAction!("bar", MenuID.Open, SWT.PUSH, "openScenarioM", "null"));
 				mixin (ToolAction!("bar", MenuID.Save, SWT.PUSH, "saveScenario", "&canSaveOverwrite"));
-				mixin (ToolAction!("bar", MenuID.SaveAs, SWT.PUSH, "saveScenarioA", "() => summary !is null"));
+				mixin (ToolAction!("bar", MenuID.SaveAs, SWT.PUSH, "saveScenarioA", "() => summary !is null && !_inSaving"));
 				new ToolItem(bar, SWT.SEPARATOR);
 				mixin (ToolAction!("bar", MenuID.Find, SWT.PUSH, "replaceText", "null"));
 				mixin (ToolAction!("bar", MenuID.FindID, SWT.PUSH));
