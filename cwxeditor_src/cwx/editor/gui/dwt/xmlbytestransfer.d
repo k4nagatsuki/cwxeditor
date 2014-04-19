@@ -74,7 +74,7 @@ string CBtoXML(ClipData cb) {
 		auto aws = cast(ArrayWrapperString) c;
 		string head = XML_HEADER_S;
 		if (aws && std.algorithm.startsWith(aws.array, head)) {
-			auto r = aws.array;
+			auto r = aws.array.replace(.newline, "\n");
 			return assumeUnique(r);
 		}
 	}
