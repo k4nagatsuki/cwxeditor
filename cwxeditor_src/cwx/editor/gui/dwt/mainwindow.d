@@ -850,15 +850,17 @@ private:
 		opt.saveChangedOnly = _prop.var.etc.saveChangedOnly;
 		opt.backup = _prop.var.etc.backupBeforeSaveEnabled;
 		opt.backupDir = _prop.backupBeforeSavePath.buildPath(_prop.var.etc.backupBeforeSaveDir);
-		opt.archiveInNewThread = _prop.var.etc.archiveInNewThread;
-		opt.savedCallback = { mixin(S_TRACE);
-			_display.asyncExec(new class Runnable {
-				override void run() { mixin(S_TRACE);
-					_inSaving = false;
-					_comm.refreshToolBar();
-				}
-			});
-		};
+		opt.archiveInNewThread = _prop.var.etc.archiveInNewThread && summary.useTemp;
+		if (opt.archiveInNewThread) { mixin(S_TRACE);
+			opt.savedCallback = { mixin(S_TRACE);
+				_display.asyncExec(new class Runnable {
+					override void run() { mixin(S_TRACE);
+						_inSaving = false;
+						_comm.refreshToolBar();
+					}
+				});
+			};
+		}
 		return opt;
 	}
 	void beforeSave() { mixin(S_TRACE);
@@ -869,8 +871,8 @@ private:
 				dlg.forceApply();
 			}
 		}
-		_inSaving = true;
-		if (_prop.var.etc.archiveInNewThread) { mixin(S_TRACE);
+		if (_prop.var.etc.archiveInNewThread && summary.useTemp) { mixin(S_TRACE);
+			_inSaving = true;
 			_comm.refreshToolBar();
 		}
 	}
