@@ -317,10 +317,10 @@ public:
 			auto arc = new ZipArchive(readBinary(fname));
 			foreach (am; arc.directory) { mixin(S_TRACE);
 				string name;
-				try { mixin(S_TRACE);
+				try {
 					cwx.utils.validate(am.name);
 					name = am.name;
-				} catch { mixin(S_TRACE);
+				} catch (Exception e) {
 					name = touni(am.name);
 				}
 				name = replace(name, "/", dirSeparator);
@@ -348,7 +348,9 @@ public:
 				try { mixin(S_TRACE);
 					expandDir = temp;
 					.unzip(temp, arc, &expandName);
-				} catch { mixin(S_TRACE);
+				} catch (Exception e) { mixin(S_TRACE);
+					printStackTrace();
+					debugln(e);
 					delAll(temp);
 					return null;
 				}
@@ -419,6 +421,8 @@ public:
 						return r;
 					}
 				} catch (Exception e) {
+					printStackTrace();
+					debugln(e);
 					delAll(fn);
 					throw e;
 				}
@@ -493,6 +497,8 @@ public:
 									r.refCheckPaths();
 									return r;
 								} catch (Exception e) {
+									printStackTrace();
+									debugln(e);
 									delAll(fname);
 									throw e;
 								}
@@ -1756,6 +1762,8 @@ public:
 					try { mixin(S_TRACE);
 						loadXMLCommon(std.file.readText(p), name, areas, uc, change, ver);
 					} catch (Exception e) {
+						printStackTrace();
+						debugln(e);
 						throw new FileLoadException(p, e);
 					}
 				}
@@ -1773,6 +1781,8 @@ public:
 			try { mixin(S_TRACE);
 				loadXMLCommon(xml, name, areas, uc, change, ver);
 			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
 				throw new Exception(std.path.buildPath(dirName, file));
 			}
 		}

@@ -143,6 +143,8 @@ class IncSearch {
 				_regex = .regex(to!dstring(_text.getText()), "i");
 				_regexErr = false;
 			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
 				_regexErr = true;
 			}
 

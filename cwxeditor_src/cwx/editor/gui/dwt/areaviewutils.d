@@ -72,7 +72,9 @@ FlexImage createBackgroundImage
 		} else {
 			try { mixin(S_TRACE);
 				dwtImageSize(prop, skin, summ, path, baseW, baseH);
-			} catch { mixin(S_TRACE);
+			} catch (Exception e) { mixin(S_TRACE);
+				printStackTrace();
+				debugln(e);
 				baseW = w;
 				baseH = h;
 			}

@@ -191,8 +191,8 @@ ZipArchive zip(string targ, bool top, string[] excludePath, bool useSysEnc, ref 
 }
 
 // ファイル名の文字コードをUTF-8に統一する。
-string memberName(string name) { mixin(S_TRACE);
-	try { mixin(S_TRACE);
+string memberName(string name) {
+	try {
 		cwx.utils.validate(name);
 	} catch (Exception e) {
 		name = touni(name);
@@ -213,6 +213,7 @@ bool zipHasFile(string zip, string fileName) { mixin(S_TRACE);
 			}
 		}
 	} catch (Exception e) {
+		printStackTrace();
 		debugln!(__FILE__, __LINE__, Exception)(e);
 	}
 	return false;

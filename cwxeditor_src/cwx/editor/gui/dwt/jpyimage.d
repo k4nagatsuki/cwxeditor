@@ -49,12 +49,15 @@ ImageData loadJPYImage(Props prop, in Skin skin, in Summary summ, string path, s
 			return img;
 		}
 	} catch (EffectBoosterError e) {
+		printStackTrace();
+		debugln(e);
 		resizable = false;
 		auto img = warningImage(prop, summ, e);
 		width = img.width;
 		height = img.height;
 		return img;
 	} catch (Exception e) {
+		printStackTrace();
 		debugln(e);
 	}
 	width = 0;

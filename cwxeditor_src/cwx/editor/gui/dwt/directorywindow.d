@@ -268,6 +268,7 @@ private:
 			_dirs.getHorizontalBar().setSelection(hs);
 			_dirs.showSelection();
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -376,6 +377,7 @@ private:
 				_files.removeAll();
 			}
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -772,6 +774,7 @@ private:
 				refreshFiles(selfs);
 				return true;
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -901,6 +904,7 @@ private:
 			}
 		} catch (Exception e) {
 			// 不正な名前
+			printStackTrace();
 			debugln(e);
 			return null;
 		}
@@ -998,6 +1002,7 @@ private:
 				auto c = _summ.useCounter.path.get(file.pathId);
 				itm.setText(2, to!(string)(c));
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -1018,6 +1023,7 @@ private:
 				_jpyData ~= Jpy1.load(_prop.parent, sPath, file);
 				_jpyData[$-1].setUseCounter(_summ.useCounter);
 			} catch (EffectBoosterError e) {
+				printStackTrace();
 				debugln(file);
 				debugln(e);
 				debug {
@@ -1026,6 +1032,7 @@ private:
 					}
 				}
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(file);
 				debugln(e);
 			}
@@ -1206,6 +1213,7 @@ private:
 				refresh();
 				_comm.refPaths.call(this.outer, _summ.scenarioPath);
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -1313,6 +1321,7 @@ private:
 						default: break;
 						}
 					} catch (Exception e) {
+						printStackTrace();
 						debugln("Trace thread: " ~ e.msg);
 						break;
 					}
@@ -1389,6 +1398,7 @@ private:
 						if (!canDoChk) continue;
 						_display.asyncExec(_refreshThr);
 					} catch (Exception e) {
+						printStackTrace();
 						debugln("Trace thread: " ~ e.msg);
 						break;
 					}
@@ -1442,6 +1452,7 @@ private:
 							setup;
 						}
 					} catch (Exception e) {
+						printStackTrace();
 						debugln("Trace thread: " ~ e.msg);
 						break;
 					}
@@ -1451,6 +1462,7 @@ private:
 				debug writeln("Exit Trace Thread");
 			}
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -1975,6 +1987,7 @@ public:
 				}
 			}
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 		return false;
@@ -1986,6 +1999,7 @@ public:
 		try { mixin(S_TRACE);
 			_traceThr.join();
 		} catch (Throwable e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -2086,6 +2100,7 @@ public:
 			}
 			_prop.var.etc.archivePath = dlg.getFilterPath();
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 			_comm.setStatusLine(_win, _prop.msgs.failedCreateArchive);
 		}

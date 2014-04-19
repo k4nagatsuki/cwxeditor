@@ -1164,6 +1164,7 @@ class Commons {
 						std.file.copy(r.src, r.dst);
 					}
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}
@@ -1301,6 +1302,7 @@ class Commons {
 		} catch (Exception e) {
 			if (_wallpaper) _wallpaper.dispose();
 			_wallpaper = null;
+			printStackTrace();
 			debugln(e);
 		}
 	}

@@ -1124,6 +1124,8 @@ public:
 				return true;
 			}
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 		}
 		return false;
 	}

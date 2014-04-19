@@ -66,6 +66,8 @@ AbstractArea[] createAreasFromNode(ref XNode e, string summId, out bool sameSumm
 		}
 		return areas;
 	} catch (Exception e) {
+		printStackTrace();
+		debugln(e);
 		return [];
 	}
 }
@@ -1146,6 +1148,7 @@ public:
 			scope doc = XNode.parse(xml);
 			return CBfromXML(doc, cards, backs, ver);
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 		return false;
@@ -1170,6 +1173,7 @@ public:
 				return true;
 			}
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 		return false;
@@ -1588,6 +1592,7 @@ public:
 			scope doc = XNode.parse(xml);
 			return CfromXML(doc, cards, ver);
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 		return false;
@@ -1603,6 +1608,7 @@ public:
 				return true;
 			}
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 		return false;

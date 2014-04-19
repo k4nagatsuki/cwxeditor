@@ -331,7 +331,7 @@ protected:
 						opt.expandXMLs = _prop.var.etc.expandXMLs;
 						summ = Summary.loadScenarioFromFile(_prop.parent, opt, tPath, _prop.tempPath, () => dir);
 					} catch (SummaryException e) {
-						// Nothing;
+						printStackTrace();
 						debugln(e);
 					}
 				}
@@ -685,6 +685,8 @@ protected:
 				}
 				_contents = cwx.script.compile(_comm.prop.parent, _summ, CWXScript.pushVars(_script, varTable, opt), opt);
 			} catch (CWXScriptException e) {
+				printStackTrace();
+				debugln(e);
 				auto dlg = new ScriptErrorDialog(_comm, _comm.prop, _table, e, _base, opt);
 				dlg.open();
 				ok = false;

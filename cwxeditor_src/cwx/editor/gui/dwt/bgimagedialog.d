@@ -429,6 +429,7 @@ protected:
 					_selected = true;
 					_comm.refreshToolBar();
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}

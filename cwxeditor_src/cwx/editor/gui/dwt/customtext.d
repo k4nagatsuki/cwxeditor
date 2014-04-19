@@ -227,9 +227,11 @@ class GBLimitText {
 				dstring vText;
 				try { mixin(S_TRACE);
 					vText = toUTF32(e.text);
-				} catch { mixin(S_TRACE);
+				} catch (Exception e) { mixin(S_TRACE);
 					// FIXME: 時々壊れたテキストが来る
 					//        「情報」と入力したときなど
+					printStackTrace();
+					debugln(e);
 					return;
 				}
 				if (vText.length < e.end - e.start) { mixin(S_TRACE);

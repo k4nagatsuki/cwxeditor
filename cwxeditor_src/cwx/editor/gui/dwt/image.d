@@ -39,6 +39,7 @@ private:
 					scope (exit) s.close();
 					imgData = new ImageData(s);
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}

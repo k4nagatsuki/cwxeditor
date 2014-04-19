@@ -141,16 +141,16 @@ immutable curdir = ".";
 immutable pardir = "..";
 
 /// デバグログを生成する。
-string debugString(T)(ref T v) { mixin(S_TRACE);
+string debugString(T)(ref T v) {
 	static if (is(T : Throwable)) {
 		char[] trace;
-		if (v.info) { mixin(S_TRACE);
-			foreach (file; v.info) { mixin(S_TRACE);
-				if (trace.length) { mixin(S_TRACE);
+		if (v.info) {
+			foreach (file; v.info) {
+				if (trace.length) {
 					trace ~= " - ".dup;
 				}
-				try { mixin(S_TRACE);
-					for (size_t i = 0; i < file.length; i++) { mixin(S_TRACE);
+				try {
+					for (size_t i = 0; i < file.length; i++) {
 						char c = file[i];
 						.validate([c]);
 						trace ~= c;
@@ -162,19 +162,19 @@ string debugString(T)(ref T v) { mixin(S_TRACE);
 			}
 		}
 		return .format("[%s] %s, %d: ", v.msg, v.file, v.line) ~ trace.idup;
-	} else { mixin(S_TRACE);
+	} else {
 		return .format("%s", v);
 	}
 }
 /// ditto
 string createDebugln(bool BuildInfo = true, string F = __FILE__, size_t L = __LINE__, T ...)(T vals) { mixin(S_TRACE);
 	char[] buf = format("%s:%d ", F, L).dup;
-	foreach (v; vals) { mixin(S_TRACE);
+	foreach (v; vals) {
 		static if (is(typeof(v) : Throwable)) {
 			buf ~= debugString(v);
 		} else static if (is(typeof(v) : string)) {
 			buf ~= v;
-		} else { mixin(S_TRACE);
+		} else {
 			buf ~= debugString(v);
 		}
 	}
@@ -187,29 +187,29 @@ string createDebugln(bool BuildInfo = true, string F = __FILE__, size_t L = __LI
 	int second = d.second;
 	static if (BuildInfo) {
 		buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ " [" ~ .splitLines!string(APP_BUILD)[0] ~ "]\t" ~ buf;
-	} else { mixin(S_TRACE);
+	} else {
 		buf = format("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, min, second) ~ " " ~ buf;
 	}
 	return assumeUnique(buf);
 }
 
 /// デバグログに文字列を出力する。
-void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) { mixin(S_TRACE);
-	try { mixin(S_TRACE);
-		synchronized { mixin(S_TRACE);
+void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
+	try {
+		synchronized {
 			string log = createDebugln!(true, F, L)(vals);
 			version (Console) {
 				version (Windows) {
 					printf("%s\n\0".ptr, toMBSz(log));
 					dout.flush();
-				} else { mixin(S_TRACE);
+				} else {
 					writeln(log);
 				}
 			}
-			if (!debugLog.dirName().exists()) { mixin(S_TRACE);
+			if (!debugLog.dirName().exists()) {
 				debugLog.dirName().mkdirRecurse();
 			}
-			if (!debugLogFile) { mixin(S_TRACE);
+			if (!debugLogFile) {
 				debugLogFile = new typeof(debugLogFile)(debugLog, FileMode.Append);
 			}
 			debugLogFile.seekEnd(0);
@@ -221,11 +221,11 @@ void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) { mixin(S
 		std.stdio.writeln(F, " ", L, " ");
 	}
 }
-shared static ~this () { mixin(S_TRACE);
+shared static ~this () {
 	version (Console) {
 		debug std.stdio.writeln("Close Debug log file Start");
 	}
-	synchronized { mixin(S_TRACE);
+	synchronized {
 		if (debugLogFile) debugLogFile.close();
 	}
 	version (Console) {
@@ -234,22 +234,22 @@ shared static ~this () { mixin(S_TRACE);
 }
 /// debugコンパイルされている際は デバグログに文字列を出力すると
 /// 共にfdebugln()を呼出し、ファイル出力する。
-void debugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) { mixin(S_TRACE);
+void debugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	debug {
 		fdebugln!(F, L, T)(vals);
 	}
 }
 
 /// コンソール上にデバグログを出力する。
-void cdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) { mixin(S_TRACE);
+void cdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 	version (Console) {
 		debug {
-			synchronized { mixin(S_TRACE);
+			synchronized {
 				string log = createDebugln!(false, F, L)(vals);
 				version (Windows) {
 					printf("%s\n\0".ptr, toMBSz(log));
 					dout.flush();
-				} else { mixin(S_TRACE);
+				} else {
 					writeln(log);
 				}
 			}
@@ -258,13 +258,13 @@ void cdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) { mixin(S
 }
 
 /// コンソール上に文字列を出力する。
-void cwriteln(string s) { mixin(S_TRACE);
+void cwriteln(string s) {
 	version (Console) {
-		synchronized { mixin(S_TRACE);
+		synchronized {
 			version (Windows) {
 				printf("%s\n\0".ptr, toMBSz(s));
 				dout.flush();
-			} else { mixin(S_TRACE);
+			} else {
 				writeln(s);
 			}
 		}
@@ -497,6 +497,7 @@ string tryFormat(T ...)(string s, T vals) { mixin(S_TRACE);
 		formattedWrite(a, s, vals);
 		return a.data;
 	} catch (Exception e) {
+		printStackTrace();
 		debugln(s);
 		debugln(e);
 		return s;
@@ -727,6 +728,7 @@ string fileToMD5Digest(string file) { mixin(S_TRACE);
 			return md5Digest(readBinary(file));
 		} catch (FileException e) {
 			// 読み込めなかった場合は空文字列を返す
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -936,6 +938,7 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 			i++;
 		}
 	} catch (Exception e) {
+		printStackTrace();
 		debugln(e);
 	}
 	return base;
@@ -1253,6 +1256,8 @@ void delAll(string delpath, bool force = true) { mixin(S_TRACE);
 				std.file.remove(delpath);
 			}
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			if (!force) throw e;
 			if (!ee) ee = new FileException(e.msg);
 		}

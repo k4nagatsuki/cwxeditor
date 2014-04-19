@@ -572,6 +572,7 @@ public:
 							}
 						} catch (SWTException e) {
 							// ファイルが無い場合は表示しない。
+							printStackTrace();
 							debugln(e);
 						}
 					}
@@ -600,6 +601,7 @@ public:
 							default: assert (0);
 							}
 						} catch (SWTException e) {
+							printStackTrace();
 							debugln(e);
 						}
 					}

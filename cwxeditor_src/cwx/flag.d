@@ -1237,6 +1237,8 @@ public:
 			}
 			return true;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			.removeAll(cFlags);
 			.removeAll(cSteps);
 			return false;
@@ -1276,6 +1278,8 @@ public:
 				return sub;
 			}
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 		}
 		.removeAll(cFlags);
 		.removeAll(cSteps);
@@ -1349,6 +1353,8 @@ public:
 				return loadRootFlagDirectory(doc, ver, copy, cFlags, cSteps, newPath);
 			}
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 		}
 		return AppendXmlResult.FAIL;
 	}

@@ -257,6 +257,7 @@ public:
 						d(file);
 					}
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}

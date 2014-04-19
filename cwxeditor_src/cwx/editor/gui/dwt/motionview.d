@@ -729,7 +729,10 @@ private:
 					appendMotion(m, index, true, false, true);
 				}
 				foreach (dlg; modEvent) dlg();
-			} catch {}
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
+			}
 		}
 	}
 	private int _dragIndex = -1;
@@ -873,6 +876,7 @@ private:
 		try { mixin(S_TRACE);
 			_comm.openCWXPath(cpaddattr(_selectedBeast.cwxPath(true), "shallow"), false);
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -1321,7 +1325,10 @@ public:
 						pasteBeast(node);
 					}
 					_comm.refreshToolBar();
-				} catch {}
+				} catch (Exception e) {
+					printStackTrace();
+					debugln(e);
+				}
 			}
 		}
 		override void del(SelectionEvent se) { mixin(S_TRACE);
@@ -1382,6 +1389,7 @@ public:
 					refEnabled();
 				}
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -1425,7 +1433,10 @@ public:
 					auto node = XNode.parse(xml);
 					pasteBeast(node);
 					_comm.refreshToolBar();
-				} catch {}
+				} catch (Exception e) {
+					printStackTrace();
+					debugln(e);
+				}
 			}
 		}
 		override void del(SelectionEvent se) { mixin(S_TRACE);

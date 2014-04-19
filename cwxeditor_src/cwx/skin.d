@@ -161,10 +161,12 @@ class Skin {
 							auto skin = new Skin(prop, file, enginePath);
 							r[skin.type] = skin;
 						} catch (Exception e) {
+							printStackTrace();
 							debugln(e);
 						}
 					}
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}
@@ -259,6 +261,7 @@ class Skin {
 					}
 				}
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -293,6 +296,7 @@ class Skin {
 					return true;
 				}
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -695,6 +699,8 @@ class Skin {
 			try { mixin(S_TRACE);
 				iniText = std.file.readText(ini);
 			} catch (UTFException e) {
+				printStackTrace();
+				debugln(e);
 				// ここではMS932を想定
 				iniText = .touni(cast(char[])readBinary(ini));
 			}
@@ -855,6 +861,8 @@ class Skin {
 			}
 			return x == _prop.looks.cardSize.width && y == _prop.looks.cardSize.height;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 		}
 		return false;
 	}
@@ -881,6 +889,8 @@ class Skin {
 				uint x, y;
 				return imageSize(path, x, y);
 			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
 			}
 		} else { mixin(S_TRACE);
 			return isImageExt(path);
@@ -1314,6 +1324,7 @@ class Skin {
 				}
 			}
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}

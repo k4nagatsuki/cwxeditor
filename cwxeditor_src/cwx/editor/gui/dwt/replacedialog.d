@@ -2664,6 +2664,7 @@ public:
 					addResult(u.owner, count);
 				}
 			} catch (Throwable e) {
+				printStackTrace();
 				debugln(e);
 			}
 		});
@@ -2794,6 +2795,7 @@ public:
 					}
 				}
 			} catch (Throwable e) {
+				printStackTrace();
 				debugln(e);
 			}
 		});
@@ -2984,6 +2986,7 @@ public:
 			try { mixin(S_TRACE);
 				search();
 			} catch (Throwable e) {
+				printStackTrace();
 				debugln(e);
 			}
 		});
@@ -3045,6 +3048,7 @@ public:
 					});
 				}
 			} catch (Throwable e) {
+				printStackTrace();
 				debugln(e);
 			}
 		});
@@ -3155,6 +3159,7 @@ public:
 			try { mixin(S_TRACE);
 				search();
 			} catch (Throwable e) {
+				printStackTrace();
 				debugln(e);
 			}
 		});
@@ -3214,14 +3219,37 @@ public:
 						if (!digest.length) return;
 						digest = .format("%s-%s", digest, size);
 
-						auto p = digest in digests;
-						if (!p) { mixin(S_TRACE);
-							digests[digest] = file;
+						if (auto p = digest in digests) { mixin(S_TRACE);
+							addResult(abs2rel(file, sPath), count, .tryFormat(_prop.msgs.searchErrorDupFile, abs2rel(*p, sPath)));
 							return;
 						}
-						addResult(abs2rel(file, sPath), count, .tryFormat(_prop.msgs.searchErrorDupFile, abs2rel(*p, sPath)));
+						digests[digest] = file;
+
+						try { mixin(S_TRACE);
+							switch (file.extension().toLower()) {
+							case ".jpy1": mixin(S_TRACE);
+								Jpy1.load(_prop.parent, _summ.scenarioPath, file);
+								break;
+							case ".jptx": mixin(S_TRACE);
+								Jptx.load(_prop.parent, file);
+								break;
+							case ".jpdc": mixin(S_TRACE);
+								Jpdc.load(_prop.parent, file);
+								break;
+							default:
+								break;
+							}
+						} catch (EffectBoosterError e) { mixin(S_TRACE);
+							printStackTrace();
+							debugln(e);
+							auto path = abs2rel(file, sPath);
+							foreach (err; e.errors) { mixin(S_TRACE);
+								addResult(path, count, .tryFormat(_prop.msgs.jpyErrorInfoWithoutFile, err.msg, err.line));
+							}
+						}
 					}
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}
@@ -3247,6 +3275,7 @@ public:
 				}
 				searchFileErrors();
 			} catch (Throwable e) {
+				printStackTrace();
 				debugln(e);
 			}
 		});
@@ -3356,6 +3385,8 @@ public:
 				_regexTarg = true;
 				_toTemp = toUTF32(to);
 			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
 				MessageBox.showWarning
 					(_prop.msgs.regexError ~ "\n" ~ e.msg,
 					_prop.msgs.dlgTitWarning, _win);
@@ -3448,6 +3479,7 @@ public:
 								try { mixin(S_TRACE);
 									writeJPYFile(file2, value, isSJIS);
 								} catch (Exception e) {
+									printStackTrace();
 									debugln(e);
 								}
 							}, count, uArr, true);
@@ -3458,6 +3490,7 @@ public:
 								store(file, uArr);
 							}
 						} catch (Exception e) {
+							printStackTrace();
 							debugln(e);
 						}
 					}
@@ -3483,6 +3516,7 @@ public:
 			try { mixin(S_TRACE);
 				search();
 			} catch (Throwable e) {
+				printStackTrace();
 				debugln(e);
 			}
 		});
@@ -3574,6 +3608,7 @@ public:
 								addResult(file, dmy);
 							}
 						} catch (Exception e) {
+							printStackTrace();
 							debugln(e);
 						}
 					}
@@ -3587,6 +3622,7 @@ public:
 				try { mixin(S_TRACE);
 					findSumm(dir);
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}
@@ -3603,6 +3639,7 @@ public:
 						}
 					}
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}
@@ -3633,6 +3670,7 @@ public:
 			try { mixin(S_TRACE);
 				recurse(dir, 0);
 			} catch (Throwable e) {
+				printStackTrace();
 				debugln(e);
 			}
 		});
@@ -3698,6 +3736,7 @@ public:
 					c++;
 				}
 			} catch (Throwable e) {
+				printStackTrace();
  				debugln(_fromText, " -> ", s);
 				throw e;
 			}
@@ -3759,6 +3798,7 @@ public:
 						return;
 					}
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 				MessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);

@@ -83,7 +83,9 @@ private class LSFFThr(bool Array) {
 		void run() { mixin(S_TRACE);
 			try { mixin(S_TRACE);
 				resetCursors(cursors);
-			} catch { mixin(S_TRACE);
+			} catch (Exception e) { mixin(S_TRACE);
+				printStackTrace();
+				debugln(e);
 				clear();
 			}
 		}
@@ -108,7 +110,9 @@ private class LSFFThr(bool Array) {
 		void run() { mixin(S_TRACE);
 			try { mixin(S_TRACE);
 				status(.tryFormat(prop.msgs.loadProgress, baseName(fname), roundTo!int(cast(real) worked / max * 100.0)));
-			} catch { mixin(S_TRACE);
+			} catch (Exception e) { mixin(S_TRACE);
+				printStackTrace();
+				debugln(e);
 				clear();
 			}
 		}
@@ -153,7 +157,9 @@ private class LSFFThr(bool Array) {
 					} else { mixin(S_TRACE);
 						status(.tryFormat(prop.msgs.loadErrorStatus, r.scenarioName));
 					}
-				} catch { mixin(S_TRACE);
+				} catch (Throwable e) { mixin(S_TRACE);
+					printStackTrace();
+					debugln(e);
 					clear();
 				}
 			}
@@ -165,7 +171,9 @@ private class LSFFThr(bool Array) {
 		void run() { mixin(S_TRACE);
 			try { mixin(S_TRACE);
 				MessageBox.showWarning(e.msg, prop.msgs.dlgTitWarning, w);
-			} catch { mixin(S_TRACE);
+			} catch (Exception e) { mixin(S_TRACE);
+				printStackTrace();
+				debugln(e);
 				clear();
 			}
 			static if (Array) {

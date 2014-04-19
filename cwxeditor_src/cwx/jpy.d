@@ -164,6 +164,8 @@ private {
 			return CRect(to!(int)(astrip(sp[0])), to!(int)(astrip(sp[1])),
 				to!(int)(astrip(sp[2])), to!(int)(astrip(sp[3])));
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidRect, value), file, line);
 			return CRect(0, 0, 0, 0);
 		}
@@ -177,6 +179,8 @@ private {
 				int b = val & 0x0000FF >>> 0;
 				return CRGB(r, g, b);
 			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
 				errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidRGB, value), file, line);
 				return CRGB(0, 0, 0);
 			}
@@ -187,6 +191,8 @@ private {
 		try { mixin(S_TRACE);
 			return CRGB(toImpl!int(sr, 16), toImpl!int(sg, 16), toImpl!int(sb, 16));
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidRGB, value), file, line);
 			return CRGB(0, 0, 0);
 		}
@@ -195,6 +201,8 @@ private {
 		try { mixin(S_TRACE);
 			return cast(Enum) to!(int)(value);
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidEnum, value), file, line);
 			return Enum.init;
 		}
@@ -203,10 +211,14 @@ private {
 		try { mixin(S_TRACE);
 			cwx.utils.validate(value);
 			return value;
-		} catch { mixin(S_TRACE);
+		} catch (Exception e) { mixin(S_TRACE);
+			printStackTrace();
+			debugln(e);
 			try {
 				return touni(value);
 			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
 				errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidStr, value), file, line);
 				return "";
 			}
@@ -217,6 +229,8 @@ private {
 			if (value.endsWith("px")) value = value[0 .. $-2];
 			return to!(int)(value);
 		} catch (Exception e) {
+			debugln(e);
+			printStackTrace();
 			errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidInt, value), file, line);
 			return 0;
 		}
@@ -227,26 +241,26 @@ private {
 }
 
 /// pathのファイルを読み込む。
-string readJPYFile(string path, in CProps prop, EffectBoosterError errInfo, out bool isSJIS) { mixin(S_TRACE);
+string readJPYFile(string path, in CProps prop, EffectBoosterError errInfo, out bool isSJIS) {
 	char[] value;
-	try { mixin(S_TRACE);
+	try {
 		value = cast(char[])std.file.readText(path);
 		isSJIS = false;
 		return assumeUnique(value);
-	} catch { mixin(S_TRACE);
+	} catch (Exception e) {
 		isSJIS = true;
 		value = cast(char[])readBinary(path);
 		try {
 			return touni(value);
-		} catch { mixin(S_TRACE);
+		} catch (Exception e) {
 			errInfo.add(prop.msgs.jpyErrorInvalidEncoding, path, 0);
 			return "";
 		}
 	}
 }
 /// ditto
-private string readJPYFile(string path, in CProps prop, EffectBoosterError errInfo) { mixin(S_TRACE);
-	try { mixin(S_TRACE);
+private string readJPYFile(string path, in CProps prop, EffectBoosterError errInfo) {
+	try {
 		return std.file.readText(path);
 	} catch (UTFException e) {
 		try {
@@ -337,6 +351,7 @@ struct Jpy1 {
 					filenameIndex = i;
 					filenameLine = origLine;
 					break;
+				case "flagname": break; // 編集ソフトが付与する特殊なコマンドで効果は無い
 				case "dirtype": dirtype = enumVal!(Dirtype)(value, prop, jpy1Path, lineNum, errInfo); break;
 				case "loadcache": loadcache = enumVal!(Cache)(value, prop, jpy1Path, lineNum, errInfo); break;
 				case "savecache": savecache = enumVal!(Cache)(value, prop, jpy1Path, lineNum, errInfo); break;
@@ -1118,7 +1133,9 @@ struct Jptx {
 				try { mixin(S_TRACE);
 					cwx.utils.validate(line);
 					t ~= line;
-				} catch { mixin(S_TRACE);
+				} catch (Exception e) { mixin(S_TRACE);
+					printStackTrace();
+					debugln(e);
 					t ~= touni(line);
 				}
 			}

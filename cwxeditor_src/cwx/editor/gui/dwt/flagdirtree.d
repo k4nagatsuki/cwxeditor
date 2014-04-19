@@ -572,6 +572,7 @@ public:
 					_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
 					_comm.refreshToolBar();
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}

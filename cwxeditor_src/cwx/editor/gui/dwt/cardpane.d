@@ -903,11 +903,15 @@ private:
 							if (node.name != C.XML_NAME_M) return;
 							auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 							addFromNode(node, ver);
-						} catch {}
+						} catch (Exception e) {
+							printStackTrace();
+							debugln(e);
+						}
 					}
 					refreshStatusLine();
 					_comm.refreshToolBar();
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}
@@ -1174,6 +1178,7 @@ private:
 						}
 					}
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}

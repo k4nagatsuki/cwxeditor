@@ -793,6 +793,8 @@ class CWXScript {
 				}
 				return r;
 			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
 				throwError(_prop.msgs.scriptErrorReqNumber, tok);
 				auto r = new CalcResult;
 				r.kind = CRKind.INT;
@@ -837,6 +839,8 @@ class CWXScript {
 			i++;
 			return r;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throwError(_prop.msgs.scriptErrorReqNumber, tokens[i]);
 		}
 		return r;
@@ -2324,6 +2328,8 @@ fi`;
 				i++;
 				return r;
 			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
 				throwError(_prop.msgs.scriptErrorReqNumber, attr[i].token);
 			}
 		} else static if (is(T == ulong)) {
@@ -2333,6 +2339,8 @@ fi`;
 				i++;
 				return r;
 			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
 				throwError(_prop.msgs.scriptErrorReqID, attr[i].token);
 			}
 		} else static assert (0, T.stringof);

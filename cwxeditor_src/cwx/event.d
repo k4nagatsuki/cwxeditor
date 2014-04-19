@@ -898,6 +898,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 							start = .max(value + 1, start);
 						} catch (ConvException e) {
 							// 処理無し
+							printStackTrace();
 						}
 					}
 				}
@@ -922,6 +923,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				try { mixin(S_TRACE);
 					n.area = to!(ulong)(n.name);
 				} catch { mixin(S_TRACE);
+					printStackTrace();
 					n.area = 0;
 				}
 			} else { mixin(S_TRACE);
@@ -941,6 +943,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				try { mixin(S_TRACE);
 					n.battle = to!(ulong)(n.name);
 				} catch { mixin(S_TRACE);
+					printStackTrace();
 					n.battle = 0;
 				}
 			} else { mixin(S_TRACE);
@@ -990,6 +993,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				try { mixin(S_TRACE);
 					area = to!(ulong)(name);
 				} catch { mixin(S_TRACE);
+					printStackTrace();
 					area = 0;
 				}
 			}
@@ -1003,6 +1007,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				try { mixin(S_TRACE);
 					battle = to!(ulong)(name);
 				} catch { mixin(S_TRACE);
+					printStackTrace();
 					battle = 0;
 				}
 			}
@@ -2675,7 +2680,10 @@ public:
 			if (doc.name == "Event") { mixin(S_TRACE);
 				return createFromNode(doc, ver);
 			}
-		} catch {}
+		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
+		}
 		return null;
 	}
 	/// XMLノードからインスタンスを生成。
@@ -2765,7 +2773,10 @@ public:
 				fire(true);
 				return true;
 			}
-		} catch {}
+		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
+		}
 		return false;
 	}
 	/// 「到着時発火」をXMLテキストからロードし、成功すればtrueを返す。
@@ -2798,7 +2809,10 @@ public:
 					addRound(r);
 					return r;
 				}
-			} catch {}
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
+			}
 		}
 		return -1;
 	}
@@ -2814,7 +2828,10 @@ public:
 					addKeyCode(FKeyCode(name, kind));
 					return r;
 				}
-			} catch {}
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
+			}
 		}
 		return null;
 	}

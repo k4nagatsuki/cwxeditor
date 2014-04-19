@@ -1138,6 +1138,7 @@ private:
 				refreshStatusLine();
 				_comm.refreshToolBar();
 			} catch (Exception e) { mixin (S_TRACE);
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -1304,6 +1305,7 @@ private:
 					_comm.refreshToolBar();
 				}
 			} catch (Exception e) { mixin (S_TRACE);
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -2781,6 +2783,7 @@ public:
 					auto node = XNode.parse(c);
 					pasteImpl(node);
 				} catch (Exception e) { mixin (S_TRACE);
+					printStackTrace();
 					debugln(e);
 				}
 			}

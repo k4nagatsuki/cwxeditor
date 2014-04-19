@@ -383,6 +383,7 @@ private:
 		try { mixin(S_TRACE);
 			_comm.openCWXPath(cpaddattr(a.cwxPath(true), "shallow"), false);
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -2099,6 +2100,7 @@ private:
 		try { mixin(S_TRACE);
 			_comm.openCWXPath(cpaddattr(a.cwxPath(true), "shallow"), false);
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}

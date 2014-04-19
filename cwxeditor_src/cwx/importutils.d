@@ -350,6 +350,7 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 				auto file = from.scenarioPath.buildPath(path);
 				set(bImgToStr(cast(ubyte[])readBinary(file)));
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 		}

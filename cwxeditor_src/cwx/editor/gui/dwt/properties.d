@@ -282,6 +282,7 @@ public class FlexProps {
 					dStr ~= " - " ~ .text(__LINE__);
 				}
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 			dStr ~= " - " ~ .text(__LINE__);
@@ -309,6 +310,7 @@ public class FlexProps {
 						if (!.exists(dir)) mkdirRecurse(dir);
 						std.file.copy(base, dest);
 					} catch (Exception e) {
+						printStackTrace();
 						debugln(e);
 					}
 				}
@@ -365,6 +367,7 @@ public class FlexProps {
 				etc.backupBeforeSavePath.value = etc.backupPath;
 			}
 		} catch (Throwable e) {
+			printStackTrace();
 			fdebugln(dStr);
 			fdebugln(e);
 			throw new Exception(dStr, __FILE__, __LINE__);
@@ -409,6 +412,7 @@ public class FlexProps {
 			dStr ~= " - " ~ .text(__LINE__);
 			return true;
 		} catch(Exception e) { mixin(S_TRACE);
+			printStackTrace();
 			debugln(e);
 			return false;
 		}
@@ -467,6 +471,7 @@ public class FlexProps {
 					} catch (Exception e) {
 						// FIXME: DockingFolder.fromNode()内でたまにアクセス違反が発生する
 						dStr ~= " - " ~ .text(__LINE__);
+						printStackTrace();
 						debug debugln(e);
 						if (r && r.area) r.area.dispose();
 						dStr ~= " - " ~ .text(__LINE__);
@@ -487,6 +492,7 @@ public class FlexProps {
 			dStr ~= " - " ~ .text(__LINE__);
 			return r;
 		} catch (Throwable e) {
+			printStackTrace();
 			fdebugln(dStr);
 			fdebugln(e);
 			throw new Exception(dStr, __FILE__, __LINE__);
@@ -499,6 +505,7 @@ public class FlexProps {
 		try { mixin(S_TRACE);
 			std.file.copy(_path, bakPath);
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}

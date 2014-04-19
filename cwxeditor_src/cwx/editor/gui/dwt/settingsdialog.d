@@ -1389,7 +1389,9 @@ protected:
 		string engine;
 		try { mixin(S_TRACE);
 			engine = _enginePath.getText();
-		} catch { mixin(S_TRACE);
+		} catch (Exception e) { mixin(S_TRACE);
+			printStackTrace();
+			debugln(e);
 			err(_tabB, _enginePath, .tryFormat(_prop.msgs.errorEnginePath, _prop.var.etc.engine));
 			return false;
 		}
@@ -1402,21 +1404,27 @@ protected:
 		string temp;
 		try { mixin(S_TRACE);
 			temp = _tempDir.getText();
-		} catch { mixin(S_TRACE);
+		} catch (Exception e) { mixin(S_TRACE);
+			printStackTrace();
+			debugln(e);
 			err(_tabB, _tempDir, _prop.msgs.errorTempPath);
 			return false;
 		}
 		string backup;
 		try { mixin(S_TRACE);
 			backup = _backupDir.getText();
-		} catch { mixin(S_TRACE);
+		} catch (Exception e) { mixin(S_TRACE);
+			printStackTrace();
+			debugln(e);
 			err(_tabB, _backupDir, _prop.msgs.errorBackupPath);
 			return false;
 		}
 		string backupBeforeSave;
 		try { mixin(S_TRACE);
 			backupBeforeSave = _backupBeforeSaveDir.getText();
-		} catch { mixin(S_TRACE);
+		} catch (Exception e) { mixin(S_TRACE);
+			printStackTrace();
+			debugln(e);
 			err(_tabB, _backupBeforeSaveDir, _prop.msgs.errorBackupBeforeSavePath);
 			return false;
 		}
@@ -2380,6 +2388,7 @@ private:
 						add(t);
 					}
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}

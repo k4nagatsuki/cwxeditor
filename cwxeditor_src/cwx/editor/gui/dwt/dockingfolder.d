@@ -142,6 +142,7 @@ class DockingFolder(TabF, int Style) {
 				try { mixin(S_TRACE);
 					saveTree();
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}
@@ -1871,6 +1872,7 @@ class DockingFolder(TabF, int Style) {
 			return r;
 		} catch (Throwable e) {
 			printStackTrace();
+			debugln(e);
 			if (r && r.area) { mixin(S_TRACE);
 				r._canSave = false;
 				r.area.dispose();

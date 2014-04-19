@@ -1398,6 +1398,7 @@ private class DelTemp : DisposeListener {
 		try { mixin(S_TRACE);
 			_cc.delTemp();
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}

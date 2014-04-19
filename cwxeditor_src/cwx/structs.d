@@ -2,6 +2,7 @@
 module cwx.structs;
 
 import cwx.perf;
+import cwx.utils : printStackTrace;
 import cwx.features;
 import cwx.types;
 import cwx.xml;
@@ -107,6 +108,7 @@ struct LaunchOption {
 					break;
 				}
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 		}

@@ -558,6 +558,7 @@ private:
 						createDialog(SDialog.createFromNode(node, ver));
 					}
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}
@@ -599,7 +600,10 @@ private:
 				if (_id == node.attr("paneId", false)) { mixin(S_TRACE);
 					e.detail = DND.DROP_MOVE;
 				}
-			} catch {}
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
+			}
 		}
 	}
 	class DDragListener : DragSourceAdapter {
@@ -1960,6 +1964,7 @@ class PreviewValues : Composite {
 						itm.setText(1, line);
 					}
 				} catch (ConvException e) {
+					printStackTrace();
 					debugln(e);
 				}
 				sels ~= i;

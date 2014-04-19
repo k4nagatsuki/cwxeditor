@@ -286,6 +286,7 @@ class CouponView(CVType Type) : Composite {
 				raiseModifyEvent();
 				_comm.refreshToolBar();
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -356,6 +357,7 @@ class CouponView(CVType Type) : Composite {
 					}
 					raiseModifyEvent();
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}

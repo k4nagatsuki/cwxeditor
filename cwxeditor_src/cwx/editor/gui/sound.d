@@ -194,6 +194,7 @@ private void initSdl() { mixin(S_TRACE);
 				printSDLError();
 			}
 		} catch (Throwable e) {
+			printStackTrace();
 			debugln(e);
 		}
 	} else { mixin(S_TRACE);
@@ -218,6 +219,7 @@ void initSound() { mixin(S_TRACE);
 		}
 		initSdl();
 	} catch (Throwable e) {
+		printStackTrace();
 		debugln(e);
 	}
 }
@@ -235,6 +237,7 @@ shared static ~this () { mixin(S_TRACE);
 					if (mixer) getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
 					if (sdl) getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e.msg);
 				}
 				if (mixer) dlclose(mixer);
@@ -251,6 +254,7 @@ shared static ~this () { mixin(S_TRACE);
 			debug std.stdio.writeln("Release DLLs for sound Exit");
 		}
 	} catch (Throwable e) {
+		printStackTrace();
 		debugln(e);
 	}
 }
@@ -380,6 +384,7 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t chann
 			}
 		}
 	} catch (Exception e) {
+		printStackTrace();
 		debugln(e.msg);
 	}
 	onLegacy = false;
@@ -443,6 +448,7 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t chann
 			}
 		}
 	} catch (Exception e) {
+		printStackTrace();
 		debugln(e.msg);
 	}
 }
@@ -480,6 +486,7 @@ private void stop(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t chann
 			}
 		}
 	} catch (Exception e) {
+		printStackTrace();
 		debugln(e.msg);
 	}
 }
@@ -520,6 +527,7 @@ bool initBass(string dir, in string[] soundFonts) { mixin(S_TRACE);
 				}
 				return true;
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -539,6 +547,7 @@ private bool loadBassSoundFont(in string[] soundFonts) { mixin(S_TRACE);
 			}
 			return 0 < .soundFonts.length;
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -555,6 +564,7 @@ private void releaseBassSoundFont() { mixin(S_TRACE);
 			}
 			soundFonts = [];
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -581,6 +591,7 @@ void disposeBass() { mixin(S_TRACE);
 					bass = null;
 				}
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 			if (_toggleInitBass) { mixin(S_TRACE);
@@ -675,6 +686,7 @@ private bool playBass(string file, bool loop, ref DWORD stream, uint volume) { m
 			}
 			return true;
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -693,6 +705,7 @@ private void stopBass(ref DWORD stream) { mixin(S_TRACE);
 			}
 			stream = 0;
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -774,6 +787,7 @@ void playBGM(string path, int soundPlayType) { mixin(S_TRACE);
 			}
 			play(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, path, true, soundPlayType, _bgmVolume, bass);
 		} catch (Throwable e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -792,6 +806,7 @@ void stopBGM() { mixin(S_TRACE);
 			}
 			stop(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, bass);
 		} catch (Throwable e) {
+			printStackTrace();
 			debugln(e);
 		}
 		version (Windows) {
@@ -849,6 +864,7 @@ void playSE(string path, int soundPlayType) { mixin(S_TRACE);
 			}
 			play(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, path, false, soundPlayType, _seVolume, bass);
 		} catch (Throwable e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -867,6 +883,7 @@ void stopSE() { mixin(S_TRACE);
 			}
 			stop(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, bass);
 		} catch (Throwable e) {
+			printStackTrace();
 			debugln(e);
 		}
 		version (Windows) {

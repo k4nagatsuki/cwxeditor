@@ -457,11 +457,13 @@ private:
 				try { mixin(S_TRACE);
 					delAll(f.file);
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}
 			return ret;
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		} catch (Throwable e) {
 			printStackTrace();
@@ -561,6 +563,7 @@ private:
 					try { mixin(S_TRACE);
 						openScenario(old.reloadXMLs(_prop.sys, loadOption(old)));
 					} catch (Exception e) {
+						printStackTrace();
 						debugln(e);
 						MessageBox.showWarning(.tryFormat(_prop.msgs.reloadError, summary.scenarioPath)
 							~ "\n" ~ e.msg,
@@ -574,6 +577,7 @@ private:
 				try { mixin(S_TRACE);
 					openScenario(old.reloadXMLs(_prop.sys, loadOption(old)));
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 					MessageBox.showWarning(.tryFormat(_prop.msgs.reloadError, summary.scenarioPath)
 						~ "\n" ~ e.msg,
@@ -728,6 +732,7 @@ private:
 						continue;
 					}
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 				MessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
@@ -744,6 +749,7 @@ private:
 					}
 				}
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 			dStr ~= " - " ~ .text(__LINE__);
@@ -807,6 +813,7 @@ private:
 						continue;
 					}
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 				MessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
@@ -903,6 +910,7 @@ private:
 					playSavedSound();
 					return true;
 				} catch (SummaryException e) {
+					printStackTrace();
 					debugln(e);
 					MessageBox.showWarning(e.msg, _prop.msgs.dlgTitWarning, shell);
 					return false;
@@ -1016,6 +1024,7 @@ private:
 					core.memory.GC.collect();
 					playSavedSound();
 				} catch (SummaryException e) {
+					printStackTrace();
 					debugln(e);
 					MessageBox.showWarning(e.msg, _prop.msgs.dlgTitWarning, shell);
 				}
@@ -1222,10 +1231,12 @@ private:
 							summary.delTemp();
 						}
 					} catch (Exception e) {
+						printStackTrace();
 						debugln(e);
 					}
 				}
 			} catch (Throwable e) {
+				printStackTrace();
 				debugln(e);
 				_win.setVisible(true);
 			}
@@ -1538,6 +1549,7 @@ private:
 				try { mixin(S_TRACE);
 					openCWXPath(p, true);
 				} catch (Throwable e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}
@@ -1549,6 +1561,7 @@ private:
 			try { mixin(S_TRACE);
 				reloadProps();
 			} catch (Throwable e) {
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -1561,6 +1574,7 @@ private:
 				_comm.openCWXPath("fileview", false);
 				_dirWin.select(path);
 			} catch (Throwable e) {
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -1672,6 +1686,7 @@ private:
 				debug writeln("Exit Pipe Thread");
 			}
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -1820,6 +1835,7 @@ private:
 								}
 							}
 						} catch (Exception e) {
+							printStackTrace();
 							debugln(e);
 						}
 					}
@@ -1918,11 +1934,17 @@ public:
 							try { mixin(S_TRACE);
 								std.file.remove(lock);
 								delAll(temp);
-							} catch (Exception e) {}
+							} catch (Exception e) {
+								printStackTrace();
+								debugln(e);
+							}
 						} else if (fnstartsWith(baseName(temp), "cwxeditor_temp_")) { mixin(S_TRACE);
 							try { mixin(S_TRACE);
 								delAll(temp);
-							} catch (Exception e) {}
+							} catch (Exception e) {
+								printStackTrace();
+								debugln(e);
+							}
 						}
 					}
 				}
@@ -3760,6 +3782,7 @@ public:
 						openScenario(summ);
 						statusLine = "";
 					} catch (Exception e) {
+						printStackTrace();
 						debugln(e);
 					}
 				}
@@ -3824,9 +3847,9 @@ public:
 					} catch (Throwable e) {
 						if (!openErrDlg) {
 							// 際限の無い連続発生を抑制
+							string s = printStackTrace();
 							openErrDlg = true;
 							_win.setVisible(true);
-							string s = printStackTrace();
 							fdebugln(e);
 							s ~= "\n--------\n" ~ createDebugln(e);
 							auto dlg = new ErrorDialog(_comm, _prop, _win, s);

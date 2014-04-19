@@ -254,6 +254,7 @@ void loadCardRef(Summary summ) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
 				m.maxNest = .to!uint(value);
 			} catch (ConvException e) {
+				printStackTrace();
 				debugln(e);
 			}
 		};
@@ -284,6 +285,7 @@ void loadCardRef(Summary summ) { mixin(S_TRACE);
 					beast.linkId = id;
 				}
 			} catch (ConvException e) {
+				printStackTrace();
 				debugln(e);
 			}
 		};
@@ -641,6 +643,7 @@ private string readStringImpl(ref ByteIO f, bool lns, bool cutText, uint delegat
 	try { mixin(S_TRACE);
 		str = touni(str);
 	} catch (Exception e) {
+		printStackTrace();
 		debugln(e);
 		str = touni(str, false);
 	}
@@ -1787,6 +1790,7 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
 					pcNum = .to!int(imgPath);
 					if (0 != pcNum) imgPath = "";
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}

@@ -2012,6 +2012,8 @@ public:
 				put(cwx.script.compile(_prop.parent, _summ, script, opt));
 			}
 		} catch (CWXScriptException e) {
+			printStackTrace();
+			debugln(e);
 			auto dlg = new ScriptErrorDialog(_comm, _prop, _cards, e, base, opt);
 			dlg.open();
 		}
@@ -2141,6 +2143,7 @@ public:
 					_comm.refUseCount.call();
 					_comm.refreshToolBar();
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}

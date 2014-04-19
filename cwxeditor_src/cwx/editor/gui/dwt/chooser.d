@@ -612,6 +612,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		try { mixin(S_TRACE);
 			_comm.openCWXPath(cpaddattr(cwxPath, "shallow"), false);
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -1014,6 +1015,7 @@ class AreaChooser(A, bool StartArea) : Composite {
 		try { mixin(S_TRACE);
 			_comm.openCWXPath(cpaddattr(cwxPath, "shallow"), false);
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}

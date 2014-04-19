@@ -1403,6 +1403,7 @@ private:
 						}
 					}
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}
@@ -3242,6 +3243,7 @@ public:
 			c = CBtoXML(_comm.clipboard);
 		} catch (Exception e) {
 			// たまにアクセス違反が起こる
+			printStackTrace();
 			debugln(e);
 			return;
 		}
@@ -3293,6 +3295,8 @@ public:
 					putContents(cs, tryInsert);
 				}
 			} catch (CWXScriptException e) {
+				printStackTrace();
+				debugln(e);
 				throw e;
 			} catch (Exception e) {
 				printStackTrace();
@@ -3304,6 +3308,8 @@ public:
 				throw new CWXScriptException(__FILE__, __LINE__, "", [CWXSError(_prop.msgs.scriptErrorSystem, 0, 0, __FILE__, __LINE__)], false);
 			}
 		} catch (CWXScriptException e) {
+			printStackTrace();
+			debugln(e);
 			auto dlg = new ScriptErrorDialog(_comm, _prop, _tree.control, e, base, opt);
 			dlg.open();
 		}
@@ -3642,8 +3648,9 @@ private string evtChildBrStepN(in Props prop, in Summary summ, string path, ref 
 	int val = -1;
 	try { mixin(S_TRACE);
 		val = text == prop.sys.evtChildDefault ? -1 : (isNumeric(text) ? to!(int)(text) : -1);
-	} catch { mixin(S_TRACE);
-		// Nothing
+	} catch (Exception e) { mixin(S_TRACE);
+		printStackTrace();
+		debugln(e);
 	}
 	string name = prop.msgs.noSelectStep;
 	string value = val >= 0 ? .tryFormat(prop.msgs.dlgLblStep, val) : prop.msgs.etc;
@@ -3755,7 +3762,10 @@ private string evtChildBrArea(in Props prop, in Area[] areas, ref string text) {
 					}
 				}
 			}
-		} catch {}
+		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
+		}
 	}
 	text = prop.sys.evtChildDefault;
 	return .tryFormat(prop.msgs.branchArea, prop.msgs.etc);
@@ -3771,7 +3781,10 @@ private string evtChildBrBattle(in Props prop, in Battle[] btls, ref string text
 					}
 				}
 			}
-		} catch {}
+		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
+		}
 	}
 	text = prop.sys.evtChildDefault;
 	return .tryFormat(prop.msgs.branchBattle, prop.msgs.etc);

@@ -2,6 +2,7 @@
 module cwx.settings;
 
 import cwx.perf;
+import cwx.utils : printStackTrace;
 import cwx.xml;
 
 import std.conv;
@@ -306,6 +307,7 @@ abstract class Properties {
 					auto node = XNode.parse(xml);
 					return fromNodeImpl(node, dataVersion);
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 					SubClass r;
 					return r;
@@ -361,6 +363,7 @@ abstract class Properties {
 							try {
 								fld.fromNode(n, dataVersion);
 							} catch (Exception e) {
+								printStackTrace();
 								debugln(e);
 							}
 						}
@@ -373,6 +376,7 @@ abstract class Properties {
 							try {
 								fld.fromNode(n, dataVersion);
 							} catch (Exception e) {
+								printStackTrace();
 								debugln(e);
 							}
 						}

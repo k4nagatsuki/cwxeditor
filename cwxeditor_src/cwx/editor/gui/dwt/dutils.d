@@ -117,6 +117,7 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				data = new ImageData(s);
 			} catch (Throwable e) {
 				// 壊れたビットマップとして再読込を試みる
+				printStackTrace();
 				debugln(e);
 				debugln("Image loading failure. Tries patch to the broken bitmap.");
 				.fixCWNext16BitBitmap(bytes);
@@ -361,6 +362,8 @@ public:
 			_startEdit = startEdit;
 			_selection = selection;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -373,6 +376,8 @@ public:
 				}
 			}
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -403,6 +408,8 @@ public:
 				ctrl.getDisplay().removeFilter(SWT.FocusIn, focusIn);
 			});
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -416,6 +423,8 @@ public:
 				if (ccombo) ccombo.setListVisible(true);
 			}
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -424,6 +433,8 @@ public:
 		try { mixin(S_TRACE);
 			return ctrl;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -432,6 +443,8 @@ public:
 		try { mixin(S_TRACE);
 			focusOut();
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -449,6 +462,8 @@ public:
 				ctrl.dispose();
 			}
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -457,6 +472,8 @@ public:
 		try { mixin(S_TRACE);
 			return ctrl.isDisposed();
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -471,6 +488,8 @@ public:
 			}
 			ctrl.dispose();
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -489,6 +508,8 @@ Text createTextEditor(Commons comm, Props prop, Composite parent, string str) { 
 		createTextMenu!Text(comm, prop, text, null);
 		return text;
 	} catch (Exception e) {
+		printStackTrace();
+		debugln(e);
 		throw new Exception(e.msg, __FILE__, __LINE__);
 	}
 }
@@ -534,6 +555,8 @@ C createComboEditor(C = Combo)(Commons comm, Props prop, Composite parent, strin
 		combo.setText(str ? str : "");
 		return combo;
 	} catch (Exception e) {
+		printStackTrace();
+		debugln(e);
 		throw new Exception(e.msg, __FILE__, __LINE__);
 	}
 }
@@ -561,6 +584,8 @@ private:
 			}
 			return null;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -571,6 +596,8 @@ private:
 			}
 			return null;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -579,6 +606,8 @@ private:
 		try { mixin(S_TRACE);
 			startEdit(cast(TableItem) itm);
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -587,6 +616,8 @@ private:
 			end(c);
 			_tee = null;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -612,6 +643,8 @@ public:
 			table.addFocusListener(mf);
 			table.addKeyListener(new TextEditKListener(&startEdit, &selectionK));
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -623,6 +656,8 @@ public:
 				startEdit(sels[0]);
 			}
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -638,6 +673,8 @@ public:
 				_tee.setFocus();
 			}
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -646,6 +683,8 @@ public:
 		try { mixin(S_TRACE);
 			return _tee !is null;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -683,6 +722,8 @@ public:
 			this.editEnd = editEnd;
 			_createEditor = createEditor;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -713,6 +754,8 @@ public:
 				editEnd(editor.getItem(), editC, newText);
 			}
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -748,6 +791,8 @@ public:
 			this.editEnd = editEnd;
 			_filter = filter;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -776,6 +821,8 @@ public:
 				editEnd(editor.getItem(), editC, combo);
 			}
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -797,6 +844,8 @@ public:
 			_createEditor = createEditor;
 			this.editEnd = editEnd;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -822,6 +871,8 @@ public:
 			auto ccombo = cast(CCombo) c;
 			if (ccombo) set(ccombo.getText());
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -848,6 +899,8 @@ private:
 			}
 			return null;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -858,6 +911,8 @@ private:
 			}
 			return null;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -868,6 +923,8 @@ private:
 			editEnd(editor.getItem(), ctrl);
 			_tee = null;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -884,6 +941,8 @@ private:
 				_tee.setFocus();
 			}
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -908,6 +967,8 @@ public:
 			tree.addFocusListener(mf);
 			tree.addKeyListener(new TextEditKListener(&startEdit, &selectionK));
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -919,6 +980,8 @@ public:
 				startEdit(sels[0]);
 			}
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -927,6 +990,8 @@ public:
 		try { mixin(S_TRACE);
 			return _tee !is null;
 		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
@@ -1332,6 +1397,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 				stp.y -= lgh + 2;
 				stMax--;
 			} catch (SWTException e) {
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -1695,6 +1761,7 @@ bool qMaterialCopy(Commons comm, Shell shell,
 				}
 				copy = true;
 			} catch (Exception e) {
+				printStackTrace();
 				debugln("copy error: " ~ e.msg);
 				err = true;
 			}
@@ -2120,6 +2187,8 @@ private:
 					}
 					r ~= fname;
 				} catch (SWTException e) {
+					printStackTrace();
+					debugln(e);
 				}
 			}
 			if (paths.length > 0) { mixin(S_TRACE);
@@ -3086,6 +3155,7 @@ public static Image fimage(Props prop, string file, Skin skin) { mixin(S_TRACE);
 			}
 		}
 	} catch (Exception e) {
+		printStackTrace();
 		debugln(e);
 	}
 	return prop.images.unknown;

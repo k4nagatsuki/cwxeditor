@@ -182,6 +182,7 @@ class ToolBarCustomizer : Composite, TCPD {
 					break;
 				}
 			} catch (Exception e) { mixin (S_TRACE);
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -243,6 +244,7 @@ class ToolBarCustomizer : Composite, TCPD {
 					e.detail = DND.DROP_MOVE;
 				}
 			} catch (Exception e) { mixin (S_TRACE);
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -762,6 +764,7 @@ class ToolBarCustomizer : Composite, TCPD {
 				auto sels = _toolTree.getSelection();
 				fromNode(node, sels.length ? sels[0] : null, true);
 			} catch (Exception e) { mixin (S_TRACE);
+				printStackTrace();
 				debugln(e);
 			}
 		}

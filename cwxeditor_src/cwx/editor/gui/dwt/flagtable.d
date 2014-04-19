@@ -1771,6 +1771,7 @@ public:
 						_comm.refreshToolBar();
 					}
 				} catch (Exception e) {
+					printStackTrace();
 					debugln(e);
 				}
 			}

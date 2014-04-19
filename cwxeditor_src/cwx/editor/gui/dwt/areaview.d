@@ -258,6 +258,7 @@ private:
 				if (auto a = cast(Area)_refTarget) _comm.openAreaScene(_prop, _summ, a, false, false);
 				if (auto a = cast(Battle)_refTarget) _comm.openAreaScene(_prop, _summ, a, false, false);
 			} catch (Exception e) {
+				printStackTrace();
 				debugln(e);
 			}
 		}
@@ -1926,6 +1927,7 @@ private:
 		try { mixin(S_TRACE);
 			_comm.openCWXPath(cpaddattr(a.cwxPath(true), "shallow"), false);
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -2473,6 +2475,7 @@ private:
 		try { mixin(S_TRACE);
 			_comm.openCWXPath(flag.cwxPath(true), false);
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -4459,6 +4462,7 @@ public:
 									break;
 								}
 							} catch (SWTException e) {
+								printStackTrace();
 								debugln(e);
 							}
 						}
@@ -4673,6 +4677,7 @@ public:
 								break;
 							}
 						} catch (SWTException e) {
+							printStackTrace();
 							debugln(e);
 						}
 					}
@@ -4900,6 +4905,7 @@ public:
 				_comm.refreshToolBar();
 			}
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -4925,6 +4931,7 @@ public:
 						}
 						append++;
 					} catch (SWTException e) {
+						printStackTrace();
 						debugln(e);
 					}
 				}
@@ -5192,6 +5199,7 @@ public:
 							_comm.refreshToolBar();
 						}
 					} catch (Exception e) {
+						printStackTrace();
 						debugln(e);
 					}
 				}
@@ -5280,6 +5288,7 @@ public:
 								_comm.refreshToolBar();
 							}
 						} catch (Exception e) {
+							printStackTrace();
 							debugln(e);
 						}
 					}
@@ -5368,6 +5377,7 @@ public:
 								_comm.refreshToolBar();
 							}
 						} catch (Exception e) {
+							printStackTrace();
 							debugln(e);
 						}
 					}

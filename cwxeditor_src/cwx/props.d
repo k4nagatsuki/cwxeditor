@@ -220,6 +220,7 @@ public:
 			_looks = new Looks;
 			dStr ~= " - " ~ .text(__LINE__);
 		} catch (Throwable e) {
+			printStackTrace();
 			fdebugln(dStr);
 			fdebugln(e);
 			throw new Exception(dStr, __FILE__, __LINE__);
@@ -248,6 +249,7 @@ public:
 		try { mixin(S_TRACE);
 			_msgs = Msgs.fromXML(std.file.readText(path), 0);
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 	}
@@ -276,11 +278,13 @@ public:
 						}
 						msgsTableFile[msgsLocale] = file;
 					} catch (Exception e) {
+						printStackTrace();
 						debugln(e);
 					}
 				}
 			}
 		} catch (Exception e) {
+			printStackTrace();
 			debugln(e);
 		}
 		msgsTable[defLocale] = def;

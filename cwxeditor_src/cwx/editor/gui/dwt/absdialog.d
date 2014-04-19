@@ -336,10 +336,16 @@ abstract class AbsDialog {
 			if (!_win.isDisposed()) _win.close();
 		}
 		while (!_win.isDisposed()) { mixin(S_TRACE);
-			try { mixin(S_TRACE);
+			version (nocatch) {
 				if (!d.readAndDispatch()) d.sleep();
-			} catch (Throwable e) {
-				throw e;
+			} else {
+				try { mixin(S_TRACE);
+					if (!d.readAndDispatch()) d.sleep();
+				} catch (Throwable e) {
+					string s = printStackTrace();
+					fdebugln(e);
+					throw e;
+				}
 			}
 		}
 		return _ret || _applied;

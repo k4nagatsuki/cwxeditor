@@ -60,6 +60,7 @@ public:
 						dStr ~= " - " ~ .text(__LINE__);
 						_parent.loadMsgs(langFile);
 					} catch (Exception e) {
+						printStackTrace();
 						debugln(e);
 					}
 					dStr ~= " - " ~ .text(__LINE__);
@@ -68,6 +69,7 @@ public:
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 		} catch (Throwable e) {
+			printStackTrace();
 			fdebugln(dStr);
 			fdebugln(e);
 			throw new Exception(dStr, __FILE__, __LINE__);
