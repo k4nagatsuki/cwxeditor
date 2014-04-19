@@ -3160,7 +3160,7 @@ public:
 		if (c.parent) { mixin(S_TRACE);
 			next = c.parent.detail.nextType;
 		} else { mixin(S_TRACE);
-			assert (c.type is CType.START);
+			assert (c.type is CType.START, to!string(c.type));
 			next = CNextType.TEXT;
 		}
 		node.newAttr("lastNextType", fromCNextType(next));
