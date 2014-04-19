@@ -918,7 +918,7 @@ private:
 			}
 			bool classic;
 			string filterPath = scenarioFilterPath(_prop);
-			string fileName = toFileName(setExtension(summary.scenarioName, ".wsn"));
+			string fileName = toFileName(setExtension(summary.scenarioName, filters[filter].extension()));
 			while (true) { mixin(S_TRACE);
 				auto fileDlg = new FileDialog(shell, SWT.PRIMARY_MODAL | SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
 				fileDlg.setFilterExtensions(filters);

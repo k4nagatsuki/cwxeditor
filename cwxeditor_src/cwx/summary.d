@@ -29,6 +29,7 @@ import std.utf;
 import std.traits;
 import std.exception;
 import std.conv;
+import std.parallelism;
 
 public:
 
@@ -77,6 +78,8 @@ struct SaveOption {
 	bool saveChangedOnly = false; /// 更新されたファイルだけを保存するか。
 	bool backup = false; /// 保存時バックアップを行うか。
 	string backupDir = ""; /// 保存時バックアップ先。
+	bool archiveInNewThread = false; /// 保存後の圧縮を別スレッドで行うか。
+	void delegate() savedCallback = null; /// 保存完了通知を受け取る場合は設定する。
 }
 
 /// 貼り紙。シナリオの情報が入る。
@@ -232,7 +235,7 @@ public:
 		auto summ = new Summary(name, skin.type, p, true, false);
 		if (summ.expandXMLs) { mixin(S_TRACE);
 			SaveOption opt;
-			summ.saveXMLs(summ.scenarioPath, sys, opt);
+			summ.saveXMLsImpl(summ.scenarioPath, sys, opt, true);
 		}
 		summ.refCheckPaths();
 		return summ;
@@ -1581,6 +1584,10 @@ public:
 	/// Throws:
 	/// FileException = ファイル削除時・保存時例外発生時。
 	void saveXMLs(string path, const System sys, in SaveOption opt) { mixin(S_TRACE);
+		saveXMLsImpl(path, sys, opt, true);
+	}
+	private void saveXMLsImpl(string path, const System sys, in SaveOption opt, bool callSaved) { mixin(S_TRACE);
+		scope (exit) if (callSaved && opt.savedCallback) opt.savedCallback();
 		string summFile = std.path.buildPath(path, "Summary.xml");
 
 		bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
@@ -2088,11 +2095,12 @@ public:
 			}
 			assert (!useTemp);
 			string zipName = "";
-			saveProc(prop, skin, opt2, useTemp, zipName, temp, sPath, false, false, defExpandXMLs, true);
-			if (!type.length) { mixin(S_TRACE);
-				type = defSkin.type;
-				resetChanged();
-			}
+			saveProc(prop, skin, opt2, useTemp, zipName, temp, sPath, false, false, defExpandXMLs, true, { mixin(S_TRACE);
+				if (!type.length) { mixin(S_TRACE);
+					type = defSkin.type;
+					resetChanged();
+				}
+			});
 		} else if (this.legacy) { mixin(S_TRACE);
 			// クラシック形式からXML形式に変換
 			string[] copyFail;
@@ -2125,8 +2133,13 @@ public:
 		}
 	}
 	private void saveProc(in CProps prop, in Skin skin, in SaveOption opt, bool archive,
-			string zipName, string temp, string sPath, bool legacy, bool legacyToX, bool defExpandXMLs, bool releaseLock) { mixin(S_TRACE);
+			string zipName, string temp, string sPath, bool legacy, bool legacyToX, bool defExpandXMLs, bool releaseLock, void delegate() after = null) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
+			auto callSaved = true;
+			scope (exit) {
+				if (after) after();
+				if (callSaved && opt.savedCallback) opt.savedCallback();
+			}
 			void releaseLockFile() { mixin(S_TRACE);
 				if (releaseLock && _lock) { mixin(S_TRACE);
 					_lock.close();
@@ -2142,17 +2155,31 @@ public:
 				bool useTemp = archive;
 				.enforce(useTemp == (0 < zipName.length));
 				if (useTemp) { mixin(S_TRACE);
-					if (cfnmatch(.extension(zipName), ".cab")) { mixin(S_TRACE);
-						.cab(temp, zipName, (string file) { mixin(S_TRACE);
-							return !cfnmatch(baseName(file), "cwxeditor.lock");
-						});
-					} else { mixin(S_TRACE);
-						.zip(temp, zipName, true, [std.path.buildPath(temp, "cwxeditor.lock")], true);
+					void t1() { mixin(S_TRACE);
+						if (cfnmatch(.extension(zipName), ".cab")) { mixin(S_TRACE);
+							.cab(temp, zipName, (string file) { mixin(S_TRACE);
+								return !cfnmatch(baseName(file), "cwxeditor.lock");
+							});
+						} else { mixin(S_TRACE);
+							.zip(temp, zipName, true, [std.path.buildPath(temp, "cwxeditor.lock")], true);
+						}
+						releaseLockFile();
+						if (useTemp && !_lock) { mixin(S_TRACE);
+							lock(sPath, useTemp);
+						}
+						if (opt.savedCallback) opt.savedCallback();
 					}
-				}
-				releaseLockFile();
-				if (useTemp && !_lock) { mixin(S_TRACE);
-					lock(sPath, useTemp);
+					if (opt.archiveInNewThread) { mixin(S_TRACE);
+						.task(&t1).executeInNewThread();
+						callSaved = false;
+					} else { mixin(S_TRACE);
+						t1();
+					}
+				} else { mixin(S_TRACE);
+					releaseLockFile();
+					if (useTemp && !_lock) { mixin(S_TRACE);
+						lock(sPath, useTemp);
+					}
 				}
 				_expandXMLs = false;
 				_useTemp = useTemp;
@@ -2163,43 +2190,52 @@ public:
 			} else if (archive || useTemp || legacyToX) { mixin(S_TRACE);
 				auto oldPath = scenarioPath;
 				if (expandXMLs) { mixin(S_TRACE);
-					saveXMLs(prop.sys, opt);
+					saveXMLsImpl(_sPath, prop.sys, opt, false);
 					expand = true;
 				} else if (legacyToX && defExpandXMLs) { mixin(S_TRACE);
 					scenarioPath = temp;
 					scope (failure) scenarioPath = oldPath;
-					saveXMLs(prop.sys, opt);
+					saveXMLsImpl(_sPath, prop.sys, opt, false);
 					expand = true;
 				}
-				auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
-				ubyte[][] data;
-				scope arc = .zip(scenarioPath, false, [lock], false, data);
-				if (!expand) { mixin(S_TRACE);
-					auto xmls = toXMLs(prop.sys);
-					foreach (path, files; xmls) { mixin(S_TRACE);
-						foreach (name, xml; files) { mixin(S_TRACE);
-							auto p = std.path.buildPath(path, name);
-							arc.addMember(.archive(p, cast(ubyte[]) xml, false));
+				void t2() { mixin(S_TRACE);
+					auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
+					ubyte[][] data;
+					scope arc = .zip(scenarioPath, false, [lock], false, data);
+					if (!expand) { mixin(S_TRACE);
+						auto xmls = toXMLs(prop.sys);
+						foreach (path, files; xmls) { mixin(S_TRACE);
+							foreach (name, xml; files) { mixin(S_TRACE);
+								auto p = std.path.buildPath(path, name);
+								arc.addMember(.archive(p, cast(ubyte[]) xml, false));
+							}
 						}
+						_oldXMLs = xmls;
 					}
-					_oldXMLs = xmls;
+					auto b = arc.build();
+					destroy(arc);
+					std.file.write(zipName, b);
+					(cast(ubyte[])b)[] = 0;
+					delete b;
+					foreach (d; data) { mixin(S_TRACE);
+						(cast(ubyte[])d)[] = 0;
+						delete d;
+					}
+					(cast(ubyte[])data)[] = 0;
+					delete data;
+					if (opt.savedCallback) opt.savedCallback();
 				}
-				auto b = arc.build();
-				destroy(arc);
-				std.file.write(zipName, b);
-				(cast(ubyte[])b)[] = 0;
-				delete b;
-				foreach (d; data) { mixin(S_TRACE);
-					(cast(ubyte[])d)[] = 0;
-					delete d;
+				if (opt.archiveInNewThread) { mixin(S_TRACE);
+					.task(&t2).executeInNewThread();
+					callSaved = false;
+				} else { mixin(S_TRACE);
+					t2();
 				}
-				(cast(ubyte[])data)[] = 0;
-				delete data;
 			} else if (expandXMLs || !useTemp) { mixin(S_TRACE);
 				auto oldPath = scenarioPath;
 				scenarioPath = sPath;
 				scope (failure) scenarioPath = oldPath;
-				saveXMLs(prop.sys, opt);
+				saveXMLsImpl(_sPath, prop.sys, opt, false);
 				releaseLockFile();
 				_useTemp = useTemp;
 				_zipName = zipName;
@@ -2210,7 +2246,16 @@ public:
 			refCheckPaths();
 			resetChanged();
 			if (legacyToX || (!useTemp && archive)) { mixin(S_TRACE);
-				toArchive(zipName, temp, expand);
+				void t3() { mixin(S_TRACE);
+					toArchive(zipName, temp, expand);
+					if (opt.savedCallback) opt.savedCallback();
+				}
+				if (opt.archiveInNewThread) { mixin(S_TRACE);
+					.task(&t3).executeInNewThread();
+					callSaved = false;
+				} else { mixin(S_TRACE);
+					t3();
+				}
 			}
 		} catch (Exception e) {
 			printStackTrace();

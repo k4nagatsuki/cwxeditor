@@ -273,7 +273,7 @@ void cwriteln(string s) { mixin(S_TRACE);
 
 // FIXME: たまにすり抜ける文字列がある
 //alias std.utf.validate validate;
-void validate(S)(in S s) { mixin(S_TRACE);
+void validate(S)(in S s) {
 	try {
 		foreach (dchar c; s) { }
 	} catch (Exception e) {
