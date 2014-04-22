@@ -329,13 +329,23 @@ private struct JptxTag {
 			tag.tagValue = to!(int)(p[2 .. ei + 2]);
 			p = p[ei + 4 .. $];
 		}
-		static const ATTR = " *([A-Z]+)=\"([^\"]+)\""d;
+		if (startsWith(p, "="d)) {
+			int ei = .cCountUntil(p, ' ');
+			if (ei == -1) ei = .cCountUntil(p, '>');
+			tag.tagValue = ei == -1 ? to!(int)(p[1 .. $]) : to!(int)(p[1 .. ei]);
+			if (ei != -1) p = p[ei + 1 .. $];
+		}
+		static const ATTR = " *([A-Z]+)=(\"[^\"]+\"|[^\"]+)"d;
 		auto attrReg = .regex!(dstring)(ATTR, "gi");
 		foreach (m; .match(p, attrReg)) {
 			if(m.empty) break;
 			p = m.post;
 			auto cap = m.captures;
-			tag.attr[.toLower(to!string(cap[1]))] = to!string(cap[2]);
+			auto val = to!string(cap[2]);
+			if (2 <= val.length && val.startsWith("\"") && val.endsWith("\"")) {
+				val = val[1 .. $ - 1];
+			}
+			tag.attr[.toLower(to!string(cap[1]))] = val;
 		}
 		return tag;
 	} unittest {
@@ -453,10 +463,10 @@ private struct JptxParser {
 	void parse(string text) {
 		immutable TAG = "</(b|i|u|s|shiftx|shifty|lineheight|font)>"d
 			~ "|<"d
-			~ "(br|b|i|u|s|shiftx=\"-?[0-9]+\"|shifty=\"-?[0-9]+\""d
-			~ "|lineheight=\"-?[0-9]+\""d
-			~ "|font( +(face=\"[^\"]+\"|color=\"[\\$#][0-9A-Fa-f]{6}\""d
-			~ "|pixels=\"[0-9]+\"))+)"d
+			~ "(br|b|i|u|s|shiftx=(\"-?[0-9]+\"|-?[0-9]+)|shifty=(\"-?[0-9]+\"|-?[0-9]+)"d
+			~ "|lineheight=(\"-?[0-9]+\"|-?[0-9]+)"d
+			~ "|font( +(face=(\"[^\"]+\"|[^\"]+)|color=(\"[\\$#][0-9A-Fa-f]{6}\"|[\\$#][0-9A-Fa-f]{6})"d
+			~ "|pixels=(\"-?[0-9]+\"|-?[0-9]+)))+)"d
 			~ ">"d;
 		if (autoline) {
 			auto r = .regex!(dstring)("^" ~ TAG ~ "$", "i");
@@ -532,8 +542,8 @@ struct Jptx {
 		jptx.text = "Jptxのテスト。<br>改行した後、<b>太字<i>かつ斜体</i></b><s>打ち消し</s>"
 			~ "<font color=\"$000000\" face=\"font!\" pixels=\"28\">font!の黒の28px"
 			~ "<font color=\"$FF0000\">ここはfont!の赤の28px</font>ここもfont!の黒の28px</font>"
-			~ "<shiftx=\"20\">shiftx=20<shiftx=\"-10\">shiftx=10</shiftx>shiftx=20</shiftx>"
-			~ "<shifty=\"20\">shifty=20<shifty=\"-10\">shifty=10</shifty>shifty=20</shifty>"
+			~ "<shiftx=\"20\">shiftx=20<shiftx=\"10\">shiftx=10<shiftx=20>shiftx=20</shiftx>"
+			~ "<shifty=\"20\">shifty=20<shifty=\"10\">shifty=10<shifty=20>shifty=20</shifty>"
 			~ "<lineheight=\"50\">高さ50%<lineheight=\"30\">高さ30%</lineheight></lineheight>";
 		jptx.fontface = "testfont";
 		jptx.lineheight = 80;
@@ -646,7 +656,6 @@ struct Jptx {
 		param.pixels = fontpixels;
 		// stack
 		int sB = 0, sI = 0, sU = 0, sS = 0;
-		int[] sShiftx, sShifty, sLineheight;
 		string[] sFace;
 		CRGB[] sColor;
 		int[] sPixels;
@@ -685,31 +694,22 @@ struct Jptx {
 			if (sS <= 0) param.s = false;
 		};
 		parser.onShiftx = (int shiftx) {
-			sShiftx ~= shiftx;
-			param.shiftx += shiftx;
+			param.shiftx = shiftx;
 		};
 		parser.onEndShiftx = () {
-			if (!sShiftx.length) return;
-			param.shiftx -= sShiftx[$ - 1];
-			sShiftx = sShiftx[0 .. $ - 1];
+			// 効果無し
 		};
 		parser.onShifty = (int shifty) {
-			sShifty ~= shifty;
-			param.shifty += shifty;
+			param.shifty = shifty;
 		};
 		parser.onEndShifty = () {
-			if (!sShifty.length) return;
-			param.shifty -= sShifty[$ - 1];
-			sShifty = sShifty[0 .. $ - 1];
+			// 効果無し
 		};
 		parser.onLineheight = (int lineheight) {
-			sLineheight ~= lineheight;
 			param.lineheight = lineheight;
 		};
 		parser.onEndLineheight = () {
-			if (!sLineheight.length) return;
-			sLineheight = sLineheight[0 .. $ - 1];
-			param.lineheight = sLineheight.length ? sLineheight[$ - 1] : 100;
+			// 効果無し
 		};
 		parser.onFont = (string face, CRGB color, int pixels) {
 			if (!face.length) face = param.face;
@@ -733,9 +733,13 @@ struct Jptx {
 		};
 		parser.onBR = () {
 			onText("\n", param);
+			param.shiftx = 0;
+			param.shifty = 0;
 		};
 		parser.onText = (string text) {
 			onText(text, param);
+			param.shiftx = 0;
+			param.shifty = 0;
 		};
 		parser.parse(text);
 	}

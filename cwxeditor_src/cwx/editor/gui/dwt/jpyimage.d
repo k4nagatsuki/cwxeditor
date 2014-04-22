@@ -375,6 +375,10 @@ private ImageData loadJPTXImage(string path) {
 		}
 		scope (exit) font.dispose();
 		gc.setFont(font);
+
+		x += param.shiftx;
+		y += param.shifty;
+
 		int height = gc.getFontMetrics().getHeight();
 		if (text == "\n") {
 			// wrap
@@ -386,8 +390,7 @@ private ImageData loadJPTXImage(string path) {
 		auto cFore = new Color(d, dwtData(param.color, alpha));
 		scope (exit) cFore.dispose();
 		gc.setForeground(cFore);
-		int tx = x + param.shiftx, ty = y + param.shifty;
-		gc.drawText(text, tx, ty);
+		gc.drawText(text, x, y);
 		int w = gc.textExtent(text).x;
 		version (Windows) {} else {
 			if (param.s) {
