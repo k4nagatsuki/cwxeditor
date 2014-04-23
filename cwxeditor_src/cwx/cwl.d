@@ -1919,15 +1919,15 @@ private CastCard loadCast(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 	r.enhanceRound(Enhance.DEFENSE, f.readUIntL);
 	uint itmNum = f.readUIntL;
 	for (uint i = 0u; i < itmNum; i++) { mixin(S_TRACE);
-		r.add(loadItem(d, f, i + 1));
+		r.add(loadItem(d, f, i + 1), true);
 	}
 	uint sklNum = f.readUIntL;
 	for (uint i = 0u; i < sklNum; i++) { mixin(S_TRACE);
-		r.add(loadSkill(d, f, i + 1));
+		r.add(loadSkill(d, f, i + 1), true);
 	}
 	uint bstNum = f.readUIntL;
 	for (uint i = 0u; i < bstNum; i++) { mixin(S_TRACE);
-		r.add(loadBeast(d, f, i + 1));
+		r.add(loadBeast(d, f, i + 1), true);
 	}
 	if (d.dataVersion > 0) { mixin(S_TRACE);
 		uint cpnNum = f.readUIntL;

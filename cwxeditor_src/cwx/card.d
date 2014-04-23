@@ -570,11 +570,12 @@ public:
 		_coupons = coupons;
 	}
 
-	private C addImpl(C)(ref C[] arr, C c) { mixin(S_TRACE);
+	private C addImpl(C)(ref C[] arr, C c, bool newCard) { mixin(S_TRACE);
 		if (contains!("a is b")(arr, c)) { mixin(S_TRACE);
 			remove(c);
+			newCard = true;
 		}
-		c = c.dup;
+		if (!newCard) c = c.dup;
 		if (arr.length > 0 && arr[$ - 1].id >= c.id) { mixin(S_TRACE);
 			c.id = arr[$ - 1].id + 1L;
 		}
@@ -587,7 +588,7 @@ public:
 		changed();
 		return c;
 	}
-	private void __removeC(C)(ref C[] arr, C card) { mixin(S_TRACE);
+	private void removeCImpl(C)(ref C[] arr, C card) { mixin(S_TRACE);
 		foreach (i, c; arr) { mixin(S_TRACE);
 			if (c is card) { mixin(S_TRACE);
 				arr[i].removeUseCounter();
@@ -598,7 +599,7 @@ public:
 			}
 		}
 	}
-	private void __remove(C)(ref C[] arr, ulong id) { mixin(S_TRACE);
+	private void removeImpl(C)(ref C[] arr, ulong id) { mixin(S_TRACE);
 		foreach (i, c; arr) { mixin(S_TRACE);
 			if (c.id == id) { mixin(S_TRACE);
 				arr[i].removeUseCounter();
@@ -610,7 +611,7 @@ public:
 		}
 	}
 	const
-	private C __find(C)(C[] arr, ulong id) { mixin(S_TRACE);
+	private C findImpl(C)(C[] arr, ulong id) { mixin(S_TRACE);
 		foreach (c; arr) { mixin(S_TRACE);
 			if (c.id == id) { mixin(S_TRACE);
 				return c;
@@ -618,15 +619,17 @@ public:
 		}
 		return null;
 	}
-	private T __insert(T, alias ToID)(ref T[] arr, int index, T c) { mixin(S_TRACE);
+	private T insertImpl(T, alias ToID)(ref T[] arr, int index, T c, bool newCard) { mixin(S_TRACE);
 		if (arr.length == index) { mixin(S_TRACE);
-			return addImpl!(T)(arr, c);
+			return addImpl!(T)(arr, c, newCard);
 		} else { mixin(S_TRACE);
 			int oldIdx = indexOf(c);
 			if (oldIdx >= 0) { mixin(S_TRACE);
 				remove(c);
+				newCard = true;
 				if (oldIdx < index) index--;
 			}
+			if (!newCard) c = c.dup;
 			c.id(index == 0 ? 1L : arr[index - 1].id() + 1L);
 			arr = arr[0 .. index] ~ c ~ arr[index .. $];
 			for (size_t i = index + 1; i < arr.length; i++) { mixin(S_TRACE);
@@ -648,60 +651,60 @@ public:
 	inout
 	inout(ItemCard)[] items() {return _items;}
 	/// ditto
-	ItemCard add(ItemCard card) {return addImpl(_items, card);}
+	ItemCard add(ItemCard card, bool newCard = false) {return addImpl(_items, card, newCard);}
 	/// ditto
-	void removeItem(ulong id) {__remove(_items, id);}
+	void removeItem(ulong id) {removeImpl(_items, id);}
 	/// ditto
 	ItemCard item(ulong id) { mixin(S_TRACE);
-		return __find(_items, id);
+		return findImpl(_items, id);
 	}
 	/// ditto
 	void remove(ItemCard c) { mixin(S_TRACE);
-		__removeC(_items, c);
+		removeCImpl(_items, c);
 	}
 	/// ditto
-	ItemCard insert(int index, ItemCard c) { mixin(S_TRACE);
-		return __insert!(ItemCard, toItemId)(_items, index, c);
+	ItemCard insert(int index, ItemCard c, bool newCard = false) { mixin(S_TRACE);
+		return insertImpl!(ItemCard, toItemId)(_items, index, c, newCard);
 	}
 	/// 所持スキル。
 	@property
 	inout
 	inout(SkillCard)[] skills() {return _skills;}
 	/// ditto
-	SkillCard add(SkillCard card) {return addImpl(_skills, card);}
+	SkillCard add(SkillCard card, bool newCard = false) {return addImpl(_skills, card, newCard);}
 	/// ditto
-	void removeSkill(ulong id) {__remove(_skills, id);}
+	void removeSkill(ulong id) {removeImpl(_skills, id);}
 	/// ditto
 	SkillCard skill(ulong id) { mixin(S_TRACE);
-		return __find(_skills, id);
+		return findImpl(_skills, id);
 	}
 	/// ditto
 	void remove(SkillCard c) { mixin(S_TRACE);
-		__removeC(_skills, c);
+		removeCImpl(_skills, c);
 	}
 	/// ditto
-	SkillCard insert(int index, SkillCard c) { mixin(S_TRACE);
-		return __insert!(SkillCard, toSkillId)(_skills, index, c);
+	SkillCard insert(int index, SkillCard c, bool newCard = false) { mixin(S_TRACE);
+		return insertImpl!(SkillCard, toSkillId)(_skills, index, c, newCard);
 	}
 	/// 所持召喚獣。
 	@property
 	inout
 	inout(BeastCard)[] beasts() {return _beasts;}
 	/// ditto
-	BeastCard add(BeastCard card) {return addImpl(_beasts, card);}
+	BeastCard add(BeastCard card, bool newCard = false) {return addImpl(_beasts, card, newCard);}
 	/// ditto
-	void removeBeast(ulong id) {__remove(_beasts, id);}
+	void removeBeast(ulong id) {removeImpl(_beasts, id);}
 	/// ditto
 	BeastCard beast(ulong id) { mixin(S_TRACE);
-		return __find(_beasts, id);
+		return findImpl(_beasts, id);
 	}
 	/// ditto
 	void remove(BeastCard c) { mixin(S_TRACE);
-		__removeC(_beasts, c);
+		removeCImpl(_beasts, c);
 	}
 	/// ditto
-	BeastCard insert(int index, BeastCard c) { mixin(S_TRACE);
-		return __insert!(BeastCard, toBeastId)(_beasts, index, c);
+	BeastCard insert(int index, BeastCard c, bool newCard = false) { mixin(S_TRACE);
+		return insertImpl!(BeastCard, toBeastId)(_beasts, index, c, newCard);
 	}
 
 	/// 指定された要素のindexを検索する。
