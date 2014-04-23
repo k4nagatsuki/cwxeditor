@@ -554,10 +554,11 @@ public:
 	private C __add(C)(ref C[] arr, C c) {
 		if (contains!("a is b")(arr, c)) {
 			remove(c);
+		} else {
+			scope doc = XNode.create(C.XML_NAME);
+			c.toNodeImpl(doc, null, null);
+			c = C.createFromNode(doc, LATEST_VERSION);
 		}
-		scope doc = XNode.create(C.XML_NAME);
-		c.toNodeImpl(doc, null, null);
-		c = C.createFromNode(doc, LATEST_VERSION);
 		if (arr.length > 0 && arr[$ - 1].id >= c.id) {
 			c.id = arr[$ - 1].id + 1L;
 		}
@@ -609,6 +610,10 @@ public:
 			if (oldIdx >= 0) {
 				remove(c);
 				if (oldIdx < index) index--;
+			} else {
+				scope doc = XNode.create(T.XML_NAME);
+				c.toNodeImpl(doc, null, null);
+				c = T.createFromNode(doc, LATEST_VERSION);
 			}
 			c.id(index == 0 ? 1L : arr[index - 1].id() + 1L);
 			arr = arr[0 .. index] ~ c ~ arr[index .. $];
