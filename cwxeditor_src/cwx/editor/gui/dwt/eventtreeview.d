@@ -2730,6 +2730,9 @@ public:
 			_tree.editor.showEventTreeDetail = _showEventTreeDetail;
 		}
 	}
+	@property
+	const
+	bool showEventTreeDetail() { return _showEventTreeDetail; }
 
 	@property
 	bool canSwapToParent() { mixin(S_TRACE);
@@ -4282,10 +4285,10 @@ class ContentsToolBox {
 		if (_toolWin) { mixin(S_TRACE);
 			_toolWin.dispose();
 		}
-		if (_tcListener) { mixin(S_TRACE);
-			_autoHideTools.getParent().removeControlListener(_tcListener);
-		}
-		if (_autoHideTools) { mixin(S_TRACE);
+		if (_autoHideTools && !_autoHideTools.isDisposed()) { mixin(S_TRACE);
+			if (_tcListener) { mixin(S_TRACE);
+				_autoHideTools.getParent().removeControlListener(_tcListener);
+			}
 			_autoHideTools.dispose();
 		}
 	}
@@ -4381,6 +4384,7 @@ class ContentsToolBox {
 	}
 	private class AHTCListener : ControlAdapter {
 		override void controlResized(ControlEvent e) { mixin(S_TRACE);
+			if (_autoHideTools.isDisposed()) return;
 			if (!_autoHideTools.isVisible()) return;
 			calcAutoHideSize();
 		}

@@ -1521,6 +1521,7 @@ public:
 	}
 	void moveShell() { mixin(S_TRACE);
 		if (setupToolBar()) { mixin(S_TRACE);
+			refShowToolBar();
 			_comm.refreshToolBar();
 		}
 		_etree.moveShell();
@@ -1807,7 +1808,7 @@ public:
 		createToolItem2(_comm, bar,_prop.msgs.foldTree,  _prop.images.foldTree, &_etree.treeClose, &_etree.canFoldTree);
 		new ToolItem(bar, SWT.SEPARATOR);
 		auto dItm = createToolItem2(_comm, bar,_prop.msgs.showEventTreeDetail, _prop.images.showEventTreeDetail, &_etree.reverseShowEventTreeDetail, () => _prop.var.etc.straightEventTreeView.value, SWT.CHECK);
-		dItm.setSelection(_prop.var.etc.showEventTreeDetail);
+		dItm.setSelection(_etree ? _etree.showEventTreeDetail : _prop.var.etc.showEventTreeDetail);
 		return true;
 	}
 	private void setFireControl(Control c) { mixin(S_TRACE);
