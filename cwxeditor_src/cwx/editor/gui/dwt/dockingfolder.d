@@ -676,6 +676,9 @@ class DockingFolder(TabF, int Style) {
 	/// keyのControlをペインから分離してサブウィンドウにする。
 	void createSubWindow(string key) { mixin(S_TRACE);
 		if (isSingleWindow(key)) return;
+		foreach (moveShell; movingShellEvent) { mixin(S_TRACE);
+			moveShell(key);
+		}
 		auto ctrl = control(key);
 		auto oldTabf = cast(TabF)ctrl.getParent();
 		auto oldShell = oldTabf.getShell();
@@ -711,6 +714,8 @@ class DockingFolder(TabF, int Style) {
 	}
 	/// keyのControlのウィンドウ間の移動を通知する。
 	void delegate(Shell before, string key)[] moveShellEvent;
+	/// keyのControlのウィンドウ間の移動を移動前に通知する。
+	void delegate(string key)[] movingShellEvent;
 
 	/// 指定されたpaneKeyがサブウィンドウ内のものか。
 	bool isSubWindowPane(string paneKey) { mixin(S_TRACE);
@@ -1355,6 +1360,9 @@ class DockingFolder(TabF, int Style) {
 					int i2 = .cCountUntil!("a is b")(dropTarg.getItems(), _dragItm);
 					if (i2 + 1 == i1) return DND.DROP_NONE;
 				}
+				foreach (moveShell; movingShellEvent) { mixin(S_TRACE);
+					moveShell(key);
+				}
 				newTab(dropTarg, _dragItm, dropItm ? i1 : -1);
 				if (shell1 !is shell2) { mixin(S_TRACE);
 					foreach (moveShell; moveShellEvent) { mixin(S_TRACE);
@@ -1377,6 +1385,9 @@ class DockingFolder(TabF, int Style) {
 					case DPos.W: dir = Dir.W; break;
 					default: assert (0);
 					}
+				}
+				foreach (moveShell; movingShellEvent) { mixin(S_TRACE);
+					moveShell(key);
 				}
 				string newKey = newTabfKey(prefix(this.outer.key(_dragItm.getParent())));
 				auto tabf = newSash(dropTarg, style, before, 1, 1, newKey);

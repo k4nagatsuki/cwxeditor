@@ -2151,6 +2151,7 @@ public:
 					_dock.canVanish = &dockCanVanish;
 					_dock.selectEvent ~= &dockSelect;
 					_dock.closeCtrlEvent ~= &dockCloseCtrl;
+					_dock.movingShellEvent ~= &dockMovingShellEvent;
 					_dock.moveShellEvent ~= &dockMoveShellEvent;
 					_dock.memoryPane = &isSystemPaneName;
 					_dock.memoryControl = &isSystemCtrlName;
@@ -3518,11 +3519,18 @@ public:
 		statusLine = "";
 		return true;
 	}
+	private void dockMovingShellEvent(string key) { mixin(S_TRACE);
+		auto tlpData = cast(TLPData)dock.control(key).getData();
+		if (!tlpData) return;
+		if (auto ew = cast(IEventWindow)tlpData.tlp) { mixin(S_TRACE);
+			ew.movingShell();
+		}
+	}
 	private void dockMoveShellEvent(Shell before, string key) { mixin(S_TRACE);
 		auto tlpData = cast(TLPData)dock.control(key).getData();
 		if (!tlpData) return;
 		if (auto ew = cast(IEventWindow)tlpData.tlp) { mixin(S_TRACE);
-			ew.eventTreeView().moveShell();
+			ew.moveShell();
 		}
 	}
 	private string dockNewPaneName(string ctrlKey, string basePane, Dir dir) { mixin(S_TRACE);

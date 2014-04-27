@@ -26,6 +26,8 @@ import std.conv;
 import org.eclipse.swt.all;
 
 interface IEventWindow {
+	void movingShell();
+	void moveShell();
 	@property
 	EventTreeView eventTreeView();
 }
@@ -363,6 +365,13 @@ public:
 	@property
 	override EventTreeView eventTreeView() { mixin(S_TRACE);
 		return _eview.eventTreeView;
+	}
+
+	override void movingShell() { mixin(S_TRACE);
+		_eview.movingShell();
+	}
+	override void moveShell() { mixin(S_TRACE);
+		_eview.moveShell();
 	}
 
 	override {
