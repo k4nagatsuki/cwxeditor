@@ -68,6 +68,7 @@ private:
 	static if (is (A == Area) || is (A == Battle)) {
 		CCombo _keyCodeTim;
 	}
+	ToolItem _showEventTreeDetailItm;
 
 	TCPD[] _tcpd;
 	TreeItem _oldSelP = null;
@@ -1514,14 +1515,48 @@ public:
 		_comm.refreshToolBar();
 	}
 
+	private bool _showEventTreeDetail = false;
+	private string _treeKindSel = "";
+	private string _fireSel = "";
+	private int _fireSelInt = 0;
+	static if (is(A:Area) || is(A:Battle)) {
+		private string _keyCodeTimSel = "";
+	}
 	void movingShell() { mixin(S_TRACE);
+		_toolbar.setRedraw(false);
 		_setupToolBar = false;
+		_showEventTreeDetail = _showEventTreeDetailItm.getSelection();
+		if (!_readOnly) { mixin(S_TRACE);
+			_treeKindSel = _treeKind.getText();
+			if (auto c = cast(CCombo)_fireItm.getControl()) { mixin(S_TRACE);
+				_fireSel = c.getText();
+			} else if (auto c = cast(Spinner)_fireItm.getControl()) { mixin(S_TRACE);
+				_fireSelInt = c.getSelection();
+			}
+			static if (is(A:Area) || is(A:Battle)) {
+				_keyCodeTimSel = _keyCodeTim.getText();
+			}
+		}
 		while (_toolbar.getChildren()) _toolbar.getChildren()[0].dispose();
 		while (_toolbar.getItemCount()) _toolbar.getItem(0).dispose();
 	}
 	void moveShell() { mixin(S_TRACE);
+		scope (exit) _toolbar.setRedraw(true);
 		if (setupToolBar()) { mixin(S_TRACE);
 			refShowToolBar();
+			_showEventTreeDetailItm.setSelection(_showEventTreeDetail);
+			if (!_readOnly) { mixin(S_TRACE);
+				_treeKind.setText(_treeKindSel);
+				kindSelected();
+				if (auto c = cast(CCombo)_fireItm.getControl()) { mixin(S_TRACE);
+					c.setText(_fireSel);
+				} else if (auto c = cast(Spinner)_fireItm.getControl()) { mixin(S_TRACE);
+					c.setSelection(_fireSelInt);
+				}
+				static if (is(A:Area) || is(A:Battle)) {
+					_keyCodeTim.setText(_keyCodeTimSel);
+				}
+			}
 			_comm.refreshToolBar();
 		}
 		_etree.moveShell();
@@ -1752,7 +1787,7 @@ public:
 			_fireItm = new ToolItem(bar, SWT.SEPARATOR);
 			_fireItm.setWidth(_prop.var.etc.firesWidth);
 			createCombo(true, areaDefVals);
-			static if (is (A == Area) || is (A == Battle)) {
+			static if (is(A:Area) || is(A:Battle)) {
 				new ToolItem(bar, SWT.SEPARATOR);
 				{ mixin(S_TRACE);
 					auto keyCodeTimItm = new ToolItem(bar, SWT.SEPARATOR);
@@ -1807,8 +1842,8 @@ public:
 		createToolItem2(_comm, bar, _prop.msgs.expandTree, _prop.images.expandTree, &_etree.treeOpen, &_etree.canExpandTree);
 		createToolItem2(_comm, bar,_prop.msgs.foldTree,  _prop.images.foldTree, &_etree.treeClose, &_etree.canFoldTree);
 		new ToolItem(bar, SWT.SEPARATOR);
-		auto dItm = createToolItem2(_comm, bar,_prop.msgs.showEventTreeDetail, _prop.images.showEventTreeDetail, &_etree.reverseShowEventTreeDetail, () => _prop.var.etc.straightEventTreeView.value, SWT.CHECK);
-		dItm.setSelection(_etree ? _etree.showEventTreeDetail : _prop.var.etc.showEventTreeDetail);
+		_showEventTreeDetailItm = createToolItem2(_comm, bar,_prop.msgs.showEventTreeDetail, _prop.images.showEventTreeDetail, &_etree.reverseShowEventTreeDetail, () => _prop.var.etc.straightEventTreeView.value, SWT.CHECK);
+		_showEventTreeDetailItm.setSelection(_prop.var.etc.showEventTreeDetail);
 		return true;
 	}
 	private void setFireControl(Control c) { mixin(S_TRACE);
@@ -1875,39 +1910,42 @@ public:
 	private class KSListener : SelectionAdapter {
 	public:
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			static if (is (A == Area)) {
-				switch (_treeKind.getSelectionIndex()) {
-				case 0:
-					createCombo(true, startDefVals);
-					_keyCodeTim.setEnabled(false);
-					break;
-				case 1:
-					createKCCombo();
-					_keyCodeTim.setEnabled(!_readOnly);
-					break;
-				default: assert (0);
-				}
-			} else static if (is (A == Battle)) {
-				switch (_treeKind.getSelectionIndex()) {
-				case 0:
-					createCombo(true, startDefVals);
-					_keyCodeTim.setEnabled(false);
-					break;
-				case 1:
-					createKCCombo();
-					_keyCodeTim.setEnabled(!_readOnly);
-					break;
-				case 2:
-					auto spn = new Spinner(_toolbar, SWT.BORDER);
-					initSpinner(spn);
-					spn.setMaximum(9999);
-					spn.setMinimum(1);
-					spn.setSelection(1);
-					setFireControl(spn);
-					_keyCodeTim.setEnabled(false);
-					break;
-				default: assert (0);
-				}
+			kindSelected();
+		}
+	}
+	private void kindSelected() { mixin(S_TRACE);
+		static if (is (A == Area)) {
+			switch (_treeKind.getSelectionIndex()) {
+			case 0:
+				createCombo(true, startDefVals);
+				_keyCodeTim.setEnabled(false);
+				break;
+			case 1:
+				createKCCombo();
+				_keyCodeTim.setEnabled(!_readOnly);
+				break;
+			default: assert (0);
+			}
+		} else static if (is (A == Battle)) {
+			switch (_treeKind.getSelectionIndex()) {
+			case 0:
+				createCombo(true, startDefVals);
+				_keyCodeTim.setEnabled(false);
+				break;
+			case 1:
+				createKCCombo();
+				_keyCodeTim.setEnabled(!_readOnly);
+				break;
+			case 2:
+				auto spn = new Spinner(_toolbar, SWT.BORDER);
+				initSpinner(spn);
+				spn.setMaximum(9999);
+				spn.setMinimum(1);
+				spn.setSelection(1);
+				setFireControl(spn);
+				_keyCodeTim.setEnabled(false);
+				break;
+			default: assert (0);
 			}
 		}
 	}

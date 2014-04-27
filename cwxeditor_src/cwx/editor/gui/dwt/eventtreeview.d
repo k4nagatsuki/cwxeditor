@@ -2730,9 +2730,6 @@ public:
 			_tree.editor.showEventTreeDetail = _showEventTreeDetail;
 		}
 	}
-	@property
-	const
-	bool showEventTreeDetail() { return _showEventTreeDetail; }
 
 	@property
 	bool canSwapToParent() { mixin(S_TRACE);
