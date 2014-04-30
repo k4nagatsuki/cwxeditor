@@ -54,7 +54,9 @@ Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, str
 		if (legacyEngine.length) { mixin(S_TRACE);
 			auto lEngine = prop.toAppAbs(legacyEngine);
 			foreach (ce; prop.var.etc.classicEngines) { mixin(S_TRACE);
-				if (cfnmatch(prop.toAppAbs(ce.enginePath), lEngine)) { mixin(S_TRACE);
+				auto enginePath = prop.toAppAbs(ce.enginePath);
+				if (!enginePath.exists()) continue;
+				if (cfnmatch(enginePath, lEngine)) { mixin(S_TRACE);
 					return createClassicSkin(prop, ce);
 				}
 			}
@@ -66,7 +68,9 @@ Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, str
 			if (!skin.legacyEngine.length) return;
 			auto lEngine = prop.toAppAbs(skin.legacyEngine);
 			foreach (ce; prop.var.etc.classicEngines) { mixin(S_TRACE);
-				if (cfnmatch(prop.toAppAbs(ce.enginePath), lEngine)) { mixin(S_TRACE);
+				auto enginePath = prop.toAppAbs(ce.enginePath);
+				if (!enginePath.exists()) continue;
+				if (cfnmatch(enginePath, lEngine)) { mixin(S_TRACE);
 					skin = createClassicSkin(prop, ce);
 					return;
 				}
@@ -83,12 +87,15 @@ Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, str
 		if (skin.legacyEngine.length) { mixin(S_TRACE);
 			find();
 		} else { mixin(S_TRACE);
-			if (prop.var.etc.classicEngines.length) { mixin(S_TRACE);
-				auto ce = prop.var.etc.classicEngines[0];
+			skin = null;
+			foreach (ce; prop.var.etc.classicEngines) { mixin(S_TRACE);
+				auto enginePath = prop.toAppAbs(ce.enginePath);
+				if (!enginePath.exists()) continue;
 				skin = createClassicSkin(prop, ce);
+				break;
 			}
 		}
-		return skin;
+		if (skin) return skin;
 	}
 	return findSkin2(prop, type);
 }
