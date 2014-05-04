@@ -848,10 +848,10 @@ public:
 	@property
 	override void changeHandler(void delegate() change) { mixin(S_TRACE);
 		foreach (b; _bgImgs) { mixin(S_TRACE);
-			b.changeHandler = change;
+			b.changeHandler = changeHandler;
 		}
 		foreach (c; _cards) { mixin(S_TRACE);
-			c.changeHandler = change;
+			c.changeHandler = changeHandler;
 		}
 		super.changeHandler = change;
 	}
@@ -1363,7 +1363,7 @@ public:
 	@property
 	override void changeHandler(void delegate() change) { mixin(S_TRACE);
 		foreach (c; _cards) { mixin(S_TRACE);
-			c.changeHandler = change;
+			c.changeHandler = changeHandler;
 		}
 		super.changeHandler = change;
 	}

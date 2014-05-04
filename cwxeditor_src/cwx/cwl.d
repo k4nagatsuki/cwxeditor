@@ -2088,8 +2088,7 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 			auto file = "~" ~ name;
 			auto path = std.path.buildPath(d.sPath, file);
 			auto path2 = std.path.buildPath(d.sPath, name);
-			// FIXME: 変更のみの保存に問題があるので当面無効化しておく
-			if (true || !d.opt.saveChangedOnly || !path2.exists() || !path2.isFile() || changed.contains(cast(Object)a)) { mixin(S_TRACE);
+			if (!d.opt.saveChangedOnly || !path2.exists() || !path2.isFile() || changed.contains(cast(Object)a)) { mixin(S_TRACE);
 				ByteIO f;
 				write(f);
 				std.file.write(path, f.bytes);
@@ -2287,8 +2286,6 @@ void putExData(ref SData d, CWXPath cp) { mixin(S_TRACE);
 		if (e.comment.length) { mixin(S_TRACE);
 			d.comment[e.cwxPath(true)] = e.comment;
 		}
-	} else if (auto b = cast(ImageCell)cp) { mixin(S_TRACE);
-		putInnerImagePath(d, cp, b.path);
 	} else if (auto c = cast(MenuCard)cp) { mixin(S_TRACE);
 		if (!isBinImg(c.path)) { mixin(S_TRACE);
 			if (".bmp" != .toLower(c.path.extension())) { mixin(S_TRACE);
