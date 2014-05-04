@@ -11,6 +11,7 @@ import cwx.cab;
 import cwx.types;
 import cwx.script;
 import cwx.event;
+import cwx.card;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.absdialog;
@@ -462,6 +463,7 @@ class ErrorDialog : AbsDialog {
 class ReNumDialog(A) : AbsDialog {
 private:
 	Props _prop;
+	Summary _summ;
 	A _area;
 	ulong _minId;
 
@@ -469,8 +471,9 @@ private:
 
 	ulong _newId;
 public:
-	this (Props prop, Shell shell, A area, ulong minId) {
+	this (Props prop, Shell shell, Summary summ, A area, ulong minId) {
 		_prop = prop;
+		_summ = summ;
 		_area = area;
 		_minId = minId;
 		super(prop, shell, prop.msgs.dlgTitReNumbering, prop.images.menu(MenuID.ReNumbering), false);
@@ -492,13 +495,30 @@ protected:
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout(new GridLayout(3, false));
 			string cName = objName!A(_prop);
+			auto name = _area.name;
+			static if (is(typeof(_area.linkId))) {
+				if (_area.linkId != 0) {
+					static if (is(A:SkillCard)) {
+						auto a = _summ.skill(_area.linkId);
+						name = _prop.msgs.noSelectSkill;
+					} else static if (is(A:ItemCard)) {
+						auto a = _summ.item(_area.linkId);
+						name = _prop.msgs.noSelectItem;
+					} else static if (is(A:BeastCard)) {
+						auto a = _summ.beast(_area.linkId);
+						name = _prop.msgs.noSelectBeast;
+					} else static assert (0);
+					
+					if (a) name = a.name;
+				}
+			}
 			auto l1 = new Label(comp, SWT.NONE);
-			l1.setText(.tryFormat(_prop.msgs.reNumbering1, cName, _area.name));
+			l1.setText(.tryFormat(_prop.msgs.reNumbering1, cName, name));
 			_id = new Spinner(comp, SWT.BORDER);
 			_id.setMaximum(_prop.looks.idMax);
 			_id.setMinimum(cast(int) _minId);
 			auto l2 = new Label(comp, SWT.NONE);
-			l2.setText(.tryFormat(_prop.msgs.reNumbering2, cName, _area.name));
+			l2.setText(.tryFormat(_prop.msgs.reNumbering2, cName, name));
 		}
 	}
 	override bool close(bool ok) {

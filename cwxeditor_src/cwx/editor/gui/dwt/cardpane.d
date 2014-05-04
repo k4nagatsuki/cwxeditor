@@ -1810,7 +1810,7 @@ public:
 	static if (EditMode) {
 		void reNumbering() {
 			auto index = selectionIndex;
-			auto dlg = new ReNumDialog!(C)(_prop, dlgParShl, cards[index],
+			auto dlg = new ReNumDialog!(C)(_prop, dlgParShl, _summ, cards[index],
 				index == 0 ? 1 : cards[index - 1].id + 1);
 			if (dlg.open()) {
 				reNumbering(index, dlg.newId);

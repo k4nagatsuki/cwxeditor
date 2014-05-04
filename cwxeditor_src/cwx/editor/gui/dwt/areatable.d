@@ -1050,7 +1050,7 @@ public:
 		if (index <= 0) return;
 		int ai = toAreaIndex(index);
 		if (ai >= 0) {
-			auto dlg = new ReNumDialog!(Area)(_prop, _areas.getShell(), _summ.areas[ai],
+			auto dlg = new ReNumDialog!(Area)(_prop, _areas.getShell(), _summ, _summ.areas[ai],
 				ai == 0 ? 1 : _summ.areas[ai - 1].id + 1);
 			if (dlg.open()) {
 				reNumberingArea(ai, dlg.newId);
@@ -1060,7 +1060,7 @@ public:
 		}
 		int bi = toBattleIndex(index);
 		if (bi >= 0) {
-			auto dlg = new ReNumDialog!(Battle)(_prop, _areas.getShell(), _summ.battles[bi],
+			auto dlg = new ReNumDialog!(Battle)(_prop, _areas.getShell(), _summ, _summ.battles[bi],
 				bi == 0 ? 1 : _summ.battles[bi - 1].id + 1);
 			if (dlg.open()) {
 				reNumberingBattle(bi, dlg.newId);
@@ -1070,7 +1070,7 @@ public:
 		}
 		int pi = toPackageIndex(index);
 		if (pi >= 0) {
-			auto dlg = new ReNumDialog!(Package)(_prop, _areas.getShell(), _summ.packages[pi],
+			auto dlg = new ReNumDialog!(Package)(_prop, _areas.getShell(), _summ, _summ.packages[pi],
 				pi == 0 ? 1 : _summ.packages[pi - 1].id + 1);
 			if (dlg.open()) {
 				reNumberingPackage(pi, dlg.newId);
