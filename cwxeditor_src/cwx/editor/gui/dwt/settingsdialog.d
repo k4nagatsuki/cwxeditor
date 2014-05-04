@@ -142,8 +142,8 @@ private:
 	TableItem _comboListVisible;
 	TableItem _xmlCopy;
 	TableItem _showSpNature;
-	TableItem _saveChangedOnly;
-	TableItem _archiveInNewThread;
+/+	TableItem _saveChangedOnly;
++/	TableItem _archiveInNewThread;
 	TableItem _saveInnerImagePath;
 	TableItem _linkCard;
 	TableItem _traceDirectories;
@@ -995,8 +995,8 @@ private:
 			_comboListVisible = createB(_prop.msgs.comboListVisible);
 			_xmlCopy = createB(_prop.msgs.xmlCopy);
 			_showSpNature = createB(_prop.msgs.showSpNature);
-			_saveChangedOnly = createB(_prop.msgs.saveChangedOnly);
-			_archiveInNewThread = createB(_prop.msgs.archiveInNewThread);
+/+			_saveChangedOnly = createB(_prop.msgs.saveChangedOnly);
++/			_archiveInNewThread = createB(_prop.msgs.archiveInNewThread);
 			_saveInnerImagePath = createB(_prop.msgs.saveInnerImagePath);
 			_linkCard = createB(_prop.msgs.linkCard);
 			_traceDirectories = createB(_prop.msgs.traceDirectories);
@@ -1310,8 +1310,8 @@ protected:
 		_comboListVisible.setChecked(_prop.var.etc.comboListVisible);
 		_xmlCopy.setChecked(_prop.var.etc.xmlCopy);
 		_showSpNature.setChecked(_prop.var.etc.showSpNature);
-		_saveChangedOnly.setChecked(_prop.var.etc.saveChangedOnly);
-		_archiveInNewThread.setChecked(_prop.var.etc.archiveInNewThread);
+/+		_saveChangedOnly.setChecked(_prop.var.etc.saveChangedOnly);
++/		_archiveInNewThread.setChecked(_prop.var.etc.archiveInNewThread);
 		_saveInnerImagePath.setChecked(_prop.var.etc.saveInnerImagePath);
 		_linkCard.setChecked(_prop.var.etc.linkCard);
 		_traceDirectories.setChecked(_prop.var.etc.traceDirectories);
@@ -1517,8 +1517,8 @@ protected:
 		_prop.var.etc.expandXMLs = _expandXMLs.getChecked();
 		_prop.var.etc.xmlCopy = _xmlCopy.getChecked();
 		_prop.var.etc.showSpNature = _showSpNature.getChecked();
-		_prop.var.etc.saveChangedOnly = _saveChangedOnly.getChecked();
-		_prop.var.etc.archiveInNewThread = _archiveInNewThread.getChecked();
+/+		_prop.var.etc.saveChangedOnly = _saveChangedOnly.getChecked();
++/		_prop.var.etc.archiveInNewThread = _archiveInNewThread.getChecked();
 		_prop.var.etc.saveInnerImagePath = _saveInnerImagePath.getChecked();
 		_prop.var.etc.linkCard = _linkCard.getChecked();
 		_prop.var.etc.traceDirectories = _traceDirectories.getChecked();

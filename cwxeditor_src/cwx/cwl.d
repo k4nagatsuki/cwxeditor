@@ -2088,7 +2088,8 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 			auto file = "~" ~ name;
 			auto path = std.path.buildPath(d.sPath, file);
 			auto path2 = std.path.buildPath(d.sPath, name);
-			if (!d.opt.saveChangedOnly || !path2.exists() || !path2.isFile() || changed.contains(cast(Object)a)) { mixin(S_TRACE);
+			// FIXME: 変更のみの保存に問題があるので当面無効化しておく
+			if (true || !d.opt.saveChangedOnly || !path2.exists() || !path2.isFile() || changed.contains(cast(Object)a)) { mixin(S_TRACE);
 				ByteIO f;
 				write(f);
 				std.file.write(path, f.bytes);
