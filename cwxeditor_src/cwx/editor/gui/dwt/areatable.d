@@ -2230,7 +2230,7 @@ public:
 		int index = toIndexFrom(_summ, id, type);
 		_incSearch.close();
 		if (type is typeid(Area)) { mixin(S_TRACE);
-			auto dlg = new ReNumDialog!(Area)(_prop, _areas.getShell(), _summ.areas[index],
+			auto dlg = new ReNumDialog!(Area)(_prop, _areas.getShell(), _summ, _summ.areas[index],
 				index == 0 ? 1 : _summ.areas[index - 1].id + 1);
 			if (dlg.open()) { mixin(S_TRACE);
 				_incSearch.close();
@@ -2240,7 +2240,7 @@ public:
 			return;
 		}
 		if (type is typeid(Battle)) { mixin(S_TRACE);
-			auto dlg = new ReNumDialog!(Battle)(_prop, _areas.getShell(), _summ.battles[index],
+			auto dlg = new ReNumDialog!(Battle)(_prop, _areas.getShell(), _summ, _summ.battles[index],
 				index == 0 ? 1 : _summ.battles[index - 1].id + 1);
 			if (dlg.open()) { mixin(S_TRACE);
 				_incSearch.close();
@@ -2250,7 +2250,7 @@ public:
 			return;
 		}
 		if (type is typeid(Package)) { mixin(S_TRACE);
-			auto dlg = new ReNumDialog!(Package)(_prop, _areas.getShell(), _summ.packages[index],
+			auto dlg = new ReNumDialog!(Package)(_prop, _areas.getShell(), _summ, _summ.packages[index],
 				index == 0 ? 1 : _summ.packages[index - 1].id + 1);
 			if (dlg.open()) { mixin(S_TRACE);
 				_incSearch.close();
