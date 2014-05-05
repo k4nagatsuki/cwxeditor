@@ -452,7 +452,6 @@ void fixCWNext16BitBitmap(ref byte[] bytes) { mixin(S_TRACE);
 	auto biHeight = f.readIntL();
 	auto biPlanes = f.readUShortL();
 	auto biBitCount = f.readUShortL();
-	if (biBitCount != 16) return;
 	auto biCompression = f.readUIntL();
 	auto biSizeImage = f.readUIntL();
 	auto biXPixPerMeter = f.readIntL();

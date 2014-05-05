@@ -111,11 +111,11 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				}
 			}
 			ImageData data = null;
-			try {
+			try { mixin(S_TRACE);
 				auto s = new ByteArrayInputStream(bytes);
 				scope (exit) s.close();
 				data = new ImageData(s);
-			} catch (Throwable e) {
+			} catch (Throwable e) { mixin(S_TRACE);
 				// 壊れたビットマップとして再読込を試みる
 				printStackTrace();
 				debugln(e);
