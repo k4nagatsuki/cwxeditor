@@ -15,6 +15,7 @@ import cwx.background;
 import cwx.types;
 import cwx.features;
 import cwx.imagesize;
+import cwx.motion;
 
 import std.path;
 
@@ -104,8 +105,25 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= skin.warningImage(prop, card.path, summ.legacy, true, targVer);
 		}
 	}
+	void putMotions(in Motion[] motions) { mixin(S_TRACE);
+		foreach (m; motions) { mixin(S_TRACE);
+			if (m.type is MType.CANCEL_ACTION && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.warningUnknownMotion, prop.msgs.motionName(m.type), "1.50");
+				break;
+			}
+			if (m.type == MType.SUMMON_BEAST && !m.beast) { mixin(S_TRACE);
+				r ~= prop.msgs.searchErrorNoBeast;
+				break;
+			}
+			if (m.type == MType.SUMMON_BEAST && m.beast && 0 != m.beast.linkId && !summ.beast(m.beast.linkId)) { mixin(S_TRACE);
+				r ~= prop.msgs.searchErrorLinkIdNotFound;
+				break;
+			}
+		}
+	}
 	auto effCard = cast(EffectCard) path;
 	if (effCard) { mixin(S_TRACE);
+		putMotions(effCard.motions);
 		if (effCard.soundPath1 != "") { mixin(S_TRACE);
 			r ~= skin.warningSE(prop, effCard.soundPath1, summ.legacy, targVer);
 		}
@@ -321,16 +339,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.start != "" && !hasStart()) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorStartNotFound;
 		}
-		foreach (m; c.motions) { mixin(S_TRACE);
-			if (m.type == MType.SUMMON_BEAST && !m.beast) { mixin(S_TRACE);
-				r ~= prop.msgs.searchErrorNoBeast;
-				break;
-			}
-			if (m.type == MType.SUMMON_BEAST && m.beast && 0 != m.beast.linkId && !summ.beast(m.beast.linkId)) { mixin(S_TRACE);
-				r ~= prop.msgs.searchErrorLinkIdNotFound;
-				break;
-			}
-		}
+		putMotions(c.motions);
 		if (c.flag2 != "" && !froot.findFlag(c.flag2)) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorFlagNotFound;
 		}

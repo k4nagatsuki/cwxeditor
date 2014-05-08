@@ -156,6 +156,7 @@ private:
 		if (_effTyp[EffectType.NONE].getSelection()) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningEffectTypeNone;
 		}
+		ws ~= _motions.warnings;
 		foreach (m; _motions.motions) { mixin(S_TRACE);
 			if (m.type == MType.VANISH_TARGET && m.element != cast(int) Element.MIRACLE) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningVanishCast;

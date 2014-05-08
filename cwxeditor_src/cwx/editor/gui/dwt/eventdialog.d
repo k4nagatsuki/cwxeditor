@@ -1085,6 +1085,7 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
+		ws ~= _mview.warnings;
 		if (_se.path != "" && !_se.selectedDefDir) ws ~= prop.msgs.warningNotDefaultSE;
 		warning = ws ~ comm.skin.warningSE(prop.parent, _se.filePath, summ.legacy, _prop.var.etc.targetVersion);
 	}

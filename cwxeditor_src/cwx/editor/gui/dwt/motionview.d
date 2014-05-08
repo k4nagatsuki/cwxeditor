@@ -1493,6 +1493,19 @@ public:
 		_undo.redo();
 	}
 
+	@property
+	string[] warnings() { mixin(S_TRACE);
+		string[] ws;
+		foreach (itm; _motions.getItems()) { mixin(S_TRACE);
+			auto m = cast(Motion)itm.getData();
+			if (m.type is MType.CANCEL_ACTION && !_prop.targetVersion("1.50")) { mixin(S_TRACE);
+				ws ~= .tryFormat(_prop.msgs.warningUnknownMotion, _prop.msgs.motionName(m.type), "1.50");
+				break;
+			}
+		}
+		return ws;
+	}
+
 	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		auto cate = cpcategory(path);
 		if (cate == "motion") { mixin(S_TRACE);
