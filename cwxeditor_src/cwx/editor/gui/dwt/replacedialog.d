@@ -2540,6 +2540,25 @@ public:
 					}
 					if (r) return;
 				}
+				bool putMotions(in Motion[] motions) {
+					foreach (m; motions) {
+						if (m.type == MType.SUMMON_BEAST && !m.beast) {
+							addResult(path, count, _prop.msgs.searchErrorNoBeast);
+							return true;
+						}
+						if (m.type == MType.SUMMON_BEAST && m.beast && 0 != m.beast.linkId && !_summ.beast(m.beast.linkId)) {
+							addResult(path, count, _prop.msgs.searchErrorLinkIdNotFound);
+							return true;
+						}
+					}
+					return false;
+				}
+				auto effCard = cast(EffectCard) path;
+				if (effCard) {
+					if (putMotions(effCard.motions)) {
+						return;
+					}
+				}
 				auto card = cast(Card) path;
 				if (card) {
 					if (card.path != "" && !isBinImg(card.path) && !skin.findPath(card.path, skin.extImage, skin.tableDir, sPath).length) {
@@ -2720,15 +2739,8 @@ public:
 					addResult(path, count, _prop.msgs.searchErrorStartNotFound);
 					return;
 				}
-				foreach (m; c.motions) {
-					if (m.type == MType.SUMMON_BEAST && !m.beast) {
-						addResult(path, count, _prop.msgs.searchErrorNoBeast);
-						return;
-					}
-					if (m.type == MType.SUMMON_BEAST && m.beast && 0 != m.beast.linkId && !_summ.beast(m.beast.linkId)) {
-						addResult(path, count, _prop.msgs.searchErrorLinkIdNotFound);
-						return;
-					}
+				if (putMotions(c.motions)) {
+					return;
 				}
 				if (c.flag2 != "" && !froot.findFlag(c.flag2)) {
 					addResult(path, count, _prop.msgs.searchErrorFlagNotFound);
