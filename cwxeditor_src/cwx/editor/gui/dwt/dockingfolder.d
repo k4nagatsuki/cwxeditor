@@ -119,6 +119,8 @@ class DockingFolder(TabF, int Style) {
 		Display.getCurrent().addFilter(SWT.MouseDown, _fl);
 		Display.getCurrent().addFilter(SWT.FocusIn, _fl);
 		Display.getCurrent().addFilter(SWT.Deactivate, _fl);
+		Display.getCurrent().addFilter(SWT.KeyDown, _fl);
+		Display.getCurrent().addFilter(SWT.KeyUp, _fl);
 	}
 	private Canvas createCanvas(Composite parent) { mixin(S_TRACE);
 		auto canvas = new Canvas(parent, SWT.TRANSPARENT | SWT.NO_BACKGROUND);
@@ -142,6 +144,8 @@ class DockingFolder(TabF, int Style) {
 			Display.getCurrent().removeFilter(SWT.MouseDown, _fl);
 			Display.getCurrent().removeFilter(SWT.FocusIn, _fl);
 			Display.getCurrent().removeFilter(SWT.Deactivate, _fl);
+			Display.getCurrent().removeFilter(SWT.KeyDown, _fl);
+			Display.getCurrent().removeFilter(SWT.KeyUp, _fl);
 			if (_canSave) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
 					saveTree();
@@ -1461,18 +1465,24 @@ class DockingFolder(TabF, int Style) {
 		override void handleEvent(Event e) { mixin(S_TRACE);
 			// サブウィンドウ操作中にメインウィンドウのツールバーを
 			// クリックした場合は選択中タブの変更を通知しない
-			if (e.type is SWT.Deactivate) { mixin(S_TRACE);
-				if (auto shell = cast(Shell)e.widget) { mixin(S_TRACE);
-					_deactivatedShell = shell;
-				}
-				return;
-			}
-			if (_deactivatedShell && e.type is SWT.FocusIn) return;
-			if (_deactivatedShell && e.type is SWT.MouseDown) { mixin(S_TRACE);
-				_deactivatedShell = null;
-				if (auto toolbar = cast(ToolBar)e.widget) { mixin(S_TRACE);
-					toolbar.setFocus();
+			if (!(e.type is SWT.MouseDown && !cast(ToolBar)e.widget)) { mixin(S_TRACE);
+				if (e.type is SWT.KeyUp || e.type is SWT.KeyDown) { mixin(S_TRACE);
+					_deactivatedShell = null;
 					return;
+				}
+				if (e.type is SWT.Deactivate) { mixin(S_TRACE);
+					if (auto shell = cast(Shell)e.widget) { mixin(S_TRACE);
+						_deactivatedShell = shell;
+					}
+					return;
+				}
+				if (_deactivatedShell && e.type is SWT.FocusIn) return;
+				if (_deactivatedShell && e.type is SWT.MouseDown) { mixin(S_TRACE);
+					_deactivatedShell = null;
+					if (auto toolbar = cast(ToolBar)e.widget) { mixin(S_TRACE);
+						toolbar.setFocus();
+						return;
+					}
 				}
 			}
 			_deactivatedShell = null;
