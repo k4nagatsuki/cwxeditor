@@ -373,7 +373,7 @@ class CouponView(CVType Type) : Composite {
 		}
 		@property
 		override bool canDoTCPD() { mixin(S_TRACE);
-			return _coupons.isFocusControl();
+			return true;
 		}
 		@property
 		bool canDoT() { mixin(S_TRACE);

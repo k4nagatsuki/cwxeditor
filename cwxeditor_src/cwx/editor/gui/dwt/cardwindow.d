@@ -146,8 +146,6 @@ private:
 	ToolItem _listT;
 	ToolItem _tblT;
 
-	TCPD[] _tcpd;
-
 	static if (!EditMode) {
 		ToCardOwner _toc;
 	}
@@ -803,7 +801,6 @@ public:
 			} else { mixin(S_TRACE);
 				_pane[i].pane.setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
-			_tcpd ~= f;
 			static if (!EditMode || !is(CardOwner : Summary)) {
 				addTable(f.columns);
 			}
@@ -813,7 +810,6 @@ public:
 			_aTab.setText(_prop.msgs.areasTabName);
 			_aTab.setImage(_prop.images.menu(MenuID.TableView));
 			_aTab.setControl(_areas.panel);
-			_tcpd ~= _areas;
 		}
 
 		auto shell = cast(Shell) _win;
@@ -1009,47 +1005,62 @@ public:
 		}
 	}
 
+	@property
+	private TCPD tcpd() { mixin(S_TRACE);
+		static if (1 < Cards.length || WithArea) {
+			int i = selectionCardIndex;
+			static if (WithArea) {
+				if (i == areaIndex) return _areas;
+			}
+			static if (UseCast) {
+				if (i == CAST) return _pane[CAST];
+			}
+			static if (UseSkill) {
+				if (i == SKILL) return _pane[SKILL];
+			}
+			static if (UseItem) {
+				if (i == ITEM) return _pane[ITEM];
+			}
+			static if (UseBeast) {
+				if (i == BEAST) return _pane[BEAST];
+			}
+			static if (UseInfo) {
+				if (i == INFO) return _pane[INFO];
+			}
+		}
+		return _pane[0];
+	}
 	override {
 		void cut(SelectionEvent se) { mixin(S_TRACE);
 			static if (EditMode) {
-				foreach (c; _tcpd) { mixin(S_TRACE);
-					if (c.canDoTCPD) { mixin(S_TRACE);
-						c.cut(se);
-					}
+				if (tcpd.canDoTCPD) { mixin(S_TRACE);
+					tcpd.cut(se);
 				}
 			}
 		}
 		void copy(SelectionEvent se) { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) { mixin(S_TRACE);
-					c.copy(se);
-				}
+			if (tcpd.canDoTCPD) { mixin(S_TRACE);
+				tcpd.copy(se);
 			}
 		}
 		void paste(SelectionEvent se) { mixin(S_TRACE);
 			static if (EditMode) {
-				foreach (c; _tcpd) { mixin(S_TRACE);
-					if (c.canDoTCPD) { mixin(S_TRACE);
-						c.paste(se);
-					}
+				if (tcpd.canDoTCPD) { mixin(S_TRACE);
+					tcpd.paste(se);
 				}
 			}
 		}
 		void del(SelectionEvent se) { mixin(S_TRACE);
 			static if (EditMode) {
-				foreach (c; _tcpd) { mixin(S_TRACE);
-					if (c.canDoTCPD) { mixin(S_TRACE);
-						c.del(se);
-					}
+				if (tcpd.canDoTCPD) { mixin(S_TRACE);
+					tcpd.del(se);
 				}
 			}
 		}
 		void clone(SelectionEvent se) { mixin(S_TRACE);
 			static if (EditMode) {
-				foreach (c; _tcpd) { mixin(S_TRACE);
-					if (c.canDoTCPD) { mixin(S_TRACE);
-						c.clone(se);
-					}
+				if (tcpd.canDoTCPD) { mixin(S_TRACE);
+					tcpd.clone(se);
 				}
 			}
 		}
@@ -1058,38 +1069,23 @@ public:
 		}
 		@property
 		bool canDoT() { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) return c.canDoT;
-			}
-			return false;
+			return tcpd.canDoTCPD && tcpd.canDoT;
 		}
 		@property
 		bool canDoC() { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) return c.canDoC;
-			}
-			return false;
+			return tcpd.canDoTCPD && tcpd.canDoC;
 		}
 		@property
 		bool canDoP() { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) return c.canDoP;
-			}
-			return false;
+			return tcpd.canDoTCPD && tcpd.canDoP;
 		}
 		@property
 		bool canDoD() { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) return c.canDoD;
-			}
-			return false;
+			return tcpd.canDoTCPD && tcpd.canDoD;
 		}
 		@property
 		bool canDoClone() { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) return c.canDoClone;
-			}
-			return false;
+			return tcpd.canDoTCPD && tcpd.canDoClone;
 		}
 	}
 	private Ret selectPane(Ret, string Method, bool Area = true)() { mixin(S_TRACE);

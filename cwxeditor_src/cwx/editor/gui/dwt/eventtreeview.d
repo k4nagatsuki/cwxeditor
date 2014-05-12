@@ -1951,7 +1951,7 @@ public:
 	private Composite _cbarPar = null;
 
 	@property
-	Control widget() {return _comp;}
+	Composite widget() {return _comp;}
 
 	@property
 	ContentsToolBox contentsToolBox() { return _box; }
@@ -3129,7 +3129,7 @@ public:
 		}
 		@property
 		bool canDoTCPD() { mixin(S_TRACE);
-			return !_readOnly && _et !is null && _tree.control.isFocusControl();
+			return !_readOnly && _et !is null;
 		}
 		@property
 		bool canDoT() { mixin(S_TRACE);

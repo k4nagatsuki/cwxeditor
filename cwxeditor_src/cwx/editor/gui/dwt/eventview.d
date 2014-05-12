@@ -61,6 +61,7 @@ private:
 	Tree _cards;
 	TreeEdit _edit;
 	EventTreeView _etree;
+	Object _lastFocus = null;
 
 	ToolBar _toolbar;
 	CCombo _treeKind;
@@ -1252,6 +1253,8 @@ public:
 			_cards = new Tree(_sash, SWT.SINGLE | SWT.BORDER);
 			initTree(_comm, _cards, false);
 			_cards.addSelectionListener(new SListener);
+			.listener(_cards, SWT.FocusIn, { _lastFocus = _cards; });
+			_lastFocus = _cards;
 
 			auto shell = _cards.getShell();
 			auto menu = new Menu(shell, SWT.POP_UP);
@@ -1312,6 +1315,16 @@ public:
 			if (!_readOnly) { mixin(S_TRACE);
 				auto _edit = new TreeEdit(_comm, _cards, &editEnd, &createEditor);
 			}
+			auto fi = new class Listener {
+				override void handleEvent(Event e) { mixin(S_TRACE);
+					if (!cast(Control)e.widget) return;
+					if (isDescendant(_etree.widget, cast(Control)e.widget)) { mixin(S_TRACE);
+						_lastFocus = _etree;
+					}
+				}
+			};
+			getDisplay().addFilter(SWT.FocusIn, fi);
+			.listener(this, SWT.Dispose, { getDisplay().removeFilter(SWT.FocusIn, fi); });
 			// 遅延実行
 			auto initTools = new class PaintListener {
 				override void paintControl(PaintEvent e) { mixin(S_TRACE);
@@ -1652,9 +1665,9 @@ public:
 	@property
 	bool canUp() { mixin(S_TRACE);
 		if (_readOnly) return false;
-		if (_etree.isFocusControl()) { mixin(S_TRACE);
+		if (_lastFocus is _etree) { mixin(S_TRACE);
 			return _etree.canUp();
-		} else if (_cards.isFocusControl()) { mixin(S_TRACE);
+		} else if (_lastFocus is _cards) { mixin(S_TRACE);
 			return canUdImpl!("before(parent, from)", "to >= 0")(selection);
 		}
 		return false;
@@ -1662,9 +1675,9 @@ public:
 	@property
 	bool canDown() { mixin(S_TRACE);
 		if (_readOnly) return false;
-		if (_etree.isFocusControl()) { mixin(S_TRACE);
+		if (_lastFocus is _etree) { mixin(S_TRACE);
 			return _etree.canDown();
-		} else if (_cards.isFocusControl()) { mixin(S_TRACE);
+		} else if (_lastFocus is _cards) { mixin(S_TRACE);
 			return canUdImpl!("after(parent, from)", "to < keyCodeLen")(selection);
 		}
 		return false;
@@ -1675,9 +1688,9 @@ public:
 	}
 	private void up(TreeItem itm, bool store, bool cards, bool viewOnly) { mixin(S_TRACE);
 		if (_readOnly) return;
-		if (!cards && _etree.isFocusControl()) { mixin(S_TRACE);
+		if (!cards && _lastFocus is _etree) { mixin(S_TRACE);
 			_etree.up();
-		} else if (cards || _cards.isFocusControl()) { mixin(S_TRACE);
+		} else if (cards || _lastFocus is _cards) { mixin(S_TRACE);
 			udImpl!("before(parent, from)", "to >= 0")(itm, &treeItemUp, store, viewOnly);
 			_comm.refreshToolBar();
 		}
@@ -1688,9 +1701,9 @@ public:
 	}
 	private void down(TreeItem itm, bool store, bool cards, bool viewOnly) { mixin(S_TRACE);
 		if (_readOnly) return;
-		if (!cards && _etree.isFocusControl()) { mixin(S_TRACE);
+		if (!cards && _lastFocus is _etree) { mixin(S_TRACE);
 			_etree.down();
-		} else if (cards || _cards.isFocusControl()) { mixin(S_TRACE);
+		} else if (cards || _lastFocus is _cards) { mixin(S_TRACE);
 			udImpl!("after(parent, from)", "to < keyCodeLen")(itm, &treeItemDown, store, viewOnly);
 			_comm.refreshToolBar();
 		}
@@ -1757,10 +1770,12 @@ public:
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
 		}
-		if (!_readOnly && !_comm.singleWindowMode(_prop)) { mixin(S_TRACE);
-			createToolItem(_comm, bar, MenuID.Undo, &undo, () => !_readOnly && _undo.canUndo);
-			createToolItem(_comm, bar, MenuID.Redo, &redo, () => !_readOnly && _undo.canRedo);
-			new ToolItem(bar, SWT.SEPARATOR);
+		if (!_readOnly) { mixin(S_TRACE);
+			if (!_comm.singleWindowMode(_prop)) { mixin(S_TRACE);
+				createToolItem(_comm, bar, MenuID.Undo, &undo, () => !_readOnly && _undo.canUndo);
+				createToolItem(_comm, bar, MenuID.Redo, &redo, () => !_readOnly && _undo.canRedo);
+				new ToolItem(bar, SWT.SEPARATOR);
+			}
 			createToolItem(_comm, bar, MenuID.Up, &up, &canUp);
 			createToolItem(_comm, bar, MenuID.Down, &down, &canDown);
 			new ToolItem(bar, SWT.SEPARATOR);
@@ -2073,7 +2088,7 @@ public:
 	override void cut(SelectionEvent se) { mixin(S_TRACE);
 		if (_readOnly) return;
 		initial();
-		if (_etree.isFocusControl) { mixin(S_TRACE);
+		if (_lastFocus is _etree) { mixin(S_TRACE);
 			_etree.cut(se);
 		} else { mixin(S_TRACE);
 			copy(se);
@@ -2085,7 +2100,7 @@ public:
 	}
 	private void copyImpl(SelectionEvent se, bool canFire) { mixin(S_TRACE);
 		initial();
-		if (_etree.isFocusControl) { mixin(S_TRACE);
+		if (_lastFocus is _etree) { mixin(S_TRACE);
 			_etree.copy(se);
 		} else { mixin(S_TRACE);
 			auto itm = selection;
@@ -2130,7 +2145,7 @@ public:
 	override void paste(SelectionEvent se) { mixin(S_TRACE);
 		if (_readOnly) return;
 		initial();
-		if (_etree.isFocusControl) { mixin(S_TRACE);
+		if (_lastFocus is _etree) { mixin(S_TRACE);
 			_etree.paste(se);
 		} else { mixin(S_TRACE);
 			auto itm = selection;
@@ -2204,7 +2219,7 @@ public:
 	override void del(SelectionEvent se) { mixin(S_TRACE);
 		if (_readOnly) return;
 		initial();
-		if (_etree.isFocusControl) { mixin(S_TRACE);
+		if (_lastFocus is _etree) { mixin(S_TRACE);
 			_etree.del(se);
 		} else { mixin(S_TRACE);
 			auto itm = selection;
@@ -2261,7 +2276,7 @@ public:
 	}
 	override void clone(SelectionEvent se) { mixin(S_TRACE);
 		if (_readOnly) return;
-		if (_etree.isFocusControl) { mixin(S_TRACE);
+		if (_lastFocus is _etree) { mixin(S_TRACE);
 			_etree.clone(se);
 		} else { mixin(S_TRACE);
 			_comm.clipboard.memoryMode = true;
@@ -2273,23 +2288,23 @@ public:
 	@property
 	override bool canDoTCPD() { mixin(S_TRACE);
 		if (_readOnly) return false;
-		return _cards.isFocusControl() || _etree.isFocusControl();
+		return true;
 	}
 	@property
 	override bool canDoT() { mixin(S_TRACE);
 		if (_readOnly) return false;
-		if (_cards.isFocusControl()) { mixin(S_TRACE);
+		if (_lastFocus is _cards) { mixin(S_TRACE);
 			return selection && selection.getParentItem();
-		} else if (_etree.isFocusControl()) { mixin(S_TRACE);
+		} else if (_lastFocus is _etree) { mixin(S_TRACE);
 			return _etree.canDoT;
 		}
 		return false;
 	}
 	@property
 	override bool canDoC() { mixin(S_TRACE);
-		if (_cards.isFocusControl()) { mixin(S_TRACE);
+		if (_lastFocus is _cards) { mixin(S_TRACE);
 			return selection && selection.getParentItem();
-		} else if (_etree.isFocusControl()) { mixin(S_TRACE);
+		} else if (_lastFocus is _etree) { mixin(S_TRACE);
 			return _etree.canDoC;
 		}
 		return false;
@@ -2297,9 +2312,9 @@ public:
 	@property
 	override bool canDoP() { mixin(S_TRACE);
 		if (_readOnly) return false;
-		if (_cards.isFocusControl()) { mixin(S_TRACE);
+		if (_lastFocus is _cards) { mixin(S_TRACE);
 			return CBisXML(_comm.clipboard) || CBisText(_comm.clipboard);
-		} else if (_etree.isFocusControl()) { mixin(S_TRACE);
+		} else if (_lastFocus is _etree) { mixin(S_TRACE);
 			return _etree.canDoP;
 		}
 		return false;
@@ -2307,9 +2322,9 @@ public:
 	@property
 	override bool canDoD() { mixin(S_TRACE);
 		if (_readOnly) return false;
-		if (_cards.isFocusControl()) { mixin(S_TRACE);
+		if (_lastFocus is _cards) { mixin(S_TRACE);
 			return canDoT;
-		} else if (_etree.isFocusControl()) { mixin(S_TRACE);
+		} else if (_lastFocus is _etree) { mixin(S_TRACE);
 			return _etree.canDoD;
 		}
 		return false;

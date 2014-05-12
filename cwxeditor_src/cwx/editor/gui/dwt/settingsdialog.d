@@ -2091,7 +2091,7 @@ private:
 			}
 			@property
 			bool canDoTCPD() { mixin(S_TRACE);
-				return _featureName.isFocusControl();
+				return true;
 			}
 			@property
 			bool canDoT() { mixin(S_TRACE);
@@ -2404,7 +2404,7 @@ private:
 		}
 		@property
 		bool canDoTCPD() { mixin(S_TRACE);
-			return _list.isFocusControl();
+			return true;
 		}
 		@property
 		bool canDoT() { mixin(S_TRACE);

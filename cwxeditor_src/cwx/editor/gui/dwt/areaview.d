@@ -653,6 +653,7 @@ private:
 		.forceFocus(_flagList, true);
 		_refFlagIncSearch.startIncSearch();
 	}
+	Control _lastFocus = null;
 
 	bool _viewMsg = false;
 	bool _viewParty = true;
@@ -2913,6 +2914,20 @@ public:
 				_imgp.showAppends = _prop.var.etc.viewReferenceCards;
 			}
 		}
+
+		auto fi = new class Listener {
+			override void handleEvent(Event e) { mixin(S_TRACE);
+				auto c = cast(Control)e.widget;
+				if (!c) return;
+				if (.isDescendant(lrSash.getParent(), c)) { mixin(S_TRACE);
+					_lastFocus = c;
+					_comm.refreshToolBar();
+				}
+			}
+		};
+		getDisplay().addFilter(SWT.FocusIn, fi);
+		.listener(this, SWT.Dispose, { getDisplay().removeFilter(SWT.FocusIn, fi); });
+
 		// 遅延実行
 		_imgp.addPaintListener(new class PaintListener {
 			override void paintControl(PaintEvent e) {
@@ -3234,12 +3249,12 @@ public:
 	@property
 	bool isFocusOnListOrPane() { mixin(S_TRACE);
 		static if (UseCards) {
-			if (_cards.isFocusControl()) return true;
+			if (_lastFocus is _cards) return true;
 		}
 		static if (UseBacks) {
-			if (_backs.isFocusControl()) return true;
+			if (_lastFocus is _backs) return true;
 		}
-		if (_imgp.isFocusControl()) return true;
+		if (_lastFocus is _imgp) return true;
 		return false;
 	}
 
@@ -4082,6 +4097,16 @@ public:
 			createToolItem(_comm, bar, MenuID.Refresh, &refresh, null);
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
+		if (!_readOnly) { mixin(S_TRACE);
+			if (!_tlp) { mixin(S_TRACE);
+				createToolItem(_comm, bar, MenuID.Undo, &undo, () => !_readOnly && _undo.canUndo);
+				createToolItem(_comm, bar, MenuID.Redo, &redo, () => !_readOnly && _undo.canRedo);
+				new ToolItem(bar, SWT.SEPARATOR);
+			}
+			createToolItem(_comm, bar, MenuID.Up, &up, &canUp);
+			createToolItem(_comm, bar, MenuID.Down, &down, &canDown);
+			new ToolItem(bar, SWT.SEPARATOR);
+		}
 		_vpTMenu = createToolItem(_comm, bar, MenuID.ShowParty, &reverseViewParty, null, SWT.CHECK);
 		_vpTMenu.setSelection(_viewParty);
 		_vmTMenu = createToolItem(_comm, bar, MenuID.ShowMsg, &reverseViewMsg, null, SWT.CHECK);
@@ -4098,14 +4123,6 @@ public:
 			}
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
-		if (!_readOnly && !_tlp) { mixin(S_TRACE);
-			createToolItem(_comm, bar, MenuID.Undo, &undo, () => !_readOnly && _undo.canUndo);
-			createToolItem(_comm, bar, MenuID.Redo, &redo, () => !_readOnly && _undo.canRedo);
-			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(_comm, bar, MenuID.Up, &up, &canUp);
-			createToolItem(_comm, bar, MenuID.Down, &down, &canDown);
-			new ToolItem(bar, SWT.SEPARATOR);
-		}
 		static if (UseCards) {
 			_autoTMenu = createToolItem(_comm, bar, MenuID.AutoArrange, &setAuto, () => !_readOnly, SWT.RADIO);
 			_customTMenu = createToolItem(_comm, bar, MenuID.ManualArrange, &setCustom, () => !_readOnly, SWT.RADIO);

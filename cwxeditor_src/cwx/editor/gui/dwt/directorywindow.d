@@ -814,6 +814,7 @@ private:
 	TableSorter!(FileNameObj) _sortExt;
 	TableSorter!(FileNameObj) _sortCount;
 	IncSearch _incSearch;
+	Control _lastFocus = null;
 
 	HashSet!(string) _cuts;
 	Image _sImgFolder, _sImgCards, _sImgBacks, _sImgBgm, _sImgSe, _sImgText, _sImgUnknown;
@@ -1607,6 +1608,8 @@ public:
 		initTree(_comm, _dirs, false);
 		{ mixin(S_TRACE);
 			_dirs.addSelectionListener(new DirsSelection);
+			.listener(_dirs, SWT.FocusIn, (e) { _lastFocus = cast(Control)e.widget; });
+			_lastFocus = _dirs;
 			_dirsEdit = new TreeEdit(_comm, _dirs, &dirsEditEnd, &dirsCreateEditor);
 
 			auto drop = new DropTarget
@@ -1633,6 +1636,7 @@ public:
 		_files = new Table(fComp, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
 		{ mixin(S_TRACE);
 			_files.addSelectionListener(new FilesSelection);
+			.listener(_files, SWT.FocusIn, (e) { _lastFocus = cast(Control)e.widget; });
 			_files.setHeaderVisible(true);
 			auto namec = new TableColumn(_files, SWT.NONE);
 			namec.setText(_prop.msgs.fileName);
@@ -1937,7 +1941,7 @@ public:
 		if (!_win || _win.isDisposed()) { mixin(S_TRACE);
 			_comm.openDirWin(false);
 		}
-		if (_files.isFocusControl()) { mixin(S_TRACE);
+		if (_lastFocus is _files) { mixin(S_TRACE);
 			createDirFiles();
 		} else { mixin(S_TRACE);
 			createDirDirs();
@@ -2108,13 +2112,13 @@ public:
 
 	override void cut(SelectionEvent se) { mixin(S_TRACE);
 		if (!canDoTCPD) return;
-		if (_dirs.isFocusControl()) { mixin(S_TRACE);
+		if (_lastFocus is _dirs) { mixin(S_TRACE);
 			auto sels = _dirs.getSelection();
 			if (!sels.length) return;
 			if (!sels[0].getParentItem()) return;
 		}
 		if (__copy()) { mixin(S_TRACE);
-			if (_dirs.isFocusControl()) { mixin(S_TRACE);
+			if (_lastFocus is _dirs) { mixin(S_TRACE);
 				auto sels = _dirs.getSelection();
 				if (!sels.length) return;
 				auto dir = selDirPath;
@@ -2125,7 +2129,7 @@ public:
 					_cuts.add(nabs(dir));
 				}
 			} else { mixin(S_TRACE);
-				assert (_files.isFocusControl());
+				assert (_lastFocus is _files);
 				bool isdir = false;
 				foreach (itm; _files.getSelection()) { mixin(S_TRACE);
 					auto p = (cast(FileNameObj) itm.getData()).array;
@@ -2147,13 +2151,13 @@ public:
 		__copy();
 	}
 	private string[] copyImpl() { mixin(S_TRACE);
-		if (_dirs.isFocusControl()) { mixin(S_TRACE);
+		if (_lastFocus is _dirs) { mixin(S_TRACE);
 			auto dir = selDirPath;
 			if (dir) { mixin(S_TRACE);
 				return [nabs(dir)];
 			}
 		} else { mixin(S_TRACE);
-			assert (_files.isFocusControl());
+			assert (_lastFocus is _files);
 			auto files = selFiles;
 			if (files.length > 0) { mixin(S_TRACE);
 				string[] arr;
@@ -2197,7 +2201,7 @@ public:
 	}
 	override void del(SelectionEvent se) { mixin(S_TRACE);
 		if (!canDoTCPD) return;
-		if (_dirs.isFocusControl()) { mixin(S_TRACE);
+		if (_lastFocus is _dirs) { mixin(S_TRACE);
 			auto sels = _dirs.getSelection();
 			if (!sels.length) return;
 			if (!sels[0].getParentItem()) return;
@@ -2212,7 +2216,7 @@ public:
 			fileNames[i] = nabs(f);
 		}
 		bool recycle = (se.stateMask & SWT.SHIFT) == 0;
-		if (_dirs.isFocusControl()) { mixin(S_TRACE);
+		if (_lastFocus is _dirs) { mixin(S_TRACE);
 			if (!dir) return;
 			version (Windows) {
 				if (recycle) { mixin(S_TRACE);
@@ -2229,7 +2233,7 @@ public:
 				return;
 			}
 		} else { mixin(S_TRACE);
-			assert (_files.isFocusControl());
+			assert (_lastFocus is _files);
 			if (file.length == 0) return;
 			version (Windows) {
 				if (1 == fileNames.length) { mixin(S_TRACE);
@@ -2268,7 +2272,7 @@ public:
 	override void clone(SelectionEvent se) { mixin(S_TRACE);
 		auto files = copyImpl();
 		if (!files.length) return;
-		if (_dirs.isFocusControl()) { mixin(S_TRACE);
+		if (_lastFocus is _dirs) { mixin(S_TRACE);
 			auto parItm = _dirs.getSelection()[0].getParentItem();
 			if (parItm) { mixin(S_TRACE);
 				select((cast(FileNameObj) parItm.getData()).array);
@@ -2278,15 +2282,15 @@ public:
 	}
 	@property
 	override bool canDoTCPD() { mixin(S_TRACE);
-		return _dirs.isFocusControl() || _files.isFocusControl();
+		return _lastFocus !is null;
 	}
 	@property
 	bool canDoT() { mixin(S_TRACE);
 		if (!_summ) return false;
-		if (_dirs.isFocusControl()) { mixin(S_TRACE);
+		if (_lastFocus is _dirs) { mixin(S_TRACE);
 			auto sels = _dirs.getSelection();
 			return sels.length > 0 && sels[0].getParentItem();
-		} else if (_files.isFocusControl()) { mixin(S_TRACE);
+		} else if (_lastFocus is _files) { mixin(S_TRACE);
 			return _files.getSelectionIndex() != -1;
 		}
 		return false;
@@ -2294,9 +2298,9 @@ public:
 	@property
 	bool canDoC() { mixin(S_TRACE);
 		if (!_summ) return false;
-		if (_dirs.isFocusControl()) { mixin(S_TRACE);
+		if (_lastFocus is _dirs) { mixin(S_TRACE);
 			return _dirs.getSelection().length > 0;
-		} else if (_files.isFocusControl()) { mixin(S_TRACE);
+		} else if (_lastFocus is _files) { mixin(S_TRACE);
 			return _files.getSelectionIndex() != -1;
 		}
 		return false;
@@ -2312,10 +2316,10 @@ public:
 	@property
 	bool canDoClone() { mixin(S_TRACE);
 		if (!_summ) return false;
-		if (_dirs.isFocusControl()) { mixin(S_TRACE);
+		if (_lastFocus is _dirs) { mixin(S_TRACE);
 			auto sels = _dirs.getSelection();
 			return sels.length > 0 && sels[0].getParentItem();
-		} else if (_files.isFocusControl()) { mixin(S_TRACE);
+		} else if (_lastFocus is _files) { mixin(S_TRACE);
 			return _files.getSelectionIndex() != -1;
 		}
 		return false;

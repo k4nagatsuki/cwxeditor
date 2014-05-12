@@ -28,7 +28,7 @@ import java.lang.all;
 
 /// 状態変数インスペクタ。
 /// このコントロールを用いてフラグとステップの編集を行う。
-public class FlagsPane {
+public class FlagsPane : TCPD {
 private:
 	void storeAll() {
 		_undo ~= new UndoAllVariables(_flags, _comm, _dirs.current, _dirs.rootDir);
@@ -41,6 +41,7 @@ private:
 
 	FlagDirTree _dirs;
 	FlagTable _flags;
+	TCPD _lastFocusTCPD = null;
 
 	UndoManager _undo;
 
@@ -69,9 +70,14 @@ public:
 		_comp.setLayout(new FillLayout);
 		_sash = new SplitPane(_comp, _prop.var.etc.flagSashV ? SWT.VERTICAL : SWT.HORIZONTAL);
 
-		_dirs.createControl(_sash);
-		_flags.createControl(_sash, _sash);
+		_dirs.createControl(_sash, { mixin(S_TRACE);
+			_lastFocusTCPD = _dirs;
+		});
+		_flags.createControl(_sash, _sash, { mixin(S_TRACE);
+			_lastFocusTCPD = _flags;
+		});
 		_flags.setDir(_dirs.current, true);
+		_lastFocusTCPD = _dirs;
 
 		_sash.setWeights([_prop.var.etc.flagSashL, _prop.var.etc.flagSashR]);
 		_sdl = new DListener;
@@ -235,5 +241,45 @@ public:
 	@property
 	bool canReplaceID() {
 		return _flags.canReplaceID;
+	}
+
+	@property
+	bool canDoTCPD() { mixin(S_TRACE);
+		return _lastFocusTCPD && _lastFocusTCPD.canDoTCPD;
+	}
+	@property
+	bool canDoT() { mixin(S_TRACE);
+		return _lastFocusTCPD && _lastFocusTCPD.canDoT;
+	}
+	@property
+	bool canDoC() { mixin(S_TRACE);
+		return _lastFocusTCPD && _lastFocusTCPD.canDoC;
+	}
+	@property
+	bool canDoP() { mixin(S_TRACE);
+		return _lastFocusTCPD && _lastFocusTCPD.canDoP;
+	}
+	@property
+	bool canDoD() { mixin(S_TRACE);
+		return _lastFocusTCPD && _lastFocusTCPD.canDoD;
+	}
+	@property
+	bool canDoClone() { mixin(S_TRACE);
+		return _lastFocusTCPD && _lastFocusTCPD.canDoClone;
+	}
+	void cut(SelectionEvent se) { mixin(S_TRACE);
+		if (_lastFocusTCPD) _lastFocusTCPD.cut(se);
+	}
+	void copy(SelectionEvent se) { mixin(S_TRACE);
+		if (_lastFocusTCPD) _lastFocusTCPD.copy(se);
+	}
+	void paste(SelectionEvent se) { mixin(S_TRACE);
+		if (_lastFocusTCPD) _lastFocusTCPD.paste(se);
+	}
+	void del(SelectionEvent se) { mixin(S_TRACE);
+		if (_lastFocusTCPD) _lastFocusTCPD.del(se);
+	}
+	void clone(SelectionEvent se) { mixin(S_TRACE);
+		if (_lastFocusTCPD) _lastFocusTCPD.clone(se);
 	}
 }

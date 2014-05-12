@@ -116,7 +116,9 @@ class DockingFolder(TabF, int Style) {
 		_area.getShell().addListener(SWT.Dispose, new DListener);
 		if (createTabf) newTabf(_area, firstPaneKey);
 		_fl = new FocusL;
+		Display.getCurrent().addFilter(SWT.MouseDown, _fl);
 		Display.getCurrent().addFilter(SWT.FocusIn, _fl);
+		Display.getCurrent().addFilter(SWT.Deactivate, _fl);
 	}
 	private Canvas createCanvas(Composite parent) { mixin(S_TRACE);
 		auto canvas = new Canvas(parent, SWT.TRANSPARENT | SWT.NO_BACKGROUND);
@@ -137,7 +139,9 @@ class DockingFolder(TabF, int Style) {
 	private bool _canSave = true;
 	private class DListener : Listener {
 		override void handleEvent(Event e) { mixin(S_TRACE);
+			Display.getCurrent().removeFilter(SWT.MouseDown, _fl);
 			Display.getCurrent().removeFilter(SWT.FocusIn, _fl);
+			Display.getCurrent().removeFilter(SWT.Deactivate, _fl);
 			if (_canSave) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
 					saveTree();
@@ -1453,7 +1457,26 @@ class DockingFolder(TabF, int Style) {
 		}
 	}
 	private class FocusL : Listener {
+		private Shell _deactivatedShell = null;
 		override void handleEvent(Event e) { mixin(S_TRACE);
+			// サブウィンドウ操作中にメインウィンドウのツールバーを
+			// クリックした場合は選択中タブの変更を通知しない
+			if (e.type is SWT.Deactivate) { mixin(S_TRACE);
+				if (auto shell = cast(Shell)e.widget) { mixin(S_TRACE);
+					_deactivatedShell = shell;
+				}
+				return;
+			}
+			if (_deactivatedShell && e.type is SWT.FocusIn) return;
+			if (_deactivatedShell && e.type is SWT.MouseDown) { mixin(S_TRACE);
+				_deactivatedShell = null;
+				if (auto toolbar = cast(ToolBar)e.widget) { mixin(S_TRACE);
+					toolbar.setFocus();
+					return;
+				}
+			}
+			_deactivatedShell = null;
+
 			void control(Control ctrl) { mixin(S_TRACE);
 				auto shell = ctrl.getShell();
 				if (shell !is area.getShell() && !_subShells.contains!"a is b"(shell)) return;
@@ -1468,7 +1491,7 @@ class DockingFolder(TabF, int Style) {
 					pane = pane.getParent();
 				}
 			}
-			auto ctrl = Display.getCurrent().getFocusControl();
+			auto ctrl = cast(Control)e.display.getFocusControl();
 			if (ctrl) { mixin(S_TRACE);
 				control(ctrl);
 			} else { mixin(S_TRACE);

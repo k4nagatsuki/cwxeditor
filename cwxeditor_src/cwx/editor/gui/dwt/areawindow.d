@@ -50,8 +50,6 @@ private:
 		EventView!(A, C, true) _eview;
 	}
 
-	TCPD[] _tcpd;
-
 	void refresh() { mixin(S_TRACE);
 		_aview.refresh();
 	}
@@ -229,13 +227,11 @@ public:
 			} else { mixin(S_TRACE);
 				_aview.setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
-			_tcpd ~= _aview;
 			if (shell) _aview.setupMenu(shell.getMenuBar());
 		}
 		static if (WithEventView) {
 			_eview = new EventView!(A, C, true)(comm, prop, summ, area, _tabf, _undo, _readOnly != SWT.NONE);
 			_tabE.setControl(_eview);
-			_tcpd ~= _eview;
 		}
 		__refreshTitle();
 
@@ -539,40 +535,43 @@ public:
 		private bool canEdit() { return _aview.canEdit; }
 	}
 
+	@property
+	private TCPD tcpd() { mixin(S_TRACE);
+		static if (WithEventView) {
+			if (_tabf.getSelection() is _tabA) { mixin(S_TRACE);
+				return _aview;
+			} else { mixin(S_TRACE);
+				assert (_tabf.getSelection() is _tabE);
+				return _eview;
+			}
+		} else {
+			return _aview;
+		}
+	}
 	override {
 		void cut(SelectionEvent se) { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) { mixin(S_TRACE);
-					c.cut(se);
-				}
+			if (tcpd.canDoTCPD) { mixin(S_TRACE);
+				tcpd.cut(se);
 			}
 		}
 		void copy(SelectionEvent se) { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) { mixin(S_TRACE);
-					c.copy(se);
-				}
+			if (tcpd.canDoTCPD) { mixin(S_TRACE);
+				tcpd.copy(se);
 			}
 		}
 		void paste(SelectionEvent se) { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) { mixin(S_TRACE);
-					c.paste(se);
-				}
+			if (tcpd.canDoTCPD) { mixin(S_TRACE);
+				tcpd.paste(se);
 			}
 		}
 		void del(SelectionEvent se) { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) { mixin(S_TRACE);
-					c.del(se);
-				}
+			if (tcpd.canDoTCPD) { mixin(S_TRACE);
+				tcpd.del(se);
 			}
 		}
 		void clone(SelectionEvent se) { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) { mixin(S_TRACE);
-					c.clone(se);
-				}
+			if (tcpd.canDoTCPD) { mixin(S_TRACE);
+				tcpd.clone(se);
 			}
 		}
 		@property
@@ -581,38 +580,23 @@ public:
 		}
 		@property
 		bool canDoT() { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) return c.canDoT;
-			}
-			return false;
+			return tcpd.canDoTCPD && tcpd.canDoT;
 		}
 		@property
 		bool canDoC() { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) return c.canDoC;
-			}
-			return false;
+			return tcpd.canDoTCPD && tcpd.canDoC;
 		}
 		@property
 		bool canDoP() { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) return c.canDoP;
-			}
-			return false;
+			return tcpd.canDoTCPD && tcpd.canDoP;
 		}
 		@property
 		bool canDoD() { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) return c.canDoD;
-			}
-			return false;
+			return tcpd.canDoTCPD && tcpd.canDoD;
 		}
 		@property
 		bool canDoClone() { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) return c.canDoClone;
-			}
-			return false;
+			return tcpd.canDoTCPD && tcpd.canDoClone;
 		}
 	}
 	override

@@ -354,11 +354,12 @@ public:
 	/// コントロールを生成する。
 	/// Params:
 	/// parent = 親コントロール。
-	Control createControl(Composite parent) { mixin(S_TRACE);
+	Control createControl(Composite parent, void delegate() gotFocus) { mixin(S_TRACE);
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout(new FillLayout);
 		dirs = new Tree(_comp, SWT.SINGLE | SWT.BORDER);
 		initTree(_comm, dirs, false);
+		.listener(dirs, SWT.FocusIn, gotFocus);
 
 		edit = new TreeEdit(_comm, dirs, &editEnd, &createEditor);
 
@@ -610,7 +611,7 @@ public:
 		}
 		@property
 		bool canDoTCPD() { mixin(S_TRACE);
-			return _comm.summary && dirs.isFocusControl();
+			return _comm.summary !is null;
 		}
 		@property
 		bool canDoT() { mixin(S_TRACE);

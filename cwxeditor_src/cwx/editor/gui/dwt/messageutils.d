@@ -570,7 +570,7 @@ private:
 			copy(se);
 			paste(se);
 		}
-		@property bool canDoTCPD() {return _dlgsL.isFocusControl();}
+		@property bool canDoTCPD() {return true;}
 		@property bool canDoT() {return _dlgsL.getSelectionIndex() > 0;}
 		@property bool canDoC() {return canDoT;}
 		@property bool canDoP() {return CBisXML(comm.clipboard);}

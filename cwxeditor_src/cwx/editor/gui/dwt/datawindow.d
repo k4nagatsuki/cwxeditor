@@ -47,15 +47,17 @@ private:
 
 	Summary _summ = null;
 
-	TCPD[] _tcpd;
+	TCPD _tcpd = null;
 
 	static if (UseArea && UseFlag) {
 		void selectedImpl() { mixin(S_TRACE);
 			if (tabf.getSelection() is tabA) { mixin(S_TRACE);
 				_comm.setStatusLine(tabf, _areas.statusLine);
+				_tcpd = _areas;
 			} else { mixin(S_TRACE);
 				assert (tabf.getSelection() is tabF);
 				_comm.setStatusLine(tabf, _flags.statusLine);
+				_tcpd = _flags;
 			}
 			_comm.refreshToolBar();
 		}
@@ -143,18 +145,15 @@ public:
 				tabF.setText(_prop.msgs.variableView);
 				tabF.setControl(_flags.widget);
 
-				_tcpd ~= _areas;
-				_tcpd ~= _flags.flags;
-				_tcpd ~= _flags.dirs;
+				_tcpd = _areas;
 			} else static if (UseArea) {
 				_areas.construct(contPane, null);
 				_areas.panel.setLayoutData(new GridData(GridData.FILL_BOTH));
-				_tcpd ~= _areas;
+				_tcpd = _areas;
 			} else static if (UseFlag) {
 				_flags.construct(contPane);
 				_flags.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
-				_tcpd ~= _flags.flags;
-				_tcpd ~= _flags.dirs;
+				_tcpd = _flags;
 			} else static assert (0);
 		}
 		if (shell) { mixin(S_TRACE);
@@ -521,6 +520,7 @@ public:
 			static if (UseFlag) {
 				if (_win && !_win.isDisposed()) { mixin(S_TRACE);
 					tabf.setSelection(tabA);
+					selectedImpl();
 				}
 			}
 		}
@@ -613,77 +613,63 @@ public:
 
 	override {
 		void cut(SelectionEvent se) { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) { mixin(S_TRACE);
-					c.cut(se);
-				}
+			assert (_tcpd !is null);
+			if (_tcpd.canDoTCPD) { mixin(S_TRACE);
+				_tcpd.cut(se);
 			}
 		}
 		void copy(SelectionEvent se) { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) { mixin(S_TRACE);
-					c.copy(se);
-				}
+			assert (_tcpd !is null);
+			if (_tcpd.canDoTCPD) { mixin(S_TRACE);
+				_tcpd.copy(se);
 			}
 		}
 		void paste(SelectionEvent se) { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) { mixin(S_TRACE);
-					c.paste(se);
-				}
+			assert (_tcpd !is null);
+			if (_tcpd.canDoTCPD) { mixin(S_TRACE);
+				_tcpd.paste(se);
 			}
 		}
 		void del(SelectionEvent se) { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) { mixin(S_TRACE);
-					c.del(se);
-				}
+			assert (_tcpd !is null);
+			if (_tcpd.canDoTCPD) { mixin(S_TRACE);
+				_tcpd.del(se);
 			}
 		}
 		void clone(SelectionEvent se) { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) { mixin(S_TRACE);
-					c.clone(se);
-				}
+			assert (_tcpd !is null);
+			if (_tcpd.canDoTCPD) { mixin(S_TRACE);
+				_tcpd.clone(se);
 			}
 		}
 		bool canDoTCPD() { mixin(S_TRACE);
+			assert (_tcpd !is null);
 			return .hasFocus(_win);
 		}
 		@property
 		bool canDoT() { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) return c.canDoT;
-			}
-			return false;
+			assert (_tcpd !is null);
+			return _tcpd.canDoTCPD && _tcpd.canDoT;
 		}
 		@property
 		bool canDoC() { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) return c.canDoC;
-			}
-			return false;
+			assert (_tcpd !is null);
+			return _tcpd.canDoTCPD && _tcpd.canDoC;
 		}
 		@property
 		bool canDoP() { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) return c.canDoP;
-			}
-			return false;
+			assert (_tcpd !is null);
+			return _tcpd.canDoTCPD && _tcpd.canDoP;
 		}
 		@property
 		bool canDoD() { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) return c.canDoD;
-			}
-			return false;
+			assert (_tcpd !is null);
+			return _tcpd.canDoTCPD && _tcpd.canDoD;
 		}
 		@property
 		bool canDoClone() { mixin(S_TRACE);
-			foreach (c; _tcpd) { mixin(S_TRACE);
-				if (c.canDoTCPD) return c.canDoClone;
-			}
-			return false;
+			assert (_tcpd !is null);
+			return _tcpd.canDoTCPD && _tcpd.canDoClone;
 		}
 	}
 
@@ -738,6 +724,7 @@ public:
 		if (w) { mixin(S_TRACE);
 			static if (UseArea && UseFlag) {
 				tabf.setSelection(tabA);
+				selectedImpl();
 				_comm.refreshToolBar();
 			}
 			return w.openCWXPath(path, shellActivate);

@@ -730,8 +730,6 @@ class FlexEtcProps : Properties {
 			Tool(MenuID.Copy),
 			Tool(MenuID.Paste),
 			Tool(MenuID.Delete),
-			Tool(),
-			Tool(MenuID.Clone),
 		],
 		[
 			Tool(MenuID.Up),
@@ -785,7 +783,6 @@ class FlexEtcProps : Properties {
 		],
 		[
 			Tool(MenuID.OpenDir),
-			Tool(MenuID.NewDir),
 		],
 		[
 			Tool(MenuID.ExecEngine),

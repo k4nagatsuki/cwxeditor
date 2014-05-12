@@ -758,6 +758,7 @@ private:
 	TableSorter!Object _idSorter;
 	TableSorter!Object _nameSorter;
 	TableSorter!Object _ucSorter;
+	Control _lastFocus = null;
 
 	Tree _dirTree = null;
 	Table _areas;
@@ -1860,6 +1861,8 @@ public:
 			}
 			_dirTree.addMouseListener(new TreeMListener);
 			_dirTree.addKeyListener(new TreeKListener);
+			.listener(_dirTree, SWT.FocusIn, (e) { _lastFocus = cast(Control)e.widget; });
+			if (!_lastFocus) _lastFocus = _dirTree;
 
 			auto menu = new Menu(_dirTree.getShell(), SWT.POP_UP);
 			if (_readOnly) { mixin (S_TRACE);
@@ -1889,6 +1892,8 @@ public:
 		_areas = new Table(tableParent, (_readOnly ? SWT.MULTI : SWT.SINGLE) | SWT.BORDER | SWT.FULL_SELECTION);
 		_areas.addDisposeListener(new ADListener);
 		_areas.addSelectionListener(new SListener);
+		.listener(_areas, SWT.FocusIn, (e) { _lastFocus = cast(Control)e.widget; });
+		if (!_lastFocus) _lastFocus = _areas;
 		_areas.setHeaderVisible(true);
 		auto idCol = new TableColumn(_areas, SWT.NULL);
 		idCol.setText(_prop.msgs.areaId);
@@ -2657,7 +2662,7 @@ public:
 		if (!_summ) return false;
 		if (_areas.getItemCount() != countAllAreas) return false;
 		if (!(_areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column)) return false;
-		if (!_areas.isFocusControl()) return false;
+		if (_lastFocus !is _areas) return false;
 		int sel = _areas.getSelectionIndex();
 		if (sel < (showSummary ? 1 : 0)) return false;
 		return canUdImpl(sel, sel - 1);
@@ -2668,7 +2673,7 @@ public:
 		if (!_summ) return false;
 		if (_areas.getItemCount() != countAllAreas) return false;
 		if (!(_areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column)) return false;
-		if (!_areas.isFocusControl()) return false;
+		if (_lastFocus !is _areas) return false;
 		int sel = _areas.getSelectionIndex();
 		if (sel < (showSummary ? 1 : 0)) return false;
 		return canUdImpl(sel, sel + 1);
@@ -2678,7 +2683,7 @@ public:
 		_parent.setRedraw(false);
 		scope (exit) _parent.setRedraw(true);
 		if (!canUp) return;
-		if (!_areas.isFocusControl()) return;
+		if (_lastFocus !is _areas) return;
 		if (_areaDirEdit) _areaDirEdit.cancel();
 		_areasEdit.cancel();
 		int sel = _areas.getSelectionIndex();
@@ -2690,7 +2695,7 @@ public:
 		_parent.setRedraw(false);
 		scope (exit) _parent.setRedraw(true);
 		if (!canDown) return;
-		if (!_areas.isFocusControl()) return;
+		if (_lastFocus !is _areas) return;
 		if (_areaDirEdit) _areaDirEdit.cancel();
 		_areasEdit.cancel();
 		int sel = _areas.getSelectionIndex();
@@ -2740,7 +2745,7 @@ public:
 		void copy(SelectionEvent se) { mixin(S_TRACE);
 			_parent.setRedraw(false);
 			scope (exit) _parent.setRedraw(true);
-			if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
+			if (_dirTree && _lastFocus is _dirTree) { mixin(S_TRACE);
 				auto path = _dir == "" ? _dir : _dir ~ "\\";
 				auto areas = dirAreas;
 				XNode doc;
@@ -2792,7 +2797,7 @@ public:
 			_parent.setRedraw(false);
 			scope (exit) _parent.setRedraw(true);
 			AbstractArea[] areas;
-			if (_dirTree && _dirTree.isFocusControl()) {
+			if (_dirTree && _lastFocus is _dirTree) {
 				auto path = _dir == "" ? _dir : _dir ~ "\\";
 				void put(AbstractArea area) { mixin(S_TRACE);
 					if (istartsWith(area.name, path)) { mixin(S_TRACE);
@@ -2822,7 +2827,7 @@ public:
 				}
 			}
 			if (!undos.length) storeEmpty();
-			if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
+			if (_dirTree && _lastFocus is _dirTree) { mixin(S_TRACE);
 				auto itm = findDirTree(_dir).getParentItem();
 				delDirTree(_dir);
 				_dirTree.setSelection([itm]);
@@ -2843,7 +2848,7 @@ public:
 			_comm.clipboard.memoryMode = true;
 			scope (exit) _comm.clipboard.memoryMode = false;
 			copy(se);
-			if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
+			if (_dirTree && _lastFocus is _dirTree) { mixin(S_TRACE);
 				// 同じ階層にコピーするため、一つ上のディレクトリを選択
 				auto sels = _dirTree.getSelection();
 				assert (sels.length);
@@ -2857,7 +2862,7 @@ public:
 		}
 		@property
 		bool canDoTCPD() { mixin(S_TRACE);
-			return _summ && (_areas.isFocusControl() || (_dirTree && _dirTree.isFocusControl()));
+			return _summ && (_lastFocus is _areas || (_dirTree && _lastFocus is _dirTree));
 		}
 		@property
 		bool canDoT() { mixin(S_TRACE);
@@ -2865,7 +2870,7 @@ public:
 		}
 		@property
 		bool canDoC() { mixin(S_TRACE);
-			if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
+			if (_dirTree && _lastFocus is _dirTree) { mixin(S_TRACE);
 				auto sels = _dirTree.getSelection();
 				return sels.length && cast(DirTree)sels[0].getData();
 			} else { mixin(S_TRACE);
@@ -2883,7 +2888,7 @@ public:
 		@property
 		bool canDoD() { mixin(S_TRACE);
 			if (_readOnly) return false;
-			if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
+			if (_dirTree && _lastFocus is _dirTree) { mixin(S_TRACE);
 				auto sels = _dirTree.getSelection();
 				if (!sels.length) return false;
 				auto dir = cast(DirTree)sels[0].getData();
@@ -3087,7 +3092,7 @@ public:
 	void doImport() { mixin(S_TRACE);
 		AbstractArea[] areas;
 		string[] paths;
-		if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
+		if (_dirTree && _lastFocus is _dirTree) { mixin(S_TRACE);
 			areas = dirAreas;
 		} else { mixin(S_TRACE);
 			areas = getSelectionAreas();
@@ -3100,7 +3105,7 @@ public:
 	}
 	@property
 	bool canDoImport() { mixin(S_TRACE);
-		if (_dirTree && _dirTree.isFocusControl()) { mixin(S_TRACE);
+		if (_dirTree && _lastFocus is _dirTree) { mixin(S_TRACE);
 			return _importTarget && dirAreas.length;
 		} else { mixin(S_TRACE);
 			return _importTarget && getSelectionAreas().length;

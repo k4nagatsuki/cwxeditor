@@ -1415,11 +1415,12 @@ public:
 	/// コントロールを生成する。
 	/// Params:
 	/// parent = 親コントロール。
-	Control createControl(Composite parent, Composite incSearchParent) { mixin(S_TRACE);
+	Control createControl(Composite parent, Composite incSearchParent, void delegate() gotFocus) { mixin(S_TRACE);
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout(new FillLayout);
 		flags = new Table(_comp, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
 		flags.setHeaderVisible(true);
+		.listener(flags, SWT.FocusIn, gotFocus);
 		auto nameCol = new TableColumn(flags, SWT.NULL);
 		nameCol.setText(prop.msgs.flagName);
 		saveColumnWidth!("prop.var.etc.flagNameColumn")(prop, nameCol);
@@ -1808,7 +1809,7 @@ public:
 		}
 		@property
 		bool canDoTCPD() { mixin(S_TRACE);
-			return _comm.summary && flags.isFocusControl();
+			return _comm.summary !is null;
 		}
 		@property
 		bool canDoT() { mixin(S_TRACE);

@@ -1342,7 +1342,7 @@ public:
 		}
 		@property
 		override bool canDoTCPD() { mixin(S_TRACE);
-			return _motions.isFocusControl();
+			return true;
 		}
 		@property
 		override bool canDoT() { mixin(S_TRACE);
@@ -1463,7 +1463,7 @@ public:
 		}
 		@property
 		override bool canDoTCPD() { mixin(S_TRACE);
-			return _beastImg.isFocusControl();
+			return true;
 		}
 		@property
 		override bool canDoT() { mixin(S_TRACE);

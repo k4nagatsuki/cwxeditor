@@ -1990,8 +1990,8 @@ class Msgs : Properties {
 	auto menuTextCreateVariableEventTree = Msg("menuTextCreateVariableEventTree", "イベントツリーとしてコピー");
 	auto menuTextInitVariablesTree = Msg("menuTextInitVariablesTree", "初期値の設定");
 	auto menuTextCopyVariablePath = Msg("menuTextCopyVariablePath", "状態変数のパスをコピー");
-	auto menuTextUp = Msg("menuTextUp", "上へ");
-	auto menuTextDown = Msg("menuTextDown", "下へ");
+	auto menuTextUp = Msg("menuTextUp", "選択中のアイテムを上へ移動");
+	auto menuTextDown = Msg("menuTextDown", "選択中のアイテムを下へ移動");
 	auto menuTextSwapToParent = Msg("menuTextSwapToParent", "親コンテントと入れ替える");
 	auto menuTextSwapToChild = Msg("menuTextSwapToChild", "子コンテントと入れ替える");
 	auto menuTextOverDialog = Msg("menuTextOverDialog", "上の台詞へ移動");

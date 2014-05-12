@@ -977,7 +977,7 @@ private:
 		}
 		@property
 		override bool canDoTCPD() { mixin(S_TRACE);
-			return _summ && _list.isFocusControl() && _viewMode !is CViewMode.TABLE;
+			return _summ && _viewMode !is CViewMode.TABLE;
 		}
 		mixin CopyAndPaste;
 		override void del(SelectionEvent se) { mixin(S_TRACE);
@@ -1061,7 +1061,7 @@ private:
 		}
 		@property
 		override bool canDoTCPD() { mixin(S_TRACE);
-			return _summ && _tbl.isFocusControl() && _viewMode is CViewMode.TABLE;
+			return _summ && _viewMode is CViewMode.TABLE;
 		}
 		mixin CopyAndPaste;
 		override void del(SelectionEvent se) { mixin(S_TRACE);
@@ -2733,7 +2733,6 @@ public:
 			if (_tbl.isDisposed()) return false;
 			if (narrowCount != cards.length) return false;
 			if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return false;
-			if (!_list.isFocusControl() && !_tbl.isFocusControl()) return false;
 			int sel = selectionIndex;
 			return sel != -1 && 0 < sel;
 		}
@@ -2743,7 +2742,6 @@ public:
 			if (_tbl.isDisposed()) return false;
 			if (narrowCount != cards.length) return false;
 			if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return false;
-			if (!_list.isFocusControl() && !_tbl.isFocusControl()) return false;
 			int sel = selectionIndex;
 			return sel != -1 && sel + 1 < cards.length;
 		}
