@@ -1220,8 +1220,8 @@ private:
 
 	void refreshStatusLine() { mixin(S_TRACE);
 		auto itm = selection;
-		if (itm) { mixin(S_TRACE);
-			_statusLine = .contentText(_comm, cast(Content) itm.getData());
+		if (itm && cast(Content)itm.getData()) { mixin(S_TRACE);
+			_statusLine = .contentText(_comm, cast(Content)itm.getData());
 		} else { mixin(S_TRACE);
 			_statusLine = "";
 		}
@@ -2088,17 +2088,8 @@ public:
 			return;
 		}
 		_undo ~= ucp;
-		auto tPath = _tree.tree ? .toTreePath(cast(TreeItem)startItm) : [];
-		delImpl(startItm, false);
+		delImpl(startItm, false, false, true);
 		auto vs = views();
-		foreach (v; vs) { mixin(S_TRACE);
-			if (v is this) continue;
-			if (v._tree.tree) { mixin(S_TRACE);
-				.fromTreePath(v._tree.tree, tPath).dispose();
-			} else { mixin(S_TRACE);
-				_tree.editor.updateEventTree();
-			}
-		}
 		foreach (itm; users) { mixin(S_TRACE);
 			auto c = cast(Content)itm.getData();
 			switch (c.type) {
@@ -3110,7 +3101,7 @@ public:
 			if (itm && itm !is _tree.getItems()[0]) { mixin(S_TRACE);
 				_tree.control.setRedraw(false);
 				scope(exit) _tree.control.setRedraw(true);
-				delImpl(itm, true);
+				delImpl(itm, true, false, true);
 				_comm.refUseCount.call();
 				_comm.refreshToolBar();
 			}
@@ -3347,8 +3338,9 @@ public:
 		foreach (v; views()) v.redraw();
 		_comm.refreshToolBar();
 	}
-	private void delImpl(Item itm, bool store, bool viewOnly = false) { mixin(S_TRACE);
+	private void delImpl(Item itm, bool store, bool viewOnly = false, bool refOtherView = false) { mixin(S_TRACE);
 		if (_readOnly) return;
+		auto tPath = _tree.tree ? .toTreePath(cast(TreeItem)itm) : [];
 		bool empty = _et.owner.isEmpty;
 		scope (exit) {
 			if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
@@ -3366,9 +3358,14 @@ public:
 				_et.remove(c);
 			}
 		}
-		itm.dispose();
-		if (_tree.editor) { mixin(S_TRACE);
-			_tree.editor.updateEventTree();
+		auto vs = [this];
+		if (refOtherView) vs = views();
+		foreach (v; vs) { mixin(S_TRACE);
+			if (v._tree.tree) { mixin(S_TRACE);
+				.fromTreePath(v._tree.tree, tPath).dispose();
+			} else { mixin(S_TRACE);
+				v._tree.editor.updateEventTree();
+			}
 		}
 	}
 	private static void delImpl(EventTreeView[] vs, Commons comm, EventTree et, Content c) { mixin(S_TRACE);
