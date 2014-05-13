@@ -139,7 +139,7 @@ public:
 				imgList.setEnabled(!_readOnly);
 				imgList.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				imgList.setImage(_prop.images.menu(MenuID.LookImages));
-				imgList.setToolTipText(_prop.buildTool(MenuID.LookImages));
+				imgList.setToolTipText(_prop.msgs.menuText(MenuID.LookImages));
 				imgList.addSelectionListener(new SelImageList);
 				_msel.createRefreshButton(comp, true).setLayoutData(new GridData(GridData.FILL_BOTH));
 				_msel.createDirectoryButton(comp, false).setLayoutData(new GridData(GridData.FILL_VERTICAL));
@@ -168,7 +168,7 @@ public:
 					if (saveIncludeImage) return;
 					saveIncludeImage = new Button(dirsComp, SWT.PUSH);
 					saveIncludeImage.setImage(_prop.images.menu(MenuID.SaveImage));
-					saveIncludeImage.setToolTipText(_prop.buildTool(MenuID.SaveImage));
+					saveIncludeImage.setToolTipText(_prop.msgs.menuText(MenuID.SaveImage));
 					saveIncludeImage.addSelectionListener(new SaveIncImg);
 				}
 

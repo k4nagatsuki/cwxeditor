@@ -246,7 +246,7 @@ protected:
 							_escape = new Button(grp, SWT.TOGGLE);
 							mod(_escape);
 							_escape.setImage(_prop.images.menu(MenuID.Escape));
-							_escape.setToolTipText(_prop.buildTool(MenuID.Escape));
+							_escape.setToolTipText(_prop.msgs.menuText(MenuID.Escape));
 
 							_cardIncSearch = new IncSearch(_comm, _casts);
 							_cardIncSearch.modEvent ~= &refreshCasts;

@@ -192,7 +192,7 @@ protected:
 			_mask = new Button(comp2, SWT.TOGGLE);
 			mod(_mask);
 			_mask.setImage(_prop.images.menu(MenuID.Mask));
-			_mask.setToolTipText(_prop.buildTool(MenuID.Mask));
+			_mask.setToolTipText(_prop.msgs.menuText(MenuID.Mask));
 			_mask.addSelectionListener(new MaskListener);
 		}
 		// FIXME: CardWirth 1.60 前景表示とセル名称

@@ -478,6 +478,9 @@ class MenuProps : Properties {
 		if (isPMenu(id)) { mixin(S_TRACE);
 			r ~= "...";
 		}
+		if (hotkey != "") { mixin(S_TRACE);
+			r ~= "\n" ~ hotkey;
+		}
 		return r;
 	}
 

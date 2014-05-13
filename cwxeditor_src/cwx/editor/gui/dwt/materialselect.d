@@ -335,7 +335,7 @@ public:
 		Button createPlayButton(Composite parent) { mixin(S_TRACE);
 			_bgmBtn = new Button(parent, SWT.TOGGLE);
 			_bgmBtn.setLayoutData(new GridData);
-			_bgmBtn.setToolTipText(_prop.buildTool(MenuID.PlayBGM));
+			_bgmBtn.setToolTipText(_prop.msgs.menuText(MenuID.PlayBGM));
 			_bgmBtn.setImage(_prop.images.menu(MenuID.PlayBGM));
 			auto pbgm = new Play;
 			_bgmBtn.addSelectionListener(pbgm);
@@ -361,12 +361,12 @@ public:
 						_bgmMenu.setSelection(true);
 					}
 					if (_bgmTMenu) { mixin(S_TRACE);
-						_bgmTMenu.setToolTipText(.tryFormat(_prop.buildTool(MenuID.StopBGM), relPath));
+						_bgmTMenu.setToolTipText(.tryFormat(_prop.msgs.menuText(MenuID.StopBGM), relPath));
 						_bgmTMenu.setImage(_prop.images.menu(MenuID.StopBGM));
 						_bgmTMenu.setSelection(true);
 					}
 					if (_bgmBtn) { mixin(S_TRACE);
-						_bgmBtn.setToolTipText(.tryFormat(_prop.buildTool(MenuID.StopBGM), relPath));
+						_bgmBtn.setToolTipText(.tryFormat(_prop.msgs.menuText(MenuID.StopBGM), relPath));
 						_bgmBtn.setImage(_prop.images.menu(MenuID.StopBGM));
 						_bgmBtn.setSelection(true);
 					}
@@ -381,12 +381,12 @@ public:
 				_bgmMenu.setSelection(false);
 			}
 			if (_bgmTMenu) { mixin(S_TRACE);
-				_bgmTMenu.setToolTipText(_prop.buildTool(MenuID.PlayBGM));
+				_bgmTMenu.setToolTipText(_prop.msgs.menuText(MenuID.PlayBGM));
 				_bgmTMenu.setImage(_prop.images.menu(MenuID.PlayBGM));
 				_bgmTMenu.setSelection(false);
 			}
 			if (_bgmBtn) { mixin(S_TRACE);
-				_bgmBtn.setToolTipText(_prop.buildTool(MenuID.PlayBGM));
+				_bgmBtn.setToolTipText(_prop.msgs.menuText(MenuID.PlayBGM));
 				_bgmBtn.setImage(_prop.images.menu(MenuID.PlayBGM));
 				_bgmBtn.setSelection(false);
 			}
@@ -417,7 +417,7 @@ public:
 		}
 		Button createPlayButton(Composite parent) { mixin(S_TRACE);
 			_bgmBtn = new Button(parent, SWT.PUSH);
-			_bgmBtn.setToolTipText(_prop.buildTool(MenuID.PlaySE));
+			_bgmBtn.setToolTipText(_prop.msgs.menuText(MenuID.PlaySE));
 			_bgmBtn.setImage(_prop.images.menu(MenuID.PlaySE));
 			auto play = new Play;
 			_bgmBtn.addSelectionListener(play);
@@ -426,7 +426,7 @@ public:
 		}
 		Button createStopButton(Composite parent) { mixin(S_TRACE);
 			auto stop = new Button(parent, SWT.PUSH);
-			stop.setToolTipText(_prop.buildTool(MenuID.StopSE));
+			stop.setToolTipText(_prop.msgs.menuText(MenuID.StopSE));
 			stop.setImage(_prop.images.menu(MenuID.StopSE));
 			auto sse = new StopSE;
 			stop.addSelectionListener(sse);
@@ -471,7 +471,7 @@ public:
 		if (text) { mixin(S_TRACE);
 			refBtn.setText(_prop.msgs.refreshS);
 		} else { mixin(S_TRACE);
-			refBtn.setToolTipText(_prop.buildTool(MenuID.Refresh));
+			refBtn.setToolTipText(_prop.msgs.menuText(MenuID.Refresh));
 		}
 		refBtn.addSelectionListener(new RSListener);
 		return refBtn;
@@ -482,9 +482,9 @@ public:
 		_dirBtn.setImage(_prop.images.folder);
 		_dirBtn.addSelectionListener(new DSListener);
 		if (text) { mixin(S_TRACE);
-			_dirBtn.setText(_prop.buildTool(MenuID.OpenDir));
+			_dirBtn.setText(_prop.msgs.menuText(MenuID.OpenDir));
 		} else { mixin(S_TRACE);
-			_dirBtn.setToolTipText(_prop.buildTool(MenuID.OpenDir));
+			_dirBtn.setToolTipText(_prop.msgs.menuText(MenuID.OpenDir));
 		}
 		return _dirBtn;
 	}

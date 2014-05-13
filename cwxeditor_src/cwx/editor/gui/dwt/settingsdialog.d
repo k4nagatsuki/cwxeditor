@@ -1767,12 +1767,17 @@ struct OldSettings {
 		if (oldDialogStatus != prop.var.etc.dialogStatus) { mixin(S_TRACE);
 			comm.refContentText.call();
 		}
+		bool updateTool = false;
 		foreach (id; EnumMembers!MenuID) { mixin(S_TRACE);
 			if (isNoKeyBindMenu(id)) continue;
 			if (oldMnemonic[id] != prop.var.menu.mnemonic(id) || oldHotkey[id] != prop.var.menu.hotkey(id)) { mixin(S_TRACE);
 				comm.refMenu.call(id);
 			}
+			if (oldHotkey[id] != prop.var.menu.hotkey(id)) { mixin(S_TRACE);
+				updateTool = true;;
+			}
 		}
+		if (updateTool) comm.updateToolBarText();
 		if (this.floatMessagePreview != prop.var.etc.floatMessagePreview) { mixin(S_TRACE);
 			int wg;
 			if (prop.var.etc.floatMessagePreview) { mixin(S_TRACE);
@@ -2533,7 +2538,7 @@ private:
 			_name.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			_bgImgMask = new Button(comp3, SWT.TOGGLE);
 			_bgImgMask.setImage(_prop.images.menu(MenuID.Mask));
-			_bgImgMask.setToolTipText(_prop.buildTool(MenuID.Mask));
+			_bgImgMask.setToolTipText(_prop.msgs.menuText(MenuID.Mask));
 
 			_bgImgX = createS(parent, _prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax));
 			_bgImgY = createS(parent, _prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax));
@@ -2732,7 +2737,7 @@ private:
 		}
 		Button createCEngineSubOpenButton(Composite parent, Text path, bool dir) { mixin(S_TRACE);
 			auto open = new Button(parent, SWT.PUSH);
-			open.setToolTipText(_prop.buildTool(dir ? MenuID.OpenDir : MenuID.OpenPlace));
+			open.setToolTipText(_prop.msgs.menuText(dir ? MenuID.OpenDir : MenuID.OpenPlace));
 			open.setImage(_prop.images.menu(MenuID.OpenDir));
 			open.addSelectionListener(new CEOpenDir(path));
 			return open;
@@ -2948,13 +2953,13 @@ public:
 
 			auto up = new Button(left, SWT.PUSH);
 			up.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			up.setText(_prop.buildTool(MenuID.Up));
+			up.setText(_prop.msgs.upSelection);
 			up.setImage(_prop.images.menu(MenuID.Up));
 			listener(up, SWT.Selection, &this.up);
 			_comm.put(up, &canUp);
 			auto down = new Button(left, SWT.PUSH);
 			down.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			down.setText(_prop.buildTool(MenuID.Down));
+			down.setText(_prop.msgs.downSelection);
 			down.setImage(_prop.images.menu(MenuID.Down));
 			listener(down, SWT.Selection, &this.down);
 			_comm.put(down, &canDown);

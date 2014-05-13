@@ -529,6 +529,27 @@ class Commons {
 		}
 		_main.refreshToolBar(cMenuTbl);
 	}
+	void updateToolBarText() { mixin(S_TRACE);
+		void s(ToolBar bar) { mixin(S_TRACE);
+			foreach (itm; bar.getItems()) { mixin(S_TRACE);
+				auto data = cast(MenuData)itm.getData();
+				if (!data) continue;
+				if (itm.getImage()) { mixin(S_TRACE);
+					itm.setToolTipText(_prop.buildTool(data.id));
+				} else { mixin(S_TRACE);
+					itm.setText(_prop.buildTool(data.id));
+				}
+			}
+		}
+		foreach (w; _toolbars) { mixin(S_TRACE);
+			auto bar = cast(ToolBar)w;
+			if (!bar) continue;
+			s(bar);
+		}
+		foreach (bar; _main.toolBars) { mixin(S_TRACE);
+			s(bar);
+		}
+	}
 	void baseShell(MainWindow main, DataWindow dataWin, MainCardWindow cardWin, DirectoryWindow dirWin) { mixin(S_TRACE);
 		_main = main;
 		_dataWin = dataWin;

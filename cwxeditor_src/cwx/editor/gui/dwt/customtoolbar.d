@@ -429,8 +429,8 @@ class ToolBarCustomizer : Composite, TCPD {
 			aComp.setLayout(zeroMarginGridLayout(2, true));
 			btn(aComp, _prop.msgs.menuText(MenuID.AddToolBar), null, &addBar, null);
 			btn(aComp, _prop.msgs.menuText(MenuID.AddToolGroup), null, &addGroup, null);
-			btn(btnComp, _prop.msgs.menuText(MenuID.Up), _prop.images.menu(MenuID.Up), &up, &canUp);
-			btn(btnComp, _prop.msgs.menuText(MenuID.Down), _prop.images.menu(MenuID.Down), &down, &canDown);
+			btn(btnComp, _prop.msgs.upSelection, _prop.images.menu(MenuID.Up), &up, &canUp);
+			btn(btnComp, _prop.msgs.downSelection, _prop.images.menu(MenuID.Down), &down, &canDown);
 
 			auto menu = new Menu(_toolTree.getShell(), SWT.POP_UP);
 			createMenuItem(_comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
@@ -494,7 +494,7 @@ class ToolBarCustomizer : Composite, TCPD {
 					groupItm.setImage(_prop.images.toolGroup);
 				} else { mixin(S_TRACE);
 					auto toolItm = new TreeItem(groupItm, SWT.NONE);
-					toolItm.setText(_prop.var.menu.buildTool(_prop.parent, tool.menu));
+					toolItm.setText(_prop.msgs.menuText(tool.menu));
 					auto data = new MenuData;
 					data.id = tool.menu;
 					toolItm.setData(data);
@@ -521,7 +521,7 @@ class ToolBarCustomizer : Composite, TCPD {
 			if (!canAppendMenu(id)) continue;
 			auto image = _prop.images.menu(id);
 			if (!image) continue;
-			string name = _prop.var.menu.buildTool(_prop.parent, id);
+			string name = _prop.msgs.menuText(id);
 			if (!_menuIncSearch.match(name)) continue;
 			auto itm = new TableItem(_menuList, SWT.NONE);
 			itm.setText(name);
@@ -681,7 +681,7 @@ class ToolBarCustomizer : Composite, TCPD {
 				}
 				if (!canAppendMenu(m.id)) continue;
 				_added.add(m.id);
-				itm.setText(_prop.var.menu.buildTool(_prop.parent, m.id));
+				itm.setText(_prop.msgs.menuText(m.id));
 				itm.setImage(_prop.images.menu(m.id));
 				itm.setData(m);
 				index++;

@@ -3088,7 +3088,7 @@ string selectDir(T)(Props prop, T dir, string title, string msg, string p, bool 
 /// ファイルやディレクトリを開くボタンを作成する。
 Button createOpenButton(Commons comm, Composite parent, string delegate() getText, bool dir) { mixin(S_TRACE);
 	auto open = new Button(parent, SWT.PUSH);
-	open.setToolTipText(comm.prop.buildTool(dir ? MenuID.OpenDir : MenuID.OpenPlace));
+	open.setToolTipText(comm.prop.msgs.menuText(dir ? MenuID.OpenDir : MenuID.OpenPlace));
 	open.setImage(comm.prop.images.menu(MenuID.OpenDir));
 	open.addSelectionListener(new OpenDir(comm, getText));
 	comm.put(open, () => getText().length > 0);

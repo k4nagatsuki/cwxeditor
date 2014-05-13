@@ -3380,6 +3380,8 @@ public:
 				~ "&menuAction!(" ~ Id.stringof ~ "), " ~ Can ~ ", " ~ to!string(Style) ~ ");";
 		}
 	}
+	@property
+	ToolBar[] toolBars() { return _toolBar; }
 	void refreshToolBar(bool delegate()[MenuID] cMenuTbl) { mixin(S_TRACE);
 		foreach (bar; _toolBar) { mixin(S_TRACE);
 			foreach (itm; bar.getItems()) { mixin(S_TRACE);

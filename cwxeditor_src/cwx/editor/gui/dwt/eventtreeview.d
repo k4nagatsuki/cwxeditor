@@ -4117,7 +4117,7 @@ class ContentsToolBox {
 			if (!_arrowTI.getEnabled()) arrow();
 		}
 		_arrowTI.setEnabled(_putMode !is MenuID.PutQuick);
-		_putModeTI.setToolTipText(_prop.buildTool(_putMode));
+		_putModeTI.setToolTipText(_prop.msgs.menuText(_putMode));
 		_putModeTI.setImage(_prop.images.menu(_putMode));
 		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
 	}
@@ -4519,7 +4519,7 @@ class ContentsToolBox {
 			mode.addMouseListener(new TMListener);
 			Menu putModeMenu;
 			void delegate() dlg = null;
-			_putModeTI = createDropDownItem2(_comm, mode, _prop.buildTool(_putMode), _prop.images.menu(_putMode), dlg, putModeMenu, MenuID.None, null);
+			_putModeTI = createDropDownItem2(_comm, mode, _prop.msgs.menuText(_putMode), _prop.images.menu(_putMode), dlg, putModeMenu, MenuID.None, null);
 			_putQuickMI = createMenuItem(_comm, putModeMenu, MenuID.PutQuick, &updatePutMode, null, SWT.RADIO);
 			_putSelectMI = createMenuItem(_comm, putModeMenu, MenuID.PutSelect, &updatePutMode, null, SWT.RADIO);
 			_putContinueMI = createMenuItem(_comm, putModeMenu, MenuID.PutContinue, &updatePutMode, null, SWT.RADIO);
