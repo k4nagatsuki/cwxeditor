@@ -20,7 +20,6 @@ class EtcSettings : Composite {
 	private void delegate()[] _apply;
 
 	private ScrolledComposite _sc;
-	private bool _scResizing = false;
 
 	private Button boolSetting(Composite parent, ref Prop!(bool, false) pVal, string text) { mixin(S_TRACE);
 		return boolSetting!bool(parent, pVal, text, value => value, value => value);
@@ -35,7 +34,6 @@ class EtcSettings : Composite {
 		// FIXME: _sc.setShowFocusedControl()を使うとExpandItemの
 		//        拡大と縮小でスクロール位置に問題が出る
 		.listener(check, SWT.FocusIn, { mixin(S_TRACE);
-			if (_scResizing) return;
 			_sc.showControl(check);
 		});
 
@@ -60,18 +58,20 @@ class EtcSettings : Composite {
 
 		auto expandBar = new ExpandBar(_sc, SWT.NONE);
 		.listener(expandBar, SWT.MouseDown, { mixin(S_TRACE);
-			expandBar.setFocus();
+			// FIXME: スクロールバーが一番上にある時に限り
+			//        フォーカスが得られないのでここで設定
+			if (_sc.getVerticalBar().getSelection() == 0) { mixin(S_TRACE);
+				expandBar.setFocus();
+			}
 		});
 		_sc.setContent(expandBar);
 		auto runScSize = new class Runnable {
 			override void run() { mixin(S_TRACE);
 				auto size = expandBar.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 				_sc.setMinSize(size.x, size.y);
-				_scResizing = false;
 			}
 		};
 		void scSize() { mixin(S_TRACE);
-			_scResizing = true;
 			getDisplay().asyncExec(runScSize);
 		}
 		.listener(_sc, SWT.Resize, { mixin(S_TRACE);
