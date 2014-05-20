@@ -192,7 +192,7 @@ void loadComment(Summary summ) {
 			if (INVALID_CWX_PATH == path) return;
 			auto ct = cast(Content) summ.findCWXPath(path);
 			if (!ct) return;
-			ct.comment = node.value;
+			ct.comment = node.value.replace("\r\n", "\n").replace("\r", "");
 		};
 		node.parse();
 	}
@@ -1894,7 +1894,7 @@ string saveComment(in SData d) {
 	auto node = XNode.create("comments");
 	node.newAttr("dataVersion", 1);
 	foreach (cwxPath, comment; d.comment) {
-		auto e = node.newElement("comment", comment);
+		auto e = node.newElement("comment", comment.replace("\r\n", "\n").replace("\r", ""));
 		e.newAttr("path", cwxPath);
 	}
 	return node.text;
