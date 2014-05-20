@@ -2168,38 +2168,66 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 	}
 
 	string[] renames;
+	mixin(S_TRACE);
 	string comment = saveComment(d);
+	mixin(S_TRACE);
 	if (comment.length) { mixin(S_TRACE);
+		mixin(S_TRACE);
 		auto file = "~Comment.wex";
+		mixin(S_TRACE);
 		std.file.write(d.sPath.buildPath(file), cast(immutable byte[])comment);
+		mixin(S_TRACE);
 		renames ~= file;
+		mixin(S_TRACE);
 	}
+	mixin(S_TRACE);
 	string imageRef = saveImageRef(d);
+	mixin(S_TRACE);
 	if (imageRef.length) { mixin(S_TRACE);
+		mixin(S_TRACE);
 		auto file = "~ImageRef.wex";
+		mixin(S_TRACE);
 		std.file.write(d.sPath.buildPath(file), cast(immutable byte[])imageRef);
+		mixin(S_TRACE);
 		renames ~= file;
+		mixin(S_TRACE);
 	}
+	mixin(S_TRACE);
 	string cardRef = saveCardRef(d);
+	mixin(S_TRACE);
 	if (cardRef.length) { mixin(S_TRACE);
+		mixin(S_TRACE);
 		auto file = "~CardRef.wex";
+		mixin(S_TRACE);
 		std.file.write(d.sPath.buildPath(file), cast(immutable byte[])cardRef);
+		mixin(S_TRACE);
 		renames ~= file;
+		mixin(S_TRACE);
 	}
+	mixin(S_TRACE);
 	string templates = saveTemplate(summ);
+	mixin(S_TRACE);
 	if (templates.length) { mixin(S_TRACE);
+		mixin(S_TRACE);
 		auto file = "~Template.wex";
+		mixin(S_TRACE);
 		std.file.write(d.sPath.buildPath(file), cast(immutable byte[])templates);
+		mixin(S_TRACE);
 		renames ~= file;
+		mixin(S_TRACE);
 	}
+	mixin(S_TRACE);
 
 	auto sysFName = .regex!(dstring)("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef|CardRef|Template)\\.wex))$"d);
+	mixin(S_TRACE);
 	bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
+	mixin(S_TRACE);
 	if (canBackup) { mixin(S_TRACE);
 		foreach (file; clistdir(opt.backupDir)) { mixin(S_TRACE);
 			delAll(opt.backupDir.buildPath(file));
 		}
 	}
+	mixin(S_TRACE);
 	foreach (file; clistdir(d.sPath)) { mixin(S_TRACE);
 		if (cfnmatch(file, "Summary.wsm")
 				|| !std.regex.match(toUTF32(file), sysFName).empty) { mixin(S_TRACE);
@@ -2212,22 +2240,34 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 			std.file.remove(path);
 		}
 	}
+	mixin(S_TRACE);
 	save1.rename();
+	mixin(S_TRACE);
 	save2.rename();
+	mixin(S_TRACE);
 	foreach (file; renames) { mixin(S_TRACE);
 		std.file.rename(std.path.buildPath(d.sPath, file), std.path.buildPath(d.sPath, file[1u .. $]));
 	}
+	mixin(S_TRACE);
 }
 
 /// 拡張情報"Comment.wex"を保存する。
 string saveComment(in SData d) { mixin(S_TRACE);
+	mixin(S_TRACE);
 	if (!d.comment.length) return "";
+	mixin(S_TRACE);
 	auto node = XNode.create("comments");
+	mixin(S_TRACE);
 	node.newAttr("dataVersion", 1);
+	mixin(S_TRACE);
 	foreach (cwxPath; d.comment.keys.sort) { mixin(S_TRACE);
+		mixin(S_TRACE);
 		auto e = node.newElement("comment", d.comment[cwxPath]);
+		mixin(S_TRACE);
 		e.newAttr("path", cwxPath);
+		mixin(S_TRACE);
 	}
+	mixin(S_TRACE);
 	return node.text;
 }
 /// 拡張情報"ImageRef.wex"を保存する。
