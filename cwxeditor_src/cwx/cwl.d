@@ -208,7 +208,8 @@ void loadComment(Summary summ) { mixin(S_TRACE);
 			if (INVALID_CWX_PATH == path) return;
 			auto ct = cast(Content) summ.findCWXPath(path);
 			if (!ct) return;
-			ct.comment = node.value;
+			// BUG: 2.10以前のバグで\rが混在する可能性があるため置換
+			ct.comment = node.value.replace("\r\n", "\n").replace("\r", "");
 		};
 		node.parse();
 	}

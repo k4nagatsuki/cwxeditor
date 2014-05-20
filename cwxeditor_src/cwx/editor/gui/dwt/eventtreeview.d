@@ -1606,7 +1606,7 @@ private:
 			if (cm.length) { mixin(S_TRACE);
 				int dis = _prop.var.etc.commentBoxDistance;
 				auto ib = itm.getBounds();
-				cm = std.string.chomp(cm);
+				cm = std.string.chomp(.lastRet(cm));
 				auto te = e.gc.textExtent(cm);
 				// 改行文字があると横幅がおかしくなるため
 				// 測り直す

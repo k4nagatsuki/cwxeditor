@@ -1859,7 +1859,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		auto d = CONTENT_DETAILS[cType];
 		string name = en.attr("name", false);
 		auto r = new Content(cType, name);
-		r.comment = en.attr("comment", false);
+		// BUG: 2.10以前のバグで\rが混在する可能性があるため置換
+		r.comment = en.attr("comment", false).replace("\r\n", "\n").replace("\r", "");
 
 		// 単純データ
 		cfnPut!(CArg.AREA, "area", "to!(ulong)")(en, d, r);
