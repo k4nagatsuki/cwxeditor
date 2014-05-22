@@ -1715,11 +1715,19 @@ struct SData {
 	ulong[string] cardRef;
 	uint[string] maxNest;
 	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
+
+	void merge(in SData d) {
+		foreach (key, value; d.comment) comment[key] = value;
+		foreach (key, value; d.imageRef) imageRef[key] = value;
+		foreach (key, value; d.cardRef) cardRef[key] = value;
+		foreach (key, value; d.maxNest) maxNest[key] = value;
+		foreach (key, value; d.nestCount) nestCount[key] = value;
+	}
 }
 /// 4.0形式のCardWirthシナリオを保存する。
 void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
-	auto d = SData(summ.scenarioPath, skin, opt.saveInnerImagePath, &summ.skill, &summ.item, &summ.beast, opt);
 	class Save {
+		SData d;
 		Area[] areas;
 		Battle[] battles;
 		Package[] packages;
@@ -1729,6 +1737,9 @@ void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
 		BeastCard[] beasts;
 		InfoCard[] infos;
 		string[] wids;
+		this () {
+			d = SData(summ.scenarioPath, skin, opt.saveInnerImagePath, &summ.skill, &summ.item, &summ.beast, opt);
+		}
 		void save() {
 			version (Console) {
 				debug std.stdio.writeln("Start Classic Load Thread");
@@ -1812,8 +1823,8 @@ void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
 	{
 		auto file = "~Summary.wsm";
 		ByteIO f;
-		writeSummary(d, f, summ);
-		std.file.write(std.path.buildPath(d.sPath, file), f.bytes);
+		writeSummary(save1.d, f, summ);
+		std.file.write(std.path.buildPath(save1.d.sPath, file), f.bytes);
 		save1.wids ~= file;
 	}
 	save1.areas = summ.areas[0 .. $ / 2];
@@ -1841,24 +1852,25 @@ void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
 		save1.save();
 		save2.save();
 	}
+	save1.d.merge(save2.d);
 
 	string[] renames;
-	string comment = saveComment(d);
+	string comment = saveComment(save1.d);
 	if (comment.length) {
 		auto file = "~Comment.wex";
-		std.file.write(d.sPath.buildPath(file), cast(immutable byte[]) comment);
+		std.file.write(save1.d.sPath.buildPath(file), cast(immutable byte[]) comment);
 		renames ~= file;
 	}
-	string imageRef = saveImageRef(d);
+	string imageRef = saveImageRef(save1.d);
 	if (imageRef.length) {
 		auto file = "~ImageRef.wex";
-		std.file.write(d.sPath.buildPath(file), cast(immutable byte[]) imageRef);
+		std.file.write(save1.d.sPath.buildPath(file), cast(immutable byte[]) imageRef);
 		renames ~= file;
 	}
-	string cardRef = saveCardRef(d);
+	string cardRef = saveCardRef(save1.d);
 	if (cardRef.length) {
 		auto file = "~CardRef.wex";
-		std.file.write(d.sPath.buildPath(file), cast(immutable byte[]) cardRef);
+		std.file.write(save1.d.sPath.buildPath(file), cast(immutable byte[]) cardRef);
 		renames ~= file;
 	}
 
@@ -1869,10 +1881,10 @@ void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
 			delAll(opt.backupDir.buildPath(file));
 		}
 	}
-	foreach (file; clistdir(d.sPath)) {
+	foreach (file; clistdir(save1.d.sPath)) {
 		if (cfnmatch(file, "Summary.wsm")
 				|| !std.regex.match(toUTF32(file), sysFName).empty) {
-			scope path = std.path.buildPath(d.sPath, file);
+			scope path = std.path.buildPath(save1.d.sPath, file);
 			if (canBackup) {
 				if (!opt.backupDir.exists()) opt.backupDir.mkdirRecurse();
 				path.copy(opt.backupDir.buildPath(file));
@@ -1884,7 +1896,7 @@ void saveLScenario(Summary summ, const Skin skin, in SaveOption opt) {
 	save1.rename();
 	save2.rename();
 	foreach (file; renames) {
-		std.file.rename(std.path.buildPath(d.sPath, file), std.path.buildPath(d.sPath, file[1u .. $]));
+		std.file.rename(std.path.buildPath(save1.d.sPath, file), std.path.buildPath(save1.d.sPath, file[1u .. $]));
 	}
 }
 
