@@ -846,24 +846,31 @@ T[] sortDlg(T, Dlg)(T[] arr, Dlg lmin) { mixin(S_TRACE);
 		== ["aa", "Bbb", "Cc", "dd"]);
 }
 
-/// ds内のcのインデックスをクイックサーチする。見つからなかった場合は-1を返す。
-int qsearch(T)(in T[] ds, T c) { mixin(S_TRACE);
-	if (ds.length == 1) return ds[0] == c ? 0 : -1;
-	int i = ds.length / 2;
-	T c2 = ds[i];
-	if (c < c2) { mixin(S_TRACE);
-		if (i == 0) return -1;
-		return qsearch!(T)(ds[0 .. i], c);
-	} else if (c > c2) { mixin(S_TRACE);
-		if (i + 1 == ds.length) return -1;
-		int i2 = qsearch!(T)(ds[i + 1 .. $], c);
-		if (i2 == -1) return -1;
-		return i + i2 + 1;
-	} else { mixin(S_TRACE);
-		return i;
+/// arr内のcのインデックスをクイックサーチする。見つからなかった場合は-1を返す。
+int qsearch(alias Cmp = "a < b ? -1 : (a > b ? 1 : 0)", T1, T2)(in T1[] arr, T2 c) { mixin(S_TRACE);
+	const(T1)[] ds = arr[];
+	size_t i2 = 0;
+	while (ds.length) { mixin(S_TRACE);
+		int i = ds.length / 2;
+		auto c2 = ds[i];
+		auto cmp = .binaryFun!Cmp(c2, c);
+		if (0 < cmp) { mixin(S_TRACE);
+			if (i == 0) return -1;
+			ds = ds[0 .. i];
+		} else if (cmp < 0) { mixin(S_TRACE);
+			if (i + 1 == ds.length) return -1;
+			ds = ds[i + 1 .. $];
+			i2 += i + 1;
+		} else { mixin(S_TRACE);
+			return i + i2;
+		}
 	}
-} unittest { mixin(S_TRACE);
+	return -1;
+}
+///
+unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
+	assert (qsearch!cmp(["A", "B", "C", "D", "E", "F", "G", "H", "I"], "H") == 7);
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128], 0) == -1);
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128], 1) == 0);
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128], 2) == 1);
@@ -883,6 +890,18 @@ int qsearch(T)(in T[] ds, T c) { mixin(S_TRACE);
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128, 256], 255) == -1);
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128, 256], 256) == 8);
 	assert (qsearch([1, 2, 4, 8, 16, 32, 64, 128, 256], 257) == -1);
+}
+
+/// 数値a, bを比較した結果を返す。
+int dcmp(T1, T2)(T1 a, T2 b) {
+	return a < b ? -1 : (a > b ? 1 : 0);
+}
+///
+unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	assert (dcmp(1, 2) < 0);
+	assert (0 < dcmp(2, 1));
+	assert (dcmp(2, 2) == 0);
 }
 
 /// 文字列型以外の配列であればtrue。

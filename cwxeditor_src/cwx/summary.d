@@ -1050,12 +1050,8 @@ public:
 	}
 
 	private static C find(C)(C[] arr, ulong id) { mixin(S_TRACE);
-		foreach (c; arr) { mixin(S_TRACE);
-			if (c.id == id) { mixin(S_TRACE);
-				return c;
-			}
-		}
-		return null;
+		auto index = qsearch!((a, b) => dcmp(a.id, b))(arr, id);
+		return index == -1 ? null : arr[index];
 	}
 
 	/// キャスト。
@@ -1138,12 +1134,7 @@ public:
 	}
 
 	private static bool hasId(T)(const T[] arr, ulong id) { mixin(S_TRACE);
-		foreach (a; arr) { mixin(S_TRACE);
-			if (a.id == id) { mixin(S_TRACE);
-				return true;
-			}
-		}
-		return false;
+		return qsearch!((a, b) => dcmp(a.id, b))(arr, id) != -1;
 	}
 
 	/// 指定された要素のindexを検索する。
@@ -1417,16 +1408,13 @@ public:
 	}
 
 	private void removeImpl(T)(ref T[] arr, T area) { mixin(S_TRACE);
-		foreach (i, a; arr) { mixin(S_TRACE);
-			if (a.id == area.id) { mixin(S_TRACE);
-				arr = arr[0 .. i] ~ arr[i + 1 .. $];
-				area.removeUseCounter();
-				area.changeHandler = null;
-				area.owner = null;
-				changeHandler();
-				return;
-			}
-		}
+		int i = qsearch!((a, b) => dcmp(a.id, b.id))(arr, area);
+		if (i == -1) return;
+		arr = arr[0 .. i] ~ arr[i + 1 .. $];
+		area.removeUseCounter();
+		area.changeHandler = null;
+		area.owner = null;
+		changeHandler();
 	}
 
 	/// カード・エリア等を除去する。
@@ -1734,12 +1722,9 @@ public:
 		throw new SummaryException("File is not summary: " ~ sPath);
 	}
 	private void checkStartArea() { mixin(S_TRACE);
-		foreach (area; areas) { mixin(S_TRACE);
-			if (area.id == startArea) { mixin(S_TRACE);
-				return;
-			}
+		if (hasId(areas, startArea)) {
+			_startAreaId.area = areas.length > 0 ? areas[0].id : 0;
 		}
-		_startAreaId.area = areas.length > 0 ? areas[0].id : 0;
 	}
 
 	private void loadXMLCommon(A)(string xml, string name, ref A[] areas,

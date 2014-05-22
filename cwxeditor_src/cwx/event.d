@@ -1506,10 +1506,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 変更ハンドラを登録する。
 	@property
 	void changeHandler(void delegate() change) { mixin(S_TRACE);
+		_change = change;
 		foreach (c; _next) { mixin(S_TRACE);
 			c.changeHandler = change;
 		}
-		_change = change;
 	}
 	/// 変更ハンドラ。
 	@property
@@ -1542,10 +1542,23 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 使用回数カウンタを設定・除去する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		foreach (v; this.tupleof) { mixin(S_TRACE);
-			setUseCounterImpl(v, uc);
+		auto c = this;
+		while (true) { mixin(S_TRACE);
+			foreach (v; c.tupleof) { mixin(S_TRACE);
+				static if (!is(typeof(v):Content[])) { mixin(S_TRACE);
+					c.setUseCounterImpl(v, uc);
+				}
+			}
+			c._uc = uc;
+			if (c._next.length == 1) {
+				c = c._next[0];
+			} else {
+				foreach (n; c._next) {
+					n.setUseCounter(uc);
+				}
+				break;
+			}
 		}
-		_uc = uc;
 	}
 	/// ditto
 	void removeUseCounter() { mixin(S_TRACE);

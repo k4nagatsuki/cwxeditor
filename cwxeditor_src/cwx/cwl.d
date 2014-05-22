@@ -900,613 +900,637 @@ private Motion readMotion(ref RData d, ref ByteIO f, size_t index) { mixin(S_TRA
 	}
 }
 private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_TRACE);
-	byte type = f.readByte;
-	string[string] info;
-	string name = readString(f, info, false, false);
-	uint cNum;
-	if (d.dataVersion <= 2) { mixin(S_TRACE);
-		cNum = f.readUIntL;
-	} else { mixin(S_TRACE);
-		cNum = f.readUIntL - 40000u;
-	}
-	Content[] childs;
-	childs.length = cNum;
-	for (uint i = 0u; i < cNum; i++) { mixin(S_TRACE);
-		childs[i] = readContent(d, f, i);
-	}
-	Content e;
-	switch (type) {
-	case 0:
-		e = new Content(CType.START, name);
-		break;
-	case 1:
-		e = new Content(CType.LINK_START, name);
-		e.start = readString(f);
-		break;
-	case 2:
-		e = new Content(CType.START_BATTLE, name);
-		e.battle = f.readUIntL;
-		break;
-	case 3:
-		e = new Content(CType.END, name);
-		e.complete = readBool(f);
-		break;
-	case 4:
-		e = new Content(CType.END_BAD_END, name);
-		break;
-	case 5:
-		e = new Content(CType.CHANGE_AREA, name);
-		e.area = f.readUIntL;
-		e.transition = Transition.DEFAULT;
-		e.transitionSpeed = 5u;
-		break;
-	case 6: { mixin(S_TRACE);
-		string msgPath = readString(f);
-		Talker msgTalker;
-		switch (msgPath) {
-		case "": msgTalker = Talker.NARRATION; break;
-		case "??Selected": msgTalker = Talker.SELECTED; break;
-		case "??Unselected": msgTalker = Talker.UNSELECTED; break;
-		case "??Random": msgTalker = Talker.RANDOM; break;
-		case "??Card": msgTalker = Talker.CARD; break;
-		default: msgTalker = Talker.IMAGE;
+	static Content readImpl(ref RData d, ref ByteIO f, byte type, string name, ref string[string] info) { mixin(S_TRACE);
+		Content e;
+		switch (type) {
+		case 0:
+			e = new Content(CType.START, name);
+			break;
+		case 1:
+			e = new Content(CType.LINK_START, name);
+			e.start = readString(f);
+			break;
+		case 2:
+			e = new Content(CType.START_BATTLE, name);
+			e.battle = f.readUIntL;
+			break;
+		case 3:
+			e = new Content(CType.END, name);
+			e.complete = readBool(f);
+			break;
+		case 4:
+			e = new Content(CType.END_BAD_END, name);
+			break;
+		case 5:
+			e = new Content(CType.CHANGE_AREA, name);
+			e.area = f.readUIntL;
+			e.transition = Transition.DEFAULT;
+			e.transitionSpeed = 5u;
+			break;
+		case 6: { mixin(S_TRACE);
+			string msgPath = readString(f);
+			Talker msgTalker;
+			switch (msgPath) {
+			case "": msgTalker = Talker.NARRATION; break;
+			case "??Selected": msgTalker = Talker.SELECTED; break;
+			case "??Unselected": msgTalker = Talker.UNSELECTED; break;
+			case "??Random": msgTalker = Talker.RANDOM; break;
+			case "??Card": msgTalker = Talker.CARD; break;
+			default: msgTalker = Talker.IMAGE;
+			}
+			e = new Content(CType.TALK_MESSAGE, name);
+			auto s = readString(f, true);
+			e.text = s;
+			e.talkerC = msgTalker;
+			e.cardPath = msgTalker != Talker.IMAGE ? "" : decodePathLegacy(msgPath);
+			break;
 		}
-		e = new Content(CType.TALK_MESSAGE, name);
-		auto s = readString(f, true);
-		e.text = s;
-		e.talkerC = msgTalker;
-		e.cardPath = msgTalker != Talker.IMAGE ? "" : decodePathLegacy(msgPath);
-		break;
-	}
-	case 7:
-		e = new Content(CType.PLAY_BGM, name);
-		e.bgmPath = decodePathLegacy(readString(f));
-		break;
-	case 8: { mixin(S_TRACE);
-		BgImage[] bgImgs = readBgImages(d, f, false);
-		e = new Content(CType.CHANGE_BG_IMAGE, name);
-		e.backs = bgImgs;
-		e.transition = Transition.DEFAULT;
-		e.transitionSpeed = 5u;
-		break;
-	}
-	case 9:
-		e = new Content(CType.PLAY_SOUND, name);
-		e.soundPath = decodePathLegacy(readString(f));
-		break;
-	case 10:
-		e = new Content(CType.WAIT, name);
-		e.wait = f.readUIntL;
-		break;
-	case 11: { mixin(S_TRACE);
-		uint effLev = f.readUIntL;
-		byte effTarget = f.readByte;
-		if (effTarget == 2) effTarget = 6;
-		byte effType = f.readByte;
-		byte effResist = f.readByte;
-		int effSuc = f.readIntL;
-		string sp = readString(f);
-		string effSePath = sp == "（なし）" ? "" : decodePathLegacy(sp);
-		byte effVis = f.readByte;
-		uint effMotionNum = f.readUIntL;
-		Motion[] effMotions;
-		effMotions.length = effMotionNum;
-		for (uint i = 0u; i < effMotionNum; i++) { mixin(S_TRACE);
-			effMotions[i] = readMotion(d, f, i);
+		case 7:
+			e = new Content(CType.PLAY_BGM, name);
+			e.bgmPath = decodePathLegacy(readString(f));
+			break;
+		case 8: { mixin(S_TRACE);
+			BgImage[] bgImgs = readBgImages(d, f, false);
+			e = new Content(CType.CHANGE_BG_IMAGE, name);
+			e.backs = bgImgs;
+			e.transition = Transition.DEFAULT;
+			e.transitionSpeed = 5u;
+			break;
 		}
-		e = new Content(CType.EFFECT, name);
-		e.signedLevel = effLev;
-		e.targetNS = toTargetE(effTarget);
-		e.effectType = toEffectType(effType);
-		e.resist = toResist(effResist);
-		e.successRate = effSuc;
-		e.soundPath = effSePath;
-		e.cardVisual = toCardVisual(effVis);
-		e.motions = effMotions;
-		break;
-	}
-	case 12: { mixin(S_TRACE);
-		bool brMemAll = readBool(f);
-		bool brMemRnd = readBool(f);
-		e = new Content(CType.BRANCH_SELECT, name);
-		e.targetAll = brMemAll;
-		e.random = brMemRnd;
-		break;
-	}
-	case 13: { mixin(S_TRACE);
-		uint val = f.readUIntL;
-		byte targ = f.readByte;
-		uint phy = f.readUIntL;
-		int mtl = f.readIntL;
-		e = new Content(CType.BRANCH_ABILITY, name);
-		e.targetS = toTargetA(targ);
-		e.mental = toMental(mtl);
-		e.physical = toPhysical(phy);
-		e.signedLevel = val;
-		break;
-	}
-	case 14:
-		e = new Content(CType.BRANCH_RANDOM, name);
-		e.percent = f.readUIntL;
-		break;
-	case 15:
-		e = new Content(CType.BRANCH_FLAG, name);
-		e.flag = readString(f);
-		break;
-	case 16: { mixin(S_TRACE);
-		string flag = readString(f);
-		bool val = readBool(f);
-		e = new Content(CType.SET_FLAG, name);
-		e.flag = flag;
-		e.flagValue = val;
-		break;
-	}
-	case 17:
-		e = new Content(CType.BRANCH_MULTI_STEP, name);
-		e.step = readString(f);
-		break;
-	case 18: { mixin(S_TRACE);
-		string step = readString(f);
-		uint val = f.readUIntL;
-		e = new Content(CType.SET_STEP, name);
-		e.step = step;
-		e.stepValue = val;
-		break;
-	}
-	case 19:
-		e = new Content(CType.BRANCH_CAST, name);
-		e.casts = f.readUIntL;
-		break;
-	case 20: { mixin(S_TRACE);
-		ulong id = f.readUIntL;
-		if (d.dataVersion <= 2) { mixin(S_TRACE);
+		case 9:
+			e = new Content(CType.PLAY_SOUND, name);
+			e.soundPath = decodePathLegacy(readString(f));
+			break;
+		case 10:
+			e = new Content(CType.WAIT, name);
+			e.wait = f.readUIntL;
+			break;
+		case 11: { mixin(S_TRACE);
+			uint effLev = f.readUIntL;
+			byte effTarget = f.readByte;
+			if (effTarget == 2) effTarget = 6;
+			byte effType = f.readByte;
+			byte effResist = f.readByte;
+			int effSuc = f.readIntL;
+			string sp = readString(f);
+			string effSePath = sp == "（なし）" ? "" : decodePathLegacy(sp);
+			byte effVis = f.readByte;
+			uint effMotionNum = f.readUIntL;
+			Motion[] effMotions;
+			effMotions.length = effMotionNum;
+			for (uint i = 0u; i < effMotionNum; i++) { mixin(S_TRACE);
+				effMotions[i] = readMotion(d, f, i);
+			}
+			e = new Content(CType.EFFECT, name);
+			e.signedLevel = effLev;
+			e.targetNS = toTargetE(effTarget);
+			e.effectType = toEffectType(effType);
+			e.resist = toResist(effResist);
+			e.successRate = effSuc;
+			e.soundPath = effSePath;
+			e.cardVisual = toCardVisual(effVis);
+			e.motions = effMotions;
+			break;
+		}
+		case 12: { mixin(S_TRACE);
+			bool brMemAll = readBool(f);
+			bool brMemRnd = readBool(f);
+			e = new Content(CType.BRANCH_SELECT, name);
+			e.targetAll = brMemAll;
+			e.random = brMemRnd;
+			break;
+		}
+		case 13: { mixin(S_TRACE);
+			uint val = f.readUIntL;
+			byte targ = f.readByte;
+			uint phy = f.readUIntL;
+			int mtl = f.readIntL;
+			e = new Content(CType.BRANCH_ABILITY, name);
+			e.targetS = toTargetA(targ);
+			e.mental = toMental(mtl);
+			e.physical = toPhysical(phy);
+			e.signedLevel = val;
+			break;
+		}
+		case 14:
+			e = new Content(CType.BRANCH_RANDOM, name);
+			e.percent = f.readUIntL;
+			break;
+		case 15:
+			e = new Content(CType.BRANCH_FLAG, name);
+			e.flag = readString(f);
+			break;
+		case 16: { mixin(S_TRACE);
+			string flag = readString(f);
+			bool val = readBool(f);
+			e = new Content(CType.SET_FLAG, name);
+			e.flag = flag;
+			e.flagValue = val;
+			break;
+		}
+		case 17:
+			e = new Content(CType.BRANCH_MULTI_STEP, name);
+			e.step = readString(f);
+			break;
+		case 18: { mixin(S_TRACE);
+			string step = readString(f);
+			uint val = f.readUIntL;
+			e = new Content(CType.SET_STEP, name);
+			e.step = step;
+			e.stepValue = val;
+			break;
+		}
+		case 19:
+			e = new Content(CType.BRANCH_CAST, name);
+			e.casts = f.readUIntL;
+			break;
+		case 20: { mixin(S_TRACE);
+			ulong id = f.readUIntL;
+			if (d.dataVersion <= 2) { mixin(S_TRACE);
+				e = new Content(CType.BRANCH_ITEM, name);
+				e.item = id;
+				e.range = Range.PARTY_AND_BACKPACK;
+				e.cardNumber = 1;
+				break;
+			}
+			uint num = f.readUIntL;
+			byte rng = f.readByte;
 			e = new Content(CType.BRANCH_ITEM, name);
 			e.item = id;
-			e.range = Range.PARTY_AND_BACKPACK;
-			e.cardNumber = 1;
+			e.range = toRange(rng);
+			e.cardNumber = num;
 			break;
 		}
-		uint num = f.readUIntL;
-		byte rng = f.readByte;
-		e = new Content(CType.BRANCH_ITEM, name);
-		e.item = id;
-		e.range = toRange(rng);
-		e.cardNumber = num;
-		break;
-	}
-	case 21: { mixin(S_TRACE);
-		ulong id = f.readUIntL;
-		if (d.dataVersion <= 2) { mixin(S_TRACE);
+		case 21: { mixin(S_TRACE);
+			ulong id = f.readUIntL;
+			if (d.dataVersion <= 2) { mixin(S_TRACE);
+				e = new Content(CType.BRANCH_SKILL, name);
+				e.item = id;
+				e.range = Range.PARTY_AND_BACKPACK;
+				e.cardNumber = 1;
+				break;
+			}
+			uint num = f.readUIntL;
+			byte rng = f.readByte;
 			e = new Content(CType.BRANCH_SKILL, name);
-			e.item = id;
-			e.range = Range.PARTY_AND_BACKPACK;
-			e.cardNumber = 1;
+			e.skill = id;
+			e.range = toRange(rng);
+			e.cardNumber = num;
 			break;
 		}
-		uint num = f.readUIntL;
-		byte rng = f.readByte;
-		e = new Content(CType.BRANCH_SKILL, name);
-		e.skill = id;
-		e.range = toRange(rng);
-		e.cardNumber = num;
-		break;
-	}
-	case 22:
-		e = new Content(CType.BRANCH_INFO, name);
-		e.info = f.readUIntL;
-		break;
-	case 23: { mixin(S_TRACE);
-		ulong id = f.readUIntL;
-		if (d.dataVersion <= 2) { mixin(S_TRACE);
+		case 22:
+			e = new Content(CType.BRANCH_INFO, name);
+			e.info = f.readUIntL;
+			break;
+		case 23: { mixin(S_TRACE);
+			ulong id = f.readUIntL;
+			if (d.dataVersion <= 2) { mixin(S_TRACE);
+				e = new Content(CType.BRANCH_BEAST, name);
+				e.item = id;
+				e.range = Range.PARTY_AND_BACKPACK;
+				e.cardNumber = 1;
+				break;
+			}
+			uint num = f.readUIntL;
+			byte rng = f.readByte;
 			e = new Content(CType.BRANCH_BEAST, name);
-			e.item = id;
-			e.range = Range.PARTY_AND_BACKPACK;
-			e.cardNumber = 1;
+			e.beast = id;
+			e.range = toRange(rng);
+			e.cardNumber = num;
 			break;
 		}
-		uint num = f.readUIntL;
-		byte rng = f.readByte;
-		e = new Content(CType.BRANCH_BEAST, name);
-		e.beast = id;
-		e.range = toRange(rng);
-		e.cardNumber = num;
-		break;
-	}
-	case 24:
-		e = new Content(CType.BRANCH_MONEY, name);
-		e.money = f.readUIntL;
-		break;
-	case 25: { mixin(S_TRACE);
-		string coupon = readString(f);
-		f.readUIntL;
-		byte rng = f.readByte;
-		e = new Content(CType.BRANCH_COUPON, name);
-		e.coupon = coupon;
-		e.range = toCouponRange(rng);
-		break;
-	}
-	case 26:
-		e = new Content(CType.GET_CAST, name);
-		e.casts = f.readUIntL;
-		break;
-	case 27: { mixin(S_TRACE);
-		ulong id = f.readUIntL;
-		if (d.dataVersion <= 2) { mixin(S_TRACE);
+		case 24:
+			e = new Content(CType.BRANCH_MONEY, name);
+			e.money = f.readUIntL;
+			break;
+		case 25: { mixin(S_TRACE);
+			string coupon = readString(f);
+			f.readUIntL;
+			byte rng = f.readByte;
+			e = new Content(CType.BRANCH_COUPON, name);
+			e.coupon = coupon;
+			e.range = toCouponRange(rng);
+			break;
+		}
+		case 26:
+			e = new Content(CType.GET_CAST, name);
+			e.casts = f.readUIntL;
+			break;
+		case 27: { mixin(S_TRACE);
+			ulong id = f.readUIntL;
+			if (d.dataVersion <= 2) { mixin(S_TRACE);
+				e = new Content(CType.GET_ITEM, name);
+				e.item = id;
+				e.range = Range.PARTY_AND_BACKPACK;
+				e.cardNumber = 1;
+				break;
+			}
+			uint num = f.readUIntL;
+			byte rng = f.readByte;
 			e = new Content(CType.GET_ITEM, name);
 			e.item = id;
-			e.range = Range.PARTY_AND_BACKPACK;
-			e.cardNumber = 1;
+			e.range = toRange(rng);
+			e.cardNumber = num;
 			break;
 		}
-		uint num = f.readUIntL;
-		byte rng = f.readByte;
-		e = new Content(CType.GET_ITEM, name);
-		e.item = id;
-		e.range = toRange(rng);
-		e.cardNumber = num;
-		break;
-	}
-	case 28: { mixin(S_TRACE);
-		ulong id = f.readUIntL;
-		if (d.dataVersion <= 2) { mixin(S_TRACE);
+		case 28: { mixin(S_TRACE);
+			ulong id = f.readUIntL;
+			if (d.dataVersion <= 2) { mixin(S_TRACE);
+				e = new Content(CType.GET_SKILL, name);
+				e.item = id;
+				e.range = Range.PARTY_AND_BACKPACK;
+				e.cardNumber = 1;
+				break;
+			}
+			uint num = f.readUIntL;
+			byte rng = f.readByte;
 			e = new Content(CType.GET_SKILL, name);
-			e.item = id;
-			e.range = Range.PARTY_AND_BACKPACK;
-			e.cardNumber = 1;
+			e.skill = id;
+			e.range = toRange(rng);
+			e.cardNumber = num;
 			break;
 		}
-		uint num = f.readUIntL;
-		byte rng = f.readByte;
-		e = new Content(CType.GET_SKILL, name);
-		e.skill = id;
-		e.range = toRange(rng);
-		e.cardNumber = num;
-		break;
-	}
-	case 29:
-		e = new Content(CType.GET_INFO, name);
-		e.info = f.readUIntL;
-		break;
-	case 30: { mixin(S_TRACE);
-		ulong id = f.readUIntL;
-		if (d.dataVersion <= 2) { mixin(S_TRACE);
+		case 29:
+			e = new Content(CType.GET_INFO, name);
+			e.info = f.readUIntL;
+			break;
+		case 30: { mixin(S_TRACE);
+			ulong id = f.readUIntL;
+			if (d.dataVersion <= 2) { mixin(S_TRACE);
+				e = new Content(CType.GET_BEAST, name);
+				e.item = id;
+				e.range = Range.PARTY_AND_BACKPACK;
+				e.cardNumber = 1;
+				break;
+			}
+			uint num = f.readUIntL;
+			byte rng = f.readByte;
 			e = new Content(CType.GET_BEAST, name);
-			e.item = id;
-			e.range = Range.PARTY_AND_BACKPACK;
-			e.cardNumber = 1;
+			e.beast = id;
+			e.range = toRange(rng);
+			e.cardNumber = num;
 			break;
 		}
-		uint num = f.readUIntL;
-		byte rng = f.readByte;
-		e = new Content(CType.GET_BEAST, name);
-		e.beast = id;
-		e.range = toRange(rng);
-		e.cardNumber = num;
-		break;
-	}
-	case 31:
-		e = new Content(CType.GET_MONEY, name);
-		e.money = f.readUIntL;
-		break;
-	case 32: { mixin(S_TRACE);
-		string coupon = readString(f);
-		int val = f.readIntL;
-		byte rng = f.readByte;
-		e = new Content(CType.GET_COUPON, name);
-		e.coupon = coupon;
-		e.range = toRange(rng);
-		e.couponValue = val;
-		break;
-	}
-	case 33:
-		e = new Content(CType.LOSE_CAST, name);
-		e.casts = f.readUIntL;
-		break;
-	case 34: { mixin(S_TRACE);
-		ulong id = f.readUIntL;
-		if (d.dataVersion <= 2) { mixin(S_TRACE);
+		case 31:
+			e = new Content(CType.GET_MONEY, name);
+			e.money = f.readUIntL;
+			break;
+		case 32: { mixin(S_TRACE);
+			string coupon = readString(f);
+			int val = f.readIntL;
+			byte rng = f.readByte;
+			e = new Content(CType.GET_COUPON, name);
+			e.coupon = coupon;
+			e.range = toRange(rng);
+			e.couponValue = val;
+			break;
+		}
+		case 33:
+			e = new Content(CType.LOSE_CAST, name);
+			e.casts = f.readUIntL;
+			break;
+		case 34: { mixin(S_TRACE);
+			ulong id = f.readUIntL;
+			if (d.dataVersion <= 2) { mixin(S_TRACE);
+				e = new Content(CType.LOSE_ITEM, name);
+				e.item = id;
+				e.range = Range.PARTY_AND_BACKPACK;
+				e.cardNumber = 1;
+				break;
+			}
+			uint num = f.readUIntL;
+			byte rng = f.readByte;
 			e = new Content(CType.LOSE_ITEM, name);
 			e.item = id;
-			e.range = Range.PARTY_AND_BACKPACK;
-			e.cardNumber = 1;
+			e.range = toRange(rng);
+			e.cardNumber = num;
 			break;
 		}
-		uint num = f.readUIntL;
-		byte rng = f.readByte;
-		e = new Content(CType.LOSE_ITEM, name);
-		e.item = id;
-		e.range = toRange(rng);
-		e.cardNumber = num;
-		break;
-	}
-	case 35: { mixin(S_TRACE);
-		ulong id = f.readUIntL;
-		if (d.dataVersion <= 2) { mixin(S_TRACE);
+		case 35: { mixin(S_TRACE);
+			ulong id = f.readUIntL;
+			if (d.dataVersion <= 2) { mixin(S_TRACE);
+				e = new Content(CType.LOSE_SKILL, name);
+				e.item = id;
+				e.range = Range.PARTY_AND_BACKPACK;
+				e.cardNumber = 1;
+				break;
+			}
+			uint num = f.readUIntL;
+			byte rng = f.readByte;
 			e = new Content(CType.LOSE_SKILL, name);
-			e.item = id;
-			e.range = Range.PARTY_AND_BACKPACK;
-			e.cardNumber = 1;
+			e.skill = id;
+			e.range = toRange(rng);
+			e.cardNumber = num;
 			break;
 		}
-		uint num = f.readUIntL;
-		byte rng = f.readByte;
-		e = new Content(CType.LOSE_SKILL, name);
-		e.skill = id;
-		e.range = toRange(rng);
-		e.cardNumber = num;
-		break;
-	}
-	case 36:
-		e = new Content(CType.LOSE_INFO, name);
-		e.info = f.readUIntL;
-		break;
-	case 37: { mixin(S_TRACE);
-		ulong id = f.readUIntL;
-		if (d.dataVersion <= 2) { mixin(S_TRACE);
+		case 36:
+			e = new Content(CType.LOSE_INFO, name);
+			e.info = f.readUIntL;
+			break;
+		case 37: { mixin(S_TRACE);
+			ulong id = f.readUIntL;
+			if (d.dataVersion <= 2) { mixin(S_TRACE);
+				e = new Content(CType.LOSE_BEAST, name);
+				e.item = id;
+				e.range = Range.PARTY_AND_BACKPACK;
+				e.cardNumber = 1;
+				break;
+			}
+			uint num = f.readUIntL;
+			byte rng = f.readByte;
 			e = new Content(CType.LOSE_BEAST, name);
-			e.item = id;
-			e.range = Range.PARTY_AND_BACKPACK;
-			e.cardNumber = 1;
+			e.beast = id;
+			e.range = toRange(rng);
+			e.cardNumber = num;
 			break;
 		}
-		uint num = f.readUIntL;
-		byte rng = f.readByte;
-		e = new Content(CType.LOSE_BEAST, name);
-		e.beast = id;
-		e.range = toRange(rng);
-		e.cardNumber = num;
-		break;
-	}
-	case 38:
-		e = new Content(CType.LOSE_MONEY, name);
-		e.money = f.readUIntL;
-		break;
-	case 39: { mixin(S_TRACE);
-		string coupon = readString(f);
-		f.readUIntL;
-		byte rng = f.readByte;
-		e = new Content(CType.LOSE_COUPON, name);
-		e.coupon = coupon;
-		e.range = toRange(rng);
-		break;
-	}
-	case 40: { mixin(S_TRACE);
-		byte targ = f.readByte;
-		Talker t;
-		Coupon[] coupons = [];
-		int initValue = 0;
-		if (3 == targ) { mixin(S_TRACE);
-			t = Talker.VALUED;
-			uint cpNum = f.readUIntL;
-			foreach (i; 0 .. cpNum) { mixin(S_TRACE);
-				coupons ~= new Coupon(readString(f), f.readIntL);
+		case 38:
+			e = new Content(CType.LOSE_MONEY, name);
+			e.money = f.readUIntL;
+			break;
+		case 39: { mixin(S_TRACE);
+			string coupon = readString(f);
+			f.readUIntL;
+			byte rng = f.readByte;
+			e = new Content(CType.LOSE_COUPON, name);
+			e.coupon = coupon;
+			e.range = toRange(rng);
+			break;
+		}
+		case 40: { mixin(S_TRACE);
+			byte targ = f.readByte;
+			Talker t;
+			Coupon[] coupons = [];
+			int initValue = 0;
+			if (3 == targ) { mixin(S_TRACE);
+				t = Talker.VALUED;
+				uint cpNum = f.readUIntL;
+				foreach (i; 0 .. cpNum) { mixin(S_TRACE);
+					coupons ~= new Coupon(readString(f), f.readIntL);
+				}
+				if (coupons.length && coupons[0].name == "") { mixin(S_TRACE);
+					initValue = coupons[0].value;
+					coupons = coupons[1 .. $];
+				}
+			} else { mixin(S_TRACE);
+				switch (toTargetT(targ).m) {
+				case Target.M.SELECTED: t = Talker.SELECTED; break;
+				case Target.M.UNSELECTED: t = Talker.UNSELECTED; break;
+				case Target.M.RANDOM: t = Talker.RANDOM; break;
+				default: throw new SummaryException("Unknown talker: " ~ to!(string)(targ));
+				}
 			}
-			if (coupons.length && coupons[0].name == "") { mixin(S_TRACE);
-				initValue = coupons[0].value;
-				coupons = coupons[1 .. $];
+			uint dlgNum = f.readUIntL;
+			SDialog[] dlgs;
+			for (uint i = 0u; i < dlgNum; i++) { mixin(S_TRACE);
+				string[] cps = readStrings(f);
+				string text = readString(f, true);
+				dlgs ~= new SDialog(text, cps);
 			}
+			e = new Content(CType.TALK_DIALOG, name);
+			e.talkerNC = t;
+			e.dialogs = dlgs;
+			e.coupons = coupons;
+			e.initValue = initValue;
+			break;
+		}
+		case 41:
+			e = new Content(CType.SET_STEP_UP, name);
+			e.step = readString(f);
+			break;
+		case 42:
+			e = new Content(CType.SET_STEP_DOWN, name);
+			e.step = readString(f);
+			break;
+		case 43:
+			e = new Content(CType.REVERSE_FLAG, name);
+			e.flag = readString(f);
+			break;
+		case 44: { mixin(S_TRACE);
+			string step = readString(f);
+			uint val = f.readUIntL;
+			e = new Content(CType.BRANCH_STEP, name);
+			e.step = step;
+			e.stepValue = val;
+			break;
+		}
+		case 45:
+			e = new Content(CType.ELAPSE_TIME, name);
+			break;
+		case 46: { mixin(S_TRACE);
+			bool avg = readBool(f);
+			uint val = f.readUIntL;
+			e = new Content(CType.BRANCH_LEVEL, name);
+			e.average = avg;
+			e.unsignedLevel = val;
+			break;
+		}
+		case 47: { mixin(S_TRACE);
+			byte stat = f.readByte;
+			byte targ = f.readByte;
+			e = new Content(CType.BRANCH_STATUS, name);
+			e.targetNS = toTargetA(targ);
+			e.status = toStatus(stat);
+			break;
+		}
+		case 48:
+			e = new Content(CType.BRANCH_PARTY_NUMBER, name);
+			e.partyNumber = f.readUIntL;
+			break;
+		case 49:
+			e = new Content(CType.SHOW_PARTY, name);
+			break;
+		case 50:
+			e = new Content(CType.HIDE_PARTY, name);
+			break;
+		case 51:
+			e = new Content(CType.EFFECT_BREAK, name);
+			break;
+		case 52:
+			e = new Content(CType.CALL_START, name);
+			e.start = readString(f);
+			break;
+		case 53:
+			e = new Content(CType.LINK_PACKAGE, name);
+			e.packages = f.readUIntL;
+			break;
+		case 54:
+			e = new Content(CType.CALL_PACKAGE, name);
+			e.packages = f.readUIntL;
+			break;
+		case 55:
+			e = new Content(CType.BRANCH_AREA, name);
+			break;
+		case 56:
+			e = new Content(CType.BRANCH_BATTLE, name);
+			break;
+		case 57:
+			e = new Content(CType.BRANCH_COMPLETE_STAMP, name);
+			e.completeStamp = readString(f);
+			break;
+		case 58:
+			e = new Content(CType.GET_COMPLETE_STAMP, name);
+			e.completeStamp = readString(f);
+			break;
+		case 59:
+			e = new Content(CType.LOSE_COMPLETE_STAMP, name);
+			e.completeStamp = readString(f);
+			break;
+		case 60:
+			e = new Content(CType.BRANCH_GOSSIP, name);
+			e.gossip = readString(f);
+			break;
+		case 61:
+			e = new Content(CType.GET_GOSSIP, name);
+			e.gossip = readString(f);
+			break;
+		case 62:
+			e = new Content(CType.LOSE_GOSSIP, name);
+			e.gossip = readString(f);
+			break;
+		case 63:
+			e = new Content(CType.BRANCH_IS_BATTLE, name);
+			break;
+		case 64:
+			e = new Content(CType.REDISPLAY, name);
+			e.transition = Transition.DEFAULT;
+			e.transitionSpeed = 5u;
+			break;
+		case 65:
+			e = new Content(CType.CHECK_FLAG, name);
+			e.flag = readString(f);
+			break;
+		case 66:
+			e = new Content(CType.SUBSTITUTE_STEP, name);
+			e.step = readString(f);
+			e.step2 = readString(f);
+			break;
+		case 67:
+			e = new Content(CType.SUBSTITUTE_FLAG, name);
+			e.flag = readString(f);
+			e.flag2 = readString(f);
+			break;
+		case 68:
+			e = new Content(CType.BRANCH_STEP_CMP, name);
+			e.step = readString(f);
+			e.step2 = readString(f);
+			break;
+		case 69:
+			e = new Content(CType.BRANCH_FLAG_CMP, name);
+			e.flag = readString(f);
+			e.flag2 = readString(f);
+			break;
+		case 70:
+			e = new Content(CType.BRANCH_RANDOM_SELECT, name);
+			e.castRange = toCastRanges(f.readByte);
+			ubyte style = f.readUByte;
+			if (style & 0b01) { mixin(S_TRACE);
+				e.levelMin = f.readUIntL;
+				e.levelMax = f.readUIntL;
+			} else { mixin(S_TRACE);
+				e.levelMin = 0;
+				e.levelMax = 0;
+			}
+			if (style & 0b10) { mixin(S_TRACE);
+				e.status = toStatus(f.readByte);
+			} else { mixin(S_TRACE);
+				e.status = Status.NONE;
+			}
+			break;
+		case 71:
+			e = new Content(CType.BRANCH_KEY_CODE, name);
+			e.keyCodeRange = toKeyCodeRange(f.readByte);
+			e.effectCardType = toEffectCardType(f.readByte);
+			e.keyCode = readString(f);
+			break;
+		case 72:
+			e = new Content(CType.CHECK_STEP, name);
+			e.step = readString(f);
+			e.stepValue = f.readUIntL;
+			e.comparison4 = toComparison4(f.readByte);
+			break;
+		case 73:
+			e = new Content(CType.BRANCH_ROUND, name);
+			e.comparison3 = toComparison3(f.readByte);
+			e.round = f.readUIntL;
+			break;
+		case 74:
+			e = new Content(CType.MOVE_BG_IMAGE, name);
+			e.cellName = readExString(f);
+			ubyte ctrl = f.readUByte;
+			if (ctrl & 0b01) { mixin(S_TRACE);
+				e.positionType = toCoordinateType(f.readByte);
+				e.x = f.readExInt;
+				e.y = f.readExInt;
+			}
+			if (ctrl & 0b10) { mixin(S_TRACE);
+				e.sizeType = toCoordinateType(f.readByte);
+				e.width = f.readExInt;
+				e.height = f.readExInt;
+			}
+			e.transition = Transition.DEFAULT;
+			e.transitionSpeed = 5u;
+			break;
+		case 75:
+			e = new Content(CType.LOSE_BG_IMAGE, name);
+			e.cellName = readExString(f);
+			e.transition = Transition.DEFAULT;
+			e.transitionSpeed = 5u;
+			break;
+		case 76:
+			e = new Content(CType.REPLACE_BG_IMAGE, name);
+			e.cellName = readExString(f);
+			e.backs = readBgImages(d, f, false, true);
+			e.transition = Transition.DEFAULT;
+			e.transitionSpeed = 5u;
+			break;
+		default: throw new SummaryException("Unknown content type: " ~ to!(string)(type));
+		}
+		auto p = "comment" in info;
+		if (p) { mixin(S_TRACE);
+			e.comment = *p;
+		}
+		return e;
+	}
+	byte[] types;
+	string[string][] infos;
+	string[] names;
+	Content[] children;
+	while (true) { mixin(S_TRACE);
+		byte type = f.readByte;
+		string[string] info;
+		string name = readString(f, info, false, false);
+		uint cNum;
+		if (d.dataVersion <= 2) { mixin(S_TRACE);
+			cNum = f.readUIntL;
 		} else { mixin(S_TRACE);
-			switch (toTargetT(targ).m) {
-			case Target.M.SELECTED: t = Talker.SELECTED; break;
-			case Target.M.UNSELECTED: t = Talker.UNSELECTED; break;
-			case Target.M.RANDOM: t = Talker.RANDOM; break;
-			default: throw new SummaryException("Unknown talker: " ~ to!(string)(targ));
+			cNum = f.readUIntL - 40000u;
+		}
+		types ~= type;
+		infos ~= info;
+		names ~= name;
+
+		if (cNum == 0) { mixin(S_TRACE);
+			break;
+		} else if (cNum == 1) { mixin(S_TRACE);
+			continue;
+		} else { mixin(S_TRACE);
+			children.length = cNum;
+			for (uint i = 0u; i < cNum; i++) { mixin(S_TRACE);
+				children[i] = readContent(d, f, i);
+			}
+			break;
+		}
+	}
+	Content e = null;
+	foreach_reverse (i, type; types) { mixin(S_TRACE);
+		e = readImpl(d, f, type, names[i], infos[i]);
+		if (e.detail.owner) { mixin(S_TRACE);
+			foreach (c; children) { mixin(S_TRACE);
+				e.add(null, c);
 			}
 		}
-		uint dlgNum = f.readUIntL;
-		SDialog[] dlgs;
-		for (uint i = 0u; i < dlgNum; i++) { mixin(S_TRACE);
-			string[] cps = readStrings(f);
-			string text = readString(f, true);
-			dlgs ~= new SDialog(text, cps);
-		}
-		e = new Content(CType.TALK_DIALOG, name);
-		e.talkerNC = t;
-		e.dialogs = dlgs;
-		e.coupons = coupons;
-		e.initValue = initValue;
-		break;
-	}
-	case 41:
-		e = new Content(CType.SET_STEP_UP, name);
-		e.step = readString(f);
-		break;
-	case 42:
-		e = new Content(CType.SET_STEP_DOWN, name);
-		e.step = readString(f);
-		break;
-	case 43:
-		e = new Content(CType.REVERSE_FLAG, name);
-		e.flag = readString(f);
-		break;
-	case 44: { mixin(S_TRACE);
-		string step = readString(f);
-		uint val = f.readUIntL;
-		e = new Content(CType.BRANCH_STEP, name);
-		e.step = step;
-		e.stepValue = val;
-		break;
-	}
-	case 45:
-		e = new Content(CType.ELAPSE_TIME, name);
-		break;
-	case 46: { mixin(S_TRACE);
-		bool avg = readBool(f);
-		uint val = f.readUIntL;
-		e = new Content(CType.BRANCH_LEVEL, name);
-		e.average = avg;
-		e.unsignedLevel = val;
-		break;
-	}
-	case 47: { mixin(S_TRACE);
-		byte stat = f.readByte;
-		byte targ = f.readByte;
-		e = new Content(CType.BRANCH_STATUS, name);
-		e.targetNS = toTargetA(targ);
-		e.status = toStatus(stat);
-		break;
-	}
-	case 48:
-		e = new Content(CType.BRANCH_PARTY_NUMBER, name);
-		e.partyNumber = f.readUIntL;
-		break;
-	case 49:
-		e = new Content(CType.SHOW_PARTY, name);
-		break;
-	case 50:
-		e = new Content(CType.HIDE_PARTY, name);
-		break;
-	case 51:
-		e = new Content(CType.EFFECT_BREAK, name);
-		break;
-	case 52:
-		e = new Content(CType.CALL_START, name);
-		e.start = readString(f);
-		break;
-	case 53:
-		e = new Content(CType.LINK_PACKAGE, name);
-		e.packages = f.readUIntL;
-		break;
-	case 54:
-		e = new Content(CType.CALL_PACKAGE, name);
-		e.packages = f.readUIntL;
-		break;
-	case 55:
-		e = new Content(CType.BRANCH_AREA, name);
-		break;
-	case 56:
-		e = new Content(CType.BRANCH_BATTLE, name);
-		break;
-	case 57:
-		e = new Content(CType.BRANCH_COMPLETE_STAMP, name);
-		e.completeStamp = readString(f);
-		break;
-	case 58:
-		e = new Content(CType.GET_COMPLETE_STAMP, name);
-		e.completeStamp = readString(f);
-		break;
-	case 59:
-		e = new Content(CType.LOSE_COMPLETE_STAMP, name);
-		e.completeStamp = readString(f);
-		break;
-	case 60:
-		e = new Content(CType.BRANCH_GOSSIP, name);
-		e.gossip = readString(f);
-		break;
-	case 61:
-		e = new Content(CType.GET_GOSSIP, name);
-		e.gossip = readString(f);
-		break;
-	case 62:
-		e = new Content(CType.LOSE_GOSSIP, name);
-		e.gossip = readString(f);
-		break;
-	case 63:
-		e = new Content(CType.BRANCH_IS_BATTLE, name);
-		break;
-	case 64:
-		e = new Content(CType.REDISPLAY, name);
-		e.transition = Transition.DEFAULT;
-		e.transitionSpeed = 5u;
-		break;
-	case 65:
-		e = new Content(CType.CHECK_FLAG, name);
-		e.flag = readString(f);
-		break;
-	case 66:
-		e = new Content(CType.SUBSTITUTE_STEP, name);
-		e.step = readString(f);
-		e.step2 = readString(f);
-		break;
-	case 67:
-		e = new Content(CType.SUBSTITUTE_FLAG, name);
-		e.flag = readString(f);
-		e.flag2 = readString(f);
-		break;
-	case 68:
-		e = new Content(CType.BRANCH_STEP_CMP, name);
-		e.step = readString(f);
-		e.step2 = readString(f);
-		break;
-	case 69:
-		e = new Content(CType.BRANCH_FLAG_CMP, name);
-		e.flag = readString(f);
-		e.flag2 = readString(f);
-		break;
-	case 70:
-		e = new Content(CType.BRANCH_RANDOM_SELECT, name);
-		e.castRange = toCastRanges(f.readByte);
-		ubyte style = f.readUByte;
-		if (style & 0b01) { mixin(S_TRACE);
-			e.levelMin = f.readUIntL;
-			e.levelMax = f.readUIntL;
-		} else { mixin(S_TRACE);
-			e.levelMin = 0;
-			e.levelMax = 0;
-		}
-		if (style & 0b10) { mixin(S_TRACE);
-			e.status = toStatus(f.readByte);
-		} else { mixin(S_TRACE);
-			e.status = Status.NONE;
-		}
-		break;
-	case 71:
-		e = new Content(CType.BRANCH_KEY_CODE, name);
-		e.keyCodeRange = toKeyCodeRange(f.readByte);
-		e.effectCardType = toEffectCardType(f.readByte);
-		e.keyCode = readString(f);
-		break;
-	case 72:
-		e = new Content(CType.CHECK_STEP, name);
-		e.step = readString(f);
-		e.stepValue = f.readUIntL;
-		e.comparison4 = toComparison4(f.readByte);
-		break;
-	case 73:
-		e = new Content(CType.BRANCH_ROUND, name);
-		e.comparison3 = toComparison3(f.readByte);
-		e.round = f.readUIntL;
-		break;
-	case 74:
-		e = new Content(CType.MOVE_BG_IMAGE, name);
-		e.cellName = readExString(f);
-		ubyte ctrl = f.readUByte;
-		if (ctrl & 0b01) { mixin(S_TRACE);
-			e.positionType = toCoordinateType(f.readByte);
-			e.x = f.readExInt;
-			e.y = f.readExInt;
-		}
-		if (ctrl & 0b10) { mixin(S_TRACE);
-			e.sizeType = toCoordinateType(f.readByte);
-			e.width = f.readExInt;
-			e.height = f.readExInt;
-		}
-		e.transition = Transition.DEFAULT;
-		e.transitionSpeed = 5u;
-		break;
-	case 75:
-		e = new Content(CType.LOSE_BG_IMAGE, name);
-		e.cellName = readExString(f);
-		e.transition = Transition.DEFAULT;
-		e.transitionSpeed = 5u;
-		break;
-	case 76:
-		e = new Content(CType.REPLACE_BG_IMAGE, name);
-		e.cellName = readExString(f);
-		e.backs = readBgImages(d, f, false, true);
-		e.transition = Transition.DEFAULT;
-		e.transitionSpeed = 5u;
-		break;
-	default: throw new SummaryException("Unknown content type: " ~ to!(string)(type));
-	}
-	if (e.detail.owner) { mixin(S_TRACE);
-		foreach (c; childs) { mixin(S_TRACE);
-			e.add(null, c);
-		}
-	}
-	auto p = "comment" in info;
-	if (p) { mixin(S_TRACE);
-		e.comment = *p;
+		children = [e];
 	}
 	return e;
 }
@@ -2067,15 +2091,22 @@ struct SData {
 	ulong[string] cardRef;
 	uint[string] maxNest;
 	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
+
+	void merge(in SData d) { mixin(S_TRACE);
+		foreach (key, value; d.comment) comment[key] = value;
+		foreach (key, value; d.imageRef) imageRef[key] = value;
+		foreach (key, value; d.cardRef) cardRef[key] = value;
+		foreach (key, value; d.maxNest) maxNest[key] = value;
+		foreach (key, value; d.nestCount) nestCount[key] = value;
+	}
 }
 /// 4.0形式のCardWirthシナリオを保存する。
 void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOption opt) { mixin(S_TRACE);
-	auto d = SData(sys, summ.scenarioPath, skin, opt.saveInnerImagePath, &summ.skill, &summ.item, &summ.beast, opt);
-
 	HashSet!Object changed = null;
-	if (d.opt.saveChangedOnly) changed = summ.changedResources;
+	if (opt.saveChangedOnly) changed = summ.changedResources;
 
 	class Save {
+		SData d;
 		Area[] areas;
 		Battle[] battles;
 		Package[] packages;
@@ -2085,6 +2116,9 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 		BeastCard[] beasts;
 		InfoCard[] infos;
 		string[] wids;
+		this () {
+			d = SData(sys, summ.scenarioPath, skin, opt.saveInnerImagePath, &summ.skill, &summ.item, &summ.beast, opt);
+		}
 		void writeFile(CWXPath a, string name, void delegate(ref ByteIO f) write) { mixin(S_TRACE);
 			auto file = "~" ~ name;
 			auto path = std.path.buildPath(d.sPath, file);
@@ -2102,7 +2136,7 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 		}
 		void save() { mixin(S_TRACE);
 			version (Console) {
-				debug std.stdio.writeln("Start Classic Load Thread");
+				debug std.stdio.writeln("Start Classic Save Thread");
 			}
 			foreach (a; areas) { mixin(S_TRACE);
 				writeFile(a, "Area" ~ to!(string)(a.id) ~ ".wid", (ref f) => writeArea(d, f, a));
@@ -2138,9 +2172,10 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 			}
 		}
 	}
+
 	auto save1 = new Save;
 	auto save2 = new Save;
-	save1.writeFile(summ, "Summary.wsm", (ref f) => writeSummary(d, f, summ));
+	save1.writeFile(summ, "Summary.wsm", (ref f) => writeSummary(save1.d, f, summ));
 	save1.areas = summ.areas[0 .. $ / 2];
 	save2.areas = summ.areas[$ / 2 .. $];
 	save1.battles = summ.battles[0 .. $ / 2];
@@ -2166,72 +2201,45 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 		save1.save();
 		save2.save();
 	}
+	save1.d.merge(save2.d);
 
 	string[] renames;
-	mixin(S_TRACE);
-	string comment = saveComment(d);
-	mixin(S_TRACE);
+	string comment = saveComment(save1.d);
 	if (comment.length) { mixin(S_TRACE);
-		mixin(S_TRACE);
 		auto file = "~Comment.wex";
-		mixin(S_TRACE);
-		std.file.write(d.sPath.buildPath(file), cast(immutable byte[])comment);
-		mixin(S_TRACE);
+		std.file.write(save1.d.sPath.buildPath(file), cast(immutable byte[])comment);
 		renames ~= file;
-		mixin(S_TRACE);
 	}
-	mixin(S_TRACE);
-	string imageRef = saveImageRef(d);
-	mixin(S_TRACE);
+	string imageRef = saveImageRef(save1.d);
 	if (imageRef.length) { mixin(S_TRACE);
-		mixin(S_TRACE);
 		auto file = "~ImageRef.wex";
-		mixin(S_TRACE);
-		std.file.write(d.sPath.buildPath(file), cast(immutable byte[])imageRef);
-		mixin(S_TRACE);
+		std.file.write(save1.d.sPath.buildPath(file), cast(immutable byte[])imageRef);
 		renames ~= file;
-		mixin(S_TRACE);
 	}
-	mixin(S_TRACE);
-	string cardRef = saveCardRef(d);
-	mixin(S_TRACE);
+	string cardRef = saveCardRef(save1.d);
 	if (cardRef.length) { mixin(S_TRACE);
-		mixin(S_TRACE);
 		auto file = "~CardRef.wex";
-		mixin(S_TRACE);
-		std.file.write(d.sPath.buildPath(file), cast(immutable byte[])cardRef);
-		mixin(S_TRACE);
+		std.file.write(save1.d.sPath.buildPath(file), cast(immutable byte[])cardRef);
 		renames ~= file;
-		mixin(S_TRACE);
 	}
-	mixin(S_TRACE);
 	string templates = saveTemplate(summ);
-	mixin(S_TRACE);
 	if (templates.length) { mixin(S_TRACE);
-		mixin(S_TRACE);
 		auto file = "~Template.wex";
-		mixin(S_TRACE);
-		std.file.write(d.sPath.buildPath(file), cast(immutable byte[])templates);
-		mixin(S_TRACE);
+		std.file.write(save1.d.sPath.buildPath(file), cast(immutable byte[])templates);
 		renames ~= file;
-		mixin(S_TRACE);
 	}
-	mixin(S_TRACE);
 
 	auto sysFName = .regex!(dstring)("^(((Area|Battle|Package|Mate|Skill|Item|Beast|Info)[0-9]+\\.wid)|((Comment|ImageRef|CardRef|Template)\\.wex))$"d);
-	mixin(S_TRACE);
 	bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
-	mixin(S_TRACE);
 	if (canBackup) { mixin(S_TRACE);
 		foreach (file; clistdir(opt.backupDir)) { mixin(S_TRACE);
 			delAll(opt.backupDir.buildPath(file));
 		}
 	}
-	mixin(S_TRACE);
-	foreach (file; clistdir(d.sPath)) { mixin(S_TRACE);
+	foreach (file; clistdir(save1.d.sPath)) { mixin(S_TRACE);
 		if (cfnmatch(file, "Summary.wsm")
 				|| !std.regex.match(toUTF32(file), sysFName).empty) { mixin(S_TRACE);
-			scope path = std.path.buildPath(d.sPath, file);
+			scope path = std.path.buildPath(save1.d.sPath, file);
 			if (canBackup) { mixin(S_TRACE);
 				if (!opt.backupDir.exists()) opt.backupDir.mkdirRecurse();
 				path.copy(opt.backupDir.buildPath(file));
@@ -2240,34 +2248,22 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 			std.file.remove(path);
 		}
 	}
-	mixin(S_TRACE);
 	save1.rename();
-	mixin(S_TRACE);
 	save2.rename();
-	mixin(S_TRACE);
 	foreach (file; renames) { mixin(S_TRACE);
-		std.file.rename(std.path.buildPath(d.sPath, file), std.path.buildPath(d.sPath, file[1u .. $]));
+		std.file.rename(std.path.buildPath(save1.d.sPath, file), std.path.buildPath(save1.d.sPath, file[1u .. $]));
 	}
-	mixin(S_TRACE);
 }
 
 /// 拡張情報"Comment.wex"を保存する。
 string saveComment(in SData d) { mixin(S_TRACE);
-	mixin(S_TRACE);
 	if (!d.comment.length) return "";
-	mixin(S_TRACE);
 	auto node = XNode.create("comments");
-	mixin(S_TRACE);
 	node.newAttr("dataVersion", 1);
-	mixin(S_TRACE);
 	foreach (cwxPath; d.comment.keys.sort) { mixin(S_TRACE);
-		mixin(S_TRACE);
 		auto e = node.newElement("comment", d.comment[cwxPath]);
-		mixin(S_TRACE);
 		e.newAttr("path", cwxPath);
-		mixin(S_TRACE);
 	}
-	mixin(S_TRACE);
 	return node.text;
 }
 /// 拡張情報"ImageRef.wex"を保存する。
@@ -2953,370 +2949,458 @@ private void writeMotion(ref SData d, ref ByteIO f, Motion m) { mixin(S_TRACE);
 	default: throw new SummaryException("Unknown motion: " ~ to!(string)(tType) ~ ", " ~ to!(string)(type));
 	}
 }
-private void writeContent(ref SData d, ref ByteIO f, Content e) { mixin(S_TRACE);
-	auto dt = e.detail;
-	void wb(byte type) { mixin(S_TRACE);
-		f.write(type);
-		string name = e.name;
-		writeString(f, name);
-		if (e.comment.length) { mixin(S_TRACE);
-			d.comment[e.cwxPath(true)] = e.comment;
+private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE);
+	Content[] lazys;
+	while (true) { mixin(S_TRACE);
+		byte type;
+		final switch (e2.type) {
+		case CType.START: type = 0; break;
+		case CType.LINK_START: type = 1; break;
+		case CType.START_BATTLE: type = 2; break;
+		case CType.END: type = 3; break;
+		case CType.END_BAD_END: type = 4; break;
+		case CType.CHANGE_AREA: type = 5; break;
+		case CType.TALK_MESSAGE: type = 6; break;
+		case CType.PLAY_BGM: type = 7; break;
+		case CType.CHANGE_BG_IMAGE: type = 8; break;
+		case CType.PLAY_SOUND: type = 9; break;
+		case CType.WAIT: type = 10; break;
+		case CType.EFFECT: type = 11; break;
+		case CType.BRANCH_SELECT: type = 12; break;
+		case CType.BRANCH_ABILITY: type = 13; break;
+		case CType.BRANCH_RANDOM: type = 14; break;
+		case CType.BRANCH_FLAG: type = 15; break;
+		case CType.SET_FLAG: type = 16; break;
+		case CType.BRANCH_MULTI_STEP: type = 17; break;
+		case CType.SET_STEP: type = 18; break;
+		case CType.BRANCH_CAST: type = 19; break;
+		case CType.BRANCH_ITEM: type = 20; break;
+		case CType.BRANCH_SKILL: type = 21; break;
+		case CType.BRANCH_INFO: type = 22; break;
+		case CType.BRANCH_BEAST: type = 23; break;
+		case CType.BRANCH_MONEY: type = 24; break;
+		case CType.BRANCH_COUPON: type = 25; break;
+		case CType.GET_CAST: type = 26; break;
+		case CType.GET_ITEM: type = 27; break;
+		case CType.GET_SKILL: type = 28; break;
+		case CType.GET_INFO: type = 29; break;
+		case CType.GET_BEAST: type = 30; break;
+		case CType.GET_MONEY: type = 31; break;
+		case CType.GET_COUPON: type = 32; break;
+		case CType.LOSE_CAST: type = 33; break;
+		case CType.LOSE_ITEM: type = 34; break;
+		case CType.LOSE_SKILL: type = 35; break;
+		case CType.LOSE_INFO: type = 36; break;
+		case CType.LOSE_BEAST: type = 37; break;
+		case CType.LOSE_MONEY: type = 38; break;
+		case CType.LOSE_COUPON: type = 39; break;
+		case CType.TALK_DIALOG: type = 40; break;
+		case CType.SET_STEP_UP: type = 41; break;
+		case CType.SET_STEP_DOWN: type = 42; break;
+		case CType.REVERSE_FLAG: type = 43; break;
+		case CType.BRANCH_STEP: type = 44; break;
+		case CType.ELAPSE_TIME: type = 45; break;
+		case CType.BRANCH_LEVEL: type = 46; break;
+		case CType.BRANCH_STATUS: type = 47; break;
+		case CType.BRANCH_PARTY_NUMBER: type = 48; break;
+		case CType.SHOW_PARTY: type = 49; break;
+		case CType.HIDE_PARTY: type = 50; break;
+		case CType.EFFECT_BREAK: type = 51; break;
+		case CType.CALL_START: type = 52; break;
+		case CType.LINK_PACKAGE: type = 53; break;
+		case CType.CALL_PACKAGE: type = 54; break;
+		case CType.BRANCH_AREA: type = 55; break;
+		case CType.BRANCH_BATTLE: type = 56; break;
+		case CType.BRANCH_COMPLETE_STAMP: type = 57; break;
+		case CType.GET_COMPLETE_STAMP: type = 58; break;
+		case CType.LOSE_COMPLETE_STAMP: type = 59; break;
+		case CType.BRANCH_GOSSIP: type = 60; break;
+		case CType.GET_GOSSIP: type = 61; break;
+		case CType.LOSE_GOSSIP: type = 62; break;
+		case CType.BRANCH_IS_BATTLE: type = 63; break;
+		case CType.REDISPLAY: type = 64; break;
+		case CType.CHECK_FLAG: type = 65; break;
+		case CType.SUBSTITUTE_STEP: type = 66; break;
+		case CType.SUBSTITUTE_FLAG: type = 67; break;
+		case CType.BRANCH_STEP_CMP: type = 68; break;
+		case CType.BRANCH_FLAG_CMP: type = 69; break;
+		case CType.BRANCH_RANDOM_SELECT: type = 70; break;
+		case CType.BRANCH_KEY_CODE: type = 71; break;
+		case CType.CHECK_STEP: type = 72; break;
+		case CType.BRANCH_ROUND: type = 73; break;
+		case CType.MOVE_BG_IMAGE: type = 74; break;
+		case CType.LOSE_BG_IMAGE: type = 75; break;
+		case CType.REPLACE_BG_IMAGE: type = 76; break;
 		}
-		if (dt.owner) { mixin(S_TRACE);
-			f.writeL(cast(uint) 40000 + e.next.length);
-			foreach (child; e.next) { mixin(S_TRACE);
-				writeContent(d, f, child);
+		f.write(type);
+		string name = e2.name;
+		writeString(f, name);
+		if (e2.comment.length) { mixin(S_TRACE);
+			d.comment[e2.cwxPath(true)] = e2.comment;
+		}
+		lazys ~= e2;
+		if (e2.detail.owner && e2.next.length) { mixin(S_TRACE);
+			f.writeL(cast(uint)40000 + e2.next.length);
+			if (e2.next.length == 1) { mixin(S_TRACE);
+				e2 = e2.next[0];
+			} else { mixin(S_TRACE);
+				foreach (child; e2.next) { mixin(S_TRACE);
+					writeContent(d, f, child);
+				}
+				break;
 			}
 		} else { mixin(S_TRACE);
-			f.writeL(cast(uint) 40000);
+			f.writeL(cast(uint)40000);
+			break;
 		}
 	}
-	if (e.type is CType.START) { mixin(S_TRACE);
-		wb(0);
-	} else if (e.type is CType.LINK_START) { mixin(S_TRACE);
-		wb(1);
-		writeString(f, e.start);
-	} else if (e.type is CType.START_BATTLE) { mixin(S_TRACE);
-		wb(2);
-		f.writeL(cast(uint) e.battle);
-	} else if (e.type is CType.END) { mixin(S_TRACE);
-		wb(3);
-		writeBool(f, e.complete);
-	} else if (e.type is CType.END_BAD_END) { mixin(S_TRACE);
-		wb(4);
-	} else if (e.type is CType.CHANGE_AREA) { mixin(S_TRACE);
-		wb(5);
-		f.writeL(cast(uint) e.area);
-	} else if (e.type is CType.TALK_MESSAGE) { mixin(S_TRACE);
-		wb(6);
-		string path;
-		switch (e.talkerC) {
-		case Talker.NARRATION: path = ""; break;
-		case Talker.SELECTED: path = "??Selected"; break;
-		case Talker.UNSELECTED: path = "??Unselected"; break;
-		case Talker.RANDOM: path = "??Random"; break;
-		case Talker.CARD: path = "??Card"; break;
-		case Talker.IMAGE: path = encodePathLegacy(e.cardPath); break;
-		default: assert (0, "event 6");
-		}
-		writeString(f, path);
-		writeString(f, lastRet(e.text), true);
-	} else if (e.type is CType.PLAY_BGM) { mixin(S_TRACE);
-		wb(7);
-		writeString(f, encodePathLegacy(e.bgmPath));
-	} else if (e.type is CType.CHANGE_BG_IMAGE) { mixin(S_TRACE);
-		wb(8);
-		writeBgImages(d, f, e.backs);
-	} else if (e.type is CType.PLAY_SOUND) { mixin(S_TRACE);
-		wb(9);
-		writeString(f, encodePathLegacy(e.soundPath));
-	} else if (e.type is CType.WAIT) { mixin(S_TRACE);
-		wb(10);
-		f.writeL(cast(uint) e.wait);
-	} else if (e.type is CType.EFFECT) { mixin(S_TRACE);
-		wb(11);
-		f.writeL(cast(int) e.signedLevel);
-		byte targ = fromTargetE(e.targetNS);
-		if (targ == 6) targ = 2;
-		f.write(targ);
-		f.write(fromEffectType(e.effectType));
-		f.write(fromResist(e.resist));
-		f.writeL(cast(int) e.successRate);
-		writeString(f, e.soundPath.length ? encodePathLegacy(e.soundPath) : "（なし）");
-		f.write(fromCardVisual(e.cardVisual));
-		f.writeL(cast(uint) e.motions.length);
-		foreach (m; e.motions) { mixin(S_TRACE);
-			writeMotion(d, f, m);
-		}
-	} else if (e.type is CType.BRANCH_SELECT) { mixin(S_TRACE);
-		wb(12);
-		writeBool(f, e.targetAll);
-		writeBool(f, e.random);
-	} else if (e.type is CType.BRANCH_ABILITY) { mixin(S_TRACE);
-		wb(13);
-		f.writeL(cast(int) e.signedLevel);
-		f.write(fromTargetA(e.targetS));
-		f.writeL(cast(uint) fromPhysical(e.physical));
-		f.writeL(cast(int) fromMental(e.mental));
-	} else if (e.type is CType.BRANCH_RANDOM) { mixin(S_TRACE);
-		wb(14);
-		f.writeL(cast(uint) e.percent);
-	} else if (e.type is CType.BRANCH_FLAG) { mixin(S_TRACE);
-		wb(15);
-		writeString(f, e.flag);
-	} else if (e.type is CType.SET_FLAG) { mixin(S_TRACE);
-		wb(16);
-		writeString(f, e.flag);
-		writeBool(f, e.flagValue);
-	} else if (e.type is CType.BRANCH_MULTI_STEP) { mixin(S_TRACE);
-		wb(17);
-		writeString(f, e.step);
-	} else if (e.type is CType.SET_STEP) { mixin(S_TRACE);
-		wb(18);
-		writeString(f, e.step);
-		f.writeL(cast(uint) e.stepValue);
-	} else if (e.type is CType.BRANCH_CAST) { mixin(S_TRACE);
-		wb(19);
-		f.writeL(cast(uint) e.casts);
-	} else if (e.type is CType.BRANCH_ITEM) { mixin(S_TRACE);
-		wb(20);
-		f.writeL(cast(uint) e.item);
-		f.writeL(cast(uint) e.cardNumber);
-		f.write(fromRange(e.range));
-	} else if (e.type is CType.BRANCH_SKILL) { mixin(S_TRACE);
-		wb(21);
-		f.writeL(cast(uint) e.skill);
-		f.writeL(cast(uint) e.cardNumber);
-		f.write(fromRange(e.range));
-	} else if (e.type is CType.BRANCH_INFO) { mixin(S_TRACE);
-		wb(22);
-		f.writeL(cast(uint) e.info);
-	} else if (e.type is CType.BRANCH_BEAST) { mixin(S_TRACE);
-		wb(23);
-		f.writeL(cast(uint) e.beast);
-		f.writeL(cast(uint) e.cardNumber);
-		f.write(fromRange(e.range));
-	} else if (e.type is CType.BRANCH_MONEY) { mixin(S_TRACE);
-		wb(24);
-		f.writeL(cast(uint) e.money);
-	} else if (e.type is CType.BRANCH_COUPON) { mixin(S_TRACE);
-		wb(25);
-		writeString(f, e.coupon);
-		f.writeL(cast(int) 0x0);
-		f.write(fromCouponRange(e.range));
-	} else if (e.type is CType.GET_CAST) { mixin(S_TRACE);
-		wb(26);
-		f.writeL(cast(uint) e.casts);
-	} else if (e.type is CType.GET_ITEM) { mixin(S_TRACE);
-		wb(27);
-		f.writeL(cast(uint) e.item);
-		f.writeL(cast(uint) e.cardNumber);
-		f.write(fromRange(e.range));
-	} else if (e.type is CType.GET_SKILL) { mixin(S_TRACE);
-		wb(28);
-		f.writeL(cast(uint) e.skill);
-		f.writeL(cast(uint) e.cardNumber);
-		f.write(fromRange(e.range));
-	} else if (e.type is CType.GET_INFO) { mixin(S_TRACE);
-		wb(29);
-		f.writeL(cast(uint) e.info);
-	} else if (e.type is CType.GET_BEAST) { mixin(S_TRACE);
-		wb(30);
-		f.writeL(cast(uint) e.beast);
-		f.writeL(cast(uint) e.cardNumber);
-		f.write(fromRange(e.range));
-	} else if (e.type is CType.GET_MONEY) { mixin(S_TRACE);
-		wb(31);
-		f.writeL(cast(uint) e.money);
-	} else if (e.type is CType.GET_COUPON) { mixin(S_TRACE);
-		wb(32);
-		writeString(f, e.coupon);
-		f.writeL(cast(int) e.couponValue);
-		f.write(fromRange(e.range));
-	} else if (e.type is CType.LOSE_CAST) { mixin(S_TRACE);
-		wb(33);
-		f.writeL(cast(uint) e.casts);
-	} else if (e.type is CType.LOSE_ITEM) { mixin(S_TRACE);
-		wb(34);
-		f.writeL(cast(uint) e.item);
-		f.writeL(cast(uint) e.cardNumber);
-		f.write(fromRange(e.range));
-	} else if (e.type is CType.LOSE_SKILL) { mixin(S_TRACE);
-		wb(35);
-		f.writeL(cast(uint) e.skill);
-		f.writeL(cast(uint) e.cardNumber);
-		f.write(fromRange(e.range));
-	} else if (e.type is CType.LOSE_INFO) { mixin(S_TRACE);
-		wb(36);
-		f.writeL(cast(uint) e.info);
-	} else if (e.type is CType.LOSE_BEAST) { mixin(S_TRACE);
-		wb(37);
-		f.writeL(cast(uint) e.beast);
-		f.writeL(cast(uint) e.cardNumber);
-		f.write(fromRange(e.range));
-	} else if (e.type is CType.LOSE_MONEY) { mixin(S_TRACE);
-		wb(38);
-		f.writeL(cast(uint) e.money);
-	} else if (e.type is CType.LOSE_COUPON) { mixin(S_TRACE);
-		wb(39);
-		writeString(f, e.coupon);
-		f.writeL(cast(int) 0x0);
-		f.write(fromRange(e.range));
-	} else if (e.type is CType.TALK_DIALOG) { mixin(S_TRACE);
-		wb(40);
-		switch (e.talkerNC) {
-		case Talker.SELECTED: f.writeL(cast(byte) 0); break;
-		case Talker.RANDOM: f.writeL(cast(byte) 1); break;
-		case Talker.UNSELECTED: f.writeL(cast(byte) 2); break;
-		case Talker.VALUED: f.writeL(cast(byte) 3); break;
-		default: throw new SummaryException("Unknown talker value: " ~ to!(string)(cast(int) e.talkerNC));
-		}
-		if (Talker.VALUED == e.talkerNC) { mixin(S_TRACE);
-			if (0 == e.initValue) { mixin(S_TRACE);
-				f.writeL(cast(uint) e.coupons.length);
-			} else { mixin(S_TRACE);
-				f.writeL(cast(uint) e.coupons.length + 1);
-				writeString(f, "");
-				f.writeL(cast(int) e.initValue);
+	foreach_reverse (e; lazys) { mixin(S_TRACE);
+		final switch (e.type) {
+		case CType.START:
+			break;
+		case CType.LINK_START:
+			writeString(f, e.start);
+			break;
+		case CType.START_BATTLE:
+			f.writeL(cast(uint) e.battle);
+			break;
+		case CType.END:
+			writeBool(f, e.complete);
+			break;
+		case CType.END_BAD_END:
+			break;
+		case CType.CHANGE_AREA:
+			f.writeL(cast(uint) e.area);
+			break;
+		case CType.TALK_MESSAGE:
+			string path;
+			switch (e.talkerC) {
+			case Talker.NARRATION: path = ""; break;
+			case Talker.SELECTED: path = "??Selected"; break;
+			case Talker.UNSELECTED: path = "??Unselected"; break;
+			case Talker.RANDOM: path = "??Random"; break;
+			case Talker.CARD: path = "??Card"; break;
+			case Talker.IMAGE: path = encodePathLegacy(e.cardPath); break;
+			default: assert (0, "event 6");
 			}
-			foreach (c; e.coupons) { mixin(S_TRACE);
-				writeString(f, c.name);
-				f.writeL(cast(int) c.value);
+			writeString(f, path);
+			writeString(f, lastRet(e.text), true);
+			break;
+		case CType.PLAY_BGM:
+			writeString(f, encodePathLegacy(e.bgmPath));
+			break;
+		case CType.CHANGE_BG_IMAGE:
+			writeBgImages(d, f, e.backs);
+			break;
+		case CType.PLAY_SOUND:
+			writeString(f, encodePathLegacy(e.soundPath));
+			break;
+		case CType.WAIT:
+			f.writeL(cast(uint) e.wait);
+			break;
+		case CType.EFFECT:
+			f.writeL(cast(int) e.signedLevel);
+			byte targ = fromTargetE(e.targetNS);
+			if (targ == 6) targ = 2;
+			f.write(targ);
+			f.write(fromEffectType(e.effectType));
+			f.write(fromResist(e.resist));
+			f.writeL(cast(int) e.successRate);
+			writeString(f, e.soundPath.length ? encodePathLegacy(e.soundPath) : "（なし）");
+			f.write(fromCardVisual(e.cardVisual));
+			f.writeL(cast(uint) e.motions.length);
+			foreach (m; e.motions) { mixin(S_TRACE);
+				writeMotion(d, f, m);
 			}
-		}
-		f.writeL(cast(uint) e.dialogs.length);
-		foreach (dlg; e.dialogs) { mixin(S_TRACE);
-			writeStrings(f, dlg.rCoupons);
-			writeString(f, lastRet(dlg.text), true);
-		}
-	} else if (e.type is CType.SET_STEP_UP) { mixin(S_TRACE);
-		wb(41);
-		writeString(f, e.step);
-	} else if (e.type is CType.SET_STEP_DOWN) { mixin(S_TRACE);
-		wb(42);
-		writeString(f, e.step);
-	} else if (e.type is CType.REVERSE_FLAG) { mixin(S_TRACE);
-		wb(43);
-		writeString(f, e.flag);
-	} else if (e.type is CType.BRANCH_STEP) { mixin(S_TRACE);
-		wb(44);
-		writeString(f, e.step);
-		f.writeL(cast(uint) e.stepValue);
-	} else if (e.type is CType.ELAPSE_TIME) { mixin(S_TRACE);
-		wb(45);
-	} else if (e.type is CType.BRANCH_LEVEL) { mixin(S_TRACE);
-		wb(46);
-		writeBool(f, e.average);
-		f.writeL(cast(uint) e.unsignedLevel);
-	} else if (e.type is CType.BRANCH_STATUS) { mixin(S_TRACE);
-		wb(47);
-		f.write(fromStatus(e.status));
-		f.write(fromTargetA(e.targetNS));
-	} else if (e.type is CType.BRANCH_PARTY_NUMBER) { mixin(S_TRACE);
-		wb(48);
-		f.writeL(cast(uint) e.partyNumber);
-	} else if (e.type is CType.SHOW_PARTY) { mixin(S_TRACE);
-		wb(49);
-	} else if (e.type is CType.HIDE_PARTY) { mixin(S_TRACE);
-		wb(50);
-	} else if (e.type is CType.EFFECT_BREAK) { mixin(S_TRACE);
-		wb(51);
-	} else if (e.type is CType.CALL_START) { mixin(S_TRACE);
-		wb(52);
-		writeString(f, e.start);
-	} else if (e.type is CType.LINK_PACKAGE) { mixin(S_TRACE);
-		wb(53);
-		f.writeL(cast(uint) e.packages);
-	} else if (e.type is CType.CALL_PACKAGE) { mixin(S_TRACE);
-		wb(54);
-		f.writeL(cast(uint) e.packages);
-	} else if (e.type is CType.BRANCH_AREA) { mixin(S_TRACE);
-		wb(55);
-	} else if (e.type is CType.BRANCH_BATTLE) { mixin(S_TRACE);
-		wb(56);
-	} else if (e.type is CType.BRANCH_COMPLETE_STAMP) { mixin(S_TRACE);
-		wb(57);
-		writeString(f, e.completeStamp);
-	} else if (e.type is CType.GET_COMPLETE_STAMP) { mixin(S_TRACE);
-		wb(58);
-		writeString(f, e.completeStamp);
-	} else if (e.type is CType.LOSE_COMPLETE_STAMP) { mixin(S_TRACE);
-		wb(59);
-		writeString(f, e.completeStamp);
-	} else if (e.type is CType.BRANCH_GOSSIP) { mixin(S_TRACE);
-		wb(60);
-		writeString(f, e.gossip);
-	} else if (e.type is CType.GET_GOSSIP) { mixin(S_TRACE);
-		wb(61);
-		writeString(f, e.gossip);
-	} else if (e.type is CType.LOSE_GOSSIP) { mixin(S_TRACE);
-		wb(62);
-		writeString(f, e.gossip);
-	} else if (e.type is CType.BRANCH_IS_BATTLE) { mixin(S_TRACE);
-		wb(63);
-	} else if (e.type is CType.REDISPLAY) { mixin(S_TRACE);
-		wb(64);
-	} else if (e.type is CType.CHECK_FLAG) { mixin(S_TRACE);
-		wb(65);
-		writeString(f, e.flag);
-	} else if (e.type is CType.SUBSTITUTE_STEP) { mixin(S_TRACE);
-		wb(66);
-		writeString(f, e.step);
-		writeString(f, e.step2);
-	} else if (e.type is CType.SUBSTITUTE_FLAG) { mixin(S_TRACE);
-		wb(67);
-		writeString(f, e.flag);
-		writeString(f, e.flag2);
-	} else if (e.type is CType.BRANCH_STEP_CMP) { mixin(S_TRACE);
-		wb(68);
-		writeString(f, e.step);
-		writeString(f, e.step2);
-	} else if (e.type is CType.BRANCH_FLAG_CMP) { mixin(S_TRACE);
-		wb(69);
-		writeString(f, e.flag);
-		writeString(f, e.flag2);
-	} else if (e.type is CType.BRANCH_RANDOM_SELECT) { mixin(S_TRACE);
-		wb(70);
-		f.write(fromCastRanges(e.castRange));
-		ubyte style = 0b00;
-		if (0 < e.levelMax) { mixin(S_TRACE);
-			style |= 0b01;
-		}
-		if (e.status !is Status.NONE) { mixin(S_TRACE);
-			style |= 0b10;
-		}
-		f.write(style);
-		if (style & 0b01) { mixin(S_TRACE);
-			f.writeL(e.levelMin);
-			f.writeL(e.levelMax);
-		}
-		if (style & 0b10) { mixin(S_TRACE);
+			break;
+		case CType.BRANCH_SELECT:
+			writeBool(f, e.targetAll);
+			writeBool(f, e.random);
+			break;
+		case CType.BRANCH_ABILITY:
+			f.writeL(cast(int) e.signedLevel);
+			f.write(fromTargetA(e.targetS));
+			f.writeL(cast(uint) fromPhysical(e.physical));
+			f.writeL(cast(int) fromMental(e.mental));
+			break;
+		case CType.BRANCH_RANDOM:
+			f.writeL(cast(uint) e.percent);
+			break;
+		case CType.BRANCH_FLAG:
+			writeString(f, e.flag);
+			break;
+		case CType.SET_FLAG:
+			writeString(f, e.flag);
+			writeBool(f, e.flagValue);
+			break;
+		case CType.BRANCH_MULTI_STEP:
+			writeString(f, e.step);
+			break;
+		case CType.SET_STEP:
+			writeString(f, e.step);
+			f.writeL(cast(uint) e.stepValue);
+			break;
+		case CType.BRANCH_CAST:
+			f.writeL(cast(uint) e.casts);
+			break;
+		case CType.BRANCH_ITEM:
+			f.writeL(cast(uint) e.item);
+			f.writeL(cast(uint) e.cardNumber);
+			f.write(fromRange(e.range));
+			break;
+		case CType.BRANCH_SKILL:
+			f.writeL(cast(uint) e.skill);
+			f.writeL(cast(uint) e.cardNumber);
+			f.write(fromRange(e.range));
+			break;
+		case CType.BRANCH_INFO:
+			f.writeL(cast(uint) e.info);
+			break;
+		case CType.BRANCH_BEAST:
+			f.writeL(cast(uint) e.beast);
+			f.writeL(cast(uint) e.cardNumber);
+			f.write(fromRange(e.range));
+			break;
+		case CType.BRANCH_MONEY:
+			f.writeL(cast(uint) e.money);
+			break;
+		case CType.BRANCH_COUPON:
+			writeString(f, e.coupon);
+			f.writeL(cast(int) 0x0);
+			f.write(fromCouponRange(e.range));
+			break;
+		case CType.GET_CAST:
+			f.writeL(cast(uint) e.casts);
+			break;
+		case CType.GET_ITEM:
+			f.writeL(cast(uint) e.item);
+			f.writeL(cast(uint) e.cardNumber);
+			f.write(fromRange(e.range));
+			break;
+		case CType.GET_SKILL:
+			f.writeL(cast(uint) e.skill);
+			f.writeL(cast(uint) e.cardNumber);
+			f.write(fromRange(e.range));
+			break;
+		case CType.GET_INFO:
+			f.writeL(cast(uint) e.info);
+			break;
+		case CType.GET_BEAST:
+			f.writeL(cast(uint) e.beast);
+			f.writeL(cast(uint) e.cardNumber);
+			f.write(fromRange(e.range));
+			break;
+		case CType.GET_MONEY:
+			f.writeL(cast(uint) e.money);
+			break;
+		case CType.GET_COUPON:
+			writeString(f, e.coupon);
+			f.writeL(cast(int) e.couponValue);
+			f.write(fromRange(e.range));
+			break;
+		case CType.LOSE_CAST:
+			f.writeL(cast(uint) e.casts);
+			break;
+		case CType.LOSE_ITEM:
+			f.writeL(cast(uint) e.item);
+			f.writeL(cast(uint) e.cardNumber);
+			f.write(fromRange(e.range));
+			break;
+		case CType.LOSE_SKILL:
+			f.writeL(cast(uint) e.skill);
+			f.writeL(cast(uint) e.cardNumber);
+			f.write(fromRange(e.range));
+			break;
+		case CType.LOSE_INFO:
+			f.writeL(cast(uint) e.info);
+			break;
+		case CType.LOSE_BEAST:
+			f.writeL(cast(uint) e.beast);
+			f.writeL(cast(uint) e.cardNumber);
+			f.write(fromRange(e.range));
+			break;
+		case CType.LOSE_MONEY:
+			f.writeL(cast(uint) e.money);
+			break;
+		case CType.LOSE_COUPON:
+			writeString(f, e.coupon);
+			f.writeL(cast(int) 0x0);
+			f.write(fromRange(e.range));
+			break;
+		case CType.TALK_DIALOG:
+			switch (e.talkerNC) {
+			case Talker.SELECTED: f.writeL(cast(byte) 0); break;
+			case Talker.RANDOM: f.writeL(cast(byte) 1); break;
+			case Talker.UNSELECTED: f.writeL(cast(byte) 2); break;
+			case Talker.VALUED: f.writeL(cast(byte) 3); break;
+			default: throw new SummaryException("Unknown talker value: " ~ to!(string)(cast(int) e.talkerNC));
+			}
+			if (Talker.VALUED == e.talkerNC) { mixin(S_TRACE);
+				if (0 == e.initValue) { mixin(S_TRACE);
+					f.writeL(cast(uint) e.coupons.length);
+				} else { mixin(S_TRACE);
+					f.writeL(cast(uint) e.coupons.length + 1);
+					writeString(f, "");
+					f.writeL(cast(int) e.initValue);
+				}
+				foreach (c; e.coupons) { mixin(S_TRACE);
+					writeString(f, c.name);
+					f.writeL(cast(int) c.value);
+				}
+			}
+			f.writeL(cast(uint) e.dialogs.length);
+			foreach (dlg; e.dialogs) { mixin(S_TRACE);
+				writeStrings(f, dlg.rCoupons);
+				writeString(f, lastRet(dlg.text), true);
+			}
+			break;
+		case CType.SET_STEP_UP:
+			writeString(f, e.step);
+			break;
+		case CType.SET_STEP_DOWN:
+			writeString(f, e.step);
+			break;
+		case CType.REVERSE_FLAG:
+			writeString(f, e.flag);
+			break;
+		case CType.BRANCH_STEP:
+			writeString(f, e.step);
+			f.writeL(cast(uint) e.stepValue);
+			break;
+		case CType.ELAPSE_TIME:
+			break;
+		case CType.BRANCH_LEVEL:
+			writeBool(f, e.average);
+			f.writeL(cast(uint) e.unsignedLevel);
+			break;
+		case CType.BRANCH_STATUS:
 			f.write(fromStatus(e.status));
+			f.write(fromTargetA(e.targetNS));
+			break;
+		case CType.BRANCH_PARTY_NUMBER:
+			f.writeL(cast(uint) e.partyNumber);
+			break;
+		case CType.SHOW_PARTY:
+			break;
+		case CType.HIDE_PARTY:
+			break;
+		case CType.EFFECT_BREAK:
+			break;
+		case CType.CALL_START:
+			writeString(f, e.start);
+			break;
+		case CType.LINK_PACKAGE:
+			f.writeL(cast(uint) e.packages);
+			break;
+		case CType.CALL_PACKAGE:
+			f.writeL(cast(uint) e.packages);
+			break;
+		case CType.BRANCH_AREA:
+			break;
+		case CType.BRANCH_BATTLE:
+			break;
+		case CType.BRANCH_COMPLETE_STAMP:
+			writeString(f, e.completeStamp);
+			break;
+		case CType.GET_COMPLETE_STAMP:
+			writeString(f, e.completeStamp);
+			break;
+		case CType.LOSE_COMPLETE_STAMP:
+			writeString(f, e.completeStamp);
+			break;
+		case CType.BRANCH_GOSSIP:
+			writeString(f, e.gossip);
+			break;
+		case CType.GET_GOSSIP:
+			writeString(f, e.gossip);
+			break;
+		case CType.LOSE_GOSSIP:
+			writeString(f, e.gossip);
+			break;
+		case CType.BRANCH_IS_BATTLE:
+			break;
+		case CType.REDISPLAY:
+			break;
+		case CType.CHECK_FLAG:
+			writeString(f, e.flag);
+			break;
+		case CType.SUBSTITUTE_STEP:
+			writeString(f, e.step);
+			writeString(f, e.step2);
+			break;
+		case CType.SUBSTITUTE_FLAG:
+			writeString(f, e.flag);
+			writeString(f, e.flag2);
+			break;
+		case CType.BRANCH_STEP_CMP:
+			writeString(f, e.step);
+			writeString(f, e.step2);
+			break;
+		case CType.BRANCH_FLAG_CMP:
+			writeString(f, e.flag);
+			writeString(f, e.flag2);
+			break;
+		case CType.BRANCH_RANDOM_SELECT:
+			f.write(fromCastRanges(e.castRange));
+			ubyte style = 0b00;
+			if (0 < e.levelMax) { mixin(S_TRACE);
+				style |= 0b01;
+			}
+			if (e.status !is Status.NONE) { mixin(S_TRACE);
+				style |= 0b10;
+			}
+			f.write(style);
+			if (style & 0b01) { mixin(S_TRACE);
+				f.writeL(e.levelMin);
+				f.writeL(e.levelMax);
+			}
+			if (style & 0b10) { mixin(S_TRACE);
+				f.write(fromStatus(e.status));
+			}
+			break;
+		case CType.BRANCH_KEY_CODE:
+			f.write(fromKeyCodeRange(e.keyCodeRange));
+			f.write(fromEffectCardType(e.effectCardType));
+			writeString(f, e.keyCode);
+			break;
+		case CType.CHECK_STEP:
+			writeString(f, e.step);
+			f.writeL(cast(uint) e.stepValue);
+			f.write(fromComparison4(e.comparison4));
+			break;
+		case CType.BRANCH_ROUND:
+			f.write(fromComparison3(e.comparison3));
+			f.writeL(cast(uint) e.round);
+			break;
+		case CType.MOVE_BG_IMAGE:
+			writeExString(f, e.cellName);
+			ubyte ctrl = 0b00;
+			if (e.positionType !is CoordinateType.None) { mixin(S_TRACE);
+				ctrl |= 0b01;
+			}
+			if (e.sizeType !is CoordinateType.None) { mixin(S_TRACE);
+				ctrl |= 0b10;
+			}
+			f.write(ctrl);
+			if (e.positionType !is CoordinateType.None) { mixin(S_TRACE);
+				f.write(fromCoordinateType(e.positionType));
+				f.writeExInt(e.x);
+				f.writeExInt(e.y);
+			}
+			if (e.sizeType !is CoordinateType.None) { mixin(S_TRACE);
+				f.write(fromCoordinateType(e.sizeType));
+				f.writeExInt(e.width);
+				f.writeExInt(e.height);
+			}
+			break;
+		case CType.LOSE_BG_IMAGE:
+			writeExString(f, e.cellName);
+			break;
+		case CType.REPLACE_BG_IMAGE:
+			writeExString(f, e.cellName);
+			writeBgImages(d, f, e.backs, true);
+			break;
 		}
-	} else if (e.type is CType.BRANCH_KEY_CODE) { mixin(S_TRACE);
-		wb(71);
-		f.write(fromKeyCodeRange(e.keyCodeRange));
-		f.write(fromEffectCardType(e.effectCardType));
-		writeString(f, e.keyCode);
-	} else if (e.type is CType.CHECK_STEP) { mixin(S_TRACE);
-		wb(72);
-		writeString(f, e.step);
-		f.writeL(cast(uint) e.stepValue);
-		f.write(fromComparison4(e.comparison4));
-	} else if (e.type is CType.BRANCH_ROUND) { mixin(S_TRACE);
-		wb(73);
-		f.write(fromComparison3(e.comparison3));
-		f.writeL(cast(uint) e.round);
-	} else if (e.type is CType.MOVE_BG_IMAGE) { mixin(S_TRACE);
-		wb(74);
-		writeExString(f, e.cellName);
-		ubyte ctrl = 0b00;
-		if (e.positionType !is CoordinateType.None) { mixin(S_TRACE);
-			ctrl |= 0b01;
-		}
-		if (e.sizeType !is CoordinateType.None) { mixin(S_TRACE);
-			ctrl |= 0b10;
-		}
-		f.write(ctrl);
-		if (e.positionType !is CoordinateType.None) { mixin(S_TRACE);
-			f.write(fromCoordinateType(e.positionType));
-			f.writeExInt(e.x);
-			f.writeExInt(e.y);
-		}
-		if (e.sizeType !is CoordinateType.None) { mixin(S_TRACE);
-			f.write(fromCoordinateType(e.sizeType));
-			f.writeExInt(e.width);
-			f.writeExInt(e.height);
-		}
-	} else if (e.type is CType.LOSE_BG_IMAGE) { mixin(S_TRACE);
-		wb(75);
-		writeExString(f, e.cellName);
-	} else if (e.type is CType.REPLACE_BG_IMAGE) { mixin(S_TRACE);
-		wb(76);
-		writeExString(f, e.cellName);
-		writeBgImages(d, f, e.backs, true);
-	} else { mixin(S_TRACE);
-		assert (0, "event");
 	}
 }
 private void writeCEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(S_TRACE);
