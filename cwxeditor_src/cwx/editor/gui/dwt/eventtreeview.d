@@ -1219,9 +1219,10 @@ private:
 	}
 
 	void refreshStatusLine() { mixin(S_TRACE);
+		if (!_summ) return;
 		auto itm = selection;
 		if (itm && cast(Content)itm.getData()) { mixin(S_TRACE);
-			_statusLine = .contentText(_comm, cast(Content)itm.getData());
+			_statusLine = .contentText(_comm, cast(Content)itm.getData(), _summ);
 		} else { mixin(S_TRACE);
 			_statusLine = "";
 		}
@@ -1480,7 +1481,9 @@ private:
 				_comm.refEventTemplates.remove(&refreshTemplates);
 			}
 			_comm.refTargetVersion.remove(&redraw);
-			_comm.refEventTreeViewStyle.remove(&refEventTreeViewStyle);
+			if (_summ) { mixin(S_TRACE);
+				_comm.refEventTreeViewStyle.remove(&refEventTreeViewStyle);
+			}
 			if (_grayFont) _grayFont.dispose();
 			foreach (dlg; _editDlgs.values) { mixin(S_TRACE);
 				dlg.forceCancel();
@@ -1488,7 +1491,9 @@ private:
 			foreach (dlg; _commentDlgs.values) { mixin(S_TRACE);
 				dlg.forceCancel();
 			}
-			_prop.var.etc.showEventTreeDetail = _showEventTreeDetail;
+			if (_summ) { mixin(S_TRACE);
+				_prop.var.etc.showEventTreeDetail = _showEventTreeDetail;
+			}
 		}
 	}
 
@@ -1496,7 +1501,11 @@ private:
 	void drawStartInfo(PaintEvent e, Color lineColor, Color fontColor) { mixin(S_TRACE);
 		if (!_et) return;
 		assert (_tree.tree !is null);
-		if (!_prop.var.etc.drawCountOfUseOfStart && !_prop.var.etc.drawContentTreeLine) return;
+		if (_summ) { mixin(S_TRACE);
+			if (!_prop.var.etc.drawCountOfUseOfStart && !_prop.var.etc.drawContentTreeLine) return;
+		} else { mixin(S_TRACE);
+			if (!drawCountOfUseOfStart && !drawContentTreeLine) return;
+		}
 		auto d = _tree.control.getDisplay();
 		auto ca = _tree.control.getClientArea();
 		auto suc = _et.startUseCounter;
@@ -1506,7 +1515,7 @@ private:
 		auto ucExtent = e.gc.textExtent(_prop.msgs.startUseCount);
 		int maxW = 0;
 		int h = e.gc.getFontMetrics().getHeight();
-		if (_prop.var.etc.drawCountOfUseOfStart) { mixin(S_TRACE);
+		if (_summ ? _prop.var.etc.drawCountOfUseOfStart : drawCountOfUseOfStart) { mixin(S_TRACE);
 			foreach (i, itm; _tree.tree.getItems()) { mixin(S_TRACE);
 				auto c = cast(Content)itm.getData();
 				assert (c);
@@ -1521,12 +1530,12 @@ private:
 			auto b = itm.getBounds();
 			if (b.y + b.height <= ca.y) continue;
 			if (ca.y + ca.height < b.y) break;
-			if (_prop.var.etc.drawContentTreeLine && 0 < i) { mixin(S_TRACE);
+			if ((_summ ? _prop.var.etc.drawContentTreeLine : drawContentTreeLine) && 0 < i) { mixin(S_TRACE);
 				e.gc.setForeground(lineColor);
 				scope (exit) e.gc.setForeground(fore);
 				e.gc.drawLine(0, b.y, ca.width, b.y);
 			}
-			if (_prop.var.etc.drawCountOfUseOfStart) { mixin(S_TRACE);
+			if ((_summ ? _prop.var.etc.drawCountOfUseOfStart : drawCountOfUseOfStart)) { mixin(S_TRACE);
 				string t = counts[i];
 				int tx = ca.width - maxW - 5;
 				int ty = b.y + (b.height - h) / 2;
@@ -1650,7 +1659,7 @@ private:
 				bs ~= box;
 				texts ~= lines;
 			}
-			if (_prop.var.etc.drawContentWarnings) { mixin(S_TRACE);
+			if ((_summ ? _prop.var.etc.drawContentWarnings : drawContentWarnings)) { mixin(S_TRACE);
 				auto warnings = .warnings(_prop.parent, summSkin, _summ, c, _prop.var.etc.targetVersion);
 				if (warnings.length) { mixin(S_TRACE);
 					auto b = itm.getBounds();
@@ -1738,8 +1747,8 @@ public:
 		_prop = prop;
 		_summ = summ;
 		_undo = undo;
-		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
-		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
+		_readOnly = (readOnly || !_summ) ? SWT.READ_ONLY : SWT.NONE;
+		if (_readOnly && _summ) _summSkin = findSkin(_comm, _prop, _summ);
 		_forceSel = forceSel;
 		_refreshTopStart = refreshTopStart;
 		_contentsBoxArea = contentsBoxArea;
@@ -1785,7 +1794,9 @@ public:
 			_comm.refEventTemplates.add(&refreshTemplates);
 		}
 		_comm.refTargetVersion.add(&redraw);
-		_comm.refEventTreeViewStyle.add(&refEventTreeViewStyle);
+		if (_summ) { mixin(S_TRACE);
+			_comm.refEventTreeViewStyle.add(&refEventTreeViewStyle);
+		}
 
 		foreach (cGrp, cs; CTYPE_GROUP) { mixin(S_TRACE);
 			foreach (cType; cs) { mixin(S_TRACE);
@@ -1809,13 +1820,13 @@ public:
 			_tree.editor.dispose();
 			_tree.editor = null;
 		}
-		if (_prop.var.etc.straightEventTreeView) { mixin(S_TRACE);
+		if ((_summ ? _prop.var.etc.straightEventTreeView : straightEventTreeView)) { mixin(S_TRACE);
 			_tree.editor = new EventEditor(_comm, _comp, SWT.BORDER | _readOnly, _summ, null);
 			_tree.editor.showEventTreeDetail = _showEventTreeDetail;
 			new EventEdit(_comm, _tree.editor, &editEnd, &createEditor);
 		} else { mixin(S_TRACE);
 			_tree.tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
-			initTree(_comm, _tree.tree, true);
+			initTree(_comm, _tree.tree, true, true, () => _summ ? _prop.var.etc.classicStyleTree.value : classicStyleTree);
 			if (!_readOnly) { mixin(S_TRACE);
 				new TreeEdit(_comm, _tree.tree, &editEnd, &createEditor);
 			}
@@ -1918,13 +1929,15 @@ public:
 +/
 			_tree.control.setMenu(popup);
 		}
-		auto im = new class PaintListener {
-			override void paintControl(PaintEvent e) { mixin(S_TRACE);
-				_tree.control.removePaintListener(this);
-				initMenu();
-			}
-		};
-		_tree.control.addPaintListener(im);
+		if (_summ) { mixin(S_TRACE);
+			auto im = new class PaintListener {
+				override void paintControl(PaintEvent e) { mixin(S_TRACE);
+					_tree.control.removePaintListener(this);
+					initMenu();
+				}
+			};
+			_tree.control.addPaintListener(im);
+		}
 
 		if (!_readOnly) { mixin(S_TRACE);
 			auto dt = new DropTarget(_tree.control, DND.DROP_DEFAULT | DND.DROP_MOVE);
@@ -1995,7 +2008,7 @@ public:
 		if (!itm) return;
 		auto c = cast(Content) itm.getData();
 		auto script = new CWXScript(_prop.parent, _summ);
-		auto text = script.toScript([c], summSkin.evtChildOK, _summ.legacy, "\t");
+		auto text = script.toScript([c], summSkin.evtChildOK, _summ ? _summ.legacy : false, "\t");
 		text = std.array.replace(text ~ "\n", "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
@@ -2003,7 +2016,7 @@ public:
 	void toScriptAll() { mixin(S_TRACE);
 		if (!_et) return;
 		auto script = new CWXScript(_prop.parent, _summ);
-		auto text = script.toScript(_et.starts, summSkin.evtChildOK, _summ.legacy, "\t");
+		auto text = script.toScript(_et.starts, summSkin.evtChildOK, _summ ? _summ.legacy : false, "\t");
 		text = std.array.replace(text ~ "\n", "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
@@ -2015,7 +2028,7 @@ public:
 		auto script = new CWXScript(_prop.parent, _summ);
 		auto c2 = new Content(c.type, c.name);
 		c2.shallowCopy(c);
-		auto text = script.toScript([c2], summSkin.evtChildOK, _summ.legacy, "\t");
+		auto text = script.toScript([c2], summSkin.evtChildOK, _summ ? _summ.legacy : false, "\t");
 		text = std.array.replace(text ~ "\n", "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
@@ -2716,9 +2729,13 @@ public:
 	}
 
 	void reverseShowEventTreeDetail() { mixin(S_TRACE);
-		_showEventTreeDetail = !_showEventTreeDetail;
+		showEventTreeDetail = _showEventTreeDetail;
+	}
+	@property
+	void showEventTreeDetail(bool v) { mixin(S_TRACE);
+		_showEventTreeDetail = v;
 		if (_tree.editor) { mixin(S_TRACE);
-			_tree.editor.showEventTreeDetail = _showEventTreeDetail;
+			_tree.editor.showEventTreeDetail = v;
 		}
 	}
 
@@ -2837,6 +2854,7 @@ public:
 	}
 
 	void refreshTreeName() { mixin(S_TRACE);
+		if (!_tree.getItemCount()) return;
 		_tree.getItems()[0].setText(_et.name);
 		redraw();
 		refreshStatusLine();
@@ -3077,6 +3095,7 @@ public:
 	override {
 		void cut(SelectionEvent se) { mixin(S_TRACE);
 			if (_readOnly) return;
+			if (!_tree.getItemCount()) return;
 			auto itm = selection;
 			if (itm && itm !is _tree.getItems()[0]) { mixin(S_TRACE);
 				copy(se);
@@ -3097,6 +3116,7 @@ public:
 		}
 		void del(SelectionEvent se) { mixin(S_TRACE);
 			if (_readOnly) return;
+			if (!_tree.getItemCount()) return;
 			auto itm = selection;
 			if (itm && itm !is _tree.getItems()[0]) { mixin(S_TRACE);
 				_tree.control.setRedraw(false);
@@ -3124,6 +3144,7 @@ public:
 		}
 		@property
 		bool canDoT() { mixin(S_TRACE);
+			if (!_tree.getItemCount()) return false;
 			auto itm = selection;
 			return !_readOnly && itm && itm !is _tree.getItems()[0];
 		}
@@ -3454,7 +3475,7 @@ public:
 	private void __refreshFlagAndStep(Flag[] flags, Step[] steps) { mixin(S_TRACE);
 		if (flags.length || steps.length) { mixin(S_TRACE);
 			__refreshCard();
-			if (_prop.var.etc.showVariableValuesInEventText) { mixin(S_TRACE);
+			if (_summ ? _prop.var.etc.showVariableValuesInEventText : showVariableValuesInEventText) { mixin(S_TRACE);
 				__refreshEventText();
 			}
 		}
@@ -3463,6 +3484,123 @@ public:
 	private void __refreshPaths(string path) {refreshStatusLine();}
 	private void __deletePaths() {refreshStatusLine();}
 	private void __replacePaths(string from, string to) {refreshStatusLine();}
+
+	private bool _straightEventTreeView = false;
+	private bool _showVariableValuesInEventText = false;
+	private bool _classicStyleTree = false;
+
+	private bool _showTerminalMark = false;
+	private bool _forceIndentBranchContent = false;
+	private bool _gentleAngleEventTree = false;
+	private bool _drawContentTreeLine = false;
+	private bool _drawCountOfUseOfStart = false;
+	private bool _drawContentWarnings = false;
+
+	/// 表示オプション。
+	/// シナリオ編集中であればCommons#propの値が、
+	/// 表示テスト中であればここで設定された値が採用される。
+	@property
+	const
+	bool straightEventTreeView() { return _straightEventTreeView; }
+	/// ditto
+	@property
+	void straightEventTreeView(bool v) { mixin(S_TRACE);
+		_straightEventTreeView = v;
+		refEventTreeViewStyle();
+	}
+	/// ditto
+	@property
+	const
+	bool showVariableValuesInEventText() { return _showVariableValuesInEventText; }
+	/// ditto
+	@property
+	void showVariableValuesInEventText(bool v) { mixin(S_TRACE);
+		_showVariableValuesInEventText = v;
+		__refreshEventText();
+	}
+	/// ditto
+	@property
+	const
+	bool classicStyleTree() { return _classicStyleTree; }
+	/// ditto
+	@property
+	void classicStyleTree(bool v) { mixin(S_TRACE);
+		_classicStyleTree = v;
+		_comm.refEventTreeStyle.call();
+	}
+
+	/// ditto
+	@property
+	const
+	bool showTerminalMark() { return _showTerminalMark; }
+	/// ditto
+	@property
+	void showTerminalMark(bool v) { mixin(S_TRACE);
+		_showTerminalMark = v;
+		if (_tree.editor) _tree.editor.showTerminalMark = v;
+	}
+	/// ditto
+	@property
+	const
+	bool forceIndentBranchContent() { return _forceIndentBranchContent; }
+	/// ditto
+	@property
+	void forceIndentBranchContent(bool v) { mixin(S_TRACE);
+		_forceIndentBranchContent = v;
+		if (_tree.editor) _tree.editor.forceIndentBranchContent = v;
+	}
+	/// ditto
+	@property
+	const
+	bool gentleAngleEventTree() { return _gentleAngleEventTree; }
+	/// ditto
+	@property
+	void gentleAngleEventTree(bool v) { mixin(S_TRACE);
+		_gentleAngleEventTree = v;
+		if (_tree.editor) _tree.editor.gentleAngleEventTree = v;
+	}
+	/// ditto
+	@property
+	const
+	bool drawContentTreeLine() { return _drawContentTreeLine; }
+	/// ditto
+	@property
+	void drawContentTreeLine(bool v) { mixin(S_TRACE);
+		_drawContentTreeLine = v;
+		if (_tree.editor) { mixin(S_TRACE);
+			_tree.editor.drawContentTreeLine = v;
+		} else { mixin(S_TRACE);
+			redraw();
+		}
+	}
+	/// ditto
+	@property
+	const
+	bool drawCountOfUseOfStart() { return _drawCountOfUseOfStart; }
+	/// ditto
+	@property
+	void drawCountOfUseOfStart(bool v) { mixin(S_TRACE);
+		_drawCountOfUseOfStart = v;
+		if (_tree.editor) { mixin(S_TRACE);
+			_tree.editor.drawCountOfUseOfStart = v;
+		} else { mixin(S_TRACE);
+			redraw();
+		}
+	}
+	/// ditto
+	@property
+	const
+	bool drawContentWarnings() { return _drawContentWarnings; }
+	/// ditto
+	@property
+	void drawContentWarnings(bool v) { mixin(S_TRACE);
+		_drawContentWarnings = v;
+		if (_tree.editor) { mixin(S_TRACE);
+			_tree.editor.drawContentWarnings = v;
+		} else { mixin(S_TRACE);
+			redraw();
+		}
+	}
 
 	private bool openCWXPathImpl(T)(T itm, string path, bool shellActivate) { mixin(S_TRACE);
 		auto cate = cpcategory(path);
@@ -3562,10 +3700,10 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		r = evtChildBrNum(prop, parent.partyNumber, name);
 		break;
 	} case CType.BRANCH_AREA: { mixin(S_TRACE);
-		r = evtChildBrArea(prop, summ.areas, name);
+		r = evtChildBrArea(prop, summ ? summ.areas : [], name);
 		break;
 	} case CType.BRANCH_BATTLE: { mixin(S_TRACE);
-		r = evtChildBrBattle(prop, summ.battles, name);
+		r = evtChildBrBattle(prop, summ ? summ.battles : [], name);
 		break;
 	} case CType.BRANCH_IS_BATTLE: { mixin(S_TRACE);
 		r = evtChildBrOnBattle(prop, name);
@@ -3629,7 +3767,7 @@ private string evtChildBrFlag(in Props prop, in Summary summ, string path, ref s
 	string name = prop.msgs.noSelectFlag;
 	string on = prop.msgs.flagOn;
 	string off = prop.msgs.flagOff;
-	if (path.length) { mixin(S_TRACE);
+	if (path.length && summ) { mixin(S_TRACE);
 		auto o = summ.flagDirRoot.findFlag(path);
 		if (o) { mixin(S_TRACE);
 			name = path;
@@ -3651,7 +3789,7 @@ private string evtChildBrStepN(in Props prop, in Summary summ, string path, ref 
 	}
 	string name = prop.msgs.noSelectStep;
 	string value = val >= 0 ? .tryFormat(prop.msgs.dlgLblStep, val) : prop.msgs.etc;
-	if (path.length) { mixin(S_TRACE);
+	if (path.length && summ) { mixin(S_TRACE);
 		auto o = summ.flagDirRoot.findStep(path);
 		if (o) { mixin(S_TRACE);
 			if (o.count <= val) { mixin(S_TRACE);
@@ -3671,7 +3809,7 @@ private string evtChildBrStepUL(in Props prop, in Summary summ, string path, int
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string name = prop.msgs.noSelectStep;
 	string value = .tryFormat(prop.msgs.dlgLblStep, num);
-	if (path.length) { mixin(S_TRACE);
+	if (path.length && summ) { mixin(S_TRACE);
 		auto o = summ.flagDirRoot.findStep(path);
 		if (o) { mixin(S_TRACE);
 			name = path;
@@ -3799,7 +3937,7 @@ private string evtChildBrCast(in Props prop, in Summary summ, ulong id, ref stri
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string name = prop.msgs.noSelectCast;
-	if (0 != id) { mixin(S_TRACE);
+	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.cwCast(id);
 		name = c ? c.name : .tryFormat(prop.msgs.noCast, id);
 	}
@@ -3814,7 +3952,7 @@ private string evtChildBrItem(in Props prop, in Summary summ, ulong id, Range r,
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string tr = prop.msgs.rangeName(r);
 	string name = prop.msgs.noSelectItem;
-	if (0 != id) { mixin(S_TRACE);
+	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.item(id);
 		name = c ? c.name : .tryFormat(prop.msgs.noItem, id);
 	}
@@ -3829,7 +3967,7 @@ private string evtChildBrSkill(in Props prop, in Summary summ, ulong id, Range r
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string tr = prop.msgs.rangeName(r);
 	string name = prop.msgs.noSelectSkill;
-	if (0 != id) { mixin(S_TRACE);
+	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.skill(id);
 		name = c ? c.name : .tryFormat(prop.msgs.noSkill, id);
 	}
@@ -3844,7 +3982,7 @@ private string evtChildBrBeast(in Props prop, in Summary summ, ulong id, Range r
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string tr = prop.msgs.rangeName(r);
 	string name = prop.msgs.noSelectBeast;
-	if (0 != id) { mixin(S_TRACE);
+	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.beast(id);
 		name = c ? c.name : .tryFormat(prop.msgs.noBeast, id);
 	}
@@ -3858,7 +3996,7 @@ private string evtChildBrInfo(in Props prop, in Summary summ, ulong id, ref stri
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string name = prop.msgs.noSelectInfo;
-	if (0 != id) { mixin(S_TRACE);
+	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.info(id);
 		name = c ? c.name : .tryFormat(prop.msgs.noInfo, id);
 	}
@@ -3922,7 +4060,7 @@ private string evtChildBrStepCmp(in Props prop, in Summary summ, string step1, s
 	}
 	string nameFrom(string path) { mixin(S_TRACE);
 		string name = prop.msgs.noSelectStep;
-		if (path.length) { mixin(S_TRACE);
+		if (path.length && summ) { mixin(S_TRACE);
 			auto o = summ.flagDirRoot.findStep(path);
 			if (o) { mixin(S_TRACE);
 				name = path;
@@ -3950,7 +4088,7 @@ private string evtChildBrFlagCmp(in Props prop, in Summary summ, string flag1, s
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string nameFrom(string path) { mixin(S_TRACE);
 		string name = prop.msgs.noSelectFlag;
-		if (path.length) { mixin(S_TRACE);
+		if (path.length && summ) { mixin(S_TRACE);
 			auto o = summ.flagDirRoot.findFlag(path);
 			if (o) { mixin(S_TRACE);
 				name = path;

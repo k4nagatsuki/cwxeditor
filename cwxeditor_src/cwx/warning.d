@@ -21,9 +21,8 @@ import std.path;
 
 /// pathの内容を調査し、警告すべき点があればメッセージ群を返す。
 string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path, string targVer) { mixin(S_TRACE);
-	if (!summ) return [];
-	auto sPath = summ.scenarioPath;
-	auto froot = summ.flagDirRoot;
+	auto sPath = summ ? summ.scenarioPath : "";
+	auto froot = summ ? summ.flagDirRoot : null;
 	string[] r;
 
 	auto psumm = cast(Summary) path;
@@ -38,7 +37,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.searchErrorStartAreaNotFound;
 		}
 		if (psumm.imagePath != "") { mixin(S_TRACE);
-			r ~= skin.warningImage(prop, psumm.imagePath, summ.legacy, true, targVer);
+			r ~= skin.warningImage(prop, psumm.imagePath, psumm.legacy, true, targVer);
 		}
 	}
 	auto flagDir = cast(FlagDir) path;
@@ -76,21 +75,21 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		bool err = false;
 		foreach (c; casts.skills) { mixin(S_TRACE);
 			if (err) break;
-			if (0 != c.linkId && !summ.skill(c.linkId)) { mixin(S_TRACE);
+			if (0 != c.linkId && !(summ && summ.skill(c.linkId))) { mixin(S_TRACE);
 				r ~= prop.msgs.searchErrorLinkIdNotFound;
 				err = true;
 			}
 		}
 		foreach (c; casts.items) { mixin(S_TRACE);
 			if (err) break;
-			if (0 != c.linkId && !summ.item(c.linkId)) { mixin(S_TRACE);
+			if (0 != c.linkId && !(summ && summ.item(c.linkId))) { mixin(S_TRACE);
 				r ~= prop.msgs.searchErrorLinkIdNotFound;
 				err = true;
 			}
 		}
 		foreach (c; casts.beasts) { mixin(S_TRACE);
 			if (err) break;
-			if (0 != c.linkId && !summ.beast(c.linkId)) { mixin(S_TRACE);
+			if (0 != c.linkId && !(summ && summ.beast(c.linkId))) { mixin(S_TRACE);
 				r ~= prop.msgs.searchErrorLinkIdNotFound;
 				err = true;
 			}
@@ -102,7 +101,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.searchErrorImageNotFound;
 		}
 		if (card.path != "") { mixin(S_TRACE);
-			r ~= skin.warningImage(prop, card.path, summ.legacy, true, targVer);
+			r ~= skin.warningImage(prop, card.path, summ ? summ.legacy : false, true, targVer);
 		}
 	}
 	void putMotions(in Motion[] motions) { mixin(S_TRACE);
@@ -115,7 +114,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= prop.msgs.searchErrorNoBeast;
 				break;
 			}
-			if (m.type == MType.SUMMON_BEAST && m.beast && 0 != m.beast.linkId && !summ.beast(m.beast.linkId)) { mixin(S_TRACE);
+			if (m.type == MType.SUMMON_BEAST && m.beast && 0 != m.beast.linkId && !(summ && summ.beast(m.beast.linkId))) { mixin(S_TRACE);
 				r ~= prop.msgs.searchErrorLinkIdNotFound;
 				break;
 			}
@@ -125,10 +124,10 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	if (effCard) { mixin(S_TRACE);
 		putMotions(effCard.motions);
 		if (effCard.soundPath1 != "") { mixin(S_TRACE);
-			r ~= skin.warningSE(prop, effCard.soundPath1, summ.legacy, targVer);
+			r ~= skin.warningSE(prop, effCard.soundPath1, summ ? summ.legacy : false, targVer);
 		}
 		if (effCard.soundPath2 != "") { mixin(S_TRACE);
-			r ~= skin.warningSE(prop, effCard.soundPath2, summ.legacy, targVer);
+			r ~= skin.warningSE(prop, effCard.soundPath2, summ ? summ.legacy : false, targVer);
 		}
 	}
 	auto spChars = skin.spChars;
@@ -141,12 +140,12 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 		foreach (flag; flags) { mixin(S_TRACE);
-			if (!froot.findFlag(flag)) { mixin(S_TRACE);
+			if (!(froot && froot.findFlag(flag))) { mixin(S_TRACE);
 				return prop.msgs.searchErrorFlagNotFound;
 			}
 		}
 		foreach (step; steps) { mixin(S_TRACE);
-			if (!froot.findStep(step)) { mixin(S_TRACE);
+			if (!(froot && froot.findStep(step))) { mixin(S_TRACE);
 				return prop.msgs.searchErrorStepNotFound;
 			}
 		}
@@ -154,7 +153,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto bi = cast(BgImage) path;
 	if (bi) { mixin(S_TRACE);
-		if (bi.flag != "" && !froot.findFlag(bi.flag)) { mixin(S_TRACE);
+		if (bi.flag != "" && !(froot && froot.findFlag(bi.flag))) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorFlagNotFound;
 		}
 		if (bi.foreground) {
@@ -181,7 +180,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.searchErrorImageNotFound;
 		}
 		if (ic.path != "") { mixin(S_TRACE);
-			r ~= skin.warningImage(prop, ic.path, summ.legacy, true, targVer);
+			r ~= skin.warningImage(prop, ic.path, summ ? summ.legacy : false, true, targVer);
 		}
 	}
 	auto tc = cast(TextCell) path;
@@ -209,7 +208,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	auto btl = cast(Battle) path;
 	if (btl) { mixin(S_TRACE);
 		if (btl.music != "") { mixin(S_TRACE);
-			r ~= skin.warningBGM(prop, btl.music, summ.legacy, targVer);
+			r ~= skin.warningBGM(prop, btl.music, summ ? summ.legacy : false, targVer);
 		}
 	}
 	auto mc = cast(MenuCard) path;
@@ -223,13 +222,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				auto type = imageType(bin);
 				if (type != "") {
 					auto img = "image".setExtension(type);
-					r ~= skin.warningImage(prop, img, summ.legacy, true, targVer);
+					r ~= skin.warningImage(prop, img, summ ? summ.legacy : false, true, targVer);
 				}
 			} else {
-				r ~= skin.warningImage(prop, mc.path, summ.legacy, false, targVer);
+				r ~= skin.warningImage(prop, mc.path, summ ? summ.legacy : false, false, targVer);
 			}
 		}
-		if (mc.flag != "" && !froot.findFlag(mc.flag)) { mixin(S_TRACE);
+		if (mc.flag != "" && !(froot && froot.findFlag(mc.flag))) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorFlagNotFound;
 		}
 		if (0 != mc.pcNumber && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
@@ -241,16 +240,16 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (ec.id == 0) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorNoCast;
 		}
-		if (ec.id != 0 && !summ.cwCast(ec.id)) { mixin(S_TRACE);
+		if (ec.id != 0 && !(summ && summ.cwCast(ec.id))) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorCastNotFound;
 		}
-		if (ec.flag != "" && !froot.findFlag(ec.flag)) { mixin(S_TRACE);
+		if (ec.flag != "" && !(froot && froot.findFlag(ec.flag))) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorFlagNotFound;
 		}
 	}
 	auto c = cast(Content) path;
 	if (c) { mixin(S_TRACE);
-		if (summ.legacy && c.type == CType.WAIT && !c.next.length) { mixin(S_TRACE);
+		if ((summ ? summ.legacy : false) && c.type == CType.WAIT && !c.next.length) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorIgnoreWait;
 		}
 		if (c.detail.owner && c.detail.nextType != CNextType.TEXT) { mixin(S_TRACE);
@@ -290,13 +289,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 			return false;
 		}
-		if (c.flag != "" && !froot.findFlag(c.flag)) { mixin(S_TRACE);
+		if (c.flag != "" && !(froot && froot.findFlag(c.flag))) { mixin(S_TRACE);
 			// 代入コンテントではランダム値有効
 			if (!c.type == CType.SUBSTITUTE_FLAG || prop.sys.randomValue != c.flag) { mixin(S_TRACE);
 				r ~= prop.msgs.searchErrorFlagNotFound;
 			}
 		}
-		if (c.step != "" && !froot.findStep(c.step)) { mixin(S_TRACE);
+		if (c.step != "" && !(froot && froot.findStep(c.step))) { mixin(S_TRACE);
 			// 代入コンテントではランダム値有効
 			if (!c.type == CType.SUBSTITUTE_STEP || prop.sys.randomValue != c.step) { mixin(S_TRACE);
 				r ~= prop.msgs.searchErrorStepNotFound;
@@ -312,38 +311,38 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.soundPath != "" && !skin.findPath(c.soundPath, skin.extSound, skin.seDir, sPath).length) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorSENotFound;
 		}
-		if (c.area != 0 && !summ.area(c.area)) { mixin(S_TRACE);
+		if (c.area != 0 && !(summ && summ.area(c.area))) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorAreaNotFound;
 		}
-		if (c.battle != 0 && !summ.battle(c.battle)) { mixin(S_TRACE);
+		if (c.battle != 0 && !(summ && summ.battle(c.battle))) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorBattleNotFound;
 		}
-		if (c.packages != 0 && !summ.cwPackage(c.packages)) { mixin(S_TRACE);
+		if (c.packages != 0 && !(summ && summ.cwPackage(c.packages))) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorPackageNotFound;
 		}
-		if (c.casts != 0 && !summ.cwCast(c.casts)) { mixin(S_TRACE);
+		if (c.casts != 0 && !(summ && summ.cwCast(c.casts))) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorCastNotFound;
 		}
-		if (c.item != 0 && !summ.item(c.item)) { mixin(S_TRACE);
+		if (c.item != 0 && !(summ && summ.item(c.item))) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorItemNotFound;
 		}
-		if (c.skill != 0 && !summ.skill(c.skill)) { mixin(S_TRACE);
+		if (c.skill != 0 && !(summ && summ.skill(c.skill))) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorSkillNotFound;
 		}
-		if (c.beast != 0 && !summ.beast(c.beast)) { mixin(S_TRACE);
+		if (c.beast != 0 && !(summ && summ.beast(c.beast))) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorBeastNotFound;
 		}
-		if (c.info != 0 && !summ.info(c.info)) { mixin(S_TRACE);
+		if (c.info != 0 && !(summ && summ.info(c.info))) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorInfoNotFound;
 		}
 		if (c.start != "" && !hasStart()) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorStartNotFound;
 		}
 		putMotions(c.motions);
-		if (c.flag2 != "" && !froot.findFlag(c.flag2)) { mixin(S_TRACE);
+		if (c.flag2 != "" && !(froot && froot.findFlag(c.flag2))) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorFlagNotFound;
 		}
-		if (c.step2 != "" && !froot.findStep(c.step2)) { mixin(S_TRACE);
+		if (c.step2 != "" && !(froot && froot.findStep(c.step2))) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorStepNotFound;
 		}
 		if (c.flag != "" && c.flag == c.flag2) { mixin(S_TRACE);
@@ -369,13 +368,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 		if (c.cardPath != "") { mixin(S_TRACE);
-			r ~= skin.warningImage(prop, c.cardPath, summ.legacy, false, targVer);
+			r ~= skin.warningImage(prop, c.cardPath, summ ? summ.legacy : false, false, targVer);
 		}
 		if (c.bgmPath != "") { mixin(S_TRACE);
-			r ~= skin.warningBGM(prop, c.bgmPath, summ.legacy, targVer);
+			r ~= skin.warningBGM(prop, c.bgmPath, summ ? summ.legacy : false, targVer);
 		}
 		if (c.soundPath != "") { mixin(S_TRACE);
-			r ~= skin.warningSE(prop, c.soundPath, summ.legacy, targVer);
+			r ~= skin.warningSE(prop, c.soundPath, summ ? summ.legacy : false, targVer);
 		}
 		uint maxNextLen(in Content c) {
 			if (c.type is CType.TALK_MESSAGE) { mixin(S_TRACE);

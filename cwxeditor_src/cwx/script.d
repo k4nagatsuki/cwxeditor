@@ -3125,7 +3125,7 @@ fi`;
 				attrs2 ~= toAttr(value.round, command, indentValue, vars);
 			}
 			if (detail.use(MArg.BEAST)) { mixin(S_TRACE);
-				if (value.beast) { mixin(S_TRACE);
+				if (value.beast && _summ) { mixin(S_TRACE);
 					attrs2 ~= toAttr(vars.id(_summ.findSameBeast(value.beast), value.beast.linkId), command, indentValue, vars);
 				} else { mixin(S_TRACE);
 					attrs2 ~= toAttr(cast(Symbol) "0", command, indentValue, vars);
@@ -3331,35 +3331,35 @@ fi`;
 				attrs ~= toAttr(c.effectCardType, command, indentValue, vars);
 			}
 			if (detail.use(CArg.AREA)) { mixin(S_TRACE);
-				auto a = _summ.area(c.area);
+				auto a = _summ ? _summ.area(c.area) : null;
 				attrs ~= toAttr(vars.id(a, c.area), command, indentValue, vars);
 			}
 			if (detail.use(CArg.BATTLE)) { mixin(S_TRACE);
-				auto a = _summ.battle(c.battle);
+				auto a = _summ ? _summ.battle(c.battle) : null;
 				attrs ~= toAttr(vars.id(a, c.battle), command, indentValue, vars);
 			}
 			if (detail.use(CArg.PACKAGE)) { mixin(S_TRACE);
-				auto a = _summ.cwPackage(c.packages);
+				auto a = _summ ? _summ.cwPackage(c.packages) : null;
 				attrs ~= toAttr(vars.id(a, c.packages), command, indentValue, vars);
 			}
 			if (detail.use(CArg.CAST)) { mixin(S_TRACE);
-				auto a = _summ.cwCast(c.casts);
+				auto a = _summ ? _summ.cwCast(c.casts) : null;
 				attrs ~= toAttr(vars.id(a, c.casts), command, indentValue, vars);
 			}
 			if (detail.use(CArg.ITEM)) { mixin(S_TRACE);
-				auto a = _summ.item(c.item);
+				auto a = _summ ? _summ.item(c.item) : null;
 				attrs ~= toAttr(vars.id(a, c.item), command, indentValue, vars);
 			}
 			if (detail.use(CArg.SKILL)) { mixin(S_TRACE);
-				auto a = _summ.skill(c.skill);
+				auto a = _summ ? _summ.skill(c.skill) : null;
 				attrs ~= toAttr(vars.id(a, c.skill), command, indentValue, vars);
 			}
 			if (detail.use(CArg.INFO)) { mixin(S_TRACE);
-				auto a = _summ.info(c.info);
+				auto a = _summ ? _summ.info(c.info) : null;
 				attrs ~= toAttr(vars.id(a, c.info), command, indentValue, vars);
 			}
 			if (detail.use(CArg.BEAST)) { mixin(S_TRACE);
-				auto a = _summ.beast(c.beast);
+				auto a = _summ ? _summ.beast(c.beast) : null;
 				attrs ~= toAttr(vars.id(a, c.beast), command, indentValue, vars);
 			}
 			if (detail.use(CArg.START)) { mixin(S_TRACE);

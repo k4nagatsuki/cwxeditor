@@ -186,14 +186,21 @@ class EventEditor : Composite {
 		_lightupColor = new Color(d, new RGB(191, 224, 255));
 		_warningImage = .warningImage(_comm.prop, d);
 		setForeground(color);
-		_comm.refTerminalMark.add(&updatePosImpl);
+		if (_summ) _comm.refTerminalMark.add(&updatePosImpl);
 		.listener(this, SWT.Dispose, { mixin(S_TRACE);
 			_lineColor.dispose();
 			_selectedColor.dispose();
 			_lightupColor.dispose();
 			color.dispose();
 			_warningImage.dispose();
-			_comm.refTerminalMark.remove(&updatePosImpl);
+			_expanded = null;
+			_selected = null;
+			_lightup = null;
+			_pos = [];
+			_posTable = null;
+			_items = null;
+			_warningRects = [];
+			if (_summ) _comm.refTerminalMark.remove(&updatePosImpl);
 		});
 		.listener(this, SWT.Paint, &onPaint);
 		.listener(this, SWT.MouseWheel, &onMouseWheel);
@@ -284,7 +291,7 @@ class EventEditor : Composite {
 			auto type = c.type;
 			int height = _lineHeight;
 			_heightSum++;
-			if (_comm.prop.var.etc.showTerminalMark && type != CType.START && !c.next.length) { mixin(S_TRACE);
+			if ((_summ ? _comm.prop.var.etc.showTerminalMark : showTerminalMark) && type != CType.START && !c.next.length) { mixin(S_TRACE);
 				height = _lineHeight * 2;
 				_heightSum++;
 			}
@@ -309,8 +316,8 @@ class EventEditor : Composite {
 				return;
 			}
 			auto d = c.detail;
-			if (type != CType.START && c.next.length == 1 && (!_comm.prop.var.etc.forceIndentBranchContent || d.nextType == CNextType.NONE || d.nextType == CNextType.TEXT)) { mixin(S_TRACE);
-				if (_comm.prop.var.etc.gentleAngleEventTree) { mixin(S_TRACE);
+			if (type != CType.START && c.next.length == 1 && (!(_summ ? _comm.prop.var.etc.forceIndentBranchContent : forceIndentBranchContent) || d.nextType == CNextType.NONE || d.nextType == CNextType.TEXT)) { mixin(S_TRACE);
+				if (_summ ? _comm.prop.var.etc.gentleAngleEventTree : gentleAngleEventTree) { mixin(S_TRACE);
 					recurse(x + _imageWidth / 2, c.next[0]);
 				} else { mixin(S_TRACE);
 					recurse(x, c.next[0]);
@@ -453,7 +460,7 @@ class EventEditor : Composite {
 					auto pos = _pos[index];
 					if (p.y - pos.y < _lineHeight) { mixin(S_TRACE);
 						auto c = pos.content;
-						auto s = .contentText(_comm, c);
+						auto s = .contentText(_comm, c, _summ);
 						auto gc = new GC(this);
 						scope (exit) gc.dispose();
 						int dw = detailAreaWidth - 2 - 18;
@@ -865,7 +872,7 @@ class EventEditor : Composite {
 			auto c = pos.content;
 			if (c.type == CType.START) { mixin(S_TRACE);
 				if (poss.length <= i) break;
-				if (0 < i && _comm.prop.var.etc.drawContentTreeLine) { mixin(S_TRACE);
+				if (0 < i && (_summ ? _comm.prop.var.etc.drawContentTreeLine : drawContentTreeLine)) { mixin(S_TRACE);
 					e.gc.setLineWidth(1);
 					e.gc.setForeground(_lineColor);
 					e.gc.drawLine(e.x - sx, pos.y - sy, e.x + e.width - sx, pos.y - sy);
@@ -891,7 +898,7 @@ class EventEditor : Composite {
 					e.gc.setAntialias(SWT.OFF);
 				}
 			}
-			if (_comm.prop.var.etc.showTerminalMark && c.type != CType.START && !c.next.length) { mixin(S_TRACE);
+			if ((_summ ? _comm.prop.var.etc.showTerminalMark : showTerminalMark) && c.type != CType.START && !c.next.length) { mixin(S_TRACE);
 				// 後続コンテントが置かれるであろう位置を示す
 				// (終端の場合は後続コンテントが置けない事を示す)
 				int terX = pos.x + hw - sx;
@@ -939,7 +946,7 @@ class EventEditor : Composite {
 			}
 			auto ctx = pos.x + 20;
 			e.gc.drawText(s, ctx - sx, pos.y - sy, true);
-			if (_comm.prop.var.etc.drawCountOfUseOfStart && c.type == CType.START) { mixin(S_TRACE);
+			if ((_summ ? _comm.prop.var.etc.drawCountOfUseOfStart : drawCountOfUseOfStart) && c.type == CType.START) { mixin(S_TRACE);
 				// スタート使用数
 				auto count = _et.startUseCounter.get(toStartId(c.name));
 				if (_pos[0].content is c) count++;
@@ -979,7 +986,7 @@ class EventEditor : Composite {
 			// イベントコンテント内容
 			auto c = pos.content;
 			if (detailAreaWidth) {
-				auto s = .contentText(_comm, c);
+				auto s = .contentText(_comm, c, _summ);
 				int x = ca.width - detailAreaWidth + 2;
 				auto image = _comm.prop.images.content(c.type);
 				e.gc.setAlpha(128);
@@ -989,16 +996,18 @@ class EventEditor : Composite {
 			}
 
 			// 警告
-			auto warnings = .warnings(_comm.prop.parent, _comm.skin, _summ, c, _comm.prop.var.etc.targetVersion);
-			if (warnings.length) { mixin(S_TRACE);
-				int ww = _comm.prop.var.etc.warningImageWidth;
-				int wix = .max(0, ca.width - detailAreaWidth - ww);
-				int wiw = ca.width - detailAreaWidth - wix;
-				if (wiw <= 0) continue;
-				e.gc.drawImage(_warningImage, 0, 0, ww, 1, wix, pos.y - sy, wiw, _lineHeight);
-				e.gc.drawImage(_comm.prop.images.warning, wix + wiw - _imageWidth - 4, pos.y + _imgPos - sy);
-				auto rect = new Rectangle(ca.x, pos.y - sy, ca.width - detailAreaWidth, _lineHeight);
-				_warningRects ~= Warning(rect, warnings);
+			if (_summ ? _comm.prop.var.etc.drawContentWarnings : drawContentWarnings) { mixin(S_TRACE);
+				auto warnings = .warnings(_comm.prop.parent, _comm.skin, _summ, c, _comm.prop.var.etc.targetVersion);
+				if (warnings.length) { mixin(S_TRACE);
+					int ww = _comm.prop.var.etc.warningImageWidth;
+					int wix = .max(0, ca.width - detailAreaWidth - ww);
+					int wiw = ca.width - detailAreaWidth - wix;
+					if (wiw <= 0) continue;
+					e.gc.drawImage(_warningImage, 0, 0, ww, 1, wix, pos.y - sy, wiw, _lineHeight);
+					e.gc.drawImage(_comm.prop.images.warning, wix + wiw - _imageWidth - 4, pos.y + _imgPos - sy);
+					auto rect = new Rectangle(ca.x, pos.y - sy, ca.width - detailAreaWidth, _lineHeight);
+					_warningRects ~= Warning(rect, warnings);
+				}
 			}
 		}
 
@@ -1022,6 +1031,75 @@ class EventEditor : Composite {
 			e.gc.drawString(pos.content.comment, box.x + 5 - sx, box.y + 3 - sy, true);
 		}
 		e.gc.setAntialias(SWT.OFF);
+	}
+
+	private bool _showTerminalMark = false;
+	private bool _forceIndentBranchContent = false;
+	private bool _gentleAngleEventTree = false;
+	private bool _drawContentTreeLine = false;
+	private bool _drawCountOfUseOfStart = false;
+	private bool _drawContentWarnings = false;
+	/// 表示オプション。
+	/// シナリオ編集中であればCommons#propの値が、
+	/// 表示テスト中であればここで設定された値が採用される。
+	@property
+	const
+	bool showTerminalMark() { return _showTerminalMark; }
+	/// ditto
+	@property
+	void showTerminalMark(bool v) { mixin(S_TRACE);
+		_showTerminalMark = v;
+		updatePosImpl();
+	}
+	/// ditto
+	@property
+	const
+	bool forceIndentBranchContent() { return _forceIndentBranchContent; }
+	/// ditto
+	@property
+	void forceIndentBranchContent(bool v) { mixin(S_TRACE);
+		_forceIndentBranchContent = v;
+		updatePosImpl();
+	}
+	/// ditto
+	@property
+	const
+	bool gentleAngleEventTree() { return _gentleAngleEventTree; }
+	/// ditto
+	@property
+	void gentleAngleEventTree(bool v) { mixin(S_TRACE);
+		_gentleAngleEventTree = v;
+		updatePosImpl();
+	}
+	/// ditto
+	@property
+	const
+	bool drawContentTreeLine() { return _drawContentTreeLine; }
+	/// ditto
+	@property
+	void drawContentTreeLine(bool v) { mixin(S_TRACE);
+		_drawContentTreeLine = v;
+		redraw();
+	}
+	/// ditto
+	@property
+	const
+	bool drawCountOfUseOfStart() { return _drawCountOfUseOfStart; }
+	/// ditto
+	@property
+	void drawCountOfUseOfStart(bool v) { mixin(S_TRACE);
+		_drawCountOfUseOfStart = v;
+		redraw();
+	}
+	/// ditto
+	@property
+	const
+	bool drawContentWarnings() { return _drawContentWarnings; }
+	/// ditto
+	@property
+	void drawContentWarnings(bool v) { mixin(S_TRACE);
+		_drawContentWarnings = v;
+		redraw();
 	}
 }
 

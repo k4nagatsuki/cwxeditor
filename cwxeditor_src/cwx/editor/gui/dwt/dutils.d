@@ -2049,14 +2049,16 @@ void setComboItems(C)(C combo, string[] items) { mixin(S_TRACE);
 }
 
 /// Windows Vista以降で、Treeに点線を表示する。
-void initTree(Commons comm, Tree tree, bool eventTree, bool hideRootLine = true) { mixin(S_TRACE);
+void initTree(Commons comm, Tree tree, bool eventTree, bool hideRootLine = true, bool delegate() classicStyleTree = null) { mixin(S_TRACE);
 	version (Windows) {
 		if (eventTree) { mixin(S_TRACE);
 			Listener keyDown = null, mouseDoubleClick = null, collapse = null;
-			void updateTreeStyle() { mixin(S_TRACE);
+			bool oldVal = classicStyleTree ? classicStyleTree() : comm.prop.var.etc.classicStyleTree;
+			void updateTreeStyleImpl(bool newVal) { mixin(S_TRACE);
 				auto style = OS.GetWindowLong(tree.handle, GWL_STYLE);
 				style |= OS.TVS_HASLINES;
-				if (comm.prop.var.etc.classicStyleTree) { mixin(S_TRACE);
+				oldVal = newVal;
+				if (newVal) { mixin(S_TRACE);
 					style &= ~OS.TVS_HASBUTTONS;
 					style &= ~OS.TVS_LINESATROOT;
 					if (!keyDown) { mixin(S_TRACE);
@@ -2132,11 +2134,16 @@ void initTree(Commons comm, Tree tree, bool eventTree, bool hideRootLine = true)
 				style = OS.SetWindowLong(tree.handle, GWL_STYLE, style);
 				OS.SetWindowPos(tree.handle, null, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 			}
+			void updateTreeStyle() { mixin(S_TRACE);
+				bool newVal = classicStyleTree ? classicStyleTree() : comm.prop.var.etc.classicStyleTree;
+				if (oldVal is newVal) return;
+				updateTreeStyleImpl(newVal);
+			}
 			comm.refEventTreeStyle.add(&updateTreeStyle);
 			.listener(tree, SWT.Dispose, { mixin(S_TRACE);
 				comm.refEventTreeStyle.remove(&updateTreeStyle);
 			});
-			updateTreeStyle();
+			updateTreeStyleImpl(oldVal);
 		} else { mixin(S_TRACE);
 			auto style = OS.GetWindowLong(tree.handle, GWL_STYLE);
 			style |= OS.TVS_HASLINES;
@@ -2454,86 +2461,104 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 		noSelect = comm.prop.msgs.noSelectArea;
 		noID = comm.prop.msgs.noArea;
 		use = 0 != id;
-		auto a = summ.area(id);
+		auto a = summ ? summ.area(id) : null;
 		find = () => a !is null;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Battle == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectBattle;
 		noID = comm.prop.msgs.noBattle;
 		use = 0 != id;
-		auto a = summ.battle(id);
+		auto a = summ ? summ.battle(id) : null;
 		find = () => a !is null;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Package == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectPackage;
 		noID = comm.prop.msgs.noPackage;
 		use = 0 != id;
-		auto a = summ.cwPackage(id);
+		auto a = summ ? summ.cwPackage(id) : null;
 		find = () => a !is null;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Cast == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectCast;
 		noID = comm.prop.msgs.noCast;
 		use = 0 != id;
-		auto a = summ.cwCast(id);
+		auto a = summ ? summ.cwCast(id) : null;
 		find = () => a !is null;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Skill == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectSkill;
 		noID = comm.prop.msgs.noSkill;
-		auto a = summ.skill(id);
+		auto a = summ ? summ.skill(id) : null;
 		find = () => a !is null;
 		use = 0 != id;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Item == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectItem;
 		noID = comm.prop.msgs.noItem;
-		auto a = summ.item(id);
+		auto a = summ ? summ.item(id) : null;
 		find = () => a !is null;
 		use = 0 != id;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Beast == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectBeast;
 		noID = comm.prop.msgs.noBeast;
-		auto a = summ.beast(id);
+		auto a = summ ? summ.beast(id) : null;
 		find = () => a !is null;
 		use = 0 != id;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Info == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectInfo;
 		noID = comm.prop.msgs.noInfo;
-		auto a = summ.info(id);
+		auto a = summ ? summ.info(id) : null;
 		find = () => a !is null;
 		use = 0 != id;
 		name = a ? .tryFormat(comm.prop.msgs.nameWithID, id, a.name) : "";
 	} else static if (CIDKind.Image == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectImage;
 		noID = comm.prop.msgs.noImage;
-		find = () => comm.skin.findImagePath(id, summ.scenarioPath).length > 0;
+		find = { mixin(S_TRACE);
+			if (summ) { mixin(S_TRACE);
+				return comm.skin.findImagePath(id, summ.scenarioPath).length > 0;
+			} else { mixin(S_TRACE);
+				return comm.skin.findImagePath(id, "").length > 0;
+			}
+		};
 		use = id && id.length;
 		name = id;
 	} else static if (CIDKind.BGM == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectBGM;
 		noID = comm.prop.msgs.noBGM;
-		find = () => comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, summ.scenarioPath).length > 0;
+		find = { mixin(S_TRACE);
+			if (summ) { mixin(S_TRACE);
+				return comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, summ.scenarioPath).length > 0;
+			} else { mixin(S_TRACE);
+				return comm.skin.findPath(id, comm.skin.extBgm, comm.skin.bgmDir, "").length > 0;
+			}
+		};
 		use = id && id.length;
 		name = id;
 	} else static if (CIDKind.SE == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectSE;
 		noID = comm.prop.msgs.noSE;
-		find = () => comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, summ.scenarioPath).length > 0;
+		find = { mixin(S_TRACE);
+			if (summ) { mixin(S_TRACE);
+				return comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, summ.scenarioPath).length > 0;
+			} else { mixin(S_TRACE);
+				return comm.skin.findPath(id, comm.skin.extSound, comm.skin.seDir, "").length > 0;
+			}
+		};
 		use = id && id.length;
 		name = id;
 	} else static if (CIDKind.Flag == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectFlag;
 		noID = comm.prop.msgs.noFlag;
-		find = () => summ.flagDirRoot.findFlag(id) !is null;
+		find = () => summ && summ.flagDirRoot.findFlag(id) !is null;
 		use = id && id.length;
 		name = id;
 	} else static if (CIDKind.Step == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectStep;
 		noID = comm.prop.msgs.noStep;
-		find = () => summ.flagDirRoot.findStep(id) !is null;
+		find = () => summ && summ.flagDirRoot.findStep(id) !is null;
 		use = id && id.length;
 		name = id;
 	} else static if (CIDKind.Start == Kind) { mixin(S_TRACE);
@@ -2564,8 +2589,7 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 	}
 }
 
-string contentText(Commons comm, in Content evt, Summary summ = null) { mixin(S_TRACE);
-	if (!summ) summ = comm.summary;
+string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	string loseCardCount() { mixin(S_TRACE);
 		return evt.cardNumber == 0 ? comm.prop.msgs.ctLoseCardAll : .tryFormat(comm.prop.msgs.ctLoseCardCount, evt.cardNumber);
 	}
@@ -2693,7 +2717,7 @@ string contentText(Commons comm, in Content evt, Summary summ = null) { mixin(S_
 		return contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, comm.prop.msgs.ctBranchMultiStep, evt);
 	} case CType.BRANCH_STEP: { mixin(S_TRACE);
 		string s = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
-		auto step = summ.flagDirRoot.findStep(evt.step);
+		auto step = summ ? summ.flagDirRoot.findStep(evt.step) : null;
 		string v = step ? step.getValue(evt.stepValue) : .tryFormat(comm.prop.msgs.dlgLblStep, evt.stepValue);
 		return .tryFormat(comm.prop.msgs.ctBranchStep, s, v);
 	} case CType.BRANCH_SELECT: { mixin(S_TRACE);
@@ -2756,7 +2780,7 @@ string contentText(Commons comm, in Content evt, Summary summ = null) { mixin(S_
 		string name = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
 		string on = comm.prop.msgs.flagOn;
 		string off = comm.prop.msgs.flagOff;
-		auto o = summ.flagDirRoot.findFlag(evt.flag);
+		auto o = summ ? summ.flagDirRoot.findFlag(evt.flag) : null;
 		if (o) { mixin(S_TRACE);
 			on = o.on;
 			off = o.off;
@@ -2765,7 +2789,7 @@ string contentText(Commons comm, in Content evt, Summary summ = null) { mixin(S_
 	} case CType.SET_STEP: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
 		string value;
-		auto o = summ.flagDirRoot.findStep(evt.step);
+		auto o = summ ? summ.flagDirRoot.findStep(evt.step) : null;
 		if (o) { mixin(S_TRACE);
 			value = o.getValue(evt.stepValue);
 		} else { mixin(S_TRACE);
@@ -2781,7 +2805,7 @@ string contentText(Commons comm, in Content evt, Summary summ = null) { mixin(S_
 	} case CType.CHECK_FLAG: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Flag)(comm, summ, evt.flag, "%s", evt);
 		string on = comm.prop.msgs.flagOn;
-		auto o = summ.flagDirRoot.findFlag(evt.flag);
+		auto o = summ ? summ.flagDirRoot.findFlag(evt.flag) : null;
 		if (o) { mixin(S_TRACE);
 			on = o.on;
 		}
@@ -2908,7 +2932,7 @@ string contentText(Commons comm, in Content evt, Summary summ = null) { mixin(S_
 	} case CType.CHECK_STEP: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
 		string value;
-		auto o = summ.flagDirRoot.findStep(evt.step);
+		auto o = summ ? summ.flagDirRoot.findStep(evt.step) : null;
 		if (o) { mixin(S_TRACE);
 			value = o.getValue(evt.stepValue);
 		} else { mixin(S_TRACE);

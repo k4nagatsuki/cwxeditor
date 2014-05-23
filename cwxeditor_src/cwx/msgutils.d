@@ -10,6 +10,7 @@ import std.uni;
 import std.utf;
 import std.algorithm;
 import std.string;
+import std.ascii;
 
 /// "font_X.bmp"から"X"の部分を抽出する。
 dchar decodeFontPath(string path) { mixin(S_TRACE);
@@ -121,14 +122,9 @@ private string formatMsgImpl(in string text,
 			if (!full) goto default;
 			if (i + 1 == dtext.length) goto default;
 			if ('\n' == dtext[i + 1]) goto default;
-			auto nc = std.ascii.toUpper(dtext[i + 1]);
-			switch (nc) {
-			case 'W', 'R', 'B', 'G', 'Y':
-			case 'O', 'P', 'L', 'D': // CardWirth 1.50
-				colors[result.length] = cast(char) nc;
-				break;
-			default:
-				break;
+			if (.isASCII(dtext[i + 1])) { mixin(S_TRACE);
+				auto nc = std.ascii.toUpper(dtext[i + 1]);
+				colors[result.length] = cast(char)nc;
 			}
 			goto default;
 		default:

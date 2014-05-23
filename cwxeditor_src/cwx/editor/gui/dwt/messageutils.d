@@ -2480,7 +2480,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				case 'P': tgc.setForeground(cp); break;
 				case 'L': tgc.setForeground(cl); break;
 				case 'D': tgc.setForeground(cd); break;
-				default: assert (0);
+				default: break;
 				}
 				i++;
 				continue;
@@ -2620,7 +2620,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				case 'P': gc.setForeground(cp); break; // CardWirth 1.50
 				case 'L': gc.setForeground(cl); break; // CardWirth 1.50
 				case 'D': gc.setForeground(cd); break; // CardWirth 1.50
-				default: assert (0);
+				default: break;
 				}
 				i++;
 				continue;
