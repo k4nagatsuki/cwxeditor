@@ -10,6 +10,7 @@ import std.uni;
 import std.utf;
 import std.algorithm;
 import std.string;
+import std.ascii;
 
 /// "font_X.bmp"から"X"の部分を抽出する。
 dchar decodeFontPath(string path) {
@@ -71,13 +72,9 @@ string formatMsg(in string text,
 		case '&':
 			if (i + 1 == dtext.length) goto default;
 			if ('\n' == dtext[i + 1]) goto default;
-			auto nc = std.ascii.toUpper(dtext[i + 1]);
-			switch (nc) {
-			case 'W', 'R', 'B', 'G', 'Y':
-				colors[result.length] = cast(char) nc;
-				break;
-			default:
-				break;
+			if (.isASCII(dtext[i + 1])) {
+				auto nc = std.ascii.toUpper(dtext[i + 1]);
+				colors[result.length] = cast(char)nc;
 			}
 			goto default;
 		default:

@@ -1938,7 +1938,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				case 'B': tgc.setForeground(cb); break;
 				case 'G': tgc.setForeground(cg); break;
 				case 'Y': tgc.setForeground(cy); break;
-				default: assert (0);
+				default: break;
 				}
 				i++;
 				continue;
@@ -2073,7 +2073,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				case 'B': gc.setForeground(cb); break;
 				case 'G': gc.setForeground(cg); break;
 				case 'Y': gc.setForeground(cy); break;
-				default: assert (0);
+				default: break;
 				}
 				i++;
 				continue;
