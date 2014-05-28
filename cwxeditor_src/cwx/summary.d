@@ -1346,16 +1346,18 @@ public:
 	private ulong addImpl(T, alias ToID)(ref T[] arr, T area, bool forceNewId) { mixin(S_TRACE);
 		if (arr.length > 0 && arr[$ - 1] is area) return area.id;
 		auto oldId = area.id;
+		auto newId = area.id;
 		if (forceNewId || (arr.length > 0 && arr[$ - 1].id >= area.id) ) { mixin(S_TRACE);
-			area.id = newIdImpl(arr);
+			newId = newIdImpl(arr);
 		}
 		foreach (i, c_; arr) { mixin(S_TRACE);
 			if (c_ is area) { mixin(S_TRACE);
 				removeImpl(arr, area);
-				_uc.change(ToID(oldId), ToID(area.id));
+				_uc.change(ToID(oldId), ToID(newId));
 				break;
 			}
 		}
+		if (area.id != newId) area.id = newId;
 		static if (is(typeof(area.hold))) {
 			area.hold = false;
 		}
