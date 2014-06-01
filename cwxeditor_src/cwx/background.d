@@ -73,6 +73,14 @@ public:
 		if (_change) _change();
 	}
 
+	@property
+	override
+	void flag(string flag) {
+		if (this.flag != flag) changed();
+		super.flag = flag;
+	}
+	alias super.flag flag;
+
 	/// 透明色を使用するか。
 	@property
 	const
