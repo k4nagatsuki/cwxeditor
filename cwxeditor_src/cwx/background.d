@@ -801,6 +801,14 @@ public:
 		_cellName.change(newVal);
 	}
 
+	@property
+	override
+	void flag(string flag) { mixin(S_TRACE);
+		if (this.flag != flag) changed();
+		super.flag = flag;
+	}
+	alias super.flag flag;
+
 	/// 透明色を使用するか。
 	@property
 	const
