@@ -4596,6 +4596,7 @@ public:
 			assert (img !is null);
 			_backTbl[img] = back;
 			img.visible = _viewBacks;
+			img.fixed = isFixedBackground;
 			img.foreground = back.foreground;
 			img.addSelectionListener(&selectImageB);
 			img.addResizeListener(&resizeImageB);
