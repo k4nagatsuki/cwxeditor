@@ -253,6 +253,22 @@ public:
 	override CWXPath[] cwxChilds() {return [];}
 	@property
 	CWXPath cwxParent() {return _parent;}
+
+	override
+	const
+	hash_t toHash() {
+		hash_t hash = 0;
+		foreach (char c; _name) {
+			hash = (hash * 9) + c;
+		}
+		return hash;
+	}
+
+	override
+	const
+	bool opEquals(Object o) {
+		return o is this;
+	}
 }
 
 /// ステップ。
@@ -450,6 +466,22 @@ public:
 	override CWXPath[] cwxChilds() {return [];}
 	@property
 	CWXPath cwxParent() {return _parent;}
+
+	override
+	const
+	hash_t toHash() {
+		hash_t hash = 0;
+		foreach (char c; _name) {
+			hash = (hash * 9) + c;
+		}
+		return hash;
+	}
+
+	override
+	const
+	bool opEquals(Object o) {
+		return o is this;
+	}
 }
 
 /// フラグ/ステップ、及びサブディレクトリを格納するディレクトリ。

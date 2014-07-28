@@ -77,7 +77,7 @@ public:
 	const
 	string enginePath() {
 		if (!var.etc.enginePath.length) return "";
-		if (isAbsolute(var.etc.enginePath)) {
+		if (isAbsolute(var.etc.enginePath.value)) {
 			return var.etc.enginePath;
 		} else {
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.enginePath);
@@ -87,7 +87,7 @@ public:
 	const
 	string tempPath() {
 		if (!var.etc.tempPath.length) return "";
-		if (isAbsolute(var.etc.tempPath)) {
+		if (isAbsolute(var.etc.tempPath.value)) {
 			return var.etc.tempPath;
 		} else {
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.tempPath);
@@ -97,7 +97,7 @@ public:
 	const
 	string backupPath() {
 		if (!var.etc.backupPath.length) return "";
-		if (isAbsolute(var.etc.backupPath)) {
+		if (isAbsolute(var.etc.backupPath.value)) {
 			return var.etc.backupPath;
 		} else {
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.backupPath);
@@ -107,7 +107,7 @@ public:
 	const
 	string backupBeforeSavePath() {
 		if (!var.etc.backupBeforeSavePath.length) return "";
-		if (isAbsolute(var.etc.backupBeforeSavePath)) {
+		if (isAbsolute(var.etc.backupBeforeSavePath.value)) {
 			return var.etc.backupBeforeSavePath;
 		} else {
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.backupBeforeSavePath);

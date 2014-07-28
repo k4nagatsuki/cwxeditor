@@ -277,7 +277,7 @@ public:
 				ws ~= _comm.skin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false);
 				static if (Type is MtType.CARD) {
 					uint w, h;
-					imageSize(bin, w, h);
+					imageSize!(ubyte[])(bin, w, h);
 					auto cs = _prop.looks.cardSize;
 					if (cs.width != w && cs.height != h) {
 						ws ~= _prop.msgs.warningNoCardSizeImage;

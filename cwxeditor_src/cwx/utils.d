@@ -9,7 +9,6 @@ import std.algorithm;
 import std.array;
 import std.conv;
 import std.uni;
-import std.metastrings;
 import std.string;
 import std.format;
 import std.file;
@@ -1182,9 +1181,13 @@ void copyAll(string a, string b, bool overwrite = false) {
 /// listDirの代替。指定されたディレクトリに含まれるファイル名の一覧を返す。
 string[] clistdir(string dir) {
 	string[] r;
-	if (!.exists(dir)) return r;
-	foreach (string file; dirEntries(dir, SpanMode.shallow, false)) {
-		r ~= file.baseName();
+	try {
+		if (!.exists(dir)) return r;
+		foreach (string file; dirEntries(dir, SpanMode.shallow, false)) {
+			r ~= file.baseName();
+		}
+	} catch (Exception e) {
+		debugln(e);
 	}
 	return r;
 }

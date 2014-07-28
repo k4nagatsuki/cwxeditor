@@ -51,7 +51,6 @@ import std.path;
 import std.zip;
 import std.utf;
 import std.process;
-import std.metastrings;
 import std.string;
 import std.datetime;
 import std.regex;

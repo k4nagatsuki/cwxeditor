@@ -277,6 +277,18 @@ public:
 	override int opCmp(Object o) {
 		return cast(int) _id - cast(int) (cast(Card) o)._id;
 	}
+
+	override
+	const
+	hash_t toHash() {
+		return cast(hash_t)_id;
+	}
+
+	override
+	const
+	bool opEquals(Object o) {
+		return o is this;
+	}
 }
 
 /// キャストカード。
