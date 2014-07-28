@@ -855,7 +855,7 @@ class Skin {
 		try { mixin(S_TRACE);
 			uint x, y;
 			if (bin) { mixin(S_TRACE);
-				if (!imageSize(bin, x, y)) return false;
+				if (!imageSize!(ubyte[])(bin, x, y)) return false;
 			} else { mixin(S_TRACE);
 				if (!imageSize(path, x, y)) return false;
 			}

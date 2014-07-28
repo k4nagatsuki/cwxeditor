@@ -288,7 +288,7 @@ public:
 				ws ~= summSkin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false, _msel.canInclude, _prop.var.etc.targetVersion);
 				static if (Type is MtType.CARD) {
 					uint w, h;
-					imageSize(bin, w, h);
+					imageSize!(ubyte[])(bin, w, h);
 					auto cs = _prop.looks.cardSize;
 					if (cs.width != w && cs.height != h) { mixin(S_TRACE);
 						ws ~= _prop.msgs.warningNoCardSizeImage;

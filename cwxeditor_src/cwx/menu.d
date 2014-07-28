@@ -472,7 +472,6 @@ class MenuProps : Properties {
 		return buildTool(prop, id, _mnemonic[id], _hotkey[id]);
 	}
 	/// ditto
-	const
 	static string buildTool(in CProps prop, MenuID id, string mnemonic, string hotkey) { mixin(S_TRACE);
 		string r = prop.msgs.menuText(id);
 		if (isPMenu(id)) { mixin(S_TRACE);

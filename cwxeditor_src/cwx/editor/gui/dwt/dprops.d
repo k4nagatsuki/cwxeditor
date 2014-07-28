@@ -79,7 +79,7 @@ public:
 	const
 	string enginePath() { mixin(S_TRACE);
 		if (!var.etc.enginePath.length) return "";
-		if (isAbsolute(var.etc.enginePath)) { mixin(S_TRACE);
+		if (isAbsolute(var.etc.enginePath.value)) { mixin(S_TRACE);
 			return var.etc.enginePath;
 		} else { mixin(S_TRACE);
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.enginePath);
@@ -89,7 +89,7 @@ public:
 	const
 	string tempPath() { mixin(S_TRACE);
 		if (!var.etc.tempPath.length) return "";
-		if (isAbsolute(var.etc.tempPath)) { mixin(S_TRACE);
+		if (isAbsolute(var.etc.tempPath.value)) { mixin(S_TRACE);
 			return var.etc.tempPath;
 		} else { mixin(S_TRACE);
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.tempPath);
@@ -99,7 +99,7 @@ public:
 	const
 	string backupPath() { mixin(S_TRACE);
 		if (!var.etc.backupPath.length) return "";
-		if (isAbsolute(var.etc.backupPath)) { mixin(S_TRACE);
+		if (isAbsolute(var.etc.backupPath.value)) { mixin(S_TRACE);
 			return var.etc.backupPath;
 		} else { mixin(S_TRACE);
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.backupPath);
@@ -109,7 +109,7 @@ public:
 	const
 	string backupBeforeSavePath() { mixin(S_TRACE);
 		if (!var.etc.backupBeforeSavePath.length) return "";
-		if (isAbsolute(var.etc.backupBeforeSavePath)) { mixin(S_TRACE);
+		if (isAbsolute(var.etc.backupBeforeSavePath.value)) { mixin(S_TRACE);
 			return var.etc.backupBeforeSavePath;
 		} else { mixin(S_TRACE);
 			return std.path.buildPath(std.path.dirName(parent.appPath), var.etc.backupBeforeSavePath);

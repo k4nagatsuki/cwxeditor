@@ -826,6 +826,12 @@ public:
 		}
 		return cast(hash_t)(hash * 37 + _id);
 	}
+
+	const
+	override
+	bool opEquals(Object o) {
+		return this is o;
+	}
 }
 
 /// エリア。

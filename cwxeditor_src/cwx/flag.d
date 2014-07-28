@@ -110,6 +110,22 @@ public:
 		_onOff = onOff;
 		_name = FlagDir.validName(name);
 	}
+
+	const
+	override hash_t toHash() {
+		hash_t hash = 0;
+		foreach (c; _name) {
+			hash = hash * 37 + c;
+		}
+		return cast(hash_t)(hash * 37);
+	}
+
+	const
+	override
+	bool opEquals(Object o) {
+		return this is o;
+	}
+
 	/// flagのパラメータをコピーする。
 	void copyFrom(Flag flag) { mixin(S_TRACE);
 		name = flag.name;
@@ -282,6 +298,22 @@ public:
 		_select = select;
 		_name = FlagDir.validName(name);
 	}
+
+	const
+	override hash_t toHash() {
+		hash_t hash = 0;
+		foreach (c; _name) {
+			hash = hash * 37 + c;
+		}
+		return cast(hash_t)(hash * 37);
+	}
+
+	const
+	override
+	bool opEquals(Object o) {
+		return this is o;
+	}
+
 	/// stepのパラメータをコピーする。
 	void copyFrom(Step step) { mixin(S_TRACE);
 		name = step.name;
