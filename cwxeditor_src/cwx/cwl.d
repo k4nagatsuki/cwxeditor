@@ -2323,13 +2323,6 @@ void putExData(ref SData d, CWXPath cp) { mixin(S_TRACE);
 		if (e.comment.length) { mixin(S_TRACE);
 			d.comment[e.cwxPath(true)] = e.comment;
 		}
-	} else if (auto c = cast(MenuCard)cp) { mixin(S_TRACE);
-		if (!isBinImg(c.path)) { mixin(S_TRACE);
-			if (".bmp" != .toLower(c.path.extension())) { mixin(S_TRACE);
-				// Bitmapへの変換が行われた場合は必ずパスを保存する
-				d.imageRef[c.cwxPath(true)] = encodePathLegacy(c.path);
-			}
-		}
 	} else if (auto c = cast(Card)cp) { mixin(S_TRACE);
 		putInnerImagePath(d, cp, c.path);
 		if (auto ec = cast(EffectCard)cp) { mixin(S_TRACE);
@@ -3615,15 +3608,8 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
 			writeImage(d, f, c, c.path);
 			saveBinImg = true;
 		} else { mixin(S_TRACE);
-			if (".bmp" == .toLower(c.path.extension())) { mixin(S_TRACE);
-				writeImage(d, f, c, "");
-				saveBinImg = false;
-			} else { mixin(S_TRACE);
-				// Bitmapへの変換が行われた場合は必ずパスを保存する
-				d.imageRef[c.cwxPath(true)] = encodePathLegacy(c.path);
-				writeImage(d, f, c, c.path);
-				saveBinImg = true;
-			}
+			writeImage(d, f, c, "");
+			saveBinImg = false;
 		}
 		writeString(f, c.name);
 		f.writeL(cast(byte) 0x40);
