@@ -1419,7 +1419,6 @@ struct OldSettings {
 	bool useNamesAfterStandard;
 	bool selectVariableWithTree;
 	bool straightEventTreeView;
-	bool gentleAngleEventTree;
 	bool forceIndentBranchContent;
 	bool showTerminalMark;
 	bool showSummaryInAreaTable;
@@ -1470,7 +1469,6 @@ struct OldSettings {
 		this.useNamesAfterStandard = prop.var.etc.useNamesAfterStandard;
 		this.selectVariableWithTree = prop.var.etc.selectVariableWithTree;
 		this.straightEventTreeView = prop.var.etc.straightEventTreeView;
-		this.gentleAngleEventTree = prop.var.etc.gentleAngleEventTree;
 		this.forceIndentBranchContent = prop.var.etc.forceIndentBranchContent;
 		this.showTerminalMark = prop.var.etc.showTerminalMark;
 		this.showSummaryInAreaTable = prop.var.etc.showSummaryInAreaTable;
@@ -1605,7 +1603,7 @@ struct OldSettings {
 		if (this.selectVariableWithTree != prop.var.etc.selectVariableWithTree) { mixin(S_TRACE);
 			comm.refVarSelectStyle.call();
 		}
-		if (this.straightEventTreeView != prop.var.etc.straightEventTreeView || this.gentleAngleEventTree != prop.var.etc.gentleAngleEventTree || this.forceIndentBranchContent != prop.var.etc.forceIndentBranchContent) { mixin(S_TRACE);
+		if (this.straightEventTreeView != prop.var.etc.straightEventTreeView || this.forceIndentBranchContent != prop.var.etc.forceIndentBranchContent) { mixin(S_TRACE);
 			comm.refEventTreeViewStyle.call();
 		}
 		if (this.showTerminalMark != prop.var.etc.showTerminalMark) { mixin(S_TRACE);

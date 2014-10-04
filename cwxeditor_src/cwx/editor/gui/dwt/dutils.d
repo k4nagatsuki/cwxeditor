@@ -1297,6 +1297,38 @@ TreeItem fromTreePath(Tree tree, in int[] path) { mixin(S_TRACE);
 	return itm;
 }
 
+/// cを配置したTreeItemを生成する。
+ToolItem createToolItemC(ToolBar bar, Control c) { mixin(S_TRACE);
+	auto ti = new ToolItem(bar, SWT.SEPARATOR);
+	ti.setControl(c);
+	ti.setWidth(c.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
+	return ti;
+}
+
+/// ツールバー上のラベルを生成する。
+void createLabel(ToolBar bar, string label) { mixin(S_TRACE);
+	auto comp = new Composite(bar, SWT.NONE);
+	comp.setLayout(new CenterLayout(SWT.VERTICAL, 0));
+	auto lbl = new Label(comp, SWT.NONE);
+	lbl.setText(label);
+	createToolItemC(bar, comp);
+}
+
+/// ツールバー上のスピナを生成する。
+Spinner createSpinner(ToolBar bar, string label, int max, int min, int sel,
+		void delegate(int value) edit, void delegate(int value) enter, int delegate(int oldVal) cancel, int readOnly) { mixin(S_TRACE);
+	createLabel(bar, label ~ ":");
+	auto spn = new Spinner(bar, SWT.BORDER | readOnly);
+	initSpinner(spn);
+	spn.setEnabled(false);
+	spn.setMaximum(max);
+	spn.setMinimum(min);
+	spn.setSelection(sel);
+	createToolItemC(bar, spn);
+	auto editL = new SpinnerEdit(spn, enter, edit, cancel);
+	return spn;
+}
+
 version (Windows) {} else {
 	import org.eclipse.swt.program.Program;
 }

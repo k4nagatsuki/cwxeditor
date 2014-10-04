@@ -405,7 +405,21 @@ public class FlexProps {
 					this.tupleof[i] = fromNode(_node, fld, force, dataVersion);
 				}
 				if (dataVersion < 2012072700) { mixin(S_TRACE);
+					// backupBeforeSavePath追加
 					etc.backupBeforeSavePath.value = etc.backupPath;
+				}
+				if (dataVersion < 2014100400) { mixin(S_TRACE);
+					// eventTreeSlopeを追加し任意角度設定が可能になったため
+					// 元の設定に応じて初期角度を設定
+					if (etc.straightEventTreeView) { mixin(S_TRACE);
+						if (etc.gentleAngleEventTree) { mixin(S_TRACE);
+							etc.eventTreeSlope.value = 8;
+						} else { mixin(S_TRACE);
+							etc.eventTreeSlope.value = 0;
+						}
+					} else {
+						etc.eventTreeSlope.value = 0;
+					}
 				}
 				dStr ~= " - " ~ .text(__LINE__);
 			}

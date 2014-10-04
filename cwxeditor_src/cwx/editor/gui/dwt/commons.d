@@ -335,6 +335,7 @@ class Commons {
 	Dlg!() refEventTreeViewStyle;
 	Dlg!() refTerminalMark;
 	Dlg!() refContentsToolBoxStyle;
+	Dlg!(int) refEventTreeSlope;
 
 	Dlg!() refTableViewStyle;
 	Dlg!(Area) refArea;

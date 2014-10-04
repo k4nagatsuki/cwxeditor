@@ -155,7 +155,6 @@ class EtcSettings : Composite {
 			}
 		});
 		boolSetting(comp, prop.var.etc.straightEventTreeView, prop.msgs.straightEventTreeView);
-		boolSetting(comp, prop.var.etc.gentleAngleEventTree, prop.msgs.gentleAngleEventTree);
 		boolSetting(comp, prop.var.etc.forceIndentBranchContent, prop.msgs.forceIndentBranchContent);
 		boolSetting(comp, prop.var.etc.showTerminalMark, prop.msgs.showTerminalMark);
 		boolSetting(comp, prop.var.etc.classicStyleTree, prop.msgs.classicStyleTree);

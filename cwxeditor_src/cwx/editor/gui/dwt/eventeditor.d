@@ -317,11 +317,7 @@ class EventEditor : Composite {
 			}
 			auto d = c.detail;
 			if (type != CType.START && c.next.length == 1 && (!(_summ ? _comm.prop.var.etc.forceIndentBranchContent : forceIndentBranchContent) || d.nextType == CNextType.NONE || d.nextType == CNextType.TEXT)) { mixin(S_TRACE);
-				if (_summ ? _comm.prop.var.etc.gentleAngleEventTree : gentleAngleEventTree) { mixin(S_TRACE);
-					recurse(x + _imageWidth / 2, c.next[0]);
-				} else { mixin(S_TRACE);
-					recurse(x, c.next[0]);
-				}
+				recurse(x + slope, c.next[0]);
 			} else if (c.next.length) { mixin(S_TRACE);
 				foreach (next; c.next) { mixin(S_TRACE);
 					recurse(x + _imageWidth, next);
@@ -894,7 +890,7 @@ class EventEditor : Composite {
 					}
 					e.gc.drawLine(pPos.x + _imageWidth - sx, ly, pos.x + hw - sx, ly);
 					e.gc.setAntialias(SWT.ON);
-					e.gc.drawArc(pPos.x + hw - sx, pos.y - sy - hh, _imageWidth, _lineHeight, 180, 90);
+					e.gc.drawArc(pPos.x + hw - sx, pos.y - sy - hh, pos.x - pPos.x, _lineHeight, 180, 90);
 					e.gc.setAntialias(SWT.OFF);
 				}
 			}
@@ -1035,10 +1031,10 @@ class EventEditor : Composite {
 
 	private bool _showTerminalMark = false;
 	private bool _forceIndentBranchContent = false;
-	private bool _gentleAngleEventTree = false;
 	private bool _drawContentTreeLine = false;
 	private bool _drawCountOfUseOfStart = false;
 	private bool _drawContentWarnings = false;
+	private int _slope = 0;
 	/// 表示オプション。
 	/// シナリオ編集中であればCommons#propの値が、
 	/// 表示テスト中であればここで設定された値が採用される。
@@ -1064,11 +1060,11 @@ class EventEditor : Composite {
 	/// ditto
 	@property
 	const
-	bool gentleAngleEventTree() { return _gentleAngleEventTree; }
+	int slope() { return _slope; }
 	/// ditto
 	@property
-	void gentleAngleEventTree(bool v) { mixin(S_TRACE);
-		_gentleAngleEventTree = v;
+	void slope(int v) { mixin(S_TRACE);
+		_slope = v;
 		updatePosImpl();
 	}
 	/// ditto

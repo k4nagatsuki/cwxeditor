@@ -1823,6 +1823,7 @@ public:
 		if ((_summ ? _prop.var.etc.straightEventTreeView : straightEventTreeView)) { mixin(S_TRACE);
 			_tree.editor = new EventEditor(_comm, _comp, SWT.BORDER | _readOnly, _summ, null);
 			_tree.editor.showEventTreeDetail = _showEventTreeDetail;
+			_tree.editor.slope = _prop.var.etc.eventTreeSlope;
 			new EventEdit(_comm, _tree.editor, &editEnd, &createEditor);
 		} else { mixin(S_TRACE);
 			_tree.tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
@@ -2740,6 +2741,13 @@ public:
 	}
 
 	@property
+	void eventTreeSlope(int value) { mixin(S_TRACE);
+		if (_tree.editor) { mixin(S_TRACE);
+			_tree.editor.slope = value;
+		}
+	}
+
+	@property
 	bool canSwapToParent() { mixin(S_TRACE);
 		if (_readOnly) return false;
 		auto itm = selection;
@@ -3491,7 +3499,6 @@ public:
 
 	private bool _showTerminalMark = false;
 	private bool _forceIndentBranchContent = false;
-	private bool _gentleAngleEventTree = false;
 	private bool _drawContentTreeLine = false;
 	private bool _drawCountOfUseOfStart = false;
 	private bool _drawContentWarnings = false;
@@ -3548,16 +3555,6 @@ public:
 	void forceIndentBranchContent(bool v) { mixin(S_TRACE);
 		_forceIndentBranchContent = v;
 		if (_tree.editor) _tree.editor.forceIndentBranchContent = v;
-	}
-	/// ditto
-	@property
-	const
-	bool gentleAngleEventTree() { return _gentleAngleEventTree; }
-	/// ditto
-	@property
-	void gentleAngleEventTree(bool v) { mixin(S_TRACE);
-		_gentleAngleEventTree = v;
-		if (_tree.editor) _tree.editor.gentleAngleEventTree = v;
 	}
 	/// ditto
 	@property

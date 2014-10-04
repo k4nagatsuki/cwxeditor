@@ -1011,6 +1011,8 @@ class Msgs : Properties {
 	auto eventTreeKindKeyCode = Msg("eventTreeKindKeyCode", "キーコード");
 	auto eventTreeKindRound = Msg("eventTreeKindRound", "ラウンド");
 
+	auto eventTreeSlope = Msg("eventTreeSlope", "傾き");
+
 	auto startUseCount = Msg("startUseCount", "利用数");
 
 	auto flagOn = Msg("flagOn", "TRUE");
@@ -1667,7 +1669,6 @@ class Msgs : Properties {
 	auto contentsFloat = Msg("contentsFloat", "コンテンツボックスを別ウィンドウで表示する");
 	auto contentsAutoHide = Msg("contentsAutoHide", "コンテンツボックスを自動的に隠す");
 	auto straightEventTreeView = Msg("straightEventTreeView", "イベントツリーを垂直に表示する");
-	auto gentleAngleEventTree = Msg("gentleAngleEventTree", "垂直表示時に若干角度をつける");
 	auto forceIndentBranchContent = Msg("forceIndentBranchContent", "垂直表示時に分岐コンテントの後続コンテントは必ず右へ移動する");
 	auto showTerminalMark = Msg("showTerminalMark", "垂直表示時にイベントツリーの終端を明示する");
 	auto classicStyleTree = Msg("classicStyleTree", "ツリー表示時、イベントツリーの開閉ボタンを省略する");

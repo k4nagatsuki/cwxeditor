@@ -70,6 +70,7 @@ private:
 		CCombo _keyCodeTim;
 	}
 	ToolItem _showEventTreeDetailItm;
+	Spinner _slope = null;
 
 	TCPD[] _tcpd;
 	TreeItem _oldSelP = null;
@@ -1174,6 +1175,7 @@ public:
 
 		_sash = new SplitPane(this, SWT.HORIZONTAL);
 		_comm.refShowToolBar.add(&refShowToolBar);
+		_comm.refEventTreeSlope.add(&refEventTreeSlope);
 		if (!_readOnly) { mixin(S_TRACE);
 			_comm.replText.add(&replText);
 			_comm.replID.add(&replText);
@@ -1222,6 +1224,7 @@ public:
 					static assert (0);
 				}
 				_comm.refShowToolBar.remove(&refShowToolBar);
+				_comm.refEventTreeSlope.remove(&refEventTreeSlope);
 				if (!_readOnly) { mixin(S_TRACE);
 					_comm.replText.remove(&replText);
 					_comm.replID.remove(&replText);
@@ -1539,6 +1542,7 @@ public:
 		_toolbar.setRedraw(false);
 		_setupToolBar = false;
 		_showEventTreeDetail = _showEventTreeDetailItm.getSelection();
+		_prop.var.etc.eventTreeSlope = _slope.getSelection();
 		if (!_readOnly) { mixin(S_TRACE);
 			_treeKindSel = _treeKind.getText();
 			if (auto c = cast(CCombo)_fireItm.getControl()) { mixin(S_TRACE);
@@ -1558,6 +1562,7 @@ public:
 		if (setupToolBar()) { mixin(S_TRACE);
 			refShowToolBar();
 			_showEventTreeDetailItm.setSelection(_showEventTreeDetail);
+			_slope.setSelection(_prop.var.etc.eventTreeSlope);
 			if (!_readOnly) { mixin(S_TRACE);
 				_treeKind.setText(_treeKindSel);
 				kindSelected();
@@ -1859,7 +1864,34 @@ public:
 		new ToolItem(bar, SWT.SEPARATOR);
 		_showEventTreeDetailItm = createToolItem2(_comm, bar,_prop.msgs.showEventTreeDetail, _prop.images.showEventTreeDetail, &_etree.reverseShowEventTreeDetail, () => _prop.var.etc.straightEventTreeView.value, SWT.CHECK);
 		_showEventTreeDetailItm.setSelection(_prop.var.etc.showEventTreeDetail);
+		new ToolItem(bar, SWT.SEPARATOR);
+		auto imgW = _prop.images.content(CType.START).getBounds().width;
+		_slope = createSpinner(bar, _prop.msgs.eventTreeSlope, imgW, 0, _prop.var.etc.eventTreeSlope,
+			&editEventTreeSlope, null, &cancelEventTreeSlope, SWT.NONE);
+		void refEventTreeViewStyle() { mixin(S_TRACE);
+			_slope.setEnabled(_prop.var.etc.straightEventTreeView);
+		}
+		refEventTreeViewStyle();
+		_comm.refEventTreeViewStyle.add(&refEventTreeViewStyle);
+		.listener(_slope, SWT.Dispose, { mixin(S_TRACE);
+			_comm.refEventTreeViewStyle.remove(&refEventTreeViewStyle);
+		});
 		return true;
+	}
+	private void refEventTreeSlope(Object sender, int slope) { mixin(S_TRACE);
+		if (sender !is this) { mixin(S_TRACE);
+			_etree.eventTreeSlope = slope;
+			if (_slope) _slope.setSelection(slope);
+		}
+	}
+	private void editEventTreeSlope(int value) { mixin(S_TRACE);
+		_prop.var.etc.eventTreeSlope = value;
+		_etree.eventTreeSlope = value;
+		_comm.refEventTreeSlope.call(this, value);
+	}
+	private int cancelEventTreeSlope(int oldVal) { mixin(S_TRACE);
+		editEventTreeSlope(oldVal);
+		return oldVal;
 	}
 	private void setFireControl(Control c) { mixin(S_TRACE);
 		if (_readOnly) return;
