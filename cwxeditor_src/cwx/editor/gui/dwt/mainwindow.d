@@ -863,7 +863,7 @@ private:
 				_display.asyncExec(new class Runnable {
 					override void run() { mixin(S_TRACE);
 						_inSaving = false;
-						_comm.refreshToolBar();
+						if (!_win.isDisposed()) _comm.refreshToolBar();
 					}
 				});
 			};
@@ -892,7 +892,7 @@ private:
 			if (!summary.isSaved) { mixin(S_TRACE);
 				// いまだ保存されていない場合は名前をつけて保存
 				if (backupSave) return false;
-				return __saveScenarioA(shell);
+				return saveScenarioAImpl(shell);
 			} else { mixin(S_TRACE);
 				auto cursors = setWaitCursors(shell);
 				scope (exit) {
@@ -920,9 +920,9 @@ private:
 		return true;
 	}
 	void saveScenarioA() { mixin(S_TRACE);
-		__saveScenarioA(_win);
+		saveScenarioAImpl(_win);
 	}
-	bool __saveScenarioA(Shell shell) { mixin(S_TRACE);
+	bool saveScenarioAImpl(Shell shell) { mixin(S_TRACE);
 		if (summary) { mixin(S_TRACE);
 			static immutable FILTER_WSN = 0;
 			static immutable FILTER_XML = 1;
@@ -3899,6 +3899,13 @@ public:
 			dStr ~= " - " ~ .text(__LINE__);
 			_prop.images.disposeImages();
 			dStr ~= " - " ~ .text(__LINE__);
+			while (_inSaving) {
+				if (d.readAndDispatch()) {
+					_catchedChanging = false;
+				} else {
+					d.sleep();
+				}
+			}
 			d.dispose();
 			dStr ~= " - " ~ .text(__LINE__);
 			_prop.var.save(dock);
