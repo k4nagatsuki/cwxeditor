@@ -161,7 +161,7 @@ class Skin {
 						if (!exists(file)) continue;
 						try { mixin(S_TRACE);
 							auto skin = new Skin(prop, file, enginePath);
-							r[skin.type] = skin;
+							r[file] = skin;
 						} catch (Exception e) {
 							printStackTrace();
 							debugln(e);
@@ -344,6 +344,10 @@ class Skin {
 	private const(CProps) _prop;
 	private string _enginePath;
 	private ClassicEngine _cEngine;
+	private ModData[Sex] _sexes;
+	private ModData[Period] _periods;
+	private ModData[Nature] _natures;
+	private ModData[Makings] _makings;
 
 	private string _path;
 	private string _skinFile;
@@ -1171,49 +1175,67 @@ class Skin {
 	@property
 	const
 	Sex[] allSexes() { mixin(S_TRACE);
-		return iota(0, 2).map!(a => Sex(a))().array();
+		return iota(0, _sexes ? _sexes.length : 2).map!(a => Sex(a))().array();
 	}
 	/// ditto
 	@property
 	const
 	Period[] allPeriods() { mixin(S_TRACE);
-		return iota(0, 4).map!(a => Period(a))().array();
+		return iota(0, _periods ? _periods.length : 4).map!(a => Period(a))().array();
 	}
 	/// ditto
 	@property
 	const
 	Nature[] allNatures() { mixin(S_TRACE);
-		return iota(0, 12).map!(a => Nature(a))().array();
+		return iota(0, _natures ? _natures.length : 12).map!(a => Nature(a))().array();
 	}
 	/// ditto
 	@property
 	const
 	auto normalNatures() { mixin(S_TRACE);
-		return iota(0, 6).map!(a => Nature(a))();
+		if (_natures) { mixin(S_TRACE);
+			Nature[] arr;
+			foreach (e, f; _natures) { mixin(S_TRACE);
+				if (!f.special) { mixin(S_TRACE);
+					arr ~= e;
+				}
+			}
+			return arr;
+		}
+		return iota(0, 6).map!(a => Nature(a))().array();
 	}
 	/// ditto
 	@property
 	const
 	auto extraNatures() { mixin(S_TRACE);
-		return iota(6, 12).map!(a => Nature(a))();
+		if (_natures) { mixin(S_TRACE);
+			Nature[] arr;
+			foreach (e, f; _natures) { mixin(S_TRACE);
+				if (f.special) { mixin(S_TRACE);
+					arr ~= e;
+				}
+			}
+			return arr;
+		}
+		return iota(6, 12).map!(a => Nature(a))().array();
 	}
 	/// ditto
 	@property
 	const
 	auto allMakings() { mixin(S_TRACE);
-		return iota(0, 48).map!(a => Makings(a))();
+		return iota(0, _makings ? _makings.length : 48).map!(a => Makings(a))();
 	}
 	/// ditto
 	@property
 	const
 	auto leftMakings() { mixin(S_TRACE);
-		return iota(0, 48, 2).map!(a => Makings(a))();
+		return iota(0, _makings ? _makings.length : 48, 2).map!(a => Makings(a))();
 	}
 	/// ditto
 	@property
 	const
 	auto rightMakings() { mixin(S_TRACE);
-		return iota(1, 48, 2).map!(a => Makings(a))();
+		return iota(1, _makings ? _makings.length : 48, 2).map!(a => Makings(a))();
 	}
 	/// ditto
 	@property
@@ -1225,21 +1247,25 @@ class Skin {
 	/// このスキンでの特徴の名前を返す。
 	const
 	string sexName(Sex e) { mixin(S_TRACE);
+		if (auto p = (e in _sexes)) return p.name;
 		return _cEngine.sexName.get(_prop.sys.sexName(e, ""), _prop.sys.sexName(e, legacyName));
 	}
 	/// ditto
 	const
 	string periodName(Period e) { mixin(S_TRACE);
+		if (auto p = (e in _periods)) return p.name;
 		return _cEngine.periodName.get(_prop.sys.periodName(e, ""), _prop.sys.periodName(e, legacyName));
 	}
 	/// ditto
 	const
 	string natureName(Nature e) { mixin(S_TRACE);
+		if (auto p = (e in _natures)) return p.name;
 		return _cEngine.natureName.get(_prop.sys.natureName(e, ""), _prop.sys.natureName(e, legacyName));
 	}
 	/// ditto
 	const
 	string makingsName(Makings e) { mixin(S_TRACE);
+		if (auto p = (e in _makings)) return p.name;
 		return _cEngine.makingsName.get(_prop.sys.makingsName(e, ""), _prop.sys.makingsName(e, legacyName));
 	}
 	/// ditto
@@ -1281,21 +1307,29 @@ class Skin {
 	const
 	int physicalMod(E)(E e, Physical phy) { mixin(S_TRACE);
 		static if (is(E:Sex)) {
+			auto pyArr = _sexes;
 			auto arr = _cEngine.physicalModSex;
 		} else static if (is(E:Period)) {
+			auto pyArr = _periods;
 			auto arr = _cEngine.physicalModPeriod;
 		} else static if (is(E:Nature)) {
+			auto pyArr = _natures;
 			auto arr = _cEngine.physicalModNature;
 		} else static if (is(E:Makings)) {
+			auto pyArr = _makings;
 			auto arr = _cEngine.physicalModMakings;
 		} else static assert (0);
 
+		if (auto p = (e in pyArr)) { mixin(S_TRACE);
+			if (auto p2 = (phy in p.physical)) { mixin(S_TRACE);
+				return *p2;
+			}
+		}
 		if (auto p1 = (e in arr)) { mixin(S_TRACE);
 			if (auto p2 = (phy in *p1)) { mixin(S_TRACE);
 				return *p2;
 			}
 		}
-
 		const(int[Physical]) init;
 		return _prop.sys.physicalMod!E(legacyName).get(e, init).get(phy, 0);
 	}
@@ -1310,21 +1344,29 @@ class Skin {
 		}
 
 		static if (is(E:Sex)) {
+			auto pyArr = _sexes;
 			auto arr = _cEngine.mentalModSex;
 		} else static if (is(E:Period)) {
+			auto pyArr = _periods;
 			auto arr = _cEngine.mentalModPeriod;
 		} else static if (is(E:Nature)) {
+			auto pyArr = _natures;
 			auto arr = _cEngine.mentalModNature;
 		} else static if (is(E:Makings)) {
+			auto pyArr = _makings;
 			auto arr = _cEngine.mentalModMakings;
 		} else static assert (0);
 
+		if (auto p = (e in pyArr)) { mixin(S_TRACE);
+			if (auto p2 = (mtl in p.mental)) { mixin(S_TRACE);
+				return *p2;
+			}
+		}
 		if (auto p1 = (e in arr)) { mixin(S_TRACE);
 			if (auto p2 = (mtl in *p1)) { mixin(S_TRACE);
 				return *p2;
 			}
 		}
-
 		const(real[Mental]) init;
 		return _prop.sys.mentalMod!E(legacyName).get(e, init).get(mtl, 0.0);
 	}
@@ -1336,6 +1378,10 @@ class Skin {
 			_skinFile = fname;
 			scope sNode = XNode.parse(std.file.readText(fname));
 			_races.length = 0;
+			_sexes = null;
+			_periods = null;
+			_natures = null;
+			_makings = null;
 			sNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 				pNode.onTag["Name"] = (ref XNode n) {_name = n.value;};
 				pNode.onTag["Type"] = (ref XNode n) {_type = n.value;};
@@ -1358,6 +1404,30 @@ class Skin {
 			sNode.onTag["Races"] = (ref XNode node) { mixin(S_TRACE);
 				node.onTag["Race"] = (ref XNode node) { mixin(S_TRACE);
 					_races ~= Race.fromNode(node, ver);
+				};
+				node.parse();
+			};
+			sNode.onTag["Sexes"] = (ref XNode node) { mixin(S_TRACE);
+				node.onTag["Sex"] = (ref XNode node) { mixin(S_TRACE);
+					_sexes[Sex(_sexes.length)] = ModData.fromNode(node, ver);
+				};
+				node.parse();
+			};
+			sNode.onTag["Periods"] = (ref XNode node) { mixin(S_TRACE);
+				node.onTag["Period"] = (ref XNode node) { mixin(S_TRACE);
+					_periods[Period(_periods.length)] = ModData.fromNode(node, ver);
+				};
+				node.parse();
+			};
+			sNode.onTag["Natures"] = (ref XNode node) { mixin(S_TRACE);
+				node.onTag["Nature"] = (ref XNode node) { mixin(S_TRACE);
+					_natures[Nature(_natures.length)] = ModData.fromNode(node, ver);
+				};
+				node.parse();
+			};
+			sNode.onTag["Makings"] = (ref XNode node) { mixin(S_TRACE);
+				node.onTag["Making"] = (ref XNode node) { mixin(S_TRACE);
+					_makings[Makings(_makings.length)] = ModData.fromNode(node, ver);
 				};
 				node.parse();
 			};
@@ -1384,5 +1454,63 @@ class Skin {
 			printStackTrace();
 			debugln(e);
 		}
+	}
+}
+
+/// 特性による能力変動のデータ。
+private class ModData {
+	private string _name = ""; /// 特性名。
+	private bool _special = false; /// 特殊型か。型特性である時のみ有効。
+	private int[Physical] _physical; /// 身体能力の変動値。
+	private double[Mental] _mental; /// 精神特徴の変動値。
+
+	private this () {}
+
+	/// 特性名。
+	@property
+	const
+	string name() { return _name; }
+
+	/// 特殊型か。型特性である時のみ有効。
+	@property
+	const
+	bool special() { return _special; }
+
+	/// 身体能力の変動値。
+	@property
+	const
+	const(int[Physical]) physical() { return _physical; }
+
+	/// 精神特徴の変動値。
+	@property
+	const
+	const(double[Mental]) mental() { return _mental; }
+
+	/// nodeからデータを生成する。
+	static ModData fromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
+		auto mod = new ModData;
+		mod._special = node.attr!bool("special", false, false);
+
+		node.onTag["Name"] = (ref XNode node) { mixin(S_TRACE);
+			mod._name = node.value;
+		};
+		node.onTag["Physical"] = (ref XNode node) { mixin(S_TRACE);
+			mod._physical[Physical.AGL] = node.attr!int("agl", false, 0);
+			mod._physical[Physical.DEX] = node.attr!int("dex", false, 0);
+			mod._physical[Physical.INT] = node.attr!int("int", false, 0);
+			mod._physical[Physical.MIN] = node.attr!int("min", false, 0);
+			mod._physical[Physical.STR] = node.attr!int("str", false, 0);
+			mod._physical[Physical.VIT] = node.attr!int("vit", false, 0);
+		};
+		node.onTag["Mental"] = (ref XNode node) { mixin(S_TRACE);
+			mod._mental[Mental.AGGRESSIVE] = node.attr!double("aggressive", false, 0);
+			mod._mental[Mental.BRAVE] = node.attr!double("brave", false, 0);
+			mod._mental[Mental.CAUTIOUS] = node.attr!double("cautious", false, 0);
+			mod._mental[Mental.CHEERFUL] = node.attr!double("cheerful", false, 0);
+			mod._mental[Mental.TRICKISH] = node.attr!double("trickish", false, 0);
+		};
+		node.parse();
+
+		return mod;
 	}
 }

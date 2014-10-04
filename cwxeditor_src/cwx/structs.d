@@ -1141,7 +1141,8 @@ struct EvTemplate {
 struct OpenHistory {
 	static const XML_NAME = "openHistory";
 	string path; /// シナリオのパス。
-	string skinName = ""; /// スキン名。skinEngineより優先される。
+	string skinType = ""; /// スキンタイプ。skinEngineより優先される。
+	string skinName = ""; /// スキン名。同タイプのスキンが複数ある場合に参照される。
 	string skinEngine = ""; /// リソースを使用するエンジン名。
 
 	/// XMLノードとして取り扱うための関数群。
@@ -1160,6 +1161,7 @@ struct OpenHistory {
 	/// ditto
 	const
 	private void toNodeImpl(ref XNode e) { mixin(S_TRACE);
+		if (skinType.length) e.newAttr("skinType", skinType);
 		if (skinName.length) e.newAttr("skinName", skinName);
 		if (skinEngine.length) e.newAttr("skinEngine", skinEngine);
 	}
@@ -1168,6 +1170,7 @@ struct OpenHistory {
 		// 以前のバージョンでは要素名が"value"になっている
 		// 可能性があるため、チェックしない
 
+		skinType = node.attr!(string)("skinType", false, "");
 		skinName = node.attr!(string)("skinName", false, "");
 		skinEngine = node.attr!(string)("skinEngine", false, "");
 		path = node.value;

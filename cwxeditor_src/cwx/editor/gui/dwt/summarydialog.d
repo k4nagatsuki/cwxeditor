@@ -32,6 +32,7 @@ import cwx.editor.gui.dwt.chooser;
 import std.conv;
 import std.string;
 import std.path;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -59,6 +60,7 @@ private:
 	Button _typeSkin;
 	Button _typeClassic;
 	Combo _type;
+	Tuple!(string, "type", string, "name")[] _skinInfo;
 	bool _hasLegacySkin;
 	ClassicEngine[] _classicEngines;
 	SplitPane _tab2Sash, _tab3Sash;
@@ -95,21 +97,23 @@ private:
 	@property
 	Skin selectedSkin() { mixin(S_TRACE);
 		if (_typeSkin.getSelection()) { mixin(S_TRACE);
-			auto p = _type.getText() in skinTable(_prop);
-			if (p) { mixin(S_TRACE);
-				return *p;
+			auto info = _skinInfo[_type.getSelectionIndex()];
+			foreach (file, skin; skinTable(_prop)) { mixin(S_TRACE);
+				if (info.type == skin.type && info.name == skin.name) { mixin(S_TRACE);
+					return skin;
+				}
 			}
 		} else if (_typeClassic.getSelection()) { mixin(S_TRACE);
 			int i = _type.getSelectionIndex();
 			if (_hasLegacySkin) { mixin(S_TRACE);
 				if (i == 0) { mixin(S_TRACE);
-					return .findSkin(_comm, _prop, _summ, null, "", false);
+					return .findSkin(_comm, _prop, _summ, null, "", "", false);
 				}
 				i--;
 			}
 			return .createClassicSkin(_prop, _classicEngines[i]);
 		}
-		return .findSkin2(_prop, _prop.var.etc.defaultSkin);
+		return .findSkin2(_prop, _prop.var.etc.defaultSkin, "");
 	}
 	void constructImage(Composite area) { mixin(S_TRACE);
 		_imgArea = area;
@@ -294,7 +298,7 @@ private:
 					mod(_type);
 					_type.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 					_type.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-					refreshTypes();
+					refreshTypes(skin);
 					.listener(_typeSkin, SWT.Selection, &refreshPreview);
 					.listener(_typeClassic, SWT.Selection, &refreshPreview);
 					.listener(_type, SWT.Modify, &refreshPreview);
@@ -358,7 +362,7 @@ private:
 	}
 	class RefreshTypes : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			refreshTypes();
+			refreshTypes(summSkin);
 		}
 	}
 	class Dispose : DisposeListener {
@@ -389,7 +393,11 @@ private:
 		refreshTypes();
 	}
 	void refreshTypes() { mixin(S_TRACE);
-		string selType = _summ.type;
+		refreshTypes(null);
+	}
+	void refreshTypes(Skin skin) { mixin(S_TRACE);
+		string selType = skin ? skin.type : _summ.type;
+		string selName = skin ? skin.name : "";
 		string selClassic = null;
 
 		if (!_typeSkin.getSelection() && !_typeClassic.getSelection()) { mixin(S_TRACE);
@@ -401,9 +409,11 @@ private:
 			selType = _summ.type;
 			selClassic = summSkin.legacyEngine.length ? summSkin.legacyEngine : null;
 		} else { mixin(S_TRACE);
-			if (_typeSkin.getSelection()) { mixin(S_TRACE);
-				selType = _type.getText();
-			} else if (_typeClassic.getSelection()) { mixin(S_TRACE);
+			if (_skinInfo) { mixin(S_TRACE);
+				auto info = _skinInfo[_type.getSelectionIndex()];
+				selType = info.type;
+				selName = info.name;
+			} else { mixin(S_TRACE);
 				int i = _type.getSelectionIndex();
 				if (-1 != i && i < _classicEngines.length) { mixin(S_TRACE);
 					if (_hasLegacySkin) { mixin(S_TRACE);
@@ -423,28 +433,45 @@ private:
 		}
 
 		_type.removeAll();
+		_skinInfo = [];
 		void initSkin() { mixin(S_TRACE);
 			// XML形式のスキン
-			string[] skins;
+			Skin[] skins;
 			foreach (key, value; skinTable(_prop)) { mixin(S_TRACE);
-				skins ~= key;
+				skins ~= value;
 			}
-			// FIXME: リンクに失敗する
-//			auto skins = table.keys;
-			if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
-				skins = sort!(ncmp)(skins);
-			} else { mixin(S_TRACE);
-				skins = sort!(cmp)(skins);
-			}
-			foreach (i, type; skins) { mixin(S_TRACE);
-				_type.add(type);
-				if (type == selType) { mixin(S_TRACE);
-					_type.select(i);
+			int skinCmp(in Skin skin1, in Skin skin2) { mixin(S_TRACE);
+				if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
+					int i = ncmp(skin1.name, skin2.name);
+					if (i == 0) i = ncmp(skin1.type, skin2.type);
+					return i;
+				} else { mixin(S_TRACE);
+					int i = cmp(skin1.name, skin2.name);
+					if (i == 0) i = cmp(skin1.type, skin2.type);
+					return i;
 				}
 			}
-			if (!_type.getItemCount()) { mixin(S_TRACE);
+			skins = sort!(skinCmp)(skins);
+			int typeSkin = -1;
+			foreach (i, skin2; skins) { mixin(S_TRACE);
+				_type.add(.tryFormat("%s(%s)", skin2.name, skin2.type));
+				_skinInfo ~= typeof(_skinInfo[0])(skin2.type, skin2.name);
+				if (skin2.type == selType) { mixin(S_TRACE);
+					if (typeSkin == -1) typeSkin = i;
+					if (skin2.name == selName) _type.select(i);
+				}
+			}
+			if (!skins) { mixin(S_TRACE);
 				// スキンが無い
 				_type.add(_prop.var.etc.defaultSkin);
+				_skinInfo ~= typeof(_skinInfo[0])(_prop.var.etc.defaultSkin, "");
+			}
+			if (_type.getSelectionIndex() == -1) { mixin(S_TRACE);
+				if (typeSkin == -1) { mixin(S_TRACE);
+					_type.select(typeSkin);
+				} else { mixin(S_TRACE);
+					_type.select(0);
+				}
 			}
 		}
 		_hasLegacySkin = false;
@@ -545,7 +572,7 @@ protected:
 		_summ.rCouponNum = _rCouponNum.getSelection();
 		_summ.startArea = _startArea.selected;
 		if (_typeSkin.getSelection()) { mixin(S_TRACE);
-			_summ.type = _type.getText();
+			_summ.type = _skinInfo[_type.getSelectionIndex()].type;
 		} else { mixin(S_TRACE);
 			_summ.type = "";
 		}

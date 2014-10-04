@@ -200,7 +200,8 @@ private:
 		return "";
 	}
 	void selectEngine() { mixin(S_TRACE);
-		selectFile(_enginePath, [_prop.var.etc.engine], [_prop.var.etc.engine],
+		auto ext = [_prop.var.etc.engine, "cardwirth.py"].join(";");
+		selectFile(_enginePath, [.tryFormat(_prop.msgs.filterEnginePath, ext)], [ext],
 			_prop.var.etc.engine, .tryFormat(_prop.msgs.dlgTitEnginePath, _prop.var.etc.engine),
 			_prop.var.etc.enginePath);
 	}
@@ -1523,7 +1524,7 @@ struct OldSettings {
 			comm.refSortCondition.call();
 		}
 		if (refSkin) { mixin(S_TRACE);
-			comm.skin = findSkin(comm, prop, comm.summary, null, comm.skin.legacyEngine, false);
+			comm.skin = findSkin(comm, prop, comm.summary, null, "", comm.skin.legacyEngine, false);
 			comm.refSkin.call();
 		}
 		comm.refClassicSkin.call();

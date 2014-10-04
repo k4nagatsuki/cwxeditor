@@ -35,18 +35,28 @@ bool findCWPy(Props prop, string sPath) { mixin(S_TRACE);
 	return false;
 }
 
-Skin findSkin2(const(Props) prop, string type) { mixin(S_TRACE);
-	auto p = type in skinTable(prop);
-	if (p) return *p;
+Skin findSkin2(const(Props) prop, string type, string name) { mixin(S_TRACE);
+	Skin typeSkin = null;
+	foreach (path, skin; skinTable(prop)) { mixin(S_TRACE);
+		if (skin.type == type) { mixin(S_TRACE);
+			if (!typeSkin) typeSkin = skin;
+			if (!name || name == skin.name) return skin;
+		}
+	}
+	if (typeSkin) return typeSkin;
+
 	static Skin[string] emptySkins;
-	p = prop.enginePath in emptySkins;
+	auto p = prop.enginePath in emptySkins;
 	if (p) return *p;
 	auto r = new Skin(prop.parent, prop.enginePath);
 	emptySkins[prop.enginePath] = r;
 	return r;
 }
 bool hasSkin(in Props prop, string type) { mixin(S_TRACE);
-	return (type in skinTable(prop)) !is null;
+	foreach (path, skin; skinTable(prop)) { mixin(S_TRACE);
+		if (skin.type == type) return true;
+	}
+	return false;
 }
 Skin[string] skinTable(const(Props) prop) { mixin(S_TRACE);
 	return Skin.table(prop.parent, prop.enginePath);

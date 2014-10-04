@@ -1580,6 +1580,7 @@ class Msgs : Properties {
 	auto baseSettings = Msg("baseSettings", "基本設定");
 	auto reference = Msg("reference", "...");
 	auto enginePath = Msg("enginePath", "%1$sの場所");
+	auto filterEnginePath = Msg("filterEnginePath", "CardWirthPy (%1$s)");
 	auto findEnginePath = Msg("findEnginePath", "シナリオの場所から自動的に探す");
 	auto dlgTitEnginePath = Msg("dlgTitEnginePath", "%1$sの場所");
 	auto tempDir = Msg("tempDir", "シナリオの一時展開先");

@@ -42,12 +42,12 @@ import std.file;
 
 import org.eclipse.swt.all;
 
-Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, string legacyEngine = "", bool appendClassicSkin = true) { mixin(S_TRACE);
+Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, string name = "", string legacyEngine = "", bool appendClassicSkin = true) { mixin(S_TRACE);
 	if (summ && !summ.legacy) { mixin(S_TRACE);
 		findCWPy(prop, summ.useTemp ? summ.zipName : summ.scenarioPath);
 	}
 	if (!summ) { mixin(S_TRACE);
-		return findSkin2(prop, prop.var.etc.defaultSkin);
+		return findSkin2(prop, prop.var.etc.defaultSkin, "");
 	}
 	if (type is null) type = summ.type;
 	if (summ.legacy && !type.length) { mixin(S_TRACE);
@@ -97,7 +97,7 @@ Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, str
 		}
 		if (skin) return skin;
 	}
-	return findSkin2(prop, type);
+	return findSkin2(prop, type, name);
 }
 
 class Dlg(Arg ...) {

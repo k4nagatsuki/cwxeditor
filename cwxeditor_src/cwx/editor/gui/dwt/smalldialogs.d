@@ -44,8 +44,10 @@ private:
 
 	Text _name;
 	Combo _skinC;
+	string[] _skinTypes;
 	Combo _templateC;
-	string _nameVal, _skinVal;
+	string _nameVal;
+	string _skinVal = "";
 	Button _baseSkin;
 	Button _baseTemplate;
 	ScTemplate[int] _tTbl;
@@ -67,10 +69,11 @@ private:
 		_createScDir.setEnabled(legacy);
 	}
 	void refSkinVal() { mixin(S_TRACE);
-		if (_skinC.getSelectionIndex() == _skinC.getItemCount() - 1) { mixin(S_TRACE);
+		auto index = _skinC.getSelectionIndex();
+		if (index == _skinC.getItemCount() - 1) { mixin(S_TRACE);
 			_skinVal = "";
 		} else { mixin(S_TRACE);
-			_skinVal = _skinC.getText();
+			_skinVal = _skinTypes[index];
 		}
 	}
 	void refClassic() { mixin(S_TRACE);
@@ -198,28 +201,32 @@ protected:
 			listener(_baseSkin, SWT.Selection, &refRadio);
 			_skinC = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			_skinC.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			string[] skins;
+			_skinTypes = [];
 			foreach (key, value; skinTable(_prop)) { mixin(S_TRACE);
-				skins ~= key;
+				if (!.contains(_skinTypes, value.type)) { mixin(S_TRACE);
+					_skinTypes ~= value.type;
+				}
 			}
-			// FIXME: リンクに失敗する
-//			auto skins = skinTable(_prop).keys;
 			if (_prop.var.etc.logicalSort) { mixin(S_TRACE);
-				skins = sort!(ncmp)(skins);
+				_skinTypes = sort!(ncmp)(_skinTypes);
 			} else { mixin(S_TRACE);
-				skins = sort!(cmp)(skins);
+				_skinTypes = sort!(cmp)(_skinTypes);
 			}
-			foreach (type; skins) { mixin(S_TRACE);
+			foreach (type; _skinTypes) { mixin(S_TRACE);
 				_skinC.add(type);
 			}
 			if (!_skinC.getItemCount()) { mixin(S_TRACE);
 				// スキンが無い
 				_skinC.add(_prop.var.etc.defaultSkin);
+				_skinTypes ~= _prop.var.etc.defaultSkin;
+				_skinVal = _prop.var.etc.defaultSkin;
 			}
 			_skinC.add(_prop.msgs.classic);
 			_skinC.setText(_prop.var.etc.defaultSkin);
-			_skinVal = _prop.var.etc.defaultSkin;
-			if (_skinC.getSelectionIndex() == -1) _skinC.select(0);
+			if (_skinTypes) {
+				_skinC.select(0);
+				_skinVal = _skinTypes[0];
+			}
 
 			_baseTemplate = new Button(grp, SWT.RADIO);
 			_baseTemplate.setText(_prop.msgs.scenarioTemplate);
@@ -317,7 +324,7 @@ protected:
 						resetCursors(cursors);
 					}
 					// 非シナリオのディレクトリをベースとする
-					summ = Summary.createScenario(_prop.sys, _prop.tempPath, name, findSkin2(_prop, skin));
+					summ = Summary.createScenario(_prop.sys, _prop.tempPath, name, findSkin2(_prop, skin, ""));
 					tPath.copyAll(summ.scenarioPath);
 				} else { mixin(S_TRACE);
 					auto cursors = setWaitCursors(topShell(getShell()));
@@ -338,7 +345,7 @@ protected:
 				}
 				if (ok) { mixin(S_TRACE);
 					if (!summ) { mixin(S_TRACE);
-						summ = Summary.createScenario(_prop.sys, _prop.tempPath, name, findSkin2(_prop, skin));
+						summ = Summary.createScenario(_prop.sys, _prop.tempPath, name, findSkin2(_prop, skin, ""));
 					}
 					summ.setBaseParams(name, _prop.var.etc.defaultAuthor);
 					_prop.var.etc.defaultScenarioTemplate = tPath;

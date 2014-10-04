@@ -510,7 +510,7 @@ private:
 				if (!dir.exists()) mkdirRecurse(dir);
 				summ = new Summary(dlg.name, dlg.skin, dir, false, true);
 			} else { mixin(S_TRACE);
-				summ = Summary.createScenario(_prop.sys, _prop.tempPath, dlg.name, findSkin2(_prop, dlg.skin));
+				summ = Summary.createScenario(_prop.sys, _prop.tempPath, dlg.name, findSkin2(_prop, dlg.skin, ""));
 			}
 			summ.author = _prop.var.etc.defaultAuthor;
 			openScenario(summ);
@@ -602,8 +602,8 @@ private:
 	}
 	public Skin findSkinFromHistory(in Summary summ, out OpenHistory hist) { mixin(S_TRACE);
 		hist = findHist(createHistString(summ));
-		if (summ.legacy && hist.path.length && (hist.skinName.length || hist.skinEngine.length)) { mixin(S_TRACE);
-			return findSkin(_comm, _prop, summ, hist.skinName, hist.skinEngine);
+		if (summ.legacy && hist.path.length && (hist.skinType.length || hist.skinEngine.length)) { mixin(S_TRACE);
+			return findSkin(_comm, _prop, summ, hist.skinType, hist.skinName, hist.skinEngine);
 		}
 		return findSkin(_comm, _prop, summ);
 	}
@@ -615,8 +615,8 @@ private:
 			OpenHistory hist;
 			auto skin = findSkinFromHistory(summ, hist);
 			dStr ~= " - " ~ .text(__LINE__);
-			if (summ.legacy && hist.path.length && (hist.skinName.length || hist.skinEngine.length)) { mixin(S_TRACE);
-				summ.type = hist.skinName;
+			if (summ.legacy && hist.path.length && (hist.skinType.length || hist.skinEngine.length)) { mixin(S_TRACE);
+				summ.type = hist.skinType;
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 			_lastBackup = Clock.currTime();
@@ -1004,7 +1004,7 @@ private:
 				scope (exit) _dirWin.resumeTrace();
 				string tempPath = _prop.tempPath;
 				bool expandXMLs = _prop.var.etc.expandXMLs;
-				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin);
+				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin, "");
 				try { mixin(S_TRACE);
 					beforeSave();
 					synchronized (_saveSync) { mixin(S_TRACE);
@@ -1033,7 +1033,12 @@ private:
 		return false;
 	}
 	void execEngineP(string path) { mixin(S_TRACE);
-		if (!exec(path, dirName(nabs(path)))) { mixin(S_TRACE);
+		string path2 = path;
+		string dir = dirName(nabs(path));
+		if (path.extension().toLower() == ".py") { mixin(S_TRACE);
+			path2 = .tryFormat("python \"%s\"", path);
+		}
+		if (!exec(path2, dir)) { mixin(S_TRACE);
 			MessageBox.showWarning(.tryFormat(_prop.msgs.errorExecEngine, .baseName(path)),
 				_prop.msgs.dlgTitWarning, _win);
 		}
@@ -1273,12 +1278,15 @@ private:
 	}
 
 	void setHistSkin() { mixin(S_TRACE);
-		string skinName = summary.type;
+		string skinType = summary.type;
+		string skinName = "";
+		if (summary.type == _comm.skin.type) skinName = _comm.skin.name;
 		string skinEngine = _comm.skin.legacyEngine;
 		auto hist = createHistString(summary);
 		auto hists = _prop.var.etc.openHistories.dup;
 		foreach (i, ref h; hists) { mixin(S_TRACE);
 			if (cfnmatch(fullHistToHist(h.path), hist)) { mixin(S_TRACE);
+				h.skinType = skinType;
 				h.skinName = skinName;
 				h.skinEngine = skinEngine;
 				break;
@@ -1953,7 +1961,7 @@ public:
 
 			dStr ~= " - " ~ .text(__LINE__);
 			_comm = new Commons(_prop);
-			_comm.skin = findSkin2(_prop, _prop.var.etc.defaultSkin);
+			_comm.skin = findSkin2(_prop, _prop.var.etc.defaultSkin, "");
 			dStr ~= " - " ~ .text(__LINE__);
 
 			auto d = new Display;
@@ -1966,7 +1974,14 @@ public:
 				dStr ~= " - " ~ .text(__LINE__);
 				engineDir = dirName(nabs(_prop.enginePath));
 				auto skinTable = .skinTable(_prop);
-				if (!(_prop.var.etc.defaultSkin in skinTable)) { mixin(S_TRACE);
+				bool hasSkin = false;
+				foreach (skinFile, skin; skinTable) { mixin(S_TRACE);
+					if (_prop.var.etc.defaultSkin == skin.type) { mixin(S_TRACE);
+						hasSkin = true;
+						break;
+					}
+				}
+				if (!hasSkin) { mixin(S_TRACE);
 					MessageBox.showWarning(.tryFormat(_prop.msgs.loadSkinError, _prop.var.etc.defaultSkin),
 						_prop.msgs.dlgTitWarning, null);
 				}
@@ -3773,7 +3788,7 @@ public:
 			if (_opt.create) { mixin(S_TRACE);
 				string name = _opt.createName is null ? _prop.msgs.newScenarioName : _opt.createName;
 				string skin = _opt.createSkin is null ? _prop.var.etc.defaultSkin : _opt.createSkin;
-				auto summ = Summary.createScenario(_prop.sys, _prop.tempPath, name, findSkin2(_prop, skin));
+				auto summ = Summary.createScenario(_prop.sys, _prop.tempPath, name, findSkin2(_prop, skin, ""));
 				summ.author = _prop.var.etc.defaultAuthor;
 				openScenario(summ);
 				statusLine = "";
