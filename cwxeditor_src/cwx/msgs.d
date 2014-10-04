@@ -1262,11 +1262,6 @@ class Msgs : Properties {
 	auto elementDescFire = Msg("elementDescFire", "炎が無効でない存在に有効");
 	auto elementDescIce = Msg("elementDescIce", "冷気が無効でない存在に有効");
 
-	const string sexName(Sex id) { mixin(S_TRACE);
-		mixin(EnumToStringSwitch!(Sex, "sexName"));
-	}
-	auto sexNameMale = Msg("sexNameMale", "男/♂");
-	auto sexNameFemale = Msg("sexNameFemale", "女/♀");
 	auto sexUnknown = Msg("sexUnknown", "謎/？");
 	auto periodUnknown = Msg("periodUnknown", "不明");
 	auto natureUnknown = Msg("natureUnknown", "その他");

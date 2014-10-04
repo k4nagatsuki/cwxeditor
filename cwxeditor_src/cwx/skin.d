@@ -13,16 +13,18 @@ import cwx.background;
 import cwx.sjis;
 import cwx.system;
 
-import std.exception;
-import std.conv;
+import std.algorithm;
+import std.array;
 import std.ascii;
+import std.conv;
+import std.exception;
 import std.file;
 import std.path;
-import std.utf;
-import std.uni;
-import std.string;
-import std.array;
+import std.range;
 import std.regex : regex, match;
+import std.string;
+import std.uni;
+import std.utf;
 
 /// BgImageをBgImageSに変換する。
 BgImageS[] createBgImageSs(in BgImage[] bgs) { mixin(S_TRACE);
@@ -988,9 +990,9 @@ class Skin {
 				}
 			}
 			if (logicalSort) { mixin(S_TRACE);
-				r = sort!(fnncmp)(r);
+				r = cwx.utils.sort!(fnncmp)(r);
 			} else { mixin(S_TRACE);
-				r = sort!(fncmp)(r);
+				r = cwx.utils.sort!(fncmp)(r);
 			}
 			putCache(dir, Files(logicalSort, flag, r));
 			return r;
@@ -1164,6 +1166,61 @@ class Skin {
 	@property
 	const
 	string evtChildOK() {return _cEngine.okText is null ? _prop.sys.evtChildOK(legacyName) : _cEngine.okText;}
+
+	/// このスキンでの特徴の一覧を返す。
+	@property
+	const
+	Sex[] allSexes() { mixin(S_TRACE);
+		return iota(0, 2).map!(a => Sex(a))().array();
+	}
+	/// ditto
+	@property
+	const
+	Period[] allPeriods() { mixin(S_TRACE);
+		return iota(0, 4).map!(a => Period(a))().array();
+	}
+	/// ditto
+	@property
+	const
+	Nature[] allNatures() { mixin(S_TRACE);
+		return iota(0, 12).map!(a => Nature(a))().array();
+	}
+	/// ditto
+	@property
+	const
+	auto normalNatures() { mixin(S_TRACE);
+		return iota(0, 6).map!(a => Nature(a))();
+	}
+	/// ditto
+	@property
+	const
+	auto extraNatures() { mixin(S_TRACE);
+		return iota(6, 12).map!(a => Nature(a))();
+	}
+	/// ditto
+	@property
+	const
+	auto allMakings() { mixin(S_TRACE);
+		return iota(0, 48).map!(a => Makings(a))();
+	}
+	/// ditto
+	@property
+	const
+	auto leftMakings() { mixin(S_TRACE);
+		return iota(0, 48, 2).map!(a => Makings(a))();
+	}
+	/// ditto
+	@property
+	const
+	auto rightMakings() { mixin(S_TRACE);
+		return iota(1, 48, 2).map!(a => Makings(a))();
+	}
+	/// ditto
+	@property
+	const
+	Makings reverseMakings(Makings m) { mixin(S_TRACE);
+		return Makings((m & 1) ? (m - 1) : (m + 1));
+	}
 
 	/// このスキンでの特徴の名前を返す。
 	const

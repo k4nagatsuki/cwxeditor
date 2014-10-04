@@ -375,7 +375,7 @@ private:
 			comp2.setLayout(zeroMarginGridLayout(2, false));
 			{ mixin(S_TRACE);
 				auto comp3 = createButtonGroup(comp2, _prop.msgs.sexTitle, 1, 1);
-				foreach (s; SEX_ALL) { mixin(S_TRACE);
+				foreach (s; skin.allSexes) { mixin(S_TRACE);
 					auto name = skin.sexName(s);
 					_sex[s] = createR(comp3, _prop.msgs.sex.get(name, name));
 				}
@@ -383,7 +383,7 @@ private:
 			}
 			{ mixin(S_TRACE);
 				auto comp3 = createButtonGroup(comp2, _prop.msgs.periodTitle, 2, 1);
-				foreach (p; PERIOD_ALL) { mixin(S_TRACE);
+				foreach (p; skin.allPeriods) { mixin(S_TRACE);
 					auto name = skin.periodName(p);
 					_period[p] = createR(comp3, _prop.msgs.period.get(name, name));
 				}
@@ -408,8 +408,9 @@ private:
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto radio = cast(Button) e.widget;
 			if (radio.getSelection()) { mixin(S_TRACE);
+				auto skin = summSkin;
 				auto m = cast(Makings) (cast(Integer) radio.getData()).intValue();
-				auto r = reverseMakings(m);
+				auto r = skin.reverseMakings(m);
 				_makings[r].setSelection(false);
 			}
 		}
@@ -421,7 +422,7 @@ private:
 		{ mixin(S_TRACE);
 			auto comp3 = createButtonGroup(comp, _prop.msgs.coupons, 4, 1, true);
 			auto sl = new MSListener;
-			foreach (m; MAKINGS_LEFT) { mixin(S_TRACE);
+			foreach (m; skin.leftMakings) { mixin(S_TRACE);
 				void createR(Makings m) { mixin(S_TRACE);
 					auto radio = new Button(comp3, SWT.CHECK);
 					mod(radio);
@@ -434,7 +435,7 @@ private:
 					_makings[m] = radio;
 				}
 				createR(m);
-				createR(reverseMakings(m));
+				createR(skin.reverseMakings(m));
 			}
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
@@ -1088,6 +1089,7 @@ private:
 
 		bool first = (0 == _natureComp.getChildren().length);
 		string nature = "";
+		auto skin = summSkin;
 		if (first || _showSpNature != _prop.var.etc.showSpNature) { mixin(S_TRACE);
 			foreach (n, b; _nature) { mixin(S_TRACE);
 				if (b.getSelection()) { mixin(S_TRACE);
@@ -1117,12 +1119,12 @@ private:
 					selected = true;
 				}
 			}
-			foreach (n; NATURE_DEF) { mixin(S_TRACE);
+			foreach (n; skin.normalNatures) { mixin(S_TRACE);
 				put(n);
 			}
 			if (_prop.var.etc.showSpNature) { mixin(S_TRACE);
 				sep();
-				foreach (n; NATURE_EXT) { mixin(S_TRACE);
+				foreach (n; skin.extraNatures) { mixin(S_TRACE);
 					put(n);
 				}
 			}
@@ -1143,7 +1145,7 @@ private:
 				if (_natureU.getSelection()) { mixin(S_TRACE);
 					cp: foreach (i, cp; _couponView.coupons) { mixin(S_TRACE);
 						if (0 == cp.value) { mixin(S_TRACE);
-							foreach (n; NATURE_EXT) { mixin(S_TRACE);
+							foreach (n; skin.extraNatures) { mixin(S_TRACE);
 								if (cp.name == summSkin.natureCoupon(n)) { mixin(S_TRACE);
 									_nature[n].setSelection(true);
 									_natureU.setSelection(false);

@@ -2091,6 +2091,7 @@ private:
 			_array[i].mnemonic = _mnemonic.getText();
 			_array[i].hotkey = _hotkey.acceleratorText();
 		} else static if (is(T:ClassicEngine)) {
+			auto emptySkin = new Skin(_prop.parent, "");
 			_array[i].enginePath = _cEnginePath.getText();
 			_array[i].dataDirName = _cEngineDataDir.getText();
 			_array[i].execute = _cEngineExecute.getText();
@@ -2098,22 +2099,22 @@ private:
 			_array[i].hotkey = _hotkey.acceleratorText();
 			_array[i].clearFeatures();
 			if (_okText.getText(2).length) _array[i].okText = _okText.getText(2);
-			foreach (f; SEX_ALL) { mixin(S_TRACE);
+			foreach (f; emptySkin.allSexes) { mixin(S_TRACE);
 				auto t = _sexName[f].getText(2);
 				if (t.length) _array[i].sexName[_prop.sys.sexName(f, "")] = t;
 			}
-			foreach (f; PERIOD_ALL) { mixin(S_TRACE);
+			foreach (f; emptySkin.allPeriods) { mixin(S_TRACE);
 				auto t = _periodName[f].getText(2);
 				if (t.length) _array[i].periodName[_prop.sys.periodName(f, "")] = t;
 			}
-			foreach (f; NATURE_DEF ~ NATURE_EXT) { mixin(S_TRACE);
+			foreach (f; emptySkin.allNatures) { mixin(S_TRACE);
 				auto t = _natureName[f].getText(2);
 				if (t.length) _array[i].natureName[_prop.sys.natureName(f, "")] = t;
 			}
-			foreach (Makings f; MAKINGS_LEFT) { mixin(S_TRACE);
+			foreach (Makings f; emptySkin.leftMakings) { mixin(S_TRACE);
 				auto t = _makingsName[f].getText(2);
 				if (t.length) _array[i].makingsName[_prop.sys.makingsName(f, "")] = t;
-				f = reverseMakings(f);
+				f = emptySkin.reverseMakings(f);
 				t = _makingsName[f].getText(2);
 				if (t.length) _array[i].makingsName[_prop.sys.makingsName(f, "")] = t;
 			}
@@ -2778,6 +2779,7 @@ public:
 		}
 		static if (is(T:ClassicEngine)) {
 			{ mixin(S_TRACE);
+				auto emptySkin = new Skin(_prop.parent, "");
 				_ceNameWin = new Shell(parent.getShell(), SWT.TITLE | SWT.RESIZE | SWT.TOOL | SWT.CLOSE);
 				_ceNameWin.setLayout(new FillLayout);
 				_ceNameWin.setText(_prop.msgs.dlgTitFeatureName);
@@ -2813,26 +2815,26 @@ public:
 
 				_okText = new TableItem(_featureName, SWT.NONE);
 				_okText.setText(0, _prop.sys.evtChildOK(""));
-				foreach (f; SEX_ALL) { mixin(S_TRACE);
+				foreach (f; emptySkin.allSexes) { mixin(S_TRACE);
 					auto itm = new TableItem(_featureName, SWT.NONE);
 					itm.setText(0, _prop.sys.sexName(f, ""));
 					_sexName[f] = itm;
 				}
-				foreach (f; PERIOD_ALL) { mixin(S_TRACE);
+				foreach (f; emptySkin.allPeriods) { mixin(S_TRACE);
 					auto itm = new TableItem(_featureName, SWT.NONE);
 					itm.setText(0, _prop.sys.periodName(f, ""));
 					_periodName[f] = itm;
 				}
-				foreach (f; NATURE_DEF ~ NATURE_EXT) { mixin(S_TRACE);
+				foreach (f; emptySkin.allNatures) { mixin(S_TRACE);
 					auto itm = new TableItem(_featureName, SWT.NONE);
 					itm.setText(0, _prop.sys.natureName(f, ""));
 					_natureName[f] = itm;
 				}
-				foreach (Makings f; MAKINGS_LEFT) { mixin(S_TRACE);
+				foreach (Makings f; emptySkin.leftMakings) { mixin(S_TRACE);
 					auto itm = new TableItem(_featureName, SWT.NONE);
 					itm.setText(0, _prop.sys.makingsName(f, ""));
 					_makingsName[f] = itm;
-					f = reverseMakings(f);
+					f = emptySkin.reverseMakings(f);
 					auto itmR = new TableItem(_featureName, SWT.NONE);
 					itmR.setText(0, _prop.sys.makingsName(f, ""));
 					_makingsName[f] = itmR;

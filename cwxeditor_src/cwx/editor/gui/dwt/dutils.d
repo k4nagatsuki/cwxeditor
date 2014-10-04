@@ -1702,18 +1702,24 @@ string[] castCoupons(Commons comm, bool talker, string legacyName) { mixin(S_TRA
 			r ~= c;
 		}
 	}
-	foreach (e; SEX_ALL) { mixin(S_TRACE);
+	foreach (e; comm.skin.allSexes) { mixin(S_TRACE);
 		r ~= comm.skin.sexCoupon(e);
 	}
-	foreach (e; PERIOD_ALL) { mixin(S_TRACE);
+	foreach (e; comm.skin.allPeriods) { mixin(S_TRACE);
 		r ~= comm.skin.periodCoupon(e);
 	}
-	foreach (e; comm.prop.var.etc.showSpNature ? (NATURE_DEF ~ NATURE_EXT) : NATURE_DEF) { mixin(S_TRACE);
-		r ~= comm.skin.natureCoupon(e);
+	if (comm.prop.var.etc.showSpNature) { mixin(S_TRACE);
+		foreach (e; comm.skin.allNatures) { mixin(S_TRACE);
+			r ~= comm.skin.natureCoupon(e);
+		}
+	} else { mixin(S_TRACE);
+		foreach (e; comm.skin.normalNatures) { mixin(S_TRACE);
+			r ~= comm.skin.natureCoupon(e);
+		}
 	}
-	foreach (e; MAKINGS_LEFT) { mixin(S_TRACE);
+	foreach (e; comm.skin.leftMakings) { mixin(S_TRACE);
 		r ~= comm.skin.makingsCoupon(e);
-		r ~= comm.skin.makingsCoupon(reverseMakings(e));
+		r ~= comm.skin.makingsCoupon(comm.skin.reverseMakings(e));
 	}
 	return r;
 }

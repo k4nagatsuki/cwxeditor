@@ -894,6 +894,178 @@ struct ClassicEngine {
 	}
 }
 
+/// クラシックな性別を文字列に変換する。
+string fromSex(Sex e) { mixin(S_TRACE);
+	if (e == Sex(0)) return "Male";   // 男
+	if (e == Sex(1)) return "Female"; // 女
+	throw new Exception(e.text());
+}
+/// ditto
+Sex toSex(string e) { mixin(S_TRACE);
+	final switch (e) {
+	case "Male":   return Sex(0);
+	case "Female": return Sex(1);
+	}
+}
+
+/// クラシックな年代を文字列に変換する。
+string fromPeriod(Period e) { mixin(S_TRACE);
+	if (e == Period(0)) return "Child"; // 子供
+	if (e == Period(1)) return "Young"; // 若者
+	if (e == Period(2)) return "Adult"; // 大人
+	if (e == Period(3)) return "Old";   // 老人
+	throw new Exception(e.text());
+}
+/// ditto
+Period toPeriod(string e) { mixin(S_TRACE);
+	final switch (e) {
+	case "Child": return Period(0); // 子供
+	case "Young": return Period(1); // 若者
+	case "Adult": return Period(2); // 大人
+	case "Old":   return Period(3); // 老人
+	}
+}
+
+/// クラシックな素質を文字列に変換する。
+string fromNature(Nature e) { mixin(S_TRACE);
+	if (e == Nature(0))  return "Spi"; // 標準型
+	if (e == Nature(1))  return "Agl"; // 万能型
+	if (e == Nature(2))  return "Str"; // 勇将型
+	if (e == Nature(3))  return "Vit"; // 豪傑型
+	if (e == Nature(4))  return "Int"; // 知将型
+	if (e == Nature(5))  return "Sch"; // 策士型
+	if (e == Nature(6))  return "Med"; // 凡庸型
+	if (e == Nature(7))  return "Bri"; // 英明型
+	if (e == Nature(8))  return "Mat"; // 無双型
+	if (e == Nature(9))  return "Gen"; // 天才型
+	if (e == Nature(10)) return "Her"; // 英雄型
+	if (e == Nature(11)) return "Div"; // 神仙型
+	throw new Exception(e.text());
+}
+/// ditto
+Nature toNature(string e) { mixin(S_TRACE);
+	final switch (e) {
+	case "Spi": return Nature(0);  // 標準型
+	case "Agl": return Nature(1);  // 万能型
+	case "Str": return Nature(2);  // 勇将型
+	case "Vit": return Nature(3);  // 豪傑型
+	case "Int": return Nature(4);  // 知将型
+	case "Sch": return Nature(5);  // 策士型
+	case "Med": return Nature(6);  // 凡庸型
+	case "Bri": return Nature(7);  // 英明型
+	case "Mat": return Nature(8);  // 無双型
+	case "Gen": return Nature(9);  // 天才型
+	case "Her": return Nature(10); // 英雄型
+	case "Div": return Nature(11); // 神仙型
+	}
+}
+
+/// クラシックな特徴を文字列に変換する。
+string fromMakings(Makings e) { mixin(S_TRACE);
+	if (e == Makings(0))  return "LooksB";   // 秀麗
+	if (e == Makings(1))  return "LooksU";   // 醜悪
+	if (e == Makings(2))  return "ClassH";   // 高貴の出
+	if (e == Makings(3))  return "ClassL";   // 下賎の出
+	if (e == Makings(4))  return "BredT";    // 都会育ち
+	if (e == Makings(5))  return "BredC";    // 田舎育ち
+	if (e == Makings(6))  return "MeansH";   // 裕福
+	if (e == Makings(7))  return "MeansL";   // 貧乏
+	if (e == Makings(8))  return "FaithF";   // 厚き信仰
+	if (e == Makings(9))  return "FaithI";   // 不心得者
+	if (e == Makings(10)) return "ReliR";   // 誠実
+	if (e == Makings(11)) return "ReliU";   // 不実
+	if (e == Makings(12)) return "DispC";   // 冷静沈着
+	if (e == Makings(13)) return "DispS";   // 猪突猛進
+	if (e == Makings(14)) return "DesireG"; // 貪欲
+	if (e == Makings(15)) return "DesireC"; // 無欲
+	if (e == Makings(16)) return "DevoteD"; // 献身的
+	if (e == Makings(17)) return "DevoteS"; // 利己的
+	if (e == Makings(18)) return "DiscO";   // 秩序派
+	if (e == Makings(19)) return "DiscC";   // 混沌派
+	if (e == Makings(20)) return "PolitR";  // 進取派
+	if (e == Makings(21)) return "PolitC";  // 保守派
+	if (e == Makings(22)) return "SenseR";  // 神経質
+	if (e == Makings(23)) return "SenseS";  // 鈍感
+	if (e == Makings(24)) return "CurioB";  // 好奇心旺盛
+	if (e == Makings(25)) return "CurioI";  // 無頓着
+	if (e == Makings(26)) return "NotionR"; // 過激
+	if (e == Makings(27)) return "NotionM"; // 穏健
+	if (e == Makings(28)) return "IdeaO";   // 楽観的
+	if (e == Makings(29)) return "IdeaP";   // 悲観的
+	if (e == Makings(30)) return "WorkH";   // 勤勉
+	if (e == Makings(31)) return "WorkS";   // 遊び人
+	if (e == Makings(32)) return "CharC";   // 陽気
+	if (e == Makings(33)) return "CharB";   // 内気
+	if (e == Makings(34)) return "StyleF";  // 派手
+	if (e == Makings(35)) return "StyleP";  // 地味
+	if (e == Makings(36)) return "PrideP";  // 高慢
+	if (e == Makings(37)) return "PrideM";  // 謙虚
+	if (e == Makings(38)) return "RefR";    // 上品
+	if (e == Makings(39)) return "RefB";    // 粗野
+	if (e == Makings(40)) return "GraceG";  // 武骨
+	if (e == Makings(41)) return "GraceR";  // 繊細
+	if (e == Makings(42)) return "LinerH";  // 硬派
+	if (e == Makings(43)) return "LinerM";  // 軟派
+	if (e == Makings(44)) return "PerS";    // お人好し
+	if (e == Makings(45)) return "PerT";    // ひねくれ者
+	if (e == Makings(46)) return "FameH";   // 名誉こそ命
+	if (e == Makings(47)) return "FameA";   // 愛に生きる
+	throw new Exception(e.text());
+}
+/// ditto
+Makings toMakings(string e) { mixin(S_TRACE);
+	final switch (e) {
+	case "LooksB":  return Makings(0);  // 秀麗
+	case "LooksU":  return Makings(1);  // 醜悪
+	case "ClassH":  return Makings(2);  // 高貴の出
+	case "ClassL":  return Makings(3);  // 下賎の出
+	case "BredT":   return Makings(4);  // 都会育ち
+	case "BredC":   return Makings(5);  // 田舎育ち
+	case "MeansH":  return Makings(6);  // 裕福
+	case "MeansL":  return Makings(7);  // 貧乏
+	case "FaithF":  return Makings(8);  // 厚き信仰
+	case "FaithI":  return Makings(9);  // 不心得者
+	case "ReliR":   return Makings(10); // 誠実
+	case "ReliU":   return Makings(11); // 不実
+	case "DispC":   return Makings(12); // 冷静沈着
+	case "DispS":   return Makings(13); // 猪突猛進
+	case "DesireG": return Makings(14); // 貪欲
+	case "DesireC": return Makings(15); // 無欲
+	case "DevoteD": return Makings(16); // 献身的
+	case "DevoteS": return Makings(17); // 利己的
+	case "DiscO":   return Makings(18); // 秩序派
+	case "DiscC":   return Makings(19); // 混沌派
+	case "PolitR":  return Makings(20); // 進取派
+	case "PolitC":  return Makings(21); // 保守派
+	case "SenseR":  return Makings(22); // 神経質
+	case "SenseS":  return Makings(23); // 鈍感
+	case "CurioB":  return Makings(24); // 好奇心旺盛
+	case "CurioI":  return Makings(25); // 無頓着
+	case "NotionR": return Makings(26); // 過激
+	case "NotionM": return Makings(27); // 穏健
+	case "IdeaO":   return Makings(28); // 楽観的
+	case "IdeaP":   return Makings(29); // 悲観的
+	case "WorkH":   return Makings(30); // 勤勉
+	case "WorkS":   return Makings(31); // 遊び人
+	case "CharC":   return Makings(32); // 陽気
+	case "CharB":   return Makings(33); // 内気
+	case "StyleF":  return Makings(34); // 派手
+	case "StyleP":  return Makings(35); // 地味
+	case "PrideP":  return Makings(36); // 高慢
+	case "PrideM":  return Makings(37); // 謙虚
+	case "RefR":    return Makings(38); // 上品
+	case "RefB":    return Makings(39); // 粗野
+	case "GraceG":  return Makings(40); // 武骨
+	case "GraceR":  return Makings(41); // 繊細
+	case "LinerH":  return Makings(42); // 硬派
+	case "LinerM":  return Makings(43); // 軟派
+	case "PerS":    return Makings(44); // お人好し
+	case "PerT":    return Makings(45); // ひねくれ者
+	case "FameH":   return Makings(46); // 名誉こそ命
+	case "FameA":   return Makings(47); // 愛に生きる
+	}
+}
+
 /// シナリオのテンプレートの情報。
 struct ScTemplate {
 	static const XML_NAME = "scenarioTemplate";
