@@ -2730,7 +2730,7 @@ public:
 	}
 
 	void reverseShowEventTreeDetail() { mixin(S_TRACE);
-		showEventTreeDetail = _showEventTreeDetail;
+		showEventTreeDetail = !_showEventTreeDetail;
 	}
 	@property
 	void showEventTreeDetail(bool v) { mixin(S_TRACE);
