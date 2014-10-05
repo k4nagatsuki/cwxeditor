@@ -792,7 +792,7 @@ enum Transition {
 Transition[] ALL_TRANSITION = [
 	Transition.DEFAULT,
 	Transition.NONE,
-	Transition.BLINDS
+	Transition.BLINDS,
 	Transition.PIXEL_DISSOLVE,
 	Transition.FADE,
 ];
