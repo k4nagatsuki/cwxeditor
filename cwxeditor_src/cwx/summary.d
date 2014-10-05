@@ -2254,7 +2254,6 @@ public:
 				} else { mixin(S_TRACE);
 					t2();
 				}
-				_useTemp = useTemp;
 			} else if (expandXMLs || !useTemp) { mixin(S_TRACE);
 				auto oldPath = scenarioPath;
 				scenarioPath = sPath;
@@ -2267,17 +2266,16 @@ public:
 				_legacy = false;
 			}
 			dataVersion = LATEST_VERSION;
-			refCheckPaths();
-			resetChanged();
 			if (legacyToX || (!useTemp && archive)) { mixin(S_TRACE);
+				_useTemp = true;
+				refCheckPaths();
+				resetChanged();
 				void t3() { mixin(S_TRACE);
 					scope (exit) {
 						_inSaving = false;
 						if (opt.savedCallback) opt.savedCallback();
 					}
 					toArchive(zipName, temp, expand);
-					refCheckPaths();
-					resetChanged();
 				}
 				if (opt.archiveInNewThread) { mixin(S_TRACE);
 					.task(&t3).executeInNewThread();
@@ -2285,6 +2283,9 @@ public:
 				} else { mixin(S_TRACE);
 					t3();
 				}
+			} else {
+				refCheckPaths();
+				resetChanged();
 			}
 		} catch (Exception e) {
 			printStackTrace();
