@@ -784,17 +784,17 @@ enum Talker {
 enum Transition {
 	DEFAULT, /// ユーザ指定。
 	NONE, /// アニメーション無し。
-	FADE, /// フェード式。
-	PIXEL_DISSOLVE, /// ピクセルディゾルブ式。
 	BLINDS, /// ブラインド式。
+	PIXEL_DISSOLVE, /// ピクセルディゾルブ式。
+	FADE, /// フェード式。
 }
 /// ditto
 Transition[] ALL_TRANSITION = [
 	Transition.DEFAULT,
 	Transition.NONE,
-	Transition.FADE,
-	Transition.PIXEL_DISSOLVE,
 	Transition.BLINDS
+	Transition.PIXEL_DISSOLVE,
+	Transition.FADE,
 ];
 /// 文字列から背景遷移エフェクトを生成。
 Transition toTransition(string name) { mixin(S_TRACE);
@@ -803,12 +803,12 @@ Transition toTransition(string name) { mixin(S_TRACE);
 		return Transition.DEFAULT;
 	case "None":
 		return Transition.NONE;
-	case "Fade":
-		return Transition.FADE;
-	case "PixelDissolve":
-		return Transition.PIXEL_DISSOLVE;
 	case "Blinds":
 		return Transition.BLINDS;
+	case "PixelDissolve":
+		return Transition.PIXEL_DISSOLVE;
+	case "Fade":
+		return Transition.FADE;
 	default:
 		throw new Exception("Unknown transition: " ~ name);
 	}
@@ -820,12 +820,12 @@ string fromTransition(Transition t) { mixin(S_TRACE);
 		return "Default";
 	case Transition.NONE:
 		return "None";
-	case Transition.FADE:
-		return "Fade";
-	case Transition.PIXEL_DISSOLVE:
-		return "PixelDissolve";
 	case Transition.BLINDS:
 		return "Blinds";
+	case Transition.PIXEL_DISSOLVE:
+		return "PixelDissolve";
+	case Transition.FADE:
+		return "Fade";
 	}
 }
 

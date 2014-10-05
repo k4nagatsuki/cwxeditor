@@ -1860,9 +1860,9 @@ fi`;
 			switch (value) {
 			case "default": i++; return Transition.DEFAULT;
 			case "none": i++; return Transition.NONE;
+			case "blinds", "thread": i++; return Transition.BLINDS;
+			case "dissolve", "shave": i++; return Transition.PIXEL_DISSOLVE;
 			case "fade": i++; return Transition.FADE;
-			case "dissolve": i++; return Transition.PIXEL_DISSOLVE;
-			case "blinds": i++; return Transition.BLINDS;
 			default: throwError(_prop.msgs.scriptErrorInvalidTransition, attr[i].token);
 			}
 		} else static if (is(T == Range)) {
@@ -2817,9 +2817,9 @@ fi`;
 			switch (value) {
 			case Transition.DEFAULT: attrs ~= "default"; break;
 			case Transition.NONE: attrs ~= "none"; break;
+			case Transition.BLINDS: attrs ~= "thread"; break;
+			case Transition.PIXEL_DISSOLVE: attrs ~= "shave"; break;
 			case Transition.FADE: attrs ~= "fade"; break;
-			case Transition.PIXEL_DISSOLVE: attrs ~= "dissolve"; break;
-			case Transition.BLINDS: attrs ~= "blinds"; break;
 			default: assert (0);
 			}
 		} else static if (is(T : Range)) {

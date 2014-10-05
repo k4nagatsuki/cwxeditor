@@ -417,9 +417,9 @@ class Msgs : Properties {
 	}
 	auto transitionNameDefault = Msg("transitionNameDefault", "[プレイヤーの設定を使用]");
 	auto transitionNameNone = Msg("transitionNameNone", "アニメーション無し");
-	auto transitionNameFade = Msg("transitionNameFade", "フェード式");
-	auto transitionNamePixelDissolve = Msg("transitionNamePixelDissolve", "ピクセルディゾルブ式");
-	auto transitionNameBlinds = Msg("transitionNameBlinds", "ブラインド式");
+	auto transitionNameBlinds = Msg("transitionNameBlinds", "短冊(スレッド)式");
+	auto transitionNamePixelDissolve = Msg("transitionNamePixelDissolve", "ドット置換(シェーブ)式");
+	auto transitionNameFade = Msg("transitionNameFade", "色置換(フェード)式");
 	auto transitionSpeed = Msg("transitionSpeed", "背景切替ウェイト");
 	auto waitName = Msg("waitName", "空白時間(0.1秒単位)");
 	auto moneyName = Msg("moneyName", "金額");
