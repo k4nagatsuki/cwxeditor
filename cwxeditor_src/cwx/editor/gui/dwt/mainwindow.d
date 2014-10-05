@@ -404,7 +404,11 @@ private:
 				string name = .format("cwxeditor_backup_%04d%02d%02d%02d%02d%02d[%s]",
 					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.baseName());
 				if (_prop.var.etc.backupArchived) { mixin(S_TRACE);
-					name ~= ".zip";
+					if (summ.legacy) { mixin(S_TRACE);
+						name ~= ".wsn";
+					} else { mixin(S_TRACE);
+						name ~= ".zip";
+					}
 				}
 				string writePath = std.path.buildPath(parent, name);
 
@@ -422,7 +426,7 @@ private:
 				if (_prop.var.etc.backupArchived) { mixin(S_TRACE);
 					void[] data;
 					synchronized (_saveSync) { mixin(S_TRACE);
-						data = summ.createZipData([], true);
+						data = summ.createZipData([], true, name.extension().toLower() == ".wsn");
 					}
 					auto md5 = md5Digest(data);
 					if (_oldMD5 != md5) { mixin(S_TRACE);

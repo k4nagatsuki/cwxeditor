@@ -2041,17 +2041,33 @@ public:
 		auto dlg = new FileDialog(shl, SWT.APPLICATION_MODAL | SWT.SINGLE | SWT.SAVE);
 		int zip, cab, wsn;
 		if (canUncab) { mixin(S_TRACE);
-			dlg.setFilterExtensions(["*.zip", "*.cab", "*.wsn"]);
-			dlg.setFilterNames([_prop.msgs.filterDescZip, _prop.msgs.filterDescCab, _prop.msgs.filterDescWsn]);
-			zip = 0;
-			cab = 1;
-			wsn = 2;
+			if (_summ.legacy) { mixin(S_TRACE);
+				dlg.setFilterExtensions(["*.zip", "*.cab"]);
+				dlg.setFilterNames([_prop.msgs.filterDescZip, _prop.msgs.filterDescCab]);
+				zip = 0;
+				cab = 1;
+				wsn = -1;
+			} else { mixin(S_TRACE);
+				dlg.setFilterExtensions(["*.zip", "*.cab", "*.wsn"]);
+				dlg.setFilterNames([_prop.msgs.filterDescZip, _prop.msgs.filterDescCab, _prop.msgs.filterDescWsn]);
+				zip = 0;
+				cab = 1;
+				wsn = 2;
+			}
 		} else { mixin(S_TRACE);
-			dlg.setFilterExtensions(["*.zip", "*.wsn"]);
-			dlg.setFilterNames([_prop.msgs.filterDescZip, _prop.msgs.filterDescWsn]);
-			zip = 0;
-			cab = -1;
-			wsn = 1;
+			if (_summ.legacy) { mixin(S_TRACE);
+				dlg.setFilterExtensions(["*.zip"]);
+				dlg.setFilterNames([_prop.msgs.filterDescZip]);
+				zip = 0;
+				cab = -1;
+				wsn = -1;
+			} else { mixin(S_TRACE);
+				dlg.setFilterExtensions(["*.zip", "*.wsn"]);
+				dlg.setFilterNames([_prop.msgs.filterDescZip, _prop.msgs.filterDescWsn]);
+				zip = 0;
+				cab = -1;
+				wsn = 1;
+			}
 		}
 		dlg.setText(_prop.msgs.dlgTitCreateArchive);
 		if (_prop.var.etc.archivePath.length) { mixin(S_TRACE);
