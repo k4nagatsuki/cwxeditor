@@ -2254,6 +2254,7 @@ public:
 				} else { mixin(S_TRACE);
 					t2();
 				}
+				_useTemp = useTemp;
 			} else if (expandXMLs || !useTemp) { mixin(S_TRACE);
 				auto oldPath = scenarioPath;
 				scenarioPath = sPath;
@@ -2266,6 +2267,8 @@ public:
 				_legacy = false;
 			}
 			dataVersion = LATEST_VERSION;
+			refCheckPaths();
+			resetChanged();
 			if (legacyToX || (!useTemp && archive)) { mixin(S_TRACE);
 				void t3() { mixin(S_TRACE);
 					scope (exit) {
@@ -2282,9 +2285,6 @@ public:
 				} else { mixin(S_TRACE);
 					t3();
 				}
-			} else { mixin(S_TRACE);
-				refCheckPaths();
-				resetChanged();
 			}
 		} catch (Exception e) {
 			printStackTrace();
