@@ -181,7 +181,7 @@ class EventEditor : Composite {
 
 		setBackground(d.getSystemColor(SWT.COLOR_WHITE));
 		auto color = new Color(d, new RGB(96, 96, 96));
-		_lineColor = new Color(d, new RGB(160, 160, 160));
+		_lineColor = new Color(d, new RGB(192, 192, 192));
 		_selectedColor = new Color(d, new RGB(128, 191, 255));
 		_lightupColor = new Color(d, new RGB(191, 224, 255));
 		_warningImage = .warningImage(_comm.prop, d);
@@ -861,7 +861,7 @@ class EventEditor : Composite {
 		}
 
 		// イベントコンテントを結ぶ線
-		e.gc.setLineWidth(2);
+		e.gc.setLineWidth(4);
 		e.gc.setForeground(_lineColor);
 		e.gc.setBackground(_lineColor);
 		foreach (i, ref pos; _pos[index .. $]) { mixin(S_TRACE);
@@ -872,7 +872,7 @@ class EventEditor : Composite {
 					e.gc.setLineWidth(1);
 					e.gc.setForeground(_lineColor);
 					e.gc.drawLine(e.x - sx, pos.y - sy, e.x + e.width - sx, pos.y - sy);
-					e.gc.setLineWidth(2);
+					e.gc.setLineWidth(4);
 					e.gc.setForeground(_lineColor);
 				}
 			} else if (c.parent && c.parent.eventId in _posTable) { mixin(S_TRACE);
@@ -888,9 +888,11 @@ class EventEditor : Composite {
 							ly++;
 						}
 					}
-					e.gc.drawLine(pPos.x + _imageWidth - sx, ly, pos.x + hw - sx, ly);
 					e.gc.setAntialias(SWT.ON);
-					e.gc.drawArc(pPos.x + hw - sx, pos.y - sy - hh, pos.x - pPos.x, _lineHeight, 180, 90);
+					auto cap = e.gc.getLineCap();
+					e.gc.setLineCap(SWT.CAP_ROUND);
+					e.gc.drawArc(pPos.x + hw - sx, pos.y - sy - hh - 1, pos.x - pPos.x + hw, _lineHeight + 1, 180, 90);
+					e.gc.setLineCap(cap);
 					e.gc.setAntialias(SWT.OFF);
 				}
 			}
@@ -901,24 +903,25 @@ class EventEditor : Composite {
 				int terY = pos.y + hh + _lineHeight - sy + 1;
 				if (c.detail.owner) { mixin(S_TRACE);
 					e.gc.drawLine(pos.x + hw - sx, pos.y + hh - sy, terX, terY - 8);
-					e.gc.drawLine(terX, terY - 6, terX, terY - 3);
-					e.gc.drawLine(terX, terY - 1, terX, terY + 1);
+					e.gc.drawLine(terX, terY - 6, terX, terY - 2);
+					e.gc.drawLine(terX, terY, terX, terY + 3);
 				} else { mixin(S_TRACE);
 					e.gc.drawLine(pos.x + hw - sx, pos.y + hh - sy, terX, terY - 5);
-					e.gc.fillRectangle(terX - 4, terY - 5, 8, 3);
+					e.gc.fillRectangle(terX - 6, terY - 5, 12, 4);
 				}
 			}
 		}
 		// イベントコンテント分岐点
 		e.gc.setBackground(getBackground());
 		e.gc.setAntialias(SWT.ON);
+		e.gc.setLineWidth(4);
 		foreach (i, ref pos; poss) { mixin(S_TRACE);
 			auto c = pos.content;
 			if (c.parent && c.parent.eventId in _posTable) { mixin(S_TRACE);
 				auto pPos = _posTable[c.parent.eventId];
 				if (pPos.x != pos.x && pPos.y != pos.y - _lineHeight) { mixin(S_TRACE);
-					e.gc.fillOval(pPos.x + hw - 4 - sx, pos.y - sy - 2, 8, 8);
-					e.gc.drawOval(pPos.x + hw - 4 - sx, pos.y - sy - 2, 8, 8);
+					e.gc.fillOval(pPos.x + hw - 6 - sx, pos.y - sy - 6, 12, 12);
+					e.gc.drawOval(pPos.x + hw - 6 - sx, pos.y - sy - 6, 12, 12);
 				}
 			}
 		}
@@ -999,7 +1002,7 @@ class EventEditor : Composite {
 					int wix = .max(0, ca.width - detailAreaWidth - ww);
 					int wiw = ca.width - detailAreaWidth - wix;
 					if (wiw <= 0) continue;
-					e.gc.drawImage(_warningImage, 0, 0, ww, 1, wix, pos.y - sy, wiw, _lineHeight);
+					e.gc.drawImage(_warningImage, 0, 0, ww, 1, wix, pos.y - sy, wiw, _lineHeight + 1);
 					e.gc.drawImage(_comm.prop.images.warning, wix + wiw - _imageWidth - 4, pos.y + _imgPos - sy);
 					auto rect = new Rectangle(ca.x, pos.y - sy, ca.width - detailAreaWidth, _lineHeight);
 					_warningRects ~= Warning(rect, warnings);
