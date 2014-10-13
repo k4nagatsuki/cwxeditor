@@ -11,6 +11,7 @@ import std.utf;
 import std.algorithm;
 import std.string;
 import std.ascii;
+import std.array;
 
 /// "font_X.bmp"から"X"の部分を抽出する。
 dchar decodeFontPath(string path) { mixin(S_TRACE);
@@ -153,7 +154,7 @@ private string formatMsgImpl(in string text,
 }
 /// テキストの中で使用されているフラグ・ステップ・画像パスを抽出する。
 void textUseItems(in string text,
-		out string[] flags, out string[] steps, out string[] fonts) { mixin(S_TRACE);
+		out string[] flags, out string[] steps, out string[] fonts, out char[] colors) { mixin(S_TRACE);
 	string[size_t] rFonts;
 	char[size_t] rColors;
 	formatMsg(text, (string flag) { mixin(S_TRACE);
@@ -166,10 +167,14 @@ void textUseItems(in string text,
 		return "";
 	}, null, rFonts, rColors);
 	fonts = rFonts.values;
+	colors = rColors.values;
+	colors = colors.sort;
+	colors = to!(char[])(colors.uniq().array());
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	string[] flags, steps, fonts;
-	textUseItems("#M#R#U#C#I#T#Yaaa$test$$あああ\t2$$#tes%t3$%tes#t%#a#Z#1#2#33d$dd%aaa%%#%#;%vv%#表%#", flags, steps, fonts);
+	char[] colors;
+	textUseItems("#M#R#U#C#I#T#Yaaa$test$$あああ\t2$$#tes%t3$%tes#t%#a#Z#1#2#33d$dd%aaa%%#%#;%vv%#表%#", flags, steps, fonts, colors);
 	assert(flags.sort == ["tes#t", "aaa", "#", "vv"].sort, .text(flags));
 	assert(steps.sort == ["test", "あああ\t2", "#tes%t3"].sort, .text(steps));
 	assert(fonts.sort == ["font_a.bmp", "font_Z.bmp", "font_1.bmp", "font_2.bmp", "font_3.bmp", "font_;.bmp", "font_表.bmp"].sort, .text(fonts));

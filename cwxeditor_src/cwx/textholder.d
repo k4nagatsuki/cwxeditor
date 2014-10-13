@@ -10,6 +10,7 @@ import cwx.usecounter;
 class TextHolder : SimpleTextHolder, IPathUser, ChgPathCallback {
 private:
 	PathUser[] _fontusers;
+	char[] _colors;
 public:
 	/// コンストラクタ。
 	this () {}
@@ -25,7 +26,7 @@ public:
 			string[] flags;
 			string[] steps;
 			string[] fonts;
-			textUseItems(text, flags, steps, fonts);
+			textUseItems(text, flags, steps, fonts, _colors);
 			removeTextUseCounter();
 			_fontusers = [];
 			foreach (f; fonts) { mixin(S_TRACE);
@@ -52,7 +53,7 @@ public:
 		}
 	}
 
-	// テキスト内で使用されているfont_X.png等のパス。
+	/// テキスト内で使用されているfont_X.png等のパス。
 	@property
 	const
 	string[] fontsInText() { mixin(S_TRACE);
@@ -61,6 +62,13 @@ public:
 			r ~= u.path;
 		}
 		return r;
+	}
+
+	/// テキスト内で使用されている色。
+	@property
+	const
+	const(char)[] colorsInText() { mixin(S_TRACE);
+		return _colors;
 	}
 
 	/// 使用回数カウンタを設定する。
@@ -134,7 +142,8 @@ public:
 			string[] flags;
 			string[] steps;
 			string[] fonts;
-			textUseItems(text, flags, steps, fonts);
+			char[] colors;
+			textUseItems(text, flags, steps, fonts, colors);
 			removeTextUseCounter();
 			_flagusers = [];
 			foreach (f; flags) { mixin(S_TRACE);
@@ -154,7 +163,7 @@ public:
 		}
 	}
 
-	// テキスト内で使用されているフラグのパス。
+	/// テキスト内で使用されているフラグのパス。
 	@property
 	const
 	string[] flagsInText() { mixin(S_TRACE);
@@ -164,7 +173,7 @@ public:
 		}
 		return r;
 	}
-	// テキスト内で使用されているステップのパス。
+	/// テキスト内で使用されているステップのパス。
 	@property
 	const
 	string[] stepsInText() { mixin(S_TRACE);

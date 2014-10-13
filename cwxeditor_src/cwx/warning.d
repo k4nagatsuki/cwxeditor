@@ -131,7 +131,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 	}
 	auto spChars = skin.spChars;
-	string checkTextRes(string[] fonts, string[] flags, string[] steps) { mixin(S_TRACE);
+	string checkTextRes(string[] fonts, in string[] flags, in string[] steps, in char[] colors) { mixin(S_TRACE);
 		foreach (font; fonts) { mixin(S_TRACE);
 			dchar c = decodeFontPath(font);
 			if (c in spChars) continue;
@@ -147,6 +147,17 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		foreach (step; steps) { mixin(S_TRACE);
 			if (!(froot && froot.findStep(step))) { mixin(S_TRACE);
 				return prop.msgs.searchErrorStepNotFound;
+			}
+		}
+		foreach (color; colors) { mixin(S_TRACE);
+			switch (std.ascii.toUpper(color)) {
+			case 'O', 'P', 'L', 'D':
+				if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
+					return .tryFormat(prop.msgs.warningTextColor, "&" ~ color, "1.50");
+				}
+				break;
+			default:
+				break;
 			}
 		}
 		return null;
@@ -185,7 +196,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto tc = cast(TextCell) path;
 	if (tc) { mixin(S_TRACE);
-		string err = checkTextRes([], tc.flagsInText, tc.stepsInText);
+		string err = checkTextRes([], tc.flagsInText, tc.stepsInText, []);
 		if (err) { mixin(S_TRACE);
 			r ~= err;
 		}
@@ -271,7 +282,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 						r ~= prop.msgs.searchErrorNoRCouponsDialog;
 						break;
 					}
-					string err = checkTextRes(dlg.fontsInText, dlg.flagsInText, dlg.stepsInText);
+					string err = checkTextRes(dlg.fontsInText, dlg.flagsInText, dlg.stepsInText, dlg.colorsInText);
 					if (err) { mixin(S_TRACE);
 						r ~= err;
 						break;
@@ -279,7 +290,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				}
 			}
 		}
-		string textErr = checkTextRes(c.fontsInText, c.flagsInText, c.stepsInText);
+		string textErr = checkTextRes(c.fontsInText, c.flagsInText, c.stepsInText, c.colorsInText);
 		if (textErr) { mixin(S_TRACE);
 			r ~= textErr;
 		}

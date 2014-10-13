@@ -373,18 +373,22 @@ public:
 	override void change(StepId id) { mixin(S_TRACE);
 		_text.change(id);
 	}
-	// テキスト内で使用されているfont_X.png等のパス。
+	/// テキスト内で使用されているfont_X.png等のパス。
 	@property
 	const
 	override string[] fontsInText() { return _text.fontsInText; }
-	// テキスト内で使用されているフラグのパス。
+	/// テキスト内で使用されているフラグのパス。
 	@property
 	const
 	override string[] flagsInText() { return _text.flagsInText; }
-	// テキスト内で使用されているステップのパス。
+	/// テキスト内で使用されているステップのパス。
 	@property
 	const
 	override string[] stepsInText() { return _text.stepsInText; }
+	/// テキスト内で使用されている色。
+	@property
+	const
+	const(char)[] colorsInText() { return _text.colorsInText; }
 	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
 	override void changeInText(size_t index, PathId id) { mixin(S_TRACE);
 		_text.change(index, id);
@@ -1661,6 +1665,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		r ~= _name.stepsInText;
 		return r;
 	}
+	/// テキスト内で使用されている色。
+	@property
+	const
+	const(char)[] colorsInText() { return _text ? _text.colorsInText : []; }
 	/// テキスト内のfont_X.bmp・フラグ・ステップを置換する。
 	override void changeInText(size_t index, PathId id) { mixin(S_TRACE);
 		if (_text) _text.change(index, id);
