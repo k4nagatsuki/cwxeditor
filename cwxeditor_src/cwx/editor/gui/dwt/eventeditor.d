@@ -880,18 +880,13 @@ class EventEditor : Composite {
 				if (pPos.x == pos.x) { mixin(S_TRACE);
 					e.gc.drawLine(pos.x + hw - sx, pPos.y + hh - sy, pos.x + hw - sx, pos.y + hh - sy);
 				} else { mixin(S_TRACE);
-					e.gc.drawLine(pPos.x + hw - sx, pPos.y + hh - sy, pPos.x + hw - sx, pos.y - sy);
-					int ly = pos.y + hh - sy;
-					version (Windows) {
-						import org.eclipse.swt.internal.win32.OS;
-						if (OS.WIN32_VERSION != OS.VERSION (6, 1)) { mixin(S_TRACE);
-							ly++;
-						}
+					if (pPos.y + hh - sy < pos.y - sy) { mixin(S_TRACE);
+						e.gc.drawLine(pPos.x + hw - sx, pPos.y + hh - sy, pPos.x + hw - sx, pos.y - sy);
 					}
 					e.gc.setAntialias(SWT.ON);
 					auto cap = e.gc.getLineCap();
 					e.gc.setLineCap(SWT.CAP_ROUND);
-					e.gc.drawArc(pPos.x + hw - sx, pos.y - sy - hh - 1, pos.x - pPos.x + hw, _lineHeight + 1, 180, 90);
+					e.gc.drawArc(pPos.x + hw - sx, pos.y - sy - _lineHeight, pos.x - pPos.x + hw, _lineHeight + hh, 180, 90);
 					e.gc.setLineCap(cap);
 					e.gc.setAntialias(SWT.OFF);
 				}
@@ -920,8 +915,8 @@ class EventEditor : Composite {
 			if (c.parent && c.parent.eventId in _posTable) { mixin(S_TRACE);
 				auto pPos = _posTable[c.parent.eventId];
 				if (pPos.x != pos.x && pPos.y != pos.y - _lineHeight) { mixin(S_TRACE);
-					e.gc.fillOval(pPos.x + hw - 6 - sx, pos.y - sy - 6, 12, 12);
-					e.gc.drawOval(pPos.x + hw - 6 - sx, pos.y - sy - 6, 12, 12);
+					e.gc.fillOval(pPos.x + hw - 6 - sx, pos.y - hh - sy - 2, 12, 12);
+					e.gc.drawOval(pPos.x + hw - 6 - sx, pos.y - hh - sy - 2, 12, 12);
 				}
 			}
 		}
