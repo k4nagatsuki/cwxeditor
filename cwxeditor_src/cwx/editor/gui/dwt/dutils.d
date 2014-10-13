@@ -1372,23 +1372,32 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 	auto matPad = prop.looks.castCardInsets;
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
+	bool whiteName = false;
 	ImageData id;
 	if (c.life == 0) { mixin(S_TRACE);
 		id = castCardFaint(skin);
+		whiteName = true;
 	} else if (c.paralyze > prop.looks.stoneBorder) { mixin(S_TRACE);
 		id = castCardPetrif(skin);
+		whiteName = true;
 	} else if (c.paralyze > 0) { mixin(S_TRACE);
 		id = castCardParaly(skin);
+		whiteName = false;
 	} else if (c.bindRound > 0) { mixin(S_TRACE);
 		id = castCardBind(skin);
+		whiteName = true;
 	} else if (c.mentality == Mentality.SLEEP && c.mentalityRound > 0) { mixin(S_TRACE);
 		id = castCardSleep(skin);
+		whiteName = true;
 	} else if (c.life <= c.lifeMax / 5) { mixin(S_TRACE);
 		id = castCardDanger(skin);
+		whiteName = false;
 	} else if (c.life < c.lifeMax) { mixin(S_TRACE);
 		id = castCardInjury(skin);
+		whiteName = false;
 	} else { mixin(S_TRACE);
 		id = castCard(skin);
+		whiteName = false;
 	}
 	auto r = new PileImage(id, w, h);
 	auto stp = prop.looks.castLifeBarPoint;
@@ -1534,6 +1543,16 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 		r.append(bmp.getImageData(), stp, ScaleType.Cut);
 	}
 	r.setTitle(c.name, dwtData(prop.looks.castCardNameFont(skin.legacy)), dwtData(prop.looks.castCardNamePoint));
+	if (skin.legacy) { mixin(S_TRACE);
+		// 状態によって固定で文字が白くなる
+		if (whiteName) { mixin(S_TRACE);
+			r.titleColor = new RGB(255, 255, 255);
+		}
+	} else { mixin(S_TRACE);
+		if (getRGBAverage(id, prop.looks.castCardNameArea) < 128) { mixin(S_TRACE);
+			r.titleColor = new RGB(255, 255, 255);
+		}
+	}
 	return r.createImageData();
 }
 ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard owner, C delegate(ulong) get, bool detail, bool preview) { mixin(S_TRACE);
@@ -1628,6 +1647,11 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 		}
 	}
 	r.setTitle(c.name, dwtData(prop.looks.cardNameFont(skin.legacy)), dwtData(prop.looks.cardNamePoint));
+	if (!skin.legacy) { mixin(S_TRACE);
+		if (getRGBAverage(card, prop.looks.cardNameArea) < 128) { mixin(S_TRACE);
+			r.titleColor = new RGB(255, 255, 255);
+		}
+	}
 	void putEventTree(bool useCount) { mixin(S_TRACE);
 		static if (is(C:EventTreeOwner)) {
 			if (preview || !prop.var.etc.showEventTreeMark) return;
@@ -1672,6 +1696,34 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 	}
 	putEventTree(false);
 	return r.createImageData();
+}
+
+/// cardの指定領域のRGB平均値を返す。
+/// TODO メニューカードとエネミーカード
+ubyte getRGBAverage(ImageData card, CRect nameArea) {
+	ulong rgbs = 0;
+	if (16 <= card.depth) { mixin(S_TRACE);
+		auto px = Pixels(cast(ubyte[])card.data, [], card.width, card.height, card.depth, card.bytesPerLine, card.bytesPerLine / card.width);
+		size_t i = 0;
+		foreach (x; nameArea.x .. nameArea.x + nameArea.width) { mixin(S_TRACE);
+			foreach (y; nameArea.y .. nameArea.y + nameArea.height) { mixin(S_TRACE);
+				auto fc = px.get(x, y);
+				rgbs += fc.r;
+				rgbs += fc.g;
+				rgbs += fc.b;
+			}
+		}
+	} else { mixin(S_TRACE);
+		auto pixels = new byte[nameArea.width * nameArea.height];
+		card.getPixels(nameArea.x, nameArea.y, pixels.length, pixels, 0);
+		foreach (i, pixel; pixels) {
+			auto rgb = card.palette.getRGB(pixel);
+			rgbs += rgb.red;
+			rgbs += rgb.green;
+			rgbs += rgb.blue;
+		}
+	}
+	return cast(ubyte)(rgbs / (nameArea.width * nameArea.height * 3));
 }
 
 Rectangle eventTreeMarkRect(C:EventTreeOwner)(Props prop, int left, int top, in C c) { mixin(S_TRACE);

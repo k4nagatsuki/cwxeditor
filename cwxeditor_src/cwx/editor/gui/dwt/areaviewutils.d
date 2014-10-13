@@ -149,9 +149,15 @@ PImg createCastCardImage(PImg)(Props prop, Skin skin, CastCard card,
 PImg createMenuCardImage(PImg)(Props prop, Skin skin,
 		string title, string path, int x, int y, real scale, bool smoothing, uint pcNum) { mixin(S_TRACE);
 	auto matPad = prop.looks.menuCardInsets;
-	auto r = createCardImageCommon!PImg(prop, menuCard(skin), matPad, x, y, scale, smoothing);
+	auto card = menuCard(skin);
+	auto r = createCardImageCommon!PImg(prop, card, matPad, x, y, scale, smoothing);
 	r.append(path, matPad, ScaleType.Cut, true);
 	r.setTitle(title, dwtData(prop.looks.menuCardNameFont(skin.legacy)), dwtData(prop.looks.menuCardNamePoint));
+	if (!skin.legacy) { mixin(S_TRACE);
+		if (getRGBAverage(card, prop.looks.cardNameArea) < 128) { mixin(S_TRACE);
+			r.titleColor = new RGB(255, 255, 255);
+		}
+	}
 	if (0 != pcNum) { mixin(S_TRACE);
 		r.append(dwtData(prop.looks.pcNumberFont(skin.legacy)), .text(pcNum), prop.looks.menuCardInsets);
 	}

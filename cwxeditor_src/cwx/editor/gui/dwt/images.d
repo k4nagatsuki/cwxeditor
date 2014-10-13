@@ -88,6 +88,7 @@ private:
 	string _title = null;
 	FontData titFont = null;
 	Point titPoint = null;
+	RGB _titColor = null;
 	AppImg[] appends = [];
 	Rectangle rect;
 	bool t = false;
@@ -335,6 +336,15 @@ public:
 	const
 	string title() { mixin(S_TRACE);
 		return this._title;
+	}
+	@property
+	void titleColor(RGB titColor) { mixin(S_TRACE);
+		_titColor = titColor;
+	}
+	@property
+	const
+	const(RGB) titleColor() { mixin(S_TRACE);
+		return _titColor;
 	}
 	@property
 	FontData font() { mixin(S_TRACE);
@@ -624,8 +634,16 @@ public:
 				auto font = new Font(cur, titFont);
 				scope (exit) font.dispose();
 				dc.setFont(font);
-				dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
-				dc.drawText(_title, titPoint.x, titPoint.y, true);
+				if (_titColor) { mixin(S_TRACE);
+					auto color = new Color(cur, _titColor);
+					scope (exit) color.dispose();
+					dc.setForeground(color);
+					dc.drawText(_title, titPoint.x, titPoint.y, true);
+					dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
+				} else { mixin(S_TRACE);
+					dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
+					dc.drawText(_title, titPoint.x, titPoint.y, true);
+				}
 				dc.setFont(null);
 			}
 			bmpData = bmp.getImageData();

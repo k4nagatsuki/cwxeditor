@@ -48,6 +48,8 @@ public:
 			CPoint(528, 285)
 		];
 	}
+	@property const CRect cardNameArea() { return CRect(5, 5, 70, 15); }
+	@property const CRect castCardNameArea() { return CRect(5, 5, 85, 15); }
 
 	@property const CRect messageBounds() {return CRect(81, 50, 470, 180);}
 	@property const int messageButtonHeight() {return 25;}
