@@ -1699,8 +1699,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 }
 
 /// cardの指定領域のRGB平均値を返す。
-/// TODO メニューカードとエネミーカード
-ubyte getRGBAverage(ImageData card, CRect nameArea) {
+ubyte getRGBAverage(ImageData card, CRect nameArea) { mixin(S_TRACE);
 	ulong rgbs = 0;
 	if (16 <= card.depth) { mixin(S_TRACE);
 		auto px = Pixels(cast(ubyte[])card.data, [], card.width, card.height, card.depth, card.bytesPerLine, card.bytesPerLine / card.width);
@@ -1714,13 +1713,15 @@ ubyte getRGBAverage(ImageData card, CRect nameArea) {
 			}
 		}
 	} else { mixin(S_TRACE);
-		auto pixels = new byte[nameArea.width * nameArea.height];
-		card.getPixels(nameArea.x, nameArea.y, pixels.length, pixels, 0);
-		foreach (i, pixel; pixels) {
-			auto rgb = card.palette.getRGB(pixel);
-			rgbs += rgb.red;
-			rgbs += rgb.green;
-			rgbs += rgb.blue;
+		auto pixels = new ubyte[nameArea.width];
+		foreach (y; nameArea.y .. nameArea.y + nameArea.height) { mixin(S_TRACE);
+			card.getPixels(nameArea.x, y, pixels.length, cast(byte[])pixels, 0);
+			foreach (i, pixel; pixels) { mixin(S_TRACE);
+				auto rgb = card.palette.getRGB(pixel);
+				rgbs += rgb.red;
+				rgbs += rgb.green;
+				rgbs += rgb.blue;
+			}
 		}
 	}
 	return cast(ubyte)(rgbs / (nameArea.width * nameArea.height * 3));
