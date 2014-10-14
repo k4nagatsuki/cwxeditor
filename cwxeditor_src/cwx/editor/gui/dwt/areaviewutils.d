@@ -154,7 +154,7 @@ PImg createMenuCardImage(PImg)(Props prop, Skin skin,
 	r.append(path, matPad, ScaleType.Cut, true);
 	r.setTitle(title, dwtData(prop.looks.menuCardNameFont(skin.legacy)), dwtData(prop.looks.menuCardNamePoint));
 	if (!skin.legacy) { mixin(S_TRACE);
-		if (getRGBAverage(card, prop.looks.cardNameArea) < 128) { mixin(S_TRACE);
+		if (getRGBAverage(card, prop.looks.cardNameArea) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
 			r.titleColor = new RGB(255, 255, 255);
 		}
 	}

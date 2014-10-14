@@ -1549,7 +1549,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 			r.titleColor = new RGB(255, 255, 255);
 		}
 	} else { mixin(S_TRACE);
-		if (getRGBAverage(id, prop.looks.castCardNameArea) < 128) { mixin(S_TRACE);
+		if (getRGBAverage(id, prop.looks.castCardNameArea) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
 			r.titleColor = new RGB(255, 255, 255);
 		}
 	}
@@ -1648,7 +1648,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 	}
 	r.setTitle(c.name, dwtData(prop.looks.cardNameFont(skin.legacy)), dwtData(prop.looks.cardNamePoint));
 	if (!skin.legacy) { mixin(S_TRACE);
-		if (getRGBAverage(card, prop.looks.cardNameArea) < 128) { mixin(S_TRACE);
+		if (getRGBAverage(card, prop.looks.cardNameArea) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
 			r.titleColor = new RGB(255, 255, 255);
 		}
 	}
