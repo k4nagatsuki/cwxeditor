@@ -343,11 +343,11 @@ class FlexEtcProps : Properties {
 	auto searchResultTableHeight = Prop!(int, true)("searchResultTableHeight", 200);
 	version (Windows) {
 		auto engine = Prop!(string, true)("engine", "CardWirthPy.exe");
-		auto enginePath = Prop!(string)("enginePath", "");
 	} else {
 		auto engine = Prop!(string, true)("engine", "CardWirthPy");
-		auto enginePath = Prop!(string)("enginePath", "");
 	}
+	auto engineScript = Prop!(string, true)("engineScript", "cardwirth.py");
+	auto enginePath = Prop!(string)("enginePath", "");
 	auto dataDir = Prop!(string, true)("dataDir", "Data");
 	auto findEnginePath = Prop!(bool)("findEnginePath", true);
 	auto defaultSkin = Prop!(string, true)("defaultSkin", "MedievalFantasy");

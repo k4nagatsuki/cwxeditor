@@ -31,6 +31,12 @@ bool findCWPy(Props prop, string sPath) { mixin(S_TRACE);
 			prop.var.etc.findEnginePath = false;
 			return true;
 		}
+		p = Skin.findCardWirthPy(sPath, prop.var.etc.engineScript, prop.var.etc.dataDir);
+		if (p.length) { mixin(S_TRACE);
+			prop.var.etc.enginePath = p;
+			prop.var.etc.findEnginePath = false;
+			return true;
+		}
 	}
 	return false;
 }
