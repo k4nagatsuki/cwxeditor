@@ -2305,6 +2305,7 @@ public:
 			foreach (path, files; _oldXMLs) { mixin(S_TRACE);
 				foreach (name, xml; files) { mixin(S_TRACE);
 					auto p = std.path.buildPath(path, name);
+					if (!isWsn) p = scenarioPath.baseName().buildPath(p);
 					arc.addMember(.archive(p, cast(ubyte[]) xml, false, useSysEnc));
 				}
 			}
