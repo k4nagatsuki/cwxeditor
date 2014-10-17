@@ -1869,7 +1869,7 @@ public:
 			zipName = "";
 		} else if (!(.exists(fileOrDir) && .isDir(fileOrDir)) && (ext.cfnmatch(".zip") || ext.cfnmatch(".cab") || ext.cfnmatch(".wsn"))) {
 			isDir = false;
-			sPath = Summary.createTempDirFromName(tempPath, scenarioName);
+			sPath = Summary.createTempDirFromName(tempPath, fileOrDir.baseName().stripExtension());
 			zipName = fileOrDir;
 		} else {
 			isDir = true;
