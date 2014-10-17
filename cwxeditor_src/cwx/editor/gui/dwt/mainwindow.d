@@ -1950,13 +1950,6 @@ public:
 								printStackTrace();
 								debugln(e);
 							}
-						} else if (fnstartsWith(baseName(temp), "cwxeditor_temp_")) { mixin(S_TRACE);
-							try { mixin(S_TRACE);
-								delAll(temp);
-							} catch (Exception e) {
-								printStackTrace();
-								debugln(e);
-							}
 						}
 					}
 				}

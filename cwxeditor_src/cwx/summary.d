@@ -217,9 +217,7 @@ public:
 	}
 	/// 一時ディレクトリを展開する。
 	static string createTempDir(string tempPath, string name, bool createLockFile = true) { mixin(S_TRACE);
-		string base = cwx.utils.toHex(name);
-		base = base.length > 15 ? base[0 .. 15] : base;
-		base = "cwxeditor_temp_" ~ base;
+		auto base = cleanFileName(name);
 		auto temp = createNewFileName(std.path.buildPath(tempPath, base), true);
 		mkdirRecurse(temp);
 		if (createLockFile) typeof(this).createLockFile(temp);
@@ -465,7 +463,7 @@ public:
 						r._legacy = false;
 						r._zipName = "";
 						if (scTemplate) { mixin(S_TRACE);
-							auto temp = createTempDir(tempPath, r.scenarioName);
+							auto temp = createTempDir(tempPath, fname.dirName().baseName());
 							copyAll(r.scenarioPath, temp);
 							r._tempPath = temp;
 							r._useTemp = true;
@@ -2032,7 +2030,7 @@ public:
 			zipName = "";
 		} else if (!(.exists(fileOrDir) && .isDir(fileOrDir)) && (ext.cfnmatch(".zip") || ext.cfnmatch(".cab") || ext.cfnmatch(".wsn"))) { mixin(S_TRACE);
 			isDir = false;
-			sPath = Summary.createTempDirFromName(tempPath, scenarioName);
+			sPath = Summary.createTempDirFromName(tempPath, fileOrDir.baseName().stripExtension());
 			zipName = fileOrDir;
 		} else { mixin(S_TRACE);
 			isDir = true;
@@ -2117,7 +2115,7 @@ public:
 		} else if (this.legacy) { mixin(S_TRACE);
 			// クラシック形式からXML形式に変換
 			string[] copyFail;
-			auto temp = Summary.createTempDir(tempPath, scenarioName);
+			auto temp = Summary.createTempDir(tempPath, zipName ? zipName.baseName().stripExtension() : scenarioPath.dirName().baseName());
 			temp = classicToX(prop, temp, tempPath, defSkin, copyFail);
 			foreach (fail; copyFail) { mixin(S_TRACE);
 				// 一部コピー失敗しても中断しない
@@ -2135,7 +2133,7 @@ public:
 		} else { mixin(S_TRACE);
 			// 展開済みシナリオからアーカイブに変換
 			auto oldPath = scenarioPath;
-			auto p = createTempDir(tempPath, scenarioName);
+			auto p = createTempDir(tempPath, oldPath.dirName().baseName());
 			copyAll(oldPath, p);
 			scenarioPath = p;
 			scope (failure) {
