@@ -1701,6 +1701,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 /// cardの指定領域のRGB平均値を返す。
 ubyte getRGBAverage(ImageData card, CRect nameArea) { mixin(S_TRACE);
 	ulong rgbs = 0;
+	if (card.width < nameArea.x + nameArea.width || card.height < nameArea.y + nameArea.height) return 255;
 	if (16 <= card.depth) { mixin(S_TRACE);
 		auto px = Pixels(cast(ubyte[])card.data, [], card.width, card.height, card.depth, card.bytesPerLine, card.bytesPerLine / card.width);
 		size_t i = 0;
