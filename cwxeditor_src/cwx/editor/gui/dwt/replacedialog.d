@@ -1433,7 +1433,10 @@ public:
 			_range = new Tree(grp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL | SWT.CHECK);
 			initTree(_comm, _range, false);
 			_range.addSelectionListener(new RefRangeAllCheck);
-			_range.setLayoutData(new GridData(GridData.FILL_BOTH));
+			auto gd = new GridData(GridData.FILL_BOTH);
+			gd.widthHint = 0;
+			gd.heightHint = 0;
+			_range.setLayoutData(gd);
 			refreshRangeTree();
 			_rangeAllCheck = new Button(grp, SWT.CHECK);
 			_rangeAllCheck.setText(_prop.msgs.allCheckRange);
