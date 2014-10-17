@@ -27,6 +27,7 @@ import std.utf;
 import std.traits;
 import std.exception;
 import std.conv;
+import std.string;
 
 public:
 
@@ -2067,10 +2068,10 @@ public:
 		}
 	}
 	/// シナリオのフォルダのアーカイブを作成する。
-	void[] createZipData(in string[] ignorePaths, bool useSysEnc) {
+	void[] createZipData(in string[] ignorePaths, bool useSysEnc, bool isWsn) {
 		auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
 		ubyte[][] data;
-		auto arc = .zip(scenarioPath, true, (string file) {
+		auto arc = .zip(scenarioPath, !isWsn, (string file) {
 			return cfnmatch(file, lock)
 				|| containsPath(ignorePaths, file.baseName());
 		}, useSysEnc, data);
@@ -2078,6 +2079,7 @@ public:
 			foreach (path, files; _oldXMLs) {
 				foreach (name, xml; files) {
 					auto p = std.path.buildPath(path, name);
+					if (!isWsn) p = scenarioPath.baseName().buildPath(p);
 					arc.addMember(.archive(p, cast(ubyte[]) xml, false, useSysEnc));
 				}
 			}
@@ -2092,7 +2094,7 @@ public:
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
 	void createZip(string zipName, in string[] ignorePaths, bool useSysEnc) {
-		auto data = createZipData(ignorePaths, useSysEnc);
+		auto data = createZipData(ignorePaths, useSysEnc, zipName.extension().toLower() == ".wsn");
 		std.file.write(zipName, data);
 		delete data;
 	}

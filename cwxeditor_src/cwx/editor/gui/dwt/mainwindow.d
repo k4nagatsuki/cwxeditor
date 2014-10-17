@@ -342,7 +342,7 @@ private:
 					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.baseName());
 				string zFile = std.path.buildPath(parent, file);
 				synchronized (_saveSync) {
-					data = summ.createZipData([], true);
+					data = summ.createZipData([], true, false);
 				}
 				scope (exit) delete data;
 				auto md5 = md5Digest(data);
