@@ -4181,6 +4181,7 @@ public:
 	}
 	void replContent(Content e, ref size_t count) { mixin(S_TRACE);
 		auto eo = e.parent;
+		auto d = e.detail;
 		assert (!eo || eo.detail.owner);
 		bool r = false;
 		Undo[] uArr2;
@@ -4190,38 +4191,38 @@ public:
 		if (_flagSel) { mixin(S_TRACE);
 			if (_flagDirOnRange) { mixin(S_TRACE);
 				// Flag/StepについてはUseCounter経由で置換される
-				r |= repl(null, e.flag, null, count, uArr2);
-				r |= repl(null, e.step, null, count, uArr2);
-				r |= repl(null, e.flag2, null, count, uArr2);
-				r |= repl(null, e.step2, null, count, uArr2);
+				if (d.use(CArg.FLAG)) r |= repl(null, e.flag, null, count, uArr2);
+				if (d.use(CArg.STEP)) r |= repl(null, e.step, null, count, uArr2);
+				if (d.use(CArg.FLAG_2)) r |= repl(null, e.flag2, null, count, uArr2);
+				if (d.use(CArg.STEP_2)) r |= repl(null, e.step2, null, count, uArr2);
 			} else { mixin(S_TRACE);
-				r |= repl(null, e.flag, &e.flag, count, uArr2);
-				r |= repl(null, e.step, &e.step, count, uArr2);
-				r |= repl(null, e.flag2, &e.flag, count, uArr2);
-				r |= repl(null, e.step2, &e.step, count, uArr2);
+				if (d.use(CArg.FLAG)) r |= repl(null, e.flag, &e.flag, count, uArr2);
+				if (d.use(CArg.STEP)) r |= repl(null, e.step, &e.step, count, uArr2);
+				if (d.use(CArg.FLAG_2)) r |= repl(null, e.flag2, &e.flag, count, uArr2);
+				if (d.use(CArg.STEP_2)) r |= repl(null, e.step2, &e.step, count, uArr2);
 			}
 		}
 		if (_startSel) { mixin(S_TRACE);
-			r |= repl(null, e.start, &e.start, count, uArr2);
+			if (d.use(CArg.START)) r |= repl(null, e.start, &e.start, count, uArr2);
 			if (e.type == CType.START) { mixin(S_TRACE);
 				r |= repl(null, e.name, &e.name, count, uArr2);
 			}
 		}
 		if (_couponSel) { mixin(S_TRACE);
-			r |= repl(null, e.coupon, &e.coupon, count, uArr2);
-			r |= replCoupons(null, e, count, uArr2);
+			if (d.use(CArg.COUPON)) r |= repl(null, e.coupon, &e.coupon, count, uArr2);
+			if (d.use(CArg.COUPONS)) r |= replCoupons(null, e, count, uArr2);
 		}
 		if (_gossipSel) { mixin(S_TRACE);
-			r |= repl(null, e.gossip, &e.gossip, count, uArr2);
+			if (d.use(CArg.GOSSIP)) r |= repl(null, e.gossip, &e.gossip, count, uArr2);
 		}
 		if (_endSel) { mixin(S_TRACE);
-			r |= repl(null, e.completeStamp, &e.completeStamp, count, uArr2);
+			if (d.use(CArg.COMPLETE_STAMP)) r |= repl(null, e.completeStamp, &e.completeStamp, count, uArr2);
 		}
 		if (_msgSel) { mixin(S_TRACE);
-			r |= repl(null, e.text, &e.text, count, uArr2);
+			if (d.use(CArg.TEXT)) r |= repl(null, e.text, &e.text, count, uArr2);
 		}
-		r |= replFontsInText(e, count, uArr2);
-		r |= replFlagsInText(e, count, uArr2);
+		if (d.use(CArg.TEXT)) r |= replFontsInText(e, count, uArr2);
+		if (d.use(CArg.TEXT)) r |= replFlagsInText(e, count, uArr2);
 		bool rDlg = false;
 		if (_msgSel || _couponSel || _fileSel || _flagSel) { mixin(S_TRACE);
 			auto dlgs = e.dialogs;
@@ -4250,9 +4251,9 @@ public:
 			}
 		}
 		if (_fileSel) { mixin(S_TRACE);
-			r |= replFilePath(e.cardPath, &e.cardPath, count, uArr2);
-			r |= replFilePath(e.bgmPath, &e.bgmPath, count, uArr2);
-			r |= replFilePath(e.soundPath, &e.soundPath, count, uArr2);
+			if (d.use(CArg.TALKER_C)) r |= replFilePath(e.cardPath, &e.cardPath, count, uArr2);
+			if (d.use(CArg.BGM_PATH)) r |= replFilePath(e.bgmPath, &e.bgmPath, count, uArr2);
+			if (d.use(CArg.SOUND_PATH)) r |= replFilePath(e.soundPath, &e.soundPath, count, uArr2);
 		}
 		if (_commentSel) { mixin(S_TRACE);
 			r |= repl(null, e.comment, &e.comment, count, uArr2);

@@ -2919,7 +2919,13 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	} case CType.GET_COUPON: { mixin(S_TRACE);
 		string c = evt.coupon;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectCoupon;
-		return .tryFormat(comm.prop.msgs.ctGetCoupon, c, comm.prop.msgs.rangeName(evt.range));
+		string cvs = "";
+		if (evt.couponValue < 0) { mixin(S_TRACE);
+			cvs = .tryFormat("%d", evt.couponValue);
+		} else { mixin(S_TRACE);
+			cvs = .tryFormat("+%d", evt.couponValue);
+		}
+		return .tryFormat(comm.prop.msgs.ctGetCoupon, c, cvs, comm.prop.msgs.rangeName(evt.range));
 	} case CType.GET_COMPLETE_STAMP: { mixin(S_TRACE);
 		string c = evt.completeStamp;
 		if (!c || !c.length) c = comm.prop.msgs.noSelectCompleteStamp;
