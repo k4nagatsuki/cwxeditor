@@ -250,9 +250,15 @@ public:
 		bool expand = opt.expandXMLs;
 		bool scTemplate = classicDir !is null;
 		bool classic = false;
+		string fext = fname.extension().toLower();
 
-		bool isXMLSystem(string path) { mixin(S_TRACE);
-			return cfnmatch(.extension(path), ".xml") && isScenarioSystemDir(dirName(path));
+		string isXMLSystem(string path) { mixin(S_TRACE);
+			// CABの場合はメモリ上に展開できないため必ずファイルを展開する必要がある
+			if (cfnmatch(fext, ".cab")) return path;
+			if (!cfnmatch(.extension(path), ".xml")) return null;
+			auto dir = dirName(path).baseName();
+			if (!isScenarioSystemDir(dir)) return null;
+			return dir.buildPath(path.baseName());
 		}
 		string expandDir;
 		string expandName(string path, bool isDir) { mixin(S_TRACE);
@@ -271,7 +277,7 @@ public:
 				if (cfnmatch(ext, ".wsm") || cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex")) return path;
 			} else { mixin(S_TRACE);
 				if (cfnmatch(path.baseName(), "Summary.xml")) return path;
-				if (isXMLSystem(path)) return path;
+				if (auto path2 = isXMLSystem(path)) return path2;
 			}
 			if (!isDir) { mixin(S_TRACE);
 				// 素材が見つからないというエラーを避けるため、ダミーの空ファイルを作る
@@ -282,9 +288,9 @@ public:
 			}
 			return "";
 		}
-		string sunzip(string fname, ZipArchive arc, out bool cancel) { mixin(S_TRACE);
+		string sunzip(string fname, ZipArchive arc, out bool cancel, out string summPath) { mixin(S_TRACE);
 			cancel = false;
-			auto temp = createTempDir(tempPath, baseName(stripExtension(fname)));
+			auto temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
 			expandDir = temp;
 			if (expand) { mixin(S_TRACE);
 				.unzip(temp, arc, &expandName, setMax, worked);
@@ -293,10 +299,11 @@ public:
 					path = expandName(path, isDir);
 					if (!path.length) return;
 					if (!isDir) { mixin(S_TRACE);
-						if (cfnmatch(path, "Summary.xml")) { mixin(S_TRACE);
-							xmls[""][path] = cast(string) data;
-						} else if (isXMLSystem(path)) { mixin(S_TRACE);
-							xmls[dirName(path)][baseName(path)] = cast(string) data;
+						auto file = path.baseName();
+						if (cfnmatch(file, "Summary.xml")) { mixin(S_TRACE);
+							xmls[""][file] = cast(string) data;
+						} else if (auto path2 = isXMLSystem(path)) { mixin(S_TRACE);
+							xmls[dirName(path2)][baseName(path2)] = cast(string) data;
 						} else { mixin(S_TRACE);
 							path = std.path.buildPath(temp, path);
 							string parent = dirName(path);
@@ -309,6 +316,14 @@ public:
 					}
 				}, setMax, worked);
 			}
+			auto ld = clistdir(temp);
+			if (ld.length == 1 && isDir(std.path.buildPath(temp, ld[0]))) { mixin(S_TRACE);
+				// ディレクトリを一つ挟んでいる
+				summPath = std.path.buildPath(temp, ld[0]);
+			} else { mixin(S_TRACE);
+				summPath = temp;
+			}
+			createLockFile(temp);
 			return temp;
 		}
 		ZipArchive scArc(string fname, string ext) { mixin(S_TRACE);
@@ -328,10 +343,10 @@ public:
 			}
 			return null;
 		}
-		string suncab(string fname, out string summPath) { mixin(S_TRACE);
+		string suncab(string fname, string summName, out string summPath) { mixin(S_TRACE);
 			classic = true;
 			string temp;
-			if (cfnmatch(.extension(fname), ".cab")) { mixin(S_TRACE);
+			if (canUncab && cfnmatch(.extension(fname), ".cab")) { mixin(S_TRACE);
 				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
 				expandDir = temp;
 				if (!.uncab(fname, temp, (string file) {return expandName(file, false);})) { mixin(S_TRACE);
@@ -359,7 +374,7 @@ public:
 				// ディレクトリを一つ挟んでいる
 				summPath = std.path.buildPath(temp, ld[0]);
 			}
-			if (!.exists(std.path.buildPath(summPath, "Summary.wsm"))) { mixin(S_TRACE);
+			if (!.exists(std.path.buildPath(summPath, summName))) { mixin(S_TRACE);
 				delAll(temp);
 				return null;
 			}
@@ -370,7 +385,7 @@ public:
 		}
 		Summary load(string p) { mixin(S_TRACE);
 			Summary r;
-			if (expand) { mixin(S_TRACE);
+			if (expand || fext == ".cab") { mixin(S_TRACE);
 				r = Summary.fromXMLs(prop.sys, std.path.buildPath(p, "Summary.xml"), opt);
 			} else { mixin(S_TRACE);
 				r = Summary.fromXMLs(prop.sys, p, xmls, opt);
@@ -402,7 +417,7 @@ public:
 		}
 		Summary legacyCommon() { mixin(S_TRACE);
 			string summPath;
-			string fn = suncab(fname, summPath);
+			string fn = suncab(fname, "Summary.wsm", summPath);
 			if (fn) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
 					Summary r = loadLegacy(summPath);
@@ -453,9 +468,7 @@ public:
 					}
 					if (cfnmatch(baseName(fname), "Summary.wsm")) { mixin(S_TRACE);
 						return ll(dirName(fname));
- 					} else if (canUncab && cfnmatch(.extension(fname), ".cab")) { mixin(S_TRACE);
- 						return legacyCommon();
-					} else if (cfnmatch(baseName(fname), "Summary.xml")) { mixin(S_TRACE);
+ 					} else if (cfnmatch(baseName(fname), "Summary.xml")) { mixin(S_TRACE);
 						expand = true;
 						auto r = load(dirName(fname));
 						r._expandXMLs = true;
@@ -474,38 +487,48 @@ public:
 					} else if (isDir(fname)) { mixin(S_TRACE);
 						return ll(fname);
 					} else { mixin(S_TRACE);
-						auto arc = scArc(fname, ".xml");
-						if (arc) { mixin(S_TRACE);
-							bool cancel;
-							string zipname = fname;
-							classic = false;
-							fname = sunzip(baseName(fname), arc, cancel);
-							if (fname.length) { mixin(S_TRACE);
-								try { mixin(S_TRACE);
-									Summary r = load(fname);
-									r._expandXMLs = expand;
-									r._useTemp = true;
-									r._zipName = zipname;
-									r._tempPath = fname;
-									r._legacy = false;
-									r.lock(r._tempPath, r._useTemp);
-									if (scTemplate) { mixin(S_TRACE);
-										r._zipName = "";
-									}
-									r.refCheckPaths();
-									return r;
-								} catch (Exception e) {
-									printStackTrace();
-									debugln(e);
-									delAll(fname);
-									throw e;
-								}
-							} else if (cancel) { mixin(S_TRACE);
-								delAll(dirName(fname));
-								return null;
+						string zipname = fname;
+						string summPath;
+						string fn = "";
+						if (canUncab && cfnmatch(.extension(fname), ".cab")) { mixin(S_TRACE);
+							if (cabHasFile(fname, "Summary.xml")) { mixin(S_TRACE);
+								classic = false;
+								fn = suncab(fname, "Summary.xml", summPath);
 							}
 						} else { mixin(S_TRACE);
-							return legacyCommon();
+							auto arc = scArc(fname, ".xml");
+							if (arc) { mixin(S_TRACE);
+								bool cancel;
+								classic = false;
+								fn = sunzip(baseName(fname), arc, cancel, summPath);
+								if (cancel) { mixin(S_TRACE);
+									delAll(dirName(fname));
+									return null;
+								}
+							}
+						}
+						if (fn.length) { mixin(S_TRACE);
+							try { mixin(S_TRACE);
+								Summary r = load(summPath);
+								r._expandXMLs = expand;
+								r._useTemp = true;
+								r._zipName = zipname;
+								r._tempPath = fn;
+								r._legacy = false;
+								r.lock(r._tempPath, r._useTemp);
+								if (scTemplate) { mixin(S_TRACE);
+									r._zipName = "";
+								}
+								r.refCheckPaths();
+								return r;
+							} catch (Exception e) {
+								printStackTrace();
+								debugln(e);
+								delAll(fn);
+								throw e;
+							}
+						} else { mixin(S_TRACE);
+	 						return legacyCommon();
 						}
 					}
 				} catch (ZipException e) {
