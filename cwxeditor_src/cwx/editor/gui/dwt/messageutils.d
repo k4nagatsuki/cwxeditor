@@ -2016,6 +2016,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		gc.setForeground(fc);
 
 		void drawText(string s, int x, int y) {
+			auto fc = gc.getForeground();
 			if ("―" == s && "―" == old) {
 				// "―"の場合のみ表示を接続する処理が入る
 				gc.setForeground(hc);
