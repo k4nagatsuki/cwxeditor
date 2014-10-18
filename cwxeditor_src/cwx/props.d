@@ -54,11 +54,7 @@ public:
 	@property const CRect messageBounds() {return CRect(81, 50, 470, 180);}
 	@property const int messageButtonHeight() {return 25;}
 	const CPoint messageStartPos(bool legacy, bool withTalker) { mixin(S_TRACE);
-		if (legacy) { mixin(S_TRACE);
-			return withTalker ? CPoint(115, 11) : CPoint(16, 11);
-		} else { mixin(S_TRACE);
-			return withTalker ? CPoint(115, 15) : CPoint(15, 15);
-		}
+		return withTalker ? CPoint(115, 11) : CPoint(16, 11);
 	}
 	@property const CPoint messageTalkerPos() {return CPoint(15, 43);}
 	@property const uint selectionBarMaxWithMessage() { return 7; }
@@ -190,7 +186,7 @@ public:
 		version (Windows) {
 			if (legacy) return CFont(mincho(legacy), 15, true, false);
 		}
-		return CFont(gothic(legacy), 16, false, false);
+		return CFont(mincho(legacy), 15, true, false);
 	}
 	const CFont messageSelectFont(bool legacy) { mixin(S_TRACE);
 		version (Windows) {

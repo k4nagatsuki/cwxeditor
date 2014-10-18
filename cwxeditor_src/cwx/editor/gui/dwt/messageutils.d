@@ -2427,244 +2427,136 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		}
 	}
 
-	if (legacy) { mixin(S_TRACE);
-		auto textCanvas = new Image(d, rect.width, rect.height + bh * sel.length);
-		scope (exit) textCanvas.dispose();
-		auto tgc = new GC(textCanvas);
-		scope (exit) tgc.dispose();
-		// FIXME: IPAフォントの使用とアンチエイリアス設定を
-		//        同時に行うと一部環境で問題が出る。
-//		tgc.setTextAntialias(SWT.OFF);
-		tgc.setFont(font);
-		tgc.setForeground(fc);
-		tgc.setBackground(hc);
-		tgc.fillRectangle(0, 0, rect.width, rect.height + bh * sel.length);
-		lineH = tgc.getFontMetrics().getHeight() + 2;
-		for (size_t i = 0; i < dmsg.length; i++) { mixin(S_TRACE);
-			if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
-				// 行数オーバー
-				break;
-			}
-			auto cf = i in rFonts;
-			if (cf) { mixin(S_TRACE);
-				// 特殊文字の描画位置を記憶
-				string s1 = to!string(dmsg[i]);
-				i++;
-				string s2 = to!string(dmsg[i]);
-				auto w = (tgc.textExtent(s1).x - 1) + (tgc.textExtent(s2).x - 1);
-				if (msgLen < writeLen + 2) { mixin(S_TRACE);
-					// 列数オーバー
-					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) { mixin(S_TRACE);
-						ret();
-					}
-					if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
-						// 行数オーバー
-						break;
-					}
+	auto textCanvas = new Image(d, rect.width, rect.height + bh * sel.length);
+	scope (exit) textCanvas.dispose();
+	auto tgc = new GC(textCanvas);
+	scope (exit) tgc.dispose();
+	// FIXME: IPAフォントの使用とアンチエイリアス設定を
+	//        同時に行うと一部環境で問題が出る。
+	//tgc.setTextAntialias(SWT.OFF);
+	tgc.setFont(font);
+	tgc.setForeground(fc);
+	tgc.setBackground(hc);
+	tgc.fillRectangle(0, 0, rect.width, rect.height + bh * sel.length);
+	lineH = tgc.getFontMetrics().getHeight() + 2;
+	for (size_t i = 0; i < dmsg.length; i++) { mixin(S_TRACE);
+		if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
+			// 行数オーバー
+			break;
+		}
+		auto cf = i in rFonts;
+		if (cf) { mixin(S_TRACE);
+			// 特殊文字の描画位置を記憶
+			string s1 = to!string(dmsg[i]);
+			i++;
+			string s2 = to!string(dmsg[i]);
+			auto w = (tgc.textExtent(s1).x - 1) + (tgc.textExtent(s2).x - 1);
+			if (msgLen < writeLen + 2) { mixin(S_TRACE);
+				// 列数オーバー
+				if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) { mixin(S_TRACE);
+					ret();
 				}
-				writeLen += 2;
-				drawSPFont(gc, CPoint(x - 2, y - 2), *cf, tgc.getForeground().getRGB());
-				x += w;
-				continue;
-			}
-			auto colorP = i in rColors;
-			if (colorP) { mixin(S_TRACE);
-				// フォント色変更
-				switch (*colorP) {
-				case 'W': tgc.setForeground(fc); break;
-				case 'R': tgc.setForeground(cr); break;
-				case 'B': tgc.setForeground(cb); break;
-				case 'G': tgc.setForeground(cg); break;
-				case 'Y': tgc.setForeground(cy); break;
-				case 'O': tgc.setForeground(co); break;
-				case 'P': tgc.setForeground(cp); break;
-				case 'L': tgc.setForeground(cl); break;
-				case 'D': tgc.setForeground(cd); break;
-				default: break;
+				if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
+					// 行数オーバー
+					break;
 				}
-				i++;
-				continue;
 			}
-			auto c = dmsg[i];
-			switch (c) {
-			case '\n':
-				ret();
-				break;
-			default:
-				auto s = to!string(c);
-				auto te = tgc.textExtent(s);
-				int w = te.x - 1;
-				int len = (te.x + 1) / tgc.textExtent("#").x;
-				// 行末が半角スペースの時だけ特別扱いする(CardWirthの挙動に合わせた処理)
-				if (msgLen < writeLen + (s == " " ? len - 1 : len)) { mixin(S_TRACE);
-					// 列数オーバー
-					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) { mixin(S_TRACE);
-						ret();
-					}
-					if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
-						// 行数オーバー
-						break;
-					}
+			writeLen += 2;
+			drawSPFont(gc, CPoint(x - 2, y - 2), *cf, tgc.getForeground().getRGB());
+			x += w;
+			continue;
+		}
+		auto colorP = i in rColors;
+		if (colorP) { mixin(S_TRACE);
+			// フォント色変更
+			switch (*colorP) {
+			case 'W': tgc.setForeground(fc); break;
+			case 'R': tgc.setForeground(cr); break;
+			case 'B': tgc.setForeground(cb); break;
+			case 'G': tgc.setForeground(cg); break;
+			case 'Y': tgc.setForeground(cy); break;
+			case 'O': tgc.setForeground(co); break;
+			case 'P': tgc.setForeground(cp); break;
+			case 'L': tgc.setForeground(cl); break;
+			case 'D': tgc.setForeground(cd); break;
+			default: break;
+			}
+			i++;
+			continue;
+		}
+		auto c = dmsg[i];
+		switch (c) {
+		case '\n':
+			ret();
+			break;
+		default:
+			auto s = to!string(c);
+			auto te = tgc.textExtent(s);
+			int w = te.x - 1;
+			int len = (te.x + 1) / tgc.textExtent("#").x;
+			// 行末が半角スペースの時だけ特別扱いする(CardWirthの挙動に合わせた処理)
+			if (msgLen < writeLen + (s == " " ? len - 1 : len)) { mixin(S_TRACE);
+				// 列数オーバー
+				if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) { mixin(S_TRACE);
+					ret();
 				}
-				writeLen += len;
+				if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
+					// 行数オーバー
+					break;
+				}
+			}
+			writeLen += len;
+			static immutable JOINS = "―─＿￣";
+			if (std.string.indexOf(JOINS, s) != -1) { mixin(S_TRACE);
+				// 強制的に左右を接続する文字
+				tgc.drawText(s, x - 1, y, true);
 				tgc.drawText(s, x, y, true);
-				x += w;
-				break;
-			}
-		}
-
-		// 選択肢
-		tgc.setForeground(fc);
-		tgc.setFont(selFont);
-		auto slh = tgc.getFontMetrics().getHeight();
-		int sx;
-		int sy = rect.height + ((bh - slh) / 2);
-		foreach (i, t; sel) { mixin(S_TRACE);
-			sx = (rect.width - tgc.textExtent(t).x) / 2;
-			tgc.drawText(t, sx, sy, true);
-			sy += bh;
-		}
-
-		// 貼り付け
-		auto tImgData = textCanvas.getImageData();
-		tImgData.transparentPixel = tImgData.getPixel(0, 0);
-		auto hemImgData = new ImageData(tImgData.width, tImgData.height, 2, new PaletteData([new RGB(255, 255, 255), new RGB(0, 0, 0)]));
-		hemImgData.transparentPixel = 0;
-		foreach (ix; 0 .. tImgData.width) { mixin(S_TRACE);
-			foreach (iy; 0 .. tImgData.height) { mixin(S_TRACE);
-				if (tImgData.getPixel(ix, iy) != tImgData.transparentPixel) { mixin(S_TRACE);
-					hemImgData.setPixel(ix, iy, 1);
-				}
-			}
-		}
-		auto hemImg = new Image(d, hemImgData);
-		scope (exit) hemImg.dispose();
-		auto tImg = new Image(d, tImgData);
-		scope (exit) tImg.dispose();
-		gc.drawImage(hemImg, -1, -1);
-		gc.drawImage(hemImg, 0, -1);
-		gc.drawImage(hemImg, 1, -1);
-		gc.drawImage(hemImg, 1, 0);
-		gc.drawImage(hemImg, 1, 1);
-		gc.drawImage(hemImg, 0, 1);
-		gc.drawImage(hemImg, -1, 1);
-		gc.drawImage(hemImg, -1, 0);
-		gc.drawImage(tImg, 0, 0);
-	} else { mixin(S_TRACE);
-		// FIXME: IPAフォントの使用とアンチエイリアス設定を
-		//        同時に行うと一部環境で問題が出る。
-//		gc.setTextAntialias(SWT.ON);
-		gc.setFont(font);
-		lineH = gc.getFontMetrics().getHeight();
-		gc.setForeground(fc);
-
-		void drawText(string s, int x, int y) { mixin(S_TRACE);
-			if ("―" == s && "―" == old) { mixin(S_TRACE);
-				// "―"の場合のみ表示を接続する処理が入る
-				gc.setForeground(hc);
-				gc.drawText(s, x, y - 1, true);
-				gc.drawText(s, x, y + 1, true);
-				gc.drawText(s, x - lineH / 2 + 2, y - 1, true);
-				gc.drawText(s, x - lineH / 2 + 2, y + 1, true);
-				gc.setForeground(fc);
-				gc.drawText(s, x - lineH / 2, y, true);
-				gc.drawText(s, x, y, true);
+				tgc.drawText(s, x + 1, y, true);
 			} else { mixin(S_TRACE);
-				gc.setForeground(hc);
-				gc.drawText(s, x - 1, y, true);
-				gc.drawText(s, x + 1, y, true);
-				gc.drawText(s, x, y - 1, true);
-				gc.drawText(s, x, y + 1, true);
-				gc.setForeground(fc);
-				gc.drawText(s, x, y, true);
+				tgc.drawText(s, x, y, true);
 			}
-			old = s;
-		}
-		for (size_t i = 0; i < dmsg.length; i++) { mixin(S_TRACE);
-			if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
-				// 行数オーバー
-				break;
-			}
-			auto cf = i in rFonts;
-			if (cf) { mixin(S_TRACE);
-				// 特殊文字の描画位置を記憶
-				string s1 = to!string(dmsg[i]);
-				i++;
-				string s2 = to!string(dmsg[i]);
-				auto w = (gc.textExtent(s1).x - 1) + (gc.textExtent(s2).x - 1);
-				if (msgLen < writeLen + 2) { mixin(S_TRACE);
-					// 列数オーバー
-					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) { mixin(S_TRACE);
-						ret();
-					}
-					if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
-						// 行数オーバー
-						break;
-					}
-				}
-				writeLen += 2;
-				drawSPFont(gc, CPoint(x, y - 2), *cf, gc.getForeground().getRGB());
-				x += w;
-				continue;
-			}
-			auto colorP = i in rColors;
-			if (colorP) { mixin(S_TRACE);
-				// フォント色変更
-				switch (*colorP) {
-				case 'W': gc.setForeground(fc); break;
-				case 'R': gc.setForeground(cr); break;
-				case 'B': gc.setForeground(cb); break;
-				case 'G': gc.setForeground(cg); break;
-				case 'Y': gc.setForeground(cy); break;
-				case 'O': gc.setForeground(co); break; // CardWirth 1.50
-				case 'P': gc.setForeground(cp); break; // CardWirth 1.50
-				case 'L': gc.setForeground(cl); break; // CardWirth 1.50
-				case 'D': gc.setForeground(cd); break; // CardWirth 1.50
-				default: break;
-				}
-				i++;
-				continue;
-			}
-			auto c = dmsg[i];
-			switch (c) {
-			case '\n':
-				ret();
-				break;
-			default:
-				auto s = to!string(c);
-				auto te = gc.textExtent(s);
-				int w = te.x - 1;
-				int len = (te.x + 1) / gc.textExtent("#").x;
-				// 行末が半角スペースの時だけ特別扱いする(CardWirthの挙動に合わせた処理)
-				if (msgLen < writeLen + (s == " " ? len - 1 : len)) { mixin(S_TRACE);
-					// 列数オーバー
-					if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) { mixin(S_TRACE);
-						ret();
-					}
-					if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
-						// 行数オーバー
-						break;
-					}
-				}
-				writeLen += len;
-				drawText(s, x, y);
-				x += w;
-				break;
-			}
-		}
-
-		// 選択肢
-		gc.setForeground(fc);
-		gc.setFont(selFont);
-		auto slh = gc.getFontMetrics().getHeight();
-		int sx;
-		int sy = rect.height + ((bh - slh) / 2);
-		foreach (i, t; sel) { mixin(S_TRACE);
-			sx = (rect.width - gc.textExtent(t).x) / 2;
-			drawText(t, sx, sy);
-			sy += bh;
+			x += w;
+			break;
 		}
 	}
+
+	// 選択肢
+	tgc.setForeground(fc);
+	tgc.setFont(selFont);
+	auto slh = tgc.getFontMetrics().getHeight();
+	int sx;
+	int sy = rect.height + ((bh - slh) / 2);
+	foreach (i, t; sel) { mixin(S_TRACE);
+		sx = (rect.width - tgc.textExtent(t).x) / 2;
+		tgc.drawText(t, sx, sy, true);
+		sy += bh;
+	}
+
+	// 貼り付け
+	auto tImgData = textCanvas.getImageData();
+	tImgData.transparentPixel = tImgData.getPixel(0, 0);
+	auto hemImgData = new ImageData(tImgData.width, tImgData.height, 2, new PaletteData([new RGB(255, 255, 255), new RGB(0, 0, 0)]));
+	hemImgData.transparentPixel = 0;
+	foreach (ix; 0 .. tImgData.width) { mixin(S_TRACE);
+		foreach (iy; 0 .. tImgData.height) { mixin(S_TRACE);
+			if (tImgData.getPixel(ix, iy) != tImgData.transparentPixel) { mixin(S_TRACE);
+				hemImgData.setPixel(ix, iy, 1);
+			}
+		}
+	}
+	auto hemImg = new Image(d, hemImgData);
+	scope (exit) hemImg.dispose();
+	auto tImg = new Image(d, tImgData);
+	scope (exit) tImg.dispose();
+	gc.drawImage(hemImg, -1, -1);
+	gc.drawImage(hemImg, 0, -1);
+	gc.drawImage(hemImg, 1, -1);
+	gc.drawImage(hemImg, 1, 0);
+	gc.drawImage(hemImg, 1, 1);
+	gc.drawImage(hemImg, 0, 1);
+	gc.drawImage(hemImg, -1, 1);
+	gc.drawImage(hemImg, -1, 0);
+	gc.drawImage(tImg, 0, 0);
 
 	// 枠
 	auto c1 = new Color(d, dwtData(prop.var.etc.messageLineColor1, alpha));
