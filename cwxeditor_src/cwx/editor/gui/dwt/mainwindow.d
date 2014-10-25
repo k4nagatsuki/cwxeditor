@@ -1090,6 +1090,7 @@ private:
 			core.memory.GC.collect();
 			dStr ~= " - " ~ .text(__LINE__);
 			_win.redraw();
+			_comm.refreshToolBar();
 			dStr ~= " - " ~ .text(__LINE__);
 		} catch (Throwable e) {
 			printStackTrace();
@@ -1360,6 +1361,7 @@ private:
 	}
 	@property
 	bool canExecEngineWithLastParty() { mixin(S_TRACE);
+		if (!summary || (summary.useTemp && summary.zipName == "")) return false;
 		return summary && _prop.var.etc.lastExecuteEngine != "" && _prop.var.etc.lastExecuteEngine.exists() && _prop.var.etc.lastExecuteEngine.isFile();
 	}
 	@property
@@ -1369,7 +1371,8 @@ private:
 	}
 	@property
 	bool canExecEngineWithParty() { mixin(S_TRACE);
-		return summary !is null;
+		if (!summary || (summary.useTemp && summary.zipName == "")) return false;
+		return true;
 	}
 	void execEngine() { mixin(S_TRACE);
 		string engine = execEnginePath;
@@ -2760,7 +2763,7 @@ public:
 				auto eemi = createMenuItem(_comm, mt, MenuID.ExecEngine, dummy, () => canExecEngine || _prop.var.etc.classicEngines.length, SWT.CASCADE);
 				_mExecEngine = new Menu(eemi);
 				eemi.setMenu(_mExecEngine);
-				auto eewpmi = createMenuItem(_comm, mt, MenuID.ExecEngineWithParty, dummy, () => (canExecEngine || _prop.var.etc.classicEngines.length) && summary, SWT.CASCADE);
+				auto eewpmi = createMenuItem(_comm, mt, MenuID.ExecEngineWithParty, dummy, () => canExecEngineWithParty, SWT.CASCADE);
 				_mExecEngineWithParty = new Menu(eewpmi);
 				eewpmi.setMenu(_mExecEngineWithParty);
 				new MenuItem(mt, SWT.SEPARATOR);
