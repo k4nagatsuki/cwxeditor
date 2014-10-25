@@ -337,7 +337,7 @@ private:
 				_menu[MenuID.ExecEngine] = autoMI;
 			}
 			if (mWithParty) { mixin(S_TRACE);
-				autoMI2 = createMenuItem(_comm, mWithParty, MenuID.ExecEngineWithLastParty, &execEngineWithLastParty, &canExecEngineWithLastParty);
+				autoMI2 = createMenuItem(_comm, mWithParty, MenuID.ExecEngineWithLastParty, &execEngineWithLastParty, &canExecEngineWithLastParty2);
 				_menu[MenuID.ExecEngineWithParty] = autoMI2;
 			}
 		}
@@ -1363,6 +1363,11 @@ private:
 		return summary && _prop.var.etc.lastExecuteEngine != "" && _prop.var.etc.lastExecuteEngine.exists() && _prop.var.etc.lastExecuteEngine.isFile();
 	}
 	@property
+	bool canExecEngineWithLastParty2() { mixin(S_TRACE);
+		if (!canExecEngineWithLastParty) return false;
+		return !_prop.var.etc.lastExecuteIsClassic || canExecClassic;
+	}
+	@property
 	bool canExecEngineWithParty() { mixin(S_TRACE);
 		return summary !is null;
 	}
@@ -1374,13 +1379,11 @@ private:
 	}
 	void execEngineWithLastParty() { mixin(S_TRACE);
 		if (!summary) return;
-		bool noExecute = _prop.var.etc.lastExecuteEngine == "";
-		noExecute |= _prop.var.etc.lastExecuteIsClassic && !canExecClassic;
-		if (noExecute) {
-			showDropDownMenu(_tiExecEngineWithParty, _tmExecEngineWithParty);
-		} else { mixin(S_TRACE);
+		if (canExecEngineWithLastParty2) {
 			auto scenario = .tryFormat(`"%s"`, (summary.useTemp && summary.zipName != "") ? summary.zipName : summary.scenarioPath);
 			execEngineP(_prop.var.etc.lastExecuteEngine, _prop.var.etc.lastExecuteParameters, scenario);
+		} else { mixin(S_TRACE);
+			showDropDownMenu(_tiExecEngineWithParty, _tmExecEngineWithParty);
 		}
 	}
 	@property
