@@ -1360,7 +1360,7 @@ private:
 	}
 	@property
 	bool canExecEngineWithLastParty() { mixin(S_TRACE);
-		return _prop.var.etc.lastExecuteEngine != "" && _prop.var.etc.lastExecuteEngine.exists() && _prop.var.etc.lastExecuteEngine.isFile();
+		return summary && _prop.var.etc.lastExecuteEngine != "" && _prop.var.etc.lastExecuteEngine.exists() && _prop.var.etc.lastExecuteEngine.isFile();
 	}
 	@property
 	bool canExecEngineWithParty() { mixin(S_TRACE);
