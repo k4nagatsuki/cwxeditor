@@ -704,7 +704,8 @@ private:
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
+		auto o = this;
+		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
 		super(comm, prop, shell, summ, CType.TALK_DIALOG, parent, evt, prop.var.speakDlg);
 	}
 

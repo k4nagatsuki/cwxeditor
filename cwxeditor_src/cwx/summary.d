@@ -166,7 +166,8 @@ private:
 
 	this (string sPath) { mixin(S_TRACE);
 		_sPath = sPath;
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
+		auto o = this;
+		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
 		_uc = new UseCounter;
 		_froot = new FlagDir(this);
 		_froot.changeHandler = &changeHandler;

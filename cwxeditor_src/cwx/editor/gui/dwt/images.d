@@ -19,7 +19,6 @@ import std.path;
 import std.conv;
 import std.string;
 import std.utf;
-import std.typecons;
 
 import org.eclipse.swt.all;
 

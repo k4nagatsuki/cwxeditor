@@ -464,7 +464,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 型と後続テキストnameを指定してインスタンスを生成。
 	this (CType type, string name) { mixin(S_TRACE);
 		static ulong idCount = 0;
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime()) ~ "-" ~ to!string(idCount);
+		auto o = this;
+		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime()) ~ "-" ~ to!string(idCount);
 		idCount++;
 		_type = type;
 		_name = new SimpleTextHolder;
@@ -3118,7 +3119,7 @@ Content createInitVariablesTree(in FlagDir dir) { mixin(S_TRACE);
 	return createInitVariablesTree(dir.allFlags(), dir.allSteps());
 }
 /// ditto
-Content createInitVariablesTree(in Flag[] flags, in Step[] steps) { mixin(S_TRACE);
+Content createInitVariablesTree(in cwx.flag.Flag[] flags, in Step[] steps) { mixin(S_TRACE);
 	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP)(flags, steps, (f) => f.onOff, (s) => s.select);
 }
 /// フラグの値を設定するイベントツリーを生成する。
@@ -3126,7 +3127,7 @@ Content createSetFlagTree(in FlagDir dir, bool onOff) { mixin(S_TRACE);
 	return createSetFlagTree(dir.allFlags(), onOff);
 }
 /// ditto
-Content createSetFlagTree(in Flag[] flags, bool onOff) { mixin(S_TRACE);
+Content createSetFlagTree(in cwx.flag.Flag[] flags, bool onOff) { mixin(S_TRACE);
 	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP)(flags, [], (f) => onOff, null);
 }
 /// ステップの値を設定するイベントツリーを生成する。
@@ -3142,7 +3143,7 @@ Content createReverseFlagTree(in FlagDir dir) { mixin(S_TRACE);
 	return createReverseFlagTree(dir.allFlags());
 }
 /// ditto
-Content createReverseFlagTree(in Flag[] flags) { mixin(S_TRACE);
+Content createReverseFlagTree(in cwx.flag.Flag[] flags) { mixin(S_TRACE);
 	return createInitVariablesTreeImpl!(CType.REVERSE_FLAG, CType.SET_STEP)(flags, [], null, null);
 }
 /// ステップを加算するイベントツリーを生成する。
@@ -3161,8 +3162,8 @@ Content createSetStepDownTree(in FlagDir dir) { mixin(S_TRACE);
 Content createSetStepDownTree(in Step[] steps) { mixin(S_TRACE);
 	return createInitVariablesTreeImpl!(CType.SET_FLAG, CType.SET_STEP_DOWN)([], steps, null, null);
 }
-private Content createInitVariablesTreeImpl(CType TypeF, CType TypeS)(in Flag[] flags, in Step[] steps,
-		bool delegate(in Flag) getValueF, uint delegate(in Step) getValueS) { mixin(S_TRACE);
+private Content createInitVariablesTreeImpl(CType TypeF, CType TypeS)(in cwx.flag.Flag[] flags, in Step[] steps,
+		bool delegate(in cwx.flag.Flag) getValueF, uint delegate(in Step) getValueS) { mixin(S_TRACE);
 	Content[] r;
 	foreach (step; steps) { mixin(S_TRACE);
 		auto c = new Content(TypeS, "");

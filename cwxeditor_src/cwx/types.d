@@ -1336,6 +1336,8 @@ enum MenuID {
 	ExecEngine,
 	ExecEngineAuto,
 	ExecEngineMain,
+	ExecEngineWithParty,
+	ExecEngineWithLastParty,
 	OuterTools,
 	Settings,
 	VersionInfo,

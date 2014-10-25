@@ -19,6 +19,7 @@ import cwx.structs;
 import cwx.types;
 import cwx.cab;
 import cwx.binary;
+import cwx.xml;
 
 import cwx.editor.gui.sound;
 
@@ -61,7 +62,6 @@ import std.array;
 import std.algorithm;
 import std.csv;
 import std.functional;
-import std.typecons;
 debug import std.stdio;
 
 import org.eclipse.swt.all;
@@ -137,31 +137,135 @@ private:
 	Menu _mExecEngine;
 	Menu _tmExecEngine;
 	ToolItem _tiExecEngine;
+	Menu _mExecEngineWithParty;
+	Menu _tmExecEngineWithParty;
+	ToolItem _tiExecEngineWithParty;
 	void refreshExecEngine() { mixin(S_TRACE);
-		refreshExecEngineImpl(_mExecEngine, true);
-		auto ePath = refreshExecEngineImpl(_tmExecEngine, false);
+		refreshExecEngineImpl(_mExecEngine, _mExecEngineWithParty, true);
+		auto ePath = refreshExecEngineImpl(_tmExecEngine, _tmExecEngineWithParty, false);
 		version (Windows) {
 			// ツールボタンのアイコン
 			auto exeIcon = loadIcon(ePath, 16, 16);
 			if (exeIcon) { mixin(S_TRACE);
-				auto img = _tiExecEngine.getImage();
-				if (_prop.images.menu(MenuID.ExecEngineAuto) !is img) { mixin(S_TRACE);
-					img.dispose();
+				if (_tiExecEngine) { mixin(S_TRACE);
+					auto img = _tiExecEngine.getImage();
+					if (img && _prop.images.menu(MenuID.ExecEngineAuto) !is img) { mixin(S_TRACE);
+						img.dispose();
+					}
+					auto img2 = new Image(_tiExecEngine.getDisplay(), exeIcon);
+					_tiExecEngine.setImage(img2);
 				}
-				auto img2 = new Image(_tiExecEngine.getDisplay(), exeIcon);
-				_tiExecEngine.setImage(img2);
 			}
 		}
 		setupMenu(_menu);
 		setupMenu(_tool);
 	}
-	string refreshExecEngineImpl(Menu menu, bool autoSelect) { mixin(S_TRACE);
-		foreach (itm; menu.getItems()) { mixin(S_TRACE);
-			itm.dispose();
+	private class ExecWithPartyClassic : MenuAdapter {
+		private string path;
+		private string yPath;
+		this (string path, string yPath) { mixin(S_TRACE);
+			this.path = path;
+			this.yPath = yPath;
 		}
-		void putIcon(MenuItem mi, string ePath) { mixin(S_TRACE);
+		override void menuShown(MenuEvent e) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
+				// 各宿のフォルダ
+				foreach (wpl; .clistdir(yPath)) { mixin(S_TRACE);
+					// *.wpl
+					if (wpl.extension().toLower() != ".wpl") continue;
+					auto party = wpl.stripExtension();
+					wpl = yPath.buildPath(wpl);
+					auto name = .readPartyName(_prop.sys, wpl);
+					auto img = _prop.images.team;
+					createMI(cast(Menu)e.widget, path, yPath, name, img, party);
+				}
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
+			}
+		}
+		void createMI(Menu menu, string path, string yPath, string name, Image img, string party) { mixin(S_TRACE);
+			auto mi = createMenuItem2(_comm, menu, name, img, { mixin(S_TRACE);
+				auto params = [
+					"-debug",
+					"-yado",
+					.tryFormat(`"%s"`, yPath.baseName()),
+					"-party",
+					.tryFormat(`"%s"`, party),
+				];
+				execEngineP(path, params.join(" "), .tryFormat(`"%s"`, (summary.useTemp && summary.zipName != "") ? summary.zipName : summary.scenarioPath));
+			}, () => true);
+		}
+	}
+	private class ExecEngine : MenuAdapter {
+		private string yPath;
+		this (string yPath) { mixin(S_TRACE);
+			this.yPath = yPath;
+		}
+		override void menuShown(MenuEvent e) { mixin(S_TRACE);
+			foreach (item; (cast(Menu)e.widget).getItems()) { mixin(S_TRACE);
+				item.dispose();
+			}
+			try { mixin(S_TRACE);
+				foreach (p; .clistdir(yPath)) { mixin(S_TRACE);
+					p = yPath.buildPath(p);
+					if (!p.exists() || !p.isDir()) continue;
+					foreach (xml; .clistdir(p)) { mixin(S_TRACE);
+						xml = p.buildPath(xml);
+						if (!(xml.exists() && xml.isFile() && xml.toLower().extension() == ".xml")) continue;
+						auto name = "";
+						bool hasName = false;
+						auto node = XNode.parse(std.file.readText(xml));
+						node.onTag["Property"] = (ref XNode node) { mixin(S_TRACE);
+							node.onTag["Name"] = (ref XNode node) { mixin(S_TRACE);
+								name = node.value;
+								hasName = true;
+							};
+							node.parse();
+						};
+						node.parse();
+						if (!hasName) continue;
+						auto img = _prop.images.team;
+						createMI(cast(Menu)e.widget, _prop.enginePath, yPath.dirName(), name, img, p.baseName());
+						break;
+					}
+				}
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
+			}
+		}
+		void createMI(Menu menu, string path, string yPath, string name, Image img, string party) { mixin(S_TRACE);
+			auto mi = createMenuItem2(_comm, menu, name, img, { mixin(S_TRACE);
+				auto params = [
+					"-debug",
+					"-yado",
+					.tryFormat(`"%s"`, yPath.baseName()),
+					"-party",
+					.tryFormat(`"%s"`, party),
+				];
+				execEngineP(path, params.join(" "), .tryFormat(`"%s"`, (summary.useTemp && summary.zipName != "") ? summary.zipName : summary.scenarioPath));
+			}, () => true);
+		}
+	}
+	string refreshExecEngineImpl(Menu menu, Menu mWithParty, bool autoSelect) { mixin(S_TRACE);
+		if (menu) { mixin(S_TRACE);
+			foreach (itm; menu.getItems()) { mixin(S_TRACE);
+				itm.dispose();
+			}
+		}
+		if (mWithParty) { mixin(S_TRACE);
+			foreach (itm; mWithParty.getItems()) { mixin(S_TRACE);
+				itm.dispose();
+			}
+		}
+		void putIcon(MenuItem mi1, MenuItem mi2, string ePath) { mixin(S_TRACE);
+			if (!mi1 && !mi2) return;
 			version (Windows) {
 				// loadIcon()は低速のため、メニューを開いた際に呼ぶようにする
+				Menu menu1 = null, menu2 = null;
+				if (mi1) menu1 = mi1.getParent();
+				if (mi2) menu2 = mi2.getParent();
 				bool rmv = false;
 				MenuAdapter mShown;
 				mShown = new class MenuAdapter {
@@ -179,71 +283,264 @@ private:
 							if (exeIcon) { mixin(S_TRACE);
 								_display.syncExec(new class Runnable {
 									void run() { mixin(S_TRACE);
-										if (mi.isDisposed()) return;
-										auto img2 = new Image(mi.getDisplay(), exeIcon);
-										listener(mi, SWT.Dispose, { mixin(S_TRACE);
-											img2.dispose();
-										});
-										mi.setImage(img2);
+										if (mi1 && !mi1.isDisposed()) { mixin(S_TRACE);
+											auto img2 = new Image(mi1.getDisplay(), exeIcon);
+											listener(mi1, SWT.Dispose, { mixin(S_TRACE);
+												img2.dispose();
+											});
+											mi1.setImage(img2);
+										}
+										if (mi2 && !mi2.isDisposed()) { mixin(S_TRACE);
+											auto img2 = new Image(mi2.getDisplay(), exeIcon);
+											listener(mi2, SWT.Dispose, { mixin(S_TRACE);
+												img2.dispose();
+											});
+											mi2.setImage(img2);
+										}
 									}
 								});
 							}
 						});
-						menu.removeMenuListener(mShown);
+						if (menu1) menu1.removeMenuListener(mShown);
+						if (menu2) menu2.removeMenuListener(mShown);
 						rmv = true;
 						thr.start();
 					}
 				};
-				menu.addMenuListener(mShown);
-				mi.addDisposeListener(new class DisposeListener {
-					override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-						if (!rmv) menu.removeMenuListener(mShown);
+				if (menu1) menu1.addMenuListener(mShown);
+				if (menu2) menu2.addMenuListener(mShown);
+				if (mi1) { mixin(S_TRACE);
+					mi1.addDisposeListener(new class DisposeListener {
+						override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+							if (!rmv) { mixin(S_TRACE);
+								menu1.removeMenuListener(mShown);
+							}
+						}
+					});
+				}
+				if (mi2) { mixin(S_TRACE);
+					mi2.addDisposeListener(new class DisposeListener {
+						override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+							if (!rmv) { mixin(S_TRACE);
+								menu2.removeMenuListener(mShown);
+							}
+						}
+					});
+				}
+			}
+		}
+		MenuItem autoMI = null, autoMI2 = null;
+		string autoE = nabs(execEnginePath);
+		if (autoSelect) { mixin(S_TRACE);
+			if (menu) { mixin(S_TRACE);
+				autoMI = createMenuItem(_comm, menu, MenuID.ExecEngineAuto, &execEngine, &canExecEngine);
+				_menu[MenuID.ExecEngine] = autoMI;
+			}
+			if (mWithParty) { mixin(S_TRACE);
+				autoMI2 = createMenuItem(_comm, mWithParty, MenuID.ExecEngineWithLastParty, &execEngineWithLastParty, &canExecEngineWithLastParty);
+				_menu[MenuID.ExecEngineWithParty] = autoMI2;
+			}
+		}
+		void putMenu(string path, string ePath, string name, Image img, bool withParty) { mixin(S_TRACE);
+			MenuItem mi1 = null, mi2 = null;
+			if (menu) { mixin(S_TRACE);
+				// クラシックエンジンの起動
+				auto mi = createMenuItem2(_comm, menu, name, img, { mixin(S_TRACE);
+					if (path.length) { mixin(S_TRACE);
+						execEngineP(path);
+					}
+				}, () => path.length > 0);
+				mi1 = mi;
+			}
+			if (withParty && mWithParty) { mixin(S_TRACE);
+				// クラシックな宿のパーティ選択
+				void delegate() dummy = null;
+				auto yadoDir = path.dirName().buildPath(_prop.sys.yadoName(path.baseName()));
+				if (!yadoDir.exists() || !yadoDir.isDir()) return;
+				auto mi = createMenuItem2(_comm, mWithParty, name, img, dummy, delegate bool() { mixin(S_TRACE);
+					if (canExecClassic) { mixin(S_TRACE);
+						try { mixin(S_TRACE);
+							foreach (yado; .clistdir(yadoDir)) { mixin(S_TRACE);
+								// Yadoフォルダ
+								if (std.string.startsWith(yado, "~")) continue;
+								auto yPath = yadoDir.buildPath(yado);
+								if (!yPath.exists() || !yPath.isDir()) continue;
+								foreach (wpl; .clistdir(yPath)) { mixin(S_TRACE);
+									// *.wpl
+									if (wpl.extension().toLower() == ".wpl") return true;
+								}
+							}
+						} catch (Exception e) {
+							printStackTrace();
+							debugln(e);
+						}
+					}
+					return false;
+				}, SWT.CASCADE);
+				auto mwpMenu = new Menu(mi);
+				mi.setMenu(mwpMenu);
+				mi2 = mi;
+				.listener(mwpMenu, SWT.Show, (Event e) { mixin(S_TRACE);
+					foreach (item; (cast(Menu)e.widget).getItems()) { mixin(S_TRACE);
+						item.dispose();
+					}
+					try { mixin(S_TRACE);
+						if (!summary) return;
+						foreach (yado; .clistdir(yadoDir)) { mixin(S_TRACE);
+							// Yadoフォルダ
+							if (std.string.startsWith(yado, "~")) continue;
+							auto yPath = yadoDir.buildPath(yado);
+							if (!yPath.exists() || !yPath.isDir()) continue;
+							auto img = _prop.images.yado;
+							bool enable = false;
+							if (canExecClassic) { mixin(S_TRACE);
+								foreach (wpl; .clistdir(yPath)) { mixin(S_TRACE);
+									if (wpl.extension().toLower() == ".wpl") { mixin(S_TRACE);
+										enable = true;
+										break;
+									}
+								}
+							}
+							auto mi = (enable) { return createMenuItem2(_comm, mwpMenu, yado, img, dummy, () => enable, SWT.CASCADE); }(enable);
+							auto yMenu = new Menu(mi);
+							mi.setMenu(yMenu);
+							yMenu.addMenuListener(new ExecWithPartyClassic(path, yPath));
+						}
+					} catch (Exception e) {
+						printStackTrace();
+						debugln(e);
 					}
 				});
 			}
-		}
-		MenuItem autoMI = null;
-		string autoE = nabs(execEnginePath);
-		if (autoSelect) { mixin(S_TRACE);
-			autoMI = createMenuItem(_comm, menu, MenuID.ExecEngineAuto, &execEngine, &canExecEngine);
-			_menu[MenuID.ExecEngine] = autoMI;
-		}
-		void putMenu(string path, string ePath, string name, Image img) { mixin(S_TRACE);
-			auto mi = createMenuItem2(_comm, menu, name, img, { mixin(S_TRACE);
-				if (path.length) { mixin(S_TRACE);
-					execEngineP(path);
-				}
-			}, () => path.length > 0);
-			putIcon(mi, ePath);
+			putIcon(mi1, mi2, ePath);
 		}
 		if (_prop.var.etc.enginePath.length) { mixin(S_TRACE);
-			if (0 < menu.getItemCount()) { mixin(S_TRACE);
-				new MenuItem(menu, SWT.SEPARATOR);
-			}
-			auto mi = createMenuItem(_comm, menu, MenuID.ExecEngineMain, { mixin(S_TRACE);
-				if (_prop.enginePath.length) { mixin(S_TRACE);
-					execEngineP(_prop.enginePath);
+			MenuItem mi1 = null, mi2 = null;
+			if (menu) { mixin(S_TRACE);
+				if (0 < menu.getItemCount()) { mixin(S_TRACE);
+					new MenuItem(menu, SWT.SEPARATOR);
 				}
-			}, () => _prop.enginePath.length > 0);
-			putIcon(mi, _prop.enginePath);
+				auto mi = createMenuItem(_comm, menu, MenuID.ExecEngineMain, { mixin(S_TRACE);
+					if (_prop.enginePath.length) { mixin(S_TRACE);
+						execEngineP(_prop.enginePath);
+					}
+				}, () => _prop.enginePath.length > 0);
+				mi1 = mi;
+			}
+			if (mWithParty) { mixin(S_TRACE);
+				// CardWirthPy 0.12.2以降でパーティを指定してシナリオを実行
+				if (0 < mWithParty.getItemCount()) { mixin(S_TRACE);
+					new MenuItem(mWithParty, SWT.SEPARATOR);
+				}
+				void delegate() dummy = null;
+				auto mi = createMenuItem(_comm, mWithParty, MenuID.ExecEngineMain, dummy, delegate bool() { mixin(S_TRACE);
+					try { mixin(S_TRACE);
+						auto dir = _prop.var.etc.enginePath.dirName().buildPath("Yado");
+						if (!dir.exists() || !dir.isDir()) return false;
+						foreach (yado; .clistdir(dir)) { mixin(S_TRACE);
+							yado = dir.buildPath(yado).buildPath("Party");
+							if (!yado.exists() || !yado.isDir()) continue;
+							foreach (p; .clistdir(yado)) { mixin(S_TRACE);
+								p = yado.buildPath(p);
+								if (!p.exists() || !p.isDir()) continue;
+								foreach (xml; .clistdir(p)) { mixin(S_TRACE);
+									xml = p.buildPath(xml);
+									if (xml.isFile() && xml.toLower().extension() == ".xml") return true;
+								}
+							}
+						}
+					} catch (Exception e) {
+						printStackTrace();
+						debugln(e);
+					}
+					return false;
+				}, SWT.CASCADE);
+				auto mwpMenu = new Menu(mi);
+				mi.setMenu(mwpMenu);
+				mi2 = mi;
+				.listener(mwpMenu, SWT.Show, (Event e) { mixin(S_TRACE);
+					foreach (item; (cast(Menu)e.widget).getItems()) { mixin(S_TRACE);
+						item.dispose();
+					}
+					try { mixin(S_TRACE);
+						auto dir = _prop.var.etc.enginePath.dirName().buildPath("Yado");
+						if (!dir.exists() || !dir.isDir()) return;
+						foreach (yado; .clistdir(dir)) { mixin(S_TRACE);
+							auto dName = yado;
+							auto env = dir.buildPath(yado).buildPath("Environment.xml");
+							if (!env.exists() || !env.isFile()) continue;
+							yado = dir.buildPath(yado).buildPath("Party");
+							if (!yado.exists() || !yado.isDir()) continue;
+
+							auto name = "";
+							bool hasName = false;
+							auto xml = std.file.readText(env);
+							auto node = XNode.parse(xml);
+							node.onTag["Property"] = (ref XNode node) { mixin(S_TRACE);
+								node.onTag["Name"] = (ref XNode node) { mixin(S_TRACE);
+									name = node.value;
+									hasName = true;
+								};
+								node.parse();
+							};
+							node.parse();
+							if (!hasName) name = dName;
+							auto img = _prop.images.yado;
+							bool enable = false;
+							foreach (p; .clistdir(yado)) { mixin(S_TRACE);
+								p = yado.buildPath(p);
+								if (!p.exists() || !p.isDir()) continue;
+								foreach (file; .clistdir(p)) { mixin(S_TRACE);
+									file = p.buildPath(file);
+									if (!(file.exists() && file.isFile() && file.toLower().extension() == ".xml")) { mixin(S_TRACE);
+										enable = true;
+										break;
+									}
+								}
+								if (enable) break;
+							}
+							
+							auto mi = (enable) { return createMenuItem2(_comm, mwpMenu, name, img, dummy, () => enable, SWT.CASCADE); }(enable);
+							mi.setEnabled(enable);
+							auto yMenu = new Menu(mi);
+							mi.setMenu(yMenu);
+							yMenu.addMenuListener(new ExecEngine(yado));
+						}
+					} catch (Exception e) {
+						printStackTrace();
+						debugln(e);
+					}
+				});
+				putIcon(mi1, mi2, _prop.enginePath);
+			}
 		}
 		if (_prop.var.etc.classicEngines.length) { mixin(S_TRACE);
-			if (0 < menu.getItemCount()) { mixin(S_TRACE);
-				new MenuItem(menu, SWT.SEPARATOR);
-			}
-			foreach (i, ce; _prop.var.etc.classicEngines) { mixin(S_TRACE);
-				string name = MenuProps.buildMenu(ce.name, ce.mnemonic, ce.hotkey, false);
-				auto p = nabs(ce.executePath(_prop.parent.appPath, false)); // 代替実行
-				auto e = ce.executePath(_prop.parent.appPath, true); // エンジン本体
-				if (autoE.length && cfnmatch(p, autoE)) { mixin(S_TRACE);
-					// 自動実行のアイコンは代替実行ファイルではなくエンジン本体のものとする
-					autoE = e;
+			if (menu || mWithParty) { mixin(S_TRACE);
+				if (menu && 0 < menu.getItemCount()) { mixin(S_TRACE);
+					new MenuItem(menu, SWT.SEPARATOR);
 				}
-				putMenu(p, e, name, _prop.images.classicEngine);
+				bool withPartyItem = false;
+				foreach (i, ce; _prop.var.etc.classicEngines) { mixin(S_TRACE);
+					string name = MenuProps.buildMenu(ce.name, ce.mnemonic, ce.hotkey, false);
+					auto p = nabs(ce.executePath(_prop.parent.appPath, false)); // 代替実行
+					auto e = ce.executePath(_prop.parent.appPath, true); // エンジン本体
+					if (autoE.length && cfnmatch(p, autoE)) { mixin(S_TRACE);
+						// 自動実行のアイコンは代替実行ファイルではなくエンジン本体のものとする
+						autoE = e;
+					}
+					if (!p.exists()) continue;
+					if (!p.isFile()) continue;
+					bool is1_50 = 3000000 <= p.getSize();
+					if (mWithParty && !withPartyItem && is1_50) { mixin(S_TRACE);
+						new MenuItem(mWithParty, SWT.SEPARATOR);
+					}
+					withPartyItem |= is1_50;
+					putMenu(p, e, name, _prop.images.classicEngine, is1_50);
+				}
 			}
 		}
-		if (autoMI) { mixin(S_TRACE);
-			putIcon(autoMI, autoE);
+		if (autoMI || autoMI2) { mixin(S_TRACE);
+			putIcon(autoMI, autoSelect ? null : autoMI2, autoE);
 		}
 		return autoE;
 	}
@@ -1036,13 +1333,22 @@ private:
 		}
 		return false;
 	}
-	void execEngineP(string path) { mixin(S_TRACE);
+	void execEngineP(string path, string params = "", string scenario = "") { mixin(S_TRACE);
 		string path2 = path;
 		string dir = dirName(nabs(path));
 		if (path.extension().toLower() == ".py") { mixin(S_TRACE);
 			path2 = .tryFormat("python \"%s\"", path);
 		}
-		if (!exec(path2, dir)) { mixin(S_TRACE);
+		if (params != "") { mixin(S_TRACE);
+			path2 ~= .tryFormat(" %s -scenario %s", params, scenario);
+		}
+		if (exec(path2, dir)) { mixin(S_TRACE);
+			if (params != "") { mixin(S_TRACE);
+				_prop.var.etc.lastExecuteIsClassic = !cfnmatch(nabs(path), nabs(_prop.enginePath));
+				_prop.var.etc.lastExecuteEngine = path;
+				_prop.var.etc.lastExecuteParameters = params;
+			}
+		} else {
 			MessageBox.showWarning(.tryFormat(_prop.msgs.errorExecEngine, .baseName(path)),
 				_prop.msgs.dlgTitWarning, _win);
 		}
@@ -1052,11 +1358,36 @@ private:
 		string engine = execEnginePath;
 		return engine.length > 0;
 	}
+	@property
+	bool canExecEngineWithLastParty() { mixin(S_TRACE);
+		return _prop.var.etc.lastExecuteEngine != "" && _prop.var.etc.lastExecuteEngine.exists() && _prop.var.etc.lastExecuteEngine.isFile();
+	}
+	@property
+	bool canExecEngineWithParty() { mixin(S_TRACE);
+		return summary !is null;
+	}
 	void execEngine() { mixin(S_TRACE);
 		string engine = execEnginePath;
 		if (engine.length) { mixin(S_TRACE);
 			execEngineP(engine);
 		}
+	}
+	void execEngineWithLastParty() { mixin(S_TRACE);
+		if (!summary) return;
+		bool noExecute = _prop.var.etc.lastExecuteEngine == "";
+		noExecute |= _prop.var.etc.lastExecuteIsClassic && !canExecClassic;
+		if (noExecute) {
+			showDropDownMenu(_tiExecEngineWithParty, _tmExecEngineWithParty);
+		} else { mixin(S_TRACE);
+			auto scenario = .tryFormat(`"%s"`, (summary.useTemp && summary.zipName != "") ? summary.zipName : summary.scenarioPath);
+			execEngineP(_prop.var.etc.lastExecuteEngine, _prop.var.etc.lastExecuteParameters, scenario);
+		}
+	}
+	@property
+	bool canExecClassic() { mixin(S_TRACE);
+		// CardWirth 1.50に -scenario でCAB書庫を渡すのは不可
+		if (!summary) return false;
+		return summary.legacy && !summary.useTemp;
 	}
 	@property
 	string execEnginePath() { mixin(S_TRACE);
@@ -2426,6 +2757,9 @@ public:
 				auto eemi = createMenuItem(_comm, mt, MenuID.ExecEngine, dummy, () => canExecEngine || _prop.var.etc.classicEngines.length, SWT.CASCADE);
 				_mExecEngine = new Menu(eemi);
 				eemi.setMenu(_mExecEngine);
+				auto eewpmi = createMenuItem(_comm, mt, MenuID.ExecEngineWithParty, dummy, () => (canExecEngine || _prop.var.etc.classicEngines.length) && summary, SWT.CASCADE);
+				_mExecEngineWithParty = new Menu(eewpmi);
+				eewpmi.setMenu(_mExecEngineWithParty);
 				new MenuItem(mt, SWT.SEPARATOR);
 				auto otmi = createMenuItem(_comm, mt, MenuID.OuterTools, dummy, () => _prop.var.etc.outerTools.length > 0, SWT.CASCADE);
 				_mOuterTools = new Menu(otmi);
@@ -2462,6 +2796,17 @@ public:
 				listener(_tiExecEngine, SWT.Dispose, { mixin(S_TRACE);
 					auto img = _tiExecEngine.getImage();
 					if (_prop.images.menu(MenuID.ExecEngineAuto) !is img) { mixin(S_TRACE);
+						img.dispose();
+					}
+				});
+			}
+			void createExecEngineWithPartyTI(ToolBar bar) { mixin(S_TRACE);
+				_mainMenu.add(MenuID.ExecEngineWithParty);
+				_tiExecEngineWithParty = createDropDownItem(_comm, bar, MenuID.ExecEngineWithParty, &execEngineWithLastParty, _tmExecEngineWithParty, () => canExecEngineWithLastParty || canExecEngineWithParty);
+				_tool[MenuID.ExecEngineWithParty] = _tiExecEngineWithParty;
+				listener(_tiExecEngineWithParty, SWT.Dispose, { mixin(S_TRACE);
+					auto img = _tiExecEngineWithParty.getImage();
+					if (_prop.images.menu(MenuID.ExecEngineWithParty) !is img) { mixin(S_TRACE);
 						img.dispose();
 					}
 				});
@@ -2535,6 +2880,7 @@ public:
 									case MenuID.OpenDir: act = &openDirectory; can = &canOpenDirectory; break;
 									case MenuID.NewDir: act = &_dirWin.createNewFolder; can = &_dirWin.canCreateNewFolder; break;
 									case MenuID.ExecEngine: createExecEngineTI(bar); continue;
+									case MenuID.ExecEngineWithParty: createExecEngineWithPartyTI(bar); continue;
 									case MenuID.OuterTools: createOuterToolsTI(bar); continue;
 									case MenuID.Settings: act = &settings; can = null; break;
 									case MenuID.DelNotUsedFile: actS = &_dirWin.deleteUnuse; can = &_dirWin.canDeleteUnuse; break;
@@ -2614,6 +2960,7 @@ public:
 									case MenuID.CardView:
 									case MenuID.ExecEngineAuto:
 									case MenuID.ExecEngineMain:
+									case MenuID.ExecEngineWithLastParty:
 									case MenuID.LockToolBar:
 									case MenuID.ResetToolBar:
 									case MenuID.CopyAsText:
@@ -3474,6 +3821,10 @@ public:
 		foreach (id, itm; menus) { mixin(S_TRACE);
 			if (id is MenuID.ExecEngine) { mixin(S_TRACE);
 				itm.setEnabled(_prop.var.etc.enginePath.length || _prop.var.etc.classicEngines.length);
+				continue;
+			}
+			if (id is MenuID.ExecEngineWithParty) { mixin(S_TRACE);
+				itm.setEnabled(summary && (_prop.var.etc.enginePath.length || _prop.var.etc.classicEngines.length));
 				continue;
 			}
 			if (id is MenuID.OuterTools) { mixin(S_TRACE);

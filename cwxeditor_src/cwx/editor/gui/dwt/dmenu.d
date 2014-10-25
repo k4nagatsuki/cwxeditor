@@ -508,6 +508,13 @@ ToolItem createDropDownItem2(Commons comm, ToolBar bar, string text, Image img, 
 	ti.setData(d);
 	return ti;
 }
+void showDropDownMenu(ToolItem ti, Menu menu) {
+	if (!menu.getItemCount()) return;
+	auto b = ti.getBounds();
+	auto pt = ti.getParent().toDisplay(b.x, b.y + b.height);
+	menu.setLocation(pt);
+	menu.setVisible(true);
+}
 private ToolItem createToolItemImpl(Dlg)(Commons comm, ToolBar bar, string tip, string text, Image img,
 		Dlg func, int style, MenuID id, bool delegate() enabled) { mixin(S_TRACE);
 	auto itm = new ToolItem(bar, style);

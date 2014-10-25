@@ -152,6 +152,9 @@ public:
 	@property Image battleEventTreeView() {return imgd!("battle_event.png");}
 	@property Image battleEventTreeViewDup() {return imgd!("battle_event_dup.png");}
 
+	@property Image yado() {return imgd!("sc_y.png");}
+	@property Image team() {return imgd!("sc_t.png");}
+
 	@property Image casts() {return imgd!("cast.png");}
 	@property Image skill() {return imgd!("skill.png");}
 	@property Image skillDup() {return imgd!("skill_dup.png");}
@@ -482,6 +485,8 @@ public:
 		case MenuID.ExecEngine: return imgd!("exec_engine.png");
 		case MenuID.ExecEngineAuto: return imgd!("exec_engine.png");
 		case MenuID.ExecEngineMain: return imgd!("exec_engine.png");
+		case MenuID.ExecEngineWithParty: return imgd!("exec_engine_with_party.png");
+		case MenuID.ExecEngineWithLastParty: return imgd!("exec_engine_with_party.png");
 		case MenuID.OuterTools: return imgd!("outer_tool.png");
 		case MenuID.Settings: return imgd!("settings.png");
 		case MenuID.VersionInfo: return imgd!("version.png");

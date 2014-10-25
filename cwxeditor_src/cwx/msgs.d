@@ -1966,6 +1966,8 @@ class Msgs : Properties {
 	auto menuTextExecEngine = Msg("menuTextExecEngine", "エンジン起動");
 	auto menuTextExecEngineAuto = Msg("menuTextExecEngineAuto", "自動選択");
 	auto menuTextExecEngineMain = Msg("menuTextExecEngineMain", "CardWirthPy");
+	auto menuTextExecEngineWithParty = Msg("menuTextExecEngineWithParty", "シナリオを開始");
+	auto menuTextExecEngineWithLastParty = Msg("menuTextExecEngineWithLastParty", "前回のパーティで開始");
 	auto menuTextOuterTools = Msg("menuTextOuterTools", "外部ツール");
 	auto menuTextSettings = Msg("menuTextSettings", "エディタ設定");
 	auto menuTextVersionInfo = Msg("menuTextVersionInfo", "バージョン情報");

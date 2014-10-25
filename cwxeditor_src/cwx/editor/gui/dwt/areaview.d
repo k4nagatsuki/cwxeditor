@@ -1787,7 +1787,7 @@ private:
 		auto menu = new Menu(_flagList.getShell(), SWT.POP_UP);
 		createMenuItem(_comm, menu, MenuID.IncSearch, &flagIncSearch, { mixin(S_TRACE);
 			foreach (itm; _flagList.getItems()) { mixin(S_TRACE);
-				if (cast(Flag)itm.getData()) return true;
+				if (cast(cwx.flag.Flag)itm.getData()) return true;
 			}
 			return false;
 		});
@@ -1795,7 +1795,7 @@ private:
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagView,
 				() => !_readOnly && _flagList.getSelectionIndex() != -1
-				&& cast(Flag)_flagList.getItem(_flagList.getSelectionIndex()).getData());
+				&& cast(cwx.flag.Flag)_flagList.getItem(_flagList.getSelectionIndex()).getData());
 		}
 		_flagList.setMenu(menu);
 
@@ -1819,13 +1819,13 @@ private:
 			});
 		}
 	}
-	void refFlags(Flag[] f, Step[] s) { mixin(S_TRACE);
+	void refFlags(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!_summ) return;
 		if (!f.length) return;
 		refreshFlags();
 	}
-	void delFlags(Flag[] f, Step[] s) { mixin(S_TRACE);
+	void delFlags(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!_summ) return;
 		if (!f.length) return;
@@ -1894,7 +1894,7 @@ private:
 		if (!_flagList) return;
 		auto i = _flagList.getSelectionIndex();
 		if (-1 == i) return;
-		auto a = cast(Flag) _flagList.getItem(i).getData();
+		auto a = cast(cwx.flag.Flag) _flagList.getItem(i).getData();
 		if (!a) return;
 		try { mixin(S_TRACE);
 			_comm.openCWXPath(cpaddattr(a.cwxPath(true), "shallow"), false);
@@ -2472,7 +2472,8 @@ public:
 	this(Commons comm, Props prop, Summary summ, A area, Composite parent, TopLevelPanel tlp, UndoManager undo, bool readOnly) { mixin(S_TRACE);
 		super(parent, SWT.NONE);
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
+		auto o = this;
+		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
 		_prop = prop;
 		_summ = summ;
 		_area = area;
@@ -3908,7 +3909,7 @@ public:
 		bool isViewBacks() { mixin(S_TRACE);
 			return _viewBacks;
 		}
-		void refreshTextCellF(Flag[] flags, Step[] steps) { mixin(S_TRACE);
+		void refreshTextCellF(cwx.flag.Flag[] flags, Step[] steps) { mixin(S_TRACE);
 			refreshTextCell();
 		}
 		void refreshTextCell() { mixin(S_TRACE);
@@ -4236,7 +4237,7 @@ public:
 			_comm.refUseCount.call();
 		}
 	}
-	private void refFlag(Flag[] flag, Step[] step) { mixin(S_TRACE);
+	private void refFlag(cwx.flag.Flag[] flag, Step[] step) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!flag.length) return;
 		refreshFlag();

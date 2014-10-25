@@ -348,6 +348,9 @@ class FlexEtcProps : Properties {
 	}
 	auto engineScript = Prop!(string, true)("engineScript", "cardwirth.py");
 	auto enginePath = Prop!(string)("enginePath", "");
+	auto lastExecuteIsClassic = Prop!(bool)("lastExecuteIsClassic", false);
+	auto lastExecuteEngine = Prop!(string)("lastExecuteEngine", "");
+	auto lastExecuteParameters = Prop!(string)("lastExecuteParameters", "");
 	auto dataDir = Prop!(string, true)("dataDir", "Data");
 	auto findEnginePath = Prop!(bool)("findEnginePath", true);
 	auto defaultSkin = Prop!(string, true)("defaultSkin", "MedievalFantasy");
@@ -787,6 +790,7 @@ class FlexEtcProps : Properties {
 		],
 		[
 			Tool(MenuID.ExecEngine),
+			Tool(MenuID.ExecEngineWithParty),
 			Tool(),
 			Tool(MenuID.OuterTools),
 			Tool(),

@@ -8,6 +8,7 @@ import cwx.types;
 import std.algorithm;
 import std.conv;
 import std.string;
+import std.path;
 
 /// XMLからデータを生成する際に必要な情報。
 class XMLInfo {
@@ -843,5 +844,20 @@ class System {
 				];
 			}
 		} else static assert (0);
+	}
+
+	/// エンジンのファイル名からYadoフォルダの名前を返す。
+	const
+	string yadoName(string legacyName) { mixin(S_TRACE);
+		switch (legacyName.baseName().toLower()) {
+		case "s_c_wirth":
+			return "heya";
+		case "oedowirth":
+			return "Naga";
+		case "dirkwirth":
+			return "mori";
+		default:
+			return "Yado";
+		}
 	}
 }

@@ -4,7 +4,7 @@ module cwx.features;
 import cwx.perf;
 import cwx.types;
 
-import std.typecons;
+import std.typecons : Proxy;
 
 /// クーポンのタイプ
 enum CouponType {

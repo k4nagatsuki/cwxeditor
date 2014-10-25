@@ -33,7 +33,7 @@ import std.file;
 import std.functional;
 import std.array;
 import std.traits;
-import std.typecons;
+import std.typecons : Tuple;
 
 import org.eclipse.swt.all;
 

@@ -1897,7 +1897,8 @@ private:
 		}
 	}
 	private void construct1(Commons comm, Props prop, PCardOwner summ, int style) { mixin(S_TRACE);
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
+		auto o = this;
+		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;

@@ -1,3 +1,3 @@
 Version.2.12
-2014100400
+2014102400
 http://bitbucket.org/k4nagatsuki/cwxeditor/

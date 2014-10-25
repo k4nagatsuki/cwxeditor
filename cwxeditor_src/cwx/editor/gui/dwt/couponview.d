@@ -410,7 +410,8 @@ class CouponView(CVType Type) : Composite {
 	this (Commons comm, Summary summ, Composite parent, int style, bool delegate() catchMod) { mixin(S_TRACE);
 		super (parent, style);
 
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
+		auto o = this;
+		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
 
 		_readOnly = style & SWT.READ_ONLY;
 		_comm = comm;

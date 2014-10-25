@@ -95,6 +95,8 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ExecEngine] = "G";
 		_mnemonic[MenuID.ExecEngineAuto] = "G";
 		_mnemonic[MenuID.ExecEngineMain] = "P";
+		_mnemonic[MenuID.ExecEngineWithParty] = "P";
+		_mnemonic[MenuID.ExecEngineWithLastParty] = "L";
 		_mnemonic[MenuID.OuterTools] = "T";
 		_mnemonic[MenuID.Settings] = "O";
 		_mnemonic[MenuID.VersionInfo] = "A";
@@ -303,6 +305,8 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ExecEngine] = "";
 		_hotkey[MenuID.ExecEngineAuto] = "F9";
 		_hotkey[MenuID.ExecEngineMain] = "";
+		_hotkey[MenuID.ExecEngineWithParty] = "";
+		_hotkey[MenuID.ExecEngineWithLastParty] = "";
 		_hotkey[MenuID.OuterTools] = "";
 		_hotkey[MenuID.Settings] = "";
 		_hotkey[MenuID.VersionInfo] = "";
@@ -705,6 +709,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.InfoView:
 	case MenuID.FileView:
 	case MenuID.ExecEngine:
+	case MenuID.ExecEngineWithParty:
 	case MenuID.OuterTools:
 	case MenuID.Settings:
 	case MenuID.VersionInfo:
@@ -778,6 +783,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.CardView:
 	case MenuID.ExecEngineAuto:
 	case MenuID.ExecEngineMain:
+	case MenuID.ExecEngineWithLastParty:
 	case MenuID.LockToolBar:
 	case MenuID.ResetToolBar:
 	case MenuID.CopyAsText:

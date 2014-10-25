@@ -2077,6 +2077,17 @@ private InfoCard loadInfo(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 	return new InfoCard(id, name, img, desc);
 }
 
+/// パーティ見出しデータ(*.wpl)からパーティ名を取得する。
+string readPartyName(const System sys, string wpl) { mixin(S_TRACE);
+	auto d = RData(sys, false, "", "");
+	auto f = ByteIO(readBinary(wpl));
+	f.readUShortL; // 不明(0)
+	readString(f); // 宿名
+	readImage(d, f); // 宿イメージ
+	readStrings(f); // メンバリスト
+	return readString(f); // パーティ名
+}
+
 struct SData {
 	const System sys;
 	string sPath;

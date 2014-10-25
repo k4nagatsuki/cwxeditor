@@ -8,6 +8,7 @@ import cwx.settings;
 import cwx.menu;
 import cwx.variables;
 import cwx.versioninfo;
+import cwx.types;
 
 import cwx.editor.gui.dwt.dockingfolder;
 
@@ -419,6 +420,30 @@ public class FlexProps {
 						}
 					} else {
 						etc.eventTreeSlope.value = 0;
+					}
+				}
+				if (dataVersion < 2014102400) { mixin(S_TRACE);
+					// 「シナリオを開始」追加
+					bool has = false;
+					toolO: foreach (ref tools; etc.mainToolBar.tools) { mixin(S_TRACE);
+						foreach (ref tool; tools) { mixin(S_TRACE);
+							if (tool.menu == MenuID.ExecEngineWithParty) {
+								// ツールバー設定が初期値で保存されていなかった場合、
+								// 新たな初期値にはMenuID.ExecEngineWithPartyが
+								// 含まれているので追加不要
+								has = true;
+								break toolO;
+							}
+						}
+					}
+					if (!has) { mixin(S_TRACE);
+						foreach (ref tools; etc.mainToolBar.tools) { mixin(S_TRACE);
+							auto i = tools.cCountUntil(Tool(MenuID.ExecEngine));
+							if (i != -1) { mixin(S_TRACE);
+								tools = tools[0 .. i + 1] ~ Tool(MenuID.ExecEngineWithParty) ~ tools[i + 1 .. $];
+								break;
+							}
+						}
 					}
 				}
 				dStr ~= " - " ~ .text(__LINE__);

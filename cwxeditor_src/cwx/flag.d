@@ -11,9 +11,9 @@ import std.algorithm;
 import std.array;
 import std.datetime;
 import std.string;
-import std.typecons;
 import std.exception;
 import std.conv;
+import std.typecons : Rebindable;
 
 private static const {
 	string XML_ROOT_FLAGS_AND_STEPS = "FlagsAndSteps";
@@ -522,14 +522,16 @@ public:
 	}
 	/// ルートディレクトリを生成する。
 	package this (CWXPath owner) { mixin(S_TRACE);
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
+		auto o = this;
+		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
 		_owner = owner;
 	}
 	/// サブディレクトリを生成する。
 	/// Params:
 	/// name = ディレクトリ名。
 	this (string name) { mixin(S_TRACE);
-		_id = format("%08X", &this) ~ "-" ~ to!(string)(Clock.currTime());
+		auto o = this;
+		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
 		_name = validName(name);
 	}
 	/// コピーコンストラクタ。

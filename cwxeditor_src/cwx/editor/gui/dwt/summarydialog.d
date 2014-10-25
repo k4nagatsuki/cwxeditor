@@ -32,7 +32,6 @@ import cwx.editor.gui.dwt.chooser;
 import std.conv;
 import std.string;
 import std.path;
-import std.typecons;
 
 import org.eclipse.swt.all;
 

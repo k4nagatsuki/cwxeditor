@@ -15,6 +15,7 @@ import std.string;
 import std.regex;
 import std.utf;
 import std.path;
+import std.typecons : Rebindable;
 
 enum Animation {
 	NONE = 0,
@@ -827,7 +828,7 @@ struct JptxParam {
 	CRGB color = CRGB(-1, -1, -1);
 	int pixels = -1;
 }
-import std.typecons;
+
 /// Jptxの1ファイルの定義。
 struct Jptx {
 	/// テキスト。タグがそのままの形で含まれる。
