@@ -350,11 +350,19 @@ version (Windows) {
 					if (prm.expand) {
 						auto pt = touni(cpp[0 .. len]);
 						auto cp = prm.expand(pt);
-						if (!cp.length) {
-							prm.onExpand = null;
-							return -1;
+						// FIXME: -1を返すと展開後にAccess Violationが出る
+						//if (!cp.length) { mixin(S_TRACE);
+						//	prm.onExpand = null;
+						//	return -1;
+						//}
+						//strcat(path.ptr, toMBSz(cp));
+						// 代替コードここから ---
+						if (cp.length) { mixin(S_TRACE);
+							strcat(path.ptr, toMBSz(cp));
+						} else { mixin(S_TRACE);
+							strcat(path.ptr, cast(char*) pNotify.psz1);
 						}
-						strcat(path.ptr, toMBSz(cp));
+						// --- ここまで
 					} else {
 						strcat(path.ptr, cast(char*) pNotify.psz1);
 					}
