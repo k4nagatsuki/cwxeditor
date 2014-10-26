@@ -347,14 +347,22 @@ version (Windows) {
 					if (strstr(cpp, ("\\..\\").ptr)) { mixin(S_TRACE);
 						return -1;
 					}
-					if (prm.expand) { mixin(S_TRACE);
+					if (prm.expand && false) { mixin(S_TRACE);
 						auto pt = touni(cpp[0 .. len]);
 						auto cp = prm.expand(pt);
-						if (!cp.length) { mixin(S_TRACE);
-							prm.onExpand = null;
-							return -1;
+						// FIXME: -1を返すと展開後にAccess Violationが出る
+						//if (!cp.length) { mixin(S_TRACE);
+						//	prm.onExpand = null;
+						//	return -1;
+						//}
+						//strcat(path.ptr, toMBSz(cp));
+						// 代替コードここから ---
+						if (cp.length) { mixin(S_TRACE);
+							strcat(path.ptr, toMBSz(cp));
+						} else { mixin(S_TRACE);
+							strcat(path.ptr, cast(char*) pNotify.psz1);
 						}
-						strcat(path.ptr, toMBSz(cp));
+						// --- ここまで
 					} else { mixin(S_TRACE);
 						strcat(path.ptr, cast(char*) pNotify.psz1);
 					}
