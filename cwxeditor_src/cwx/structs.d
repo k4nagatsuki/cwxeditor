@@ -53,34 +53,41 @@ struct LaunchOption {
 				case "-a": // エリア表示
 					if (i + 1 < args.length) openPaths ~= "area:id:" ~ args[i + 1];
 					sc = i + 2u;
+					i++;
 					break;
 				case "-b": // バトル表示
 					if (i + 1 < args.length) openPaths ~= "battle:id:" ~ args[i + 1];
 					sc = i + 2u;
+					i++;
 					break;
 				case "-p": // パッケージ表示
 					if (i + 1 < args.length) openPaths ~= "package:id:" ~ args[i + 1];
 					sc = i + 2u;
+					i++;
 					break;
 				case "-conf": // 設定ファイル指定
 					if (i + 1 < args.length) conf = args[i + 1];
 					sc = i + 2u;
+					i++;
 					break;
 				case "-create": // 起動と同時に新規作成
 					create = true;
 					if (i + 1 < args.length) createName = args[i + 1];
 					if (i + 2 < args.length) createSkin = args[i + 2];
 					sc = i + 3u;
+					i += 2;
 					break;
 				case "-createclassic": // 起動と同時に新規作成(クラシック)
 					createclassic = true;
 					if (i + 1 < args.length) createName = args[i + 1];
 					if (i + 2 < args.length) createclassicPath = args[i + 2];
 					sc = i + 3u;
+					i += 2;
 					break;
 				case "-selectfile": // 起動と同時にファイルを選択
 					if (i + 1 < args.length) selectfile = args[i + 1];
 					sc = i + 2u;
+					i++;
 					break;
 				case "-putlangfile": // 起動と同時に言語ファイルを出力して終了
 					if (i + 1 < args.length) putlangfile = args[i + 1];
