@@ -351,15 +351,15 @@ version (Windows) {
 						auto pt = touni(cpp[0 .. len]);
 						auto cp = prm.expand(pt);
 						// FIXME: -1を返すと展開後にAccess Violationが出る
-						//if (!cp.length) { mixin(S_TRACE);
+						//if (!cp.length) {
 						//	prm.onExpand = null;
 						//	return -1;
 						//}
 						//strcat(path.ptr, toMBSz(cp));
 						// 代替コードここから ---
-						if (cp.length) { mixin(S_TRACE);
+						if (cp.length) {
 							strcat(path.ptr, toMBSz(cp));
-						} else { mixin(S_TRACE);
+						} else {
 							strcat(path.ptr, cast(char*) pNotify.psz1);
 						}
 						// --- ここまで
