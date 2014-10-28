@@ -3612,9 +3612,9 @@ public:
 				_tree.select(child);
 				_tree.showSelection();
 				refreshStatusLine();
-				if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
+				if (cphasattr(path, "opendialog") || !cpempty(path)) { mixin(S_TRACE);
 					auto d = edit();
-					if (d) { mixin(S_TRACE);
+					if (!d) { mixin(S_TRACE);
 						// ダイアログ無し、もしくは開けない状態のコンテント
 						_comm.refreshToolBar();
 						return true;

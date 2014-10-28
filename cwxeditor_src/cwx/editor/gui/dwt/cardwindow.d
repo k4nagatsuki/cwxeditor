@@ -1289,7 +1289,7 @@ public:
 			_pane[C].select(index);
 			_comm.refreshToolBar();
 			static if (EditMode) {
-				if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
+				if (cphasattr(path, "opendialog") || !cpempty(path)) { mixin(S_TRACE);
 					auto dlg = _pane[C].edit();
 					if (!dlg) return false;
 					if (!cpempty(path)) { mixin(S_TRACE);
