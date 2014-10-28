@@ -3430,7 +3430,7 @@ public:
 				refreshStatusLine();
 				if (cphasattr(path, "opendialog")) {
 					auto d = edit();
-					if (d) {
+					if (!d) {
 						// ダイアログ無し、もしくは開けない状態のコンテント
 						_comm.refreshToolBar();
 						return true;
