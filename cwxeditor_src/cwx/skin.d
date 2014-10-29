@@ -559,6 +559,12 @@ class Skin {
 	}
 	/// ditto
 	const
+	string resOptionCard(out MaskType maskType) { mixin(S_TRACE);
+		maskType = MaskType.NoMask;
+		return buildPath(resourceDir, setExtension(buildPath("CardBg", "OPTION"), resExtImage));
+	}
+	/// ditto
+	const
 	string resInfoCard(out MaskType maskType) { mixin(S_TRACE);
 		maskType = MaskType.NoMask;
 		return buildPath(resourceDir, setExtension(buildPath("CardBg", "INFO"), resExtImage));

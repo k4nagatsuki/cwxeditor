@@ -289,6 +289,7 @@ ImageData summon(Skin skin) {return createImg(skin.legacyEngine, "STATUS_SUMMON"
 ImageData itemCard(Skin skin) {return createImg(skin.legacyEngine, "CARD_ITEM", &skin.resItemCard);}
 ImageData skillCard(Skin skin) {return createImg(skin.legacyEngine, "CARD_SKILL", &skin.resSkillCard);}
 ImageData beastCard(Skin skin) {return createImg(skin.legacyEngine, "CARD_BEAST", &skin.resBeastCard);}
+ImageData optionCard(Skin skin) {return createImg(skin.legacyEngine, "CARD_OPTION", &skin.resOptionCard);}
 ImageData infoCard(Skin skin) {return createImg(skin.legacyEngine, "CARD_INFO", &skin.resInfoCard);}
 ImageData cardHold(Skin skin) {return createImg(skin.legacyEngine, "SIGN_HOLD", &skin.resCardHold);}
 ImageData cardPenalty(Skin skin) {return createImg(skin.legacyEngine, "SIGN_PENALTY", &skin.resCardPenalty);}

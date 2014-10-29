@@ -1563,7 +1563,14 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 		bool hold = base.hold;
 		auto card = itemCard(skin);
 	} else static if (is (C == BeastCard)) {
-		auto card = beastCard(skin);
+		ImageData card;
+		if (base.isOption) { mixin(S_TRACE);
+			// 付帯能力
+			card = optionCard(skin);
+		} else { mixin(S_TRACE);
+			// 一般の召喚獣カード
+			card = beastCard(skin);
+		}
 	} else static if (is (C == InfoCard)) {
 		auto card = infoCard(skin);
 	} else { mixin(S_TRACE);

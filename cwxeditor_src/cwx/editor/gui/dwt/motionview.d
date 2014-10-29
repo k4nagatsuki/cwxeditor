@@ -436,19 +436,51 @@ private:
 		}
 		return null;
 	}
-	class EditBeast : MouseAdapter, KeyListener {
-	override:
-		void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
+	class EditBeast : MouseAdapter, MouseMoveListener, KeyListener {
+		override void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
 			if (e.button == 1) { mixin(S_TRACE);
 				editBeast();
 			}
 		}
-		void mouseDown(MouseEvent e) { mixin(S_TRACE);
+		override void mouseDown(MouseEvent e) { mixin(S_TRACE);
 			auto ctrl = cast(Control) e.widget;
 			ctrl.setFocus();
 		}
-		void keyReleased(KeyEvent e) {}
-		void keyPressed(KeyEvent e) { mixin(S_TRACE);
+		override void mouseUp(MouseEvent e) { mixin(S_TRACE);
+			auto rect = eventTreeMarkRect(e);
+			if (rect && rect.contains(e.x, e.y)) { mixin(S_TRACE);
+				editBeastUseEvent();
+			}
+		}
+		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
+			auto rect = eventTreeMarkRect(e);
+			if (rect && rect.contains(e.x, e.y)) { mixin(S_TRACE);
+				(cast(Control)e.widget).setCursor(e.widget.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+			} else { mixin(S_TRACE);
+				(cast(Control)e.widget).setCursor(null);
+			}
+		}
+		Rectangle eventTreeMarkRect(MouseEvent e) { mixin(S_TRACE);
+			auto m = selection;
+			if (!m || !m.detail.use(MArg.BEAST)) return null;
+			auto b = m.beast;
+			if (!b) return null;
+			if (0 != b.linkId) { mixin(S_TRACE);
+				b = _summ.beast(b.linkId);
+				if (!b) return null;
+			}
+			auto cardSize = _prop.looks.cardSize;
+			auto matPad = _prop.looks.cardInsets;
+			int w = cardSize.width + matPad.e + matPad.w;
+			int h = cardSize.height + matPad.n + matPad.s;
+			auto pane = cast(Canvas)e.widget;
+			auto rect = pane.getClientArea();
+			int x = (rect.width - w) / 2;
+			int y = (rect.height - h) / 2;
+			return .eventTreeMarkRect(_prop, x, y, b);
+		}
+		override void keyReleased(KeyEvent e) {}
+		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
 			if (e.character == SWT.CR) { mixin(S_TRACE);
 				if (editBeast()) { mixin(S_TRACE);
 					e.doit = false;
@@ -806,6 +838,8 @@ private:
 			_comm.refBeast.remove(&refBeast);
 			_comm.delBeast.remove(&refBeast);
 			_comm.refUndoMax.remove(&refUndoMax);
+			_comm.refSkin.remove(&_beastImg.redraw);
+			_comm.refCardImageStatus.remove(&_beastImg.redraw);
 			getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 			foreach (w; _beWin.toArray()) { mixin(S_TRACE);
 				_comm.close(w.shell);
@@ -1128,6 +1162,7 @@ public:
 				_beastImg.addPaintListener(new PaintBeast);
 				auto eb = new EditBeast;
 				_beastImg.addMouseListener(eb);
+				_beastImg.addMouseMoveListener(eb);
 				_beastImg.addKeyListener(eb);
 				auto menu = new Menu(_beastImg);
 				if (_readOnly) { mixin(S_TRACE);
@@ -1262,6 +1297,8 @@ public:
 		_comm.refBeast.add(&refBeast);
 		_comm.delBeast.add(&refBeast);
 		_comm.refUndoMax.add(&refUndoMax);
+		_comm.refSkin.add(&_beastImg.redraw);
+		_comm.refCardImageStatus.add(&_beastImg.redraw);
 		getDisplay().addFilter(SWT.KeyDown, _kdFilter);
 	}
 	void refEnabled() { mixin(S_TRACE);

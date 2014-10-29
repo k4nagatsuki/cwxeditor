@@ -2155,6 +2155,19 @@ public:
 		_useLimit = useLimit;
 	}
 
+	/// 付帯能力か。
+	/// 最初からキャストカードが所有している召喚獣カード、
+	/// もしくは召喚獣カード取得コンテントで取得したカードは
+	/// 付帯能力となる。召喚獣召喚効果で取得したカードは
+	/// 一般の召喚獣となる。
+	/// エディタ上では、イベントの処理結果という概念が無いため、
+	/// キャストカードが所有している場合に限り付帯能力として扱う。
+	@property
+	const
+	bool isOption() { mixin(S_TRACE);
+		return cast(CastCard)_owner !is null;
+	}
+
 	/// XMLテキストに変換する。
 	const
 	string toXML(XMLOption opt) { mixin(S_TRACE);
