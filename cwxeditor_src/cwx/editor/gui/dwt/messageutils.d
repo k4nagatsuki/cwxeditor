@@ -348,6 +348,12 @@ private:
 				}
 				_dlgWarnings ~= dws;
 			}
+		} else { mixin(S_TRACE);
+			_dlgWarnings = [];
+			_dlgWarnings[] = [];
+			foreach (itm; _dlgsL.getItems()) { mixin(S_TRACE);
+				itm.setImage(prop.images.content(CType.TALK_DIALOG));
+			}
 		}
 		_warningTip.setVisible(false);
 		_warningTip.setMessage("");
