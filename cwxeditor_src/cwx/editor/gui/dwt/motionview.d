@@ -1019,7 +1019,7 @@ public:
 			.listener(_motionElm, SWT.MouseMove, (Event e) {
 				auto itm = _motionElm.getItem(new Point(e.x, e.y));
 				if (itm) {
-					_motionElm.setToolTipText(toolTip[_motionElm.indexOf(itm)]);
+					_motionElm.setToolTipText(std.array.replace(toolTip[_motionElm.indexOf(itm)], "&", "&&"));
 				} else {
 					_motionElm.setToolTipText(null);
 				}

@@ -126,7 +126,7 @@ private:
 	void raceToolTip() {
 		if (_race) {
 			auto race = selectedRace;
-			_race.setToolTipText(race ? race.desc : "");
+			_race.setToolTipText(race ? std.array.replace(race.desc, "&", "&&") : "");
 		}
 	}
 	class SelectRace : SelectionAdapter {

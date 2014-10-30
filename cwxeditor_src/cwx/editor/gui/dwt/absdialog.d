@@ -413,7 +413,7 @@ abstract class AbsDialog {
 		}
 		if (ws.length) {
 			_okBtn.setImage(_prop.images.warning);
-			_okBtn.setToolTipText(std.string.join(ws, "\n"));
+			_okBtn.setToolTipText(std.array.replace(std.string.join(ws, "\n"), "&", "&&"));
 		} else {
 			_okBtn.setImage(null);
 			_okBtn.setToolTipText(null);

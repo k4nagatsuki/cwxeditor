@@ -585,9 +585,9 @@ private:
 	void __refreshToolTip() {
 		if (_createToolTip) {
 			if (0 <= _oldMoveIndex && _oldMoveIndex < _items.length) {
-				setToolTipText(_createToolTip(cast(C) _items[_oldMoveIndex].getData()));
+				setToolTipText(std.array.replace(_createToolTip(cast(C) _items[_oldMoveIndex].getData()), "&", "&&"));
 			} else {
-				setToolTipText(_createToolTip(null));
+				setToolTipText(std.array.replace(_createToolTip(null), "&", "&&"));
 			}
 		}
 	}
