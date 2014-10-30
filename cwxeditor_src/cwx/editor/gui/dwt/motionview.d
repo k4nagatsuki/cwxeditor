@@ -1080,7 +1080,7 @@ public:
 			.listener(_motionElm, SWT.MouseMove, (Event e) { mixin(S_TRACE);
 				auto itm = _motionElm.getItem(new Point(e.x, e.y));
 				if (itm) { mixin(S_TRACE);
-					_motionElm.setToolTipText(toolTip[_motionElm.indexOf(itm)]);
+					_motionElm.setToolTipText(std.array.replace(toolTip[_motionElm.indexOf(itm)], "&", "&&"));
 				} else { mixin(S_TRACE);
 					_motionElm.setToolTipText(null);
 				}

@@ -642,7 +642,7 @@ private:
 	void __refreshToolTip() { mixin(S_TRACE);
 		if (_createToolTip) { mixin(S_TRACE);
 			if (0 <= _oldMoveIndex && _oldMoveIndex < _items.length) { mixin(S_TRACE);
-				setToolTipText(_createToolTip(cast(C) _items[_oldMoveIndex].getData()));
+				setToolTipText(std.array.replace(_createToolTip(cast(C) _items[_oldMoveIndex].getData()), "&", "&&"));
 			} else { mixin(S_TRACE);
 				setToolTipText(_createToolTip(null));
 			}

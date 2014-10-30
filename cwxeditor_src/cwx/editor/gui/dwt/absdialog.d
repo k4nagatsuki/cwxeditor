@@ -421,7 +421,7 @@ abstract class AbsDialog {
 		}
 		if (ws.length) { mixin(S_TRACE);
 			_okBtn.setImage(_prop.images.warning);
-			_okBtn.setToolTipText(std.string.join(ws, "\n"));
+			_okBtn.setToolTipText(std.array.replace(std.string.join(ws, "\n"), "&", "&&"));
 		} else { mixin(S_TRACE);
 			_okBtn.setImage(null);
 			_okBtn.setToolTipText(null);

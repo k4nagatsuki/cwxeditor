@@ -132,7 +132,7 @@ private:
 	void raceToolTip() { mixin(S_TRACE);
 		if (_race) { mixin(S_TRACE);
 			auto race = selectedRace;
-			_race.setToolTipText(race ? race.desc : "");
+			_race.setToolTipText(race ? std.array.replace(race.desc, "&", "&&") : "");
 		}
 	}
 	class SelectRace : SelectionAdapter {

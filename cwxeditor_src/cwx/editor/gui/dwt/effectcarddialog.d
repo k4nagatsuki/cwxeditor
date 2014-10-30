@@ -252,7 +252,7 @@ private:
 						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 					}
 					radio.setText(.tryFormat(_prop.msgs.effectTypeElement, _prop.msgs.effectTypeName(eff)));
-					radio.setToolTipText(_prop.msgs.effectTypeDesc(eff));
+					radio.setToolTipText(std.array.replace(_prop.msgs.effectTypeDesc(eff), "&", "&&"));
 					radio.addSelectionListener(new SelEffectType);
 					_effTyp[eff] = radio;
 				}
@@ -268,7 +268,7 @@ private:
 					radio.setEnabled(!_readOnly);
 					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 					radio.setText(_prop.msgs.resistName(res));
-					radio.setToolTipText(_prop.msgs.resistDesc(res));
+					radio.setToolTipText(std.array.replace(_prop.msgs.resistDesc(res), "&", "&&"));
 					_res[res] = radio;
 				}
 			}

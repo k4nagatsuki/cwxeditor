@@ -172,7 +172,7 @@ class ImageList : Composite {
 				setToolTipText("");
 			} else { mixin(S_TRACE);
 				setCursor(getDisplay().getSystemCursor(SWT.CURSOR_HAND));
-				setToolTipText(_path[i]);
+				setToolTipText(std.array.replace(_path[i], "&", "&&"));
 			}
 		}
 	}

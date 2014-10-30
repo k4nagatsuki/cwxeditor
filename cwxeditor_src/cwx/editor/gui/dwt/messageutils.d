@@ -42,6 +42,7 @@ import std.string;
 import std.datetime;
 import std.conv;
 import std.exception;
+import std.ascii;
 
 import org.eclipse.swt.all;
 import java.lang.all;
@@ -305,9 +306,9 @@ private:
 			}
 		}
 		if (0 >= min) { mixin(S_TRACE);
-			_couponView.toolTip = .tryFormat(prop.msgs.valuedTalkerMaxMinLess0, max, min);
+			_couponView.toolTip = std.array.replace(.tryFormat(prop.msgs.valuedTalkerMaxMinLess0, max, min), "&", "&&");
 		} else { mixin(S_TRACE);
-			_couponView.toolTip = .tryFormat(prop.msgs.valuedTalkerMaxMin, max, min);
+			_couponView.toolTip = std.array.replace(.tryFormat(prop.msgs.valuedTalkerMaxMin, max, min), "&", "&&");
 		}
 	}
 
@@ -315,13 +316,74 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 
-		if (prop.targetVersion("1.50")) { mixin(S_TRACE);
+		if (!prop.targetVersion("1.50")) { mixin(S_TRACE);
 			if (Talker.VALUED is selectedTalker) { mixin(S_TRACE);
 				ws ~= prop.msgs.warningValuedTalker;
 			}
 		}
+		if (!prop.targetVersion("1.50")) { mixin(S_TRACE);
+			bool[char] wColors;
+			_dlgWarnings = [];
+			foreach (i, dlg; _dlgs) { mixin(S_TRACE);
+				bool w = false;
+				string[] dws = [];
+				foreach (color; dlg.colorsInText) { mixin(S_TRACE);
+					switch (std.ascii.toUpper(color)) {
+					case 'O', 'P', 'L', 'D':
+						auto wt = .tryFormat(prop.msgs.warningTextColor, "&" ~ color, "1.50");
+						dws ~= wt;
+						if (!wColors.get(color, false)) { mixin(S_TRACE);
+							ws ~= wt;
+							wColors[color] = true;
+						}
+						_dlgsL.getItem(i).setImage(prop.images.warning);
+						w = true;
+						break;
+					default:
+						break;
+					}
+				}
+				if (!w) { mixin(S_TRACE);
+					_dlgsL.getItem(i).setImage(prop.images.content(CType.TALK_DIALOG));
+				}
+				_dlgWarnings ~= dws;
+			}
+		}
+		_warningTip.setVisible(false);
+		_warningTip.setMessage("");
 
 		warning = ws;
+	}
+	class MouseMoveDlgsL : MouseTrackAdapter, MouseMoveListener {
+		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
+			string toolTip = "";
+			int ch = 0;
+			foreach (i, itm; _dlgsL.getItems()) { mixin(S_TRACE);
+				if (itm.getBounds().contains(e.x, e.y)) { mixin(S_TRACE);
+					if (i < _dlgWarnings.length) { mixin(S_TRACE);
+						toolTip = _dlgWarnings[i].join(.newline);
+						ch = itm.getBounds().height;
+						break;
+					}
+				}
+			}
+			toolTip = std.array.replace(toolTip, "&", "&&");
+			if (_warningTip.getMessage() != toolTip) { mixin(S_TRACE);
+				_warningTip.setVisible(false);
+				_warningTip.setMessage(toolTip);
+				if (toolTip != "") { mixin(S_TRACE);
+					_warningTip.setLocation(_dlgsL.toDisplay(new Point(e.x, e.y + ch)));
+					_warningTip.setVisible(true);
+				}
+			}
+		}
+		override void mouseEnter(MouseEvent e) { mixin(S_TRACE);
+			mouseMove(e);
+		}
+		override void mouseExit(MouseEvent e) { mixin(S_TRACE);
+			_warningTip.setVisible(false);
+			_warningTip.setMessage("");
+		}
 	}
 
 	string _id;
@@ -329,6 +391,8 @@ private:
 	Combo _talkers;
 	SDialog[] _dlgs;
 	Table _dlgsL;
+	string[][] _dlgWarnings;
+	ToolTip _warningTip;
 	Text _rCoupons;
 	Combo _rCouponsList;
 	FixedWidthText _text;
@@ -444,6 +508,7 @@ private:
 			_dlgs[i].text = text;
 		}
 		applyEnabled();
+		refreshWarning();
 		comm.refreshToolBar();
 	}
 	void copyToLower() { mixin(S_TRACE);
@@ -456,6 +521,7 @@ private:
 			_dlgs[i].text = text;
 		}
 		applyEnabled();
+		refreshWarning();
 		comm.refreshToolBar();
 	}
 	void copyToDialogs() { mixin(S_TRACE);
@@ -470,6 +536,7 @@ private:
 			}
 		}
 		applyEnabled();
+		refreshWarning();
 		comm.refreshToolBar();
 	}
 	void put(dchar put) { mixin(S_TRACE);
@@ -480,6 +547,7 @@ private:
 	}
 	void putText(SDialog dlg) { mixin(S_TRACE);
 		dlg.text = lastRet(wrapReturnCode(_text.getText()));
+		refreshWarning();
 	}
 	void putRCoupons(SDialog dlg) { mixin(S_TRACE);
 		string[] rcs;
@@ -821,6 +889,11 @@ protected:
 			gd.heightHint = 0;
 			_dlgsL.setLayoutData(gd);
 			_dlgsL.addSelectionListener(new SelL);
+			_warningTip = new ToolTip(_dlgsL.getShell(), SWT.NONE);
+			_warningTip.setAutoHide(true);
+			auto mmdl = new MouseMoveDlgsL;
+			_dlgsL.addMouseMoveListener(mmdl);
+			_dlgsL.addMouseTrackListener(mmdl);
 
 			auto drag = new DragSource(_dlgsL, DND.DROP_MOVE | DND.DROP_COPY);
 			drag.setTransfer([XMLBytesTransfer.getInstance()]);
@@ -966,6 +1039,23 @@ private:
 
 		ws ~= _msel.warnings;
 
+		if (!prop.targetVersion("1.50")) { mixin(S_TRACE);
+			string[] flags;
+			string[] steps;
+			string[] fonts;
+			char[] colors;
+			textUseItems(lastRet(wrapReturnCode(_text.getText())), flags, steps, fonts, colors);
+			foreach (color; colors) { mixin(S_TRACE);
+				switch (std.ascii.toUpper(color)) {
+				case 'O', 'P', 'L', 'D':
+					ws ~= .tryFormat(prop.msgs.warningTextColor, "&" ~ color, "1.50");
+					break;
+				default:
+					break;
+				}
+			}
+		}
+
 		warning = ws;
 	}
 	void tabChanged() { mixin(S_TRACE);
@@ -995,6 +1085,7 @@ private:
 	class ModText : ModifyListener {
 		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
 			refreshPreview();
+			refreshWarning();
 		}
 	}
 	void put(dchar put) { mixin(S_TRACE);

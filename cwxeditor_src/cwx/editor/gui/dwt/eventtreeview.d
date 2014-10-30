@@ -314,6 +314,7 @@ private:
 				}
 			}
 		}
+		toolTip = std.array.replace(toolTip, "&", "&&");
 		if (_tree.control.getToolTipText() != toolTip) { mixin(S_TRACE);
 			_tree.control.setToolTipText(toolTip);
 		}

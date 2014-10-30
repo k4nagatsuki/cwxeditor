@@ -467,6 +467,7 @@ class EventEditor : Composite {
 				}
 			}
 		}
+		toolTip = std.array.replace(toolTip, "&", "&&");
 		if (getToolTipText() != toolTip) { mixin(S_TRACE);
 			setToolTipText(toolTip);
 		}
