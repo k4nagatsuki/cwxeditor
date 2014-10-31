@@ -399,10 +399,10 @@ private:
 			if (vs.length) { mixin(S_TRACE);
 				TreeItem[] itms;
 				foreach (v; vs) itms ~= v._cards.getItem(_ownerIndex);
-				foreach (i, v; vs) v.appendTree(itms[i], _tree, _treeIndex, null, false, 0 < i, true);
+				foreach (i, v; vs) v.appendTree(itms[i], _tree.dup, _treeIndex, null, false, 0 < i, true);
 			} else { mixin(S_TRACE);
 				auto eto = etos(area)[_ownerIndex];
-				appendTreeImpl(comm, eto, _tree, _treeIndex);
+				appendTreeImpl(comm, eto, _tree.dup, _treeIndex);
 			}
 		}
 		override void redo() { mixin(S_TRACE);
