@@ -2291,12 +2291,18 @@ private:
 			_mnemonic = mnemonicText(_shortcutSash, SWT.BORDER);
 			createTextMenu!Text(_comm, _prop, _mnemonic, _catchMod);
 			auto hotkeyComp = new Composite(_shortcutSash, SWT.NONE);
-			hotkeyComp.setLayout(zeroMarginGridLayout(2, false));
+			hotkeyComp.setLayout(zeroMarginGridLayout(3, false));
 			auto l2 = new Label(hotkeyComp, SWT.NONE);
 			l2.setText(_prop.msgs.hotkey);
 			_hotkey = new HotKeyField(hotkeyComp, SWT.BORDER);
 			createTextMenu!Text(_comm, _prop, _hotkey.widget, _catchMod);
 			_hotkey.widget.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			auto del = new Button(hotkeyComp, SWT.PUSH);
+			del.setText(_prop.msgs.sDel);
+			listener(del, SWT.Selection, { mixin(S_TRACE);
+				_mnemonic.setText("");
+				_hotkey.accelerator = "";
+			});
 		}
 	} else {
 		string createName(ref const T t) { mixin(S_TRACE);
