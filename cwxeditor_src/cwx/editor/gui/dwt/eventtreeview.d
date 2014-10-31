@@ -69,6 +69,7 @@ private:
 	Props _prop;
 	Commons _comm;
 	Summary _summ;
+	CWXPath _area;
 	EventTree _et;
 	ContentsToolBox _box;
 	Menu _createM = null;
@@ -338,12 +339,14 @@ private:
 	abstract static class ETVUndo : Undo {
 		private size_t[] _etPath;
 		private size_t[] _selPath = null, _selPath2 = null;
-		protected EventTree et;
+		private CWXPath _area;
+		private string _etCWXPath;
 		protected Commons comm;
 		protected Props prop;
 		protected Summary summ;
-		this (Commons comm, Props prop, Summary summ, EventTree et) { mixin(S_TRACE);
-			this.et = et;
+		this (Commons comm, Props prop, Summary summ, EventTree et, CWXPath area) { mixin(S_TRACE);
+			_area = area;
+			_etCWXPath = .cprel(et.cwxPath(true), _area.cwxPath(true));
 			this.comm = comm;
 			this.prop = prop;
 			this.summ = summ;
@@ -353,6 +356,10 @@ private:
 				auto sel = mainEventTreeView(vs).selection;
 				_selPath = sel ? (cast(Content)sel.getData()).ctPath : null;
 			}
+		}
+		@property
+		protected EventTree et() { mixin(S_TRACE);
+			return cast(EventTree)_area.findCWXPath(_etCWXPath);
 		}
 		void udb(EventTreeView[] vs) { mixin(S_TRACE);
 			if (!vs.length) return;
@@ -414,8 +421,8 @@ private:
 	static class UndoContent : ETVUndo {
 		private size_t[][] _path;
 		private Content[] _c;
-		this (Commons comm, Props prop, Summary summ, EventTree et, Content[] cs) { mixin(S_TRACE);
-			super (comm, prop, summ, et);
+		this (Commons comm, Props prop, Summary summ, EventTree et, CWXPath area, Content[] cs) { mixin(S_TRACE);
+			super (comm, prop, summ, et, area);
 			foreach (c; cs) { mixin(S_TRACE);
 				_path ~= c.ctPath;
 				_c ~= c.dup;
@@ -484,12 +491,12 @@ private:
 		}
 	}
 	void store(Content[] evt ...) { mixin(S_TRACE);
-		_undo ~= new UndoContent(_comm, _prop, _summ, _et, evt);
+		_undo ~= new UndoContent(_comm, _prop, _summ, _et, _area, evt);
 	}
 	static class UndoSwap : ETVUndo {
 		private int _upIndex;
-		this (Commons comm, Props prop, Summary summ, EventTree et, int swapIndex1, int swapIndex2) { mixin(S_TRACE);
-			super (comm, prop, summ, et);
+		this (Commons comm, Props prop, Summary summ, EventTree et, CWXPath area, int swapIndex1, int swapIndex2) { mixin(S_TRACE);
+			super (comm, prop, summ, et, area);
 			_upIndex = swapIndex1 > swapIndex2 ? swapIndex1 : swapIndex2;
 		}
 		private void impl() { mixin(S_TRACE);
@@ -503,14 +510,14 @@ private:
 		override void dispose() {}
 	}
 	void storeSwap(int swapIndex1, int swapIndex2) { mixin(S_TRACE);
-		_undo ~= new UndoSwap(_comm, _prop, _summ, _et, swapIndex1, swapIndex2);
+		_undo ~= new UndoSwap(_comm, _prop, _summ, _et, _area, swapIndex1, swapIndex2);
 	}
 	static class UndoInsert : ETVUndo {
 		private int _index;
 		private size_t _count;
 		private Content[] _c;
-		this (Commons comm, Props prop, Summary summ, EventTree et, int index, size_t count) { mixin(S_TRACE);
-			super (comm, prop, summ, et);
+		this (Commons comm, Props prop, Summary summ, EventTree et, CWXPath area, int index, size_t count) { mixin(S_TRACE);
+			super (comm, prop, summ, et, area);
 			_index = index;
 			_count = count;
 		}
@@ -550,13 +557,13 @@ private:
 		}
 	}
 	void storeInsert(int insertIndex, size_t count = 1) { mixin(S_TRACE);
-		_undo ~= new UndoInsert(_comm, _prop, _summ, _et, insertIndex, count);
+		_undo ~= new UndoInsert(_comm, _prop, _summ, _et, _area, insertIndex, count);
 	}
 	static class UndoDelete : ETVUndo {
 		private int _index;
 		private Content _c;
-		this (Commons comm, Props prop, Summary summ, EventTree et, int index, Content del) { mixin(S_TRACE);
-			super (comm, prop, summ, et);
+		this (Commons comm, Props prop, Summary summ, EventTree et, CWXPath area, int index, Content del) { mixin(S_TRACE);
+			super (comm, prop, summ, et, area);
 			_index = index;
 			auto node = del.toNode(new XMLOption(prop.sys));
 			auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
@@ -587,7 +594,7 @@ private:
 		}
 	}
 	void storeDelete(int index, Content del) { mixin(S_TRACE);
-		_undo ~= new UndoDelete(_comm, _prop, _summ, _et, index, del);
+		_undo ~= new UndoDelete(_comm, _prop, _summ, _et, _area, index, del);
 	}
 	private Item fromPath(string cwxPath) { mixin(S_TRACE);
 		return fromPathImpl(_tree, cwxPath);
@@ -617,9 +624,9 @@ private:
 	static class UndoCP : Undo {
 		private UndoContent _undoC;
 		private UndoDelete _undoD;
-		this (Commons comm, Props prop, Summary summ, EventTree et, Content[] conts, int index, Content start) { mixin(S_TRACE);
-			_undoC = new UndoContent(comm, prop, summ, et, conts);
-			_undoD = new UndoDelete(comm, prop, summ, et, index, start);
+		this (Commons comm, Props prop, Summary summ, EventTree et, CWXPath area, Content[] conts, int index, Content start) { mixin(S_TRACE);
+			_undoC = new UndoContent(comm, prop, summ, et, area, conts);
+			_undoD = new UndoDelete(comm, prop, summ, et, area, index, start);
 		}
 		override void undo() { mixin(S_TRACE);
 			_undoD.undo();
@@ -637,10 +644,10 @@ private:
 	static class UndoContentAndInsert : ETVUndo {
 		private UndoContent _undoC;
 		private UndoInsert _undoI;
-		this (Commons comm, Props prop, Summary summ, EventTree et, Content owner, int insertIndex, int count) { mixin(S_TRACE);
-			super (comm, prop, summ, et);
-			_undoC = new UndoContent(comm, prop, summ, et, [owner]);
-			_undoI = new UndoInsert(comm, prop, summ, et, insertIndex, count);
+		this (Commons comm, Props prop, Summary summ, EventTree et, CWXPath area, Content owner, int insertIndex, int count) { mixin(S_TRACE);
+			super (comm, prop, summ, et, area);
+			_undoC = new UndoContent(comm, prop, summ, et, area, [owner]);
+			_undoI = new UndoInsert(comm, prop, summ, et, area, insertIndex, count);
 		}
 		override void undo() { mixin(S_TRACE);
 			_undoI.undo();
@@ -656,7 +663,7 @@ private:
 		}
 	}
 	void storeContentAndInsert(Content owner, int insertIndex, int count) { mixin(S_TRACE);
-		_undo ~= new UndoContentAndInsert(_comm, _prop, _summ, _et, owner, insertIndex, count);
+		_undo ~= new UndoContentAndInsert(_comm, _prop, _summ, _et, _area, owner, insertIndex, count);
 	}
 
 	private EventTreeView[] views() { mixin(S_TRACE);
@@ -935,11 +942,11 @@ private:
 			auto evt = dlg.event;
 			applied(evt);
 
-			auto undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
+			auto undo = new UndoContent(_comm, _prop, _summ, _et, _area, [evt]);
 			dlg.appliedEvent.length = 0;
 			dlg.appliedEvent ~= { mixin(S_TRACE);
 				appliedEdit(undo, evt);
-				undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
+				undo = new UndoContent(_comm, _prop, _summ, _et, _area, [evt]);
 			};
 		};
 		_editDlgs[evt.eventId] = dlg;
@@ -966,10 +973,10 @@ private:
 			return *p;
 		}
 		auto dlg = createEventDialog(evt, evt.parent, false);
-		auto undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
+		auto undo = new UndoContent(_comm, _prop, _summ, _et, _area, [evt]);
 		dlg.appliedEvent ~= { mixin(S_TRACE);
 			appliedEdit(undo, evt);
-			undo = new UndoContent(_comm, _prop, _summ, _et, [evt]);
+			undo = new UndoContent(_comm, _prop, _summ, _et, _area, [evt]);
 		};
 		_editDlgs[evt.eventId] = dlg;
 		dlg.closeEvent ~= { mixin(S_TRACE);
@@ -1738,7 +1745,7 @@ private:
 		ContentsToolBox.refreshTemplates(_comm, _prop, _summ, _evTemplM, widget.getShell(), () => _et !is null, &pasteScript);
 	}
 public:
-	this (Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
+	this (Commons comm, Props prop, Summary summ, CWXPath area, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
 			void delegate() refreshTopStart,
 			Composite contentsBoxArea, bool readOnly) { mixin(S_TRACE);
@@ -1748,6 +1755,7 @@ public:
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		_area = area;
 		_undo = undo;
 		_readOnly = (readOnly || !_summ) ? SWT.READ_ONLY : SWT.NONE;
 		if (_readOnly && _summ) _summSkin = findSkin(_comm, _prop, _summ);
@@ -2054,10 +2062,10 @@ public:
 			return;
 		}
 		auto dlg = new ContentCommentDialog(_comm, _prop, _tree.control.getShell(), c.parent, c);
-		auto undo = new UndoContent(_comm, _prop, _summ, _et, [c]);
+		auto undo = new UndoContent(_comm, _prop, _summ, _et, _area, [c]);
 		dlg.appliedEvent ~= { mixin(S_TRACE);
 			_undo ~= undo;
-			undo = new UndoContent(_comm, _prop, _summ, _et, [c]);
+			undo = new UndoContent(_comm, _prop, _summ, _et, _area, [c]);
 			foreach (v; views()) { mixin(S_TRACE);
 				v.redraw();
 			}
@@ -2097,7 +2105,7 @@ public:
 			foreach (cld; _tree.getItems(itm)) find(cld);
 		}
 		foreach (itm; _tree.getItems()) find(itm);
-		auto ucp = new UndoCP(_comm, _prop, _summ, _et, conts, index, start);
+		auto ucp = new UndoCP(_comm, _prop, _summ, _et, _area, conts, index, start);
 		auto id = _comm.createPackage(start, false);
 		if (id == 0) { mixin(S_TRACE);
 			ucp.dispose();

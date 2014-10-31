@@ -206,3 +206,12 @@ string cplast(string path) { mixin(S_TRACE);
 bool cpdescendant(string path1, string path2) { mixin(S_TRACE);
 	return cpbody(path2).startsWith(cpbody(path1));
 }
+
+/// pathがancestorの子孫であれば相対パスを返す。
+/// それ以外の場合は空文字列を返す。
+string cprel(string path, string ancestor) { mixin(S_TRACE);
+	if (path.startsWith(ancestor) && ancestor.length + 1 < path.length) { mixin(S_TRACE);
+		return path[ancestor.length + 1 .. $];
+	}
+	return "";
+}

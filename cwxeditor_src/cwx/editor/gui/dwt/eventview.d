@@ -1314,7 +1314,7 @@ public:
 			}
 		}
 		{ mixin(S_TRACE);
-			_etree = new EventTreeView(comm, prop, summ, _sash, _undo, &forceSel, &refreshTopStart, _toolbar, _readOnly != SWT.NONE);
+			_etree = new EventTreeView(comm, prop, summ, _area, _sash, _undo, &forceSel, &refreshTopStart, _toolbar, _readOnly != SWT.NONE);
 			if (!_readOnly) { mixin(S_TRACE);
 				auto _edit = new TreeEdit(_comm, _cards, &editEnd, &createEditor);
 			}
