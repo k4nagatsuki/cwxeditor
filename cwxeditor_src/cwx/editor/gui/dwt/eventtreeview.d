@@ -62,6 +62,7 @@ private:
 	Props _prop;
 	Commons _comm;
 	Summary _summ;
+	CWXPath _area;
 	EventTree _et;
 	bool _toolWinVisible = false;
 	bool _opened = false;
@@ -146,20 +147,26 @@ private:
 	abstract static class ETVUndo : Undo {
 		private size_t[] _etPath;
 		private size_t[] _selPath = null, _selPath2 = null;
-		protected EventTree et;
+		protected CWXPath _area;
+		protected string _etCWXPath;
 		protected Commons comm;
 		protected Props prop;
 		protected Summary summ;
 		this (EventTreeView v, Commons comm, Props prop, Summary summ, EventTree et) {
-			this.et = et;
 			this.comm = comm;
 			this.prop = prop;
 			this.summ = summ;
+			_area = v._area;
+			_etCWXPath = et.cwxPath(true)[v._area.cwxPath(true).length + 1 .. $];
 			_etPath = et.areaPath;
 			if (v) {
 				auto sel = v.selection;
 				_selPath = sel ? (cast(Content) sel.getData()).ctPath : null;
 			}
+		}
+		@property
+		protected EventTree et() {
+			return cast(EventTree)_area.findCWXPath(_etCWXPath);
 		}
 		void udb(EventTreeView v) {
 			if (!v) return;
@@ -1743,7 +1750,7 @@ private:
 		}
 	}
 public:
-	this (Commons comm, Props prop, Summary summ, Composite parent, UndoManager undo,
+	this (Commons comm, Props prop, Summary summ, CWXPath area, Composite parent, UndoManager undo,
 			void delegate(size_t[]) forceSel,
 			void delegate() refreshTopStart,
 			Composite contentsBoxArea) {
@@ -1752,6 +1759,7 @@ public:
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
+		_area = area;
 		_undo = undo;
 		_forceSel = forceSel;
 		_refreshTopStart = refreshTopStart;

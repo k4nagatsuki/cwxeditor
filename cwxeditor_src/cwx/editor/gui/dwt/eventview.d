@@ -279,12 +279,14 @@ private:
 		}
 		void undoImpl(EventView v) {
 			_istUndo = new UndoInsert(v, comm, area, _summ, _ownerIndex, _treeIndex);
+			auto node = _tree.toNode(null);
+			auto tree = EventTree.createFromNode(node, LATEST_VERSION);
 			if (v) {
 				auto parItm = v._cards.getItem(_ownerIndex);
-				v.appendTree(parItm, _tree, _treeIndex, null, false);
+				v.appendTree(parItm, tree, _treeIndex, null, false);
 			} else {
 				auto eto = etos(area)[_ownerIndex];
-				appendTreeImpl(comm, eto, _tree, _treeIndex);
+				appendTreeImpl(comm, eto, tree, _treeIndex);
 			}
 		}
 		override void redo() {
@@ -1087,7 +1089,7 @@ public:
 			}
 		}
 		{
-			_etree = new EventTreeView(comm, prop, summ, _sash, _undo, &forceSel, &refreshTopStart, _toolbar);
+			_etree = new EventTreeView(comm, prop, summ, _area, _sash, _undo, &forceSel, &refreshTopStart, _toolbar);
 			auto _edit = new TreeEdit(_comm, _cards, &editEnd, &createEditor);
 			setupToolBar();
 		}
