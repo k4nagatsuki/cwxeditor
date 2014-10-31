@@ -629,12 +629,18 @@ private:
 				_mnemonic = mnemonicText(sash, SWT.BORDER);
 				createTextMenu!Text(_comm, _prop, _mnemonic, &catchMod);
 				auto hotkeyComp = new Composite(sash, SWT.NONE);
-				hotkeyComp.setLayout(zeroMarginGridLayout(2, false));
+				hotkeyComp.setLayout(zeroMarginGridLayout(3, false));
 				auto l2 = new Label(hotkeyComp, SWT.NONE);
 				l2.setText(_prop.msgs.hotkey);
 				_hotkey = new HotKeyField(hotkeyComp, SWT.BORDER);
 				createTextMenu!Text(_comm, _prop, _hotkey.widget, &catchMod);
 				_hotkey.widget.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				auto del = new Button(hotkeyComp, SWT.PUSH);
+				del.setText(_prop.msgs.sDel);
+				listener(del, SWT.Selection, {
+					_mnemonic.setText("");
+					_hotkey.accelerator = "";
+				});
 
 				static if (is(T:OuterTool)) {
 					sash.setWeights([_prop.var.etc.outerToolShortcutSashL, _prop.var.etc.outerToolShortcutSashR]);
