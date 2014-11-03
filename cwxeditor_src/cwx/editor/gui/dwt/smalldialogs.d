@@ -200,6 +200,7 @@ protected:
 			_baseSkin.setText(_prop.msgs.type);
 			listener(_baseSkin, SWT.Selection, &refRadio);
 			_skinC = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+			_skinC.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_skinC.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			_skinTypes = [];
 			foreach (key, value; skinTable(_prop)) { mixin(S_TRACE);
