@@ -1876,9 +1876,10 @@ public:
 			sPath = fileOrDir;
 			zipName = "";
 		}
+		auto list = clistdir(scenarioPath);
 		if (!.exists(sPath)) mkdirRecurse(sPath);
 		useTemp = !isDir;
-		foreach (file; clistdir(scenarioPath)) {
+		foreach (file; list) {
 			string p;
 			try {
 				auto full = scenarioPath.buildPath(file);

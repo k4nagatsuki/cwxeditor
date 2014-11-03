@@ -1166,8 +1166,9 @@ string copyTo(string sPath, string path, string added, bool binImgToRef) {
 /// aからbへすべてのファイル・ディレクトリをコピーする。
 void copyAll(string a, string b, bool overwrite = false) {
 	if (isDir(a)) {
+		auto list = clistdir(a);
 		if (!.exists(b)) mkdir(b);
-		foreach (file; clistdir(a)) {
+		foreach (file; list) {
 			string fPath = std.path.buildPath(a, file);
 			string tPath = std.path.buildPath(b, file);
 			copyAll(fPath, tPath);
