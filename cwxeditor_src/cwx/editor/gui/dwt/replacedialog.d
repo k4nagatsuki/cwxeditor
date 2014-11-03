@@ -172,6 +172,7 @@ private:
 	Skin _grepSkin = null;
 	string _grepFile = "";
 	bool _inGrep = false;
+	void delegate() _sendReloadProps = null;
 
 	bool _cancel = false;
 
@@ -1615,12 +1616,13 @@ private:
 		_undo.max = _prop.var.etc.undoMaxReplace;
 	}
 public:
-	this (Commons comm, Props prop, Shell shell, Summary summ) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Shell shell, Summary summ, void delegate() sendReloadProps) { mixin(S_TRACE);
 		_uiThread = core.thread.Thread.getThis();
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		_undo = new UndoManager(_prop.var.etc.undoMaxReplace);
+		_sendReloadProps = sendReloadProps;
 		_win = new Shell(shell, SWT.SHELL_TRIM);
 		_win.setText(_prop.msgs.dlgTitReplaceText);
 		_win.setImage(prop.images.menu(MenuID.Find));
@@ -3408,7 +3410,7 @@ public:
 		_regexTarg = false;
 		_toTemp = ""d;
 	}
-	private static void addHist(Combo combo, void delegate(string[]) set,
+	private static bool addHist(Combo combo, void delegate(string[]) set,
 			string[] delegate() get, int max, string text) { mixin(S_TRACE);
 		if (text.length) { mixin(S_TRACE);
 			string[] list = get();
@@ -3422,7 +3424,9 @@ public:
 			set(list);
 			setComboItems(combo, list);
 			combo.select(0);
+			return true;
 		}
+		return false;
 	}
 	private void initReplaceText() {
 		_result.setHeaderVisible(true);
@@ -3452,15 +3456,16 @@ public:
 		auto range = searchRange;
 		_inProc = true;
 		_comm.refreshToolBar();
-		addHist(_from, (string[] s) {_prop.var.etc.searchHistories = s;},
+		bool addH = addHist(_from, (string[] s) {_prop.var.etc.searchHistories = s;},
 			{return _prop.var.etc.searchHistories.dup;},
 			_prop.var.etc.searchHistoryMax, from);
 		if (_replMode) { mixin(S_TRACE);
-			addHist(_to, (string[] s) {_prop.var.etc.replaceHistories = s;},
+			addH |= addHist(_to, (string[] s) {_prop.var.etc.replaceHistories = s;},
 				{return _prop.var.etc.replaceHistories.dup;},
 				_prop.var.etc.searchHistoryMax, to);
 		}
 		_comm.refSearchHistories.call(this);
+		if (addH && _sendReloadProps) _sendReloadProps();
 
 		void search() { mixin(S_TRACE);
 			foreach (path; range) { mixin(S_TRACE);
@@ -3650,13 +3655,14 @@ public:
 		_inProc = true;
 		_inGrep = true;
 		_comm.refreshToolBar();
-		addHist(_from, (string[] s) {_prop.var.etc.searchHistories = s;},
+		bool addH = addHist(_from, (string[] s) {_prop.var.etc.searchHistories = s;},
 			{return _prop.var.etc.searchHistories.dup;},
 			_prop.var.etc.searchHistoryMax, from);
-		addHist(_grepDir, (string[] s) {_prop.var.etc.grepDirHistories = s;},
+		addH |= addHist(_grepDir, (string[] s) {_prop.var.etc.grepDirHistories = s;},
 			{return _prop.var.etc.grepDirHistories.dup;},
 			_prop.var.etc.searchHistoryMax, dirBase);
 		_comm.refSearchHistories.call(this);
+		if (addH && _sendReloadProps) _sendReloadProps();
 		auto cursors = setWaitCursors(_win);
 		auto thr = new core.thread.Thread({ mixin(S_TRACE);
 			auto exit = new class Runnable {

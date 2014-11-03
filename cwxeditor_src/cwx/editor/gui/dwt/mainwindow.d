@@ -3999,7 +3999,7 @@ public:
 
 	ReplaceDialog openReplWin() { mixin(S_TRACE);
 		if (!_replDlg || _replDlg.widget.isDisposed()) { mixin(S_TRACE);
-			_replDlg = new ReplaceDialog(_comm, _prop, _win, summary);
+			_replDlg = new ReplaceDialog(_comm, _prop, _win, summary, &sendReloadProps);
 			_replDlg.open();
 		} else { mixin(S_TRACE);
 			_replDlg.widget.setMinimized(false);
