@@ -2061,9 +2061,10 @@ public:
 			sPath = fileOrDir;
 			zipName = "";
 		}
+		auto list = clistdir(scenarioPath);
 		if (!.exists(sPath)) mkdirRecurse(sPath);
 		useTemp = !isDir;
-		foreach (file; clistdir(scenarioPath)) { mixin(S_TRACE);
+		foreach (file; list) { mixin(S_TRACE);
 			string p;
 			try { mixin(S_TRACE);
 				auto full = scenarioPath.buildPath(file);

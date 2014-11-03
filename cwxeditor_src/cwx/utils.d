@@ -1235,8 +1235,9 @@ string copyTo(string sPath, string path, string added, bool binImgToRef) { mixin
 /// aからbへすべてのファイル・ディレクトリをコピーする。
 void copyAll(string a, string b, bool overwrite = false) { mixin(S_TRACE);
 	if (isDir(a)) { mixin(S_TRACE);
+		auto list = clistdir(a);
 		if (!.exists(b)) mkdir(b);
-		foreach (file; clistdir(a)) { mixin(S_TRACE);
+		foreach (file; list) { mixin(S_TRACE);
 			string fPath = std.path.buildPath(a, file);
 			string tPath = std.path.buildPath(b, file);
 			copyAll(fPath, tPath);
