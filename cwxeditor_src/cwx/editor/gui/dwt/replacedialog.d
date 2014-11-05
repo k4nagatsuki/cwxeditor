@@ -3225,7 +3225,7 @@ public:
 						digest = .format("%s-%s", digest, size);
 
 						if (auto p = digest in digests) { mixin(S_TRACE);
-							addResult(abs2rel(file, sPath), count, .tryFormat(_prop.msgs.searchErrorDupFile, abs2rel(*p, sPath)));
+							addResult(abs2rel(file, sPath), count, .tryFormat(_prop.msgs.searchErrorDupFile, .encodePath(abs2rel(*p, sPath))));
 							return;
 						}
 						digests[digest] = file;

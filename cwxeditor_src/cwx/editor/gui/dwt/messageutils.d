@@ -15,6 +15,7 @@ import cwx.menu;
 import cwx.types;
 import cwx.imagesize;
 import cwx.system;
+import cwx.warning;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -53,6 +54,18 @@ class AbstractMessageDialog : EventDialog {
 	private MsgPreviewWindow _previewWin = null;
 	private MsgPreview _preview = null;
 	private UndoManager _undo;
+
+	private Skin _summSkin;
+	@property
+	private Skin summSkin() { mixin(S_TRACE);
+		return _summSkin ? _summSkin : comm.skin;
+	}
+
+	private Tuple!(string[], "all", string[], "noDup") textWarnings(in string[] flags, in string[] steps, in string[] fonts, in char[] colors,
+			ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
+		return .textWarnings(prop.parent, summSkin, summ, prop.var.etc.targetVersion,
+			flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors);
+	}
 
 	private class SelPrev : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
@@ -112,6 +125,12 @@ class AbstractMessageDialog : EventDialog {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			comm.refMenu.remove(&refMenu);
 			comm.refUndoMax.remove(&refUndoMax);
+			comm.refTargetVersion.remove(&refreshWarning);
+			comm.refFlagAndStep.remove(&refFlagAndStep);
+			comm.delFlagAndStep.remove(&refFlagAndStep);
+			comm.refPaths.remove(&refPaths);
+			comm.refPath.remove(&refPath);
+			comm.delPaths.remove(&refreshWarning);
 			getShell().getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 			if (_preview) { mixin(S_TRACE);
 				if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
@@ -183,6 +202,7 @@ class AbstractMessageDialog : EventDialog {
 	this (Commons comm, Props prop, Shell shell, Summary summ, CType type, Content parent, Content evt, DSize size) { mixin(S_TRACE);
 		super (comm, prop, shell, summ, type, parent, evt, true, size, false, !prop.var.etc.floatMessagePreview);
 		_undo = new UndoManager(prop.var.etc.undoMaxEtc);
+		_summSkin = findSkin(comm, prop, summ);
 	}
 
 	override
@@ -207,8 +227,16 @@ class AbstractMessageDialog : EventDialog {
 		area.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
 		comm.refMenu.add(&refMenu);
 		comm.refUndoMax.add(&refUndoMax);
-
+		comm.refTargetVersion.add(&refreshWarning);
+		comm.refFlagAndStep.add(&refFlagAndStep);
+		comm.delFlagAndStep.add(&refFlagAndStep);
+		comm.refPaths.add(&refPaths);
+		comm.refPath.add(&refPath);
+		comm.delPaths.add(&refreshWarning);
 	}
+	private void refFlagAndStep(Flag[] flags, Step[] steps) { refreshWarning(); }
+	private void refPath(string o, string n, bool isDir) { refreshWarning(); }
+	private void refPaths(string parent) { refreshWarning(); }
 
 	void refreshPreview() { mixin(S_TRACE);
 		if (!_previewWin && !_preview) return;
@@ -321,40 +349,24 @@ private:
 				ws ~= prop.msgs.warningValuedTalker;
 			}
 		}
-		if (!prop.targetVersion("1.50")) { mixin(S_TRACE);
-			bool[char] wColors;
-			_dlgWarnings = [];
-			foreach (i, dlg; _dlgs) { mixin(S_TRACE);
-				bool w = false;
-				string[] dws = [];
-				foreach (color; dlg.colorsInText) { mixin(S_TRACE);
-					switch (std.ascii.toUpper(color)) {
-					case 'O', 'P', 'L', 'D':
-						auto wt = .tryFormat(prop.msgs.warningTextColor, "&" ~ color, "1.50");
-						dws ~= wt;
-						if (!wColors.get(color, false)) { mixin(S_TRACE);
-							ws ~= wt;
-							wColors[color] = true;
-						}
-						_dlgsL.getItem(i).setImage(prop.images.warning);
-						w = true;
-						break;
-					default:
-						break;
-					}
-				}
-				if (!w) { mixin(S_TRACE);
-					_dlgsL.getItem(i).setImage(prop.images.content(CType.TALK_DIALOG));
-				}
-				_dlgWarnings ~= dws;
+
+		bool[string] wFlags;
+		bool[string] wSteps;
+		bool[string] wFonts;
+		bool[char] wColors;
+		_dlgWarnings = [];
+		foreach (i, dlg; _dlgs) { mixin(S_TRACE);
+			auto dws = textWarnings(dlg.flagsInText, dlg.stepsInText, dlg.fontsInText, dlg.colorsInText,
+				wFlags, wSteps, wFonts, wColors);
+			if (dws.all.length) { mixin(S_TRACE);
+				_dlgsL.getItem(i).setImage(prop.images.warning);
+				_dlgWarnings ~= dws.all;
+			} else { mixin(S_TRACE);
+				_dlgsL.getItem(i).setImage(prop.images.content(CType.TALK_DIALOG));
 			}
-		} else { mixin(S_TRACE);
-			_dlgWarnings = [];
-			_dlgWarnings[] = [];
-			foreach (itm; _dlgsL.getItems()) { mixin(S_TRACE);
-				itm.setImage(prop.images.content(CType.TALK_DIALOG));
-			}
+			ws ~= dws.noDup;
 		}
+
 		_warningTip.setVisible(false);
 		_warningTip.setMessage("");
 
@@ -1045,22 +1057,17 @@ private:
 
 		ws ~= _msel.warnings;
 
-		if (!prop.targetVersion("1.50")) { mixin(S_TRACE);
-			string[] flags;
-			string[] steps;
-			string[] fonts;
-			char[] colors;
-			textUseItems(lastRet(wrapReturnCode(_text.getText())), flags, steps, fonts, colors);
-			foreach (color; colors) { mixin(S_TRACE);
-				switch (std.ascii.toUpper(color)) {
-				case 'O', 'P', 'L', 'D':
-					ws ~= .tryFormat(prop.msgs.warningTextColor, "&" ~ color, "1.50");
-					break;
-				default:
-					break;
-				}
-			}
-		}
+		bool[string] wFlags;
+		bool[string] wSteps;
+		bool[string] wFonts;
+		bool[char] wColors;
+		string[] flags;
+		string[] steps;
+		string[] fonts;
+		char[] colors;
+		textUseItems(lastRet(wrapReturnCode(_text.getText())), flags, steps, fonts, colors);
+		ws ~= textWarnings(flags, steps, fonts, colors,
+			wFlags, wSteps, wFonts, wColors).all;
 
 		warning = ws;
 	}

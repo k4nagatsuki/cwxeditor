@@ -18,6 +18,7 @@ import cwx.imagesize;
 import cwx.motion;
 
 import std.path;
+import std.typecons : Tuple;
 
 /// pathの内容を調査し、警告すべき点があればメッセージ群を返す。
 string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path, string targVer) { mixin(S_TRACE);
@@ -28,7 +29,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	auto psumm = cast(Summary) path;
 	if (psumm) { mixin(S_TRACE);
 		if (psumm.imagePath != "" && !isBinImg(psumm.imagePath) && !skin.findPath(psumm.imagePath, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorImageNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(psumm.imagePath));
 		}
 		if (psumm.levelMin > psumm.levelMax) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorReversalLevel;
@@ -43,19 +44,19 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	auto flagDir = cast(FlagDir) path;
 	if (flagDir) { mixin(S_TRACE);
 		if (flagDir.parent is froot && prop.sys.isSystemVar(flagDir.name)) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorSystemName;
+			r ~= .tryFormat(prop.msgs.searchErrorSystemVariable, flagDir.name);
 		}
 	}
 	auto flag = cast(Flag) path;
 	if (flag) { mixin(S_TRACE);
 		if (flag.parent is froot && prop.sys.isSystemVar(flag.name)) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorSystemName;
+			r ~= .tryFormat(prop.msgs.searchErrorSystemVariable, flag.name);
 		}
 	}
 	auto step = cast(Step) path;
 	if (step) { mixin(S_TRACE);
 		if (step.parent is froot && prop.sys.isSystemVar(step.name)) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorSystemName;
+			r ~= .tryFormat(prop.msgs.searchErrorSystemVariable, step.name);
 		}
 	}
 	auto eventTree = cast(EventTree) path;
@@ -72,33 +73,26 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto casts = cast(CastCard) path;
 	if (casts) { mixin(S_TRACE);
-		bool err = false;
 		foreach (c; casts.skills) { mixin(S_TRACE);
-			if (err) break;
 			if (0 != c.linkId && !(summ && summ.skill(c.linkId))) { mixin(S_TRACE);
-				r ~= prop.msgs.searchErrorLinkIdNotFound;
-				err = true;
+				r ~= .tryFormat(prop.msgs.searchErrorLinkIdSkillNotFound, c.linkId);
 			}
 		}
 		foreach (c; casts.items) { mixin(S_TRACE);
-			if (err) break;
 			if (0 != c.linkId && !(summ && summ.item(c.linkId))) { mixin(S_TRACE);
-				r ~= prop.msgs.searchErrorLinkIdNotFound;
-				err = true;
+				r ~= .tryFormat(prop.msgs.searchErrorLinkIdItemNotFound, c.linkId);
 			}
 		}
 		foreach (c; casts.beasts) { mixin(S_TRACE);
-			if (err) break;
 			if (0 != c.linkId && !(summ && summ.beast(c.linkId))) { mixin(S_TRACE);
-				r ~= prop.msgs.searchErrorLinkIdNotFound;
-				err = true;
+				r ~= .tryFormat(prop.msgs.searchErrorLinkIdBeastNotFound, c.linkId);
 			}
 		}
 	}
 	auto card = cast(Card) path;
 	if (card) { mixin(S_TRACE);
 		if (card.path != "" && !isBinImg(card.path) && !skin.findPath(card.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorImageNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(card.path));
 		}
 		if (card.path != "") { mixin(S_TRACE);
 			r ~= skin.warningImage(prop, card.path, summ ? summ.legacy : false, true, targVer);
@@ -108,15 +102,12 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		foreach (m; motions) { mixin(S_TRACE);
 			if (m.type is MType.CANCEL_ACTION && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 				r ~= .tryFormat(prop.msgs.warningUnknownMotion, prop.msgs.motionName(m.type), "1.50");
-				break;
 			}
 			if (m.type == MType.SUMMON_BEAST && !m.beast) { mixin(S_TRACE);
 				r ~= prop.msgs.searchErrorNoBeast;
-				break;
 			}
 			if (m.type == MType.SUMMON_BEAST && m.beast && 0 != m.beast.linkId && !(summ && summ.beast(m.beast.linkId))) { mixin(S_TRACE);
-				r ~= prop.msgs.searchErrorLinkIdNotFound;
-				break;
+				r ~= .tryFormat(prop.msgs.searchErrorLinkIdBeastNotFound, m.beast.linkId);
 			}
 		}
 	}
@@ -131,41 +122,21 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 	}
 	auto spChars = skin.spChars;
-	string checkTextRes(string[] fonts, in string[] flags, in string[] steps, in char[] colors) { mixin(S_TRACE);
-		foreach (font; fonts) { mixin(S_TRACE);
-			dchar c = decodeFontPath(font);
-			if (c in spChars) continue;
-			if (!skin.findPath(font, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
-				return prop.msgs.searchErrorSPFontNotFound;
-			}
-		}
-		foreach (flag; flags) { mixin(S_TRACE);
-			if (!(froot && froot.findFlag(flag))) { mixin(S_TRACE);
-				return prop.msgs.searchErrorFlagNotFound;
-			}
-		}
-		foreach (step; steps) { mixin(S_TRACE);
-			if (!(froot && froot.findStep(step))) { mixin(S_TRACE);
-				return prop.msgs.searchErrorStepNotFound;
-			}
-		}
-		foreach (color; colors) { mixin(S_TRACE);
-			switch (std.ascii.toUpper(color)) {
-			case 'O', 'P', 'L', 'D':
-				if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
-					return .tryFormat(prop.msgs.warningTextColor, "&" ~ color, "1.50");
-				}
-				break;
-			default:
-				break;
-			}
-		}
-		return null;
+	auto checkTextRes(in string[] flags, in string[] steps, in string[] fonts, in char[] colors,
+			ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
+		return .textWarnings(prop, skin, summ, targVer, flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors);
+	}
+	string[] checkTextRes2(in string[] flags, in string[] steps, in string[] fonts, in char[] colors) { mixin(S_TRACE);
+		bool[string] wFlags;
+		bool[string] wSteps;
+		bool[string] wFonts;
+		bool[char] wColors;
+		return checkTextRes(flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
 	}
 	auto bi = cast(BgImage) path;
 	if (bi) { mixin(S_TRACE);
 		if (bi.flag != "" && !(froot && froot.findFlag(bi.flag))) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorFlagNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, bi.flag);
 		}
 		if (bi.foreground) {
 			if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
@@ -188,7 +159,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= prop.msgs.warningBgImageIncluded;
 			}
 		} else if (ic.path.length && !skin.findPath(ic.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorImageNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(ic.path));
 		}
 		if (ic.path != "") { mixin(S_TRACE);
 			r ~= skin.warningImage(prop, ic.path, summ ? summ.legacy : false, true, targVer);
@@ -196,10 +167,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto tc = cast(TextCell) path;
 	if (tc) { mixin(S_TRACE);
-		string err = checkTextRes([], tc.flagsInText, tc.stepsInText, []);
-		if (err) { mixin(S_TRACE);
-			r ~= err;
-		}
+		r ~= checkTextRes2(tc.flagsInText, tc.stepsInText, [], []);
 		if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningTextCell;
 		}
@@ -225,7 +193,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	auto mc = cast(MenuCard) path;
 	if (mc) { mixin(S_TRACE);
 		if (mc.path != "" && !isBinImg(mc.path) && !skin.findPath(mc.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorImageNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(mc.path));
 		}
 		if (mc.path != "") {
 			if (isBinImg(mc.path)) { mixin(S_TRACE);
@@ -240,7 +208,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 		if (mc.flag != "" && !(froot && froot.findFlag(mc.flag))) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorFlagNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, mc.flag);
 		}
 		if (0 != mc.pcNumber && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningPCNumberClassic;
@@ -252,10 +220,10 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= prop.msgs.searchErrorNoCast;
 		}
 		if (ec.id != 0 && !(summ && summ.cwCast(ec.id))) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorCastNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorCastNotFound, ec.id);
 		}
 		if (ec.flag != "" && !(froot && froot.findFlag(ec.flag))) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorFlagNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, ec.flag);
 		}
 	}
 	auto c = cast(Content) path;
@@ -275,25 +243,27 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 		if (c.type == CType.TALK_DIALOG) { mixin(S_TRACE);
+			if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
+				if (Talker.VALUED is c.talkerNC) { mixin(S_TRACE);
+					r ~= prop.msgs.warningValuedTalker;
+				}
+			}
 			if (c.dialogs.length) { mixin(S_TRACE);
+				bool[string] wFlags;
+				bool[string] wSteps;
+				bool[string] wFonts;
+				bool[char] wColors;
 				foreach (i, dlg; c.dialogs) { mixin(S_TRACE);
+					r ~= checkTextRes(dlg.flagsInText, dlg.stepsInText, dlg.fontsInText, dlg.colorsInText,
+						wFlags, wSteps, wFonts, wColors).noDup;
 					if (i + 1 < c.dialogs.length && !dlg.rCoupons.length) { mixin(S_TRACE);
 						// 最後以外にクーポンが設定されていない場合
 						r ~= prop.msgs.searchErrorNoRCouponsDialog;
-						break;
-					}
-					string err = checkTextRes(dlg.fontsInText, dlg.flagsInText, dlg.stepsInText, dlg.colorsInText);
-					if (err) { mixin(S_TRACE);
-						r ~= err;
-						break;
 					}
 				}
 			}
 		}
-		string textErr = checkTextRes(c.fontsInText, c.flagsInText, c.stepsInText, c.colorsInText);
-		if (textErr) { mixin(S_TRACE);
-			r ~= textErr;
-		}
+		r ~= checkTextRes2(c.flagsInText, c.stepsInText, c.fontsInText, c.colorsInText);
 		bool hasStart() { mixin(S_TRACE);
 			foreach (s; c.tree.starts) { mixin(S_TRACE);
 				if (s.name == c.start) return true;
@@ -303,67 +273,67 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.flag != "" && !(froot && froot.findFlag(c.flag))) { mixin(S_TRACE);
 			// 代入コンテントではランダム値有効
 			if (!c.type == CType.SUBSTITUTE_FLAG || prop.sys.randomValue != c.flag) { mixin(S_TRACE);
-				r ~= prop.msgs.searchErrorFlagNotFound;
+				r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, c.flag);
 			}
 		}
 		if (c.step != "" && !(froot && froot.findStep(c.step))) { mixin(S_TRACE);
 			// 代入コンテントではランダム値有効
 			if (!c.type == CType.SUBSTITUTE_STEP || prop.sys.randomValue != c.step) { mixin(S_TRACE);
-				r ~= prop.msgs.searchErrorStepNotFound;
+				r ~= .tryFormat(prop.msgs.searchErrorStepNotFound, c.step);
 			}
 		}
 		if (c.type == CType.TALK_MESSAGE && c.talkerC == Talker.IMAGE
 				&& c.cardPath != "" && !skin.findPath(c.cardPath, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorImageNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(c.cardPath));
 		}
 		if (c.bgmPath != "" && !skin.findPath(c.bgmPath, skin.extBgm, skin.bgmDir, sPath).length) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorBGMNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorBGMNotFound, .encodePath(c.bgmPath));
 		}
 		if (c.soundPath != "" && !skin.findPath(c.soundPath, skin.extSound, skin.seDir, sPath).length) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorSENotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorSENotFound, .encodePath(c.soundPath));
 		}
 		if (c.area != 0 && !(summ && summ.area(c.area))) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorAreaNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorAreaNotFound, c.area);
 		}
 		if (c.battle != 0 && !(summ && summ.battle(c.battle))) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorBattleNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorBattleNotFound, c.battle);
 		}
 		if (c.packages != 0 && !(summ && summ.cwPackage(c.packages))) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorPackageNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorPackageNotFound, c.packages);
 		}
 		if (c.casts != 0 && !(summ && summ.cwCast(c.casts))) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorCastNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorCastNotFound, c.casts);
 		}
 		if (c.item != 0 && !(summ && summ.item(c.item))) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorItemNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorItemNotFound, c.item);
 		}
 		if (c.skill != 0 && !(summ && summ.skill(c.skill))) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorSkillNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorSkillNotFound, c.skill);
 		}
 		if (c.beast != 0 && !(summ && summ.beast(c.beast))) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorBeastNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorBeastNotFound, c.beast);
 		}
 		if (c.info != 0 && !(summ && summ.info(c.info))) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorInfoNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorInfoNotFound, c.info);
 		}
 		if (c.start != "" && !hasStart()) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorStartNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorStartNotFound, c.start);
 		}
 		putMotions(c.motions);
 		if (c.flag2 != "" && !(froot && froot.findFlag(c.flag2))) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorFlagNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, c.flag2);
 		}
 		if (c.step2 != "" && !(froot && froot.findStep(c.step2))) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorStepNotFound;
+			r ~= .tryFormat(prop.msgs.searchErrorStepNotFound, c.step2);
 		}
 		if (c.flag != "" && c.flag == c.flag2) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorSouceIsTarget;
+			r ~= prop.msgs.searchErrorSourceIsTarget;
 		}
 		if (c.step != "" && c.step == c.step2) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorSouceIsTarget;
+			r ~= prop.msgs.searchErrorSourceIsTarget;
 		}
 		if ((c.type is CType.GET_COUPON || c.type is CType.LOSE_COUPON) && prop.sys.isCouponType(c.coupon, CouponType.System)) { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorSystemName;
+			r ~= .tryFormat(prop.msgs.searchErrorSystemCoupon, c.coupon);
 		}
 		if (c.levelMin > c.levelMax) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorReversalLevel;
@@ -441,4 +411,67 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 	}
 	return r;
+}
+
+/// 台詞・メッセージ内で使用されているデータに対する警告を返す。
+/// 警告が行われたデータは引数の連想配列に格納される。
+Tuple!(string[], "all", string[], "noDup") textWarnings(in CProps prop, in Skin skin, in Summary summ, string targVer,
+		in string[] flags, in string[] steps, in string[] fonts, in char[] colors,
+		ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
+	string[] all = [];
+	string[] noDup = [];
+
+	auto sPath = summ.scenarioPath;
+	auto spChars = skin.spChars;
+	auto froot = summ.flagDirRoot;
+
+	foreach (font; fonts) { mixin(S_TRACE);
+		dchar c = decodeFontPath(font);
+		if (c in spChars) continue;
+		if (!skin.findPath(font, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
+			auto msg = .tryFormat(prop.msgs.searchErrorSPFontNotFound, .tryFormat("#%s", c));
+			all ~= msg;
+			if (!wFonts.get(font, false)) { mixin(S_TRACE);
+				noDup ~= msg;
+				wFonts[font] = true;
+			}
+		}
+	}
+	foreach (flag; flags) { mixin(S_TRACE);
+		if (!(froot && froot.findFlag(flag))) { mixin(S_TRACE);
+			auto msg = .tryFormat(prop.msgs.searchErrorFlagNotFound, flag);
+			all ~= msg;
+			if (!wFlags.get(flag, false)) { mixin(S_TRACE);
+				noDup ~= msg;
+				wFlags[flag] = true;
+			}
+		}
+	}
+	foreach (step; steps) { mixin(S_TRACE);
+		if (!(froot && froot.findStep(step))) { mixin(S_TRACE);
+			auto msg = .tryFormat(prop.msgs.searchErrorStepNotFound, step);
+			all ~= msg;
+			if (!wSteps.get(step, false)) { mixin(S_TRACE);
+				noDup ~= msg;
+				wSteps[step] = true;
+			}
+		}
+	}
+	if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
+		foreach (color; colors) { mixin(S_TRACE);
+			switch (std.ascii.toUpper(color)) {
+			case 'O', 'P', 'L', 'D':
+				auto w = .tryFormat(prop.msgs.warningTextColor, "&" ~ color, "1.50");
+				all ~= w;
+				if (!wColors.get(color, false)) { mixin(S_TRACE);
+					noDup ~= w;
+					wColors[color] = true;
+				}
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	return typeof(return)(all, noDup);
 }

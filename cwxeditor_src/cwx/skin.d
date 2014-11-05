@@ -863,7 +863,7 @@ class Skin {
 		if (legacy && ext != ".bmp" && ext != ".png" && ext != ".gif") { mixin(S_TRACE);
 			return false;
 		}
-		if (ignoreSize) return true;
+		if (ignoreSize) return isImageExt(path);
 		try { mixin(S_TRACE);
 			uint x, y;
 			if (bin) { mixin(S_TRACE);
