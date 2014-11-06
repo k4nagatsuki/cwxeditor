@@ -293,7 +293,7 @@ private:
 		auto o = cast(Motion) itm.getData();
 		assert (o);
 		if (o.beast) { mixin(S_TRACE);
-			_comm.delBeast.call(o.beast);
+			_comm.delBeast.call(o, o.beast);
 		}
 		itm.setData(m);
 		if (index == _motions.getSelectionIndex()) { mixin(S_TRACE);
@@ -538,7 +538,7 @@ private:
 			auto m = cast(Motion) _motions.getItem(index).getData();
 			assert (m);
 			if (m.beast) { mixin(S_TRACE);
-				_comm.delBeast.call(m.beast);
+				_comm.delBeast.call(m, m.beast);
 			}
 			_motions.remove(index);
 			if (index >= _motions.getItemCount()) index--;
@@ -670,7 +670,7 @@ private:
 			if (b) { mixin(S_TRACE);
 				if (!sb.beast && !b) return;
 				storeEdit(mi);
-				if (sb.beast) _comm.delBeast.call(sb.beast);
+				if (sb.beast) _comm.delBeast.call(sb, sb.beast);
 				if (_prop.var.etc.linkCard) { mixin(S_TRACE);
 					sb.beast = new BeastCard(1UL, "", "", "");
 					sb.beast.linkId = b.id;
@@ -680,7 +680,7 @@ private:
 			} else { mixin(S_TRACE);
 				if (!sb.beast) return;
 				storeEdit(mi);
-				_comm.delBeast.call(sb.beast);
+				_comm.delBeast.call(sb, sb.beast);
 				sb.beast = null;
 			}
 			resetMaxNest(sb);
@@ -836,7 +836,7 @@ private:
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.refMenu.remove(&refMenu);
 			_comm.refBeast.remove(&refBeast);
-			_comm.delBeast.remove(&refBeast);
+			_comm.delBeast.remove(&delBeast);
 			_comm.refUndoMax.remove(&refUndoMax);
 			_comm.refSkin.remove(&_beastImg.redraw);
 			_comm.refCardImageStatus.remove(&_beastImg.redraw);
@@ -871,6 +871,9 @@ private:
 		if (id == MenuID.Redo) _redoAcc = convertAccelerator(_prop.buildMenu(MenuID.Redo));
 	}
 	void refBeast(BeastCard beast) { mixin(S_TRACE);
+		refBeasts();
+	}
+	void delBeast(CWXPath owner, BeastCard beast) { mixin(S_TRACE);
 		refBeasts();
 	}
 	void refBeasts() { mixin(S_TRACE);
@@ -1295,7 +1298,7 @@ public:
 		_kdFilter = new KeyDownFilter();
 		_comm.refMenu.add(&refMenu);
 		_comm.refBeast.add(&refBeast);
-		_comm.delBeast.add(&refBeast);
+		_comm.delBeast.add(&delBeast);
 		_comm.refUndoMax.add(&refUndoMax);
 		_comm.refSkin.add(&_beastImg.redraw);
 		_comm.refCardImageStatus.add(&_beastImg.redraw);
@@ -1413,7 +1416,7 @@ public:
 					auto bNode = node.child(BeastCard.XML_NAME, false);
 					if (!bNode.valid) return;
 					storeEdit(_motions.getSelectionIndex());
-					if (m.beast) _comm.delBeast.call(m.beast);
+					if (m.beast) _comm.delBeast.call(m, m.beast);
 					m.beast = null;
 					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 					auto bid = m.setBeastFromNode(bNode, ver);
@@ -1483,7 +1486,7 @@ public:
 				assert (m.detail.use(MArg.BEAST));
 				if (m.beast) { mixin(S_TRACE);
 					storeEdit(_motions.getSelectionIndex());
-					if (m.beast) _comm.delBeast.call(m.beast);
+					if (m.beast) _comm.delBeast.call(m, m.beast);
 					m.beast = null;
 					resetMaxNest(m);
 					_beastImg.redraw();

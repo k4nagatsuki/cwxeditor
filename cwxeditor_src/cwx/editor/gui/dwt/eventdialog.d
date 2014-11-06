@@ -2085,7 +2085,7 @@ private:
 	void refCard(C c) { mixin(S_TRACE);
 		refreshList();
 	}
-	void delCard(C c) { mixin(S_TRACE);
+	void delCard(CWXPath owner, C c) { mixin(S_TRACE);
 		auto cards = mixin (Cards);
 		if (cards.length) { mixin(S_TRACE);
 			refreshList();

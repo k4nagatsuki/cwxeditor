@@ -14,6 +14,7 @@ import cwx.types;
 import cwx.structs;
 import cwx.system;
 import cwx.importutils;
+import cwx.path;
 
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dprops;
@@ -304,11 +305,11 @@ class Commons {
 	Dlg!(CastCard) refCast;
 	Dlg!(CastCard) delCast;
 	Dlg!(SkillCard) refSkill;
-	Dlg!(SkillCard) delSkill;
+	Dlg!(CWXPath, SkillCard) delSkill;
 	Dlg!(ItemCard) refItem;
-	Dlg!(ItemCard) delItem;
+	Dlg!(CWXPath, ItemCard) delItem;
 	Dlg!(BeastCard) refBeast;
-	Dlg!(BeastCard) delBeast;
+	Dlg!(CWXPath, BeastCard) delBeast;
 	Dlg!(InfoCard) refInfo;
 	Dlg!(InfoCard) delInfo;
 	Dlg!(FlagDir[]) refFlagDir;

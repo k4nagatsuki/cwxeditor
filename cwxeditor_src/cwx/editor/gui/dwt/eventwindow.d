@@ -96,13 +96,13 @@ public:
 				_comm.delPackage.add(&__deleteOwner);
 				_comm.refPackage.add(&__refOwner);
 			} else static if (is (A == SkillCard)) {
-				_comm.delSkill.add(&__deleteOwner);
+				_comm.delSkill.add(&__deleteOwner2);
 				_comm.refSkill.add(&__refOwner);
 			} else static if (is (A == ItemCard)) {
-				_comm.delItem.add(&__deleteOwner);
+				_comm.delItem.add(&__deleteOwner2);
 				_comm.refItem.add(&__refOwner);
 			} else static if (is (A == BeastCard)) {
-				_comm.delBeast.add(&__deleteOwner);
+				_comm.delBeast.add(&__deleteOwner2);
 				_comm.refBeast.add(&__refOwner);
 			} else { mixin(S_TRACE);
 				static assert (0);
@@ -126,13 +126,13 @@ public:
 						_comm.delPackage.remove(&__deleteOwner);
 						_comm.refPackage.remove(&__refOwner);
 					} else static if (is (A == SkillCard)) {
-						_comm.delSkill.remove(&__deleteOwner);
+						_comm.delSkill.remove(&__deleteOwner2);
 						_comm.refSkill.remove(&__refOwner);
 					} else static if (is (A == ItemCard)) {
-						_comm.delItem.remove(&__deleteOwner);
+						_comm.delItem.remove(&__deleteOwner2);
 						_comm.refItem.remove(&__refOwner);
 					} else static if (is (A == BeastCard)) {
-						_comm.delBeast.remove(&__deleteOwner);
+						_comm.delBeast.remove(&__deleteOwner2);
 						_comm.refBeast.remove(&__refOwner);
 					} else { mixin(S_TRACE);
 						static assert (0);
@@ -297,6 +297,11 @@ public:
 		_eview.openDup();
 	}
 	private void __deleteOwner(A a) { mixin(S_TRACE);
+		if (_eto is a) { mixin(S_TRACE);
+			_comm.close(_win);
+		}
+	}
+	private void __deleteOwner2(CWXPath owner, A a) { mixin(S_TRACE);
 		if (_eto is a) { mixin(S_TRACE);
 			_comm.close(_win);
 		}

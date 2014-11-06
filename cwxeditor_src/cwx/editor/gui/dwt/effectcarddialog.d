@@ -9,6 +9,7 @@ import cwx.utils;
 import cwx.skin;
 import cwx.event;
 import cwx.imagesize;
+import cwx.path;
 
 import cwx.editor.gui.sound;
 
@@ -747,7 +748,7 @@ private:
 		tab.setControl(comp);
 		return tab;
 	}
-	void delCard(C c) { mixin(S_TRACE);
+	void delCard(CWXPath owner, C c) { mixin(S_TRACE);
 		if (_card is c) { mixin(S_TRACE);
 			forceCancel();
 		}

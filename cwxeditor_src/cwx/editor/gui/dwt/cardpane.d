@@ -848,7 +848,13 @@ private:
 		itm.setText(COL_NAME, cardName(c));
 		string desc = cardDesc(c).singleLine;
 		static if (is(C:EventTreeOwner)) {
-			if (_prop.var.etc.showEventTreeMark && ((_prop.var.etc.ignoreEmptyStart ? !c.isEmpty : 0 < c.trees.length))) { mixin(S_TRACE);
+			auto c2 = c;
+			static if (is(typeof(c.linkId))) {
+				if (0 != c.linkId) { mixin(S_TRACE);
+					c2 = cardFrom(_summ, c.linkId);
+				}
+			}
+			if (c2 && _prop.var.etc.showEventTreeMark && ((_prop.var.etc.ignoreEmptyStart ? !c2.isEmpty : 0 < c2.trees.length))) { mixin(S_TRACE);
 				itm.setImage(COL_DESC, _prop.images.eventTree);
 			} else { mixin(S_TRACE);
 				itm.setImage(COL_DESC, null);
@@ -1021,21 +1027,21 @@ private:
 	static void delCard(CardPane v, Commons comm, CardOwner owner, C c) { mixin(S_TRACE);
 		static if (is (C == CastCard)) {
 			foreach (hc; c.skills) { mixin(S_TRACE);
-				comm.delSkill.call(hc);
+				comm.delSkill.call(owner, hc);
 			}
 			foreach (hc; c.items) { mixin(S_TRACE);
-				comm.delItem.call(hc);
+				comm.delItem.call(owner, hc);
 			}
 			foreach (hc; c.beasts) { mixin(S_TRACE);
-				comm.delBeast.call(hc);
+				comm.delBeast.call(owner, hc);
 			}
 			comm.delCast.call(c);
 		} else static if (is (C == SkillCard)) {
-			comm.delSkill.call(c);
+			comm.delSkill.call(owner, c);
 		} else static if (is (C == ItemCard)) {
-			comm.delItem.call(c);
+			comm.delItem.call(owner, c);
 		} else static if (is (C == BeastCard)) {
-			comm.delBeast.call(c);
+			comm.delBeast.call(owner, c);
 		} else static if (is (C == InfoCard)) {
 			comm.delInfo.call(c);
 		} else { mixin(S_TRACE);
@@ -1540,11 +1546,13 @@ private:
 			previewTrigger(e.x, e.y);
 			static if (EditMode && is(C:EventTreeOwner)) {
 				auto itm = _tbl.getItem(new Point(e.x, e.y));
-				if (!itm) return;
-				if (!itm.getImage(COL_DESC)) return;
+				if (!itm || !itm.getImage(COL_DESC)) { mixin(S_TRACE);
+					_tbl.setCursor(null);
+					_openEventTarget = null;
+					return;
+				}
 				auto rect = itm.getImageBounds(COL_DESC);
-				if (!rect) return;
-				if (rect.contains(e.x, e.y)) { mixin(S_TRACE);
+				if (rect && rect.contains(e.x, e.y)) { mixin(S_TRACE);
 					_tbl.setCursor(_list.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 					_openEventTarget = cast(C)itm.getData();
 				} else { mixin(S_TRACE);
@@ -1558,14 +1566,21 @@ private:
 	class ListMouseMove : MouseMoveListener {
 		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
 			static if (EditMode && is(C:EventTreeOwner)) {
-				if (_viewMode !is CViewMode.LIFE) return;
+				if (_viewMode !is CViewMode.LIFE) { mixin(S_TRACE);
+					_list.setCursor(null);
+					_openEventTarget = null;
+					return;
+				}
 				int i = _list.searchIndex(e.x, e.y);
-				if (i < 0) return;
+				if (i < 0) { mixin(S_TRACE);
+					_list.setCursor(null);
+					_openEventTarget = null;
+					return;
+				}
 				auto c = _list.card(i);
 				auto bounds = _list.getBounds(i);
 				auto rect = .eventTreeMarkRect(_prop, bounds.x, bounds.y, c);
-				if (!rect) return;
-				if (rect.contains(e.x, e.y)) { mixin(S_TRACE);
+				if (rect && rect.contains(e.x, e.y)) { mixin(S_TRACE);
 					_list.setCursor(_list.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 					_openEventTarget = c;
 				} else { mixin(S_TRACE);
@@ -2054,10 +2069,13 @@ public:
 				_comm.refCast.add(&refCardCallback);
 			} else static if (is (C == SkillCard)) {
 				_comm.refSkill.add(&refCardCallback);
+				_comm.delSkill.add(&delCardCallback);
 			} else static if (is (C == ItemCard)) {
 				_comm.refItem.add(&refCardCallback);
+				_comm.delItem.add(&delCardCallback);
 			} else static if (is (C == BeastCard)) {
 				_comm.refBeast.add(&refCardCallback);
+				_comm.delBeast.add(&delCardCallback);
 			} else static if (is (C == InfoCard)) {
 				_comm.refInfo.add(&refCardCallback);
 			}
@@ -2069,10 +2087,13 @@ public:
 						_comm.refCast.remove(&refCardCallback);
 					} else static if (is (C == SkillCard)) {
 						_comm.refSkill.remove(&refCardCallback);
+						_comm.delSkill.remove(&delCardCallback);
 					} else static if (is (C == ItemCard)) {
 						_comm.refItem.remove(&refCardCallback);
+						_comm.delItem.remove(&delCardCallback);
 					} else static if (is (C == BeastCard)) {
 						_comm.refBeast.remove(&refCardCallback);
+						_comm.delBeast.remove(&delCardCallback);
 					} else static if (is (C == InfoCard)) {
 						_comm.refInfo.remove(&refCardCallback);
 					}
@@ -2207,6 +2228,18 @@ public:
 			}
 			refresh(c);
 			sort();
+		}
+		static if (is(C:EffectCard)) {
+			private void delCardCallback(Object sender, CWXPath owner, C c) { mixin(S_TRACE);
+				if (sender is this) return;
+				if (!cast(Summary)owner) return;
+				foreach (card; cards) { mixin(S_TRACE);
+					if (card.linkId == c.id) { mixin(S_TRACE);
+						refresh(card);
+					}
+				}
+				sort();
+			}
 		}
 	}
 	void showCardLife() { mixin(S_TRACE);
@@ -2676,7 +2709,7 @@ public:
 			static if (is(typeof(c.linkId))) {
 				if (0 != c.linkId) { mixin(S_TRACE);
 					static if (EditMode) {
-						auto c2 = card(c.linkId);
+						auto c2 = cardFrom(_summ, c.linkId);
 						if (c2) { mixin(S_TRACE);
 							_comm.openCWXPath(c2.cwxPath(true), false);
 							static if (is(C:SkillCard)) {

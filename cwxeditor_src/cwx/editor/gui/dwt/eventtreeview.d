@@ -1461,11 +1461,11 @@ private:
 				_comm.refCast.remove(&__refreshCast);
 				_comm.delCast.remove(&__refreshCast);
 				_comm.refSkill.remove(&__refreshSkill);
-				_comm.delSkill.remove(&__refreshSkill);
+				_comm.delSkill.remove(&delSkill);
 				_comm.refItem.remove(&__refreshItem);
-				_comm.delItem.remove(&__refreshItem);
+				_comm.delItem.remove(&delItem);
 				_comm.refBeast.remove(&__refreshBeast);
-				_comm.delBeast.remove(&__refreshBeast);
+				_comm.delBeast.remove(&delBeast);
 				_comm.refInfo.remove(&__refreshInfo);
 				_comm.delInfo.remove(&__refreshInfo);
 				_comm.refArea.remove(&__refreshArea);
@@ -1776,11 +1776,11 @@ public:
 			_comm.refCast.add(&__refreshCast);
 			_comm.delCast.add(&__refreshCast);
 			_comm.refSkill.add(&__refreshSkill);
-			_comm.delSkill.add(&__refreshSkill);
+			_comm.delSkill.add(&delSkill);
 			_comm.refItem.add(&__refreshItem);
-			_comm.delItem.add(&__refreshItem);
+			_comm.delItem.add(&delItem);
 			_comm.refBeast.add(&__refreshBeast);
-			_comm.delBeast.add(&__refreshBeast);
+			_comm.delBeast.add(&delBeast);
 			_comm.refInfo.add(&__refreshInfo);
 			_comm.delInfo.add(&__refreshInfo);
 			_comm.refArea.add(&__refreshArea);
@@ -3486,6 +3486,9 @@ public:
 	private void __refreshSkill(SkillCard c) {__refreshCard();}
 	private void __refreshItem(ItemCard c) {__refreshCard();}
 	private void __refreshBeast(BeastCard c) {__refreshCard();}
+	private void delSkill(CWXPath owner, SkillCard c) {__refreshCard();}
+	private void delItem(CWXPath owner, ItemCard c) {__refreshCard();}
+	private void delBeast(CWXPath owner, BeastCard c) {__refreshCard();}
 	private void __refreshInfo(InfoCard c) {__refreshCard();}
 	private void __refreshArea(Area c) {__refreshCard();}
 	private void __refreshPackage(Package c) {__refreshCard();}

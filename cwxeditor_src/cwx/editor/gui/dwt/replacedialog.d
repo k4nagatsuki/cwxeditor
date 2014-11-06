@@ -1344,13 +1344,13 @@ private:
 	void delCast(CastCard a) { mixin(S_TRACE);
 		refFunc!true(a);
 	}
-	void delSkill(SkillCard a) { mixin(S_TRACE);
+	void delSkill(CWXPath owner, SkillCard a) { mixin(S_TRACE);
 		refFunc!true(a);
 	}
-	void delItem(ItemCard a) { mixin(S_TRACE);
+	void delItem(CWXPath owner, ItemCard a) { mixin(S_TRACE);
 		refFunc!true(a);
 	}
-	void delBeast(BeastCard a) { mixin(S_TRACE);
+	void delBeast(CWXPath owner, BeastCard a) { mixin(S_TRACE);
 		refFunc!true(a);
 	}
 	void delInfo(InfoCard a) { mixin(S_TRACE);
