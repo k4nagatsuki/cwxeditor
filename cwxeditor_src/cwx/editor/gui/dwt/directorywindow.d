@@ -633,13 +633,13 @@ private:
 			}
 			if (!toparP) return;
 			string topar = .isDir(toparP) ? toparP : dirName(toparP);
-			if (__paste(topar, files, true, fromOut)) { mixin(S_TRACE);
+			if (pasteImpl(topar, files, true, fromOut)) { mixin(S_TRACE);
 				e.detail = fromOut ? DND.DROP_COPY : DND.DROP_NONE;
 				clearCut();
 			}
 		}
 	}
-	bool __paste(string targ, FileNames files, bool move, out bool fromOut) { mixin(S_TRACE);
+	bool pasteImpl(string targ, FileNames files, bool move, out bool fromOut) { mixin(S_TRACE);
 		if (files && files.array.length > 0) { mixin(S_TRACE);
 			pauseTrace();
 			scope (exit) resumeTrace();
@@ -986,7 +986,7 @@ private:
 			refreshDirs(selDirPath);
 		}
 	}
-	void __refPaths(Object sender, string parent) { mixin(S_TRACE);
+	void refPaths(Object sender, string parent) { mixin(S_TRACE);
 		if (sender !is this) { mixin(S_TRACE);
 			refreshDirs(selDirPath);
 			if (selDirPath && cfnmatch(toRelPath(selDirPath), parent)) { mixin(S_TRACE);
@@ -995,7 +995,7 @@ private:
 		}
 	}
 
-	void __refreshUseCount() { mixin(S_TRACE);
+	void refreshUseCount() { mixin(S_TRACE);
 		foreach (itm; _files.getItems()) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
 				auto file = cast(FileNameObj) itm.getData();
@@ -1008,7 +1008,7 @@ private:
 			}
 		}
 	}
-	void __refreshTitle() { mixin(S_TRACE);
+	void refreshTitle() { mixin(S_TRACE);
 		_comm.setTitle(_win, title);
 	}
 	void updateJpy1List() { mixin(S_TRACE);
@@ -1039,7 +1039,7 @@ private:
 			}
 		}
 	}
-	void __delPaths(Object sender) { mixin(S_TRACE);
+	void delPaths(Object sender) { mixin(S_TRACE);
 		if (sender !is this) { mixin(S_TRACE);
 			refreshDirs(selDirPath);
 			refreshFiles(selFiles);
@@ -1131,7 +1131,7 @@ private:
 			}
 		}
 	}
-	void __replace(string sel) { mixin(S_TRACE);
+	void replaceImpl(string sel) { mixin(S_TRACE);
 		if (!_summ || !_win || _win.isDisposed()) return;
 		_comm.replacePath(sel, true);
 	}
@@ -1173,12 +1173,12 @@ private:
 	}
 	class DListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			_comm.refScenarioName.remove(&__refreshTitle);
-			_comm.refScenarioPath.remove(&__refreshTitle);
-			_comm.refUseCount.remove(&__refreshUseCount);
-			_comm.refPaths.remove(&__refPaths);
-			_comm.delPaths.remove(&__delPaths);
-			_comm.replText.remove(&__refreshTitle);
+			_comm.refScenarioName.remove(&refreshTitle);
+			_comm.refScenarioPath.remove(&refreshTitle);
+			_comm.refUseCount.remove(&refreshUseCount);
+			_comm.refPaths.remove(&refPaths);
+			_comm.delPaths.remove(&delPaths);
+			_comm.replText.remove(&refreshTitle);
 			_comm.refIgnorePaths.remove(&refresh);
 			_sImgFolder.dispose();
 			_sImgCards.dispose();
@@ -1526,12 +1526,12 @@ public:
 		}
 		_win.setData(new TLPData(this));
 		contPane.setLayout(windowGridLayout(1, true));
-		_comm.refScenarioName.add(&__refreshTitle);
-		_comm.refScenarioPath.add(&__refreshTitle);
-		_comm.refUseCount.add(&__refreshUseCount);
-		_comm.refPaths.add(&__refPaths);
-		_comm.delPaths.add(&__delPaths);
-		_comm.replText.add(&__refreshTitle);
+		_comm.refScenarioName.add(&refreshTitle);
+		_comm.refScenarioPath.add(&refreshTitle);
+		_comm.refUseCount.add(&refreshUseCount);
+		_comm.refPaths.add(&refPaths);
+		_comm.delPaths.add(&delPaths);
+		_comm.replText.add(&refreshTitle);
 		_comm.refIgnorePaths.add(&refresh);
 		_sImgFolder = skeletonImage(_prop.images.folder);
 		_sImgCards = skeletonImage(_prop.images.cards);
@@ -1838,9 +1838,9 @@ public:
 	void replace() { mixin(S_TRACE);
 		if (!_summ) return;
 		if (_files.getSelectionIndex() >= 0) { mixin(S_TRACE);
-			__replace((cast(FileNameObj) _files.getItem(_files.getSelectionIndex()).getData()).relPath);
+			replaceImpl((cast(FileNameObj) _files.getItem(_files.getSelectionIndex()).getData()).relPath);
 		} else { mixin(S_TRACE);
-			__replace(null);
+			replaceImpl(null);
 		}
 	}
 
@@ -1893,7 +1893,7 @@ public:
 				refreshFiles(null);
 			}
 			_dirs.showSelection();
-			__refreshTitle();
+			refreshTitle();
 			_comm.refreshToolBar();
 		}
 	}
@@ -2133,7 +2133,7 @@ public:
 			if (!sels.length) return;
 			if (!sels[0].getParentItem()) return;
 		}
-		if (__copy()) { mixin(S_TRACE);
+		if (copy2()) { mixin(S_TRACE);
 			if (_lastFocus is _dirs) { mixin(S_TRACE);
 				auto sels = _dirs.getSelection();
 				if (!sels.length) return;
@@ -2164,7 +2164,7 @@ public:
 	}
 	override void copy(SelectionEvent se) { mixin(S_TRACE);
 		if (!canDoTCPD) return;
-		__copy();
+		copy2();
 	}
 	private string[] copyImpl() { mixin(S_TRACE);
 		if (_lastFocus is _dirs) { mixin(S_TRACE);
@@ -2186,7 +2186,7 @@ public:
 		}
 		return [];
 	}
-	private bool __copy() { mixin(S_TRACE);
+	private bool copy2() { mixin(S_TRACE);
 		clearCut();
 		auto arr = copyImpl();
 		if (arr.length) { mixin(S_TRACE);
@@ -2208,7 +2208,7 @@ public:
 		if (!canDoTCPD) return;
 		if (!array.length) return;
 		bool fromOut;
-		if (__paste(selDirPath, new FileNames(array), false, fromOut)) { mixin(S_TRACE);
+		if (pasteImpl(selDirPath, new FileNames(array), false, fromOut)) { mixin(S_TRACE);
 			clearCut();
 			if (_summ.useTemp) _summ.changed();
 			.forceFocus(_files, false);

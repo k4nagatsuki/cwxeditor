@@ -223,24 +223,24 @@ private:
 	}
 
 	class EditL : MouseAdapter, KeyListener {
-		private void __edit() { mixin(S_TRACE);
+		private void edit() { mixin(S_TRACE);
 			if (_readOnly) return;
 			edit();
 		}
 		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
 			if (e.character == SWT.CR) { mixin(S_TRACE);
-				__edit();
+				edit();
 			}
 		}
 		override void keyReleased(KeyEvent e) {}
 		override void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
 			if (e.button == 1 && !_tree.control.getCursor()) { mixin(S_TRACE);
-				__edit();
+				edit();
 			}
 		}
 		override void mouseUp(MouseEvent e) { mixin(S_TRACE);
 			if (e.button == 1 && _clickStart) { mixin(S_TRACE);
-				__edit();
+				edit();
 			}
 		}
 	}
@@ -1458,33 +1458,33 @@ private:
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			if (!_readOnly) { mixin(S_TRACE);
 				_comm.refSkin.remove(&refSkin);
-				_comm.refCast.remove(&__refreshCast);
-				_comm.delCast.remove(&__refreshCast);
-				_comm.refSkill.remove(&__refreshSkill);
+				_comm.refCast.remove(&refreshCast);
+				_comm.delCast.remove(&refreshCast);
+				_comm.refSkill.remove(&refreshSkill);
 				_comm.delSkill.remove(&delSkill);
-				_comm.refItem.remove(&__refreshItem);
+				_comm.refItem.remove(&refreshItem);
 				_comm.delItem.remove(&delItem);
-				_comm.refBeast.remove(&__refreshBeast);
+				_comm.refBeast.remove(&refreshBeast);
 				_comm.delBeast.remove(&delBeast);
-				_comm.refInfo.remove(&__refreshInfo);
-				_comm.delInfo.remove(&__refreshInfo);
-				_comm.refArea.remove(&__refreshArea);
-				_comm.delArea.remove(&__refreshArea);
-				_comm.refBattle.remove(&__refreshBattle);
-				_comm.delBattle.remove(&__refreshBattle);
-				_comm.refPackage.remove(&__refreshPackage);
-				_comm.delPackage.remove(&__refreshPackage);
-				_comm.refFlagAndStep.remove(&__refreshFlagAndStep);
-				_comm.delFlagAndStep.remove(&__refreshFlagAndStep);
-				_comm.refPath.remove(&__refreshPath);
-				_comm.refPaths.remove(&__refreshPaths);
-				_comm.delPaths.remove(&__deletePaths);
-				_comm.replPath.remove(&__replacePaths);
-				_comm.replText.remove(&__refreshCard);
-				_comm.replText.remove(&__refreshEventText);
-				_comm.replID.remove(&__refreshCard);
+				_comm.refInfo.remove(&refreshInfo);
+				_comm.delInfo.remove(&refreshInfo);
+				_comm.refArea.remove(&refreshArea);
+				_comm.delArea.remove(&refreshArea);
+				_comm.refBattle.remove(&refreshBattle);
+				_comm.delBattle.remove(&refreshBattle);
+				_comm.refPackage.remove(&refreshPackage);
+				_comm.delPackage.remove(&refreshPackage);
+				_comm.refFlagAndStep.remove(&refreshFlagAndStep);
+				_comm.delFlagAndStep.remove(&refreshFlagAndStep);
+				_comm.refPath.remove(&refreshPath);
+				_comm.refPaths.remove(&refreshPaths);
+				_comm.delPaths.remove(&deletePaths);
+				_comm.replPath.remove(&replacePaths);
+				_comm.replText.remove(&refreshCard);
+				_comm.replText.remove(&refreshEventText);
+				_comm.replID.remove(&refreshCard);
 				_comm.refContentText.remove(&refreshStatusLine);
-				_comm.refPreviewValues.remove(&__refreshEventText);
+				_comm.refPreviewValues.remove(&refreshEventText);
 				_comm.selContentTool.remove(&selContentTool);
 				_comm.refEventTemplates.remove(&refreshTemplates);
 			}
@@ -1773,33 +1773,33 @@ public:
 			_cbarPar = new Composite(_comp, SWT.NONE);
 
 			_comm.refSkin.add(&refSkin);
-			_comm.refCast.add(&__refreshCast);
-			_comm.delCast.add(&__refreshCast);
-			_comm.refSkill.add(&__refreshSkill);
+			_comm.refCast.add(&refreshCast);
+			_comm.delCast.add(&refreshCast);
+			_comm.refSkill.add(&refreshSkill);
 			_comm.delSkill.add(&delSkill);
-			_comm.refItem.add(&__refreshItem);
+			_comm.refItem.add(&refreshItem);
 			_comm.delItem.add(&delItem);
-			_comm.refBeast.add(&__refreshBeast);
+			_comm.refBeast.add(&refreshBeast);
 			_comm.delBeast.add(&delBeast);
-			_comm.refInfo.add(&__refreshInfo);
-			_comm.delInfo.add(&__refreshInfo);
-			_comm.refArea.add(&__refreshArea);
-			_comm.delArea.add(&__refreshArea);
-			_comm.refBattle.add(&__refreshBattle);
-			_comm.delBattle.add(&__refreshBattle);
-			_comm.refPackage.add(&__refreshPackage);
-			_comm.delPackage.add(&__refreshPackage);
-			_comm.refFlagAndStep.add(&__refreshFlagAndStep);
-			_comm.delFlagAndStep.add(&__refreshFlagAndStep);
-			_comm.refPath.add(&__refreshPath);
-			_comm.refPaths.add(&__refreshPaths);
-			_comm.delPaths.add(&__deletePaths);
-			_comm.replPath.add(&__replacePaths);
-			_comm.replText.add(&__refreshCard);
-			_comm.replText.add(&__refreshEventText);
-			_comm.replID.add(&__refreshCard);
+			_comm.refInfo.add(&refreshInfo);
+			_comm.delInfo.add(&refreshInfo);
+			_comm.refArea.add(&refreshArea);
+			_comm.delArea.add(&refreshArea);
+			_comm.refBattle.add(&refreshBattle);
+			_comm.delBattle.add(&refreshBattle);
+			_comm.refPackage.add(&refreshPackage);
+			_comm.delPackage.add(&refreshPackage);
+			_comm.refFlagAndStep.add(&refreshFlagAndStep);
+			_comm.delFlagAndStep.add(&refreshFlagAndStep);
+			_comm.refPath.add(&refreshPath);
+			_comm.refPaths.add(&refreshPaths);
+			_comm.delPaths.add(&deletePaths);
+			_comm.replPath.add(&replacePaths);
+			_comm.replText.add(&refreshCard);
+			_comm.replText.add(&refreshEventText);
+			_comm.replID.add(&refreshCard);
 			_comm.refContentText.add(&refreshStatusLine);
-			_comm.refPreviewValues.add(&__refreshEventText);
+			_comm.refPreviewValues.add(&refreshEventText);
 			_comm.selContentTool.add(&selContentTool);
 			_comm.refEventTemplates.add(&refreshTemplates);
 		}
@@ -3427,17 +3427,17 @@ public:
 			}
 		}
 	}
-	private void __refreshCardImpl(Item evt) { mixin(S_TRACE);
+	private void refreshCardImpl(Item evt) { mixin(S_TRACE);
 		foreach (childItm; _tree.getItems(evt)) { mixin(S_TRACE);
 			auto child = cast(Content) childItm.getData();
 			childItm.setText(eventText(cast(Content) evt.getData(), child));
 			if (child.detail.owner) { mixin(S_TRACE);
-				__refreshCardImpl(childItm);
+				refreshCardImpl(childItm);
 			}
 			procTreeItem(childItm);
 		}
 	}
-	private void __refreshCard() { mixin(S_TRACE);
+	private void refreshCard() { mixin(S_TRACE);
 		if (_tree.control.isDisposed()) return;
 		if (_et) { mixin(S_TRACE);
 			if (_tree.editor) { mixin(S_TRACE);
@@ -3445,26 +3445,26 @@ public:
 				return;
 			}
 			foreach (itm; _tree.getItems()) { mixin(S_TRACE);
-				__refreshCardImpl(itm);
+				refreshCardImpl(itm);
 			}
 			refreshStatusLine();
 		}
 	}
-	private void __refreshEventTextImpl(Content par, Item itm) in { mixin(S_TRACE);
+	private void refreshEventTextImpl(Content par, Item itm) in { mixin(S_TRACE);
 		assert (par.detail.owner);
 	} body { mixin(S_TRACE);
 		auto e = cast(Content) itm.getData();
 		itm.setText(eventText(par, e));
 		if (e.detail.owner) { mixin(S_TRACE);
 			foreach (child; _tree.getItems(itm)) { mixin(S_TRACE);
-				__refreshEventTextImpl(e, child);
+				refreshEventTextImpl(e, child);
 			}
 		} else { mixin(S_TRACE);
 			assert (!_tree.getItems(itm).length);
 		}
 		procTreeItem(itm);
 	}
-	private void __refreshEventText() { mixin(S_TRACE);
+	private void refreshEventText() { mixin(S_TRACE);
 		if (_et) { mixin(S_TRACE);
 			if (_tree.editor) { mixin(S_TRACE);
 				_tree.editor.updateEventTree();
@@ -3475,36 +3475,36 @@ public:
 				assert (start.type == CType.START);
 				itm.setText(start.name);
 				foreach (child; _tree.getItems(itm)) { mixin(S_TRACE);
-					__refreshEventTextImpl(start, child);
+					refreshEventTextImpl(start, child);
 				}
 			}
 			refreshStatusLine();
 		}
 	}
-	private void refSkin() {__refreshCard();}
-	private void __refreshCast(CastCard c) {__refreshCard();}
-	private void __refreshSkill(SkillCard c) {__refreshCard();}
-	private void __refreshItem(ItemCard c) {__refreshCard();}
-	private void __refreshBeast(BeastCard c) {__refreshCard();}
-	private void delSkill(CWXPath owner, SkillCard c) {__refreshCard();}
-	private void delItem(CWXPath owner, ItemCard c) {__refreshCard();}
-	private void delBeast(CWXPath owner, BeastCard c) {__refreshCard();}
-	private void __refreshInfo(InfoCard c) {__refreshCard();}
-	private void __refreshArea(Area c) {__refreshCard();}
-	private void __refreshPackage(Package c) {__refreshCard();}
-	private void __refreshBattle(Battle c) {__refreshCard();}
-	private void __refreshFlagAndStep(Flag[] flags, Step[] steps) { mixin(S_TRACE);
+	private void refSkin() {refreshCard();}
+	private void refreshCast(CastCard c) {refreshCard();}
+	private void refreshSkill(SkillCard c) {refreshCard();}
+	private void refreshItem(ItemCard c) {refreshCard();}
+	private void refreshBeast(BeastCard c) {refreshCard();}
+	private void delSkill(CWXPath owner, SkillCard c) {refreshCard();}
+	private void delItem(CWXPath owner, ItemCard c) {refreshCard();}
+	private void delBeast(CWXPath owner, BeastCard c) {refreshCard();}
+	private void refreshInfo(InfoCard c) {refreshCard();}
+	private void refreshArea(Area c) {refreshCard();}
+	private void refreshPackage(Package c) {refreshCard();}
+	private void refreshBattle(Battle c) {refreshCard();}
+	private void refreshFlagAndStep(Flag[] flags, Step[] steps) { mixin(S_TRACE);
 		if (flags.length || steps.length) { mixin(S_TRACE);
-			__refreshCard();
+			refreshCard();
 			if (_summ ? _prop.var.etc.showVariableValuesInEventText : showVariableValuesInEventText) { mixin(S_TRACE);
-				__refreshEventText();
+				refreshEventText();
 			}
 		}
 	}
-	private void __refreshPath(string from, string to, bool isDir) {refreshStatusLine();}
-	private void __refreshPaths(string path) {refreshStatusLine();}
-	private void __deletePaths() {refreshStatusLine();}
-	private void __replacePaths(string from, string to) {refreshStatusLine();}
+	private void refreshPath(string from, string to, bool isDir) {refreshStatusLine();}
+	private void refreshPaths(string path) {refreshStatusLine();}
+	private void deletePaths() {refreshStatusLine();}
+	private void replacePaths(string from, string to) {refreshStatusLine();}
 
 	private bool _straightEventTreeView = false;
 	private bool _showVariableValuesInEventText = false;
@@ -3536,7 +3536,7 @@ public:
 	@property
 	void showVariableValuesInEventText(bool v) { mixin(S_TRACE);
 		_showVariableValuesInEventText = v;
-		__refreshEventText();
+		refreshEventText();
 	}
 	/// ditto
 	@property

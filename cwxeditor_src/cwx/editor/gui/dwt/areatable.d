@@ -1319,7 +1319,7 @@ private:
 		}
 		return -1;
 	}
-	void __refreshUseCount() { mixin(S_TRACE);
+	void refreshUseCount() { mixin(S_TRACE);
 		foreach (itm; _areas.getItems()) { mixin(S_TRACE);
 			auto element = itm.getData();
 			if (cast(Area) element) { mixin(S_TRACE);
@@ -1414,7 +1414,7 @@ private:
 				_comm.refArea.remove(&refArea);
 				_comm.refBattle.remove(&refBattle);
 				_comm.refPackage.remove(&refPackage);
-				_comm.refUseCount.remove(&__refreshUseCount);
+				_comm.refUseCount.remove(&refreshUseCount);
 				_comm.replText.remove(&replText);
 				_comm.replText.remove(&refresh);
 				_comm.refScenario.remove(&refScenario);
@@ -1822,7 +1822,7 @@ public:
 			_comm.refArea.add(&refArea);
 			_comm.refBattle.add(&refBattle);
 			_comm.refPackage.add(&refPackage);
-			_comm.refUseCount.add(&__refreshUseCount);
+			_comm.refUseCount.add(&refreshUseCount);
 			_comm.replText.add(&replText);
 			_comm.replText.add(&refresh);
 			_comm.refScenario.add(&refScenario);

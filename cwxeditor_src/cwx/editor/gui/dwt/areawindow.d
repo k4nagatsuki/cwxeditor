@@ -101,17 +101,17 @@ private:
 			_aview.down();
 		}
 	}
-	void __deleteArea(A area) { mixin(S_TRACE);
+	void deleteArea(A area) { mixin(S_TRACE);
 		if (_area is area) { mixin(S_TRACE);
 			_comm.close(_win);
 		}
 	}
-	void __refArea(A area) { mixin(S_TRACE);
+	void refArea(A area) { mixin(S_TRACE);
 		if (_area is area) { mixin(S_TRACE);
-			__refreshTitle();
+			refreshTitle();
 		}
 	}
-	void __refreshTitle() { mixin(S_TRACE);
+	void refreshTitle() { mixin(S_TRACE);
 		_comm.setTitle(_win, title);
 	}
 	static if (WithEventView) {
@@ -140,18 +140,18 @@ private:
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			saveWin();
 			static if (is (A == Area)) {
-				_comm.delArea.remove(&__deleteArea);
-				_comm.refArea.remove(&__refArea);
+				_comm.delArea.remove(&deleteArea);
+				_comm.refArea.remove(&refArea);
 			} else static if (is (A == Battle)) {
-				_comm.delBattle.remove(&__deleteArea);
-				_comm.refBattle.remove(&__refArea);
+				_comm.delBattle.remove(&deleteArea);
+				_comm.refBattle.remove(&refArea);
 			} else static if (is (A == Package)) {
-				_comm.delPackage.remove(&__deleteArea);
-				_comm.refPackage.remove(&__refArea);
+				_comm.delPackage.remove(&deleteArea);
+				_comm.refPackage.remove(&refArea);
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
-			_comm.replText.remove(&__refreshTitle);
+			_comm.replText.remove(&refreshTitle);
 			_comm.refUndoMax.remove(&refUndoMax);
 		}
 	}
@@ -179,18 +179,18 @@ public:
 		}
 		_win.setData(new TLPData(this));
 		static if (is (A == Area)) {
-			_comm.delArea.add(&__deleteArea);
-			_comm.refArea.add(&__refArea);
+			_comm.delArea.add(&deleteArea);
+			_comm.refArea.add(&refArea);
 		} else static if (is (A == Battle)) {
-			_comm.delBattle.add(&__deleteArea);
-			_comm.refBattle.add(&__refArea);
+			_comm.delBattle.add(&deleteArea);
+			_comm.refBattle.add(&refArea);
 		} else static if (is (A == Package)) {
-			_comm.delPackage.add(&__deleteArea);
-			_comm.refPackage.add(&__refArea);
+			_comm.delPackage.add(&deleteArea);
+			_comm.refPackage.add(&refArea);
 		} else { mixin(S_TRACE);
 			static assert (0);
 		}
-		_comm.replText.add(&__refreshTitle);
+		_comm.replText.add(&refreshTitle);
 		_comm.refUndoMax.add(&refUndoMax);
 		_win.addDisposeListener(new Dispose);
 		contPane.setLayout(windowGridLayout(1, true));
@@ -233,7 +233,7 @@ public:
 			_eview = new EventView!(A, C, true)(comm, prop, summ, area, _tabf, _undo, _readOnly != SWT.NONE);
 			_tabE.setControl(_eview);
 		}
-		__refreshTitle();
+		refreshTitle();
 
 		if (shell) { mixin(S_TRACE);
 			auto bar = new Menu(shell, SWT.BAR);

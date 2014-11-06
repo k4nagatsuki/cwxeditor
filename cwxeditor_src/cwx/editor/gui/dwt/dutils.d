@@ -1195,21 +1195,21 @@ TreeItem topItem(TreeItem itm) { mixin(S_TRACE);
 	return itm;
 }
 int treeItemUp(TreeItem itm) { mixin(S_TRACE);
-	return __treeItemUD!("i > 0", "i - 1")(itm);
+	return treeItemUD!("i > 0", "i - 1")(itm);
 }
 int treeItemDown(TreeItem itm) { mixin(S_TRACE);
-	return __treeItemUD!("i + 1 < parent.getItemCount()", "i + 2")(itm);
+	return treeItemUD!("i + 1 < parent.getItemCount()", "i + 2")(itm);
 }
-private int __treeItemUD(string SwapOK, string ToIndex)(TreeItem itm) { mixin(S_TRACE);
+private int treeItemUD(string SwapOK, string ToIndex)(TreeItem itm) { mixin(S_TRACE);
 	auto tree = itm.getParent();
 	auto p = itm.getParentItem();
 	if (p is null) { mixin(S_TRACE);
-		return __treeItemUD2!(Tree, SwapOK, ToIndex)(tree, itm);
+		return treeItemUD2!(Tree, SwapOK, ToIndex)(tree, itm);
 	} else { mixin(S_TRACE);
-		return __treeItemUD2!(TreeItem, SwapOK, ToIndex)(p, itm);
+		return treeItemUD2!(TreeItem, SwapOK, ToIndex)(p, itm);
 	}
 }
-private int __treeItemUD2(T, string SwapOK, string ToIndex)(T parent, TreeItem itm) { mixin(S_TRACE);
+private int treeItemUD2(T, string SwapOK, string ToIndex)(T parent, TreeItem itm) { mixin(S_TRACE);
 	int i = parent.indexOf(itm);
 	auto tree = itm.getParent();
 	if (mixin (SwapOK)) { mixin(S_TRACE);

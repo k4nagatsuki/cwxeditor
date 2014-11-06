@@ -806,7 +806,7 @@ package class UndoMove : FTVUndo {
 		_cFlags = cFlags;
 		_cSteps = cSteps;
 		if (v && v.flags && !v.flags.isDisposed()) { mixin(S_TRACE);
-			v.__refreshUseCount();
+			v.refreshUseCount();
 		}
 	}
 	override void undo() { mixin(S_TRACE);
@@ -1188,7 +1188,7 @@ private:
 	}
 	class DListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			_comm.refUseCount.remove(&__refreshUseCount);
+			_comm.refUseCount.remove(&refreshUseCount);
 			_comm.replText.remove(&refresh);
 		}
 	}
@@ -1483,7 +1483,7 @@ public:
 		ds.setTransfer([XMLBytesTransfer.getInstance()]);
 		ds.addDragListener(new FlagDragListener);
 
-		_comm.refUseCount.add(&__refreshUseCount);
+		_comm.refUseCount.add(&refreshUseCount);
 		_comm.replText.add(&refresh);
 		flags.addSelectionListener(new SListener);
 		flags.addDisposeListener(new DListener);
@@ -1535,7 +1535,7 @@ public:
 	@property
 	string statusLine() {return _statusLine;}
 
-	private void __refreshUseCount() { mixin(S_TRACE);
+	private void refreshUseCount() { mixin(S_TRACE);
 		foreach (itm; flags.getItems()) { mixin(S_TRACE);
 			if (cast(Flag) itm.getData()) { mixin(S_TRACE);
 				itm.setText(2, to!(string)(uc.flag.get(toFlagId((cast(Flag) itm.getData()).path))));

@@ -97,7 +97,7 @@ class RadarSpinner : Composite {
 						foreach (dlg; modEvent) dlg();
 						redraw();
 					} else { mixin(S_TRACE);
-						__cursor_check(e.x, e.y);
+						checkCursor(e.x, e.y);
 					}
 				}
 			});
@@ -105,14 +105,14 @@ class RadarSpinner : Composite {
 				override void handleEvent(Event e) { mixin(S_TRACE);
 					if (e.button == 1) { mixin(S_TRACE);
 						_onDrag = -1;
-						__cursor_check(e.x, e.y);
+						checkCursor(e.x, e.y);
 					}
 				}
 			});
 			addListener(SWT.MouseDown, new class Listener {
 				override void handleEvent(Event e) { mixin(S_TRACE);
 					if (e.button == 1) { mixin(S_TRACE);
-						_onDrag = __cursor_get(e.x, e.y);
+						_onDrag = cursorFromPos(e.x, e.y);
 						if (_onDrag >= 0) { mixin(S_TRACE);
 							(cast(Spinner) _spns[_onDrag]).setFocus();
 						}
@@ -123,12 +123,12 @@ class RadarSpinner : Composite {
 		addListener(SWT.Resize, new class Listener {
 			override void handleEvent(Event e) { mixin(S_TRACE);
 				_mod = true;
-				__resize();
+				resizeImpl();
 			}
 		});
 		addListener(SWT.Paint, new class Listener {
 			override void handleEvent(Event e) { mixin(S_TRACE);
-				__resize();
+				resizeImpl();
 				scope size = getClientArea();
 				if (size.width == 0 || size.height == 0) return;
 				auto gc = e.gc;
@@ -318,7 +318,7 @@ class RadarSpinner : Composite {
 			_lbls[i] = lbl;
 			_spns[i] = spn;
 		}
-		__calcMaxSize();
+		calcMaxSize();
 
 		_tgls.length = _param_c;
 		foreach (ref ts; _tgls) { mixin(S_TRACE);
@@ -332,9 +332,9 @@ class RadarSpinner : Composite {
 		oval = !_oval;
 
 		_mod = true;
-		__resize();
+		resizeImpl();
 	}
-	private bool __cursor_check(int x, int y) { mixin(S_TRACE);
+	private bool checkCursor(int x, int y) { mixin(S_TRACE);
 		assert (!_readOnly);
 		foreach (i, tgls; _tgls) { mixin(S_TRACE);
 			auto tgl = tgls[getValue(i) - _min];
@@ -350,7 +350,7 @@ class RadarSpinner : Composite {
 		return false;
 	}
 	/// カーソルの位置にあるトグルを取得。被る場合はより近い方を優先する。
-	private int __cursor_get(int x, int y) { mixin(S_TRACE);
+	private int cursorFromPos(int x, int y) { mixin(S_TRACE);
 		assert (!_readOnly);
 		int minDist = int.max;
 		int index = -1;
@@ -389,7 +389,7 @@ class RadarSpinner : Composite {
 		assert (figure(-123, 1, 10) == 4);
 		assert (figure(-5555, 2, 10) == 6);
 	}
-	private void __calcMaxSize() { mixin(S_TRACE);
+	private void calcMaxSize() { mixin(S_TRACE);
 		_maxSize = new Point(0, 0);
 		int max = _step_c - 1 + _min;
 		bool ml = figure(_min) > figure(max);
@@ -422,7 +422,7 @@ class RadarSpinner : Composite {
 	}
 	private static immutable MAX_GAP = 1.5;
 	private static immutable MAX_GAP_3H = 0.8;
-	private void __resize() { mixin(S_TRACE);
+	private void resizeImpl() { mixin(S_TRACE);
 		if (!_mod) return;
 		_mod = false;
 		scope client = getClientArea();
@@ -735,7 +735,7 @@ class RadarSpinner : Composite {
 		if (_side != sideMode) { mixin(S_TRACE);
 			_side = sideMode;
 			_mod = true;
-			__resize();
+			resizeImpl();
 		}
 	}
 	/// 配置モード。
@@ -764,7 +764,7 @@ class RadarSpinner : Composite {
 				}
 			}
 			_mod = true;
-			__resize();
+			resizeImpl();
 		}
 	}
 	/// 表示形式。
@@ -886,7 +886,7 @@ class RadarSpinner : Composite {
 			_ovalW = width;
 			_ovalH = height;
 			_mod = true;
-			__resize();
+			resizeImpl();
 		}
 	}
 	/// 円のサイズ。
@@ -960,9 +960,9 @@ class RadarSpinner : Composite {
 				foreach (lbl; _lbls) { mixin(S_TRACE);
 					lbl.setFont(font);
 				}
-				__calcMaxSize();
+				calcMaxSize();
 				_mod = true;
-				__resize();
+				resizeImpl();
 			}
 		}
 		void setForeground(Color color) { mixin(S_TRACE);

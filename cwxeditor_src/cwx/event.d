@@ -2763,7 +2763,7 @@ public:
 		return r.starts.length > 0 ? r : null;
 	}
 
-	private static string __fireToXML(string name, string att = null, string value = null) { mixin(S_TRACE);
+	private static string fireToXML(string name, string att = null, string value = null) { mixin(S_TRACE);
 		auto e = XNode.create(name);
 		if (att && value) { mixin(S_TRACE);
 			e.newAttr(att, value);
@@ -2771,25 +2771,25 @@ public:
 		return e.text;
 	}
 	/// 「到着時発火」をXMLテキスト化する。
-	static string enterToXML() {return __fireToXML("FireEnter");}
+	static string enterToXML() {return fireToXML("FireEnter");}
 	/// 「逃走時発火」をXMLテキスト化する。
-	static string escapeToXML() {return __fireToXML("FireEscape");}
+	static string escapeToXML() {return fireToXML("FireEscape");}
 	/// 「敗北時発火」をXMLテキスト化する。
-	static string loseToXML() {return __fireToXML("FireLose");}
+	static string loseToXML() {return fireToXML("FireLose");}
 	/// 「毎ラウンド発火」をXMLテキスト化する。
-	static string everyRoundToXML() {return __fireToXML("FireEveryRound");}
+	static string everyRoundToXML() {return fireToXML("FireEveryRound");}
 	/// 「戦闘開始時発火」をXMLテキスト化する。
-	static string round0ToXML() {return __fireToXML("FireRound0");}
+	static string round0ToXML() {return fireToXML("FireRound0");}
 	/// 「発火ラウンド」をXMLテキスト化する。
 	static string roundToXML(uint round) { mixin(S_TRACE);
-		return __fireToXML("FireRound", "round", to!(string)(round));
+		return fireToXML("FireRound", "round", to!(string)(round));
 	}
 	/// 「発火キーコード」をXMLテキスト化する。
 	static string keyCodeToXML(FKeyCode keyCode, in System sys) { mixin(S_TRACE);
 		string str = sys.convFireKeyCode(keyCode.keyCode, keyCode.kind);
-		return __fireToXML("FireKeyCode", "keyCode", str);
+		return fireToXML("FireKeyCode", "keyCode", str);
 	}
-	private static bool __fireFromXML(string xml, string name, void delegate(bool) fire) { mixin(S_TRACE);
+	private static bool fireFromXML(string xml, string name, void delegate(bool) fire) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			auto node = XNode.parse(xml);
 			if (node.name == name) { mixin(S_TRACE);
@@ -2804,23 +2804,23 @@ public:
 	}
 	/// 「到着時発火」をXMLテキストからロードし、成功すればtrueを返す。
 	bool enterFromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
-		return owner.canHasFireEnter && __fireFromXML(xml, "FireEnter", &enter);
+		return owner.canHasFireEnter && fireFromXML(xml, "FireEnter", &enter);
 	}
 	/// 「逃走時発火」をXMLテキストからロードし、成功すればtrueを返す。
 	bool escapeFromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
-		return owner.canHasFireEscape && __fireFromXML(xml, "FireEscape", &escape);
+		return owner.canHasFireEscape && fireFromXML(xml, "FireEscape", &escape);
 	}
 	/// 「敗北時発火」をXMLテキストからロードし、成功すればtrueを返す。
 	bool loseFromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
-		return owner.canHasFireLose && __fireFromXML(xml, "FireLose", &lose);
+		return owner.canHasFireLose && fireFromXML(xml, "FireLose", &lose);
 	}
 	/// 「毎ラウンド発火」をXMLテキストからロードし、成功すればtrueを返す。
 	bool everyRoundFromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
-		return owner.canHasFireEveryRound && __fireFromXML(xml, "FireEveryRound", &lose);
+		return owner.canHasFireEveryRound && fireFromXML(xml, "FireEveryRound", &lose);
 	}
 	/// 「戦闘開始時発火」をXMLテキストからロードし、成功すればtrueを返す。
 	bool round0FromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
-		return owner.canHasFireRound0 && __fireFromXML(xml, "FireRound0", &lose);
+		return owner.canHasFireRound0 && fireFromXML(xml, "FireRound0", &lose);
 	}
 	/// 「発火ラウンド」をXMLテキストからロードし、成功すればtrueを返す。
 	int roundFromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);

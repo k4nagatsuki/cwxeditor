@@ -1267,12 +1267,12 @@ string[] clistdir(string dir) { mixin(S_TRACE);
 /// force = trueを指定した場合、途中でエラーが発生しても中断しない。
 void delAll(string delpath, bool force = true) { mixin(S_TRACE);
 	if (!.exists(delpath)) return;
-	void __delAll(string delpath, ref Exception ee) { mixin(S_TRACE);
+	void delAllImpl(string delpath, ref Exception ee) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			preRemove(delpath);
 			if (isDir(delpath)) { mixin(S_TRACE);
 				foreach (file; clistdir(delpath)) { mixin(S_TRACE);
-					__delAll(std.path.buildPath(delpath, file), ee);
+					delAllImpl(std.path.buildPath(delpath, file), ee);
 				}
 				rmdir(delpath);
 			} else { mixin(S_TRACE);
@@ -1286,7 +1286,7 @@ void delAll(string delpath, bool force = true) { mixin(S_TRACE);
 		}
 	}
 	Exception e = null;
-	__delAll(delpath, e);
+	delAllImpl(delpath, e);
 	if (force && e) throw e;
 }
 

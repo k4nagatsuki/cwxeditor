@@ -180,7 +180,7 @@ void textUseItems(in string text,
 	assert(fonts.sort == ["font_a.bmp", "font_Z.bmp", "font_1.bmp", "font_2.bmp", "font_3.bmp", "font_;.bmp", "font_表.bmp"].sort, .text(fonts));
 }
 
-private void __replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring dold, dstring dnew, dchar targC) { mixin(S_TRACE);
+private void replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring dold, dstring dnew, dchar targC) { mixin(S_TRACE);
 	int next = .countUntil(dtext[i + 1 .. $], targC);
 	if (next >= 0) { mixin(S_TRACE);
 		next = i + 1 + next;
@@ -197,7 +197,7 @@ private void __replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring 
 		buf ~= dtext[i];
 	}
 }
-private void __replOff(ref dstring dtext, ref dstring buf, ref size_t i, dchar targC) { mixin(S_TRACE);
+private void replOff(ref dstring dtext, ref dstring buf, ref size_t i, dchar targC) { mixin(S_TRACE);
 	int next = .countUntil(dtext[i + 1 .. $], targC);
 	if (next >= 0) { mixin(S_TRACE);
 		next = i + 1 + next;
@@ -210,7 +210,7 @@ private void __replOff(ref dstring dtext, ref dstring buf, ref size_t i, dchar t
 		buf ~= dtext[i];
 	}
 }
-private string __replTextFlagStep(char Ch1, char Ch2)
+private string replTextFlagStep(char Ch1, char Ch2)
 		(string text, string oldFlag, string newFlag) { mixin(S_TRACE);
 	dstring dtext = toUTF32(text);
 	dstring dold = toUTF32(oldFlag);
@@ -227,10 +227,10 @@ private string __replTextFlagStep(char Ch1, char Ch2)
 			}
 			break;
 		case Ch1:
-			__replOn(dtext, buf, i, dold, dnew, Ch1);
+			replOn(dtext, buf, i, dold, dnew, Ch1);
 			break;
 		case Ch2:
-			__replOff(dtext, buf, i, Ch2);
+			replOff(dtext, buf, i, Ch2);
 			break;
 		default:
 			buf ~= c;
@@ -245,7 +245,7 @@ private string __replTextFlagStep(char Ch1, char Ch2)
 /// oldFlag = 置換前のフラグパス。
 /// newFlag = 置換後のフラグパス。
 string replTextUseFlag(string text, string oldFlag, string newFlag) { mixin(S_TRACE);
-	return __replTextFlagStep!('%', '$')(text, oldFlag, newFlag);
+	return replTextFlagStep!('%', '$')(text, oldFlag, newFlag);
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert(replTextUseFlag("「%置 換 前%」", "置 換 前", "置 換 後") == "「%置 換 後%」");
@@ -258,7 +258,7 @@ string replTextUseFlag(string text, string oldFlag, string newFlag) { mixin(S_TR
 /// oldStep = 置換前のステップパス。
 /// newStep = 置換後のステップパス。
 string replTextUseStep(string text, string oldStep, string newStep) { mixin(S_TRACE);
-	return __replTextFlagStep!('$', '%')(text, oldStep, newStep);
+	return replTextFlagStep!('$', '%')(text, oldStep, newStep);
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert(replTextUseStep("「$置 換 前$」", "置 換 前", "置 換 後") == "「$置 換 後$」");
@@ -300,10 +300,10 @@ in { mixin(S_TRACE);
 			}
 			break;
 		case '%':
-			__replOff(dtext, buf, i, '%');
+			replOff(dtext, buf, i, '%');
 			break;
 		case '$':
-			__replOff(dtext, buf, i, '$');
+			replOff(dtext, buf, i, '$');
 			break;
 		default:
 			buf ~= c;

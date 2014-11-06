@@ -184,7 +184,7 @@ private:
 		}
 	}
 
-	void __refresh() { mixin(S_TRACE);
+	void refreshM() { mixin(S_TRACE);
 		foreach (f; _pane) { mixin(S_TRACE);
 			f.refresh();
 		}
@@ -257,12 +257,12 @@ public:
 				}
 			}
 			static if (is (CardOwner == CastCard) && is (PCardOwner == Summary)) {
-				_comm.refCast.add(&__refOwner);
-				_comm.delCast.add(&__delOwner);
+				_comm.refCast.add(&refOwner);
+				_comm.delCast.add(&delOwner);
 				_win.addDisposeListener(new class DisposeListener {
 					override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-						_comm.refCast.remove(&__refOwner);
-						_comm.delCast.remove(&__delOwner);
+						_comm.refCast.remove(&refOwner);
+						_comm.delCast.remove(&delOwner);
 					}
 				});
 			}
@@ -315,10 +315,10 @@ public:
 			_toc = toc;
 			construct1(comm, prop, parent);
 			static if (is (CardOwner == CastCard)) {
-				_comm.closeAdds.add(&__closeAdds);
+				_comm.closeAdds.add(&closeAdds);
 				_win.addDisposeListener(new class DisposeListener {
 					override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-						_comm.closeAdds.remove(&__closeAdds);
+						_comm.closeAdds.remove(&closeAdds);
 					}
 				});
 			}
@@ -378,7 +378,7 @@ public:
 
 				auto mv = createMenu(_comm, bar, MenuID.View);
 				static if (EditMode) {
-					createMenuItem(_comm, mv, MenuID.Refresh, &__refresh, () => _summ !is null);
+					createMenuItem(_comm, mv, MenuID.Refresh, &refreshM, () => _summ !is null);
 					new MenuItem(mv, SWT.SEPARATOR);
 				}
 				_lifeM = createMenuItem(_comm, mv, MenuID.ShowCardProp, &showCardLife, null, SWT.RADIO);
@@ -409,7 +409,7 @@ public:
 					}
 				}
 				static if (EditMode) {
-					createToolItem(_comm, bar, MenuID.Refresh, &__refresh, () => _summ !is null);
+					createToolItem(_comm, bar, MenuID.Refresh, &refreshM, () => _summ !is null);
 					new ToolItem(bar, SWT.SEPARATOR);
 					createToolItem(_comm, bar, MenuID.Up, &up, &canUp);
 					createToolItem(_comm, bar, MenuID.Down, &down, &canDown);
@@ -438,7 +438,7 @@ public:
 			}
 			static if (EditMode) {
 				appendMenuTCPD(_comm, this, this, true, true, true, true, true);
-				putMenuAction(MenuID.Refresh, &__refresh, () => _summ !is null);
+				putMenuAction(MenuID.Refresh, &refreshM, () => _summ !is null);
 				static if (is (CardOwner == Summary)) {
 					putMenuAction(MenuID.OpenImportSource, &addScenario, () => _summ !is null);
 				}
@@ -864,7 +864,7 @@ public:
 		}
 	}
 	static if (!EditMode && is(CardOwner == CastCard)) {
-		private void __closeAdds(Summary importable) { mixin(S_TRACE);
+		private void closeAdds(Summary importable) { mixin(S_TRACE);
 			if (_summ is importable) { mixin(S_TRACE);
 				_comm.close(_win);
 			}
@@ -885,13 +885,13 @@ public:
 		return _summ;
 	}
 	static if (EditMode && is (CardOwner == CastCard) && is (PCardOwner == Summary)) {
-		private void __refOwner(CastCard c) { mixin(S_TRACE);
+		private void refOwner(CastCard c) { mixin(S_TRACE);
 			if (_owner is c) { mixin(S_TRACE);
-				__refresh();
+				refreshM();
 				refreshTitle();
 			}
 		}
-		private void __delOwner(CastCard c) { mixin(S_TRACE);
+		private void delOwner(CastCard c) { mixin(S_TRACE);
 			if (_owner is c) { mixin(S_TRACE);
 				_comm.close(_win);
 			}

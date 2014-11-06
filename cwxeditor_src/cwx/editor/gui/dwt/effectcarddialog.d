@@ -178,7 +178,7 @@ private:
 
 	class OASelect : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			__refreshEnblOneAll();
+			refreshEnblOneAll();
 		}
 	}
 	class SelEffectType : SelectionAdapter {
@@ -929,7 +929,7 @@ protected:
 			_targ[_card.target].setSelection(true);
 			_one.setSelection(!_card.allRange);
 			_all.setSelection(_card.allRange);
-			__refreshEnblOneAll();
+			refreshEnblOneAll();
 			_vis[_card.visual].setSelection(true);
 			_prem[_card.premium].setSelection(true);
 			_sucRate.setSelection(_card.successRate + Content.successRate_max);
@@ -974,7 +974,7 @@ protected:
 			}
 			_targ[CardTarget.NONE].setSelection(true);
 			_one.setSelection(true);
-			__refreshEnblOneAll();
+			refreshEnblOneAll();
 			_vis[CardVisual.NONE].setSelection(true);
 			_prem[Premium.NORMAL].setSelection(true);
 			_sucRate.setSelection(Content.successRate_max);
@@ -987,7 +987,7 @@ protected:
 			calcPrice(_useCount.getSelection());
 		}
 	}
-	private void __refreshEnblOneAll() { mixin(S_TRACE);
+	private void refreshEnblOneAll() { mixin(S_TRACE);
 		_oneAllGrp.setEnabled(_targ[CardTarget.PARTY].getSelection()
 			|| _targ[CardTarget.ENEMY].getSelection()
 			|| _targ[CardTarget.BOTH].getSelection());

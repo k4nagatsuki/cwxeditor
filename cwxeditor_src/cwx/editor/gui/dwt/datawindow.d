@@ -116,17 +116,17 @@ public:
 		static if (UseArea) {
 			_comm.refTableViewStyle.add(&refTableViewStyle);
 		}
-		_comm.refScenarioName.add(&__refreshTitle);
-		_comm.refScenarioPath.add(&__refreshTitle);
-		_comm.replText.add(&__refreshTitle);
+		_comm.refScenarioName.add(&refreshTitle);
+		_comm.refScenarioPath.add(&refreshTitle);
+		_comm.replText.add(&refreshTitle);
 		_win.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				static if (UseArea) {
 					_comm.refTableViewStyle.remove(&refTableViewStyle);
 				}
-				_comm.refScenarioName.remove(&__refreshTitle);
-				_comm.refScenarioPath.remove(&__refreshTitle);
-				_comm.replText.remove(&__refreshTitle);
+				_comm.refScenarioName.remove(&refreshTitle);
+				_comm.refScenarioPath.remove(&refreshTitle);
+				_comm.replText.remove(&refreshTitle);
 			}
 		});
 		{ mixin(S_TRACE);
@@ -281,10 +281,10 @@ public:
 				});
 			}
 		}
-		_comm.refScenarioName.add(&__refreshTitle);
+		_comm.refScenarioName.add(&refreshTitle);
 		_win.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-				_comm.refScenarioName.remove(&__refreshTitle);
+				_comm.refScenarioName.remove(&refreshTitle);
 			}
 		});
 	}
@@ -509,12 +509,12 @@ public:
 	override
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
 
-	private void __refreshTitle() { mixin(S_TRACE);
+	private void refreshTitle() { mixin(S_TRACE);
 		if (!_win || _win.isDisposed()) return;
 		_comm.setTitle(_win, title);
 	}
 	private void refresh() { mixin(S_TRACE);
-		__refreshTitle();
+		refreshTitle();
 		static if (UseArea) {
 			_areas.summary = _summ;
 			static if (UseFlag) {

@@ -123,7 +123,7 @@ private:
 	public C card(ulong id) { mixin(S_TRACE);
 		return cardFrom(_owner, id);
 	}
-	private C __card(ulong id) { mixin(S_TRACE);
+	private C localCard(ulong id) { mixin(S_TRACE);
 		if (_owner) { mixin(S_TRACE);
 			return card(id);
 		}
@@ -773,8 +773,8 @@ private:
 			return true;
 		}
 	}
-	void __refreshR(string from, string to) { mixin(S_TRACE);
-		__refresh();
+	void refreshR(string from, string to) { mixin(S_TRACE);
+		refreshImpl();
 	}
 	void refresh(C c) { mixin(S_TRACE);
 		if (!_tbl || _tbl.isDisposed()) return;
@@ -804,7 +804,7 @@ private:
 		}
 		refreshStatusLine();
 	}
-	void __refresh() { mixin(S_TRACE);
+	void refreshImpl() { mixin(S_TRACE);
 		closePreview();
 		auto cards = cardsNarrow;
 		sort(cards);
@@ -1124,7 +1124,7 @@ private:
 						node.onTag[C.XML_NAME] = (ref XNode cNode) { mixin(S_TRACE);
 							auto id = Card.readId(cNode);
 							if (id == 0UL) return;
-							adds ~= this.outer.__card(id);
+							adds ~= this.outer.localCard(id);
 							e.detail = DND.DROP_NONE;
 						};
 						node.parse();
@@ -1355,7 +1355,7 @@ private:
 		}
 	}
 
-	void __refList() { mixin(S_TRACE);
+	void refList() { mixin(S_TRACE);
 		auto sels = _tbl.getSelectionIndices();
 		int index = _tbl.getSelectionIndex();
 		refresh();
@@ -1367,7 +1367,7 @@ private:
 		}
 		refreshStatusLine();
 	}
-	void __refTbl() { mixin(S_TRACE);
+	void refTbl() { mixin(S_TRACE);
 		auto sels = _list.selectionIndices;
 		refresh();
 		if (sels.length > 0) { mixin(S_TRACE);
@@ -1648,7 +1648,7 @@ private:
 		_sortProc = true;
 		scope (exit) _sortProc = false;
 		if (_viewMode != CViewMode.TABLE) { mixin(S_TRACE);
-			__refresh();
+			refreshImpl();
 		}
 		auto columnVal = columnVal(_tbl.getSortColumn());
 		int column = columnToInt(columnVal);
@@ -1760,7 +1760,7 @@ private:
 		}
 		void updateCardListParams() { mixin(S_TRACE);
 			updateCardListParamsImpl();
-			__refresh();
+			refreshImpl();
 		}
 		updateCardListParamsImpl();
 		_list.addSelectionListener(new SelChanged);
@@ -1896,7 +1896,7 @@ private:
 			dropT.addDropListener(new CTDTListener);
 		}
 
-		__refList();
+		refList();
 	}
 	static if (EditMode) {
 		void refScenario(Summary summ) { mixin(S_TRACE);
@@ -2020,7 +2020,7 @@ public:
 	static if (EditMode && is(C:EventTreeOwner)) {
 		void refEventTree(EventTree et) { mixin(S_TRACE);
 			if (cast(C) et.owner || et.owner is null) { mixin(S_TRACE);
-				__refresh();
+				refreshImpl();
 			}
 		}
 	}
@@ -2029,9 +2029,9 @@ public:
 		_style = style;
 		_parent = parent;
 		createCardList(parent);
-		_comm.refCardImageStatus.add(&__refresh);
+		_comm.refCardImageStatus.add(&refreshImpl);
 		.listener(_list, SWT.Dispose, { mixin(S_TRACE);
-			_comm.refCardImageStatus.remove(&__refresh);
+			_comm.refCardImageStatus.remove(&refreshImpl);
 		});
 		static if (EditMode && is(C:EventTreeOwner)) {
 			_comm.refEventTree.add(&refEventTree);
@@ -2042,16 +2042,16 @@ public:
 			});
 		}
 		static if (EditMode && is(PCardOwner == Summary)) {
-			_comm.refSkin.add(&__refresh);
-			_comm.delPaths.add(&__refresh);
-			_comm.replPath.add(&__refreshR);
-			_comm.replText.add(&__refresh);
+			_comm.refSkin.add(&refreshImpl);
+			_comm.delPaths.add(&refreshImpl);
+			_comm.replPath.add(&refreshR);
+			_comm.replText.add(&refreshImpl);
 			_list.addDisposeListener(new class DisposeListener {
 				override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-					_comm.refSkin.remove(&__refresh);
-					_comm.delPaths.remove(&__refresh);
-					_comm.replPath.remove(&__refreshR);
-					_comm.replText.remove(&__refresh);
+					_comm.refSkin.remove(&refreshImpl);
+					_comm.delPaths.remove(&refreshImpl);
+					_comm.replPath.remove(&refreshR);
+					_comm.replText.remove(&refreshImpl);
 				}
 			});
 		}
@@ -2216,7 +2216,7 @@ public:
 	void refresh() { mixin(S_TRACE);
 		if (!_tbl || _tbl.isDisposed()) return;
 		if (_owner) { mixin(S_TRACE);
-			__refresh();
+			refreshImpl();
 		}
 		refreshStatusLine();
 	}
@@ -2251,14 +2251,14 @@ public:
 	private void showCardListImpl(CViewMode mode) { mixin(S_TRACE);
 		if (_viewMode != mode) { mixin(S_TRACE);
 			_viewMode = mode;
-			__refList();
+			refList();
 			updateLayout();
 		}
 	}
 	void showCardTable() { mixin(S_TRACE);
 		if (_viewMode != CViewMode.TABLE) { mixin(S_TRACE);
 			_viewMode = CViewMode.TABLE;
-			__refTbl();
+			refTbl();
 			updateLayout();
 		}
 	}
@@ -2470,7 +2470,7 @@ public:
 			} else { mixin(S_TRACE);
 				node.onTag[C.XML_NAME] = (ref XNode cNode) { mixin(S_TRACE);
 					auto card = C.createFromNode(cNode, ver);
-					if (cNode.attr("paneId", false) != _id || __card(card.id)) { mixin(S_TRACE);
+					if (cNode.attr("paneId", false) != _id || localCard(card.id)) { mixin(S_TRACE);
 						adds ~= card;
 					} else { mixin(S_TRACE);
 						static if (is (CardOwner == Summary)) inPane = true;

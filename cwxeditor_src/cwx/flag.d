@@ -755,7 +755,7 @@ public:
 		return canAppendSub(ndir.name);
 	}
 
-	private bool __add(F)(ref F[] arr, F item, bool delegate(in F) canAppend) { mixin(S_TRACE);
+	private bool addImpl(F)(ref F[] arr, F item, bool delegate(in F) canAppend) { mixin(S_TRACE);
 		if (canAppend(item) || item.parent is this) { mixin(S_TRACE);
 			if (item.parent is this && arr[$ - 1] is item) return true;
 			if (item.parent !is null) { mixin(S_TRACE);
@@ -771,15 +771,15 @@ public:
 	}
 	/// フラグ・ステップ・サブディレクトリを追加する。
 	bool add(Flag flag) { mixin(S_TRACE);
-		return __add!(Flag)(_flags, flag, &canAppendFlag);
+		return addImpl!(Flag)(_flags, flag, &canAppendFlag);
 	}
 	/// ditto
 	bool add(Step step) { mixin(S_TRACE);
-		return __add!(Step)(_steps, step, &canAppendStep);
+		return addImpl!(Step)(_steps, step, &canAppendStep);
 	}
 	/// ditto
 	bool add(FlagDir sub) { mixin(S_TRACE);
-		if (__add!(FlagDir)(_subdir, sub, &canAppendSub2)) { mixin(S_TRACE);
+		if (addImpl!(FlagDir)(_subdir, sub, &canAppendSub2)) { mixin(S_TRACE);
 			sub.sorterImpl = _sorter;
 			return true;
 		}
@@ -801,7 +801,7 @@ public:
 		}
 		return false;
 	}
-	private bool __remove(T)(ref T[] arr, T e) { mixin(S_TRACE);
+	private bool removeImpl(T)(ref T[] arr, T e) { mixin(S_TRACE);
 		for (int i = 0; i < arr.length; i++) { mixin(S_TRACE);
 			if (icmp(e.name, arr[i].name) == 0) { mixin(S_TRACE);
 				e.parent = null;
@@ -815,15 +815,15 @@ public:
 	}
 	/// フラグ・ステップ・サブディレクトリを除去する。
 	void remove(Flag flag) { mixin(S_TRACE);
-		__remove(_flags, flag);
+		removeImpl(_flags, flag);
 	}
 	/// ditto
 	void remove(Step step) { mixin(S_TRACE);
-		__remove(_steps, step);
+		removeImpl(_steps, step);
 	}
 	/// ditto
 	void remove(FlagDir dir) { mixin(S_TRACE);
-		if (__remove(_subdir, dir)) { mixin(S_TRACE);
+		if (removeImpl(_subdir, dir)) { mixin(S_TRACE);
 			dir.sorterImpl = null;
 		}
 	}
@@ -894,7 +894,7 @@ public:
 		std.algorithm.swap(_subdir[index1], _subdir[index2]);
 	}
 
-	private static F __get(F)(F[] arr, string name) { mixin(S_TRACE);
+	private static F getImpl(F)(F[] arr, string name) { mixin(S_TRACE);
 		foreach (f; arr) { mixin(S_TRACE);
 			if (icmp(f.name, name) == 0) { mixin(S_TRACE);
 				return f;
@@ -905,30 +905,30 @@ public:
 	/// フラグ・ステップ・サブディレクトリを名前で検索して取得する。
 	/// 存在しない場合はnullを返す。
 	Flag getFlag(string name) { mixin(S_TRACE);
-		return __get!(Flag)(_flags, name);
+		return getImpl!(Flag)(_flags, name);
 	}
 	/// ditto
 	const
 	const(Flag) getFlag(string name) { mixin(S_TRACE);
-		return __get!(const Flag)(_flags, name);
+		return getImpl!(const Flag)(_flags, name);
 	}
 	/// ditto
 	Step getStep(string name) { mixin(S_TRACE);
-		return __get!(Step)(_steps, name);
+		return getImpl!(Step)(_steps, name);
 	}
 	/// ditto
 	const
 	const(Step) getStep(string name) { mixin(S_TRACE);
-		return __get!(const Step)(_steps, name);
+		return getImpl!(const Step)(_steps, name);
 	}
 	/// ditto
 	FlagDir getSubDir(string name) { mixin(S_TRACE);
-		return __get!(FlagDir)(_subdir, name);
+		return getImpl!(FlagDir)(_subdir, name);
 	}
 	/// ditto
 	const
 	const(FlagDir) getSubDir(string name) { mixin(S_TRACE);
-		return __get!(const FlagDir)(_subdir, name);
+		return getImpl!(const FlagDir)(_subdir, name);
 	}
 
 	/// このディレクトリとサブディレクトリの中にある
@@ -1227,7 +1227,7 @@ public:
 		ON_DIR,
 	}
 
-	private static bool __loadFS(string Fs, string Fg, F)
+	private static bool loadFS(string Fs, string Fg, F)
 			(ref XNode node, FlagDir p, out F[string] c, string delegate(string, string) createNewName, bool copy, in XMLInfo ver) { mixin(S_TRACE);
 		bool ret = true;
 		node.onTag[Fs] = (ref XNode node) { mixin(S_TRACE);
@@ -1253,12 +1253,12 @@ public:
 	private bool loadFlagAndSteps
 			(ref XNode node, out Flag[string] cFlags, out Step[string] cSteps, bool copy, in XMLInfo ver) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
-			if (!__loadFS!("Flags", "Flag", Flag)(node, this, cFlags, &createNewFlagName, copy, ver)) { mixin(S_TRACE);
+			if (!loadFS!("Flags", "Flag", Flag)(node, this, cFlags, &createNewFlagName, copy, ver)) { mixin(S_TRACE);
 				.removeAll(cFlags);
 				.removeAll(cSteps);
 				return false;
 			}
-			if (!__loadFS!("Steps", "Step", Step)(node, this, cSteps, &createNewStepName, copy, ver)) { mixin(S_TRACE);
+			if (!loadFS!("Steps", "Step", Step)(node, this, cSteps, &createNewStepName, copy, ver)) { mixin(S_TRACE);
 				.removeAll(cFlags);
 				.removeAll(cSteps);
 				return false;
@@ -1548,7 +1548,7 @@ public:
 			if (paths.length == 0) { mixin(S_TRACE);
 				return root;
 			}
-			return root.__findPath(paths[0 .. $ - 1], create);
+			return root.findPathSub(paths[0 .. $ - 1], create);
 		}
 	}
 	const
@@ -1561,10 +1561,10 @@ public:
 			if (paths.length == 0) { mixin(S_TRACE);
 				return root;
 			}
-			return root.__findPath(paths[0 .. $ - 1]);
+			return root.findPathSub(paths[0 .. $ - 1]);
 		}
 	}
-	private FlagDir __findPath(string[] paths, bool create) { mixin(S_TRACE);
+	private FlagDir findPathSub(string[] paths, bool create) { mixin(S_TRACE);
 		auto sub = getSubDir(paths[0]);
 		if (sub is null) { mixin(S_TRACE);
 			if (create) { mixin(S_TRACE);
@@ -1581,11 +1581,11 @@ public:
 		if (paths.length == 1) { mixin(S_TRACE);
 			return sub;
 		} else { mixin(S_TRACE);
-			return sub.__findPath(paths[1 .. $], create);
+			return sub.findPathSub(paths[1 .. $], create);
 		}
 	}
 	const
-	private const(FlagDir) __findPath(string[] paths) { mixin(S_TRACE);
+	private const(FlagDir) findPathSub(string[] paths) { mixin(S_TRACE);
 		auto sub = getSubDir(paths[0]);
 		if (sub is null) { mixin(S_TRACE);
 			return null;
@@ -1593,7 +1593,7 @@ public:
 		if (paths.length == 1) { mixin(S_TRACE);
 			return sub;
 		} else { mixin(S_TRACE);
-			return sub.__findPath(paths[1 .. $]);
+			return sub.findPathSub(paths[1 .. $]);
 		}
 	}
 	/// 指定されたパスのフラグを探して返す。
@@ -1665,16 +1665,16 @@ public:
 	static FlagDir fromXmlNode(ref XNode node, CWXPath owner, void delegate() change, in XMLInfo ver) { mixin(S_TRACE);
 		auto root = new FlagDir(owner);
 		node.onTag["Flags"] = (ref XNode node) { mixin(S_TRACE);
-			__fromXmlNode!(Flag)(node, root, "Flag", &Flag.createFromNode, ver);
+			fromXmlNodeImpl!(Flag)(node, root, "Flag", &Flag.createFromNode, ver);
 		};
 		node.onTag["Steps"] = (ref XNode node) { mixin(S_TRACE);
-			__fromXmlNode!(Step)(node, root, "Step", &Step.createFromNode, ver);
+			fromXmlNodeImpl!(Step)(node, root, "Step", &Step.createFromNode, ver);
 		};
 		node.parse();
 		root.changeHandler = change;
 		return root;
 	}
-	private static void __fromXmlNode(E)(ref XNode node,
+	private static void fromXmlNodeImpl(E)(ref XNode node,
 			FlagDir root, string es, E function(ref XNode, in XMLInfo) pfunc, in XMLInfo ver) { mixin(S_TRACE);
 		node.onTag[es] = (ref XNode e) { mixin(S_TRACE);
 			string path = e.childText("Name", false);

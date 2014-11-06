@@ -1442,7 +1442,7 @@ public:
 		}
 	}
 	private class BeastTCPD : TCPD {
-		private bool __copy() { mixin(S_TRACE);
+		private bool copyImpl() { mixin(S_TRACE);
 			auto m = selection;
 			if (m) { mixin(S_TRACE);
 				assert (m.detail.use(MArg.BEAST));
@@ -1460,12 +1460,12 @@ public:
 			return false;
 		}
 		override void cut(SelectionEvent se) { mixin(S_TRACE);
-			if (__copy()) { mixin(S_TRACE);
+			if (copyImpl()) { mixin(S_TRACE);
 				del(se);
 			}
 		}
 		override void copy(SelectionEvent se) { mixin(S_TRACE);
-			__copy();
+			copyImpl();
 		}
 		override void paste(SelectionEvent se) { mixin(S_TRACE);
 			auto xml = CBtoXML(_comm.clipboard);

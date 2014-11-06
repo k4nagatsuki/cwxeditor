@@ -50,7 +50,7 @@ public:
 				scope gc = new GC(img);
 				gc.setBackground(getBackground());
 				gc.fillRectangle(area);
-				__repaint(gc);
+				repaint(gc);
 				e.gc.drawImage(img, 0, 0);
 				gc.dispose();
 				img.dispose();
@@ -58,7 +58,7 @@ public:
 		});
 		addListener(SWT.Resize, new class Listener {
 			public override void handleEvent(Event e) { mixin(S_TRACE);
-				__resize();
+				resize();
 			}
 		});
 		addListener(SWT.Traverse, new class Listener {
@@ -261,7 +261,7 @@ public:
 				if (_oldMoveIndex != index) { mixin(S_TRACE);
 					_oldMoveIndex = index;
 					setDragDetect(index >= 0);
-					__refreshToolTip();
+					refreshToolTip();
 				}
 			}
 		});
@@ -417,7 +417,7 @@ public:
 				select(i);
 			}
 		}
-		__resize();
+		resize();
 		scrollX(ox);
 		scrollY(oy);
 		callSelectChanged();
@@ -587,7 +587,7 @@ public:
 		if (index < 0 || _items.length <= index) return;
 		calcBounds();
 		auto itm = _items[index];
-		void __scroll(ScrollBar bar, int left, int width, void delegate(int) scr,
+		void scrollImpl(ScrollBar bar, int left, int width, void delegate(int) scr,
 				bool delegate(int) isFirst, bool delegate(int) isLast, int margin, int space) { mixin(S_TRACE);
 			if (bar !is null) { mixin(S_TRACE);
 				int scLeft = bar.getSelection();
@@ -615,12 +615,12 @@ public:
 				}
 			}
 		}
-		__scroll(getVerticalBar(), itm.y, itm.height, &scrollY, &isFirstRow, &isLastRow, _marginY, _spaceY);
-		__scroll(getHorizontalBar(), itm.x, itm.width, &scrollX, &isFirstCol, &isLastCol, _marginX, _spaceX);
+		scrollImpl(getVerticalBar(), itm.y, itm.height, &scrollY, &isFirstRow, &isLastRow, _marginY, _spaceY);
+		scrollImpl(getHorizontalBar(), itm.x, itm.width, &scrollX, &isFirstCol, &isLastCol, _marginX, _spaceX);
 	}
 	void setToolTip(string delegate(C) createToolTip) { mixin(S_TRACE);
 		_createToolTip = createToolTip;
-		__refreshToolTip();
+		refreshToolTip();
 	}
 	Item getItem(int index) { mixin(S_TRACE);
 		return _items[index];
@@ -639,7 +639,7 @@ public:
 		return _items[index].titleBounds();
 	}
 private:
-	void __refreshToolTip() { mixin(S_TRACE);
+	void refreshToolTip() { mixin(S_TRACE);
 		if (_createToolTip) { mixin(S_TRACE);
 			if (0 <= _oldMoveIndex && _oldMoveIndex < _items.length) { mixin(S_TRACE);
 				setToolTipText(std.array.replace(_createToolTip(cast(C) _items[_oldMoveIndex].getData()), "&", "&&"));
@@ -696,7 +696,7 @@ private:
 			y += _spaceY;
 		}
 	}
-	void __repaint(GC gc) { mixin(S_TRACE);
+	void repaint(GC gc) { mixin(S_TRACE);
 		if (_items.length == 0) return;
 		auto rect = getClientArea();
 		int w = rect.width;
@@ -759,7 +759,7 @@ private:
 			y += _spaceY;
 		}
 	}
-	void __resize() { mixin(S_TRACE);
+	void resize() { mixin(S_TRACE);
 		auto rect = getClientArea();
 		int prW, prH;
 		if (_items.length == 0) { mixin(S_TRACE);
@@ -792,8 +792,8 @@ private:
 		setupBar(getVerticalBar(), prH, rect.height, &scrollY);
 		setupBar(getHorizontalBar(), prW, rect.width, &scrollX);
 
-		__refreshToolTip();
-		__repaint(null);
+		refreshToolTip();
+		repaint(null);
 		redraw();
 	}
 	void disposeItems() { mixin(S_TRACE);

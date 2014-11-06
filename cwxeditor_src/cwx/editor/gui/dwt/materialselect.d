@@ -77,10 +77,10 @@ public:
 
 		_comm.refSkin.add(&refresh);
 		_comm.refSkin.add(&refreshFileListMenu);
-		_comm.refPaths.add(&__refPaths);
-		_comm.refPath.add(&__refPath);
-		_comm.delPaths.add(&__delPaths);
-		_comm.replPath.add(&__replPath);
+		_comm.refPaths.add(&refPaths);
+		_comm.refPath.add(&refPath);
+		_comm.delPaths.add(&delPaths);
+		_comm.replPath.add(&replPath);
 		_comm.refIgnorePaths.add(&refresh);
 		static if (Type == MtType.BGM) {
 			stopBGMEvent ~= &stopBGM;
@@ -89,10 +89,10 @@ public:
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				_comm.refSkin.remove(&refresh);
 				_comm.refSkin.remove(&refreshFileListMenu);
-				_comm.refPaths.remove(&__refPaths);
-				_comm.refPath.remove(&__refPath);
-				_comm.delPaths.remove(&__delPaths);
-				_comm.replPath.remove(&__replPath);
+				_comm.refPaths.remove(&refPaths);
+				_comm.refPath.remove(&refPath);
+				_comm.delPaths.remove(&delPaths);
+				_comm.replPath.remove(&replPath);
 				_comm.refIgnorePaths.remove(&refresh);
 				static if (Type == MtType.BGM) {
 					cwx.utils.remove(stopBGMEvent, &stopBGM);
@@ -863,11 +863,11 @@ private:
 		}
 		return r;
 	}
-	void __refreshList(string path, bool forceRefresh) { mixin(S_TRACE);
-		__refreshListImpl(targs(path, forceRefresh));
+	void refreshListImpl(string path, bool forceRefresh) { mixin(S_TRACE);
+		refreshListImpl2(targs(path, forceRefresh));
 		_allList = false;
 	}
-	void __refreshList(string[] paths, bool forceRefresh) { mixin(S_TRACE);
+	void refreshListImpl(string[] paths, bool forceRefresh) { mixin(S_TRACE);
 		string[] tgs;
 		foreach (path; paths) { mixin(S_TRACE);
 			string parent;
@@ -884,10 +884,10 @@ private:
 			}
 			tgs ~= s;
 		}
-		__refreshListImpl(tgs);
+		refreshListImpl2(tgs);
 		_allList = true;
 	}
-	void __refreshListImpl(string[] tgs) { mixin(S_TRACE);
+	void refreshListImpl2(string[] tgs) { mixin(S_TRACE);
 		foreach (f; tgs) { mixin(S_TRACE);
 			static if (is(C : Table)) {
 				auto itm = new TableItem(_fileList, SWT.NONE);
@@ -939,7 +939,7 @@ private:
 				_fileList.setEnabled(false);
 			} else { mixin(S_TRACE);
 				_fileList.setEnabled(!_readOnly);
-				__refreshList(dirs, forceRefresh);
+				refreshListImpl(dirs, forceRefresh);
 				static if (is(C : Combo) || is(C : CCombo)) {
 					_fileList.add(_prop.msgs.fileNone, 0);
 					_fileList.select(0);
@@ -949,7 +949,7 @@ private:
 				}
 			}
 		} else if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
-			__refreshList(defDir, forceRefresh);
+			refreshListImpl(defDir, forceRefresh);
 		} else if (_summ) { mixin(S_TRACE);
 			string st;
 			if (_dirs.getText() == "/") { mixin(S_TRACE);
@@ -957,7 +957,7 @@ private:
 			} else { mixin(S_TRACE);
 				st = std.path.buildPath(_summ.scenarioPath, fromViewPath(_dirs.getText()));
 			}
-			__refreshList(st, forceRefresh);
+			refreshListImpl(st, forceRefresh);
 		}
 	}
 	void searchTarg(string dir, size_t cut) { mixin(S_TRACE);
@@ -1041,13 +1041,13 @@ private:
 		refreshList(forceRefresh);
 	}
 
-	void __refPaths(Object sender, string parent) { mixin(S_TRACE);
+	void refPaths(Object sender, string parent) { mixin(S_TRACE);
 		if (this !is sender) { mixin(S_TRACE);
 			refreshPaths();
 		}
 		if (_refresh) _refresh();
 	}
-	void __refPath(string o, string n, bool isDir) { mixin(S_TRACE);
+	void refPath(string o, string n, bool isDir) { mixin(S_TRACE);
 		auto old = _path;
 		scope (exit) {
 			if (old != _path) {
@@ -1087,10 +1087,10 @@ private:
 		}
 		if (_refresh) _refresh();
 	}
-	void __delPaths() { mixin(S_TRACE);
+	void delPaths() { mixin(S_TRACE);
 		refreshPaths();
 	}
-	void __replPath(string from, string to) { mixin(S_TRACE);
+	void replPath(string from, string to) { mixin(S_TRACE);
 		if (_path == from) { mixin(S_TRACE);
 			refreshPaths();
 		}

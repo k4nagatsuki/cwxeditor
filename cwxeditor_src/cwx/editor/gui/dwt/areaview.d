@@ -735,7 +735,7 @@ private:
 				return 0;
 			} else { mixin(S_TRACE);
 				assert(_editC.length == 1);
-				return __cancelSpn!(T, C)(_editC);
+				return cancelSpnImpl!(T, C)(_editC);
 			}
 		}
 		class SCListener : SelectionAdapter {
@@ -841,7 +841,7 @@ private:
 				return 0;
 			} else { mixin(S_TRACE);
 				assert(_editB.length == 1);
-				return __cancelSpn!(T, BgImage)(_editB);
+				return cancelSpnImpl!(T, BgImage)(_editB);
 			}
 		}
 		class SBListener : SelectionAdapter {
@@ -942,9 +942,9 @@ private:
 			}
 		}
 		static if (is(T == C)) {
-			__refreshSelected(_viewCards, _cards, _editC, _area.cards, cardsIndex);
+			refreshSelectedImpl(_viewCards, _cards, _editC, _area.cards, cardsIndex);
 		} else { mixin(S_TRACE);
-			__refreshSelected(_viewBacks, _backs, _editB, _area.backs, 0);
+			refreshSelectedImpl(_viewBacks, _backs, _editB, _area.backs, 0);
 		}
 		refreshControls();
 		_imgp.redraw();
@@ -983,7 +983,7 @@ private:
 			if (v !is this) v.refreshControls();
 		}
 	}
-	int __cancelSpn(string T, B)(int[B] edits) { mixin(S_TRACE);
+	int cancelSpnImpl(string T, B)(int[B] edits) { mixin(S_TRACE);
 		if (_readOnly) return 0;
 		auto a = edits.keys[0];
 		return mixin (T);
@@ -1008,10 +1008,10 @@ private:
 			if (_editC.length + _editB.length > 1) { mixin(S_TRACE);
 				return oldVal;
 			} else if (_editC.length == 1) { mixin(S_TRACE);
-				return __cancelSpn!(T, C)(_editC);
+				return cancelSpnImpl!(T, C)(_editC);
 			} else { mixin(S_TRACE);
 				assert(_editB.length == 1);
-				return __cancelSpn!(T, BgImage)(_editB);
+				return cancelSpnImpl!(T, BgImage)(_editB);
 			}
 		} else static if (UseCards) {
 			return cancelSpnCard!(T)(oldVal);
@@ -1039,7 +1039,7 @@ private:
 		assert(0);
 	}
 
-	int[] __refreshSelected(T)(bool view, Table list, ref int[T] edits, T[] cols, int startIndex) { mixin(S_TRACE);
+	int[] refreshSelectedImpl(T)(bool view, Table list, ref int[T] edits, T[] cols, int startIndex) { mixin(S_TRACE);
 		int[] sels;
 		foreach (key; edits.keys) { mixin(S_TRACE);
 			edits.remove(key);
@@ -1276,7 +1276,7 @@ private:
 		callModEvent();
 	}
 	static if (UseCards) {
-		private void __scaleC(real s) { mixin(S_TRACE);
+		private void scaleC(real s) { mixin(S_TRACE);
 			if (_readOnly) return;
 			int scale = cast(int) rndtol(s * 100);
 			foreach (i, c; _area.cards) { mixin(S_TRACE);
@@ -1292,17 +1292,17 @@ private:
 			_imgp.redraw();
 			callModEvent();
 		}
-		private void __scaleCMax() { mixin(S_TRACE);
+		private void scaleCMax() { mixin(S_TRACE);
 			if (_readOnly) return;
-			__scaleC(_prop.var.etc.cardScaleMax / 100.0);
+			scaleC(_prop.var.etc.cardScaleMax / 100.0);
 		}
-		private void __scaleCMiddle() { mixin(S_TRACE);
+		private void scaleCMiddle() { mixin(S_TRACE);
 			if (_readOnly) return;
-			__scaleC(1.0);
+			scaleC(1.0);
 		}
-		private void __scaleCMin() { mixin(S_TRACE);
+		private void scaleCMin() { mixin(S_TRACE);
 			if (_readOnly) return;
-			__scaleC(_prop.var.etc.cardScaleMin / 100.0);
+			scaleC(_prop.var.etc.cardScaleMin / 100.0);
 		}
 	}
 	void scaleEvenImpl(int First, string Cmp, string CSet, T)(int delegate(AbstractAreaView) startIndex, T[] cs) { mixin(S_TRACE);
@@ -1733,9 +1733,9 @@ private:
 				createMenuItem(_comm, chgPos, MenuID.PosEven, &posEven, &canChangePos);
 				static if (UseCards) {
 					new MenuItem(chgPos, SWT.SEPARATOR);
-					createMenuItem(_comm, chgPos, MenuID.ScaleMin, &__scaleCMin, &canChangePos);
-		 			createMenuItem(_comm, chgPos, MenuID.ScaleMiddle, &__scaleCMiddle, &canChangePos);
-					createMenuItem(_comm, chgPos, MenuID.ScaleMax, &__scaleCMax, &canChangePos);
+					createMenuItem(_comm, chgPos, MenuID.ScaleMin, &scaleCMin, &canChangePos);
+		 			createMenuItem(_comm, chgPos, MenuID.ScaleMiddle, &scaleCMiddle, &canChangePos);
+					createMenuItem(_comm, chgPos, MenuID.ScaleMax, &scaleCMax, &canChangePos);
 				}
 				new MenuItem(chgPos, SWT.SEPARATOR);
 				createMenuItem(_comm, chgPos, MenuID.ScaleBig, &scaleEvenBig, &canChangePos);
@@ -2270,11 +2270,11 @@ private:
 
 	void refreshSelected() { mixin(S_TRACE);
 		static if (UseCards) {
-			int[] selsC = __refreshSelected(_viewCards, _cards, _editC, _area.cards, cardsIndex);
+			int[] selsC = refreshSelectedImpl(_viewCards, _cards, _editC, _area.cards, cardsIndex);
 			_cards.setSelection(selsC);
 		}
 		static if (UseBacks) {
-			int[] selsB = __refreshSelected(_viewBacks, _backs, _editB, _area.backs, 0);
+			int[] selsB = refreshSelectedImpl(_viewBacks, _backs, _editB, _area.backs, 0);
 			_backs.setSelection(selsB);
 		}
 		refreshControls();
@@ -2533,12 +2533,12 @@ public:
 		});
 		static if (is (C == EnemyCard) || RefCards) {
 			if (!_readOnly) {
-				_comm.refCast.add(&__refreshCast);
-				_comm.delCast.add(&__deleteCast);
+				_comm.refCast.add(&refreshCast);
+				_comm.delCast.add(&deleteCast);
 				addDisposeListener(new class DisposeListener {
 					override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-						_comm.refCast.remove(&__refreshCast);
-						_comm.delCast.remove(&__deleteCast);
+						_comm.refCast.remove(&refreshCast);
+						_comm.delCast.remove(&deleteCast);
 					}
 				});
 			}
@@ -4991,7 +4991,7 @@ public:
 	}
 
 	static if (is (C == EnemyCard)) {
-		private void __refreshCast(CastCard castCard) { mixin(S_TRACE);
+		private void refreshCast(CastCard castCard) { mixin(S_TRACE);
 			if (_readOnly) return;
 			auto skin = summSkin;
 			foreach (i, c; area.cards) { mixin(S_TRACE);
@@ -5007,7 +5007,7 @@ public:
 			}
 			imagePane.redraw();
 		}
-		private void __deleteCast(CastCard castCard) { mixin(S_TRACE);
+		private void deleteCast(CastCard castCard) { mixin(S_TRACE);
 			if (_readOnly) return;
 			auto skin = summSkin;
 			foreach (i, c; area.cards) { mixin(S_TRACE);
@@ -5021,10 +5021,10 @@ public:
 			imagePane.redraw();
 		}
 	} else static if (RefCards) {
-		private void __refreshCast(CastCard castCard) { mixin(S_TRACE);
+		private void refreshCast(CastCard castCard) { mixin(S_TRACE);
 			refreshPanel();
 		}
-		private void __deleteCast(CastCard castCard) { mixin(S_TRACE);
+		private void deleteCast(CastCard castCard) { mixin(S_TRACE);
 			refreshPanel();
 		}
 	}

@@ -21,14 +21,6 @@ class TableSorter(DataT) {
 			}
 		});
 	}
-	private int __index() { mixin(S_TRACE);
-		foreach (i, c; _col.getParent().getColumns()) { mixin(S_TRACE);
-			if (c is _col) { mixin(S_TRACE);
-				return i;
-			}
-		}
-		assert (0);
-	}
 	private class RowData {
 		Object data;
 		string[] text;

@@ -1444,7 +1444,7 @@ public:
 			auto itm = _cards.getItems()[index + 1];
 			itm.setText(cardName(cast(C) itm.getData()));
 		}
-		private void __udCard(int[] indices, int function(TreeItem) ud, int udVal, int count) { mixin(S_TRACE);
+		private void udCard(int[] indices, int function(TreeItem) ud, int udVal, int count) { mixin(S_TRACE);
 			foreach (j; 0 .. count) { mixin(S_TRACE);
 				foreach (i; indices) { mixin(S_TRACE);
 					i += udVal * j;
@@ -1460,11 +1460,11 @@ public:
 		}
 		private void upCard(int[] indices, int count) { mixin(S_TRACE);
 			initial();
-			__udCard(indices, &treeItemUp, -1, count);
+			udCard(indices, &treeItemUp, -1, count);
 		}
 		private void downCard(int[] indices, int count) { mixin(S_TRACE);
 			initial();
-			__udCard(indices, &treeItemDown, 1, count);
+			udCard(indices, &treeItemDown, 1, count);
 		}
 	}
 	private bool _initialed = false;

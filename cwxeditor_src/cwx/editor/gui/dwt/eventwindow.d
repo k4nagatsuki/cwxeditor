@@ -87,27 +87,27 @@ public:
 			_comm.closeAdds.add(&closeAdds);
 		} else { mixin(S_TRACE);
 			static if (is (A == Area)) {
-				_comm.delArea.add(&__deleteOwner);
-				_comm.refArea.add(&__refOwner);
+				_comm.delArea.add(&deleteOwner);
+				_comm.refArea.add(&refOwner);
 			} else static if (is (A == Battle)) {
-				_comm.delBattle.add(&__deleteOwner);
-				_comm.refBattle.add(&__refOwner);
+				_comm.delBattle.add(&deleteOwner);
+				_comm.refBattle.add(&refOwner);
 			} else static if (is (A == Package)) {
-				_comm.delPackage.add(&__deleteOwner);
-				_comm.refPackage.add(&__refOwner);
+				_comm.delPackage.add(&deleteOwner);
+				_comm.refPackage.add(&refOwner);
 			} else static if (is (A == SkillCard)) {
-				_comm.delSkill.add(&__deleteOwner2);
-				_comm.refSkill.add(&__refOwner);
+				_comm.delSkill.add(&deleteOwner2);
+				_comm.refSkill.add(&refOwner);
 			} else static if (is (A == ItemCard)) {
-				_comm.delItem.add(&__deleteOwner2);
-				_comm.refItem.add(&__refOwner);
+				_comm.delItem.add(&deleteOwner2);
+				_comm.refItem.add(&refOwner);
 			} else static if (is (A == BeastCard)) {
-				_comm.delBeast.add(&__deleteOwner2);
-				_comm.refBeast.add(&__refOwner);
+				_comm.delBeast.add(&deleteOwner2);
+				_comm.refBeast.add(&refOwner);
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
-			_comm.replText.add(&__refreshTitle);
+			_comm.replText.add(&refreshTitle);
 			_comm.refUndoMax.add(&refUndoMax);
 		}
 		_win.addDisposeListener(new class DisposeListener {
@@ -117,27 +117,27 @@ public:
 					_comm.closeAdds.add(&closeAdds);
 				} else { mixin(S_TRACE);
 					static if (is (A == Area)) {
-						_comm.delArea.remove(&__deleteOwner);
-						_comm.refArea.remove(&__refOwner);
+						_comm.delArea.remove(&deleteOwner);
+						_comm.refArea.remove(&refOwner);
 					} else static if (is (A == Battle)) {
-						_comm.delBattle.remove(&__deleteOwner);
-						_comm.refBattle.remove(&__refOwner);
+						_comm.delBattle.remove(&deleteOwner);
+						_comm.refBattle.remove(&refOwner);
 					} else static if (is (A == Package)) {
-						_comm.delPackage.remove(&__deleteOwner);
-						_comm.refPackage.remove(&__refOwner);
+						_comm.delPackage.remove(&deleteOwner);
+						_comm.refPackage.remove(&refOwner);
 					} else static if (is (A == SkillCard)) {
-						_comm.delSkill.remove(&__deleteOwner2);
-						_comm.refSkill.remove(&__refOwner);
+						_comm.delSkill.remove(&deleteOwner2);
+						_comm.refSkill.remove(&refOwner);
 					} else static if (is (A == ItemCard)) {
-						_comm.delItem.remove(&__deleteOwner2);
-						_comm.refItem.remove(&__refOwner);
+						_comm.delItem.remove(&deleteOwner2);
+						_comm.refItem.remove(&refOwner);
 					} else static if (is (A == BeastCard)) {
-						_comm.delBeast.remove(&__deleteOwner2);
-						_comm.refBeast.remove(&__refOwner);
+						_comm.delBeast.remove(&deleteOwner2);
+						_comm.refBeast.remove(&refOwner);
 					} else { mixin(S_TRACE);
 						static assert (0);
 					}
-					_comm.replText.remove(&__refreshTitle);
+					_comm.replText.remove(&refreshTitle);
 					_comm.refUndoMax.remove(&refUndoMax);
 				}
 			}
@@ -245,7 +245,7 @@ public:
 		});
 
 		_eview.refresh();
-		__refreshTitle();
+		refreshTitle();
 	}
 	private void saveWin() { mixin(S_TRACE);
 		static if (is(A == Area)) {
@@ -296,19 +296,19 @@ public:
 	private void openDup() { mixin(S_TRACE);
 		_eview.openDup();
 	}
-	private void __deleteOwner(A a) { mixin(S_TRACE);
+	private void deleteOwner(A a) { mixin(S_TRACE);
 		if (_eto is a) { mixin(S_TRACE);
 			_comm.close(_win);
 		}
 	}
-	private void __deleteOwner2(CWXPath owner, A a) { mixin(S_TRACE);
+	private void deleteOwner2(CWXPath owner, A a) { mixin(S_TRACE);
 		if (_eto is a) { mixin(S_TRACE);
 			_comm.close(_win);
 		}
 	}
-	private void __refOwner(A a) { mixin(S_TRACE);
+	private void refOwner(A a) { mixin(S_TRACE);
 		if (_eto is a) { mixin(S_TRACE);
-			__refreshTitle();
+			refreshTitle();
 		}
 	}
 	private void closeAdds(Summary summ) { mixin(S_TRACE);
@@ -354,7 +354,7 @@ public:
 	@property
 	override
 	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
-	private void __refreshTitle() { mixin(S_TRACE);
+	private void refreshTitle() { mixin(S_TRACE);
 		_comm.setTitle(_win, title);
 		_eview.refreshTitle();
 	}
