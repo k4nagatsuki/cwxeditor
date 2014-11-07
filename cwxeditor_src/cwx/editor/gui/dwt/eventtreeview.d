@@ -225,7 +225,7 @@ private:
 	class EditL : MouseAdapter, KeyListener {
 		private void edit() { mixin(S_TRACE);
 			if (_readOnly) return;
-			edit();
+			this.outer.edit();
 		}
 		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
 			if (e.character == SWT.CR) { mixin(S_TRACE);
@@ -3624,7 +3624,7 @@ public:
 				_tree.select(child);
 				_tree.showSelection();
 				refreshStatusLine();
-				if (cphasattr(path, "opendialog") || !cpempty(path)) { mixin(S_TRACE);
+				if (cphasattr(path, "opendialog") || (!cpempty(path) && cpcategory(path) != "dialog")) { mixin(S_TRACE);
 					auto d = edit();
 					if (!d) { mixin(S_TRACE);
 						// ダイアログ無し、もしくは開けない状態のコンテント

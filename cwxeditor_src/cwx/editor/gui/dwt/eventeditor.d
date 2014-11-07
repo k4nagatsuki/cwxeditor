@@ -149,6 +149,7 @@ class EventEditor : Composite {
 	private bool _showEventTreeDetail = true;
 
 	private bool _updatePos = true;
+	private bool _showSelection = false;
 
 	this (Commons comm, Composite parent, int style, Summary summ, EventTree et) { mixin(S_TRACE);
 		super (parent, style | SWT.V_SCROLL | SWT.H_SCROLL | SWT.DOUBLE_BUFFERED);
@@ -233,19 +234,25 @@ class EventEditor : Composite {
 	}
 
 	void showSelection() { mixin(S_TRACE);
+		if (_showSelection || _updatePos) { mixin(S_TRACE);
+			_showSelection = true;
+			return;
+		}
+		_showSelection = false;
 		updatePosImpl2();
 		if (!_selected) return;
 		if (_selected.eventId !in _posTable) return;
 		scroll(_posTable[_selected.eventId].y / _lineHeight, _posTable[_selected.eventId].height);
 	}
 	private void scroll(int pos, int height) { mixin(S_TRACE);
+		_showSelection = false;
 		updatePosImpl2();
 		auto vbar = getVerticalBar();
 		int vPos = vbar.getSelection();
 		if (pos < vPos) { mixin(S_TRACE);
 			vbar.setSelection(pos);
-		} else if (vPos + vbar.getThumb() <= pos) { mixin(S_TRACE);
-			vbar.setSelection(pos - vbar.getThumb() + (height / _lineHeight));
+		} else if (vPos + vbar.getThumb() <= pos+1) { mixin(S_TRACE);
+			vbar.setSelection(pos+1 - vbar.getThumb() + (height / _lineHeight));
 		}
 	}
 
@@ -1026,6 +1033,11 @@ class EventEditor : Composite {
 			e.gc.drawString(pos.content.comment, box.x + 5 - sx, box.y + 3 - sy, true);
 		}
 		e.gc.setAntialias(SWT.OFF);
+
+		if (_showSelection) { mixin(S_TRACE);
+			_showSelection = false;
+			showSelection();
+		}
 	}
 
 	private bool _showTerminalMark = false;
