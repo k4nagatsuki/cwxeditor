@@ -188,7 +188,7 @@ private:
 	bool _noEdit = false;
 	void enter() { mixin(S_TRACE);
 		if (_spn.getText().length > 0 && _oldVal != _spn.getSelection()) { mixin(S_TRACE);
-			_enter(_spn.getSelection());
+			if (_enter) _enter(_spn.getSelection());
 		} else { mixin(S_TRACE);
 			_noEdit = true;
 			scope (exit) _noEdit = false;
