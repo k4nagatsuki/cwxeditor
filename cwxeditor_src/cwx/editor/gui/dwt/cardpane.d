@@ -1419,10 +1419,13 @@ public:
 				_comm.refCast.add(&refCardCallback);
 			} else static if (is (C == SkillCard)) {
 				_comm.refSkill.add(&refCardCallback);
+				_comm.delSkill.add(&delCardCallback);
 			} else static if (is (C == ItemCard)) {
 				_comm.refItem.add(&refCardCallback);
+				_comm.delItem.add(&delCardCallback);
 			} else static if (is (C == BeastCard)) {
 				_comm.refBeast.add(&refCardCallback);
+				_comm.delBeast.add(&delCardCallback);
 			} else static if (is (C == InfoCard)) {
 				_comm.refInfo.add(&refCardCallback);
 			}
@@ -1434,10 +1437,13 @@ public:
 						_comm.refCast.remove(&refCardCallback);
 					} else static if (is (C == SkillCard)) {
 						_comm.refSkill.remove(&refCardCallback);
+						_comm.delSkill.remove(&delCardCallback);
 					} else static if (is (C == ItemCard)) {
 						_comm.refItem.remove(&refCardCallback);
+						_comm.delItem.remove(&delCardCallback);
 					} else static if (is (C == BeastCard)) {
 						_comm.refBeast.remove(&refCardCallback);
+						_comm.delBeast.remove(&delCardCallback);
 					} else static if (is (C == InfoCard)) {
 						_comm.refInfo.remove(&refCardCallback);
 					}
@@ -1535,6 +1541,17 @@ public:
 				refreshAddHand();
 			}
 			refresh(c);
+		}
+		static if (is(C:EffectCard)) {
+			private void delCardCallback(Object sender, C c) {
+				if (sender is this) return;
+				if (c.linkId) return;
+				foreach (card; cards) {
+					if (card.linkId == c.id) {
+						refresh(card);
+					}
+				}
+			}
 		}
 	}
 	void showCardLife() {
