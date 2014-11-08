@@ -249,10 +249,11 @@ class EventEditor : Composite {
 		updatePosImpl2();
 		auto vbar = getVerticalBar();
 		int vPos = vbar.getSelection();
+		int thumb = getClientArea().height / _lineHeight;
 		if (pos < vPos) { mixin(S_TRACE);
 			vbar.setSelection(pos);
-		} else if (vPos + vbar.getThumb() <= pos+1) { mixin(S_TRACE);
-			vbar.setSelection(pos+1 - vbar.getThumb() + (height / _lineHeight));
+		} else if (vPos + thumb <= pos) { mixin(S_TRACE);
+			vbar.setSelection(pos - thumb + (height / _lineHeight));
 		}
 	}
 
