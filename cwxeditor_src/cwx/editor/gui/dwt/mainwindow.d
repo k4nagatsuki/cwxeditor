@@ -382,7 +382,7 @@ private:
 	void openScenarioNewWin() {
 		auto fname = selectScenario(_prop, _win, _prop.msgs.dlgTitOpenScenarioAtNewWin);
 		if (!fname) return;
-		bool r = exec(_prop.parent.appPath ~ " " ~ fname);
+		bool r = exec("\"" ~ _prop.parent.appPath ~ "\" " ~ fname);
 		if (!r) {
 			MessageBox.showWarning
 				(.tryFormat(_prop.msgs.errorExec, baseName(_prop.parent.appPath)),
@@ -394,9 +394,9 @@ private:
 		if (!dlg.open()) return;
 		bool r;
 		if (dlg.legacy) {
-			r = exec(_prop.parent.appPath ~ " -createclassic " ~ dlg.name ~ " " ~ dlg.classicDir);
+			r = exec("\"" ~ _prop.parent.appPath ~ "\" -createclassic " ~ dlg.name ~ " " ~ dlg.classicDir);
 		} else {
-			r = exec(_prop.parent.appPath ~ " -create " ~ dlg.name ~ " " ~ dlg.skin);
+			r = exec("\"" ~ _prop.parent.appPath ~ "\" -create " ~ dlg.name ~ " " ~ dlg.skin);
 		}
 		if (!r) {
 			MessageBox.showWarning
@@ -2054,6 +2054,8 @@ public:
 			_noSummMenu = new HashSet!(MenuID);
 			_noSummMenu.add(MenuID.New);
 			_noSummMenu.add(MenuID.Open);
+			_noSummMenu.add(MenuID.NewAtNewWindow);
+			_noSummMenu.add(MenuID.OpenAtNewWindow);
 			_noSummMenu.add(MenuID.Close);
 			_noSummMenu.add(MenuID.Find);
 			_noSummMenu.add(MenuID.ToXMLText);

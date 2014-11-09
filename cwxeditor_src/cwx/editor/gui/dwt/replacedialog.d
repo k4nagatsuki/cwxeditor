@@ -3301,7 +3301,7 @@ public:
 					path = cpaddattr(path, "opendialog");
 				}
 				if (rp.scPath !is null) {
-					exec(_prop.parent.appPath ~ " " ~ rp.scPath ~ " " ~ path);
+					exec("\"" ~ _prop.parent.appPath ~ "\" \"" ~ rp.scPath ~ "\" " ~ path);
 					return;
 				}
 				if (!_summ) return;
@@ -3321,7 +3321,7 @@ public:
 			if (p) {
 				auto path = nabs(std.path.buildPath(_summ.scenarioPath, p.array));
 				if (p.scPath !is null) {
-					exec(_prop.parent.appPath ~ " -selectfile " ~ p.array ~ " " ~ p.scPath);
+					exec("\"" ~ _prop.parent.appPath ~ "\" -selectfile \"" ~ p.array ~ "\" \"" ~ p.scPath ~ "\"");
 					return;
 				}
 				if (_comm.openFilePath(path, false)) {
