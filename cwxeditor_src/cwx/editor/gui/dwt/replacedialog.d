@@ -3818,7 +3818,7 @@ public:
 			if (p) { mixin(S_TRACE);
 				auto path = nabs(std.path.buildPath(_summ.scenarioPath, p.array));
 				if (p.scPath !is null) { mixin(S_TRACE);
-					exec("\"" ~ _prop.parent.appPath ~ "\" -selectfile " ~ p.array ~ " \"" ~ p.scPath ~ "\"");
+					exec("\"" ~ _prop.parent.appPath ~ "\" -selectfile \"" ~ p.array ~ "\" \"" ~ p.scPath ~ "\"");
 					return;
 				}
 				if (_comm.openFilePath(path, false)) { mixin(S_TRACE);

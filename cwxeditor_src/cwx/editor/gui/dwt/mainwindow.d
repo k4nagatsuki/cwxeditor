@@ -1591,6 +1591,10 @@ private:
 			}
 		}
 	}
+	void sendReloadPropsAndSave() { mixin(S_TRACE);
+		_prop.var.save(_dock);
+		sendReloadProps();
+	}
 	void sendReloadProps() { mixin(S_TRACE);
 		sendToPipe((string recv) { mixin(S_TRACE);
 			if (!recv) { mixin(S_TRACE);
@@ -4004,7 +4008,7 @@ public:
 
 	ReplaceDialog openReplWin() { mixin(S_TRACE);
 		if (!_replDlg || _replDlg.widget.isDisposed()) { mixin(S_TRACE);
-			_replDlg = new ReplaceDialog(_comm, _prop, _win, summary, &sendReloadProps);
+			_replDlg = new ReplaceDialog(_comm, _prop, _win, summary, &sendReloadPropsAndSave);
 			_replDlg.open();
 		} else { mixin(S_TRACE);
 			_replDlg.widget.setMinimized(false);
