@@ -1735,19 +1735,34 @@ ubyte getRGBAverage(ImageData card, CRect nameArea) { mixin(S_TRACE);
 	return cast(ubyte)(rgbs / (nameArea.width * nameArea.height * 3));
 }
 
-Rectangle eventTreeMarkRect(C:EventTreeOwner)(Props prop, int left, int top, in C c) { mixin(S_TRACE);
+Rectangle eventTreeMarkRect(C:EventTreeOwner)(Props prop, int left, int top, in Summary summ, in C c) { mixin(S_TRACE);
 	if (!prop.var.etc.showEventTreeMark) return null;
 
+	Rebindable!(const C) c2;
+	if (c.linkId == 0) { mixin(S_TRACE);
+		c2 = c;
+	} else { mixin(S_TRACE);
+		static if (is(C:SkillCard)) {
+			auto c3 = summ.skill(c.linkId);
+		} else static if (is(C:ItemCard)) {
+			auto c3 = summ.item(c.linkId);
+		} else static if (is(C:BeastCard)) {
+			auto c3 = summ.beast(c.linkId);
+		} else static assert (0);
+		if (c3 is null) return null;
+		c2 = c3;
+	}
+
 	static if (is(C:ItemCard)) {
-		bool useCount = 0 < c.useLimitMax;
+		bool useCount = 0 < c2.useLimitMax;
 	} else static if (is(C:BeastCard)) {
-		bool useCount = 0 < c.useLimit;
+		bool useCount = 0 < c2.useLimit;
 	} else { mixin(S_TRACE);
 		bool useCount = false;
 	}
 
 	auto et = useCount ? prop.looks.eventTreeXYWithCount : prop.looks.eventTreeXY;
-	if (prop.var.etc.ignoreEmptyStart ? !c.isEmpty : 0 < c.trees.length) { mixin(S_TRACE);
+	if (prop.var.etc.ignoreEmptyStart ? !c2.isEmpty : 0 < c2.trees.length) { mixin(S_TRACE);
 		auto bounds = prop.images.eventTree.getBounds();
 		bounds.x = left + et.x;
 		bounds.y = top + et.y;

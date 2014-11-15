@@ -1579,7 +1579,7 @@ private:
 				}
 				auto c = _list.card(i);
 				auto bounds = _list.getBounds(i);
-				auto rect = .eventTreeMarkRect(_prop, bounds.x, bounds.y, c);
+				auto rect = .eventTreeMarkRect(_prop, bounds.x, bounds.y, _summ, c);
 				if (rect && rect.contains(e.x, e.y)) { mixin(S_TRACE);
 					_list.setCursor(_list.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 					_openEventTarget = c;

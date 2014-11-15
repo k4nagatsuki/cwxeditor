@@ -477,7 +477,7 @@ private:
 			auto rect = pane.getClientArea();
 			int x = (rect.width - w) / 2;
 			int y = (rect.height - h) / 2;
-			return .eventTreeMarkRect(_prop, x, y, b);
+			return .eventTreeMarkRect(_prop, x, y, _summ, b);
 		}
 		override void keyReleased(KeyEvent e) {}
 		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
