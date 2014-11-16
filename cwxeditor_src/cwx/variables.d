@@ -431,6 +431,8 @@ class FlexEtcProps : Properties {
 	auto searchResultRealtime = Prop!(bool)("searchResultRealtime", false);
 
 	auto replaceTextSummary = Prop!(bool)("replaceTextSummary", true);
+	auto replaceTextScenario = Prop!(bool)("replaceTextScenario", false);
+	auto replaceTextAuthor = Prop!(bool)("replaceTextAuthor", false);
 	auto replaceTextMessage = Prop!(bool)("replaceTextMessage", true);
 	auto replaceTextCardName = Prop!(bool)("replaceTextCardName", true);
 	auto replaceTextCardDescription = Prop!(bool)("replaceTextCardDescription", true);

@@ -249,8 +249,12 @@ private:
 	const
 	bool catchMod() {return !ignoreMod;}
 
-	/// 貼り紙
+	/// 貼紙
 	Button _summary;
+	/// シナリオ名
+	Button _scenario;
+	/// 作者名
+	Button _author;
 	/// シナリオ出現条件
 	Button _rCoupon;
 	/// メッセージ
@@ -318,6 +322,8 @@ private:
 	bool _exactSel;
 	bool _ignoreReturnCodeSel;
 	bool _summarySel;
+	bool _scenarioSel;
+	bool _authorSel;
 	bool _msgSel;
 	bool _cardNameSel;
 	bool _cardDescSel;
@@ -898,20 +904,22 @@ private:
 					return b;
 				}
 				_summary = createB(_prop.msgs.replTextSummary, '1', true);
-				_msg = createB(_prop.msgs.replTextMessage, '2');
-				_cardName = createB(_prop.msgs.replTextCardName, '3');
-				_cardDesc = createB(_prop.msgs.replTextCardDesc, '4');
-				_event = createB(_prop.msgs.replTextEventText, '5');
-				_start = createB(_prop.msgs.replTextStart, '6');
-				_flag = createB(_prop.msgs.replTextFlagAndStep, '7');
-				_coupon = createB(_prop.msgs.replTextCoupon, '8');
-				_gossip = createB(_prop.msgs.replTextGossip, '9');
-				_end = createB(_prop.msgs.replTextEndScenario, 'A');
-				_area = createB(_prop.msgs.replTextAreaName, 'B');
-				_keyCode = createB(_prop.msgs.replTextKeyCode, 'D');
-				_file = createB(_prop.msgs.replTextFile, 'E');
-				_comment = createB(_prop.msgs.replTextComment, 'G');
-				_jptx = createB(_prop.msgs.replTextJptx, 'H');
+				_scenario = createB(_prop.msgs.replTextScenario, '2');
+				_author = createB(_prop.msgs.replTextAuthor, '3');
+				_msg = createB(_prop.msgs.replTextMessage, '4');
+				_cardName = createB(_prop.msgs.replTextCardName, '5');
+				_cardDesc = createB(_prop.msgs.replTextCardDesc, '6');
+				_event = createB(_prop.msgs.replTextEventText, '7');
+				_start = createB(_prop.msgs.replTextStart, '8');
+				_flag = createB(_prop.msgs.replTextFlagAndStep, '9');
+				_coupon = createB(_prop.msgs.replTextCoupon, 'A');
+				_gossip = createB(_prop.msgs.replTextGossip, 'B');
+				_end = createB(_prop.msgs.replTextEndScenario, 'D');
+				_area = createB(_prop.msgs.replTextAreaName, 'E');
+				_keyCode = createB(_prop.msgs.replTextKeyCode, 'G');
+				_file = createB(_prop.msgs.replTextFile, 'H');
+				_comment = createB(_prop.msgs.replTextComment, 'I');
+				_jptx = createB(_prop.msgs.replTextJptx, 'J');
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -1940,6 +1948,8 @@ public:
 		_useRegex.setSelection(_prop.var.etc.replaceTextRegExp);
 		_useWildcard.setSelection(_prop.var.etc.replaceTextWildcard);
 		_summary.setSelection(_prop.var.etc.replaceTextSummary);
+		_scenario.setSelection(_prop.var.etc.replaceTextScenario);
+		_author.setSelection(_prop.var.etc.replaceTextAuthor);
 		_msg.setSelection(_prop.var.etc.replaceTextMessage);
 		_cardName.setSelection(_prop.var.etc.replaceTextCardName);
 		_cardDesc.setSelection(_prop.var.etc.replaceTextCardDescription);
@@ -2136,6 +2146,8 @@ public:
 			_prop.var.etc.replaceTextRegExp = _useRegex.getSelection();
 			_prop.var.etc.replaceTextWildcard = _useWildcard.getSelection();
 			_prop.var.etc.replaceTextSummary = _summary.getSelection();
+			_prop.var.etc.replaceTextScenario = _scenario.getSelection();
+			_prop.var.etc.replaceTextAuthor = _author.getSelection();
 			_prop.var.etc.replaceTextMessage = _msg.getSelection();
 			_prop.var.etc.replaceTextCardName = _cardName.getSelection();
 			_prop.var.etc.replaceTextCardDescription = _cardDesc.getSelection();
@@ -2399,6 +2411,8 @@ public:
 		_exactSel = _exact.getSelection();
 		_ignoreReturnCodeSel = _ignoreReturnCode.getSelection();
 		_summarySel = _summary.getSelection();
+		_scenarioSel = _scenario.getSelection();
+		_authorSel = _author.getSelection();
 		_msgSel = _msg.getSelection();
 		_cardNameSel = _cardName.getSelection();
 		_cardDescSel = _cardDesc.getSelection();
@@ -3297,8 +3311,13 @@ public:
 			bool sr = false;
 			Undo[] uArr;
 			if (_summarySel) { mixin(S_TRACE);
-				sr |= repl(null, summ.scenarioName, &summ.scenarioName, count, uArr);
 				sr |= repl(null, summ.desc, &summ.desc, count, uArr);
+			}
+			if (_scenarioSel) { mixin(S_TRACE);
+				sr |= repl(null, summ.scenarioName, &summ.scenarioName, count, uArr);
+			}
+			if (_authorSel) { mixin(S_TRACE);
+				sr |= repl(null, summ.author, &summ.author, count, uArr);
 			}
 			if (_couponSel) { mixin(S_TRACE);
 				sr |= replRqCoupons(null, summ, count, uArr);
@@ -4114,6 +4133,14 @@ public:
 		}
 		if (_cardDescSel) { mixin(S_TRACE);
 			r |= repl(null, card.desc, &card.desc, count, uArr2);
+		}
+		static if (is(C:EffectCard)) {
+			if (_scenarioSel) { mixin(S_TRACE);
+				r |= repl(null, card.scenario, &card.scenario, count, uArr2);
+			}
+			if (_authorSel) { mixin(S_TRACE);
+				r |= repl(null, card.author, &card.author, count, uArr2);
+			}
 		}
 		if (_flagSel) { mixin(S_TRACE);
 			static if (is (C : IFlagUser)) {

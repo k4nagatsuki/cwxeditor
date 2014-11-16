@@ -181,7 +181,7 @@ class Msgs : Properties {
 
 	auto replText = Msg("replText", "検索/置換するテキスト");
 	auto replTextTarget = Msg("replTextTarget", "検索/置換対象");
-	auto replTextSummary = Msg("replTextSummary", "貼り紙");
+	auto replTextSummary = Msg("replTextSummary", "貼紙");
 	auto replTextMessage = Msg("replTextMessage", "メッセージ");
 	auto replTextCardName = Msg("replTextCardName", "カード名");
 	auto replTextCardDesc = Msg("replTextCardDesc", "カード解説");
@@ -197,6 +197,8 @@ class Msgs : Properties {
 	auto replTextFile = Msg("replTextFile", "ファイル名");
 	auto replTextComment = Msg("replTextComment", "コメント");
 	auto replTextJptx = Msg("replTextJptx", "JPTX/テキストセル");
+	auto replTextScenario = Msg("replTextScenario", "シナリオ名");
+	auto replTextAuthor = Msg("replTextAuthor", "作者名");
 
 	auto replID = Msg("replID", "検索/置換対象");
 	auto replIDKind = Msg("replIDKind", "対象");
@@ -846,7 +848,7 @@ class Msgs : Properties {
 	auto dlgLblStep = Msg("dlgLblStep", "Step - %1$s");
 	auto dlgTxtStep = Msg("dlgTxtStep", "Step - %1$s");
 
-	/// 貼り紙設定ダイアログ関連。
+	/// 貼紙設定ダイアログ関連。
 	auto dlgTitSummary = Msg("dlgTitSummary", "概略の設定 - [ %1$s ]");
 	auto summaryPreview = Msg("summaryPreview", "表示イメージ");
 	auto baseData = Msg("baseData", "基本データ");
