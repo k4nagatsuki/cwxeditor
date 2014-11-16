@@ -919,7 +919,7 @@ private:
 				_keyCode = createB(_prop.msgs.replTextKeyCode, 'G');
 				_file = createB(_prop.msgs.replTextFile, 'H');
 				_comment = createB(_prop.msgs.replTextComment, 'I');
-				_jptx = createB(_prop.msgs.replTextJptx, 'J');
+				_jptx = createB(_prop.msgs.replTextJptx, 'K');
 			}
 			auto sep = new Label(grp, SWT.SEPARATOR | SWT.HORIZONTAL);
 			sep.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
