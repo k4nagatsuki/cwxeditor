@@ -128,6 +128,7 @@ public:
 	@property Image pcCellWithFlag() {return imgd!("pc_cell_flag.png");}
 	@property Image pcCellFore() {return imgd!("pc_cell_fore.png");}
 	@property Image pcCellForeWithFlag() {return imgd!("pc_cell_fore_flag.png");}
+	@property Image imageFont() {return imgd!("backs.png");}
 
 	@property Image bgm() {return imgd!("evt_bgm.png");}
 	@property Image se() {return imgd!("evt_se.png");}

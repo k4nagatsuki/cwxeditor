@@ -1931,7 +1931,7 @@ public:
 			if (v.length > 1u) { mixin(S_TRACE);
 				string[] nv;
 				foreach (file; v) { mixin(S_TRACE);
-					if (!cwx.utils.fnstartsWith(baseName(file), "font_")) { mixin(S_TRACE);
+					if (!cwx.utils.istartsWith(baseName(file), "font_")) { mixin(S_TRACE);
 						/// font_X.bmpはやむを得ずコピーした可能性があるため優先的に除外
 						nv ~= file;
 					}

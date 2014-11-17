@@ -15,6 +15,7 @@ import cwx.script;
 import cwx.props;
 import cwx.features;
 import cwx.types;
+import cwx.imagesize;
 
 import cwx.editor.gui.sound;
 
@@ -189,11 +190,10 @@ private:
 		return "";
 	}
 
-	static immutable WALLPAPER_EXT = [".bmp", ".ico", ".icon", ".jpg", ".jpeg", ".gif", ".png", ".tif", ".tiff"];
 	string dropWallpaper(string[] files) { mixin(S_TRACE);
 		if (!files.length) return "";
 		foreach (file; files) { mixin(S_TRACE);
-			if (.contains!("a == b", string, string)(WALLPAPER_EXT, .toLower(.extension(file)))) { mixin(S_TRACE);
+			if (.contains!("a == b", string, string)(IMAGE_EXT, .toLower(.extension(file)))) { mixin(S_TRACE);
 				return file;
 			}
 		}
@@ -227,7 +227,7 @@ private:
 	void selectWallpaper() { mixin(S_TRACE);
 		string[] filterName = [_prop.msgs.filterWallpaper, _prop.msgs.filterAll];
 		string[] filter = [
-			"*" ~ std.string.join(WALLPAPER_EXT.dup, ";*"),
+			"*" ~ std.string.join(IMAGE_EXT.dup, ";*"),
 			"*"
 		];
 		selectFile(_wallpaper, filterName, filter, _prop.var.etc.wallpaper, _prop.msgs.dlgTitWallpaper, getcwd());

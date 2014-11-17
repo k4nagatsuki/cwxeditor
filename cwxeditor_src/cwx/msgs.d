@@ -405,6 +405,7 @@ class Msgs : Properties {
 	auto scYado = Msg("scYado", "宿屋名(#Y)");
 	auto addMsgRefFlag = Msg("addMsgRefFlag", "フラグ参照の追加");
 	auto addMsgRefStep = Msg("addMsgRefStep", "ステップ参照の追加");
+	auto addMsgRefImageFont = Msg("addMsgRefImageFont", "画像参照の追加");
 	auto createDialog = Msg("createDialog", "台詞の作成");
 	auto deleteDialog = Msg("deleteDialog", "台詞の削除");
 	auto copyToDialogs = Msg("copyToDialogs", "台詞を全体にコピー");

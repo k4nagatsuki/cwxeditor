@@ -13,6 +13,7 @@ import cwx.menu;
 import cwx.types;
 import cwx.path;
 import cwx.msgutils;
+import cwx.warning;
 
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.dprops;
@@ -470,11 +471,34 @@ private:
 	ColorPicker _borderingColor;
 	Spinner _borderingWidth;
 
+	Skin _summSkin;
+	@property
+	Skin summSkin() { mixin(S_TRACE);
+		return _summSkin ? _summSkin : _comm.skin;
+	}
+
 	void refreshWarning() { mixin(S_TRACE);
 		string[] ws = warningCommon;
 		if (!_prop.targetVersion("1.50")) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningTextCell;
 		}
+
+		if (_summ) { mixin(S_TRACE);
+			bool[string] wFlags;
+			bool[string] wSteps;
+			bool[string] wFonts;
+			bool[char] wColors;
+			string[] flags;
+			string[] steps;
+			string[] fonts;
+			char[] colors;
+			textUseItems(wrapReturnCode(_text.getText()), flags, steps, fonts, colors);
+			fonts = [];
+			colors = [];
+			ws ~= .textWarnings(_prop.parent, summSkin, _summ, _prop.var.etc.targetVersion,
+				flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors).all;
+		}
+
 		warning = ws;
 	}
 	void updatePreview() { mixin(S_TRACE);
@@ -532,6 +556,7 @@ private:
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, TextCell back, bool create) { mixin(S_TRACE);
 		_back = back;
+		_summSkin = findSkin(comm, prop, summ);
 		DSize size;
 		if (summ) { mixin(S_TRACE);
 			size = prop.var.areaTextCellDlg;
@@ -551,6 +576,7 @@ public:
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(zeroGridLayout(1));
+		auto skin = summSkin;
 		auto comp = new Composite(area, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
 		auto sash = new SplitPane(comp, SWT.VERTICAL);
@@ -706,15 +732,21 @@ protected:
 
 			auto grp = new Group(sash2, SWT.NONE);
 			grp.setText(_prop.msgs.text);
-			auto cl = new CenterLayout;
-			cl.fillHorizontal = true;
-			cl.fillVertical = true;
-			grp.setLayout(cl);
+			grp.setLayout(new GridLayout(2, false));
 			_text = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
 			mod(_text);
 			createTextMenu!Text(_comm, _prop, _text, &catchMod);
-			_text.setLayoutData(new Point(_prop.var.etc.textCellBoxWidth, _prop.var.etc.textCellBoxHeight));
+			auto gd1 = new GridData(GridData.FILL_BOTH);
+			gd1.widthHint = _prop.var.etc.textCellBoxWidth;
+			gd1.heightHint = _prop.var.etc.textCellBoxHeight;
+			gd1.horizontalSpan = 2;
+			_text.setLayoutData(gd1);
+			.listener(_text, SWT.Modify, &refreshWarning);
 			.listener(_text, SWT.Modify, &updatePreview);
+			createSimpleSCharBar(grp, &_text.insert, _comm, _prop, skin);
+			if (_summ) { mixin(S_TRACE);
+				createFlagStepBar(grp, &_text.insert, _comm, _prop, skin, _summ, false).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			}
 
 			_values = new PreviewValues(sash2, _comm, _prop, _summ, false);
 			_values.modEvent ~= &updatePreview;

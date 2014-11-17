@@ -2,6 +2,7 @@
 module cwx.msgutils;
 
 import cwx.utils;
+import cwx.imagesize;
 
 import std.conv;
 import std.exception;
@@ -90,17 +91,30 @@ private string formatMsgImpl(in string text,
 			if ('\n' == dtext[i + 1]) goto default;
 			auto nc = std.ascii.toUpper(dtext[i + 1]);
 			if (full) { mixin(S_TRACE);
-				switch (nc) {
-				case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
-					result ~= to!dstring(getName(cast(char) nc));
-					i++;
-					continue;
-				default:
-					string path = encodeFontPath(dtext[i + 1], ".bmp");
-					if (!hasMaterial || hasMaterial(path)) { mixin(S_TRACE);
-						fonts[result.length] = path;
+				auto put = false;
+				if (hasMaterial) { mixin(S_TRACE);
+					foreach (ext; IMAGE_EXT) { mixin(S_TRACE);
+						string path = encodeFontPath(dtext[i + 1], ext);
+						if (hasMaterial(path)) { mixin(S_TRACE);
+							fonts[result.length] = path;
+							put = true;
+							break;
+						}
 					}
-					break;
+				}
+				if (!put) {
+					switch (nc) {
+					case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
+						result ~= to!dstring(getName(cast(char) nc));
+						i++;
+						continue;
+					default:
+						if (!hasMaterial) { mixin(S_TRACE);
+							string path = encodeFontPath(dtext[i + 1], ".bmp");
+							fonts[result.length] = path;
+						}
+						break;
+					}
 				}
 			} else { mixin(S_TRACE);
 				switch (nc) {

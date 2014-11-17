@@ -44,6 +44,7 @@ import std.datetime;
 import std.conv;
 import std.exception;
 import std.ascii;
+import std.path;
 
 import org.eclipse.swt.all;
 import java.lang.all;
@@ -972,7 +973,7 @@ protected:
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 		{ mixin(S_TRACE);
-			auto bar = createFlagStepBar(area, &insert, comm, prop);
+			auto bar = createFlagStepBar(area, &insert, comm, prop, skin, summ, true);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 
@@ -1211,7 +1212,7 @@ protected:
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 		{ mixin(S_TRACE);
-			auto bar = createFlagStepBar(area, &insert, comm, prop);
+			auto bar = createFlagStepBar(area, &insert, comm, prop, skin, summ, true);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 
@@ -1445,6 +1446,27 @@ private ToolBar createSCharBar(Commons comm, Composite parent,
 	return bar;
 }
 
+ToolBar createSimpleSCharBar(Composite parent,
+		void delegate(string) insert, Commons comm, Props prop, Skin skin) { mixin(S_TRACE);
+	auto bar = new ToolBar(parent, SWT.FLAT);
+	comm.put(bar);
+	bar.addListener(SWT.Traverse, new class Listener {
+		override void handleEvent(Event e) {e.doit = true;}
+	});
+	bar.addListener(SWT.KeyDown, new class Listener {
+		override void handleEvent(Event e) {e.doit = true;}
+	});
+	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.SELECTED), prop.images.scTalker(Talker.SELECTED),
+		&(new PutC(insert, "#M")).put, null);
+	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.UNSELECTED), prop.images.scTalker(Talker.UNSELECTED),
+		&(new PutC(insert, "#U")).put, null);
+	createToolItem2(comm, bar, prop.msgs.scTalkerName(Talker.RANDOM), prop.images.scTalker(Talker.RANDOM),
+		&(new PutC(insert, "#R")).put, null);
+	createToolItem2(comm, bar, prop.msgs.scTeam, prop.images.scTeam, &(new PutC(insert, "#T")).put, null);
+	createToolItem2(comm, bar, prop.msgs.scYado, prop.images.scYado, &(new PutC(insert, "#Y")).put, null);
+	return bar;
+}
+
 private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate(string) insert, Props prop, Skin skin) { mixin(S_TRACE);
 	auto bar = new ToolBar(parent, SWT.FLAT);
 	comm.put(bar);
@@ -1474,10 +1496,10 @@ private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate
 	return bar;
 }
 
-private Composite createFlagStepBar(Composite parent, void delegate(string) insert, Commons comm, Props prop) { mixin(S_TRACE);
+Composite createFlagStepBar(Composite parent, void delegate(string) insert, Commons comm, Props prop, Skin skin, Summary summ, bool imageFont) { mixin(S_TRACE);
 	auto bar = new Composite(parent, SWT.NONE);
-	bar.setLayout(zeroMarginGridLayout(2, true));
-	void create(out Combo list, out Button put, string puts, Image image, string lc) { mixin(S_TRACE);
+	bar.setLayout(zeroMarginGridLayout((imageFont && summ) ? 3 : 2, true));
+	void create(out Combo list, out Button put, string puts, Image image, string delegate(string) lc) { mixin(S_TRACE);
 		auto comp = new Composite(bar, SWT.NONE);
 		comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		comp.setLayout(zeroMarginGridLayout(2, false));
@@ -1489,16 +1511,19 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 		put.setImage(image);
 		put.addSelectionListener(new class SelectionAdapter {
 			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-				insert(lc ~ list.getText() ~ lc);
+				insert(lc(list.getText()));
 			}
 		});
 	}
-	Combo flags, steps;
-	Button putFlag, putStep;
-	create(flags, putFlag, prop.msgs.addMsgRefFlag, prop.images.flag, "%");
-	create(steps, putStep, prop.msgs.addMsgRefStep, prop.images.step, "$");
+	Combo flags, steps, fonts = null;
+	Button putFlag, putStep, putFont = null;
+	create(flags, putFlag, prop.msgs.addMsgRefFlag, prop.images.flag, (s) => "%" ~ s ~ "%");
+	create(steps, putStep, prop.msgs.addMsgRefStep, prop.images.step, (s) => "$" ~ s ~ "$");
+	if (imageFont && summ) { mixin(S_TRACE);
+		create(fonts, putFont, prop.msgs.addMsgRefImageFont, prop.images.imageFont, (s) => .tryFormat("#%s", .decodeFontPath(s)));
+	}
 
-	void refList() { mixin(S_TRACE);
+	void refList1() { mixin(S_TRACE);
 		auto root = comm.summary.flagDirRoot;
 		auto fSel = flags.getText();
 		auto sSel = steps.getText();
@@ -1519,10 +1544,10 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 		steps.setEnabled(steps.getItemCount() > 0);
 		putStep.setEnabled(steps.getEnabled());
 	}
-	refList();
+	refList1();
 
 	void refFlagAndStep(Flag[] flags, Step[] steps) { mixin(S_TRACE);
-		refList();
+		refList1();
 	}
 	comm.refFlagAndStep.add(&refFlagAndStep);
 	comm.delFlagAndStep.add(&refFlagAndStep);
@@ -1532,6 +1557,45 @@ private Composite createFlagStepBar(Composite parent, void delegate(string) inse
 			comm.delFlagAndStep.remove(&refFlagAndStep);
 		}
 	});
+
+	if (fonts) { mixin(S_TRACE);
+		void refList2() { mixin(S_TRACE);
+			auto sel = fonts.getText();
+			fonts.removeAll();
+			auto sPath = summ.scenarioPath;
+			size_t i = 0;
+			foreach (file; .clistdir(sPath)) { mixin(S_TRACE);
+				if (containsPath(prop.var.etc.ignorePaths, file)) continue;
+				if (istartsWith(file, "font_")) { mixin(S_TRACE);
+					auto path = sPath.buildPath(file);
+					if (skin.isBgImage(path)) { mixin(S_TRACE);
+						fonts.add(file);
+						if (0 == i || 0 == fncmp(file, sel)) fonts.select(i);
+						i++;
+					}
+				}
+			}
+			fonts.setEnabled(fonts.getItemCount() > 0);
+			putFont.setEnabled(fonts.getEnabled());
+		}
+		refList2();
+
+		void refPath(string o, string n, bool isDir) { refList2(); }
+		void refPaths(string parent) { refList2(); }
+		comm.refPath.add(&refPath);
+		comm.refPaths.add(&refPaths);
+		comm.delPaths.add(&refList2);
+		comm.refIgnorePaths.add(&refList2);
+		bar.addDisposeListener(new class DisposeListener {
+			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+				comm.refPath.remove(&refPath);
+				comm.refPaths.remove(&refPaths);
+				comm.delPaths.remove(&refList2);
+				comm.refIgnorePaths.remove(&refList2);
+			}
+		});
+	}
+
 	return bar;
 }
 
