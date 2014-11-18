@@ -49,18 +49,23 @@ string formatMsg(in string text,
 		case '#':
 			if (i + 1 == dtext.length) goto default;
 			if ('\n' == dtext[i + 1]) goto default;
-			auto nc = std.ascii.toUpper(dtext[i + 1]);
-			switch (nc) {
-			case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
-				result ~= to!dstring(getName(cast(char) nc));
-				i++;
-				continue;
-			default:
-				string path = encodeFontPath(dtext[i + 1], ".bmp");
-				if (!hasMaterial || hasMaterial(path)) {
-					fonts[result.length] = path;
+
+			string path = encodeFontPath(dtext[i + 1], ".bmp");
+			if (hasMaterial && hasMaterial(path)) {
+				fonts[result.length] = path;
+			} else {
+				auto nc = std.ascii.toUpper(dtext[i + 1]);
+				switch (nc) {
+				case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
+					result ~= to!dstring(getName(cast(char) nc));
+					i++;
+					continue;
+				default:
+					if (!hasMaterial) {
+						fonts[result.length] = path;
+					}
+					break;
 				}
-				break;
 			}
 			goto default;
 		case '%':
