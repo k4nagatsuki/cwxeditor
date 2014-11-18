@@ -306,6 +306,7 @@ class Msgs : Properties {
 	auto searchErrorNoCast = Msg("searchErrorNoCast", "キャストカードが指定されていません。");
 	auto searchErrorNoBeast = Msg("searchErrorNoBeast", "召喚獣カードが指定されていません。");
 	auto searchErrorDupNextContent = Msg("searchErrorDupNextContent", "分岐条件が重複しています。");
+	auto searchErrorSPFontIsNotSJIS1ByteChar = Msg("searchErrorSPFontIsNotSJIS1ByteChar", "「%1$s」は無効です。クラシックなシナリオの特殊フォント指定にはShift JISの1バイト文字しか使用できません。");
 	auto searchErrorSPFontNotFound = Msg("searchErrorSPFontNotFound", "特殊フォントイメージ(%1$s)が見つかりません。");
 	auto searchErrorNoRCouponsDialog = Msg("searchErrorNoRCouponsDialog", "最終項目以外にクーポン指定無し項目があります。");
 	auto searchErrorAreaNotFound = Msg("searchErrorAreaNotFound", "存在しないエリア(ID:%1$s)が指定されています。");

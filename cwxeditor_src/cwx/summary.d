@@ -783,7 +783,7 @@ public:
 	/// シナリオのシステムファイルまたはディレクトリであればtrueを返す。
 	const
 	bool isSystemFile(string p) { mixin(S_TRACE);
-		return isSystemFile(p, cast(bool) .isDir(p));
+		return isSystemFile(p, .exists(p) && .isDir(p));
 	}
 	const
 	bool isSystemFile(string p, bool isdir) { mixin(S_TRACE);

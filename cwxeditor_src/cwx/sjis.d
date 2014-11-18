@@ -3,6 +3,7 @@ module cwx.sjis;
 
 import cwx.perf;
 
+import std.ascii;
 import std.exception;
 
 /// Shift JIS -> Unicode 変換テーブル。
@@ -183,4 +184,10 @@ const(char)* tosjisz(in char[] s, bool throwError = true) { mixin(S_TRACE);
 /// ditto
 char* tosjismz(in char[] s, bool throwError = true) { mixin(S_TRACE);
 	return (tosjism(s.dup, throwError) ~ '\0').ptr;
+}
+
+/// cがShift JISの1バイト文字か。
+@property
+bool isSJIS1ByteChar(dchar c) { mixin(S_TRACE);
+	return ('\uff61' <= c && c <= '\uff9f') || (c <= '\u00ff' && c.isPrintable());
 }

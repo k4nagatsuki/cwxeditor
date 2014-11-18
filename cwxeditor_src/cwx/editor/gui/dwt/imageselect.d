@@ -199,21 +199,6 @@ public:
 				_msel.incSearch.modEvent ~= &refreshImageList;
 			}
 		}
-		auto d = parent.getDisplay();
-		auto focusFilter = new class Listener {
-			override void handleEvent(Event e) { mixin(S_TRACE);
-				if (!imgList.isVisible() && _imgList && !_imgList.shell.isDisposed()) { mixin(S_TRACE);
-					_imgList.shell.close();
-					_imgList.shell.dispose();
-				}
-			}
-		};
-		d.addFilter(SWT.FocusOut, focusFilter);
-		d.addFilter(SWT.Selection, focusFilter);
-		.listener(imgList, SWT.Dispose, { mixin(S_TRACE);
-			d.removeFilter(SWT.FocusOut, focusFilter);
-			d.removeFilter(SWT.Selection, focusFilter);
-		});
 	} 
 	@property
 	void mask(bool mask) { mixin(S_TRACE);
@@ -356,7 +341,7 @@ private:
 					_msel.path2(path, false);
 					_image.redraw();
 					refresh();
-				});
+				}, b);
 				.listener(_imgList.shell, SWT.Dispose, { mixin(S_TRACE);
 					b.setSelection(false);
 				});

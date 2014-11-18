@@ -91,26 +91,17 @@ private string formatMsgImpl(in string text,
 			if ('\n' == dtext[i + 1]) goto default;
 			auto nc = std.ascii.toUpper(dtext[i + 1]);
 			if (full) { mixin(S_TRACE);
-				auto put = false;
-				if (hasMaterial) { mixin(S_TRACE);
-					foreach (ext; IMAGE_EXT) { mixin(S_TRACE);
-						string path = encodeFontPath(dtext[i + 1], ext);
-						if (hasMaterial(path)) { mixin(S_TRACE);
-							fonts[result.length] = path;
-							put = true;
-							break;
-						}
-					}
-				}
-				if (!put) {
+				string path = encodeFontPath(dtext[i + 1], ".bmp");
+				if (hasMaterial && hasMaterial(path)) { mixin(S_TRACE);
+					fonts[result.length] = path;
+				} else { mixin(S_TRACE);
 					switch (nc) {
 					case 'M', 'R', 'U', 'C', 'I', 'T', 'Y':
-						result ~= to!dstring(getName(cast(char) nc));
+						result ~= to!dstring(getName(cast(char)nc));
 						i++;
 						continue;
 					default:
 						if (!hasMaterial) { mixin(S_TRACE);
-							string path = encodeFontPath(dtext[i + 1], ".bmp");
 							fonts[result.length] = path;
 						}
 						break;

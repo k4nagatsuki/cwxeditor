@@ -16,6 +16,7 @@ import cwx.types;
 import cwx.imagesize;
 import cwx.system;
 import cwx.warning;
+import cwx.sjis;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -36,6 +37,8 @@ import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.couponview;
 import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.imagelistwindow;
 
 import std.array;
 import std.utf;
@@ -1498,11 +1501,13 @@ private ToolBar createSkinSCharBar(Commons comm, Composite parent, void delegate
 
 Composite createFlagStepBar(Composite parent, void delegate(string) insert, Commons comm, Props prop, Skin skin, Summary summ, bool imageFont) { mixin(S_TRACE);
 	auto bar = new Composite(parent, SWT.NONE);
-	bar.setLayout(zeroMarginGridLayout((imageFont && summ) ? 3 : 2, true));
-	void create(out Combo list, out Button put, string puts, Image image, string delegate(string) lc) { mixin(S_TRACE);
-		auto comp = new Composite(bar, SWT.NONE);
-		comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		comp.setLayout(zeroMarginGridLayout(2, false));
+	bar.setLayout(zeroMarginGridLayout((imageFont && summ) ? 2 : 1, false));
+	Composite create(Composite parent, out Combo list, out Button put, string puts, Image image, string delegate(string) lc, int colNum) { mixin(S_TRACE);
+		auto comp = new Composite(parent, SWT.NONE);
+		auto gl = windowGridLayout(colNum, false);
+		gl.marginWidth = 0;
+		gl.marginHeight = 0;
+		comp.setLayout(gl);
 		list = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 		list.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 		list.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -1514,40 +1519,103 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 				insert(lc(list.getText()));
 			}
 		});
+		return comp;
 	}
 	Combo flags, steps, fonts = null;
 	Button putFlag, putStep, putFont = null;
-	create(flags, putFlag, prop.msgs.addMsgRefFlag, prop.images.flag, (s) => "%" ~ s ~ "%");
-	create(steps, putStep, prop.msgs.addMsgRefStep, prop.images.step, (s) => "$" ~ s ~ "$");
+	IncSearch flagIncSearch, stepIncSearch, fontIncSearch = null;
+	Button imgListBtn = null;
+	auto varComp = new Composite(bar, SWT.NONE);
+	varComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	varComp.setLayout(zeroMarginGridLayout(2, true));
+	create(varComp, flags, putFlag, prop.msgs.addMsgRefFlag, prop.images.flag, (s) => "%" ~ s ~ "%", 2).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	create(varComp, steps, putStep, prop.msgs.addMsgRefStep, prop.images.step, (s) => "$" ~ s ~ "$", 2).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	if (imageFont && summ) { mixin(S_TRACE);
-		create(fonts, putFont, prop.msgs.addMsgRefImageFont, prop.images.imageFont, (s) => .tryFormat("#%s", .decodeFontPath(s)));
+		auto comp = create(bar, fonts, putFont, prop.msgs.addMsgRefImageFont, prop.images.imageFont, (s) => .tryFormat("#%s", .decodeFontPath(s)), 3);
+		auto fgd = new GridData(GridData.FILL_HORIZONTAL);
+		auto gc = new GC(comp);
+		scope (exit) gc.dispose();
+		fgd.widthHint = gc.textExtent("font_##.bmp").x;
+		fonts.setLayoutData(fgd);
+		imgListBtn = new Button(comp, SWT.TOGGLE);
+		imgListBtn.setImage(prop.images.menu(MenuID.LookImages));
+		imgListBtn.setToolTipText(prop.msgs.menuText(MenuID.LookImages));
 	}
 
-	void refList1() { mixin(S_TRACE);
+	IncSearch createIncs(Combo combo, void delegate() refList, MenuID openMenu, void delegate() openDlg) { mixin(S_TRACE);
+		auto incSearch = new IncSearch(comm, combo);
+		incSearch.modEvent ~= refList;
+		auto menu = new Menu(combo.getShell(), SWT.POP_UP);
+		createMenuItem(comm, menu, MenuID.IncSearch, { mixin(S_TRACE);
+			.forceFocus(combo, true);
+			incSearch.startIncSearch();
+		}, () => 1 < combo.getItemCount());
+		new MenuItem(menu, SWT.SEPARATOR);
+		createMenuItem(comm, menu, MenuID.OpenAtVarView, openDlg, () => combo.getSelectionIndex() >= 0);
+		combo.setMenu(menu);
+		return incSearch;
+	}
+
+	void refListF() { mixin(S_TRACE);
 		auto root = comm.summary.flagDirRoot;
 		auto fSel = flags.getText();
-		auto sSel = steps.getText();
 		flags.removeAll();
-		foreach (i, flag; root.allFlags) { mixin(S_TRACE);
+		auto list = root.allFlags;
+		size_t i = 0;
+		foreach (flag; list) { mixin(S_TRACE);
 			auto p = flag.path;
+			if (!flagIncSearch.match(p)) continue;
 			flags.add(p);
 			if (0 == i || 0 == icmp(p, fSel)) flags.select(i);
+			i++;
 		}
+		flags.setEnabled(list.length > 0);
+		putFlag.setEnabled(flags.getItemCount() > 0);
+	}
+	void refListS() { mixin(S_TRACE);
+		auto root = comm.summary.flagDirRoot;
+		auto sSel = steps.getText();
 		steps.removeAll();
-		foreach (i, step; root.allSteps) { mixin(S_TRACE);
+		auto list = root.allSteps;
+		size_t i = 0;
+		foreach (step; list) { mixin(S_TRACE);
 			auto p = step.path;
+			if (!stepIncSearch.match(p)) continue;
 			steps.add(p);
 			if (0 == i || 0 == icmp(p, sSel)) steps.select(i);
+			i++;
 		}
-		flags.setEnabled(flags.getItemCount() > 0);
-		putFlag.setEnabled(flags.getEnabled());
-		steps.setEnabled(steps.getItemCount() > 0);
-		putStep.setEnabled(steps.getEnabled());
+		steps.setEnabled(list.length > 0);
+		putStep.setEnabled(steps.getItemCount() > 0);
 	}
-	refList1();
+
+	flagIncSearch = createIncs(flags, &refListF, MenuID.OpenAtVarView, { mixin(S_TRACE);
+		auto flag = summ.flagDirRoot.findFlag(flags.getText());
+		if (!flag) return;
+		try { mixin(S_TRACE);
+			comm.openCWXPath(flag.cwxPath(true), false);
+		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
+		}
+	});
+	stepIncSearch = createIncs(steps, &refListS, MenuID.OpenAtVarView, { mixin(S_TRACE);
+		auto step = summ.flagDirRoot.findStep(steps.getText());
+		if (!step) return;
+		try { mixin(S_TRACE);
+			comm.openCWXPath(step.cwxPath(true), false);
+		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
+		}
+	});
+
+	refListF();
+	refListS();
 
 	void refFlagAndStep(Flag[] flags, Step[] steps) { mixin(S_TRACE);
-		refList1();
+		refListF();
+		refListS();
 	}
 	comm.refFlagAndStep.add(&refFlagAndStep);
 	comm.delFlagAndStep.add(&refFlagAndStep);
@@ -1559,41 +1627,122 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 	});
 
 	if (fonts) { mixin(S_TRACE);
-		void refList2() { mixin(S_TRACE);
+		ImageListWindow!(MtType.CARD) imgListWin = null;
+		void refListSPF() { mixin(S_TRACE);
 			auto sel = fonts.getText();
 			fonts.removeAll();
 			auto sPath = summ.scenarioPath;
 			size_t i = 0;
+			bool has = false;
 			foreach (file; .clistdir(sPath)) { mixin(S_TRACE);
 				if (containsPath(prop.var.etc.ignorePaths, file)) continue;
-				if (istartsWith(file, "font_")) { mixin(S_TRACE);
+				if (summ.isSystemFile(sPath.buildPath(file))) continue;
+				auto u = to!dstring(file);
+				if (istartsWith(file, "font_") && u.length == 10 && file.extension().toLower() == ".bmp") { mixin(S_TRACE);
+					if (summ.legacy) { mixin(S_TRACE);
+						auto n = u[5];
+						if (!isSJIS1ByteChar(n)) { mixin(S_TRACE);
+							// クラシックなシナリオではShift JISの1バイト文字以外は不可
+							continue;
+						}
+					}
 					auto path = sPath.buildPath(file);
 					if (skin.isBgImage(path)) { mixin(S_TRACE);
+						has = true;
+						if (!fontIncSearch.match(to!string(decodeFontPath(file)))) continue;
 						fonts.add(file);
 						if (0 == i || 0 == fncmp(file, sel)) fonts.select(i);
 						i++;
 					}
 				}
 			}
-			fonts.setEnabled(fonts.getItemCount() > 0);
-			putFont.setEnabled(fonts.getEnabled());
-		}
-		refList2();
+			fonts.setEnabled(has);
+			putFont.setEnabled(fonts.getItemCount() > 0);
+			imgListBtn.setEnabled(fonts.getItemCount() > 0);
 
-		void refPath(string o, string n, bool isDir) { refList2(); }
-		void refPaths(string parent) { refList2(); }
+			if (imgListWin && !imgListWin.shell.isDisposed()) { mixin(S_TRACE);
+				imgListWin.images("/", fonts.getItems());
+				imgListWin.select(encodePath(fonts.getText()));
+			}
+			if (!has) { mixin(S_TRACE);
+				// ヒント表示
+				fonts.add("font_?.bmp");
+				fonts.select(0);
+			}
+		}
+		fontIncSearch = createIncs(fonts, &refListSPF, MenuID.OpenAtFileView, { mixin(S_TRACE);
+			auto font = fonts.getText();
+			try { mixin(S_TRACE);
+				comm.openFilePath(font, false);
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
+			}
+		});
+		refListSPF();
+
+		void refPath(string o, string n, bool isDir) { refListSPF(); }
+		void refPaths(string parent) { refListSPF(); }
 		comm.refPath.add(&refPath);
 		comm.refPaths.add(&refPaths);
-		comm.delPaths.add(&refList2);
-		comm.refIgnorePaths.add(&refList2);
+		comm.delPaths.add(&refListSPF);
+		comm.refIgnorePaths.add(&refListSPF);
+		comm.refSkin.add(&refListSPF);
 		bar.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				comm.refPath.remove(&refPath);
 				comm.refPaths.remove(&refPaths);
-				comm.delPaths.remove(&refList2);
-				comm.refIgnorePaths.remove(&refList2);
+				comm.delPaths.remove(&refListSPF);
+				comm.refIgnorePaths.remove(&refListSPF);
+				comm.refSkin.remove(&refListSPF);
 			}
 		});
+
+		.listener(fonts, SWT.Selection, { mixin(S_TRACE);
+			if (imgListWin && !imgListWin.shell.isDisposed()) { mixin(S_TRACE);
+				imgListWin.select(encodePath(fonts.getText()));
+			}
+		});
+		class SelImageList : SelectionAdapter {
+			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+				auto b = cast(Button)e.widget;
+				if (b.getSelection()) { mixin(S_TRACE);
+					if (imgListWin && !imgListWin.shell.isDisposed()) { mixin(S_TRACE);
+						imgListWin.shell.setActive();
+						return;
+					}
+					auto parent = (cast(Control)e.widget).getShell();
+					imgListWin = new ImageListWindow!(MtType.CARD)(prop, comm, summ, parent, (string path) { mixin(S_TRACE);
+						auto s = .tryFormat("#%s", .decodeFontPath(path));
+						insert(s);
+					}, b);
+					.listener(imgListWin.shell, SWT.Dispose, { mixin(S_TRACE);
+						b.setSelection(false);
+					});
+					auto menu = new Menu(imgListWin.shell, SWT.POP_UP);
+					createMenuItem(comm, menu, MenuID.IncSearch, () => fontIncSearch.startIncSearch(), null);
+					imgListWin.widget.setMenu(menu);
+
+					auto cloc = Display.getCurrent().getCursorLocation();
+					cloc.x++;
+					cloc.y++;
+					auto p = new Point(prop.var.etc.imageListWidth, prop.var.etc.imageListHeight);
+					intoDisplay(cloc.x, cloc.y, p.x, p.y);
+					imgListWin.shell.setBounds(cloc.x, cloc.y, p.x, p.y);
+					imgListWin.images("/", fonts.getItems());
+					imgListWin.mask = true;
+					imgListWin.select(encodePath(fonts.getText()));
+					imgListWin.shell.open();
+				} else { mixin(S_TRACE);
+					if (!imgListWin || imgListWin.shell.isDisposed()) { mixin(S_TRACE);
+						return;
+					}
+					imgListWin.shell.close();
+					imgListWin.shell.dispose();
+				}
+			}
+		}
+		imgListBtn.addSelectionListener(new SelImageList);
 	}
 
 	return bar;
@@ -2525,6 +2674,10 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		}
 		return "";
 	}, (string path) { mixin(S_TRACE);
+		if (comm.summary.legacy) { mixin(S_TRACE);
+			auto c = decodeFontPath(path);
+			if (!isSJIS1ByteChar(c)) return false;
+		}
 		return comm.skin.findImagePath(path, comm.summary.scenarioPath).length != 0 || decodeFontPath(path) in comm.skin.spChars;
 	}, rFonts, rColors);
 	auto dmsg = to!dstring(message);

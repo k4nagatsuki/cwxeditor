@@ -29,7 +29,7 @@ class ImageListWindow(MtType Type) {
 
 	private void delegate(string) _selection;
 
-	this (Props prop, Commons comm, Summary summ, Shell parent, void delegate(string) selection) { mixin(S_TRACE);
+	this (Props prop, Commons comm, Summary summ, Shell parent, void delegate(string) selection, Control baseControl) { mixin(S_TRACE);
 		_prop = prop;
 		_comm = comm;
 		_summ = summ;
@@ -47,6 +47,22 @@ class ImageListWindow(MtType Type) {
 			_list.init(_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, &createImage);
 		}
 		_list.addMouseListener(new MouseDown);
+
+		auto d = parent.getDisplay();
+		auto focusFilter = new class Listener {
+			override void handleEvent(Event e) { mixin(S_TRACE);
+				if (!baseControl.isVisible() && !shell.isDisposed()) { mixin(S_TRACE);
+					shell.close();
+					shell.dispose();
+				}
+			}
+		};
+		d.addFilter(SWT.FocusOut, focusFilter);
+		d.addFilter(SWT.Selection, focusFilter);
+		.listener(baseControl, SWT.Dispose, { mixin(S_TRACE);
+			d.removeFilter(SWT.FocusOut, focusFilter);
+			d.removeFilter(SWT.Selection, focusFilter);
+		});
 	}
 	private class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);

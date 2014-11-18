@@ -16,6 +16,7 @@ import cwx.types;
 import cwx.features;
 import cwx.imagesize;
 import cwx.motion;
+import cwx.sjis;
 
 import std.path;
 import std.typecons : Tuple;
@@ -428,14 +429,24 @@ Tuple!(string[], "all", string[], "noDup") textWarnings(in CProps prop, in Skin 
 	foreach (font; fonts) { mixin(S_TRACE);
 		dchar c = decodeFontPath(font);
 		if (c in spChars) continue;
+		bool put = false;
+		if (summ.legacy && !.isSJIS1ByteChar(c)) { mixin(S_TRACE);
+			auto msg = .tryFormat(prop.msgs.searchErrorSPFontIsNotSJIS1ByteChar, .tryFormat("#%s", c));
+			all ~= msg;
+			if (!wFonts.get(font, false)) { mixin(S_TRACE);
+				noDup ~= msg;
+				put = true;
+			}
+		}
 		if (!skin.findPath(font, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
 			auto msg = .tryFormat(prop.msgs.searchErrorSPFontNotFound, .tryFormat("#%s", c));
 			all ~= msg;
 			if (!wFonts.get(font, false)) { mixin(S_TRACE);
 				noDup ~= msg;
-				wFonts[font] = true;
+				put = true;
 			}
 		}
+		if (put) wFonts[font] = true;
 	}
 	foreach (flag; flags) { mixin(S_TRACE);
 		if (!(froot && froot.findFlag(flag))) { mixin(S_TRACE);
