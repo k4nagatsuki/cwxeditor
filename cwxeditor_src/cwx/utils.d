@@ -937,20 +937,22 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 			}
 		}
 	}
-	string left, right;
+	string left, right, format;
 	long i = 2;
 	if (digit.length) { mixin(S_TRACE);
 		assert (digitR != -1);
 		left = base[0..digitL];
 		right = base[digitR..$];
 		i = to!long(digit);
+		format = .tryFormat("%%0%sd", digit.length);
 	} else { mixin(S_TRACE);
 		left = base ~ (space ? " (" : "(");
 		right = ")";
+		format = "%s";
 	}
 	try {
 		while (true) { mixin(S_TRACE);
-			auto s = left ~ to!(string)(i) ~ right;
+			auto s = left ~ .tryFormat(format, i) ~ right;
 			if (use(s)) return s;
 			if (i + 1 < i) break; // overflow
 			i++;
@@ -967,6 +969,7 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 	assert (createNewName("aaa (2)", (string n) {return n != "aaa (2)" && n != "aaa (3)";}, true) == "aaa (4)");
 	assert (createNewName("aaa(2)", (string n) {return n != "aaa(2)" && n != "aaa(3)";}, false) == "aaa(4)");
 	assert (createNewName("1-2", (string n) {return n != "1-2" && n != "1-3" && n != "1-4";}, false) == "1-5");
+	assert (createNewName("1 2 0003", (string n) {return n != "1 2 0003" && n != "1 2 0004";}, false) == "1 2 0005");
 }
 /// ditto
 string createNewFileName(string path, bool isdir) { mixin(S_TRACE);

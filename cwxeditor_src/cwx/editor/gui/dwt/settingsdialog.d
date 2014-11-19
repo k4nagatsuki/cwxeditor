@@ -1717,6 +1717,7 @@ private:
 	T[] _array;
 	Text _name;
 	bool _canApply = false;
+	int _lastSelected = -1;
 	static if (is(T:BgImageSetting)) {
 		Spinner _bgImgX;
 		Spinner _bgImgY;
@@ -1919,6 +1920,7 @@ private:
 		array[i - 1] = array[i];
 		array[i] = temp;
 		list.select(i - 1);
+		_lastSelected = i - 1;
 		_applyEnabled();
 		_comm.refreshToolBar();
 	}
@@ -1932,6 +1934,7 @@ private:
 		array[i + 1] = array[i];
 		array[i] = temp;
 		list.select(i + 1);
+		_lastSelected = i + 1;
 		_applyEnabled();
 		_comm.refreshToolBar();
 	}
@@ -1948,6 +1951,7 @@ private:
 		_ignoreMod(true);
 		scope (exit) _ignoreMod(false);
 		int i = _list.getSelectionIndex();
+		_lastSelected = i;
 		_del.setEnabled(i >= 0);
 		if (i >= 0) { mixin(S_TRACE);
 			_name.setText(_array[i].name);
@@ -2716,7 +2720,21 @@ public:
 			gd.heightHint = _prop.var.etc.settingListHeight;
 			gd.horizontalSpan = 2;
 			_list.setLayoutData(gd);
-			listener(_list, SWT.Selection, &selected);
+			listener(_list, SWT.Selection, { mixin(S_TRACE);
+				if (_list.getSelectionIndex() == _lastSelected) return;
+				if (_canApply && _lastSelected != -1) { mixin(S_TRACE);
+					auto dlg = new MessageBox(getShell(), SWT.YES | SWT.NO | SWT.ICON_QUESTION);
+					dlg.setText(_prop.msgs.dlgTitQuestion);
+					auto name = _name.getText();
+					if (name == "") name = _prop.msgs.noNameData;
+					dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgNoApply, name));
+					if (SWT.YES != dlg.open()) { mixin(S_TRACE);
+						_list.select(_lastSelected);
+						return;
+					}
+				}
+				selected();
+			});
 
 			auto menu = new Menu(_list);
 			createMenuItem(_comm, menu, MenuID.Undo, {_undo.undo();}, &_undo.canUndo);

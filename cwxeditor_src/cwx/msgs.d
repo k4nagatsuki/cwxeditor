@@ -1631,6 +1631,7 @@ class Msgs : Properties {
 	auto etcSettingsCommon = Msg("etcSettingsCommon", "全般");
 	auto singleWindow = Msg("singleWindow", "シングルウィンドウモード(再起動後に反映されます)");
 	auto showImagePreview = Msg("showImagePreview", "カードや背景のプレビュー表示を行う");
+	auto maskCardImagePreview = Msg("maskCardImagePreview", "カードサイズの画像のプレビュー表示で背景を透明化する");
 	auto switchTabWheel = Msg("switchTabWheel", "マウスホイールでタブ切替を行う");
 	auto closeTabWithMiddleClick = Msg("closeTabWithMiddleClick", "中ボタンクリックでタブを閉じる");
 	auto openTabAtRightOfCurrentTab = Msg("openTabAtRightOfCurrentTab", "新しいタブを現在のタブの直後に開く");
@@ -1734,6 +1735,8 @@ class Msgs : Properties {
 	auto sDel = Msg("sDel", "削除");
 	auto dlgMsgExistsNoApplySettings = Msg("dlgMsgExistsNoApplySettings", "次の設定が変更されたまま適用されていません。これらを無視して設定を更新しますか？\n%1$s");
 	auto dlgMsgExistsNoApplySettingsSingle = Msg("dlgMsgExistsNoApplySettingsSingle", "%1$sが変更されたまま適用されていません。無視して設定を更新しますか？");
+	auto dlgMsgNoApply = Msg("dlgMsgNoApply", "「%1$s」が変更されたまま適用されていません。無視して他の項目を選択しますか？");
+	auto noNameData = Msg("noNameData", "(名前無しの項目)");
 
 	auto outerToolsAndClassicEngines = Msg("outerToolsAndClassicEngines", "外部ツールとクラシックエンジン");
 	auto outerToolsTitle = Msg("outerToolsTitle", "外部ツールの設定");

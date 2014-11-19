@@ -99,6 +99,7 @@ class EtcSettings : Composite {
 			boolSetting(comp, prop.var.etc.singleWindow, prop.msgs.singleWindow);
 		}
 		boolSetting(comp, prop.var.etc.showImagePreview, prop.msgs.showImagePreview);
+		boolSetting(comp, prop.var.etc.maskCardImagePreview, prop.msgs.maskCardImagePreview);
 		boolSetting(comp, prop.var.etc.switchTabWheel, prop.msgs.switchTabWheel);
 		boolSetting(comp, prop.var.etc.closeTabWithMiddleClick, prop.msgs.closeTabWithMiddleClick);
 		boolSetting(comp, prop.var.etc.openTabAtRightOfCurrentTab, prop.msgs.openTabAtRightOfCurrentTab);

@@ -853,6 +853,7 @@ private:
 		auto imgData = previewImage(path.array);
 		if (!imgData) return;
 		_previewI = new PileImage(imgData, imgData.width, imgData.height);
+		_previewI.transparent = -1 < imgData.transparentPixel;
 		_previewI.createImage();
 
 		auto b = itm.getBounds();
@@ -874,7 +875,8 @@ private:
 		}
 	}
 	ImageData previewImage(string path) { mixin(S_TRACE);
-		auto data = loadImage(_prop, _comm.skin, _summ, path, false);
+		auto mask = _prop.var.etc.maskCardImagePreview && _comm.skin.isCardImage(path, false);
+		auto data = loadImage(_prop, _comm.skin, _summ, path, mask);
 		if (data.width == 1 && data.height == 1 && data.transparentPixel == data.getPixel(0, 0)) { mixin(S_TRACE);
 			return null;
 		}

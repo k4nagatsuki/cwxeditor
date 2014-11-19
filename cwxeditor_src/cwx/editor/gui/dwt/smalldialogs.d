@@ -653,7 +653,19 @@ private:
 				_editorTable ~= CWXScript.createString(p);
 			}
 		}
-		_editor = createComboEditor(_comm, _comm.prop, _table, strs, itm.getText(column), false);
+
+		auto editorTable2 = _editorTable.dup;
+		_editor = createComboEditor(_comm, _comm.prop, _table, strs, itm.getText(column), false, (incSearch) { mixin(S_TRACE);
+			string[] strs2 = [];
+			_editorTable.length = 0;
+			foreach (i, str; strs) { mixin(S_TRACE);
+				if (incSearch.match(str)) { mixin(S_TRACE);
+					strs2 ~= str;
+					_editorTable ~= editorTable2[i];
+				}
+			}
+			return strs2;
+		});
 		return _editor;
 	}
 
