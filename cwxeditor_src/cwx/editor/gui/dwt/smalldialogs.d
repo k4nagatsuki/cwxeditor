@@ -222,7 +222,7 @@ protected:
 				_skinTypes ~= _prop.var.etc.defaultSkin;
 				_skinVal = _prop.var.etc.defaultSkin;
 			}
-			_skinC.add(_prop.msgs.classic);
+			_skinC.add(_prop.msgs.defaultSelection(_prop.msgs.classic));
 			_skinC.setText(_prop.var.etc.defaultSkin);
 			if (_skinTypes) {
 				_skinC.select(0);
@@ -245,7 +245,7 @@ protected:
 				_tTbl[i] = sct;
 			}
 			bool tenbl = _templateC.getItemCount() > 0 && _useTemplate;
-			if (!tenbl) _templateC.add(_prop.msgs.noTemplate);
+			if (!tenbl) _templateC.add(_prop.msgs.defaultSelection(_prop.msgs.noTemplate));
 			if (_templateC.getSelectionIndex() == -1) _templateC.select(0);
 			_baseTemplate.setEnabled(tenbl);
 
@@ -591,10 +591,6 @@ private:
 	Control createEditor(TableItem itm, int column) { mixin(S_TRACE);
 		string[] strs;
 		_editorTable.length = 0;
-		strs ~= "true";
-		_editorTable ~= "true";
-		strs ~= "false";
-		_editorTable ~= "false";
 		if (_summ) { mixin(S_TRACE);
 			foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
 				strs ~= objName!(typeof(f))(_comm.prop) ~ " - " ~ f.path;
@@ -652,6 +648,15 @@ private:
 				strs ~= _comm.prop.msgs.material ~ " - " ~ p;
 				_editorTable ~= CWXScript.createString(p);
 			}
+		}
+
+		foreach (keyword; .keywordInfos(_comm.prop.parent)) { mixin(S_TRACE);
+			if (keyword.type == "") { mixin(S_TRACE);
+				strs ~= keyword.name;
+			} else { mixin(S_TRACE);
+				strs ~= .tryFormat("%1$s - %2$s", keyword.type, keyword.name);
+			}
+			_editorTable ~= keyword.keyword;
 		}
 
 		auto editorTable2 = _editorTable.dup;

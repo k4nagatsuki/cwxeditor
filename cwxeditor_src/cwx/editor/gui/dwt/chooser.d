@@ -446,7 +446,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			} else { mixin(S_TRACE);
 				nof = new TableItem(_list, SWT.NONE);
 			}
-			nof.setText(_prop.msgs.noFlagRef);
+			nof.setText(_prop.msgs.defaultSelection(_prop.msgs.noFlagRef));
 			nof.setImage(_prop.images.emptyIcon);
 			if (!firstItem) firstItem = nof;
 		}
@@ -456,7 +456,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			} else { mixin(S_TRACE);
 				_random = new TableItem(_list, SWT.NONE);
 			}
-			_random.setText(_prop.msgs.randomValue);
+			_random.setText(_prop.msgs.defaultSelection(_prop.msgs.randomValue));
 			_random.setImage(_prop.images.emptyIcon);
 			if (sel == _prop.sys.randomValue) { mixin(S_TRACE);
 				has = true;

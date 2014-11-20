@@ -120,11 +120,11 @@ public:
 				_msel = new MaterialSelect!(Type, Combo, C)
 					(comm, prop, summ, _readOnly != 0, &this.refresh, defs, -1, canInclude, isMenuCard);
 			} else if (included) { mixin(S_TRACE);
-				_defs = [prop.msgs.imageNone, prop.msgs.imageIncluding];
+				_defs = [prop.msgs.defaultSelection(prop.msgs.imageNone), prop.msgs.defaultSelection(prop.msgs.imageIncluding)];
 				_msel = new MaterialSelect!(Type, Combo, C)
 					(comm, prop, summ, _readOnly != 0, &this.refresh, _defs, 1, canInclude, isMenuCard);
 			} else { mixin(S_TRACE);
-				_defs = [prop.msgs.imageNone];
+				_defs = [prop.msgs.defaultSelection(prop.msgs.imageNone)];
 				_msel = new MaterialSelect!(Type, Combo, C)
 					(comm, prop, summ, _readOnly != 0, &this.refresh, _defs, -1, canInclude, isMenuCard);
 			}

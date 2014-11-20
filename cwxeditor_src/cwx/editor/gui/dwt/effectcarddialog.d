@@ -703,7 +703,7 @@ private:
 				l.setImage(_prop.images.sound);
 				l.setText(title);
 
-				auto se = new MaterialSelect!(MtType.SE, Combo, Combo)(_comm, _prop, _summ, _readOnly != 0, null, [_prop.msgs.soundNone]);
+				auto se = new MaterialSelect!(MtType.SE, Combo, Combo)(_comm, _prop, _summ, _readOnly != 0, null, [_prop.msgs.defaultSelection(_prop.msgs.soundNone)]);
 				mod(se);
 				se.modEvent ~= &refreshWarning;
 				auto gddc = new GridData(GridData.FILL_HORIZONTAL);

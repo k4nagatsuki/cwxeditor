@@ -551,7 +551,7 @@ private:
 			}
 			spn.setEnabled(false);
 		} else {
-			combo.add(_prop.msgs.replSetID);
+			combo.add(_prop.msgs.defaultSelection(_prop.msgs.replSetID));
 			foreach (i, a; arr) { mixin(S_TRACE);
 				if (!incSearch.match(a.name)) continue;
 				combo.add(to!(string)(a.id) ~ "." ~ a.name);

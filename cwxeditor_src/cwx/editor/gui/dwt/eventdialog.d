@@ -238,7 +238,9 @@ protected:
 				_ts.setLayoutData(tgd);
 				_ts.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 				foreach (i, t; ALL_TRANSITION) { mixin(S_TRACE);
-					_ts.add(_prop.msgs.transitionName(t));
+					auto s = _prop.msgs.transitionName(t);
+					if (t is Transition.DEFAULT) s = _prop.msgs.defaultSelection(s);
+					_ts.add(s);
 					_tsTbl[i] = t;
 					if (_evt && t == _evt.transition) _ts.select(i);
 				}
@@ -837,7 +839,9 @@ protected:
 			mod(_ts);
 			_ts.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 			foreach (i, t; ALL_TRANSITION) { mixin(S_TRACE);
-				_ts.add(_prop.msgs.transitionName(t));
+				auto s = _prop.msgs.transitionName(t);
+				if (t is Transition.DEFAULT) s = _prop.msgs.defaultSelection(s);
+				_ts.add(s);
 				_tsTbl[i] = t;
 				if (_evt && t == _evt.transition) _ts.select(i);
 			}
@@ -900,7 +904,7 @@ protected:
 		{ mixin(S_TRACE);
 			auto skin = _comm.skin;
 			_msel = new MaterialSelect!(MtType.BGM, Combo, Table)
-				(_comm, _prop, _summ, false, null, [_prop.msgs.bgmStop]);
+				(_comm, _prop, _summ, false, null, [_prop.msgs.defaultSelection(_prop.msgs.bgmStop)]);
 			_msel.createDirsCombo(comp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
 			_msel.modEvent ~= &refreshWarning;
@@ -1208,7 +1212,7 @@ protected:
 					gd.horizontalSpan = 2;
 					grp.setLayoutData(gd);
 					grp.setLayout(new GridLayout(3, false));
-					_se = new MaterialSelect!(MtType.SE, Combo, Combo)(comm, prop, summ, false, null, [prop.msgs.soundNone]);
+					_se = new MaterialSelect!(MtType.SE, Combo, Combo)(comm, prop, summ, false, null, [prop.msgs.defaultSelection(prop.msgs.soundNone)]);
 					mod(_se);
 					_se.modEvent ~= &refreshWarning;
 					_se.createDirsCombo(grp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -2311,7 +2315,9 @@ protected:
 			_ts.setLayoutData(gd);
 			_ts.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
 			foreach (i, t; ALL_TRANSITION) { mixin(S_TRACE);
-				_ts.add(_prop.msgs.transitionName(t));
+				auto s = _prop.msgs.transitionName(t);
+				if (t is Transition.DEFAULT) s = _prop.msgs.defaultSelection(s);
+				_ts.add(s);
 				_tsTbl[i] = t;
 				if (_evt && t == _evt.transition) _ts.select(i);
 			}

@@ -340,7 +340,7 @@ private:
 				mod(_language);
 				_language.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				_language.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				_language.add(_prop.msgs.languageSystem);
+				_language.add(_prop.msgs.defaultSelection(_prop.msgs.languageSystem));
 				_language.select(0);
 				string curLocale = _prop.msgs.locale;
 				foreach (locale; msgsTable.keys.sort) { mixin(S_TRACE);

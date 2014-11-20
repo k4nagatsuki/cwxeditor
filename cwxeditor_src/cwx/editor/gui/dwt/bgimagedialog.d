@@ -237,9 +237,9 @@ protected:
 			_easy.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 		}
 		// FIXME: CardWirth 1.60 前景表示とセル名称 ここまで
-		_easy.add(_prop.msgs.bgImageSettingCustom);
+		_easy.add(_prop.msgs.defaultSelection(_prop.msgs.bgImageSettingCustom));
 		if (cast(ImageCell) back) { mixin(S_TRACE);
-			_easy.add(_prop.msgs.bgImageSettingOriginal);
+			_easy.add(_prop.msgs.defaultSelection(_prop.msgs.bgImageSettingOriginal));
 		}
 		foreach (bs; _prop.var.etc.bgImageSettings) { mixin(S_TRACE);
 			_easy.add(bs.name);

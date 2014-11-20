@@ -91,10 +91,10 @@ class Msgs : Properties {
 	auto scenarioName = Msg("scenarioName", "シナリオ名");
 	auto type = Msg("type", "タイプ");
 	auto initialize = Msg("initialize", "初期設定");
-	auto classic = Msg("classic", "[クラシック]");
+	auto classic = Msg("classic", "クラシック");
 	auto scenarioTemplate = Msg("scenarioTemplate", "テンプレート");
 	auto templateDesc = Msg("templateDesc", "%1$s [%2$s]");
-	auto noTemplate = Msg("noTemplate", "[テンプレート無し]");
+	auto noTemplate = Msg("noTemplate", "テンプレート無し");
 	auto createClassicDir = Msg("createClassicDir", "シナリオの作成先");
 	auto newClassicDir = Msg("newClassicDir", "シナリオ作成先の選択");
 	auto newClassicDirDesc = Msg("newClassicDirDesc", "シナリオを作成する" ~ DIR ~ "を選択してください。");
@@ -117,15 +117,14 @@ class Msgs : Properties {
 	auto dlgMsgDeleteRecycleUnuse = Msg("dlgMsgDeleteRecycleUnuse", "%1$s個の未使用ファイル・" ~ DIR ~ "をごみ箱に移動しますか？");
 
 	auto image = Msg("image", "イメージ");
-	auto pathDef = Msg("pathDef", "[デフォルト]");
-	auto imageNone = Msg("imageNone", "[イメージ無し]");
-	auto fileNone = Msg("fileNone", "[ファイルを選択]");
-	auto imageIncluding = Msg("imageIncluding", "[イメージ格納]");
-	auto pcNumber = Msg("pcNumber", "[プレイヤー%1$s]");
+	auto pathDef = Msg("pathDef", "デフォルト");
+	auto imageNone = Msg("imageNone", "イメージ無し");
+	auto fileNone = Msg("fileNone", "ファイルを選択");
+	auto imageIncluding = Msg("imageIncluding", "イメージ格納");
+	auto pcNumber = Msg("pcNumber", "プレイヤー%1$s");
 	auto pc = Msg("pc", "%1$s番目のメンバ");
-	auto seNone = Msg("seNone", "[サウンド無し]");
-	auto bgmStop = Msg("bgmStop", "[BGM停止]");
-	auto bgmNone = Msg("bgmNone", "[BGM無し]");
+	auto bgmStop = Msg("bgmStop", "BGM停止");
+	auto bgmNone = Msg("bgmNone", "BGM無し");
 	auto useNoCardSizeImage = Msg("useNoCardSizeImage", "74×94以外も許容");
 	auto dlgMsgIsSaveBeforeReload = Msg("dlgMsgIsSaveBeforeReload", "「%1$s」は変更されています。再読込しますか？");
 	auto reloadBeforeSaveError = Msg("reloadBeforeSaveError", "「%1$s」は保存されていないため、再読込できません。");
@@ -217,7 +216,7 @@ class Msgs : Properties {
 	auto replIDCompleteStamp = Msg("replIDCompleteStamp", "終了印");
 	auto replIDKeyCode = Msg("replIDKeyCode", "キーコード");
 	auto replIDCellName = Msg("replIDCellName", "セル名称");
-	auto replSetID = Msg("replSetID", "[IDを直接指定]");
+	auto replSetID = Msg("replSetID", "IDを直接指定");
 
 	auto replPath = Msg("replPath", "検索/置換する素材");
 
@@ -422,7 +421,7 @@ class Msgs : Properties {
 	const string transitionName(Transition id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Transition, "transitionName"));
 	}
-	auto transitionNameDefault = Msg("transitionNameDefault", "[プレイヤーの設定を使用]");
+	auto transitionNameDefault = Msg("transitionNameDefault", "プレイヤーの設定を使用");
 	auto transitionNameNone = Msg("transitionNameNone", "アニメーション無し");
 	auto transitionNameBlinds = Msg("transitionNameBlinds", "短冊(スレッド)式");
 	auto transitionNamePixelDissolve = Msg("transitionNamePixelDissolve", "ドット置換(シェーブ)式");
@@ -738,7 +737,7 @@ class Msgs : Properties {
 	auto ctBranchFlagCmp = Msg("ctBranchFlagCmp", "フラグ [%1$s] と [%2$s] の値を比較");
 	auto ctSubstituteStepFromRandom = Msg("ctSubstituteStepFromRandom", "ランダム値をステップ [%1$s] に代入");
 	auto ctSubstituteFlagFromRandom = Msg("ctSubstituteFlagFromRandom", "ランダム値をフラグ [%1$s] に代入");
-	auto randomValue = Msg("randomValue", "[ランダム]");
+	auto randomValue = Msg("randomValue", "ランダム値");
 	auto ctRandomSelect = Msg("ctRandomSelect", "%2$sのキャラクタを選択(%1$s)");
 	auto ctRandomSelectN = Msg("ctRandomSelectN", "キャラクタを選択(%1$s)");
 	auto castRange0 = Msg("castRange0", "対象無し");
@@ -873,13 +872,12 @@ class Msgs : Properties {
 	auto scenarioType = Msg("scenarioType", "シナリオタイプ");
 	auto sTypeXML = Msg("sTypeXML", "スキンを指定");
 	auto sTypeClassic = Msg("sTypeClassic", "クラシックエンジンを使用");
-	auto currentEngineSkin = Msg("currentEngineSkin", "[%1$s]");
 
 	auto pngMayNotCorrespond = Msg("pngMayNotCorrespond", "PNGイメージはプレイヤーの環境によって表示エラーとなる事があります。");
 	auto gifMayNotCorrespond = Msg("gifMayNotCorrespond", "GIFイメージはプレイヤーの環境によって表示エラーとなる事があります。");
 
 	/// エリア・戦闘・パッケージウィンドウ。
-	auto noRefArea = Msg("noRefArea", "[カード配置参照無し]");
+	auto noRefArea = Msg("noRefArea", "カード配置参照無し");
 	auto areaViewFlagDesc = Msg("areaViewFlagDesc", "フラグ");
 	auto areaViewRefAreaDesc = Msg("areaViewRefAreaDesc", "参照");
 	auto refFlags = Msg("refFlags", "参照フラグ");
@@ -937,12 +935,12 @@ class Msgs : Properties {
 
 	auto refFlag = Msg("refFlag", "フラグ参照先");
 	auto refStep = Msg("refStep", "ステップ参照先");
-	auto noFlagRef = Msg("noFlagRef", "[参照無し]");
+	auto noFlagRef = Msg("noFlagRef", "参照無し");
 	auto cardPosition = Msg("cardPosition", "カード位置");
 	auto backPosition = Msg("backPosition", "位置");
 	auto bgImageSettings = Msg("bgImageSettings", "簡単設定");
-	auto bgImageSettingCustom = Msg("bgImageSettingCustom", "[カスタム]");
-	auto bgImageSettingOriginal = Msg("bgImageSettingOriginal", "[元のサイズ]");
+	auto bgImageSettingCustom = Msg("bgImageSettingCustom", "カスタム");
+	auto bgImageSettingOriginal = Msg("bgImageSettingOriginal", "元のサイズ");
 	auto enemyCardBase = Msg("enemyCardBase", "基本設定");
 	auto dlgTitMenuCard = Msg("dlgTitMenuCard", "メニューカードの設定 [ %1$s ]");
 	auto dlgTitNewMenuCard = Msg("dlgTitNewMenuCard", "メニューカードの作成");
@@ -1220,13 +1218,13 @@ class Msgs : Properties {
 	const string talkerName(Talker id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Talker, "talkerName"));
 	}
-	auto talkerNameSelected = Msg("talkerNameSelected", "[選択中]");
-	auto talkerNameUnselected = Msg("talkerNameUnselected", "[選択中以外]");
-	auto talkerNameRandom = Msg("talkerNameRandom", "[ランダム]");
-	auto talkerNameCard = Msg("talkerNameCard", "[カード]");
-	auto talkerNameNarration = Msg("talkerNameNarration", "[話者無し]");
-	auto talkerNameImage = Msg("talkerNameImage", "[画像]");
-	auto talkerNameValued = Msg("talkerNameValued", "[評価メンバ]");
+	auto talkerNameSelected = Msg("talkerNameSelected", "選択中");
+	auto talkerNameUnselected = Msg("talkerNameUnselected", "選択中以外");
+	auto talkerNameRandom = Msg("talkerNameRandom", "ランダム");
+	auto talkerNameCard = Msg("talkerNameCard", "カード");
+	auto talkerNameNarration = Msg("talkerNameNarration", "話者無し");
+	auto talkerNameImage = Msg("talkerNameImage", "画像");
+	auto talkerNameValued = Msg("talkerNameValued", "評価メンバ");
 	const string rangeName(Range id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Range, "rangeName"));
 	}
@@ -1432,7 +1430,7 @@ class Msgs : Properties {
 	auto sexTitle = Msg("sexTitle", "性別");
 	auto periodTitle = Msg("periodTitle", "年代");
 	auto race = Msg("race", "種族");
-	auto noRace = Msg("noRace", "[未指定]");
+	auto noRace = Msg("noRace", "未指定");
 	auto natureTitle = Msg("natureTitle", "素質");
 	auto makingsTitle = Msg("makingsTitle", "特性");
 	auto tolerant = Msg("tolerant", "対属性");
@@ -1507,9 +1505,10 @@ class Msgs : Properties {
 	auto motionKind = Msg("motionKind", "効果種別");
 	auto motionElement = Msg("motionElement", "属性");
 	auto motionDamageType = Msg("motionDamageType", "タイプ");
+	auto calcType = Msg("calcType", "効果値タイプ");
 	auto motionValue = Msg("motionValue", "値");
 	auto motionBeast = Msg("motionBeast", "召喚するカード");
-	auto beastNone = Msg("beastNone", "[召喚獣無し]");
+	auto beastNone = Msg("beastNone", "召喚獣無し");
 	auto setBeast = Msg("setBeast", "選択");
 	auto motionRound = Msg("motionRound", "継続時間 (ラウンド数)");
 	auto motionEnhValue = Msg("motionEnhValue", "変化値");
@@ -1523,7 +1522,7 @@ class Msgs : Properties {
 	auto se = Msg("se", "効果音");
 	auto se1 = Msg("se1", "初期効果");
 	auto se2 = Msg("se2", "二次効果");
-	auto soundNone = Msg("soundNone", "[効果音無し]");
+	auto soundNone = Msg("soundNone", "効果音無し");
 	auto keyCodes = Msg("keyCodes", "イベント発火のキーコード");
 
 	auto warningNotDefaultSE = Msg("warningNotDefaultSE", "標準以外の効果音はシナリオの外では鳴らない可能性があります。");
@@ -1625,7 +1624,7 @@ class Msgs : Properties {
 	auto etcSettingsTitle = Msg("etcSettingsTitle", "詳細");
 
 	auto languageSetting = Msg("languageSetting", "言語");
-	auto languageSystem = Msg("languageSystem", "[システムの言語]");
+	auto languageSystem = Msg("languageSystem", "システムの言語");
 	auto languageCaution = Msg("languageCaution", "※ 次回起動時から適用されます");
 
 	auto etcSettingsCommon = Msg("etcSettingsCommon", "全般");
@@ -2238,6 +2237,11 @@ class Msgs : Properties {
 			"名誉こそ命":"名誉こそ命",
 			"愛に生きる":"愛に生きる",
 		];
+	}
+
+	const
+	string defaultSelection(string s) { mixin(S_TRACE);
+		return .tryFormat("[%1$s]", s);
 	}
 
 	mixin XMLFuncs!(typeof(this), "message");

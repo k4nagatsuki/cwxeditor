@@ -291,7 +291,7 @@ private:
 			_race.setEnabled(!_readOnly);
 			_race.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_race.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			_race.add(_prop.msgs.noRace);
+			_race.add(_prop.msgs.defaultSelection(_prop.msgs.noRace));
 			foreach (race; skin.races) { mixin(S_TRACE);
 				_race.add(race.name);
 			}

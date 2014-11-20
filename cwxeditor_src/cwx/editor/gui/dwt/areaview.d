@@ -150,7 +150,7 @@ private:
 			_refAreasArr.length = 0;
 			_refAreas.removeAll();
 			if (!_area) return;
-			_refAreas.add(_prop.msgs.noRefArea);
+			_refAreas.add(_prop.msgs.defaultSelection(_prop.msgs.noRefArea));
 			_refAreas.select(0);
 			bool has = _refTarget is null;
 			foreach (a; _summ.areas) { mixin(S_TRACE);
@@ -1862,7 +1862,7 @@ private:
 		foreach (path; flags) { mixin(S_TRACE);
 			if (!path.length) { mixin(S_TRACE);
 				auto nof = new TableItem(_flagList, SWT.NONE);
-				nof.setText(_prop.msgs.noFlagRef);
+				nof.setText(_prop.msgs.defaultSelection(_prop.msgs.noFlagRef));
 				nof.setImage(_prop.images.emptyIcon);
 			} else { mixin(S_TRACE);
 				auto flag = _summ.flagDirRoot.findFlag(path);
@@ -2740,7 +2740,7 @@ public:
 			_flag = new Combo(left, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			_flag.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			_flag.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			_flag.add(_prop.msgs.noFlagRef);
+			_flag.add(_prop.msgs.defaultSelection(_prop.msgs.noFlagRef));
 			_flag.addSelectionListener(new SelFlag);
 			if (_readOnly) { mixin(S_TRACE);
 				_comm.refFlagAndStep.add(&refFlag);
@@ -2769,7 +2769,7 @@ public:
 				_refAreas = new Combo(left, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 				_refAreas.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				_refAreas.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				_refAreas.add(_prop.msgs.noRefArea);
+				_refAreas.add(_prop.msgs.defaultSelection(_prop.msgs.noRefArea));
 				listener(_refAreas,  SWT.Selection, { mixin(S_TRACE);
 					int sel = _refAreas.getSelectionIndex();
 					_refTarget = sel <= 0 ? null : _refAreasArr[sel - 1];
@@ -3862,8 +3862,8 @@ public:
 			}
 			auto b = cast(ImageCell) itm.getData();
 			if (!b) return;
-			strs ~= _prop.msgs.imageNone;
-			str = _prop.msgs.imageNone;
+			strs ~= _prop.msgs.defaultSelection(_prop.msgs.imageNone);
+			str = _prop.msgs.defaultSelection(_prop.msgs.imageNone);
 			bool def;
 			string p = summSkin.findImagePathF(b.path, _summ ? _summ.scenarioPath : null, def);
 			p = nabs(p);
@@ -3898,7 +3898,7 @@ public:
 		}
 		string[] bgImageIncSearch(IncSearch incSearch) { mixin(S_TRACE);
 			string[] r;
-			r ~= _prop.msgs.imageNone;
+			r ~= _prop.msgs.defaultSelection(_prop.msgs.imageNone);
 			foreach (s; _selectableBgImages) { mixin(S_TRACE);
 				if (incSearch.match(s)) { mixin(S_TRACE);
 					r ~= s;
@@ -4158,7 +4158,7 @@ public:
 			_escTMenu.setEnabled(false);
 			new ToolItem(bar, SWT.SEPARATOR);
 			auto skin = summSkin;
-			_bgm = new MaterialSelect!(MtType.BGM, CCombo, CCombo)(_comm, _prop, _summ, _readOnly != 0, &selectBGM, [_prop.msgs.bgmNone]);
+			_bgm = new MaterialSelect!(MtType.BGM, CCombo, CCombo)(_comm, _prop, _summ, _readOnly != 0, &selectBGM, [_prop.msgs.defaultSelection(_prop.msgs.bgmNone)]);
 			auto comp = new Composite(bar, SWT.NONE);
 			comp.setLayout(zeroGridLayout(3, false));
 			auto dirs = _bgm.createDirsCombo(comp);
@@ -4246,7 +4246,7 @@ public:
 		if (!_flag) return;
 		string f = _flag.getText();
 		_flag.removeAll();
-		_flag.add(_prop.msgs.noFlagRef);
+		_flag.add(_prop.msgs.defaultSelection(_prop.msgs.noFlagRef));
 		_flag.select(0);
 		foreach (i, fl; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
 			auto path = fl.path;

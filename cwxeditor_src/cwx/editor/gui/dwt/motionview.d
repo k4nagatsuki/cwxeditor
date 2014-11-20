@@ -885,7 +885,7 @@ private:
 		_beasts.removeAll();
 		typeof(_beastTbl) b;
 		_beastTbl = b;
-		_beasts.add(_prop.msgs.beastNone);
+		_beasts.add(_prop.msgs.defaultSelection(_prop.msgs.beastNone));
 		_beastTbl[0] = null;
 		size_t i = 0;
 		bool has = false;

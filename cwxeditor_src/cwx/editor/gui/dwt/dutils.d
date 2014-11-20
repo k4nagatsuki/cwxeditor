@@ -2777,14 +2777,14 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		case Talker.RANDOM:
 		case Talker.CARD:
 		case Talker.VALUED:
-			return .tryFormat(comm.prop.msgs.ctTalkMessage, comm.prop.msgs.talkerName(evt.talkerC), text);
+			return .tryFormat(comm.prop.msgs.ctTalkMessage, .tryFormat(comm.prop.msgs.ctTalkMessageImage, comm.prop.msgs.talkerName(evt.talkerC)), text);
 		case Talker.IMAGE:
 			string t = contentTextUseID!(CIDKind.Image)(comm, summ, evt.cardPath, comm.prop.msgs.ctTalkMessageImage, evt);
 			return .tryFormat(comm.prop.msgs.ctTalkMessage, t, text);
 		}
 	} case CType.TALK_DIALOG: { mixin(S_TRACE);
 		string r(in SDialog sdlg) { mixin(S_TRACE);
-			string tt = comm.prop.msgs.talkerName(evt.talkerNC);
+			string tt = .tryFormat(comm.prop.msgs.ctTalkMessageImage, comm.prop.msgs.talkerName(evt.talkerNC));
 			string t = sdlg.text.singleLine;
 			if (sdlg.rCoupons.length) { mixin(S_TRACE);
 				return .tryFormat(comm.prop.msgs.ctTalkDialog, tt, std.string.join(sdlg.rCoupons.dup, " "), t);

@@ -850,7 +850,7 @@
 	<dt class="content"><a href="#BRITEM">britem <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></dt>
 	<dd>アイテム所持分岐</dd>
 	<dt class="content"><a href="#BRSKILL">brskill <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></dt>
-	<dd>スキル所持分岐</dd>
+	<dd>特殊技能所持分岐</dd>
 	<dt class="content"><a href="#BRBEAST">brbeast <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></dt>
 	<dd>召喚獣所持分岐</dd>
 	<dt class="content"><a href="#BRINFO">brinfo <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></dt>
@@ -892,7 +892,7 @@
 	<dt class="content"><a href="#GETITEM">getitem <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></dt>
 	<dd>アイテムの獲得</dd>
 	<dt class="content"><a href="#GETSKILL">getskill <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></dt>
-	<dd>スキルの獲得</dd>
+	<dd>特殊技能の獲得</dd>
 	<dt class="content"><a href="#GETBEAST">getbeast <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></dt>
 	<dd>召喚獣の獲得</dd>
 	<dt class="content"><a href="#GETINFO">getinfo <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></dt>
@@ -910,7 +910,7 @@
 	<dt class="content"><a href="#LOSEITEM">loseitem <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></dt>
 	<dd>アイテムの喪失</dd>
 	<dt class="content"><a href="#LOSESKILL">loseskill <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></dt>
-	<dd>スキルの喪失</dd>
+	<dd>特殊技能の喪失</dd>
 	<dt class="content"><a href="#LOSEBEAST">losebeast <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></dt>
 	<dd>召喚獣の喪失</dd>
 	<dt class="content"><a href="#LOSEINFO">loseinfo <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></dt>
@@ -1376,7 +1376,7 @@
 	<dt class="keyword"><code>dealconfuse</code></dt>
 	<dd class="worddesc">混乱カード配付。</dd>
 	<dt class="keyword"><code>dealskill</code></dt>
-	<dd class="worddesc">スキルカード配付。</dd>
+	<dd class="worddesc">特殊技能カード配付。</dd>
 	<dt class="keyword"><code>cancelaction</code></dt>
 	<dd class="worddesc">行動キャンセル。</dd>
 	<dt class="keyword"><code>summon</code></dt>
@@ -2285,7 +2285,7 @@
 <h3 class="content"><a id="BRBEAST" name="BRBEAST">brbeast <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></h3>
 
 <p class="fullname">(Branch with Existence of Beast)</p>
-<p class="desc">それぞれ、アイテム、スキル、召喚獣の所持の有無によって分岐を行います。</p>
+<p class="desc">それぞれ、アイテム、特殊技能、召喚獣の所持の有無によって分岐を行います。</p>
 
 <h4 class="argments">パラメータ</h4>
 
@@ -2705,7 +2705,7 @@
 <h3 class="content"><a id="GETBEAST" name="GETBEAST">getbeast <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></h3>
 
 <p class="fullname">(Get Beast)</p>
-<p class="desc">それぞれ、アイテム、スキル、召喚獣を入手させます。</p>
+<p class="desc">それぞれ、アイテム、特殊技能、召喚獣を入手させます。</p>
 
 <h4 class="argments">パラメータ</h4>
 
@@ -2729,7 +2729,7 @@
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">getskill</span> <span class="code">M</span>, <span class="num">10</span>, <span class="num">2</span> <span class="comment">// 選択中のメンバがID10のスキルを2枚入手</span></code></pre>
+<pre><code class="samplecode"><span class="keywords">getskill</span> <span class="code">M</span>, <span class="num">10</span>, <span class="num">2</span> <span class="comment">// 選択中のメンバがID10の特殊技能カードを2枚入手</span></code></pre>
 
 <h3 class="content"><a id="GETINFO" name="GETINFO">getinfo <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></h3>
 
@@ -2830,7 +2830,7 @@
 <h3 class="content"><a id="LOSEBEAST" name="LOSEBEAST">losebeast <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></h3>
 
 <p class="fullname">(Lose Beast)</p>
-<p class="desc">それぞれ、アイテム、スキル、召喚獣を喪失させます。</p>
+<p class="desc">それぞれ、アイテム、特殊技能、召喚獣を喪失させます。</p>
 
 <h4 class="argments">パラメータ</h4>
 

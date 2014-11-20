@@ -474,16 +474,15 @@ private:
 			}
 		}
 		_hasLegacySkin = false;
-		_typeClassic.setEnabled(!_readOnly);
+		string resDir, lEnginePath;
+		auto curSkin = Skin.findLegacy(_summ.scenarioPath, resDir, lEnginePath, _prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey, _prop.var.etc.classicEngines);
+		lEnginePath = nabs(lEnginePath);
+		bool cur = 0 != lEnginePath.length;
 		if (_typeSkin.getSelection()) { mixin(S_TRACE);
 			initSkin();
 		} else { mixin(S_TRACE);
 			assert (_typeClassic.getSelection());
 			// クラシックエンジンのリソース
-			string resDir, lEnginePath;
-			auto curSkin = Skin.findLegacy(_summ.scenarioPath, resDir, lEnginePath, _prop.var.etc.classicEngineRegex, _prop.var.etc.classicDataDirRegex, _prop.var.etc.classicMatchKey, _prop.var.etc.classicEngines);
-			lEnginePath = nabs(lEnginePath);
-			bool cur = 0 != lEnginePath.length;
 			foreach (i, ce; _classicEngines) { mixin(S_TRACE);
 				_type.add(ce.name);
 				if (selClassic && cfnmatch(selClassic, _prop.toAppAbs(ce.enginePath))) { mixin(S_TRACE);
@@ -495,17 +494,17 @@ private:
 				}
 			}
 			if (cur) { mixin(S_TRACE);
-				_type.add(.tryFormat(_prop.msgs.currentEngineSkin, lEnginePath), 0);
+				_type.add(_prop.msgs.defaultSelection(lEnginePath), 0);
 				_hasLegacySkin = true;
 			}
 			if (!_type.getItemCount()) { mixin(S_TRACE);
 				// クラシックエンジンが無い
-				_typeClassic.setEnabled(false);
 				_typeClassic.setSelection(false);
 				_typeSkin.setSelection(true);
 				initSkin();
 			}
 		}
+		_typeClassic.setEnabled(!_readOnly && (cur || _classicEngines.length));
 		assert (_type.getItemCount());
 		if (-1 == _type.getSelectionIndex()) { mixin(S_TRACE);
 			_type.select(0);

@@ -3623,3 +3623,197 @@ private const string[] TOKENS = [
 	`\(`, // open paren
 	`\)` // close paren
 ];
+
+/// CWXスクリプトのキーワード情報。
+struct CWXScriptKeyword {
+	string keyword; /// キーワード。
+	string type; /// キーワードのタイプ名。
+	string name; /// キーワード名。
+}
+
+/// キーワード情報の一覧を返す。
+CWXScriptKeyword[] keywordInfos(in CProps prop) { mixin(S_TRACE);
+	return [
+		// TRUE/FALSE
+		CWXScriptKeyword("true", "", prop.msgs.flagOn),
+		CWXScriptKeyword("false", "", prop.msgs.flagOff),
+
+		// 背景切替方式
+		CWXScriptKeyword("default", prop.msgs.transition, prop.msgs.transitionName(Transition.DEFAULT)),
+		CWXScriptKeyword("none", prop.msgs.transition, prop.msgs.transitionName(Transition.NONE)),
+		CWXScriptKeyword("thread", prop.msgs.transition, prop.msgs.transitionName(Transition.BLINDS)),
+		CWXScriptKeyword("shave", prop.msgs.transition, prop.msgs.transitionName(Transition.PIXEL_DISSOLVE)),
+		CWXScriptKeyword("fade", prop.msgs.transition, prop.msgs.transitionName(Transition.FADE)),
+
+		// 文字装飾
+		CWXScriptKeyword("bold", prop.msgs.fontStyle, prop.msgs.bold),
+		CWXScriptKeyword("italic", prop.msgs.fontStyle, prop.msgs.italic),
+		CWXScriptKeyword("underline", prop.msgs.fontStyle, prop.msgs.underline),
+		CWXScriptKeyword("strike", prop.msgs.fontStyle, prop.msgs.strike),
+		CWXScriptKeyword("vertical", prop.msgs.fontStyle, prop.msgs.vertical),
+		CWXScriptKeyword("border1", prop.msgs.bordering, prop.msgs.borderingTypeName(BorderingType.Outline)),
+		CWXScriptKeyword("border2", prop.msgs.bordering, prop.msgs.borderingTypeName(BorderingType.Inline)),
+
+		// 色合成方式
+		CWXScriptKeyword("normal", prop.msgs.blendMode, prop.msgs.blendModeName(BlendMode.Normal)),
+		CWXScriptKeyword("add", prop.msgs.blendMode, prop.msgs.blendModeName(BlendMode.Add)),
+		CWXScriptKeyword("sub", prop.msgs.blendMode, prop.msgs.blendModeName(BlendMode.Subtract)),
+		CWXScriptKeyword("mul", prop.msgs.blendMode, prop.msgs.blendModeName(BlendMode.Multiply)),
+
+		// グラデーション方向
+		CWXScriptKeyword("none", prop.msgs.gradient, prop.msgs.gradientDirName(GradientDir.None)),
+		CWXScriptKeyword("h", prop.msgs.gradient, prop.msgs.gradientDirName(GradientDir.LeftToRight)),
+		CWXScriptKeyword("v", prop.msgs.gradient, prop.msgs.gradientDirName(GradientDir.TopToBottom)),
+
+		// 効果
+		CWXScriptKeyword("heal", prop.msgs.motion, prop.msgs.motionName(MType.HEAL)),
+		CWXScriptKeyword("damage", prop.msgs.motion, prop.msgs.motionName(MType.DAMAGE)),
+		CWXScriptKeyword("absorb", prop.msgs.motion, prop.msgs.motionName(MType.ABSORB)),
+		CWXScriptKeyword("paralyze", prop.msgs.motion, prop.msgs.motionName(MType.PARALYZE)),
+		CWXScriptKeyword("disparalyze", prop.msgs.motion, prop.msgs.motionName(MType.DIS_PARALYZE)),
+		CWXScriptKeyword("poison", prop.msgs.motion, prop.msgs.motionName(MType.POISON)),
+		CWXScriptKeyword("dispoison", prop.msgs.motion, prop.msgs.motionName(MType.DIS_POISON)),
+		CWXScriptKeyword("getspilit", prop.msgs.motion, prop.msgs.motionName(MType.GET_SKILL_POWER)),
+		CWXScriptKeyword("losespilit", prop.msgs.motion, prop.msgs.motionName(MType.LOSE_SKILL_POWER)),
+		CWXScriptKeyword("sleep", prop.msgs.motion, prop.msgs.motionName(MType.SLEEP)),
+		CWXScriptKeyword("confuse", prop.msgs.motion, prop.msgs.motionName(MType.CONFUSE)),
+		CWXScriptKeyword("overheat", prop.msgs.motion, prop.msgs.motionName(MType.OVERHEAT)),
+		CWXScriptKeyword("brave", prop.msgs.motion, prop.msgs.motionName(MType.BRAVE)),
+		CWXScriptKeyword("panic", prop.msgs.motion, prop.msgs.motionName(MType.PANIC)),
+		CWXScriptKeyword("resetmind", prop.msgs.motion, prop.msgs.motionName(MType.NORMAL)),
+		CWXScriptKeyword("bind", prop.msgs.motion, prop.msgs.motionName(MType.BIND)),
+		CWXScriptKeyword("disbind", prop.msgs.motion, prop.msgs.motionName(MType.DIS_BIND)),
+		CWXScriptKeyword("silence", prop.msgs.motion, prop.msgs.motionName(MType.SILENCE)),
+		CWXScriptKeyword("dissilence", prop.msgs.motion, prop.msgs.motionName(MType.DIS_SILENCE)),
+		CWXScriptKeyword("faceup", prop.msgs.motion, prop.msgs.motionName(MType.FACE_UP)),
+		CWXScriptKeyword("facedown", prop.msgs.motion, prop.msgs.motionName(MType.FACE_DOWN)),
+		CWXScriptKeyword("antimagic", prop.msgs.motion, prop.msgs.motionName(MType.ANTI_MAGIC)),
+		CWXScriptKeyword("disantimagic", prop.msgs.motion, prop.msgs.motionName(MType.DIS_ANTI_MAGIC)),
+		CWXScriptKeyword("enhaction", prop.msgs.motion, prop.msgs.motionName(MType.ENHANCE_ACTION)),
+		CWXScriptKeyword("enhavoid", prop.msgs.motion, prop.msgs.motionName(MType.ENHANCE_AVOID)),
+		CWXScriptKeyword("enhresist", prop.msgs.motion, prop.msgs.motionName(MType.ENHANCE_DEFENSE)),
+		CWXScriptKeyword("enhdefense", prop.msgs.motion, prop.msgs.motionName(MType.ENHANCE_RESIST)),
+		CWXScriptKeyword("vantarget", prop.msgs.motion, prop.msgs.motionName(MType.VANISH_TARGET)),
+		CWXScriptKeyword("vancard", prop.msgs.motion, prop.msgs.motionName(MType.VANISH_CARD)),
+		CWXScriptKeyword("vanbeast", prop.msgs.motion, prop.msgs.motionName(MType.VANISH_BEAST)),
+		CWXScriptKeyword("dealattack", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_ATTACK_CARD)),
+		CWXScriptKeyword("dealpowerful", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_POWERFUL_ATTACK_CARD)),
+		CWXScriptKeyword("dealcritical", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_CRITICAL_ATTACK_CARD)),
+		CWXScriptKeyword("dealfeint", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_FEINT_CARD)),
+		CWXScriptKeyword("dealdefense", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_DEFENSE_CARD)),
+		CWXScriptKeyword("dealdistance", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_DISTANCE_CARD)),
+		CWXScriptKeyword("dealconfuse", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_CONFUSE_CARD)),
+		CWXScriptKeyword("dealskill", prop.msgs.motion, prop.msgs.motionName(MType.DEAL_SKILL_CARD)),
+		CWXScriptKeyword("cancelaction", prop.msgs.motion, prop.msgs.motionName(MType.CANCEL_ACTION)),
+		CWXScriptKeyword("summon", prop.msgs.motion, prop.msgs.motionName(MType.SUMMON_BEAST)),
+
+		// 効果値計算方式
+		CWXScriptKeyword("level", prop.msgs.calcType, prop.msgs.damageTypeName(DamageType.LEVEL_RATIO)),
+		CWXScriptKeyword("value", prop.msgs.calcType, prop.msgs.damageTypeName(DamageType.NORMAL)),
+		CWXScriptKeyword("max", prop.msgs.calcType, prop.msgs.damageTypeName(DamageType.MAX)),
+
+		// 属性
+		CWXScriptKeyword("all", prop.msgs.motionElement, prop.msgs.elementName(Element.ALL)),
+		CWXScriptKeyword("phy", prop.msgs.motionElement, prop.msgs.elementName(Element.HEALTH)),
+		CWXScriptKeyword("mind", prop.msgs.motionElement, prop.msgs.elementName(Element.MIND)),
+		CWXScriptKeyword("holy", prop.msgs.motionElement, prop.msgs.elementName(Element.MIRACLE)),
+		CWXScriptKeyword("magic", prop.msgs.motionElement, prop.msgs.elementName(Element.MAGIC)),
+		CWXScriptKeyword("fire", prop.msgs.motionElement, prop.msgs.elementName(Element.FIRE)),
+		CWXScriptKeyword("ice", prop.msgs.motionElement, prop.msgs.elementName(Element.ICE)),
+
+		// 視覚効果
+		CWXScriptKeyword("none", prop.msgs.effectVisual, prop.msgs.cardVisualName(CardVisual.NONE)),
+		CWXScriptKeyword("reverse", prop.msgs.effectVisual, prop.msgs.cardVisualName(CardVisual.REVERSE)),
+		CWXScriptKeyword("hswing", prop.msgs.effectVisual, prop.msgs.cardVisualName(CardVisual.HORIZONTAL)),
+		CWXScriptKeyword("vswing", prop.msgs.effectVisual, prop.msgs.cardVisualName(CardVisual.VERTICAL)),
+
+		// 効果属性
+		CWXScriptKeyword("physic", prop.msgs.elementProps, prop.msgs.effectTypeName(EffectType.PHYSIC)),
+		CWXScriptKeyword("magic", prop.msgs.elementProps, prop.msgs.effectTypeName(EffectType.MAGIC)),
+		CWXScriptKeyword("mphysic", prop.msgs.elementProps, prop.msgs.effectTypeName(EffectType.MAGICAL_PHYSIC)),
+		CWXScriptKeyword("pmagic", prop.msgs.elementProps, prop.msgs.effectTypeName(EffectType.PHYSICAL_MAGIC)),
+		CWXScriptKeyword("none", prop.msgs.elementProps, prop.msgs.effectTypeName(EffectType.NONE)),
+
+		// 抵抗属性
+		CWXScriptKeyword("avoid", prop.msgs.resistProps, prop.msgs.resistName(Resist.AVOID)),
+		CWXScriptKeyword("resist", prop.msgs.resistProps, prop.msgs.resistName(Resist.RESIST)),
+		CWXScriptKeyword("unfail", prop.msgs.resistProps, prop.msgs.resistName(Resist.UNFAIL)),
+
+		// 話者
+		CWXScriptKeyword("none", prop.msgs.talker, prop.msgs.scTalkerNameNarration),
+		CWXScriptKeyword("M", prop.msgs.talker, prop.msgs.talkerName(Talker.SELECTED)),
+		CWXScriptKeyword("U", prop.msgs.talker, prop.msgs.talkerName(Talker.UNSELECTED)),
+		CWXScriptKeyword("R", prop.msgs.talker, prop.msgs.talkerName(Talker.RANDOM)),
+		CWXScriptKeyword("C", prop.msgs.talker, prop.msgs.talkerName(Talker.CARD)),
+		CWXScriptKeyword("V", prop.msgs.talker, prop.msgs.scTalkerNameValued),
+
+		// 適用範囲
+		CWXScriptKeyword("M", prop.msgs.range, prop.msgs.rangeName(Range.SELECTED)),
+		CWXScriptKeyword("R", prop.msgs.range, prop.msgs.rangeName(Range.RANDOM)),
+		CWXScriptKeyword("T", prop.msgs.range, prop.msgs.rangeName(Range.PARTY)),
+		CWXScriptKeyword("backpack", prop.msgs.range, prop.msgs.rangeName(Range.BACKPACK)),
+		CWXScriptKeyword("party", prop.msgs.range, prop.msgs.rangeName(Range.PARTY_AND_BACKPACK)),
+		CWXScriptKeyword("field", prop.msgs.range, prop.msgs.rangeName(Range.FIELD)),
+
+		// 身体特性
+		CWXScriptKeyword("dex", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.DEX)),
+		CWXScriptKeyword("agl", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.AGL)),
+		CWXScriptKeyword("int", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.INT)),
+		CWXScriptKeyword("str", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.STR)),
+		CWXScriptKeyword("vit", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.VIT)),
+		CWXScriptKeyword("min", prop.msgs.aptPhysical, prop.msgs.physicalName(Physical.MIN)),
+
+		// 精神特性
+		CWXScriptKeyword("agg", prop.msgs.aptMental, prop.msgs.mentalName(Mental.AGGRESSIVE)),
+		CWXScriptKeyword("unagg", prop.msgs.aptMental, prop.msgs.mentalName(Mental.UNAGGRESSIVE)),
+		CWXScriptKeyword("cheerf", prop.msgs.aptMental, prop.msgs.mentalName(Mental.CHEERFUL)),
+		CWXScriptKeyword("uncheerf", prop.msgs.aptMental, prop.msgs.mentalName(Mental.UNCHEERFUL)),
+		CWXScriptKeyword("brave", prop.msgs.aptMental, prop.msgs.mentalName(Mental.BRAVE)),
+		CWXScriptKeyword("unbrave", prop.msgs.aptMental, prop.msgs.mentalName(Mental.UNBRAVE)),
+		CWXScriptKeyword("caut", prop.msgs.aptMental, prop.msgs.mentalName(Mental.CAUTIOUS)),
+		CWXScriptKeyword("uncaut", prop.msgs.aptMental, prop.msgs.mentalName(Mental.UNCAUTIOUS)),
+		CWXScriptKeyword("trick", prop.msgs.aptMental, prop.msgs.mentalName(Mental.TRICKISH)),
+		CWXScriptKeyword("untrick", prop.msgs.aptMental, prop.msgs.mentalName(Mental.UNTRICKISH)),
+
+		// 状態
+		CWXScriptKeyword("none", prop.msgs.status, prop.msgs.statusName(Status.NONE)),
+		CWXScriptKeyword("active", prop.msgs.status, prop.msgs.statusName(Status.ACTIVE)),
+		CWXScriptKeyword("inactive", prop.msgs.status, prop.msgs.statusName(Status.INACTIVE)),
+		CWXScriptKeyword("alive", prop.msgs.status, prop.msgs.statusName(Status.ALIVE)),
+		CWXScriptKeyword("dead", prop.msgs.status, prop.msgs.statusName(Status.DEAD)),
+		CWXScriptKeyword("fine", prop.msgs.status, prop.msgs.statusName(Status.FINE)),
+		CWXScriptKeyword("injured", prop.msgs.status, prop.msgs.statusName(Status.INJURED)),
+		CWXScriptKeyword("heavyinjured", prop.msgs.status, prop.msgs.statusName(Status.HEAVY_INJURED)),
+		CWXScriptKeyword("unconscious", prop.msgs.status, prop.msgs.statusName(Status.UNCONSCIOUS)),
+		CWXScriptKeyword("poison", prop.msgs.status, prop.msgs.statusName(Status.POISON)),
+		CWXScriptKeyword("sleep", prop.msgs.status, prop.msgs.statusName(Status.SLEEP)),
+		CWXScriptKeyword("bind", prop.msgs.status, prop.msgs.statusName(Status.BIND)),
+		CWXScriptKeyword("paralyze", prop.msgs.status, prop.msgs.statusName(Status.PARALYZE)),
+		CWXScriptKeyword("confuse", prop.msgs.status, prop.msgs.statusName(Status.CONFUSE)),
+		CWXScriptKeyword("overheat", prop.msgs.status, prop.msgs.statusName(Status.OVERHEAT)),
+		CWXScriptKeyword("brave", prop.msgs.status, prop.msgs.statusName(Status.BRAVE)),
+		CWXScriptKeyword("panic", prop.msgs.status, prop.msgs.statusName(Status.PANIC)),
+		CWXScriptKeyword("silence", prop.msgs.status, prop.msgs.statusName(Status.SILENCE)),
+		CWXScriptKeyword("faceup", prop.msgs.status, prop.msgs.statusName(Status.FACE_UP)),
+		CWXScriptKeyword("antimagic", prop.msgs.status, prop.msgs.statusName(Status.ANTI_MAGIC)),
+		CWXScriptKeyword("upaction", prop.msgs.status, prop.msgs.statusName(Status.UP_ACTION)),
+		CWXScriptKeyword("upavoid", prop.msgs.status, prop.msgs.statusName(Status.UP_AVOID)),
+		CWXScriptKeyword("upresit", prop.msgs.status, prop.msgs.statusName(Status.UP_RESIST)),
+		CWXScriptKeyword("updefense", prop.msgs.status, prop.msgs.statusName(Status.UP_DEFENSE)),
+		CWXScriptKeyword("downaction", prop.msgs.status, prop.msgs.statusName(Status.DOWN_ACTION)),
+		CWXScriptKeyword("downavoid", prop.msgs.status, prop.msgs.statusName(Status.DOWN_AVOID)),
+		CWXScriptKeyword("downresit", prop.msgs.status, prop.msgs.statusName(Status.DOWN_RESIST)),
+		CWXScriptKeyword("downdefense", prop.msgs.status, prop.msgs.statusName(Status.DOWN_DEFENSE)),
+
+		// 選択対象
+		CWXScriptKeyword("party", prop.msgs.selectMember, .tryFormat(prop.msgs.castRange1, prop.msgs.castRangeName(CastRange.PARTY))),
+		CWXScriptKeyword("enemy", prop.msgs.selectMember, .tryFormat(prop.msgs.castRange1, prop.msgs.castRangeName(CastRange.ENEMY))),
+		CWXScriptKeyword("npc", prop.msgs.selectMember, .tryFormat(prop.msgs.castRange1, prop.msgs.castRangeName(CastRange.NPC))),
+
+		// カード種類
+		CWXScriptKeyword("skill", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.ALL)),
+		CWXScriptKeyword("all", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.SKILL)),
+		CWXScriptKeyword("item", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.ITEM)),
+		CWXScriptKeyword("beast", prop.msgs.cardType, prop.msgs.effectCardTypeName(EffectCardType.BEAST)),
+	];
+}

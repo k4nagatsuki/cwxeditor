@@ -65,7 +65,7 @@ public:
 	const
 	override
 	string name(in CProps prop) { mixin(S_TRACE);
-		string s = path == "" ? prop.msgs.noSelectImage : (isBinImg(path) ? prop.msgs.imageIncluding : baseName(path));
+		string s = path == "" ? prop.msgs.noSelectImage : (isBinImg(path) ? prop.msgs.defaultSelection(prop.msgs.imageIncluding) : baseName(path));
 		if (cellName == "") { mixin(S_TRACE);
 			return s;
 		} else { mixin(S_TRACE);

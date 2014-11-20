@@ -855,10 +855,10 @@ protected:
 			_talkers = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			mod(_talkers);
 			_talkers.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			_talkers.add(prop.msgs.talkerName(Talker.SELECTED));
-			_talkers.add(prop.msgs.talkerName(Talker.UNSELECTED));
-			_talkers.add(prop.msgs.talkerName(Talker.RANDOM));
-			_talkers.add(prop.msgs.talkerName(Talker.VALUED));
+			_talkers.add(prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.SELECTED)));
+			_talkers.add(prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.UNSELECTED)));
+			_talkers.add(prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.RANDOM)));
+			_talkers.add(prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.VALUED)));
 			_talkers.addSelectionListener(new SelectTalker);
 		}
 
@@ -1327,10 +1327,10 @@ private Composite createTalkerPane
 		}
 	}
 	string[] defs = [
-		prop.msgs.talkerName(Talker.SELECTED),
-		prop.msgs.talkerName(Talker.UNSELECTED),
-		prop.msgs.talkerName(Talker.RANDOM),
-		prop.msgs.talkerName(Talker.CARD)
+		prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.SELECTED)),
+		prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.UNSELECTED)),
+		prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.RANDOM)),
+		prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.CARD))
 	];
 	auto s = prop.looks.cardSize;
 	msel = new ImageSelect!(MtType.CARD, Combo)(comp, SWT.NONE, comm, prop, summ, s.width, s.height,

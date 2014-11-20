@@ -290,19 +290,19 @@ public:
 			refreshPaths();
 			return;
 		}
-		string[] defs = [_prop.msgs.imageNone];
+		string[] defs = [_prop.msgs.defaultSelection(_prop.msgs.imageNone)];
 		int including = _including;
 		static if (Type == MtType.CARD) {
 			uint pcNum = pcNumber;
 		}
 		if (isBinImg(_binPath)) { mixin(S_TRACE);
 			including = defs.length;
-			defs ~= _prop.msgs.imageIncluding;
+			defs ~= _prop.msgs.defaultSelection(_prop.msgs.imageIncluding);
 		}
 		static if (Type == MtType.CARD) {
 			if (_isMenuCard && _summ && _summ.legacy) { mixin(S_TRACE);
 				foreach (num; 0 .. _prop.var.etc.partyMax) { mixin(S_TRACE);
-					defs ~= .tryFormat(_prop.msgs.pcNumber, num + 1);
+					defs ~= _prop.msgs.defaultSelection(.tryFormat(_prop.msgs.pcNumber, num + 1));
 				}
 				if (pcNum <= 0 || _prop.var.etc.partyMax < pcNum) { mixin(S_TRACE);
 					pcNum = 0;
@@ -941,7 +941,7 @@ private:
 				_fileList.setEnabled(!_readOnly);
 				refreshListImpl(dirs, forceRefresh);
 				static if (is(C : Combo) || is(C : CCombo)) {
-					_fileList.add(_prop.msgs.fileNone, 0);
+					_fileList.add(_prop.msgs.defaultSelection(_prop.msgs.fileNone), 0);
 					_fileList.select(0);
 					_fnone = true;
 				} else { mixin(S_TRACE);
@@ -984,7 +984,7 @@ private:
 		_tbl = -1;
 		if (hasTarg(tbl)) { mixin(S_TRACE);
 			_tbl = _dirs.getItemCount();
-			_dirs.add(_prop.msgs.pathDef);
+			_dirs.add(_prop.msgs.defaultSelection(_prop.msgs.pathDef));
 		}
 		size_t cut = 0;
 		if (_summ) { mixin(S_TRACE);
