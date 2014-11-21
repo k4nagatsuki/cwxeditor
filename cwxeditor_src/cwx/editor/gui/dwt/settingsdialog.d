@@ -1263,14 +1263,26 @@ protected:
 		if (_scTempls.noApply) noApplyNames ~= _scTempls.boxName;
 		if (_evTempls.noApply) noApplyNames ~= _evTempls.boxName;
 		if (noApplyNames.length) { mixin(S_TRACE);
-			auto dlg = new MessageBox(getShell(), SWT.YES | SWT.NO | SWT.ICON_QUESTION);
+			auto dlg = new MessageBox(getShell(), SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
 			dlg.setText(_prop.msgs.dlgTitQuestion);
 			if (1 < noApplyNames.length) { mixin(S_TRACE);
-				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgExistsNoApplySettings, std.string.join(noApplyNames, ", ")));
+				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgForceApply, std.string.join(noApplyNames, ", ")));
 			} else { mixin(S_TRACE);
-				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgExistsNoApplySettingsSingle, noApplyNames[0]));
+				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgForceApplySingle, noApplyNames[0]));
 			}
-			if (SWT.YES != dlg.open()) return false;
+			final switch (dlg.open()) {
+			case SWT.YES:
+				if (_bgStgs.noApply) _bgStgs.forceApply();
+				if (_tools.noApply) _tools.forceApply();
+				if (_cEngines.noApply) _cEngines.forceApply();
+				if (_scTempls.noApply) _scTempls.forceApply();
+				if (_evTempls.noApply) _evTempls.forceApply();
+				break;
+			case SWT.NO:
+				break;
+			case SWT.CANCEL:
+				return false;
+			}
 		}
 
 		auto oldStgs = OldSettings(_prop);
@@ -2079,7 +2091,7 @@ private:
 		} else static assert (0);
 	}
 	void alt() { mixin(S_TRACE);
-		int i = _list.getSelectionIndex();
+		int i = _lastSelected;
 		if (-1 == i) return;
 		if (!checkData()) return;
 		store();
@@ -2723,12 +2735,18 @@ public:
 			listener(_list, SWT.Selection, { mixin(S_TRACE);
 				if (_list.getSelectionIndex() == _lastSelected) return;
 				if (_canApply && _lastSelected != -1) { mixin(S_TRACE);
-					auto dlg = new MessageBox(getShell(), SWT.YES | SWT.NO | SWT.ICON_QUESTION);
+					auto dlg = new MessageBox(getShell(), SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
 					dlg.setText(_prop.msgs.dlgTitQuestion);
 					auto name = _name.getText();
 					if (name == "") name = _prop.msgs.noNameData;
-					dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgNoApply, name));
-					if (SWT.YES != dlg.open()) { mixin(S_TRACE);
+					dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgForceApplySelection, name));
+					final switch (dlg.open()) {
+					case SWT.YES:
+						forceApply();
+						break;
+					case SWT.NO:
+						break;
+					case SWT.CANCEL:
 						_list.select(_lastSelected);
 						return;
 					}
@@ -2991,6 +3009,15 @@ public:
 	@property
 	const
 	bool noApply() { return _canApply; }
+
+	void forceApply() { mixin(S_TRACE);
+		if (!noApply) return;
+		if (_list.getItemCount()) { mixin(S_TRACE);
+			alt();
+		} else { mixin(S_TRACE);
+			create();
+		}
+	}
 
 	@property
 	const

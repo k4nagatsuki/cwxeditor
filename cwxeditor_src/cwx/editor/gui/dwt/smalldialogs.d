@@ -790,10 +790,18 @@ class EventTemplateDialog : AbsDialog {
 
 	protected override bool apply() { mixin(S_TRACE);
 		if (_evTempls.noApply) {
-			auto dlg = new MessageBox(getShell(), SWT.YES | SWT.NO | SWT.ICON_QUESTION);
+			auto dlg = new MessageBox(getShell(), SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
 			dlg.setText(_prop.msgs.dlgTitQuestion);
-			dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgExistsNoApplySettingsSingle, _evTempls.boxName));
-			if (SWT.YES != dlg.open()) return false;
+			dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgForceApplySingle, _evTempls.boxName));
+			final switch (dlg.open()) {
+			case SWT.YES:
+				_evTempls.forceApply();
+				break;
+			case SWT.NO:
+				break;
+			case SWT.CANCEL:
+				return false;
+			}
 		}
 
 		_tmpls = _evTempls.array;

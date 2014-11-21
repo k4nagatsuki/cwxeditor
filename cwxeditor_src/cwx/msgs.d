@@ -126,6 +126,8 @@ class Msgs : Properties {
 	auto bgmStop = Msg("bgmStop", "BGM停止");
 	auto bgmNone = Msg("bgmNone", "BGM無し");
 	auto useNoCardSizeImage = Msg("useNoCardSizeImage", "74×94以外も許容");
+	auto dlgMsgForceCancelDialogs = Msg("dlgMsgForceCancelDialogs", "%1$s件のダイアログが変更されたまま適用されていません。無視して操作を続行しますか？");
+	auto dlgMsgForceCancelDialogsQuit = Msg("dlgMsgForceCancelDialogsQuit", "%1$s件のダイアログが変更されたまま適用されていません。無視して終了しますか？");
 	auto dlgMsgIsSaveBeforeReload = Msg("dlgMsgIsSaveBeforeReload", "「%1$s」は変更されています。再読込しますか？");
 	auto reloadBeforeSaveError = Msg("reloadBeforeSaveError", "「%1$s」は保存されていないため、再読込できません。");
 	auto dlgMsgIsSaveBeforeExit = Msg("dlgMsgIsSaveBeforeExit", "「%1$s」は変更されています。保存しますか？");
@@ -1732,9 +1734,9 @@ class Msgs : Properties {
 	auto sNew = Msg("sNew", "新規作成");
 	auto sAlt = Msg("sAlt", "上書き");
 	auto sDel = Msg("sDel", "削除");
-	auto dlgMsgExistsNoApplySettings = Msg("dlgMsgExistsNoApplySettings", "次の設定が変更されたまま適用されていません。これらを無視して設定を更新しますか？\n%1$s");
-	auto dlgMsgExistsNoApplySettingsSingle = Msg("dlgMsgExistsNoApplySettingsSingle", "%1$sが変更されたまま適用されていません。無視して設定を更新しますか？");
-	auto dlgMsgNoApply = Msg("dlgMsgNoApply", "「%1$s」が変更されたまま適用されていません。無視して他の項目を選択しますか？");
+	auto dlgMsgForceApply = Msg("dlgMsgForceApply", "次の設定が変更されたまま適用されていません。適用して設定を更新しますか？\n%1$s");
+	auto dlgMsgForceApplySingle = Msg("dlgMsgForceApplySingle", "%1$sが変更されたまま適用されていません。適用して設定を更新しますか？");
+	auto dlgMsgForceApplySelection = Msg("dlgMsgForceApplySelection", "「%1$s」が変更されたまま適用されていません。適用して他の項目を選択しますか？");
 	auto noNameData = Msg("noNameData", "(名前無しの項目)");
 
 	auto outerToolsAndClassicEngines = Msg("outerToolsAndClassicEngines", "外部ツールとクラシックエンジン");

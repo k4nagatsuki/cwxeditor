@@ -800,7 +800,7 @@ private:
 		}
 	}
 	void createScenario() { mixin(S_TRACE);
-		if (qSave()) { mixin(S_TRACE);
+		if (qSave(QSaveType.create)) { mixin(S_TRACE);
 			auto dlg = new CreateScenarioDialog(_comm, _prop, _win, true);
 			if (!dlg.open()) return;
 			Summary summ;
@@ -825,7 +825,7 @@ private:
 		override void drop(DropTargetEvent e) { mixin(S_TRACE);
 			auto arr = cast(FileNames) e.data;
 			if (arr && arr.array.length > 0) { mixin(S_TRACE);
-				if (qSave()) { mixin(S_TRACE);
+				if (qSave(QSaveType.open)) { mixin(S_TRACE);
 					openScenario(arr.array[0], &resetOpt);
 				}
 			}
@@ -856,7 +856,7 @@ private:
 				_prop.msgs.dlgTitWarning, _win);
 			return;
 		}
-		if (old && qSave(true)) { mixin(S_TRACE);
+		if (old && qSave(QSaveType.reload)) { mixin(S_TRACE);
 			bool expand = old.expandXMLs;
 			if (old.legacy) { mixin(S_TRACE);
 				auto wsm = std.path.buildPath(old.scenarioPath, "Summary.wsm");
@@ -891,7 +891,7 @@ private:
 		}
 	}
 	void openScenarioM() { mixin(S_TRACE);
-		if (qSave()) { mixin(S_TRACE);
+		if (qSave(QSaveType.open)) { mixin(S_TRACE);
 			openScenario();
 		}
 	}
@@ -1427,9 +1427,7 @@ private:
 		}
 	}
 	void exitAll() { mixin(S_TRACE);
-		if (qSave()) { mixin(S_TRACE);
-			_win.close();
-		}
+		_win.close();
 	}
 	private ReplaceDialog _replDlg = null;
 	void replaceText() { mixin(S_TRACE);
@@ -1443,10 +1441,37 @@ private:
 		}
 	}
 
-	bool qSave(bool reload = false) { mixin(S_TRACE);
+	enum QSaveType {
+		open,
+		create,
+		reload,
+		close,
+	}
+	bool qSave(QSaveType type) { mixin(S_TRACE);
+		auto noApplyCount = 0;
+		foreach (shell; _display.getShells()) { mixin(S_TRACE);
+			auto dlg = cast(AbsDialog)shell.getData();
+			if (!dlg) continue;
+			if (cast(SettingsDialog)dlg && type !is QSaveType.close) continue;
+			if (dlg.noApply) { mixin(S_TRACE);
+				noApplyCount++;
+			}
+		}
+		if (noApplyCount) { mixin(S_TRACE);
+			auto dlg = new MessageBox(_win, SWT.YES | SWT.NO | SWT.ICON_QUESTION);
+			dlg.setText(_prop.msgs.dlgTitQuestion);
+			if (type is QSaveType.close) { mixin(S_TRACE);
+				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgForceCancelDialogsQuit, noApplyCount));
+			} else { mixin(S_TRACE);
+				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgForceCancelDialogs, noApplyCount));
+			}
+			if (SWT.YES != dlg.open()) { mixin(S_TRACE);
+				return false;
+			}
+		}
 		if (_comm.isChanged) { mixin(S_TRACE);
 			MessageBox dlg;
-			if (reload) { mixin(S_TRACE);
+			if (type is QSaveType.reload) { mixin(S_TRACE);
 				dlg = new MessageBox(_win, SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
 				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgIsSaveBeforeReload, summary.scenarioName));
 			} else { mixin(S_TRACE);
@@ -1457,7 +1482,7 @@ private:
 			_win.setMinimized(false);
 			switch (dlg.open()) {
 			case SWT.YES, SWT.OK:
-				return reload ? true : save(_win);
+				return (type is QSaveType.reload) ? true : save(_win);
 			case SWT.NO:
 				return true;
 			case SWT.CANCEL:
@@ -1532,7 +1557,7 @@ private:
 	private CoolBar _cbar = null;
 	class SListener : ShellAdapter {
 		override void shellClosed(ShellEvent e) { mixin(S_TRACE);
-			e.doit = qSave();
+			e.doit = qSave(QSaveType.close);
 			if (e.doit) { mixin(S_TRACE);
 				if (summary && !_comm.isChanged) { mixin(S_TRACE);
 					writeDock();
@@ -1796,7 +1821,7 @@ private:
 			_hist = hist;
 		}
 		private void run() { mixin(S_TRACE);
-			if (qSave()) { mixin(S_TRACE);
+			if (qSave(QSaveType.open)) { mixin(S_TRACE);
 				openScenario(_hist, { mixin(S_TRACE);
 					delHist();
 					resetOpt();

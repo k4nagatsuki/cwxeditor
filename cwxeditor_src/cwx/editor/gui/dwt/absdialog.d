@@ -363,6 +363,9 @@ abstract class AbsDialog {
 		return _win.isDisposed();
 	}
 
+	@property
+	bool noApply() { return _apply && _apply.getEnabled(); }
+
 	void forceApply() { mixin(S_TRACE);
 		if (!_apply) return;
 		foreach (dlg; applyEvent) { mixin(S_TRACE);
