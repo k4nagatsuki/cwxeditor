@@ -340,11 +340,12 @@ public:
 	static const round_max = int.max;
 	/// 召喚獣。
 	@property
-	BeastCard beast() {return _beast;}
+	inout
+	inout(BeastCard) beast() {return _beast;}
 	/// ditto
 	@property
-	const
-	const(BeastCard) beast() {return _beast;}
+	inout
+	inout(BeastCard) beast(ulong id) { return _beast && _beast.id == id ? _beast : null; }
 	/// ditto
 	@property
 	inout

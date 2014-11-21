@@ -1099,13 +1099,9 @@ public:
 		return _skl;
 	}
 	/// ditto
-	SkillCard skill(ulong id) { mixin(S_TRACE);
+	inout
+	inout(SkillCard) skill(ulong id) { mixin(S_TRACE);
 		return find(_skl, id);
-	}
-	/// ditto
-	const
-	const(SkillCard) skill(ulong id) { mixin(S_TRACE);
-		return find!(const SkillCard)(_skl, id);
 	}
 
 	/// アイテム。
@@ -1115,13 +1111,9 @@ public:
 		return _itm;
 	}
 	/// ditto
-	ItemCard item(ulong id) { mixin(S_TRACE);
+	inout
+	inout(ItemCard) item(ulong id) { mixin(S_TRACE);
 		return find(_itm, id);
-	}
-	/// ditto
-	const
-	const(ItemCard) item(ulong id) { mixin(S_TRACE);
-		return find!(const ItemCard)(_itm, id);
 	}
 
 	/// 召喚獣。
@@ -1131,12 +1123,9 @@ public:
 		return _bst;
 	}
 	/// ditto
-	BeastCard beast(ulong id) { mixin(S_TRACE);
+	inout
+	inout(BeastCard) beast(ulong id) { mixin(S_TRACE);
 		return find(_bst, id);
-	}
-	const
-	const(BeastCard) beast(ulong id) { mixin(S_TRACE);
-		return find!(const BeastCard)(_bst, id);
 	}
 
 	/// 情報カード。
@@ -1571,9 +1560,9 @@ public:
 	string[string][string] toXMLs(const System sys) { mixin(S_TRACE);
 		auto opt = new XMLOption(sys);
 		opt.includeCard = true;
-		opt.skill = &skill;
-		opt.item = &item;
-		opt.beast = &beast;
+		opt.skill = (id) => this.skill(id);
+		opt.item = (id) => this.item(id);
+		opt.beast = (id) => this.beast(id);
 
 		string e = "";
 		string[string] s = ["Summary.xml":summaryToXML(opt)];
@@ -1636,9 +1625,9 @@ public:
 
 		auto xOpt = new XMLOption(sys);
 		xOpt.includeCard = true;
-		xOpt.skill = &skill;
-		xOpt.item = &item;
-		xOpt.beast = &beast;
+		xOpt.skill = (id) => skill(id);
+		xOpt.item = (id) => item(id);
+		xOpt.beast = (id) => beast(id);
 		std.file.write(summFile, summaryToXML(xOpt));
 
 		HashSet!Object changed = null;

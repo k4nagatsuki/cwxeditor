@@ -4050,6 +4050,11 @@ public:
 		scope (exit) {
 			if (_win.isVisible()) _win.setRedraw(true);
 		}
+		// 参照設定されているカードの場合があるので正規化する
+		auto cwxPath = summary.findCWXPath(path);
+		if (!cwxPath) return false;
+		path = cwxPath.cwxPath(true);
+
 		bool open() { mixin(S_TRACE);
 			path = .toLower(path);
 			if (cpempty(path)) { mixin(S_TRACE);

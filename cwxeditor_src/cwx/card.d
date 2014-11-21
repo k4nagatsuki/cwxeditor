@@ -23,9 +23,9 @@ class XMLOption {
 	const System sys; /// 対象システム情報。
 	bool includeCard = false; /// リンク先のカードの実体を格納する。
 	bool noLinkId = false; /// 実体を格納した時、参照IDを削除する。
-	SkillCard delegate(ulong) skill = null; /// IDからスキルカードを取得。
-	ItemCard delegate(ulong) item = null; /// IDからアイテムカードを取得。
-	BeastCard delegate(ulong) beast = null; /// IDから召喚獣カードを取得。
+	const(SkillCard) delegate(ulong) skill = null; /// IDからスキルカードを取得。
+	const(ItemCard) delegate(ulong) item = null; /// IDからアイテムカードを取得。
+	const(BeastCard) delegate(ulong) beast = null; /// IDから召喚獣カードを取得。
 	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
 	bool shallow = false; /// イベントコンテントのコピーの際、子コンテントを無視する。
 
@@ -54,16 +54,22 @@ interface SkillOwner : CWXPath {
 	@property
 	inout
 	inout(SkillCard)[] skills();
+	inout
+	inout(SkillCard) skill(ulong id);
 }
 interface ItemOwner : CWXPath {
 	@property
 	inout
 	inout(ItemCard)[] items();
+	inout
+	inout(ItemCard) item(ulong id);
 }
 interface BeastOwner : CWXPath {
 	@property
 	inout
 	inout(BeastCard)[] beasts();
+	inout
+	inout(BeastCard) beast(ulong id);
 }
 interface InfoOwner : CWXPath {
 	@property
@@ -661,7 +667,8 @@ public:
 	/// ditto
 	void removeItem(ulong id) {removeImpl(_items, id);}
 	/// ditto
-	ItemCard item(ulong id) { mixin(S_TRACE);
+	inout
+	inout(ItemCard) item(ulong id) { mixin(S_TRACE);
 		return findImpl(_items, id);
 	}
 	/// ditto
@@ -681,7 +688,8 @@ public:
 	/// ditto
 	void removeSkill(ulong id) {removeImpl(_skills, id);}
 	/// ditto
-	SkillCard skill(ulong id) { mixin(S_TRACE);
+	inout
+	inout(SkillCard) skill(ulong id) { mixin(S_TRACE);
 		return findImpl(_skills, id);
 	}
 	/// ditto
@@ -701,7 +709,8 @@ public:
 	/// ditto
 	void removeBeast(ulong id) {removeImpl(_beasts, id);}
 	/// ditto
-	BeastCard beast(ulong id) { mixin(S_TRACE);
+	inout
+	inout(BeastCard) beast(ulong id) { mixin(S_TRACE);
 		return findImpl(_beasts, id);
 	}
 	/// ditto
@@ -1605,6 +1614,7 @@ public:
 	@property
 	inout
 	inout(CWXPath)[] cwxChilds() { mixin(S_TRACE);
+		if (linkId) return [];
 		inout(CWXPath)[] r;
 		foreach (a; motions) r ~= a;
 		r ~= _ceto.cwxChilds;
@@ -1764,7 +1774,7 @@ public:
 			if (!opt.noLinkId) od2.linkId = linkId;
 			od2.overHold = true;
 			od2.hold = hold;
-			auto c2 = opt.skill(linkId);
+			auto c2 = .rebindable(opt.skill(linkId));
 			if (!c2) c2 = new SkillCard(id, "", "", "");
 			c2.toNodeImpl(cNode, opt, od2);
 			return;
@@ -1814,6 +1824,16 @@ public:
 	}
 	@property
 	CWXPath cwxParent() {return _owner;}
+
+	override
+	CWXPath findCWXPath(string path) { mixin(S_TRACE);
+		if (cpempty(path)) return this;
+		if (linkId) { mixin(S_TRACE);
+			auto summ = cast(SkillOwner).cwxTop(this);
+			return summ ? summ.skill(linkId).findCWXPath(path) : null;
+		}
+		return super.findCWXPath(path);
+	}
 }
 
 /// アイテムカード。
@@ -2004,7 +2024,7 @@ public:
 			if (!opt.noLinkId) od2.linkId = linkId;
 			od2.overHold = true;
 			od2.hold = hold;
-			auto c2 = opt.item(linkId);
+			auto c2 = .rebindable(opt.item(linkId));
 			if (!c2) c2 = new ItemCard(id, "", "", "");
 			c2.toNodeImpl(cNode, opt, od2);
 			return;
@@ -2068,6 +2088,16 @@ public:
 	}
 	@property
 	CWXPath cwxParent() {return _owner;}
+
+	override
+	CWXPath findCWXPath(string path) { mixin(S_TRACE);
+		if (cpempty(path)) return this;
+		if (linkId) { mixin(S_TRACE);
+			auto summ = cast(ItemOwner).cwxTop(this);
+			return summ ? summ.item(linkId).findCWXPath(path) : null;
+		}
+		return super.findCWXPath(path);
+	}
 }
 
 /// 召喚獣カード。
@@ -2194,7 +2224,7 @@ public:
 			auto od2 = new OverData;
 			od2.id = id;
 			if (!opt.noLinkId) od2.linkId = linkId;
-			auto c2 = opt.beast(linkId);
+			auto c2 = .rebindable(opt.beast(linkId));
 			if (!c2) c2 = new BeastCard(id, "", "", "");
 			c2.toNodeImpl(cNode, opt, od2);
 			return;
@@ -2255,6 +2285,16 @@ public:
 	}
 	@property
 	CWXPath cwxParent() {return _owner;}
+
+	override
+	CWXPath findCWXPath(string path) { mixin(S_TRACE);
+		if (cpempty(path)) return this;
+		if (linkId) { mixin(S_TRACE);
+			auto summ = cast(BeastOwner).cwxTop(this);
+			return summ ? summ.beast(linkId).findCWXPath(path) : null;
+		}
+		return super.findCWXPath(path);
+	}
 }
 
 /// 情報カード。

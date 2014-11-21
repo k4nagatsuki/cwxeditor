@@ -711,7 +711,7 @@ private:
 			auto beast = selection.beast;
 			if (beast) { mixin(S_TRACE);
 				scope img = new Image(Display.getCurrent(),
-					cardImage!(BeastCard)(_prop, summSkin, beast, _summ.scenarioPath, null, &_summ.beast, true, false));
+					cardImage!(BeastCard)(_prop, summSkin, beast, _summ.scenarioPath, null, (id) => _summ.beast(id), true, false));
 				scope data = img.getImageData();
 				auto pane = cast(Canvas) e.widget;
 				scope rect = pane.getClientArea();

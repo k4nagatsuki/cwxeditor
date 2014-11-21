@@ -6,6 +6,7 @@ import cwx.perf;
 import std.algorithm;
 import std.conv;
 import std.string;
+import std.typecons : rebindable;
 
 /// 複数のCWXパスを列挙する際のセパレータ。
 immutable CWXPATH_SEP = "&";
@@ -214,4 +215,15 @@ string cprel(string path, string ancestor) { mixin(S_TRACE);
 		return path[ancestor.length + 1 .. $];
 	}
 	return "";
+}
+
+/// 最上位のリソースを返す。
+/// cwxPathがシナリオに属している場合は、通常Summaryになる。
+CWXPath cwxTop(CWXPath cwxPath) { mixin(S_TRACE);
+	while (cwxPath) { mixin(S_TRACE);
+		auto parent = cwxPath.cwxParent;
+		if (!parent) return cwxPath;
+		cwxPath = parent;
+	}
+	return cwxPath;
 }

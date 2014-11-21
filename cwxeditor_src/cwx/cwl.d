@@ -2128,7 +2128,7 @@ void saveLScenario(Summary summ, const Skin skin, const System sys, in SaveOptio
 		InfoCard[] infos;
 		string[] wids;
 		this () {
-			d = SData(sys, summ.scenarioPath, skin, opt.saveInnerImagePath, &summ.skill, &summ.item, &summ.beast, opt);
+			d = SData(sys, summ.scenarioPath, skin, opt.saveInnerImagePath, (id) => summ.skill(id), (id) => summ.item(id), (id) => summ.beast(id), opt);
 		}
 		void writeFile(CWXPath a, string name, void delegate(ref ByteIO f) write) { mixin(S_TRACE);
 			auto file = "~" ~ name;
