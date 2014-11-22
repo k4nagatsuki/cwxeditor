@@ -2760,7 +2760,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	tgc.setForeground(fc);
 	tgc.setBackground(hc);
 	tgc.fillRectangle(0, 0, rect.width, rect.height + bh * sel.length);
-	lineH = tgc.getFontMetrics().getHeight() + 2;
+	lineH = prop.looks.messageLineHeight;
 	for (size_t i = 0; i < dmsg.length; i++) { mixin(S_TRACE);
 		if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
 			// 行数オーバー

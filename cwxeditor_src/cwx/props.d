@@ -56,6 +56,7 @@ public:
 	const CPoint messageStartPos(bool legacy, bool withTalker) { mixin(S_TRACE);
 		return withTalker ? CPoint(115, 11) : CPoint(16, 11);
 	}
+	@property const uint messageLineHeight() { return 22; }
 	@property const CPoint messageTalkerPos() {return CPoint(15, 43);}
 	@property const uint selectionBarMaxWithMessage() { return 7; }
 	@property const uint selectionBarMax() { return 13; }
