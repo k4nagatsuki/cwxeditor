@@ -1531,6 +1531,7 @@ public:
 		_comm.refreshToolBar();
 	}
 
+	private bool _resetToolBar = false;
 	private bool _showEventTreeDetail = false;
 	private string _treeKindSel = "";
 	private string _fireSel = "";
@@ -1540,19 +1541,24 @@ public:
 	}
 	void movingShell() { mixin(S_TRACE);
 		_toolbar.setRedraw(false);
-		_setupToolBar = false;
-		_showEventTreeDetail = _showEventTreeDetailItm.getSelection();
-		_prop.var.etc.eventTreeSlope = _slope.getSelection();
-		if (!_readOnly) { mixin(S_TRACE);
-			_treeKindSel = _treeKind.getText();
-			if (auto c = cast(CCombo)_fireItm.getControl()) { mixin(S_TRACE);
-				_fireSel = c.getText();
-			} else if (auto c = cast(Spinner)_fireItm.getControl()) { mixin(S_TRACE);
-				_fireSelInt = c.getSelection();
+		if (_setupToolBar) { mixin(S_TRACE);
+			_resetToolBar = true;
+			_setupToolBar = false;
+			_showEventTreeDetail = _showEventTreeDetailItm.getSelection();
+			_prop.var.etc.eventTreeSlope = _slope.getSelection();
+			if (!_readOnly) { mixin(S_TRACE);
+				_treeKindSel = _treeKind.getText();
+				if (auto c = cast(CCombo)_fireItm.getControl()) { mixin(S_TRACE);
+					_fireSel = c.getText();
+				} else if (auto c = cast(Spinner)_fireItm.getControl()) { mixin(S_TRACE);
+					_fireSelInt = c.getSelection();
+				}
+				static if (is(A:Area) || is(A:Battle)) {
+					_keyCodeTimSel = _keyCodeTim.getText();
+				}
 			}
-			static if (is(A:Area) || is(A:Battle)) {
-				_keyCodeTimSel = _keyCodeTim.getText();
-			}
+		} else { mixin(S_TRACE);
+			_resetToolBar = false;
 		}
 		while (_toolbar.getChildren()) _toolbar.getChildren()[0].dispose();
 		while (_toolbar.getItemCount()) _toolbar.getItem(0).dispose();
@@ -1561,18 +1567,20 @@ public:
 		scope (exit) _toolbar.setRedraw(true);
 		if (setupToolBar()) { mixin(S_TRACE);
 			refShowToolBar();
-			_showEventTreeDetailItm.setSelection(_showEventTreeDetail);
-			_slope.setSelection(_prop.var.etc.eventTreeSlope);
-			if (!_readOnly) { mixin(S_TRACE);
-				_treeKind.setText(_treeKindSel);
-				kindSelected();
-				if (auto c = cast(CCombo)_fireItm.getControl()) { mixin(S_TRACE);
-					c.setText(_fireSel);
-				} else if (auto c = cast(Spinner)_fireItm.getControl()) { mixin(S_TRACE);
-					c.setSelection(_fireSelInt);
-				}
-				static if (is(A:Area) || is(A:Battle)) {
-					_keyCodeTim.setText(_keyCodeTimSel);
+			if (_resetToolBar) { mixin(S_TRACE);
+				_showEventTreeDetailItm.setSelection(_showEventTreeDetail);
+				_slope.setSelection(_prop.var.etc.eventTreeSlope);
+				if (!_readOnly) { mixin(S_TRACE);
+					_treeKind.setText(_treeKindSel);
+					kindSelected();
+					if (auto c = cast(CCombo)_fireItm.getControl()) { mixin(S_TRACE);
+						c.setText(_fireSel);
+					} else if (auto c = cast(Spinner)_fireItm.getControl()) { mixin(S_TRACE);
+						c.setSelection(_fireSelInt);
+					}
+					static if (is(A:Area) || is(A:Battle)) {
+						_keyCodeTim.setText(_keyCodeTimSel);
+					}
 				}
 			}
 			_comm.refreshToolBar();
