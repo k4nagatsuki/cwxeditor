@@ -17,6 +17,7 @@ import cwx.sjis;
 import cwx.event;
 import cwx.system;
 import cwx.structs;
+import cwx.types;
 
 import core.thread;
 
@@ -412,6 +413,7 @@ public:
 				r._zipName = "";
 				r._tempPath = scDir;
 				r.refCheckPaths();
+				r.repairID0();
 				return r;
 			}
 			return null;
@@ -428,6 +430,7 @@ public:
 					r._zipName = fname;
 					r._tempPath = fn;
 					r.refCheckPaths();
+					r.repairID0();
 					if (scTemplate) { mixin(S_TRACE);
 						return createFromTemplate(r);
 					} else { mixin(S_TRACE);
@@ -464,6 +467,7 @@ public:
 							return createFromTemplate(r);
 						} else { mixin(S_TRACE);
 							r.refCheckPaths();
+							r.repairID0();
 							return r;
 						}
 					}
@@ -484,6 +488,7 @@ public:
 							r.lock(r._tempPath, r._useTemp);
 						}
 						r.refCheckPaths();
+						r.repairID0();
 						return r;
 					} else if (isDir(fname)) { mixin(S_TRACE);
 						return ll(fname);
@@ -521,6 +526,7 @@ public:
 									r._zipName = "";
 								}
 								r.refCheckPaths();
+								r.repairID0();
 								return r;
 							} catch (Exception e) {
 								printStackTrace();
@@ -778,6 +784,100 @@ public:
 	@property
 	UseCounter useCounter() { mixin(S_TRACE);
 		return _uc;
+	}
+
+	/// クラシックなシナリオで極めて稀に
+	/// IDが0のリソースがあるので、補正する。
+	private void repairID0() { mixin(S_TRACE);
+		auto area0 = area(0);
+		auto battle0 = battle(0);
+		auto package0 = cwPackage(0);
+		auto cast0 = cwCast(0);
+		auto skill0 = skill(0);
+		auto item0 = item(0);
+		auto beast0 = beast(0);
+		auto info0 = info(0);
+
+		if (!(area0 || battle0 || package0 || cast0 || skill0 || item0 || beast0 || info0)) return;
+
+		if (area0) add(area0);
+		if (battle0) add(battle0);
+		if (package0) add(package0);
+		if (cast0) add(cast0);
+		if (skill0) add(skill0);
+		if (item0) add(item0);
+		if (beast0) add(beast0);
+		if (info0) add(info0);
+		void recurse(CWXPath path) { mixin(S_TRACE);
+			if (area0) { mixin(S_TRACE);
+				if (auto c = cast(Content)path) { mixin(S_TRACE);
+					if (c.detail.use(CArg.AREA) && c.area == 0) {
+						c.area = area0.id;
+					}
+				} else if (auto c = cast(Summary)path) { mixin(S_TRACE);
+					if (c.startArea == 0) { mixin(S_TRACE);
+						c.startArea = area0.id;
+					}
+				}
+			}
+			if (battle0) { mixin(S_TRACE);
+				if (auto c = cast(Content)path) { mixin(S_TRACE);
+					if (c.detail.use(CArg.BATTLE) && c.battle == 0) { mixin(S_TRACE);
+						c.battle = battle0.id;
+					}
+				}
+			}
+			if (package0) { mixin(S_TRACE);
+				if (auto c = cast(Content)path) { mixin(S_TRACE);
+					if (c.detail.use(CArg.PACKAGE) && c.packages == 0) { mixin(S_TRACE);
+						c.packages = package0.id;
+					}
+				}
+			}
+			if (cast0) { mixin(S_TRACE);
+				if (auto c = cast(Content)path) { mixin(S_TRACE);
+					if (c.detail.use(CArg.CAST) && c.casts == 0) { mixin(S_TRACE);
+						c.casts = cast0.id;
+					}
+				} else if (auto c = cast(EnemyCard)path) { mixin(S_TRACE);
+					if (c.id == 0) { mixin(S_TRACE);
+						c.id = cast0.id;
+					}
+				}
+			}
+			if (skill0) { mixin(S_TRACE);
+				if (auto c = cast(Content)path) { mixin(S_TRACE);
+					if (c.detail.use(CArg.SKILL) && c.skill == 0) { mixin(S_TRACE);
+						c.skill = skill0.id;
+					}
+				}
+			}
+			if (item0) { mixin(S_TRACE);
+				if (auto c = cast(Content)path) { mixin(S_TRACE);
+					if (c.detail.use(CArg.ITEM) && c.item == 0) { mixin(S_TRACE);
+						c.item = item0.id;
+					}
+				}
+			}
+			if (beast0) { mixin(S_TRACE);
+				if (auto c = cast(Content)path) { mixin(S_TRACE);
+					if (c.detail.use(CArg.BEAST) && c.beast == 0) { mixin(S_TRACE);
+						c.beast = beast0.id;
+					}
+				}
+			}
+			if (info0) { mixin(S_TRACE);
+				if (auto c = cast(Content)path) { mixin(S_TRACE);
+					if (c.detail.use(CArg.INFO) && c.info == 0) { mixin(S_TRACE);
+						c.info = info0.id;
+					}
+				}
+			}
+			foreach (c; path.cwxChilds) { mixin(S_TRACE);
+				recurse(c);
+			}
+		}
+		recurse(this);
 	}
 
 	/// シナリオのシステムファイルまたはディレクトリであればtrueを返す。
