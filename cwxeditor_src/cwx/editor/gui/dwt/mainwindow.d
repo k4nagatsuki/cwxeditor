@@ -4052,7 +4052,30 @@ public:
 		}
 		// 参照設定されているカードの場合があるので正規化する
 		auto cwxPath = summary.findCWXPath(path);
-		if (!cwxPath) return false;
+		if (!cwxPath) {
+			auto cate = .cpcategory(path);
+			if (cate == "area:id" && .cpindex(path) == 0 && summary.areas) { mixin(S_TRACE);
+				path = .cpjoin(summary.areas[$ - 1].cwxPath(true), .cpbottom(path));
+			} else if (cate == "battle:id" && .cpindex(path) == 0 && summary.battles) { mixin(S_TRACE);
+				path = .cpjoin(summary.battles[$ - 1].cwxPath(true), .cpbottom(path));
+			} else if (cate == "package:id" && .cpindex(path) == 0 && summary.packages) { mixin(S_TRACE);
+				path = .cpjoin(summary.packages[$ - 1].cwxPath(true), .cpbottom(path));
+			} else if (cate == "castcard:id" && .cpindex(path) == 0 && summary.casts) { mixin(S_TRACE);
+				path = .cpjoin(summary.casts[$ - 1].cwxPath(true), .cpbottom(path));
+			} else if (cate == "skillcard:id" && .cpindex(path) == 0 && summary.skills) { mixin(S_TRACE);
+				path = .cpjoin(summary.skills[$ - 1].cwxPath(true), .cpbottom(path));
+			} else if (cate == "itemcard:id" && .cpindex(path) == 0 && summary.items) { mixin(S_TRACE);
+				path = .cpjoin(summary.items[$ - 1].cwxPath(true), .cpbottom(path));
+			} else if (cate == "beastcard:id" && .cpindex(path) == 0 && summary.beasts) { mixin(S_TRACE);
+				path = .cpjoin(summary.beasts[$ - 1].cwxPath(true), .cpbottom(path));
+			} else if (cate == "infocard:id" && .cpindex(path) == 0 && summary.infos) { mixin(S_TRACE);
+				path = .cpjoin(summary.infos[$ - 1].cwxPath(true), .cpbottom(path));
+			} else { mixin(S_TRACE);
+				return false;
+			}
+			cwxPath = summary.findCWXPath(path);
+			if (!cwxPath) return false;
+		}
 		path = cwxPath.cwxPath(true);
 
 		bool open() { mixin(S_TRACE);
