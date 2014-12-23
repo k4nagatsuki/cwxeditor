@@ -1635,7 +1635,7 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 			if (7 <= dataVersion) { mixin(S_TRACE);
 				foreground = readBool(f);
 			}
-			string text = readString(f);
+			string text = readString(f).replace("\r", "");
 			string fontName = readString(f);
 			uint size = f.readUIntL;
 			auto r = f.readUByte;
