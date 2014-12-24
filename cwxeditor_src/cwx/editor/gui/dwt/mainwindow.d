@@ -1162,12 +1162,16 @@ private:
 		opt.archiveInNewThread = _prop.var.etc.archiveInNewThread && summary.useTemp;
 		if (opt.archiveInNewThread) { mixin(S_TRACE);
 			opt.savedCallback = { mixin(S_TRACE);
-				_display.asyncExec(new class Runnable {
-					override void run() { mixin(S_TRACE);
-						_inSaving = false;
-						if (!_win.isDisposed()) _comm.refreshToolBar();
+				synchronized (_display) {
+					if (_display) { mixin(S_TRACE);
+						_display.asyncExec(new class Runnable {
+							override void run() { mixin(S_TRACE);
+								_inSaving = false;
+								if (!_win.isDisposed()) _comm.refreshToolBar();
+							}
+						});
 					}
-				});
+				}
 			};
 		}
 		return opt;
@@ -4325,14 +4329,10 @@ public:
 			dStr ~= " - " ~ .text(__LINE__);
 			_prop.images.disposeImages();
 			dStr ~= " - " ~ .text(__LINE__);
-			while (_inSaving) {
-				if (d.readAndDispatch()) {
-					_catchedChanging = false;
-				} else {
-					d.sleep();
-				}
+			synchronized (_display) {
+				_display = null;
+				d.dispose();
 			}
-			d.dispose();
 			dStr ~= " - " ~ .text(__LINE__);
 			_prop.var.save(dock);
 			dStr ~= " - " ~ .text(__LINE__);
