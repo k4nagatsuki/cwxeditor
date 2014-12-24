@@ -1945,6 +1945,7 @@ class Msgs : Properties {
 	auto menuTextShowSceneToolBar = Msg("menuTextShowSceneToolBar", "シーンビューのツールバーを表示");
 	auto menuTextShowEventToolBar = Msg("menuTextShowEventToolBar", "イベントビューのツールバーを表示");
 	auto menuTextChangeVH = Msg("menuTextChangeVH", "分割領域の縦横を切替");
+	auto menuTextSelectConnectedResource = Msg("menuTextSelectConnectedResource", "関係するリソースを選択");
 	auto menuTextFind = Msg("menuTextFind", "検索と置換");
 	auto menuTextFindID = Msg("menuTextFindID", "参照を検索");
 	auto menuTextIncSearch = Msg("menuTextIncSearch", "絞り込み検索");

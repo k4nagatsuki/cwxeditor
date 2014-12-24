@@ -169,11 +169,11 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 		up = ref2(opt.areas, uc.area, &from.area, r.areas) || up;
 		up = ref2(opt.battles, uc.battle, &from.battle, r.battles) || up;
 		up = ref2(opt.packages, uc.packages, &from.cwPackage, r.packages) || up;
-		up = ref2(opt.casts, uc.casts, &from.cwCast, r.casts) || up;
+		up = ref2(opt.casts, uc.casts, (id) => from.cwCast(id), r.casts) || up;
 		up = ref2(opt.skills, uc.skill, (id) => from.skill(id), r.skills) || up;
 		up = ref2(opt.items, uc.item, (id) => from.item(id), r.items) || up;
 		up = ref2(opt.beasts, uc.beast, (id) => from.beast(id), r.beasts) || up;
-		up = ref2(opt.infos, uc.info, &from.info, r.infos) || up;
+		up = ref2(opt.infos, uc.info, (id) => from.info(id), r.infos) || up;
 		if (!up) break;
 	}
 

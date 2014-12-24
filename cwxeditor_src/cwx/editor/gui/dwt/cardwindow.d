@@ -454,6 +454,7 @@ public:
 				static if (UseInfo) putMenuAction(MenuID.NewInfo, &create!(INFO), () => _summ !is null);
 				putMenuAction(MenuID.Up, &up, &canUp);
 				putMenuAction(MenuID.Down, &down, &canDown);
+				putMenuAction(MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
 				putMenuAction(MenuID.FindID, &replaceID, &canReplaceID);
 				putMenuAction(MenuID.EditProp, &edit, &canEdit);
 				putMenuAction(MenuID.ReNumbering, &reNumbering, &canReNumbering);
@@ -1192,6 +1193,14 @@ public:
 		@property
 		bool canReplaceID() {
 			return selectPane!(bool, "canReplaceID")();
+		}
+
+		void selectConnectedResource() {
+			selectPane!(void, "selectConnectedResource")();
+		}
+		@property
+		bool canSelectConnectedResource() {
+			return selectPane!(bool, "canSelectConnectedResource")();
 		}
 	} else {
 		void doImport() { mixin(S_TRACE);

@@ -49,6 +49,8 @@ interface CastOwner : CWXPath {
 	@property
 	inout
 	inout(CastCard)[] casts();
+	inout
+	inout(CastCard) cwCast(ulong id);
 }
 interface SkillOwner : CWXPath {
 	@property
@@ -75,6 +77,8 @@ interface InfoOwner : CWXPath {
 	@property
 	inout
 	inout(InfoCard)[] infos();
+	inout
+	inout(InfoCard) info(ulong id);
 }
 
 /// カード絡みの例外。
@@ -221,6 +225,14 @@ public:
 	void path(string path) { mixin(S_TRACE);
 		if (_path.path != path) changed();
 		_path.path = path;
+	}
+
+	/// このカードと強く関係するファイルパスを返す。
+	/// そのようなファイルが無い場合は""を返す。
+	@property
+	const
+	string connectedFile() { mixin(S_TRACE);
+		return path.isBinImg ? "" : path;
 	}
 
 	/// 解説。

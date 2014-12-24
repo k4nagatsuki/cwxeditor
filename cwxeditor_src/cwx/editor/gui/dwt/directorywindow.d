@@ -1965,7 +1965,7 @@ public:
 		}
 		return false;
 	}
-	bool select(string path) { mixin(S_TRACE);
+	bool select(string path, bool deselectEtc) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			if (!path.isAbsolute()) { mixin(S_TRACE);
 				path = _summ.scenarioPath.buildPath(path);
@@ -1981,6 +1981,7 @@ public:
 						foreach (i, itm; _files.getItems()) { mixin(S_TRACE);
 							auto fno = cast(FileNameObj) itm.getData();
 							if (cfnmatch(fno.array, path)) { mixin(S_TRACE);
+								if (deselectEtc) _files.deselectAll();
 								_files.select(i);
 								_files.showSelection();
 								_comm.refreshToolBar();
@@ -2293,7 +2294,7 @@ public:
 		if (_lastFocus is _dirs) { mixin(S_TRACE);
 			auto parItm = _dirs.getSelection()[0].getParentItem();
 			if (parItm) { mixin(S_TRACE);
-				select((cast(FileNameObj) parItm.getData()).array);
+				select((cast(FileNameObj) parItm.getData()).array, false);
 			}
 		}
 		pasteImpl(files);

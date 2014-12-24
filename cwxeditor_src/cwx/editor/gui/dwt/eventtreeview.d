@@ -1899,6 +1899,8 @@ public:
 				createMenuItem(_comm, popup, MenuID.StartToPackage, &startToPackage, &canStartToPackage);
 				createMenuItem(_comm, popup, MenuID.WrapTree, &wrapTree, &canWrapTree);
 				new MenuItem(popup, SWT.SEPARATOR);
+				createMenuItem(_comm, popup, MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
+				new MenuItem(popup, SWT.SEPARATOR);
 				createMenuItem(_comm, popup, MenuID.FindID, &findStartUsers, &canFindStartUsers);
 				new MenuItem(popup, SWT.SEPARATOR);
 				void delegate() dlg = null;
@@ -2141,20 +2143,43 @@ public:
 	}
 
 	@property
-	bool canFindStartUsers() {
+	bool canFindStartUsers() { mixin(S_TRACE);
 		return !_readOnly && selection && cast(Content)selection.getData() && (cast(Content)selection.getData()).type is CType.START;
 	}
-	void findStartUsers() {
+	void findStartUsers() { mixin(S_TRACE);
 		if (!selection) return;
 		auto start = cast(Content)selection.getData();
 		if (!start) return;
 		if (start.type !is CType.START) return;
 		auto replWin = _comm.mainWin.openReplWin();
 		CWXPath[] arr;
-		foreach (s; start.tree.startUseCounter.values(start.name)) {
+		foreach (s; start.tree.startUseCounter.values(start.name)) { mixin(S_TRACE);
 			arr ~= cast(Content)s;
 		}
 		replWin.setFindResult(arr, _prop.msgs.replStartUsers);
+	}
+	@property
+	bool canSelectConnectedResource() { mixin(S_TRACE);
+		if (_readOnly) return false;
+		if (!selection) return false;
+		auto c = cast(Content)selection.getData();
+		if (!c) return false;
+		return c.connectedResource(_summ) || _summ.hasMaterial(c.connectedFile, _prop.var.etc.ignorePaths);
+	}
+	void selectConnectedResource() { mixin(S_TRACE);
+		if (_readOnly) return;
+		if (!selection) return;
+		auto c = cast(Content)selection.getData();
+		if (!c) return;
+		if (auto path = c.connectedResource(_summ)) { mixin(S_TRACE);
+			_comm.openCWXPath(cpaddattr(path.cwxPath(true), "shallow"), false);
+			return;
+		}
+		auto file = c.connectedFile;
+		if (_summ.hasMaterial(file, _prop.var.etc.ignorePaths)) { mixin(S_TRACE);
+			_comm.openFilePath(file, false, true);
+			return;
+		}
 	}
 
 	@property

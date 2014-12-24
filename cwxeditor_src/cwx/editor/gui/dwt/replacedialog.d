@@ -3840,7 +3840,7 @@ public:
 					exec("\"" ~ _prop.parent.appPath ~ "\" -selectfile \"" ~ p.array ~ "\" \"" ~ p.scPath ~ "\"");
 					return;
 				}
-				if (_comm.openFilePath(path, false)) { mixin(S_TRACE);
+				if (_comm.openFilePath(path, false, true)) { mixin(S_TRACE);
 					_win.setActive();
 					return;
 				}

@@ -1025,7 +1025,7 @@ private:
 			dStr ~= " - " ~ .text(__LINE__);
 			if (_opt.selectfile.length) { mixin(S_TRACE);
 				_comm.openCWXPath("fileview", false);
-				_dirWin.select(_opt.selectfile);
+				_dirWin.select(_opt.selectfile, false);
 			}
 			foreach (path; _opt.openPaths) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
@@ -1953,7 +1953,7 @@ private:
 			if (!_win || _win.isDisposed()) return;
 			try { mixin(S_TRACE);
 				_comm.openCWXPath("fileview", false);
-				_dirWin.select(path);
+				_dirWin.select(path, false);
 			} catch (Throwable e) {
 				printStackTrace();
 				debugln(e);
@@ -2690,6 +2690,8 @@ public:
 					mixin (MenuAction!("me", MenuID.Down));
 					new MenuItem(me, SWT.SEPARATOR);
 				}
+				mixin (MenuAction!("me", MenuID.SelectConnectedResource, SWT.PUSH));
+				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", MenuID.Find, SWT.PUSH, "replaceText", "null"));
 				mixin (MenuAction!("me", MenuID.FindID, SWT.PUSH));
 				new MenuItem(me, SWT.SEPARATOR);
@@ -2945,6 +2947,7 @@ public:
 									case MenuID.ToScriptAll:
 									case MenuID.Up:
 									case MenuID.Down:
+									case MenuID.SelectConnectedResource:
 									case MenuID.FindID:
 									case MenuID.EditScene:
 									case MenuID.EditSceneDup:
@@ -4076,7 +4079,9 @@ public:
 			cwxPath = summary.findCWXPath(path);
 			if (!cwxPath) return false;
 		}
+		auto attrs = cpattr(path);
 		path = cwxPath.cwxPath(true);
+		foreach (attr; attrs) path = cpaddattr(path, attr);
 
 		bool open() { mixin(S_TRACE);
 			path = .toLower(path);
@@ -4114,14 +4119,19 @@ public:
 					assert (_infoWin);
 					switch (cate) {
 					case "castcard", "castcard:id", "castcardview":
+						_comm.openCastWin(shellActivate);
 						return _castWin.openCWXPath(path, shellActivate);
 					case "skillcard", "skillcard:id", "skillcardview":
+						_comm.openSkillWin(shellActivate);
 						return _skillWin.openCWXPath(path, shellActivate);
 					case "itemcard", "itemcard:id", "itemcardview":
+						_comm.openItemWin(shellActivate);
 						return _itemWin.openCWXPath(path, shellActivate);
 					case "beastcard", "beastcard:id", "beastcardview":
+						_comm.openBeastWin(shellActivate);
 						return _beastWin.openCWXPath(path, shellActivate);
 					case "infocard", "infocard:id", "infocardview":
+						_comm.openInfoWin(shellActivate);
 						return _infoWin.openCWXPath(path, shellActivate);
 					default:
 						return false;

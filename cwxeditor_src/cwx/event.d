@@ -977,7 +977,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_comment = v;
 	}
 
-
 	private Content _parent = null;
 	/// 親イベント。
 	@property
@@ -1198,6 +1197,41 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			}
 		}
 		assert (0);
+	}
+
+	/// このイベントコンテントと強く関係するリソースを返す。
+	/// そのようなリソースが無い場合はnullを返す。
+	inout
+	inout(CWXPath) connectedResource(Summary)(inout(Summary) summ) { mixin(S_TRACE);
+		auto d = detail;
+		if (d.use(CArg.AREA)) return cast(typeof(return))summ.area(area);
+		if (d.use(CArg.BATTLE)) return cast(typeof(return))summ.battle(battle);
+		if (d.use(CArg.PACKAGE)) return cast(typeof(return))summ.cwPackage(packages);
+		if (d.use(CArg.FLAG)) return cast(typeof(return))summ.flagDirRoot.findFlag(flag);
+		if (d.use(CArg.STEP)) return cast(typeof(return))summ.flagDirRoot.findStep(step);
+		if (d.use(CArg.CAST)) return cast(typeof(return))summ.cwCast(casts);
+		if (d.use(CArg.ITEM)) return cast(typeof(return))summ.item(item);
+		if (d.use(CArg.SKILL)) return cast(typeof(return))summ.skill(skill);
+		if (d.use(CArg.BEAST)) return cast(typeof(return))summ.beast(beast);
+		if (d.use(CArg.INFO)) return cast(typeof(return))summ.info(info);
+		if (d.use(CArg.START)) return tree ? cast(typeof(return))tree.start(start) : null;
+		if (d.use(CArg.FLAG_2)) return cast(typeof(return))summ.flagDirRoot.findFlag(flag2);
+		if (d.use(CArg.STEP_2)) return cast(typeof(return))summ.flagDirRoot.findStep(step2);
+
+		return null;
+	}
+
+	/// このイベントコンテントと強く関係するファイルパスを返す。
+	/// そのようなファイルが無い場合は""を返す。
+	@property
+	const
+	string connectedFile() { mixin(S_TRACE);
+		auto d = detail;
+		if (d.use(CArg.TALKER_C)) return cardPath;
+		if (d.use(CArg.BGM_PATH)) return bgmPath;
+		if (d.use(CArg.SOUND_PATH)) return soundPath;
+
+		return "";
 	}
 
 	private void setValUCs(T)(T val, UseCounter uc = null, Content c = null) { mixin(S_TRACE);
@@ -2377,10 +2411,15 @@ public:
 	/// 指定された名前のスタートコンテントがあるか。
 	const
 	bool hasStart(string name) { mixin(S_TRACE);
+		return start(name) !is null;
+	}
+	/// 指定された名前のスタートコンテントを探して返す。
+	inout
+	inout(Content) start(string name) { mixin(S_TRACE);
 		foreach (s; _starts) { mixin(S_TRACE);
-			if (0 == icmp(s.name, name)) return true;
+			if (0 == icmp(s.name, name)) return s;
 		}
-		return false;
+		return null;
 	}
 	/// 属するエリア等からの相対パスを返す。
 	@property

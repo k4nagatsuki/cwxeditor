@@ -454,6 +454,7 @@ public:
 		case MenuID.ShowSceneToolBar: return imgd!("scene_tools.png");
 		case MenuID.ShowEventToolBar: return imgd!("event_tools.png");
 		case MenuID.ChangeVH: return imgd!("chg_vh.png");
+		case MenuID.SelectConnectedResource: return imgd!("sel_connect.png");
 		case MenuID.Find: return imgd!("replace.png");
 		case MenuID.FindID: return imgd!("find_id.png");
 		case MenuID.IncSearch: return imgd!("inc_search.png");

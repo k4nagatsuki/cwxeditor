@@ -63,6 +63,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ShowSceneToolBar] = "E";
 		_mnemonic[MenuID.ShowEventToolBar] = "T";
 		_mnemonic[MenuID.ChangeVH] = "H";
+		_mnemonic[MenuID.SelectConnectedResource] = "S";
 		_mnemonic[MenuID.Find] = "F";
 		_mnemonic[MenuID.FindID] = "I";
 		_mnemonic[MenuID.IncSearch] = "N";
@@ -273,6 +274,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.ShowSceneToolBar] = "Ctrl+Shift+S";
 		_hotkey[MenuID.ShowEventToolBar] = "Ctrl+Shift+E";
 		_hotkey[MenuID.ChangeVH] = "";
+		_hotkey[MenuID.SelectConnectedResource] = "Ctrl+R";
 		_hotkey[MenuID.Find] = "Ctrl+F";
 		_hotkey[MenuID.FindID] = "Ctrl+Shift+F";
 		_hotkey[MenuID.IncSearch] = "Ctrl+I";
@@ -681,6 +683,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.ShowSceneToolBar:
 	case MenuID.ShowEventToolBar:
 	case MenuID.ChangeVH:
+	case MenuID.SelectConnectedResource:
 	case MenuID.Find:
 	case MenuID.FindID:
 	case MenuID.IncSearch:

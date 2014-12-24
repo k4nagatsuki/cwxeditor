@@ -1304,6 +1304,7 @@ enum MenuID {
 	ShowSceneToolBar,
 	ShowEventToolBar,
 	ChangeVH,
+	SelectConnectedResource,
 	Find,
 	FindID,
 	IncSearch,

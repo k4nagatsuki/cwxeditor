@@ -303,6 +303,7 @@ public:
 				putMenuAction(MenuID.SwapToParent, &_eview.swapToParent, () => _tabf.getSelection() is _tabE && &_eview.canSwapToParent);
 				putMenuAction(MenuID.SwapToChild, &_eview.swapToChild, () => _tabf.getSelection() is _tabE && &_eview.canSwapToChild);
 			}
+			putMenuAction(MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
 		}
 
 		void closeAdds(Summary summ) { mixin(S_TRACE);
@@ -514,11 +515,29 @@ public:
 			_eview.initial();
 			_eview.findStartUsers();
 		}
+		@property
+		private bool canSelectConnectedResource() { mixin(S_TRACE);
+			if (_tabf.getSelection() is _tabA) {
+				return _aview.canSelectConnectedResource();
+			} else {
+				_eview.initial();
+				return _eview.eventTreeView.canSelectConnectedResource();
+			}
+		}
+		private void selectConnectedResource() { mixin(S_TRACE);
+			if (_tabf.getSelection() is _tabA) {
+				_aview.selectConnectedResource();
+			} else {
+				_eview.initial();
+				_eview.eventTreeView.selectConnectedResource();
+			}
+		}
 		private void edit() { mixin(S_TRACE);
 			if (_tabf.getSelection() is _tabA) {
 				_aview.edit();
 			} else {
-				_aview.edit();
+				_eview.initial();
+				_eview.edit();
 			}
 		}
 		@property
@@ -526,6 +545,7 @@ public:
 			if (_tabf.getSelection() is _tabA) {
 				return _aview.canEdit;
 			} else {
+				_eview.initial();
 				return _eview.canEdit;
 			}
 		}
@@ -533,6 +553,13 @@ public:
 		private void edit() { _aview.edit(); }
 		@property
 		private bool canEdit() { return _aview.canEdit; }
+		@property
+		private bool canSelectConnectedResource() { mixin(S_TRACE);
+			return _aview.canSelectConnectedResource();
+		}
+		private void selectConnectedResource() { mixin(S_TRACE);
+			_aview.selectConnectedResource();
+		}
 	}
 
 	@property

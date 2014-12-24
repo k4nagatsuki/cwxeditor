@@ -1277,9 +1277,9 @@ class Commons {
 	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		return _main.openCWXPath(path, shellActivate);
 	}
-	bool openFilePath(string path, bool shellActivate) { mixin(S_TRACE);
+	bool openFilePath(string path, bool shellActivate, bool deselectEtc = false) { mixin(S_TRACE);
 		openDirWin(shellActivate);
-		return _dirWin.select(path);
+		return _dirWin.select(path, deselectEtc);
 	}
 	void replacePath(string from, bool start) { mixin(S_TRACE);
 		auto replWin = _main.openReplWin();

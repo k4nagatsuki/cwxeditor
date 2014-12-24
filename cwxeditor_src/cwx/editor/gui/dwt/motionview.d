@@ -1182,6 +1182,8 @@ public:
 				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new BeastTCPD, true, true, true, true, false);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
 				_beastImg.setMenu(menu);
 				auto gd = new GridData(GridData.FILL_BOTH);
 				gd.horizontalSpan = 2;
@@ -1307,6 +1309,29 @@ public:
 	void refEnabled() { mixin(S_TRACE);
 		auto m = selection();
 		if (_maxNest) _maxNest.setEnabled(!_readOnly && m && m.beast && 0 != m.beast.linkId);
+	}
+	@property
+	private bool canSelectConnectedResource() { mixin(S_TRACE);
+		if (!selection) return false;
+		auto m = selection;
+		if (!m.beast) return false;
+		auto b = m.beast;
+		if (b.linkId) b = _summ.beast(b.linkId);
+		if (!b) return false;
+		auto file = b.connectedFile;
+		return _summ.hasMaterial(file, _prop.var.etc.ignorePaths);
+	}
+	private void selectConnectedResource() { mixin(S_TRACE);
+		if (!selection) return;
+		auto m = selection;
+		if (!m.beast) return;
+		auto b = m.beast;
+		if (b.linkId) b = _summ.beast(b.linkId);
+		if (!b) return;
+		auto file = b.connectedFile;
+		if (_summ.hasMaterial(file, _prop.var.etc.ignorePaths)) { mixin(S_TRACE);
+			_comm.openFilePath(file, false, true);
+		}
 	}
 	@property
 	void motions(Motion[] motions) { mixin(S_TRACE);

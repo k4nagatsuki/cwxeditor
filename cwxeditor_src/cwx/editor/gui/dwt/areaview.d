@@ -1709,6 +1709,8 @@ private:
 				itm.setImage(_prop.images.editEventBattle);
 			}
 			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
+			new MenuItem(menu, SWT.SEPARATOR);
 			_sgPMenu = createMenuItem(_comm, menu, MenuID.ShowGrid, &reverseShowGrid, null, SWT.CHECK);
 			_sgPMenu.setSelection(_showGrid);
 
@@ -2378,11 +2380,19 @@ private:
 					itm.setImage(_prop.images.editEventBattle);
 				} else static assert (0);
 			}
+			static if (is(C:AbstractSpCard)) {
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.SelectConnectedResource, &selectConnectedResourceC, &canSelectConnectedResourceC);
+			} else static if (is(C:BgImage)) {
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.SelectConnectedResource, &selectConnectedResourceB, &canSelectConnectedResourceB);
+			} else static assert (0);
 			static if (is(C:BgImage)) {
 				if (!_readOnly) { mixin (S_TRACE);
-					new MenuItem(menu, SWT.SEPARATOR);
+					// FIXME: CardWirth 1.60 セル名称
+/*					new MenuItem(menu, SWT.SEPARATOR);
 					createMenuItem(_comm, menu, MenuID.FindID, &findCellName, &canFindCellName);
-				}
+*/				}
 			}
 			list.setMenu(menu);
 		}
@@ -2405,6 +2415,32 @@ private:
 			}
 			return false;
 		}
+		@property
+		bool canSelectConnectedResourceB() { mixin(S_TRACE);
+			auto index = _backs.getSelectionIndex();
+			if (index == -1) return false;
+			auto cell = cast(BgImage)_backs.getItem(index).getData();
+			if (!cell) return false;
+			if (canSelectConnectedResourceImpl(cell)) return true;
+			foreach (item; _backs.getSelection()) { mixin(S_TRACE);
+				auto c = cast(BgImage)item.getData();
+				if (!c) continue;
+				if (canSelectConnectedResourceImpl(c)) return true;
+			}
+			return false;
+		}
+		void selectConnectedResourceB() { mixin(S_TRACE);
+			auto index = _backs.getSelectionIndex();
+			if (index == -1) return;
+			auto cell = cast(BgImage)_backs.getItem(index).getData();
+			if (!cell) return;
+			if (selectConnectedResourceImpl(cell)) return;
+			foreach (item; _backs.getSelection()) { mixin(S_TRACE);
+				auto c = cast(BgImage)item.getData();
+				if (!c) continue;
+				if (selectConnectedResourceImpl(c)) return;
+			}
+		}
 	}
 	static if (UseCards) {
 		void setAutoImpl(bool value) { mixin(S_TRACE);
@@ -2417,6 +2453,115 @@ private:
 				if (v._customMenu) v._customMenu.setSelection(!value);
 				if (v._customTMenu) v._customTMenu.setSelection(!value);
 				v.callModEvent();
+			}
+		}
+		@property
+		bool canSelectConnectedResourceC() { mixin(S_TRACE);
+			auto index = _cards.getSelectionIndex();
+			if (index == -1) return false;
+			auto card = cast(AbstractSpCard)_cards.getItem(index).getData();
+			if (!card) return false;
+			if (canSelectConnectedResourceImpl(card)) return true;
+			foreach (item; _cards.getSelection()) { mixin(S_TRACE);
+				auto c = cast(AbstractSpCard)item.getData();
+				if (!c) continue;
+				if (canSelectConnectedResourceImpl(c)) return true;
+			}
+			return false;
+		}
+		void selectConnectedResourceC() { mixin(S_TRACE);
+			auto index = _cards.getSelectionIndex();
+			if (index == -1) return;
+			auto card = cast(AbstractSpCard)_cards.getItem(index).getData();
+			if (!card) return;
+			if (selectConnectedResourceImpl(card)) return;
+			foreach (item; _cards.getSelection()) { mixin(S_TRACE);
+				auto c = cast(AbstractSpCard)item.getData();
+				if (!c) continue;
+				if (selectConnectedResourceImpl(c)) return;
+			}
+		}
+	}
+	private bool canSelectConnectedResourceImpl(CWXPath c) { mixin(S_TRACE);
+		if (auto card = cast(AbstractSpCard)c) { mixin(S_TRACE);
+			if (auto path = card.connectedResource(_summ)) { mixin(S_TRACE);
+				return true;
+			}
+			auto file = card.connectedFile;
+			if (_summ.hasMaterial(file, _prop.var.etc.ignorePaths)) { mixin(S_TRACE);
+				return true;
+			}
+		}
+		if (auto cell = cast(BgImage)c) { mixin(S_TRACE);
+			auto file = cell.connectedFile;
+			if (_summ.hasMaterial(file, _prop.var.etc.ignorePaths)) { mixin(S_TRACE);
+				return true;
+			}
+		}
+		return false;
+	}
+	private bool selectConnectedResourceImpl(CWXPath c) { mixin(S_TRACE);
+		if (auto card = cast(AbstractSpCard)c) { mixin(S_TRACE);
+			if (auto path = card.connectedResource(_summ)) { mixin(S_TRACE);
+				_comm.openCWXPath(cpaddattr(path.cwxPath(true), "shallow"), false);
+				return true;
+			}
+			auto file = card.connectedFile;
+			if (_summ.hasMaterial(file, _prop.var.etc.ignorePaths)) { mixin(S_TRACE);
+				_comm.openFilePath(file, false, true);
+				return true;
+			}
+		}
+		if (auto cell = cast(BgImage)c) { mixin(S_TRACE);
+			auto file = cell.connectedFile;
+			if (_summ.hasMaterial(file, _prop.var.etc.ignorePaths)) { mixin(S_TRACE);
+				_comm.openFilePath(file, false, true);
+				return true;
+			}
+		}
+		return false;
+	}
+	@property
+	public bool canSelectConnectedResource() { mixin(S_TRACE);
+		static if (UseCards && UseBacks) {
+			if (_cards.isFocusControl() && canSelectConnectedResourceC) { mixin(S_TRACE);
+				return true;
+			} else if (_backs.isFocusControl() && canSelectConnectedResourceB) { mixin(S_TRACE);
+				return true;
+			}
+		}
+		static if (UseCards) {
+			if (canSelectConnectedResourceC) { mixin(S_TRACE);
+				return true;
+			}
+		}
+		static if (UseBacks) {
+			if (canSelectConnectedResourceB) { mixin(S_TRACE);
+				return true;
+			}
+		}
+		return false;
+	}
+	public void selectConnectedResource() { mixin(S_TRACE);
+		static if (UseCards && UseBacks) {
+			if (_cards.isFocusControl() && canSelectConnectedResourceC) { mixin(S_TRACE);
+				selectConnectedResourceC();
+				return;
+			} else if (_backs.isFocusControl() && canSelectConnectedResourceB) { mixin(S_TRACE);
+				selectConnectedResourceB();
+				return;
+			}
+		}
+		static if (UseCards) {
+			if (canSelectConnectedResourceC) { mixin(S_TRACE);
+				selectConnectedResourceC();
+				return;
+			}
+		}
+		static if (UseBacks) {
+			if (canSelectConnectedResourceB) { mixin(S_TRACE);
+				selectConnectedResourceB();
+				return;
 			}
 		}
 	}

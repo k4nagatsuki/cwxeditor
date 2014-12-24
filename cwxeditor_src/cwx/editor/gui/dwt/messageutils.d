@@ -1673,7 +1673,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 		fontIncSearch = createIncs(fonts, &refListSPF, MenuID.OpenAtFileView, { mixin(S_TRACE);
 			auto font = fonts.getText();
 			try { mixin(S_TRACE);
-				comm.openFilePath(font, false);
+				comm.openFilePath(font, false, true);
 			} catch (Exception e) {
 				printStackTrace();
 				debugln(e);

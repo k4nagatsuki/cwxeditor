@@ -1183,13 +1183,9 @@ public:
 		return _cast;
 	}
 	/// ditto
-	CastCard cwCast(ulong id) { mixin(S_TRACE);
+	inout
+	inout(CastCard) cwCast(ulong id) { mixin(S_TRACE);
 		return find(_cast, id);
-	}
-	/// ditto
-	const
-	const(CastCard) cwCast(ulong id) { mixin(S_TRACE);
-		return find!(const CastCard)(_cast, id);
 	}
 
 	/// スキル。
@@ -1235,13 +1231,9 @@ public:
 		return _info;
 	}
 	/// ditto
-	InfoCard info(ulong id) { mixin(S_TRACE);
+	inout
+	inout(InfoCard) info(ulong id) { mixin(S_TRACE);
 		return find(_info, id);
-	}
-	/// ditto
-	const
-	const(InfoCard) info(ulong id) { mixin(S_TRACE);
-		return find!(const InfoCard)(_info, id);
 	}
 
 	private static bool hasId(T)(const T[] arr, ulong id) { mixin(S_TRACE);
@@ -2518,6 +2510,16 @@ public:
 		}
 		dirS(scenarioPath);
 		return r;
+	}
+	/// 指定されたパスがシナリオ内に存在しているか。
+	/// シナリオ内には存在せずスキンに存在しているような場合はfalseとなる。
+	const
+	bool hasMaterial(string path, in string[] ignorePaths) {
+		if (path == "") return false;
+		if (.containsPath(ignorePaths, baseName(path))) return false;
+		path = nabs(scenarioPath).buildPath(path);
+		if (isSystemFile(path)) return false;
+		return path.exists() && path.isFile();
 	}
 	/// 素材の一覧を返す。
 	string[] allMaterials(in Skin skin, in string[] ignorePaths, bool logicalSort, bool scenarioOnly) { mixin(S_TRACE);

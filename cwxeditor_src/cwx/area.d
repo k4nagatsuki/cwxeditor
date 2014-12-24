@@ -179,6 +179,21 @@ public:
 		}
 	}
 
+	/// このカードと強く関係するリソースを返す。
+	/// そのようなリソースが無い場合はnullを返す。
+	inout
+	inout(CWXPath) connectedResource(inout(CastOwner) summ) { mixin(S_TRACE);
+		return null;
+	}
+
+	/// このカードと強く関係するファイルパスを返す。
+	/// そのようなファイルが無い場合は""を返す。
+	@property
+	const
+	string connectedFile() { mixin(S_TRACE);
+		return "";
+	}
+
 	@property
 	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		_user.setUseCounter(uc);
@@ -313,6 +328,12 @@ public:
 	void id(ulong id) { mixin(S_TRACE);
 		if (_user.casts != id) changed();
 		_user.casts = id;
+	}
+
+	override
+	inout
+	inout(CWXPath) connectedResource(inout(CastOwner) summ) { mixin(S_TRACE);
+		return summ.cwCast(id);
 	}
 
 	@property
@@ -533,6 +554,13 @@ public:
 	void pcNumber(uint pcNumber) { mixin(S_TRACE);
 		if (_pcNumber != pcNumber) changed();
 		_pcNumber = pcNumber;
+	}
+
+	@property
+	override
+	const
+	string connectedFile() { mixin(S_TRACE);
+		return path.isBinImg ? "" : path;
 	}
 
 	@property

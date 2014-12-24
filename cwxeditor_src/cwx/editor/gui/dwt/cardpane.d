@@ -2153,8 +2153,12 @@ public:
 			createMenuItem(_comm, pop, MenuID.Redo, &redo, &_undo.canRedo);
 			new MenuItem(pop, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, pop, this, true, true, true, true, true);
-			new MenuItem(pop, SWT.SEPARATOR);
-			createMenuItem(_comm, pop, MenuID.FindID, &replaceID, &canReplaceID);
+			static if (is(CardOwner:Summary) && EditMode) {
+				new MenuItem(pop, SWT.SEPARATOR);
+				createMenuItem(_comm, pop, MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
+				new MenuItem(pop, SWT.SEPARATOR);
+				createMenuItem(_comm, pop, MenuID.FindID, &replaceID, &canReplaceID);
+			}
 			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.ReNumbering, &reNumbering, &canReNumbering);
 		} else { mixin(S_TRACE);
@@ -2905,6 +2909,33 @@ public:
 		@property
 		bool canReplaceID() {
 			return selection !is null;
+		}
+
+		@property
+		bool canSelectConnectedResource() { mixin(S_TRACE);
+			if (!selection) return false;
+			auto c = selection;
+			static if (is(typeof(c.linkId))) {
+				if (0 != c.linkId) { mixin(S_TRACE);
+					c = pOwnerCard(c.linkId);
+					if (!c) return false;
+				}
+			}
+			return _summ.hasMaterial(c.connectedFile, _prop.var.etc.ignorePaths);
+		}
+		void selectConnectedResource() { mixin(S_TRACE);
+			if (!selection) return;
+			auto c = selection;
+			static if (is(typeof(c.linkId))) {
+				if (0 != c.linkId) { mixin(S_TRACE);
+					c = pOwnerCard(c.linkId);
+					if (!c) return;
+				}
+			}
+			auto file = c.connectedFile;
+			if (_summ.hasMaterial(file, _prop.var.etc.ignorePaths)) { mixin(S_TRACE);
+				_comm.openFilePath(file, false, true);
+			}
 		}
 	}
 

@@ -96,6 +96,13 @@ public:
 	}
 
 	@property
+	override
+	const
+	string connectedFile() { mixin(S_TRACE);
+		return path.isBinImg ? "" : path;
+	}
+
+	@property
 	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
 		_user.setUseCounter(uc);
 		super.setUseCounter(uc);
@@ -893,6 +900,14 @@ public:
 	void foreground(bool v) { mixin(S_TRACE);
 		if (_foreground != v) changed();
 		_foreground = v;
+	}
+
+	/// この背景と強く関係するファイルパスを返す。
+	/// そのようなファイルが無い場合は""を返す。
+	@property
+	const
+	string connectedFile() { mixin(S_TRACE);
+		return "";
 	}
 
 	override void change(FlagId id) { mixin(S_TRACE);

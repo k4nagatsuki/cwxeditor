@@ -804,7 +804,7 @@ private:
 		if (dir == _tbl) return;
 		auto p = filePath;
 		if (p.length) { mixin(S_TRACE);
-			_comm.openFilePath(p, false);
+			_comm.openFilePath(p, false, true);
 		}
 	}
 	private static string fromViewPath(string s) { mixin(S_TRACE);
