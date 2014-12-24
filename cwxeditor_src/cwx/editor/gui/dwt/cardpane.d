@@ -2153,9 +2153,9 @@ public:
 			createMenuItem(_comm, pop, MenuID.Redo, &redo, &_undo.canRedo);
 			new MenuItem(pop, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, pop, this, true, true, true, true, true);
+			new MenuItem(pop, SWT.SEPARATOR);
+			createMenuItem(_comm, pop, MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
 			static if (is(CardOwner:Summary) && EditMode) {
-				new MenuItem(pop, SWT.SEPARATOR);
-				createMenuItem(_comm, pop, MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
 				new MenuItem(pop, SWT.SEPARATOR);
 				createMenuItem(_comm, pop, MenuID.FindID, &replaceID, &canReplaceID);
 			}
