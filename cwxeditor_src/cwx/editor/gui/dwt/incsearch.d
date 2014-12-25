@@ -150,7 +150,7 @@ class IncSearch {
 			parent.getShell().removeListener(SWT.Move, l);
 			parent.removeListener(SWT.Resize, l);
 			parent.removeListener(SWT.Move, l);
-			d.removeListener(SWT.FocusOut, rmFocus);
+			d.removeListener(SWT.FocusIn, rmFocus);
 			d.removeListener(SWT.FocusOut, rmFocus);
 		});
 		.listener(parent, SWT.Dispose, {
