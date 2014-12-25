@@ -38,6 +38,13 @@ debug {
 } else {
 	@property
 	private immutable DR = "Release";
+
+	// FIXME: dmd 2.066 で、
+	// Error 42: Symbol Undefined _D3std5array16__T8popFrontTyuZ8popFrontFNaNbNiNeKAyuZv
+	// というエラーが出る。すなわち次のテンプレート内のシンボルが無い。
+	// pure nothrow @nogc @trusted void std.array.popFront!(immutable(wchar)).popFront(ref immutable(wchar)[])
+	// ここで強引に実体化して回避する。
+	immutable SYMBOL_INCLUDE = function wchar() { auto s = new immutable(wchar)[1]; std.array.popFront(s); return 0; }();
 }
 shared immutable string APP_BUILD = "Build: "
 		~ __DATE__[7 .. $]

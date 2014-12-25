@@ -203,7 +203,7 @@ class IncSearch {
 			_parent.getShell().removeListener(SWT.Move, l);
 			_parent.removeListener(SWT.Resize, l);
 			_parent.removeListener(SWT.Move, l);
-			d.removeListener(SWT.FocusOut, rmFocus);
+			d.removeListener(SWT.FocusIn, rmFocus);
 			d.removeListener(SWT.FocusOut, rmFocus);
 		});
 		.listener(_parent, SWT.Dispose, { mixin(S_TRACE);
