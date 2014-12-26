@@ -3183,7 +3183,7 @@ public:
 						return -1;
 					}
 				}
-				auto card = new MenuCard(baseName(.stripExtension(fname)), fname, "", "", x, y, 1.0);
+				auto card = new MenuCard(baseName(.stripExtension(fname)), fname.abs2rel(_summ.scenarioPath), "", "", x, y, 1.0);
 				return appendCard(card, true, true, fromImgPane);
 			}
 			private class CLDropTarget : DropTargetAdapter {
@@ -3342,7 +3342,7 @@ public:
 					return -1;
 				}
 			}
-			auto back = new BgImage(fname, "", x, y, w, h, false);
+			auto back = new BgImage(fname.abs2rel(_summ.scenarioPath), "", x, y, w, h, false);
 			return appendBgImage(back, true, true, fromImgPane);
 		}
 		private class BLDropTarget : DropTargetAdapter {
