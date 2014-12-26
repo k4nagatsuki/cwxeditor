@@ -1535,7 +1535,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 		auto fgd = new GridData(GridData.FILL_HORIZONTAL);
 		auto gc = new GC(comp);
 		scope (exit) gc.dispose();
-		fgd.widthHint = gc.textExtent("font_##.bmp").x;
+		fgd.widthHint = gc.wTextExtent("font_##.bmp").x;
 		fonts.setLayoutData(fgd);
 		imgListBtn = new Button(comp, SWT.TOGGLE);
 		imgListBtn.setImage(prop.images.menu(MenuID.LookImages));
@@ -2772,7 +2772,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			string s1 = to!string(dmsg[i]);
 			i++;
 			string s2 = to!string(dmsg[i]);
-			auto w = (tgc.textExtent(s1).x - 1) + (tgc.textExtent(s2).x - 1);
+			auto w = (tgc.wTextExtent(s1).x - 1) + (tgc.wTextExtent(s2).x - 1);
 			if (msgLen < writeLen + 2) { mixin(S_TRACE);
 				// 列数オーバー
 				if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) { mixin(S_TRACE);
@@ -2813,9 +2813,9 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			break;
 		default:
 			auto s = to!string(c);
-			auto te = tgc.textExtent(s);
+			auto te = tgc.wTextExtent(s);
 			int w = te.x - 1;
-			int len = (te.x + 1) / tgc.textExtent("#").x;
+			int len = (te.x + 1) / tgc.wTextExtent("#").x;
 			// 行末が半角スペースの時だけ特別扱いする(CardWirthの挙動に合わせた処理)
 			if (msgLen < writeLen + (s == " " ? len - 1 : len)) { mixin(S_TRACE);
 				// 列数オーバー
@@ -2831,11 +2831,11 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			static immutable JOINS = "―─＿￣";
 			if (std.string.indexOf(JOINS, s) != -1) { mixin(S_TRACE);
 				// 強制的に左右を接続する文字
-				tgc.drawText(s, x - 1, y, true);
-				tgc.drawText(s, x, y, true);
-				tgc.drawText(s, x + 1, y, true);
+				tgc.wDrawText(s, x - 1, y, true);
+				tgc.wDrawText(s, x, y, true);
+				tgc.wDrawText(s, x + 1, y, true);
 			} else { mixin(S_TRACE);
-				tgc.drawText(s, x, y, true);
+				tgc.wDrawText(s, x, y, true);
 			}
 			x += w;
 			break;
@@ -2849,8 +2849,8 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	int sx;
 	int sy = rect.height + ((bh - slh) / 2);
 	foreach (i, t; sel) { mixin(S_TRACE);
-		sx = (rect.width - tgc.textExtent(t).x) / 2;
-		tgc.drawText(t, sx, sy, true);
+		sx = (rect.width - tgc.wTextExtent(t).x) / 2;
+		tgc.wDrawText(t, sx, sy, true);
 		sy += bh;
 	}
 

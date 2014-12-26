@@ -601,11 +601,11 @@ public:
 							scope (exit) dc.setAlpha(255);
 							switch (a.textPos) {
 							case TPos.LEFT: { mixin(S_TRACE);
-								dc.drawText(a.text, a.insets.w, a.insets.n, true);
+								dc.wDrawText(a.text, a.insets.w, a.insets.n, true);
 							} break;
 							case TPos.RIGHT: { mixin(S_TRACE);
-								int tw = dc.textExtent(a.text).x;
-								dc.drawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
+								int tw = dc.wTextExtent(a.text).x;
+								dc.wDrawText(a.text, initW - a.insets.e - tw, a.insets.n, true);
 							} break;
 							default: assert (0);
 							}
@@ -637,11 +637,11 @@ public:
 					auto color = new Color(cur, _titColor);
 					scope (exit) color.dispose();
 					dc.setForeground(color);
-					dc.drawText(_title, titPoint.x, titPoint.y, true);
+					dc.wDrawText(_title, titPoint.x, titPoint.y, true);
 					dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
 				} else { mixin(S_TRACE);
 					dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
-					dc.drawText(_title, titPoint.x, titPoint.y, true);
+					dc.wDrawText(_title, titPoint.x, titPoint.y, true);
 				}
 				dc.setFont(null);
 			}
@@ -753,7 +753,7 @@ public:
 				immutable s = [c].toUTF8();
 				pathL.addString(s, x, y, font);
 				pathF.addString(s, x + hb, y + hb, font);
-				x += gc.textExtent(s).x;
+				x += gc.wTextExtent(s).x;
 			}
 			if (underline) { mixin(S_TRACE);
 				int ly = y + ulinePos;
@@ -883,9 +883,9 @@ public:
 		int height, ulineWidth, ulinePos, slineWidth, slinePos;
 		lineMetrics(gc, height, ulineWidth, ulinePos, slineWidth, slinePos);
 		foreach (line; lines) { mixin(S_TRACE);
-			gc.drawText(line, x, y, true);
+			gc.wDrawText(line, x, y, true);
 			if (underline || strike) { mixin(S_TRACE);
-				auto ts = gc.textExtent(line);
+				auto ts = gc.wTextExtent(line);
 				if (underline) { mixin(S_TRACE);
 					gc.fillRectangle(0, y + ulinePos, ts.x, ulineWidth);
 				}

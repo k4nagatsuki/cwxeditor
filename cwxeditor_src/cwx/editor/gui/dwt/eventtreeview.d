@@ -1520,7 +1520,7 @@ private:
 		auto fore = e.gc.getForeground();
 		auto back = e.gc.getBackground();
 		auto counts = new string[_tree.getItemCount()];
-		auto ucExtent = e.gc.textExtent(_prop.msgs.startUseCount);
+		auto ucExtent = e.gc.wTextExtent(_prop.msgs.startUseCount);
 		int maxW = 0;
 		int h = e.gc.getFontMetrics().getHeight();
 		if (_summ ? _prop.var.etc.drawCountOfUseOfStart : drawCountOfUseOfStart) { mixin(S_TRACE);
@@ -1530,7 +1530,7 @@ private:
 				int count = suc.get(toStartId(c.name));
 				if (0 == i) count++;
 				counts[i] = .text(count);
-				auto extent = e.gc.textExtent(counts[i]);
+				auto extent = e.gc.wTextExtent(counts[i]);
 				maxW = max(maxW, extent.x);
 			}
 		}
@@ -1547,10 +1547,10 @@ private:
 				string t = counts[i];
 				int tx = ca.width - maxW - 5;
 				int ty = b.y + (b.height - h) / 2;
-				e.gc.drawString(t, tx, ty);
+				e.gc.wDrawText(t, tx, ty);
 				e.gc.setForeground(fontColor);
 				scope (exit) e.gc.setForeground(fore);
-				e.gc.drawString(_prop.msgs.startUseCount, tx - ucExtent.x - 5, ty);
+				e.gc.wDrawText(_prop.msgs.startUseCount, tx - ucExtent.x - 5, ty);
 			}
 		}
 	}
@@ -1601,7 +1601,7 @@ private:
 			}
 			return wImg;
 		}
-		auto dotExtent = e.gc.textExtent("...");
+		auto dotExtent = e.gc.wTextExtent("...");
 		foreach (i, itm; itms) { mixin(S_TRACE);
 			if (itm.getItemCount() && !itm.getExpanded()) { mixin(S_TRACE);
 				// アイテムを畳んでいる場合は明示する
@@ -1611,7 +1611,7 @@ private:
 				int dotX = bounds.x + bounds.width + 2;
 				bounds.x = dotX + 10;
 				bounds.width = dotExtent.x + 10;
-				e.gc.drawString("...", bounds.x + 5, bounds.y + (bounds.height - dotExtent.y) / 2, true);
+				e.gc.wDrawText("...", bounds.x + 5, bounds.y + (bounds.height - dotExtent.y) / 2, true);
 				auto lineY = bounds.y + bounds.height / 2;
 				e.gc.drawLine(dotX, lineY, bounds.x, lineY);
 				e.gc.setAntialias(SWT.ON);
@@ -1624,13 +1624,13 @@ private:
 				int dis = _prop.var.etc.commentBoxDistance;
 				auto ib = itm.getBounds();
 				cm = std.string.chomp(.lastRet(cm));
-				auto te = e.gc.textExtent(cm);
+				auto te = e.gc.wTextExtent(cm);
 				// 改行文字があると横幅がおかしくなるため
 				// 測り直す
 				te.x = 0;
 				auto lines = splitLines!string(cm);
 				foreach (line; lines) { mixin(S_TRACE);
-					te.x = max(e.gc.textExtent(line).x, te.x);
+					te.x = max(e.gc.wTextExtent(line).x, te.x);
 				}
 				int tx = ib.x + ib.width + dis;
 				int ty = ib.y + (ib.height - te.y) / 2;
@@ -1703,9 +1703,9 @@ private:
 			e.gc.setAlpha(alpha);
 
 			// FIXME: 場合によって改行が反映されない
-//			e.gc.drawString(cm, tx, ty, true);
+//			e.gc.wDrawText(cm, tx, ty, true);
 			foreach (line; lines) { mixin(S_TRACE);
-				e.gc.drawString(line, tx, ty, true);
+				e.gc.wDrawText(line, tx, ty, true);
 				ty += lineHeight;
 			}
 			// FIXME: 一度でもsetAlpha()を呼び出すと描画されなくなる

@@ -634,7 +634,7 @@ private class SummaryPreview : Composite {
 					scope font = new Font(d, fontData);
 					gc.setFont(font);
 					scope p = gc.stringExtent(text);
-					gc.drawString(text, (size.width - p.x) / 2, y, true);
+					gc.wDrawText(text, (size.width - p.x) / 2, y, true);
 					font.dispose();
 				}
 				int alpha;
@@ -669,11 +669,11 @@ private class SummaryPreview : Composite {
 				string desc = _desc();
 				if (_comm.skin.legacy) { mixin(S_TRACE);
 					foreach (line; splitLines!string(desc)) { mixin(S_TRACE);
-						gc.drawText(line, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
+						gc.wDrawText(line, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
 						y += _prop.looks.summaryDescLineHeightClassic;
 					}
 				} else { mixin(S_TRACE);
-					gc.drawText(desc, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
+					gc.wDrawText(desc, x, y, SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
 				}
 				gc.setFont(null);
 				font.dispose();

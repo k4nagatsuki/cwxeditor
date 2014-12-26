@@ -244,8 +244,8 @@ class ImageList : Composite {
 				int iy = (_imgH - ih) / 2;
 				e.gc.drawImage(img, x + ix, y + iy);
 				string name = .cutText(_path[i].baseName(), e.gc, _imgW);
-				auto te = e.gc.textExtent(name);
-				e.gc.drawText(name, x + (_imgW - te.x) / 2, y + _imgH);
+				auto te = e.gc.wTextExtent(name);
+				e.gc.wDrawText(name, x + (_imgW - te.x) / 2, y + _imgH);
 				if (i == _sel) { mixin(S_TRACE);
 					e.gc.drawRectangle(x - 2, y - 2, _imgW + 3, _imgH + fh + 3);
 				}

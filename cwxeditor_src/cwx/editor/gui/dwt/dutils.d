@@ -1347,25 +1347,25 @@ void drawCenterText(FontData fontData, GC gc, Rectangle ca, string str) { mixin(
 	auto font = new Font(Display.getCurrent(), fontData);
 	scope (exit) font.dispose();
 	gc.setFont(font);
-	auto te = gc.textExtent(str);
+	auto te = gc.wTextExtent(str);
 	int x = ca.x + (ca.width - te.x) / 2;
 	int y = ca.y + (ca.height - te.y) / 2;
-	gc.drawText(str, x, y, true);
+	gc.wDrawText(str, x, y, true);
 }
 
 void hemming(GC gc, string s, int tx, int ty, Color color) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-	gc.drawText(s, tx - 1, ty, true);
-	gc.drawText(s, tx, ty - 1, true);
-	gc.drawText(s, tx + 1, ty, true);
-	gc.drawText(s, tx, ty + 1, true);
-	gc.drawText(s, tx - 1, ty - 1, true);
-	gc.drawText(s, tx - 1, ty + 1, true);
-	gc.drawText(s, tx + 1, ty - 1, true);
-	gc.drawText(s, tx + 1, ty + 1, true);
+	gc.wDrawText(s, tx - 1, ty, true);
+	gc.wDrawText(s, tx, ty - 1, true);
+	gc.wDrawText(s, tx + 1, ty, true);
+	gc.wDrawText(s, tx, ty + 1, true);
+	gc.wDrawText(s, tx - 1, ty - 1, true);
+	gc.wDrawText(s, tx - 1, ty + 1, true);
+	gc.wDrawText(s, tx + 1, ty - 1, true);
+	gc.wDrawText(s, tx + 1, ty + 1, true);
 	gc.setForeground(color);
-	gc.drawText(s, tx, ty, true);
+	gc.wDrawText(s, tx, ty, true);
 }
 ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool dbgMode) { mixin(S_TRACE);
 	auto cardSize = prop.looks.cardSize;
@@ -1535,7 +1535,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 		scope (exit) bff.dispose();
 		gc.setFont(bff);
 		string s = to!(string)(beastCount);
-		auto cw = gc.textExtent(s).x;
+		auto cw = gc.wTextExtent(s).x;
 		auto mt = gc.getFontMetrics();
 		auto tx = bid.width - cw - 1;
 		auto ty = bid.height - mt.getAscent() - 2;
@@ -2486,7 +2486,7 @@ int textWidth(Props prop, Control c, string text) { mixin(S_TRACE);
 	auto mono = new Font(Display.getCurrent(), new FontData(prop.looks.monospace, 10, SWT.NORMAL));
 	scope (exit) mono.dispose();
 	gc.setFont(mono);
-	return gc.textExtent(text).x / gc.textExtent(" ").x;
+	return gc.wTextExtent(text).x / gc.wTextExtent(" ").x;
 }
 
 Cursor[Shell] setWaitCursors(Shell shell) { mixin(S_TRACE);
@@ -3477,5 +3477,69 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out s
 			text2 = parText;
 			img2 = parImg;
 		}
+	}
+}
+
+/// BUG: GDI+でOpenTypeフォントを使用しようとした時の問題を避ける
+void wDrawText(GC gc, string text, int x, int y) { mixin(S_TRACE);
+	if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
+		auto data = gc.getGCData();
+		auto g = data.gdipGraphics;
+		data.gdipGraphics = null;
+		scope (exit) data.gdipGraphics = g;
+		gc.drawText(text, x, y);
+	} else { mixin(S_TRACE);
+		gc.drawText(text, x, y);
+	}
+}
+/// ditto
+void wDrawText(GC gc, string text, int x, int y, bool isTransparent) { mixin(S_TRACE);
+	if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
+		auto data = gc.getGCData();
+		auto g = data.gdipGraphics;
+		data.gdipGraphics = null;
+		scope (exit) data.gdipGraphics = g;
+		gc.drawText(text, x, y, isTransparent);
+	} else { mixin(S_TRACE);
+		gc.drawText(text, x, y, isTransparent);
+	}
+}
+/// ditto
+void wDrawText(GC gc, string text, int x, int y, int flags) { mixin(S_TRACE);
+	if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
+		auto data = gc.getGCData();
+		auto g = data.gdipGraphics;
+		data.gdipGraphics = null;
+		scope (exit) data.gdipGraphics = g;
+		gc.drawText(text, x, y, flags);
+	} else { mixin(S_TRACE);
+		gc.drawText(text, x, y, flags);
+	}
+}
+/// ditto
+Point wTextExtent(GC gc, string text) { mixin(S_TRACE);
+	if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
+		auto data = gc.getGCData();
+		auto g = data.gdipGraphics;
+		data.gdipGraphics = null;
+		scope (exit) data.gdipGraphics = g;
+		return gc.textExtent(text);
+	} else { mixin(S_TRACE);
+		return gc.textExtent(text);
+	}
+}
+/// ditto
+private bool isEnableGdipAndNotTrueTypeFont(GC gc) { mixin(S_TRACE);
+	version (Windows) {
+		if (!gc.getAdvanced()) return false;
+		import org.eclipse.swt.internal.win32.WINTYPES;
+		import org.eclipse.swt.internal.win32.OS;
+		TEXTMETRIC tm;
+		auto old = OS.SelectObject(gc.handle, gc.getFont().handle);
+		scope (exit) OS.SelectObject(gc.handle, old);
+		if (!OS.GetTextMetrics(gc.handle, &tm)) return false;
+		return !(tm.tmPitchAndFamily & TMPF_TRUETYPE);
+	} else {
+		return false;
 	}
 }

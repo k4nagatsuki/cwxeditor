@@ -104,7 +104,7 @@ class EventEditorItem : Item {
 		scope (exit) gc.dispose();
 		auto pos = _parent._posTable[c.eventId];
 		auto sy = _parent.getVerticalBar().getSelection() * _parent._lineHeight;
-		return new Rectangle(0, pos.y - sy, 20 + gc.textExtent(pos.eventText).x + 4, pos.height);
+		return new Rectangle(0, pos.y - sy, 20 + gc.wTextExtent(pos.eventText).x + 4, pos.height);
 	}
 	Rectangle getImageBounds() { mixin(S_TRACE);
 		auto c = cast(Content)getData();
@@ -124,6 +124,7 @@ class EventEditor : Composite {
 	private int _splitter;
 	private int _imageWidth = 16;
 	private int _lineHeight = 16;
+	private int _lineTextY = 0;
 	private int _imgPos = 0;
 	private int _heightSum = 0;
 	private int _widthSum = 0;
@@ -152,14 +153,16 @@ class EventEditor : Composite {
 	private bool _showSelection = false;
 
 	this (Commons comm, Composite parent, int style, Summary summ, EventTree et) { mixin(S_TRACE);
-		super (parent, style | SWT.V_SCROLL | SWT.H_SCROLL | SWT.DOUBLE_BUFFERED);
+		super (parent, style | SWT.V_SCROLL | SWT.H_SCROLL);
 		auto d = getDisplay();
 		_comm = comm;
 		_summ = summ;
 		_et = et;
 		auto gc = new GC(this);
 		scope (exit) gc.dispose();
-		_lineHeight = gc.getFontMetrics().getHeight();
+		auto th = gc.getFontMetrics().getHeight();
+		_lineHeight = .max(_lineHeight, th);
+		_lineTextY = (_lineHeight - th) / 2;
 		_imgPos = (_lineHeight - _comm.prop.images.content(CType.START).getBounds().height) / 2;
 
 		auto vbar = getVerticalBar();
@@ -316,7 +319,7 @@ class EventEditor : Composite {
 			if (s == "") { mixin(S_TRACE);
 				_widthSum = .max(x + 16, _widthSum);
 			} else { mixin(S_TRACE);
-				_widthSum = .max(x + 20 + gc.textExtent(s).x, _widthSum);
+				_widthSum = .max(x + 20 + gc.wTextExtent(s).x, _widthSum);
 			}
 
 			if (c.next.length && !_expanded.get(c.eventId, true)) { mixin(S_TRACE);
@@ -362,7 +365,7 @@ class EventEditor : Composite {
 			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
 				s = _comm.skin.evtChildOK;
 			}
-			int rx = 20 + gc.textExtent(s).x;
+			int rx = 20 + gc.wTextExtent(s).x;
 			auto rect = new Rectangle(pos.x, pos.y, rx, pos.height);
 			cBoxes[c.eventId] = rect;
 			return rect;
@@ -374,18 +377,18 @@ class EventEditor : Composite {
 			auto cRect = itemRect(pos);
 			int rx = cRect.x + cRect.width;
 			if (!_expanded.get(c.eventId, true)) { mixin(S_TRACE);
-				rx += 14 + gc.textExtent("...").x + 3;
+				rx += 14 + gc.wTextExtent("...").x + 3;
 			} else { mixin(S_TRACE);
 				rx += 2;
 			}
 			auto cm = std.string.chomp(.lastRet(c.comment));
-			auto te = gc.textExtent(cm);
+			auto te = gc.wTextExtent(cm);
 			// 改行文字があると横幅がおかしくなるため
 			// 測り直す
 			te.x = 0;
 			auto lines = splitLines!string(cm);
 			foreach (line; lines) { mixin(S_TRACE);
-				te.x = max(gc.textExtent(line).x, te.x);
+				te.x = max(gc.wTextExtent(line).x, te.x);
 			}
 			// 前後n件のイベントコンテントに被らないようにする
 			int ba = lines.length;
@@ -468,7 +471,7 @@ class EventEditor : Composite {
 						auto gc = new GC(this);
 						scope (exit) gc.dispose();
 						int dw = detailAreaWidth - 2 - 18;
-						if (dw < gc.textExtent(s).x) { mixin(S_TRACE);
+						if (dw < gc.wTextExtent(s).x) { mixin(S_TRACE);
 							toolTip = s;
 						}
 					}
@@ -782,6 +785,7 @@ class EventEditor : Composite {
 		auto p = getDisplay().getCursorLocation();
 		p = toControl(p);
 		auto sy = getVerticalBar().getSelection() * _lineHeight;
+		auto old = _lightup;
 		clearLightup();
 		_lightup = ca.contains(p) ? getContent(p.x, p.y) : null;
 		if (_lightup && _lightup.eventId in _posTable) { mixin(S_TRACE);
@@ -933,7 +937,7 @@ class EventEditor : Composite {
 		e.gc.setLineWidth(1);
 
 		// イベントコンテントのアイコンとテキスト
-		auto ucExtent = e.gc.textExtent(_comm.prop.msgs.startUseCount);
+		auto ucExtent = e.gc.wTextExtent(_comm.prop.msgs.startUseCount);
 		e.gc.setForeground(getForeground());
 		foreach (ref pos; poss) { mixin(S_TRACE);
 			auto c = pos.content;
@@ -948,26 +952,26 @@ class EventEditor : Composite {
 				s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
 			}
 			auto ctx = pos.x + 20;
-			e.gc.drawText(s, ctx - sx, pos.y - sy, true);
+			e.gc.wDrawText(s, ctx - sx, pos.y - sy + _lineTextY, true);
 			if ((_summ ? _comm.prop.var.etc.drawCountOfUseOfStart : drawCountOfUseOfStart) && c.type == CType.START) { mixin(S_TRACE);
 				// スタート使用数
 				auto count = _et.startUseCounter.get(toStartId(c.name));
 				if (_pos[0].content is c) count++;
 				auto uc = .text(count);
-				auto tw = e.gc.textExtent(uc).x;
+				auto tw = e.gc.wTextExtent(uc).x;
 				int tx = ca.width - detailAreaWidth - 4 - tw;
 				e.gc.setForeground(getForeground());
-				e.gc.drawString(_comm.prop.msgs.startUseCount, tx - ucExtent.x - 4, pos.y - sy, true);
+				e.gc.wDrawText(_comm.prop.msgs.startUseCount, tx - ucExtent.x - 4, pos.y - sy + _lineTextY, true);
 				e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-				e.gc.drawString(uc, tx, pos.y - sy, true);
+				e.gc.wDrawText(uc, tx, pos.y - sy + _lineTextY, true);
 			}
 			if (!_expanded.get(c.eventId, true)) { mixin(S_TRACE);
 				// ツリーを畳んでいる時のマーク
 				e.gc.setForeground(getForeground());
-				auto tw = e.gc.textExtent(s).x;
-				auto te = e.gc.textExtent("...");
+				auto tw = e.gc.wTextExtent(s).x;
+				auto te = e.gc.wTextExtent("...");
 				e.gc.drawLine(ctx + tw + 2 - sx, pos.y - sy + hh, ctx + tw + 10 - sx, pos.y - sy + hh);
-				e.gc.drawString("...", ctx + tw + 14 - sx, pos.y - sy, true);
+				e.gc.wDrawText("...", ctx + tw + 14 - sx, pos.y - sy + _lineTextY, true);
 				e.gc.setAntialias(SWT.ON);
 				e.gc.drawRoundRectangle(ctx + tw + 10 - sx, pos.y - sy, te.x + 8, te.y, 10, 10);
 				e.gc.setAntialias(SWT.OFF);
@@ -995,7 +999,7 @@ class EventEditor : Composite {
 				e.gc.setAlpha(128);
 				e.gc.drawImage(image, x, pos.y + _imgPos - sy);
 				e.gc.setAlpha(255);
-				e.gc.drawText(s, x + 18, pos.y - sy, true);
+				e.gc.wDrawText(s, x + 18, pos.y - sy + _lineTextY, true);
 			}
 
 			// 警告
@@ -1031,10 +1035,9 @@ class EventEditor : Composite {
 			e.gc.setForeground(getForeground());
 			e.gc.drawRoundRectangle(box.x - sx, box.y - sy, box.width, box.height, 12, 12);
 			e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-			e.gc.drawString(pos.content.comment, box.x + 5 - sx, box.y + 3 - sy, true);
+			e.gc.wDrawText(pos.content.comment, box.x + 5 - sx, box.y + 3 - sy, true);
 		}
 		e.gc.setAntialias(SWT.OFF);
-
 		if (_showSelection) { mixin(S_TRACE);
 			_showSelection = false;
 			showSelection();

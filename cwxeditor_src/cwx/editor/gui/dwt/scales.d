@@ -111,15 +111,15 @@ class Scales : Composite {
 			int maxVal = _spns[0].getMaximum();
 			auto minStr = .text(minVal);
 			auto maxStr = .text(maxVal);
-			e.gc.drawText(minStr, left - e.gc.textExtent(minStr).x / 2, 0);
-			e.gc.drawText(maxStr, ca.width - left - e.gc.textExtent(maxStr).x / 2, 0);
+			e.gc.wDrawText(minStr, left - e.gc.wTextExtent(minStr).x / 2, 0);
+			e.gc.wDrawText(maxStr, ca.width - left - e.gc.wTextExtent(maxStr).x / 2, 0);
 
 			int range = maxVal - minVal;
 			foreach (b; borderlines) { mixin(S_TRACE);
 				auto bb = b - minVal;
 				auto s = .text(b);
-				auto x = cast(int)(w * (cast(real)bb / range)) + left - e.gc.textExtent(s).x / 2;
-				e.gc.drawText(s, x, 0);
+				auto x = cast(int)(w * (cast(real)bb / range)) + left - e.gc.wTextExtent(s).x / 2;
+				e.gc.wDrawText(s, x, 0);
 			}
 		}
 	}

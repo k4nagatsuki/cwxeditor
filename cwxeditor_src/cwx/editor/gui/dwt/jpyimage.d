@@ -401,8 +401,8 @@ private ImageData loadJPTXImage(in Props prop, string path) { mixin(S_TRACE);
 		auto cFore = new Color(d, dwtData(param.color, alpha));
 		scope (exit) cFore.dispose();
 		gc.setForeground(cFore);
-		gc.drawText(text, x, y);
-		int w = gc.textExtent(text).x;
+		gc.wDrawText(text, x, y);
+		int w = gc.wTextExtent(text).x;
 		version (Windows) {} else {
 			if (param.s) { mixin(S_TRACE);
 				int ly = y + height / 2;
@@ -463,7 +463,7 @@ private ImageData warningImage(Props prop, in Summary summ, EffectBoosterError e
 				path = err.file.baseName();
 			}
 			auto msg = .tryFormat(prop.msgs.jpyError, err.msg, path, err.line);
-			width = .max(width, gc.textExtent(msg).x);
+			width = .max(width, gc.wTextExtent(msg).x);
 			msgs ~= msg;
 		}
 		width += imgBounds.width + 4 + 5 * 2;
@@ -479,7 +479,7 @@ private ImageData warningImage(Props prop, in Summary summ, EffectBoosterError e
 	int y = 2;
 	foreach (i, msg; msgs) { mixin(S_TRACE);
 		gc.drawImage(prop.images.warning, x, y + (lh - imgBounds.height) / 2);
-		gc.drawText(msg, x + imgBounds.width + 4, y + (lh - lineHeight) / 2, true);
+		gc.wDrawText(msg, x + imgBounds.width + 4, y + (lh - lineHeight) / 2, true);
 		y += lh * 2 + 5;
 	}
 	return img.getImageData();
@@ -502,11 +502,11 @@ private ImageData loadJPDCImage(in Props prop, string path) { mixin(S_TRACE);
 		string t = text[0 .. 1];
 		size_t i;
 		for (i = 1; i < text.length; i++) { mixin(S_TRACE);
-			if (gc.textExtent(t ~ text[i]).x > tw) break;
+			if (gc.wTextExtent(t ~ text[i]).x > tw) break;
 			t ~= text[i];
 		}
-		gc.drawText(t, 2, ty, true);
-		ty += gc.textExtent(t).y;
+		gc.wDrawText(t, 2, ty, true);
+		ty += gc.wTextExtent(t).y;
 		text = text[t.length .. $];
 	}
 	auto data = img.getImageData();

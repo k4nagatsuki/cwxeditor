@@ -152,7 +152,7 @@ class IncSearch {
 			scope (exit) gc.dispose();
 			auto gd = new GridData(GridData.FILL_BOTH);
 			int maxW = _comm.prop.var.etc.incrementalSearchBoxWidth;
-			gd.widthHint = .max(maxW, _text.computeSize(gc.textExtent(_text.getText()).x, SWT.DEFAULT).x);
+			gd.widthHint = .max(maxW, _text.computeSize(gc.wTextExtent(_text.getText()).x, SWT.DEFAULT).x);
 			_text.setLayoutData(gd);
 			_win.pack();
 

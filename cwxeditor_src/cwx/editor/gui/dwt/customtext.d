@@ -5,6 +5,7 @@ import cwx.utils;
 
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.dutils : wDrawText, wTextExtent;
 
 import std.utf;
 import std.string;
@@ -119,8 +120,8 @@ class FixedWidthText {
 		_gc.setFont(_widget.getFont());
 		// FIXME: Windows環境で太字にするとサイズが合わなくなる
 /+		_width = _gc.getAdvanceWidth(' ') * _num;
-+/		_width = _gc.textExtent("　").x * (_num / 2) + 1;
-		if (_num & 1) _width += _gc.textExtent(" ").x;
++/		_width = _gc.wTextExtent("　").x * (_num / 2) + 1;
+		if (_num & 1) _width += _gc.wTextExtent(" ").x;
 	}
 	@property
 	Text widget() { mixin(S_TRACE);
@@ -150,10 +151,10 @@ class FixedWidthText {
 		string[] text = splitLines!string(targ);
 		foreach (t8; text) { mixin(S_TRACE);
 			dstring t = toUTF32(t8);
-			if (gc.textExtent(t8).x > width) { mixin(S_TRACE);
+			if (gc.wTextExtent(t8).x > width) { mixin(S_TRACE);
 				dchar[] lBuf;
 				while (t.length > 0) { mixin(S_TRACE);
-					if (gc.textExtent(toUTF8(lBuf)).x + gc.textExtent(toUTF8(t[0 .. 1])).x > width) { mixin(S_TRACE);
+					if (gc.wTextExtent(toUTF8(lBuf)).x + gc.wTextExtent(toUTF8(t[0 .. 1])).x > width) { mixin(S_TRACE);
 						buf ~= assumeUnique(lBuf);
 						lBuf = [];
 					}
@@ -215,7 +216,7 @@ class GBLimitText {
 		_cut = cut;
 		_gc = new GC(_widget);
 		_gc.setFont(new Font(Display.getCurrent(), new FontData(font, 10, SWT.NORMAL)));
-		_width = _gc.textExtent(" ").x * num;
+		_width = _gc.wTextExtent(" ").x * num;
 
 		_widget.addListener(SWT.Verify, new class Listener {
 			override void handleEvent(Event e) { mixin(S_TRACE);
@@ -245,14 +246,14 @@ class GBLimitText {
 					auto el = text[e.end .. $];
 					if (vText.length > 1) { mixin(S_TRACE);
 						// 複数文字挿入。ペーストのみ。
-						while (_gc.textExtent(toUTF8(st ~ vText ~ el)).x > _width && vText.length > 0) { mixin(S_TRACE);
+						while (_gc.wTextExtent(toUTF8(st ~ vText ~ el)).x > _width && vText.length > 0) { mixin(S_TRACE);
 							vText = vText[0 .. $ - 1];
 						}
 						e.text = toUTF8(vText);
 						e.doit = true;
 					} else { mixin(S_TRACE);
 						// 単字。FIXME: 日本語入力ではe.textが化けるみたい。
-						e.doit = _gc.textExtent(toUTF8(st ~ vText ~ el)).x <= _width;
+						e.doit = _gc.wTextExtent(toUTF8(st ~ vText ~ el)).x <= _width;
 					}
 				}
 			}
@@ -261,7 +262,7 @@ class GBLimitText {
 		_widget.addListener(SWT.Modify, new class Listener {
 			override void handleEvent(Event e) { mixin(S_TRACE);
 				if (!_cut) { mixin(S_TRACE);
-					bool over = _gc.textExtent(getText()).x > _width;
+					bool over = _gc.wTextExtent(getText()).x > _width;
 					if (_over != over) { mixin(S_TRACE);
 						_over = over;
 						foreach (le; limitEvent) { mixin(S_TRACE);
@@ -273,7 +274,7 @@ class GBLimitText {
 					return;
 				}
 				if (_ed) return;
-				if (_gc.textExtent(getText()).x <= _width) { mixin(S_TRACE);
+				if (_gc.wTextExtent(getText()).x <= _width) { mixin(S_TRACE);
 					_old = _widget.getText();
 				} else { mixin(S_TRACE);
 					dstring old32 = toUTF32(_old);

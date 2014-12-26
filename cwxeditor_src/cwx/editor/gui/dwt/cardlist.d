@@ -3,6 +3,8 @@ module cwx.editor.gui.dwt.cardlist;
 
 import cwx.utils;
 
+import cwx.editor.gui.dwt.dutils : wDrawText, wTextExtent;
+
 import std.algorithm : countUntil;
 import std.conv;
 import std.datetime;
@@ -725,11 +727,11 @@ private:
 								gc.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
 								gc.setForeground(d.getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT));
 								gc.fillRectangle(tb);
-								gc.drawText(title, tb.x, tb.y, true);
+								gc.wDrawText(title, tb.x, tb.y, true);
 							} else { mixin(S_TRACE);
 								gc.setBackground(getBackground());
 								gc.setForeground(getForeground());
-								gc.drawText(title, tb.x, tb.y, true);
+								gc.wDrawText(title, tb.x, tb.y, true);
 							}
 						}
 
@@ -908,7 +910,7 @@ public:
 		if (getText() == "") return new Rectangle(0, 0, 0, 0);
 		auto gc = new GC(_parent);
 		scope (exit) gc.dispose();
-		auto te = gc.textExtent(cutText(gc));
+		auto te = gc.wTextExtent(cutText(gc));
 		int tx = (width - te.x) / 2 + x;
 		int ty = y + _imgData.height + _parent._titleSpace;
 		return new Rectangle(tx, ty, te.x, te.y);
@@ -982,7 +984,7 @@ public override:
 					auto tb = s.titleBounds();
 					string title = s.cutText(gc);
 					gc.fillRectangle(tb.x - left, tb.y - top, tb.width, tb.height);
-					gc.drawText(title, tb.x - left, tb.y - top, true);
+					gc.wDrawText(title, tb.x - left, tb.y - top, true);
 				}
 
 				if (maxW < s.width) maxW = s.width;
@@ -1014,16 +1016,16 @@ public override:
 /// nameの表示幅がmaxWより大きくなる場合、
 /// はみ出す分を"..."に置換する。
 string cutText(string name, GC gc, int maxW) { mixin(S_TRACE);
-	int tw = gc.textExtent(name).x;
+	int tw = gc.wTextExtent(name).x;
 	if (tw > maxW) { mixin(S_TRACE);
-		int dotw = gc.textExtent("...").x;
+		int dotw = gc.wTextExtent("...").x;
 		dstring dname = to!dstring(name);
 		while (dname.length && tw + dotw > maxW) { mixin(S_TRACE);
 			dname = dname[0 .. $ - 1];
-			tw = gc.textExtent(to!string(dname)).x;
+			tw = gc.wTextExtent(to!string(dname)).x;
 		}
 		name = to!string(dname) ~ "...";
-		tw = gc.textExtent(name).x;
+		tw = gc.wTextExtent(name).x;
 	}
 	return name;
 }
