@@ -346,6 +346,7 @@ private:
 			tree.keyCodeMatchingType = vals.keyCodeMatchingType;
 			tree.removeRoundsAll();
 			foreach (rnd; vals.rounds) tree.addRound(rnd);
+			tree.sortRounds();
 			foreach (v; vs) { mixin(S_TRACE);
 				auto itm = getItem(v);
 				auto expand = _expand[v._area];
@@ -997,7 +998,8 @@ private:
 				tree.addKeyCode(_prop.sys.toFKeyCode((cast(KeyCodeObj) fire).array.idup));
 			} else { mixin(S_TRACE);
 				assert (cast(RoundObj) fire);
-				tree.addRound((cast(RoundObj) fire).intValue());
+				tree.addRound((cast(RoundObj)fire).intValue());
+				tree.sortRounds();
 			}
 			_comm.refEventTree.call(tree);
 		}

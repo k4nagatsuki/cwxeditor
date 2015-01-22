@@ -2562,6 +2562,13 @@ public:
 		}
 		return false;
 	}
+	/// ラウンド発火条件をソートする。
+	void sortRounds() { mixin(S_TRACE);
+		if (!cwx.utils.isSorted(_rounds)) { mixin(S_TRACE);
+			changed();
+			_rounds.sort;
+		}
+	}
 	/// 指定されたラウンドで発火するか。
 	const
 	bool fireRound(uint round) { mixin(S_TRACE);
@@ -2865,7 +2872,10 @@ public:
 			try { mixin(S_TRACE);
 				if (node.name == "FireRound") { mixin(S_TRACE);
 					int r = node.attr!(int)("round", true);
-					if (addRound(r)) return r;
+					if (addRound(r)) { mixin(S_TRACE);
+						sortRounds();
+						return r;
+					}
 				}
 			} catch (Exception e) {
 				printStackTrace();

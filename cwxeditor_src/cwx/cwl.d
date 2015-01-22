@@ -1568,6 +1568,7 @@ private EventTree readEventTree(ref RData d, ref ByteIO f, bool enemyCard, size_
 			}
 		}
 	}
+	tree.sortRounds();
 	auto keyCodes = readStrings(f);
 	if (keyCodes.length && "MatchingType=All" == keyCodes[0]) { mixin(S_TRACE);
 		// CardWirth 1.50
