@@ -2606,13 +2606,17 @@ public:
 
 	/// 発火キーコードを追加。
 	/// Returns: 追加できた場合はtrue。
-	bool addKeyCode(FKeyCode keyCode) { mixin(S_TRACE);
+	bool addKeyCode(FKeyCode keyCode, int insertIndex = -1) { mixin(S_TRACE);
 		if (!fireKeyCode(keyCode)) { mixin(S_TRACE);
 			changed();
 			auto user = new KeyCodeUser(this);
 			if (useCounter) user.setUseCounter = useCounter;
 			user.keyCode = keyCode.keyCode;
-			_keyCodes ~= FKeyCodeU(user, keyCode.kind);
+			if (insertIndex < 0 || _keyCodes.length <= insertIndex) { mixin(S_TRACE);
+				_keyCodes ~= FKeyCodeU(user, keyCode.kind);
+			} else { mixin(S_TRACE);
+				_keyCodes.insertInPlace(insertIndex, FKeyCodeU(user, keyCode.kind));
+			}
 			return true;
 		}
 		return false;
@@ -2802,74 +2806,66 @@ public:
 		return r.starts.length > 0 ? r : null;
 	}
 
-	private static string fireToXML(string name, string att = null, string value = null) { mixin(S_TRACE);
+	private static XNode fireToNode(string name, string att = null, string value = null) { mixin(S_TRACE);
 		auto e = XNode.create(name);
 		if (att && value) { mixin(S_TRACE);
 			e.newAttr(att, value);
 		}
-		return e.text;
+		return e;
 	}
-	/// 「到着時発火」をXMLテキスト化する。
-	static string enterToXML() {return fireToXML("FireEnter");}
-	/// 「逃走時発火」をXMLテキスト化する。
-	static string escapeToXML() {return fireToXML("FireEscape");}
-	/// 「敗北時発火」をXMLテキスト化する。
-	static string loseToXML() {return fireToXML("FireLose");}
-	/// 「毎ラウンド発火」をXMLテキスト化する。
-	static string everyRoundToXML() {return fireToXML("FireEveryRound");}
-	/// 「戦闘開始時発火」をXMLテキスト化する。
-	static string round0ToXML() {return fireToXML("FireRound0");}
-	/// 「発火ラウンド」をXMLテキスト化する。
-	static string roundToXML(uint round) { mixin(S_TRACE);
-		return fireToXML("FireRound", "round", to!(string)(round));
+	/// 「到着時発火」をXMLノード化する。
+	static XNode enterToNode() {return fireToNode("FireEnter");}
+	/// 「逃走時発火」をXMLノード化する。
+	static XNode escapeToNode() {return fireToNode("FireEscape");}
+	/// 「敗北時発火」をXMLノード化する。
+	static XNode loseToNode() {return fireToNode("FireLose");}
+	/// 「毎ラウンド発火」をXMLノード化する。
+	static XNode everyRoundToNode() {return fireToNode("FireEveryRound");}
+	/// 「戦闘開始時発火」をXMLノード化する。
+	static XNode round0ToNode() {return fireToNode("FireRound0");}
+	/// 「発火ラウンド」をXMLノード化する。
+	static XNode roundToNode(uint round) { mixin(S_TRACE);
+		return fireToNode("FireRound", "round", to!(string)(round));
 	}
-	/// 「発火キーコード」をXMLテキスト化する。
-	static string keyCodeToXML(FKeyCode keyCode, in System sys) { mixin(S_TRACE);
+	/// 「発火キーコード」をXMLノード化する。
+	static XNode keyCodeToNode(FKeyCode keyCode, in System sys) { mixin(S_TRACE);
 		string str = sys.convFireKeyCode(keyCode.keyCode, keyCode.kind);
-		return fireToXML("FireKeyCode", "keyCode", str);
+		return fireToNode("FireKeyCode", "keyCode", str);
 	}
-	private static bool fireFromXML(string xml, string name, void delegate(bool) fire) { mixin(S_TRACE);
-		try { mixin(S_TRACE);
-			auto node = XNode.parse(xml);
-			if (node.name == name) { mixin(S_TRACE);
-				fire(true);
-				return true;
-			}
-		} catch (Exception e) {
-			printStackTrace();
-			debugln(e);
+	private static bool fireFromNode(ref XNode node, string name, bool delegate() has, void delegate(bool) fire) { mixin(S_TRACE);
+		if (node.name == name && !has()) { mixin(S_TRACE);
+			fire(true);
+			return true;
 		}
 		return false;
 	}
-	/// 「到着時発火」をXMLテキストからロードし、成功すればtrueを返す。
-	bool enterFromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
-		return owner.canHasFireEnter && fireFromXML(xml, "FireEnter", &enter);
+	/// 「到着時発火」をXMLノードからロードし、成功すればtrueを返す。
+	bool enterFromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
+		return owner.canHasFireEnter && fireFromNode(node, "FireEnter", &fireEnter, &enter);
 	}
-	/// 「逃走時発火」をXMLテキストからロードし、成功すればtrueを返す。
-	bool escapeFromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
-		return owner.canHasFireEscape && fireFromXML(xml, "FireEscape", &escape);
+	/// 「逃走時発火」をXMLノードからロードし、成功すればtrueを返す。
+	bool escapeFromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
+		return owner.canHasFireEscape && fireFromNode(node, "FireEscape", &fireEscape, &escape);
 	}
-	/// 「敗北時発火」をXMLテキストからロードし、成功すればtrueを返す。
-	bool loseFromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
-		return owner.canHasFireLose && fireFromXML(xml, "FireLose", &lose);
+	/// 「敗北時発火」をXMLノードからロードし、成功すればtrueを返す。
+	bool loseFromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
+		return owner.canHasFireLose && fireFromNode(node, "FireLose", &fireLose, &lose);
 	}
-	/// 「毎ラウンド発火」をXMLテキストからロードし、成功すればtrueを返す。
-	bool everyRoundFromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
-		return owner.canHasFireEveryRound && fireFromXML(xml, "FireEveryRound", &lose);
+	/// 「毎ラウンド発火」をXMLノードからロードし、成功すればtrueを返す。
+	bool everyRoundFromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
+		return owner.canHasFireEveryRound && fireFromNode(node, "FireEveryRound", &fireEveryRound, &everyRound);
 	}
-	/// 「戦闘開始時発火」をXMLテキストからロードし、成功すればtrueを返す。
-	bool round0FromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
-		return owner.canHasFireRound0 && fireFromXML(xml, "FireRound0", &lose);
+	/// 「戦闘開始時発火」をXMLノードからロードし、成功すればtrueを返す。
+	bool round0FromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
+		return owner.canHasFireRound0 && fireFromNode(node, "FireRound0", &fireRound0, &round0);
 	}
-	/// 「発火ラウンド」をXMLテキストからロードし、成功すればtrueを返す。
-	int roundFromXML(EventTreeOwner owner, string xml) { mixin(S_TRACE);
+	/// 「発火ラウンド」をXMLノードからロードし、成功すればtrueを返す。
+	int roundFromNode(EventTreeOwner owner, ref XNode node) { mixin(S_TRACE);
 		if (owner.canHasFireRound) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
-				auto node = XNode.parse(xml);
 				if (node.name == "FireRound") { mixin(S_TRACE);
 					int r = node.attr!(int)("round", true);
-					addRound(r);
-					return r;
+					if (addRound(r)) return r;
 				}
 			} catch (Exception e) {
 				printStackTrace();
@@ -2878,17 +2874,15 @@ public:
 		}
 		return -1;
 	}
-	/// 「発火キーコード」をXMLテキストからロードし、成功すればtrueを返す。
-	string keyCodeFromXML(EventTreeOwner owner, string xml, in System sys) { mixin(S_TRACE);
+	/// 「発火キーコード」をXMLノードからロードし、成功すればtrueを返す。
+	string keyCodeFromNode(EventTreeOwner owner, ref XNode node, in System sys, int insertIndex = -1) { mixin(S_TRACE);
 		if (owner.canHasFireKeyCode) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
-				auto node = XNode.parse(xml);
 				if (node.name == "FireKeyCode") { mixin(S_TRACE);
 					string r = node.attr("keyCode", true);
 					string name = r;
 					auto kind = sys.fireKeyCodeKindRef(name);
-					addKeyCode(FKeyCode(name, kind));
-					return r;
+					if (addKeyCode(FKeyCode(name, kind), insertIndex)) return r;
 				}
 			} catch (Exception e) {
 				printStackTrace();

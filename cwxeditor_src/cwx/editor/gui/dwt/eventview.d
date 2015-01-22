@@ -14,6 +14,7 @@ import cwx.script;
 import cwx.system;
 import cwx.menu;
 import cwx.types;
+import cwx.xml;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -34,10 +35,12 @@ import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.areaviewutils;
 import cwx.editor.gui.dwt.images;
 
-import std.algorithm : max;
+import std.algorithm : max, remove;
 import std.string;
+import std.array;
 import std.exception;
 import std.conv;
+import std.datetime;
 
 import org.eclipse.swt.all;
 
@@ -51,6 +54,7 @@ alias Integer RoundObj;
 class EventView(A : EventTreeOwner, C, bool UseFire) : Composite, TCPD {
 private:
 	int _readOnly = 0;
+	string _id = "";
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
@@ -177,6 +181,8 @@ private:
 		abstract override void dispose();
 		protected Commons comm;
 		protected A area;
+		protected bool doBefore = true;
+		protected bool doAfter = true;
 		private int[] _selPath = [], _selPath2 = [];
 		private int[] getSelPath(EventView v) { mixin(S_TRACE);
 			if (!v) return null;
@@ -202,6 +208,7 @@ private:
 			if (!vs.length) return;
 			auto mainV = mainEventView(vs);
 			_selPath2 = getSelPath(mainV);
+			if (!doBefore) return;
 			foreach (v; vs) { mixin(S_TRACE);
 				auto ct = Display.getCurrent().getFocusControl();
 				while (ct.getParent()) { mixin(S_TRACE);
@@ -214,34 +221,70 @@ private:
 			.forceFocus(mainV._cards, false);
 		}
 		protected void uda(EventView[] vs) { mixin(S_TRACE);
-			scope (exit) comm.refreshToolBar();
-			foreach (v; vs) { mixin(S_TRACE);
-				auto selPath = _selPath.dup;
-				if (selPath) { mixin(S_TRACE);
-					auto itm = v._cards.getItem(selPath[0]);
-					selPath = selPath[1 .. $];
-					while (selPath.length) { mixin(S_TRACE);
-						itm = itm.getItem(selPath[0]);
+			if (doAfter) { mixin(S_TRACE);
+				scope (exit) comm.refreshToolBar();
+				foreach (v; vs) { mixin(S_TRACE);
+					auto selPath = _selPath.dup;
+					if (selPath) { mixin(S_TRACE);
+						auto itm = v._cards.getItem(selPath[0]);
 						selPath = selPath[1 .. $];
-					}
-					auto eti = v.selectionEventTree;
-					v._cards.select(itm);
-					auto eti2 = v.selectionEventTree;
-					if (eti !is eti2) { mixin(S_TRACE);
-						if (eti2) { mixin(S_TRACE);
-							v.selectImpl(eti2);
-						} else if (!eti) { mixin(S_TRACE);
-							v._etree.refresh(null);
+						while (selPath.length) { mixin(S_TRACE);
+							itm = itm.getItem(selPath[0]);
+							selPath = selPath[1 .. $];
 						}
+						auto eti = v.selectionEventTree;
+						v._cards.select(itm);
+						auto eti2 = v.selectionEventTree;
+						if (eti !is eti2) { mixin(S_TRACE);
+							if (eti2) { mixin(S_TRACE);
+								v.selectImpl(eti2);
+							} else if (!eti) { mixin(S_TRACE);
+								v._etree.refresh(null);
+							}
+						}
+					} else { mixin(S_TRACE);
+						v._cards.deselectAll();
 					}
-				} else { mixin(S_TRACE);
-					v._cards.deselectAll();
 				}
 			}
 			_selPath = _selPath2;
 		}
 		protected EventView[] views() { mixin(S_TRACE);
 			return comm.eventViewsFrom!(A, C, UseFire)(area.cwxPath(true), false);
+		}
+	}
+	static class UndoSeq : EVUndo {
+		private EVUndo[] _undos;
+		this (Commons comm, A area, EVUndo[] undos) { mixin(S_TRACE);
+			super (comm, area);
+			_undos = undos;
+		}
+		override void undo() { mixin(S_TRACE);
+			auto vs = views();
+			foreach (v; vs) v._cards.setRedraw(false);
+			scope (exit) {
+				foreach (v; vs) v._cards.setRedraw(true);
+			}
+			foreach_reverse (i, undo; _undos) { mixin(S_TRACE);
+				undo.doBefore = (i + 1 == _undos.length);
+				undo.doAfter = (i == 0);
+				undo.undo();
+			}
+		}
+		override void redo() { mixin(S_TRACE);
+			auto vs = views();
+			foreach (v; vs) v._cards.setRedraw(false);
+			scope (exit) {
+				foreach (v; vs) v._cards.setRedraw(true);
+			}
+			foreach (i, undo; _undos) { mixin(S_TRACE);
+				undo.doBefore = (i == 0);
+				undo.doAfter = (i + 1 == _undos.length);
+				undo.redo();
+			}
+		}
+		override void dispose() { mixin(S_TRACE);
+			foreach (undo; _undos) undo.dispose();
 		}
 	}
 	static class UndoTreeData : EVUndo {
@@ -322,8 +365,10 @@ private:
 		override void redo() {impl();}
 		override void dispose() {}
 	}
-	void store(EventTree tree) { mixin(S_TRACE);
-		_undo ~= new UndoTreeData(_comm, _area, tree);
+	EVUndo store(EventTree tree, bool put = true) { mixin(S_TRACE);
+		auto undo = new UndoTreeData(_comm, _area, tree);
+		if (put) _undo ~= undo;
+		return undo;
 	}
 	static class UndoInsert : EVUndo {
 		private int _ownerIndex;
@@ -370,8 +415,10 @@ private:
 			if (_delUndo) _delUndo.dispose();
 		}
 	}
-	void storeI(int ownerIndex, int insertIndex) { mixin(S_TRACE);
-		_undo ~= new UndoInsert(_comm, _area, _summ, ownerIndex, insertIndex);
+	EVUndo storeI(int ownerIndex, int insertIndex, bool put = true) { mixin(S_TRACE);
+		auto undo = new UndoInsert(_comm, _area, _summ, ownerIndex, insertIndex);
+		if (put) _undo ~= undo;
+		return undo;
 	}
 	static class UndoDelete : EVUndo {
 		private int _ownerIndex;
@@ -417,8 +464,10 @@ private:
 			if (_istUndo) _istUndo.dispose();
 		}
 	}
-	void storeD(EventTree tree) { mixin(S_TRACE);
-		_undo ~= new UndoDelete(_comm, _area, _summ, tree);
+	EVUndo storeD(EventTree tree, bool put = true) { mixin(S_TRACE);
+		auto undo = new UndoDelete(_comm, _area, _summ, tree);
+		if (put) _undo ~= undo;
+		return undo;
 	}
 	static class UndoSwap : EVUndo {
 		private int _ownerIndex;
@@ -446,8 +495,10 @@ private:
 		override void redo() {impl();}
 		override void dispose() {}
 	}
-	void store(int ownerIndex, int swapIndex1, int swapIndex2) { mixin(S_TRACE);
-		_undo ~= new UndoSwap(_comm, _area, ownerIndex, swapIndex1, swapIndex2);
+	EVUndo store(int ownerIndex, int swapIndex1, int swapIndex2, bool put = true) { mixin(S_TRACE);
+		auto undo = new UndoSwap(_comm, _area, ownerIndex, swapIndex1, swapIndex2);
+		if (put) _undo ~= undo;
+		return undo;
 	}
 
 	private EventView[] views() { mixin(S_TRACE);
@@ -537,11 +588,14 @@ private:
 	}
 	@property
 	private TreeItem selectionParent() { mixin(S_TRACE);
-		auto itm = selection;
+		return topParent(selection);
+	}
+	@property
+	private TreeItem topParent(TreeItem itm) { mixin(S_TRACE);
 		if (!itm) return null;
 		auto data = itm.getData();
-		if (cast(EventTreeOwner) data) return itm;
-		if (cast(EventTree) data) { mixin(S_TRACE);
+		if (cast(EventTreeOwner)data) return itm;
+		if (cast(EventTree)data) { mixin(S_TRACE);
 			return itm.getParentItem();
 		} else { mixin(S_TRACE);
 			return itm.getParentItem().getParentItem();
@@ -1163,6 +1217,8 @@ private:
 public:
 	this (Commons comm, Props prop, Summary summ, A area, Composite parent, UndoManager undo, bool readOnly) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
+		auto o = this;
+		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
@@ -1353,6 +1409,15 @@ public:
 			static assert (0);
 		}
 		refShowToolBar();
+
+		if (!_readOnly) { mixin(S_TRACE);
+			auto dt = new DropTarget(_cards, DND.DROP_DEFAULT | DND.DROP_MOVE);
+			dt.setTransfer([XMLBytesTransfer.getInstance()]);
+			dt.addDropListener(new EventViewDropTarget);
+		}
+		auto ds = new DragSource(_cards, DND.DROP_MOVE);
+		ds.setTransfer([XMLBytesTransfer.getInstance()]);
+		ds.addDragListener(new EventViewDragSource);
 
 		auto track = new class Listener {
 			override void handleEvent(Event e) { mixin(S_TRACE);
@@ -1615,54 +1680,68 @@ public:
 		return false;
 	}
 	private void udImpl(string BeforeAfter, string CanSwapKeyCode)
-			(TreeItem itm, int function(TreeItem) treeSwap, bool store, bool viewOnly) { mixin(S_TRACE);
+			(TreeItem itm, int function(TreeItem) treeSwap, bool store, bool viewOnly, uint count) { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (itm && itm.getParentItem()) { mixin(S_TRACE);
 			auto data = itm.getData();
 			auto parent = itm.getParentItem();
-			int from = parent.indexOf(itm);
-			int to = mixin (BeforeAfter);
-			if (to >= 0) { mixin(S_TRACE);
-				if (cast(EventTree) data) { mixin(S_TRACE);
-					_cards.setRedraw(false);
-					scope (exit) _cards.setRedraw(true);
-					// イベントツリー
+			if (cast(EventTree)data) { mixin(S_TRACE);
+				_cards.setRedraw(false);
+				scope (exit) _cards.setRedraw(true);
+				// イベントツリー
+				EVUndo[] undos;
+				int from = parent.indexOf(itm);
+				foreach (i; 0 .. count) { mixin(S_TRACE);
+					int to = mixin(BeforeAfter);
+					if (to < 0) break;
 					auto eto = (cast(EventTreeOwner)parent.getData());
 					if (!viewOnly) { mixin(S_TRACE);
-						if (store) this.store(_cards.indexOf(parent), from, to);
+						if (store) undos ~= this.store(_cards.indexOf(parent), from, to);
 						eto.swapEventTree(from, to);
 						_comm.refEventTree.call(eto.trees[from]);
-						_comm.refEventTree.call(eto.trees[to]);
+						if (i == 0) { mixin(S_TRACE);
+							_comm.refEventTree.call(eto.trees[to]);
+						}
 					}
 					auto tPath = .toTreePath(itm);
 					foreach (v; views()) {
 						auto itm2 = .fromTreePath(v._cards, tPath);
 						treeSwap(itm2);
 						v._selItm = v.selection;
-						if (v is this) v._cards.showSelection();
+						if (i + 1 == count && v is this) v._cards.showSelection();
 					}
-				} else { mixin(S_TRACE);
-					static if (UseFire) {
-						if (cast(KeyCodeObj) data) { mixin(S_TRACE);
-							_cards.setRedraw(false);
-							scope (exit) _cards.setRedraw(true);
-							// キーコード
-							auto tree = cast(EventTree) parent.getData();
-							int keyCodeLen = tree.keyCodes.length;
-							from -= keyCodesIndex(parent);
-							to -= keyCodesIndex(parent);
-							if (mixin (CanSwapKeyCode)) { mixin(S_TRACE);
-								if (!viewOnly) { mixin(S_TRACE);
-									if (store) this.store(tree);
-									tree.swapKeyCode(from, to);
-									_comm.refEventTree.call(tree);
-								}
-								auto tPath = .toTreePath(itm);
-								foreach (v; views()) {
-									auto itm2 = .fromTreePath(v._cards, tPath);
-									treeSwap(itm2);
-									if (v is this) v._cards.showSelection();
-								}
+					from = to;
+					itm = parent.getItem(from);
+				}
+				if (undos.length == 1) { mixin(S_TRACE);
+					_undo ~= undos[0];
+				} else if (undos.length) { mixin(S_TRACE);
+					_undo ~= new UndoSeq(_comm, _area, undos);
+				}
+			} else { mixin(S_TRACE);
+				static if (UseFire) {
+					if (cast(KeyCodeObj)data) { mixin(S_TRACE);
+						_cards.setRedraw(false);
+						scope (exit) _cards.setRedraw(true);
+						// キーコード
+						assert (count == 1);
+						int from = parent.indexOf(itm);
+						int to = mixin(BeforeAfter);
+						auto tree = cast(EventTree)parent.getData();
+						int keyCodeLen = tree.keyCodes.length;
+						from -= keyCodesIndex(parent);
+						to -= keyCodesIndex(parent);
+						if (mixin (CanSwapKeyCode)) { mixin(S_TRACE);
+							if (!viewOnly) { mixin(S_TRACE);
+								if (store) this.store(tree);
+								tree.swapKeyCode(from, to);
+								_comm.refEventTree.call(tree);
+							}
+							auto tPath = .toTreePath(itm);
+							foreach (v; views()) {
+								auto itm2 = .fromTreePath(v._cards, tPath);
+								treeSwap(itm2);
+								if (v is this) v._cards.showSelection();
 							}
 						}
 					}
@@ -1704,9 +1783,12 @@ public:
 		if (!cards && _lastFocus is _etree) { mixin(S_TRACE);
 			_etree.up();
 		} else if (cards || _lastFocus is _cards) { mixin(S_TRACE);
-			udImpl!("before(parent, from)", "to >= 0")(itm, &treeItemUp, store, viewOnly);
-			_comm.refreshToolBar();
+			upImpl(itm, store, viewOnly, 1);
 		}
+	}
+	private void upImpl(TreeItem itm, bool store, bool viewOnly, int count) { mixin(S_TRACE);
+		udImpl!("before(parent, from)", "to >= 0")(itm, &treeItemUp, store, viewOnly, count);
+		_comm.refreshToolBar();
 	}
 	void down() { mixin(S_TRACE);
 		initial();
@@ -1717,9 +1799,12 @@ public:
 		if (!cards && _lastFocus is _etree) { mixin(S_TRACE);
 			_etree.down();
 		} else if (cards || _lastFocus is _cards) { mixin(S_TRACE);
-			udImpl!("after(parent, from)", "to < keyCodeLen")(itm, &treeItemDown, store, viewOnly);
-			_comm.refreshToolBar();
+			downImpl(itm, store, viewOnly, 1);
 		}
+	}
+	private void downImpl(TreeItem itm, bool store, bool viewOnly, int count) { mixin(S_TRACE);
+		udImpl!("after(parent, from)", "to < keyCodeLen")(itm, &treeItemDown, store, viewOnly, count);
+		_comm.refreshToolBar();
 	}
 
 	static if (is(A:Area) || is(A:Battle)) {
@@ -2092,6 +2177,141 @@ public:
 		return _etree.findStartUsers();
 	}
 
+	private TreeItem _dragItm = null;
+	private EVUndo _dropUndo = null;
+	class EventViewDragSource : DragSourceListener {
+	private:
+		TreeItem _targ;
+	public:
+		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
+			auto itm = selection;
+			e.doit = !_readOnly && itm && !cast(EventTreeOwner)itm.getData()
+				&& (cast(DragSource) e.getSource()).getControl().isFocusControl();
+			if (e.doit) { mixin(S_TRACE);
+				_targ = itm;
+				_dragItm = _targ;
+				_dropUndo = null;
+			}
+		}
+		override void dragSetData(DragSourceEvent e) { mixin(S_TRACE);
+			auto itm = selection;
+			if (itm && XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
+				auto xml = itemToXML(itm, true, true);
+				if (xml == "") return;
+				e.data = bytesFromXML(xml);
+			}
+		}
+		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
+			_dragItm = null;
+			auto itm = _targ;
+			if (itm && e.detail == DND.DROP_MOVE) { mixin(S_TRACE);
+				EVUndo undo;
+				delItem(itm, false, undo);
+				if (_dropUndo) { mixin(S_TRACE);
+					_undo ~= new UndoSeq(_comm, _area, [_dropUndo, undo]);
+				} else { mixin(S_TRACE);
+					_undo ~= undo;
+				}
+			}
+			_dropUndo = null;
+		}
+	}
+	class EventViewDropTarget : DropTargetAdapter {
+	private:
+		void move(DropTargetEvent e) { mixin(S_TRACE);
+			if (_readOnly) { mixin(S_TRACE);
+				e.detail = DND.DROP_NONE;
+				return;
+			}
+			e.detail = e.item ? DND.DROP_MOVE : DND.DROP_NONE;
+		}
+	public:
+		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
+			move(e);
+		}
+		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
+			move(e);
+		}
+		override void drop(DropTargetEvent e){ mixin(S_TRACE);
+			if (_readOnly) return;
+			e.detail = DND.DROP_NONE;
+			if (!isXMLBytes(e.data)) return;
+			assert (cast(TreeItem)e.item);
+			auto ti = cast(TreeItem)e.item;
+			if (_dragItm) { mixin(S_TRACE);
+				if (ti is _dragItm) return;
+				if (auto tree = cast(EventTree)_dragItm.getData()) { mixin(S_TRACE);
+					auto fromTop = topParent(_dragItm);
+					auto toTop = topParent(ti);
+					if (fromTop is toTop) { mixin(S_TRACE);
+						// 単一のオーナー内でイベントツリーを移動する場合
+						auto fromIndex = fromTop.indexOf(_dragItm);
+						int toIndex;
+						if (toTop is ti) { mixin(S_TRACE);
+							toIndex = toTop.getItemCount();
+						} else { mixin(S_TRACE);
+							auto treeItm = cast(EventTree)ti.getData() ? ti : ti.getParentItem();
+							toIndex = toTop.indexOf(treeItm);
+						}
+						if (fromIndex == toIndex) return;
+						if (fromIndex < toIndex) { mixin(S_TRACE);
+							if (fromIndex + 1 == toIndex) return;
+							downImpl(_dragItm, true, false, toIndex - fromIndex - 1);
+						} else { mixin(S_TRACE);
+							assert (toIndex < fromIndex);
+							upImpl(_dragItm, true, false, fromIndex - toIndex);
+						}
+						return;
+					}
+				}
+				static if (UseFire) {
+					if (auto kco = cast(KeyCodeObj)_dragItm.getData()) { mixin(S_TRACE);
+						// 単一のイベントツリー内でキーコードを移動する場合
+						if (cast(EventTreeOwner)ti.getData()) return;
+						auto keyCode = kco.array.idup;
+						auto fromTreeItm = _dragItm.getParentItem();
+						int fromIndex = fromTreeItm.indexOf(_dragItm) - keyCodesIndex(fromTreeItm);
+						int toIndex;
+						if (auto toTree = cast(EventTree)ti.getData()) { mixin(S_TRACE);
+							toIndex = toTree.keyCodes.length;
+						} else { mixin(S_TRACE);
+							auto treeItm = ti.getParentItem();
+							toIndex = std.algorithm.max(0, treeItm.indexOf(ti) - keyCodesIndex(treeItm));
+						}
+						if (fromIndex == toIndex) return;
+						auto tree = cast(EventTree)fromTreeItm.getData();
+						store(tree);
+						auto array = tree.keyCodes.dup;
+						auto kc = array[fromIndex];
+						array = array.remove(fromIndex);
+						if (fromIndex < toIndex) toIndex--;
+						array.insertInPlace(toIndex, kc);
+						tree.keyCodes = array;
+						refreshFires(fromTreeItm);
+
+						auto selItm = fromTreeItm.getItem(keyCodesIndex(fromTreeItm) + toIndex);
+						_cards.setSelection([selItm]);
+						_cards.showSelection();
+						return;
+					}
+				}
+			}
+			try { mixin(S_TRACE);
+				auto xml = bytesToXML(e.data);
+				auto node = XNode.parse(xml);
+				auto samePane = node.attr("paneId", false, "") == _id;
+				EVUndo undo = null;
+				if (pasteXML(node, ti, false, !samePane || !_dragItm, undo)) {
+					e.detail = samePane ? DND.DROP_MOVE : DND.DROP_COPY;
+					if (samePane && _dragItm) _dropUndo = undo;
+				}
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
+			}
+		}
+	}
+
 	private void pasteScript(Clipboard cb) { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto array = cast(ArrayWrapperString) cb.getContents(TextTransfer.getInstance());
@@ -2145,42 +2365,51 @@ public:
 		} else { mixin(S_TRACE);
 			auto itm = selection;
 			if (!itm) return;
-			auto parItm = itm.getParentItem();
-			if (!parItm) return;
-			auto par = parItm.getData();
-			auto data = itm.getData();
-			string xml;
-			if (cast(EventTree) data) { mixin(S_TRACE);
-				xml = (cast(EventTree) data).toXML(new XMLOption(_prop.sys));
-			} else if (!canFire) { mixin(S_TRACE);
-				assert (cast(EventTree) par !is null);
-				xml = (cast(EventTree) par).toXML(new XMLOption(_prop.sys));
-			} else { mixin(S_TRACE);
-				static if (UseFire) {
-					if (ENTER is data) { mixin(S_TRACE);
-						xml = EventTree.enterToXML();
-					} else if (ESCAPE is data) { mixin(S_TRACE);
-						xml = EventTree.escapeToXML();
-					} else if (LOSE is data) { mixin(S_TRACE);
-						xml = EventTree.loseToXML();
-					} else if (EVERY_ROUND is data) { mixin(S_TRACE);
-						xml = EventTree.everyRoundToXML();
-					} else if (ROUND_0 is data) { mixin(S_TRACE);
-						xml = EventTree.round0ToXML();
-					} else if (cast(KeyCodeObj) data) { mixin(S_TRACE);
-						xml = EventTree.keyCodeToXML(_prop.sys.toFKeyCode((cast(KeyCodeObj) data).array.idup), _prop.sys);
-					} else if (cast(RoundObj) data) { mixin(S_TRACE);
-						xml = EventTree.roundToXML((cast(RoundObj) data).intValue());
-					} else { mixin(S_TRACE);
-						assert (0);
-					}
-				} else { mixin(S_TRACE);
-					assert (0);
-				}
-			}
+			auto xml = itemToXML(itm, canFire, false);
+			if (xml == "") return;
 			XMLtoCB(_prop, _comm.clipboard, xml);
 			_comm.refreshToolBar();
 		}
+	}
+	private string itemToXML(TreeItem itm, bool canFire, bool paneId) { mixin(S_TRACE);
+		if (!itm) return "";
+		auto parItm = itm.getParentItem();
+		if (!parItm) return "";
+		auto par = parItm.getData();
+		auto data = itm.getData();
+		XNode node;
+		if (cast(EventTree) data) { mixin(S_TRACE);
+			node = (cast(EventTree)data).toNode(new XMLOption(_prop.sys));
+		} else if (!canFire) { mixin(S_TRACE);
+			assert (cast(EventTree)par !is null);
+			node = (cast(EventTree)par).toNode(new XMLOption(_prop.sys));
+		} else { mixin(S_TRACE);
+			static if (UseFire) {
+				if (ENTER is data) { mixin(S_TRACE);
+					node = EventTree.enterToNode();
+				} else if (ESCAPE is data) { mixin(S_TRACE);
+					node = EventTree.escapeToNode();
+				} else if (LOSE is data) { mixin(S_TRACE);
+					node = EventTree.loseToNode();
+				} else if (EVERY_ROUND is data) { mixin(S_TRACE);
+					node = EventTree.everyRoundToNode();
+				} else if (ROUND_0 is data) { mixin(S_TRACE);
+					node = EventTree.round0ToNode();
+				} else if (cast(KeyCodeObj) data) { mixin(S_TRACE);
+					node = EventTree.keyCodeToNode(_prop.sys.toFKeyCode((cast(KeyCodeObj)data).array.idup), _prop.sys);
+				} else if (cast(RoundObj) data) { mixin(S_TRACE);
+					node = EventTree.roundToNode((cast(RoundObj)data).intValue());
+				} else { mixin(S_TRACE);
+					assert (0);
+				}
+			} else { mixin(S_TRACE);
+				assert (0);
+			}
+		}
+		if (paneId) { mixin(S_TRACE);
+			node.newAttr("paneId", _id);
+		}
+		return node.text;
 	}
 	override void paste(SelectionEvent se) { mixin(S_TRACE);
 		if (_readOnly) return;
@@ -2195,66 +2424,103 @@ public:
 				pasteScript(_comm.clipboard);
 				return;
 			}
-			auto parItm = selectionParent;
-			if (parItm) { mixin(S_TRACE);
-				try { mixin(S_TRACE);
-					auto par = cast(EventTreeOwner)parItm.getData();
-					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
-					EventTree tree = EventTree.fromXML(xml, ver);
-					if (tree) { mixin(S_TRACE);
-						storeI(_cards.indexOf(parItm), par.trees.length);
-						// イベントツリー
-						par.add(tree);
-						foreach (v; views()) { mixin(S_TRACE);
-							auto parItm2 = .anotherTreeItem(v._cards, parItm);
-							auto treeItm = createTreeItem(parItm2, tree, tree.name, v.etImage(tree));
-							if (v is this) v.selectImpl(treeItm);
-							static if (UseFire) {
-								if (v is this) refreshFires(treeItm);
-							}
-						}
-						_comm.refEventTree.call(tree);
-					} else { mixin(S_TRACE);
-						static if (UseFire) {
-							if (!(cast(EventTreeOwner) itm.getData())) { mixin(S_TRACE);
-								// 開始条件
-								auto treeItm = cast(EventTree) itm.getData() ? itm : itm.getParentItem();
-								tree = cast(EventTree) treeItm.getData();
-								store(tree);
-								if (tree.enterFromXML(par, xml)) { mixin(S_TRACE);
-									refreshFires(treeItm, ENTER);
-								} else if (tree.escapeFromXML(par, xml)) { mixin(S_TRACE);
-									refreshFires(treeItm, ESCAPE);
-								} else if (tree.loseFromXML(par, xml)) { mixin(S_TRACE);
-									refreshFires(treeItm, LOSE);
-								} else if (tree.everyRoundFromXML(par, xml)) { mixin(S_TRACE);
-									refreshFires(treeItm, EVERY_ROUND);
-								} else if (tree.round0FromXML(par, xml)) { mixin(S_TRACE);
-									refreshFires(treeItm, ROUND_0);
-								} else { mixin(S_TRACE);
-									int round = tree.roundFromXML(par, xml);
-									if (round >= 0) { mixin(S_TRACE);
-										refreshFires(treeItm, new RoundObj(round));
-									} else { mixin(S_TRACE);
-										string keyCode = tree.keyCodeFromXML(par, xml, _prop.sys);
-										if (keyCode) { mixin(S_TRACE);
-											refreshFires(treeItm, new KeyCodeObj(keyCode));
-										}
-									}
-								}
-								_comm.refEventTree.call(tree);
-								_comm.refKeyCodes.call();
-							}
-						}
-					}
-					_comm.refUseCount.call();
-					_comm.refreshToolBar();
-				} catch (Exception e) {
-					printStackTrace();
-					debugln(e);
-				}
+			try { mixin(S_TRACE);
+				auto node = XNode.parse(xml);
+				EVUndo undo;
+				pasteXML(node, selection, true, true, undo);
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
 			}
 		}
+	}
+	private bool pasteXML(ref XNode node, TreeItem itm, bool appendToLast, bool store, out EVUndo undo) { mixin(S_TRACE);
+		if (!itm) return false;
+		auto parItm = topParent(itm);
+		if (!parItm) return false;
+		try { mixin(S_TRACE);
+			auto par = cast(EventTreeOwner)parItm.getData();
+			auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+			if (node.name == "Event") { mixin(S_TRACE);
+				EventTree tree = EventTree.createFromNode(node, ver);
+				int index = par.trees.length;
+				if (!appendToLast && parItm !is itm) { mixin(S_TRACE);
+					auto treeItm = cast(EventTree)itm.getData() ? itm : itm.getParentItem();
+					index = parItm.indexOf(treeItm);
+				}
+				undo = storeI(_cards.indexOf(parItm), index, store);
+				// イベントツリー
+				par.insert(index, tree);
+				TreeItem ti = null;
+				foreach (v; views()) { mixin(S_TRACE);
+					auto parItm2 = .anotherTreeItem(v._cards, parItm);
+					auto treeItm = .createTreeItem(parItm2, tree, tree.name, v.etImage(tree), index);
+					if (v is this) v.selectImpl(treeItm);
+					if (v is this) ti = treeItm;
+				}
+				static if (UseFire) {
+					refreshFires(ti);
+				}
+				_comm.refEventTree.call(tree);
+				_comm.refUseCount.call();
+				_comm.refreshToolBar();
+				return true;
+			} else { mixin(S_TRACE);
+				static if (UseFire) {
+					if (!(cast(EventTreeOwner)itm.getData())) { mixin(S_TRACE);
+						// 開始条件
+						auto treeItm = cast(EventTree)itm.getData() ? itm : itm.getParentItem();
+						auto tree = cast(EventTree)treeItm.getData();
+						undo = this.store(tree, store);
+						bool r = false;
+						void putFire(Object o) { mixin(S_TRACE);
+							foreach (v; views()) { mixin(S_TRACE);
+								auto treeItm2 = .anotherTreeItem(v._cards, treeItm);
+								v.refreshFires(treeItm2, o, true);
+							}
+							r = true;
+						}
+						if (tree.enterFromNode(par, node)) { mixin(S_TRACE);
+							putFire(ENTER);
+						} else if (tree.escapeFromNode(par, node)) { mixin(S_TRACE);
+							putFire(ESCAPE);
+						} else if (tree.loseFromNode(par, node)) { mixin(S_TRACE);
+							putFire(LOSE);
+						} else if (tree.everyRoundFromNode(par, node)) { mixin(S_TRACE);
+							putFire(EVERY_ROUND);
+						} else if (tree.round0FromNode(par, node)) { mixin(S_TRACE);
+							putFire(ROUND_0);
+						} else { mixin(S_TRACE);
+							int round = tree.roundFromNode(par, node);
+							if (round >= 0) { mixin(S_TRACE);
+								putFire(new RoundObj(round));
+							} else { mixin(S_TRACE);
+								string keyCode;
+								if (appendToLast || treeItm is itm) { mixin(S_TRACE);
+									keyCode = tree.keyCodeFromNode(par, node, _prop.sys);
+								} else { mixin(S_TRACE);
+									auto index = treeItm.indexOf(itm) - keyCodesIndex(treeItm);
+									if (index < 0) index = 0;
+									keyCode = tree.keyCodeFromNode(par, node, _prop.sys, index);
+								}
+								if (keyCode) { mixin(S_TRACE);
+									putFire(new KeyCodeObj(keyCode));
+								}
+							}
+						}
+						if (r) { mixin(S_TRACE);
+							_comm.refEventTree.call(tree);
+							_comm.refKeyCodes.call();
+						}
+						return r;
+					}
+				}
+			}
+		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
+		}
+		return false;
 	}
 	override void del(SelectionEvent se) { mixin(S_TRACE);
 		if (_readOnly) return;
@@ -2264,55 +2530,60 @@ public:
 		} else { mixin(S_TRACE);
 			auto itm = selection;
 			if (!itm) return;
-			auto parItm = itm.getParentItem();
-			if (!parItm) return;
-			auto par = parItm.getData();
-			auto data = itm.getData();
-			auto tree = cast(EventTree)data;
-			auto vs = views();
-			if (tree) { mixin(S_TRACE);
-				storeD(tree);
-				(cast(EventTreeOwner)par).remove(tree);
-				foreach (v; vs) { mixin(S_TRACE);
-					auto itm2 = .anotherTreeItem(v._cards, itm);
-					if (v._selItm is itm2) { mixin(S_TRACE);
-						v._selItm = null;
-						v._etree.refresh(null);
-					}
-				}
-				_comm.delEventTree.call(tree);
-			} else { mixin(S_TRACE);
-				static if (UseFire) {
-					tree = cast(EventTree)par;
-					store(tree);
-					if (ENTER is data) { mixin(S_TRACE);
-						tree.enter = false;
-					} else if (ESCAPE is data) { mixin(S_TRACE);
-						tree.escape = false;
-					} else if (LOSE is data) { mixin(S_TRACE);
-						tree.lose = false;
-					} else if (EVERY_ROUND is data) { mixin(S_TRACE);
-						tree.everyRound = false;
-					} else if (ROUND_0 is data) { mixin(S_TRACE);
-						tree.round0 = false;
-					} else if (cast(KeyCodeObj) data) { mixin(S_TRACE);
-						tree.removeKeyCode(_prop.sys.toFKeyCode((cast(KeyCodeObj) data).array.idup));
-					} else if (cast(RoundObj) data) { mixin(S_TRACE);
-						tree.removeRound((cast(RoundObj) data).intValue());
-					} else { mixin(S_TRACE);
-						assert (0);
-					}
-					_comm.refEventTree.call(tree);
-				}
-			}
-			auto tPath = .toTreePath(itm);
-			foreach (v; vs) { mixin(S_TRACE);
-				auto itm2 = .fromTreePath(v._cards, tPath);
-				itm2.dispose();
-			}
-			_comm.refUseCount.call();
-			_comm.refreshToolBar();
+			EVUndo undo;
+			delItem(itm, true, undo);
 		}
+	}
+	private void delItem(TreeItem itm, bool store, out EVUndo undo) { mixin(S_TRACE);
+		if (!itm) return;
+		auto parItm = itm.getParentItem();
+		if (!parItm) return;
+		auto par = parItm.getData();
+		auto data = itm.getData();
+		auto tree = cast(EventTree)data;
+		auto vs = views();
+		if (tree) { mixin(S_TRACE);
+			undo = storeD(tree, store);
+			(cast(EventTreeOwner)par).remove(tree);
+			foreach (v; vs) { mixin(S_TRACE);
+				auto itm2 = .anotherTreeItem(v._cards, itm);
+				if (v._selItm is itm2) { mixin(S_TRACE);
+					v._selItm = null;
+					v._etree.refresh(null);
+				}
+			}
+			_comm.delEventTree.call(tree);
+		} else { mixin(S_TRACE);
+			static if (UseFire) {
+				tree = cast(EventTree)par;
+				undo = this.store(tree, store);
+				if (ENTER is data) { mixin(S_TRACE);
+					tree.enter = false;
+				} else if (ESCAPE is data) { mixin(S_TRACE);
+					tree.escape = false;
+				} else if (LOSE is data) { mixin(S_TRACE);
+					tree.lose = false;
+				} else if (EVERY_ROUND is data) { mixin(S_TRACE);
+					tree.everyRound = false;
+				} else if (ROUND_0 is data) { mixin(S_TRACE);
+					tree.round0 = false;
+				} else if (cast(KeyCodeObj) data) { mixin(S_TRACE);
+					tree.removeKeyCode(_prop.sys.toFKeyCode((cast(KeyCodeObj) data).array.idup));
+				} else if (cast(RoundObj) data) { mixin(S_TRACE);
+					tree.removeRound((cast(RoundObj) data).intValue());
+				} else { mixin(S_TRACE);
+					assert (0);
+				}
+				_comm.refEventTree.call(tree);
+			}
+		}
+		auto tPath = .toTreePath(itm);
+		foreach (v; vs) { mixin(S_TRACE);
+			auto itm2 = .fromTreePath(v._cards, tPath);
+			itm2.dispose();
+		}
+		_comm.refUseCount.call();
+		_comm.refreshToolBar();
 	}
 	override void clone(SelectionEvent se) { mixin(S_TRACE);
 		if (_readOnly) return;
