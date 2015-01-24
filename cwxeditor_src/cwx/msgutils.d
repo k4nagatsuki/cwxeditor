@@ -78,7 +78,7 @@ private string formatMsgImpl(in string text,
 	for (size_t i = 0; i < dtext.length; i++) { mixin(S_TRACE);
 		dchar c = dtext[i];
 		bool flag_step(string delegate(string) get, dchar c) { mixin(S_TRACE);
-			int next = .countUntil(dtext[i + 1 .. $], c);
+			ptrdiff_t next = .countUntil(dtext[i + 1 .. $], c);
 			if (next < 0) return false;
 			dstring fl = dtext[i + 1 .. i + 1 + next];
 			i = i + 1 + next;
@@ -186,7 +186,7 @@ void textUseItems(in string text,
 }
 
 private void replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring dold, dstring dnew, dchar targC) { mixin(S_TRACE);
-	int next = .countUntil(dtext[i + 1 .. $], targC);
+	ptrdiff_t next = .countUntil(dtext[i + 1 .. $], targC);
 	if (next >= 0) { mixin(S_TRACE);
 		next = i + 1 + next;
 		if (dtext[i + 1 .. next] == dold) { mixin(S_TRACE);
@@ -203,7 +203,7 @@ private void replOn(ref dstring dtext, ref dstring buf, ref size_t i, dstring do
 	}
 }
 private void replOff(ref dstring dtext, ref dstring buf, ref size_t i, dchar targC) { mixin(S_TRACE);
-	int next = .countUntil(dtext[i + 1 .. $], targC);
+	ptrdiff_t next = .countUntil(dtext[i + 1 .. $], targC);
 	if (next >= 0) { mixin(S_TRACE);
 		next = i + 1 + next;
 		buf ~= [targC] ~ dtext[i + 1 .. next] ~ [targC];

@@ -80,8 +80,8 @@ private:
 	}
 	static class UndoEdit : MVUndo {
 		private Motion _old;
-		private int _index;
-		this (MotionView v, Commons comm, int index) { mixin(S_TRACE);
+		private ptrdiff_t _index;
+		this (MotionView v, Commons comm, ptrdiff_t index) { mixin(S_TRACE);
 			super (v, comm);
 			_old = v.motion(index).dup;
 			_old.setUseCounter(comm.summary.useCounter.sub);
@@ -105,7 +105,7 @@ private:
 			_old.removeUseCounter();
 		}
 	}
-	void storeEdit(int index) { mixin(S_TRACE);
+	void storeEdit(ptrdiff_t index) { mixin(S_TRACE);
 		_undo ~= new UndoEdit(this, _comm, index);
 	}
 	static class UndoSwap : MVUndo {
@@ -232,7 +232,7 @@ private:
 	Table _motions;
 	Combo _beasts;
 	BeastCard _selectedBeast = null;
-	BeastCard[int] _beastTbl;
+	BeastCard[size_t] _beastTbl;
 	IncSearch _beastIncSearch;
 	void beastIncSearch() { mixin(S_TRACE);
 		.forceFocus(_beasts, true);
@@ -284,12 +284,12 @@ private:
 		return true;
 	}
 
-	Motion motion(int index) { mixin(S_TRACE);
-		return cast(Motion) _motions.getItem(index).getData();
+	Motion motion(size_t index) { mixin(S_TRACE);
+		return cast(Motion)_motions.getItem(cast(int)index).getData();
 	}
-	void motion(int index, Motion m, bool store) { mixin(S_TRACE);
+	void motion(size_t index, Motion m, bool store) { mixin(S_TRACE);
 		if (store) storeEdit(index);
-		auto itm = _motions.getItem(index);
+		auto itm = _motions.getItem(cast(int)index);
 		auto o = cast(Motion) itm.getData();
 		assert (o);
 		if (o.beast) { mixin(S_TRACE);
@@ -386,7 +386,7 @@ private:
 		mt.type = type;
 		createToolItem2(_comm, tbar, tt, _prop.images.motion(type), &mt.create, () => !_readOnly);
 	}
-	int indexOf(Motion m) { mixin(S_TRACE);
+	ptrdiff_t indexOf(Motion m) { mixin(S_TRACE);
 		foreach (i, itm; _motions.getItems()) { mixin(S_TRACE);
 			if (m is itm.getData()) return i;
 		}
@@ -602,7 +602,7 @@ private:
 			auto m = cast(Motion) _motions.getItem(_oldIndex).getData();
 			foreach (i, itm; _motionElm.getItems()) { mixin(S_TRACE);
 				if ((cast(Element) (cast(Integer) itm.getData()).intValue()) == m.element) { mixin(S_TRACE);
-					_motionElm.select(i);
+					_motionElm.select(cast(int)i);
 					break;
 				}
 			}
@@ -1577,7 +1577,7 @@ public:
 		if (cate == "motion") { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= _motions.getItemCount()) return false;
-			_motions.select(index);
+			_motions.select(cast(int)index);
 			refreshSels();
 			path = cpbottom(path);
 			if (!cphasattr(path, "nofocus")) .forceFocus(_motions, shellActivate);

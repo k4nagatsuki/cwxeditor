@@ -1239,7 +1239,7 @@ private TreeItem cloneItem(T)(T parent, TreeItem old, int index) { mixin(S_TRACE
 		ti.setImage(i, old.getImage(i));
 	}
 	foreach (i, itm; old.getItems()) { mixin(S_TRACE);
-		cloneItem(ti, itm, i);
+		cloneItem(ti, itm, cast(int)i);
 	}
 	ti.setExpanded(old.getExpanded());
 	return ti;
@@ -1723,7 +1723,7 @@ ubyte getRGBAverage(ImageData card, CRect nameArea) { mixin(S_TRACE);
 	} else { mixin(S_TRACE);
 		auto pixels = new ubyte[nameArea.width];
 		foreach (y; nameArea.y .. nameArea.y + nameArea.height) { mixin(S_TRACE);
-			card.getPixels(nameArea.x, y, pixels.length, cast(byte[])pixels, 0);
+			card.getPixels(nameArea.x, y, cast(int)pixels.length, cast(byte[])pixels, 0);
 			foreach (i, pixel; pixels) { mixin(S_TRACE);
 				auto rgb = card.palette.getRGB(pixel);
 				rgbs += rgb.red;
@@ -2142,7 +2142,7 @@ void drawWallpaper(GC gc, Image img, Rectangle rect, WallpaperStyle style) { mix
 			data.alphaData = cast(byte[]) alpha;
 			data.width = wi;
 			data.height = hi;
-			data.bytesPerLine = bpl;
+			data.bytesPerLine = cast(int)bpl;
 			auto img2 = new Image(d, data);
 			scope (exit) img2.dispose();
 			drawWallpaper(gc, img2, rect, WallpaperStyle.Center);
@@ -3482,48 +3482,64 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out s
 
 /// BUG: GDI+でOpenTypeフォントを使用しようとした時の問題を避ける
 void wDrawText(GC gc, string text, int x, int y) { mixin(S_TRACE);
-	if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
-		auto data = gc.getGCData();
-		auto g = data.gdipGraphics;
-		data.gdipGraphics = null;
-		scope (exit) data.gdipGraphics = g;
-		gc.drawText(text, x, y);
+    version (Windows) {
+		if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
+			auto data = gc.getGCData();
+			auto g = data.gdipGraphics;
+			data.gdipGraphics = null;
+			scope (exit) data.gdipGraphics = g;
+			gc.drawText(text, x, y);
+		} else { mixin(S_TRACE);
+			gc.drawText(text, x, y);
+		}
 	} else { mixin(S_TRACE);
 		gc.drawText(text, x, y);
 	}
 }
 /// ditto
 void wDrawText(GC gc, string text, int x, int y, bool isTransparent) { mixin(S_TRACE);
-	if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
-		auto data = gc.getGCData();
-		auto g = data.gdipGraphics;
-		data.gdipGraphics = null;
-		scope (exit) data.gdipGraphics = g;
-		gc.drawText(text, x, y, isTransparent);
+    version (Windows) {
+		if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
+			auto data = gc.getGCData();
+			auto g = data.gdipGraphics;
+			data.gdipGraphics = null;
+			scope (exit) data.gdipGraphics = g;
+			gc.drawText(text, x, y, isTransparent);
+		} else { mixin(S_TRACE);
+			gc.drawText(text, x, y, isTransparent);
+		}
 	} else { mixin(S_TRACE);
 		gc.drawText(text, x, y, isTransparent);
 	}
 }
 /// ditto
 void wDrawText(GC gc, string text, int x, int y, int flags) { mixin(S_TRACE);
-	if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
-		auto data = gc.getGCData();
-		auto g = data.gdipGraphics;
-		data.gdipGraphics = null;
-		scope (exit) data.gdipGraphics = g;
-		gc.drawText(text, x, y, flags);
+    version (Windows) {
+		if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
+			auto data = gc.getGCData();
+			auto g = data.gdipGraphics;
+			data.gdipGraphics = null;
+			scope (exit) data.gdipGraphics = g;
+			gc.drawText(text, x, y, flags);
+		} else { mixin(S_TRACE);
+			gc.drawText(text, x, y, flags);
+		}
 	} else { mixin(S_TRACE);
 		gc.drawText(text, x, y, flags);
 	}
 }
 /// ditto
 Point wTextExtent(GC gc, string text) { mixin(S_TRACE);
-	if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
-		auto data = gc.getGCData();
-		auto g = data.gdipGraphics;
-		data.gdipGraphics = null;
-		scope (exit) data.gdipGraphics = g;
-		return gc.textExtent(text);
+    version (Windows) {
+		if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
+			auto data = gc.getGCData();
+			auto g = data.gdipGraphics;
+			data.gdipGraphics = null;
+			scope (exit) data.gdipGraphics = g;
+			return gc.textExtent(text);
+		} else { mixin(S_TRACE);
+			return gc.textExtent(text);
+		}
 	} else { mixin(S_TRACE);
 		return gc.textExtent(text);
 	}

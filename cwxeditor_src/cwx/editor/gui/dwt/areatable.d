@@ -891,15 +891,15 @@ private:
 	static int toIndexFrom(Summary summ, ulong id, TypeInfo type) { mixin(S_TRACE);
 		if (type is typeid(Area)) { mixin(S_TRACE);
 			foreach (i, a; summ.areas) { mixin(S_TRACE);
-				if (a.id == id) return i;
+				if (a.id == id) return cast(int)i;
 			}
 		} else if (type is typeid(Battle)) { mixin(S_TRACE);
 			foreach (i, a; summ.battles) { mixin(S_TRACE);
-				if (a.id == id) return i;
+				if (a.id == id) return cast(int)i;
 			}
 		} else if (type is typeid(Package)) { mixin(S_TRACE);
 			foreach (i, a; summ.packages) { mixin(S_TRACE);
-				if (a.id == id) return i;
+				if (a.id == id) return cast(int)i;
 			}
 		} else assert (0);
 		return -1;
@@ -908,18 +908,18 @@ private:
 		static if (is(A : Area)) {
 			return index;
 		} else static if (is(A : Battle)) {
-			return index + summ.areas.length;
+			return index + cast(int)summ.areas.length;
 		} else static if (is(A : Package)) {
-			return index + summ.areas.length + summ.battles.length;
+			return index + cast(int)summ.areas.length + cast(int)summ.battles.length;
 		} else static assert (0);
 	}
 	static int toIndex(A)(Summary summ, int index) { mixin(S_TRACE);
 		static if (is(A : Area)) {
 			return index;
 		} else static if (is(A : Battle)) {
-			return index - summ.areas.length;
+			return index - cast(int)summ.areas.length;
 		} else static if (is(A : Package)) {
-			return index - (summ.areas.length + summ.battles.length);
+			return index - cast(int)(summ.areas.length + summ.battles.length);
 		} else static assert (0);
 	}
 	alias toIndex!Area toAreaIndex;
@@ -1027,9 +1027,9 @@ private:
 	int countAllAreas() { mixin(S_TRACE);
 		auto c = areaCount + battleCount + packageCount;
 		if (showSummary) { mixin(S_TRACE);
-			return 1 + c;
+			return 1 + cast(int)c;
 		}
-		return c;
+		return cast(int)c;
 	}
 
 	class DragDir : DragSourceAdapter {
@@ -1214,25 +1214,25 @@ private:
 						if (toItm && cast(Summary)toData) { mixin(S_TRACE);
 							index = 0;
 						} else if (!toItm || cast(Battle)toData || cast(Package)toData) { mixin(S_TRACE);
-							index = _summ.areas.length;
+							index = cast(int)_summ.areas.length;
 						} else { mixin(S_TRACE);
-							index = _summ.indexOf(cast(Area)toData);
+							index = cast(int)_summ.indexOf(cast(Area)toData);
 						}
 					} else if (auto a = cast(Battle)area) { mixin(S_TRACE);
 						if (toItm && (cast(Summary)toData || cast(Area)toData)) { mixin(S_TRACE);
 							index = 0;
 						} else if (!toItm || cast(Package)toData) { mixin(S_TRACE);
-							index = _summ.battles.length;
+							index = cast(int)_summ.battles.length;
 						} else { mixin(S_TRACE);
-							index = _summ.indexOf(cast(Battle)toData);
+							index = cast(int)_summ.indexOf(cast(Battle)toData);
 						}
 					} else if (auto a = cast(Package)area) { mixin(S_TRACE);
 						if (toItm && (cast(Summary)toData || cast(Area)toData || cast(Battle)toData)) { mixin(S_TRACE);
 							index = 0;
 						} else if (!toItm) { mixin(S_TRACE);
-							index = _summ.packages.length;
+							index = cast(int)_summ.packages.length;
 						} else { mixin(S_TRACE);
-							index = _summ.indexOf(cast(Package)toData);
+							index = cast(int)_summ.indexOf(cast(Package)toData);
 						}
 					} else assert (0);
 					return index;
@@ -1246,9 +1246,9 @@ private:
 					auto area = cast(AbstractArea)tbl.getItem(fromIndex).getData();
 					int index = getIndex(area);
 					void put(A)(A a) { mixin(S_TRACE);
-						int moveIndex = _summ.indexOf(a);
+						auto moveIndex = _summ.indexOf(a);
 						if (moveIndex == index) return;
-						storeMove(moveIndex, index, typeid(typeof(a)));
+						storeMove(cast(int)moveIndex, cast(int)index, typeid(typeof(a)));
 						_summ.insert(index, a);
 					}
 					if (auto a = cast(Area)area) { mixin(S_TRACE);
@@ -1277,7 +1277,7 @@ private:
 						int index = getIndex(area);
 						_summ.insert(index, cast(Area) area);
 						storeInsert(area.id, tid, a, b, p);
-						index = _summ.indexOf(cast(Area) area);
+						index = cast(int)_summ.indexOf(cast(Area) area);
 						newAreaItem(index);
 					} else if (tid == typeid(Battle)) { mixin(S_TRACE);
 						area = Battle.createFromNode(node, ver);
@@ -1285,7 +1285,7 @@ private:
 						int index = getIndex(area);
 						_summ.insert(index, cast(Battle) area);
 						storeInsert(area.id, tid, a, b, p);
-						index = _summ.indexOf(cast(Battle) area);
+						index = cast(int)_summ.indexOf(cast(Battle) area);
 						newBattleItem(index);
 					} else { mixin(S_TRACE);
 						assert (tid == typeid(Package));
@@ -1294,7 +1294,7 @@ private:
 						int index = getIndex(area);
 						_summ.insert(index, cast(Package) area);
 						storeInsert(area.id, tid, a, b, p);
-						index = _summ.indexOf(cast(Package) area);
+						index = cast(int)_summ.indexOf(cast(Package) area);
 						newPackageItem(index);
 					}
 					e.detail = DND.DROP_NONE;
@@ -1314,7 +1314,7 @@ private:
 	int indexOf(in AbstractArea area) { mixin(S_TRACE);
 		foreach (i, itm; _areas.getItems()) { mixin(S_TRACE);
 			if (itm.getData() is area) { mixin(S_TRACE);
-				return i;
+				return cast(int)i;
 			}
 		}
 		return -1;
@@ -1630,7 +1630,7 @@ private:
 				} else { mixin(S_TRACE);
 					if (!_incSearch.match(a.name, a)) return;
 				}
-				refData2(a, i < _areas.getItemCount() ? _areas.getItem(i) : new TableItem(_areas, SWT.NONE));
+				refData2(a, i < _areas.getItemCount() ? _areas.getItem(cast(int)i) : new TableItem(_areas, SWT.NONE));
 				i++;
 			}
 			foreach (a; _summ.areas) { mixin(S_TRACE);
@@ -1643,7 +1643,7 @@ private:
 				put(a);
 			}
 			while (i < _areas.getItemCount()) { mixin(S_TRACE);
-				_areas.getItem(i).dispose();
+				_areas.getItem(cast(int)i).dispose();
 			}
 			sort();
 		} else { mixin(S_TRACE);
@@ -2091,13 +2091,13 @@ public:
 	private int toBattleIndex(int index) { mixin(S_TRACE);
 		index--;
 		return (index >= 0 && index < _summ.areas.length + _summ.battles.length)
-			? index - _summ.areas.length : -1;
+			? index - cast(int)_summ.areas.length : -1;
 	}
 	private int toPackageIndex(int index) { mixin(S_TRACE);
 		index--;
 		return (index >= 0 && index < _summ.areas.length
 			+ _summ.battles.length + _summ.packages.length)
-			? index - _summ.areas.length - _summ.battles.length : -1;
+			? index - cast(int)_summ.areas.length - cast(int)_summ.battles.length : -1;
 	}
 
 	@property
@@ -2332,7 +2332,7 @@ public:
 		area.add(tree);
 		_summ.add(area);
 		storeInsert(area.id, typeid(Area), a, b, p);
-		int index = _summ.areas.length - 1;
+		int index = cast(int)_summ.areas.length - 1;
 		addAreaItem(index);
 		auto sel = selArea(index);
 		sort();
@@ -2352,7 +2352,7 @@ public:
 		if (_dirMode) btl.dirName = _dir;
 		_summ.add(btl);
 		storeInsert(btl.id, typeid(Battle), a, b, p);
-		int index = _summ.battles.length - 1;
+		int index = cast(int)_summ.battles.length - 1;
 		addBattleItem(index);
 		auto sel = selBattle(index);
 		sort();
@@ -2385,7 +2385,7 @@ public:
 		pkg.add(et);
 		_summ.add(pkg);
 		storeInsert(pkg.id, typeid(Package), a, b, p);
-		int index = _summ.packages.length - 1;
+		int index = cast(int)_summ.packages.length - 1;
 		addPackageItem(index);
 		auto sel = selPackage(index);
 		sort();
@@ -2432,7 +2432,7 @@ public:
 			_dirTree.setSelection([findDirTree(a.dirName)]);
 			updateDirSel();
 		}
-		int i = cCountUntil!("a.getData() is b")(_areas.getItems(), a);
+		int i = cast(int)cCountUntil!("a.getData() is b")(_areas.getItems(), a);
 		if (0 <= i) { mixin(S_TRACE);
 			_areas.select(i);
 			_areas.showSelection();
@@ -2445,7 +2445,7 @@ public:
 		if (!areas.length) return;
 		select(areas[$-1]);
 		foreach (a; areas) {
-			int i = cCountUntil!("a.getData() is b")(_areas.getItems(), a);
+			int i = cast(int)cCountUntil!("a.getData() is b")(_areas.getItems(), a);
 			if (0 <= i) { mixin(S_TRACE);
 				_areas.select(i);
 			}
@@ -2615,8 +2615,8 @@ public:
 		auto a1 = cast(A)area1;
 		auto a2 = cast(A)area2;
 		if (!a1 || !a2) return;
-		int i1 = _summ.indexOf(a1);
-		int i2 = _summ.indexOf(a2);
+		int i1 = cast(int)_summ.indexOf(a1);
+		int i2 = cast(int)_summ.indexOf(a2);
 		if (_dirMode) { mixin(S_TRACE);
 			// 見かけ上の位置が動くまで続ける
 			static if (is(A:Area)) {

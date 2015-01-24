@@ -363,10 +363,10 @@ private:
 			auto dws = textWarnings(dlg.flagsInText, dlg.stepsInText, dlg.fontsInText, dlg.colorsInText,
 				wFlags, wSteps, wFonts, wColors);
 			if (dws.all.length) { mixin(S_TRACE);
-				_dlgsL.getItem(i).setImage(prop.images.warning);
+				_dlgsL.getItem(cast(int)i).setImage(prop.images.warning);
 				_dlgWarnings ~= dws.all;
 			} else { mixin(S_TRACE);
-				_dlgsL.getItem(i).setImage(prop.images.content(CType.TALK_DIALOG));
+				_dlgsL.getItem(cast(int)i).setImage(prop.images.content(CType.TALK_DIALOG));
 			}
 			ws ~= dws.noDup;
 		}
@@ -437,7 +437,7 @@ private:
 		}
 		_rCoupons.setText(rcs);
 		_text.setText(dlg.text);
-		auto len = dlg.text.length;
+		auto len = cast(int)dlg.text.length;
 		_text.widget.setSelection(len, len);
 		refreshPreview();
 		comm.refreshToolBar();
@@ -450,7 +450,7 @@ private:
 	}
 	void insertDialog(SDialog dlg, int index, bool store = true) { mixin(S_TRACE);
 		if (store) storeEdit();
-		if (index < 0) index = _dlgs.length;
+		if (index < 0) index = cast(int)_dlgs.length;
 		_dlgs = _dlgs[0 .. index] ~ dlg ~ _dlgs[index .. $];
 		auto itm = new TableItem(_dlgsL, SWT.NONE, index);
 		itm.setImage(prop.images.content(CType.TALK_DIALOG));
@@ -466,7 +466,7 @@ private:
 		_dlgs = _dlgs[0 .. index] ~ _dlgs[index + 1 .. $];
 		_dlgsL.remove(index);
 		if (sel) { mixin(S_TRACE);
-			_dlgsL.select(index < _dlgs.length ? index : _dlgs.length - 1);
+			_dlgsL.select(index < _dlgs.length ? index : cast(int)_dlgs.length - 1);
 			selectChanged();
 		} else { mixin(S_TRACE);
 			comm.refreshToolBar();
@@ -553,7 +553,7 @@ private:
 		string text = lastRet(wrapReturnCode(_text.getText()));
 		foreach (i, dlg; _dlgs) { mixin(S_TRACE);
 			if (i != index) { mixin(S_TRACE);
-				_dlgsL.getItem(i).setText(textL);
+				_dlgsL.getItem(cast(int)i).setText(textL);
 				dlg.text = text;
 			}
 		}
@@ -805,7 +805,7 @@ public:
 		if ("dialog" == cate) { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= _dlgsL.getItemCount()) return false;
-			_dlgsL.select(index);
+			_dlgsL.select(cast(int)index);
 			selectChanged();
 			.forceFocus(_dlgsL, shellActivate);
 			path = cpbottom(path);
@@ -1286,7 +1286,7 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 			}
 			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 				if (_combo.getText().length > 0) { mixin(S_TRACE);
-					_list.setSelection(_list.getText().length, _list.getText().length);
+					_list.setSelection(cast(int)_list.getText().length, cast(int)_list.getText().length);
 					string[] lines = splitLines!string(_list.getText());
 					if (lines.length > 0 && lines[$ - 1].length > 0) { mixin(S_TRACE);
 						_list.insert("\n");
@@ -1566,7 +1566,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 			auto p = flag.path;
 			if (!flagIncSearch.match(p)) continue;
 			flags.add(p);
-			if (0 == i || 0 == icmp(p, fSel)) flags.select(i);
+			if (0 == i || 0 == icmp(p, fSel)) flags.select(cast(int)i);
 			i++;
 		}
 		flags.setEnabled(list.length > 0);
@@ -1582,7 +1582,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 			auto p = step.path;
 			if (!stepIncSearch.match(p)) continue;
 			steps.add(p);
-			if (0 == i || 0 == icmp(p, sSel)) steps.select(i);
+			if (0 == i || 0 == icmp(p, sSel)) steps.select(cast(int)i);
 			i++;
 		}
 		steps.setEnabled(list.length > 0);
@@ -1651,7 +1651,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 						has = true;
 						if (!fontIncSearch.match(to!string(decodeFontPath(file)))) continue;
 						fonts.add(file);
-						if (0 == i || 0 == fncmp(file, sel)) fonts.select(i);
+						if (0 == i || 0 == fncmp(file, sel)) fonts.select(cast(int)i);
 						i++;
 					}
 				}
@@ -1753,7 +1753,7 @@ private void putColor(FixedWidthText text, dchar put) { mixin(S_TRACE);
 	auto old = toUTF32(text.getText());
 	auto newt = cwx.msgutils.putColor(old, put, sel.x, sel.y);
 	text.setText(toUTF8(newt));
-	int nSel = sel.y + (newt.length - old.length);
+	int nSel = sel.y + (cast(int)newt.length - cast(int)old.length);
 	text.widget.setSelection(nSel);
 }
 
@@ -1995,7 +1995,7 @@ class PreviewValues : Composite {
 
 		if (_targetChars.length < _values.getItemCount()) { mixin(S_TRACE);
 			foreach (i; _targetChars.length .. _values.getItemCount()) { mixin(S_TRACE);
-				auto itm = _values.getItem(i);
+				auto itm = _values.getItem(cast(int)i);
 				string key = .toLower(itm.getText(0));
 				auto o = itm.getData();
 				auto f = cast(FlagData) o;
@@ -2006,7 +2006,7 @@ class PreviewValues : Composite {
 					selPath = key;
 				}
 			}
-			_values.remove(_targetChars.length, _values.getItemCount() - 1);
+			_values.remove(cast(int)_targetChars.length, _values.getItemCount() - 1);
 		}
 		if (_summ) { mixin(S_TRACE);
 			foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
@@ -2120,7 +2120,7 @@ class PreviewValues : Composite {
 		store();
 		size_t i = 0;
 		foreach (c; _targetChars) { mixin(S_TRACE);
-			if (i in set) { mixin(S_TRACE);
+			if (cast(int)i in set) { mixin(S_TRACE);
 				auto itm = _values.getItem(_indexTable[cast(SPChar)c]);
 				final switch (cast(SPChar)c) {
 				case SPChar.M:
@@ -2150,8 +2150,8 @@ class PreviewValues : Composite {
 		}
 		if (_summ) { mixin(S_TRACE);
 			foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
-				if (i in set) { mixin(S_TRACE);
-					auto itm = _values.getItem(i);
+				if (cast(int)i in set) { mixin(S_TRACE);
+					auto itm = _values.getItem(cast(int)i);
 					itm.setText(1, f.onOff ? f.on : f.off);
 					auto data = cast(FlagData) itm.getData();
 					data.onOff = f.onOff;
@@ -2159,8 +2159,8 @@ class PreviewValues : Composite {
 				i++;
 			}
 			foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
-				if (i in set) { mixin(S_TRACE);
-					auto itm = _values.getItem(i);
+				if (cast(int)i in set) { mixin(S_TRACE);
+					auto itm = _values.getItem(cast(int)i);
 					itm.setText(1, f.values[f.select]);
 					auto data = cast(StepData) itm.getData();
 					data.select = f.select;
@@ -2181,7 +2181,7 @@ class PreviewValues : Composite {
 		foreach (i; indices) set[i] = true;
 		size_t i = 0;
 		foreach (c; _targetChars) { mixin(S_TRACE);
-			if (i in set) { mixin(S_TRACE);
+			if (cast(int)i in set) { mixin(S_TRACE);
 				auto itm = _values.getItem(_indexTable[cast(SPChar)c]);
 				final switch (cast(SPChar)c) {
 				case SPChar.M:
@@ -2211,16 +2211,16 @@ class PreviewValues : Composite {
 		}
 		if (_summ) { mixin(S_TRACE);
 			foreach (f; _summ.flagDirRoot.allFlags) { mixin(S_TRACE);
-				if (i in set) { mixin(S_TRACE);
-					auto itm = _values.getItem(i);
+				if (cast(int)i in set) { mixin(S_TRACE);
+					auto itm = _values.getItem(cast(int)i);
 					auto data = cast(FlagData) itm.getData();
 					if (data.onOff != f.onOff) return false;
 				}
 				i++;
 			}
 			foreach (f; _summ.flagDirRoot.allSteps) { mixin(S_TRACE);
-				if (i in set) { mixin(S_TRACE);
-					auto itm = _values.getItem(i);
+				if (cast(int)i in set) { mixin(S_TRACE);
+					auto itm = _values.getItem(cast(int)i);
 					auto data = cast(StepData) itm.getData();
 					if (data.select != f.select) return false;
 				}
@@ -2402,7 +2402,7 @@ class PreviewValues : Composite {
 			names[C_TBL[cast(SPChar)i]] = _values.getItem(_indexTable[cast(SPChar)i]).getText(1);
 		}
 		foreach (i; _targetChars.length .. _values.getItemCount()) { mixin(S_TRACE);
-			auto itm = _values.getItem(i);
+			auto itm = _values.getItem(cast(int)i);
 			if (cast(FlagData) itm.getData()) { mixin(S_TRACE);
 				flags[itm.getText(0)] = itm.getText(1);
 			} else { mixin(S_TRACE);
@@ -2416,7 +2416,7 @@ class PreviewValues : Composite {
 			names[C_TBL[cast(SPChar)i]] = _values.getItem(_indexTable[cast(SPChar)i]).getText(1);
 		}
 		foreach (i; _targetChars.length .. _values.getItemCount()) { mixin(S_TRACE);
-			auto itm = _values.getItem(i);
+			auto itm = _values.getItem(cast(int)i);
 			auto fd = cast(FlagData) itm.getData();
 			if (fd) { mixin(S_TRACE);
 				flags[itm.getText(0)] = fd.onOff;
@@ -2432,7 +2432,7 @@ class PreviewValues : Composite {
 			_values.getItem(_indexTable[cast(SPChar)i]).setText(1, names[C_TBL[cast(SPChar)i]]);
 		}
 		foreach (i; _targetChars.length .. _values.getItemCount()) { mixin(S_TRACE);
-			auto itm = _values.getItem(i);
+			auto itm = _values.getItem(cast(int)i);
 			auto fd = cast(FlagData) itm.getData();
 			if (fd) { mixin(S_TRACE);
 				auto p = itm.getText(0) in flags;
@@ -2611,7 +2611,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	}
 	auto rect = prop.looks.messageBounds;
 	auto bh = prop.looks.messageButtonHeight;
-	auto canvas = new Image(d, rect.width, rect.height + bh * sel.length);
+	auto canvas = new Image(d, rect.width, rect.height + bh * cast(int)sel.length);
 	scope (exit) canvas.dispose();
 	auto gc = new GC(canvas);
 	scope (exit) gc.dispose();
@@ -2623,7 +2623,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	gc.setBackground(back);
 	gc.fillRectangle(3, 3, rect.width - 6, rect.height - 6);
 	foreach (i; 0 .. sel.length) { mixin(S_TRACE);
-		gc.fillRectangle(3, rect.height + 3 + bh * i, rect.width - 6, bh - 6);
+		gc.fillRectangle(3, rect.height + 3 + bh * cast(int)i, rect.width - 6, bh - 6);
 	}
 
 	// 話者の描画
@@ -2749,7 +2749,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		}
 	}
 
-	auto textCanvas = new Image(d, rect.width, rect.height + bh * sel.length);
+	auto textCanvas = new Image(d, rect.width, rect.height + bh * cast(int)sel.length);
 	scope (exit) textCanvas.dispose();
 	auto tgc = new GC(textCanvas);
 	scope (exit) tgc.dispose();
@@ -2759,7 +2759,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	tgc.setFont(font);
 	tgc.setForeground(fc);
 	tgc.setBackground(hc);
-	tgc.fillRectangle(0, 0, rect.width, rect.height + bh * sel.length);
+	tgc.fillRectangle(0, 0, rect.width, rect.height + bh * cast(int)sel.length);
 	lineH = prop.looks.messageLineHeight;
 	for (size_t i = 0; i < dmsg.length; i++) { mixin(S_TRACE);
 		if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
@@ -2889,13 +2889,13 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	gc.drawRectangle(0, 0, rect.width - 1, rect.height - 1);
 	gc.drawRectangle(2, 2, rect.width - 5, rect.height - 5);
 	foreach (i; 0 .. sel.length) { mixin(S_TRACE);
-		gc.drawRectangle(0, rect.height + bh * i, rect.width - 1, bh - 1);
-		gc.drawRectangle(2, rect.height + 2 + bh * i, rect.width - 5, bh - 5);
+		gc.drawRectangle(0, rect.height + bh * cast(int)i, rect.width - 1, bh - 1);
+		gc.drawRectangle(2, rect.height + 2 + bh * cast(int)i, rect.width - 5, bh - 5);
 	}
 	gc.setForeground(c2);
 	gc.drawRectangle(1, 1, rect.width - 3, rect.height - 3);
 	foreach (i; 0 .. sel.length) { mixin(S_TRACE);
-		gc.drawRectangle(1, rect.height + 1 + bh * i, rect.width - 3, bh - 3);
+		gc.drawRectangle(1, rect.height + 1 + bh * cast(int)i, rect.width - 3, bh - 3);
 	}
 
 	return canvas.getImageData();

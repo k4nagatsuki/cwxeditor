@@ -139,8 +139,8 @@ class CouponView(CVType Type) : Composite {
 	private void addCoupon() { mixin(S_TRACE);
 		if (_newCoupon.getText().length > 0) { mixin(S_TRACE);
 			foreach (i, itm; _coupons.getItems()) { mixin(S_TRACE);
-				if (_newCoupon.getText() == (cast(Coupon) itm.getData()).name) { mixin(S_TRACE);
-					_coupons.select(i);
+				if (_newCoupon.getText() == (cast(Coupon)itm.getData()).name) { mixin(S_TRACE);
+					_coupons.select(cast(int)i);
 					return;
 				}
 			}
@@ -154,8 +154,8 @@ class CouponView(CVType Type) : Composite {
 		int index = _coupons.getSelectionIndex();
 		if (_newCoupon.getText().length > 0 && index >= 0) { mixin(S_TRACE);
 			foreach (i, itm; _coupons.getItems()) { mixin(S_TRACE);
-				if (_newCoupon.getText() == (cast(Coupon) itm.getData()).name && i != index) { mixin(S_TRACE);
-					_coupons.select(i);
+				if (_newCoupon.getText() == (cast(Coupon)itm.getData()).name && i != index) { mixin(S_TRACE);
+					_coupons.select(cast(int)i);
 					return;
 				}
 			}
@@ -454,8 +454,8 @@ class CouponView(CVType Type) : Composite {
 				_couponType.setLayoutData(gd);
 				foreach (i, type; [CouponType.Normal, CouponType.Hide, CouponType.Dur, CouponType.DurBattle]) { mixin(S_TRACE);
 					_couponType.add(_prop.msgs.couponTypeName(type));
-					_couponTypeTable[type] = i;
-					_couponTypeTable2[i] = type;
+					_couponTypeTable[type] = cast(int)i;
+					_couponTypeTable2[cast(int)i] = type;
 				}
 				.listener(_couponType, SWT.Selection, { mixin(S_TRACE);
 					auto type = _couponTypeTable2[_couponType.getSelectionIndex()];

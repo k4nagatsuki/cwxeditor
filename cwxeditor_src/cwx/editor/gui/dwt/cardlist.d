@@ -133,7 +133,7 @@ public:
 						int nCur;
 						if (isFirstCol(_cur)) { mixin(S_TRACE);
 							nCur = _cur + _wrap - 1;
-							if (_items.length <= nCur) nCur = _items.length - 1;
+							if (_items.length <= nCur) nCur = cast(int)_items.length - 1;
 						} else { mixin(S_TRACE);
 							nCur = _cur - 1;
 						}
@@ -143,8 +143,8 @@ public:
 						if (ctrl) return;
 						int nCur;
 						if (_cur == _items.length - 1) { mixin(S_TRACE);
-							int d = _items.length % _wrap;
-							nCur = _items.length - (d == 0 ? _wrap : d);
+							int d = cast(int)_items.length % _wrap;
+							nCur = cast(int)_items.length - (d == 0 ? _wrap : d);
 						} else if (isLastCol(_cur)) { mixin(S_TRACE);
 							nCur = _cur - _wrap + 1;
 						} else { mixin(S_TRACE);
@@ -335,7 +335,7 @@ public:
 	int indexOf(C c) { mixin(S_TRACE);
 		foreach (i, itm; _items) { mixin(S_TRACE);
 			if (itm.getData() is c) { mixin(S_TRACE);
-				return i;
+				return cast(int)i;
 			}
 		}
 		return -1;
@@ -416,7 +416,7 @@ public:
 		}
 		foreach (i, itm; _items) { mixin(S_TRACE);
 			if (sels.contains(cast(C) itm.getData())) { mixin(S_TRACE);
-				select(i);
+				select(cast(int)i);
 			}
 		}
 		resize();
@@ -426,12 +426,12 @@ public:
 	}
 	@property
 	int count() { mixin(S_TRACE);
-		return _items.length;
+		return cast(int)_items.length;
 	}
 	/// 選択中のアイテムの数。
 	@property
 	int selectionCount() { mixin(S_TRACE);
-		return _sels.length;
+		return cast(int)_sels.length;
 	}
 	/// Returns: 選択中のアイテムの配列。
 	@property
@@ -571,7 +571,7 @@ public:
 				y = hHint;
 			} else { mixin(S_TRACE);
 				if (_items.length > 0) { mixin(S_TRACE);
-					int colH = _items.length / _defWrap;
+					int colH = cast(int)_items.length / _defWrap;
 					if (_items.length % _defWrap > 0) colH++;
 					y = _marginY * 2 + (_itmH * colH) + (_spaceY * (colH - 1));
 				} else { mixin(S_TRACE);
@@ -628,7 +628,7 @@ public:
 		return _items[index];
 	}
 	int indexOf(Item item) { mixin(S_TRACE);
-		return .countUntil(_items, item);
+		return cast(int).countUntil(_items, item);
 	}
 	Rectangle getBounds(int index) { mixin(S_TRACE);
 		auto itm = _items[index];
@@ -768,14 +768,14 @@ private:
 			auto s = computeSize(SWT.DEFAULT, SWT.DEFAULT);
 			prW = s.x;
 			prH = s.y;
-			_wrap = _items.length;
+			_wrap = cast(int)_items.length;
 			_line = 1;
 		} else { mixin(S_TRACE);
 			int w = rect.width;
 			int colN = (w - (_marginX * 2) + _spaceX) / (_itmW + _spaceX);
 			if (colN < 1) colN = 1;
 			_wrap = colN;
-			int colH = _items.length / colN;
+			int colH = cast(int)_items.length / colN;
 			if (_items.length % colN > 0) colH++;
 			_line = colH;
 			prW = (_marginX * 2) + (_itmW * colN) + (_spaceX * (colN - 1));

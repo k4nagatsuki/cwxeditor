@@ -504,7 +504,7 @@ class MenuProps : Properties {
 		string a = mnemonic;
 		string h = hotkey;
 		if (a.length) { mixin(S_TRACE);
-			int i = r.indexOf(a, CaseSensitive.no);
+			ptrdiff_t i = r.indexOf(a, CaseSensitive.no);
 			if (-1 == i) { mixin(S_TRACE);
 				r ~= "(&" ~ a ~ ")";
 			} else { mixin(S_TRACE);
@@ -536,7 +536,7 @@ class MenuProps : Properties {
 		string a = mnemonic;
 		string h = hotkey;
 		if (a.length) { mixin(S_TRACE);
-			int i = r.indexOf(a, CaseSensitive.no);
+			ptrdiff_t i = r.indexOf(a, CaseSensitive.no);
 			if (-1 == i) { mixin(S_TRACE);
 				r ~= "(&" ~ a ~ ")";
 			} else { mixin(S_TRACE);

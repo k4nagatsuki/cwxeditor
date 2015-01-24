@@ -118,7 +118,7 @@ private:
 					tblSelsF = flags.selectionFlagNames();
 					tblSelsS = flags.selectionStepNames();
 				}
-				int dirIndex = -1;
+				ptrdiff_t dirIndex = -1;
 				if (_moveDir) { mixin(S_TRACE);
 					moveDirParent = _moveDir.parent;
 					dirIndex = moveDirParent.indexOf(_moveDir.name);
@@ -148,12 +148,12 @@ private:
 					if (samePane) { mixin(S_TRACE);
 						e.detail = DND.DROP_MOVE;
 						assert (moveDirParent);
-						storeMove(tblSelsF, tblSelsS, dir, [dir.indexOf(dirName)], [], [], moveDirParent, [dirIndex:_moveDir], [], [], cFlags, cSteps);
+						storeMove(tblSelsF, tblSelsS, dir, [cast(int)dir.indexOf(dirName)], [], [], moveDirParent, [cast(int)dirIndex:_moveDir], [], [], cFlags, cSteps);
 						_comm.delFlagDir.call(this.outer, [_moveDir]);
 						_comm.refFlagDir.call(this.outer, [_moveDir]);
 					} else { mixin(S_TRACE);
 						e.detail = DND.DROP_COPY;
-						storeInsert(dir, tblSelsF, tblSelsS, [dir.indexOf(dirName)], [], []);
+						storeInsert(dir, tblSelsF, tblSelsS, [cast(int)dir.indexOf(dirName)], [], []);
 						_comm.refFlagDir.call(this.outer, [root.findPath(newPath, false)]);
 					}
 					if (prop.var.etc.sortFlagDirs) dir.sortSubDirs();
@@ -467,9 +467,9 @@ public:
 		auto dir = cast(FlagDir) sel.getData();
 		auto par = dir.parent;
 		if (!par) return false;
-		int index1 = par.indexOf(dir.name);
+		auto index1 = par.indexOf(dir.name);
 		assert (-1 != index1);
-		int index2 = index1 + plus;
+		auto index2 = index1 + plus;
 		if (index2 < 0 || par.subDirs.length <= index2) return false;
 		return true;
 	}
@@ -481,7 +481,7 @@ public:
 		auto dir = cast(FlagDir) sel.getData();
 		auto par = dir.parent;
 		if (!par) return;
-		int index1 = par.indexOf(dir.name);
+		int index1 = cast(int)par.indexOf(dir.name);
 		assert (-1 != index1);
 		int index2 = index1 + plus;
 		if (index2 < 0 || par.subDirs.length <= index2) return;
@@ -546,7 +546,7 @@ public:
 					case FlagDir.AppendXmlResult.DIR_SUCCESS:
 						refresh(newPath);
 						auto dir = root.findPath(newPath, false);
-						storeInsert(dir.parent, tblSelsF, tblSelsS, [dir.parent.indexOf(dir.name)], [], []);
+						storeInsert(dir.parent, tblSelsF, tblSelsS, [cast(int)dir.parent.indexOf(dir.name)], [], []);
 						_comm.refFlagDir.call(this, [dir]);
 						if (prop.var.etc.sortFlagDirs) dir.parent.sortSubDirs();
 						refresh();
@@ -584,7 +584,7 @@ public:
 			if (cur != root) { mixin(S_TRACE);
 				auto tblSelsF = flags.selectionFlagNames;
 				auto tblSelsS = flags.selectionStepNames;
-				int index = cur.parent.indexOf(cur.name);
+				int index = cast(int)cur.parent.indexOf(cur.name);
 				storeDelete(cur.parent, tblSelsF, tblSelsS, [index:cur], [], []);
 				Flag[] cFlags = cur.allFlags;
 				Step[] cSteps = cur.allSteps;

@@ -56,7 +56,7 @@ protected:
 		createTextMenu!Text(_comm, _prop, _viewer, &catchMod);
 		_viewer.setText(_text);
 		if (!_readOnly) { mixin(S_TRACE);
-			_viewer.setSelection(_text.length);
+			_viewer.setSelection(cast(int)_text.length);
 		}
 		auto font = _viewer.getFont();
 		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;

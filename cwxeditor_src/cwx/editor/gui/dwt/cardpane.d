@@ -380,7 +380,7 @@ private:
 					auto card = c.dup;
 					card.setUseCounter(comm.summary.useCounter.sub);
 					_cards ~= card;
-					_indices ~= owner.indexOf(c);
+					_indices ~= cast(int)owner.indexOf(c);
 				}
 			}
 			private void undoInsert() { mixin(S_TRACE);
@@ -787,9 +787,9 @@ private:
 			}
 			if (targ) { mixin(S_TRACE);
 				if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
-					refreshTableItem(card, _tbl.getItem(i));
+					refreshTableItem(card, _tbl.getItem(cast(int)i));
 				} else { mixin(S_TRACE);
-					refreshListItem(i, card);
+					refreshListItem(cast(int)i, card);
 				}
 			}
 		}
@@ -819,7 +819,7 @@ private:
 			foreach (i, c; cards) { mixin(S_TRACE);
 				createTableItem(c);
 				if (sel is c) { mixin(S_TRACE);
-					_tbl.setSelection([i]);
+					_tbl.setSelection([cast(int)i]);
 				}
 			}
 			_tbl.showSelection();
@@ -955,7 +955,7 @@ private:
 			owner.remove(card);
 			if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
 				if (v._viewMode == CViewMode.TABLE) { mixin(S_TRACE);
-					int index = -1;
+					ptrdiff_t index = -1;
 					foreach (i, itm; v._tbl.getItems()) { mixin(S_TRACE);
 						if (card is itm.getData()) { mixin(S_TRACE);
 							index = i;
@@ -963,7 +963,7 @@ private:
 						}
 					}
 					assert (index != -1);
-					v._tbl.remove(index);
+					v._tbl.remove(cast(int)index);
 					v._tbl.redraw();
 				} else { mixin(S_TRACE);
 					v.refresh();
@@ -1131,18 +1131,18 @@ private:
 						if (adds.length == 0) return;
 						assert (adds.length == 1);
 						auto card = adds[0];
-						int oldIndex = _owner.indexOf!C(card);
+						auto oldIndex = _owner.indexOf!C(card);
 
 						if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
 							// 処理を単純化するため、ID昇順でソートされた
 							// 状態に対して移動処理を行う
-							index = cards.length - index;
+							index = cast(int)cards.length - index;
 							if (index < oldIndex) { mixin(S_TRACE);
 								index--;
 							}
 						}
 
-						storeMove(oldIndex, oldIndex < index ? index - 1 : index);
+						storeMove(cast(int)oldIndex, oldIndex < index ? index - 1 : index);
 						_owner.insert(index, card);
 						insert(card, true);
 						refCard(card);
@@ -1154,7 +1154,7 @@ private:
 						if (!sortedID) { mixin(S_TRACE);
 							index = cardCount;
 						} else if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
-							index = cards.length - index;
+							index = cast(int)cards.length - index;
 						}
 						C[] adds;
 						node.onTag[C.XML_NAME] = (ref XNode cNode) { mixin(S_TRACE);
@@ -1262,7 +1262,7 @@ private:
 				refresh();
 				foreach (i, itm; _tbl.getItems()) { mixin(S_TRACE);
 					if (c is itm.getData()) { mixin(S_TRACE);
-						_tbl.setSelection([i]);
+						_tbl.select(cast(int)i);
 						_tbl.showSelection();
 						return;
 					}
@@ -2314,7 +2314,7 @@ public:
 			foreach (i, itm; _tbl.getItems()) { mixin(S_TRACE);
 				auto c = cast(C) itm.getData();
 				if (c.id == id) { mixin(S_TRACE);
-					_tbl.select(i);
+					_tbl.select(cast(int)i);
 					_tbl.showSelection();
 					break;
 				}
@@ -2322,8 +2322,8 @@ public:
 		} else { mixin(S_TRACE);
 			foreach (i, c; _list.cards) { mixin(S_TRACE);
 				if (c.id == id) { mixin(S_TRACE);
-					_list.select(i);
-					_list.scroll(i);
+					_list.select(cast(int)i);
+					_list.scroll(cast(int)i);
 					break;
 				}
 			}
@@ -2754,8 +2754,8 @@ public:
 			int selIndex = index2;
 			if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
 				// ID昇順に変更
-				index1 = arr.length - index1 - 1;
-				index2 = arr.length - index2 - 1;
+				index1 = cast(int)arr.length - index1 - 1;
+				index2 = cast(int)arr.length - index2 - 1;
 			}
 			storeSwap(index1, index2);
 			_owner.swap!C(index1, index2);

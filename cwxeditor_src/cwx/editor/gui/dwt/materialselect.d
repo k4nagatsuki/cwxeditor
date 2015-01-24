@@ -296,7 +296,7 @@ public:
 			uint pcNum = pcNumber;
 		}
 		if (isBinImg(_binPath)) { mixin(S_TRACE);
-			including = defs.length;
+			including = cast(int)defs.length;
 			defs ~= _prop.msgs.defaultSelection(_prop.msgs.imageIncluding);
 		}
 		static if (Type == MtType.CARD) {
@@ -594,7 +594,7 @@ public:
 			} else if (s.startsWith("/")) { mixin(S_TRACE);
 				string file;
 				s = s["/".length .. $];
-				int i = s.lastIndexOf("/");
+				auto i = s.lastIndexOf("/");
 				if (i != -1) { mixin(S_TRACE);
 					file = s[i + "/".length .. $];
 					s = s[0 .. i];
@@ -740,7 +740,7 @@ private:
 				string file;
 				if (s.startsWith("/")) { mixin(S_TRACE);
 					s = s["/".length .. $];
-					int i = s.lastIndexOf("/");
+					auto i = s.lastIndexOf("/");
 					if (i != -1) { mixin(S_TRACE);
 						file = s[i + "/".length .. $];
 						s = s[0 .. i];
@@ -754,14 +754,14 @@ private:
 					file = s;
 				}
 				refreshList();
-				int selIndex = -1;
+				ptrdiff_t selIndex = -1;
 				foreach (i, itm; _fileList.getItems()) { mixin(S_TRACE);
 					if (cfnmatch(fileText(itm), file)) { mixin(S_TRACE);
 						selIndex = i;
 						break;
 					}
 				}
-				_fileList.select(selIndex);
+				_fileList.select(cast(int)selIndex);
 				static if (is (C == Table)) {
 					_fileList.showSelection();
 				}
@@ -776,7 +776,7 @@ private:
 						if (index == 0) return;
 						_fileList.remove(0);
 					}
-					_dirs.select(_defs.length);
+					_dirs.select(cast(int)_defs.length);
 					p = currentDir;
 				}
 				if (p) { mixin(S_TRACE);
@@ -840,7 +840,7 @@ private:
 			return itm;
 		} else static assert (0);
 	}
-	int indexOf(T)(T list, string path) { mixin(S_TRACE);
+	ptrdiff_t indexOf(T)(T list, string path) { mixin(S_TRACE);
 		foreach (i, s; list.getItems()) { mixin(S_TRACE);
 			if (cfnmatch(fileText(s), path)) { mixin(S_TRACE);
 				return i;
@@ -848,10 +848,10 @@ private:
 		}
 		return -1;
 	}
-	int flIndexOf(string path) { mixin(S_TRACE);
+	ptrdiff_t flIndexOf(string path) { mixin(S_TRACE);
 		return indexOf(_fileList, path);
 	}
-	int dirsIndexOf(string path) { mixin(S_TRACE);
+	ptrdiff_t dirsIndexOf(string path) { mixin(S_TRACE);
 		return indexOf(_dirs, path);
 	}
 	string[] targs(string path, bool forceRefresh) { mixin(S_TRACE);
@@ -899,12 +899,12 @@ private:
 		}
 		string sel = _path.length > 0 ? baseName(_path) : "";
 		if (sel.length > 0 && _dirs.getSelectionIndex() == _selDir) { mixin(S_TRACE);
-			int index = flIndexOf(sel);
+			auto index = flIndexOf(sel);
 			if (index >= 0) { mixin(S_TRACE);
-				_fileList.select(index);
+				_fileList.select(cast(int)index);
 			} else if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
 				index = flIndexOf(setExtension(sel, defExt));
-				if (index >= 0) _fileList.select(index);
+				if (index >= 0) _fileList.select(cast(int)index);
 			}
 		}
 		static if (is (C == Table)) {
@@ -916,7 +916,7 @@ private:
 	@property
 	string[] allDirs() { mixin(S_TRACE);
 		string[] st;
-		foreach (i; _defs.length .. _dirs.getItemCount()) { mixin(S_TRACE);
+		foreach (i; cast(int)_defs.length .. _dirs.getItemCount()) { mixin(S_TRACE);
 			string t = _dirs.getItem(i);
 			if (i == _tbl) { mixin(S_TRACE);
 				st ~= defDir;
@@ -1002,9 +1002,9 @@ private:
 				if (oldSel < _defs.length) { mixin(S_TRACE);
 					_dirs.select(oldSel);
 				} else { mixin(S_TRACE);
-					int index = dirsIndexOf(oldSelS);
+					auto index = dirsIndexOf(oldSelS);
 					if (index >= 0) { mixin(S_TRACE);
-						_dirs.select(index);
+						_dirs.select(cast(int)index);
 					} else if (_dirs.getItemCount() > 0) { mixin(S_TRACE);
 						_dirs.select(0);
 					}
@@ -1027,7 +1027,7 @@ private:
 						string pt = dirName(p);
 						pt = pt.length <= cut ? dirSeparator.idup : pt[cut .. $];
 						pt = toViewPath(pt);
-						_dirs.select(dirsIndexOf(pt));
+						_dirs.select(cast(int)dirsIndexOf(pt));
 					}
 				} else { mixin(S_TRACE);
 					selectOld();
@@ -1055,7 +1055,7 @@ private:
 			}
 		}
 		if (isDir) { mixin(S_TRACE);
-			int i = _defs.length;
+			int i = cast(int)_defs.length;
 			if (_tbl >= 0) i++;
 			for (; i < _dirs.getItemCount(); i++) { mixin(S_TRACE);
 				string name = fromViewPath(_dirs.getItem(i));
@@ -1073,13 +1073,13 @@ private:
 			int di = _dirs.getSelectionIndex();
 			auto op = o;
 			if (di >= 0 && cfnmatch(fromViewPath(_dirs.getItems()[di]), dirName(o))) { mixin(S_TRACE);
-				int index = flIndexOf(baseName(o));
+				auto index = flIndexOf(baseName(o));
 				if (index >= 0) { mixin(S_TRACE);
 					string nName = baseName(n);
 					static if (is(C : Table)) {
-						_fileList.getItem(index).setText(nName);
+						_fileList.getItem(cast(int)index).setText(nName);
 					} else static if (is (C : Combo) || is (C : CCombo)) {
-						_fileList.setItem(index, nName);
+						_fileList.setItem(cast(int)index, nName);
 						_fileList.setText(nName);
 					} else static assert (0);
 				}

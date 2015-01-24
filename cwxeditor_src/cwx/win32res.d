@@ -326,7 +326,7 @@ struct Win32Res {
 			headerSize += RGBQUAD_SIZE * clrUsed;
 		}
 		headerSize += BITMAPFILEHEADER_SIZE;
-		uint size = BITMAPFILEHEADER_SIZE + data.length; // file size
+		uint size = cast(uint)(BITMAPFILEHEADER_SIZE + data.length); // file size
 
 		// BITMAPFILEHEADER
 		auto header = cast(ubyte[])['B', 'M'] ~ size.le ~ 0.le!ushort ~ 0.le!ushort ~ headerSize.le;

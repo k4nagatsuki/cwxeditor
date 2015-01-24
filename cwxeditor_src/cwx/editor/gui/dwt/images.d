@@ -670,7 +670,7 @@ public:
 				bmpData.alphaData = cast(byte[]) alpha;
 				bmpData.width = width;
 				bmpData.height = height;
-				bmpData.bytesPerLine = bpl;
+				bmpData.bytesPerLine = cast(int)bpl;
 			} else { mixin(S_TRACE);
 				bmpData = bmpData.scaledTo(width, height);
 			}
@@ -905,9 +905,9 @@ public:
 		.turn(data, alphaData, iWidth, iHeight, bytesPerLine, turn, imgData.depth);
 		imgData.data = cast(byte[]) data;
 		imgData.alphaData = cast(byte[]) alphaData;
-		imgData.width = iWidth;
-		imgData.height = iHeight;
-		imgData.bytesPerLine = bytesPerLine;
+		imgData.width = cast(int)iWidth;
+		imgData.height = cast(int)iHeight;
+		imgData.bytesPerLine = cast(int)bytesPerLine;
 	}
 	// BorderingType.Inline以外のテキストの描画を行う。
 	private void drawText(ref Image buf, ref GC gc, Rectangle range) { mixin(S_TRACE);
@@ -2522,7 +2522,7 @@ private:
 		auto tsels = findSelectedIndices(x, y);
 		auto imgs = findIndices(x, y);
 		if (tsels.length == 1 && (selectedIndices.length == 1 || ctrl) && imgs.length > 1) { mixin(S_TRACE);
-			int i = countUntil(imgs, tsels[0]);
+			auto i = countUntil(imgs, tsels[0]);
 			assert (i >= 0);
 			doDeselect(cast(FlexImage) images[tsels[0]]);
 			doSelect(cast(FlexImage) images[i > 0 ? imgs[i - 1] : imgs[$ - 1]]);
@@ -2628,7 +2628,7 @@ public:
 		int[] r;
 		foreach (i, img; backs) { mixin(S_TRACE);
 			auto fi = cast(FlexImage) img;
-			if (fi && fi.selected) r ~= i;
+			if (fi && fi.selected) r ~= cast(int)i;
 		}
 		return r;
 	}
@@ -2636,7 +2636,7 @@ public:
 	int selectedIndex() { mixin(S_TRACE);
 		foreach_reverse (i, img; backs) { mixin(S_TRACE);
 			auto fi = cast(FlexImage) img;
-			if (fi && fi.selected) return i;
+			if (fi && fi.selected) return cast(int)i;
 		}
 		return -1;
 	}
@@ -2645,7 +2645,7 @@ public:
 			auto i = t[0];
 			auto img = t[1];
 			auto fi = cast(FlexImage) img;
-			if (fi && fi.visible && fi.bounds.contains(x, y)) return i;
+			if (fi && fi.visible && fi.bounds.contains(x, y)) return cast(int)i;
 		}
 		return -1;
 	}
@@ -2655,7 +2655,7 @@ public:
 			auto i = t[0];
 			auto img = t[1];
 			auto fi = cast(FlexImage) img;
-			if (fi && fi.visible && fi.bounds.contains(x, y)) r ~= i;
+			if (fi && fi.visible && fi.bounds.contains(x, y)) r ~= cast(int)i;
 		}
 		return r;
 	}
@@ -2664,7 +2664,7 @@ public:
 			auto i = t[0];
 			auto img = t[1];
 			auto fi = cast(FlexImage) img;
-			if (fi && fi.visible && fi.selected && fi.bounds.contains(x, y)) return i;
+			if (fi && fi.visible && fi.selected && fi.bounds.contains(x, y)) return cast(int)i;
 		}
 		return -1;
 	}
@@ -2674,7 +2674,7 @@ public:
 			auto i = t[0];
 			auto img = t[1];
 			auto fi = cast(FlexImage) img;
-			if (fi && fi.visible && fi.selected && fi.bounds.contains(x, y)) r ~= i;
+			if (fi && fi.visible && fi.selected && fi.bounds.contains(x, y)) r ~= cast(int)i;
 		}
 		return r;
 	}

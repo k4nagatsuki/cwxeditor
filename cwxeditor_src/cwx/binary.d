@@ -64,7 +64,7 @@ struct ByteIO {
 	bool eob() {return _pointer >= _bytes.length;}
 	/// 相対位置でseekする。
 	/// 絶対位置へseekする場合はpointerへの代入を使う。
-	void seek(int bytes) { mixin(S_TRACE);
+	void seek(ptrdiff_t bytes) { mixin(S_TRACE);
 		if (bytes < 0) { mixin(S_TRACE);
 			enforce(_pointer >= -bytes,
 				new Exception(format("read over: 0x%X - %d", _pointer, -bytes), __FILE__, __LINE__));
@@ -288,7 +288,7 @@ private template ReadBytesL(I, size_t Len = I.sizeof, size_t N = 1) {
 	static if (N < Len) {
 		const string ReadBytesL = "i |= "
 			~ (N >= size_t.sizeof ? "cast(" ~ I.stringof ~ ") " : "")
-		~ "_bytes[_pointer++] << 8 * " ~ .to!string(N) ~ ";\n" ~ ReadBytesL!(I, Len, N + 1);
+			~ "cast(typeof(i))_bytes[_pointer++] << 8 * " ~ .to!string(N) ~ ";\n" ~ ReadBytesL!(I, Len, N + 1);
 	} else {
 		const string ReadBytesL = "";
 	}

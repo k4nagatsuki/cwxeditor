@@ -383,7 +383,7 @@ private:
 				itm.setImage(2, _prop.images.summary);
 			}
 			itm.setData(new FilePathString(scPath, path));
-			refResultStatus(count, false);
+			refResultStatus(cast(int)count, false);
 		}
 	}
 	class AddResultCWXPath : Runnable {
@@ -396,7 +396,7 @@ private:
 			if (!_win || _win.isDisposed()) return;
 			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
 			addResultImpl(path, index, desc);
-			refResultStatus(count, false);
+			refResultStatus(cast(int)count, false);
 		}
 	}
 	private void addResultImpl(CWXPath path, int index = -1, string desc = "") {
@@ -432,7 +432,7 @@ private:
 			auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
 			itm.setText(name);
 			itm.setImage(image());
-			refResultStatus(count, false);
+			refResultStatus(cast(int)count, false);
 		}
 	}
 	class AddResultUse : Runnable {
@@ -449,7 +449,7 @@ private:
 			itm.setText(0, name);
 			itm.setImage(0, image());
 			itm.setText(1, .text(use));
-			refResultStatus(count, false);
+			refResultStatus(cast(int)count, false);
 		}
 	}
 	Display _display;
@@ -555,7 +555,7 @@ private:
 			foreach (i, a; arr) { mixin(S_TRACE);
 				if (!incSearch.match(a.name)) continue;
 				combo.add(to!(string)(a.id) ~ "." ~ a.name);
-				tbl2[i + 1] = a.id;
+				tbl2[cast(int)i + 1] = a.id;
 			}
 			combo.select(1 < combo.getItemCount() ? 1 : 0);
 			if (oldSel) { mixin(S_TRACE);
@@ -2332,7 +2332,7 @@ public:
 		foreach (path; paths) { mixin(S_TRACE);
 			addResultImpl(path);
 		}
-		refResultStatusImpl(paths.length, kind);
+		refResultStatusImpl(cast(int)paths.length, kind);
 	}
 	private void search() { mixin(S_TRACE);
 		auto c = _win.getDisplay().getFocusControl();
@@ -2501,8 +2501,8 @@ public:
 		}
 		return r;
 	}
-	private void searchAll(CWXPath path, ref uint count,
-			void delegate(CWXPath path, ref uint count) dlg) { mixin(S_TRACE);
+	private void searchAll(CWXPath path, ref size_t count,
+			void delegate(CWXPath path, ref size_t count) dlg) { mixin(S_TRACE);
 		if (cancel) return;
 		dlg(path, count);
 		// _rangeに含まれる要素は再帰的検索から除外する
@@ -2549,7 +2549,7 @@ public:
 		return _cancel;
 	}
 
-	private void setResultStatus(uint count) { mixin(S_TRACE);
+	private void setResultStatus(size_t count) { mixin(S_TRACE);
 		if (count > 0) { mixin(S_TRACE);
 			if (_replMode && _summ) { mixin(S_TRACE);
 				_summ.changed();
@@ -2560,7 +2560,7 @@ public:
 		resultRedraw(true);
 		refResultStatus(count, true);
 	}
-	private void refResultStatus(uint count, bool force) { mixin(S_TRACE);
+	private void refResultStatus(size_t count, bool force) { mixin(S_TRACE);
 		if (!_prop.var.etc.searchResultRealtime) { mixin(S_TRACE);
 			if (!force && 0 != (count % _prop.var.etc.searchResultRefreshCount)) return;
 		}
@@ -2572,7 +2572,7 @@ public:
 			}
 		});
 	}
-	private void refResultStatusImpl(uint count, string kind) { mixin(S_TRACE);
+	private void refResultStatusImpl(size_t count, string kind) { mixin(S_TRACE);
 		string text;
 		string num = .formatNum(count);
 		if (_replMode) { mixin(S_TRACE);
@@ -2639,7 +2639,7 @@ public:
 			auto exit = new class Runnable {
 				override void run() { mixin(S_TRACE);
 					_inProc = false;
-					setResultStatus(count);
+					setResultStatus(cast(int)count);
 					if (count) { mixin(S_TRACE);
 						_comm.replID.call();
 					}
@@ -2782,7 +2782,7 @@ public:
 			auto exit = new class Runnable {
 				override void run() { mixin(S_TRACE);
 					_inProc = false;
-					setResultStatus(count);
+					setResultStatus(cast(int)count);
 					if (count) { mixin(S_TRACE);
 						foreach (fromTo; std.algorithm.uniq(fromTos)) { mixin(S_TRACE);
 							_comm.replPath.call(fromTo[0], fromTo[1]);
@@ -2848,7 +2848,7 @@ public:
 	struct CouponParams {
 		Image image;
 		string name;
-		uint count;
+		size_t count;
 	}
 	class CouponUndo(User, KeyType) : Undo {
 		private CouponParams[] _results;
@@ -2880,13 +2880,13 @@ public:
 			}
 
 			foreach (i, r; results) { mixin(S_TRACE);
-				auto itm = i < _result.getItemCount() ? _result.getItem(i) : new TableItem(_result, SWT.NONE);
+				auto itm = i < _result.getItemCount() ? _result.getItem(cast(int)i) : new TableItem(_result, SWT.NONE);
 				itm.setImage(r.image);
 				itm.setText(r.name);
 				itm.setText(1, r.count.text());
 			}
 			while (results.length < _result.getItemCount()) { mixin(S_TRACE);
-				_result.getItem(results.length).dispose();
+				_result.getItem(cast(int)results.length).dispose();
 			}
 
 			.swap(_oldVal, _newVal);
@@ -2924,7 +2924,7 @@ public:
 			if (itm is itm2) continue;
 			if (itm.getImage() !is itm2.getImage()) continue;
 			if (itm.getText() == itm2.getText()) { mixin(S_TRACE);
-				_result.select(i);
+				_result.select(cast(int)i);
 				_result.showSelection();
 				itm2.setText(1, uc.get(newVal).text());
 				itm.dispose();
@@ -2933,7 +2933,7 @@ public:
 		}
 		_summ.changed();
 	}
-	private void searchCouponImpl(KeyType)(in KeyType[] keys, UseCounter uc, in bool[CWXPath] rangeT, Image delegate() image, ref uint count) { mixin(S_TRACE);
+	private void searchCouponImpl(KeyType)(in KeyType[] keys, UseCounter uc, in bool[CWXPath] rangeT, Image delegate() image, ref size_t count) { mixin(S_TRACE);
 		foreach (key; keys.dup.sort) { mixin(S_TRACE);
 			if (cancel) break;
 			uint use = 0;
@@ -2949,7 +2949,7 @@ public:
 	}
 	private void searchCoupon() { mixin(S_TRACE);
 		if (!_summ) return;
-		uint count = 0;
+		size_t count = 0;
 		reset();
 		_lastFind = _tabf.getSelection();
 
@@ -3014,7 +3014,7 @@ public:
 
 	private void searchContents() { mixin(S_TRACE);
 		if (!_summ) return;
-		uint count = 0;
+		size_t count = 0;
 		reset();
 		_lastFind = _tabf.getSelection();
 
@@ -3057,7 +3057,7 @@ public:
 			scope (exit) _display.syncExec(exit);
 			try { mixin(S_TRACE);
 				foreach (path; range) { mixin(S_TRACE);
-					searchAll(path, count, (CWXPath path, ref uint count) { mixin(S_TRACE);
+					searchAll(path, count, (CWXPath path, ref size_t count) { mixin(S_TRACE);
 						if (cancel) return;
 						auto c = cast(Content) path;
 						if (!c) return;
@@ -3074,7 +3074,7 @@ public:
 		thr.start();
 	}
 
-	private void searchUnuseImpl2(string ToId, T)(T[] all, ref uint count) { mixin(S_TRACE);
+	private void searchUnuseImpl2(string ToId, T)(T[] all, ref size_t count) { mixin(S_TRACE);
 		if (!_summ) return;
 		foreach (o; all) { mixin(S_TRACE);
 			if (cancel) break;
@@ -3086,7 +3086,7 @@ public:
 	private void searchUnuseImpl() { mixin(S_TRACE);
 		if (!_summ) return;
 		_replMode = false;
-		uint count = 0;
+		size_t count = 0;
 		reset();
 		_lastFind = _tabf.getSelection();
 
@@ -3140,7 +3140,7 @@ public:
 			}
 			if (unuseStartSel) { mixin(S_TRACE);
 				foreach (path; range) { mixin(S_TRACE);
-					searchAll(path, count, (CWXPath path, ref uint count) { mixin(S_TRACE);
+					searchAll(path, count, (CWXPath path, ref size_t count) { mixin(S_TRACE);
 						if (cancel) return;
 						auto et = cast(EventTree) path;
 						if (et) { mixin(S_TRACE);
@@ -3186,7 +3186,7 @@ public:
 	}
 	private void searchErrorImpl() { mixin(S_TRACE);
 		if (!_summ) return;
-		uint count = 0;
+		size_t count = 0;
 		auto froot = _summ.flagDirRoot;
 		auto sPath = _summ.scenarioPath;
 		auto skin = _comm.skin;
@@ -3208,7 +3208,7 @@ public:
 		auto range = searchRange;
 
 		void search(CWXPath path) { mixin(S_TRACE);
-			searchAll(path, count, (CWXPath path, ref uint count) { mixin(S_TRACE);
+			searchAll(path, count, (CWXPath path, ref size_t count) { mixin(S_TRACE);
 				if (cancel) return;
 				auto warnings = .warnings(_prop.parent, skin, _summ, path, targVer);
 				foreach (warning; warnings) { mixin(S_TRACE);
@@ -3386,7 +3386,7 @@ public:
 			Undo[] uArr;
 			bool r = replFlagName!Step(s.parent, s, count, uArr);
 			foreach (i, v; s.values) { mixin(S_TRACE);
-				r |= repl(null, v, (string t) {s.setValue(i, t);}, count, uArr);
+				r |= repl(null, v, (string t) {s.setValue(cast(int)i, t);}, count, uArr);
 			}
 			if (r) { mixin(S_TRACE);
 				if (_replMode) store(s, uArr);

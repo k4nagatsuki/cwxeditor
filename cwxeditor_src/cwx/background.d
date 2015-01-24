@@ -1096,7 +1096,7 @@ public:
 		_bgImgs ~= back;
 	}
 	/// ditto
-	void insert(int index, BgImage back) { mixin(S_TRACE);
+	void insert(size_t index, BgImage back) { mixin(S_TRACE);
 		if (_bgImgs.length == index) { mixin(S_TRACE);
 			append(back);
 		} else { mixin(S_TRACE);
@@ -1105,18 +1105,18 @@ public:
 		}
 	}
 	/// ditto
-	void set(int index, BgImage back) { mixin(S_TRACE);
+	void set(size_t index, BgImage back) { mixin(S_TRACE);
 		_bgImgs[index].owner = null;
 		back.owner = this;
 		_bgImgs[index] = back;
 	}
 	/// 背景イメージを除外。
-	void removeBgImage(int index) { mixin(S_TRACE);
+	void removeBgImage(size_t index) { mixin(S_TRACE);
 		_bgImgs[index].owner = null;
 		_bgImgs = _bgImgs[0 .. index] ~ _bgImgs[index + 1 .. $];
 	}
 	/// 背景イメージのインデックスを交換。
-	void swapBacks(int index1, int index2) { mixin(S_TRACE);
+	void swapBacks(size_t index1, size_t index2) { mixin(S_TRACE);
 		auto temp = _bgImgs[index1];
 		_bgImgs[index1] = _bgImgs[index2];
 		_bgImgs[index2] = temp;

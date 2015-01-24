@@ -517,11 +517,11 @@ string tryFormat(T ...)(string s, T vals) { mixin(S_TRACE);
 class Wildcard {
 	/// sからマッチを探し、indexを返す。
 	/// 見つからなければ-1を返す。
-	int find(string s) { mixin(S_TRACE);
+	ptrdiff_t find(string s) { mixin(S_TRACE);
 		if (!s.length) return -1;
 		size_t len;
 		auto ds = toUTF32(s);
-		int i = find(ds, false, len);
+		auto i = find(ds, false, len);
 		if (i == -1) return -1;
 		return toUTF8(ds[0 .. i]).length;
 	}
@@ -532,7 +532,7 @@ class Wildcard {
 		}
 		size_t len;
 		auto ds = toUTF32(s);
-		int i = find(ds, false, len);
+		auto i = find(ds, false, len);
 		if (i == -1) return false;
 		return 0 == i && ds.length == len;
 	}
@@ -545,7 +545,7 @@ class Wildcard {
 		size_t len;
 		while (true) { mixin(S_TRACE);
 			if (!ds.length) break;
-			int i = find(ds, false, len);
+			auto i = find(ds, false, len);
 			if (i == -1) { mixin(S_TRACE);
 				r ~= ds;
 				break;
@@ -563,7 +563,7 @@ class Wildcard {
 		size_t len;
 		while (true) { mixin(S_TRACE);
 			if (!ds.length) break;
-			int i = find(ds, false, len);
+			auto i = find(ds, false, len);
 			if (i == -1) { mixin(S_TRACE);
 				break;
 			}
@@ -599,32 +599,32 @@ class Wildcard {
 	private WChar[] _left;
 	private Wildcard _right;
 	private bool _ignoreCase;
-	private int findw(dstring s) { mixin(S_TRACE);
+	private ptrdiff_t findw(dstring s) { mixin(S_TRACE);
 		if (s.length < _left.length) return -1;
-		for (int i = 0; i <= s.length - _left.length; i++) { mixin(S_TRACE);
+		for (ptrdiff_t i = 0; i <= s.length - _left.length; i++) { mixin(S_TRACE);
 			int j;
 			for (j = 0; j < _left.length && _left[j].match(s[i + j]); j++) {}
 			if (j == _left.length) return i;
 		}
 		return -1;
 	}
-	private int rfindw(dstring s) { mixin(S_TRACE);
+	private ptrdiff_t rfindw(dstring s) { mixin(S_TRACE);
 		if (s.length < _left.length) return -1;
-		for (int i = s.length - _left.length; i >= 0; i--) { mixin(S_TRACE);
-			int j;
+		for (ptrdiff_t i = s.length - _left.length; i >= 0; i--) { mixin(S_TRACE);
+			ptrdiff_t j;
 			for (j = 0; j < _left.length && _left[j].match(s[i + j]); j++) {}
 			if (j == _left.length) return i;
 		}
 		return -1;
 	}
-	private int find(ref dstring s, bool next, out size_t len) { mixin(S_TRACE);
+	private ptrdiff_t find(ref dstring s, bool next, out size_t len) { mixin(S_TRACE);
 		auto sbase = s;
 		while (true) { mixin(S_TRACE);
-			int i = next ? rfindw(s) : findw(s);
+			auto i = next ? rfindw(s) : findw(s);
 			if (i == -1) return -1;
 			if (_right) { mixin(S_TRACE);
 				auto refVal = sbase[i + _left.length .. $];
-				int j = _right.find(refVal, true, len);
+				auto j = _right.find(refVal, true, len);
 				if (j == -1) { mixin(S_TRACE);
 					if (next) { mixin(S_TRACE);
 						s = s[0 .. $ - 1];
@@ -854,11 +854,11 @@ T[] sortDlg(T, Dlg)(T[] arr, Dlg lmin) { mixin(S_TRACE);
 }
 
 /// arr内のcのインデックスをクイックサーチする。見つからなかった場合は-1を返す。
-int qsearch(alias Cmp = "a < b ? -1 : (a > b ? 1 : 0)", T1, T2)(in T1[] arr, T2 c) { mixin(S_TRACE);
+ptrdiff_t qsearch(alias Cmp = "a < b ? -1 : (a > b ? 1 : 0)", T1, T2)(in T1[] arr, T2 c) { mixin(S_TRACE);
 	const(T1)[] ds = arr[];
 	size_t i2 = 0;
 	while (ds.length) { mixin(S_TRACE);
-		int i = ds.length / 2;
+		auto i = ds.length / 2;
 		auto c2 = ds[i];
 		auto cmp = .binaryFun!Cmp(c2, c);
 		if (0 < cmp) { mixin(S_TRACE);
@@ -930,8 +930,8 @@ template isVArray(T) {
 string createNewName(string base, bool delegate(string) use, bool space = true) { mixin(S_TRACE);
 	if (use(base)) return base;
 	char[] digit;
-	int digitL = 0;
-	int digitR = -1;
+	ptrdiff_t digitL = 0;
+	ptrdiff_t digitR = -1;
 	foreach_reverse (i, c; base) { mixin(S_TRACE);
 		if (isDigit(c)) { mixin(S_TRACE);
 			digit.insertInPlace(0, c);
@@ -1068,7 +1068,7 @@ string decodeLf2(string str) { mixin(S_TRACE);
 string[] decodeLf(string str, bool useEmpty = false) { mixin(S_TRACE);
 	string[] r;
 	if (useEmpty) { mixin(S_TRACE);
-		int last = 0;
+		size_t last = 0;
 		foreach (i, s; splitLines!string(decodeLf2(str))) { mixin(S_TRACE);
 			r ~= s;
 			if (s.length > 0) last = i + 1;
@@ -1677,8 +1677,8 @@ size_t lengthJ(in char[] text) { mixin(S_TRACE);
 
 /// 前後の空行を無視して行数をカウントする。
 size_t lineCount(in string[] lines) { mixin(S_TRACE);
-	int from = -1;
-	int to = -1;
+	ptrdiff_t from = -1;
+	ptrdiff_t to = -1;
 	foreach (i, l; lines) { mixin(S_TRACE);
 		if (l.length) { mixin(S_TRACE);
 			if (from == -1) from = i;

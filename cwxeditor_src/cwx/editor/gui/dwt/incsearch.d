@@ -114,7 +114,7 @@ class IncSearch {
 			auto agd = new GridData(GridData.FILL_HORIZONTAL);
 			agd.horizontalSpan = 3;
 			addComp.setLayoutData(agd);
-			addComp.setLayout(zeroMarginGridLayout(_addition.length, false));
+			addComp.setLayout(zeroMarginGridLayout(cast(int)_addition.length, false));
 			foreach (add; _addition) { mixin(S_TRACE);
 				auto check = new Button(addComp, SWT.CHECK);
 				check.setText(add.name);

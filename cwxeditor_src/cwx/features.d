@@ -16,16 +16,16 @@ enum CouponType {
 }
 
 /// 性別。
-alias Typedef2!(int, 0, "Sex") Sex;
+alias Typedef2!(size_t, 0, "Sex") Sex;
 
 /// 年代。
-alias Typedef2!(int, 0, "Period") Period;
+alias Typedef2!(size_t, 0, "Period") Period;
 
 /// 素質。
-alias Typedef2!(int, 0, "Nature") Nature;
+alias Typedef2!(size_t, 0, "Nature") Nature;
 
 /// 特徴。
-alias Typedef2!(int, 0, "Makings") Makings;
+alias Typedef2!(size_t, 0, "Makings") Makings;
 
 /// Typedef!intでは連想配列のキーにできないので代替。
 struct Typedef2(T, T init = T.init, string cookie = null) {

@@ -33,7 +33,7 @@ public:
 	const
 	uint get(K key) { mixin(S_TRACE);
 		auto p = key in _cont;
-		return p ? p.size : 0;
+		return p ? cast(uint)p.size : 0;
 	}
 
 	/// キーの一覧を返す。

@@ -208,7 +208,7 @@ class DockingFolder(TabF, int Style) {
 
 	private string newTabfKey(string prefix = "t") { mixin(S_TRACE);
 		string key;
-		int i = _tabfs.length;
+		auto i = _tabfs.length;
 		do { mixin(S_TRACE);
 			key = .format("%s_%d", prefix, i);
 			i++;
@@ -1217,7 +1217,7 @@ class DockingFolder(TabF, int Style) {
 	}
 	private static Control[] afters(Control targ) { mixin(S_TRACE);
 		auto pcs = targ.getParent().getChildren();
-		int pi = .cCountUntil!("a is b")(pcs, targ);
+		auto pi = .cCountUntil!("a is b")(pcs, targ);
 		assert (pi != -1, "dockingfolder#afters");
 		return pcs[pi + 1 .. $];
 	}
@@ -1252,9 +1252,9 @@ class DockingFolder(TabF, int Style) {
 		auto s = ctrl.getSize();
 		return new Rectangle(cp.x - cvp.x, cp.y - cvp.y, s.x, s.y);
 	}
-	private void newTab(TabF tabf, Tab tab, int index) { mixin(S_TRACE);
+	private void newTab(TabF tabf, Tab tab, ptrdiff_t index) { mixin(S_TRACE);
 		auto newTab = index != -1
-			? new Tab(tabf, tab.getStyle(), index)
+			? new Tab(tabf, tab.getStyle(), cast(int)index)
 			: new Tab(tabf, tab.getStyle());
 		auto c = tab.getControl();
 		c.setParent(tabf);
@@ -1363,9 +1363,9 @@ class DockingFolder(TabF, int Style) {
 			int putCenter() { mixin(S_TRACE);
 				auto dropItm = dropTarg.getItem(dropTarg.toControl(e.x, e.y));
 				if (dropItm is _dragItm) return DND.DROP_NONE;
-				int i1 = dropItm ? .cCountUntil!("a is b")(dropTarg.getItems(), dropItm) : dropTarg.getItemCount();
+				auto i1 = dropItm ? .cCountUntil!("a is b")(dropTarg.getItems(), dropItm) : dropTarg.getItemCount();
 				if (dropTarg is _dragItm.getParent()) { mixin(S_TRACE);
-					int i2 = .cCountUntil!("a is b")(dropTarg.getItems(), _dragItm);
+					auto i2 = .cCountUntil!("a is b")(dropTarg.getItems(), _dragItm);
 					if (i2 + 1 == i1) return DND.DROP_NONE;
 				}
 				foreach (moveShell; movingShellEvent) { mixin(S_TRACE);

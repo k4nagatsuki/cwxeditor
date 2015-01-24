@@ -288,8 +288,8 @@ private:
 		}
 	}
 	static class UndoTreeData : EVUndo {
-		private int _ownerIndex;
-		private int _index;
+		private size_t _ownerIndex;
+		private size_t _index;
 		private static struct Vals {
 			string name;
 			bool enter;
@@ -326,7 +326,7 @@ private:
 		}
 		private TreeItem getItem(EventView v) { mixin(S_TRACE);
 			enforce(v);
-			return v._cards.getItem(_ownerIndex).getItem(_index);
+			return v._cards.getItem(cast(int)_ownerIndex).getItem(cast(int)_index);
 		}
 		private void impl() { mixin(S_TRACE);
 			auto vs = views();
@@ -372,11 +372,13 @@ private:
 		return undo;
 	}
 	static class UndoInsert : EVUndo {
-		private int _ownerIndex;
-		private int _insertIndex;
+		private size_t _ownerIndex;
+		private size_t _insertIndex;
 		private UndoDelete _delUndo = null;
 		private Summary _summ;
-		this (Commons comm, A area, Summary summ, int ownerIndex, int insertIndex) { mixin(S_TRACE);
+		this (Commons comm, A area, Summary summ, size_t ownerIndex, size_t
+		
+		 insertIndex) { mixin(S_TRACE);
 			super (comm, area);
 			_ownerIndex = ownerIndex;
 			_insertIndex = insertIndex;
@@ -397,8 +399,8 @@ private:
 				if (v._etree.eventTree && v._etree.eventTree.areaPath == tree.areaPath) { mixin(S_TRACE);
 					v._etree.refresh(null);
 				}
-				auto ownItm = v._cards.getItem(_ownerIndex);
-				auto itm = ownItm.getItem(_insertIndex);
+				auto ownItm = v._cards.getItem(cast(int)_ownerIndex);
+				auto itm = ownItm.getItem(cast(int)_insertIndex);
 				if (v._selItm is itm) v._selItm = null;
 				itm.dispose();
 			}
@@ -416,7 +418,7 @@ private:
 			if (_delUndo) _delUndo.dispose();
 		}
 	}
-	EVUndo storeI(int ownerIndex, int insertIndex, bool put = true) { mixin(S_TRACE);
+	EVUndo storeI(size_t ownerIndex, size_t insertIndex, bool put = true) { mixin(S_TRACE);
 		auto undo = new UndoInsert(_comm, _area, _summ, ownerIndex, insertIndex);
 		if (put) _undo ~= undo;
 		return undo;
@@ -431,8 +433,8 @@ private:
 			super (comm, area);
 			_summ = summ;
 			auto owner = tree.owner;
-			_ownerIndex = .cCountUntil!("a is b")(etos(area), owner);
-			_treeIndex = .cCountUntil!("a is b")(owner.trees, tree);
+			_ownerIndex = cast(int).cCountUntil!("a is b")(etos(area), owner);
+			_treeIndex = cast(int).cCountUntil!("a is b")(owner.trees, tree);
 			_tree = tree.dup;
 			_tree.setUseCounter(summ.useCounter.sub);
 		}
@@ -697,7 +699,7 @@ private:
 		}
 		auto appendIndex = owner.trees.length;
 		foreach (i, v; vs) { mixin(S_TRACE);
-			v.appendTree(parItms[i], tree, appendIndex, fire, true, 0 < i, true);
+			v.appendTree(parItms[i], tree, cast(int)appendIndex, fire, true, 0 < i, true);
 		}
 		if (starts.length) { mixin(S_TRACE);
 			_comm.refUseCount.call();
@@ -723,7 +725,7 @@ private:
 		auto par = cast(EventTreeOwner) parItm.getData();
 		parItm.removeAll();
 		foreach (index, tree; par.trees) { mixin(S_TRACE);
-			appendTreeItem(parItm, index, null, true);
+			appendTreeItem(parItm, cast(int)index, null, true);
 		}
 		parItm.setExpanded(true);
 		_comm.refreshToolBar();
@@ -1082,7 +1084,7 @@ private:
 					chg = true;
 				}
 				static if (UseFire && (is (A == Area) || is (A == Battle))) {
-					int startKC = -1;
+					ptrdiff_t startKC = -1;
 					foreach (i, itm3; itm2.getItems()) { mixin(S_TRACE);
 						auto kc = cast(KeyCodeObj) itm3.getData();
 						if (kc && startKC <= 0) startKC = i;
@@ -1133,7 +1135,7 @@ private:
 			auto et = cast(EventTree) etItm.getData();
 			assert (et);
 			store(et);
-			int i = cCountUntil(et.keyCodes, old);
+			auto i = cCountUntil(et.keyCodes, old);
 			assert (-1 != i);
 			et.setKeyCode(i, _prop.sys.toFKeyCode(keyCode));
 			foreach (v; views()) { mixin(S_TRACE);
@@ -1466,17 +1468,17 @@ public:
 		private void addCard(string cwxPath) { mixin(S_TRACE);
 			if (!cpeq(_area.cwxPath(true), cpparent(cwxPath))) return;
 			size_t i = cpindex(cpbottom(cwxPath));
-			appendCard(i, _area.cards[i]);
+			appendCard(cast(int)i, _area.cards[i]);
 		}
 		private void refCard(string cwxPath) { mixin(S_TRACE);
 			if (!cpeq(_area.cwxPath(true), cpparent(cwxPath))) return;
 			size_t i = cpindex(cpbottom(cwxPath));
-			renameCard(i);
+			renameCard(cast(int)i);
 		}
 		private void delCard(string cwxPath) { mixin(S_TRACE);
 			if (!cpeq(_area.cwxPath(true), cpparent(cwxPath))) return;
 			size_t i = cpindex(cpbottom(cwxPath));
-			removeCard(i);
+			removeCard(cast(int)i);
 		}
 		private void upCard(string cwxPath, int[] indices, int count) { mixin(S_TRACE);
 			if (!cpeq(_area.cwxPath(true), cwxPath)) return;
@@ -1670,7 +1672,7 @@ public:
 						if (cast(KeyCodeObj) data) { mixin(S_TRACE);
 							// キーコード
 							auto tree = cast(EventTree) parent.getData();
-							int keyCodeLen = tree.keyCodes.length;
+							int keyCodeLen = cast(int)tree.keyCodes.length;
 							from -= keyCodesIndex(parent);
 							to -= keyCodesIndex(parent);
 							return mixin (CanSwapKeyCode);
@@ -1730,7 +1732,7 @@ public:
 						int from = parent.indexOf(itm);
 						int to = mixin(BeforeAfter);
 						auto tree = cast(EventTree)parent.getData();
-						int keyCodeLen = tree.keyCodes.length;
+						int keyCodeLen = cast(int)tree.keyCodes.length;
 						from -= keyCodesIndex(parent);
 						to -= keyCodesIndex(parent);
 						if (mixin (CanSwapKeyCode)) { mixin(S_TRACE);
@@ -2272,8 +2274,8 @@ public:
 						if (cast(EventTreeOwner)ti.getData()) return;
 						auto keyCode = kco.array.idup;
 						auto fromTreeItm = _dragItm.getParentItem();
-						int fromIndex = fromTreeItm.indexOf(_dragItm) - keyCodesIndex(fromTreeItm);
-						int toIndex;
+						ptrdiff_t fromIndex = fromTreeItm.indexOf(_dragItm) - keyCodesIndex(fromTreeItm);
+						ptrdiff_t toIndex;
 						if (auto toTree = cast(EventTree)ti.getData()) { mixin(S_TRACE);
 							toIndex = toTree.keyCodes.length;
 						} else { mixin(S_TRACE);
@@ -2291,7 +2293,7 @@ public:
 						tree.keyCodes = array;
 						refreshFires(fromTreeItm);
 
-						auto selItm = fromTreeItm.getItem(keyCodesIndex(fromTreeItm) + toIndex);
+						auto selItm = fromTreeItm.getItem(keyCodesIndex(fromTreeItm) + cast(int)toIndex);
 						_cards.setSelection([selItm]);
 						_cards.showSelection();
 						return;
@@ -2445,7 +2447,7 @@ public:
 			auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 			if (node.name == "Event") { mixin(S_TRACE);
 				EventTree tree = EventTree.createFromNode(node, ver);
-				int index = par.trees.length;
+				ptrdiff_t index = par.trees.length;
 				if (!appendToLast && parItm !is itm) { mixin(S_TRACE);
 					auto treeItm = cast(EventTree)itm.getData() ? itm : itm.getParentItem();
 					index = parItm.indexOf(treeItm);
@@ -2456,7 +2458,7 @@ public:
 				TreeItem ti = null;
 				foreach (v; views()) { mixin(S_TRACE);
 					auto parItm2 = .anotherTreeItem(v._cards, parItm);
-					auto treeItm = .createTreeItem(parItm2, tree, tree.name, v.etImage(tree), index);
+					auto treeItm = .createTreeItem(parItm2, tree, tree.name, v.etImage(tree), cast(int)index);
 					if (v is this) v.selectImpl(treeItm);
 					if (v is this) ti = treeItm;
 				}
@@ -2666,7 +2668,7 @@ public:
 			if (index >= itm.getItemCount()) { mixin(S_TRACE);
 				return false;
 			}
-			selectImpl(itm.getItem(index));
+			selectImpl(itm.getItem(cast(int)index));
 			return _etree.openCWXPath(cpbottom(path), shellActivate);
 		}
 		static if (is(C : MenuCard) || is(C : EnemyCard)) {
@@ -2674,7 +2676,7 @@ public:
 				if (index + 1 >= _cards.getItemCount()) { mixin(S_TRACE);
 					return false;
 				}
-				auto itm = _cards.getItem(index + 1);
+				auto itm = _cards.getItem(cast(int)index + 1);
 				path = cpbottom(path);
 				if (cpempty(path)) { mixin(S_TRACE);
 					if (!cphasattr(path, "nofocus")) .forceFocus(_cards, shellActivate);

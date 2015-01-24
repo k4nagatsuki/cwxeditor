@@ -40,9 +40,9 @@ class RadarSpinner : Composite {
 	private Control[] _spns;
 	private string[] _names;
 	private uint _step_c;
-	private uint _param_c;
+	private size_t _param_c;
 	private int _min;
-	private int _onDrag = -1;
+	private ptrdiff_t _onDrag = -1;
 	private int _ovalStep = 1;
 	private static immutable int TOGGLE_SIZE = 5;
 	private static immutable int TOGGLE_CATCH_SIZE = 11;
@@ -82,9 +82,9 @@ class RadarSpinner : Composite {
 					if (_onDrag >= 0) { mixin(S_TRACE);
 						int x = e.x;
 						int y = e.y;
-						int i = _onDrag;
+						ptrdiff_t i = _onDrag;
 						int sel = getValue(i) - _min;
-						int minIdx = 0;
+						size_t minIdx = 0;
 						real minDist = real.max;
 						foreach (j, tgl; _tgls[i]) { mixin(S_TRACE);
 							real dist = abs(tgl.x - x) + abs(tgl.y - y);
@@ -93,7 +93,7 @@ class RadarSpinner : Composite {
 								minIdx = j;
 							}
 						}
-						setValue(i, minIdx + _min);
+						setValue(i, cast(int)minIdx + _min);
 						foreach (dlg; modEvent) dlg();
 						redraw();
 					} else { mixin(S_TRACE);
@@ -312,7 +312,7 @@ class RadarSpinner : Composite {
 				sspn.setMaximum(step_c - 1 + min);
 				sspn.setSelection(min);
 				sspn.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
-				sspn.addListener(SWT.Selection, new SpnListener(i));
+				sspn.addListener(SWT.Selection, new SpnListener(cast(int)i));
 				spn = sspn;
 			}
 			_lbls[i] = lbl;
@@ -350,10 +350,10 @@ class RadarSpinner : Composite {
 		return false;
 	}
 	/// カーソルの位置にあるトグルを取得。被る場合はより近い方を優先する。
-	private int cursorFromPos(int x, int y) { mixin(S_TRACE);
+	private ptrdiff_t cursorFromPos(int x, int y) { mixin(S_TRACE);
 		assert (!_readOnly);
 		int minDist = int.max;
-		int index = -1;
+		ptrdiff_t index = -1;
 		foreach (i, tgls; _tgls) { mixin(S_TRACE);
 			auto tgl = tgls[getValue(i) - _min];
 			int tx = tgl.x - TOGGLE_CATCH_SIZE / 2;
@@ -632,7 +632,7 @@ class RadarSpinner : Composite {
 	/// Params:
 	/// index = 設定箇所。
 	/// value = 値。
-	void setValue(int index, int value) { mixin(S_TRACE);
+	void setValue(size_t index, int value) { mixin(S_TRACE);
 		if (_readOnly) { mixin(S_TRACE);
 			(cast(Label) _spns[index]).setText(to!(string)(value));
 			_spns[index].setData(new Integer(value));
@@ -659,7 +659,7 @@ class RadarSpinner : Composite {
 	/// Params:
 	/// index = 取得箇所。
 	/// Returns: 値。
-	int getValue(int index) { mixin(S_TRACE);
+	int getValue(size_t index) { mixin(S_TRACE);
 		if (_readOnly) { mixin(S_TRACE);
 			return (cast(Integer) _spns[index].getData()).intValue();
 		} else { mixin(S_TRACE);
@@ -683,7 +683,7 @@ class RadarSpinner : Composite {
 	}
 	/// パラメータ数。
 	@property
-	int paramCount() { mixin(S_TRACE);
+	size_t paramCount() { mixin(S_TRACE);
 		return _param_c;
 	}
 	/// 値の範囲。

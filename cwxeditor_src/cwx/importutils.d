@@ -267,7 +267,7 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 					if (c.linkId) return;
 					auto ids = table.keys().sort;
 					auto id = ids.length ? ids[$-1] + 1 : (toArr.length ? toArr[$-1].id + 1 : 1);
-					int index = cc.indexOf(c);
+					auto index = cc.indexOf(c);
 					cc.remove(c);
 					auto nc = new T(c.id, "", "", "");
 					nc.linkId = id;
@@ -284,7 +284,7 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 					nc = nc.dup;
 					nc.id = c.id;
 					static if (is(typeof(c.hold))) nc.hold = c.hold;
-					int index = cc.indexOf(c);
+					auto index = cc.indexOf(c);
 					cc.remove(c);
 					cc.insert(index, nc);
 				}

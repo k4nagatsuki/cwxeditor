@@ -470,7 +470,7 @@ void fixCWNext16BitBitmap(ref byte[] bytes) { mixin(S_TRACE);
 	}
 	if (bytes.length - bfOffBits != lineSize * height) {
 		// bfOffBitsを現在位置に修正
-		bfOffBits = f.pointer;
+		bfOffBits = cast(uint)f.pointer;
 		f.pointer = 10;
 		f.writeL(cast(uint)bfOffBits);
 	}

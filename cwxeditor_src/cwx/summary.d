@@ -1242,7 +1242,7 @@ public:
 
 	/// 指定された要素のindexを検索する。
 	const
-	int indexOf(T)(in T c) { mixin(S_TRACE);
+	ptrdiff_t indexOf(T)(in T c) { mixin(S_TRACE);
 		static if (is (T == CastCard)) {
 			return .cCountUntil!("a is b")(_cast, c);
 		} else static if (is (T == SkillCard)) {
@@ -1513,7 +1513,7 @@ public:
 	}
 
 	private void removeImpl(T)(ref T[] arr, T area) { mixin(S_TRACE);
-		int i = qsearch!((a, b) => dcmp(a.id, b.id))(arr, area);
+		auto i = qsearch!((a, b) => dcmp(a.id, b.id))(arr, area);
 		if (i == -1) return;
 		arr = arr[0 .. i] ~ arr[i + 1 .. $];
 		area.removeUseCounter();

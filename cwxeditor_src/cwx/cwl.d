@@ -639,7 +639,7 @@ private string readStringImpl(ref ByteIO f, bool lns, bool cutText, uint delegat
 	if (!len) return "";
 	string str = cast(string) f.read(len);
 	if (!lns && str[$ - 1] == '\0') str = str[0 .. $ - 1];
-	int zi = indexOf(str, '\0');
+	auto zi = indexOf(str, '\0');
 	if (-1 != zi) str = str[zi + 1 .. $];
 	try { mixin(S_TRACE);
 		str = touni(str);
@@ -660,7 +660,7 @@ private string readString(ref ByteIO f, ref string[string] addInfo, bool lns = f
 	string str = cast(string) f.read(len);
 	if (!lns && str[$ - 1] == '\0') str = str[0 .. $ - 1];
 	while (true) { mixin(S_TRACE);
-		int zi = indexOf(str, '\0');
+		auto zi = indexOf(str, '\0');
 		if (-1 == zi) break;
 		string info = touni(str[zi + 1 .. $]);
 		info = replace(info, "\r\n", "\n");
@@ -3587,7 +3587,7 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 }
 private void writeBgImages(ref SData d, ref ByteIO f, BgImage[] backs, bool replBgImg = false) { mixin(S_TRACE);
 	if (replBgImg)  { mixin(S_TRACE);
-		f.writeExUInt(backs.length);
+		f.writeExUInt(cast(uint)backs.length);
 	} else { mixin(S_TRACE);
 		auto b = backs.length ? cast(ImageCell) backs[0] : null;
 		if (b && b.path != "" && b.flag == "" && b.x == 0 && b.y == 0

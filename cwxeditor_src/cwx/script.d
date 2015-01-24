@@ -29,9 +29,9 @@ struct CWXSError {
 	/// エラーメッセージ。
 	string message;
 	/// エラー発生行。
-	int errLine;
+	size_t errLine;
 	/// 行内の位置。
-	int errPos;
+	size_t errPos;
 	/// エラーチェック箇所の __FILE__
 	string file;
 	/// エラーチェック箇所の __LINE__
@@ -73,9 +73,9 @@ struct VarSet {
 /// コンパイルオプション。
 struct CompileOption {
 	bool linkId = false; /// カードを参照で設定するか。
-	int startLine = 0; /// スクリプトの論理的な開始行(通常0)。
-	int startPos = 0; /// スクリプトの論理的な開始位置(通常0)。
-	int addLines = 0; /// スクリプトに追加した行数(通常0)。
+	ptrdiff_t startLine = 0; /// スクリプトの論理的な開始行(通常0)。
+	ptrdiff_t startPos = 0; /// スクリプトの論理的な開始位置(通常0)。
+	ptrdiff_t addLines = 0; /// スクリプトに追加した行数(通常0)。
 }
 
 /// スクリプトを解析し、コンテント群にして返す。
@@ -141,7 +141,7 @@ class CWXScript {
 		throwErrorToken!(File, Line)(message, tok.line, tok.pos, tok.value);
 	}
 	private void throwErrorToken(string File = __FILE__, size_t Line = __LINE__)
-			(lazy string message, int line, int pos, string value) { mixin(S_TRACE);
+			(lazy string message, size_t line, size_t pos, string value) { mixin(S_TRACE);
 		if (!_maxError) return;
 		if (_errors.length && _errors[$ - 1].errLine == line && _errors[$ - 1].errPos == pos) { mixin(S_TRACE);
 			// 同一箇所でのエラーは一つだけにする
@@ -187,8 +187,8 @@ class CWXScript {
 
 	/// スクリプトのトークン。
 	static struct Token {
-		int line; /// トークンのある行。
-		int pos; /// 行内の位置。
+		size_t line; /// トークンのある行。
+		size_t pos; /// 行内の位置。
 		size_t index; /// スクリプト全体での位置。
 		Kind kind; /// 種別。
 		string value; /// 値。
@@ -288,9 +288,9 @@ class CWXScript {
 				if (!isNum && icmp(lnStr, "c") != 0 && icmp(lnStr, "center") != 0) { mixin(S_TRACE);
 					throwError(_prop.msgs.scriptErrorInvalidStr, tok);
 				}
-				int ln;
+				ptrdiff_t ln;
 				if (isNum) { mixin(S_TRACE);
-					ln = .to!(int)(lnStr);
+					ln = .to!(ptrdiff_t)(lnStr);
 				} else { mixin(S_TRACE);
 					ln = stringCenter(lines, 0);
 				}
@@ -444,8 +444,8 @@ class CWXScript {
 		bool spaceAfter = false;
 		string docComment = "";
 		string fullComment = "";
-		@property int sLine() {return cast(int) i + opt.startLine;}
-		@property int sPos() {return (cast(int) i == opt.addLines) ? (cast(int) pos + opt.startPos) : pos;}
+		@property ptrdiff_t sLine() {return cast(ptrdiff_t)i + opt.startLine;}
+		@property ptrdiff_t sPos() {return (cast(ptrdiff_t)i == opt.addLines) ? (cast(ptrdiff_t)pos + opt.startPos) : pos;}
 		foreach (token; .match(dtext, reg)) { mixin(S_TRACE);
 			post = token.post;
 			string pre = token.pre;

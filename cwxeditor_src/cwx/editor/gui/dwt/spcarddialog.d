@@ -376,7 +376,7 @@ protected:
 					assert (_casts.getItemCount());
 					foreach (i, c; _summ.casts) { mixin(S_TRACE);
 						if (c.id == _card.id) { mixin(S_TRACE);
-							_casts.select(i);
+							_casts.select(cast(int)i);
 							_selectedID = c.id;
 							break;
 						}

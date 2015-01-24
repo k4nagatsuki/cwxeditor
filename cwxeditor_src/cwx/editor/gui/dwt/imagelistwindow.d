@@ -133,7 +133,7 @@ class ImageList : Composite {
 	private CRect[] _bounds;
 	private int _imgW, _imgH;
 	private bool _mask;
-	private int _sel = -1;
+	private ptrdiff_t _sel = -1;
 	private ImageData delegate(string path, bool mask) _createImage;
 
 	private bool _showSelection = false;
@@ -172,10 +172,10 @@ class ImageList : Composite {
 		int fh = gc.getFontMetrics().getHeight();
 		int h = SPACING + _imgH + fh;
 		int countPerLine = calcCountPerLine();
-		int row = _path.length / countPerLine;
+		auto row = _path.length / countPerLine;
 		if (_path.length % countPerLine) row++;
 		vs.setMinimum(0);
-		vs.setMaximum(row * h + SPACING);
+		vs.setMaximum(cast(int)row * h + SPACING);
 		vs.setThumb(ca.height);
 		vs.addSelectionListener(new Redraw);
 	}
@@ -272,7 +272,7 @@ class ImageList : Composite {
 		if (path == "") { mixin(S_TRACE);
 			_sel = -1;
 		}
-		int i = countUntil(_path, path);
+		auto i = countUntil(_path, path);
 		if (-1 == i) return;
 		_sel = i;
 	}
@@ -291,11 +291,11 @@ class ImageList : Composite {
 		int fh = gc.getFontMetrics().getHeight();
 
 		int h = SPACING + _imgH + fh;
-		int y = _sel / countPerLine * h;
+		auto y = _sel / countPerLine * h;
 		if (y < vs.getSelection()) { mixin(S_TRACE);
-			vs.setSelection(y);
+			vs.setSelection(cast(int)y);
 		} else if (vs.getSelection() + vs.getThumb() < y + h + SPACING) { mixin(S_TRACE);
-			vs.setSelection(y + h + SPACING - vs.getThumb());
+			vs.setSelection(cast(int)y + h + SPACING - vs.getThumb());
 		}
 		redraw();
 	}

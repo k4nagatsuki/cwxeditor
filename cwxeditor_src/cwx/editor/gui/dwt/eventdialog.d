@@ -148,7 +148,7 @@ class ContentCommentDialog : AbsDialog {
 		auto font = _comment.getFont();
 		auto fSize = font ? cast(uint) font.getFontData()[0].height : 0;
 		_comment.setFont(new Font(Display.getCurrent(), dwtData(_prop.looks.textDlgFont(fSize))));
-		_comment.setSelection(to!dstring(_comment.getText()).length);
+		_comment.setSelection(cast(int)to!dstring(_comment.getText()).length);
 		closeEvent ~= () { mixin(S_TRACE);
 			_comment.getFont().dispose();
 		};
@@ -241,8 +241,8 @@ protected:
 					auto s = _prop.msgs.transitionName(t);
 					if (t is Transition.DEFAULT) s = _prop.msgs.defaultSelection(s);
 					_ts.add(s);
-					_tsTbl[i] = t;
-					if (_evt && t == _evt.transition) _ts.select(i);
+					_tsTbl[cast(int)i] = t;
+					if (_evt && t == _evt.transition) _ts.select(cast(int)i);
 				}
 				auto ls = new Label(comp, SWT.NONE);
 				ls.setText(_prop.msgs.transitionSpeed);
@@ -432,7 +432,7 @@ protected:
 			_selected = _evt.start;
 			foreach (i, itm; _list.getItems()) { mixin(S_TRACE);
 				if (_selected == (cast(Content) itm.getData()).name) { mixin(S_TRACE);
-					_list.select(i);
+					_list.select(cast(int)i);
 					break;
 				}
 			}
@@ -842,8 +842,8 @@ protected:
 				auto s = _prop.msgs.transitionName(t);
 				if (t is Transition.DEFAULT) s = _prop.msgs.defaultSelection(s);
 				_ts.add(s);
-				_tsTbl[i] = t;
-				if (_evt && t == _evt.transition) _ts.select(i);
+				_tsTbl[cast(int)i] = t;
+				if (_evt && t == _evt.transition) _ts.select(cast(int)i);
 			}
 			auto ls = new Label(comp, SWT.NONE);
 			ls.setText(_prop.msgs.transitionSpeed);
@@ -1321,7 +1321,7 @@ private:
 			static if (SelValue) {
 				if (sel < 0) sel = 0;
 				static if (is (F == Step)) {
-					if (sel >= flag.values.length) sel = flag.values.length - 1;
+					if (sel >= flag.values.length) sel = cast(int)flag.values.length - 1;
 				}
 				_values.select(sel);
 			}
@@ -1494,7 +1494,7 @@ protected:
 				}
 			}
 			static if (Type is CType.CHECK_STEP) {
-				_cmp.select(_cmps.countUntil(_evt.comparison4));
+				_cmp.select(cast(int)_cmps.countUntil(_evt.comparison4));
 			}
 		} else { mixin(S_TRACE);
 			_flags.selected = "";
@@ -2066,7 +2066,7 @@ private:
 			}
 			itm.setText(0, to!(string)(c.id));
 			itm.setText(1, c.name);
-			if (id == c.id) _list.select(i);
+			if (id == c.id) _list.select(cast(int)i);
 			i++;
 		}
 		_list.showSelection();
@@ -2217,7 +2217,7 @@ protected:
 			}
 			foreach (i, itm; _list.getItems()) { mixin(S_TRACE);
 				if (_selectedID == (cast(C) itm.getData()).id) { mixin(S_TRACE);
-					_list.select(i);
+					_list.select(cast(int)i);
 					break;
 				}
 			}
@@ -2318,8 +2318,8 @@ protected:
 				auto s = _prop.msgs.transitionName(t);
 				if (t is Transition.DEFAULT) s = _prop.msgs.defaultSelection(s);
 				_ts.add(s);
-				_tsTbl[i] = t;
-				if (_evt && t == _evt.transition) _ts.select(i);
+				_tsTbl[cast(int)i] = t;
+				if (_evt && t == _evt.transition) _ts.select(cast(int)i);
 			}
 			auto ls = new Label(comp, SWT.NONE);
 			ls.setText(_prop.msgs.transitionSpeed);
@@ -2665,7 +2665,7 @@ protected:
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
 			_value.setSelection(_evt.round);
-			_cmp.select(_cmps.countUntil(_evt.comparison3));
+			_cmp.select(cast(int)_cmps.countUntil(_evt.comparison3));
 		} else { mixin(S_TRACE);
 			_value.setSelection(0);
 			_cmp.select(0);

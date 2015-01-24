@@ -1145,7 +1145,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	inout(Content)[] next() {return _next;}
 
 	/// 後続コンテントのインデックスを交換する。
-	void swapContent(int index1, int index2) { mixin(S_TRACE);
+	void swapContent(size_t index1, size_t index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();
 		auto temp = _next[index1];
 		_next[index1] = _next[index2];
@@ -1164,7 +1164,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		changed();
 	}
 	/// ditto
-	void insert(in CProps prop, int index, Content c) { mixin(S_TRACE);
+	void insert(in CProps prop, size_t index, Content c) { mixin(S_TRACE);
 		if (next.length == index) { mixin(S_TRACE);
 			add(prop, c);
 		} else { mixin(S_TRACE);
@@ -1180,7 +1180,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 
 	/// 後続コンテントを除外する。
-	void remove(int index) { mixin(S_TRACE);
+	void remove(size_t index) { mixin(S_TRACE);
 		if (_uc !is null) _next[index].removeUseCounter();
 		if (_suc !is null) _next[index].removeSUseCounter();
 		_next[index].changeHandler = null;
@@ -2334,14 +2334,14 @@ public:
 	}
 
 	/// スタートコンテントのインデックスを交換。
-	void swapStart(int index1, int index2) { mixin(S_TRACE);
+	void swapStart(size_t index1, size_t index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();
 		auto temp = _starts[index1];
 		_starts[index1] = _starts[index2];
 		_starts[index2] = temp;
 	}
 	/// キーコードのインデックスを交換。
-	void swapKeyCode(int index1, int index2) { mixin(S_TRACE);
+	void swapKeyCode(size_t index1, size_t index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();
 		auto temp = _keyCodes[index1];
 		_keyCodes[index1] = _keyCodes[index2];
@@ -2362,7 +2362,7 @@ public:
 		changed();
 	}
 	/// ditto
-	void insert(int index, Content evt) in { mixin(S_TRACE);
+	void insert(size_t index, Content evt) in { mixin(S_TRACE);
 		assert (evt.type is CType.START);
 	} body { mixin(S_TRACE);
 		if (_uc !is null) { mixin(S_TRACE);
@@ -2375,7 +2375,7 @@ public:
 		changed();
 	}
 	/// スタートコンテントを除外。
-	void remove(int index) in { mixin(S_TRACE);
+	void remove(size_t index) in { mixin(S_TRACE);
 		assert (_starts.length > 1);
 	} body { mixin(S_TRACE);
 		if (_uc !is null) { mixin(S_TRACE);
@@ -2438,7 +2438,7 @@ public:
 	}
 
 	/// 指定されたインデックスのキーコードを差し替える。
-	void setKeyCode(int index, FKeyCode keyCode) { mixin(S_TRACE);
+	void setKeyCode(size_t index, FKeyCode keyCode) { mixin(S_TRACE);
 		if (_keyCodes[index] != keyCode) { mixin(S_TRACE);
 			changed();
 			_keyCodes[index].user.keyCode = keyCode.keyCode;
@@ -2613,7 +2613,7 @@ public:
 
 	/// 発火キーコードを追加。
 	/// Returns: 追加できた場合はtrue。
-	bool addKeyCode(FKeyCode keyCode, int insertIndex = -1) { mixin(S_TRACE);
+	bool addKeyCode(FKeyCode keyCode, ptrdiff_t insertIndex = -1) { mixin(S_TRACE);
 		if (!fireKeyCode(keyCode)) { mixin(S_TRACE);
 			changed();
 			auto user = new KeyCodeUser(this);
@@ -2885,7 +2885,7 @@ public:
 		return -1;
 	}
 	/// 「発火キーコード」をXMLノードからロードし、成功すればtrueを返す。
-	string keyCodeFromNode(EventTreeOwner owner, ref XNode node, in System sys, int insertIndex = -1) { mixin(S_TRACE);
+	string keyCodeFromNode(EventTreeOwner owner, ref XNode node, in System sys, ptrdiff_t insertIndex = -1) { mixin(S_TRACE);
 		if (owner.canHasFireKeyCode) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
 				if (node.name == "FireKeyCode") { mixin(S_TRACE);
@@ -2942,13 +2942,13 @@ public interface EventTreeOwner : CWXPath {
 	/// イベントツリーを追加・除去する。
 	void add(EventTree evt);
 	/// ditto
-	void insert(int index, EventTree evt);
+	void insert(size_t index, EventTree evt);
 	/// ditto
-	void removeEvent(int index);
+	void removeEvent(size_t index);
 	/// ditto
 	void remove(EventTree et);
 	/// イベントツリーのインデックスを交換。
-	void swapEventTree(int index1, int index2);
+	void swapEventTree(size_t index1, size_t index2);
 
 	/// 属すエリア等からの相対パス。
 	@property
@@ -3029,7 +3029,7 @@ public:
 		return _evts;
 	}
 
-	void swapEventTree(int index1, int index2) { mixin(S_TRACE);
+	void swapEventTree(size_t index1, size_t index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();
 		auto temp = _evts[index1];
 		_evts[index1] = _evts[index2];
@@ -3061,7 +3061,7 @@ public:
 		addCmn(evt);
 		_evts ~= evt;
 	}
-	void insert(int index, EventTree evt) { mixin(S_TRACE);
+	void insert(size_t index, EventTree evt) { mixin(S_TRACE);
 		if (_evts.length == index) { mixin(S_TRACE);
 			add(evt);
 		} else { mixin(S_TRACE);
@@ -3092,7 +3092,7 @@ public:
 	const
 	abstract bool canHasFireKeyCode();
 
-	void removeEvent(int index) { mixin(S_TRACE);
+	void removeEvent(size_t index) { mixin(S_TRACE);
 		if (_uc !is null) { mixin(S_TRACE);
 			_evts[index].removeUseCounter();
 		}

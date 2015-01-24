@@ -794,9 +794,9 @@ private:
 		combo.setLayoutData(gd);
 		combo.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 		foreach (i, val; values) { mixin(S_TRACE);
-			tblA[val] = i;
-			tblB[i] = val;
-			combo.add(names[i]);
+			tblA[val] = cast(int)i;
+			tblB[cast(int)i] = val;
+			combo.add(names[cast(int)i]);
 		}
 		return combo;
 	}
@@ -1328,7 +1328,7 @@ protected:
 		_prop.var.etc.undoMaxEtc = _undoMaxEtc.getSelection();
 		string[] ipLines = splitLines!string(_ignorePaths.getText());
 		if (ipLines.length > 0) { mixin(S_TRACE);
-			int i;
+			ptrdiff_t i;
 			for (i = ipLines.length - 1; i >= 0 && ipLines[i].length == 0; i--) { mixin(S_TRACE);
 				;
 			}
@@ -1362,7 +1362,7 @@ protected:
 		_prop.var.etc.bgImagesDefault = _bgImagesDefault;
 		string[] lines = splitLines!string(_keyCodes.getText());
 		if (lines.length > 0) { mixin(S_TRACE);
-			int i;
+			ptrdiff_t i;
 			for (i = lines.length - 1; i >= 0 && lines[i].length == 0; i--) { mixin(S_TRACE);
 				;
 			}
@@ -2155,7 +2155,7 @@ private:
 		_list.remove(i);
 		_array = _array[0 .. i] ~ _array[i + 1 .. $];
 		if (_array.length > 0) { mixin(S_TRACE);
-			_list.select(i < _array.length ? i : _array.length - 1);
+			_list.select(i < _array.length ? i : cast(int)_array.length - 1);
 		}
 		selected();
 		_applyEnabled();

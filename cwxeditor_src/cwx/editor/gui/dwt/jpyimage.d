@@ -208,9 +208,9 @@ private ImageData loadJPYImageImpl(Props prop, in Skin skin, in Summary summ, st
 			turn(bytes, balpha, dw, dh, bpl, sec.turn, data.depth);
 			data.data = cast(byte[]) bytes;
 			data.alphaData = cast(byte[]) balpha;
-			data.width = dw;
-			data.height = dh;
-			data.bytesPerLine = bpl;
+			data.width = cast(int)dw;
+			data.height = cast(int)dh;
+			data.bytesPerLine = cast(int)bpl;
 		}
 		int sw = data.width, sh = data.height;
 		if (sec.width > 0) sw = sec.width;
@@ -225,7 +225,7 @@ private ImageData loadJPYImageImpl(Props prop, in Skin skin, in Summary summ, st
 				data.alphaData = cast(byte[]) balpha;
 				data.width = sw;
 				data.height = sh;
-				data.bytesPerLine = bpl;
+				data.bytesPerLine = cast(int)bpl;
 			} else { mixin(S_TRACE);
 				data = data.scaledTo(sw, sh);
 			}
@@ -242,9 +242,9 @@ private ImageData loadJPYImageImpl(Props prop, in Skin skin, in Summary summ, st
 				for (size_t x = 0; x < data.width; x++) { mixin(S_TRACE);
 					size_t i = y * data.width * bpp + x * bpp;
 					if (isMask(data.data[i + 2], data.data[i + 1], data.data[i + 0])) { mixin(S_TRACE);
-						data.setAlpha(x, y, 0);
+						data.setAlpha(cast(int)x, cast(int)y, 0);
 					} else { mixin(S_TRACE);
-						data.setAlpha(x, y, 255);
+						data.setAlpha(cast(int)x, cast(int)y, 255);
 					}
 				}
 			}
@@ -452,7 +452,7 @@ private ImageData warningImage(Props prop, in Summary summ, EffectBoosterError e
 		scope (exit) gc.dispose();
 		lineHeight = gc.getFontMetrics().getHeight();
 		lh = .max(imgBounds.height, lineHeight);
-		height = (lh * 2) * e.errors.length + 5 * (e.errors.length - 1) + 2 * 2;
+		height = (lh * 2) * cast(int)e.errors.length + 5 * (cast(int)e.errors.length - 1) + 2 * 2;
 		width = 0;
 		auto sPath = summ ? nabs(summ.scenarioPath).toLower() : "";
 		foreach (err; e.errors) { mixin(S_TRACE);

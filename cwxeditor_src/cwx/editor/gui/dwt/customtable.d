@@ -55,7 +55,7 @@ class TableSorter(DataT) {
 				r.image ~= c.getImage(j);
 			}
 			r.data = c.getData();
-			r.select = tbl.isSelected(i);
+			r.select = tbl.isSelected(cast(int)i);
 			r.cursor = cursor && _col is cursor.getRow();
 			arr[i] = r;
 		}

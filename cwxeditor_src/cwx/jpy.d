@@ -332,7 +332,7 @@ struct Jpy1 {
 			}
 			with (r.sections[$ - 1]) { mixin(S_TRACE);
 				// contents
-				int eq = .cCountUntil(line, '=');
+				auto eq = .cCountUntil(line, '=');
 				if (eq == -1) { mixin(S_TRACE);
 					errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidLine, line), jpy1Path, lineNum);
 					continue;
@@ -430,7 +430,7 @@ struct Jpy1 {
 		bool update = false;
 		foreach (ref sec; sections) { mixin(S_TRACE);
 			if (sec.needUpdate && sec.filenameIndex != -1) { mixin(S_TRACE);
-				int eq = sec.filenameLine.cCountUntil('=');
+				auto eq = sec.filenameLine.cCountUntil('=');
 				assert (eq != -1);
 				auto ret = sec.filenameLine[sec.filenameLine.chomp().length .. $];
 				lines[sec.filenameIndex] = sec.filenameLine[0 .. eq+1] ~ sec.filename ~ ret;
@@ -559,7 +559,7 @@ class Jpy1Sec : PathUser, CWXPath {
 	string fPath;
 
 	/// filenameがある行。ファイルの更新に使用する。
-	int filenameIndex = -1;
+	ptrdiff_t filenameIndex = -1;
 	/// filenameがある行の内容。ファイルの更新に使用する。
 	string filenameLine = "filename=";
 	/// filenameが更新されたためファイルの上書きが必要な場合はtrue。
@@ -629,7 +629,7 @@ private struct JptxTag {
 			return JptxTag();
 		}
 		if (startsWith(p, "=\""d)) { mixin(S_TRACE);
-			int ei = .cCountUntil(p[2 .. $], '"');
+			auto ei = .cCountUntil(p[2 .. $], '"');
 			if (ei == -1) { mixin(S_TRACE);
 				errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidStartTag, startTag), file, line);
 				return JptxTag();
@@ -638,7 +638,7 @@ private struct JptxTag {
 			p = p[ei + 4 .. $];
 		}
 		if (startsWith(p, "="d)) { mixin(S_TRACE);
-			int ei = .cCountUntil(p, ' ');
+			auto ei = .cCountUntil(p, ' ');
 			if (ei == -1) ei = .cCountUntil(p, '>');
 			tag.tagValue = ei == -1 ? to!(int)(p[1 .. $]) : to!(int)(p[1 .. ei]);
 			if (ei != -1) p = p[ei + 1 .. $];
@@ -1104,7 +1104,7 @@ struct Jptx {
 			if (init) { mixin(S_TRACE);
 				with (r) { mixin(S_TRACE);
 					// init
-					int eq = .cCountUntil(sline, '=');
+					auto eq = .cCountUntil(sline, '=');
 					if (eq == -1) { mixin(S_TRACE);
 						errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidLine, line), path, lineNum);
 						continue;
@@ -1238,7 +1238,7 @@ struct Jpdc {
 			if (init) { mixin(S_TRACE);
 				with (r) { mixin(S_TRACE);
 					// init
-					int eq = .cCountUntil(line, '=');
+					auto eq = .cCountUntil(line, '=');
 					if (eq == -1) { mixin(S_TRACE);
 						errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidLine, line), path, lineNum);
 					}

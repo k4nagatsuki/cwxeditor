@@ -59,8 +59,8 @@ version (Windows) {
 	import std.c.linux.linux;
 	private extern (C) {
 		uintptr_t sleep(uintptr_t);
-		intptr_t inotify_init();
-		intptr_t inotify_add_watch(intptr_t, in char*, uintptr_t);
+		int inotify_init();
+		intptr_t inotify_add_watch(int, in char*, uintptr_t);
 		const IN_NONBLOCK = 0x4000;
 		const IN_MODIFY = 0x0002;
 		const IN_ATTRIB = 0x0004;
@@ -70,7 +70,7 @@ version (Windows) {
 		const IN_DELETE = 0x0200;
 		const IN_DELETE_SELF = 0x0400;
 		struct inotify_event {
-			intptr_t wd;
+			int wd;
 			uintptr_t mask;
 			uintptr_t cookie;
 			uintptr_t len;
@@ -1072,7 +1072,7 @@ private:
 		createMenuItem(_comm, menu, MenuID.CreateArchive, &createArchive, &canCreateArchive);
 		new MenuItem(menu, SWT.SEPARATOR);
 		foreach (i, tool; _prop.var.etc.outerTools) { mixin(S_TRACE);
-			new Exec(this, menu, tool, i);
+			new Exec(this, menu, tool, cast(int)i);
 		}
 		if (_prop.var.etc.outerTools.length > 0) new MenuItem(menu, SWT.SEPARATOR);
 		appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
@@ -1373,7 +1373,7 @@ private:
 							continue;
 						}
 						byte[inotify_event.sizeof * 1024] buf;
-						int len;
+						ptrdiff_t len;
 						synchronized (_refreshThr) { mixin(S_TRACE);
 							timeval tout;
 							tout.tv_sec = 1;
@@ -1477,8 +1477,8 @@ private:
 			size += d.size;
 		}
 		string sizeKB = formatNum(size / 1024) ~ " KB";
-		int fileCount = _files.getItemCount();
-		int selCount = selFiles.length;
+		auto fileCount = _files.getItemCount();
+		auto selCount = selFiles.length;
 		string s;
 		if (0 < selCount) { mixin(S_TRACE);
 			s = .tryFormat(_prop.msgs.dirStatusSel, fileCount, sizeKB, selCount);
@@ -1982,7 +1982,7 @@ public:
 							auto fno = cast(FileNameObj) itm.getData();
 							if (cfnmatch(fno.array, path)) { mixin(S_TRACE);
 								if (deselectEtc) _files.deselectAll();
-								_files.select(i);
+								_files.select(cast(int)i);
 								_files.showSelection();
 								_comm.refreshToolBar();
 								return true;

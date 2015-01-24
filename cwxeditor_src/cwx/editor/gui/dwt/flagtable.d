@@ -194,7 +194,7 @@ protected:
 			stepName.setText(_step.name);
 			foreach (i, stepVal; stepVals) { mixin(S_TRACE);
 				if (i < _step.count) { mixin(S_TRACE);
-					stepVal.setText(_step.getValue(i));
+					stepVal.setText(_step.getValue(cast(uint)i));
 				} else { mixin(S_TRACE);
 					stepVal.setText(.tryFormat(prop.msgs.dlgTxtStep, i));
 				}
@@ -916,7 +916,7 @@ private:
 		return dir.steps[index];
 	}
 	static int toFlagIndex(FlagDir dir, int index) { mixin(S_TRACE);
-		return index - dir.steps.length;
+		return index - cast(int)dir.steps.length;
 	}
 	static int toStepIndex(FlagDir dir, int index) { mixin(S_TRACE);
 		return index;
@@ -1133,7 +1133,7 @@ private:
 		foreach (i, itm; flags.getItems()) { mixin(S_TRACE);
 			if (auto f = cast(F)itm.getData()) { mixin(S_TRACE);
 				if (set.contains(f.name.toLower())) { mixin(S_TRACE);
-					flags.select(i);
+					flags.select(cast(int)i);
 				}
 			}
 		}
@@ -1565,7 +1565,7 @@ public:
 			refreshFlags();
 			foreach (i, itm; flags.getItems()) { mixin(S_TRACE);
 				if (.contains(sels, itm.getData())) { mixin(S_TRACE);
-					flags.select(i);
+					flags.select(cast(int)i);
 				}
 			}
 			if (selObj) { mixin(S_TRACE);
@@ -1696,7 +1696,7 @@ public:
 		if (deselect) flags.deselectAll();
 		foreach (i, itm; flags.getItems()) { mixin(S_TRACE);
 			if (itm.getData() is flag) { mixin(S_TRACE);
-				flags.select(i);
+				flags.select(cast(int)i);
 				break;
 			}
 		}

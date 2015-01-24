@@ -240,9 +240,9 @@ protected:
 			foreach (i, sct; _prop.var.etc.scenarioTemplates) { mixin(S_TRACE);
 				_templateC.add(.tryFormat(_prop.msgs.templateDesc, sct.name, sct.path));
 				if (cfnmatch(sct.path, _prop.var.etc.defaultScenarioTemplate)) { mixin(S_TRACE);
-					_templateC.select(i);
+					_templateC.select(cast(int)i);
 				}
-				_tTbl[i] = sct;
+				_tTbl[cast(int)i] = sct;
 			}
 			bool tenbl = _templateC.getItemCount() > 0 && _useTemplate;
 			if (!tenbl) _templateC.add(_prop.msgs.defaultSelection(_prop.msgs.noTemplate));

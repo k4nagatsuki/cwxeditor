@@ -558,7 +558,7 @@ private:
 			itm.dispose();
 		}
 		foreach (i, tool; _prop.var.etc.outerTools) { mixin(S_TRACE);
-			new Exec(_dirWin, menu, tool, i);
+			new Exec(_dirWin, menu, tool, cast(int)i);
 		}
 	}
 
@@ -1728,7 +1728,7 @@ private:
 	/// `"/foo/bar" /cwx:0/path:0...` -> `/foo/bar`
 	static string fullHistToHist(string hist) { mixin(S_TRACE);
 		if (std.string.startsWith(hist, "\"")) { mixin(S_TRACE);
-			int i = std.string.indexOf(hist["\"".length .. $], "\"");
+			auto i = std.string.indexOf(hist["\"".length .. $], "\"");
 			if (-1 != i) { mixin(S_TRACE);
 				return hist["\"".length .. i + "\"".length];
 			}
@@ -1742,7 +1742,7 @@ private:
 	/// `"/foo/bar" /cwx:0/path:0&/cwx:1/path1:0` -> [`/cwx:0/path:0`, `/cwx:1/path:1`]
 	static string[] fullHistToCWXPaths(string hist) { mixin(S_TRACE);
 		if (std.string.startsWith(hist, "\"")) { mixin(S_TRACE);
-			int i = std.string.indexOf(hist["\"".length .. $], "\"");
+			auto i = std.string.indexOf(hist["\"".length .. $], "\"");
 			if (-1 != i) { mixin(S_TRACE);
 				return std.string.split(strip(hist[i + "\"".length + 1 .. $]), CWXPATH_SEP.idup);
 			}
@@ -1850,9 +1850,9 @@ private:
 			scope dhist = toUTF32(hist);
 			if (dhist.length > cut + "..."d.length) { mixin(S_TRACE);
 				auto drive = driveName(hist);
-				int rlen = drive ? toUTF32(drive).length + 1 : 1;
-				int flen = toUTF32(baseName(hist)).length + 1;
-				int plen = cut - flen;
+				auto rlen = drive ? toUTF32(drive).length + 1 : 1;
+				auto flen = toUTF32(baseName(hist)).length + 1;
+				auto plen = cut - flen;
 				if (plen < rlen) plen = rlen;
 				return toUTF8(dhist[0 .. plen] ~ "..." ~ dhist[$ - flen .. $]);
 			} else { mixin(S_TRACE);
@@ -1917,7 +1917,7 @@ private:
 		new MenuItem(_menuFile, SWT.SEPARATOR);
 		auto hists = _prop.var.etc.openHistories;
 		foreach (i, hist; hists) { mixin(S_TRACE);
-			new Hist(_menuFile, i + 1, hist.path);
+			new Hist(_menuFile, cast(int)i + 1, hist.path);
 		}
 		if (hists.length > 0) new MenuItem(_menuFile, SWT.SEPARATOR);
 		createMenuItem(_comm, _menuFile, MenuID.Close, &exitAll, null);
@@ -2034,10 +2034,10 @@ private:
 					unlink(std.string.toStringz(_pipeName));
 				}
 				strcpy(laddr.sun_path.ptr, std.string.toStringz(_pipeName));
-				if (0 != cbind(pipe, cast(sockaddr*) &laddr, laddr.sun_family.sizeof + strlen(laddr.sun_path.ptr))) return;
+				if (0 != cbind(pipe, cast(sockaddr*)&laddr, cast(uint)(laddr.sun_family.sizeof + strlen(laddr.sun_path.ptr)))) return;
 				if (0 != listen(pipe, 1)) return;
 				char[4096] buf;
-				int len;
+				ptrdiff_t len;
 				typeof(pipe) rsock;
 				sockaddr_un raddr;
 				socklen_t rsocklen;
@@ -2151,7 +2151,7 @@ private:
 					string send = sendRecv(recv);
 					if (!send || !send.length) break;
 					if (-1 == cwrite(p, send.ptr, send.length)) break;
-					int len = cread(p, buf.ptr, buf.length);
+					auto len = cread(p, buf.ptr, buf.length);
 					if (-1 == len) break;
 					recv = buf[0 .. len].idup;
 				}

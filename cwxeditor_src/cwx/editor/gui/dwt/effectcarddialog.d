@@ -102,12 +102,12 @@ private:
 	Composite _useModParent;
 	RadarSpinner _useModR;
 	Scales _useModS;
-	int[Enhance] _useModTbl;
+	size_t[Enhance] _useModTbl;
 	static if (is (C == ItemCard)) {
 		Composite _hasModParent;
 		RadarSpinner _hasModR;
 		Scales _hasModS;
-		int[Enhance] _hasModTbl;
+		size_t[Enhance] _hasModTbl;
 	}
 	Button[CardTarget] _targ;
 	Button _one;
@@ -495,7 +495,7 @@ private:
 		grp.setLayout(cl);
 		return grp;
 	}
-	void createMod(Composite parent, ref int[Enhance] tbl, ref RadarSpinner useModR, ref Scales useModS) { mixin(S_TRACE);
+	void createMod(Composite parent, ref size_t[Enhance] tbl, ref RadarSpinner useModR, ref Scales useModS) { mixin(S_TRACE);
 		int[] values = [];
 		if (useModR) { mixin(S_TRACE);
 			values = useModR.getValues();
@@ -1050,7 +1050,7 @@ protected:
 		_card.soundPath1 = _se1.path;
 		_card.soundPath2 = _se2.path;
 		string[] keyCodes;
-		int last = 0;
+		size_t last = 0;
 		foreach (i, c; _keyCodes) { mixin(S_TRACE);
 			keyCodes ~= c.getText();
 			if (c.getText().length > 0) last = i + 1;

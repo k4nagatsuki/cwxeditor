@@ -438,7 +438,7 @@ private:
 				if (empty != et.owner.isEmpty) comm.refEventTree.call(et);
 			}
 			foreach (i, c; _c.dup) { mixin(S_TRACE);
-				int index = _path[i][$ - 1];
+				auto index = _path[i][$ - 1];
 				auto tc = et.fromPath(_path[i]);
 				if (c.type == CType.START) { mixin(S_TRACE);
 					et.startUseCounter.change(tc.name, c.name);
@@ -462,9 +462,9 @@ private:
 						auto par = now.getParentItem();
 						TreeItem itm;
 						if (par) { mixin(S_TRACE);
-							itm = createTreeItem(par, c, text, prop.images.content(c.type), index);
+							itm = createTreeItem(par, c, text, prop.images.content(c.type), cast(int)index);
 						} else { mixin(S_TRACE);
-							itm = createTreeItem(v._tree.tree, c, text, prop.images.content(c.type), index);
+							itm = createTreeItem(v._tree.tree, c, text, prop.images.content(c.type), cast(int)index);
 						}
 						v.procTreeItem(itm);
 						v.createChilds(itm, c);
@@ -607,7 +607,7 @@ private:
 			if (cpempty(cwxPath)) return null;
 			cate = cpcategory(cwxPath);
 		}
-		auto itm = _tree.getItem(tree, cpindex(cwxPath));
+		auto itm = _tree.getItem(tree, cast(int)cpindex(cwxPath));
 		cwxPath = cpbottom(cwxPath);
 		if (cpempty(cwxPath)) return itm;
 		return fromPathImpl(itm, cwxPath);
@@ -617,7 +617,7 @@ private:
 	}
 	private Item fromPathImpl(T)(T tree, size_t[] path) { mixin(S_TRACE);
 		if (!path.length) return null;
-		auto itm = _tree.getItem(tree, path[0]);
+		auto itm = _tree.getItem(tree, cast(int)path[0]);
 		if (path.length == 1) return itm;
 		return fromPathImpl(itm, path[1 .. $]);
 	}
@@ -2193,7 +2193,7 @@ public:
 		auto c = cast(Content)sel.getData();
 		auto parentStart = c.parentStart;
 		auto si = c.tree.starts.cCountUntil(parentStart) + 1;
-		storeContentAndInsert(c.parent, si, 1);
+		storeContentAndInsert(c.parent, cast(int)si, 1);
 
 		auto start = new Content(CType.START, createNewName(parentStart.name, (string name) { mixin(S_TRACE);
 			foreach (s; _et.starts) { mixin(S_TRACE);
@@ -2215,7 +2215,7 @@ public:
 		foreach (v; views()) { mixin(S_TRACE);
 			Item sItm;
 			if (v._tree.tree) { mixin(S_TRACE);
-				sItm = createTreeItem(v._tree.tree, start, start.name, _prop.images.content(CType.START), si);
+				sItm = createTreeItem(v._tree.tree, start, start.name, _prop.images.content(CType.START), cast(int)si);
 				v.createChilds(sItm, start);
 			} else { mixin(S_TRACE);
 				v._tree.editor.updateEventTree();
@@ -2466,7 +2466,7 @@ public:
 		if (_readOnly) return null;
 		string[] vals;
 		vals.length = nums.length + 1;
-		int index = nums.length;
+		size_t index = nums.length;
 		foreach (i, n; nums) { mixin(S_TRACE);
 			string name = to!(string)(n);
 			vals[i] = mixin (Create);
@@ -2653,7 +2653,7 @@ public:
 		foreach (v; vs) v._tree.control.setRedraw(false);
 		scope (exit) foreach (v; vs) v._tree.control.setRedraw(true);
 		auto pc = c.parent;
-		int i, j;
+		size_t i, j;
 		auto path = c.ctPath;
 		if (pc) { mixin(S_TRACE);
 			i = cCountUntil!("a is b")(pc.next, c);
@@ -2670,7 +2670,7 @@ public:
 			j = i + To;
 			if (j < 0 || et.starts.length <= j) return;
 			if (vs.length && store) { mixin(S_TRACE);
-				vs[0].storeSwap(i, j);
+				vs[0].storeSwap(cast(int)i, cast(int)j);
 			}
 			comm.delContent.call(et.starts[i]);
 			comm.delContent.call(et.starts[j]);
@@ -2949,7 +2949,7 @@ public:
 		if (!cs2.length) return;
 
 		Content last = null, allLast = null;
-		int index = -1;
+		ptrdiff_t index = -1;
 		if (tryInsert && owner.parent) { mixin(S_TRACE);
 			// cs2内に子コンテントを持てるコンテントが
 			// 含まれている場合は挿入する
@@ -3114,7 +3114,7 @@ public:
 			foreach (v; vs) { mixin(S_TRACE);
 				Item sItm2;
 				if (v._tree.tree) { mixin(S_TRACE);
-					sItm2 = createTreeItem(v._tree.tree, c, c.name, _prop.images.content(c.type), index + i);
+					sItm2 = createTreeItem(v._tree.tree, c, c.name, _prop.images.content(c.type), cast(int)(index + i));
 				} else { mixin(S_TRACE);
 					sItm2 = EventEditorItem.valueOf(v._tree.editor, c);
 				}
@@ -3262,7 +3262,7 @@ public:
 			_comm.delContent.call(c);
 			auto owner = cast(Content)ownerItm.getData();
 			this.store(owner);
-			int insertIndex = owner.next.countUntil(c);
+			auto insertIndex = owner.next.countUntil(c);
 			owner.remove(c);
 			auto lastNextType = fromCNextType(c.detail.nextType);
 			foreach (i, next; c.next.dup) { mixin(S_TRACE);
@@ -3389,7 +3389,7 @@ public:
 		auto owner = insertOwner(tryInsert, sel);
 		bool c = contents.length && owner;
 		if (s && c) { mixin(S_TRACE);
-			storeContentAndInsert(owner, si, starts.length);
+			storeContentAndInsert(owner, si, cast(int)starts.length);
 			addContents(false, contents, cs, tryInsert);
 			addStarts(false, starts, cs);
 		} else if (s) { mixin(S_TRACE);
@@ -3418,7 +3418,7 @@ public:
 				if (store) this.store(owner);
 				owner.remove(c);
 			} else { mixin(S_TRACE);
-				if (store) this.storeDelete(.cCountUntil!("a is b")(_et.starts, c), c);
+				if (store) this.storeDelete(cast(int).cCountUntil!("a is b")(_et.starts, c), c);
 				_et.remove(c);
 			}
 		}
@@ -3642,7 +3642,7 @@ public:
 		if (cate == "") { mixin(S_TRACE);
 			auto index = cpindex(path);
 			if (index >= _tree.getItemCount(itm)) return false;
-			auto child = _tree.getItem(itm, index);
+			auto child = _tree.getItem(itm, cast(int)index);
 			path = cpbottom(path);
 			if (cpempty(path) || cpcategory(path) != "") { mixin(S_TRACE);
 				if (!cphasattr(path, "nofocus")) .forceFocus(_tree.control, shellActivate);

@@ -451,13 +451,13 @@ private:
 				}
 			}
 			skins = sort!(skinCmp)(skins);
-			int typeSkin = -1;
+			ptrdiff_t typeSkin = -1;
 			foreach (i, skin2; skins) { mixin(S_TRACE);
 				_type.add(.tryFormat("%s(%s)", skin2.name, skin2.type));
 				_skinInfo ~= typeof(_skinInfo[0])(skin2.type, skin2.name);
 				if (skin2.type == selType) { mixin(S_TRACE);
 					if (typeSkin == -1) typeSkin = i;
-					if (skin2.name == selName) _type.select(i);
+					if (skin2.name == selName) _type.select(cast(int)i);
 				}
 			}
 			if (!skins) { mixin(S_TRACE);
@@ -467,7 +467,7 @@ private:
 			}
 			if (_type.getSelectionIndex() == -1) { mixin(S_TRACE);
 				if (typeSkin == -1) { mixin(S_TRACE);
-					_type.select(typeSkin);
+					_type.select(cast(int)typeSkin);
 				} else { mixin(S_TRACE);
 					_type.select(0);
 				}
@@ -486,11 +486,11 @@ private:
 			foreach (i, ce; _classicEngines) { mixin(S_TRACE);
 				_type.add(ce.name);
 				if (selClassic && cfnmatch(selClassic, _prop.toAppAbs(ce.enginePath))) { mixin(S_TRACE);
-					_type.select(i);
+					_type.select(cast(int)i);
 				}
 				if (cur && cfnmatch(lEnginePath, _prop.toAppAbs(ce.enginePath))) { mixin(S_TRACE);
 					cur = false;
-					if (-1 == _type.getSelectionIndex()) _type.select(i);
+					if (-1 == _type.getSelectionIndex()) _type.select(cast(int)i);
 				}
 			}
 			if (cur) { mixin(S_TRACE);

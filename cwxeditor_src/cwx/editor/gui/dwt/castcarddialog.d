@@ -430,7 +430,7 @@ private:
 					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 					auto name = skin.makingsName(m);
 					radio.setText(_prop.msgs.makings.get(name, name));
-					radio.setData(new Integer(m));
+					radio.setData(new Integer(cast(int)m));
 					radio.addSelectionListener(sl);
 					_makings[m] = radio;
 				}
@@ -560,7 +560,7 @@ private:
 		names.length = PHYSICALS.length;
 		int[Physical] table;
 		foreach (i, p; PHYSICALS) { mixin(S_TRACE);
-			table[p] = i;
+			table[p] = cast(int)i;
 			names[i] = _prop.msgs.physicalName(p);
 		}
 		_phyTbl = table;
@@ -776,7 +776,7 @@ private:
 		string[] names;
 		names.length = ENHANCE.length;
 		foreach (i, enh; ENHANCE) { mixin(S_TRACE);
-			_enhTbl[enh] = i;
+			_enhTbl[enh] = cast(int)i;
 			names[i] = .tryFormat(_prop.msgs.enhanceBonus, _prop.msgs.enhanceName(enh));
 		}
 		int stepC = _prop.var.etc.enhanceMax * 2 + 1;
@@ -889,9 +889,9 @@ private:
 				foreach (i, mtly; [Mentality.NORMAL, Mentality.SLEEP, Mentality.CONFUSE,
 						Mentality.OVERHEAT, Mentality.BRAVE, Mentality.PANIC]) { mixin(S_TRACE);
 					_mtly.add(_prop.msgs.mentalityName(mtly));
-					_mtlyTbl[i] = mtly;
+					_mtlyTbl[cast(int)i] = mtly;
 					if (_card && _card.mentality is mtly) { mixin(S_TRACE);
-						_mtly.select(i);
+						_mtly.select(cast(int)i);
 					}
 				}
 				if (_mtly.getSelectionIndex() < 0) _mtly.select(0);
@@ -1149,7 +1149,7 @@ private:
 								if (cp.name == summSkin.natureCoupon(n)) { mixin(S_TRACE);
 									_nature[n].setSelection(true);
 									_natureU.setSelection(false);
-									_couponView.delCoupon(i);
+									_couponView.delCoupon(cast(int)i);
 									break cp;
 								}
 							}
@@ -1271,7 +1271,7 @@ protected:
 				if (_race) { mixin(S_TRACE);
 					foreach (i, r; summSkin.races) { mixin(S_TRACE);
 						if (c.name == _prop.sys.raceCoupon(r.name)) { mixin(S_TRACE);
-							_race.select(i + 1);
+							_race.select(cast(int)i + 1);
 							raceToolTip();
 							continue cp;
 						}

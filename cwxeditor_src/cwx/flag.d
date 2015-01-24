@@ -385,7 +385,7 @@ public:
 	@property
 	const
 	uint count() { mixin(S_TRACE);
-		return _vals.length;
+		return cast(uint)_vals.length;
 	}
 
 	/// ステップの選択状態を返す。
@@ -881,7 +881,7 @@ public:
 	/// 指定された名前のサブディレクトリのindexを返す。
 	/// 存在しない場合は-1を返す。
 	const
-	int indexOf(string name) { mixin(S_TRACE);
+	ptrdiff_t indexOf(string name) { mixin(S_TRACE);
 		return .cCountUntil!("0 == icmp(a.name, b)")(_subdir, name);
 	}
 
@@ -1106,7 +1106,7 @@ public:
 		if (endsWith(path, SEPARATOR.dup)) { mixin(S_TRACE);
 			path = path[0 .. $ - sepLen];
 		}
-		for (int i = path.length - sepLen; i >= 0; i--) { mixin(S_TRACE);
+		for (ptrdiff_t i = path.length - sepLen; i >= 0; i--) { mixin(S_TRACE);
 			if (path[i .. i + sepLen] == SEPARATOR) { mixin(S_TRACE);
 				return path[i + sepLen .. $];
 			}
@@ -1127,9 +1127,9 @@ public:
 	bool has(string path) { mixin(S_TRACE);
 		path = .toLower(path);
 		auto tpath = .toLower(this.path);
-		int len = path.length;
-		int tlen = tpath.length;
-		int sepLen = SEPARATOR.length;
+		size_t len = path.length;
+		size_t tlen = tpath.length;
+		size_t sepLen = SEPARATOR.length;
 		return (len <= tlen) && (tpath[0 .. len] == path);
 	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
@@ -1197,7 +1197,7 @@ public:
 		if (path[$ - sepLen .. $] == SEPARATOR) { mixin(S_TRACE);
 			path = path[0 .. $ - sepLen];
 		}
-		for (int i = path.length - sepLen; i >= 0; i--) { mixin(S_TRACE);
+		for (ptrdiff_t i = path.length - sepLen; i >= 0; i--) { mixin(S_TRACE);
 			if (path[i .. i + sepLen] == SEPARATOR) { mixin(S_TRACE);
 				return path[0 .. i + sepLen];
 			}

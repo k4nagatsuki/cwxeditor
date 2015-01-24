@@ -643,11 +643,11 @@ public:
 		}
 		return null;
 	}
-	private T insertImpl(T, alias ToID)(ref T[] arr, int index, T c, bool newCard) { mixin(S_TRACE);
+	private T insertImpl(T, alias ToID)(ref T[] arr, size_t index, T c, bool newCard) { mixin(S_TRACE);
 		if (arr.length == index) { mixin(S_TRACE);
 			return addImpl!(T)(arr, c, newCard);
 		} else { mixin(S_TRACE);
-			int oldIdx = indexOf(c);
+			auto oldIdx = indexOf(c);
 			if (oldIdx >= 0) { mixin(S_TRACE);
 				remove(c);
 				newCard = true;
@@ -688,7 +688,7 @@ public:
 		removeCImpl(_items, c);
 	}
 	/// ditto
-	ItemCard insert(int index, ItemCard c, bool newCard = false) { mixin(S_TRACE);
+	ItemCard insert(size_t index, ItemCard c, bool newCard = false) { mixin(S_TRACE);
 		return insertImpl!(ItemCard, toItemId)(_items, index, c, newCard);
 	}
 	/// 所持スキル。
@@ -709,7 +709,7 @@ public:
 		removeCImpl(_skills, c);
 	}
 	/// ditto
-	SkillCard insert(int index, SkillCard c, bool newCard = false) { mixin(S_TRACE);
+	SkillCard insert(size_t index, SkillCard c, bool newCard = false) { mixin(S_TRACE);
 		return insertImpl!(SkillCard, toSkillId)(_skills, index, c, newCard);
 	}
 	/// 所持召喚獣。
@@ -730,13 +730,13 @@ public:
 		removeCImpl(_beasts, c);
 	}
 	/// ditto
-	BeastCard insert(int index, BeastCard c, bool newCard = false) { mixin(S_TRACE);
+	BeastCard insert(size_t index, BeastCard c, bool newCard = false) { mixin(S_TRACE);
 		return insertImpl!(BeastCard, toBeastId)(_beasts, index, c, newCard);
 	}
 
 	/// 指定された要素のindexを検索する。
 	const
-	int indexOf(T)(in T c) { mixin(S_TRACE);
+	ptrdiff_t indexOf(T)(in T c) { mixin(S_TRACE);
 		static if (is (T == SkillCard)) {
 			return .cCountUntil!("a is b")(_skills, c);
 		} else static if (is (T == ItemCard)) {
@@ -749,7 +749,7 @@ public:
 	}
 
 	/// index1とindex2を交換する。
-	void swap(C)(int index1, int index2) { mixin(S_TRACE);
+	void swap(C)(size_t index1, size_t index2) { mixin(S_TRACE);
 		if (index1 == index2) return;
 		enforce(0 <= index1 && index1 < CArray!C.length);
 		enforce(0 <= index2 && index2 < CArray!C.length);
@@ -1525,10 +1525,10 @@ public:
 	override bool isEmpty() {return _ceto.isEmpty;}
 
 	override void add(EventTree evt) {return _ceto.add(evt);}
-	override void insert(int index, EventTree evt) {return _ceto.insert(index, evt);}
-	override void removeEvent(int index) {return _ceto.removeEvent(index);}
+	override void insert(size_t index, EventTree evt) {return _ceto.insert(index, evt);}
+	override void removeEvent(size_t index) {return _ceto.removeEvent(index);}
 	override void remove(EventTree et) {return _ceto.remove(et);}
-	override void swapEventTree(int index1, int index2) {return _ceto.swapEventTree(index1, index2);}
+	override void swapEventTree(size_t index1, size_t index2) {return _ceto.swapEventTree(index1, index2);}
 
 	/// 指定されたXMLノードに効果カード関連の情報を追加する。
 	const

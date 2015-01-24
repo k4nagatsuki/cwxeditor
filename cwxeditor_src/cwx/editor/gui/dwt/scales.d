@@ -125,7 +125,7 @@ class Scales : Composite {
 	}
 
 	/// 値を設定する。
-	void setValue(int index, int value) { mixin(S_TRACE);
+	void setValue(size_t index, int value) { mixin(S_TRACE);
 		int minVal = _spns[index].getMinimum();
 		_spns[index].setSelection(value);
 		_scales[index].setSelection(value - minVal);
@@ -137,7 +137,7 @@ class Scales : Composite {
 		}
 	}
 	/// 値を返す。
-	int getValue(int index) { mixin(S_TRACE);
+	int getValue(size_t index) { mixin(S_TRACE);
 		return _spns[index].getSelection();
 	}
 	/// 全ての値を返す。

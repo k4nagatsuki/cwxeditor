@@ -785,7 +785,7 @@ protected:
 			_underline.setSelection(_back.underline);
 			_strike.setSelection(_back.strike);
 			_vertical.setSelection(_back.vertical);
-			_borderingType.select(_borderingTypes.countUntil(_back.borderingType));
+			_borderingType.select(cast(int)_borderingTypes.countUntil(_back.borderingType));
 			auto bc = _back.borderingColor;
 			_borderingColor.color = new RGB(bc.r, bc.g, bc.b);
 			_borderingColor.alpha = bc.a;
@@ -1032,14 +1032,14 @@ protected:
 				blendMode = BlendMode.Normal;
 			}
 			_blendMode[blendMode].setSelection(true);
-			_gradientDir.select(_gradientDirs.countUntil(_back.gradientDir));
+			_gradientDir.select(cast(int)_gradientDirs.countUntil(_back.gradientDir));
 			_color1.color = new RGB(_back.color1.r, _back.color1.g, _back.color1.b);
 			_color1.alpha = _back.color1.a;
 			_color2.color = new RGB(_back.color2.r, _back.color2.g, _back.color2.b);
 			_color2.alpha = _back.color2.a;
 		} else { mixin(S_TRACE);
 			_blendMode[BlendMode.Normal].setSelection(true);
-			_gradientDir.select(_gradientDirs.countUntil(GradientDir.None));
+			_gradientDir.select(cast(int)_gradientDirs.countUntil(GradientDir.None));
 			auto c1 = _prop.var.etc.colorCellDefaultColor1;
 			_color1.color = new RGB(c1.r, c1.g, c1.b);
 			_color1.alpha = c1.a;

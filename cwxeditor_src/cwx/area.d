@@ -738,7 +738,7 @@ public:
 	@property
 	const
 	string dirName() { mixin(S_TRACE);
-		int i = .lastIndexOf(_name, '\\');
+		ptrdiff_t i = .lastIndexOf(_name, '\\');
 		if (i == -1) return "";
 		return _name[0 .. i];
 	}
@@ -754,7 +754,7 @@ public:
 	@property
 	const
 	string baseName() { mixin(S_TRACE);
-		int i = .lastIndexOf(_name, '\\');
+		ptrdiff_t i = .lastIndexOf(_name, '\\');
 		if (i == -1) return _name;
 		return _name[i + 1 .. $];
 	}
@@ -929,14 +929,14 @@ public:
 	}
 
 	/// メニューカードのインデックスを交換する。
-	void swapCards(int index1, int index2) { mixin(S_TRACE);
+	void swapCards(size_t index1, size_t index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();
 		auto temp = _cards[index1];
 		_cards[index1] = _cards[index2];
 		_cards[index2] = temp;
 	}
 	/// 背景イメージのインデックスを交換する。
-	void swapBacks(int index1, int index2) { mixin(S_TRACE);
+	void swapBacks(size_t index1, size_t index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();
 		auto temp = _bgImgs[index1];
 		_bgImgs[index1] = _bgImgs[index2];
@@ -978,7 +978,7 @@ public:
 		changed();
 	}
 	/// ditto
-	void insert(int index, MenuCard card) { mixin(S_TRACE);
+	void insert(size_t index, MenuCard card) { mixin(S_TRACE);
 		if (_cards.length == index) { mixin(S_TRACE);
 			append(card);
 		} else { mixin(S_TRACE);
@@ -990,7 +990,7 @@ public:
 		}
 	}
 	/// メニューカードを除去する。
-	void removeCard(int index) { mixin(S_TRACE);
+	void removeCard(size_t index) { mixin(S_TRACE);
 		_cards[index].changeHandler = null;
 		_cards[index].removeUseCounter();
 		_cards[index]._owner = null;
@@ -1007,7 +1007,7 @@ public:
 		changed();
 	}
 	/// ditto
-	void insert(int index, BgImage back) { mixin(S_TRACE);
+	void insert(size_t index, BgImage back) { mixin(S_TRACE);
 		if (_bgImgs.length == index) { mixin(S_TRACE);
 			append(back);
 		} else { mixin(S_TRACE);
@@ -1019,7 +1019,7 @@ public:
 		}
 	}
 	/// ditto
-	void set(int index, BgImage back) { mixin(S_TRACE);
+	void set(size_t index, BgImage back) { mixin(S_TRACE);
 		_bgImgs[index].changeHandler = null;
 		_bgImgs[index].removeUseCounter();
 		_bgImgs[index].owner = null;
@@ -1030,7 +1030,7 @@ public:
 		changed();
 	}
 	/// 背景画像を除去する。
-	void removeBgImage(int index) { mixin(S_TRACE);
+	void removeBgImage(size_t index) { mixin(S_TRACE);
 		_bgImgs[index].changeHandler = null;
 		_bgImgs[index].removeUseCounter();
 		_bgImgs[index].owner = null;
@@ -1461,7 +1461,7 @@ public:
 		changed();
 	}
 	/// ditto
-	void insert(int index, EnemyCard card) { mixin(S_TRACE);
+	void insert(size_t index, EnemyCard card) { mixin(S_TRACE);
 		if (_cards.length == index) { mixin(S_TRACE);
 			append(card);
 		} else { mixin(S_TRACE);
@@ -1473,7 +1473,7 @@ public:
 		}
 	}
 	/// エネミーカードを除去する。
-	void removeCard(int index) { mixin(S_TRACE);
+	void removeCard(size_t index) { mixin(S_TRACE);
 		_cards[index].changeHandler = null;
 		_cards[index].removeUseCounter();
 		_cards[index]._owner = null;
@@ -1482,7 +1482,7 @@ public:
 	}
 
 	/// エネミーカードのインデックスを交換する。
-	void swapCards(int index1, int index2) { mixin(S_TRACE);
+	void swapCards(size_t index1, size_t index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();
 		auto temp = _cards[index1];
 		_cards[index1] = _cards[index2];

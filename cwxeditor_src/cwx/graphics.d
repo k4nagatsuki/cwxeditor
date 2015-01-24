@@ -275,8 +275,8 @@ private ubyte[] emboss(ref ubyte[] data, ref ubyte[] alpha, size_t depth, size_t
 	auto r = Pixels(data, alpha, width, height, depth, bytesPerLine, bpp);
 	for (size_t y = 0; y < height; y++) { mixin(S_TRACE);
 		for (size_t x = 0; x < width; x++) { mixin(S_TRACE);
-			int jx = x + 1 < width ? x + 1 : x;
-			int jy = y + 1 < height ? y + 1 : y;
+			auto jx = x + 1 < width ? x + 1 : x;
+			auto jy = y + 1 < height ? y + 1 : y;
 			auto i = r.get(x, y);
 			auto j = r.get(jx, jy);
 			int val = (j.r + j.g + j.b) / 3 - (i.r + i.g + i.b) / 3 + 128;
@@ -298,11 +298,11 @@ private ubyte[] deffusion(ref ubyte[] data, ref ubyte[] alpha, size_t depth, siz
 	for (size_t y = 0; y < height; y++) { mixin(S_TRACE);
 		// cwconv.dllの実装では縦方向への拡散が微妙だがそれに合わせる
 		// 真に拡散させたい場合、jyの計算はxのループの内側にあるべき
-		int jy = y + uniform(0, 3, rnd);
+		auto jy = y + uniform(0, 3, rnd);
 		if (jy < 0) jy = 0;
 		if (height <= jy) jy = height - 1;
 		for (size_t x = 0; x < width; x++) { mixin(S_TRACE);
-			int jx = x + uniform(0, 3, rnd);
+			ptrdiff_t jx = x + uniform(0, 3, rnd);
 			if (jx < 0) jx = 0;
 			if (width <= jx) jx = width - 1;
 			r.set(x, y, r.get(jx, jy));
@@ -398,10 +398,10 @@ ubyte[] filter(Filter f, ref ubyte[] data, ref ubyte[] alpha, size_t depth, size
 			int r = 0, g = 0, b = 0;
 			for (int xt = 0; xt < 3; xt++) { mixin(S_TRACE);
 				for (int yt = 0; yt < 3; yt++) { mixin(S_TRACE);
-					int xti = x + xt - 1;
+					ptrdiff_t xti = x + xt - 1;
 					if (xti < 0) xti = 0;
 					if (width <= xti) xti = width - 1;
-					int yti = y + yt - 1;
+					ptrdiff_t yti = y + yt - 1;
 					if (yti < 0) yti = 0;
 					if (height <= yti) yti = height - 1;
 					auto rgb = base.get(xti, yti);
@@ -576,8 +576,8 @@ ubyte[] smoothResize(size_t newWidth, size_t newHeight,
 			FC[2][2] a;
 			for (int i = 0; i < 2; i++) { mixin(S_TRACE);
 				for (int j = 0; j < 2; j++) { mixin(S_TRACE);
-					int by = bby + i;
-					int bx = bbx + j;
+					ptrdiff_t by = bby + i;
+					ptrdiff_t bx = bbx + j;
 					if (by < 0) by = 0;
 					if (height <= by) by = height - 1;
 					if (bx < 0) bx = 0;
@@ -633,8 +633,8 @@ ubyte[] bordering(ubyte[] data, ubyte[] alpha, size_t depth, size_t width, size_
 			if (!find) continue;
 
 			// 縁取り実行
-			int bx = x - bWidth / 2;
-			int by = y - bWidth / 2;
+			ptrdiff_t bx = x - bWidth / 2;
+			ptrdiff_t by = y - bWidth / 2;
 			foreach (wy; .max(0, by) .. .min(height, by + bWidth)) { mixin(S_TRACE);
 				foreach (wx; .max(0, bx) .. .min(width, bx + bWidth)) { mixin(S_TRACE);
 					r.set(wx, wy, b);

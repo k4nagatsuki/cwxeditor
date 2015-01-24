@@ -67,20 +67,20 @@ class EventEditorItem : Item {
 		auto c = cast(Content)getData();
 		auto items = new EventEditorItem[c.next.length];
 		foreach (i; 0 .. c.next.length) { mixin(S_TRACE);
-			items[i] = getItem(i);
+			items[i] = getItem(cast(int)i);
 		}
 		return items;
 	}
 	int getItemCount() { mixin(S_TRACE);
 		auto c = cast(Content)getData();
-		return c.next.length;
+		return cast(int)c.next.length;
 	}
 	int indexOf(EventEditorItem itm) { mixin(S_TRACE);
 		auto targ = cast(Content)itm.getData();
 		auto c = cast(Content)getData();
 		foreach (i, child; c.next) { mixin(S_TRACE);
 			if (child is targ) { mixin(S_TRACE);
-				return i;
+				return cast(int)i;
 			}
 		}
 		return -1;
@@ -391,7 +391,7 @@ class EventEditor : Composite {
 				te.x = max(gc.wTextExtent(line).x, te.x);
 			}
 			// 前後n件のイベントコンテントに被らないようにする
-			int ba = lines.length;
+			int ba = cast(int)lines.length;
 			Rectangle[] boxes2;
 			if (0 < ba) { mixin(S_TRACE);
 				foreach (j; .max(i - ba, 0) .. i) { mixin(S_TRACE);
@@ -500,13 +500,13 @@ class EventEditor : Composite {
 		auto c = cast(Content)getData();
 		auto items = new EventEditorItem[_et.starts.length];
 		foreach (i; 0 .. _et.starts.length) { mixin(S_TRACE);
-			items[i] = getItem(i);
+			items[i] = getItem(cast(int)i);
 		}
 		return items;
 	}
 	int getItemCount() { mixin(S_TRACE);
 		if (!_et) return 0;
-		return _et.starts.length;
+		return cast(int)_et.starts.length;
 	}
 
 	EventEditorItem[] getSelection() { mixin(S_TRACE);
@@ -533,7 +533,7 @@ class EventEditor : Composite {
 	}
 	int indexOf(EventEditorItem itm) { mixin(S_TRACE);
 		if (!_et) return -1;
-		return .cCountUntil(_et.starts, cast(Content)itm.getData());
+		return cast(int).cCountUntil(_et.starts, cast(Content)itm.getData());
 	}
 	EventEditorItem getTopItem() { mixin(S_TRACE);
 		auto vbar = getVerticalBar();
@@ -580,7 +580,7 @@ class EventEditor : Composite {
 		auto sy = vbar.getSelection() * _lineHeight;
 		y += sy;
 
-		return find(y, 0, _pos.length);
+		return find(y, 0, cast(int)_pos.length);
 	}
 	private int find(int y, int from, int to) { mixin(S_TRACE);
 		if (to <= from) return -1;
@@ -837,8 +837,8 @@ class EventEditor : Composite {
 
 		auto hbar = getHorizontalBar();
 		auto vbar = getVerticalBar();
-		int index = .max(0, find(vbar.getSelection() * _lineHeight, 0, _pos.length));
-		int to = .min(_pos.length, index + ca.height / _lineHeight + 1);
+		int index = .max(0, find(vbar.getSelection() * _lineHeight, 0, cast(int)_pos.length));
+		int to = .min(cast(int)_pos.length, index + ca.height / _lineHeight + 1);
 		auto poss = _pos[index .. to];
 		int sx = hbar.getSelection();
 		int sy = vbar.getSelection() * _lineHeight;

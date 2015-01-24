@@ -32,11 +32,11 @@ interface CWXPath {
 }
 
 /// シナリオ内パスを結合する。
-string cpjoin(CWXPath owner, int index, bool id) { mixin(S_TRACE);
+string cpjoin(CWXPath owner, size_t index, bool id) { mixin(S_TRACE);
 	return cpjoin(owner, "", index, id);
 }
 /// ditto
-string cpjoin(CWXPath owner, string category, int index, bool id) { mixin(S_TRACE);
+string cpjoin(CWXPath owner, string category, size_t index, bool id) { mixin(S_TRACE);
 	return cpjoin(owner.cwxPath(id), category, index);
 }
 /// ditto
@@ -53,7 +53,7 @@ string cpjoinid(CWXPath owner, string category, ulong id) { mixin(S_TRACE);
 	return cpjoinid(owner.cwxPath(true), category, id);
 }
 /// ditto
-string cpjoin(string ownerPath, string category, int index) { mixin(S_TRACE);
+string cpjoin(string ownerPath, string category, size_t index) { mixin(S_TRACE);
 	string cn = category ~ ":" ~ to!(string)(index);
 	return ownerPath.length ? ownerPath ~ "/" ~ cn : cn;
 }
@@ -71,7 +71,7 @@ string cpjoin(string ownerPath, string subPath) { mixin(S_TRACE);
 string[] cpattr(string path) { mixin(S_TRACE);
 	string[] attrs;
 	while (true) { mixin(S_TRACE);
-		int index = std.string.lastIndexOf(path, ";");
+		ptrdiff_t index = std.string.lastIndexOf(path, ";");
 		if (-1 == index) break;
 		attrs ~= path[index + 1 .. $];
 		path = path[0 .. index];
@@ -88,7 +88,7 @@ string[] cpattr(string path) { mixin(S_TRACE);
 /// シナリオ内パスの属性部分をデリミタつきで返す。
 /// pathは属性以外の部分に切り詰められる。
 private string cpattrRef(ref string path) { mixin(S_TRACE);
-	int index = std.string.indexOf(path, ";");
+	ptrdiff_t index = std.string.indexOf(path, ";");
 	if (-1 == index) { mixin(S_TRACE);
 		return "";
 	}
@@ -107,7 +107,7 @@ private string cpattrRef(ref string path) { mixin(S_TRACE);
 
 /// シナリオ内パスの属性以外の部分を返す。
 string cpbody(string path) { mixin(S_TRACE);
-	int index = std.string.indexOf(path, ";");
+	ptrdiff_t index = std.string.indexOf(path, ";");
 	if (-1 != index) { mixin(S_TRACE);
 		return path[0 .. index];
 	}
@@ -137,7 +137,7 @@ bool cpeq(string path1, string path2) { mixin(S_TRACE);
 /// シナリオ内パスの属性以外が空であればtrueを返す。
 bool cpempty(string path) { mixin(S_TRACE);
 	if ("" == path) return true;
-	int index = std.string.indexOf(path, ";");
+	ptrdiff_t index = std.string.indexOf(path, ";");
 	return 0 == index;
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
@@ -150,7 +150,7 @@ bool cpempty(string path) { mixin(S_TRACE);
 /// シナリオ内パスを一つ上の部分を返す。
 string cpparent(string path) { mixin(S_TRACE);
 	string attrs = cpattrRef(path);
-	int index = std.string.lastIndexOf(path, "/");
+	ptrdiff_t index = std.string.lastIndexOf(path, "/");
 	return (index >= 0 ? path[0 .. index] : "") ~ attrs;
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
@@ -160,7 +160,7 @@ string cpparent(string path) { mixin(S_TRACE);
 /// シナリオ内パスの先頭部分を返す。
 string cptop(string path) { mixin(S_TRACE);
 	string attrs = cpattrRef(path);
-	int index = std.string.indexOf(path, "/");
+	ptrdiff_t index = std.string.indexOf(path, "/");
 	return (index >= 0 ? path[0 .. index] : path) ~ attrs;
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
@@ -169,7 +169,7 @@ string cptop(string path) { mixin(S_TRACE);
 /// シナリオ内パスの先頭部分以外を返す。
 string cpbottom(string path) { mixin(S_TRACE);
 	string attrs = cpattrRef(path);
-	int index = std.string.indexOf(path, "/");
+	ptrdiff_t index = std.string.indexOf(path, "/");
 	return (index >= 0 ? path[index + 1 .. $] : "") ~ attrs;
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
@@ -178,7 +178,7 @@ string cpbottom(string path) { mixin(S_TRACE);
 /// シナリオ内パスの先頭のカテゴリを返す。
 string cpcategory(string path) { mixin(S_TRACE);
 	string top = cpbody(cptop(path));
-	int index = std.string.lastIndexOf(top, ":");
+	ptrdiff_t index = std.string.lastIndexOf(top, ":");
 	return index >= 0 ? top[0 .. index] : top;
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
@@ -187,7 +187,7 @@ string cpcategory(string path) { mixin(S_TRACE);
 /// シナリオ内パスの先頭のindexを返す。
 size_t cpindex(string path) { mixin(S_TRACE);
 	string top = cpbody(cptop(path));
-	int index = std.string.lastIndexOf(top, ":");
+	ptrdiff_t index = std.string.lastIndexOf(top, ":");
 	return index >= 0 ? to!(size_t)(top[index + 1 .. $]) : 0;
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
@@ -196,7 +196,7 @@ size_t cpindex(string path) { mixin(S_TRACE);
 /// シナリオ内パスの末尾部分を返す。
 string cplast(string path) { mixin(S_TRACE);
 	string attrs = cpattrRef(path);
-	int index = std.string.lastIndexOf(path, "/");
+	ptrdiff_t index = std.string.lastIndexOf(path, "/");
 	return (index >= 0 ? path[index + 1 .. $] : path) ~ attrs;
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);

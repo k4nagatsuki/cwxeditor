@@ -101,7 +101,7 @@ TextMenuModify createTextMenu(T = Text)(Commons comm, Props prop, T text, bool d
 	}, () => !readOnly && sel());
 	new MenuItem(menu, SWT.SEPARATOR);
 	auto a = createMenuItem(comm, menu, MenuID.SelectAll, { mixin(S_TRACE);
-		text.setSelection(new Point(0, text.getText().length));
+		text.setSelection(new Point(0, cast(int)text.getText().length));
 	}, { mixin(S_TRACE);
 		auto t = text.getText();
 		if (t.length == 0) return false;
@@ -189,7 +189,7 @@ private class InTCPD {
 		auto text = fc.getText();
 		auto pt = text[p.x .. p.y];
 		fc.setText(text[0 .. p.y] ~ pt ~ text[p.y .. $]);
-		fc.setSelection(new Point(p.y, p.y + pt.length));
+		fc.setSelection(new Point(p.y, p.y + cast(int)pt.length));
 	}
 	void clone(SelectionEvent se) { mixin(S_TRACE);
 		auto fc = Display.getCurrent().getFocusControl();
@@ -304,7 +304,7 @@ int convertAccelerator2(string acc_text) { mixin(S_TRACE);
 		}
 	}
 	while (true) { mixin(S_TRACE);
-		int p_index = .cCountUntil(acc_text, '+');
+		auto p_index = .cCountUntil(acc_text, '+');
 		if (p_index >= 0 && p_index < acc_text.length - 1) { mixin(S_TRACE);
 			acc |= mod(acc_text[0 .. p_index]);
 			acc_text = acc_text[p_index + 1 .. $];
@@ -361,7 +361,7 @@ int convertAccelerator2(string acc_text) { mixin(S_TRACE);
 	return acc;
 }
 int convertAccelerator(string text) { mixin(S_TRACE);
-	int t_index = std.string.lastIndexOf(text, '\t');
+	auto t_index = std.string.lastIndexOf(text, '\t');
 	if (t_index >= 0 && t_index < text.length - 1) { mixin(S_TRACE);
 		string acc_text = text[t_index + 1 .. $];
 		return convertAccelerator2(acc_text);

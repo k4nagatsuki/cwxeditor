@@ -70,7 +70,7 @@ void unzip(ZipArchive arc,
 		void delegate(uint) setProgressNum = null,
 		void delegate(uint) progress = null) { mixin(S_TRACE);
 	if (setProgressNum !is null) { mixin(S_TRACE);
-		setProgressNum(arc.directory.length);
+		setProgressNum(cast(uint)arc.directory.length);
 	}
 	int count = 1;
 	foreach (am; arc.directory) { mixin(S_TRACE);

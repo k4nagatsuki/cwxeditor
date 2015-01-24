@@ -1295,7 +1295,7 @@ public:
 		path = cpbottom(path);
 		if (cpempty(path) || (is(CType : MotionOwner) && "motion" == cpcategory(path))) { mixin(S_TRACE);
 			if (!cphasattr(path, "nofocus")) .forceFocus(_pane[C].widget, shellActivate);
-			_pane[C].select(index);
+			_pane[C].select(cast(int)index);
 			_comm.refreshToolBar();
 			static if (EditMode) {
 				if (cphasattr(path, "opendialog") || !cpempty(path)) { mixin(S_TRACE);

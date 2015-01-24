@@ -206,7 +206,7 @@ private:
 		void delRefMenuCard(string a) { mixin(S_TRACE);
 			if (!_refTarget) return;
 			if (!cpeq(_refTarget.cwxPath(true), cpparent(a))) return;
-			createRefCard(cpindex(cpbottom(a)));
+			createRefCard(cast(int)cpindex(cpbottom(a)));
 			_imgp.redraw();
 		}
 		void upRefMenuCards(string a, int[] indices, int count) { mixin(S_TRACE);
@@ -1123,7 +1123,7 @@ private:
 			_backs.setSelection(idx);
 		}
 	}
-	static void upImpl2(T)(AbstractAreaView[] vs, Table[] lists, void delegate(int, int) swap, int startIndex, int[] indices, int count) { mixin(S_TRACE);
+	static void upImpl2(T)(AbstractAreaView[] vs, Table[] lists, void delegate(size_t, size_t) swap, int startIndex, int[] indices, int count) { mixin(S_TRACE);
 		indices = indices.sort;
 		if (!indices.length) return;
 		if (indices[0] != 0) { mixin(S_TRACE);
@@ -1153,7 +1153,7 @@ private:
 		}
 		foreach (v; vs) v.callModEvent();
 	}
-	static void downImpl2(T)(AbstractAreaView[] vs, Table[] lists, void delegate(int, int) swap, int startIndex, int[] indices, int cardsCount, int count) { mixin(S_TRACE);
+	static void downImpl2(T)(AbstractAreaView[] vs, Table[] lists, void delegate(size_t, size_t) swap, int startIndex, int[] indices, int cardsCount, int count) { mixin(S_TRACE);
 		indices = indices.sort;
 		if (!indices.length) return;
 		if (indices[$ - 1] + 1 < cardsCount) { mixin(S_TRACE);
@@ -1235,7 +1235,7 @@ private:
 		}
 		int[const FlexImage] baseIndices;
 		foreach (i, fimg; targs) { mixin(S_TRACE);
-			baseIndices[fimg] = i;
+			baseIndices[fimg] = cast(int)i;
 		}
 		if (targs.length > 1) { mixin(S_TRACE);
 			bool ficmp(in FlexImage fi1, in FlexImage fi2) { mixin(S_TRACE);
@@ -1434,31 +1434,31 @@ private:
 	void nearTopImpl(T)(int delegate(AbstractAreaView) startIndex, T[] cs, bool refParty) { mixin(S_TRACE);
 		if (_readOnly) return;
 		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
-		getItemPositions(startIndex(this), cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
+		getItemPositions(startIndex(this), cast(int)cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
 		nearImpl(startIndex, cs, 0, -itemsT);
 	}
 	void nearBottomImpl(T)(int delegate(AbstractAreaView) startIndex, T[] cs, bool refParty) { mixin(S_TRACE);
 		if (_readOnly) return;
 		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
-		getItemPositions(startIndex(this), cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
+		getItemPositions(startIndex(this), cast(int)cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
 		nearImpl(startIndex, cs, 0, canvasH - itemsH - itemsT);
 	}
 	void nearLeftImpl(T)(int delegate(AbstractAreaView) startIndex, T[] cs, bool refParty) { mixin(S_TRACE);
 		if (_readOnly) return;
 		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
-		getItemPositions(startIndex(this), cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
+		getItemPositions(startIndex(this), cast(int)cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
 		nearImpl(startIndex, cs, -itemsL, 0);
 	}
 	void nearRightImpl(T)(int delegate(AbstractAreaView) startIndex, T[] cs, bool refParty) { mixin(S_TRACE);
 		if (_readOnly) return;
 		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
-		getItemPositions(startIndex(this), cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
+		getItemPositions(startIndex(this), cast(int)cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
 		nearImpl(startIndex, cs, canvasW - itemsW - itemsL, 0);
 	}
 	void nearCenterImpl2(T)(int delegate(AbstractAreaView) startIndex, T[] cs, bool refParty, bool h, bool v) { mixin(S_TRACE);
 		if (_readOnly) return;
 		int canvasW, canvasH, itemsL, itemsT, itemsW, itemsH;
-		getItemPositions(startIndex(this), cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
+		getItemPositions(startIndex(this), cast(int)cs.length, refParty, canvasW, canvasH, itemsL, itemsT, itemsW, itemsH);
 
 		int x = h ? (canvasW - itemsW) / 2 : itemsL;
 		int y = v ? (canvasH - itemsH) / 2 : itemsT;
@@ -2259,14 +2259,14 @@ private:
 	static if (UseCards) {
 		static int staticCardsIndex(A area) { mixin(S_TRACE);
 			static if (UseBacks) {
-				return area.backs.length;
+				return cast(int)area.backs.length;
 			} else { mixin(S_TRACE);
 				return 0;
 			}
 		}
 		@property
 		int cardsIndex() { mixin(S_TRACE);
-			return staticCardsIndex(_area);
+			return cast(int)staticCardsIndex(_area);
 		}
 	}
 
@@ -2849,7 +2849,7 @@ public:
 				_cards.addMouseListener(new class MouseAdapter {
 					override void mouseDown(MouseEvent e) { mixin(S_TRACE);
 						if (e.button == 1 && (e.stateMask & SWT.CTRL) == 0 && (e.stateMask & SWT.SHIFT) == 0) { mixin(S_TRACE);
-							_imgp.deselectRange(0, _area.backs.length);
+							_imgp.deselectRange(0, cast(int)_area.backs.length);
 							_backs.deselectAll();
 							typeof(_editB) editB;
 							_editB = editB;
@@ -2860,7 +2860,7 @@ public:
 				_backs.addMouseListener(new class MouseAdapter {
 					override void mouseDown(MouseEvent e) { mixin(S_TRACE);
 						if (e.button == 1 && (e.stateMask & SWT.CTRL) == 0 && (e.stateMask & SWT.SHIFT) == 0) { mixin(S_TRACE);
-							_imgp.deselectRange(cardsIndex, cardsIndex + _area.cards.length);
+							_imgp.deselectRange(cardsIndex, cardsIndex + cast(int)_area.cards.length);
 							_cards.deselectAll();
 							typeof(_editC) editC;
 							_editC = editC;
@@ -3154,7 +3154,7 @@ public:
 			auto skin = summSkin;
 			foreach (i, c; _area.cards) { mixin(S_TRACE);
 				string name = cardName(c);
-				auto itm = cardList.getItem(i);
+				auto itm = cardList.getItem(cast(int)i);
 				if (itm.getText() != name) { mixin(S_TRACE);
 					auto img = _imgp.images[cardsIndex + i];
 					static if (is(C:EnemyCard)) {
@@ -3175,8 +3175,8 @@ public:
 		}
 		static if (UseBacks) {
 			foreach (i, b; _area.backs) { mixin(S_TRACE);
-				backList.getItem(i).setImage(backImg(b));
-				backList.getItem(i).setText(b.name(_prop.parent));
+				backList.getItem(cast(int)i).setImage(backImg(b));
+				backList.getItem(cast(int)i).setText(b.name(_prop.parent));
 			}
 		}
 	}
@@ -3198,10 +3198,10 @@ public:
 				auto v = _imgp.images[cardsIndex + i].visible;
 				auto fi = create(c);
 				fi.visible = v;
-				_imgp.set(cardsIndex + i, fi);
-				_cards.getItem(i).setText(cardName(c));
-				_cards.getItem(i).setImage(cardImg(c));
-				_cards.getItem(i).setData(c);
+				_imgp.set(cardsIndex + cast(int)i, fi);
+				_cards.getItem(cast(int)i).setText(cardName(c));
+				_cards.getItem(cast(int)i).setImage(cardImg(c));
+				_cards.getItem(cast(int)i).setData(c);
 				partyIndex++;
 			}
 		}
@@ -3210,15 +3210,15 @@ public:
 				auto v = _imgp.images[i].visible;
 				auto fi = create(b);
 				fi.visible = v;
-				_imgp.set(i, fi);
-				_backs.getItem(i).setText(b.name(_prop.parent));
-				_backs.getItem(i).setImage(backImg(b));
-				_backs.getItem(i).setData(b);
+				_imgp.set(cast(int)i, fi);
+				_backs.getItem(cast(int)i).setText(b.name(_prop.parent));
+				_backs.getItem(cast(int)i).setImage(backImg(b));
+				_backs.getItem(cast(int)i).setData(b);
 				partyIndex++;
 			}
 			updateFixedBackground();
 		}
-		_imgp.removeRange(partyIndex, _imgp.images.length);
+		_imgp.removeRange(cast(int)partyIndex, cast(int)_imgp.images.length);
 		appendPartyCards();
 		_imgp.select(sels);
 		_imgp.redraw();
@@ -3513,13 +3513,13 @@ public:
 		static if (UseCards) {
 			Table[] cards;
 			foreach (v; vs) cards ~= v._cards;
-			downImpl2!(C)(vs, cards, &area.swapCards, staticCardsIndex(area), cIdcs, area.cards.length, count);
+			downImpl2!(C)(vs, cards, &area.swapCards, staticCardsIndex(area), cIdcs, cast(int)area.cards.length, count);
 			comm.downMenuCard.call(area.cwxPath(true), cIdcs, count);
 		}
 		static if (UseBacks) {
 			Table[] backs;
 			foreach (v; vs) backs ~= v._backs;
-			downImpl2!(BgImage)(vs, backs, &area.swapBacks, 0, bIdcs, area.backs.length, count);
+			downImpl2!(BgImage)(vs, backs, &area.swapBacks, 0, bIdcs, cast(int)area.backs.length, count);
 			comm.downBgImage.call(area.cwxPath(true), bIdcs, count);
 		}
 		foreach (v; vs) { mixin(S_TRACE);
@@ -3582,11 +3582,11 @@ public:
 				if (c is card) { mixin(S_TRACE);
 					foreach (v; vs) { mixin(S_TRACE);
 						auto fi = v.create(card);
-						v._imgp.set(v.cardsIndex + i, fi);
-						if (v._cards.isSelected(i) && v._viewCards) v._imgp.select(fi);
-						v._cards.getItem(i).setText(v.cardName(c));
-						v._cards.getItem(i).setImage(v.cardImg(c));
-						v._cards.getItem(i).setData(c);
+						v._imgp.set(v.cardsIndex + cast(int)i, fi);
+						if (v._cards.isSelected(cast(int)i) && v._viewCards) v._imgp.select(fi);
+						v._cards.getItem(cast(int)i).setText(v.cardName(c));
+						v._cards.getItem(cast(int)i).setImage(v.cardImg(c));
+						v._cards.getItem(cast(int)i).setData(c);
 						v.refreshControls();
 						v.refreshFlags();
 						v._imgp.redraw();
@@ -3617,7 +3617,7 @@ public:
 				appendCard(index, c, true, true);
 				UndoEdit undo = null;
 				dlg.applyEvent ~= { mixin(S_TRACE);
-					undo = new UndoEdit(this, _comm, _area, _summ, [cCountUntil!("a is b")(_area.cards, c)], []);
+					undo = new UndoEdit(this, _comm, _area, _summ, [cast(int)cCountUntil!("a is b")(_area.cards, c)], []);
 				};
 				dlg.appliedEvent.length = 0;
 				dlg.appliedEvent ~= { mixin(S_TRACE);
@@ -3645,7 +3645,7 @@ public:
 			}
 			foreach (i, c; _area.cards) { mixin(S_TRACE);
 				if (c is card) { mixin(S_TRACE);
-					_imgp.select([i + cardsIndex]);
+					_imgp.select([cast(int)i + cardsIndex]);
 					refreshSelected();
 					break;
 				}
@@ -3653,7 +3653,7 @@ public:
 			UndoEdit undo = null;
 			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, card, false);
 			dlg.applyEvent ~= { mixin(S_TRACE);
-				undo = new UndoEdit(this, _comm, _area, _summ, [cCountUntil!("a is b")(_area.cards, card)], []);
+				undo = new UndoEdit(this, _comm, _area, _summ, [cast(int)cCountUntil!("a is b")(_area.cards, card)], []);
 			};
 			dlg.appliedEvent ~= { mixin(S_TRACE);
 				editCardApply(undo, card);
@@ -3803,11 +3803,11 @@ public:
 				if (b is back) { mixin(S_TRACE);
 					foreach (v; vs) { mixin(S_TRACE);
 						auto fi = v.create(back);
-						v._imgp.set(i, fi);
-						if (v._backs.isSelected(i) && v._viewBacks) v._imgp.select(fi);
-						v._backs.getItem(i).setText(back.name(_prop.parent));
-						v._backs.getItem(i).setImage(v.backImg(back));
-						v._backs.getItem(i).setData(b);
+						v._imgp.set(cast(int)i, fi);
+						if (v._backs.isSelected(cast(int)i) && v._viewBacks) v._imgp.select(fi);
+						v._backs.getItem(cast(int)i).setText(back.name(_prop.parent));
+						v._backs.getItem(cast(int)i).setImage(v.backImg(back));
+						v._backs.getItem(cast(int)i).setData(b);
 						v.refreshControls();
 						v.refreshFlags();
 						v.updateFixedBackground();
@@ -3877,7 +3877,7 @@ public:
 				appendBgImage(index, b, true, true);
 				UndoEdit undo = null;
 				dlg.applyEvent ~= { mixin(S_TRACE);
-					undo = new UndoEdit(this, _comm, _area, _summ, [], [cCountUntil!("a is b")(_area.backs, b)]);
+					undo = new UndoEdit(this, _comm, _area, _summ, [], [cast(int)cCountUntil!("a is b")(_area.backs, b)]);
 				};
 				dlg.appliedEvent.length = 0;
 				dlg.appliedEvent ~= { mixin(S_TRACE);
@@ -3905,7 +3905,7 @@ public:
 			}
 			foreach (i, b; _area.backs) { mixin(S_TRACE);
 				if (b is back) { mixin(S_TRACE);
-					_imgp.select([i]);
+					_imgp.select([cast(int)i]);
 					refreshSelected();
 					break;
 				}
@@ -3929,7 +3929,7 @@ public:
 				dlg = new PCCellDialog(_comm, _prop, getShell(), _summ, pc, false);
 			}
 			dlg.applyEvent ~= { mixin(S_TRACE);
-				undo = new UndoEdit(this, _comm, _area, _summ, [], [cCountUntil!("a is b")(_area.backs, back)]);
+				undo = new UndoEdit(this, _comm, _area, _summ, [], [cast(int)cCountUntil!("a is b")(_area.backs, back)]);
 			};
 			dlg.appliedEvent ~= { mixin(S_TRACE);
 				editBackApply(undo, back);
@@ -4403,8 +4403,8 @@ public:
 
 	void reverseViewParty() { mixin(S_TRACE);
 		_viewParty = !_viewParty;
-		int imgLen = _imgp.images.length;
-		int partyLen = _prop.looks.partyCardXY.length;
+		int imgLen = cast(int)_imgp.images.length;
+		int partyLen = cast(int)_prop.looks.partyCardXY.length;
 		for (int i = imgLen - 2; i >= imgLen - partyLen - 1; i--) { mixin(S_TRACE);
 			_imgp.images[i].visible = _viewParty;
 		}
@@ -4437,7 +4437,7 @@ public:
 			_imgp.redraw();
 		}
 		private void updateFixedCards() { mixin(S_TRACE);
-			_imgp.fixedRange(_fixedC, cardsIndex, cardsIndex + _area.cards.length);
+			_imgp.fixedRange(_fixedC, cardsIndex, cardsIndex + cast(int)_area.cards.length);
 		}
 	}
 	static if (UseBacks) {
@@ -4460,15 +4460,15 @@ public:
 				auto vs = _prop.looks.viewSize;
 				foreach (i, back; _area.backs) { mixin(S_TRACE);
 					if (0 == back.x && 0 == back.y && vs.width == back.width && vs.height == back.height) { mixin(S_TRACE);
-						_imgp.fixedRange(_fixedB, 0, i);
-						_imgp.fixedRange(_fixedFirstB, i, i + 1);
-						_imgp.fixedRange(_fixedB, i + 1, _area.backs.length);
+						_imgp.fixedRange(_fixedB, 0, cast(int)i);
+						_imgp.fixedRange(_fixedFirstB, cast(int)i, cast(int)i + 1);
+						_imgp.fixedRange(_fixedB, cast(int)i + 1, cast(int)_area.backs.length);
 						_imgp.redraw();
 						return;
 					}
 				}
 			}
-			_imgp.fixedRange(_fixedB, 0, _area.backs.length);
+			_imgp.fixedRange(_fixedB, 0, cast(int)_area.backs.length);
 			_imgp.redraw();
 		}
 	}
@@ -4495,7 +4495,7 @@ public:
 		/// select = 選択状態にするか。
 		/// refresh = 表示を更新するか。
 		private int appendCard(C card, bool select, bool refresh, bool fromImgPane) { mixin(S_TRACE);
-			int index = fromImgPane ? _area.cards.length : insertIndex(_cards);
+			int index = fromImgPane ? cast(int)_area.cards.length : insertIndex(_cards);
 			appendCard(index, card, select, refresh);
 			return index;
 		}
@@ -4551,7 +4551,7 @@ public:
 				}
 				v._imgp.insert(v.cardsIndex + index, cast(PileImage[])imgs);
 				foreach (i, c; cards) { mixin(S_TRACE);
-					auto itm = new TableItem(v._cards, SWT.NONE, index + i);
+					auto itm = new TableItem(v._cards, SWT.NONE, index + cast(int)i);
 					itm.setImage(v.cardImg(c));
 					itm.setData(c);
 					itm.setChecked(true);
@@ -4663,7 +4663,7 @@ public:
 		/// select = 選択状態にするか。
 		/// refresh = 表示を更新するか。
 		private int appendBgImage(BgImage back, bool select, bool refresh, bool fromImgPane) { mixin(S_TRACE);
-			int index = fromImgPane ? _area.backs.length : insertIndex(_backs);
+			int index = fromImgPane ? cast(int)_area.backs.length : insertIndex(_backs);
 			appendBgImage(index, back, select, refresh);
 			return index;
 		}
@@ -4766,7 +4766,7 @@ public:
 				}
 				v._imgp.insert(index, cast(PileImage[])imgs);
 				foreach (i, b; backs) { mixin(S_TRACE);
-					auto itm = new TableItem(v._backs, SWT.NONE, index + i);
+					auto itm = new TableItem(v._backs, SWT.NONE, index + cast(int)i);
 					itm.setImage(v.backImg(b));
 					itm.setData(b);
 					itm.setChecked(true);
@@ -4930,8 +4930,8 @@ public:
 						}
 						int si = ptoi(_cards);
 						foreach (i, card; mcs) { mixin(S_TRACE);
-							appendCard(si + i, card, true, true);
-							ci ~= si + i;
+							appendCard(si + cast(int)i, card, true, true);
+							ci ~= si + cast(int)i;
 						}
 						_comm.refUseCount.call();
 						refreshFlags();
@@ -4947,8 +4947,8 @@ public:
 						}
 						int si = ptoi(_backs);
 						foreach (i, back; bs) { mixin(S_TRACE);
-							appendBgImage(si + i, back, true, true);
-							bi ~= si + i;
+							appendBgImage(si + cast(int)i, back, true, true);
+							bi ~= si + cast(int)i;
 						}
 						_comm.refUseCount.call();
 						refreshFlags();
@@ -4979,8 +4979,8 @@ public:
 						}
 						int si = ptoi(_cards);
 						foreach (i, card; ecs) { mixin(S_TRACE);
-							appendCard(si + i, card, true, true);
-							ci ~= si + i;
+							appendCard(si + cast(int)i, card, true, true);
+							ci ~= si + cast(int)i;
 						}
 						_comm.refUseCount.call();
 						refreshFlags();
@@ -5144,8 +5144,8 @@ public:
 					auto img = imagePane.images[cardsIndex + i];
 					img.setImageData(castCardImage(_prop, skin, castCard, _summ ? _summ.scenarioPath : "", _dbgMode));
 					img.createImage();
-					if (cardList.getItem(i).getText() != castCard.name) { mixin(S_TRACE);
-						cardList.getItem(i).setText(castCard.name);
+					if (cardList.getItem(cast(int)i).getText() != castCard.name) { mixin(S_TRACE);
+						cardList.getItem(cast(int)i).setText(castCard.name);
 						_comm.refMenuCard.call(_area.cards[i].cwxPath(true));
 					}
 				}
@@ -5160,7 +5160,7 @@ public:
 					auto img = imagePane.images[cardsIndex + i];
 					img.setImageData(.castCard(skin));
 					img.createImage();
-					cardList.getItem(i).setText("");
+					cardList.getItem(cast(int)i).setText("");
 				}
 			}
 			imagePane.redraw();
@@ -5314,14 +5314,14 @@ public:
 							int[] addC, addB;
 							auto iib = insertIndex(_backs);
 							foreach (i, b; bs) { mixin(S_TRACE);
-								int index = iib + i;
+								int index = iib + cast(int)i;
 								addB ~= index;
 								_area.insert(index, b);
 							}
 							appendBgImages(iib, bs, true, true, false);
 							auto iic = insertIndex(_cards);
 							foreach (i, c; cs) { mixin(S_TRACE);
-								int index = iic + i;
+								int index = iic + cast(int)i;
 								addC ~= index;
 								_area.insert(index, c);
 							}
@@ -5410,7 +5410,7 @@ public:
 								int[] addC;
 								_imgp.deselectAll();
 								foreach (i, c; cs) { mixin(S_TRACE);
-									int index = insertIndex(_cards) + i;
+									int index = insertIndex(_cards) + cast(int)i;
 									addC ~= index;
 									_area.insert(index, c);
 								}
@@ -5499,7 +5499,7 @@ public:
 								int[] addB;
 								_imgp.deselectAll();
 								foreach (i, b; bs) { mixin(S_TRACE);
-									int index = insertIndex(_backs) + i;
+									int index = insertIndex(_backs) + cast(int)i;
 									addB ~= index;
 									_area.insert(index, b);
 								}
@@ -5576,7 +5576,7 @@ public:
 		bool sel(Table list) { mixin(S_TRACE);
 			if (index >= list.getItemCount()) return false;
 			if (!cphasattr(path, "nofocus")) .forceFocus(_imgp, shellActivate);
-			list.select(index);
+			list.select(cast(int)index);
 			list.showSelection();
 			_comm.refreshToolBar();
 			return true;
@@ -5585,7 +5585,7 @@ public:
 			if (cate == "menucard") { mixin(S_TRACE);
 				if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 					if (index >= _cards.getItemCount()) return false;
-					editCard([index]);
+					editCard([cast(int)index]);
 					return true;
 				} else { mixin(S_TRACE);
 					if (sel(_cards)) { mixin(S_TRACE);
@@ -5599,7 +5599,7 @@ public:
 			if (cate == "enemycard") { mixin(S_TRACE);
 				if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 					if (index >= _cards.getItemCount()) return false;
-					editCard([index]);
+					editCard([cast(int)index]);
 					return true;
 				} else { mixin(S_TRACE);
 					if (sel(_cards)) { mixin(S_TRACE);
@@ -5613,7 +5613,7 @@ public:
 			if (cate == "background") { mixin(S_TRACE);
 				if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 					if (index >= _backs.getItemCount()) return false;
-					editBack([index]);
+					editBack([cast(int)index]);
 					return true;
 				} else { mixin(S_TRACE);
 					if (sel(_backs)) { mixin(S_TRACE);
