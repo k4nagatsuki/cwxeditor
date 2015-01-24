@@ -1335,11 +1335,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// スタート名。
 	@property
 	void start(string start) { mixin(S_TRACE);
-		if (_suc && detail.use(CArg.START)) { mixin(S_TRACE);
-			_suc.remove(toStartId(_start), this);
-			_suc.add(toStartId(start), this);
+		if (_start != start) { mixin(S_TRACE);
+			changed();
+			if (_suc && detail.use(CArg.START)) { mixin(S_TRACE);
+				_suc.remove(toStartId(_start), this);
+				_suc.add(toStartId(start), this);
+			}
+			_start = start;
 		}
-		_start = start;
 	}
 	/// ditto
 	@property
