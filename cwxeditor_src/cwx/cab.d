@@ -390,19 +390,19 @@ version (Windows) {
 			}
 
 			alias HFCI function (
-			    ERF* perf,
-			    typeof(&FNFCIFILEPLACED) pfnfiledest,
-			    typeof(&FNFCIALLOC) pfnalloc,
-			    typeof(&FNFCIFREE) pfnfree,
-			    typeof(&FNFCIOPEN) pfnopen,
-			    typeof(&FNFCIREAD) pfnread,
-			    typeof(&FNFCIWRITE) pfnwrite,
-			    typeof(&FNFCICLOSE) pfnclose,
-			    typeof(&FNFCISEEK) pfnseek,
-			    typeof(&FNFCIDELETE) pfndelete,
-			    typeof(&FNFCIGETTEMPFILE) pfnfcigtf,
-			    CCAB* pccab,
-			    LPVOID pv
+				ERF* perf,
+				typeof(&FNFCIFILEPLACED) pfnfiledest,
+				typeof(&FNFCIALLOC) pfnalloc,
+				typeof(&FNFCIFREE) pfnfree,
+				typeof(&FNFCIOPEN) pfnopen,
+				typeof(&FNFCIREAD) pfnread,
+				typeof(&FNFCIWRITE) pfnwrite,
+				typeof(&FNFCICLOSE) pfnclose,
+				typeof(&FNFCISEEK) pfnseek,
+				typeof(&FNFCIDELETE) pfndelete,
+				typeof(&FNFCIGETTEMPFILE) pfnfcigtf,
+				CCAB* pccab,
+				LPVOID pv
 			) FCI_C;
 			alias BOOL function (
 				HFCI hfci,
