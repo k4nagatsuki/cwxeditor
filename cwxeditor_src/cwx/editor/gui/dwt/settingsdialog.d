@@ -1562,7 +1562,7 @@ struct OldSettings {
 				comm.refMenu.call(id);
 			}
 			if (oldHotkey[id] != prop.var.menu.hotkey(id)) { mixin(S_TRACE);
-				updateTool = true;;
+				updateTool = true;
 			}
 		}
 		if (updateTool) comm.updateToolBarText();
