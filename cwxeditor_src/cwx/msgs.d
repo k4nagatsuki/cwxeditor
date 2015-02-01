@@ -445,8 +445,8 @@ class Msgs : Properties {
 	auto manualMethod = Msg("manualMethod", "手動で選択");
 	auto randomMethod = Msg("randomMethod", "ランダムで選択");
 	auto judgeSleep = Msg("judgeSleep", "眠り判定");
-	auto sleepDisabled = Msg("sleepDisabled", "睡眠者無効");
-	auto sleepEnabled = Msg("sleepEnabled", "睡眠者有効");
+	auto sleepDisabled = Msg("sleepDisabled", "睡眠・呪縛者無効");
+	auto sleepEnabled = Msg("sleepEnabled", "睡眠・呪縛者有効");
 	auto selectedLevel = Msg("selectedLevel", "現在選択中のメンバ");
 	auto allMemberLevel = Msg("allMemberLevel", "パーティ全員の平均値");
 	auto judgeLevel = Msg("judgeLevel", "判定レベル");
