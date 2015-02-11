@@ -1670,12 +1670,13 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 		}
 	}
 	static if (is(C : ItemCard) || is(C : BeastCard)) {
+		bool res = is(C:ItemCard) && prop.sys.isRecycle(c.keyCodes);
 		static if (is(C : ItemCard)) {
 			auto ul = c.useLimitMax;
 		} else static if (is(C : BeastCard)) {
 			auto ul = c.useLimit;
 		} else static assert (0);
-		if (ul > 0) { mixin(S_TRACE);
+		if (ul > 0 || res) { mixin(S_TRACE);
 			putEventTree(true);
 
 			auto d = Display.getCurrent();
@@ -1687,7 +1688,6 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 			auto font = new Font(d, dwtData(prop.looks.useCountFont(skin.legacy)));
 			scope (exit) font.dispose();
 			gc.setFont(font);
-			bool res = prop.sys.isRecycle(c.keyCodes);
 			int alpha;
 			auto color = res
 				? new Color(d, dwtData(prop.looks.recycleNumColor, alpha))
