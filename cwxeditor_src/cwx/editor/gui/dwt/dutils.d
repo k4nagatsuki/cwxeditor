@@ -1670,7 +1670,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 		}
 	}
 	static if (is(C : ItemCard) || is(C : BeastCard)) {
-		bool res = is(C:ItemCard) && prop.sys.isRecycle(c.keyCodes);
+		bool res = prop.sys.isRecycle(c.keyCodes);
 		static if (is(C : ItemCard)) {
 			auto ul = c.useLimitMax;
 		} else static if (is(C : BeastCard)) {
