@@ -1110,6 +1110,7 @@ public:
 				grp.setLayout(new GridLayout(2, false));
 				grp.setText(_prop.msgs.motionBeast);
 				_beasts = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+				_beasts.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 				_beasts.setEnabled(!_readOnly);
 				_beasts.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				_beasts.addSelectionListener(new class SelectionAdapter {
