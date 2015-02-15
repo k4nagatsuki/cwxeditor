@@ -2207,7 +2207,7 @@ public:
 	@property
 	const
 	bool isOption() { mixin(S_TRACE);
-		return cast(CastCard)_owner !is null;
+		return cast(CastCard)_owner !is null && !useLimit;
 	}
 
 	/// XMLテキストに変換する。
