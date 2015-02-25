@@ -1103,6 +1103,7 @@ private:
 			core.memory.GC.collect();
 			dStr ~= " - " ~ .text(__LINE__);
 			_win.redraw();
+			updateExecEngineWithPartyNameTI();
 			_comm.refreshToolBar();
 			dStr ~= " - " ~ .text(__LINE__);
 		} catch (Throwable e) {
@@ -1180,7 +1181,10 @@ private:
 						_display.asyncExec(new class Runnable {
 							override void run() { mixin(S_TRACE);
 								_inSaving = false;
-								if (!_win.isDisposed()) _comm.refreshToolBar();
+								if (!_win.isDisposed()) {
+									updateExecEngineWithPartyNameTI();
+									_comm.refreshToolBar();
+								}
 							}
 						});
 					}
@@ -1372,13 +1376,13 @@ private:
 	}
 	void updateExecEngineWithPartyNameTI() { mixin(S_TRACE);
 		if (!_tiExecEngineWithParty) return;
-		if (_prop.var.etc.lastExecuteParameters == "") {
-			_tiExecEngineWithParty.setToolTipText(_prop.var.menu.buildTool(_prop.parent, MenuID.ExecEngineWithParty));
-		} else {
+		if (canExecEngineWithLastParty2) {
 			auto m = _prop.var.menu.mnemonic(MenuID.ExecEngineWithLastParty);
 			auto h = _prop.var.menu.hotkey(MenuID.ExecEngineWithLastParty);
 			auto s = execEngineWithLastPartyText;
 			_tiExecEngineWithParty.setToolTipText(MenuProps.buildTool(s, m, h, false));
+		} else {
+			_tiExecEngineWithParty.setToolTipText(_prop.var.menu.buildTool(_prop.parent, MenuID.ExecEngineWithParty));
 		}
 	}
 	@property
