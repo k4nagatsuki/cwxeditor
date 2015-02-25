@@ -1448,7 +1448,8 @@ private:
 		if (!summary) return;
 		if (canExecEngineWithLastParty2) {
 			auto scenario = .tryFormat(`"%s"`, (summary.useTemp && summary.zipName != "") ? summary.zipName : summary.scenarioPath);
-			execEngineP(_prop.var.etc.lastExecuteEngine, _prop.var.etc.lastExecuteParameters, scenario);
+			execEngineP(_prop.var.etc.lastExecuteEngine, _prop.var.etc.lastExecuteParameters, scenario,
+				_prop.var.etc.lastExecuteEngineName, _prop.var.etc.lastExecuteYadoName, _prop.var.etc.lastExecutePartyName);
 		} else { mixin(S_TRACE);
 			showDropDownMenu(_tiExecEngineWithParty, _tmExecEngineWithParty);
 		}
