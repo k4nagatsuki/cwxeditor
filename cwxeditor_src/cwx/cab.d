@@ -338,6 +338,7 @@ version (Windows) {
 					strcpy(path.ptr, prm.dest);
 					auto cpp = cast(char*) pNotify.psz1;
 					auto len = strlen(cpp);
+					if (cpp[0 .. len].isOuterPath()) return -1;
 					for (size_t i = 0; i < len; i++) { mixin(S_TRACE);
 						if (cpp[i] == '/') cpp[i] = '\\';
 					}

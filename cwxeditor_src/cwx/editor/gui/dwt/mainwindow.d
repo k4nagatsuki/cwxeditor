@@ -163,13 +163,20 @@ private:
 	private class ExecWithPartyClassic : MenuAdapter {
 		private string path;
 		private string yPath;
-		this (string path, string yPath) { mixin(S_TRACE);
+		private string yName;
+		private string engineName;
+		this (string path, string yPath, string engineName, string yName) { mixin(S_TRACE);
 			this.path = path;
 			this.yPath = yPath;
+			this.engineName = engineName;
+			this.yName = yName;
 		}
 		override void menuShown(MenuEvent e) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
 				// 各宿のフォルダ
+				foreach (m; (cast(Menu)e.widget).getItems()) { mixin(S_TRACE);
+					m.dispose();
+				}
 				foreach (wpl; .clistdir(yPath)) { mixin(S_TRACE);
 					// *.wpl
 					if (wpl.extension().toLower() != ".wpl") continue;
@@ -193,14 +200,18 @@ private:
 					"-party",
 					.tryFormat(`"%s"`, party),
 				];
-				execEngineP(path, params.join(" "), .tryFormat(`"%s"`, (summary.useTemp && summary.zipName != "") ? summary.zipName : summary.scenarioPath));
+				execEngineP(path, params.join(" "), .tryFormat(`"%s"`, (summary.useTemp && summary.zipName != "") ? summary.zipName : summary.scenarioPath), engineName, yName, name);
 			}, () => true);
 		}
 	}
 	private class ExecEngine : MenuAdapter {
 		private string yPath;
-		this (string yPath) { mixin(S_TRACE);
+		private string engineName;
+		private string yName;
+		this (string yPath, string engineName, string yName) { mixin(S_TRACE);
 			this.yPath = yPath;
+			this.engineName = engineName;
+			this.yName = yName;
 		}
 		override void menuShown(MenuEvent e) { mixin(S_TRACE);
 			foreach (item; (cast(Menu)e.widget).getItems()) { mixin(S_TRACE);
@@ -244,7 +255,7 @@ private:
 					"-party",
 					.tryFormat(`"%s"`, party),
 				];
-				execEngineP(path, params.join(" "), .tryFormat(`"%s"`, (summary.useTemp && summary.zipName != "") ? summary.zipName : summary.scenarioPath));
+				execEngineP(path, params.join(" "), .tryFormat(`"%s"`, (summary.useTemp && summary.zipName != "") ? summary.zipName : summary.scenarioPath), engineName, yName, name);
 			}, () => true);
 		}
 	}
@@ -339,6 +350,7 @@ private:
 			if (mWithParty) { mixin(S_TRACE);
 				autoMI2 = createMenuItem(_comm, mWithParty, MenuID.ExecEngineWithLastParty, &execEngineWithLastParty, &canExecEngineWithLastParty2);
 				_menu[MenuID.ExecEngineWithParty] = autoMI2;
+				updateExecEngineWithPartyNameMI();
 			}
 		}
 		void putMenu(string path, string ePath, string name, Image img, bool withParty) { mixin(S_TRACE);
@@ -381,7 +393,7 @@ private:
 				mi.setMenu(mwpMenu);
 				mi2 = mi;
 				.listener(mwpMenu, SWT.Show, (Event e) { mixin(S_TRACE);
-					foreach (item; (cast(Menu)e.widget).getItems()) { mixin(S_TRACE);
+					foreach (item; mwpMenu.getItems()) { mixin(S_TRACE);
 						item.dispose();
 					}
 					try { mixin(S_TRACE);
@@ -392,6 +404,7 @@ private:
 							auto yPath = yadoDir.buildPath(yado);
 							if (!yPath.exists() || !yPath.isDir()) continue;
 							auto img = _prop.images.yado;
+							if (.isDebugYado(_prop.sys, yPath)) img = _prop.images.debugYado;
 							bool enable = false;
 							if (canExecClassic) { mixin(S_TRACE);
 								foreach (wpl; .clistdir(yPath)) { mixin(S_TRACE);
@@ -404,7 +417,7 @@ private:
 							auto mi = (enable) { return createMenuItem2(_comm, mwpMenu, yado, img, dummy, () => enable, SWT.CASCADE); }(enable);
 							auto yMenu = new Menu(mi);
 							mi.setMenu(yMenu);
-							yMenu.addMenuListener(new ExecWithPartyClassic(path, yPath));
+							yMenu.addMenuListener(new ExecWithPartyClassic(path, yPath, name, yado));
 						}
 					} catch (Exception e) {
 						printStackTrace();
@@ -504,7 +517,7 @@ private:
 							mi.setEnabled(enable);
 							auto yMenu = new Menu(mi);
 							mi.setMenu(yMenu);
-							yMenu.addMenuListener(new ExecEngine(yado));
+							yMenu.addMenuListener(new ExecEngine(yado, _prop.msgs.menuTextExecEngineMain, name));
 						}
 					} catch (Exception e) {
 						printStackTrace();
@@ -1341,7 +1354,42 @@ private:
 		}
 		return false;
 	}
-	void execEngineP(string path, string params = "", string scenario = "") { mixin(S_TRACE);
+	void updateExecEngineWithPartyName() { mixin(S_TRACE);
+		updateExecEngineWithPartyNameTI();
+		updateExecEngineWithPartyNameMI();
+	}
+	void updateExecEngineWithPartyNameMI() { mixin(S_TRACE);
+		auto mi = _menu.get(MenuID.ExecEngineWithParty, null);
+		if (!mi) return;
+		if (_prop.var.etc.lastExecuteParameters == "") {
+			mi.setText(_prop.var.menu.buildMenu(_prop.parent, MenuID.ExecEngineWithLastParty));
+		} else {
+			auto m = _prop.var.menu.mnemonic(MenuID.ExecEngineWithLastParty);
+			auto h = _prop.var.menu.hotkey(MenuID.ExecEngineWithLastParty);
+			auto s = execEngineWithLastPartyText;
+			mi.setText(MenuProps.buildMenu(s, m, h, false));
+		}
+	}
+	void updateExecEngineWithPartyNameTI() { mixin(S_TRACE);
+		if (!_tiExecEngineWithParty) return;
+		if (_prop.var.etc.lastExecuteParameters == "") {
+			_tiExecEngineWithParty.setToolTipText(_prop.var.menu.buildTool(_prop.parent, MenuID.ExecEngineWithParty));
+		} else {
+			auto m = _prop.var.menu.mnemonic(MenuID.ExecEngineWithLastParty);
+			auto h = _prop.var.menu.hotkey(MenuID.ExecEngineWithLastParty);
+			auto s = execEngineWithLastPartyText;
+			_tiExecEngineWithParty.setToolTipText(MenuProps.buildTool(s, m, h, false));
+		}
+	}
+	@property
+	string execEngineWithLastPartyText() { mixin(S_TRACE);
+		string e = _prop.var.etc.lastExecuteEngineName;
+		string y = _prop.var.etc.lastExecuteYadoName;
+		string p = _prop.var.etc.lastExecutePartyName;
+		return .tryFormat(_prop.msgs.execEngineWithLastParty, e, y, p);
+	}
+	void execEngineP(string path, string params = "", string scenario = "",
+			string engineName = "", string yadoName = "", string partyName = "") { mixin(S_TRACE);
 		string path2 = path;
 		string dir = dirName(nabs(path));
 		if (path.extension().toLower() == ".py") { mixin(S_TRACE);
@@ -1355,6 +1403,10 @@ private:
 				_prop.var.etc.lastExecuteIsClassic = !cfnmatch(nabs(path), nabs(_prop.enginePath));
 				_prop.var.etc.lastExecuteEngine = path;
 				_prop.var.etc.lastExecuteParameters = params;
+				_prop.var.etc.lastExecuteEngineName = engineName;
+				_prop.var.etc.lastExecuteYadoName = yadoName;
+				_prop.var.etc.lastExecutePartyName = partyName;
+				updateExecEngineWithPartyName();
 			}
 		} else {
 			MessageBox.showWarning(.tryFormat(_prop.msgs.errorExecEngine, .baseName(path)),
@@ -1379,6 +1431,7 @@ private:
 	@property
 	bool canExecEngineWithParty() { mixin(S_TRACE);
 		if (!summary || (summary.useTemp && summary.zipName == "")) return false;
+		if (!canExecEngine && !_prop.var.etc.classicEngines.length) return false;
 		return true;
 	}
 	void execEngine() { mixin(S_TRACE);
@@ -2856,7 +2909,9 @@ public:
 						img.dispose();
 					}
 				});
+				updateExecEngineWithPartyNameTI();
 			}
+
 			void createOuterToolsTI(ToolBar bar) { mixin(S_TRACE);
 				_mainMenu.add(MenuID.OuterTools);
 				auto ti = createDropDownItem(_comm, bar, MenuID.OuterTools, null, _tmOuterTools, () => _prop.var.etc.outerTools.length > 0);

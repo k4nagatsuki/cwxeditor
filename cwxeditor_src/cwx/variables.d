@@ -348,9 +348,12 @@ class FlexEtcProps : Properties {
 	}
 	auto engineScript = Prop!(string, true)("engineScript", "cardwirth.py");
 	auto enginePath = Prop!(string)("enginePath", "");
-	auto lastExecuteIsClassic = Prop!(bool)("lastExecuteIsClassic", false);
-	auto lastExecuteEngine = Prop!(string)("lastExecuteEngine", "");
-	auto lastExecuteParameters = Prop!(string)("lastExecuteParameters", "");
+	auto lastExecuteIsClassic = Prop!(bool)("lastExecuteIsClassic", false, 2015022500);
+	auto lastExecuteEngine = Prop!(string)("lastExecuteEngine", "", 2015022500);
+	auto lastExecuteParameters = Prop!(string)("lastExecuteParameters", "", 2015022500);
+	auto lastExecuteEngineName = Prop!(string)("lastExecuteEngineName", "");
+	auto lastExecuteYadoName = Prop!(string)("lastExecuteYadoName", "");
+	auto lastExecutePartyName = Prop!(string)("lastExecutePartyName", "");
 	auto dataDir = Prop!(string, true)("dataDir", "Data");
 	auto findEnginePath = Prop!(bool)("findEnginePath", true);
 	auto defaultSkin = Prop!(string, true)("defaultSkin", "MedievalFantasy");

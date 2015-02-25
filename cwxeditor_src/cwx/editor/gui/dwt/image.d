@@ -154,6 +154,7 @@ public:
 	@property Image battleEventTreeViewDup() {return imgd!("battle_event_dup.png");}
 
 	@property Image yado() {return imgd!("sc_y.png");}
+	@property Image debugYado() {return imgd!("debug_yado.png");}
 	@property Image team() {return imgd!("sc_t.png");}
 
 	@property Image casts() {return imgd!("cast.png");}

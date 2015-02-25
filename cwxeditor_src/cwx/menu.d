@@ -479,8 +479,11 @@ class MenuProps : Properties {
 	}
 	/// ditto
 	static string buildTool(in CProps prop, MenuID id, string mnemonic, string hotkey) { mixin(S_TRACE);
-		string r = prop.msgs.menuText(id);
-		if (isPMenu(id)) { mixin(S_TRACE);
+		return buildTool(prop.msgs.menuText(id), mnemonic, hotkey, isPMenu(id));
+	}
+	/// ditto
+	static string buildTool(string r, string mnemonic, string hotkey, bool m) { mixin(S_TRACE);
+		if (m) { mixin(S_TRACE);
 			r ~= "...";
 		}
 		if (hotkey != "") { mixin(S_TRACE);
@@ -501,6 +504,7 @@ class MenuProps : Properties {
 	/// ditto
 	static string buildMenu(string r, string mnemonic, string hotkey, bool m) { mixin(S_TRACE);
 		r = r.replace("&", "&&");
+		r = r.replace("\n", "");
 		string a = mnemonic;
 		string h = hotkey;
 		if (a.length) { mixin(S_TRACE);

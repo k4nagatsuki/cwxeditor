@@ -2089,6 +2089,16 @@ string readPartyName(const System sys, string wpl) { mixin(S_TRACE);
 	return readString(f); // パーティ名
 }
 
+/// 宿情報(Environment.wyd)からデバッグ宿か否かを取得する。
+bool isDebugYado(const System sys, string yadoDir) { mixin(S_TRACE);
+	auto d = RData(sys, false, "", "");
+	auto env = yadoDir.buildPath("Environment.wyd");
+	auto f = ByteIO(readBinary(env));
+	auto dataVersion = readString(f);
+	auto type = f.readByte; // 1 = 通常宿, 2 = デバッグ宿
+	return type == 2;
+}
+
 struct SData {
 	const System sys;
 	string sPath;

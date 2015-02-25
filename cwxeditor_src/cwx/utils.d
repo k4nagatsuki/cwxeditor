@@ -753,6 +753,32 @@ string abs2rel(string p1, string p2) { mixin(S_TRACE);
 	return rel.buildNormalizedPath();
 }
 
+/// 上のディレクトリへ遡るか、絶対パスであったらtrue。
+/// そのようなパスがアーカイヴに含まれていないかチェックするために使用する。
+@property
+bool isOuterPath(in char[] path) { mixin(S_TRACE);
+	auto normal = path.buildNormalizedPath();
+	return normal == "" || normal == ".." || normal.startsWith(".." ~ .dirSeparator) || normal.isAbsolute() || normal.startsWith(dirSeparator);
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	assert (.isOuterPath("../a"));
+	assert (.isOuterPath(".."));
+	assert (.isOuterPath("../"));
+	assert (.isOuterPath("abc/../../a"));
+	assert (.isOuterPath("abc/../.."));
+	assert (.isOuterPath("/abc"));
+	assert (.isOuterPath("/"));
+	assert (.isOuterPath("abc/../../abc/a"));
+	assert (.isOuterPath(""));
+	assert (.isOuterPath("."));
+	assert (.isOuterPath("./"));
+	assert (!.isOuterPath("abc"));
+	assert (!.isOuterPath("abc/def"));
+	assert (!.isOuterPath("abc/def/ghi"));
+	assert (!.isOuterPath("abc/abc/../../def/../abc/a"));
+	assert (!.isOuterPath("abc/../abc/a"));
+}
+
 /// 大/小文字を区別しないstartsWith。
 bool istartsWith(in char[] a, in char[] b) { mixin(S_TRACE);
 	if (a.length < b.length) return false;
