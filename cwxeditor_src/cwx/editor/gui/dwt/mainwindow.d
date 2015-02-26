@@ -349,7 +349,7 @@ private:
 			}
 			if (mWithParty) { mixin(S_TRACE);
 				autoMI2 = createMenuItem(_comm, mWithParty, MenuID.ExecEngineWithLastParty, &execEngineWithLastParty, &canExecEngineWithLastParty2);
-				_menu[MenuID.ExecEngineWithParty] = autoMI2;
+				_menu[MenuID.ExecEngineWithLastParty] = autoMI2;
 				updateExecEngineWithPartyNameMI();
 			}
 		}
@@ -1363,7 +1363,7 @@ private:
 		updateExecEngineWithPartyNameMI();
 	}
 	void updateExecEngineWithPartyNameMI() { mixin(S_TRACE);
-		auto mi = _menu.get(MenuID.ExecEngineWithParty, null);
+		auto mi = _menu.get(MenuID.ExecEngineWithLastParty, null);
 		if (!mi) return;
 		if (_prop.var.etc.lastExecuteParameters == "") {
 			mi.setText(_prop.var.menu.buildMenu(_prop.parent, MenuID.ExecEngineWithLastParty));
@@ -2859,9 +2859,11 @@ public:
 				setupMenuListener(mt);
 				void delegate(SelectionEvent) dummy = null;
 				auto eemi = createMenuItem(_comm, mt, MenuID.ExecEngine, dummy, () => canExecEngine || _prop.var.etc.classicEngines.length, SWT.CASCADE);
+				_menu[MenuID.ExecEngine] = eemi;
 				_mExecEngine = new Menu(eemi);
 				eemi.setMenu(_mExecEngine);
 				auto eewpmi = createMenuItem(_comm, mt, MenuID.ExecEngineWithParty, dummy, () => canExecEngineWithParty, SWT.CASCADE);
+				_menu[MenuID.ExecEngineWithParty] = eewpmi;
 				_mExecEngineWithParty = new Menu(eewpmi);
 				eewpmi.setMenu(_mExecEngineWithParty);
 				new MenuItem(mt, SWT.SEPARATOR);
@@ -3927,11 +3929,11 @@ public:
 	private void setupMenu(M)(M[MenuID] menus) { mixin(S_TRACE);
 		foreach (id, itm; menus) { mixin(S_TRACE);
 			if (id is MenuID.ExecEngine) { mixin(S_TRACE);
-				itm.setEnabled(_prop.var.etc.enginePath.length || _prop.var.etc.classicEngines.length);
+				itm.setEnabled(canExecEngine || _prop.var.etc.classicEngines.length);
 				continue;
 			}
 			if (id is MenuID.ExecEngineWithParty) { mixin(S_TRACE);
-				itm.setEnabled(summary && (_prop.var.etc.enginePath.length || _prop.var.etc.classicEngines.length));
+				itm.setEnabled(canExecEngineWithParty);
 				continue;
 			}
 			if (id is MenuID.OuterTools) { mixin(S_TRACE);

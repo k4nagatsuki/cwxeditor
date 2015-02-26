@@ -2119,7 +2119,7 @@ class Msgs : Properties {
 	auto menuTextAddToolGroup = Msg("menuTextAddToolGroup", "グループの追加");
 	auto menuTextResetToolBarSettings = Msg("menuTextResetToolBarSettings", "初期設定に戻す");
 
-	auto execEngineWithLastParty = Msg("execEngineWithLastParty", "前回のパーティで開始\n(%s > %s > %s)");
+	auto execEngineWithLastParty = Msg("execEngineWithLastParty", "前回のパーティで開始\n(%1$s > %2$s > %3$s)");
 
 	auto upSelection = Msg("upSelection", "上へ");
 	auto downSelection = Msg("downSelection", "下へ");
