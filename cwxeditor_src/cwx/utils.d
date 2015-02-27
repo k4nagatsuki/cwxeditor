@@ -758,7 +758,7 @@ string abs2rel(string p1, string p2) { mixin(S_TRACE);
 @property
 bool isOuterPath(in char[] path) { mixin(S_TRACE);
 	auto normal = path.buildNormalizedPath();
-	return normal == "" || normal == ".." || normal.startsWith(".." ~ .dirSeparator) || normal.isAbsolute() || normal.startsWith(dirSeparator);
+	return normal == "" || normal == ".." || normal.startsWith(".." ~ .dirSeparator) || normal.isRooted();
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
 	assert (.isOuterPath("../a"));
