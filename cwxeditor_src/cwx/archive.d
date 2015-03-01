@@ -73,6 +73,10 @@ void unzip(ZipArchive arc,
 	foreach (am; arc.directory) {
 		string name = memberName(am.name);
 		string nml = replace(name, "/", dirSeparator);
+		if (nml.isOuterPath) {
+			// 外部のディレクトリに展開されそうなファイルは取り除く
+			continue;
+		}
 		if (name.length > 0 && !hasParDir(nml)) {
 			// 属性が不思議なことになってるので0x10だけで判断するのは避ける
 			bool isDir = ((am.fileAttributes & 0x10) != 0 || std.algorithm.endsWith(nml, dirSeparator)) && am.expandedSize == 0;
