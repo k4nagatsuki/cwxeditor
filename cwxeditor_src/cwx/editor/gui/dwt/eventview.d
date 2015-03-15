@@ -802,7 +802,7 @@ private:
 			tree = cast(EventTree) p.getData();
 			auto kcIndex = p.indexOf(itm) - keyCodesIndex(p);
 			auto old = tree.keyCodes[kcIndex];
-			if (_prop.sys.convFireKeyCode(old.keyCode, old.kind) == text) return;
+			if (_prop.sys.convFireKeyCode(old) == text) return;
 			store(tree);
 			tree.setKeyCode(kcIndex, _prop.sys.toFKeyCode(text));
 			foreach (v; views()) { mixin(S_TRACE);
@@ -1052,7 +1052,7 @@ private:
 		}
 		void createKeyCodeItem(T)(TreeItem parent, T a) { mixin(S_TRACE);
 			foreach (keyCode; a.keyCodes) { mixin(S_TRACE);
-				string kc = _prop.sys.convFireKeyCode(keyCode.keyCode, keyCode.kind);
+				string kc = _prop.sys.convFireKeyCode(keyCode);
 				createTreeItem(parent, new KeyCodeObj(kc), kc, keyCodeImage(kc));
 			}
 		}

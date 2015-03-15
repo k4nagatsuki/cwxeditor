@@ -269,7 +269,12 @@ class System {
 	/// キーコード発火条件を変換する。
 	const
 	string convFireKeyCode(in FKeyCode keyCode) { mixin(S_TRACE);
-		return convFireKeyCode(keyCode.keyCode, keyCode.kind);
+		final switch (keyCode.kind) {
+		case FKCKind.Use: return keyCode.keyCode;
+		case FKCKind.Success: return keyCode.keyCode ~ FKC_SUCCESS;
+		case FKCKind.Failure: return keyCode.keyCode ~ FKC_FAILURE;
+		case FKCKind.HasNot: return FKC_HASNOT ~ keyCode.keyCode;
+		}
 	}
 	/// ditto
 	const

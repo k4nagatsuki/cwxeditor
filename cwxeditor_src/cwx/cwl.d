@@ -3444,7 +3444,7 @@ private void writeEventTree(ref SData d, ref ByteIO f, EventTree tree) { mixin(S
 	}
 	string[] keyCodes;
 	foreach (keyCode; tree.keyCodes) { mixin(S_TRACE);
-		keyCodes ~= d.sys.convFireKeyCode(keyCode.keyCode, keyCode.kind);
+		keyCodes ~= d.sys.convFireKeyCode(keyCode);
 	}
 	if (KeyCodeMatchingType.And is tree.keyCodeMatchingType) { mixin(S_TRACE);
 		// CardWirth 1.50

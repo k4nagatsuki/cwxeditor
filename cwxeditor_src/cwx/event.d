@@ -2739,7 +2739,7 @@ public:
 			ig.newElement("Number", encodeLf(nums, false));
 			string[] keyCodes;
 			foreach (u; _keyCodes) { mixin(S_TRACE);
-				keyCodes ~= opt.sys.convFireKeyCode(u.user.keyCode, u.kind);
+				keyCodes ~= opt.sys.convFireKeyCode(FKeyCode(u.user.keyCode, u.kind));
 			}
 			ig.newElement("KeyCodes", encodeLf(keyCodes));
 		}
@@ -2839,7 +2839,7 @@ public:
 	}
 	/// 「発火キーコード」をXMLノード化する。
 	static XNode keyCodeToNode(FKeyCode keyCode, in System sys) { mixin(S_TRACE);
-		string str = sys.convFireKeyCode(keyCode.keyCode, keyCode.kind);
+		string str = sys.convFireKeyCode(keyCode);
 		return fireToNode("FireKeyCode", "keyCode", str);
 	}
 	private static bool fireFromNode(ref XNode node, string name, bool delegate() has, void delegate(bool) fire) { mixin(S_TRACE);
