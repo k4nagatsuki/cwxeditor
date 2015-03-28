@@ -96,7 +96,7 @@ private:
 	} else { mixin(S_TRACE);
 		static assert (0);
 	}
-	FlagChooser!(Flag, true) _flag = null;
+	FlagChooser!(cwx.flag.Flag, true) _flag = null;
 	Spinner _x;
 	Spinner _y;
 	Spinner _scale;

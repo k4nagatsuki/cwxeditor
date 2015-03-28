@@ -391,9 +391,9 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		_flagIncSearch.startIncSearch();
 	}
 
-	private void refFlags(Flag[] f, Step[] s) { mixin(S_TRACE);
+	private void refFlags(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
 		if (!_summ) return;
-		static if (is(F:Flag)) {
+		static if (is(F:cwx.flag.Flag)) {
 			if (!f.length) return;
 		} else static if (is(F:Step)) {
 			if (!s.length) return;
@@ -403,9 +403,9 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		saveExpanded();
 		refreshFlags();
 	}
-	private void delFlags(Flag[] f, Step[] s) { mixin(S_TRACE);
+	private void delFlags(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
 		if (!_summ) return;
-		static if (is(F:Flag)) {
+		static if (is(F:cwx.flag.Flag)) {
 			if (!f.length) return;
 		} else static if (is(F:Step)) {
 			if (!s.length) return;
@@ -417,14 +417,14 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 	}
 	@property
 	private ref bool[string] expandedTable() {
-		static if (is(F:Flag)) {
+		static if (is(F:cwx.flag.Flag)) {
 			return _comm.flagDirExpanded;
 		} else static if (is(F:Step)) {
 			return _comm.stepDirExpanded;
 		} else static assert (0);
 	}
 	private void refreshFlags() { mixin(S_TRACE);
-		static if (is(F:Flag)) {
+		static if (is(F:cwx.flag.Flag)) {
 			auto icon = _prop.images.flag;
 		} else static if (is(F:Step)) {
 			auto icon = _prop.images.step;
@@ -484,7 +484,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					dirItm.setText(name);
 				}
 				foreach (child; dir.subDirs) { mixin(S_TRACE);
-					static if (is(F:Flag)) {
+					static if (is(F:cwx.flag.Flag)) {
 						auto flags = child.allFlags;
 					} else static if (is(F:Step)) {
 						auto flags = child.allSteps;
@@ -498,7 +498,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 					if (!hasChild) continue;
 					selItm |= recurse(dirItm, child, child.name);
 				}
-				static if (is(F:Flag)) {
+				static if (is(F:cwx.flag.Flag)) {
 					auto flags = dir.flags;
 				} else static if (is(F:Step)) {
 					auto flags = dir.steps;
@@ -551,7 +551,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			}
 
 		} else { mixin(S_TRACE);
-			static if (is(F:Flag)) {
+			static if (is(F:cwx.flag.Flag)) {
 				auto flags = _summ.flagDirRoot.allFlags;
 			} else static if (is(F:Step)) {
 				auto flags = _summ.flagDirRoot.allSteps;

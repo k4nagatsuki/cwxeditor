@@ -48,7 +48,7 @@ import std.traits;
 import std.array;
 import std.ascii;
 import std.exception;
-import std.algorithm : iota;
+import std.range : iota;
 
 import org.eclipse.swt.all;
 import java.lang.all;

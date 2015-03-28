@@ -488,10 +488,10 @@ private:
 		ulong[int] tbl2;
 		string oldSel = clear ? "" : combo.getText();
 		combo.removeAll();
-		static if (is(T:Flag) || is(T:Step)) {
+		static if (is(T:cwx.flag.Flag) || is(T:Step)) {
 			auto set = new HashSet!string;
 			if (_summ) { mixin(S_TRACE);
-				static if (is(T:Flag)) {
+				static if (is(T:cwx.flag.Flag)) {
 					foreach (key; _summ.useCounter.flag.keys) { mixin(S_TRACE);
 						if (_prop.sys.randomValue == cast(string)key) continue;
 						if (!incSearch.match(cast(string)key)) continue;
@@ -3370,10 +3370,10 @@ public:
 		if (back) { mixin(S_TRACE);
 			replBgImage(back, back, count, nArr);
 		}
-		auto f = cast(Flag) c;
+		auto f = cast(cwx.flag.Flag) c;
 		if (f && _flagSel) { mixin(S_TRACE);
 			Undo[] uArr = new Undo[0];
-			bool r = replFlagName!Flag(f.parent, f, count, uArr);
+			bool r = replFlagName!(cwx.flag.Flag)(f.parent, f, count, uArr);
 			r |= repl(null, f.on, &f.on, count, uArr);
 			r |= repl(null, f.off, &f.off, count, uArr);
 			if (r) { mixin(S_TRACE);

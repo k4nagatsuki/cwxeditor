@@ -1295,7 +1295,7 @@ private:
 	}
 
 	void refreshValues() { mixin(S_TRACE);
-		static if (is(F:Flag)) {
+		static if (is(F:cwx.flag.Flag)) {
 			F flag = summ.flagDirRoot.findFlag(_flags.selected);
 		} else static if (is(F:Step)) {
 			F flag = summ.flagDirRoot.findStep(_flags.selected);
@@ -1305,7 +1305,7 @@ private:
 		}
 		_values.removeAll();
 		if (flag) { mixin(S_TRACE);
-			static if (is (F == Flag)) {
+			static if (is (F == cwx.flag.Flag)) {
 				auto itm1 = new TableItem(_values, SWT.NONE);
 				itm1.setText(flag.on);
 				auto itm2 = new TableItem(_values, SWT.NONE);
@@ -1351,8 +1351,8 @@ private:
 			_comm.delFlagAndStep.remove(&delFS);
 		}
 	}
-	void refFS(Flag[] f, Step[] s) { mixin(S_TRACE);
-		static if (is(F : Flag)) {
+	void refFS(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
+		static if (is(F : cwx.flag.Flag)) {
 			if (!f.length) return;
 		} else { mixin(S_TRACE);
 			if (!s.length) return;
@@ -1361,13 +1361,13 @@ private:
 		refreshValues();
 		_values.select(sel);
 	}
-	void delFS(Flag[] f, Step[] s) { mixin(S_TRACE);
-		static if (is(F : Flag)) {
+	void delFS(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
+		static if (is(F : cwx.flag.Flag)) {
 			if (!f.length) return;
 		} else { mixin(S_TRACE);
 			if (!s.length) return;
 		}
-		static if (is(F : Flag)) {
+		static if (is(F : cwx.flag.Flag)) {
 			if (!_root.allFlags.length) { mixin(S_TRACE);
 				forceCancel();
 				return;
@@ -1386,7 +1386,7 @@ private:
 		Combo _cmp = null;
 		Comparison4[] _cmps;
 		void updateLabel() { mixin(S_TRACE);
-			static if (is(F:Flag)) {
+			static if (is(F:cwx.flag.Flag)) {
 				F step = summ.flagDirRoot.findFlag(_flags.selected);
 			} else static if (is(F:Step)) {
 				F step = summ.flagDirRoot.findStep(_flags.selected);
@@ -1422,7 +1422,7 @@ protected:
 		{ mixin(S_TRACE);
 			auto l1 = new CLabel(left, SWT.NONE);
 			auto l2 = new CLabel(right, SWT.NONE);
-			static if (is (F == Flag)) {
+			static if (is (F == cwx.flag.Flag)) {
 				l1.setText(_prop.msgs.flag);
 				l1.setImage(_prop.images.flag);
 				l2.setText(_prop.msgs.flagValue);
@@ -1475,7 +1475,7 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
-			static if (is (F == Flag)) {
+			static if (is (F == cwx.flag.Flag)) {
 				_flags.selected = _evt.flag;
 			} else static if (is (F == Step)) {
 				_flags.selected = _evt.step;
@@ -1485,7 +1485,7 @@ protected:
 			_oldSel = _flags.selectedWithDir;
 			refreshValues();
 			static if (SelValue) {
-				static if (is (F == Flag)) {
+				static if (is (F == cwx.flag.Flag)) {
 					_values.select(_evt.flagValue ? 0 : 1);
 				} else static if (is (F == Step)) {
 					_values.select(_evt.stepValue);
@@ -1511,7 +1511,7 @@ protected:
 	override bool apply() { mixin(S_TRACE);
 		assert (_flags.selected != "");
 		if (!_evt) _evt = new Content(Type, "");
-		static if (is (F == Flag)) {
+		static if (is (F == cwx.flag.Flag)) {
 			_evt.flag = _flags.selected;
 			static if (SelValue) {
 				_evt.flagValue = _values.getSelectionIndex() == 0;
@@ -1531,15 +1531,15 @@ protected:
 	}
 }
 
-alias FlagStepDialog!(CType.BRANCH_FLAG, Flag, false) BrFlagDialog;
+alias FlagStepDialog!(CType.BRANCH_FLAG, cwx.flag.Flag, false) BrFlagDialog;
 alias FlagStepDialog!(CType.BRANCH_MULTI_STEP, Step, false) BrStepNDialog;
 alias FlagStepDialog!(CType.BRANCH_STEP, Step, true) BrStepULDialog;
-alias FlagStepDialog!(CType.SET_FLAG, Flag, true) FlagSetDialog;
+alias FlagStepDialog!(CType.SET_FLAG, cwx.flag.Flag, true) FlagSetDialog;
 alias FlagStepDialog!(CType.SET_STEP, Step, true) StepSetDialog;
 alias FlagStepDialog!(CType.SET_STEP_UP, Step, false) StepPlusDialog;
 alias FlagStepDialog!(CType.SET_STEP_DOWN, Step, false) StepMinusDialog;
-alias FlagStepDialog!(CType.REVERSE_FLAG, Flag, false) FlagRDialog;
-alias FlagStepDialog!(CType.CHECK_FLAG, Flag, false) FlagJudgeDialog;
+alias FlagStepDialog!(CType.REVERSE_FLAG, cwx.flag.Flag, false) FlagRDialog;
+alias FlagStepDialog!(CType.CHECK_FLAG, cwx.flag.Flag, false) FlagJudgeDialog;
 alias FlagStepDialog!(CType.CHECK_STEP, Step, true) CheckStepDialog;
 
 /// フラグ・ステップの組み合わせを選択するダイアログ。
@@ -1565,8 +1565,8 @@ private:
 			_comm.delFlagAndStep.remove(&delFS);
 		}
 	}
-	void delFS(Flag[] f, Step[] s) { mixin(S_TRACE);
-		static if (is(F : Flag)) {
+	void delFS(cwx.flag.Flag[] f, Step[] s) { mixin(S_TRACE);
+		static if (is(F : cwx.flag.Flag)) {
 			if (!_root.allFlags.length) { mixin(S_TRACE);
 				forceCancel();
 			}
@@ -1606,7 +1606,7 @@ protected:
 				l1.setText(_prop.msgs.cmpSource);
 				l2.setText(_prop.msgs.cmpTarget);
 			} else static assert (0);
-			static if (is (F == Flag)) {
+			static if (is (F == cwx.flag.Flag)) {
 				l1.setImage(_prop.images.flag);
 				l2.setImage(_prop.images.flag);
 			} else static if (is (F == Step)) {
@@ -1627,7 +1627,7 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
-			static if (is (F == Flag)) {
+			static if (is (F == cwx.flag.Flag)) {
 				_flags1.selected = _evt.flag;
 				_flags2.selected = _evt.flag2;
 			} else static if (is (F == Step)) {
@@ -1646,7 +1646,7 @@ protected:
 
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(Type, "");
-		static if (is (F == Flag)) {
+		static if (is (F == cwx.flag.Flag)) {
 			_evt.flag = _flags1.selected;
 			_evt.flag2 = _flags2.selected;
 		} else static if (is (F == Step)) {
@@ -1660,9 +1660,9 @@ protected:
 }
 
 alias FlagStepCombiDialog!(CType.SUBSTITUTE_STEP, Step, true) SubstituteStepDialog;
-alias FlagStepCombiDialog!(CType.SUBSTITUTE_FLAG, Flag, true) SubstituteFlagDialog;
+alias FlagStepCombiDialog!(CType.SUBSTITUTE_FLAG, cwx.flag.Flag, true) SubstituteFlagDialog;
 alias FlagStepCombiDialog!(CType.BRANCH_STEP_CMP, Step, false) BrStepCmpDialog;
-alias FlagStepCombiDialog!(CType.BRANCH_FLAG_CMP, Flag, false) BrFlagCmpDialog;
+alias FlagStepCombiDialog!(CType.BRANCH_FLAG_CMP, cwx.flag.Flag, false) BrFlagCmpDialog;
 
 /// メンバ選択分岐の設定を行うダイアログ。
 class BrMemberDialog : EventDialog {

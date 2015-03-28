@@ -238,7 +238,7 @@ class AbstractMessageDialog : EventDialog {
 		comm.refPath.add(&refPath);
 		comm.delPaths.add(&refreshWarning);
 	}
-	private void refFlagAndStep(Flag[] flags, Step[] steps) { refreshWarning(); }
+	private void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { refreshWarning(); }
 	private void refPath(string o, string n, bool isDir) { refreshWarning(); }
 	private void refPaths(string parent) { refreshWarning(); }
 
@@ -1613,7 +1613,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 	refListF();
 	refListS();
 
-	void refFlagAndStep(Flag[] flags, Step[] steps) { mixin(S_TRACE);
+	void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { mixin(S_TRACE);
 		refListF();
 		refListS();
 	}
@@ -1891,7 +1891,7 @@ class PreviewValues : Composite {
 	void delegate()[] modEvent;
 
 	private static class FlagData {
-		Flag flag;
+		cwx.flag.Flag flag;
 		bool onOff;
 	}
 	private static class StepData {
@@ -2058,7 +2058,7 @@ class PreviewValues : Composite {
 			}
 		}
 	}
-	private void refFlagAndStep(Flag[] flags, Step[] steps) { mixin(S_TRACE);
+	private void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { mixin(S_TRACE);
 		_undo.reset();
 		refreshFlags();
 		raiseModEvent();

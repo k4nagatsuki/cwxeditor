@@ -11,6 +11,8 @@ import std.exception;
 import std.c.stdio;
 import std.c.string;
 
+import core.stdc.wchar_;
+
 import cwx.utils;
 
 enum {

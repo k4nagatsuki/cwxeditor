@@ -122,7 +122,8 @@ version (Windows) {
 
 immutable FLAGS = [
 	"-op",
-	"-property",
+	// BUG: dmd 2.067.0 occurs compile error.
+//	"-property",
 	"-c",
 ];
 immutable CRITICAL_FLAGS = [

@@ -745,7 +745,7 @@ private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) { 
 		bool sel = readBool(f);
 		string on = readString(f);
 		string off = readString(f);
-		if (!flagsParent(path).add(new Flag(FlagDir.basename(path), on, off, sel))) { mixin(S_TRACE);
+		if (!flagsParent(path).add(new cwx.flag.Flag(FlagDir.basename(path), on, off, sel))) { mixin(S_TRACE);
 			throw new SummaryException("Invalid flag path: " ~ path);
 		}
 	}

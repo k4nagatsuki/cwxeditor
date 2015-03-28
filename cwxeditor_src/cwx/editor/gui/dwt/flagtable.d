@@ -72,7 +72,7 @@ private:
 			_comm.refScenario.remove(&refScenario);
 		}
 	}
-	void delStep(Flag[] flag, Step[] step) { mixin(S_TRACE);
+	void delStep(cwx.flag.Flag[] flag, Step[] step) { mixin(S_TRACE);
 		foreach (s; step) { mixin(S_TRACE);
 			if (s is _step) { mixin(S_TRACE);
 				forceCancel();
@@ -256,7 +256,7 @@ public class FlagEditDialog : AbsDialog {
 private:
 	Commons _comm;
 	Props prop;
-	Flag _flag;
+	cwx.flag.Flag _flag;
 	FlagDir dir;
 
 	Text flagName;
@@ -297,7 +297,7 @@ private:
 			_comm.refScenario.remove(&refScenario);
 		}
 	}
-	void delFlag(Flag[] flag, Step[] step) { mixin(S_TRACE);
+	void delFlag(cwx.flag.Flag[] flag, Step[] step) { mixin(S_TRACE);
 		foreach (f; flag) { mixin(S_TRACE);
 			if (f is _flag) { mixin(S_TRACE);
 				forceCancel();
@@ -314,7 +314,7 @@ public:
 	/// shell = 親ウィンドウ。
 	/// dir = 設定するフラグの親ディレクトリ。
 	/// flag = 設定するフラグ。新規の場合はnull。
-	this(Commons comm, Props prop, Shell shell, FlagDir dir, Flag flag = null) { mixin(S_TRACE);
+	this(Commons comm, Props prop, Shell shell, FlagDir dir, cwx.flag.Flag flag = null) { mixin(S_TRACE);
 		super(prop, shell, false, prop.msgs.dlgTitFlag, prop.images.flag, true, prop.var.flagDlg, true);
 		_comm = comm;
 		this.prop = prop;
@@ -325,7 +325,7 @@ public:
 
 	/// Returns: 編集対象となったフラグ。
 	@property
-	Flag flag() { mixin(S_TRACE);
+	cwx.flag.Flag flag() { mixin(S_TRACE);
 		return _flag;
 	}
 	/// 入力中の名前を妥当な形にして返す。
@@ -438,7 +438,7 @@ protected:
 			_flag.on = flagTrue.getText();
 			_flag.off = flagFalse.getText();
 		} else { mixin(S_TRACE);
-			_flag = new Flag(this.name, flagTrue.getText(), flagFalse.getText(),
+			_flag = new cwx.flag.Flag(this.name, flagTrue.getText(), flagFalse.getText(),
 				flagInit.getSelectionIndex() == 0);
 			dir.add(_flag);
 		}
@@ -543,9 +543,9 @@ package class UndoEditN {
 	private string _name;
 	this (FlagDir dir, int index, string oldName, int value) { mixin(S_TRACE);
 		auto p = FlagTable.fromIndex(dir, index);
-		auto f = cast(Flag)p;
+		auto f = cast(cwx.flag.Flag)p;
 		if (f) { mixin(S_TRACE);
-			auto flag = new Flag(f);
+			auto flag = new cwx.flag.Flag(f);
 			_name = flag.name;
 			flag.name = oldName;
 			if (-1 != value) flag.onOff = value == 0;
@@ -563,10 +563,10 @@ package class UndoEditN {
 	CWXPath impl(Commons comm, FlagDir dir, out string newName) { mixin(S_TRACE);
 		assert (dir);
 		auto fB = _f;
-		if (cast(Flag)fB) { mixin(S_TRACE);
+		if (cast(cwx.flag.Flag)fB) { mixin(S_TRACE);
 			auto f = dir.getFlag(_name);
-			_f = new Flag(f);
-			auto o = cast(Flag)fB;
+			_f = new cwx.flag.Flag(f);
+			auto o = cast(cwx.flag.Flag)fB;
 			assert (o);
 			_name = o.name;
 			bool refVal = o.on != f.on || o.off != f.off;
@@ -612,15 +612,15 @@ package class UndoEdit : FTVUndo {
 		udb(v);
 		scope (exit) uda(v);
 		auto dir = this.dir();
-		Flag[] refF;
+		cwx.flag.Flag[] refF;
 		Step[] refS;
 		string[] newNameF;
 		string[] newNameS;
 		foreach (impl; _impl) { mixin(S_TRACE);
 			string newName;
 			auto refVal = impl.impl(comm, dir, newName);
-			if (cast(Flag)refVal) { mixin(S_TRACE);
-				refF ~= cast(Flag)refVal;
+			if (cast(cwx.flag.Flag)refVal) { mixin(S_TRACE);
+				refF ~= cast(cwx.flag.Flag)refVal;
 				newNameF ~= newName;
 			} else if (cast(Step)refVal) { mixin(S_TRACE);
 				refS ~= cast(Step)refVal;
@@ -647,7 +647,7 @@ package class UndoInsertDelete : FTVUndo {
 	private string[] _stepName;
 	/// delete
 	private FlagDir[int] _ds;
-	private Flag[] _fs;
+	private cwx.flag.Flag[] _fs;
 	private Step[] _ss;
 
 	/// 追加を元に戻す。
@@ -661,21 +661,21 @@ package class UndoInsertDelete : FTVUndo {
 		_insert = true;
 	}
 	/// 削除を元に戻す。
-	this (FlagTable v, Commons comm, FlagDir dir, string[] selectedF, string[] selectedS, FlagDir[int] ds, Flag[] fs, Step[] ss) { mixin(S_TRACE);
+	this (FlagTable v, Commons comm, FlagDir dir, string[] selectedF, string[] selectedS, FlagDir[int] ds, cwx.flag.Flag[] fs, Step[] ss) { mixin(S_TRACE);
 		super (v, comm, dir);
 		_selectedF = selectedF.dup;
 		_selectedS = selectedS.dup;
 		save(ds, fs, ss);
 		_insert = false;
 	}
-	private void save(FlagDir[int] ds, Flag[] fs, Step[] ss) { mixin(S_TRACE);
+	private void save(FlagDir[int] ds, cwx.flag.Flag[] fs, Step[] ss) { mixin(S_TRACE);
 		_ds = ds;
 		foreach (index, d; _ds) { mixin(S_TRACE);
 			_ds[index] = new FlagDir(d);
 		}
 		_fs.length = 0;
 		foreach (f; fs) { mixin(S_TRACE);
-			_fs ~= new Flag(f);
+			_fs ~= new cwx.flag.Flag(f);
 		}
 		_ss.length = 0;
 		foreach (s; ss) { mixin(S_TRACE);
@@ -685,7 +685,7 @@ package class UndoInsertDelete : FTVUndo {
 	private void undoInsert(FlagTable v) { mixin(S_TRACE);
 		_insert = false;
 		FlagDir[int] ds;
-		Flag[] fs;
+		cwx.flag.Flag[] fs;
 		Step[] ss;
 		auto dir = this.dir();
 		foreach (i; _dirIndices) { mixin(S_TRACE);
@@ -776,7 +776,7 @@ package class UndoMove : FTVUndo {
 	private string[string] _cFlags;
 	private string[string] _cSteps;
 
-	this (FlagTable v, Commons comm, string[] selectedF, string[] selectedS, FlagDir to, int[] dirIndices, string[] flagName, string[] stepName, FlagDir from, FlagDir[int] ds, Flag[] fs, Step[] ss, Flag[string] cFlags, Step[string] cSteps) { mixin(S_TRACE);
+	this (FlagTable v, Commons comm, string[] selectedF, string[] selectedS, FlagDir to, int[] dirIndices, string[] flagName, string[] stepName, FlagDir from, FlagDir[int] ds, cwx.flag.Flag[] fs, Step[] ss, cwx.flag.Flag[string] cFlags, Step[string] cSteps) { mixin(S_TRACE);
 		super (v, comm, from);
 		_selectedF = selectedF.dup;
 		_selectedS = selectedS.dup;
@@ -888,7 +888,7 @@ private:
 	void storeInsert(string[] selectedF, string[] selectedS, string[] flagName, string[] stepName) { mixin(S_TRACE);
 		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, [], flagName, stepName);
 	}
-	void storeDelete(string[] selectedF, string[] selectedS, Flag[] fs, Step[] ss) { mixin(S_TRACE);
+	void storeDelete(string[] selectedF, string[] selectedS, cwx.flag.Flag[] fs, Step[] ss) { mixin(S_TRACE);
 		FlagDir[int] ds;
 		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, ds, fs, ss);
 	}
@@ -975,7 +975,7 @@ private:
 	FlagDir _dir = null;
 	string _statusLine = "";
 
-	FlagEditDialog[Flag] _editDlgsF;
+	FlagEditDialog[cwx.flag.Flag] _editDlgsF;
 	StepEditDialog[Step] _editDlgsS;
 
 	IncSearch _incSearch = null;
@@ -986,13 +986,13 @@ private:
 
 	UndoManager _undo;
 
-	void editFlag(FlagDir parent, Flag flag) { mixin(S_TRACE);
+	void editFlag(FlagDir parent, cwx.flag.Flag flag) { mixin(S_TRACE);
 		bool createMode = flag is null;
 		string old = createMode ? null : flag.path;
 		if (!flag) { mixin(S_TRACE);
 			string on = prop.var.etc.flagTrues.length > 0 ? prop.var.etc.flagTrues[0] : "";
 			string off = prop.var.etc.flagFalses.length > 0 ? prop.var.etc.flagFalses[0] : "";
-			flag = new Flag("", on, off, true);
+			flag = new cwx.flag.Flag("", on, off, true);
 		}
 		auto p = flag in _editDlgsF;
 		if (p) { mixin(S_TRACE);
@@ -1111,14 +1111,14 @@ private:
 	/// fs = 選択中のフラグの配列が格納される。
 	/// ss = 選択中のステップの配列が格納される。
 	/// Returns: 選択中ならtrue。
-	bool getSelectionFlagAndStep(out Flag[] fs, out Step[] ss) { mixin(S_TRACE);
+	bool getSelectionFlagAndStep(out cwx.flag.Flag[] fs, out Step[] ss) { mixin(S_TRACE);
 		auto indices = flags.getSelectionIndices();
 		if (indices.length > 0) { mixin(S_TRACE);
 			foreach (i; indices) { mixin(S_TRACE);
 				auto itm = flags.getItem(i);
 				if (auto s = cast(Step)itm.getData()) { mixin(S_TRACE);
 					ss ~= s;
-				} else if (auto f = cast(Flag)itm.getData()) { mixin(S_TRACE);
+				} else if (auto f = cast(cwx.flag.Flag)itm.getData()) { mixin(S_TRACE);
 					fs ~= f;
 				} else assert (0);
 			}
@@ -1139,13 +1139,13 @@ private:
 		}
 	}
 	void selectFlagNames(string[] names) { mixin(S_TRACE);
-		selectNamesImpl!Flag(names);
+		selectNamesImpl!(cwx.flag.Flag)(names);
 	}
 	void selectStepNames(string[] names) { mixin(S_TRACE);
 		selectNamesImpl!Step(names);
 	}
 
-	Flag[] _dragFlags;
+	cwx.flag.Flag[] _dragFlags;
 	Step[] _dragSteps;
 	class FlagDragListener : DragSourceListener {
 	private:
@@ -1197,7 +1197,7 @@ private:
 		auto itms = flags.getSelection();
 		itms = itms.remove(selItm);
 		itms.insertInPlace(0, selItm);
-		Flag[] refF;
+		cwx.flag.Flag[] refF;
 		Step[] refS;
 		int[] indices;
 		string[] oldNames;
@@ -1206,7 +1206,7 @@ private:
 		FlagId[] oldFID;
 		StepId[] oldSID;
 		foreach (itm; itms) { mixin(S_TRACE);
-			auto f = cast(Flag)itm.getData();
+			auto f = cast(cwx.flag.Flag)itm.getData();
 			if (f) { mixin(S_TRACE);
 				indices ~= indexOf(f.parent, f);
 				oldNamesF ~= f.name;
@@ -1271,7 +1271,7 @@ private:
 		return changed;
 	}
 	void initCombo(TableItem itm, int column, out string[] strs, out string str) { mixin(S_TRACE);
-		auto f = cast(Flag) itm.getData();
+		auto f = cast(cwx.flag.Flag) itm.getData();
 		if (f) { mixin(S_TRACE);
 			strs = [f.on, f.off];
 			str = f.onOff ? f.on : f.off;
@@ -1291,18 +1291,18 @@ private:
 	void initEditEnd(TableItem selItm, int column, Combo combo) { mixin(S_TRACE);
 		int i = combo.getSelectionIndex();
 		if (-1 == i) return;
-		auto selFlag = cast(Flag)selItm.getData();
+		auto selFlag = cast(cwx.flag.Flag)selItm.getData();
 		auto selStep = cast(Step)selItm.getData();
 		auto itms = flags.getSelection();
 		itms = itms.remove(selItm);
 		itms.insertInPlace(0, selItm);
-		Flag[] refF;
+		cwx.flag.Flag[] refF;
 		Step[] refS;
 		int[] indices;
 		string[] oldNames;
 		int[] oldValues;
 		foreach (itm; itms) { mixin(S_TRACE);
-			auto f = cast(Flag)itm.getData();
+			auto f = cast(cwx.flag.Flag)itm.getData();
 			if (selFlag && f) { mixin(S_TRACE);
 				if (f.onOff == (0 == i)) continue;
 				indices ~= indexOf(f.parent, f);
@@ -1363,7 +1363,7 @@ private:
 		_comm.refreshToolBar();
 	}
 	void copyInitTree() { mixin(S_TRACE);
-		Flag[] fs;
+		cwx.flag.Flag[] fs;
 		Step[] ss;
 		getSelectionFlagAndStep(fs, ss);
 		auto c = createInitVariablesTree(fs, ss);
@@ -1395,7 +1395,7 @@ private:
 		char[] buf;
 		foreach (itm; flags.getSelection()) { mixin(S_TRACE);
 			if (buf.length) buf ~= .newline;
-			auto f = cast(Flag)itm.getData();
+			auto f = cast(cwx.flag.Flag)itm.getData();
 			if (f) buf ~= f.path;
 			auto s = cast(Step)itm.getData();
 			if (s) buf ~= s.path;
@@ -1498,7 +1498,7 @@ public:
 	void updateIncSearchParent(Composite incSearchParent) {
 		auto matchers = [
 			AdditionMatcher(MenuProps.buildMenu(.objName!Step(prop), "S", "", false), (o) => cast(Step)o !is null),
-			AdditionMatcher(MenuProps.buildMenu(.objName!Flag(prop), "F", "", false), (o) => cast(Flag)o !is null),
+			AdditionMatcher(MenuProps.buildMenu(.objName!(cwx.flag.Flag)(prop), "F", "", false), (o) => cast(cwx.flag.Flag)o !is null),
 		];
 		_incSearch = new IncSearch(_comm, incSearchParent, matchers);
 		_incSearch.modEvent ~= &refresh;
@@ -1508,7 +1508,7 @@ public:
 	Control widget() {return _comp;}
 
 	@property
-	package Flag[] dragFlags() {return _dragFlags;}
+	package cwx.flag.Flag[] dragFlags() {return _dragFlags;}
 	@property
 	package Step[] dragSteps() {return _dragSteps;}
 
@@ -1523,7 +1523,7 @@ public:
 			put(prop.msgs.flag, _dir.flags.length);
 			put(prop.msgs.step, _dir.steps.length);
 		}
-		Flag[] selFlags;
+		cwx.flag.Flag[] selFlags;
 		Step[] selSteps;
 		getSelectionFlagAndStep(selFlags, selSteps);
 		if (selFlags.length || selSteps.length) { mixin(S_TRACE);
@@ -1537,8 +1537,8 @@ public:
 
 	private void refreshUseCount() { mixin(S_TRACE);
 		foreach (itm; flags.getItems()) { mixin(S_TRACE);
-			if (cast(Flag) itm.getData()) { mixin(S_TRACE);
-				itm.setText(2, to!(string)(uc.flag.get(toFlagId((cast(Flag) itm.getData()).path))));
+			if (cast(cwx.flag.Flag) itm.getData()) { mixin(S_TRACE);
+				itm.setText(2, to!(string)(uc.flag.get(toFlagId((cast(cwx.flag.Flag) itm.getData()).path))));
 			} else { mixin(S_TRACE);
 				assert (cast(Step) itm.getData());
 				itm.setText(2, to!(string)(uc.step.get(toStepId((cast(Step) itm.getData()).path))));
@@ -1583,12 +1583,12 @@ public:
 		return [];
 	}
 	/// 表示上で選択されているフラグまたはステップ。
-	int[] selectedItems(out Flag[] fs, out Step[] ss) { mixin(S_TRACE);
+	int[] selectedItems(out cwx.flag.Flag[] fs, out Step[] ss) { mixin(S_TRACE);
 		if (flags && !flags.isDisposed()) { mixin(S_TRACE);
 			auto indices = flags.getSelectionIndices();
 			foreach (i; indices) { mixin(S_TRACE);
 				auto o = flags.getItem(i).getData();
-				auto f = cast(Flag) o;
+				auto f = cast(cwx.flag.Flag) o;
 				if (f) fs ~= f;
 				auto s = cast(Step) o;
 				if (s) ss ~= s;
@@ -1599,8 +1599,8 @@ public:
 	}
 	/// ditto
 	@property
-	Flag[] selectionFlags() { mixin(S_TRACE);
-		Flag[] fs;
+	cwx.flag.Flag[] selectionFlags() { mixin(S_TRACE);
+		cwx.flag.Flag[] fs;
 		Step[] ss;
 		getSelectionFlagAndStep(fs, ss);
 		return fs;
@@ -1608,7 +1608,7 @@ public:
 	/// ditto
 	@property
 	Step[] selectionSteps() { mixin(S_TRACE);
-		Flag[] fs;
+		cwx.flag.Flag[] fs;
 		Step[] ss;
 		getSelectionFlagAndStep(fs, ss);
 		return ss;
@@ -1650,7 +1650,7 @@ public:
 			foreach (index; flags.getSelectionIndices()) { mixin(S_TRACE);
 				if (auto step = cast(Step)flags.getItem(index).getData()) { mixin(S_TRACE);
 					editStep(step.parent, step);
-				} else if (auto flag = cast(Flag)flags.getItem(index).getData()) { mixin(S_TRACE);
+				} else if (auto flag = cast(cwx.flag.Flag)flags.getItem(index).getData()) { mixin(S_TRACE);
 					editFlag(flag.parent, flag);
 				} else assert (0);
 			}
@@ -1661,7 +1661,7 @@ public:
 		return flags.getSelectionIndex() != -1;
 	}
 	/// 指定されたフラグの編集を開始する。
-	void edit(Flag flag) { mixin(S_TRACE);
+	void edit(cwx.flag.Flag flag) { mixin(S_TRACE);
 		enforce(flag.parent is dir);
 		editFlag(flag.parent, flag);
 	}
@@ -1704,7 +1704,7 @@ public:
 		_comm.refreshToolBar();
 	}
 	/// フラグを選択する。
-	void select(Flag flag, bool deselect) { mixin(S_TRACE);
+	void select(cwx.flag.Flag flag, bool deselect) { mixin(S_TRACE);
 		selectImpl(flag, deselect);
 	}
 	/// ステップを選択する。
@@ -1738,7 +1738,7 @@ public:
 		}
 		void copy(SelectionEvent se) { mixin(S_TRACE);
 			if (!_dir) return;
-			Flag[] fs;
+			cwx.flag.Flag[] fs;
 			Step[] ss;
 			if (getSelectionFlagAndStep(fs, ss)) { mixin(S_TRACE);
 				XMLtoCB(prop, _comm.clipboard, getXML(_dir, fs, ss));
@@ -1752,7 +1752,7 @@ public:
 				try { mixin(S_TRACE);
 					string newPath;
 					string rootId;
-					Flag[string] cFlags;
+					cwx.flag.Flag[string] cFlags;
 					Step[string] cSteps;
 					auto selsF = selectionFlagNames;
 					auto selsS = selectionStepNames;
@@ -1781,11 +1781,11 @@ public:
 			if (!_dir) return;
 			auto selsF = selectionFlagNames;
 			auto selsS = selectionStepNames;
-			Flag[] fs;
+			cwx.flag.Flag[] fs;
 			Step[] ss;
 			foreach (itm; flags.getSelection()) { mixin(S_TRACE);
 				auto data = itm.getData();
-				auto flag = cast(Flag) data;
+				auto flag = cast(cwx.flag.Flag) data;
 				if (flag) { mixin(S_TRACE);
 					fs ~= flag;
 					_dir.remove(flag);
@@ -1845,7 +1845,7 @@ public:
 		auto index = flags.getSelectionIndex();
 		if (index <= -1) return;
 		auto data = flags.getItem(index).getData();
-		if (auto f = cast(Flag)data) _comm.replaceID(toFlagId(f.path), true);
+		if (auto f = cast(cwx.flag.Flag)data) _comm.replaceID(toFlagId(f.path), true);
 		if (auto f = cast(Step)data) _comm.replaceID(toStepId(f.path), true);
 	}
 	@property
@@ -1853,13 +1853,13 @@ public:
 		auto index = flags.getSelectionIndex();
 		if (index <= -1) return false;
 		auto data = flags.getItem(index).getData();
-		return cast(Flag)data || cast(Step)data;
+		return cast(cwx.flag.Flag)data || cast(Step)data;
 	}
 
 	@property
 	string[] openedCWXPath() { mixin(S_TRACE);
 		string[] r;
-		Flag[] fs;
+		cwx.flag.Flag[] fs;
 		Step[] ss;
 		getSelectionFlagAndStep(fs, ss);
 		foreach (f; fs) { mixin(S_TRACE);

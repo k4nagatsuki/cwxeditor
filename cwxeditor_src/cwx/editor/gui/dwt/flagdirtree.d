@@ -31,10 +31,10 @@ private:
 	void storeInsert(FlagDir dir, string[] selectedF, string[] selectedS, int[] dirIndices, string[] flagName, string[] stepName) { mixin(S_TRACE);
 		_undo ~= new UndoInsertDelete(flags, _comm, dir, selectedF, selectedS, dirIndices, flagName, stepName);
 	}
-	void storeDelete(FlagDir dir, string[] selectedF, string[] selectedS, FlagDir[int] ds, Flag[] fs, Step[] ss) { mixin(S_TRACE);
+	void storeDelete(FlagDir dir, string[] selectedF, string[] selectedS, FlagDir[int] ds, cwx.flag.Flag[] fs, Step[] ss) { mixin(S_TRACE);
 		_undo ~= new UndoInsertDelete(flags, _comm, dir, selectedF, selectedS, ds, fs, ss);
 	}
-	void storeMove(string[] selectedF, string[] selectedS, FlagDir to, int[] dirIndices, string[] flagName, string[] stepName, FlagDir from, FlagDir[int] ds, Flag[] fs, Step[] ss, Flag[string] cFlags, Step[string] cSteps) { mixin(S_TRACE);
+	void storeMove(string[] selectedF, string[] selectedS, FlagDir to, int[] dirIndices, string[] flagName, string[] stepName, FlagDir from, FlagDir[int] ds, cwx.flag.Flag[] fs, Step[] ss, cwx.flag.Flag[string] cFlags, Step[string] cSteps) { mixin(S_TRACE);
 		_undo ~= new UndoMove(flags, _comm, selectedF, selectedS, to, dirIndices, flagName, stepName, from, ds, fs, ss, cFlags, cSteps);
 	}
 	void storeEditDir(FlagDir dir, string oldName) { mixin(S_TRACE);
@@ -108,9 +108,9 @@ private:
 				auto dir = cast(FlagDir) e.item.getData();
 				string newPath;
 				string rootId;
-				Flag[] fs = flags.dragFlags;
+				cwx.flag.Flag[] fs = flags.dragFlags;
 				Step[] ss = flags.dragSteps;
-				Flag[string] cFlags;
+				cwx.flag.Flag[string] cFlags;
 				Step[string] cSteps;
 				string[] tblSelsF, tblSelsS;
 				FlagDir moveDirParent = null;
@@ -537,7 +537,7 @@ public:
 					auto cur = current;
 					string newPath;
 					string rootId;
-					Flag[string] cFlags;
+					cwx.flag.Flag[string] cFlags;
 					Step[string] cSteps;
 					auto tblSelsF = flags.selectionFlagNames;
 					auto tblSelsS = flags.selectionStepNames;
@@ -586,7 +586,7 @@ public:
 				auto tblSelsS = flags.selectionStepNames;
 				int index = cast(int)cur.parent.indexOf(cur.name);
 				storeDelete(cur.parent, tblSelsF, tblSelsS, [index:cur], [], []);
-				Flag[] cFlags = cur.allFlags;
+				cwx.flag.Flag[] cFlags = cur.allFlags;
 				Step[] cSteps = cur.allSteps;
 				auto p = cur.parent;
 				p.remove(cur);

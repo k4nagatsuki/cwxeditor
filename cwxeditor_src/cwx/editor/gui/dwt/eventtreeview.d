@@ -3518,7 +3518,7 @@ public:
 	private void refreshArea(Area c) {refreshCard();}
 	private void refreshPackage(Package c) {refreshCard();}
 	private void refreshBattle(Battle c) {refreshCard();}
-	private void refreshFlagAndStep(Flag[] flags, Step[] steps) { mixin(S_TRACE);
+	private void refreshFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { mixin(S_TRACE);
 		if (flags.length || steps.length) { mixin(S_TRACE);
 			refreshCard();
 			if (_summ ? _prop.var.etc.showVariableValuesInEventText : showVariableValuesInEventText) { mixin(S_TRACE);
