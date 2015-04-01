@@ -743,22 +743,38 @@ string fileToMD5Digest(string file) { mixin(S_TRACE);
 	return "";
 }
 
+/// パスの正規化を行う。
+/// 現在のディレクトリが""となる事が
+/// std.path.buildNormalizedPath()と異なる。
+@property
+immutable(C)[] normpath(C)(in C[] path) { mixin(S_TRACE);
+	auto path2 = path.buildNormalizedPath();
+	return path2 == "." ? "" : path2;
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	assert (".".normpath == "");
+	assert ("./abc/..".normpath == "");
+	assert ("./abc/../def".normpath == "def");
+	assert ("abc/..".normpath == "");
+	assert ("abc/../def".normpath == "def");
+}
+
 /// 絶対パス化と正規化を行う。
 string nabs(string path) { mixin(S_TRACE);
-	return buildNormalizedPath(absolutePath(path));
+	return normpath(absolutePath(path));
 }
 
 /// 絶対パス化・正規化を行いつつ相対パスを取る。
 string abs2rel(string p1, string p2) { mixin(S_TRACE);
 	auto rel = relativePath(nabs(p1), nabs(p2));
-	return rel.buildNormalizedPath();
+	return rel.normpath();
 }
 
 /// 上のディレクトリへ遡るか、絶対パスであったらtrue。
 /// そのようなパスがアーカイヴに含まれていないかチェックするために使用する。
 @property
 bool isOuterPath(in char[] path) { mixin(S_TRACE);
-	auto normal = path.buildNormalizedPath();
+	auto normal = path.normpath();
 	return normal == "" || normal == "." || normal == ".." || normal.startsWith(".." ~ .dirSeparator) || normal.isRooted();
 } unittest { mixin(S_TRACE);
 	debug mixin(UTPerf);
@@ -1608,7 +1624,7 @@ template FileCache(T ...) {
 
 /// 親ディレクトリへの移動が含まれているパスであればtrueを返す。
 bool hasParDir(string path) { mixin(S_TRACE);
-	path = buildNormalizedPath(path);
+	path = normpath(path);
 	if (startsWith(path, pardir ~ dirSeparator)) return true;
 	if (.countUntil(path, dirSeparator ~ pardir ~ dirSeparator) != -1) return true;
 	return false;
