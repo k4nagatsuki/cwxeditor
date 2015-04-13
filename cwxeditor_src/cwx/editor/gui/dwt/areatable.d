@@ -2717,6 +2717,7 @@ public:
 			storeEdit(0UL, null);
 			_summ.startArea = a.id;
 			updateAreaImage();
+			refreshUseCount();
 		}
 	}
 

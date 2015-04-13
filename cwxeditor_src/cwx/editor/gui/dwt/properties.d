@@ -564,7 +564,10 @@ public class FlexProps {
 		}
 		auto dir = xmlFileName.dirName();
 		if (!.exists(dir)) mkdirRecurse(dir);
-		write(xmlFileName, node.text);
+		auto writePath = dir.buildPath("~" ~ xmlFileName.baseName());
+		writePath = createNewFileName(writePath, false);
+		write(writePath, node.text);
+		writePath.rename(xmlFileName);
 	}
 	void toNode(T)(ref XNode node, T t) { mixin(S_TRACE);
 		static if (is(typeof(t.toNode(node)))) {
