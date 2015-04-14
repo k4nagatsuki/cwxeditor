@@ -1631,6 +1631,9 @@ private:
 	class DListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_quit = true;
+			version (Console) {
+				debug writeln("Start Ending Process");
+			}
 			_prop.var.etc.lastScenario = summary ? createHistString(summary) : "";
 			_comm.save.remove(&savec);
 			_comm.refScenarioName.remove(&refreshTitle);
@@ -1644,6 +1647,9 @@ private:
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSoundType.remove(&refSoundType);
 			_comm.refShowToolBar.remove(&refShowMainToolBar);
+			version (Console) {
+				debug writeln("Removed Receivers");
+			}
 			auto b = _win.getBounds();
 			_prop.var.mainWin.x = b.x;
 			_prop.var.mainWin.y = b.y;
@@ -1654,12 +1660,21 @@ private:
 					_prop.var.mainWin.height = b.height;
 				}
 			}
+			version (Console) {
+				debug writeln("Saved Window Bounds");
+			}
 			stopSE();
 			stopBGM();
+			version (Console) {
+				debug writeln("Stopped Sounds");
+			}
 			_win.setVisible(false);
 			try { mixin(S_TRACE);
 				_comm.refScenario.call(null);
 				_comm.closeAll();
+				version (Console) {
+					debug writeln("Closed All Windows");
+				}
 				if (summary && summary.useTemp) { mixin(S_TRACE);
 					_dirWin.stopTrace();
 					try { mixin(S_TRACE);
@@ -1669,6 +1684,9 @@ private:
 					} catch (Exception e) {
 						printStackTrace();
 						debugln(e);
+					}
+					version (Console) {
+						debug writeln("Deleted Temporary Files");
 					}
 				}
 			} catch (Throwable e) {
@@ -4383,22 +4401,37 @@ public:
 			// 各要素が絡み合うため、必ずこの順序で各スレッドとリソースを解放する
 			_quit = true;
 			dStr ~= " - " ~ .text(__LINE__);
-			backup.join();
+			backup.join(false);
+			version (Console) {
+				debug writeln("Joined Backup Thread");
+			}
 			dStr ~= " - " ~ .text(__LINE__);
 			_dirWin.quitTrace();
+			version (Console) {
+				debug writeln("Joined Trace Thread");
+			}
 			dStr ~= " - " ~ .text(__LINE__);
 			_comm.dispose();
 			dStr ~= " - " ~ .text(__LINE__);
 			_prop.images.disposeImages();
 			dStr ~= " - " ~ .text(__LINE__);
+			version (Console) {
+				debug writeln("Disposed Resources");
+			}
 			synchronized (_display) {
 				_display = null;
 				d.dispose();
+			}
+			version (Console) {
+				debug writeln("Disposed Display");
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 			_prop.var.save(dock);
 			dStr ~= " - " ~ .text(__LINE__);
 			sendReloadProps();
+			version (Console) {
+				debug writeln("Saved Settings");
+			}
 			_prop.var.cleanup();
 			version (Console) {
 				debug writeln("Exit Main Thread");

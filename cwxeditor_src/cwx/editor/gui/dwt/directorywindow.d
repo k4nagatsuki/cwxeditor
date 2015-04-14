@@ -2001,10 +2001,10 @@ public:
 	}
 
 	void quitTrace() { mixin(S_TRACE);
-		if (!_traceThr) return;
 		_onTrace = false;
+		if (!_traceThr) return;
 		try { mixin(S_TRACE);
-			_traceThr.join();
+			_traceThr.join(false);
 		} catch (Throwable e) {
 			printStackTrace();
 			debugln(e);
