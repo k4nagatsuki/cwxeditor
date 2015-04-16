@@ -138,7 +138,7 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				data.transparentPixel = data.getPixel(maskX, maskY);
 			}
 			return data;
-		} catch (SWTException e) {
+		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
 		}
