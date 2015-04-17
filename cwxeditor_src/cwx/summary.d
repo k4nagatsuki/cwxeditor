@@ -25,7 +25,7 @@ import std.array;
 import std.file;
 import std.stream;
 import std.path;
-import std.zip;
+import d2std.zip;
 import std.datetime;
 import std.string;
 import std.utf;
@@ -328,8 +328,7 @@ public:
 			createLockFile(temp);
 			return temp;
 		}
-		ZipArchive scArc(string fname, string ext) { mixin(S_TRACE);
-			auto arc = new ZipArchive(readBinary(fname));
+		bool scArc(ZipArchive arc, string ext) { mixin(S_TRACE);
 			foreach (am; arc.directory) { mixin(S_TRACE);
 				string name;
 				try {
@@ -340,10 +339,10 @@ public:
 				}
 				name = replace(name, "/", dirSeparator);
 				if (cfnmatch(baseName(name), setExtension("Summary", ext))) { mixin(S_TRACE);
-					return arc;
+					return true;
 				}
 			}
-			return null;
+			return false;
 		}
 		string suncab(string fname, string summName, out string summPath) { mixin(S_TRACE);
 			classic = true;
@@ -357,8 +356,12 @@ public:
 				}
 			} else { mixin(S_TRACE);
 				// zipと仮定
-				auto arc = scArc(fname, ".wsm");
-				if (!arc) return null;
+				auto bin = readBinary(fname);
+				scope (exit) delete bin;
+				auto arc = new ZipArchive(bin);
+				scope (exit) destroy(arc);
+				auto isSc = scArc(arc, ".wsm");
+				if (!isSc) return null;
 				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
 				try { mixin(S_TRACE);
 					expandDir = temp;
@@ -502,8 +505,12 @@ public:
 								fn = suncab(fname, "Summary.xml", summPath);
 							}
 						} else { mixin(S_TRACE);
-							auto arc = scArc(fname, ".xml");
-							if (arc) { mixin(S_TRACE);
+							auto bin = readBinary(fname);
+							scope (exit) delete bin;
+							auto arc = new ZipArchive(bin);
+							scope (exit) destroy(arc);
+							auto isSc = scArc(arc, ".xml");
+							if (isSc) { mixin(S_TRACE);
 								bool cancel;
 								classic = false;
 								fn = sunzip(baseName(fname), arc, cancel, summPath);
@@ -2341,15 +2348,12 @@ public:
 						_oldXMLs = xmls;
 					}
 					auto b = arc.build();
-					destroy(arc);
 					std.file.write(zipName, b);
-					(cast(ubyte[])b)[] = 0;
-					delete b;
+					destroy(arc);
 					foreach (d; data) { mixin(S_TRACE);
 						(cast(ubyte[])d)[] = 0;
 						delete d;
 					}
-					(cast(ubyte[])data)[] = 0;
 					delete data;
 				}
 				if (opt.archiveInNewThread) { mixin(S_TRACE);
@@ -2398,9 +2402,8 @@ public:
 		}
 	}
 	/// シナリオのフォルダのアーカイブを作成する。
-	void[] createZipData(in string[] ignorePaths, bool useSysEnc, bool isWsn) { mixin(S_TRACE);
+	ZipArchive createZipData(in string[] ignorePaths, bool useSysEnc, bool isWsn, out ubyte[][] data) { mixin(S_TRACE);
 		auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
-		ubyte[][] data;
 		auto arc = .zip(scenarioPath, !isWsn, (string file) { mixin(S_TRACE);
 			return cfnmatch(file, lock)
 				|| containsPath(ignorePaths, file.baseName());
@@ -2414,22 +2417,19 @@ public:
 				}
 			}
 		}
-		auto r = arc.build();
-		destroy(arc);
-		foreach (d; data) { mixin(S_TRACE);
-			(cast(ubyte[])d)[] = 0;
-			delete d;
-		}
-		(cast(ubyte[])data)[] = 0;
-		delete data;
-		return r;
+		return arc;
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
 	void createZip(string zipName, in string[] ignorePaths, bool useSysEnc) { mixin(S_TRACE);
-		auto data = createZipData(ignorePaths, useSysEnc, zipName.extension().toLower() == ".wsn");
-		std.file.write(zipName, data);
-		(cast(ubyte[])data)[] = 0;
-		delete data;
+		ubyte[][] tempData;
+		auto arc = createZipData(ignorePaths, useSysEnc, zipName.extension().toLower() == ".wsn", tempData);
+		std.file.write(zipName, arc.build());
+		destroy(arc);
+		foreach (d; tempData) { mixin(S_TRACE);
+			(cast(ubyte[])d)[] = 0;
+			delete d;
+		}
+		delete tempData;
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
 	/// 非展開のXMLファイルは一時的に展開される。

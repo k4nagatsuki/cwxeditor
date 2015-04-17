@@ -5,6 +5,8 @@ module build;
 immutable NAME = "cwxeditor";
 immutable string[] CRITICAL = [
 	"d2std" ~ dirSeparator ~ "xml.d",
+	"d2std" ~ dirSeparator ~ "zip.d",
+	"d2std" ~ dirSeparator ~ "zlib.d",
 ];
 immutable string[] RES_DIR = [
 	".",

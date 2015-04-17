@@ -7,7 +7,7 @@ import cwx.sjis;
 import std.array;
 import std.file;
 import std.path;
-import std.zip;
+import d2std.zip;
 import std.utf;
 import std.datetime;
 import std.string;
@@ -40,6 +40,7 @@ void unzip(string parent, string zip,
 	auto data = readBinary(zip);
 	auto arc = new ZipArchive(data);
 	unzip(parent, arc, expand, setProgressNum, progress);
+	destroy(arc);
 	(cast(ubyte[])data)[] = 0;
 	delete data;
 }
@@ -209,7 +210,10 @@ string memberName(string name) {
 bool zipHasFile(string zip, string fileName) { mixin(S_TRACE);
 	if (!zip.exists()) return false;
 	try { mixin(S_TRACE);
-		scope arc = new ZipArchive(readBinary(zip));
+		auto bin = readBinary(zip);
+		scope (exit) delete bin;
+		auto arc = new ZipArchive(bin);
+		scope (exit) delete arc;
 		foreach (am; arc.directory) { mixin(S_TRACE);
 			string name = memberName(am.name);
 			if (cfnmatch(replace(name, "/", dirSeparator).baseName(), fileName)) { mixin(S_TRACE);
@@ -228,15 +232,12 @@ void zip(string targ, string zip, bool top, bool delegate(string path) ignorePat
 	ubyte[][] data;
 	scope arc = .zip(targ, top, ignorePath, useSysEnc, data);
 	auto b = arc.build();
-	destroy(arc);
 	std.file.write(zip, b);
-	(cast(ubyte[])b)[] = 0;
-	delete b;
+	destroy(arc);
 	foreach (d; data) { mixin(S_TRACE);
 		(cast(ubyte[])d)[] = 0;
 		delete d;
 	}
-	(cast(ubyte[])data)[] = 0;
 	delete data;
 }
 void zip(string targ, string zip, bool top, string[] excludePath, bool useSysEnc) { mixin(S_TRACE);

@@ -18,7 +18,6 @@ import std.array;
 import std.conv;
 import std.utf;
 import std.ascii;
-import std.zip;
 import std.file;
 import std.datetime;
 import std.path;

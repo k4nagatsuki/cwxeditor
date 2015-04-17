@@ -52,7 +52,6 @@ import core.thread;
 import std.conv;
 import std.file;
 import std.path;
-import std.zip;
 import std.utf;
 import std.process;
 import std.string;
@@ -62,6 +61,7 @@ import std.array;
 import std.algorithm;
 import std.csv;
 import std.functional;
+import d2std.zip;
 debug import std.stdio;
 
 import org.eclipse.swt.all;
@@ -625,10 +625,20 @@ private:
 						_lastBackupSummary = summary;
 					}
 					void backup() { mixin(S_TRACE);
-						if (createBackup()) { mixin(S_TRACE);
-							_lastBackup = Clock.currTime();
-							_changeCount = 0;
+						version (Console) {
+							debug writeln("Start Backup");
 						}
+						if (createBackup()) { mixin(S_TRACE);
+							version (Console) {
+								debug writeln("Success Backup");
+							}
+						} else {
+							version (Console) {
+								debug writeln("No Write Backup");
+							}
+						}
+						_lastBackup = Clock.currTime();
+						_changeCount = 0;
 					}
 					if (_prop.var.etc.backupIntervalType == BackupType.Time) { mixin(S_TRACE);
 						if (0 < _prop.var.etc.backupInterval && _lastBackup + dur!"minutes"(_prop.var.etc.backupInterval) <= Clock.currTime()) { mixin(S_TRACE);
@@ -734,10 +744,12 @@ private:
 					}
 				}
 				if (_prop.var.etc.backupArchived) { mixin(S_TRACE);
-					void[] data;
+					ZipArchive arc;
+					ubyte[][] tempData;
 					synchronized (_saveSync) { mixin(S_TRACE);
-						data = summ.createZipData([], true, name.extension().toLower() == ".wsn");
+						arc = summ.createZipData([], true, name.extension().toLower() == ".wsn", tempData);
 					}
+					auto data = arc.build();
 					auto md5 = md5Digest(data);
 					if (_oldMD5 != md5) { mixin(S_TRACE);
 						// 前回のバックアップと異なっていれば保存
@@ -747,8 +759,12 @@ private:
 						bc--;
 						ret = true;
 					}
-					(cast(ubyte[])data)[] = 0;
-					delete data;
+					destroy(arc);
+					foreach (t; tempData) { mixin(S_TRACE);
+						(cast(ubyte[])t)[] = 0;
+						delete t;
+					}
+					delete tempData;
 				} else { mixin(S_TRACE);
 					auto md5 = filesMD5(summ.scenarioPath);
 					if (_oldMD5 != md5) { mixin(S_TRACE);
@@ -4434,6 +4450,7 @@ public:
 			}
 			_prop.var.cleanup();
 			version (Console) {
+				debug writefln("d2std.zlib.allocCount: %s", d2std.zlib.allocCount);
 				debug writeln("Exit Main Thread");
 			}
 		} catch (Throwable e) {
