@@ -1939,12 +1939,12 @@ private:
 		}
 		private static string cuthist(string hist, int cut) { mixin(S_TRACE);
 			hist = nabs(hist);
-			scope dhist = toUTF32(hist);
+			auto dhist = toUTF32(hist);
 			if (dhist.length > cut + "..."d.length) { mixin(S_TRACE);
 				auto drive = driveName(hist);
 				auto rlen = drive ? toUTF32(drive).length + 1 : 1;
 				auto flen = toUTF32(baseName(hist)).length + 1;
-				auto plen = cut - flen;
+				auto plen = flen <= cut ? cut - flen : 0;
 				if (plen < rlen) plen = rlen;
 				return toUTF8(dhist[0 .. plen] ~ "..." ~ dhist[$ - flen .. $]);
 			} else { mixin(S_TRACE);
