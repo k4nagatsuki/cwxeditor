@@ -725,9 +725,9 @@ private:
 					d.year, d.month, d.day, d.hour, d.minute, d.second, sPath.baseName());
 				if (_prop.var.etc.backupArchived) { mixin(S_TRACE);
 					if (summ.legacy) { mixin(S_TRACE);
-						name ~= ".wsn";
-					} else { mixin(S_TRACE);
 						name ~= ".zip";
+					} else { mixin(S_TRACE);
+						name ~= ".wsn";
 					}
 				}
 				string writePath = std.path.buildPath(parent, name);
