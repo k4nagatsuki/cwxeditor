@@ -20,6 +20,7 @@ import cwx.types;
 import cwx.cab;
 import cwx.binary;
 import cwx.xml;
+import cwx.win32res;
 
 import cwx.editor.gui.sound;
 
@@ -543,12 +544,29 @@ private:
 					}
 					if (!p.exists()) continue;
 					if (!p.isFile()) continue;
-					bool is1_50 = 3000000 <= p.getSize();
-					if (mWithParty && !withPartyItem && is1_50) { mixin(S_TRACE);
-						new MenuItem(mWithParty, SWT.SEPARATOR);
+					try {
+						auto res = Win32Res(p);
+						auto bin = res.getRCData(ResID(ResType.RT_VERSION), ResID(1u));
+						if (bin is null || !bin.length) continue;
+						auto ver = ByteIO(bin.dup);
+						ver.seek(56);
+						auto v2 = ver.readShortL;
+						auto v1 = ver.readShortL;
+						auto v4 = ver.readShortL;
+						auto v3 = ver.readShortL;
+						auto exeV = v1 * 0x1000000L + v2 * 0x10000L + v3 * 0x100L + v4 * 0x1L;
+						auto v1_50 = 1 * 0x1000000L + 5 * 0x10000L + 0 * 0x100L + 0 * 0x1L;
+						bool is1_50 = v1_50 <= exeV;
+
+						if (mWithParty && !withPartyItem && is1_50) { mixin(S_TRACE);
+							new MenuItem(mWithParty, SWT.SEPARATOR);
+						}
+						withPartyItem |= is1_50;
+						putMenu(p, e, name, _prop.images.classicEngine, is1_50);
+					} catch (Exception e) {
+						printStackTrace();
+						debugln(e);
 					}
-					withPartyItem |= is1_50;
-					putMenu(p, e, name, _prop.images.classicEngine, is1_50);
 				}
 			}
 		}

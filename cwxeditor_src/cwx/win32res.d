@@ -84,22 +84,20 @@ struct ResID {
 	private string name;
 	private uint id;
 
-	private static ResID opCall(bool nameIsString, string name, uint id) {
-		ResID r;
-		r.nameIsString = nameIsString;
-		r.name = name;
-		r.id = id;
-		return r;
+	private this(bool nameIsString, string name, uint id) {
+		this.nameIsString = nameIsString;
+		this.name = name;
+		this.id = id;
 	}
 
-	static ResID opCall(string name) {
-		return ResID(true, name, 0x80000000);
+	this (string name) {
+		this (true, name, 0x80000000);
 	}
-	static ResID opCall(uint id) {
-		return ResID(false, "", id);
+	this (uint id) {
+		this (false, "", id);
 	}
-	static ResID opCall(ResType id) {
-		return ResID(false, "", id);
+	this (ResType id) {
+		this (false, "", id);
 	}
 
 	@property
