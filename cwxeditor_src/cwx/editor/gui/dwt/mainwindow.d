@@ -549,7 +549,7 @@ private:
 						auto bin = res.getRCData(ResID(ResType.RT_VERSION), ResID(1u));
 						if (bin is null || !bin.length) continue;
 						auto ver = ByteIO(bin.dup);
-						ver.seek(56);
+						ver.seek(48);
 						auto v2 = ver.readShortL;
 						auto v1 = ver.readShortL;
 						auto v4 = ver.readShortL;
