@@ -1247,6 +1247,7 @@ class Commons {
 
 	void setStatusLine(Control base, string status, bool refMain = true) { mixin(S_TRACE);
 		if (!_main) return;
+		if (base.isDisposed()) return;
 		TLPData tlp(Control base) { mixin(S_TRACE);
 			TLPData data = null;
 			while (base && (data = cast(TLPData) base.getData()) is null) { mixin(S_TRACE);

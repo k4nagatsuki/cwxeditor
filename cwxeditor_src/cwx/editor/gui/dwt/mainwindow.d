@@ -1964,6 +1964,7 @@ private:
 				auto flen = toUTF32(baseName(hist)).length + 1;
 				auto plen = flen <= cut ? cut - flen : 0;
 				if (plen < rlen) plen = rlen;
+				if (dhist.length <= plen + flen + "..."d.length) return hist;
 				return toUTF8(dhist[0 .. plen] ~ "..." ~ dhist[$ - flen .. $]);
 			} else { mixin(S_TRACE);
 				return hist;
@@ -1996,12 +1997,18 @@ private:
 				assert (result == r"C:\simple\test.file", result);
 				result = cuthist(r"C:\simple\test.file", 15);
 				assert (result == r"C:\si...\test.file", result);
-				result = cuthist(r"C:\日本語\テスト.file", 12);
-				assert (result == r"C:\日本語\テスト.file", result);
-				result = cuthist(r"C:\日本語\テスト.file", 11);
+				result = cuthist(r"C:\日本語_\テスト.file", 13);
+				assert (result == r"C:\日本語_\テスト.file", result);
+				result = cuthist(r"C:\日本語_\テスト.file", 12);
 				assert (result == r"C:\...\テスト.file", result);
 				result = cuthist(r"C:\日本語日本語\テスト.file", 13);
 				assert (result == r"C:\日...\テスト.file", result);
+				result = cuthist(r"C:\simp\test.file", 5);
+				assert (result == r"C:\...\test.file", result);
+				result = cuthist(r"C:\sim\test.file", 5);
+				assert (result == r"C:\sim\test.file", result);
+				result = cuthist(r"C:\si\test.file", 5);
+				assert (result == r"C:\si\test.file", result);
 			}
 		}
 	}
