@@ -829,15 +829,12 @@ private:
 		auto comp = new Composite(tabf, SWT.NONE);
 		comp.setLayout(new GridLayout(1, false));
 		Label[] lbls1, lbls2;
-		Composite[] spns;
-		Spinner createSpn(Composite comp) { mixin(S_TRACE);
-			// なぜかCompositeを挟まなければSpinner#computeSize()が大きめの値を返す
-			Composite comp2 = new Composite(comp, SWT.NONE);
-			comp2.setLayout(new FillLayout);
-			auto spn = new Spinner(comp2, SWT.BORDER | _readOnly);
+		Spinner createSpn(Composite comp, int max, int min) { mixin(S_TRACE);
+			auto spn = new Spinner(comp, SWT.BORDER | _readOnly);
 			initSpinner(spn);
 			mod(spn);
-			spns ~= comp2;
+			spn.setMaximum(max);
+			spn.setMinimum(min);
 			return spn;
 		}
 		Composite createGrp(string text) { mixin(S_TRACE);
@@ -854,6 +851,7 @@ private:
 			comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto rl = new RowLayout(SWT.HORIZONTAL);
 			rl.center = true;
+			rl.wrap = false;
 			rl.marginLeft = 0;
 			rl.marginRight = 0;
 			rl.marginTop = 0;
@@ -896,10 +894,7 @@ private:
 				}
 				if (_mtly.getSelectionIndex() < 0) _mtly.select(0);
 				_mtly.addSelectionListener(new SelMentality);
-				_mtlyRound = createSpn(comp2);
-				_mtlyRound.setMaximum(_prop.var.etc.roundMax);
-				_mtlyRound.setMinimum(Motion.round_min);
-				spns ~= _mtlyRound;
+				_mtlyRound = createSpn(comp2, _prop.var.etc.roundMax, Motion.round_min);
 				auto lm2  = new Label(comp2, SWT.NONE);
 				lm2.setText(_prop.msgs.unitRound);
 			}
@@ -911,15 +906,9 @@ private:
 				auto l = new Label(comp2, SWT.NONE);
 				l.setText(_prop.msgs.enhanceLiveBonusName(enh));
 				lbls1 ~= l;
-				auto spn = createSpn(comp2);
-				spn.setMaximum(_prop.var.etc.enhanceMax);
-				spn.setMinimum(-(cast(int) _prop.var.etc.enhanceMax));
-				spns ~= spn;
+				auto spn = createSpn(comp2, _prop.var.etc.enhanceMax, -(cast(int) _prop.var.etc.enhanceMax));
 				_liveEnh[enh] = spn;
-				auto rnd = createSpn(comp2);
-				rnd.setMaximum(_prop.var.etc.roundMax);
-				rnd.setMinimum(Motion.round_min);
-				spns ~= rnd;
+				auto rnd = createSpn(comp2, _prop.var.etc.roundMax, Motion.round_min);
 				_enhRound[enh] = rnd;
 				auto l2  = new Label(comp2, SWT.NONE);
 				l2.setText(_prop.msgs.unitRound);
@@ -931,10 +920,7 @@ private:
 			auto l = new Label(comp2, SWT.NONE);
 			l.setText(name);
 			lbls1 ~= l;
-			auto spn = createSpn(comp2);
-			spn.setMaximum(max);
-			spn.setMinimum(0);
-			spns ~= spn;
+			auto spn = createSpn(comp2, max, 0);
 			auto l2  = new Label(comp2, SWT.NONE);
 			l2.setText(val);
 			lbls2 ~= l2;
@@ -949,7 +935,7 @@ private:
 			_faceUp = createStSpn(grp, _prop.msgs.faceUp, _prop.var.etc.roundMax, _prop.msgs.unitRound);
 			_antiMagic = createStSpn(grp, _prop.msgs.antiMagic, _prop.var.etc.roundMax, _prop.msgs.unitRound);
 		}
-		void setlblw(Control[] lbls) { mixin(S_TRACE);
+		void setlblw(Label[] lbls) { mixin(S_TRACE);
 			int maxW = 0;
 			foreach (lbl; lbls) { mixin(S_TRACE);
 				int w = lbl.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
@@ -960,9 +946,8 @@ private:
 				lbl.setLayoutData(gd);
 			}
 		}
-		setlblw(cast(Control[]) lbls1);
-		setlblw(cast(Control[]) lbls2);
-		setlblw(cast(Control[]) spns);
+		setlblw(lbls1);
+		setlblw(lbls2);
 		{ mixin(S_TRACE);
 			auto reset = new Button(comp, SWT.PUSH);
 			mod(reset);
