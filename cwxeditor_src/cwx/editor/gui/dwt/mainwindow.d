@@ -2151,7 +2151,7 @@ private:
 					unlink(std.string.toStringz(_pipeName));
 				}
 				strcpy(laddr.sun_path.ptr, std.string.toStringz(_pipeName));
-				if (0 != cbind(pipe, cast(sockaddr*)&laddr, cast(uint)(laddr.sun_family.sizeof + strlen(laddr.sun_path.ptr)))) return;
+				if (0 != cbind(pipe, cast(sockaddr*)&laddr, laddr.sizeof)) return;
 				if (0 != listen(pipe, 1)) return;
 				char[4096] buf;
 				ptrdiff_t len;
@@ -2175,12 +2175,12 @@ private:
 					if (-1 == rsock) break;
 					scope (exit) close(rsock);
 					while (true) { mixin(S_TRACE);
-						if (-1 == (len = cread(pipe, buf.ptr, buf.length))) break;
+						if (-1 == (len = cread(rsock, buf.ptr, buf.length))) break;
 						char[] recv = buf[0 .. len];
 						string send = recvSend(recv, quit);
 						if (quit) break;
 						if (!send) break;
-						if (-1 == cwrite(pipe, send.ptr, send.length)) break;
+						if (-1 == cwrite(rsock, send.ptr, send.length)) break;
 					}
 				}
 			}
@@ -2207,16 +2207,15 @@ private:
 			}
 		} else { mixin(S_TRACE);
 			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) { mixin(S_TRACE);
-				string pipeName = r"cwxeditor_" ~ to!(string)(i);
+				string pipeName = r"/etc/cwxeditor_" ~ to!(string)(i);
 				auto p = socket(AF_UNIX, SOCK_STREAM, 0);
 				if (-1 == p) continue;
 				scope (exit) {
-					shutdown(p, 2);
 					close(p);
 				}
 				sockaddr_un raddr;
-				raddr.sun_family = AF_INET;
-				strcpy(&(raddr.sun_path[1]), pipeName.ptr);
+				raddr.sun_family = AF_UNIX;
+				strcpy(raddr.sun_path.ptr, pipeName.ptr);
 				if (-1 == connect(p, cast(sockaddr*) &raddr, raddr.sizeof)) { mixin(S_TRACE);
 					return pipeName;
 				}
@@ -2252,14 +2251,14 @@ private:
 			char[4096] buf;
 			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) { mixin(S_TRACE);
 				if (!next()) break;
-				string pipeName = r"cwxeditor_" ~ to!(string)(i);
+				string pipeName = r"/etc/cwxeditor_" ~ to!(string)(i);
 				if (_pipeName == pipeName) continue;
 				auto p = socket(AF_UNIX, SOCK_STREAM, 0);
 				if (-1 == p) continue;
 				scope (exit) close(p);
 				sockaddr_un raddr;
 				raddr.sun_family = AF_INET;
-				strcpy(&(raddr.sun_path[1]), pipeName.ptr);
+				strcpy(raddr.sun_path.ptr, pipeName.ptr);
 				if (-1 == connect(p, cast(sockaddr*) &raddr, raddr.sizeof)) { mixin(S_TRACE);
 					continue;
 				}

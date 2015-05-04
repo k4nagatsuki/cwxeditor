@@ -87,9 +87,8 @@ linuxでのビルドは最新のバージョンでは試されていない事が多いです。
 
 apt-get等で手に入れておきましょう。
 
- * libgtk2.0-dev
- * libxtst-dev
  * libgnomeui-dev
+ * libxtst-dev
 
 
 ### DライブラリとCWXEditorのビルド

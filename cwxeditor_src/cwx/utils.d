@@ -733,8 +733,8 @@ void[] readBinary(string fileName) { mixin(S_TRACE);
 		return bin;
 	} else {
 		import core.stdc.stdio;
-		auto fp = fopen(toStringz(file), toStringz("rb"));
-		if (!fp) throw new Exception("fopen() error: " ~ file);
+		auto fp = fopen(toStringz(fileName), toStringz("rb"));
+		if (!fp) throw new Exception("fopen() error: " ~ fileName);
 		scope (exit) fclose(fp);
 		fseek(fp, 0, SEEK_END);
 		auto len = ftell(fp);
