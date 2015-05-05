@@ -1209,7 +1209,7 @@ private:
 			scope (exit) _onRefresh = false;
 			if (_stopTrace) return;
 			if (_summ) { mixin(S_TRACE);
-				_summ.checkPathsIsChanged();
+				_summ.checkPathsIsChanged(_prop.var.etc.saveInnerImagePath);
 			}
 			if (_dirsEdit.isEditing() || _filesEdit.isEditing()) return;
 			try { mixin(S_TRACE);
@@ -1902,7 +1902,7 @@ public:
 
 	@property
 	bool isChanged() { mixin(S_TRACE);
-		if (!_summ.isChanged) _summ.checkPathsIsChanged();
+		if (!_summ.isChanged) _summ.checkPathsIsChanged(_prop.var.etc.saveInnerImagePath);
 		return _summ.isChanged;
 	}
 

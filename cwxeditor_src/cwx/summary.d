@@ -931,11 +931,11 @@ public:
 		return fcs;
 	}
 	/// シナリオ内のファイルまたはディレクトリが更新されているかチェックする。
-	void checkPathsIsChanged() { mixin(S_TRACE);
+	void checkPathsIsChanged(bool saveInnerImagePath) { mixin(S_TRACE);
 		if (needCheckPaths) { mixin(S_TRACE);
 			auto cp = _checkPaths;
 			_checkPaths = allPaths;
-			if ((legacy || useTemp) && cp != _checkPaths) { mixin(S_TRACE);
+			if (((legacy && !saveInnerImagePath) || useTemp) && cp != _checkPaths) { mixin(S_TRACE);
 				changed();
 			}
 		}
