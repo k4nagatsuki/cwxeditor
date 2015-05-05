@@ -1093,7 +1093,7 @@ public:
 }
 
 /// スキル・アイテム・召喚獣といった、「効果」のあるカードの親クラス。
-abstract class EffectCard : Card, EventTreeOwner, MotionOwner, IPathUser {
+abstract class EffectCard : Card, EventTreeOwner, MotionOwner, IPathUser, IKeyCodeUser {
 private:
 	string _scenario = "";
 	string _author = "";
@@ -1487,6 +1487,8 @@ public:
 	protected abstract void setUseCounterImpl(UseCounter uc);
 	protected abstract void removeUseCounterImpl();
 
+	override void change(KeyCodeId id) { }
+
 	@property
 	inout
 	override inout(EventTree)[] trees() {return _ceto.trees;}
@@ -1635,7 +1637,7 @@ public:
 }
 
 /// スキルカード。
-class SkillCard : EffectCard {
+class SkillCard : EffectCard, ISkillUser {
 private:
 	SkillUser _linkId;
 	uint _level = 0;
@@ -1751,6 +1753,8 @@ public:
 		_hold = hold;
 	}
 
+	override void change(SkillId id) { }
+
 	/// XMLテキストに変換する。
 	const
 	string toXML(XMLOption opt) { mixin(S_TRACE);
@@ -1849,7 +1853,7 @@ public:
 }
 
 /// アイテムカード。
-class ItemCard : EffectCard {
+class ItemCard : EffectCard, IItemUser {
 private:
 	ItemUser _linkId;
 	int[Enhance] _oEnh;
@@ -2001,6 +2005,8 @@ public:
 		_hold = hold;
 	}
 
+	override void change(ItemId id) { }
+
 	/// XMLテキストに変換する。
 	const
 	string toXML(XMLOption opt) { mixin(S_TRACE);
@@ -2113,7 +2119,7 @@ public:
 }
 
 /// 召喚獣カード。
-class BeastCard : EffectCard {
+class BeastCard : EffectCard, IBeastUser {
 private:
 	BeastUser _linkId;
 	uint _useLimit = 0;
@@ -2209,6 +2215,8 @@ public:
 	bool isOption() { mixin(S_TRACE);
 		return cast(CastCard)_owner !is null && !useLimit;
 	}
+
+	override void change(BeastId id) { }
 
 	/// XMLテキストに変換する。
 	const

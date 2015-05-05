@@ -308,7 +308,7 @@ private:
 		}
 	}
 	static if (is(A == Battle)) {
-		static class MCWXPath : CWXPath {
+		static class MCWXPath : IPathUser {
 			@property
 			override string cwxPath(bool id) {return "";}
 			override CWXPath findCWXPath(string path) {return null;}
@@ -317,6 +317,11 @@ private:
 			override inout(CWXPath)[] cwxChilds() {return [];}
 			@property
 			CWXPath cwxParent() {return null;}
+			override
+			void change(PathId id) { }
+			protected
+			override
+			void changed() { }
 		}
 		static class UndoMusic : AUndo {
 			private PathUser _path;

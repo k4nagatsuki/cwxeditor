@@ -237,6 +237,9 @@ public:
 	override void changeCallback(StepId oldVal, StepId newVal) { mixin(S_TRACE);
 		_text = replTextUseStep(_text, cast(string) oldVal, cast(string) newVal);
 	}
+
+	protected override void changed() { }
+
 	/// このSimpleTextHolderの所持者。
 	@property
 	CWXPath owner() {return _owner;}

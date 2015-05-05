@@ -11,7 +11,7 @@ import std.path;
 import std.string;
 
 /// Kの使用者。
-interface User(K) {
+interface User(K) : CWXPath {
 	void change(K newVal);
 }
 
@@ -145,6 +145,26 @@ private mixin template StringId() {
 	}
 }
 
+private mixin template CWXFuncs() {
+	@property
+	override
+	string cwxPath(bool id) { return _cwxPath ? _cwxPath.cwxPath(id) : ""; }
+	override
+	CWXPath findCWXPath(string path) { return _cwxPath ? _cwxPath.findCWXPath(path) : null; }
+	@property
+	override
+	inout
+	inout(CWXPath)[] cwxChilds() { return _cwxPath ? _cwxPath.cwxChilds : []; }
+	@property
+	override
+	CWXPath cwxParent() { return _cwxPath ? _cwxPath.cwxParent : null; }
+
+	override
+	void changed() { mixin(S_TRACE);
+		if (_cwxPath) _cwxPath.changed();
+	}
+}
+
 /// フラグのID。
 struct FlagId {
 	private string id;
@@ -188,16 +208,13 @@ class FlagUser : IFlagUser {
 private:
 	UseCounter _uc;
 	string _flag;
-	CWXPath _cwxPath;
+	IFlagUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (IFlagUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	IFlagUser owner() {return _cwxPath;}
 
 	/// IDを設定する。
 	/// 所有者がChgFlagCallbackであればコールバックが行われる。
@@ -214,6 +231,7 @@ public:
 	/// flag = フラグ。
 	@property
 	void flag(string flag) { mixin(S_TRACE);
+		if (_flag != flag) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_flag !is null) _uc.flag.remove(toFlagId(_flag), this);
 			if (flag !is null) _uc.flag.add(toFlagId(flag), this);
@@ -250,11 +268,14 @@ public:
 		_uc = null;
 	}
 	override void change(FlagId newVal) { mixin(S_TRACE);
+		if (_flag != cast(string)newVal) changed();
 		if (cast(ChgFlagCallback) _cwxPath) { mixin(S_TRACE);
 			(cast(ChgFlagCallback) _cwxPath).changeCallback(toFlagId(_flag), newVal);
 		}
-		_flag = cast(string) newVal;
+		_flag = cast(string)newVal;
 	}
+
+	mixin CWXFuncs;
 }
 
 /// ステップのID。
@@ -300,16 +321,13 @@ class StepUser : IStepUser {
 private:
 	UseCounter _uc;
 	string _step;
-	CWXPath _cwxPath;
+	IStepUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (IStepUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	IStepUser owner() {return _cwxPath;}
 
 	/// IDを設定する。
 	/// 所有者がChgStepCallbackであればコールバックが行われる。
@@ -326,6 +344,7 @@ public:
 	/// step = ステップ。
 	@property
 	void step(string step) { mixin(S_TRACE);
+		if (_step != step) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_step !is null) _uc.step.remove(toStepId(_step), this);
 			if (step !is null) _uc.step.add(toStepId(step), this);
@@ -362,11 +381,14 @@ public:
 		_uc = null;
 	}
 	override void change(StepId newVal) { mixin(S_TRACE);
+		if (_step != cast(string)newVal) changed();
 		if (cast(ChgStepCallback) _cwxPath) { mixin(S_TRACE);
 			(cast(ChgStepCallback) _cwxPath).changeCallback(toStepId(_step), newVal);
 		}
 		_step = cast(string) newVal;
 	}
+
+	mixin CWXFuncs;
 }
 
 /// エリアのID。
@@ -385,16 +407,13 @@ class AreaUser : IAreaUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	CWXPath _cwxPath;
+	IAreaUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (IAreaUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	IAreaUser owner() {return _cwxPath;}
 
 	/// IDを設定する。
 	@property
@@ -407,6 +426,7 @@ public:
 	/// id = エリアID。
 	@property
 	void area(ulong id) { mixin(S_TRACE);
+		if (_id != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.area.remove(toAreaId(_id), this);
 			if (id > 0) _uc.area.add(toAreaId(id), this);
@@ -443,6 +463,7 @@ public:
 		_uc = null;
 	}
 	override void change(AreaId newVal) { mixin(S_TRACE);
+		if (_id != newVal) changed();
 		if (_handleChange) _handleChange(newVal);
 		_id = newVal;
 	}
@@ -450,6 +471,8 @@ public:
 	/// change呼出しをdlgに通知する。
 	@property
 	void handleChange(void delegate(AreaId) dlg) {_handleChange = dlg;}
+
+	mixin CWXFuncs;
 }
 
 /// バトルのID。
@@ -468,16 +491,13 @@ class BattleUser : IBattleUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	CWXPath _cwxPath;
+	IBattleUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (IBattleUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	IBattleUser owner() {return _cwxPath;}
 
 	/// IDを設定する。
 	@property
@@ -490,6 +510,7 @@ public:
 	/// id = バトルID。
 	@property
 	void battle(ulong id) { mixin(S_TRACE);
+		if (_id != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.battle.remove(toBattleId(_id), this);
 			if (id > 0) _uc.battle.add(toBattleId(id), this);
@@ -526,6 +547,7 @@ public:
 		_uc = null;
 	}
 	override void change(BattleId newVal) { mixin(S_TRACE);
+		if (_id != newVal) changed();
 		if (_handleChange) _handleChange(newVal);
 		_id = newVal;
 	}
@@ -533,6 +555,8 @@ public:
 	/// change呼出しをdlgに通知する。
 	@property
 	void handleChange(void delegate(BattleId) dlg) {_handleChange = dlg;}
+
+	mixin CWXFuncs;
 }
 
 /// パッケージのID。
@@ -551,16 +575,13 @@ class PackageUser : IPackageUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	CWXPath _cwxPath;
+	IPackageUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (IPackageUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	IPackageUser owner() {return _cwxPath;}
 
 	/// IDを設定する。
 	@property
@@ -573,6 +594,7 @@ public:
 	/// id = パッケージID。
 	@property
 	void packages(ulong id) { mixin(S_TRACE);
+		if (_id != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.packages.remove(toPackageId(_id), this);
 			if (id > 0) _uc.packages.add(toPackageId(id), this);
@@ -610,8 +632,11 @@ public:
 	}
 
 	override void change(PackageId newVal) { mixin(S_TRACE);
+		if (_id != newVal) changed();
 		_id = newVal;
 	}
+
+	mixin CWXFuncs;
 }
 
 /// ファイルパスのID。
@@ -719,16 +744,13 @@ class PathUser : IPathUser {
 private:
 	UseCounter _uc;
 	PathId _path;
-	CWXPath _cwxPath;
+	IPathUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (IPathUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	IPathUser owner() {return _cwxPath;}
 
 	/// IDを設定する。
 	/// 所有者がChgPathCallbackであればコールバックが行われる。
@@ -743,15 +765,17 @@ public:
 	/// ファイルパスを設定する。
 	@property
 	void path(string path) { mixin(S_TRACE);
+		auto id = toPathId(path);
+		if (_path != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_path.valid) { mixin(S_TRACE);
 				_uc.path.remove(_path, this);
 			}
 			if (path.length) { mixin(S_TRACE);
-				_uc.path.add(toPathId(path), this);
+				_uc.path.add(id, this);
 			}
 		}
-		_path = toPathId(path);
+		_path = id;
 	}
 
 	/// ファイルパス。
@@ -782,11 +806,14 @@ public:
 	}
 
 	override void change(PathId newVal) { mixin(S_TRACE);
+		if (_path != newVal) changed();
 		if (cast(ChgPathCallback) _cwxPath) { mixin(S_TRACE);
 			(cast(ChgPathCallback) _cwxPath).changeCallback(_path, newVal);
 		}
 		_path = newVal;
 	}
+
+	mixin CWXFuncs;
 }
 
 /// キャストカードのID。
@@ -805,16 +832,13 @@ class CastUser : ICastUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	CWXPath _cwxPath;
+	ICastUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (ICastUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	ICastUser owner() {return _cwxPath;}
 
 	/// IDを設定する。
 	@property
@@ -827,6 +851,7 @@ public:
 	/// id = キャストID。
 	@property
 	void casts(ulong id) { mixin(S_TRACE);
+		if (_id != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.casts.remove(toCastId(_id), this);
 			if (id > 0) _uc.casts.add(toCastId(id), this);
@@ -864,8 +889,11 @@ public:
 	}
 
 	override void change(CastId newVal) { mixin(S_TRACE);
+		if (_id != newVal) changed();
 		_id = newVal;
 	}
+
+	mixin CWXFuncs;
 }
 /// スキルカードのID。
 struct SkillId {
@@ -883,16 +911,13 @@ class SkillUser : ISkillUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	CWXPath _cwxPath;
+	ISkillUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (ISkillUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	ISkillUser owner() {return _cwxPath;}
 
 	/// IDを設定する。
 	@property
@@ -905,6 +930,7 @@ public:
 	/// id = スキルID。
 	@property
 	void skill(ulong id) { mixin(S_TRACE);
+		if (_id != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.skill.remove(toSkillId(_id), this);
 			if (id > 0) _uc.skill.add(toSkillId(id), this);
@@ -942,8 +968,11 @@ public:
 	}
 
 	override void change(SkillId newVal) { mixin(S_TRACE);
+		if (_id != newVal) changed();
 		_id = newVal;
 	}
+
+	mixin CWXFuncs;
 }
 /// アイテムカードのID。
 struct ItemId {
@@ -961,16 +990,13 @@ class ItemUser : IItemUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	CWXPath _cwxPath;
+	IItemUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (IItemUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	IItemUser owner() {return _cwxPath;}
 
 	/// IDを設定する。
 	@property
@@ -983,6 +1009,7 @@ public:
 	/// id = アイテムID。
 	@property
 	void item(ulong id) { mixin(S_TRACE);
+		if (_id != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.item.remove(toItemId(_id), this);
 			if (id > 0) _uc.item.add(toItemId(id), this);
@@ -1020,8 +1047,11 @@ public:
 	}
 
 	override void change(ItemId newVal) { mixin(S_TRACE);
+		if (_id != newVal) changed();
 		_id = newVal;
 	}
+
+	mixin CWXFuncs;
 }
 /// 召喚獣カードのID。
 struct BeastId {
@@ -1039,16 +1069,13 @@ class BeastUser : IBeastUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	CWXPath _cwxPath;
+	IBeastUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (IBeastUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	IBeastUser owner() {return _cwxPath;}
 
 	/// IDを設定する。
 	@property
@@ -1061,6 +1088,7 @@ public:
 	/// id = 召喚獣ID。
 	@property
 	void beast(ulong id) { mixin(S_TRACE);
+		if (_id != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.beast.remove(toBeastId(_id), this);
 			if (id > 0) _uc.beast.add(toBeastId(id), this);
@@ -1098,8 +1126,11 @@ public:
 	}
 
 	override void change(BeastId newVal) { mixin(S_TRACE);
+		if (_id != newVal) changed();
 		_id = newVal;
 	}
+
+	mixin CWXFuncs;
 }
 /// 情報カードのID。
 struct InfoId {
@@ -1117,16 +1148,13 @@ class InfoUser : IInfoUser {
 private:
 	UseCounter _uc;
 	ulong _id = 0;
-	CWXPath _cwxPath;
+	IInfoUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (IInfoUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	IInfoUser owner() {return _cwxPath;}
 
 	/// IDを設定する。
 	@property
@@ -1139,6 +1167,7 @@ public:
 	/// id = 情報カードID。
 	@property
 	void info(ulong id) { mixin(S_TRACE);
+		if (_id != id) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_id > 0) _uc.info.remove(toInfoId(_id), this);
 			if (id > 0) _uc.info.add(toInfoId(id), this);
@@ -1176,8 +1205,11 @@ public:
 	}
 
 	override void change(InfoId newVal) { mixin(S_TRACE);
+		if (_id != newVal) changed();
 		_id = newVal;
 	}
+
+	mixin CWXFuncs;
 }
 
 /// クーポンのID。
@@ -1197,22 +1229,20 @@ class CouponUser : ICouponUser {
 private:
 	UseCounter _uc;
 	string _coupon;
-	CWXPath _cwxPath;
+	ICouponUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (ICouponUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	ICouponUser owner() {return _cwxPath;}
 
 	/// クーポンを設定する。
 	/// Params:
 	/// coupon = クーポン。
 	@property
 	void coupon(string coupon) { mixin(S_TRACE);
+		if (_coupon != coupon) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_coupon != "") _uc.coupon.remove(toCouponId(_coupon), this);
 			if (coupon != "") _uc.coupon.add(toCouponId(coupon), this);
@@ -1249,8 +1279,11 @@ public:
 		_uc = null;
 	}
 	override void change(CouponId newVal) { mixin(S_TRACE);
+		if (_coupon != newVal.id) changed();
 		_coupon = newVal.id;
 	}
+
+	mixin CWXFuncs;
 }
 
 /// ゴシップのID。
@@ -1270,22 +1303,20 @@ class GossipUser : IGossipUser {
 private:
 	UseCounter _uc;
 	string _gossip;
-	CWXPath _cwxPath;
+	IGossipUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (IGossipUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	IGossipUser owner() {return _cwxPath;}
 
 	/// ゴシップを設定する。
 	/// Params:
 	/// gossip = ゴシップ。
 	@property
 	void gossip(string gossip) { mixin(S_TRACE);
+		if (_gossip != gossip) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_gossip != "") _uc.gossip.remove(toGossipId(_gossip), this);
 			if (gossip != "") _uc.gossip.add(toGossipId(gossip), this);
@@ -1322,8 +1353,11 @@ public:
 		_uc = null;
 	}
 	override void change(GossipId newVal) { mixin(S_TRACE);
+		if (_gossip != newVal.id) changed();
 		_gossip = newVal.id;
 	}
+
+	mixin CWXFuncs;
 }
 
 /// 終了印のID。
@@ -1343,22 +1377,20 @@ class CompleteStampUser : ICompleteStampUser {
 private:
 	UseCounter _uc;
 	string _completeStamp;
-	CWXPath _cwxPath;
+	ICompleteStampUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (ICompleteStampUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	ICompleteStampUser owner() {return _cwxPath;}
 
 	/// 終了印を設定する。
 	/// Params:
 	/// completeStamp = 終了印。
 	@property
 	void completeStamp(string completeStamp) { mixin(S_TRACE);
+		if (_completeStamp != completeStamp) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_completeStamp != "") _uc.completeStamp.remove(toCompleteStampId(_completeStamp), this);
 			if (completeStamp != "") _uc.completeStamp.add(toCompleteStampId(completeStamp), this);
@@ -1395,8 +1427,11 @@ public:
 		_uc = null;
 	}
 	override void change(CompleteStampId newVal) { mixin(S_TRACE);
+		if (_completeStamp != newVal.id) changed();
 		_completeStamp = newVal.id;
 	}
+
+	mixin CWXFuncs;
 }
 
 /// キーコードのID。
@@ -1416,22 +1451,20 @@ class KeyCodeUser : IKeyCodeUser {
 private:
 	UseCounter _uc;
 	string _keyCode;
-	CWXPath _cwxPath;
+	IKeyCodeUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (IKeyCodeUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	IKeyCodeUser owner() {return _cwxPath;}
 
 	/// キーコードを設定する。
 	/// Params:
 	/// keyCode = キーコード。
 	@property
 	void keyCode(string keyCode) { mixin(S_TRACE);
+		if (_keyCode != keyCode) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_keyCode != "") _uc.keyCode.remove(toKeyCodeId(_keyCode), this);
 			if (keyCode != "") _uc.keyCode.add(toKeyCodeId(keyCode), this);
@@ -1468,8 +1501,11 @@ public:
 		_uc = null;
 	}
 	override void change(KeyCodeId newVal) { mixin(S_TRACE);
+		if (_keyCode != newVal.id) changed();
 		_keyCode = newVal.id;
 	}
+
+	mixin CWXFuncs;
 }
 
 /// セル名称のID。
@@ -1489,22 +1525,20 @@ class CellNameUser : ICellNameUser {
 private:
 	UseCounter _uc;
 	string _cellName;
-	CWXPath _cwxPath;
+	ICellNameUser _cwxPath;
 public:
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
-	this (CWXPath cwxPath) {_cwxPath = cwxPath;}
+	this (ICellNameUser cwxPath) {_cwxPath = cwxPath;}
 	/// このオブジェクトの所有者。
 	@property
-	CWXPath owner() {return _cwxPath;}
-	/// このオブジェクトの所有者のリソースパス。
-	@property
-	string cwxPath(bool id) {return _cwxPath.cwxPath(id);}
+	ICellNameUser owner() {return _cwxPath;}
 
 	/// セル名称を設定する。
 	/// Params:
 	/// cellName = セル名称。
 	@property
 	void cellName(string cellName) { mixin(S_TRACE);
+		if (_cellName != cellName) changed();
 		if (_uc !is null) { mixin(S_TRACE);
 			if (_cellName != "") _uc.cellName.remove(toCellNameId(_cellName), this);
 			if (cellName != "") _uc.cellName.add(toCellNameId(cellName), this);
@@ -1541,8 +1575,11 @@ public:
 		_uc = null;
 	}
 	override void change(CellNameId newVal) { mixin(S_TRACE);
+		if (_cellName != newVal.id) changed();
 		_cellName = newVal.id;
 	}
+
+	mixin CWXFuncs;
 }
 
 /// 使用回数カウンタ。

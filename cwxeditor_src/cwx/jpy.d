@@ -493,6 +493,8 @@ class Jpy1Sec : PathUser, CWXPath {
 		}
 	}
 
+	protected override void changed() { }
+
 	private string toMaterialPath() { mixin(S_TRACE);
 		string dir;
 		switch (dirtype) {

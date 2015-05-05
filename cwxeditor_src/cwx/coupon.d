@@ -60,6 +60,8 @@ public:
 		_coupon.change(id);
 	}
 
+	protected override void changed() { }
+
 	@property
 	string cwxPath(bool id) { mixin(S_TRACE);
 		auto owner = cast(CWXPath) _owner;

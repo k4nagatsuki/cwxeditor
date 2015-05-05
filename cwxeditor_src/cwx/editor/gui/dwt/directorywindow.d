@@ -1143,6 +1143,13 @@ private:
 			(cast(Shell) e.widget).setVisible(false);
 			e.doit = false;
 			_prop.var.dirWin.visible = false;
+		}
+	}
+	class FDListener : DisposeListener {
+		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+			closePreview();
+			_preview.dispose();
+			_comm.refOuterTools.remove(&createFilesMenu);
 			switch (_files.getSortDirection()) {
 			case SWT.UP:
 				_prop.var.etc.filesSortDirection = SortDir.Up;
@@ -1164,13 +1171,6 @@ private:
 			} else { mixin(S_TRACE);
 				_prop.var.etc.filesSortColumn = -1;
 			}
-		}
-	}
-	class FDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			closePreview();
-			_preview.dispose();
-			_comm.refOuterTools.remove(&createFilesMenu);
 		}
 	}
 	class DListener : DisposeListener {

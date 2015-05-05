@@ -86,7 +86,7 @@ struct SaveOption {
 }
 
 /// 貼り紙。シナリオの情報が入る。
-class Summary : CWXPath, AreaOwner, BattleOwner, PackageOwner, CastOwner, SkillOwner, ItemOwner, BeastOwner, InfoOwner {
+class Summary : CWXPath, AreaOwner, BattleOwner, PackageOwner, CastOwner, SkillOwner, ItemOwner, BeastOwner, InfoOwner, IAreaUser, IPathUser, ICouponUser {
 private:
 	string _id;
 
@@ -2569,6 +2569,12 @@ public:
 		}
 		return paths;
 	}
+
+	override void change(AreaId id) { }
+
+	override void change(PathId id) { }
+
+	override void change(CouponId id) { }
 }
 
 /// ファイル読み込み時の例外。

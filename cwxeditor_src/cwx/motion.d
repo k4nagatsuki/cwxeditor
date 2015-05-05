@@ -119,7 +119,7 @@ public:
 		_change = change;
 	}
 	/// 変更ハンドラ。
-	protected void changed() { mixin(S_TRACE);
+	private void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 
@@ -140,12 +140,6 @@ public:
 			m.removeUseCounter();
 		}
 		_uc = null;
-	}
-	/// 効果の中にあるファイルパスに該当するものがあれば更新する。
-	void change(PathId id) { mixin(S_TRACE);
-		foreach (m; _motions) { mixin(S_TRACE);
-			m.change(id);
-		}
 	}
 	/// 効果群。
 	@property
@@ -181,11 +175,12 @@ interface MotionOwner : CWXPath {
 }
 
 /// 効果クラス。
-class Motion : CWXPath, BeastOwner {
+class Motion : CWXPath, BeastOwner, IBeastUser {
 private:
 	MType _type;
 
 	UseCounter _uc = null;
+	/// 召喚獣カードに登録するための変更ハンドラ。
 	void delegate () _change = null;
 
 	Element _el = Element.ALL;
@@ -394,10 +389,6 @@ public:
 		if (_uc) _beast.setUseCounter(_uc);
 		_beast.owner = this;
 	}
-	/// 召喚獣カードの画像イメージのパスが該当するものであれば更新する。
-	void change(PathId id) { mixin(S_TRACE);
-		_beast.change(id);
-	}
 
 	/// 参照IDを使用する時、同一の召喚獣カードを何回までネストできるか。
 	@property
@@ -414,6 +405,12 @@ public:
 	static immutable maxNest_min = 0;
 	/// ditto
 	static immutable maxNest_max = 999;
+
+	override void change(BeastId id) { }
+
+	protected override void changed() { mixin(S_TRACE);
+		if (_change) _change();
+	}
 
 	/// XMLテキスト化して返す。
 	const

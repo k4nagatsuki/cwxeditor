@@ -29,6 +29,9 @@ interface CWXPath {
 	/// 親を返す。
 	@property
 	CWXPath cwxParent();
+
+	/// 変更を通知する。
+	protected void changed();
 }
 
 /// シナリオ内パスを結合する。

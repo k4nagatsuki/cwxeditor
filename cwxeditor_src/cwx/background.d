@@ -790,7 +790,7 @@ public:
 		_change = change;
 	}
 	/// 変更を通知。
-	protected void changed() { mixin(S_TRACE);
+	protected override void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 
@@ -1026,9 +1026,11 @@ public:
 		return null;
 	}
 	@property
+	override
 	inout
 	inout(CWXPath)[] cwxChilds() {return [];}
 	@property
+	override
 	CWXPath cwxParent() {return _owner;}
 }
 
@@ -1121,6 +1123,9 @@ public:
 		_bgImgs[index1] = _bgImgs[index2];
 		_bgImgs[index2] = temp;
 	}
+
+	protected override void changed() { }
+
 	/// 背景イメージ群をXMLノードにする。
 	static string BtoXML(BgImage[] backs, XMLOption opt) { mixin(S_TRACE);
 		scope doc = XNode.create("MenuCardsAndBgImages");

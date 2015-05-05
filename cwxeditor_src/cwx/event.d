@@ -271,7 +271,7 @@ alias User!(StartId) IStartUser;
 alias UCCont!(StartId, IStartUser) SUseCounter;
 
 /// 口調分け条件とメッセージ内容を持つクラス。
-static class SDialog : CWXPath, IPathUser, IFlagUser, IStepUser, ITextHolder {
+static class SDialog : CWXPath, IPathUser, IFlagUser, IStepUser, ICouponUser, ITextHolder {
 private:
 	CouponUser[] _rCoupons = [];
 	TextHolder _text;
@@ -373,6 +373,10 @@ public:
 	override void change(StepId id) { mixin(S_TRACE);
 		_text.change(id);
 	}
+	override void change(CouponId id) { }
+
+	protected override void changed() { }
+
 	/// テキスト内で使用されているfont_X.png等のパス。
 	@property
 	const
@@ -456,7 +460,8 @@ public:
 class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		IFlagUser, IStepUser,
 		ICastUser, IItemUser, ISkillUser, IBeastUser, IInfoUser,
-		ICouponUser, IGossipUser, ICompleteStampUser, ICellNameUser, IStartUser,
+		ICouponUser, IGossipUser, ICompleteStampUser, IKeyCodeUser,
+		ICellNameUser, IStartUser,
 		MotionOwner, BgImageOwner, ITextHolder, ISimpleTextHolder,
 		CouponsOwner {
 	private EventTree _tree = null;
@@ -1238,6 +1243,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		static if (is(typeof(val.owner(this)))) {
 			val.owner = this;
 		}
+		static if (is(typeof(val.changeHandler(null)))) {
+			val.changeHandler = &changed;
+		}
 		static if (!is(T : Motion)) {
 			static if (is(typeof(val.setUseCounter(uc)))) {
 				if (val.useCounter || !uc) { mixin(S_TRACE);
@@ -1559,7 +1567,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return _change;
 	}
 	/// 変更を通知する。
-	private void changed() { mixin(S_TRACE);
+	protected override void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
 
@@ -1676,6 +1684,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	override void change(CouponId id) {idChange(id);}
 	override void change(GossipId id) {idChange(id);}
 	override void change(CompleteStampId id) {idChange(id);}
+	override void change(KeyCodeId id) {idChange(id);}
 	override void change(CellNameId id) {idChange(id);}
 
 	// テキスト内で使用されているfont_X.png等のパス。
@@ -2180,7 +2189,7 @@ private struct FKeyCodeU {
 }
 
 /// イベントツリー。発火条件と実行するイベント群を持つ。
-public class EventTree : CWXPath {
+public class EventTree : IKeyCodeUser {
 private:
 	EventTreeOwner _owner;
 
@@ -2311,6 +2320,8 @@ public:
 	protected void changed() { mixin(S_TRACE);
 		if (_change) _change();
 	}
+
+	override void change(KeyCodeId id) { }
 
 	/// スタートコンテントのみが含まれている場合はtrue。
 	@property

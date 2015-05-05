@@ -230,6 +230,10 @@ public:
 		return _parent.path ~ _name;
 	}
 
+	protected override void changed() { mixin(S_TRACE);
+		if (_change) _change();
+	}
+
 	/// このフラグをXMLテキストにする。
 	const
 	string toXml() { mixin(S_TRACE);
@@ -435,6 +439,10 @@ public:
 	const
 	string path() { mixin(S_TRACE);
 		return _parent.path ~ _name;
+	}
+
+	protected override void changed() { mixin(S_TRACE);
+		if (_change) _change();
 	}
 
 	/// このステップをXMLテキストにする。
@@ -1072,6 +1080,11 @@ public:
 			return "";
 		}
 	}
+
+	protected override void changed() { mixin(S_TRACE);
+		if (_change) _change();
+	}
+
 	/// 指定されたノードにこのディレクトリ内のフラグとステップのデータを追加する。
 	void toNode(ref XNode e) { mixin(S_TRACE);
 		auto fe = e.newElement("Flags");
