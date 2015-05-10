@@ -58,9 +58,9 @@ version (Windows) {
 	import core.stdc.errno;
 	import std.c.linux.linux;
 	private extern (C) {
-		uintptr_t sleep(uintptr_t);
-		int inotify_init();
-		intptr_t inotify_add_watch(int, in char*, uintptr_t);
+		c_uint sleep(c_uint);
+		c_int inotify_init();
+		c_int inotify_add_watch(int, in char*, c_int);
 		const IN_NONBLOCK = 0x4000;
 		const IN_MODIFY = 0x0002;
 		const IN_ATTRIB = 0x0004;
@@ -70,10 +70,10 @@ version (Windows) {
 		const IN_DELETE = 0x0200;
 		const IN_DELETE_SELF = 0x0400;
 		struct inotify_event {
-			int wd;
-			uintptr_t mask;
-			uintptr_t cookie;
-			uintptr_t len;
+			c_int wd;
+			c_uint mask;
+			c_uint cookie;
+			c_uint len;
 			char* name;
 		};
 	}

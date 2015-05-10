@@ -1800,7 +1800,7 @@ private:
 		});
 		if (!_readOnly) { mixin(S_TRACE);
 			new MenuItem(menu, SWT.SEPARATOR);
-			createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagView,
+			createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagViewL,
 				() => !_readOnly && _flagList.getSelectionIndex() != -1
 				&& cast(cwx.flag.Flag)_flagList.getItem(_flagList.getSelectionIndex()).getData());
 		}
@@ -1896,7 +1896,7 @@ private:
 		_flagAllCheck.setEnabled(0 < _flagList.getItemCount());
 		updateFlagChecks();
 	}
-	void openFlagView() { mixin(S_TRACE);
+	void openFlagViewL() { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (!_flagList) return;
 		auto i = _flagList.getSelectionIndex();
@@ -2589,7 +2589,7 @@ private:
 			}
 		}
 	}
-	void openFlagView() { mixin(S_TRACE);
+	void openFlagViewC() { mixin(S_TRACE);
 		if (_readOnly) return;
 		if (-1 == _flag.getSelectionIndex()) return;
 		auto flag = _summ.flagDirRoot.findFlag(_flag.getText());
@@ -2908,7 +2908,7 @@ public:
 				}, () => 1 < _flag.getItemCount());
 				if (!_readOnly) { mixin(S_TRACE);
 					new MenuItem(menu, SWT.SEPARATOR);
-					createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagView, () => !_readOnly && _flag.getSelectionIndex() > 0);
+					createMenuItem(_comm, menu, MenuID.OpenAtVarView, &openFlagViewC, () => !_readOnly && _flag.getSelectionIndex() > 0);
 				}
 				_flag.setMenu(menu);
 			}

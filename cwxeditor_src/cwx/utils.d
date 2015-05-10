@@ -30,6 +30,14 @@ import std.stream;
 import std.range;
 import std.functional;
 
+static if ((void*).sizeof == 8) {
+	alias int c_int;
+	alias uint c_uint;
+} else static if ((void*).sizeof == 4) {
+	alias int c_int;
+	alias uint c_uint;
+} else static assert (0);
+
 debug {
 	version (Console) {
 		private immutable DR = "Debug / Console";
@@ -47,6 +55,7 @@ debug {
 	// ここで強引に実体化して回避する。
 	immutable SYMBOL_INCLUDE = function wchar() { auto s = new immutable(wchar)[1]; std.array.popFront(s); return 0; }();
 }
+
 shared immutable string APP_BUILD = "Build: "
 		~ __DATE__[7 .. $]
 		~ "-" ~ [
@@ -65,7 +74,7 @@ shared immutable string APP_BUILD = "Build: "
 		][__DATE__[0 .. 3]]
 		~ "-" ~ (__DATE__[4 .. 5] == " " ? "0" : __DATE__[4 .. 5]) ~ __DATE__[5 .. 6]
 		~ " " ~ __TIME__ ~ " "
-		~ DR ~ .newline
+		~ DR ~ " (" ~ .text((void*).sizeof * 8) ~ "-bit)" ~ .newline
 		~ "Compiled by " ~ __VENDOR__ ~ " " ~ .text(__VERSION__);
 
 private version (Windows) {
@@ -1570,7 +1579,7 @@ version (Windows) {
 	}
 } else {
 	private extern (C) {
-		intptr_t fork();
+		c_int fork();
 	}
 	import std.c.stdlib;
 	import std.process;

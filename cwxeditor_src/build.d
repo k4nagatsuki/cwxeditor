@@ -29,46 +29,66 @@ import std.container;
 
 version (Windows) {
 	immutable RCC = "rcc";
+	immutable RCEXE = "rc";
 	immutable RC = NAME.setExtension("rc");
 	immutable RES = NAME.setExtension("res");
 	immutable EXE = NAME.setExtension("exe");
-	immutable LIB = [
-		"-L/rc:" ~ NAME,
-		"-L/NOM",
-		"-L+advapi32.lib",
-		"-L+comctl32.lib",
-		"-L+comdlg32.lib",
-		"-L+gdi32.lib",
-		"-L+kernel32.lib",
-		"-L+shell32.lib",
-		"-L+ole32.lib",
-		"-L+oleaut32.lib",
-		"-L+olepro32.lib",
-		"-L+oleacc.lib",
-		"-L+user32.lib",
-		"-L+usp10.lib",
-		"-L+msimg32.lib",
-		"-L+opengl32.lib",
-		"-L+shlwapi.lib",
-		"-L+dwt-base.lib",
-		"-L+org.eclipse.swt.win32.win32.x86.lib",
+	immutable LIB_64 = [
+		"advapi32.lib",
+		"comctl32.lib",
+		"comdlg32.lib",
+		"gdi32.lib",
+		"kernel32.lib",
+		"shell32.lib",
+		"ole32.lib",
+		"oleaut32.lib",
+		"oleacc.lib",
+		"user32.lib",
+		"usp10.lib",
+		"msimg32.lib",
+		"opengl32.lib",
+		"shlwapi.lib",
+		"dwt-base.lib",
+		"org.eclipse.swt.win32.win32.x86.lib",
 	];
+	immutable LIB_32 = LIB_64 ~ "olepro32.lib";
 	immutable DEBUG_FLAGS = [
 		"-g",
 		"-debug",
 		"-unittest",
 	];
-	immutable string[] DEBUG_FLAGS_L = [
+	immutable string[] DEBUG_FLAGS_L_32 = [
+//		"-g",
 		"-debug",
 		"-unittest",
 	];
-	immutable CONSOLE_FLAGS_L = [
+	immutable string[] DEBUG_FLAGS_L_64 = [
+		"-g",
+		"-debug",
+		"-unittest",
+	];
+	immutable CONSOLE_FLAGS_L_32 = [
+		"-L/rc:" ~ NAME,
+		"-L/NOM",
 		"-of" ~ EXE,
 		"-L/exet:nt/su:console:4.0",
 	];
-	immutable string[] WINDOW_FLAGS_L = [
+	immutable CONSOLE_FLAGS_L_64 = [
+		"-L" ~ NAME ~ ".res",
+		"-of" ~ EXE,
+		"-L/SUBSYSTEM:CONSOLE",
+	];
+	immutable string[] WINDOW_FLAGS_L_32 = [
+		"-L/rc:" ~ NAME,
+		"-L/NOM",
 		"-of" ~ EXE,
 		"-L/exet:nt/su:windows:4.0",
+	];
+	immutable string[] WINDOW_FLAGS_L_64 = [
+		"-L" ~ NAME ~ ".res",
+		"-of" ~ EXE,
+		"-L/SUBSYSTEM:Windows",
+		"-L/ENTRY:mainCRTStartup",
 	];
 	immutable O = "obj";
 } else {
@@ -230,6 +250,7 @@ void main(string[] args) {
 	bool window = (release && !console) || option.has("gui");
 	bool clean = option.has("clean");
 	bool run = option.has("run");
+	bool m64 = dmdOption.has("-m64");
 
 	if (help) {
 		writeln("Usage: rdmd build [help | clean | cui | gui | release | run | *.d]");
@@ -283,7 +304,11 @@ void main(string[] args) {
 	version (Windows) {
 		// リソースファイル
 		if (RC.length && RC.newer(RES)) {
-			cmd = [RCC];
+			if (m64) {
+				cmd = [RCEXE];
+			} else {
+				cmd = [RCC];
+			}
 			exec(cmd ~ RC);
 		}
 	}
@@ -314,13 +339,36 @@ void main(string[] args) {
 	}
 
 	// リンク
-	flags = LIB.dup;
-	flags ~= release ? RELEASE_FLAGS_L : DEBUG_FLAGS_L;
-	flags ~= window ? WINDOW_FLAGS_L : CONSOLE_FLAGS_L;
-	exec(cmd ~ flags ~ objs.values);
+	version (Windows) {
+		if (m64) {
+			flags = LIB_64.map!((a) => "-L" ~ a)().array();
+			flags ~= release ? RELEASE_FLAGS_L : DEBUG_FLAGS_L_64;
+			flags ~= window ? WINDOW_FLAGS_L_64 : CONSOLE_FLAGS_L_64;
+		} else {
+			flags = LIB_32.map!((a) => "-L+" ~ a)().array();
+			flags ~= release ? RELEASE_FLAGS_L : DEBUG_FLAGS_L_32;
+			flags ~= window ? WINDOW_FLAGS_L_32 : CONSOLE_FLAGS_L_32;
+		}
+	} else {
+		flags = LIB.map!((a) => "-L+" ~ a)();
+		flags ~= release ? RELEASE_FLAGS_L : DEBUG_FLAGS_L;
+		flags ~= window ? WINDOW_FLAGS_L : CONSOLE_FLAGS_L;
+	}
+
+	exec(cmd ~ flags ~ objs.values ~ dmdOption);
 
 	timer.stop();
 	writefln("Compiled: %d msecs", timer.peek().msecs);
+
+	// 不要なファイルを削除
+	version (Windows) {
+		if (m64 && release) {
+			foreach (ext; [".exp", ".ilk", ".lib", ".pdb"]) {
+				auto path = EXE.setExtension(ext);
+				if (path.exists()) path.remove();
+			}
+		}
+	}
 
 	if (run) {
 		exec(".".buildPath(EXE));

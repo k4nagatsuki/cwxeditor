@@ -121,7 +121,7 @@ version (Windows) {
 		} else { mixin(S_TRACE);
 			if (!isAbsolute(exe)) { mixin(S_TRACE);
 				auto path = new wchar[MAX_PATH];
-				DWORD cchOut = path.length;
+				DWORD cchOut = cast(DWORD)path.length;
 				auto r = WINAPI.AssocQueryStringW(ASSOCSTR_EXECUTABLE, OS.ASSOCSTR_COMMAND, toUTFz!(wchar*)(exe), null, path.ptr, &cchOut);
 				if (FAILED(r) || 0 == cchOut) return null;
 				PathRemoveArgsW(path.ptr);

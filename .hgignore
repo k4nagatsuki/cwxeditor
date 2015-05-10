@@ -2,6 +2,10 @@ syntax: glob
 cwxeditor_src/cwxeditor
 cwxeditor_src/cwxeditor.exe
 cwxeditor_src/cwxeditor.map
+cwxeditor_src/cwxeditor.exp
+cwxeditor_src/cwxeditor.ilk
+cwxeditor_src/cwxeditor.lib
+cwxeditor_src/cwxeditor.pdb
 cwxeditor_src/cwxeditor.res
 cwxeditor_src/cwxeditor.xml
 cwxeditor_src/cwxeditor_error.log

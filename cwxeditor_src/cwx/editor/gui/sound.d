@@ -56,8 +56,8 @@ version (Windows) {
 	}
 }
 private extern (C) {
-	immutable uint SDL_INIT_AUDIO = 0x10;
-	immutable uint SDL_INIT_NOPARACHUTE  = 0x00100000;
+	immutable c_uint SDL_INIT_AUDIO = 0x10;
+	immutable c_uint SDL_INIT_NOPARACHUTE  = 0x00100000;
 	immutable ushort AUDIO_U8 = 0x0008;
 	immutable ushort AUDIO_S8 = 0x8008;
 	immutable ushort AUDIO_U16LSB = 0x0010;
@@ -76,7 +76,7 @@ private extern (C) {
 	alias ubyte Uint8;
 	alias void Mix_Music;
 	struct Mix_Chunk {
-		intptr_t allocated;
+		c_int allocated;
 		Uint8 *abuf;
 		Uint32 alen;
 		Uint8 volume;
@@ -87,26 +87,26 @@ private extern (C) {
 	struct SDL_RWops {}
 
 	alias void function() SDL_SetMainReady;
-	alias intptr_t function(Uint32) SDL_Init;
+	alias c_int function(Uint32) SDL_Init;
 	alias char* function() SDL_GetError;
 	alias void function() SDL_Quit;
-	alias intptr_t function(intptr_t, Uint16, intptr_t, intptr_t) Mix_OpenAudio;
+	alias c_int function(c_int, Uint16, c_int, c_int) Mix_OpenAudio;
 	alias void function() Mix_CloseAudio;
-	alias intptr_t function(intptr_t numchans) Mix_AllocateChannels;
+	alias c_int function(c_int numchans) Mix_AllocateChannels;
 	alias Mix_Music* function(const char* file) Mix_LoadMUS;
 	alias Mix_Chunk* function(Uint8* mem) Mix_QuickLoad_WAV;
-	alias intptr_t function(Mix_Music* music, intptr_t loops) Mix_PlayMusic;
-	alias intptr_t function(intptr_t channel, Mix_Chunk *chunk, intptr_t loops, intptr_t ticks) Mix_PlayChannelTimed;
-	alias intptr_t function(Mix_Chunk* chunk, intptr_t volume) Mix_VolumeChunk;
-	alias intptr_t function(intptr_t volume) Mix_VolumeMusic;
-	alias intptr_t function(intptr_t channel, intptr_t volume) Mix_Volume;
+	alias c_int function(Mix_Music* music, c_int loops) Mix_PlayMusic;
+	alias c_int function(c_int channel, Mix_Chunk *chunk, c_int loops, c_int ticks) Mix_PlayChannelTimed;
+	alias c_int function(Mix_Chunk* chunk, c_int volume) Mix_VolumeChunk;
+	alias c_int function(c_int volume) Mix_VolumeMusic;
+	alias c_int function(c_int channel, c_int volume) Mix_Volume;
 	alias void function(Mix_Music* music) Mix_FreeMusic;
-	alias intptr_t function() Mix_HaltMusic;
-	alias intptr_t function(intptr_t channel) Mix_HaltChannel;
+	alias c_int function() Mix_HaltMusic;
+	alias c_int function(c_int channel) Mix_HaltChannel;
 	alias void function(Mix_Chunk* chunk) Mix_FreeChunk;
-	alias Mix_Chunk* function(SDL_RWops* src, int freesrc) Mix_LoadWAV_RW;
+	alias Mix_Chunk* function(SDL_RWops* src, c_int freesrc) Mix_LoadWAV_RW;
 	alias SDL_RWops* function(const char* file, const char* mode) SDL_RWFromFile;
-	alias int function(intptr_t *frequency, Uint16 *format, intptr_t *channels) Mix_QuerySpec;
+	alias c_int function(c_int *frequency, Uint16 *format, c_int *channels) Mix_QuerySpec;
 
 	immutable SDL_FREQUENCY = 44100;
 	immutable SDL_FORMAT = MIX_DEFAULT_FORMAT;
@@ -116,9 +116,9 @@ private extern (C) {
 
 private __gshared void* sdl = null;
 private __gshared void* mixer = null;
-private __gshared intptr_t sdl_frequency = 0;
+private __gshared c_int sdl_frequency = 0;
 private __gshared Uint16 sdl_format = 0;
-private __gshared intptr_t sdl_channels = 0;
+private __gshared c_int sdl_channels = 0;
 
 private __gshared uint _bgmVolume = 100;
 private __gshared uint _seVolume = 100;
@@ -264,12 +264,12 @@ shared static ~this () { mixin(S_TRACE);
 private __gshared bool bgmOnLegacy = false;
 private __gshared Mix_Music* bgmMusic = null;
 private __gshared Mix_Chunk* bgmChunk = null;
-private __gshared intptr_t bgmChannel = -1;
+private __gshared c_int bgmChannel = -1;
 
 private __gshared bool seOnLegacy = false;
 private __gshared Mix_Music* seMusic = null;
 private __gshared Mix_Chunk* seChunk = null;
-private __gshared intptr_t seChannel = -1;
+private __gshared c_int seChannel = -1;
 
 private ulong pos(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream) { mixin(S_TRACE);
 	version (Windows) {
@@ -347,7 +347,7 @@ private void printSDLError(string File = __FILE__, int Line = __LINE__)() { mixi
 	debugln!(File, Line)(str[0..strlen(str)]);
 }
 
-private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool loop, int soundPlayType, uint volume, ref HSTREAM bassStream) { mixin(S_TRACE);
+private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref c_int channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool loop, int soundPlayType, uint volume, ref HSTREAM bassStream) { mixin(S_TRACE);
 	stop(music, chunk, channel, mciName, onLegacy, playingMCI, bassStream);
 	version (Windows) {
 		if (SOUND_TYPE_BASS == soundPlayType) { mixin(S_TRACE);
@@ -413,7 +413,7 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t chann
 						printSDLError();
 						return;
 					}
-					getSymbol!(Mix_VolumeMusic)(mixer, "Mix_VolumeMusic")(.roundTo!intptr_t((volume / 100.0) * MIX_MAX_VOLUME));
+					getSymbol!(Mix_VolumeMusic)(mixer, "Mix_VolumeMusic")(.roundTo!c_int((volume / 100.0) * MIX_MAX_VOLUME));
 					if (0 != getSymbol!(Mix_PlayMusic)(mixer, "Mix_PlayMusic")(music, -1)) { mixin(S_TRACE);
 						debugln("error: Mix_PlayMusic, " ~ file);
 						printSDLError();
@@ -439,7 +439,7 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t chann
 						printSDLError();
 						return;
 					}
-					getSymbol!(Mix_VolumeChunk)(mixer, "Mix_VolumeChunk")(chunk, .roundTo!intptr_t((volume / 100.0) * MIX_MAX_VOLUME));
+					getSymbol!(Mix_VolumeChunk)(mixer, "Mix_VolumeChunk")(chunk, .roundTo!c_int((volume / 100.0) * MIX_MAX_VOLUME));
 					channel = getSymbol!(Mix_PlayChannelTimed)(mixer, "Mix_PlayChannelTimed")(channel, chunk, 0, -1);
 					if (-1 == channel) { mixin(S_TRACE);
 						debugln("error: Mix_PlayChannelTimed, " ~ file);
@@ -455,7 +455,7 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t chann
 	}
 }
 
-private void stop(ref Mix_Music* music, ref Mix_Chunk* chunk, ref intptr_t channel, string mciName, bool onLegacy, ref bool playingMCI, ref HSTREAM bassStream) { mixin(S_TRACE);
+private void stop(ref Mix_Music* music, ref Mix_Chunk* chunk, ref c_int channel, string mciName, bool onLegacy, ref bool playingMCI, ref HSTREAM bassStream) { mixin(S_TRACE);
 	try { mixin(S_TRACE);
 		version (Windows) {
 			stopBass(bassStream);
@@ -673,7 +673,7 @@ private bool playBass(string file, bool loop, ref DWORD stream, uint volume) { m
 			}
 			if (!stream) return false;
 			if (midi) { mixin(S_TRACE);
-				if (!getSymbol!(BASS_MIDI_StreamSetFonts)(bassMidi, "BASS_MIDI_StreamSetFonts")(stream, soundFonts.ptr, soundFonts.length)) { mixin(S_TRACE);
+				if (!getSymbol!(BASS_MIDI_StreamSetFonts)(bassMidi, "BASS_MIDI_StreamSetFonts")(stream, soundFonts.ptr, cast(c_int)soundFonts.length)) { mixin(S_TRACE);
 					stopBass(stream);
 					return false;
 				}
@@ -723,8 +723,8 @@ version (Windows) {
 		}
 		struct BASS_MIDI_FONT {
 			HSOUNDFONT font;
-			intptr_t preset;
-			intptr_t bank;
+			c_int preset;
+			c_int bank;
 		}
 		alias DWORD HSTREAM;
 		alias DWORD HSOUNDFONT;
@@ -751,7 +751,7 @@ version (Windows) {
 		BASS_StreamGetFilePosition _BASS_StreamGetFilePosition;
 	}
 } else {
-	private alias intptr_t HSTREAM;
+	private alias c_int HSTREAM;
 }
 
 /// BASSを使用する状態であればtrue。
@@ -833,7 +833,7 @@ void bgmVolume(uint volume) { mixin(S_TRACE);
 	synchronized (mutex) { mixin(S_TRACE);
 		_bgmVolume = .min(volume, 100);
 		if (mixer) { mixin(S_TRACE);
-			auto sdlvol = .roundTo!intptr_t((_bgmVolume / 100.0) * MIX_MAX_VOLUME);
+			auto sdlvol = .roundTo!c_int((_bgmVolume / 100.0) * MIX_MAX_VOLUME);
 			getSymbol!(Mix_VolumeMusic)(mixer, "Mix_VolumeMusic")(sdlvol);
 		}
 		version (Windows) {
@@ -910,7 +910,7 @@ void seVolume(uint volume) { mixin(S_TRACE);
 	synchronized (mutex) { mixin(S_TRACE);
 		_seVolume = .min(volume, 100);
 		if (mixer && -1 != seChannel) { mixin(S_TRACE);
-			auto sdlvol =.roundTo!intptr_t((_seVolume / 100.0) * MIX_MAX_VOLUME);
+			auto sdlvol =.roundTo!c_int((_seVolume / 100.0) * MIX_MAX_VOLUME);
 			getSymbol!(Mix_Volume)(mixer, "Mix_Volume")(seChannel, sdlvol);
 		}
 		version (Windows) {

@@ -2136,7 +2136,7 @@ private:
 						string send = recvSend(recv, quit);
 						if (quit) break;
 						if (!send) break;
-						if (!WriteFile(pipe, send.ptr, send.length, &len, null)) break;
+						if (!WriteFile(pipe, send.ptr, cast(DWORD)send.length, &len, null)) break;
 					}
 				}
 			} else { mixin(S_TRACE);
@@ -2242,7 +2242,7 @@ private:
 				while (true) { mixin(S_TRACE);
 					string send = sendRecv(recv);
 					if (!send || !send.length) break;
-					if (!WriteFile(p, send.ptr, send.length, &len, null)) break;
+					if (!WriteFile(p, send.ptr, cast(DWORD)send.length, &len, null)) break;
 					if (!ReadFile(p, buf.ptr, buf.length, &len, null)) break;
 					recv = buf[0 .. len].idup;
 				}
@@ -4385,7 +4385,7 @@ public:
 						scope (exit) CloseHandle(p);
 						string pmsg = "quit";
 						DWORD len;
-						WriteFile(p, pmsg.ptr, pmsg.length, &len, null);
+						WriteFile(p, pmsg.ptr, cast(DWORD)pmsg.length, &len, null);
 					}
 				}
 			} else { mixin(S_TRACE);

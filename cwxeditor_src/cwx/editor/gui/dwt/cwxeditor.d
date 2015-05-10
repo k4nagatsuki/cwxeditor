@@ -1,5 +1,5 @@
 
-module cwxeditor;
+module cwx.editor.gui.dwt.cwxeditor;
 
 import cwx.utils;
 import cwx.system;

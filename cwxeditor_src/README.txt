@@ -30,11 +30,12 @@ pullもしておきます。
 
     rdmd build base swt
 
+64ビット版のライブラリを作成する場合は次のようにします。
+
+    rdmd build base swt -m64
+
 後は、dmd2/windows/bin/sc.iniを弄くってDWTのインポートフォルダやら
 リソースフォルダやらを探しに行くようにしておきましょう。
-
-DWTが今の所32bit版しかないので、cwxeditorも32bitでビルドする必要が
-あります。
 
     [Environment]
 
@@ -43,8 +44,11 @@ DWTが今の所32bit版しかないので、cwxeditorも32bitでビルドする必要が
     [Environment32]
     LIB="%@P%\..\lib";"%@P%\..\..\dwt\lib"
       :
+    [Environment64]
+      :
+    LIB=%LIB%;"%@P%\..\..\dwt\lib"
 
-最後にリソースコンパイル用のrccを入手します。
+最後にリソースコンパイル用のrccを入手します(32ビット版のみ)。
 
 Digital MarsのサイトからBasic Utilitiesを入手して、パスを通しましょう。
 
@@ -69,6 +73,10 @@ rdmd等で実行してください。
 デバグビルドでコンソールを出さないなら:
 
     rdmd build gui
+
+64ビット版なら`-m64`をつけます:
+
+    rdmd build -m64
 
 後はどうかDWTが死なないことを私と一緒に祈ってください。
 
