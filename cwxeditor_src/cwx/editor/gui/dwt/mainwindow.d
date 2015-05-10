@@ -404,6 +404,8 @@ private:
 							if (std.string.startsWith(yado, "~")) continue;
 							auto yPath = yadoDir.buildPath(yado);
 							if (!yPath.exists() || !yPath.isDir()) continue;
+							auto envPath = yPath.buildPath("Environment.wyd");
+							if (!envPath.exists() || !envPath.isFile()) continue;
 							auto img = _prop.images.yado;
 							if (.isDebugYado(_prop.sys, yPath)) img = _prop.images.debugYado;
 							bool enable = false;

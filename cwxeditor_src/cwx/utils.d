@@ -730,7 +730,7 @@ class Wildcard {
 void[] readBinary(string fileName) { mixin(S_TRACE);
 	version (Windows) {
 		SECURITY_ATTRIBUTES secAttr;
-		auto file = CreateFileW(toUTF16z(fileName), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+		auto file = CreateFileW(toUTFz!(wchar*)(fileName), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
 			&secAttr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, null);
 		enforce(file != INVALID_HANDLE_VALUE, new Exception("CreateFileW() error: " ~ fileName));
 		scope (exit) CloseHandle(file);
