@@ -1368,8 +1368,10 @@ class DockingFolder(TabF, int Style) {
 					auto i2 = .cCountUntil!("a is b")(dropTarg.getItems(), _dragItm);
 					if (i2 + 1 == i1) return DND.DROP_NONE;
 				}
-				foreach (moveShell; movingShellEvent) { mixin(S_TRACE);
-					moveShell(key);
+				if (shell1 !is shell2) { mixin(S_TRACE);
+					foreach (moveShell; movingShellEvent) { mixin(S_TRACE);
+						moveShell(key);
+					}
 				}
 				newTab(dropTarg, _dragItm, dropItm ? i1 : -1);
 				if (shell1 !is shell2) { mixin(S_TRACE);
@@ -1394,8 +1396,10 @@ class DockingFolder(TabF, int Style) {
 					default: assert (0);
 					}
 				}
-				foreach (moveShell; movingShellEvent) { mixin(S_TRACE);
-					moveShell(key);
+				if (shell1 !is shell2) { mixin(S_TRACE);
+					foreach (moveShell; movingShellEvent) { mixin(S_TRACE);
+						moveShell(key);
+					}
 				}
 				string newKey = newTabfKey(prefix(this.outer.key(_dragItm.getParent())));
 				auto tabf = newSash(dropTarg, style, before, 1, 1, newKey);
