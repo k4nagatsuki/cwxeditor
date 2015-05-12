@@ -75,7 +75,7 @@ BGMやSEの再生のために動的リンクするライブラリをいくつか同梱してあります。
  * libogg-0.dllとlibvorbis-0.dllとlibvorbisfile-3.dllはOggVorbisの
    共有ライブラリです。修正BSDライセンスの下に頒布されています:
 
-### Copyright (c) 2002-2004 Xiph.org Foundation
+### Copyright (c) 2002-2008 Xiph.org Foundation
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -101,3 +101,49 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+x64フォルダ内にある動的ライブラリのライセンスは次の通りです。
+
+ * SDL2.dllはSDL 2.0の共有ライブラリです。
+   http://www.libsdl.org/
+   zlib Licenseの下で頒布されています:
+
+Copyright (c) <''year''> <''copyright holders''>
+
+This software is provided 'as-is', without any express or implied
+warranty. In no event will the authors be held liable for any damages
+arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+   1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software
+   in a product, an acknowledgment in the product documentation would be
+   appreciated but is not required.
+
+   2. Altered source versions must be plainly marked as such, and must not be
+   misrepresented as being the original software.
+
+   3. This notice may not be removed or altered from any source
+   distribution.
+
+ * SDL2_mixer.dllはSDL_mixer 2.0の共有ライブラリです。
+   http://www.libsdl.org/projects/SDL_mixer/
+   ライセンスはzlib Licenseです。
+ * smpeg2.dllはSMPEGの共有ライブラリです。
+   http://www.lokigames.com/development/smpeg.php3
+   ライセンスはLGPLなので、LGPL.txtか、次のURIを参照してください。
+   http://www.gnu.org/copyleft/lesser.html
+ * libogg-0.dllとlibvorbis-0.dllとlibvorbisfile-3.dllはOggVorbisの
+   共有ライブラリです。ライセンスは修正BSDライセンスです。
+ * libFLAC-8.dllはFLACの共有ライブラリです。
+   https://xiph.org/flac/
+   ライセンスは修正BSDライセンスです。
+ * libmikmod-2.dllはMikModの共有ライブラリです。
+   http://mikmod.sourceforge.net/
+   ライセンスはLGPLです。
+ * libmodplug-1.dllはModPlugの共有ライブラリです。
+   http://modplug-xmms.sourceforge.net/
+   パブリックドメインで頒布されています。

@@ -8,6 +8,8 @@ import std.string;
 import std.conv;
 import std.path;
 import std.exception;
+import std.file;
+import std.process : environment;
 import std.c.stdio;
 import std.c.string;
 
@@ -169,8 +171,17 @@ version (Windows) {
 private void initSdl() { mixin(S_TRACE);
 	if (sdl && mixer) return;
 	version (Windows) {
-		static __gshared const SDL = "SDL.dll";
-		static __gshared const MIXER = "SDL_mixer.dll";
+		version (Win64) {
+			static __gshared const SDL = "SDL2.dll";
+			static __gshared const MIXER = "SDL2_mixer.dll";
+			auto path = .environment.get("PATH", "");
+			if (path != "") path ~= ";";
+			path ~= thisExePath().dirName().buildPath("x64");
+			.environment["PATH"] = path;
+		} else {
+			static __gshared const SDL = "SDL.dll";
+			static __gshared const MIXER = "SDL_mixer.dll";
+		}
 	} else { mixin(S_TRACE);
 		static __gshared const SDL = "libSDL2.so";
 		static __gshared const MIXER = "libSDL2_mixer.so";

@@ -28,3 +28,4 @@ syntax: regexp
 ^cwxeditor_src/.*\.config$
 ^cwxeditor_src/lang/.*$
 ^cwxeditor_src/.*\.deps$
+^cwxeditor_src/x64/.*$
