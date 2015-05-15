@@ -646,7 +646,8 @@ private string readStringImpl(ref ByteIO f, bool lns, bool cutText, uint delegat
 	} catch (Exception e) {
 		printStackTrace();
 		debugln(e);
-		str = touni(str, false);
+		//str = touni(str, false);
+		str = "";
 	}
 	if (cutText) { mixin(S_TRACE);
 		str = str.length > "TEXT\r\n".length ? str["TEXT\r\n".length .. $] : "";
