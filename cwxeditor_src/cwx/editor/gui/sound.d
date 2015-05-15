@@ -522,11 +522,18 @@ bool initBass(string dir, in string[] soundFonts) { mixin(S_TRACE);
 				if (!bass) { mixin(S_TRACE);
 					bass = dlopen(dir.buildPath("bass.dll"));
 					if (!bass) { mixin(S_TRACE);
-						disposeBass();
-						return false;
+						bass = dlopen("bass.dll");
+						if (!bass) { mixin(S_TRACE);
+							disposeBass();
+							return false;
+						}
 					}
 					if (soundFonts.length) { mixin(S_TRACE);
-						bassMidi = dlopen(dir.buildPath("bassmidi.dll")); // 読込失敗でも続行
+						// 読込失敗でも続行
+						bassMidi = dlopen(dir.buildPath("bassmidi.dll"));
+						if (!bassMidi) { mixin(S_TRACE);
+							bassMidi = dlopen("bassmidi.dll");
+						}
 					}
 					if (!getSymbol!(BASS_Init)(bass, "BASS_Init")(-1, 44100, BASS_DEVICE_DEFAULT, null, null)) { mixin(S_TRACE);
 						disposeBass();
