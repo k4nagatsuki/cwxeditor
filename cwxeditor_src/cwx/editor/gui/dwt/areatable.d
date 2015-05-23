@@ -2718,6 +2718,7 @@ public:
 			_summ.startArea = a.id;
 			updateAreaImage();
 			refreshUseCount();
+			_comm.refreshToolBar();
 		}
 	}
 
