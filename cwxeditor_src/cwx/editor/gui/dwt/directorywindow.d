@@ -1026,9 +1026,6 @@ private:
 				_jpyData ~= Jpy1.load(_prop.parent, sPath, file);
 				_jpyData[$-1].setUseCounter(_summ.useCounter);
 			} catch (EffectBoosterError e) {
-				printStackTrace();
-				debugln(file);
-				debugln(e);
 				debug {
 					foreach (err; e.errors) { mixin(S_TRACE);
 						debugln(.tryFormat(_prop.msgs.jpyError, err.msg, file, err.line));
