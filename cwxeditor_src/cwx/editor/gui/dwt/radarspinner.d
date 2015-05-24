@@ -527,11 +527,17 @@ class RadarSpinner : Composite {
 			real disH = TOGGLE_SIZE + MARGIN + _maxSize.y / 2;
 			foreach (i; 0 .. _param_c) { mixin(S_TRACE);
 				// 角度(°)
-				real r = ((PI * 2.0 * nPos(i) / _param_c)) * 180 / PI; // rad -> °
+				int r = cast(int)(((PI * 2.0 * nPos(i) / _param_c)) * 180 / PI); // rad -> °
 				r += 360;
 				r %= 360;
 				real cosR = .cos(r * PI / 180);
-				real sinR = .sin(r * PI / 180);
+				version (Win64) {
+					// FIXME: rが180の時にrを使って計算すると結果が1.22461e-16になる
+					//        正しくは-5.42101e-20
+					real sinR = r == 180 ? .sin(180 * PI / 180) : .sin(r * PI / 180);
+				} else {
+					real sinR = .sin(r * PI / 180);
+				}
 				real disBaseX, disBaseY;
 				if (r < 90) { mixin(S_TRACE);
 					disBaseX = +(cw - bw);
