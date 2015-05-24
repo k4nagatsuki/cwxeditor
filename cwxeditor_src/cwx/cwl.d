@@ -3056,7 +3056,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 		}
 		lazys ~= e2;
 		if (e2.detail.owner && e2.next.length) { mixin(S_TRACE);
-			f.writeL(cast(uint)40000 + e2.next.length);
+			f.writeL(cast(uint)(40000 + e2.next.length));
 			if (e2.next.length == 1) { mixin(S_TRACE);
 				e2 = e2.next[0];
 			} else { mixin(S_TRACE);
