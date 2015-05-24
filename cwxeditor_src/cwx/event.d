@@ -1060,6 +1060,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			if (index > 0) return null;
 			return _text.findCWXPath(cpbottom(path));
 		}
+		case "background": { mixin(S_TRACE);
+			auto index = cpindex(path);
+			if (index >= backs.length) return null;
+			return backs[index];
+		}
 		default: break;
 		}
 		return null;
