@@ -726,32 +726,8 @@ class Wildcard {
 }
 
 /// ファイルの内容を全て読み込む。
-//alias std.file.read readBinary;
-void[] readBinary(string fileName) { mixin(S_TRACE);
-	version (Windows) {
-		SECURITY_ATTRIBUTES secAttr;
-		auto file = CreateFileW(toUTFz!(wchar*)(fileName), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
-			&secAttr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, null);
-		enforce(file != INVALID_HANDLE_VALUE, new Exception("CreateFileW() error: " ~ fileName));
-		scope (exit) CloseHandle(file);
-		auto len = GetFileSize(file, null);
-		enforce(len != -1, new Exception("GetFileSize() error: " ~ fileName));
-		auto bin = new void[len];
-		DWORD read;
-		enforce(ReadFile(file, bin.ptr, bin.length, &read, null),  new Exception("ReadFile() error: " ~ fileName));
-		return bin;
-	} else {
-		import core.stdc.stdio;
-		auto fp = fopen(toStringz(fileName), toStringz("rb"));
-		if (!fp) throw new Exception("fopen() error: " ~ fileName);
-		scope (exit) fclose(fp);
-		fseek(fp, 0, SEEK_END);
-		auto len = ftell(fp);
-		auto bin = new void[len];
-		fread(bin.ptr, len, 1, fp);
-		return bin;
-	}
-}
+alias std.file.read readBinary;
+/// ditto
 T[] readBinaryFrom(T)(string fileName, out T* ptr) { mixin(S_TRACE);
 	version (Windows) {
 		SECURITY_ATTRIBUTES secAttr;
