@@ -96,17 +96,18 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 			return data;
 		}
 		try { mixin(S_TRACE);
+			byte* ptr = null;
 			byte[] bytes;
 			if (isBinImg(path)) { mixin(S_TRACE);
 				bytes = cast(byte[])strToBImg(path);
 			} else { mixin(S_TRACE);
 				if (!.exists(path) || !.isFile(path)) return blankImage;
-				bytes = cast(byte[])readBinary(path);
+				bytes = readBinaryFrom!byte(path, ptr);
 			}
 			scope (exit) {
-				if (!isBinImg(path)) {
+				if (!isBinImg(path) && ptr) {
 					bytes[] = 0;
-					delete bytes;
+					freeAll(ptr);
 				}
 			}
 			ImageData data = null;

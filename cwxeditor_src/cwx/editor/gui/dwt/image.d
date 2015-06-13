@@ -35,7 +35,10 @@ private:
 			ImageData imgData = null;
 			if (.exists(dynPath)) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
-					auto s = new ByteArrayInputStream(cast(byte[])readBinary(dynPath));
+					byte* ptr = null;
+					auto bin = readBinaryFrom!byte(dynPath, ptr);
+					scope (exit) freeAll(ptr);
+					auto s = new ByteArrayInputStream(bin);
 					scope (exit) s.close();
 					imgData = new ImageData(s);
 				} catch (Exception e) {

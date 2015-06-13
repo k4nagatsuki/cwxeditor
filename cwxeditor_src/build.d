@@ -250,7 +250,7 @@ void main(string[] args) {
 	bool window = (release && !console) || option.has("gui");
 	bool clean = option.has("clean");
 	bool run = option.has("run");
-	bool m64 = dmdOption.has("-m64");
+	bool m64 = dmdOption.has("-m64") || dmdOption.has("-m32mscoff");
 
 	if (help) {
 		writeln("Usage: rdmd build [help | clean | cui | gui | release | run | *.d]");

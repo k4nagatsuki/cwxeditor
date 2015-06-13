@@ -348,7 +348,10 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 		void includeImg(string path, void delegate(string) set) { mixin(S_TRACE);
 			try {
 				auto file = from.scenarioPath.buildPath(path);
-				set(bImgToStr(cast(ubyte[])readBinary(file)));
+				ubyte* ptr = null;
+				auto bin = readBinaryFrom!ubyte(file, ptr);
+				scope (exit) freeAll(ptr);
+				set(bImgToStr(bin));
 			} catch (Exception e) {
 				printStackTrace();
 				debugln(e);

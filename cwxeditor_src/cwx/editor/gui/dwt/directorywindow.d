@@ -29,6 +29,7 @@ import cwx.editor.gui.dwt.areaviewutils;
 import cwx.editor.gui.dwt.images;
 
 import core.thread;
+import core.sync.mutex;
 
 import std.array;
 import std.conv;
@@ -1028,7 +1029,7 @@ private:
 			} catch (EffectBoosterError e) {
 				debug {
 					foreach (err; e.errors) { mixin(S_TRACE);
-						debugln(.tryFormat(_prop.msgs.jpyError, err.msg, file, err.line));
+						cdebugln(.tryFormat(_prop.msgs.jpyError, err.msg, file, err.line));
 					}
 				}
 			} catch (Exception e) {
@@ -1218,14 +1219,17 @@ private:
 			}
 		}
 	}
-	private Runnable _refreshThr;
+	private Runnable _refreshThr = null;
+	private Mutex _refreshThrMutex = null;
 	private core.thread.Thread _traceThr = null;
 	private bool _onTrace = true;
 	private bool _stopTrace = false;
 	version (Windows) {
 		private HANDLE _traceHandle = INVALID_HANDLE_VALUE;
 		private void closeTraceHandle() { mixin(S_TRACE);
-			synchronized (_refreshThr) closeTraceHandleImpl();
+			_refreshThrMutex.lock();
+			scope (exit) _refreshThrMutex.unlock();
+			closeTraceHandleImpl();
 		}
 		private void closeTraceHandleImpl() { mixin(S_TRACE);
 			if (_traceHandle !is INVALID_HANDLE_VALUE) FindCloseChangeNotification(_traceHandle);
@@ -1234,7 +1238,9 @@ private:
 	} else version (linux) {
 		private int _traceHandle = -1;
 		private void closeTraceHandle() { mixin(S_TRACE);
-			synchronized (_refreshThr) closeTraceHandleImpl();
+			_refreshThrMutex.lock();
+			scope (exit) _refreshThrMutex.unlock();
+			closeTraceHandleImpl();
 		}
 		private void closeTraceHandleImpl() { mixin(S_TRACE);
 			if (_traceHandle !is -1) close(_traceHandle);
@@ -1262,27 +1268,27 @@ private:
 			}
 			version (Windows) {
 				bool setup() { mixin(S_TRACE);
-					synchronized (_refreshThr) { mixin(S_TRACE);
-						closeTraceHandleImpl();
-						if (summ) { mixin(S_TRACE);
-							DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_LAST_WRITE;
-							_traceHandle = FindFirstChangeNotificationW(toUTFz!(wchar*)(summ.scenarioPath), TRUE, fs);
-							return _traceHandle !is INVALID_HANDLE_VALUE;
-						}
-						return true;
+					_refreshThrMutex.lock();
+					scope (exit) _refreshThrMutex.unlock();
+					closeTraceHandleImpl();
+					if (summ) { mixin(S_TRACE);
+						DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_LAST_WRITE;
+						_traceHandle = FindFirstChangeNotificationW(toUTFz!(wchar*)(summ.scenarioPath), TRUE, fs);
+						return _traceHandle !is INVALID_HANDLE_VALUE;
 					}
+					return true;
 				}
 				scope (exit) {
-					synchronized (_refreshThr) {
-						if (_traceHandle !is INVALID_HANDLE_VALUE) FindCloseChangeNotification(_traceHandle);
-					}
+					_refreshThrMutex.lock();
+					scope (exit) _refreshThrMutex.unlock();
+					if (_traceHandle !is INVALID_HANDLE_VALUE) FindCloseChangeNotification(_traceHandle);
 				}
 				void next() { mixin(S_TRACE);
-					synchronized (_refreshThr) { mixin(S_TRACE);
-						if (_traceHandle !is INVALID_HANDLE_VALUE) { mixin(S_TRACE);
-							if (!FindNextChangeNotification(_traceHandle)) { mixin(S_TRACE);
-								debugln("FindNextChangeNotification failed: ", GetLastError());
-							}
+					_refreshThrMutex.lock();
+					scope (exit) _refreshThrMutex.unlock();
+					if (_traceHandle !is INVALID_HANDLE_VALUE) { mixin(S_TRACE);
+						if (!FindNextChangeNotification(_traceHandle)) { mixin(S_TRACE);
+							debugln("FindNextChangeNotification failed: ", GetLastError());
 						}
 					}
 				}
@@ -1328,29 +1334,29 @@ private:
 				}
 			} else version (linux) {
 				bool setup() { mixin(S_TRACE);
-					synchronized (_refreshThr) { mixin(S_TRACE);
-						closeTraceHandleImpl();
-						_traceHandle = inotify_init();
-						if (_traceHandle is -1) return false;
-						void put(string path) { mixin(S_TRACE);
-							foreach (file; clistdir(path)) { mixin(S_TRACE);
-								file = std.path.buildPath(path, file);
-								if (isDir(file)) { mixin(S_TRACE);
-									inotify_add_watch(_traceHandle, std.string.toStringz(file),
-										IN_MODIFY | IN_ATTRIB | IN_MOVED_FROM | IN_MOVED_TO
-										| IN_CREATE | IN_DELETE | IN_DELETE_SELF);
-									put(file);
-								}
+					_refreshThrMutex.lock();
+					scope (exit) _refreshThrMutex.unlock();
+					closeTraceHandleImpl();
+					_traceHandle = inotify_init();
+					if (_traceHandle is -1) return false;
+					void put(string path) { mixin(S_TRACE);
+						foreach (file; clistdir(path)) { mixin(S_TRACE);
+							file = std.path.buildPath(path, file);
+							if (isDir(file)) { mixin(S_TRACE);
+								inotify_add_watch(_traceHandle, std.string.toStringz(file),
+									IN_MODIFY | IN_ATTRIB | IN_MOVED_FROM | IN_MOVED_TO
+									| IN_CREATE | IN_DELETE | IN_DELETE_SELF);
+								put(file);
 							}
 						}
-						put(summ.scenarioPath);
-						return true;
 					}
+					put(summ.scenarioPath);
+					return true;
 				}
 				scope (exit) {
-					synchronized (_refreshThr) {
-						if (_traceHandle !is -1) close(_traceHandle);
-					}
+					_refreshThrMutex.lock();
+					scope (exit) _refreshThrMutex.unlock();
+					if (_traceHandle !is -1) close(_traceHandle);
 				}
 				while (_onTrace && _display && !_display.isDisposed()) { mixin(S_TRACE);
 					try { mixin(S_TRACE);
@@ -1371,7 +1377,9 @@ private:
 						}
 						byte[inotify_event.sizeof * 1024] buf;
 						ptrdiff_t len;
-						synchronized (_refreshThr) { mixin(S_TRACE);
+						{ mixin(S_TRACE);
+							_refreshThrMutex.lock();
+							scope (exit) _refreshThrMutex.unlock();
 							timeval tout;
 							tout.tv_sec = 1;
 							tout.tv_usec = 0;
@@ -1499,6 +1507,7 @@ public:
 		// FXIME: 本当は素材管理ウィンドウ非表示時は止めておきたかったが
 		// シナリオ読込み後のスレッドの開始に失敗する事があるので常時起動
 		_refreshThr = new RefreshThr;
+		_refreshThrMutex = new Mutex;
 		_traceThr = new core.thread.Thread(&trace);
 		_traceThr.start();
 	}
@@ -2100,21 +2109,21 @@ public:
 		try { mixin(S_TRACE);
 			switch (dlg.getFilterIndex()) {
 			case cab:
-				synchronized (_comm.saveSync) { mixin(S_TRACE);
-					_summ.createCab(fname, _prop.var.etc.ignorePaths);
-				}
+				_comm.saveSync.lock();
+				scope (exit) _comm.saveSync.unlock();
+				_summ.createCab(fname, _prop.var.etc.ignorePaths);
 				_prop.var.etc.selectedArchiveFilter = ".cab";
 				break;
 			case wsn:
-				synchronized (_comm.saveSync) { mixin(S_TRACE);
-					_summ.createZip(fname, _prop.var.etc.ignorePaths, false);
-				}
+				_comm.saveSync.lock();
+				scope (exit) _comm.saveSync.unlock();
+				_summ.createZip(fname, _prop.var.etc.ignorePaths, false);
 				_prop.var.etc.selectedArchiveFilter = ".wsn";
 				break;
 			default:
-				synchronized (_comm.saveSync) { mixin(S_TRACE);
-					_summ.createZip(fname, _prop.var.etc.ignorePaths, true);
-				}
+				_comm.saveSync.lock();
+				scope (exit) _comm.saveSync.unlock();
+				_summ.createZip(fname, _prop.var.etc.ignorePaths, true);
 				_prop.var.etc.selectedArchiveFilter = ".zip";
 				break;
 			}

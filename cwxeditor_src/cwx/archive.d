@@ -37,12 +37,13 @@ void unzip(string parent, string zip,
 		string delegate(string, bool) expand = null,
 		void delegate(uint) setProgressNum = null,
 		void delegate(uint) progress = null) { mixin(S_TRACE);
-	auto data = readBinary(zip);
+	ubyte* temp;
+	auto data = readBinaryFrom!ubyte(zip, temp);
 	auto arc = new ZipArchive(data);
 	unzip(parent, arc, expand, setProgressNum, progress);
 	destroy(arc);
 	(cast(ubyte[])data)[] = 0;
-	delete data;
+	freeAll(temp);
 }
 /// ditto
 void unzip(string parent, ZipArchive arc,
@@ -126,7 +127,7 @@ ArchiveMember archive(string name, ubyte[] data, bool isDir, bool useSysEnc = fa
 /// ignorePath = このdelegeteがtrueを返したパスは除外される。
 /// useSysEnc = trueにするとファイル名にシステムの文字コードをそのまま使用する。
 ///             falseの場合はUTF-8を使用する。
-ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, bool useSysEnc, ref ubyte[][] data) { mixin(S_TRACE);
+ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, bool useSysEnc, ref ubyte*[] data) { mixin(S_TRACE);
 	auto arc = new ZipArchive;
 	scope path = nabs(targ);
 	size_t cut;
@@ -167,8 +168,9 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, boo
 			am.name = name;
 		}
 		if (!isDir(file)) { mixin(S_TRACE);
-			data ~= cast(ubyte[])readBinary(file);
-			am.expandedData = data[$ - 1];
+			ubyte* temp;
+			am.expandedData = readBinaryFrom!ubyte(file, temp);
+			data ~= temp;
 		}
 		arc.addMember(am);
 	}
@@ -186,7 +188,7 @@ ZipArchive zip(string targ, bool top, bool delegate(string path) ignorePath, boo
 	return arc;
 }
 /// ditto
-ZipArchive zip(string targ, bool top, string[] excludePath, bool useSysEnc, ref ubyte[][] data) { mixin(S_TRACE);
+ZipArchive zip(string targ, bool top, string[] excludePath, bool useSysEnc, ref ubyte*[] data) { mixin(S_TRACE);
 	foreach (i, ex; excludePath) { mixin(S_TRACE);
 		excludePath[i] = nabs(ex);
 	}
@@ -210,9 +212,10 @@ string memberName(string name) {
 bool zipHasFile(string zip, string fileName) { mixin(S_TRACE);
 	if (!zip.exists()) return false;
 	try { mixin(S_TRACE);
-		auto bin = readBinary(zip);
+		ubyte* temp;
+		auto bin = readBinaryFrom!ubyte(zip, temp);
 		scope (exit) delete bin;
-		auto arc = new ZipArchive(bin);
+		auto arc = new ZipArchive(cast(ubyte[])bin);
 		scope (exit) delete arc;
 		foreach (am; arc.directory) { mixin(S_TRACE);
 			string name = memberName(am.name);
@@ -220,6 +223,7 @@ bool zipHasFile(string zip, string fileName) { mixin(S_TRACE);
 				return true;
 			}
 		}
+		freeAll(temp);
 	} catch (Exception e) {
 		printStackTrace();
 		debugln!(__FILE__, __LINE__, Exception)(e);
@@ -229,16 +233,12 @@ bool zipHasFile(string zip, string fileName) { mixin(S_TRACE);
 
 /// targをzip圧縮し、パスzipに保存する。
 void zip(string targ, string zip, bool top, bool delegate(string path) ignorePath, bool useSysEnc) { mixin(S_TRACE);
-	ubyte[][] data;
+	ubyte*[] data;
 	scope arc = .zip(targ, top, ignorePath, useSysEnc, data);
 	auto b = arc.build();
 	std.file.write(zip, b);
 	destroy(arc);
-	foreach (d; data) { mixin(S_TRACE);
-		(cast(ubyte[])d)[] = 0;
-		delete d;
-	}
-	delete data;
+	freeAll(data);
 }
 void zip(string targ, string zip, bool top, string[] excludePath, bool useSysEnc) { mixin(S_TRACE);
 	foreach (i, ex; excludePath) { mixin(S_TRACE);

@@ -49,6 +49,7 @@ import cwx.editor.gui.dwt.customtoolbar;
 
 import core.memory;
 import core.thread;
+import core.sync.mutex;
 
 import std.conv;
 import std.file;
@@ -109,8 +110,9 @@ public:
 class MainWindow : TopLevelPanel {
 private:
 	Display _display = null;
+	Mutex _displayMutex = null;
 	bool _quit = false;
-	Object _saveSync = null;
+	Mutex _saveSync = null;
 	bool _inSaving = false;
 	private bool _isChanged = false;
 
@@ -757,16 +759,19 @@ private:
 					if (before.isDir) { mixin(S_TRACE);
 						_oldMD5 = filesMD5(before.file);
 					} else { mixin(S_TRACE);
-						auto lastData = readBinary(before.file);
+						ubyte* ptr = null;
+						auto lastData = readBinaryFrom!ubyte(before.file, ptr);
+						scope (exit) freeAll(ptr);
 						_oldMD5 = md5Digest(lastData);
-						(cast(ubyte[])lastData)[] = 0;
-						delete lastData;
+						lastData[] = 0;
 					}
 				}
 				if (_prop.var.etc.backupArchived) { mixin(S_TRACE);
 					ZipArchive arc;
-					ubyte[][] tempData;
-					synchronized (_saveSync) { mixin(S_TRACE);
+					ubyte*[] tempData;
+					{ mixin(S_TRACE);
+						_saveSync.lock();
+						scope (exit) _saveSync.unlock();
 						arc = summ.createZipData([], true, name.extension().toLower() == ".wsn", tempData);
 					}
 					auto data = arc.build();
@@ -780,17 +785,15 @@ private:
 						ret = true;
 					}
 					destroy(arc);
-					foreach (t; tempData) { mixin(S_TRACE);
-						(cast(ubyte[])t)[] = 0;
-						delete t;
-					}
-					delete tempData;
+					freeAll(tempData);
 				} else { mixin(S_TRACE);
 					auto md5 = filesMD5(summ.scenarioPath);
 					if (_oldMD5 != md5) { mixin(S_TRACE);
 						// 前回のバックアップと異なっていればコピー
 						if (!parent.exists()) mkdirRecurse(parent);
-						synchronized (_saveSync) { mixin(S_TRACE);
+						{ mixin(S_TRACE);
+							_saveSync.lock();
+							scope (exit) _saveSync.unlock();
 							copyAll(summ.scenarioPath, writePath);
 						}
 						_oldMD5 = md5;
@@ -1094,9 +1097,9 @@ private:
 			dStr ~= " - " ~ .text(__LINE__);
 			try { mixin(S_TRACE);
 				if (old && !.cfnmatch(old.scenarioPath.nabs(), summary.scenarioPath.nabs())) { mixin(S_TRACE);
-					synchronized (_saveSync) { mixin(S_TRACE);
-						old.delTemp();
-					}
+					_saveSync.lock();
+					scope (exit) _saveSync.unlock();
+					old.delTemp();
 				}
 			} catch (Exception e) {
 				printStackTrace();
@@ -1212,18 +1215,18 @@ private:
 		opt.archiveInNewThread = _prop.var.etc.archiveInNewThread && summary.useTemp;
 		if (opt.archiveInNewThread) { mixin(S_TRACE);
 			opt.savedCallback = { mixin(S_TRACE);
-				synchronized (_display) {
-					if (_display) { mixin(S_TRACE);
-						_display.asyncExec(new class Runnable {
-							override void run() { mixin(S_TRACE);
-								_inSaving = false;
-								if (!_win.isDisposed()) {
-									updateExecEngineWithPartyNameTI();
-									_comm.refreshToolBar();
-								}
+				_displayMutex.lock();
+				scope (exit) _displayMutex.unlock();
+				if (_display) { mixin(S_TRACE);
+					_display.asyncExec(new class Runnable {
+						override void run() { mixin(S_TRACE);
+							_inSaving = false;
+							if (!_win.isDisposed()) {
+								updateExecEngineWithPartyNameTI();
+								_comm.refreshToolBar();
 							}
-						});
-					}
+						}
+					});
 				}
 			};
 		}
@@ -1259,7 +1262,9 @@ private:
 				}
 				try { mixin(S_TRACE);
 					beforeSave();
-					synchronized (_saveSync) { mixin(S_TRACE);
+					{ mixin(S_TRACE);
+						_saveSync.lock();
+						scope (exit) _saveSync.unlock();
 						summary.saveOverwrite(_prop.parent, _comm.skin, createSaveOpt());
 					}
 					_comm.saved.call();
@@ -1369,7 +1374,9 @@ private:
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin, "");
 				try { mixin(S_TRACE);
 					beforeSave();
-					synchronized (_saveSync) { mixin(S_TRACE);
+					{ mixin(S_TRACE);
+						_saveSync.lock();
+						scope (exit) _saveSync.unlock();
 						summary.saveWithName(_prop.parent, _comm.skin, createSaveOpt(),
 							fname, tempPath, expandXMLs, defSkin, (string msg) { mixin(S_TRACE);
 								MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
@@ -1714,9 +1721,9 @@ private:
 				if (summary && summary.useTemp) { mixin(S_TRACE);
 					_dirWin.stopTrace();
 					try { mixin(S_TRACE);
-						synchronized (_saveSync) { mixin(S_TRACE);
-							summary.delTemp();
-						}
+						_saveSync.lock();
+						scope (exit) _saveSync.unlock();
+						summary.delTemp();
 					} catch (Exception e) {
 						printStackTrace();
 						debugln(e);
@@ -2425,7 +2432,7 @@ public:
 			});
 			dStr ~= " - " ~ .text(__LINE__);
 			if (!execute) return;
-			_saveSync = new Object;
+			_saveSync = new Mutex;
 			dStr ~= " - " ~ .text(__LINE__);
 			if (exists(_prop.tempPath)) { mixin(S_TRACE);
 				dStr ~= " - " ~ .text(__LINE__);
@@ -2449,11 +2456,13 @@ public:
 
 			dStr ~= " - " ~ .text(__LINE__);
 			_comm = new Commons(_prop);
+			_comm.saveSync = _saveSync;
 			_comm.skin = findSkin2(_prop, _prop.var.etc.defaultSkin, "");
 			dStr ~= " - " ~ .text(__LINE__);
 
 			auto d = new Display;
 			_display = d;
+			_displayMutex = new Mutex;
 			d.setAppName(_prop.msgs.application);
 			dStr ~= " - " ~ .text(__LINE__);
 
@@ -4460,7 +4469,9 @@ public:
 			version (Console) {
 				debug writeln("Disposed Resources");
 			}
-			synchronized (_display) {
+			{ mixin(S_TRACE);
+				_displayMutex.lock();
+				scope (exit) _displayMutex.unlock();
 				_display = null;
 				d.dispose();
 			}

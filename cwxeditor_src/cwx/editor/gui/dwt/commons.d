@@ -41,6 +41,8 @@ import std.exception;
 import std.path;
 import std.file;
 
+import core.sync.mutex;
+
 import org.eclipse.swt.all;
 
 Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, string name = "", string legacyEngine = "", bool appendClassicSkin = true) { mixin(S_TRACE);
@@ -378,7 +380,7 @@ class Commons {
 
 	Dlg!(Summary) closeAdds;
 
-	const Object saveSync;
+	Mutex saveSync;
 
 	private Props _prop = null;
 
@@ -391,7 +393,6 @@ class Commons {
 	private HashSet!(Composite) _ws;
 	private Object[Composite] _wos;
 	this (Props prop) { mixin(S_TRACE);
-		saveSync = new Object;
 		_prop = prop;
 		_ws = new HashSet!(Composite);
 		_aws = new HashSet!(Composite);

@@ -303,9 +303,9 @@ public:
 					if (!isDir) { mixin(S_TRACE);
 						auto file = path.baseName();
 						if (cfnmatch(file, "Summary.xml")) { mixin(S_TRACE);
-							xmls[""][file] = cast(string) data;
+							xmls[""][file.idup] = cast(string)data.idup;
 						} else if (auto path2 = isXMLSystem(path)) { mixin(S_TRACE);
-							xmls[dirName(path2)][baseName(path2)] = cast(string) data;
+							xmls[dirName(path2).idup][baseName(path2).idup] = cast(string)data.idup;
 						} else { mixin(S_TRACE);
 							path = std.path.buildPath(temp, path);
 							string parent = dirName(path);
@@ -356,9 +356,10 @@ public:
 				}
 			} else { mixin(S_TRACE);
 				// zipと仮定
-				auto bin = readBinary(fname);
-				scope (exit) delete bin;
-				auto arc = new ZipArchive(bin);
+				ubyte* ptr = null;
+				auto bin = readBinaryFrom!ubyte(fname, ptr);
+				scope (exit) freeAll(ptr);
+				auto arc = new ZipArchive(cast(void[])bin);
 				scope (exit) destroy(arc);
 				auto isSc = scArc(arc, ".wsm");
 				if (!isSc) return null;
@@ -505,9 +506,10 @@ public:
 								fn = suncab(fname, "Summary.xml", summPath);
 							}
 						} else { mixin(S_TRACE);
-							auto bin = readBinary(fname);
-							scope (exit) delete bin;
-							auto arc = new ZipArchive(bin);
+							ubyte* ptr = null;
+							auto bin = readBinaryFrom!ubyte(fname, ptr);
+							scope (exit) freeAll(ptr);
+							auto arc = new ZipArchive(cast(void[])bin);
 							scope (exit) destroy(arc);
 							auto isSc = scArc(arc, ".xml");
 							if (isSc) { mixin(S_TRACE);
@@ -2006,11 +2008,13 @@ public:
 
 	/// カード画像のマップを生成して返す。
 	const
-	private string[][immutable(ubyte[])] cardImgTable(string mtdir, Skin skin, UseCounter uc) { mixin(S_TRACE);
+	private string[][immutable(ubyte[])] cardImgTable(string mtdir, Skin skin, UseCounter uc, out ubyte*[] ptrs) { mixin(S_TRACE);
 		string[][immutable(ubyte[])] r;
 		foreach (file; clistdir(mtdir)) { mixin(S_TRACE);
 			if (skin.isCardImage(std.path.buildPath(mtdir, file), true)) { mixin(S_TRACE);
-				auto mBytes = cast(ubyte[])readBinary(std.path.buildPath(mtdir, file));
+				ubyte* ptr = null;
+				auto mBytes = readBinaryFrom!ubyte(std.path.buildPath(mtdir, file), ptr);
+				ptrs ~= ptr;
 				auto bytes = assumeUnique(mBytes);
 				r[bytes] ~= std.path.buildPath(skin.materialPath, file);
 			}
@@ -2113,7 +2117,8 @@ public:
 			foreach (key; uc.path.keys) { mixin(S_TRACE);
 				uc.change(key, toPathId(std.path.buildPath(toSkin.materialPath, cast(string) key)));
 			}
-			scope table = cardImgTable(mt, toSkin, uc);
+			ubyte*[] ptrs;
+			auto table = cardImgTable(mt, toSkin, uc, ptrs);
 			foreach (p; uc.path.keys) { mixin(S_TRACE);
 				if (p.isBinImg) { mixin(S_TRACE);
 					int i = 0;
@@ -2126,6 +2131,7 @@ public:
 					}
 				}
 			}
+			freeAll(ptrs);
 		}
 		return temp;
 	}
@@ -2335,7 +2341,7 @@ public:
 						if (opt.savedCallback) opt.savedCallback();
 					}
 					auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
-					ubyte[][] data;
+					ubyte*[] data;
 					scope arc = .zip(scenarioPath, false, [lock], false, data);
 					if (!expand) { mixin(S_TRACE);
 						auto xmls = toXMLs(prop.sys);
@@ -2350,11 +2356,7 @@ public:
 					auto b = arc.build();
 					std.file.write(zipName, b);
 					destroy(arc);
-					foreach (d; data) { mixin(S_TRACE);
-						(cast(ubyte[])d)[] = 0;
-						delete d;
-					}
-					delete data;
+					freeAll(data);
 				}
 				if (opt.archiveInNewThread) { mixin(S_TRACE);
 					.task(&t2).executeInNewThread();
@@ -2402,7 +2404,7 @@ public:
 		}
 	}
 	/// シナリオのフォルダのアーカイブを作成する。
-	ZipArchive createZipData(in string[] ignorePaths, bool useSysEnc, bool isWsn, out ubyte[][] data) { mixin(S_TRACE);
+	ZipArchive createZipData(in string[] ignorePaths, bool useSysEnc, bool isWsn, out ubyte*[] data) { mixin(S_TRACE);
 		auto lock = std.path.buildPath(scenarioPath, "cwxeditor.lock");
 		auto arc = .zip(scenarioPath, !isWsn, (string file) { mixin(S_TRACE);
 			return cfnmatch(file, lock)
@@ -2421,15 +2423,11 @@ public:
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
 	void createZip(string zipName, in string[] ignorePaths, bool useSysEnc) { mixin(S_TRACE);
-		ubyte[][] tempData;
+		ubyte*[] tempData;
 		auto arc = createZipData(ignorePaths, useSysEnc, zipName.extension().toLower() == ".wsn", tempData);
 		std.file.write(zipName, arc.build());
 		destroy(arc);
-		foreach (d; tempData) { mixin(S_TRACE);
-			(cast(ubyte[])d)[] = 0;
-			delete d;
-		}
-		delete tempData;
+		freeAll(tempData);
 	}
 	/// データを保存せずにシナリオのフォルダのアーカイブを作成する。
 	/// 非展開のXMLファイルは一時的に展開される。

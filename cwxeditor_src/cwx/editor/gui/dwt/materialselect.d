@@ -250,7 +250,9 @@ public:
 			if (SWT.YES == dlg.open()) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
 					if (!file.exists()) return;
-					_binPath = bImgToStr(cast(ubyte[])readBinary(file));
+					ubyte* ptr = null;
+					_binPath = bImgToStr(readBinaryFrom!ubyte(file, ptr));
+					scope (exit) freeAll(ptr);
 					refreshDefs();
 					selectDir(_including);
 					foreach (d; includeEvent) { mixin(S_TRACE);

@@ -79,7 +79,9 @@ Summary loadLScenario(string p, string skin, const System sys, in LoadOption opt
 	if (.exists(summPath)) { mixin(S_TRACE);
 		d = new RData(sys, opt.cardOnly, sPath, skin);
 		{ mixin(S_TRACE);
-			auto bytes = ByteIO(readBinary(summPath));
+			ubyte* ptr = null;
+			auto bytes = ByteIO(readBinaryFrom!ubyte(summPath, ptr));
+			scope (exit) freeAll(ptr);
 			summ = loadSummary(*d, bytes, startAreaId);
 		}
 	} else { mixin(S_TRACE);
@@ -104,7 +106,9 @@ Summary loadLScenario(string p, string skin, const System sys, in LoadOption opt
 			}
 			foreach (file; this.files) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
-					auto bytes = readBinary(file);
+					ubyte* ptr = null;
+					auto bytes = readBinaryFrom!ubyte(file, ptr);
+					scope (exit) freeAll(ptr);
 					auto f = ByteIO(bytes);
 					scope (exit) f.dispose();
 					auto base = baseName(file);
@@ -2082,7 +2086,9 @@ private InfoCard loadInfo(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 /// パーティ見出しデータ(*.wpl)からパーティ名を取得する。
 string readPartyName(const System sys, string wpl) { mixin(S_TRACE);
 	auto d = RData(sys, false, "", "");
-	auto f = ByteIO(readBinary(wpl));
+	ubyte* ptr = null;
+	auto f = ByteIO(readBinaryFrom!ubyte(wpl, ptr));
+	scope (exit) freeAll(ptr);
 	f.readUShortL; // 不明(0)
 	readString(f); // 宿名
 	readImage(d, f); // 宿イメージ
@@ -2094,7 +2100,9 @@ string readPartyName(const System sys, string wpl) { mixin(S_TRACE);
 bool isDebugYado(const System sys, string yadoDir) { mixin(S_TRACE);
 	auto d = RData(sys, false, "", "");
 	auto env = yadoDir.buildPath("Environment.wyd");
-	auto f = ByteIO(readBinary(env));
+	ubyte* ptr = null;
+	auto f = ByteIO(readBinaryFrom!ubyte(env, ptr));
+	scope (exit) freeAll(ptr);
 	auto dataVersion = readString(f);
 	auto type = f.readByte; // 1 = 通常宿, 2 = デバッグ宿
 	return type == 2;
@@ -2654,13 +2662,17 @@ private void writeImageImpl(ref SData d, ref ByteIO f, CWXPath cp, string imgPat
 		writeSize(cast(uint)0);
 		return;
 	}
+	ubyte* ptr = null;
+	scope (exit) {
+		if (ptr) freeAll(ptr);
+	}
 	ubyte[] bytes;
 	if (isBinImg(imgPath)) { mixin(S_TRACE);
 		bytes = cast(ubyte[]) strToBImg(imgPath);
 	} else { mixin(S_TRACE);
 		auto path = d.skin.findImagePath(imgPath, d.sPath);
 		if (exists(path)) { mixin(S_TRACE);
-			bytes = cast(ubyte[])readBinary(path);
+			bytes = readBinaryFrom!ubyte(path, ptr);
 		}
 		if (d.saveInnerImagePath) { mixin(S_TRACE);
 			d.imageRef[cp.cwxPath(true)] = encodePathLegacy(imgPath);

@@ -707,6 +707,10 @@ class Skin {
 		if (_legacyEngine.length) { mixin(S_TRACE);
 			auto ini = _legacyEngine.dirName().buildPath("cwex.ini");
 			if (!ini.exists()) return r;
+			char* ptr = null;
+			scope (exit) {
+				if (ptr) freeAll(ptr);
+			}
 			string iniText;
 			try { mixin(S_TRACE);
 				iniText = std.file.readText(ini);
@@ -714,7 +718,7 @@ class Skin {
 				printStackTrace();
 				debugln(e);
 				// ここではMS932を想定
-				iniText = .touni(cast(char[])readBinary(ini));
+				iniText = .touni(readBinaryFrom!char(ini, ptr));
 			}
 			/// UTF-8とは限らないため、バイナリで読み込む
 			foreach (line; iniText.splitLines()) { mixin(S_TRACE);
@@ -973,7 +977,7 @@ class Skin {
 
 	const
 	private string[] list(alias isT, bool UseFlag = false)(string dir, bool logicalSort, bool forceRefresh, bool flag) { mixin(S_TRACE);
-		synchronized { mixin(S_TRACE);
+		synchronized (this) { mixin(S_TRACE);
 			static struct Files {
 				bool logicalSort;
 				bool flag;
