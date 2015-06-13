@@ -650,8 +650,7 @@ private string readStringImpl(ref ByteIO f, bool lns, bool cutText, uint delegat
 	} catch (Exception e) {
 		printStackTrace();
 		debugln(e);
-		//str = touni(str, false);
-		str = "";
+		str = touni(str, false);
 	}
 	if (cutText) { mixin(S_TRACE);
 		str = str.length > "TEXT\r\n".length ? str["TEXT\r\n".length .. $] : "";
@@ -667,7 +666,7 @@ private string readString(ref ByteIO f, ref string[string] addInfo, bool lns = f
 	while (true) { mixin(S_TRACE);
 		auto zi = indexOf(str, '\0');
 		if (-1 == zi) break;
-		string info = touni(str[zi + 1 .. $]);
+		string info = touni(str[zi + 1 .. $], false);
 		info = replace(info, "\r\n", "\n");
 		str = str[0 .. zi];
 
@@ -682,7 +681,7 @@ private string readString(ref ByteIO f, ref string[string] addInfo, bool lns = f
 		}
 		addInfo[key] = value;
 	}
-	str = touni(str);
+	str = touni(str, false);
 	if (cutText) { mixin(S_TRACE);
 		str = str.length > "TEXT\r\n".length ? str["TEXT\r\n".length .. $] : "";
 	}

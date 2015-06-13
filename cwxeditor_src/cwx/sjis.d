@@ -116,9 +116,9 @@ char[] convTo(CP CP1, CP CP2)(in char[] s, bool throwError = true) { mixin(S_TRA
 				cbuf |= c;
 				count++;
 				if (count >= 2) { mixin(S_TRACE);
-					wchar uc = SJIS_UNI[cbuf];
+					wchar uc = cbuf < SJIS_UNI.length ? SJIS_UNI[cbuf] : 0xFFFF;
 					if (uc == 0xFFFF) { mixin(S_TRACE);
-						uc = SJIS_UNI[cbuf >> 8];
+						uc = (cbuf >> 8) < SJIS_UNI.length ? SJIS_UNI[cbuf >> 8] : 0xFFFF;
 						if (uc == 0xFFFF) { mixin(S_TRACE);
 							if (throwError) { mixin(S_TRACE);
 								throw new Exception("Invalid UTF character: 0x" ~ .format("%x", (cbuf >> 8)));
