@@ -541,7 +541,7 @@ bool initBass(string dir, in string[] soundFonts) { mixin(S_TRACE);
 						bassMidi = dlopen("bassmidi.dll");
 					}
 				}
-				if (!getSymbol!(BASS_Init)(bass, "BASS_Init")(-1, 44100, BASS_DEVICE_DEFAULT, null, null)) { mixin(S_TRACE);
+				if (!getSymbol!(BASS_Init)(bass, "BASS_Init")(-1, 44100, BASS_DEFAULT, null, null)) { mixin(S_TRACE);
 					disposeBass();
 					return false;
 				}
