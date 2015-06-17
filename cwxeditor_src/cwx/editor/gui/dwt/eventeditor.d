@@ -833,6 +833,23 @@ class EventEditor : Composite {
 		auto hh = _lineHeight / 2;
 		auto ca = getClientArea();
 
+		void setAntialias(int antialias) { mixin(S_TRACE);
+			version (Windows) {
+				alias org.eclipse.swt.internal.win32.OS.OS OS;
+				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) e.gc.setAntialias(antialias);
+			} else {
+				e.gc.setAntialias(antialias);
+			}
+		}
+		void setAlpha(int alpha) {mixin(S_TRACE);
+			version (Windows) {
+				alias org.eclipse.swt.internal.win32.OS.OS OS;
+				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) e.gc.setAlpha(alpha);
+			} else {
+				e.gc.setAlpha(alpha);
+			}
+		}
+
 		int detailAreaWidth = this.detailAreaWidth;
 
 		auto hbar = getHorizontalBar();
@@ -896,12 +913,12 @@ class EventEditor : Composite {
 					if (pPos.y + hh - sy < pos.y - sy) { mixin(S_TRACE);
 						e.gc.drawLine(pPos.x + hw - sx, pPos.y + hh - sy, pPos.x + hw - sx, pos.y - sy);
 					}
-					e.gc.setAntialias(SWT.ON);
+					setAntialias(SWT.ON);
 					auto cap = e.gc.getLineCap();
 					e.gc.setLineCap(SWT.CAP_ROUND);
 					e.gc.drawArc(pPos.x + hw - sx, pos.y - sy - _lineHeight, pos.x - pPos.x + hw, _lineHeight + hh, 180, 90);
 					e.gc.setLineCap(cap);
-					e.gc.setAntialias(SWT.OFF);
+					setAntialias(SWT.OFF);
 				}
 			}
 			if ((_summ ? _comm.prop.var.etc.showTerminalMark : showTerminalMark) && c.type != CType.START && !c.next.length) { mixin(S_TRACE);
@@ -921,7 +938,7 @@ class EventEditor : Composite {
 		}
 		// イベントコンテント分岐点
 		e.gc.setBackground(getBackground());
-		e.gc.setAntialias(SWT.ON);
+		setAntialias(SWT.ON);
 		e.gc.setLineWidth(4);
 		foreach (i, ref pos; poss) { mixin(S_TRACE);
 			auto c = pos.content;
@@ -933,7 +950,7 @@ class EventEditor : Composite {
 				}
 			}
 		}
-		e.gc.setAntialias(SWT.OFF);
+		setAntialias(SWT.OFF);
 		e.gc.setLineWidth(1);
 
 		// イベントコンテントのアイコンとテキスト
@@ -972,9 +989,9 @@ class EventEditor : Composite {
 				auto te = e.gc.wTextExtent("...");
 				e.gc.drawLine(ctx + tw + 2 - sx, pos.y - sy + hh, ctx + tw + 10 - sx, pos.y - sy + hh);
 				e.gc.wDrawText("...", ctx + tw + 14 - sx, pos.y - sy + _lineTextY, true);
-				e.gc.setAntialias(SWT.ON);
+				setAntialias(SWT.ON);
 				e.gc.drawRoundRectangle(ctx + tw + 10 - sx, pos.y - sy, te.x + 8, te.y, 10, 10);
-				e.gc.setAntialias(SWT.OFF);
+				setAntialias(SWT.OFF);
 			}
 		}
 
@@ -982,10 +999,10 @@ class EventEditor : Composite {
 		e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 		e.gc.setBackground(getBackground());
 		if (detailAreaWidth) {
+			setAlpha(192);
 			e.gc.drawLine(ca.width - detailAreaWidth, e.y, ca.width - detailAreaWidth, e.y + e.height);
-			e.gc.setAlpha(192);
-			e.gc.fillRectangle(ca.width - detailAreaWidth, e.y, detailAreaWidth, e.height);
-			e.gc.setAlpha(255);
+			e.gc.fillRectangle(ca.width - detailAreaWidth + 1, e.y, detailAreaWidth - 1, e.height);
+			setAlpha(255);
 		}
 
 		_warningRects = [];
@@ -996,9 +1013,9 @@ class EventEditor : Composite {
 				auto s = .contentText(_comm, c, _summ);
 				int x = ca.width - detailAreaWidth + 2;
 				auto image = _comm.prop.images.content(c.type);
-				e.gc.setAlpha(128);
+				setAlpha(128);
 				e.gc.drawImage(image, x, pos.y + _imgPos - sy);
-				e.gc.setAlpha(255);
+				setAlpha(255);
 				e.gc.wDrawText(s, x + 18, pos.y - sy + _lineTextY, true);
 			}
 
@@ -1025,19 +1042,19 @@ class EventEditor : Composite {
 			if (!pos.commentRect) continue;
 			e.gc.drawLine(pos.commentLineX - sx, pos.y + hh - sy, pos.commentRect.x - sx, pos.y + hh - sy);
 		}
-		e.gc.setAntialias(SWT.ON);
+		setAntialias(SWT.ON);
 		foreach (i, ref pos; _pos) { mixin(S_TRACE);
 			if (!pos.commentRect) continue;
 			auto box = pos.commentRect;
-			e.gc.setAlpha(192);
+			setAlpha(192);
 			e.gc.fillRoundRectangle(box.x - sx, box.y - sy, box.width, box.height, 12, 12);
-			e.gc.setAlpha(255);
+			setAlpha(255);
 			e.gc.setForeground(getForeground());
 			e.gc.drawRoundRectangle(box.x - sx, box.y - sy, box.width, box.height, 12, 12);
 			e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 			e.gc.wDrawText(pos.content.comment, box.x + 5 - sx, box.y + 3 - sy, true);
 		}
-		e.gc.setAntialias(SWT.OFF);
+		setAntialias(SWT.OFF);
 		if (_showSelection) { mixin(S_TRACE);
 			_showSelection = false;
 			showSelection();
