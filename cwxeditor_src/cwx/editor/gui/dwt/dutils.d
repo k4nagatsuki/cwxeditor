@@ -1420,7 +1420,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 		int lgh = lgid.height;
 		if (lgw > 1 && lgh > 1) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
-				lgid.transparentPixel = lgid.getPixel(lgw / 2, lgh / 2);
+				lgid.transparentPixel = lgid.getPixel(5, 5); // LIFEGEUAGEは(5, 5)が透過色
 				auto lgi = new Image(d, lgid);
 				scope (exit) lgi.dispose();
 				auto lbid = lifeBar(skin);

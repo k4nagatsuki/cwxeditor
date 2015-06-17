@@ -1000,11 +1000,13 @@ class EventEditor : Composite {
 		e.gc.setBackground(getBackground());
 		if (detailAreaWidth) {
 			setAlpha(192);
-			e.gc.drawLine(ca.width - detailAreaWidth, e.y, ca.width - detailAreaWidth, e.y + e.height);
 			e.gc.fillRectangle(ca.width - detailAreaWidth + 1, e.y, detailAreaWidth - 1, e.height);
+			e.gc.setForeground(d.getSystemColor(SWT.COLOR_GRAY));
+			e.gc.drawLine(ca.width - detailAreaWidth, e.y, ca.width - detailAreaWidth, e.y + e.height);
 			setAlpha(255);
 		}
 
+		e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 		_warningRects = [];
 		foreach (ref pos; poss) { mixin(S_TRACE);
 			// イベントコンテント内容
