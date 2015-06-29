@@ -453,7 +453,7 @@ private:
 				void delegate() dummy = null;
 				auto mi = createMenuItem(_comm, mWithParty, MenuID.ExecEngineMain, dummy, delegate bool() { mixin(S_TRACE);
 					try { mixin(S_TRACE);
-						auto dir = _prop.var.etc.enginePath.dirName().buildPath("Yado");
+						auto dir = _prop.var.etc.enginePath.value.dirName().buildPath("Yado");
 						if (!dir.exists() || !dir.isDir()) return false;
 						foreach (yado; .clistdir(dir)) { mixin(S_TRACE);
 							yado = dir.buildPath(yado).buildPath("Party");
@@ -481,7 +481,7 @@ private:
 						item.dispose();
 					}
 					try { mixin(S_TRACE);
-						auto dir = _prop.var.etc.enginePath.dirName().buildPath("Yado");
+						auto dir = _prop.var.etc.enginePath.value.dirName().buildPath("Yado");
 						if (!dir.exists() || !dir.isDir()) return;
 						foreach (yado; .clistdir(dir)) { mixin(S_TRACE);
 							auto dName = yado;
@@ -2293,13 +2293,10 @@ private:
 	}
 	/// 音声再生方式を判別し、関係DLLの初期化・解放を行う。
 	void refSoundType() { mixin(S_TRACE);
-		// FIXME: BGM再生中にBASSから他形式へ切替えた後、
-		//        再生ボタンを連打(停止->再生)すると落ちる事があるため、
-		//        ここで停止しておく
 		stopBGM();
 		stopSE();
 		if (!summary) { mixin(S_TRACE);
-			toggleDisposeBass();
+			disposeSound();
 			_bassDir = "";
 			return;
 		}
@@ -2359,7 +2356,12 @@ private:
 				string dir = _comm.skin.legacyEngine.nabs().dirName();
 				foreach (ref s; sfont) { mixin(S_TRACE);
 					if (!isAbsolute(s)) { mixin(S_TRACE);
-						s = dir.buildPath(s);
+						auto s2 = dir.buildPath(s);
+						if (s2.exists()) { mixin(S_TRACE);
+							s = s2;
+						} else { mixin(S_TRACE);
+							s = dir.buildPath("SoundFont").buildPath(s);
+						}
 					}
 				}
 				if (_bassDir != dir) { mixin(S_TRACE);
@@ -2372,7 +2374,7 @@ private:
 				}
 			}
 			if (SOUND_TYPE_BASS != bgmType && SOUND_TYPE_BASS != seType) { mixin(S_TRACE);
-				toggleDisposeBass();
+				disposeSound();
 				_bassDir = "";
 			}
 		}
@@ -3412,7 +3414,6 @@ public:
 				_win.setBounds(tx, ty, _win.getSize().x, _win.getSize().y);
 			}
 			dStr ~= " - " ~ .text(__LINE__);
-			initSound();
 			.bgmVolume = _prop.var.etc.bgmVolume;
 			.seVolume = _prop.var.etc.seVolume;
 			dStr ~= " - " ~ .text(__LINE__);

@@ -2545,7 +2545,7 @@ string objName(A)(in Props prop) { mixin(S_TRACE);
 		return prop.msgs.beast;
 	} else static if (is(A : InfoCard)) {
 		return prop.msgs.info;
-	} else static if (is(A : Flag)) {
+	} else static if (is(A : cwx.flag.Flag)) {
 		return prop.msgs.flag;
 	} else static if (is(A : Step)) {
 		return prop.msgs.step;
@@ -3417,7 +3417,7 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out s
 			text = .tryFormat(prop.msgs.dialogTextNoCoupon, t);
 		}
 	}
-	auto fla = cast(Flag) path;
+	auto fla = cast(cwx.flag.Flag) path;
 	if (fla && !par) { mixin(S_TRACE);
 		img = prop.images.flag;
 		text = .tryFormat(prop.msgs.searchResultFlag, fla.path);

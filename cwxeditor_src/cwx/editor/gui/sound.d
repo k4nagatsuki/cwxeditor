@@ -39,6 +39,7 @@ version (Windows) {
 	private extern (Windows) {
 		alias __gshared DWORD MCIERROR;
 		alias __gshared nothrow MCIERROR function(LPCWSTR, LPWSTR, UINT, HANDLE) mciSendStringW;
+		BOOL UnregisterClassA(LPCSTR, HINSTANCE);
 	}
 	private const __gshared MCI_NOTIFY_SUCCESSFUL = 0x0001;
 	private const __gshared MM_MCINOTIFY = 0x03B9;
@@ -51,8 +52,8 @@ version (Windows) {
 		if (!_mciNotifyHandle || !winmm || !_mciSendString || !_bgmPlayingMCI || MM_MCINOTIFY != message || MCI_NOTIFY_SUCCESSFUL != wParam) {
 			return DefWindowProcW(hWnd, message, wParam, lParam);
 		}
-		static const __gshared SEEK = "seek cws to 0\0"w.ptr;
-		static const __gshared PLAY = "play cws notify\0"w.ptr;
+		static const __gshared SEEK = "seek cwbgm to 0\0"w.ptr;
+		static const __gshared PLAY = "play cwbgm notify\0"w.ptr;
 		_mciSendString(SEEK, null, 0, null);
 		_mciSendString(PLAY, null, 0, _mciNotifyHandle);
 		return DefWindowProcW(hWnd, message, wParam, lParam);
@@ -143,11 +144,12 @@ version (Windows) {
 	private __gshared void* winmm = null;
 	private __gshared mciSendStringW _mciSendString = null;
 	private void initWinmm() { mixin(S_TRACE);
-		synchronized {
-			if (winmm) return;
-			winmmSync = new Mutex;
-			winmm = dlopen("winmm.dll");
+		if (winmm) return;
+		version (Console) {
+			debug std.stdio.writeln("Initialize winmm.dll Start");
 		}
+		disposeSound();
+		winmm = dlopen("winmm.dll");
 		if (!winmm) { mixin(S_TRACE);
 			debugln("error: winmm.dll initialize");
 		}
@@ -158,21 +160,46 @@ version (Windows) {
 			winmm = null;
 			return;
 		}
-		WNDCLASS wc;
-		wc.lpszClassName = "MCIHandler\0".ptr;
-		wc.lpfnWndProc = &mciNotifyWndProc;
-		if (!RegisterClassA(&wc)) { mixin(S_TRACE);
-			debugln("RegisterClass() failure");
-			return;
-		}
-		_mciNotifyHandle = CreateWindowA(wc.lpszClassName, null, 0, 0, 0, 0, 0, null, null, null, null);
 		if (!_mciNotifyHandle) { mixin(S_TRACE);
-			debugln("CreateWindow() failure");
+			WNDCLASS wc;
+			wc.lpszClassName = "MCIHandler\0".ptr;
+			wc.lpfnWndProc = &mciNotifyWndProc;
+			if (!RegisterClassA(&wc)) { mixin(S_TRACE);
+				debugln("RegisterClass() failure");
+				return;
+			}
+			_mciNotifyHandle = CreateWindowA(wc.lpszClassName, null, 0, 0, 0, 0, 0, null, null, null, null);
+			if (!_mciNotifyHandle) { mixin(S_TRACE);
+				debugln("CreateWindow() failure");
+			}
+		}
+		version (Console) {
+			debug std.stdio.writeln("Initialize winmm.dll End");
+		}
+	}
+	private void disposeWinmm() { mixin(S_TRACE);
+		if (!winmm) return;
+		try { mixin(S_TRACE);
+			version (Console) {
+				debug std.stdio.writeln("Release winmm.dll Start");
+			}
+			dlclose(winmm);
+			winmm = null;
+			version (Console) {
+				debug std.stdio.writeln("Release winmm.dll Exit");
+			}
+		} catch (Throwable e) {
+			printStackTrace();
+			debugln(e);
 		}
 	}
 }
 private void initSdl() { mixin(S_TRACE);
 	if (sdl && mixer) return;
+	disposeSound();
+	version (Console) {
+		debug std.stdio.writeln("Initialize SDL_mixer Start");
+	}
 	version (Windows) {
 		version (Win64) {
 			static __gshared const SDL = "SDL2.dll";
@@ -199,6 +226,9 @@ private void initSdl() { mixin(S_TRACE);
 				if (0 == getSymbol!(Mix_OpenAudio)(mixer, "Mix_OpenAudio")(SDL_FREQUENCY, SDL_FORMAT, SDL_CHANNELS, SDL_CHUNKSIZE)) { mixin(S_TRACE);
 					if (0 < getSymbol!(Mix_AllocateChannels)(mixer, "Mix_AllocateChannels")(2)) { mixin(S_TRACE);
 						if (0 != getSymbol!(Mix_QuerySpec)(mixer, "Mix_QuerySpec")(&sdl_frequency, &sdl_format, &sdl_channels)) { mixin(S_TRACE);
+							version (Console) {
+								debug std.stdio.writeln("Initialize SDL_mixer End");
+							}
 							return;
 						}
 					}
@@ -227,53 +257,52 @@ private void initSdl() { mixin(S_TRACE);
 	}
 	debugln("error: SDL_mixer initialize");
 }
-void initSound() { mixin(S_TRACE);
+
+void disposeSdl() { mixin(S_TRACE);
+	if (!sdl) return;
 	try { mixin(S_TRACE);
-		synchronized {
-			if (!mutex) mutex = new Mutex;
+		version (Console) {
+			debug std.stdio.writeln("Release SDL_mixer Start");
 		}
-		version (Windows) {
-			initWinmm();
+		try { mixin(S_TRACE);
+			if (mixer) getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
+			if (sdl) getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
+		} catch (Exception e) {
+			printStackTrace();
+			debugln(e.msg);
 		}
-		initSdl();
+		if (mixer) { mixin(S_TRACE);
+			dlclose(mixer);
+			mixer = null;
+		}
+		if (sdl) { mixin(S_TRACE);
+			dlclose(sdl);
+			sdl = null;
+		}
+		version (Console) {
+			debug std.stdio.writeln("Release SDL_mixer Exit");
+		}
 	} catch (Throwable e) {
 		printStackTrace();
 		debugln(e);
 	}
 }
 
-shared static ~this () { mixin(S_TRACE);
-	try { mixin(S_TRACE);
-		version (Console) {
-			debug std.stdio.writeln("Release DLLs for sound Start");
-		}
-		if (sdl) { mixin(S_TRACE);
-			// FIXME: WindowsでVirtualMIDISynthを使用していると以下の二件の
-			//        呼び出しで停止するため、システムに任せる
-			version (Windows) {} else {
-				try { mixin(S_TRACE);
-					if (mixer) getSymbol!(Mix_CloseAudio)(mixer, "Mix_CloseAudio")();
-					if (sdl) getSymbol!(SDL_Quit)(sdl, "SDL_Quit")();
-				} catch (Exception e) {
-					printStackTrace();
-					debugln(e.msg);
-				}
-				if (mixer) dlclose(mixer);
-				if (sdl) dlclose(sdl);
-			}
-		}
-		version (Windows) {
-			if (winmm) { mixin(S_TRACE);
-				dlclose(winmm);
-			}
-		}
+/// 使用中の音声DLLを解放する。
+void disposeSound() { mixin(S_TRACE);
+	stopBGM();
+	stopSE();
+	disposeWinmm();
+	disposeSdl();
+	version (Windows) {
 		disposeBass();
-		version (Console) {
-			debug std.stdio.writeln("Release DLLs for sound Exit");
-		}
-	} catch (Throwable e) {
-		printStackTrace();
-		debugln(e);
+	}
+}
+
+shared static this () { mixin(S_TRACE);
+	mutex = new Mutex;
+	version (Windows) {
+		winmmSync = new Mutex;
 	}
 }
 
@@ -376,7 +405,9 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref c_int channel,
 	}
 	try { mixin(S_TRACE);
 		version (Windows) {
-			if (winmm && (SOUND_TYPE_MCI == soundPlayType || !sdl)) { mixin(S_TRACE);
+			if (SOUND_TYPE_MCI != soundPlayType) initSdl();
+			if (SOUND_TYPE_MCI == soundPlayType || !sdl) { mixin(S_TRACE);
+				initWinmm();
 				winmmSync.lock();
 				scope (exit) winmmSync.unlock();
 				onLegacy = true;
@@ -400,6 +431,8 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref c_int channel,
 				playingMCI = true;
 				return;
 			}
+		} else {
+			initSdl();
 		}
 	} catch (Exception e) {
 		printStackTrace();
@@ -513,51 +546,58 @@ __gshared void delegate()[] stopBGMEvent;
 __gshared void delegate()[] stopSEEvent;
 
 /// 指定されたディレクトリにあるBASSのDLLをロードし、初期化する。
-bool initBass(string dir, in string[] soundFonts) { mixin(S_TRACE);
-	if (!mutex) return false;
+bool initBass(string bassDir, in string[] bassSoundFonts) { mixin(S_TRACE);
+	_initBassDir = bassDir;
+	_initBassSFont = bassSoundFonts.dup;
+	disposeBass();
+	return _initBassDir.buildPath("bass.dll").exists() && _initBassDir.buildPath("bassmidi.dll").exists();
+}
+
+private void initBass() { mixin(S_TRACE);
+	if (bass) return;
 	version (Windows) {
+		version (Console) {
+			debug std.stdio.writeln("Initialize BASS Audio Start");
+		}
+		disposeSound();
+		if (!_initBassSFont.length) return;
 		mutex.lock();
 		scope (exit) mutex.unlock();
-		if (bass) { mixin(S_TRACE);
-			_toggleInitBass = true;
-			_initBassDir = dir;
-			_initBassSFont = soundFonts.dup;
-			return true;
-		}
 		try { mixin(S_TRACE);
+			bass = dlopen(_initBassDir.buildPath("bass.dll"));
 			if (!bass) { mixin(S_TRACE);
-				bass = dlopen(dir.buildPath("bass.dll"));
+				bass = dlopen("bass.dll");
 				if (!bass) { mixin(S_TRACE);
-					bass = dlopen("bass.dll");
-					if (!bass) { mixin(S_TRACE);
-						disposeBass();
-						return false;
-					}
-				}
-				if (soundFonts.length) { mixin(S_TRACE);
-					// 読込失敗でも続行
-					bassMidi = dlopen(dir.buildPath("bassmidi.dll"));
-					if (!bassMidi) { mixin(S_TRACE);
-						bassMidi = dlopen("bassmidi.dll");
-					}
-				}
-				if (!getSymbol!(BASS_Init)(bass, "BASS_Init")(-1, 44100, BASS_DEFAULT, null, null)) { mixin(S_TRACE);
 					disposeBass();
-					return false;
+					return;
 				}
+			}
+			// 読込失敗でも続行
+			bassMidi = dlopen(_initBassDir.buildPath("bassmidi.dll"));
+			if (!bassMidi) { mixin(S_TRACE);
+				bassMidi = dlopen("bassmidi.dll");
+				if (!bassMidi) { mixin(S_TRACE);
+					disposeBass();
+					return;
+				}
+			}
+			if (!getSymbol!(BASS_Init)(bass, "BASS_Init")(-1, 44100, BASS_DEFAULT, null, null)) { mixin(S_TRACE);
+				disposeBass();
+				return;
 			}
 			_BASS_StreamGetFilePosition = getSymbol!(BASS_StreamGetFilePosition)(bass, "BASS_StreamGetFilePosition");
-			if (!bassMidi || !soundFonts.length || !loadBassSoundFont(soundFonts)) { mixin(S_TRACE);
-				// MIDI再生のみ無効とする
-				return true;
+			if (!_BASS_StreamGetFilePosition || !loadBassSoundFont(_initBassSFont)) { mixin(S_TRACE);
+				disposeBass();
+				return;
 			}
-			return true;
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
 		}
+		version (Console) {
+			debug std.stdio.writeln("Initialize BASS Audio End");
+		}
 	}
-	return false;
 }
 /// BASSのMIDI再生で使用するサウンドフォントを変更する。
 private bool loadBassSoundFont(in string[] soundFonts) { mixin(S_TRACE);
@@ -595,12 +635,14 @@ private void releaseBassSoundFont() { mixin(S_TRACE);
 	}
 }
 /// BASSのサウンドフォントとDLLを解放する。
-void disposeBass() { mixin(S_TRACE);
-	if (!mutex) return;
+private void disposeBass() { mixin(S_TRACE);
+	if (!bass) return;
+	version (Console) {
+		debug std.stdio.writeln("Release BASS Audio Start");
+	}
 	mutex.lock();
 	scope (exit) mutex.unlock();
 	version (Windows) {
-		_toggleDisposeBass = false;
 		try { mixin(S_TRACE);
 			stopBGM();
 			stopSE();
@@ -616,29 +658,15 @@ void disposeBass() { mixin(S_TRACE);
 				dlclose(bass);
 				bass = null;
 			}
+			_initBassDir = "";
+			_initBassSFont = [];
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
 		}
-		if (_toggleInitBass) { mixin(S_TRACE);
-			_toggleInitBass = false;
-			initBass(_initBassDir, _initBassSFont);
-			_initBassDir = "";
-			_initBassSFont = [];
-		}
 	}
-}
-/// BGMと音声の停止後にdisposeBass()を行う。
-void toggleDisposeBass() { mixin(S_TRACE);
-	version (Windows) {
-		if (!mutex) return;
-		mutex.lock();
-		scope (exit) mutex.unlock();
-		if (bassBGMStream || bassSEStream) { mixin(S_TRACE);
-			_toggleDisposeBass = true;
-		} else { mixin(S_TRACE);
-			disposeBass();
-		}
+	version (Console) {
+		debug std.stdio.writeln("Release BASS Audio End");
 	}
 }
 
@@ -649,8 +677,6 @@ version (Windows) {
 	private __gshared BASS_MIDI_FONT[] soundFonts = [];
 	private __gshared HSTREAM bassBGMStream = 0;
 	private __gshared HSTREAM bassSEStream = 0;
-	private __gshared _toggleDisposeBass = false;
-	private __gshared _toggleInitBass = false;
 	private __gshared _initBassDir = "";
 	private __gshared const(string)[] _initBassSFont = [];
 }
@@ -784,7 +810,7 @@ bool useBass() { mixin(S_TRACE);
 		if (!mutex) return false;
 		mutex.lock();
 		scope (exit) mutex.unlock();
-		return bass !is null && !_toggleDisposeBass;
+		return bass !is null;
 	}
 	return false;
 }
@@ -792,8 +818,10 @@ bool useBass() { mixin(S_TRACE);
 bool canPlayBass(string file) { mixin(S_TRACE);
 	version (Windows) {
 		if (!mutex) return false;
+		if (!_initBassSFont.length) return false;
 		mutex.lock();
 		scope (exit) mutex.unlock();
+		initBass();
 		return .useBass && (isMidi(file) ? (bassMidi && soundFonts.length) : true);
 	}
 	return false;
@@ -834,11 +862,6 @@ void stopBGM() { mixin(S_TRACE);
 	} catch (Throwable e) {
 		printStackTrace();
 		debugln(e);
-	}
-	version (Windows) {
-		if (_toggleDisposeBass && !bassBGMStream && !bassSEStream) { mixin(S_TRACE);
-			disposeBass();
-		}
 	}
 	if (inStopBGM) return;
 	inStopBGM = true;
@@ -911,11 +934,6 @@ void stopSE() { mixin(S_TRACE);
 	} catch (Throwable e) {
 		printStackTrace();
 		debugln(e);
-	}
-	version (Windows) {
-		if (_toggleDisposeBass && !bassBGMStream && !bassSEStream) { mixin(S_TRACE);
-			disposeBass();
-		}
 	}
 	if (inStopSE) return;
 	inStopSE = true;

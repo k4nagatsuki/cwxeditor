@@ -1679,7 +1679,7 @@ public:
 	@property
 	void scale(real scale) { mixin(S_TRACE);
 		newR.width = cast(int) rndtol(initW * scale);
-		newR.height = roundHeight(cast(int) rndtol(initH * rect.height));
+		newR.height = roundHeight(cast(int)rndtol(cast(real)initH * rect.height));
 		retoggle();
 	}
 	/// Returns: 仮の位置とサイズ。

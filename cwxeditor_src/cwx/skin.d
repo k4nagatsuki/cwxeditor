@@ -706,7 +706,10 @@ class Skin {
 		typeof(return) r;
 		if (_legacyEngine.length) { mixin(S_TRACE);
 			auto ini = _legacyEngine.dirName().buildPath("cwex.ini");
-			if (!ini.exists()) return r;
+			if (!ini.exists()) { mixin(S_TRACE);
+				ini = _legacyEngine.dirName().buildPath("CardWirth.cfg");
+				if (!ini.exists()) return r;
+			}
 			char* ptr = null;
 			scope (exit) {
 				if (ptr) freeAll(ptr);
@@ -728,6 +731,13 @@ class Skin {
 				auto value = ln[1].strip();
 				r[.toLower(assumeUnique(key))] = assumeUnique(value);
 			}
+		}
+		// 1.50
+		if ("musicvol" in r && "musicapi" !in r) { mixin(S_TRACE);
+			r["musicapi"] = "bass";
+		}
+		if ("soundvol" in r && "soundapi" !in r) { mixin(S_TRACE);
+			r["soundapi"] = "bass";
 		}
 		return r;
 	}
