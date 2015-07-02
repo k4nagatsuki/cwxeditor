@@ -2619,6 +2619,7 @@ public:
 	void removeRound(uint round) { mixin(S_TRACE);
 		foreach (i, r; _rounds) { mixin(S_TRACE);
 			if (r == round) { mixin(S_TRACE);
+				changed();
 				_rounds = _rounds[0 .. i] ~ _rounds[i + 1 .. $];
 				return;
 			}
@@ -2627,6 +2628,7 @@ public:
 	}
 	/// ditto
 	void removeRoundsAll() { mixin(S_TRACE);
+		changed();
 		_rounds.length = 0;
 	}
 
@@ -2689,6 +2691,7 @@ public:
 	void removeKeyCode(in FKeyCode keyCode) { mixin(S_TRACE);
 		foreach (i, kc; _keyCodes) { mixin(S_TRACE);
 			if (kc == keyCode) { mixin(S_TRACE);
+				changed();
 				kc.user.removeUseCounter();
 				_keyCodes = _keyCodes[0 .. i] ~ _keyCodes[i + 1 .. $];
 				return;
@@ -2698,6 +2701,7 @@ public:
 	}
 	/// ditto
 	void removeKeyCodesAll() { mixin(S_TRACE);
+		changed();
 		foreach (kc; _keyCodes) { mixin(S_TRACE);
 			kc.user.removeUseCounter();
 		}

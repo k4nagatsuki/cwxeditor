@@ -3350,8 +3350,6 @@ public:
 					putContents(cs, tryInsert);
 				}
 			} catch (CWXScriptException e) {
-				printStackTrace();
-				debugln(e);
 				throw e;
 			} catch (Exception e) {
 				printStackTrace();
@@ -3363,8 +3361,6 @@ public:
 				throw new CWXScriptException(__FILE__, __LINE__, "", [CWXSError(_prop.msgs.scriptErrorSystem, 0, 0, __FILE__, __LINE__)], false);
 			}
 		} catch (CWXScriptException e) {
-			printStackTrace();
-			debugln(e);
 			auto dlg = new ScriptErrorDialog(_comm, _prop, _tree.control, e, base, opt);
 			dlg.open();
 		}
