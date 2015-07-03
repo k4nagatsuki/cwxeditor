@@ -1641,6 +1641,9 @@ private:
 				goto case CardTableColumn.ID;
 			}
 		}
+		if (_viewMode != CViewMode.TABLE) { mixin(S_TRACE);
+			refreshImpl();
+		}
 	}
 	bool _sortProc = false;
 	void sorted() { mixin(S_TRACE);
