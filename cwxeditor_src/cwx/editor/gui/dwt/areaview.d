@@ -3239,8 +3239,7 @@ public:
 			}
 		}
 		foreach (p; _prop.looks.partyCardXY) { mixin(S_TRACE);
-			auto img = createCastCardBackImage(_prop, summSkin, p.x, p.y);
-			img.alpha = _prop.var.etc.partyCardAlpha;
+			auto img = createCastCardBackImage(_prop, summSkin, p.x, p.y, cast(byte)_prop.var.etc.partyCardAlpha);
 			img.visible = _viewParty;
 			_imgp.append(img);
 		}

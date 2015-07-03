@@ -90,13 +90,19 @@ FlexImage createBackgroundImage
 
 /// キャストカード画像(背景のみ)を生成する。
 /// Returns: カード背景画像。
-PileImage createCastCardBackImage(Props prop, Skin skin, int x, int y) { mixin(S_TRACE);
+PileImage createCastCardBackImage(Props prop, Skin skin, int x, int y, byte alpha) { mixin(S_TRACE);
 	auto cardSize = prop.looks.cardSize;
 	auto matPad = prop.looks.castCardInsets;
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
-	auto r = new PileImage(castCard(skin), x, y, w, h, true);
+	// FIXME: 64bit環境で256色の画像にalpha値を設定するとXOR描画状態になる
+	//auto imgData = castCard(skin);
+	auto imgData = cast(ImageData)castCard(skin).clone();
+	imgData.alphaData = new byte[imgData.width * imgData.height];
+	imgData.alphaData[] = alpha;
+	auto r = new PileImage(imgData, x, y, w, h, true);
 	r.createImage();
+	//r.alpha = alpha;
 	return r;
 }
 
