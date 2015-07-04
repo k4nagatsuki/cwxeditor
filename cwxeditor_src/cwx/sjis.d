@@ -63,7 +63,7 @@ bool valid(CP CPage)(dchar c) { mixin(S_TRACE);
 }
 
 /// CP2の文字列をCP1に変換。
-char[] convTo(CP CP1, CP CP2)(in char[] s, bool throwError = true) { mixin(S_TRACE);
+char[] convTo(CP CP1, CP CP2)(in char[] s, bool throwError = true, in char[] unknownChar = "?") { mixin(S_TRACE);
 	static if (CP1 == CP2) {
 		return s;
 	} else { mixin(S_TRACE);
@@ -123,7 +123,7 @@ char[] convTo(CP CP1, CP CP2)(in char[] s, bool throwError = true) { mixin(S_TRA
 							if (throwError) { mixin(S_TRACE);
 								throw new Exception("Invalid UTF character: 0x" ~ .format("%x", (cbuf >> 8)));
 							} else { mixin(S_TRACE);
-								put('?');
+								foreach (c2; unknownChar) put(c2);
 							}
 						} else { mixin(S_TRACE);
 							put(uc);
@@ -143,7 +143,7 @@ char[] convTo(CP CP1, CP CP2)(in char[] s, bool throwError = true) { mixin(S_TRA
 					if (throwError) { mixin(S_TRACE);
 						throw new Exception("Invalid UTF character: 0x" ~ .format("%x", cbuf));
 					} else { mixin(S_TRACE);
-						put('?');
+						foreach (c; unknownChar) put(c);
 					}
 				} else { mixin(S_TRACE);
 					put(uc);
@@ -171,8 +171,8 @@ string tosjis(in char[] s, bool throwError = true) { mixin(S_TRACE);
 }
 alias convTo!(CP.SJIS, CP.UNI) tosjism;
 /// Shift JIS文字列をUTF-8に変換。
-string touni(in char[] s, bool throwError = true) { mixin(S_TRACE);
-	auto r = tounim(s, throwError);
+string touni(in char[] s, bool throwError = true, string unknownChar = "?") { mixin(S_TRACE);
+	auto r = tounim(s, throwError, unknownChar);
 	return assumeUnique(r);
 }
 alias convTo!(CP.UNI, CP.SJIS) tounim;

@@ -202,7 +202,7 @@ string memberName(string name) {
 	try {
 		cwx.utils.validate(name);
 	} catch (Exception e) {
-		name = touni(name);
+		name = touni(name, false, "__");
 		cwx.utils.validate(name);
 	}
 	return name;

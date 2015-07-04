@@ -335,7 +335,7 @@ public:
 					cwx.utils.validate(am.name);
 					name = am.name;
 				} catch (Exception e) {
-					name = touni(am.name);
+					name = touni(am.name, false, "__");
 				}
 				name = replace(name, "/", dirSeparator);
 				if (cfnmatch(baseName(name), setExtension("Summary", ext))) { mixin(S_TRACE);
