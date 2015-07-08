@@ -126,11 +126,15 @@ ImageData loadImage(Props prop, in Skin skin, in Summary summ, string path, bool
 				data = new ImageData(s);
 			}
 			if (32 == data.depth && 'B' == bytes[0] && 'M' == bytes[1]) { mixin(S_TRACE);
-				// アルファ値を正しく取れないので補完しておく
-				data.alphaData = new byte[data.width * data.height];
+				// CardWirthのデコーダは予備色をアルファ値として扱うが、
+				// 1件も0以外の数値が無い場合は扱わない
 				foreach (y; 0 .. data.height) { mixin(S_TRACE);
 					foreach (x; 0 .. data.width) { mixin(S_TRACE);
-						data.alphaData[y * data.width + x] = cast(ubyte) data.data[y * data.bytesPerLine + x * 4 + 3];
+						auto b = cast(ubyte)data.data[y * data.bytesPerLine + x * 4 + 3];
+						if (b != 0) {
+							if (!data.alphaData) data.alphaData = new byte[data.width * data.height];;
+							data.alphaData[y * data.width + x] = b;
+						}
 					}
 				}
 			}
