@@ -51,14 +51,14 @@ public:
 alias ArrayWrapperString KeyCodeObj;
 alias Integer RoundObj;
 
-class EventView(A : EventTreeOwner, C, bool UseFire) : Composite, TCPD {
+class EventView : Composite, TCPD {
 private:
 	int _readOnly = 0;
 	string _id = "";
 	Commons _comm;
 	Props _prop;
 	Summary _summ;
-	A _area;
+	EventTreeOwner _area;
 	UndoManager _undo;
 
 	SplitPane _sash;
@@ -70,9 +70,7 @@ private:
 	ToolBar _toolbar;
 	CCombo _treeKind;
 	ToolItem _fireItm;
-	static if (is (A == Area) || is (A == Battle)) {
-		CCombo _keyCodeTim;
-	}
+	CCombo _keyCodeTim = null;
 	ToolItem _showEventTreeDetailItm;
 	Spinner _slope = null;
 
@@ -80,80 +78,82 @@ private:
 	TreeItem _oldSelP = null;
 	TreeItem _selItm = null;
 
-	static if (!is(C:void)) {
-		Preview _preview;
-		C _previewC = null;
-		PileImage _previewI = null;
-		void closePreview() { mixin(S_TRACE);
-			if (_previewI) { mixin(S_TRACE);
-				_preview.close();
-				_previewC = null;
-				_previewI.dispose();
-			}
+	Preview _preview = null;
+	AbstractSpCard _previewC = null;
+	PileImage _previewI = null;
+	void closePreview() { mixin(S_TRACE);
+		if (_previewI) { mixin(S_TRACE);
+			_preview.close();
+			_previewC = null;
+			_previewI.dispose();
 		}
-		void previewTrigger(int x, int y) { mixin(S_TRACE);
-			auto itm = _cards.getItem(new Point(x, y));
-			if (!itm) { mixin(S_TRACE);
-				closePreview();
-				return;
-			}
-			auto c = cast(C)itm.getData();
-			if (!c) { mixin(S_TRACE);
-				closePreview();
-				return;
-			}
-			if (c is _previewC) { mixin(S_TRACE);
-				return;
-			}
+	}
+	void previewTrigger(int x, int y) { mixin(S_TRACE);
+		auto itm = _cards.getItem(new Point(x, y));
+		if (!itm) { mixin(S_TRACE);
 			closePreview();
-			_previewC = c;
-			_previewI = createCardImage(c);
+			return;
+		}
+		auto c = cast(AbstractSpCard)itm.getData();
+		if (!c) { mixin(S_TRACE);
+			closePreview();
+			return;
+		}
+		if (c is _previewC) { mixin(S_TRACE);
+			return;
+		}
+		closePreview();
+		_previewC = c;
+		_previewI = createCardImage(c);
 
-			auto b = itm.getBounds();
-			auto p = _cards.toDisplay(b.x, b.y + b.height);
-			_preview.image(_previewI, p.x, p.y, b.height);
-			_preview.show();
-		}
-		PileImage createCardImage(in C card) { mixin(S_TRACE);
-			static if (is(C:MenuCard)) {
-				auto path = _comm.skin.findImagePath(card.path, _summ.scenarioPath);
-				return createMenuCardImage!PileImage(_prop, _comm.skin, card.name,
-					path, 0, 0, 1.0, _prop.var.etc.smoothingCard, card.pcNumber);
-			} else static if (is(C:EnemyCard)) {
-				auto skin = _comm.skin;
-				auto castCard = _summ.cwCast(card.id);
-				bool dbgMode = _prop.var.etc.viewEnemyCardDebug;
-				foreach (areaView; _comm.areaViewsFrom!(A, C, true, is(typeof(_area.backs)))(_area.cwxPath(true), false)) { mixin(S_TRACE);
-					dbgMode |= areaView.debugMode;
-				}
-				if (castCard) { mixin(S_TRACE);
-					return createCastCardImage!PileImage(_prop, skin, castCard, _summ.scenarioPath,
-						0, 0, 1.0, _prop.var.etc.smoothingCard, dbgMode);
-				} else { mixin(S_TRACE);
-					return createCastCardImage!PileImage(_prop, skin, null, _summ.scenarioPath,
-						0, 0, 1.0, _prop.var.etc.smoothingCard, dbgMode);
-				}
-			} else static assert (0, C);
-		}
-		class ClosePreview : SelectionAdapter {
-			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-				closePreview();
+		auto b = itm.getBounds();
+		auto p = _cards.toDisplay(b.x, b.y + b.height);
+		_preview.image(_previewI, p.x, p.y, b.height);
+		_preview.show();
+	}
+	PileImage createCardImage(in AbstractSpCard spCard) { mixin(S_TRACE);
+		if (auto card = cast(MenuCard)spCard) {
+			auto path = _comm.skin.findImagePath(card.path, _summ.scenarioPath);
+			return createMenuCardImage!PileImage(_prop, _comm.skin, card.name,
+				path, 0, 0, 1.0, _prop.var.etc.smoothingCard, card.pcNumber);
+		} else if (auto card = cast(EnemyCard)spCard) {
+			auto skin = _comm.skin;
+			auto castCard = _summ.cwCast(card.id);
+			bool dbgMode = _prop.var.etc.viewEnemyCardDebug;
+			foreach (areaView; _comm.areaViewsFrom!(Battle, EnemyCard, true, is(typeof(_area.backs)))(_area.cwxPath(true), false)) { mixin(S_TRACE);
+				dbgMode |= areaView.debugMode;
 			}
+			if (castCard) { mixin(S_TRACE);
+				return createCastCardImage!PileImage(_prop, skin, castCard, _summ.scenarioPath,
+					0, 0, 1.0, _prop.var.etc.smoothingCard, dbgMode);
+			} else { mixin(S_TRACE);
+				return createCastCardImage!PileImage(_prop, skin, null, _summ.scenarioPath,
+					0, 0, 1.0, _prop.var.etc.smoothingCard, dbgMode);
+			}
+		} else assert (0);
+	}
+	class ClosePreview : SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+			closePreview();
 		}
-		class PreviewTrigger : MouseTrackAdapter, MouseMoveListener {
-			override void mouseExit(MouseEvent e) { mixin(S_TRACE);
-				closePreview();
-			}
-			override void mouseMove(MouseEvent e) { mixin(S_TRACE);
-				previewTrigger(e.x, e.y);
-			}
+	}
+	class PreviewTrigger : MouseTrackAdapter, MouseMoveListener {
+		override void mouseExit(MouseEvent e) { mixin(S_TRACE);
+			closePreview();
+		}
+		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
+			previewTrigger(e.x, e.y);
 		}
 	}
 
-	static EventTreeOwner[] etos(A area) { mixin(S_TRACE);
+	static EventTreeOwner[] etos(EventTreeOwner eto) { mixin(S_TRACE);
 		EventTreeOwner[] r;
-		r ~= area;
-		static if (is(A : Area) || is(A : Battle)) {
+		r ~= eto;
+		if (auto area = cast(Area)eto) { mixin(S_TRACE);
+			foreach (c; area.cards) { mixin(S_TRACE);
+				r ~= c;
+			}
+		} else if (auto area = cast(Battle)eto) { mixin(S_TRACE);
 			foreach (c; area.cards) { mixin(S_TRACE);
 				r ~= c;
 			}
@@ -180,7 +180,7 @@ private:
 		abstract override void redo();
 		abstract override void dispose();
 		protected Commons comm;
-		protected A area;
+		protected EventTreeOwner area;
 		protected bool doBefore = true;
 		protected bool doAfter = true;
 		private int[] _selPath = [], _selPath2 = [];
@@ -198,7 +198,7 @@ private:
 				return null;
 			}
 		}
-		this (Commons comm, A area) { mixin(S_TRACE);
+		this (Commons comm, EventTreeOwner area) { mixin(S_TRACE);
 			this.comm = comm;
 			this.area = area;
 			auto vs = views();
@@ -250,12 +250,12 @@ private:
 			_selPath = _selPath2;
 		}
 		protected EventView[] views() { mixin(S_TRACE);
-			return comm.eventViewsFrom!(A, C, UseFire)(area.cwxPath(true), false);
+			return comm.eventViewsFrom(area.cwxPath(true), false);
 		}
 	}
 	static class UndoSeq : EVUndo {
 		private EVUndo[] _undos;
-		this (Commons comm, A area, EVUndo[] undos) { mixin(S_TRACE);
+		this (Commons comm, EventTreeOwner area, EVUndo[] undos) { mixin(S_TRACE);
 			super (comm, area);
 			_undos = undos;
 		}
@@ -302,8 +302,8 @@ private:
 			uint[] rounds;
 		}
 		private Vals _vals;
-		private bool _expand[A];
-		this (Commons comm, A area, EventTree tree) { mixin(S_TRACE);
+		private bool _expand[EventTreeOwner];
+		this (Commons comm, EventTreeOwner area, EventTree tree) { mixin(S_TRACE);
 			super (comm, area);
 			auto eto = tree.owner;
 			_index = .cCountUntil!("a is b")(tree.owner.trees, tree);
@@ -355,9 +355,7 @@ private:
 				itm.setText(vals.name);
 				itm.setImage(v.etImage(tree));
 				v._etree.refreshTreeName();
-				static if (UseFire) {
-					v.refreshFires(itm);
-				}
+				v.refreshFires(itm);
 			}
 			comm.refEventTree.call(tree);
 			comm.refKeyCodes.call();
@@ -376,9 +374,7 @@ private:
 		private size_t _insertIndex;
 		private UndoDelete _delUndo = null;
 		private Summary _summ;
-		this (Commons comm, A area, Summary summ, size_t ownerIndex, size_t
-		
-		 insertIndex) { mixin(S_TRACE);
+		this (Commons comm, EventTreeOwner area, Summary summ, size_t ownerIndex, size_t insertIndex) { mixin(S_TRACE);
 			super (comm, area);
 			_ownerIndex = ownerIndex;
 			_insertIndex = insertIndex;
@@ -429,7 +425,7 @@ private:
 		private EventTree _tree;
 		private UndoInsert _istUndo = null;
 		private Summary _summ;
-		this (Commons comm, A area, Summary summ, EventTree tree) { mixin(S_TRACE);
+		this (Commons comm, EventTreeOwner area, Summary summ, EventTree tree) { mixin(S_TRACE);
 			super (comm, area);
 			_summ = summ;
 			auto owner = tree.owner;
@@ -476,7 +472,7 @@ private:
 		private int _ownerIndex;
 		private int _swapIndex1;
 		private int _swapIndex2;
-		this (Commons comm, A area, int ownerIndex, int swapIndex1, int swapIndex2) { mixin(S_TRACE);
+		this (Commons comm, EventTreeOwner area, int ownerIndex, int swapIndex1, int swapIndex2) { mixin(S_TRACE);
 			super (comm, area);
 			_ownerIndex = ownerIndex;
 			_swapIndex1 = swapIndex1;
@@ -505,7 +501,7 @@ private:
 	}
 
 	private EventView[] views() { mixin(S_TRACE);
-		auto vs = _comm.eventViewsFrom!(A, C, UseFire)(_area.cwxPath(true), false);
+		auto vs = _comm.eventViewsFrom(_area.cwxPath(true), false);
 		foreach (v; vs) { mixin(S_TRACE);
 			if (v.setupToolBar()) _comm.refreshToolBar();
 		}
@@ -515,10 +511,15 @@ private:
 	void forceSel(size_t[] etAreaPath) { mixin(S_TRACE);
 		auto eet = _etree.eventTree;
 		if (eet && eet.areaPath == etAreaPath) return;
-		auto eta = _area.etFromPath(etAreaPath).areaPath;
+		size_t[] eta;
+		if (auto area = cast(AbstractArea)_area) { mixin(S_TRACE);
+			eta = area.etFromPath(etAreaPath).areaPath;
+		} else if (auto card = cast(EffectCard)_area) { mixin(S_TRACE);
+			eta = card.etFromPath(etAreaPath).areaPath;
+		} else assert (0);
 		foreach (i, itm; _cards.getItems()) { mixin(S_TRACE);
 			foreach (j, tItm; itm.getItems()) { mixin(S_TRACE);
-				auto cet = cast(EventTree) tItm.getData();
+				auto cet = cast(EventTree)tItm.getData();
 				assert (cet);
 				if (cet.areaPath == eta) { mixin(S_TRACE);
 					selectImpl(tItm);
@@ -533,22 +534,20 @@ private:
 		if (sel) _cards.setSelection([itm]);
 		if (cast(EventTree)itm.getData()) { mixin(S_TRACE);
 			_selItm = itm;
-			_etree.refresh(cast(EventTree) itm.getData());
+			_etree.refresh(cast(EventTree)itm.getData());
 		}
-		static if (UseFire) {
-			if (_fireItm) { mixin(S_TRACE);
-				auto parItm = selectionParent;
-				if (parItm && (!_oldSelP || _oldSelP != parItm) && _treeKind.getSelectionIndex() == 0) { mixin(S_TRACE);
-					auto c = cast(CCombo)_fireItm.getControl();
-					c.removeAll();
-					string[] vals;
-					if (cast(EventTreeOwner)parItm.getData()) { mixin(S_TRACE);
-						vals = startDefVals;
-					}
-					foreach (i, v; vals) { mixin(S_TRACE);
-						c.add(v);
-						if (i == 0) c.setText(v);
-					}
+		if (_fireItm) { mixin(S_TRACE);
+			auto parItm = selectionParent;
+			if (parItm && (!_oldSelP || _oldSelP != parItm) && _treeKind.getSelectionIndex() == 0) { mixin(S_TRACE);
+				auto c = cast(CCombo)_fireItm.getControl();
+				c.removeAll();
+				string[] vals;
+				if (cast(EventTreeOwner)parItm.getData()) { mixin(S_TRACE);
+					vals = startDefVals;
+				}
+				foreach (i, v; vals) { mixin(S_TRACE);
+					c.add(v);
+					if (i == 0) c.setText(v);
 				}
 			}
 		}
@@ -609,21 +608,19 @@ private:
 		auto itm = selection;
 		if (!itm) return null;
 		auto data = itm.getData();
-		if (cast(EventTreeOwner) data) return null;
-		if (cast(EventTree) data) { mixin(S_TRACE);
+		if (cast(EventTreeOwner)data) return null;
+		if (cast(EventTree)data) { mixin(S_TRACE);
 			return itm;
 		} else { mixin(S_TRACE);
 			return itm.getParentItem();
 		}
 	}
-	static if (is(A : Area) || is(A : Battle)) {
-		@property
-		private TreeItem selectionKeyCode() { mixin(S_TRACE);
-			auto itm = selection;
-			if (!itm) return null;
-			auto data = itm.getData();
-			return cast(KeyCodeObj) data ? itm : null;
-		}
+	@property
+	private TreeItem selectionKeyCode() { mixin(S_TRACE);
+		auto itm = selection;
+		if (!itm) return null;
+		auto data = itm.getData();
+		return cast(KeyCodeObj)data ? itm : null;
 	}
 	void createEventTree() { mixin(S_TRACE);
 		createEventTree([]);
@@ -641,53 +638,39 @@ private:
 		foreach (v; vs) { mixin(S_TRACE);
 			parItms ~= v._cards.getItem(index);
 		}
-		string treeName;
-		static if (UseFire) {
-			auto fire = addingFire(parItm.getData());
-			if (!fire) return;
-			if (fire is ENTER) { mixin(S_TRACE);
-				if (cast(A) parItm.getData()) { mixin(S_TRACE);
-					static if (is (A == Area)) {
-						treeName = _prop.msgs.enterTree;
-					} else static if (is (A == Battle)) {
-						treeName = _prop.msgs.victoryTree;
-					} else static if (is (A == Package)) {
-						treeName = _prop.msgs.packageTree;
-					} else { mixin(S_TRACE);
-						treeName = _prop.msgs.useTree;
-					}
-				} else { mixin(S_TRACE);
-					static if (is (C == MenuCard)) {
-						assert (cast(C) parItm.getData());
-						treeName = _prop.msgs.selectTree;
-					} else static if (is (C == EnemyCard)) {
-						assert (cast(C) parItm.getData());
-						treeName = _prop.msgs.deadTree;
-					}
-				}
-			} else if (fire is ESCAPE) { mixin(S_TRACE);
-				treeName = _prop.msgs.escapeTree;
-			} else if (fire is LOSE) { mixin(S_TRACE);
-				treeName = _prop.msgs.loseTree;
-			} else if (fire is EVERY_ROUND) { mixin(S_TRACE);
-				treeName = _prop.msgs.everyRoundTree;
-			} else if (fire is ROUND_0) { mixin(S_TRACE);
-				treeName = _prop.msgs.round0Tree;
-			} else if (cast(KeyCodeObj) fire) { mixin(S_TRACE);
-				treeName = .tryFormat(_prop.msgs.keyCodeTree, (cast(KeyCodeObj) fire).array.idup);
-			} else { mixin(S_TRACE);
-				assert (cast(RoundObj) fire);
-				treeName = .tryFormat(_prop.msgs.roundTree, (cast(RoundObj) fire).intValue());
-			}
-		} else { mixin(S_TRACE);
-			Object fire = null;
-			static if (is (A == Package)) {
+		string treeName = "";
+		auto fire = addingFire(parItm.getData());
+		if (!fire) return;
+		if (fire is ENTER) { mixin(S_TRACE);
+			auto a = parItm.getData();
+			if (cast(MenuCard)a) {
+				treeName = _prop.msgs.selectTree;
+			} else if (cast(EnemyCard)a) {
+				treeName = _prop.msgs.deadTree;
+				} else if (cast(Area)a) {
+				treeName = _prop.msgs.enterTree;
+			} else if (cast(Battle)a) {
+				treeName = _prop.msgs.victoryTree;
+			} else if (cast(Package)a) {
 				treeName = _prop.msgs.packageTree;
 			} else { mixin(S_TRACE);
 				treeName = _prop.msgs.useTree;
 			}
+		} else if (fire is ESCAPE) { mixin(S_TRACE);
+			treeName = _prop.msgs.escapeTree;
+		} else if (fire is LOSE) { mixin(S_TRACE);
+			treeName = _prop.msgs.loseTree;
+		} else if (fire is EVERY_ROUND) { mixin(S_TRACE);
+			treeName = _prop.msgs.everyRoundTree;
+		} else if (fire is ROUND_0) { mixin(S_TRACE);
+			treeName = _prop.msgs.round0Tree;
+		} else if (cast(KeyCodeObj)fire) { mixin(S_TRACE);
+			treeName = .tryFormat(_prop.msgs.keyCodeTree, (cast(KeyCodeObj)fire).array.idup);
+		} else { mixin(S_TRACE);
+			assert (cast(RoundObj)fire);
+			treeName = .tryFormat(_prop.msgs.roundTree, (cast(RoundObj)fire).intValue());
 		}
-		auto owner = cast(EventTreeOwner) parItm.getData();
+		auto owner = cast(EventTreeOwner)parItm.getData();
 		EventTree tree;
 		if (starts.length) { mixin(S_TRACE);
 			tree = new EventTree(starts[0]);
@@ -740,22 +723,14 @@ private:
 		auto par = cast(EventTreeOwner)parItm.getData();
 		auto tree = par.trees[index];
 		auto treeItm = createTreeItem(parItm, tree, tree.name, etImage(tree), index);
-		static if (UseFire) {
-			if (defFire) addFire(treeItm, defFire);
-			refreshFires(treeItm, null, thisOnly);
-		}
+		if (defFire) addFire(treeItm, defFire);
+		refreshFires(treeItm, null, thisOnly);
 		return treeItm;
 	}
 	Control createEditor(TreeItem itm) { mixin(S_TRACE);
 		if (_readOnly) return null;
-		static if (UseFire) {
-			if (cast(EventTree) itm.getData() || cast(KeyCodeObj) itm.getData()) { mixin(S_TRACE);
-				return createTextEditor(_comm, _prop, _cards, itm.getText());
-			}
-		} else { mixin(S_TRACE);
-			if (cast(EventTree) itm.getData()) { mixin(S_TRACE);
-				return createTextEditor(_comm, _prop, _cards, itm.getText());
-			}
+		if (cast(EventTree)itm.getData() || cast(KeyCodeObj)itm.getData()) { mixin(S_TRACE);
+			return createTextEditor(_comm, _prop, _cards, itm.getText());
 		}
 		return null;
 	}
@@ -785,296 +760,273 @@ private:
 			_comm.refreshToolBar();
 			return;
 		}
-		static if (UseFire) {
-			if ("" == text) return;
-			auto obj = cast(KeyCodeObj)itm.getData();
-			assert (obj);
-			auto p = itm.getParentItem();
-			foreach (child; p.getItems()) { mixin(S_TRACE);
-				if (itm is child) continue;
-				auto kco = cast(KeyCodeObj)child.getData();
-				if (!kco) continue;
-				if (kco.array == text) { mixin(S_TRACE);
-					_cards.setSelection([child]);
-					return;
-				}
+		if ("" == text) return;
+		auto obj = cast(KeyCodeObj)itm.getData();
+		assert (obj);
+		auto p = itm.getParentItem();
+		foreach (child; p.getItems()) { mixin(S_TRACE);
+			if (itm is child) continue;
+			auto kco = cast(KeyCodeObj)child.getData();
+			if (!kco) continue;
+			if (kco.array == text) { mixin(S_TRACE);
+				_cards.setSelection([child]);
+				return;
 			}
-			tree = cast(EventTree) p.getData();
-			auto kcIndex = p.indexOf(itm) - keyCodesIndex(p);
-			auto old = tree.keyCodes[kcIndex];
-			if (_prop.sys.convFireKeyCode(old) == text) return;
-			store(tree);
-			tree.setKeyCode(kcIndex, _prop.sys.toFKeyCode(text));
-			foreach (v; views()) { mixin(S_TRACE);
-				auto another = .anotherTreeItem(v._cards, itm);
-				auto obj2 = cast(KeyCodeObj)another.getData();
-				another.setImage(v.keyCodeImage(text));
-				another.setText(text);
-				obj2.array = text.dup;
-			}
-			_comm.refEventTree.call(tree);
-			_comm.refKeyCodes.call();
-			_comm.refreshToolBar();
 		}
+		tree = cast(EventTree) p.getData();
+		auto kcIndex = p.indexOf(itm) - keyCodesIndex(p);
+		auto old = tree.keyCodes[kcIndex];
+		if (_prop.sys.convFireKeyCode(old) == text) return;
+		store(tree);
+		tree.setKeyCode(kcIndex, _prop.sys.toFKeyCode(text));
+		foreach (v; views()) { mixin(S_TRACE);
+			auto another = .anotherTreeItem(v._cards, itm);
+			auto obj2 = cast(KeyCodeObj)another.getData();
+			another.setImage(v.keyCodeImage(text));
+			another.setText(text);
+			obj2.array = text.dup;
+		}
+		_comm.refEventTree.call(tree);
+		_comm.refKeyCodes.call();
+		_comm.refreshToolBar();
 	}
-	static if (UseFire) {
-		void refreshFires(TreeItem eItm, Object sel = null, bool thisOnly = false) { mixin(S_TRACE);
-			scope (exit) _comm.refreshToolBar();
-			auto t = cast(EventTree)eItm.getData();
-			auto vs = views();
-			auto initialize = !vs.contains!("a is b")(this);
-			if (thisOnly || initialize) vs = [this];
-			foreach (v; vs) { mixin(S_TRACE);
-				eItm = .anotherTreeItem(v._cards, eItm);
-				bool expand = eItm.getExpanded();
-				scope (exit) {
-					if (!sel) eItm.setExpanded(expand);
-				}
-				eItm.removeAll();
-				static if (is (A == Area)) {
-					if (t.fireEnter) { mixin(S_TRACE);
-						if (cast(A)eItm.getParentItem().getData()) { mixin(S_TRACE);
-							createTreeItem(eItm, ENTER, _prop.msgs.startEnter, _prop.images.defStart);
-						} else { mixin(S_TRACE);
-							assert (cast(C)eItm.getParentItem().getData());
-							createTreeItem(eItm, ENTER, _prop.msgs.startSelect, _prop.images.defStart);
-						}
-					}
-					v.createKeyCodeItem(eItm, t);
-				} else static if (is (A == Battle)) {
-					if (cast(A)eItm.getParentItem().getData()) { mixin(S_TRACE);
-						if (t.fireEnter) { mixin(S_TRACE);
-							createTreeItem(eItm, ENTER, _prop.msgs.startVictory, _prop.images.defStart);
-						}
-						if (t.fireEscape) { mixin(S_TRACE);
-							createTreeItem(eItm, ESCAPE, _prop.msgs.startEscape, _prop.images.defStart);
-						}
-						if (t.fireLose) { mixin(S_TRACE);
-							createTreeItem(eItm, LOSE, _prop.msgs.startLose, _prop.images.defStart);
-						}
-						if (t.fireEveryRound) { mixin(S_TRACE);
-							createTreeItem(eItm, EVERY_ROUND, _prop.msgs.startEveryRound, _prop.images.defStart);
-						}
-						if (t.fireRound0) { mixin(S_TRACE);
-							createTreeItem(eItm, ROUND_0, _prop.msgs.startRound0, _prop.images.defStart);
-						}
+	void refreshFires(TreeItem eItm, Object sel = null, bool thisOnly = false) { mixin(S_TRACE);
+		// パッケージイベントと使用時イベントは発火条件無し
+		if (cast(Package)_area) return;
+		if (cast(EffectCard)_area) return;
+
+		scope (exit) _comm.refreshToolBar();
+		auto t = cast(EventTree)eItm.getData();
+		auto vs = views();
+		auto initialize = !vs.contains!("a is b")(this);
+		if (thisOnly || initialize) vs = [this];
+		foreach (v; vs) { mixin(S_TRACE);
+			eItm = .anotherTreeItem(v._cards, eItm);
+			bool expand = eItm.getExpanded();
+			scope (exit) {
+				if (!sel) eItm.setExpanded(expand);
+			}
+			eItm.removeAll();
+			if (cast(Area)_area) {
+				if (t.fireEnter) { mixin(S_TRACE);
+					if (cast(Area)eItm.getParentItem().getData()) { mixin(S_TRACE);
+						createTreeItem(eItm, ENTER, _prop.msgs.startEnter, _prop.images.defStart);
 					} else { mixin(S_TRACE);
-						assert (cast(C)eItm.getParentItem().getData());
-						if (t.fireEnter) { mixin(S_TRACE);
-							createTreeItem(eItm, ENTER, _prop.msgs.startDead, _prop.images.defStart);
-						}
+						assert (cast(AbstractSpCard)eItm.getParentItem().getData());
+						createTreeItem(eItm, ENTER, _prop.msgs.startSelect, _prop.images.defStart);
 					}
-					v.createKeyCodeItem(eItm, t);
-					if (cast(A)eItm.getParentItem().getData()) { mixin(S_TRACE);
-						foreach (r; t.rounds) { mixin(S_TRACE);
-							createTreeItem(eItm, new RoundObj(r), .tryFormat(_prop.msgs.startRound, r), _prop.images.round);
-						}
-					}
-				} else static if (is (A == Package)) {
+				}
+				v.createKeyCodeItem(eItm, t);
+			} else if (cast(Battle)_area) {
+				if (cast(Battle)eItm.getParentItem().getData()) { mixin(S_TRACE);
 					if (t.fireEnter) { mixin(S_TRACE);
-						createTreeItem(eItm, ENTER, _prop.msgs.startPackage, _prop.images.defStart);
+						createTreeItem(eItm, ENTER, _prop.msgs.startVictory, _prop.images.defStart);
+					}
+					if (t.fireEscape) { mixin(S_TRACE);
+						createTreeItem(eItm, ESCAPE, _prop.msgs.startEscape, _prop.images.defStart);
+					}
+					if (t.fireLose) { mixin(S_TRACE);
+						createTreeItem(eItm, LOSE, _prop.msgs.startLose, _prop.images.defStart);
+					}
+					if (t.fireEveryRound) { mixin(S_TRACE);
+						createTreeItem(eItm, EVERY_ROUND, _prop.msgs.startEveryRound, _prop.images.defStart);
+					}
+					if (t.fireRound0) { mixin(S_TRACE);
+						createTreeItem(eItm, ROUND_0, _prop.msgs.startRound0, _prop.images.defStart);
 					}
 				} else { mixin(S_TRACE);
-					auto eItm = createTreeItem(aItm, t, t.name, etImage(t));
+					assert (cast(AbstractSpCard)eItm.getParentItem().getData());
 					if (t.fireEnter) { mixin(S_TRACE);
-						createTreeItem(eItm, ENTER, _prop.msgs.startUse, _prop.images.defStart);
+						createTreeItem(eItm, ENTER, _prop.msgs.startDead, _prop.images.defStart);
 					}
 				}
-				if (sel) { mixin(S_TRACE);
-					foreach (itm; eItm.getItems()) { mixin(S_TRACE);
-						auto data = itm.getData();
-						if (cast(KeyCodeObj)data && cast(KeyCodeObj)sel) { mixin(S_TRACE);
-							if ((cast(KeyCodeObj)data).array == (cast(KeyCodeObj)sel).array) { mixin(S_TRACE);
-								if (v is this) v._cards.setSelection([itm]);
-								break;
-							}
-						} else if (cast(RoundObj)data && cast(RoundObj)sel) { mixin(S_TRACE);
-							if ((cast(RoundObj)data).intValue() == (cast(RoundObj)sel).intValue()) { mixin(S_TRACE);
-								if (v is this) v._cards.setSelection([itm]);
-								break;
-							}
-						} else if (data is sel) { mixin(S_TRACE);
-							assert (data is ENTER || data is LOSE || data is ESCAPE || data is EVERY_ROUND || data is ROUND_0);
+				v.createKeyCodeItem(eItm, t);
+				if (cast(Battle)eItm.getParentItem().getData()) { mixin(S_TRACE);
+					foreach (r; t.rounds) { mixin(S_TRACE);
+						createTreeItem(eItm, new RoundObj(r), .tryFormat(_prop.msgs.startRound, r), _prop.images.round);
+					}
+				}
+			}
+			if (sel) { mixin(S_TRACE);
+				foreach (itm; eItm.getItems()) { mixin(S_TRACE);
+					auto data = itm.getData();
+					if (cast(KeyCodeObj)data && cast(KeyCodeObj)sel) { mixin(S_TRACE);
+						if ((cast(KeyCodeObj)data).array == (cast(KeyCodeObj)sel).array) { mixin(S_TRACE);
 							if (v is this) v._cards.setSelection([itm]);
 							break;
 						}
-					}
-					eItm.setExpanded(true);
-				}
-			}
-		}
-		Object addingFire(Object areaOrCard) { mixin(S_TRACE);
-			if (_readOnly) return null;
-			static if (!is (C == void)) {
-				Object addKeyCodes() { mixin(S_TRACE);
-					auto kc = (cast(CCombo) _fireItm.getControl()).getText();
-					final switch (_keyCodeTim.getSelectionIndex()) {
-					case 0:
-						// 入力値をそのまま使用
-						break;
-					case 1:
-						kc = _prop.sys.convFireKeyCode(kc, FKCKind.Success);
-						break;
-					case 2:
-						kc = _prop.sys.convFireKeyCode(kc, FKCKind.Failure);
-						break;
-					case 3:
-						kc = _prop.sys.convFireKeyCode(kc, FKCKind.HasNot);
-						break;
-					}
-					return kc.length > 0 ? new KeyCodeObj(kc) : null;
-				}
-				Object addAreaAndEtc() { mixin(S_TRACE);
-					switch (_treeKind.getSelectionIndex()) {
-					case 0:
-						return ENTER;
-					case 1:
-						return addKeyCodes();
-					default:
-						return null;
-					}
-				}
-			}
-			if (cast(A) areaOrCard) { mixin(S_TRACE);
-				static if (is (A == Area)) {
-					return addAreaAndEtc();
-				} else static if (is (A == Battle)) {
-					switch (_treeKind.getSelectionIndex()) {
-					case 0:
-						switch ((cast(CCombo) _fireItm.getControl()).getSelectionIndex()) {
-						case 0:
-							return ENTER;
-						case 1:
-							return ESCAPE;
-						case 2:
-							return LOSE;
-						case 3:
-							return EVERY_ROUND;
-						case 4:
-							return ROUND_0;
-						default: assert (0);
+					} else if (cast(RoundObj)data && cast(RoundObj)sel) { mixin(S_TRACE);
+						if ((cast(RoundObj)data).intValue() == (cast(RoundObj)sel).intValue()) { mixin(S_TRACE);
+							if (v is this) v._cards.setSelection([itm]);
+							break;
 						}
-					case 1:
-						return addKeyCodes();
-					case 2:
-						int round = (cast(Spinner) _fireItm.getControl()).getSelection();
-						return new RoundObj(round);
-					default: assert (0);
+					} else if (data is sel) { mixin(S_TRACE);
+						assert (data is ENTER || data is LOSE || data is ESCAPE || data is EVERY_ROUND || data is ROUND_0);
+						if (v is this) v._cards.setSelection([itm]);
+						break;
 					}
-				} else { mixin(S_TRACE);
+				}
+				eItm.setExpanded(true);
+			}
+		}
+	}
+
+	Object addingFire(Object areaOrCard) { mixin(S_TRACE);
+		if (_readOnly) return null;
+		Object addKeyCodes() { mixin(S_TRACE);
+			auto kc = (cast(CCombo)_fireItm.getControl()).getText();
+			final switch (_keyCodeTim.getSelectionIndex()) {
+			case 0:
+				// 入力値をそのまま使用
+				break;
+			case 1:
+				kc = _prop.sys.convFireKeyCode(kc, FKCKind.Success);
+				break;
+			case 2:
+				kc = _prop.sys.convFireKeyCode(kc, FKCKind.Failure);
+				break;
+			case 3:
+				kc = _prop.sys.convFireKeyCode(kc, FKCKind.HasNot);
+				break;
+			}
+			return kc.length > 0 ? new KeyCodeObj(kc) : null;
+		}
+		Object addAreaAndEtc() { mixin(S_TRACE);
+			switch (_treeKind.getSelectionIndex()) {
+			case 0:
+				return ENTER;
+			case 1:
+				return addKeyCodes();
+			default:
+				return null;
+			}
+		}
+		if (cast(AbstractSpCard)areaOrCard) { mixin(S_TRACE);
+			return addAreaAndEtc();
+		} else if (cast(Area)areaOrCard) { mixin(S_TRACE);
+			return addAreaAndEtc();
+		} else if (cast(Battle)areaOrCard) { mixin(S_TRACE);
+			switch (_treeKind.getSelectionIndex()) {
+			case 0:
+				switch ((cast(CCombo)_fireItm.getControl()).getSelectionIndex()) {
+				case 0:
 					return ENTER;
+				case 1:
+					return ESCAPE;
+				case 2:
+					return LOSE;
+				case 3:
+					return EVERY_ROUND;
+				case 4:
+					return ROUND_0;
+				default: assert (0);
 				}
+			case 1:
+				return addKeyCodes();
+			case 2:
+				int round = (cast(Spinner)_fireItm.getControl()).getSelection();
+				return new RoundObj(round);
+			default: assert (0);
+			}
+		} else { mixin(S_TRACE);
+			return ENTER;
+		}
+		return null;
+	}
+	void createEventFire() { mixin(S_TRACE);
+		if (_readOnly) return;
+		auto treeItm = selectionEventTree;
+		if (!treeItm) return;
+		auto tree = cast(EventTree)treeItm.getData();
+		auto fire = addingFire(treeItm.getParentItem().getData());
+		if (!fire) return;
+		store(tree);
+		addFire(treeItm, fire);
+		refreshFires(treeItm, fire);
+		_comm.refreshToolBar();
+	}
+	void addFire(TreeItem treeItm, Object fire) { mixin(S_TRACE);
+		auto tree = cast(EventTree) treeItm.getData();
+		if (fire is ENTER) { mixin(S_TRACE);
+			tree.enter = true;
+		} else if (fire is ESCAPE) { mixin(S_TRACE);
+			tree.escape = true;
+		} else if (fire is LOSE) { mixin(S_TRACE);
+			tree.lose = true;
+		} else if (fire is EVERY_ROUND) { mixin(S_TRACE);
+			tree.everyRound = true;
+		} else if (fire is ROUND_0) { mixin(S_TRACE);
+			tree.round0 = true;
+		} else if (cast(KeyCodeObj)fire) { mixin(S_TRACE);
+			tree.addKeyCode(_prop.sys.toFKeyCode((cast(KeyCodeObj)fire).array.idup));
+		} else { mixin(S_TRACE);
+			assert (cast(RoundObj)fire);
+			tree.addRound((cast(RoundObj)fire).intValue());
+			tree.sortRounds();
+		}
+		_comm.refEventTree.call(tree);
+	}
+	static __gshared Object ENTER;
+	static __gshared Object ESCAPE;
+	static __gshared Object LOSE;
+	static __gshared Object EVERY_ROUND;
+	static __gshared Object ROUND_0;
+	shared static this () { mixin(S_TRACE);
+		ENTER = new Object;
+		ESCAPE = new Object;
+		LOSE = new Object;
+		EVERY_ROUND = new Object;
+		ROUND_0 = new Object;
+	}
+	int keyCodesIndex(TreeItem itm) { mixin(S_TRACE);
+		assert (cast(EventTree)itm.getData());
+		auto o = itm.getParentItem().getData();
+		if (cast(AbstractSpCard)o) { mixin(S_TRACE);
+			return (cast(EventTree)itm.getData()).fireEnter ? 1 : 0;
+		} else { mixin(S_TRACE);
+			auto tree = cast(EventTree)itm.getData();
+			if (cast(Battle)o) {
+				int r = 0;
+				if (tree.fireEnter) r++;
+				if (tree.fireLose) r++;
+				if (tree.fireEscape) r++;
+				if (tree.fireEveryRound) r++;
+				if (tree.fireRound0) r++;
+				return r;
 			} else { mixin(S_TRACE);
-				static if (!is (C == void)) {
-					assert (cast(C) areaOrCard);
-					return addAreaAndEtc();
-				}
-			}
-			return null;
-		}
-		void createEventFire() { mixin(S_TRACE);
-			if (_readOnly) return;
-			auto treeItm = selectionEventTree;
-			if (!treeItm) return;
-			auto tree = cast(EventTree) treeItm.getData();
-			auto fire = addingFire(treeItm.getParentItem().getData());
-			if (!fire) return;
-			store(tree);
-			addFire(treeItm, fire);
-			refreshFires(treeItm, fire);
-			_comm.refreshToolBar();
-		}
-		void addFire(TreeItem treeItm, Object fire) { mixin(S_TRACE);
-			auto tree = cast(EventTree) treeItm.getData();
-			if (fire is ENTER) { mixin(S_TRACE);
-				tree.enter = true;
-			} else if (fire is ESCAPE) { mixin(S_TRACE);
-				tree.escape = true;
-			} else if (fire is LOSE) { mixin(S_TRACE);
-				tree.lose = true;
-			} else if (fire is EVERY_ROUND) { mixin(S_TRACE);
-				tree.everyRound = true;
-			} else if (fire is ROUND_0) { mixin(S_TRACE);
-				tree.round0 = true;
-			} else if (cast(KeyCodeObj) fire) { mixin(S_TRACE);
-				tree.addKeyCode(_prop.sys.toFKeyCode((cast(KeyCodeObj) fire).array.idup));
-			} else { mixin(S_TRACE);
-				assert (cast(RoundObj) fire);
-				tree.addRound((cast(RoundObj)fire).intValue());
-				tree.sortRounds();
-			}
-			_comm.refEventTree.call(tree);
-		}
-		static __gshared Object ENTER;
-		static __gshared Object ESCAPE;
-		static __gshared Object LOSE;
-		static __gshared Object EVERY_ROUND;
-		static __gshared Object ROUND_0;
-		shared static this () { mixin(S_TRACE);
-			ENTER = new Object;
-			ESCAPE = new Object;
-			LOSE = new Object;
-			EVERY_ROUND = new Object;
-			ROUND_0 = new Object;
-		}
-		int keyCodesIndex(TreeItem itm) { mixin(S_TRACE);
-			assert (cast(EventTree) itm.getData());
-			auto o = itm.getParentItem().getData();
-			if (cast(A) o) { mixin(S_TRACE);
-				auto tree = cast(EventTree) itm.getData();
-				static if (is (A == Battle)) {
-					int r = 0;
-					if (tree.fireEnter) r++;
-					if (tree.fireLose) r++;
-					if (tree.fireEscape) r++;
-					if (tree.fireEveryRound) r++;
-					if (tree.fireRound0) r++;
-					return r;
-				} else { mixin(S_TRACE);
-					return (cast(EventTree) itm.getData()).fireEnter ? 1 : 0;
-				}
-			} else { mixin(S_TRACE);
-				static if (!is (C == void)) {
-					assert (cast(C) o);
-					return (cast(EventTree) itm.getData()).fireEnter ? 1 : 0;
-				} else { mixin(S_TRACE);
-					assert (0);
-				}
+				return (cast(EventTree)itm.getData()).fireEnter ? 1 : 0;
 			}
 		}
-		Image keyCodeImage(string keyCode) { mixin(S_TRACE);
-			final switch (_prop.sys.fireKeyCodeKind(keyCode)) {
-			case FKCKind.Use: return _prop.images.keyCode;
-			case FKCKind.Success: return _prop.images.menu(MenuID.KeyCodeTimingSuccess);
-			case FKCKind.Failure: return _prop.images.menu(MenuID.KeyCodeTimingFailure);
-			case FKCKind.HasNot:  return _prop.images.menu(MenuID.KeyCodeTimingHasNot);
-			}
+	}
+	Image keyCodeImage(string keyCode) { mixin(S_TRACE);
+		final switch (_prop.sys.fireKeyCodeKind(keyCode)) {
+		case FKCKind.Use: return _prop.images.keyCode;
+		case FKCKind.Success: return _prop.images.menu(MenuID.KeyCodeTimingSuccess);
+		case FKCKind.Failure: return _prop.images.menu(MenuID.KeyCodeTimingFailure);
+		case FKCKind.HasNot: return _prop.images.menu(MenuID.KeyCodeTimingHasNot);
 		}
-		void createKeyCodeItem(T)(TreeItem parent, T a) { mixin(S_TRACE);
-			foreach (keyCode; a.keyCodes) { mixin(S_TRACE);
-				string kc = _prop.sys.convFireKeyCode(keyCode);
-				createTreeItem(parent, new KeyCodeObj(kc), kc, keyCodeImage(kc));
-			}
+	}
+	void createKeyCodeItem(T)(TreeItem parent, T a) { mixin(S_TRACE);
+		foreach (keyCode; a.keyCodes) { mixin(S_TRACE);
+			string kc = _prop.sys.convFireKeyCode(keyCode);
+			createTreeItem(parent, new KeyCodeObj(kc), kc, keyCodeImage(kc));
 		}
 	}
 	void replText() { mixin(S_TRACE);
 		if (_readOnly) return;
 		foreach (itm; _cards.getItems()) { mixin(S_TRACE);
 			auto data = itm.getData();
-			if (cast(A) data) { mixin(S_TRACE);
-				itm.setText((cast(A) data).name);
-			}
-			static if (!is (C == void)) {
-				if (cast(C) data) { mixin(S_TRACE);
-					static if (is (C == MenuCard)) {
-						itm.setText((cast(C) data).name);
-					} else static if (is (C == EnemyCard)) {
-						auto castCard = _summ.cwCast((cast(C) data).id);
-						itm.setText(castCard ? castCard.name : "");
-					} else { mixin(S_TRACE);
-						static assert (0);
-					}
-				}
+			if (auto a = cast(AbstractArea)data) { mixin(S_TRACE);
+				itm.setText(a.name);
+			} else if (auto c = cast(EffectCard)data) { mixin(S_TRACE);
+				itm.setText(c.name);
+			} else if (auto c = cast(MenuCard)data) {
+				itm.setText(c.name);
+			} else if (auto c = cast(EnemyCard)data) {
+				auto castCard = _summ.cwCast(c.id);
+				itm.setText(castCard ? castCard.name : "");
+			} else { mixin(S_TRACE);
+				assert (0);
 			}
 			foreach (itm2; itm.getItems()) { mixin(S_TRACE);
 				auto et = cast(EventTree) itm2.getData();
@@ -1083,15 +1035,13 @@ private:
 					itm2.setText(et.name);
 					chg = true;
 				}
-				static if (UseFire && (is (A == Area) || is (A == Battle))) {
-					ptrdiff_t startKC = -1;
-					foreach (i, itm3; itm2.getItems()) { mixin(S_TRACE);
-						auto kc = cast(KeyCodeObj) itm3.getData();
-						if (kc && startKC <= 0) startKC = i;
-						if (startKC >= 0 && itm3.getText() != _prop.sys.convFireKeyCode(et.keyCodes[i - startKC])) { mixin(S_TRACE);
-							itm3.setText(_prop.sys.convFireKeyCode(et.keyCodes[i - startKC]));
-							chg = true;
-						}
+				ptrdiff_t startKC = -1;
+				foreach (i, itm3; itm2.getItems()) { mixin(S_TRACE);
+					auto kc = cast(KeyCodeObj)itm3.getData();
+					if (kc && startKC <= 0) startKC = i;
+					if (startKC >= 0 && itm3.getText() != _prop.sys.convFireKeyCode(et.keyCodes[i - startKC])) { mixin(S_TRACE);
+						itm3.setText(_prop.sys.convFireKeyCode(et.keyCodes[i - startKC]));
+						chg = true;
 					}
 				}
 				if (chg) { mixin(S_TRACE);
@@ -1101,65 +1051,63 @@ private:
 			}
 		}
 	}
-	static if (UseFire) {
-		void addManyRounds() { mixin(S_TRACE);
-			if (_readOnly) return;
-			auto etItm = selectionEventTree;
-			if (!etItm) return;
-			auto parItm = selectionParent;
-			if (!parItm || !(cast(Battle) parItm.getData())) return;
-			auto dlg = new ManyRoundsDialog(_prop, _cards.getShell());
-			if (dlg.open()) { mixin(S_TRACE);
-				auto et = cast(EventTree) etItm.getData();
-				store(et);
-				assert (et);
-				et.addRounds(dlg.rounds);
-				refreshFires(etItm);
-				etItm.setExpanded(true);
-				_comm.refEventTree.call(et);
-				_comm.refreshToolBar();
-			}
-		}
-	}
-	static if (is(A : Area) || is(A : Battle)) {
-		void keyCodeTimImpl(FKCKind kind) { mixin(S_TRACE);
-			if (_readOnly) return;
-			auto itm = selection;
-			if (!itm) return;
-			auto kc = cast(KeyCodeObj)itm.getData();
-			if (!kc) return;
-			auto old = _prop.sys.toFKeyCode(kc.array.idup);
-			string keyCode = _prop.sys.convFireKeyCode(old.keyCode, kind);
-			auto etItm = selectionEventTree;
-			assert (etItm);
+	void addManyRounds() { mixin(S_TRACE);
+		assert (cast(Battle)_area !is null);
+		if (_readOnly) return;
+		auto etItm = selectionEventTree;
+		if (!etItm) return;
+		auto parItm = selectionParent;
+		if (!parItm || !(cast(Battle) parItm.getData())) return;
+		auto dlg = new ManyRoundsDialog(_prop, _cards.getShell());
+		if (dlg.open()) { mixin(S_TRACE);
 			auto et = cast(EventTree) etItm.getData();
-			assert (et);
 			store(et);
-			auto i = cCountUntil(et.keyCodes, old);
-			assert (-1 != i);
-			et.setKeyCode(i, _prop.sys.toFKeyCode(keyCode));
-			foreach (v; views()) { mixin(S_TRACE);
-				auto itm2 = .anotherTreeItem(v._cards, itm);
-				itm2.setText(keyCode);
-				itm2.setImage(keyCodeImage(keyCode));
-				auto kc2 = cast(KeyCodeObj)itm2.getData();
-				kc2.array = keyCode.dup;
-			}
-			_comm.refKeyCodes.call();
+			assert (et);
+			et.addRounds(dlg.rounds);
+			refreshFires(etItm);
+			etItm.setExpanded(true);
+			_comm.refEventTree.call(et);
 			_comm.refreshToolBar();
 		}
-		void keyCodeTimUse() { mixin(S_TRACE);
-			keyCodeTimImpl(FKCKind.Use);
+	}
+	void keyCodeTimImpl(FKCKind kind) { mixin(S_TRACE);
+		assert (cast(Area)_area || cast(Battle)_area);
+		if (_readOnly) return;
+		auto itm = selection;
+		if (!itm) return;
+		auto kc = cast(KeyCodeObj)itm.getData();
+		if (!kc) return;
+		auto old = _prop.sys.toFKeyCode(kc.array.idup);
+		string keyCode = _prop.sys.convFireKeyCode(old.keyCode, kind);
+		auto etItm = selectionEventTree;
+		assert (etItm);
+		auto et = cast(EventTree) etItm.getData();
+		assert (et);
+		store(et);
+		auto i = cCountUntil(et.keyCodes, old);
+		assert (-1 != i);
+		et.setKeyCode(i, _prop.sys.toFKeyCode(keyCode));
+		foreach (v; views()) { mixin(S_TRACE);
+			auto itm2 = .anotherTreeItem(v._cards, itm);
+			itm2.setText(keyCode);
+			itm2.setImage(keyCodeImage(keyCode));
+			auto kc2 = cast(KeyCodeObj)itm2.getData();
+			kc2.array = keyCode.dup;
 		}
-		void keyCodeTimSuccess() { mixin(S_TRACE);
-			keyCodeTimImpl(FKCKind.Success);
-		}
-		void keyCodeTimFailure() { mixin(S_TRACE);
-			keyCodeTimImpl(FKCKind.Failure);
-		}
-		void keyCodeTimHasNot() { mixin(S_TRACE);
-			keyCodeTimImpl(FKCKind.HasNot);
-		}
+		_comm.refKeyCodes.call();
+		_comm.refreshToolBar();
+	}
+	void keyCodeTimUse() { mixin(S_TRACE);
+		keyCodeTimImpl(FKCKind.Use);
+	}
+	void keyCodeTimSuccess() { mixin(S_TRACE);
+		keyCodeTimImpl(FKCKind.Success);
+	}
+	void keyCodeTimFailure() { mixin(S_TRACE);
+		keyCodeTimImpl(FKCKind.Failure);
+	}
+	void keyCodeTimHasNot() { mixin(S_TRACE);
+		keyCodeTimImpl(FKCKind.HasNot);
 	}
 	bool canConvKeyCode(FKCKind Kind)() { mixin(S_TRACE);
 		if (_readOnly) return false;
@@ -1219,7 +1167,7 @@ private:
 		layout();
 	}
 public:
-	this (Commons comm, Props prop, Summary summ, A area, Composite parent, UndoManager undo, bool readOnly) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Summary summ, EventTreeOwner area, Composite parent, UndoManager undo, bool readOnly) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 		auto o = this;
 		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
@@ -1239,75 +1187,75 @@ public:
 		if (!_readOnly) { mixin(S_TRACE);
 			_comm.replText.add(&replText);
 			_comm.replID.add(&replText);
-			static if (!is(C == void)) {
+			if (cast(Area)_area || cast(Battle)_area) {
 				_comm.addMenuCard.add(&addCard);
 				_comm.refMenuCard.add(&refCard);
 				_comm.delMenuCard.add(&delCard);
 				_comm.upMenuCard.add(&upCard);
 				_comm.downMenuCard.add(&downCard);
 			}
-			static if (is (A == Area)) {
-				_comm.refArea.add(&refreshTitleA);
-			} else static if (is (A == Battle)) {
-				_comm.refBattle.add(&refreshTitleA);
-			} else static if (is (A == Package)) {
-				_comm.refPackage.add(&refreshTitleA);
-			} else static if (is (A == SkillCard)) {
-				_comm.refSkill.add(&refreshTitleA);
-			} else static if (is (A == ItemCard)) {
-				_comm.refItem.add(&refreshTitleA);
-			} else static if (is (A == BeastCard)) {
-				_comm.refBeast.add(&refreshTitleA);
-			} else static assert (0);
+			if (cast(Area)_area) {
+				_comm.refArea.add(&refreshTitleArea);
+			} else if (cast(Battle)_area) {
+				_comm.refBattle.add(&refreshTitleBattle);
+			} else if (cast(Package)_area) {
+				_comm.refPackage.add(&refreshTitlePackage);
+			} else if (cast(SkillCard)_area) {
+				_comm.refSkill.add(&refreshTitleSkill);
+			} else if (cast(ItemCard)_area) {
+				_comm.refItem.add(&refreshTitleItem);
+			} else if (cast(BeastCard)_area) {
+				_comm.refBeast.add(&refreshTitleBeast);
+			} else assert (0);
 		}
 		_sash.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-				static if (!is(C:void)) {
+				if (_preview) { mixin(S_TRACE);
 					closePreview();
 					_preview.dispose();
 				}
 
 				int[] ws = _sash.getWeights();
-				static if (is (A == Area)) {
+				if (cast(Area)_area) {
 					_prop.var.areaWin.eventSashL = ws[0];
 					_prop.var.areaWin.eventSashR = ws[1];
-				} else static if (is (A == Battle)) {
+				} else if (cast(Battle)_area) {
 					_prop.var.battleWin.eventSashL = ws[0];
 					_prop.var.battleWin.eventSashR = ws[1];
-				} else static if (is (A == Package)) {
+				} else if (cast(Package)_area) {
 					_prop.var.packageWin.eventSashL = ws[0];
 					_prop.var.packageWin.eventSashR = ws[1];
-				} else static if (is (A : EffectCard)) {
+				} else if (cast(EffectCard)_area) {
 					_prop.var.cardEventWin.eventSashL = ws[0];
 					_prop.var.cardEventWin.eventSashR = ws[1];
 				} else { mixin(S_TRACE);
-					static assert (0);
+					assert (0);
 				}
 				_comm.refShowToolBar.remove(&refShowToolBar);
 				_comm.refEventTreeSlope.remove(&refEventTreeSlope);
 				if (!_readOnly) { mixin(S_TRACE);
 					_comm.replText.remove(&replText);
 					_comm.replID.remove(&replText);
-					static if (!is(C == void)) {
+					if (cast(Area)_area || cast(Battle)_area) {
 						_comm.addMenuCard.remove(&addCard);
 						_comm.refMenuCard.remove(&refCard);
 						_comm.delMenuCard.remove(&delCard);
 						_comm.upMenuCard.remove(&upCard);
 						_comm.downMenuCard.remove(&downCard);
 					}
-					static if (is (A == Area)) {
-						_comm.refArea.remove(&refreshTitleA);
-					} else static if (is (A == Battle)) {
-						_comm.refBattle.remove(&refreshTitleA);
-					} else static if (is (A == Package)) {
-						_comm.refPackage.remove(&refreshTitleA);
-					} else static if (is (A == SkillCard)) {
-						_comm.refSkill.remove(&refreshTitleA);
-					} else static if (is (A == ItemCard)) {
-						_comm.refItem.remove(&refreshTitleA);
-					} else static if (is (A == BeastCard)) {
-						_comm.refBeast.remove(&refreshTitleA);
-					} else static assert (0);
+					if (cast(Area)_area) {
+						_comm.refArea.remove(&refreshTitleArea);
+					} else if (cast(Battle)_area) {
+						_comm.refBattle.remove(&refreshTitleBattle);
+					} else if (cast(Package)_area) {
+						_comm.refPackage.remove(&refreshTitlePackage);
+					} else if (cast(SkillCard)_area) {
+						_comm.refSkill.remove(&refreshTitleSkill);
+					} else if (cast(ItemCard)_area) {
+						_comm.refItem.remove(&refreshTitleItem);
+					} else if (cast(BeastCard)_area) {
+						_comm.refBeast.remove(&refreshTitleBeast);
+					} else assert (0);
 				}
 			}
 		});
@@ -1326,7 +1274,7 @@ public:
 				createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => _undo.canRedo && !_readOnly);
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, this, true, true, true, true, true);
-				static if (is(A : Area) || is(A : Battle)) {
+				if (cast(Area)_area || cast(Battle)_area) {
 					new MenuItem(menu, SWT.SEPARATOR);
 					void delegate() dlg = null;
 					auto cascade = createMenuItem(_comm, menu, MenuID.KeyCodeTiming, dlg, () => !_readOnly && selectionKeyCode !is null, SWT.CASCADE);
@@ -1350,20 +1298,20 @@ public:
 			}
 			createMenuItem(_comm, menu, MenuID.ToScript, &toScript, &canToScript);
 			createMenuItem(_comm, menu, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
-			static if (is (A == Battle)) {
+			if (cast(Battle)_area) { mixin (S_TRACE);
 				if (!_readOnly) { mixin (S_TRACE);
 					new MenuItem(menu, SWT.SEPARATOR);
 					createMenuItem(_comm, menu, MenuID.AddRangeOfRound, &addManyRounds, { mixin(S_TRACE);
 						if (_readOnly) return false;
 						auto etItm = selectionEventTree;
 						if (!etItm) return false;
-						return (cast(EventTree) etItm.getData()).owner is _area;
+						return (cast(EventTree)etItm.getData()).owner is _area;
 					});
 				}
 			}
 			_cards.setMenu(menu);
 
-			static if (!is(C:void)) {
+			if (cast(Area)_area || cast(Battle)_area) {
 				_preview = new Preview(_prop, _cards.getShell());
 				auto closePreview = new ClosePreview;
 				_cards.getVerticalBar().addSelectionListener(closePreview);
@@ -1401,16 +1349,16 @@ public:
 			};
 			_cards.addPaintListener(initTools);
 		}
-		static if (is (A == Area)) {
+		if (cast(Area)_area) {
 			_sash.setWeights([_prop.var.areaWin.eventSashL, _prop.var.areaWin.eventSashR]);
-		} else static if (is (A == Battle)) {
+		} else if (cast(Battle)_area) {
 			_sash.setWeights([_prop.var.battleWin.eventSashL, _prop.var.battleWin.eventSashR]);
-		} else static if (is (A == Package)) {
+		} else if (cast(Package)_area) {
 			_sash.setWeights([_prop.var.packageWin.eventSashL, _prop.var.packageWin.eventSashR]);
-		} else static if (is (A : EffectCard)) {
+		} else if (cast(EffectCard)_area) {
 			_sash.setWeights([_prop.var.cardEventWin.eventSashL, _prop.var.cardEventWin.eventSashR]);
 		} else { mixin(S_TRACE);
-			static assert (0);
+			 assert (0);
 		}
 		refShowToolBar();
 
@@ -1447,94 +1395,106 @@ public:
 	/// エリアの名称表示を更新する。
 	void refreshTitle() { mixin(S_TRACE);
 		initial();
-		_cards.getItems()[0].setText(_area.name);
+		if (auto area = cast(AbstractArea)_area) {
+			_cards.getItems()[0].setText(area.name);
+		} else if (auto card = cast(EffectCard)_area) {
+			_cards.getItems()[0].setText(card.name);
+		} else assert (0);
 	}
-	private void refreshTitleA(A area) { mixin(S_TRACE);
+	private void refreshTitleArea(Area area) { refreshTitle!Area(area); }
+	private void refreshTitleBattle(Battle area) { refreshTitle!Battle(area); }
+	private void refreshTitlePackage(Package area) { refreshTitle!Package(area); }
+	private void refreshTitleSkill(SkillCard area) { refreshTitle!SkillCard(area); }
+	private void refreshTitleItem(ItemCard area) { refreshTitle!ItemCard(area); }
+	private void refreshTitleBeast(BeastCard area) { refreshTitle!BeastCard(area); }
+	private void refreshTitle(A)(A area) { mixin(S_TRACE);
 		initial();
 		if (area is _area) { mixin(S_TRACE);
-			_cards.getItems()[0].setText(_area.name);
+			_cards.getItems()[0].setText(area.name);
 		}
 	}
-	static if (!is (C == void)) {
-		private string cardName(C c) { mixin(S_TRACE);
-			static if (is (C == MenuCard)) {
-				return c.name;
-			} else { mixin(S_TRACE);
-				static assert (is (C == EnemyCard));
-				auto castCard = _summ.cwCast(c.id);
-				return castCard ? castCard.name : "";
-			}
+	private string cardName(AbstractSpCard c) { mixin(S_TRACE);
+		if (auto card = cast(MenuCard)c) {
+			return card.name;
+		} else { mixin(S_TRACE);
+			assert (cast(EnemyCard)c !is null);
+			auto castCard = _summ.cwCast((cast(EnemyCard)c).id);
+			return castCard ? castCard.name : "";
 		}
-		private void addCard(string cwxPath) { mixin(S_TRACE);
-			if (!cpeq(_area.cwxPath(true), cpparent(cwxPath))) return;
-			size_t i = cpindex(cpbottom(cwxPath));
-			appendCard(cast(int)i, _area.cards[i]);
+	}
+	private void addCard(string cwxPath) { mixin(S_TRACE);
+		if (!cpeq(_area.cwxPath(true), cpparent(cwxPath))) return;
+		size_t i = cpindex(cpbottom(cwxPath));
+		if (auto area = cast(Area)_area) {
+			appendCard(cast(int)i, area.cards[i]);
+		} else if (auto area = cast(Battle)_area) {
+			appendCard(cast(int)i, area.cards[i]);
+		} else assert (0);
+	}
+	private void refCard(string cwxPath) { mixin(S_TRACE);
+		if (!cpeq(_area.cwxPath(true), cpparent(cwxPath))) return;
+		size_t i = cpindex(cpbottom(cwxPath));
+		renameCard(cast(int)i);
+	}
+	private void delCard(string cwxPath) { mixin(S_TRACE);
+		if (!cpeq(_area.cwxPath(true), cpparent(cwxPath))) return;
+		size_t i = cpindex(cpbottom(cwxPath));
+		removeCard(cast(int)i);
+	}
+	private void upCard(string cwxPath, int[] indices, int count) { mixin(S_TRACE);
+		if (!cpeq(_area.cwxPath(true), cwxPath)) return;
+		upCard(indices, count);
+	}
+	private void downCard(string cwxPath, int[] indices, int count) { mixin(S_TRACE);
+		if (!cpeq(_area.cwxPath(true), cwxPath)) return;
+		downCard(indices, count);
+	}
+	private void appendCard(int index, AbstractSpCard c) { mixin(S_TRACE);
+		initial();
+		Image imgCard;
+		if (cast(MenuCard)c) {
+			imgCard = _prop.images.cards;
+		} else if (cast(EnemyCard)c) {
+			imgCard = _prop.images.cards;
 		}
-		private void refCard(string cwxPath) { mixin(S_TRACE);
-			if (!cpeq(_area.cwxPath(true), cpparent(cwxPath))) return;
-			size_t i = cpindex(cpbottom(cwxPath));
-			renameCard(cast(int)i);
+		auto itm = createTreeItem(_cards, c, cardName(c), imgCard, index + 1);
+		refreshTrees(itm);
+	}
+	private void removeCard(int index) { mixin(S_TRACE);
+		initial();
+		if (_selItm && !_selItm.isDisposed()
+				&& _selItm.getParentItem() is _cards.getItems()[index + 1]) { mixin(S_TRACE);
+			_etree.refresh(null);
+			_selItm = null;
 		}
-		private void delCard(string cwxPath) { mixin(S_TRACE);
-			if (!cpeq(_area.cwxPath(true), cpparent(cwxPath))) return;
-			size_t i = cpindex(cpbottom(cwxPath));
-			removeCard(cast(int)i);
-		}
-		private void upCard(string cwxPath, int[] indices, int count) { mixin(S_TRACE);
-			if (!cpeq(_area.cwxPath(true), cwxPath)) return;
-			upCard(indices, count);
-		}
-		private void downCard(string cwxPath, int[] indices, int count) { mixin(S_TRACE);
-			if (!cpeq(_area.cwxPath(true), cwxPath)) return;
-			downCard(indices, count);
-		}
-		private void appendCard(int index, C c) { mixin(S_TRACE);
-			initial();
-			Image imgCard;
-			static if (is (C == MenuCard)) {
-				imgCard = _prop.images.cards;
-			} else static if (is (C == EnemyCard)) {
-				imgCard = _prop.images.cards;
-			}
-			auto itm = createTreeItem(_cards, c, cardName(c), imgCard, index + 1);
-			refreshTrees(itm);
-		}
-		private void removeCard(int index) { mixin(S_TRACE);
-			initial();
-			if (_selItm && !_selItm.isDisposed()
-					&& _selItm.getParentItem() is _cards.getItems()[index + 1]) { mixin(S_TRACE);
-				_etree.refresh(null);
-				_selItm = null;
-			}
-			_cards.getItems()[index + 1].dispose();
-		}
-		private void renameCard(int index) { mixin(S_TRACE);
-			initial();
-			auto itm = _cards.getItems()[index + 1];
-			itm.setText(cardName(cast(C) itm.getData()));
-		}
-		private void udCard(int[] indices, int function(TreeItem) ud, int udVal, int count) { mixin(S_TRACE);
-			foreach (j; 0 .. count) { mixin(S_TRACE);
-				foreach (i; indices) { mixin(S_TRACE);
-					i += udVal * j;
-					if (_selItm && _selItm.getParentItem() is _cards.getItems()[i + 1]) { mixin(S_TRACE);
-						int s = _selItm.getParentItem().indexOf(_selItm);
-						int newI = ud(_cards.getItems()[i + 1]) + udVal;
-						selectImpl(_cards.getItems()[newI].getItems()[s]);
-					} else { mixin(S_TRACE);
-						ud(_cards.getItems()[i + 1]);
-					}
+		_cards.getItems()[index + 1].dispose();
+	}
+	private void renameCard(int index) { mixin(S_TRACE);
+		initial();
+		auto itm = _cards.getItems()[index + 1];
+		itm.setText(cardName(cast(AbstractSpCard)itm.getData()));
+	}
+	private void udCard(int[] indices, int function(TreeItem) ud, int udVal, int count) { mixin(S_TRACE);
+		foreach (j; 0 .. count) { mixin(S_TRACE);
+			foreach (i; indices) { mixin(S_TRACE);
+				i += udVal * j;
+				if (_selItm && _selItm.getParentItem() is _cards.getItems()[i + 1]) { mixin(S_TRACE);
+					int s = _selItm.getParentItem().indexOf(_selItm);
+					int newI = ud(_cards.getItems()[i + 1]) + udVal;
+					selectImpl(_cards.getItems()[newI].getItems()[s]);
+				} else { mixin(S_TRACE);
+					ud(_cards.getItems()[i + 1]);
 				}
 			}
 		}
-		private void upCard(int[] indices, int count) { mixin(S_TRACE);
-			initial();
-			udCard(indices, &treeItemUp, -1, count);
-		}
-		private void downCard(int[] indices, int count) { mixin(S_TRACE);
-			initial();
-			udCard(indices, &treeItemDown, 1, count);
-		}
+	}
+	private void upCard(int[] indices, int count) { mixin(S_TRACE);
+		initial();
+		udCard(indices, &treeItemUp, -1, count);
+	}
+	private void downCard(int[] indices, int count) { mixin(S_TRACE);
+		initial();
+		udCard(indices, &treeItemDown, 1, count);
 	}
 	private bool _initialed = false;
 	bool initial() { mixin(S_TRACE);
@@ -1549,27 +1509,32 @@ public:
 		_cards.removeAll();
 		{ mixin(S_TRACE);
 			Image imgArea;
-			static if (is (A == Area)) {
+			string name;
+			if (auto a = cast(Area)_area) {
 				imgArea = _prop.images.area;
-			} else static if (is (A == Battle)) {
+				name = a.name;
+			} else if (auto a = cast(Battle)_area) {
 				imgArea = _prop.images.battle;
-			} else static if (is (A == Package)) {
+				name = a.name;
+			} else if (auto a = cast(Package)_area) {
 				imgArea = _prop.images.packages;
-			} else static if (is (A == SkillCard)) {
+				name = a.name;
+			} else if (auto a = cast(SkillCard)_area) {
 				imgArea = _prop.images.skill;
-			} else static if (is (A == ItemCard)) {
+				name = a.name;
+			} else if (auto a = cast(ItemCard)_area) {
 				imgArea = _prop.images.item;
-			} else static if (is (A == BeastCard)) {
+				name = a.name;
+			} else if (auto a = cast(BeastCard)_area) {
 				imgArea = _prop.images.beast;
+				name = a.name;
 			} else { mixin(S_TRACE);
-				static assert (0);
+				assert (0);
 			}
-			auto aItm = createTreeItem(_cards, _area, _area.name, imgArea);
+			auto aItm = createTreeItem(_cards, cast(Object)_area, name, imgArea);
 			foreach (i, t; _area.trees) { mixin(S_TRACE);
 				auto eItm = createTreeItem(aItm, t, t.name, etImage(t));
-				static if (UseFire) {
-					refreshFires(eItm);
-				}
+				refreshFires(eItm);
 				if (i == 0) { mixin(S_TRACE);
 					selectImpl(eItm);
 				}
@@ -1579,22 +1544,21 @@ public:
 			}
 			aItm.setExpanded(true);
 		}
-		static if (!is (C == void)) {
-			foreach (c; _area.cards) { mixin(S_TRACE);
-				Image imgCard;
-				static if (is (C == MenuCard)) {
-					imgCard = _prop.images.cards;
-				} else static if (is (C == EnemyCard)) {
-					imgCard = _prop.images.cards;
-				}
-				auto cItm = createTreeItem(_cards, c, cardName(c), imgCard);
-				foreach (t; c.trees) { mixin(S_TRACE);
-					auto eItm = createTreeItem(cItm, t, t.name, etImage(t));
-					static if (UseFire) {
-						refreshFires(eItm);
-					}
-				}
-				cItm.setExpanded(true);
+		void spCardItm(AbstractSpCard c, Image imgCard) { mixin(S_TRACE);
+			auto cItm = createTreeItem(_cards, c, cardName(c), imgCard);
+			foreach (t; c.trees) { mixin(S_TRACE);
+				auto eItm = createTreeItem(cItm, t, t.name, etImage(t));
+				refreshFires(eItm);
+			}
+			cItm.setExpanded(true);
+		}
+		if (auto a = cast(Area)_area) {
+			foreach (c; a.cards) { mixin(S_TRACE);
+				spCardItm(c, _prop.images.cards);
+			}
+		} else if (auto a = cast(Battle)_area) {
+			foreach (c; a.cards) { mixin(S_TRACE);
+				spCardItm(c, _prop.images.cards);
 			}
 		}
 		_comm.refreshToolBar();
@@ -1605,9 +1569,7 @@ public:
 	private string _treeKindSel = "";
 	private string _fireSel = "";
 	private int _fireSelInt = 0;
-	static if (is(A:Area) || is(A:Battle)) {
-		private string _keyCodeTimSel = "";
-	}
+	private string _keyCodeTimSel = "";
 	void movingShell() { mixin(S_TRACE);
 		_toolbar.setRedraw(false);
 		if (_setupToolBar) { mixin(S_TRACE);
@@ -1622,7 +1584,7 @@ public:
 				} else if (auto c = cast(Spinner)_fireItm.getControl()) { mixin(S_TRACE);
 					_fireSelInt = c.getSelection();
 				}
-				static if (is(A:Area) || is(A:Battle)) {
+				if (_keyCodeTim) {
 					_keyCodeTimSel = _keyCodeTim.getText();
 				}
 			}
@@ -1647,7 +1609,7 @@ public:
 					} else if (auto c = cast(Spinner)_fireItm.getControl()) { mixin(S_TRACE);
 						c.setSelection(_fireSelInt);
 					}
-					static if (is(A:Area) || is(A:Battle)) {
+					if (_keyCodeTim) {
 						_keyCodeTim.setText(_keyCodeTimSel);
 					}
 				}
@@ -1665,18 +1627,16 @@ public:
 			int from = parent.indexOf(itm);
 			int to = mixin (BeforeAfter);
 			if (to >= 0) { mixin(S_TRACE);
-				if (cast(EventTree) data) { mixin(S_TRACE);
+				if (cast(EventTree)data) { mixin(S_TRACE);
 					return true;
 				} else { mixin(S_TRACE);
-					static if (UseFire) {
-						if (cast(KeyCodeObj) data) { mixin(S_TRACE);
-							// キーコード
-							auto tree = cast(EventTree) parent.getData();
-							int keyCodeLen = cast(int)tree.keyCodes.length;
-							from -= keyCodesIndex(parent);
-							to -= keyCodesIndex(parent);
-							return mixin (CanSwapKeyCode);
-						}
+					if (cast(KeyCodeObj)data) { mixin(S_TRACE);
+						// キーコード
+						auto tree = cast(EventTree) parent.getData();
+						int keyCodeLen = cast(int)tree.keyCodes.length;
+						from -= keyCodesIndex(parent);
+						to -= keyCodesIndex(parent);
+						return mixin (CanSwapKeyCode);
 					}
 				}
 			}
@@ -1722,32 +1682,28 @@ public:
 				} else if (undos.length) { mixin(S_TRACE);
 					_undo ~= new UndoSeq(_comm, _area, undos);
 				}
-			} else { mixin(S_TRACE);
-				static if (UseFire) {
-					if (cast(KeyCodeObj)data) { mixin(S_TRACE);
-						_cards.setRedraw(false);
-						scope (exit) _cards.setRedraw(true);
-						// キーコード
-						assert (count == 1);
-						int from = parent.indexOf(itm);
-						int to = mixin(BeforeAfter);
-						auto tree = cast(EventTree)parent.getData();
-						int keyCodeLen = cast(int)tree.keyCodes.length;
-						from -= keyCodesIndex(parent);
-						to -= keyCodesIndex(parent);
-						if (mixin (CanSwapKeyCode)) { mixin(S_TRACE);
-							if (!viewOnly) { mixin(S_TRACE);
-								if (store) this.store(tree);
-								tree.swapKeyCode(from, to);
-								_comm.refEventTree.call(tree);
-							}
-							auto tPath = .toTreePath(itm);
-							foreach (v; views()) {
-								auto itm2 = .fromTreePath(v._cards, tPath);
-								treeSwap(itm2);
-								if (v is this) v._cards.showSelection();
-							}
-						}
+			} else if (cast(KeyCodeObj)data) { mixin(S_TRACE);
+				_cards.setRedraw(false);
+				scope (exit) _cards.setRedraw(true);
+				// キーコード
+				assert (count == 1);
+				int from = parent.indexOf(itm);
+				int to = mixin(BeforeAfter);
+				auto tree = cast(EventTree)parent.getData();
+				int keyCodeLen = cast(int)tree.keyCodes.length;
+				from -= keyCodesIndex(parent);
+				to -= keyCodesIndex(parent);
+				if (mixin (CanSwapKeyCode)) { mixin(S_TRACE);
+					if (!viewOnly) { mixin(S_TRACE);
+						if (store) this.store(tree);
+						tree.swapKeyCode(from, to);
+						_comm.refEventTree.call(tree);
+					}
+					auto tPath = .toTreePath(itm);
+					foreach (v; views()) {
+						auto itm2 = .fromTreePath(v._cards, tPath);
+						treeSwap(itm2);
+						if (v is this) v._cards.showSelection();
 					}
 				}
 			}
@@ -1811,19 +1767,27 @@ public:
 		_comm.refreshToolBar();
 	}
 
-	static if (is(A:Area) || is(A:Battle)) {
-		private void openScene(bool canDuplicate = false) { mixin(S_TRACE);
-			_comm.openAreaScene(_prop, _summ, _area, true, canDuplicate);
+	private void openScene(bool canDuplicate = false) { mixin(S_TRACE);
+		if (auto area = cast(Area)_area) { mixin(S_TRACE);
+			_comm.openAreaScene(_prop, _summ, area, true, canDuplicate);
+		} else if (auto area = cast(Battle)_area) { mixin(S_TRACE);
+			_comm.openAreaScene(_prop, _summ, area, true, canDuplicate);
 		}
 	}
 	void openDup() { mixin(S_TRACE);
-		static if (is(A:Area) || is(A:Battle)) {
-			_comm.openAreaEvent(_prop, _summ, _area, true, true);
-		} else static if (is(A:Package)) {
-			_comm.openArea(_prop, _summ, _area, true, true);
-		} else {
-			_comm.openUseEvents(_prop, _summ, _area, true, true);
-		}
+		if (auto area = cast(Area)_area) { mixin(S_TRACE);
+			_comm.openAreaEvent(_prop, _summ, area, true, true);
+		} else if (auto area = cast(Battle)_area) { mixin(S_TRACE);
+			_comm.openAreaEvent(_prop, _summ, area, true, true);
+		} else if (auto area = cast(Package)_area) { mixin(S_TRACE);
+			_comm.openArea(_prop, _summ, area, true, true);
+		} else if (auto card = cast(SkillCard)_area) {
+			_comm.openUseEvents(_prop, _summ, card, true, true);
+		} else if (auto card = cast(ItemCard)_area) {
+			_comm.openUseEvents(_prop, _summ, card, true, true);
+		} else if (auto card = cast(BeastCard)_area) {
+			_comm.openUseEvents(_prop, _summ, card, true, true);
+		} else assert (0);
 	}
 
 	private bool _setupToolBar = false;
@@ -1831,14 +1795,14 @@ public:
 		if (_setupToolBar) return false;
 		_setupToolBar = true;
 		auto bar = _toolbar;
-		static if (is(A:Area)) {
-			if (cast(AreaEventWindow) tlpData(this).tlp) { mixin(S_TRACE);
+		if (cast(Area)_area) {
+			if (cast(AreaEventWindow)tlpData(this).tlp) { mixin(S_TRACE);
 				createToolItem(_comm, bar, MenuID.EditScene, () => openScene(false), null);
 				new ToolItem(bar, SWT.SEPARATOR);
 				createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
-		} else static if (is(A:Battle)) {
+		} else if (cast(Battle)_area) {
 			if (cast(BattleEventWindow)tlpData(this).tlp) { mixin(S_TRACE);
 				auto itm = createToolItem(_comm, bar, MenuID.EditScene, () => openScene(false), null);
 				itm.setImage(_prop.images.editSceneBattle);
@@ -1847,25 +1811,25 @@ public:
 				itm.setImage(_prop.images.battleEventTreeViewDup);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
-		} else static if (is(A:Package)) {
+		} else if (cast(Package)_area) {
 			if (cast(PackageWindow)tlpData(this).tlp) { mixin(S_TRACE);
 				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
 				itm.setImage(_prop.images.packageDup);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
-		} else static if (is(A:SkillCard)) {
+		} else if (cast(SkillCard)_area) {
 			if (cast(SkillEventWindow)tlpData(this).tlp) { mixin(S_TRACE);
 				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
 				itm.setImage(_prop.images.skillDup);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
-		} else static if (is(A:ItemCard)) {
+		} else if (cast(ItemCard)_area) {
 			if (cast(ItemEventWindow)tlpData(this).tlp) { mixin(S_TRACE);
 				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
 				itm.setImage(_prop.images.itemDup);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
-		} else static if (is(A:BeastCard)) {
+		} else if (cast(BeastCard)_area) {
 			if (cast(BeastEventWindow)tlpData(this).tlp) { mixin(S_TRACE);
 				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
 				itm.setImage(_prop.images.beastDup);
@@ -1889,10 +1853,10 @@ public:
 			createTextMenu!CCombo(_comm, _prop, _treeKind, null);
 			_treeKind.add(_prop.msgs.eventTreeKindSystem);
 			_treeKind.setText(_prop.msgs.eventTreeKindSystem);
-			static if (is (A == Area) || is (A == Battle)) {
+			if (cast(Area)_area || cast(Battle)_area) {
 				_treeKind.add(_prop.msgs.eventTreeKindKeyCode);
 			}
-			static if (is (A == Battle)) {
+			if (cast(Battle)_area) {
 				_treeKind.add(_prop.msgs.eventTreeKindRound);
 			}
 			treeKindItm.setControl(_treeKind);
@@ -1904,21 +1868,19 @@ public:
 			_fireItm = new ToolItem(bar, SWT.SEPARATOR);
 			_fireItm.setWidth(_prop.var.etc.firesWidth);
 			createCombo(true, areaDefVals);
-			static if (is(A:Area) || is(A:Battle)) {
+			if (cast(Area)_area || cast(Battle)_area) { mixin(S_TRACE);
 				new ToolItem(bar, SWT.SEPARATOR);
-				{ mixin(S_TRACE);
-					auto keyCodeTimItm = new ToolItem(bar, SWT.SEPARATOR);
-					_keyCodeTim = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
-					createTextMenu!CCombo(_comm, _prop, _keyCodeTim, null);
-					_keyCodeTim.setEnabled(false);
-					_keyCodeTim.add(_prop.msgs.keyCodeTimingUse);
-					_keyCodeTim.add(_prop.msgs.keyCodeTimingSuccess);
-					_keyCodeTim.add(_prop.msgs.keyCodeTimingFailure);
-					_keyCodeTim.add(_prop.msgs.keyCodeTimingHasNot);
-					_keyCodeTim.select(0);
-					keyCodeTimItm.setControl(_keyCodeTim);
-					keyCodeTimItm.setWidth(_keyCodeTim.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
-				}
+				auto keyCodeTimItm = new ToolItem(bar, SWT.SEPARATOR);
+				_keyCodeTim = new CCombo(bar, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+				createTextMenu!CCombo(_comm, _prop, _keyCodeTim, null);
+				_keyCodeTim.setEnabled(false);
+				_keyCodeTim.add(_prop.msgs.keyCodeTimingUse);
+				_keyCodeTim.add(_prop.msgs.keyCodeTimingSuccess);
+				_keyCodeTim.add(_prop.msgs.keyCodeTimingFailure);
+				_keyCodeTim.add(_prop.msgs.keyCodeTimingHasNot);
+				_keyCodeTim.select(0);
+				keyCodeTimItm.setControl(_keyCodeTim);
+				keyCodeTimItm.setWidth(_keyCodeTim.computeSize(SWT.DEFAULT, SWT.DEFAULT).x);
 			}
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
@@ -1927,26 +1889,26 @@ public:
 				if (_readOnly) return false;
 				auto par = selectionParent;
 				if (!par) return false;
-				static if (is(A:Battle)) {
-					auto eto = cast(EventTreeOwner) par.getData();
+				if (cast(Battle)_area) {
+					auto eto = cast(EventTreeOwner)par.getData();
 					assert (eto !is null);
-					if (cast(C) eto && 2 == _treeKind.getSelectionIndex()) { mixin(S_TRACE);
+					if (cast(AbstractSpCard)eto && 2 == _treeKind.getSelectionIndex()) { mixin(S_TRACE);
 						// エネミーカード選択中、かつラウンド条件選択中
 						return false;
 					}
 				}
 				return true;
 			});
-			static if (UseFire) {
+			if (cast(Area)_area || cast(Battle)_area) { mixin(S_TRACE);
 				createToolItem2(_comm, bar, _prop.msgs.newIgnition, _prop.images.newIgnition, &createEventFire, { mixin(S_TRACE);
 					if (_readOnly) return false;
 					if (selectionEventTree is null) return false;
-					static if (is(A:Battle)) {
+					if (cast(Battle)_area) {
 						auto par = selectionParent;
 						assert (par !is null);
-						auto eto = cast(EventTreeOwner) par.getData();
+						auto eto = cast(EventTreeOwner)par.getData();
 						assert (eto !is null);
-						if (cast(C) eto && 2 == _treeKind.getSelectionIndex()) { mixin(S_TRACE);
+						if (cast(AbstractSpCard)eto && 2 == _treeKind.getSelectionIndex()) { mixin(S_TRACE);
 							// エネミーカード選択中、かつラウンド条件選択中
 							return false;
 						}
@@ -1998,11 +1960,11 @@ public:
 	}
 	@property
 	private string[] areaDefVals() { mixin(S_TRACE);
-		static if (is (A == Area)) {
+		if (cast(Area)_area) {
 			return [_prop.msgs.startEnter];
-		} else static if (is (A == Battle)) {
+		} else if (cast(Battle)_area) {
 			return [_prop.msgs.startVictory, _prop.msgs.startEscape, _prop.msgs.startLose, _prop.msgs.startEveryRound, _prop.msgs.startRound0];
-		} else static if (is (A == Package)) {
+		} else if (cast(Package)_area) {
 			return [_prop.msgs.startPackage];
 		} else { mixin(S_TRACE);
 			return [_prop.msgs.startUse];
@@ -2014,20 +1976,12 @@ public:
 		if (!itm) return [];
 		auto data = itm.getData();
 		string[] vals;
-		if (cast(A) data) { mixin(S_TRACE);
-			return areaDefVals;
+		if (cast(MenuCard)data) {
+			return [_prop.msgs.startSelect];
+		} else if (cast(EnemyCard)data) { mixin(S_TRACE);
+			return [_prop.msgs.startDead];
 		} else { mixin(S_TRACE);
-			static if (!is (C == void)) {
-				assert (cast(C) data);
-				static if (is (C == MenuCard)) {
-					return [_prop.msgs.startSelect];
-				} else { mixin(S_TRACE);
-					assert (is (C == EnemyCard));
-					return [_prop.msgs.startDead];
-				}
-			} else { mixin(S_TRACE);
-				assert (0);
-			}
+			return areaDefVals;
 		}
 	}
 	private void createCombo(bool readOnly, string[] vals, bool visLong = false) { mixin(S_TRACE);
@@ -2058,7 +2012,7 @@ public:
 		}
 	}
 	private void kindSelected() { mixin(S_TRACE);
-		static if (is (A == Area)) {
+		if (cast(Area)_area) {
 			switch (_treeKind.getSelectionIndex()) {
 			case 0:
 				createCombo(true, startDefVals);
@@ -2070,7 +2024,7 @@ public:
 				break;
 			default: assert (0);
 			}
-		} else static if (is (A == Battle)) {
+		} else if (cast(Battle)_area) {
 			switch (_treeKind.getSelectionIndex()) {
 			case 0:
 				createCombo(true, startDefVals);
@@ -2268,36 +2222,34 @@ public:
 						return;
 					}
 				}
-				static if (UseFire) {
-					if (auto kco = cast(KeyCodeObj)_dragItm.getData()) { mixin(S_TRACE);
-						// 単一のイベントツリー内でキーコードを移動する場合
-						if (cast(EventTreeOwner)ti.getData()) return;
-						auto keyCode = kco.array.idup;
-						auto fromTreeItm = _dragItm.getParentItem();
-						ptrdiff_t fromIndex = fromTreeItm.indexOf(_dragItm) - keyCodesIndex(fromTreeItm);
-						ptrdiff_t toIndex;
-						if (auto toTree = cast(EventTree)ti.getData()) { mixin(S_TRACE);
-							toIndex = toTree.keyCodes.length;
-						} else { mixin(S_TRACE);
-							auto treeItm = ti.getParentItem();
-							toIndex = std.algorithm.max(0, treeItm.indexOf(ti) - keyCodesIndex(treeItm));
-						}
-						if (fromIndex == toIndex) return;
-						auto tree = cast(EventTree)fromTreeItm.getData();
-						store(tree);
-						auto array = tree.keyCodes.dup;
-						auto kc = array[fromIndex];
-						array = array.remove(fromIndex);
-						if (fromIndex < toIndex) toIndex--;
-						array.insertInPlace(toIndex, kc);
-						tree.keyCodes = array;
-						refreshFires(fromTreeItm);
-
-						auto selItm = fromTreeItm.getItem(keyCodesIndex(fromTreeItm) + cast(int)toIndex);
-						_cards.setSelection([selItm]);
-						_cards.showSelection();
-						return;
+				if (auto kco = cast(KeyCodeObj)_dragItm.getData()) { mixin(S_TRACE);
+					// 単一のイベントツリー内でキーコードを移動する場合
+					if (cast(EventTreeOwner)ti.getData()) return;
+					auto keyCode = kco.array.idup;
+					auto fromTreeItm = _dragItm.getParentItem();
+					ptrdiff_t fromIndex = fromTreeItm.indexOf(_dragItm) - keyCodesIndex(fromTreeItm);
+					ptrdiff_t toIndex;
+					if (auto toTree = cast(EventTree)ti.getData()) { mixin(S_TRACE);
+						toIndex = toTree.keyCodes.length;
+					} else { mixin(S_TRACE);
+						auto treeItm = ti.getParentItem();
+						toIndex = std.algorithm.max(0, treeItm.indexOf(ti) - keyCodesIndex(treeItm));
 					}
+					if (fromIndex == toIndex) return;
+					auto tree = cast(EventTree)fromTreeItm.getData();
+					store(tree);
+					auto array = tree.keyCodes.dup;
+					auto kc = array[fromIndex];
+					array = array.remove(fromIndex);
+					if (fromIndex < toIndex) toIndex--;
+					array.insertInPlace(toIndex, kc);
+					tree.keyCodes = array;
+					refreshFires(fromTreeItm);
+
+					auto selItm = fromTreeItm.getItem(keyCodesIndex(fromTreeItm) + cast(int)toIndex);
+					_cards.setSelection([selItm]);
+					_cards.showSelection();
+					return;
 				}
 			}
 			try { mixin(S_TRACE);
@@ -2387,28 +2339,22 @@ public:
 		} else if (!canFire) { mixin(S_TRACE);
 			assert (cast(EventTree)par !is null);
 			node = (cast(EventTree)par).toNode(new XMLOption(_prop.sys));
+		} else if (ENTER is data) { mixin(S_TRACE);
+			node = EventTree.enterToNode();
+		} else if (ESCAPE is data) { mixin(S_TRACE);
+			node = EventTree.escapeToNode();
+		} else if (LOSE is data) { mixin(S_TRACE);
+			node = EventTree.loseToNode();
+		} else if (EVERY_ROUND is data) { mixin(S_TRACE);
+			node = EventTree.everyRoundToNode();
+		} else if (ROUND_0 is data) { mixin(S_TRACE);
+			node = EventTree.round0ToNode();
+		} else if (cast(KeyCodeObj) data) { mixin(S_TRACE);
+			node = EventTree.keyCodeToNode(_prop.sys.toFKeyCode((cast(KeyCodeObj)data).array.idup), _prop.sys);
+		} else if (cast(RoundObj) data) { mixin(S_TRACE);
+			node = EventTree.roundToNode((cast(RoundObj)data).intValue());
 		} else { mixin(S_TRACE);
-			static if (UseFire) {
-				if (ENTER is data) { mixin(S_TRACE);
-					node = EventTree.enterToNode();
-				} else if (ESCAPE is data) { mixin(S_TRACE);
-					node = EventTree.escapeToNode();
-				} else if (LOSE is data) { mixin(S_TRACE);
-					node = EventTree.loseToNode();
-				} else if (EVERY_ROUND is data) { mixin(S_TRACE);
-					node = EventTree.everyRoundToNode();
-				} else if (ROUND_0 is data) { mixin(S_TRACE);
-					node = EventTree.round0ToNode();
-				} else if (cast(KeyCodeObj) data) { mixin(S_TRACE);
-					node = EventTree.keyCodeToNode(_prop.sys.toFKeyCode((cast(KeyCodeObj)data).array.idup), _prop.sys);
-				} else if (cast(RoundObj) data) { mixin(S_TRACE);
-					node = EventTree.roundToNode((cast(RoundObj)data).intValue());
-				} else { mixin(S_TRACE);
-					assert (0);
-				}
-			} else { mixin(S_TRACE);
-				assert (0);
-			}
+			assert (0);
 		}
 		if (paneId) { mixin(S_TRACE);
 			node.newAttr("paneId", _id);
@@ -2462,15 +2408,13 @@ public:
 					if (v is this) v.selectImpl(treeItm);
 					if (v is this) ti = treeItm;
 				}
-				static if (UseFire) {
-					refreshFires(ti);
-				}
+				refreshFires(ti);
 				_comm.refEventTree.call(tree);
 				_comm.refUseCount.call();
 				_comm.refreshToolBar();
 				return true;
 			} else { mixin(S_TRACE);
-				static if (UseFire) {
+				if (cast(Area)_area || cast(Battle)_area) { mixin(S_TRACE);
 					if (!(cast(EventTreeOwner)itm.getData())) { mixin(S_TRACE);
 						// 開始条件
 						auto treeItm = cast(EventTree)itm.getData() ? itm : itm.getParentItem();
@@ -2558,7 +2502,7 @@ public:
 			}
 			_comm.delEventTree.call(tree);
 		} else { mixin(S_TRACE);
-			static if (UseFire) {
+			if (cast(Area)_area || cast(Battle)_area) { mixin(S_TRACE);
 				tree = cast(EventTree)par;
 				undo = this.store(tree, store);
 				if (ENTER is data) { mixin(S_TRACE);
@@ -2671,22 +2615,20 @@ public:
 			selectImpl(itm.getItem(cast(int)index));
 			return _etree.openCWXPath(cpbottom(path), shellActivate);
 		}
-		static if (is(C : MenuCard) || is(C : EnemyCard)) {
-			bool card() { mixin(S_TRACE);
-				if (index + 1 >= _cards.getItemCount()) { mixin(S_TRACE);
-					return false;
-				}
-				auto itm = _cards.getItem(cast(int)index + 1);
-				path = cpbottom(path);
-				if (cpempty(path)) { mixin(S_TRACE);
-					if (!cphasattr(path, "nofocus")) .forceFocus(_cards, shellActivate);
-					selectImpl(itm);
-					return true;
-				} else { mixin(S_TRACE);
-					cate = cpcategory(path);
-					index = cpindex(path);
-					return open(itm);
-				}
+		bool card() { mixin(S_TRACE);
+			if (index + 1 >= _cards.getItemCount()) { mixin(S_TRACE);
+				return false;
+			}
+			auto itm = _cards.getItem(cast(int)index + 1);
+			path = cpbottom(path);
+			if (cpempty(path)) { mixin(S_TRACE);
+				if (!cphasattr(path, "nofocus")) .forceFocus(_cards, shellActivate);
+				selectImpl(itm);
+				return true;
+			} else { mixin(S_TRACE);
+				cate = cpcategory(path);
+				index = cpindex(path);
+				return open(itm);
 			}
 		}
 		switch (cate) {
@@ -2694,12 +2636,12 @@ public:
 			return open(_cards.getItem(0));
 		} break;
 		case "menucard": { mixin(S_TRACE);
-			static if (is(C : MenuCard)) {
+			if (cast(Area)_area) { mixin(S_TRACE);
 				return card();
 			}
 		} break;
 		case "enemycard": { mixin(S_TRACE);
-			static if (is(C : EnemyCard)) {
+			if (cast(Battle)_area) { mixin(S_TRACE);
 				return card();
 			}
 		} break;
@@ -2720,12 +2662,12 @@ public:
 			auto cardItm = selectionParent;
 			if (cardItm) { mixin(S_TRACE);
 				auto d = cardItm.getData();
-				auto area = cast(A) d;
+				auto area = cast(EventTreeOwner)d;
 				if (area) { mixin(S_TRACE);
 					r ~= cpaddattr(area.cwxPath(true), "eventview");
 				}
-				static if (!is(C : void)) {
-					auto card = cast(C) d;
+				if (cast(Area)_area || cast(Battle)_area) { mixin(S_TRACE);
+					auto card = cast(AbstractSpCard)d;
 					if (card) { mixin(S_TRACE);
 						r ~= cpaddattr(card.cwxPath(true), "eventview");
 					}

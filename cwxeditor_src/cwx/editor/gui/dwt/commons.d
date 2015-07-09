@@ -1008,23 +1008,34 @@ class Commons {
 		}
 		return r;
 	}
-	EventView!(A, C, UseFire)[] eventViewsFrom(A, C, bool UseFire)(string cwxPath, bool shellActivate) { mixin(S_TRACE);
+	EventView[] eventViewsFrom(string cwxPath, bool shellActivate) { mixin(S_TRACE);
 		if (!mainWin.summary) return [];
 		auto a = mainWin.summary.findCWXPath(cwxPath);
 		if (!a) return [];
-		EventView!(A, C, UseFire)[] r;
+		EventView[] r;
 		foreach (w; _ws) { mixin(S_TRACE);
-			auto tlpData = (cast(TLPData) w.getData());
-			if (tlpData.main is cast(Object) a) { mixin(S_TRACE);
-				static if (is(A : Area) && is(C : MenuCard) && UseFire) {
-					auto aw = cast(AreaWindow) tlpData.tlp;
+			auto tlpData = (cast(TLPData)w.getData());
+			if (tlpData.main is cast(Object)a) { mixin(S_TRACE);
+				if (cast(Area)a) {
+					auto aw = cast(AreaWindow)tlpData.tlp;
 					if (aw) r ~= aw.eventView;
-				} else static if (is(A : Battle) && is(C : EnemyCard) && UseFire) {
-					auto bw = cast(BattleWindow) tlpData.tlp;
+				} else if (cast(Battle)a) {
+					auto bw = cast(BattleWindow)tlpData.tlp;
 					if (bw) r ~= bw.eventView;
 				}
-				auto ew = cast(EventWindow!A) tlpData.tlp;
-				if (ew) r ~= ew.eventView;
+				if (auto ew = cast(EventWindow!Area)tlpData.tlp) {
+					r ~= ew.eventView;
+				} else if (auto ew = cast(EventWindow!Battle)tlpData.tlp) {
+					r ~= ew.eventView;
+				} else if (auto ew = cast(EventWindow!Package)tlpData.tlp) {
+					r ~= ew.eventView;
+				} else if (auto ew = cast(EventWindow!SkillCard)tlpData.tlp) {
+					r ~= ew.eventView;
+				} else if (auto ew = cast(EventWindow!ItemCard)tlpData.tlp) {
+					r ~= ew.eventView;
+				} else if (auto ew = cast(EventWindow!BeastCard)tlpData.tlp) {
+					r ~= ew.eventView;
+				}
 			}
 		}
 		return r;

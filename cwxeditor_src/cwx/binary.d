@@ -33,9 +33,14 @@ struct ByteIO {
 	size_t pointer() {return _pointer;}
 	/// ditto
 	@property
-	void pointer(size_t pos) {
+	void pointer(size_t pos) { mixin(S_TRACE);
 		_pointer = 0;
 		seek(pos);
+	}
+	@property
+	const
+	size_t length() { mixin(S_TRACE);
+		return _bytes.length;
 	}
 	/// void[]をByte列としてByteIOを生成。
 	static ByteIO opCall(void[] _bytes) {

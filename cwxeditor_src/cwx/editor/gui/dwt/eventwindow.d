@@ -45,13 +45,7 @@ private:
 	Composite _win;
 	Shell _parent2 = null;
 
-	static if (is(A : Area)) {
-		EventView!(A, MenuCard, true) _eview;
-	} else static if (is(A : Battle)) {
-		EventView!(A, EnemyCard, true) _eview;
-	} else {
-		EventView!(A, void, false) _eview;
-	}
+	EventView _eview;
 
 	bool _refUndo = false;
 	void refUndoMax() { mixin(S_TRACE);

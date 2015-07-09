@@ -47,7 +47,7 @@ private:
 		CTabFolder _tabf;
 		CTabItem _tabA;
 		CTabItem _tabE;
-		EventView!(A, C, true) _eview;
+		EventView _eview;
 	}
 
 	void refresh() { mixin(S_TRACE);
@@ -230,7 +230,7 @@ public:
 			if (shell) _aview.setupMenu(shell.getMenuBar());
 		}
 		static if (WithEventView) {
-			_eview = new EventView!(A, C, true)(comm, prop, summ, area, _tabf, _undo, _readOnly != SWT.NONE);
+			_eview = new EventView(comm, prop, summ, area, _tabf, _undo, _readOnly != SWT.NONE);
 			_tabE.setControl(_eview);
 		}
 		refreshTitle();
@@ -444,7 +444,7 @@ public:
 
 	static if (WithEventView) {
 		@property
-		EventView!(A, C, true) eventView() { mixin(S_TRACE);
+		EventView eventView() { mixin(S_TRACE);
 			_eview.initial();
 			return _eview;
 		}

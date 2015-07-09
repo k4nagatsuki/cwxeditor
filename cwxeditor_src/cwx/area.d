@@ -765,6 +765,9 @@ public:
 		this.name = _name[0 .. $ - baseName.length] ~ name;
 	}
 
+	/// 並び順によってイベントビューを検索して返す。
+	abstract EventTree etFromPath(size_t[] path);
+
 	const
 	override int opCmp(Object o) { mixin(S_TRACE);
 		return cast(int) _id - cast(int) (cast(const(AbstractArea)) o)._id;
@@ -920,7 +923,7 @@ public:
 	@property
 	const
 	override bool canHasFireKeyCode() {return true;}
-	EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
+	override EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
 		if (path[0] == 0) { mixin(S_TRACE);
 			return trees[path[1]];
 		} else { mixin(S_TRACE);
@@ -1297,7 +1300,7 @@ public:
 	@property
 	const
 	override bool canHasFireKeyCode() {return false;}
-	EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
+	override EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
 		if (path[0] == 0) { mixin(S_TRACE);
 			return trees[path[1]];
 		}
@@ -1431,7 +1434,7 @@ public:
 	@property
 	const
 	override bool canHasFireKeyCode() {return true;}
-	EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
+	override EventTree etFromPath(size_t[] path) { mixin(S_TRACE);
 		if (path[0] == 0) { mixin(S_TRACE);
 			return trees[path[1]];
 		} else { mixin(S_TRACE);
