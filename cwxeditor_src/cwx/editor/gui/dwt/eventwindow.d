@@ -25,18 +25,11 @@ import std.conv;
 
 import org.eclipse.swt.all;
 
-interface IEventWindow {
-	void movingShell();
-	void moveShell();
-	@property
-	EventTreeView eventTreeView();
-}
-
-class EventWindow(A : EventTreeOwner) : TopLevelPanel, IEventWindow, SashPanel, TCPD {
+class EventWindow : TopLevelPanel, SashPanel, TCPD {
 private:
 	int _readOnly = 0;
 	Summary _summ;
-	A _eto;
+	EventTreeOwner _eto;
 	Commons _comm;
 	Props _prop;
 	UndoManager _undo;
@@ -53,7 +46,7 @@ private:
 		_undo.max = _prop.var.etc.undoMaxEvent;
 	}
 public:
-	this (Commons comm, Props prop, Summary summ, Composite parent, Shell parent2, A eto, UndoManager undo, bool readOnly) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Summary summ, Composite parent, Shell parent2, EventTreeOwner eto, UndoManager undo, bool readOnly) { mixin(S_TRACE);
 		Shell shell = null;
 		auto parShl = cast(Shell) parent;
 		Composite contPane;
@@ -80,26 +73,26 @@ public:
 		if (_readOnly) { mixin(S_TRACE);
 			_comm.closeAdds.add(&closeAdds);
 		} else { mixin(S_TRACE);
-			static if (is (A == Area)) {
-				_comm.delArea.add(&deleteOwner);
-				_comm.refArea.add(&refOwner);
-			} else static if (is (A == Battle)) {
-				_comm.delBattle.add(&deleteOwner);
-				_comm.refBattle.add(&refOwner);
-			} else static if (is (A == Package)) {
-				_comm.delPackage.add(&deleteOwner);
-				_comm.refPackage.add(&refOwner);
-			} else static if (is (A == SkillCard)) {
-				_comm.delSkill.add(&deleteOwner2);
-				_comm.refSkill.add(&refOwner);
-			} else static if (is (A == ItemCard)) {
-				_comm.delItem.add(&deleteOwner2);
-				_comm.refItem.add(&refOwner);
-			} else static if (is (A == BeastCard)) {
-				_comm.delBeast.add(&deleteOwner2);
-				_comm.refBeast.add(&refOwner);
+			if (cast(Area)_eto) {
+				_comm.delArea.add(&deleteOwnerArea);
+				_comm.refArea.add(&refOwnerArea);
+			} else if (cast(Battle)_eto) {
+				_comm.delBattle.add(&deleteOwnerBattle);
+				_comm.refBattle.add(&refOwnerBattle);
+			} else if (cast(Package)_eto) {
+				_comm.delPackage.add(&deleteOwnerPackage);
+				_comm.refPackage.add(&refOwnerPackage);
+			} else if (cast(SkillCard)_eto) {
+				_comm.delSkill.add(&deleteOwnerSkillCard);
+				_comm.refSkill.add(&refOwnerSkillCard);
+			} else if (cast(ItemCard)_eto) {
+				_comm.delItem.add(&deleteOwnerItemCard);
+				_comm.refItem.add(&refOwnerItemCard);
+			} else if (cast(BeastCard)_eto) {
+				_comm.delBeast.add(&deleteOwnerBeastCard);
+				_comm.refBeast.add(&refOwnerBeastCard);
 			} else { mixin(S_TRACE);
-				static assert (0);
+				assert (0);
 			}
 			_comm.replText.add(&refreshTitle);
 			_comm.refUndoMax.add(&refUndoMax);
@@ -110,26 +103,26 @@ public:
 				if (_readOnly) { mixin(S_TRACE);
 					_comm.closeAdds.add(&closeAdds);
 				} else { mixin(S_TRACE);
-					static if (is (A == Area)) {
-						_comm.delArea.remove(&deleteOwner);
-						_comm.refArea.remove(&refOwner);
-					} else static if (is (A == Battle)) {
-						_comm.delBattle.remove(&deleteOwner);
-						_comm.refBattle.remove(&refOwner);
-					} else static if (is (A == Package)) {
-						_comm.delPackage.remove(&deleteOwner);
-						_comm.refPackage.remove(&refOwner);
-					} else static if (is (A == SkillCard)) {
-						_comm.delSkill.remove(&deleteOwner2);
-						_comm.refSkill.remove(&refOwner);
-					} else static if (is (A == ItemCard)) {
-						_comm.delItem.remove(&deleteOwner2);
-						_comm.refItem.remove(&refOwner);
-					} else static if (is (A == BeastCard)) {
-						_comm.delBeast.remove(&deleteOwner2);
-						_comm.refBeast.remove(&refOwner);
+					if (cast(Area)_eto) {
+						_comm.delArea.remove(&deleteOwnerArea);
+						_comm.refArea.remove(&refOwnerArea);
+					} else if (cast(Battle)_eto) {
+						_comm.delBattle.remove(&deleteOwnerBattle);
+						_comm.refBattle.remove(&refOwnerBattle);
+					} else if (cast(Package)_eto) {
+						_comm.delPackage.remove(&deleteOwnerPackage);
+						_comm.refPackage.remove(&refOwnerPackage);
+					} else if (cast(SkillCard)_eto) {
+						_comm.delSkill.remove(&deleteOwnerSkillCard);
+						_comm.refSkill.remove(&refOwnerSkillCard);
+					} else if (cast(ItemCard)_eto) {
+						_comm.delItem.remove(&deleteOwnerItemCard);
+						_comm.refItem.remove(&refOwnerItemCard);
+					} else if (cast(BeastCard)_eto) {
+						_comm.delBeast.remove(&deleteOwnerBeastCard);
+						_comm.refBeast.remove(&refOwnerBeastCard);
 					} else { mixin(S_TRACE);
-						static assert (0);
+						assert (0);
 					}
 					_comm.replText.remove(&refreshTitle);
 					_comm.refUndoMax.remove(&refUndoMax);
@@ -144,10 +137,10 @@ public:
 			auto bar = new Menu(shell, SWT.BAR);
 
 			auto mf = createMenu(_comm, bar, MenuID.File);
-			static if (is(A : Area)) {
+			if (cast(Area)_eto) {
 				createMenuItem(_comm, mf, MenuID.EditScene, () => openScene(false), null);
 				new MenuItem(mf, SWT.SEPARATOR);
-			} else static if (is(A : Battle)) {
+			} else if (cast(Battle)_eto) {
 				createMenuItem(_comm, mf, MenuID.EditScene, () => openScene(false), null);
 				new MenuItem(mf, SWT.SEPARATOR);
 			}
@@ -175,7 +168,7 @@ public:
 			shell.setMenuBar(bar);
 		} else { mixin(S_TRACE);
 			appendMenuTCPD(_comm, this, this, true, true, true, true, true);
-			static if (is(A : Area) || is(A : Battle)) {
+			if (cast(Area)_eto || cast(Battle)_eto) {
 				putMenuAction(MenuID.EditScene, () => openScene(false), null);
 				putMenuAction(MenuID.EditSceneDup, () => openScene(true), null);
 			}
@@ -202,25 +195,31 @@ public:
 		}
 
 		if (shell) { mixin(S_TRACE);
-			static if (is(A == Area)) {
-				auto winProps = _prop.var.areaEventWin;
-			} else static if (is(A == Battle)) {
-				auto winProps = _prop.var.battleEventWin;
-			} else static if (is(A == Package)) {
-				auto winProps = _prop.var.packageWin;
-			} else static if (is(A : EffectCard)) {
-				auto winProps = _prop.var.cardEventWin;
-			} else { mixin(S_TRACE);
-				static assert (0);
+			void loadWin(A)(A a) { mixin(S_TRACE);
+				static if (is(Area:A)) {
+					auto winProps = _prop.var.areaEventWin;
+				} else static if (is(Battle:A)) {
+					auto winProps = _prop.var.battleEventWin;
+				} else static if (is(Package:A)) {
+					auto winProps = _prop.var.packageWin;
+				} else static if (is(EffectCard:A)) {
+					auto winProps = _prop.var.cardEventWin;
+				} else { mixin(S_TRACE);
+					static assert (0);
+				}
+				shell.setMaximized(winProps.maximized);
+				int width = winProps.width;
+				int height = winProps.height;
+				int x = winProps.x == SWT.DEFAULT ? shell.getBounds().x : winProps.x + parent2.getBounds().x;
+				int y = winProps.y == SWT.DEFAULT ? shell.getBounds().y : winProps.y + parent2.getBounds().y;
+				intoDisplay(x, y, width, height);
+				shell.setBounds(x, y, width, height);
+				_parent2 = parent2;
 			}
-			shell.setMaximized(winProps.maximized);
-			int width = winProps.width;
-			int height = winProps.height;
-			int x = winProps.x == SWT.DEFAULT ? shell.getBounds().x : winProps.x + parent2.getBounds().x;
-			int y = winProps.y == SWT.DEFAULT ? shell.getBounds().y : winProps.y + parent2.getBounds().y;
-			intoDisplay(x, y, width, height);
-			shell.setBounds(x, y, width, height);
-			_parent2 = parent2;
+			if (auto a = cast(Area)_eto) loadWin(a);
+			if (auto a = cast(Battle)_eto) loadWin(a);
+			if (auto a = cast(Package)_eto) loadWin(a);
+			if (auto a = cast(EffectCard)_eto) loadWin(a);
 		}
 
 		auto d = contPane.getDisplay();
@@ -243,36 +242,42 @@ public:
 		refreshTitle();
 	}
 	private void saveWin() { mixin(S_TRACE);
-		static if (is(A == Area)) {
-			auto winProps = _prop.var.areaEventWin;
-			auto parentProps = _prop.var.dataWin;
-		} else static if (is(A == Battle)) {
-			auto winProps = _prop.var.battleEventWin;
-			auto parentProps = _prop.var.dataWin;
-		} else static if (is(A == Package)) {
-			auto winProps = _prop.var.packageWin;
-			auto parentProps = _prop.var.dataWin;
-		} else static if (is(A : EffectCard)) {
-			auto winProps = _prop.var.cardEventWin;
-			auto parentProps = _prop.var.cardWin;
-		} else { mixin(S_TRACE);
-			static assert (0);
-		}
-		auto shell = cast(Shell) _win;
-		if (shell) { mixin(S_TRACE);
-			if (!shell.getMaximized()) { mixin(S_TRACE);
-				winProps.width = shell.getSize().x;
-				winProps.height = shell.getSize().y;
-				if (_parent2.isDisposed()) { mixin(S_TRACE);
-					winProps.x = shell.getBounds().x - parentProps.x;
-					winProps.y = shell.getBounds().y - parentProps.y;
-				} else { mixin(S_TRACE);
-					winProps.x = shell.getBounds().x - _parent2.getBounds().x;
-					winProps.y = shell.getBounds().y - _parent2.getBounds().y;
-				}
+		void saveWin(A)(A a) { mixin(S_TRACE);
+			static if (is(A:Area)) {
+				auto winProps = _prop.var.areaEventWin;
+				auto parentProps = _prop.var.dataWin;
+			} else static if (is(A:Battle)) {
+				auto winProps = _prop.var.battleEventWin;
+				auto parentProps = _prop.var.dataWin;
+			} else static if (is(A:Package)) {
+				auto winProps = _prop.var.packageWin;
+				auto parentProps = _prop.var.dataWin;
+			} else static if (is(A:EffectCard)) {
+				auto winProps = _prop.var.cardEventWin;
+				auto parentProps = _prop.var.cardWin;
+			} else { mixin(S_TRACE);
+				static assert (0);
 			}
-			winProps.maximized = shell.getMaximized();
+			auto shell = cast(Shell) _win;
+			if (shell) { mixin(S_TRACE);
+				if (!shell.getMaximized()) { mixin(S_TRACE);
+					winProps.width = shell.getSize().x;
+					winProps.height = shell.getSize().y;
+					if (_parent2.isDisposed()) { mixin(S_TRACE);
+						winProps.x = shell.getBounds().x - parentProps.x;
+						winProps.y = shell.getBounds().y - parentProps.y;
+					} else { mixin(S_TRACE);
+						winProps.x = shell.getBounds().x - _parent2.getBounds().x;
+						winProps.y = shell.getBounds().y - _parent2.getBounds().y;
+					}
+				}
+				winProps.maximized = shell.getMaximized();
+			}
 		}
+		if (auto a = cast(Area)_eto) saveWin(a);
+		if (auto a = cast(Battle)_eto) saveWin(a);
+		if (auto a = cast(Package)_eto) saveWin(a);
+		if (auto a = cast(EffectCard)_eto) saveWin(a);
 	}
 	@property
 	override
@@ -283,29 +288,40 @@ public:
 	UndoManager undoManager() { mixin(S_TRACE);
 		return _undo;
 	}
-	static if (is(A : Area) || is(A : Battle)) {
-		private void openScene(bool canDuplicate = false) { mixin(S_TRACE);
-			_comm.openAreaScene(_prop, _summ, _eto, true, canDuplicate);
-		}
+	private void openScene(bool canDuplicate = false) { mixin(S_TRACE);
+		if (auto area = cast(Area)_eto) {
+			_comm.openAreaScene(_prop, _summ, area, true, canDuplicate);
+		} else if (auto area = cast(Battle)_eto) {
+			_comm.openAreaScene(_prop, _summ, area, true, canDuplicate);
+		} else assert (0);
 	}
 	private void openDup() { mixin(S_TRACE);
 		_eview.openDup();
 	}
-	private void deleteOwner(A a) { mixin(S_TRACE);
+	private void deleteOwner(EventTreeOwner a) { mixin(S_TRACE);
 		if (_eto is a) { mixin(S_TRACE);
 			_comm.close(_win);
 		}
 	}
-	private void deleteOwner2(CWXPath owner, A a) { mixin(S_TRACE);
-		if (_eto is a) { mixin(S_TRACE);
-			_comm.close(_win);
-		}
-	}
-	private void refOwner(A a) { mixin(S_TRACE);
+	private void deleteOwnerArea(Area a) { deleteOwner(a); }
+	private void deleteOwnerBattle(Battle a) { deleteOwner(a); }
+	private void deleteOwnerPackage(Package a) { deleteOwner(a); }
+	private void deleteOwnerSkillCard(CWXPath owner, SkillCard a) { deleteOwner(a); }
+	private void deleteOwnerItemCard(CWXPath owner, ItemCard a) { deleteOwner(a); }
+	private void deleteOwnerBeastCard(CWXPath owner, BeastCard a) { deleteOwner(a); }
+
+	private void refOwner(EventTreeOwner a) { mixin(S_TRACE);
 		if (_eto is a) { mixin(S_TRACE);
 			refreshTitle();
 		}
 	}
+	private void refOwnerArea(Area a) { refOwner(a); }
+	private void refOwnerBattle(Battle a) { refOwner(a); }
+	private void refOwnerPackage(Package a) { refOwner(a); }
+	private void refOwnerSkillCard(SkillCard a) { refOwner(a); }
+	private void refOwnerItemCard(ItemCard a) { refOwner(a); }
+	private void refOwnerBeastCard(BeastCard a) { refOwner(a); }
+
 	private void closeAdds(Summary summ) { mixin(S_TRACE);
 		if (_summ is summ) { mixin(S_TRACE);
 			_comm.close(_win);
@@ -314,37 +330,57 @@ public:
 	@property
 	override
 	Image image() { mixin(S_TRACE);
-		static if (is (A == Area)) {
+		if (cast(Area)_eto) {
 			return _prop.images.areaEventTreeView;
-		} else static if (is (A == Battle)) {
+		} else if (cast(Battle)_eto) {
 			return _prop.images.battleEventTreeView;
-		} else static if (is (A == Package)) {
+		} else if (cast(Package)_eto) {
 			return _prop.images.packages;
-		} else static if (is (A == SkillCard)) {
+		} else if (cast(SkillCard)_eto) {
 			return _prop.images.skill;
-		} else static if (is (A == ItemCard)) {
+		} else if (cast(ItemCard)_eto) {
 			return _prop.images.item;
-		} else static if (is (A == BeastCard)) {
+		} else if (cast(BeastCard)_eto) {
 			return _prop.images.beast;
 		} else { mixin(S_TRACE);
-			static assert (0);
+			assert (0);
 		}
 	}
 	@property
 	override
 	string title() { mixin(S_TRACE);
 		auto shl = cast(Shell) _win;
-		static if (is (A == Area) || is (A == Battle)) {
+		if (auto a = cast(Area)_eto) {
 			if (shl) { mixin(S_TRACE);
-				return .tryFormat(_prop.msgs.viewNameEvent, .objName!A(_prop), _eto.id, _eto.name);
+				return .tryFormat(_prop.msgs.viewNameEvent, .objName!Area(_prop), a.id, a.name);
 			}
-			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!A(_prop), _eto.id, _eto.name);
-		} else { mixin(S_TRACE);
+			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!Area(_prop), a.id, a.name);
+		} else if (auto a = cast(Battle)_eto) {
 			if (shl) { mixin(S_TRACE);
-				return .tryFormat(_prop.msgs.viewName, .objName!A(_prop), _eto.id, _eto.name);
+				return .tryFormat(_prop.msgs.viewNameEvent, .objName!Battle(_prop), a.id, a.name);
 			}
-			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!A(_prop), _eto.id, _eto.name);
-		}
+			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!Battle(_prop), a.id, a.name);
+		} else if (auto a = cast(Package)_eto) { mixin(S_TRACE);
+			if (shl) { mixin(S_TRACE);
+				return .tryFormat(_prop.msgs.viewName, .objName!Package(_prop), a.id, a.name);
+			}
+			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!Package(_prop), a.id, a.name);
+		} else if (auto a = cast(SkillCard)_eto) { mixin(S_TRACE);
+			if (shl) { mixin(S_TRACE);
+				return .tryFormat(_prop.msgs.viewName, .objName!SkillCard(_prop), a.id, a.name);
+			}
+			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!SkillCard(_prop), a.id, a.name);
+		} else if (auto a = cast(ItemCard)_eto) { mixin(S_TRACE);
+			if (shl) { mixin(S_TRACE);
+				return .tryFormat(_prop.msgs.viewName, .objName!ItemCard(_prop), a.id, a.name);
+			}
+			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!ItemCard(_prop), a.id, a.name);
+		} else if (auto a = cast(BeastCard)_eto) { mixin(S_TRACE);
+			if (shl) { mixin(S_TRACE);
+				return .tryFormat(_prop.msgs.viewName, .objName!BeastCard(_prop), a.id, a.name);
+			}
+			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!BeastCard(_prop), a.id, a.name);
+		} else assert (0);
 	}
 	@property
 	override
@@ -355,7 +391,7 @@ public:
 	}
 	/// Returns: 編集中のイベントツリー所持者。
 	@property
-	A eventTreeOwner() { mixin(S_TRACE);
+	EventTreeOwner eventTreeOwner() { mixin(S_TRACE);
 		return _eto;
 	}
 	@property
@@ -363,14 +399,14 @@ public:
 		return _eview;
 	}
 	@property
-	override EventTreeView eventTreeView() { mixin(S_TRACE);
+	EventTreeView eventTreeView() { mixin(S_TRACE);
 		return _eview.eventTreeView;
 	}
 
-	override void movingShell() { mixin(S_TRACE);
+	void movingShell() { mixin(S_TRACE);
 		_eview.movingShell();
 	}
-	override void moveShell() { mixin(S_TRACE);
+	void moveShell() { mixin(S_TRACE);
 		_eview.moveShell();
 	}
 
@@ -425,10 +461,3 @@ public:
 		return _eview.openedCWXPath;
 	}
 }
-
-alias EventWindow!(Area) AreaEventWindow;
-alias EventWindow!(Battle) BattleEventWindow;
-alias EventWindow!(Package) PackageWindow;
-alias EventWindow!(SkillCard) SkillEventWindow;
-alias EventWindow!(ItemCard) ItemEventWindow;
-alias EventWindow!(BeastCard) BeastEventWindow;

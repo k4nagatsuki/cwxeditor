@@ -1795,46 +1795,31 @@ public:
 		if (_setupToolBar) return false;
 		_setupToolBar = true;
 		auto bar = _toolbar;
-		if (cast(Area)_area) {
-			if (cast(AreaEventWindow)tlpData(this).tlp) { mixin(S_TRACE);
+		if (cast(EventWindow)tlpData(this).tlp) { mixin(S_TRACE);
+			if (cast(Area)_area) {
 				createToolItem(_comm, bar, MenuID.EditScene, () => openScene(false), null);
 				new ToolItem(bar, SWT.SEPARATOR);
 				createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
-				new ToolItem(bar, SWT.SEPARATOR);
-			}
-		} else if (cast(Battle)_area) {
-			if (cast(BattleEventWindow)tlpData(this).tlp) { mixin(S_TRACE);
+			} else if (cast(Battle)_area) {
 				auto itm = createToolItem(_comm, bar, MenuID.EditScene, () => openScene(false), null);
 				itm.setImage(_prop.images.editSceneBattle);
 				new ToolItem(bar, SWT.SEPARATOR);
 				itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
 				itm.setImage(_prop.images.battleEventTreeViewDup);
-				new ToolItem(bar, SWT.SEPARATOR);
-			}
-		} else if (cast(Package)_area) {
-			if (cast(PackageWindow)tlpData(this).tlp) { mixin(S_TRACE);
+			} else if (cast(Package)_area) {
 				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
 				itm.setImage(_prop.images.packageDup);
-				new ToolItem(bar, SWT.SEPARATOR);
-			}
-		} else if (cast(SkillCard)_area) {
-			if (cast(SkillEventWindow)tlpData(this).tlp) { mixin(S_TRACE);
+			} else if (cast(SkillCard)_area) {
 				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
 				itm.setImage(_prop.images.skillDup);
-				new ToolItem(bar, SWT.SEPARATOR);
-			}
-		} else if (cast(ItemCard)_area) {
-			if (cast(ItemEventWindow)tlpData(this).tlp) { mixin(S_TRACE);
+			} else if (cast(ItemCard)_area) {
 				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
 				itm.setImage(_prop.images.itemDup);
-				new ToolItem(bar, SWT.SEPARATOR);
-			}
-		} else if (cast(BeastCard)_area) {
-			if (cast(BeastEventWindow)tlpData(this).tlp) { mixin(S_TRACE);
+			} else if (cast(BeastCard)_area) {
 				auto itm = createToolItem(_comm, bar, MenuID.EditEventDup, &openDup, null);
 				itm.setImage(_prop.images.beastDup);
-				new ToolItem(bar, SWT.SEPARATOR);
 			}
+			new ToolItem(bar, SWT.SEPARATOR);
 		}
 		if (!_readOnly) { mixin(S_TRACE);
 			if (!_comm.singleWindowMode(_prop)) { mixin(S_TRACE);

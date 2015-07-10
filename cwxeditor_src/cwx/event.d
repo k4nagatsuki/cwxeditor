@@ -188,8 +188,8 @@ private void static_this () { mixin(S_TRACE);
 		CType.SHOW_PARTY:CDetail("Show", "Party", CNextType.NONE, true),
 		CType.HIDE_PARTY:CDetail("Hide", "Party", CNextType.NONE, true),
 		CType.REDISPLAY:CDetail("Redisplay", "", CNextType.NONE, true, [CArg.TRANSITION:_("transition"), CArg.TRANSITION_SPEED:"transitionspeed"]),
-		CType.SUBSTITUTE_STEP:CDetail("Sbustitute", "Step", CNextType.NONE, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
-		CType.SUBSTITUTE_FLAG:CDetail("Sbustitute", "Flag", CNextType.NONE, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
+		CType.SUBSTITUTE_STEP:CDetail(["Substitute", "Sbustitute"], "Step", CNextType.NONE, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
+		CType.SUBSTITUTE_FLAG:CDetail(["Substitute", "Sbustitute"], "Flag", CNextType.NONE, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
 		CType.BRANCH_STEP_CMP:CDetail("Branch", "StepValue", CNextType.TRIO, true, [CArg.STEP:"from", CArg.STEP_2:"to"]),
 		CType.BRANCH_FLAG_CMP:CDetail("Branch", "FlagValue", CNextType.BOOL, true, [CArg.FLAG:"from", CArg.FLAG_2:"to"]),
 		CType.BRANCH_RANDOM_SELECT:CDetail("Branch", "RandomSelect", CNextType.BOOL, true, [CArg.CAST_RANGE:null, CArg.LEVEL_MIN:"minLevel", CArg.LEVEL_MAX:"maxLevel", CArg.STATUS:"status"]),
@@ -201,7 +201,9 @@ private void static_this () { mixin(S_TRACE);
 		CType.LOSE_BG_IMAGE:CDetail("Lose", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname"]),
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) { mixin(S_TRACE);
-		_CTYPE_MAP[detail.name][detail.type] = cType;
+		foreach (name; detail.names) { mixin(S_TRACE);
+			_CTYPE_MAP[name][detail.type] = cType; mixin(S_TRACE);
+		}
 	}
 }
 
@@ -229,7 +231,9 @@ private CType[string][string] CTYPE_MAP() { mixin(S_TRACE);
 }
 
 struct CDetail {
-	string name; /// 要素名。
+	/// 要素名。要素名が後から変更された時のために複数持つ。
+	/// 保存時は先頭の名前を使う。
+	string[] names;
 	string type; /// 属性名。
 	CNextType nextType; /// 後続パラメータのタイプ。
 	bool owner; /// 後続コンテントを持てるか。
@@ -245,11 +249,14 @@ struct CDetail {
 
 	static CDetail opCall(string name, string type, CNextType nextType, bool owner) {
 		string[CArg] args;
-		return CDetail(name, type, nextType, owner, args);
+		return CDetail([name], type, nextType, owner, args);
 	}
 	static CDetail opCall(string name, string type, CNextType nextType, bool owner, string[CArg] args) {
+		return CDetail([name], type, nextType, owner, args);
+	}
+	static CDetail opCall(string[] names, string type, CNextType nextType, bool owner, string[CArg] args) {
 		CDetail r;
-		r.name = name;
+		r.names = names;
 		r.type = type;
 		r.nextType = nextType;
 		r.owner = owner;
@@ -1745,7 +1752,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const
 	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto d = this.detail;
-		auto doc = XNode.create(d.name);
+		auto doc = XNode.create(d.names[0]);
 		toNodeImpl(doc, d, opt);
 		doc.newAttr("contentId", _id);
 		return doc;
@@ -1760,7 +1767,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const
 	XNode toNode(ref XNode parent, XMLOption opt) { mixin(S_TRACE);
 		auto d = this.detail;
-		auto e = parent.newElement(d.name);
+		auto e = parent.newElement(d.names[0]);
 		toNodeImpl(e, d, opt);
 		return e;
 	}

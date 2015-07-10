@@ -710,16 +710,16 @@ class Commons {
 			(area, shellActivate, canDuplicate, this, prop, summ, workPane,
 			cast(Shell) (_dataWin ? _dataWin.shell : _tableWin.shell), area, undo, readOnly);
 	}
-	private BindWindow openAreaB(A, BindWindow, SceneWindow, EventWindow)(Props prop, Summary summ, A area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
+	private BindWindow openAreaB(A, BindWindow, SceneWindow)(Props prop, Summary summ, A area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
 		auto ws = opened(area);
 		UndoManager undo = null;
 		foreach (w; ws) { mixin(S_TRACE);
 			auto tlpData = (cast(TLPData) w.getData());
-			auto sw = cast(SceneWindow) tlpData.tlp;
+			auto sw = cast(SceneWindow)tlpData.tlp;
 			if (sw) { mixin(S_TRACE);
 				undo = sw.undoManager;
 			}
-			auto ew = cast(EventWindow) tlpData.tlp;
+			auto ew = cast(EventWindow)tlpData.tlp;
 			if (ew) { mixin(S_TRACE);
 				undo = ew.undoManager;
 			}
@@ -756,25 +756,25 @@ class Commons {
 		return openAreaImpl!(A, Window1)(prop, summ, area, undo, shellActivate, canDuplicate);
 	}
 	AreaWindow openArea(Props prop, Summary summ, Area area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openAreaB!(Area, AreaWindow, AreaSceneWindow, AreaEventWindow)(prop, summ, area, shellActivate, canDuplicate);
+		return openAreaB!(Area, AreaWindow, AreaSceneWindow)(prop, summ, area, shellActivate, canDuplicate);
 	}
 	TopLevelPanel openAreaScene(Props prop, Summary summ, Area area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openAreaSE!(Area, AreaWindow, AreaSceneWindow, AreaEventWindow)(prop, summ, area, shellActivate, canDuplicate);
+		return openAreaSE!(Area, AreaWindow, AreaSceneWindow, EventWindow)(prop, summ, area, shellActivate, canDuplicate);
 	}
 	TopLevelPanel openAreaEvent(Props prop, Summary summ, Area area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openAreaSE!(Area, AreaWindow, AreaEventWindow, AreaSceneWindow)(prop, summ, area, shellActivate, canDuplicate);
+		return openAreaSE!(Area, AreaWindow, EventWindow, AreaSceneWindow)(prop, summ, area, shellActivate, canDuplicate);
 	}
 	BattleWindow openArea(Props prop, Summary summ, Battle area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openAreaB!(Battle, BattleWindow, BattleSceneWindow, BattleEventWindow)(prop, summ, area, shellActivate, canDuplicate);
+		return openAreaB!(Battle, BattleWindow, BattleSceneWindow)(prop, summ, area, shellActivate, canDuplicate);
 	}
 	TopLevelPanel openAreaScene(Props prop, Summary summ, Battle area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openAreaSE!(Battle, BattleWindow, BattleSceneWindow, BattleEventWindow)(prop, summ, area, shellActivate, canDuplicate);
+		return openAreaSE!(Battle, BattleWindow, BattleSceneWindow, EventWindow)(prop, summ, area, shellActivate, canDuplicate);
 	}
 	TopLevelPanel openAreaEvent(Props prop, Summary summ, Battle area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openAreaSE!(Battle, BattleWindow, BattleEventWindow, BattleSceneWindow)(prop, summ, area, shellActivate, canDuplicate);
+		return openAreaSE!(Battle, BattleWindow, EventWindow, BattleSceneWindow)(prop, summ, area, shellActivate, canDuplicate);
 	}
-	PackageWindow openArea(Props prop, Summary summ, Package area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openAreaImpl!(Package, PackageWindow)(prop, summ, area, null, shellActivate, canDuplicate);
+	EventWindow openArea(Props prop, Summary summ, Package area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
+		return openAreaImpl!(Package, EventWindow)(prop, summ, area, null, shellActivate, canDuplicate);
 	}
 
 	HandCardWindow openHands(Props prop, Summary summ, CastCard c, bool shellActivate) { mixin(S_TRACE);
@@ -790,12 +790,12 @@ class Commons {
 			(c, shellActivate, this, prop, sidePane, summ, c, toc);
 	}
 
-	private Window openUseEventImpl(C, Window)(Props prop, Summary summ, C c, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
+	private EventWindow openUseEventImpl(C)(Props prop, Summary summ, C c, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
 		Shell parent;
 		UndoManager undo = null;
 		foreach (w; opened(c)) { mixin(S_TRACE);
 			auto tlpData = cast(TLPData)w.getData();
-			auto ew = cast(Window)tlpData.tlp;
+			auto ew = cast(EventWindow)tlpData.tlp;
 			if (ew) { mixin(S_TRACE);
 				undo = ew.undoManager;
 				break;
@@ -817,17 +817,17 @@ class Commons {
 			} else static assert (0);
 		}
 		bool readOnly = this.summary !is summ;
-		return openImpl!("work", Window, C, "", Commons, Props, Summary, Composite, Shell, C, UndoManager, bool)
+		return openImpl!("work", EventWindow, C, "", Commons, Props, Summary, Composite, Shell, C, UndoManager, bool)
 			(c, shellActivate, canDuplicate, this, prop, summ, workPane, parent, c, undo, readOnly);
 	}
-	SkillEventWindow openUseEvents(Props prop, Summary summ, SkillCard c, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openUseEventImpl!(SkillCard, SkillEventWindow)(prop, summ, c, shellActivate, canDuplicate);
+	EventWindow openUseEvents(Props prop, Summary summ, SkillCard c, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
+		return openUseEventImpl!(SkillCard)(prop, summ, c, shellActivate, canDuplicate);
 	}
-	ItemEventWindow openUseEvents(Props prop, Summary summ, ItemCard c, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openUseEventImpl!(ItemCard, ItemEventWindow)(prop, summ, c, shellActivate, canDuplicate);
+	EventWindow openUseEvents(Props prop, Summary summ, ItemCard c, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
+		return openUseEventImpl!(ItemCard)(prop, summ, c, shellActivate, canDuplicate);
 	}
-	BeastEventWindow openUseEvents(Props prop, Summary summ, BeastCard c, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openUseEventImpl!(BeastCard, BeastEventWindow)(prop, summ, c, shellActivate, canDuplicate);
+	EventWindow openUseEvents(Props prop, Summary summ, BeastCard c, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
+		return openUseEventImpl!(BeastCard)(prop, summ, c, shellActivate, canDuplicate);
 	}
 	private void show(Composite c, string pane, Dir dir, string key,
 			TopLevelPanel delegate(Composite) create, string text, bool shellActivate) { mixin(S_TRACE);
@@ -975,11 +975,11 @@ class Commons {
 		foreach (w; _ws) { mixin(S_TRACE);
 			auto tlpData = (cast(TLPData) w.getData());
 			if (tlpData.main is cast(Object) a) { mixin(S_TRACE);
-				auto aw = cast(AreaWindow) tlpData.tlp;
+				auto aw = cast(AreaWindow)tlpData.tlp;
 				if (aw) return tlpData.tlp;
-				auto bw = cast(BattleWindow) tlpData.tlp;
+				auto bw = cast(BattleWindow)tlpData.tlp;
 				if (bw) return tlpData.tlp;
-				auto ew = cast(IEventWindow) tlpData.tlp;
+				auto ew = cast(EventWindow)tlpData.tlp;
 				if (ew) return tlpData.tlp;
 			}
 		}
@@ -1023,17 +1023,7 @@ class Commons {
 					auto bw = cast(BattleWindow)tlpData.tlp;
 					if (bw) r ~= bw.eventView;
 				}
-				if (auto ew = cast(EventWindow!Area)tlpData.tlp) {
-					r ~= ew.eventView;
-				} else if (auto ew = cast(EventWindow!Battle)tlpData.tlp) {
-					r ~= ew.eventView;
-				} else if (auto ew = cast(EventWindow!Package)tlpData.tlp) {
-					r ~= ew.eventView;
-				} else if (auto ew = cast(EventWindow!SkillCard)tlpData.tlp) {
-					r ~= ew.eventView;
-				} else if (auto ew = cast(EventWindow!ItemCard)tlpData.tlp) {
-					r ~= ew.eventView;
-				} else if (auto ew = cast(EventWindow!BeastCard)tlpData.tlp) {
+				if (auto ew = cast(EventWindow)tlpData.tlp) {
 					r ~= ew.eventView;
 				}
 			}
@@ -1053,11 +1043,11 @@ class Commons {
 		foreach (w; _ws) { mixin(S_TRACE);
 			auto tlpData = (cast(TLPData) w.getData());
 			if (tlpData.main is cast(Object) eto) { mixin(S_TRACE);
-				auto aw = cast(AreaWindow) tlpData.tlp;
+				auto aw = cast(AreaWindow)tlpData.tlp;
 				if (aw) r ~= aw.eventView.eventTreeView;
-				auto bw = cast(BattleWindow) tlpData.tlp;
+				auto bw = cast(BattleWindow)tlpData.tlp;
 				if (bw) r ~= aw.eventView.eventTreeView;
-				auto ew = cast(IEventWindow) tlpData.tlp;
+				auto ew = cast(EventWindow)tlpData.tlp;
 				if (ew) r ~= ew.eventTreeView;
 			}
 		}
@@ -1084,7 +1074,7 @@ class Commons {
 				if (aw) view = aw.eventView.eventTreeView;
 				auto bw = cast(BattleWindow)tlpData.tlp;
 				if (bw) view = aw.eventView.eventTreeView;
-				auto ew = cast(IEventWindow)tlpData.tlp;
+				auto ew = cast(EventWindow)tlpData.tlp;
 				if (ew) view = ew.eventTreeView;
 				if (view) { mixin(S_TRACE);
 					if (!dlg(view)) continue;

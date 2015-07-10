@@ -257,8 +257,8 @@ private:
 		return _summSkin ? _summSkin : _comm.skin;
 	}
 
-	HashSet!BeastEventWindow _beWin;
-	BeastEventWindow openBeastEventWin(BeastCard beast) { mixin(S_TRACE);
+	HashSet!EventWindow _beWin;
+	EventWindow openBeastEventWin(BeastCard beast) { mixin(S_TRACE);
 		if (0 != beast.linkId) { mixin(S_TRACE);
 			auto b = _summ.beast(beast.linkId);
 			if (!b) return null;
@@ -266,7 +266,7 @@ private:
 		}
 		auto w = _comm.openUseEvents(_prop, _summ, beast, true, false);
 		if (_beWin.contains(w)) return w;
-		w.shell.addDisposeListener(new CloseRemover!(BeastEventWindow)(_beWin, w));
+		w.shell.addDisposeListener(new CloseRemover!EventWindow(_beWin, w));
 		_beWin.add(w);
 		return w;
 	}

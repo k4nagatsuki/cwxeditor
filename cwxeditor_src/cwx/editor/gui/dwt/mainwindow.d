@@ -4066,14 +4066,14 @@ public:
 	private void dockMovingShellEvent(string key) { mixin(S_TRACE);
 		auto tlpData = cast(TLPData)dock.control(key).getData();
 		if (!tlpData) return;
-		if (auto ew = cast(IEventWindow)tlpData.tlp) { mixin(S_TRACE);
+		if (auto ew = cast(EventWindow)tlpData.tlp) { mixin(S_TRACE);
 			ew.movingShell();
 		}
 	}
 	private void dockMoveShellEvent(Shell before, string key) { mixin(S_TRACE);
 		auto tlpData = cast(TLPData)dock.control(key).getData();
 		if (!tlpData) return;
-		if (auto ew = cast(IEventWindow)tlpData.tlp) { mixin(S_TRACE);
+		if (auto ew = cast(EventWindow)tlpData.tlp) { mixin(S_TRACE);
 			ew.moveShell();
 		}
 	}
