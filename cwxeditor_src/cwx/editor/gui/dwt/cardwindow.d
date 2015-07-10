@@ -90,7 +90,7 @@ private:
 	static const bool UseInfo = IndexOf!(InfoCard, Cards) >= 0;
 
 	template Pane(Card) {
-		mixin ("alias " ~ Card.stringof ~ "Pane!(PCardOwner, CardOwner, ToCardOwner) Pane;");
+		mixin ("alias " ~ Card.stringof ~ "Pane!(PCardOwner, CardOwner) Pane;");
 	}
 
 	template CTypes(int Index, Cards ...) {
@@ -592,7 +592,7 @@ public:
 	}
 
 	static if (EditMode && is(CardOwner : Summary)) {
-		CastCardPane!(PCardOwner, CardOwner, ToCardOwner) openCast(bool shellActivate) { mixin(S_TRACE);
+		CastCardPane!(PCardOwner, CardOwner) openCast(bool shellActivate) { mixin(S_TRACE);
 			static if (UseCast) {
 				open!(CAST)(shellActivate);
 				return _pane[CAST];
@@ -600,7 +600,7 @@ public:
 				throw new Exception("can not open cast");
 			}
 		}
-		SkillCardPane!(PCardOwner, CardOwner, ToCardOwner) openSkill(bool shellActivate) { mixin(S_TRACE);
+		SkillCardPane!(PCardOwner, CardOwner) openSkill(bool shellActivate) { mixin(S_TRACE);
 			static if (UseSkill) {
 				open!(SKILL)(shellActivate);
 				return _pane[SKILL];
@@ -608,7 +608,7 @@ public:
 				throw new Exception("can not open skill");
 			}
 		}
-		ItemCardPane!(PCardOwner, CardOwner, ToCardOwner) openItem(bool shellActivate) { mixin(S_TRACE);
+		ItemCardPane!(PCardOwner, CardOwner) openItem(bool shellActivate) { mixin(S_TRACE);
 			static if (UseItem) {
 				open!(ITEM)(shellActivate);
 				return _pane[ITEM];
@@ -616,7 +616,7 @@ public:
 				throw new Exception("can not open item");
 			}
 		}
-		BeastCardPane!(PCardOwner, CardOwner, ToCardOwner) openBeast(bool shellActivate) { mixin(S_TRACE);
+		BeastCardPane!(PCardOwner, CardOwner) openBeast(bool shellActivate) { mixin(S_TRACE);
 			static if (UseBeast) {
 				open!(BEAST)(shellActivate);
 				return _pane[BEAST];
@@ -624,7 +624,7 @@ public:
 				throw new Exception("can not open beast");
 			}
 		}
-		InfoCardPane!(PCardOwner, CardOwner, ToCardOwner) openInfo(bool shellActivate) { mixin(S_TRACE);
+		InfoCardPane!(PCardOwner, CardOwner) openInfo(bool shellActivate) { mixin(S_TRACE);
 			static if (UseInfo) {
 				open!(INFO)(shellActivate);
 				return _pane[INFO];
@@ -634,31 +634,31 @@ public:
 		}
 		static if (UseCast) {
 			@property
-			CastCardPane!(PCardOwner, CardOwner, ToCardOwner) paneCast() { mixin(S_TRACE);
+			CastCardPane!(PCardOwner, CardOwner) paneCast() { mixin(S_TRACE);
 				return _pane[CAST];
 			}
 		}
 		static if (UseSkill) {
 			@property
-			SkillCardPane!(PCardOwner, CardOwner, ToCardOwner) paneSkill() { mixin(S_TRACE);
+			SkillCardPane!(PCardOwner, CardOwner) paneSkill() { mixin(S_TRACE);
 				return _pane[SKILL];
 			}
 		}
 		static if (UseItem) {
 			@property
-			ItemCardPane!(PCardOwner, CardOwner, ToCardOwner) paneItem() { mixin(S_TRACE);
+			ItemCardPane!(PCardOwner, CardOwner) paneItem() { mixin(S_TRACE);
 				return _pane[ITEM];
 			}
 		}
 		static if (UseBeast) {
 			@property
-			BeastCardPane!(PCardOwner, CardOwner, ToCardOwner) paneBeast() { mixin(S_TRACE);
+			BeastCardPane!(PCardOwner, CardOwner) paneBeast() { mixin(S_TRACE);
 				return _pane[BEAST];
 			}
 		}
 		static if (UseInfo) {
 			@property
-			InfoCardPane!(PCardOwner, CardOwner, ToCardOwner) paneInfo() { mixin(S_TRACE);
+			InfoCardPane!(PCardOwner, CardOwner) paneInfo() { mixin(S_TRACE);
 				return _pane[INFO];
 			}
 		}

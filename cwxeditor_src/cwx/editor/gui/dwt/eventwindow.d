@@ -101,7 +101,7 @@ public:
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				saveWin();
 				if (_readOnly) { mixin(S_TRACE);
-					_comm.closeAdds.add(&closeAdds);
+					_comm.closeAdds.remove(&closeAdds);
 				} else { mixin(S_TRACE);
 					if (cast(Area)_eto) {
 						_comm.delArea.remove(&deleteOwnerArea);

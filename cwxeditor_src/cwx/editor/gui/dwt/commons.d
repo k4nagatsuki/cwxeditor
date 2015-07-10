@@ -108,7 +108,7 @@ class Dlg(Arg ...) {
 	debug {
 		private string[] _fileDlg;
 		private size_t[] _lineDlg;
-		~this () { mixin(S_TRACE);
+		void dispose() { mixin(S_TRACE);
 			foreach (i, f; _fileDlg) { mixin(S_TRACE);
 				debugln("Common event sender remained: ", f, ", ", _lineDlg[i]);
 			}
@@ -443,6 +443,11 @@ class Commons {
 		refVarSelectStyle.remove(&clearBattleDirExpanded);
 		refVarSelectStyle.remove(&clearPackageDirExpanded);
 		refContentsToolBoxStyle.remove(&reconstructContentsToolBox);
+		foreach (i, fld; this.tupleof) { mixin(S_TRACE);
+			static if (is(typeof(typeof(fld).ID)) && typeof(fld).ID == "cwx.editor.gui.dwt.commons.Dlg") {
+				this.tupleof[i].dispose();
+			}
+		}
 	}
 
 	private MainWindow _main = null;

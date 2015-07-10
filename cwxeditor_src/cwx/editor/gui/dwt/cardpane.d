@@ -54,9 +54,11 @@ import java.lang.all;
 enum CViewMode { INIT, LIFE, CARD, TABLE }
 enum CardTableColumn { ID, Name, Desc, UC, Num }
 
-private class CardPane(PCardOwner, CardOwner, C : Card, ToCardOwner) : TCPD {
+private class CardPane(PCardOwner, CardOwner, C : Card) : TCPD {
 private:
-	static immutable EditMode = is (ToCardOwner == void);
+	@property
+	const
+	bool editMode() { return _toc is null; }
 	static immutable CanHold = is(CardOwner:CastCard) && (is(C:SkillCard) || is(C:ItemCard));
 	static immutable UseNum = !is(C:InfoCard);
 
@@ -168,277 +170,280 @@ private:
 	private C[] pOwnerCards() {return cardsFrom(_summ);}
 	private C pOwnerCard(ulong id) {return cardFrom(_summ, id);}
 private:
-	static if (EditMode) {
-		static class CPUndo : Undo {
-			protected CardPane _v = null;
-			protected Commons comm;
-			protected CardOwner owner;
+	static class CPUndo : Undo {
+		protected CardPane _v = null;
+		protected Commons comm;
+		protected CardOwner owner;
 
-			private ulong[] _ids;
-			private ulong[] _idsB;
-			private ulong _sel;
-			private ulong _selB;
+		private ulong[] _ids;
+		private ulong[] _idsB;
+		private ulong _sel;
+		private ulong _selB;
 
-			this (CardPane v, Commons comm, CardOwner owner) { mixin(S_TRACE);
-				_v = v;
-				this.comm = comm;
-				this.owner = owner;
+		this (CardPane v, Commons comm, CardOwner owner) { mixin(S_TRACE);
+			_v = v;
+			this.comm = comm;
+			this.owner = owner;
 
-				saveIDs(v);
-			}
-			private void saveIDs(CardPane v) { mixin(S_TRACE);
-				_ids.length = 0;
-				foreach (c; cardsFrom(owner)) _ids ~= c.id;
-				if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
-					_sel = v.selectionID;
-				}
-			}
-			abstract override void undo();
-			abstract override void redo();
-			abstract override void dispose();
-			protected void udb(CardPane v) { mixin(S_TRACE);
-				_idsB = _ids.dup;
-				_selB = _sel;
-				saveIDs(v);
-				if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
-					.forceFocus(v.widget, false);
-				}
-			}
-			private void resetID(CardPane v) { mixin(S_TRACE);
-				ulong[] oldIDs;
-				auto arr = cardsFrom(owner);
-				foreach (i, c; arr) { mixin(S_TRACE);
-					auto oID = c.id;
-					c.id = ulong.max - arr.length + i;
-					comm.summary.useCounter.change(C.toID(oID), C.toID(c.id));
-					oldIDs ~= oID;
-				}
-				foreach (i, c; arr) { mixin(S_TRACE);
-					auto oID = c.id;
-					c.id = _idsB[i];
-					comm.summary.useCounter.change(C.toID(oID), C.toID(c.id));
-				}
-				foreach (i, c; arr) { mixin(S_TRACE);
-					if (c.id != oldIDs[i]) { mixin(S_TRACE);
-						v.refCard(v, comm, c);
-					}
-				}
-			}
-			protected void uda(CardPane v) { mixin(S_TRACE);
-				resetID(v);
-				if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
-					v.refresh();
-					v.selectID(_selB);
-					v.refreshStatusLine();
-				}
-				comm.refUseCount.call();
-				comm.refreshToolBar();
-			}
-			protected CardPane view() { mixin(S_TRACE);
-				return _v;
+			saveIDs(v);
+		}
+		private void saveIDs(CardPane v) { mixin(S_TRACE);
+			_ids.length = 0;
+			foreach (c; cardsFrom(owner)) _ids ~= c.id;
+			if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
+				_sel = v.selectionID;
 			}
 		}
-		static class UndoIDs : CPUndo {
-			this (CardPane v, Commons comm, CardOwner owner) { mixin(S_TRACE);
-				super (v, comm, owner);
-			}
-			override void undo() { mixin(S_TRACE);
-				auto v = view();
-				udb(v);
-				scope (exit) uda(v);
-			}
-			override void redo() { mixin(S_TRACE);
-				auto v = view();
-				udb(v);
-				scope (exit) uda(v);
-			}
-			override void dispose() {}
-		}
-		static class UndoEdit : CPUndo {
-			private C _card;
-			private ulong _id;
-			this (CardPane v, Commons comm, CardOwner owner, ulong id) { mixin(S_TRACE);
-				super (v, comm, owner);
-				auto c = cardFrom(owner, id);
-				_card = new C(c.id, c.name, c.path, c.desc);
-				_card.shallowCopy(c);
-				_card.setUseCounter(comm.summary.useCounter.sub);
-				_id = id;
-			}
-			private void impl() { mixin(S_TRACE);
-				auto v = view();
-				udb(v);
-				scope (exit) uda(v);
-				auto card = _card;
-				card.removeUseCounter();
-				auto c = cardFrom(owner, _id);
-				_card = new C(c.id, c.name, c.path, c.desc);
-				_card.shallowCopy(c);
-				_card.setUseCounter(comm.summary.useCounter.sub);
-				c.shallowCopy(card);
-
-				if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
-					v.refresh();
-				}
-				refCard(v, comm, c);
-				comm.refUseCount.call();
-			}
-			override void undo() { mixin(S_TRACE);
-				impl();
-			}
-			override void redo() { mixin(S_TRACE);
-				impl();
-			}
-			override void dispose() { mixin(S_TRACE);
-				_card.removeUseCounter();
+		abstract override void undo();
+		abstract override void redo();
+		abstract override void dispose();
+		protected void udb(CardPane v) { mixin(S_TRACE);
+			_idsB = _ids.dup;
+			_selB = _sel;
+			saveIDs(v);
+			if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
+				.forceFocus(v.widget, false);
 			}
 		}
-		void storeEdit(ulong id) { mixin(S_TRACE);
-			_undo ~= new UndoEdit(this, _comm, _owner, id);
-		}
-		static class UndoSwap : CPUndo {
-			private int _index1, _index2;
-			this (CardPane v, Commons comm, CardOwner owner, int index1, int index2) { mixin(S_TRACE);
-				super (v, comm, owner);
-				_index1 = index1;
-				_index2 = index2;
+		private void resetID(CardPane v) { mixin(S_TRACE);
+			ulong[] oldIDs;
+			auto arr = cardsFrom(owner);
+			foreach (i, c; arr) { mixin(S_TRACE);
+				auto oID = c.id;
+				c.id = ulong.max - arr.length + i;
+				comm.summary.useCounter.change(C.toID(oID), C.toID(c.id));
+				oldIDs ~= oID;
 			}
-			private void impl() { mixin(S_TRACE);
-				auto v = view();
-				udb(v);
-				scope (exit) uda(v);
-				owner.swap!C(_index1, _index2);
-				refCard(v, comm, cardsFrom(owner)[_index1]);
-				refCard(v, comm, cardsFrom(owner)[_index2]);
+			foreach (i, c; arr) { mixin(S_TRACE);
+				auto oID = c.id;
+				c.id = _idsB[i];
+				comm.summary.useCounter.change(C.toID(oID), C.toID(c.id));
 			}
-			override void undo() { mixin(S_TRACE);
-				impl();
-			}
-			override void redo() { mixin(S_TRACE);
-				impl();
-			}
-			override void dispose() {}
-		}
-		void storeSwap(int index1, int index2) { mixin(S_TRACE);
-			assert (_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column);
-			_undo ~= new UndoSwap(this, _comm, _owner, index1, index2);
-		}
-		static class UndoMove : CPUndo {
-			private int _from, _to;
-			this (CardPane v, Commons comm, CardOwner owner, int from, int to) { mixin(S_TRACE);
-				super (v, comm, owner);
-				_from = from;
-				_to = to;
-			}
-			private void impl() { mixin(S_TRACE);
-				auto v = view();
-				udb(v);
-				scope (exit) uda(v);
-				auto card = cardsFrom(owner)[_to];
-				int from = _from;
-				if (_to <= from) from++;
-				owner.insert(from, card);
-				std.algorithm.swap(_from, _to);
-			}
-			override void undo() { mixin(S_TRACE);
-				impl();
-			}
-			override void redo() { mixin(S_TRACE);
-				impl();
-			}
-			override void dispose() {}
-		}
-		void storeMove(int from, int to) { mixin(S_TRACE);
-			assert (_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column);
-			_undo ~= new UndoMove(this, _comm, _owner, from, to);
-		}
-		static class UndoInsertDelete : CPUndo {
-			private bool _insert;
-
-			private ulong[] _ids;
-
-			private C[] _cards = [];
-			private int[] _indices;
-
-			this (CardPane v, Commons comm, CardOwner owner, ulong[] ids, bool insert) { mixin(S_TRACE);
-				super (v, comm, owner);
-				_insert = insert;
-				_ids = ids.dup.sort;
-
-				if (!insert) { mixin(S_TRACE);
-					initUndoDelete();
+			foreach (i, c; arr) { mixin(S_TRACE);
+				if (c.id != oldIDs[i]) { mixin(S_TRACE);
+					v.refCard(v, comm, c);
 				}
 			}
-			private void initUndoDelete() { mixin(S_TRACE);
-				foreach (c; _cards) { mixin(S_TRACE);
-					c.removeUseCounter();
-				}
-				_cards.length = 0;
-				_indices.length = 0;
-				foreach (id; _ids) { mixin(S_TRACE);
-					auto c = cardFrom(owner, id);
-					auto card = c.dup;
-					card.setUseCounter(comm.summary.useCounter.sub);
-					_cards ~= card;
-					_indices ~= cast(int)owner.indexOf(c);
-				}
+		}
+		protected void uda(CardPane v) { mixin(S_TRACE);
+			resetID(v);
+			if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
+				v.refresh();
+				v.selectID(_selB);
+				v.refreshStatusLine();
 			}
-			private void undoInsert() { mixin(S_TRACE);
-				auto v = view();
-				udb(v);
-				scope (exit) uda(v);
-				_insert = false;
+			comm.refUseCount.call();
+			comm.refreshToolBar();
+		}
+		protected CardPane view() { mixin(S_TRACE);
+			return _v;
+		}
+	}
+	static class UndoIDs : CPUndo {
+		this (CardPane v, Commons comm, CardOwner owner) { mixin(S_TRACE);
+			super (v, comm, owner);
+		}
+		override void undo() { mixin(S_TRACE);
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+		}
+		override void redo() { mixin(S_TRACE);
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+		}
+		override void dispose() {}
+	}
+	static class UndoEdit : CPUndo {
+		private C _card;
+		private ulong _id;
+		this (CardPane v, Commons comm, CardOwner owner, ulong id) { mixin(S_TRACE);
+			super (v, comm, owner);
+			auto c = cardFrom(owner, id);
+			_card = new C(c.id, c.name, c.path, c.desc);
+			_card.shallowCopy(c);
+			_card.setUseCounter(comm.summary.useCounter.sub);
+			_id = id;
+		}
+		private void impl() { mixin(S_TRACE);
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			auto card = _card;
+			card.removeUseCounter();
+			auto c = cardFrom(owner, _id);
+			_card = new C(c.id, c.name, c.path, c.desc);
+			_card.shallowCopy(c);
+			_card.setUseCounter(comm.summary.useCounter.sub);
+			c.shallowCopy(card);
+
+			if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
+				v.refresh();
+			}
+			refCard(v, comm, c);
+			comm.refUseCount.call();
+		}
+		override void undo() { mixin(S_TRACE);
+			impl();
+		}
+		override void redo() { mixin(S_TRACE);
+			impl();
+		}
+		override void dispose() { mixin(S_TRACE);
+			_card.removeUseCounter();
+		}
+	}
+	void storeEdit(ulong id) { mixin(S_TRACE);
+		assert (editMode);
+		_undo ~= new UndoEdit(this, _comm, _owner, id);
+	}
+	static class UndoSwap : CPUndo {
+		private int _index1, _index2;
+		this (CardPane v, Commons comm, CardOwner owner, int index1, int index2) { mixin(S_TRACE);
+			super (v, comm, owner);
+			_index1 = index1;
+			_index2 = index2;
+		}
+		private void impl() { mixin(S_TRACE);
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			owner.swap!C(_index1, _index2);
+			refCard(v, comm, cardsFrom(owner)[_index1]);
+			refCard(v, comm, cardsFrom(owner)[_index2]);
+		}
+		override void undo() { mixin(S_TRACE);
+			impl();
+		}
+		override void redo() { mixin(S_TRACE);
+			impl();
+		}
+		override void dispose() {}
+	}
+	void storeSwap(int index1, int index2) { mixin(S_TRACE);
+		assert (editMode);
+		assert (_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column);
+		_undo ~= new UndoSwap(this, _comm, _owner, index1, index2);
+	}
+	static class UndoMove : CPUndo {
+		private int _from, _to;
+		this (CardPane v, Commons comm, CardOwner owner, int from, int to) { mixin(S_TRACE);
+			super (v, comm, owner);
+			_from = from;
+			_to = to;
+		}
+		private void impl() { mixin(S_TRACE);
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			auto card = cardsFrom(owner)[_to];
+			int from = _from;
+			if (_to <= from) from++;
+			owner.insert(from, card);
+			std.algorithm.swap(_from, _to);
+		}
+		override void undo() { mixin(S_TRACE);
+			impl();
+		}
+		override void redo() { mixin(S_TRACE);
+			impl();
+		}
+		override void dispose() {}
+	}
+	void storeMove(int from, int to) { mixin(S_TRACE);
+		assert (editMode);
+		assert (_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column);
+		_undo ~= new UndoMove(this, _comm, _owner, from, to);
+	}
+	static class UndoInsertDelete : CPUndo {
+		private bool _insert;
+
+		private ulong[] _ids;
+
+		private C[] _cards = [];
+		private int[] _indices;
+
+		this (CardPane v, Commons comm, CardOwner owner, ulong[] ids, bool insert) { mixin(S_TRACE);
+			super (v, comm, owner);
+			_insert = insert;
+			_ids = ids.dup.sort;
+
+			if (!insert) { mixin(S_TRACE);
 				initUndoDelete();
-				foreach_reverse (id; _ids) { mixin(S_TRACE);
-					auto card = cardFrom(owner, id);
-					delImpl(v, comm, owner, card);
-				}
-				comm.refUseCount.call();
-			}
-			void undoDelete() { mixin(S_TRACE);
-				auto v = view();
-				udb(v);
-				scope (exit) uda(v);
-				_insert = true;
-				ulong selID = 0;
-				foreach (i, id; _ids) { mixin(S_TRACE);
-					assert (_indices[i] != -1);
-					auto c = _cards[i];
-					c.removeUseCounter();
-					owner.insert(_indices[i], c);
-					refCard(v, comm, c);
-					selID = id;
-				}
-				if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
-					v.refresh();
-					v.selectID(selID);
-					v.refreshStatusLine();
-				}
-				_cards.length = 0;
-				comm.refUseCount.call();
-			}
-			override void undo() { mixin(S_TRACE);
-				if (_insert) { mixin(S_TRACE);
-					undoInsert();
-				} else { mixin(S_TRACE);
-					undoDelete();
-				}
-			}
-			override void redo() { mixin(S_TRACE);
-				undo();
-			}
-			override void dispose() { mixin(S_TRACE);
-				foreach (c; _cards) { mixin(S_TRACE);
-					c.removeUseCounter();
-				}
 			}
 		}
-		void storeInsert(ulong[] ids) { mixin(S_TRACE);
-			_undo ~= new UndoInsertDelete(this, _comm, _owner, ids, true);
+		private void initUndoDelete() { mixin(S_TRACE);
+			foreach (c; _cards) { mixin(S_TRACE);
+				c.removeUseCounter();
+			}
+			_cards.length = 0;
+			_indices.length = 0;
+			foreach (id; _ids) { mixin(S_TRACE);
+				auto c = cardFrom(owner, id);
+				auto card = c.dup;
+				card.setUseCounter(comm.summary.useCounter.sub);
+				_cards ~= card;
+				_indices ~= cast(int)owner.indexOf(c);
+			}
 		}
-		void storeDelete(ulong[] ids) { mixin(S_TRACE);
-			_undo ~= new UndoInsertDelete(this, _comm, _owner, ids, false);
+		private void undoInsert() { mixin(S_TRACE);
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			_insert = false;
+			initUndoDelete();
+			foreach_reverse (id; _ids) { mixin(S_TRACE);
+				auto card = cardFrom(owner, id);
+				delImpl(v, comm, owner, card);
+			}
+			comm.refUseCount.call();
 		}
+		void undoDelete() { mixin(S_TRACE);
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+			_insert = true;
+			ulong selID = 0;
+			foreach (i, id; _ids) { mixin(S_TRACE);
+				assert (_indices[i] != -1);
+				auto c = _cards[i];
+				c.removeUseCounter();
+				owner.insert(_indices[i], c);
+				refCard(v, comm, c);
+				selID = id;
+			}
+			if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
+				v.refresh();
+				v.selectID(selID);
+				v.refreshStatusLine();
+			}
+			_cards.length = 0;
+			comm.refUseCount.call();
+		}
+		override void undo() { mixin(S_TRACE);
+			if (_insert) { mixin(S_TRACE);
+				undoInsert();
+			} else { mixin(S_TRACE);
+				undoDelete();
+			}
+		}
+		override void redo() { mixin(S_TRACE);
+			undo();
+		}
+		override void dispose() { mixin(S_TRACE);
+			foreach (c; _cards) { mixin(S_TRACE);
+				c.removeUseCounter();
+			}
+		}
+	}
+	void storeInsert(ulong[] ids) { mixin(S_TRACE);
+		assert (editMode);
+		_undo ~= new UndoInsertDelete(this, _comm, _owner, ids, true);
+	}
+	void storeDelete(ulong[] ids) { mixin(S_TRACE);
+		assert (editMode);
+		_undo ~= new UndoInsertDelete(this, _comm, _owner, ids, false);
 	}
 
 	string _id;
@@ -447,9 +452,7 @@ private:
 	int _style;
 	Commons _comm;
 	Props _prop;
-	static if (EditMode) {
-		UndoManager _undo;
-	}
+	UndoManager _undo = null;
 	CardOwner _owner = null;
 	PCardOwner _summ = null;
 	void delegate(Shell) _save;
@@ -458,9 +461,7 @@ private:
 	Image _cimg;
 	CViewMode _viewMode = CViewMode.INIT;
 	TCPD[] _tcpd;
-	static if (!EditMode) {
-		ToCardOwner _toc;
-	}
+	Summary _toc = null;
 	string _statusLine = "";
 	Preview _preview;
 	C _previewC = null;
@@ -472,7 +473,7 @@ private:
 			_previewI.dispose();
 		}
 	}
-	static if (EditMode && is(C:EventTreeOwner)) {
+	static if (is(C:EventTreeOwner)) {
 		C _openEventTarget = null;
 	}
 
@@ -714,64 +715,66 @@ private:
 		}
 		_comm.setStatusLine(_tbl, _statusLine);
 	}
-	static if (EditMode) {
-		void nameEditEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
-			auto c = cast(C) itm.getData();
+	void nameEditEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
+		assert (editMode);
+		auto c = cast(C) itm.getData();
+		assert (c !is null);
+		storeEdit(c.id);
+		c.name = newText;
+		refresh();
+		refCard(c);
+		_comm.refreshToolBar();
+	}
+	static if (UseNum) {
+		Control numCreateEditor(TableItem itm, int column) { mixin(S_TRACE);
+			assert (editMode);
+			auto c = cast(C)itm.getData();
+			auto spn = new Spinner(itm.getParent(), SWT.BORDER);
+			initSpinner(spn);
+			static if (is(C:CastCard)) {
+				int max = _prop.var.etc.castLevelMax;
+				int min = 1;
+			} else static if (is(C:SkillCard)) {
+				int max = _prop.var.etc.skillLevelMax;
+				int min = 0;
+			} else { mixin(S_TRACE);
+				int max = _prop.var.etc.useCountMax;
+				int min = 0;
+			}
+			spn.setMaximum(max);
+			spn.setMinimum(min);
+			spn.setSelection(cardNum(c));
+			return spn;
+		}
+		void numEditEnd(TableItem itm, int column, Control ctrl) { mixin(S_TRACE);
+			assert (editMode);
+			auto num = (cast(Spinner)ctrl).getSelection();
+			auto c = cast(C)itm.getData();
 			assert (c !is null);
 			storeEdit(c.id);
-			c.name = newText;
+			static if (is(typeof(c.level))) {
+				c.level = num;
+			} else static if (is(typeof(c.useLimitMax))) {
+				if (c.useLimitMax == c.useLimit) { mixin(S_TRACE);
+					c.useLimit = num;
+				}
+				c.useLimitMax = num;
+				c.useLimit = .min(c.useLimit, c.useLimitMax);
+			} else { mixin(S_TRACE);
+				c.useLimit = num;
+			}
 			refresh();
 			refCard(c);
 			_comm.refreshToolBar();
 		}
-		static if (UseNum) {
-			Control numCreateEditor(TableItem itm, int column) { mixin(S_TRACE);
-				auto c = cast(C)itm.getData();
-				auto spn = new Spinner(itm.getParent(), SWT.BORDER);
-				initSpinner(spn);
-				static if (is(C:CastCard)) {
-					int max = _prop.var.etc.castLevelMax;
-					int min = 1;
-				} else static if (is(C:SkillCard)) {
-					int max = _prop.var.etc.skillLevelMax;
-					int min = 0;
-				} else { mixin(S_TRACE);
-					int max = _prop.var.etc.useCountMax;
-					int min = 0;
-				}
-				spn.setMaximum(max);
-				spn.setMinimum(min);
-				spn.setSelection(cardNum(c));
-				return spn;
-			}
-			void numEditEnd(TableItem itm, int column, Control ctrl) { mixin(S_TRACE);
-				auto num = (cast(Spinner)ctrl).getSelection();
-				auto c = cast(C)itm.getData();
-				assert (c !is null);
-				storeEdit(c.id);
-				static if (is(typeof(c.level))) {
-					c.level = num;
-				} else static if (is(typeof(c.useLimitMax))) {
-					if (c.useLimitMax == c.useLimit) { mixin(S_TRACE);
-						c.useLimit = num;
-					}
-					c.useLimitMax = num;
-					c.useLimit = .min(c.useLimit, c.useLimitMax);
-				} else { mixin(S_TRACE);
-					c.useLimit = num;
-				}
-				refresh();
-				refCard(c);
-				_comm.refreshToolBar();
-			}
+	}
+	bool canEditT(TableItem itm, int column) { mixin(S_TRACE);
+		assert (editMode);
+		auto c = cast(C) itm.getData();
+		static if (is(CardOwner:CastCard) && is(typeof(c.linkId))) {
+			return 0 == c.linkId;
 		}
-		bool canEditT(TableItem itm, int column) { mixin(S_TRACE);
-			auto c = cast(C) itm.getData();
-			static if (is(CardOwner:CastCard) && is(typeof(c.linkId))) {
-				return 0 == c.linkId;
-			}
-			return true;
-		}
+		return true;
 	}
 	void refreshR(string from, string to) { mixin(S_TRACE);
 		refreshImpl();
@@ -781,7 +784,7 @@ private:
 		void update(size_t i, C card) { mixin(S_TRACE);
 			bool targ = card is c;
 			static if (is(CardOwner:CastCard) && is(typeof(c.linkId))) {
-				if (cast(Summary) c.cwxParent && 0 != card.linkId && card.linkId is c.id) { mixin(S_TRACE);
+				if (cast(Summary)c.cwxParent && 0 != card.linkId && card.linkId is c.id) { mixin(S_TRACE);
 					targ = true;
 				}
 			}
@@ -887,7 +890,7 @@ private:
 	}
 	template CopyAndPaste() {
 		override void cut(SelectionEvent se) { mixin(S_TRACE);
-			static if (EditMode) {
+			if (editMode) { mixin(S_TRACE);
 				copy(se);
 				del(se);
 			}
@@ -900,7 +903,7 @@ private:
 			}
 		}
 		override void paste(SelectionEvent se) { mixin(S_TRACE);
-			static if (EditMode) {
+			if (editMode) { mixin(S_TRACE);
 				auto c = CBtoXML(_comm.clipboard);
 				try { mixin(S_TRACE);
 					if (c) { mixin(S_TRACE);
@@ -923,14 +926,16 @@ private:
 			}
 		}
 		override void clone(SelectionEvent se) { mixin(S_TRACE);
-			_comm.clipboard.memoryMode = true;
-			scope (exit) _comm.clipboard.memoryMode = false;
-			copy(se);
-			paste(se);
+			if (editMode) { mixin(S_TRACE);
+				_comm.clipboard.memoryMode = true;
+				scope (exit) _comm.clipboard.memoryMode = false;
+				copy(se);
+				paste(se);
+			}
 		}
 		@property
 		override bool canDoT() { mixin(S_TRACE);
-			return selectedCards.length > 0;
+			return selectedCards.length > 0 && editMode;
 		}
 		@property
 		override bool canDoC() { mixin(S_TRACE);
@@ -938,7 +943,7 @@ private:
 		}
 		@property
 		override bool canDoP() { mixin(S_TRACE);
-			return _summ !is null && CBisXML(_comm.clipboard);
+			return _summ !is null && CBisXML(_comm.clipboard) && editMode;
 		}
 		@property
 		override bool canDoD() { mixin(S_TRACE);
@@ -946,31 +951,30 @@ private:
 		}
 		@property
 		override bool canDoClone() { mixin(S_TRACE);
-			return canDoC;
+			return canDoC && editMode;
 		}
 	}
-	static if (EditMode) {
-		static void delImpl(CardPane v, Commons comm, CardOwner owner, C card) { mixin(S_TRACE);
-			if (!card) return;
-			owner.remove(card);
-			if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
-				if (v._viewMode == CViewMode.TABLE) { mixin(S_TRACE);
-					ptrdiff_t index = -1;
-					foreach (i, itm; v._tbl.getItems()) { mixin(S_TRACE);
-						if (card is itm.getData()) { mixin(S_TRACE);
-							index = i;
-							break;
-						}
+	static void delImpl(CardPane v, Commons comm, CardOwner owner, C card) { mixin(S_TRACE);
+		assert (v.editMode);
+		if (!card) return;
+		owner.remove(card);
+		if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
+			if (v._viewMode == CViewMode.TABLE) { mixin(S_TRACE);
+				ptrdiff_t index = -1;
+				foreach (i, itm; v._tbl.getItems()) { mixin(S_TRACE);
+					if (card is itm.getData()) { mixin(S_TRACE);
+						index = i;
+						break;
 					}
-					assert (index != -1);
-					v._tbl.remove(cast(int)index);
-					v._tbl.redraw();
-				} else { mixin(S_TRACE);
-					v.refresh();
 				}
+				assert (index != -1);
+				v._tbl.remove(cast(int)index);
+				v._tbl.redraw();
+			} else { mixin(S_TRACE);
+				v.refresh();
 			}
-			delCard(v, comm, owner, card);
 		}
+		delCard(v, comm, owner, card);
 	}
 	class CL : TCPD {
 		@property
@@ -987,7 +991,7 @@ private:
 		}
 		mixin CopyAndPaste;
 		override void del(SelectionEvent se) { mixin(S_TRACE);
-			static if (EditMode) {
+			if (editMode) { mixin(S_TRACE);
 				auto c = selectionCard;
 				if (c) { mixin(S_TRACE);
 					storeDelete([c.id]);
@@ -1071,7 +1075,7 @@ private:
 		}
 		mixin CopyAndPaste;
 		override void del(SelectionEvent se) { mixin(S_TRACE);
-			static if (EditMode) {
+			if (editMode) { mixin(S_TRACE);
 				auto c = selectionCard;
 				if (c) { mixin(S_TRACE);
 					int i = _tbl.getSelectionIndex();
@@ -1086,189 +1090,203 @@ private:
 			}
 		}
 	}
-	static if (EditMode) {
-		template Drop() {
-			override void drop(DropTargetEvent e){ mixin(S_TRACE);
-				if (!isXMLBytes(e.data)) return;
-				e.detail = DND.DROP_NONE;
-				string xml = bytesToXML(e.data);
-				try { mixin(S_TRACE);
-					auto node = XNode.parse(xml);
-					if (node.name != C.XML_NAME_M) return;
-					scope p = (cast(DropTarget) e.getSource()).getControl().toControl(e.x, e.y);
-					int index = indexOf(p);
-					bool samePane = _id == node.attr("paneId", false);
-					bool sameSc = ownerId == node.attr("summId", false);
-					bool topLevel = node.attr!bool("topLevel", false, false);
-					ulong[C] oldIDs;
-					foreach (card; cards) oldIDs[card] = card.id;
-					scope (exit) {
-						foreach (card; cards) {
-							auto pc = card in oldIDs;
-							if (pc && *pc != card.id) refCard(card); 
-						}
-						_comm.refreshToolBar();
+	template Drop() {
+		override void drop(DropTargetEvent e){ mixin(S_TRACE);
+			assert (editMode);
+			if (!isXMLBytes(e.data)) return;
+			e.detail = DND.DROP_NONE;
+			string xml = bytesToXML(e.data);
+			try { mixin(S_TRACE);
+				auto node = XNode.parse(xml);
+				if (node.name != C.XML_NAME_M) return;
+				scope p = (cast(DropTarget) e.getSource()).getControl().toControl(e.x, e.y);
+				int index = indexOf(p);
+				bool samePane = _id == node.attr("paneId", false);
+				bool sameSc = ownerId == node.attr("summId", false);
+				bool topLevel = node.attr!bool("topLevel", false, false);
+				ulong[C] oldIDs;
+				foreach (card; cards) oldIDs[card] = card.id;
+				scope (exit) {
+					foreach (card; cards) {
+						auto pc = card in oldIDs;
+						if (pc && *pc != card.id) refCard(card); 
 					}
-					bool sortedID = _tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column;
-					if (sameSc && samePane) { mixin(S_TRACE);
-						// 同一リスト内で移動
-						if (!sortedID) return;
-						int count = cardCount;
-						if (count < index) index = count;
-						if ((index < count ? index : count - 1) == selectionIndex
-								|| index == selectionIndex + 1) { mixin(S_TRACE);
-							selectOnly(index);
-							return;
-						}
-						C[] adds;
-						node.onTag[C.XML_NAME] = (ref XNode cNode) { mixin(S_TRACE);
-							auto id = Card.readId(cNode);
-							if (id == 0UL) return;
-							adds ~= this.outer.localCard(id);
-							e.detail = DND.DROP_NONE;
-						};
-						node.parse();
-						if (adds.length == 0) return;
-						assert (adds.length == 1);
-						auto card = adds[0];
-						auto oldIndex = _owner.indexOf!C(card);
-
-						if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
-							// 処理を単純化するため、ID昇順でソートされた
-							// 状態に対して移動処理を行う
-							index = cast(int)cards.length - index;
-							if (index < oldIndex) { mixin(S_TRACE);
-								index--;
-							}
-						}
-
-						storeMove(cast(int)oldIndex, oldIndex < index ? index - 1 : index);
-						_owner.insert(index, card);
-						insert(card, true);
-						refCard(card);
-						refreshStatusLine();
-					} else { mixin(S_TRACE);
-						e.detail = DND.DROP_NONE;
-						// 他のリストからのコピー
-						if (cardCount < index) index = cardCount;
-						if (!sortedID) { mixin(S_TRACE);
-							index = cardCount;
-						} else if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
-							index = cast(int)cards.length - index;
-						}
-						C[] adds;
-						node.onTag[C.XML_NAME] = (ref XNode cNode) { mixin(S_TRACE);
-							auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
-							auto card = C.createFromNode(cNode, ver);
-							adds ~= card;
-						};
-						node.parse();
-						if (adds.length == 0) return;
-						if (qCardMaterialCopy(node, adds)) { mixin(S_TRACE);
-							ulong[] ids;
-							foreach (i, card; adds) { mixin(S_TRACE);
-								refreshLink(card, samePane, sameSc, topLevel);
-								_owner.insert(index, card);
-								ids ~= cardsFrom(_owner)[index].id;
-								adds[i] = cards[index];
-								index++;
-							}
-							storeInsert(ids);
-							insert(adds[$ - 1], false);
-							sort();
-							foreach (i, card; adds) { mixin(S_TRACE);
-								refCard(card);
-							}
-							_comm.refUseCount.call();
-							refreshStatusLine();
-						}
-					}
-				} catch (Exception e) {
-					printStackTrace();
-					debugln(e);
+					_comm.refreshToolBar();
 				}
-			}
-		}
-		void refreshLink(ref C card, bool samePane, bool sameSc, bool topLevel) { mixin(S_TRACE);
-			static if (is(typeof(card.linkId))) {
-				if (sameSc && !is(CardOwner:CastCard) && 0 != card.linkId) { mixin(S_TRACE);
-					card = pOwnerCard(card.linkId);
-					if (card) { mixin(S_TRACE);
-						card = card.dup;
-					} else { mixin(S_TRACE);
-						card = new C(1UL, "", "", "");
-					}
-				} else if (sameSc && is(CardOwner:CastCard) && topLevel && _prop.var.etc.linkCard) { mixin(S_TRACE);
-					auto id = card.id;
-					card = new C(1UL, "", "", "");
-					card.linkId = id;
-				}
-			}
-		}
-		class CLDTListener : DropTargetAdapter {
-			override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
-				e.detail = narrowCount == cards.length ? DND.DROP_MOVE : DND.DROP_NONE;
-			}
-			override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
-				e.detail = narrowCount == cards.length ? DND.DROP_MOVE : DND.DROP_NONE;
-			}
-			mixin Drop;
-			@property
-			private int selectionIndex() { mixin(S_TRACE);
-				return _list.selection;
-			}
-			private int indexOf(Point p) { mixin(S_TRACE);
-				return _list.searchIndexLoose(p.x, p.y);
-			}
-			@property
-			private int cardCount() { mixin(S_TRACE);
-				return _list.count;
-			}
-			private void selectOnly(int index) { mixin(S_TRACE);
-				_list.scroll(index);
-			}
-			private void insert(C c, bool move) { mixin(S_TRACE);
-				refresh();
-				int index = _list.indexOf(c);
-				_list.select(index);
-				_list.scroll(index);
-				refreshStatusLine();
-			}
-		}
-		class CTDTListener : DropTargetAdapter {
-			override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
-				e.detail = _viewMode is CViewMode.TABLE && narrowCount == cards.length ? DND.DROP_MOVE : DND.DROP_NONE;
-			}
-			override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
-				e.detail = _viewMode is CViewMode.TABLE && narrowCount == cards.length ? DND.DROP_MOVE : DND.DROP_NONE;
-			}
-			mixin Drop;
-			@property
-			private int selectionIndex() { mixin(S_TRACE);
-				return _tbl.getSelectionIndex();
-			}
-			private int indexOf(Point p) { mixin(S_TRACE);
-				auto itm = _tbl.getItem(p);
-				return itm ? _tbl.indexOf(itm) : _tbl.getItemCount();
-			}
-			@property
-			private int cardCount() { mixin(S_TRACE);
-				return _tbl.getItemCount();
-			}
-			private void selectOnly(int index) { mixin(S_TRACE);
-				_tbl.showSelection();
-			}
-			private void insert(C c, bool move) { mixin(S_TRACE);
-				refresh();
-				foreach (i, itm; _tbl.getItems()) { mixin(S_TRACE);
-					if (c is itm.getData()) { mixin(S_TRACE);
-						_tbl.select(cast(int)i);
-						_tbl.showSelection();
+				bool sortedID = _tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column;
+				if (sameSc && samePane) { mixin(S_TRACE);
+					// 同一リスト内で移動
+					if (!sortedID) return;
+					int count = cardCount;
+					if (count < index) index = count;
+					if ((index < count ? index : count - 1) == selectionIndex
+							|| index == selectionIndex + 1) { mixin(S_TRACE);
+						selectOnly(index);
 						return;
 					}
+					C[] adds;
+					node.onTag[C.XML_NAME] = (ref XNode cNode) { mixin(S_TRACE);
+						auto id = Card.readId(cNode);
+						if (id == 0UL) return;
+						adds ~= this.outer.localCard(id);
+						e.detail = DND.DROP_NONE;
+					};
+					node.parse();
+					if (adds.length == 0) return;
+					assert (adds.length == 1);
+					auto card = adds[0];
+					auto oldIndex = _owner.indexOf!C(card);
+
+					if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
+						// 処理を単純化するため、ID昇順でソートされた
+						// 状態に対して移動処理を行う
+						index = cast(int)cards.length - index;
+						if (index < oldIndex) { mixin(S_TRACE);
+							index--;
+						}
+					}
+
+					storeMove(cast(int)oldIndex, oldIndex < index ? index - 1 : index);
+					_owner.insert(index, card);
+					insert(card, true);
+					refCard(card);
+					refreshStatusLine();
+				} else { mixin(S_TRACE);
+					e.detail = DND.DROP_NONE;
+					// 他のリストからのコピー
+					if (cardCount < index) index = cardCount;
+					if (!sortedID) { mixin(S_TRACE);
+						index = cardCount;
+					} else if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
+						index = cast(int)cards.length - index;
+					}
+					C[] adds;
+					node.onTag[C.XML_NAME] = (ref XNode cNode) { mixin(S_TRACE);
+						auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+						auto card = C.createFromNode(cNode, ver);
+						adds ~= card;
+					};
+					node.parse();
+					if (adds.length == 0) return;
+					if (qCardMaterialCopy(node, adds)) { mixin(S_TRACE);
+						ulong[] ids;
+						foreach (i, card; adds) { mixin(S_TRACE);
+							refreshLink(card, samePane, sameSc, topLevel);
+							_owner.insert(index, card);
+							ids ~= cardsFrom(_owner)[index].id;
+							adds[i] = cards[index];
+							index++;
+						}
+						storeInsert(ids);
+						insert(adds[$ - 1], false);
+						sort();
+						foreach (i, card; adds) { mixin(S_TRACE);
+							refCard(card);
+						}
+						_comm.refUseCount.call();
+						refreshStatusLine();
+					}
 				}
-				assert (0);
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
 			}
+		}
+	}
+	void refreshLink(ref C card, bool samePane, bool sameSc, bool topLevel) { mixin(S_TRACE);
+		assert (editMode);
+		static if (is(typeof(card.linkId))) {
+			if (sameSc && !is(CardOwner:CastCard) && 0 != card.linkId) { mixin(S_TRACE);
+				card = pOwnerCard(card.linkId);
+				if (card) { mixin(S_TRACE);
+					card = card.dup;
+				} else { mixin(S_TRACE);
+					card = new C(1UL, "", "", "");
+				}
+			} else if (sameSc && is(CardOwner:CastCard) && topLevel && _prop.var.etc.linkCard) { mixin(S_TRACE);
+				auto id = card.id;
+				card = new C(1UL, "", "", "");
+				card.linkId = id;
+			}
+		}
+	}
+	class CLDTListener : DropTargetAdapter {
+		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
+			assert (editMode);
+			e.detail = narrowCount == cards.length ? DND.DROP_MOVE : DND.DROP_NONE;
+		}
+		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
+			assert (editMode);
+			e.detail = narrowCount == cards.length ? DND.DROP_MOVE : DND.DROP_NONE;
+		}
+		mixin Drop;
+		@property
+		private int selectionIndex() { mixin(S_TRACE);
+			assert (editMode);
+			return _list.selection;
+		}
+		private int indexOf(Point p) { mixin(S_TRACE);
+			assert (editMode);
+			return _list.searchIndexLoose(p.x, p.y);
+		}
+		@property
+		private int cardCount() { mixin(S_TRACE);
+			assert (editMode);
+			return _list.count;
+		}
+		private void selectOnly(int index) { mixin(S_TRACE);
+			assert (editMode);
+			_list.scroll(index);
+		}
+		private void insert(C c, bool move) { mixin(S_TRACE);
+			assert (editMode);
+			refresh();
+			int index = _list.indexOf(c);
+			_list.select(index);
+			_list.scroll(index);
+			refreshStatusLine();
+		}
+	}
+	class CTDTListener : DropTargetAdapter {
+		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
+			assert (editMode);
+			e.detail = _viewMode is CViewMode.TABLE && narrowCount == cards.length ? DND.DROP_MOVE : DND.DROP_NONE;
+		}
+		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
+			assert (editMode);
+			e.detail = _viewMode is CViewMode.TABLE && narrowCount == cards.length ? DND.DROP_MOVE : DND.DROP_NONE;
+		}
+		mixin Drop;
+		@property
+		private int selectionIndex() { mixin(S_TRACE);
+			assert (editMode);
+			return _tbl.getSelectionIndex();
+		}
+		private int indexOf(Point p) { mixin(S_TRACE);
+			assert (editMode);
+			auto itm = _tbl.getItem(p);
+			return itm ? _tbl.indexOf(itm) : _tbl.getItemCount();
+		}
+		@property
+		private int cardCount() { mixin(S_TRACE);
+			assert (editMode);
+			return _tbl.getItemCount();
+		}
+		private void selectOnly(int index) { mixin(S_TRACE);
+			assert (editMode);
+			_tbl.showSelection();
+		}
+		private void insert(C c, bool move) { mixin(S_TRACE);
+			assert (editMode);
+			refresh();
+			foreach (i, itm; _tbl.getItems()) { mixin(S_TRACE);
+				if (c is itm.getData()) { mixin(S_TRACE);
+					_tbl.select(cast(int)i);
+					_tbl.showSelection();
+					return;
+				}
+			}
+			assert (0);
 		}
 	}
 	class CDSListener : DragSourceAdapter {
@@ -1411,7 +1429,7 @@ private:
 		return true;
 	}
 	class LMouse : MouseAdapter {
-		static if (EditMode && is(C:EventTreeOwner)) {
+		static if (is(C:EventTreeOwner)) {
 			override void mouseUp(MouseEvent e) { mixin(S_TRACE);
 				if (e.button == 1) { mixin(S_TRACE);
 					if (_openEventTarget) { mixin(S_TRACE);
@@ -1434,7 +1452,7 @@ private:
 		}
 	}
 	class TMouse : MouseAdapter {
-		static if (EditMode && is(C:EventTreeOwner)) {
+		static if (is(C:EventTreeOwner)) {
 			override void mouseUp(MouseEvent e) { mixin(S_TRACE);
 				if (e.button == 1) { mixin(S_TRACE);
 					if (_openEventTarget) { mixin(S_TRACE);
@@ -1500,8 +1518,10 @@ private:
 			scope (exit) _procRefColW = false;
 			auto col = cast(TableColumn) e.widget;
 			int width = col.getWidth();
-			static if (EditMode && is(CardOwner : Summary)) {
-				_comm.refCardTableColumnWidth.call(this.outer, columnVal(col), width);
+			static if (is(CardOwner : Summary)) {
+				if (editMode) { mixin(S_TRACE);
+					_comm.refCardTableColumnWidth.call(this.outer, columnVal(col), width);
+				}
 			}
 			mixin("_prop.var.etc." ~ WidthPropName ~ " = width;");
 		}
@@ -1544,7 +1564,8 @@ private:
 		}
 		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
 			previewTrigger(e.x, e.y);
-			static if (EditMode && is(C:EventTreeOwner)) {
+			static if (is(C:EventTreeOwner)) {
+				if (!editMode) return;
 				auto itm = _tbl.getItem(new Point(e.x, e.y));
 				if (!itm || !itm.getImage(COL_DESC)) { mixin(S_TRACE);
 					_tbl.setCursor(null);
@@ -1565,7 +1586,8 @@ private:
 
 	class ListMouseMove : MouseMoveListener {
 		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
-			static if (EditMode && is(C:EventTreeOwner)) {
+			static if (is(C:EventTreeOwner)) {
+				if (!editMode) return;
 				if (_viewMode !is CViewMode.LIFE) { mixin(S_TRACE);
 					_list.setCursor(null);
 					_openEventTarget = null;
@@ -1591,26 +1613,26 @@ private:
 		}
 	}
 
-	static if (!EditMode) {
-		void selectAll() { mixin(S_TRACE);
-			if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
-				foreach (i; 0 .. _tbl.getItemCount()) { mixin(S_TRACE);
-					_tbl.select(i);
-				}
-			} else { mixin(S_TRACE);
-				foreach (i; 0 .. _list.count()) { mixin(S_TRACE);
-					_list.select(i);
-				}
+	void selectAll() { mixin(S_TRACE);
+		assert (!editMode);
+		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
+			foreach (i; 0 .. _tbl.getItemCount()) { mixin(S_TRACE);
+				_tbl.select(i);
 			}
-			selectChanged();
+		} else { mixin(S_TRACE);
+			foreach (i; 0 .. _list.count()) { mixin(S_TRACE);
+				_list.select(i);
+			}
 		}
-		@property
-		int selectionCount() { mixin(S_TRACE);
-			if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
-				return _tbl.getSelectionCount();
-			} else { mixin(S_TRACE);
-				return _list.selectionCount;
-			}
+		selectChanged();
+	}
+	@property
+	int selectionCount() { mixin(S_TRACE);
+		assert (!editMode);
+		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
+			return _tbl.getSelectionCount();
+		} else { mixin(S_TRACE);
+			return _list.selectionCount;
 		}
 	}
 	void refSortParams(Object sender, CardTableColumn column, int dir) { mixin(S_TRACE);
@@ -1656,41 +1678,45 @@ private:
 		auto columnVal = columnVal(_tbl.getSortColumn());
 		int column = columnToInt(columnVal);
 		int dir = _tbl.getSortDirection();
-		static if (EditMode && is(CardOwner : Summary)) {
-			_prop.var.etc.mainCardsSortColumn = column;
-			_prop.var.etc.mainCardsSortDirection = dir;
-			_comm.refMainCardsSort.call(this, columnVal, dir);
-		} else static if (EditMode) {
-			_prop.var.etc.handCardsSortColumn = column;
-			_prop.var.etc.handCardsSortDirection = dir;
-			_comm.refHandCardsSort.call(this, columnVal, dir);
-		} static if (is(CardOwner:Summary)) {
-			_prop.var.etc.importCardsSortColumn = column;
-			_prop.var.etc.importCardsSortDirection = dir;
-			_comm.refImportCardsSort.call(this, columnVal, dir);
+		if (editMode) { mixin(S_TRACE);
+			static if (is(CardOwner : Summary)) {
+				_prop.var.etc.mainCardsSortColumn = column;
+				_prop.var.etc.mainCardsSortDirection = dir;
+				_comm.refMainCardsSort.call(this, columnVal, dir);
+			} else {
+				_prop.var.etc.handCardsSortColumn = column;
+				_prop.var.etc.handCardsSortDirection = dir;
+				_comm.refHandCardsSort.call(this, columnVal, dir);
+			}
 		} else { mixin(S_TRACE);
-			_prop.var.etc.importHandCardsSortColumn = column;
-			_prop.var.etc.importHandCardsSortDirection = dir;
-			_comm.refImportHandCardsSort.call(this, columnVal, dir);
+			static if (is(CardOwner:Summary)) {
+				_prop.var.etc.importCardsSortColumn = column;
+				_prop.var.etc.importCardsSortDirection = dir;
+				_comm.refImportCardsSort.call(this, columnVal, dir);
+			} else { mixin(S_TRACE);
+				_prop.var.etc.importHandCardsSortColumn = column;
+				_prop.var.etc.importHandCardsSortDirection = dir;
+				_comm.refImportHandCardsSort.call(this, columnVal, dir);
+			}
 		}
 	}
-	static if (EditMode) {
-		void listEditEnd(C c, Control ctrl) { mixin(S_TRACE);
-			assert (c !is null);
-			string newText = (cast(Text)ctrl).getText();
-			if (newText == "") return;
-			storeEdit(c.id);
-			c.name = newText;
-			refresh();
-			refCard(c);
-			_comm.refreshToolBar();
+	void listEditEnd(C c, Control ctrl) { mixin(S_TRACE);
+		assert (editMode);
+		assert (c !is null);
+		string newText = (cast(Text)ctrl).getText();
+		if (newText == "") return;
+		storeEdit(c.id);
+		c.name = newText;
+		refresh();
+		refCard(c);
+		_comm.refreshToolBar();
+	}
+	Control listCreateEditor(in C c) { mixin(S_TRACE);
+		assert (editMode);
+		static if (is(typeof(c.linkId))) {
+			if (0 != c.linkId) return null;
 		}
-		Control listCreateEditor(in C c) { mixin(S_TRACE);
-			static if (is(typeof(c.linkId))) {
-				if (0 != c.linkId) return null;
-			}
-			return createTextEditor(_comm, _prop, _list, c.name);
-		}
+		return createTextEditor(_comm, _prop, _list, c.name);
 	}
 	void createCardList(Composite parent) { mixin(S_TRACE);
 		_pane = new Composite(parent, _style);
@@ -1698,7 +1724,7 @@ private:
 
 		auto tableComp = new Composite(_pane, SWT.NONE);
 		tableComp.setLayout(zeroGridLayout(1, true));
-		_tbl = new Table(tableComp, SWT.FULL_SELECTION | (EditMode ? SWT.SINGLE : SWT.MULTI));
+		_tbl = new Table(tableComp, SWT.FULL_SELECTION | (editMode ? SWT.SINGLE : SWT.MULTI));
 		_tbl.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_tbl.addSelectionListener(new SelChanged);
 		_tbl.setHeaderVisible(true);
@@ -1740,14 +1766,14 @@ private:
 		}
 		_comm.refCardTableColumnWidth.add(&refColumnWidth);
 		_tbl.addDisposeListener(new DisposeTable);
-		static if (EditMode) {
+		if (editMode) { mixin(S_TRACE);
 			new TableTextEdit(_comm, _prop, _tbl, COL_NAME, &nameEditEnd, &canEditT);
 			static if (UseNum) {
 				new TableTCEdit(_comm, _tbl, COL_NUM, &numCreateEditor, &numEditEnd, &canEditT);
 			}
 		}
 
-		_list = new CardList!(C)(_pane, SWT.VIRTUAL | SWT.V_SCROLL | (EditMode ? SWT.SINGLE : SWT.MULTI));
+		_list = new CardList!(C)(_pane, SWT.VIRTUAL | SWT.V_SCROLL | (editMode ? SWT.SINGLE : SWT.MULTI));
 		void updateCardListParamsImpl() { mixin(S_TRACE);
 			static if (is(C:CastCard)) {
 				auto matPad = _prop.looks.castCardInsets;
@@ -1773,7 +1799,7 @@ private:
 			_comm.refShowCardListHeader.remove(&updateLayout);
 			_comm.refShowCardListTitle.remove(&updateCardListParams);
 		});
-		static if (EditMode) {
+		if (editMode) { mixin(S_TRACE);
 			new CardListEdit!C(_comm, _list, &listEditEnd, &listCreateEditor);
 		}
 
@@ -1802,76 +1828,82 @@ private:
 			_numSorter = new TableSorter!C(numCol, &compNum, &revCompNum);
 			_numSorter.sortedEvent ~= &sorted;
 		}
-		static if (EditMode && is(CardOwner : Summary)) {
-			idCol.setWidth(_prop.var.etc.cardIdColumn);
-			idCol.addControlListener(new ColResize!("cardIdColumn"));
-			nameCol.setWidth(_prop.var.etc.cardNameColumn);
-			nameCol.addControlListener(new ColResize!("cardNameColumn"));
-			descCol.setWidth(_prop.var.etc.cardDescriptionColumn);
-			descCol.addControlListener(new ColResize!("cardDescriptionColumn"));
-			ucCol.setWidth(_prop.var.etc.cardCountColumn);
-			ucCol.addControlListener(new ColResize!("cardCountColumn"));
-			static if (UseNum) {
-				numCol.setWidth(_prop.var.etc.cardNumberColumn);
-				numCol.addControlListener(new ColResize!("cardNumberColumn"));
-			}
+		int column;
+		int dir;
+		if (editMode) { mixin(S_TRACE);
+			static if (is(CardOwner : Summary)) {
+				idCol.setWidth(_prop.var.etc.cardIdColumn);
+				idCol.addControlListener(new ColResize!("cardIdColumn"));
+				nameCol.setWidth(_prop.var.etc.cardNameColumn);
+				nameCol.addControlListener(new ColResize!("cardNameColumn"));
+				descCol.setWidth(_prop.var.etc.cardDescriptionColumn);
+				descCol.addControlListener(new ColResize!("cardDescriptionColumn"));
+				ucCol.setWidth(_prop.var.etc.cardCountColumn);
+				ucCol.addControlListener(new ColResize!("cardCountColumn"));
+				static if (UseNum) {
+					numCol.setWidth(_prop.var.etc.cardNumberColumn);
+					numCol.addControlListener(new ColResize!("cardNumberColumn"));
+				}
 
-			int column = _prop.var.etc.mainCardsSortColumn;
-			int dir = _prop.var.etc.mainCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
-			_comm.refMainCardsSort.add(&refSortParams);
-			.listener(_tbl, SWT.Dispose, { _comm.refMainCardsSort.remove(&refSortParams); });
-		} else static if (EditMode) {
-			idCol.setWidth(_prop.var.etc.handCardIdColumn);
-			idCol.addControlListener(new ColResize!("handCardIdColumn"));
-			nameCol.setWidth(_prop.var.etc.handCardNameColumn);
-			nameCol.addControlListener(new ColResize!("handCardNameColumn"));
-			descCol.setWidth(_prop.var.etc.handCardDescriptionColumn);
-			descCol.addControlListener(new ColResize!("handCardDescriptionColumn"));
-			static if (UseNum) {
-				numCol.setWidth(_prop.var.etc.handCardNumberColumn);
-				numCol.addControlListener(new ColResize!("handCardNumberColumn"));
-			}
+				column = _prop.var.etc.mainCardsSortColumn;
+				dir = _prop.var.etc.mainCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
+				_comm.refMainCardsSort.add(&refSortParams);
+				.listener(_tbl, SWT.Dispose, { _comm.refMainCardsSort.remove(&refSortParams); });
+			} else {
+				idCol.setWidth(_prop.var.etc.handCardIdColumn);
+				idCol.addControlListener(new ColResize!("handCardIdColumn"));
+				nameCol.setWidth(_prop.var.etc.handCardNameColumn);
+				nameCol.addControlListener(new ColResize!("handCardNameColumn"));
+				descCol.setWidth(_prop.var.etc.handCardDescriptionColumn);
+				descCol.addControlListener(new ColResize!("handCardDescriptionColumn"));
+				static if (UseNum) {
+					numCol.setWidth(_prop.var.etc.handCardNumberColumn);
+					numCol.addControlListener(new ColResize!("handCardNumberColumn"));
+				}
 
-			int column = _prop.var.etc.handCardsSortColumn;
-			int dir = _prop.var.etc.handCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
-			_comm.refHandCardsSort.add(&refSortParams);
-			.listener(_tbl, SWT.Dispose, { _comm.refHandCardsSort.remove(&refSortParams); });
-		} else static if (is(CardOwner:Summary)) {
-			idCol.setWidth(_prop.var.etc.importCardIdColumn);
-			idCol.addControlListener(new ColResize!("importCardIdColumn"));
-			nameCol.setWidth(_prop.var.etc.importCardNameColumn);
-			nameCol.addControlListener(new ColResize!("importCardNameColumn"));
-			descCol.setWidth(_prop.var.etc.importCardDescriptionColumn);
-			descCol.addControlListener(new ColResize!("importCardDescriptionColumn"));
-			static if (is(typeof(COL_UC))) {
-				ucCol.setWidth(_prop.var.etc.importCardCountColumn);
-				ucCol.addControlListener(new ColResize!("importCardCountColumn"));
+				column = _prop.var.etc.handCardsSortColumn;
+				dir = _prop.var.etc.handCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
+				_comm.refHandCardsSort.add(&refSortParams);
+				.listener(_tbl, SWT.Dispose, { _comm.refHandCardsSort.remove(&refSortParams); });
 			}
-			static if (UseNum) {
-				numCol.setWidth(_prop.var.etc.importCardNumberColumn);
-				numCol.addControlListener(new ColResize!("importCardNumberColumn"));
-			}
+		} else { mixin(S_TRACE);
+			static if (is(CardOwner:Summary)) {
+				idCol.setWidth(_prop.var.etc.importCardIdColumn);
+				idCol.addControlListener(new ColResize!("importCardIdColumn"));
+				nameCol.setWidth(_prop.var.etc.importCardNameColumn);
+				nameCol.addControlListener(new ColResize!("importCardNameColumn"));
+				descCol.setWidth(_prop.var.etc.importCardDescriptionColumn);
+				descCol.addControlListener(new ColResize!("importCardDescriptionColumn"));
+				static if (is(typeof(COL_UC))) {
+					ucCol.setWidth(_prop.var.etc.importCardCountColumn);
+					ucCol.addControlListener(new ColResize!("importCardCountColumn"));
+				}
+				static if (UseNum) {
+					numCol.setWidth(_prop.var.etc.importCardNumberColumn);
+					numCol.addControlListener(new ColResize!("importCardNumberColumn"));
+				}
 
-			int column = _prop.var.etc.importCardsSortColumn;
-			int dir = _prop.var.etc.importCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
-			_comm.refImportCardsSort.add(&refSortParams);
-			.listener(_tbl, SWT.Dispose, { _comm.refImportCardsSort.remove(&refSortParams); });
-		} else {
-			idCol.setWidth(_prop.var.etc.importHandCardIdColumn);
-			idCol.addControlListener(new ColResize!("importHandCardIdColumn"));
-			nameCol.setWidth(_prop.var.etc.importHandCardNameColumn);
-			nameCol.addControlListener(new ColResize!("importHandCardNameColumn"));
-			descCol.setWidth(_prop.var.etc.importHandCardDescriptionColumn);
-			descCol.addControlListener(new ColResize!("importHandCardDescriptionColumn"));
-			static if (UseNum) {
-				numCol.setWidth(_prop.var.etc.importHandCardNumberColumn);
-				numCol.addControlListener(new ColResize!("importHandCardNumberColumn"));
-			}
+				column = _prop.var.etc.importCardsSortColumn;
+				dir = _prop.var.etc.importCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
+				_comm.refImportCardsSort.add(&refSortParams);
+				.listener(_tbl, SWT.Dispose, { _comm.refImportCardsSort.remove(&refSortParams); });
+			} else {
+				idCol.setWidth(_prop.var.etc.importHandCardIdColumn);
+				idCol.addControlListener(new ColResize!("importHandCardIdColumn"));
+				nameCol.setWidth(_prop.var.etc.importHandCardNameColumn);
+				nameCol.addControlListener(new ColResize!("importHandCardNameColumn"));
+				descCol.setWidth(_prop.var.etc.importHandCardDescriptionColumn);
+				descCol.addControlListener(new ColResize!("importHandCardDescriptionColumn"));
+				static if (UseNum) {
+					numCol.setWidth(_prop.var.etc.importHandCardNumberColumn);
+					numCol.addControlListener(new ColResize!("importHandCardNumberColumn"));
+				}
 
-			int column = _prop.var.etc.importHandCardsSortColumn;
-			int dir = _prop.var.etc.importHandCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
-			_comm.refImportHandCardsSort.add(&refSortParams);
-			.listener(_tbl, SWT.Dispose, { _comm.refImportHandCardsSort.remove(&refSortParams); });
+				column = _prop.var.etc.importHandCardsSortColumn;
+				dir = _prop.var.etc.importHandCardsSortDirection == SortDir.Down ? SWT.DOWN : SWT.UP;
+				_comm.refImportHandCardsSort.add(&refSortParams);
+				.listener(_tbl, SWT.Dispose, { _comm.refImportHandCardsSort.remove(&refSortParams); });
+			}
 		}
 		_tbl.setSortColumn(columnFromInt(column));
 		_tbl.setSortDirection(dir);
@@ -1890,7 +1922,7 @@ private:
 		_list.addKeyListener(new LKey);
 		_tbl.addMouseListener(new TMouse);
 		_tbl.addKeyListener(new TKey);
-		static if (EditMode) {
+		if (editMode) { mixin(S_TRACE);
 			auto dropL = new DropTarget(_list, DND.DROP_DEFAULT | DND.DROP_MOVE);
 			dropL.setTransfer([XMLBytesTransfer.getInstance()]);
 			dropL.addDropListener(new CLDTListener);
@@ -1901,18 +1933,16 @@ private:
 
 		refList();
 	}
-	static if (EditMode) {
-		void refScenario(Summary summ) { mixin(S_TRACE);
-			_undo.reset();
-		}
+	void refScenario(Summary summ) { mixin(S_TRACE);
+		assert (editMode);
+		_undo.reset();
 	}
-	static if (is (C == CastCard) && !EditMode) {
+	static if (is (C == CastCard)) {
 		private void delegate() _openHand;
 	}
-	static if (EditMode) {
-		void refUndoMax() { mixin(S_TRACE);
-			_undo.max = _prop.var.etc.undoMaxMainView;
-		}
+	void refUndoMax() { mixin(S_TRACE);
+		assert (editMode);
+		_undo.max = _prop.var.etc.undoMaxMainView;
 	}
 	private void construct1(Commons comm, Props prop, PCardOwner summ, int style) { mixin(S_TRACE);
 		auto o = this;
@@ -1921,7 +1951,7 @@ private:
 		_prop = prop;
 		_summ = summ;
 		_style = style;
-		static if (EditMode) {
+		if (editMode) { mixin(S_TRACE);
 			_undo = new UndoManager(_prop.var.etc.undoMaxMainView);
 		}
 		static if (is (C == CastCard)) {
@@ -1936,8 +1966,9 @@ private:
 			_cimg = prop.images.info;
 		}
 	}
-	static if (CanHold && EditMode) {
+	static if (CanHold) {
 		void hold(SelectionEvent e) { mixin(S_TRACE);
+			assert (editMode);
 			auto card = selection;
 			if (!card) return;
 			auto mi = cast(MenuItem) e.widget;
@@ -1947,9 +1978,10 @@ private:
 			refresh();
 		}
 	}
-	static if (is(CardOwner:CastCard) && EditMode) {
-		Menu _addHandMenu;
+	static if (is(CardOwner:CastCard)) {
+		Menu _addHandMenu = null;
 		void refAddHandMenu(C card) { mixin(S_TRACE);
+			assert (editMode);
 			createMenuItem2(_comm, _addHandMenu, .format("%s.%s", card.id, card.name), _cimg, { mixin(S_TRACE);
 				.forceFocus(widget, false);
 				auto doc = XNode.create(C.XML_NAME_M);
@@ -1959,6 +1991,7 @@ private:
 			}, null);
 		}
 		void refreshAddHand() { mixin(S_TRACE);
+			assert (editMode);
 			if (!_summ) return;
 			foreach (itm; _addHandMenu.getItems()) { mixin(S_TRACE);
 				itm.dispose();
@@ -1968,6 +2001,7 @@ private:
 			}
 		}
 		public void removeRef() { mixin(S_TRACE);
+			assert (editMode);
 			auto card = selection;
 			if (!card || 0 == card.linkId) return;
 			auto targ = pOwnerCard(card.linkId);
@@ -1986,43 +2020,43 @@ private:
 		}
 		@property
 		public bool canRemoveRef() { mixin(S_TRACE);
+			assert (editMode);
 			return selection && 0 != selection.linkId && pOwnerCard(selection.linkId);
 		}
 	}
 public:
-	static if (!EditMode) {
-		static if (is (C == CastCard)) {
-			this (Commons comm, Props prop, PCardOwner summ, Composite parent, int style, ToCardOwner toc, void delegate() openHand) { mixin(S_TRACE);
-				_parent = parent;
-				_toc = toc;
-				_openHand = openHand;
-				_skinTemp = comm.findSkinFromHistory(summ);
-				construct1(comm, prop, summ, style);
-			}
-		} else {
-			this (Commons comm, Props prop, PCardOwner summ, Composite parent, int style, ToCardOwner toc) { mixin(S_TRACE);
-				_parent = parent;
-				_toc = toc;
-				_skinTemp = comm.findSkinFromHistory(summ);
-				construct1(comm, prop, summ, style);
-			}
-		}
-		void construct() { mixin(S_TRACE);
-			reconstruct(_parent, _style);
-		}
-	} else static if (is (C : Card)) {
-		this (Commons comm, Props prop, PCardOwner summ, Composite parent, int style) { mixin(S_TRACE);
+	static if (is (C == CastCard)) {
+		this (Commons comm, Props prop, PCardOwner summ, Composite parent, int style, Summary toc, void delegate() openHand) { mixin(S_TRACE);
 			_parent = parent;
+			_toc = toc;
+			assert (!editMode);
+			_openHand = openHand;
+			_skinTemp = comm.findSkinFromHistory(summ);
 			construct1(comm, prop, summ, style);
 		}
-		void construct() { mixin(S_TRACE);
-			reconstruct(_parent, _style);
+	} else {
+		this (Commons comm, Props prop, PCardOwner summ, Composite parent, int style, Summary toc) { mixin(S_TRACE);
+			_parent = parent;
+			_toc = toc;
+			assert (!editMode);
+			_skinTemp = comm.findSkinFromHistory(summ);
+			construct1(comm, prop, summ, style);
 		}
-	} else static assert (0);
+	}
+	this (Commons comm, Props prop, PCardOwner summ, Composite parent, int style) { mixin(S_TRACE);
+		_parent = parent;
+		construct1(comm, prop, summ, style);
+		assert (editMode);
+	}
 
-	static if (EditMode && is(C:EventTreeOwner)) {
+	void construct() { mixin(S_TRACE);
+		reconstruct(_parent, _style);
+	}
+
+	static if (is(C:EventTreeOwner)) {
 		void refEventTree(EventTree et) { mixin(S_TRACE);
-			if (cast(C) et.owner || et.owner is null) { mixin(S_TRACE);
+			assert (editMode);
+			if (cast(C)et.owner || et.owner is null) { mixin(S_TRACE);
 				refreshImpl();
 			}
 		}
@@ -2036,27 +2070,29 @@ public:
 		.listener(_list, SWT.Dispose, { mixin(S_TRACE);
 			_comm.refCardImageStatus.remove(&refreshImpl);
 		});
-		static if (EditMode && is(C:EventTreeOwner)) {
-			_comm.refEventTree.add(&refEventTree);
-			_comm.delEventTree.add(&refEventTree);
-			.listener(_list, SWT.Dispose, { mixin(S_TRACE);
-				_comm.refEventTree.remove(&refEventTree);
-				_comm.delEventTree.remove(&refEventTree);
-			});
-		}
-		static if (EditMode && is(PCardOwner == Summary)) {
-			_comm.refSkin.add(&refreshImpl);
-			_comm.delPaths.add(&refreshImpl);
-			_comm.replPath.add(&refreshR);
-			_comm.replText.add(&refreshImpl);
-			_list.addDisposeListener(new class DisposeListener {
-				override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-					_comm.refSkin.remove(&refreshImpl);
-					_comm.delPaths.remove(&refreshImpl);
-					_comm.replPath.remove(&refreshR);
-					_comm.replText.remove(&refreshImpl);
-				}
-			});
+		if (editMode) { mixin(S_TRACE);
+			static if (is(C:EventTreeOwner)) {
+				_comm.refEventTree.add(&refEventTree);
+				_comm.delEventTree.add(&refEventTree);
+				.listener(_list, SWT.Dispose, { mixin(S_TRACE);
+					_comm.refEventTree.remove(&refEventTree);
+					_comm.delEventTree.remove(&refEventTree);
+				});
+			}
+			static if (is(PCardOwner == Summary)) {
+				_comm.refSkin.add(&refreshImpl);
+				_comm.delPaths.add(&refreshImpl);
+				_comm.replPath.add(&refreshR);
+				_comm.replText.add(&refreshImpl);
+				_list.addDisposeListener(new class DisposeListener {
+					override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+						_comm.refSkin.remove(&refreshImpl);
+						_comm.delPaths.remove(&refreshImpl);
+						_comm.replPath.remove(&refreshR);
+						_comm.replText.remove(&refreshImpl);
+					}
+				});
+			}
 		}
 		static if (is(typeof(COL_UC))) {
 			_comm.refUseCount.add(&refreshUseCount);
@@ -2066,7 +2102,8 @@ public:
 				}
 			});
 		}
-		static if (EditMode) {
+		Menu pop;
+		if (editMode) { mixin(S_TRACE);
 			_comm.refScenario.add(&refScenario);
 			static if (is (C == CastCard)) {
 				_comm.refCast.add(&refCardCallback);
@@ -2106,7 +2143,7 @@ public:
 					}
 				}
 			});
-			auto pop = new Menu(parent.getShell(), SWT.POP_UP);
+			pop = new Menu(parent.getShell(), SWT.POP_UP);
 			createMenuItem(_comm, pop, MenuID.IncSearch, &incSearch, null);
 			new MenuItem(pop, SWT.SEPARATOR);
 			static if (is (C == CastCard)) {
@@ -2134,7 +2171,7 @@ public:
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
-			static if (CanHold && EditMode) {
+			static if (CanHold) {
 				new MenuItem(pop, SWT.SEPARATOR);
 				auto holdMI = createMenuItem(_comm, pop, MenuID.Hold, &hold, () => selection !is null, SWT.CHECK);
 				.listener(pop, SWT.Show, { mixin(S_TRACE);
@@ -2142,7 +2179,7 @@ public:
 					holdMI.setSelection(card && card.hold);
 				});
 			}
-			static if (is(CardOwner:CastCard) && EditMode) {
+			static if (is(CardOwner:CastCard)) {
 				new MenuItem(pop, SWT.SEPARATOR);
 				void delegate(SelectionEvent) dummy = null;
 				auto addHandMI = createMenuItem(_comm, pop, MenuID.AddHand, dummy, () => _owner && _summ && pOwnerCards.length, SWT.CASCADE);
@@ -2158,14 +2195,14 @@ public:
 			appendMenuTCPD(_comm, pop, this, true, true, true, true, true);
 			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
-			static if (is(CardOwner:Summary) && EditMode) {
+			static if (is(CardOwner:Summary)) {
 				new MenuItem(pop, SWT.SEPARATOR);
 				createMenuItem(_comm, pop, MenuID.FindID, &replaceID, &canReplaceID);
 			}
 			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.ReNumbering, &reNumbering, &canReNumbering);
 		} else { mixin(S_TRACE);
-			auto pop = new Menu(parent.getShell(), SWT.POP_UP);
+			pop = new Menu(parent.getShell(), SWT.POP_UP);
 			createMenuItem(_comm, pop, MenuID.IncSearch, &incSearch, null);
 			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.Import, &doImport, &canDoImport);
@@ -2227,26 +2264,26 @@ public:
 		}
 		refreshStatusLine();
 	}
-	static if (EditMode){
-		private void refCardCallback(Object sender, C c) { mixin(S_TRACE);
-			if (sender is this) return;
-			static if (is(CardOwner:CastCard) && EditMode) {
-				refreshAddHand();
-			}
-			refresh(c);
-			sort();
+	private void refCardCallback(Object sender, C c) { mixin(S_TRACE);
+		assert (editMode);
+		if (sender is this) return;
+		static if (is(CardOwner:CastCard)) {
+			refreshAddHand();
 		}
-		static if (is(C:EffectCard)) {
-			private void delCardCallback(Object sender, CWXPath owner, C c) { mixin(S_TRACE);
-				if (sender is this) return;
-				if (!cast(Summary)owner) return;
-				foreach (card; cards) { mixin(S_TRACE);
-					if (card.linkId == c.id) { mixin(S_TRACE);
-						refresh(card);
-					}
+		refresh(c);
+		sort();
+	}
+	static if (is(C:EffectCard)) {
+		private void delCardCallback(Object sender, CWXPath owner, C c) { mixin(S_TRACE);
+			assert (editMode);
+			if (sender is this) return;
+			if (!cast(Summary)owner) return;
+			foreach (card; cards) { mixin(S_TRACE);
+				if (card.linkId == c.id) { mixin(S_TRACE);
+					refresh(card);
 				}
-				sort();
 			}
+			sort();
 		}
 	}
 	void showCardLife() { mixin(S_TRACE);
@@ -2381,190 +2418,200 @@ public:
 			}
 		}
 	}
-	static if (EditMode) {
-		void open(bool shellActivate) { mixin(S_TRACE);
-			static if (is(CardOwner : Summary)) {
-				static if (is(C : CastCard)) {
-					_comm.openCastWin(shellActivate);
-				} else static if(is(C : SkillCard)) { mixin(S_TRACE);
-					_comm.openSkillWin(shellActivate);
-				} else static if(is(C : ItemCard)) { mixin(S_TRACE);
-					_comm.openItemWin(shellActivate);
-				} else static if(is(C : BeastCard)) { mixin(S_TRACE);
-					_comm.openBeastWin(shellActivate);
-				} else static if(is(C : InfoCard)) { mixin(S_TRACE);
-					_comm.openInfoWin(shellActivate);
-				} else static assert (0);
-			} else static if (is(CardOwner : CastCard)) {
-				auto cWin = _comm.handCardWindowFrom(_prop, _summ, _owner, true, shellActivate);
-				static if(is(C : SkillCard)) { mixin(S_TRACE);
-					cWin.open!(cWin.SKILL)(shellActivate);
-				} else static if (is(C : ItemCard)) {
-					cWin.open!(cWin.ITEM)(shellActivate);
-				} else static if (is(C : BeastCard)) {
-					cWin.open!(cWin.BEAST)(shellActivate);
-				}
+
+	void open(bool shellActivate) { mixin(S_TRACE);
+		assert (editMode);
+		static if (is(CardOwner : Summary)) {
+			static if (is(C : CastCard)) {
+				_comm.openCastWin(shellActivate);
+			} else static if(is(C : SkillCard)) { mixin(S_TRACE);
+				_comm.openSkillWin(shellActivate);
+			} else static if(is(C : ItemCard)) { mixin(S_TRACE);
+				_comm.openItemWin(shellActivate);
+			} else static if(is(C : BeastCard)) { mixin(S_TRACE);
+				_comm.openBeastWin(shellActivate);
+			} else static if(is(C : InfoCard)) { mixin(S_TRACE);
+				_comm.openInfoWin(shellActivate);
 			} else static assert (0);
-			_comm.refreshToolBar();
-		}
-		void create() { mixin(S_TRACE);
-			static if (is (C == CastCard)) {
-				auto c = new CastCard(0, "", "", "", 1, 1);
-				auto dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, null, false);
-			} else static if (is (C : EffectCard)) {
-				auto c = new C(0, "", "", "");
-				auto dlg = new EffectCardDialog!(C)(_comm, _prop, dlgParShl, _summ, null, false);
-			} else static if (is (C == InfoCard)) {
-				auto c = new InfoCard(0, "", "", "");
-				auto dlg = new InfoCardDialog(_comm, _prop, dlgParShl, _summ, null, false);
-			} else { mixin(S_TRACE);
-				static assert (0);
+		} else static if (is(CardOwner : CastCard)) {
+			auto cWin = _comm.handCardWindowFrom(_prop, _summ, _owner, true, shellActivate);
+			static if(is(C : SkillCard)) { mixin(S_TRACE);
+				cWin.open!(cWin.SKILL)(shellActivate);
+			} else static if (is(C : ItemCard)) {
+				cWin.open!(cWin.ITEM)(shellActivate);
+			} else static if (is(C : BeastCard)) {
+				cWin.open!(cWin.BEAST)(shellActivate);
 			}
-			dlg.appliedEvent ~= { mixin(S_TRACE);
-				open(false);
-				auto c = dlg.card;
-				ulong id;
-				static if (is(CardOwner : CastCard)) {
-					// CastCardは手札追加時にコピーを生成する
-					c = _owner.add(c);
-					dlg.card = c;
-				} else { mixin(S_TRACE);
-					_owner.add(c);
-				}
-				storeInsert([c.id]);
-				refresh();
-				selectID(c.id);
-				static if (is(C : CastCard)) {
-					_comm.refCast.call(this, c);
-				} else static if(is(C : SkillCard)) { mixin(S_TRACE);
-					_comm.refSkill.call(this, c);
-				} else static if(is(C : ItemCard)) { mixin(S_TRACE);
-					_comm.refItem.call(this, c);
-				} else static if(is(C : BeastCard)) { mixin(S_TRACE);
-					_comm.refBeast.call(this, c);
-				} else static if(is(C : InfoCard)) { mixin(S_TRACE);
-					_comm.refInfo.call(this, c);
-				} else static assert (0);
-				static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
-					_comm.refCast.call(_owner);
-				}
-				_comm.refreshToolBar();
-				dlg.appliedEvent.length = 0;
-				dlg.applyEvent ~= { mixin(S_TRACE);
-					storeEdit(c.id);
-				};
-				dlg.appliedEvent ~= { mixin(S_TRACE);
-					refresh();
-					refCard(c);
-					_comm.refreshToolBar();
-				};
-			};
-			_editDlgs[c] = dlg;
-			dlg.closeEvent ~= { mixin(S_TRACE);
-				_editDlgs.remove(c);
-			};
-			dlg.open();
+		} else static assert (0);
+		_comm.refreshToolBar();
+	}
+	void create() { mixin(S_TRACE);
+		assert (editMode);
+		static if (is (C == CastCard)) {
+			auto c = new CastCard(0, "", "", "", 1, 1);
+			auto dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, null, false);
+		} else static if (is (C : EffectCard)) {
+			auto c = new C(0, "", "", "");
+			auto dlg = new EffectCardDialog!(C)(_comm, _prop, dlgParShl, _summ, null, false);
+		} else static if (is (C == InfoCard)) {
+			auto c = new InfoCard(0, "", "", "");
+			auto dlg = new InfoCardDialog(_comm, _prop, dlgParShl, _summ, null, false);
+		} else { mixin(S_TRACE);
+			static assert (0);
 		}
-		bool addFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
-			C[] adds;
-			bool inPane = false;
-			if (node.attr("summId", false) != ownerId) { mixin(S_TRACE);
-				node.onTag[C.XML_NAME] = (ref XNode cNode) { mixin(S_TRACE);
-					adds ~= C.createFromNode(cNode, ver);
-				};
-				node.parse();
-				if (!qCardMaterialCopy(node, adds)) return false;
-			} else { mixin(S_TRACE);
-				node.onTag[C.XML_NAME] = (ref XNode cNode) { mixin(S_TRACE);
-					auto card = C.createFromNode(cNode, ver);
-					if (cNode.attr("paneId", false) != _id || localCard(card.id)) { mixin(S_TRACE);
-						adds ~= card;
-					} else { mixin(S_TRACE);
-						static if (is (CardOwner == Summary)) inPane = true;
-						adds ~= card;
-					}
-				};
-				node.parse();
-			}
-			if (adds.length == 0) return false;
+		dlg.appliedEvent ~= { mixin(S_TRACE);
 			open(false);
-			bool samePane = _id == node.attr("paneId", false);
-			bool sameSc = ownerId == node.attr("summId", false);
-			bool topLevel = node.attr!bool("topLevel", false, false);
-			addCardsImpl(adds, inPane, samePane, sameSc, topLevel);
-			return true;
-		}
-		void addCards(C[] cs) { mixin(S_TRACE);
-			addCardsImpl(cs, false, false, false, true);
-		}
-		void addCardsImpl(C[] adds, bool inPane, bool samePane, bool sameSc, bool topLevel) { mixin(S_TRACE);
-			ulong[] ids;
-			foreach (card; adds) { mixin(S_TRACE);
-				refreshLink(card, samePane, sameSc, topLevel);
-				static if (is(CardOwner:Summary)) {
-					ulong oldId = _owner.add(card);
-					if (inPane) { mixin(S_TRACE);
-						// 同じペイン内でコピー&ペースト
-						_owner.useCounter.change(C.toID(oldId), C.toID(card.id));
-					}
-				} else { mixin(S_TRACE);
-					card = _owner.add(card);
-				}
-				ids ~= card.id;
-				static if (is(C : CastCard)) {
-					_comm.refCast.call(this, card);
-				} else static if(is(C : SkillCard)) { mixin(S_TRACE);
-					_comm.refSkill.call(this, card);
-				} else static if(is(C : ItemCard)) { mixin(S_TRACE);
-					_comm.refItem.call(this, card);
-				} else static if(is(C : BeastCard)) { mixin(S_TRACE);
-					_comm.refBeast.call(this, card);
-				} else static if(is(C : InfoCard)) { mixin(S_TRACE);
-					_comm.refInfo.call(this, card);
-				} else static assert (0);
+			auto c = dlg.card;
+			ulong id;
+			static if (is(CardOwner : CastCard)) {
+				// CastCardは手札追加時にコピーを生成する
+				c = _owner.add(c);
+				dlg.card = c;
+			} else { mixin(S_TRACE);
+				_owner.add(c);
 			}
-			storeInsert(ids);
-			pasteRefresh(adds);
-			_comm.refUseCount.call();
+			storeInsert([c.id]);
+			refresh();
+			selectID(c.id);
+			static if (is(C : CastCard)) {
+				_comm.refCast.call(this, c);
+			} else static if(is(C : SkillCard)) { mixin(S_TRACE);
+				_comm.refSkill.call(this, c);
+			} else static if(is(C : ItemCard)) { mixin(S_TRACE);
+				_comm.refItem.call(this, c);
+			} else static if(is(C : BeastCard)) { mixin(S_TRACE);
+				_comm.refBeast.call(this, c);
+			} else static if(is(C : InfoCard)) { mixin(S_TRACE);
+				_comm.refInfo.call(this, c);
+			} else static assert (0);
 			static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
 				_comm.refCast.call(_owner);
 			}
-		}
-		void pasteRefresh(C[] cs) { mixin(S_TRACE);
-			if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
-				foreach (c; cs) { mixin(S_TRACE);
-					if (!_incSearch.match(cardName(c))) continue;
-					createTableItem(c);
-				}
-				_tbl.setSelection([_tbl.getItemCount() - 1]);
-				_tbl.showSelection();
-			} else { mixin(S_TRACE);
-				refresh();
-				_list.select(_list.count - 1);
-				_list.scroll(_list.count - 1);
-			}
-			refreshStatusLine();
 			_comm.refreshToolBar();
+			dlg.appliedEvent.length = 0;
+			dlg.applyEvent ~= { mixin(S_TRACE);
+				storeEdit(c.id);
+			};
+			dlg.appliedEvent ~= { mixin(S_TRACE);
+				refresh();
+				refCard(c);
+				_comm.refreshToolBar();
+			};
+		};
+		_editDlgs[c] = dlg;
+		dlg.closeEvent ~= { mixin(S_TRACE);
+			_editDlgs.remove(c);
+		};
+		dlg.open();
+	}
+	bool addFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
+		assert (editMode);
+		C[] adds;
+		bool inPane = false;
+		if (node.attr("summId", false) != ownerId) { mixin(S_TRACE);
+			node.onTag[C.XML_NAME] = (ref XNode cNode) { mixin(S_TRACE);
+				adds ~= C.createFromNode(cNode, ver);
+			};
+			node.parse();
+			if (!qCardMaterialCopy(node, adds)) return false;
+		} else { mixin(S_TRACE);
+			node.onTag[C.XML_NAME] = (ref XNode cNode) { mixin(S_TRACE);
+				auto card = C.createFromNode(cNode, ver);
+				if (cNode.attr("paneId", false) != _id || localCard(card.id)) { mixin(S_TRACE);
+					adds ~= card;
+				} else { mixin(S_TRACE);
+					static if (is (CardOwner == Summary)) inPane = true;
+					adds ~= card;
+				}
+			};
+			node.parse();
 		}
-	} else {
-		void doImport() { mixin(S_TRACE);
-			string[] paths;
-			foreach (card; selectedCards) { mixin(S_TRACE);
-				paths ~= card.cwxPath(true);
+		if (adds.length == 0) return false;
+		open(false);
+		bool samePane = _id == node.attr("paneId", false);
+		bool sameSc = ownerId == node.attr("summId", false);
+		bool topLevel = node.attr!bool("topLevel", false, false);
+		addCardsImpl(adds, inPane, samePane, sameSc, topLevel);
+		return true;
+	}
+	void addCards(C[] cs) { mixin(S_TRACE);
+		assert (editMode);
+		addCardsImpl(cs, false, false, false, true);
+	}
+	void addCardsImpl(C[] adds, bool inPane, bool samePane, bool sameSc, bool topLevel) { mixin(S_TRACE);
+		assert (editMode);
+		ulong[] ids;
+		foreach (card; adds) { mixin(S_TRACE);
+			refreshLink(card, samePane, sameSc, topLevel);
+			static if (is(CardOwner:Summary)) {
+				ulong oldId = _owner.add(card);
+				if (inPane) { mixin(S_TRACE);
+					// 同じペイン内でコピー&ペースト
+					_owner.useCounter.change(C.toID(oldId), C.toID(card.id));
+				}
+			} else { mixin(S_TRACE);
+				card = _owner.add(card);
 			}
-			_comm.doImport(_toc, _summ, paths);
+			ids ~= card.id;
+			static if (is(C : CastCard)) {
+				_comm.refCast.call(this, card);
+			} else static if(is(C : SkillCard)) { mixin(S_TRACE);
+				_comm.refSkill.call(this, card);
+			} else static if(is(C : ItemCard)) { mixin(S_TRACE);
+				_comm.refItem.call(this, card);
+			} else static if(is(C : BeastCard)) { mixin(S_TRACE);
+				_comm.refBeast.call(this, card);
+			} else static if(is(C : InfoCard)) { mixin(S_TRACE);
+				_comm.refInfo.call(this, card);
+			} else static assert (0);
 		}
-		@property
-		bool canDoImport() { mixin(S_TRACE);
-			return selection !is null;
+		storeInsert(ids);
+		pasteRefresh(adds);
+		_comm.refUseCount.call();
+		static if (is (CardOwner : CastCard) && is (C : BeastCard)) {
+			_comm.refCast.call(_owner);
 		}
 	}
+	void pasteRefresh(C[] cs) { mixin(S_TRACE);
+		assert (editMode);
+		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
+			foreach (c; cs) { mixin(S_TRACE);
+				if (!_incSearch.match(cardName(c))) continue;
+				createTableItem(c);
+			}
+			_tbl.setSelection([_tbl.getItemCount() - 1]);
+			_tbl.showSelection();
+		} else { mixin(S_TRACE);
+			refresh();
+			_list.select(_list.count - 1);
+			_list.scroll(_list.count - 1);
+		}
+		refreshStatusLine();
+		_comm.refreshToolBar();
+	}
+
+	void doImport() { mixin(S_TRACE);
+		assert (!editMode);
+		string[] paths;
+		foreach (card; selectedCards) { mixin(S_TRACE);
+			paths ~= card.cwxPath(true);
+		}
+		_comm.doImport(_toc, _summ, paths);
+	}
+	@property
+	bool canDoImport() { mixin(S_TRACE);
+		assert (!editMode);
+		return selection !is null;
+	}
+
 	void refreshAll(PCardOwner summ, CardOwner owner) { mixin(S_TRACE);
 		_owner = owner;
 		_summ = summ;
 		refresh();
-		static if (is(CardOwner:CastCard) && EditMode) {
-			refreshAddHand();
+		static if (is(CardOwner:CastCard)) {
+			if (editMode) { mixin(S_TRACE);
+				refreshAddHand();
+			}
 		}
 	}
 
@@ -2587,51 +2634,52 @@ public:
 		return r;
 	}
 
-	static if (EditMode) {
-		@property
-		bool canReNumbering() { mixin(S_TRACE);
-			return selection !is null;
-		}
-		void reNumbering() { mixin(S_TRACE);
+	@property
+	bool canReNumbering() { mixin(S_TRACE);
+		assert (editMode);
+		return selection !is null;
+	}
+	void reNumbering() { mixin(S_TRACE);
+		assert (editMode);
+		_incSearch.close();
+		auto index = selectionIndex;
+		auto dlg = new ReNumDialog!(C)(_prop, dlgParShl, _summ, cards[index],
+			index == 0 ? 1 : cards[index - 1].id + 1);
+		if (dlg.open()) { mixin(S_TRACE);
 			_incSearch.close();
-			auto index = selectionIndex;
-			auto dlg = new ReNumDialog!(C)(_prop, dlgParShl, _summ, cards[index],
-				index == 0 ? 1 : cards[index - 1].id + 1);
-			if (dlg.open()) { mixin(S_TRACE);
-				_incSearch.close();
-				reNumbering(index, dlg.newId);
+			reNumbering(index, dlg.newId);
+		}
+	}
+	void reNumbering(int index, ulong newId) { mixin(S_TRACE);
+		assert (editMode);
+		if (index < 0 || cards.length <= index) return;
+		if (newId == 0) return;
+		if (index > 0 && cards[index - 1].id >= newId) return;
+		auto undo = new UndoIDs(this, _comm, _owner);
+		ulong[] oldIDs;
+		for (size_t i = index; i < cards.length; i++) { mixin(S_TRACE);
+			oldIDs ~= cards[i].id;
+			static if (is (CardOwner : Summary)) {
+				ulong ni = ulong.max - cards.length + i;
+				owner.useCounter.change(C.toID(cards[i].id), C.toID(ni));
+				cards[i].id = ni;
 			}
 		}
-		void reNumbering(int index, ulong newId) { mixin(S_TRACE);
-			if (index < 0 || cards.length <= index) return;
-			if (newId == 0) return;
-			if (index > 0 && cards[index - 1].id >= newId) return;
-			auto undo = new UndoIDs(this, _comm, _owner);
-			ulong[] oldIDs;
-			for (size_t i = index; i < cards.length; i++) { mixin(S_TRACE);
-				oldIDs ~= cards[i].id;
-				static if (is (CardOwner : Summary)) {
-					ulong ni = ulong.max - cards.length + i;
-					owner.useCounter.change(C.toID(cards[i].id), C.toID(ni));
-					cards[i].id = ni;
-				}
+		bool refIDs = false;
+		for (size_t i = index; i < cards.length; i++) { mixin(S_TRACE);
+			if (oldIDs[i - index] != newId) { mixin(S_TRACE);
+				refIDs = true;
 			}
-			bool refIDs = false;
-			for (size_t i = index; i < cards.length; i++) { mixin(S_TRACE);
-				if (oldIDs[i - index] != newId) { mixin(S_TRACE);
-					refIDs = true;
-				}
-				static if (is (CardOwner : Summary)) {
-					owner.useCounter.change(C.toID(cards[i].id), C.toID(newId));
-				}
-				cards[i].id = newId;
-				refCard(cards[i]);
-				newId++;
+			static if (is (CardOwner : Summary)) {
+				owner.useCounter.change(C.toID(cards[i].id), C.toID(newId));
 			}
-			refreshIDs();
-			if (refIDs) _undo ~= undo;
-			_comm.refreshToolBar();
+			cards[i].id = newId;
+			refCard(cards[i]);
+			newId++;
 		}
+		refreshIDs();
+		if (refIDs) _undo ~= undo;
+		_comm.refreshToolBar();
 	}
 
 	static if (is (C == CastCard)) {
@@ -2650,7 +2698,7 @@ public:
 		}
 		static if (is(typeof(c.linkId))) {
 			if (0 != c.linkId) { mixin(S_TRACE);
-				static if (EditMode) {
+				if (editMode) { mixin(S_TRACE);
 					auto c2 = cardFrom(_summ, c.linkId);
 					if (c2) { mixin(S_TRACE);
 						_comm.openCWXPath(c2.cwxPath(true), false);
@@ -2670,13 +2718,13 @@ public:
 			}
 		}
 		static if (is (C == CastCard)) {
-			auto dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, c, !EditMode);
+			auto dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, c, !editMode);
 		} else static if (is (C : EffectCard)) {
-			auto dlg = new EffectCardDialog!(C)(_comm, _prop, dlgParShl, _summ, c, !EditMode);
+			auto dlg = new EffectCardDialog!(C)(_comm, _prop, dlgParShl, _summ, c, !editMode);
 		} else static if (is (C == InfoCard)) {
-			auto dlg = new InfoCardDialog(_comm, _prop, dlgParShl, _summ, c, !EditMode);
+			auto dlg = new InfoCardDialog(_comm, _prop, dlgParShl, _summ, c, !editMode);
 		} else static assert (0, typeof(C));
-		static if (EditMode) {
+		if (editMode) { mixin(S_TRACE);
 			dlg.applyEvent ~= { mixin(S_TRACE);
 				storeEdit(c.id);
 			};
@@ -2715,7 +2763,7 @@ public:
 		void editUseEvent(C c, bool canDuplicate = false) { mixin(S_TRACE);
 			static if (is(typeof(c.linkId))) {
 				if (0 != c.linkId) { mixin(S_TRACE);
-					static if (EditMode) {
+					if (editMode) { mixin(S_TRACE);
 						auto c2 = cardFrom(_summ, c.linkId);
 						if (c2) { mixin(S_TRACE);
 							_comm.openCWXPath(c2.cwxPath(true), false);
@@ -2739,75 +2787,80 @@ public:
 		}
 	}
 
-	static if (EditMode) {
-		static if (is (C == CastCard)) {
-			void editHand() { mixin(S_TRACE);
-				auto sel = selection;
-				if (sel) { mixin(S_TRACE);
-					_comm.openHands(_prop, _summ, sel, true);
-				}
+	static if (is (C == CastCard)) {
+		void editHand() { mixin(S_TRACE);
+			assert (editMode);
+			auto sel = selection;
+			if (sel) { mixin(S_TRACE);
+				_comm.openHands(_prop, _summ, sel, true);
 			}
-		}
-
-		private void udImpl(int index1, int index2) { mixin(S_TRACE);
-			if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return;
-			auto arr = cardsFrom(_owner);
-			if (index1 < 0 || arr.length <= index1) return;
-			if (index2 < 0 || arr.length <= index2) return;
-			int selIndex = index2;
-			if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
-				// ID昇順に変更
-				index1 = cast(int)arr.length - index1 - 1;
-				index2 = cast(int)arr.length - index2 - 1;
-			}
-			storeSwap(index1, index2);
-			_owner.swap!C(index1, index2);
-			refresh();
-			arr = cardsFrom(_owner);
-			refCard(arr[index1]);
-			refCard(arr[index2]);
-			select(selIndex);
-		}
-		bool canUp() { mixin(S_TRACE);
-			if (!_summ) return false;
-			if (!_tbl || !_list || !_incSearch) return false;
-			if (_tbl.isDisposed()) return false;
-			if (narrowCount != cards.length) return false;
-			if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return false;
-			int sel = selectionIndex;
-			return sel != -1 && 0 < sel;
-		}
-		bool canDown() { mixin(S_TRACE);
-			if (!_summ) return false;
-			if (!_tbl || !_list || !_incSearch) return false;
-			if (_tbl.isDisposed()) return false;
-			if (narrowCount != cards.length) return false;
-			if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return false;
-			int sel = selectionIndex;
-			return sel != -1 && sel + 1 < cards.length;
-		}
-		void up() { mixin(S_TRACE);
-			if (!canUp()) return;
-			int sel = selectionIndex;
-			if (-1 == sel) return;
-			udImpl(sel, sel - 1);
-			_comm.refreshToolBar();
-		}
-		void down() { mixin(S_TRACE);
-			if (!canDown()) return;
-			int sel = selectionIndex;
-			if (-1 == sel) return;
-			udImpl(sel, sel + 1);
-			_comm.refreshToolBar();
 		}
 	}
+
+	private void udImpl(int index1, int index2) { mixin(S_TRACE);
+		assert (editMode);
+		if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return;
+		auto arr = cardsFrom(_owner);
+		if (index1 < 0 || arr.length <= index1) return;
+		if (index2 < 0 || arr.length <= index2) return;
+		int selIndex = index2;
+		if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
+			// ID昇順に変更
+			index1 = cast(int)arr.length - index1 - 1;
+			index2 = cast(int)arr.length - index2 - 1;
+		}
+		storeSwap(index1, index2);
+		_owner.swap!C(index1, index2);
+		refresh();
+		arr = cardsFrom(_owner);
+		refCard(arr[index1]);
+		refCard(arr[index2]);
+		select(selIndex);
+	}
+	bool canUp() { mixin(S_TRACE);
+		assert (editMode);
+		if (!_summ) return false;
+		if (!_tbl || !_list || !_incSearch) return false;
+		if (_tbl.isDisposed()) return false;
+		if (narrowCount != cards.length) return false;
+		if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return false;
+		int sel = selectionIndex;
+		return sel != -1 && 0 < sel;
+	}
+	bool canDown() { mixin(S_TRACE);
+		assert (editMode);
+		if (!_summ) return false;
+		if (!_tbl || !_list || !_incSearch) return false;
+		if (_tbl.isDisposed()) return false;
+		if (narrowCount != cards.length) return false;
+		if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return false;
+		int sel = selectionIndex;
+		return sel != -1 && sel + 1 < cards.length;
+	}
+	void up() { mixin(S_TRACE);
+		assert (editMode);
+		if (!canUp()) return;
+		int sel = selectionIndex;
+		if (-1 == sel) return;
+		udImpl(sel, sel - 1);
+		_comm.refreshToolBar();
+	}
+	void down() { mixin(S_TRACE);
+		assert (editMode);
+		if (!canDown()) return;
+		int sel = selectionIndex;
+		if (-1 == sel) return;
+		udImpl(sel, sel + 1);
+		_comm.refreshToolBar();
+	}
+
 	bool isSelected() { mixin(S_TRACE);
 		return selectionIndex != -1;
 	}
 
 	override {
 		void cut(SelectionEvent se) { mixin(S_TRACE);
-			static if (EditMode) {
+			if (editMode) { mixin(S_TRACE);
 				foreach (c; _tcpd) { mixin(S_TRACE);
 					if (c.canDoTCPD) { mixin(S_TRACE);
 						c.cut(se);
@@ -2823,7 +2876,7 @@ public:
 			}
 		}
 		void paste(SelectionEvent se) { mixin(S_TRACE);
-			static if (EditMode) {
+			if (editMode) { mixin(S_TRACE);
 				foreach (c; _tcpd) { mixin(S_TRACE);
 					if (c.canDoTCPD) { mixin(S_TRACE);
 						c.paste(se);
@@ -2832,7 +2885,7 @@ public:
 			}
 		}
 		void del(SelectionEvent se) { mixin(S_TRACE);
-			static if (EditMode) {
+			if (editMode) { mixin(S_TRACE);
 				foreach (c; _tcpd) { mixin(S_TRACE);
 					if (c.canDoTCPD) { mixin(S_TRACE);
 						c.del(se);
@@ -2841,7 +2894,7 @@ public:
 			}
 		}
 		void clone(SelectionEvent se) { mixin(S_TRACE);
-			static if (EditMode) {
+			if (editMode) { mixin(S_TRACE);
 				foreach (c; _tcpd) { mixin(S_TRACE);
 					if (c.canDoTCPD) { mixin(S_TRACE);
 						c.clone(se);
@@ -2855,6 +2908,7 @@ public:
 		}
 		@property
 		bool canDoT() { mixin(S_TRACE);
+			if (!editMode) return false;
 			foreach (c; _tcpd) { mixin(S_TRACE);
 				if (c.canDoTCPD) return c.canDoT;
 			}
@@ -2869,6 +2923,7 @@ public:
 		}
 		@property
 		bool canDoP() { mixin(S_TRACE);
+			if (!editMode) return false;
 			foreach (c; _tcpd) { mixin(S_TRACE);
 				if (c.canDoTCPD) return c.canDoP;
 			}
@@ -2876,6 +2931,7 @@ public:
 		}
 		@property
 		bool canDoD() { mixin(S_TRACE);
+			if (!editMode) return false;
 			foreach (c; _tcpd) { mixin(S_TRACE);
 				if (c.canDoTCPD) return c.canDoD;
 			}
@@ -2883,62 +2939,70 @@ public:
 		}
 		@property
 		bool canDoClone() { mixin(S_TRACE);
+			if (!editMode) return false;
 			foreach (c; _tcpd) { mixin(S_TRACE);
 				if (c.canDoTCPD) return c.canDoClone;
 			}
 			return false;
 		}
 	}
-	static if (EditMode) {
-		void undo() { mixin(S_TRACE);
-			_undo.undo();
-			_comm.refreshToolBar();
-		}
-		void redo() { mixin(S_TRACE);
-			_undo.redo();
-			_comm.refreshToolBar();
-		}
-		bool canUndo() { mixin(S_TRACE);
-			return _undo.canUndo();
-		}
-		bool canRedo() { mixin(S_TRACE);
-			return _undo.canRedo();
-		}
 
-		void replaceID() {
-			auto sel = selection;
-			if (sel) _comm.replaceID(C.toID(sel.id), true);
-		}
-		@property
-		bool canReplaceID() {
-			return selection !is null;
-		}
+	void undo() { mixin(S_TRACE);
+		assert (editMode);
+		_undo.undo();
+		_comm.refreshToolBar();
+	}
+	void redo() { mixin(S_TRACE);
+		assert (editMode);
+		_undo.redo();
+		_comm.refreshToolBar();
+	}
+	bool canUndo() { mixin(S_TRACE);
+		assert (editMode);
+		return _undo.canUndo();
+	}
+	bool canRedo() { mixin(S_TRACE);
+		assert (editMode);
+		return _undo.canRedo();
+	}
 
-		@property
-		bool canSelectConnectedResource() { mixin(S_TRACE);
-			if (!selection) return false;
-			auto c = selection;
-			static if (is(typeof(c.linkId))) {
-				if (0 != c.linkId) { mixin(S_TRACE);
-					c = pOwnerCard(c.linkId);
-					if (!c) return false;
-				}
+	void replaceID() {
+		assert (editMode);
+		auto sel = selection;
+		if (sel) _comm.replaceID(C.toID(sel.id), true);
+	}
+	@property
+	bool canReplaceID() {
+		assert (editMode);
+		return selection !is null;
+	}
+
+	@property
+	bool canSelectConnectedResource() { mixin(S_TRACE);
+		assert (editMode);
+		if (!selection) return false;
+		auto c = selection;
+		static if (is(typeof(c.linkId))) {
+			if (0 != c.linkId) { mixin(S_TRACE);
+				c = pOwnerCard(c.linkId);
+				if (!c) return false;
 			}
-			return _summ.hasMaterial(c.connectedFile, _prop.var.etc.ignorePaths);
 		}
-		void selectConnectedResource() { mixin(S_TRACE);
-			if (!selection) return;
-			auto c = selection;
-			static if (is(typeof(c.linkId))) {
-				if (0 != c.linkId) { mixin(S_TRACE);
-					c = pOwnerCard(c.linkId);
-					if (!c) return;
-				}
+		return _summ.hasMaterial(c.connectedFile, _prop.var.etc.ignorePaths);
+	}
+	void selectConnectedResource() { mixin(S_TRACE);
+		assert (editMode);
+		if (!selection) return;
+		auto c = selection;
+		static if (is(typeof(c.linkId))) {
+			if (0 != c.linkId) { mixin(S_TRACE);
+				c = pOwnerCard(c.linkId);
+				if (!c) return;
 			}
-			auto file = c.connectedFile;
-			if (_summ.hasMaterial(file, _prop.var.etc.ignorePaths)) { mixin(S_TRACE);
-				_comm.openFilePath(file, false, true);
-			}
+		}
+		auto file = c.connectedFile;
+		if (_summ.hasMaterial(file, _prop.var.etc.ignorePaths)) { mixin(S_TRACE);
+			_comm.openFilePath(file, false, true);
 		}
 	}
 
@@ -2965,23 +3029,23 @@ public:
 	}
 }
 
-template CastCardPane(PCardOwner, CardOwner, ToCardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, CastCard, ToCardOwner) CastCardPane;
+template CastCardPane(PCardOwner, CardOwner) {
+	alias CardPane!(PCardOwner, CardOwner, CastCard) CastCardPane;
 }
-template SkillCardPane(PCardOwner, CardOwner, ToCardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, SkillCard, ToCardOwner) SkillCardPane;
+template SkillCardPane(PCardOwner, CardOwner) {
+	alias CardPane!(PCardOwner, CardOwner, SkillCard) SkillCardPane;
 }
-template ItemCardPane(PCardOwner, CardOwner, ToCardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, ItemCard, ToCardOwner) ItemCardPane;
+template ItemCardPane(PCardOwner, CardOwner) {
+	alias CardPane!(PCardOwner, CardOwner, ItemCard) ItemCardPane;
 }
-template BeastCardPane(PCardOwner, CardOwner, ToCardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, BeastCard, ToCardOwner) BeastCardPane;
+template BeastCardPane(PCardOwner, CardOwner) {
+	alias CardPane!(PCardOwner, CardOwner, BeastCard) BeastCardPane;
 }
-template InfoCardPane(PCardOwner, CardOwner, ToCardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, InfoCard, ToCardOwner) InfoCardPane;
+template InfoCardPane(PCardOwner, CardOwner) {
+	alias CardPane!(PCardOwner, CardOwner, InfoCard) InfoCardPane;
 }
-alias CastCardPane!(Summary, Summary, void) MainCastCardPane;
-alias SkillCardPane!(Summary, Summary, void) MainSkillCardPane;
-alias ItemCardPane!(Summary, Summary, void) MainItemCardPane;
-alias BeastCardPane!(Summary, Summary, void) MainBeastCardPane;
-alias InfoCardPane!(Summary, Summary, void) MainInfoCardPane;
+alias CastCardPane!(Summary, Summary) MainCastCardPane;
+alias SkillCardPane!(Summary, Summary) MainSkillCardPane;
+alias ItemCardPane!(Summary, Summary) MainItemCardPane;
+alias BeastCardPane!(Summary, Summary) MainBeastCardPane;
+alias InfoCardPane!(Summary, Summary) MainInfoCardPane;
