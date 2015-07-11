@@ -62,16 +62,33 @@ private:
 	static immutable CanHold = is(CardOwner:CastCard) && (is(C:SkillCard) || is(C:ItemCard));
 	static immutable UseNum = !is(C:InfoCard);
 
-	static immutable COL_ID = 0;
-	static immutable COL_NAME = 1;
-	static if (UseNum) {
-		static immutable COL_NUM = 2;
-		static immutable COL_DESC = 3;
-	} else {
-		static immutable COL_DESC = 2;
-	}
-	static if (is(CardOwner:Summary)) {
-		static immutable COL_UC = COL_DESC + 1;
+	@property
+	const
+	int colIndex(CardTableColumn col) { mixin(S_TRACE);
+		final switch (col) {
+		case CardTableColumn.ID:
+			return 0;
+		case CardTableColumn.Name:
+			return 1;
+		case CardTableColumn.Desc:
+			static if (UseNum) {
+				return 3;
+			} else {
+				return 2;
+			}
+		case CardTableColumn.UC:
+			static if (is(CardOwner:Summary)) {
+				return colIndex(CardTableColumn.Desc) + 1;
+			} else {
+				return -1;
+			}
+		case CardTableColumn.Num:
+			static if (UseNum) {
+				return 2;
+			} else {
+				return -1;
+			}
+		}
 	}
 	private static C[] cardsFrom(CardOwner)(CardOwner owner) { mixin(S_TRACE);
 		static if (is(C:CastCard)) {
@@ -557,22 +574,22 @@ private:
 			return false;
 		}
 	}
-	static if (is(typeof(COL_UC))) {
-		TableSorter!C _ucSorter;
-		bool compUC(const C c1, const C c2) { mixin(S_TRACE);
-			int uc1 = _summ.useCounter.get(C.toID(c1.id));
-			int uc2 = _summ.useCounter.get(C.toID(c2.id));
-			if (uc1 < uc2) return true;
-			if (uc1 > uc2) return false;
-			return compID(c1, c2);
-		}
-		bool revCompUC(const C c1, const C c2) { mixin(S_TRACE);
-			int uc1 = _summ.useCounter.get(C.toID(c2.id));
-			int uc2 = _summ.useCounter.get(C.toID(c1.id));
-			if (uc1 < uc2) return true;
-			if (uc1 > uc2) return false;
-			return compID(c1, c2);
-		}
+	TableSorter!C _ucSorter;
+	bool compUC(const C c1, const C c2) { mixin(S_TRACE);
+		assert (colIndex(CardTableColumn.UC) != -1);
+		int uc1 = _summ.useCounter.get(C.toID(c1.id));
+		int uc2 = _summ.useCounter.get(C.toID(c2.id));
+		if (uc1 < uc2) return true;
+		if (uc1 > uc2) return false;
+		return compID(c1, c2);
+	}
+	bool revCompUC(const C c1, const C c2) { mixin(S_TRACE);
+		assert (colIndex(CardTableColumn.UC) != -1);
+		int uc1 = _summ.useCounter.get(C.toID(c2.id));
+		int uc2 = _summ.useCounter.get(C.toID(c1.id));
+		if (uc1 < uc2) return true;
+		if (uc1 > uc2) return false;
+		return compID(c1, c2);
 	}
 	static if (UseNum) {
 		TableSorter!C _numSorter;
@@ -593,15 +610,11 @@ private:
 	}
 	CardTableColumn columnVal(TableColumn column) { mixin(S_TRACE);
 		int index = _tbl.indexOf(column);
-		if (index == COL_ID) return CardTableColumn.ID;
-		if (index == COL_NAME) return CardTableColumn.Name;
-		if (index == COL_DESC) return CardTableColumn.Desc;
-		static if (is(typeof(COL_UC))) {
-			if (index == COL_UC) return CardTableColumn.UC;
-		}
-		static if (is(typeof(COL_NUM))) {
-			if (index == COL_NUM) return CardTableColumn.Num;
-		}
+		if (index == colIndex(CardTableColumn.ID)) return CardTableColumn.ID;
+		if (index == colIndex(CardTableColumn.Name)) return CardTableColumn.Name;
+		if (index == colIndex(CardTableColumn.Desc)) return CardTableColumn.Desc;
+		if (index == colIndex(CardTableColumn.UC)) return CardTableColumn.UC;
+		if (index == colIndex(CardTableColumn.Num)) return CardTableColumn.Num;
 		assert (0);
 	}
 	static int columnToInt(CardTableColumn column) { mixin(S_TRACE);
@@ -618,20 +631,20 @@ private:
 		assert (value !is null, column.to!string());
 	} body { mixin(S_TRACE);
 		switch (column) {
-		case 0: return _tbl.getColumn(COL_ID);
-		case 1: return _tbl.getColumn(COL_NAME);
-		case 2: return _tbl.getColumn(COL_DESC);
+		case 0: return _tbl.getColumn(colIndex(CardTableColumn.ID));
+		case 1: return _tbl.getColumn(colIndex(CardTableColumn.Name));
+		case 2: return _tbl.getColumn(colIndex(CardTableColumn.Desc));
 		case 3:
-			static if (is(typeof(COL_UC))) {
-				return _tbl.getColumn(COL_UC);
+			if (colIndex(CardTableColumn.UC) != -1) { mixin(S_TRACE);
+				return _tbl.getColumn(colIndex(CardTableColumn.UC));
 			}
 			goto default;
 		case 4:
-			static if (UseNum && is(typeof(COL_NUM))) {
-				return _tbl.getColumn(COL_NUM);
+			if (UseNum && colIndex(CardTableColumn.Num) != -1) { mixin(S_TRACE);
+				return _tbl.getColumn(colIndex(CardTableColumn.Num));
 			}
 			goto default;
-		default: return _tbl.getColumn(COL_ID);
+		default: return _tbl.getColumn(colIndex(CardTableColumn.ID));
 		}
 	}
 
@@ -643,7 +656,7 @@ private:
 		} else if (_tbl.getSortColumn() is _descSorter.column) { mixin(S_TRACE);
 			_descSorter.doSort(_tbl.getSortDirection());
 		} else { mixin(S_TRACE);
-			static if (is(typeof(COL_UC))) {
+			if (colIndex(CardTableColumn.UC) != -1) {
 				if (_tbl.getSortColumn() is _ucSorter.column) { mixin(S_TRACE);
 					_ucSorter.doSort(_tbl.getSortDirection());
 				}
@@ -664,7 +677,7 @@ private:
 		} else if (_tbl.getSortColumn() is _descSorter.column) { mixin(S_TRACE);
 			minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompDesc : &compDesc;
 		} else { mixin(S_TRACE);
-			static if (is(typeof(COL_UC))) {
+			if (colIndex(CardTableColumn.UC) != -1) {
 				if (_tbl.getSortColumn() is _ucSorter.column) { mixin(S_TRACE);
 					minL = _tbl.getSortDirection() == SWT.DOWN ? &revCompUC : &compUC;
 				}
@@ -846,9 +859,9 @@ private:
 		_list.refresh(index, card);
 	}
 	void refreshTableItem(C c, TableItem itm) { mixin(S_TRACE);
-		itm.setImage(COL_ID, _cimg);
-		itm.setText(COL_ID, to!(string)(c.id));
-		itm.setText(COL_NAME, cardName(c));
+		itm.setImage(colIndex(CardTableColumn.ID), _cimg);
+		itm.setText(colIndex(CardTableColumn.ID), to!(string)(c.id));
+		itm.setText(colIndex(CardTableColumn.Name), cardName(c));
 		string desc = cardDesc(c).singleLine;
 		static if (is(C:EventTreeOwner)) {
 			auto c2 = c;
@@ -858,21 +871,21 @@ private:
 				}
 			}
 			if (c2 && _prop.var.etc.showEventTreeMark && ((_prop.var.etc.ignoreEmptyStart ? !c2.isEmpty : 0 < c2.trees.length))) { mixin(S_TRACE);
-				itm.setImage(COL_DESC, _prop.images.eventTree);
+				itm.setImage(colIndex(CardTableColumn.Desc), _prop.images.eventTree);
 			} else { mixin(S_TRACE);
-				itm.setImage(COL_DESC, null);
+				itm.setImage(colIndex(CardTableColumn.Desc), null);
 			}
 		}
-		itm.setText(COL_DESC, desc);
-		static if (is(typeof(COL_UC))) {
-			itm.setText(COL_UC, to!(string)(_summ.useCounter.get(C.toID(c.id))));
+		itm.setText(colIndex(CardTableColumn.Desc), desc);
+		if (colIndex(CardTableColumn.UC) != -1) { mixin(S_TRACE);
+			itm.setText(colIndex(CardTableColumn.UC), to!(string)(_summ.useCounter.get(C.toID(c.id))));
 		}
 		static if (UseNum) {
 			auto num = cardNum(c);
 			static if (is(typeof(c.level))) {
-				itm.setText(COL_NUM, to!string(num));
+				itm.setText(colIndex(CardTableColumn.Num), to!string(num));
 			} else { mixin(S_TRACE);
-				itm.setText(COL_NUM, 0 < num ? to!string(num) : _prop.msgs.infinity);
+				itm.setText(colIndex(CardTableColumn.Num), 0 < num ? to!string(num) : _prop.msgs.infinity);
 			}
 		}
 		itm.setData(c);
@@ -886,7 +899,7 @@ private:
 		} else { mixin(S_TRACE);
 			bool warn = w > _prop.looks.nameLimit;
 		}
-		itm.setImage(COL_NAME, warn ? _prop.images.warning : null);
+		itm.setImage(colIndex(CardTableColumn.Name), warn ? _prop.images.warning : null);
 	}
 	template CopyAndPaste() {
 		override void cut(SelectionEvent se) { mixin(S_TRACE);
@@ -1368,7 +1381,7 @@ private:
 		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
 			foreach (i, itm; _tbl.getItems()) { mixin(S_TRACE);
 				auto c = cast(C)itm.getData();
-				itm.setText(COL_ID, to!(string)(c.id));
+				itm.setText(colIndex(CardTableColumn.ID), to!(string)(c.id));
 			}
 		}
 	}
@@ -1567,12 +1580,12 @@ private:
 			static if (is(C:EventTreeOwner)) {
 				if (!editMode) return;
 				auto itm = _tbl.getItem(new Point(e.x, e.y));
-				if (!itm || !itm.getImage(COL_DESC)) { mixin(S_TRACE);
+				if (!itm || !itm.getImage(colIndex(CardTableColumn.Desc))) { mixin(S_TRACE);
 					_tbl.setCursor(null);
 					_openEventTarget = null;
 					return;
 				}
-				auto rect = itm.getImageBounds(COL_DESC);
+				auto rect = itm.getImageBounds(colIndex(CardTableColumn.Desc));
 				if (rect && rect.contains(e.x, e.y)) { mixin(S_TRACE);
 					_tbl.setCursor(_list.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 					_openEventTarget = cast(C)itm.getData();
@@ -1651,7 +1664,7 @@ private:
 			_descSorter.doSort(dir);
 			break;
 		case CardTableColumn.UC:
-			static if (is(typeof(COL_UC))) {
+			if (colIndex(CardTableColumn.UC) != -1) { mixin(S_TRACE);
 				_ucSorter.doSort(dir);
 				break;
 			} else assert (0);
@@ -1760,16 +1773,17 @@ private:
 		auto descCol = new TableColumn(_tbl, SWT.NONE);
 		descCol.setText(_prop.msgs.cardDesc);
 
-		static if (is(typeof(COL_UC))) {
-			auto ucCol = new TableColumn(_tbl, SWT.NONE);
+		TableColumn ucCol = null;
+		if (colIndex(CardTableColumn.UC) != -1) { mixin(S_TRACE);
+			ucCol = new TableColumn(_tbl, SWT.NONE);
 			ucCol.setText(_prop.msgs.cardCount);
 		}
 		_comm.refCardTableColumnWidth.add(&refColumnWidth);
 		_tbl.addDisposeListener(new DisposeTable);
 		if (editMode) { mixin(S_TRACE);
-			new TableTextEdit(_comm, _prop, _tbl, COL_NAME, &nameEditEnd, &canEditT);
+			new TableTextEdit(_comm, _prop, _tbl, colIndex(CardTableColumn.Name), &nameEditEnd, &canEditT);
 			static if (UseNum) {
-				new TableTCEdit(_comm, _tbl, COL_NUM, &numCreateEditor, &numEditEnd, &canEditT);
+				new TableTCEdit(_comm, _tbl, colIndex(CardTableColumn.Num), &numCreateEditor, &numEditEnd, &canEditT);
 			}
 		}
 
@@ -1820,7 +1834,7 @@ private:
 		_nameSorter.sortedEvent ~= &sorted;
 		_descSorter = new TableSorter!C(descCol, &compDesc, &revCompDesc);
 		_descSorter.sortedEvent ~= &sorted;
-		static if (is(typeof(COL_UC))) {
+		if (ucCol) { mixin(S_TRACE);
 			_ucSorter = new TableSorter!C(ucCol, &compUC, &revCompUC);
 			_ucSorter.sortedEvent ~= &sorted;
 		}
@@ -1874,7 +1888,7 @@ private:
 				nameCol.addControlListener(new ColResize!("importCardNameColumn"));
 				descCol.setWidth(_prop.var.etc.importCardDescriptionColumn);
 				descCol.addControlListener(new ColResize!("importCardDescriptionColumn"));
-				static if (is(typeof(COL_UC))) {
+				if (colIndex(CardTableColumn.UC) != -1) { mixin(S_TRACE);
 					ucCol.setWidth(_prop.var.etc.importCardCountColumn);
 					ucCol.addControlListener(new ColResize!("importCardCountColumn"));
 				}
@@ -2092,7 +2106,7 @@ public:
 				}
 			});
 		}
-		static if (is(typeof(COL_UC))) {
+		if (colIndex(CardTableColumn.UC) != -1) { mixin(S_TRACE);
 			_comm.refUseCount.add(&refreshUseCount);
 			_list.addDisposeListener(new class DisposeListener {
 				override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
@@ -2406,13 +2420,12 @@ public:
 		}
 	}
 
-	static if (is(typeof(COL_UC))) {
-		private void refreshUseCount() { mixin(S_TRACE);
-			if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
-				foreach (itm; _tbl.getItems()) { mixin(S_TRACE);
-					auto c = cast(C) itm.getData();
-					itm.setText(COL_UC, to!(string)(_summ.useCounter.get(C.toID(c.id))));
-				}
+	private void refreshUseCount() { mixin(S_TRACE);
+		assert (colIndex(CardTableColumn.UC) != -1);
+		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
+			foreach (itm; _tbl.getItems()) { mixin(S_TRACE);
+				auto c = cast(C) itm.getData();
+				itm.setText(colIndex(CardTableColumn.UC), to!(string)(_summ.useCounter.get(C.toID(c.id))));
 			}
 		}
 	}
@@ -2620,14 +2633,14 @@ public:
 	@property
 	TableColumn[CardTableColumn] columns() { mixin(S_TRACE);
 		TableColumn[CardTableColumn] r;
-		r[CardTableColumn.ID] = _tbl.getColumn(COL_ID);
-		r[CardTableColumn.Name] = _tbl.getColumn(COL_NAME);
-		r[CardTableColumn.Desc] = _tbl.getColumn(COL_DESC);
-		static if (is(typeof(COL_UC))) {
-			r[CardTableColumn.UC] = _tbl.getColumn(COL_UC);
+		r[CardTableColumn.ID] = _tbl.getColumn(colIndex(CardTableColumn.ID));
+		r[CardTableColumn.Name] = _tbl.getColumn(colIndex(CardTableColumn.Name));
+		r[CardTableColumn.Desc] = _tbl.getColumn(colIndex(CardTableColumn.Desc));
+		if (colIndex(CardTableColumn.UC) != -1) { mixin(S_TRACE);
+			r[CardTableColumn.UC] = _tbl.getColumn(colIndex(CardTableColumn.UC));
 		}
-		static if (is(typeof(COL_NUM))) {
-			r[CardTableColumn.Num] = _tbl.getColumn(COL_NUM);
+		if (colIndex(CardTableColumn.Num) != -1) { mixin(S_TRACE);
+			r[CardTableColumn.Num] = _tbl.getColumn(colIndex(CardTableColumn.Num));
 		}
 		return r;
 	}
