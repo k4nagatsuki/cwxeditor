@@ -163,7 +163,7 @@ string debugString(T)(ref T v) {
 		if (v.info) {
 			foreach (file; v.info) {
 				if (trace.length) {
-					trace ~= " - ".dup;
+					trace ~= "\n".dup;
 				}
 				try {
 					for (size_t i = 0; i < file.length; i++) {
