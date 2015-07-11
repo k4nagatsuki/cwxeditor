@@ -79,7 +79,7 @@ enum CardWindowKind {
 }
 
 /// カード関係の表示・編集領域。
-class CardWindow(CardWindowKind CWKind, PCardOwner, CardOwner, ToCardOwner, bool WithArea, Cards ...)
+class CardWindow(CardWindowKind CWKind, CardOwner, ToCardOwner, bool WithArea, Cards ...)
 		: TopLevelPanel, TCPD, ICardWindow {
 private:
 	static const bool EditMode = is (ToCardOwner == void);
@@ -90,7 +90,7 @@ private:
 	static const bool UseInfo = IndexOf!(InfoCard, Cards) >= 0;
 
 	template Pane(Card) {
-		mixin ("alias " ~ Card.stringof ~ "Pane!(PCardOwner, CardOwner) Pane;");
+		mixin ("alias " ~ Card.stringof ~ "Pane!(CardOwner) Pane;");
 	}
 
 	template CTypes(int Index, Cards ...) {
@@ -134,7 +134,7 @@ private:
 	SBShell _sbshl;
 	Composite _win;
 	Composite _comp;
-	PCardOwner _summ;
+	Summary _summ;
 	CardOwner _owner;
 	Commons _comm;
 
@@ -237,11 +237,11 @@ public:
 				if (_owner) refresh(_owner);
 			}
 		} else {
-			this(Commons comm, Props prop, PCardOwner summ, Composite parent) { mixin(S_TRACE);
+			this(Commons comm, Props prop, Summary summ, Composite parent) { mixin(S_TRACE);
 				construct(comm, prop, summ, parent);
 			}
 		}
-		void construct(Commons comm, Props prop, PCardOwner summ, Composite parent) { mixin(S_TRACE);
+		void construct(Commons comm, Props prop, Summary summ, Composite parent) { mixin(S_TRACE);
 			_viewMode = CViewMode.INIT;
 			construct1(comm, prop, parent);
 			static if (is (CardOwner == Summary)) {
@@ -256,7 +256,7 @@ public:
 					});
 				}
 			}
-			static if (is (CardOwner == CastCard) && is (PCardOwner == Summary)) {
+			static if (is (CardOwner == CastCard)) {
 				_comm.refCast.add(&refOwner);
 				_comm.delCast.add(&delOwner);
 				_win.addDisposeListener(new class DisposeListener {
@@ -311,7 +311,7 @@ public:
 			}
 		}
 		this (Commons comm, Props prop,
-				Composite parent, PCardOwner summ, CardOwner owner, ToCardOwner toc) { mixin(S_TRACE);
+				Composite parent, Summary summ, CardOwner owner, ToCardOwner toc) { mixin(S_TRACE);
 			_toc = toc;
 			construct1(comm, prop, parent);
 			static if (is (CardOwner == CastCard)) {
@@ -592,7 +592,7 @@ public:
 	}
 
 	static if (EditMode && is(CardOwner : Summary)) {
-		CastCardPane!(PCardOwner, CardOwner) openCast(bool shellActivate) { mixin(S_TRACE);
+		CastCardPane!(CardOwner) openCast(bool shellActivate) { mixin(S_TRACE);
 			static if (UseCast) {
 				open!(CAST)(shellActivate);
 				return _pane[CAST];
@@ -600,7 +600,7 @@ public:
 				throw new Exception("can not open cast");
 			}
 		}
-		SkillCardPane!(PCardOwner, CardOwner) openSkill(bool shellActivate) { mixin(S_TRACE);
+		SkillCardPane!(CardOwner) openSkill(bool shellActivate) { mixin(S_TRACE);
 			static if (UseSkill) {
 				open!(SKILL)(shellActivate);
 				return _pane[SKILL];
@@ -608,7 +608,7 @@ public:
 				throw new Exception("can not open skill");
 			}
 		}
-		ItemCardPane!(PCardOwner, CardOwner) openItem(bool shellActivate) { mixin(S_TRACE);
+		ItemCardPane!(CardOwner) openItem(bool shellActivate) { mixin(S_TRACE);
 			static if (UseItem) {
 				open!(ITEM)(shellActivate);
 				return _pane[ITEM];
@@ -616,7 +616,7 @@ public:
 				throw new Exception("can not open item");
 			}
 		}
-		BeastCardPane!(PCardOwner, CardOwner) openBeast(bool shellActivate) { mixin(S_TRACE);
+		BeastCardPane!(CardOwner) openBeast(bool shellActivate) { mixin(S_TRACE);
 			static if (UseBeast) {
 				open!(BEAST)(shellActivate);
 				return _pane[BEAST];
@@ -624,7 +624,7 @@ public:
 				throw new Exception("can not open beast");
 			}
 		}
-		InfoCardPane!(PCardOwner, CardOwner) openInfo(bool shellActivate) { mixin(S_TRACE);
+		InfoCardPane!(CardOwner) openInfo(bool shellActivate) { mixin(S_TRACE);
 			static if (UseInfo) {
 				open!(INFO)(shellActivate);
 				return _pane[INFO];
@@ -634,31 +634,31 @@ public:
 		}
 		static if (UseCast) {
 			@property
-			CastCardPane!(PCardOwner, CardOwner) paneCast() { mixin(S_TRACE);
+			CastCardPane!(CardOwner) paneCast() { mixin(S_TRACE);
 				return _pane[CAST];
 			}
 		}
 		static if (UseSkill) {
 			@property
-			SkillCardPane!(PCardOwner, CardOwner) paneSkill() { mixin(S_TRACE);
+			SkillCardPane!(CardOwner) paneSkill() { mixin(S_TRACE);
 				return _pane[SKILL];
 			}
 		}
 		static if (UseItem) {
 			@property
-			ItemCardPane!(PCardOwner, CardOwner) paneItem() { mixin(S_TRACE);
+			ItemCardPane!(CardOwner) paneItem() { mixin(S_TRACE);
 				return _pane[ITEM];
 			}
 		}
 		static if (UseBeast) {
 			@property
-			BeastCardPane!(PCardOwner, CardOwner) paneBeast() { mixin(S_TRACE);
+			BeastCardPane!(CardOwner) paneBeast() { mixin(S_TRACE);
 				return _pane[BEAST];
 			}
 		}
 		static if (UseInfo) {
 			@property
-			InfoCardPane!(PCardOwner, CardOwner) paneInfo() { mixin(S_TRACE);
+			InfoCardPane!(CardOwner) paneInfo() { mixin(S_TRACE);
 				return _pane[INFO];
 			}
 		}
@@ -882,10 +882,11 @@ public:
 		return _owner;
 	}
 	@property
-	PCardOwner summary() { mixin(S_TRACE);
+	Summary summary() { mixin(S_TRACE);
 		return _summ;
 	}
-	static if (EditMode && is (CardOwner == CastCard) && is (PCardOwner == Summary)) {
+
+	static if (EditMode && is (CardOwner == CastCard)) {
 		private void refOwner(CastCard c) { mixin(S_TRACE);
 			if (_owner is c) { mixin(S_TRACE);
 				refreshM();
@@ -966,17 +967,17 @@ public:
 	}
 
 	static if (EditMode) {
-		static if (is (PCardOwner == Summary) && is (CardOwner == Summary)) {
+		static if (is (CardOwner == Summary)) {
 			void refresh(Summary summ) { mixin(S_TRACE);
 				refreshAll(summ, summ);
 			}
 		} else {
-			void refresh(PCardOwner summ, CardOwner owner) { mixin(S_TRACE);
+			void refresh(Summary summ, CardOwner owner) { mixin(S_TRACE);
 				refreshAll(summ, owner);
 			}
 		}
 	}
-	private void refreshAll(PCardOwner summ, CardOwner owner) { mixin(S_TRACE);
+	private void refreshAll(Summary summ, CardOwner owner) { mixin(S_TRACE);
 		_owner = owner;
 		_summ = summ;
 		foreach (f; _pane) { mixin(S_TRACE);
@@ -1308,23 +1309,21 @@ public:
 			}
 			return true;
 		}
-		static if (is(PCardOwner : Summary)) {
-			static if (UseCast && C == CAST) {
-				cate = cpcategory(path);
-				switch (cate) {
-				case "skillcard", "itemcard", "beastcard",
-						"skillcard:id", "itemcard:id", "beastcard:id",
-						"skillcardview", "itemcardview", "beastcardview": { mixin(S_TRACE);
-					if (!cphasattr(path, "nofocus")) forceFocus(_pane[C].widget, shellActivate);
-					return _comm.openHands(_prop, _summ, card, shellActivate).openCWXPath(path, shellActivate);
-				} break;
-				default: break;
-				}
-			} else static if (!UseInfo || C != INFO) {
-				if (cpcategory(path) == "event") { mixin(S_TRACE);
-					if (!cphasattr(path, "nofocus")) forceFocus(_pane[C].widget, shellActivate);
-					return _comm.openUseEvents(_prop, _summ, card, shellActivate, false).openCWXPath(path, shellActivate);
-				}
+		static if (UseCast && C == CAST) {
+			cate = cpcategory(path);
+			switch (cate) {
+			case "skillcard", "itemcard", "beastcard",
+					"skillcard:id", "itemcard:id", "beastcard:id",
+					"skillcardview", "itemcardview", "beastcardview": { mixin(S_TRACE);
+				if (!cphasattr(path, "nofocus")) forceFocus(_pane[C].widget, shellActivate);
+				return _comm.openHands(_prop, _summ, card, shellActivate).openCWXPath(path, shellActivate);
+			} break;
+			default: break;
+			}
+		} else static if (!UseInfo || C != INFO) {
+			if (cpcategory(path) == "event") { mixin(S_TRACE);
+				if (!cphasattr(path, "nofocus")) forceFocus(_pane[C].widget, shellActivate);
+				return _comm.openUseEvents(_prop, _summ, card, shellActivate, false).openCWXPath(path, shellActivate);
 			}
 		}
 		return false;
@@ -1385,14 +1384,14 @@ public:
 	}
 }
 
-alias CardWindow!(CardWindowKind.ImportSourceHand, Summary, CastCard, Summary, false, SkillCard, ItemCard, BeastCard) AddHandCardWindow;
-alias CardWindow!(CardWindowKind.Hand, Summary, CastCard, void, false, SkillCard, ItemCard, BeastCard) HandCardWindow;
-alias CardWindow!(CardWindowKind.Main, Summary, Summary, void, false, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) MainCardWindow;
-alias CardWindow!(CardWindowKind.Cast, Summary, Summary, void, false, CastCard) CastCardWindow;
-alias CardWindow!(CardWindowKind.Skill, Summary, Summary, void, false, SkillCard) SkillCardWindow;
-alias CardWindow!(CardWindowKind.Item, Summary, Summary, void, false, ItemCard) ItemCardWindow;
-alias CardWindow!(CardWindowKind.Beast, Summary, Summary, void, false, BeastCard) BeastCardWindow;
-alias CardWindow!(CardWindowKind.Info, Summary, Summary, void, false, InfoCard) InfoCardWindow;
+alias CardWindow!(CardWindowKind.ImportSourceHand, CastCard, Summary, false, SkillCard, ItemCard, BeastCard) AddHandCardWindow;
+alias CardWindow!(CardWindowKind.Hand, CastCard, void, false, SkillCard, ItemCard, BeastCard) HandCardWindow;
+alias CardWindow!(CardWindowKind.Main, Summary, void, false, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) MainCardWindow;
+alias CardWindow!(CardWindowKind.Cast, Summary, void, false, CastCard) CastCardWindow;
+alias CardWindow!(CardWindowKind.Skill, Summary, void, false, SkillCard) SkillCardWindow;
+alias CardWindow!(CardWindowKind.Item, Summary, void, false, ItemCard) ItemCardWindow;
+alias CardWindow!(CardWindowKind.Beast, Summary, void, false, BeastCard) BeastCardWindow;
+alias CardWindow!(CardWindowKind.Info, Summary, void, false, InfoCard) InfoCardWindow;
 
 private class DelTemp : DisposeListener {
 	private Summary _cc;
@@ -1410,7 +1409,7 @@ private class DelTemp : DisposeListener {
 }
 class AddCard {
 private:
-	alias CardWindow!(CardWindowKind.ImportSource, Summary, Summary, Summary, true, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) ACW;
+	alias CardWindow!(CardWindowKind.ImportSource, Summary, Summary, true, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) ACW;
 	static class AddS {
 		Commons comm;
 		Props prop;

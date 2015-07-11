@@ -54,7 +54,7 @@ import java.lang.all;
 enum CViewMode { INIT, LIFE, CARD, TABLE }
 enum CardTableColumn { ID, Name, Desc, UC, Num }
 
-private class CardPane(PCardOwner, CardOwner, C : Card) : TCPD {
+private class CardPane(CardOwner, C : Card) : TCPD {
 private:
 	@property
 	const
@@ -454,7 +454,7 @@ private:
 	Props _prop;
 	UndoManager _undo = null;
 	CardOwner _owner = null;
-	PCardOwner _summ = null;
+	Summary _summ = null;
 	void delegate(Shell) _save;
 	CardList!(C) _list;
 	Table _tbl;
@@ -1944,7 +1944,7 @@ private:
 		assert (editMode);
 		_undo.max = _prop.var.etc.undoMaxMainView;
 	}
-	private void construct1(Commons comm, Props prop, PCardOwner summ, int style) { mixin(S_TRACE);
+	private void construct1(Commons comm, Props prop, Summary summ, int style) { mixin(S_TRACE);
 		auto o = this;
 		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
 		_comm = comm;
@@ -2026,7 +2026,7 @@ private:
 	}
 public:
 	static if (is (C == CastCard)) {
-		this (Commons comm, Props prop, PCardOwner summ, Composite parent, int style, Summary toc, void delegate() openHand) { mixin(S_TRACE);
+		this (Commons comm, Props prop, Summary summ, Composite parent, int style, Summary toc, void delegate() openHand) { mixin(S_TRACE);
 			_parent = parent;
 			_toc = toc;
 			assert (!editMode);
@@ -2035,7 +2035,7 @@ public:
 			construct1(comm, prop, summ, style);
 		}
 	} else {
-		this (Commons comm, Props prop, PCardOwner summ, Composite parent, int style, Summary toc) { mixin(S_TRACE);
+		this (Commons comm, Props prop, Summary summ, Composite parent, int style, Summary toc) { mixin(S_TRACE);
 			_parent = parent;
 			_toc = toc;
 			assert (!editMode);
@@ -2043,7 +2043,7 @@ public:
 			construct1(comm, prop, summ, style);
 		}
 	}
-	this (Commons comm, Props prop, PCardOwner summ, Composite parent, int style) { mixin(S_TRACE);
+	this (Commons comm, Props prop, Summary summ, Composite parent, int style) { mixin(S_TRACE);
 		_parent = parent;
 		construct1(comm, prop, summ, style);
 		assert (editMode);
@@ -2079,20 +2079,18 @@ public:
 					_comm.delEventTree.remove(&refEventTree);
 				});
 			}
-			static if (is(PCardOwner == Summary)) {
-				_comm.refSkin.add(&refreshImpl);
-				_comm.delPaths.add(&refreshImpl);
-				_comm.replPath.add(&refreshR);
-				_comm.replText.add(&refreshImpl);
-				_list.addDisposeListener(new class DisposeListener {
-					override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-						_comm.refSkin.remove(&refreshImpl);
-						_comm.delPaths.remove(&refreshImpl);
-						_comm.replPath.remove(&refreshR);
-						_comm.replText.remove(&refreshImpl);
-					}
-				});
-			}
+			_comm.refSkin.add(&refreshImpl);
+			_comm.delPaths.add(&refreshImpl);
+			_comm.replPath.add(&refreshR);
+			_comm.replText.add(&refreshImpl);
+			_list.addDisposeListener(new class DisposeListener {
+				override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+					_comm.refSkin.remove(&refreshImpl);
+					_comm.delPaths.remove(&refreshImpl);
+					_comm.replPath.remove(&refreshR);
+					_comm.replText.remove(&refreshImpl);
+				}
+			});
 		}
 		static if (is(typeof(COL_UC))) {
 			_comm.refUseCount.add(&refreshUseCount);
@@ -2231,7 +2229,7 @@ public:
 		return _owner;
 	}
 	@property
-	PCardOwner summary() { mixin(S_TRACE);
+	Summary summary() { mixin(S_TRACE);
 		return _summ;
 	}
 	@property
@@ -2604,7 +2602,7 @@ public:
 		return selection !is null;
 	}
 
-	void refreshAll(PCardOwner summ, CardOwner owner) { mixin(S_TRACE);
+	void refreshAll(Summary summ, CardOwner owner) { mixin(S_TRACE);
 		_owner = owner;
 		_summ = summ;
 		refresh();
@@ -3029,23 +3027,23 @@ public:
 	}
 }
 
-template CastCardPane(PCardOwner, CardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, CastCard) CastCardPane;
+template CastCardPane(CardOwner) {
+	alias CardPane!(CardOwner, CastCard) CastCardPane;
 }
-template SkillCardPane(PCardOwner, CardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, SkillCard) SkillCardPane;
+template SkillCardPane(CardOwner) {
+	alias CardPane!(CardOwner, SkillCard) SkillCardPane;
 }
-template ItemCardPane(PCardOwner, CardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, ItemCard) ItemCardPane;
+template ItemCardPane(CardOwner) {
+	alias CardPane!(CardOwner, ItemCard) ItemCardPane;
 }
-template BeastCardPane(PCardOwner, CardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, BeastCard) BeastCardPane;
+template BeastCardPane(CardOwner) {
+	alias CardPane!(CardOwner, BeastCard) BeastCardPane;
 }
-template InfoCardPane(PCardOwner, CardOwner) {
-	alias CardPane!(PCardOwner, CardOwner, InfoCard) InfoCardPane;
+template InfoCardPane(CardOwner) {
+	alias CardPane!(CardOwner, InfoCard) InfoCardPane;
 }
-alias CastCardPane!(Summary, Summary) MainCastCardPane;
-alias SkillCardPane!(Summary, Summary) MainSkillCardPane;
-alias ItemCardPane!(Summary, Summary) MainItemCardPane;
-alias BeastCardPane!(Summary, Summary) MainBeastCardPane;
-alias InfoCardPane!(Summary, Summary) MainInfoCardPane;
+alias CastCardPane!(Summary) MainCastCardPane;
+alias SkillCardPane!(Summary) MainSkillCardPane;
+alias ItemCardPane!(Summary) MainItemCardPane;
+alias BeastCardPane!(Summary) MainBeastCardPane;
+alias InfoCardPane!(Summary) MainInfoCardPane;
