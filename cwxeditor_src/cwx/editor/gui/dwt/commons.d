@@ -37,6 +37,7 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.smalldialogs;
 
+import std.conv;
 import std.exception;
 import std.path;
 import std.file;
@@ -825,14 +826,14 @@ class Commons {
 		return openImpl!("work", EventWindow, C, "", Commons, Props, Summary, Composite, Shell, C, UndoManager, bool)
 			(c, shellActivate, canDuplicate, this, prop, summ, workPane, parent, c, undo, readOnly);
 	}
-	EventWindow openUseEvents(Props prop, Summary summ, SkillCard c, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openUseEventImpl!(SkillCard)(prop, summ, c, shellActivate, canDuplicate);
-	}
-	EventWindow openUseEvents(Props prop, Summary summ, ItemCard c, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openUseEventImpl!(ItemCard)(prop, summ, c, shellActivate, canDuplicate);
-	}
-	EventWindow openUseEvents(Props prop, Summary summ, BeastCard c, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openUseEventImpl!(BeastCard)(prop, summ, c, shellActivate, canDuplicate);
+	EventWindow openUseEvents(Props prop, Summary summ, EffectCard c, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
+		if (auto card = cast(SkillCard)c) { mixin(S_TRACE);
+			return openUseEventImpl!(SkillCard)(prop, summ, card, shellActivate, canDuplicate);
+		} else if (auto card = cast(ItemCard)c) { mixin(S_TRACE);
+			return openUseEventImpl!(ItemCard)(prop, summ, card, shellActivate, canDuplicate);
+		} else if (auto card = cast(BeastCard)c) { mixin(S_TRACE);
+			return openUseEventImpl!(BeastCard)(prop, summ, card, shellActivate, canDuplicate);
+		} else assert (0);
 	}
 	private void show(Composite c, string pane, Dir dir, string key,
 			TopLevelPanel delegate(Composite) create, string text, bool shellActivate) { mixin(S_TRACE);
@@ -892,7 +893,7 @@ class Commons {
 	void openBindCardWin(bool shellActivate) { mixin(S_TRACE);
 		openMain!("card", "data", Dir.N)(_cardWin, shellActivate);
 	}
-	MainCastCardPane openCastWin(bool shellActivate) { mixin(S_TRACE);
+	CardPane openCastWin(bool shellActivate) { mixin(S_TRACE);
 		if (_cardWin) { mixin(S_TRACE);
 			openBindCardWin(shellActivate);
 			return _cardWin.openCast(shellActivate);
@@ -901,7 +902,7 @@ class Commons {
 			return _castWin.paneCast;
 		}
 	}
-	MainSkillCardPane openSkillWin(bool shellActivate) { mixin(S_TRACE);
+	CardPane openSkillWin(bool shellActivate) { mixin(S_TRACE);
 		if (_cardWin) { mixin(S_TRACE);
 			openBindCardWin(shellActivate);
 			return _cardWin.openSkill(shellActivate);
@@ -910,7 +911,7 @@ class Commons {
 			return _skillWin.paneSkill;
 		}
 	}
-	MainItemCardPane openItemWin(bool shellActivate) { mixin(S_TRACE);
+	CardPane openItemWin(bool shellActivate) { mixin(S_TRACE);
 		if (_cardWin) { mixin(S_TRACE);
 			openBindCardWin(shellActivate);
 			return _cardWin.openItem(shellActivate);
@@ -919,7 +920,7 @@ class Commons {
 			return _itemWin.paneItem;
 		}
 	}
-	MainBeastCardPane openBeastWin(bool shellActivate) { mixin(S_TRACE);
+	CardPane openBeastWin(bool shellActivate) { mixin(S_TRACE);
 		if (_cardWin) { mixin(S_TRACE);
 			openBindCardWin(shellActivate);
 			return _cardWin.openBeast(shellActivate);
@@ -928,7 +929,7 @@ class Commons {
 			return _beastWin.paneBeast;
 		}
 	}
-	MainInfoCardPane openInfoWin(bool shellActivate) { mixin(S_TRACE);
+	CardPane openInfoWin(bool shellActivate) { mixin(S_TRACE);
 		if (_cardWin) { mixin(S_TRACE);
 			openBindCardWin(shellActivate);
 			return _cardWin.openInfo(shellActivate);
@@ -1210,11 +1211,11 @@ class Commons {
 		if (result.flags.length || result.steps.length) {
 			openFlagWin(false).addFlagsAndSteps(result.flags, result.steps);
 		}
-		if (result.casts.length) openCastWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.casts.values).array());
-		if (result.skills.length) openSkillWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.skills.values).array());
-		if (result.items.length) openItemWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.items.values).array());
-		if (result.beasts.length) openBeastWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.beasts.values).array());
-		if (result.infos.length) openInfoWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.infos.values).array());
+		if (result.casts.length) openCastWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.casts.values).array().to!(Card[]));
+		if (result.skills.length) openSkillWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.skills.values).array().to!(Card[]));
+		if (result.items.length) openItemWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.items.values).array().to!(Card[]));
+		if (result.beasts.length) openBeastWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.beasts.values).array().to!(Card[]));
+		if (result.infos.length) openInfoWin(false).addCards(std.algorithm.sort!("a.id < b.id")(result.infos.values).array().to!(Card[]));
 		auto areas = std.algorithm.sort!("a.id < b.id")(result.areas.values).map!((a) => cast(AbstractArea)a)().array();
 		areas ~= std.algorithm.sort!("a.id < b.id")(result.battles.values).map!((a) => cast(AbstractArea)a)().array();
 		areas ~= std.algorithm.sort!("a.id < b.id")(result.packages.values).map!((a) => cast(AbstractArea)a)().array();

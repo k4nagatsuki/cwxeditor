@@ -1781,11 +1781,7 @@ public:
 			_comm.openAreaEvent(_prop, _summ, area, true, true);
 		} else if (auto area = cast(Package)_area) { mixin(S_TRACE);
 			_comm.openArea(_prop, _summ, area, true, true);
-		} else if (auto card = cast(SkillCard)_area) {
-			_comm.openUseEvents(_prop, _summ, card, true, true);
-		} else if (auto card = cast(ItemCard)_area) {
-			_comm.openUseEvents(_prop, _summ, card, true, true);
-		} else if (auto card = cast(BeastCard)_area) {
+		} else if (auto card = cast(EffectCard)_area) {
 			_comm.openUseEvents(_prop, _summ, card, true, true);
 		} else assert (0);
 	}

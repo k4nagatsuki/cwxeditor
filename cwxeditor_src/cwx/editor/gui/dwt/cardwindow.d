@@ -82,16 +82,13 @@ enum CardWindowKind {
 class CardWindow(CardWindowKind CWKind, CardOwner, ToCardOwner, bool WithArea, Cards ...)
 		: TopLevelPanel, TCPD, ICardWindow {
 private:
-	static const bool EditMode = is (ToCardOwner == void);
-	static const bool UseCast = IndexOf!(CastCard, Cards) >= 0;
-	static const bool UseSkill = IndexOf!(SkillCard, Cards) >= 0;
-	static const bool UseItem = IndexOf!(ItemCard, Cards) >= 0;
-	static const bool UseBeast = IndexOf!(BeastCard, Cards) >= 0;
-	static const bool UseInfo = IndexOf!(InfoCard, Cards) >= 0;
-
-	template Pane(Card) {
-		mixin ("alias " ~ Card.stringof ~ "Pane!(CardOwner) Pane;");
-	}
+	static immutable EditMode = is (ToCardOwner == void);
+	static immutable UseCast = IndexOf!(CastCard, Cards) >= 0;
+	static immutable UseSkill = IndexOf!(SkillCard, Cards) >= 0;
+	static immutable UseItem = IndexOf!(ItemCard, Cards) >= 0;
+	static immutable UseBeast = IndexOf!(BeastCard, Cards) >= 0;
+	static immutable UseInfo = IndexOf!(InfoCard, Cards) >= 0;
+	static immutable OwnerType = is(CardOwner:Summary) ? .OwnerType.Summary : .OwnerType.Cast;
 
 	template CTypes(int Index, Cards ...) {
 		static if (is(Cards[0] : CastCard)) {
@@ -110,15 +107,7 @@ private:
 		}
 	}
 	mixin CTypes!(0, Cards);
-	template PTypes(Cards ...) {
-		static if (Cards.length > 1) {
-			alias TypeTuple!(Pane!(Cards[0]),
-				PTypes!(Cards[1 .. $])) PTypes;
-		} else {
-			alias TypeTuple!(Pane!(Cards[0])) PTypes;
-		}
-	}
-	PTypes!(Cards) _pane;
+	CardPane[Cards.length] _pane;
 	static if (1 < Cards.length || WithArea) {
 		CTabFolder _tabf;
 		CTabItem[Cards.length] _tab;
@@ -215,9 +204,22 @@ private:
 		void openHand() { mixin(S_TRACE);
 			auto sels = _pane[CAST].selectedCards;
 			foreach (sel; sels) { mixin(S_TRACE);
-				_comm.openAddHands(_prop, _summ, sel, _toc, true);
+				_comm.openAddHands(_prop, _summ, cast(CastCard)sel, _toc, true);
 			}
 		}
+	}
+	template CardTypeT(int Index) {
+		static if (UseCast && Index == CAST) {
+			static immutable CardTypeT = CardType.Cast;
+		} else static if (UseSkill && Index == SKILL) {
+			static immutable CardTypeT = CardType.Skill;
+		} else static if (UseItem&& Index == ITEM) {
+			static immutable CardTypeT = CardType.Item;
+		} else static if (UseBeast && Index == BEAST) {
+			static immutable CardTypeT = CardType.Beast;
+		} else static if (UseInfo && Index == INFO) {
+			static immutable CardTypeT = CardType.Info;
+		} else static assert (0);
 	}
 public:
 	static if (EditMode) {
@@ -278,7 +280,7 @@ public:
 		}
 		void initPane(int Index)() { mixin(S_TRACE);
 			assert (!_pane[Index]);
-			_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, SWT.BORDER);
+			_pane[Index] = new CardPane(_comm, _prop, _summ, _tabf, OwnerType, CardTypeT!Index, SWT.BORDER);
 			static if (Index + 1 < Cards.length) {
 				initPane!(Index + 1)();
 			}
@@ -287,7 +289,7 @@ public:
 			if (_pane[Index]) { mixin(S_TRACE);
 				_pane[Index].reconstruct(_tabf, SWT.BORDER);
 			} else { mixin(S_TRACE);
-				_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, SWT.BORDER);
+				_pane[Index] = new CardPane(_comm, _prop, _summ, _tabf, OwnerType, CardTypeT!Index, SWT.BORDER);
 				_pane[Index].construct();
 			}
 			static if (Index + 1 < Cards.length) {
@@ -300,9 +302,9 @@ public:
 				_pane[Index].reconstruct(_tabf, SWT.BORDER);
 			} else { mixin(S_TRACE);
 				static if (UseCast && Index == CAST) {
-					_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, SWT.BORDER, _toc, &openHand);
+					_pane[Index] = new CardPane(_comm, _prop, _summ, _tabf, OwnerType, CardType.Cast, SWT.BORDER, _toc, &openHand);
 				} else { mixin(S_TRACE);
-					_pane[Index] = new typeof(_pane[Index])(_comm, _prop, _summ, _tabf, SWT.BORDER, _toc);
+					_pane[Index] = new CardPane(_comm, _prop, _summ, _tabf, OwnerType, CardTypeT!Index, SWT.BORDER, _toc);
 				}
 				_pane[Index].construct();
 			}
@@ -592,7 +594,7 @@ public:
 	}
 
 	static if (EditMode && is(CardOwner : Summary)) {
-		CastCardPane!(CardOwner) openCast(bool shellActivate) { mixin(S_TRACE);
+		CardPane openCast(bool shellActivate) { mixin(S_TRACE);
 			static if (UseCast) {
 				open!(CAST)(shellActivate);
 				return _pane[CAST];
@@ -600,7 +602,7 @@ public:
 				throw new Exception("can not open cast");
 			}
 		}
-		SkillCardPane!(CardOwner) openSkill(bool shellActivate) { mixin(S_TRACE);
+		CardPane openSkill(bool shellActivate) { mixin(S_TRACE);
 			static if (UseSkill) {
 				open!(SKILL)(shellActivate);
 				return _pane[SKILL];
@@ -608,7 +610,7 @@ public:
 				throw new Exception("can not open skill");
 			}
 		}
-		ItemCardPane!(CardOwner) openItem(bool shellActivate) { mixin(S_TRACE);
+		CardPane openItem(bool shellActivate) { mixin(S_TRACE);
 			static if (UseItem) {
 				open!(ITEM)(shellActivate);
 				return _pane[ITEM];
@@ -616,7 +618,7 @@ public:
 				throw new Exception("can not open item");
 			}
 		}
-		BeastCardPane!(CardOwner) openBeast(bool shellActivate) { mixin(S_TRACE);
+		CardPane openBeast(bool shellActivate) { mixin(S_TRACE);
 			static if (UseBeast) {
 				open!(BEAST)(shellActivate);
 				return _pane[BEAST];
@@ -624,7 +626,7 @@ public:
 				throw new Exception("can not open beast");
 			}
 		}
-		InfoCardPane!(CardOwner) openInfo(bool shellActivate) { mixin(S_TRACE);
+		CardPane openInfo(bool shellActivate) { mixin(S_TRACE);
 			static if (UseInfo) {
 				open!(INFO)(shellActivate);
 				return _pane[INFO];
@@ -634,31 +636,31 @@ public:
 		}
 		static if (UseCast) {
 			@property
-			CastCardPane!(CardOwner) paneCast() { mixin(S_TRACE);
+			CardPane paneCast() { mixin(S_TRACE);
 				return _pane[CAST];
 			}
 		}
 		static if (UseSkill) {
 			@property
-			SkillCardPane!(CardOwner) paneSkill() { mixin(S_TRACE);
+			CardPane paneSkill() { mixin(S_TRACE);
 				return _pane[SKILL];
 			}
 		}
 		static if (UseItem) {
 			@property
-			ItemCardPane!(CardOwner) paneItem() { mixin(S_TRACE);
+			CardPane paneItem() { mixin(S_TRACE);
 				return _pane[ITEM];
 			}
 		}
 		static if (UseBeast) {
 			@property
-			BeastCardPane!(CardOwner) paneBeast() { mixin(S_TRACE);
+			CardPane paneBeast() { mixin(S_TRACE);
 				return _pane[BEAST];
 			}
 		}
 		static if (UseInfo) {
 			@property
-			InfoCardPane!(CardOwner) paneInfo() { mixin(S_TRACE);
+			CardPane paneInfo() { mixin(S_TRACE);
 				return _pane[INFO];
 			}
 		}
@@ -1316,14 +1318,15 @@ public:
 					"skillcard:id", "itemcard:id", "beastcard:id",
 					"skillcardview", "itemcardview", "beastcardview": { mixin(S_TRACE);
 				if (!cphasattr(path, "nofocus")) forceFocus(_pane[C].widget, shellActivate);
-				return _comm.openHands(_prop, _summ, card, shellActivate).openCWXPath(path, shellActivate);
+				return _comm.openHands(_prop, _summ, cast(CastCard)card, shellActivate).openCWXPath(path, shellActivate);
 			} break;
 			default: break;
 			}
 		} else static if (!UseInfo || C != INFO) {
 			if (cpcategory(path) == "event") { mixin(S_TRACE);
 				if (!cphasattr(path, "nofocus")) forceFocus(_pane[C].widget, shellActivate);
-				return _comm.openUseEvents(_prop, _summ, card, shellActivate, false).openCWXPath(path, shellActivate);
+				assert (cast(EffectCard)card !is null);
+				return _comm.openUseEvents(_prop, _summ, cast(EffectCard)card, shellActivate, false).openCWXPath(path, shellActivate);
 			}
 		}
 		return false;

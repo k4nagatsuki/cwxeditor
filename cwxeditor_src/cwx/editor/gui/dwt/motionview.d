@@ -26,6 +26,8 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.eventwindow;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.absdialog;
+import cwx.editor.gui.dwt.cardpane : CardDialog;
 
 import std.string;
 import std.datetime;
@@ -392,11 +394,11 @@ private:
 		}
 		return -1;
 	}
-	private EffectCardDialog!(BeastCard) _beastDlg = null;
+	private CardDialog _beastDlg = null;
 	void editBeastM() { mixin(S_TRACE);
 		editBeast();
 	}
-	EffectCardDialog!BeastCard editBeast() { mixin(S_TRACE);
+	CardDialog editBeast() { mixin(S_TRACE);
 		auto m = selection;
 		if (m && m.detail.use(MArg.BEAST)) { mixin(S_TRACE);
 			auto b = m.beast;
@@ -415,19 +417,23 @@ private:
 					return null;
 				}
 				if (_beastDlg) { mixin(S_TRACE);
-					_beastDlg.active();
+					auto absDlg = cast(AbsDialog)_beastDlg;
+					assert (absDlg !is null);
+					absDlg.active();
 				} else { mixin(S_TRACE);
 					_beastDlg = new EffectCardDialog!(BeastCard)(_comm, _prop, getShell(), _summ, b, _readOnly != SWT.NONE);
-					_beastDlg.open();
+					auto absDlg = cast(AbsDialog)_beastDlg;
+					assert (absDlg !is null);
+					absDlg.open();
 					if (!_readOnly) { mixin(S_TRACE);
-						_beastDlg.applyEvent ~= { mixin(S_TRACE);
+						absDlg.applyEvent ~= { mixin(S_TRACE);
 							storeEdit(indexOf(m));
 						};
-						_beastDlg.appliedEvent ~= { mixin(S_TRACE);
+						absDlg.appliedEvent ~= { mixin(S_TRACE);
 							foreach (dlg; modEvent) dlg();
 						};
 					}
-					_beastDlg.closeEvent ~= { mixin(S_TRACE);
+					absDlg.closeEvent ~= { mixin(S_TRACE);
 						_beastDlg = null;
 					};
 				}

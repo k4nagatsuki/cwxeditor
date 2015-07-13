@@ -1562,7 +1562,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 	}
 	return r.createImageData();
 }
-ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard owner, C delegate(ulong) get, bool detail, bool preview) { mixin(S_TRACE);
+ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard owner, const(C) delegate(ulong) get, bool detail, bool preview) { mixin(S_TRACE);
 	static if (is (C == SkillCard)) {
 		bool hold = base.hold;
 		auto card = skillCard(skin);
@@ -2554,6 +2554,30 @@ string objName(A)(in Props prop) { mixin(S_TRACE);
 	} else static if (is(A : Step)) {
 		return prop.msgs.step;
 	} else static assert (0);
+}
+
+string objNameFrom(in Props prop, in CWXPath path) { mixin(S_TRACE);
+	if (cast(Area)path) { mixin(S_TRACE);
+		return prop.msgs.area;
+	} else if (cast(Battle)path) { mixin(S_TRACE);
+		return prop.msgs.battle;
+	} else if (cast(Package)path) { mixin(S_TRACE);
+		return prop.msgs.cwPackage;
+	} else if (cast(CastCard)path) { mixin(S_TRACE);
+		return prop.msgs.cwCast;
+	} else if (cast(SkillCard)path) { mixin(S_TRACE);
+		return prop.msgs.skill;
+	} else if (cast(ItemCard)path) { mixin(S_TRACE);
+		return prop.msgs.item;
+	} else if (cast(BeastCard)path) { mixin(S_TRACE);
+		return prop.msgs.beast;
+	} else if (cast(InfoCard)path) { mixin(S_TRACE);
+		return prop.msgs.info;
+	} else if (cast(cwx.flag.Flag)path) { mixin(S_TRACE);
+		return prop.msgs.flag;
+	} else if (cast(Step)path) { mixin(S_TRACE);
+		return prop.msgs.step;
+	} else assert (0);
 }
 
 enum CIDKind {

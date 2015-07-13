@@ -32,6 +32,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.couponview;
 import cwx.editor.gui.dwt.scales;
+import cwx.editor.gui.dwt.cardpane;
 
 import std.datetime;
 import std.string;
@@ -44,7 +45,7 @@ import java.lang.all;
 public:
 
 /// キャストカードの設定を行うダイアログ。
-class CastCardDialog : AbsDialog {
+class CastCardDialog : AbsDialog, CardDialog {
 private:
 	string _id;
 
@@ -1165,6 +1166,7 @@ public:
 	}
 
 	@property
+	override
 	CastCard card() { mixin(S_TRACE);
 		return _card;
 	}

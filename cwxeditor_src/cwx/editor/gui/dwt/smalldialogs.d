@@ -508,7 +508,7 @@ protected:
 			grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout(new GridLayout(3, false));
-			string cName = objName!A(_prop);
+			string cName = objNameFrom(_prop, _area);
 			auto l1 = new Label(comp, SWT.NONE);
 			auto name = _area.name;
 			static if (is(typeof(_area.linkId))) {

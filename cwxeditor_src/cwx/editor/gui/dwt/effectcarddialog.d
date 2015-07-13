@@ -29,6 +29,7 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.scales;
 import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.cardpane;
 
 import std.algorithm : max;
 import std.path;
@@ -40,7 +41,7 @@ import java.lang.all;
 public:
 
 /// 手札カードの設定を行うダイアログ。
-class EffectCardDialog(C) : AbsDialog {
+class EffectCardDialog(C) : AbsDialog, CardDialog {
 private:
 	/// アイテムの現在使用回数の設定
 	/// (エンジンの仕様上ほとんど意味が無いため現在無効)
@@ -817,6 +818,7 @@ public:
 	}
 
 	@property
+	override
 	C card() { mixin(S_TRACE);
 		return _card;
 	}

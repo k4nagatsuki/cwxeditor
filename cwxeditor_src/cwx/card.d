@@ -120,6 +120,12 @@ public:
 		path = c.path;
 	}
 
+	/// ディープコピーを作成する。
+	@property
+	const
+	abstract
+	Card dup();
+
 	const
 	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
 		auto c = cast(const Card) o;
@@ -275,6 +281,11 @@ public:
 		pNode.parse();
 		return id;
 	}
+
+	/// 自身をXMLノードにして指定されたノードに追加する。
+	const
+	abstract
+	XNode toNode(ref XNode parent, XMLOption opt);
 
 	/// 指定されたXMLノードにProperty情報を追加する。
 	const
@@ -491,6 +502,7 @@ public:
 	/// ディープコピーを作成する。
 	@property
 	const
+	override
 	CastCard dup() { mixin(S_TRACE);
 		auto copy = new CastCard(0UL, "", "", "");
 		copy.deepCopy(this);
@@ -880,6 +892,7 @@ public:
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
+	override
 	XNode toNode(ref XNode parent, XMLOption opt) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
 		toNodeImpl(cNode, opt);
@@ -1763,6 +1776,7 @@ public:
 	/// コピーを生成する。
 	@property
 	const
+	override
 	SkillCard dup() { mixin(S_TRACE);
 		auto copy = new SkillCard(0UL, "", "", "");
 		copy.deepCopy(this);
@@ -1777,7 +1791,11 @@ public:
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
-	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
+	override
+	XNode toNode(ref XNode parent, XMLOption opt) { return toNode(parent, opt, null); }
+	/// ditto
+	const
+	XNode toNode(ref XNode parent, XMLOption opt, in OverData od) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
 		toNodeImpl(cNode, opt, od);
 		return cNode;
@@ -2015,6 +2033,7 @@ public:
 	/// コピーを生成する。
 	@property
 	const
+	override
 	ItemCard dup() { mixin(S_TRACE);
 		auto copy = new ItemCard(0UL, "", "", "");
 		copy.deepCopy(this);
@@ -2028,6 +2047,10 @@ public:
 		return n;
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
+	const
+	override
+	XNode toNode(ref XNode parent, XMLOption opt) { return toNode(parent, opt, null); }
+	/// ditto
 	const
 	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
@@ -2232,6 +2255,10 @@ public:
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
+	override
+	XNode toNode(ref XNode parent, XMLOption opt) { return toNode(parent, opt, null); }
+	/// ditto
+	const
 	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
 		toNodeImpl(cNode, opt, od);
@@ -2255,6 +2282,7 @@ public:
 	/// コピーを生成する。
 	@property
 	const
+	override
 	BeastCard dup() { mixin(S_TRACE);
 		auto copy = new BeastCard(0UL, "", "", "");
 		copy.deepCopy(this);
@@ -2358,6 +2386,7 @@ public:
 	/// ディープコピーを作成する。
 	@property
 	const
+	override
 	InfoCard dup() { mixin(S_TRACE);
 		auto copy = new InfoCard(0UL, "", "", "");
 		copy.deepCopy(this);
@@ -2378,6 +2407,7 @@ public:
 	}
 	/// 自身をXMLノードにして指定されたノードに追加する。
 	const
+	override
 	XNode toNode(ref XNode parent, XMLOption opt) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
 		toNodeImpl(cNode, opt);

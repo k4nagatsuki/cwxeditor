@@ -20,12 +20,13 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.cardpane;
 
 import org.eclipse.swt.all;
 
 public:
 
-class InfoCardDialog : AbsDialog {
+class InfoCardDialog : AbsDialog, CardDialog {
 private:
 	int _readOnly = 0;
 	Commons _comm;
@@ -85,6 +86,7 @@ public:
 	}
 
 	@property
+	override
 	InfoCard card() { mixin(S_TRACE);
 		return _card;
 	}
