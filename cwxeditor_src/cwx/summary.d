@@ -299,6 +299,12 @@ public:
 			}
 			return "";
 		}
+		string findSummaryDir(string temp, string summary) {
+			foreach (file; temp.dirEntries(SpanMode.depth)) {
+				if (.cfnmatch(file.baseName(), summary)) return file.dirName();
+			}
+			return temp;
+		}
 		string sunzip(string fname, ZipArchive arc, out bool cancel, out string summPath) { mixin(S_TRACE);
 			cancel = false;
 			auto temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
@@ -327,13 +333,7 @@ public:
 					}
 				}, setMax, worked);
 			}
-			auto ld = clistdir(temp);
-			if (ld.length == 1 && isDir(std.path.buildPath(temp, ld[0]))) { mixin(S_TRACE);
-				// ディレクトリを一つ挟んでいる
-				summPath = std.path.buildPath(temp, ld[0]);
-			} else { mixin(S_TRACE);
-				summPath = temp;
-			}
+			summPath = findSummaryDir(temp, "Summary.xml");
 			createLockFile(temp);
 			return temp;
 		}
@@ -413,12 +413,7 @@ public:
 					return null;
 				}
 			}
-			summPath = temp;
-			auto ld = clistdir(temp);
-			if (ld.length == 1 && isDir(std.path.buildPath(temp, ld[0]))) { mixin(S_TRACE);
-				// ディレクトリを一つ挟んでいる
-				summPath = std.path.buildPath(temp, ld[0]);
-			}
+			summPath = findSummaryDir(temp, summName);
 			if (!.exists(std.path.buildPath(summPath, summName))) { mixin(S_TRACE);
 				delAll(temp);
 				return null;
