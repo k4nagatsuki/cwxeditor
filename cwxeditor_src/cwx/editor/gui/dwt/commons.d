@@ -48,7 +48,7 @@ import org.eclipse.swt.all;
 
 Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, string name = "", string legacyEngine = "", bool appendClassicSkin = true) { mixin(S_TRACE);
 	if (summ && !summ.legacy) { mixin(S_TRACE);
-		findCWPy(prop, summ.useTemp ? summ.zipName : summ.scenarioPath);
+		findCWPy(prop, summ.useTemp ? summ.origZipName : summ.scenarioPath);
 	}
 	if (!summ) { mixin(S_TRACE);
 		return findSkin2(prop, prop.var.etc.defaultSkin, "");

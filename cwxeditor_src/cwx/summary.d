@@ -96,7 +96,8 @@ private:
 	bool _expandXMLs; /// XMLファイルを展開するか。
 	bool _useTemp = true; /// 一時ディレクトリに展開しているか。
 	File _lock = null; /// 一時ディレクトリロック用オブジェクト。
-	string _zipName = ""; /// 圧縮されているシナリオなら、元ファイルのパス。
+	string _zipName = ""; /// 圧縮されているシナリオなら、元ファイルのパス。再圧縮できない場合は""。
+	string _origZipName = ""; /// 圧縮されているシナリオなら、元ファイルのパス。
 	string _tempPath = ""; /// 圧縮されているシナリオなら、一時展開先のパス。
 	bool _legacy = false; /// クラシックなシナリオか。
 	bool _inSaving = false; /// 保存中ならtrue。
@@ -203,12 +204,17 @@ public:
 	const
 	bool useTemp() {return _useTemp;}
 	/// 元の圧縮ファイル名は何か。圧縮されていないシナリオの場合は""。
+	/// 再圧縮できない場合も""となる。
 	@property
 	const
 	string zipName() {return _zipName;}
 	/// ditto
 	@property
 	void zipName(string zipName) {_zipName = zipName;}
+	/// 元の圧縮ファイル名は何か。圧縮されていないシナリオの場合は""。
+	@property
+	const
+	string origZipName() {return _origZipName;}
 	/// クラシックな形式のシナリオか。
 	@property
 	const
@@ -448,6 +454,7 @@ public:
 				}
 				r._sPath = scDir;
 				r._zipName = "";
+				r._origZipName = "";
 				r._tempPath = scDir;
 				r.refCheckPaths();
 				r.repairID0();
@@ -466,6 +473,7 @@ public:
 					r._useTemp = true;
 					r._legacy = true;
 					r._zipName = canArchive ? fname : "";
+					r._origZipName = fname;
 					r._tempPath = fn;
 					r.refCheckPaths();
 					r.repairID0();
@@ -501,6 +509,7 @@ public:
 						r._useTemp = false;
 						r._legacy = true;
 						r._zipName = "";
+						r._origZipName = "";
 						if (scTemplate) { mixin(S_TRACE);
 							return createFromTemplate(r);
 						} else { mixin(S_TRACE);
@@ -518,6 +527,7 @@ public:
 						r._useTemp = false;
 						r._legacy = false;
 						r._zipName = "";
+						r._origZipName = "";
 						if (scTemplate) { mixin(S_TRACE);
 							auto temp = createTempDir(tempPath, fname.dirName().baseName());
 							copyAll(r.scenarioPath, temp);
@@ -566,11 +576,13 @@ public:
 								r._expandXMLs = expand;
 								r._useTemp = true;
 								r._zipName = zipname;
+								r._origZipName = zipname;
 								r._tempPath = fn;
 								r._legacy = false;
 								r.lock(r._tempPath, r._useTemp);
 								if (scTemplate) { mixin(S_TRACE);
 									r._zipName = "";
+									r._origZipName = "";
 								}
 								r.refCheckPaths();
 								r.repairID0();
@@ -625,7 +637,8 @@ public:
 			try { mixin(S_TRACE);
 				delAll(_tempPath.length ? _tempPath : scenarioPath, true);
 				_useTemp = false;
-				_zipName = null;
+				_zipName = "";
+				_origZipName = "";
 				_tempPath = "";
 			} catch (Exception e) {
 				printStackTrace();
@@ -997,6 +1010,7 @@ public:
 		_expandXMLs = expandXMLs;
 		_useTemp = true;
 		_zipName = zipName;
+		_origZipName = zipName;
 		_legacy = false;
 		this.scenarioPath = scenarioPath;
 		_tempPath = scenarioPath;
@@ -2005,6 +2019,7 @@ public:
 		}
 		summ._expandXMLs = expandXMLs;
 		summ._zipName = zipName;
+		summ._origZipName = zipName;
 		summ._useTemp = useTemp;
 		summ._legacy = legacy;
 		if (useTemp) { mixin(S_TRACE);
@@ -2184,14 +2199,17 @@ public:
 			isDir = true;
 			sPath = fileOrDir.dirName();
 			zipName = "";
+			_origZipName = "";
 		} else if (!(.exists(fileOrDir) && .isDir(fileOrDir)) && (ext.cfnmatch(".zip") || ext.cfnmatch(".cab") || ext.cfnmatch(".wsn"))) { mixin(S_TRACE);
 			isDir = false;
 			sPath = Summary.createTempDirFromName(tempPath, fileOrDir.baseName().stripExtension());
 			zipName = fileOrDir;
+			_origZipName = fileOrDir;
 		} else { mixin(S_TRACE);
 			isDir = true;
 			sPath = fileOrDir;
 			zipName = "";
+			_origZipName = fileOrDir;
 		}
 		auto list = clistdir(scenarioPath);
 		if (!.exists(sPath)) mkdirRecurse(sPath);
@@ -2284,8 +2302,13 @@ public:
 		} else if (useTemp) { mixin(S_TRACE);
 			// 新しいアーカイブを作成
 			string oldZip = _zipName;
+			string oldOrigZip = _origZipName;
 			_zipName = fname;
-			scope (failure) _zipName = oldZip;
+			_origZipName = fname;
+			scope (failure) {
+				_zipName = oldZip;
+				_origZipName = oldOrigZip;
+			}
 			saveProc(prop, skin, opt2, false, zipName, scenarioPath, scenarioPath, legacy, false, defExpandXMLs, true);
 		} else { mixin(S_TRACE);
 			// 展開済みシナリオからアーカイブに変換
@@ -2359,6 +2382,7 @@ public:
 				_expandXMLs = false;
 				_useTemp = useTemp;
 				_zipName = zipName;
+				_origZipName = zipName;
 				_tempPath = temp;
 				_legacy = true;
 				_type = "";
@@ -2410,6 +2434,7 @@ public:
 				releaseLockFile();
 				_useTemp = useTemp;
 				_zipName = zipName;
+				_origZipName = zipName;
 				_tempPath = temp;
 				_legacy = false;
 			}

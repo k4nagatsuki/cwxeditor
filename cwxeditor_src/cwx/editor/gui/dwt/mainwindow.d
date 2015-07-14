@@ -203,7 +203,7 @@ private:
 					"-party",
 					.tryFormat(`"%s"`, party),
 				];
-				execEngineP(path, params.join(" "), .tryFormat(`"%s"`, (summary.useTemp && summary.zipName != "") ? summary.zipName : summary.scenarioPath), engineName, yName, name);
+				execEngineP(path, params.join(" "), .tryFormat(`"%s"`, (summary.useTemp && summary.origZipName != "") ? summary.origZipName : summary.scenarioPath), engineName, yName, name);
 			}, () => true);
 		}
 	}
@@ -258,7 +258,7 @@ private:
 					"-party",
 					.tryFormat(`"%s"`, party),
 				];
-				execEngineP(path, params.join(" "), .tryFormat(`"%s"`, (summary.useTemp && summary.zipName != "") ? summary.zipName : summary.scenarioPath), engineName, yName, name);
+				execEngineP(path, params.join(" "), .tryFormat(`"%s"`, (summary.useTemp && summary.origZipName != "") ? summary.origZipName : summary.scenarioPath), engineName, yName, name);
 			}, () => true);
 		}
 	}
@@ -937,8 +937,8 @@ private:
 						_prop.msgs.dlgTitWarning, _win);
 				}
 			} else { mixin(S_TRACE);
-				assert (old.zipName.length);
-				loadScenarioFromFile(_prop, loadOption(old), _comm.mainShell, &setStatusLine, old, old.zipName, &openScenario, &resetOpt);
+				assert (old.origZipName.length);
+				loadScenarioFromFile(_prop, loadOption(old), _comm.mainShell, &setStatusLine, old, old.origZipName, &openScenario, &resetOpt);
 			}
 		}
 	}
@@ -1467,7 +1467,7 @@ private:
 	}
 	@property
 	bool canExecEngineWithLastParty() { mixin(S_TRACE);
-		if (!summary || (summary.useTemp && summary.zipName == "")) return false;
+		if (!summary || (summary.useTemp && summary.origZipName == "")) return false;
 		return summary && _prop.var.etc.lastExecuteEngine != "" && _prop.var.etc.lastExecuteEngine.exists() && _prop.var.etc.lastExecuteEngine.isFile();
 	}
 	@property
@@ -1477,7 +1477,7 @@ private:
 	}
 	@property
 	bool canExecEngineWithParty() { mixin(S_TRACE);
-		if (!summary || (summary.useTemp && summary.zipName == "")) return false;
+		if (!summary || (summary.useTemp && summary.origZipName == "")) return false;
 		if (!canExecEngine && !_prop.var.etc.classicEngines.length) return false;
 		return true;
 	}
@@ -1490,7 +1490,7 @@ private:
 	void execEngineWithLastParty() { mixin(S_TRACE);
 		if (!summary) return;
 		if (canExecEngineWithLastParty2) {
-			auto scenario = .tryFormat(`"%s"`, (summary.useTemp && summary.zipName != "") ? summary.zipName : summary.scenarioPath);
+			auto scenario = .tryFormat(`"%s"`, (summary.useTemp && summary.origZipName != "") ? summary.origZipName : summary.scenarioPath);
 			execEngineP(_prop.var.etc.lastExecuteEngine, _prop.var.etc.lastExecuteParameters, scenario,
 				_prop.var.etc.lastExecuteEngineName, _prop.var.etc.lastExecuteYadoName, _prop.var.etc.lastExecutePartyName);
 		} else { mixin(S_TRACE);
@@ -1808,12 +1808,12 @@ private:
 		string hist;
 		if (summary.legacy) { mixin(S_TRACE);
 			if (summary.useTemp) { mixin(S_TRACE);
-				hist = summary.zipName;
+				hist = summary.origZipName;
 			} else { mixin(S_TRACE);
 				hist = std.path.buildPath(summary.scenarioPath, "Summary.wsm");
 			}
 		} else if (summary.useTemp) { mixin(S_TRACE);
-			hist = summary.zipName;
+			hist = summary.origZipName;
 			if (!hist.length) return "";
 		} else { mixin(S_TRACE);
 			hist = std.path.buildPath(summary.scenarioPath, "Summary.xml");
@@ -2111,7 +2111,7 @@ private:
 					if (!summ) return null;
 					string send = "opened scenario ";
 					if (summ.useTemp) { mixin(S_TRACE);
-						send ~= summ.zipName;
+						send ~= summ.origZipName;
 					} else { mixin(S_TRACE);
 						send ~= summ.scenarioPath;
 					}
