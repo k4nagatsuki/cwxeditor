@@ -1051,6 +1051,13 @@ private:
 			_fromPathIncSearch.modEvent ~= () => setupPathsImpl(true, false);
 			_toPath = setupPath(_prop.msgs.replTo, _toPathIncSearch);
 			_fromPathIncSearch.modEvent ~= () => setupPathsImpl(false, true);
+			auto dummy = new Composite(grp, SWT.NONE);
+			auto gd = new GridData(GridData.FILL_VERTICAL);
+			gd.heightHint = 0;
+			gd.widthHint = 0;
+			dummy.setLayoutData(gd);
+			auto desc = new Label(grp, SWT.NONE);
+			desc.setText(_prop.msgs.wildcardDesc);
 		}
 
 		auto tab = new CTabItem(tabf, SWT.NONE);

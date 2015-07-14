@@ -40,6 +40,7 @@ import cwx.editor.gui.dwt.scripterrordialog;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.etcsettings;
 
+import std.algorithm : max, min, map;
 import std.path;
 import std.file;
 import std.string;
@@ -138,6 +139,9 @@ private:
 	int[int] _dialogStatusTbl;
 	int[int] _dialogStatusTbl2;
 	Text _savedSound;
+
+	Combo _flagInitValue;
+	Combo _stepInitValue;
 
 	Text _mnemonic;
 	HotKeyField _hotkey;
@@ -997,6 +1001,21 @@ private:
 				_prop.msgs.dialogStatusName(DialogStatus.Under),
 				_prop.msgs.dialogStatusName(DialogStatus.UnderWithCoupon),
 			], _dialogStatusTbl, _dialogStatusTbl2, 4);
+
+			Combo createInitVarCombo(string name, string[] values) { mixin(S_TRACE);
+				auto l = new Label(grp, SWT.NONE);
+				l.setText(name);
+				auto combo = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+				mod(combo);
+				auto gd = new GridData(GridData.FILL_HORIZONTAL);
+				gd.horizontalSpan = 4;
+				combo.setLayoutData(gd);
+				combo.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+				foreach (value; values) combo.add(value);
+				return combo;
+			}
+			_flagInitValue = createInitVarCombo(_prop.msgs.flagInitValue, [_prop.msgs.flagOn, _prop.msgs.flagOff]);
+			_stepInitValue = createInitVarCombo(_prop.msgs.stepInitValue, _prop.looks.stepMaxCount.iota().map!((a) => .tryFormat(_prop.msgs.dlgTxtStep, a)).array());
 		}
 		{ mixin(S_TRACE);
 			auto sash = new SplitPane(comp, SWT.VERTICAL);
@@ -1196,6 +1215,9 @@ protected:
 		_savedSound.setText(_prop.var.etc.savedSound);
 		_bgImagesDefault = _prop.var.etc.bgImagesDefault.dup;
 
+		_flagInitValue.select(_prop.var.etc.flagInitValue ? 0 : 1);
+		_stepInitValue.select(.max(0, .min(_prop.looks.stepMaxCount - 1, _prop.var.etc.stepInitValue)));
+
 		string buf = "";
 		foreach (kc; _prop.var.etc.standardKeyCodes) { mixin(S_TRACE);
 			buf ~= kc ~ "\n";
@@ -1360,6 +1382,10 @@ protected:
 		}
 		_prop.var.etc.bgImageSettings = _bgStgs.array;
 		_prop.var.etc.bgImagesDefault = _bgImagesDefault;
+
+		_prop.var.etc.flagInitValue = _flagInitValue.getSelectionIndex() == 0;
+		_prop.var.etc.stepInitValue = _stepInitValue.getSelectionIndex();
+
 		string[] lines = splitLines!string(_keyCodes.getText());
 		if (lines.length > 0) { mixin(S_TRACE);
 			ptrdiff_t i;

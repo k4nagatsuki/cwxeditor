@@ -188,6 +188,9 @@ class FlexEtcProps : Properties {
 	auto uValueMax = Prop!(uint, true)("uValueMax", 999);
 	auto beastMaxNest = Prop!(uint, true)("beastMaxNest", 99);
 
+	auto flagInitValue = Prop!(bool)("flagInitValue", true);
+	auto stepInitValue = Prop!(int)("stepInitValue", 0);
+
 	auto imageListWidth = Prop!(int)("imageListWidth", 380);
 	auto imageListHeight = Prop!(int)("imageListHeight", 300);
 	auto cardLife = Prop!(bool)("cardLife", false);

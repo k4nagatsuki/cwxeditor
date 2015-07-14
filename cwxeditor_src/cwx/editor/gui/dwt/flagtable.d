@@ -22,6 +22,7 @@ import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
 
+import std.algorithm : max, min;
 import std.array;
 import std.ascii;
 import std.conv;
@@ -992,7 +993,7 @@ private:
 		if (!flag) { mixin(S_TRACE);
 			string on = prop.var.etc.flagTrues.length > 0 ? prop.var.etc.flagTrues[0] : "";
 			string off = prop.var.etc.flagFalses.length > 0 ? prop.var.etc.flagFalses[0] : "";
-			flag = new cwx.flag.Flag("", on, off, true);
+			flag = new cwx.flag.Flag("", on, off, prop.var.etc.flagInitValue);
 		}
 		auto p = flag in _editDlgsF;
 		if (p) { mixin(S_TRACE);
@@ -1044,7 +1045,7 @@ private:
 			foreach (i; 0 .. prop.looks.stepMaxCount) { mixin(S_TRACE);
 				vals ~= .tryFormat(prop.msgs.dlgTxtStep, i);
 			}
-			step = new Step("", vals, 0);
+			step = new Step("", vals, .min(prop.looks.stepMaxCount - 1, .max(0, prop.var.etc.stepInitValue.value)));
 		}
 		auto p = step in _editDlgsS;
 		if (p) { mixin(S_TRACE);

@@ -242,6 +242,7 @@ class Msgs : Properties {
 	auto replWildcard = Msg("replWildcard", "ワイルドカード(&W) (* = 任意文字列, ? = 任意1文字, \\* = *, \\? = ?, \\\\ = \\)");
 	auto replExactMatch = Msg("replExactMatch", "完全一致(&X)");
 	auto replIgnoreReturnCode = Msg("replIgnoreReturnCode", "改行と前後の空白を無視(&I) (置換はできません)");
+	auto wildcardDesc = Msg("wildcardDesc", "ワイルドカードが使用できます(* = 任意文字列, ? = 任意1文字, \\* = *, \\? = ?, \\\\ = \\)");
 	auto replCond = Msg("replCond", "検索条件");
 	auto search = Msg("search", "検索(&F)");
 	auto replace = Msg("replace", "全て置換(&R)");
@@ -1706,6 +1707,9 @@ class Msgs : Properties {
 	auto soundVolume = Msg("soundVolume", "音量");
 	auto soundVolumePer = Msg("soundVolumePer", "%");
 	auto soundCaution = Msg("soundCaution", "※ WinMM方式の時、音量は反映されません");
+
+	auto flagInitValue = Msg("flagInitValue", "フラグの初期値");
+	auto stepInitValue = Msg("stepInitValue", "ステップの初期値");
 
 	auto keyBind = Msg("keyBind", "キーバインド");
 	auto mnemonic = Msg("mnemonic", "アクセスキー");
