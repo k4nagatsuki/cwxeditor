@@ -593,13 +593,39 @@ public:
 		_comm.setStatusLine(w, status);
 	}
 
-	static if (EditMode && is(CardOwner : Summary)) {
-		CardPane openCast(bool shellActivate) { mixin(S_TRACE);
-			static if (UseCast) {
-				open!(CAST)(shellActivate);
-				return _pane[CAST];
-			} else { mixin(S_TRACE);
-				throw new Exception("can not open cast");
+	static if (EditMode) {
+		static if (is(CardOwner:Summary)) {
+			CardPane openPane(CardType cardType, bool shellActivate) { mixin(S_TRACE);
+				final switch (cardType) {
+				case CardType.Cast: return openCast(shellActivate);
+				case CardType.Skill: return openSkill(shellActivate);
+				case CardType.Item: return openItem(shellActivate);
+				case CardType.Beast: return openBeast(shellActivate);
+				case CardType.Info: return openInfo(shellActivate);
+				}
+			}
+		} else static if (is(CardOwner:CastCard)) {
+			CardPane openPane(CardType cardType, bool shellActivate) { mixin(S_TRACE);
+				final switch (cardType) {
+				case CardType.Cast: assert (0);
+				case CardType.Skill: return openSkill(shellActivate);
+				case CardType.Item: return openItem(shellActivate);
+				case CardType.Beast: return openBeast(shellActivate);
+				case CardType.Info: assert (0);
+				}
+			}
+		} else static assert (0);
+	}
+
+	static if (EditMode) {
+		static if (is(CardOwner:Summary)) {
+			CardPane openCast(bool shellActivate) { mixin(S_TRACE);
+				static if (UseCast) {
+					open!(CAST)(shellActivate);
+					return _pane[CAST];
+				} else { mixin(S_TRACE);
+					throw new Exception("can not open cast");
+				}
 			}
 		}
 		CardPane openSkill(bool shellActivate) { mixin(S_TRACE);
@@ -626,12 +652,14 @@ public:
 				throw new Exception("can not open beast");
 			}
 		}
-		CardPane openInfo(bool shellActivate) { mixin(S_TRACE);
-			static if (UseInfo) {
-				open!(INFO)(shellActivate);
-				return _pane[INFO];
-			} else { mixin(S_TRACE);
-				throw new Exception("can not open info");
+		static if (is(CardOwner:Summary)) {
+			CardPane openInfo(bool shellActivate) { mixin(S_TRACE);
+				static if (UseInfo) {
+					open!(INFO)(shellActivate);
+					return _pane[INFO];
+				} else { mixin(S_TRACE);
+					throw new Exception("can not open info");
+				}
 			}
 		}
 		static if (UseCast) {

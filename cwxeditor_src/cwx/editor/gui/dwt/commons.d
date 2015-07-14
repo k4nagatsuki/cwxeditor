@@ -893,6 +893,15 @@ class Commons {
 	void openBindCardWin(bool shellActivate) { mixin(S_TRACE);
 		openMain!("card", "data", Dir.N)(_cardWin, shellActivate);
 	}
+	CardPane openCardPane(CardType cardType, bool shellActivate) { mixin(S_TRACE);
+		final switch (cardType) {
+		case CardType.Cast: return openCastWin(shellActivate);
+		case CardType.Skill: return openSkillWin(shellActivate);
+		case CardType.Item: return openItemWin(shellActivate);
+		case CardType.Beast: return openBeastWin(shellActivate);
+		case CardType.Info: return openInfoWin(shellActivate);
+		}
+	}
 	CardPane openCastWin(bool shellActivate) { mixin(S_TRACE);
 		if (_cardWin) { mixin(S_TRACE);
 			openBindCardWin(shellActivate);

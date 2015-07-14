@@ -228,6 +228,27 @@ private:
 
 	@property
 	const
+	private const(CardType)[] types() { mixin(S_TRACE);
+		return _ownerType is OwnerType.Summary
+			? [CardType.Cast, CardType.Skill, CardType.Item, CardType.Beast, CardType.Info]
+			: [CardType.Skill, CardType.Item, CardType.Beast];
+	}
+	static string xmlNameFrom(CardType cardType) { mixin(S_TRACE);
+		final switch (cardType) {
+		case CardType.Cast:
+			return CastCard.XML_NAME;
+		case CardType.Skill:
+			return SkillCard.XML_NAME;
+		case CardType.Item:
+			return ItemCard.XML_NAME;
+		case CardType.Beast:
+			return BeastCard.XML_NAME;
+		case CardType.Info:
+			return InfoCard.XML_NAME;
+		}
+	}
+	@property
+	const
 	string xmlName() { mixin(S_TRACE);
 		final switch (_cardType) {
 		case CardType.Cast:
@@ -261,18 +282,17 @@ private:
 	@property
 	const
 	Card createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
-		final switch (_cardType) {
-		case CardType.Cast:
+		if (node.name == CastCard.XML_NAME) { mixin(S_TRACE);
 			return CastCard.createFromNode(node, ver);
-		case CardType.Skill:
+		} else if (node.name == SkillCard.XML_NAME) { mixin(S_TRACE);
 			return SkillCard.createFromNode(node, ver);
-		case CardType.Item:
+		} else if (node.name == ItemCard.XML_NAME) { mixin(S_TRACE);
 			return ItemCard.createFromNode(node, ver);
-		case CardType.Beast:
+		} else if (node.name == BeastCard.XML_NAME) { mixin(S_TRACE);
 			return BeastCard.createFromNode(node, ver);
-		case CardType.Info:
+		} else if (node.name == InfoCard.XML_NAME) { mixin(S_TRACE);
 			return InfoCard.createFromNode(node, ver);
-		}
+		} else assert (0);
 	}
 	static void change(UseCounter uc, CardType cardType, ulong from, ulong to) { mixin(S_TRACE);
 		final switch (cardType) {
@@ -405,6 +425,28 @@ private:
 			return owner.add(c);
 		} else if (auto c = cast(BeastCard)card) {
 			return owner.add(c);
+		} else assert (0);
+	}
+	CardPane openSameLevelPane(CardType cardType, bool shellActivate) {
+		if (_ownerType is OwnerType.Summary) { mixin(S_TRACE);
+			return _comm.openCardPane(cardType, shellActivate);
+		} else if (_ownerType is OwnerType.Cast) { mixin(S_TRACE);
+			assert (cardType !is CardType.Cast && cardType !is CardType.Info);
+			auto win = _comm.openHands(_prop, _summ, cast(CastCard)_owner, shellActivate);
+			return win.openPane(cardType, shellActivate);
+		} else assert (0);
+	}
+	static CardType cardTypeFrom(in Card card) {
+		if (cast(CastCard)card) {
+			return CardType.Cast;
+		} else if (cast(SkillCard)card) {
+			return CardType.Skill;
+		} else if (cast(ItemCard)card) {
+			return CardType.Item;
+		} else if (cast(BeastCard)card) {
+			return CardType.Beast;
+		} else if (cast(InfoCard)card) {
+			return CardType.Info;
 		} else assert (0);
 	}
 private:
@@ -1245,7 +1287,6 @@ private:
 					if (c) { mixin(S_TRACE);
 						try { mixin(S_TRACE);
 							auto node = XNode.parse(c);
-							if (node.name != xmlNameM) return;
 							auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 							addFromNode(node, ver);
 						} catch (Exception e) {
@@ -1430,7 +1471,6 @@ private:
 			string xml = bytesToXML(e.data);
 			try { mixin(S_TRACE);
 				auto node = XNode.parse(xml);
-				if (node.name != xmlNameM) return;
 				auto p = (cast(DropTarget)e.getSource()).getControl().toControl(e.x, e.y);
 				int index = indexOf(p);
 				bool samePane = _id == node.attr("paneId", false);
@@ -1448,6 +1488,7 @@ private:
 				bool sortedID = _tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column;
 				if (sameSc && samePane) { mixin(S_TRACE);
 					// 同一リスト内で移動
+					if (node.name != xmlNameM) return;
 					if (!sortedID) return;
 					int count = cardCount;
 					if (count < index) index = count;
@@ -1492,28 +1533,44 @@ private:
 					} else if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
 						index = cast(int)cards.length - index;
 					}
-					Card[] adds;
-					node.onTag[xmlName] = (ref XNode cNode) { mixin(S_TRACE);
-						auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
-						auto card = createFromNode(cNode, ver);
-						adds ~= card;
-					};
-					node.parse();
-					if (adds.length == 0) return;
-					if (qCardMaterialCopy(node, adds)) { mixin(S_TRACE);
-						ulong[] ids;
-						foreach (i, card; adds) { mixin(S_TRACE);
-							refreshLink(card, samePane, sameSc, topLevel);
-							CardPane.insert(_owner, index, card);
-							ids ~= cardsFrom(_cardType, _owner)[index].id;
-							adds[i] = cards[index];
-							index++;
+					Card[] allAdds;
+					Card[][CardType] adds;
+					auto lastType = _cardType;
+					foreach (cardType; types) { mixin(S_TRACE);
+						void f(CardType cardType) { mixin(S_TRACE);
+							node.onTag[xmlNameFrom(cardType)] = (ref XNode cNode) { mixin(S_TRACE);
+								auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
+								auto card = createFromNode(cNode, ver);
+								auto arr = adds.get(cardType, []);
+								arr ~= card;
+								allAdds ~= card;
+								lastType = cardType;
+								adds[cardType] = arr;
+							};
 						}
-						storeInsert(ids);
-						insert(adds[$ - 1], false);
-						sort();
-						foreach (i, card; adds) { mixin(S_TRACE);
-							refCard(card);
+						f(cardType);
+					}
+					node.parse();
+					if (allAdds.length == 0) return;
+					if (qCardMaterialCopy(node, allAdds)) { mixin(S_TRACE);
+						foreach (cardType, arr; adds) { mixin(S_TRACE);
+							auto pane = openSameLevelPane(cardType, lastType is cardType);
+							assert (pane._cardType is cardType);
+							ulong[] ids;
+							auto paneIndex = pane is this.outer ? index : pane.cards.length;
+							foreach (i, card; arr) { mixin(S_TRACE);
+								pane.refreshLink(card, samePane, sameSc, topLevel);
+								pane.insert(pane._owner, paneIndex, card);
+								ids ~= pane.cardsFrom(cardType, pane._owner)[paneIndex].id;
+								arr[i] = pane.cards[paneIndex];
+								paneIndex++;
+							}
+							pane.storeInsert(ids);
+							pane.insert(arr[$ - 1], false);
+							pane.sort();
+							foreach (i, card; arr) { mixin(S_TRACE);
+								pane.refCard(card);
+							}
 						}
 						_comm.refUseCount.call();
 						refreshStatusLine();
@@ -1609,14 +1666,14 @@ private:
 			assert (editMode);
 			_list.scroll(index);
 		}
-		private void insert(Card c, bool move) { mixin(S_TRACE);
-			assert (editMode);
-			refresh();
-			int index = _list.indexOf(c);
-			_list.select(index);
-			_list.scroll(index);
-			refreshStatusLine();
-		}
+	}
+	private void insert(Card c, bool move) { mixin(S_TRACE);
+		assert (editMode);
+		refresh();
+		int index = _list.indexOf(c);
+		_list.select(index);
+		_list.scroll(index);
+		refreshStatusLine();
 	}
 	class CTDTListener : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
@@ -3000,26 +3057,31 @@ public:
 		assert (editMode);
 		Card[] adds;
 		bool inPane = false;
-		if (node.attr("summId", false) != ownerId) { mixin(S_TRACE);
-			node.onTag[xmlName] = (ref XNode cNode) { mixin(S_TRACE);
-				adds ~= createFromNode(cNode, ver);
-			};
-			node.parse();
-			if (!qCardMaterialCopy(node, adds)) return false;
-		} else { mixin(S_TRACE);
-			node.onTag[xmlName] = (ref XNode cNode) { mixin(S_TRACE);
-				auto card = createFromNode(cNode, ver);
-				if (cNode.attr("paneId", false) != _id || localCard(card.id)) { mixin(S_TRACE);
-					adds ~= card;
+		auto sameSumm = node.attr("summId", false) == ownerId;
+		foreach (cardType; types) { mixin(S_TRACE);
+			void f(CardType cardType) { mixin(S_TRACE);
+				if (sameSumm) { mixin(S_TRACE);
+					node.onTag[xmlNameFrom(cardType)] = (ref XNode cNode) { mixin(S_TRACE);
+						auto card = createFromNode(cNode, ver);
+						if (cNode.attr("paneId", false) != _id || localCard(card.id)) { mixin(S_TRACE);
+							adds ~= card;
+						} else { mixin(S_TRACE);
+							if (_ownerType is OwnerType.Summary) inPane = true;
+							adds ~= card;
+						}
+					};
+					node.parse();
 				} else { mixin(S_TRACE);
-					if (_ownerType is OwnerType.Summary) inPane = true;
-					adds ~= card;
+					node.onTag[xmlNameFrom(cardType)] = (ref XNode cNode) { mixin(S_TRACE);
+						adds ~= createFromNode(cNode, ver);
+					};
+					node.parse();
 				}
-			};
-			node.parse();
+			}
+			f(cardType);
 		}
 		if (adds.length == 0) return false;
-		open(false);
+		if (!sameSumm && !qCardMaterialCopy(node, adds)) return false;
 		bool samePane = _id == node.attr("paneId", false);
 		bool sameSc = ownerId == node.attr("summId", false);
 		bool topLevel = node.attr!bool("topLevel", false, false);
@@ -3030,44 +3092,39 @@ public:
 		assert (editMode);
 		addCardsImpl(cs, false, false, false, true);
 	}
-	void addCardsImpl(Card[] adds, bool inPane, bool samePane, bool sameSc, bool topLevel) { mixin(S_TRACE);
+	void addCardsImpl(Card[] allAdds, bool inPane, bool samePane, bool sameSc, bool topLevel) { mixin(S_TRACE);
 		assert (editMode);
-		ulong[] ids;
-		foreach (card; adds) { mixin(S_TRACE);
-			refreshLink(card, samePane, sameSc, topLevel);
-			if (_ownerType is OwnerType.Summary) { mixin(S_TRACE);
-				ulong oldId = add(cast(Summary)_owner, card);
-				if (inPane) { mixin(S_TRACE);
-					// 同じペイン内でコピー&ペースト
-					if (_ownerType is OwnerType.Summary) change(summary.useCounter, _cardType, oldId, card.id);
-				}
-			} else { mixin(S_TRACE);
-				card = add(cast(CastCard)_owner, card);
-			}
-			ids ~= card.id;
-			final switch (_cardType) {
-			case CardType.Cast:
-				_comm.refCast.call(this, cast(CastCard)card);
-				break;
-			case CardType.Skill:
-				_comm.refSkill.call(this, cast(SkillCard)card);
-				break;
-			case CardType.Item:
-				_comm.refItem.call(this, cast(ItemCard)card);
-				break;
-			case CardType.Beast:
-				_comm.refBeast.call(this, cast(BeastCard)card);
-				break;
-			case CardType.Info:
-				_comm.refInfo.call(this, cast(InfoCard)card);
-				break;
-			}
+		Card[][CardType] adds;
+		auto lastType = _cardType;
+		foreach (card; allAdds) { mixin(S_TRACE);
+			auto cardType = cardTypeFrom(card);
+			adds[cardType] ~= card;
+			lastType = cardType;
 		}
-		storeInsert(ids);
-		pasteRefresh(adds);
-		_comm.refUseCount.call();
-		if (_ownerType is OwnerType.Cast && _cardType is CardType.Beast) { mixin(S_TRACE);
-			_comm.refCast.call(cast(CastCard)_owner);
+
+		foreach (cardType, arr; adds) { mixin(S_TRACE);
+			auto pane = openSameLevelPane(cardType, lastType is cardType);
+			ulong[] ids;
+			foreach (card; arr) { mixin(S_TRACE);
+				pane.refreshLink(card, samePane, sameSc, topLevel);
+				if (pane._ownerType is OwnerType.Summary) { mixin(S_TRACE);
+					ulong oldId = pane.add(cast(Summary)_owner, card);
+					if (inPane) { mixin(S_TRACE);
+						// 同じペイン内でコピー&ペースト
+						if (_ownerType is OwnerType.Summary) change(pane.summary.useCounter, pane._cardType, oldId, card.id);
+					}
+				} else { mixin(S_TRACE);
+					card = pane.add(cast(CastCard)_owner, card);
+				}
+				ids ~= card.id;
+				pane.refCard(card);
+			}
+			pane.storeInsert(ids);
+			pane.pasteRefresh(arr);
+			_comm.refUseCount.call();
+			if (pane._ownerType is OwnerType.Cast && pane._cardType is CardType.Beast) { mixin(S_TRACE);
+				_comm.refCast.call(cast(CastCard)pane._owner);
+			}
 		}
 	}
 	void pasteRefresh(Card[] cs) { mixin(S_TRACE);
