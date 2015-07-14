@@ -706,6 +706,21 @@ private:
 		int x;
 		int y = _marginY - _origin.y;
 		auto d = getDisplay();
+		Image selBmp = null;
+		{ mixin(S_TRACE);
+			auto selBmp2 = new Image(d, 16, 16);
+			scope (exit) selBmp2.dispose();
+			auto selGC = new GC(selBmp2);
+			scope (exit) selGC.dispose();
+			selGC.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
+			selGC.fillRectangle(0, 0, 16, 16);
+			auto selData = selBmp2.getImageData();
+			selData.alphaData = new byte[selData.width * selData.height];
+			selData.alphaData[] = 64;
+			selBmp = new Image(d, selData);
+		}
+		scope (exit) selBmp.dispose();
+		auto selBounds = selBmp.getBounds();
 		for (iy = 0; iy < _line; iy++) { mixin(S_TRACE);
 			x = _marginX - _origin.x;
 			for (ix = 0; ix < _wrap && (index = iy * _wrap + ix) < _items.length; ix++) { mixin(S_TRACE);
@@ -736,7 +751,6 @@ private:
 						}
 
 						gc.setForeground(getForeground());
-						gc.setBackground(d.getSystemColor(SWT.COLOR_LIST_SELECTION));
 						if (isFocusControl() && _cur == index) { mixin(S_TRACE);
 							int fx = ib.x + _focusLinePadding;
 							int fy = ib.y + _focusLinePadding;
@@ -748,9 +762,7 @@ private:
 							}
 						}
 						if (index in _sels) { mixin(S_TRACE);
-							gc.setAlpha(64);
-							gc.fillRectangle(ib);
-							gc.setAlpha(255);
+							gc.drawImage(selBmp, selBounds.x, selBounds.y, selBounds.width, selBounds.height, ib.x, ib.y, ib.width, ib.height);
 						}
 					}
 				}

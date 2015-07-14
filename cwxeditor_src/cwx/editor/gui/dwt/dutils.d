@@ -1409,10 +1409,11 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 	auto r = new PileImage(id, w, h);
 	auto stp = prop.looks.castLifeBarPoint;
 	if (dbgMode || c.faceUpRound > 0) { mixin(S_TRACE);
+		auto levelColor = OS.VERSION(6, 0) <= OS.WIN32_VERSION ? prop.looks.castCardLevelColor : CRGB(128, 128, 128);
 		r.append(to!(string)(c.level),
 			prop.looks.castCardLevelInsets,
 			prop.looks.castCardLevelFont(skin.legacy),
-			prop.looks.castCardLevelColor,
+			levelColor,
 			PileImage.TPos.RIGHT);
 	}
 	r.append(skin.findImagePath(c.path, sPath), matPad, ScaleType.Center, true);
@@ -1612,10 +1613,11 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 	}
 	static if (is(C:SkillCard)) {
 		if (prop.var.etc.showSkillCardLevel) { mixin(S_TRACE);
+			auto levelColor = OS.VERSION(6, 0) <= OS.WIN32_VERSION ? prop.looks.skillCardLevelColor : CRGB(128, 128, 128);
 			r.append(to!(string)(c.level),
 				prop.looks.skillCardLevelInsets,
 				prop.looks.skillCardLevelFont(skin.legacy),
-				prop.looks.skillCardLevelColor,
+				levelColor,
 				PileImage.TPos.RIGHT);
 		}
 	}
@@ -3562,7 +3564,7 @@ void wDrawText(GC gc, string text, int x, int y, int flags) { mixin(S_TRACE);
 /// ditto
 Point wTextExtent(GC gc, string text) { mixin(S_TRACE);
     version (Windows) {
-		if (isEnableGdipAndNotTrueTypeFont(gc)) { mixin(S_TRACE);
+		if (isEnableGdipAndNotTrueTypeFont(gc) || OS.WIN32_VERSION < OS.VERSION(6, 0)) { mixin(S_TRACE);
 			auto data = gc.getGCData();
 			auto g = data.gdipGraphics;
 			data.gdipGraphics = null;

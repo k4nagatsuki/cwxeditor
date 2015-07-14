@@ -1602,11 +1602,29 @@ private:
 			return wImg;
 		}
 		auto dotExtent = e.gc.wTextExtent("...");
+
+		void setAntialias(int antialias) { mixin(S_TRACE);
+			version (Windows) {
+				alias org.eclipse.swt.internal.win32.OS.OS OS;
+				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) e.gc.setAntialias(antialias);
+			} else {
+				e.gc.setAntialias(antialias);
+			}
+		}
+		void setAlpha(int alpha) {mixin(S_TRACE);
+			version (Windows) {
+				alias org.eclipse.swt.internal.win32.OS.OS OS;
+				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) e.gc.setAlpha(alpha);
+			} else {
+				e.gc.setAlpha(alpha);
+			}
+		}
+
 		foreach (i, itm; itms) { mixin(S_TRACE);
 			if (itm.getItemCount() && !itm.getExpanded()) { mixin(S_TRACE);
 				// アイテムを畳んでいる場合は明示する
-				e.gc.setAlpha(128);
-				scope (exit) e.gc.setAlpha(255);
+				setAlpha(128);
+				scope (exit) setAlpha(255);
 				auto bounds = itm.getBounds();
 				int dotX = bounds.x + bounds.width + 2;
 				bounds.x = dotX + 10;
@@ -1614,8 +1632,8 @@ private:
 				e.gc.wDrawText("...", bounds.x + 5, bounds.y + (bounds.height - dotExtent.y) / 2, true);
 				auto lineY = bounds.y + bounds.height / 2;
 				e.gc.drawLine(dotX, lineY, bounds.x, lineY);
-				e.gc.setAntialias(SWT.ON);
-				scope (exit) e.gc.setAntialias(SWT.OFF);
+				setAntialias(SWT.ON);
+				scope (exit) setAntialias(SWT.OFF);
 				e.gc.drawRoundRectangle(bounds.x, bounds.y, bounds.width, bounds.height, 10, 10);
 			}
 			auto c = cast(Content) itm.getData();
@@ -1698,9 +1716,9 @@ private:
 			int tx = b.x + MARGIN_L;
 			int ty = b.y + MARGIN_T;
 
-			e.gc.setAlpha(128);
+			setAlpha(128);
 			e.gc.fillRectangle(bx, by, bw, bh);
-			e.gc.setAlpha(alpha);
+			setAlpha(alpha);
 
 			// FIXME: 場合によって改行が反映されない
 //			e.gc.wDrawText(cm, tx, ty, true);
