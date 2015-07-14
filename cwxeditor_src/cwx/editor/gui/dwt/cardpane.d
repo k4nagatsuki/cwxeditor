@@ -1557,7 +1557,7 @@ private:
 							auto pane = openSameLevelPane(cardType, lastType is cardType);
 							assert (pane._cardType is cardType);
 							ulong[] ids;
-							auto paneIndex = pane is this.outer ? index : pane.cards.length;
+							auto paneIndex = pane is this.outer ? index : cast(int)pane.cards.length;
 							foreach (i, card; arr) { mixin(S_TRACE);
 								pane.refreshLink(card, samePane, sameSc, topLevel);
 								pane.insert(pane._owner, paneIndex, card);
