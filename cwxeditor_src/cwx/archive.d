@@ -4,6 +4,8 @@ module cwx.archive;
 import cwx.utils;
 import cwx.sjis;
 
+import lhafile.lhafile;
+
 import std.array;
 import std.file;
 import std.path;
@@ -247,4 +249,51 @@ void zip(string targ, string zip, bool top, string[] excludePath, bool useSysEnc
 	.zip(targ, zip, top, (string path) { mixin(S_TRACE);
 		return containsPath(excludePath, path);
 	}, useSysEnc);
+}
+
+/// LHAアーカイヴarcをparentに展開する。
+void unlha(string parent, LhaFile arc,
+		string delegate(string, bool) expand = null,
+		void delegate(uint) setProgressNum = null,
+		void delegate(uint) progress = null) { mixin(S_TRACE);
+	unlha(arc, (string path, ubyte[] data, bool isDir) { mixin(S_TRACE);
+		if (expand) { mixin(S_TRACE);
+			path = expand(path, isDir);
+			if (!path.length) return;
+		}
+		path = std.path.buildPath(parent, path);
+		if (isDir) { mixin(S_TRACE);
+			assert (!data.length);
+			if (!exists(path)) mkdirRecurse(path);
+		} else { mixin(S_TRACE);
+			auto p = dirName(path);
+			if (!exists(p)) mkdirRecurse(p);
+			std.file.write(path, data);
+		}
+	}, setProgressNum, progress);
+}
+/// ditto
+void unlha(LhaFile arc,
+		void delegate(string path, ubyte[] data, bool isDir) fileProc,
+		void delegate(uint) setProgressNum = null,
+		void delegate(uint) progress = null) { mixin(S_TRACE);
+	if (setProgressNum !is null) { mixin(S_TRACE);
+		setProgressNum(cast(uint)arc.infoList.length);
+	}
+	int count = 1;
+	foreach (info; arc.infoList) { mixin(S_TRACE);
+		auto name = info.fileName;
+		if (name.isOuterPath) { mixin(S_TRACE);
+			// 外部のディレクトリに展開されそうなファイルは取り除く
+			continue;
+		}
+		if (name.length > 0 && !hasParDir(name)) { mixin(S_TRACE);
+			auto data = !info.isDirectory ? arc.read(name) : [];
+			fileProc(name, data, info.isDirectory);
+		}
+		if (progress !is null) { mixin(S_TRACE);
+			progress(count);
+			count++;
+		}
+	}
 }

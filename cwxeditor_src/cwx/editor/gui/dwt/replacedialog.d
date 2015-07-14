@@ -3661,7 +3661,7 @@ public:
 						if (subDir || 0 == rec) recurse(file, rec + 1);
 					} else { mixin(S_TRACE);
 						auto ext = file.extension();
-						if (cfnmatch(ext, ".wsn") || cfnmatch(ext, ".zip") || (canUncab && cfnmatch(ext, ".cab"))) { mixin(S_TRACE);
+						if (cfnmatch(ext, ".wsn") || cfnmatch(ext, ".zip") || cfnmatch(ext, ".lzh") || cfnmatch(ext, ".lha") || (canUncab && cfnmatch(ext, ".cab"))) { mixin(S_TRACE);
 							findSumm(file);
 						}
 					}

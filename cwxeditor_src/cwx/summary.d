@@ -18,6 +18,9 @@ import cwx.event;
 import cwx.system;
 import cwx.structs;
 import cwx.types;
+import cwx.binary;
+
+import lhafile.lhafile;
 
 import core.thread;
 
@@ -344,13 +347,43 @@ public:
 			}
 			return false;
 		}
-		string suncab(string fname, string summName, out string summPath) { mixin(S_TRACE);
+		bool scArcLHA(LhaFile arc, string ext) { mixin(S_TRACE);
+			foreach (name; arc.nameList) { mixin(S_TRACE);
+				if (cfnmatch(baseName(name), setExtension("Summary", ext))) { mixin(S_TRACE);
+					return true;
+				}
+			}
+			return false;
+		}
+		string suncab(string fname, string summName, out string summPath, out bool canArchive) { mixin(S_TRACE);
 			classic = true;
 			string temp;
-			if (canUncab && cfnmatch(.extension(fname), ".cab")) { mixin(S_TRACE);
+			auto ext = .extension(fname);
+			canArchive = true;
+			if (canUncab && .cfnmatch(ext, ".cab")) { mixin(S_TRACE);
 				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
 				expandDir = temp;
 				if (!.uncab(fname, temp, (string file) {return expandName(file, false);})) { mixin(S_TRACE);
+					delAll(temp);
+					return null;
+				}
+			} else if (.cfnmatch(ext, ".lzh") || .cfnmatch(ext, ".lha")) { mixin(S_TRACE);
+				// LHA
+				canArchive = false; // 圧縮は不可
+				ubyte* ptr = null;
+				auto bin = readBinaryFrom!ubyte(fname, ptr);
+				scope (exit) freeAll(ptr);
+				auto arc = new LhaFile(fname, ByteIO(cast(void[])bin));
+				scope (exit) destroy(arc);
+				auto isSc = scArcLHA(arc, ".wsm");
+				if (!isSc) return null;
+				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
+				try { mixin(S_TRACE);
+					expandDir = temp;
+					.unlha(temp, arc, &expandName);
+				} catch (Exception e) { mixin(S_TRACE);
+					printStackTrace();
+					debugln(e);
 					delAll(temp);
 					return null;
 				}
@@ -424,14 +457,15 @@ public:
 		}
 		Summary legacyCommon() { mixin(S_TRACE);
 			string summPath;
-			string fn = suncab(fname, "Summary.wsm", summPath);
+			bool canArchive;
+			string fn = suncab(fname, "Summary.wsm", summPath, canArchive);
 			if (fn) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
 					Summary r = loadLegacy(summPath);
 					r._expandXMLs = false;
 					r._useTemp = true;
 					r._legacy = true;
-					r._zipName = fname;
+					r._zipName = canArchive ? fname : "";
 					r._tempPath = fn;
 					r.refCheckPaths();
 					r.repairID0();
@@ -500,11 +534,15 @@ public:
 						string zipname = fname;
 						string summPath;
 						string fn = "";
-						if (canUncab && cfnmatch(.extension(fname), ".cab")) { mixin(S_TRACE);
+						auto ext = .extension(fname);
+						if (canUncab && .cfnmatch(ext, ".cab")) { mixin(S_TRACE);
 							if (cabHasFile(fname, "Summary.xml")) { mixin(S_TRACE);
 								classic = false;
-								fn = suncab(fname, "Summary.xml", summPath);
+								bool canArchive;
+								fn = suncab(fname, "Summary.xml", summPath, canArchive);
 							}
+						} else if (.cfnmatch(ext, ".lzh") || .cfnmatch(ext, ".lha")) {
+	 						return legacyCommon();
 						} else { mixin(S_TRACE);
 							ubyte* ptr = null;
 							auto bin = readBinaryFrom!ubyte(fname, ptr);

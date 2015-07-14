@@ -245,9 +245,9 @@ private class LSFFThr(bool Array) {
 string[] scenarioFilter() { mixin(S_TRACE);
 	string[] r;
 	if (canUncab) { mixin(S_TRACE);
-		r ~= "*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm";
+		r ~= "*.wsn;Summary.xml;*.cab;*.zip;*.lzh;*.lha;Summary.wsm";
 	} else { mixin(S_TRACE);
-		r ~= "*.wsn;Summary.xml;*.zip;Summary.wsm";
+		r ~= "*.wsn;Summary.xml;*.zip;*.lzh;*.lha;Summary.wsm";
 	}
 	r ~= "*.xml;*.wid";
 	return r;
@@ -255,9 +255,9 @@ string[] scenarioFilter() { mixin(S_TRACE);
 string[] scenarioFilterDesc(Props prop) { mixin(S_TRACE);
 	string[] r;
 	if (canUncab) { mixin(S_TRACE);
-		r ~= .tryFormat(prop.msgs.filterScenario, "*.wsn;Summary.xml;*.cab;*.zip;Summary.wsm");
+		r ~= .tryFormat(prop.msgs.filterScenario, "*.wsn;Summary.xml;*.cab;*.zip;*.lzh;*.lha;Summary.wsm");
 	} else { mixin(S_TRACE);
-		r ~= .tryFormat(prop.msgs.filterScenario, "*.wsn;Summary.xml;*.zip;Summary.wsm");
+		r ~= .tryFormat(prop.msgs.filterScenario, "*.wsn;Summary.xml;*.zip;*.lzh;*.lha;Summary.wsm");
 	}
 	r ~= .tryFormat(prop.msgs.filterParts, "*.xml;*.wid");
 	return r;

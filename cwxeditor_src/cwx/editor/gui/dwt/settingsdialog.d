@@ -2610,7 +2610,7 @@ private:
 				return file;
 			}
 			auto ext = .extension(bn);
-			if (cfnmatch(ext, ".zip") || cfnmatch(ext, ".wsn") || (cfnmatch(ext, ".cab") && canUncab)) { mixin(S_TRACE);
+			if (cfnmatch(ext, ".zip") || cfnmatch(ext, ".wsn") || cfnmatch(ext, ".lzh") || cfnmatch(ext, ".lha") || (cfnmatch(ext, ".cab") && canUncab)) { mixin(S_TRACE);
 				return file;
 			}
 			return "";
