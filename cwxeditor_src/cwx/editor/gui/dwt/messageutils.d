@@ -2648,19 +2648,19 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	char[size_t] rColors;
 	string fValue(string path) { mixin(S_TRACE);
 		foreach (f, v; flags) { mixin(S_TRACE);
-			if (0 == icmp(f, path)) { mixin(S_TRACE);
+			if (f == path) { mixin(S_TRACE);
 				return v;
 			}
 		}
-		return "%" ~ path ~ "%";
+		return null;
 	}
 	string sValue(string path) { mixin(S_TRACE);
 		foreach (f, v; steps) { mixin(S_TRACE);
-			if (0 == icmp(f, path)) { mixin(S_TRACE);
+			if (f == path) { mixin(S_TRACE);
 				return v;
 			}
 		}
-		return "$" ~ path ~ "$";
+		return null;
 	}
 	version (Windows) {
 		message = wrapReturnCode(message);

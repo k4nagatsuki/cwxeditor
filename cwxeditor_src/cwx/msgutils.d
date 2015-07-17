@@ -43,18 +43,18 @@ string simpleFormatMsg(in string text, string[string] flags, string[string] step
 	char[size_t] colors;
 	return formatMsgImpl(text, (string path) { mixin(S_TRACE);
 			foreach (f, v; flags) { mixin(S_TRACE);
-				if (0 == icmp(f, path)) { mixin(S_TRACE);
+				if (f == path) { mixin(S_TRACE);
 					return v;
 				}
 			}
-			return "%" ~ path ~ "%";
+			return null;
 		}, (string path) { mixin(S_TRACE);
 			foreach (f, v; steps) { mixin(S_TRACE);
-				if (0 == icmp(f, path)) { mixin(S_TRACE);
+				if (f == path) { mixin(S_TRACE);
 					return v;
 				}
 			}
-			return "$" ~ path ~ "$";
+			return null;
 		}, delegate string (char name) { mixin(S_TRACE);
 			auto dc = std.ascii.toUpper(name);
 			foreach (c, v; names) { mixin(S_TRACE);
@@ -77,12 +77,20 @@ private string formatMsgImpl(in string text,
 	dstring dtext = to!dstring(text);
 	for (size_t i = 0; i < dtext.length; i++) { mixin(S_TRACE);
 		dchar c = dtext[i];
-		bool flag_step(string delegate(string) get, dchar c) { mixin(S_TRACE);
-			ptrdiff_t next = .countUntil(dtext[i + 1 .. $], c);
+		bool flag_step(string delegate(string) get, dchar cc) { mixin(S_TRACE);
+			ptrdiff_t next = .countUntil(dtext[i + 1 .. $], cc);
 			if (next < 0) return false;
 			dstring fl = dtext[i + 1 .. i + 1 + next];
+			auto val = get(to!string(fl));
+			if (val is null) { mixin(S_TRACE);
+				if (!full) { mixin(S_TRACE);
+					// 選択肢などでは最初の1文字が欠ける
+					c = dchar.init;
+				}
+				return false;
+			}
 			i = i + 1 + next;
-			result ~= to!dstring(get(to!string(fl)));
+			result ~= to!dstring(val);
 			return true;
 		}
 		switch (c) {
@@ -134,7 +142,7 @@ private string formatMsgImpl(in string text,
 			}
 			goto default;
 		default:
-			result ~= c;
+			if (c !is dchar.init) result ~= c;
 			break;
 		}
 	}
