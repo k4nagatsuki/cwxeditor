@@ -16,7 +16,6 @@ class FlexEtcProps : Properties {
 	auto pipeAppMax = Prop!(int)("pipeAppMax", 256);
 
 	auto targetVersion = Prop!(string)("targetVersion", "1.50");
-	auto singleWindow = Prop!(bool)("singleWindow", true);
 	auto imeMode = Prop!(int)("imeMode", 0);
 	auto toolsLock = Prop!(bool)("toolsLock", false);
 	auto toolsOrder = Prop!(int[])("toolsOrder", []);
@@ -673,8 +672,6 @@ class FlexEtcProps : Properties {
 
 	auto savedSound = Prop!(string)("savedSound", "");
 
-	auto bindCardViews = Prop!(bool)("bindCardViews", false);
-	auto bindSceneWithEvent = Prop!(bool)("bindSceneWithEvent", false);
 	auto connContentTools = Prop!(bool)("connContentTools", true);
 
 	auto previewAlpha = Prop!(int, true)("previewAlpha", 255);

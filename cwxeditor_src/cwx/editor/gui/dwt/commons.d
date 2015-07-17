@@ -452,10 +452,8 @@ class Commons {
 	}
 
 	private MainWindow _main = null;
-	private DataWindow _dataWin = null;
 	private TableWindow _tableWin = null;
 	private FlagWindow _flagWin = null;
-	private MainCardWindow _cardWin = null;
 	private CastCardWindow _castWin = null;
 	private SkillCardWindow _skillWin = null;
 	private ItemCardWindow _itemWin = null;
@@ -559,13 +557,6 @@ class Commons {
 			s(bar);
 		}
 	}
-	void baseShell(MainWindow main, DataWindow dataWin, MainCardWindow cardWin, DirectoryWindow dirWin) { mixin(S_TRACE);
-		_main = main;
-		_dataWin = dataWin;
-		_cardWin = cardWin;
-		_dirWin = dirWin;
-		_clipboard = new ClipData(new Clipboard(_main.shell.getDisplay()));
-	}
 	void baseShell(MainWindow main, TableWindow tableWin, FlagWindow flagWin,
 			CastCardWindow castWin, SkillCardWindow skillWin, ItemCardWindow itemWin, BeastCardWindow beastWin, InfoCardWindow infoWin,
 			DirectoryWindow dirWin) { mixin(S_TRACE);
@@ -591,21 +582,12 @@ class Commons {
 
 	@property
 	Summary summary() { mixin(S_TRACE);
-		if (_dataWin) { mixin(S_TRACE);
-			return _dataWin.summary;
-		} else if (_tableWin) { mixin(S_TRACE);
-			return _tableWin.summary;
-		} else assert (0);
+		return _tableWin.summary;
 	}
 
 	@property
 	bool isChanged() { mixin(S_TRACE);
-		Summary summ;
-		if (_dataWin) { mixin(S_TRACE);
-			summ = _dataWin.summary;
-		} else { mixin(S_TRACE);
-			summ = _tableWin.summary;
-		}
+		auto summ = _tableWin.summary;
 		return summ && (summ.isChanged || _dirWin.isChanged);
 	}
 
@@ -714,7 +696,7 @@ class Commons {
 		bool readOnly = this.summary !is summ;
 		return openImpl!("work", Window, A, "", Commons, Props, Summary, Composite, Shell, A, UndoManager, bool)
 			(area, shellActivate, canDuplicate, this, prop, summ, workPane,
-			cast(Shell) (_dataWin ? _dataWin.shell : _tableWin.shell), area, undo, readOnly);
+			cast(Shell)_tableWin.shell, area, undo, readOnly);
 	}
 	private BindWindow openAreaB(A, BindWindow, SceneWindow)(Props prop, Summary summ, A area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
 		auto ws = opened(area);
@@ -733,20 +715,11 @@ class Commons {
 		}
 		return openAreaImpl!(A, BindWindow)(prop, summ, area, undo, shellActivate, canDuplicate);
 	}
-	private Window1 openAreaSE(A, BindWindow, Window1, Window2)(Props prop, Summary summ, A area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
+	private Window1 openAreaSE(A, Window1, Window2)(Props prop, Summary summ, A area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
 		auto ws = opened(area);
 		UndoManager undo = null;
 		foreach (w; ws) { mixin(S_TRACE);
 			auto tlpData = (cast(TLPData) w.getData());
-			auto aw = cast(BindWindow) tlpData.tlp;
-			if (aw) { mixin(S_TRACE);
-				if (canDuplicate) { mixin(S_TRACE);
-					undo = aw.undoManager;
-				} else { mixin(S_TRACE);
-					activate(w, shellActivate);
-					return null;
-				}
-			}
 			auto asw = cast(Window1) tlpData.tlp;
 			if (asw) { mixin(S_TRACE);
 				if (canDuplicate) { mixin(S_TRACE);
@@ -761,23 +734,17 @@ class Commons {
 		}
 		return openAreaImpl!(A, Window1)(prop, summ, area, undo, shellActivate, canDuplicate);
 	}
-	AreaWindow openArea(Props prop, Summary summ, Area area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openAreaB!(Area, AreaWindow, AreaSceneWindow)(prop, summ, area, shellActivate, canDuplicate);
-	}
 	TopLevelPanel openAreaScene(Props prop, Summary summ, Area area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openAreaSE!(Area, AreaWindow, AreaSceneWindow, EventWindow)(prop, summ, area, shellActivate, canDuplicate);
+		return openAreaSE!(Area, AreaSceneWindow, EventWindow)(prop, summ, area, shellActivate, canDuplicate);
 	}
 	TopLevelPanel openAreaEvent(Props prop, Summary summ, Area area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openAreaSE!(Area, AreaWindow, EventWindow, AreaSceneWindow)(prop, summ, area, shellActivate, canDuplicate);
-	}
-	BattleWindow openArea(Props prop, Summary summ, Battle area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openAreaB!(Battle, BattleWindow, BattleSceneWindow)(prop, summ, area, shellActivate, canDuplicate);
+		return openAreaSE!(Area, EventWindow, AreaSceneWindow)(prop, summ, area, shellActivate, canDuplicate);
 	}
 	TopLevelPanel openAreaScene(Props prop, Summary summ, Battle area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openAreaSE!(Battle, BattleWindow, BattleSceneWindow, EventWindow)(prop, summ, area, shellActivate, canDuplicate);
+		return openAreaSE!(Battle, BattleSceneWindow, EventWindow)(prop, summ, area, shellActivate, canDuplicate);
 	}
 	TopLevelPanel openAreaEvent(Props prop, Summary summ, Battle area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		return openAreaSE!(Battle, BattleWindow, EventWindow, BattleSceneWindow)(prop, summ, area, shellActivate, canDuplicate);
+		return openAreaSE!(Battle, EventWindow, BattleSceneWindow)(prop, summ, area, shellActivate, canDuplicate);
 	}
 	EventWindow openArea(Props prop, Summary summ, Package area, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
 		return openAreaImpl!(Package, EventWindow)(prop, summ, area, null, shellActivate, canDuplicate);
@@ -807,21 +774,17 @@ class Commons {
 				break;
 			}
 		}
-		if (_cardWin) { mixin(S_TRACE);
-			parent = cast(Shell) _cardWin.shell;
-		} else { mixin(S_TRACE);
-			static if (is(C : CastCard)) {
-				parent = cast(Shell) _castWin.shell;
-			} else static if (is(C : SkillCard)) {
-				parent = cast(Shell) _skillWin.shell;
-			} else static if (is(C : ItemCard)) {
-				parent = cast(Shell) _itemWin.shell;
-			} else static if (is(C : BeastCard)) {
-				parent = cast(Shell) _beastWin.shell;
-			} else static if (is(C : InfoCard)) {
-				parent = cast(Shell) _infoWin.shell;
-			} else static assert (0);
-		}
+		static if (is(C : CastCard)) {
+			parent = cast(Shell) _castWin.shell;
+		} else static if (is(C : SkillCard)) {
+			parent = cast(Shell) _skillWin.shell;
+		} else static if (is(C : ItemCard)) {
+			parent = cast(Shell) _itemWin.shell;
+		} else static if (is(C : BeastCard)) {
+			parent = cast(Shell) _beastWin.shell;
+		} else static if (is(C : InfoCard)) {
+			parent = cast(Shell) _infoWin.shell;
+		} else static assert (0);
 		bool readOnly = this.summary !is summ;
 		return openImpl!("work", EventWindow, C, "", Commons, Props, Summary, Composite, Shell, C, UndoManager, bool)
 			(c, shellActivate, canDuplicate, this, prop, summ, workPane, parent, c, undo, readOnly);
@@ -874,24 +837,11 @@ class Commons {
 		}, win.title, shellActivate);
 	}
 	void openDataWin(bool shellActivate) { mixin(S_TRACE);
-		if (_dataWin) { mixin(S_TRACE);
-			openMain!("data", "data", Dir.N)(_dataWin, shellActivate);
-		} else { mixin(S_TRACE);
-			openMain!("data", "data", Dir.N)(_tableWin, shellActivate);
-		}
+		openMain!("data", "data", Dir.N)(_tableWin, shellActivate);
 	}
 	FlagsPane openFlagWin(bool shellActivate) { mixin(S_TRACE);
-		if (_flagWin) { mixin(S_TRACE);
-			openMain!("flag", "data", Dir.N)(_flagWin, shellActivate);
-			return _flagWin.flags;
-		} else { mixin(S_TRACE);
-			openMain!("data", "data", Dir.N)(_dataWin, shellActivate);
-			_dataWin.selectFlags();
-			return _dataWin.flags;
-		}
-	}
-	void openBindCardWin(bool shellActivate) { mixin(S_TRACE);
-		openMain!("card", "data", Dir.N)(_cardWin, shellActivate);
+		openMain!("flag", "data", Dir.N)(_flagWin, shellActivate);
+		return _flagWin.flags;
 	}
 	CardPane openCardPane(CardType cardType, bool shellActivate) { mixin(S_TRACE);
 		final switch (cardType) {
@@ -903,49 +853,24 @@ class Commons {
 		}
 	}
 	CardPane openCastWin(bool shellActivate) { mixin(S_TRACE);
-		if (_cardWin) { mixin(S_TRACE);
-			openBindCardWin(shellActivate);
-			return _cardWin.openCast(shellActivate);
-		} else { mixin(S_TRACE);
-			openMain!("castCard", "data", Dir.N)(_castWin, shellActivate);
-			return _castWin.paneCast;
-		}
+		openMain!("castCard", "data", Dir.N)(_castWin, shellActivate);
+		return _castWin.paneCast;
 	}
 	CardPane openSkillWin(bool shellActivate) { mixin(S_TRACE);
-		if (_cardWin) { mixin(S_TRACE);
-			openBindCardWin(shellActivate);
-			return _cardWin.openSkill(shellActivate);
-		} else { mixin(S_TRACE);
-			openMain!("skillCard", "data", Dir.N)(_skillWin, shellActivate);
-			return _skillWin.paneSkill;
-		}
+		openMain!("skillCard", "data", Dir.N)(_skillWin, shellActivate);
+		return _skillWin.paneSkill;
 	}
 	CardPane openItemWin(bool shellActivate) { mixin(S_TRACE);
-		if (_cardWin) { mixin(S_TRACE);
-			openBindCardWin(shellActivate);
-			return _cardWin.openItem(shellActivate);
-		} else { mixin(S_TRACE);
-			openMain!("itemCard", "data", Dir.N)(_itemWin, shellActivate);
-			return _itemWin.paneItem;
-		}
+		openMain!("itemCard", "data", Dir.N)(_itemWin, shellActivate);
+		return _itemWin.paneItem;
 	}
 	CardPane openBeastWin(bool shellActivate) { mixin(S_TRACE);
-		if (_cardWin) { mixin(S_TRACE);
-			openBindCardWin(shellActivate);
-			return _cardWin.openBeast(shellActivate);
-		} else { mixin(S_TRACE);
-			openMain!("beastCard", "data", Dir.N)(_beastWin, shellActivate);
-			return _beastWin.paneBeast;
-		}
+		openMain!("beastCard", "data", Dir.N)(_beastWin, shellActivate);
+		return _beastWin.paneBeast;
 	}
 	CardPane openInfoWin(bool shellActivate) { mixin(S_TRACE);
-		if (_cardWin) { mixin(S_TRACE);
-			openBindCardWin(shellActivate);
-			return _cardWin.openInfo(shellActivate);
-		} else { mixin(S_TRACE);
-			openMain!("infoCard", "data", Dir.N)(_infoWin, shellActivate);
-			return _infoWin.paneInfo;
-		}
+		openMain!("infoCard", "data", Dir.N)(_infoWin, shellActivate);
+		return _infoWin.paneInfo;
 	}
 
 	void openDirWin(bool shellActivate) { mixin(S_TRACE);
@@ -971,12 +896,8 @@ class Commons {
 		foreach (w; _ws) { mixin(S_TRACE);
 			auto tlpData = (cast(TLPData) w.getData());
 			if (tlpData.main is cast(Object) a) { mixin(S_TRACE);
-				auto aw = cast(AreaWindow) tlpData.tlp;
-				if (aw) return tlpData.tlp;
 				auto asw = cast(AreaSceneWindow) tlpData.tlp;
 				if (asw) return tlpData.tlp;
-				auto bw = cast(BattleWindow) tlpData.tlp;
-				if (bw) return tlpData.tlp;
 				auto bsw = cast(BattleSceneWindow) tlpData.tlp;
 				if (bsw) return tlpData.tlp;
 			}
@@ -990,10 +911,6 @@ class Commons {
 		foreach (w; _ws) { mixin(S_TRACE);
 			auto tlpData = (cast(TLPData) w.getData());
 			if (tlpData.main is cast(Object) a) { mixin(S_TRACE);
-				auto aw = cast(AreaWindow)tlpData.tlp;
-				if (aw) return tlpData.tlp;
-				auto bw = cast(BattleWindow)tlpData.tlp;
-				if (bw) return tlpData.tlp;
 				auto ew = cast(EventWindow)tlpData.tlp;
 				if (ew) return tlpData.tlp;
 			}
@@ -1009,13 +926,9 @@ class Commons {
 			auto tlpData = (cast(TLPData) w.getData());
 			if (tlpData.main is cast(Object) a) { mixin(S_TRACE);
 				static if (is(A : Area)) {
-					auto aw = cast(AreaWindow) tlpData.tlp;
-					if (aw) r ~= aw.areaView;
 					auto asw = cast(AreaSceneWindow) tlpData.tlp;
 					if (asw) r ~= asw.areaView;
 				} else static if (is(A : Battle)) {
-					auto bw = cast(BattleWindow) tlpData.tlp;
-					if (bw) r ~= bw.areaView;
 					auto bsw = cast(BattleSceneWindow) tlpData.tlp;
 					if (bsw) r ~= bsw.areaView;
 				} else static assert (0);
@@ -1031,13 +944,6 @@ class Commons {
 		foreach (w; _ws) { mixin(S_TRACE);
 			auto tlpData = (cast(TLPData)w.getData());
 			if (tlpData.main is cast(Object)a) { mixin(S_TRACE);
-				if (cast(Area)a) {
-					auto aw = cast(AreaWindow)tlpData.tlp;
-					if (aw) r ~= aw.eventView;
-				} else if (cast(Battle)a) {
-					auto bw = cast(BattleWindow)tlpData.tlp;
-					if (bw) r ~= bw.eventView;
-				}
 				if (auto ew = cast(EventWindow)tlpData.tlp) {
 					r ~= ew.eventView;
 				}
@@ -1058,10 +964,6 @@ class Commons {
 		foreach (w; _ws) { mixin(S_TRACE);
 			auto tlpData = (cast(TLPData) w.getData());
 			if (tlpData.main is cast(Object) eto) { mixin(S_TRACE);
-				auto aw = cast(AreaWindow)tlpData.tlp;
-				if (aw) r ~= aw.eventView.eventTreeView;
-				auto bw = cast(BattleWindow)tlpData.tlp;
-				if (bw) r ~= aw.eventView.eventTreeView;
 				auto ew = cast(EventWindow)tlpData.tlp;
 				if (ew) r ~= ew.eventTreeView;
 			}
@@ -1085,10 +987,6 @@ class Commons {
 			auto tlpData = (cast(TLPData)w.getData());
 			if (cast(EventTreeOwner)tlpData.main) { mixin(S_TRACE);
 				EventTreeView view = null;
-				auto aw = cast(AreaWindow)tlpData.tlp;
-				if (aw) view = aw.eventView.eventTreeView;
-				auto bw = cast(BattleWindow)tlpData.tlp;
-				if (bw) view = aw.eventView.eventTreeView;
 				auto ew = cast(EventWindow)tlpData.tlp;
 				if (ew) view = ew.eventTreeView;
 				if (view) { mixin(S_TRACE);
@@ -1163,10 +1061,6 @@ class Commons {
 		if (!summ) return;
 		void delegate(string) setStatusLine = &mainWin.setStatusLine;
 		auto parent = mainWin.shell;
-		if (!singleWindowMode(prop)) { mixin(S_TRACE);
-			parent = _cardWin.shell;
-			setStatusLine = &_cardWin.setStatusLine;
-		}
 		AddCard.openScenario(this, prop, parent, setStatusLine, summ, summ, &addScenarioImpl);
 	}
 	/// ditto
@@ -1175,10 +1069,6 @@ class Commons {
 		if (!summ) return;
 		void delegate(string) setStatusLine = &mainWin.setStatusLine;
 		auto parent = mainWin.shell;
-		if (!singleWindowMode(prop)) { mixin(S_TRACE);
-			parent = _cardWin.shell;
-			setStatusLine = &_cardWin.setStatusLine;
-		}
 		AddCard.openScenario(this, prop, parent, setStatusLine, summ, summ, paths, &addScenarioImpl);
 	}
 	/// ditto
@@ -1230,11 +1120,7 @@ class Commons {
 		areas ~= std.algorithm.sort!("a.id < b.id")(result.packages.values).map!((a) => cast(AbstractArea)a)().array();
 		if (areas.length) { mixin(S_TRACE);
 			openDataWin(false);
-			if (_dataWin) { mixin(S_TRACE);
-				_dataWin.areas.addAreas(areas);
-			} else {
-				_tableWin.areas.addAreas(areas);
-			}
+			_tableWin.areas.addAreas(areas);
 		}
 		refreshToolBar();
 	}
@@ -1254,12 +1140,6 @@ class Commons {
 		} else { mixin(S_TRACE);
 			_main.dock.close(_main.dock.keyFromCtrl(comp));
 		}
-	}
-	bool singleWindowMode(Props prop) { mixin(S_TRACE);
-		if (_main) { mixin(S_TRACE);
-			return _main.dock !is null;
-		}
-		return prop.var.etc.singleWindow;
 	}
 
 	void setStatusLine(Control base, string status, bool refMain = true) { mixin(S_TRACE);
@@ -1310,19 +1190,11 @@ class Commons {
 
 	void selectSummary(bool shellActivate) { mixin(S_TRACE);
 		openDataWin(shellActivate);
-		if (_dataWin) { mixin(S_TRACE);
-			return _dataWin.selectSummary();
-		} else { mixin(S_TRACE);
-			return _tableWin.selectSummary();
-		}
+		return _tableWin.selectSummary();
 	}
 	ulong createPackage(Content baseStart, bool shellActivate) { mixin(S_TRACE);
 		openDataWin(shellActivate);
-		if (_dataWin) { mixin(S_TRACE);
-			return _dataWin.createPackage(baseStart);
-		} else { mixin(S_TRACE);
-			return _tableWin.createPackage(baseStart);
-		}
+		return _tableWin.createPackage(baseStart);
 	}
 
 	private Image _wallpaper = null;

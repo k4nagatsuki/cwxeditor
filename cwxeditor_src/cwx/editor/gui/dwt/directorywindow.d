@@ -22,7 +22,6 @@ import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.absdialog;
-import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.areaviewutils;
@@ -804,7 +803,6 @@ private:
 		return r;
 	}
 
-	SBShell _sbshl;
 	Composite _win;
 	SplitPane _sash;
 	Tree _dirs;
@@ -1136,13 +1134,6 @@ private:
 		_comm.replacePath(sel, true);
 	}
 
-	class SClose : ShellAdapter {
-		override void shellClosed(ShellEvent e) { mixin(S_TRACE);
-			(cast(Shell) e.widget).setVisible(false);
-			e.doit = false;
-			_prop.var.dirWin.visible = false;
-		}
-	}
 	class FDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			closePreview();
@@ -1518,20 +1509,9 @@ public:
 	}
 	private void construct(Composite parent) { mixin(S_TRACE);
 		_cuts = new typeof(_cuts);
-		Shell shell = null;
-		auto parShl = cast(Shell) parent;
 		Composite contPane;
-		if (parShl) { mixin(S_TRACE);
-			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
-			shell = _sbshl.shell;
-			shell.setImages(_prop.images.icon);
-			shell.addShellListener(new SClose);
-			_win = shell;
-			contPane = _sbshl.contentPane;
-		} else { mixin(S_TRACE);
-			_win = new Composite(parent, SWT.NONE);
-			contPane = _win;
-		}
+		_win = new Composite(parent, SWT.NONE);
+		contPane = _win;
 		_win.setData(new TLPData(this));
 		contPane.setLayout(windowGridLayout(1, true));
 		_comm.refScenarioName.add(&refreshTitle);
@@ -1549,62 +1529,17 @@ public:
 		_sImgText = skeletonImage(_prop.images.text);
 		_sImgUnknown = skeletonImage(_prop.images.unknown);
 		_win.addDisposeListener(new DListener);
-		if (shell) { mixin(S_TRACE);
-			auto bar = new Menu(shell, SWT.BAR);
 
-			auto mf = createMenu(_comm, bar, MenuID.File);
-			createMenuItem(_comm, mf, MenuID.OpenDir, &openDirectory, &canOpenDirectory);
-			new MenuItem(mf, SWT.SEPARATOR);
-			createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close, null);
+		appendMenuTCPD(_comm, this, this, true, true, true, true, true);
+		putMenuAction(MenuID.Refresh, &refresh, () => _summ !is null);
+		putMenuAction(MenuID.OpenDir, &openDirectory, &canOpenDirectory);
+		putMenuAction(MenuID.NewDir, &createNewFolder, &canCreateNewFolder);
+		putMenuAction(MenuID.CreateArchive, &createArchive, &canCreateArchive);
+		putMenuAction(MenuID.ChangeVH, &changeVHSide, null);
+		putMenuAction(MenuID.DelNotUsedFile, &deleteUnuse, &canDeleteUnuse);
+		putMenuAction(MenuID.FindID, &replaceID, &canReplaceID);
+		putMenuAction(MenuID.CopyFilePath, &copyFilePath, () => _files.getSelectionIndex() != -1);
 
-			auto me = createMenu(_comm, bar, MenuID.Edit);
-			createMenuItem(_comm, me, MenuID.FindID, &replaceID, &canReplaceID);
-			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(_comm, me, MenuID.NewDir, &createNewFolder, &canCreateNewFolder);
-			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(_comm, me, MenuID.CreateArchive, &createArchive, &canCreateArchive);
-			new MenuItem(me, SWT.SEPARATOR);
-			appendMenuTCPD(_comm, me, this, true, true, true, true, true);
-			new MenuItem(me, SWT.SEPARATOR);
-			createMenuItem(_comm, me, MenuID.DelNotUsedFile, &deleteUnuse, &canDeleteUnuse);
-
-			auto mv = createMenu(_comm, bar, MenuID.View);
-			createMenuItem(_comm, mv, MenuID.Refresh, &refresh, () => _summ !is null);
-			new MenuItem(mv, SWT.SEPARATOR);
-			createMenuItem(_comm, mv, MenuID.ChangeVH, &changeVHSide, null);
-
-			shell.setMenuBar(bar);
-		} else { mixin(S_TRACE);
-			appendMenuTCPD(_comm, this, this, true, true, true, true, true);
-			putMenuAction(MenuID.Refresh, &refresh, () => _summ !is null);
-			putMenuAction(MenuID.OpenDir, &openDirectory, &canOpenDirectory);
-			putMenuAction(MenuID.NewDir, &createNewFolder, &canCreateNewFolder);
-			putMenuAction(MenuID.CreateArchive, &createArchive, &canCreateArchive);
-			putMenuAction(MenuID.ChangeVH, &changeVHSide, null);
-			putMenuAction(MenuID.DelNotUsedFile, &deleteUnuse, &canDeleteUnuse);
-			putMenuAction(MenuID.FindID, &replaceID, &canReplaceID);
-			putMenuAction(MenuID.CopyFilePath, &copyFilePath, () => _files.getSelectionIndex() != -1);
-		}
-		if (shell) { mixin(S_TRACE);
-			auto bar = new ToolBar(contPane, SWT.FLAT);
-			_comm.put(bar);
-			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-			createToolItem(_comm, bar, MenuID.OpenDir, &openDirectory, &canOpenDirectory);
-			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(_comm, bar, MenuID.Refresh, &refresh, () => _summ !is null);
-			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(_comm, bar, MenuID.NewDir, &createNewFolder, &canCreateNewFolder);
-			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(_comm, bar, MenuID.CreateArchive, &createArchive, &canCreateArchive);
-			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(_comm, bar, MenuID.Cut, &cut, &canDoT);
-			createToolItem(_comm, bar, MenuID.Copy, &copy, &canDoC);
-			createToolItem(_comm, bar, MenuID.Paste, &paste, &canDoP);
-			createToolItem(_comm, bar, MenuID.Delete, &del, &canDoD);
-			new ToolItem(bar, SWT.SEPARATOR);
-			createToolItem(_comm, bar, MenuID.ChangeVH, &changeVHSide, null);
-		}
 		auto sashPane = new Composite(contPane, SWT.NONE);
 		sashPane.setLayout(zeroGridLayout(1, true));
 		sashPane.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1715,46 +1650,9 @@ public:
 		_sash.setWeights([_prop.var.etc.directorySashL, _prop.var.etc.directorySashR]);
 		_sdl = new SDListener;
 		_sash.addDisposeListener(_sdl);
-		if (shell) { mixin(S_TRACE);
-			shell.setMaximized(_prop.var.dirWin.maximized);
-			shell.setMinimized(_prop.var.dirWin.minimized);
-			shell.pack();
-			scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-			int width = _prop.var.dirWin.width == SWT.DEFAULT
-				? wp.x : _prop.var.dirWin.width;
-			int height = _prop.var.dirWin.height == SWT.DEFAULT
-				? wp.y : _prop.var.dirWin.height;
-			int x = _prop.var.dirWin.x == SWT.DEFAULT
-				? shell.getBounds().x : _prop.var.dirWin.x + shell.getParent().getBounds().x;
-			int y = _prop.var.dirWin.y == SWT.DEFAULT
-				? shell.getBounds().y : _prop.var.dirWin.y + shell.getParent().getBounds().y;
-			intoDisplay(x, y, width, height);
-			shell.setBounds(x, y, width, height);
-			shell.addControlListener(new SCListener);
-		}
+
 		_incSearch = new IncSearch(_comm, sashPane);
 		_incSearch.modEvent ~= {refreshFiles(null);};
-	}
-	private class SCListener : ControlAdapter {
-		override void controlMoved(ControlEvent e) { mixin(S_TRACE);
-			saveWin();
-		}
-		override void controlResized(ControlEvent e) { mixin(S_TRACE);
-			saveWin();
-		}
-	}
-	private void saveWin() { mixin(S_TRACE);
-		auto win = cast(Shell) _win;
-		if (win) { mixin(S_TRACE);
-			if (!win.getMaximized() && !win.getMinimized()) { mixin(S_TRACE);
-				_prop.var.dirWin.width = win.getSize().x;
-				_prop.var.dirWin.height = win.getSize().y;
-				_prop.var.dirWin.x = win.getBounds().x - win.getParent().getBounds().x;
-				_prop.var.dirWin.y = win.getBounds().y - win.getParent().getBounds().y;
-			}
-			_prop.var.dirWin.maximized = win.getMaximized();
-			_prop.var.dirWin.minimized = win.getMinimized();
-		}
 	}
 	void removeFiles(in string[] file, bool recycle) { mixin(S_TRACE);
 		pauseTrace();
@@ -1767,7 +1665,7 @@ public:
 			}
 			targ ~= '\0';
 			SHFILEOPSTRUCT ope;
-			ope.hwnd = cast(HANDLE) shell.handle;
+			ope.hwnd = cast(HANDLE)shell.handle;
 			ope.wFunc = FO_DELETE;
 			ope.pFrom = targ.ptr;
 			ope.pTo = null;
@@ -1824,15 +1722,11 @@ public:
 	@property
 	override
 	string title() { mixin(S_TRACE);
-		auto shl = cast(Shell) _win;
-		if (shl) { mixin(S_TRACE);
-			return .tryFormat(_prop.msgs.dirWindowName, _summ.scenarioName, _summ.scenarioPath);
-		}
 		return _prop.msgs.dirTabName;
 	}
 	@property
 	override
-	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
+	void delegate(string) statusText() {return null;}
 
 	void copyFilePath() { mixin(S_TRACE);
 		if (!_summ) return;

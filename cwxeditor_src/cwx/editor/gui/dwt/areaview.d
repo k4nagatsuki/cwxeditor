@@ -2602,7 +2602,6 @@ private:
 		}
 	}
 	void refShowToolBar() { mixin(S_TRACE);
-		if (!_comm.singleWindowMode(_prop)) return;
 		auto gl = windowGridLayout(1, true);
 		gl.marginWidth = 0;
 		gl.marginHeight = 0;

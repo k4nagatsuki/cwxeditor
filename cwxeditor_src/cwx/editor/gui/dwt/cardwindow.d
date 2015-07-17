@@ -27,7 +27,6 @@ import cwx.editor.gui.dwt.effectcarddialog;
 import cwx.editor.gui.dwt.infocarddialog;
 import cwx.editor.gui.dwt.xmlbytestransfer;
 import cwx.editor.gui.dwt.commons;
-import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.cardpane;
 import cwx.editor.gui.dwt.loader;
@@ -67,7 +66,6 @@ interface ICardWindow {
 }
 
 enum CardWindowKind {
-	Main,
 	Cast,
 	Skill,
 	Item,
@@ -120,7 +118,6 @@ private:
 	}
 
 	Props _prop;
-	SBShell _sbshl;
 	Composite _win;
 	Composite _comp;
 	Summary _summ;
@@ -246,18 +243,6 @@ public:
 		void construct(Commons comm, Props prop, Summary summ, Composite parent) { mixin(S_TRACE);
 			_viewMode = CViewMode.INIT;
 			construct1(comm, prop, parent);
-			static if (is (CardOwner == Summary)) {
-				auto shell = cast(Shell) _win;
-				if (shell) { mixin(S_TRACE);
-					shell.addShellListener(new class ShellAdapter {
-						override void shellClosed(ShellEvent e) { mixin(S_TRACE);
-							(cast(Shell) e.widget).setVisible(false);
-							e.doit = false;
-							_prop.var.cardWin.visible = false;
-						}
-					});
-				}
-			}
 			static if (is (CardOwner == CastCard)) {
 				_comm.refCast.add(&refOwner);
 				_comm.delCast.add(&delOwner);
@@ -339,146 +324,63 @@ public:
 	private void construct1(Commons comm, Props prop, Composite parent) { mixin(S_TRACE);
 		_comm = comm;
 		_prop = prop;
-		Shell shell = null;
-		auto parShl = cast(Shell) parent;
 		Composite contPane;
-		if (parShl) { mixin(S_TRACE);
-			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
-			shell = _sbshl.shell;
-			shell.setImages(_prop.images.icon);
-			_win = shell;
-			contPane = _sbshl.contentPane;
-		} else { mixin(S_TRACE);
-			_win = new Composite(parent, SWT.NONE);
-			contPane = _win;
-		}
+		_win = new Composite(parent, SWT.NONE);
+		contPane = _win;
 		_win.setData(new TLPData(this));
 		contPane.setLayout(new FillLayout);
 		_comp = new Composite(contPane, SWT.NONE);
 		_comp.setLayout(windowGridLayout(1, true));
-		if (shell) { mixin(S_TRACE);
-			{ mixin(S_TRACE);
-				auto bar = new Menu(shell, SWT.BAR);
 
-				auto mf = createMenu(_comm, bar, MenuID.File);
-				createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close, null);
-
-				auto me = createMenu(_comm, bar, MenuID.Edit);
-				static if (EditMode) {
-					createMenuItem(_comm, me, MenuID.Undo, &undo, &canUndo);
-					createMenuItem(_comm, me, MenuID.Redo, &redo, &canRedo);
-					new MenuItem(me, SWT.SEPARATOR);
-					appendMenuTCPD(_comm, me, this, true, true, true, true, true);
-					new MenuItem(me, SWT.SEPARATOR);
-					createMenuItem(_comm, me, MenuID.Up, &up, &canUp);
-					createMenuItem(_comm, me, MenuID.Down, &down, &canDown);
-				} else { mixin(S_TRACE);
-					createMenuItem(_comm, me, MenuID.Import, &doImport, &canDoImport);
-					new MenuItem(me, SWT.SEPARATOR);
-					appendMenuTCPD(_comm, me, this, false, true, false, false, false);
-				}
-
-				auto mv = createMenu(_comm, bar, MenuID.View);
-				static if (EditMode) {
-					createMenuItem(_comm, mv, MenuID.Refresh, &refreshM, () => _summ !is null);
-					new MenuItem(mv, SWT.SEPARATOR);
-				}
-				_lifeM = createMenuItem(_comm, mv, MenuID.ShowCardProp, &showCardLife, null, SWT.RADIO);
-				_listM = createMenuItem(_comm, mv, MenuID.ShowCardImage, &showCardList, null, SWT.RADIO);
-				_tblM = createMenuItem(_comm, mv, MenuID.ShowCardDetail, &showCardTable, null, SWT.RADIO);
-
-				static if (EditMode) {
-					auto mt = createMenu(_comm, bar, MenuID.Card);
-					static if (is (CardOwner == Summary)) {
-						createMenuItem(_comm, mt, MenuID.OpenImportSource, &addScenario, () => _summ !is null);
-						new MenuItem(mt, SWT.SEPARATOR);
-					}
-					static if (UseCast) createMenuItem(_comm, mt, MenuID.NewCast, &create!(CAST), () => _summ !is null);
-					static if (UseSkill) createMenuItem(_comm, mt, MenuID.NewSkill, &create!(SKILL), () => _summ !is null);
-					static if (UseItem) createMenuItem(_comm, mt, MenuID.NewItem, &create!(ITEM), () => _summ !is null);
-					static if (UseBeast) createMenuItem(_comm, mt, MenuID.NewBeast, &create!(BEAST), () => _summ !is null);
-					static if (UseInfo) createMenuItem(_comm, mt, MenuID.NewInfo, &create!(INFO), () => _summ !is null);
-				}
-				shell.setMenuBar(bar);
+		static if (WithArea) {
+			putMenuAction(MenuID.EditSummary, () => _areas.editSummary(_areas.panel.getShell()), () => _summ !is null);
+			putMenuAction(MenuID.EditScene, () => _areas.openAreaScene(true), () => _areas.canOpenAreaScene);
+			putMenuAction(MenuID.EditSceneDup, () => _areas.openAreaScene(true, true), () => _areas.canOpenAreaScene);
+			putMenuAction(MenuID.EditEvent, () => _areas.openAreaEvent(true), () => _areas.canOpenAreaEvent);
+			putMenuAction(MenuID.EditEventDup, () => _areas.openAreaEvent(true, true), () => _areas.canOpenAreaEvent);
+			putMenuAction(MenuID.ChangeVH, () => _areas.changeVHSide(), () => _areas.canChangeVH);
+		}
+		static if (EditMode) {
+			appendMenuTCPD(_comm, this, this, true, true, true, true, true);
+			putMenuAction(MenuID.Refresh, &refreshM, () => _summ !is null);
+			static if (is (CardOwner == Summary)) {
+				putMenuAction(MenuID.OpenImportSource, &addScenario, () => _summ !is null);
 			}
-			{ mixin(S_TRACE);
-				auto bar = new ToolBar(_comp, SWT.FLAT);
-				_comm.put(bar);
-				static if (EditMode) {
-					static if (is (CardOwner == Summary)) {
-						createToolItem(_comm, bar, MenuID.OpenImportSource, &addScenario, () => _summ !is null);
-						new ToolItem(bar, SWT.SEPARATOR);
-					}
-				}
-				static if (EditMode) {
-					createToolItem(_comm, bar, MenuID.Refresh, &refreshM, () => _summ !is null);
-					new ToolItem(bar, SWT.SEPARATOR);
-					createToolItem(_comm, bar, MenuID.Up, &up, &canUp);
-					createToolItem(_comm, bar, MenuID.Down, &down, &canDown);
-					new ToolItem(bar, SWT.SEPARATOR);
-					static if (UseCast) createToolItem(_comm, bar, MenuID.NewCast, &create!(CAST), () => _summ !is null);
-					static if (UseSkill) createToolItem(_comm, bar, MenuID.NewSkill, &create!(SKILL), () => _summ !is null);
-					static if (UseItem) createToolItem(_comm, bar, MenuID.NewItem, &create!(ITEM), () => _summ !is null);
-					static if (UseBeast) createToolItem(_comm, bar, MenuID.NewBeast, &create!(BEAST), () => _summ !is null);
-					static if (UseInfo) createToolItem(_comm, bar, MenuID.NewInfo, &create!(INFO), () => _summ !is null);
-				} else { mixin(S_TRACE);
-					createToolItem(_comm, bar, MenuID.Import, &doImport, &canDoImport);
-				}
-				new ToolItem(bar, SWT.SEPARATOR);
-				_lifeT = createToolItem(_comm, bar, MenuID.ShowCardProp, &showCardLife, null, SWT.RADIO);
-				_listT = createToolItem(_comm, bar, MenuID.ShowCardImage, &showCardList, null, SWT.RADIO);
-				_tblT = createToolItem(_comm, bar, MenuID.ShowCardDetail, &showCardTable, null, SWT.RADIO);
+			putMenuAction(MenuID.Undo, &undo, &canUndo);
+			putMenuAction(MenuID.Redo, &redo, &canRedo);
+			static if (UseCast) {
+				putMenuAction(MenuID.NewCast, &create!(CAST), () => _summ !is null);
+				putMenuAction(MenuID.OpenHand, &editHand, &canEditHand);
+			}
+			static if (UseSkill) putMenuAction(MenuID.NewSkill, &create!(SKILL), () => _summ !is null);
+			static if (UseItem) putMenuAction(MenuID.NewItem, &create!(ITEM), () => _summ !is null);
+			static if (UseBeast) putMenuAction(MenuID.NewBeast, &create!(BEAST), () => _summ !is null);
+			static if (UseInfo) putMenuAction(MenuID.NewInfo, &create!(INFO), () => _summ !is null);
+			putMenuAction(MenuID.Up, &up, &canUp);
+			putMenuAction(MenuID.Down, &down, &canDown);
+			putMenuAction(MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
+			putMenuAction(MenuID.FindID, &replaceID, &canReplaceID);
+			putMenuAction(MenuID.EditProp, &edit, &canEdit);
+			putMenuAction(MenuID.ReNumbering, &reNumbering, &canReNumbering);
+			static if (is(CardOwner:CastCard)) {
+				putMenuAction(MenuID.RemoveRef, &removeRef, &canRemoveRef);
 			}
 		} else { mixin(S_TRACE);
-			static if (WithArea) {
-				putMenuAction(MenuID.EditSummary, () => _areas.editSummary(_areas.panel.getShell()), () => _summ !is null);
-				putMenuAction(MenuID.EditScene, () => _areas.openAreaScene(true), () => _areas.canOpenAreaScene);
-				putMenuAction(MenuID.EditSceneDup, () => _areas.openAreaScene(true, true), () => _areas.canOpenAreaScene);
-				putMenuAction(MenuID.EditEvent, () => _areas.openAreaEvent(true), () => _areas.canOpenAreaEvent);
-				putMenuAction(MenuID.EditEventDup, () => _areas.openAreaEvent(true, true), () => _areas.canOpenAreaEvent);
-				putMenuAction(MenuID.ChangeVH, () => _areas.changeVHSide(), () => _areas.canChangeVH);
+			appendMenuTCPD(_comm, this, this, false, true, false, false, false);
+			putMenuAction(MenuID.ShowProp, &edit, &canEdit);
+			static if (UseCast) {
+				putMenuAction(MenuID.OpenHand, &editHand, &canEditHand);
 			}
-			static if (EditMode) {
-				appendMenuTCPD(_comm, this, this, true, true, true, true, true);
-				putMenuAction(MenuID.Refresh, &refreshM, () => _summ !is null);
-				static if (is (CardOwner == Summary)) {
-					putMenuAction(MenuID.OpenImportSource, &addScenario, () => _summ !is null);
-				}
-				putMenuAction(MenuID.Undo, &undo, &canUndo);
-				putMenuAction(MenuID.Redo, &redo, &canRedo);
-				static if (UseCast) {
-					putMenuAction(MenuID.NewCast, &create!(CAST), () => _summ !is null);
-					putMenuAction(MenuID.OpenHand, &editHand, &canEditHand);
-				}
-				static if (UseSkill) putMenuAction(MenuID.NewSkill, &create!(SKILL), () => _summ !is null);
-				static if (UseItem) putMenuAction(MenuID.NewItem, &create!(ITEM), () => _summ !is null);
-				static if (UseBeast) putMenuAction(MenuID.NewBeast, &create!(BEAST), () => _summ !is null);
-				static if (UseInfo) putMenuAction(MenuID.NewInfo, &create!(INFO), () => _summ !is null);
-				putMenuAction(MenuID.Up, &up, &canUp);
-				putMenuAction(MenuID.Down, &down, &canDown);
-				putMenuAction(MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
-				putMenuAction(MenuID.FindID, &replaceID, &canReplaceID);
-				putMenuAction(MenuID.EditProp, &edit, &canEdit);
-				putMenuAction(MenuID.ReNumbering, &reNumbering, &canReNumbering);
-				static if (is(CardOwner:CastCard)) {
-					putMenuAction(MenuID.RemoveRef, &removeRef, &canRemoveRef);
-				}
-			} else { mixin(S_TRACE);
-				appendMenuTCPD(_comm, this, this, false, true, false, false, false);
-				putMenuAction(MenuID.ShowProp, &edit, &canEdit);
-				static if (UseCast) {
-					putMenuAction(MenuID.OpenHand, &editHand, &canEditHand);
-				}
-				putMenuAction(MenuID.Import, &doImport, &canDoImport);
-			}
-			static if (UseSkill || UseItem || UseBeast) {
-				putMenuAction(MenuID.EditEventAtTimeOfUsing, () => editUseEvent(false), &canEditUseEvent);
-				putMenuAction(MenuID.EditEventDup, () => editUseEvent(true), &canEditUseEvent);
-			}
-			putMenuChecked(MenuID.ShowCardProp, &showCardLife, &isViewLife, null);
-			putMenuChecked(MenuID.ShowCardImage, &showCardList, &isViewList, null);
-			putMenuChecked(MenuID.ShowCardDetail, &showCardTable, &isViewTable, null);
+			putMenuAction(MenuID.Import, &doImport, &canDoImport);
 		}
+		static if (UseSkill || UseItem || UseBeast) {
+			putMenuAction(MenuID.EditEventAtTimeOfUsing, () => editUseEvent(false), &canEditUseEvent);
+			putMenuAction(MenuID.EditEventDup, () => editUseEvent(true), &canEditUseEvent);
+		}
+		putMenuChecked(MenuID.ShowCardProp, &showCardLife, &isViewLife, null);
+		putMenuChecked(MenuID.ShowCardImage, &showCardList, &isViewList, null);
+		putMenuChecked(MenuID.ShowCardDetail, &showCardTable, &isViewTable, null);
+
 		static if (1 < Cards.length || WithArea) {
 			_tabf = new CTabFolder(_comp, SWT.BORDER);
 			_tabf.addSelectionListener(new SelChanged);
@@ -843,8 +745,6 @@ public:
 			_aTab.setControl(_areas.panel);
 		}
 
-		auto shell = cast(Shell) _win;
-
 		static if (1 < Cards.length || WithArea) {
 			_tabf.setSelection(0);
 		}
@@ -856,42 +756,6 @@ public:
 			showCardLife();
 		} else { mixin(S_TRACE);
 			showCardList();
-		}
-		if (shell) { mixin(S_TRACE);
-			scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-			int width = _prop.var.cardWin.width == SWT.DEFAULT ? wp.x : _prop.var.cardWin.width;
-			static if (EditMode && is (CardOwner == Summary)) {
-				shell.setMaximized(_prop.var.cardWin.maximized);
-				shell.setMinimized(_prop.var.cardWin.minimized);
-				int x = _prop.var.cardWin.x == SWT.DEFAULT ? shell.getBounds().x : _prop.var.cardWin.x + shell.getParent().getBounds().x;
-				int y = _prop.var.cardWin.y == SWT.DEFAULT ? shell.getBounds().y : _prop.var.cardWin.y + shell.getParent().getBounds().y;
-				intoDisplay(x, y, width, _prop.var.cardWin.height);
-				shell.setBounds(x, y, width, _prop.var.cardWin.height);
-				shell.addControlListener(new SizeL);
-			} else { mixin(S_TRACE);
-				shell.setSize(width, _prop.var.cardWin.height);
-			}
-		}
-	}
-	private class SizeL : ControlAdapter {
-		private void saveCardWin() { mixin(S_TRACE);
-			auto shell = cast(Shell) _win;
-			if (shell) { mixin(S_TRACE);
-				if (!shell.getMaximized() && !shell.getMinimized()) { mixin(S_TRACE);
-					_prop.var.cardWin.width = shell.getSize().x;
-					_prop.var.cardWin.height = shell.getSize().y;
-					_prop.var.cardWin.x = shell.getBounds().x - shell.getParent().getBounds().x;
-					_prop.var.cardWin.y = shell.getBounds().y - shell.getParent().getBounds().y;
-				}
-				_prop.var.cardWin.maximized = shell.getMaximized();
-				_prop.var.cardWin.minimized = shell.getMinimized();
-			}
-		}
-		override void controlMoved(ControlEvent e) { mixin(S_TRACE);
-			saveCardWin();
-		}
-		override void controlResized(ControlEvent e) { mixin(S_TRACE);
-			saveCardWin();
 		}
 	}
 	static if (!EditMode && is(CardOwner == CastCard)) {
@@ -934,7 +798,6 @@ public:
 	override
 	Image image() { mixin(S_TRACE);
 		final switch (CWKind) {
-		case CardWindowKind.Main: return _prop.images.menu(MenuID.CardView);
 		case CardWindowKind.Cast: return _prop.images.menu(MenuID.CastView);
 		case CardWindowKind.Skill: return _prop.images.menu(MenuID.SkillView);
 		case CardWindowKind.Item: return _prop.images.menu(MenuID.ItemView);
@@ -948,36 +811,7 @@ public:
 	@property
 	override
 	string title() { mixin(S_TRACE);
-		auto shl = cast(Shell) _win;
-		if (shl) { mixin(S_TRACE);
-			static if (CWKind == CardWindowKind.Main) {
-				if (_summ) { mixin(S_TRACE);
-					return .tryFormat(_prop.msgs.mainCardWindowName, _summ.scenarioName, _summ.scenarioPath);
-				} else { mixin(S_TRACE);
-					return _prop.msgs.mainCardWindowNameNoSummary;
-				}
-			} else static if (CWKind == CardWindowKind.Cast || CWKind == CardWindowKind.Skill || CWKind == CardWindowKind.Item || CWKind == CardWindowKind.Beast || CWKind == CardWindowKind.Info) {
-				if (_summ) { mixin(S_TRACE);
-					return .tryFormat(_prop.msgs.cardWindowName, .objName!(Cards[0])(_prop), _summ.scenarioName, _summ.scenarioPath);
-				} else { mixin(S_TRACE);
-					return .tryFormat(_prop.msgs.cardWindowNameNoSummary, .objName!(Cards[0])(_prop));
-				}
-			} else static if (CWKind == CardWindowKind.Hand) {
-				static if (CWKind == CardWindowKind.Hand) {
-					return .tryFormat(_prop.msgs.handCardWindowName, owner.id, owner.name);
-				} else { mixin(S_TRACE);
-					assert (0);
-				}
-			} else static if (CWKind == CardWindowKind.ImportSource) {
-				assert (_summ !is null);
-				return .tryFormat(_prop.msgs.importSourceWindowName, _summ.scenarioName, _summ.scenarioPath);
-			} else static if (CWKind == CardWindowKind.ImportSourceHand) {
-				return .tryFormat(_prop.msgs.handCardWindowName, owner.id, owner.name);
-			} else static assert (0);
-		}
-		static if (CWKind == CardWindowKind.Main) {
-			return _prop.msgs.mainCardTabName;
-		} else static if (CWKind == CardWindowKind.Cast || CWKind == CardWindowKind.Skill || CWKind == CardWindowKind.Item || CWKind == CardWindowKind.Beast || CWKind == CardWindowKind.Info) {
+		static if (CWKind == CardWindowKind.Cast || CWKind == CardWindowKind.Skill || CWKind == CardWindowKind.Item || CWKind == CardWindowKind.Beast || CWKind == CardWindowKind.Info) {
 			return .tryFormat(_prop.msgs.cardTabName, .objName!(Cards[0])(_prop));
 		} else static if (CWKind == CardWindowKind.Hand) {
 			return .tryFormat(_prop.msgs.handCardTabName, owner.id, owner.name);
@@ -990,7 +824,7 @@ public:
 	}
 	@property
 	override
-	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
+	void delegate(string) statusText() {return null;}
 
 	void refreshTitle() { mixin(S_TRACE);
 		if (_win && !_win.isDisposed()) _comm.setTitle(shell, title);
@@ -1417,7 +1251,6 @@ public:
 
 alias CardWindow!(CardWindowKind.ImportSourceHand, CastCard, Summary, false, SkillCard, ItemCard, BeastCard) AddHandCardWindow;
 alias CardWindow!(CardWindowKind.Hand, CastCard, void, false, SkillCard, ItemCard, BeastCard) HandCardWindow;
-alias CardWindow!(CardWindowKind.Main, Summary, void, false, CastCard, SkillCard, ItemCard, BeastCard, InfoCard) MainCardWindow;
 alias CardWindow!(CardWindowKind.Cast, Summary, void, false, CastCard) CastCardWindow;
 alias CardWindow!(CardWindowKind.Skill, Summary, void, false, SkillCard) SkillCardWindow;
 alias CardWindow!(CardWindowKind.Item, Summary, void, false, ItemCard) ItemCardWindow;
@@ -1460,7 +1293,7 @@ private:
 			foreach (i, cc; ccs) { mixin(S_TRACE);
 				if (cc) { mixin(S_TRACE);
 					auto shl = cast(Shell) parent;
-					auto pane = shl && !comm.singleWindowMode(prop) ? parent : comm.sidePane;
+					auto pane = comm.sidePane;
 					auto acw = new ACW(comm, prop, pane, cc, cc, toc);
 					acw.shell.addDisposeListener(new DelTemp(cc));
 					r ~= acw;

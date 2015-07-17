@@ -1921,12 +1921,8 @@ public:
 			createMenuItem(_comm, menu, MenuID.Import, &doImport, &canDoImport);
 			new MenuItem(menu, SWT.SEPARATOR);
 		}
-		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) { mixin(S_TRACE);
-			createMenuItem(_comm, menu, MenuID.EditProp, &edit, &canEdit);
-		} else { mixin(S_TRACE);
-			createMenuItem(_comm, menu, MenuID.EditScene, {openAreaScene(true);}, &canOpenAreaScene);
-			createMenuItem(_comm, menu, MenuID.EditEvent, {openAreaEvent(true);}, &canOpenAreaEvent);
-		}
+		createMenuItem(_comm, menu, MenuID.EditScene, {openAreaScene(true);}, &canOpenAreaScene);
+		createMenuItem(_comm, menu, MenuID.EditEvent, {openAreaEvent(true);}, &canOpenAreaEvent);
 		new MenuItem(menu, SWT.SEPARATOR);
 		createMenuItem(_comm, menu, MenuID.EditSummary, &editSummary, () => _summ !is null);
 		new MenuItem(menu, SWT.SEPARATOR);
@@ -2538,19 +2534,10 @@ public:
 	}
 
 	void openAreaSceneImpl(A)(A a, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
-		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) { mixin(S_TRACE);
-			_comm.openArea(_prop, _summ, a, shellActivate, canDuplicate);
-		} else { mixin(S_TRACE);
-			_comm.openAreaScene(_prop, _summ, a, shellActivate, canDuplicate);
-		}
+		_comm.openAreaScene(_prop, _summ, a, shellActivate, canDuplicate);
 	}
 	void openAreaEventImpl(A)(A a, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
-		if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) { mixin(S_TRACE);
-			auto w = _comm.openArea(_prop, _summ, a, shellActivate, canDuplicate);
-			w.selectEventView();
-		} else { mixin(S_TRACE);
-			_comm.openAreaEvent(_prop, _summ, a, shellActivate, canDuplicate);
-		}
+		_comm.openAreaEvent(_prop, _summ, a, shellActivate, canDuplicate);
 	}
 	void openAreaScene(ulong id, bool shellActivate, bool canDuplicate = false) { mixin(S_TRACE);
 		openAreaSceneImpl(_summ.area(id), shellActivate, canDuplicate);

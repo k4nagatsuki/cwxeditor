@@ -105,27 +105,7 @@ class DialogParam(string Name, int WidthDef = SWT.DEFAULT, int HeightDef = SWT.D
 	mixin XMLFuncs!(DialogParam, Name);
 }
 
-class EventWin(string Name, int Width, int Height, ulong SizeChgVersion = 0) : Properties, WSize {
-	auto _x = Prop!(int)("x", SWT.DEFAULT);
-	@property const int x() {return _x;}
-	@property void x(int v) {_x = v;}
-
-	auto _y = Prop!(int)("y", SWT.DEFAULT);
-	@property const int y() {return _y;}
-	@property void y(int v) {_y = v;}
-
-	auto _maximized = Prop!(bool)("maximized", false);
-	@property const bool maximized() {return _maximized;}
-	@property void maximized(bool v) {_maximized = v;}
-
-	auto _width = Prop!(int)("width", Width, SizeChgVersion);
-	@property const int width() {return _width;}
-	@property void width(int v) {_width = v;}
-
-	auto _height = Prop!(int)("height", Height, SizeChgVersion);
-	@property const int height() {return _height;}
-	@property void height(int v) {_height = v;}
-
+class EventWin(string Name, int Width, int Height, ulong SizeChgVersion = 0) : Properties {
 	auto _eventSashL = Prop!(int)("eventSashL", 2);
 	@property const int eventSashL() {return _eventSashL;}
 	@property void eventSashL(int v) {_eventSashL = v;}
@@ -156,10 +136,8 @@ class ToolWin(string PropName, int Width, int Height, ulong SizeChgVersion = 0)
 
 	mixin XMLFuncs!(ToolWin, PropName);
 }
-alias EventWin!("areaWindow", SWT.DEFAULT, SWT.DEFAULT) AreaWin;
 alias EventWin!("areaSceneWindow", SWT.DEFAULT, SWT.DEFAULT) AreaSceneWin;
 alias EventWin!("areaEventWindow", SWT.DEFAULT, SWT.DEFAULT) AreaEventWin;
-alias EventWin!("battleWindow", SWT.DEFAULT, SWT.DEFAULT) BattleWin;
 alias EventWin!("battleSceneWindow", SWT.DEFAULT, SWT.DEFAULT) BattleSceneWin;
 alias EventWin!("battleEventWindow", SWT.DEFAULT, SWT.DEFAULT) BattleEventWin;
 alias EventWin!("packageWindow", 800, 520) PackageWin;
@@ -167,13 +145,8 @@ alias EventWin!("cardEventWindow", 800, 520) CardEventWin;
 
 public class FlexProps {
 	MainWin mainWin;
-	WindowProps!("dataWindow", SWT.DEFAULT, 400) dataWin;
-	WindowProps!("cardWindow", SWT.DEFAULT, 400) cardWin;
-	WindowProps!("directoryWindow", SWT.DEFAULT, 400) dirWin;
-	AreaWin areaWin;
 	AreaSceneWin areaSceneWin;
 	AreaEventWin areaEventWin;
-	BattleWin battleWin;
 	BattleSceneWin battleSceneWin;
 	BattleEventWin battleEventWin;
 	PackageWin packageWin;

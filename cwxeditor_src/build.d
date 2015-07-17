@@ -276,6 +276,12 @@ void main(string[] args) {
 		"objs".removeFile();
 		"build.d.deps".removeFile();
 		"build.log".removeFile();
+		version (Windows) {
+			foreach (ext; [".exp", ".ilk", ".lib", ".pdb"]) {
+				auto path = EXE.setExtension(ext);
+				if (path.exists()) path.remove();
+			}
+		}
 		if (clean && 1 == test.length + option.length) return;
 	}
 

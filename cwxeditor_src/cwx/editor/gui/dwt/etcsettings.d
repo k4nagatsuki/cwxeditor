@@ -95,9 +95,6 @@ class EtcSettings : Composite {
 		}
 
 		auto comp = createComp(prop.msgs.etcSettingsCommon);
-		if (!comm.singleWindowMode(prop)) { mixin(S_TRACE);
-			boolSetting(comp, prop.var.etc.singleWindow, prop.msgs.singleWindow);
-		}
 		boolSetting(comp, prop.var.etc.showImagePreview, prop.msgs.showImagePreview);
 		boolSetting(comp, prop.var.etc.maskCardImagePreview, prop.msgs.maskCardImagePreview);
 		boolSetting(comp, prop.var.etc.switchTabWheel, prop.msgs.switchTabWheel);

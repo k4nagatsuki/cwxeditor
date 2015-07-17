@@ -202,19 +202,21 @@ private void initSdl() { mixin(S_TRACE);
 	}
 	version (Windows) {
 		version (Win64) {
-			static __gshared const SDL = "SDL2.dll";
-			static __gshared const MIXER = "SDL2_mixer.dll";
-			auto path = .environment.get("PATH", "");
-			if (path != "") path ~= ";";
-			path ~= thisExePath().dirName().buildPath("x64");
-			.environment["PATH"] = path;
+			static immutable SDL = "SDL2.dll";
+			static immutable MIXER = "SDL2_mixer.dll";
+			static immutable DIR = "x64";
 		} else {
-			static __gshared const SDL = "SDL.dll";
-			static __gshared const MIXER = "SDL_mixer.dll";
+			static immutable SDL = "SDL.dll";
+			static immutable MIXER = "SDL_mixer.dll";
+			static immutable DIR = "x86";
 		}
+		auto path = .environment.get("PATH", "");
+		if (path != "") path ~= ";";
+		path ~= thisExePath().dirName().buildPath(DIR);
+		.environment["PATH"] = path;
 	} else { mixin(S_TRACE);
-		static __gshared const SDL = "libSDL2.so";
-		static __gshared const MIXER = "libSDL2_mixer.so";
+		static immutable SDL = "libSDL2.so";
+		static immutable MIXER = "libSDL2_mixer.so";
 	}
 	sdl = dlopen(SDL);
 	mixer = dlopen(MIXER);

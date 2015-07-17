@@ -18,7 +18,6 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.eventview;
 import cwx.editor.gui.dwt.eventtreeview;
 import cwx.editor.gui.dwt.undo;
-import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.dmenu;
 
 import std.conv;
@@ -34,9 +33,7 @@ private:
 	Props _prop;
 	UndoManager _undo;
 
-	SBShell _sbshl;
 	Composite _win;
-	Shell _parent2 = null;
 
 	EventView _eview;
 
@@ -47,19 +44,9 @@ private:
 	}
 public:
 	this (Commons comm, Props prop, Summary summ, Composite parent, Shell parent2, EventTreeOwner eto, UndoManager undo, bool readOnly) { mixin(S_TRACE);
-		Shell shell = null;
-		auto parShl = cast(Shell) parent;
 		Composite contPane;
-		if (parShl) { mixin(S_TRACE);
-			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
-			shell = _sbshl.shell;
-			shell.setImages(_prop.images.icon);
-			_win = shell;
-			contPane = _sbshl.contentPane;
-		} else { mixin(S_TRACE);
-			_win = new Composite(parent, SWT.NONE);
-			contPane = _win;
-		}
+		_win = new Composite(parent, SWT.NONE);
+		contPane = _win;
 		_win.setData(new TLPData(this));
 		contPane.setLayout(windowGridLayout(1, true));
 		_prop = prop;
@@ -99,7 +86,6 @@ public:
 		}
 		_win.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-				saveWin();
 				if (_readOnly) { mixin(S_TRACE);
 					_comm.closeAdds.remove(&closeAdds);
 				} else { mixin(S_TRACE);
@@ -133,94 +119,31 @@ public:
 			_eview = new typeof(_eview)(comm, prop, summ, eto, contPane, _undo, _readOnly != SWT.NONE);
 			_eview.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
-		if (shell) { mixin(S_TRACE);
-			auto bar = new Menu(shell, SWT.BAR);
-
-			auto mf = createMenu(_comm, bar, MenuID.File);
-			if (cast(Area)_eto) {
-				createMenuItem(_comm, mf, MenuID.EditScene, () => openScene(false), null);
-				new MenuItem(mf, SWT.SEPARATOR);
-			} else if (cast(Battle)_eto) {
-				createMenuItem(_comm, mf, MenuID.EditScene, () => openScene(false), null);
-				new MenuItem(mf, SWT.SEPARATOR);
-			}
-			createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close, null);
-
-			auto me = createMenu(_comm, bar, MenuID.Edit);
-			if (!_readOnly) { mixin (S_TRACE);
-				createMenuItem(_comm, me, MenuID.Undo, &_eview.undo, () => !_readOnly && _undo.canUndo);
-				createMenuItem(_comm, me, MenuID.Redo, &_eview.redo, () => !_readOnly && _undo.canRedo);
-				new MenuItem(me, SWT.SEPARATOR);
-				createMenuItem(_comm, me, MenuID.Up, &_eview.up, &_eview.canUp);
-				createMenuItem(_comm, me, MenuID.Down, &_eview.down, &_eview.canDown);
-				new MenuItem(me, SWT.SEPARATOR);
-				appendMenuTCPD(_comm, me, this, true, true, true, true, true);
-				new MenuItem(me, SWT.SEPARATOR);
-				createMenuItem(_comm, me, MenuID.Comment, &_eview.writeComment, &_eview.canWriteComment);
-				new MenuItem(me, SWT.SEPARATOR);
-			} else {
-				appendMenuTCPD(_comm, me, this, false, true, false, false, false);
-				new MenuItem(me, SWT.SEPARATOR);
-			}
-			createMenuItem(_comm, me, MenuID.ToScript, &_eview.toScript, &_eview.canToScript);
-			createMenuItem(_comm, me, MenuID.ToScriptAll, &_eview.toScriptAll, &_eview.canToScriptAll);
-
-			shell.setMenuBar(bar);
-		} else { mixin(S_TRACE);
-			appendMenuTCPD(_comm, this, this, true, true, true, true, true);
-			if (cast(Area)_eto || cast(Battle)_eto) {
-				putMenuAction(MenuID.EditScene, () => openScene(false), null);
-				putMenuAction(MenuID.EditSceneDup, () => openScene(true), null);
-			}
-			putMenuAction(MenuID.EditEventDup, () => openDup(), null);
-			putMenuAction(MenuID.Undo, &_eview.undo, () => !_readOnly && _undo.canUndo);
-			putMenuAction(MenuID.Redo, &_eview.redo, () => !_readOnly && _undo.canRedo);
-			putMenuAction(MenuID.Up, &_eview.up, &_eview.canUp);
-			putMenuAction(MenuID.Down, &_eview.down, &_eview.canDown);
-			putMenuAction(MenuID.Comment, &_eview.writeComment, &_eview.canWriteComment);
-			putMenuAction(MenuID.ToScript, &_eview.toScript, &_eview.canToScript);
-			putMenuAction(MenuID.ToScript1Content, &_eview.toScript1Content, &_eview.canToScript);
-			putMenuAction(MenuID.ToScriptAll, &_eview.toScriptAll, &_eview.canToScriptAll);
-			putMenuAction(MenuID.StartToPackage, &_eview.startToPackage, &_eview.canStartToPackage);
-			putMenuAction(MenuID.WrapTree, &_eview.wrapTree, &_eview.canWrapTree);
-			putMenuAction(MenuID.SelectConnectedResource, &_eview.eventTreeView.selectConnectedResource, &_eview.eventTreeView.canSelectConnectedResource);
-			putMenuAction(MenuID.FindID, &_eview.findStartUsers, &_eview.canFindStartUsers);
-			putMenuAction(MenuID.EditProp, &_eview.edit, &_eview.canEdit);
-			putMenuAction(MenuID.Cut1Content, &_eview.cut1Content, &_eview.canCut1Content);
-			putMenuAction(MenuID.Copy1Content, &_eview.copy1Content, &_eview.canCopy1Content);
-			putMenuAction(MenuID.Delete1Content, &_eview.del1Content, &_eview.canDel1Content);
-			putMenuAction(MenuID.PasteInsert, &_eview.pasteInsert, &_eview.canPasteInsert);
-			putMenuAction(MenuID.SwapToParent, &_eview.swapToParent, &_eview.canSwapToParent);
-			putMenuAction(MenuID.SwapToChild, &_eview.swapToChild, &_eview.canSwapToChild);
+		appendMenuTCPD(_comm, this, this, true, true, true, true, true);
+		if (cast(Area)_eto || cast(Battle)_eto) {
+			putMenuAction(MenuID.EditScene, () => openScene(false), null);
+			putMenuAction(MenuID.EditSceneDup, () => openScene(true), null);
 		}
-
-		if (shell) { mixin(S_TRACE);
-			void loadWin(A)(A a) { mixin(S_TRACE);
-				static if (is(Area:A)) {
-					auto winProps = _prop.var.areaEventWin;
-				} else static if (is(Battle:A)) {
-					auto winProps = _prop.var.battleEventWin;
-				} else static if (is(Package:A)) {
-					auto winProps = _prop.var.packageWin;
-				} else static if (is(EffectCard:A)) {
-					auto winProps = _prop.var.cardEventWin;
-				} else { mixin(S_TRACE);
-					static assert (0);
-				}
-				shell.setMaximized(winProps.maximized);
-				int width = winProps.width;
-				int height = winProps.height;
-				int x = winProps.x == SWT.DEFAULT ? shell.getBounds().x : winProps.x + parent2.getBounds().x;
-				int y = winProps.y == SWT.DEFAULT ? shell.getBounds().y : winProps.y + parent2.getBounds().y;
-				intoDisplay(x, y, width, height);
-				shell.setBounds(x, y, width, height);
-				_parent2 = parent2;
-			}
-			if (auto a = cast(Area)_eto) loadWin(a);
-			if (auto a = cast(Battle)_eto) loadWin(a);
-			if (auto a = cast(Package)_eto) loadWin(a);
-			if (auto a = cast(EffectCard)_eto) loadWin(a);
-		}
+		putMenuAction(MenuID.EditEventDup, () => openDup(), null);
+		putMenuAction(MenuID.Undo, &_eview.undo, () => !_readOnly && _undo.canUndo);
+		putMenuAction(MenuID.Redo, &_eview.redo, () => !_readOnly && _undo.canRedo);
+		putMenuAction(MenuID.Up, &_eview.up, &_eview.canUp);
+		putMenuAction(MenuID.Down, &_eview.down, &_eview.canDown);
+		putMenuAction(MenuID.Comment, &_eview.writeComment, &_eview.canWriteComment);
+		putMenuAction(MenuID.ToScript, &_eview.toScript, &_eview.canToScript);
+		putMenuAction(MenuID.ToScript1Content, &_eview.toScript1Content, &_eview.canToScript);
+		putMenuAction(MenuID.ToScriptAll, &_eview.toScriptAll, &_eview.canToScriptAll);
+		putMenuAction(MenuID.StartToPackage, &_eview.startToPackage, &_eview.canStartToPackage);
+		putMenuAction(MenuID.WrapTree, &_eview.wrapTree, &_eview.canWrapTree);
+		putMenuAction(MenuID.SelectConnectedResource, &_eview.eventTreeView.selectConnectedResource, &_eview.eventTreeView.canSelectConnectedResource);
+		putMenuAction(MenuID.FindID, &_eview.findStartUsers, &_eview.canFindStartUsers);
+		putMenuAction(MenuID.EditProp, &_eview.edit, &_eview.canEdit);
+		putMenuAction(MenuID.Cut1Content, &_eview.cut1Content, &_eview.canCut1Content);
+		putMenuAction(MenuID.Copy1Content, &_eview.copy1Content, &_eview.canCopy1Content);
+		putMenuAction(MenuID.Delete1Content, &_eview.del1Content, &_eview.canDel1Content);
+		putMenuAction(MenuID.PasteInsert, &_eview.pasteInsert, &_eview.canPasteInsert);
+		putMenuAction(MenuID.SwapToParent, &_eview.swapToParent, &_eview.canSwapToParent);
+		putMenuAction(MenuID.SwapToChild, &_eview.swapToChild, &_eview.canSwapToChild);
 
 		auto d = contPane.getDisplay();
 		auto tl = new class Listener {
@@ -241,44 +164,7 @@ public:
 		_eview.refresh();
 		refreshTitle();
 	}
-	private void saveWin() { mixin(S_TRACE);
-		void saveWin(A)(A a) { mixin(S_TRACE);
-			static if (is(A:Area)) {
-				auto winProps = _prop.var.areaEventWin;
-				auto parentProps = _prop.var.dataWin;
-			} else static if (is(A:Battle)) {
-				auto winProps = _prop.var.battleEventWin;
-				auto parentProps = _prop.var.dataWin;
-			} else static if (is(A:Package)) {
-				auto winProps = _prop.var.packageWin;
-				auto parentProps = _prop.var.dataWin;
-			} else static if (is(A:EffectCard)) {
-				auto winProps = _prop.var.cardEventWin;
-				auto parentProps = _prop.var.cardWin;
-			} else { mixin(S_TRACE);
-				static assert (0);
-			}
-			auto shell = cast(Shell) _win;
-			if (shell) { mixin(S_TRACE);
-				if (!shell.getMaximized()) { mixin(S_TRACE);
-					winProps.width = shell.getSize().x;
-					winProps.height = shell.getSize().y;
-					if (_parent2.isDisposed()) { mixin(S_TRACE);
-						winProps.x = shell.getBounds().x - parentProps.x;
-						winProps.y = shell.getBounds().y - parentProps.y;
-					} else { mixin(S_TRACE);
-						winProps.x = shell.getBounds().x - _parent2.getBounds().x;
-						winProps.y = shell.getBounds().y - _parent2.getBounds().y;
-					}
-				}
-				winProps.maximized = shell.getMaximized();
-			}
-		}
-		if (auto a = cast(Area)_eto) saveWin(a);
-		if (auto a = cast(Battle)_eto) saveWin(a);
-		if (auto a = cast(Package)_eto) saveWin(a);
-		if (auto a = cast(EffectCard)_eto) saveWin(a);
-	}
+
 	@property
 	override
 	Composite shell() { mixin(S_TRACE);
@@ -349,42 +235,23 @@ public:
 	@property
 	override
 	string title() { mixin(S_TRACE);
-		auto shl = cast(Shell) _win;
 		if (auto a = cast(Area)_eto) {
-			if (shl) { mixin(S_TRACE);
-				return .tryFormat(_prop.msgs.viewNameEvent, .objName!Area(_prop), a.id, a.name);
-			}
 			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!Area(_prop), a.id, a.name);
 		} else if (auto a = cast(Battle)_eto) {
-			if (shl) { mixin(S_TRACE);
-				return .tryFormat(_prop.msgs.viewNameEvent, .objName!Battle(_prop), a.id, a.name);
-			}
 			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!Battle(_prop), a.id, a.name);
 		} else if (auto a = cast(Package)_eto) { mixin(S_TRACE);
-			if (shl) { mixin(S_TRACE);
-				return .tryFormat(_prop.msgs.viewName, .objName!Package(_prop), a.id, a.name);
-			}
 			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!Package(_prop), a.id, a.name);
 		} else if (auto a = cast(SkillCard)_eto) { mixin(S_TRACE);
-			if (shl) { mixin(S_TRACE);
-				return .tryFormat(_prop.msgs.viewName, .objName!SkillCard(_prop), a.id, a.name);
-			}
 			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!SkillCard(_prop), a.id, a.name);
 		} else if (auto a = cast(ItemCard)_eto) { mixin(S_TRACE);
-			if (shl) { mixin(S_TRACE);
-				return .tryFormat(_prop.msgs.viewName, .objName!ItemCard(_prop), a.id, a.name);
-			}
 			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!ItemCard(_prop), a.id, a.name);
 		} else if (auto a = cast(BeastCard)_eto) { mixin(S_TRACE);
-			if (shl) { mixin(S_TRACE);
-				return .tryFormat(_prop.msgs.viewName, .objName!BeastCard(_prop), a.id, a.name);
-			}
 			return .tryFormat(_prop.msgs.viewNameEventTab, .objName!BeastCard(_prop), a.id, a.name);
 		} else assert (0);
 	}
 	@property
 	override
-	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
+	void delegate(string) statusText() {return null;}
 	private void refreshTitle() { mixin(S_TRACE);
 		_comm.setTitle(_win, title);
 		_eview.refreshTitle();

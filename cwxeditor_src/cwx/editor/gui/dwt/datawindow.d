@@ -18,7 +18,6 @@ import cwx.editor.gui.dwt.areatable;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.flagspane;
 import cwx.editor.gui.dwt.summarydialog;
-import cwx.editor.gui.dwt.sbshell;
 import cwx.editor.gui.dwt.dmenu;
 
 import std.file;
@@ -30,7 +29,6 @@ class AbstractDataWindow(bool UseArea, bool UseFlag) : TopLevelPanel, SashPanel,
 private:
 	Shell _parentShell;
 	Commons _comm;
-	SBShell _sbshl;
 	Composite _win, _contPane;
 	static if (UseArea) {
 		AreaTable _areas;
@@ -87,28 +85,9 @@ public:
 		if (_summ) refresh();
 	}
 	private void construct(Composite parent) { mixin(S_TRACE);
-		Shell shell = null;
-		auto parShl = cast(Shell) parent;
 		Composite contPane;
-		if (parShl) { mixin(S_TRACE);
-			_sbshl = new SBShell(parShl, SWT.SHELL_TRIM);
-			shell = _sbshl.shell;
-			shell.setImages(_prop.images.icon);
-			shell.addShellListener(new class ShellAdapter {
-				public override void shellClosed(ShellEvent e) { mixin(S_TRACE);
-					(cast(Shell) e.widget).setVisible(false);
-					e.doit = false;
-					static if (UseArea && UseFlag) {
-						_prop.var.dataWin.visible = false;
-					}
-				}
-			});
-			_win = shell;
-			contPane = _sbshl.contentPane;
-		} else { mixin(S_TRACE);
-			_win = new Composite(parent, SWT.NONE);
-			contPane = _win;
-		}
+		_win = new Composite(parent, SWT.NONE);
+		contPane = _win;
 		_contPane = contPane;
 		_win.setData(new TLPData(this));
 		contPane.setLayout(windowGridLayout(1, true));
@@ -156,131 +135,36 @@ public:
 				_tcpd = _flags;
 			} else static assert (0);
 		}
-		if (shell) { mixin(S_TRACE);
-			{ mixin(S_TRACE);
-				auto bar = new Menu(shell, SWT.BAR);
 
-				auto mf = createMenu(_comm, bar, MenuID.File);
-				createMenuItem(_comm, mf, MenuID.CloseWin, &shell.close, null);
-
-				auto me = createMenu(_comm, bar, MenuID.Edit);
-				static if (UseArea) {
-					createMenuItem(_comm, me, MenuID.EditScene, () => openAreaScene(), &_areas.canOpenAreaScene);
-					createMenuItem(_comm, me, MenuID.EditEvent, () => openAreaEvent(), &_areas.canOpenAreaEvent);
-					new MenuItem(me, SWT.SEPARATOR);
-				}
-				createMenuItem(_comm, me, MenuID.Undo, &undo, &canUndo);
-				createMenuItem(_comm, me, MenuID.Redo, &redo, &canRedo);
-				new MenuItem(me, SWT.SEPARATOR);
-				appendMenuTCPD(_comm, me, this, true, true, true, true, true);
-				new MenuItem(me, SWT.SEPARATOR);
-				createMenuItem(_comm, me, MenuID.Up, &up, &canUp);
-				createMenuItem(_comm, me, MenuID.Down, &down, &canDown);
-
-				static if (UseFlag) {
-					auto mi = createMenu(_comm, bar, MenuID.View);
-					createMenuItem(_comm, mi, MenuID.ChangeVH, &changeVHSide, null);
-				}
-
-				static if (UseArea) {
-					auto mt = createMenu(_comm, bar, MenuID.Table);
-					static if (UseFlag) {
-						createMenuItem(_comm, mt, MenuID.EditSummary, &editSummary, &canEditSummary);
-						new MenuItem(mt, SWT.SEPARATOR);
-					}
-					createMenuItem(_comm, mt, MenuID.NewAreaDir, &createAreaDir, &canCreateAreaDir);
-					new MenuItem(mt, SWT.SEPARATOR);
-					createMenuItem(_comm, mt, MenuID.NewArea, &createArea, &canCreateArea);
-					createMenuItem(_comm, mt, MenuID.NewBattle, &createBattle, &canCreateBattle);
-					createMenuItem(_comm, mt, MenuID.NewPackage, &createPackage, &canCreatePackage);
-				}
-				static if (UseFlag) {
-					auto mv = createMenu(_comm, bar, MenuID.Variable);
-					createMenuItem(_comm, mv, MenuID.NewFlagDir, &createFlagDir, &canCreateFlagDir);
-					new MenuItem(mv, SWT.SEPARATOR);
-					createMenuItem(_comm, mv, MenuID.NewFlag, &createFlag, &canCreateFlag);
-					createMenuItem(_comm, mv, MenuID.NewStep, &createStep, &canCreateStep);
-				}
-				shell.setMenuBar(bar);
-			}
-			{ mixin(S_TRACE);
-				auto bar = new ToolBar(contPane, SWT.FLAT);
-				_comm.put(bar);
-				bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-				static if (UseArea && UseFlag) {
-					createToolItem(_comm, bar, MenuID.EditSummary, &editSummary, &canEditSummary);
-				}
-				createToolItem(_comm, bar, MenuID.Up, &up, &canUp);
-				createToolItem(_comm, bar, MenuID.Down, &down, &canDown);
-				static if (UseArea) {
-					new ToolItem(bar, SWT.SEPARATOR);
-					createToolItem(_comm, bar, MenuID.NewAreaDir, &createAreaDir, &canCreateAreaDir);
-					new ToolItem(bar, SWT.SEPARATOR);
-					createToolItem(_comm, bar, MenuID.NewArea, &createArea, &canCreateArea);
-					createToolItem(_comm, bar, MenuID.NewBattle, &createBattle, &canCreateBattle);
-					createToolItem(_comm, bar, MenuID.NewPackage, &createPackage, &canCreatePackage);
-				}
-				static if (UseFlag) {
-					new ToolItem(bar, SWT.SEPARATOR);
-					createToolItem(_comm, bar, MenuID.NewFlag, &createFlag, &canCreateFlag);
-					createToolItem(_comm, bar, MenuID.NewStep, &createStep, &canCreateStep);
-					createToolItem(_comm, bar, MenuID.NewFlagDir, &createFlagDir, &canCreateFlagDir);
-					new ToolItem(bar, SWT.SEPARATOR);
-					createToolItem(_comm, bar, MenuID.ChangeVH, &changeVHSide, null);
-				}
-			}
-		} else { mixin(S_TRACE);
-			appendMenuTCPD(_comm, this, this, true, true, true, true, true);
-			static if (UseArea && UseFlag) {
-				putMenuAction(MenuID.EditSummary, &editSummary, &canEditSummary);
-			}
-			static if (UseArea) {
-				putMenuAction(MenuID.EditScene, () => openAreaScene(), &_areas.canOpenAreaScene);
-				putMenuAction(MenuID.EditSceneDup, () => openAreaScene(true), &_areas.canOpenAreaScene);
-				putMenuAction(MenuID.EditEvent, () => openAreaEvent(), &_areas.canOpenAreaEvent);
-				putMenuAction(MenuID.EditEventDup, () => openAreaEvent(true), &_areas.canOpenAreaEvent);
-				putMenuAction(MenuID.NewAreaDir, &createAreaDir, &canCreateAreaDir);
-				putMenuAction(MenuID.NewArea, &createArea, &canCreateArea);
-				putMenuAction(MenuID.NewBattle, &createBattle, &canCreateBattle);
-				putMenuAction(MenuID.NewPackage, &createPackage, &canCreatePackage);
-				putMenuAction(MenuID.ReNumbering, &_areas.reNumbering, &_areas.canReNumbering);
-				putMenuAction(MenuID.SetStartArea, &_areas.setStartArea, &_areas.canSetStartArea);
-			}
-			static if (UseFlag) {
-				putMenuAction(MenuID.NewFlagDir, &createFlagDir, &canCreateFlagDir);
-				putMenuAction(MenuID.NewFlag, &createFlag, &canCreateFlag);
-				putMenuAction(MenuID.NewStep, &createStep, &canCreateStep);
-				putMenuAction(MenuID.EditProp, &_flags.edit, &_flags.canEdit);
-			}
-			putMenuAction(MenuID.ChangeVH, &changeVHSide, &canChangeVH);
-			putMenuAction(MenuID.Undo, &undo, &canUndo);
-			putMenuAction(MenuID.Redo, &redo, &canRedo);
-			putMenuAction(MenuID.Up, &up, &canUp);
-			putMenuAction(MenuID.Down, &down, &canDown);
-			putMenuAction(MenuID.FindID, &replaceID, &canReplaceID);
-		}
+		appendMenuTCPD(_comm, this, this, true, true, true, true, true);
 		static if (UseArea && UseFlag) {
-			if (shell) { mixin(S_TRACE);
-				shell.setMaximized(_prop.var.dataWin.maximized);
-				shell.setMinimized(_prop.var.dataWin.minimized);
-				scope wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-				int width = _prop.var.dataWin.width == SWT.DEFAULT ? wp.x : _prop.var.dataWin.width;
-				int height = _prop.var.dataWin.height == SWT.DEFAULT ? wp.y : _prop.var.dataWin.height;
-				int x = _prop.var.dataWin.x == SWT.DEFAULT ? shell.getBounds().x : _prop.var.dataWin.x + shell.getParent().getBounds().x;
-				int y = _prop.var.dataWin.y == SWT.DEFAULT ? shell.getBounds().y : _prop.var.dataWin.y + shell.getParent().getBounds().y;
-				intoDisplay(x, y, width, height);
-				shell.setBounds(x, y, width, height);
-				shell.addControlListener(new class ControlAdapter {
-					override void controlMoved(ControlEvent e) { mixin(S_TRACE);
-						saveDataWin();
-					}
-					override void controlResized(ControlEvent e) { mixin(S_TRACE);
-						saveDataWin();
-					}
-				});
-			}
+			putMenuAction(MenuID.EditSummary, &editSummary, &canEditSummary);
 		}
+		static if (UseArea) {
+			putMenuAction(MenuID.EditScene, () => openAreaScene(), &_areas.canOpenAreaScene);
+			putMenuAction(MenuID.EditSceneDup, () => openAreaScene(true), &_areas.canOpenAreaScene);
+			putMenuAction(MenuID.EditEvent, () => openAreaEvent(), &_areas.canOpenAreaEvent);
+			putMenuAction(MenuID.EditEventDup, () => openAreaEvent(true), &_areas.canOpenAreaEvent);
+			putMenuAction(MenuID.NewAreaDir, &createAreaDir, &canCreateAreaDir);
+			putMenuAction(MenuID.NewArea, &createArea, &canCreateArea);
+			putMenuAction(MenuID.NewBattle, &createBattle, &canCreateBattle);
+			putMenuAction(MenuID.NewPackage, &createPackage, &canCreatePackage);
+			putMenuAction(MenuID.ReNumbering, &_areas.reNumbering, &_areas.canReNumbering);
+			putMenuAction(MenuID.SetStartArea, &_areas.setStartArea, &_areas.canSetStartArea);
+		}
+		static if (UseFlag) {
+			putMenuAction(MenuID.NewFlagDir, &createFlagDir, &canCreateFlagDir);
+			putMenuAction(MenuID.NewFlag, &createFlag, &canCreateFlag);
+			putMenuAction(MenuID.NewStep, &createStep, &canCreateStep);
+			putMenuAction(MenuID.EditProp, &_flags.edit, &_flags.canEdit);
+		}
+		putMenuAction(MenuID.ChangeVH, &changeVHSide, &canChangeVH);
+		putMenuAction(MenuID.Undo, &undo, &canUndo);
+		putMenuAction(MenuID.Redo, &redo, &canRedo);
+		putMenuAction(MenuID.Up, &up, &canUp);
+		putMenuAction(MenuID.Down, &down, &canDown);
+		putMenuAction(MenuID.FindID, &replaceID, &canReplaceID);
+
 		_comm.refScenarioName.add(&refreshTitle);
 		_win.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
@@ -304,21 +188,6 @@ public:
 				_contPane.layout();
 			}
 			if (_summ) _areas.summary = _summ;
-		}
-	}
-	static if (UseArea && UseFlag) {
-		private void saveDataWin() { mixin(S_TRACE);
-			auto win = cast(Shell) _win;
-			if (win) { mixin(S_TRACE);
-				if (!win.getMaximized() && !win.getMinimized()) { mixin(S_TRACE);
-					_prop.var.dataWin.width = win.getSize().x;
-					_prop.var.dataWin.height = win.getSize().y;
-					_prop.var.dataWin.x = win.getBounds().x - win.getParent().getBounds().x;
-					_prop.var.dataWin.y = win.getBounds().y - win.getParent().getBounds().y;
-				}
-				_prop.var.dataWin.maximized = win.getMaximized();
-				_prop.var.dataWin.minimized = win.getMinimized();
-			}
 		}
 	}
 	@property
@@ -487,27 +356,17 @@ public:
 	@property
 	override
 	string title() { mixin(S_TRACE);
-		auto shl = cast(Shell) _win;
 		static if (UseArea && UseFlag) {
-			if (shl && _summ) { mixin(S_TRACE);
-				return .tryFormat(_prop.msgs.dataWindowName, _summ.scenarioName, _summ.scenarioPath);
-			}
 			return _prop.msgs.dataTabName;
 		} else static if (UseArea) {
-			if (shl && _summ) { mixin(S_TRACE);
-				return .tryFormat(_prop.msgs.areasWindowName, _summ.scenarioName, _summ.scenarioPath);
-			}
 			return _prop.msgs.areasTabName;
 		} else static if (UseFlag) {
-			if (shl && _summ) { mixin(S_TRACE);
-				return .tryFormat(_prop.msgs.flagWindowName, _summ.scenarioName, _summ.scenarioPath);
-			}
 			return _prop.msgs.flagTabName;
 		} else static assert (0);
 	}
 	@property
 	override
-	void delegate(string) statusText() {return _sbshl ? &_sbshl.statusLine : null;}
+	void delegate(string) statusText() {return null;}
 
 	private void refreshTitle() { mixin(S_TRACE);
 		if (!_win || _win.isDisposed()) return;
@@ -683,7 +542,7 @@ public:
 		}
 		return false;
 	}
-	private bool openCWXPathAf(BindWindow, SceneWindow, EventWindow, A)(lazy BindWindow bw, lazy SceneWindow sw, lazy EventWindow ew, A a, string path, bool shellActivate) { mixin(S_TRACE);
+	private bool openCWXPathAf(SceneWindow, EventWindow, A)(lazy SceneWindow sw, lazy EventWindow ew, A a, string path, bool shellActivate) { mixin(S_TRACE);
 		if (openCWXPathAfCommon(a, path, shellActivate)) { mixin(S_TRACE);
 			return true;
 		}
@@ -700,21 +559,13 @@ public:
 			if (sw2) { mixin(S_TRACE);
 				return sw2.openCWXPath(path, shellActivate);
 			}
-			if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) { mixin(S_TRACE);
-				return bw.openCWXPath(path, shellActivate);
-			} else { mixin(S_TRACE);
-				return sw.openCWXPath(path, shellActivate);
-			}
+			return sw.openCWXPath(path, shellActivate);
 		} else { mixin(S_TRACE);
 			auto ew2 = _comm.eventWindowFrom(aPath, shellActivate);
 			if (ew2) { mixin(S_TRACE);
 				return ew2.openCWXPath(path, shellActivate);
 			}
-			if (!_comm.singleWindowMode(_prop) || _prop.var.etc.bindSceneWithEvent) { mixin(S_TRACE);
-				return bw.openCWXPath(path, shellActivate);
-			} else { mixin(S_TRACE);
-				return ew.openCWXPath(path, shellActivate);
-			}
+			return ew.openCWXPath(path, shellActivate);
 		}
 	}
 	private bool openCWXPathAf(Window, A)(lazy Window w, A a, string path, bool shellActivate) { mixin(S_TRACE);
@@ -752,8 +603,7 @@ public:
 			static if (UseArea) {
 				if (index >= _summ.areas.length) return false;
 				auto a = _summ.areas[index];
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, false),
-					_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
+				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
 					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
 			}
@@ -761,8 +611,7 @@ public:
 		case "area:id": { mixin(S_TRACE);
 			static if (UseArea) {
 				auto a = _summ.area(index);
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, false),
-					_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
+				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
 					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
 			}
@@ -771,8 +620,7 @@ public:
 			static if (UseArea) {
 				if (index >= _summ.battles.length) return false;
 				auto a = _summ.battles[index];
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, false),
-					_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
+				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
 					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
 			}
@@ -780,8 +628,7 @@ public:
 		case "battle:id": { mixin(S_TRACE);
 			static if (UseArea) {
 				auto a = _summ.battle(index);
-				return openCWXPathAf(_comm.openArea(_prop, _summ, a, shellActivate, false),
-					_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
+				return openCWXPathAf(_comm.openAreaScene(_prop, _summ, a, shellActivate, false),
 					_comm.openAreaEvent(_prop, _summ, a, shellActivate, false),
 					a, path, shellActivate);
 			}
@@ -939,6 +786,5 @@ public:
 	}
 }
 
-alias AbstractDataWindow!(true, true) DataWindow;
 alias AbstractDataWindow!(true, false) TableWindow;
 alias AbstractDataWindow!(false, true) FlagWindow;

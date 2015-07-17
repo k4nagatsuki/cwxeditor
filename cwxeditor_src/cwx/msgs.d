@@ -800,13 +800,9 @@ class Msgs : Properties {
 	auto scenarioNotFound = Msg("scenarioNotFound", "%1$sは存在しないか、シナリオではありません。履歴から削除しますか？");
 
 	/// データウィンドウ
-	auto dataTabName = Msg("dataTabName", "データ");
-	auto dataWindowName = Msg("dataWindowName", "データ - [ %1$s ] - %2$s");
 	auto areasTabName = Msg("areasTabName", "テーブル");
-	auto areasWindowName = Msg("areasWindowName", "テーブル - [ %1$s ] - %2$s");
 	auto areaStatus = Msg("areaStatus", "%2$s件の%1$s");
 	auto flagTabName = Msg("flagTabName", "状態変数");
-	auto flagWindowName = Msg("flagWindowName", "状態変数 - [ %1$s ] - %2$s");
 	auto flagStatus = Msg("flagStatus", "%2$s個の%1$s");
 	auto flagStatusSel = Msg("flagStatusSel", "%1$s (%2$s個を選択)");
 	auto scenarioView = Msg("scenarioView", "シナリオビューリスト");
@@ -904,12 +900,8 @@ class Msgs : Properties {
 	auto areaViewStatusSelBack = Msg("areaViewStatusSelBack", "%1$s枚の背景");
 	auto areaViewStatusEnemyCard = Msg("areaViewStatusEnemyCard", "%1$s.%2$s");
 
-	auto viewNameTab = Msg("viewNameTab", "%2$s.%3$s");
 	auto viewNameSceneTab = Msg("viewNameSceneTab", "%2$s.%3$s");
 	auto viewNameEventTab = Msg("viewNameEventTab", "%2$s.%3$s");
-	auto viewName = Msg("viewName", "[%1$s] - %2$s - %3$s");
-	auto viewNameScene = Msg("viewNameScene", "[%1$s カードと背景] - %2$s - %3$s");
-	auto viewNameEvent = Msg("viewNameEvent", "[%1$s イベント] - %2$s - %3$s");
 
 	auto cardCount = Msg("cardCount", "利用数");
 
@@ -1307,15 +1299,8 @@ class Msgs : Properties {
 	auto dlgTitComment = Msg("dlgTitComment", "コメントの記述");
 
 	/// カードウィンドウ。
-	auto mainCardWindowName = Msg("mainCardWindowName", "カード - [ %1$s ] - %2$s");
-	auto mainCardWindowNameNoSummary = Msg("mainCardWindowNameNoSummary", "カード");
-	auto mainCardTabName = Msg("mainCardTabName", "カード");
-	auto cardWindowName = Msg("cardWindowName", "%1$s - [ %2$s ] - %3$s");
-	auto cardWindowNameNoSummary = Msg("cardWindowNameNoSummary", "%1$s");
 	auto cardTabName = Msg("cardTabName", "%1$s");
-	auto handCardWindowName = Msg("handCardWindowName", "[所有カード] - %1$s.%2$s");
 	auto handCardTabName = Msg("handCardTabName", "%1$s.%2$s");
-	auto importSourceWindowName = Msg("importSourceWindowName", "カードのインポート - [ %1$s ] - %2$s");
 	auto importSourceTabName = Msg("importSourceTabName", "%1$s");
 	auto cardTitle = Msg("cardTitle", "%1$s.%2$s");
 	auto dlgTitImportOption = Msg("dlgTitImportOption", "参照先のインポート");
@@ -1572,7 +1557,6 @@ class Msgs : Properties {
 
 	/// ファイルビュー。
 	auto dirTabName = Msg("dirTabName", "ファイル");
-	auto dirWindowName = Msg("dirWindowName", "ファイル - [ %1$s ] - %2$s");
 	auto dirStatus = Msg("dirStatus", "%1$s個のファイル (%2$s)");
 	auto dirStatusSel = Msg("dirStatusSel", "%1$s個のファイル (%2$s) (%3$s個を選択中)");
 	auto fileName = Msg("fileName", "ファイル名");
@@ -1631,7 +1615,6 @@ class Msgs : Properties {
 	auto languageCaution = Msg("languageCaution", "※ 次回起動時から適用されます");
 
 	auto etcSettingsCommon = Msg("etcSettingsCommon", "全般");
-	auto singleWindow = Msg("singleWindow", "シングルウィンドウモード(再起動後に反映されます)");
 	auto showImagePreview = Msg("showImagePreview", "カードや背景のプレビュー表示を行う");
 	auto maskCardImagePreview = Msg("maskCardImagePreview", "カードサイズの画像のプレビュー表示で背景を透明化する");
 	auto switchTabWheel = Msg("switchTabWheel", "マウスホイールでタブ切替を行う");

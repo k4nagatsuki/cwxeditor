@@ -1152,7 +1152,6 @@ private:
 	}
 
 	void refShowToolBar() { mixin(S_TRACE);
-		if (!_comm.singleWindowMode(_prop)) return;
 		auto gl = windowGridLayout(1, true);
 		gl.marginWidth = 0;
 		gl.marginHeight = 0;
@@ -1217,11 +1216,11 @@ public:
 
 				int[] ws = _sash.getWeights();
 				if (cast(Area)_area) {
-					_prop.var.areaWin.eventSashL = ws[0];
-					_prop.var.areaWin.eventSashR = ws[1];
+					_prop.var.areaEventWin.eventSashL = ws[0];
+					_prop.var.areaEventWin.eventSashR = ws[1];
 				} else if (cast(Battle)_area) {
-					_prop.var.battleWin.eventSashL = ws[0];
-					_prop.var.battleWin.eventSashR = ws[1];
+					_prop.var.battleEventWin.eventSashL = ws[0];
+					_prop.var.battleEventWin.eventSashR = ws[1];
 				} else if (cast(Package)_area) {
 					_prop.var.packageWin.eventSashL = ws[0];
 					_prop.var.packageWin.eventSashR = ws[1];
@@ -1350,9 +1349,9 @@ public:
 			_cards.addPaintListener(initTools);
 		}
 		if (cast(Area)_area) {
-			_sash.setWeights([_prop.var.areaWin.eventSashL, _prop.var.areaWin.eventSashR]);
+			_sash.setWeights([_prop.var.areaEventWin.eventSashL, _prop.var.areaEventWin.eventSashR]);
 		} else if (cast(Battle)_area) {
-			_sash.setWeights([_prop.var.battleWin.eventSashL, _prop.var.battleWin.eventSashR]);
+			_sash.setWeights([_prop.var.battleEventWin.eventSashL, _prop.var.battleEventWin.eventSashR]);
 		} else if (cast(Package)_area) {
 			_sash.setWeights([_prop.var.packageWin.eventSashL, _prop.var.packageWin.eventSashR]);
 		} else if (cast(EffectCard)_area) {
@@ -1818,11 +1817,9 @@ public:
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
 		if (!_readOnly) { mixin(S_TRACE);
-			if (!_comm.singleWindowMode(_prop)) { mixin(S_TRACE);
-				createToolItem(_comm, bar, MenuID.Undo, &undo, () => !_readOnly && _undo.canUndo);
-				createToolItem(_comm, bar, MenuID.Redo, &redo, () => !_readOnly && _undo.canRedo);
-				new ToolItem(bar, SWT.SEPARATOR);
-			}
+			createToolItem(_comm, bar, MenuID.Undo, &undo, () => !_readOnly && _undo.canUndo);
+			createToolItem(_comm, bar, MenuID.Redo, &redo, () => !_readOnly && _undo.canRedo);
+			new ToolItem(bar, SWT.SEPARATOR);
 			createToolItem(_comm, bar, MenuID.Up, &up, &canUp);
 			createToolItem(_comm, bar, MenuID.Down, &down, &canDown);
 			new ToolItem(bar, SWT.SEPARATOR);
