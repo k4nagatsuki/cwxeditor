@@ -1798,6 +1798,7 @@ public:
 		area.setLayout(windowGridLayout(2, false));
 
 		auto sash = new SplitPane(area, SWT.HORIZONTAL);
+		sash.resizeControl1 = true;
 		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		auto left = new Composite(sash, SWT.NONE);

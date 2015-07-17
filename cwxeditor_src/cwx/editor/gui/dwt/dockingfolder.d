@@ -200,11 +200,16 @@ class DockingFolder(TabF, int Style) {
 	/// nullの場合は常に移動可能となる。
 	/// ctrlKeyには移動するControlのkeyが、dropPaneKeyには移動先の
 	/// keyが渡されるが、移動先が新規ペインならdropPaneKeyは""になる。
-	bool delegate (string ctrlKey, string dropPaneKey) canMove = null;
+	bool delegate(string ctrlKey, string dropPaneKey) canMove = null;
 	/// 移動によって生成される新規ペインの名前を指定したい場合に
 	/// その名前を返すdelegate。
 	/// ""を返すと自動的に生成される。
-	string delegate (string ctrlKey, string basePane, Dir dir) newPaneName = null;
+	string delegate(string ctrlKey, string basePane, Dir dir) newPaneName = null;
+
+	/// 領域をリサイズする時、優先的にサイズ変更されるペインはtrueを返す。
+	/// このdelegateがnullの場合や、優先度が同一の場合は、
+	/// 常に下もしくは右のペインがリサイズされる。
+	bool delegate(string paneKey) firstResize = null;
 
 	private string newTabfKey(string prefix = "t") { mixin(S_TRACE);
 		string key;
@@ -1125,6 +1130,7 @@ class DockingFolder(TabF, int Style) {
 				foreach (c; children) { mixin(S_TRACE);
 					c.setParent(sash);
 				}
+				setFirstResize(sash);
 				comp.dispose();
 				putSashTable(sash, key);
 				foreach (child; children) tree(child);
@@ -1553,7 +1559,17 @@ class DockingFolder(TabF, int Style) {
 			r = newTabf(nSash, key);
 		}
 		nSash.setWeights([lWeight, rWeight]);
+		setFirstResize(nSash);
 		return r;
+	}
+	private void setFirstResize(SplitPane sash) { mixin(S_TRACE);
+		if (auto tabf = cast(TabF)sash.getChildren()[0]) { mixin(S_TRACE);
+			if (firstResize && firstResize(key(tabf))) { mixin(S_TRACE);
+				sash.resizeControl1 = true;
+				return;
+			}
+		}
+		sash.resizeControl1 = false;
 	}
 
 	private static class Tabf {
@@ -1752,6 +1768,7 @@ class DockingFolder(TabF, int Style) {
 		Composite par;
 		Control delegate(Composite, string) create;
 		void delegate(string, TabF) addRemoveList;
+		bool delegate(string) firstResize;
 		/// サブウィンドウ用パラメータ。
 		int x = SWT.DEFAULT;
 		int y = SWT.DEFAULT; /// ditto
@@ -1776,6 +1793,7 @@ class DockingFolder(TabF, int Style) {
 			proc.par = sash;
 			proc.create = create;
 			proc.addRemoveList = addRemoveList;
+			proc.firstResize = firstResize;
 			proc.shell = shell;
 			node.onTag["sash"] = &proc.sash;
 			node.onTag["tabs"] = &proc.tabs;
@@ -1785,6 +1803,9 @@ class DockingFolder(TabF, int Style) {
 		void tabs(ref XNode node) { mixin(S_TRACE);
 			createSub();
 			auto key = node.attr("key", true);
+			if (firstResize && firstResize(key) && cast(SplitPane)par && par.getChildren().length == 0) {
+				(cast(SplitPane)par).resizeControl1 = true;
+			}
 			auto tabf = r.newTabf(par, key);
 			node.onTag["tab"] = (ref XNode node) { mixin(S_TRACE);
 				auto key = node.attr("key", true);
@@ -1815,7 +1836,8 @@ class DockingFolder(TabF, int Style) {
 	static DockingFolder fromNode(ref XNode node, Composite parent, int style,
 			bool delegate(typeof(this), string) canVanish,
 			Control delegate(Composite, string) create,
-			void delegate(Composite, string) createPaneEvent = null) { mixin(S_TRACE);
+			void delegate(Composite, string) createPaneEvent = null,
+			bool delegate(string) firstResize = null) { mixin(S_TRACE);
 		assert (node.name == "dockingFolder", "dockingfolder#fromNode");
 		DockingFolder r = null;
 		try { mixin(S_TRACE);
@@ -1874,6 +1896,7 @@ class DockingFolder(TabF, int Style) {
 			proc.par = r._area;
 			proc.create = create;
 			proc.addRemoveList = &addRemoveList;
+			proc.firstResize = firstResize;
 			node.onTag["sash"] = &proc.sash;
 			node.onTag["tabs"] = &proc.tabs;
 			node.onTag["subWindow"] = (ref XNode node) { mixin(S_TRACE);
@@ -1882,6 +1905,7 @@ class DockingFolder(TabF, int Style) {
 				proc.par = null;
 				proc.create = create;
 				proc.addRemoveList = &addRemoveList;
+				proc.firstResize = firstResize;
 				proc.x = node.attr!int("x", false, SWT.DEFAULT);
 				proc.y = node.attr!int("y", false, SWT.DEFAULT);
 				proc.width = node.attr!int("width", false, SWT.DEFAULT);

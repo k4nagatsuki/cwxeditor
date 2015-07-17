@@ -18,6 +18,8 @@ class SplitPane : Composite {
 	private bool _canMinimized2 = false;
 	private bool _min1 = false;
 	private bool _min2 = false;
+	private bool _resizeControl1 = false;
+	private int _size = -1;
 
 	this (Composite parent, int style) { mixin(S_TRACE);
 		_style = style;
@@ -37,13 +39,19 @@ class SplitPane : Composite {
 	bool canMinimized1() { return _canMinimized1; }
 	@property
 	void canMinimized1(bool value) { _canMinimized1 = value; }
-
 	/// 右・下側ペインを最小化可能か。
 	@property
 	const
 	bool canMinimized2() { return _canMinimized2; }
 	@property
 	void canMinimized2(bool value) { _canMinimized2 = value; }
+
+	/// 全体のサイズ変更時にリサイズするのは左・上かペインか。
+	@property
+	const
+	bool resizeControl1() { return _resizeControl1; }
+	@property
+	void resizeControl1(bool value) { _resizeControl1 = value; }
 
 	override int getStyle() {return _style;}
 	int[] getWeights() { mixin(S_TRACE);
@@ -84,10 +92,10 @@ class SplitPane : Composite {
 			int lw = cast(int)rndtol((ca.width - SASH_WIDTH) * (cast(real)l / full));
 			_sfd.left = new FormAttachment(0, lw);
 		}
-		relo(updateMin);
+		relo(updateMin, false);
 		return true;
 	}
-	private void relo(bool updateMin) { mixin(S_TRACE);
+	private void relo(bool updateMin, bool resize) { mixin(S_TRACE);
 		if (!_sash) return;
 		auto ca = getClientArea();
 		if (updateMin) { mixin(S_TRACE);
@@ -96,6 +104,7 @@ class SplitPane : Composite {
 		}
 		if (getStyle() & SWT.VERTICAL) { mixin(S_TRACE);
 			int lw = _sfd.top.offset;
+			if (resizeControl1 && resize && -1 != _size) lw += ca.height - _size;
 			if (_min1 || lw < MIN) { mixin(S_TRACE);
 				if (updateMin && canMinimized1) _min1 = true;
 				lw = _min1 ? 0 : MIN;
@@ -107,8 +116,10 @@ class SplitPane : Composite {
 			_sfd.top.offset = lw;
 			_fd1.bottom.control = _sash;
 			_fd2.top.control = _sash;
+			_size = ca.height;
 		} else { mixin(S_TRACE);
 			int lw = _sfd.left.offset;
+			if (resizeControl1 && resize && -1 != _size) lw += ca.width - _size;
 			if (_min1 || lw < MIN) { mixin(S_TRACE);
 				if (updateMin && canMinimized1) _min1 = true;
 				lw = _min1 ? 0 : MIN;
@@ -120,6 +131,7 @@ class SplitPane : Composite {
 			_sfd.left.offset = lw;
 			_fd1.right.control = _sash;
 			_fd2.left.control = _sash;
+			_size = ca.width;
 		}
 		_sash.setLayoutData(_sfd);
 		auto cs = getChildren();
@@ -139,6 +151,8 @@ class SplitPane : Composite {
 		// Shell.isVisible()が有効の状態でイベントが発生してしまう。
 		private bool _maximizedAfter = false;
 		override void handleEvent(Event e) { mixin(S_TRACE);
+			setRedraw(false);
+			scope (exit) setRedraw(true);
 			if (_first) { mixin(S_TRACE);
 				if (getChildren().length < 2) { mixin(S_TRACE);
 					return;
@@ -153,7 +167,7 @@ class SplitPane : Composite {
 					resize(false);
 					_maximizedAfter = false;
 				} else { mixin(S_TRACE);
-					relo(false);
+					relo(false, true);
 				}
 			} else { mixin(S_TRACE);
 				resize(false);
@@ -227,7 +241,7 @@ class SplitPane : Composite {
 				if (minSize1 > e.y) e.y = minSize1;
 				if (e.y != sb.y)  { mixin(S_TRACE);
 					_sfd.top = new FormAttachment(0, e.y);
-					relo(true);
+					relo(true, false);
 				}
 			} else { mixin(S_TRACE);
 				int right = cb.width - sb.width - minSize2;
@@ -235,7 +249,7 @@ class SplitPane : Composite {
 				if (minSize1 > e.x) e.x = minSize1;
 				if (e.x != sb.x)  { mixin(S_TRACE);
 					_sfd.left = new FormAttachment(0, e.x);
-					relo(true);
+					relo(true, false);
 				}
 			}
 		}

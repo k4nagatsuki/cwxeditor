@@ -1019,6 +1019,7 @@ private:
 		}
 		{ mixin(S_TRACE);
 			auto sash = new SplitPane(comp, SWT.VERTICAL);
+			sash.resizeControl1 = true;
 			sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 			{ mixin(S_TRACE);
 				auto grp = new Group(sash, SWT.NONE);

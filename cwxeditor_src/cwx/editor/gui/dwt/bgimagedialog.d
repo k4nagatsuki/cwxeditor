@@ -387,6 +387,7 @@ protected:
 			}
 			if (_summ) { mixin(S_TRACE);
 				auto sash = new SplitPane(comp, SWT.HORIZONTAL);
+				sash.resizeControl1 = true;
 				sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 				{ mixin(S_TRACE);
 					imgs(sash);
@@ -715,6 +716,7 @@ protected:
 		{ mixin(S_TRACE);
 			if (_summ) { mixin(S_TRACE);
 				auto sash2 = new SplitPane(sash, SWT.HORIZONTAL);
+				sash2.resizeControl1 = true;
 				left(sash2);
 				sash2.setWeights([_prop.var.etc.textCellHSashL, _prop.var.etc.textCellHSashR]);
 				.listener(sash2, SWT.Dispose, { mixin(S_TRACE);
@@ -729,6 +731,7 @@ protected:
 		}
 		{ mixin(S_TRACE);
 			auto sash2 = new SplitPane(sash, SWT.HORIZONTAL);
+			sash2.resizeControl1 = true;
 
 			auto grp = new Group(sash2, SWT.NONE);
 			grp.setText(_prop.msgs.text);

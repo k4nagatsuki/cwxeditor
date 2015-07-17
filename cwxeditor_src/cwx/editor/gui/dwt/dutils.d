@@ -2069,6 +2069,9 @@ SplitPane changeVHSide(SplitPane sash) { mixin(S_TRACE);
 	assert ((sash.getStyle() & SWT.VERTICAL)
 		? ((sp.getStyle() & SWT.HORIZONTAL) && !(sp.getStyle() & SWT.VERTICAL))
 		: ((sp.getStyle() & SWT.VERTICAL) && !(sp.getStyle() & SWT.HORIZONTAL)));
+	sp.resizeControl1 = sash.resizeControl1;
+	sp.canMinimized1 = sash.canMinimized1;
+	sp.canMinimized2 = sash.canMinimized2;
 	auto ws = sash.getWeights();
 	foreach (c; sash.getChildren()) { mixin(S_TRACE);
 		if (!(cast(Sash) c)) { mixin(S_TRACE);

@@ -2558,7 +2558,7 @@ public:
 					debugln("Unknown pane key: " ~ key);
 					return null;
 				}
-			});
+			}, &dockFirstResize);
 			dStr ~= " - " ~ .text(__LINE__);
 			bool isSystemPaneName(string key) { mixin(S_TRACE);
 				return std.string.startsWith(key, "data")
@@ -2594,6 +2594,7 @@ public:
 				_dock.closeCtrlEvent ~= &dockCloseCtrl;
 				_dock.movingShellEvent ~= &dockMovingShellEvent;
 				_dock.moveShellEvent ~= &dockMoveShellEvent;
+				_dock.firstResize = &dockFirstResize;
 				_dock.memoryPane = &isSystemPaneName;
 				_dock.memoryControl = &isSystemCtrlName;
 				_dock.closeTabWithMiddleClick = (key) => _prop.var.etc.closeTabWithMiddleClick != false;
@@ -3914,6 +3915,10 @@ public:
 		}
 		return "";
 	}
+	private bool dockFirstResize(string paneKey) { mixin(S_TRACE);
+		return std.string.startsWith(paneKey, "work");
+	}
+
 	void setStatusLine(string status) { mixin(S_TRACE);
 		_comm.setStatusLine(_win, status);
 	}

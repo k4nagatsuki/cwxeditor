@@ -863,6 +863,7 @@ protected:
 		}
 
 		auto leftSash = new SplitPane(left, SWT.VERTICAL);
+		leftSash.resizeControl1 = true;
 		leftSash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto skin = comm.skin;
 		{ mixin(S_TRACE);

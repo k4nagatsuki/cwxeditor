@@ -2991,6 +2991,7 @@ public:
 			if (_summ) { mixin(S_TRACE);
 				auto lrSash2 = new SplitPane(lrSash, SWT.HORIZONTAL);
 				lrSash2.canMinimized2 = true;
+				lrSash2.resizeControl1 = true;
 				auto imagePaneComp = new Composite(lrSash2, SWT.NONE);
 				auto ipcl = windowGridLayout(1, true);
 				ipcl.marginWidth = 0;

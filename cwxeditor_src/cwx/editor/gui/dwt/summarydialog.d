@@ -184,6 +184,7 @@ private:
 		comp.setLayout(new GridLayout(1, true));
 		{ mixin(S_TRACE);
 			_tab2Sash = new SplitPane(comp, SWT.HORIZONTAL);
+			_tab2Sash.resizeControl1 = true;
 			_tab2Sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto skin = summSkin;
 			{ mixin(S_TRACE);

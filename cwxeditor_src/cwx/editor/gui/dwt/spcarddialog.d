@@ -220,6 +220,7 @@ protected:
 			comp.setLayout(new GridLayout(1, false));
 			{ mixin(S_TRACE);
 				auto sash = new SplitPane(comp, SWT.HORIZONTAL);
+				sash.resizeControl1 = true;
 				sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 				{ mixin(S_TRACE);
 					auto comp2 = new Composite(sash, SWT.NONE);
