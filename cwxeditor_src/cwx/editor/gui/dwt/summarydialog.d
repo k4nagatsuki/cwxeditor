@@ -574,7 +574,9 @@ protected:
 		} else { mixin(S_TRACE);
 			_summ.type = "";
 		}
+		auto oldSkin = _comm.skin;
 		_comm.skin = selectedSkin;
+		_comm.updateSkinMaterialsExtension(oldSkin, _comm.skin);
 		_comm.refCoupons.call();
 		getShell().setText(.tryFormat(_prop.msgs.dlgTitSummary, _summ.scenarioName));
 		return true;

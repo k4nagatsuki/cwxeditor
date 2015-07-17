@@ -300,7 +300,7 @@ public:
 			return "";
 		}
 		string findSummaryDir(string temp, string summary) {
-			foreach (file; temp.dirEntries(SpanMode.depth)) {
+			foreach (string file; temp.dirEntries(SpanMode.depth)) {
 				if (.cfnmatch(file.baseName(), summary)) return file.dirName();
 			}
 			return temp;
@@ -2056,7 +2056,7 @@ public:
 
 	/// カード画像のマップを生成して返す。
 	const
-	private string[][immutable(ubyte[])] cardImgTable(string mtdir, Skin skin, UseCounter uc, out ubyte*[] ptrs) { mixin(S_TRACE);
+	private string[][immutable(ubyte[])] cardImgTable(string mtdir, in Skin skin, UseCounter uc, out ubyte*[] ptrs) { mixin(S_TRACE);
 		string[][immutable(ubyte[])] r;
 		foreach (file; clistdir(mtdir)) { mixin(S_TRACE);
 			if (skin.isCardImage(std.path.buildPath(mtdir, file), true)) { mixin(S_TRACE);
@@ -2095,7 +2095,7 @@ public:
 		return r;
 	}
 	const
-	private bool moveBinImg(ref string[][immutable(ubyte[])] cis, PathUser targ, string fname, string mt, Skin toSkin) { mixin(S_TRACE);
+	private bool moveBinImg(ref string[][immutable(ubyte[])] cis, PathUser targ, string fname, string mt, in Skin toSkin) { mixin(S_TRACE);
 		string img = targ.path;
 		if (isBinImg(img)) { mixin(S_TRACE);
 			auto bytes = strToBImg(img);
@@ -2114,7 +2114,7 @@ public:
 		return false;
 	}
 	/// クラシックなシナリオをXML形式のシナリオに変換する。
-	public string classicToX(in CProps prop, string temp, string tempPath, Skin toSkin, out string[] copyFail) { mixin(S_TRACE);
+	public string classicToX(in CProps prop, string temp, string tempPath, in Skin toSkin, out string[] copyFail) { mixin(S_TRACE);
 		.enforce(legacy);
 		copyFail = [];
 		auto uc = useCounter;
@@ -2163,7 +2163,11 @@ public:
 		}
 		if (!mt.cfnmatch(temp)) { mixin(S_TRACE);
 			foreach (key; uc.path.keys) { mixin(S_TRACE);
-				uc.change(key, toPathId(std.path.buildPath(toSkin.materialPath, cast(string) key)));
+				if (key.isBinImg) continue;
+				auto p = std.path.buildPath(scenarioPath, cast(string)key);
+				if (p.exists()) { mixin(S_TRACE);
+					uc.change(key, toPathId(std.path.buildPath(toSkin.materialPath, cast(string)key)));
+				}
 			}
 			ubyte*[] ptrs;
 			auto table = cardImgTable(mt, toSkin, uc, ptrs);
@@ -2171,7 +2175,7 @@ public:
 				if (p.isBinImg) { mixin(S_TRACE);
 					int i = 0;
 					foreach (ipu; uc.path.values(p)) { mixin(S_TRACE);
-						auto v = cast(PathUser) ipu;
+						auto v = cast(PathUser)ipu;
 						assert (v);
 						if (moveBinImg(table, v, "@simage(" ~ to!(string)(i + 1) ~ ")", mt, toSkin)) { mixin(S_TRACE);
 							i++;
@@ -2388,10 +2392,12 @@ public:
 					expand = true;
 				} else if (legacyToX && defExpandXMLs) { mixin(S_TRACE);
 					scenarioPath = temp;
-					scope (failure) scenarioPath = oldPath;
 					saveXMLsImpl(_sPath, prop.sys, opt, false);
 					expand = true;
+				} else if (legacyToX) { mixin(S_TRACE);
+					scenarioPath = temp;
 				}
+				scope (failure) scenarioPath = oldPath;
 				void t2() { mixin(S_TRACE);
 					scope (exit) {
 						_inSaving = false;

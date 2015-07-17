@@ -15,6 +15,7 @@ import cwx.structs;
 import cwx.system;
 import cwx.importutils;
 import cwx.path;
+import cwx.usecounter;
 
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dprops;
@@ -47,14 +48,21 @@ import core.sync.mutex;
 import org.eclipse.swt.all;
 
 Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, string name = "", string legacyEngine = "", bool appendClassicSkin = true) { mixin(S_TRACE);
-	if (summ && !summ.legacy) { mixin(S_TRACE);
-		findCWPy(prop, summ.useTemp ? summ.origZipName : summ.scenarioPath);
+	auto legacy = summ ? summ.legacy : false;
+	auto sPath = summ ? (summ.useTemp ? summ.origZipName : summ.scenarioPath) : "";
+	if (type is null) type = summ ? summ.type : "";
+	return findSkin(comm, prop, summ, legacy, sPath, type, name, legacyEngine, appendClassicSkin);
+}
+
+Skin findSkin(Commons comm, Props prop, in Summary summ, bool legacy, string sPath, string type, string name = "", string legacyEngine = "", bool appendClassicSkin = true) { mixin(S_TRACE);
+	if (summ && !legacy) { mixin(S_TRACE);
+		findCWPy(prop, sPath);
 	}
 	if (!summ) { mixin(S_TRACE);
 		return findSkin2(prop, prop.var.etc.defaultSkin, "");
 	}
 	if (type is null) type = summ.type;
-	if (summ.legacy && !type.length) { mixin(S_TRACE);
+	if (legacy && !type.length) { mixin(S_TRACE);
 		if (legacyEngine.length) { mixin(S_TRACE);
 			auto lEngine = prop.toAppAbs(legacyEngine);
 			foreach (ce; prop.var.etc.classicEngines) { mixin(S_TRACE);
@@ -65,7 +73,9 @@ Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, str
 				}
 			}
 		}
-		auto skin = Skin.find(prop.parent, prop.enginePath, type, summ.scenarioPath, summ.legacy, prop.var.etc.classicEngineRegex, prop.var.etc.classicDataDirRegex, prop.var.etc.classicMatchKey, prop.var.etc.classicEngines);
+		auto skin = Skin.find(prop.parent, prop.enginePath, type, sPath, legacy,
+			prop.var.etc.classicEngineRegex, prop.var.etc.classicDataDirRegex,
+			prop.var.etc.classicMatchKey, prop.var.etc.classicEngines);
 		void find() { mixin(S_TRACE);
 			if (!appendClassicSkin) return;
 			if (!prop.var.etc.addNewClassicEngine) return;
@@ -454,11 +464,11 @@ class Commons {
 	private MainWindow _main = null;
 	private TableWindow _tableWin = null;
 	private FlagWindow _flagWin = null;
-	private CastCardWindow _castWin = null;
-	private SkillCardWindow _skillWin = null;
-	private ItemCardWindow _itemWin = null;
-	private BeastCardWindow _beastWin = null;
-	private InfoCardWindow _infoWin = null;
+	private CardWindow _castWin = null;
+	private CardWindow _skillWin = null;
+	private CardWindow _itemWin = null;
+	private CardWindow _beastWin = null;
+	private CardWindow _infoWin = null;
 	private DirectoryWindow _dirWin = null;
 
 	private ClipData _clipboard = null;
@@ -558,7 +568,7 @@ class Commons {
 		}
 	}
 	void baseShell(MainWindow main, TableWindow tableWin, FlagWindow flagWin,
-			CastCardWindow castWin, SkillCardWindow skillWin, ItemCardWindow itemWin, BeastCardWindow beastWin, InfoCardWindow infoWin,
+			CardWindow castWin, CardWindow skillWin, CardWindow itemWin, CardWindow beastWin, CardWindow infoWin,
 			DirectoryWindow dirWin) { mixin(S_TRACE);
 		_main = main;
 		_tableWin = tableWin;
@@ -627,6 +637,41 @@ class Commons {
 		OpenHistory hist;
 		return _main.findSkinFromHistory(summ, hist);
 	}
+	/// スキンに属する素材の拡張子が変更された場合は追従する。
+	void updateSkinMaterialsExtension(Skin oldSkin, Skin newSkin) { mixin(S_TRACE);
+		if (!summary) return;
+		if (oldSkin is newSkin) return;
+		void proc(string oldDir, string newDir, in string[] exts) {
+			try {
+				if (!oldDir.exists() || !oldDir.isDir()) return;
+				if (!newDir.exists() || !newDir.isDir()) return;
+				foreach (path; oldDir.dirEntries(SpanMode.depth)) { mixin(S_TRACE);
+					if (!path.isFile) continue;
+					auto oldRel = abs2rel(path, oldDir);
+					if (!summary.useCounter.get(toPathId(oldRel))) continue;
+					auto newAbs = newDir.buildPath(oldRel);
+					if (newAbs.exists()) continue;
+					// 拡張子を付け替えて探索する
+					foreach (ext; exts) { mixin(S_TRACE);
+						newAbs = newAbs.setExtension(ext);
+						if (!newAbs.exists()) continue;
+						// 発見したので変更
+						auto newRel = abs2rel(newAbs, newDir);
+						summary.useCounter.change(toPathId(oldRel), toPathId(newRel));
+						this.refPath.call(oldRel, newRel, false);
+						break;
+					}
+				}
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
+			}
+		}
+		proc(oldSkin.tableDir, newSkin.tableDir, [".bmp", ".jpg", ".jpeg", ".png", ".gif"]);
+		static immutable seExts = [".aiff", ".mid", ".midi", ".mod", ".s3m", ".xm", ".it", ".mt2", ".669", ".med", ".ogg", ".ogv", ".oga", ".ogx", ".voc", ".wav"];
+		proc(oldSkin.bgmDir, newSkin.bgmDir, seExts);
+		proc(oldSkin.seDir, newSkin.seDir, seExts);
+	}
 
 	private void activate(Composite w, bool shellActivate) { mixin(S_TRACE);
 		auto shl = cast(Shell) w;
@@ -639,7 +684,7 @@ class Commons {
 	}
 	private Window rOpen(Window, Main)(Main m, bool shellActivate) { mixin(S_TRACE);
 		foreach (w; _ws) { mixin(S_TRACE);
-			if ((cast(TLPData) w.getData()).main is m) { mixin(S_TRACE);
+			if ((cast(TLPData)w.getData()).main is m) { mixin(S_TRACE);
 				activate(w, shellActivate);
 				return cast(Window) _wos[w];
 			}
@@ -750,17 +795,17 @@ class Commons {
 		return openAreaImpl!(Package, EventWindow)(prop, summ, area, null, shellActivate, canDuplicate);
 	}
 
-	HandCardWindow openHands(Props prop, Summary summ, CastCard c, bool shellActivate) { mixin(S_TRACE);
-		auto w = rOpen!(HandCardWindow)(c, shellActivate);
+	CardWindow openHands(Props prop, Summary summ, CastCard c, bool shellActivate) { mixin(S_TRACE);
+		auto w = rOpen!(CardWindow)(c, shellActivate);
 		if (w) return w;
-		return openImpl2!("side", HandCardWindow, CastCard, "w.refresh(args[2], m);", Commons, Props, Summary, Composite)
-			(c, shellActivate, this, prop, summ, sidePane);
+		return openImpl2!("side", CardWindow, CastCard, "w.refresh(args[3], m);", Commons, Props, CardWindowKind, Summary, Composite)
+			(c, shellActivate, this, prop, CardWindowKind.Hand, summ, sidePane);
 	}
-	AddHandCardWindow openAddHands(Props prop, Summary summ, CastCard c, Summary toc, bool shellActivate) { mixin(S_TRACE);
-		auto w = rOpen!(AddHandCardWindow)(c, shellActivate);
+	CardWindow openAddHands(Props prop, Summary summ, CastCard c, Summary toc, bool shellActivate) { mixin(S_TRACE);
+		auto w = rOpen!(CardWindow)(c, shellActivate);
 		if (w) return w;
-		return openImpl2!("side", AddHandCardWindow, CastCard, "", Commons, Props, Composite, Summary, CastCard, Summary)
-			(c, shellActivate, this, prop, sidePane, summ, c, toc);
+		return openImpl2!("side", CardWindow, CastCard, "", Commons, Props, CardWindowKind, Composite, Summary, CastCard, Summary)
+			(c, shellActivate, this, prop, CardWindowKind.ImportSourceHand, sidePane, summ, c, toc);
 	}
 
 	private EventWindow openUseEventImpl(C)(Props prop, Summary summ, C c, bool shellActivate, bool canDuplicate) { mixin(S_TRACE);
@@ -970,11 +1015,11 @@ class Commons {
 		}
 		return r;
 	}
-	HandCardWindow handCardWindowFrom(Props prop, Summary summ, CastCard c, bool open, bool shellActivate) { mixin(S_TRACE);
+	CardWindow handCardWindowFrom(Props prop, Summary summ, CastCard c, bool open, bool shellActivate) { mixin(S_TRACE);
 		foreach (w; _ws) { mixin(S_TRACE);
 			auto tlpData = (cast(TLPData) w.getData());
 			if (tlpData.main is c) { mixin(S_TRACE);
-				return cast(HandCardWindow) tlpData.tlp;
+				return cast(CardWindow)tlpData.tlp;
 			}
 		}
 		if (open) { mixin(S_TRACE);
@@ -1047,9 +1092,8 @@ class Commons {
 	}
 
 	private HashSet!(Composite) _aws;
-	private void addScenarioImpl(Object[] ws) { mixin(S_TRACE);
-		foreach (wo; ws) { mixin(S_TRACE);
-			auto w = cast(AddCard.ACW) wo;
+	private void addScenarioImpl(CardWindow[] ws) { mixin(S_TRACE);
+		foreach (w; ws) { mixin(S_TRACE);
 			w.shell.addDisposeListener(new CloseRemover!(Composite)(_aws, w.shell));
 			_aws.add(w.shell);
 			this.open(w, "side");

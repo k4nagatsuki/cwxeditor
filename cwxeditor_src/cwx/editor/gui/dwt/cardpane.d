@@ -2754,6 +2754,9 @@ public:
 	}
 	@property
 	string statusLine() {return _statusLine;}
+	@property
+	const
+	CardType cardType() { return _cardType; }
 
 	void refresh() { mixin(S_TRACE);
 		if (!_tbl || _tbl.isDisposed()) return;
@@ -2949,21 +2952,7 @@ public:
 		} else if (_ownerType is OwnerType.Cast) { mixin(S_TRACE);
 			assert (cast(CastCard)_owner !is null);
 			auto cWin = _comm.handCardWindowFrom(_prop, _summ, cast(CastCard)_owner, true, shellActivate);
-			final switch (_cardType) {
-			case CardType.Cast:
-				assert (0);
-			case CardType.Skill:
-				cWin.open!(cWin.SKILL)(shellActivate);
-				break;
-			case CardType.Item:
-				cWin.open!(cWin.ITEM)(shellActivate);
-				break;
-			case CardType.Beast:
-				cWin.open!(cWin.BEAST)(shellActivate);
-				break;
-			case CardType.Info:
-				assert (0);
-			}
+			cWin.open(_cardType, shellActivate);
 		} else assert (0);
 		_comm.refreshToolBar();
 	}

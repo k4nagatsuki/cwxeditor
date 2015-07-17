@@ -375,15 +375,26 @@ class Skin {
 			loadFromXML(skinFile, new XMLInfo(prop.sys, LATEST_VERSION));
 		}
 	}
+	/// スキンの名称。クラシックの場合は""。
 	@property
 	const
-	string name() {return _name;}
+	string name() { return _name; }
+	/// スキンのタイプ。クラシックの場合は""。
 	@property
 	const
-	string type() {return _type;}
+	string type() { return _type; }
+	/// スキンのファイル名。クラシックの場合は""。
 	@property
 	const
-	string skinFile() {return _skinFile;}
+	string skinFile() { return _skinFile; }
+	/// スキンのパス。クラシックの場合はlegacyDataPathで代替する。
+	@property
+	const
+	string path() { return _path; }
+	/// スキンが存在しない時に使用される空スキンか。
+	@property
+	const
+	bool isEmpty() { return !(_path.length || _legacyPath.length); }
 
 	/// リソース画像のパス。
 	const
@@ -1184,6 +1195,13 @@ class Skin {
 	string findPath(string path, string ext, string defDir, string sPath) { mixin(S_TRACE);
 		bool dummy;
 		return findPathF(path, ext, defDir, sPath, dummy);
+	}
+	/// 指定された素材がスキン付属のディレクトリに存在するものか。
+	const
+	bool isSkinResource(string path, string ext, string defDir, string sPath) { mixin(S_TRACE);
+		bool r;
+		findPathF(path, ext, defDir, sPath, r);
+		return r;
 	}
 
 	/// 標準のメッセージ送りテキストを返す。

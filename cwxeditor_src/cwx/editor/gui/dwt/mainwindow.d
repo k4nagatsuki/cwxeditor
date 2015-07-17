@@ -125,11 +125,11 @@ private:
 
 	TableWindow _tableWin = null;
 	FlagWindow _flagWin = null;
-	CastCardWindow _castWin = null;
-	SkillCardWindow _skillWin = null;
-	ItemCardWindow _itemWin = null;
-	BeastCardWindow _beastWin = null;
-	InfoCardWindow _infoWin = null;
+	CardWindow _castWin = null;
+	CardWindow _skillWin = null;
+	CardWindow _itemWin = null;
+	CardWindow _beastWin = null;
+	CardWindow _infoWin = null;
 	DirectoryWindow _dirWin = null;
 
 	string _bassDir = "";
@@ -1354,6 +1354,10 @@ private:
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin, "");
 				try { mixin(S_TRACE);
 					beforeSave();
+					auto oldSkin = _comm.skin;
+					_comm.skin = findSkin(_comm, _prop, summary, classic, fname, classic ? "" : summary.type);
+					if (_comm.skin.isEmpty) _comm.skin = defSkin;
+					_comm.updateSkinMaterialsExtension(oldSkin, _comm.skin);
 					{ mixin(S_TRACE);
 						_saveSync.lock();
 						scope (exit) _saveSync.unlock();
@@ -1362,7 +1366,6 @@ private:
 								MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
 							}, classic);
 					}
-					_comm.skin = findSkin(_comm, _prop, summary);
 					_comm.saved.call();
 					refreshTitle();
 					_comm.refScenarioPath.call();
@@ -2488,15 +2491,15 @@ public:
 			_flagWin = new FlagWindow(_comm, _prop, _win, null);
 			dStr ~= " - " ~ .text(__LINE__);
 			dStr ~= " - " ~ .text(__LINE__);
-			_castWin = new CastCardWindow(_comm, _prop, null);
+			_castWin = new CardWindow(_comm, _prop, CardWindowKind.Cast, null);
 			dStr ~= " - " ~ .text(__LINE__);
-			_skillWin = new SkillCardWindow(_comm, _prop, null);
+			_skillWin = new CardWindow(_comm, _prop, CardWindowKind.Skill, null);
 			dStr ~= " - " ~ .text(__LINE__);
-			_itemWin = new ItemCardWindow(_comm, _prop, null);
+			_itemWin = new CardWindow(_comm, _prop, CardWindowKind.Item, null);
 			dStr ~= " - " ~ .text(__LINE__);
-			_beastWin = new BeastCardWindow(_comm, _prop, null);
+			_beastWin = new CardWindow(_comm, _prop, CardWindowKind.Beast, null);
 			dStr ~= " - " ~ .text(__LINE__);
-			_infoWin = new InfoCardWindow(_comm, _prop, null);
+			_infoWin = new CardWindow(_comm, _prop, CardWindowKind.Info, null);
 			dStr ~= " - " ~ .text(__LINE__);
 			_dirWin = new DirectoryWindow(_comm, _prop, null);
 
@@ -2640,15 +2643,15 @@ public:
 				dStr ~= " - " ~ .text(__LINE__);
 				auto card = _dock.addPane(data, Dir.E, 5, 7, "data_2");
 				dStr ~= " - " ~ .text(__LINE__);
-				_castWin = new CastCardWindow(_comm, _prop, card);
+				_castWin = new CardWindow(_comm, _prop, CardWindowKind.Cast, card);
 				_dock.add(_castWin.shell, _castWin.title, _castWin.image, "castCard", true);
-				_skillWin = new SkillCardWindow(_comm, _prop, card);
+				_skillWin = new CardWindow(_comm, _prop, CardWindowKind.Skill, card);
 				_dock.add(_skillWin.shell, _skillWin.title, _skillWin.image, "skillCard", false);
-				_itemWin = new ItemCardWindow(_comm, _prop, card);
+				_itemWin = new CardWindow(_comm, _prop, CardWindowKind.Item, card);
 				_dock.add(_itemWin.shell, _itemWin.title, _itemWin.image, "itemCard", false);
-				_beastWin = new BeastCardWindow(_comm, _prop, card);
+				_beastWin = new CardWindow(_comm, _prop, CardWindowKind.Beast, card);
 				_dock.add(_beastWin.shell, _beastWin.title, _beastWin.image, "beastCard", false);
-				_infoWin = new InfoCardWindow(_comm, _prop, card);
+				_infoWin = new CardWindow(_comm, _prop, CardWindowKind.Info, card);
 				_dock.add(_infoWin.shell, _infoWin.title, _infoWin.image, "infoCard", false);
 				dStr ~= " - " ~ .text(__LINE__);
 				_dirWin = new DirectoryWindow(_comm, _prop, data);
@@ -3519,7 +3522,7 @@ public:
 		_comm.addScenario(_prop);
 	}
 	private template NewCard(string Name) {
-		static const NewCard = "auto cw = cast(ICardWindow)_tlp;"
+		static const NewCard = "auto cw = cast(CardWindow)_tlp;"
 			~ "if (cw && cw.canCreate" ~ Name ~ ") {"
 			~ "    cw.create" ~ Name ~ "();"
 			~ "} else {"
@@ -3656,11 +3659,11 @@ public:
 			openFolder(summary.scenarioPath);
 		}
 	}
-	private bool isMainCardWin(ICardWindow cw) { mixin(S_TRACE);
-		return cast(CastCardWindow) cw || cast(SkillCardWindow) cw || cast(ItemCardWindow) cw || cast(BeastCardWindow) cw || cast(InfoCardWindow) cw;
+	private bool isMainCardWin(CardWindow cw) { mixin(S_TRACE);
+		return cw.kind is CardWindowKind.Cast || cw.kind is CardWindowKind.Skill || cw.kind is CardWindowKind.Item || cw.kind is CardWindowKind.Beast || cw.kind is CardWindowKind.Info;
 	}
 	private void showCardLife(SelectionEvent se) { mixin(S_TRACE);
-		auto cw = cast(ICardWindow) _tlp;
+		auto cw = cast(CardWindow)_tlp;
 		if (cw && !isMainCardWin(cw)) { mixin(S_TRACE);
 			menuAction!(MenuID.ShowCardProp)(se);
 		} else { mixin(S_TRACE);
@@ -3673,7 +3676,7 @@ public:
 		}
 	}
 	private void showCardList(SelectionEvent se) { mixin(S_TRACE);
-		auto cw = cast(ICardWindow) _tlp;
+		auto cw = cast(CardWindow)_tlp;
 		if (cw && !isMainCardWin(cw)) { mixin(S_TRACE);
 			menuAction!(MenuID.ShowCardImage)(se);
 		} else { mixin(S_TRACE);
@@ -3686,7 +3689,7 @@ public:
 		}
 	}
 	private void showCardTable(SelectionEvent se) { mixin(S_TRACE);
-		auto cw = cast(ICardWindow) _tlp;
+		auto cw = cast(CardWindow)_tlp;
 		if (cw && !isMainCardWin(cw)) { mixin(S_TRACE);
 			menuAction!(MenuID.ShowCardDetail)(se);
 		} else { mixin(S_TRACE);

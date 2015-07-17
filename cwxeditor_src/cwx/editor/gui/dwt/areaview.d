@@ -2446,6 +2446,16 @@ private:
 				if (selectConnectedResourceImpl(c)) return;
 			}
 		}
+		void refPath(string oldPath, string newPath, bool isDir) { mixin(S_TRACE);
+			if (isDir) return;
+			foreach (itm; _backs.getItems()) { mixin(S_TRACE);
+				auto cell = cast(ImageCell)itm.getData();
+				if (!cell) continue;
+				if (cell.path == newPath) {
+					itm.setText(cell.path);
+				}
+			}
+		}
 	}
 	static if (UseCards) {
 		void setAutoImpl(bool value) { mixin(S_TRACE);
@@ -2848,6 +2858,12 @@ public:
 				_backs.addMouseTrackListener(prevTrig);
 				_backs.addMouseMoveListener(prevTrig);
 				.listener(_backs, SWT.Paint, &selectImageBImpl);
+				if (!_readOnly) { mixin(S_TRACE);
+					_comm.refPath.add(&refPath);
+					.listener(_backs, SWT.Dispose, { mixin(S_TRACE);
+						_comm.refPath.remove(&refPath);
+					});
+				}
 			}
 			static if (UseCards && UseBacks) {
 				_cards.addMouseListener(new class MouseAdapter {
@@ -2974,6 +2990,7 @@ public:
 		{ mixin(S_TRACE);
 			if (_summ) { mixin(S_TRACE);
 				auto lrSash2 = new SplitPane(lrSash, SWT.HORIZONTAL);
+				lrSash2.canMinimized2 = true;
 				auto imagePaneComp = new Composite(lrSash2, SWT.NONE);
 				auto ipcl = windowGridLayout(1, true);
 				ipcl.marginWidth = 0;

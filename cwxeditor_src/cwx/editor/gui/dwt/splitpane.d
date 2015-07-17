@@ -14,6 +14,10 @@ class SplitPane : Composite {
 	private FormData _sfd = null, _fd1 = null, _fd2 = null;
 	private int[] _weights = [0, 0];
 	private int _style;
+	private bool _canMinimized1 = false;
+	private bool _canMinimized2 = false;
+	private bool _min1 = false;
+	private bool _min2 = false;
 
 	this (Composite parent, int style) { mixin(S_TRACE);
 		_style = style;
@@ -26,6 +30,21 @@ class SplitPane : Composite {
 		_sfd = new FormData;
 		addListener(SWT.Resize, new ResizeL);
 	}
+
+	/// 左・上側ペインを最小化可能か。
+	@property
+	const
+	bool canMinimized1() { return _canMinimized1; }
+	@property
+	void canMinimized1(bool value) { _canMinimized1 = value; }
+
+	/// 右・下側ペインを最小化可能か。
+	@property
+	const
+	bool canMinimized2() { return _canMinimized2; }
+	@property
+	void canMinimized2(bool value) { _canMinimized2 = value; }
+
 	override int getStyle() {return _style;}
 	int[] getWeights() { mixin(S_TRACE);
 		return _weights.dup;
@@ -33,7 +52,9 @@ class SplitPane : Composite {
 	void setWeights(int[] weights) { mixin(S_TRACE);
 		if (weights.length != 2) throw new Exception("SplitPane weights length");
 		_weights = weights.dup;
-		resize();
+		_min1 = _weights[0] <= 0;
+		_min2 = _weights[1] <= 0;
+		resize(true);
 	}
 	private int[] computeWeights() { mixin(S_TRACE);
 		auto cs = getChildren();
@@ -44,7 +65,7 @@ class SplitPane : Composite {
 		}
 		return [1, 1];
 	}
-	private bool resize() { mixin(S_TRACE);
+	private bool resize(bool updateMin) { mixin(S_TRACE);
 		assert (_weights);
 		assert (_weights.length == 2u);
 		if (_weights[0u] <= 0 || _weights[1u] <= 0) { mixin(S_TRACE);
@@ -56,30 +77,46 @@ class SplitPane : Composite {
 		auto ca = getClientArea();
 		if (getStyle() & SWT.VERTICAL) { mixin(S_TRACE);
 			if (ca.height == 0) return false;
-			int lw = cast(int) rndtol((ca.height - SASH_WIDTH) * (cast(real) l / full));
+			int lw = cast(int)rndtol((ca.height - SASH_WIDTH) * (cast(real)l / full));
 			_sfd.top = new FormAttachment(0, lw);
 		} else { mixin(S_TRACE);
 			if (ca.width == 0) return false;
-			int lw = cast(int) rndtol((ca.width - SASH_WIDTH) * (cast(real) l / full));
+			int lw = cast(int)rndtol((ca.width - SASH_WIDTH) * (cast(real)l / full));
 			_sfd.left = new FormAttachment(0, lw);
 		}
-		relo();
+		relo(updateMin);
 		return true;
 	}
-	private void relo() { mixin(S_TRACE);
+	private void relo(bool updateMin) { mixin(S_TRACE);
 		if (!_sash) return;
 		auto ca = getClientArea();
+		if (updateMin) { mixin(S_TRACE);
+			_min1 = false;
+			_min2 = false;
+		}
 		if (getStyle() & SWT.VERTICAL) { mixin(S_TRACE);
 			int lw = _sfd.top.offset;
-			if (lw < MIN) lw = MIN;
-			if (lw + SASH_WIDTH >= ca.height - MIN) lw = ca.height - SASH_WIDTH - MIN;
+			if (_min1 || lw < MIN) { mixin(S_TRACE);
+				if (updateMin && canMinimized1) _min1 = true;
+				lw = _min1 ? 0 : MIN;
+			}
+			if (_min2 || lw + SASH_WIDTH >= ca.height - MIN) { mixin(S_TRACE);
+				if (updateMin && canMinimized2) _min2 = true;
+				lw = ca.height - SASH_WIDTH - (_min2 ? 0 : MIN);
+			}
 			_sfd.top.offset = lw;
 			_fd1.bottom.control = _sash;
 			_fd2.top.control = _sash;
 		} else { mixin(S_TRACE);
 			int lw = _sfd.left.offset;
-			if (lw < MIN) lw = MIN;
-			if (lw + SASH_WIDTH >= ca.width - MIN) lw = ca.width - SASH_WIDTH - MIN;
+			if (_min1 || lw < MIN) { mixin(S_TRACE);
+				if (updateMin && canMinimized1) _min1 = true;
+				lw = _min1 ? 0 : MIN;
+			}
+			if (_min2 || lw + SASH_WIDTH >= ca.width - MIN) { mixin(S_TRACE);
+				if (updateMin && canMinimized2) _min2 = true;
+				lw = ca.width - SASH_WIDTH - (_min2 ? 0 : MIN);
+			}
 			_sfd.left.offset = lw;
 			_fd1.right.control = _sash;
 			_fd2.left.control = _sash;
@@ -87,7 +124,11 @@ class SplitPane : Composite {
 		_sash.setLayoutData(_sfd);
 		auto cs = getChildren();
 		cs[0].setLayoutData(_fd1);
+		cs[0].setVisible(!_min1);
 		cs[1].setLayoutData(_fd2);
+		cs[1].setVisible(!_min2);
+		if (_min1) _weights[0] = 0;
+		if (_min2) _weights[1] = 0;
 		layout(true);
 		refreshWeights();
 	}
@@ -103,19 +144,19 @@ class SplitPane : Composite {
 					return;
 				}
 				if (!_sash) initSash();
-				_first = !resize();
+				_first = !resize(false);
 				if (!isVisible() && getShell().getMaximized()) { mixin(S_TRACE);
 					_maximizedAfter = true;
 				}
 			} else if (isVisible()) { mixin(S_TRACE);
 				if (_maximizedAfter) { mixin(S_TRACE);
-					resize();
+					resize(false);
 					_maximizedAfter = false;
 				} else { mixin(S_TRACE);
-					relo();
+					relo(false);
 				}
 			} else { mixin(S_TRACE);
-				resize();
+				resize(false);
 				if (!isVisible() && getShell().getMaximized()) { mixin(S_TRACE);
 					_maximizedAfter = true;
 				}
@@ -172,27 +213,29 @@ class SplitPane : Composite {
 		_sash.setLayoutData(_sfd);
 		_sash.addListener(SWT.Selection, new SSelL);
 	}
-	private static const SASH_WIDTH = 3;
-	private static const MIN = 10;
+	private static immutable SASH_WIDTH = 5;
+	private static immutable MIN = 10;
 	private class SSelL : Listener {
 		override void handleEvent(Event e) { mixin(S_TRACE);
 			auto sb = _sash.getBounds();
 			auto cb = getClientArea();
+			auto minSize1 = canMinimized1 ? 0 : MIN;
+			auto minSize2 = canMinimized2 ? 0 : MIN;
 			if (getStyle() & SWT.VERTICAL) { mixin(S_TRACE);
-				int right = cb.height - sb.height - SashForm.DRAG_MINIMUM;
+				int right = cb.height - sb.height - minSize2;
 				if (right < e.y) e.y = right;
-				if (SashForm.DRAG_MINIMUM > e.y) e.y = SashForm.DRAG_MINIMUM;
+				if (minSize1 > e.y) e.y = minSize1;
 				if (e.y != sb.y)  { mixin(S_TRACE);
 					_sfd.top = new FormAttachment(0, e.y);
-					relo();
+					relo(true);
 				}
 			} else { mixin(S_TRACE);
-				int right = cb.width - sb.width - SashForm.DRAG_MINIMUM;
+				int right = cb.width - sb.width - minSize2;
 				if (right < e.x) e.x = right;
-				if (SashForm.DRAG_MINIMUM > e.x) e.x = SashForm.DRAG_MINIMUM;
+				if (minSize1 > e.x) e.x = minSize1;
 				if (e.x != sb.x)  { mixin(S_TRACE);
 					_sfd.left = new FormAttachment(0, e.x);
-					relo();
+					relo(true);
 				}
 			}
 		}
