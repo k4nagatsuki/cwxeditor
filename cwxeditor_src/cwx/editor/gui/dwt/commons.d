@@ -124,6 +124,8 @@ class Dlg(Arg ...) {
 				debugln("Common event sender remained: ", f, ", ", _lineDlg[i]);
 			}
 		}
+	} else {
+		void dispose() { }
 	}
 	private void delegate(Object, Arg)[] _dlg;
 	private NoS[] _noss;
