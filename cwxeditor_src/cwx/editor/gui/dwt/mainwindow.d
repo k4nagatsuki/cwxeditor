@@ -110,7 +110,7 @@ public:
 class MainWindow : TopLevelPanel {
 private:
 	Display _display = null;
-	Mutex _displayMutex = null;
+	Object _displayMutex = null;
 	bool _quit = false;
 	Mutex _saveSync = null;
 	bool _inSaving = false;
@@ -1195,18 +1195,18 @@ private:
 		opt.archiveInNewThread = _prop.var.etc.archiveInNewThread && summary.useTemp;
 		if (opt.archiveInNewThread) { mixin(S_TRACE);
 			opt.savedCallback = { mixin(S_TRACE);
-				_displayMutex.lock();
-				scope (exit) _displayMutex.unlock();
-				if (_display) { mixin(S_TRACE);
-					_display.asyncExec(new class Runnable {
-						override void run() { mixin(S_TRACE);
-							_inSaving = false;
-							if (!_win.isDisposed()) {
-								updateExecEngineWithPartyNameTI();
-								_comm.refreshToolBar();
+				synchronized (_displayMutex) { mixin(S_TRACE);
+					if (_display) { mixin(S_TRACE);
+						_display.asyncExec(new class Runnable {
+							override void run() { mixin(S_TRACE);
+								_inSaving = false;
+								if (!_win.isDisposed()) {
+									updateExecEngineWithPartyNameTI();
+									_comm.refreshToolBar();
+								}
 							}
-						}
-					});
+						});
+					}
 				}
 			};
 		}
@@ -2429,7 +2429,7 @@ public:
 
 			auto d = new Display;
 			_display = d;
-			_displayMutex = new Mutex;
+			_displayMutex = new Object;
 			d.setAppName(_prop.msgs.application);
 			dStr ~= " - " ~ .text(__LINE__);
 
@@ -4281,9 +4281,7 @@ public:
 			version (Console) {
 				debug writeln("Disposed Resources");
 			}
-			{ mixin(S_TRACE);
-				_displayMutex.lock();
-				scope (exit) _displayMutex.unlock();
+			synchronized (_displayMutex) { mixin(S_TRACE);
 				_display = null;
 				d.dispose();
 			}
