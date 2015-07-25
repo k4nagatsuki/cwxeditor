@@ -100,6 +100,7 @@ class Msgs : Properties {
 	auto newClassicDirDesc = Msg("newClassicDirDesc", "シナリオを作成する" ~ DIR ~ "を選択してください。");
 	auto notEmptyDir = Msg("notEmptyDir", "%1$sは空ではありません。\n本当にここでシナリオを作成しますか？");
 	auto createScenarioNameDir = Msg("createScenarioNameDir", "シナリオの" ~ DIR ~ "を新規作成する");
+	auto notClassicWarning = Msg("notClassicWarning", "※ 「クラシック」以外のタイプはCardWirthPy専用形式となります");
 
 	auto newScenarioName = Msg("newScenarioName", "新規シナリオ");
 

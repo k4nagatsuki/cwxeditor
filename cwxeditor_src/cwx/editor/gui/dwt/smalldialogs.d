@@ -220,13 +220,14 @@ protected:
 				// スキンが無い
 				_skinC.add(_prop.var.etc.defaultSkin);
 				_skinTypes ~= _prop.var.etc.defaultSkin;
-				_skinVal = _prop.var.etc.defaultSkin;
 			}
 			_skinC.add(_prop.msgs.defaultSelection(_prop.msgs.classic));
 			_skinC.setText(_prop.var.etc.defaultSkin);
-			if (_skinTypes) {
+			if (_prop.var.etc.targetVersion != "CardWirthPy") {
+				// ターゲットバージョンはクラシック
+				_skinC.select(_skinC.getItemCount() - 1);
+			} else if (_skinTypes) {
 				_skinC.select(0);
-				_skinVal = _skinTypes[0];
 			}
 
 			_baseTemplate = new Button(grp, SWT.RADIO);
@@ -257,6 +258,12 @@ protected:
 			.listener(_skinC, SWT.Selection, &refClassic);
 			.listener(_baseTemplate, SWT.Selection, &refClassic);
 			.listener(_templateC, SWT.Selection, &refClassic);
+
+			auto l = new Label(grp, SWT.NONE);
+			l.setText(_prop.msgs.notClassicWarning);
+			auto lgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			lgd.horizontalSpan = 2;
+			l.setLayoutData(lgd);
 		}
 		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
