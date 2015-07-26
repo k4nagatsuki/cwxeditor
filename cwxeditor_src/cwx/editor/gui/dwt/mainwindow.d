@@ -63,6 +63,7 @@ import std.array;
 import std.algorithm;
 import std.csv;
 import std.functional;
+import std.exception;
 import d2std.zip;
 debug import std.stdio;
 
@@ -4283,7 +4284,16 @@ public:
 			}
 			synchronized (_displayMutex) { mixin(S_TRACE);
 				_display = null;
-				d.dispose();
+				try { mixin(S_TRACE);
+					d.dispose();
+				} catch (ErrnoException e) {
+					// コンソールが無い時にDwtLoggerが標準出力に出力しようとして
+					// Bad file descriptorと言われる事がある
+					version (Console) {
+						printStackTrace();
+						debugln(e);
+					}
+				}
 			}
 			version (Console) {
 				debug writeln("Disposed Display");
