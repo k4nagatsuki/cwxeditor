@@ -671,7 +671,7 @@ private:
 	}
 
 	private EventDialog[string] _editDlgs;
-	void appliedEdit(UndoContent undo, Content c) { mixin(S_TRACE);
+	void appliedEdit(UndoContent undo, Content c, bool focus) { mixin(S_TRACE);
 		_undo ~= undo;
 		auto cwxPath = c.cwxPath(true);
 		foreach (v; views()) { mixin(S_TRACE);
@@ -688,7 +688,7 @@ private:
 			v.redraw();
 			v.refreshStatusLine();
 		}
-		.forceFocus(_tree.control, false);
+		if (focus) .forceFocus(_tree.control, false);
 		_comm.refContent.call(c);
 		_comm.refUseCount.call();
 		_comm.refreshToolBar();
@@ -945,7 +945,7 @@ private:
 			auto undo = new UndoContent(_comm, _prop, _summ, _et, _area, [evt]);
 			dlg.appliedEvent.length = 0;
 			dlg.appliedEvent ~= { mixin(S_TRACE);
-				appliedEdit(undo, evt);
+				appliedEdit(undo, evt, true);
 				undo = new UndoContent(_comm, _prop, _summ, _et, _area, [evt]);
 			};
 		};
@@ -975,7 +975,7 @@ private:
 		auto dlg = createEventDialog(evt, evt.parent, false);
 		auto undo = new UndoContent(_comm, _prop, _summ, _et, _area, [evt]);
 		dlg.appliedEvent ~= { mixin(S_TRACE);
-			appliedEdit(undo, evt);
+			appliedEdit(undo, evt, false);
 			undo = new UndoContent(_comm, _prop, _summ, _et, _area, [evt]);
 		};
 		_editDlgs[evt.eventId] = dlg;

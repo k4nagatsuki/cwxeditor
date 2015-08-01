@@ -44,6 +44,11 @@ public:
 	string text() { mixin(S_TRACE);
 		return wrapReturnCode(_viewer.getText());
 	}
+	@property
+	const
+	override
+	bool noScenario() { return true; }
+
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		auto cl = new CenterLayout;

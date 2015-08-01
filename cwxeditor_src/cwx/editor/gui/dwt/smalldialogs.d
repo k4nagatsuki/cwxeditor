@@ -120,6 +120,11 @@ public:
 	}
 
 	@property
+	const
+	override
+	bool noScenario() { return true; }
+
+	@property
 	string name() { mixin(S_TRACE);
 		return _nameVal;
 	}
@@ -387,6 +392,11 @@ public:
 		enterClose = true;
 		firstFocusIsOK = true;
 	}
+	@property
+	const
+	override
+	bool noScenario() { return true; }
+
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		auto gl = new GridLayout(2, false);
@@ -439,6 +449,11 @@ class ErrorDialog : AbsDialog {
 		_prop = prop;
 		_desc = desc;
 	}
+
+	@property
+	const
+	override
+	bool noScenario() { return true; }
 
 	override void setup(Composite area) { mixin(S_TRACE);
 		auto d = area.getDisplay();
@@ -505,6 +520,11 @@ public:
 	ulong newId() { mixin(S_TRACE);
 		return _newId;
 	}
+	@property
+	const
+	override
+	bool noScenario() { return true; }
+
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(new GridLayout(1, false));
@@ -699,6 +719,12 @@ public:
 	Content[] contents() { mixin(S_TRACE);
 		return _contents;
 	}
+
+	@property
+	const
+	override
+	bool noScenario() { return true; }
+
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(new GridLayout(1, false));
@@ -764,6 +790,11 @@ class EventTemplateDialog : AbsDialog {
 		auto size = comm.prop.var.evTemplDlg;
 		super (prop, shell, false, title, prop.images.menu(MenuID.EvTemplates), true, size, true, true);
 	}
+
+	@property
+	const
+	override
+	bool noScenario() { return _summ is null; }
 
 	@property
 	private string title() { mixin(S_TRACE);
@@ -843,6 +874,11 @@ class ImportOptionDialog : AbsDialog {
 		_prop = comm.prop;
 		super (_prop, shell, true, _prop.msgs.dlgTitImportOption, _prop.images.menu(MenuID.Import), false);
 	}
+
+	@property
+	const
+	override
+	bool noScenario() { return true; }
 
 	@property
 	ImportOption option() { return _opt; }
@@ -955,6 +991,11 @@ class ImportResultDialog : AbsDialog {
 		auto size = _prop.var.importResultDlg;
 		super (_prop, shell, true, _prop.msgs.dlgTitImportResult, _prop.images.menu(MenuID.Import), true, size, false, true);
 	}
+
+	@property
+	const
+	override
+	bool noScenario() { return true; }
 
 	@property
 	ImportResult checkedResult() { return _result; }

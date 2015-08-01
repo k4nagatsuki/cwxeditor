@@ -1228,6 +1228,11 @@ protected:
 		refreshEnabled();
 	}
 
+	@property
+	const
+	override
+	bool noScenario() { return true; }
+
 	override bool apply() { mixin(S_TRACE);
 		void err(CTabItem tab, Text t, string msg) { mixin(S_TRACE);
 			auto dlg = new MessageBox(t.getShell(), SWT.ICON_WARNING | SWT.OK);
@@ -1680,6 +1685,11 @@ public:
 		auto skin = _comm.skin;
 		_cont = new BgImageContainer(createBgImages(skin, bgImagesDefault));
 	}
+
+	@property
+	const
+	override
+	bool noScenario() { return true; }
 
 	@property
 	BgImageS[] backs() {return createBgImageSs(_cont.backs);}

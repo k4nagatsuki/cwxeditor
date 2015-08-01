@@ -56,6 +56,11 @@ public:
 		parent.addDisposeListener(_parentClose);
 	}
 
+	@property
+	const
+	override
+	bool noScenario() { return true; }
+
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		auto cl = new CenterLayout;

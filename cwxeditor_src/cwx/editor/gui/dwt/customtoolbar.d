@@ -833,6 +833,11 @@ class ToolBarCustomDialog : AbsDialog {
 	}
 
 	@property
+	const
+	override
+	bool noScenario() { return true; }
+
+	@property
 	ToolBarSettings tools() { return _tools; }
 
 	protected override void setup(Composite area) { mixin(S_TRACE);

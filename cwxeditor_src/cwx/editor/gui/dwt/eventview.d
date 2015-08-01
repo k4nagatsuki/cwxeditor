@@ -2675,6 +2675,11 @@ public:
 	}
 
 	@property
+	const
+	override
+	bool noScenario() { return true; }
+
+	@property
 	uint[] rounds() { mixin(S_TRACE);
 		return _rounds;
 	}

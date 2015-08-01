@@ -363,11 +363,15 @@ abstract class AbsDialog {
 		return _win.isDisposed();
 	}
 
+	/// シナリオの編集に関わるダイアログでない場合はtrue。
+	@property
+	const
+	bool noScenario() { return false; }
+
 	@property
 	bool noApply() { return _apply && _apply.getEnabled(); }
 
 	void forceApply() { mixin(S_TRACE);
-		if (!_apply) return;
 		foreach (dlg; applyEvent) { mixin(S_TRACE);
 			dlg();
 		}

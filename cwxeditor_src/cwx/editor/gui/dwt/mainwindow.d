@@ -1218,7 +1218,8 @@ private:
 			foreach (shell; _display.getShells()) { mixin(S_TRACE);
 				auto dlg = cast(AbsDialog)shell.getData();
 				if (!dlg) continue;
-				dlg.forceApply();
+				if (dlg.noScenario) continue;
+				if (dlg.noApply) dlg.forceApply();
 			}
 		}
 		if (_prop.var.etc.archiveInNewThread && summary.useTemp) { mixin(S_TRACE);
@@ -1253,6 +1254,7 @@ private:
 					addHistory();
 					core.memory.GC.collect();
 					playSavedSound();
+					_comm.refreshToolBar();
 					return true;
 				} catch (SummaryException e) {
 					printStackTrace();
@@ -1989,6 +1991,14 @@ private:
 	}
 	private Menu _menuFile;
 	bool canSaveOverwrite() { mixin(S_TRACE);
+		if (_prop.var.etc.applyDialogsBeforeSave) { mixin(S_TRACE);
+			foreach (shell; _display.getShells()) { mixin(S_TRACE);
+				auto dlg = cast(AbsDialog)shell.getData();
+				if (!dlg) continue;
+				if (dlg.noScenario) continue;
+				if (dlg.noApply) return true;
+			}
+		}
 		return summary !is null && !_inSaving && (!_prop.var.etc.saveNeedChanged || _isChanged);
 	}
 	void createFileMenu() { mixin(S_TRACE);
