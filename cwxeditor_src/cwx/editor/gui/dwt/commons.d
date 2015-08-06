@@ -669,10 +669,9 @@ class Commons {
 				debugln(e);
 			}
 		}
-		proc(oldSkin.tableDir, newSkin.tableDir, [".bmp", ".jpg", ".jpeg", ".png", ".gif"]);
-		static immutable seExts = [".aiff", ".mid", ".midi", ".mod", ".s3m", ".xm", ".it", ".mt2", ".669", ".med", ".ogg", ".ogv", ".oga", ".ogx", ".voc", ".wav"];
-		proc(oldSkin.bgmDir, newSkin.bgmDir, seExts);
-		proc(oldSkin.seDir, newSkin.seDir, seExts);
+		proc(oldSkin.tableDir, newSkin.tableDir, oldSkin.extImage);
+		proc(oldSkin.bgmDir, newSkin.bgmDir, oldSkin.extBgm);
+		proc(oldSkin.seDir, newSkin.seDir, oldSkin.extSound);
 	}
 
 	private void activate(Composite w, bool shellActivate) { mixin(S_TRACE);

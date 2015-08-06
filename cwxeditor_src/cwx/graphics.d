@@ -673,3 +673,17 @@ ubyte[] adjustBordering(ubyte[] data, ubyte[] alpha, size_t depth, size_t width,
 	}
 	return r.data;
 }
+
+/// 赤ピクセルの値をアルファ値としてアルファ値データを生成する。
+ubyte[] createAlphaDataFrom(ubyte[] data, size_t depth, size_t width, size_t height, size_t bytesPerLine) {
+	if (width < 1 || height < 1) return data;
+	size_t bpp = bytesPerLine / width;
+	auto base = Pixels(data, [], width, height, depth, bytesPerLine, bpp);
+	auto alpha = new ubyte[width * height];
+	foreach (y; 0 .. height) { mixin(S_TRACE);
+		foreach (x; 0 .. width) { mixin(S_TRACE);
+			alpha[(y * width) + x] = base.get(x, y).r;
+		}
+	}
+	return alpha;
+}

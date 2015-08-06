@@ -175,19 +175,11 @@ private:
 			return "";
 		}
 	}
-	static immutable SYSTEM_SOUND_EXT = [
-		".aiff", // AIFF
-		".mid", ".midi", // MIDI
-		".mod", ".s3m", ".xm", ".it", ".mt2", ".669", ".med", // MOD
-		".ogg", ".ogv", ".oga", ".ogx", // Ogg
-		".voc", // VOC
-		".wav" // WAV/RIFF
-	];
 	string dropSysSound(string[] files) { mixin(S_TRACE);
 		if (!files.length) return "";
 		foreach (file; files) { mixin(S_TRACE);
 			string ext = .toLower(.extension(file));
-			if (.contains!("a == b", string, string)(SYSTEM_SOUND_EXT, ext)) { mixin(S_TRACE);
+			if (.contains!("a == b", string, string)(_comm.skin.extSound, ext)) { mixin(S_TRACE);
 				return file;
 			}
 		}
@@ -197,7 +189,7 @@ private:
 	string dropWallpaper(string[] files) { mixin(S_TRACE);
 		if (!files.length) return "";
 		foreach (file; files) { mixin(S_TRACE);
-			if (.contains!("a == b", string, string)(IMAGE_EXT, .toLower(.extension(file)))) { mixin(S_TRACE);
+			if (.contains!("a == b", string, string)(_comm.skin.extImage, .toLower(.extension(file)))) { mixin(S_TRACE);
 				return file;
 			}
 		}
@@ -211,8 +203,8 @@ private:
 	}
 	void selectSysSound(Text widget) { mixin(S_TRACE);
 		string[] extArr;
-		foreach (sse; SYSTEM_SOUND_EXT) { mixin(S_TRACE);
-			extArr ~= "*." ~ sse;
+		foreach (sse; _comm.skin.extSound) { mixin(S_TRACE);
+			extArr ~= "*" ~ sse;
 		}
 		string exts = std.string.join(extArr, ";");
 		selectFile(widget, [.tryFormat(_prop.msgs.playableSounds, exts)], [exts],
@@ -231,7 +223,7 @@ private:
 	void selectWallpaper() { mixin(S_TRACE);
 		string[] filterName = [_prop.msgs.filterWallpaper, _prop.msgs.filterAll];
 		string[] filter = [
-			"*" ~ std.string.join(IMAGE_EXT.dup, ";*"),
+			"*" ~ std.string.join(_comm.skin.extImage.dup, ";*"),
 			"*"
 		];
 		selectFile(_wallpaper, filterName, filter, _prop.var.etc.wallpaper, _prop.msgs.dlgTitWallpaper, getcwd());

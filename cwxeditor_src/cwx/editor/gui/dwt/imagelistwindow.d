@@ -79,17 +79,17 @@ class ImageListWindow(MtType Type) {
 
 	private ImageData createImage(string path, bool mask) { mixin(S_TRACE);
 		bool def;
-		auto imgPath = _comm.skin.findPathF(path, defExt, defDir, _summ ? _summ.scenarioPath : "", def);
+		auto imgPath = _comm.skin.findPathF(path, defExts, defDir, _summ ? _summ.scenarioPath : "", def);
 		return loadImage(imgPath, mask);
 	}
 	static if (Type == MtType.CARD) {
 		@property
-		private string defExt() {return _comm.skin.extImage;}
+		private const(string)[] defExts() {return _comm.skin.extImage;}
 		@property
 		private string defDir() {return _comm.skin.tableDir;}
 	} else static if (Type == MtType.BG_IMG) {
 		@property
-		private string defExt() {return _comm.skin.extImage;}
+		private const(string)[] defExts() {return _comm.skin.extImage;}
 		@property
 		private string defDir() {return _comm.skin.tableDir;}
 	}

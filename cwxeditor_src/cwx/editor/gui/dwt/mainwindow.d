@@ -2282,13 +2282,15 @@ private:
 		version (Windows) {
 			int engineTypeBGM = summary.legacy ? SOUND_TYPE_SDL : SOUND_TYPE_MCI;
 			string sfont[] = [];
+			string sfontDir = "";
 		} else { mixin(S_TRACE);
 			int engineTypeBGM = SOUND_TYPE_SDL;
 		}
 		int engineTypeSE = engineTypeBGM;
 		if (SOUND_TYPE_AUTO == bgmType || SOUND_TYPE_AUTO == seType) { mixin(S_TRACE);
 			version (Windows) {
-				if (summary.legacy) { mixin(S_TRACE);
+				if (_comm.skin.legacy) { mixin(S_TRACE);
+					sfontDir = _comm.skin.legacyEngine.nabs().dirName();
 					auto settings = _comm.skin.loadEngineSettings();
 					switch (.toLower(settings.get("musicapi", settings.get("soundapibgm", "")))) {
 					case "winmm":
@@ -2322,6 +2324,13 @@ private:
 							debugln(e);
 						}
 					}
+  				} else { mixin(S_TRACE);
+					sfontDir = _comm.skin.engine.nabs().dirName();
+					sfont = _comm.skin.loadSoundFonts();
+  					if (sfont.length) { mixin(S_TRACE);
+						engineTypeBGM = SOUND_TYPE_BASS;
+						engineTypeSE = SOUND_TYPE_BASS;
+  					}
 				}
 			}
 		}
@@ -2329,20 +2338,24 @@ private:
 		if (SOUND_TYPE_AUTO == seType) seType = engineTypeSE;
 		version (Windows) {
 			if (SOUND_TYPE_BASS == bgmType || SOUND_TYPE_BASS == seType) { mixin(S_TRACE);
-				string dir = _comm.skin.legacyEngine.nabs().dirName();
 				foreach (ref s; sfont) { mixin(S_TRACE);
 					if (!isAbsolute(s)) { mixin(S_TRACE);
-						auto s2 = dir.buildPath(s);
+						auto s2 = sfontDir.buildPath(s);
 						if (s2.exists()) { mixin(S_TRACE);
 							s = s2;
-						} else { mixin(S_TRACE);
-							s = dir.buildPath("SoundFont").buildPath(s);
+						} else if (_comm.skin.legacy) { mixin(S_TRACE);
+							s = sfontDir.buildPath("SoundFont").buildPath(s);
 						}
 					}
 				}
-				if (_bassDir != dir) { mixin(S_TRACE);
-					if (initBass(dir, sfont)) { mixin(S_TRACE);
-						_bassDir = dir;
+				version (Win64) {
+					if (!_comm.skin.legacy) { mixin(S_TRACE);
+						sfontDir = sfontDir.buildPath("x64");
+					}
+				}
+				if (_bassDir != sfontDir) { mixin(S_TRACE);
+					if (initBass(sfontDir, sfont)) { mixin(S_TRACE);
+						_bassDir = sfontDir;
 					} else { mixin(S_TRACE);
 						if (SOUND_TYPE_BASS == bgmType) bgmType = SOUND_TYPE_MCI;
 						if (SOUND_TYPE_BASS == seType) seType = SOUND_TYPE_MCI;

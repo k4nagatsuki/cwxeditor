@@ -667,28 +667,28 @@ public:
 private:
 	static if (Type == MtType.CARD) {
 		private bool _noCardSize = false;
-		@property string defExt() {return summSkin.extImage;}
+		@property const(string)[] defExts() {return summSkin.extImage;}
 		@property string defDir() {return summSkin.tableDir;}
 		bool isTarg(string p) {return summSkin.isCardImage(p, _noCardSize);}
 		bool hasTarg(string p) {return summSkin.hasCardImage(p, _noCardSize);}
 		string[] targsImpl(string dir, bool re) {return summSkin.cards(dir, _prop.var.etc.logicalSort, re, _noCardSize);}
 		@property Image image() {return _prop.images.cards;}
 	} else static if (Type == MtType.BG_IMG) {
-		@property string defExt() {return summSkin.extImage;}
+		@property const(string)[] defExts() {return summSkin.extImage;}
 		@property string defDir() {return summSkin.tableDir;}
 		bool isTarg(string p) {return summSkin.isBgImage(p);}
 		bool hasTarg(string p) {return summSkin.hasBgImage(p);}
 		string[] targsImpl(string dir, bool re) {return summSkin.tables(dir, _prop.var.etc.logicalSort, re);}
 		@property Image image() {return _prop.images.backs;}
 	} else static if (Type == MtType.BGM) {
-		@property string defExt() {return summSkin.extBgm;}
+		@property const(string)[] defExts() {return summSkin.extBgm;}
 		@property string defDir() {return summSkin.bgmDir;}
 		bool isTarg(string p) {return summSkin.isBGM(p);}
 		bool hasTarg(string p) {return summSkin.hasBGM(p);}
 		string[] targsImpl(string dir, bool re) {return summSkin.musics(dir, _prop.var.etc.logicalSort, re);}
 		@property Image image() {return _prop.images.bgm;}
 	} else static if (Type == MtType.SE) {
-		@property string defExt() {return summSkin.extSound;}
+		@property const(string)[] defExts() {return summSkin.extSound;}
 		@property string defDir() {return summSkin.seDir;}
 		bool isTarg(string p) {return summSkin.isSE(p);}
 		bool hasTarg(string p) {return summSkin.hasSE(p);}
@@ -905,8 +905,13 @@ private:
 			if (index >= 0) { mixin(S_TRACE);
 				_fileList.select(cast(int)index);
 			} else if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
-				index = flIndexOf(setExtension(sel, defExt));
-				if (index >= 0) _fileList.select(cast(int)index);
+				foreach (defExt; defExts) { mixin(S_TRACE);
+					index = flIndexOf(setExtension(sel, defExt));
+					if (0 <= index) { mixin(S_TRACE);
+						_fileList.select(cast(int)index);
+						break;
+					}
+				}
 			}
 		}
 		static if (is (C == Table)) {
@@ -1016,7 +1021,7 @@ private:
 			if (isBinImg(_path)) { mixin(S_TRACE);
 				_dirs.select(_including);
 			} else { mixin(S_TRACE);
-				auto p = summSkin.findPathF(_path, defExt, defDir, _summ ? _summ.scenarioPath : "", def);
+				auto p = summSkin.findPathF(_path, defExts, defDir, _summ ? _summ.scenarioPath : "", def);
 				if (p.length > 0) { mixin(S_TRACE);
 					if (def) { mixin(S_TRACE);
 						if (_tbl == -1) { mixin(S_TRACE);

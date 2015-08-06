@@ -1550,7 +1550,9 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 		hemming(gc, s, tx, ty, d.getSystemColor(SWT.COLOR_WHITE));
 		r.append(bmp.getImageData(), stp, ScaleType.Cut);
 	}
-	r.setTitle(c.name, dwtData(prop.looks.castCardNameFont(skin.legacy)), dwtData(prop.looks.castCardNamePoint));
+	auto x = prop.looks.castCardNamePoint.x;
+	r.setTitle(c.name, dwtData(prop.looks.castCardNameFont(skin.legacy)), dwtData(prop.looks.castCardNamePoint),
+		skin.legacy ? 0 : w - x * 2, !skin.legacy);
 	if (skin.legacy) { mixin(S_TRACE);
 		// 状態によって固定で文字が白くなる
 		if (whiteName) { mixin(S_TRACE);
@@ -1662,7 +1664,9 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 			}
 		}
 	}
-	r.setTitle(c.name, dwtData(prop.looks.cardNameFont(skin.legacy)), dwtData(prop.looks.cardNamePoint));
+	auto x = prop.looks.cardNamePoint.x;
+	r.setTitle(c.name, dwtData(prop.looks.cardNameFont(skin.legacy)), dwtData(prop.looks.cardNamePoint),
+		skin.legacy ? 0 : w - x * 2, !skin.legacy);
 	if (!skin.legacy) { mixin(S_TRACE);
 		if (getRGBAverage(card, prop.looks.cardNameArea) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
 			r.titleColor = new RGB(255, 255, 255);
@@ -3594,4 +3598,42 @@ private bool isEnableGdipAndNotTrueTypeFont(GC gc) { mixin(S_TRACE);
 	} else {
 		return false;
 	}
+}
+
+/// titleをsizeまで縮めて描画する。
+void shrinkDrawText(GC gc, string title, int x, int y, in Point size, bool smoothing) {
+	auto d = gc.getDevice();
+	auto extent = gc.wTextExtent(title);
+	auto img = new Image(d, extent.x, extent.y);
+	scope (exit) img.dispose();
+	auto gc2 = new GC(img);
+	scope (exit) gc2.dispose();
+	gc2.setBackground(d.getSystemColor(SWT.COLOR_BLACK));
+	gc2.setForeground(d.getSystemColor(SWT.COLOR_WHITE));
+	gc2.setFont(gc.getFont());
+	gc2.drawText(title, 0, 0, false);
+	auto bmpData = img.getImageData();
+	auto alphaData = cast(byte[])createAlphaDataFrom(cast(ubyte[])bmpData.data, bmpData.depth,
+		bmpData.width, bmpData.height, bmpData.bytesPerLine);
+	gc2.setBackground(gc.getForeground());
+	gc2.fillRectangle(0, 0, extent.x, extent.y);
+	bmpData = img.getImageData();
+	bmpData.alphaData = alphaData;
+
+	if (smoothing) { mixin(S_TRACE);
+		auto data = cast(ubyte[])bmpData.data;
+		auto alpha = cast(ubyte[])bmpData.alphaData;
+		size_t bpl;
+		bmpData.data = cast(byte[])smoothResize(size.x, size.y, data, alpha,
+			bmpData.depth, bmpData.width, bmpData.height, bmpData.bytesPerLine, bpl);
+		bmpData.alphaData = cast(byte[])alpha;
+		bmpData.width = size.x;
+		bmpData.height = size.y;
+		bmpData.bytesPerLine = cast(int)bpl;
+	} else { mixin(S_TRACE);
+		bmpData = bmpData.scaledTo(size.x, size.y);
+	}
+	auto img2 = new Image(d, bmpData);
+	scope (exit) img2.dispose();
+	gc.drawImage(img2, x, y);
 }

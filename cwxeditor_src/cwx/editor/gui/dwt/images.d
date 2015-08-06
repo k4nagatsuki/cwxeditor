@@ -88,6 +88,8 @@ private:
 	string _title = null;
 	FontData titFont = null;
 	Point titPoint = null;
+	int _titShrinkWidth = 0;
+	bool _titAntialias = false;
 	RGB _titColor = null;
 	AppImg[] appends = [];
 	Rectangle rect;
@@ -309,11 +311,15 @@ public:
 	/// title = タイトルの文字列。
 	/// font = 表示時のフォント。
 	/// titPoint = タイトルの表示位置。
+	/// shrinkWidth = 指定幅に収まらない場合は縮小するか。0以下は縮小しない。
+	/// antialias = タイトルにアンチエイリアス処理を行うか。
 	/// See_Also: createImage();
-	void setTitle(string title, FontData font, Point titPoint) { mixin(S_TRACE);
+	void setTitle(string title, FontData font, Point titPoint, int shrinkWidth = 0, bool antialias = false) { mixin(S_TRACE);
 		this._title = title;
 		this.titFont = font;
 		this.titPoint = titPoint;
+		this._titShrinkWidth = shrinkWidth;
+		this._titAntialias = antialias;
 	}
 	void setTitle(string title, string fontName, int size, bool bold, bool italic, bool vertical) { mixin(S_TRACE);
 		this.vertical = vertical;
@@ -631,19 +637,40 @@ public:
 			dc.dispose();
 			dc = new GC(bmp);
 			if (_title !is null) { mixin(S_TRACE);
+				Color color = null;
+				if (_titColor) { mixin(S_TRACE);
+					color = new Color(cur, _titColor);
+					dc.setForeground(color);
+				} else { mixin(S_TRACE);
+					dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
+				}
+				scope (exit) {
+					if (_titColor) color.dispose();
+				}
 				auto font = new Font(cur, titFont);
 				scope (exit) font.dispose();
 				dc.setFont(font);
-				if (_titColor) { mixin(S_TRACE);
-					auto color = new Color(cur, _titColor);
-					scope (exit) color.dispose();
-					dc.setForeground(color);
-					dc.wDrawText(_title, titPoint.x, titPoint.y, true);
-					dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
+				auto extent = dc.wTextExtent(_title);
+				if (_titAntialias) { mixin(S_TRACE);
+					auto titFont2 = new FontData(titFont.getName(), titFont.getHeight(), titFont.getStyle());
+					titFont2.setHeight(this.titFont.getHeight() * 2);
+					auto font2 = new Font(cur, titFont2);
+					scope (exit) font2.dispose();
+					dc.setFont(font);
+					// 2倍に描画して縮める事でアンチエイリアスする
+					if (0 < _titShrinkWidth && _titShrinkWidth < extent.x) { mixin(S_TRACE);
+						extent.x = _titShrinkWidth;
+					}
+					dc.shrinkDrawText(_title, titPoint.x, titPoint.y, extent, true);
 				} else { mixin(S_TRACE);
-					dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
-					dc.wDrawText(_title, titPoint.x, titPoint.y, true);
+					if (0 < _titShrinkWidth && _titShrinkWidth < extent.x) { mixin(S_TRACE);
+						extent.x = _titShrinkWidth;
+						dc.shrinkDrawText(_title, titPoint.x, titPoint.y, extent, false);
+					} else { mixin(S_TRACE);
+						dc.wDrawText(_title, titPoint.x, titPoint.y, true);
+					}
 				}
+				dc.setForeground(cur.getSystemColor(SWT.COLOR_BLACK));
 				dc.setFont(null);
 			}
 			bmpData = bmp.getImageData();

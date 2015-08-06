@@ -10,9 +10,6 @@ import std.stream;
 import std.string;
 import std.traits;
 
-/// 取り扱い可能なイメージファイルの拡張子。
-immutable IMAGE_EXT = [".bmp", ".ico", ".icon", ".jpg", ".jpeg", ".gif", ".png", ".tif", ".tiff"];
-
 /// ファイルがimageSize()でサイズを取得できる
 /// 画像形式の拡張子を持つならtrueを返す。
 bool isImageExt(string path) { mixin(S_TRACE);

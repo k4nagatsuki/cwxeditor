@@ -2344,7 +2344,7 @@ public:
 		if (_readOnly) return;
 		ulong[] a, b, p;
 		saveIDs(_summ, a, b, p);
-		auto btl = new Battle(_summ.newBattleId, _prop.msgs.battleNew, _comm.skin.defBattle);
+		auto btl = new Battle(_summ.newBattleId, _prop.msgs.battleNew, _comm.skin.defBattle(_summ.scenarioPath));
 		if (_dirMode) btl.dirName = _dir;
 		_summ.add(btl);
 		storeInsert(btl.id, typeid(Battle), a, b, p);
