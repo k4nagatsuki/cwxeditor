@@ -158,7 +158,10 @@ PImg createMenuCardImage(PImg)(Props prop, Skin skin,
 	auto card = menuCard(skin);
 	auto r = createCardImageCommon!PImg(prop, card, matPad, x, y, scale, smoothing);
 	r.append(path, matPad, ScaleType.Cut, true);
-	r.setTitle(title, dwtData(prop.looks.menuCardNameFont(skin.legacy)), dwtData(prop.looks.menuCardNamePoint));
+	auto tx = prop.looks.menuCardNamePoint.x;
+	auto w = card.width;
+	r.setTitle(title, dwtData(prop.looks.menuCardNameFont(skin.legacy)), dwtData(prop.looks.menuCardNamePoint),
+		skin.legacy ? 0 : w - tx * 2, !skin.legacy);
 	if (!skin.legacy) { mixin(S_TRACE);
 		if (getRGBAverage(card, prop.looks.cardNameArea) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
 			r.titleColor = new RGB(255, 255, 255);
