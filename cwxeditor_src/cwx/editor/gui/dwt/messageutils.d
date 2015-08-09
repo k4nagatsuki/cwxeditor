@@ -2664,7 +2664,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	}
 	version (Windows) {
 		message = wrapReturnCode(message);
-		message = message.replace("\n", "\r\n");
+		message = message.replace("\r\n", "\n");
 	}
 	message = formatMsg(message, &fValue, &sValue, delegate string (char name) { mixin(S_TRACE);
 		auto dc = std.ascii.toUpper(name);
