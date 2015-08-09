@@ -2714,6 +2714,11 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 		old = "";
 	}
 
+	auto textCanvas = new Image(d, rect.width, rect.height + bh * cast(int)sel.length);
+	scope (exit) textCanvas.dispose();
+	auto tgc = new GC(textCanvas);
+	scope (exit) tgc.dispose();
+
 	// フォントイメージ
 	auto wrgb = fc.getRGB();
 	void drawSPFont(GC gc, CPoint pt, string path, RGB c) { mixin(S_TRACE);
@@ -2742,18 +2747,18 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 				}
 				data.transparentPixel = data.getPixel(0, 0);
 			}
-		}
-		if (data) { mixin(S_TRACE);
 			auto img = new Image(d, data);
 			scope (exit) img.dispose();
-			gc.drawImage(img, pt.x, pt.y);
+			tgc.drawImage(img, pt.x, pt.y);
+		} else {
+			if (data) { mixin(S_TRACE);
+				auto img = new Image(d, data);
+				scope (exit) img.dispose();
+				gc.drawImage(img, pt.x, pt.y);
+			}
 		}
 	}
 
-	auto textCanvas = new Image(d, rect.width, rect.height + bh * cast(int)sel.length);
-	scope (exit) textCanvas.dispose();
-	auto tgc = new GC(textCanvas);
-	scope (exit) tgc.dispose();
 	// FIXME: IPAフォントの使用とアンチエイリアス設定を
 	//        同時に行うと一部環境で問題が出る。
 	//tgc.setTextAntialias(SWT.OFF);
@@ -2776,7 +2781,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			auto w = (tgc.wTextExtent(s1).x - 1) + (tgc.wTextExtent(s2).x - 1);
 			if (msgLen < writeLen + 2) { mixin(S_TRACE);
 				// 列数オーバー
-				if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) { mixin(S_TRACE);
+				if (dmsg[i] != '\n') { mixin(S_TRACE);
 					ret();
 				}
 				if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
@@ -2820,7 +2825,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 			// 行末が半角スペースの時だけ特別扱いする(CardWirthの挙動に合わせた処理)
 			if (msgLen < writeLen + (s == " " ? len - 1 : len)) { mixin(S_TRACE);
 				// 列数オーバー
-				if (!(i + 1 < dmsg.length && dmsg[i + 1] == '\n')) { mixin(S_TRACE);
+				if (dmsg[i] != '\n') { mixin(S_TRACE);
 					ret();
 				}
 				if (rect.height - 6 < y + lineH) { mixin(S_TRACE);
