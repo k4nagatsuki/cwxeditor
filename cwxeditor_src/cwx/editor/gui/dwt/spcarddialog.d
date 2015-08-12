@@ -239,6 +239,7 @@ protected:
 							grp.setLayout(new GridLayout(2, false));
 							grp.setText(_prop.msgs.enemyCardBase);
 							_casts = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+							_casts.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 							mod(_casts);
 							auto gd = new GridData(GridData.FILL_HORIZONTAL);
 							gd.widthHint = _prop.var.etc.nameWidth;
