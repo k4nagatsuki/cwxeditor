@@ -2251,10 +2251,10 @@ public:
 		_comm.refreshToolBar();
 	}
 
-	void refresh(EventTree et, bool forceRefresh = false) { mixin(S_TRACE);
+	void refresh(EventTree et) { mixin(S_TRACE);
 		_comm.setStatusLine(_tree.control, "");
 		_statusLine = "";
-		if (_et !is et || forceRefresh) { mixin(S_TRACE);
+		if (_et !is et) { mixin(S_TRACE);
 			foreach (dlg; _editDlgs.values) { mixin(S_TRACE);
 				dlg.forceCancel();
 			}
