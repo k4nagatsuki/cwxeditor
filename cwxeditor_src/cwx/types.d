@@ -1346,6 +1346,7 @@ enum MenuID {
 	ResetToolBar,
 	CopyAsText,
 	OpenAtView,
+	EventToPackage,
 	StartToPackage,
 	WrapTree,
 	CreateContent,

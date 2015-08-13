@@ -2126,7 +2126,7 @@ public:
 		}
 		foreach (itm; _tree.getItems()) find(itm);
 		auto ucp = new UndoCP(_comm, _prop, _summ, _et, _area, conts, index, start);
-		auto id = _comm.createPackage(start, false);
+		auto id = _comm.createPackage(start, _et.name, false);
 		if (id == 0) { mixin(S_TRACE);
 			ucp.dispose();
 			return;
@@ -2251,10 +2251,10 @@ public:
 		_comm.refreshToolBar();
 	}
 
-	void refresh(EventTree et) { mixin(S_TRACE);
+	void refresh(EventTree et, bool forceRefresh = false) { mixin(S_TRACE);
 		_comm.setStatusLine(_tree.control, "");
 		_statusLine = "";
-		if (_et !is et) { mixin(S_TRACE);
+		if (_et !is et || forceRefresh) { mixin(S_TRACE);
 			foreach (dlg; _editDlgs.values) { mixin(S_TRACE);
 				dlg.forceCancel();
 			}

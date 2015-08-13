@@ -2268,12 +2268,23 @@ public:
 		copy.everyRound = fireEveryRound;
 		copy.round0 = fireRound0;
 		copy.rounds = rounds.dup;
-		copy.keyCodes = keyCodes;
+		copy.keyCodes = keyCodes.dup;
 		copy.keyCodeMatchingType = keyCodeMatchingType;
 		foreach (s; starts) { mixin(S_TRACE);
 			copy.add(s.dup);
 		}
 		return copy;
+	}
+	/// baseの発火条件を現在の発火条件に上書きする。
+	void copyIgnitions(in EventTree base) { mixin(S_TRACE);
+		enter = base.fireEnter;
+		escape = base.fireEscape;
+		lose = base.fireLose;
+		everyRound = base.fireEveryRound;
+		round0 = base.fireRound0;
+		rounds = base.rounds.dup;
+		keyCodes = base.keyCodes.dup;
+		keyCodeMatchingType = base.keyCodeMatchingType;
 	}
 
 	const
@@ -2404,13 +2415,16 @@ public:
 	void remove(size_t index) in { mixin(S_TRACE);
 		assert (_starts.length > 1);
 	} body { mixin(S_TRACE);
-		if (_uc !is null) { mixin(S_TRACE);
-			_starts[index].removeUseCounter();
-		}
-		_starts[index].removeSUseCounter();
-		_starts[index]._tree = null;
-		_starts[index].changeHandler = null;
+		removeProc(_starts[index]);
 		_starts = _starts[0 .. index] ~ _starts[index + 1 .. $];
+	}
+	private void removeProc(Content c) { mixin(S_TRACE);
+		if (_uc !is null) { mixin(S_TRACE);
+			c.removeUseCounter();
+		}
+		c.removeSUseCounter();
+		c._tree = null;
+		c.changeHandler = null;
 	}
 	/// ditto
 	void remove(Content start) in { mixin(S_TRACE);
@@ -2433,6 +2447,18 @@ public:
 		}
 	} body { mixin(S_TRACE);
 		return _starts;
+	}
+	/// ditto
+	@property
+	void starts(Content[] starts) { mixin(S_TRACE);
+		changed();
+		foreach (s; _starts) { mixin(S_TRACE);
+			removeProc(s);
+		}
+		_starts = [];
+		foreach (s; starts) { mixin(S_TRACE);
+			add(s);
+		}
 	}
 	/// 指定された名前のスタートコンテントがあるか。
 	const

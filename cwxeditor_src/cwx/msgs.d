@@ -1975,6 +1975,7 @@ class Msgs : Properties {
 	auto menuTextResetToolBar = Msg("menuTextResetToolBar", "配置をリセット");
 	auto menuTextCopyAsText = Msg("menuTextCopyAsText", "テキストとしてコピー");
 	auto menuTextOpenAtView = Msg("menuTextOpenAtView", "ビューで開く");
+	auto menuTextEventToPackage = Msg("menuTextEventToPackage", "このイベントをパッケージ化する");
 	auto menuTextStartToPackage = Msg("menuTextStartToPackage", "このツリーをパッケージ化する");
 	auto menuTextWrapTree = Msg("menuTextWrapTree", "ここから別のツリーにする");
 	auto menuTextCreateContent = Msg("menuTextCreateContent", "コンテントの作成");

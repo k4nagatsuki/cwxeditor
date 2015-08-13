@@ -3017,6 +3017,7 @@ public:
 								case MenuID.ToScript1Content:
 								case MenuID.ChangeVH:
 								case MenuID.ReNumbering:
+								case MenuID.EventToPackage:
 								case MenuID.StartToPackage:
 								case MenuID.WrapTree:
 									break;

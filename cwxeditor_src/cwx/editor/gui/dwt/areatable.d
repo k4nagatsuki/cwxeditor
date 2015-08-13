@@ -2362,17 +2362,28 @@ public:
 	/// 新規パッケージが作成され、名前の入力待ちになる。
 	void createPackage() { mixin(S_TRACE);
 		if (_readOnly) return;
-		createPackage(null);
+		createPackageImpl(null, null, "");
 	}
 	/// ditto
-	ulong createPackage(Content baseStart) { mixin(S_TRACE);
+	ulong createPackage(EventTree baseTree, string name) { mixin(S_TRACE);
+		return createPackageImpl(baseTree, null, name);
+	}
+	/// ditto
+	ulong createPackage(Content baseStart, string name) { mixin(S_TRACE);
+		return createPackageImpl(null, baseStart, name);
+	}
+	/// ditto
+	private ulong createPackageImpl(EventTree baseTree, Content baseStart, string name) { mixin(S_TRACE);
 		if (_readOnly) return 0UL;
 		ulong[] a, b, p;
 		saveIDs(_summ, a, b, p);
-		auto pkg = new Package(_summ.newPackageId, baseStart ? baseStart.name : _prop.msgs.packageNew);
+		auto pkg = new Package(_summ.newPackageId, name && name != "" ? name : _prop.msgs.packageNew);
 		if (_dirMode) pkg.dirName = _dir;
 		EventTree et;
-		if (baseStart) { mixin(S_TRACE);
+		if (baseTree) { mixin(S_TRACE);
+			et = baseTree.dup;
+			et.name = _prop.msgs.packageTree;
+		} else if (baseStart) { mixin(S_TRACE);
 			et = new EventTree(baseStart);
 			et.name = _prop.msgs.packageTree;
 		} else { mixin(S_TRACE);

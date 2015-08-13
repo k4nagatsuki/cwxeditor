@@ -265,13 +265,19 @@ public:
 			_areas.createBattle();
 		}
 		void createPackage() { mixin(S_TRACE);
-			createPackage(null);
+			createPackage(cast(Content)null, "");
 		}
-		ulong createPackage(Content baseStart) { mixin(S_TRACE);
+		ulong createPackage(EventTree baseTree, string name) { mixin(S_TRACE);
 			if (!_summ) return 0;
 			_comm.openDataWin(false);
 			.forceFocus(_areas.table, false);
-			return _areas.createPackage(baseStart);
+			return _areas.createPackage(baseTree, name);
+		}
+		ulong createPackage(Content baseStart, string name) { mixin(S_TRACE);
+			if (!_summ) return 0;
+			_comm.openDataWin(false);
+			.forceFocus(_areas.table, false);
+			return _areas.createPackage(baseStart, name);
 		}
 		void reNumberingAll() { mixin(S_TRACE);
 			_areas.reNumberingAll();

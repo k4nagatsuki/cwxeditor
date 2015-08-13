@@ -1237,9 +1237,13 @@ class Commons {
 		openDataWin(shellActivate);
 		return _tableWin.selectSummary();
 	}
-	ulong createPackage(Content baseStart, bool shellActivate) { mixin(S_TRACE);
+	ulong createPackage(EventTree baseTree, string name, bool shellActivate) { mixin(S_TRACE);
 		openDataWin(shellActivate);
-		return _tableWin.createPackage(baseStart);
+		return _tableWin.createPackage(baseTree, name);
+	}
+	ulong createPackage(Content baseStart, string name, bool shellActivate) { mixin(S_TRACE);
+		openDataWin(shellActivate);
+		return _tableWin.createPackage(baseStart, name);
 	}
 
 	private Image _wallpaper = null;

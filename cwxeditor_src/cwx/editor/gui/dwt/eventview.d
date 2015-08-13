@@ -369,6 +369,53 @@ private:
 		if (put) _undo ~= undo;
 		return undo;
 	}
+	static class UndoContents : EVUndo {
+		private size_t _ownerIndex;
+		private size_t _index;
+		private Content[] _starts;
+		this (Commons comm, EventTreeOwner area, EventTree tree) { mixin(S_TRACE);
+			super (comm, area);
+			auto eto = tree.owner;
+			_index = .cCountUntil!("a is b")(tree.owner.trees, tree);
+			_ownerIndex = .cCountUntil!("a is b")(etos(area), eto);
+			save(tree);
+		}
+		private void save(in EventTree tree) { mixin(S_TRACE);
+			_starts = new Content[tree.starts.length];
+			foreach (i, s; tree.starts) { mixin(S_TRACE);
+				_starts[i] = s.dup;
+			}
+		}
+		private TreeItem getItem(EventView v) { mixin(S_TRACE);
+			enforce(v);
+			return v._cards.getItem(cast(int)_ownerIndex).getItem(cast(int)_index);
+		}
+		private void impl() { mixin(S_TRACE);
+			auto vs = views();
+			udb(vs);
+			scope (exit) uda(vs);
+			auto tree = etos(area)[_ownerIndex].trees[_index];
+			auto starts = _starts;
+			save(tree);
+			tree.starts = starts;
+			foreach (v; vs) { mixin(S_TRACE);
+				if (v._etree && v._etree.eventTree is tree) { mixin(S_TRACE);
+					v._etree.refresh(null);
+					v._etree.refresh(tree);
+				}
+			}
+			comm.refEventTree.call(tree);
+			comm.refKeyCodes.call();
+		}
+		override void undo() {impl();}
+		override void redo() {impl();}
+		override void dispose() {}
+	}
+	EVUndo storeContents(EventTree tree, bool put = true) { mixin(S_TRACE);
+		auto undo = new UndoContents(_comm, _area, tree);
+		if (put) _undo ~= undo;
+		return undo;
+	}
 	static class UndoInsert : EVUndo {
 		private size_t _ownerIndex;
 		private size_t _insertIndex;
@@ -445,7 +492,8 @@ private:
 			if (vs.length) { mixin(S_TRACE);
 				TreeItem[] itms;
 				foreach (v; vs) itms ~= v._cards.getItem(_ownerIndex);
-				foreach (i, v; vs) v.appendTree(itms[i], _tree.dup, _treeIndex, null, false, 0 < i, true);
+				auto tree = _tree.dup;
+				foreach (i, v; vs) v.appendTree(itms[i], tree, _treeIndex, null, false, 0 < i, true);
 			} else { mixin(S_TRACE);
 				auto eto = etos(area)[_ownerIndex];
 				appendTreeImpl(comm, eto, _tree.dup, _treeIndex);
@@ -530,7 +578,7 @@ private:
 		assert (0);
 	}
 
-	void selectImpl(TreeItem itm, bool sel = true) { mixin(S_TRACE);
+	void selectImpl(TreeItem itm, bool sel = true, bool forceRefresh = false) { mixin(S_TRACE);
 		if (sel) _cards.setSelection([itm]);
 		if (cast(EventTree)itm.getData()) { mixin(S_TRACE);
 			_selItm = itm;
@@ -695,10 +743,14 @@ private:
 		comm.refUseCount.call();
 	}
 	void appendTree(TreeItem parItm, EventTree tree, int index, Object defFire, bool store, bool viewOnly, bool thisOnly) { mixin(S_TRACE);
+		EVUndo undo = null;
+		appendTree(parItm, tree, index, defFire, store, viewOnly, thisOnly, undo);
+	}
+	void appendTree(TreeItem parItm, EventTree tree, int index, Object defFire, bool store, bool viewOnly, bool thisOnly, out EVUndo undo) { mixin(S_TRACE);
 		if (_readOnly) return;
 		auto eto = cast(EventTreeOwner)parItm.getData();
 		if (!viewOnly) { mixin(S_TRACE);
-			if (store) storeI(_cards.indexOf(parItm), eto.trees.length);
+			undo = storeI(_cards.indexOf(parItm), eto.trees.length, store);
 			appendTreeImpl(_comm, eto, tree, index);
 		}
 		auto treeItm = appendTreeItem(parItm, index, defFire, thisOnly);
@@ -1297,6 +1349,10 @@ public:
 			}
 			createMenuItem(_comm, menu, MenuID.ToScript, &toScript, &canToScript);
 			createMenuItem(_comm, menu, MenuID.ToScriptAll, &toScriptAll, &canToScriptAll);
+			if (!_readOnly) { mixin (S_TRACE);
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.EventToPackage, &eventToPackage, &canEventToPackage);
+			}
 			if (cast(Battle)_area) { mixin (S_TRACE);
 				if (!_readOnly) { mixin (S_TRACE);
 					new MenuItem(menu, SWT.SEPARATOR);
@@ -2113,6 +2169,39 @@ public:
 		return _etree.findStartUsers();
 	}
 
+	@property
+	bool canEventToPackage() { mixin(S_TRACE);
+		return selectionEventTree !is null;
+	}
+	void eventToPackage() { mixin(S_TRACE);
+		auto etItm = selectionEventTree;
+		if (!etItm) return;
+		auto et = cast(EventTree)etItm.getData();
+		auto parItm = etItm.getParentItem();
+		assert (et !is null);
+		auto index = parItm.indexOf(etItm);
+
+		auto id = _comm.createPackage(et, .tryFormat("%1$s-%2$s", parItm.getText(), et.name), false);
+		if (id == 0) { mixin(S_TRACE);
+			return;
+		}
+		storeContents(et);
+
+		auto c = new Content(CType.LINK_PACKAGE, "");
+		c.packages = id;
+		auto s = new Content(CType.START, et.name);
+		s.add(_prop.parent, c);
+		et.starts = [s];
+
+		auto vs = views();
+		foreach (v; vs) { mixin(S_TRACE);
+			if (v._etree && v._etree.eventTree is et) { mixin(S_TRACE);
+				v._etree.refresh(null);
+				v._etree.refresh(et);
+			}
+		}
+	}
+
 	private TreeItem _dragItm = null;
 	private EVUndo _dropUndo = null;
 	class EventViewDragSource : DragSourceListener {
@@ -2456,8 +2545,9 @@ public:
 		} else { mixin(S_TRACE);
 			auto itm = selection;
 			if (!itm) return;
-			EVUndo undo;
+			EVUndo undo = null;
 			delItem(itm, true, undo);
+			
 		}
 	}
 	private void delItem(TreeItem itm, bool store, out EVUndo undo) { mixin(S_TRACE);
