@@ -1238,12 +1238,16 @@ public:
 		if (!_readOnly) { mixin(S_TRACE);
 			_comm.replText.add(&replText);
 			_comm.replID.add(&replText);
-			if (cast(Area)_area || cast(Battle)_area) {
+			if (cast(Area)_area || cast(Battle)_area) { mixin(S_TRACE);
 				_comm.addMenuCard.add(&addCard);
 				_comm.refMenuCard.add(&refCard);
 				_comm.delMenuCard.add(&delCard);
 				_comm.upMenuCard.add(&upCard);
 				_comm.downMenuCard.add(&downCard);
+			}
+			if (cast(Battle)_area) { mixin(S_TRACE);
+				_comm.refCast.add(&refCast);
+				_comm.delCast.add(&refCast);
 			}
 			if (cast(Area)_area) {
 				_comm.refArea.add(&refreshTitleArea);
@@ -1287,12 +1291,16 @@ public:
 				if (!_readOnly) { mixin(S_TRACE);
 					_comm.replText.remove(&replText);
 					_comm.replID.remove(&replText);
-					if (cast(Area)_area || cast(Battle)_area) {
+					if (cast(Area)_area || cast(Battle)_area) { mixin(S_TRACE);
 						_comm.addMenuCard.remove(&addCard);
 						_comm.refMenuCard.remove(&refCard);
 						_comm.delMenuCard.remove(&delCard);
 						_comm.upMenuCard.remove(&upCard);
 						_comm.downMenuCard.remove(&downCard);
+					}
+					if (cast(Battle)_area) { mixin(S_TRACE);
+						_comm.refCast.remove(&refCast);
+						_comm.delCast.remove(&refCast);
 					}
 					if (cast(Area)_area) {
 						_comm.refArea.remove(&refreshTitleArea);
@@ -1528,6 +1536,16 @@ public:
 		initial();
 		auto itm = _cards.getItems()[index + 1];
 		itm.setText(cardName(cast(AbstractSpCard)itm.getData()));
+	}
+	private void refCast(CastCard card) { mixin(S_TRACE);
+		assert (cast(Battle)_area !is null);
+		foreach (itm; _cards.getItems()[1 .. $]) { mixin(S_TRACE);
+			auto c = cast(EnemyCard)itm.getData();
+			assert (c !is null);
+			if (c.id == card.id) { mixin(S_TRACE);
+				itm.setText(cardName(c));
+			}
+		}
 	}
 	private void udCard(int[] indices, int function(TreeItem) ud, int udVal, int count) { mixin(S_TRACE);
 		foreach (j; 0 .. count) { mixin(S_TRACE);
