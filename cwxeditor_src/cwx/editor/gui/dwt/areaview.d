@@ -2012,36 +2012,45 @@ private:
 	void refreshControls() { mixin(S_TRACE);
 		_refreshControls = true;
 		_toolbar.redraw();
+
+		string f = null;
+		if (_flag) { mixin(S_TRACE);
+			_flag.setText(_flag.getItem(0));
+			void flag(string f2) { mixin(S_TRACE);
+				if (!_flag) return;
+				if (!f) { mixin(S_TRACE);
+					f = f2;
+					if ("" != f2) { mixin(S_TRACE);
+						_flag.setText(f2);
+					}
+				} else if (f != f2) { mixin(S_TRACE);
+					_flag.setText("");
+				}
+			}
+			static if (UseCards) {
+				foreach (c; _editC.keys) { mixin(S_TRACE);
+					flag(c.flag);
+				}
+			}
+			static if (UseBacks) {
+				foreach (b; _editB.keys) { mixin(S_TRACE);
+					flag(b.flag);
+				}
+			}
+			static if (UseCards && UseBacks) {
+				_flag.setEnabled(!_readOnly && (_editC.length || _editB.length));
+			} else static if (UseCards) {
+				_flag.setEnabled(!_readOnly && _editC.length > 0);
+			} else static if (UseBacks) {
+				_flag.setEnabled(!_readOnly && _editB.length > 0);
+			}
+		}
 	}
 	void refreshControlsImpl() { mixin(S_TRACE);
 		if (!_xSpn) return;
 		if (!_refreshControls) return;
 		_refreshControls = false;
-		string f = null;
-		if (_flag) _flag.setText(_flag.getItem(0));
-		void flag(string f2) { mixin(S_TRACE);
-			if (!_flag) return;
-			if (!f) { mixin(S_TRACE);
-				f = f2;
-				if ("" != f2) { mixin(S_TRACE);
-					_flag.setText(f2);
-				}
-			} else if (f != f2) { mixin(S_TRACE);
-				_flag.setText("");
-			}
-		}
-		static if (UseCards) {
-			foreach (c; _editC.keys) { mixin(S_TRACE);
-				flag(c.flag);
-			}
-		}
-		static if (UseBacks) {
-			foreach (b; _editB.keys) { mixin(S_TRACE);
-				flag(b.flag);
-			}
-		}
 		static if (UseCards && UseBacks) {
-			if (_flag) _flag.setEnabled(!_readOnly && (_editC.length || _editB.length));
 			_xSpn.setEnabled(!_readOnly && (_editC.length || _editB.length));
 			_ySpn.setEnabled(!_readOnly && _xSpn.getEnabled());
 			_wSpn.setEnabled(!_readOnly && _editB.length > 0);
@@ -2094,7 +2103,6 @@ private:
 				}
 			}
 		} else static if (UseCards) {
-			if (_flag) _flag.setEnabled(!_readOnly && _editC.length > 0);
 			bool enbl = !_readOnly && _editC.length > 0;
 			_xSpn.setEnabled(enbl);
 			_ySpn.setEnabled(enbl);
@@ -2119,7 +2127,6 @@ private:
 				}
 			}
 		} else static if (UseBacks) {
-			if (_flag) _flag.setEnabled(!_readOnly && _editB.length > 0);
 			bool enbl = !_readOnly && _editB.length > 0;
 			_xSpn.setEnabled (enbl);
 			_ySpn.setEnabled (enbl);
