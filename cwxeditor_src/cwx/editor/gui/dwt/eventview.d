@@ -373,17 +373,20 @@ private:
 		private size_t _ownerIndex;
 		private size_t _index;
 		private Content[] _starts;
-		this (Commons comm, EventTreeOwner area, EventTree tree) { mixin(S_TRACE);
+		private Summary _summ;
+		this (Commons comm, EventTreeOwner area, Summary summ, EventTree tree) { mixin(S_TRACE);
 			super (comm, area);
 			auto eto = tree.owner;
 			_index = .cCountUntil!("a is b")(tree.owner.trees, tree);
 			_ownerIndex = .cCountUntil!("a is b")(etos(area), eto);
+			_summ = summ;
 			save(tree);
 		}
 		private void save(in EventTree tree) { mixin(S_TRACE);
 			_starts = new Content[tree.starts.length];
 			foreach (i, s; tree.starts) { mixin(S_TRACE);
 				_starts[i] = s.dup;
+				_starts[i].setUseCounter(_summ.useCounter.sub);
 			}
 		}
 		private TreeItem getItem(EventView v) { mixin(S_TRACE);
@@ -409,10 +412,12 @@ private:
 		}
 		override void undo() {impl();}
 		override void redo() {impl();}
-		override void dispose() {}
+		override void dispose() { mixin(S_TRACE);
+			foreach (s; _starts) s.removeUseCounter();
+		}
 	}
 	EVUndo storeContents(EventTree tree, bool put = true) { mixin(S_TRACE);
-		auto undo = new UndoContents(_comm, _area, tree);
+		auto undo = new UndoContents(_comm, _area, _summ, tree);
 		if (put) _undo ~= undo;
 		return undo;
 	}
