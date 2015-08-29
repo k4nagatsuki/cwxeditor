@@ -3942,7 +3942,7 @@ private string evtChildBrArea(in Props prop, in Area[] areas, ref string text) {
 			if (val >= 0) { mixin(S_TRACE);
 				foreach (a; areas) { mixin(S_TRACE);
 					if (a.id == val) { mixin(S_TRACE);
-						return .tryFormat(prop.msgs.branchArea, a.name);
+						return .tryFormat(prop.msgs.branchAreaWithId, a.id, a.name);
 					}
 				}
 			}
@@ -3961,7 +3961,7 @@ private string evtChildBrBattle(in Props prop, in Battle[] btls, ref string text
 			if (val >= 0) { mixin(S_TRACE);
 				foreach (b; btls) { mixin(S_TRACE);
 					if (b.id == val) { mixin(S_TRACE);
-						return .tryFormat(prop.msgs.branchBattle, b.name);
+						return .tryFormat(prop.msgs.branchBattleWithId, b.id, b.name);
 					}
 				}
 			}

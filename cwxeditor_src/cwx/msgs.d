@@ -1041,7 +1041,9 @@ class Msgs : Properties {
 	auto branchNumberSuccess = Msg("branchNumberSuccess", "パーティに%1$s人以上いる");
 	auto branchNumberFailure = Msg("branchNumberFailure", "パーティは%1$s人未満");
 	auto branchArea = Msg("branchArea", "エリア = %1$s");
+	auto branchAreaWithId = Msg("branchAreaWithId", "エリア = %1$s.%2$s");
 	auto branchBattle = Msg("branchBattle", "バトル = %1$s");
+	auto branchBattleWithId = Msg("branchBattleWithId", "バトル = %1$s.%2$s");
 	auto branchOnBattleSuccess = Msg("branchOnBattleSuccess", "イベント発生時の状況が戦闘中");
 	auto branchOnBattleFailure = Msg("branchOnBattleFailure", "イベント発生時の状況が戦闘中以外");
 	auto branchCastSuccess = Msg("branchCastSuccess", "「%1$s」が加わっている");
