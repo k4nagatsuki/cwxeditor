@@ -328,9 +328,66 @@ void main(string[] args) {
 	if (critical.length) {
 		exec(cmd ~ CRITICAL_FLAGS ~ res ~ critical ~ "-odobjs" ~ dmdOption);
 	}
+	static if (__VERSION__ == 2068) {
+		immutable SPLITS = [
+			[
+				"absdialog.d",
+				"areatable.d",
+				"areaviewutils.d",
+			],
+			[
+				"areaview.d",
+				"areawindow.d",
+				"bgimagedialog.d",
+				"cardlist.d",
+				"cardpane.d",
+				"cardwindow.d",
+				"centerlayout.d",
+				"chooser.d",
+			],
+			[
+				"commons.d",
+				"couponview.d",
+				"customtable.d",
+				"customtoolbar.d",
+			],
+			[
+				"customtext.d",
+				"castcarddialog.d",
+				"cwxeditor.d",
+				"datawindow.d",
+			],
+		];
+	}
 	foreach (dir, array; files) {
 		if (!array.length) continue;
-		exec(cmd ~ flags ~ array ~ res ~ "-odobjs" ~ dmdOption);
+		static if (__VERSION__ == 2068) {
+			if (m64) {
+				auto splits = new string[][SPLITS.length];
+				string[] array2;
+				foreach (file; array) {
+					bool add = false;
+					foreach (i, split; SPLITS) {
+						if (split.has(file.baseName())) {
+							splits[i] ~= file;
+							add = true;
+							break;
+						}
+					}
+					if (!add) {
+						array2 ~= file;
+					}
+				}
+				foreach (array1; splits) {
+					if (array1.length) exec(cmd ~ flags ~ array1 ~ res ~ "-odobjs" ~ dmdOption);
+				}
+				if (array2.length) exec(cmd ~ flags ~ array2 ~ res ~ "-odobjs" ~ dmdOption);
+			} else {
+				exec(cmd ~ flags ~ array ~ res ~ "-odobjs" ~ dmdOption);
+			}
+		} else {
+			exec(cmd ~ flags ~ array ~ res ~ "-odobjs" ~ dmdOption);
+		}
 	}
 
 	// ファイルが指定されている場合はコンパイルテストなのでここで終了

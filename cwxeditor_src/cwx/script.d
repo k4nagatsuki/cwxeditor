@@ -23,6 +23,7 @@ import std.regex;
 import std.exception;
 import std.traits;
 import std.range : ElementType;
+import std.typecons;
 
 /// スクリプトの解析途中に発生したエラー。
 struct CWXSError {
@@ -2753,7 +2754,10 @@ fi`;
 	string toScript(in Content[] cs, string evtChildOK, bool legacy, string indent = "\t") { mixin(S_TRACE);
 		char[] buf;
 		auto table = new VarTable;
-		toScriptImpl(evtChildOK, buf, cs, indent, "", KEYS, table, legacy);
+		foreach (i, c; cs) { mixin(S_TRACE);
+			if (0 < i) buf ~= "\n\n";
+			toScriptImpl(evtChildOK, buf, c, indent, "", KEYS, table, legacy);
+		}
 		auto vars = table.vars();
 		if (vars.length) { mixin(S_TRACE);
 			buf = std.string.join(vars, "\n") ~ "\n\n" ~ buf;
@@ -3251,9 +3255,9 @@ fi`;
 		}
 	}
 	const
-	private void toScriptImpl(string evtChildOK, ref char[] buf, in Content[] cs, string indent, string indentValue, in Keywords keys, VarTable vars, bool legacy) { mixin(S_TRACE);
-		foreach (i, c; cs) { mixin(S_TRACE);
-			if (i > 0) buf ~= "\n\n";
+	private void toScriptImpl(string evtChildOK, ref char[] buf, in Content content, string indent, string indentValue, in Keywords keys, VarTable vars, bool legacy) { mixin(S_TRACE);
+		Rebindable!(const(Content)) c = content;
+		while (true) { mixin(S_TRACE);
 			buf ~= indentValue;
 			auto detail = c.detail;
 			if (c.comment.length) { mixin(S_TRACE);
@@ -3533,51 +3537,67 @@ fi`;
 			if (attrs.length) { mixin(S_TRACE);
 				buf ~= " " ~ std.string.join(attrs, ", ");
 			}
-			foreach (idx, chld; c.next) { mixin(S_TRACE);
-				if (useIf) { mixin(S_TRACE);
-					buf ~= "\n" ~ indentValue;
-					if (useSif) { mixin(S_TRACE);
-						buf ~= "sif ";
-					} else { mixin(S_TRACE);
-						buf ~= idx == 0 ? "if " : "elif ";
-					}
-					final switch (detail.nextType) {
-					case CNextType.NONE:
-						buf ~= `""`;
-						break;
-					case CNextType.TEXT:
-						buf ~= createString(chld.name);
-						break;
-					case CNextType.BOOL:
-						buf ~= icmp(chld.name, _prop.sys.evtChildTrue) == 0 ? "true" : "false";
-						break;
-					case CNextType.STEP:
-					case CNextType.ID_AREA:
-					case CNextType.ID_BATTLE:
-						if (icmp(chld.name, _prop.sys.evtChildDefault) == 0) { mixin(S_TRACE);
-							buf ~= "default";
-						} else { mixin(S_TRACE);
-							buf ~= chld.name;
-						}
-						break;
-					case CNextType.TRIO:
-						buf ~= createString(chld.name);
-						break;
-					}
-					buf ~= "\n";
-					auto nextIndent = useSif ? indentValue : indentValue ~ indent;
-					toScriptImpl(evtChildOK, buf, [chld], indent, nextIndent, keys, vars, legacy);
+			void addIfs(size_t idx, in Content chld) { mixin(S_TRACE);
+				buf ~= "\n" ~ indentValue;
+				if (useSif) { mixin(S_TRACE);
+					buf ~= "sif ";
 				} else { mixin(S_TRACE);
-					buf ~= "\n";
-					if (c.type is CType.START) { mixin(S_TRACE);
-						toScriptImpl(evtChildOK, buf, [chld], indent, indentValue ~ indent, keys, vars, legacy);
+					buf ~= idx == 0 ? "if " : "elif ";
+				}
+				final switch (detail.nextType) {
+				case CNextType.NONE:
+					buf ~= `""`;
+					break;
+				case CNextType.TEXT:
+					buf ~= createString(chld.name);
+					break;
+				case CNextType.BOOL:
+					buf ~= icmp(chld.name, _prop.sys.evtChildTrue) == 0 ? "true" : "false";
+					break;
+				case CNextType.STEP:
+				case CNextType.ID_AREA:
+				case CNextType.ID_BATTLE:
+					if (icmp(chld.name, _prop.sys.evtChildDefault) == 0) { mixin(S_TRACE);
+						buf ~= "default";
 					} else { mixin(S_TRACE);
-						toScriptImpl(evtChildOK, buf, [chld], indent, indentValue, keys, vars, legacy);
+						buf ~= chld.name;
 					}
+					break;
+				case CNextType.TRIO:
+					buf ~= createString(chld.name);
+					break;
 				}
 			}
-			if (useIf && !useSif) { mixin(S_TRACE);
-				buf ~= "\n" ~ indentValue ~ "fi";
+			if ((!useIf || useSif) && c.next.length == 1) { mixin(S_TRACE);
+				if (useIf) { mixin(S_TRACE);
+					addIfs(0, c.next[0]);
+				}
+				buf ~= "\n";
+				if (c.type is CType.START) { mixin(S_TRACE);
+					indentValue ~= indent;
+				}
+				c = c.next[0];
+				continue; // 再帰の回避
+			} else { mixin(S_TRACE);
+				foreach (idx, chld; c.next) { mixin(S_TRACE);
+					if (useIf) { mixin(S_TRACE);
+						addIfs(idx, chld);
+						buf ~= "\n";
+						auto nextIndent = useSif ? indentValue : indentValue ~ indent;
+						toScriptImpl(evtChildOK, buf, chld, indent, nextIndent, keys, vars, legacy);
+					} else { mixin(S_TRACE);
+						buf ~= "\n";
+						if (c.type is CType.START) { mixin(S_TRACE);
+							toScriptImpl(evtChildOK, buf, chld, indent, indentValue ~ indent, keys, vars, legacy);
+						} else { mixin(S_TRACE);
+							toScriptImpl(evtChildOK, buf, chld, indent, indentValue, keys, vars, legacy);
+						}
+					}
+				}
+				if (useIf && !useSif) { mixin(S_TRACE);
+					buf ~= "\n" ~ indentValue ~ "fi";
+				}
+				break;
 			}
 		}
 	}

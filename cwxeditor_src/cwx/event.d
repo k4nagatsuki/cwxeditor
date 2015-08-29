@@ -1772,7 +1772,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return e;
 	}
 	const
-	private void toNodeImpl(ref XNode e, in CDetail d, XMLOption opt) { mixin(S_TRACE);
+	private void putNodeData(ref XNode e, in CDetail d, XMLOption opt) { mixin(S_TRACE);
 		if (d.type.length) e.newAttr("type", d.type);
 		if (name.length) e.newAttr("name", name);
 		if (comment.length) e.newAttr("comment", comment);
@@ -1895,12 +1895,27 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				c.toNode(ce);
 			}
 		}
-
-		auto ce = e.newElement("Contents");
-		if (!opt || !opt.shallow) { mixin(S_TRACE);
-			foreach (sub; _next) { mixin(S_TRACE);
-				sub.toNode(ce, opt);
+	}
+	const
+	private void toNodeImpl(ref XNode parent, CDetail d, XMLOption opt) { mixin(S_TRACE);
+		Rebindable!(const(Content)) c = this;
+		auto e = parent;
+		while (true) {
+			c.putNodeData(e, d, opt);
+			auto ce = e.newElement("Contents");
+			if (!opt || !opt.shallow) { mixin(S_TRACE);
+				if (c.next.length == 1) {
+					c = c.next[0];
+					d = c.detail;
+					e = ce.newElement(d.names[0]);
+					continue;
+				} else {
+					foreach (sub; c.next) { mixin(S_TRACE);
+						sub.toNode(ce, opt);
+					}
+				}
 			}
+			break;
 		}
 	}
 	/// XMLノード(Contents)の直下にある全てのイベントを、
