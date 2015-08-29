@@ -936,16 +936,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				array ~= prop.sys.evtChildDefault;
 				n.name = selectName(array, prop.sys.evtChildDefault);
 			}
-			if (n.name != prop.sys.evtChildDefault) { mixin(S_TRACE);
-				try { mixin(S_TRACE);
-					n.area = to!(ulong)(n.name);
-				} catch { mixin(S_TRACE);
-					printStackTrace();
-					n.area = 0;
-				}
-			} else { mixin(S_TRACE);
-				n.area = 0;
-			}
 		} break;
 		case CNextType.ID_BATTLE: { mixin(S_TRACE);
 			if (setNum() && summ) { mixin(S_TRACE);
@@ -955,16 +945,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				}
 				array ~= prop.sys.evtChildDefault;
 				n.name = selectName(array, prop.sys.evtChildDefault);
-			}
-			if (n.name != prop.sys.evtChildDefault) { mixin(S_TRACE);
-				try { mixin(S_TRACE);
-					n.battle = to!(ulong)(n.name);
-				} catch { mixin(S_TRACE);
-					printStackTrace();
-					n.battle = 0;
-				}
-			} else { mixin(S_TRACE);
-				n.battle = 0;
 			}
 		} break;
 		case CNextType.TRIO: { mixin(S_TRACE);
