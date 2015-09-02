@@ -26,7 +26,16 @@ void main(string[] args) {
 		debug {
 			cwriteln(.tryFormat("unittest success: %d msec", utperf));
 		}
+	} else {
+		version (Windows) {
+			std.stdio.stdout = std.stdio.File("NUL", "wb");
+			std.stdio.stderr = std.stdio.File("NUL", "wb");
+		} else version (Posix) {
+			std.stdio.stdout = std.stdio.File("/dev/null", "wb");
+			std.stdio.stderr = std.stdio.File("/dev/null", "wb");
+		} else static assert (0);
 	}
+
 	LaunchOption opt;
 
 	string debugName = cwx.utils.debugLog;

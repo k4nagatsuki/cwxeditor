@@ -332,6 +332,8 @@ void main(string[] args) {
 		immutable SPLITS = [
 			[
 				"absdialog.d",
+			],
+			[
 				"areatable.d",
 				"areaviewutils.d",
 			],
@@ -356,6 +358,59 @@ void main(string[] args) {
 				"castcarddialog.d",
 				"cwxeditor.d",
 				"datawindow.d",
+			],
+			[
+				"directorywindow.d",
+				"dmenu.d",
+				"dockingfolder.d",
+			],
+			[
+				"dprops.d",
+				"dskin.d",
+			],
+			[
+				"dutils.d",
+				"effectcarddialog.d",
+				"etcsettings.d",
+				"eventdialog.d",
+				"eventeditor.d",
+				"eventtreeview.d",
+				"eventview.d",
+				"eventwindow.d",
+				"flagdirtree.d",
+				"flagspane.d",
+				"flagtable.d",
+				"image.d",
+				"imagelistwindow.d",
+			],
+			[
+				"images.d",
+				"imageselect.d",
+				"incsearch.d",
+				"infocarddialog.d",
+				"jpyimage.d",
+				"incsearch.d",
+				"loader.d",
+				"mainwindow.d",
+			],
+			[
+				"materialselect.d",
+			],
+			[
+				"messageutils.d",
+				"motionview.d",
+			],
+			[
+				"properties.d",
+				"radarspinner.d",
+				"replacedialog.d",
+				"sbshell.d",
+			],
+			[
+				"scales.d",
+				"scripterrordialog.d",
+				"settingsdialog.d",
+				"smalldialogs.d",
 			],
 		];
 	}
