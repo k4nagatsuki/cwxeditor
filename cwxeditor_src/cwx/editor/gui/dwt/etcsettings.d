@@ -4,10 +4,13 @@ module cwx.editor.gui.dwt.etcsettings;
 import cwx.utils;
 import cwx.settings;
 import cwx.structs;
+import cwx.types;
 
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
+import cwx.editor.gui.dwt.dmenu;
+import cwx.editor.gui.dwt.incsearch;
 
 import org.eclipse.swt.all;
 
@@ -16,6 +19,17 @@ import java.lang.all;
 /// 設定ダイアログ内の詳細欄。On/Offできる設定を分類して並べる。
 class EtcSettings : Composite {
 	void delegate()[] modEvent;
+
+	private ExpandBar _expandBar;
+
+	private IncSearch _incSearch = null;
+	private void incSearch() { mixin(S_TRACE);
+		auto fc = getDisplay().getFocusControl();
+		if (!fc || !isDescendant(this, fc)) { mixin(S_TRACE);
+			.forceFocus(this, true);
+		}
+		_incSearch.startIncSearch();
+	}
 
 	private void delegate()[] _apply;
 
@@ -56,40 +70,35 @@ class EtcSettings : Composite {
 		// FIXME: ExpandItemの拡大と縮小でスクロール位置に問題が出る
 		//_sc.setShowFocusedControl(true);
 
-		auto expandBar = new ExpandBar(_sc, SWT.NONE);
-		.listener(expandBar, SWT.MouseDown, { mixin(S_TRACE);
+		_expandBar = new ExpandBar(_sc, SWT.NONE);
+		.listener(_expandBar, SWT.MouseDown, { mixin(S_TRACE);
 			// FIXME: スクロールバーが一番上にある時に限り
 			//        フォーカスが得られないのでここで設定
 			if (_sc.getVerticalBar().getSelection() == 0) { mixin(S_TRACE);
-				expandBar.setFocus();
+				_expandBar.setFocus();
 			}
 		});
-		_sc.setContent(expandBar);
-		auto runScSize = new class Runnable {
-			override void run() { mixin(S_TRACE);
-				auto size = expandBar.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-				_sc.setMinSize(size.x, size.y);
-			}
-		};
-		void scSize() { mixin(S_TRACE);
-			getDisplay().asyncExec(runScSize);
-		}
+		_sc.setContent(_expandBar);
 		.listener(_sc, SWT.Resize, { mixin(S_TRACE);
 			auto size = _sc.getSize();
 			_sc.getVerticalBar().setPageIncrement(size.y / 2);
 		});
-		.listener(expandBar, SWT.Expand, &scSize);
-		.listener(expandBar, SWT.Collapse, &scSize);
+		.listener(_expandBar, SWT.Expand, &scSize);
+		.listener(_expandBar, SWT.Collapse, &scSize);
 
 		Composite createComp(string text) { mixin(S_TRACE);
-			auto itm = new ExpandItem(expandBar, SWT.NONE);
+			auto itm = new ExpandItem(_expandBar, SWT.NONE);
 			itm.setText(text);
-			auto comp = new Composite(expandBar, SWT.NONE);
-			comp.setLayout(new GridLayout(1, true));
+			auto comp = new Composite(_expandBar, SWT.NONE);
+			auto fl = new FormLayout;
+			fl.marginLeft = 5;
+			fl.marginRight = 5;
+			fl.marginBottom = 5;
+			comp.setLayout(fl);
 			itm.setControl(comp);
 			itm.setExpanded(true);
 			.listener(comp, SWT.MouseDown, { mixin(S_TRACE);
-				expandBar.setFocus();
+				_expandBar.setFocus();
 			});
 			return comp;
 		}
@@ -174,14 +183,66 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.radarStyleParams, prop.msgs.radarStyleParams);
 		boolSetting(comp, prop.var.etc.linkCard, prop.msgs.linkCard);
 
-		foreach (itm; expandBar.getItems()) { mixin(S_TRACE);
-			auto ctrl = itm.getControl();
-			itm.setHeight(ctrl.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		_incSearch = new IncSearch(comm, this);
+		_incSearch.modEvent ~= &showCheckBoxes;
+		auto menu = new Menu(getShell(), SWT.POP_UP);
+		createMenuItem(comm, menu, MenuID.IncSearch, &incSearch, null);
+		void recurse(Control ctrl) { mixin(S_TRACE);
+			ctrl.setMenu(menu);
+			if (auto comp = cast(Composite)ctrl) { mixin(S_TRACE);
+				foreach (child; comp.getChildren()) recurse(child);
+			}
 		}
+		recurse(this);
+
+		showCheckBoxes();
 
 		auto gd = new GridLayout(1, true);
 		_sc.getVerticalBar().setIncrement(contentsFloat.computeSize(SWT.DEFAULT, SWT.DEFAULT).y + gd.verticalSpacing);
 		scSize();
+	}
+
+	private void showCheckBoxes() { mixin(S_TRACE);
+		foreach (itm; _expandBar.getItems()) { mixin(S_TRACE);
+			auto comp = cast(Composite)itm.getControl();
+			assert (comp !is null);
+			Control[] children;
+			foreach (child; comp.getChildren()) { mixin(S_TRACE);
+				auto check = cast(Button)child;
+				assert (check !is null);
+				if (_incSearch.match(check.getText())) { mixin(S_TRACE);
+					child.setVisible(true);
+					children ~= child;
+				} else { mixin(S_TRACE);
+					child.setVisible(false);
+					auto fd = new FormData;
+					fd.top = new FormAttachment(0, 0);
+					fd.width = 0;
+					fd.height = 0;
+					child.setLayoutData(fd);
+				}
+			}
+			foreach (i, check; children) { mixin(S_TRACE);
+				auto fd = new FormData;
+				if (0 < i) { mixin(S_TRACE);
+					fd.top = new FormAttachment(children[i - 1], 5);
+				} else {
+					fd.top = new FormAttachment(0, 5);
+				}
+				check.setLayoutData(fd);
+			}
+			itm.setHeight(comp.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		}
+		scSize();
+	}
+	private void scSize() { mixin(S_TRACE);
+		auto runScSize = new class Runnable {
+			override void run() { mixin(S_TRACE);
+				auto size = _expandBar.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+				_sc.setMinSize(size.x, size.y);
+			}
+		};
+		getDisplay().asyncExec(runScSize);
 	}
 
 	void apply() { mixin(S_TRACE);

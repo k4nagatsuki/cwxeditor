@@ -178,6 +178,7 @@ class IncSearch {
 				auto c = _parent.getDisplay().getFocusControl();
 				if (!c) return;
 				if (isDescendant(_win, c)) return;
+				if (c is _parent.getShell()) return;
 				if (!(c.getShell() is _win || c.getShell() is _parent.getShell())) return;
 				auto comp = cast(Composite) _parent;
 				if (comp) { mixin(S_TRACE);
