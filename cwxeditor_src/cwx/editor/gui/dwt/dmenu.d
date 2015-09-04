@@ -234,14 +234,14 @@ class CIgnoreHotkey : IgnoreHotkey {
 }
 
 bool eqAcc(int acc, int keyCode, wchar character, int stateMask) { mixin(S_TRACE);
-	if ((acc & SWT.MODIFIER_MASK) == acc) { mixin(S_TRACE);
+	if (keyCode && (acc & SWT.MODIFIER_MASK) == acc) { mixin(S_TRACE);
 		return (keyCode | stateMask) == acc;
-	} else if (toUpper(keyCode) == toUpper(character)) { mixin(S_TRACE);
+	} else if (keyCode && toUpper(keyCode) == toUpper(character)) { mixin(S_TRACE);
 		return (toUpper(keyCode) | stateMask) == acc
 			|| (toLower(keyCode) | stateMask) == acc;
 	} else { mixin(S_TRACE);
-		return (toUpper(keyCode) | stateMask) == acc
-			|| (toLower(keyCode) | stateMask) == acc
+		return (keyCode && (toUpper(keyCode) | stateMask) == acc)
+			|| (keyCode && (toLower(keyCode) | stateMask) == acc)
 			|| (toUpper(character) | (stateMask ^ SWT.SHIFT)) == acc
 			|| (toLower(character) | (stateMask ^ SWT.SHIFT)) == acc
 			|| (toUpper(character) | stateMask) == acc
@@ -695,6 +695,7 @@ MenuItem findMenu(Shell shell, int keyCode, wchar character, int stateMask) { mi
 /// ditto
 MenuItem findMenu(Menu menu, int keyCode, wchar character, int stateMask) { mixin(S_TRACE);
 	foreach (itm; menu.getItems()) { mixin(S_TRACE);
+		if (!menuEnabled(itm)) continue;
 		if (eqAcc(convertAccelerator(itm.getText()), keyCode, character, stateMask)) { mixin(S_TRACE);
 			return itm;
 		}

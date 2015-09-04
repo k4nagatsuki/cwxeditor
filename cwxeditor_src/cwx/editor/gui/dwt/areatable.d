@@ -2737,6 +2737,9 @@ public:
 
 	override {
 		void cut(SelectionEvent se) { mixin(S_TRACE);
+			if (_dirTree && _lastFocus is _dirTree) { mixin(S_TRACE);
+				if (_dir == "") return;
+			}
 			_parent.setRedraw(false);
 			scope (exit) _parent.setRedraw(true);
 			copy(se);
@@ -2798,7 +2801,8 @@ public:
 			scope (exit) _parent.setRedraw(true);
 			AbstractArea[] areas;
 			if (_dirTree && _lastFocus is _dirTree) {
-				auto path = _dir == "" ? _dir : _dir ~ "\\";
+				if (_dir == "") return;
+				auto path = _dir ~ "\\";
 				void put(AbstractArea area) { mixin(S_TRACE);
 					if (istartsWith(area.name, path)) { mixin(S_TRACE);
 						areas ~= area;

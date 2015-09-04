@@ -137,6 +137,7 @@ class EtcSettings : Composite {
 
 		comp = createComp(prop.msgs.etcSettingsFind);
 		boolSetting(comp, prop.var.etc.cautionBeforeReplace, prop.msgs.cautionBeforeReplace);
+		boolSetting(comp, prop.var.etc.startIncrementalSearchWhenKeyDown, prop.msgs.startIncrementalSearchWhenKeyDown);
 
 		comp = createComp(prop.msgs.etcSettingsTable);
 		boolSetting(comp, prop.var.etc.showAreaDirTree, prop.msgs.showAreaDirTree);

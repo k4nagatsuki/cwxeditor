@@ -1646,6 +1646,7 @@ class Msgs : Properties {
 	auto autoUpdateJpy1File = Msg("autoUpdateJpy1File", "ファイル名が変更された時に関係するJPY1ファイルを自動的に更新する");
 
 	auto etcSettingsFind = Msg("etcSettingsFind", "検索と置換");
+	auto startIncrementalSearchWhenKeyDown = Msg("startIncrementalSearchWhenKeyDown", "何かキーを押した時に絞り込み検索を開始する");
 	auto cautionBeforeReplace = Msg("cautionBeforeReplace", "全て置換する前に確認ダイアログを表示する");
 
 	auto etcSettingsTable = Msg("etcSettingsTable", "テーブルビューの設定");

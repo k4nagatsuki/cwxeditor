@@ -388,6 +388,7 @@ class FlexEtcProps : Properties {
 	auto closeTabWithMiddleClick = Prop!(bool)("closeTabWithMiddleClick", true);
 	auto openTabAtRightOfCurrentTab = Prop!(bool)("openTabAtRightOfCurrentTab", true);
 	auto cautionBeforeReplace = Prop!(bool)("cautionBeforeReplace", false);
+	auto startIncrementalSearchWhenKeyDown = Prop!(bool)("startIncrementalSearchWhenKeyDown", true);
 	auto radarStyleParams = Prop!(bool)("radarStyleParams", true);
 	auto showCardListHeader = Prop!(bool)("showCardListHeader", true);
 	auto showCardListTitle = Prop!(bool)("showCardListTitle", true);
