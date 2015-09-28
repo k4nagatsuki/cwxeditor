@@ -316,7 +316,7 @@ private:
 					foreach (i, v; VERSIONS) { mixin(S_TRACE);
 						_dataVersion.add(.tryFormat(_prop.msgs.dataVersionName, VERSION_NAMES[i], ENGINES[i]));
 						if (v == _summ.dataVersion) { mixin(S_TRACE);
-							_dataVersion.select(i);
+							_dataVersion.select(cast(int)i);
 						}
 					}
 					if (_dataVersion.getSelectionIndex() == -1) _dataVersion.select(0);
