@@ -873,6 +873,9 @@ class Msgs : Properties {
 	auto sTypeXML = Msg("sTypeXML", "スキンを指定");
 	auto sTypeClassic = Msg("sTypeClassic", "クラシックエンジンを使用");
 
+	auto dataVersion = Msg("dataVersion", "データバージョン");
+	auto dataVersionName = Msg("dataVersionName", "%1$s - %2$s");
+
 	auto pngMayNotCorrespond = Msg("pngMayNotCorrespond", "PNGイメージはプレイヤーの環境によって表示エラーとなる事があります。");
 	auto gifMayNotCorrespond = Msg("gifMayNotCorrespond", "GIFイメージはプレイヤーの環境によって表示エラーとなる事があります。");
 
@@ -1474,8 +1477,10 @@ class Msgs : Properties {
 	auto unitRound = Msg("unitRound", "ラウンド");
 	auto resetLiveStatus = Msg("resetLiveStatus", "通常状態に戻す");
 
-	auto needSpellGroup = Msg("needSpellGroup", "発声による発動");
-	auto needSpell = Msg("needSpell", "沈黙時に使用不可");
+	auto workConditionGroup = Msg("workConditionGroup", "発動条件");
+	auto needSpell = Msg("needSpell", "沈黙時に発動不可");
+	auto noBind = Msg("noBind", "呪縛時に発動不可");
+	auto noParalyze = Msg("noParalyze", "麻痺時に発動不可");
 	auto elementProps = Msg("elementProps", "効果属性");
 	auto linkOption = Msg("linkOption", "参照設定");
 	auto beastMaxNest = Msg("beastMaxNest", "ネスト可能回数");

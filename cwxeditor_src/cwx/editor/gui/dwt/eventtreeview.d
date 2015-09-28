@@ -1458,6 +1458,7 @@ private:
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			if (!_readOnly) { mixin(S_TRACE);
 				_comm.refSkin.remove(&refSkin);
+				_comm.refDataVersion.remove(&refDataVersion);
 				_comm.refCast.remove(&refreshCast);
 				_comm.delCast.remove(&refreshCast);
 				_comm.refSkill.remove(&refreshSkill);
@@ -1791,6 +1792,7 @@ public:
 			_cbarPar = new Composite(_comp, SWT.NONE);
 
 			_comm.refSkin.add(&refSkin);
+			_comm.refDataVersion.add(&refDataVersion);
 			_comm.refCast.add(&refreshCast);
 			_comm.delCast.add(&refreshCast);
 			_comm.refSkill.add(&refreshSkill);
@@ -3521,6 +3523,7 @@ public:
 		}
 	}
 	private void refSkin() {refreshCard();}
+	private void refDataVersion() {refreshCard();}
 	private void refreshCast(CastCard c) {refreshCard();}
 	private void refreshSkill(SkillCard c) {refreshCard();}
 	private void refreshItem(ItemCard c) {refreshCard();}

@@ -23,6 +23,7 @@ import std.typecons : Tuple;
 
 /// pathの内容を調査し、警告すべき点があればメッセージ群を返す。
 string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path, string targVer) { mixin(S_TRACE);
+	auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
 	auto sPath = summ ? summ.scenarioPath : "";
 	auto froot = summ ? summ.flagDirRoot : null;
 	string[] r;

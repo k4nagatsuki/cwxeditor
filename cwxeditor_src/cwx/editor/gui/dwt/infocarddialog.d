@@ -62,13 +62,17 @@ private:
 		forceCancel();
 	}
 	void refSkin() { mixin(S_TRACE);
-		_desc.font = dwtData(_prop.looks.cardDescFont(_summ.legacy));
+		_desc.font = dwtData(_prop.looks.cardDescFont(summSkin.legacy));
+	}
+	void refDataVersion() { mixin(S_TRACE);
+		refreshWarning();
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.delInfo.remove(&delCard);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSkin.remove(&refSkin);
+			_comm.refDataVersion.remove(&refDataVersion);
 		}
 	}
 public:
@@ -125,7 +129,7 @@ protected:
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
+			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(summSkin.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			mod(_desc.widget);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));
@@ -133,6 +137,7 @@ protected:
 		_comm.delInfo.add(&delCard);
 		_comm.refScenario.add(&refScenario);
 		_comm.refSkin.add(&refSkin);
+		_comm.refDataVersion.add(&refDataVersion);
 		area.addDisposeListener(new Dispose);
 
 		refCard(_card);

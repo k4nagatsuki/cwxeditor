@@ -297,7 +297,7 @@ private:
 				_race.add(race.name);
 			}
 			_race.addSelectionListener(new SelectRace);
-			refreshRace();
+			refDataVersion();
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText(_prop.msgs.card);
@@ -328,7 +328,7 @@ private:
 			cl.fillVertical = true;
 			grp.setLayout(cl);
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
+			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(summSkin.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
 			mod(_desc.widget);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			auto p = _desc.computeTextBaseSize(1);
@@ -1028,18 +1028,19 @@ private:
 			_comm.delCast.remove(&delCard);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refSkin.remove(&refSkin);
+			_comm.refDataVersion.remove(&refDataVersion);
 			_comm.refCoupons.remove(&updateNature);
 		}
 	}
 	void refSkin() { mixin(S_TRACE);
-		_desc.font = dwtData(_prop.looks.cardDescFont(_summ.legacy));
-		refreshRace();
+		_desc.font = dwtData(_prop.looks.cardDescFont(summSkin.legacy));
 		refreshSex();
 		refreshPeriod();
 		refreshNature();
 		refreshMakings();
 	}
-	void refreshRace() { mixin(S_TRACE);
+	void refDataVersion() { mixin(S_TRACE);
+		refreshWarning();
 		_race.setEnabled(!_readOnly && !_summ.legacy);
 	}
 	void refreshSex() { mixin(S_TRACE);
@@ -1191,6 +1192,7 @@ protected:
 		_comm.delCast.add(&delCard);
 		_comm.refScenario.add(&refScenario);
 		_comm.refSkin.add(&refSkin);
+		_comm.refDataVersion.add(&refDataVersion);
 		_comm.refCoupons.add(&updateNature);
 		_comm.refRadarStyle.add(&initPhysical);
 		_comm.refRadarStyle.add(&initEnhance);

@@ -10,6 +10,7 @@ import cwx.menu;
 import cwx.types;
 import cwx.path;
 import cwx.imagesize;
+import cwx.skin;
 
 import cwx.editor.gui.sound;
 
@@ -44,6 +45,12 @@ private:
 	Props _prop;
 	Summary _summ;
 	C _card;
+
+	Skin _summSkin;
+	@property
+	Skin summSkin() { mixin(S_TRACE);
+		return _summSkin ? _summSkin : _comm.skin;
+	}
 
 	static if (is (C == MenuCard)) {
 		ImageSelect!(MtType.CARD) _imgPath;
@@ -119,6 +126,7 @@ private:
 			}
 			_comm.refSkin.remove(&refSkin);
 			static if (is(C:MenuCard)) {
+				_comm.refDataVersion.remove(&refreshWarning);
 				_comm.refTargetVersion.remove(&refreshWarning);
 			}
 		}
@@ -163,7 +171,7 @@ private:
 	}
 	void refSkin() { mixin(S_TRACE);
 		static if (is (C == MenuCard)) {
-			_desc.font = dwtData(_prop.looks.cardDescFont(_summ.legacy));
+			_desc.font = dwtData(_prop.looks.cardDescFont(_comm.skin.legacy));
 		}
 	}
 	static if (is(C:EnemyCard)) {
@@ -343,7 +351,7 @@ protected:
 					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 					grp.setText(_prop.msgs.desc);
-					_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ ? _summ.legacy : false)), _prop.looks.cardDescLen, grp, SWT.BORDER);
+					_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(summSkin.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
 					createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 					mod(_desc.widget);
 					_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));
@@ -363,6 +371,7 @@ protected:
 		}
 		_comm.refSkin.add(&refSkin);
 		static if (is(C:MenuCard)) {
+			_comm.refDataVersion.add(&refreshWarning);
 			_comm.refTargetVersion.add(&refreshWarning);
 		}
 		ignoreMod = true;

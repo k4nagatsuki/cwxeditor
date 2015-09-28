@@ -76,7 +76,7 @@ public:
 		_dirs.addSelectionListener(new CSListener);
 
 		_comm.refSkin.add(&refresh);
-		_comm.refSkin.add(&refreshFileListMenu);
+		_comm.refDataVersion.add(&refreshFileListMenu);
 		_comm.refPaths.add(&refPaths);
 		_comm.refPath.add(&refPath);
 		_comm.delPaths.add(&delPaths);
@@ -88,7 +88,7 @@ public:
 		_dirs.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				_comm.refSkin.remove(&refresh);
-				_comm.refSkin.remove(&refreshFileListMenu);
+				_comm.refDataVersion.remove(&refreshFileListMenu);
 				_comm.refPaths.remove(&refPaths);
 				_comm.refPath.remove(&refPath);
 				_comm.delPaths.remove(&delPaths);
@@ -266,7 +266,7 @@ public:
 		}
 		@property
 		uint pcNumber() { mixin(S_TRACE);
-			if (!_isMenuCard || !_summ || !_summ.legacy) return 0;
+			if (!_isMenuCard || !_summ) return 0;
 			auto sel = _dirs.getSelectionIndex();
 			if (0 <= _including) { mixin(S_TRACE);
 				sel--;
@@ -279,7 +279,7 @@ public:
 		@property
 		void pcNumber(uint pcNum) { mixin(S_TRACE);
 			if (0 == pcNum) return;
-			if (!_isMenuCard || !_summ || !_summ.legacy) return;
+			if (!_isMenuCard || !_summ) return;
 			uint num = pcNum;
 			if (0 <= _including) { mixin(S_TRACE);
 				num++;
@@ -302,7 +302,7 @@ public:
 			defs ~= _prop.msgs.defaultSelection(_prop.msgs.imageIncluding);
 		}
 		static if (Type == MtType.CARD) {
-			if (_isMenuCard && _summ && _summ.legacy) { mixin(S_TRACE);
+			if (_isMenuCard && _summ) { mixin(S_TRACE);
 				foreach (num; 0 .. _prop.var.etc.partyMax) { mixin(S_TRACE);
 					defs ~= _prop.msgs.defaultSelection(.tryFormat(_prop.msgs.pcNumber, num + 1));
 				}

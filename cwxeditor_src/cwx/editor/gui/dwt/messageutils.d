@@ -721,7 +721,7 @@ private:
 		}
 	}
 	protected override void refSkin() { mixin(S_TRACE);
-		_text.font = dwtData(prop.looks.messageFont(summ.legacy));
+		_text.font = dwtData(prop.looks.messageFont(summSkin.legacy));
 	}
 	void refreshDlgList() { mixin(S_TRACE);
 		bool oldIgnoreMod = ignoreMod;
@@ -1113,7 +1113,7 @@ private:
 		_text.insert(put);
 	}
 	protected override void refSkin() { mixin(S_TRACE);
-		_text.font = dwtData(prop.looks.messageFont(summ.legacy));
+		_text.font = dwtData(prop.looks.messageFont(summSkin.legacy));
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
@@ -1373,7 +1373,7 @@ private class DisposeText : DisposeListener {
 }
 private FixedWidthText createMessagePane(Commons comm, Props prop, bool image, Composite parent, Summary summ) { mixin(S_TRACE);
 	int len = image ? prop.looks.messageImageLen : prop.looks.messageLen;
-	auto r = new FixedWidthText(dwtData(prop.looks.messageFont(summ.legacy)), len, parent, SWT.BORDER, true);
+	auto r = new FixedWidthText(dwtData(prop.looks.messageFont(comm.skin.legacy)), len, parent, SWT.BORDER, true);
 	auto d = r.widget.getDisplay();
 	auto back = new Color(d, new RGB(prop.var.etc.msgBackR, prop.var.etc.msgBackG, prop.var.etc.msgBackB));
 	auto fore = new Color(d, new RGB(prop.var.etc.msgForeR, prop.var.etc.msgForeG, prop.var.etc.msgForeB));

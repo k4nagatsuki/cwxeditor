@@ -2,6 +2,7 @@
 module cwx.utils;
 
 public import cwx.perf;
+public import cwx.versioninfo;
 
 import cwx.sjis;
 
@@ -120,8 +121,6 @@ private version (Windows) {
 	import core.sys.posix.pwd;
 	import std.c.string;
 }
-
-shared string LATEST_VERSION = "";
 
 string printStackTrace() {
 	string[] arr = ["Stack Trace --------"];
@@ -1360,6 +1359,7 @@ string[] clistdir(string dir) { mixin(S_TRACE);
 			r ~= file.baseName();
 		}
 	} catch (Exception e) { mixin(S_TRACE);
+		printStackTrace();
 		debugln(e);
 	}
 	return r;

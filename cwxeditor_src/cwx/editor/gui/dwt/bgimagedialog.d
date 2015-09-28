@@ -130,6 +130,7 @@ private:
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.delBgImage.remove(&delBgImage);
+			_comm.refDataVersion.remove(&refreshWarning);
 			_comm.refTargetVersion.remove(&refreshWarning);
 		}
 	}
@@ -262,6 +263,7 @@ protected:
 	void setFirstParams(Composite area) { mixin(S_TRACE);
 		area.addDisposeListener(new Dispose);
 		_comm.delBgImage.add(&delBgImage);
+		_comm.refDataVersion.add(&refreshWarning);
 		_comm.refTargetVersion.add(&refreshWarning);
 
 		ignoreMod = true;

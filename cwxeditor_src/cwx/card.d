@@ -2145,6 +2145,8 @@ public:
 class BeastCard : EffectCard, IBeastUser {
 private:
 	BeastUser _linkId;
+	bool _ignoreBind = true;
+	bool _ignoreParalyze = false;
 	uint _useLimit = 0;
 public:
 	/// 召喚獣カードのXML要素名。
@@ -2165,17 +2167,24 @@ public:
 	/// cからパラメータをコピーする。
 	void shallowCopy(in BeastCard c) { mixin(S_TRACE);
 		shallowCopyEffectCard(c);
-		useLimit = c.useLimit;
+		copyImpl(c);
 	}
 	/// ditto
 	void deepCopy(in BeastCard c) { mixin(S_TRACE);
 		deepCopyEffectCard(c);
+		copyImpl(c);
+	}
+	private void copyImpl(in BeastCard c) {
 		useLimit = c.useLimit;
+		ignoreBind = c.ignoreBind;
+		ignoreParalyze = c.ignoreParalyze;
 	}
 	/// IDを除く内部データをクリアする。
 	override void clearData() { mixin(S_TRACE);
 		super.clearData();
 		useLimit = 0;
+		ignoreBind = true;
+		ignoreParalyze = false;
 	}
 
 	override
@@ -2195,7 +2204,9 @@ public:
 	}
 	const
 	private bool eqImpl(const(BeastCard) c) { mixin(S_TRACE);
-		return useLimit == c.useLimit;
+		return useLimit == c.useLimit
+			&& ignoreBind == c.ignoreBind
+			&& ignoreParalyze == c.ignoreParalyze;
 	}
 
 	/// 持ち札である時のリンク先ID。0の場合は実体を持つ。
@@ -2224,6 +2235,27 @@ public:
 	void useLimit(uint useLimit) { mixin(S_TRACE);
 		if (_useLimit != useLimit) changed();
 		_useLimit = useLimit;
+	}
+
+	/// 呪縛を無視して発動するか。
+	@property
+	const
+	bool ignoreBind() {return _ignoreBind;}
+	/// ditto
+	@property
+	void ignoreBind(bool ignoreBind) { mixin(S_TRACE);
+		if (_ignoreBind != ignoreBind) changed();
+		_ignoreBind = ignoreBind;
+	}
+	/// 麻痺を無視して発動するか。
+	@property
+	const
+	bool ignoreParalyze() {return _ignoreParalyze;}
+	/// ditto
+	@property
+	void ignoreParalyze(bool ignoreParalyze) { mixin(S_TRACE);
+		if (_ignoreParalyze != ignoreParalyze) changed();
+		_ignoreParalyze = ignoreParalyze;
 	}
 
 	/// 付帯能力か。
@@ -2278,6 +2310,9 @@ public:
 		}
 		auto pNode = setEffProp(cNode, opt, od);
 		pNode.newElement("UseLimit", useLimit);
+		// TODO: 麻痺の無視
+		//pNode.newElement("IgnoreBind", ignoreBind);
+		//pNode.newElement("IgnoreParalyze", ignoreParalyze);
 	}
 	/// コピーを生成する。
 	@property
@@ -2313,7 +2348,9 @@ public:
 			return r;
 		}
 		cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
-			pNode.onTag["UseLimit"] = (ref XNode n) {r._useLimit = n.valueTo!(int);};
+			pNode.onTag["UseLimit"] = (ref XNode n) { r._useLimit = n.valueTo!int; };
+			pNode.onTag["IgnoreBind"] = (ref XNode n) { r._ignoreBind = n.valueTo!bool; };
+			pNode.onTag["IgnoreParalyze"] = (ref XNode n) { r._ignoreBind = n.valueTo!bool; };
 			r.loadEffProp(pNode, ver);
 		};
 		r.loadEffV(cNode, ver);

@@ -636,7 +636,7 @@ public:
 			// フォントがおかしくなる
 			dc.dispose();
 			dc = new GC(bmp);
-			if (_title !is null) { mixin(S_TRACE);
+			if (_title !is null && _title != "") { mixin(S_TRACE);
 				Color color = null;
 				if (_titColor) { mixin(S_TRACE);
 					color = new Color(cur, _titColor);

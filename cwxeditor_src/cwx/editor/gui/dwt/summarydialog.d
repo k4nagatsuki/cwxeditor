@@ -62,6 +62,7 @@ private:
 	Tuple!(string, "type", string, "name")[] _skinInfo;
 	bool _hasLegacySkin;
 	ClassicEngine[] _classicEngines;
+	Combo _dataVersion;
 	SplitPane _tab2Sash, _tab3Sash;
 	// TODO Tag
 	// TODO Label
@@ -258,7 +259,7 @@ private:
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText(dwtData(_prop.looks.summaryDescFont(_summ.legacy)), _prop.looks.summaryDescLen, grp, SWT.BORDER | _readOnly);
+			_desc = new FixedWidthText(dwtData(_prop.looks.summaryDescFont(summSkin.legacy)), _prop.looks.summaryDescLen, grp, SWT.BORDER | _readOnly);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			mod(_desc.widget);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.summaryDescLine));
@@ -302,6 +303,24 @@ private:
 					.listener(_typeSkin, SWT.Selection, &refreshPreview);
 					.listener(_typeClassic, SWT.Selection, &refreshPreview);
 					.listener(_type, SWT.Modify, &refreshPreview);
+				}
+				{ mixin(S_TRACE);
+					auto grp = new Group(comp2, SWT.NONE);
+					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					grp.setText(_prop.msgs.dataVersion);
+					grp.setLayout(new GridLayout(1, true));
+					_dataVersion = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+					mod(_dataVersion);
+					_dataVersion.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+					_dataVersion.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					foreach (i, v; VERSIONS) { mixin(S_TRACE);
+						_dataVersion.add(.tryFormat(_prop.msgs.dataVersionName, VERSION_NAMES[i], ENGINES[i]));
+						if (v == _summ.dataVersion) { mixin(S_TRACE);
+							_dataVersion.select(i);
+						}
+					}
+					if (_dataVersion.getSelectionIndex() == -1) _dataVersion.select(0);
+					updateDataVersion();
 				}
 				{ mixin(S_TRACE);
 					auto grp = new Group(comp2, SWT.NONE);
@@ -360,6 +379,9 @@ private:
 		tab.setText(_prop.msgs.etcData);
 		tab.setControl(comp);
 	}
+	void updateDataVersion() { mixin(S_TRACE);
+		_dataVersion.setEnabled(!_readOnly && !_summ.legacy);
+	}
 	class RefreshTypes : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			refreshTypes(summSkin);
@@ -378,6 +400,7 @@ private:
 			}
 			_comm.refSkin.remove(&refSkin);
 			_comm.refClassicSkin.remove(&refreshTypes);
+			_comm.refDataVersion.remove(&updateDataVersion);
 		}
 	}
 
@@ -388,7 +411,7 @@ private:
 	void refSkin(Object sender) { mixin(S_TRACE);
 		if (_readOnly) return;
 		refreshPreview();
-		_desc.font = dwtData(_prop.looks.summaryDescFont(_summ.legacy));
+		_desc.font = dwtData(_prop.looks.summaryDescFont(summSkin.legacy));
 		if (sender is this) return;
 		refreshTypes();
 	}
@@ -538,6 +561,7 @@ protected:
 		}
 		_comm.refSkin.add(&refSkin);
 		_comm.refClassicSkin.add(&refreshTypes);
+		_comm.refDataVersion.add(&updateDataVersion);
 		area.addDisposeListener(new Dispose);
 
 		void closeAdds(Summary summ) { mixin(S_TRACE);
@@ -580,6 +604,13 @@ protected:
 		_comm.updateSkinMaterialsExtension(oldSkin, _comm.skin);
 		_comm.refCoupons.call();
 		getShell().setText(.tryFormat(_prop.msgs.dlgTitSummary, _summ.scenarioName));
+		auto ver = VERSIONS[_dataVersion.getSelectionIndex()];
+		if (_summ.dataVersion != ver) { mixin(S_TRACE);
+			_summ.dataVersion = ver;
+			if (!_summ.legacy) { mixin(S_TRACE);
+				_comm.refDataVersion.call();
+			}
+		}
 		return true;
 	}
 }

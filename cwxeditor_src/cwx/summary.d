@@ -117,7 +117,7 @@ private:
 	AreaUser _startAreaId; /// スタートエリアのID。
 	// TODO Tag
 	string _type;
-	string _dataVersion;
+	string _dataVersion = DEFAULT_VERSION;
 
 	FlagDir _froot; /// フラグとステップのデータ。
 
@@ -1016,9 +1016,12 @@ public:
 	@property
 	const
 	string dataVersion() {return _dataVersion;}
-	@property
 	/// ditto
-	private void dataVersion(string ver) {_dataVersion = ver;}
+	@property
+	void dataVersion(string ver) {
+		if (_dataVersion != ver) changed();
+		_dataVersion = ver;
+	}
 
 	private void setNamesOne(C : EffectCard)(ref C card, string newAuthor, string newScenario) { mixin(S_TRACE);
 		if (card.scenario == scenarioName && card.author == author) { mixin(S_TRACE);
@@ -1671,6 +1674,7 @@ public:
 	const
 	private string summaryToXML(in XMLOption opt) { mixin(S_TRACE);
 		auto root = XNode.create("Summary");
+		if (dataVersion != "") root.newAttr("dataVersion", dataVersion);
 		auto pNode = root.newElement("Property");
 		pNode.newElement("Name", _sname);
 		pNode.newElement("ImagePath", encodePath(_imgPath.path));
@@ -1846,8 +1850,7 @@ public:
 		scope summNode = XNode.parse(xml);
 		if (summNode.name == "Summary") { mixin(S_TRACE);
 			auto summ = new Summary(sPath);
-			string ver = summNode.attr("dataVersion", false);
-			summ.dataVersion = ver ? ver : "";
+			summ.dataVersion = summNode.attr("dataVersion", false, "");
 			summNode.onTag["Property"] = (ref XNode propNode) { mixin(S_TRACE);
 				propNode.onTag["Name"] = (ref XNode node) {summ._sname = node.value;};
 				propNode.onTag["ImagePath"] = (ref XNode node) {summ._imgPath.path = decodePath(node.value);};
@@ -2439,7 +2442,7 @@ public:
 				_tempPath = temp;
 				_legacy = false;
 			}
-			dataVersion = LATEST_VERSION;
+			dataVersion = DEFAULT_VERSION;
 			if (legacyToX || (!useTemp && archive)) { mixin(S_TRACE);
 				_useTemp = true;
 				refCheckPaths();

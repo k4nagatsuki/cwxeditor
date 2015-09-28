@@ -58,6 +58,7 @@ abstract class EventDialog : AbsDialog {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.delContent.remove(&delContent);
 			_comm.refSkin.remove(&refSkin);
+			_comm.refDataVersion.remove(&refDataVersion);
 			_comm.refTargetVersion.remove(&refreshWarning);
 		}
 	}
@@ -84,6 +85,7 @@ abstract class EventDialog : AbsDialog {
 		_evt = evt;
 		_comm.delContent.add(&delContent);
 		_comm.refSkin.add(&refSkin);
+		_comm.refDataVersion.add(&refDataVersion);
 		_comm.refTargetVersion.add(&refreshWarning);
 		getShell().addDisposeListener(new Dispose);
 	}
@@ -99,7 +101,10 @@ abstract class EventDialog : AbsDialog {
 	@property protected void evt(Content evt) {_evt = evt;}
 	@property protected CType type() {return _type;}
 
-	protected void refSkin() {}
+	protected void refSkin() { }
+	protected void refDataVersion() { mixin(S_TRACE);
+		refreshWarning();
+	}
 
 	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		return cpempty(path);
@@ -193,7 +198,8 @@ private:
 			} else static assert (0);
 		}
 	}
-	protected override void refSkin() { mixin(S_TRACE);
+	protected override void refDataVersion() { mixin(S_TRACE);
+		super.refDataVersion();
 		refreshTS();
 	}
 	void refreshTS() { mixin(S_TRACE);
@@ -780,7 +786,8 @@ private:
 		warning = ws;
 	}
 
-	protected override void refSkin() { mixin(S_TRACE);
+	protected override void refDataVersion() { mixin(S_TRACE);
+		super.refDataVersion();
 		refreshTS();
 	}
 	void refreshTS() { mixin(S_TRACE);

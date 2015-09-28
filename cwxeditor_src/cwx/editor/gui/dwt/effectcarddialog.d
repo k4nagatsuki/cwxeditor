@@ -57,6 +57,11 @@ private:
 	FixedWidthText _desc;
 	GBLimitText _name;
 	Button _needSpell;
+	// TODO: 麻痺の無視
+	//static if (is(C:BeastCard)) {
+	//	Button _noBind;
+	//	Button _noParalyze;
+	//}
 	Button[EffectType] _effTyp;
 	Button[Resist] _res;
 	Button[Physical] _phy;
@@ -228,12 +233,24 @@ private:
 			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				grp.setLayout(new CenterLayout(SWT.VERTICAL));
-				grp.setText(_prop.msgs.needSpellGroup);
-				_needSpell = new Button(grp, SWT.CHECK);
-				mod(_needSpell);
-				_needSpell.setEnabled(!_readOnly);
-				_needSpell.setText(_prop.msgs.needSpell);
+				grp.setLayout(new GridLayout(1, true));
+				grp.setText(_prop.msgs.workConditionGroup);
+				Button createCheck(string name, bool enabled) {
+					auto check = new Button(grp, SWT.CHECK);
+					mod(check);
+					check.setEnabled(enabled);
+					check.setText(name);
+					auto gd = new GridData;
+					gd.grabExcessVerticalSpace = true;
+					check.setLayoutData(gd);
+					return check;
+				}
+				_needSpell = createCheck(_prop.msgs.needSpell, !_readOnly);
+				// TODO: 麻痺の無視
+				//static if (is(C:BeastCard)) {
+				//	_noBind = createCheck(_prop.msgs.noBind, !_readOnly && !_summ.legacy);
+				//	_noParalyze = createCheck(_prop.msgs.noParalyze, !_readOnly && !_summ.legacy);
+				//}
 			}
 			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
@@ -392,7 +409,7 @@ private:
 			grp.setLayoutData(gd);
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(_summ.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
+			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(summSkin.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
 			mod(_desc.widget);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));
@@ -732,7 +749,6 @@ private:
 				_keyCodes[i].setEnabled(!_readOnly);
 				_keyCodes[i].setLayoutData(new GridData(GridData.FILL_BOTH));
 			}
-			setKeyCodesEnabled();
 		}
 		sash.setWeights([_prop.var.etc.seKeyCodeSashL, _prop.var.etc.seKeyCodeSashR]);
 		class Dispose : DisposeListener {
@@ -758,8 +774,16 @@ private:
 		forceCancel();
 	}
 	void refSkin() { mixin(S_TRACE);
-		_desc.font = dwtData(_prop.looks.cardDescFont(_summ.legacy));
+		_desc.font = dwtData(_prop.looks.cardDescFont(summSkin.legacy));
+	}
+	void refDataVersion() { mixin(S_TRACE);
+		refreshWarning();
 		setKeyCodesEnabled();
+		// TODO: 麻痺の無視
+		//static if (is(C:BeastCard)) {
+		//	_noBind.setEnabled(!_readOnly && !_summ.legacy);
+		//	_noParalyze.setEnabled(!_readOnly && !_summ.legacy);
+		//}
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
@@ -771,6 +795,7 @@ private:
 				_comm.delBeast.remove(&delCard);
 			} else static assert (0);
 			_comm.refSkin.remove(&refSkin);
+			_comm.refDataVersion.remove(&refDataVersion);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refEventTree.remove(&refEventTree);
 			_comm.delEventTree.remove(&refEventTree);
@@ -846,6 +871,8 @@ protected:
 		constructProps(tabf);
 		constructKeyCode(tabf);
 
+		refDataVersion();
+
 		static if (is(C : SkillCard)) {
 			_comm.delSkill.add(&delCard);
 		} else static if (is(C : ItemCard)) {
@@ -854,6 +881,7 @@ protected:
 			_comm.delBeast.add(&delCard);
 		} else static assert (0);
 		_comm.refSkin.add(&refSkin);
+		_comm.refDataVersion.add(&refDataVersion);
 		_comm.refScenario.add(&refScenario);
 		_comm.refEventTree.add(&refEventTree);
 		_comm.delEventTree.add(&refEventTree);
@@ -890,6 +918,11 @@ protected:
 			_author.setText(_card.author);
 			_name.setText(_card.name);
 			_needSpell.setSelection(_card.spell);
+			// TODO: 麻痺の無視
+			//static if (is(C:BeastCard)) {
+			//	_noBind.setSelection(!_card.ignoreBind);
+			//	_noParalyze.setSelection(!_card.ignoreParalyze);
+			//}
 			_effTyp[_card.effectType].setSelection(true);
 			_res[_card.resist].setSelection(true);
 			_phy[_card.physical].setSelection(true);
@@ -951,6 +984,11 @@ protected:
 			_imgPath.image = "";
 			_scenario.setText(_summ.scenarioName);
 			_author.setText(_summ.author);
+			// TODO: 麻痺の無視
+			//static if (is(C:BeastCard)) {
+			//	_noBind.setSelection(false);
+			//	_noParalyze.setSelection(true);
+			//}
 			_effTyp[EffectType.PHYSIC].setSelection(true);
 			_res[Resist.AVOID].setSelection(true);
 			_phy[Physical.DEX].setSelection(true);
@@ -1007,6 +1045,11 @@ protected:
 				_imgPath.image, wrapReturnCode(_desc.getText()));
 		}
 		_card.spell = _needSpell.getSelection();
+		// TODO: 麻痺の無視
+		//static if (is(C:BeastCard)) {
+		//	_card.ignoreBind = !_noBind.getSelection();
+		//	_card.ignoreParalyze = !_noParalyze.getSelection();
+		//}
 		putRadioValue!(EffectType)(_effTyp, &_card.effectType);
 		putRadioValue!(Resist)(_res, &_card.resist);
 		putRadioValue!(Physical)(_phy, &_card.physical);

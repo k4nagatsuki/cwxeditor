@@ -1357,6 +1357,7 @@ private:
 				Skin defSkin = .findSkin2(_prop, _prop.var.etc.defaultSkin, "");
 				try { mixin(S_TRACE);
 					beforeSave();
+					auto oldClassic = summary.legacy;
 					auto oldSkin = _comm.skin;
 					_comm.skin = findSkin(_comm, _prop, summary, classic, fname, classic ? "" : summary.type);
 					if (_comm.skin.isEmpty) _comm.skin = defSkin;
@@ -1373,6 +1374,7 @@ private:
 					refreshTitle();
 					_comm.refScenarioPath.call();
 					_comm.refSkin.call();
+					if (oldClassic != summary.legacy) _comm.refDataVersion.call();
 					_comm.refPaths.call("");
 					addHistory();
 					_prop.var.etc.lastSaveFilter = filter;
