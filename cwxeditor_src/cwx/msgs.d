@@ -362,6 +362,8 @@ class Msgs : Properties {
 	auto horizontalValue = Msg("horizontalValue", "横の値");
 	auto verticalValue = Msg("verticalValue", "縦の値");
 
+	auto canNotGetMusicLength = Msg("canNotGetMusicLength", "SDL方式では音声の長さを取得できません");
+
 	auto couponHide = Msg("couponHide", "隠蔽クーポン");
 
 	const string couponTypeDesc(CouponType id) { mixin(S_TRACE);
@@ -770,6 +772,12 @@ class Msgs : Properties {
 
 	auto oggMayNotCorrespond = Msg("oggMayNotCorrespond", "Oggはプレイヤーの環境によって再生できない事があります。");
 	auto mp3LoopMayNotCorrespond = Msg("mp3LoopMayNotCorrespond", "MP3はプレイヤーの環境によってループ再生されない事があります。");
+
+	auto playingOption = Msg("playingOption", "再生オプション"); // Wsn.1
+	auto playingVolume = Msg("playingVolume", "音量:"); // Wsn.1
+	auto playingVolumePer = Msg("playingVolumePer", "%"); // Wsn.1
+	auto loopCount = Msg("loopCount", "ループ回数:"); // Wsn.1
+	auto loopCountHint = Msg("loopCountHint", "(0 = ∞)"); // Wsn.1
 
 	/// メインウィンドウ。
 	auto mainWindowName = Msg("mainWindowName", "%1$s [ %2$s ] - CWXEditor");
@@ -1479,8 +1487,6 @@ class Msgs : Properties {
 
 	auto workConditionGroup = Msg("workConditionGroup", "発動条件");
 	auto needSpell = Msg("needSpell", "沈黙時に発動不可");
-	auto noBind = Msg("noBind", "呪縛時に発動不可");
-	auto noParalyze = Msg("noParalyze", "麻痺時に発動不可");
 	auto elementProps = Msg("elementProps", "効果属性");
 	auto linkOption = Msg("linkOption", "参照設定");
 	auto beastMaxNest = Msg("beastMaxNest", "ネスト可能回数");

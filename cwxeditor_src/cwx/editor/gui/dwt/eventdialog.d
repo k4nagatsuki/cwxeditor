@@ -920,12 +920,19 @@ protected:
 			_msel.createRefreshButton(comp, false).setLayoutData(new GridData);
 			_msel.createDirectoryButton(comp, false).setLayoutData(new GridData);
 
-			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.horizontalSpan = 4;
+			auto h4GD(int style) {
+				auto gd = new GridData(style);
+				gd.horizontalSpan = 4;
+				return gd;
+			}
+			auto gd = h4GD(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.nameTableWidth;
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			auto list = _msel.createFileList(comp);
 			list.setLayoutData(gd);
+
+			_msel.createPlayingBar(comp).setLayoutData(h4GD(GridData.FILL_HORIZONTAL));
+			_msel.createPlayingLabel(comp, SWT.RIGHT).setLayoutData(h4GD(GridData.FILL_HORIZONTAL));
 		}
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;

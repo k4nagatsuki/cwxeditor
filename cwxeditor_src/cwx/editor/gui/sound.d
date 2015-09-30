@@ -18,6 +18,8 @@ import core.stdc.wchar_;
 
 import cwx.utils;
 
+alias double c_double;
+
 enum {
 	SOUND_TYPE_AUTO = 0,
 	SOUND_TYPE_SDL = 1,
@@ -111,6 +113,8 @@ private extern (C) {
 	alias Mix_Chunk* function(SDL_RWops* src, c_int freesrc) Mix_LoadWAV_RW;
 	alias SDL_RWops* function(const char* file, const char* mode) SDL_RWFromFile;
 	alias c_int function(c_int *frequency, Uint16 *format, c_int *channels) Mix_QuerySpec;
+	alias void function() Mix_RewindMusic;
+	alias c_int function(c_double position) Mix_SetMusicPosition;
 
 	immutable SDL_FREQUENCY = 44100;
 	immutable SDL_FORMAT = MIX_DEFAULT_FORMAT;
@@ -312,16 +316,22 @@ private __gshared bool bgmOnLegacy = false;
 private __gshared Mix_Music* bgmMusic = null;
 private __gshared Mix_Chunk* bgmChunk = null;
 private __gshared c_int bgmChannel = -1;
+private __gshared clock_t bgmStart = 0;
 
 private __gshared bool seOnLegacy = false;
 private __gshared Mix_Music* seMusic = null;
 private __gshared Mix_Chunk* seChunk = null;
 private __gshared c_int seChannel = -1;
+private __gshared clock_t seStart = 0;
 
-private ulong pos(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream) { mixin(S_TRACE);
+private ulong pos(in Mix_Chunk* chunk, clock_t start, bool playingMCI, string mciName, HSTREAM bassStream) { mixin(S_TRACE);
 	version (Windows) {
 		if (bassStream) { mixin(S_TRACE);
-			return _BASS_StreamGetFilePosition(bassStream, BASS_FILEPOS_CURRENT);
+			auto v = .getSymbol!(BASS_ChannelGetPosition)(bass, "BASS_ChannelGetPosition")(bassStream, BASS_POS_BYTE);
+			if (0 <= v) { mixin(S_TRACE);
+				auto sec = .getSymbol!(BASS_ChannelBytes2Seconds)(bass, "BASS_ChannelBytes2Seconds")(bassStream, v);
+				if (0 <= sec) return to!ulong(sec * 1000.0);
+			}
 		}
 		if (playingMCI) { mixin(S_TRACE);
 			wchar[1024] len;
@@ -329,22 +339,53 @@ private ulong pos(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM 
 			return to!ulong(len[0 .. wcslen(len.ptr)]);
 		}
 		if (chunk) { mixin(S_TRACE);
-			// TODO
+			auto now = .clock();
+			if (start < now) { mixin(S_TRACE);
+				auto tim = now - start;
+				return to!ulong(cast(real)tim / CLOCKS_PER_SEC * 1000.0) % len(chunk, playingMCI, mciName, bassStream);
+			}
 		}
 	}
 	return 0;
 }
+private void setPos(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream, ulong msecs) { mixin(S_TRACE);
+	version (Windows) {
+		if (bassStream) { mixin(S_TRACE);
+			auto pos = .getSymbol!(BASS_ChannelSeconds2Bytes)(bass, "BASS_ChannelSeconds2Bytes")(bassStream, msecs / 1000.0);
+			if (0 <= pos) { mixin(S_TRACE);
+				.getSymbol!(BASS_ChannelSetPosition)(bass, "BASS_ChannelSetPosition")(bassStream, pos, BASS_POS_BYTE);
+			}
+		}
+		if (playingMCI) { mixin(S_TRACE);
+			_mciSendString(toUTFz!(wchar*)("seek " ~ mciName ~ " to " ~ .text(msecs) ~ "\0"), null, 0, null);
+			_mciSendString(toUTFz!(wchar*)("play " ~ mciName ~ " notify\0"), null, 0, null);
+		}
+		if (chunk) { mixin(S_TRACE);
+			getSymbol!(Mix_RewindMusic)(mixer, "Mix_RewindMusic")();
+			getSymbol!(Mix_SetMusicPosition)(mixer, "Mix_SetMusicPosition")(msecs * 1000.0);
+		}
+	}
+}
 private ulong len(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream) { mixin(S_TRACE);
 	version (Windows) {
 		if (bassStream) { mixin(S_TRACE);
-			return _BASS_StreamGetFilePosition(bassStream, BASS_FILEPOS_END);
+			auto v = getSymbol!(BASS_ChannelGetLength)(bass, "BASS_ChannelGetLength")(bassStream, BASS_POS_BYTE);
+			if (0 <= v) { mixin(S_TRACE);
+				auto sec = getSymbol!(BASS_ChannelBytes2Seconds)(bass, "BASS_ChannelBytes2Seconds")(bassStream, v);
+				if (0 <= sec) return to!ulong(sec * 1000.0);
+			}
 		}
 		if (playingMCI) { mixin(S_TRACE);
 			wchar[1024] len;
 			_mciSendString(toUTFz!(wchar*)("status " ~ mciName ~ " length"), len.ptr, len.length, null);
 			return to!ulong(len[0 .. wcslen(len.ptr)]);
 		}
+		cdebugln(chunk);
 		if (chunk) { mixin(S_TRACE);
+			cdebugln(sdl_frequency);
+			cdebugln(chunk.alen);
+			cdebugln(sdl_format);
+			cdebugln(sdl_channels);
 			auto bps = sdl_frequency * ((sdl_format & 0xFF) == 0x08 ? 1 : 2) * sdl_channels;
 			return chunk.alen * 1000UL / bps;
 		}
@@ -352,11 +393,20 @@ private ulong len(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM 
 	return 0;
 }
 
-/// 現在再生中のBGMの再生位置(msecs)を取得する。
+/// 現在再生中のBGMの再生位置(msecs)。
 @property
 ulong bgmPos() { mixin(S_TRACE);
 	version (Windows) {
-		return pos(bgmChunk, _bgmPlayingMCI, "cwbgm", bassBGMStream);
+		return pos(bgmChunk, bgmStart, _bgmPlayingMCI, "cwbgm", bassBGMStream);
+	} else {
+		return 0;
+	}
+}
+/// ditto
+@property
+void bgmPos(ulong pos) { mixin(S_TRACE);
+	version (Windows) {
+		return setPos(bgmChunk, _bgmPlayingMCI, "cwbgm", bassBGMStream, pos);
 	} else {
 		return 0;
 	}
@@ -370,11 +420,20 @@ ulong bgmLen() { mixin(S_TRACE);
 		return 0;
 	}
 }
-/// 現在再生中の効果音の再生位置(msecs)を取得する。
+/// 現在再生中の効果音の再生位置(msecs)。
 @property
 ulong sePos() { mixin(S_TRACE);
 	version (Windows) {
-		return pos(seChunk, _sePlayingMCI, "cwse", bassSEStream);
+		return pos(seChunk, seStart, _sePlayingMCI, "cwse", bassSEStream);
+	} else {
+		return 0;
+	}
+}
+/// ditto
+@property
+void sePos(ulong pos) { mixin(S_TRACE);
+	version (Windows) {
+		return setPos(seChunk, _sePlayingMCI, "cwse", bassSEStream, pos);
 	} else {
 		return 0;
 	}
@@ -394,12 +453,12 @@ private void printSDLError(string File = __FILE__, int Line = __LINE__)() { mixi
 	debugln!(File, Line)(str[0..strlen(str)]);
 }
 
-private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref c_int channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool loop, int soundPlayType, uint volume, ref HSTREAM bassStream) { mixin(S_TRACE);
+private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start, ref c_int channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool loop, bool spLoop, int soundPlayType, uint volume, ref HSTREAM bassStream) { mixin(S_TRACE);
 	stop(music, chunk, channel, mciName, onLegacy, playingMCI, bassStream);
 	version (Windows) {
 		if (SOUND_TYPE_BASS == soundPlayType) { mixin(S_TRACE);
 			// BASSがロードされている場合はBASSで再生する
-			if (playBass(file, loop, bassStream, volume)) { mixin(S_TRACE);
+			if (playBass(file, loop, spLoop, bassStream, volume)) { mixin(S_TRACE);
 				return;
 			}
 			// ここへ来たら再生失敗
@@ -498,6 +557,7 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref c_int channel,
 						return;
 					}
 				}
+				start = .clock();
 			}
 		}
 	} catch (Exception e) {
@@ -587,10 +647,8 @@ private void initBass() { mixin(S_TRACE);
 				disposeBass();
 				return;
 			}
-			_BASS_StreamGetFilePosition = getSymbol!(BASS_StreamGetFilePosition)(bass, "BASS_StreamGetFilePosition");
-			if (!_BASS_StreamGetFilePosition || !loadBassSoundFont(_initBassSFont)) { mixin(S_TRACE);
+			if (!loadBassSoundFont(_initBassSFont)) { mixin(S_TRACE);
 				disposeBass();
-				return;
 			}
 		} catch (Exception e) {
 			printStackTrace();
@@ -685,15 +743,10 @@ version (Windows) {
 
 /// fileがMIDIファイルであればtrue。
 bool isMidi(string file) { mixin(S_TRACE);
-	switch (file.extension().toLower()) {
-	case ".mid", ".midi":
-		return true;
-	default:
-		return false;
-	}
+	return file.exists() && cast(char[])std.file.read(file, 4) == "MThd";
 }
 
-private bool playBass(string file, bool loop, ref DWORD stream, uint volume) { mixin(S_TRACE);
+private bool playBass(string file, bool loop, bool spLoop, ref DWORD stream, uint volume) { mixin(S_TRACE);
 	version (Windows) {
 		try { mixin(S_TRACE);
 			if (!bass) return false;
@@ -729,6 +782,19 @@ private bool playBass(string file, bool loop, ref DWORD stream, uint volume) { m
 					return false;
 				}
 			}
+
+			if (loop && spLoop) { mixin(S_TRACE);
+				ptrdiff_t loopStart = -1, loopEnd = -1;
+				getLoopInfo(file, midi, stream, loopStart, loopEnd);
+				// 任意位置ループ
+				auto BASS_ChannelSetSync = getSymbol!(BASS_ChannelSetSync)(bass, "BASS_ChannelSetSync");
+				if (loopStart != -1 && loopEnd != -1) { mixin(S_TRACE);
+					BASS_ChannelSetSync(stream, BASS_SYNC_POS | BASS_SYNC_MIXTIME, loopEnd, &bassLoop, cast(void*)loopStart);
+				} else if (loopStart != -1) { mixin(S_TRACE);
+					BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, &bassLoop, cast(void*)loopStart);
+				}
+			}
+
 			volume = .min(100, volume);
 			if (!getSymbol!(BASS_ChannelSetAttribute)(bass, "BASS_ChannelSetAttribute")(stream, BASS_ATTRIB_VOL, volume / 100.0F)) { mixin(S_TRACE);
 				debugln("BASS_ChannelSetAttribute");
@@ -745,6 +811,91 @@ private bool playBass(string file, bool loop, ref DWORD stream, uint volume) { m
 	}
 	return false;
 }
+private void getLoopInfo(string file, bool midi, HSTREAM stream, out ptrdiff_t loopStart, out ptrdiff_t loopEnd) { mixin(S_TRACE);
+	loopStart = -1;
+	loopEnd = -1;
+
+	BASS_CHANNELINFO info;
+	if (!getSymbol!(BASS_ChannelGetInfo)(bass, "BASS_ChannelGetInfo")(stream, &info)) { mixin(S_TRACE);
+		return;
+	}
+	auto sampPerBytes = 44100.0 / info.freq;
+	auto sampToBytes = info.chans;
+	if (info.flags & BASS_SAMPLE_FLOAT) {
+		sampToBytes *= 4;
+	} else if (info.flags & BASS_SAMPLE_8BITS) {
+		sampToBytes *= 1;
+	} else {
+		sampToBytes *= 2;
+	}
+	long posToBytes(long pos) { mixin(S_TRACE);
+		return cast(long)((pos / sampPerBytes) * sampToBytes);
+	}
+
+	// 吉里吉里形式(*.sliファイル)によってループ位置を指定する
+	auto sli = file ~ ".sli";
+	if (sli.exists() && sli.isFile()) { mixin(S_TRACE);
+		foreach (line; std.file.readText(sli).splitLines()) { mixin(S_TRACE);
+			line = line.strip();
+			if (line == "" || line.startsWith("#")) continue;
+			if (!line.startsWith("Link")) continue;
+			line = line["Link".length .. $];
+			auto start = line.indexOf("{");
+			auto end = line.lastIndexOf("}");
+			if (start == -1 || end == -1 || end < start) continue;
+			line = line[start + 1 .. end];
+			auto secs = line.split(";");
+			foreach (sec; secs) { mixin(S_TRACE);
+				auto keyValue = sec.split("=");
+				if (keyValue.length < 2) continue;
+				if (keyValue[0].strip() == "From") { mixin(S_TRACE);
+					loopEnd = posToBytes(keyValue[1].to!long());
+				} else if (keyValue[0].strip() == "To") { mixin(S_TRACE);
+					loopStart = posToBytes(keyValue[1].to!long());
+				}
+			}
+			if (0 <= loopStart) return;
+		}
+	}
+
+	if (midi) { mixin(S_TRACE);
+		// RPGツクールのMIDI拡張イベント(CC#111)によってループ位置を指定する
+		auto BASS_MIDI_StreamGetEvents = getSymbol!(BASS_MIDI_StreamGetEvents)(bassMidi, "BASS_MIDI_StreamGetEvents");
+		auto count = BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, null);
+		if (count) { mixin(S_TRACE);
+			auto events = new BASS_MIDI_EVENT[count];
+			count = BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, events.ptr);
+			foreach (i; 0 .. count) { mixin(S_TRACE);
+				if (events[i].param == 111) { mixin(S_TRACE);
+					loopStart = events[i].pos;
+					loopEnd = -1;
+				}
+			}
+		}
+	}
+
+	// RPGツクールVXのOgg Vorbisコメント埋め込み形式によってループ位置を指定する
+	auto comments = getSymbol!(BASS_ChannelGetTags)(bass, "BASS_ChannelGetTags")(stream, BASS_TAG_OGG);
+	if (comments) { mixin(S_TRACE);
+		long loopLength = -1;
+		while (*comments) { mixin(S_TRACE);
+			auto comment = fromStringz(comments);
+			auto keyValue = comment.split("=");
+			if (keyValue[0].strip() == "LOOPSTART") { mixin(S_TRACE);
+				loopStart = keyValue[1].to!long();
+			} else if (keyValue[0].strip() == "LOOPLENGTH") { mixin(S_TRACE);
+				loopLength = keyValue[1].to!long();
+			}
+			comments += comment.length + 1;
+		}
+		if (0 <= loopStart) { mixin(S_TRACE);
+			loopEnd = posToBytes(loopLength + loopStart);
+			loopStart = posToBytes(loopStart);
+			return;
+		}
+	}
+}
+
 private void stopBass(ref DWORD stream) { mixin(S_TRACE);
 	version (Windows) {
 		try { mixin(S_TRACE);
@@ -779,6 +930,9 @@ version (Windows) {
 		}
 		alias DWORD HSTREAM;
 		alias DWORD HSOUNDFONT;
+		alias DWORD HSYNC;
+		alias DWORD HPLUGIN;
+		alias DWORD HSAMPLE;
 		alias ulong QWORD;
 		immutable BASS_DEVICE_DEFAULT = 2;
 		immutable BASS_DEFAULT = 0;
@@ -786,6 +940,32 @@ version (Windows) {
 		immutable BASS_ATTRIB_VOL = 2;
 		immutable BASS_FILEPOS_CURRENT = 0;
 		immutable BASS_FILEPOS_END = 2;
+		immutable BASS_POS_BYTE = 0;
+		immutable BASS_SYNC_POS = 0;
+		immutable BASS_SYNC_END = 2;
+		immutable BASS_SYNC_MUSICPOS = 10;
+		immutable BASS_SYNC_MIXTIME = 0x40000000;
+		immutable BASS_TAG_OGG = 2;
+		immutable MIDI_EVENT_CONTROL = 64;
+		immutable BASS_SAMPLE_8BITS = 1;
+		immutable BASS_SAMPLE_FLOAT = 256;
+		struct  BASS_MIDI_EVENT {
+			DWORD event;
+			DWORD param;
+			DWORD chan;
+			DWORD tick;
+			DWORD pos;
+		}
+		struct BASS_CHANNELINFO {
+			DWORD freq;
+			DWORD chans;
+			DWORD flags;
+			DWORD ctype;
+			DWORD origres;
+			HPLUGIN plugin;
+			HSAMPLE sample;
+			char* filename;
+		}
 		alias BOOL function(HSTREAM handle, BASS_MIDI_FONT *fonts, DWORD count) BASS_MIDI_StreamSetFonts;
 		alias HSOUNDFONT function(const void *file, DWORD flags) BASS_MIDI_FontInit;
 		alias BOOL function(HSOUNDFONT handle) BASS_MIDI_FontFree;
@@ -798,8 +978,21 @@ version (Windows) {
 		alias HSTREAM function(BOOL mem, const void* file, QWORD offset, QWORD length, DWORD flags, DWORD freq) BASS_MIDI_StreamCreateFile;
 		alias BOOL function(float volume) BASS_SetVolume;
 		alias BOOL function(DWORD handle, DWORD attrib, float value) BASS_ChannelSetAttribute;
-		alias QWORD function(HSTREAM handle, DWORD mode) BASS_StreamGetFilePosition;
-		BASS_StreamGetFilePosition _BASS_StreamGetFilePosition;
+		alias DWORD function(HSTREAM handle, int track, DWORD filter, BASS_MIDI_EVENT* events) BASS_MIDI_StreamGetEvents;
+		alias HSYNC function(DWORD handle, DWORD type, QWORD param, SYNCPROC proc, void* user) BASS_ChannelSetSync;
+		alias void function(HSYNC handle, DWORD channel, DWORD data, void* user) SYNCPROC;
+		alias char* function(DWORD handle, DWORD tags) BASS_ChannelGetTags;
+		alias BOOL function(DWORD handle, BASS_CHANNELINFO* info) BASS_ChannelGetInfo;
+		void bassLoop(HSYNC handle, DWORD channel, DWORD data, void* user) { mixin(S_TRACE);
+			auto pos = cast(ptrdiff_t)user;
+			getSymbol!(BASS_ChannelSetPosition)(bass, "BASS_ChannelSetPosition")(channel, pos, BASS_POS_BYTE);
+		}
+
+		alias QWORD function(HSTREAM handle, DWORD mode) BASS_ChannelGetLength;
+		alias QWORD function(HSTREAM handle, DWORD mode) BASS_ChannelGetPosition;
+		alias BOOL function(HSTREAM handle, QWORD pos, DWORD mode) BASS_ChannelSetPosition;
+		alias c_double function(HSTREAM handle, QWORD pos) BASS_ChannelBytes2Seconds;
+		alias QWORD function(HSTREAM handle, c_double pos) BASS_ChannelSeconds2Bytes;
 	}
 } else {
 	private alias c_int HSTREAM;
@@ -830,7 +1023,7 @@ bool canPlayBass(string file) { mixin(S_TRACE);
 }
 
 /// BGMを再生する。
-void playBGM(string path, int soundPlayType) { mixin(S_TRACE);
+void playBGM(string path, int soundPlayType, bool spLoop) { mixin(S_TRACE);
 	if (!mutex) return;
 	try { mixin(S_TRACE);
 		mutex.lock();
@@ -841,7 +1034,7 @@ void playBGM(string path, int soundPlayType) { mixin(S_TRACE);
 		} else { mixin(S_TRACE);
 			HSTREAM bass = 0;
 		}
-		play(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, path, true, soundPlayType, _bgmVolume, bass);
+		play(bgmMusic, bgmChunk, bgmStart, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, path, true, spLoop, soundPlayType, _bgmVolume, bass);
 	} catch (Throwable e) {
 		printStackTrace();
 		debugln(e);
@@ -913,7 +1106,7 @@ void playSE(string path, int soundPlayType) { mixin(S_TRACE);
 		} else { mixin(S_TRACE);
 			HSTREAM bass = 0;
 		}
-		play(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, path, false, soundPlayType, _seVolume, bass);
+		play(seMusic, seChunk, seStart, seChannel, "cwse", seOnLegacy, _sePlayingMCI, path, false, false, soundPlayType, _seVolume, bass);
 	} catch (Throwable e) {
 		printStackTrace();
 		debugln(e);

@@ -664,7 +664,7 @@ private:
 	}
 	static if (is (C == EnemyCard)) {
 		ToolItem _escTMenu;
-		MaterialSelect!(MtType.BGM, CCombo, CCombo) _bgm;
+		MaterialSelect!(MtType.BGM, Combo, Combo) _bgm;
 		void setEscape() { mixin(S_TRACE);
 			if (_readOnly) return;
 			_undo ~= createUndoEdit();
@@ -682,6 +682,7 @@ private:
 		}
 		void selectBGM() { mixin(S_TRACE);
 			if (_readOnly) return;
+			if (_area.music == _bgm.path) return;
 			_undo ~= new UndoMusic(this, _comm, _area, _summ);
 			_area.music = _bgm.path;
 			_comm.refUseCount.call();
@@ -1692,7 +1693,7 @@ private:
 					createMenuItem(_comm, menu, MenuID.NewMenuCard, &createCard, () => !_readOnly);
 				} else static if (is(A : Battle)) {
 					new MenuItem(menu, SWT.SEPARATOR);
-					createMenuItem(_comm, menu, MenuID.NewEnemyCard, &createCard, () => !_readOnly);
+					createMenuItem(_comm, menu, MenuID.NewEnemyCard, &createCard, () => !_readOnly && _summ && _summ.casts.length);
 				}
 				static if (UseBacks) {
 					new MenuItem(menu, SWT.SEPARATOR);
@@ -2332,6 +2333,14 @@ private:
 			if (!_readOnly) { mixin(S_TRACE);
 				_vfcTMenu = createToolItem(_comm, bar, MenuID.FixedCards, &reverseFixedCards, null, SWT.CHECK);
 				_vfcTMenu.setSelection(_fixedC);
+				new ToolItem(bar, SWT.SEPARATOR);
+				static if (is (C == MenuCard)) {
+					createToolItem(_comm, bar, MenuID.NewMenuCard, &createCard, () => !_readOnly);
+				} else static if (is (C == EnemyCard)) {
+					createToolItem(_comm, bar, MenuID.NewEnemyCard, &createCard, () => !_readOnly && _summ && _summ.casts.length);
+				} else { mixin(S_TRACE);
+					static assert (0);
+				}
 			}
 		} else { mixin(S_TRACE);
 			static assert (is(C:BgImage));
@@ -2344,7 +2353,13 @@ private:
 				_vfbTMenu.setSelection(_fixedB);
 				_vffbTMenu = createToolItem(_comm, bar, MenuID.FixedBackground, &reverseFixedBackground, null, SWT.CHECK);
 				_vffbTMenu.setSelection(_fixedFirstB);
-			}
+				new ToolItem(bar, SWT.SEPARATOR);
+				createToolItem(_comm, bar, MenuID.NewBack, &createBackground, () => !_readOnly);
+				createToolItem(_comm, bar, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
+				createToolItem(_comm, bar, MenuID.NewColorCell, &createColorCell, () => !_readOnly);
+				// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
+/+				createToolItem(_comm, bar, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
++/			}
 		}
 
 		auto list = new Table(comp, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
@@ -2370,7 +2385,7 @@ private:
 				static if (is(C:MenuCard)) {
 					createMenuItem(_comm, menu, MenuID.NewMenuCard, &createCard, () => !_readOnly);
 				} else static if (is(C:EnemyCard)) {
-					createMenuItem(_comm, menu, MenuID.NewEnemyCard, &createCard, () => !_readOnly);
+					createMenuItem(_comm, menu, MenuID.NewEnemyCard, &createCard, () => !_readOnly && _summ && _summ.casts.length);
 				} else {
 					createMenuItem(_comm, menu, MenuID.NewBack, &createBackground, () => !_readOnly);
 					createMenuItem(_comm, menu, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
@@ -2409,6 +2424,47 @@ private:
 			list.setMenu(menu);
 		}
 		return list;
+	}
+	static if (is(C:EnemyCard)) {
+		Composite createBgmPane(Composite parent) { mixin (S_TRACE);
+			auto skin = summSkin;
+			_bgm = new MaterialSelect!(MtType.BGM, Combo, Combo)(_comm, _prop, _summ, _readOnly != 0, &selectBGM, [_prop.msgs.defaultSelection(_prop.msgs.bgmNone)]);
+
+			auto comp = new Composite(parent, SWT.NONE);
+			auto gl = windowGridLayout(2, false);
+			gl.marginWidth = 0;
+			gl.marginHeight = 0;
+			comp.setLayout(gl);
+			auto label = new CLabel(comp, SWT.NONE);
+			label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			label.setText(_prop.msgs.bgm);
+			label.setImage(_prop.images.bgm);
+			auto bar = new ToolBar(comp, SWT.FLAT);
+			_comm.put(bar);
+			_bgm.createPlayToolItem(bar);
+			new ToolItem(bar, SWT.SEPARATOR);
+			_bgm.createRefreshToolItem(bar);
+			_bgm.createDirectoryToolItem(bar);
+
+			auto h2GD(int style) { mixin (S_TRACE);
+				auto gd = new GridData(style);
+				gd.horizontalSpan = 2;
+				return gd;
+			}
+
+			auto dirs = _bgm.createDirsCombo(comp);
+			dirs.setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
+			auto files = _bgm.createFileList(comp);
+			files.setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
+
+			auto pBar = _bgm.createPlayingBar(comp);
+			pBar.setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
+			auto pL = _bgm.createPlayingLabel(comp, SWT.RIGHT);
+			pL.setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
+
+			_bgm.path = _area.music;
+			return comp;
+		}
 	}
 	static if (UseBacks) {
 		void findCellName() { mixin (S_TRACE);
@@ -2993,6 +3049,12 @@ public:
 					});
 				}
 			}
+		}
+		static if (is(C:EnemyCard)) {
+			auto bgmPane = createBgmPane(left);
+			auto bggd = new GridData(GridData.FILL_HORIZONTAL);
+			bggd.horizontalSpan = 2;
+			bgmPane.setLayoutData(bggd);
 		}
 		{ mixin(S_TRACE);
 			if (_summ) { mixin(S_TRACE);
@@ -4202,7 +4264,7 @@ public:
 			static if (is (C == MenuCard)) {
 				createMenuItem(_comm, mv, MenuID.NewMenuCard, &createCard, () => !_readOnly);
 			} else static if (is (C == EnemyCard)) {
-				createMenuItem(_comm, mv, MenuID.NewEnemyCard, &createCard, () => !_readOnly);
+				createMenuItem(_comm, mv, MenuID.NewEnemyCard, &createCard, () => !_readOnly && _summ && _summ.casts.length);
 			}
 			static if (UseBacks) {
 				createMenuItem(_comm, mv, MenuID.NewBack, &createBackground, () => !_readOnly);
@@ -4267,34 +4329,14 @@ public:
 				_dbgTMenu.setSelection(_dbgMode);
 			}
 		}
-		new ToolItem(bar, SWT.SEPARATOR);
 		static if (UseCards) {
+			new ToolItem(bar, SWT.SEPARATOR);
 			_autoTMenu = createToolItem(_comm, bar, MenuID.AutoArrange, &setAuto, () => !_readOnly, SWT.RADIO);
 			_customTMenu = createToolItem(_comm, bar, MenuID.ManualArrange, &setCustom, () => !_readOnly, SWT.RADIO);
 			_autoTMenu.setSelection(_area.spAuto);
 			_customTMenu.setSelection(!_area.spAuto);
-			if (!_readOnly) { mixin(S_TRACE);
-				new ToolItem(bar, SWT.SEPARATOR);
-				static if (is (C == MenuCard)) {
-					createToolItem(_comm, bar, MenuID.NewMenuCard, &createCard, () => !_readOnly);
-				} else static if (is (C == EnemyCard)) {
-					createToolItem(_comm, bar, MenuID.NewEnemyCard, &createCard, () => !_readOnly);
-				} else { mixin(S_TRACE);
-					static assert (0);
-				}
-				new ToolItem(bar, SWT.SEPARATOR);
-			}
 		}
-		if (!_readOnly) { mixin(S_TRACE);
-			static if (UseBacks) {
-				createToolItem(_comm, bar, MenuID.NewBack, &createBackground, () => !_readOnly);
-				createToolItem(_comm, bar, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
-				createToolItem(_comm, bar, MenuID.NewColorCell, &createColorCell, () => !_readOnly);
-				// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
-/+				createToolItem(_comm, bar, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
-+/			}
-			new ToolItem(bar, SWT.SEPARATOR);
-		}
+		new ToolItem(bar, SWT.SEPARATOR);
 		_xSpn = createSpinner(bar, _prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax), 0,
 			&editSpn!("a.newX = value;"), &enterSpn!("a.x = value;", "a.newX = value;"),
 			&cancelSpn!("a.x"), _readOnly);
@@ -4329,17 +4371,6 @@ public:
 			new ToolItem(bar, SWT.SEPARATOR);
 			_escTMenu = createToolItem(_comm, bar, MenuID.Escape, &setEscape, () => !_readOnly && _cards.getSelectionIndex() != -1, SWT.CHECK);
 			_escTMenu.setEnabled(false);
-			new ToolItem(bar, SWT.SEPARATOR);
-			auto skin = summSkin;
-			_bgm = new MaterialSelect!(MtType.BGM, CCombo, CCombo)(_comm, _prop, _summ, _readOnly != 0, &selectBGM, [_prop.msgs.defaultSelection(_prop.msgs.bgmNone)]);
-			auto comp = new Composite(bar, SWT.NONE);
-			comp.setLayout(zeroGridLayout(3, false));
-			auto dirs = _bgm.createDirsCombo(comp);
-			auto files = _bgm.createFileList(comp);
-			auto playBar = new ToolBar(comp, SWT.FLAT);
-			_bgm.createPlayToolItem(playBar);
-			createToolItemC(bar, comp);
-			_bgm.path = _area.music;
 		}
 		new ToolItem(bar, SWT.SEPARATOR);
 		_sgTMenu = createToolItem(_comm, bar, MenuID.ShowGrid, &reverseShowGrid, null, SWT.CHECK);

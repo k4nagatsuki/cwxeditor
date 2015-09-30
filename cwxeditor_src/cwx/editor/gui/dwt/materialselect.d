@@ -19,13 +19,18 @@ import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
 
+import core.thread;
+
 import std.array;
 import std.file;
 import std.path;
 import std.string;
 import std.conv;
+import std.datetime;
 
 import org.eclipse.swt.all;
+
+import java.lang.all : Runnable;
 
 public:
 
@@ -323,12 +328,62 @@ public:
 		refreshPaths();
 	}
 	static if (Type == MtType.BGM || Type == MtType.SE) {
-		private Button _bgmBtn;
+		private Button _bgmBtn = null;
 	}
 	static if (Type == MtType.BGM) {
-		private MenuItem _bgmMenu;
-		private ToolItem _bgmTMenu;
+		private MenuItem _bgmMenu = null;
+		private ToolItem _bgmTMenu = null;
 		string _playing = null;
+		private Scale _playBar = null;
+		private CLabel _playLabel = null;
+		private core.thread.Thread _playThr = null;
+		private UpdatePlayBar _updatePlayBar = null;
+		private Display _display = null;
+		Scale createPlayingBar(Composite parent) { mixin(S_TRACE);
+			_playBar = new Scale(parent, SWT.HORIZONTAL);
+			initPlayBar();
+			.listener(_playBar, SWT.Dispose, { mixin(S_TRACE);
+				if (_playThr) { mixin(S_TRACE);
+					_playing = null;
+					_playThr.join();
+					_playThr = null;
+				}
+			});
+			// TODO: 設定用のインタフェースを作る
+			.listener(_playBar, SWT.Selection, { mixin(S_TRACE);
+				if (!_updatePlayBar) return;
+				auto pos = _playBar.getSelection();
+				.bgmPos = pos * 1000;
+				_updatePlayBar.putPos(pos);
+			});
+			return _playBar;
+		}
+		private void initPlayBar() { mixin(S_TRACE);
+			if (!_playBar) return;
+			_playBar.setMinimum(0);
+			_playBar.setMaximum(1);
+			_playBar.setSelection(0);
+			_playBar.setIncrement(1);
+			_playBar.setPageIncrement(1);
+			_playBar.setEnabled(false);
+		}
+		CLabel createPlayingLabel(Composite parent, int style = SWT.NONE) { mixin(S_TRACE);
+			_playLabel = new CLabel(parent, style);
+			initPlayLabel();
+			.listener(_playLabel, SWT.Dispose, { mixin(S_TRACE);
+				if (_playThr) { mixin(S_TRACE);
+					_playing = null;
+					_playThr.join();
+					_playThr = null;
+				}
+			});
+			return _playLabel;
+		}
+		private void initPlayLabel() { mixin(S_TRACE);
+			if (!_playLabel) return;
+			_playLabel.setImage(_prop.images.emptyIcon);
+			_playLabel.setText("00:00 / 00:00");
+		}
 		void createPlayToolItem(ToolBar bar) { mixin(S_TRACE);
 			_bgmTMenu = createToolItem(_comm, bar, MenuID.PlayBGM, &playBGM, &canPlay, SWT.CHECK);
 			auto data = cast(MenuData) _bgmTMenu.getData();
@@ -372,6 +427,28 @@ public:
 						_bgmBtn.setImage(_prop.images.menu(MenuID.StopBGM));
 						_bgmBtn.setSelection(true);
 					}
+					if (_playBar || _playLabel) { mixin(S_TRACE);
+						if (!_updatePlayBar) { mixin(S_TRACE);
+							_updatePlayBar = new UpdatePlayBar;
+						}
+						if (!_display) { mixin(S_TRACE);
+							_display = _playBar ? _playBar.getDisplay() : _playLabel.getDisplay();
+						}
+						_updatePlayBar.len = cast(int)(.bgmLen / 1000.0);
+						if (_updatePlayBar.len <= 0) { mixin(S_TRACE);
+							if (_playLabel) { mixin(S_TRACE);
+								_playLabel.setImage(_prop.images.warning);
+								_playLabel.setText(_prop.msgs.canNotGetMusicLength);
+							}
+						} else { mixin(S_TRACE);
+							if (_playBar) { mixin(S_TRACE);
+								_playBar.setMaximum(_updatePlayBar.len);
+								_playBar.setSelection(cast(int)(.bgmPos / 1000.0));
+							}
+							_playThr = new core.thread.Thread(&playThr);
+							_playThr.start();
+						}
+					}
 					return;
 				}
 			}
@@ -392,8 +469,14 @@ public:
 				_bgmBtn.setImage(_prop.images.menu(MenuID.PlayBGM));
 				_bgmBtn.setSelection(false);
 			}
-			.stopBGM();
 			_playing = null;
+			if (_playThr) { mixin(S_TRACE);
+				_playThr.join();
+				_playThr = null;
+			}
+			initPlayBar();
+			initPlayLabel();
+			.stopBGM();
 		}
 		private class Play : SelectionAdapter, KeyListener, MouseListener {
 			override void mouseUp(MouseEvent e) {}
@@ -411,6 +494,43 @@ public:
 			}
 			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 				playBGM();
+			}
+		}
+		private void playThr() { mixin(S_TRACE);
+			SysTime last = SysTime.min;
+			while (_playing) { mixin(S_TRACE);
+				auto cur = Clock.currTime();
+				if (cur < last || (last + dur!"msecs"(100)) <= cur) { mixin(S_TRACE);
+					last = cur;
+					_display.asyncExec(_updatePlayBar);
+				}
+				core.thread.Thread.sleep(dur!"msecs"(16));
+			}
+		}
+		private class UpdatePlayBar : Runnable {
+			int len = 0;
+			override void run() { mixin(S_TRACE);
+				if (_display.isDisposed()) return;
+				auto pos = cast(int)(.bgmPos / 1000.0);
+				putPos(pos);
+			}
+			void putPos(int pos) { mixin(S_TRACE);
+				if (_playBar && !_playBar.isDisposed()) { mixin(S_TRACE);
+					_playBar.setSelection(pos);
+				}
+				if (_playLabel && !_playLabel.isDisposed()) { mixin(S_TRACE);
+					auto hour = pos / 3600;
+					auto minute = pos % 3600 / 60;
+					auto second = pos % 60;
+					auto lHour = len / 3600;
+					auto lMinute = len % 3600 / 60;
+					auto lSecond = len % 60;
+					if (0 < lHour) { mixin(S_TRACE);
+						_playLabel.setText(std.string.format("%02d:%02d:%02d / %02d:%02d:%02d", hour, minute, second, lHour, lMinute, lSecond));
+					} else { mixin(S_TRACE);
+						_playLabel.setText(std.string.format("%02d:%02d / %02d:%02d", minute, second, lMinute, lSecond));
+					}
+				}
 			}
 		}
 	} else static if (Type == MtType.SE) {
@@ -475,20 +595,26 @@ public:
 		} else { mixin(S_TRACE);
 			refBtn.setToolTipText(_prop.msgs.menuText(MenuID.Refresh));
 		}
-		refBtn.addSelectionListener(new RSListener);
+		.listener(refBtn, SWT.Selection, &doRefresh);
 		return refBtn;
 	}
 	Button createDirectoryButton(Composite parent, bool text) { mixin(S_TRACE);
 		_dirBtn = new Button(parent, SWT.PUSH);
 		_dirBtn.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 		_dirBtn.setImage(_prop.images.folder);
-		_dirBtn.addSelectionListener(new DSListener);
+		.listener(_dirBtn, SWT.Selection, &doDirectory);
 		if (text) { mixin(S_TRACE);
 			_dirBtn.setText(_prop.msgs.menuText(MenuID.OpenDir));
 		} else { mixin(S_TRACE);
 			_dirBtn.setToolTipText(_prop.msgs.menuText(MenuID.OpenDir));
 		}
 		return _dirBtn;
+	}
+	ToolItem createRefreshToolItem(ToolBar bar) { mixin(S_TRACE);
+		return createToolItem(_comm, bar, MenuID.Refresh, &doRefresh, null);
+	}
+	ToolItem createDirectoryToolItem(ToolBar bar) { mixin(S_TRACE);
+		return createToolItem(_comm, bar, MenuID.OpenDir, &doDirectory, null);
 	}
 	@property
 	string path() { mixin(S_TRACE);
@@ -696,27 +822,23 @@ private:
 		@property Image image() {return _prop.images.se;}
 	} else static assert (0);
 
-	class RSListener : SelectionAdapter {
-		public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			refreshPaths(null, true);
-			if (_refresh) _refresh();
-		}
+	private void doRefresh() { mixin(S_TRACE);
+		refreshPaths(null, true);
+		if (_refresh) _refresh();
 	}
-	class DSListener : SelectionAdapter {
-		public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
-				openFolder(defDir);
-			} else if (_summ) { mixin(S_TRACE);
-				string cur = currentDir;
-				if (cur) { mixin(S_TRACE);
-					openFolder(std.path.buildPath(_summ.scenarioPath, cur));
+	private void doDirectory() { mixin(S_TRACE);
+		if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
+			openFolder(defDir);
+		} else if (_summ) { mixin(S_TRACE);
+			string cur = currentDir;
+			if (cur) { mixin(S_TRACE);
+				openFolder(std.path.buildPath(_summ.scenarioPath, cur));
+			} else { mixin(S_TRACE);
+				scope p = std.path.buildPath(_summ.scenarioPath, summSkin.materialPath);
+				if (exists(p)) { mixin(S_TRACE);
+					openFolder(p);
 				} else { mixin(S_TRACE);
-					scope p = std.path.buildPath(_summ.scenarioPath, summSkin.materialPath);
-					if (exists(p)) { mixin(S_TRACE);
-						openFolder(p);
-					} else { mixin(S_TRACE);
-						openFolder(_summ.scenarioPath);
-					}
+					openFolder(_summ.scenarioPath);
 				}
 			}
 		}

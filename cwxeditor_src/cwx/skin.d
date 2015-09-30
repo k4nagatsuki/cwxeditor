@@ -1158,7 +1158,7 @@ class Skin {
 	/// バトルを作成した際、最初に設定されているBGMの名前。
 	@property
 	const
-	string defBattle(string sPath) { return findPath("DefBattle.mid", extBgm, bgmDir, sPath); }
+	string defBattle(string sPath) { return findPath("DefBattle.mid", extBgm, bgmDir, sPath).baseName(); }
 
 	/// 指定されたパスを元に、まずシナリオのディレクトリを、
 	/// 無ければ本体付属のディレクトリを検索し、見つかったパスを返す。

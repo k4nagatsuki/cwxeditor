@@ -2435,10 +2435,10 @@ bool playBGMCW(Props prop, string path, bool legacy) { mixin(S_TRACE);
     version (Windows) {} else {immutable SOUND_TYPE_MCI = -1;}
 	int playType = prop.var.etc.soundPlayType;
 	switch (playType) {
-	case SOUND_TYPE_SDL: playBGM(path, SOUND_TYPE_SDL); return true;
+	case SOUND_TYPE_SDL: playBGM(path, SOUND_TYPE_SDL, !legacy); return true;
 	case SOUND_TYPE_MCI:
 		version (Windows) {
-			playBGM(path, SOUND_TYPE_MCI);
+			playBGM(path, SOUND_TYPE_MCI, !legacy);
 			return true;
 		} else { mixin(S_TRACE);
 			goto default;
@@ -2456,8 +2456,13 @@ bool playBGMCW(Props prop, string path, bool legacy) { mixin(S_TRACE);
 			}
 		} else { mixin(S_TRACE);
 			type = SOUND_TYPE_SDL;
+			version (Windows) {
+				if (.canPlayBass(path)) { mixin(S_TRACE);
+					type = SOUND_TYPE_BASS;
+				}
+			}
 		}
-		playBGM(path, type);
+		playBGM(path, type, !legacy);
 		return true;
 	}
 }

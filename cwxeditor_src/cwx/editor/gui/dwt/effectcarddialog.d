@@ -57,11 +57,6 @@ private:
 	FixedWidthText _desc;
 	GBLimitText _name;
 	Button _needSpell;
-	// TODO: 麻痺の無視
-	//static if (is(C:BeastCard)) {
-	//	Button _noBind;
-	//	Button _noParalyze;
-	//}
 	Button[EffectType] _effTyp;
 	Button[Resist] _res;
 	Button[Physical] _phy;
@@ -246,11 +241,6 @@ private:
 					return check;
 				}
 				_needSpell = createCheck(_prop.msgs.needSpell, !_readOnly);
-				// TODO: 麻痺の無視
-				//static if (is(C:BeastCard)) {
-				//	_noBind = createCheck(_prop.msgs.noBind, !_readOnly && !_summ.legacy);
-				//	_noParalyze = createCheck(_prop.msgs.noParalyze, !_readOnly && !_summ.legacy);
-				//}
 			}
 			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
@@ -779,11 +769,6 @@ private:
 	void refDataVersion() { mixin(S_TRACE);
 		refreshWarning();
 		setKeyCodesEnabled();
-		// TODO: 麻痺の無視
-		//static if (is(C:BeastCard)) {
-		//	_noBind.setEnabled(!_readOnly && !_summ.legacy);
-		//	_noParalyze.setEnabled(!_readOnly && !_summ.legacy);
-		//}
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
@@ -918,11 +903,6 @@ protected:
 			_author.setText(_card.author);
 			_name.setText(_card.name);
 			_needSpell.setSelection(_card.spell);
-			// TODO: 麻痺の無視
-			//static if (is(C:BeastCard)) {
-			//	_noBind.setSelection(!_card.ignoreBind);
-			//	_noParalyze.setSelection(!_card.ignoreParalyze);
-			//}
 			_effTyp[_card.effectType].setSelection(true);
 			_res[_card.resist].setSelection(true);
 			_phy[_card.physical].setSelection(true);
@@ -984,11 +964,6 @@ protected:
 			_imgPath.image = "";
 			_scenario.setText(_summ.scenarioName);
 			_author.setText(_summ.author);
-			// TODO: 麻痺の無視
-			//static if (is(C:BeastCard)) {
-			//	_noBind.setSelection(false);
-			//	_noParalyze.setSelection(true);
-			//}
 			_effTyp[EffectType.PHYSIC].setSelection(true);
 			_res[Resist.AVOID].setSelection(true);
 			_phy[Physical.DEX].setSelection(true);
@@ -1045,11 +1020,6 @@ protected:
 				_imgPath.image, wrapReturnCode(_desc.getText()));
 		}
 		_card.spell = _needSpell.getSelection();
-		// TODO: 麻痺の無視
-		//static if (is(C:BeastCard)) {
-		//	_card.ignoreBind = !_noBind.getSelection();
-		//	_card.ignoreParalyze = !_noParalyze.getSelection();
-		//}
 		putRadioValue!(EffectType)(_effTyp, &_card.effectType);
 		putRadioValue!(Resist)(_res, &_card.resist);
 		putRadioValue!(Physical)(_phy, &_card.physical);
