@@ -828,8 +828,8 @@ private void getLoopInfo(string file, bool midi, HSTREAM stream, out ptrdiff_t l
 	} else {
 		sampToBytes *= 2;
 	}
-	long posToBytes(long pos) { mixin(S_TRACE);
-		return cast(long)((pos / sampPerBytes) * sampToBytes);
+	ptrdiff_t posToBytes(ptrdiff_t pos) { mixin(S_TRACE);
+		return cast(ptrdiff_t)((pos / sampPerBytes) * sampToBytes);
 	}
 
 	// 吉里吉里形式(*.sliファイル)によってループ位置を指定する
@@ -849,9 +849,9 @@ private void getLoopInfo(string file, bool midi, HSTREAM stream, out ptrdiff_t l
 				auto keyValue = sec.split("=");
 				if (keyValue.length < 2) continue;
 				if (keyValue[0].strip() == "From") { mixin(S_TRACE);
-					loopEnd = posToBytes(keyValue[1].to!long());
+					loopEnd = posToBytes(keyValue[1].to!ptrdiff_t());
 				} else if (keyValue[0].strip() == "To") { mixin(S_TRACE);
-					loopStart = posToBytes(keyValue[1].to!long());
+					loopStart = posToBytes(keyValue[1].to!ptrdiff_t());
 				}
 			}
 			if (0 <= loopStart) return;
@@ -877,14 +877,14 @@ private void getLoopInfo(string file, bool midi, HSTREAM stream, out ptrdiff_t l
 	// RPGツクールVXのOgg Vorbisコメント埋め込み形式によってループ位置を指定する
 	auto comments = getSymbol!(BASS_ChannelGetTags)(bass, "BASS_ChannelGetTags")(stream, BASS_TAG_OGG);
 	if (comments) { mixin(S_TRACE);
-		long loopLength = -1;
+		ptrdiff_t loopLength = -1;
 		while (*comments) { mixin(S_TRACE);
 			auto comment = fromStringz(comments);
 			auto keyValue = comment.split("=");
 			if (keyValue[0].strip() == "LOOPSTART") { mixin(S_TRACE);
-				loopStart = keyValue[1].to!long();
+				loopStart = keyValue[1].to!ptrdiff_t();
 			} else if (keyValue[0].strip() == "LOOPLENGTH") { mixin(S_TRACE);
-				loopLength = keyValue[1].to!long();
+				loopLength = keyValue[1].to!ptrdiff_t();
 			}
 			comments += comment.length + 1;
 		}
