@@ -866,7 +866,7 @@ private void getLoopInfo(string file, bool midi, HSTREAM stream, out ptrdiff_t l
 			auto events = new BASS_MIDI_EVENT[count];
 			count = BASS_MIDI_StreamGetEvents(stream, -1, MIDI_EVENT_CONTROL, events.ptr);
 			foreach (i; 0 .. count) { mixin(S_TRACE);
-				if (events[i].param == 111) { mixin(S_TRACE);
+				if ((events[i].param & 0xFF) == 111) { mixin(S_TRACE);
 					loopStart = events[i].pos;
 					loopEnd = -1;
 				}
