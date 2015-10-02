@@ -18,6 +18,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.timebar;
 
 import core.thread;
 
@@ -334,13 +335,12 @@ public:
 		private MenuItem _bgmMenu = null;
 		private ToolItem _bgmTMenu = null;
 		string _playing = null;
-		private Scale _playBar = null;
-		private CLabel _playLabel = null;
+		private TimeBar _playBar = null;
 		private core.thread.Thread _playThr = null;
 		private UpdatePlayBar _updatePlayBar = null;
 		private Display _display = null;
-		Scale createPlayingBar(Composite parent) { mixin(S_TRACE);
-			_playBar = new Scale(parent, SWT.HORIZONTAL);
+		TimeBar createPlayingBar(Composite parent) { mixin(S_TRACE);
+			_playBar = new TimeBar(parent, SWT.NONE);
 			initPlayBar();
 			.listener(_playBar, SWT.Dispose, { mixin(S_TRACE);
 				if (_playThr) { mixin(S_TRACE);
@@ -349,40 +349,19 @@ public:
 					_playThr = null;
 				}
 			});
-			// TODO: 設定用のインタフェースを作る
-			.listener(_playBar, SWT.Selection, { mixin(S_TRACE);
+			_playBar.updateCurrentEvent ~= { mixin(S_TRACE);
 				if (!_updatePlayBar) return;
-				auto pos = _playBar.getSelection();
+				auto pos = _playBar.current.total!"seconds";
 				.bgmPos = pos * 1000;
 				_updatePlayBar.putPos(pos);
-			});
+			};
 			return _playBar;
 		}
 		private void initPlayBar() { mixin(S_TRACE);
 			if (!_playBar) return;
-			_playBar.setMinimum(0);
-			_playBar.setMaximum(1);
-			_playBar.setSelection(0);
-			_playBar.setIncrement(1);
-			_playBar.setPageIncrement(1);
+			_playBar.current = dur!"msecs"(0);
+			_playBar.length = dur!"msecs"(0);
 			_playBar.setEnabled(false);
-		}
-		CLabel createPlayingLabel(Composite parent, int style = SWT.NONE) { mixin(S_TRACE);
-			_playLabel = new CLabel(parent, style);
-			initPlayLabel();
-			.listener(_playLabel, SWT.Dispose, { mixin(S_TRACE);
-				if (_playThr) { mixin(S_TRACE);
-					_playing = null;
-					_playThr.join();
-					_playThr = null;
-				}
-			});
-			return _playLabel;
-		}
-		private void initPlayLabel() { mixin(S_TRACE);
-			if (!_playLabel) return;
-			_playLabel.setImage(_prop.images.emptyIcon);
-			_playLabel.setText("00:00 / 00:00");
 		}
 		void createPlayToolItem(ToolBar bar) { mixin(S_TRACE);
 			_bgmTMenu = createToolItem(_comm, bar, MenuID.PlayBGM, &playBGM, &canPlay, SWT.CHECK);
@@ -406,7 +385,7 @@ public:
 		void playBGM() { mixin(S_TRACE);
 			string p = filePath;
 			if (p.length > 0 && (!_playing || !cfnmatch(nabs(p), nabs(_playing)))) { mixin(S_TRACE);
-				bool inPlay = playBGMCW(_prop, p, _summ.legacy);
+				bool inPlay = playBGMCW(_prop, p, _comm.skin.legacy);
 				if (inPlay) { mixin(S_TRACE);
 					_playing = p;
 					auto relPath = .encodePath(this.path);
@@ -427,24 +406,21 @@ public:
 						_bgmBtn.setImage(_prop.images.menu(MenuID.StopBGM));
 						_bgmBtn.setSelection(true);
 					}
-					if (_playBar || _playLabel) { mixin(S_TRACE);
+					if (_playBar) { mixin(S_TRACE);
 						if (!_updatePlayBar) { mixin(S_TRACE);
 							_updatePlayBar = new UpdatePlayBar;
 						}
 						if (!_display) { mixin(S_TRACE);
-							_display = _playBar ? _playBar.getDisplay() : _playLabel.getDisplay();
+							_display = _playBar.getDisplay();
 						}
 						_updatePlayBar.len = cast(int)(.bgmLen / 1000.0);
 						if (_updatePlayBar.len <= 0) { mixin(S_TRACE);
-							if (_playLabel) { mixin(S_TRACE);
-								_playLabel.setImage(_prop.images.warning);
-								_playLabel.setText(_prop.msgs.canNotGetMusicLength);
-							}
+							_playBar.setWarning(_prop.images.warning, _prop.msgs.canNotGetMusicLength);
 						} else { mixin(S_TRACE);
-							if (_playBar) { mixin(S_TRACE);
-								_playBar.setMaximum(_updatePlayBar.len);
-								_playBar.setSelection(cast(int)(.bgmPos / 1000.0));
-							}
+							_playBar.clearWarning();
+							_playBar.length = dur!"seconds"(_updatePlayBar.len);
+							_playBar.current = dur!"seconds"(cast(int)(.bgmPos / 1000.0));
+							_playBar.setEnabled(true);
 							_playThr = new core.thread.Thread(&playThr);
 							_playThr.start();
 						}
@@ -475,7 +451,6 @@ public:
 				_playThr = null;
 			}
 			initPlayBar();
-			initPlayLabel();
 			.stopBGM();
 		}
 		private class Play : SelectionAdapter, KeyListener, MouseListener {
@@ -514,22 +489,9 @@ public:
 				auto pos = cast(int)(.bgmPos / 1000.0);
 				putPos(pos);
 			}
-			void putPos(int pos) { mixin(S_TRACE);
+			void putPos(long pos) { mixin(S_TRACE);
 				if (_playBar && !_playBar.isDisposed()) { mixin(S_TRACE);
-					_playBar.setSelection(pos);
-				}
-				if (_playLabel && !_playLabel.isDisposed()) { mixin(S_TRACE);
-					auto hour = pos / 3600;
-					auto minute = pos % 3600 / 60;
-					auto second = pos % 60;
-					auto lHour = len / 3600;
-					auto lMinute = len % 3600 / 60;
-					auto lSecond = len % 60;
-					if (0 < lHour) { mixin(S_TRACE);
-						_playLabel.setText(std.string.format("%02d:%02d:%02d / %02d:%02d:%02d", hour, minute, second, lHour, lMinute, lSecond));
-					} else { mixin(S_TRACE);
-						_playLabel.setText(std.string.format("%02d:%02d / %02d:%02d", minute, second, lMinute, lSecond));
-					}
+					_playBar.current = dur!"seconds"(pos);
 				}
 			}
 		}

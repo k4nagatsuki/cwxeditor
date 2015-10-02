@@ -694,6 +694,7 @@ MenuItem findMenu(Shell shell, int keyCode, wchar character, int stateMask) { mi
 }
 /// ditto
 MenuItem findMenu(Menu menu, int keyCode, wchar character, int stateMask) { mixin(S_TRACE);
+	if (!menu) return null;
 	foreach (itm; menu.getItems()) { mixin(S_TRACE);
 		if (!menuEnabled(itm)) continue;
 		if (eqAcc(convertAccelerator(itm.getText()), keyCode, character, stateMask)) { mixin(S_TRACE);

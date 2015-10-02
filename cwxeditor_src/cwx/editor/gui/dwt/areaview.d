@@ -2459,8 +2459,6 @@ private:
 
 			auto pBar = _bgm.createPlayingBar(comp);
 			pBar.setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
-			auto pL = _bgm.createPlayingLabel(comp, SWT.RIGHT);
-			pL.setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
 
 			_bgm.path = _area.music;
 			return comp;

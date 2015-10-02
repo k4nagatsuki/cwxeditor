@@ -932,7 +932,6 @@ protected:
 			list.setLayoutData(gd);
 
 			_msel.createPlayingBar(comp).setLayoutData(h4GD(GridData.FILL_HORIZONTAL));
-			_msel.createPlayingLabel(comp, SWT.RIGHT).setLayoutData(h4GD(GridData.FILL_HORIZONTAL));
 		}
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
