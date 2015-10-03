@@ -702,26 +702,29 @@ private:
 			MaterialSelect!(MtType.SE, Combo, Combo) createSE(string title) { mixin(S_TRACE);
 				auto comp = new Composite(grp, SWT.NONE);
 				comp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				comp.setLayout(zeroMarginGridLayout(2, true));
-
-				auto l = new CLabel(comp, SWT.NONE);
-				auto gdl = new GridData(GridData.FILL_HORIZONTAL);
-				gdl.horizontalSpan = 2;
-				l.setLayoutData(gdl);
-				l.setImage(_prop.images.sound);
-				l.setText(title);
+				comp.setLayout(zeroMarginGridLayout(3, false));
 
 				auto se = new MaterialSelect!(MtType.SE, Combo, Combo)(_comm, _prop, _summ, _readOnly != 0, null, [_prop.msgs.defaultSelection(_prop.msgs.soundNone)]);
 				mod(se);
 				se.modEvent ~= &refreshWarning;
-				auto gddc = new GridData(GridData.FILL_HORIZONTAL);
-				gddc.horizontalSpan = 2;
-				se.createDirsCombo(comp).setLayoutData(gddc);
+
+				auto l = new CLabel(comp, SWT.NONE);
+				auto gdl = new GridData(GridData.FILL_HORIZONTAL);
+				gdl.horizontalSpan = 3;
+				l.setLayoutData(gdl);
+				l.setImage(_prop.images.sound);
+				l.setText(title);
+
+				se.createDirsCombo(comp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				se.createStopButton(comp);
+				se.createPlayButton(comp);
+
 				auto gdfl = new GridData(GridData.FILL_HORIZONTAL);
-				gdfl.horizontalSpan = 2;
+				gdfl.horizontalSpan = 3;
 				se.createFileList(comp).setLayoutData(gdfl);
-				se.createStopButton(comp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				se.createPlayButton(comp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				auto ogd = new GridData(GridData.FILL_HORIZONTAL);
+				ogd.horizontalSpan = 3;
+				se.createPlayingOptions(comp, true).setLayoutData(ogd);
 				return se;
 			}
 			_se1 = createSE(_prop.msgs.se1);
@@ -952,7 +955,11 @@ protected:
 				return baseName(skin.findPath(baseName(path), skin.extSound, skin.seDir, ""));
 			}
 			_se1.path = _card.soundPath1;
+			_se1.volume = _card.volume1;
+			_se1.loopCount = _card.loopCount1;
 			_se2.path = _card.soundPath2;
+			_se2.volume = _card.volume2;
+			_se2.loopCount = _card.loopCount2;
 			foreach (i, kc; _card.keyCodes) { mixin(S_TRACE);
 				_keyCodes[i].setText(kc);
 				if (!contains(_keyCodes[i].getItems(), kc)) { mixin(S_TRACE);
@@ -1063,7 +1070,11 @@ protected:
 		putRadioValue!(Premium)(_prem, &_card.premium);
 		_card.successRate = cast(int) _sucRate.getSelection() - Content.successRate_max;
 		_card.soundPath1 = _se1.path;
+		_card.volume1 = _se1.volume;
+		_card.loopCount1 = _se1.loopCount;
 		_card.soundPath2 = _se2.path;
+		_card.volume2 = _se2.volume;
+		_card.loopCount2 = _se2.loopCount;
 		string[] keyCodes;
 		size_t last = 0;
 		foreach (i, c; _keyCodes) { mixin(S_TRACE);

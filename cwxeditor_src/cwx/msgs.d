@@ -774,9 +774,9 @@ class Msgs : Properties {
 	auto mp3LoopMayNotCorrespond = Msg("mp3LoopMayNotCorrespond", "MP3はプレイヤーの環境によってループ再生されない事があります。");
 
 	auto playingOption = Msg("playingOption", "再生オプション"); // Wsn.1
-	auto playingVolume = Msg("playingVolume", "音量:"); // Wsn.1
+	auto playingVolume = Msg("playingVolume", "音量"); // Wsn.1
 	auto playingVolumePer = Msg("playingVolumePer", "%"); // Wsn.1
-	auto loopCount = Msg("loopCount", "ループ回数:"); // Wsn.1
+	auto loopCount = Msg("loopCount", "ループ回数"); // Wsn.1
 	auto loopCountHint = Msg("loopCountHint", "(0 = ∞)"); // Wsn.1
 
 	/// メインウィンドウ。

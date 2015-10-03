@@ -827,19 +827,15 @@ public:
 		pNode.newElement("Name", name);
 	}
 	/// 指定されたノードからProperty情報を読み出す。
-	protected static void loadProp(ref XNode aNode, out ulong id, out string name, out string path) { mixin(S_TRACE);
+	protected static void loadProp(ref XNode aNode, out ulong id, out string name) { mixin(S_TRACE);
 		string idStr = null;
 		name = null;
-		path = "";
 		aNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 			pNode.onTag["Id"] = (ref XNode n) { mixin(S_TRACE);
 				idStr = n.value;
 			};
 			pNode.onTag["Name"] = (ref XNode n) { mixin(S_TRACE);
 				name = n.value;
-			};
-			pNode.onTag["MusicPath"] = (ref XNode n) { mixin(S_TRACE);
-				path = decodePath(n.value);
 			};
 			pNode.parse();
 		};
@@ -1110,7 +1106,6 @@ public:
 		BgImage[] bgImgs;
 		MenuCard[] cards;
 		EventTree[] evt;
-		string path;
 		aNode.onTag["MenuCards"] = (ref XNode n) { mixin(S_TRACE);
 			spAuto = n.attr("spreadtype", true) == "Auto";
 			n.onTag["MenuCard"] = (ref XNode mcn) { mixin(S_TRACE);
@@ -1124,7 +1119,7 @@ public:
 		aNode.onTag["Events"] = (ref XNode n) { mixin(S_TRACE);
 			evt = loadEventsFromNode(n, ver);
 		};
-		loadProp(aNode, id, name, path);
+		loadProp(aNode, id, name);
 
 		auto r = new Area(id, name);
 		r.spAuto = spAuto;
@@ -1351,12 +1346,11 @@ public:
 		if (aNode.name != "Package") throw new AreaException("Node is not package: " ~ aNode.name);
 		ulong id;
 		string name;
-		string path;
 		EventTree[] evt;
 		aNode.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
 			evt = loadEventsFromNode(node, ver);
 		};
-		loadProp(aNode, id, name, path);
+		loadProp(aNode, id, name);
 		auto r = new Package(id, name);
 		r.addAll(evt);
 
@@ -1383,6 +1377,8 @@ private:
 	EnemyCard[] _cards;
 	bool _auto;
 	PathUser _music;
+	uint _volume = 100;
+	uint _loopCount = 0;
 public:
 	static immutable XML_NAME = "Battle";
 	alias toBattleId toID;
@@ -1454,6 +1450,26 @@ public:
 	string music() { mixin(S_TRACE);
 		return _music.path;
 	}
+	/// BGMの音量(%)。
+	@property
+	void volume(uint volume) { mixin(S_TRACE);
+		if (_volume != volume) changed();
+		_volume = volume;
+	}
+	/// ditto
+	@property
+	const
+	uint volume() { return _volume; }
+	/// BGMのループ回数。0で無限ループ。
+	@property
+	void loopCount(uint loopCount) { mixin(S_TRACE);
+		if (_loopCount != loopCount) changed();
+		_loopCount = loopCount;
+	}
+	/// ditto
+	@property
+	const
+	uint loopCount() { return _loopCount; }
 
 	/// エネミーカードを追加する。
 	void append(EnemyCard card) { mixin(S_TRACE);
@@ -1544,7 +1560,9 @@ public:
 	override void toNodeImpl(ref XNode e, XMLOption opt, string parentPath = "", string cutPath = "") { mixin(S_TRACE);
 		auto pe = e.newElement("Property");
 		appendProp(pe, opt, parentPath, cutPath);
-		pe.newElement("MusicPath", encodePath(_music.path));
+		auto me = pe.newElement("MusicPath", encodePath(_music.path));
+		if (volume != 100) me.newAttr("volume", volume);
+		if (loopCount != 1) me.newAttr("loopcount", loopCount);
 	
 		auto ce = e.newElement("EnemyCards");
 		ce.newAttr("spreadtype", _auto ? "Auto" : "Custom");
@@ -1583,6 +1601,8 @@ public:
 		string name;
 		string music;
 		bool spAuto;
+		uint volume = 100;
+		uint loopCount = 0;
 		EnemyCard[] cards;
 		EventTree[] evt;
 		aNode.onTag["EnemyCards"] = (ref XNode node) { mixin(S_TRACE);
@@ -1595,11 +1615,34 @@ public:
 		aNode.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
 			evt = loadEventsFromNode(node, ver);
 		};
-		loadProp(aNode, id, name, music);
+
+		string idStr = null;
+		aNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
+			pNode.onTag["Id"] = (ref XNode n) { mixin(S_TRACE);
+				idStr = n.value;
+			};
+			pNode.onTag["Name"] = (ref XNode n) { mixin(S_TRACE);
+				name = n.value;
+			};
+			pNode.onTag["MusicPath"] = (ref XNode n) { mixin(S_TRACE);
+				music = decodePath(n.value);
+				volume = n.attr!uint("volume", false, 100);
+				loopCount = n.attr!uint("loopcount", false, 0);
+			};
+			pNode.parse();
+		};
+		if (idStr is null) throw new AreaException("Id not found");
+		if (name is null) throw new AreaException("Name not found");
+		aNode.parse();
+
+		id = to!(ulong)(idStr);
+
 		auto r = new Battle(id, name, music);
 		r.addAll(evt);
 		foreach (c; cards) r.append(c);
 		r.spAuto = spAuto;
+		r.volume = volume;
+		r.loopCount = loopCount;
 
 		return r;
 	}

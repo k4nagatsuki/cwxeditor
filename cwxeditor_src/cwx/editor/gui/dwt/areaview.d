@@ -325,21 +325,33 @@ private:
 		}
 		static class UndoMusic : AUndo {
 			private PathUser _path;
+			private uint _volume;
+			private uint _loopCount;
 			this (AbstractAreaView v, Commons comm, A area, Summary summ) { mixin(S_TRACE);
 				super (v, comm, area, summ);
 				_path = new PathUser(new MCWXPath);
 				if (summ) _path.setUseCounter(summ.useCounter.sub);
 				_path.path = area.music;
+				_volume = area.volume;
+				_loopCount = area.loopCount;
 			}
 			private void impl() { mixin(S_TRACE);
 				auto vs = views();
 				udb(vs);
 				scope (exit) uda(vs);
 				auto path = _path.path;
+				auto volume = _volume;
+				auto loopCount = _loopCount;
 				_path.path = area.music;
+				_volume = area.volume;
+				_loopCount = area.loopCount;
 				area.music = path;
+				area.volume = volume;
+				area.loopCount = loopCount;
 				foreach (v; vs) { mixin(S_TRACE);
 					v._bgm.path = path;
+					v._bgm.volume = volume;
+					v._bgm.loopCount = loopCount;
 					v.callModEvent();
 				}
 			}
@@ -682,9 +694,11 @@ private:
 		}
 		void selectBGM() { mixin(S_TRACE);
 			if (_readOnly) return;
-			if (_area.music == _bgm.path) return;
+			if (_area.music == _bgm.path && _area.volume == _bgm.volume && _area.loopCount == _bgm.loopCount) return;
 			_undo ~= new UndoMusic(this, _comm, _area, _summ);
 			_area.music = _bgm.path;
+			_area.volume = _bgm.volume;
+			_area.loopCount = _bgm.loopCount;
 			_comm.refUseCount.call();
 			callModEvent();
 			_comm.refreshToolBar();
@@ -692,6 +706,8 @@ private:
 				// 同期
 				if (v !is this) { mixin(S_TRACE);
 					v._bgm.path = _area.music;
+					v._bgm.volume = _area.volume;
+					v._bgm.loopCount = _area.loopCount;
 					v.callModEvent();
 				}
 			}
@@ -2452,15 +2468,15 @@ private:
 				return gd;
 			}
 
-			auto dirs = _bgm.createDirsCombo(comp);
-			dirs.setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
-			auto files = _bgm.createFileList(comp);
-			files.setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
+			_bgm.createDirsCombo(comp).setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
+			_bgm.createFileList(comp).setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
 
-			auto pBar = _bgm.createPlayingBar(comp);
-			pBar.setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
+			_bgm.createPlayingBar(comp).setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
+			_bgm.createPlayingOptions(comp, true).setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
 
 			_bgm.path = _area.music;
+			_bgm.volume = _area.volume;
+			_bgm.loopCount = _area.loopCount;
 			return comp;
 		}
 	}

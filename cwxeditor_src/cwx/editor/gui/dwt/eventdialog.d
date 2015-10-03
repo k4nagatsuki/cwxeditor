@@ -932,15 +932,22 @@ protected:
 			list.setLayoutData(gd);
 
 			_msel.createPlayingBar(comp).setLayoutData(h4GD(GridData.FILL_HORIZONTAL));
+			_msel.createPlayingOptions(comp).setLayoutData(h4GD(GridData.HORIZONTAL_ALIGN_END));
 		}
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		_msel.path = _evt ? _evt.bgmPath : "";
+		if (_evt) { mixin(S_TRACE);
+			_msel.volume = _evt.bgmVolume;
+			_msel.loopCount = _evt.bgmLoopCount;
+		}
 	}
 
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(CType.PLAY_BGM, "");
 		_evt.bgmPath = _msel.path;
+		_evt.bgmVolume = _msel.volume;
+		_evt.bgmLoopCount = _msel.loopCount;
 		return true;
 	}
 }
@@ -977,21 +984,33 @@ protected:
 			_msel.createRefreshButton(comp, false).setLayoutData(new GridData);
 			_msel.createDirectoryButton(comp, false).setLayoutData(new GridData);
 
-			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.horizontalSpan = 5;
+			auto h5GD(int style) {
+				auto gd = new GridData(style);
+				gd.horizontalSpan = 5;
+				return gd;
+			}
+			auto gd = h5GD(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.nameTableWidth;
 			gd.heightHint = _prop.var.etc.nameTableHeight;
 			auto list = _msel.createFileList(comp);
 			list.setLayoutData(gd);
+
+			_msel.createPlayingOptions(comp).setLayoutData(h5GD(GridData.HORIZONTAL_ALIGN_END));
 		}
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		_msel.path = _evt ? _evt.soundPath : "";
+		if (_evt) { mixin(S_TRACE);
+			_msel.volume = _evt.soundVolume;
+			_msel.loopCount = _evt.soundLoopCount;
+		}
 	}
 
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(CType.PLAY_SOUND, "");
 		_evt.soundPath = _msel.path;
+		_evt.soundVolume = _msel.volume;
+		_evt.soundLoopCount = _msel.loopCount;
 		return true;
 	}
 }
@@ -1234,6 +1253,9 @@ protected:
 					auto gdfl = new GridData(GridData.FILL_HORIZONTAL);
 					gdfl.horizontalSpan = 4;
 					_se.createFileList(grp).setLayoutData(gdfl);
+					auto ogd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+					ogd.horizontalSpan = 4;
+					_se.createPlayingOptions(grp).setLayoutData(ogd);
 				}
 				{ mixin(S_TRACE);
 					auto gd = new GridData(GridData.FILL_BOTH);
@@ -1250,6 +1272,8 @@ protected:
 			_mview.motions = _evt.motions;
 			_lev.setSelection(_evt.signedLevel);
 			_se.path = _evt.soundPath;
+			_se.volume = _evt.soundVolume;
+			_se.loopCount = _evt.soundLoopCount;
 			_sucRate.setSelection(_evt.successRate + Content.successRate_max);
 			_effTyp[_evt.effectType].setSelection(true);
 			_res[_evt.resist].setSelection(true);
@@ -1272,6 +1296,8 @@ protected:
 		_evt.motions = _mview.motions;
 		_evt.signedLevel = _lev.getSelection();
 		_evt.soundPath = _se.path;
+		_evt.soundVolume = _se.volume;
+		_evt.soundLoopCount = _se.loopCount;
 		_evt.successRate = cast(int) _sucRate.getSelection() - Content.successRate_max;
 		_evt.effectType = getRadioValue!(EffectType)(_effTyp);
 		_evt.resist = getRadioValue!(Resist)(_res);

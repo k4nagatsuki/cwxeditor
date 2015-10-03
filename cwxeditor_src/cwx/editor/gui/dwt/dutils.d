@@ -2431,14 +2431,16 @@ class StopSE : SelectionAdapter, DisposeListener {
 	}
 }
 
-bool playBGMCW(Props prop, string path, bool legacy) { mixin(S_TRACE);
+bool playBGMCW(Props prop, string path, uint volume, uint loopCount, bool legacy) { mixin(S_TRACE);
     version (Windows) {} else {immutable SOUND_TYPE_MCI = -1;}
+	.stopBGM();
 	int playType = prop.var.etc.soundPlayType;
+	.bgmVolume = (prop.var.etc.bgmVolume * volume) / 100;
 	switch (playType) {
-	case SOUND_TYPE_SDL: playBGM(path, SOUND_TYPE_SDL, !legacy); return true;
+	case SOUND_TYPE_SDL: playBGM(path, loopCount, SOUND_TYPE_SDL, !legacy); return true;
 	case SOUND_TYPE_MCI:
 		version (Windows) {
-			playBGM(path, SOUND_TYPE_MCI, !legacy);
+			playBGM(path, loopCount, SOUND_TYPE_MCI, !legacy);
 			return true;
 		} else { mixin(S_TRACE);
 			goto default;
@@ -2462,22 +2464,24 @@ bool playBGMCW(Props prop, string path, bool legacy) { mixin(S_TRACE);
 				}
 			}
 		}
-		playBGM(path, type, !legacy);
+		playBGM(path, loopCount, type, !legacy);
 		return true;
 	}
 }
 
-void playSECW(Props prop, string path, bool legacy) { mixin(S_TRACE);
+void playSECW(Props prop, string path, uint volume, uint loopCount, bool legacy) { mixin(S_TRACE);
     version (Windows) {} else {immutable SOUND_TYPE_MCI = -1;}
+	.stopSE();
 	int type = prop.var.etc.soundEffectPlayType;
 	if (SOUND_TYPE_SAME_BGM == type) { mixin(S_TRACE);
 		type = prop.var.etc.soundPlayType;
 	}
+	.seVolume = (prop.var.etc.seVolume * volume) / 100;
 	switch (type) {
-	case SOUND_TYPE_SDL: playSE(path, SOUND_TYPE_SDL); break;
+	case SOUND_TYPE_SDL: playSE(path, loopCount, SOUND_TYPE_SDL, !legacy); break;
 	case SOUND_TYPE_MCI:
 		version (Windows) {
-			playSE(path, SOUND_TYPE_MCI);
+			playSE(path, loopCount, SOUND_TYPE_MCI, !legacy);
 			break;
 		} else { mixin(S_TRACE);
 			goto default;
@@ -2485,17 +2489,13 @@ void playSECW(Props prop, string path, bool legacy) { mixin(S_TRACE);
 	case SOUND_TYPE_APP: Program.launch(path); break;
 	default:
 		// auto
-		if (legacy) { mixin(S_TRACE);
-			type = SOUND_TYPE_MCI;
-			version (Windows) {
-				if (.canPlayBass(path)) { mixin(S_TRACE);
-					type = SOUND_TYPE_BASS;
-				}
+		type = SOUND_TYPE_MCI;
+		version (Windows) {
+			if (.canPlayBass(path)) { mixin(S_TRACE);
+				type = SOUND_TYPE_BASS;
 			}
-		} else { mixin(S_TRACE);
-			type = SOUND_TYPE_SDL;
 		}
-		playSE(path, type);
+		playSE(path, loopCount, type, !legacy);
 		break;
 	}
 }

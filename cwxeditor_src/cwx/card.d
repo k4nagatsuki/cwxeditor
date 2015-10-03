@@ -1122,6 +1122,10 @@ private:
 	int[Enhance] _enh;
 	PathUser _se1;
 	PathUser _se2;
+	uint _volume1 = 100;
+	uint _volume2 = 100;
+	uint _loopCount1 = 1;
+	uint _loopCount2 = 1;
 	KeyCodeUser[] _keyCodes = [];
 	Premium _premi = Premium.NORMAL;
 	MotionUser _muser;
@@ -1192,7 +1196,11 @@ public:
 		enhance(Enhance.RESIST, c.enhance(Enhance.RESIST));
 		enhance(Enhance.DEFENSE, c.enhance(Enhance.DEFENSE));
 		soundPath1 = c.soundPath1;
+		volume1 = c.volume1;
+		loopCount1 = c.loopCount1;
 		soundPath2 = c.soundPath2;
+		volume2 = c.volume2;
+		loopCount2 = c.loopCount2;
 		keyCodes = c.keyCodes;
 		premium = c.premium;
 		Motion[] ms;
@@ -1227,7 +1235,11 @@ public:
 		enhance(Enhance.RESIST, 0);
 		enhance(Enhance.DEFENSE, 0);
 		soundPath1 = "";
+		volume1 = 100;
+		loopCount1 = 1;
 		soundPath2 = "";
+		volume2 = 100;
+		loopCount2 = 1;
 		keyCodes = [];
 		premium = Premium.NORMAL;
 		motions = [];
@@ -1268,7 +1280,11 @@ public:
 			&& enhance(Enhance.RESIST) == c.enhance(Enhance.RESIST)
 			&& enhance(Enhance.DEFENSE) == c.enhance(Enhance.DEFENSE)
 			&& soundPath1 == c.soundPath1
+			&& volume1 == c.volume1
+			&& loopCount1 == c.loopCount1
 			&& soundPath2 == c.soundPath2
+			&& volume2 == c.volume2
+			&& loopCount2 == c.loopCount2
 			&& keyCodes == c.keyCodes
 			&& premium == c.premium
 			&& motions == c.motions
@@ -1413,6 +1429,27 @@ public:
 		if (_se1.path != path) changed();
 		_se1.path = path;
 	}
+	/// 使用時サウンドの音量(%)。
+	@property
+	void volume1(uint volume1) { mixin(S_TRACE);
+		if (_volume1 != volume1) changed();
+		_volume1 = volume1;
+	}
+	/// ditto
+	@property
+	const
+	uint volume1() { return _volume1; }
+	/// 使用時サウンドのループ回数。0で無限ループ。
+	@property
+	void loopCount1(uint loopCount1) { mixin(S_TRACE);
+		if (_loopCount1 != loopCount1) changed();
+		_loopCount1 = loopCount1;
+	}
+	/// ditto
+	@property
+	const
+	uint loopCount1() { return _loopCount1; }
+
 	/// 命中時サウンド。
 	@property
 	const
@@ -1423,6 +1460,27 @@ public:
 		if (_se2.path != path) changed();
 		_se2.path = path;
 	}
+	/// 命中時サウンドの音量(%)。
+	@property
+	void volume2(uint volume2) { mixin(S_TRACE);
+		if (_volume2 != volume2) changed();
+		_volume2 = volume2;
+	}
+	/// ditto
+	@property
+	const
+	uint volume2() { return _volume2; }
+	/// 命中時サウンドのループ回数。0で無限ループ。
+	@property
+	void loopCount2(uint loopCount2) { mixin(S_TRACE);
+		if (_loopCount2 != loopCount2) changed();
+		_loopCount2 = loopCount2;
+	}
+	/// ditto
+	@property
+	const
+	uint loopCount2() { return _loopCount2; }
+
 	/// キーコード。
 	@property
 	const
@@ -1564,8 +1622,12 @@ public:
 		enh.newAttr("avoid", enhance(Enhance.AVOID));
 		enh.newAttr("resist", enhance(Enhance.RESIST));
 		enh.newAttr("defense", enhance(Enhance.DEFENSE));
-		pNode.newElement("SoundPath", encodePath(soundPath1));
-		pNode.newElement("SoundPath2", encodePath(soundPath2));
+		auto se1 = pNode.newElement("SoundPath", encodePath(soundPath1));
+		if (volume1 != 100) se1.newAttr("volume", volume1);
+		if (loopCount1 != 1) se1.newAttr("loopcount", loopCount1);
+		auto se2 = pNode.newElement("SoundPath2", encodePath(soundPath2));
+		if (volume2 != 100) se2.newAttr("volume", volume2);
+		if (loopCount2 != 1) se2.newAttr("loopcount", loopCount2);
 		pNode.newElement("KeyCodes", encodeLf(keyCodes, false));
 		pNode.newElement("Premium", fromPremium(premium));
 		auto mNode = node.newElement("Motions");
@@ -1601,8 +1663,16 @@ public:
 			_enh[Enhance.RESIST] = n.attr!(int)("resist", true);
 			_enh[Enhance.DEFENSE] = n.attr!(int)("defense", true);
 		};
-		pNode.onTag["SoundPath"] = (ref XNode n) {_se1.path = decodePath(n.value);};
-		pNode.onTag["SoundPath2"] = (ref XNode n) {_se2.path = decodePath(n.value);};
+		pNode.onTag["SoundPath"] = (ref XNode n) { mixin(S_TRACE);
+			_se1.path = decodePath(n.value);
+			_volume1 = n.attr!uint("volume", false, 100);
+			_loopCount1 = n.attr!uint("loopcount", false, 1);
+		};
+		pNode.onTag["SoundPath2"] = (ref XNode n) { mixin(S_TRACE);
+			_se2.path = decodePath(n.value);
+			_volume2 = n.attr!uint("volume", false, 100);
+			_loopCount2 = n.attr!uint("loopcount", false, 1);
+		};
 		pNode.onTag["KeyCodes"] = (ref XNode n) {keyCodes = decodeLf(n.value, true);};
 		pNode.onTag["Premium"] = (ref XNode n) {_premi = toPremium(n.value);};
 		loadProp(pNode, ver);

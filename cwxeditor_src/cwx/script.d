@@ -2683,8 +2683,20 @@ fi`;
 			if (detail.use(CArg.BGM_PATH)) { mixin(S_TRACE);
 				c.bgmPath = encodePath(parseAttr!(string)(opt, node.attr, i, decodePath(c.bgmPath), varTable, 0));
 			}
+			if (detail.use(CArg.BGM_VOLUME)) { mixin(S_TRACE);
+				c.bgmVolume = parseAttr!(int)(opt, node.attr, i, c.bgmVolume, varTable, 0);
+			}
+			if (detail.use(CArg.BGM_LOOP_COUNT)) { mixin(S_TRACE);
+				c.bgmLoopCount = parseAttr!(int)(opt, node.attr, i, c.bgmLoopCount, varTable, 0);
+			}
 			if (detail.use(CArg.SOUND_PATH)) { mixin(S_TRACE);
 				c.soundPath = encodePath(parseAttr!(string)(opt, node.attr, i, decodePath(c.soundPath), varTable, 0));
+			}
+			if (detail.use(CArg.SOUND_VOLUME)) { mixin(S_TRACE);
+				c.soundVolume = parseAttr!(int)(opt, node.attr, i, c.soundVolume, varTable, 0);
+			}
+			if (detail.use(CArg.SOUND_LOOP_COUNT)) { mixin(S_TRACE);
+				c.soundLoopCount = parseAttr!(int)(opt, node.attr, i, c.soundLoopCount, varTable, 0);
 			}
 			if (detail.use(CArg.TRANSITION_SPEED)) { mixin(S_TRACE);
 				c.transitionSpeed = parseAttr!(int)(opt, node.attr, i, c.transitionSpeed, varTable, 0);

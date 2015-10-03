@@ -1176,7 +1176,7 @@ private:
 	void playSavedSound() { mixin(S_TRACE);
 		string file = _prop.var.etc.savedSound;
 		if (file.length && .exists(file)) { mixin(S_TRACE);
-			playSE(file, SOUND_TYPE_SDL);
+			playSE(file, 1, SOUND_TYPE_MCI, true);
 		}
 	}
 	void saveScenario() { mixin(S_TRACE);

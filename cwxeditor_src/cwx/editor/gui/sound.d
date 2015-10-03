@@ -34,6 +34,8 @@ version (Windows) {
 } else {
 	private alias uint DWORD;
 }
+private immutable CWBGM = "cwbgm";
+private immutable CWSE = "cwse";
 
 version (Windows) {
 	import std.windows.charset;
@@ -47,17 +49,44 @@ version (Windows) {
 	private const __gshared MM_MCINOTIFY = 0x03B9;
 	/// playBGM()は_mciNotifyHandleに設定されたウィンドウに対して
 	/// 再生イベントを通知する。
-	private HWND _mciNotifyHandle = null;
+	private HWND _mciNotifyHandleBGM = null;
+	private HWND _mciNotifyHandleSE = null; /// ditto
 	/// ditto
 	nothrow
-	private extern (Windows) LRESULT mciNotifyWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-		if (!_mciNotifyHandle || !winmm || !_mciSendString || !_bgmPlayingMCI || MM_MCINOTIFY != message || MCI_NOTIFY_SUCCESSFUL != wParam) {
-			return DefWindowProcW(hWnd, message, wParam, lParam);
+	private extern (Windows) LRESULT mciNotifyWndProcBGM(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+		return mciNotifyImpl(hWnd, message, wParam, lParam, _mciNotifyHandleBGM, CWBGM, _bgmPlayingMCI);
+	}
+	/// ditto
+	nothrow
+	private extern (Windows) LRESULT mciNotifyWndProcSE(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+		return mciNotifyImpl(hWnd, message, wParam, lParam, _mciNotifyHandleSE, CWSE, _sePlayingMCI);
+	}
+	nothrow
+	private LRESULT mciNotifyImpl(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam, HWND handler, string name, bool playingMCI) {
+		try {
+			if (!handler || !winmm || !_mciSendString || !playingMCI || MM_MCINOTIFY != message || MCI_NOTIFY_SUCCESSFUL != wParam) {
+				return DefWindowProcW(hWnd, message, wParam, lParam);
+			}
+			auto loops = loopCounts.get(name, 1);
+			if (loops != 1) {
+				if (0 < loops) loopCounts[name] = loops - 1;
+				auto seek = ("seek " ~ to!wstring(name) ~ " to 0\0"w).ptr;
+				if (loops == 1) {
+					auto play = ("play " ~ to!wstring(name) ~ "\0"w).ptr;
+					_mciSendString(seek, null, 0, null);
+					_mciSendString(play, null, 0, null);
+				} else {
+					auto play = ("play " ~ to!wstring(name) ~ " notify\0"w).ptr;
+					_mciSendString(seek, null, 0, null);
+					_mciSendString(play, null, 0, handler);
+				}
+			} else {
+				auto stop = ("stop " ~ to!wstring(name) ~ "\0"w).ptr;
+				_mciSendString(stop, null, 0, null);
+			}
+		} catch {
+			// 例外を握りつぶす
 		}
-		static const __gshared SEEK = "seek cwbgm to 0\0"w.ptr;
-		static const __gshared PLAY = "play cwbgm notify\0"w.ptr;
-		_mciSendString(SEEK, null, 0, null);
-		_mciSendString(PLAY, null, 0, _mciNotifyHandle);
 		return DefWindowProcW(hWnd, message, wParam, lParam);
 	}
 }
@@ -115,6 +144,7 @@ private extern (C) {
 	alias c_int function(c_int *frequency, Uint16 *format, c_int *channels) Mix_QuerySpec;
 	alias void function() Mix_RewindMusic;
 	alias c_int function(c_double position) Mix_SetMusicPosition;
+	alias c_int function() Mix_PlayingMusic;
 
 	immutable SDL_FREQUENCY = 44100;
 	immutable SDL_FORMAT = MIX_DEFAULT_FORMAT;
@@ -164,16 +194,29 @@ version (Windows) {
 			winmm = null;
 			return;
 		}
-		if (!_mciNotifyHandle) { mixin(S_TRACE);
+		if (!_mciNotifyHandleBGM) { mixin(S_TRACE);
 			WNDCLASS wc;
-			wc.lpszClassName = "MCIHandler\0".ptr;
-			wc.lpfnWndProc = &mciNotifyWndProc;
+			wc.lpszClassName = "MCIHandlerBGM\0".ptr;
+			wc.lpfnWndProc = &mciNotifyWndProcBGM;
 			if (!RegisterClassA(&wc)) { mixin(S_TRACE);
 				debugln("RegisterClass() failure");
 				return;
 			}
-			_mciNotifyHandle = CreateWindowA(wc.lpszClassName, null, 0, 0, 0, 0, 0, null, null, null, null);
-			if (!_mciNotifyHandle) { mixin(S_TRACE);
+			_mciNotifyHandleBGM = CreateWindowA(wc.lpszClassName, null, 0, 0, 0, 0, 0, null, null, null, null);
+			if (!_mciNotifyHandleBGM) { mixin(S_TRACE);
+				debugln("CreateWindow() failure");
+			}
+		}
+		if (!_mciNotifyHandleSE) { mixin(S_TRACE);
+			WNDCLASS wc;
+			wc.lpszClassName = "MCIHandlerSE\0".ptr;
+			wc.lpfnWndProc = &mciNotifyWndProcSE;
+			if (!RegisterClassA(&wc)) { mixin(S_TRACE);
+				debugln("RegisterClass() failure");
+				return;
+			}
+			_mciNotifyHandleSE = CreateWindowA(wc.lpszClassName, null, 0, 0, 0, 0, 0, null, null, null, null);
+			if (!_mciNotifyHandleSE) { mixin(S_TRACE);
 				debugln("CreateWindow() failure");
 			}
 		}
@@ -312,6 +355,10 @@ shared static this () { mixin(S_TRACE);
 	}
 }
 
+private __gshared uint[string] loopCounts;
+private __gshared uint[string] loopStarts;
+private __gshared immutable(char)*[string] loopKeys;
+
 private __gshared bool bgmOnLegacy = false;
 private __gshared Mix_Music* bgmMusic = null;
 private __gshared Mix_Chunk* bgmChunk = null;
@@ -324,6 +371,26 @@ private __gshared Mix_Chunk* seChunk = null;
 private __gshared c_int seChannel = -1;
 private __gshared clock_t seStart = 0;
 
+private bool isPlaying(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream) { mixin(S_TRACE);
+	version (Windows) {
+		if (bassStream) { mixin(S_TRACE);
+			auto v = .getSymbol!(BASS_ChannelIsActive)(bass, "BASS_ChannelIsActive")(bassStream);
+			return v !is BASS_ACTIVE_STOPPED;
+		}
+		if (playingMCI) { mixin(S_TRACE);
+			wchar[1024] buf;
+			_mciSendString(toUTFz!(wchar*)("status " ~ mciName ~ " mode\0"), buf.ptr, buf.length, null);
+			return buf[0 .. wcslen(buf.ptr)] != "stopped"w;
+		}
+	}
+	if (mixer) { mixin(S_TRACE);
+		if (chunk) { mixin(S_TRACE);
+			return true;
+		}
+		return .getSymbol!(Mix_PlayingMusic)(mixer, "Mix_PlayingMusic")() != 0;
+	}
+	return false;
+}
 private ulong pos(in Mix_Chunk* chunk, clock_t start, bool playingMCI, string mciName, HSTREAM bassStream) { mixin(S_TRACE);
 	version (Windows) {
 		if (bassStream) { mixin(S_TRACE);
@@ -338,17 +405,17 @@ private ulong pos(in Mix_Chunk* chunk, clock_t start, bool playingMCI, string mc
 			_mciSendString(toUTFz!(wchar*)("status " ~ mciName ~ " position"), len.ptr, len.length, null);
 			return to!ulong(len[0 .. wcslen(len.ptr)]);
 		}
-		if (chunk) { mixin(S_TRACE);
-			auto now = .clock();
-			if (start < now) { mixin(S_TRACE);
-				auto tim = now - start;
-				return to!ulong(cast(real)tim / CLOCKS_PER_SEC * 1000.0) % len(chunk, playingMCI, mciName, bassStream);
-			}
+	}
+	if (chunk) { mixin(S_TRACE);
+		auto now = .clock();
+		if (start < now) { mixin(S_TRACE);
+			auto tim = now - start;
+			return to!ulong(cast(real)tim / CLOCKS_PER_SEC * 1000.0) % len(chunk, playingMCI, mciName, bassStream);
 		}
 	}
 	return 0;
 }
-private void setPos(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream, ulong msecs) { mixin(S_TRACE);
+private void setPos(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream, ulong msecs, HWND mciHandler) { mixin(S_TRACE);
 	version (Windows) {
 		if (bassStream) { mixin(S_TRACE);
 			auto pos = .getSymbol!(BASS_ChannelSeconds2Bytes)(bass, "BASS_ChannelSeconds2Bytes")(bassStream, msecs / 1000.0);
@@ -358,12 +425,12 @@ private void setPos(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREA
 		}
 		if (playingMCI) { mixin(S_TRACE);
 			_mciSendString(toUTFz!(wchar*)("seek " ~ mciName ~ " to " ~ .text(msecs) ~ "\0"), null, 0, null);
-			_mciSendString(toUTFz!(wchar*)("play " ~ mciName ~ " notify\0"), null, 0, null);
+			_mciSendString(toUTFz!(wchar*)("play " ~ mciName ~ " notify\0"), null, 0, mciHandler);
 		}
-		if (chunk) { mixin(S_TRACE);
-			getSymbol!(Mix_RewindMusic)(mixer, "Mix_RewindMusic")();
-			getSymbol!(Mix_SetMusicPosition)(mixer, "Mix_SetMusicPosition")(msecs * 1000.0);
-		}
+	}
+	if (chunk) { mixin(S_TRACE);
+		getSymbol!(Mix_RewindMusic)(mixer, "Mix_RewindMusic")();
+		getSymbol!(Mix_SetMusicPosition)(mixer, "Mix_SetMusicPosition")(msecs * 1000.0);
 	}
 }
 private ulong len(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream) { mixin(S_TRACE);
@@ -380,15 +447,10 @@ private ulong len(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM 
 			_mciSendString(toUTFz!(wchar*)("status " ~ mciName ~ " length"), len.ptr, len.length, null);
 			return to!ulong(len[0 .. wcslen(len.ptr)]);
 		}
-		cdebugln(chunk);
-		if (chunk) { mixin(S_TRACE);
-			cdebugln(sdl_frequency);
-			cdebugln(chunk.alen);
-			cdebugln(sdl_format);
-			cdebugln(sdl_channels);
-			auto bps = sdl_frequency * ((sdl_format & 0xFF) == 0x08 ? 1 : 2) * sdl_channels;
-			return chunk.alen * 1000UL / bps;
-		}
+	}
+	if (chunk) { mixin(S_TRACE);
+		auto bps = sdl_frequency * ((sdl_format & 0xFF) == 0x08 ? 1 : 2) * sdl_channels;
+		return chunk.alen * 1000UL / bps;
 	}
 	return 0;
 }
@@ -396,69 +458,49 @@ private ulong len(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM 
 /// 現在再生中のBGMの再生位置(msecs)。
 @property
 ulong bgmPos() { mixin(S_TRACE);
-	version (Windows) {
-		return pos(bgmChunk, bgmStart, _bgmPlayingMCI, "cwbgm", bassBGMStream);
-	} else {
-		return 0;
-	}
+	return pos(bgmChunk, bgmStart, _bgmPlayingMCI, CWBGM, bassBGMStream);
 }
 /// ditto
 @property
 void bgmPos(ulong pos) { mixin(S_TRACE);
-	version (Windows) {
-		return setPos(bgmChunk, _bgmPlayingMCI, "cwbgm", bassBGMStream, pos);
-	} else {
-		return 0;
-	}
+	return setPos(bgmChunk, _bgmPlayingMCI, CWBGM, bassBGMStream, pos, _mciNotifyHandleBGM);
 }
 /// 現在再生中のBGMの再生時間(msecs)を取得する。
 @property
 ulong bgmLen() { mixin(S_TRACE);
-	version (Windows) {
-		return len(bgmChunk, _bgmPlayingMCI, "cwbgm", bassBGMStream);
-	} else {
-		return 0;
-	}
+	return len(bgmChunk, _bgmPlayingMCI, CWBGM, bassBGMStream);
 }
 /// 現在再生中の効果音の再生位置(msecs)。
 @property
 ulong sePos() { mixin(S_TRACE);
-	version (Windows) {
-		return pos(seChunk, seStart, _sePlayingMCI, "cwse", bassSEStream);
-	} else {
-		return 0;
-	}
+	return pos(seChunk, seStart, _sePlayingMCI, CWSE, bassSEStream);
 }
 /// ditto
 @property
 void sePos(ulong pos) { mixin(S_TRACE);
-	version (Windows) {
-		return setPos(seChunk, _sePlayingMCI, "cwse", bassSEStream, pos);
-	} else {
-		return 0;
-	}
+	return setPos(seChunk, _sePlayingMCI, CWSE, bassSEStream, pos, _mciNotifyHandleSE);
 }
 /// 現在再生中の効果音の再生時間(msecs)を取得する。
 @property
 ulong seLen() { mixin(S_TRACE);
-	version (Windows) {
-		return len(seChunk, _sePlayingMCI, "cwse", bassSEStream);
-	} else {
-		return 0;
-	}
+	return len(seChunk, _sePlayingMCI, CWSE, bassSEStream);
 }
+
+/// BGMが再生中か。
+@property
+bool isBGMPlaying() { return isPlaying(bgmChunk, _bgmPlayingMCI, CWBGM, bassBGMStream); }
 
 private void printSDLError(string File = __FILE__, int Line = __LINE__)() { mixin(S_TRACE);
 	auto str = getSymbol!(SDL_GetError)(sdl, "SDL_GetError")();
 	debugln!(File, Line)(str[0..strlen(str)]);
 }
 
-private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start, ref c_int channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool loop, bool spLoop, int soundPlayType, uint volume, ref HSTREAM bassStream) { mixin(S_TRACE);
+private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start, ref c_int channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool isBGM, uint loopCount, bool spLoop, int soundPlayType, uint volume, ref HSTREAM bassStream) { mixin(S_TRACE);
 	stop(music, chunk, channel, mciName, onLegacy, playingMCI, bassStream);
 	version (Windows) {
 		if (SOUND_TYPE_BASS == soundPlayType) { mixin(S_TRACE);
 			// BASSがロードされている場合はBASSで再生する
-			if (playBass(file, loop, spLoop, bassStream, volume)) { mixin(S_TRACE);
+			if (playBass(file, loopCount, spLoop, bassStream, volume, mciName)) { mixin(S_TRACE);
 				return;
 			}
 			// ここへ来たら再生失敗
@@ -481,9 +523,11 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start,
 				}
 +/				_mciSendString(toUTFz!(wchar*)("set " ~ mciName ~ " time format milliseconds"), null, 0, null);
 				string p = "play " ~ mciName;
-				if (loop && _mciNotifyHandle) { mixin(S_TRACE);
+				auto handler = isBGM ? _mciNotifyHandleBGM : _mciNotifyHandleSE;
+				loopCounts[mciName] = loopCount;
+				if (handler) { mixin(S_TRACE);
 					p ~= " notify";
-					enforce(0 == _mciSendString(toUTFz!(wchar*)(p), null, 0, _mciNotifyHandle),
+					enforce(0 == _mciSendString(toUTFz!(wchar*)(p), null, 0, handler),
 						new Exception("MCI play: " ~ file));
 				} else { mixin(S_TRACE);
 					enforce(0 == _mciSendString(toUTFz!(wchar*)(p), null, 0, null),
@@ -508,7 +552,7 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start,
 					const char* filez2 = toMBSz(file);
 				}
 
-				if (loop) { mixin(S_TRACE);
+				if (isBGM || isMidi(file) || file.extension() == ".mp3") { mixin(S_TRACE);
 					music = getSymbol!(Mix_LoadMUS)(mixer, "Mix_LoadMUS")(filez);
 					if (!music) { mixin(S_TRACE);
 						debugln("error: Mix_LoadMUS, 1" ~ file);
@@ -524,7 +568,7 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start,
 						return;
 					}
 					getSymbol!(Mix_VolumeMusic)(mixer, "Mix_VolumeMusic")(.roundTo!c_int((volume / 100.0) * MIX_MAX_VOLUME));
-					if (0 != getSymbol!(Mix_PlayMusic)(mixer, "Mix_PlayMusic")(music, -1)) { mixin(S_TRACE);
+					if (0 != getSymbol!(Mix_PlayMusic)(mixer, "Mix_PlayMusic")(music, cast(int)loopCount - 1)) { mixin(S_TRACE);
 						debugln("error: Mix_PlayMusic, " ~ file);
 						printSDLError();
 						return;
@@ -550,7 +594,7 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start,
 						return;
 					}
 					getSymbol!(Mix_VolumeChunk)(mixer, "Mix_VolumeChunk")(chunk, .roundTo!c_int((volume / 100.0) * MIX_MAX_VOLUME));
-					channel = getSymbol!(Mix_PlayChannelTimed)(mixer, "Mix_PlayChannelTimed")(channel, chunk, 0, -1);
+					channel = getSymbol!(Mix_PlayChannelTimed)(mixer, "Mix_PlayChannelTimed")(channel, chunk, 0, cast(int)loopCount - 1);
 					if (-1 == channel) { mixin(S_TRACE);
 						debugln("error: Mix_PlayChannelTimed, " ~ file);
 						printSDLError();
@@ -746,7 +790,7 @@ bool isMidi(string file) { mixin(S_TRACE);
 	return file.exists() && cast(char[])std.file.read(file, 4) == "MThd";
 }
 
-private bool playBass(string file, bool loop, bool spLoop, ref DWORD stream, uint volume) { mixin(S_TRACE);
+private bool playBass(string file, uint loopCount, bool spLoop, ref DWORD stream, uint volume, string loopKey) { mixin(S_TRACE);
 	version (Windows) {
 		try { mixin(S_TRACE);
 			if (!bass) return false;
@@ -755,7 +799,7 @@ private bool playBass(string file, bool loop, bool spLoop, ref DWORD stream, uin
 				return false;
 			}
 			bool midi = isMidi(file);
-			int flag = loop ? BASS_SAMPLE_LOOP : BASS_DEFAULT;
+			int flag = BASS_DEFAULT;
 			if (midi) { mixin(S_TRACE);
 				stream = getSymbol!(BASS_MIDI_StreamCreateFile)(bassMidi, "BASS_MIDI_StreamCreateFile")(false, file.toMBSz(), 0, 0, flag, 44100);
 				if (!stream) { mixin(S_TRACE);
@@ -783,23 +827,34 @@ private bool playBass(string file, bool loop, bool spLoop, ref DWORD stream, uin
 				}
 			}
 
-			if (loop && spLoop) { mixin(S_TRACE);
-				ptrdiff_t loopStart = -1, loopEnd = -1;
-				getLoopInfo(file, midi, stream, loopStart, loopEnd);
-				// 任意位置ループ
-				auto BASS_ChannelSetSync = getSymbol!(BASS_ChannelSetSync)(bass, "BASS_ChannelSetSync");
-				if (loopStart != -1 && loopEnd != -1) { mixin(S_TRACE);
-					BASS_ChannelSetSync(stream, BASS_SYNC_POS | BASS_SYNC_MIXTIME, loopEnd, &bassLoop, cast(void*)loopStart);
-				} else if (loopStart != -1) { mixin(S_TRACE);
-					BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, &bassLoop, cast(void*)loopStart);
-				}
+			// 任意位置ループ
+			ptrdiff_t loopStart = -1, loopEnd = -1;
+			if (spLoop) getLoopInfo(file, midi, stream, loopStart, loopEnd);
+			auto BASS_ChannelSetSync = getSymbol!(BASS_ChannelSetSync)(bass, "BASS_ChannelSetSync");
+			auto keyPtr = loopKeys.get(loopKey, null);
+			if (keyPtr is null) { mixin(S_TRACE);
+				// キーがGCに回収されないようにする
+				keyPtr = toStringz(loopKey);
+				loopKeys[loopKey] = keyPtr;
+			}
+			loopCounts[loopKey] = loopCount;
+			if (loopStart != -1 && loopEnd != -1) { mixin(S_TRACE);
+				loopStarts[loopKey] = loopStart;
+				BASS_ChannelSetSync(stream, BASS_SYNC_POS | BASS_SYNC_MIXTIME, loopEnd, &bassLoop, cast(void*)keyPtr);
+				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, &bassLoop, cast(void*)keyPtr);
+			} else if (loopStart != -1) { mixin(S_TRACE);
+				loopStarts[loopKey] = loopStart;
+				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, &bassLoop, cast(void*)keyPtr);
+			} else { mixin(S_TRACE);
+				loopStarts[loopKey] = 0;
+				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, &bassLoop, cast(void*)keyPtr);
 			}
 
 			volume = .min(100, volume);
 			if (!getSymbol!(BASS_ChannelSetAttribute)(bass, "BASS_ChannelSetAttribute")(stream, BASS_ATTRIB_VOL, volume / 100.0F)) { mixin(S_TRACE);
 				debugln("BASS_ChannelSetAttribute");
 			}
-			if (!getSymbol!(BASS_ChannelPlay)(bass, "BASS_ChannelPlay")(stream, loop)) { mixin(S_TRACE);
+			if (!getSymbol!(BASS_ChannelPlay)(bass, "BASS_ChannelPlay")(stream, false)) { mixin(S_TRACE);
 				stopBass(stream);
 				return false;
 			}
@@ -949,6 +1004,7 @@ version (Windows) {
 		immutable MIDI_EVENT_CONTROL = 64;
 		immutable BASS_SAMPLE_8BITS = 1;
 		immutable BASS_SAMPLE_FLOAT = 256;
+		immutable BASS_ACTIVE_STOPPED = 0;
 		struct  BASS_MIDI_EVENT {
 			DWORD event;
 			DWORD param;
@@ -984,8 +1040,13 @@ version (Windows) {
 		alias char* function(DWORD handle, DWORD tags) BASS_ChannelGetTags;
 		alias BOOL function(DWORD handle, BASS_CHANNELINFO* info) BASS_ChannelGetInfo;
 		void bassLoop(HSYNC handle, DWORD channel, DWORD data, void* user) { mixin(S_TRACE);
-			auto pos = cast(ptrdiff_t)user;
-			getSymbol!(BASS_ChannelSetPosition)(bass, "BASS_ChannelSetPosition")(channel, pos, BASS_POS_BYTE);
+			auto loopKey = fromStringz(cast(immutable(char)*)user);
+			auto pos = loopStarts[loopKey];
+			auto loops = loopCounts[loopKey];
+			if (loops != 1) { mixin(S_TRACE);
+				if (0 < loops) loopCounts[loopKey] = loops - 1;
+				getSymbol!(BASS_ChannelSetPosition)(bass, "BASS_ChannelSetPosition")(channel, pos, BASS_POS_BYTE);
+			}
 		}
 
 		alias QWORD function(HSTREAM handle, DWORD mode) BASS_ChannelGetLength;
@@ -993,6 +1054,7 @@ version (Windows) {
 		alias BOOL function(HSTREAM handle, QWORD pos, DWORD mode) BASS_ChannelSetPosition;
 		alias c_double function(HSTREAM handle, QWORD pos) BASS_ChannelBytes2Seconds;
 		alias QWORD function(HSTREAM handle, c_double pos) BASS_ChannelSeconds2Bytes;
+		alias DWORD function(DWORD handle) BASS_ChannelIsActive;
 	}
 } else {
 	private alias c_int HSTREAM;
@@ -1023,7 +1085,7 @@ bool canPlayBass(string file) { mixin(S_TRACE);
 }
 
 /// BGMを再生する。
-void playBGM(string path, int soundPlayType, bool spLoop) { mixin(S_TRACE);
+void playBGM(string path, uint loopCount, int soundPlayType, bool spLoop) { mixin(S_TRACE);
 	if (!mutex) return;
 	try { mixin(S_TRACE);
 		mutex.lock();
@@ -1034,7 +1096,7 @@ void playBGM(string path, int soundPlayType, bool spLoop) { mixin(S_TRACE);
 		} else { mixin(S_TRACE);
 			HSTREAM bass = 0;
 		}
-		play(bgmMusic, bgmChunk, bgmStart, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, path, true, spLoop, soundPlayType, _bgmVolume, bass);
+		play(bgmMusic, bgmChunk, bgmStart, bgmChannel, CWBGM, bgmOnLegacy, _bgmPlayingMCI, path, true, loopCount, spLoop, soundPlayType, _bgmVolume, bass);
 	} catch (Throwable e) {
 		printStackTrace();
 		debugln(e);
@@ -1053,7 +1115,7 @@ void stopBGM() { mixin(S_TRACE);
 		} else { mixin(S_TRACE);
 			HSTREAM bass = 0;
 		}
-		stop(bgmMusic, bgmChunk, bgmChannel, "cwbgm", bgmOnLegacy, _bgmPlayingMCI, bass);
+		stop(bgmMusic, bgmChunk, bgmChannel, CWBGM, bgmOnLegacy, _bgmPlayingMCI, bass);
 	} catch (Throwable e) {
 		printStackTrace();
 		debugln(e);
@@ -1087,7 +1149,7 @@ void bgmVolume(uint volume) { mixin(S_TRACE);
 /+		if (_mciSendString) { mixin(S_TRACE);
 			winmmSync.lock();
 			scope (exit) winmmSync.unlock();
-			if (0 != _mciSendString(toUTFz!(wchar*)(.format("setaudio %s volume to %d", "cwbgm", _bgmVolume * 10)), null, 0, null)) { mixin(S_TRACE);
+			if (0 != _mciSendString(toUTFz!(wchar*)(.format("setaudio %s volume to %d", CWBGM, _bgmVolume * 10)), null, 0, null)) { mixin(S_TRACE);
 				debugln("error MCI setaudio");
 			}
 		}
@@ -1095,7 +1157,7 @@ void bgmVolume(uint volume) { mixin(S_TRACE);
 }
 
 /// 効果音を再生する。
-void playSE(string path, int soundPlayType) { mixin(S_TRACE);
+void playSE(string path, uint loopCount, int soundPlayType, bool spLoop) { mixin(S_TRACE);
 	if (!mutex) return;
 	try { mixin(S_TRACE);
 		mutex.lock();
@@ -1106,7 +1168,7 @@ void playSE(string path, int soundPlayType) { mixin(S_TRACE);
 		} else { mixin(S_TRACE);
 			HSTREAM bass = 0;
 		}
-		play(seMusic, seChunk, seStart, seChannel, "cwse", seOnLegacy, _sePlayingMCI, path, false, false, soundPlayType, _seVolume, bass);
+		play(seMusic, seChunk, seStart, seChannel, CWSE, seOnLegacy, _sePlayingMCI, path, false, loopCount, spLoop, soundPlayType, _seVolume, bass);
 	} catch (Throwable e) {
 		printStackTrace();
 		debugln(e);
@@ -1125,7 +1187,7 @@ void stopSE() { mixin(S_TRACE);
 		} else { mixin(S_TRACE);
 			HSTREAM bass = 0;
 		}
-		stop(seMusic, seChunk, seChannel, "cwse", seOnLegacy, _sePlayingMCI, bass);
+		stop(seMusic, seChunk, seChannel, CWSE, seOnLegacy, _sePlayingMCI, bass);
 	} catch (Throwable e) {
 		printStackTrace();
 		debugln(e);
@@ -1159,7 +1221,7 @@ void seVolume(uint volume) { mixin(S_TRACE);
 /+		if (_mciSendString) { mixin(S_TRACE);
 			winmmSync.lock();
 			scope (exit) winmmSync.unlock();
-			if (0 != _mciSendString(toUTFz!(wchar*)(.format("setaudio %s volume to %d", "cwse", _seVolume * 10)), null, 0, null)) { mixin(S_TRACE);
+			if (0 != _mciSendString(toUTFz!(wchar*)(.format("setaudio %s volume to %d", CWSE, _seVolume * 10)), null, 0, null)) { mixin(S_TRACE);
 				debugln("error MCI setaudio");
 			}
 		}

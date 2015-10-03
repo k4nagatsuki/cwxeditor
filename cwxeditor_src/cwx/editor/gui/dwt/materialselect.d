@@ -28,6 +28,7 @@ import std.path;
 import std.string;
 import std.conv;
 import std.datetime;
+import std.exception;
 
 import org.eclipse.swt.all;
 
@@ -89,6 +90,7 @@ public:
 		_comm.replPath.add(&replPath);
 		_comm.refIgnorePaths.add(&refresh);
 		static if (Type == MtType.BGM) {
+			if (!_display) _display = parent.getDisplay();
 			stopBGMEvent ~= &stopBGM;
 		}
 		_dirs.addDisposeListener(new class DisposeListener {
@@ -111,10 +113,16 @@ public:
 		return _dirs;
 	}
 	static if (Type == MtType.BGM) {
+		private bool _startPlay = false;
 		private void stopBGM() { mixin(S_TRACE);
-			if (_playing) { mixin(S_TRACE);
-				playBGM();
-			}
+			if (_startPlay) return;
+			_display.asyncExec(new class Runnable {
+				override void run() { mixin(S_TRACE);
+					if (_playing) { mixin(S_TRACE);
+						bgmStopped();
+					}
+				}
+			});
 		}
 	}
 	C createFileList(Composite parent) { mixin(S_TRACE);
@@ -213,7 +221,7 @@ public:
 			}
 		} else static if (Type == MtType.BGM) {
 			new MenuItem(menu, SWT.SEPARATOR);
-			_bgmMenu = createMenuItem(_comm, menu, MenuID.PlayBGM, &playBGM, &canPlay);
+			_bgmMenu = createMenuItem(_comm, menu, MenuID.PlayBGM, () => playBGM(false), &canPlay);
 			auto data = cast(MenuData) _bgmMenu.getData();
 			data.format = (string t) {return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t;};
 		} else static if (Type == MtType.SE) {
@@ -330,6 +338,109 @@ public:
 	}
 	static if (Type == MtType.BGM || Type == MtType.SE) {
 		private Button _bgmBtn = null;
+
+		private Spinner _volume = null;
+		private Spinner _loopCount = null;
+
+		Composite createPlayingOptions(Composite parent, bool tableLayout = false) { mixin(S_TRACE);
+			auto comp = new Composite(parent, SWT.NONE);
+			comp.setLayout(zeroMarginGridLayout(2, false));
+
+			void createVolume(Composite parent) { mixin(S_TRACE);
+				auto volume = this.volume;
+				_volume = new Spinner(parent, SWT.BORDER);
+				initSpinner(_volume);
+				_volume.setMaximum(100);
+				_volume.setMinimum(0);
+				_volume.setSelection(volume);
+				.listener(_volume, SWT.Selection, { mixin(S_TRACE);
+					if (volume != this.volume) { mixin(S_TRACE);
+						volume = this.volume;
+						foreach (dlg; modEvent) dlg();
+					}
+				});
+			}
+			void createLoopCount(Composite parent) { mixin(S_TRACE);
+				auto loopCount = this.loopCount;
+				_loopCount = new Spinner(parent, SWT.BORDER);
+				initSpinner(_loopCount);
+				_loopCount.setMaximum(_prop.var.etc.loopCountMax);
+				_loopCount.setMinimum(0);
+				_loopCount.setSelection(loopCount);
+				.listener(_loopCount, SWT.Selection, { mixin(S_TRACE);
+					if (loopCount != this.loopCount) { mixin(S_TRACE);
+						loopCount = this.loopCount;
+						foreach (dlg; modEvent) dlg();
+					}
+				});
+			}
+
+			if (tableLayout) { mixin(S_TRACE);
+				auto grp1 = new Group(comp, SWT.NONE);
+				grp1.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				grp1.setText(_prop.msgs.playingVolume);
+				grp1.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
+				auto grp1comp = new Composite(grp1, SWT.NONE);
+				grp1comp.setLayout(windowGridLayout(2, false));
+				createVolume(grp1comp);
+				auto l2 = new Label(grp1comp, SWT.NONE);
+				l2.setText(_prop.msgs.playingVolumePer);
+
+				auto grp2 = new Group(comp, SWT.NONE);
+				grp2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				grp2.setText(_prop.msgs.loopCount);
+				grp2.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
+				auto grp2comp = new Composite(grp2, SWT.NONE);
+				grp2comp.setLayout(windowGridLayout(2, false));
+				createLoopCount(grp2comp);
+				auto l4 = new Label(grp2comp, SWT.NONE);
+				l4.setText(_prop.msgs.loopCountHint);
+			} else { mixin(S_TRACE);
+				auto comp2 = new Composite(comp, SWT.NONE);
+				auto wgd1 = windowGridLayout(3, false);
+				wgd1.marginWidth = 0;
+				wgd1.marginHeight = 0;
+				comp2.setLayout(wgd1);
+				auto l1 = new Label(comp2, SWT.NONE);
+				l1.setText(_prop.msgs.playingVolume ~ ":");
+				createVolume(comp2);
+				auto l2 = new Label(comp2, SWT.NONE);
+				l2.setText(_prop.msgs.playingVolumePer);
+
+				auto comp3 = new Composite(comp, SWT.NONE);
+				auto wgd2 = windowGridLayout(3, false);
+				wgd2.marginWidth = 0;
+				wgd2.marginHeight = 0;
+				comp3.setLayout(wgd2);
+				auto l3 = new Label(comp3, SWT.NONE);
+				l3.setText(_prop.msgs.loopCount ~ ":");
+				createLoopCount(comp3);
+				auto l4 = new Label(comp3, SWT.NONE);
+				l4.setText(_prop.msgs.loopCountHint);
+			}
+
+			return comp;
+		}
+		@property
+		int volume() { return _volume ? _volume.getSelection() : 100; }
+		@property
+		void volume(int volume) { mixin(S_TRACE);
+			.enforce(_volume);
+			_volume.setSelection(volume);
+		}
+		@property
+		int loopCount() { mixin(S_TRACE);
+			static if (Type == MtType.BGM) { mixin(S_TRACE);
+				return _loopCount ? _loopCount.getSelection() : 0;
+			} else static if (Type == MtType.SE) { mixin(S_TRACE);
+				return _loopCount ? _loopCount.getSelection() : 1;
+			} else static assert (0);
+		}
+		@property
+		void loopCount(int loopCount) { mixin(S_TRACE);
+			.enforce(_loopCount);
+			_loopCount.setSelection(loopCount);
+		}
 	}
 	static if (Type == MtType.BGM) {
 		private MenuItem _bgmMenu = null;
@@ -361,10 +472,11 @@ public:
 			if (!_playBar) return;
 			_playBar.current = dur!"msecs"(0);
 			_playBar.length = dur!"msecs"(0);
+			_playBar.clearWarning();
 			_playBar.setEnabled(false);
 		}
 		void createPlayToolItem(ToolBar bar) { mixin(S_TRACE);
-			_bgmTMenu = createToolItem(_comm, bar, MenuID.PlayBGM, &playBGM, &canPlay, SWT.CHECK);
+			_bgmTMenu = createToolItem(_comm, bar, MenuID.PlayBGM, () => playBGM(false), &canPlay, SWT.CHECK);
 			auto data = cast(MenuData) _bgmTMenu.getData();
 			data.format = (string t) {return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t;};
 		}
@@ -382,10 +494,14 @@ public:
 		bool canPlay() { mixin(S_TRACE);
 			return _playing ? true : filePath.length > 0;
 		}
-		void playBGM() { mixin(S_TRACE);
+		void playBGM(bool fromEvent) { mixin(S_TRACE);
 			string p = filePath;
 			if (p.length > 0 && (!_playing || !cfnmatch(nabs(p), nabs(_playing)))) { mixin(S_TRACE);
-				bool inPlay = playBGMCW(_prop, p, _comm.skin.legacy);
+				_startPlay = true;
+				scope (exit) _startPlay = false;
+				auto volume = _volume ? _volume.getSelection() : 100;
+				auto loopCount = _loopCount ? _loopCount.getSelection() : 0;
+				bool inPlay = playBGMCW(_prop, p, volume, loopCount, _comm.skin.legacy);
 				if (inPlay) { mixin(S_TRACE);
 					_playing = p;
 					auto relPath = .encodePath(this.path);
@@ -421,13 +537,17 @@ public:
 							_playBar.length = dur!"seconds"(_updatePlayBar.len);
 							_playBar.current = dur!"seconds"(cast(int)(.bgmPos / 1000.0));
 							_playBar.setEnabled(true);
-							_playThr = new core.thread.Thread(&playThr);
-							_playThr.start();
 						}
 					}
+					_playThr = new core.thread.Thread(&playThr);
+					_playThr.start();
 					return;
 				}
 			}
+			if (!fromEvent) .stopBGM();
+		}
+		private void bgmStopped() { mixin(S_TRACE);
+			if (!_playing) return;
 			if (_bgmMenu) { mixin(S_TRACE);
 				_bgmMenu.setText(_prop.buildMenu(MenuID.PlayBGM));
 				auto d = cast(MenuData) _bgmMenu.getData();
@@ -451,29 +571,35 @@ public:
 				_playThr = null;
 			}
 			initPlayBar();
-			.stopBGM();
 		}
 		private class Play : SelectionAdapter, KeyListener, MouseListener {
 			override void mouseUp(MouseEvent e) {}
 			override void mouseDown(MouseEvent e) {}
 			override void mouseDoubleClick(MouseEvent e) { mixin(S_TRACE);
 				if (e.button == 1) { mixin(S_TRACE);
-					playBGM();
+					playBGM(false);
 				}
 			}
 			override void keyReleased(KeyEvent e) {}
 			override void keyPressed(KeyEvent e) { mixin(S_TRACE);
 				if (e.character == SWT.CR) { mixin(S_TRACE);
-					playBGM();
+					playBGM(false);
 				}
 			}
 			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-				playBGM();
+				playBGM(false);
 			}
 		}
 		private void playThr() { mixin(S_TRACE);
 			SysTime last = SysTime.min;
-			while (_playing) { mixin(S_TRACE);
+			bool playing = true;
+			auto isPlaying = new class Runnable {
+				override void run() { mixin(S_TRACE);
+					playing = .isBGMPlaying;
+				}
+			};
+			while (_playing && playing) { mixin(S_TRACE);
+				_display.asyncExec(isPlaying);
 				auto cur = Clock.currTime();
 				if (cur < last || (last + dur!"msecs"(100)) <= cur) { mixin(S_TRACE);
 					last = cur;
@@ -481,6 +607,7 @@ public:
 				}
 				core.thread.Thread.sleep(dur!"msecs"(16));
 			}
+			stopBGM();
 		}
 		private class UpdatePlayBar : Runnable {
 			int len = 0;
@@ -524,7 +651,9 @@ public:
 		void playSE() { mixin(S_TRACE);
 			string p = filePath;
 			if (p.length > 0) { mixin(S_TRACE);
-				playSECW(_prop, p, _summ.legacy);
+				auto volume = _volume ? _volume.getSelection() : 100;
+				auto loopCount = _loopCount ? _loopCount.getSelection() : 1;
+				playSECW(_prop, p, volume, loopCount, _comm.skin.legacy);
 			}
 		}
 		void stopSE() { mixin(S_TRACE);
