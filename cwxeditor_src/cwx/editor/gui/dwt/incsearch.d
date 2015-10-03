@@ -10,6 +10,7 @@ import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.timebar;
 
 import std.algorithm;
 import std.conv;
@@ -94,6 +95,8 @@ class IncSearch {
 				auto c = cast(Control)e.widget;
 				if (!c) return;
 				if (cast(Text)c) return;
+				if (cast(Spinner)c) return;
+				if (cast(TimeBar)c) return;
 				if (auto combo = cast(Combo)c) { mixin(S_TRACE);
 					if ((combo.getStyle() & SWT.READ_ONLY) == 0) return;
 				}

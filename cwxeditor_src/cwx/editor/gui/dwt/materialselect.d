@@ -342,6 +342,19 @@ public:
 		private Spinner _volume = null;
 		private Spinner _loopCount = null;
 
+		@property
+		string[] warnings() {
+			string[] r;
+			if (_volume && _volume.getSelection() != 100 && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
+				r ~= _prop.msgs.warningVolume;
+			}
+			auto loops = (Type == MtType.BGM) ? 0 : 1;
+			if (_loopCount && _loopCount.getSelection() != loops && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
+				r ~= _prop.msgs.warningLoopCount;
+			}
+			return r;
+		}
+
 		Composite createPlayingOptions(Composite parent, bool tableLayout = false) { mixin(S_TRACE);
 			auto comp = new Composite(parent, SWT.NONE);
 			comp.setLayout(zeroMarginGridLayout(2, false));
@@ -356,6 +369,7 @@ public:
 				.listener(_volume, SWT.Selection, { mixin(S_TRACE);
 					if (volume != this.volume) { mixin(S_TRACE);
 						volume = this.volume;
+						if (_refresh) _refresh();
 						foreach (dlg; modEvent) dlg();
 					}
 				});
@@ -370,6 +384,7 @@ public:
 				.listener(_loopCount, SWT.Selection, { mixin(S_TRACE);
 					if (loopCount != this.loopCount) { mixin(S_TRACE);
 						loopCount = this.loopCount;
+						if (_refresh) _refresh();
 						foreach (dlg; modEvent) dlg();
 					}
 				});
@@ -418,8 +433,17 @@ public:
 				auto l4 = new Label(comp3, SWT.NONE);
 				l4.setText(_prop.msgs.loopCountHint);
 			}
+			_comm.refDataVersion.add(&refDataVersion);
+			.listener(parent, SWT.Dispose, { mixin(S_TRACE);
+				_comm.refDataVersion.remove(&refDataVersion);
+			});
+			refDataVersion();
 
 			return comp;
+		}
+		private void refDataVersion() { mixin(S_TRACE);
+			_volume.setEnabled(!_summ.legacy);
+			_loopCount.setEnabled(!_summ.legacy);
 		}
 		@property
 		int volume() { return _volume ? _volume.getSelection() : 100; }

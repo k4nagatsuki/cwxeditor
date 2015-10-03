@@ -165,9 +165,14 @@ private:
 				break;
 			}
 		}
-		if ((_se1.path != "" && !_se1.selectedDefDir) || (_se2.path != "" && !_se2.selectedDefDir)) { mixin(S_TRACE);
+		if (_se1.path != "" && !_se1.selectedDefDir) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningNotDefaultSE;
 		}
+		ws ~= summSkin.warningSE(_prop.parent, _se1.filePath, _summ.legacy, _prop.var.etc.targetVersion) ~ _se1.warnings;
+		if (_se2.path != "" && !_se2.selectedDefDir) { mixin(S_TRACE);
+			ws ~= _prop.msgs.warningNotDefaultSE;
+		}
+		ws ~= summSkin.warningSE(_prop.parent, _se2.filePath, _summ.legacy, _prop.var.etc.targetVersion) ~ _se2.warnings;
 		if (_card && _card.trees.length) { mixin(S_TRACE);
 			if (_scenario.getText() != _summ.scenarioName || _author.getText() != _summ.author) { mixin(S_TRACE);
 				ws ~= _prop.msgs.diffSource;

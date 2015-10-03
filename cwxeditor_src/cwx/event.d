@@ -128,7 +128,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.CHANGE_AREA:CDetail("Change", "Area", CNextType.NONE, false, [CArg.AREA:_("id"), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
 		CType.CHANGE_BG_IMAGE:CDetail("Change", "BgImage", CNextType.NONE, true, [CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
 		CType.EFFECT:CDetail("Effect", "", CNextType.NONE, true, [CArg.SIGNED_LEVEL:_("level"), CArg.TARGET_NS:"targetm", CArg.EFFECT_TYPE:"effecttype", CArg.RESIST:"resisttype",
-			CArg.SUCCESS_RATE:"successrate", CArg.SOUND_PATH:_("sound"), CArg.CARD_VISUAL:"visual", CArg.MOTIONS:null]),
+			CArg.SUCCESS_RATE:"successrate", CArg.SOUND_PATH:_("sound"), CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount", CArg.CARD_VISUAL:"visual", CArg.MOTIONS:null]),
 		CType.EFFECT_BREAK:CDetail("Effect", "Break", CNextType.NONE, false),
 		CType.LINK_START:CDetail("Link", "Start", CNextType.NONE, false, [CArg.START:"link"]),
 		CType.LINK_PACKAGE:CDetail("Link", "Package", CNextType.NONE, false, [CArg.PACKAGE:"link"]),

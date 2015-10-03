@@ -122,6 +122,12 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (effCard.soundPath2 != "") { mixin(S_TRACE);
 			r ~= skin.warningSE(prop, effCard.soundPath2, summ ? summ.legacy : false, targVer);
 		}
+		if ((effCard.volume1 != 100 || effCard.volume2 != 100) && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningVolume;
+		}
+		if ((effCard.loopCount1 != 1 || effCard.loopCount2 != 1) && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningLoopCount;
+		}
 	}
 	auto spChars = skin.spChars;
 	auto checkTextRes(in string[] flags, in string[] steps, in string[] fonts, in char[] colors,
@@ -190,6 +196,12 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	if (btl) { mixin(S_TRACE);
 		if (btl.music != "") { mixin(S_TRACE);
 			r ~= skin.warningBGM(prop, btl.music, summ ? summ.legacy : false, targVer);
+		}
+		if (btl.volume != 100 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningVolume;
+		}
+		if (btl.loopCount != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningLoopCount;
 		}
 	}
 	auto mc = cast(MenuCard) path;
@@ -356,8 +368,20 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.bgmPath != "") { mixin(S_TRACE);
 			r ~= skin.warningBGM(prop, c.bgmPath, summ ? summ.legacy : false, targVer);
 		}
+		if (c.bgmVolume != 100 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningVolume;
+		}
+		if (c.bgmLoopCount != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningLoopCount;
+		}
 		if (c.soundPath != "") { mixin(S_TRACE);
 			r ~= skin.warningSE(prop, c.soundPath, summ ? summ.legacy : false, targVer);
+		}
+		if (c.soundVolume != 100 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningVolume;
+		}
+		if (c.soundLoopCount != 1 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningLoopCount;
 		}
 		uint maxNextLen(in Content c) {
 			if (c.type is CType.TALK_MESSAGE) { mixin(S_TRACE);

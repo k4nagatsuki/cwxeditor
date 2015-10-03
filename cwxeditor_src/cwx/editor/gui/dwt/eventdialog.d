@@ -896,7 +896,9 @@ private:
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
-		warning = comm.skin.warningBGM(prop.parent, _msel.filePath, summ.legacy, _prop.var.etc.targetVersion);
+		auto ws = comm.skin.warningBGM(prop.parent, _msel.filePath, summ.legacy, _prop.var.etc.targetVersion);
+		ws ~= _msel.warnings;
+		warning = ws;
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
@@ -941,6 +943,7 @@ protected:
 			_msel.volume = _evt.bgmVolume;
 			_msel.loopCount = _evt.bgmLoopCount;
 		}
+		refreshWarning();
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -959,7 +962,9 @@ private:
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
-		warning = comm.skin.warningSE(prop.parent, _msel.filePath, summ.legacy, _prop.var.etc.targetVersion);
+		auto ws = comm.skin.warningSE(prop.parent, _msel.filePath, summ.legacy, _prop.var.etc.targetVersion);
+		ws ~= _msel.warnings;
+		warning = ws;
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
@@ -1004,6 +1009,7 @@ protected:
 			_msel.volume = _evt.soundVolume;
 			_msel.loopCount = _evt.soundLoopCount;
 		}
+		refreshWarning();
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -1123,7 +1129,7 @@ private:
 		string[] ws;
 		ws ~= _mview.warnings;
 		if (_se.path != "" && !_se.selectedDefDir) ws ~= prop.msgs.warningNotDefaultSE;
-		warning = ws ~ comm.skin.warningSE(prop.parent, _se.filePath, summ.legacy, _prop.var.etc.targetVersion);
+		warning = ws ~ comm.skin.warningSE(prop.parent, _se.filePath, summ.legacy, _prop.var.etc.targetVersion) ~ _se.warnings;
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
@@ -1289,6 +1295,7 @@ protected:
 			_vis[CardVisual.NONE].setSelection(true);
 			_targ[Target.M.SELECTED].setSelection(true);
 		}
+		refreshWarning();
 	}
 
 	override bool apply() { mixin(S_TRACE);

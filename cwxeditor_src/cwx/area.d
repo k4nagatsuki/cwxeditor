@@ -1562,7 +1562,7 @@ public:
 		appendProp(pe, opt, parentPath, cutPath);
 		auto me = pe.newElement("MusicPath", encodePath(_music.path));
 		if (volume != 100) me.newAttr("volume", volume);
-		if (loopCount != 1) me.newAttr("loopcount", loopCount);
+		if (loopCount != 0) me.newAttr("loopcount", loopCount);
 	
 		auto ce = e.newElement("EnemyCards");
 		ce.newAttr("spreadtype", _auto ? "Auto" : "Custom");
@@ -1631,9 +1631,9 @@ public:
 			};
 			pNode.parse();
 		};
+		aNode.parse();
 		if (idStr is null) throw new AreaException("Id not found");
 		if (name is null) throw new AreaException("Name not found");
-		aNode.parse();
 
 		id = to!(ulong)(idStr);
 

@@ -1018,9 +1018,21 @@ public:
 	string dataVersion() {return _dataVersion;}
 	/// ditto
 	@property
-	void dataVersion(string ver) {
+	void dataVersion(string ver) { mixin(S_TRACE);
 		if (_dataVersion != ver) changed();
 		_dataVersion = ver;
+	}
+
+	/// 指定されたデータバージョンがシナリオのデータバージョン以下か。
+	/// クラシックなシナリオの場合は常にfalseとなる。
+	const
+	bool isTargetVersion(string ver) { mixin(S_TRACE);
+		if (legacy) return false;
+		immutable VER_TABLE = [
+			"":  0,
+			"1": 1,
+		];
+		return VER_TABLE.get(ver, int.min) <= VER_TABLE.get(dataVersion, int.max);
 	}
 
 	private void setNamesOne(C : EffectCard)(ref C card, string newAuthor, string newScenario) { mixin(S_TRACE);
