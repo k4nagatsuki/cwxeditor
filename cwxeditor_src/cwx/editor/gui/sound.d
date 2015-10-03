@@ -356,7 +356,7 @@ shared static this () { mixin(S_TRACE);
 }
 
 private __gshared uint[string] loopCounts;
-private __gshared uint[string] loopStarts;
+private __gshared ptrdiff_t[string] loopStarts;
 private __gshared immutable(char)*[string] loopKeys;
 
 private __gshared bool bgmOnLegacy = false;
