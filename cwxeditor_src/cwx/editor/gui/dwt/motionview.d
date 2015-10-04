@@ -677,7 +677,7 @@ private:
 				if (!sb.beast && !b) return;
 				storeEdit(mi);
 				if (sb.beast) _comm.delBeast.call(sb, sb.beast);
-				if (_prop.var.etc.linkCard) { mixin(S_TRACE);
+				if (_prop.var.etc.linkCard || !_summ || !_summ.legacy) { mixin(S_TRACE);
 					sb.beast = new BeastCard(1UL, "", "", "");
 					sb.beast.linkId = b.id;
 				} else { mixin(S_TRACE);
@@ -846,6 +846,7 @@ private:
 			_comm.refUndoMax.remove(&refUndoMax);
 			_comm.refSkin.remove(&_beastImg.redraw);
 			_comm.refCardImageStatus.remove(&_beastImg.redraw);
+			_comm.refDataVersion.remove(&refEnabled);
 			getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 			foreach (w; _beWin.toArray()) { mixin(S_TRACE);
 				_comm.close(w.shell);
@@ -1311,11 +1312,12 @@ public:
 		_comm.refUndoMax.add(&refUndoMax);
 		_comm.refSkin.add(&_beastImg.redraw);
 		_comm.refCardImageStatus.add(&_beastImg.redraw);
+		_comm.refDataVersion.add(&refEnabled);
 		getDisplay().addFilter(SWT.KeyDown, _kdFilter);
 	}
 	void refEnabled() { mixin(S_TRACE);
 		auto m = selection();
-		if (_maxNest) _maxNest.setEnabled(!_readOnly && m && m.beast && 0 != m.beast.linkId);
+		if (_maxNest) _maxNest.setEnabled(!_readOnly && m && m.beast && 0 != m.beast.linkId && !(_summ && _summ.isTargetVersion("1")));
 	}
 	@property
 	private bool canSelectConnectedResource() { mixin(S_TRACE);
@@ -1452,7 +1454,7 @@ public:
 					m.beast = null;
 					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 					auto bid = m.setBeastFromNode(bNode, ver);
-					if (bid && sameSc && topLevel && _prop.var.etc.linkCard) { mixin(S_TRACE);
+					if (bid && sameSc && topLevel && (_prop.var.etc.linkCard || !_summ || !_summ.legacy)) { mixin(S_TRACE);
 						m.beast = new BeastCard(1UL, "", "", "");
 						m.beast.linkId = bid;
 					}

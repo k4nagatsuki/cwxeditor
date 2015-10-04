@@ -443,7 +443,7 @@ public:
 		if (d.use(MArg.ROUND)) e.newAttr(d.attr(MArg.ROUND), round);
 		if (d.use(MArg.BEAST)) { mixin(S_TRACE);
 			auto be = e.newElement("Beasts");
-			be.newAttr("maxNest", maxNest);
+			if (opt && opt.includeCard) be.newAttr("maxNest", maxNest);
 			if (_beast) { mixin(S_TRACE);
 				if (opt && opt.includeCard && 0 != _beast.linkId) { mixin(S_TRACE);
 				// FIXME: リンクに失敗する

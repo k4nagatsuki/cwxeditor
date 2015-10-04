@@ -1695,7 +1695,7 @@ class Msgs : Properties {
 	auto showSkillCardLevel = Msg("showSkillCardLevel", "カードの画像表示時に特殊技能カードのレベルを表示する");
 	auto showSpNature = Msg("showSpNature", "特殊型を表示する");
 	auto radarStyleParams = Msg("radarStyleParams", "レーダー型コントロールでパラメータ値を設定する");
-	auto linkCard = Msg("linkCard", "キャストの所有カードや召喚対象のカードを参照で設定する");
+	auto linkCard = Msg("linkCard", "クラシックなシナリオでキャストの所有カードや召喚対象カードを参照で設定する");
 
 	auto soundPlayType = Msg("soundPlayType", "BGM再生方式");
 	auto soundPlayTypeDef = Msg("soundPlayTypeDef", "自動選択");

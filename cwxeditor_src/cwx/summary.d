@@ -795,19 +795,25 @@ public:
 		foreach (a; _skl) { mixin(S_TRACE);
 			if (a.isChanged) { mixin(S_TRACE);
 				set.add(a);
-				foreach (user; useCounter.values(a.toID(a.id))) set.add(topRes(user.owner));
+				if (!isTargetVersion("1")) { mixin(S_TRACE);
+					foreach (user; useCounter.values(a.toID(a.id))) set.add(topRes(user.owner));
+				}
 			}
 		}
 		foreach (a; _itm) { mixin(S_TRACE);
 			if (a.isChanged) { mixin(S_TRACE);
 				set.add(a);
-				foreach (user; useCounter.values(a.toID(a.id))) set.add(topRes(user.owner));
+				if (!isTargetVersion("1")) { mixin(S_TRACE);
+					foreach (user; useCounter.values(a.toID(a.id))) set.add(topRes(user.owner));
+				}
 			}
 		}
 		foreach (a; _bst) { mixin(S_TRACE);
 			if (a.isChanged) { mixin(S_TRACE);
 				set.add(a);
-				foreach (user; useCounter.values(a.toID(a.id))) set.add(topRes(user.owner));
+				if (!isTargetVersion("1")) { mixin(S_TRACE);
+					foreach (user; useCounter.values(a.toID(a.id))) set.add(topRes(user.owner));
+				}
 			}
 		}
 		foreach (a; _info) if (a.isChanged) set.add(a);
@@ -1019,8 +1025,20 @@ public:
 	/// ditto
 	@property
 	void dataVersion(string ver) { mixin(S_TRACE);
-		if (_dataVersion != ver) changed();
-		_dataVersion = ver;
+		if (_dataVersion != ver) { mixin(S_TRACE);
+			changed();
+
+			foreach (a; _area) a.changed();
+			foreach (a; _btl) a.changed();
+			foreach (a; _pkg) a.changed();
+			foreach (a; _cast) a.changed();
+			foreach (a; _skl) a.changed();
+			foreach (a; _itm) a.changed();
+			foreach (a; _bst) a.changed();
+			foreach (a; _info) a.changed();
+
+			_dataVersion = ver;
+		}
 	}
 
 	/// 指定されたデータバージョンがシナリオのデータバージョン以下か。
@@ -1723,7 +1741,7 @@ public:
 	const
 	string[string][string] toXMLs(const System sys) { mixin(S_TRACE);
 		auto opt = new XMLOption(sys);
-		opt.includeCard = true;
+		opt.includeCard = !isTargetVersion("1");
 		opt.skill = (id) => this.skill(id);
 		opt.item = (id) => this.item(id);
 		opt.beast = (id) => this.beast(id);
@@ -1788,7 +1806,7 @@ public:
 		}
 
 		auto xOpt = new XMLOption(sys);
-		xOpt.includeCard = true;
+		xOpt.includeCard = !isTargetVersion("1");
 		xOpt.skill = (id) => skill(id);
 		xOpt.item = (id) => item(id);
 		xOpt.beast = (id) => beast(id);
@@ -2454,7 +2472,7 @@ public:
 				_tempPath = temp;
 				_legacy = false;
 			}
-			dataVersion = DEFAULT_VERSION;
+			if (legacyToX) dataVersion = DEFAULT_VERSION;
 			if (legacyToX || (!useTemp && archive)) { mixin(S_TRACE);
 				_useTemp = true;
 				refCheckPaths();

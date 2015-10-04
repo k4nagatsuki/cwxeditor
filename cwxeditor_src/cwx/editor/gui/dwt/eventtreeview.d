@@ -3355,7 +3355,7 @@ public:
 		CompileOption opt;
 		try { mixin(S_TRACE);
 			try { mixin(S_TRACE);
-				opt.linkId = _prop.var.etc.linkCard;
+				opt.linkId = (_prop.var.etc.linkCard || !_summ || !_summ.legacy);
 
 				auto compiler = new CWXScript(_prop.parent, _summ);
 				auto vars = compiler.eatEmptyVars(script, opt);

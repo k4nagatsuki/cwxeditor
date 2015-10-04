@@ -1606,36 +1606,43 @@ public:
 	/// 指定されたXMLノードに効果カード関連の情報を追加する。
 	const
 	protected XNode setEffProp(ref XNode node, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
-		auto pNode = setProp(node, opt, od);
-		pNode.newElement("LinkId", od && od.linkId != 0UL ? od.linkId : linkId);
-		pNode.newElement("Scenario", scenario);
-		pNode.newElement("Author", author);
-		auto a = pNode.newElement("Ability");
-		a.newAttr("physical", fromPhysical(physical));
-		a.newAttr("mental", fromMental(mental));
-		pNode.newElement("Target", fromCardTarget(target)).newAttr("allrange", fromBool(allRange));
-		pNode.newElement("EffectType", fromEffectType(effectType)).newAttr("spell", fromBool(spell));
-		pNode.newElement("ResistType", fromResist(resist));
-		pNode.newElement("SuccessRate", successRate);
-		pNode.newElement("VisualEffect", fromCardVisual(visual));
-		auto enh = pNode.newElement("Enhance");
-		enh.newAttr("avoid", enhance(Enhance.AVOID));
-		enh.newAttr("resist", enhance(Enhance.RESIST));
-		enh.newAttr("defense", enhance(Enhance.DEFENSE));
-		auto se1 = pNode.newElement("SoundPath", encodePath(soundPath1));
-		if (volume1 != 100) se1.newAttr("volume", volume1);
-		if (loopCount1 != 1) se1.newAttr("loopcount", loopCount1);
-		auto se2 = pNode.newElement("SoundPath2", encodePath(soundPath2));
-		if (volume2 != 100) se2.newAttr("volume", volume2);
-		if (loopCount2 != 1) se2.newAttr("loopcount", loopCount2);
-		pNode.newElement("KeyCodes", encodeLf(keyCodes, false));
-		pNode.newElement("Premium", fromPremium(premium));
-		auto mNode = node.newElement("Motions");
-		foreach (m; _muser.motions) { mixin(S_TRACE);
-			m.toNode(mNode, opt);
+		if (0 != linkId && (!opt || !opt.includeCard)) { mixin(S_TRACE);
+			auto pNode = node.newElement("Property");
+			pNode.newElement("Id", od && od.id != 0UL ? od.id : id);
+			pNode.newElement("LinkId", od && od.linkId != 0UL ? od.linkId : linkId);
+			return pNode;
+		} else { mixin(S_TRACE);
+			auto pNode = setProp(node, opt, od);
+			pNode.newElement("LinkId", od && od.linkId != 0UL ? od.linkId : linkId);
+			pNode.newElement("Scenario", scenario);
+			pNode.newElement("Author", author);
+			auto a = pNode.newElement("Ability");
+			a.newAttr("physical", fromPhysical(physical));
+			a.newAttr("mental", fromMental(mental));
+			pNode.newElement("Target", fromCardTarget(target)).newAttr("allrange", fromBool(allRange));
+			pNode.newElement("EffectType", fromEffectType(effectType)).newAttr("spell", fromBool(spell));
+			pNode.newElement("ResistType", fromResist(resist));
+			pNode.newElement("SuccessRate", successRate);
+			pNode.newElement("VisualEffect", fromCardVisual(visual));
+			auto enh = pNode.newElement("Enhance");
+			enh.newAttr("avoid", enhance(Enhance.AVOID));
+			enh.newAttr("resist", enhance(Enhance.RESIST));
+			enh.newAttr("defense", enhance(Enhance.DEFENSE));
+			auto se1 = pNode.newElement("SoundPath", encodePath(soundPath1));
+			if (volume1 != 100) se1.newAttr("volume", volume1);
+			if (loopCount1 != 1) se1.newAttr("loopcount", loopCount1);
+			auto se2 = pNode.newElement("SoundPath2", encodePath(soundPath2));
+			if (volume2 != 100) se2.newAttr("volume", volume2);
+			if (loopCount2 != 1) se2.newAttr("loopcount", loopCount2);
+			pNode.newElement("KeyCodes", encodeLf(keyCodes, false));
+			pNode.newElement("Premium", fromPremium(premium));
+			auto mNode = node.newElement("Motions");
+			foreach (m; _muser.motions) { mixin(S_TRACE);
+				m.toNode(mNode, opt);
+			}
+			_ceto.appendEventsToNode(node, opt);
+			return pNode;
 		}
-		_ceto.appendEventsToNode(node, opt);
-		return pNode;
 	}
 	/// 指定されたXMLノードから効果カード関連のデータを読み出す。
 	protected void loadEffProp(ref XNode pNode, in XMLInfo ver) { mixin(S_TRACE);
@@ -1884,7 +1891,9 @@ public:
 			return;
 		}
 		auto pNode = setEffProp(cNode, opt, od);
-		pNode.newElement("Level", level);
+		if (0 == linkId || (opt && opt.includeCard)) { mixin(S_TRACE);
+			pNode.newElement("Level", level);
+		}
 		pNode.newElement("UseLimit", useLimit);
 		pNode.newElement("Hold", fromBool(od && od.overHold ? od.hold : hold));
 	}
@@ -2142,11 +2151,13 @@ public:
 		}
 		auto pNode = setEffProp(cNode, opt, od);
 		pNode.newElement("UseLimit", useLimit).newAttr("max", useLimitMax);
-		pNode.newElement("Price", price);
-		auto eo = pNode.newElement("EnhanceOwner");
-		eo.newAttr("avoid", enhanceOwner(Enhance.AVOID));
-		eo.newAttr("resist", enhanceOwner(Enhance.RESIST));
-		eo.newAttr("defense", enhanceOwner(Enhance.DEFENSE));
+		if (0 == linkId || (opt && opt.includeCard)) { mixin(S_TRACE);
+			pNode.newElement("Price", price);
+			auto eo = pNode.newElement("EnhanceOwner");
+			eo.newAttr("avoid", enhanceOwner(Enhance.AVOID));
+			eo.newAttr("resist", enhanceOwner(Enhance.RESIST));
+			eo.newAttr("defense", enhanceOwner(Enhance.DEFENSE));
+		}
 		pNode.newElement("Hold", fromBool(od && od.overHold ? od.hold : hold));
 	}
 

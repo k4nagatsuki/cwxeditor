@@ -1612,7 +1612,7 @@ private:
 						assert (0);
 					}
 				}
-			} else if (sameSc && _ownerType is OwnerType.Cast && topLevel && _prop.var.etc.linkCard) { mixin(S_TRACE);
+			} else if (sameSc && _ownerType is OwnerType.Cast && topLevel && (_prop.var.etc.linkCard || !_summ || !_summ.legacy)) { mixin(S_TRACE);
 				auto id = card.id;
 				final switch (_cardType) {
 				case CardType.Cast:

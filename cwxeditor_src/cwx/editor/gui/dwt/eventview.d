@@ -2366,7 +2366,7 @@ public:
 		string script = array.array.idup;
 		string base = script;
 		try { mixin(S_TRACE);
-			opt.linkId = _prop.var.etc.linkCard;
+			opt.linkId = (_prop.var.etc.linkCard || !_summ || !_summ.legacy);
 
 			void put(Content[] cs) { mixin(S_TRACE);
 				if (!cs.length) return;
