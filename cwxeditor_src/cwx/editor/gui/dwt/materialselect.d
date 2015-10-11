@@ -379,7 +379,11 @@ public:
 				_loopCount = new Spinner(parent, SWT.BORDER);
 				initSpinner(_loopCount);
 				_loopCount.setMaximum(_prop.var.etc.loopCountMax);
-				_loopCount.setMinimum(0);
+				static if (Type == MtType.BGM) {
+					_loopCount.setMinimum(0);
+				} else static if (Type == MtType.SE) {
+					_loopCount.setMinimum(1);
+				} else static assert (0);
 				_loopCount.setSelection(loopCount);
 				.listener(_loopCount, SWT.Selection, { mixin(S_TRACE);
 					if (loopCount != this.loopCount) { mixin(S_TRACE);
@@ -406,10 +410,15 @@ public:
 				grp2.setText(_prop.msgs.loopCount);
 				grp2.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 				auto grp2comp = new Composite(grp2, SWT.NONE);
-				grp2comp.setLayout(windowGridLayout(2, false));
-				createLoopCount(grp2comp);
-				auto l4 = new Label(grp2comp, SWT.NONE);
-				l4.setText(_prop.msgs.loopCountHint);
+				static if (Type == MtType.BGM) {
+					grp2comp.setLayout(windowGridLayout(2, false));
+					createLoopCount(grp2comp);
+					auto l4 = new Label(grp2comp, SWT.NONE);
+					l4.setText(_prop.msgs.loopCountHint);
+				} else static if (Type == MtType.SE) {
+					grp2comp.setLayout(windowGridLayout(1, false));
+					createLoopCount(grp2comp);
+				} else static assert (0);
 			} else { mixin(S_TRACE);
 				auto comp2 = new Composite(comp, SWT.NONE);
 				auto wgd1 = windowGridLayout(3, false);
@@ -423,15 +432,25 @@ public:
 				l2.setText(_prop.msgs.playingVolumePer);
 
 				auto comp3 = new Composite(comp, SWT.NONE);
-				auto wgd2 = windowGridLayout(3, false);
-				wgd2.marginWidth = 0;
-				wgd2.marginHeight = 0;
-				comp3.setLayout(wgd2);
-				auto l3 = new Label(comp3, SWT.NONE);
-				l3.setText(_prop.msgs.loopCount ~ ":");
-				createLoopCount(comp3);
-				auto l4 = new Label(comp3, SWT.NONE);
-				l4.setText(_prop.msgs.loopCountHint);
+				static if (Type == MtType.BGM) {
+					auto wgd2 = windowGridLayout(3, false);
+					wgd2.marginWidth = 0;
+					wgd2.marginHeight = 0;
+					comp3.setLayout(wgd2);
+					auto l3 = new Label(comp3, SWT.NONE);
+					l3.setText(_prop.msgs.loopCount ~ ":");
+					createLoopCount(comp3);
+					auto l4 = new Label(comp3, SWT.NONE);
+					l4.setText(_prop.msgs.loopCountHint);
+				} else static if (Type == MtType.SE) {
+					auto wgd2 = windowGridLayout(2, false);
+					wgd2.marginWidth = 0;
+					wgd2.marginHeight = 0;
+					comp3.setLayout(wgd2);
+					auto l3 = new Label(comp3, SWT.NONE);
+					l3.setText(_prop.msgs.loopCount ~ ":");
+					createLoopCount(comp3);
+				} else static assert (0);
 			}
 			_comm.refDataVersion.add(&refDataVersion);
 			.listener(parent, SWT.Dispose, { mixin(S_TRACE);
