@@ -729,7 +729,7 @@ private:
 				se.createFileList(comp).setLayoutData(gdfl);
 				auto ogd = new GridData(GridData.FILL_HORIZONTAL);
 				ogd.horizontalSpan = 3;
-				se.createPlayingOptions(comp, true).setLayoutData(ogd);
+				se.createPlayingOptions(comp, false, true).setLayoutData(ogd);
 				return se;
 			}
 			_se1 = createSE(_prop.msgs.se1);

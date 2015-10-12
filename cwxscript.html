@@ -805,9 +805,9 @@
 	<dd>メッセージ</dd>
 	<dt class="content"><a href="#DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span> ..., <span class="arg">&lt;得点&gt;</span>] ...</span></span></a></dt>
 	<dd>台詞</dd>
-	<dt class="content"><a href="#BGM">bgm <span class="args"><span class="arg">&lt;ファイル名&gt;</span>, <span class="arg">&lt;音量(%)&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span></span></a></dt>
+	<dt class="content"><a href="#BGM">bgm <span class="args"><span class="arg">&lt;ファイル名&gt;</span>, <span class="arg">&lt;再生チャンネル&gt;</span>, <span class="arg">&lt;音量(%)&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span></span></a></dt>
 	<dd>BGMの演奏</dd>
-	<dt class="content"><a href="#SE">se <span class="args"><span class="arg">&lt;ファイル名&gt;</span>, <span class="arg">&lt;音量(%)&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span></span></a></dt>
+	<dt class="content"><a href="#SE">se <span class="args"><span class="arg">&lt;ファイル名&gt;</span>, <span class="arg">&lt;再生チャンネル&gt;</span>, <span class="arg">&lt;音量(%)&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span></span></a></dt>
 	<dd>効果音の再生</dd>
 	<dt class="content"><a href="#WAIT">wait <span class="args"><span class="arg">&lt;停止時間&gt;</span></span></a></dt>
 	<dd>ウェイト</dd>
@@ -1646,7 +1646,7 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="BGM" name="BGM">bgm <span class="args"><span class="arg">&lt;ファイル名&gt;</span>, <span class="arg">&lt;音量(%)&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span></span></a></h3>
+<h3 class="content"><a id="BGM" name="BGM">bgm <span class="args"><span class="arg">&lt;ファイル名&gt;</span>, <span class="arg">&lt;再生チャンネル&gt;</span>, <span class="arg">&lt;音量(%)&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span></span></a></h3>
 
 <p class="fullname">(Play BGM)</p>
 <p class="desc">BGMを演奏します。</p>
@@ -1654,6 +1654,7 @@
 <h4 class="argments">パラメータ</h4>
 
 <p class="desc">ファイル名には、音声ファイル名を指定します。クラシックなシナリオでは*.midしか指定できません。<code class="code">stop</code>を指定するか、省略した場合は、BGMを停止します。</p>
+<p class="desc">再生チャンネルには、主音声(0)か副音声(1)のいずれかの値を指定します。主音声と副音声は重ねて再生する事ができます。</p>
 <p class="desc">音量には、再生音量をパーセンテージで指定します。この音量の値はエンジンの設定を最大値としてのものなので、エンジンの音量設定が50%となっている場合、ここで50%を指定すると最終的に25%の音量となります。省略した場合は100%です。</p>
 <p class="desc">ループ回数には、この音声を何回ループ再生するかを指定します。0は無限ループです。省略した場合は0です。</p>
 
@@ -1663,7 +1664,7 @@
 <span class="keywords">wait</span> <span class="num">50</span>
 <span class="keywords">bgm</span> <span class="code">stop</span> <span class="comment">// BGM停止</span></code></pre>
 
-<h3 class="content"><a id="SE" name="SE">se <span class="args"><span class="arg">&lt;ファイル名&gt;</span>, <span class="arg">&lt;音量(%)&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span></span></a></h3>
+<h3 class="content"><a id="SE" name="SE">se <span class="args"><span class="arg">&lt;ファイル名&gt;</span>, <span class="arg">&lt;再生チャンネル&gt;</span>, <span class="arg">&lt;音量(%)&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span></span></a></h3>
 
 <p class="fullname">(Play SE)</p>
 <p class="desc">効果音を鳴らします。</p>
@@ -1671,6 +1672,7 @@
 <h4 class="argments">パラメータ</h4>
 
 <p class="desc">音声ファイル名を指定します。クラシックなシナリオでは*.wavしか指定できません。省略した場合は、何も鳴らしません。</p>
+<p class="desc">再生チャンネルには、主音声(0)か副音声(1)のいずれかの値を指定します。主音声と副音声は重ねて再生する事ができます。</p>
 <p class="desc">音量には、再生音量をパーセンテージで指定します。この音量の値はエンジンの設定を最大値としてのものなので、エンジンの音量設定が50%となっている場合、ここで50%を指定すると最終的に25%の音量となります。省略した場合は100%です。</p>
 <p class="desc">ループ回数には、この音声を何回ループ再生するかを指定します。0は無限ループです。省略した場合は1です。</p>
 

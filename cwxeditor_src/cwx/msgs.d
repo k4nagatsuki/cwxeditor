@@ -778,8 +778,12 @@ class Msgs : Properties {
 	auto playingVolumePer = Msg("playingVolumePer", "%"); // Wsn.1
 	auto loopCount = Msg("loopCount", "ループ回数"); // Wsn.1
 	auto loopCountHint = Msg("loopCountHint", "(0 = ∞)"); // Wsn.1
+	auto playingChannel = Msg("playingChannel", "Ch."); // Wsn.1
+	auto mainChannel = Msg("mainChannel", "主音声"); // Wsn.1
+	auto subChannel = Msg("subChannel", "副音声"); // Wsn.1
 	auto warningVolume = Msg("warningVolume", "音量の設定はWSN1以降の形式のシナリオしか使用できません。");
 	auto warningLoopCount = Msg("warningLoopCount", "ループ回数の設定はWSN1以降の形式のシナリオしか使用できません。");
+	auto warningChannel= Msg("warningChannel", "再生チャンネルの設定はWSN1以降の形式のシナリオしか使用できません。");
 
 	/// メインウィンドウ。
 	auto mainWindowName = Msg("mainWindowName", "%1$s [ %2$s ] - CWXEditor");

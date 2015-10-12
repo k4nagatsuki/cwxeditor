@@ -341,6 +341,7 @@ public:
 
 		private Spinner _volume = null;
 		private Spinner _loopCount = null;
+		private Combo _channel = null;
 
 		@property
 		string[] warnings() {
@@ -352,12 +353,15 @@ public:
 			if (_loopCount && _loopCount.getSelection() != loops && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
 				r ~= _prop.msgs.warningLoopCount;
 			}
+			if (_channel && _channel.getSelectionIndex() != 0 && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
+				r ~= _prop.msgs.warningChannel;
+			}
 			return r;
 		}
 
-		Composite createPlayingOptions(Composite parent, bool tableLayout = false) { mixin(S_TRACE);
+		Composite createPlayingOptions(Composite parent, bool selectCh = false, bool tableLayout = false) { mixin(S_TRACE);
 			auto comp = new Composite(parent, SWT.NONE);
-			comp.setLayout(zeroMarginGridLayout(2, false));
+			comp.setLayout(zeroMarginGridLayout(selectCh ? 3 : 2, false));
 
 			void createVolume(Composite parent) { mixin(S_TRACE);
 				auto volume = this.volume;
@@ -393,65 +397,58 @@ public:
 					}
 				});
 			}
-
-			if (tableLayout) { mixin(S_TRACE);
-				auto grp1 = new Group(comp, SWT.NONE);
-				grp1.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				grp1.setText(_prop.msgs.playingVolume);
-				grp1.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
-				auto grp1comp = new Composite(grp1, SWT.NONE);
-				grp1comp.setLayout(windowGridLayout(2, false));
-				createVolume(grp1comp);
-				auto l2 = new Label(grp1comp, SWT.NONE);
-				l2.setText(_prop.msgs.playingVolumePer);
-
-				auto grp2 = new Group(comp, SWT.NONE);
-				grp2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				grp2.setText(_prop.msgs.loopCount);
-				grp2.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
-				auto grp2comp = new Composite(grp2, SWT.NONE);
-				static if (Type == MtType.BGM) {
-					grp2comp.setLayout(windowGridLayout(2, false));
-					createLoopCount(grp2comp);
-					auto l4 = new Label(grp2comp, SWT.NONE);
-					l4.setText(_prop.msgs.loopCountHint);
-				} else static if (Type == MtType.SE) {
-					grp2comp.setLayout(windowGridLayout(1, false));
-					createLoopCount(grp2comp);
-				} else static assert (0);
-			} else { mixin(S_TRACE);
-				auto comp2 = new Composite(comp, SWT.NONE);
-				auto wgd1 = windowGridLayout(3, false);
-				wgd1.marginWidth = 0;
-				wgd1.marginHeight = 0;
-				comp2.setLayout(wgd1);
-				auto l1 = new Label(comp2, SWT.NONE);
-				l1.setText(_prop.msgs.playingVolume ~ ":");
-				createVolume(comp2);
-				auto l2 = new Label(comp2, SWT.NONE);
-				l2.setText(_prop.msgs.playingVolumePer);
-
-				auto comp3 = new Composite(comp, SWT.NONE);
-				static if (Type == MtType.BGM) {
-					auto wgd2 = windowGridLayout(3, false);
-					wgd2.marginWidth = 0;
-					wgd2.marginHeight = 0;
-					comp3.setLayout(wgd2);
-					auto l3 = new Label(comp3, SWT.NONE);
-					l3.setText(_prop.msgs.loopCount ~ ":");
-					createLoopCount(comp3);
-					auto l4 = new Label(comp3, SWT.NONE);
-					l4.setText(_prop.msgs.loopCountHint);
-				} else static if (Type == MtType.SE) {
-					auto wgd2 = windowGridLayout(2, false);
-					wgd2.marginWidth = 0;
-					wgd2.marginHeight = 0;
-					comp3.setLayout(wgd2);
-					auto l3 = new Label(comp3, SWT.NONE);
-					l3.setText(_prop.msgs.loopCount ~ ":");
-					createLoopCount(comp3);
-				} else static assert (0);
+			void createCh(Composite parent) { mixin(S_TRACE);
+				_channel = new Combo(parent, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+				_channel.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+				_channel.add(_prop.msgs.mainChannel);
+				_channel.add(_prop.msgs.subChannel);
+				_channel.select(0);
+				.listener(_channel, SWT.Selection, { mixin(S_TRACE);
+					if (_refresh) _refresh();
+					foreach (dlg; modEvent) dlg();
+				});
 			}
+
+			Composite createComp(string text, int wCount) { mixin(S_TRACE);
+				if (tableLayout) {
+					auto grp = new Group(comp, SWT.NONE);
+					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					grp.setText(text);
+					grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
+					auto comp = new Composite(grp, SWT.NONE);
+					comp.setLayout(windowGridLayout(wCount, false));
+					return comp;
+				} else {
+					auto comp = new Composite(comp, SWT.NONE);
+					auto wgd = windowGridLayout(wCount + 1, false);
+					wgd.marginWidth = 0;
+					wgd.marginHeight = 0;
+					comp.setLayout(wgd);
+					auto l = new Label(comp, SWT.NONE);
+					l.setText(text ~ ":");
+					return comp;
+				}
+			}
+
+			auto comp2 = createComp(_prop.msgs.playingVolume, 2);
+			createVolume(comp2);
+			auto l2 = new Label(comp2, SWT.NONE);
+			l2.setText(_prop.msgs.playingVolumePer);
+
+			auto comp3 = createComp(_prop.msgs.loopCount, Type == MtType.BGM ? 2 : 1);
+			static if (Type == MtType.BGM) {
+				createLoopCount(comp3);
+				auto l4 = new Label(comp3, SWT.NONE);
+				l4.setText(_prop.msgs.loopCountHint);
+			} else static if (Type == MtType.SE) {
+				createLoopCount(comp3);
+			} else static assert (0);
+
+			if (selectCh) { mixin(S_TRACE);
+				auto comp4 = createComp(_prop.msgs.playingChannel, 1);
+				createCh(comp4);
+			}
+
 			_comm.refDataVersion.add(&refDataVersion);
 			.listener(parent, SWT.Dispose, { mixin(S_TRACE);
 				_comm.refDataVersion.remove(&refDataVersion);
@@ -483,6 +480,15 @@ public:
 		void loopCount(int loopCount) { mixin(S_TRACE);
 			.enforce(_loopCount);
 			_loopCount.setSelection(loopCount);
+		}
+		@property
+		int channel() { mixin(S_TRACE);
+			return _channel ? _channel.getSelectionIndex() : 0;
+		}
+		@property
+		void channel(int channel) { mixin(S_TRACE);
+			.enforce(_channel);
+			_channel.select(channel);
 		}
 	}
 	static if (Type == MtType.BGM) {

@@ -374,11 +374,17 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.bgmLoopCount != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningLoopCount;
 		}
+		if (c.bgmChannel != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningChannel;
+		}
 		if (c.soundPath != "") { mixin(S_TRACE);
 			r ~= skin.warningSE(prop, c.soundPath, summ ? summ.legacy : false, targVer);
 		}
 		if (c.soundVolume != 100 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningVolume;
+		}
+		if (c.soundChannel!= 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningChannel;
 		}
 		if (c.soundLoopCount != 1 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningLoopCount;

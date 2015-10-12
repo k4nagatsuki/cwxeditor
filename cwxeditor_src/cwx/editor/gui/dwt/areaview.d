@@ -2472,7 +2472,7 @@ private:
 			_bgm.createFileList(comp).setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
 
 			_bgm.createPlayingBar(comp).setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
-			_bgm.createPlayingOptions(comp, true).setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
+			_bgm.createPlayingOptions(comp, false, true).setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
 
 			_bgm.path = _area.music;
 			_bgm.volume = _area.volume;

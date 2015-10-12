@@ -2683,6 +2683,9 @@ fi`;
 			if (detail.use(CArg.BGM_PATH)) { mixin(S_TRACE);
 				c.bgmPath = encodePath(parseAttr!(string)(opt, node.attr, i, decodePath(c.bgmPath), varTable, 0));
 			}
+			if (detail.use(CArg.BGM_CHANNEL)) { mixin(S_TRACE);
+				c.bgmChannel = parseAttr!(int)(opt, node.attr, i, c.bgmChannel, varTable, 0);
+			}
 			if (detail.use(CArg.BGM_VOLUME)) { mixin(S_TRACE);
 				c.bgmVolume = parseAttr!(int)(opt, node.attr, i, c.bgmVolume, varTable, 0);
 			}
@@ -2691,6 +2694,9 @@ fi`;
 			}
 			if (detail.use(CArg.SOUND_PATH)) { mixin(S_TRACE);
 				c.soundPath = encodePath(parseAttr!(string)(opt, node.attr, i, decodePath(c.soundPath), varTable, 0));
+			}
+			if (detail.use(CArg.SOUND_CHANNEL)) { mixin(S_TRACE);
+				c.soundChannel = parseAttr!(int)(opt, node.attr, i, c.soundChannel, varTable, 0);
 			}
 			if (detail.use(CArg.SOUND_VOLUME)) { mixin(S_TRACE);
 				c.soundVolume = parseAttr!(int)(opt, node.attr, i, c.soundVolume, varTable, 0);
@@ -3510,8 +3516,26 @@ fi`;
 					attrs ~= toAttr(Symbol("stop"), command, indentValue, vars);
 				}
 			}
+			if (detail.use(CArg.BGM_CHANNEL)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.bgmChannel, command, indentValue, vars);
+			}
+			if (detail.use(CArg.BGM_VOLUME)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.bgmVolume, command, indentValue, vars);
+			}
+			if (detail.use(CArg.BGM_LOOP_COUNT)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.bgmLoopCount, command, indentValue, vars);
+			}
 			if (detail.use(CArg.SOUND_PATH)) { mixin(S_TRACE);
 				attrs ~= toAttr(encodePath(c.soundPath), command, indentValue, vars);
+			}
+			if (detail.use(CArg.SOUND_CHANNEL)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.soundChannel, command, indentValue, vars);
+			}
+			if (detail.use(CArg.SOUND_VOLUME)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.soundVolume, command, indentValue, vars);
+			}
+			if (detail.use(CArg.SOUND_LOOP_COUNT)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.soundLoopCount, command, indentValue, vars);
 			}
 			if (!legacy) { mixin(S_TRACE);
 				if (detail.use(CArg.TRANSITION_SPEED)) { mixin(S_TRACE);
