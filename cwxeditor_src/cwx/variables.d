@@ -417,7 +417,7 @@ class FlexEtcProps : Properties {
 	auto bgmVolume = Prop!(int)("bgmVolume", 100);
 	auto seVolume = Prop!(int)("seVolume", 100);
 
-	auto loopCountMax = Prop!(int)("loopCountMax", 100, true);
+	auto loopCountMax = Prop!(uint)("loopCountMax", 100, true);
 
 	auto detailAreaWidth = Prop!(int)("detailAreaWidth", 200);
 

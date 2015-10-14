@@ -346,14 +346,14 @@ public:
 		@property
 		string[] warnings() {
 			string[] r;
-			if (_volume && _volume.getSelection() != 100 && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (_volume && _volume.getSelection() != 100 && path != "" && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
 				r ~= _prop.msgs.warningVolume;
 			}
 			auto loops = (Type == MtType.BGM) ? 0 : 1;
-			if (_loopCount && _loopCount.getSelection() != loops && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (_loopCount && _loopCount.getSelection() != loops && path != "" && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
 				r ~= _prop.msgs.warningLoopCount;
 			}
-			if (_channel && _channel.getSelectionIndex() != 0 && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (_channel && _channel.getSelectionIndex() != 0 && (path != "" || Type == MtType.BGM) && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
 				r ~= _prop.msgs.warningChannel;
 			}
 			return r;
@@ -458,8 +458,9 @@ public:
 			return comp;
 		}
 		private void refDataVersion() { mixin(S_TRACE);
-			_volume.setEnabled(!_summ.legacy);
-			_loopCount.setEnabled(!_summ.legacy);
+			if (_volume) _volume.setEnabled(!_summ.legacy && path != "");
+			if (_loopCount) _loopCount.setEnabled(!_summ.legacy && path != "");
+			if (_channel) _channel.setEnabled(!_summ.legacy && (path != "" || Type == MtType.BGM));
 		}
 		@property
 		int volume() { return _volume ? _volume.getSelection() : 100; }
@@ -791,6 +792,7 @@ public:
 			if (old != _path) {
 				foreach (dlg; modEvent) dlg();
 			}
+			refreshButtons();
 		}
 		_path = path;
 		if (updateBinImg) {
@@ -1366,6 +1368,7 @@ private:
 	}
 	void refreshButtons() { mixin(S_TRACE);
 		_comm.refreshToolBar();
+		static if (Type == MtType.BGM || Type == MtType.SE) refDataVersion();
 	}
 	@property
 	Skin summSkin() { mixin(S_TRACE);
