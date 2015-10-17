@@ -2344,6 +2344,17 @@ fi`;
 				debugln(e);
 				throwError(_prop.msgs.scriptErrorReqID, attr[i].token);
 			}
+		} else static if (is(T == real)) {
+			auto value = attrValue(attr[i], varTable, msgWidth);
+			try { mixin(S_TRACE);
+				auto r = to!(real)(value);
+				i++;
+				return r;
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
+				throwError(_prop.msgs.scriptErrorReqNumber, attr[i].token);
+			}
 		} else static assert (0, T.stringof);
 		return T.init;
 	}
@@ -2686,6 +2697,9 @@ fi`;
 			if (detail.use(CArg.BGM_CHANNEL)) { mixin(S_TRACE);
 				c.bgmChannel = parseAttr!(int)(opt, node.attr, i, c.bgmChannel, varTable, 0);
 			}
+			if (detail.use(CArg.BGM_FADE_IN)) { mixin(S_TRACE);
+				c.bgmFadeIn = roundTo!uint(parseAttr!(real)(opt, node.attr, i, c.bgmFadeIn / 100.0, varTable, 0) * 100.0);
+			}
 			if (detail.use(CArg.BGM_VOLUME)) { mixin(S_TRACE);
 				c.bgmVolume = parseAttr!(int)(opt, node.attr, i, c.bgmVolume, varTable, 0);
 			}
@@ -2697,6 +2711,9 @@ fi`;
 			}
 			if (detail.use(CArg.SOUND_CHANNEL)) { mixin(S_TRACE);
 				c.soundChannel = parseAttr!(int)(opt, node.attr, i, c.soundChannel, varTable, 0);
+			}
+			if (detail.use(CArg.SOUND_FADE_IN)) { mixin(S_TRACE);
+				c.soundFadeIn = roundTo!uint(parseAttr!(real)(opt, node.attr, i, c.soundFadeIn / 100.0, varTable, 0) * 100.0);
 			}
 			if (detail.use(CArg.SOUND_VOLUME)) { mixin(S_TRACE);
 				c.soundVolume = parseAttr!(int)(opt, node.attr, i, c.soundVolume, varTable, 0);
@@ -3189,6 +3206,8 @@ fi`;
 			attrs ~= to!(string)(value);
 		} else static if (is(T : ulong)) {
 			attrs ~= to!(string)(value);
+		} else static if (is(T : real)) {
+			attrs ~= .formatReal(value, 3);
 		} else static assert (0);
 		return attrs;
 	}
@@ -3519,6 +3538,9 @@ fi`;
 			if (detail.use(CArg.BGM_CHANNEL)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.bgmChannel, command, indentValue, vars);
 			}
+			if (detail.use(CArg.BGM_FADE_IN)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.bgmFadeIn / 100.0, command, indentValue, vars);
+			}
 			if (detail.use(CArg.BGM_VOLUME)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.bgmVolume, command, indentValue, vars);
 			}
@@ -3530,6 +3552,9 @@ fi`;
 			}
 			if (detail.use(CArg.SOUND_CHANNEL)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.soundChannel, command, indentValue, vars);
+			}
+			if (detail.use(CArg.SOUND_FADE_IN)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.soundFadeIn / 100.0, command, indentValue, vars);
 			}
 			if (detail.use(CArg.SOUND_VOLUME)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.soundVolume, command, indentValue, vars);

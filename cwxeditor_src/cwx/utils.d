@@ -30,6 +30,7 @@ import std.stdint;
 import std.stream;
 import std.range;
 import std.functional;
+import std.math;
 
 static if ((void*).sizeof == 8) {
 	alias int c_int;
@@ -518,6 +519,50 @@ string tryFormat(T ...)(string s, T vals) { mixin(S_TRACE);
 		debugln(e);
 		return s;
 	}
+}
+
+/// maxLenに3を指定した場合は 1 -> "1", 0.1 -> "0.1", 0.0001 -> "0" のようにフォーマットする。
+string formatReal(real value, uint maxLen) { mixin(S_TRACE);
+	auto p = pow(10.0, maxLen);
+	value = roundTo!int(value * p) / p;
+	auto s = .format("%." ~ .text(maxLen) ~ "f", value);
+	while (1 < s.length) { mixin(S_TRACE);
+		auto s2 = .chomp(s, "0");
+		if (s == s2) break;
+		s = s2;
+	}
+	s =.chomp(s, ".");
+	return s;
+} unittest { mixin(S_TRACE);
+	debug mixin(UTPerf);
+	assert (formatReal(0F, 3) == "0");
+	assert (formatReal(10F, 3) == "10");
+	assert (formatReal(1F, 3) == "1");
+	assert (formatReal(0.1F, 3) == "0.1");
+	assert (formatReal(0.01F, 3) == "0.01");
+	assert (formatReal(0.001F, 3) == "0.001");
+	assert (formatReal(0.0001F, 3) == "0");
+	assert (formatReal(40F, 3) == "40");
+	assert (formatReal(4F, 3) == "4");
+	assert (formatReal(0.4F, 3) == "0.4");
+	assert (formatReal(0.04F, 3) == "0.04");
+	assert (formatReal(0.004F, 3) == "0.004");
+	assert (formatReal(0.0004F, 3) == "0");
+	assert (formatReal(0.00004F, 3) == "0");
+	assert (formatReal(45F, 3) == "45");
+	assert (formatReal(4.5F, 3) == "4.5");
+	assert (formatReal(0.45F, 3) == "0.45");
+	assert (formatReal(0.045F, 3) == "0.045");
+	assert (formatReal(0.0045F, 3) == "0.005");
+	assert (formatReal(0.00045F, 3) == "0");
+	assert (formatReal(0.000045F, 3) == "0");
+	assert (formatReal(50F, 3) == "50");
+	assert (formatReal(5F, 3) == "5");
+	assert (formatReal(0.5F, 3) == "0.5");
+	assert (formatReal(0.05F, 3) == "0.05");
+	assert (formatReal(0.005F, 3) == "0.005");
+	assert (formatReal(0.0005F, 3) == "0.001");
+	assert (formatReal(0.00005F, 3) == "0");
 }
 
 /// ワイルドカードを用いてパターンマッチングを行う。

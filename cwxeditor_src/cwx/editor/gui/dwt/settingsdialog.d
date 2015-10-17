@@ -569,7 +569,7 @@ private:
 					.listener(play, SWT.Selection, { mixin(S_TRACE);
 						string file = _savedSound.getText();
 						if (file.length && .exists(file)) { mixin(S_TRACE);
-							playSE(file, 1, SOUND_TYPE_MCI, true);
+							playSE(file, 0, 1, SOUND_TYPE_MCI, true);
 						}
 					});
 					auto stop = new Button(grp, SWT.PUSH);

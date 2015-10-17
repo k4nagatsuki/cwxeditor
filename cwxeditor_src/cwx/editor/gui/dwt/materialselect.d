@@ -341,20 +341,24 @@ public:
 
 		private Spinner _volume = null;
 		private Spinner _loopCount = null;
+		private Spinner _fadeIn = null;
 		private Combo _channel = null;
 
 		@property
 		string[] warnings() {
 			string[] r;
+			if (_channel && _channel.getSelectionIndex() != 0 && (path != "" || Type == MtType.BGM) && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
+				r ~= _prop.msgs.warningChannel;
+			}
+			if (_fadeIn && _fadeIn.getSelection() != 0 && path != "" && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
+				r ~= _prop.msgs.warningFadeIn;
+			}
 			if (_volume && _volume.getSelection() != 100 && path != "" && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
 				r ~= _prop.msgs.warningVolume;
 			}
 			auto loops = (Type == MtType.BGM) ? 0 : 1;
 			if (_loopCount && _loopCount.getSelection() != loops && path != "" && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
 				r ~= _prop.msgs.warningLoopCount;
-			}
-			if (_channel && _channel.getSelectionIndex() != 0 && (path != "" || Type == MtType.BGM) && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
-				r ~= _prop.msgs.warningChannel;
 			}
 			return r;
 		}
@@ -370,7 +374,7 @@ public:
 				_volume.setMaximum(100);
 				_volume.setMinimum(0);
 				_volume.setSelection(volume);
-				.listener(_volume, SWT.Selection, { mixin(S_TRACE);
+				.listener(_volume, SWT.Modify, { mixin(S_TRACE);
 					if (volume != this.volume) { mixin(S_TRACE);
 						volume = this.volume;
 						if (_refresh) _refresh();
@@ -389,7 +393,7 @@ public:
 					_loopCount.setMinimum(1);
 				} else static assert (0);
 				_loopCount.setSelection(loopCount);
-				.listener(_loopCount, SWT.Selection, { mixin(S_TRACE);
+				.listener(_loopCount, SWT.Modify, { mixin(S_TRACE);
 					if (loopCount != this.loopCount) { mixin(S_TRACE);
 						loopCount = this.loopCount;
 						if (_refresh) _refresh();
@@ -430,6 +434,11 @@ public:
 				}
 			}
 
+			if (selectCh) { mixin(S_TRACE);
+				auto comp4 = createComp(_prop.msgs.playingChannel, 1);
+				createCh(comp4);
+			}
+
 			auto comp2 = createComp(_prop.msgs.playingVolume, 2);
 			createVolume(comp2);
 			auto l2 = new Label(comp2, SWT.NONE);
@@ -444,11 +453,6 @@ public:
 				createLoopCount(comp3);
 			} else static assert (0);
 
-			if (selectCh) { mixin(S_TRACE);
-				auto comp4 = createComp(_prop.msgs.playingChannel, 1);
-				createCh(comp4);
-			}
-
 			_comm.refDataVersion.add(&refDataVersion);
 			.listener(parent, SWT.Dispose, { mixin(S_TRACE);
 				_comm.refDataVersion.remove(&refDataVersion);
@@ -457,10 +461,49 @@ public:
 
 			return comp;
 		}
+		Composite createFadeIn(Composite parent) { mixin(S_TRACE);
+			auto comp = new Composite(parent, SWT.NONE);
+			auto wgd = windowGridLayout(3, false);
+			wgd.marginWidth = 0;
+			wgd.marginHeight = 0;
+			comp.setLayout(wgd);
+
+			auto l1 = new Label(comp, SWT.NONE);
+			l1.setText(_prop.msgs.fadeIn ~ ":");
+
+			auto fadeIn = this.fadeIn;
+			_fadeIn = new Spinner(comp, SWT.BORDER);
+			initSpinner(_fadeIn);
+			_fadeIn.setMaximum(_prop.var.etc.fadeInMax);
+			_fadeIn.setMinimum(0);
+			_fadeIn.setSelection(roundTo!int(fadeIn / 100.0)); // 0.1s -> 1ms
+			.listener(_fadeIn, SWT.Modify, { mixin(S_TRACE);
+				if (fadeIn != this.fadeIn) { mixin(S_TRACE);
+					fadeIn = this.fadeIn;
+					if (_refresh) _refresh();
+					foreach (dlg; modEvent) dlg();
+				}
+			});
+
+			auto l2 = new Label(comp, SWT.NONE);
+			l2.setText(_prop.msgs.fadeInHint);
+
+			return comp;
+		}
 		private void refDataVersion() { mixin(S_TRACE);
 			if (_volume) _volume.setEnabled(!_summ.legacy && path != "");
 			if (_loopCount) _loopCount.setEnabled(!_summ.legacy && path != "");
 			if (_channel) _channel.setEnabled(!_summ.legacy && (path != "" || Type == MtType.BGM));
+			if (_fadeIn) _fadeIn.setEnabled(!_summ.legacy && (path != "" || Type == MtType.BGM));
+		}
+		@property
+		int fadeIn() { mixin(S_TRACE);
+			return _fadeIn ? _fadeIn.getSelection() * 100 : 0; // ms -> 0.1s
+		}
+		@property
+		void fadeIn(int fadeIn) { mixin(S_TRACE);
+			.enforce(_fadeIn);
+			_fadeIn.setSelection(roundTo!int(fadeIn / 100.0)); // 0.1s -> ms
 		}
 		@property
 		int volume() { return _volume ? _volume.getSelection() : 100; }
@@ -551,7 +594,8 @@ public:
 				scope (exit) _startPlay = false;
 				auto volume = _volume ? _volume.getSelection() : 100;
 				auto loopCount = _loopCount ? _loopCount.getSelection() : 0;
-				bool inPlay = playBGMCW(_prop, p, volume, loopCount, _comm.skin.legacy);
+				auto fadeIn = this.fadeIn;
+				bool inPlay = playBGMCW(_prop, p, fadeIn, volume, loopCount, _comm.skin.legacy);
 				if (inPlay) { mixin(S_TRACE);
 					_playing = p;
 					auto relPath = .encodePath(this.path);
@@ -703,7 +747,8 @@ public:
 			if (p.length > 0) { mixin(S_TRACE);
 				auto volume = _volume ? _volume.getSelection() : 100;
 				auto loopCount = _loopCount ? _loopCount.getSelection() : 1;
-				playSECW(_prop, p, volume, loopCount, _comm.skin.legacy);
+				auto fadeIn = this.fadeIn;
+				playSECW(_prop, p, fadeIn, volume, loopCount, _comm.skin.legacy);
 			}
 		}
 		void stopSE() { mixin(S_TRACE);

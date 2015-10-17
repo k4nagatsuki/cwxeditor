@@ -935,6 +935,7 @@ protected:
 
 			_msel.createPlayingBar(comp).setLayoutData(h4GD(GridData.FILL_HORIZONTAL));
 			_msel.createPlayingOptions(comp, true).setLayoutData(h4GD(GridData.HORIZONTAL_ALIGN_END));
+			_msel.createFadeIn(comp).setLayoutData(h4GD(GridData.HORIZONTAL_ALIGN_END));
 		}
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -942,6 +943,7 @@ protected:
 		if (_evt) { mixin(S_TRACE);
 			_msel.volume = _evt.bgmVolume;
 			_msel.loopCount = _evt.bgmLoopCount;
+			_msel.fadeIn = _evt.bgmFadeIn;
 			_msel.channel = _evt.bgmChannel;
 		}
 		refreshWarning();
@@ -952,6 +954,7 @@ protected:
 		_evt.bgmPath = _msel.path;
 		_evt.bgmVolume = _msel.volume;
 		_evt.bgmLoopCount = _msel.loopCount;
+		_evt.bgmFadeIn = _msel.fadeIn;
 		_evt.bgmChannel = _msel.channel;
 		return true;
 	}
@@ -1003,6 +1006,7 @@ protected:
 			list.setLayoutData(gd);
 
 			_msel.createPlayingOptions(comp, true).setLayoutData(h5GD(GridData.HORIZONTAL_ALIGN_END));
+			_msel.createFadeIn(comp).setLayoutData(h5GD(GridData.HORIZONTAL_ALIGN_END));
 		}
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -1010,6 +1014,7 @@ protected:
 		if (_evt) { mixin(S_TRACE);
 			_msel.volume = _evt.soundVolume;
 			_msel.loopCount = _evt.soundLoopCount;
+			_msel.fadeIn = _evt.soundFadeIn;
 			_msel.channel = _evt.soundChannel;
 		}
 		refreshWarning();
@@ -1020,6 +1025,7 @@ protected:
 		_evt.soundPath = _msel.path;
 		_evt.soundVolume = _msel.volume;
 		_evt.soundLoopCount = _msel.loopCount;
+		_evt.soundFadeIn = _msel.fadeIn;
 		_evt.soundChannel = _msel.channel;
 		return true;
 	}

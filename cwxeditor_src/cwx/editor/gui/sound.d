@@ -131,7 +131,9 @@ private extern (C) {
 	alias Mix_Music* function(const char* file) Mix_LoadMUS;
 	alias Mix_Chunk* function(Uint8* mem) Mix_QuickLoad_WAV;
 	alias c_int function(Mix_Music* music, c_int loops) Mix_PlayMusic;
+	alias c_int function(Mix_Music* music, c_int loops, c_int ms) Mix_FadeInMusic;
 	alias c_int function(c_int channel, Mix_Chunk *chunk, c_int loops, c_int ticks) Mix_PlayChannelTimed;
+	alias c_int function(c_int channel, Mix_Chunk *chunk, c_int loops, c_int ms, c_int ticks) Mix_FadeInChannelTimed;
 	alias c_int function(Mix_Chunk* chunk, c_int volume) Mix_VolumeChunk;
 	alias c_int function(c_int volume) Mix_VolumeMusic;
 	alias c_int function(c_int channel, c_int volume) Mix_Volume;
@@ -432,6 +434,7 @@ private void setPos(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREA
 		getSymbol!(Mix_RewindMusic)(mixer, "Mix_RewindMusic")();
 		getSymbol!(Mix_SetMusicPosition)(mixer, "Mix_SetMusicPosition")(msecs * 1000.0);
 	}
+	
 }
 private ulong len(in Mix_Chunk* chunk, bool playingMCI, string mciName, HSTREAM bassStream) { mixin(S_TRACE);
 	version (Windows) {
@@ -463,7 +466,8 @@ ulong bgmPos() { mixin(S_TRACE);
 /// ditto
 @property
 void bgmPos(ulong pos) { mixin(S_TRACE);
-	return setPos(bgmChunk, _bgmPlayingMCI, CWBGM, bassBGMStream, pos, _mciNotifyHandleBGM);
+	setPos(bgmChunk, _bgmPlayingMCI, CWBGM, bassBGMStream, pos, _mciNotifyHandleBGM);
+	bgmVolume = _bgmVolume; // フェードイン中であればキャンセル
 }
 /// 現在再生中のBGMの再生時間(msecs)を取得する。
 @property
@@ -478,7 +482,8 @@ ulong sePos() { mixin(S_TRACE);
 /// ditto
 @property
 void sePos(ulong pos) { mixin(S_TRACE);
-	return setPos(seChunk, _sePlayingMCI, CWSE, bassSEStream, pos, _mciNotifyHandleSE);
+	setPos(seChunk, _sePlayingMCI, CWSE, bassSEStream, pos, _mciNotifyHandleSE);
+	seVolume = _seVolume; // フェードイン中であればキャンセル
 }
 /// 現在再生中の効果音の再生時間(msecs)を取得する。
 @property
@@ -495,12 +500,12 @@ private void printSDLError(string File = __FILE__, int Line = __LINE__)() { mixi
 	debugln!(File, Line)(str[0..strlen(str)]);
 }
 
-private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start, ref c_int channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool isBGM, uint loopCount, bool spLoop, int soundPlayType, uint volume, ref HSTREAM bassStream) { mixin(S_TRACE);
+private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start, ref c_int channel, string mciName, ref bool onLegacy, ref bool playingMCI, string file, bool isBGM, uint loopCount, bool spLoop, int soundPlayType, uint volume, uint fadeIn, ref HSTREAM bassStream) { mixin(S_TRACE);
 	stop(music, chunk, channel, mciName, onLegacy, playingMCI, bassStream);
 	version (Windows) {
 		if (SOUND_TYPE_BASS == soundPlayType) { mixin(S_TRACE);
 			// BASSがロードされている場合はBASSで再生する
-			if (playBass(file, loopCount, spLoop, bassStream, volume, mciName)) { mixin(S_TRACE);
+			if (playBass(file, loopCount, spLoop, bassStream, volume, fadeIn, mciName)) { mixin(S_TRACE);
 				return;
 			}
 			// ここへ来たら再生失敗
@@ -568,8 +573,8 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start,
 						return;
 					}
 					getSymbol!(Mix_VolumeMusic)(mixer, "Mix_VolumeMusic")(.roundTo!c_int((volume / 100.0) * MIX_MAX_VOLUME));
-					if (0 != getSymbol!(Mix_PlayMusic)(mixer, "Mix_PlayMusic")(music, cast(int)loopCount - 1)) { mixin(S_TRACE);
-						debugln("error: Mix_PlayMusic, " ~ file);
+					if (0 != getSymbol!(Mix_FadeInMusic)(mixer, "Mix_FadeInMusic")(music, cast(int)loopCount - 1, fadeIn)) { mixin(S_TRACE);
+						debugln("error: Mix_FadeInMusic, " ~ file);
 						printSDLError();
 						return;
 					}
@@ -594,9 +599,9 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start,
 						return;
 					}
 					getSymbol!(Mix_VolumeChunk)(mixer, "Mix_VolumeChunk")(chunk, .roundTo!c_int((volume / 100.0) * MIX_MAX_VOLUME));
-					channel = getSymbol!(Mix_PlayChannelTimed)(mixer, "Mix_PlayChannelTimed")(channel, chunk, 0, cast(int)loopCount - 1);
+					channel = getSymbol!(Mix_FadeInChannelTimed)(mixer, "Mix_FadeInChannelTimed")(channel, chunk, cast(int)loopCount - 1, fadeIn, 0);
 					if (-1 == channel) { mixin(S_TRACE);
-						debugln("error: Mix_PlayChannelTimed, " ~ file);
+						debugln("error: Mix_FadeInChannelTimed, " ~ file);
 						printSDLError();
 						return;
 					}
@@ -790,7 +795,7 @@ bool isMidi(string file) { mixin(S_TRACE);
 	return file.exists() && cast(char[])std.file.read(file, 4) == "MThd";
 }
 
-private bool playBass(string file, uint loopCount, bool spLoop, ref DWORD stream, uint volume, string loopKey) { mixin(S_TRACE);
+private bool playBass(string file, uint loopCount, bool spLoop, ref DWORD stream, uint volume, uint fadeIn, string loopKey) { mixin(S_TRACE);
 	version (Windows) {
 		try { mixin(S_TRACE);
 			if (!bass) return false;
@@ -851,8 +856,17 @@ private bool playBass(string file, uint loopCount, bool spLoop, ref DWORD stream
 			}
 
 			volume = .min(100, volume);
-			if (!getSymbol!(BASS_ChannelSetAttribute)(bass, "BASS_ChannelSetAttribute")(stream, BASS_ATTRIB_VOL, volume / 100.0F)) { mixin(S_TRACE);
-				debugln("BASS_ChannelSetAttribute");
+			if (0 < fadeIn) {
+				if (!getSymbol!(BASS_ChannelSetAttribute)(bass, "BASS_ChannelSetAttribute")(stream, BASS_ATTRIB_VOL, 0)) { mixin(S_TRACE);
+					debugln("BASS_ChannelSetAttribute");
+				}
+				if (!getSymbol!(BASS_ChannelSlideAttribute)(bass, "BASS_ChannelSlideAttribute")(stream, BASS_ATTRIB_VOL, volume / 100.0F, fadeIn)) { mixin(S_TRACE);
+					debugln("BASS_ChannelSlideAttribute");
+				}
+			} else {
+				if (!getSymbol!(BASS_ChannelSetAttribute)(bass, "BASS_ChannelSetAttribute")(stream, BASS_ATTRIB_VOL, volume / 100.0F)) { mixin(S_TRACE);
+					debugln("BASS_ChannelSetAttribute");
+				}
 			}
 			if (!getSymbol!(BASS_ChannelPlay)(bass, "BASS_ChannelPlay")(stream, false)) { mixin(S_TRACE);
 				stopBass(stream);
@@ -1034,6 +1048,7 @@ version (Windows) {
 		alias HSTREAM function(BOOL mem, const void* file, QWORD offset, QWORD length, DWORD flags, DWORD freq) BASS_MIDI_StreamCreateFile;
 		alias BOOL function(float volume) BASS_SetVolume;
 		alias BOOL function(DWORD handle, DWORD attrib, float value) BASS_ChannelSetAttribute;
+		alias BOOL function(DWORD handle, DWORD attrib, float value, DWORD time) BASS_ChannelSlideAttribute;
 		alias DWORD function(HSTREAM handle, int track, DWORD filter, BASS_MIDI_EVENT* events) BASS_MIDI_StreamGetEvents;
 		alias HSYNC function(DWORD handle, DWORD type, QWORD param, SYNCPROC proc, void* user) BASS_ChannelSetSync;
 		alias void function(HSYNC handle, DWORD channel, DWORD data, void* user) SYNCPROC;
@@ -1085,7 +1100,7 @@ bool canPlayBass(string file) { mixin(S_TRACE);
 }
 
 /// BGMを再生する。
-void playBGM(string path, uint loopCount, int soundPlayType, bool spLoop) { mixin(S_TRACE);
+void playBGM(string path, uint fadeIn, uint loopCount, int soundPlayType, bool spLoop) { mixin(S_TRACE);
 	if (!mutex) return;
 	try { mixin(S_TRACE);
 		mutex.lock();
@@ -1096,7 +1111,7 @@ void playBGM(string path, uint loopCount, int soundPlayType, bool spLoop) { mixi
 		} else { mixin(S_TRACE);
 			HSTREAM bass = 0;
 		}
-		play(bgmMusic, bgmChunk, bgmStart, bgmChannel, CWBGM, bgmOnLegacy, _bgmPlayingMCI, path, true, loopCount, spLoop, soundPlayType, _bgmVolume, bass);
+		play(bgmMusic, bgmChunk, bgmStart, bgmChannel, CWBGM, bgmOnLegacy, _bgmPlayingMCI, path, true, loopCount, spLoop, soundPlayType, _bgmVolume, fadeIn, bass);
 	} catch (Throwable e) {
 		printStackTrace();
 		debugln(e);
@@ -1142,8 +1157,8 @@ void bgmVolume(uint volume) { mixin(S_TRACE);
 	}
 	version (Windows) {
 		if (bassBGMStream) { mixin(S_TRACE);
-			if (!getSymbol!(BASS_ChannelSetAttribute)(bass, "BASS_ChannelSetAttribute")(bassBGMStream, BASS_ATTRIB_VOL, _bgmVolume / 100.0F)) { mixin(S_TRACE);
-				debugln("BASS_ChannelSetAttribute");
+			if (!getSymbol!(BASS_ChannelSlideAttribute)(bass, "BASS_ChannelSlideAttribute")(bassBGMStream, BASS_ATTRIB_VOL, _bgmVolume / 100.0F, 0)) { mixin(S_TRACE);
+				debugln("BASS_ChannelSlideAttribute");
 			}
 		}
 /+		if (_mciSendString) { mixin(S_TRACE);
@@ -1157,7 +1172,7 @@ void bgmVolume(uint volume) { mixin(S_TRACE);
 }
 
 /// 効果音を再生する。
-void playSE(string path, uint loopCount, int soundPlayType, bool spLoop) { mixin(S_TRACE);
+void playSE(string path, uint fadeIn, uint loopCount, int soundPlayType, bool spLoop) { mixin(S_TRACE);
 	if (!mutex) return;
 	try { mixin(S_TRACE);
 		mutex.lock();
@@ -1168,7 +1183,7 @@ void playSE(string path, uint loopCount, int soundPlayType, bool spLoop) { mixin
 		} else { mixin(S_TRACE);
 			HSTREAM bass = 0;
 		}
-		play(seMusic, seChunk, seStart, seChannel, CWSE, seOnLegacy, _sePlayingMCI, path, false, loopCount, spLoop, soundPlayType, _seVolume, bass);
+		play(seMusic, seChunk, seStart, seChannel, CWSE, seOnLegacy, _sePlayingMCI, path, false, loopCount, spLoop, soundPlayType, _seVolume, fadeIn, bass);
 	} catch (Throwable e) {
 		printStackTrace();
 		debugln(e);
@@ -1214,8 +1229,8 @@ void seVolume(uint volume) { mixin(S_TRACE);
 	}
 	version (Windows) {
 		if (bassSEStream) { mixin(S_TRACE);
-			if (!getSymbol!(BASS_ChannelSetAttribute)(bass, "BASS_ChannelSetAttribute")(bassSEStream, BASS_ATTRIB_VOL, _seVolume / 100.0F)) { mixin(S_TRACE);
-				debugln("BASS_ChannelSetAttribute");
+			if (!getSymbol!(BASS_ChannelSlideAttribute)(bass, "BASS_ChannelSlideAttribute")(bassSEStream, BASS_ATTRIB_VOL, _seVolume / 100.0F, 0)) { mixin(S_TRACE);
+				debugln("BASS_ChannelSlideAttribute");
 			}
 		}
 /+		if (_mciSendString) { mixin(S_TRACE);

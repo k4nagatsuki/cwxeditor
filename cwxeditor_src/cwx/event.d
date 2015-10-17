@@ -134,8 +134,8 @@ private void static_this () { mixin(S_TRACE);
 		CType.LINK_PACKAGE:CDetail("Link", "Package", CNextType.NONE, false, [CArg.PACKAGE:"link"]),
 		CType.TALK_MESSAGE:CDetail("Talk", "Message", CNextType.TEXT, true, [CArg.TALKER_C:_("path"), CArg.TEXT:null]),
 		CType.TALK_DIALOG:CDetail("Talk", "Dialog", CNextType.TEXT, true, [CArg.TALKER_NC:_("targetm"), CArg.DIALOGS:null, CArg.COUPONS:null, CArg.INIT_VALUE:"initialValue"]),
-		CType.PLAY_BGM:CDetail("Play", "Bgm", CNextType.NONE, true, [CArg.BGM_PATH:"path", CArg.BGM_CHANNEL:"channel", CArg.BGM_VOLUME:"volume", CArg.BGM_LOOP_COUNT:"loopcount"]),
-		CType.PLAY_SOUND:CDetail("Play", "Sound", CNextType.NONE, true, [CArg.SOUND_PATH:"path", CArg.SOUND_CHANNEL:"channel", CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount"]),
+		CType.PLAY_BGM:CDetail("Play", "Bgm", CNextType.NONE, true, [CArg.BGM_PATH:"path", CArg.BGM_CHANNEL:"channel", CArg.BGM_VOLUME:"volume", CArg.BGM_LOOP_COUNT:"loopcount", CArg.BGM_FADE_IN:"fadein"]),
+		CType.PLAY_SOUND:CDetail("Play", "Sound", CNextType.NONE, true, [CArg.SOUND_PATH:"path", CArg.SOUND_CHANNEL:"channel", CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount", CArg.SOUND_FADE_IN:"fadein"]),
 		CType.WAIT:CDetail("Wait", "", CNextType.NONE, true, [CArg.WAIT:"value"]),
 		CType.ELAPSE_TIME:CDetail("Elapse", "Time", CNextType.NONE, true),
 		CType.CALL_START:CDetail("Call", "Start", CNextType.NONE, true, [CArg.START:"call"]),
@@ -499,10 +499,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.bgmChannel = c.bgmChannel;
 		this.bgmVolume = c.bgmVolume;
 		this.bgmLoopCount = c.bgmLoopCount;
+		this.bgmFadeIn = c.bgmFadeIn;
 		this.soundPath = c.soundPath;
 		this.soundChannel = c.soundChannel;
 		this.soundVolume = c.soundVolume;
 		this.soundLoopCount = c.soundLoopCount;
+		this.soundFadeIn = c.soundFadeIn;
 		this.casts = c.casts;
 		this.item = c.item;
 		this.skill = c.skill;
@@ -628,10 +630,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& bgmChannel == c.bgmChannel
 			&& bgmVolume == c.bgmVolume
 			&& bgmLoopCount == c.bgmLoopCount
+			&& bgmFadeIn == c.bgmFadeIn
 			&& soundPath == c.soundPath
 			&& soundChannel == c.soundChannel
 			&& soundVolume == c.soundVolume
 			&& soundLoopCount == c.soundLoopCount
+			&& soundFadeIn == c.soundFadeIn
 			&& casts == c.casts
 			&& item == c.item
 			&& skill == c.skill
@@ -780,10 +784,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.BGM_CHANNEL, uint, 0)(d, &bgmChannel);
 		resetValue!(CArg.BGM_VOLUME, uint, 100)(d, &bgmVolume);
 		resetValue!(CArg.BGM_LOOP_COUNT, uint, 0)(d, &bgmLoopCount);
+		resetValue!(CArg.BGM_FADE_IN, uint, 0)(d, &bgmFadeIn);
 		resetValue!(CArg.SOUND_PATH, string, "")(d, &soundPath);
 		resetValue!(CArg.SOUND_CHANNEL, uint, 0)(d, &soundChannel);
 		resetValue!(CArg.SOUND_VOLUME, uint, 100)(d, &soundVolume);
 		resetValue!(CArg.SOUND_LOOP_COUNT, uint, 1)(d, &soundLoopCount);
+		resetValue!(CArg.SOUND_FADE_IN, uint, 0)(d, &soundFadeIn);
 		resetValue!(CArg.CAST, ulong, 0)(d, &casts);
 		resetValue!(CArg.ITEM, ulong, 0)(d, &item);
 		resetValue!(CArg.SKILL, ulong, 0)(d, &skill);
@@ -1407,6 +1413,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin MaxMin!(uint, "bgmVolume", 100, 0);
 	/// BGMループ回数(Wsn.1)。0は無限ループ。
 	mixin Prop!(uint, "bgmLoopCount", 0);
+	/// BGMフェードイン時間(ミリ秒)(Wsn.1)。
+	mixin Prop!(uint, "bgmFadeIn", 0);
 	/// SEパス。
 	mixin Prop!(PathUser, string, "soundPath", "", ".path", ".path", true);
 	/// SE再生チャンネル(Wsn.1)。
@@ -1415,9 +1423,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// SE音量(%)(Wsn.1)。
 	mixin Prop!(uint, "soundVolume", 100);
 	mixin MaxMin!(uint, "soundVolume", 100, 0);
-	/// SEループ回数(Wsn.1)。0は無限ループ。
+	/// SEループ回数(Wsn.1)。
 	mixin Prop!(uint, "soundLoopCount", 1);
 	mixin MaxMin!(uint, "soundLoopCount", int.max, 1);
+	/// SEフェードイン時間(ミリ秒)(Wsn.1)。
+	mixin Prop!(uint, "soundFadeIn", 0);
 	/// キャストID。
 	mixin Prop!(CastUser, ulong, "casts", 0UL, ".casts", ".casts", true);
 	/// アイテムID。
@@ -1802,10 +1812,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.BGM_CHANNEL, "bgmChannel", "")(e, d);
 		atnPut!(CArg.BGM_VOLUME, "bgmVolume", "")(e, d);
 		atnPut!(CArg.BGM_LOOP_COUNT, "bgmLoopCount", "")(e, d);
+		atnPut!(CArg.BGM_FADE_IN, "bgmFadeIn", "")(e, d);
 		atnPut!(CArg.SOUND_PATH, "soundPath", "encodePath")(e, d);
 		atnPut!(CArg.SOUND_CHANNEL, "soundChannel", "")(e, d);
 		atnPut!(CArg.SOUND_VOLUME, "soundVolume", "")(e, d);
 		atnPut!(CArg.SOUND_LOOP_COUNT, "soundLoopCount", "")(e, d);
+		atnPut!(CArg.SOUND_FADE_IN, "soundFadeIn", "")(e, d);
 		atnPut!(CArg.CAST, "casts", "")(e, d);
 		atnPut!(CArg.ITEM, "item", "")(e, d);
 		atnPut!(CArg.SKILL, "skill", "")(e, d);
@@ -1988,10 +2000,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.BGM_CHANNEL, "bgmChannel", "to!(uint)")(en, d, r);
 		cfnPut!(CArg.BGM_VOLUME, "bgmVolume", "to!(uint)")(en, d, r);
 		cfnPut!(CArg.BGM_LOOP_COUNT, "bgmLoopCount", "to!(uint)")(en, d, r);
+		cfnPut!(CArg.BGM_FADE_IN, "bgmFadeIn", "to!(uint)")(en, d, r);
 		cfnPut!(CArg.SOUND_PATH, "soundPath", "decodePath")(en, d, r);
 		cfnPut!(CArg.SOUND_CHANNEL, "soundChannel", "to!(uint)")(en, d, r);
 		cfnPut!(CArg.SOUND_VOLUME, "soundVolume", "to!(uint)")(en, d, r);
 		cfnPut!(CArg.SOUND_LOOP_COUNT, "soundLoopCount", "to!(uint)")(en, d, r);
+		cfnPut!(CArg.SOUND_FADE_IN, "soundFadeIn", "to!(uint)")(en, d, r);
 		cfnPut!(CArg.CAST, "casts", "to!(ulong)")(en, d, r);
 		cfnPut!(CArg.ITEM, "item", "to!(ulong)")(en, d, r);
 		cfnPut!(CArg.SKILL, "skill", "to!(ulong)")(en, d, r);

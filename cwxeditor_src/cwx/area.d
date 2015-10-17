@@ -1379,6 +1379,7 @@ private:
 	PathUser _music;
 	uint _volume = 100;
 	uint _loopCount = 0;
+	uint _fadeIn = 0;
 public:
 	static immutable XML_NAME = "Battle";
 	alias toBattleId toID;
@@ -1470,6 +1471,16 @@ public:
 	@property
 	const
 	uint loopCount() { return _loopCount; }
+	/// BGMのフェードイン時間(ミリ秒)。
+	@property
+	void fadeIn(uint fadeIn) { mixin(S_TRACE);
+		if (_fadeIn != fadeIn) changed();
+		_fadeIn = fadeIn;
+	}
+	/// ditto
+	@property
+	const
+	uint fadeIn() { return _fadeIn; }
 
 	/// エネミーカードを追加する。
 	void append(EnemyCard card) { mixin(S_TRACE);
@@ -1563,6 +1574,7 @@ public:
 		auto me = pe.newElement("MusicPath", encodePath(_music.path));
 		if (volume != 100) me.newAttr("volume", volume);
 		if (loopCount != 0) me.newAttr("loopcount", loopCount);
+		if (fadeIn != 0) me.newAttr("fadein", fadeIn);
 	
 		auto ce = e.newElement("EnemyCards");
 		ce.newAttr("spreadtype", _auto ? "Auto" : "Custom");
@@ -1603,6 +1615,7 @@ public:
 		bool spAuto;
 		uint volume = 100;
 		uint loopCount = 0;
+		uint fadeIn = 0;
 		EnemyCard[] cards;
 		EventTree[] evt;
 		aNode.onTag["EnemyCards"] = (ref XNode node) { mixin(S_TRACE);
@@ -1628,6 +1641,7 @@ public:
 				music = decodePath(n.value);
 				volume = n.attr!uint("volume", false, 100);
 				loopCount = n.attr!uint("loopcount", false, 0);
+				fadeIn = n.attr!uint("fadein", false, 0);
 			};
 			pNode.parse();
 		};
@@ -1643,6 +1657,7 @@ public:
 		r.spAuto = spAuto;
 		r.volume = volume;
 		r.loopCount = loopCount;
+		r.fadeIn = fadeIn;
 
 		return r;
 	}

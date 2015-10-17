@@ -202,6 +202,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (btl.loopCount != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningLoopCount;
 			}
+			if (btl.fadeIn != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+				r ~= prop.msgs.warningFadeIn;
+			}
 		}
 	}
 	auto mc = cast(MenuCard) path;
@@ -367,6 +370,14 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (c.bgmPath != "") { mixin(S_TRACE);
 			r ~= skin.warningBGM(prop, c.bgmPath, summ ? summ.legacy : false, targVer);
+		}
+		if (c.bgmChannel != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningChannel;
+		}
+		if (c.bgmFadeIn != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningFadeIn;
+		}
+		if (c.bgmPath != "") { mixin(S_TRACE);
 			if (c.bgmVolume != 100 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningVolume;
 			}
@@ -374,11 +385,11 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= prop.msgs.warningLoopCount;
 			}
 		}
-		if (c.bgmChannel != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
-			r ~= prop.msgs.warningChannel;
-		}
 		if (c.soundPath != "") { mixin(S_TRACE);
 			r ~= skin.warningSE(prop, c.soundPath, summ ? summ.legacy : false, targVer);
+			if (c.soundFadeIn != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+				r ~= prop.msgs.warningFadeIn;
+			}
 			if (c.soundVolume != 100 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningVolume;
 			}

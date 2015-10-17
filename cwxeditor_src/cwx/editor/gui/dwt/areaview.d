@@ -327,6 +327,7 @@ private:
 			private PathUser _path;
 			private uint _volume;
 			private uint _loopCount;
+			private uint _fadeIn;
 			this (AbstractAreaView v, Commons comm, A area, Summary summ) { mixin(S_TRACE);
 				super (v, comm, area, summ);
 				_path = new PathUser(new MCWXPath);
@@ -334,6 +335,7 @@ private:
 				_path.path = area.music;
 				_volume = area.volume;
 				_loopCount = area.loopCount;
+				_fadeIn = area.fadeIn;
 			}
 			private void impl() { mixin(S_TRACE);
 				auto vs = views();
@@ -342,16 +344,20 @@ private:
 				auto path = _path.path;
 				auto volume = _volume;
 				auto loopCount = _loopCount;
+				auto fadeIn = _fadeIn;
 				_path.path = area.music;
 				_volume = area.volume;
 				_loopCount = area.loopCount;
+				_fadeIn = area.fadeIn;
 				area.music = path;
 				area.volume = volume;
 				area.loopCount = loopCount;
+				area.fadeIn = fadeIn;
 				foreach (v; vs) { mixin(S_TRACE);
 					v._bgm.path = path;
 					v._bgm.volume = volume;
 					v._bgm.loopCount = loopCount;
+					v._bgm.fadeIn = fadeIn;
 					v.callModEvent();
 				}
 			}
@@ -694,11 +700,12 @@ private:
 		}
 		void selectBGM() { mixin(S_TRACE);
 			if (_readOnly) return;
-			if (_area.music == _bgm.path && _area.volume == _bgm.volume && _area.loopCount == _bgm.loopCount) return;
+			if (_area.music == _bgm.path && _area.volume == _bgm.volume && _area.loopCount == _bgm.loopCount && _area.fadeIn == _bgm.fadeIn) return;
 			_undo ~= new UndoMusic(this, _comm, _area, _summ);
 			_area.music = _bgm.path;
 			_area.volume = _bgm.volume;
 			_area.loopCount = _bgm.loopCount;
+			_area.fadeIn = _bgm.fadeIn;
 			_comm.refUseCount.call();
 			callModEvent();
 			_comm.refreshToolBar();
@@ -708,6 +715,7 @@ private:
 					v._bgm.path = _area.music;
 					v._bgm.volume = _area.volume;
 					v._bgm.loopCount = _area.loopCount;
+					v._bgm.fadeIn = _area.fadeIn;
 					v.callModEvent();
 				}
 			}
@@ -2473,10 +2481,12 @@ private:
 
 			_bgm.createPlayingBar(comp).setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
 			_bgm.createPlayingOptions(comp, false, true).setLayoutData(h2GD(GridData.FILL_HORIZONTAL));
+			_bgm.createFadeIn(comp).setLayoutData(h2GD(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END));
 
 			_bgm.path = _area.music;
 			_bgm.volume = _area.volume;
 			_bgm.loopCount = _area.loopCount;
+			_bgm.fadeIn = _area.fadeIn;
 			return comp;
 		}
 	}

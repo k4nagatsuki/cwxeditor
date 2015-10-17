@@ -2431,16 +2431,16 @@ class StopSE : SelectionAdapter, DisposeListener {
 	}
 }
 
-bool playBGMCW(Props prop, string path, uint volume, uint loopCount, bool legacy) { mixin(S_TRACE);
+bool playBGMCW(Props prop, string path, uint fadeIn, uint volume, uint loopCount, bool legacy) { mixin(S_TRACE);
     version (Windows) {} else {immutable SOUND_TYPE_MCI = -1;}
 	.stopBGM();
 	int playType = prop.var.etc.soundPlayType;
 	.bgmVolume = (prop.var.etc.bgmVolume * volume) / 100;
 	switch (playType) {
-	case SOUND_TYPE_SDL: playBGM(path, loopCount, SOUND_TYPE_SDL, !legacy); return true;
+	case SOUND_TYPE_SDL: playBGM(path, fadeIn, loopCount, SOUND_TYPE_SDL, !legacy); return true;
 	case SOUND_TYPE_MCI:
 		version (Windows) {
-			playBGM(path, loopCount, SOUND_TYPE_MCI, !legacy);
+			playBGM(path, fadeIn, loopCount, SOUND_TYPE_MCI, !legacy);
 			return true;
 		} else { mixin(S_TRACE);
 			goto default;
@@ -2464,12 +2464,12 @@ bool playBGMCW(Props prop, string path, uint volume, uint loopCount, bool legacy
 				}
 			}
 		}
-		playBGM(path, loopCount, type, !legacy);
+		playBGM(path, fadeIn, loopCount, type, !legacy);
 		return true;
 	}
 }
 
-void playSECW(Props prop, string path, uint volume, uint loopCount, bool legacy) { mixin(S_TRACE);
+void playSECW(Props prop, string path, uint fadeIn, uint volume, uint loopCount, bool legacy) { mixin(S_TRACE);
     version (Windows) {} else {immutable SOUND_TYPE_MCI = -1;}
 	.stopSE();
 	int type = prop.var.etc.soundEffectPlayType;
@@ -2478,10 +2478,10 @@ void playSECW(Props prop, string path, uint volume, uint loopCount, bool legacy)
 	}
 	.seVolume = (prop.var.etc.seVolume * volume) / 100;
 	switch (type) {
-	case SOUND_TYPE_SDL: playSE(path, loopCount, SOUND_TYPE_SDL, !legacy); break;
+	case SOUND_TYPE_SDL: playSE(path, fadeIn, loopCount, SOUND_TYPE_SDL, !legacy); break;
 	case SOUND_TYPE_MCI:
 		version (Windows) {
-			playSE(path, loopCount, SOUND_TYPE_MCI, !legacy);
+			playSE(path, fadeIn, loopCount, SOUND_TYPE_MCI, !legacy);
 			break;
 		} else { mixin(S_TRACE);
 			goto default;
@@ -2495,7 +2495,7 @@ void playSECW(Props prop, string path, uint volume, uint loopCount, bool legacy)
 				type = SOUND_TYPE_BASS;
 			}
 		}
-		playSE(path, loopCount, type, !legacy);
+		playSE(path, fadeIn, loopCount, type, !legacy);
 		break;
 	}
 }
@@ -2856,20 +2856,24 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		}
 	} case CType.PLAY_BGM: { mixin(S_TRACE);
 		if ("" == evt.bgmPath) { mixin(S_TRACE);
-			return  comm.prop.msgs.ctStopBGM;
+			auto channel = evt.bgmChannel == 0 ? comm.prop.msgs.mainChannel : comm.prop.msgs.subChannel;
+			auto fadeIn = .formatReal(evt.bgmFadeIn / 100.0, 3); // ms -> 0.1s
+			return  .tryFormat(comm.prop.msgs.ctStopBGM, channel, fadeIn);
 		} else { mixin(S_TRACE);
 			auto s = contentTextUseID!(CIDKind.BGM)(comm, summ, evt.bgmPath, "%s", evt);
 			auto volume = evt.bgmVolume;
 			auto loopCount = evt.bgmLoopCount == 0 ? comm.prop.msgs.infinity : .text(evt.bgmLoopCount);
 			auto channel = evt.bgmChannel == 0 ? comm.prop.msgs.mainChannel : comm.prop.msgs.subChannel;
-			return .tryFormat(comm.prop.msgs.ctPlayBGM, s, volume, loopCount, channel);
+			auto fadeIn = .formatReal(evt.bgmFadeIn / 100.0, 3); // ms -> 0.1s
+			return .tryFormat(comm.prop.msgs.ctPlayBGM, s, channel, fadeIn, volume, loopCount);
 		}
 	} case CType.PLAY_SOUND: { mixin(S_TRACE);
 		auto s = contentTextUseID!(CIDKind.SE)(comm, summ, evt.soundPath, "%s", evt);
 		auto volume = evt.soundVolume;
 		auto loopCount = evt.soundLoopCount == 0 ? comm.prop.msgs.infinity : .text(evt.soundLoopCount);
 		auto channel = evt.soundChannel == 0 ? comm.prop.msgs.mainChannel : comm.prop.msgs.subChannel;
-		return .tryFormat(comm.prop.msgs.ctPlaySound, s, volume, loopCount, channel);
+		auto fadeIn = .formatReal(evt.soundFadeIn / 100.0, 3); // ms -> 0.1s
+		return .tryFormat(comm.prop.msgs.ctPlaySound, s, channel, fadeIn, volume, loopCount);
 	} case CType.WAIT: { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctWait, evt.wait);
 	} case CType.ELAPSE_TIME: { mixin(S_TRACE);

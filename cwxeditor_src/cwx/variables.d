@@ -418,6 +418,7 @@ class FlexEtcProps : Properties {
 	auto seVolume = Prop!(int)("seVolume", 100);
 
 	auto loopCountMax = Prop!(uint)("loopCountMax", 100, true);
+	auto fadeInMax = Prop!(uint)("fadeInMax", 1000, true);
 
 	auto detailAreaWidth = Prop!(int)("detailAreaWidth", 200);
 

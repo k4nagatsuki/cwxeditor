@@ -673,9 +673,9 @@ class Msgs : Properties {
 	auto ctTalkMessageImage = Msg("ctTalkMessageImage", "[%1$s]");
 	auto ctTalkDialog = Msg("ctTalkDialog", "%1$s %2$s: %3$s");
 	auto ctTalkDialogNoCoupon = Msg("ctTalkDialogNoCoupon", "%1$s: %2$s");
-	auto ctPlayBGM = Msg("ctPlayBGM", "BGMとして「%1$s」を演奏 音量 = %2$s ループ回数 = %3$s Ch. = %4$s");
-	auto ctStopBGM = Msg("ctStopBGM", "BGM停止");
-	auto ctPlaySound = Msg("ctPlaySound", "効果音「%1$s」を鳴らす 音量 = %2$s ループ回数 = %3$s Ch. = %4$s");
+	auto ctPlayBGM = Msg("ctPlayBGM", "BGMとして「%1$s」を演奏 Ch. = %2$s フェードイン時間 = %3$s × 0.1秒 音量 = %4$s ループ回数 = %5$s");
+	auto ctStopBGM = Msg("ctStopBGM", "BGM停止 Ch. = %1$s フェードアウト時間 = %2$s × 0.1秒");
+	auto ctPlaySound = Msg("ctPlaySound", "効果音「%1$s」を鳴らす Ch. = %2$s フェードイン時間 = %3$s × 0.1秒 音量 = %4$s ループ回数 = %5$s");
 	auto ctWait = Msg("ctWait", "空白時間 = %1$s × 0.1秒");
 	auto ctElapseTime = Msg("ctElapseTime", "ターン数経過コンテント");
 	auto ctCallStart = Msg("ctCallStart", "スタートコンテント「%1$s」のコール");
@@ -781,9 +781,12 @@ class Msgs : Properties {
 	auto playingChannel = Msg("playingChannel", "Ch."); // Wsn.1
 	auto mainChannel = Msg("mainChannel", "主音声"); // Wsn.1
 	auto subChannel = Msg("subChannel", "副音声"); // Wsn.1
-	auto warningVolume = Msg("warningVolume", "音量の設定はWSN1以降の形式のシナリオしか使用できません。");
-	auto warningLoopCount = Msg("warningLoopCount", "ループ回数の設定はWSN1以降の形式のシナリオしか使用できません。");
-	auto warningChannel= Msg("warningChannel", "再生チャンネルの設定はWSN1以降の形式のシナリオしか使用できません。");
+	auto fadeIn = Msg("fadeIn", "フェードイン時間"); // Wsn.1
+	auto fadeInHint = Msg("fadeInHint", "× 0.1秒"); // Wsn.1
+	auto warningVolume = Msg("warningVolume", "音量の設定はWSN1以降の形式のシナリオしか使用できません。"); // Wsn.1
+	auto warningLoopCount = Msg("warningLoopCount", "ループ回数の設定はWSN1以降の形式のシナリオしか使用できません。"); // Wsn.1
+	auto warningChannel= Msg("warningChannel", "再生チャンネルの設定はWSN1以降の形式のシナリオしか使用できません。"); // Wsn.1
+	auto warningFadeIn = Msg("warningFadeIn", "フェードイン時間の設定はWSN1以降の形式のシナリオしか使用できません。"); // Wsn.1
 
 	/// メインウィンドウ。
 	auto mainWindowName = Msg("mainWindowName", "%1$s [ %2$s ] - CWXEditor");
