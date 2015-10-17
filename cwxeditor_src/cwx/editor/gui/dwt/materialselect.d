@@ -375,6 +375,7 @@ public:
 				_volume.setMinimum(0);
 				_volume.setSelection(volume);
 				.listener(_volume, SWT.Modify, { mixin(S_TRACE);
+					if (_processing) return;
 					if (volume != this.volume) { mixin(S_TRACE);
 						volume = this.volume;
 						if (_refresh) _refresh();
@@ -394,6 +395,7 @@ public:
 				} else static assert (0);
 				_loopCount.setSelection(loopCount);
 				.listener(_loopCount, SWT.Modify, { mixin(S_TRACE);
+					if (_processing) return;
 					if (loopCount != this.loopCount) { mixin(S_TRACE);
 						loopCount = this.loopCount;
 						if (_refresh) _refresh();
@@ -478,6 +480,7 @@ public:
 			_fadeIn.setMinimum(0);
 			_fadeIn.setSelection(roundTo!int(fadeIn / 100.0)); // 0.1s -> 1ms
 			.listener(_fadeIn, SWT.Modify, { mixin(S_TRACE);
+				if (_processing) return;
 				if (fadeIn != this.fadeIn) { mixin(S_TRACE);
 					fadeIn = this.fadeIn;
 					if (_refresh) _refresh();
@@ -497,19 +500,12 @@ public:
 			if (_fadeIn) _fadeIn.setEnabled(!_summ.legacy && (path != "" || Type == MtType.BGM));
 		}
 		@property
-		int fadeIn() { mixin(S_TRACE);
-			return _fadeIn ? _fadeIn.getSelection() * 100 : 0; // ms -> 0.1s
-		}
-		@property
-		void fadeIn(int fadeIn) { mixin(S_TRACE);
-			.enforce(_fadeIn);
-			_fadeIn.setSelection(roundTo!int(fadeIn / 100.0)); // 0.1s -> ms
-		}
-		@property
 		int volume() { return _volume ? _volume.getSelection() : 100; }
 		@property
 		void volume(int volume) { mixin(S_TRACE);
 			.enforce(_volume);
+			_processing = true;
+			scope (exit) _processing = false;
 			_volume.setSelection(volume);
 		}
 		@property
@@ -523,6 +519,8 @@ public:
 		@property
 		void loopCount(int loopCount) { mixin(S_TRACE);
 			.enforce(_loopCount);
+			_processing = true;
+			scope (exit) _processing = false;
 			_loopCount.setSelection(loopCount);
 		}
 		@property
@@ -533,6 +531,17 @@ public:
 		void channel(int channel) { mixin(S_TRACE);
 			.enforce(_channel);
 			_channel.select(channel);
+		}
+		@property
+		int fadeIn() { mixin(S_TRACE);
+			return _fadeIn ? _fadeIn.getSelection() * 100 : 0; // ms -> 0.1s
+		}
+		@property
+		void fadeIn(int fadeIn) { mixin(S_TRACE);
+			.enforce(_fadeIn);
+			_processing = true;
+			scope (exit) _processing = false;
+			_fadeIn.setSelection(roundTo!int(fadeIn / 100.0)); // 0.1s -> ms
 		}
 	}
 	static if (Type == MtType.BGM) {
@@ -1440,4 +1449,5 @@ private:
 	bool _allList = false;
 	void delegate() _refresh;
 	Skin _summSkin;
+	bool _processing = false;
 }
