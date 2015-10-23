@@ -930,15 +930,26 @@ public:
 			bgImgs ~= PCCell.createFromNode(bgn, ver);
 		};
 		node.parse();
-		return bgImgs;
+		if (!bgImgs.length) return bgImgs;
+
+		auto b = cast(ImageCell)bgImgs[0u];
+		if (b && b.path == "" && b.flag == ""
+				&& b.x == 0 && b.y == 0 && b.width == 632 && b.height == 420 && !b.mask) { mixin(S_TRACE);
+			// クラシックなエンジンでは必ず1枚以上の背景画像が必要であるため、
+			// 背景継承時はダミーのイメージが挿入されている
+			return bgImgs[1u .. $];
+		} else { mixin(S_TRACE);
+			return bgImgs;
+		}
 	}
 
 	/// 指定されたノードに背景イメージ群のデータを追加する。
 	static void toNode(in BgImage[] bgImgs, ref XNode e, XMLOption opt) { mixin(S_TRACE);
 		auto bge = e.newElement(XML_NAME_M);
 		if (bgImgs.length > 0) { mixin(S_TRACE);
-			// FIXME: このサイズはCPropsに持たせているがコンパイラのバグで参照できない。暫定。
-			if (bgImgs[0].width != 632 || bgImgs[0].height != 420) { mixin(S_TRACE);
+			// FIXME: 632×420のサイズはCPropsに持たせているがコンパイラのバグで参照できない。暫定。
+			auto b = cast(ImageCell)bgImgs[0];
+			if (!b || b.flag != "" || b.x != 0 || b.y != 0 || b.width != 632 || b.height != 420 || b.mask) { mixin(S_TRACE);
 				BgImage.appendEmptyToNode(bge, opt);
 			}
 			foreach (bg; bgImgs) { mixin(S_TRACE);

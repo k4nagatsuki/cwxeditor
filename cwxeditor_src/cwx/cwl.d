@@ -1752,7 +1752,7 @@ private BgImage[] readBgImages(in RData d, ref ByteIO f, bool area, bool replBgI
 	if (b && b.path == "" && b.flag == ""
 			&& b.x == 0 && b.y == 0 && b.width == 632 && b.height == 420 && !b.mask) { mixin(S_TRACE);
 		// クラシックなエンジンでは必ず1枚以上の背景画像が必要であるため、
-		// ダミーのイメージが挿入されている
+		// 背景継承時はダミーのイメージが挿入されている
 		return bgImgs[1u .. $];
 	} else { mixin(S_TRACE);
 		return bgImgs;
