@@ -1093,8 +1093,9 @@ class CWXScript {
 		VAR_SET, /// 変数の設定。
 		START, /// イベントツリーの起点。
 		COMMAND, /// イベントコンテント。
-		VALUES, /// VALUEの配列。
-		VALUE, /// 配列の値。
+		ARRAY, /// 配列。
+		VALUES, /// 複合値。
+		VALUE, /// 値。
 	}
 
 	/// スクリプトの解析結果として生成されるノード。
@@ -1105,7 +1106,7 @@ class CWXScript {
 		const(Node)[] attr; /// 属性。
 		const(Node)[] childs; /// 子ノード。
 		bool nextIsChild; /// 唯一の子ノードが次にあるか。
-		alias childs values; /// ノードがVALUESの場合は格納されたVALUEノードの配列。
+		alias childs values; /// ノードがARRAYかVALUESの場合は格納されたVALUEノードの配列。
 		const(Token)[] calc; /// 計算式。
 		alias calc var; /// 変数。
 		alias texts value; /// 変数値。
@@ -1125,7 +1126,15 @@ class CWXScript {
 		}
 		/// 文字列表現。
 		const
-		string toString() {return token.toString();}
+		string toString() {
+			auto r = "Node {" ~ .text(type);
+			r ~= ", " ~ token.toString();
+			r ~= ", " ~ .text(texts);
+			r ~= ", " ~ .text(attr);
+			r ~= ", " ~ .text(childs);
+			r ~= "}";
+			return r;
+		}
 		/// ノード群をスクリプトコードにして返す。
 		static string code(string indent, in Node[] array) {return code("    ", "", "", array, "sif");}
 		private static string code(string indent, string bIndentValue, string indentValue, in Node[] array, string ifString) { mixin(S_TRACE);
@@ -1177,6 +1186,13 @@ class CWXScript {
 					}
 					vals ~= "]";
 					buf ~= vals;
+					continue;
+				} else if (node.type is NodeType.ARRAY) { mixin(S_TRACE);
+					string[] vals = [];
+					foreach (i, c; node.values) { mixin(S_TRACE);
+						vals ~= Node.code(indent, [c]);
+					}
+					buf ~= std.string.join(vals, " ");
 					continue;
 				}
 				foreach (i, var; node.beforeVars) { mixin(S_TRACE);
@@ -1392,6 +1408,24 @@ class CWXScript {
 	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		auto s = new CWXScript(new CProps("", null), null);
+
+		string statement0
+= `msg 'a.bmp' 'b.bmp', 'Msg.'
+msg M, @ 3
+Talk!
+Talk!
+Talk!
+@`;
+		auto tokens0 = s.tokenize(statement0);
+		auto starts0 = s.analyzeSyntax(tokens0);
+		assert (Node.code("    ", starts0)
+			== "msg 'a.bmp' 'b.bmp', 'Msg.'\n"
+			~ "msg M, @ 3\n"
+			~ "Talk!\n"
+			~ "Talk!\n"
+			~ "Talk!\n"
+			~ "@", Node.code("    ", starts0));
+
 		string statement
 = `
 $var1 = 'oops'
@@ -1404,8 +1438,8 @@ if 'abc'
     hideparty
     $var2 = 3.5
     wait  ($var2 + 1.5)
-    msg M
-    @ 3
+    msg 'a.bmp' 'b.bmp', 'Msg.'
+    msg M, @ 3
     Talk!
     Talk!
     Talk!
@@ -1433,12 +1467,11 @@ start "second start"
 			== "$var1 = 'oops'\n"
 			~ "Start \"First start\"\n"
 			~ "if 'abc'\n"
-			~ "    chback ['mapofwirth.bmp', '', 0, 0, 632, 420]\n"
-			~ "           ['definn.bmp', '', 50, 50, 200 * 2, 260]\n"
-			~ "           ['card.bmp', 'card\\mate1', 230, 50, 74, 94, mask], 1\n"
+			~ "    chback ['mapofwirth.bmp', '', 0, 0, 632, 420] ['definn.bmp', '', 50, 50, 200 * 2, 260] ['card.bmp', 'card\\mate1', 230, 50, 74, 94, mask], 1\n"
 			~ "    hideparty\n"
 			~ "    $var2 = 3.5\n"
 			~ "    wait ($var2 + 1.5)\n"
+			~ "    msg 'a.bmp' 'b.bmp', 'Msg.'\n"
 			~ "    msg M, @ 3\n"
 			~ "    Talk!\n"
 			~ "    Talk!\n"
@@ -1607,33 +1640,47 @@ fi`;
 	}
 	private Node[] analyzeSyntaxAttr(in Token[] tokens, ref size_t i, in Keywords keys) { mixin(S_TRACE);
 		Node[] r;
+		auto lastKind = Kind.COMMA;
 		while (i < tokens.length) { mixin(S_TRACE);
 			Token tok = tokens[i];
-			// ごく初期のバージョンではパラメータの区切りにカンマがなかったので
-			// 互換性維持のためにパラメータ間のカンマを無視する
 			if (r.length > 0 && tok.kind is Kind.COMMA) { mixin(S_TRACE);
+				lastKind = Kind.COMMA;
 				i++;
 				tok = tokens[i];
 			}
-			// カンマを無視しないバージョン
-			//if (r.length > 0 && tok.kind is Kind.COMMA) { mixin(S_TRACE);
-			//	i++;
-			//	break;
-			//}
+			void putArray(ref Node node) { mixin(S_TRACE);
+				if (lastKind == Kind.COMMA || r.length == 0) { mixin(S_TRACE);
+					// 一つ目の要素
+					r ~= node;
+				} else if (r[$ - 1].type == NodeType.ARRAY) { mixin(S_TRACE);
+					// 配列に追加
+					r[$ - 1].values ~= node;
+				} else { mixin(S_TRACE);
+					// 最初の値を配列の先頭に置き、その次に現在の値を置く
+					Node value2 = node;
+					node.token = r[$ - 1].token;
+					node.type = NodeType.ARRAY;
+					node.values = [r[$ - 1], value2];
+					r[$ - 1] = node;
+				}
+			}
 			switch (tok.kind) {
 			case Kind.O_BRA:
-				r ~= analyzeSyntaxBrackets(tokens, i, keys);
+				auto node = analyzeSyntaxBrackets(tokens, i, keys);
+				putArray(node);
 				i++;
 				break;
 			case Kind.START, Kind.IF, Kind.ELIF, Kind.FI, Kind.SIF:
 				return r;
 			case Kind.SYMBOL, Kind.NUMBER, Kind.STRING, Kind.PLU, Kind.MIN, Kind.O_PAR:
-				if (std.string.toLower(tok.value) in keys.keywords) return r;
+				if (std.string.toLower(tok.value) in keys.keywords) { mixin(S_TRACE);
+					return r;
+				}
 				Node node;
 				node.type = NodeType.VALUE;
 				node.token = tok;
 				node.var = analyzeSyntaxValue(tokens, i, keys);
-				r ~= node;
+				putArray(node);
 				break;
 			case Kind.VAR_NAME:
 				if (i + 1 < tokens.length && tokens[i + 1].kind is Kind.EQ) { mixin(S_TRACE);
@@ -1643,7 +1690,7 @@ fi`;
 			case Kind.COMMA:
 				// いきなり','が現れた場合は長さ0の配列とする
 				Node node;
-				node.type = NodeType.VALUES;
+				node.type = NodeType.ARRAY;
 				node.token = tok;
 				node.var = [];
 				r ~= node;
@@ -1652,6 +1699,7 @@ fi`;
 				throwError(_prop.msgs.scriptErrorInvalidAttr, tok);
 				i++;
 			}
+			lastKind = tok.kind;
 		}
 		return r;
 	} unittest { mixin(S_TRACE);
@@ -1839,7 +1887,8 @@ fi`;
 			while (i < attr.length) { mixin(S_TRACE);
 				auto values = var(attr[i], varTable);
 				size_t i2 = 0;
-				if (values.length <= i2 || values[0].type !is NodeType.VALUES) break;
+				if (values.length <= i2 || values[0].type !is NodeType.ARRAY) break;
+				values = values[0].values;
 				while (i2 < values.length) { mixin(S_TRACE);
 					if (!values.length) break;
 					if (values[0].token.kind is Kind.COMMA) { mixin(S_TRACE);
@@ -2366,13 +2415,12 @@ fi`;
 		return T.init;
 	}
 	private void parseAttrTalker(in CompileOption opt, in Node[] attr, ref size_t i, ref Talker t, ref string[] cardPaths, in const(Node)[][string] varTable) { mixin(S_TRACE);
-cdebugln(attr);
 		if (attr.length <= i) return;
 		auto nodes = var(attr[i], varTable);
 		if (nodes.length && nodes[0].token.kind is Kind.SYMBOL) { mixin(S_TRACE);
 			cardPaths = [];
 			t = parseTalker!(false)(attr, i, varTable);
-		} else if (nodes.length && nodes[0].type is NodeType.VALUES) { mixin(S_TRACE);
+		} else if (nodes.length && nodes[0].type is NodeType.ARRAY) { mixin(S_TRACE);
 			cardPaths = parseAttr!(string[])(opt, attr, i, cardPaths, varTable, 0);
 			t = cardPaths.length ? Talker.IMAGE : Talker.NARRATION;
 		} else { mixin(S_TRACE);

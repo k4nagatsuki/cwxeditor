@@ -2204,20 +2204,7 @@ private void loadTalker(ref XNode node, out Talker talker, void delegate(string[
 	string t = node.attr("targetm", false);
 	if (t.length == 0) { mixin(S_TRACE);
 		auto pathTemp = node.attr("path", false);
-		if (!pathTemp || !pathTemp.length) { mixin(S_TRACE);
-			talker = Talker.NARRATION;
-		} else if (pathTemp && endsWith(pathTemp, "??Selected")) { mixin(S_TRACE);
-			talker = Talker.SELECTED;
-		} else if (pathTemp && endsWith(pathTemp, "??Unselected")) { mixin(S_TRACE);
-			talker = Talker.UNSELECTED;
-		} else if (pathTemp && endsWith(pathTemp, "??Random")) { mixin(S_TRACE);
-			talker = Talker.RANDOM;
-		} else if (pathTemp && endsWith(pathTemp, "??Card")) { mixin(S_TRACE);
-			talker = Talker.CARD;
-		} else if (pathTemp && endsWith(pathTemp, "??Valued")) { mixin(S_TRACE);
-			talker = Talker.VALUED;
-		} else { mixin(S_TRACE);
-			talker = Talker.IMAGE;
+		void procImagePaths() { mixin(S_TRACE);
 			node.onTag["ImagePaths"] = (ref XNode imp) { mixin(S_TRACE);
 				// 複数イメージで上書きする
 				string[] paths;
@@ -2231,6 +2218,23 @@ private void loadTalker(ref XNode node, out Talker talker, void delegate(string[
 				imp.parse();
 				setPaths(paths);
 			};
+		}
+		if (!pathTemp || !pathTemp.length) { mixin(S_TRACE);
+			talker = Talker.NARRATION;
+			procImagePaths();
+		} else if (pathTemp && endsWith(pathTemp, "??Selected")) { mixin(S_TRACE);
+			talker = Talker.SELECTED;
+		} else if (pathTemp && endsWith(pathTemp, "??Unselected")) { mixin(S_TRACE);
+			talker = Talker.UNSELECTED;
+		} else if (pathTemp && endsWith(pathTemp, "??Random")) { mixin(S_TRACE);
+			talker = Talker.RANDOM;
+		} else if (pathTemp && endsWith(pathTemp, "??Card")) { mixin(S_TRACE);
+			talker = Talker.CARD;
+		} else if (pathTemp && endsWith(pathTemp, "??Valued")) { mixin(S_TRACE);
+			talker = Talker.VALUED;
+		} else { mixin(S_TRACE);
+			talker = Talker.IMAGE;
+			procImagePaths();
 			setPaths([decodePath(pathTemp)]);
 		}
 	} else { mixin(S_TRACE);
