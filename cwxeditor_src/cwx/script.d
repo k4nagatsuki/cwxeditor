@@ -1863,21 +1863,22 @@ fi`;
 			return r;
 		} else static if (isVArray!(T)) {
 			T r;
-			while (i < attr.length) { mixin(S_TRACE);
+			if (i < attr.length) { mixin(S_TRACE);
 				auto values = var(attr[i], varTable);
-				size_t i2 = 0;
-				if (values.length <= i2) break;
-				if (values[0].type is NodeType.ARRAY) { mixin(S_TRACE);
-					values = values[0].values;
-				}
-				while (i2 < values.length) { mixin(S_TRACE);
-					if (!values.length) break;
-					if (values[0].token.kind is Kind.COMMA) { mixin(S_TRACE);
-						// 空の配列
-						break;
+				if (values.length) { mixin(S_TRACE);
+					size_t i2 = 0;
+					if (values[0].type is NodeType.ARRAY) { mixin(S_TRACE);
+						values = values[0].values;
 					}
-					r ~= parseAttr!(ElementType!(T), Within)(opt, values, i2, ElementType!(T).init, varTable, msgWidth);
-					if (0 == i2) break;
+					while (i2 < values.length) { mixin(S_TRACE);
+						if (!values.length) break;
+						if (values[0].token.kind is Kind.COMMA) { mixin(S_TRACE);
+							// 空の配列
+							break;
+						}
+						r ~= parseAttr!(ElementType!(T), Within)(opt, values, i2, ElementType!(T).init, varTable, msgWidth);
+						if (0 == i2) break;
+					}
 				}
 				i++;
 			}
