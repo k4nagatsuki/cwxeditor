@@ -1845,6 +1845,7 @@ class Msgs : Properties {
 	auto scriptErrorNoIfText = Msg("scriptErrorNoIfText", "ifの条件が見つかりません。");
 	auto scriptErrorNoIfContents = Msg("scriptErrorNoIfContents", "分岐先のコンテントが見つかりません。");
 	auto scriptErrorInvalidKeyword = Msg("scriptErrorInvalidKeyword", "未知のキーワードです。");
+	auto scriptErrorInvalidKeyword2 = Msg("scriptErrorInvalidKeyword2", "キーワードが正しくありません。");
 	auto scriptErrorInvalidValuesOpen = Msg("scriptErrorInvalidValuesOpen", "パラメータ列ではありません。");
 	auto scriptErrorInvalidValuesClose = Msg("scriptErrorInvalidValuesClose", "閉じ括弧が見つかりません。");
 	auto scriptErrorNoVarSet = Msg("scriptErrorNoVarSet", "変数に値をセットしていません。");
@@ -1885,6 +1886,7 @@ class Msgs : Properties {
 	auto scriptErrorUndefinedVar = Msg("scriptErrorUndefinedVar", "存在しない変数です。");
 	auto scriptErrorInvalidValue = Msg("scriptErrorInvalidValue", "値が正しくありません。");
 	auto scriptErrorInvalidCoordinateType = Msg("scriptErrorInvalidCoordinateType", "未知の位置・サイズ形式です。");
+	auto scriptErrorInvalidArray = Msg("scriptErrorInvalidArray", "ここに配列が必要です。");
 	auto scriptErrorSystem = Msg("scriptErrorSystem", "サイズが大きすぎるため、CWXスクリプトをコンパイルできません。");
 
 	auto dlgTitScriptVarSet = Msg("dlgTitScriptVarSet", "値が未決定の変数の設定");

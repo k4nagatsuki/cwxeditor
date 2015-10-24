@@ -1668,9 +1668,8 @@ fi`;
 			case Kind.O_BRA:
 				auto node = analyzeSyntaxBrackets(tokens, i, keys);
 				putArray(node);
-				i++;
 				break;
-			case Kind.START, Kind.IF, Kind.ELIF, Kind.FI, Kind.SIF:
+			case Kind.START, Kind.IF, Kind.ELIF, Kind.FI, Kind.SIF, Kind.C_BRA:
 				return r;
 			case Kind.SYMBOL, Kind.NUMBER, Kind.STRING, Kind.PLU, Kind.MIN, Kind.O_PAR:
 				if (std.string.toLower(tok.value) in keys.keywords) { mixin(S_TRACE);
@@ -1694,6 +1693,7 @@ fi`;
 				node.token = tok;
 				node.var = [];
 				r ~= node;
+				i++;
 				break;
 			default:
 				throwError(_prop.msgs.scriptErrorInvalidAttr, tok);
@@ -1737,33 +1737,12 @@ fi`;
 		r.type = NodeType.VALUES;
 		r.token = o;
 		i++;
-		while (i < tokens.length) { mixin(S_TRACE);
-			Token tok = tokens[i];
-			if (tok.kind is Kind.C_BRA) { mixin(S_TRACE);
-				return r;
-			}
-			if (r.values.length > 0) { mixin(S_TRACE);
-				if (tok.kind is Kind.COMMA) { mixin(S_TRACE);
-					i++;
-				}
-				tok = tokens[i];
-			}
-			switch (tok.kind) {
-			case Kind.O_BRA:
-				r.values ~= analyzeSyntaxBrackets(tokens, i, keys);
-				i++;
-				break;
-			case Kind.SYMBOL, Kind.NUMBER, Kind.STRING, Kind.VAR_NAME, Kind.O_PAR, Kind.PLU, Kind.MIN:
-				auto node = Node(NodeType.VALUE, tok);
-				node.var = analyzeSyntaxValue(tokens, i, keys);
-				r.values ~= node;
-				break;
-			default:
-				throwError(_prop.msgs.scriptErrorInvalidValuesClose, tok);
-				i++;
-			}
+		r.values = analyzeSyntaxAttr(tokens, i, keys);
+		if (tokens.length <= i || tokens[i].kind != Kind.C_BRA) { mixin(S_TRACE);
+			throwError(_prop.msgs.scriptErrorCloseBracketNotFound, o);
+		} else { mixin(S_TRACE);
+			i++;
 		}
-		throwError(_prop.msgs.scriptErrorCloseBracketNotFound, o);
 		return r;
 	}
 	private Node analyzeSyntaxVar(in Token[] tokens, ref size_t i, in Keywords keys) { mixin(S_TRACE);
@@ -1887,8 +1866,10 @@ fi`;
 			while (i < attr.length) { mixin(S_TRACE);
 				auto values = var(attr[i], varTable);
 				size_t i2 = 0;
-				if (values.length <= i2 || values[0].type !is NodeType.ARRAY) break;
-				values = values[0].values;
+				if (values.length <= i2) break;
+				if (values[0].type is NodeType.ARRAY) { mixin(S_TRACE);
+					values = values[0].values;
+				}
 				while (i2 < values.length) { mixin(S_TRACE);
 					if (!values.length) break;
 					if (values[0].token.kind is Kind.COMMA) { mixin(S_TRACE);
@@ -2227,18 +2208,28 @@ fi`;
 				CRGB color = parseAttr!(CRGB)(opt, vals, j, CRGB(0, 0, 0, 255), varTable, msgWidth);
 				bool bold = false, italic = false, underline = false, strike = false, vertical = false;
 				BorderingType borderingType = BorderingType.None;
-				bgtw: while (j < vals.length) { mixin(S_TRACE);
-					if (vals[j].token.kind !is Kind.SYMBOL) break;
-					switch (attrValue(vals[j], varTable, msgWidth)) {
-					case "bold": j++; bold = true; break;
-					case "italic": j++; italic = true; break;
-					case "underline", "uline": j++; underline = true; break;
-					case "strike": j++; strike = true; break;
-					case "vertical": j++; vertical = true; break;
-					case "border1": j++; borderingType = BorderingType.Outline; break;
-					case "border2": j++; borderingType = BorderingType.Inline; break;
-					default: break bgtw;
+				if (j < vals.length) { mixin(S_TRACE);
+					if (vals[j].type != NodeType.ARRAY) {
+						throwError(_prop.msgs.scriptErrorInvalidArray, vals[j].token);
+						return new ImageCell("", "", 0, 0, 0, 0, false);
 					}
+					auto array = vals[j].values;
+					auto j2 = 0;
+					bgtw: while (j2 < array.length) { mixin(S_TRACE);
+						switch (attrValue(array[j2], varTable, msgWidth)) {
+						case "bold": j2++; bold = true; break;
+						case "italic": j2++; italic = true; break;
+						case "underline", "uline": j2++; underline = true; break;
+						case "strike": j2++; strike = true; break;
+						case "vertical": j2++; vertical = true; break;
+						case "border1": j2++; borderingType = BorderingType.Outline; break;
+						case "border2": j2++; borderingType = BorderingType.Inline; break;
+						default:
+							throwError(_prop.msgs.scriptErrorInvalidKeyword2, array[j2].token);
+							return new ImageCell("", "", 0, 0, 0, 0, false);
+						}
+					}
+					j++;
 				}
 				CRGB borderingColor = CRGB(255, 255, 255, 255);
 				int borderingWidth = 1;
