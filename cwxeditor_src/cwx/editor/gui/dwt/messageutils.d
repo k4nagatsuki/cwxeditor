@@ -2630,7 +2630,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 	}
 
 	// 話者の描画
-	foreach (talker; talkers) { mixin(S_TRACE);
+	foreach_reverse (talker; talkers) { mixin(S_TRACE);
 		auto tImg = new Image(d, talker);
 		scope (exit) tImg.dispose();
 		auto tp = prop.looks.messageTalkerPos;
