@@ -522,7 +522,7 @@ private:
 				foreach (i; indices) { mixin(S_TRACE);
 					auto c = area.cards[i];
 					static if (is(C == MenuCard)) {
-						c = new C(c.name, c.path, c.desc, c.flag, c.x, c.y, c.scale);
+						c = new C(c.name, c.paths, c.desc, c.flag, c.x, c.y, c.scale);
 					} else static if (is(C == EnemyCard)) {
 						c = new C(c.id, c.escape, c.flag, c.x, c.y, c.scale);
 					} else static assert (0);
@@ -555,7 +555,7 @@ private:
 					auto ac = area.cards[i];
 					static if (is(C == MenuCard)) {
 						ac.name = c.name;
-						ac.path = c.path;
+						ac.paths = c.paths;
 						ac.desc = c.desc;
 						ac.flag = c.flag;
 						ac.x = c.x;
@@ -2200,13 +2200,19 @@ private:
 		static if (is(C : MenuCard)) {
 			string cardName = _prop.msgs.menuCard;
 			string path(in C card) { mixin(S_TRACE);
-				string path = card.path;
-				if (!path.length) return _prop.msgs.noSelectImage;
-				if (isBinImg(path)) return _prop.msgs.areaViewStatusImageIncluding;
-				if (!summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "").length) { mixin(S_TRACE);
-					return .tryFormat(_prop.msgs.noImage, encodePath(path));
+				string[] arr;
+				foreach (path; card.paths) { mixin(S_TRACE);
+					if (!path.length) { mixin(S_TRACE);
+						arr ~= _prop.msgs.noSelectImage;
+					} else if (isBinImg(path)) { mixin(S_TRACE);
+						arr ~= _prop.msgs.areaViewStatusImageIncluding;
+					} else if (!summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "").length) { mixin(S_TRACE);
+						arr ~= .tryFormat(_prop.msgs.noImage, encodePath(path));
+					} else { mixin(S_TRACE);
+						arr ~= encodePath(path);
+					}
 				}
-				return encodePath(path);
+				return std.string.join(arr, " ");
 			}
 		} else static if (is(C : EnemyCard)) {
 			string cardName = _prop.msgs.enemyCard;
@@ -3717,7 +3723,7 @@ public:
 		void createCard() { mixin(S_TRACE);
 			if (_readOnly) return;
 			static if (is(C : MenuCard)) {
-				auto c = new MenuCard("", "", "", "", 0, 0, 1.0);
+				auto c = new MenuCard("", [], "", "", 0, 0, 1.0);
 			} else static if (is(C : EnemyCard)) {
 				if (!_summ) return;
 				if (_summ.casts.length == 0) return;
@@ -3894,13 +3900,13 @@ public:
 			return castCard ? castCard.name : "";
 		} else static assert (0, C2);
 	}
-	string cardImagePath(C2)(in C2 card) { mixin(S_TRACE);
-		static if (is(typeof(card.path))) {
-			return summSkin.findImagePath(card.path, summary.scenarioPath);
+	string[] cardImagePath(C2)(in C2 card) { mixin(S_TRACE);
+		static if (is(typeof(card.paths))) {
+			return .map!(a => summSkin.findImagePath(a, summary.scenarioPath))(card.paths).array();
 		} else static if (is(typeof(summary.cwCast(card.id)))) {
 			auto castCard = summary.cwCast(card.id);
 			if (castCard) { mixin(S_TRACE);
-				return summSkin.findImagePath(castCard.path, summary.scenarioPath);
+				return .map!(a => summSkin.findImagePath(a, summary.scenarioPath))(castCard.paths).array();
 			} else { mixin(S_TRACE);
 				return "";
 			}
@@ -4659,7 +4665,7 @@ public:
 						return -1;
 					}
 				}
-				auto card = new MenuCard(baseName(.stripExtension(fname)), fname.abs2rel(_summ.scenarioPath), "", "", x, y, 1.0);
+				auto card = new MenuCard(baseName(.stripExtension(fname)), fname.length ? [fname.abs2rel(_summ.scenarioPath)] : [], "", "", x, y, 1.0);
 				return appendCard(card, true, true, fromImgPane);
 			}
 			private class CLDropTarget : DropTargetAdapter {

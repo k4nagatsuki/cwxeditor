@@ -227,7 +227,7 @@ private:
 				l.setText(.tryFormat(_prop.msgs.nameLimit, _prop.looks.castNameLimit, _prop.looks.castNameLimit / 2));
 			}
 			{ mixin(S_TRACE);
-				bool including = _card && isBinImg(_card.path);
+				bool including = _card && _card.paths.length && isBinImg(_card.paths[0]);
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, _readOnly, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText);
 				mod(_imgPath);
@@ -1219,7 +1219,7 @@ protected:
 		scope (exit) ignoreMod = false;
 		auto skin = summSkin;
 		if (_card) { mixin(S_TRACE);
-			_imgPath.image = _card.path;
+			_imgPath.images = _card.paths;
 			if (_race) _race.select(0);
 			_desc.setText(_card.desc);
 			_name.setText(_card.name);
@@ -1321,7 +1321,7 @@ protected:
 			changeMentality();
 			changeLifeUseMax();
 		} else { mixin(S_TRACE);
-			_imgPath.image = "";
+			_imgPath.images = [];
 			if (_race) _race.select(0);
 			_sexU.setSelection(true);
 			_periodU.setSelection(true);
@@ -1362,14 +1362,14 @@ protected:
 	}
 	override bool apply() { mixin(S_TRACE);
 		if (_card) { mixin(S_TRACE);
-			_card.path = _imgPath.image;
+			_card.paths = _imgPath.images;
 			_card.desc = _desc.getRRText();
 			_card.name = _name.getText();
 			_card.level = _level.getSelection();
 			_card.lifeMax = _lifeMax.getSelection();
 			_card.life = _lifeMax.getSelection();
 		} else { mixin(S_TRACE);
-			_card = new CastCard(_summ.newId!(CastCard), _name.getText(), _imgPath.image,
+			_card = new CastCard(_summ.newId!(CastCard), _name.getText(), _imgPath.images,
 				_desc.getRRText(), _level.getSelection(), _lifeMax.getSelection());
 		}
 		auto skin = summSkin;

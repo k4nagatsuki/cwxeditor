@@ -110,10 +110,13 @@ public:
 				_image.setLayoutData(_image.computeSize(w, h));
 				_image.addPaintListener(new PListener);
 				.listener(_image, SWT.Dispose, { mixin(S_TRACE);
-					if (_img) { mixin(S_TRACE);
-						_img.data[] = 0;
-						delete _img.data;
+					foreach (img; _img) { mixin(S_TRACE);
+						if (img) { mixin(S_TRACE);
+							img.data[] = 0;
+							delete img.data;
+						}
 					}
+					_img = [];
 				});
 			}
 			if (defs) { mixin(S_TRACE);
@@ -212,22 +215,44 @@ public:
 	bool mask() { mixin(S_TRACE);
 		return _mask;
 	}
-	/// 画像のファイルパス。
-	@property
-	string image() { mixin(S_TRACE);
-		return _msel.path;
-	}
-	@property
-	string filePath() { mixin(S_TRACE);
-		return _msel.filePath;
-	}
-	/// Params:
-	/// path = 画像のファイルパス。
-	@property
-	void image(string path) { mixin(S_TRACE);
-		_msel.path = path;
-		_image.redraw();
-	}
+	static if (Type == MtType.CARD) {
+		/// 画像のファイルパス。
+		@property
+		string[] images() { mixin(S_TRACE);
+			// TODO: 複数イメージ
+			return _msel.path.length ? [_msel.path] : [];
+		}
+		@property
+		string[] filePaths() { mixin(S_TRACE);
+			// TODO: 複数イメージ
+			return _msel.filePath.length ? [_msel.filePath] : [];
+		}
+		/// Params:
+		/// path = 画像のファイルパス。
+		@property
+		void images(in string[] paths) { mixin(S_TRACE);
+			// TODO: 複数イメージ
+			_msel.path = paths.length ? paths[0] : "";
+			_image.redraw();
+		}
+	} else static if (Type == MtType.BG_IMG) {
+		/// 画像のファイルパス。
+		@property
+		string image() { mixin(S_TRACE);
+			return _msel.path;
+		}
+		@property
+		string filePath() { mixin(S_TRACE);
+			return _msel.filePath;
+		}
+		/// Params:
+		/// path = 画像のファイルパス。
+		@property
+		void image(string path) { mixin(S_TRACE);
+			_msel.path = path;
+			_image.redraw();
+		}
+	} else static assert (0);
 	@property
 	Composite widget() { mixin(S_TRACE);
 		return _group;
@@ -264,7 +289,17 @@ public:
 	@property
 	string[] warnings() { mixin(S_TRACE);
 		string[] ws;
-		auto img = filePath;
+		static if (Type == MtType.CARD) {
+			foreach (img; filePaths) { mixin(S_TRACE);
+				ws ~= warningFrom(img);
+			}
+		} else static if (Type == MtType.BG_IMG) {
+			ws ~= warningFrom(filePath);
+		} else static assert (0);
+		return ws;
+	}
+	private string[] warningFrom(string img) { mixin(S_TRACE);
+		string[] ws;
 		if (isBinImg(img)) { mixin(S_TRACE);
 			auto bin =  cast(ubyte[]) strToBImg(img);
 			auto type = imageType(bin);
@@ -410,23 +445,52 @@ private:
 				}
 			}
 			int dirsi = dirsCombo.getSelectionIndex();
-			string path = filePath;
+			if (_createDefImage && dirsi < _defs.length) { mixin(S_TRACE);
+				auto imgData = _createDefImage(dirsi);
+				if (imgData) { mixin(S_TRACE);
+					drawImage(e.gc, imgData);
+					return;
+				}
+			}
+			
+			static if (Type == MtType.CARD) {
+				if (filePaths.length < _paintedPaths.length) { mixin(S_TRACE);
+					foreach (i; filePaths.length .. _paintedPaths.length) { mixin(S_TRACE);
+						if (_img[i]) { mixin(S_TRACE);
+							_img[i].data[] = 0;
+							delete _img[i].data;
+						}
+					}
+				}
+				_paintedPaths.length = filePaths.length;
+				_img.length = filePaths.length;
+				foreach (i, path; filePaths) { mixin(S_TRACE);
+					drawImage(e.gc, i, path);
+				}
+			} else static if (Type == MtType.BG_IMG) {
+				_paintedPaths.length = 1;
+				_img.length = 1;
+				drawImage(e.gc, 0, filePath);
+			} else static assert (0);
+		}
+		private void drawImage(GC gc, size_t i, string path) { mixin(S_TRACE);
 			ImageData imgData = null;
 			if (path !is null && path.length > 0) { mixin(S_TRACE);
-				if (!_paintedPath && _paintedPath == path) { mixin(S_TRACE);
-					imgData = _img;
+				if (!_paintedPaths[i] && _paintedPaths[i] == path) { mixin(S_TRACE);
+					imgData = _img[i];
 				} else { mixin(S_TRACE);
-					_paintedPath = path;
+					_paintedPaths[i] = path;
 					imgData = loadImage(_prop, summSkin, _summ, path, _mask);
-					if (_img) { mixin(S_TRACE);
-						_img.data[] = 0;
-						delete _img.data;
+					if (_img[i]) { mixin(S_TRACE);
+						_img[i].data[] = 0;
+						delete _img[i].data;
 					}
-					_img = imgData;
+					_img[i] = imgData;
 				}
-			} else if (_createDefImage && dirsi < _defs.length) { mixin(S_TRACE);
-				imgData = _createDefImage(dirsi);
 			}
+			drawImage(gc, imgData);
+		}
+		private void drawImage(GC gc, ImageData imgData) { mixin(S_TRACE);
 			if (!imgData) return;
 			scope img = new Image(Display.getCurrent(), imgData);
 			scope b = img.getBounds();
@@ -477,13 +541,13 @@ private:
 				fw = b.width;
 				fh = b.height;
 			}
-			e.gc.drawImage(img, 0, 0, fw, fh, x, y, w, h);
+			gc.drawImage(img, 0, 0, fw, fh, x, y, w, h);
 			img.dispose();
 		}
 	}
 	void refresh() { mixin(S_TRACE);
 		if (_refresh) _refresh();
-		_paintedPath = null;
+		_paintedPaths = [];
 		_image.redraw();
 		refreshImageList();
 		foreach (dlg; updateImageEvent) { mixin(S_TRACE);
@@ -498,7 +562,7 @@ private:
 		return _summSkin ? _summSkin : _comm.skin;
 	}
 	int _readOnly = 0;
-	string _paintedPath = null;
+	string[] _paintedPaths = [];
 	Composite _group;
 	Commons _comm;
 	Props _prop;
@@ -513,7 +577,7 @@ private:
 	bool _mask = true;
 	void delegate() _refresh;
 	int _oldDirSel = -1;
-	private ImageData _img = null;
+	private ImageData[] _img = [];
 	static if (Type is MtType.CARD) {
 		Button _noCardSize;
 		CardMode _cardMode = CardMode.Normal;

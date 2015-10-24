@@ -348,7 +348,7 @@ private:
 
 		static struct SummData {
 			string scenarioName;
-			string imagePath;
+			string[] imagePaths;
 			string author;
 			int levelMin, levelMax;
 			string desc;
@@ -359,7 +359,7 @@ private:
 			Skin skin;
 			this (Commons comm, Summary summ) { mixin(S_TRACE);
 				scenarioName = summ.scenarioName;
-				imagePath = summ.imagePath;
+				imagePaths = summ.imagePaths;
 				author = summ.author;
 				levelMin = summ.levelMin;
 				levelMax = summ.levelMax;
@@ -372,7 +372,7 @@ private:
 			}
 			void toSummary(Commons comm, Summary summ) { mixin(S_TRACE);
 				summ.scenarioName = scenarioName;
-				summ.imagePath = imagePath;
+				summ.imagePaths = imagePaths;
 				summ.author = author;
 				summ.levelMin = levelMin;
 				summ.levelMax = levelMax;

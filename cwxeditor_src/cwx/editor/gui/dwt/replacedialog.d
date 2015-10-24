@@ -3318,6 +3318,9 @@ public:
 		if (summ) { mixin(S_TRACE);
 			bool sr = false;
 			Undo[] uArr;
+			if (_fileSel) { mixin(S_TRACE);
+				sr |= replFilePaths(summ.imagePaths, &summ.imagePaths, count, uArr);
+			}
 			if (_summarySel) { mixin(S_TRACE);
 				sr |= repl(null, summ.desc, &summ.desc, count, uArr);
 			}
@@ -3952,6 +3955,21 @@ public:
 		}
 		return false;
 	}
+	private bool replFilePaths(string[] texts, void delegate(in string[]) set, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
+		bool r = false;
+		auto o = texts.dup;
+		foreach (i, text; texts) { mixin(S_TRACE);
+			Undo[] uArr2;
+			r |= replFilePath(text, (text) {
+				texts[i] = text;
+			}, count, uArr2);
+		}
+		if (r) { mixin(S_TRACE);
+			uArr ~= new StrArrUndo(o, texts, (texts) { set(texts); });
+			set(texts);
+		}
+		return r;
+	}
 	private bool replFilePath(string text, void delegate(string) set, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
 		auto c = fTextCount(encodePath(text));
 		count += c;
@@ -4160,7 +4178,7 @@ public:
 			}
 		}
 		if (_fileSel) { mixin(S_TRACE);
-			r |= replFilePath(card.path, &card.path, count, uArr2);
+			r |= replFilePaths(card.paths, &card.paths, count, uArr2);
 		}
 		static if (is (C : EffectCard)) {
 			r |= replKeyCode!(C)(null, card, count, uArr2);
@@ -4292,7 +4310,7 @@ public:
 			}
 		}
 		if (_fileSel) { mixin(S_TRACE);
-			if (d.use(CArg.TALKER_C)) r |= replFilePath(e.cardPath, &e.cardPath, count, uArr2);
+			if (d.use(CArg.TALKER_C)) r |= replFilePaths(e.cardPaths, (paths) { e.cardPaths = paths; }, count, uArr2);
 			if (d.use(CArg.BGM_PATH)) r |= replFilePath(e.bgmPath, &e.bgmPath, count, uArr2);
 			if (d.use(CArg.SOUND_PATH)) r |= replFilePath(e.soundPath, &e.soundPath, count, uArr2);
 		}

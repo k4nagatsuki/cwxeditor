@@ -138,7 +138,7 @@ private:
 		if (visible) { mixin(S_TRACE);
 			if (_summImage) return;
 			_summImage = new SummaryPreview(_comm, _imgArea, SWT.NONE);
-			_summImage.setImageSelect(&_sname.getText, &_imgPath.image, &selectedSkin, {return _desc.getRRText();}, &_levMin.getSelection, &_levMax.getSelection);
+			_summImage.setImageSelect(&_sname.getText, &_imgPath.images, &selectedSkin, {return _desc.getRRText();}, &_levMin.getSelection, &_levMax.getSelection);
 			_summImage.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			w = _summImage.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 		} else { mixin(S_TRACE);
@@ -189,12 +189,12 @@ private:
 			_tab2Sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto skin = summSkin;
 			{ mixin(S_TRACE);
-				bool including = isBinImg(_summ.imagePath);
+				bool including = _summ.imagePaths.length && isBinImg(_summ.imagePaths[0]);
 				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, _readOnly, _comm, _prop, _summ,
 					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, () => _sname.getText(), &clearBuf);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
-				_imgPath.image = _summ.imagePath;
+				_imgPath.images = _summ.imagePaths;
 				_imgPath.modEvent ~= &refreshPreview;
 				_imgPath.updateImageEvent ~= &refreshPreview;
 			}
@@ -582,7 +582,7 @@ protected:
 		}
 		_summ.setBaseParams(_sname.getText(), _author.getText());
 		_summ.desc = _desc.getRRText();
-		_summ.imagePath = _imgPath.image;
+		_summ.imagePaths = _imgPath.images;
 		_summ.levelMin = _levMin.getSelection();
 		_summ.levelMax = _levMax.getSelection();
 		string[] rcs;
@@ -623,19 +623,19 @@ private class SummaryPreview : Composite {
 
 	private Canvas _summImage;
 	private string delegate() _sname = null;
-	private string delegate() _imgPath = null;
+	private string[] delegate() _imgPaths = null;
 	private Skin delegate() _selectedSkin = null;
 	private string delegate() _desc = null;
 	private int delegate() _levMin = null;
 	private int delegate() _levMax = null;
 
-	private Image _summImageBuf = null;
-	private ImageData _bufImgData = null;
-	private string _bufImagePath = null;
+	private Image[] _summImageBufs = [];
+	private ImageData[] _bufImgData = [];
+	private string[] _bufImagePaths = [];
 
 	private class PListener : PaintListener {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
-			if (!_imgPath) return;
+			if (!_imgPaths) return;
 			auto d = Display.getCurrent();
 			auto size = _prop.looks.summarySize;
 			auto rect = _summImage.getClientArea();
@@ -645,22 +645,52 @@ private class SummaryPreview : Composite {
 			scope (exit) gc.dispose();
 
 			auto skin = _selectedSkin();
-			auto imgPath = _imgPath();
-			auto path = nabs(skin.findImagePath(imgPath, _summ.scenarioPath));
-			if (!_bufImagePath || !_summImageBuf || !.cfnmatch(_bufImagePath, path) || summary(skin) !is _bufImgData) { mixin(S_TRACE);
-				if (_summImageBuf) _summImageBuf.dispose();
-				_bufImagePath = path;
-				_bufImgData = summary(skin);
-				_summImageBuf = new Image(d, _bufImgData);
+			auto imgPaths = _imgPaths();
+			if (imgPaths.length < _summImageBufs.length) { mixin(S_TRACE);
+				foreach (i; imgPaths.length .. _summImageBufs.length) { mixin(S_TRACE);
+					if (_summImageBufs[i]) _summImageBufs[i].dispose();
+				}
 			}
-			gc.drawImage(_summImageBuf, 0, 0);
+			_summImageBufs.length = imgPaths.length;
+			_bufImgData.length = imgPaths.length;
+			_bufImagePaths.length = imgPaths.length;
+			foreach (i, imgPath; imgPaths) { mixin(S_TRACE);
+				auto path = nabs(skin.findImagePath(imgPath, _summ.scenarioPath));
+				if (_bufImagePaths[i] == "" || !_summImageBufs[i] || !.cfnmatch(_bufImagePaths[i], path) || summary(skin) !is _bufImgData[i]) { mixin(S_TRACE);
+					if (_summImageBufs[i]) _summImageBufs[i].dispose();
+					_bufImagePaths[i] = path;
+					_bufImgData[i] = summary(skin);
+					_summImageBufs[i] = new Image(d, _bufImgData[i]);
+				}
 
-			if (imgPath !is null && imgPath.length > 0) { mixin(S_TRACE);
-				string p = skin.findImagePath(imgPath, _summ.scenarioPath);
-				if (p.length) { mixin(S_TRACE);
-					scope img = new Image(d, loadImage(_prop, skin, _summ, p));
-					gc.drawImage(img, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
-					img.dispose();
+				if (rect.width < size.width || rect.height < size.height) { mixin(S_TRACE);
+					real wp = cast(real)rect.width / size.width;
+					real hp = cast(real)rect.height / size.height;
+					ImageData data;
+					if (wp < hp) { mixin(S_TRACE);
+						size.width = rect.width;
+						size.height = cast(int)(size.height * wp);
+					} else { mixin(S_TRACE);
+						size.width = cast(int)(size.width * hp);
+						size.height = rect.height;
+					}
+					data = _summImageBufs[i].getImageData().scaledTo(size.width, size.height);
+					_summImageBufs[i].dispose();
+					_summImageBufs[i] = null;
+					if (size.width > 0 && size.height > 0) { mixin(S_TRACE);
+						_summImageBufs[i] = new Image(d, data);
+					}
+				}
+
+				if (_summImageBufs[i]) gc.drawImage(_summImageBufs[i], 0, 0);
+
+				if (imgPath !is null && imgPath.length > 0) { mixin(S_TRACE);
+					string p = skin.findImagePath(imgPath, _summ.scenarioPath);
+					if (p.length) { mixin(S_TRACE);
+						scope img = new Image(d, loadImage(_prop, skin, _summ, p));
+						gc.drawImage(img, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
+						img.dispose();
+					}
 				}
 			}
 			{ mixin(S_TRACE);
@@ -714,24 +744,6 @@ private class SummaryPreview : Composite {
 				drawCenterText(dwtData(_prop.looks.summaryPageFont(skin.legacy)),
 					_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
 			}
-			if (rect.width < size.width || rect.height < size.height) { mixin(S_TRACE);
-				real wp = cast(real) rect.width / size.width;
-				real hp = cast(real) rect.height / size.height;
-				ImageData data;
-				if (wp < hp) { mixin(S_TRACE);
-					size.width = rect.width;
-					size.height = cast(int) (size.height * wp);
-				} else { mixin(S_TRACE);
-					size.width = cast(int) (size.width * hp);
-					size.height = rect.height;
-				}
-				data = _summImageBuf.getImageData().scaledTo(size.width, size.height);
-				_summImageBuf.dispose();
-				_summImageBuf = null;
-				if (size.width > 0 && size.height > 0) { mixin(S_TRACE);
-					_summImageBuf = new Image(d, data);
-				}
-			}
 			auto bx = (rect.width - size.width) / 2;
 			auto by = (rect.height - size.height) / 2;
 			e.gc.drawImage(buf, bx, by);
@@ -763,9 +775,9 @@ private class SummaryPreview : Composite {
 		});
 	}
 
-	void setImageSelect(string delegate() sname, string delegate() imgPath, Skin delegate() selectedSkin, string delegate() desc, int delegate() levMin, int delegate() levMax) { mixin(S_TRACE);
+	void setImageSelect(string delegate() sname, string[] delegate() imgPaths, Skin delegate() selectedSkin, string delegate() desc, int delegate() levMin, int delegate() levMax) { mixin(S_TRACE);
 		_sname = sname;
-		_imgPath = imgPath;
+		_imgPaths = imgPaths;
 		_selectedSkin = selectedSkin;
 		_desc = desc;
 		_levMin = levMin;
@@ -777,8 +789,10 @@ private class SummaryPreview : Composite {
 	}
 
 	void clearBuf() { mixin(S_TRACE);
-		if (_summImageBuf) _summImageBuf.dispose();
-		_summImageBuf = null;
-		_bufImagePath = null;
+		foreach (buf; _summImageBufs) {
+			if (buf) buf.dispose();
+		}
+		_summImageBufs = [];
+		_bufImagePaths = [];
 	}
 }

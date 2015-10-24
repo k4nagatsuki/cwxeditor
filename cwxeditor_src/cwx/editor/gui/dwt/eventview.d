@@ -35,7 +35,7 @@ import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.areaviewutils;
 import cwx.editor.gui.dwt.images;
 
-import std.algorithm : max, remove;
+import std.algorithm : map, max, remove;
 import std.string;
 import std.array;
 import std.exception;
@@ -113,9 +113,9 @@ private:
 	}
 	PileImage createCardImage(in AbstractSpCard spCard) { mixin(S_TRACE);
 		if (auto card = cast(MenuCard)spCard) {
-			auto path = _comm.skin.findImagePath(card.path, _summ.scenarioPath);
+			auto paths = .map!(a => _comm.skin.findImagePath(a, _summ.scenarioPath))(card.paths).array();
 			return createMenuCardImage!PileImage(_prop, _comm.skin, card.name,
-				path, 0, 0, 1.0, _prop.var.etc.smoothingCard, card.pcNumber);
+				paths, 0, 0, 1.0, _prop.var.etc.smoothingCard, card.pcNumber);
 		} else if (auto card = cast(EnemyCard)spCard) {
 			auto skin = _comm.skin;
 			auto castCard = _summ.cwCast(card.id);

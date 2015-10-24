@@ -117,7 +117,7 @@ protected:
 		}
 		{ mixin(S_TRACE);
 			auto skin = summSkin;
-			bool including = _card && isBinImg(_card.path);
+			bool including = _card && _card.paths.length && isBinImg(_card.paths[0]);
 			_imgPath = new ImageSelect!(MtType.CARD)(area, _readOnly, _comm, _prop, _summ,
 				_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText);
 			mod(_imgPath);
@@ -147,22 +147,22 @@ protected:
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_card) { mixin(S_TRACE);
-			_imgPath.image = _card.path;
+			_imgPath.images = _card.paths;
 			_name.setText(_card.name);
 			_desc.setText(_card.desc);
 		} else { mixin(S_TRACE);
-			_imgPath.image = "";
+			_imgPath.images = [];
 		}
 	}
 
 	override bool apply() { mixin(S_TRACE);
 		if (_card) { mixin(S_TRACE);
 			_card.name = _name.getText();
-			_card.path = _imgPath.image;
+			_card.paths = _imgPath.images;
 			_card.desc = wrapReturnCode(_desc.getText());
 		} else { mixin(S_TRACE);
 			_card = new InfoCard(_summ.newId!(InfoCard), _name.getText(),
-				_imgPath.image, wrapReturnCode(_desc.getText()));
+				_imgPath.images, wrapReturnCode(_desc.getText()));
 		}
 		getShell().setText(.tryFormat(_prop.msgs.dlgTitInfo, _card.name));
 		return true;

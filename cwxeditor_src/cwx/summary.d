@@ -24,6 +24,7 @@ import lhafile.lhafile;
 
 import core.thread;
 
+import std.algorithm;
 import std.array;
 import std.file;
 import std.stream;
@@ -108,7 +109,7 @@ private:
 	string _sPath = null;
 	string _sname = "";
 	string _author = ""; /// 作者名。
-	PathUser _imgPath; /// 貼り紙画像のパス。
+	PathUser[] _imgPaths; /// 貼り紙画像のパス。
 	string _desc = ""; /// 貼り紙の文章。
 	uint _levMin = 0; /// 推奨レベル(下)。
 	uint _levMax = 0; /// 推奨レベル(上)。
@@ -178,8 +179,6 @@ private:
 		_froot.changeHandler = &changeHandler;
 		_startAreaId = new AreaUser(this);
 		_startAreaId.setUseCounter(_uc);
-		_imgPath = new PathUser(this);
-		_imgPath.setUseCounter(_uc);
 	}
 public:
 	/// シナリオ名、スキン、シナリオのパスを指定してインスタンスを生成。
@@ -1139,15 +1138,22 @@ public:
 
 	/// 貼り紙の画像パス。
 	@property
-	void imagePath(string imgPath) { mixin(S_TRACE);
-		if (_imgPath.path != imgPath) changeHandler();
-		_imgPath.path = imgPath;
+	const
+	string[] imagePaths() { mixin(S_TRACE);
+		return .map!(a => a.path)(_imgPaths).array();
 	}
 	/// ditto
 	@property
-	const
-	string imagePath() { mixin(S_TRACE);
-		return _imgPath.path;
+	void imagePaths(in string[] paths) { mixin(S_TRACE);
+		if (imagePaths != paths) changeHandler();
+		foreach (u; _imgPaths) u.removeUseCounter();
+		_imgPaths = [];
+		foreach (path; paths) { mixin(S_TRACE);
+			auto u = new PathUser(this);
+			u.path = path;
+			if (useCounter) u.setUseCounter(useCounter);
+			_imgPaths ~= u;
+		}
 	}
 
 	/// シナリオの解説。
@@ -1707,7 +1713,16 @@ public:
 		if (dataVersion != "") root.newAttr("dataVersion", dataVersion);
 		auto pNode = root.newElement("Property");
 		pNode.newElement("Name", _sname);
-		pNode.newElement("ImagePath", encodePath(_imgPath.path));
+		if (_imgPaths.length == 0) { mixin(S_TRACE);
+			pNode.newElement("ImagePath", "");
+		} else if (_imgPaths.length <= 1) { mixin(S_TRACE);
+			pNode.newElement("ImagePath", encodePath(_imgPaths[0].path));
+		} else { mixin(S_TRACE);
+			auto imp = pNode.newElement("ImagePaths", "");
+			foreach (path; _imgPaths) { mixin(S_TRACE);
+				imp.newElement("ImagePath", encodePath(path.path));
+			}
+		}
 		pNode.newElement("Author", _author);
 		pNode.newElement("Description", encodeLf(_desc));
 		auto lv = pNode.newElement("Level");
@@ -1883,7 +1898,16 @@ public:
 			summ.dataVersion = summNode.attr("dataVersion", false, "");
 			summNode.onTag["Property"] = (ref XNode propNode) { mixin(S_TRACE);
 				propNode.onTag["Name"] = (ref XNode node) {summ._sname = node.value;};
-				propNode.onTag["ImagePath"] = (ref XNode node) {summ._imgPath.path = decodePath(node.value);};
+				string[] paths;
+				propNode.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
+					paths ~= decodePath(n.value);
+				};
+				propNode.onTag["ImagePaths"] = (ref XNode n) { mixin(S_TRACE);
+					n.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
+						paths ~= decodePath(n.value);
+					};
+					n.parse();
+				};
 				propNode.onTag["Author"] = (ref XNode node) {summ._author = node.value;};
 				propNode.onTag["Description"] = (ref XNode node) {summ._desc = decodeLf2(node.value);};
 				propNode.onTag["Level"] = (ref XNode node) { mixin(S_TRACE);
@@ -1898,6 +1922,7 @@ public:
 				propNode.onTag["StartAreaId"] = (ref XNode node) {summ._startAreaId.area = node.valueTo!(ulong);};
 				propNode.onTag["Type"] = (ref XNode node) {summ._type = node.value;};
 				propNode.parse();
+				summ.imagePaths = paths;
 				summ.rCoupons = rCoupons;
 			};
 			EvTemplate[] evTemps;
@@ -2573,9 +2598,9 @@ public:
 			if (.isDir(p)) { mixin(S_TRACE);
 				string[] list = clistdir(p);
 				if (logicalSort) { mixin(S_TRACE);
-					list = sort!(fnncmp)(list);
+					list = cwx.utils.sort!(fnncmp)(list);
 				} else { mixin(S_TRACE);
-					list = sort!(fncmp)(list);
+					list = cwx.utils.sort!(fncmp)(list);
 				}
 				int c = 0;
 				foreach (string file; list) { mixin(S_TRACE);
@@ -2628,9 +2653,9 @@ public:
 			if (.isDir(p)) { mixin(S_TRACE);
 				string[] list = clistdir(p);
 				if (logicalSort) { mixin(S_TRACE);
-					list = sort!(fnncmp)(list);
+					list = cwx.utils.sort!(fnncmp)(list);
 				} else { mixin(S_TRACE);
-					list = sort!(fncmp)(list);
+					list = cwx.utils.sort!(fncmp)(list);
 				}
 				foreach (l; list) { mixin(S_TRACE);
 					find(std.path.buildPath(p, l));

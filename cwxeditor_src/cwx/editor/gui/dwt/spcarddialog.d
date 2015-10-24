@@ -76,15 +76,16 @@ private:
 					auto ec = _summ.cwCast(_selectedID);
 					if (!ec) return;
 					auto canv = cast(Canvas) e.widget;
-					string path = "";
-					if (_summ) { mixin(S_TRACE);
-						path = _comm.skin.findImagePath(ec.path, _summ.scenarioPath);
-					}
-					if (path.length > 0) { mixin(S_TRACE);
-						auto skin = _comm.skin;
-						scope img = new Image(Display.getCurrent(), loadImage(_prop, skin, _summ, path));
-						scope (exit) img.dispose();
-						e.gc.drawImage(img, 0, 0);
+					foreach (path; ec.paths) { mixin(S_TRACE);
+						if (_summ) { mixin(S_TRACE);
+							path = _comm.skin.findImagePath(path, _summ.scenarioPath);
+						}
+						if (path.length > 0) { mixin(S_TRACE);
+							auto skin = _comm.skin;
+							scope img = new Image(Display.getCurrent(), loadImage(_prop, skin, _summ, path));
+							scope (exit) img.dispose();
+							e.gc.drawImage(img, 0, 0);
+						}
 					}
 				}
 			}
@@ -280,7 +281,7 @@ protected:
 					{ mixin(S_TRACE);
 						static if (is (C == MenuCard)) {
 							auto skin = _comm.skin;
-							bool including = _card && isBinImg(_card.path);
+							bool including = _card && _card.paths.length && isBinImg(_card.paths[0]);
 							_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
 								_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText, null, null, null, true);
 							mod(_imgPath);
@@ -378,7 +379,7 @@ protected:
 		scope (exit) ignoreMod = false;
 		if (_card) { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
-				_imgPath.image = _card.path;
+				_imgPath.images = _card.paths;
 				_desc.setText(_card.desc);
 				_name.setText(_card.name);
 				_imgPath.pcNumber = _card.pcNumber;
@@ -409,7 +410,7 @@ protected:
 			_scale.setSelection(cast(int) rndtol(_card.scale * 100));
 		} else { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
-				_imgPath.image = "";
+				_imgPath.images = [];
 				_desc.setText("");
 				_name.setText("");
 			} else static if (is (C == EnemyCard)) {
@@ -435,7 +436,7 @@ protected:
 	override bool apply() { mixin(S_TRACE);
 		if (_card) { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
-				_card.path = _imgPath.image;
+				_card.paths = _imgPath.images;
 				_card.desc = wrapReturnCode(_desc.getText());
 				_card.name = _name.getText();
 				_card.pcNumber = _imgPath.pcNumber;
@@ -451,7 +452,7 @@ protected:
 			_card.scale = _scale.getSelection() / 100.0;
 		} else { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
-				_card = new C(_name.getText(), _imgPath.image,
+				_card = new C(_name.getText(), _imgPath.images,
 					wrapReturnCode(_desc.getText()), _flag.selected,
 					_x.getSelection(), _y.getSelection(), _scale.getSelection() / 100.0);
 			} else static if (is (C == EnemyCard)) {

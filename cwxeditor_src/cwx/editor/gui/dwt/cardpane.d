@@ -544,15 +544,15 @@ private:
 		private ulong _id;
 		private void create(in Card c) { mixin(S_TRACE);
 			if (cast(CastCard)c) {
-				_card = new CastCard(c.id, c.name, c.path, c.desc);
+				_card = new CastCard(c.id, c.name, c.paths, c.desc);
 			} else if (cast(SkillCard)c) {
-				_card = new SkillCard(c.id, c.name, c.path, c.desc);
+				_card = new SkillCard(c.id, c.name, c.paths, c.desc);
 			} else if (cast(ItemCard)c) {
-				_card = new ItemCard(c.id, c.name, c.path, c.desc);
+				_card = new ItemCard(c.id, c.name, c.paths, c.desc);
 			} else if (cast(BeastCard)c) {
-				_card = new BeastCard(c.id, c.name, c.path, c.desc);
+				_card = new BeastCard(c.id, c.name, c.paths, c.desc);
 			} else if (cast(InfoCard)c) {
-				_card = new InfoCard(c.id, c.name, c.path, c.desc);
+				_card = new InfoCard(c.id, c.name, c.paths, c.desc);
 			} else assert (0);
 		}
 		private void shallowCopy(Card dest, in Card base) { mixin(S_TRACE);
@@ -1600,13 +1600,13 @@ private:
 					case CardType.Cast:
 						assert (0);
 					case CardType.Skill:
-						card = new SkillCard(1UL, "", "", "");
+						card = new SkillCard(1UL, "", [], "");
 						break;
 					case CardType.Item:
-						card = new ItemCard(1UL, "", "", "");
+						card = new ItemCard(1UL, "", [], "");
 						break;
 					case CardType.Beast:
-						card = new BeastCard(1UL, "", "", "");
+						card = new BeastCard(1UL, "", [], "");
 						break;
 					case CardType.Info:
 						assert (0);
@@ -1618,17 +1618,17 @@ private:
 				case CardType.Cast:
 					assert (0);
 				case CardType.Skill:
-					auto card2 = new SkillCard(1UL, "", "", "");
+					auto card2 = new SkillCard(1UL, "", [], "");
 					card2.linkId = id;
 					card = card2;
 					break;
 				case CardType.Item:
-					auto card2 = new ItemCard(1UL, "", "", "");
+					auto card2 = new ItemCard(1UL, "", [], "");
 					card2.linkId = id;
 					card = card2;
 					break;
 				case CardType.Beast:
-					auto card2 = new BeastCard(1UL, "", "", "");
+					auto card2 = new BeastCard(1UL, "", [], "");
 					card2.linkId = id;
 					card = card2;
 					break;
@@ -2962,23 +2962,23 @@ public:
 		CardDialog dlg;
 		final switch (_cardType) {
 		case CardType.Cast:
-			c = new CastCard(0, "", "", "", 1, 1);
+			c = new CastCard(0, "", [], "", 1, 1);
 			dlg = new CastCardDialog(_comm, _prop, dlgParShl, _summ, null, false);
 			break;
 		case CardType.Skill:
-			c = new SkillCard(0, "", "", "");
+			c = new SkillCard(0, "", [], "");
 			dlg = new EffectCardDialog!SkillCard(_comm, _prop, dlgParShl, _summ, null, false);
 			break;
 		case CardType.Item:
-			c = new ItemCard(0, "", "", "");
+			c = new ItemCard(0, "", [], "");
 			dlg = new EffectCardDialog!ItemCard(_comm, _prop, dlgParShl, _summ, null, false);
 			break;
 		case CardType.Beast:
-			c = new BeastCard(0, "", "", "");
+			c = new BeastCard(0, "", [], "");
 			dlg = new EffectCardDialog!BeastCard(_comm, _prop, dlgParShl, _summ, null, false);
 			break;
 		case CardType.Info:
-			c = new InfoCard(0, "", "", "");
+			c = new InfoCard(0, "", [], "");
 			dlg = new InfoCardDialog(_comm, _prop, dlgParShl, _summ, null, false);
 			break;
 		}

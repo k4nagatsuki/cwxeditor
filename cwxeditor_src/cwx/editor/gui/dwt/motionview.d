@@ -678,7 +678,7 @@ private:
 				storeEdit(mi);
 				if (sb.beast) _comm.delBeast.call(sb, sb.beast);
 				if (_prop.var.etc.linkCard || !_summ || !_summ.legacy) { mixin(S_TRACE);
-					sb.beast = new BeastCard(1UL, "", "", "");
+					sb.beast = new BeastCard(1UL, "", [], "");
 					sb.beast.linkId = b.id;
 				} else { mixin(S_TRACE);
 					sb.beast = b;
@@ -1455,7 +1455,7 @@ public:
 					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 					auto bid = m.setBeastFromNode(bNode, ver);
 					if (bid && sameSc && topLevel && (_prop.var.etc.linkCard || !_summ || !_summ.legacy)) { mixin(S_TRACE);
-						m.beast = new BeastCard(1UL, "", "", "");
+						m.beast = new BeastCard(1UL, "", [], "");
 						m.beast.linkId = bid;
 					}
 					resetMaxNest(m);

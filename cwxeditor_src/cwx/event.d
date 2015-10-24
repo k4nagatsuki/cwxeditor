@@ -494,7 +494,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.packages = c.packages;
 		this.flag = c.flag;
 		this.step = c.step;
-		this.cardPath = c.cardPath;
+		this.cardPaths = c.cardPaths;
 		this.bgmPath = c.bgmPath;
 		this.bgmChannel = c.bgmChannel;
 		this.bgmVolume = c.bgmVolume;
@@ -625,7 +625,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& packages == c.packages
 			&& flag == c.flag
 			&& step == c.step
-			&& cardPath == c.cardPath
+			&& cardPaths == c.cardPaths
 			&& bgmPath == c.bgmPath
 			&& bgmChannel == c.bgmChannel
 			&& bgmVolume == c.bgmVolume
@@ -779,7 +779,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.PACKAGE, ulong, 0)(d, &packages);
 		resetValue!(CArg.FLAG, string, "")(d, &flag);
 		resetValue!(CArg.STEP, string, "")(d, &step);
-		resetValue!(CArg.TALKER_C, string, "")(d, &cardPath);
+		resetValue!(CArg.TALKER_C, const(string)[], [])(d, &cardPaths);
 		resetValue!(CArg.BGM_PATH, string, "")(d, &bgmPath);
 		resetValue!(CArg.BGM_CHANNEL, uint, 0)(d, &bgmChannel);
 		resetValue!(CArg.BGM_VOLUME, uint, 100)(d, &bgmVolume);
@@ -1248,7 +1248,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const
 	string connectedFile() { mixin(S_TRACE);
 		auto d = detail;
-		if (d.use(CArg.TALKER_C)) return cardPath;
+		if (d.use(CArg.TALKER_C) && _cardPaths.length) return _cardPaths[0].path;
 		if (d.use(CArg.BGM_PATH)) return bgmPath;
 		if (d.use(CArg.SOUND_PATH)) return soundPath;
 
@@ -1287,6 +1287,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 
 	/// private AreaUser _area;
 	/// void area(ulong val) { mixin(S_TRACE);
+	/// 	scope (exit) validate();
 	/// 	if (!_area) _area = new AreaUser(this);
 	/// 	if (_area.area != val) changed();
 	/// 	setValUCs(this._area.area, null, null);
@@ -1402,7 +1403,28 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// ステップ。
 	mixin Prop!(StepUser, string, "step", "", ".step", ".step", true);
 	/// カード画像パス。
-	mixin Prop!(PathUser, string, "cardPath", "", ".path", ".path", true);
+	private PathUser[] _cardPaths;
+	@property
+	void cardPaths(const(string)[] cardPaths) { mixin(S_TRACE);
+		if (cardPaths == this.cardPaths) return;
+		changed();
+		scope (exit) validate();
+		foreach (cardPath; _cardPaths) { mixin(S_TRACE);
+			setValUCs(cardPath, null, null);
+		}
+		_cardPaths = [];
+		foreach (cardPath; cardPaths) { mixin(S_TRACE);
+			auto u = new PathUser(this);
+			u.path = cardPath;
+			setValUCs(u, _uc, this);
+			_cardPaths ~= u;
+		}
+	}
+	@property
+	const
+	string[] cardPaths() { mixin(S_TRACE);
+		return .map!(a => a.path)(_cardPaths).array();
+	}
 	/// BGMパス。
 	mixin Prop!(PathUser, string, "bgmPath", "", ".path", ".path", true);
 	/// BGM再生チャンネル(Wsn.1)。
@@ -1907,7 +1929,16 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				e.newAttr(d.attr(CArg.TALKER_C), "Material/??" ~ fromTalker(talkerC));
 				break;
 			case Talker.IMAGE:
-				e.newAttr("path", encodePath(cardPath));
+				if (_cardPaths.length == 0) { mixin(S_TRACE);
+					e.newAttr("path", "");
+				} else if (_cardPaths.length == 1) { mixin(S_TRACE);
+					e.newAttr("path", encodePath(_cardPaths[0].path));
+				} else { mixin(S_TRACE);
+					auto imp = e.newElement("ImagePaths", "");
+					foreach (path; _cardPaths) { mixin(S_TRACE);
+						imp.newElement("ImagePath", encodePath(path.path));
+					}
+				}
 				break;
 			}
 		}
@@ -2110,17 +2141,22 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		if (d.use(CArg.TARGET_NS)) r.targetNS = loadTarget(false);
 		if (d.use(CArg.TALKER_C) || d.use(CArg.TALKER_NC)) { mixin(S_TRACE);
 			Talker talker;
-			string path;
-			loadTalker(en, talker, path);
+			loadTalker(en, talker, (paths) { mixin(S_TRACE);
+				if (d.use(CArg.TALKER_NC)) { mixin(S_TRACE);
+					// TALKER_NCは画像を使用しないため不正
+					if (paths.length) throw new EventException(.format("invalid talker: %s", paths));
+				}
+				if (d.use(CArg.TALKER_C)) { mixin(S_TRACE);
+					r.talkerC = Talker.IMAGE;
+				}
+				r.cardPaths = paths;
+			});
 			if (d.use(CArg.TALKER_NC)) { mixin(S_TRACE);
-				// TALKER_NCは画像を使用しないため不正
-				if (path) throw new EventException("invalid talker: " ~ path);
 				r.talkerNC = talker;
 			}
 			if (d.use(CArg.TALKER_C)) { mixin(S_TRACE);
 				r.talkerC = talker;
 			}
-			r.cardPath = path;
 		}
 
 		if (d.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
@@ -2164,26 +2200,38 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 }
 
 /// 指定されたXMLノードからtargetmと話者のデータを読み込む。
-private void loadTalker(in XNode node, out Talker talker, out string path) { mixin(S_TRACE);
-	path = null;
+private void loadTalker(ref XNode node, out Talker talker, void delegate(string[] paths) setPaths) { mixin(S_TRACE);
 	string t = node.attr("targetm", false);
 	if (t.length == 0) { mixin(S_TRACE);
 		auto pathTemp = node.attr("path", false);
 		if (!pathTemp || !pathTemp.length) { mixin(S_TRACE);
 			talker = Talker.NARRATION;
-		} else if (endsWith(pathTemp, "??Selected")) { mixin(S_TRACE);
+		} else if (pathTemp && endsWith(pathTemp, "??Selected")) { mixin(S_TRACE);
 			talker = Talker.SELECTED;
-		} else if (endsWith(pathTemp, "??Unselected")) { mixin(S_TRACE);
+		} else if (pathTemp && endsWith(pathTemp, "??Unselected")) { mixin(S_TRACE);
 			talker = Talker.UNSELECTED;
-		} else if (endsWith(pathTemp, "??Random")) { mixin(S_TRACE);
+		} else if (pathTemp && endsWith(pathTemp, "??Random")) { mixin(S_TRACE);
 			talker = Talker.RANDOM;
-		} else if (endsWith(pathTemp, "??Card")) { mixin(S_TRACE);
+		} else if (pathTemp && endsWith(pathTemp, "??Card")) { mixin(S_TRACE);
 			talker = Talker.CARD;
-		} else if (endsWith(pathTemp, "??Valued")) { mixin(S_TRACE);
+		} else if (pathTemp && endsWith(pathTemp, "??Valued")) { mixin(S_TRACE);
 			talker = Talker.VALUED;
 		} else { mixin(S_TRACE);
 			talker = Talker.IMAGE;
-			path = decodePath(pathTemp);
+			node.onTag["ImagePaths"] = (ref XNode imp) { mixin(S_TRACE);
+				// 複数イメージで上書きする
+				string[] paths;
+				if (pathTemp && pathTemp.length) paths ~= decodePath(pathTemp);
+				if (imp.valid) { mixin(S_TRACE);
+					imp.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
+						paths ~= decodePath(n.value);
+					};
+					imp.parse();
+				}
+				imp.parse();
+				setPaths(paths);
+			};
+			setPaths([decodePath(pathTemp)]);
 		}
 	} else { mixin(S_TRACE);
 		switch (t) {

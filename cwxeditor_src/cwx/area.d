@@ -10,6 +10,7 @@ import cwx.card;
 import cwx.path;
 import cwx.system;
 
+import std.algorithm;
 import std.array;
 import std.conv;
 import std.math;
@@ -431,7 +432,7 @@ private:
 	Area _owner;
 	string _name;
 	string _desc;
-	PathUser _user;
+	PathUser[] _paths;
 	/// PC画像を表示する場合はその位置(1～6)。
 	/// 0の場合はPC画像を使用しない。
 	uint _pcNumber = 0;
@@ -445,17 +446,16 @@ public:
 	/// 唯一のコンストラクタ。
 	/// Params:
 	/// name = カード名。
-	/// path = 画像のファイルパス。
+	/// paths = 画像のファイルパス。
 	/// desc = 解説。無しの場合は""。
 	/// flag = フラグ。無しの場合は""。
 	/// x = X座標。
 	/// y = Y座標。
 	/// scale = スケール。通常0.75～2.0。
-	this (string name, string path, string desc, string flag,
+	this (string name, in string[] paths, string desc, string flag,
 			int x, int y, real scale) { mixin(S_TRACE);
 		super(flag, x, y, scale);
-				_user = new PathUser(this);
-		_user.path = path;
+		this.paths = paths;
 		_name = name;
 		_desc = desc;
 	}
@@ -470,7 +470,7 @@ public:
 	const
 	override
 	AbstractSpCard dup() {
-		auto r = new MenuCard(name, path, desc, flag, x, y, scale);
+		auto r = new MenuCard(name, paths, desc, flag, x, y, scale);
 		r.pcNumber = pcNumber;
 		r.deepCopyEventTreeOwner(this);
 		return r;
@@ -529,17 +529,23 @@ public:
 		if (_desc != desc) changed();
 		_desc = desc;
 	}
+
 	/// 画像ファイルパス。
 	@property
 	const
-	string path() { mixin(S_TRACE);
-		return _user.path;
+	string[] paths() { mixin(S_TRACE);
+		return .map!(a => a.path)(_paths).array();
 	}
 	/// ditto
 	@property
-	void path(string path) { mixin(S_TRACE);
-		if (_user.path != path) changed();
-		_user.path = path;
+	void paths(in string[] paths) { mixin(S_TRACE);
+		if (this.paths != paths) changed();
+		_paths = [];
+		foreach (path; paths) { mixin(S_TRACE);
+			auto u = new PathUser(this);
+			u.path = path;
+			_paths ~= u;
+		}
 	}
 
 	/// PC画像を表示する場合はその位置(1～6)。
@@ -560,32 +566,50 @@ public:
 	override
 	const
 	string connectedFile() { mixin(S_TRACE);
-		return path.isBinImg ? "" : path;
+		foreach (path; _paths) { mixin(S_TRACE);
+			if (path.path != "" && !path.path.isBinImg) return path.path;
+		}
+		return "";
 	}
 
 	@property
 	override void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		_user.setUseCounter(uc);
+		foreach (path; _paths) { mixin(S_TRACE);
+			path.setUseCounter(uc);
+		}
 		super.setUseCounter(uc);
 	}
 	override void removeUseCounter() { mixin(S_TRACE);
-		_user.removeUseCounter();
+		foreach (path; _paths) { mixin(S_TRACE);
+			path.removeUseCounter();
+		}
 		super.removeUseCounter();
 	}
 	override void change(PathId id) { mixin(S_TRACE);
-		_user.change(id);
+		foreach (path; _paths) { mixin(S_TRACE);
+			path.change(id);
+		}
 	}
 
+	/// メニューカード以外のカードデータからメニューカードを生成する。
 	static MenuCard[] createFromCardNode(ref XNode node, bool copyDesc, in XMLInfo ver) { mixin(S_TRACE);
 		MenuCard parse(ref XNode node) { mixin(S_TRACE);
 			auto pNode = node.child("Property", false);
 			if (!pNode.valid) return null;
 			string name = null;
-			string path = "";
 			string desc = "";
 			uint pcNumber = 0;
 			pNode.onTag["Name"] = (ref XNode node) {name = node.value;};
-			pNode.onTag["ImagePath"] = (ref XNode node) {path = decodePath(node.value);};
+			string[] paths;
+			pNode.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
+				paths ~= decodePath(n.value);
+			};
+			pNode.onTag["ImagePaths"] = (ref XNode n) { mixin(S_TRACE);
+				n.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
+					paths ~= decodePath(n.value);
+				};
+				n.parse();
+			};
 			if (copyDesc) { mixin(S_TRACE);
 				pNode.onTag["Description"] = (ref XNode node) { mixin(S_TRACE);
 					desc = decodeLf2(node.value);
@@ -594,7 +618,7 @@ public:
 			pNode.onTag["PCNumber"] = (ref XNode node) {pcNumber = .to!uint(node.value);};
 			pNode.parse();
 			if (!name) return null;
-			auto r = new MenuCard(name, path, desc, "", 0, 0, 1.0);
+			auto r = new MenuCard(name, paths, desc, "", 0, 0, 1.0);
 			r.pcNumber = pcNumber;
 			return r;
 		}
@@ -630,12 +654,21 @@ public:
 	}
 	const
 	private void toNodeImpl(ref XNode e, XMLOption opt) { mixin(S_TRACE);
-		auto pe = e.newElement("Property");
-		pe.newElement("Name", _name);
-		pe.newElement("ImagePath", encodePath(_user.path));
-		pe.newElement("Description", encodeLf(_desc));
-		pe.newElement("PCNumber", .text(_pcNumber));
-		appendProp(pe, opt);
+		auto pNode = e.newElement("Property");
+		pNode.newElement("Name", _name);
+		if (_paths.length == 0) { mixin(S_TRACE);
+			pNode.newElement("ImagePath", "");
+		} else if (_paths.length <= 1) { mixin(S_TRACE);
+			pNode.newElement("ImagePath", encodePath(_paths[0].path));
+		} else { mixin(S_TRACE);
+			auto imp = pNode.newElement("ImagePaths", "");
+			foreach (path; _paths) { mixin(S_TRACE);
+				imp.newElement("ImagePath", encodePath(path.path));
+			}
+		}
+		pNode.newElement("Description", encodeLf(_desc));
+		pNode.newElement("PCNumber", .text(_pcNumber));
+		appendProp(pNode, opt);
 		appendEventsToNode(e, opt);
 	}
 
@@ -647,7 +680,7 @@ public:
 		if (node.name != XML_NAME) throw new AreaException("Node is not MenuCard");
 
 		string name = null;
-		string path = "";
+		string[] paths;
 		string desc = "";
 		string flag = "";
 		int x = 0, y = 0;
@@ -657,7 +690,15 @@ public:
 
 		node.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 			pNode.onTag["Name"] = (ref XNode n) {name = n.value;};
-			pNode.onTag["ImagePath"] = (ref XNode n) {path = decodePath(n.value);};
+			pNode.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
+				paths ~= decodePath(n.value);
+			};
+			pNode.onTag["ImagePaths"] = (ref XNode n) { mixin(S_TRACE);
+				n.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
+					paths ~= decodePath(n.value);
+				};
+				n.parse();
+			};
 			pNode.onTag["Description"] = (ref XNode n) {desc = decodeLf2(n.value);};
 			pNode.onTag["PCNumber"] = (ref XNode n) {pcNumber = .to!uint(n.value);};
 			loadProp(pNode, flag, x, y, scale);
@@ -667,7 +708,7 @@ public:
 		};
 		node.parse();
 		if (name is null) name = "";
-		auto r = new MenuCard(name, path, desc, flag, x, y, scale);
+		auto r = new MenuCard(name, paths, desc, flag, x, y, scale);
 		r.pcNumber = pcNumber;
 		r.addAll(evt);
 

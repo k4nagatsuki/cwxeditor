@@ -269,7 +269,7 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 					auto id = ids.length ? ids[$-1] + 1 : (toArr.length ? toArr[$-1].id + 1 : 1);
 					auto index = cc.indexOf(c);
 					cc.remove(c);
-					auto nc = new T(c.id, "", "", "");
+					auto nc = new T(c.id, "", [], "");
 					nc.linkId = id;
 					static if (is(typeof(c.hold))) nc.hold = c.hold;
 					cc.insert(index, nc);
@@ -303,7 +303,7 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 					auto ids = r.beasts.keys().sort;
 					auto id = ids.length ? ids[$-1] + 1 : 1;
 					auto c = b.beast;
-					auto nc = new BeastCard(c.id, "", "", "");
+					auto nc = new BeastCard(c.id, "", [], "");
 					nc.linkId = id;
 					b.newBeast = nc;
 					c.id = id;
@@ -329,7 +329,7 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 	}
 	// 格納イメージの外部化・内部化及びシナリオ情報の書き換え
 	if (opt.includedFiles !is ImportTypeIncluded.AsIs || opt.includedBgImages is ImportTypeIncluded.AsIs || opt.overwriteScenarioInfo) { mixin(S_TRACE);
-		void putBinImg(string name, string binImg) { mixin(S_TRACE);
+		string putBinImg(string name, string binImg) { mixin(S_TRACE);
 			auto bytes = strToBImg(binImg);
 			auto ext = imageType(bytes);
 			auto fileName = createNewName(cleanFileName(name) ~ ext, (name) { mixin(S_TRACE);
@@ -344,41 +344,53 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 			auto path = newFolder.buildPath(fileName);
 			r.materials ~= ImportFile(to.scenarioPath.buildPath(path), binImg);
 			uc.change(toPathId(binImg), toPathId(path));
+			return path;
 		}
-		void includeImg(string path, void delegate(string) set) { mixin(S_TRACE);
+		string includeImg(string path) { mixin(S_TRACE);
 			try {
 				auto file = from.scenarioPath.buildPath(path);
 				ubyte* ptr = null;
 				auto bin = readBinaryFrom!ubyte(file, ptr);
 				scope (exit) freeAll(ptr);
-				set(bImgToStr(bin));
+				return bImgToStr(bin);
 			} catch (Exception e) {
 				printStackTrace();
 				debugln(e);
 			}
+			return path;
 		}
 		void recurseF(string name, CWXPath path) { mixin(S_TRACE);
 			auto childs = path.cwxChilds;
 			if (opt.includedFiles !is ImportTypeIncluded.AsIs || opt.includedBgImages is ImportTypeIncluded.AsIs) { mixin(S_TRACE);
 				if (auto c = cast(Card)path) { mixin(S_TRACE);
-					if (opt.includedFiles is ImportTypeIncluded.Exclude && c.path.isBinImg()) { mixin(S_TRACE);
-						putBinImg(name, c.path);
-					} else if (opt.includedFiles is ImportTypeIncluded.Include && c.path.length) { mixin(S_TRACE);
-						includeImg(c.path, &c.path);
+					string[] paths;
+					foreach (imgPath; c.paths) { mixin(S_TRACE);
+						if (opt.includedFiles is ImportTypeIncluded.Exclude && imgPath.isBinImg()) { mixin(S_TRACE);
+							imgPath = putBinImg(name, imgPath);
+						} else if (opt.includedFiles is ImportTypeIncluded.Include && imgPath.length) { mixin(S_TRACE);
+							imgPath = includeImg(imgPath);
+						}
+						paths ~= imgPath;
 					}
+					c.paths = paths;
 				}
 				if (auto c = cast(MenuCard)path) { mixin(S_TRACE);
-					if (opt.includedFiles is ImportTypeIncluded.Exclude && c.path.isBinImg()) { mixin(S_TRACE);
-						putBinImg(name, c.path);
-					} else if (opt.includedFiles is ImportTypeIncluded.Include && c.path.length) { mixin(S_TRACE);
-						includeImg(c.path, &c.path);
+					string[] paths;
+					foreach (imgPath; c.paths) { mixin(S_TRACE);
+						if (opt.includedFiles is ImportTypeIncluded.Exclude && imgPath.isBinImg()) { mixin(S_TRACE);
+							imgPath = putBinImg(name, imgPath);
+						} else if (opt.includedFiles is ImportTypeIncluded.Include && imgPath.length) { mixin(S_TRACE);
+							imgPath = includeImg(imgPath);
+						}
+						paths ~= imgPath;
 					}
+					c.paths = paths;
 				}
 				if (auto c = cast(ImageCell)path) { mixin(S_TRACE);
 					if (opt.includedBgImages !is ImportTypeIncluded.Exclude && c.path.isBinImg()) { mixin(S_TRACE);
-						putBinImg(name, c.path);
+						c.path = putBinImg(name, c.path);
 					} else if (opt.includedBgImages is ImportTypeIncluded.Include && c.path.length) { mixin(S_TRACE);
-						includeImg(c.path, &c.path);
+						c.path = includeImg(c.path);
 					}
 				}
 			}

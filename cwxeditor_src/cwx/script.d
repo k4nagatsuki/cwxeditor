@@ -1609,10 +1609,17 @@ fi`;
 		Node[] r;
 		while (i < tokens.length) { mixin(S_TRACE);
 			Token tok = tokens[i];
+			// ごく初期のバージョンではパラメータの区切りにカンマがなかったので
+			// 互換性維持のためにパラメータ間のカンマを無視する
 			if (r.length > 0 && tok.kind is Kind.COMMA) { mixin(S_TRACE);
 				i++;
 				tok = tokens[i];
 			}
+			// カンマを無視しないバージョン
+			//if (r.length > 0 && tok.kind is Kind.COMMA) { mixin(S_TRACE);
+			//	i++;
+			//	break;
+			//}
 			switch (tok.kind) {
 			case Kind.O_BRA:
 				r ~= analyzeSyntaxBrackets(tokens, i, keys);
@@ -2255,7 +2262,7 @@ fi`;
 				ulong beast = parseAttr!(ulong)(opt, vals, j, 0UL, varTable, msgWidth);
 				if (beast != 0 && _summ) { mixin(S_TRACE);
 					if (opt.linkId) { mixin(S_TRACE);
-						r.beast = new BeastCard(1UL, "", "", "");
+						r.beast = new BeastCard(1UL, "", [], "");
 						r.beast.linkId = beast;
 					} else { mixin(S_TRACE);
 						r.beast = _summ.beast(beast);
@@ -2358,18 +2365,25 @@ fi`;
 		} else static assert (0, T.stringof);
 		return T.init;
 	}
-	private void parseAttrTalker(in Node[] attr, ref size_t i, ref Talker t, ref string cardPath, in const(Node)[][string] varTable) { mixin(S_TRACE);
+	private void parseAttrTalker(in CompileOption opt, in Node[] attr, ref size_t i, ref Talker t, ref string[] cardPaths, in const(Node)[][string] varTable) { mixin(S_TRACE);
+cdebugln(attr);
 		if (attr.length <= i) return;
 		auto nodes = var(attr[i], varTable);
-		auto value = attrValue(attr[i], varTable, 0);
-		if (nodes.length && nodes[0].token.kind is Kind.STRING) { mixin(S_TRACE);
-			t = Talker.IMAGE;
-			cardPath = value;
-			i++;
-			return;
+		if (nodes.length && nodes[0].token.kind is Kind.SYMBOL) { mixin(S_TRACE);
+			cardPaths = [];
+			t = parseTalker!(false)(attr, i, varTable);
+		} else if (nodes.length && nodes[0].type is NodeType.VALUES) { mixin(S_TRACE);
+			cardPaths = parseAttr!(string[])(opt, attr, i, cardPaths, varTable, 0);
+			t = cardPaths.length ? Talker.IMAGE : Talker.NARRATION;
+		} else { mixin(S_TRACE);
+			auto path = parseAttr!(string)(opt, attr, i, "", varTable, 0);
+			if (path.length) { mixin(S_TRACE);
+				t = Talker.IMAGE;
+				cardPaths = [path];
+			} else { mixin(S_TRACE);
+				t = cardPaths.length ? Talker.IMAGE : Talker.NARRATION;
+			}
 		}
-		cardPath = "";
-		t = parseTalker!(false)(attr, i, varTable);
 	}
 	private Talker parseTalker(bool Within)(in Node[] attr, ref size_t i, in const(Node)[][string] varTable) { mixin(S_TRACE);
 		auto node = attr[i];
@@ -2502,10 +2516,10 @@ fi`;
 			auto detail = c.detail;
 			if (detail.use(CArg.TALKER_C)) { mixin(S_TRACE);
 				Talker t = c.talkerC;
-				string path = encodePath(c.cardPath);
-				parseAttrTalker(node.attr, i, t, path, varTable);
+				auto paths = .map!(a => encodePath(a))(c.cardPaths).array();
+				parseAttrTalker(opt, node.attr, i, t, paths, varTable);
 				c.talkerC = t;
-				c.cardPath = decodePath(path);
+				c.cardPaths = .map!(a => decodePath(a))(paths).array();
 			}
 			if (detail.use(CArg.TEXT)) { mixin(S_TRACE);
 				c.text = parseAttr!(string)(opt, node.attr, i, c.text, varTable,
@@ -2800,7 +2814,7 @@ fi`;
 		return assumeUnique(buf);
 	}
 	const
-	private string[] toAttr(bool Within = false, T)(T value, string command, string indentValue, VarTable vars, size_t strWidth = 0) { mixin(S_TRACE);
+	private string[] toAttr(bool Within = false, T)(T value, string indentValue, VarTable vars, size_t strWidth = 0) { mixin(S_TRACE);
 		string[] attrs;
 		static if (is(Unqual!(T) == Symbol)) {
 			attrs ~= value;
@@ -2847,7 +2861,7 @@ fi`;
 			attrs ~= attr;
 		} else static if (isVArray!(T)) {
 			foreach (i, v; value) { mixin(S_TRACE);
-				attrs ~= toAttr(v, command, indentValue, vars, strWidth);
+				attrs ~= toAttr(v, indentValue, vars, strWidth);
 			}
 			attrs = [attrs.join(" ")];
 		} else static if (is(T : bool)) {
@@ -2919,7 +2933,7 @@ fi`;
 			default: assert (0);
 			}
 			static if (!Within) {
-				attrs ~= toAttr(value.sleep, command, indentValue, vars);
+				attrs ~= toAttr(value.sleep, indentValue, vars);
 			}
 		} else static if (is(T : EffectType)) {
 			switch (value) {
@@ -2970,7 +2984,7 @@ fi`;
 			default: assert (0);
 			}
 		} else static if (is(T : Talker)) {
-			attrs ~= toAttrTalker(value, "");
+			attrs ~= toAttrTalker(value, [], indentValue, vars);
 		} else static if (is(T : MType)) {
 			switch (value) {
 			case MType.HEAL: attrs ~= "heal"; break;
@@ -3080,15 +3094,15 @@ fi`;
 			string[] attrs2;
 			auto ic = cast(ImageCell) value;
 			if (ic) { mixin(S_TRACE);
-				attrs2 ~= toAttr(encodePath(ic.path), command, indentValue, vars);
+				attrs2 ~= toAttr(encodePath(ic.path), indentValue, vars);
 			}
 			auto tc = cast(TextCell) value;
 			if (tc) { mixin(S_TRACE);
 				attrs2 ~= "text";
-				attrs2 ~= toAttr(tc.text, command, indentValue, vars);
-				attrs2 ~= toAttr(tc.fontName, command, indentValue, vars);
-				attrs2 ~= toAttr(tc.size, command, indentValue, vars);
-				attrs2 ~= toAttr(tc.color, command, indentValue, vars);
+				attrs2 ~= toAttr(tc.text, indentValue, vars);
+				attrs2 ~= toAttr(tc.fontName, indentValue, vars);
+				attrs2 ~= toAttr(tc.size, indentValue, vars);
+				attrs2 ~= toAttr(tc.color, indentValue, vars);
 				string[] style = [];
 				if (tc.bold) style ~= "bold";
 				if (tc.italic) style ~= "italic";
@@ -3102,75 +3116,75 @@ fi`;
 				case BorderingType.Outline:
 					style ~= "border1";
 					attrs2 ~= std.string.join(style, " ");
-					attrs2 ~= toAttr(tc.borderingColor, command, indentValue, vars);
+					attrs2 ~= toAttr(tc.borderingColor, indentValue, vars);
 					break;
 				case BorderingType.Inline:
 					style ~= "border2";
 					attrs2 ~= std.string.join(style, " ");
-					attrs2 ~= toAttr(tc.borderingColor, command, indentValue, vars);
-					attrs2 ~= toAttr(tc.borderingWidth, command, indentValue, vars);
+					attrs2 ~= toAttr(tc.borderingColor, indentValue, vars);
+					attrs2 ~= toAttr(tc.borderingWidth, indentValue, vars);
 					break;
 				}
 			}
 			auto cc = cast(ColorCell) value;
 			if (cc) { mixin(S_TRACE);
 				attrs2 ~= "color";
-				attrs2 ~= toAttr(cc.blendMode, command, indentValue, vars);
-				attrs2 ~= toAttr(cc.color1, command, indentValue, vars);
+				attrs2 ~= toAttr(cc.blendMode, indentValue, vars);
+				attrs2 ~= toAttr(cc.color1, indentValue, vars);
 				final switch (cc.gradientDir) {
 				case GradientDir.None:
 					break;
 				case GradientDir.LeftToRight:
 				case GradientDir.TopToBottom:
-					attrs2 ~= toAttr(cc.gradientDir, command, indentValue, vars);
-					attrs2 ~= toAttr(cc.color2, command, indentValue, vars);
+					attrs2 ~= toAttr(cc.gradientDir, indentValue, vars);
+					attrs2 ~= toAttr(cc.color2, indentValue, vars);
 					break;
 				}
 			}
 			auto pc = cast(PCCell)value;
 			if (pc) { mixin(S_TRACE);
 				attrs2 ~= "pc";
-				attrs2 ~= toAttr(pc.pcNumber, command, indentValue, vars);
+				attrs2 ~= toAttr(pc.pcNumber, indentValue, vars);
 			}
-			attrs2 ~= toAttr(value.flag, command, indentValue, vars);
-			attrs2 ~= toAttr(value.x, command, indentValue, vars);
-			attrs2 ~= toAttr(value.y, command, indentValue, vars);
-			attrs2 ~= toAttr(value.width, command, indentValue, vars);
-			attrs2 ~= toAttr(value.height, command, indentValue, vars);
+			attrs2 ~= toAttr(value.flag, indentValue, vars);
+			attrs2 ~= toAttr(value.x, indentValue, vars);
+			attrs2 ~= toAttr(value.y, indentValue, vars);
+			attrs2 ~= toAttr(value.width, indentValue, vars);
+			attrs2 ~= toAttr(value.height, indentValue, vars);
 			if (ic) { mixin(S_TRACE);
-				attrs2 ~= toAttr(ic.mask, command, indentValue, vars);
+				attrs2 ~= toAttr(ic.mask, indentValue, vars);
 			}
 			if (value.cellName != "") { mixin(S_TRACE);
-				attrs2 ~= toAttr(value.cellName, command, indentValue, vars);
+				attrs2 ~= toAttr(value.cellName, indentValue, vars);
 			}
 			if (value.foreground) { mixin(S_TRACE);
-				attrs2 ~= toAttr(value.foreground, command, indentValue, vars);
+				attrs2 ~= toAttr(value.foreground, indentValue, vars);
 			}
 			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
 		} else static if (is(Unqual!(T) : Motion)) {
 			auto detail = value.detail;
 			string[] attrs2;
-			attrs2 ~= toAttr(value.type, command, indentValue, vars);
+			attrs2 ~= toAttr(value.type, indentValue, vars);
 			if (detail.use(MArg.VALUE_TYPE)) { mixin(S_TRACE);
-				attrs2 ~= toAttr(value.damageType, command, indentValue, vars);
+				attrs2 ~= toAttr(value.damageType, indentValue, vars);
 			}
 			if (detail.use(MArg.U_VALUE)) { mixin(S_TRACE);
-				attrs2 ~= toAttr(value.uValue, command, indentValue, vars);
+				attrs2 ~= toAttr(value.uValue, indentValue, vars);
 			}
 			if (detail.use(MArg.A_VALUE)) { mixin(S_TRACE);
-				attrs2 ~= toAttr(value.aValue, command, indentValue, vars);
+				attrs2 ~= toAttr(value.aValue, indentValue, vars);
 			}
 			if (detail.use(MArg.ROUND)) { mixin(S_TRACE);
-				attrs2 ~= toAttr(value.round, command, indentValue, vars);
+				attrs2 ~= toAttr(value.round, indentValue, vars);
 			}
 			if (detail.use(MArg.BEAST)) { mixin(S_TRACE);
 				if (value.beast && _summ) { mixin(S_TRACE);
-					attrs2 ~= toAttr(vars.id(_summ.findSameBeast(value.beast), value.beast.linkId), command, indentValue, vars);
+					attrs2 ~= toAttr(vars.id(_summ.findSameBeast(value.beast), value.beast.linkId), indentValue, vars);
 				} else { mixin(S_TRACE);
-					attrs2 ~= toAttr(cast(Symbol) "0", command, indentValue, vars);
+					attrs2 ~= toAttr(cast(Symbol) "0", indentValue, vars);
 				}
 			}
-			attrs2 ~= toAttr(value.element, command, indentValue, vars);
+			attrs2 ~= toAttr(value.element, indentValue, vars);
 			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
 		} else static if (is(Unqual!(T) : SDialog)) {
 			string[] attrs2;
@@ -3182,11 +3196,11 @@ fi`;
 				}
 			}
 			if (semic) { mixin(S_TRACE);
-				attrs2 ~= "[" ~ std.string.join(toAttr(value.rCoupons, command, indentValue, vars), ", ") ~ "]";
+				attrs2 ~= "[" ~ std.string.join(toAttr(value.rCoupons, indentValue, vars), ", ") ~ "]";
 			} else { mixin(S_TRACE);
 				attrs2 ~= createString(std.string.join(value.rCoupons.dup, ";"));
 			}
-			attrs2 ~= toAttr(value.text, command, indentValue, vars, strWidth);
+			attrs2 ~= toAttr(value.text, indentValue, vars, strWidth);
 			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
 		} else static if (is(Unqual!(T) : Coupon)) {
 			string[] attrs2;
@@ -3212,15 +3226,15 @@ fi`;
 		return attrs;
 	}
 	const
-	private string toAttrTalker(Talker t, string cardPath) { mixin(S_TRACE);
+	private string[] toAttrTalker(Talker t, in string[] cardPaths, string indentValue, VarTable vars) { mixin(S_TRACE);
 		switch (t) {
-		case Talker.NARRATION: return "none";
-		case Talker.SELECTED: return "M";
-		case Talker.UNSELECTED: return "U";
-		case Talker.RANDOM: return "R";
-		case Talker.CARD: return "C";
-		case Talker.IMAGE: return createString(encodePath(cardPath));
-		case Talker.VALUED: return "V";
+		case Talker.NARRATION: return ["none"];
+		case Talker.SELECTED: return ["M"];
+		case Talker.UNSELECTED: return ["U"];
+		case Talker.RANDOM: return ["R"];
+		case Talker.CARD: return ["C"];
+		case Talker.IMAGE: return toAttr(.map!(a => encodePath(a))(cardPaths).array(), indentValue, vars);
+		case Talker.VALUED: return ["V"];
 		default: assert (0);
 		}
 	}
@@ -3312,7 +3326,7 @@ fi`;
 			}
 			size_t msgLen = 0;
 			if (detail.use(CArg.TALKER_C)) { mixin(S_TRACE);
-				attrs ~= toAttrTalker(c.talkerC, c.cardPath);
+				attrs ~= toAttrTalker(c.talkerC, c.cardPaths, indentValue, vars);
 				if (c.talkerC is Talker.NARRATION) { mixin(S_TRACE);
 					msgLen = _prop.looks.messageLen;
 				} else { mixin(S_TRACE);
@@ -3320,267 +3334,267 @@ fi`;
 				}
 			}
 			if (detail.use(CArg.TEXT)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.text, command, indentValue, vars, msgLen);
+				attrs ~= toAttr(c.text, indentValue, vars, msgLen);
 			}
 			if (detail.use(CArg.TALKER_NC)) { mixin(S_TRACE);
-				attrs ~= toAttr!(true)(c.talkerNC, command, indentValue, vars);
+				attrs ~= toAttr!(true)(c.talkerNC, indentValue, vars);
 				msgLen = _prop.looks.messageImageLen;
 			}
 			if (detail.use(CArg.DIALOGS)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.dialogs, command, indentValue, vars, msgLen);
+				attrs ~= toAttr(c.dialogs, indentValue, vars, msgLen);
 			}
 			if (detail.use(CArg.CELL_NAME)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.cellName, command, indentValue, vars);
+				attrs ~= toAttr(c.cellName, indentValue, vars);
 			}
 			if (detail.use(CArg.POSITION_TYPE)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.positionType, command, indentValue, vars);
+				attrs ~= toAttr(c.positionType, indentValue, vars);
 			}
 			if (detail.use(CArg.X)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.x, command, indentValue, vars);
+				attrs ~= toAttr(c.x, indentValue, vars);
 			}
 			if (detail.use(CArg.Y)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.y, command, indentValue, vars);
+				attrs ~= toAttr(c.y, indentValue, vars);
 			}
 			if (detail.use(CArg.SIZE_TYPE)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.sizeType, command, indentValue, vars);
+				attrs ~= toAttr(c.sizeType, indentValue, vars);
 			}
 			if (detail.use(CArg.WIDTH)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.width, command, indentValue, vars);
+				attrs ~= toAttr(c.width, indentValue, vars);
 			}
 			if (detail.use(CArg.HEIGHT)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.height, command, indentValue, vars);
+				attrs ~= toAttr(c.height, indentValue, vars);
 			}
 			if (detail.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.backs, command, indentValue, vars);
+				attrs ~= toAttr(c.backs, indentValue, vars);
 			}
 			if (detail.use(CArg.TARGET_NS)) { mixin(S_TRACE);
-				attrs ~= toAttr!(true)(c.targetNS, command, indentValue, vars);
+				attrs ~= toAttr!(true)(c.targetNS, indentValue, vars);
 			}
 			if (detail.use(CArg.TARGET_S)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.targetS, command, indentValue, vars);
+				attrs ~= toAttr(c.targetS, indentValue, vars);
 			}
 			if (detail.use(CArg.RANGE)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.range, command, indentValue, vars);
+				attrs ~= toAttr(c.range, indentValue, vars);
 			}
 			if (detail.use(CArg.CAST_RANGE)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.castRange, command, indentValue, vars);
+				attrs ~= toAttr(c.castRange, indentValue, vars);
 			}
 			if (detail.use(CArg.KEY_CODE_RANGE)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.keyCodeRange, command, indentValue, vars);
+				attrs ~= toAttr(c.keyCodeRange, indentValue, vars);
 			}
 			if (detail.use(CArg.EFFECT_CARD_TYPE)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.effectCardType, command, indentValue, vars);
+				attrs ~= toAttr(c.effectCardType, indentValue, vars);
 			}
 			if (detail.use(CArg.AREA)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.area(c.area) : null;
-				attrs ~= toAttr(vars.id(a, c.area), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.area), indentValue, vars);
 			}
 			if (detail.use(CArg.BATTLE)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.battle(c.battle) : null;
-				attrs ~= toAttr(vars.id(a, c.battle), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.battle), indentValue, vars);
 			}
 			if (detail.use(CArg.PACKAGE)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.cwPackage(c.packages) : null;
-				attrs ~= toAttr(vars.id(a, c.packages), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.packages), indentValue, vars);
 			}
 			if (detail.use(CArg.CAST)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.cwCast(c.casts) : null;
-				attrs ~= toAttr(vars.id(a, c.casts), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.casts), indentValue, vars);
 			}
 			if (detail.use(CArg.ITEM)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.item(c.item) : null;
-				attrs ~= toAttr(vars.id(a, c.item), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.item), indentValue, vars);
 			}
 			if (detail.use(CArg.SKILL)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.skill(c.skill) : null;
-				attrs ~= toAttr(vars.id(a, c.skill), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.skill), indentValue, vars);
 			}
 			if (detail.use(CArg.INFO)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.info(c.info) : null;
-				attrs ~= toAttr(vars.id(a, c.info), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.info), indentValue, vars);
 			}
 			if (detail.use(CArg.BEAST)) { mixin(S_TRACE);
 				auto a = _summ ? _summ.beast(c.beast) : null;
-				attrs ~= toAttr(vars.id(a, c.beast), command, indentValue, vars);
+				attrs ~= toAttr(vars.id(a, c.beast), indentValue, vars);
 			}
 			if (detail.use(CArg.START)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.start, command, indentValue, vars);
+				attrs ~= toAttr(c.start, indentValue, vars);
 			}
 			if (detail.use(CArg.COMPLETE)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.complete, command, indentValue, vars);
+				attrs ~= toAttr(c.complete, indentValue, vars);
 			}
 			if (detail.use(CArg.MONEY)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.money, command, indentValue, vars);
+				attrs ~= toAttr(c.money, indentValue, vars);
 			}
 			if (detail.use(CArg.COUPON)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.coupon, command, indentValue, vars);
+				attrs ~= toAttr(c.coupon, indentValue, vars);
 			}
 			if (detail.use(CArg.COUPON_VALUE)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.couponValue, command, indentValue, vars);
+				attrs ~= toAttr(c.couponValue, indentValue, vars);
 			}
 			if (detail.use(CArg.COMPLETE_STAMP)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.completeStamp, command, indentValue, vars);
+				attrs ~= toAttr(c.completeStamp, indentValue, vars);
 			}
 			if (detail.use(CArg.KEY_CODE)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.keyCode, command, indentValue, vars);
+				attrs ~= toAttr(c.keyCode, indentValue, vars);
 			}
 			if (detail.use(CArg.GOSSIP)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.gossip, command, indentValue, vars);
+				attrs ~= toAttr(c.gossip, indentValue, vars);
 			}
 			if (detail.use(CArg.FLAG)) { mixin(S_TRACE);
 				if (_prop && _prop.sys.randomValue == c.flag) { mixin(S_TRACE);
-					attrs ~= toAttr(Symbol("random"), command, indentValue, vars);
+					attrs ~= toAttr(Symbol("random"), indentValue, vars);
 				} else { mixin(S_TRACE);
-					attrs ~= toAttr(c.flag, command, indentValue, vars);
+					attrs ~= toAttr(c.flag, indentValue, vars);
 				}
 			}
 			if (detail.use(CArg.FLAG_2)) { mixin(S_TRACE);
 				if (_prop && _prop.sys.randomValue == c.flag2) { mixin(S_TRACE);
-					attrs ~= toAttr(Symbol("random"), command, indentValue, vars);
+					attrs ~= toAttr(Symbol("random"), indentValue, vars);
 				} else { mixin(S_TRACE);
-					attrs ~= toAttr(c.flag2, command, indentValue, vars);
+					attrs ~= toAttr(c.flag2, indentValue, vars);
 				}
 			}
 			if (detail.use(CArg.STEP)) { mixin(S_TRACE);
 				if (_prop && _prop.sys.randomValue == c.step) { mixin(S_TRACE);
-					attrs ~= toAttr(Symbol("random"), command, indentValue, vars);
+					attrs ~= toAttr(Symbol("random"), indentValue, vars);
 				} else { mixin(S_TRACE);
-					attrs ~= toAttr(c.step, command, indentValue, vars);
+					attrs ~= toAttr(c.step, indentValue, vars);
 				}
 			}
 			if (detail.use(CArg.STEP_2)) { mixin(S_TRACE);
 				if (_prop && _prop.sys.randomValue == c.step2) { mixin(S_TRACE);
-					attrs ~= toAttr(Symbol("random"), command, indentValue, vars);
+					attrs ~= toAttr(Symbol("random"), indentValue, vars);
 				} else { mixin(S_TRACE);
-					attrs ~= toAttr(c.step2, command, indentValue, vars);
+					attrs ~= toAttr(c.step2, indentValue, vars);
 				}
 			}
 			if (detail.use(CArg.COMPARISON_4)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.comparison4, command, indentValue, vars);
+				attrs ~= toAttr(c.comparison4, indentValue, vars);
 			}
 			if (detail.use(CArg.COMPARISON_3)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.comparison3, command, indentValue, vars);
+				attrs ~= toAttr(c.comparison3, indentValue, vars);
 			}
 			if (detail.use(CArg.FLAG_VALUE)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.flagValue, command, indentValue, vars);
+				attrs ~= toAttr(c.flagValue, indentValue, vars);
 			}
 			if (detail.use(CArg.STEP_VALUE)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.stepValue, command, indentValue, vars);
+				attrs ~= toAttr(c.stepValue, indentValue, vars);
 			}
 			if (detail.use(CArg.CARD_NUMBER)) { mixin(S_TRACE);
 				if (c.cardNumber != 0) { mixin(S_TRACE);
-					attrs ~= toAttr(c.cardNumber, command, indentValue, vars);
+					attrs ~= toAttr(c.cardNumber, indentValue, vars);
 				} else { mixin(S_TRACE);
-					attrs ~= toAttr(Symbol("all"), command, indentValue, vars);
+					attrs ~= toAttr(Symbol("all"), indentValue, vars);
 				}
 			}
 			if (detail.use(CArg.MOTIONS)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.motions, command, indentValue, vars);
+				attrs ~= toAttr(c.motions, indentValue, vars);
 			}
 			if (detail.use(CArg.CARD_VISUAL)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.cardVisual, command, indentValue, vars);
+				attrs ~= toAttr(c.cardVisual, indentValue, vars);
 			}
 			if (detail.use(CArg.UNSIGNED_LEVEL)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.unsignedLevel, command, indentValue, vars);
+				attrs ~= toAttr(c.unsignedLevel, indentValue, vars);
 			}
 			if (detail.use(CArg.SIGNED_LEVEL)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.signedLevel, command, indentValue, vars);
+				attrs ~= toAttr(c.signedLevel, indentValue, vars);
 			}
 			if (detail.use(CArg.LEVEL_MIN)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.levelMin, command, indentValue, vars);
+				attrs ~= toAttr(c.levelMin, indentValue, vars);
 			}
 			if (detail.use(CArg.LEVEL_MAX)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.levelMax, command, indentValue, vars);
+				attrs ~= toAttr(c.levelMax, indentValue, vars);
 			}
 			if (detail.use(CArg.PHYSICAL)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.physical, command, indentValue, vars);
+				attrs ~= toAttr(c.physical, indentValue, vars);
 			}
 			if (detail.use(CArg.MENTAL)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.mental, command, indentValue, vars);
+				attrs ~= toAttr(c.mental, indentValue, vars);
 			}
 			if (detail.use(CArg.WAIT)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.wait, command, indentValue, vars);
+				attrs ~= toAttr(c.wait, indentValue, vars);
 			}
 			if (detail.use(CArg.PERCENT)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.percent, command, indentValue, vars);
+				attrs ~= toAttr(c.percent, indentValue, vars);
 			}
 			if (detail.use(CArg.TARGET_ALL)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.targetAll, command, indentValue, vars);
+				attrs ~= toAttr(c.targetAll, indentValue, vars);
 			}
 			if (detail.use(CArg.RANDOM)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.random, command, indentValue, vars);
+				attrs ~= toAttr(c.random, indentValue, vars);
 			}
 			if (detail.use(CArg.AVERAGE)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.average, command, indentValue, vars);
+				attrs ~= toAttr(c.average, indentValue, vars);
 			}
 			if (detail.use(CArg.PARTY_NUMBER)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.partyNumber, command, indentValue, vars);
+				attrs ~= toAttr(c.partyNumber, indentValue, vars);
 			}
 			if (detail.use(CArg.SUCCESS_RATE)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.successRate, command, indentValue, vars);
+				attrs ~= toAttr(c.successRate, indentValue, vars);
 			}
 			if (detail.use(CArg.EFFECT_TYPE)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.effectType, command, indentValue, vars);
+				attrs ~= toAttr(c.effectType, indentValue, vars);
 			}
 			if (detail.use(CArg.RESIST)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.resist, command, indentValue, vars);
+				attrs ~= toAttr(c.resist, indentValue, vars);
 			}
 			if (detail.use(CArg.STATUS)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.status, command, indentValue, vars);
+				attrs ~= toAttr(c.status, indentValue, vars);
 			}
 			if (detail.use(CArg.BGM_PATH)) { mixin(S_TRACE);
 				if (c.bgmPath.length) { mixin(S_TRACE);
-					attrs ~= toAttr(encodePath(c.bgmPath), command, indentValue, vars);
+					attrs ~= toAttr(encodePath(c.bgmPath), indentValue, vars);
 				} else { mixin(S_TRACE);
-					attrs ~= toAttr(Symbol("stop"), command, indentValue, vars);
+					attrs ~= toAttr(Symbol("stop"), indentValue, vars);
 				}
 			}
 			if (detail.use(CArg.BGM_CHANNEL)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.bgmChannel, command, indentValue, vars);
+				attrs ~= toAttr(c.bgmChannel, indentValue, vars);
 			}
 			if (detail.use(CArg.BGM_FADE_IN)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.bgmFadeIn / 100.0, command, indentValue, vars);
+				attrs ~= toAttr(c.bgmFadeIn / 100.0, indentValue, vars);
 			}
 			if (detail.use(CArg.BGM_VOLUME)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.bgmVolume, command, indentValue, vars);
+				attrs ~= toAttr(c.bgmVolume, indentValue, vars);
 			}
 			if (detail.use(CArg.BGM_LOOP_COUNT)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.bgmLoopCount, command, indentValue, vars);
+				attrs ~= toAttr(c.bgmLoopCount, indentValue, vars);
 			}
 			if (detail.use(CArg.SOUND_PATH)) { mixin(S_TRACE);
-				attrs ~= toAttr(encodePath(c.soundPath), command, indentValue, vars);
+				attrs ~= toAttr(encodePath(c.soundPath), indentValue, vars);
 			}
 			if (detail.use(CArg.SOUND_CHANNEL)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.soundChannel, command, indentValue, vars);
+				attrs ~= toAttr(c.soundChannel, indentValue, vars);
 			}
 			if (detail.use(CArg.SOUND_FADE_IN)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.soundFadeIn / 100.0, command, indentValue, vars);
+				attrs ~= toAttr(c.soundFadeIn / 100.0, indentValue, vars);
 			}
 			if (detail.use(CArg.SOUND_VOLUME)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.soundVolume, command, indentValue, vars);
+				attrs ~= toAttr(c.soundVolume, indentValue, vars);
 			}
 			if (detail.use(CArg.SOUND_LOOP_COUNT)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.soundLoopCount, command, indentValue, vars);
+				attrs ~= toAttr(c.soundLoopCount, indentValue, vars);
 			}
 			if (!legacy) { mixin(S_TRACE);
 				if (detail.use(CArg.TRANSITION_SPEED)) { mixin(S_TRACE);
-					attrs ~= toAttr(c.transitionSpeed, command, indentValue, vars);
+					attrs ~= toAttr(c.transitionSpeed, indentValue, vars);
 				}
 				if (detail.use(CArg.TRANSITION)) { mixin(S_TRACE);
-					attrs ~= toAttr(c.transition, command, indentValue, vars);
+					attrs ~= toAttr(c.transition, indentValue, vars);
 				}
 			}
 			if (c.talkerNC is Talker.VALUED) { mixin(S_TRACE);
 				// 評価メンバ
 				if (detail.use(CArg.INIT_VALUE)) { mixin(S_TRACE);
-					attrs ~= toAttr(c.initValue, command, indentValue, vars);
+					attrs ~= toAttr(c.initValue, indentValue, vars);
 				}
 				if (detail.use(CArg.COUPONS) && c.coupons.length) { mixin(S_TRACE);
-					attrs ~= toAttr(c.coupons, command, indentValue, vars);
+					attrs ~= toAttr(c.coupons, indentValue, vars);
 				}
 			}
 			if (detail.use(CArg.ROUND)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.round, command, indentValue, vars);
+				attrs ~= toAttr(c.round, indentValue, vars);
 			}
 			bool useIf = c.next.length > 1;
 			bool useSif = c.next.length == 1 && c.next[0].name.length;

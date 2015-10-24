@@ -15,6 +15,7 @@ import cwx.structs;
 import cwx.system;
 
 import std.algorithm;
+import std.array;
 import std.exception;
 import std.conv;
 
@@ -97,27 +98,27 @@ private:
 	string _desc;
 	void delegate() _change = null;
 	bool _changed = false;
-	PathUser _path;
+	PathUser[] _paths;
+	UseCounter _useCounter = null;
 public:
 	/// 唯一のコンストラクタ。
 	/// Params:
 	/// id = カードID。
 	/// name = 名前。
-	/// imagePath = 画像のパス。
+	/// imagePaths = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, string imagePath, string desc) { mixin(S_TRACE);
+	this (ulong id, string name, in string[] imagePaths, string desc) { mixin(S_TRACE);
 		_id = id;
 		_name = name;
 		_desc = desc;
-		_path = new PathUser(this);
-		_path.path = imagePath;
+		paths = imagePaths;
 	}
 	/// cからパラメータをコピーする。
 	protected void shallowCopyCard(in Card c) { mixin(S_TRACE);
 		id = c.id;
 		name = c.name;
 		desc = c.desc;
-		path = c.path;
+		paths = c.paths;
 	}
 
 	/// ディープコピーを作成する。
@@ -139,14 +140,14 @@ public:
 		if (!c) return false;
 		return name == c.name
 			&& desc == c.desc
-			&& path == c.path;
+			&& paths == c.paths;
 	}
 
 	/// IDを除く内部データをクリアする。
 	protected void clearData() { mixin(S_TRACE);
 		name = "";
 		desc = "";
-		path = "";
+		paths = [];
 	}
 
 	/// 変更ハンドラを登録する。
@@ -178,20 +179,28 @@ public:
 	/// 使用回数カウンタ。
 	@property
 	UseCounter useCounter() { mixin(S_TRACE);
-		return _path.useCounter;
+		return _useCounter;
 	}
 	/// 使用回数カウンタを登録する。
 	@property
 	void setUseCounter(UseCounter uc) { mixin(S_TRACE);
-		_path.setUseCounter(uc);
+		_useCounter = uc;
+		foreach (path; _paths) { mixin(S_TRACE);
+			path.setUseCounter(uc);
+		}
 	}
 	/// 使用回数カウンタを取り除く。
 	void removeUseCounter() { mixin(S_TRACE);
-		_path.removeUseCounter();
+		_useCounter = null;
+		foreach (path; _paths) { mixin(S_TRACE);
+			path.removeUseCounter();
+		}
 	}
 	/// 画像パスの変更を通知する。
 	void change(PathId id) { mixin(S_TRACE);
-		_path.change(id);
+		foreach (path; _paths) { mixin(S_TRACE);
+			path.change(id);
+		}
 	}
 
 	/// カードID。
@@ -223,14 +232,21 @@ public:
 	/// カード画像。
 	@property
 	const
-	string path() { mixin(S_TRACE);
-		return _path.path;
+	string[] paths() { mixin(S_TRACE);
+		return .map!(a => a.path)(_paths).array();
 	}
 	/// ditto
 	@property
-	void path(string path) { mixin(S_TRACE);
-		if (_path.path != path) changed();
-		_path.path = path;
+	void paths(in string[] paths) { mixin(S_TRACE);
+		if (this.paths != paths) changed();
+		foreach (u; _paths) u.removeUseCounter();
+		_paths = [];
+		foreach (path; paths) { mixin(S_TRACE);
+			auto u = new PathUser(this);
+			u.path = path;
+			if (useCounter) u.setUseCounter(useCounter);
+			_paths ~= u;
+		}
 	}
 
 	/// このカードと強く関係するファイルパスを返す。
@@ -238,7 +254,10 @@ public:
 	@property
 	const
 	string connectedFile() { mixin(S_TRACE);
-		return path.isBinImg ? "" : path;
+		foreach (path; _paths) { mixin(S_TRACE);
+			if (path.path != "" && !path.path.isBinImg) return path.path;
+		}
+		return "";
 	}
 
 	/// 解説。
@@ -293,19 +312,38 @@ public:
 		auto pNode = node.newElement("Property");
 		pNode.newElement("Id", od && od.id != 0UL ? od.id : id);
 		pNode.newElement("Name", name);
-		pNode.newElement("ImagePath", encodePath(path));
+		if (_paths.length == 0) { mixin(S_TRACE);
+			pNode.newElement("ImagePath", "");
+		} else if (_paths.length <= 1) { mixin(S_TRACE);
+			pNode.newElement("ImagePath", encodePath(_paths[0].path));
+		} else { mixin(S_TRACE);
+			auto imp = pNode.newElement("ImagePaths", "");
+			foreach (path; _paths) { mixin(S_TRACE);
+				imp.newElement("ImagePath", encodePath(path.path));
+			}
+		}
 		pNode.newElement("Description", encodeLf(desc));
 		return pNode;
 	}
 	/// 指定されたXMLノードからProperty情報を読み出す。
 	protected void loadProp(ref XNode pNode, in XMLInfo ver) { mixin(S_TRACE);
 		string idStr = null;
-		pNode.onTag["Id"] = (ref XNode n) {idStr = n.value;};
-		pNode.onTag["ImagePath"] = (ref XNode n) {_path.path = decodePath(n.value);};
+		pNode.onTag["Id"] = (ref XNode n) { idStr = n.value; };
+		string[] paths;
+		pNode.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
+			paths ~= decodePath(n.value);
+		};
+		pNode.onTag["ImagePaths"] = (ref XNode n) { mixin(S_TRACE);
+			n.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
+				paths ~= decodePath(n.value);
+			};
+			n.parse();
+		};
 		_name = null;
 		pNode.onTag["Name"] = (ref XNode n) {_name = n.value;};
 		pNode.onTag["Description"] = (ref XNode n) {_desc = decodeLf2(n.value);};
 		pNode.parse();
+		this.paths = paths;
 		if (!idStr) throw new CardException("Id not found");
 		if (!_name) _name = "";
 		_id = to!(ulong)(idStr);
@@ -391,12 +429,12 @@ public:
 	/// Params:
 	/// id = カードID。
 	/// name = 名前。
-	/// imagePath = 画像のパス。
+	/// imagePaths = 画像のパス。
 	/// desc = 解説。
 	/// lev = レベル。
 	/// lifeMax = ヒットポイント最大値。
-	this (ulong id, string name, string imagePath, string desc, uint lev, uint lifeMax) { mixin(S_TRACE);
-		super(id, name, imagePath, desc);
+	this (ulong id, string name, in string[] imagePaths, string desc, uint lev, uint lifeMax) { mixin(S_TRACE);
+		super(id, name, imagePaths, desc);
 		_lev = lev;
 		_life = lifeMax;
 		_lifeMax = lifeMax;
@@ -411,8 +449,8 @@ public:
 		_rEnhRound[Enhance.RESIST] = 0;
 		_rEnhRound[Enhance.DEFENSE] = 0;
 	}
-	this (ulong id, string name, string imagePath, string desc) { mixin(S_TRACE);
-		this (id, name, imagePath, desc, 1, 1);
+	this (ulong id, string name, in string[] imagePaths, string desc) { mixin(S_TRACE);
+		this (id, name, imagePaths, desc, 1, 1);
 	}
 	/// cからパラメータをコピーする。
 	void shallowCopy(in CastCard c) { mixin(S_TRACE);
@@ -504,7 +542,7 @@ public:
 	const
 	override
 	CastCard dup() { mixin(S_TRACE);
-		auto copy = new CastCard(0UL, "", "", "");
+		auto copy = new CastCard(0UL, "", [], "");
 		copy.deepCopy(this);
 		return copy;
 	}
@@ -958,7 +996,7 @@ public:
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	static CastCard createFromNode(XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (cNode.name != XML_NAME) throw new CardException("Node is not cast card: " ~ cNode.name);
-		auto r = new CastCard(0, "", "", "", 1, 1);
+		auto r = new CastCard(0, "", [], "", 1, 1);
 		cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 			pNode.onTag["Level"] = (ref XNode n) {r._lev = n.valueTo!(int);};
 			pNode.onTag["Life"] = (ref XNode n) { mixin(S_TRACE);
@@ -1167,10 +1205,10 @@ public:
 	/// Params:
 	/// id = カードID。
 	/// name = 名前。
-	/// imagePath = 画像のパス。
+	/// imagePaths = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, string imagePath, string desc) { mixin(S_TRACE);
-		super(id, name, imagePath, desc);
+	this (ulong id, string name, in string[] imagePaths, string desc) { mixin(S_TRACE);
+		super(id, name, imagePaths, desc);
 		_ceto = new CETO;
 		_muser = new MotionUser(this);
 		_se1 = new PathUser(this);
@@ -1743,10 +1781,10 @@ public:
 	/// Params:
 	/// id = カードID。
 	/// name = 名前。
-	/// imagePath = 画像のパス。
+	/// imagePaths = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, string imagePath, string desc) { mixin(S_TRACE);
-		super(id, name, imagePath, desc);
+	this (ulong id, string name, in string[] imagePaths, string desc) { mixin(S_TRACE);
+		super(id, name, imagePaths, desc);
 		_linkId = new SkillUser(this);
 	}
 	/// cからパラメータをコピーする。
@@ -1855,7 +1893,7 @@ public:
 	const
 	override
 	SkillCard dup() { mixin(S_TRACE);
-		auto copy = new SkillCard(0UL, "", "", "");
+		auto copy = new SkillCard(0UL, "", [], "");
 		copy.deepCopy(this);
 		return copy;
 	}
@@ -1886,7 +1924,7 @@ public:
 			od2.overHold = true;
 			od2.hold = hold;
 			auto c2 = .rebindable(opt.skill(linkId));
-			if (!c2) c2 = new SkillCard(id, "", "", "");
+			if (!c2) c2 = new SkillCard(id, "", [], "");
 			c2.toNodeImpl(cNode, opt, od2);
 			return;
 		}
@@ -1904,7 +1942,7 @@ public:
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	static SkillCard createFromNode(ref XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (cNode.name != XML_NAME) throw new CardException("Node is not skill card: " ~ cNode.name);
-		auto r = new SkillCard(0, "", "", "");
+		auto r = new SkillCard(0, "", [], "");
 		ulong id = 0UL, linkId = 0UL;
 		bool hold = false;
 		id = readLinkInfo(cNode, linkId, hold);
@@ -1968,10 +2006,10 @@ public:
 	/// Params:
 	/// id = カードID。
 	/// name = 名前。
-	/// imagePath = 画像のパス。
+	/// imagePaths = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, string imagePath, string desc) { mixin(S_TRACE);
-		super(id, name, imagePath, desc);
+	this (ulong id, string name, in string[] imagePaths, string desc) { mixin(S_TRACE);
+		super(id, name, imagePaths, desc);
 		_linkId = new ItemUser(this);
 		_oEnh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
 	}
@@ -2114,7 +2152,7 @@ public:
 	const
 	override
 	ItemCard dup() { mixin(S_TRACE);
-		auto copy = new ItemCard(0UL, "", "", "");
+		auto copy = new ItemCard(0UL, "", [], "");
 		copy.deepCopy(this);
 		return copy;
 	}
@@ -2145,7 +2183,7 @@ public:
 			od2.overHold = true;
 			od2.hold = hold;
 			auto c2 = .rebindable(opt.item(linkId));
-			if (!c2) c2 = new ItemCard(id, "", "", "");
+			if (!c2) c2 = new ItemCard(id, "", [], "");
 			c2.toNodeImpl(cNode, opt, od2);
 			return;
 		}
@@ -2169,7 +2207,7 @@ public:
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	static ItemCard createFromNode(ref XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (cNode.name != XML_NAME) throw new CardException("Node is not item card: " ~ cNode.name);
-		auto r = new ItemCard(0, "", "", "");
+		auto r = new ItemCard(0, "", [], "");
 		ulong id = 0UL, linkId = 0UL;
 		bool hold = false;
 		id = readLinkInfo(cNode, linkId, hold);
@@ -2237,10 +2275,10 @@ public:
 	/// Params:
 	/// id = カードID。
 	/// name = 名前。
-	/// imagePath = 画像のパス。
+	/// imagePaths = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, string imagePath, string desc) { mixin(S_TRACE);
-		super(id, name, imagePath, desc);
+	this (ulong id, string name, in string[] imagePaths, string desc) { mixin(S_TRACE);
+		super(id, name, imagePaths, desc);
 		_linkId = new BeastUser(this);
 	}
 	/// cからパラメータをコピーする。
@@ -2356,7 +2394,7 @@ public:
 			od2.id = id;
 			if (!opt.noLinkId) od2.linkId = linkId;
 			auto c2 = .rebindable(opt.beast(linkId));
-			if (!c2) c2 = new BeastCard(id, "", "", "");
+			if (!c2) c2 = new BeastCard(id, "", [], "");
 			c2.toNodeImpl(cNode, opt, od2);
 			return;
 		}
@@ -2368,7 +2406,7 @@ public:
 	const
 	override
 	BeastCard dup() { mixin(S_TRACE);
-		auto copy = new BeastCard(0UL, "", "", "");
+		auto copy = new BeastCard(0UL, "", [], "");
 		copy.deepCopy(this);
 		return copy;
 	}
@@ -2387,7 +2425,7 @@ public:
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	static BeastCard createFromNode(ref XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (cNode.name != XML_NAME) throw new CardException("Node is not beast card: " ~ cNode.name);
-		auto r = new BeastCard(0, "", "", "");
+		auto r = new BeastCard(0, "", [], "");
 		ulong id = 0UL, linkId = 0UL;
 		bool hold = false;
 		id = readLinkInfo(cNode, linkId, hold);
@@ -2441,10 +2479,10 @@ public:
 	/// Params:
 	/// id = カードID。
 	/// name = 名前。
-	/// imagePath = 画像のパス。
+	/// imagePaths = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, string imagePath, string desc) { mixin(S_TRACE);
-		super(id, name, imagePath, desc);
+	this (ulong id, string name, in string[] imagePaths, string desc) { mixin(S_TRACE);
+		super(id, name, imagePaths, desc);
 	}
 	/// cからパラメータをコピーする。
 	void shallowCopy(in InfoCard c) { mixin(S_TRACE);
@@ -2472,7 +2510,7 @@ public:
 	const
 	override
 	InfoCard dup() { mixin(S_TRACE);
-		auto copy = new InfoCard(0UL, "", "", "");
+		auto copy = new InfoCard(0UL, "", [], "");
 		copy.deepCopy(this);
 		return copy;
 	}
@@ -2509,7 +2547,7 @@ public:
 	/// IllegalArgmentException = XML文書内で数値であるべきデータが数値でない。
 	static InfoCard createFromNode(ref XNode cNode, in XMLInfo ver) { mixin(S_TRACE);
 		if (cNode.name != XML_NAME) throw new CardException("Node is not info card: " ~ cNode.name);
-		auto r = new InfoCard(0, "", "", "");
+		auto r = new InfoCard(0, "", [], "");
 		cNode.onTag["Property"] = (ref XNode node) { mixin(S_TRACE);
 			r.loadProp(node, ver);
 		};

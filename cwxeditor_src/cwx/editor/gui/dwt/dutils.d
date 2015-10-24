@@ -1416,7 +1416,9 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 			levelColor,
 			PileImage.TPos.RIGHT);
 	}
-	r.append(skin.findImagePath(c.path, sPath), matPad, ScaleType.Center, true);
+	foreach (path; c.paths) { mixin(S_TRACE);
+		r.append(skin.findImagePath(path, sPath), matPad, ScaleType.Center, true);
+	}
 	int stMax = prop.looks.statusVerMax;
 	if (dbgMode || c.faceUpRound > 0) { mixin(S_TRACE);
 		auto d = Display.getCurrent();
@@ -1592,7 +1594,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 		if (get && 0 != base.linkId) { mixin(S_TRACE);
 			link = true;
 			c = get(c.linkId);
-			if (!c) c = new C(1UL, "", "", "");
+			if (!c) c = new C(1UL, "", [], "");
 		}
 	}
 	auto cardSize = prop.looks.cardSize;
@@ -1623,7 +1625,9 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 				PileImage.TPos.RIGHT);
 		}
 	}
-	r.append(skin.findImagePath(c.path, sPath), matPad, ScaleType.Cut, true);
+	foreach (path; c.paths) { mixin(S_TRACE);
+		r.append(skin.findImagePath(path, sPath), matPad, ScaleType.Cut, true);
+	}
 	static if (is(typeof(c.linkId))) {
 		if (link) { mixin(S_TRACE);
 			auto mc = prop.var.etc.linkCardMaskColor;
@@ -2604,6 +2608,7 @@ enum CIDKind {
 	Beast,
 	Info,
 	Image,
+	Images,
 	BGM,
 	SE,
 	Flag,
@@ -2684,6 +2689,26 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 		};
 		use = id && id.length;
 		name = id;
+	} else static if (CIDKind.Images == Kind) { mixin(S_TRACE);
+		noSelect = comm.prop.msgs.noSelectImage;
+		noID = comm.prop.msgs.noImage;
+		string[] paths;
+		use = false;
+		foreach (path; id) { mixin(S_TRACE);
+			paths ~= contentTextUseID!(CIDKind.Image)(comm, summ, path, "%s", evt);
+			use |= 0 < path.length;
+		}
+		find = { mixin(S_TRACE);
+			foreach (path; id) { mixin(S_TRACE);
+				if (summ) { mixin(S_TRACE);
+					if (comm.skin.findImagePath(path, summ.scenarioPath).length > 0) return true;
+				} else { mixin(S_TRACE);
+					if (comm.skin.findImagePath(path, "").length > 0) return true;
+				}
+			}
+			return false;
+		};
+		name = std.string.join(paths, " ");
 	} else static if (CIDKind.BGM == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectBGM;
 		noID = comm.prop.msgs.noBGM;
@@ -2744,7 +2769,12 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 	if (exists) { mixin(S_TRACE);
 		return .tryFormat(msg, name);
 	} else { mixin(S_TRACE);
-		return .tryFormat(msg, .tryFormat(noID, id));
+		static if (CIDKind.Images == Kind) {
+			// 配列なので個別の生成結果を統合したものを表示
+			return .tryFormat(msg, name);
+		} else {
+			return .tryFormat(msg, .tryFormat(noID, id));
+		}
 	}
 }
 
@@ -2824,7 +2854,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		case Talker.VALUED:
 			return .tryFormat(comm.prop.msgs.ctTalkMessage, .tryFormat(comm.prop.msgs.ctTalkMessageImage, comm.prop.msgs.talkerName(evt.talkerC)), text);
 		case Talker.IMAGE:
-			string t = contentTextUseID!(CIDKind.Image)(comm, summ, evt.cardPath, comm.prop.msgs.ctTalkMessageImage, evt);
+			string t = contentTextUseID!(CIDKind.Images)(comm, summ, evt.cardPaths, comm.prop.msgs.ctTalkMessageImage, evt);
 			return .tryFormat(comm.prop.msgs.ctTalkMessage, t, text);
 		}
 	} case CType.TALK_DIALOG: { mixin(S_TRACE);

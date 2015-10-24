@@ -30,17 +30,19 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 
 	auto psumm = cast(Summary) path;
 	if (psumm) { mixin(S_TRACE);
-		if (psumm.imagePath != "" && !isBinImg(psumm.imagePath) && !skin.findPath(psumm.imagePath, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
-			r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(psumm.imagePath));
+		foreach (imagePath; psumm.imagePaths) { mixin(S_TRACE);
+			if (imagePath != "" && !isBinImg(imagePath) && !skin.findPath(imagePath, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(imagePath));
+			}
+			if (imagePath != "") { mixin(S_TRACE);
+				r ~= skin.warningImage(prop, imagePath, psumm.legacy, true, targVer);
+			}
 		}
 		if (psumm.levelMin > psumm.levelMax) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorReversalLevel;
 		}
 		if (!psumm.area(psumm.startArea)) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorStartAreaNotFound;
-		}
-		if (psumm.imagePath != "") { mixin(S_TRACE);
-			r ~= skin.warningImage(prop, psumm.imagePath, psumm.legacy, true, targVer);
 		}
 	}
 	auto flagDir = cast(FlagDir) path;
@@ -93,11 +95,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto card = cast(Card) path;
 	if (card) { mixin(S_TRACE);
-		if (card.path != "" && !isBinImg(card.path) && !skin.findPath(card.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
-			r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(card.path));
-		}
-		if (card.path != "") { mixin(S_TRACE);
-			r ~= skin.warningImage(prop, card.path, summ ? summ.legacy : false, true, targVer);
+		foreach (imagePath; card.paths) { mixin(S_TRACE);
+			if (imagePath != "" && !isBinImg(imagePath) && !skin.findPath(imagePath, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(imagePath));
+			}
+			if (imagePath != "") { mixin(S_TRACE);
+				r ~= skin.warningImage(prop, imagePath, summ ? summ.legacy : false, true, targVer);
+			}
 		}
 	}
 	void putMotions(in Motion[] motions) { mixin(S_TRACE);
@@ -209,19 +213,21 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto mc = cast(MenuCard) path;
 	if (mc) { mixin(S_TRACE);
-		if (mc.path != "" && !isBinImg(mc.path) && !skin.findPath(mc.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
-			r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(mc.path));
-		}
-		if (mc.path != "") {
-			if (isBinImg(mc.path)) { mixin(S_TRACE);
-				auto bin =  cast(ubyte[])strToBImg(mc.path);
-				auto type = imageType(bin);
-				if (type != "") {
-					auto img = "image".setExtension(type);
-					r ~= skin.warningImage(prop, img, summ ? summ.legacy : false, true, targVer);
+		foreach (imagePath; mc.paths) {
+			if (imagePath != "" && !isBinImg(imagePath) && !skin.findPath(imagePath, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(imagePath));
+			}
+			if (imagePath != "") {
+				if (isBinImg(imagePath)) { mixin(S_TRACE);
+					auto bin =  cast(ubyte[])strToBImg(imagePath);
+					auto type = imageType(bin);
+					if (type != "") {
+						auto img = "image".setExtension(type);
+						r ~= skin.warningImage(prop, img, summ ? summ.legacy : false, true, targVer);
+					}
+				} else {
+					r ~= skin.warningImage(prop, imagePath, summ ? summ.legacy : false, false, targVer);
 				}
-			} else {
-				r ~= skin.warningImage(prop, mc.path, summ ? summ.legacy : false, false, targVer);
 			}
 		}
 		if (mc.flag != "" && !(froot && froot.findFlag(mc.flag))) { mixin(S_TRACE);
@@ -299,9 +305,15 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= .tryFormat(prop.msgs.searchErrorStepNotFound, c.step);
 			}
 		}
-		if (c.type == CType.TALK_MESSAGE && c.talkerC == Talker.IMAGE
-				&& c.cardPath != "" && !skin.findPath(c.cardPath, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
-			r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(c.cardPath));
+		if (c.type == CType.TALK_MESSAGE && c.talkerC == Talker.IMAGE) { mixin(S_TRACE);
+			foreach (cardPath; c.cardPaths) { mixin(S_TRACE);
+				if (cardPath != "" && !skin.findPath(cardPath, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
+					r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(cardPath));
+				}
+				if (cardPath != "") { mixin(S_TRACE);
+					r ~= skin.warningImage(prop, cardPath, summ ? summ.legacy : false, false, targVer);
+				}
+			}
 		}
 		if (c.bgmPath != "" && !skin.findPath(c.bgmPath, skin.extBgm, skin.bgmDir, sPath).length) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorBGMNotFound, .encodePath(c.bgmPath));
@@ -364,9 +376,6 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				}
 				cwxPath = cwxPath.cwxParent();
 			}
-		}
-		if (c.cardPath != "") { mixin(S_TRACE);
-			r ~= skin.warningImage(prop, c.cardPath, summ ? summ.legacy : false, false, targVer);
 		}
 		if (c.bgmPath != "") { mixin(S_TRACE);
 			r ~= skin.warningBGM(prop, c.bgmPath, summ ? summ.legacy : false, targVer);

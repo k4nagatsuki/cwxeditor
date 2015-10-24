@@ -78,11 +78,11 @@ class AbstractMessageDialog : EventDialog {
 				auto s = wrapReturnCode(text);
 				if (_previewWin) { mixin(S_TRACE);
 					if (_previewWin.isVisible()) return;
-					_previewWin.text(selectedTalker, "", s);
+					_previewWin.text(selectedTalker, [], s);
 					_previewWin.open();
 				} else { mixin(S_TRACE);
 					if (rightGroup.isVisible()) return;
-					_preview.text(selectedTalker, imgPath, s);
+					_preview.text(selectedTalker, imgPaths, s);
 					setPreviewLData(true);
 				}
 			} else { mixin(S_TRACE);
@@ -246,10 +246,10 @@ class AbstractMessageDialog : EventDialog {
 		if (!_previewWin && !_preview) return;
 		auto s = wrapReturnCode(text);
 		if (_previewWin) { mixin(S_TRACE);
-			_previewWin.text(selectedTalker, imgPath, s);
+			_previewWin.text(selectedTalker, imgPaths, s);
 			_previewWin.refresh();
 		} else { mixin(S_TRACE);
-			_preview.text(selectedTalker, imgPath, s);
+			_preview.text(selectedTalker, imgPaths, s);
 			_preview.refresh();
 		}
 	}
@@ -261,7 +261,7 @@ class AbstractMessageDialog : EventDialog {
 	abstract Talker selectedTalker();
 
 	@property
-	abstract string imgPath();
+	abstract string[] imgPaths();
 }
 
 /// 台詞コンテントの設定ダイアログ。
@@ -834,8 +834,8 @@ public:
 
 	@property
 	override
-	string imgPath() { mixin(S_TRACE);
-		return "";
+	string[] imgPaths() { mixin(S_TRACE);
+		return [];
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
@@ -1120,8 +1120,8 @@ public:
 		super(comm, prop, shell, summ, CType.TALK_MESSAGE, parent, evt, prop.var.msgDlg);
 	}
 
-	void selectedTalkerParam(out Talker talker, out string imgPath) { mixin(S_TRACE);
-		imgPath = "";
+	void selectedTalkerParam(out Talker talker, out string[] imgPaths) { mixin(S_TRACE);
+		imgPaths = [];
 		switch (_tabf.getSelectionIndex()) {
 		case 0:
 			switch (_msel.dirsCombo.getSelectionIndex()) {
@@ -1139,7 +1139,7 @@ public:
 				break;
 			default:
 				talker = Talker.IMAGE;
-				imgPath = _msel.image;
+				imgPaths = _msel.images;
 			}
 			break;
 		case 1:
@@ -1152,16 +1152,16 @@ public:
 	@property
 	override Talker selectedTalker() { mixin(S_TRACE);
 		Talker talker;
-		string imgPath;
-		selectedTalkerParam(talker, imgPath);
+		string[] imgPaths;
+		selectedTalkerParam(talker, imgPaths);
 		return talker;
 	}
 	@property
-	override string imgPath() { mixin(S_TRACE);
+	override string[] imgPaths() { mixin(S_TRACE);
 		Talker talker;
-		string imgPath;
-		selectedTalkerParam(talker, imgPath);
-		return imgPath;
+		string[] imgPaths;
+		selectedTalkerParam(talker, imgPaths);
+		return imgPaths;
 	}
 	@property
 	override string text() { mixin(S_TRACE);
@@ -1181,9 +1181,9 @@ protected:
 			comp.setLayout(new GridLayout(2, false));
 			Control tp;
 			if (evt) { mixin(S_TRACE);
-				tp = createTalkerPane(comp, comm, prop, summ, evt.talkerC, evt.cardPath, _msel);
+				tp = createTalkerPane(comp, comm, prop, summ, evt.talkerC, evt.cardPaths, _msel);
 			} else { mixin(S_TRACE);
-				tp = createTalkerPane(comp, comm, prop, summ, Talker.SELECTED, "", _msel);
+				tp = createTalkerPane(comp, comm, prop, summ, Talker.SELECTED, [], _msel);
 			}
 			mod(_msel);
 			_msel.modEvent ~= &refreshWarning;
@@ -1242,14 +1242,14 @@ protected:
 
 	override bool apply() { mixin(S_TRACE);
 		string text;
-		string path = "";
+		string[] paths = [];
 		Talker talker;
-		selectedTalkerParam(talker, path);
+		selectedTalkerParam(talker, paths);
 		text = lastRet(wrapReturnCode(_text.getText()));
 		if (!evt) evt = new Content(CType.TALK_MESSAGE, "");
 		evt.text = text;
 		evt.talkerC = talker;
-		evt.cardPath = path;
+		evt.cardPaths = paths;
 		return true;
 	}
 }
@@ -1301,7 +1301,7 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 }
 
 private Composite createTalkerPane
-		(Composite parent, Commons comm, Props prop, Summary summ, Talker talker, string path,
+		(Composite parent, Commons comm, Props prop, Summary summ, Talker talker, in string[] paths,
 		out ImageSelect!(MtType.CARD, Combo) msel) { mixin(S_TRACE);
 	auto comp = new Composite(parent, SWT.NONE);
 	{ mixin(S_TRACE);
@@ -1338,8 +1338,8 @@ private Composite createTalkerPane
 		false, false, () => "", null, defs, &createDefImage);
 	auto gd = new GridData(GridData.FILL_BOTH);
 	msel.widget.setLayoutData(gd);
-	msel.image = path;
-	if (msel.image.length == 0) { mixin(S_TRACE);
+	msel.images = paths;
+	if (msel.images.length == 0) { mixin(S_TRACE);
 		switch (talker) {
 		case Talker.SELECTED:
 			msel.dirsCombo.select(0);
@@ -1841,8 +1841,8 @@ class MsgPreviewWindow {
 		_toggle.setSelection(false);
 	}
 
-	void text(Talker talker, string imgPath, string message) { mixin(S_TRACE);
-		_preview.text(talker, imgPath, message);
+	void text(Talker talker, string[] imgPaths, string message) { mixin(S_TRACE);
+		_preview.text(talker, imgPaths, message);
 	}
 
 	private void refresh() { mixin(S_TRACE);
@@ -2509,7 +2509,7 @@ class MsgPreview : Composite {
 	private PreviewValues _values;
 
 	private Talker _talker = Talker.NARRATION;
-	private string _imgPath = "";
+	private string[] _imgPaths = [];
 	private string _message = "";
 
 	private class Paint : PaintListener {
@@ -2552,12 +2552,12 @@ class MsgPreview : Composite {
 		_comm.refSkin.add(&refresh);
 	}
 
-	void text(Talker talker, string imgPath, string message) { mixin(S_TRACE);
-		if (_img && talker is _talker && imgPath == _imgPath && message == _message) { mixin(S_TRACE);
+	void text(Talker talker, string[] imgPaths, string message) { mixin(S_TRACE);
+		if (_img && talker is _talker && imgPaths == _imgPaths && message == _message) { mixin(S_TRACE);
 			return;
 		}
 		_talker = talker;
-		_imgPath = imgPath;
+		_imgPaths = imgPaths;
 		_message = message;
 		if (isVisible()) refresh();
 	}
@@ -2567,23 +2567,25 @@ class MsgPreview : Composite {
 		if (_img) { mixin(S_TRACE);
 			_img.dispose();
 		}
-		ImageData tImg = null;
+		ImageData[] tImg = [];
 		final switch (_talker) {
 		case Talker.NARRATION:
-			tImg = null;
+			tImg = [];
 			break;
 		case Talker.SELECTED:
 		case Talker.UNSELECTED:
 		case Talker.RANDOM:
 		case Talker.VALUED:
-			tImg = _prop.images.talker(_talker).getImageData();
+			tImg = [_prop.images.talker(_talker).getImageData()];
 			break;
 		case Talker.IMAGE:
-			tImg = loadImage(_comm.skin.findImagePath(_imgPath, _summ.scenarioPath), true);
+			foreach (imgPath; _imgPaths) { mixin(S_TRACE);
+				tImg ~= loadImage(_comm.skin.findImagePath(imgPath, _summ.scenarioPath), true);
+			}
 			break;
 		case Talker.CARD:
 			auto cRect = _prop.looks.cardSize;
-			tImg = menuCard(_comm.skin).scaledTo(cRect.width, cRect.height);
+			tImg = [menuCard(_comm.skin).scaledTo(cRect.width, cRect.height)];
 			break;
 		}
 
@@ -2603,7 +2605,7 @@ class MsgPreview : Composite {
 }
 
 /// メッセージのプレビューを生成する。
-ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talker, string message, in string[] sel, in string[char] names, in string[string] flags, in string[string] steps) { mixin(S_TRACE);
+ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] talkers, string message, in string[] sel, in string[char] names, in string[string] flags, in string[string] steps) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	version (Windows) {
 		bool legacy = comm.skin.legacy;
@@ -2628,7 +2630,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	}
 
 	// 話者の描画
-	if (talker) { mixin(S_TRACE);
+	foreach (talker; talkers) { mixin(S_TRACE);
 		auto tImg = new Image(d, talker);
 		scope (exit) tImg.dispose();
 		auto tp = prop.looks.messageTalkerPos;
@@ -2701,11 +2703,11 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData talke
 	auto selFont = new Font(d, dwtData(prop.looks.messageSelectFont(legacy)));
 	scope (exit) selFont.dispose();
 
-	auto start = prop.looks.messageStartPos(legacy, talker !is null);
+	auto start = prop.looks.messageStartPos(legacy, 0 < talkers.length);
 	int x = start.x, y = start.y;
 	int lineH;
 	string old = "";
-	int msgLen =  talker ? prop.looks.messageImageLen : prop.looks.messageLen;
+	int msgLen =  talkers.length ? prop.looks.messageImageLen : prop.looks.messageLen;
 	int writeLen = 0;
 	void ret() { mixin(S_TRACE);
 		writeLen = 0;
