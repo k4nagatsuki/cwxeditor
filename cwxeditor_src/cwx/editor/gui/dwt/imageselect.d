@@ -464,7 +464,7 @@ private:
 				}
 				_paintedPaths.length = filePaths.length;
 				_img.length = filePaths.length;
-				foreach_reverse (i, path; filePaths) { mixin(S_TRACE);
+				foreach (i, path; filePaths) { mixin(S_TRACE);
 					drawImage(e.gc, i, path);
 				}
 			} else static if (Type == MtType.BG_IMG) {

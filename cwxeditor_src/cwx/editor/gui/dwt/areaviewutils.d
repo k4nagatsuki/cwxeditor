@@ -157,7 +157,7 @@ PImg createMenuCardImage(PImg)(Props prop, Skin skin,
 	auto matPad = prop.looks.menuCardInsets;
 	auto card = menuCard(skin);
 	auto r = createCardImageCommon!PImg(prop, card, matPad, x, y, scale, smoothing);
-	foreach_reverse (path; paths) r.append(path, matPad, ScaleType.Cut, true);
+	foreach (path; paths) r.append(path, matPad, ScaleType.Cut, true);
 	auto tx = prop.looks.menuCardNamePoint.x;
 	auto w = card.width;
 	r.setTitle(title, dwtData(prop.looks.menuCardNameFont(skin.legacy)), dwtData(prop.looks.menuCardNamePoint),

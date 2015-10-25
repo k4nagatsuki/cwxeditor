@@ -654,7 +654,7 @@ private class SummaryPreview : Composite {
 			_summImageBufs.length = imgPaths.length;
 			_bufImgData.length = imgPaths.length;
 			_bufImagePaths.length = imgPaths.length;
-			foreach_reverse (i, imgPath; imgPaths) { mixin(S_TRACE);
+			foreach (i, imgPath; imgPaths) { mixin(S_TRACE);
 				auto path = nabs(skin.findImagePath(imgPath, _summ.scenarioPath));
 				if (_bufImagePaths[i] == "" || !_summImageBufs[i] || !.cfnmatch(_bufImagePaths[i], path) || summary(skin) !is _bufImgData[i]) { mixin(S_TRACE);
 					if (_summImageBufs[i]) _summImageBufs[i].dispose();

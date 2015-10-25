@@ -1416,7 +1416,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 			levelColor,
 			PileImage.TPos.RIGHT);
 	}
-	foreach_reverse (path; c.paths) { mixin(S_TRACE);
+	foreach (path; c.paths) { mixin(S_TRACE);
 		r.append(skin.findImagePath(path, sPath), matPad, ScaleType.Center, true);
 	}
 	int stMax = prop.looks.statusVerMax;
@@ -1625,7 +1625,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 				PileImage.TPos.RIGHT);
 		}
 	}
-	foreach_reverse (path; c.paths) { mixin(S_TRACE);
+	foreach (path; c.paths) { mixin(S_TRACE);
 		r.append(skin.findImagePath(path, sPath), matPad, ScaleType.Cut, true);
 	}
 	static if (is(typeof(c.linkId))) {
