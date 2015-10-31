@@ -189,9 +189,8 @@ private:
 			_tab2Sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto skin = summSkin;
 			{ mixin(S_TRACE);
-				bool including = _summ.imagePaths.length && isBinImg(_summ.imagePaths[0]);
 				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, _readOnly, _comm, _prop, _summ,
-					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, () => _sname.getText(), &clearBuf);
+					_prop.looks.cardSize.width, _prop.looks.cardSize.height, true, () => _sname.getText(), &clearBuf);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.images = _summ.imagePaths;
@@ -623,15 +622,14 @@ private class SummaryPreview : Composite {
 
 	private Canvas _summImage;
 	private string delegate() _sname = null;
-	private string[] delegate() _imgPaths = null;
+	private CardImage[] delegate() _imgPaths = null;
 	private Skin delegate() _selectedSkin = null;
 	private string delegate() _desc = null;
 	private int delegate() _levMin = null;
 	private int delegate() _levMax = null;
 
-	private Image[] _summImageBufs = [];
-	private ImageData[] _bufImgData = [];
-	private string[] _bufImagePaths = [];
+	private Image _summImageBuf = null;
+	private ImageData _bufImgData = null;
 
 	private class PListener : PaintListener {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
@@ -646,51 +644,48 @@ private class SummaryPreview : Composite {
 
 			auto skin = _selectedSkin();
 			auto imgPaths = _imgPaths();
-			if (imgPaths.length < _summImageBufs.length) { mixin(S_TRACE);
-				foreach (i; imgPaths.length .. _summImageBufs.length) { mixin(S_TRACE);
-					if (_summImageBufs[i]) _summImageBufs[i].dispose();
-				}
+			if (!_summImageBuf || summary(skin) !is _bufImgData) { mixin(S_TRACE);
+				if (_summImageBuf) _summImageBuf.dispose();
+				_bufImgData = summary(skin);
+				_summImageBuf = new Image(d, _bufImgData);
 			}
-			_summImageBufs.length = imgPaths.length;
-			_bufImgData.length = imgPaths.length;
-			_bufImagePaths.length = imgPaths.length;
+
+			if (_summImageBuf) gc.drawImage(_summImageBuf, 0, 0);
+
+			string imgFile(in CardImage imgPath) { mixin(S_TRACE);
+				return imgPath.type is CardImageType.File ? nabs(skin.findImagePath(imgPath.path, _summ.scenarioPath)) : "";
+			}
 			foreach (i, imgPath; imgPaths) { mixin(S_TRACE);
-				auto path = nabs(skin.findImagePath(imgPath, _summ.scenarioPath));
-				if (_bufImagePaths[i] == "" || !_summImageBufs[i] || !.cfnmatch(_bufImagePaths[i], path) || summary(skin) !is _bufImgData[i]) { mixin(S_TRACE);
-					if (_summImageBufs[i]) _summImageBufs[i].dispose();
-					_bufImagePaths[i] = path;
-					_bufImgData[i] = summary(skin);
-					_summImageBufs[i] = new Image(d, _bufImgData[i]);
-				}
-
-				if (rect.width < size.width || rect.height < size.height) { mixin(S_TRACE);
-					real wp = cast(real)rect.width / size.width;
-					real hp = cast(real)rect.height / size.height;
-					ImageData data;
-					if (wp < hp) { mixin(S_TRACE);
-						size.width = rect.width;
-						size.height = cast(int)(size.height * wp);
-					} else { mixin(S_TRACE);
-						size.width = cast(int)(size.width * hp);
-						size.height = rect.height;
-					}
-					data = _summImageBufs[i].getImageData().scaledTo(size.width, size.height);
-					_summImageBufs[i].dispose();
-					_summImageBufs[i] = null;
-					if (size.width > 0 && size.height > 0) { mixin(S_TRACE);
-						_summImageBufs[i] = new Image(d, data);
-					}
-				}
-
-				if (_summImageBufs[i]) gc.drawImage(_summImageBufs[i], 0, 0);
-
-				if (imgPath !is null && imgPath.length > 0) { mixin(S_TRACE);
-					string p = skin.findImagePath(imgPath, _summ.scenarioPath);
+				final switch (imgPath.type) {
+				case CardImageType.File:
+					string p = skin.findImagePath(imgPath.path, _summ.scenarioPath);
 					if (p.length) { mixin(S_TRACE);
-						scope img = new Image(d, loadImage(_prop, skin, _summ, p));
-						gc.drawImage(img, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
-						img.dispose();
+						auto image = new Image(d, loadImage(_prop, skin, _summ, p));
+						gc.drawImage(image, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
+						image.dispose();
 					}
+					break;
+				case CardImageType.PCNumber:
+					// Invalid data.
+					break;
+				case CardImageType.Talker:
+					bool img = false;
+					final switch (imgPath.talker) {
+					case Talker.SELECTED:
+					case Talker.UNSELECTED:
+					case Talker.RANDOM:
+					case Talker.VALUED:
+						gc.drawImage(_prop.images.talker(imgPath.talker), _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
+						break;
+					case Talker.CARD:
+						auto cRect = _prop.looks.cardSize;
+						auto imgData = menuCard(_comm.skin).scaledTo(cRect.width, cRect.height);
+						auto image = new Image(d, imgData);
+						gc.drawImage(image, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
+						image.dispose();
+						break;
+					}
+					break;
 				}
 			}
 			{ mixin(S_TRACE);
@@ -775,7 +770,7 @@ private class SummaryPreview : Composite {
 		});
 	}
 
-	void setImageSelect(string delegate() sname, string[] delegate() imgPaths, Skin delegate() selectedSkin, string delegate() desc, int delegate() levMin, int delegate() levMax) { mixin(S_TRACE);
+	void setImageSelect(string delegate() sname, CardImage[] delegate() imgPaths, Skin delegate() selectedSkin, string delegate() desc, int delegate() levMin, int delegate() levMax) { mixin(S_TRACE);
 		_sname = sname;
 		_imgPaths = imgPaths;
 		_selectedSkin = selectedSkin;
@@ -789,10 +784,8 @@ private class SummaryPreview : Composite {
 	}
 
 	void clearBuf() { mixin(S_TRACE);
-		foreach (buf; _summImageBufs) {
-			if (buf) buf.dispose();
-		}
-		_summImageBufs = [];
-		_bufImagePaths = [];
+		if (_summImageBuf) _summImageBuf.dispose();
+		_summImageBuf = null;
+		_bufImgData = null;
 	}
 }

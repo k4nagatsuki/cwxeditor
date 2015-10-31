@@ -8,6 +8,7 @@ import cwx.skin;
 import cwx.menu;
 import cwx.types;
 import cwx.imagesize;
+import cwx.card;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.dprops;
@@ -47,19 +48,30 @@ class MaterialSelect(MtType Type, D, C) {
 	/// パスの変更時に呼び出される。
 	void delegate()[] modEvent;
 	/// イメージ格納時に呼び出される。
-	void delegate(string file)[] includeEvent;
-public:
-	this (Commons comm, Props prop, Summary summ, bool readOnly, void delegate() refresh, string[] defs, int including = -1, bool canInclude = false, bool isMenuCard = false) { mixin(S_TRACE);
+	void delegate()[] includeEvent;
+
+	static if (Type == MtType.CARD) {
+		/// defsのindexから値を返す関数。
+		CardImage delegate(int index, bool included, string binPath) valueFromDef = null;
+		/// 値からdefsのindexを返す関数。
+		int delegate(in CardImage imgPath, bool included) valueToDef = null;
+	}
+	/// 格納リソースを示すdirsのindexを返す。
+	int delegate(bool included) indexOfBinPath = null;
+
+	this (Commons comm, Props prop, Summary summ, bool readOnly, void delegate() refresh, string[] delegate(bool included) defs, bool canInclude = false, bool isMenuCard = false) { mixin(S_TRACE);
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
 		_refresh = refresh;
-		_defs = defs;
-		_including = including;
+		_defs = defs ? defs : included => [];
 		_canInclude = canInclude;
 		_isMenuCard = isMenuCard;
+		static if (Type == MtType.CARD) {
+			_paths = [new CardImage("")];
+		}
 	}
 	@property
 	const
@@ -236,14 +248,14 @@ public:
 		void useNoCardSizeImage(bool noCardSize) { mixin(S_TRACE);
 			if (_noCardSize == noCardSize) return;
 			_noCardSize = noCardSize;
-			if (!_noCardSize && !isBinImg(filePath)) { mixin(S_TRACE);
+			if (!_noCardSize && path.length && !isBinImg(filePath)) { mixin(S_TRACE);
 				auto p = summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "");
 				if (p.length) { mixin(S_TRACE);
 					uint w, h;
 					imageSize(p, w, h);
 					auto cs = _prop.looks.cardSize;
 					if (cs.width != w || cs.height != h) { mixin(S_TRACE);
-						path = "";
+						path2("", false);
 					}
 				}
 			}
@@ -265,76 +277,21 @@ public:
 				try { mixin(S_TRACE);
 					if (!file.exists()) return;
 					ubyte* ptr = null;
-					_binPath = bImgToStr(readBinaryFrom!ubyte(file, ptr));
+					_binPaths[_imageIndex] = bImgToStr(readBinaryFrom!ubyte(file, ptr));
 					scope (exit) freeAll(ptr);
-					refreshDefs();
-					selectDir(_including);
-					foreach (d; includeEvent) { mixin(S_TRACE);
-						d(file);
+					refreshPaths();
+					static if (Type == MtType.CARD) { mixin(S_TRACE);
+						selectDir(indexOfBinPath ? indexOfBinPath(true) : 0);
+					} else { mixin(S_TRACE);
+						selectDir(0);
 					}
+					foreach (d; includeEvent) d();
 				} catch (Exception e) {
 					printStackTrace();
 					debugln(e);
 				}
 			}
 		}
-		@property
-		uint pcNumber() { mixin(S_TRACE);
-			if (!_isMenuCard || !_summ) return 0;
-			auto sel = _dirs.getSelectionIndex();
-			if (0 <= _including) { mixin(S_TRACE);
-				sel--;
-			}
-			if (0 < sel && sel <= _prop.var.etc.partyMax) { mixin(S_TRACE);
-				return sel;
-			}
-			return 0;
-		}
-		@property
-		void pcNumber(uint pcNum) { mixin(S_TRACE);
-			if (0 == pcNum) return;
-			if (!_isMenuCard || !_summ) return;
-			uint num = pcNum;
-			if (0 <= _including) { mixin(S_TRACE);
-				num++;
-			}
-			_dirs.select(num);
-		}
-	}
-	private void refreshDefs() { mixin(S_TRACE);
-		if (!_canInclude) { mixin(S_TRACE);
-			refreshPaths();
-			return;
-		}
-		string[] defs = [_prop.msgs.defaultSelection(_prop.msgs.imageNone)];
-		int including = _including;
-		static if (Type == MtType.CARD) {
-			uint pcNum = pcNumber;
-		}
-		if (isBinImg(_binPath)) { mixin(S_TRACE);
-			including = cast(int)defs.length;
-			defs ~= _prop.msgs.defaultSelection(_prop.msgs.imageIncluding);
-		}
-		static if (Type == MtType.CARD) {
-			if (_isMenuCard && _summ) { mixin(S_TRACE);
-				foreach (num; 0 .. _prop.var.etc.partyMax) { mixin(S_TRACE);
-					defs ~= _prop.msgs.defaultSelection(.tryFormat(_prop.msgs.pcNumber, num + 1));
-				}
-				if (pcNum <= 0 || _prop.var.etc.partyMax < pcNum) { mixin(S_TRACE);
-					pcNum = 0;
-				}
-			} else { mixin(S_TRACE);
-				pcNum = 0;
-			}
-		}
-		if (defs != _defs) { mixin(S_TRACE);
-			_defs = defs;
-			_including = including;
-			static if (Type == MtType.CARD) {
-				pcNumber = pcNum;
-			}
-		}
-		refreshPaths();
 	}
 	static if (Type == MtType.BGM || Type == MtType.SE) {
 		private Button _bgmBtn = null;
@@ -345,7 +302,7 @@ public:
 		private Combo _channel = null;
 
 		@property
-		string[] warnings() {
+		string[] warnings() { mixin(S_TRACE);
 			string[] r;
 			if (_channel && _channel.getSelectionIndex() != 0 && (path != "" || Type == MtType.BGM) && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
 				r ~= _prop.msgs.warningChannel;
@@ -811,19 +768,136 @@ public:
 	ToolItem createDirectoryToolItem(ToolBar bar) { mixin(S_TRACE);
 		return createToolItem(_comm, bar, MenuID.OpenDir, &doDirectory, null);
 	}
-	@property
-	string path() { mixin(S_TRACE);
-		if (_dirs.getSelectionIndex() == _including && isBinImg(_binPath)) { mixin(S_TRACE);
-			return _binPath;
+	static if (Type == MtType.CARD) {
+		@property
+		CardImage[] paths() { mixin(S_TRACE);
+			return _paths;
 		}
-		return _path;
+		@property
+		string path() { mixin(S_TRACE);
+			if (indexOfBinPath && _dirs.getSelectionIndex() == indexOfBinPath(0 < binPath.length) && binPath.length) { mixin(S_TRACE);
+				return binPath;
+			}
+			auto cardPath = _paths[_imageIndex];
+			auto path = cardPath.type == CardImageType.File && cardPath.path.length ? cardPath.path : "";
+			return path;
+		}
+		@property
+		void paths(CardImage[] paths) { mixin(S_TRACE);
+			auto old = _paths;
+			scope (exit) {
+				if (old != _paths) {
+					foreach (dlg; modEvent) dlg();
+				}
+				refreshButtons();
+			}
+			_paths = paths.length ? paths : [new CardImage("")];
+			_binPaths.length = _paths.length;
+			bool include = false;
+			foreach (i, path; paths) { mixin(S_TRACE);
+				include = path.type == CardImageType.File && isBinImg(path.path);
+				_binPaths[i] = include ? path.path : "";
+				
+			}
+			if (include) { mixin(S_TRACE);
+				foreach (dlg; includeEvent) dlg();
+			}
+			updateUseNoCardSizeImage();
+			_imageIndex = 0;
+			refreshPaths();
+		}
+		@property
+		void path(string path) { mixin(S_TRACE);
+			path2(path, true);
+		}
+		void path2(string path, bool updateBinImg) { mixin(S_TRACE);
+			if (this.path == path) return;
+			scope (exit) {
+				foreach (dlg; modEvent) dlg();
+				refreshButtons();
+			}
+			_paths[_imageIndex] = new CardImage(path);
+			if (updateBinImg) { mixin(S_TRACE);
+				_binPaths[_imageIndex] = path.isBinImg ? path : "";
+				if (_binPaths[_imageIndex].length) { mixin(S_TRACE);
+					foreach (dlg; includeEvent) dlg();
+				}
+			}
+			updateUseNoCardSizeImage();
+			refreshPaths();
+		}
+		private void updateUseNoCardSizeImage() { mixin(S_TRACE);
+			if (useNoCardSizeImage) return;
+			// カードサイズ以外の画像が存在する場合は
+			// カードサイズ以外選択可にチェックを入れておく
+			foreach (i, path; _paths) { mixin(S_TRACE);
+				if (!_binPaths[i].length && path.type == CardImageType.File && path.path != "") { mixin(S_TRACE);
+					auto p = summSkin.findImagePath(path.path, _summ ? _summ.scenarioPath : "");
+					if (p.length) { mixin(S_TRACE);
+						uint w, h;
+						imageSize(p, w, h);
+						auto cs = _prop.looks.cardSize;
+						if (cs.width != w || cs.height != h) { mixin(S_TRACE);
+							useNoCardSizeImage = true;
+							if (_refresh) _refresh();
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		@property
+		string binPath() { mixin(S_TRACE);
+			return _binPaths[_imageIndex];
+		}
+	} else {
+		@property
+		string path() { mixin(S_TRACE);
+			static if (Type == MtType.BG_IMG) {
+				if (indexOfBinPath && _dirs.getSelectionIndex() == indexOfBinPath(0 < binPath.length) && binPath.length) { mixin(S_TRACE);
+					return binPath;
+				}
+			}
+			return _path;
+		}
+		@property
+		void path(string path) { mixin(S_TRACE);
+			path2(path, true);
+		}
+		void path2(string path, bool updateBinImg) { mixin(S_TRACE);
+			auto old = _path;
+			scope (exit) {
+				if (old != _path) {
+					foreach (dlg; modEvent) dlg();
+				}
+				refreshButtons();
+			}
+			_path = path;
+			static if (Type == MtType.BG_IMG) {
+				if (updateBinImg) { mixin(S_TRACE);
+					_binPaths[_imageIndex] = isBinImg(path) ? path : "";
+				}
+			}
+			refreshPaths();
+		}
+		@property
+		string binPath() { mixin(S_TRACE);
+			static if (Type == MtType.BG_IMG) {
+				return _binPaths[_imageIndex];
+			} else {
+				return "";
+			}
+		}
 	}
 	@property
 	string filePath() { mixin(S_TRACE);
 		if (!_dirs || _dirs.isDisposed()) return "";
 		if (!_fileList || _fileList.isDisposed()) return "";
-		if (_dirs.getSelectionIndex() == _including && isBinImg(_binPath)) { mixin(S_TRACE);
-			return _binPath;
+		static if (Type == MtType.CARD || Type == MtType.BG_IMG) {
+			if (indexOfBinPath && _dirs.getSelectionIndex() == indexOfBinPath(0 < binPath.length) && binPath.length) { mixin(S_TRACE);
+				return binPath;
+			}
 		}
 		auto p = currentDir;
 		if (p && _fileList.getSelectionIndex() >= 0) { mixin(S_TRACE);
@@ -837,42 +911,6 @@ public:
 		return "";
 	}
 	@property
-	void path(string path) { mixin(S_TRACE);
-		path2(path, true);
-	}
-	void path2(string path, bool updateBinImg) { mixin(S_TRACE);
-		auto old = _path;
-		scope (exit) {
-			if (old != _path) {
-				foreach (dlg; modEvent) dlg();
-			}
-			refreshButtons();
-		}
-		_path = path;
-		if (updateBinImg) {
-			_binPath = isBinImg(path) ? path : "";
-		}
-		static if (Type is MtType.CARD) {
-			if (!useNoCardSizeImage && !_binPath.length) { mixin(S_TRACE);
-				auto p = summSkin.findImagePath(_path, _summ ? _summ.scenarioPath : "");
-				if (p.length) { mixin(S_TRACE);
-					uint w, h;
-					imageSize(p, w, h);
-					auto cs = _prop.looks.cardSize;
-					if (cs.width != w || cs.height != h) { mixin(S_TRACE);
-						useNoCardSizeImage = true;
-						if (_refresh) _refresh();
-					}
-				}
-			}
-		}
-		refreshDefs();
-	}
-	@property
-	string binPath() { mixin(S_TRACE);
-		return _binPath;
-	}
-	@property
 	D dirsCombo() { mixin(S_TRACE);
 		return _dirs;
 	}
@@ -881,7 +919,7 @@ public:
 		return _fileList;
 	}
 	void refresh() { mixin(S_TRACE);
-		refreshDefs();
+		refreshPaths();
 		if (_refresh) _refresh();
 	}
 
@@ -955,17 +993,25 @@ public:
 			refreshButtons();
 			if (_refresh) _refresh();
 		}
-		if (sel < _defs.length) { mixin(S_TRACE);
-			_path = "";
+		auto defs = _defs(0 < binPath.length);
+		if (sel < defs.length) { mixin(S_TRACE);
+			static if (Type == MtType.CARD) {
+				if (valueFromDef) { mixin(S_TRACE);
+					_paths[_imageIndex] = valueFromDef(sel, 0 < binPath.length, binPath);
+				} else { mixin(S_TRACE);
+					path2("", false);
+				}
+			} else { mixin(S_TRACE);
+				path2("", false);
+			}
 			if (_selDir != sel) { mixin(S_TRACE);
 				foreach (dlg; modEvent) dlg();
 			}
-			_selDir = sel;
 		} else { mixin(S_TRACE);
 			static if (is(C : Combo) || is(C : CCombo)) {
-				auto old = _path;
+				auto old = this.path;
 				scope (exit) {
-					if (old != _path) {
+					if (old != this.path) {
 						foreach (dlg; modEvent) dlg();
 					}
 				}
@@ -973,10 +1019,10 @@ public:
 				if (!p) return;
 				if (0 == _fileList.getItemCount()) return;
 				_fileList.select(0);
-				_path = std.path.buildPath(p, _fileList.getItem(0));
+				path2(std.path.buildPath(p, _fileList.getItem(0)), false);
 			}
-			_selDir = sel;
 		}
+		_selDir = sel;
 	}
 
 	@property
@@ -1046,64 +1092,68 @@ private:
 	}
 	class LSListener : SelectionAdapter {
 		public override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			int index = _fileList.getSelectionIndex();
-			if (index < 0) return;
-			auto old = _path;
-			scope (exit) {
-				if (old != _path) {
-					foreach (dlg; modEvent) dlg();
-				}
-				refreshButtons();
+			selectFile();
+		}
+	}
+	void selectFile() { mixin(S_TRACE);
+		int index = _fileList.getSelectionIndex();
+		if (index < 0) return;
+		auto old = this.path;
+		scope (exit) {
+			if (old != this.path) {
+				foreach (dlg; modEvent) dlg();
 			}
-			if (_allList) { mixin(S_TRACE);
-				string s = fileText(_fileList.getItem(index));
-				string file;
-				if (s.startsWith("/")) { mixin(S_TRACE);
-					s = s["/".length .. $];
-					auto i = s.lastIndexOf("/");
-					if (i != -1) { mixin(S_TRACE);
-						file = s[i + "/".length .. $];
-						s = s[0 .. i];
-					} else { mixin(S_TRACE);
-						file = s;
-						s = "/";
-					}
-					_dirs.setText(s);
+			refreshButtons();
+		}
+		if (_allList) { mixin(S_TRACE);
+			string s = fileText(_fileList.getItem(index));
+			string file;
+			if (s.startsWith("/")) { mixin(S_TRACE);
+				s = s["/".length .. $];
+				auto i = s.lastIndexOf("/");
+				if (i != -1) { mixin(S_TRACE);
+					file = s[i + "/".length .. $];
+					s = s[0 .. i];
 				} else { mixin(S_TRACE);
-					_dirs.select(_tbl);
 					file = s;
+					s = "/";
 				}
-				refreshList();
-				ptrdiff_t selIndex = -1;
-				foreach (i, itm; _fileList.getItems()) { mixin(S_TRACE);
-					if (cfnmatch(fileText(itm), file)) { mixin(S_TRACE);
-						selIndex = i;
-						break;
-					}
+				_dirs.setText(s);
+			} else { mixin(S_TRACE);
+				_dirs.select(_tbl);
+				file = s;
+			}
+			refreshList();
+			ptrdiff_t selIndex = -1;
+			foreach (i, itm; _fileList.getItems()) { mixin(S_TRACE);
+				if (cfnmatch(fileText(itm), file)) { mixin(S_TRACE);
+					selIndex = i;
+					break;
 				}
-				_fileList.select(cast(int)selIndex);
-				static if (is (C == Table)) {
-					_fileList.showSelection();
+			}
+			_fileList.select(cast(int)selIndex);
+			static if (is (C == Table)) {
+				_fileList.showSelection();
+			}
+			string p = currentDir;
+			path2(std.path.buildPath(p, file), false);
+			_selDir = _dirs.getSelectionIndex();
+			if (_refresh) _refresh();
+		} else { mixin(S_TRACE);
+			string p = currentDir;
+			if (!p) { mixin(S_TRACE);
+				static if (is(C : Combo) || is(C : CCombo)) {
+					if (index == 0) return;
+					_fileList.remove(0);
 				}
-				string p = currentDir;
-				_path = std.path.buildPath(p, file);
+				auto defs = _defs(0 < binPath.length);
+				_dirs.select(cast(int)defs.length);
+				p = currentDir;
+			}
+			if (p) { mixin(S_TRACE);
+				path2(std.path.buildPath(p, fileText(_fileList.getItem(_fileList.getSelectionIndex()))), false);
 				_selDir = _dirs.getSelectionIndex();
 				if (_refresh) _refresh();
-			} else { mixin(S_TRACE);
-				string p = currentDir;
-				if (!p) { mixin(S_TRACE);
-					static if (is(C : Combo) || is(C : CCombo)) {
-						if (index == 0) return;
-						_fileList.remove(0);
-					}
-					_dirs.select(cast(int)_defs.length);
-					p = currentDir;
-				}
-				if (p) { mixin(S_TRACE);
-					_path = std.path.buildPath(p, fileText(_fileList.getItem(_fileList.getSelectionIndex())));
-					_selDir = _dirs.getSelectionIndex();
-					if (_refresh) _refresh();
-				}
 			}
 		}
 	}
@@ -1120,7 +1170,8 @@ private:
 	}
 	private void openFilePath() { mixin(S_TRACE);
 		auto dir = _dirs.getSelectionIndex();
-		if (dir < _defs.length) return;
+		auto defs = _defs(0 < binPath.length);
+		if (dir < defs.length) return;
 		if (dir == _tbl) return;
 		auto p = filePath;
 		if (p.length) { mixin(S_TRACE);
@@ -1144,7 +1195,8 @@ private:
 	@property
 	private string currentDir() { mixin(S_TRACE);
 		int sel = _dirs.getSelectionIndex();
-		if (sel >= _defs.length) { mixin(S_TRACE);
+		auto defs = _defs(0 < binPath.length);
+		if (sel >= defs.length) { mixin(S_TRACE);
 			if (sel == _tbl) { mixin(S_TRACE);
 				return "";
 			} else { mixin(S_TRACE);
@@ -1217,7 +1269,7 @@ private:
 				_fileList.add(f);
 			} else static assert (0);
 		}
-		string sel = _path.length > 0 ? baseName(_path) : "";
+		string sel = this.path.length > 0 ? baseName(this.path) : "";
 		if (sel.length > 0 && _dirs.getSelectionIndex() == _selDir) { mixin(S_TRACE);
 			auto index = flIndexOf(sel);
 			if (index >= 0) { mixin(S_TRACE);
@@ -1241,7 +1293,8 @@ private:
 	@property
 	string[] allDirs() { mixin(S_TRACE);
 		string[] st;
-		foreach (i; cast(int)_defs.length .. _dirs.getItemCount()) { mixin(S_TRACE);
+		auto defs = _defs(0 < binPath.length);
+		foreach (i; cast(int)defs.length .. _dirs.getItemCount()) { mixin(S_TRACE);
 			string t = _dirs.getItem(i);
 			if (i == _tbl) { mixin(S_TRACE);
 				st ~= defDir;
@@ -1258,7 +1311,8 @@ private:
 	void refreshList(bool forceRefresh = false) { mixin(S_TRACE);
 		_fileList.removeAll();
 		_fnone = false;
-		if (_dirs.getSelectionIndex() < _defs.length) { mixin(S_TRACE);
+		auto defs = _defs(0 < binPath.length);
+		if (_dirs.getSelectionIndex() < defs.length) { mixin(S_TRACE);
 			auto dirs = allDirs;
 			if (!dirs.length) { mixin(S_TRACE);
 				_fileList.setEnabled(false);
@@ -1301,8 +1355,10 @@ private:
 		int oldSel = _dirs.getSelectionIndex();
 		if (oldSel < 0) oldSel = 0;
 		string oldSelS = _dirs.getText();
+
 		_dirs.removeAll();
-		foreach (def; _defs) { mixin(S_TRACE);
+		auto defs = _defs(0 < binPath.length);
+		foreach (def; defs) { mixin(S_TRACE);
 			_dirs.add(def);
 		}
 		auto tbl = defDir;
@@ -1324,7 +1380,7 @@ private:
 		}
 		if (!select) { mixin(S_TRACE);
 			void selectOld() { mixin(S_TRACE);
-				if (oldSel < _defs.length) { mixin(S_TRACE);
+				if (oldSel < defs.length) { mixin(S_TRACE);
 					_dirs.select(oldSel);
 				} else { mixin(S_TRACE);
 					auto index = dirsIndexOf(oldSelS);
@@ -1334,12 +1390,30 @@ private:
 						_dirs.select(0);
 					}
 				}
+				static if (Type == MtType.CARD) {
+					auto index = _dirs.getSelectionIndex();
+					if (index < defs.length) { mixin(S_TRACE);
+						if (valueFromDef) { mixin(S_TRACE);
+							_paths[_imageIndex] = valueFromDef(index, 0 < binPath.length, binPath);
+						}
+					}
+				}
 			}
-			bool def;
-			if (isBinImg(_path)) { mixin(S_TRACE);
-				_dirs.select(_including);
+			int index = -1;
+			static if (Type == MtType.CARD) {
+				if (valueToDef) { mixin(S_TRACE);
+					index = valueToDef(_paths[_imageIndex], 0 < binPath.length);
+				}
+			} else {
+				if (this.path.isBinImg && indexOfBinPath) { mixin(S_TRACE);
+					index = indexOfBinPath(0 < binPath.length);
+				}
+			}
+			if (0 <= index) { mixin(S_TRACE);
+				_dirs.select(index);
 			} else { mixin(S_TRACE);
-				auto p = summSkin.findPathF(_path, defExts, defDir, _summ ? _summ.scenarioPath : "", def);
+				bool def;
+				auto p = summSkin.findPathF(this.path, defExts, defDir, _summ ? _summ.scenarioPath : "", def);
 				if (p.length > 0) { mixin(S_TRACE);
 					if (def) { mixin(S_TRACE);
 						if (_tbl == -1) { mixin(S_TRACE);
@@ -1373,14 +1447,15 @@ private:
 		if (_refresh) _refresh();
 	}
 	void refPath(string o, string n, bool isDir) { mixin(S_TRACE);
-		auto old = _path;
+		auto old = this.path;
 		scope (exit) {
-			if (old != _path) {
+			if (old != this.path) {
 				foreach (dlg; modEvent) dlg();
 			}
 		}
 		if (isDir) { mixin(S_TRACE);
-			int i = cast(int)_defs.length;
+			auto defs = _defs(0 < binPath.length);
+			int i = cast(int)defs.length;
 			if (_tbl >= 0) i++;
 			for (; i < _dirs.getItemCount(); i++) { mixin(S_TRACE);
 				string name = fromViewPath(_dirs.getItem(i));
@@ -1394,7 +1469,7 @@ private:
 				}
 			}
 		} else { mixin(S_TRACE);
-			if (o == _path) _path = n;
+			if (o == this.path) path2(n, false);
 			int di = _dirs.getSelectionIndex();
 			auto op = o;
 			if (di >= 0 && cfnmatch(fromViewPath(_dirs.getItems()[di]), dirName(o))) { mixin(S_TRACE);
@@ -1416,7 +1491,7 @@ private:
 		refreshPaths();
 	}
 	void replPath(string from, string to) { mixin(S_TRACE);
-		if (_path == from) { mixin(S_TRACE);
+		if (this.path == from) { mixin(S_TRACE);
 			refreshPaths();
 		}
 	}
@@ -1436,11 +1511,8 @@ private:
 	Summary _summ;
 	Button _dirBtn;
 	IncSearch _incSearch;
-	string _path = "";
-	string _binPath = "";
-	string[] _defs;
+	string[] delegate(bool included) _defs;
 	int _selDir;
-	int _including = -1;
 	bool _canInclude = false;
 	bool _isMenuCard = false;
 	int _tbl = -1;
@@ -1450,4 +1522,14 @@ private:
 	void delegate() _refresh;
 	Skin _summSkin;
 	bool _processing = false;
+	int _imageIndex = 0;
+	static if (Type == MtType.CARD) {
+		CardImage[] _paths = [];
+		string[] _binPaths = [];
+	} else {
+		string _path = "";
+		static if (Type == MtType.BG_IMG) {
+			string[] _binPaths = [""];
+		}
+	} 
 }

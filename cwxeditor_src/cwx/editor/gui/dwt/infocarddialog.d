@@ -117,9 +117,8 @@ protected:
 		}
 		{ mixin(S_TRACE);
 			auto skin = summSkin;
-			bool including = _card && _card.paths.length && isBinImg(_card.paths[0]);
 			_imgPath = new ImageSelect!(MtType.CARD)(area, _readOnly, _comm, _prop, _summ,
-				_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText);
+				_prop.looks.cardSize.width, _prop.looks.cardSize.height, true, &_name.getText);
 			mod(_imgPath);
 			_imgPath.modEvent ~= &refreshWarning;
 			_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));

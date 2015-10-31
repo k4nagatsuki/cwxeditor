@@ -227,9 +227,8 @@ private:
 				l.setText(.tryFormat(_prop.msgs.nameLimit, _prop.looks.castNameLimit, _prop.looks.castNameLimit / 2));
 			}
 			{ mixin(S_TRACE);
-				bool including = _card && _card.paths.length && isBinImg(_card.paths[0]);
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, _readOnly, _comm, _prop, _summ,
-					_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText);
+					_prop.looks.cardSize.width, _prop.looks.cardSize.height, true, &_name.getText);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));

@@ -1417,7 +1417,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 			PileImage.TPos.RIGHT);
 	}
 	foreach (path; c.paths) { mixin(S_TRACE);
-		r.append(skin.findImagePath(path, sPath), matPad, ScaleType.Center, true);
+		path.addToPileImage(r, prop, skin, sPath, matPad, ScaleType.Center);
 	}
 	int stMax = prop.looks.statusVerMax;
 	if (dbgMode || c.faceUpRound > 0) { mixin(S_TRACE);
@@ -1567,6 +1567,38 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 	}
 	return r.createImageData();
 }
+
+void addToPileImage(in CardImage img, PileImage pile, Props prop, Skin skin, string sPath, CInsets matPad, ScaleType type) { mixin(S_TRACE);
+	final switch (img.type) {
+	case CardImageType.PCNumber:
+		if (0 < img.pcNumber) { mixin(S_TRACE);
+			pile.append(dwtData(prop.looks.pcNumberFont(skin.legacy)), .text(img.pcNumber), prop.looks.menuCardInsets);
+		}
+		break;
+	case CardImageType.File:
+		auto path = skin.findImagePath(img.path, sPath);
+		if (path != "") { mixin(S_TRACE);
+			pile.append(path, matPad, type, true);
+		}
+		break;
+	case CardImageType.Talker:
+		final switch (img.talker) {
+		case Talker.SELECTED:
+		case Talker.UNSELECTED:
+		case Talker.RANDOM:
+		case Talker.VALUED:
+			pile.append(prop.images.talker(img.talker).getImageData(), matPad, type, true);
+			break;
+		case Talker.CARD:
+			auto cRect = prop.looks.cardSize;
+			auto tImg = menuCard(skin).scaledTo(cRect.width, cRect.height);
+			pile.append(tImg, CInsets(0, 0, 0, 0), type, false);
+			break;
+		}
+		break;
+	}
+}
+
 ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard owner, const(C) delegate(ulong) get, bool detail, bool preview) { mixin(S_TRACE);
 	static if (is (C == SkillCard)) {
 		bool hold = base.hold;
@@ -1626,7 +1658,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 		}
 	}
 	foreach (path; c.paths) { mixin(S_TRACE);
-		r.append(skin.findImagePath(path, sPath), matPad, ScaleType.Cut, true);
+		path.addToPileImage(r, prop, skin, sPath, matPad, ScaleType.Cut);
 	}
 	static if (is(typeof(c.linkId))) {
 		if (link) { mixin(S_TRACE);
@@ -2608,7 +2640,8 @@ enum CIDKind {
 	Beast,
 	Info,
 	Image,
-	Images,
+	CardImage,
+	CardImages,
 	BGM,
 	SE,
 	Flag,
@@ -2689,21 +2722,77 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 		};
 		use = id && id.length;
 		name = id;
-	} else static if (CIDKind.Images == Kind) { mixin(S_TRACE);
+	} else static if (CIDKind.CardImage == Kind) { mixin(S_TRACE);
+		noSelect = comm.prop.msgs.noSelectImage;
+		noID = comm.prop.msgs.noImage;
+		final switch (id.type) {
+		case CardImageType.File:
+			name = contentTextUseID!(CIDKind.Image)(comm, summ, id.path, "%s", evt);
+			use = id.path != "";
+			find = { mixin(S_TRACE);
+				if (summ) { mixin(S_TRACE);
+					return comm.skin.findImagePath(id.path, summ.scenarioPath).length > 0;
+				} else { mixin(S_TRACE);
+					return comm.skin.findImagePath(id.path, "").length > 0;
+				}
+			};
+			break;
+		case CardImageType.PCNumber:
+			goto case CardImageType.File; // 非対応
+		case CardImageType.Talker:
+			final switch (id.talker) {
+			case Talker.SELECTED:
+			case Talker.UNSELECTED:
+			case Talker.RANDOM:
+			case Talker.CARD:
+			case Talker.VALUED:
+				name = comm.prop.msgs.talkerName(id.talker);
+				use = true;
+				find = () => true;
+				break;
+			}
+			break;
+		}
+	} else static if (CIDKind.CardImages == Kind) { mixin(S_TRACE);
 		noSelect = comm.prop.msgs.noSelectImage;
 		noID = comm.prop.msgs.noImage;
 		string[] paths;
 		use = false;
-		foreach (path; id) { mixin(S_TRACE);
-			paths ~= contentTextUseID!(CIDKind.Image)(comm, summ, path, "%s", evt);
-			use |= 0 < path.length;
+		if (id.length) { mixin(S_TRACE);
+			foreach (path; id) { mixin(S_TRACE);
+				paths ~= contentTextUseID!(CIDKind.CardImage)(comm, summ, path, "%s", evt);
+
+				final switch (path.type) {
+				case CardImageType.File:
+					use |= path.path != "";
+					break;
+				case CardImageType.PCNumber:
+					// 非対応
+					break;
+				case CardImageType.Talker:
+					use = true;
+					break;
+				}
+			}
+		} else { mixin(S_TRACE);
+			// 一件も指定が無い場合は話者無しメッセージ
+			use = true;
 		}
 		find = { mixin(S_TRACE);
 			foreach (path; id) { mixin(S_TRACE);
-				if (summ) { mixin(S_TRACE);
-					if (comm.skin.findImagePath(path, summ.scenarioPath).length > 0) return true;
-				} else { mixin(S_TRACE);
-					if (comm.skin.findImagePath(path, "").length > 0) return true;
+				final switch (path.type) {
+				case CardImageType.File:
+					if (summ) { mixin(S_TRACE);
+						return comm.skin.findImagePath(path.path, summ.scenarioPath).length > 0;
+					} else { mixin(S_TRACE);
+						return comm.skin.findImagePath(path.path, "").length > 0;
+					}
+					break;
+				case CardImageType.PCNumber:
+					// 非対応
+					break;
+				case CardImageType.Talker:
+					return true;
 				}
 			}
 			return false;
@@ -2769,9 +2858,11 @@ string contentTextUseID(CIDKind Kind, ID)(Commons comm, Summary summ, ID id, str
 	if (exists) { mixin(S_TRACE);
 		return .tryFormat(msg, name);
 	} else { mixin(S_TRACE);
-		static if (CIDKind.Images == Kind) {
+		static if (CIDKind.CardImages == Kind) {
 			// 配列なので個別の生成結果を統合したものを表示
 			return .tryFormat(msg, name);
+		} else static if (CIDKind.CardImage == Kind) {
+			return .tryFormat(msg, .tryFormat(noID, .encodePath(id.path)));
 		} else {
 			return .tryFormat(msg, .tryFormat(noID, id));
 		}
@@ -2844,18 +2935,11 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	} case CType.TALK_MESSAGE: { mixin(S_TRACE);
 		string text = evt.text;
 		text = text.singleLine;
-		final switch (evt.talkerC) {
-		case Talker.NARRATION:
-			return text;
-		case Talker.SELECTED:
-		case Talker.UNSELECTED:
-		case Talker.RANDOM:
-		case Talker.CARD:
-		case Talker.VALUED:
-			return .tryFormat(comm.prop.msgs.ctTalkMessage, .tryFormat(comm.prop.msgs.ctTalkMessageImage, comm.prop.msgs.talkerName(evt.talkerC)), text);
-		case Talker.IMAGE:
-			string t = contentTextUseID!(CIDKind.Images)(comm, summ, evt.cardPaths, comm.prop.msgs.ctTalkMessageImage, evt);
+		if (evt.cardPaths.length) {
+			auto t = contentTextUseID!(CIDKind.CardImages)(comm, summ, evt.cardPaths, comm.prop.msgs.ctTalkMessageImage, evt);
 			return .tryFormat(comm.prop.msgs.ctTalkMessage, t, text);
+		} else {
+			return text;
 		}
 	} case CType.TALK_DIALOG: { mixin(S_TRACE);
 		string r(in SDialog sdlg) { mixin(S_TRACE);

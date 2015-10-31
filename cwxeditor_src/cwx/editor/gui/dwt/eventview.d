@@ -113,9 +113,8 @@ private:
 	}
 	PileImage createCardImage(in AbstractSpCard spCard) { mixin(S_TRACE);
 		if (auto card = cast(MenuCard)spCard) {
-			auto paths = .map!(a => _comm.skin.findImagePath(a, _summ.scenarioPath))(card.paths).array();
-			return createMenuCardImage!PileImage(_prop, _comm.skin, card.name,
-				paths, 0, 0, 1.0, _prop.var.etc.smoothingCard, card.pcNumber);
+			return createMenuCardImage!PileImage(_prop, _comm.skin, _summ.scenarioPath, card.name,
+				card.paths, 0, 0, 1.0, _prop.var.etc.smoothingCard);
 		} else if (auto card = cast(EnemyCard)spCard) {
 			auto skin = _comm.skin;
 			auto castCard = _summ.cwCast(card.id);
@@ -1380,7 +1379,7 @@ public:
 			_cards.setMenu(menu);
 
 			if (cast(Area)_area || cast(Battle)_area) {
-				_preview = new Preview(_prop, _cards.getShell());
+				_preview = new Preview(_prop, _cards);
 				auto closePreview = new ClosePreview;
 				_cards.getVerticalBar().addSelectionListener(closePreview);
 				_cards.getHorizontalBar().addSelectionListener(closePreview);

@@ -2202,16 +2202,37 @@ private:
 			string path(in C card) { mixin(S_TRACE);
 				string[] arr;
 				foreach (path; card.paths) { mixin(S_TRACE);
-					if (!path.length) { mixin(S_TRACE);
-						arr ~= _prop.msgs.noSelectImage;
-					} else if (isBinImg(path)) { mixin(S_TRACE);
-						arr ~= _prop.msgs.areaViewStatusImageIncluding;
-					} else if (!summSkin.findImagePath(path, _summ ? _summ.scenarioPath : "").length) { mixin(S_TRACE);
-						arr ~= .tryFormat(_prop.msgs.noImage, encodePath(path));
-					} else { mixin(S_TRACE);
-						arr ~= encodePath(path);
+					final switch (path.type) {
+					case CardImageType.File:
+						if (!path.path.length) { mixin(S_TRACE);
+							arr ~= _prop.msgs.noSelectImage;
+						} else if (isBinImg(path.path)) { mixin(S_TRACE);
+							arr ~= _prop.msgs.areaViewStatusImageIncluding;
+						} else if (!summSkin.findImagePath(path.path, _summ ? _summ.scenarioPath : "").length) { mixin(S_TRACE);
+							arr ~= .tryFormat(_prop.msgs.noImage, encodePath(path.path));
+						} else { mixin(S_TRACE);
+							arr ~= encodePath(path.path);
+						}
+						break;
+					case CardImageType.PCNumber:
+						if (0 < path.pcNumber) { mixin(S_TRACE);
+							arr ~= .tryFormat(_prop.msgs.pcNumber, path.pcNumber);
+						}
+						break;
+					case CardImageType.Talker:
+						final switch (path.talker) {
+						case Talker.SELECTED:
+						case Talker.UNSELECTED:
+						case Talker.RANDOM:
+						case Talker.VALUED:
+						case Talker.CARD:
+							arr ~= _prop.msgs.talkerName(path.talker);
+							break;
+						}
+						break;
 					}
 				}
+				if (arr.length == 0) arr ~= _prop.msgs.noSelectImage;
 				return std.string.join(arr, " ");
 			}
 		} else static if (is(C : EnemyCard)) {
@@ -2458,7 +2479,7 @@ private:
 	static if (is(C:EnemyCard)) {
 		Composite createBgmPane(Composite parent) { mixin (S_TRACE);
 			auto skin = summSkin;
-			_bgm = new MaterialSelect!(MtType.BGM, Combo, Combo)(_comm, _prop, _summ, _readOnly != 0, &selectBGM, [_prop.msgs.defaultSelection(_prop.msgs.bgmNone)]);
+			_bgm = new MaterialSelect!(MtType.BGM, Combo, Combo)(_comm, _prop, _summ, _readOnly != 0, &selectBGM, included => [_prop.msgs.defaultSelection(_prop.msgs.bgmNone)]);
 
 			auto comp = new Composite(parent, SWT.NONE);
 			auto gl = windowGridLayout(2, false);
@@ -2752,7 +2773,7 @@ public:
 			}
 		}
 		_comm.refShowToolBar.add(&refShowToolBar);
-		_preview = new Preview(_prop, parent.getShell());
+		_preview = new Preview(_prop, this);
 		addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				_preview.dispose();
@@ -3877,9 +3898,8 @@ public:
 	}
 	PImg createCardImage(PImg, C2)(in C2 card, bool smoothing) { mixin(S_TRACE);
 		static if (is(C2 : MenuCard) || is(C2 : const MenuCard)) {
-			return createMenuCardImage!PImg
-				(prop, summSkin, card.name,
-				cardImagePath(card), card.x, card.y, card.scale, smoothing, card.pcNumber);
+			return createMenuCardImage!PImg(prop, summSkin, summary.scenarioPath, card.name,
+				cardImagePath(card), card.x, card.y, card.scale, smoothing);
 		} else static if (is(C2 : EnemyCard) || is(C2 : const EnemyCard)) {
 			auto skin = summSkin;
 			auto castCard = summary.cwCast(card.id);
@@ -3900,15 +3920,15 @@ public:
 			return castCard ? castCard.name : "";
 		} else static assert (0, C2);
 	}
-	string[] cardImagePath(C2)(in C2 card) { mixin(S_TRACE);
+	CardImage[] cardImagePath(C2)(in C2 card) { mixin(S_TRACE);
 		static if (is(typeof(card.paths))) {
-			return .map!(a => summSkin.findImagePath(a, summary.scenarioPath))(card.paths).array();
+			return card.paths;
 		} else static if (is(typeof(summary.cwCast(card.id)))) {
 			auto castCard = summary.cwCast(card.id);
 			if (castCard) { mixin(S_TRACE);
-				return .map!(a => summSkin.findImagePath(a, summary.scenarioPath))(castCard.paths).array();
+				return castCard.paths;
 			} else { mixin(S_TRACE);
-				return "";
+				return [];
 			}
 		} else static assert (0, C2);
 	}
@@ -4665,7 +4685,7 @@ public:
 						return -1;
 					}
 				}
-				auto card = new MenuCard(baseName(.stripExtension(fname)), fname.length ? [fname.abs2rel(_summ.scenarioPath)] : [], "", "", x, y, 1.0);
+				auto card = new MenuCard(baseName(.stripExtension(fname)), fname.length ? [new CardImage(fname.abs2rel(_summ.scenarioPath))] : [], "", "", x, y, 1.0);
 				return appendCard(card, true, true, fromImgPane);
 			}
 			private class CLDropTarget : DropTargetAdapter {

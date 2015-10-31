@@ -31,11 +31,12 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	auto psumm = cast(Summary) path;
 	if (psumm) { mixin(S_TRACE);
 		foreach (imagePath; psumm.imagePaths) { mixin(S_TRACE);
-			if (imagePath != "" && !isBinImg(imagePath) && !skin.findPath(imagePath, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
-				r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(imagePath));
+			if (imagePath.type !is CardImageType.File) continue;
+			if (imagePath.path != "" && !isBinImg(imagePath.path) && !skin.findPath(imagePath.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(imagePath.path));
 			}
-			if (imagePath != "") { mixin(S_TRACE);
-				r ~= skin.warningImage(prop, imagePath, psumm.legacy, true, targVer);
+			if (imagePath.path != "") { mixin(S_TRACE);
+				r ~= skin.warningImage(prop, imagePath.path, psumm.legacy, true, targVer);
 			}
 		}
 		if (psumm.levelMin > psumm.levelMax) { mixin(S_TRACE);
@@ -96,11 +97,12 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	auto card = cast(Card) path;
 	if (card) { mixin(S_TRACE);
 		foreach (imagePath; card.paths) { mixin(S_TRACE);
-			if (imagePath != "" && !isBinImg(imagePath) && !skin.findPath(imagePath, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
-				r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(imagePath));
+			if (imagePath.type !is CardImageType.File) continue;
+			if (imagePath.path != "" && !isBinImg(imagePath.path) && !skin.findPath(imagePath.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(imagePath.path));
 			}
-			if (imagePath != "") { mixin(S_TRACE);
-				r ~= skin.warningImage(prop, imagePath, summ ? summ.legacy : false, true, targVer);
+			if (imagePath.path != "") { mixin(S_TRACE);
+				r ~= skin.warningImage(prop, imagePath.path, summ ? summ.legacy : false, true, targVer);
 			}
 		}
 	}
@@ -213,28 +215,30 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto mc = cast(MenuCard) path;
 	if (mc) { mixin(S_TRACE);
-		foreach (imagePath; mc.paths) {
-			if (imagePath != "" && !isBinImg(imagePath) && !skin.findPath(imagePath, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
-				r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(imagePath));
-			}
-			if (imagePath != "") {
-				if (isBinImg(imagePath)) { mixin(S_TRACE);
-					auto bin =  cast(ubyte[])strToBImg(imagePath);
-					auto type = imageType(bin);
-					if (type != "") {
-						auto img = "image".setExtension(type);
-						r ~= skin.warningImage(prop, img, summ ? summ.legacy : false, true, targVer);
-					}
-				} else {
-					r ~= skin.warningImage(prop, imagePath, summ ? summ.legacy : false, false, targVer);
+		foreach (imagePath; mc.paths) { mixin(S_TRACE);
+			if (imagePath.type is CardImageType.File) { mixin(S_TRACE);
+				if (imagePath.path != "" && !isBinImg(imagePath.path) && !skin.findPath(imagePath.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
+					r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(imagePath.path));
 				}
+				if (imagePath.path != "") {
+					if (isBinImg(imagePath.path)) { mixin(S_TRACE);
+						auto bin =  cast(ubyte[])strToBImg(imagePath.path);
+						auto type = imageType(bin);
+						if (type != "") {
+							auto img = "image".setExtension(type);
+							r ~= skin.warningImage(prop, img, summ ? summ.legacy : false, true, targVer);
+						}
+					} else {
+						r ~= skin.warningImage(prop, imagePath.path, summ ? summ.legacy : false, false, targVer);
+					}
+				}
+			}
+			if (imagePath.type is CardImageType.PCNumber && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
+				r ~= prop.msgs.warningPCNumberClassic;
 			}
 		}
 		if (mc.flag != "" && !(froot && froot.findFlag(mc.flag))) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, mc.flag);
-		}
-		if (0 != mc.pcNumber && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
-			r ~= prop.msgs.warningPCNumberClassic;
 		}
 	}
 	auto ec = cast(EnemyCard) path;
@@ -305,14 +309,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= .tryFormat(prop.msgs.searchErrorStepNotFound, c.step);
 			}
 		}
-		if (c.type == CType.TALK_MESSAGE && c.talkerC == Talker.IMAGE) { mixin(S_TRACE);
-			foreach (cardPath; c.cardPaths) { mixin(S_TRACE);
-				if (cardPath != "" && !skin.findPath(cardPath, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
-					r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(cardPath));
-				}
-				if (cardPath != "") { mixin(S_TRACE);
-					r ~= skin.warningImage(prop, cardPath, summ ? summ.legacy : false, false, targVer);
-				}
+		foreach (cardPath; c.cardPaths) { mixin(S_TRACE);
+			if (cardPath.type !is CardImageType.File) continue;
+			if (cardPath.path != "" && !skin.findPath(cardPath.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.searchErrorImageNotFound, .encodePath(cardPath.path));
+			}
+			if (cardPath.path != "") { mixin(S_TRACE);
+				r ~= skin.warningImage(prop, cardPath.path, summ ? summ.legacy : false, false, targVer);
 			}
 		}
 		if (c.bgmPath != "" && !skin.findPath(c.bgmPath, skin.extBgm, skin.bgmDir, sPath).length) { mixin(S_TRACE);
@@ -424,7 +427,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= .tryFormat(prop.msgs.warningSelectionBarIsMany, c.next.length, maxNextLen(c));
 		}
 
-		if (c.talkerC is Talker.VALUED && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
+		if (c.talkerNC is Talker.VALUED && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningValuedTalker;
 		}
 		if (c.status !is Status.NONE) { mixin(S_TRACE);

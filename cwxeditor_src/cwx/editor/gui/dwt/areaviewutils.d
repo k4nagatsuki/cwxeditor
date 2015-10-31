@@ -152,12 +152,14 @@ PImg createCastCardImage(PImg)(Props prop, Skin skin, CastCard card,
 
 /// メニューカード画像を生成する。
 /// Returns: カード画像。
-PImg createMenuCardImage(PImg)(Props prop, Skin skin,
-		string title, in string[] paths, int x, int y, real scale, bool smoothing, uint pcNum) { mixin(S_TRACE);
+PImg createMenuCardImage(PImg)(Props prop, Skin skin, string sPath,
+		string title, in CardImage[] paths, int x, int y, real scale, bool smoothing) { mixin(S_TRACE);
 	auto matPad = prop.looks.menuCardInsets;
 	auto card = menuCard(skin);
 	auto r = createCardImageCommon!PImg(prop, card, matPad, x, y, scale, smoothing);
-	foreach (path; paths) r.append(path, matPad, ScaleType.Cut, true);
+	foreach (path; paths) { mixin(S_TRACE);
+		path.addToPileImage(r, prop, skin, sPath, matPad, ScaleType.Cut);
+	}
 	auto tx = prop.looks.menuCardNamePoint.x;
 	auto w = card.width;
 	r.setTitle(title, dwtData(prop.looks.menuCardNameFont(skin.legacy)), dwtData(prop.looks.menuCardNamePoint),
@@ -166,9 +168,6 @@ PImg createMenuCardImage(PImg)(Props prop, Skin skin,
 		if (getRGBAverage(card, prop.looks.cardNameArea) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
 			r.titleColor = new RGB(255, 255, 255);
 		}
-	}
-	if (0 != pcNum) { mixin(S_TRACE);
-		r.append(dwtData(prop.looks.pcNumberFont(skin.legacy)), .text(pcNum), prop.looks.menuCardInsets);
 	}
 	static if (is(PImg : FlexImage)) {
 		r.resize();
@@ -222,6 +221,7 @@ PileImage createMessageImage(Commons comm, Props prop) { mixin(S_TRACE);
 class Preview {
 	private Props _prop;
 	private Shell _shell;
+	private Control _parent;
 	private PileImage _image = null;
 	private PileImage _showingImage = null;
 	private int _x = 0, _y = 0;
@@ -230,15 +230,19 @@ class Preview {
 	private int _itmH = 0;
 	private Image _paintImage = null;
 
-	this (Props prop, Shell parentShell) { mixin(S_TRACE);
+	this (Props prop, Control parent) { mixin(S_TRACE);
 		_prop = prop;
+		_parent = parent;
 
-		_shell = new Shell(parentShell, SWT.NO_TRIM | SWT.NO_BACKGROUND);
+		createShell();
+	}
+	private void createShell() { mixin(S_TRACE);
+		_shell = new Shell(_parent.getShell(), SWT.NO_TRIM | SWT.NO_BACKGROUND);
 		_shell.setAlpha(_prop.var.etc.previewAlpha);
 		_shell.addPaintListener(new Paint);
 	}
 
-	class Paint : PaintListener {
+	private class Paint : PaintListener {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			onPaint(e);
 		}
@@ -251,7 +255,11 @@ class Preview {
 	}
 
 	void image(PileImage image, int x, int y, int itmH) { mixin(S_TRACE);
-		if (!_shell || _shell.isDisposed()) return;
+		if (!_shell || _shell.isDisposed()) { mixin(S_TRACE);
+			if (_parent.isDisposed()) return;
+			// ウィンドウ分離などで親のControlが別のウィンドウへ移っている場合がある
+			createShell();
+		}
 		_image = image;
 		if (_image) { mixin(S_TRACE);
 			_x = x;
@@ -271,10 +279,20 @@ class Preview {
 		if (!_shell || _shell.isDisposed()) return;
 		close();
 		_shell.dispose();
+		_shell = null;
 	}
 	void show() { mixin(S_TRACE);
-		if (!_shell || _shell.isDisposed()) return;
 		if (_prop.var.etc.showImagePreview && _image) { mixin(S_TRACE);
+			if (!_shell || _shell.isDisposed()) {
+				if (_parent.isDisposed()) return;
+				// ウィンドウ分離などで親のControlが別のウィンドウへ移っている場合がある
+				createShell();
+			} else if (_shell !is _parent.getShell()) { mixin(S_TRACE);
+				_shell.dispose();
+				_shell = null;
+				createShell();
+			}
+
 			if (_image is _showingImage && _x == _showingX && _y == _showingY && _shell.getVisible()) { mixin(S_TRACE);
 				return;
 			}
@@ -282,6 +300,7 @@ class Preview {
 			_showingX = _x;
 			_showingY = _y;
 			_shell.setVisible(false);
+
 			// 大きすぎる画像はリサイズ
 			_w = _image.baseWidth;
 			_h = _image.baseHeight;

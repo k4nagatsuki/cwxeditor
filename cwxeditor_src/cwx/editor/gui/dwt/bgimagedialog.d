@@ -380,7 +380,7 @@ protected:
 					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, including, true,
 					() => _cellName.getText(), &selectEasySetting);
 +/				_imgPath = new ImageSelect!(MtType.BG_IMG)(parent, SWT.NONE, _comm, _prop, _summ,
-					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, false, false,
+					_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, false,
 					null, &selectEasySetting);
 				// FIXME: CardWirth 1.60 背景イメージの格納 ここまで
 				mod(_imgPath);

@@ -913,7 +913,7 @@ protected:
 		{ mixin(S_TRACE);
 			auto skin = _comm.skin;
 			_msel = new MaterialSelect!(MtType.BGM, Combo, Table)
-				(_comm, _prop, _summ, false, null, [_prop.msgs.defaultSelection(_prop.msgs.bgmStop)]);
+				(_comm, _prop, _summ, false, null, included => [_prop.msgs.defaultSelection(_prop.msgs.bgmStop)]);
 			_msel.createDirsCombo(comp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
 			_msel.modEvent ~= &refreshWarning;
@@ -984,7 +984,7 @@ protected:
 		{ mixin(S_TRACE);
 			auto skin = _comm.skin;
 			_msel = new MaterialSelect!(MtType.SE, Combo, Table)
-				(_comm, _prop, _summ, false, null, []);
+				(_comm, _prop, _summ, false, null, included => cast(string[])[]);
 			_msel.createDirsCombo(comp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			mod(_msel);
 			_msel.modEvent ~= &refreshWarning;
@@ -1260,7 +1260,7 @@ protected:
 					gd.horizontalSpan = 2;
 					grp.setLayoutData(gd);
 					grp.setLayout(new GridLayout(3, false));
-					_se = new MaterialSelect!(MtType.SE, Combo, Combo)(comm, prop, summ, false, null, [prop.msgs.defaultSelection(prop.msgs.soundNone)]);
+					_se = new MaterialSelect!(MtType.SE, Combo, Combo)(comm, prop, summ, false, null, included => [prop.msgs.defaultSelection(prop.msgs.soundNone)]);
 					mod(_se);
 					_se.modEvent ~= &refreshWarning;
 					_se.createDirsCombo(grp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

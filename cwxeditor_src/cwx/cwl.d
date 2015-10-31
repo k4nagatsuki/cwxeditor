@@ -230,15 +230,15 @@ void loadImageRef(Summary summ) { mixin(S_TRACE);
 			auto cp = summ.findCWXPath(path);
 			auto card = cast(Card) cp;
 			if (card) { mixin(S_TRACE);
-				card.paths = node.value.length ? [decodePath(node.value)] : [];
+				card.paths = node.value.length ? [new CardImage(decodePath(node.value))] : [];
 			}
 			auto mCard = cast(MenuCard) cp;
 			if (mCard) { mixin(S_TRACE);
-				mCard.paths = node.value.length ? [decodePath(node.value)] : [];
+				mCard.paths = node.value.length ? [new CardImage(decodePath(node.value))] : [];
 			}
 			auto summ2 = cast(Summary) cp;
 			if (summ2) { mixin(S_TRACE);
-				summ2.imagePaths = node.value.length ? [decodePath(node.value)] : [];
+				summ2.imagePaths = node.value.length ? [new CardImage(decodePath(node.value))] : [];
 			}
 		};
 		node.parse();
@@ -696,7 +696,7 @@ private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) { 
 	string img = readImage(d, f);
 	byte b;
 	auto summ = new Summary(readString(f), d.skin, d.sPath, false, true);
-	summ.imagePaths = img.length ? [img] : [];
+	summ.imagePaths = img.length ? [new CardImage(img)] : [];
 	summ.desc = readString(f, true);
 	summ.author = readString(f);
 	if (d.cardOnly) return summ;
@@ -934,19 +934,25 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 		case 6: { mixin(S_TRACE);
 			string msgPath = readString(f);
 			Talker msgTalker;
+			bool hasTalker = true;
 			switch (msgPath) {
-			case "": msgTalker = Talker.NARRATION; break;
+			case "": hasTalker = false; break;
 			case "??Selected": msgTalker = Talker.SELECTED; break;
 			case "??Unselected": msgTalker = Talker.UNSELECTED; break;
 			case "??Random": msgTalker = Talker.RANDOM; break;
 			case "??Card": msgTalker = Talker.CARD; break;
-			default: msgTalker = Talker.IMAGE;
+			default: hasTalker = false; break;
 			}
 			e = new Content(CType.TALK_MESSAGE, name);
 			auto s = readString(f, true);
 			e.text = s;
-			e.talkerC = msgTalker;
-			e.cardPaths = (msgTalker != Talker.IMAGE || !msgPath.length) ? [] : [decodePathLegacy(msgPath)];
+			if (hasTalker) {
+				e.cardPaths = [new CardImage(msgTalker)];
+			} else if (msgPath.length) {
+				e.cardPaths = [new CardImage(decodePathLegacy(msgPath))];
+			} else {
+				e.cardPaths = [];
+			}
 			break;
 		}
 		case 7:
@@ -1808,25 +1814,32 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
 		real scale = f.readUIntL / 100.0;
 		int x = f.readIntL;
 		int y = f.readIntL;
-		string imgPath;
-		uint pcNum = 0;
+		CardImage imgPath = null;
 		if (d.dataVersion <= 2) { mixin(S_TRACE);
-			imgPath = "";
+			// 格納のみ
+			imgPath = img ? new CardImage(img) : null;
 		} else { mixin(S_TRACE);
-			imgPath = decodePathLegacy(readString(f));
-			if (isNumeric(imgPath)) { mixin(S_TRACE);
+			auto file = decodePathLegacy(readString(f));
+			if (isNumeric(file)) { mixin(S_TRACE);
 				// PC画像
 				try { mixin(S_TRACE);
-					pcNum = .to!int(imgPath);
-					if (0 != pcNum) imgPath = "";
+					auto pcNum = .to!uint(file);
+					if (0 < pcNum) imgPath = new CardImage(pcNum);
 				} catch (Exception e) {
 					printStackTrace();
 					debugln(e);
 				}
 			}
+			if (!imgPath && file.length) { mixin(S_TRACE);
+				// ファイル指定
+				imgPath = new CardImage(file);
+			}
+			if (!imgPath && img.length) {
+				// イメージ格納
+				imgPath = new CardImage(img);
+			}
 		}
-		auto c = new MenuCard(cName, imgPath.length ? [imgPath] : (img.length ? [img] : []), desc, flag, x, y, scale);
-		c.pcNumber = pcNum;
+		auto c = new MenuCard(cName, imgPath ? [imgPath] : [], desc, flag, x, y, scale);
 		foreach (tree; trees) { mixin(S_TRACE);
 			c.add(tree);
 		}
@@ -1901,7 +1914,7 @@ private CastCard loadCast(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 		d.dataVersion = 4;
 		id = idl - 40000;
 	}
-	auto r = new CastCard(id, name, img.length ? [img] : [], "", 1u, 1u);
+	auto r = new CastCard(id, name, img.length ? [new CardImage(img)] : [], "", 1u, 1u);
 	r.weaponResist = readBool(f);
 	r.magicResist = readBool(f);
 	r.undead = readBool(f);
@@ -1989,7 +2002,7 @@ private C readEffCard(C)(ref RData d, ref ByteIO f) { mixin(S_TRACE);
 		id = idl - 40000;
 	}
 	string desc = readString(f);
-	auto r = new C(id, name, img.length ? [img] : [], desc);
+	auto r = new C(id, name, img.length ? [new CardImage(img)] : [], desc);
 	r.physical = toPhysical(f.readUIntL);
 	r.mental = toMental(f.readIntL);
 	r.spell = readBool(f);
@@ -2079,7 +2092,7 @@ private InfoCard loadInfo(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 		id = idl - 40000;
 	}
 	string desc = readString(f);
-	return new InfoCard(id, name, img.length ? [img] : [], desc);
+	return new InfoCard(id, name, img.length ? [new CardImage(img)] : [], desc);
 }
 
 /// パーティ見出しデータ(*.wpl)からパーティ名を取得する。
@@ -2337,15 +2350,16 @@ string saveTemplate(in Summary summ) { mixin(S_TRACE);
 
 /// 保存用の拡張データ情報をdへ記録する。
 void putExData(ref SData d, CWXPath cp) { mixin(S_TRACE);
-	void putInnerImagePath(ref SData d, CWXPath cp, string imgPath) { mixin(S_TRACE);
+	void putInnerImagePath(ref SData d, CWXPath cp, in CardImage imgPath) { mixin(S_TRACE);
 		if (!d.saveInnerImagePath) return;
-		if (!imgPath.length) return;
-		if (isBinImg(imgPath)) return;
-		d.imageRef[cp.cwxPath(true)] = encodePathLegacy(imgPath);
+		if (imgPath.type !is CardImageType.File) return;
+		if (!imgPath.path.length) return;
+		if (isBinImg(imgPath.path)) return;
+		d.imageRef[cp.cwxPath(true)] = encodePathLegacy(imgPath.path);
 	}
 	if (auto summ = cast(Summary)cp) { mixin(S_TRACE);
 		auto paths = summ.imagePaths;
-		putInnerImagePath(d, cp, paths.length ? paths[0] : "");
+		if (paths.length) putInnerImagePath(d, cp, paths[0]);
 	} else if (auto m = cast(Motion)cp) { mixin(S_TRACE);
 		if (Motion.maxNest_init != m.maxNest) { mixin(S_TRACE);
 			d.maxNest[m.cwxPath(true)] = m.maxNest;
@@ -2356,7 +2370,7 @@ void putExData(ref SData d, CWXPath cp) { mixin(S_TRACE);
 		}
 	} else if (auto c = cast(Card)cp) { mixin(S_TRACE);
 		auto paths = c.paths;
-		putInnerImagePath(d, cp, paths.length ? paths[0] : "");
+		if (paths.length) putInnerImagePath(d, cp, paths[0]);
 		if (auto ec = cast(EffectCard)cp) { mixin(S_TRACE);
 			if (0 != ec.linkId) {
 				d.cardRef[ec.cwxPath(true)] = ec.linkId;
@@ -2719,7 +2733,7 @@ private void writeStrings(ref ByteIO f, string[] strs) { mixin(S_TRACE);
 
 private void writeSummary(ref SData d, ref ByteIO f, Summary summ) { mixin(S_TRACE);
 	auto paths = summ.imagePaths;
-	writeImage(d, f, summ, paths.length ? paths[0] : "");
+	writeImage(d, f, summ, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
 	writeString(f, summ.scenarioName);
 	writeString(f, summ.desc, true);
 	writeString(f, summ.author);
@@ -3103,18 +3117,20 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			f.writeL(cast(uint) e.area);
 			break;
 		case CType.TALK_MESSAGE:
-			string path;
-			switch (e.talkerC) {
-			case Talker.NARRATION: path = ""; break;
-			case Talker.SELECTED: path = "??Selected"; break;
-			case Talker.UNSELECTED: path = "??Unselected"; break;
-			case Talker.RANDOM: path = "??Random"; break;
-			case Talker.CARD: path = "??Card"; break;
-			case Talker.IMAGE:
-				auto paths = e.cardPaths;
-				path = paths.length ? encodePathLegacy(paths[0]) : "";
-				break;
-			default: assert (0, "event 6");
+			string path = "";
+			if (e.cardPaths.length) { mixin(S_TRACE);
+				auto imgPath = e.cardPaths[0];
+				final switch (imgPath.type) {
+				case CardImageType.File:
+					path = encodePathLegacy(imgPath.path);
+					break;
+				case CardImageType.PCNumber:
+					// 非対応
+					break;
+				case CardImageType.Talker:
+					path = "??" ~ fromTalker(imgPath.talker);
+					break;
+				}
 			}
 			writeString(f, path);
 			writeString(f, lastRet(e.text), true);
@@ -3645,9 +3661,9 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
 		f.writeL(cast(byte) 0x0);
 		bool saveBinImg;
 		auto paths = c.paths;
-		auto path = paths.length ? paths[0] : "";
-		if (isBinImg(path)) { mixin(S_TRACE);
-			writeImage(d, f, c, path);
+		auto path = paths.length ? paths[0] : null;
+		if (path && path.type is CardImageType.File && isBinImg(path.path)) { mixin(S_TRACE);
+			writeImage(d, f, c, path.path);
 			saveBinImg = true;
 		} else { mixin(S_TRACE);
 			writeImage(d, f, c, "");
@@ -3667,10 +3683,12 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
 		f.writeL(cast(uint) rndtol(c.scale * 100.0));
 		f.writeL(cast(int) c.x);
 		f.writeL(cast(int) c.y);
-		if (0 == c.pcNumber) { mixin(S_TRACE);
-			writeString(f, saveBinImg ? "" : encodePathLegacy(path));
-		} else { mixin(S_TRACE);
-			writeString(f, .text(c.pcNumber));
+		if (path && path.type is CardImageType.File) { mixin(S_TRACE);
+			writeString(f, saveBinImg ? "" : encodePathLegacy(path.path));
+		} else if (path && path.type is CardImageType.PCNumber && 0 < path.pcNumber) { mixin(S_TRACE);
+			writeString(f, .text(path.pcNumber));
+		} else {
+			writeString(f, "");
 		}
 	}
 	writeBgImages(d, f, a.backs);
@@ -3712,7 +3730,7 @@ private void writePackage(ref SData d, ref ByteIO f, Package a) { mixin(S_TRACE)
 private void writeCast(ref SData d, ref ByteIO f, CastCard c) { mixin(S_TRACE);
 	f.writeL(cast(byte) 0x2);
 	auto paths = c.paths;
-	writeImage(d, f, c, paths.length ? paths[0] : "");
+	writeImage(d, f, c, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
 	writeString(f, c.name);
 	f.writeL(cast(uint) (c.id + 40000u));
 	writeBool(f, c.weaponResist);
@@ -3780,7 +3798,7 @@ private void writeCast(ref SData d, ref ByteIO f, CastCard c) { mixin(S_TRACE);
 private void writeEffCard(ref SData d, ref ByteIO f, EffectCard c, byte type, ulong id) { mixin(S_TRACE);
 	f.write(type);
 	auto paths = c.paths;
-	writeImage(d, f, c, paths.length ? paths[0] : "");
+	writeImage(d, f, c, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
 	writeString(f, c.name);
 	f.writeL(cast(uint) (id + 40000u));
 	writeString(f, c.desc);
@@ -3864,7 +3882,7 @@ private void writeBeast(ref SData d, ref ByteIO f, BeastCard c) { mixin(S_TRACE)
 private void writeInfo(ref SData d, ref ByteIO f, InfoCard c) { mixin(S_TRACE);
 	f.writeL(cast(byte) 0x4);
 	auto paths = c.paths;
-	writeImage(d, f, c, paths.length ? paths[0] : "");
+	writeImage(d, f, c, paths.length && paths[0].type is CardImageType.File ? paths[0].path : "");
 	writeString(f, c.name);
 	f.writeL(cast(uint) (c.id + 40000u));
 	writeString(f, c.desc);

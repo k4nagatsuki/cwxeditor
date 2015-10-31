@@ -45,6 +45,214 @@ class OverData {
 
 public:
 
+/// カード画像のタイプ。
+enum CardImageType {
+	PCNumber, /// PCの画像。
+	File, /// ファイル。
+	Talker /// 話者キャラクタ。
+}
+
+/// カード画像のデータ。
+class CardImage : IPathUser {
+	CardImageType type = CardImageType.File;
+	private uint _pcNumber = 0;
+	private Talker _talker = Talker.SELECTED;
+	private PathUser _path = null;
+
+	/// パスを示すオブジェクトを指定してインスタンスを生成。
+	private this (IPathUser cwxPath) { mixin(S_TRACE);
+		_path = new PathUser(cwxPath);
+	}
+	/// コピーコンストラクタ。ownerなど一部データはコピーされない。
+	this (IPathUser cwxPath, in CardImage base) { mixin(S_TRACE);
+		this (cwxPath);
+		type = base.type;
+		final switch (base.type) {
+		case CardImageType.File:
+			_path.path = base.path;
+			break;
+		case CardImageType.PCNumber:
+			_pcNumber = base.pcNumber;
+			break;
+		case CardImageType.Talker:
+			_talker = base.talker;
+			break;
+		}
+	}
+	/// パスを指定してインスタンスを生成。
+	this (string path) { mixin(S_TRACE);
+		this (cast(IPathUser)null);
+		type = CardImageType.File;
+		_path.path = path;
+	}
+	/// PC番号を指定してインスタンスを生成。
+	this (uint pcNumber) { mixin(S_TRACE);
+		this (cast(IPathUser)null);
+		type = CardImageType.PCNumber;
+		_pcNumber = pcNumber;
+	}
+	/// 話者を指定してインスタンスを生成。
+	this (Talker talker) { mixin(S_TRACE);
+		this (cast(IPathUser)null);
+		type = CardImageType.Talker;
+		_talker = talker;
+	}
+
+	/// 使用回数カウンタ。
+	@property
+	UseCounter useCounter() { return _path.useCounter; }
+	/// 使用回数カウンタを登録・除去する。
+	@property
+	void setUseCounter(UseCounter uc) { _path.setUseCounter(uc); }
+	/// ditto
+	void removeUseCounter() { _path.removeUseCounter(); }
+
+	override void change(PathId newVal) { _path.change(newVal); }
+
+	/// ファイルパス。
+	@property
+	const
+	string path() {return _path.path;}
+
+	/// PC画像を表示する場合はその位置(1～6)。
+	/// 0の場合はPC画像を使用しない。
+	@property
+	const
+	uint pcNumber() { mixin(S_TRACE);
+		return _pcNumber;
+	}
+
+	/// 話者。
+	@property
+	const
+	Talker talker() { mixin(S_TRACE);
+		return _talker;
+	}
+
+	override
+	bool opEquals(Object o) { mixin(S_TRACE);
+		auto c = cast(const CardImage)o;
+		return c
+			&& c.type == type
+			&& c.pcNumber == pcNumber
+			&& c.path == path
+			&& c.talker == talker;
+	}
+	override
+	const
+	@safe
+	hash_t toHash() {
+		hash_t hash = toPathId(_path.path).toHash();
+		hash = (hash * 9) + type;
+		hash = (hash * 9) + _pcNumber;
+		hash = (hash * 9) + _talker;
+		return hash;
+	}
+
+	@property
+	override
+	string cwxPath(bool id) { return _path.cwxPath(id); }
+	override
+	CWXPath findCWXPath(string path) { return _path.findCWXPath(path); }
+	@property
+	override
+	inout
+	inout(CWXPath)[] cwxChilds() { return _path.cwxChilds; }
+	@property
+	override
+	CWXPath cwxParent() { return _path.cwxParent; }
+	override
+	void changed() { _path.changed(); }
+
+	/// pNodeにImagePath要素またはImagePaths要素から
+	/// インスタンス群を生成してpathsに追加するハンドラを登録する。
+	/// attrをtrueにした場合、ImagePath要素ではなくpath属性を使用する。
+	static void setOnTag(ref XNode pNode, ref CardImage[] paths, bool attr = false) {
+		void convPath(string pathTemp) { mixin(S_TRACE);
+			if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.SELECTED))) { mixin(S_TRACE);
+				paths ~= new CardImage(Talker.SELECTED);
+			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.UNSELECTED))) { mixin(S_TRACE);
+				paths ~= new CardImage(Talker.UNSELECTED);
+			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.RANDOM))) { mixin(S_TRACE);
+				paths ~= new CardImage(Talker.RANDOM);
+			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.CARD))) { mixin(S_TRACE);
+				paths ~= new CardImage(Talker.CARD);
+			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.VALUED))) { mixin(S_TRACE);
+				paths ~= new CardImage(Talker.VALUED);
+			} else if (pathTemp && pathTemp != "") { mixin(S_TRACE);
+				paths ~= new CardImage(decodePath(pathTemp));
+			}
+		}
+		auto imgPath = (ref XNode n) { mixin(S_TRACE);
+			convPath(n.value);
+		};
+		auto pcNum = (ref XNode node) { mixin(S_TRACE);
+			paths ~= new CardImage(.to!uint(node.value));
+		};
+		if (attr) { mixin(S_TRACE);
+			auto path = pNode.attr("path", false, "");
+			convPath(path);
+			auto pcNumber = pNode.attr!uint("pcNumber", false, 0);
+			if (pcNumber != 0) { mixin(S_TRACE);
+				paths ~= new CardImage(pcNumber);
+			}
+		} else { mixin(S_TRACE);
+			pNode.onTag["ImagePath"] = imgPath;
+			pNode.onTag["PCNumber"] = pcNum;
+		}
+		pNode.onTag["ImagePaths"] = (ref XNode n) { mixin(S_TRACE);
+			n.onTag["ImagePath"] = imgPath;
+			n.onTag["PCNumber"] = pcNum;
+			n.parse();
+		};
+	}
+	/// pNodeにpathsのデータを追加する。
+	/// attrをtrueにした場合、ImagePath要素ではなくpath属性を使用する。
+	static void toNode(ref XNode pNode, in CardImage[] paths, bool attr = false) { mixin(S_TRACE);
+		static void put(ref XNode pNode, in CardImage path, bool attr) { mixin(S_TRACE);
+			final switch (path.type) {
+			case CardImageType.File:
+				if (attr) { mixin(S_TRACE);
+					pNode.newAttr("path", encodePath(path.path));
+				} else { mixin(S_TRACE);
+					pNode.newElement("ImagePath", encodePath(path.path));
+				}
+				break;
+			case CardImageType.PCNumber:
+				if (attr) { mixin(S_TRACE);
+					pNode.newAttr("path", "");
+					pNode.newAttr("pcNumber", path.pcNumber);
+				} else { mixin(S_TRACE);
+					if (pNode.name != "ImagePaths") pNode.newElement("ImagePath", "");
+					pNode.newElement("PCNumber", .text(path.pcNumber));
+				}
+				break;
+			case CardImageType.Talker:
+				if (attr) { mixin(S_TRACE);
+					pNode.newAttr("path", "Material/??" ~ fromTalker(path.talker));
+				} else { mixin(S_TRACE);
+					pNode.newElement("ImagePath", "Material/??" ~ fromTalker(path.talker));
+				}
+				break;
+			}
+		}
+		if (paths.length == 0) { mixin(S_TRACE);
+			if (attr) { mixin(S_TRACE);
+				pNode.newAttr("path", "");
+			} else { mixin(S_TRACE);
+				pNode.newElement("ImagePath", "");
+			}
+		} else if (paths.length <= 1) { mixin(S_TRACE);
+			put(pNode, paths[0], attr);
+		} else { mixin(S_TRACE);
+			auto imp = pNode.newElement("ImagePaths", "");
+			foreach (path; paths) { mixin(S_TRACE);
+				put(imp, path, false);
+			}
+		}
+	}
+}
+
 /// カードの所持者である事を示すインタフェース。
 interface CastOwner : CWXPath {
 	@property
@@ -98,20 +306,20 @@ private:
 	string _desc;
 	void delegate() _change = null;
 	bool _changed = false;
-	PathUser[] _paths;
+	CardImage[] _paths;
 	UseCounter _useCounter = null;
 public:
 	/// 唯一のコンストラクタ。
 	/// Params:
 	/// id = カードID。
 	/// name = 名前。
-	/// imagePaths = 画像のパス。
+	/// imagePaths = カード画像。
 	/// desc = 解説。
-	this (ulong id, string name, in string[] imagePaths, string desc) { mixin(S_TRACE);
+	this (ulong id, string name, in CardImage[] paths, string desc) { mixin(S_TRACE);
 		_id = id;
 		_name = name;
 		_desc = desc;
-		paths = imagePaths;
+		this.paths = paths;
 	}
 	/// cからパラメータをコピーする。
 	protected void shallowCopyCard(in Card c) { mixin(S_TRACE);
@@ -232,18 +440,20 @@ public:
 	/// カード画像。
 	@property
 	const
-	string[] paths() { mixin(S_TRACE);
-		return .map!(a => a.path)(_paths).array();
+	CardImage[] paths() { mixin(S_TRACE);
+		return .map!(a => new CardImage(null, a))(_paths).array();
 	}
 	/// ditto
 	@property
-	void paths(in string[] paths) { mixin(S_TRACE);
-		if (this.paths != paths) changed();
-		foreach (u; _paths) u.removeUseCounter();
+	void paths(in CardImage[] paths) { mixin(S_TRACE);
+		if (_paths == paths) return;
+		changed();
+		foreach (u; _paths) { mixin(S_TRACE);
+			u.removeUseCounter();
+		}
 		_paths = [];
 		foreach (path; paths) { mixin(S_TRACE);
-			auto u = new PathUser(this);
-			u.path = path;
+			auto u = new CardImage(this, path);
 			if (useCounter) u.setUseCounter(useCounter);
 			_paths ~= u;
 		}
@@ -312,16 +522,7 @@ public:
 		auto pNode = node.newElement("Property");
 		pNode.newElement("Id", od && od.id != 0UL ? od.id : id);
 		pNode.newElement("Name", name);
-		if (_paths.length == 0) { mixin(S_TRACE);
-			pNode.newElement("ImagePath", "");
-		} else if (_paths.length <= 1) { mixin(S_TRACE);
-			pNode.newElement("ImagePath", encodePath(_paths[0].path));
-		} else { mixin(S_TRACE);
-			auto imp = pNode.newElement("ImagePaths", "");
-			foreach (path; _paths) { mixin(S_TRACE);
-				imp.newElement("ImagePath", encodePath(path.path));
-			}
-		}
+		CardImage.toNode(pNode, _paths);
 		pNode.newElement("Description", encodeLf(desc));
 		return pNode;
 	}
@@ -329,16 +530,8 @@ public:
 	protected void loadProp(ref XNode pNode, in XMLInfo ver) { mixin(S_TRACE);
 		string idStr = null;
 		pNode.onTag["Id"] = (ref XNode n) { idStr = n.value; };
-		string[] paths;
-		pNode.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
-			paths ~= decodePath(n.value);
-		};
-		pNode.onTag["ImagePaths"] = (ref XNode n) { mixin(S_TRACE);
-			n.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
-				paths ~= decodePath(n.value);
-			};
-			n.parse();
-		};
+		CardImage[] paths;
+		CardImage.setOnTag(pNode, paths);
 		_name = null;
 		pNode.onTag["Name"] = (ref XNode n) {_name = n.value;};
 		pNode.onTag["Description"] = (ref XNode n) {_desc = decodeLf2(n.value);};
@@ -433,7 +626,7 @@ public:
 	/// desc = 解説。
 	/// lev = レベル。
 	/// lifeMax = ヒットポイント最大値。
-	this (ulong id, string name, in string[] imagePaths, string desc, uint lev, uint lifeMax) { mixin(S_TRACE);
+	this (ulong id, string name, in CardImage[] imagePaths, string desc, uint lev, uint lifeMax) { mixin(S_TRACE);
 		super(id, name, imagePaths, desc);
 		_lev = lev;
 		_life = lifeMax;
@@ -449,7 +642,7 @@ public:
 		_rEnhRound[Enhance.RESIST] = 0;
 		_rEnhRound[Enhance.DEFENSE] = 0;
 	}
-	this (ulong id, string name, in string[] imagePaths, string desc) { mixin(S_TRACE);
+	this (ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
 		this (id, name, imagePaths, desc, 1, 1);
 	}
 	/// cからパラメータをコピーする。
@@ -1207,7 +1400,7 @@ public:
 	/// name = 名前。
 	/// imagePaths = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, in string[] imagePaths, string desc) { mixin(S_TRACE);
+	this (ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
 		super(id, name, imagePaths, desc);
 		_ceto = new CETO;
 		_muser = new MotionUser(this);
@@ -1783,7 +1976,7 @@ public:
 	/// name = 名前。
 	/// imagePaths = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, in string[] imagePaths, string desc) { mixin(S_TRACE);
+	this (ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
 		super(id, name, imagePaths, desc);
 		_linkId = new SkillUser(this);
 	}
@@ -2008,7 +2201,7 @@ public:
 	/// name = 名前。
 	/// imagePaths = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, in string[] imagePaths, string desc) { mixin(S_TRACE);
+	this (ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
 		super(id, name, imagePaths, desc);
 		_linkId = new ItemUser(this);
 		_oEnh = [Enhance.AVOID:0, Enhance.RESIST:0, Enhance.DEFENSE:0];
@@ -2277,7 +2470,7 @@ public:
 	/// name = 名前。
 	/// imagePaths = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, in string[] imagePaths, string desc) { mixin(S_TRACE);
+	this (ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
 		super(id, name, imagePaths, desc);
 		_linkId = new BeastUser(this);
 	}
@@ -2481,7 +2674,7 @@ public:
 	/// name = 名前。
 	/// imagePaths = 画像のパス。
 	/// desc = 解説。
-	this (ulong id, string name, in string[] imagePaths, string desc) { mixin(S_TRACE);
+	this (ulong id, string name, in CardImage[] imagePaths, string desc) { mixin(S_TRACE);
 		super(id, name, imagePaths, desc);
 	}
 	/// cからパラメータをコピーする。

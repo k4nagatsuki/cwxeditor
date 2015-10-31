@@ -7,6 +7,7 @@ import cwx.skin;
 import cwx.menu;
 import cwx.types;
 import cwx.imagesize;
+import cwx.card;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -50,22 +51,19 @@ public:
 	/// w = 画像表示欄の幅。
 	/// h = 画像表示欄の高さ。
 	/// targ = ファイルパスを受取り、選択対象であればtrueを返す関数。
-	/// included = 格納イメージを扱うならtrue。
+	/// canInclude = 格納イメージを扱うならtrue。
 	/// saveName = 格納イメージを保存する際のデフォルト名。
 	/// refresh = 選択が変更された際のコールバック関数。
-	/// defs = 画像以外の選択肢。nullの場合は「イメージ無し」と「格納イメージの保存」になる。
-	/// createDefImage = 画像以外の選択肢が選ばれた際に表示するイメージ。
+	/// defs = 画像以外の選択肢。nullの場合は「イメージ無し」になる。
 	this (Composite parent, int style, Commons comm, Props prop, Summary summ,
-			int w, int h, bool included, bool canInclude, string delegate() saveName, void delegate() refresh = null,
-			string[] defs = null, ImageData delegate(size_t defIndex) createDefImage = null, bool isMenuCard = false) { mixin(S_TRACE);
+			int w, int h, bool canInclude, string delegate() saveName, void delegate() refresh = null,
+			string[] delegate(bool included) defs = null, bool isMenuCard = false) { mixin(S_TRACE);
 		_readOnly = style & SWT.READ_ONLY;
 		_comm = comm;
 		_prop = prop;
 		_summ = summ;
 		if (_readOnly) _summSkin = findSkin(_comm, _prop, _summ);
 		_refresh = refresh;
-		_defs = defs;
-		_createDefImage = createDefImage;
 		_w = w;
 		_h = h;
 		_saveName = saveName;
@@ -121,15 +119,30 @@ public:
 			}
 			if (defs) { mixin(S_TRACE);
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, _readOnly != 0, &this.refresh, defs, -1, canInclude, isMenuCard);
-			} else if (included) { mixin(S_TRACE);
-				_defs = [prop.msgs.defaultSelection(prop.msgs.imageNone), prop.msgs.defaultSelection(prop.msgs.imageIncluding)];
-				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, _readOnly != 0, &this.refresh, _defs, 1, canInclude, isMenuCard);
+					(comm, prop, summ, _readOnly != 0, &this.refresh, defs, canInclude, isMenuCard);
 			} else { mixin(S_TRACE);
-				_defs = [prop.msgs.defaultSelection(prop.msgs.imageNone)];
+				defs = (included) { mixin(S_TRACE);
+					auto defs = [prop.msgs.defaultSelection(prop.msgs.imageNone)];
+					if (included) defs ~= _prop.msgs.defaultSelection(_prop.msgs.imageIncluding);
+					return defs;
+				};
 				_msel = new MaterialSelect!(Type, Combo, C)
-					(comm, prop, summ, _readOnly != 0, &this.refresh, _defs, -1, canInclude, isMenuCard);
+					(comm, prop, summ, _readOnly != 0, &this.refresh, defs, canInclude, isMenuCard);
+				_msel.indexOfBinPath = (included) => included ? 1 : -1;
+				static if (Type == MtType.CARD) {
+					_msel.valueFromDef = (index, included, binPath) { mixin(S_TRACE);
+						if (index == 0) return new CardImage("");
+						if (included && index == 1) return new CardImage(binPath);
+						assert (0);
+					};
+					_msel.valueToDef = (imgPath, included) { mixin(S_TRACE);
+						if (imgPath.type == CardImageType.File) { mixin(S_TRACE);
+							if (imgPath.path == "") return 0;
+							if (included && imgPath.path.isBinImg) return 1;
+						}
+						return -1;
+					};
+				}
 			}
 			_msel.modEvent ~= { mixin(S_TRACE);
 				foreach (dlg; modEvent) dlg();
@@ -178,19 +191,14 @@ public:
 				auto dirs = _msel.createDirsCombo(dirsComp);
 				dirs.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				dirs.addSelectionListener(new DirSelect);
-				if (included) { mixin(S_TRACE);
+				dirsComp.setLayout(zeroMarginGridLayout(1, false));
+				_msel.includeEvent ~= { mixin(S_TRACE);
+					if (saveIncludeImage) return;
 					dirsComp.setLayout(zeroMarginGridLayout(2, false));
 					createSaveButton();
-				} else { mixin(S_TRACE);
-					dirsComp.setLayout(zeroMarginGridLayout(1, false));
-					_msel.includeEvent ~= (string fname) { mixin(S_TRACE);
-						if (saveIncludeImage) return;
-						dirsComp.setLayout(zeroMarginGridLayout(2, false));
-						createSaveButton();
-						dirsComp.layout();
-						compr.layout();
-					};
-				}
+					dirsComp.layout();
+					compr.layout();
+				};
 			}
 			{ mixin(S_TRACE);
 				auto fileList = _msel.createFileList(compr);
@@ -215,24 +223,44 @@ public:
 	bool mask() { mixin(S_TRACE);
 		return _mask;
 	}
+
+	@property
+	void indexOfBinPath(int delegate(bool included) dlg) { mixin(S_TRACE);
+		_msel.indexOfBinPath = dlg;
+	}
 	static if (Type == MtType.CARD) {
-		/// 画像のファイルパス。
 		@property
-		string[] images() { mixin(S_TRACE);
-			// TODO: 複数イメージ
-			return _msel.path.length ? [_msel.path] : [];
+		void valueFromDef(CardImage delegate(int index, bool included, string binPath) dlg) { mixin(S_TRACE);
+			_msel.valueFromDef = dlg;
 		}
 		@property
-		string[] filePaths() { mixin(S_TRACE);
-			// TODO: 複数イメージ
-			return _msel.filePath.length ? [_msel.filePath] : [];
+		void valueToDef(int delegate(in CardImage imgPath, bool included) dlg) { mixin(S_TRACE);
+			_msel.valueToDef = dlg;
+		}
+		/// 画像のファイルパス。
+		@property
+		CardImage[] images() { mixin(S_TRACE);
+			CardImage[] r;
+			foreach (path; _msel.paths) { mixin(S_TRACE);
+				final switch (path.type) {
+				case CardImageType.File:
+					if (path.path != "") r ~= path;
+					break;
+				case CardImageType.PCNumber:
+					if (0 < path.pcNumber) r ~= path;
+					break;
+				case CardImageType.Talker:
+					r ~= path;
+					break;
+				}
+			}
+			return r;
 		}
 		/// Params:
 		/// path = 画像のファイルパス。
 		@property
-		void images(in string[] paths) { mixin(S_TRACE);
-			// TODO: 複数イメージ
-			_msel.path = paths.length ? paths[0] : "";
+		void images(CardImage[] paths) { mixin(S_TRACE);
+			_msel.paths = paths;
 			_image.redraw();
 		}
 	} else static if (Type == MtType.BG_IMG) {
@@ -274,61 +302,68 @@ public:
 		_msel.selectDir(sel);
 		selectDirImpl(sel);
 	}
-	static if (Type == MtType.CARD) {
-		@property
-		uint pcNumber() { mixin(S_TRACE);
-			return _msel.pcNumber;
-		}
-		@property
-		void pcNumber(uint pcNum) { mixin(S_TRACE);
-			_msel.pcNumber = pcNum;
-			refresh();
-		}
-	}
 
 	@property
 	string[] warnings() { mixin(S_TRACE);
 		string[] ws;
 		static if (Type == MtType.CARD) {
-			foreach (img; filePaths) { mixin(S_TRACE);
-				ws ~= warningFrom(img);
+			foreach (img; _msel.paths) { mixin(S_TRACE);
+				if (img.type == CardImageType.File) { mixin(S_TRACE);
+					ws ~= warningFrom(img.path);
+				}
+				if (img.type == CardImageType.PCNumber) { mixin(S_TRACE);
+					if (!_prop.targetVersion("1.50") && 0 != img.pcNumber && _summ) { mixin(S_TRACE);
+						ws ~= _prop.msgs.warningPCNumberClassic;
+					}
+				}
 			}
 		} else static if (Type == MtType.BG_IMG) {
 			ws ~= warningFrom(filePath);
 		} else static assert (0);
-		return ws;
-	}
-	private string[] warningFrom(string img) { mixin(S_TRACE);
-		string[] ws;
-		if (isBinImg(img)) { mixin(S_TRACE);
-			auto bin =  cast(ubyte[]) strToBImg(img);
-			auto type = imageType(bin);
-			if ("" != type) { mixin(S_TRACE);
-				img = "image".setExtension(type);
-				ws ~= summSkin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false, _msel.canInclude, _prop.var.etc.targetVersion);
-				static if (Type is MtType.CARD) {
-					uint w, h;
-					imageSize!(ubyte[])(bin, w, h);
-					auto cs = _prop.looks.cardSize;
-					if (cs.width != w && cs.height != h) { mixin(S_TRACE);
-						ws ~= _prop.msgs.warningNoCardSizeImage;
-					}
-				}
-			}
-		} else { mixin(S_TRACE);
-			ws ~= summSkin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false, _msel.canInclude && !_msel.isMenuCard, _prop.var.etc.targetVersion);
-			static if (Type is MtType.CARD) {
-				if (img.length) { mixin(S_TRACE);
-					uint w, h;
-					imageSize(img, w, h);
-					auto cs = _prop.looks.cardSize;
-					if (cs.width != w && cs.height != h) { mixin(S_TRACE);
-						ws ~= _prop.msgs.warningNoCardSizeImage;
-					}
-				}
+		bool[string] wSet;
+		string[] ws2;
+		foreach (w; ws) { mixin(S_TRACE);
+			if (w !in wSet) { mixin(S_TRACE);
+				ws2 ~= w;
+				wSet[w] = true;
 			}
 		}
-		return ws;
+		return ws2;
+	}
+	static if (Type == MtType.CARD || Type == MtType.BG_IMG) {
+		private string[] warningFrom(string img) { mixin(S_TRACE);
+			string[] ws;
+			if (isBinImg(img)) { mixin(S_TRACE);
+				auto bin =  cast(ubyte[])strToBImg(img);
+				auto type = imageType(bin);
+				if ("" != type) { mixin(S_TRACE);
+					img = "image".setExtension(type);
+					ws ~= summSkin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false, _msel.canInclude, _prop.var.etc.targetVersion);
+					static if (Type is MtType.CARD) {
+						uint w, h;
+						imageSize!(ubyte[])(bin, w, h);
+						auto cs = _prop.looks.cardSize;
+						if (cs.width != w && cs.height != h) { mixin(S_TRACE);
+							ws ~= _prop.msgs.warningNoCardSizeImage;
+						}
+					}
+				}
+			} else { mixin(S_TRACE);
+				ws ~= summSkin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false, _msel.canInclude && !_msel.isMenuCard, _prop.var.etc.targetVersion);
+				static if (Type is MtType.CARD) {
+					if (img.length) { mixin(S_TRACE);
+						img = summSkin.findImagePath(img, _summ ? _summ.scenarioPath : "");
+						uint w, h;
+						imageSize(img, w, h);
+						auto cs = _prop.looks.cardSize;
+						if (cs.width != w && cs.height != h) { mixin(S_TRACE);
+							ws ~= _prop.msgs.warningNoCardSizeImage;
+						}
+					}
+				}
+			}
+			return ws;
+		}
 	}
 
 	static if (Type is MtType.CARD) {
@@ -437,34 +472,18 @@ private:
 	}
 	class PListener : PaintListener {
 		public override void paintControl(PaintEvent e) { mixin(S_TRACE);
-			static if (is(typeof(_msel.pcNumber))) {
-				auto pcNum = _msel.pcNumber;
-				if (0 != pcNum) { mixin(S_TRACE);
-					drawCenterText(dwtData(_prop.looks.pcNumberFont(summSkin.legacy)), e.gc, _image.getClientArea(), .text(pcNum));
-					return;
-				}
-			}
-			int dirsi = dirsCombo.getSelectionIndex();
-			if (_createDefImage && dirsi < _defs.length) { mixin(S_TRACE);
-				auto imgData = _createDefImage(dirsi);
-				if (imgData) { mixin(S_TRACE);
-					drawImage(e.gc, imgData);
-					return;
-				}
-			}
-			
 			static if (Type == MtType.CARD) {
-				if (filePaths.length < _paintedPaths.length) { mixin(S_TRACE);
-					foreach (i; filePaths.length .. _paintedPaths.length) { mixin(S_TRACE);
+				if (_msel.paths.length < _paintedPaths.length) { mixin(S_TRACE);
+					foreach (i; _msel.paths.length .. _paintedPaths.length) { mixin(S_TRACE);
 						if (_img[i]) { mixin(S_TRACE);
 							_img[i].data[] = 0;
 							delete _img[i].data;
 						}
 					}
 				}
-				_paintedPaths.length = filePaths.length;
-				_img.length = filePaths.length;
-				foreach (i, path; filePaths) { mixin(S_TRACE);
+				_paintedPaths.length = _msel.paths.length;
+				_img.length = _msel.paths.length;
+				foreach (i, path; _msel.paths) { mixin(S_TRACE);
 					drawImage(e.gc, i, path);
 				}
 			} else static if (Type == MtType.BG_IMG) {
@@ -472,6 +491,39 @@ private:
 				_img.length = 1;
 				drawImage(e.gc, 0, filePath);
 			} else static assert (0);
+		}
+		private void drawImage(GC gc, size_t i, CardImage path) { mixin(S_TRACE);
+			final switch (path.type) {
+			case CardImageType.File:
+				auto file = summSkin.findImagePath(path.path, _summ ? _summ.scenarioPath : "");
+				if (file != "") { mixin(S_TRACE);
+					drawImage(gc, i, file);
+				}
+				break;
+			case CardImageType.PCNumber:
+				_paintedPaths[i] = "";
+				auto pcNum = path.pcNumber;
+				if (0 != pcNum) { mixin(S_TRACE);
+					drawCenterText(dwtData(_prop.looks.pcNumberFont(summSkin.legacy)), gc, _image.getClientArea(), .text(pcNum));
+				}
+				break;
+			case CardImageType.Talker:
+				final switch (path.talker) {
+				case Talker.SELECTED:
+				case Talker.UNSELECTED:
+				case Talker.RANDOM:
+				case Talker.VALUED:
+					_paintedPaths[i] = "";
+					drawImage(gc, _prop.images.talker(path.talker).getImageData());
+					break;
+				case Talker.CARD:
+					_paintedPaths[i] = "";
+					auto cRect = _prop.looks.cardSize;
+					drawImage(gc, menuCard(summSkin).scaledTo(cRect.width, cRect.height));
+					break;
+				}
+				break;
+			}
 		}
 		private void drawImage(GC gc, size_t i, string path) { mixin(S_TRACE);
 			ImageData imgData = null;
@@ -570,8 +622,6 @@ private:
 	Canvas _image;
 	MaterialSelect!(Type, Combo, C) _msel;
 	ImageListWindow!Type _imgList = null;
-	ImageData delegate(size_t defIndex) _createDefImage;
-	string[] _defs;
 	int _w, _h;
 	string delegate() _saveName;
 	bool _mask = true;

@@ -1639,7 +1639,7 @@ public:
 			_files.addDisposeListener(new FDListener);
 			createFilesMenu();
 
-			_preview = new Preview(_prop, _files.getShell());
+			_preview = new Preview(_prop, _files);
 			auto closePreview = new ClosePreview;
 			_files.getVerticalBar().addSelectionListener(closePreview);
 			_files.getHorizontalBar().addSelectionListener(closePreview);

@@ -60,10 +60,6 @@ private:
 		void refreshWarning() { mixin(S_TRACE);
 			string[] ws;
 			ws ~= _imgPath.warnings;
-			if (!_prop.targetVersion("1.50") && 0 != _imgPath.pcNumber && _summ) { mixin(S_TRACE);
-				ws ~= _prop.msgs.warningPCNumberClassic;
-			}
-
 			warning = ws;
 		}
 	} else static if (is (C == EnemyCard)) {
@@ -75,18 +71,15 @@ private:
 				if (0 != _selectedID) { mixin(S_TRACE);
 					auto ec = _summ.cwCast(_selectedID);
 					if (!ec) return;
-					auto canv = cast(Canvas) e.widget;
-					foreach (path; ec.paths) { mixin(S_TRACE);
-						if (_summ) { mixin(S_TRACE);
-							path = _comm.skin.findImagePath(path, _summ.scenarioPath);
-						}
-						if (path.length > 0) { mixin(S_TRACE);
-							auto skin = _comm.skin;
-							scope img = new Image(Display.getCurrent(), loadImage(_prop, skin, _summ, path));
-							scope (exit) img.dispose();
-							e.gc.drawImage(img, 0, 0);
-						}
-					}
+					auto canv = cast(Canvas)e.widget;
+					auto skin = _comm.skin;
+					auto imgData = castCardImage(_prop, skin, ec, _summ.scenarioPath, true);
+					scope img = new Image(Display.getCurrent(), imgData);
+					scope (exit) img.dispose();
+					auto ca = canv.getClientArea();
+					auto x = (ca.width - imgData.width) / 2 + ca.x;
+					auto y = (ca.height - imgData.height) / 2 + ca.y;
+					e.gc.drawImage(img, x, y);
 				}
 			}
 		}
@@ -281,21 +274,48 @@ protected:
 					{ mixin(S_TRACE);
 						static if (is (C == MenuCard)) {
 							auto skin = _comm.skin;
-							bool including = _card && _card.paths.length && isBinImg(_card.paths[0]);
+							string[] defs(bool included) { mixin(S_TRACE);
+								string[] defs = [_prop.msgs.defaultSelection(_prop.msgs.imageNone)];
+								if (included) defs ~= _prop.msgs.defaultSelection(_prop.msgs.imageIncluding);
+								foreach (pcNum; 0 .. _prop.var.etc.partyMax) {
+									defs ~= _prop.msgs.defaultSelection(.tryFormat(_prop.msgs.pcNumber, pcNum + 1));
+								}
+								return defs;
+							}
 							_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
-								_prop.looks.cardSize.width, _prop.looks.cardSize.height, including, true, &_name.getText, null, null, null, true);
+								_prop.looks.cardSize.width, _prop.looks.cardSize.height, true, &_name.getText, null, &defs, true);
+							_imgPath.valueFromDef = (defIndex, included, binPath) { mixin(S_TRACE);
+								if (defIndex <= 0) return new CardImage("");
+								if (included) { mixin(S_TRACE);
+									if (defIndex == 1) return new CardImage(binPath);
+									defIndex--;
+								}
+								return new CardImage(cast(uint)defIndex);
+							};
+							_imgPath.valueToDef = (imgPath, included) { mixin(S_TRACE);
+								final switch (imgPath.type) {
+								case CardImageType.File:
+									if (imgPath.path == "") return 0;
+									if (included && imgPath.path.isBinImg) return 1;
+									return -1;
+								case CardImageType.PCNumber:
+									auto pcNum = cast(int)imgPath.pcNumber;
+									if (included) pcNum++;
+									return pcNum;
+								case CardImageType.Talker:
+									return -1; // 非対応
+								}
+							};
+							_imgPath.indexOfBinPath = (included) => included ? 1 : -1;
 							mod(_imgPath);
 							_imgPath.modEvent ~= &refreshWarning;
 							_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 						} else static if (is (C == EnemyCard)) {
 							auto grp = new Group(comp2, SWT.NONE);
 							grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-							grp.setLayout(new CenterLayout);
+							grp.setLayout(new FillLayout);
 							grp.setText(_prop.msgs.image);
-							_image = new Canvas(grp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
-							auto rect = _image.computeTrim(SWT.DEFAULT, SWT.DEFAULT,
-								_prop.looks.cardSize.width, _prop.looks.cardSize.height);
-							_image.setLayoutData(new Point(rect.width, rect.height));
+							_image = new Canvas(grp, SWT.DOUBLE_BUFFERED);
 							_image.addPaintListener(new CardPaint);
 						} else { mixin(S_TRACE);
 							static assert (0);
@@ -382,7 +402,6 @@ protected:
 				_imgPath.images = _card.paths;
 				_desc.setText(_card.desc);
 				_name.setText(_card.name);
-				_imgPath.pcNumber = _card.pcNumber;
 			} else static if (is (C == EnemyCard)) {
 				if (_summ) { mixin(S_TRACE);
 					assert (_casts.getItemCount());
@@ -439,7 +458,6 @@ protected:
 				_card.paths = _imgPath.images;
 				_card.desc = wrapReturnCode(_desc.getText());
 				_card.name = _name.getText();
-				_card.pcNumber = _imgPath.pcNumber;
 			} else static if (is (C == EnemyCard)) {
 				_card.id = _selectedID;
 				_card.escape = _escape.getSelection();

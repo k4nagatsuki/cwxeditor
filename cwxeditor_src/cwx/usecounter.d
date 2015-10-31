@@ -643,11 +643,15 @@ public:
 struct PathId {
 	private string id;
 	private string binImg = "";
+	@safe
+	nothrow
 	static PathId opCall(string id) {
 		PathId r;
 		r.id = id;
 		return r;
 	}
+	@safe
+	nothrow
 	static PathId opCall(string id, string binImg) {
 		PathId r;
 		r.id = id;
@@ -656,7 +660,9 @@ struct PathId {
 	}
 	@property
 	const
-	bool isBinImg() { mixin(S_TRACE);
+	@safe
+	nothrow
+	bool isBinImg() {
 		return binImg.length > 0u;
 	}
 	@property
@@ -665,24 +671,32 @@ struct PathId {
 		return id.length || binImg.length;
 	}
 	const
-	string opCast() { mixin(S_TRACE);
+	@safe
+	nothrow
+	string opCast() {
 		string id = this.id;
 		return isBinImg ? binImg : replace(id, "/", dirSeparator);
 	}
 	const
-	hash_t toHash() { mixin(S_TRACE);
+	@trusted
+	nothrow
+	hash_t toHash() {
 		hash_t hash = 0;
 		string s;
-		if (isBinImg) { mixin(S_TRACE);
+		if (isBinImg) {
 			s = binImg;
-		} else { mixin(S_TRACE);
+		} else {
 			static if (0 == filenameCharCmp('A', 'a')) {
-				s = .toLower(id);
+				try {
+					s = .toLower(id);
+				} catch (Throwable) {
+					// 握り潰す
+				}
 			} else { mixin(S_TRACE);
 				s = id;
 			}
 		}
-		foreach (char c; s) { mixin(S_TRACE);
+		foreach (char c; s) {
 			hash = (hash * 9) + c;
 		}
 		return hash;
@@ -723,10 +737,12 @@ struct PathId {
 	}
 }
 /// 文字列をファイルパスIDに変換。
-PathId toPathId(string id) { mixin(S_TRACE);
-	if (isBinImg(id)) { mixin(S_TRACE);
+@safe
+nothrow
+PathId toPathId(string id) {
+	if (isBinImg(id)) {
 		return PathId(BI_PATH_ID, id);
-	} else { mixin(S_TRACE);
+	} else {
 		id = replace(id, dirSeparator, "/");
 		static if (altDirSeparator.length) {
 			id = replace(id, altDirSeparator, "/");
@@ -781,7 +797,9 @@ public:
 	/// ファイルパス。
 	@property
 	const
-	string path() {return _path.isBinImg ? _path.binImg : cast(string) _path;}
+	nothrow
+	@safe
+	string path() {return _path.isBinImg ? _path.binImg : cast(string)_path;}
 
 	/// 使用回数カウンタ。
 	@property

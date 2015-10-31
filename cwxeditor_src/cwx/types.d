@@ -771,13 +771,27 @@ string fromCardTarget(CardTarget r) { mixin(S_TRACE);
 
 /// メッセージの話者。
 enum Talker {
-	NARRATION, /// 話者無し。
 	SELECTED, /// 選択中メンバ。
 	UNSELECTED, /// 非選択メンバ。
 	RANDOM, /// ランダムメンバ。
 	CARD, /// カード。
-	IMAGE, /// 画像ファイルを指定。
 	VALUED, /// 評価メンバ。
+}
+
+/// Talkerを文字列に変換する。
+string fromTalker(Talker talker) { mixin(S_TRACE);
+	final switch (talker) {
+	case Talker.SELECTED:
+		return "Selected";
+	case Talker.UNSELECTED:
+		return "Unselected";
+	case Talker.RANDOM:
+		return "Random";
+	case Talker.CARD:
+		return "Card";
+	case Talker.VALUED:
+		return "Valued";
+	}
 }
 
 /// 背景遷移エフェクト。

@@ -332,8 +332,8 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 		string putBinImg(string name, string binImg) { mixin(S_TRACE);
 			auto bytes = strToBImg(binImg);
 			auto ext = imageType(bytes);
-			auto fileName = createNewName(cleanFileName(name) ~ ext, (name) { mixin(S_TRACE);
-				auto path = to.scenarioPath.buildPath(newFolder.buildPath(name));
+			auto fileName = createNewName(cleanFileName(name), (name) { mixin(S_TRACE);
+				auto path = to.scenarioPath.buildPath(newFolder.buildPath(name)) ~ ext;
 				foreach (file; r.materials) {
 					if (cfnmatch(file.dst, path)) {
 						return false;
@@ -341,7 +341,7 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 				}
 				return true;
 			}, false);
-			auto path = newFolder.buildPath(fileName);
+			auto path = newFolder.buildPath(fileName) ~ ext;
 			r.materials ~= ImportFile(to.scenarioPath.buildPath(path), binImg);
 			uc.change(toPathId(binImg), toPathId(path));
 			return path;
@@ -349,10 +349,12 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 		string includeImg(string path) { mixin(S_TRACE);
 			try {
 				auto file = from.scenarioPath.buildPath(path);
-				ubyte* ptr = null;
-				auto bin = readBinaryFrom!ubyte(file, ptr);
-				scope (exit) freeAll(ptr);
-				return bImgToStr(bin);
+				if (file.exists()) { mixin(S_TRACE);
+					ubyte* ptr = null;
+					auto bin = readBinaryFrom!ubyte(file, ptr);
+					scope (exit) freeAll(ptr);
+					return bImgToStr(bin);
+				}
 			} catch (Exception e) {
 				printStackTrace();
 				debugln(e);
@@ -363,24 +365,28 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 			auto childs = path.cwxChilds;
 			if (opt.includedFiles !is ImportTypeIncluded.AsIs || opt.includedBgImages is ImportTypeIncluded.AsIs) { mixin(S_TRACE);
 				if (auto c = cast(Card)path) { mixin(S_TRACE);
-					string[] paths;
+					CardImage[] paths;
 					foreach (imgPath; c.paths) { mixin(S_TRACE);
-						if (opt.includedFiles is ImportTypeIncluded.Exclude && imgPath.isBinImg()) { mixin(S_TRACE);
-							imgPath = putBinImg(name, imgPath);
-						} else if (opt.includedFiles is ImportTypeIncluded.Include && imgPath.length) { mixin(S_TRACE);
-							imgPath = includeImg(imgPath);
+						if (imgPath.type is CardImageType.File) { mixin(S_TRACE);
+							if (opt.includedFiles is ImportTypeIncluded.Exclude && imgPath.path.isBinImg()) { mixin(S_TRACE);
+								imgPath = new CardImage(putBinImg(name, imgPath.path));
+							} else if (opt.includedFiles is ImportTypeIncluded.Include && imgPath.path.length) { mixin(S_TRACE);
+								imgPath = new CardImage(includeImg(imgPath.path));
+							}
 						}
 						paths ~= imgPath;
 					}
 					c.paths = paths;
 				}
 				if (auto c = cast(MenuCard)path) { mixin(S_TRACE);
-					string[] paths;
+					CardImage[] paths;
 					foreach (imgPath; c.paths) { mixin(S_TRACE);
-						if (opt.includedFiles is ImportTypeIncluded.Exclude && imgPath.isBinImg()) { mixin(S_TRACE);
-							imgPath = putBinImg(name, imgPath);
-						} else if (opt.includedFiles is ImportTypeIncluded.Include && imgPath.length) { mixin(S_TRACE);
-							imgPath = includeImg(imgPath);
+						if (imgPath.type is CardImageType.File) { mixin(S_TRACE);
+							if (opt.includedFiles is ImportTypeIncluded.Exclude && imgPath.path.isBinImg()) { mixin(S_TRACE);
+								imgPath = new CardImage(putBinImg(name, imgPath.path));
+							} else if (opt.includedFiles is ImportTypeIncluded.Include && imgPath.path.length) { mixin(S_TRACE);
+								imgPath = new CardImage(includeImg(imgPath.path));
+							}
 						}
 						paths ~= imgPath;
 					}

@@ -109,7 +109,7 @@ private:
 	string _sPath = null;
 	string _sname = "";
 	string _author = ""; /// 作者名。
-	PathUser[] _imgPaths; /// 貼り紙画像のパス。
+	CardImage[] _imgPaths; /// 貼り紙画像のパス。
 	string _desc = ""; /// 貼り紙の文章。
 	uint _levMin = 0; /// 推奨レベル(下)。
 	uint _levMax = 0; /// 推奨レベル(上)。
@@ -1136,21 +1136,23 @@ public:
 		_type = type;
 	}
 
-	/// 貼り紙の画像パス。
+	/// 貼紙の画像。
 	@property
 	const
-	string[] imagePaths() { mixin(S_TRACE);
-		return .map!(a => a.path)(_imgPaths).array();
+	CardImage[] imagePaths() { mixin(S_TRACE);
+		return .map!(a => new CardImage(null, a))(_imgPaths).array();
 	}
 	/// ditto
 	@property
-	void imagePaths(in string[] paths) { mixin(S_TRACE);
-		if (imagePaths != paths) changeHandler();
-		foreach (u; _imgPaths) u.removeUseCounter();
+	void imagePaths(in CardImage[] paths) { mixin(S_TRACE);
+		if (imagePaths == paths) return;
+		changeHandler();
+		foreach (u; _imgPaths) { mixin(S_TRACE);
+			u.removeUseCounter();
+		}
 		_imgPaths = [];
 		foreach (path; paths) { mixin(S_TRACE);
-			auto u = new PathUser(this);
-			u.path = path;
+			auto u = new CardImage(this, path);
 			if (useCounter) u.setUseCounter(useCounter);
 			_imgPaths ~= u;
 		}
@@ -1713,16 +1715,7 @@ public:
 		if (dataVersion != "") root.newAttr("dataVersion", dataVersion);
 		auto pNode = root.newElement("Property");
 		pNode.newElement("Name", _sname);
-		if (_imgPaths.length == 0) { mixin(S_TRACE);
-			pNode.newElement("ImagePath", "");
-		} else if (_imgPaths.length <= 1) { mixin(S_TRACE);
-			pNode.newElement("ImagePath", encodePath(_imgPaths[0].path));
-		} else { mixin(S_TRACE);
-			auto imp = pNode.newElement("ImagePaths", "");
-			foreach (path; _imgPaths) { mixin(S_TRACE);
-				imp.newElement("ImagePath", encodePath(path.path));
-			}
-		}
+		CardImage.toNode(pNode, _imgPaths);
 		pNode.newElement("Author", _author);
 		pNode.newElement("Description", encodeLf(_desc));
 		auto lv = pNode.newElement("Level");
@@ -1898,16 +1891,8 @@ public:
 			summ.dataVersion = summNode.attr("dataVersion", false, "");
 			summNode.onTag["Property"] = (ref XNode propNode) { mixin(S_TRACE);
 				propNode.onTag["Name"] = (ref XNode node) {summ._sname = node.value;};
-				string[] paths;
-				propNode.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
-					paths ~= decodePath(n.value);
-				};
-				propNode.onTag["ImagePaths"] = (ref XNode n) { mixin(S_TRACE);
-					n.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
-						paths ~= decodePath(n.value);
-					};
-					n.parse();
-				};
+				CardImage[] paths;
+				CardImage.setOnTag(propNode, paths);
 				propNode.onTag["Author"] = (ref XNode node) {summ._author = node.value;};
 				propNode.onTag["Description"] = (ref XNode node) {summ._desc = decodeLf2(node.value);};
 				propNode.onTag["Level"] = (ref XNode node) { mixin(S_TRACE);

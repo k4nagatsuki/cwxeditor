@@ -2200,7 +2200,7 @@ private:
 			if (_viewMode !is CViewMode.TABLE) _list.setFocus();
 		});
 
-		_preview = new Preview(_prop, _tbl.getShell());
+		_preview = new Preview(_prop, _tbl);
 		auto closePreview = new ClosePreview;
 		_tbl.getVerticalBar().addSelectionListener(closePreview);
 		_tbl.getHorizontalBar().addSelectionListener(closePreview);
@@ -3026,6 +3026,7 @@ public:
 				_comm.refCast.call(cast(CastCard)_owner);
 			}
 			_comm.refreshToolBar();
+			_comm.refUseCount.call();
 			absDlg.appliedEvent.length = 0;
 			absDlg.applyEvent ~= { mixin(S_TRACE);
 				storeEdit(c.id);
@@ -3286,6 +3287,7 @@ public:
 				refresh();
 				refCard(c);
 				_comm.refreshToolBar();
+				_comm.refUseCount.call();
 			};
 		}
 		absDlg.closeEvent ~= { mixin(S_TRACE);

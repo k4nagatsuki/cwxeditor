@@ -369,7 +369,9 @@ string appDataDir(string appPath) { mixin(S_TRACE);
 
 static const B_IMG = "binaryimage://";
 @property
-bool isBinImg(string path) { mixin(S_TRACE);
+@safe
+nothrow
+bool isBinImg(string path) {
 	return path.length >= B_IMG.length && path[0u .. B_IMG.length] == B_IMG;
 }
 ubyte[] strToBImg(string bimg) { mixin(S_TRACE);

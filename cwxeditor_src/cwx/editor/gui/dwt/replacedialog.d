@@ -3319,7 +3319,7 @@ public:
 			bool sr = false;
 			Undo[] uArr;
 			if (_fileSel) { mixin(S_TRACE);
-				sr |= replFilePaths(summ.imagePaths, &summ.imagePaths, count, uArr);
+				sr |= replImagePaths(summ.imagePaths, &summ.imagePaths, count, uArr);
 			}
 			if (_summarySel) { mixin(S_TRACE);
 				sr |= repl(null, summ.desc, &summ.desc, count, uArr);
@@ -3955,18 +3955,25 @@ public:
 		}
 		return false;
 	}
-	private bool replFilePaths(string[] texts, void delegate(in string[]) set, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
+	private class CardImagesUndo : TUndo!(CardImage[]) {
+		this (CardImage[] old, CardImage[] n, void delegate(in CardImage[]) set) { mixin(S_TRACE);
+			super (old.dup, n.dup, (v) { set(v); }, (CardImage[] v) { return v.dup; });
+		}
+	}
+	private bool replImagePaths(CardImage[] imgPaths, void delegate(in CardImage[]) set, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
 		bool r = false;
-		auto o = texts.dup;
-		foreach (i, text; texts) { mixin(S_TRACE);
+		imgPaths = imgPaths.dup;
+		auto o = imgPaths.dup;
+		foreach (i, imgPath; imgPaths) { mixin(S_TRACE);
+			if (imgPath.type !is CardImageType.File) continue;
 			Undo[] uArr2;
-			r |= replFilePath(text, (text) {
-				texts[i] = text;
+			r |= replFilePath(imgPath.path, (text) {
+				imgPaths[i] = new CardImage(text);
 			}, count, uArr2);
 		}
 		if (r) { mixin(S_TRACE);
-			uArr ~= new StrArrUndo(o, texts, (texts) { set(texts); });
-			set(texts);
+			uArr ~= new CardImagesUndo(o, imgPaths, set);
+			set(imgPaths);
 		}
 		return r;
 	}
@@ -4178,7 +4185,7 @@ public:
 			}
 		}
 		if (_fileSel) { mixin(S_TRACE);
-			r |= replFilePaths(card.paths, &card.paths, count, uArr2);
+			r |= replImagePaths(card.paths, &card.paths, count, uArr2);
 		}
 		static if (is (C : EffectCard)) {
 			r |= replKeyCode!(C)(null, card, count, uArr2);
@@ -4310,7 +4317,7 @@ public:
 			}
 		}
 		if (_fileSel) { mixin(S_TRACE);
-			if (d.use(CArg.TALKER_C)) r |= replFilePaths(e.cardPaths, (paths) { e.cardPaths = paths; }, count, uArr2);
+			if (d.use(CArg.TALKER_C)) r |= replImagePaths(e.cardPaths, (paths) { e.cardPaths = paths; }, count, uArr2);
 			if (d.use(CArg.BGM_PATH)) r |= replFilePath(e.bgmPath, &e.bgmPath, count, uArr2);
 			if (d.use(CArg.SOUND_PATH)) r |= replFilePath(e.soundPath, &e.soundPath, count, uArr2);
 		}

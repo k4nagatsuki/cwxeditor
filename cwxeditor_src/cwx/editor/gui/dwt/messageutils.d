@@ -17,6 +17,7 @@ import cwx.imagesize;
 import cwx.system;
 import cwx.warning;
 import cwx.sjis;
+import cwx.card;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -73,16 +74,16 @@ class AbstractMessageDialog : EventDialog {
 
 	private class SelPrev : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			auto btn = cast(Button) e.widget;
+			auto btn = cast(Button)e.widget;
 			if (btn.getSelection()) { mixin(S_TRACE);
 				auto s = wrapReturnCode(text);
 				if (_previewWin) { mixin(S_TRACE);
 					if (_previewWin.isVisible()) return;
-					_previewWin.text(selectedTalker, [], s);
+					_previewWin.text(imgPaths, s);
 					_previewWin.open();
 				} else { mixin(S_TRACE);
 					if (rightGroup.isVisible()) return;
-					_preview.text(selectedTalker, imgPaths, s);
+					_preview.text(imgPaths, s);
 					setPreviewLData(true);
 				}
 			} else { mixin(S_TRACE);
@@ -246,10 +247,10 @@ class AbstractMessageDialog : EventDialog {
 		if (!_previewWin && !_preview) return;
 		auto s = wrapReturnCode(text);
 		if (_previewWin) { mixin(S_TRACE);
-			_previewWin.text(selectedTalker, imgPaths, s);
+			_previewWin.text(imgPaths, s);
 			_previewWin.refresh();
 		} else { mixin(S_TRACE);
-			_preview.text(selectedTalker, imgPaths, s);
+			_preview.text(imgPaths, s);
 			_preview.refresh();
 		}
 	}
@@ -258,10 +259,7 @@ class AbstractMessageDialog : EventDialog {
 	abstract string text();
 
 	@property
-	abstract Talker selectedTalker();
-
-	@property
-	abstract string[] imgPaths();
+	protected abstract CardImage[] imgPaths();
 }
 
 /// 台詞コンテントの設定ダイアログ。
@@ -821,7 +819,6 @@ public:
 	}
 
 	@property
-	override
 	Talker selectedTalker() { mixin(S_TRACE);
 		switch (_talkers.getSelectionIndex()) {
 		case 0: return Talker.SELECTED;
@@ -832,12 +829,10 @@ public:
 		}
 	}
 
-	@property
-	override
-	string[] imgPaths() { mixin(S_TRACE);
-		return [];
-	}
 protected:
+	@property
+	override CardImage[] imgPaths() { return [new CardImage(selectedTalker)]; }
+
 	override void setup(Composite area) { mixin(S_TRACE);
 		super.setup(area);
 
@@ -1120,48 +1115,19 @@ public:
 		super(comm, prop, shell, summ, CType.TALK_MESSAGE, parent, evt, prop.var.msgDlg);
 	}
 
-	void selectedTalkerParam(out Talker talker, out string[] imgPaths) { mixin(S_TRACE);
-		imgPaths = [];
+	CardImage[] selectedTalkerParam() { mixin(S_TRACE);
 		switch (_tabf.getSelectionIndex()) {
 		case 0:
-			switch (_msel.dirsCombo.getSelectionIndex()) {
-			case 0:
-				talker = Talker.SELECTED;
-				break;
-			case 1:
-				talker = Talker.UNSELECTED;
-				break;
-			case 2:
-				talker = Talker.RANDOM;
-				break;
-			case 3:
-				talker = Talker.CARD;
-				break;
-			default:
-				talker = Talker.IMAGE;
-				imgPaths = _msel.images;
-			}
-			break;
+			return _msel.images;
 		case 1:
-			talker = Talker.NARRATION;
-			break;
+			return [];
 		default: assert (0);
 		}
 	}
 
 	@property
-	override Talker selectedTalker() { mixin(S_TRACE);
-		Talker talker;
-		string[] imgPaths;
-		selectedTalkerParam(talker, imgPaths);
-		return talker;
-	}
-	@property
-	override string[] imgPaths() { mixin(S_TRACE);
-		Talker talker;
-		string[] imgPaths;
-		selectedTalkerParam(talker, imgPaths);
-		return imgPaths;
+	override CardImage[] imgPaths() { mixin(S_TRACE);
+		return selectedTalkerParam();
 	}
 	@property
 	override string text() { mixin(S_TRACE);
@@ -1181,9 +1147,9 @@ protected:
 			comp.setLayout(new GridLayout(2, false));
 			Control tp;
 			if (evt) { mixin(S_TRACE);
-				tp = createTalkerPane(comp, comm, prop, summ, evt.talkerC, evt.cardPaths, _msel);
+				tp = createTalkerPane(comp, comm, prop, summ, evt.cardPaths, _msel);
 			} else { mixin(S_TRACE);
-				tp = createTalkerPane(comp, comm, prop, summ, Talker.SELECTED, [], _msel);
+				tp = createTalkerPane(comp, comm, prop, summ, [], _msel);
 			}
 			mod(_msel);
 			_msel.modEvent ~= &refreshWarning;
@@ -1227,7 +1193,7 @@ protected:
 		_tabf.setSelection(0);
 		if (evt) { mixin(S_TRACE);
 			_text.setText(evt.text);
-			if (evt.talkerC == Talker.NARRATION) { mixin(S_TRACE);
+			if (evt.cardPaths == []) { mixin(S_TRACE);
 				_tabf.setSelection(1);
 			}
 		} else { mixin(S_TRACE);
@@ -1242,13 +1208,10 @@ protected:
 
 	override bool apply() { mixin(S_TRACE);
 		string text;
-		string[] paths = [];
-		Talker talker;
-		selectedTalkerParam(talker, paths);
+		auto paths = selectedTalkerParam();
 		text = lastRet(wrapReturnCode(_text.getText()));
 		if (!evt) evt = new Content(CType.TALK_MESSAGE, "");
 		evt.text = text;
-		evt.talkerC = talker;
 		evt.cardPaths = paths;
 		return true;
 	}
@@ -1301,31 +1264,11 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 }
 
 private Composite createTalkerPane
-		(Composite parent, Commons comm, Props prop, Summary summ, Talker talker, in string[] paths,
+		(Composite parent, Commons comm, Props prop, Summary summ, CardImage[] paths,
 		out ImageSelect!(MtType.CARD, Combo) msel) { mixin(S_TRACE);
 	auto comp = new Composite(parent, SWT.NONE);
 	{ mixin(S_TRACE);
 		comp.setLayout(zeroMarginGridLayout(1, true));
-	}
-	auto selected = prop.images.talker(Talker.SELECTED).getImageData();
-	auto unselected = prop.images.talker(Talker.UNSELECTED).getImageData();
-	auto random = prop.images.talker(Talker.RANDOM).getImageData();
-	ImageData createDefImage(size_t index) { mixin(S_TRACE);
-		switch (index) {
-		case 0:
-			// 選択中
-			return selected;
-		case 1:
-			// 選択中以外
-			return unselected;
-		case 2:
-			// ランダム
-			return random;
-		case 3:
-			// カード
-			return menuCard(comm.skin);
-		default: assert (0);
-		}
 	}
 	string[] defs = [
 		prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.SELECTED)),
@@ -1335,28 +1278,35 @@ private Composite createTalkerPane
 	];
 	auto s = prop.looks.cardSize;
 	msel = new ImageSelect!(MtType.CARD, Combo)(comp, SWT.NONE, comm, prop, summ, s.width, s.height,
-		false, false, () => "", null, defs, &createDefImage);
+		false, () => "", null, included => defs);
+	msel.valueFromDef = (defIndex, included, binPath) { mixin(S_TRACE);
+		switch (defIndex) {
+		case 0: return new CardImage(Talker.SELECTED);
+		case 1: return new CardImage(Talker.UNSELECTED);
+		case 2: return new CardImage(Talker.RANDOM);
+		case 3: return new CardImage(Talker.CARD);
+		default: return new CardImage("");
+		}
+	};
+	msel.valueToDef = (imgPath, included) { mixin(S_TRACE);
+		final switch (imgPath.type) {
+		case CardImageType.File:
+			return imgPath.path == "" ? 0 : -1;
+		case CardImageType.PCNumber:
+			return -1; // 非対応
+		case CardImageType.Talker:
+			final switch (imgPath.talker) {
+			case Talker.SELECTED: return 0;
+			case Talker.UNSELECTED: return 1;
+			case Talker.RANDOM: return 2;
+			case Talker.CARD: return 3;
+			case Talker.VALUED: return -1; // 非対応
+			}
+		}
+	};
 	auto gd = new GridData(GridData.FILL_BOTH);
 	msel.widget.setLayoutData(gd);
-	msel.images = paths;
-	if (msel.images.length == 0) { mixin(S_TRACE);
-		switch (talker) {
-		case Talker.SELECTED:
-			msel.dirsCombo.select(0);
-			break;
-		case Talker.UNSELECTED:
-			msel.dirsCombo.select(1);
-			break;
-		case Talker.RANDOM:
-			msel.dirsCombo.select(2);
-			break;
-		case Talker.CARD:
-			msel.dirsCombo.select(3);
-			break;
-		default:
-			msel.dirsCombo.select(0);
-		}
-	}
+	msel.images = paths.length ? paths : [new CardImage(Talker.SELECTED)];
 	return comp;
 }
 
@@ -1841,8 +1791,8 @@ class MsgPreviewWindow {
 		_toggle.setSelection(false);
 	}
 
-	void text(Talker talker, string[] imgPaths, string message) { mixin(S_TRACE);
-		_preview.text(talker, imgPaths, message);
+	void text(CardImage[] imgPaths, string message) { mixin(S_TRACE);
+		_preview.text(imgPaths, message);
 	}
 
 	private void refresh() { mixin(S_TRACE);
@@ -2508,8 +2458,7 @@ class MsgPreview : Composite {
 	private Image _img = null;
 	private PreviewValues _values;
 
-	private Talker _talker = Talker.NARRATION;
-	private string[] _imgPaths = [];
+	private CardImage[] _imgPaths = [];
 	private string _message = "";
 
 	private class Paint : PaintListener {
@@ -2552,11 +2501,10 @@ class MsgPreview : Composite {
 		_comm.refSkin.add(&refresh);
 	}
 
-	void text(Talker talker, string[] imgPaths, string message) { mixin(S_TRACE);
-		if (_img && talker is _talker && imgPaths == _imgPaths && message == _message) { mixin(S_TRACE);
+	void text(CardImage[] imgPaths, string message) { mixin(S_TRACE);
+		if (_img && imgPaths == _imgPaths && message == _message) { mixin(S_TRACE);
 			return;
 		}
-		_talker = talker;
 		_imgPaths = imgPaths;
 		_message = message;
 		if (isVisible()) refresh();
@@ -2568,25 +2516,29 @@ class MsgPreview : Composite {
 			_img.dispose();
 		}
 		ImageData[] tImg = [];
-		final switch (_talker) {
-		case Talker.NARRATION:
-			tImg = [];
-			break;
-		case Talker.SELECTED:
-		case Talker.UNSELECTED:
-		case Talker.RANDOM:
-		case Talker.VALUED:
-			tImg = [_prop.images.talker(_talker).getImageData()];
-			break;
-		case Talker.IMAGE:
-			foreach (imgPath; _imgPaths) { mixin(S_TRACE);
-				tImg ~= loadImage(_comm.skin.findImagePath(imgPath, _summ.scenarioPath), true);
+		foreach (imgPath; _imgPaths) { mixin(S_TRACE);
+			final switch (imgPath.type) {
+			case CardImageType.File:
+				tImg ~= loadImage(_comm.skin.findImagePath(imgPath.path, _summ.scenarioPath), true);
+				break;
+			case CardImageType.PCNumber:
+				// Invalid data.
+				break;
+			case CardImageType.Talker:
+				final switch (imgPath.talker) {
+				case Talker.SELECTED:
+				case Talker.UNSELECTED:
+				case Talker.RANDOM:
+				case Talker.VALUED:
+					tImg ~= _prop.images.talker(imgPath.talker).getImageData();
+					break;
+				case Talker.CARD:
+					auto cRect = _prop.looks.cardSize;
+					tImg ~= menuCard(_comm.skin).scaledTo(cRect.width, cRect.height);
+					break;
+				}
+				break;
 			}
-			break;
-		case Talker.CARD:
-			auto cRect = _prop.looks.cardSize;
-			tImg = [menuCard(_comm.skin).scaledTo(cRect.width, cRect.height)];
-			break;
 		}
 
 		string[char] names;

@@ -348,7 +348,7 @@ private:
 
 		static struct SummData {
 			string scenarioName;
-			string[] imagePaths;
+			CardImage[] imagePaths;
 			string author;
 			int levelMin, levelMax;
 			string desc;

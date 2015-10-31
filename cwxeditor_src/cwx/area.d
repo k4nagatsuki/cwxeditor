@@ -432,10 +432,7 @@ private:
 	Area _owner;
 	string _name;
 	string _desc;
-	PathUser[] _paths;
-	/// PC画像を表示する場合はその位置(1～6)。
-	/// 0の場合はPC画像を使用しない。
-	uint _pcNumber = 0;
+	CardImage[] _paths;
 
 public:
 	/// XML要素名。
@@ -446,13 +443,13 @@ public:
 	/// 唯一のコンストラクタ。
 	/// Params:
 	/// name = カード名。
-	/// paths = 画像のファイルパス。
+	/// paths = カード画像。
 	/// desc = 解説。無しの場合は""。
 	/// flag = フラグ。無しの場合は""。
 	/// x = X座標。
 	/// y = Y座標。
 	/// scale = スケール。通常0.75～2.0。
-	this (string name, in string[] paths, string desc, string flag,
+	this (string name, in CardImage[] paths, string desc, string flag,
 			int x, int y, real scale) { mixin(S_TRACE);
 		super(flag, x, y, scale);
 		this.paths = paths;
@@ -471,7 +468,6 @@ public:
 	override
 	AbstractSpCard dup() {
 		auto r = new MenuCard(name, paths, desc, flag, x, y, scale);
-		r.pcNumber = pcNumber;
 		r.deepCopyEventTreeOwner(this);
 		return r;
 	}
@@ -533,33 +529,23 @@ public:
 	/// 画像ファイルパス。
 	@property
 	const
-	string[] paths() { mixin(S_TRACE);
-		return .map!(a => a.path)(_paths).array();
+	CardImage[] paths() { mixin(S_TRACE);
+		return .map!(a => new CardImage(cast(IPathUser)null, a))(_paths).array();
 	}
 	/// ditto
 	@property
-	void paths(in string[] paths) { mixin(S_TRACE);
-		if (this.paths != paths) changed();
+	void paths(in CardImage[] paths) { mixin(S_TRACE);
+		if (this.paths == paths) return;
+		changed();
+		foreach (u; _paths) { mixin(S_TRACE);
+			u.removeUseCounter();
+		}
 		_paths = [];
 		foreach (path; paths) { mixin(S_TRACE);
-			auto u = new PathUser(this);
-			u.path = path;
+			auto u = new CardImage(this, path);
+			if (useCounter) u.setUseCounter(useCounter);
 			_paths ~= u;
 		}
-	}
-
-	/// PC画像を表示する場合はその位置(1～6)。
-	/// 0の場合はPC画像を使用しない。
-	@property
-	const
-	uint pcNumber() { mixin(S_TRACE);
-		return _pcNumber;
-	}
-	/// ditto
-	@property
-	void pcNumber(uint pcNumber) { mixin(S_TRACE);
-		if (_pcNumber != pcNumber) changed();
-		_pcNumber = pcNumber;
 	}
 
 	@property
@@ -598,29 +584,17 @@ public:
 			if (!pNode.valid) return null;
 			string name = null;
 			string desc = "";
-			uint pcNumber = 0;
+			CardImage[] paths;
 			pNode.onTag["Name"] = (ref XNode node) {name = node.value;};
-			string[] paths;
-			pNode.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
-				paths ~= decodePath(n.value);
-			};
-			pNode.onTag["ImagePaths"] = (ref XNode n) { mixin(S_TRACE);
-				n.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
-					paths ~= decodePath(n.value);
-				};
-				n.parse();
-			};
+			CardImage.setOnTag(pNode, paths);
 			if (copyDesc) { mixin(S_TRACE);
 				pNode.onTag["Description"] = (ref XNode node) { mixin(S_TRACE);
 					desc = decodeLf2(node.value);
 				};
 			}
-			pNode.onTag["PCNumber"] = (ref XNode node) {pcNumber = .to!uint(node.value);};
 			pNode.parse();
 			if (!name) return null;
-			auto r = new MenuCard(name, paths, desc, "", 0, 0, 1.0);
-			r.pcNumber = pcNumber;
-			return r;
+			return new MenuCard(name, paths, desc, "", 0, 0, 1.0);
 		}
 		auto pNode = node.child("Property", false);
 		if (pNode.valid) { mixin(S_TRACE);
@@ -656,18 +630,8 @@ public:
 	private void toNodeImpl(ref XNode e, XMLOption opt) { mixin(S_TRACE);
 		auto pNode = e.newElement("Property");
 		pNode.newElement("Name", _name);
-		if (_paths.length == 0) { mixin(S_TRACE);
-			pNode.newElement("ImagePath", "");
-		} else if (_paths.length <= 1) { mixin(S_TRACE);
-			pNode.newElement("ImagePath", encodePath(_paths[0].path));
-		} else { mixin(S_TRACE);
-			auto imp = pNode.newElement("ImagePaths", "");
-			foreach (path; _paths) { mixin(S_TRACE);
-				imp.newElement("ImagePath", encodePath(path.path));
-			}
-		}
+		CardImage.toNode(pNode, _paths);
 		pNode.newElement("Description", encodeLf(_desc));
-		pNode.newElement("PCNumber", .text(_pcNumber));
 		appendProp(pNode, opt);
 		appendEventsToNode(e, opt);
 	}
@@ -680,27 +644,17 @@ public:
 		if (node.name != XML_NAME) throw new AreaException("Node is not MenuCard");
 
 		string name = null;
-		string[] paths;
+		CardImage[] paths;
 		string desc = "";
 		string flag = "";
 		int x = 0, y = 0;
 		real scale = 1.0;
-		uint pcNumber = 0;
 		EventTree[] evt;
 
 		node.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 			pNode.onTag["Name"] = (ref XNode n) {name = n.value;};
-			pNode.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
-				paths ~= decodePath(n.value);
-			};
-			pNode.onTag["ImagePaths"] = (ref XNode n) { mixin(S_TRACE);
-				n.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
-					paths ~= decodePath(n.value);
-				};
-				n.parse();
-			};
+			CardImage.setOnTag(pNode, paths);
 			pNode.onTag["Description"] = (ref XNode n) {desc = decodeLf2(n.value);};
-			pNode.onTag["PCNumber"] = (ref XNode n) {pcNumber = .to!uint(n.value);};
 			loadProp(pNode, flag, x, y, scale);
 		};
 		node.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
@@ -709,7 +663,6 @@ public:
 		node.parse();
 		if (name is null) name = "";
 		auto r = new MenuCard(name, paths, desc, flag, x, y, scale);
-		r.pcNumber = pcNumber;
 		r.addAll(evt);
 
 		return r;

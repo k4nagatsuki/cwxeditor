@@ -583,7 +583,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		this.targetS = c.targetS;
 		this.targetNS = c.targetNS;
-		this.talkerC = c.talkerC;
 		this.talkerNC = c.talkerNC;
 
 		BgImage[] backs;
@@ -707,7 +706,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 			&& targetS == c.targetS
 			&& targetNS == c.targetNS
-			&& talkerC == c.talkerC
 			&& talkerNC == c.talkerNC
 
 			&& backs == c.backs
@@ -779,7 +777,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.PACKAGE, ulong, 0)(d, &packages);
 		resetValue!(CArg.FLAG, string, "")(d, &flag);
 		resetValue!(CArg.STEP, string, "")(d, &step);
-		resetValue!(CArg.TALKER_C, const(string)[], [])(d, &cardPaths);
+		resetValue!(CArg.TALKER_C, const(CardImage)[], [])(d, &cardPaths);
 		resetValue!(CArg.BGM_PATH, string, "")(d, &bgmPath);
 		resetValue!(CArg.BGM_CHANNEL, uint, 0)(d, &bgmChannel);
 		resetValue!(CArg.BGM_VOLUME, uint, 100)(d, &bgmVolume);
@@ -860,7 +858,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		resetValue!(CArg.TARGET_S, Target, Target(Target.M.SELECTED, true))(d, &targetS);
 		resetValue!(CArg.TARGET_NS, Target, Target(Target.M.SELECTED, false))(d, &targetNS);
-		resetValue!(CArg.TALKER_C, Talker, Talker.NARRATION)(d, &talkerC);
 		resetValue!(CArg.TALKER_NC, Talker, Talker.SELECTED)(d, &talkerNC);
 
 		resetValue!(CArg.BG_IMAGES, BgImage[], [])(d, &backs);
@@ -1248,7 +1245,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const
 	string connectedFile() { mixin(S_TRACE);
 		auto d = detail;
-		if (d.use(CArg.TALKER_C) && _cardPaths.length) return _cardPaths[0].path;
+		if (d.use(CArg.TALKER_C)) { mixin(S_TRACE);
+			foreach (path; _cardPaths) { mixin(S_TRACE);
+				if (path.path != "" && !path.path.isBinImg) return path.path;
+			}
+		}
 		if (d.use(CArg.BGM_PATH)) return bgmPath;
 		if (d.use(CArg.SOUND_PATH)) return soundPath;
 
@@ -1402,10 +1403,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(FlagUser, string, "flag", "", ".flag", ".flag", true);
 	/// ステップ。
 	mixin Prop!(StepUser, string, "step", "", ".step", ".step", true);
-	/// カード画像パス。
-	private PathUser[] _cardPaths;
+	/// 話者(カード画像含む)。
+	private CardImage[] _cardPaths;
 	@property
-	void cardPaths(const(string)[] cardPaths) { mixin(S_TRACE);
+	void cardPaths(const(CardImage)[] cardPaths) { mixin(S_TRACE);
 		if (cardPaths == this.cardPaths) return;
 		changed();
 		scope (exit) validate();
@@ -1414,16 +1415,15 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		_cardPaths = [];
 		foreach (cardPath; cardPaths) { mixin(S_TRACE);
-			auto u = new PathUser(this);
-			u.path = cardPath;
+			auto u = new CardImage(this, cardPath);
 			setValUCs(u, _uc, this);
 			_cardPaths ~= u;
 		}
 	}
 	@property
 	const
-	string[] cardPaths() { mixin(S_TRACE);
-		return .map!(a => a.path)(_cardPaths).array();
+	CardImage[] cardPaths() { mixin(S_TRACE);
+		return .map!(a => new CardImage(cast(IPathUser)null, a))(_cardPaths).array();
 	}
 	/// BGMパス。
 	mixin Prop!(PathUser, string, "bgmPath", "", ".path", ".path", true);
@@ -1491,14 +1491,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 対象(睡眠者判定を行わない)。
 	mixin Prop!(Target, "targetNS", Target(Target.M.SELECTED, false));
 	private bool check_targetNS(Target val) {return !val.sleep;}
-	/// 話者(カード画像含む)。
-	mixin Prop!(Talker, "talkerC", Talker.NARRATION);
 	/// 話者(カード画像を含めない)。
 	mixin Prop!(Talker, "talkerNC", Talker.SELECTED);
 	private bool check_talkerNC(Talker val) { mixin(S_TRACE);
 		final switch (val) {
 		case Talker.SELECTED, Talker.UNSELECTED, Talker.RANDOM, Talker.VALUED: return true;
-		case Talker.NARRATION, Talker.CARD, Talker.IMAGE: return false;
+		case Talker.CARD: return false;
 		}
 	}
 	/// 効果タイプ。
@@ -1921,26 +1919,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.TARGET_NS, "targetNS", "fromTarget")(e, d);
 		atnPut!(CArg.TARGET_S, "targetS", "fromTarget")(e, d);
 		if (d.use(CArg.TALKER_C)) { mixin(S_TRACE);
-			final switch (talkerC) {
-			case Talker.NARRATION:
-				e.newAttr(d.attr(CArg.TALKER_C), "");
-				break;
-			case Talker.SELECTED, Talker.UNSELECTED, Talker.RANDOM, Talker.CARD, Talker.VALUED:
-				e.newAttr(d.attr(CArg.TALKER_C), "Material/??" ~ fromTalker(talkerC));
-				break;
-			case Talker.IMAGE:
-				if (_cardPaths.length == 0) { mixin(S_TRACE);
-					e.newAttr("path", "");
-				} else if (_cardPaths.length == 1) { mixin(S_TRACE);
-					e.newAttr("path", encodePath(_cardPaths[0].path));
-				} else { mixin(S_TRACE);
-					auto imp = e.newElement("ImagePaths", "");
-					foreach (path; _cardPaths) { mixin(S_TRACE);
-						imp.newElement("ImagePath", encodePath(path.path));
-					}
-				}
-				break;
-			}
+			CardImage.toNode(e, _cardPaths, true);
 		}
 		atnPut!(CArg.TALKER_NC, "talkerNC", "fromTalker")(e, d);
 
@@ -2139,24 +2118,18 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		if (d.use(CArg.TARGET_S)) r.targetS = loadTarget(true);
 		if (d.use(CArg.TARGET_NS)) r.targetNS = loadTarget(false);
-		if (d.use(CArg.TALKER_C) || d.use(CArg.TALKER_NC)) { mixin(S_TRACE);
-			Talker talker;
-			loadTalker(en, talker, (paths) { mixin(S_TRACE);
-				if (d.use(CArg.TALKER_NC)) { mixin(S_TRACE);
-					// TALKER_NCは画像を使用しないため不正
-					if (paths.length) throw new EventException(.format("invalid talker: %s", paths));
+		if (d.use(CArg.TALKER_NC)) { mixin(S_TRACE);
+			auto targetm = en.attr("targetm", false, "");
+			foreach (talker; [Talker.SELECTED, Talker.UNSELECTED, Talker.RANDOM, Talker.VALUED]) { mixin(S_TRACE);
+				if (targetm == fromTalker(talker)) { mixin(S_TRACE);
+					r.talkerNC = talker;
+					break;
 				}
-				if (d.use(CArg.TALKER_C)) { mixin(S_TRACE);
-					r.talkerC = Talker.IMAGE;
-				}
-				r.cardPaths = paths;
-			});
-			if (d.use(CArg.TALKER_NC)) { mixin(S_TRACE);
-				r.talkerNC = talker;
 			}
-			if (d.use(CArg.TALKER_C)) { mixin(S_TRACE);
-				r.talkerC = talker;
-			}
+		}
+		CardImage[] cardPaths;
+		if (d.use(CArg.TALKER_C)) { mixin(S_TRACE);
+			CardImage.setOnTag(en, cardPaths, true);
 		}
 
 		if (d.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
@@ -2195,85 +2168,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			};
 		}
 		en.parse();
-		return r;
-	}
-}
 
-/// 指定されたXMLノードからtargetmと話者のデータを読み込む。
-private void loadTalker(ref XNode node, out Talker talker, void delegate(string[] paths) setPaths) { mixin(S_TRACE);
-	string t = node.attr("targetm", false);
-	if (t.length == 0) { mixin(S_TRACE);
-		auto pathTemp = node.attr("path", false);
-		void procImagePaths() { mixin(S_TRACE);
-			node.onTag["ImagePaths"] = (ref XNode imp) { mixin(S_TRACE);
-				// 複数イメージで上書きする
-				string[] paths;
-				if (pathTemp && pathTemp.length) paths ~= decodePath(pathTemp);
-				if (imp.valid) { mixin(S_TRACE);
-					imp.onTag["ImagePath"] = (ref XNode n) { mixin(S_TRACE);
-						paths ~= decodePath(n.value);
-					};
-					imp.parse();
-				}
-				imp.parse();
-				setPaths(paths);
-			};
+		// パース後にpathsの中身が入るのでここで設定
+		if (d.use(CArg.TALKER_C)) { mixin(S_TRACE);
+			r.cardPaths = cardPaths;
 		}
-		if (!pathTemp || !pathTemp.length) { mixin(S_TRACE);
-			talker = Talker.NARRATION;
-			procImagePaths();
-		} else if (pathTemp && endsWith(pathTemp, "??Selected")) { mixin(S_TRACE);
-			talker = Talker.SELECTED;
-		} else if (pathTemp && endsWith(pathTemp, "??Unselected")) { mixin(S_TRACE);
-			talker = Talker.UNSELECTED;
-		} else if (pathTemp && endsWith(pathTemp, "??Random")) { mixin(S_TRACE);
-			talker = Talker.RANDOM;
-		} else if (pathTemp && endsWith(pathTemp, "??Card")) { mixin(S_TRACE);
-			talker = Talker.CARD;
-		} else if (pathTemp && endsWith(pathTemp, "??Valued")) { mixin(S_TRACE);
-			talker = Talker.VALUED;
-		} else { mixin(S_TRACE);
-			talker = Talker.IMAGE;
-			procImagePaths();
-			setPaths([decodePath(pathTemp)]);
-		}
-	} else { mixin(S_TRACE);
-		switch (t) {
-		case "Selected":
-			talker = Talker.SELECTED;
-			break;
-		case "Unselected":
-			talker = Talker.UNSELECTED;
-			break;
-		case "Random":
-			talker = Talker.RANDOM;
-			break;
-		case "Card":
-			talker = Talker.CARD;
-			break;
-		case "Valued":
-			talker = Talker.VALUED;
-			break;
-		default:
-			throw new EventException("Unknown targetm: " ~ t);
-		}
-	}
-}
-/// Talkerを文字列に変換する。
-private string fromTalker(Talker talker) { mixin(S_TRACE);
-	final switch (talker) {
-	case Talker.SELECTED:
-		return "Selected";
-	case Talker.UNSELECTED:
-		return "Unselected";
-	case Talker.RANDOM:
-		return "Random";
-	case Talker.CARD:
-		return "Card";
-	case Talker.VALUED:
-		return "Valued";
-	case Talker.NARRATION, Talker.IMAGE:
-		return "";
+		return r;
 	}
 }
 
