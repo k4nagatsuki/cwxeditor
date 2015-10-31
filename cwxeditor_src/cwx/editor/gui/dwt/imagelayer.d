@@ -349,6 +349,7 @@ private class ImageLayerItem : Item {
 	private CardImage _cardPath = null;
 	private string _toolTip = "";
 	private bool _commonImage = false;
+	private bool _warning = false;
 
 	this (ImageLayerList parent, CardImage cardPath) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
@@ -387,6 +388,7 @@ private class ImageLayerItem : Item {
 		auto skin = _parent.summSkin;
 		string name = _parent._comm.prop.msgs.noSelectImage;
 		_commonImage = false;
+		_warning = false;
 		final switch (path.type) {
 		case CardImageType.File:
 			if (path.path != "") { mixin(S_TRACE);
@@ -402,6 +404,7 @@ private class ImageLayerItem : Item {
 				} else { mixin(S_TRACE);
 					image = new Image(d, blankImage);
 					name = .tryFormat(_parent._comm.prop.msgs.noImage, .encodePath(path.path));
+					_warning = true;
 				}
 			}
 			setImage(image);
@@ -437,19 +440,27 @@ private class ImageLayerItem : Item {
 		auto ca = _parent.getClientArea();
 		auto cRect = _parent._comm.prop.looks.cardSize;
 		auto image = getImage();
+		auto textX = cRect.width + 1 + 5;
 		if (image) { mixin(S_TRACE);
 			auto b = image.getBounds();
 			gc.drawImage(image, (cRect.width - b.width) / 2 + 1, y + (cRect.height - b.height) / 2 + 1);
+		}
+		if (_warning) { mixin(S_TRACE);
+			textX = 5;
+			auto img = _parent._comm.prop.images.warning;
+			auto b = img.getBounds();
+			gc.drawImage(img, textX, y + _parent.itemHeight / 2 - b.height / 2);
+			textX += b.width + 5;
 		}
 		_toolTip = "";
 		auto name = getText();
 		if (name != "") { mixin(S_TRACE);
 			auto te = gc.wTextExtent(name);
-			auto name2 = cutText(name, gc, ca.width - cRect.width - 1 - 5);
+			auto name2 = cutText(name, gc, ca.width - textX - 1);
 			if (name2 != name) { mixin(S_TRACE);
 				_toolTip = name;
 			}
-			gc.wDrawText(name2, cRect.width + 5, y + _parent.itemHeight / 2 - te.y / 2);
+			gc.wDrawText(name2, textX, y + _parent.itemHeight / 2 - te.y / 2);
 		}
 	}
 
