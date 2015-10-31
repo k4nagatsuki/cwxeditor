@@ -2360,7 +2360,6 @@ fi`;
 			if (attr[i].token.kind == Kind.STRING) { mixin(S_TRACE);
 				auto value = parseAttr!(string)(opt, attr, i, "", varTable, 0);
 				imgPath = new CardImage(decodePath(value));
-				i++;
 			} else if (attr[i].token.kind == Kind.SYMBOL) { mixin(S_TRACE);
 				auto value = attrValue(attr[i], varTable, 0);
 				if (value == "n" || value == "none") { mixin(S_TRACE);
