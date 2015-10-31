@@ -164,7 +164,7 @@ class ImageLayerList : Composite {
 				break;
 			case SWT.ARROW_DOWN:
 				if (ctrl) return;
-				selection = (_selection + 1) % _items.length;
+				selection = (_selection + 1) % cast(int)_items.length;
 				showSelection();
 				break;
 			case SWT.ARROW_LEFT:
@@ -319,7 +319,7 @@ class ImageLayerList : Composite {
 	private void setupScrollBar() { mixin(S_TRACE);
 		auto ca = getClientArea();
 		auto vBar = getVerticalBar();
-		auto height = itemHeight * _items.length;
+		auto height = itemHeight * cast(int)_items.length;
 		vBar.setMaximum(height);
 		vBar.setThumb(height < ca.height ? height : ca.height);
 		vBar.setPageIncrement(ca.height / 2);
