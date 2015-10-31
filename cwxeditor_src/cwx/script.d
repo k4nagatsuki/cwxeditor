@@ -2318,27 +2318,15 @@ fi`;
 				throwError(_prop.msgs.scriptErrorInvalidDialog, attr[i].token);
 			}
 			size_t j = 0;
-			auto vals = attr[i].values;
+			auto vals = var(attr[i].values, varTable);
 			auto r = new SDialog;
-			if (vals.length > 2) { mixin(S_TRACE);
-				// 複数の条件クーポン
-				string[] cs;
-				foreach (v; vals[0 .. $ - 1]) { mixin(S_TRACE);
-					cs ~= parseAttr!(string)(opt, vals, j, "", varTable, msgWidth);
-				}
-				r.rCoupons = cs;
-			} else if (vals.length > 1) { mixin(S_TRACE);
-				// 一つの条件クーポン
-				if (vals[j].type is NodeType.VALUES) { mixin(S_TRACE);
-					// 互換性のため、複合パラメータを解釈する
-					string[] cs;
-					foreach (v; vals[j].values) { mixin(S_TRACE);
-						cs ~= attrValue(v, varTable, 0);
-					}
-					r.rCoupons = cs;
-					j++;
+			if (vals.length) { mixin(S_TRACE);
+				if (vals[0].type is NodeType.ARRAY) { mixin(S_TRACE);
+					// 複数の条件クーポン
+					r.rCoupons = parseAttr!(string[])(opt, vals, j, [], varTable, msgWidth);
 				} else { mixin(S_TRACE);
-					// ';'で分割されるパターン
+					// 一つの条件クーポン
+					// ';'で分割される
 					r.rCoupons = std.string.split(parseAttr!(string)(opt, vals, j, "", varTable, msgWidth), ";");
 				}
 			}
@@ -3246,7 +3234,7 @@ fi`;
 				}
 			}
 			if (semic) { mixin(S_TRACE);
-				attrs2 ~= "[" ~ std.string.join(toAttr(value.rCoupons, indentValue, vars), ", ") ~ "]";
+				attrs2 ~= std.string.join(toAttr(value.rCoupons, indentValue, vars), " ");
 			} else { mixin(S_TRACE);
 				attrs2 ~= createString(std.string.join(value.rCoupons.dup, ";"));
 			}
