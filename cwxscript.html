@@ -801,7 +801,7 @@
 	<dd>スタートコンテントへの移動</dd>
 	<dt class="content"><a href="#GOPACK">gopack <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></dt>
 	<dd>パッケージへの移動</dd>
-	<dt class="content"><a href="#MSG">msg <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="arg">&lt;テキスト&gt;</span></span></a></dt>
+	<dt class="content"><a href="#MSG">msg <span class="args"><span class="arg">&lt;話者&gt;</span> ..., <span class="arg">&lt;テキスト&gt;</span></span></a></dt>
 	<dd>メッセージ</dd>
 	<dt class="content"><a href="#DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span> ..., <span class="arg">&lt;得点&gt;</span>] ...</span></span></a></dt>
 	<dd>台詞</dd>
@@ -1529,7 +1529,7 @@
 
 <pre><code class="samplecode"><span class="keywords">gopack</span> <span class="num">4</span> <span class="comment">// パッケージ4へ処理を移動</span></code></pre>
 
-<h3 class="content"><a id="MSG" name="MSG">msg <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="arg">&lt;テキスト&gt;</span></span></a></h3>
+<h3 class="content"><a id="MSG" name="MSG">msg <span class="args"><span class="arg">&lt;話者&gt;</span> ..., <span class="arg">&lt;テキスト&gt;</span></span></a></h3>
 
 <p class="fullname">(Message)</p>
 <p class="desc">メッセージを表示します。</p>
@@ -1537,7 +1537,7 @@
 
 <h4 class="argments">パラメータ</h4>
 
-<p class="desc">話者には、以下のいずれかが指定できます。省略した場合は話者無しになります。</p>
+<p class="desc">話者には、以下のいずれかが配列で指定できます。省略した場合は話者無しになります。</p>
 <dl>
 	<dt class="keyword"><code>none</code></dt>
 	<dd class="worddesc">話者を表示しません。</dd>

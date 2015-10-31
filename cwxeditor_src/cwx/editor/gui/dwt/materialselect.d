@@ -451,10 +451,10 @@ class MaterialSelect(MtType Type, D, C) {
 			return comp;
 		}
 		private void refDataVersion() { mixin(S_TRACE);
-			if (_volume) _volume.setEnabled(!_summ.legacy && path != "");
-			if (_loopCount) _loopCount.setEnabled(!_summ.legacy && path != "");
-			if (_channel) _channel.setEnabled(!_summ.legacy && (path != "" || Type == MtType.BGM));
-			if (_fadeIn) _fadeIn.setEnabled(!_summ.legacy && (path != "" || Type == MtType.BGM));
+			if (_volume) _volume.setEnabled(!_readOnly && !_summ.legacy && path != "");
+			if (_loopCount) _loopCount.setEnabled(!_readOnly && !_summ.legacy && path != "");
+			if (_channel) _channel.setEnabled(!_readOnly && !_summ.legacy && (path != "" || Type == MtType.BGM));
+			if (_fadeIn) _fadeIn.setEnabled(!_readOnly && !_summ.legacy && (path != "" || Type == MtType.BGM));
 		}
 		@property
 		int volume() { return _volume ? _volume.getSelection() : 100; }
@@ -797,13 +797,12 @@ class MaterialSelect(MtType Type, D, C) {
 			foreach (i, path; paths) { mixin(S_TRACE);
 				include = path.type == CardImageType.File && isBinImg(path.path);
 				_binPaths[i] = include ? path.path : "";
-				
 			}
 			if (include) { mixin(S_TRACE);
 				foreach (dlg; includeEvent) dlg();
 			}
 			updateUseNoCardSizeImage();
-			_imageIndex = 0;
+			_imageIndex = .min(_imageIndex, _paths.length - 1);
 			refreshPaths();
 		}
 		@property
@@ -850,6 +849,15 @@ class MaterialSelect(MtType Type, D, C) {
 		@property
 		string binPath() { mixin(S_TRACE);
 			return _binPaths[_imageIndex];
+		}
+
+		@property
+		const
+		int imageIndex() { return _imageIndex; }
+		@property
+		void imageIndex(int imageIndex) { mixin(S_TRACE);
+			_imageIndex = imageIndex;
+			refreshPaths();
 		}
 	} else {
 		@property

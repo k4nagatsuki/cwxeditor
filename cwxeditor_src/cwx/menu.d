@@ -59,6 +59,9 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.SaveImage] = "I";
 		_mnemonic[MenuID.IncludeImage] = "N";
 		_mnemonic[MenuID.LookImages] = "L";
+		_mnemonic[MenuID.EditLayers] = "Y";
+		_mnemonic[MenuID.AddLayer] = "A";
+		_mnemonic[MenuID.RemoveLayer] = "R";
 		_mnemonic[MenuID.ShowMainToolBar] = "M";
 		_mnemonic[MenuID.ShowSceneToolBar] = "E";
 		_mnemonic[MenuID.ShowEventToolBar] = "T";
@@ -271,6 +274,9 @@ class MenuProps : Properties {
 		_hotkey[MenuID.SaveImage] = "";
 		_hotkey[MenuID.IncludeImage] = "";
 		_hotkey[MenuID.LookImages] = "";
+		_hotkey[MenuID.EditLayers] = "";
+		_hotkey[MenuID.AddLayer] = "";
+		_hotkey[MenuID.RemoveLayer] = "";
 		_hotkey[MenuID.ShowMainToolBar] = "Ctrl+Shift+M";
 		_hotkey[MenuID.ShowSceneToolBar] = "Ctrl+Shift+S";
 		_hotkey[MenuID.ShowEventToolBar] = "Ctrl+Shift+E";
@@ -789,6 +795,9 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.SaveImage:
 	case MenuID.IncludeImage:
 	case MenuID.LookImages:
+	case MenuID.EditLayers:
+	case MenuID.AddLayer:
+	case MenuID.RemoveLayer:
 	case MenuID.CloseIncSearch:
 	case MenuID.CardView:
 	case MenuID.ExecEngineAuto:

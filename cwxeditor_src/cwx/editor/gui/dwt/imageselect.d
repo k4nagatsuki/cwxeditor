@@ -16,9 +16,10 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.imagelistwindow;
+import cwx.editor.gui.dwt.imagelayer;
 import cwx.editor.gui.dwt.dmenu;
 
-import std.algorithm : min;
+import std.algorithm : max, min;
 import std.file;
 import std.path;
 import std.string;
@@ -101,7 +102,24 @@ public:
 		Button imgList;
 		{ mixin(S_TRACE);
 			{ mixin(S_TRACE);
-				auto comp = new Composite(compl, SWT.NONE);
+				static if (Type == MtType.CARD) {
+					auto preview = new Composite(compl, SWT.NONE);
+					static if (is(C:Combo) || is(C:CCombo)) {
+						preview.setLayout(zeroMarginGridLayout(1, true));
+					} else {
+						preview.setLayout(zeroGridLayout(1, true));
+					}
+					preview.setLayoutData(new GridData(GridData.FILL_BOTH));
+					auto layerNameComp = new Composite(preview, SWT.NONE);
+					auto cl = new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0);
+					cl.fillHorizontal = true;
+					layerNameComp.setLayout(cl);
+					_layerName = new Label(layerNameComp, SWT.CENTER);
+					_layerName.setText(.tryFormat(_prop.msgs.layerName, 1));
+				} else {
+					auto preview = compl;
+				}
+				auto comp = new Composite(preview, SWT.NONE);
 				comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				comp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 				_image = new Canvas(comp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
@@ -188,9 +206,31 @@ public:
 					saveIncludeImage.addSelectionListener(new SaveIncImg);
 				}
 
-				auto dirs = _msel.createDirsCombo(dirsComp);
+				static if (Type == MtType.CARD) {
+					auto dirsComp2 = new Composite(dirsComp, SWT.NONE);
+					dirsComp2.setLayout(zeroMarginGridLayout(2, false));
+					dirsComp2.setLayoutData(new GridData(GridData.FILL_BOTH));
+				} else {
+					auto dirsComp2 = dirsComp;
+				}
+				auto dirs = _msel.createDirsCombo(dirsComp2);
 				dirs.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				dirs.addSelectionListener(new DirSelect);
+
+				static if (Type == MtType.CARD) {
+					_layerButton = new Button(dirsComp2, SWT.TOGGLE);
+					_layerButton.setEnabled(!_summ.legacy);
+					_layerButton.setImage(_prop.images.menu(MenuID.EditLayers));
+					_layerButton.setToolTipText(_prop.msgs.menuText(MenuID.EditLayers));
+					.listener(_layerButton, SWT.Selection, &editLayers);
+					modEvent ~= { mixin(S_TRACE);
+						if (!_layers) return;
+						_layers.list.images = _msel.paths;
+					};
+					// すでに2枚以上レイヤがある場合は編集可能にしておく
+					_comm.put(_layerButton, () => !_summ.legacy || 1 < _msel.paths.length);
+				}
+
 				dirsComp.setLayout(zeroMarginGridLayout(1, false));
 				_msel.includeEvent ~= { mixin(S_TRACE);
 					if (saveIncludeImage) return;
@@ -209,6 +249,15 @@ public:
 				fileList.addSelectionListener(new FileSelect);
 				_msel.incSearch.modEvent ~= &refreshImageList;
 			}
+		}
+		static if (Type == MtType.CARD) {
+			auto gd = new GridData(GridData.FILL_HORIZONTAL);
+			static if (!(is(C:Combo) || is(C:CCombo))) {
+				auto h1 = _layerButton.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+				auto h2 = dirsCombo.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+				gd.heightHint = .max(h1, h2);
+			}
+			_layerName.getParent().setLayoutData(gd);
 		}
 	} 
 	@property
@@ -613,6 +662,45 @@ private:
 	Skin summSkin() { mixin(S_TRACE);
 		return _summSkin ? _summSkin : _comm.skin;
 	}
+
+	static if (Type == MtType.CARD) {
+		void editLayers() { mixin(S_TRACE);
+			if (_layerButton.getSelection()) { mixin(S_TRACE);
+				if (_layers) { mixin(S_TRACE);
+					_layers.shell.setActive();
+					return;
+				}
+				_layers = new ImageLayerWindow(_comm, _summ, _mask, _readOnly != 0, _layerButton);
+				auto cloc = Display.getCurrent().getCursorLocation();
+				cloc.x++;
+				cloc.y++;
+				auto p = new Point(_prop.var.etc.layerListWidth, _prop.var.etc.layerListHeight);
+				intoDisplay(cloc.x, cloc.y, p.x, p.y);
+				_layers.shell.setBounds(cloc.x, cloc.y, p.x, p.y);
+				.listener(_layers.shell, SWT.Dispose, { mixin(S_TRACE);
+					_layerButton.setSelection(false);
+					_layers = null;
+				});
+				_layers.list.selectionEvent ~= { mixin(S_TRACE);
+					_msel.imageIndex = _layers.list.selection;
+					_layerName.setText(.tryFormat(_prop.msgs.layerName, _layers.list.selection + 1));
+				};
+				_layers.list.modEvent ~= { mixin(S_TRACE);
+					_msel.paths = _layers.list.images;
+					refresh();
+				};
+				_layers.list.images = _msel.paths;
+				_layers.list.selection = _msel.imageIndex;
+				_layers.shell.open();
+				_comm.refreshToolBar();
+			} else { mixin(S_TRACE);
+				if (!_layers) return;
+				_layers.close();
+				_layers = null;
+			}
+		}
+	}
+
 	int _readOnly = 0;
 	string[] _paintedPaths = [];
 	Composite _group;
@@ -631,6 +719,9 @@ private:
 	static if (Type is MtType.CARD) {
 		Button _noCardSize;
 		CardMode _cardMode = CardMode.Normal;
+		Button _layerButton = null;
+		ImageLayerWindow _layers = null;
+		Label _layerName = null;
 	}
 	Skin _summSkin;
 }

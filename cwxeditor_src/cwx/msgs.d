@@ -108,6 +108,9 @@ class Msgs : Properties {
 	auto filterBitmapImage = Msg("filterBitmapImage", "ビットマップイメージ (*.bmp)");
 	auto dlgMsgIncludeImage = Msg("dlgMsgIncludeImage", "%1$sをシナリオファイル内にコピーしますか？\n(元のファイルは削除されません)");
 
+	auto dlgTitImageLayerWindow = Msg("dlgTitImageLayerWindow", "レイヤの編集");
+	auto layerName = Msg("layerName", "レイヤ %1$s");
+
 	auto newFolder = Msg("newFolder", "新規" ~ DIR);
 
 	auto dlgMsgDeleteFile = Msg("dlgMsgDeleteFile", "%1$sを完全に削除しますか？");
@@ -1954,6 +1957,9 @@ class Msgs : Properties {
 	auto menuTextSaveImage = Msg("menuTextSaveImage", "格納イメージをファイルに保存");
 	auto menuTextIncludeImage = Msg("menuTextIncludeImage", "イメージを格納する");
 	auto menuTextLookImages = Msg("menuTextLookImages", "画像を一覧表示");
+	auto menuTextEditLayers = Msg("menuTextEditLayers", "レイヤの編集");
+	auto menuTextAddLayer = Msg("menuTextAddLayer", "レイヤの追加");
+	auto menuTextRemoveLayer = Msg("menuTextRemoveLayer", "レイヤの削除");
 	auto menuTextShowMainToolBar = Msg("menuTextShowMainToolBar", "全体ツールバーを表示");
 	auto menuTextShowSceneToolBar = Msg("menuTextShowSceneToolBar", "シーンビューのツールバーを表示");
 	auto menuTextShowEventToolBar = Msg("menuTextShowEventToolBar", "イベントビューのツールバーを表示");

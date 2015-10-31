@@ -3046,6 +3046,9 @@ public:
 								case MenuID.SaveImage:
 								case MenuID.IncludeImage:
 								case MenuID.LookImages:
+								case MenuID.EditLayers:
+								case MenuID.AddLayer:
+								case MenuID.RemoveLayer:
 								case MenuID.CloseIncSearch:
 								case MenuID.CardView:
 								case MenuID.ExecEngineAuto:
