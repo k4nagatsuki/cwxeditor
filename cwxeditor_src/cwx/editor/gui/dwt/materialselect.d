@@ -1456,6 +1456,13 @@ private:
 	}
 	void refPath(string o, string n, bool isDir) { mixin(S_TRACE);
 		auto old = this.path;
+		static if (Type == MtType.CARD) {
+			foreach (i, path; _paths) { mixin(S_TRACE);
+				if (i == _imageIndex) continue;
+				if (path.type !is CardImageType.File) continue;
+				if (o == path.path) _paths[i] = new CardImage(n); // 格納イメージは更新不要
+			}
+		}
 		scope (exit) {
 			if (old != this.path) {
 				foreach (dlg; modEvent) dlg();
