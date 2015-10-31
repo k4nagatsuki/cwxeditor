@@ -21,9 +21,6 @@ import std.file;
 
 import org.eclipse.swt.all;
 
-// TODO: 隙間
-// TODO: 選択中のレイヤ名を出す
-
 /// CardImageのリストを管理する。
 class ImageLayerWindow {
 	private Shell _win = null;
@@ -31,7 +28,11 @@ class ImageLayerWindow {
 
 	this (Commons comm, const Summary summ, bool mask, bool readOnly, Control parent) { mixin(S_TRACE);
 		_win = new Shell(parent.getShell(), SWT.TITLE | SWT.RESIZE | SWT.CLOSE | SWT.TOOL);
-		_win.setText(comm.prop.msgs.dlgTitImageLayerWindow);
+		if (readOnly) { mixin(S_TRACE);
+			_win.setText(comm.prop.msgs.dlgTitImageLayerWindowReadOnly);
+		} else { mixin(S_TRACE);
+			_win.setText(comm.prop.msgs.dlgTitImageLayerWindow);
+		}
 
 		_win.setLayout(zeroGridLayout(1, true));
 		ToolBar bar = null;
@@ -52,7 +53,15 @@ class ImageLayerWindow {
 			createToolItem(comm, bar, MenuID.Down, &_list.downLayer, &_list.canDownLayer);
 		}
 
+		void refDataVersion() { mixin(S_TRACE);
+			if (_list._items.length <= 1 && _list._summ.legacy) { mixin(S_TRACE);
+				close();
+			}
+		}
+		comm.refDataVersion.add(&refDataVersion);
 		.listener(_win, SWT.Dispose, { mixin(S_TRACE);
+			comm.refDataVersion.remove(&refDataVersion);
+
 			auto size = _win.getSize();
 			comm.prop.var.etc.layerListWidth = size.x;
 			comm.prop.var.etc.layerListHeight = size.y;
@@ -105,7 +114,9 @@ class ImageLayerList : Composite {
 	private int _selection = -1;
 
 	this (Commons comm, const Summary summ, Composite parent, bool mask, bool readOnly) { mixin(S_TRACE);
-		super (parent, SWT.BORDER | SWT.DOUBLE_BUFFERED | SWT.V_SCROLL);
+		style = SWT.DOUBLE_BUFFERED | SWT.V_SCROLL;
+		if (!readOnly) style |= SWT.BORDER;
+		super (parent, style);
 		_readOnly = readOnly ? SWT.READ_ONLY : SWT.NONE;
 
 		auto d = parent.getDisplay();
@@ -117,13 +128,15 @@ class ImageLayerList : Composite {
 		_mask = mask;
 		if (_readOnly) _summSkin = findSkin(_comm, _comm.prop, _summ);
 
-		auto menu = new Menu(this.getShell(), SWT.POP_UP);
-		createMenuItem(comm, menu, MenuID.AddLayer, &addLayer, &canAddLayer);
-		createMenuItem(comm, menu, MenuID.RemoveLayer, &removeLayer, &canRemoveLayer);
-		new MenuItem(menu, SWT.SEPARATOR);
-		createMenuItem(comm, menu, MenuID.Up, &upLayer, &canUpLayer);
-		createMenuItem(comm, menu, MenuID.Down, &downLayer, &canDownLayer);
-		setMenu(menu);
+		if (!_readOnly) { mixin(S_TRACE);
+			auto menu = new Menu(this.getShell(), SWT.POP_UP);
+			createMenuItem(comm, menu, MenuID.AddLayer, &addLayer, &canAddLayer);
+			createMenuItem(comm, menu, MenuID.RemoveLayer, &removeLayer, &canRemoveLayer);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(comm, menu, MenuID.Up, &upLayer, &canUpLayer);
+			createMenuItem(comm, menu, MenuID.Down, &downLayer, &canDownLayer);
+			setMenu(menu);
+		}
 
 		.listener(this, SWT.Paint, &onPaint);
 		.listener(this, SWT.Traverse, (e) { mixin(S_TRACE);

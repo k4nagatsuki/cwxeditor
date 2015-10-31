@@ -109,6 +109,7 @@ class Msgs : Properties {
 	auto dlgMsgIncludeImage = Msg("dlgMsgIncludeImage", "%1$sをシナリオファイル内にコピーしますか？\n(元のファイルは削除されません)");
 
 	auto dlgTitImageLayerWindow = Msg("dlgTitImageLayerWindow", "レイヤの編集");
+	auto dlgTitImageLayerWindowReadOnly = Msg("dlgTitImageLayerWindowReadOnly", "レイヤの一覧");
 	auto layerName = Msg("layerName", "レイヤ %1$s");
 
 	auto newFolder = Msg("newFolder", "新規" ~ DIR);
