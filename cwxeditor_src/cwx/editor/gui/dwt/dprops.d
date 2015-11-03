@@ -7,6 +7,7 @@ import cwx.structs;
 import cwx.menu;
 import cwx.types;
 import cwx.msgs;
+import cwx.summary;
 
 import cwx.editor.gui.dwt.image;
 import cwx.editor.gui.dwt.properties;
@@ -151,6 +152,12 @@ public:
 	const
 	bool targetVersion(string ver) { mixin(S_TRACE);
 		return parent.targetVersion(ver, var.etc.targetVersion);
+	}
+	/// summが存在する場合はwsnVer以上かを返す。
+	/// それ以外の場合は対象バージョンがCardWirthPyか否かを返す。
+	const
+	bool isTargetVersion(in Summary summ, string ver) {
+		return parent.isTargetVersion(summ, var.etc.targetVersion, ver);
 	}
 }
 

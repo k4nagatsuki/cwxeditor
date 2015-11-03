@@ -297,6 +297,7 @@ struct BgImageSetting {
 	int width; /// 幅。
 	int height; /// 高さ。
 	bool mask; /// マスク。
+	int layer; /// レイヤ。
 	/// コピーを作成する。
 	@property
 	const
@@ -308,9 +309,10 @@ struct BgImageSetting {
 		r.width = width;
 		r.height = height;
 		r.mask = mask;
+		r.layer = layer;
 		return r;
 	}
-	static BgImageSetting opCall(string name, int x, int y, int width, int height, bool mask) {
+	static BgImageSetting opCall(string name, int x, int y, int width, int height, bool mask, int layer) {
 		BgImageSetting r;
 		r.name = name;
 		r.x = x;
@@ -318,6 +320,7 @@ struct BgImageSetting {
 		r.width = width;
 		r.height = height;
 		r.mask = mask;
+		r.layer = layer;
 		return r;
 	}
 	/// XMLノードとして取り扱うための関数群。
@@ -342,6 +345,7 @@ struct BgImageSetting {
 		e.newElement("width", width);
 		e.newElement("height", height);
 		e.newElement("mask", mask);
+		e.newElement("layer", layer);
 	}
 	/// ditto
 	void fromNode(ref XNode node) { mixin(S_TRACE);
@@ -351,6 +355,7 @@ struct BgImageSetting {
 		width = to!(int)(node.childText("width", true));
 		height = to!(int)(node.childText("height", true));
 		mask = to!(bool)(node.childText("mask", true));
+		layer = to!(int)(node.childText("layer", LAYER_BACK_CELL));
 	}
 }
 
@@ -452,7 +457,7 @@ struct BgImageS {
 	uint width; /// 幅。
 	uint height; /// 高さ。
 	bool mask; /// マスク。
-	bool foreground; /// カードの前景に描画するか。
+	int layer; /// レイヤ。
 	string cellName; /// イベント操作用のセル名。
 
 	// ImageCell
@@ -505,7 +510,7 @@ struct BgImageS {
 		r.newAttr("height", height);
 		r.newAttr("mask", mask);
 		r.newAttr("cellName", cellName);
-		r.newAttr("foreground", to!string(foreground));
+		r.newAttr("layer", to!string(layer));
 		switch (type) {
 		case "image":
 			r.newAttr("name", name);
@@ -552,7 +557,7 @@ struct BgImageS {
 		width = node.attr!(uint)("width", true);
 		height = node.attr!(uint)("height", true);
 		mask = node.attr!(bool)("mask", false, false);
-		foreground = node.attr!(bool)("foreground", false, false);
+		layer = node.attr!(int)("layer", false, false);
 		cellName = node.attr("cellName", false, "");
 		switch (type) {
 		case "image":

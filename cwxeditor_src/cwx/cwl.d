@@ -1636,7 +1636,7 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 			f.readByte; // 不明(0)
 			string cellName = readExString(f);
 			auto cell = new ImageCell(imgPath, flag, x, y, w, h, mask);
-			cell.foreground = foreground;
+			cell.layer = foreground ? LAYER_FORE_CELL : LAYER_BACK_CELL;
 			cell.cellName = cellName;
 			return cell;
 		case 2:
@@ -1685,7 +1685,7 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 			}
 			auto cell = new TextCell(text, fontName, size, color, bold, italic, underline, strike, vertical,
 				borderingType, borderingColor, borderingWidth, flag, x, y, w, h, mask);
-			cell.foreground = foreground;
+			cell.layer = foreground ? LAYER_FORE_CELL : LAYER_BACK_CELL;
 			cell.cellName = cellName;
 			return cell;
 		case 3:
@@ -1717,7 +1717,7 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 				cellName = readExString(f);
 			}
 			auto cell = new ColorCell(blend, gradient, color1, color2, flag, x, y, w, h, mask);
-			cell.foreground = foreground;
+			cell.layer = foreground ? LAYER_FORE_CELL : LAYER_BACK_CELL;
 			cell.cellName = cellName;
 			return cell;
 		case 4:
@@ -1734,7 +1734,7 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 				cellName = readExString(f);
 			}
 			auto cell = new PCCell(pcNumber, flag, x, y, w, h, mask);
-			cell.foreground = foreground;
+			cell.layer = foreground ? LAYER_FORE_CELL : LAYER_BACK_CELL;
 			cell.cellName = cellName;
 			return cell;
 		default:
@@ -1839,7 +1839,7 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
 				imgPath = new CardImage(img);
 			}
 		}
-		auto c = new MenuCard(cName, imgPath ? [imgPath] : [], desc, flag, x, y, scale);
+		auto c = new MenuCard(cName, imgPath ? [imgPath] : [], desc, flag, x, y, scale, LAYER_MENU_CARD);
 		foreach (tree; trees) { mixin(S_TRACE);
 			c.add(tree);
 		}
@@ -1874,7 +1874,7 @@ private Battle loadBattle(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 		int x = f.readIntL;
 		int y = f.readIntL;
 		bool escape = readBool(f);
-		auto c = new EnemyCard(cId, escape, flag, x, y, scale);
+		auto c = new EnemyCard(cId, escape, flag, x, y, scale, LAYER_MENU_CARD);
 		foreach (tree; cTrees) { mixin(S_TRACE);
 			c.add(tree);
 		}
@@ -3491,7 +3491,8 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 	auto ic = cast(ImageCell) b;
 	if (ic) { mixin(S_TRACE);
 		bool included = isBinImg(ic.path);
-		if (included || ic.foreground || ic.cellName != "") { mixin(S_TRACE);
+		// 1.60
+		/+if (included || ic.foreground || ic.cellName != "") { mixin(S_TRACE);
 			f.writeL(cast(int)ic.x);
 			f.writeL(cast(int)ic.y);
 			f.writeL(cast(uint)ic.width + 70000u);
@@ -3508,7 +3509,7 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 			writeString(f, ic.flag);
 			f.writeL(cast(byte) 0x0);
 			writeExString(f, ic.cellName);
-		} else { mixin(S_TRACE);
+		} else +/{ mixin(S_TRACE);
 			f.writeL(cast(int) ic.x);
 			f.writeL(cast(int) ic.y);
 			f.writeL(cast(uint) ic.width + 40000u);
@@ -3523,18 +3524,20 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 	if (tc) { mixin(S_TRACE);
 		f.writeL(cast(int) tc.x);
 		f.writeL(cast(int) tc.y);
-		if (tc.foreground || tc.cellName != "") {
+		// 1.60
+		/+if (tc.foreground || tc.cellName != "") {
 			f.writeL(cast(uint)tc.width + 70000u);
-		} else {
+		} else +/{
 			f.writeL(cast(uint)tc.width + 60000u);
 		}
 		f.writeL(cast(uint) tc.height);
 		f.write(cast(byte) 2);
 		writeBool(f, tc.mask);
-		if (tc.foreground || tc.cellName != "") {
+		// 1.60
+/+		if (tc.foreground || tc.cellName != "") {
 			writeBool(f, tc.foreground);
 		}
-		writeString(f, tc.text);
++/		writeString(f, tc.text);
 		writeString(f, tc.fontName);
 		f.writeL(cast(uint) tc.size);
 		auto color = tc.color;
@@ -3568,26 +3571,29 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 
 		writeString(f, tc.flag);
 		f.writeL(cast(byte) 0x0);
-		if (tc.foreground || tc.cellName != "") {
+		// 1.60
+/+		if (tc.foreground || tc.cellName != "") {
 			writeExString(f, tc.cellName);
 		}
-	}
++/	}
 	auto cc = cast(ColorCell) b;
 	if (cc) { mixin(S_TRACE);
 		f.writeL(cast(int) cc.x);
 		f.writeL(cast(int) cc.y);
-		if (cc.foreground || cc.cellName != "") {
+		// 1.60
+		/+if (cc.foreground || cc.cellName != "") {
 			f.writeL(cast(uint)cc.width + 70000u);
-		} else {
+		} else +/{
 			f.writeL(cast(uint)cc.width + 60000u);
 		}
 		f.writeL(cast(uint) cc.height);
 		f.write(cast(byte) 3);
 		f.write(fromBlendMode(cc.blendMode, cc.mask));
-		if (cc.foreground || cc.cellName != "") {
+		// 1.60
+/+		if (cc.foreground || cc.cellName != "") {
 			writeBool(f, cc.foreground);
 		}
-		f.write(fromGradientDir(cc.gradientDir));
++/		f.write(fromGradientDir(cc.gradientDir));
 		auto color1 = cc.color1;
 		f.write(cast(ubyte) color1.b);
 		f.write(cast(ubyte) color1.g);
@@ -3602,32 +3608,36 @@ private void writeBgImage(ref SData d, ref ByteIO f, BgImage b) { mixin(S_TRACE)
 		}
 		writeString(f, cc.flag);
 		f.writeL(cast(byte) 0x0);
-		if (cc.foreground || cc.cellName != "") {
+		// 1.60
+/+		if (cc.foreground || cc.cellName != "") {
 			writeExString(f, cc.cellName);
 		}
-	}
++/	}
 	auto pc = cast(PCCell) b;
 	if (pc) { mixin(S_TRACE);
 		f.writeL(cast(int)pc.x);
 		f.writeL(cast(int)pc.y);
-		if (pc.foreground || pc.cellName != "") {
+		// 1.60
+		/+if (pc.foreground || pc.cellName != "") {
 			f.writeL(cast(uint)pc.width + 70000u);
-		} else {
+		} else +/{
 			f.writeL(cast(uint)pc.width + 60000u);
 		}
 		f.writeL(cast(uint)pc.height);
 		f.write(cast(byte)4);
 		writeBool(f, pc.mask);
-		if (pc.foreground || pc.cellName != "") {
+		// 1.60
+/+		if (pc.foreground || pc.cellName != "") {
 			writeBool(f, pc.foreground);
 		}
-		f.write(cast(ubyte)pc.pcNumber);
++/		f.write(cast(ubyte)pc.pcNumber);
 		writeString(f, pc.flag);
 		f.writeL(cast(byte) 0x0);
-		if (pc.foreground || pc.cellName != "") {
+		// 1.60
+/+		if (pc.foreground || pc.cellName != "") {
 			writeExString(f, pc.cellName);
 		}
-	}
++/	}
 }
 private void writeBgImages(ref SData d, ref ByteIO f, BgImage[] backs, bool replBgImg = false) { mixin(S_TRACE);
 	if (replBgImg)  { mixin(S_TRACE);

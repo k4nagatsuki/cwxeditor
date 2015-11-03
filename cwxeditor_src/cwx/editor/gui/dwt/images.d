@@ -96,6 +96,7 @@ private:
 	bool t = false;
 	bool s = false;
 	int _alpha = 0xFF;
+	bool _separator = false;
 	Image _img = null;
 	ImageData _imgData = null;
 	ImageData _baseSizeData = null;
@@ -103,7 +104,7 @@ private:
 	ImageData data = null;
 
 	bool _visible = true;
-	bool _foreground = false;
+	int _layer = 0;
 	bool _smoothing = false;
 
 	int initW, initH;
@@ -447,6 +448,13 @@ public:
 	/// ditto
 	@property
 	void color2(CRGB value) { _color2 = value; }
+
+	/// 画像データを返す。生成されていない場合は生成する。
+	@property
+	ImageData imageData() { mixin(S_TRACE);
+		if (!_imgData) _imgData = createImageData();
+		return _imgData;
+	}
 
 	/// イメージ・タイトル・透明色の設定有無を設定した後に
 	/// このメソッドを呼び出すことで、画像が生成される。
@@ -1231,17 +1239,17 @@ public:
 		return _baseSizeData;
 	}
 
-	/// trueになっている場合、他のセルよりも優先して手前側に表示される。
-	/// 複数のセルが同時にtrueになっている場合は従来の描画順に従う。
+	/// レイヤ。値が大きいほど手前に表示される。
+	/// 値が同じである場合はリストの後の方が手前となる。
 	@property
 	const
-	bool foreground() { mixin(S_TRACE);
-		return _foreground;
+	int layer() { mixin(S_TRACE);
+		return _layer;
 	}
 	/// ditto
 	@property
-	void foreground(bool v) { mixin(S_TRACE);
-		_foreground = v;
+	void layer(int v) { mixin(S_TRACE);
+		_layer = v;
 	}
 
 	/// Returns: 表示するか。
@@ -1282,10 +1290,19 @@ public:
 	/// 透明度。0(透明)～255(不透明)。
 	@property
 	const
-	int alpha() {return _alpha;}
+	int alpha() { return _alpha; }
 	/// ditto
 	@property
-	void alpha(int val) {_alpha = val;}
+	void alpha(int val) { _alpha = val; }
+	/// 視認性をよくするため、同一の透明度のイメージが並んでいる場合は
+	/// 結合した上で半透明化するが、separatorをtrueに設定したイメージは
+	/// 結合を行わない。
+	@property
+	const
+	bool separator() { return _separator; }
+	/// ditto
+	@property
+	void separator(bool val) { _separator = val; }
 	/// Returns: 横位置。
 	@property
 	const
@@ -1871,7 +1888,6 @@ private:
 
 	PileImage[] backs = [];
 	ImageData[] _appends = [];
-	bool _showAppends = true;
 
 	int _gridX = 0, _gridY = 0;
 	int _gridRange = 5;
@@ -1883,19 +1899,26 @@ private:
 	Image _lastWallpaper = null;
 	Rectangle _lastClientArea = null;
 
-	/// backsをPileImage#foregroundを考慮した順序にして返す。
+	/// backsをPileImage#layerを考慮した順序にして返す。
 	@property
 	Tuple!(size_t, PileImage)[] fBacks() { mixin(S_TRACE);
-		typeof(return) arrB;
-		typeof(return) arrF;
+		Tuple!(size_t, PileImage)[][int] table;
 		foreach (i, img; backs) { mixin(S_TRACE);
-			if (img.foreground) { mixin(S_TRACE);
-				arrF ~= Tuple!(size_t, PileImage)(i, img);
+			auto p = img.layer in table;
+			if (p) { mixin(S_TRACE);
+				*p ~= Tuple!(size_t, PileImage)(i, img);
 			} else { mixin(S_TRACE);
-				arrB ~= Tuple!(size_t, PileImage)(i, img);
+				auto arr = [Tuple!(size_t, PileImage)(i, img)];
+				table[img.layer] = arr;
 			}
 		}
-		return arrB ~ arrF;
+		typeof(return) r;
+		auto keys = table.keys();
+		keys.sort();
+		foreach (val; keys) {
+			r ~= table[val];
+		}
+		return r;
 	}
 
 	class DListener : DisposeListener {
@@ -2445,8 +2468,8 @@ private:
 				_lastWallpaper = backImg;
 				_lastClientArea = rect;
 			}
-			auto imageData = cast(ImageData)_background.clone();
-			scope (exit) {
+			void delImg(ImageData imageData) { mixin(S_TRACE);
+				if (!imageData) return;
 				imageData.alphaData[] = 0;
 				delete imageData.alphaData;
 				imageData.maskData[] = 0;
@@ -2454,26 +2477,84 @@ private:
 				imageData.data[] = 0;
 				delete imageData.data;
 			}
+			auto imageData = cast(ImageData)_background.clone();
+			scope (exit) {
+				delImg(imageData);
+			}
 			auto range = new Rectangle(e.x, e.y, e.width, e.height);
 			auto buf = new Image(d, imageData);
 			scope (exit) buf.dispose();
 			auto gc = new GC(buf);
 			scope (exit) gc.dispose();
-			foreach (bmp; backs) { mixin(S_TRACE);
-				if (bmp.foreground) continue;
-				bmp.draw(buf, gc, range);
+
+			ImageData alphaImgData = null;
+			byte[] alphas = null;
+			int befAlpha = -1;
+
+			void drawAlphaImgData() { mixin(S_TRACE);
+				auto aImg = new Image(d, alphaImgData);
+				gc.drawImage(aImg, 0, 0);
+				aImg.dispose();
+
+				delImg(alphaImgData);
+				alphaImgData = null;
+				alphas[] = 0;
+				delete alphas;
 			}
-			if (_showAppends) { mixin(S_TRACE);
-				foreach (a; _appends) { mixin(S_TRACE);
-					auto img = new Image(d, a);
-					scope (exit) img.dispose();
-					gc.drawImage(img, 0, 0);
+			foreach (t; fBacks) { mixin(S_TRACE);
+				auto i = t[0];
+				auto img = t[1];
+				if (!img.visible) continue;
+				if (img.y + img.height < 0) continue;
+				if (rect.height <= img.y) continue;
+				if (img.x + img.width < 0) continue;
+				if (rect.width <= img.x) continue;
+
+				if (img.type is ImageType.Image && 0 <= img.alpha && img.alpha < 255) { mixin(S_TRACE);
+					// 同一のレイヤ値を持つイメージが連続して存在している場合は
+					// 視認性をよくするために一体化させる
+					if (img.alpha != befAlpha || img.separator) { mixin(S_TRACE);
+						if (alphaImgData) { mixin(S_TRACE);
+							drawAlphaImgData();
+						}
+						alphaImgData = new ImageData(rect.width, rect.height, img.imageData.depth, img.imageData.palette);
+						alphas = new byte[rect.width * rect.height];
+						alphas[] = 0;
+						alphaImgData.setAlphas(0, 0, rect.width * rect.height, alphas, 0);
+					}
+					assert (alphaImgData !is null);
+					befAlpha = img.separator ? -1 : img.alpha;
+
+					int ix = .max(0, -img.x);
+					int aw = img.width - ix;
+					assert (0 < aw);
+					auto iPixels = new int[aw];
+					auto iAlphas = new byte[aw];
+					iAlphas[] = cast(byte)img.alpha;
+					scope (exit) delete iPixels;
+					scope (exit) delete iAlphas;
+					auto iData = img.imageData;
+					int x2 = img.x + ix;
+					foreach (iy; .max(0, -img.y) .. img.height) { mixin(S_TRACE);
+						int y2 = iy + img.y;
+						assert (0 <= y2);
+						if (rect.height <= y2) break;
+						iData.getPixels(ix, iy, aw, iPixels, 0);
+						alphaImgData.setPixels(x2, y2, aw, iPixels, 0);
+						alphaImgData.setAlphas(x2, y2, aw, iAlphas, 0);
+					}
+				} else { mixin(S_TRACE);
+					if (alphaImgData) { mixin(S_TRACE);
+						drawAlphaImgData();
+					}
+					befAlpha = -1;
+					img.draw(buf, gc, range);
 				}
 			}
-			foreach (bmp; backs) { mixin(S_TRACE);
-				if (!bmp.foreground) continue;
-				bmp.draw(buf, gc, range);
+			if (alphaImgData) { mixin(S_TRACE);
+				drawAlphaImgData();
 			}
+
 			foreach (bmp; backs) { mixin(S_TRACE);
 				auto fi = cast(FlexImage) bmp;
 				if (fi) fi.drawToggle(gc);
@@ -2733,8 +2814,8 @@ public:
 		backs = backs[0 .. index] ~ backs[index + 1 .. $];
 	}
 
-	void removeRange(int fromIndex, int toIndex) { mixin(S_TRACE);
-		for (int i = fromIndex; i < toIndex; i++) { mixin(S_TRACE);
+	void removeRange(size_t fromIndex, size_t toIndex) { mixin(S_TRACE);
+		for (auto i = fromIndex; i < toIndex; i++) { mixin(S_TRACE);
 			backs[i].dispose();
 			removeDragImage(backs[i]);
 		}
@@ -2811,19 +2892,6 @@ public:
 	@property
 	void appends(ImageData[] v) { mixin(S_TRACE);
 		_appends = v;
-		redraw();
-	}
-
-	/// 追加イメージを表示するか。
-	@property
-	const
-	bool showAppends() { mixin(S_TRACE);
-		return _showAppends;
-	}
-	/// ditto
-	@property
-	void showAppends(bool v) { mixin(S_TRACE);
-		_showAppends = v;
 		redraw();
 	}
 

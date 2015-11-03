@@ -17,6 +17,7 @@ import cwx.features;
 import cwx.imagesize;
 import cwx.motion;
 import cwx.sjis;
+import cwx.motion;
 
 import std.path;
 import std.typecons : Tuple;
@@ -124,13 +125,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		putMotions(effCard.motions);
 		if (effCard.soundPath1 != "") { mixin(S_TRACE);
 			r ~= skin.warningSE(prop, effCard.soundPath1, summ ? summ.legacy : false, targVer);
-			if ((effCard.volume1 != 100 || effCard.volume2 != 100) && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if ((effCard.volume1 != 100 || effCard.volume2 != 100) && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningVolume;
 			}
 		}
 		if (effCard.soundPath2 != "") { mixin(S_TRACE);
 			r ~= skin.warningSE(prop, effCard.soundPath2, summ ? summ.legacy : false, targVer);
-			if ((effCard.loopCount1 != 1 || effCard.loopCount2 != 1) && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if ((effCard.loopCount1 != 1 || effCard.loopCount2 != 1) && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningLoopCount;
 			}
 		}
@@ -152,9 +153,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (bi.flag != "" && !(froot && froot.findFlag(bi.flag))) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, bi.flag);
 		}
-		if (bi.foreground) {
-			if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
+		if (bi.layer != LAYER_BACK_CELL) {
+			// 1.60
+/+			if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
 				r ~= prop.msgs.warningBgImageForeground;
+			}
++/			if (!prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+				r ~= prop.msgs.warningLayer;
 			}
 		}
 		if (bi.cellName != "") {
@@ -202,13 +207,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	if (btl) { mixin(S_TRACE);
 		if (btl.music != "") { mixin(S_TRACE);
 			r ~= skin.warningBGM(prop, btl.music, summ ? summ.legacy : false, targVer);
-			if (btl.volume != 100 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (btl.volume != 100 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningVolume;
 			}
-			if (btl.loopCount != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (btl.loopCount != 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningLoopCount;
 			}
-			if (btl.fadeIn != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (btl.fadeIn != 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningFadeIn;
 			}
 		}
@@ -251,6 +256,18 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (ec.flag != "" && !(froot && froot.findFlag(ec.flag))) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, ec.flag);
+		}
+	}
+	auto spc = cast(AbstractSpCard)path;
+	if (spc) { mixin(S_TRACE);
+		if (spc.layer != LAYER_MENU_CARD) {
+			// 1.60
+/+			if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
+				r ~= prop.msgs.warningBgImageForeground;
+			}
++/			if (!prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+				r ~= prop.msgs.warningLayer;
+			}
 		}
 	}
 	auto c = cast(Content) path;
@@ -296,6 +313,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				if (s.name == c.start) return true;
 			}
 			return false;
+		}
+		foreach (back; c.backs) { mixin(S_TRACE);
+			r ~= warnings(prop, skin, summ, back, targVer);
 		}
 		if (c.flag != "" && !(froot && froot.findFlag(c.flag))) { mixin(S_TRACE);
 			// 代入コンテントではランダム値有効
@@ -383,32 +403,32 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.bgmPath != "") { mixin(S_TRACE);
 			r ~= skin.warningBGM(prop, c.bgmPath, summ ? summ.legacy : false, targVer);
 		}
-		if (c.bgmChannel != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+		if (c.bgmChannel != 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningChannel;
 		}
-		if (c.bgmFadeIn != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+		if (c.bgmFadeIn != 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningFadeIn;
 		}
 		if (c.bgmPath != "") { mixin(S_TRACE);
-			if (c.bgmVolume != 100 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (c.bgmVolume != 100 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningVolume;
 			}
-			if (c.bgmLoopCount != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (c.bgmLoopCount != 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningLoopCount;
 			}
 		}
 		if (c.soundPath != "") { mixin(S_TRACE);
 			r ~= skin.warningSE(prop, c.soundPath, summ ? summ.legacy : false, targVer);
-			if (c.soundFadeIn != 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (c.soundFadeIn != 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningFadeIn;
 			}
-			if (c.soundVolume != 100 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (c.soundVolume != 100 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningVolume;
 			}
-			if (c.soundLoopCount != 1 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (c.soundLoopCount != 1 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningLoopCount;
 			}
-			if (c.soundChannel!= 0 && summ && !summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (c.soundChannel!= 0 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningChannel;
 			}
 		}

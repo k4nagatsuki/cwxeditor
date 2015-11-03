@@ -36,7 +36,7 @@ BgImageS[] createBgImageSs(in BgImage[] bgs) { mixin(S_TRACE);
 		s.width = bg.width;
 		s.height = bg.height;
 		s.mask = bg.mask;
-		s.foreground = bg.foreground;
+		s.layer = bg.layer;
 		s.cellName = bg.cellName;
 		auto ic = cast(ImageCell) bg;
 		if (ic) { mixin(S_TRACE);
@@ -106,7 +106,7 @@ BgImage[] createBgImages(in Skin skin, in BgImageS[] bgs) { mixin(S_TRACE);
 		default:
 			throw new Exception("Unknown type: " ~ b.type);
 		}
-		r[i].foreground = b.foreground;
+		r[i].layer = b.layer;
 		r[i].cellName = b.cellName;
 	}
 	return r;

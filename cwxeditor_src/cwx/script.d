@@ -2275,7 +2275,7 @@ fi`;
 				r.mask = parseAttr!(bool)(opt, vals, j, r.mask, varTable, msgWidth);
 			}
 			r.cellName = parseAttr!(string)(opt, vals, j, r.cellName, varTable, msgWidth);
-			r.foreground = parseAttr!(bool)(opt, vals, j, r.foreground, varTable, msgWidth);
+			r.layer = parseAttr!(int)(opt, vals, j, r.layer, varTable, msgWidth);
 			i++;
 			return r;
 		} else static if (is(T == Motion)) {
@@ -3194,8 +3194,8 @@ fi`;
 			if (value.cellName != "") { mixin(S_TRACE);
 				attrs2 ~= toAttr(value.cellName, indentValue, vars);
 			}
-			if (value.foreground) { mixin(S_TRACE);
-				attrs2 ~= toAttr(value.foreground, indentValue, vars);
+			if (value.layer) { mixin(S_TRACE);
+				attrs2 ~= toAttr(value.layer, indentValue, vars);
 			}
 			attrs ~= "[" ~ std.string.join(attrs2, ", ") ~ "]";
 		} else static if (is(Unqual!(T) : Motion)) {

@@ -1765,6 +1765,7 @@ private:
 		Spinner _bgImgW;
 		Spinner _bgImgH;
 		Button _bgImgMask;
+		Spinner _bgImgLayer;
 	} else static if (is(T:OuterTool)) {
 		Text _toolCommand;
 		Button _toolCommandRef;
@@ -2002,6 +2003,7 @@ private:
 				_bgImgW.setSelection(_array[i].width);
 				_bgImgH.setSelection(_array[i].height);
 				_bgImgMask.setSelection(_array[i].mask);
+				_bgImgLayer.setSelection(_array[i].layer);
 			} else static if (is(T:OuterTool)) {
 				_toolCommand.setText(_array[i].command);
 				_toolWorkDir.setText(_array[i].workDir);
@@ -2049,6 +2051,7 @@ private:
 				_bgImgW.setSelection(0);
 				_bgImgH.setSelection(0);
 				_bgImgMask.setSelection(false);
+				_bgImgLayer.setSelection(LAYER_BACK_CELL);
 			} else static if (is(T:OuterTool)) {
 				_toolCommand.setText("");
 				_toolWorkDir.setText("");
@@ -2090,12 +2093,13 @@ private:
 		if (!checkData()) return;
 		string name = _name.getText();
 		static if (is(T:BgImageSetting)) {
-			bool mask = _bgImgMask.getSelection();
 			int x = _bgImgX.getSelection();
 			int y = _bgImgY.getSelection();
 			int w = _bgImgW.getSelection();
 			int h = _bgImgH.getSelection();
-			add(BgImageSetting(name, x, y, w, h, mask));
+			bool mask = _bgImgMask.getSelection();
+			int layer = _bgImgLayer.getSelection();
+			add(BgImageSetting(name, x, y, w, h, mask, layer));
 		} else static if (is(T:OuterTool)) {
 			string commnad = _toolCommand.getText();
 			string workDir = _toolWorkDir.getText();
@@ -2126,11 +2130,12 @@ private:
 		store();
 		_array[i].name = _name.getText();
 		static if (is(T:BgImageSetting)) {
-			_array[i].mask = _bgImgMask.getSelection();
 			_array[i].x = _bgImgX.getSelection();
 			_array[i].y = _bgImgY.getSelection();
 			_array[i].width = _bgImgW.getSelection();
 			_array[i].height = _bgImgH.getSelection();
+			_array[i].mask = _bgImgMask.getSelection();
+			_array[i].layer = _bgImgLayer.getSelection();
 		} else static if (is(T:OuterTool)) {
 			_array[i].command = _toolCommand.getText();
 			_array[i].workDir = _toolWorkDir.getText();
@@ -2260,7 +2265,7 @@ private:
 		_undo.max = _prop.var.etc.undoMaxEtc;
 	}
 
-	Spinner createS(Composite parent, string name, int max, int min) { mixin(S_TRACE);
+	Spinner createS(Composite parent, string name, int max, int min, string hint = "") { mixin(S_TRACE);
 		auto l = new Label(parent, SWT.NONE);
 		l.setText(name);
 		auto spn = new Spinner(parent, SWT.BORDER);
@@ -2269,6 +2274,10 @@ private:
 		spn.setMaximum(max);
 		spn.setMinimum(min);
 		spn.setSelection(0);
+		if (hint != "") { mixin(S_TRACE);
+			auto l2 = new Label(parent, SWT.NONE);
+			l2.setText(hint);
+		}
 		return spn;
 	}
 	void modB(C)(Button button, List list, C ctrl, ref bool flag) { mixin(S_TRACE);
@@ -2358,7 +2367,7 @@ private:
 		void setupRight(Composite parent) { mixin(S_TRACE);
 			auto comp3 = new Composite(parent, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
-			gd.horizontalSpan = 4;
+			gd.horizontalSpan = 5;
 			comp3.setLayoutData(gd);
 			comp3.setLayout(zeroMarginGridLayout(2, false));
 			_name = new Text(comp3, SWT.BORDER);
@@ -2368,10 +2377,22 @@ private:
 			_bgImgMask.setImage(_prop.images.menu(MenuID.Mask));
 			_bgImgMask.setToolTipText(_prop.msgs.menuText(MenuID.Mask));
 
-			_bgImgX = createS(parent, _prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax));
-			_bgImgY = createS(parent, _prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax));
-			_bgImgW = createS(parent, _prop.msgs.width, _prop.var.etc.backWidthMax, 0);
-			_bgImgH = createS(parent, _prop.msgs.height, _prop.var.etc.backHeightMax, 0);
+			auto pComp = new Composite(parent, SWT.NONE);
+			auto pgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			pgd.horizontalSpan = 4;
+			pComp.setLayoutData(pgd);
+			pComp.setLayout(zeroMarginGridLayout(8, false));
+			_bgImgX = createS(pComp, _prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax));
+			_bgImgY = createS(pComp, _prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax));
+			_bgImgW = createS(pComp, _prop.msgs.width, _prop.var.etc.backWidthMax, 0);
+			_bgImgH = createS(pComp, _prop.msgs.height, _prop.var.etc.backHeightMax, 0);
+
+			auto lComp = new Composite(parent, SWT.NONE);
+			auto lgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			lgd.horizontalSpan = 4;
+			lComp.setLayoutData(lgd);
+			lComp.setLayout(zeroMarginGridLayout(3, false));
+			_bgImgLayer = createS(lComp, _prop.msgs.layer, _prop.var.etc.layerMax, LAYER_BACK_CELL, .tryFormat(_prop.msgs.layerHint, LAYER_BACK_CELL));
 		}
 	} else static if (is(T:OuterTool)) {
 		void selectProgram() { mixin(S_TRACE);
@@ -2982,6 +3003,7 @@ public:
 			modB(_alt, _list, _bgImgY, _canApply);
 			modB(_alt, _list, _bgImgW, _canApply);
 			modB(_alt, _list, _bgImgH, _canApply);
+			modB(_alt, _list, _bgImgLayer, _canApply);
 		} else static if (is(T:OuterTool)) {
 			modB(_alt, _list, _toolCommand, _canApply);
 			modB(_alt, _list, _toolWorkDir, _canApply);

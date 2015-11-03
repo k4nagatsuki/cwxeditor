@@ -57,6 +57,7 @@ private:
 	Spinner _w;
 	Spinner _h;
 	Button _mask;
+	Spinner _layer;
 	Combo _easy;
 	bool _selected;
 
@@ -67,9 +68,16 @@ private:
 	void refreshWarning() { mixin(S_TRACE);
 		// 処理無し
 	}
+	void refDataVersion() { mixin(S_TRACE);
+		_layer.setEnabled(!_summ || !_summ.legacy);
+		refreshWarning();
+	}
 	@property
 	string[] warningCommon() { mixin(S_TRACE);
 		string[] ws;
+		if (_layer.getEnabled() && _layer.getSelection() != LAYER_BACK_CELL && !_prop.isTargetVersion(_summ, "1")) {
+			ws ~= _prop.msgs.warningLayer;
+		}
 		// FIXME: CardWirth 1.60 前景表示とセル名称
 /+		if (_foreground.getSelection() && !_prop.targetVersion("1.60")) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningBgImageForeground;
@@ -116,6 +124,7 @@ private:
 				_w.setSelection(s.width);
 				_h.setSelection(s.height);
 				if (_mask) _mask.setSelection(s.mask);
+				_layer.setSelection(s.layer);
 				updateMask();
 				applyEnabled();
 			}
@@ -130,8 +139,8 @@ private:
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.delBgImage.remove(&delBgImage);
-			_comm.refDataVersion.remove(&refreshWarning);
-			_comm.refTargetVersion.remove(&refreshWarning);
+			_comm.refDataVersion.remove(&refDataVersion);
+			_comm.refTargetVersion.remove(&refDataVersion);
 		}
 	}
 public:
@@ -164,13 +173,10 @@ protected:
 		grp.setText(_prop.msgs.cardPosition);
 		grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 		auto comp2 = new Composite(grp, SWT.NONE);
-		// FIXME: CardWirth 1.60 前景表示とセル名称 ここから
-/+		comp2.setLayout(new GridLayout(mask ? 6 : 5, false));
-+/		comp2.setLayout(new GridLayout(mask ? 5 : 4, false));
-		// FIXME: CardWirth 1.60 前景表示とセル名称 ここまで
-		Spinner createS(string name, int max, int min) { mixin(S_TRACE);
+		comp2.setLayout(new GridLayout(mask ? 6 : 5, false));
+		Spinner createS(string name, int max, int min, string hint = "") { mixin(S_TRACE);
 			auto comp3 = new Composite(comp2, SWT.NONE);
-			auto gl = new GridLayout(2, false);
+			auto gl = new GridLayout((hint == "") ? 2 : 3, false);
 			gl.marginHeight = 0;
 			comp3.setLayout(gl);
 			auto l = new Label(comp3, SWT.NONE);
@@ -184,6 +190,10 @@ protected:
 			.listener(spn, SWT.Selection, { mixin(S_TRACE);
 				_easy.select(0);
 			});
+			if (hint != "") { mixin(S_TRACE);
+				auto lp = new Label(comp3, SWT.NONE);
+				lp.setText(hint);
+			}
 			return spn;
 		}
 		_x = createS(_prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax));
@@ -197,6 +207,7 @@ protected:
 			_mask.setToolTipText(_prop.msgs.menuText(MenuID.Mask));
 			_mask.addSelectionListener(new MaskListener);
 		}
+		_layer = createS(_prop.msgs.layer, _prop.var.etc.layerMax, LAYER_BACK_CELL, .tryFormat(_prop.msgs.layerHint, LAYER_BACK_CELL));
 		// FIXME: CardWirth 1.60 前景表示とセル名称
 /+		_foreground = new Button(comp2, SWT.CHECK);
 		mod(_foreground);
@@ -263,8 +274,8 @@ protected:
 	void setFirstParams(Composite area) { mixin(S_TRACE);
 		area.addDisposeListener(new Dispose);
 		_comm.delBgImage.add(&delBgImage);
-		_comm.refDataVersion.add(&refreshWarning);
-		_comm.refTargetVersion.add(&refreshWarning);
+		_comm.refDataVersion.add(&refDataVersion);
+		_comm.refTargetVersion.add(&refDataVersion);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -277,6 +288,7 @@ protected:
 			_w.setSelection(back.width);
 			_h.setSelection(back.height);
 			if (_mask) _mask.setSelection(back.mask);
+			_layer.setSelection(back.layer);
 			// FIXME: CardWirth 1.60 前景表示とセル名称
 //			_foreground.setSelection(back.foreground);
 //			_cellName.setText(back.cellName);
@@ -289,6 +301,7 @@ protected:
 			_w.setSelection(0);
 			_h.setSelection(0);
 			if (_mask) _mask.setSelection(false);
+			_layer.setSelection(LAYER_BACK_CELL);
 			// FIXME: CardWirth 1.60 前景表示とセル名称 ここから
 //			_foreground.setSelection(false);
 //			_cellName.setText("");
@@ -304,6 +317,7 @@ protected:
 		back.y = _y.getSelection();
 		back.width = _w.getSelection();
 		back.height = _h.getSelection();
+		back.layer = _layer.getSelection();
 		if (_mask) back.mask = _mask.getSelection();
 		// FIXME: CardWirth 1.60 前景表示とセル名称 ここから
 /+		back.foreground = _foreground.getSelection();

@@ -54,8 +54,7 @@ import java.lang.all;
 
 /// 背景画像を生成する。
 /// Returns: 背景画像。
-FlexImage createBackgroundImage
-		(Props prop, in Skin skin, in Summary summ, string path, int x, int y, int w, int h, bool transparent) { mixin(S_TRACE);
+FlexImage createBackgroundImage(Props prop, in Skin skin, in Summary summ, string path, int x, int y, int w, int h, bool transparent, int layer) { mixin(S_TRACE);
 	FlexImage r;
 	auto ext = .extension(path);
 	if (cfnmatch(ext, ".jpy1") || cfnmatch(ext, ".jptx") || cfnmatch(ext, ".jpdc")) { mixin(S_TRACE);
@@ -82,6 +81,7 @@ FlexImage createBackgroundImage
 		}
 	}
 	r.transparent = transparent;
+	r.layer = layer * 10;
 	r.newWidth = w;
 	r.newHeight = h;
 	r.resize();
@@ -101,18 +101,19 @@ PileImage createCastCardBackImage(Props prop, Skin skin, int x, int y, byte alph
 	imgData.alphaData = new byte[imgData.width * imgData.height];
 	imgData.alphaData[] = alpha;
 	auto r = new PileImage(imgData, x, y, w, h, true);
+	r.layer = LAYER_PLAYER_CARD * 10;
 	r.createImage();
-	//r.alpha = alpha;
 	return r;
 }
 
 PImg createCardImageCommon(PImg)(Props prop, ImageData card,
-		CInsets matPad, int x, int y, real scale, bool smoothing) { mixin(S_TRACE);
+		CInsets matPad, int x, int y, real scale, bool smoothing, int layer) { mixin(S_TRACE);
 	auto cardSize = prop.looks.cardSize;
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
 	auto r = new PImg(card, x, y, w, h, true);
 	r.transparent = false;
+	r.layer = layer * 10;
 	r.smoothing = smoothing;
 	static if (is(PImg : FlexImage)) {
 		r.minimumWidth = cast(int) rndtol(w * (prop.var.etc.cardScaleMin / 100.0));
@@ -132,15 +133,14 @@ PImg createCardImageCommon(PImg)(Props prop, ImageData card,
 /// キャストカード画像を生成する。
 /// Returns: カード画像。
 PImg createCastCardImage(PImg)(Props prop, Skin skin, CastCard card,
-		string sPath, int x, int y, real scale, bool smoothing, bool dbgMode) { mixin(S_TRACE);
+		string sPath, int x, int y, real scale, bool smoothing, bool dbgMode, int layer) { mixin(S_TRACE);
 	auto matPad = prop.looks.castCardInsets;
 	PImg r;
 	if (card) { mixin(S_TRACE);
 		r = createCardImageCommon!PImg(prop, castCardImage(prop, skin, card, sPath, dbgMode),
-			matPad, x, y, scale, smoothing);
+			matPad, x, y, scale, smoothing, layer);
 	} else { mixin(S_TRACE);
-		r = createCardImageCommon!PImg(prop, castCard(skin),
-			matPad, x, y, scale, smoothing);
+		r = createCardImageCommon!PImg(prop, castCard(skin), matPad, x, y, scale, smoothing, layer);
 	}
 	static if (is(PImg : FlexImage)) {
 		r.resize();
@@ -153,10 +153,10 @@ PImg createCastCardImage(PImg)(Props prop, Skin skin, CastCard card,
 /// メニューカード画像を生成する。
 /// Returns: カード画像。
 PImg createMenuCardImage(PImg)(Props prop, Skin skin, string sPath,
-		string title, in CardImage[] paths, int x, int y, real scale, bool smoothing) { mixin(S_TRACE);
+		string title, in CardImage[] paths, int x, int y, real scale, bool smoothing, int layer) { mixin(S_TRACE);
 	auto matPad = prop.looks.menuCardInsets;
 	auto card = menuCard(skin);
-	auto r = createCardImageCommon!PImg(prop, card, matPad, x, y, scale, smoothing);
+	auto r = createCardImageCommon!PImg(prop, card, matPad, x, y, scale, smoothing, layer);
 	foreach (path; paths) { mixin(S_TRACE);
 		path.addToPileImage(r, prop, skin, sPath, matPad, ScaleType.Cut);
 	}
@@ -212,8 +212,9 @@ PileImage createMessageImage(Commons comm, Props prop) { mixin(S_TRACE);
 	// 特殊文字が無いためシナリオパス不要
 	auto imgData = previewMessage(comm, prop, "", null, "", [""], names, flags, steps);
 	auto img = new PileImage(imgData, rect.x, rect.y, imgData.width, imgData.height, true);
-	img.foreground = true;
+	img.layer = LAYER_MESSAGE * 10 - 1;
 	img.alpha = prop.var.etc.messageAlpha;
+	img.separator = true;
 	img.createImage();
 	return img;
 }

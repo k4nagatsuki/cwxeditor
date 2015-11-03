@@ -165,6 +165,7 @@ class FlexEtcProps : Properties {
 	auto partyMax = Prop!(uint, true)("partyMax", 6);
 	auto cardScaleMax = Prop!(int)("cardScaleMax", 300);
 	auto cardScaleMin = Prop!(int)("cardScaleMin", 50);
+	auto layerMax = Prop!(int)("layerMax", 9999);
 	auto posLeftMax = Prop!(uint, true)("posLeftMax", 9999);
 	auto posTopMax = Prop!(uint, true)("posTopMax", 9999);
 	auto backWidthMax = Prop!(uint, true)("backWidthMax", 9999);
@@ -569,18 +570,18 @@ class FlexEtcProps : Properties {
 	auto flagFalses = Prop!(string[])("flagFalses", ["FALSE", "非表示", "OFF", "無", "不可", "まだ"], true);
 
 	auto bgImageSettings = Prop!(BgImageSetting[])("bgImageSettings", [
-		BgImageSetting("冒険者の宿", 116, 15, 400, 260, false),
-		BgImageSetting("冒険者の宿(フレーム)", 116, 14, 400, 261, true),
-		BgImageSetting("フル", 0, 0, 632, 420, false),
-		BgImageSetting("フル(マスク)", 0, 0, 632, 420, true),
-		BgImageSetting("カード", 0, 0, 74, 94, true),
-		BgImageSetting("冒険者カード", 0, 0, 95, 130, false),
-		BgImageSetting("ゲームオーバー", 116, 55, 400, 260, false),
-		BgImageSetting("Qubes 地面", 160, 80, 320, 160, true),
-		BgImageSetting("Qubes 左後", 80, 0, 240, 160, true),
-		BgImageSetting("Qubes 右後", 320, 0, 240, 160, true),
-		BgImageSetting("Qubes 左前", 80, 80, 240, 200, true),
-		BgImageSetting("Qubes 右前", 320, 80, 240, 200, true)
+		BgImageSetting("冒険者の宿", 116, 15, 400, 260, false, LAYER_BACK_CELL),
+		BgImageSetting("冒険者の宿(フレーム)", 116, 14, 400, 261, true, LAYER_BACK_CELL),
+		BgImageSetting("フル", 0, 0, 632, 420, false, LAYER_BACK_CELL),
+		BgImageSetting("フル(マスク)", 0, 0, 632, 420, true, LAYER_BACK_CELL),
+		BgImageSetting("カード", 0, 0, 74, 94, true, LAYER_BACK_CELL),
+		BgImageSetting("冒険者カード", 0, 0, 95, 130, false, LAYER_BACK_CELL),
+		BgImageSetting("ゲームオーバー", 116, 55, 400, 260, false, LAYER_BACK_CELL),
+		BgImageSetting("Qubes 地面", 160, 80, 320, 160, true, LAYER_BACK_CELL),
+		BgImageSetting("Qubes 左後", 80, 0, 240, 160, true, LAYER_BACK_CELL),
+		BgImageSetting("Qubes 右後", 320, 0, 240, 160, true, LAYER_BACK_CELL),
+		BgImageSetting("Qubes 左前", 80, 80, 240, 200, true, LAYER_BACK_CELL),
+		BgImageSetting("Qubes 右前", 320, 80, 240, 200, true, LAYER_BACK_CELL)
 	]);
 	auto standardCoupons = Prop!(string[])("standardCoupons", [
 		"：Ｒ", "＿１", "＿２", "＿３", "＿４", "＿５", "＿６", "＿消滅予約", "：レベル補正中"

@@ -7,6 +7,7 @@ import cwx.utils;
 import cwx.structs;
 import cwx.types;
 import cwx.features;
+import cwx.summary;
 
 import std.path;
 import std.conv;
@@ -303,5 +304,11 @@ public:
 			"1.60": 5,
 		];
 		return VER_TABLE.get(ver, int.min) <= VER_TABLE.get(targVer, int.max);
+	}
+	/// summが存在する場合はwsnVer以上かを返す。
+	/// それ以外の場合は対象バージョンがCardWirthPyか否かを返す。
+	const
+	bool isTargetVersion(in Summary summ, string targVer, string wsnVer) { mixin(S_TRACE);
+		return summ ? summ.isTargetVersion(wsnVer) : targVer == "CardWirthPy";
 	}
 }

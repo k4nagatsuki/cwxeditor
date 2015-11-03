@@ -729,7 +729,7 @@ private:
 	int _x, _y;
 	int _w, _h;
 	CellNameUser _cellName;
-	bool _foreground = false;
+	int _layer = LAYER_BACK_CELL;
 	void delegate() _change;
 public:
 	/// XML要素名(複数)。
@@ -757,7 +757,7 @@ public:
 			&& height == b.height
 			&& mask == b.mask
 			&& cellName == b.cellName
-			&& foreground == b.foreground;
+			&& layer == b.layer;
 	}
 
 	/// この背景画像を簡単に表現した名前を返す。
@@ -781,7 +781,7 @@ public:
 		cell.height = height;
 		cell.mask = mask;
 		cell.cellName = cellName;
-		cell.foreground = foreground;
+		cell.layer = layer;
 	}
 
 	/// 変更ハンドラを登録する。
@@ -891,15 +891,17 @@ public:
 		_cellName.cellName = v;
 	}
 
-	/// セルを前景として表示するか。
+	/// セルの表示レイヤ。
+	// 値が大きいほど手前に表示される。
+	// デフォルト値はLAYER_BACK_CELL。
 	@property
 	const
-	bool foreground() { return _foreground; }
+	int layer() { return _layer; }
 	/// ditto
 	@property
-	void foreground(bool v) { mixin(S_TRACE);
-		if (_foreground != v) changed();
-		_foreground = v;
+	void layer(int v) { mixin(S_TRACE);
+		if (_layer != v) changed();
+		_layer = v;
 	}
 
 	/// この背景と強く関係するファイルパスを返す。
@@ -968,7 +970,6 @@ public:
 	const
 	protected void toNodeCommon(ref XNode e, bool useMask) {
 		if (useMask) e.newAttr("mask", fromBool(_mask));
-		if (foreground) e.newAttr("foreground", fromBool(foreground));
 		if (cellName != "") e.newAttr("cellname", cellName);
 		e.newElement("Flag", super.flag);
 		auto ln = e.newElement("Location");
@@ -977,11 +978,12 @@ public:
 		auto sn = e.newElement("Size");
 		sn.newAttr("width", _w);
 		sn.newAttr("height", _h);
+		if (layer != LAYER_BACK_CELL) e.newElement("Layer", layer);
 	}
 	/// サブクラスでfromNode()の実装を行う際の共通処理。
 	protected void fromNodeCommon(ref XNode node) { mixin(S_TRACE);
 		mask = parseBool(node.attr("mask", false, fromBool(false)));
-		foreground = parseBool(node.attr("foreground", false, fromBool(false)));
+		layer = LAYER_BACK_CELL;
 		cellName = node.attr("cellname", false, "");
 		node.onTag["Flag"] = (ref XNode n) { mixin(S_TRACE);
 			flag = n.value;
@@ -993,6 +995,9 @@ public:
 		node.onTag["Size"] = (ref XNode n) { mixin(S_TRACE);
 			width = n.attr!(int)("width", true);
 			height = n.attr!(int)("height", true);
+		};
+		node.onTag["Layer"] = (ref XNode n) { mixin(S_TRACE);
+			layer = n.valueTo!int();
 		};
 		node.parse();
 	}

@@ -9,6 +9,7 @@ import cwx.xml;
 import cwx.card;
 import cwx.path;
 import cwx.system;
+import cwx.types;
 
 import std.algorithm;
 import std.array;
@@ -87,15 +88,19 @@ public abstract class AbstractSpCard : AbstractEventTreeOwner, IFlagUser {
 private:
 	int _x, _y;
 	real _scale;
+	int _layer = LAYER_MENU_CARD;
 	FlagUser _user;
+
 public:
+
 	/// 唯一のコンストラクタ。
-	this (string flag, int x, int y, real scale) { mixin(S_TRACE);
+	this (string flag, int x, int y, real scale, int layer) { mixin(S_TRACE);
 		_user = new FlagUser(this);
 		_user.flag = flag;
 		_x = x;
 		_y = y;
 		_scale = scale;
+		_layer = layer;
 	}
 	/// このカードの所属先を返す。
 	@property
@@ -180,6 +185,19 @@ public:
 		}
 	}
 
+	/// セルの表示レイヤ。
+	// 値が大きいほど手前に表示される。
+	// デフォルト値はLAYER_MENU_CARD。
+	@property
+	const
+	int layer() { return _layer; }
+	/// ditto
+	@property
+	void layer(int v) { mixin(S_TRACE);
+		if (_layer != v) changed();
+		_layer = v;
+	}
+
 	/// このカードと強く関係するリソースを返す。
 	/// そのようなリソースが無い場合はnullを返す。
 	inout
@@ -217,13 +235,15 @@ public:
 		ln.newAttr("left", _x);
 		ln.newAttr("top", _y);
 		pNode.newElement("Size").newAttr("scale", to!(string)(cast(int) rndtol(_scale * 100.0)) ~ "%");
+		if (layer != LAYER_MENU_CARD) pNode.newElement("Layer", layer);
 	}
 	/// 指定されたノードからProperty情報を読み出す。
-	protected static void loadProp(ref XNode pNode, out string flag, out int x, out int y, out real scale) { mixin(S_TRACE);
+	protected static void loadProp(ref XNode pNode, out string flag, out int x, out int y, out real scale, out int layer) { mixin(S_TRACE);
 		flag = "";
 		x = 0;
 		y = 0;
 		scale = 1.0;
+		layer = LAYER_MENU_CARD;
 		assert (pNode.name == "Property", pNode.name ~ " != Property");
 		pNode.onTag["Flag"] = (ref XNode n) {flag = n.value;};
 		pNode.onTag["Location"] = (ref XNode n) { mixin(S_TRACE);
@@ -237,6 +257,9 @@ public:
 				val = val[0 .. $ - 1];
 			}
 			scale = to!(real)(val) / 100.0;
+		};
+		pNode.onTag["Layer"] = (ref XNode n) { mixin(S_TRACE);
+			layer = n.valueTo!int();
 		};
 		pNode.parse();
 	}
@@ -255,8 +278,8 @@ public:
 	static immutable XML_NAME_M = "EnemyCards";
 
 	/// 唯一のコンストラクタ。
-	this (ulong id, bool escape, string flag, int x, int y, real scale) { mixin(S_TRACE);
-		super(flag, x, y, scale);
+	this (ulong id, bool escape, string flag, int x, int y, real scale, int layer) { mixin(S_TRACE);
+		super(flag, x, y, scale, layer);
 		_user = new CastUser(this);
 		_user.casts = id;
 		_escape = escape;
@@ -272,7 +295,7 @@ public:
 	const
 	override
 	AbstractSpCard dup() {
-		auto r = new EnemyCard(id, escape, flag, x, y, scale);
+		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer);
 		r.deepCopyEventTreeOwner(this);
 		return r;
 	}
@@ -357,7 +380,7 @@ public:
 			cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 				string idStr = pNode.childText("Id", false);
 				if (idStr) { mixin(S_TRACE);
-					cards ~= new EnemyCard(to!(ulong)(idStr), false, "", 0, 0, 1.0);
+					cards ~= new EnemyCard(to!(ulong)(idStr), false, "", 0, 0, 1.0, LAYER_MENU_CARD);
 				}
 			};
 			cNode.parse();
@@ -403,6 +426,7 @@ public:
 		string flag = "";
 		int x = 0, y = 0;
 		real scale = 1.0;
+		int layer = LAYER_MENU_CARD;
 		EventTree[] evt;
 
 		auto escStr = node.attr("escape", false);
@@ -412,14 +436,14 @@ public:
 				id = to!(ulong)(n.value);
 				getId = true;
 			};
-			loadProp(pNode, flag, x, y, scale);
+			loadProp(pNode, flag, x, y, scale, layer);
 		};
 		node.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
 			evt = loadEventsFromNode(node, ver);
 		};
 		node.parse();
 		if (!getId) throw new AreaException("EnemyCard ID not found");
-		auto r = new EnemyCard(id, escape, flag, x, y, scale);
+		auto r = new EnemyCard(id, escape, flag, x, y, scale, layer);
 		r.addAll(evt);
 
 		return r;
@@ -449,9 +473,10 @@ public:
 	/// x = X座標。
 	/// y = Y座標。
 	/// scale = スケール。通常0.75～2.0。
+	/// layer = 表示レイヤ。
 	this (string name, in CardImage[] paths, string desc, string flag,
-			int x, int y, real scale) { mixin(S_TRACE);
-		super(flag, x, y, scale);
+			int x, int y, real scale, int layer) { mixin(S_TRACE);
+		super(flag, x, y, scale, layer);
 		this.paths = paths;
 		_name = name;
 		_desc = desc;
@@ -467,7 +492,7 @@ public:
 	const
 	override
 	AbstractSpCard dup() {
-		auto r = new MenuCard(name, paths, desc, flag, x, y, scale);
+		auto r = new MenuCard(name, paths, desc, flag, x, y, scale, layer);
 		r.deepCopyEventTreeOwner(this);
 		return r;
 	}
@@ -594,7 +619,7 @@ public:
 			}
 			pNode.parse();
 			if (!name) return null;
-			return new MenuCard(name, paths, desc, "", 0, 0, 1.0);
+			return new MenuCard(name, paths, desc, "", 0, 0, 1.0, LAYER_MENU_CARD);
 		}
 		auto pNode = node.child("Property", false);
 		if (pNode.valid) { mixin(S_TRACE);
@@ -649,20 +674,21 @@ public:
 		string flag = "";
 		int x = 0, y = 0;
 		real scale = 1.0;
+		int layer = LAYER_MENU_CARD;
 		EventTree[] evt;
 
 		node.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 			pNode.onTag["Name"] = (ref XNode n) {name = n.value;};
 			CardImage.setOnTag(pNode, paths);
 			pNode.onTag["Description"] = (ref XNode n) {desc = decodeLf2(n.value);};
-			loadProp(pNode, flag, x, y, scale);
+			loadProp(pNode, flag, x, y, scale, layer);
 		};
 		node.onTag["Events"] = (ref XNode node) { mixin(S_TRACE);
 			evt = loadEventsFromNode(node, ver);
 		};
 		node.parse();
 		if (name is null) name = "";
-		auto r = new MenuCard(name, paths, desc, flag, x, y, scale);
+		auto r = new MenuCard(name, paths, desc, flag, x, y, scale, layer);
 		r.addAll(evt);
 
 		return r;

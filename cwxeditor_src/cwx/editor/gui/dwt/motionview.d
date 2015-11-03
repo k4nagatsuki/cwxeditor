@@ -1317,7 +1317,7 @@ public:
 	}
 	void refEnabled() { mixin(S_TRACE);
 		auto m = selection();
-		if (_maxNest) _maxNest.setEnabled(!_readOnly && m && m.beast && 0 != m.beast.linkId && !(_summ && _summ.isTargetVersion("1")));
+		if (_maxNest) _maxNest.setEnabled(!_readOnly && m && m.beast && 0 != m.beast.linkId && !_prop.isTargetVersion(_summ, "1"));
 	}
 	@property
 	private bool canSelectConnectedResource() { mixin(S_TRACE);

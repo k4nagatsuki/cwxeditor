@@ -117,20 +117,12 @@ public:
 	@property Image cardsWithFlag() {return imgd!("cards_flag.png");}
 	@property Image backs() {return imgd!("backs.png");}
 	@property Image backsWithFlag() {return imgd!("backs_flag.png");}
-	@property Image backsFore() {return imgd!("backs_fore.png");}
-	@property Image backsForeWithFlag() {return imgd!("backs_fore_flag.png");}
 	@property Image colorCell() {return imgd!("color_cell.png");}
 	@property Image colorCellWithFlag() {return imgd!("color_cell_flag.png");}
-	@property Image colorCellFore() {return imgd!("color_cell_fore.png");}
-	@property Image colorCellForeWithFlag() {return imgd!("color_cell_fore_flag.png");}
 	@property Image textCell() {return imgd!("text_cell.png");}
 	@property Image textCellWithFlag() {return imgd!("text_cell_flag.png");}
-	@property Image textCellFore() {return imgd!("text_cell_fore.png");}
-	@property Image textCellForeWithFlag() {return imgd!("text_cell_fore_flag.png");}
 	@property Image pcCell() {return imgd!("pc_cell.png");}
 	@property Image pcCellWithFlag() {return imgd!("pc_cell_flag.png");}
-	@property Image pcCellFore() {return imgd!("pc_cell_fore.png");}
-	@property Image pcCellForeWithFlag() {return imgd!("pc_cell_fore_flag.png");}
 	@property Image imageFont() {return imgd!("backs.png");}
 
 	@property Image bgm() {return imgd!("evt_bgm.png");}

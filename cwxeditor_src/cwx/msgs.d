@@ -111,6 +111,7 @@ class Msgs : Properties {
 	auto dlgTitImageLayerWindow = Msg("dlgTitImageLayerWindow", "レイヤの編集");
 	auto dlgTitImageLayerWindowReadOnly = Msg("dlgTitImageLayerWindowReadOnly", "レイヤの一覧");
 	auto layerName = Msg("layerName", "レイヤ %1$s");
+	auto warningLayer = Msg("warningLayer", "レイヤの指定はWSN1以降の形式のシナリオしか行えません。");
 
 	auto newFolder = Msg("newFolder", "新規" ~ DIR);
 
@@ -912,6 +913,9 @@ class Msgs : Properties {
 	auto width = Msg("width", "幅");
 	auto height = Msg("height", "高");
 	auto scale = Msg("scale", "拡大率");
+	auto scalePer = Msg("scalePer", "%");
+	auto layer = Msg("layer", "レイヤ");
+	auto layerHint = Msg("layerHint", "(標準 = %1$s)");
 	auto bgImageForeground = Msg("bgImageForeground", "カードよりも前に表示");
 	auto bgImageCellName = Msg("bgImageCellName", "セル名称");
 

@@ -3,6 +3,12 @@ module cwx.types;
 
 import cwx.perf;
 
+immutable LAYER_BACK_CELL = 0; /// 背景レイヤ。
+immutable LAYER_MENU_CARD = 100; /// メニューカード・エネミーカードのレイヤ。
+immutable LAYER_PLAYER_CARD = 200; /// プレイヤーカードのレイヤ。
+immutable LAYER_FORE_CELL = 400; /// カードより手前の背景レイヤ(1.60)。
+immutable LAYER_MESSAGE = 1000; /// メッセージレイヤ。
+
 /// 効果関連の例外。
 class MotionException : Exception {
 public:

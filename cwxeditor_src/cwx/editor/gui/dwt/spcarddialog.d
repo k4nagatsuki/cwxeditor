@@ -52,16 +52,26 @@ private:
 		return _summSkin ? _summSkin : _comm.skin;
 	}
 
+	void refreshWarning() { mixin(S_TRACE);
+		string[] ws;
+		static if (is (C == MenuCard)) {
+			ws ~= _imgPath.warnings;
+		}
+		if (_layer.getEnabled() && _layer.getSelection() != LAYER_MENU_CARD && !_prop.isTargetVersion(_summ, "1")) {
+			ws ~= _prop.msgs.warningLayer;
+		}
+		warning = ws;
+	}
+	void refDataVersion() { mixin(S_TRACE);
+		_layer.setEnabled(!_summ || !_summ.legacy);
+		refreshWarning();
+	}
+
 	static if (is (C == MenuCard)) {
 		ImageSelect!(MtType.CARD) _imgPath;
 		FixedWidthText _desc;
 		Text _name;
 
-		void refreshWarning() { mixin(S_TRACE);
-			string[] ws;
-			ws ~= _imgPath.warnings;
-			warning = ws;
-		}
 	} else static if (is (C == EnemyCard)) {
 		Combo _casts;
 		Button _escape;
@@ -101,6 +111,7 @@ private:
 	Spinner _x;
 	Spinner _y;
 	Spinner _scale;
+	Spinner _layer;
 
 	class SDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
@@ -119,10 +130,8 @@ private:
 				_comm.delCast.remove(&refCast);
 			}
 			_comm.refSkin.remove(&refSkin);
-			static if (is(C:MenuCard)) {
-				_comm.refDataVersion.remove(&refreshWarning);
-				_comm.refTargetVersion.remove(&refreshWarning);
-			}
+			_comm.refDataVersion.remove(&refDataVersion);
+			_comm.refTargetVersion.remove(&refDataVersion);
 		}
 	}
 	static if (is (C == EnemyCard)) {
@@ -343,10 +352,10 @@ protected:
 				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 				auto comp2 = new Composite(grp, SWT.NONE);
-				comp2.setLayout(new GridLayout(3, false));
-				Spinner createS(string name, int max, int min, bool percent = false) { mixin(S_TRACE);
+				comp2.setLayout(new GridLayout(4, false));
+				Spinner createS(string name, int max, int min, string hint = "") { mixin(S_TRACE);
 					auto comp3 = new Composite(comp2, SWT.NONE);
-					auto gl = new GridLayout(percent ? 3 : 2, false);
+					auto gl = new GridLayout((hint != "") ? 3 : 2, false);
 					gl.marginHeight = 0;
 					comp3.setLayout(gl);
 					auto l = new Label(comp3, SWT.NONE);
@@ -356,15 +365,16 @@ protected:
 					mod(spn);
 					spn.setMaximum(max);
 					spn.setMinimum(min);
-					if (percent) { mixin(S_TRACE);
+					if (hint != "") { mixin(S_TRACE);
 						auto lp = new Label(comp3, SWT.NONE);
-						lp.setText("%");
+						lp.setText(hint);
 					}
 					return spn;
 				}
 				_x = createS(_prop.msgs.left, _prop.var.etc.posLeftMax, -(cast(int) _prop.var.etc.posLeftMax));
 				_y = createS(_prop.msgs.top, _prop.var.etc.posTopMax, -(cast(int) _prop.var.etc.posTopMax));
-				_scale = createS(_prop.msgs.scale, _prop.var.etc.cardScaleMax, _prop.var.etc.cardScaleMin, true);
+				_scale = createS(_prop.msgs.scale, _prop.var.etc.cardScaleMax, _prop.var.etc.cardScaleMin, _prop.msgs.scalePer);
+				_layer = createS(_prop.msgs.layer, _prop.var.etc.layerMax, LAYER_BACK_CELL, .tryFormat(_prop.msgs.layerHint, LAYER_MENU_CARD));
 			}
 			static if (is (C == MenuCard)) {
 				{ mixin(S_TRACE);
@@ -391,10 +401,8 @@ protected:
 			_comm.delCast.add(&refCast);
 		}
 		_comm.refSkin.add(&refSkin);
-		static if (is(C:MenuCard)) {
-			_comm.refDataVersion.add(&refreshWarning);
-			_comm.refTargetVersion.add(&refreshWarning);
-		}
+		_comm.refDataVersion.add(&refDataVersion);
+		_comm.refTargetVersion.add(&refDataVersion);
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_card) { mixin(S_TRACE);
@@ -426,7 +434,8 @@ protected:
 			}
 			_x.setSelection(_card.x);
 			_y.setSelection(_card.y);
-			_scale.setSelection(cast(int) rndtol(_card.scale * 100));
+			_scale.setSelection(cast(int)rndtol(_card.scale * 100));
+			_layer.setSelection(_card.layer);
 		} else { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
 				_imgPath.images = [];
@@ -446,10 +455,9 @@ protected:
 			_x.setSelection(0);
 			_y.setSelection(0);
 			_scale.setSelection(100);
+			_layer.setSelection(LAYER_MENU_CARD);
 		}
-		static if (is(typeof(refreshWarning))) {
-			refreshWarning();
-		}
+		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -468,14 +476,15 @@ protected:
 			_card.x = _x.getSelection();
 			_card.y = _y.getSelection();
 			_card.scale = _scale.getSelection() / 100.0;
+			_card.layer = _layer.getSelection();
 		} else { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
 				_card = new C(_name.getText(), _imgPath.images,
 					wrapReturnCode(_desc.getText()), _flag.selected,
-					_x.getSelection(), _y.getSelection(), _scale.getSelection() / 100.0);
+					_x.getSelection(), _y.getSelection(), _scale.getSelection() / 100.0, _layer.getSelection());
 			} else static if (is (C == EnemyCard)) {
 				_card = new C(_selectedID, _escape.getSelection(),
-					_flag.selected, _x.getSelection(), _y.getSelection(), _scale.getSelection() / 100.0);
+					_flag.selected, _x.getSelection(), _y.getSelection(), _scale.getSelection() / 100.0, _layer.getSelection());
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}

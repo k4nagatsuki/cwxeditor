@@ -304,17 +304,17 @@ class MaterialSelect(MtType Type, D, C) {
 		@property
 		string[] warnings() { mixin(S_TRACE);
 			string[] r;
-			if (_channel && _channel.getSelectionIndex() != 0 && (path != "" || Type == MtType.BGM) && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (_channel && _channel.getSelectionIndex() != 0 && (path != "" || Type == MtType.BGM) && !_prop.isTargetVersion(_summ, "1")) { mixin(S_TRACE);
 				r ~= _prop.msgs.warningChannel;
 			}
-			if (_fadeIn && _fadeIn.getSelection() != 0 && path != "" && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (_fadeIn && _fadeIn.getSelection() != 0 && path != "" && !_prop.isTargetVersion(_summ, "1")) { mixin(S_TRACE);
 				r ~= _prop.msgs.warningFadeIn;
 			}
-			if (_volume && _volume.getSelection() != 100 && path != "" && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (_volume && _volume.getSelection() != 100 && path != "" && !_prop.isTargetVersion(_summ, "1")) { mixin(S_TRACE);
 				r ~= _prop.msgs.warningVolume;
 			}
 			auto loops = (Type == MtType.BGM) ? 0 : 1;
-			if (_loopCount && _loopCount.getSelection() != loops && path != "" && _summ && !_summ.isTargetVersion("1")) { mixin(S_TRACE);
+			if (_loopCount && _loopCount.getSelection() != loops && path != "" && !_prop.isTargetVersion(_summ, "1")) { mixin(S_TRACE);
 				r ~= _prop.msgs.warningLoopCount;
 			}
 			return r;
