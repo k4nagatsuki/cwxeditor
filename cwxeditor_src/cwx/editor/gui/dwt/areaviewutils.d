@@ -279,6 +279,8 @@ class Preview {
 	void dispose() { mixin(S_TRACE);
 		if (!_shell || _shell.isDisposed()) return;
 		close();
+		auto region = _shell.getRegion();
+		if (region) region.dispose();
 		_shell.dispose();
 		_shell = null;
 	}
@@ -288,7 +290,9 @@ class Preview {
 				if (_parent.isDisposed()) return;
 				// ウィンドウ分離などで親のControlが別のウィンドウへ移っている場合がある
 				createShell();
-			} else if (_shell !is _parent.getShell()) { mixin(S_TRACE);
+			} else if (_shell.getParent() !is _parent.getShell()) { mixin(S_TRACE);
+				auto region = _shell.getRegion();
+				if (region) region.dispose();
 				_shell.dispose();
 				_shell = null;
 				createShell();

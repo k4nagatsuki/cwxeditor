@@ -2443,6 +2443,10 @@ private:
 		}
 	}
 	class PListener : PaintListener {
+		private static ImageData[Point] tempBack;
+		private static ImageData[Point] tempData;
+		private static byte[][size_t] tempAlphaData;
+
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			auto d = getShell().getDisplay();
 			auto backImg = getBackgroundImage();
@@ -2477,15 +2481,20 @@ private:
 				imageData.data[] = 0;
 				delete imageData.data;
 			}
-			auto imageData = cast(ImageData)_background.clone();
+			auto backSize = new Point(_background.width, _background.height);
+			auto bp = backSize in tempBack;
+			auto imageData = bp ? *bp : (new ImageData(backSize.x, backSize.y, _background.depth, _background.palette));
 			scope (exit) {
-				delImg(imageData);
+				tempBack[backSize] = imageData;
 			}
 			auto range = new Rectangle(e.x, e.y, e.width, e.height);
 			auto buf = new Image(d, imageData);
 			scope (exit) buf.dispose();
 			auto gc = new GC(buf);
 			scope (exit) gc.dispose();
+			auto back = new Image(d, _background);
+			gc.drawImage(back, 0, 0);
+			scope (exit) back.dispose();
 
 			ImageData alphaImgData = null;
 			byte[] alphas = null;
@@ -2496,10 +2505,13 @@ private:
 				gc.drawImage(aImg, 0, 0);
 				aImg.dispose();
 
-				delImg(alphaImgData);
+				alphaImgData.data[] = 0;
+				alphaImgData.alphaData[] = 0;
+				tempData[new Point(alphaImgData.width, alphaImgData.height)] = alphaImgData;
 				alphaImgData = null;
 				alphas[] = 0;
-				delete alphas;
+				tempAlphaData[alphas.length] = alphas;
+				alphas = null;
 			}
 			foreach (t; fBacks) { mixin(S_TRACE);
 				auto i = t[0];
@@ -2509,6 +2521,7 @@ private:
 				if (rect.height <= img.y) continue;
 				if (img.x + img.width < 0) continue;
 				if (rect.width <= img.x) continue;
+				if (!img.bounds.intersects(range)) continue;
 
 				if (img.type is ImageType.Image && 0 <= img.alpha && img.alpha < 255) { mixin(S_TRACE);
 					// 同一のレイヤ値を持つイメージが連続して存在している場合は
@@ -2517,8 +2530,20 @@ private:
 						if (alphaImgData) { mixin(S_TRACE);
 							drawAlphaImgData();
 						}
-						alphaImgData = new ImageData(rect.width, rect.height, img.imageData.depth, img.imageData.palette);
-						alphas = new byte[rect.width * rect.height];
+						auto size = new Point(rect.width, rect.height);
+						auto p = size in tempData;
+						if (p) { mixin(S_TRACE);
+							alphaImgData = *p;
+						} else { mixin(S_TRACE);
+							alphaImgData = new ImageData(rect.width, rect.height, img.imageData.depth, img.imageData.palette);
+						}
+						auto len = cast(size_t)(rect.width * rect.height);
+						auto p2 = len in tempAlphaData;
+						if (p2) { mixin(S_TRACE);
+							alphas = *p2;
+						} else { mixin(S_TRACE);
+							alphas = new byte[rect.width * rect.height];
+						}
 						alphas[] = 0;
 						alphaImgData.setAlphas(0, 0, rect.width * rect.height, alphas, 0);
 					}
@@ -2527,6 +2552,8 @@ private:
 
 					int ix = .max(0, -img.x);
 					int aw = img.width - ix;
+					int x2 = img.x + ix;
+					aw = .min(aw, rect.width - x2);
 					assert (0 < aw);
 					auto iPixels = new int[aw];
 					auto iAlphas = new byte[aw];
@@ -2534,7 +2561,6 @@ private:
 					scope (exit) delete iPixels;
 					scope (exit) delete iAlphas;
 					auto iData = img.imageData;
-					int x2 = img.x + ix;
 					foreach (iy; .max(0, -img.y) .. img.height) { mixin(S_TRACE);
 						int y2 = iy + img.y;
 						assert (0 <= y2);
