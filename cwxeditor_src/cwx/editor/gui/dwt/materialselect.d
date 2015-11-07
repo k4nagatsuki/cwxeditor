@@ -201,14 +201,14 @@ class MaterialSelect(MtType Type, D, C) {
 			bool doFile(string path, int x, int y) { mixin(S_TRACE);
 				assert (_summ !is null);
 				auto cur = currentDir;
-				if (cur is null || cur == "") cur = summSkin.materialPath;
+				if (!cur) cur = summSkin.materialPath;
 				copyTo(_summ.scenarioPath, path, cur, false);
 				return true;
 			}
 			void doExit() { mixin(S_TRACE);
 				assert (_summ !is null);
 				auto cur = currentDir;
-				if (cur is null || cur == "") cur = summSkin.materialPath;
+				if (!cur) cur = summSkin.materialPath;
 				refreshPaths(cur);
 				_comm.refPaths.call(this.outer, cur);
 			}
@@ -815,7 +815,7 @@ class MaterialSelect(MtType Type, D, C) {
 				foreach (dlg; modEvent) dlg();
 				refreshButtons();
 			}
-			_paths[_imageIndex] = new CardImage(path);
+			selectPath(path);
 			if (updateBinImg) { mixin(S_TRACE);
 				_binPaths[_imageIndex] = path.isBinImg ? path : "";
 				if (_binPaths[_imageIndex].length) { mixin(S_TRACE);
@@ -824,6 +824,9 @@ class MaterialSelect(MtType Type, D, C) {
 			}
 			updateUseNoCardSizeImage();
 			refreshPaths();
+		}
+		private void selectPath(string path) { mixin(S_TRACE);
+			_paths[_imageIndex] = new CardImage(path);
 		}
 		private void updateUseNoCardSizeImage() { mixin(S_TRACE);
 			if (useNoCardSizeImage) return;
@@ -881,13 +884,16 @@ class MaterialSelect(MtType Type, D, C) {
 				}
 				refreshButtons();
 			}
-			_path = path;
+			selectPath(path);
 			static if (Type == MtType.BG_IMG) {
 				if (updateBinImg) { mixin(S_TRACE);
 					_binPaths[_imageIndex] = isBinImg(path) ? path : "";
 				}
 			}
 			refreshPaths();
+		}
+		private void selectPath(string path) { mixin(S_TRACE);
+			_path = path;
 		}
 		@property
 		string binPath() { mixin(S_TRACE);
@@ -908,7 +914,7 @@ class MaterialSelect(MtType Type, D, C) {
 			}
 		}
 		auto p = currentDir;
-		if (p !is null && p != "" && _fileList.getSelectionIndex() >= 0) { mixin(S_TRACE);
+		if (p && _fileList.getSelectionIndex() >= 0) { mixin(S_TRACE);
 			string f = fileText(_fileList.getItem(_fileList.getSelectionIndex()));
 			if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
 				return std.path.buildPath(defDir, f);
@@ -959,7 +965,7 @@ class MaterialSelect(MtType Type, D, C) {
 		string curr = currentDir;
 		string[] paths = showingNames;
 		foreach (s; paths) { mixin(S_TRACE);
-			if (curr !is null && curr != "") { mixin(S_TRACE);
+			if (curr) { mixin(S_TRACE);
 				r ~= .encodePath(std.path.buildPath(curr, s));
 			} else if (s.startsWith("/")) { mixin(S_TRACE);
 				string file;
@@ -1024,7 +1030,7 @@ class MaterialSelect(MtType Type, D, C) {
 					}
 				}
 				string p = currentDir;
-				if (p is null || p == "") return;
+				if (!p) return;
 				if (0 == _fileList.getItemCount()) return;
 				_fileList.select(0);
 				path2(std.path.buildPath(p, _fileList.getItem(0)), false);
@@ -1081,7 +1087,7 @@ private:
 			openFolder(defDir);
 		} else if (_summ) { mixin(S_TRACE);
 			string cur = currentDir;
-			if (cur !is null && cur != "") { mixin(S_TRACE);
+			if (cur) { mixin(S_TRACE);
 				openFolder(std.path.buildPath(_summ.scenarioPath, cur));
 			} else { mixin(S_TRACE);
 				scope p = std.path.buildPath(_summ.scenarioPath, summSkin.materialPath);
@@ -1149,7 +1155,7 @@ private:
 			if (_refresh) _refresh();
 		} else { mixin(S_TRACE);
 			string p = currentDir;
-			if (p is null || p == "") { mixin(S_TRACE);
+			if (!p) { mixin(S_TRACE);
 				static if (is(C : Combo) || is(C : CCombo)) {
 					if (index == 0) return;
 					_fileList.remove(0);
@@ -1158,8 +1164,8 @@ private:
 				_dirs.select(cast(int)defs.length);
 				p = currentDir;
 			}
-			if (p !is null && p != "") { mixin(S_TRACE);
-				path2(std.path.buildPath(p, fileText(_fileList.getItem(_fileList.getSelectionIndex()))), false);
+			if (p) { mixin(S_TRACE);
+				selectPath(std.path.buildPath(p, fileText(_fileList.getItem(_fileList.getSelectionIndex()))));
 				_selDir = _dirs.getSelectionIndex();
 				if (_refresh) _refresh();
 			}
