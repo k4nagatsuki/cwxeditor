@@ -3644,7 +3644,7 @@ private void writeBgImages(ref SData d, ref ByteIO f, BgImage[] backs, bool repl
 		f.writeExUInt(cast(uint)backs.length);
 	} else { mixin(S_TRACE);
 		auto b = backs.length ? cast(ImageCell) backs[0] : null;
-		if (b && b.path == "" && b.flag == "" && b.x == 0 && b.y == 0
+		if (b && b.path != "" && b.flag == "" && b.x == 0 && b.y == 0
 				&& b.width == 632 && b.height == 420 && !b.mask) { mixin(S_TRACE);
 			f.writeL(cast(uint) backs.length);
 		} else { mixin(S_TRACE);
