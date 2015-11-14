@@ -64,6 +64,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (step.parent is froot && prop.sys.isSystemVar(step.name)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorSystemVariable, step.name);
 		}
+		if (step.count != prop.looks.stepMaxCount && summ && summ.legacy) {
+			r ~= .tryFormat(prop.msgs.warningStepCount, prop.looks.stepMaxCount);
+		}
 	}
 	auto eventTree = cast(EventTree) path;
 	if (eventTree) { mixin(S_TRACE);

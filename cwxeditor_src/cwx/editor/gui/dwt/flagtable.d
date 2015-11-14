@@ -21,8 +21,11 @@ import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.customtable;
+import cwx.editor.gui.dwt.splitpane;
 
-import std.algorithm : max, min;
+import std.algorithm : max, min, map;
+import std.range;
 import std.array;
 import std.ascii;
 import std.conv;
@@ -34,45 +37,145 @@ import org.eclipse.swt.all;
 import java.lang.all;
 
 /// ステップ設定用のダイアログ。
-/// 値は強制的に10件になる。
 public class StepEditDialog : AbsDialog {
 private:
 	Commons _comm;
-	Props prop;
-	Step _step;
-	FlagDir dir;
+	Summary _summ;
 
-	Text stepName;
-	Combo stepInit;
-	Text[] stepVals;
+	Step _step;
+	FlagDir _dir;
+
+	Text _name;
+	Combo _init;
+	Table _values;
+	string[] _valueCache;
+	TableTextEdit _tte;
+	Spinner _stepCount;
+
+	UndoManager _undo;
+
+	class UndoValue : Undo {
+		private int _index;
+		private string _oldName;
+		private string _newName;
+		this (int index, string oldName, string newName) { mixin(S_TRACE);
+			_index = index;
+			_oldName = oldName;
+			_newName = newName;
+		}
+		private void impl() { mixin(S_TRACE);
+			if (_tte.isEditing) _tte.cancel();
+			_valueCache[_index] = _oldName;
+			_values.getItem(_index).setText(1, _oldName);
+			if (_index == _init.getSelectionIndex()) { mixin(S_TRACE);
+				_init.setItem(_index, _oldName);
+			}
+			auto temp = _oldName;
+			_oldName = _newName;
+			_newName = temp;
+		}
+		void undo() { impl(); }
+		void redo() { impl(); }
+		void dispose() { }
+	}
+	void storeSingle(int index, string oldName, string newName) { mixin(S_TRACE);
+		_undo ~= new UndoValue(index, oldName, newName);
+	}
+	class UndoValues : Undo {
+		private string[] _values;
+		this () { mixin(S_TRACE);
+			_values = _valueCache[0 .. this.outer._values.getItemCount()].dup;
+		}
+		private void impl() { mixin(S_TRACE);
+			if (_tte.isEditing) _tte.cancel();
+			this.outer._values.setRedraw(false);
+			scope (exit) this.outer._values.setRedraw(true);
+			auto values = _values;
+			auto num = _stepCount.getSelection();
+			_values = _valueCache[0 .. this.outer._values.getItemCount()].dup;
+			_valueCache[0 .. values.length] = values[];
+
+			changeStepCount(false, cast(int)values.length);
+			foreach (i; 0 .. cast(int)values.length) { mixin(S_TRACE);
+				this.outer._values.getItem(i).setText(1, values[i]);
+			}
+			updateInitCombo();
+			refDataVersion();
+		}
+		void undo() { impl(); }
+		void redo() { impl(); }
+		void dispose() { }
+	}
+	void storeAll() { mixin(S_TRACE);
+		_undo ~= new UndoValues;
+	}
+
+	void refUndoMax() { mixin(S_TRACE);
+		_undo.max = _comm.prop.var.etc.undoMaxEtc;
+	}
 
 	void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-		if (prop.sys.isSystemVar(stepName.getText())) { mixin(S_TRACE);
-			ws ~= .tryFormat(prop.msgs.warningSystemVarName, prop.sys.prefixSystemVarName);
+		if (_comm.prop.sys.isSystemVar(_name.getText())) { mixin(S_TRACE);
+			ws ~= .tryFormat(_comm.prop.msgs.warningSystemVarName, _comm.prop.sys.prefixSystemVarName);
+		}
+		if (_values.getItemCount() != _comm.prop.looks.stepMaxCount && _summ && _summ.legacy) { mixin(S_TRACE);
+			ws ~= .tryFormat(_comm.prop.msgs.warningStepCount, _comm.prop.looks.stepMaxCount);
 		}
 		warning = ws;
 	}
 
-	class ModValue : ModifyListener {
-	private:
-		int index;
-	public:
-		this(int index) { mixin(S_TRACE);
-			this.index = index;
-		}
-		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
-			if (index < stepInit.getItemCount()) { mixin(S_TRACE);
-				stepInit.setItem(index, (cast(Text) e.getSource()).getText());
+	void changeStepCount(bool store, int num) { mixin(S_TRACE);
+		if (num == 0) return;
+		auto ic = _values.getItemCount();
+		if (ic == num) return;
+		if (store) storeAll();
+		if (ic < num) { mixin(S_TRACE);
+			_values.setRedraw(false);
+			scope (exit) _values.setRedraw(true);
+			auto lastValue = _values.getItem(ic - 1).getText(1);
+			foreach (index; ic .. num) { mixin(S_TRACE);
+				auto item = new TableItem(_values, SWT.NONE);
+				item.setText(0, .text(index));
+
+				if (store) { mixin(S_TRACE);
+					if (index < _valueCache.length) { mixin(S_TRACE);
+						lastValue = _valueCache[index];
+					} else { mixin(S_TRACE);
+						lastValue = createNewName(lastValue, (string name) { mixin(S_TRACE);
+							return name != lastValue;
+						});
+						_valueCache ~= lastValue;
+					}
+					item.setText(1, lastValue);
+				}
 			}
+		} else if (num < ic) { mixin(S_TRACE);
+			_values.setRedraw(false);
+			scope (exit) _values.setRedraw(true);
+			_values.setItemCount(num);
+		}
+		_stepCount.setSelection(num);
+		if (store) updateInitCombo();
+		refDataVersion();
+	}
+	void updateInitCombo() { mixin(S_TRACE);
+		auto index = _init.getSelectionIndex();
+		setComboItems(_init, _valueCache[0 .. _values.getItemCount()]);
+		_init.select(.min(_init.getItemCount() - 1, index));
+	}
+
+	void valueEditEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
+		if (itm.getText(1) == newText) return;
+		auto index = _values.indexOf(itm);
+		storeSingle(index, itm.getText(1), newText);
+		itm.setText(column, newText);
+		_valueCache[index] = newText;
+		if (index == _init.getSelectionIndex()) { mixin(S_TRACE);
+			_init.setItem(index, newText);
 		}
 	}
-	class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			_comm.delFlagAndStep.remove(&delStep);
-			_comm.refScenario.remove(&refScenario);
-		}
-	}
+
 	void delStep(cwx.flag.Flag[] flag, Step[] step) { mixin(S_TRACE);
 		foreach (s; step) { mixin(S_TRACE);
 			if (s is _step) { mixin(S_TRACE);
@@ -82,21 +185,24 @@ private:
 		}
 	}
 	void refScenario(Summary summ) { mixin(S_TRACE);
-		forceCancel();
+		if (_summ is summ) forceCancel();
+	}
+	void refDataVersion() { mixin(S_TRACE);
+		_stepCount.setEnabled(!_summ.legacy || _stepCount.getSelection() != _comm.prop.looks.stepMaxCount);
+		refreshWarning();
 	}
 public:
 	/// Params:
-	/// prop = 設定情報。
-	/// shell = 親ウィンドウ。
 	/// dir = 設定するステップの親ディレクトリ。
 	/// step = 設定するステップ。新規の場合はnull。
-	this (Commons comm, Props prop, Shell shell, FlagDir dir, Step step = null) { mixin(S_TRACE);
-		super(prop, shell, false, prop.msgs.dlgTitStep, prop.images.step, true, prop.var.stepDlg, true);
-		_comm = comm;
-		this.prop = prop;
-		this.dir = dir;
-		this._step = step;
+	this (Commons comm, Summary summ, Shell shell, FlagDir dir, Step step = null) { mixin(S_TRACE);
+		super(comm.prop, shell, false, comm.prop.msgs.dlgTitStep, comm.prop.images.step, true, comm.prop.var.stepDlg, true);
 		enterClose = true;
+		_comm = comm;
+		_summ = summ;
+		_dir = dir;
+		_step = step;
+		_undo = new UndoManager(_comm.prop.var.etc.undoMaxEtc);
 	}
 
 	/// Returns: 編集対象となったステップ。
@@ -107,145 +213,173 @@ public:
 	/// 入力中の名前を妥当な形にして返す。
 	@property
 	string name() { mixin(S_TRACE);
-		auto name = FlagDir.validName(stepName.getText());
+		auto name = FlagDir.validName(_name.getText());
 		if (_step.parent) { mixin(S_TRACE);
 			return name;
 		} else { mixin(S_TRACE);
-			return dir.createNewStepName(name, _step ? _step.name : "");
+			return _dir.createNewStepName(name, _step ? _step.name : "");
 		}
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(zeroGridLayout(1));
+		area.setLayout(new GridLayout(1, true));
 		{ mixin(S_TRACE);
-			auto comp = new Composite(area, SWT.NULL);
-			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			comp.setLayout(new GridLayout(5, false));
+			auto top = new SplitPane(area, SWT.HORIZONTAL);
+			top.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			top.setWeights([_comm.prop.var.etc.stepTopSashL, _comm.prop.var.etc.stepTopSashR]);
+			.listener(top, SWT.Dispose, { mixin(S_TRACE);
+				auto ws = top.getWeights();
+				_comm.prop.var.etc.stepTopSashL = ws[0];
+				_comm.prop.var.etc.stepTopSashR = ws[1];
+			});
 
-			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblStepName);
-			stepName = new Text(comp, SWT.BORDER);
-			mod(stepName);
-			createTextMenu!Text(_comm, prop, stepName, &catchMod);
-			setGridMinW(stepName, prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
-			checker(stepName);
-			.listener(stepName, SWT.Modify, &refreshWarning);
-
-			auto gd = new GridData(GridData.FILL_VERTICAL);
-			gd.heightHint = 0;
-			(new Label(comp, SWT.SEPARATOR | SWT.VERTICAL)).setLayoutData(gd);
-
-			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblStepInit);
-			stepInit = new Combo(comp, SWT.READ_ONLY);
-			mod(stepInit);
-			stepInit.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
-			setGridMinW(stepInit, prop.var.etc.flagInitWidth);
-		}
-		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL))
-			.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		{ mixin(S_TRACE);
-			auto comp = new Composite(area, SWT.NULL);
-			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-			// 何列かに分けて値のフィールドを配置する
-			Composite valsComp;
-			int gdc = 0;
-			for (int i = 0; i < prop.looks.stepMaxCount; i++) { mixin(S_TRACE);
-				if (i % 5 == 0) { mixin(S_TRACE);
-					// 1列の件数が5を超えた場合、列を追加
-					if (0 < i) { mixin(S_TRACE);
-						auto gd = new GridData(GridData.FILL_VERTICAL);
-						gd.heightHint = 0;
-						(new Label(comp, SWT.SEPARATOR | SWT.VERTICAL)).setLayoutData(gd);
-						gdc++;
-					}
-					valsComp = new Composite(comp, SWT.NULL);
-					valsComp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-					valsComp.setLayout(new GridLayout(2, false));
-					gdc++;
-				}
-				(new Label(valsComp, SWT.NULL)).setText(.tryFormat(prop.msgs.dlgLblStep, i));
-				auto t = new Text(valsComp, SWT.BORDER);
-				createTextMenu!Text(_comm, prop, t, &catchMod);
-				auto menu = t.getMenu();
-				new MenuItem(menu, SWT.SEPARATOR);
-				auto a = new CreateStepValues;
-				a.index = i;
-				createMenuItem(_comm, menu, MenuID.CreateStepValues, &a.createStepValues, &a.canCreateStepValues);
-				stepVals ~= t;
-				mod(t);
-				stepVals[i].addModifyListener(new ModValue(i));
-				stepVals[i].addFocusListener(new class FocusAdapter {
-					override void focusGained(FocusEvent e) { mixin(S_TRACE);
-						auto text = cast(Text) e.widget;
-						text.selectAll();
-					}
-				});
-				setGridMinW(stepVals[i], prop.var.etc.flagValueWidth, GridData.FILL_HORIZONTAL);
+			auto comp1 = new Composite(top, SWT.NONE);
+			comp1.setLayout(zeroMarginGridLayout(2, false));
+			auto comp2 = new Composite(top, SWT.NONE);
+			comp2.setLayout(zeroMarginGridLayout(2, false));
+			void setEVS(Control c) { mixin(S_TRACE);
+				auto gd = cast(GridData)c.getLayoutData();
+				assert (gd !is null);
+				gd.grabExcessVerticalSpace = true;
+				c.setLayoutData(gd);
 			}
-			comp.setLayout(new GridLayout(gdc, false));
+
+			auto l1 = new Label(comp1, SWT.NONE);
+			l1.setText(_comm.prop.msgs.dlgLblStepName);
+			l1.setLayoutData(new GridData);
+			setEVS(l1);
+			_name = new Text(comp1, SWT.BORDER);
+			mod(_name);
+			createTextMenu!Text(_comm, _comm.prop, _name, &catchMod);
+			setGridMinW(_name, _comm.prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
+			setEVS(_name);
+			checker(_name);
+			.listener(_name, SWT.Modify, &refreshWarning);
+
+			auto l2 = new Label(comp2, SWT.NONE);
+			l2.setText(_comm.prop.msgs.dlgLblStepInit);
+			l2.setLayoutData(new GridData);
+			setEVS(l2);
+			_init = new Combo(comp2, SWT.READ_ONLY);
+			mod(_init);
+			_init.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
+			setGridMinW(_init, _comm.prop.var.etc.flagInitWidth, GridData.FILL_HORIZONTAL);
+			setEVS(_init);
+		}
+		{ mixin(S_TRACE);
+			_values = new Table(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
+			_values.setLayoutData(new GridData(GridData.FILL_BOTH));
+			auto valueNumCol = new TableColumn(_values, SWT.NONE);
+			auto prop = _comm.prop;
+			saveColumnWidth!("prop.var.etc.valueNumberColumn")(_comm.prop, valueNumCol);
+			auto nameCol = new FullTableColumn(_values, SWT.NONE);
+
+			auto menu = new Menu(_values.getShell(), SWT.POP_UP);
+			createMenuItem(_comm, menu, MenuID.Undo, { _undo.undo(); }, &_undo.canUndo);
+			createMenuItem(_comm, menu, MenuID.Redo, { _undo.redo(); }, &_undo.canRedo);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.CreateStepValues, &createStepValues, &canCreateStepValues);
+			_values.setMenu(menu);
+
+			Control createEditor(TableItem itm, int editC) { mixin(S_TRACE);
+				auto editor = createTextEditor(_comm, _comm.prop, _values, itm.getText(editC));
+				auto menu = editor.getMenu();
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.CreateStepValues, &createStepValues, &canCreateStepValues);
+				return editor;
+			}
+			_tte = new TableTextEdit(_comm, _comm.prop, _values, 1, &valueEditEnd, (itm, column) => true, &createEditor);
+			_tte.quickStart = true;
+		}
+		{
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+			comp.setLayout(zeroMarginGridLayout(2, false));
+
+			auto l = new Label(comp, SWT.NONE);
+			l.setText(_comm.prop.msgs.stepCount);
+			_stepCount = new Spinner(comp, SWT.BORDER);
+			initSpinner(_stepCount);
+			mod(_stepCount);
+			_stepCount.setMinimum(1);
+			_stepCount.setMaximum(_comm.prop.var.etc.stepCountMax);
+			.listener(_stepCount, SWT.Selection, () => changeStepCount(true, _stepCount.getSelection()));
+			.listener(_stepCount, SWT.Modify, () => changeStepCount(true, _stepCount.getSelection()));
 		}
 		_comm.delFlagAndStep.add(&delStep);
 		_comm.refScenario.add(&refScenario);
-		getShell().addDisposeListener(new Dispose);
+		_comm.refDataVersion.add(&refDataVersion);
+		.listener(area, SWT.Dispose, { mixin(S_TRACE);
+			_comm.delFlagAndStep.remove(&delStep);
+			_comm.refScenario.remove(&refScenario);
+			_comm.refDataVersion.remove(&refDataVersion);
+		});
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
-		string[] vals;
 		if (_step !is null) { mixin(S_TRACE);
-			stepName.setText(_step.name);
-			foreach (i, stepVal; stepVals) { mixin(S_TRACE);
-				if (i < _step.count) { mixin(S_TRACE);
-					stepVal.setText(_step.getValue(cast(uint)i));
-				} else { mixin(S_TRACE);
-					stepVal.setText(.tryFormat(prop.msgs.dlgTxtStep, i));
-				}
-				vals ~= stepVal.getText();
+			if (_step.parent) { mixin(S_TRACE);
+				_name.setText(_step.name);
+				_name.selectAll();
+			} else { mixin(S_TRACE);
+				// 新規作成時
+				_name.setText("");
 			}
+			_valueCache = _step.values.dup;
 		} else { mixin(S_TRACE);
-			stepName.setText("");
-			foreach (i, stepVal; stepVals) { mixin(S_TRACE);
-				stepVal.setText(.tryFormat(prop.msgs.dlgTxtStep, i));
-				vals ~= stepVal.getText();
-			}
+			_name.setText("");
+			_valueCache = .iota(_comm.prop.looks.stepMaxCount).map!(i => .tryFormat(_comm.prop.msgs.dlgTxtStep, i)).array();
 		}
-		if (!_step.parent) { mixin(S_TRACE);
-			// 新規作成時
-			stepName.setText("");
+		foreach (i, value; _valueCache) { mixin(S_TRACE);
+			auto item = new TableItem(_values, SWT.NONE);
+			item.setText(0, .text(i));
+			item.setText(1, value);
 		}
-		stepName.selectAll();
-		setComboItems(stepInit, vals);
-		stepInit.select(_step is null ? 0 : _step.select);
+		setComboItems(_init, _valueCache);
+		_init.select(_step is null ? 0 : _step.select);
+		_stepCount.setSelection(_values.getItemCount());
+		refDataVersion();
 	}
 
-	private class CreateStepValues {
-		int index;
-		bool canCreateStepValues() { mixin(S_TRACE);
-			return index + 1 < stepVals.length;
-		}
-		void createStepValues() { mixin(S_TRACE);
-			assert (index < stepVals.length);
-			auto text = stepVals[index];
-			auto lastValue = text.getText();
-			foreach (text2; stepVals[index + 1 .. $]) { mixin(S_TRACE);
-				lastValue = createNewName(lastValue, (string name) { mixin(S_TRACE);
-					return name != lastValue;
-				});
-				text2.setText(lastValue);
+	@property
+	private bool canCreateStepValues() { mixin(S_TRACE);
+		auto index = _values.getSelectionIndex();
+		return 0 <= index && index + 1 < _values.getItemCount();
+	}
+	private void createStepValues() { mixin(S_TRACE);
+		if (!canCreateStepValues) return;
+		auto t = cast(Text)_tte.editor;
+		auto index = _values.getSelectionIndex();
+		auto lastValue = t ? t.getText() : _values.getItem(index).getText(1);
+		createStepValues(index, lastValue);
+	}
+
+	private void createStepValues(int index, string lastValue) { mixin(S_TRACE);
+		bool stored = false;
+		foreach (i; index + 1 .. _values.getItemCount()) { mixin(S_TRACE);
+			lastValue = createNewName(lastValue, (string name) { mixin(S_TRACE);
+				return name != lastValue;
+			});
+			if (_valueCache[i] != lastValue) { mixin(S_TRACE);
+				if (!stored) { mixin(S_TRACE);
+					stored = true;
+					storeAll();
+				}
+				_values.getItem(i).setText(1, lastValue);
+				_valueCache[i] = lastValue;
 			}
 		}
+		updateInitCombo();
 	}
 
 	override bool apply() { mixin(S_TRACE);
-		string[] vals;
-		foreach (stepVal; stepVals) { mixin(S_TRACE);
-			vals ~= stepVal.getText();
-		}
+		auto vals = _valueCache[0 .. _stepCount.getSelection()];
 		if (_step.parent) { mixin(S_TRACE);
 			_step.name = this.name;
-			_step.setValues(vals, stepInit.getSelectionIndex());
+			_step.setValues(vals, _init.getSelectionIndex());
 		} else { mixin(S_TRACE);
-			_step = new Step(this.name, vals, stepInit.getSelectionIndex());
-			dir.add(_step);
+			_step = new Step(this.name, vals, _init.getSelectionIndex());
+			_dir.add(_step);
 		}
 		_comm.refFlagAndStep.call([], [_step]);
 		return true;
@@ -350,26 +484,50 @@ protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(zeroGridLayout(1));
 		{ mixin(S_TRACE);
-			auto comp = new Composite(area, SWT.NULL);
+			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			comp.setLayout(new GridLayout(5, false));
+			comp.setLayout(new GridLayout(1, true));
 
-			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblFlagName);
-			flagName = new Text(comp, SWT.BORDER);
+			auto top = new SplitPane(comp, SWT.HORIZONTAL);
+			top.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			top.setWeights([_comm.prop.var.etc.flagTopSashL, _comm.prop.var.etc.flagTopSashR]);
+			.listener(top, SWT.Dispose, { mixin(S_TRACE);
+				auto ws = top.getWeights();
+				_comm.prop.var.etc.flagTopSashL = ws[0];
+				_comm.prop.var.etc.flagTopSashR = ws[1];
+			});
+
+			auto comp1 = new Composite(top, SWT.NONE);
+			comp1.setLayout(zeroMarginGridLayout(2, false));
+			auto comp2 = new Composite(top, SWT.NONE);
+			comp2.setLayout(zeroMarginGridLayout(2, false));
+			void setEVS(Control c) { mixin(S_TRACE);
+				auto gd = cast(GridData)c.getLayoutData();
+				assert (gd !is null);
+				gd.grabExcessVerticalSpace = true;
+				c.setLayoutData(gd);
+			}
+
+			auto l1 = new Label(comp1, SWT.NONE);
+			l1.setText(prop.msgs.dlgLblFlagName);
+			l1.setLayoutData(new GridData);
+			setEVS(l1);
+			flagName = new Text(comp1, SWT.BORDER);
 			createTextMenu!Text(_comm, prop, flagName, &catchMod);
 			mod(flagName);
 			setGridMinW(flagName, prop.var.etc.flagNameWidth, GridData.FILL_HORIZONTAL);
+			setEVS(flagName);
 			checker(flagName);
 			.listener(flagName, SWT.Modify, &refreshWarning);
 
-			auto gd = new GridData(GridData.FILL_VERTICAL);
-			gd.heightHint = 0;
-			(new Label(comp, SWT.SEPARATOR | SWT.VERTICAL)).setLayoutData(gd);
-
-			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblFlagInit);
-			flagInit = new Combo(comp, SWT.READ_ONLY);
+			auto l2 = new Label(comp2, SWT.NONE);
+			l2.setText(prop.msgs.dlgLblFlagInit);
+			l2.setLayoutData(new GridData);
+			setEVS(l2);
+			flagInit = new Combo(comp2, SWT.READ_ONLY);
 			mod(flagInit);
-			setGridMinW(flagInit, prop.var.etc.flagInitWidth);
+			setGridMinW(flagInit, prop.var.etc.flagInitWidth, GridData.FILL_HORIZONTAL);
+			setEVS(flagInit);
 		}
 		(new Label(area, SWT.SEPARATOR | SWT.HORIZONTAL))
 			.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -1052,7 +1210,7 @@ private:
 			p.active();
 			return;
 		}
-		auto dlg = new StepEditDialog(_comm, prop, dlgParShl, parent, step);
+		auto dlg = new StepEditDialog(_comm, _comm.summary, dlgParShl, parent, step);
 		string oldName = "";
 		int oldValue = 0;
 		dlg.applyEvent ~= { mixin(S_TRACE);

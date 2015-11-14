@@ -460,13 +460,7 @@ public:
 		se.onTag["Name"] = (ref XNode n) {name = FlagDir.basename(n.value);};
 		se.onTag[null] = (ref XNode n) { mixin(S_TRACE);
 			if (startsWith(n.name, "Value")) { mixin(S_TRACE);
-				auto numStr = n.name[5 .. $];
-				if (isNumeric(numStr)) { mixin(S_TRACE);
-					int num = to!(int)(numStr);
-					if (num < 0) return;
-					if (vals.length <= num) vals.length = num + 1;
-					vals[num] = n.value;
-				}
+				vals ~= n.value;
 			}
 		};
 		se.parse();
@@ -483,7 +477,7 @@ public:
 		e.newAttr("default", _select);
 		e.newElement("Name", path);
 		for (int i = 0; i < _vals.length; i++) { mixin(S_TRACE);
-			e.newElement("Value" ~ to!(string)(i), _vals[i]);
+			e.newElement("Value", _vals[i]);
 		}
 	}
 	@property

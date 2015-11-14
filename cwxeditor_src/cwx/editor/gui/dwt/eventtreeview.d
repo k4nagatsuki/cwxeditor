@@ -3840,7 +3840,7 @@ private string evtChildBrStepN(in Props prop, in Summary summ, string path, ref 
 		debugln(e);
 	}
 	string name = prop.msgs.noSelectStep;
-	string value = val >= 0 ? .tryFormat(prop.msgs.dlgLblStep, val) : prop.msgs.etc;
+	string value = val >= 0 ? .tryFormat(prop.msgs.dlgTxtStep, val) : prop.msgs.etc;
 	if (path.length && summ) { mixin(S_TRACE);
 		auto o = summ.flagDirRoot.findStep(path);
 		if (o) { mixin(S_TRACE);
@@ -3860,7 +3860,7 @@ private string evtChildBrStepUL(in Props prop, in Summary summ, string path, int
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
 	string name = prop.msgs.noSelectStep;
-	string value = .tryFormat(prop.msgs.dlgLblStep, num);
+	string value = .tryFormat(prop.msgs.dlgTxtStep, num);
 	if (path.length && summ) { mixin(S_TRACE);
 		auto o = summ.flagDirRoot.findStep(path);
 		if (o) { mixin(S_TRACE);

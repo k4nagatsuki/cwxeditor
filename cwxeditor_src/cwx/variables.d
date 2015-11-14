@@ -137,6 +137,7 @@ class FlexEtcProps : Properties {
 	auto couponWidth = Prop!(int, true)("couponWidth", 150);
 	auto couponValueColumn = Prop!(int, true)("couponValueColumn", 40);
 	auto idColumn = Prop!(int)("idColumn", 50);
+	auto valueNumberColumn = Prop!(int)("valueNumberColumn", 50);
 	auto nameTableWidth = Prop!(int, true)("nameTableWidth", 250);
 	auto nameTableHeight = Prop!(int, true)("nameTableHeight", 250);
 	auto flagEventSashL = Prop!(int)("flagEventSashL", 3);
@@ -161,6 +162,10 @@ class FlexEtcProps : Properties {
 	auto flagCombiSashR = Prop!(int)("flagCombiSashR", 1);
 	auto mainToolBarCustomSashL = Prop!(int)("mainToolBarCustomSashL", 1);
 	auto mainToolBarCustomSashR = Prop!(int)("mainToolBarCustomSashR", 1);
+	auto stepTopSashL = Prop!(int)("stepTopSashL", 2);
+	auto stepTopSashR = Prop!(int)("stepTopSashR", 1);
+	auto flagTopSashL = Prop!(int)("flagTopSashL", 2);
+	auto flagTopSashR = Prop!(int)("flagTopSashR", 1);
 
 	auto partyMax = Prop!(uint, true)("partyMax", 6);
 	auto cardScaleMax = Prop!(int)("cardScaleMax", 300);
@@ -190,6 +195,7 @@ class FlexEtcProps : Properties {
 
 	auto flagInitValue = Prop!(bool)("flagInitValue", true);
 	auto stepInitValue = Prop!(int)("stepInitValue", 0);
+	auto stepCountMax = Prop!(uint)("stepCountMax", 10000, true);
 
 	auto imageListWidth = Prop!(int)("imageListWidth", 380);
 	auto imageListHeight = Prop!(int)("imageListHeight", 300);

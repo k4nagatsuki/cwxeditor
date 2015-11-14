@@ -253,6 +253,7 @@ private:
 	Item _oldSel = null, _oldSel2 = null;
 	bool _hasFocus = false;
 	bool _start = false;
+	bool _quickStart = false;
 	Item delegate() _selection;
 	Item delegate(int x, int y) _selectionM;
 	void delegate(Item itm) _startEdit;
@@ -313,7 +314,17 @@ public:
 			_display.removeFilter(SWT.FocusOut, filter);
 		});
 	}
+	/// アイテム選択時、即座に編集を開始する。
+	void quickStart(bool v) { _quickStart = v; }
+
 	override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+		if (_quickStart) { mixin(S_TRACE);
+			auto itm = _selection();
+			if (itm) { mixin(S_TRACE);
+				_startEdit(itm);
+			}
+			return;
+		}
 		if (_comm.prop.var.etc.editTriggerType is EditTrigger.Quick) { mixin(S_TRACE);
 			_itm = _selection();
 		}
@@ -574,10 +585,11 @@ abstract class AbstractTableEdit {
 private:
 	Commons _comm;
 	Table table;
-	TableEditor editor;
+	TableEditor _editor;
 	EditEnd _tee = null;
 	int editC;
 	bool delegate(TableItem itm, int column) canEdit = null;
+	TextEditMFListener _mf = null;
 
 	Item selectionM(int x, int y) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
@@ -641,13 +653,13 @@ public:
 			this.table = table;
 			this.editC = editC;
 			this.canEdit = canEdit;
-			editor = new TableEditor(table);
-			editor.grabHorizontal = true;
+			_editor = new TableEditor(table);
+			_editor.grabHorizontal = true;
 
-			auto mf = new TextEditMFListener(comm, table, &startEdit, &selectionK, &selectionM);
-			table.addMouseListener(mf);
-			table.addSelectionListener(mf);
-			table.addFocusListener(mf);
+			_mf = new TextEditMFListener(comm, table, &startEdit, &selectionK, &selectionM);
+			table.addMouseListener(_mf);
+			table.addSelectionListener(_mf);
+			table.addFocusListener(_mf);
 			table.addKeyListener(new TextEditKListener(&startEdit, &selectionK));
 		} catch (Exception e) {
 			printStackTrace();
@@ -668,6 +680,10 @@ public:
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
 	}
+	/// trueの場合はアイテム選択後即座に編集を開始する。
+	@property
+	void quickStart(bool v) { _mf.quickStart = v; }
+
 	void startEdit(TableItem itm) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			if (!itm.getParent().isFocusControl()) return;
@@ -676,7 +692,7 @@ public:
 			if (canEdit is null || canEdit(sel, editC)) { mixin(S_TRACE);
 				table.showSelection();
 				_tee = new EditEnd(_comm, table, createEditor(sel, editC), &endImpl);
-				editor.setEditor(_tee.editor, sel, editC);
+				_editor.setEditor(_tee.editor, sel, editC);
 				_tee.setFocus();
 			}
 		} catch (Exception e) {
@@ -694,6 +710,10 @@ public:
 			debugln(e);
 			throw new Exception(e.msg, __FILE__, __LINE__);
 		}
+	}
+	@property
+	Control editor() { mixin(S_TRACE);
+		return _tee ? _tee.editor : null;
 	}
 	void cancel() { mixin(S_TRACE);
 		if (!isEditing) return;
@@ -755,10 +775,10 @@ public:
 			if (!newText) newText = "";
 			if (editEnd is null) { mixin(S_TRACE);
 				if (newText.length > 0) { mixin(S_TRACE);
-					editor.getItem().setText(editC, newText);
+					_editor.getItem().setText(editC, newText);
 				}
 			} else { mixin(S_TRACE);
-				editEnd(editor.getItem(), editC, newText);
+				editEnd(_editor.getItem(), editC, newText);
 			}
 		} catch (Exception e) {
 			printStackTrace();
@@ -823,9 +843,9 @@ public:
 		try { mixin(S_TRACE);
 			auto combo = cast(C) c;
 			if (editEnd is null) { mixin(S_TRACE);
-				editor.getItem().setText(editC, combo.getText());
+				_editor.getItem().setText(editC, combo.getText());
 			} else { mixin(S_TRACE);
-				editEnd(editor.getItem(), editC, combo);
+				editEnd(_editor.getItem(), editC, combo);
 			}
 		} catch (Exception e) {
 			printStackTrace();
@@ -864,9 +884,9 @@ public:
 		try { mixin(S_TRACE);
 			void set(string text) { mixin(S_TRACE);
 				if (editEnd is null) { mixin(S_TRACE);
-					editor.getItem().setText(editC, text);
+					_editor.getItem().setText(editC, text);
 				} else { mixin(S_TRACE);
-					editEnd(editor.getItem(), editC, c);
+					editEnd(_editor.getItem(), editC, c);
 				}
 			}
 			auto spinner = cast(Spinner) c;
@@ -3003,7 +3023,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	} case CType.BRANCH_STEP: { mixin(S_TRACE);
 		string s = contentTextUseID!(CIDKind.Step)(comm, summ, evt.step, "%s", evt);
 		auto step = summ ? summ.flagDirRoot.findStep(evt.step) : null;
-		string v = step ? step.getValue(evt.stepValue) : .tryFormat(comm.prop.msgs.dlgLblStep, evt.stepValue);
+		string v = step ? step.getValue(evt.stepValue) : .tryFormat(comm.prop.msgs.dlgTxtStep, evt.stepValue);
 		return .tryFormat(comm.prop.msgs.ctBranchStep, s, v);
 	} case CType.BRANCH_SELECT: { mixin(S_TRACE);
 		string t = evt.targetAll ? comm.prop.msgs.ctBranchSelectAll : comm.prop.msgs.ctBranchSelectActive;
@@ -3078,7 +3098,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		if (o) { mixin(S_TRACE);
 			value = o.getValue(evt.stepValue);
 		} else { mixin(S_TRACE);
-			value = .tryFormat(comm.prop.msgs.dlgLblStep, evt.stepValue);
+			value = .tryFormat(comm.prop.msgs.dlgTxtStep, evt.stepValue);
 		}
 		return .tryFormat(comm.prop.msgs.ctSetStep, name, value);
 	} case CType.SET_STEP_UP: { mixin(S_TRACE);
@@ -3227,7 +3247,7 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		if (o) { mixin(S_TRACE);
 			value = o.getValue(evt.stepValue);
 		} else { mixin(S_TRACE);
-			value = .tryFormat(comm.prop.msgs.dlgLblStep, evt.stepValue);
+			value = .tryFormat(comm.prop.msgs.dlgTxtStep, evt.stepValue);
 		}
 		string cmp = comm.prop.msgs.comparison4Name(evt.comparison4);
 		return .tryFormat(comm.prop.msgs.ctCheckStep, name, value, cmp);

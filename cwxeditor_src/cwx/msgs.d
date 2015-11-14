@@ -868,8 +868,8 @@ class Msgs : Properties {
 	auto dlgTitStep = Msg("dlgTitStep", "ステップの設定");
 	auto dlgLblStepName = Msg("dlgLblStepName", "ステップ名");
 	auto dlgLblStepInit = Msg("dlgLblStepInit", "初期値");
-	auto dlgLblStep = Msg("dlgLblStep", "Step - %1$s");
 	auto dlgTxtStep = Msg("dlgTxtStep", "Step - %1$s");
+	auto stepCount = Msg("stepCount", "段階数");
 
 	/// 貼紙設定ダイアログ関連。
 	auto dlgTitSummary = Msg("dlgTitSummary", "概略の設定 - [ %1$s ]");
@@ -1567,6 +1567,7 @@ class Msgs : Properties {
 	auto warningRound0 = Msg("warningRound0", "イベント発火条件「バトル開始」は、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningUnknownMotion = Msg("warningUnknownMotion", "効果 [%1$s] は、CardWirth %2$sより前のバージョンでは使用できません。");
 	auto warningTextColor = Msg("warningTextColor", "テキスト色 [%1$s] は、CardWirth %2$sより前のバージョンでは使用できません。");
+	auto warningStepCount = Msg("warningStepCount", "%1$s段階以外の段階数はクラシックなシナリオでは使用できません。");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");
