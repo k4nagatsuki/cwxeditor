@@ -156,6 +156,8 @@ class KeyCodeView : Composite {
 		_keyCodes.showSelection();
 		raiseModifyEvent();
 		_comm.refreshToolBar();
+		.forceFocus(_keyCodes, false);
+		_tte.startEdit();
 	}
 	private void del() { mixin(S_TRACE);
 		if (_tte.isEditing) _tte.enter();
