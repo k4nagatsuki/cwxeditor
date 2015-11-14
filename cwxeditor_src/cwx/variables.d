@@ -162,10 +162,10 @@ class FlexEtcProps : Properties {
 	auto flagCombiSashR = Prop!(int)("flagCombiSashR", 1);
 	auto mainToolBarCustomSashL = Prop!(int)("mainToolBarCustomSashL", 1);
 	auto mainToolBarCustomSashR = Prop!(int)("mainToolBarCustomSashR", 1);
-	auto stepTopSashL = Prop!(int)("stepTopSashL", 2);
-	auto stepTopSashR = Prop!(int)("stepTopSashR", 1);
-	auto flagTopSashL = Prop!(int)("flagTopSashL", 2);
-	auto flagTopSashR = Prop!(int)("flagTopSashR", 1);
+	auto stepTopSashL = Prop!(int)("stepTopSashL", 3);
+	auto stepTopSashR = Prop!(int)("stepTopSashR", 2);
+	auto flagTopSashL = Prop!(int)("flagTopSashL", 3);
+	auto flagTopSashR = Prop!(int)("flagTopSashR", 2);
 
 	auto partyMax = Prop!(uint, true)("partyMax", 6);
 	auto cardScaleMax = Prop!(int)("cardScaleMax", 300);

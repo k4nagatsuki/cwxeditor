@@ -236,7 +236,17 @@ void divide(in string[] args, out string[] file, out string[] option, out string
 	}
 }
 
-void main(string[] args) {
+int main(string[] args) {
+	try {
+		build(args);
+		return 0;
+	} catch (Exception e) {
+		writeln(e);
+		return -1;
+	}
+}
+
+void build(string[] args) {
 	auto timer = StopWatch(AutoStart.yes);
 
 	// ビルドフラグ
