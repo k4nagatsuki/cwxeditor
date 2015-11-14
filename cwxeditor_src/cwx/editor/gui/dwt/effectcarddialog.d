@@ -30,6 +30,7 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.scales;
 import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.cardpane;
+import cwx.editor.gui.dwt.keycodeview;
 
 import std.algorithm : max;
 import std.path;
@@ -119,7 +120,7 @@ private:
 	Scale _sucRate;
 	MaterialSelect!(MtType.SE, Combo, Combo) _se1;
 	MaterialSelect!(MtType.SE, Combo, Combo) _se2;
-	Combo[] _keyCodes;
+	KeyCodeView _keyCodes;
 	Text _scenario;
 	TextMenuModify _scenarioTM;
 	Text _author;
@@ -178,6 +179,7 @@ private:
 				ws ~= _prop.msgs.diffSource;
 			}
 		}
+		ws ~= _keyCodes.warnings;
 
 		warning = ws;
 	}
@@ -738,14 +740,12 @@ private:
 			auto grp = new Group(sash, SWT.NONE);
 			grp.setText(_prop.msgs.keyCodes);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			_keyCodes.length = _prop.looks.keyCodesMax;
-			grp.setLayout(new GridLayout(_keyCodes.length >= 8 ? 2 : 1, true));
-			for (int i = 0; i < _keyCodes.length; i++) { mixin(S_TRACE);
-				_keyCodes[i] = createKeyCodeCombo(_comm, _summ, grp, &catchMod, _card && i < _card.keyCodes.length ? _card.keyCodes[i] : "");
-				mod(_keyCodes[i]);
-				_keyCodes[i].setEnabled(!_readOnly);
-				_keyCodes[i].setLayoutData(new GridData(GridData.FILL_BOTH));
-			}
+			grp.setLayout(new GridLayout(1, true));
+
+			_keyCodes = new KeyCodeView(_comm, _summ, grp, _readOnly, &catchMod);
+			_keyCodes.setLayoutData(new GridData(GridData.FILL_BOTH));
+			mod(_keyCodes);
+			_keyCodes.modEvent ~= &refreshWarning;
 		}
 		sash.setWeights([_prop.var.etc.seKeyCodeSashL, _prop.var.etc.seKeyCodeSashR]);
 		class Dispose : DisposeListener {
@@ -775,7 +775,6 @@ private:
 	}
 	void refDataVersion() { mixin(S_TRACE);
 		refreshWarning();
-		setKeyCodesEnabled();
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
@@ -794,16 +793,6 @@ private:
 			_comm.refRadarStyle.remove(&initUseMod);
 			static if (is(C:ItemCard)) {
 				_comm.refRadarStyle.remove(&initHasMod);
-			}
-		}
-	}
-	void setKeyCodesEnabled() { mixin(S_TRACE);
-		int big = max(_prop.looks.keyCodesMaxLegacy, _prop.looks.keyCodesMax);
-		foreach (i, kc; _keyCodes) { mixin(S_TRACE);
-			if (_summ.legacy) { mixin(S_TRACE);
-				kc.setEnabled(!_readOnly && i < _prop.looks.keyCodesMaxLegacy);
-			} else { mixin(S_TRACE);
-				kc.setEnabled(!_readOnly && i < _prop.looks.keyCodesMax);
 			}
 		}
 	}
@@ -964,12 +953,7 @@ protected:
 			_se2.path = _card.soundPath2;
 			_se2.volume = _card.volume2;
 			_se2.loopCount = _card.loopCount2;
-			foreach (i, kc; _card.keyCodes) { mixin(S_TRACE);
-				_keyCodes[i].setText(kc);
-				if (!contains(_keyCodes[i].getItems(), kc)) { mixin(S_TRACE);
-					_keyCodes[i].add(kc, 0);
-				}
-			}
+			_keyCodes.keyCodes = _card.keyCodes;
 			refreshWarning();
 		} else { mixin(S_TRACE);
 			_imgPath.images = [];
@@ -1079,16 +1063,9 @@ protected:
 		_card.soundPath2 = _se2.path;
 		_card.volume2 = _se2.volume;
 		_card.loopCount2 = _se2.loopCount;
-		string[] keyCodes;
-		size_t last = 0;
-		foreach (i, c; _keyCodes) { mixin(S_TRACE);
-			keyCodes ~= c.getText();
-			if (c.getText().length > 0) last = i + 1;
-		}
-		keyCodes.length = last;
 		_card.scenario = _scenario.getText();
 		_card.author = _author.getText();
-		_card.keyCodes = keyCodes;
+		_card.keyCodes = _keyCodes.keyCodes;
 
 		_comm.refKeyCodes.call();
 

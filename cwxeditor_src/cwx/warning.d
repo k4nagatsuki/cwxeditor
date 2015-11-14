@@ -138,6 +138,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= prop.msgs.warningLoopCount;
 			}
 		}
+		if (prop.looks.keyCodesMaxLegacy < effCard.keyCodes.length && summ && summ.legacy) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningKeyCodeCount, prop.looks.keyCodesMaxLegacy);
+		}
 	}
 	auto spChars = skin.spChars;
 	auto checkTextRes(in string[] flags, in string[] steps, in string[] fonts, in char[] colors,

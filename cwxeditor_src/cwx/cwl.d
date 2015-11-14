@@ -2028,9 +2028,12 @@ private C readEffCard(C)(ref RData d, ref ByteIO f) { mixin(S_TRACE);
 	r.soundPath2 = sp2 == "（なし）" ? "" : decodePathLegacy(sp2);
 	string[] keyCodes;
 	keyCodes.length = 5u;
+	uint keyCodeCount = 0;
 	for (uint i = 0u; i < 5u; i++) { mixin(S_TRACE);
 		keyCodes[i] = readString(f);
+		if (keyCodes[i] != "") keyCodeCount = i + 1;
 	}
+	keyCodes.length = keyCodeCount;
 	r.keyCodes = keyCodes;
 	if (d.dataVersion > 0) { mixin(S_TRACE);
 		r.premium = toPremium(f.readByte);

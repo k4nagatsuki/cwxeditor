@@ -315,7 +315,12 @@ public:
 		});
 	}
 	/// アイテム選択時、即座に編集を開始する。
+	@property
 	void quickStart(bool v) { _quickStart = v; }
+	/// ditto
+	@property
+	const
+	bool quickStart() { return _quickStart; }
 
 	override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 		if (_quickStart) { mixin(S_TRACE);
@@ -406,13 +411,15 @@ private:
 	Commons _comm;
 	Control ctrl;
 	void delegate(Control) end;
+	bool _canOpenCombo = false;
 
 public:
-	this(Commons comm, Composite parent, Control ctrl, void delegate(Control) end) { mixin(S_TRACE);
+	this(Commons comm, Composite parent, Control ctrl, void delegate(Control) end, bool canOpenCombo = true) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			_comm = comm;
 			this.end = end;
 			this.ctrl = ctrl;
+			_canOpenCombo = canOpenCombo;
 			ctrl.addFocusListener(this);
 			ctrl.addKeyListener(this);
 
@@ -434,7 +441,7 @@ public:
 	void setFocus() { mixin(S_TRACE);
 		try { mixin(S_TRACE);
 			ctrl.setFocus();
-			if (_comm.prop.var.etc.comboListVisible) { mixin(S_TRACE);
+			if (_canOpenCombo && _comm.prop.var.etc.comboListVisible) { mixin(S_TRACE);
 				auto combo = cast(Combo) ctrl;
 				if (combo) combo.setListVisible(true);
 				auto ccombo = cast(CCombo) ctrl;
@@ -683,6 +690,10 @@ public:
 	/// trueの場合はアイテム選択後即座に編集を開始する。
 	@property
 	void quickStart(bool v) { _mf.quickStart = v; }
+	/// ditto
+	@property
+	const
+	bool quickStart() { return _mf.quickStart; }
 
 	void startEdit(TableItem itm) { mixin(S_TRACE);
 		try { mixin(S_TRACE);
@@ -691,7 +702,7 @@ public:
 			auto sel = itm;
 			if (canEdit is null || canEdit(sel, editC)) { mixin(S_TRACE);
 				table.showSelection();
-				_tee = new EditEnd(_comm, table, createEditor(sel, editC), &endImpl);
+				_tee = new EditEnd(_comm, table, createEditor(sel, editC), &endImpl, !quickStart);
 				_editor.setEditor(_tee.editor, sel, editC);
 				_tee.setFocus();
 			}
@@ -714,6 +725,10 @@ public:
 	@property
 	Control editor() { mixin(S_TRACE);
 		return _tee ? _tee.editor : null;
+	}
+	void enter() { mixin(S_TRACE);
+		if (!isEditing) return;
+		_tee.enter();
 	}
 	void cancel() { mixin(S_TRACE);
 		if (!isEditing) return;

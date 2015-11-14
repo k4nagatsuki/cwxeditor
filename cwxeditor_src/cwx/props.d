@@ -109,7 +109,6 @@ public:
 	const int skillPrice(int lev) {return (lev + 2) * 200;}
 	@property const int beastPrice() {return 500;}
 	@property const int keyCodesMaxLegacy() {return 5;}
-	@property const int keyCodesMax() {return 10;}
 	@property const uint motionRoundDefault() {return 10;}
 	@property const uint stoneBorder() {return 20;}
 

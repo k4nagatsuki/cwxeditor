@@ -1543,6 +1543,8 @@ class Msgs : Properties {
 	auto se2 = Msg("se2", "二次効果");
 	auto soundNone = Msg("soundNone", "効果音無し");
 	auto keyCodes = Msg("keyCodes", "イベント発火のキーコード");
+	auto addKeyCode = Msg("addKeyCode", "キーコードの追加");
+	auto delKeyCode = Msg("delKeyCode", "キーコードの削除");
 
 	auto warningNotDefaultSE = Msg("warningNotDefaultSE", "標準以外の効果音はシナリオの外では鳴らない可能性があります。");
 	auto warningEffectTypeNone = Msg("warningEffectTypeNone", "無属性のカードをシナリオ外に持ち出した場合、予期せぬ動作の原因になります。");
@@ -1568,6 +1570,7 @@ class Msgs : Properties {
 	auto warningUnknownMotion = Msg("warningUnknownMotion", "効果 [%1$s] は、CardWirth %2$sより前のバージョンでは使用できません。");
 	auto warningTextColor = Msg("warningTextColor", "テキスト色 [%1$s] は、CardWirth %2$sより前のバージョンでは使用できません。");
 	auto warningStepCount = Msg("warningStepCount", "%1$s段階以外の段階数はクラシックなシナリオでは使用できません。");
+	auto warningKeyCodeCount = Msg("warningKeyCodeCount", "%1$s件より多くのキーコードはクラシックなシナリオでは設定できません。");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");

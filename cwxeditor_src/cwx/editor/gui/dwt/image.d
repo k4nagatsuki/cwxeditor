@@ -357,6 +357,9 @@ public:
 	@property Image altCoupon() {return imgd!("alt_coupon.png");}
 	@property Image delCoupon() {return imgd!("del_res.png");}
 
+	@property Image addKeyCode() {return imgd!("add_key_code.png");}
+	@property Image delKeyCode() {return imgd!("del_key_code.png");}
+
 	@property Image setBeast() {return imgd!("set_beast.png");}
 
 	@property Image sound() {return imgd!("evt_se.png");}

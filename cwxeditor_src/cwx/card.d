@@ -2769,3 +2769,26 @@ public:
 	@property
 	CWXPath cwxParent() {return _owner;}
 }
+
+/// キーコード群のXML要素名。
+immutable KEY_CODES_XML_NAME = "KeyCodes";
+
+/// KeyCodes要素からキーコード群を取得する。
+string[] keyCodesFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
+	if (!node.valid) return [];
+	if (node.name != KEY_CODES_XML_NAME) return [];
+	return decodeLf(node.value, true);
+}
+/// キーコード群をXML要素化し、nodeに追加する。
+void keyCodesToNode(ref XNode node, in string[] keyCodes) { mixin(S_TRACE);
+	node.newElement(KEY_CODES_XML_NAME, encodeLf(keyCodes));
+}
+/// キーコード群をXML要素化する。
+XNode keyCodesToNode(in string[] keyCodes) { mixin(S_TRACE);
+	return XNode.create(KEY_CODES_XML_NAME, encodeLf(keyCodes));
+}
+/// キーコード群をXML文書化する。
+string keyCodesToXML(in string[] keyCodes) { mixin(S_TRACE);
+	auto node = keyCodesToNode(keyCodes);
+	return node.text;
+}
