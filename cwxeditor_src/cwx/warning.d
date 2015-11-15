@@ -466,6 +466,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.range == Range.FIELD && c.detail.use(CArg.COUPON) && !prop.targetVersion("1.30", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningBranchCouponAtField;
 		}
+		if (c.selectionMethod is SelectionMethod.Valued && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningValuedSelectionMethod;
+		}
 		if (c.type is CType.CHECK_STEP && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContent, prop.msgs.contentName(CType.CHECK_STEP), "1.50");
 		}

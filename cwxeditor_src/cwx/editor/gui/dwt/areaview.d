@@ -461,7 +461,7 @@ private:
 			super (v, comm, area, summ);
 			static if (UseCards) {
 				foreach (i; cIdcs) { mixin(S_TRACE);
-					auto node = area.cards[i].toNode(new XMLOption(comm.prop.sys));
+					auto node = area.cards[i].toNode(new XMLOption(comm.prop.sys, LATEST_VERSION));
 					auto ver = new XMLInfo(comm.prop.sys, LATEST_VERSION);
 					auto c = C.createFromNode(node, ver);
 					if (summ) c.setUseCounter(summ.useCounter.sub);
@@ -4700,7 +4700,7 @@ public:
 					foreach (itm; tbl.getSelection()) { mixin(S_TRACE);
 						cs ~= cast(C) itm.getData();
 					}
-					auto node = A.CtoNode(cs, new XMLOption(_prop.sys));
+					auto node = A.CtoNode(cs, new XMLOption(_prop.sys, LATEST_VERSION));
 					node.newAttr("paneId", _id);
 					if (curItm) node.newAttr("cursorIndex", tbl.indexOf(curItm));
 					e.data = bytesFromXML(node.text);
@@ -4917,7 +4917,7 @@ public:
 					foreach (itm; tbl.getSelection()) { mixin(S_TRACE);
 						bs ~= cast(BgImage) itm.getData();
 					}
-					auto node = Area.BtoNode(bs, new XMLOption(_prop.sys));
+					auto node = Area.BtoNode(bs, new XMLOption(_prop.sys, LATEST_VERSION));
 					node.newAttr("paneId", _id);
 					if (curItm) node.newAttr("cursorIndex", tbl.indexOf(curItm));
 					e.data = bytesFromXML(node.text);
@@ -5353,7 +5353,7 @@ public:
 					backs ~= _area.backs[i];
 				}
 				if (cards.length > 0 || backs.length > 0) { mixin(S_TRACE);
-					XMLtoCB(_prop, _comm.clipboard, Area.CBtoXML(cards, backs, new XMLOption(_prop.sys)));
+					XMLtoCB(_prop, _comm.clipboard, Area.CBtoXML(cards, backs, new XMLOption(_prop.sys, LATEST_VERSION)));
 					_comm.refreshToolBar();
 				}
 			}
@@ -5448,7 +5448,7 @@ public:
 					cards ~= _area.cards[i];
 				}
 				if (cards.length > 0) { mixin(S_TRACE);
-					XMLtoCB(_prop, _comm.clipboard, A.CtoXML(cards, new XMLOption(_prop.sys)));
+					XMLtoCB(_prop, _comm.clipboard, A.CtoXML(cards, new XMLOption(_prop.sys, LATEST_VERSION)));
 					_comm.refreshToolBar();
 				}
 			}
@@ -5537,7 +5537,7 @@ public:
 					backs ~= _area.backs[i];
 				}
 				if (backs.length > 0) { mixin(S_TRACE);
-					XMLtoCB(_prop, _comm.clipboard, A.BtoXML(backs, new XMLOption(_prop.sys)));
+					XMLtoCB(_prop, _comm.clipboard, A.BtoXML(backs, new XMLOption(_prop.sys, LATEST_VERSION)));
 					_comm.refreshToolBar();
 				}
 			}

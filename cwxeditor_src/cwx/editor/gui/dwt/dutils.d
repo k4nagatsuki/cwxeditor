@@ -3042,7 +3042,23 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		return .tryFormat(comm.prop.msgs.ctBranchStep, s, v);
 	} case CType.BRANCH_SELECT: { mixin(S_TRACE);
 		string t = evt.targetAll ? comm.prop.msgs.ctBranchSelectAll : comm.prop.msgs.ctBranchSelectActive;
-		string r = evt.random ? comm.prop.msgs.ctBranchSelectAuto : comm.prop.msgs.ctBranchSelectManual;
+		string r;
+		final switch (evt.selectionMethod) {
+		case SelectionMethod.Manual:
+			r = comm.prop.msgs.ctBranchSelectManual;
+			break;
+		case SelectionMethod.Random:
+			r = comm.prop.msgs.ctBranchSelectAuto;
+			break;
+		case SelectionMethod.Valued:
+			string[] values;
+			values ~= .tryFormat(comm.prop.msgs.initialValue, evt.initValue);
+			foreach (coupon; evt.coupons) { mixin(S_TRACE);
+				values ~= .tryFormat(comm.prop.msgs.couponValues, coupon.name, coupon.value);
+			}
+			r = .tryFormat(comm.prop.msgs.ctBranchSelectValued, values.join(", "));
+			break;
+		}
 		return .tryFormat(comm.prop.msgs.ctBranchSelect, t, r);
 	} case CType.BRANCH_ABILITY: { mixin(S_TRACE);
 		string t = comm.prop.msgs.targetName(evt.targetS.m);

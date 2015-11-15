@@ -453,6 +453,7 @@ class Msgs : Properties {
 	auto selectMethod = Msg("selectMethod", "選択方法");
 	auto manualMethod = Msg("manualMethod", "手動で選択");
 	auto randomMethod = Msg("randomMethod", "ランダムで選択");
+	auto valuedMethod = Msg("valuedMethod", "評価条件で選択");
 	auto judgeSleep = Msg("judgeSleep", "眠り判定");
 	auto sleepDisabled = Msg("sleepDisabled", "睡眠・呪縛者無効");
 	auto sleepEnabled = Msg("sleepEnabled", "睡眠・呪縛者有効");
@@ -692,6 +693,9 @@ class Msgs : Properties {
 	auto ctBranchSelectActive = Msg("ctBranchSelectActive", "動けるメンバ");
 	auto ctBranchSelectAuto = Msg("ctBranchSelectAuto", "ランダム");
 	auto ctBranchSelectManual = Msg("ctBranchSelectManual", "手動");
+	auto ctBranchSelectValued = Msg("ctBranchSelectValued", "評価条件(%1$s)");
+	auto initialValue = Msg("initialValue", "初期値 = %1$s");
+	auto couponValues = Msg("couponValues", "%1$s = %2$s");
 	auto ctBranchSelect = Msg("ctBranchSelect", "%1$sから%2$sでメンバを選択");
 	auto ctBranchAbility = Msg("ctBranchAbility", "%1$s(%2$s)の%3$sと%4$sで能力判定(レベル%5$s)");
 	auto ctBranchRandom = Msg("ctBranchRandom", "確率 = %1$s%%");
@@ -1054,8 +1058,10 @@ class Msgs : Properties {
 	auto partyActive = Msg("partyActive", "動けるメンバ");
 	auto autoSelect = Msg("autoSelect", "自動");
 	auto manualSelect = Msg("manualSelect", "手動");
+	auto valuedSelect = Msg("valuedSelect", "評価条件");
 	auto selectMemberSuccess = Msg("selectMemberSuccess", "%1$sから%2$sでキャラクタを選択");
-	auto selectMemberFailure = Msg("selectMemberFailure", "%1$sから%2$sでのキャラクタ選択をキャンセル");
+	auto selectMemberCancel = Msg("selectMemberCancel", "%1$sから%2$sでのキャラクタ選択をキャンセル");
+	auto selectMemberFailure = Msg("selectMemberFailure", "%1$sから%2$sでのキャラクタ選択に失敗");
 	auto branchAbilitySuccess = Msg("branchAbilitySuccess", "%1$sがレベル%2$sで%3$sと%4$sで行う判定に成功");
 	auto branchAbilityFailure = Msg("branchAbilityFailure", "%1$sがレベル%2$sで%3$sと%4$sで行う判定に失敗");
 	auto branchRandomSuccess = Msg("branchRandomSuccess", "%1$s%%成功");
@@ -1571,6 +1577,7 @@ class Msgs : Properties {
 	auto warningTextColor = Msg("warningTextColor", "テキスト色 [%1$s] は、CardWirth %2$sより前のバージョンでは使用できません。");
 	auto warningStepCount = Msg("warningStepCount", "%1$s段階以外の段階数はクラシックなシナリオでは使用できません。");
 	auto warningKeyCodeCount = Msg("warningKeyCodeCount", "%1$s件より多くのキーコードはクラシックなシナリオでは設定できません。");
+	auto warningValuedSelectionMethod = Msg("warningValuedSelectionMethod", "評価条件によるメンバ選択分岐は、WSN1以降の形式のシナリオしか行えません。");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");
@@ -1884,6 +1891,7 @@ class Msgs : Properties {
 	auto scriptErrorInvalidColor = Msg("scriptErrorInvalidColor", "色が正しくありません。");
 	auto scriptErrorInvalidBlendMode = Msg("scriptErrorInvalidBlendMode", "未知の合成方式です。");
 	auto scriptErrorInvalidGradientDir = Msg("scriptErrorInvalidGradientDir", "未知のグラデーション方向です。");
+	auto scriptErrorInvalidSelectionMethod = Msg("scriptErrorInvalidSelectionMethod", "未知のメンバ選択方法です。");
 	auto scriptErrorInvalidDialog = Msg("scriptErrorInvalidDialog", "台詞が正しくありません。");
 	auto scriptErrorInvalidTalker = Msg("scriptErrorInvalidTalker", "話者が正しくありません。");
 	auto scriptErrorInvalidCoupon = Msg("scriptErrorInvalidCoupon", "評価条件が正しくありません。");

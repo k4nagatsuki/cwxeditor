@@ -1886,10 +1886,10 @@ fi`;
 		} else static if (is(T == bool)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			switch (value) {
-			case "true", "yes", "on", "all", "random", "average", "complete":
+			case "true", "yes", "on", "all", "average", "complete":
 				i++;
 				return true;
-			case "false", "no", "off", "active", "manual", "max", "nocomplete":
+			case "false", "no", "off", "active", "max", "nocomplete":
 				i++;
 				return false;
 			default: throwError(_prop.msgs.scriptErrorInvalidBoolVal, attr[i].token);
@@ -2146,6 +2146,14 @@ fi`;
 			case "h", "horizontal": i++; return GradientDir.LeftToRight;
 			case "v", "vertical": i++; return GradientDir.TopToBottom;
 			default: throwError(_prop.msgs.scriptErrorInvalidGradientDir, attr[i].token);
+			}
+		} else static if (is(T == SelectionMethod)) {
+			auto value = attrValue(attr[i], varTable, msgWidth);
+			switch (value) {
+			case "manual": i++; return SelectionMethod.Manual;
+			case "random": i++; return SelectionMethod.Random;
+			case "valued": i++; return SelectionMethod.Valued;
+			default: throwError(_prop.msgs.scriptErrorInvalidSelectionMethod, attr[i].token);
 			}
 		} else static if (is(T == CRGB)) {
 			if (attr[i].type is NodeType.VALUES) { mixin(S_TRACE);
@@ -2721,8 +2729,8 @@ fi`;
 			if (detail.use(CArg.TARGET_ALL)) { mixin(S_TRACE);
 				c.targetAll = parseAttr!(bool)(opt, node.attr, i, c.targetAll, varTable, 0);
 			}
-			if (detail.use(CArg.RANDOM)) { mixin(S_TRACE);
-				c.random = parseAttr!(bool)(opt, node.attr, i, c.random, varTable, 0);
+			if (detail.use(CArg.SELECTION_METHOD)) { mixin(S_TRACE);
+				c.selectionMethod = parseAttr!(SelectionMethod)(opt, node.attr, i, c.selectionMethod, varTable, 0);
 			}
 			if (detail.use(CArg.AVERAGE)) { mixin(S_TRACE);
 				c.average = parseAttr!(bool)(opt, node.attr, i, c.average, varTable, 0);
@@ -3120,6 +3128,12 @@ fi`;
 			case GradientDir.None: attrs ~= "none"; break;
 			case GradientDir.LeftToRight: attrs ~= "horizontal"; break;
 			case GradientDir.TopToBottom: attrs ~= "vertical"; break;
+			}
+		} else static if (is(T : SelectionMethod)) {
+			final switch (value) {
+			case SelectionMethod.Manual: attrs ~= "manual"; break;
+			case SelectionMethod.Random: attrs ~= "random"; break;
+			case SelectionMethod.Valued: attrs ~= "valued"; break;
 			}
 		} else static if (is(T : CRGB)) {
 			if (value.a == 255) { mixin(S_TRACE);
@@ -3570,8 +3584,8 @@ fi`;
 			if (detail.use(CArg.TARGET_ALL)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.targetAll, indentValue, vars);
 			}
-			if (detail.use(CArg.RANDOM)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.random, indentValue, vars);
+			if (detail.use(CArg.SELECTION_METHOD)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.selectionMethod, indentValue, vars);
 			}
 			if (detail.use(CArg.AVERAGE)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.average, indentValue, vars);
@@ -3633,7 +3647,7 @@ fi`;
 					attrs ~= toAttr(c.transition, indentValue, vars);
 				}
 			}
-			if (c.talkerNC is Talker.VALUED) { mixin(S_TRACE);
+			if (c.talkerNC is Talker.VALUED || c.selectionMethod is SelectionMethod.Valued) { mixin(S_TRACE);
 				// 評価メンバ
 				if (detail.use(CArg.INIT_VALUE)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.initValue, indentValue, vars);

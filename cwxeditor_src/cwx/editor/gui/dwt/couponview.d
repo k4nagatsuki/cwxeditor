@@ -418,7 +418,7 @@ class CouponView(CVType Type) : Composite {
 		_summ = summ;
 		_prop = comm.prop;
 		_undoCoupons = new UndoManager(_prop.var.etc.undoMaxEtc);
-		this.setLayout(new GridLayout(3, false));
+		this.setLayout(zeroMarginGridLayout(3, false));
 		_toolbar = new ToolBar(this, SWT.FLAT);
 		{ mixin(S_TRACE);
 			_comm.put(_toolbar);
@@ -457,6 +457,7 @@ class CouponView(CVType Type) : Composite {
 					_couponTypeTable[type] = cast(int)i;
 					_couponTypeTable2[cast(int)i] = type;
 				}
+				_couponType.select(0);
 				.listener(_couponType, SWT.Selection, { mixin(S_TRACE);
 					auto type = _couponTypeTable2[_couponType.getSelectionIndex()];
 					_newCoupon.setText(_prop.sys.convCoupon(_newCoupon.getText(), type, false));

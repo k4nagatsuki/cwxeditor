@@ -528,7 +528,7 @@ private:
 			foreach (v; vs) v._tree.control.setRedraw(false);
 			scope (exit) foreach (v; vs) v._tree.control.setRedraw(true);
 			for (size_t i = 0; i < _count; i++) { mixin(S_TRACE);
-				auto node = et.starts[_index].toNode(new XMLOption(prop.sys));
+				auto node = et.starts[_index].toNode(new XMLOption(prop.sys, LATEST_VERSION));
 				auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
 				auto c = Content.createFromNode(node, ver);
 				c.setUseCounter(summ.useCounter.sub);
@@ -565,7 +565,7 @@ private:
 		this (Commons comm, Props prop, Summary summ, EventTree et, CWXPath area, int index, Content del) { mixin(S_TRACE);
 			super (comm, prop, summ, et, area);
 			_index = index;
-			auto node = del.toNode(new XMLOption(prop.sys));
+			auto node = del.toNode(new XMLOption(prop.sys, LATEST_VERSION));
 			auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
 			_c = Content.createFromNode(node, ver);
 			_c.setUseCounter(summ.useCounter.sub);
@@ -2559,7 +2559,7 @@ public:
 		} case CType.BRANCH_STEP: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrStepUL(_prop, _summ, evt.step, evt.stepValue, name)")(data, c);
 		} case CType.BRANCH_SELECT: { mixin(S_TRACE);
-			return createBoolEditor!("evtChildBrMember(_prop, evt.targetAll, evt.random, name)")(data, c);
+			return createBoolEditor!("evtChildBrMember(_prop, evt, name)")(data, c);
 		} case CType.BRANCH_ABILITY: { mixin(S_TRACE);
 			return createBoolEditor!("evtChildBrPower(_prop, evt.targetS, evt.physical, evt.mental, evt.signedLevel, name)")(data, c);
 		} case CType.BRANCH_RANDOM: { mixin(S_TRACE);
@@ -3229,7 +3229,7 @@ public:
 		}
 	}
 	private string toXML(in Content c, bool shallow = false) { mixin(S_TRACE);
-		auto opt = new XMLOption(_prop.sys);
+		auto opt = new XMLOption(_prop.sys, LATEST_VERSION);
 		opt.shallow = shallow;
 		auto node = c.toNode(opt);
 		CNextType next;
@@ -3734,7 +3734,7 @@ string eventText(Commons comm, Summary summ, Content parent, Content e, bool rea
 		r = evtChildBrStepUL(prop, summ, parent.step, parent.stepValue, name);
 		break;
 	} case CType.BRANCH_SELECT: { mixin(S_TRACE);
-		r = evtChildBrMember(prop, parent.targetAll, parent.random, name);
+		r = evtChildBrMember(prop, parent, name);
 		break;
 	} case CType.BRANCH_ABILITY: { mixin(S_TRACE);
 		r = evtChildBrPower(prop, parent.targetS, parent.physical, parent.mental, parent.signedLevel, name);
@@ -3876,15 +3876,30 @@ private string evtChildBrStepUL(in Props prop, in Summary summ, string path, int
 		return .tryFormat(prop.msgs.stepLessThan, name, value);
 	}
 }
-private string evtChildBrMember(in Props prop, bool all, bool random, ref string text) { mixin(S_TRACE);
+private string evtChildBrMember(in Props prop, in Content evt, ref string text) { mixin(S_TRACE);
 	bool val = (text != prop.sys.evtChildFalse);
 	text = val ? prop.sys.evtChildTrue : prop.sys.evtChildFalse;
-	string mem = all ? prop.msgs.partyAll : prop.msgs.partyActive;
-	string am = random ? prop.msgs.autoSelect : prop.msgs.manualSelect;
+	string mem = evt.targetAll ? prop.msgs.partyAll : prop.msgs.partyActive;
+	string am;
+	final switch (evt.selectionMethod) {
+	case SelectionMethod.Manual:
+		am = prop.msgs.manualSelect;
+		break;
+	case SelectionMethod.Random:
+		am = prop.msgs.autoSelect;
+		break;
+	case SelectionMethod.Valued:
+		am = prop.msgs.valuedSelect;
+		break;
+	}
 	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.selectMemberSuccess, mem, am);
 	} else { mixin(S_TRACE);
-		return .tryFormat(prop.msgs.selectMemberFailure, mem, am);
+		if (evt.selectionMethod is SelectionMethod.Manual) { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.selectMemberCancel, mem, am);
+		} else { mixin(S_TRACE);
+			return .tryFormat(prop.msgs.selectMemberFailure, mem, am);
+		}
 	}
 }
 private string evtChildBrPower(in Props prop, Target targ, Physical p, Mental m, int lev, ref string text) { mixin(S_TRACE);

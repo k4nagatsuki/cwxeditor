@@ -1157,7 +1157,7 @@ private:
 				assert (0 <= i);
 				_data = cast(AbstractArea)tbl.getItem(i).getData();
 				assert (_data !is null);
-				e.data = bytesFromXML(_data.toXML(new XMLOption(_prop.sys), _summ.id));
+				e.data = bytesFromXML(_data.toXML(new XMLOption(_prop.sys, LATEST_VERSION), _summ.id));
 			}
 		}
 		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
@@ -2754,7 +2754,7 @@ public:
 				XNode doc;
 				string parentPath = _dir == "" ? _prop.msgs.areaDirRoot : _dir.split("\\")[$ - 1];
 				if (areas.length) { mixin(S_TRACE);
-					doc = areasToNode(parentPath, _dir, areas, new XMLOption(_prop.sys), _summ.id);
+					doc = areasToNode(parentPath, _dir, areas, new XMLOption(_prop.sys, LATEST_VERSION), _summ.id);
 				} else {
 					doc = XNode.create("Table");
 					doc.newAttr("summaryId", _summ.id);
@@ -2776,7 +2776,7 @@ public:
 			} else { mixin(S_TRACE);
 				auto areas = getSelectionAreas();
 				if (areas.length) { mixin(S_TRACE);
-					auto doc = areasToNode("", _dir, areas, new XMLOption(_prop.sys), _summ.id);
+					auto doc = areasToNode("", _dir, areas, new XMLOption(_prop.sys, LATEST_VERSION), _summ.id);
 					XMLtoCB(_prop, _comm.clipboard, doc.text);
 					_comm.refreshToolBar();
 				}

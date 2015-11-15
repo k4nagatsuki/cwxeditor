@@ -1512,13 +1512,13 @@ private:
 	void copyFlagTree(bool onOff) { mixin(S_TRACE);
 		auto c = createSetFlagTree(selectionFlags, onOff);
 		if (!c) return;
-		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
 	}
 	void copyStepTree(int value) { mixin(S_TRACE);
 		auto c = createSetStepTree(selectionSteps, value);
 		if (!c) return;
-		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
 	}
 	void copyInitTree() { mixin(S_TRACE);
@@ -1527,25 +1527,25 @@ private:
 		getSelectionFlagAndStep(fs, ss);
 		auto c = createInitVariablesTree(fs, ss);
 		if (!c) return;
-		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
 	}
 	void copyFlagReverseTree() { mixin(S_TRACE);
 		auto c = createReverseFlagTree(selectionFlags);
 		if (!c) return;
-		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
 	}
 	void copyStepUpTree() { mixin(S_TRACE);
 		auto c = createSetStepUpTree(selectionSteps);
 		if (!c) return;
-		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
 	}
 	void copyStepDownTree() { mixin(S_TRACE);
 		auto c = createSetStepDownTree(selectionSteps);
 		if (!c) return;
-		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
 	}
 	void copyVariablePath() { mixin(S_TRACE);

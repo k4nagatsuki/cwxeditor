@@ -143,7 +143,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.BRANCH_FLAG:CDetail("Branch", "Flag", CNextType.BOOL, true, [CArg.FLAG:"flag"]),
 		CType.BRANCH_MULTI_STEP:CDetail("Branch", "MultiStep", CNextType.STEP, true, [CArg.STEP:"step"]),
 		CType.BRANCH_STEP:CDetail("Branch", "Step", CNextType.BOOL, true, [CArg.STEP:_("step"), CArg.STEP_VALUE:"value"]),
-		CType.BRANCH_SELECT:CDetail("Branch", "Select", CNextType.BOOL, true, [CArg.TARGET_ALL:_("targetall"), CArg.RANDOM:"random"]),
+		CType.BRANCH_SELECT:CDetail("Branch", "Select", CNextType.BOOL, true, [CArg.TARGET_ALL:_("targetall"), CArg.SELECTION_METHOD:null, CArg.COUPONS:null, CArg.INIT_VALUE:"initialValue"]),
 		CType.BRANCH_ABILITY:CDetail("Branch", "Ability", CNextType.BOOL, true, [CArg.TARGET_S:_("targetm"), CArg.MENTAL:"mental", CArg.PHYSICAL:"physical", CArg.SIGNED_LEVEL:"value"]),
 		CType.BRANCH_RANDOM:CDetail("Branch", "Random", CNextType.BOOL, true, [CArg.PERCENT:"value"]),
 		CType.BRANCH_LEVEL:CDetail("Branch", "Level", CNextType.BOOL, true, [CArg.AVERAGE:_("average"), CArg.UNSIGNED_LEVEL:"value"]),
@@ -526,7 +526,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.transition = c.transition;
 
 		this.targetAll = c.targetAll;
-		this.random = c.random;
+		this.selectionMethod = c.selectionMethod;
 		this.average = c.average;
 		this.complete = c.complete;
 
@@ -656,7 +656,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& transition == c.transition
 
 			&& targetAll == c.targetAll
-			&& random == c.random
+			&& selectionMethod == c.selectionMethod
 			&& average == c.average
 			&& complete == c.complete
 
@@ -809,7 +809,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.TRANSITION, Transition, Transition.DEFAULT)(d, &transition);
 
 		resetValue!(CArg.TARGET_ALL, bool, true)(d, &targetAll);
-		resetValue!(CArg.RANDOM, bool, false)(d, &random);
+		resetValue!(CArg.SELECTION_METHOD, SelectionMethod, SelectionMethod.Manual)(d, &selectionMethod);
 		resetValue!(CArg.AVERAGE, bool, false)(d, &average);
 		resetValue!(CArg.COMPLETE, bool, false)(d, &complete);
 
@@ -1508,8 +1508,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 	/// 全員を対象とするか。
 	mixin Prop!(bool, "targetAll", true);
-	/// 対象をランダムに選ぶか。
-	mixin Prop!(bool, "random", false);
+	/// 対象選択方法。
+	mixin Prop!(SelectionMethod, "selectionMethod", SelectionMethod.Manual);
 	/// 平均を取るか。
 	mixin Prop!(bool, "average", false);
 	/// 済印を付けるか否か。
@@ -1859,7 +1859,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.TRANSITION, "transition", "fromTransition")(e, d);
 
 		atnPut!(CArg.TARGET_ALL, "targetAll", "fromBool")(e, d);
-		atnPut!(CArg.RANDOM, "random", "fromBool")(e, d);
 		atnPut!(CArg.AVERAGE, "average", "fromBool")(e, d);
 		atnPut!(CArg.COMPLETE, "complete", "fromBool")(e, d);
 
@@ -1936,6 +1935,13 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			auto ce = e.newElement("Coupons");
 			foreach (c; coupons) { mixin(S_TRACE);
 				c.toNode(ce);
+			}
+		}
+		if (d.use(CArg.SELECTION_METHOD)) { mixin(S_TRACE);
+			if (opt.isTargetVersion("1") || selectionMethod is SelectionMethod.Valued) { mixin(S_TRACE);
+				e.newAttr("method", fromSelectionMethod(selectionMethod));
+			} else { mixin(S_TRACE);
+				e.newAttr("random", fromBool(selectionMethod is SelectionMethod.Random));
 			}
 		}
 	}
@@ -2036,7 +2042,6 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.RESIST, "resist", "toResist")(en, d, r);
 
 		cfnPut!(CArg.TARGET_ALL, "targetAll", "parseBool")(en, d, r);
-		cfnPut!(CArg.RANDOM, "random", "parseBool")(en, d, r);
 		cfnPut!(CArg.AVERAGE, "average", "parseBool")(en, d, r);
 		cfnPut!(CArg.COMPLETE, "complete", "parseBool")(en, d, r);
 
@@ -2158,6 +2163,14 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 				node.parse();
 				r.coupons = coupons;
 			};
+		}
+
+		if (d.use(CArg.SELECTION_METHOD)) { mixin(S_TRACE);
+			if (en.hasAttr("method")) { mixin(S_TRACE);
+				r.selectionMethod = toSelectionMethod(en.attr("method", false, fromSelectionMethod(SelectionMethod.Manual)));
+			} else { mixin(S_TRACE);
+				r.selectionMethod = parseBool(en.attr("random", false, fromBool(false))) ? SelectionMethod.Random : SelectionMethod.Manual;
+			}
 		}
 
 		if (d.owner) { mixin(S_TRACE);

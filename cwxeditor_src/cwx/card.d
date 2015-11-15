@@ -22,6 +22,7 @@ import std.conv;
 /// データをXML化する時のオプション。
 class XMLOption {
 	const System sys; /// 対象システム情報。
+	string dataVersion = LATEST_VERSION; /// WSNバージョン。
 	bool includeCard = false; /// リンク先のカードの実体を格納する。
 	bool noLinkId = false; /// 実体を格納した時、参照IDを削除する。
 	const(SkillCard) delegate(ulong) skill = null; /// IDからスキルカードを取得。
@@ -30,8 +31,24 @@ class XMLOption {
 	uint[ulong] nestCount; /// 召喚獣カードのCWXパスとネストされた回数。
 	bool shallow = false; /// イベントコンテントのコピーの際、子コンテントを無視する。
 
-	this (const System sys) { mixin(S_TRACE);
+	/// インスタンスを生成する。
+	this (const System sys, string dataVersion) { mixin(S_TRACE);
 		this.sys = sys;
+		this.dataVersion = dataVersion;
+	}
+
+	/// 指定されたデータバージョンがシナリオのデータバージョン以下か。
+	const
+	bool isTargetVersion(string ver) { mixin(S_TRACE);
+		return isTargetVersion(dataVersion, ver);
+	}
+	/// ditto
+	static bool isTargetVersion(string dataVersion, string ver) { mixin(S_TRACE);
+		immutable VER_TABLE = [
+			"":  0,
+			"1": 1,
+		];
+		return VER_TABLE.get(ver, int.min) <= VER_TABLE.get(dataVersion, int.max);
 	}
 }
 

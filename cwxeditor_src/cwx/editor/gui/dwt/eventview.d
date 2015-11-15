@@ -2424,10 +2424,10 @@ public:
 		auto data = itm.getData();
 		XNode node;
 		if (cast(EventTree) data) { mixin(S_TRACE);
-			node = (cast(EventTree)data).toNode(new XMLOption(_prop.sys));
+			node = (cast(EventTree)data).toNode(new XMLOption(_prop.sys, LATEST_VERSION));
 		} else if (!canFire) { mixin(S_TRACE);
 			assert (cast(EventTree)par !is null);
-			node = (cast(EventTree)par).toNode(new XMLOption(_prop.sys));
+			node = (cast(EventTree)par).toNode(new XMLOption(_prop.sys, LATEST_VERSION));
 		} else if (ENTER is data) { mixin(S_TRACE);
 			node = EventTree.enterToNode();
 		} else if (ESCAPE is data) { mixin(S_TRACE);

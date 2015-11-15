@@ -1044,12 +1044,7 @@ public:
 	/// クラシックなシナリオの場合は常にfalseとなる。
 	const
 	bool isTargetVersion(string ver) { mixin(S_TRACE);
-		if (legacy) return false;
-		immutable VER_TABLE = [
-			"":  0,
-			"1": 1,
-		];
-		return VER_TABLE.get(ver, int.min) <= VER_TABLE.get(dataVersion, int.max);
+		return !legacy && XMLOption.isTargetVersion(dataVersion, ver);
 	}
 
 	private void setNamesOne(C : EffectCard)(ref C card, string newAuthor, string newScenario) { mixin(S_TRACE);
@@ -1748,7 +1743,7 @@ public:
 	/// ---
 	const
 	string[string][string] toXMLs(const System sys) { mixin(S_TRACE);
-		auto opt = new XMLOption(sys);
+		auto opt = new XMLOption(sys, dataVersion);
 		opt.includeCard = !isTargetVersion("1");
 		opt.skill = (id) => this.skill(id);
 		opt.item = (id) => this.item(id);
@@ -1813,7 +1808,7 @@ public:
 			}
 		}
 
-		auto xOpt = new XMLOption(sys);
+		auto xOpt = new XMLOption(sys, dataVersion);
 		xOpt.includeCard = !isTargetVersion("1");
 		xOpt.skill = (id) => skill(id);
 		xOpt.item = (id) => item(id);

@@ -1007,7 +1007,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			bool brMemRnd = readBool(f);
 			e = new Content(CType.BRANCH_SELECT, name);
 			e.targetAll = brMemAll;
-			e.random = brMemRnd;
+			e.selectionMethod = brMemRnd ? SelectionMethod.Random : SelectionMethod.Manual;
 			break;
 		}
 		case 13: { mixin(S_TRACE);
@@ -3167,7 +3167,7 @@ private void writeContent(ref SData d, ref ByteIO f, Content e2) { mixin(S_TRACE
 			break;
 		case CType.BRANCH_SELECT:
 			writeBool(f, e.targetAll);
-			writeBool(f, e.random);
+			writeBool(f, e.selectionMethod is SelectionMethod.Random);
 			break;
 		case CType.BRANCH_ABILITY:
 			f.writeL(cast(int) e.signedLevel);

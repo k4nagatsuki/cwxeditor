@@ -803,7 +803,7 @@
 	<dd>パッケージへの移動</dd>
 	<dt class="content"><a href="#MSG">msg <span class="args"><span class="arg">&lt;話者&gt;</span> ..., <span class="arg">&lt;テキスト&gt;</span></span></a></dt>
 	<dd>メッセージ</dd>
-	<dt class="content"><a href="#DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span> ..., <span class="arg">&lt;得点&gt;</span>] ...</span></span></a></dt>
+	<dt class="content"><a href="#DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span>, <span class="arg">&lt;得点&gt;</span>] ...</span></span></a></dt>
 	<dd>台詞</dd>
 	<dt class="content"><a href="#BGM">bgm <span class="args"><span class="arg">&lt;ファイル名&gt;</span>, <span class="arg">&lt;再生チャンネル&gt;</span>, <span class="arg">&lt;フェードイン時間&gt;</span>, <span class="arg">&lt;音量(%)&gt;</span>, <span class="arg">&lt;ループ回数&gt;</span></span></a></dt>
 	<dd>BGMの演奏</dd>
@@ -823,7 +823,7 @@
 	<dd>ステップ多岐分岐</dd>
 	<dt class="content"><a href="#BRSTEPT">brstept <span class="args"><span class="arg">&lt;ステップ名&gt;</span>, <span class="arg">&lt;ステップ値&gt;</span></span></a></dt>
 	<dd>ステップ上下分岐</dd>
-	<dt class="content"><a href="#SELMEMBER">selmember <span class="args"><span class="arg">&lt;パーティ全体からの選択か&gt;</span>, <span class="arg">&lt;ランダム選択か&gt;</span></span></a></dt>
+	<dt class="content"><a href="#SELMEMBER">selmember <span class="args"><span class="arg">&lt;パーティ全体からの選択か&gt;</span>, <span class="arg">&lt;メンバ選択方法&gt;</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span>, <span class="arg">&lt;得点&gt;</span>] ...</span></span></a></dt>
 	<dd>メンバ選択分岐</dd>
 	<dt class="content"><a href="#BRABILITY">brability <span class="args"><span class="arg">&lt;判定対象&gt;</span>, <span class="arg">&lt;眠り判定&gt;</span>, <span class="arg">&lt;レベル&gt;</span>, <span class="arg">&lt;身体的要素&gt;</span>, <span class="arg">&lt;精神的要素&gt;</span></span></a></dt>
 	<dd>能力分岐</dd>
@@ -1075,7 +1075,7 @@
 	<dt class="keyword"><code>vertical</code></dt>
 	<dd class="worddesc">文章を縦書きにします。</dd>
 	<dt class="keyword"><code>border1</code></dt>
-	<dd class="worddesc">文字を縁取りします。縁取りには2種類の形式があります。<code class="keywords">border2</code>と共に指定された場合は、後から指定された方が有効になります。</dt>
+	<dd class="worddesc">文字を縁取りします。縁取りには2種類の形式があります。<code class="keywords">border2</code>と共に指定された場合は、後から指定された方が有効になります。</dd>
 	<dt class="keyword"><code>border2</code></dt>
 	<dd class="worddesc"><code class="keywords">border1</code>とは別の形式で縁取りを行います。<code class="keywords">border1</code>と共に指定された場合は、後から指定された方が有効になります。</dd>
 </dl>
@@ -1581,7 +1581,7 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="DIALOG" name="DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span> ..., <span class="arg">&lt;得点&gt;</span>] ...</span></span></a></h3>
+<h3 class="content"><a id="DIALOG" name="DIALOG">dialog <span class="args"><span class="arg">&lt;話者&gt;</span>, <span class="array">[<span class="arg">&lt;クーポン&gt;</span> ..., <span class="arg">&lt;メッセージ&gt;</span>] ...</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span>, <span class="arg">&lt;得点&gt;</span>] ...</span></span></a></h3>
 
 <p class="fullname">(Dialog)</p>
 <p class="desc">口調分けして台詞を表示します。</p>
@@ -1598,7 +1598,7 @@
 	<dt class="keyword"><code>R</code> または <code>random</code></dt>
 	<dd class="worddesc">ランダムなメンバ。</dd>
 	<dt class="keyword"><code>V</code> または <code>valued</code></dt>
-	<dd class="worddesc">所持クーポンを評価して高得点になったメンバ。これを指定した場合のみ、評価初期値と評価クーポンが有効になります。</dd>
+	<dd class="worddesc">所持クーポンを評価して高得点になったメンバ。これを指定した場合のみ、評価初期値と評価クーポンが有効になります。全員の得点が0以下になった場合、メッセージは表示されません。</dd>
 </dl>
 <p class="desc">話者の次の<code class="code">[]</code>で囲われたパラメータで、クーポンとメッセージを指定します。話者が持つクーポンによって、表示されるメッセージが切り替わります。</p>
 <p class="desc">最初のパラメータに<code class="code">V</code>または<code class="code">valued</code>を指定した場合、メッセージの次に評価初期値と評価クーポンを指定できます。それ以外の場合、これらの指定は無視されます。</p>
@@ -1811,7 +1811,7 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="SELMEMBER" name="SELMEMBER">selmember <span class="args"><span class="arg">&lt;パーティ全体からの選択か&gt;</span>, <span class="arg">&lt;ランダム選択か&gt;</span></span></a></h3>
+<h3 class="content"><a id="SELMEMBER" name="SELMEMBER">selmember <span class="args"><span class="arg">&lt;パーティ全体からの選択か&gt;</span>, <span class="arg">&lt;メンバ選択方法&gt;</span>, <span class="arg">&lt;評価初期値&gt;</span>, <span class="array">[<span class="arg">&lt;評価クーポン&gt;</span>, <span class="arg">&lt;得点&gt;</span>] ...</span></span></a></h3>
 
 <p class="fullname">(Select Member)</p>
 <p class="desc">パーティメンバを選択します。また、選択を行ったかキャンセルしたかによって処理を分岐します。</p>
@@ -1819,7 +1819,16 @@
 <h4 class="argments">パラメータ</h4>
 
 <p class="desc">最初のパラメータで<code class="code">true</code>を指定すると、パーティ全体からの選択になります。<code class="code">false</code>を指定した場合は、動けるメンバからの選択になります。省略した場合は、パーティ全体になります。</p>
-<p class="desc">次のパラメータで<code class="code">true</code>を指定すると、メンバはランダムで自動的に選択されます。<code class="code">false</code>を指定した場合は、プレイヤーが手動で選択を行います。キャンセルも可能です。省略した場合は、手動になります。</p>
+<p class="desc">メンバ選択方法には、以下のいずれかが指定できます。省略した場合は、<code>manual</code>になります。</p>
+<dl>
+	<dt class="keyword"><code>manual</code></dt>
+	<dd class="worddesc">プレイヤーが手動で選択を行います。キャンセルも可能です。</dd>
+	<dt class="keyword"><code>random</code></dt>
+	<dd class="worddesc">メンバはランダムで自動的に選択されます。</dd>
+	<dt class="keyword"><code>valued</code></dt>
+	<dd class="worddesc">所持クーポンを評価して高得点になったメンバを選択します。これを指定した場合のみ、評価初期値と評価クーポンが有効になります。全員の得点が0以下になった場合、選択は失敗します。</dd>
+</dl>
+<p class="desc">評価クーポンと得点には、話者を選択する際の評価条件を配列で指定します。</p>
 
 <h4 class="example">例</h4>
 
@@ -2244,12 +2253,12 @@
 
 <h4 class="argments">パラメータ</h4>
 
-<p class="desc">比較条件には、この後に指定するラウンドと、イベント実行時点でのバトルラウンドをどのように比較するかを指定します。<code class="str">"="</code>を指定すると現在のラウンドと指定ラウンドが一致する場合に、<code class="str">"<"</code>を指定するとバトルラウンドが指定ラウンドより小さい場合に、<code class="str">">"</code>を指定するとバトルラウンドが指定ラウンドより大きい場合に、それぞれ<code class="code">true</code>となります。</p>
+<p class="desc">比較条件には、この後に指定するラウンドと、イベント実行時点でのバトルラウンドをどのように比較するかを指定します。<code class="str">"="</code>を指定すると現在のラウンドと指定ラウンドが一致する場合に、<code class="str">"&lt;"</code>を指定するとバトルラウンドが指定ラウンドより小さい場合に、<code class="str">"&gt;"</code>を指定するとバトルラウンドが指定ラウンドより大きい場合に、それぞれ<code class="code">true</code>となります。</p>
 <p class="desc">ラウンドには、現在のバトルのラウンド数を指定します。</p>
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">brround</span> <span class="str">"<"</span> <span class="num">11</span>
+<pre><code class="samplecode"><span class="keywords">brround</span> <span class="str">"&lt;"</span> <span class="num">11</span>
 <code class="code">if</code> <span class="code">true</span>
     <span class="comment">// 10ラウンド目まではこちらへ分岐する</span>
     <span class="comment">// ...</span>
@@ -2669,7 +2678,7 @@
 <h4 class="argments">パラメータ</h4>
 
 <p class="desc">ステップ名には、ステップの名前を文字列で指定します。</p>
-<p class="desc">比較条件には、この後に指定する値とイベント実行時点でのステップの値をどのように比較するかを指定します。<code class="str">"="</code>を指定すると現在のステップ値と比較値が一致する場合に、<code class="str">"<>"</code>を指定するとステップ値と比較値が一致しない場合に、<code class="str">"<"</code>を指定するとステップ値が比較値より小さい場合に、<code class="str">">"</code>を指定するとステップ値が比較値より大きい場合に、それぞれイベントが出現します。</p>
+<p class="desc">比較条件には、この後に指定する値とイベント実行時点でのステップの値をどのように比較するかを指定します。<code class="str">"="</code>を指定すると現在のステップ値と比較値が一致する場合に、<code class="str">"&lt;&gt;"</code>を指定するとステップ値と比較値が一致しない場合に、<code class="str">"&lt;"</code>を指定するとステップ値が比較値より小さい場合に、<code class="str">"&gt;"</code>を指定するとステップ値が比較値より大きい場合に、それぞれイベントが出現します。</p>
 <p class="desc">値には、イベント実行時点での値と比較する値を数値で設定します。</p>
 
 <h4 class="example">例</h4>
@@ -2679,11 +2688,11 @@
     <span class="comment">// ステップ「質問段階」が0でなければこの選択肢は出現しない</span>
     <span class="comment">// ...</span>
     <span class="keywords">stepup</span> <span class="str">"質問段階"</span>
-<code class="code">elif</code> <span class="str">"目撃者について"</span> <span class="keywords">chkstep</span> <span class="str">"質問段階"</span>, <span class="str">"<>"</span>, <span class="num">0</span>
+<code class="code">elif</code> <span class="str">"目撃者について"</span> <span class="keywords">chkstep</span> <span class="str">"質問段階"</span>, <span class="str">"&lt;&gt;"</span>, <span class="num">0</span>
     <span class="comment">// ステップ「質問段階」が0の時はこの選択肢は出現しない</span>
     <span class="comment">// ...</span>
     <span class="keywords">stepup</span> <span class="str">"質問段階" </span>
-<code class="code">elif</code> <span class="str">"依頼について"</span> <span class="keywords">chkstep</span> <span class="str">"質問段階"</span>, <span class="str">">"</span>, <span class="num">1</span>
+<code class="code">elif</code> <span class="str">"依頼について"</span> <span class="keywords">chkstep</span> <span class="str">"質問段階"</span>, <span class="str">"&gt;"</span>, <span class="num">1</span>
     <span class="comment">// ステップ「質問段階」が1より大きくなければこの選択肢は出現しない</span>
     <span class="comment">// ...</span>
     <span class="keywords">break</span>
@@ -3223,6 +3232,7 @@ upavoid
 updefense
 upresist
 value
+valued
 vanbeast
 vancard
 vantarget

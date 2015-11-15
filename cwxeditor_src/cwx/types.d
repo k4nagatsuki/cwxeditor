@@ -1032,6 +1032,30 @@ string fromCoordinateType(CoordinateType t) { mixin(S_TRACE);
 	}
 }
 
+/// メンバ選択方法。
+enum SelectionMethod {
+	Manual, /// 手動で選択。
+	Random, /// ランダムで選択。
+	Valued, /// 評価条件で選択(Wsn.1)。
+}
+/// ditto
+SelectionMethod toSelectionMethod(string name) { mixin(S_TRACE);
+	switch (name) {
+	case "Manual": return SelectionMethod.Manual;
+	case "Random": return SelectionMethod.Random;
+	case "Valued": return SelectionMethod.Valued;
+	default: throw new Exception("Unknown coordinate type: " ~ name);
+	}
+}
+/// ditto
+string fromSelectionMethod(SelectionMethod t) { mixin(S_TRACE);
+	final switch (t) {
+	case SelectionMethod.Manual: return "Manual";
+	case SelectionMethod.Random: return "Random";
+	case SelectionMethod.Valued: return "Valued";
+	}
+}
+
 /// コンテントのタイプ。
 enum CType {
 	START,
@@ -1166,7 +1190,7 @@ enum CArg {
 	RESIST,
 	TRANSITION,
 	TARGET_ALL,
-	RANDOM,
+	SELECTION_METHOD,
 	AVERAGE,
 	COMPLETE,
 	UNSIGNED_LEVEL,

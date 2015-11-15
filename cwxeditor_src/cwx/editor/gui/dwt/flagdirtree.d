@@ -638,42 +638,42 @@ public:
 		if (!current) return;
 		auto c = createSetFlagTree(current, onOff);
 		if (!c) return;
-		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
 	}
 	void copyStepTree(int value) { mixin(S_TRACE);
 		if (!current) return;
 		auto c = createSetStepTree(current, value);
 		if (!c) return;
-		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
 	}
 	void copyInitTree() { mixin(S_TRACE);
 		if (!current) return;
 		auto c = createInitVariablesTree(current);
 		if (!c) return;
-		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
 	}
 	void copyFlagReverseTree() { mixin(S_TRACE);
 		if (!current) return;
 		auto c = createReverseFlagTree(current);
 		if (!c) return;
-		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
 	}
 	void copyStepUpTree() { mixin(S_TRACE);
 		if (!current) return;
 		auto c = createSetStepUpTree(current);
 		if (!c) return;
-		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
 	}
 	void copyStepDownTree() { mixin(S_TRACE);
 		if (!current) return;
 		auto c = createSetStepDownTree(current);
 		if (!c) return;
-		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys)));
+		XMLtoCB(prop, _comm.clipboard, c.toXML(new XMLOption(prop.sys, LATEST_VERSION)));
 		_comm.refreshToolBar();
 	}
 

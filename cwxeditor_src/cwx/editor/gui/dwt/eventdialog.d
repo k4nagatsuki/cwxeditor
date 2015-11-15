@@ -35,6 +35,7 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.couponview;
 
 import std.algorithm : countUntil;
 import std.conv;
@@ -1723,54 +1724,149 @@ alias FlagStepCombiDialog!(CType.BRANCH_FLAG_CMP, cwx.flag.Flag, false) BrFlagCm
 /// メンバ選択分岐の設定を行うダイアログ。
 class BrMemberDialog : EventDialog {
 private:
-	// FIXME: KeyTypeにboolを使えない？
 	Button[] _all;
-	Button[] _random;
+	Button[] _method;
+
+	CouponView!(CVType.Valued) _couponView;
+	Spinner _initValue;
+
+	protected override void refreshWarning() {
+		string[] ws;
+		auto valued = _method[cast(size_t)SelectionMethod.Valued];
+		if (valued.getSelection() && !prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
+			ws ~= prop.msgs.warningValuedSelectionMethod;
+		}
+		warning = ws;
+	}
+
+	protected override void refDataVersion() { mixin(S_TRACE);
+		auto valued = _method[cast(size_t)SelectionMethod.Valued];
+		valued.setEnabled(!summ.legacy);
+		if (!valued.isEnabled() && valued.getSelection()) { mixin(S_TRACE);
+			valued.setSelection(false);
+			_method[cast(size_t)SelectionMethod.Manual].setSelection(true);
+		}
+		_couponView.enabled = !summ.legacy && valued.getSelection();
+		_initValue.setEnabled(!summ.legacy && valued.getSelection());
+		refreshWarning();
+	}
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
-		super (comm, prop, shell, summ, CType.BRANCH_SELECT, parent, evt, false, null, true);
+		super (comm, prop, shell, summ, CType.BRANCH_SELECT, parent, evt, true, prop.var.brMemberDlg, true);
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(2, false));
-		void createR(string title, string trueText, string falseText, ref Button[] btns) { mixin(S_TRACE);
-			auto grp = new Group(area, SWT.NONE);
+		area.setLayout(new GridLayout(1, true));
+		void createR(Composite parent, string title, in string[] texts, ref Button[] btns) { mixin(S_TRACE);
+			auto grp = new Group(parent, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new CenterLayout);
 			grp.setText(title);
+			grp.setLayout(new CenterLayout(SWT.VERTICAL));
 			auto comp = new Composite(grp, SWT.NONE);
 			comp.setLayout(zeroMarginGridLayout(1, true));
-			auto btnT = new Button(comp, SWT.RADIO);
-			mod(btnT);
-			btnT.setText(trueText);
-			auto btnF = new Button(comp, SWT.RADIO);
-			mod(btnF);
-			btnF.setText(falseText);
-			btns.length = 2;
-			btns[0] = btnT;
-			btns[1] = btnF;
+			foreach (text; texts) { mixin(S_TRACE);
+				auto btn = new Button(comp, SWT.RADIO);
+				mod(btn);
+				btn.setText(text);
+				auto gd = new GridData;
+				gd.grabExcessVerticalSpace = true;
+				btn.setLayoutData(gd);
+				btns ~= btn;
+			}
 		}
-		createR(_prop.msgs.selectMember, _prop.msgs.activeMember, _prop.msgs.allMember, _all);
-		createR(_prop.msgs.selectMethod, _prop.msgs.manualMethod, _prop.msgs.randomMethod, _random);
+		{ mixin(S_TRACE);
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayout(zeroMarginGridLayout(2, false));
+			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			createR(comp, _prop.msgs.selectMember, [_prop.msgs.activeMember, _prop.msgs.allMember], _all);
+			createR(comp, _prop.msgs.selectMethod, [_prop.msgs.manualMethod, _prop.msgs.randomMethod, _prop.msgs.valuedMethod], _method);
+			foreach (btn; _method) { mixin(S_TRACE);
+				.listener(btn, SWT.Selection, &refDataVersion);
+			}
+		}
+
+		void delegate() updateValue;
+		{ mixin(S_TRACE);
+			auto comp = createValueEditor(comm, summ, area, &catchMod, _couponView, _initValue, updateValue);
+			mod(_initValue);
+			mod(_couponView);
+			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
+		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
 			_all[_evt.targetAll ? 1 : 0].setSelection(true);
-			_random[_evt.random ? 1 : 0].setSelection(true);
+			_method[cast(size_t)_evt.selectionMethod].setSelection(true);
+			_couponView.coupons = _evt.coupons;
+			_initValue.setSelection(evt.initValue);
 		} else { mixin(S_TRACE);
 			_all[0].setSelection(true);
-			_random[0].setSelection(true);
+			_method[cast(size_t)SelectionMethod.Manual].setSelection(true);
 		}
+		updateValue();
+		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(CType.BRANCH_SELECT, "");
 		_evt.targetAll = _all[1].getSelection();
-		_evt.random = _random[1].getSelection();
+		foreach (method; EnumMembers!SelectionMethod) { mixin(S_TRACE);
+			if (_method[cast(size_t)method].getSelection()) { mixin(S_TRACE);
+				_evt.selectionMethod = method;
+			}
+		}
+		if (_evt.selectionMethod is SelectionMethod.Valued) { mixin(S_TRACE);
+			_evt.coupons = _couponView.coupons;
+			_evt.initValue = _initValue.getSelection();
+		} else { mixin(S_TRACE);
+			_evt.coupons = [];
+			_evt.initValue = 1;
+		}
 		return true;
 	}
+}
+
+/// 評価メンバ設定用のビューを生成する。
+Composite createValueEditor(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, out CouponView!(CVType.Valued) couponView, out Spinner initValue, out void delegate() updateValue) { mixin(S_TRACE);
+	auto grp = new Group(parent, SWT.NONE);
+	grp.setText(comm.prop.msgs.valued);
+	grp.setLayout(new GridLayout(2, false));
+
+	auto lbl = new Label(grp, SWT.NONE);
+	lbl.setText(comm.prop.msgs.initValue);
+	initValue = new Spinner(grp, SWT.BORDER);
+	initSpinner(initValue);
+	initValue.setMinimum(cast(int)comm.prop.var.etc.couponValueMax * -1);
+	initValue.setMaximum(comm.prop.var.etc.couponValueMax);
+	initValue.setSelection(1);
+	initValue.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+	couponView = new CouponView!(CVType.Valued)(comm, summ, grp, SWT.NONE, catchMod);
+	auto gd = new GridData(GridData.FILL_BOTH);
+	gd.horizontalSpan = 2;
+	couponView.setLayoutData(gd);
+
+	updateValue = { mixin(S_TRACE);
+		int max = initValue.getSelection();
+		int min = max;
+		foreach (cp; couponView.coupons) { mixin(S_TRACE);
+			if (cp.value < 0) { mixin(S_TRACE);
+				min -= cp.value;
+			} else { mixin(S_TRACE);
+				max += cp.value;
+			}
+		}
+		if (0 >= min) { mixin(S_TRACE);
+			couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.valuedTalkerMaxMinLess0, max, min), "&", "&&");
+		} else { mixin(S_TRACE);
+			couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.valuedTalkerMaxMin, max, min), "&", "&&");
+		}
+	};
+	.listener(initValue, SWT.Selection, updateValue);
+	couponView.modEvent ~= updateValue;
+
+	return grp;
 }
 
 /// 能力判定分岐の設定を行うダイアログ。

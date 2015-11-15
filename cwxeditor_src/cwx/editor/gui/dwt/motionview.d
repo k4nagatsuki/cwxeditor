@@ -786,7 +786,7 @@ private:
 				if (index >= 0) { mixin(S_TRACE);
 					auto m = cast(Motion) c.getItem(index).getData();
 					_dragIndex = index;
-					auto node = m.toNode(new XMLOption(_prop.sys));
+					auto node = m.toNode(new XMLOption(_prop.sys, LATEST_VERSION));
 					node.newAttr("paneId", _id);
 					e.data = bytesFromXML(node.text);
 					_itm = c.getItem(index);
@@ -1381,7 +1381,7 @@ public:
 		override void copy(SelectionEvent se) { mixin(S_TRACE);
 			auto m = selection;
 			if (m) { mixin(S_TRACE);
-				XMLtoCB(_prop, _comm.clipboard, m.toXML(new XMLOption(_prop.sys)));
+				XMLtoCB(_prop, _comm.clipboard, m.toXML(new XMLOption(_prop.sys, LATEST_VERSION)));
 				_comm.refreshToolBar();
 			}
 		}
@@ -1485,7 +1485,7 @@ public:
 					node.newAttr("summId", _summ.id);
 					node.newAttr("paneId", "");
 					node.newAttr("scenarioPath", nabs(_summ.scenarioPath));
-					m.beast.toNode(node, new XMLOption(_prop.sys));
+					m.beast.toNode(node, new XMLOption(_prop.sys, LATEST_VERSION));
 					XMLtoCB(_prop, _comm.clipboard, node.text);
 					_comm.refreshToolBar();
 					return true;

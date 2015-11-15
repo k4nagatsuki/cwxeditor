@@ -325,22 +325,6 @@ private:
 	void storeEdit() { mixin(S_TRACE);
 		_undo ~= new SUndo;
 	}
-	void updateValue() { mixin(S_TRACE);
-		int max = _initValue.getSelection();
-		int min = max;
-		foreach (cp; _couponView.coupons) { mixin(S_TRACE);
-			if (cp.value < 0) { mixin(S_TRACE);
-				min -= cp.value;
-			} else { mixin(S_TRACE);
-				max += cp.value;
-			}
-		}
-		if (0 >= min) { mixin(S_TRACE);
-			_couponView.toolTip = std.array.replace(.tryFormat(prop.msgs.valuedTalkerMaxMinLess0, max, min), "&", "&&");
-		} else { mixin(S_TRACE);
-			_couponView.toolTip = std.array.replace(.tryFormat(prop.msgs.valuedTalkerMaxMin, max, min), "&", "&&");
-		}
-	}
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
@@ -875,27 +859,11 @@ protected:
 			_rCoupons.addModifyListener(new ModRC);
 			tp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
+		void delegate() updateValue;
 		{ mixin(S_TRACE);
-			auto grp = new Group(leftSash, SWT.NONE);
-			grp.setText(prop.msgs.valued);
-			grp.setLayout(new GridLayout(2, false));
-
-			auto lbl = new Label(grp, SWT.NONE);
-			lbl.setText(prop.msgs.initValue);
-			_initValue = new Spinner(grp, SWT.BORDER);
-			initSpinner(_initValue);
+			createValueEditor(comm, summ, leftSash, &catchMod, _couponView, _initValue, updateValue);
 			mod(_initValue);
-			_initValue.setMinimum(cast(int) prop.var.etc.couponValueMax * -1);
-			_initValue.setMaximum(prop.var.etc.couponValueMax);
-			_initValue.setSelection(1);
-			_initValue.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			.listener(_initValue, SWT.Selection, &updateValue);
-			_couponView = new CouponView!(CVType.Valued)(comm, summ, grp, SWT.NONE, &catchMod);
 			mod(_couponView);
-			auto gd = new GridData(GridData.FILL_BOTH);
-			gd.horizontalSpan = 2;
-			_couponView.setLayoutData(gd);
-			_couponView.modEvent ~= &updateValue;
 		}
 		auto right = new Composite(sash, SWT.NONE);
 		right.setLayout(zeroMarginGridLayout(2, false));

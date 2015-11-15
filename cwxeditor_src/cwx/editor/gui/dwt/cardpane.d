@@ -1858,7 +1858,7 @@ private:
 			sn.newAttr("topLevel", false);
 		}
 		sn.newAttr("scenarioPath", nabs(ownerScenarioPath));
-		auto opt = new XMLOption(_prop.sys);
+		auto opt = new XMLOption(_prop.sys, LATEST_VERSION);
 		foreach (sel; sels) { mixin(S_TRACE);
 			sel.toNode(sn, opt);
 		}
