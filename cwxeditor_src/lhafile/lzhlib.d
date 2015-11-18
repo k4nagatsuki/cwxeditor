@@ -37,7 +37,6 @@ module lhafile.lzhlib;
 private:
 
 import std.string;
-import std.stream;
 import std.algorithm;
 
 import cwx.binary;

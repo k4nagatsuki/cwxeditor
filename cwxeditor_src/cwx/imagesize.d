@@ -6,7 +6,7 @@ import cwx.binary;
 
 import std.file;
 import std.path;
-import std.stream;
+import std.stdio;
 import std.string;
 import std.traits;
 
@@ -142,11 +142,12 @@ bool jpgSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 	ulong size = getSizeT!T(file);
 	if (6L <= size) { mixin(S_TRACE);
 		static if (isSomeString!T) {
-			auto inp = new File(file);
+			auto inp = File(file, "rb");
+			scope (exit) inp.close();
 		} else { mixin(S_TRACE);
-			auto inp = new TArrayStream!(const ubyte[])(file);
+			auto inp = ByteIO(file);
+			scope (exit) inp.dispose();
 		}
-		scope (exit) inp.close();
 
 		ubyte b;
 		inp.read(b); if (0xFF != b) return false;
@@ -168,7 +169,7 @@ bool jpgSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 				if (s <= 2) return false;
 				inp.seekCur(s - 2);
 			}
-		} while (inp.position + 2 < size);
+		} while (inp.tell + 2 < size);
 	}
 	return false;
 }
@@ -191,11 +192,12 @@ bool tifSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!
 	ulong size = getSizeT!T(file);
 	if (10L <= size) { mixin(S_TRACE);
 		static if (isSomeString!T) {
-			auto inp = new File(file);
+			auto inp = File(file, "rb");
+			scope (exit) inp.close();
 		} else { mixin(S_TRACE);
-			auto inp = new TArrayStream!(const ubyte[])(file);
+			auto inp = ByteIO(file);
+			scope (exit) inp.dispose();
 		}
-		scope (exit) inp.close();
 
 		bool littleEndian = true;
 		ubyte b;
@@ -276,11 +278,12 @@ bool tifSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!
 bool gifSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ubyte[])) {
 	if (10L <= getSizeT!T(file)) { mixin(S_TRACE);
 		static if (isSomeString!T) {
-			auto inp = new File(file);
+			auto inp = File(file, "rb");
+			scope (exit) inp.close();
 		} else { mixin(S_TRACE);
-			auto inp = new TArrayStream!(const ubyte[])(file);
+			auto inp = ByteIO(file);
+			scope (exit) inp.dispose();
 		}
-		scope (exit) inp.close();
 
 		ubyte b;
 		inp.read(b); if ('G' != b) return false;
@@ -313,11 +316,12 @@ bool bmpSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 	ulong size = getSizeT!T(file);
 	if (22L <= size) { mixin(S_TRACE);
 		static if (isSomeString!T) {
-			auto inp = new File(file);
+			auto inp = File(file, "rb");
+			scope (exit) inp.close();
 		} else { mixin(S_TRACE);
-			auto inp = new TArrayStream!(const ubyte[])(file);
+			auto inp = ByteIO(file);
+			scope (exit) inp.dispose();
 		}
-		scope (exit) inp.close();
 
 		uint i;
 		ushort s;
@@ -360,11 +364,12 @@ bool bmpSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 bool pngSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ubyte[])) {
 	if (25L <= getSizeT!T(file)) { mixin(S_TRACE);
 		static if (isSomeString!T) {
-			auto inp = new File(file);
+			auto inp = File(file, "rb");
+			scope (exit) inp.close();
 		} else { mixin(S_TRACE);
-			auto inp = new TArrayStream!(const ubyte[])(file);
+			auto inp = ByteIO(file);
+			scope (exit) inp.dispose();
 		}
-		scope (exit) inp.close();
 
 		ubyte b;
 		inp.read(b); if (0x89 != b) return false;
@@ -408,11 +413,12 @@ bool icoSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!
 	ulong size = getSizeT!T(file);
 	if (8UL <= size) { mixin(S_TRACE);
 		static if (isSomeString!T) {
-			auto inp = new File(file);
+			auto inp = File(file, "rb");
+			scope (exit) inp.close();
 		} else { mixin(S_TRACE);
-			auto inp = new TArrayStream!(const ubyte[])(file);
+			auto inp = ByteIO(file);
+			scope (exit) inp.dispose();
 		}
-		scope (exit) inp.close();
 
 		if (0x00 != readUShortL(inp)) return false;
 		if (0x01 != readUShortL(inp)) return false;

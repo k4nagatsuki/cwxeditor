@@ -3,9 +3,10 @@ module cwx.binary;
 
 private import cwx.perf;
 
+private import std.algorithm : min;
 private import std.exception : enforce;
-private import std.stream : InputStream, OutputStream;
 private import std.string : format;
+private import std.stdio : File, SEEK_CUR, SEEK_SET, SEEK_END;
 private import std.conv : to;
 
 private string repeat(string s, int count) {
@@ -16,16 +17,28 @@ private string repeat(string s, int count) {
 
 /// Byte列の読み書きを行う機能を備えた構造体。
 struct ByteIO {
-	/// Byte列。
-	private ubyte[] _bytes;
+	/// 読み取り専用Byte列。
+	/// 書き込み可能な場合は_bytesと共有される。
+	private const(ubyte)[] _constBytes;
+	/// Byte列。読み取り専用の場合は空になる。
+	private ubyte[] _bytes = [];
+	/// 読み取り専用か。
+	private bool _readOnly = false;
 	/// バッファを解放する。
 	void dispose() { mixin(S_TRACE);
 		_bytes = null;
+		_constBytes = null;
 	}
 	/// 読込・書込済Byte列。
 	@property
 	ubyte[] bytes() { mixin(S_TRACE);
 		return _pointer == _bytes.length ? _bytes : _bytes[0 .. _pointer];
+	}
+	/// ditto
+	@property
+	const
+	const(ubyte)[] bytes() { mixin(S_TRACE);
+		return _pointer == _constBytes.length ? _constBytes : _constBytes[0 .. _pointer];
 	}
 	private size_t _pointer = 0u;
 	/// 読込み・書込みを終えたByte数。
@@ -37,48 +50,79 @@ struct ByteIO {
 		_pointer = 0;
 		seek(pos);
 	}
+	/// ditto
+	alias pointer tell;
+	/// バッファのサイズ。
 	@property
 	const
 	size_t length() { mixin(S_TRACE);
-		return _bytes.length;
+		return _constBytes.length;
 	}
 	/// void[]をByte列としてByteIOを生成。
-	static ByteIO opCall(void[] _bytes) {
-		ByteIO io;
-		io._bytes = cast(ubyte[]) _bytes;
-		return io;
+	this (void[] bytes) {
+		this._bytes = cast(ubyte[])bytes;
+		this._constBytes = this._bytes;
 	}
 	/// Byte列を渡してByteIOを生成。
-	static ByteIO opCall(ubyte[] _bytes) {
-		ByteIO io;
-		io._bytes = _bytes;
-		return io;
+	this (ubyte[] bytes) {
+		this._bytes = bytes;
+		this._constBytes = this._bytes;
+	}
+	/// void[]をByte列として読み取り専用のByteIOを生成。
+	this (const(void)[] bytes) {
+		this._constBytes = cast(const ubyte[])bytes;
+		this._readOnly = true;
+	}
+	/// Byte列を渡して読み取り専用のByteIOを生成。
+	this (const(ubyte)[] bytes) {
+		this._constBytes = bytes;
+		this._readOnly = true;
 	}
 	/// 書込用のByteIOを生成。
-	static ByteIO opCall(size_t firstBuffer) {
-		ByteIO io;
-		io._bytes.length = firstBuffer;
-		return io;
-	}
-	/// ditto
-	static ByteIO opCall() {
-		return ByteIO(256);
+	this (size_t firstBuffer) {
+		this._bytes.length = firstBuffer;
+		this._constBytes = this._bytes;
 	}
 	/// Byte列の終りに達していればtrue。
 	@property
-	bool eob() {return _pointer >= _bytes.length;}
+	bool eob() {return _pointer >= _constBytes.length;}
 	/// 相対位置でseekする。
-	/// 絶対位置へseekする場合はpointerへの代入を使う。
-	void seek(ptrdiff_t bytes) { mixin(S_TRACE);
+	/// 絶対位置へseekする場合はseekSet()を使うか、pointerへの代入を使う。
+	void seek(long bytes) { mixin(S_TRACE);
 		if (bytes < 0) { mixin(S_TRACE);
 			enforce(_pointer >= -bytes,
 				new Exception(format("read over: 0x%X - %d", _pointer, -bytes), __FILE__, __LINE__));
 		} else if (bytes > 0) { mixin(S_TRACE);
-			enforce(_pointer + bytes < _bytes.length,
+			enforce(_pointer + bytes < _constBytes.length,
 				new Exception(format("read over: 0x%X + %d", _pointer, bytes), __FILE__, __LINE__));
 		}
 		_pointer += bytes;
 	}
+	/// ditto
+	alias seek seekCur;
+	/// 指定位置へシークする。
+	void seekSet(long offset) { mixin(S_TRACE);
+		pointer = cast(ptrdiff_t)offset;
+	}
+
+	/// 一連のバイトを読み込み、読み込めた分をbufferのスライスにして返す。
+	ubyte[] rawRead(ubyte[] buffer) {
+		auto len = .min(_constBytes.length - _pointer, buffer.length);
+		buffer[0 .. len] = _constBytes[_pointer .. _pointer + len];
+		_pointer += len;
+		return buffer[0 .. len];
+	}
+
+	/// 一連のバイトを書き込む。
+	void rawWrite(in ubyte[] buffer) {
+		.enforce(!_readOnly);
+		if (_bytes.length < _pointer + buffer.length) {
+			_bytes.length = _pointer + buffer.length;
+		}
+		_bytes[_pointer .. _pointer + buffer.length] = buffer[];
+		_pointer += buffer.length;
+	}
+
 	/// Byteを読込む。
 	@property
 	ubyte readUByte() { mixin(S_TRACE);
@@ -98,40 +142,45 @@ struct ByteIO {
 	/// ditto
 	alias readByte readByteL;
 	/// Byteを書込む。
-	void write(byte val) {write(cast(ubyte) val);}
+	void write(byte val) { mixin(S_TRACE);
+		write(cast(ubyte)val);
+	}
 	/// ditto
-	void write(char val) {write(cast(ubyte) val);}
+	void write(char val) { mixin(S_TRACE);
+		write(cast(ubyte)val);
+	}
 	/// ditto
 	void write(ubyte val) { mixin(S_TRACE);
+		.enforce(!_readOnly);
 		if (_pointer >= _bytes.length) _bytes.length = _bytes.length * 2 + 1;
 		_bytes[_pointer++] = val;
 	}
 	/// Duck Typingの便宜上用意されたwrite()の別名。
-	void writeB(byte val) {write(val);}
+	void writeB(byte val) { write(val); }
 	/// ditto
-	void writeB(ubyte val) {write(val);}
+	void writeB(ubyte val) { write(val); }
 	/// ditto
-	void writeB(char val) {write(val);}
+	void writeB(char val) { write(val); }
 	/// ditto
-	void writeL(byte val) {write(val);}
+	void writeL(byte val) { write(val); }
 	/// ditto
-	void writeL(ubyte val) {write(val);}
+	void writeL(ubyte val) { write(val); }
 	/// ditto
-	void writeL(char val) {write(val);}
+	void writeL(char val) { write(val); }
 	/// Byte列を読込む。
 	void read(ubyte[] buf) { mixin(S_TRACE);
-		enforce(_pointer + buf.length <= _bytes.length,
+		enforce(_pointer + buf.length <= _constBytes.length,
 			new Exception(format("read over: 0x%X + %d", _pointer, buf.length), __FILE__, __LINE__));
-		buf[] = _bytes[_pointer .. _pointer + buf.length];
+		buf[] = _constBytes[_pointer .. _pointer + buf.length];
 		_pointer += buf.length;
 	}
 	/// ditto
 	void read(byte[] buf) {read(cast(ubyte[]) buf);}
 	/// Byte列を読込む。
-	ubyte[] read(size_t len) { mixin(S_TRACE);
-		enforce(_pointer + len <= _bytes.length,
+	const(ubyte)[] read(size_t len) { mixin(S_TRACE);
+		enforce(_pointer + len <= _constBytes.length,
 			new Exception(format("read over: 0x%X + %d", _pointer, len), __FILE__, __LINE__));
-		ubyte[] r = _bytes[_pointer .. _pointer + len];
+		const(ubyte)[] r = _constBytes[_pointer .. _pointer + len];
 		_pointer += len;
 		return r;
 	}
@@ -143,6 +192,7 @@ struct ByteIO {
 	alias read readB;
 	/// Byte列を書込む。
 	void write(ubyte[] bytes) { mixin(S_TRACE);
+		.enforce(!_readOnly);
 		if (_pointer + bytes.length >= _bytes.length) { mixin(S_TRACE);
 			_bytes.length = _bytes.length * 2 + bytes.length;
 		}
@@ -167,28 +217,30 @@ struct ByteIO {
 	void writeL(void[] val) {write(val);}
 	@property
 	private I readBytesB_(I)() { mixin(S_TRACE);
-		enforce(_pointer + I.sizeof <= _bytes.length,
+		enforce(_pointer + I.sizeof <= _constBytes.length,
 			new Exception(format("read over: 0x%X + %d", _pointer, I.sizeof), __FILE__, __LINE__));
-		I i = _bytes[_pointer++];
+		I i = _constBytes[_pointer++];
 		mixin (ReadBytesB!(I));
 		return i;
 	}
 	@property
 	private I readBytesL_(I)() { mixin(S_TRACE);
-		enforce(_pointer + I.sizeof <= _bytes.length,
+		enforce(_pointer + I.sizeof <= _constBytes.length,
 			new Exception(format("read over: 0x%X + %d", _pointer, I.sizeof), __FILE__, __LINE__));
 		I i;
-		i = _bytes[_pointer++];
+		i = _constBytes[_pointer++];
 		mixin (ReadBytesL!(I));
 		return i;
 	}
 	private void writeBytesB_(I)(I val) { mixin(S_TRACE);
+		.enforce(!_readOnly);
 		if (_pointer + I.sizeof >= _bytes.length) { mixin(S_TRACE);
 			_bytes.length = _bytes.length * 2 + I.sizeof;
 		}
 		mixin (WriteBytesB!(I));
 	}
 	private void writeBytesL_(I)(I val) { mixin(S_TRACE);
+		.enforce(!_readOnly);
 		if (_pointer + I.sizeof >= _bytes.length) { mixin(S_TRACE);
 			_bytes.length = _bytes.length * 2 + I.sizeof;
 		}
@@ -284,7 +336,7 @@ struct ByteIO {
 
 private template ReadBytesB(I, size_t Len = I.sizeof) {
 	static if (Len > 1) {
-		const string ReadBytesB = "i <<= 8; i |= _bytes[_pointer++];\n" ~ ReadBytesB!(I, Len - 1);
+		const string ReadBytesB = "i <<= 8; i |= _constBytes[_pointer++];\n" ~ ReadBytesB!(I, Len - 1);
 	} else {
 		const string ReadBytesB = "";
 	}
@@ -293,7 +345,7 @@ private template ReadBytesL(I, size_t Len = I.sizeof, size_t N = 1) {
 	static if (N < Len) {
 		const string ReadBytesL = "i |= "
 			~ (N >= size_t.sizeof ? "cast(" ~ I.stringof ~ ") " : "")
-			~ "cast(typeof(i))_bytes[_pointer++] << 8 * " ~ .to!string(N) ~ ";\n" ~ ReadBytesL!(I, Len, N + 1);
+			~ "cast(typeof(i))_constBytes[_pointer++] << 8 * " ~ .to!string(N) ~ ";\n" ~ ReadBytesL!(I, Len, N + 1);
 	} else {
 		const string ReadBytesL = "";
 	}
@@ -317,7 +369,7 @@ private template WriteBytesL(I, size_t Len = I.sizeof, size_t N = 0) {
 
 version (BigEndian) {
 	/// BigEndianでinpからintの値を読む。
-	int readIntB(InputStream inp) { mixin(S_TRACE);
+	int readIntB(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		int i;
 		ubyte b;
 		inp.read(b); i = b;
@@ -328,7 +380,7 @@ version (BigEndian) {
 	}
 
 	/// BigEndianでinpからuintの値を読む。
-	uint readUIntB(InputStream inp) { mixin(S_TRACE);
+	uint readUIntB(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		uint i;
 		ubyte b;
 		inp.read(b); i = b;
@@ -339,7 +391,7 @@ version (BigEndian) {
 	}
 
 	/// LittleEndianでinpからintの値を読む。
-	int readIntL(InputStream inp) { mixin(S_TRACE);
+	int readIntL(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		int i;
 		ubyte b;
 		inp.read(b); i = b;
@@ -350,7 +402,7 @@ version (BigEndian) {
 	}
 
 	/// LittleEndianでinpからuintの値を読む。
-	uint readUIntL(InputStream inp) { mixin(S_TRACE);
+	uint readUIntL(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		uint i;
 		ubyte b;
 		inp.read(b); i = b;
@@ -361,7 +413,7 @@ version (BigEndian) {
 	}
 
 	/// BigEndianでinpからshortの値を読む。
-	short readShortB(InputStream inp) { mixin(S_TRACE);
+	short readShortB(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		short s;
 		ubyte b;
 		inp.read(b); s = b;
@@ -370,7 +422,7 @@ version (BigEndian) {
 	}
 
 	/// LittleEndianでinpからshortの値を読む。
-	short readShortL(InputStream inp) { mixin(S_TRACE);
+	short readShortL(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		short s;
 		ubyte b;
 		inp.read(b); s = b;
@@ -379,7 +431,7 @@ version (BigEndian) {
 	}
 
 	/// BigEndianでinpからushortの値を読む。
-	ushort readUShortB(InputStream inp) { mixin(S_TRACE);
+	ushort readUShortB(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		ushort s;
 		ubyte b;
 		inp.read(b); s = b;
@@ -388,7 +440,7 @@ version (BigEndian) {
 	}
 
 	/// LittleEndianでinpからushortの値を読む。
-	ushort readUShortL(InputStream inp) { mixin(S_TRACE);
+	ushort readUShortL(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		ushort s;
 		ubyte b;
 		inp.read(b); s = b;
@@ -397,31 +449,31 @@ version (BigEndian) {
 	}
 
 	/// BigEndianでosへiの値を書く。
-	void writeShortB(OutputStream os, short i) { mixin(S_TRACE);
+	void writeShortB(OutputStream)(ref OutputStream os, short i) { mixin(S_TRACE);
 		os.write(cast(byte) (i & 0xFF));
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
 	}
 
 	/// BigEndianでosへiの値を書く。
-	void writeUShortB(OutputStream os, ushort i) { mixin(S_TRACE);
+	void writeUShortB(OutputStream)(ref OutputStream os, ushort i) { mixin(S_TRACE);
 		os.write(cast(byte) (i & 0xFF));
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
 	}
 
 	/// LittleEndianでosへiの値を書く。
-	void writeShortL(OutputStream os, short i) { mixin(S_TRACE);
+	void writeShortL(OutputStream)(ref OutputStream os, short i) { mixin(S_TRACE);
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
 		os.write(cast(byte) (i & 0xFF));
 	}
 
 	/// LittleEndianでosへiの値を書く。
-	void writeUShortL(OutputStream os, ushort i) { mixin(S_TRACE);
+	void writeUShortL(OutputStream)(ref OutputStream os, ushort i) { mixin(S_TRACE);
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
 		os.write(cast(byte) (i & 0xFF));
 	}
 
 	/// BigEndianでosへiの値を書く。
-	void writeIntB(OutputStream os, int i) { mixin(S_TRACE);
+	void writeIntB(OutputStream)(ref OutputStream os, int i) { mixin(S_TRACE);
 		os.write(cast(byte) (i & 0xFF));
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
 		os.write(cast(byte) ((i & 0xFF0000) >>> 16));
@@ -429,7 +481,7 @@ version (BigEndian) {
 	}
 
 	/// BigEndianでosへiの値を書く。
-	void writeUIntB(OutputStream os, uint i) { mixin(S_TRACE);
+	void writeUIntB(OutputStream)(ref OutputStream os, uint i) { mixin(S_TRACE);
 		os.write(cast(byte) (i & 0xFF));
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
 		os.write(cast(byte) ((i & 0xFF0000) >>> 16));
@@ -437,7 +489,7 @@ version (BigEndian) {
 	}
 
 	/// LittleEndianでosへiの値を書く。
-	void writeIntL(OutputStream os, int i) { mixin(S_TRACE);
+	void writeIntL(OutputStream)(ref OutputStream os, int i) { mixin(S_TRACE);
 		os.write(cast(byte) ((i & 0xFF000000) >>> 24));
 		os.write(cast(byte) ((i & 0xFF0000) >>> 16));
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
@@ -445,7 +497,7 @@ version (BigEndian) {
 	}
 
 	/// LittleEndianでosへiの値を書く。
-	void writeUIntL(OutputStream os, uint i) { mixin(S_TRACE);
+	void writeUIntL(OutputStream)(ref OutputStream os, uint i) { mixin(S_TRACE);
 		os.write(cast(byte) ((i & 0xFF000000) >>> 24));
 		os.write(cast(byte) ((i & 0xFF0000) >>> 16));
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
@@ -453,7 +505,7 @@ version (BigEndian) {
 	}
 } else version (LittleEndian) {
 	/// BigEndianでinpからintの値を読む。
-	int readIntB(InputStream inp) { mixin(S_TRACE);
+	int readIntB(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		int i;
 		ubyte b;
 		inp.read(b); i = b;
@@ -464,7 +516,7 @@ version (BigEndian) {
 	}
 
 	/// BigEndianでinpからuintの値を読む。
-	uint readUIntB(InputStream inp) { mixin(S_TRACE);
+	uint readUIntB(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		uint i;
 		ubyte b;
 		inp.read(b); i = b;
@@ -475,7 +527,7 @@ version (BigEndian) {
 	}
 
 	/// LittleEndianでinpからintの値を読む。
-	int readIntL(InputStream inp) { mixin(S_TRACE);
+	int readIntL(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		int i;
 		ubyte b;
 		inp.read(b); i = b;
@@ -486,7 +538,7 @@ version (BigEndian) {
 	}
 
 	/// LittleEndianでinpからuintの値を読む。
-	uint readUIntL(InputStream inp) { mixin(S_TRACE);
+	uint readUIntL(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		uint i;
 		ubyte b;
 		inp.read(b); i = b;
@@ -497,7 +549,7 @@ version (BigEndian) {
 	}
 
 	/// BigEndianでinpからshortの値を読む。
-	short readShortB(InputStream inp) { mixin(S_TRACE);
+	short readShortB(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		short s;
 		ubyte b;
 		inp.read(b); s = b;
@@ -506,7 +558,7 @@ version (BigEndian) {
 	}
 
 	/// LittleEndianでinpからshortの値を読む。
-	short readShortL(InputStream inp) { mixin(S_TRACE);
+	short readShortL(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		short s;
 		ubyte b;
 		inp.read(b); s = b;
@@ -515,7 +567,7 @@ version (BigEndian) {
 	}
 
 	/// BigEndianでinpからushortの値を読む。
-	ushort readUShortB(InputStream inp) { mixin(S_TRACE);
+	ushort readUShortB(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		ushort s;
 		ubyte b;
 		inp.read(b); s = b;
@@ -524,7 +576,7 @@ version (BigEndian) {
 	}
 
 	/// LittleEndianでinpからushortの値を読む。
-	ushort readUShortL(InputStream inp) { mixin(S_TRACE);
+	ushort readUShortL(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 		ushort s;
 		ubyte b;
 		inp.read(b); s = b;
@@ -533,31 +585,31 @@ version (BigEndian) {
 	}
 
 	/// BigEndianでosへiの値を書く。
-	void writeShortB(OutputStream os, short i) { mixin(S_TRACE);
+	void writeShortB(OutputStream)(ref OutputStream os, short i) { mixin(S_TRACE);
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
 		os.write(cast(byte) (i & 0xFF));
 	}
 
 	/// BigEndianでosへiの値を書く。
-	void writeUShortB(OutputStream os, ushort i) { mixin(S_TRACE);
+	void writeUShortB(OutputStream)(ref OutputStream os, ushort i) { mixin(S_TRACE);
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
 		os.write(cast(byte) (i & 0xFF));
 	}
 
 	/// LittleEndianでosへiの値を書く。
-	void writeShortL(OutputStream os, short i) { mixin(S_TRACE);
+	void writeShortL(OutputStream)(ref OutputStream os, short i) { mixin(S_TRACE);
 		os.write(cast(byte) (i & 0xFF));
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
 	}
 
 	/// LittleEndianでosへiの値を書く。
-	void writeUShortL(OutputStream os, ushort i) { mixin(S_TRACE);
+	void writeUShortL(OutputStream)(ref OutputStream os, ushort i) { mixin(S_TRACE);
 		os.write(cast(byte) (i & 0xFF));
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
 	}
 
 	/// BigEndianでosへiの値を書く。
-	void writeIntB(OutputStream os, int i) { mixin(S_TRACE);
+	void writeIntB(OutputStream)(ref OutputStream os, int i) { mixin(S_TRACE);
 		os.write(cast(byte) ((i & 0xFF000000) >>> 24));
 		os.write(cast(byte) ((i & 0xFF0000) >>> 16));
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
@@ -565,7 +617,7 @@ version (BigEndian) {
 	}
 
 	/// BigEndianでosへiの値を書く。
-	void writeUIntB(OutputStream os, uint i) { mixin(S_TRACE);
+	void writeUIntB(OutputStream)(ref OutputStream os, uint i) { mixin(S_TRACE);
 		os.write(cast(byte) ((i & 0xFF000000) >>> 24));
 		os.write(cast(byte) ((i & 0xFF0000) >>> 16));
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
@@ -573,7 +625,7 @@ version (BigEndian) {
 	}
 
 	/// LittleEndianでosへiの値を書く。
-	void writeIntL(OutputStream os, int i) { mixin(S_TRACE);
+	void writeIntL(OutputStream)(ref OutputStream os, int i) { mixin(S_TRACE);
 		os.write(cast(byte) (i & 0xFF));
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
 		os.write(cast(byte) ((i & 0xFF0000) >>> 16));
@@ -581,7 +633,7 @@ version (BigEndian) {
 	}
 
 	/// LittleEndianでosへiの値を書く。
-	void writeUIntL(OutputStream os, uint i) { mixin(S_TRACE);
+	void writeUIntL(OutputStream)(ref OutputStream os, uint i) { mixin(S_TRACE);
 		os.write(cast(byte) (i & 0xFF));
 		os.write(cast(byte) ((i & 0xFF00) >>> 8));
 		os.write(cast(byte) ((i & 0xFF0000) >>> 16));
@@ -591,23 +643,40 @@ version (BigEndian) {
 	static assert (0);
 }
 
+/// rawRead()を持つInputStreamから1バイト読み込む。
+void read(InputStream, T)(ref InputStream stream, out T b) {
+	T[1] buf;
+	.enforce(stream.rawRead(buf).length == 1);
+	b = buf[0];
+}
+/// rawWrite()を持つOutputStreamへ1バイト書き込む。
+void write(OutputStream, T)(ref OutputStream stream, T b) {
+	stream.rawWrite([b]);
+}
+/// std.stdio.Fileのseek(offset, SEEK_CUR)のラッパ。
+void seekCur(ref File file, long offset) { file.seek(offset, SEEK_CUR); }
+/// std.stdio.Fileのseek(offset, SEEK_SET)のラッパ。
+void seekSet(ref File file, long offset) { file.seek(offset, SEEK_SET); }
+/// std.stdio.Fileのseek(offset, SEEK_END)のラッパ。
+void seekEnd(ref File file, long offset) { file.seek(offset, SEEK_END); }
+
 /// inpから可変長整数の値を読む。
-int readExInt(InputStream inp) { mixin(S_TRACE);
+int readExInt(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 	ubyte b;
 	return .readExInt(true, { inp.read(b); return b; });
 }
 /// ditto
-int readExUInt(InputStream inp) { mixin(S_TRACE);
+int readExUInt(InputStream)(ref InputStream inp) { mixin(S_TRACE);
 	ubyte b;
 	return .readExInt(false, { inp.read(b); return b; });
 }
 
 /// 可変長整数としてosへiの値を書く。
-void writeExInt(OutputStream os, int i) { mixin(S_TRACE);
+void writeExInt(OutputStream)(ref OutputStream os, int i) { mixin(S_TRACE);
 	.writeExInt(i, true, &os.write);
 }
 /// ditto
-void writeExUInt(OutputStream os, int i) { mixin(S_TRACE);
+void writeExUInt(OutputStream)(ref OutputStream os, int i) { mixin(S_TRACE);
 	.writeExInt(i, false, &os.write);
 }
 

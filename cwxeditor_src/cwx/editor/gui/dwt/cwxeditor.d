@@ -16,7 +16,6 @@ import std.path;
 import std.stdio;
 import std.exception;
 import std.conv;
-import std.cstream;
 
 void main(string[] args) {
 	string appPath = exeName(args[0]);

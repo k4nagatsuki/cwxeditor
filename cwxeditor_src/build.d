@@ -338,7 +338,10 @@ void build(string[] args) {
 	if (critical.length) {
 		exec(cmd ~ CRITICAL_FLAGS ~ res ~ critical ~ "-odobjs" ~ dmdOption);
 	}
-	static if (__VERSION__ == 2068) {
+	static immutable mscoffbug = 2068 <= __VERSION__ && __VERSION__ <= 2069;
+	static if (mscoffbug) {
+		// Internal error: backend\mscoffobj.c 2176 by dmd 2.068-2.069
+		// まとめてコンパイルするとエラーが出るため分割する
 		immutable SPLITS = [
 			[
 				"absdialog.d",
@@ -350,8 +353,12 @@ void build(string[] args) {
 			[
 				"areaview.d",
 				"areawindow.d",
+			],
+			[
 				"bgimagedialog.d",
 				"cardlist.d",
+			],
+			[
 				"cardpane.d",
 				"cardwindow.d",
 				"centerlayout.d",
@@ -372,6 +379,8 @@ void build(string[] args) {
 			[
 				"directorywindow.d",
 				"dmenu.d",
+			],
+			[
 				"dockingfolder.d",
 			],
 			[
@@ -382,15 +391,33 @@ void build(string[] args) {
 				"dutils.d",
 				"effectcarddialog.d",
 				"etcsettings.d",
+			],
+			[
 				"eventdialog.d",
+			],
+			[
 				"eventeditor.d",
+			],
+			[
 				"eventtreeview.d",
+			],
+			[
 				"eventview.d",
+			],
+			[
 				"eventwindow.d",
 				"flagdirtree.d",
+			],
+			[
 				"flagspane.d",
+			],
+			[
 				"flagtable.d",
+			],
+			[
 				"image.d",
+			],
+			[
 				"imagelistwindow.d",
 			],
 			[
@@ -398,9 +425,15 @@ void build(string[] args) {
 				"imageselect.d",
 				"incsearch.d",
 				"infocarddialog.d",
+			],
+			[
 				"jpyimage.d",
 				"incsearch.d",
+			],
+			[
 				"loader.d",
+			],
+			[
 				"mainwindow.d",
 			],
 			[
@@ -408,25 +441,46 @@ void build(string[] args) {
 			],
 			[
 				"messageutils.d",
+			],
+			[
 				"motionview.d",
 			],
 			[
 				"properties.d",
 				"radarspinner.d",
+			],
+			[
 				"replacedialog.d",
 				"sbshell.d",
 			],
 			[
 				"scales.d",
 				"scripterrordialog.d",
+			],
+			[
 				"settingsdialog.d",
 				"smalldialogs.d",
+			],
+			[
+				"imagelayer.d",
+				"keycodeview.d",
+			],
+			[
+				"spcarddialog.d",
+				"splitpane.d",
+				"summarydialog.d",
+			],
+			[
+				"textdialog.d",
+				"timebar.d",
+				"undo.d",
+				"xmlbytestransfer.d",
 			],
 		];
 	}
 	foreach (dir, array; files) {
 		if (!array.length) continue;
-		static if (__VERSION__ == 2068) {
+		static if (mscoffbug) {
 			if (m64) {
 				auto splits = new string[][SPLITS.length];
 				string[] array2;

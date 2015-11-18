@@ -19,7 +19,6 @@ import std.utf;
 import std.base64;
 import std.stdio;
 import std.ascii;
-import std.cstream;
 import std.traits;
 import std.datetime;
 import std.regex;
@@ -27,7 +26,6 @@ import std.array;
 import std.exception;
 import std.traits;
 import std.stdint;
-import std.stream;
 import std.range;
 import std.functional;
 import std.math;
@@ -144,7 +142,8 @@ string printStackTraceNoError() {
 }
 
 shared string debugLog = "cwxeditor_error.log";
-private __gshared BufferedFile debugLogFile = null;
+private __gshared File debugLogFile;
+private __gshared bool initDebugLogFile = false;
 
 /// FIXME: 2.059以降altsep不在
 version (Windows) {
@@ -217,7 +216,6 @@ void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 			version (Console) {
 				version (Windows) {
 					printf("%s\n\0".ptr, toMBSz(log));
-					dout.flush();
 				} else {
 					writeln(log);
 				}
@@ -225,11 +223,12 @@ void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 			if (!debugLog.dirName().exists()) {
 				debugLog.dirName().mkdirRecurse();
 			}
-			if (!debugLogFile) {
-				debugLogFile = new typeof(debugLogFile)(debugLog, FileMode.Append);
+			if (!initDebugLogFile) {
+				debugLogFile = File(debugLog, "a");
+				initDebugLogFile = true;
 			}
-			debugLogFile.seekEnd(0);
-			debugLogFile.writeLine(log);
+			debugLogFile.seek(0, SEEK_END);
+			debugLogFile.writeln(log);
 			debugLogFile.flush();
 		}
 	} catch (Throwable e) {
@@ -242,7 +241,7 @@ shared static ~this () {
 		debug std.stdio.writeln("Close Debug log file Start");
 	}
 	synchronized {
-		if (debugLogFile) debugLogFile.close();
+		if (initDebugLogFile) debugLogFile.close();
 	}
 	version (Console) {
 		debug std.stdio.writeln("Close Debug log file Exit");
@@ -264,7 +263,6 @@ void cdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 				string log = createDebugln!(false, F, L)(vals);
 				version (Windows) {
 					printf("%s\n\0".ptr, toMBSz(log));
-					dout.flush();
 				} else {
 					writeln(log);
 				}
@@ -279,7 +277,6 @@ void cwriteln(string s) {
 		synchronized {
 			version (Windows) {
 				printf("%s\n\0".ptr, toMBSz(s));
-				dout.flush();
 			} else {
 				writeln(s);
 			}

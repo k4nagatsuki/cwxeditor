@@ -3,7 +3,6 @@ module cwx.cwl;
 
 import core.thread;
 
-import std.stream;
 import std.c.string;
 
 import std.array;
@@ -612,8 +611,8 @@ private string readImage(in RData d, ref ByteIO f) { mixin(S_TRACE);
 private string readStringImpl(in RData d, ref ByteIO f, uint delegate() readSize) { mixin(S_TRACE);
 	uint len = readSize();
 	if (!len) return "";
-	ubyte[] img = f.read(len);
-	if (endsWith(img, cast(ubyte[]) B_IMG_REF)) { mixin(S_TRACE);
+	auto img = f.read(len);
+	if (endsWith(img, cast(ubyte[])B_IMG_REF)) { mixin(S_TRACE);
 		size_t index = size_t.max;
 		foreach_reverse (i, c; img[0 .. $ - B_IMG_REF.length]) { mixin(S_TRACE);
 			if (c == '\0') { mixin(S_TRACE);

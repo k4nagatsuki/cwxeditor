@@ -1,13 +1,13 @@
 
 module cwx.cab;
 
+import cwx.binary;
 import cwx.utils;
 import cwx.sjis;
 
 import std.conv;
 import std.stdio;
 import std.array;
-import std.stream;
 import std.exception;
 import std.file;
 import std.path;
@@ -566,9 +566,9 @@ version (Windows) {
 		auto buf = new ubyte[CFHEADER.sizeof];
 
 		try { mixin(S_TRACE);
-			auto stream = new BufferedFile(cab, FileMode.In);
+			auto stream = File(cab, "rb");
 			scope (exit) stream.close();
-			if (buf.length != stream.read(buf)) { mixin(S_TRACE);
+			if (buf.length != stream.rawRead(buf).length) { mixin(S_TRACE);
 				// Cabinetではない
 				return false;
 			}
@@ -578,22 +578,20 @@ version (Windows) {
 			if ('C' != head.signature[2]) return false;
 			if ('F' != head.signature[3]) return false;
 
-			if (head.coffFiles != stream.seekSet(head.coffFiles)) { mixin(S_TRACE);
-				return false;
-			}
+			stream.seek(head.coffFiles, SEEK_SET);
 
 			buf = new ubyte[CFFILE.sizeof];
 			CFFILE fl;
 			foreach (i; 0 .. head.cFiles) { mixin(S_TRACE);
-				if (buf.length != stream.read(buf)) { mixin(S_TRACE);
+				if (buf.length != stream.rawRead(buf).length) { mixin(S_TRACE);
 					return false;
 				}
 				memcpy(&fl, buf.ptr, buf.length);
 				char[] name;
-				char c;
+				ubyte c;
 				stream.read(c);
 				while ('\0' != c) { mixin(S_TRACE);
-					name ~= c;
+					name ~= cast(char)c;
 					stream.read(c);
 				}
 				string utfName;

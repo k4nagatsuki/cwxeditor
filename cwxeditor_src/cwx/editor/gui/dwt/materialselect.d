@@ -94,7 +94,7 @@ class MaterialSelect(MtType Type, D, C) {
 		_dirs.setEnabled(!_readOnly);
 		_dirs.addSelectionListener(new CSListener);
 
-		_comm.refSkin.add(&refresh);
+		_comm.refSkin.add(&refSkin);
 		_comm.refDataVersion.add(&refreshFileListMenu);
 		_comm.refPaths.add(&refPaths);
 		_comm.refPath.add(&refPath);
@@ -107,7 +107,7 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		_dirs.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-				_comm.refSkin.remove(&refresh);
+				_comm.refSkin.remove(&refSkin);
 				_comm.refDataVersion.remove(&refreshFileListMenu);
 				_comm.refPaths.remove(&refPaths);
 				_comm.refPath.remove(&refPath);
@@ -331,14 +331,17 @@ class MaterialSelect(MtType Type, D, C) {
 				_volume.setMaximum(100);
 				_volume.setMinimum(0);
 				_volume.setSelection(volume);
-				.listener(_volume, SWT.Modify, { mixin(S_TRACE);
+				auto sel = { mixin(S_TRACE);
+					refDataVersion();
 					if (_processing) return;
 					if (volume != this.volume) { mixin(S_TRACE);
 						volume = this.volume;
 						if (_refresh) _refresh();
 						foreach (dlg; modEvent) dlg();
 					}
-				});
+				};
+				.listener(_volume, SWT.Modify, sel);
+				.listener(_volume, SWT.Selection, sel);
 			}
 			void createLoopCount(Composite parent) { mixin(S_TRACE);
 				auto loopCount = this.loopCount;
@@ -351,14 +354,17 @@ class MaterialSelect(MtType Type, D, C) {
 					_loopCount.setMinimum(1);
 				} else static assert (0);
 				_loopCount.setSelection(loopCount);
-				.listener(_loopCount, SWT.Modify, { mixin(S_TRACE);
+				auto sel = { mixin(S_TRACE);
+					refDataVersion();
 					if (_processing) return;
 					if (loopCount != this.loopCount) { mixin(S_TRACE);
 						loopCount = this.loopCount;
 						if (_refresh) _refresh();
 						foreach (dlg; modEvent) dlg();
 					}
-				});
+				};
+				.listener(_loopCount, SWT.Modify, sel);
+				.listener(_loopCount, SWT.Selection, sel);
 			}
 			void createCh(Composite parent) { mixin(S_TRACE);
 				_channel = new Combo(parent, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
@@ -369,6 +375,7 @@ class MaterialSelect(MtType Type, D, C) {
 				.listener(_channel, SWT.Selection, { mixin(S_TRACE);
 					if (_refresh) _refresh();
 					foreach (dlg; modEvent) dlg();
+					refDataVersion();
 				});
 			}
 
@@ -436,14 +443,17 @@ class MaterialSelect(MtType Type, D, C) {
 			_fadeIn.setMaximum(_prop.var.etc.fadeInMax);
 			_fadeIn.setMinimum(0);
 			_fadeIn.setSelection(roundTo!int(fadeIn / 100.0)); // 0.1s -> 1ms
-			.listener(_fadeIn, SWT.Modify, { mixin(S_TRACE);
+			auto sel = { mixin(S_TRACE);
+				refDataVersion();
 				if (_processing) return;
 				if (fadeIn != this.fadeIn) { mixin(S_TRACE);
 					fadeIn = this.fadeIn;
 					if (_refresh) _refresh();
 					foreach (dlg; modEvent) dlg();
 				}
-			});
+			};
+			.listener(_fadeIn, SWT.Modify, sel);
+			.listener(_fadeIn, SWT.Selection, sel);
 
 			auto l2 = new Label(comp, SWT.NONE);
 			l2.setText(_prop.msgs.fadeInHint);
@@ -451,10 +461,11 @@ class MaterialSelect(MtType Type, D, C) {
 			return comp;
 		}
 		private void refDataVersion() { mixin(S_TRACE);
-			if (_volume) _volume.setEnabled(!_readOnly && !_summ.legacy && path != "");
-			if (_loopCount) _loopCount.setEnabled(!_readOnly && !_summ.legacy && path != "");
-			if (_channel) _channel.setEnabled(!_readOnly && !_summ.legacy && (path != "" || Type == MtType.BGM));
-			if (_fadeIn) _fadeIn.setEnabled(!_readOnly && !_summ.legacy && (path != "" || Type == MtType.BGM));
+			if (_volume) _volume.setEnabled(!_readOnly && (!_summ.legacy || _volume.getSelection() != 100) && path != "");
+			static immutable loopDef = (Type == MtType.BGM) ? 0 : 1;
+			if (_loopCount) _loopCount.setEnabled(!_readOnly && (!_summ.legacy || _loopCount.getSelection() != loopDef) && path != "");
+			if (_channel) _channel.setEnabled(!_readOnly && (!_summ.legacy || _channel.getSelectionIndex() != 0) && (path != "" || Type == MtType.BGM));
+			if (_fadeIn) _fadeIn.setEnabled(!_readOnly && (!_summ.legacy || _fadeIn.getSelection() != 0) && (path != "" || Type == MtType.BGM));
 		}
 		@property
 		int volume() { return _volume ? _volume.getSelection() : 100; }
@@ -464,6 +475,7 @@ class MaterialSelect(MtType Type, D, C) {
 			_processing = true;
 			scope (exit) _processing = false;
 			_volume.setSelection(volume);
+			refDataVersion();
 		}
 		@property
 		int loopCount() { mixin(S_TRACE);
@@ -479,6 +491,7 @@ class MaterialSelect(MtType Type, D, C) {
 			_processing = true;
 			scope (exit) _processing = false;
 			_loopCount.setSelection(loopCount);
+			refDataVersion();
 		}
 		@property
 		int channel() { mixin(S_TRACE);
@@ -488,6 +501,7 @@ class MaterialSelect(MtType Type, D, C) {
 		void channel(int channel) { mixin(S_TRACE);
 			.enforce(_channel);
 			_channel.select(channel);
+			refDataVersion();
 		}
 		@property
 		int fadeIn() { mixin(S_TRACE);
@@ -499,6 +513,7 @@ class MaterialSelect(MtType Type, D, C) {
 			_processing = true;
 			scope (exit) _processing = false;
 			_fadeIn.setSelection(roundTo!int(fadeIn / 100.0)); // 0.1s -> ms
+			refDataVersion();
 		}
 	}
 	static if (Type == MtType.BGM) {
@@ -774,11 +789,12 @@ class MaterialSelect(MtType Type, D, C) {
 			return _paths;
 		}
 		@property
-		string path() { mixin(S_TRACE);
+		string path(ptrdiff_t index = -1) { mixin(S_TRACE);
+			if (index < 0) index = _imageIndex;
 			if (indexOfBinPath && _dirs.getSelectionIndex() == indexOfBinPath(0 < binPath.length) && binPath.length) { mixin(S_TRACE);
 				return binPath;
 			}
-			auto cardPath = _paths[_imageIndex];
+			auto cardPath = _paths[index];
 			auto path = cardPath.type == CardImageType.File && cardPath.path.length ? cardPath.path : "";
 			return path;
 		}
@@ -809,24 +825,26 @@ class MaterialSelect(MtType Type, D, C) {
 		void path(string path) { mixin(S_TRACE);
 			path2(path, true);
 		}
-		void path2(string path, bool updateBinImg) { mixin(S_TRACE);
-			if (this.path == path) return;
+		void path2(string path, bool updateBinImg, ptrdiff_t index = -1) { mixin(S_TRACE);
+			if (index < 0) index = _imageIndex;
+			if (this.path(index) == path) return;
 			scope (exit) {
 				foreach (dlg; modEvent) dlg();
 				refreshButtons();
 			}
-			selectPath(path);
+			selectPath(path, index);
 			if (updateBinImg) { mixin(S_TRACE);
-				_binPaths[_imageIndex] = path.isBinImg ? path : "";
-				if (_binPaths[_imageIndex].length) { mixin(S_TRACE);
+				_binPaths[index] = path.isBinImg ? path : "";
+				if (_binPaths[index].length) { mixin(S_TRACE);
 					foreach (dlg; includeEvent) dlg();
 				}
 			}
 			updateUseNoCardSizeImage();
 			refreshPaths();
 		}
-		private void selectPath(string path) { mixin(S_TRACE);
-			_paths[_imageIndex] = new CardImage(path);
+		private void selectPath(string path, ptrdiff_t index = -1) { mixin(S_TRACE);
+			if (index < 0) index = _imageIndex;
+			_paths[index] = new CardImage(path);
 		}
 		private void updateUseNoCardSizeImage() { mixin(S_TRACE);
 			if (useNoCardSizeImage) return;
@@ -891,6 +909,9 @@ class MaterialSelect(MtType Type, D, C) {
 				}
 			}
 			refreshPaths();
+			static if (Type == MtType.BGM || Type == MtType.SE) {
+				refDataVersion();
+			}
 		}
 		private void selectPath(string path) { mixin(S_TRACE);
 			_path = path;
@@ -1451,6 +1472,10 @@ private:
 			_dirs.setText(select);
 		}
 		_selDir = _dirs.getSelectionIndex();
+		if (_selDir == -1 && _dirs.getItemCount()) { mixin(S_TRACE);
+			_selDir = 0;
+			_dirs.select(_selDir);
+		}
 		refreshList(forceRefresh);
 	}
 
@@ -1519,6 +1544,30 @@ private:
 	void refreshButtons() { mixin(S_TRACE);
 		_comm.refreshToolBar();
 		static if (Type == MtType.BGM || Type == MtType.SE) refDataVersion();
+	}
+	void updateSkinMaterialsExtension() { mixin(S_TRACE);
+		if (!selectedDefDir || path != "") return;
+		string update(string path) { mixin(S_TRACE);
+			if (path.isBinImg) return path;
+			if (std.path.buildPath(defDir, path).exists()) return path;
+			foreach (ext; defExts) { mixin(S_TRACE);
+				auto path2 = path.setExtension(ext);
+				if (std.path.buildPath(defDir, path2).exists()) return path2;
+			}
+			return path;
+		}
+		static if (Type == MtType.CARD) {
+			foreach (i, path; _paths) {
+				if (path.type !is CardImageType.File) continue;
+				path2(update(path.path), false, i);
+			}
+		} else {
+			path2(update(path), false);
+		}
+	}
+	void refSkin() { mixin(S_TRACE);
+		updateSkinMaterialsExtension();
+		refresh();
 	}
 	@property
 	Skin summSkin() { mixin(S_TRACE);
