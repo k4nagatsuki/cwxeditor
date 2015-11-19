@@ -396,35 +396,38 @@ class CWXScript {
 		tokens = s.tokenize("/*/*\n*/*/");
 		assert (tokens == [Token(0, 0, 0, Kind.COMMENT, "/*/*\n*/*/", "")], to!string(tokens));
 		tokens = s.tokenize("/*c*/start, 12.3 \ntest1 [$void] =\"str\ning//\"\n\r //comment\nELIF if\n1/2+3*4%(5-6)");
-		assert (tokens
-			== [
-				Token(0, 0, 0, Kind.COMMENT, "/*c*/", ""),
-				Token(0, 5, 5, Kind.START, "start", "c"),
-				Token(0, 10, 10, Kind.COMMA, ","),
-				Token(0, 12, 12, Kind.NUMBER, "12.3"),
-				Token(1, 0, 18, Kind.SYMBOL, "test1"),
-				Token(1, 6, 24, Kind.O_BRA, "["),
-				Token(1, 7, 25, Kind.VAR_NAME, "$void"),
-				Token(1, 12, 30, Kind.C_BRA, "]"),
-				Token(1, 14, 32, Kind.EQ, "="),
-				Token(1, 15, 33, Kind.STRING, "\"str\ning//\""),
-				Token(4, 1, 47, Kind.COMMENT, "//comment\n", ""),
-				Token(5, 0, 57, Kind.ELIF, "ELIF", "comment\n"),
-				Token(5, 5, 62, Kind.IF, "if"),
-				Token(6, 0, 65, Kind.NUMBER, "1"),
-				Token(6, 1, 66, Kind.DIV, "/"),
-				Token(6, 2, 67, Kind.NUMBER, "2"),
-				Token(6, 3, 68, Kind.PLU, "+"),
-				Token(6, 4, 69, Kind.NUMBER, "3"),
-				Token(6, 5, 70, Kind.MUL, "*"),
-				Token(6, 6, 71, Kind.NUMBER, "4"),
-				Token(6, 7, 72, Kind.RES, "%"),
-				Token(6, 8, 73, Kind.O_PAR, "("),
-				Token(6, 9, 74, Kind.NUMBER, "5"),
-				Token(6, 10, 75, Kind.MIN, "-"),
-				Token(6, 11, 76, Kind.NUMBER, "6"),
-				Token(6, 12, 77, Kind.C_PAR, ")")
-			], to!string(tokens));
+		assert (Token(0, 12, 12, Kind.NUMBER, "12.3") == tokens[3]);
+		auto tokens2 = [
+			Token(0, 0, 0, Kind.COMMENT, "/*c*/", ""),
+			Token(0, 5, 5, Kind.START, "start", "c"),
+			Token(0, 10, 10, Kind.COMMA, ","),
+			Token(0, 12, 12, Kind.NUMBER, "12.3"),
+			Token(1, 0, 18, Kind.SYMBOL, "test1"),
+			Token(1, 6, 24, Kind.O_BRA, "["),
+			Token(1, 7, 25, Kind.VAR_NAME, "$void"),
+			Token(1, 12, 30, Kind.C_BRA, "]"),
+			Token(1, 14, 32, Kind.EQ, "="),
+			Token(1, 15, 33, Kind.STRING, "\"str\ning//\""),
+			Token(4, 1, 47, Kind.COMMENT, "//comment\n", ""),
+			Token(5, 0, 57, Kind.ELIF, "ELIF", "comment\n"),
+			Token(5, 5, 62, Kind.IF, "if"),
+			Token(6, 0, 65, Kind.NUMBER, "1"),
+			Token(6, 1, 66, Kind.DIV, "/"),
+			Token(6, 2, 67, Kind.NUMBER, "2"),
+			Token(6, 3, 68, Kind.PLU, "+"),
+			Token(6, 4, 69, Kind.NUMBER, "3"),
+			Token(6, 5, 70, Kind.MUL, "*"),
+			Token(6, 6, 71, Kind.NUMBER, "4"),
+			Token(6, 7, 72, Kind.RES, "%"),
+			Token(6, 8, 73, Kind.O_PAR, "("),
+			Token(6, 9, 74, Kind.NUMBER, "5"),
+			Token(6, 10, 75, Kind.MIN, "-"),
+			Token(6, 11, 76, Kind.NUMBER, "6"),
+			Token(6, 12, 77, Kind.C_PAR, ")")
+		];
+		assert (tokens2.length == 26, to!string(tokens2.length));
+		assert (tokens.length == tokens2.length);
+		assert (tokens == tokens2, tokens.to!string() ~ " != " ~ tokens2.to!string());
 	}
 	private Token[] tokenizeImpl(ref string text, bool eatEmptyVarMode, in CompileOption opt) { mixin(S_TRACE);
 		if (!text.length) return [];
