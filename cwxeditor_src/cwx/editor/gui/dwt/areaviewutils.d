@@ -107,7 +107,7 @@ PileImage createCastCardBackImage(Props prop, Skin skin, int x, int y, byte alph
 }
 
 PImg createCardImageCommon(PImg)(Props prop, ImageData card,
-		CInsets matPad, int x, int y, real scale, bool smoothing, int layer) { mixin(S_TRACE);
+		CInsets matPad, int x, int y, uint scale, bool smoothing, int layer) { mixin(S_TRACE);
 	auto cardSize = prop.looks.cardSize;
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
@@ -116,16 +116,16 @@ PImg createCardImageCommon(PImg)(Props prop, ImageData card,
 	r.layer = layer * 10;
 	r.smoothing = smoothing;
 	static if (is(PImg : FlexImage)) {
-		r.minimumWidth = cast(int) rndtol(w * (prop.var.etc.cardScaleMin / 100.0));
-		r.minimumHeight = cast(int) rndtol(h * (prop.var.etc.cardScaleMin / 100.0));
-		r.maximumWidth = cast(int) rndtol(w * (prop.var.etc.cardScaleMax / 100.0));
-		r.maximumHeight = cast(int) rndtol(h * (prop.var.etc.cardScaleMax / 100.0));
+		r.minimumWidth = cast(int)(w * prop.var.etc.cardScaleMin / 100.0);
+		r.minimumHeight = cast(int)(h * prop.var.etc.cardScaleMin / 100.0);
+		r.maximumWidth = cast(int)(w * prop.var.etc.cardScaleMax / 100.0);
+		r.maximumHeight = cast(int)(h * prop.var.etc.cardScaleMax / 100.0);
 		r.ratioFix = true;
-		r.newWidth = cast(int) rndtol(w * scale);
-		r.newHeight = cast(int) rndtol(h * scale);
+		r.newWidth = cast(int)(w * scale / 100.0);
+		r.newHeight = cast(int)(h * scale / 100.0);
 	} else { mixin(S_TRACE);
-		r.width = cast(int) rndtol(w * scale);
-		r.height = cast(int) rndtol(h * scale);
+		r.width = cast(int)(w * scale / 100.0);
+		r.height = cast(int)(h * scale / 100.0);
 	}
 	return r;
 }
@@ -133,7 +133,7 @@ PImg createCardImageCommon(PImg)(Props prop, ImageData card,
 /// キャストカード画像を生成する。
 /// Returns: カード画像。
 PImg createCastCardImage(PImg)(Props prop, Skin skin, CastCard card,
-		string sPath, int x, int y, real scale, bool smoothing, bool dbgMode, int layer) { mixin(S_TRACE);
+		string sPath, int x, int y, uint scale, bool smoothing, bool dbgMode, int layer) { mixin(S_TRACE);
 	auto matPad = prop.looks.castCardInsets;
 	PImg r;
 	if (card) { mixin(S_TRACE);
@@ -153,7 +153,7 @@ PImg createCastCardImage(PImg)(Props prop, Skin skin, CastCard card,
 /// メニューカード画像を生成する。
 /// Returns: カード画像。
 PImg createMenuCardImage(PImg)(Props prop, Skin skin, string sPath,
-		string title, in CardImage[] paths, int x, int y, real scale, bool smoothing, int layer) { mixin(S_TRACE);
+		string title, in CardImage[] paths, int x, int y, uint scale, bool smoothing, int layer) { mixin(S_TRACE);
 	auto matPad = prop.looks.menuCardInsets;
 	auto card = menuCard(skin);
 	auto r = createCardImageCommon!PImg(prop, card, matPad, x, y, scale, smoothing, layer);

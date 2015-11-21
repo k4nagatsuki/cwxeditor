@@ -784,7 +784,7 @@ private:
 		void listSelectC() { mixin(S_TRACE);
 			selectListItem!(C)(_cards, cardsIndex, _editC, _area.cards);
 		}
-		void resizeImageC(FlexImage img, int x, int y, real scale) { mixin(S_TRACE);
+		void resizeImageC(FlexImage img, int x, int y, uint scale) { mixin(S_TRACE);
 			if (_readOnly) return;
 			auto card = _cardTbl[img];
 			card.x = x;
@@ -1307,14 +1307,13 @@ private:
 		callModEvent();
 	}
 	static if (UseCards) {
-		private void scaleC(real s) { mixin(S_TRACE);
+		private void scaleC(uint scale) { mixin(S_TRACE);
 			if (_readOnly) return;
-			int scale = cast(int) rndtol(s * 100);
 			foreach (i, c; _area.cards) { mixin(S_TRACE);
-				auto fi = cast(FlexImage) _imgp.images[cardsIndex + i];
+				auto fi = cast(FlexImage)_imgp.images[cardsIndex + i];
 				if (fi.selected) { mixin(S_TRACE);
 					c.scale = scale;
-					fi.scale = s;
+					fi.scale = scale;
 					fi.resize();
 				}
 				_comm.refMenuCard.call(c.cwxPath(true));
@@ -1325,15 +1324,15 @@ private:
 		}
 		private void scaleCMax() { mixin(S_TRACE);
 			if (_readOnly) return;
-			scaleC(_prop.var.etc.cardScaleMax / 100.0);
+			scaleC(_prop.var.etc.cardScaleMax);
 		}
 		private void scaleCMiddle() { mixin(S_TRACE);
 			if (_readOnly) return;
-			scaleC(1.0);
+			scaleC(100);
 		}
 		private void scaleCMin() { mixin(S_TRACE);
 			if (_readOnly) return;
-			scaleC(_prop.var.etc.cardScaleMin / 100.0);
+			scaleC(_prop.var.etc.cardScaleMin);
 		}
 	}
 	void scaleEvenImpl(int First, string Cmp, string CSet, T)(int delegate(AbstractAreaView) startIndex, T[] cs) { mixin(S_TRACE);
@@ -1584,7 +1583,7 @@ private:
 	static if (UseCards) {
 		void scaleEvenC(int First, string Cmp)() { mixin(S_TRACE);
 			if (_readOnly) return;
-			scaleEvenImpl!(First, Cmp, "a.scale = cast(int) rndtol(cast(real) fi.baseWidth / w);", C)((v) => v.cardsIndex, _area.cards);
+			scaleEvenImpl!(First, Cmp, "a.scale = fi.baseWidth * 100 / w;", C)((v) => v.cardsIndex, _area.cards);
 		}
 	}
 	static if (UseBacks) {
@@ -2083,14 +2082,14 @@ private:
 			_scaleSpn.setEnabled(!_readOnly && _editC.length > 0);
 			if (_editC.length == 1) { mixin(S_TRACE);
 				auto card = _editC.keys[0];
-				_scaleSpn.setSelection(cast(int) rndtol(card.scale * 100.0));
+				_scaleSpn.setSelection(card.scale);
 				if (_editB.length == 0) { mixin(S_TRACE);
 					_xSpn.setSelection(card.x);
 					_ySpn.setSelection(card.y);
 					_layerSpn.setSelection(card.layer);
 				}
 			} else if (_editC.length > 1) { mixin(S_TRACE);
-				_scaleSpn.setSelection(spnValue!("cast(int) rndtol(a.scale * 100.0)", C, int)(_editC.keys, 100));
+				_scaleSpn.setSelection(spnValue!("a.scale", C, int)(_editC.keys, 100));
 			}
 			if (_editB.length == 1) { mixin(S_TRACE);
 				auto back = _editB.keys[0];
@@ -2138,7 +2137,7 @@ private:
 				auto card = _editC.keys[0];
 				_xSpn.setSelection(card.x);
 				_ySpn.setSelection(card.y);
-				_scaleSpn.setSelection(cast(int) rndtol(card.scale * 100.0));
+				_scaleSpn.setSelection(card.scale);
 				_layerSpn.setSelection(card.layer);
 				static if (is (C == EnemyCard)) {
 					_escTMenu.setSelection(card.escape);
@@ -2146,7 +2145,7 @@ private:
 			} else if (_editC.length > 1) { mixin(S_TRACE);
 				_xSpn.setSelection(spnValue!("a.x", C, int)(_editC.keys, 0));
 				_ySpn.setSelection(spnValue!("a.y", C, int)(_editC.keys, 0));
-				_scaleSpn.setSelection(spnValue!("cast(int) rndtol(a.scale * 100.0)", C, int)(_editC.keys, 100));
+				_scaleSpn.setSelection(spnValue!("a.scale", C, int)(_editC.keys, 100));
 				_layerSpn.setSelection(spnValue!("a.layer", C, int)(_editC.keys, 0));
 				static if (is (C == EnemyCard)) {
 					_escTMenu.setSelection(spnValue!("a.escape", C, bool)(_editC.keys, false));
@@ -3684,11 +3683,11 @@ public:
 		void createCard() { mixin(S_TRACE);
 			if (_readOnly) return;
 			static if (is(C : MenuCard)) {
-				auto c = new MenuCard("", [], "", "", 0, 0, 1.0, LAYER_MENU_CARD);
+				auto c = new MenuCard("", [], "", "", 0, 0, 100, LAYER_MENU_CARD);
 			} else static if (is(C : EnemyCard)) {
 				if (!_summ) return;
 				if (_summ.casts.length == 0) return;
-				auto c = new EnemyCard(0, false, "", 0, 0, 1.0, LAYER_MENU_CARD);
+				auto c = new EnemyCard(0, false, "", 0, 0, 100, LAYER_MENU_CARD);
 			} else static assert (0);
 			auto dlg = new SpCardDialog!(C)(_comm, _prop, getShell(), _summ, c, true);
 			dlg.appliedEvent ~= { mixin(S_TRACE);
@@ -4347,9 +4346,9 @@ public:
 		static if (UseCards) {
 			new ToolItem(bar, SWT.SEPARATOR);
 			_scaleSpn = createSpinner(bar, _prop.msgs.scale, _prop.var.etc.cardScaleMax, _prop.var.etc.cardScaleMin, 100,
-				&editSpnCard!("a.scale = value / 100.0;"),
-				&enterSpnCard!("a.scale = value / 100.0;", "a.scale = value / 100.0;"),
-				&cancelSpnCard!("cast(int)rndtol(a.scale * 100.0)", "fi.scale = a.scale;"), _readOnly);
+				&editSpnCard!("a.scale = value;"),
+				&enterSpnCard!("a.scale = value;", "a.scale = value;"),
+				&cancelSpnCard!("a.scale", "fi.scale = a.scale;"), _readOnly);
 			createLabel(bar, "%");
 		}
 		static if (UseBacks) {
@@ -4631,7 +4630,7 @@ public:
 						return -1;
 					}
 				}
-				auto card = new MenuCard(baseName(.stripExtension(fname)), fname.length ? [new CardImage(fname)] : [], "", "", x, y, 1.0, LAYER_MENU_CARD);
+				auto card = new MenuCard(baseName(.stripExtension(fname)), fname.length ? [new CardImage(fname)] : [], "", "", x, y, 100, LAYER_MENU_CARD);
 				return appendCard(card, true, true, fromImgPane);
 			}
 			private class CLDropTarget : DropTargetAdapter {
@@ -5063,7 +5062,7 @@ public:
 							cy = y - cast(int) (s.height + ins.n + ins.s) / 2;
 						}
 						foreach (i, card; cards) { mixin(S_TRACE);
-							assert (card.scale == 1.0);
+							assert (card.scale == 100);
 							card.x = cx;
 							card.y = cy;
 							ci ~= appendCard(card, true, true, toImgp);
@@ -5089,7 +5088,7 @@ public:
 					cy = y - cast(int) (s.height + ins.n + ins.s) / 2;
 				}
 				foreach (card; cards) { mixin(S_TRACE);
-					assert (card.scale == 1.0);
+					assert (card.scale == 100);
 					card.x = cx;
 					card.y = cy;
 					ci ~= appendCard(card, true, true, toImgp);

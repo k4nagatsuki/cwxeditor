@@ -87,14 +87,14 @@ XNode areasToNode(string parentPath, string cutPath, in AbstractArea[] areas, XM
 public abstract class AbstractSpCard : AbstractEventTreeOwner, IFlagUser {
 private:
 	int _x, _y;
-	real _scale;
+	uint _scale;
 	int _layer = LAYER_MENU_CARD;
 	FlagUser _user;
 
 public:
 
 	/// 唯一のコンストラクタ。
-	this (string flag, int x, int y, real scale, int layer) { mixin(S_TRACE);
+	this (string flag, int x, int y, uint scale, int layer) { mixin(S_TRACE);
 		_user = new FlagUser(this);
 		_user.flag = flag;
 		_x = x;
@@ -170,16 +170,16 @@ public:
 		if (_y != y) changed();
 		_y = y;
 	}
-	/// スケール。1.0が標準。0.75～2.0。
+	/// スケール(%)。
 	@property
 	const
-	real scale() { mixin(S_TRACE);
+	uint scale() { mixin(S_TRACE);
 		return _scale;
 	}
 	/// ditto
 	@property
-	void scale(real scale) { mixin(S_TRACE);
-		if (cast(int) (_scale * 100) != cast(int) (scale * 100)) { mixin(S_TRACE);
+	void scale(uint scale) { mixin(S_TRACE);
+		if (_scale != scale) { mixin(S_TRACE);
 			changed();
 			_scale = scale;
 		}
@@ -234,15 +234,15 @@ public:
 		auto ln = pNode.newElement("Location");
 		ln.newAttr("left", _x);
 		ln.newAttr("top", _y);
-		pNode.newElement("Size").newAttr("scale", to!(string)(cast(int) rndtol(_scale * 100.0)) ~ "%");
+		pNode.newElement("Size").newAttr("scale", to!(string)(_scale) ~ "%");
 		if (layer != LAYER_MENU_CARD) pNode.newElement("Layer", layer);
 	}
 	/// 指定されたノードからProperty情報を読み出す。
-	protected static void loadProp(ref XNode pNode, out string flag, out int x, out int y, out real scale, out int layer) { mixin(S_TRACE);
+	protected static void loadProp(ref XNode pNode, out string flag, out int x, out int y, out uint scale, out int layer) { mixin(S_TRACE);
 		flag = "";
 		x = 0;
 		y = 0;
-		scale = 1.0;
+		scale = 100;
 		layer = LAYER_MENU_CARD;
 		assert (pNode.name == "Property", pNode.name ~ " != Property");
 		pNode.onTag["Flag"] = (ref XNode n) {flag = n.value;};
@@ -256,7 +256,7 @@ public:
 			if (val[$ - 1] == '%') { mixin(S_TRACE);
 				val = val[0 .. $ - 1];
 			}
-			scale = to!(real)(val) / 100.0;
+			scale = to!(uint)(val);
 		};
 		pNode.onTag["Layer"] = (ref XNode n) { mixin(S_TRACE);
 			layer = n.valueTo!int();
@@ -278,7 +278,7 @@ public:
 	static immutable XML_NAME_M = "EnemyCards";
 
 	/// 唯一のコンストラクタ。
-	this (ulong id, bool escape, string flag, int x, int y, real scale, int layer) { mixin(S_TRACE);
+	this (ulong id, bool escape, string flag, int x, int y, uint scale, int layer) { mixin(S_TRACE);
 		super(flag, x, y, scale, layer);
 		_user = new CastUser(this);
 		_user.casts = id;
@@ -380,7 +380,7 @@ public:
 			cNode.onTag["Property"] = (ref XNode pNode) { mixin(S_TRACE);
 				string idStr = pNode.childText("Id", false);
 				if (idStr) { mixin(S_TRACE);
-					cards ~= new EnemyCard(to!(ulong)(idStr), false, "", 0, 0, 1.0, LAYER_MENU_CARD);
+					cards ~= new EnemyCard(to!(ulong)(idStr), false, "", 0, 0, 100, LAYER_MENU_CARD);
 				}
 			};
 			cNode.parse();
@@ -425,7 +425,7 @@ public:
 		bool escape = false;
 		string flag = "";
 		int x = 0, y = 0;
-		real scale = 1.0;
+		uint scale = 100;
 		int layer = LAYER_MENU_CARD;
 		EventTree[] evt;
 
@@ -472,10 +472,10 @@ public:
 	/// flag = フラグ。無しの場合は""。
 	/// x = X座標。
 	/// y = Y座標。
-	/// scale = スケール。通常0.75～2.0。
+	/// scale = スケール(%)。
 	/// layer = 表示レイヤ。
 	this (string name, in CardImage[] paths, string desc, string flag,
-			int x, int y, real scale, int layer) { mixin(S_TRACE);
+			int x, int y, int scale, int layer) { mixin(S_TRACE);
 		super(flag, x, y, scale, layer);
 		this.paths = paths;
 		_name = name;
@@ -619,7 +619,7 @@ public:
 			}
 			pNode.parse();
 			if (!name) return null;
-			return new MenuCard(name, paths, desc, "", 0, 0, 1.0, LAYER_MENU_CARD);
+			return new MenuCard(name, paths, desc, "", 0, 0, 100, LAYER_MENU_CARD);
 		}
 		auto pNode = node.child("Property", false);
 		if (pNode.valid) { mixin(S_TRACE);
@@ -673,7 +673,7 @@ public:
 		string desc = "";
 		string flag = "";
 		int x = 0, y = 0;
-		real scale = 1.0;
+		uint scale = 100;
 		int layer = LAYER_MENU_CARD;
 		EventTree[] evt;
 

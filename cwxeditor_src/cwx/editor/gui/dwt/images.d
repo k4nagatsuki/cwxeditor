@@ -1407,7 +1407,7 @@ public:
 /// See_Also: ImagePane
 public class FlexImage : PileImage {
 private:
-	void delegate(FlexImage img, int x, int y, real scale)[] lc_resizes;
+	void delegate(FlexImage img, int x, int y, uint scale)[] lc_resizes;
 	void delegate(FlexImage img, int x, int y, int w, int h)[] l_resizes;
 	void delegate(FlexImage img)[] l_selected;
 
@@ -1552,7 +1552,7 @@ public:
 				l(this, x, y, width, height);
 			}
 			foreach (l; lc_resizes) { mixin(S_TRACE);
-				l(this, x, y, cast(real) width / initW);
+				l(this, x, y, width * 100 / initW);
 			}
 		}
 		if (!_img || (resize && _dataResizable)) createImage();
@@ -1643,8 +1643,8 @@ public:
 	int roundWidth(int w) { mixin(S_TRACE);
 		if (whconst) { mixin(S_TRACE);
 			// 縦横比固定
-			real scale = newHeight / cast(real) initH;
-			return cast(int) rndtol(initW * scale);
+			int scale = newHeight * 100 / initH;
+			return cast(int)(initW * scale / 100.0);
 		} else { mixin(S_TRACE);
 			return roundMWidth(w);
 		}
@@ -1680,8 +1680,8 @@ public:
 	int roundHeight(int h) { mixin(S_TRACE);
 		if (whconst) { mixin(S_TRACE);
 			// 縦横比固定
-			real scale = newWidth / cast(real) initW;
-			return cast(int) rndtol(initH * scale);
+			int scale = newWidth * 100 / initW;
+			return cast(int)(initH * scale / 100.0);
 		} else { mixin(S_TRACE);
 			return roundMHeight(h);
 		}
@@ -1719,10 +1719,10 @@ public:
 	}
 	/// スケールを指定してサイズを設定する。
 	/// Params:
-	/// scale = 元のサイズに対するスケール
+	/// scale = 元のサイズに対するスケール(%)。
 	@property
-	void scale(real scale) { mixin(S_TRACE);
-		newR.width = cast(int) rndtol(initW * scale);
+	void scale(uint scale) { mixin(S_TRACE);
+		newR.width = cast(int)(initW * scale / 100.0);
 		newR.height = roundHeight(cast(int)rndtol(cast(real)initH * rect.height));
 		retoggle();
 	}
@@ -1843,7 +1843,7 @@ public:
 		l_resizes ~= func;
 	}
 	/// ditto
-	void addResizeListener(void delegate(FlexImage img, int x, int y, real scale) func) { mixin(S_TRACE);
+	void addResizeListener(void delegate(FlexImage img, int x, int y, uint scale) func) { mixin(S_TRACE);
 		lc_resizes ~= func;
 	}
 	/// 選択状態変更時に呼び出す関数を追加する。
@@ -2117,12 +2117,12 @@ private:
 							break;
 						}
 						void roundH() { mixin(S_TRACE);
-							real scale = newRect.width / cast(real) img.width;
-							newRect.height = cast(int) rndtol(img.height * scale);
+							uint scale = newRect.width * 100 / img.width;
+							newRect.height = cast(int)(img.height * scale / 100.0);
 						}
 						void roundW() { mixin(S_TRACE);
-							real scale = newRect.height / cast(real) img.height;
-							newRect.width = cast(int) rndtol(img.width * scale);
+							uint scale = newRect.height * 100 / img.height;
+							newRect.width = cast(int)(img.width * scale / 100.0);
 						}
 						/// 縦横比固定のための調整。
 						void round(void delegate() roundW, void delegate() roundH) { mixin(S_TRACE);

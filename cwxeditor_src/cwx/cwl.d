@@ -1810,7 +1810,7 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
 			trees[j] = readEventTree(d, f, false, j);
 		}
 		string flag = readString(f);
-		real scale = f.readUIntL / 100.0;
+		uint scale = f.readUIntL;
 		int x = f.readIntL;
 		int y = f.readIntL;
 		CardImage imgPath = null;
@@ -1869,7 +1869,7 @@ private Battle loadBattle(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 			cTrees[j] = readEventTree(d, f, true, j);
 		}
 		string flag = readString(f);
-		real scale = f.readUIntL / 100.0;
+		uint scale = f.readUIntL;
 		int x = f.readIntL;
 		int y = f.readIntL;
 		bool escape = readBool(f);
@@ -3692,9 +3692,9 @@ private void writeArea(ref SData d, ref ByteIO f, Area a) { mixin(S_TRACE);
 			writeEventTree(d, f, tree);
 		}
 		writeString(f, c.flag);
-		f.writeL(cast(uint) rndtol(c.scale * 100.0));
-		f.writeL(cast(int) c.x);
-		f.writeL(cast(int) c.y);
+		f.writeL(cast(uint)c.scale);
+		f.writeL(cast(int)c.x);
+		f.writeL(cast(int)c.y);
 		if (path && path.type is CardImageType.File) { mixin(S_TRACE);
 			writeString(f, saveBinImg ? "" : encodePathLegacy(path.path));
 		} else if (path && path.type is CardImageType.PCNumber && 0 < path.pcNumber) { mixin(S_TRACE);
@@ -3723,9 +3723,9 @@ private void writeBattle(ref SData d, ref ByteIO f, Battle a) { mixin(S_TRACE);
 			writeEventTree(d, f, tree);
 		}
 		writeString(f, c.flag);
-		f.writeL(cast(uint) rndtol(c.scale * 100.0));
-		f.writeL(cast(int) c.x);
-		f.writeL(cast(int) c.y);
+		f.writeL(cast(uint)c.scale);
+		f.writeL(cast(int)c.x);
+		f.writeL(cast(int)c.y);
 		writeBool(f, c.escape);
 	}
 	writeString(f, encodePathLegacy(a.music));

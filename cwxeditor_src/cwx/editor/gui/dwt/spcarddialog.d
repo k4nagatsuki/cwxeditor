@@ -434,7 +434,7 @@ protected:
 			}
 			_x.setSelection(_card.x);
 			_y.setSelection(_card.y);
-			_scale.setSelection(cast(int)rndtol(_card.scale * 100));
+			_scale.setSelection(_card.scale);
 			_layer.setSelection(_card.layer);
 		} else { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
@@ -475,16 +475,16 @@ protected:
 			_card.flag = _flag.selected;
 			_card.x = _x.getSelection();
 			_card.y = _y.getSelection();
-			_card.scale = _scale.getSelection() / 100.0;
+			_card.scale = _scale.getSelection();
 			_card.layer = _layer.getSelection();
 		} else { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
 				_card = new C(_name.getText(), _imgPath.images,
 					wrapReturnCode(_desc.getText()), _flag.selected,
-					_x.getSelection(), _y.getSelection(), _scale.getSelection() / 100.0, _layer.getSelection());
+					_x.getSelection(), _y.getSelection(), _scale.getSelection(), _layer.getSelection());
 			} else static if (is (C == EnemyCard)) {
 				_card = new C(_selectedID, _escape.getSelection(),
-					_flag.selected, _x.getSelection(), _y.getSelection(), _scale.getSelection() / 100.0, _layer.getSelection());
+					_flag.selected, _x.getSelection(), _y.getSelection(), _scale.getSelection(), _layer.getSelection());
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
