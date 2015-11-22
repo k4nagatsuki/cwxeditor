@@ -451,6 +451,7 @@ public class FlexProps {
 		return t;
 	}
 	DockingFolderCTC loadDock(Composite parent, int style,
+			bool delegate(string) hasCloseButton,
 			bool delegate(DockingFolderCTC, string) canVanish,
 			Control delegate(Composite, string) create,
 			bool delegate(string) firstResize) { mixin(S_TRACE);
@@ -476,7 +477,7 @@ public class FlexProps {
 						dStr ~= " - " ~ .text(__LINE__);
 						void df(ref XNode node) { mixin(S_TRACE);
 							dStr ~= " - " ~ .text(__LINE__);
-							r = DockingFolderCTC.fromNode(node, parent, style, canVanish, create, null, firstResize);
+							r = DockingFolderCTC.fromNode(node, parent, style, hasCloseButton, canVanish, create, null, firstResize);
 							dStr ~= " - " ~ .text(__LINE__);
 						}
 						node.onTag["dockingFolder"] = &df;

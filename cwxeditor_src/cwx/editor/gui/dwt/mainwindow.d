@@ -2534,7 +2534,10 @@ public:
 			dockComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			dockComp.setLayout(windowGridLayout(1, true));
 			dStr ~= " - " ~ .text(__LINE__);
-			_dock = _prop.var.loadDock(dockComp, SWT.NONE, &dockCanVanish, delegate Control(Composite parent, string key) { mixin(S_TRACE);
+			bool hasCloseButton(string key) { mixin(S_TRACE);
+				return std.string.startsWith(key, "work");
+			}
+			_dock = _prop.var.loadDock(dockComp, SWT.NONE, &hasCloseButton, &dockCanVanish, delegate Control(Composite parent, string key) { mixin(S_TRACE);
 				scope (exit) {
 					dStr ~= " - " ~ .text(__LINE__);
 				}
@@ -2613,6 +2616,7 @@ public:
 					_dock.addPane(_dock.first, Dir.N, 3, 1, "work");
 				}
 				dStr ~= " - " ~ .text(__LINE__);
+				_dock.hasCloseButton = &hasCloseButton;
 				_dock.canMove = &dockCanMove;
 				_dock.newPaneName = &dockNewPaneName;
 				_dock.canVanish = &dockCanVanish;

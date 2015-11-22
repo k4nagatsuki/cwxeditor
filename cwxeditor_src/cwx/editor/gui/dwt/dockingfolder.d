@@ -196,6 +196,11 @@ class DockingFolder(TabF, int Style) {
 		}
 		return key;
 	}
+	static if (is(TabF:CTabFolder)) {
+		/// paneKeyに該当するペインが各タブが閉じるボタンを持つ場合はtrueを返す。
+		/// デフォルトでは常に閉じるボタンをつける。
+		bool delegate(string paneKey) hasCloseButton = null;
+	}
 	/// Controlを移動する際、移動の可否を決定するためのdelegate。
 	/// nullの場合は常に移動可能となる。
 	/// ctrlKeyには移動するControlのkeyが、dropPaneKeyには移動先の
@@ -909,13 +914,19 @@ class DockingFolder(TabF, int Style) {
 
 	private TabF newTabf(Composite parent, string key) { mixin(S_TRACE);
 		if (!key.length) key = newTabfKey("t");
-		auto tabf = new TabF(parent, Style | SWT.NO_MERGE_PAINTS);
+		auto style = Style | SWT.NO_MERGE_PAINTS;
+		static if (is(TabF:CTabFolder)) {
+			if (hasCloseButton && !hasCloseButton(key)) { mixin(S_TRACE);
+				style &= ~SWT.CLOSE;
+			}
+		}
+		auto tabf = new TabF(parent, style);
 		_tKeys[key] = tabf;
 		_tabfs[tabf] = key;
 		_tabfList ~= tabf;
 
-		static if (CLOSE) {
-			static if (is(TabF : CTabFolder)) {
+		static if (is(TabF:CTabFolder)) {
+			if (style & SWT.CLOSE) { mixin(S_TRACE);
 				tabf.addCTabFolderListener(new CTFL);
 			}
 		}
@@ -981,7 +992,7 @@ class DockingFolder(TabF, int Style) {
 			shell.setVisible(false);
 		}
 	}
-	private class CTFL :  CTabFolderListener {
+	private class CTFL : CTabFolderListener {
 		void itemClosed(CTabFolderEvent e) { mixin(S_TRACE);
 			_comp.setRedraw(false);
 			foreach (subShell; _subShells) subShell.setRedraw(false);
@@ -1834,6 +1845,7 @@ class DockingFolder(TabF, int Style) {
 	///  create = XMLノード内にControlのkeyが見つかった時に
 	///           呼出され、Controlを生成して返すdelegate。
 	static DockingFolder fromNode(ref XNode node, Composite parent, int style,
+			bool delegate(string) hasCloseButton,
 			bool delegate(typeof(this), string) canVanish,
 			Control delegate(Composite, string) create,
 			void delegate(Composite, string) createPaneEvent = null,
@@ -1842,6 +1854,9 @@ class DockingFolder(TabF, int Style) {
 		DockingFolder r = null;
 		try { mixin(S_TRACE);
 			r = new DockingFolder(parent, style, false);
+			static if (is(TabF:CTabFolder)) {
+				r.hasCloseButton = hasCloseButton;
+			}
 
 			node.onTag["controlMemories"] = (ref XNode node) { mixin(S_TRACE);
 				node.onTag["controlMemory"] = (ref XNode e) { mixin(S_TRACE);
