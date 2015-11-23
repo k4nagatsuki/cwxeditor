@@ -18,7 +18,7 @@ import std.string;
 import std.conv;
 import std.ascii;
 
-alias DockingFolder!(CTabFolder, SWT.BORDER | SWT.FLAT | SWT.CLOSE) DockingFolderCTC;
+alias DockingFolder!(CTabFolder, SWT.BORDER | SWT.FLAT) DockingFolderCTC;
 
 /// 方角。
 enum Dir {
@@ -80,7 +80,6 @@ class DockingFolder(TabF, int Style) {
 	} else static if (is(TabF == CTabFolder)) {
 		alias CTabItem Tab;
 	} else static assert (0);
-	private static const CLOSE = Style & SWT.CLOSE;
 	private enum DPos {N, E, S, W, C, NONE}
 
 	private int _style;
@@ -526,14 +525,20 @@ class DockingFolder(TabF, int Style) {
 		auto tabf = cast(TabF) ctrl.getParent();
 		if (!tabf) throw new Exception("no tabfolder");
 		Tab tab;
+		int style = SWT.NONE;
+		static if (is(TabF:CTabFolder)) {
+			if (!hasCloseButton || hasCloseButton(key)) { mixin(S_TRACE);
+				style |= SWT.CLOSE;
+			}
+		}
 		final switch (loc) {
 		case NewCtrlLocation.Right:
 			auto sel = selected(tabf);
 			if (!sel) goto case NewCtrlLocation.Last;
-			tab = new Tab(tabf, SWT.NONE, tabf.indexOf(sel) + 1);
+			tab = new Tab(tabf, style, tabf.indexOf(sel) + 1);
 			break;
 		case NewCtrlLocation.Last:
-			tab = new Tab(tabf, SWT.NONE);
+			tab = new Tab(tabf, style);
 			break;
 		}
 		tab.setText(tabText);
@@ -915,20 +920,13 @@ class DockingFolder(TabF, int Style) {
 	private TabF newTabf(Composite parent, string key) { mixin(S_TRACE);
 		if (!key.length) key = newTabfKey("t");
 		auto style = Style | SWT.NO_MERGE_PAINTS;
-		static if (is(TabF:CTabFolder)) {
-			if (hasCloseButton && !hasCloseButton(key)) { mixin(S_TRACE);
-				style &= ~SWT.CLOSE;
-			}
-		}
 		auto tabf = new TabF(parent, style);
 		_tKeys[key] = tabf;
 		_tabfs[tabf] = key;
 		_tabfList ~= tabf;
 
 		static if (is(TabF:CTabFolder)) {
-			if (style & SWT.CLOSE) { mixin(S_TRACE);
-				tabf.addCTabFolderListener(new CTFL);
-			}
+			tabf.addCTabFolder2Listener(new CTFL);
 		}
 
 		tabf.addSelectionListener(new SelTab);
@@ -992,8 +990,8 @@ class DockingFolder(TabF, int Style) {
 			shell.setVisible(false);
 		}
 	}
-	private class CTFL : CTabFolderListener {
-		void itemClosed(CTabFolderEvent e) { mixin(S_TRACE);
+	private class CTFL : CTabFolder2Adapter {
+		override void close(CTabFolderEvent e) { mixin(S_TRACE);
 			_comp.setRedraw(false);
 			foreach (subShell; _subShells) subShell.setRedraw(false);
 			scope (exit) {
@@ -1001,7 +999,7 @@ class DockingFolder(TabF, int Style) {
 				foreach (subShell; _subShells) subShell.setRedraw(true);
 			}
 			e.doit = false;
-			close(cast(Tab)e.item);
+			this.outer.close(cast(Tab)e.item);
 		}
 	}
 	/// tabfが分割領域の一部であれば分割相手のキーとtabfの方向を返す。
