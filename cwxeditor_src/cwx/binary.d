@@ -126,13 +126,15 @@ struct ByteIO {
 	/// Byteを読込む。
 	@property
 	ubyte readUByte() { mixin(S_TRACE);
-		enforce(_pointer < _bytes.length,
+		enforce(_pointer < _constBytes.length,
 			new Exception(format("read over: 0x%X", _pointer), __FILE__, __LINE__));
-		return _bytes[_pointer++];
+		return _constBytes[_pointer++];
 	}
 	/// ditto
 	@property
-	byte readByte() {return cast(byte) readUByte;}
+	byte readByte() {return cast(byte)readUByte;}
+	/// ditto
+	void read(out ubyte b) { b = readUByte; }
 	/// Duck Typingの便宜上用意されたreadUByte()の別名。
 	alias readUByte readUByteB;
 	/// ditto
@@ -644,8 +646,8 @@ version (BigEndian) {
 }
 
 /// rawRead()を持つInputStreamから1バイト読み込む。
-void read(InputStream, T)(ref InputStream stream, out T b) {
-	T[1] buf;
+void read(InputStream)(ref InputStream stream, out ubyte b) {
+	ubyte[1] buf;
 	.enforce(stream.rawRead(buf).length == 1);
 	b = buf[0];
 }

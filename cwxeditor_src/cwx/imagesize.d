@@ -4,9 +4,9 @@ module cwx.imagesize;
 import cwx.perf;
 import cwx.binary;
 
-import std.file;
+import std.file : exists, getSize;
 import std.path;
-import std.stdio;
+import std.stdio : File;
 import std.string;
 import std.traits;
 
@@ -153,19 +153,18 @@ bool jpgSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 		inp.read(b); if (0xFF != b) return false;
 		inp.read(b); if (0xD8 != b) return false;
 
-		ushort s;
 		do { mixin(S_TRACE);
 			inp.read(b); if (0xFF != b) return false;
 			inp.read(b);
 			if (0xC0 == b || 0xC2 == b) { mixin(S_TRACE);
-				inp.read(s);
+				inp.readUShortL;
 				inp.read(b);
 
 				y = readUShortB(inp);
 				x = readUShortB(inp);
 				return true;
 			} else { mixin(S_TRACE);
-				s = readUShortB(inp);
+				auto s = readUShortB(inp);
 				if (s <= 2) return false;
 				inp.seekCur(s - 2);
 			}
@@ -213,8 +212,7 @@ bool tifSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!
 		default:
 			return false;
 		}
-		ushort s;
-		inp.read(s);
+		inp.readUShortL;
 
 		uint i = littleEndian ? readUIntL(inp) : readUIntB(inp);
 		if (i + 2 + 24 > size) return false;
@@ -237,18 +235,18 @@ bool tifSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!
 		bool w = false;
 		bool h = false;
 		for (ushort c = 0; c < count; c++) { mixin(S_TRACE);
-			s = littleEndian ? readUShortL(inp) : readUShortB(inp);
+			auto s = littleEndian ? readUShortL(inp) : readUShortB(inp);
 			switch (s) {
 			case 0x0100:
-				inp.read(s);
-				inp.read(i);
+				inp.readUShortL;
+				inp.readUIntL;
 				x = littleEndian ? readUIntL(inp) : readUIntB(inp);
 				w = true;
 				if (h) return true;
 				break;
 			case 0x0101:
-				inp.read(s);
-				inp.read(i);
+				inp.readUShortL;
+				inp.readUIntL;
 				y = littleEndian ? readUIntL(inp) : readUIntB(inp);
 				h = true;
 				if (w) return true;
@@ -314,6 +312,7 @@ bool gifSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 ///  FileException = ファイル読込失敗時。
 bool bmpSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ubyte[])) {
 	ulong size = getSizeT!T(file);
+import cwx.utils;
 	if (22L <= size) { mixin(S_TRACE);
 		static if (isSomeString!T) {
 			auto inp = File(file, "rb");
@@ -323,17 +322,15 @@ bool bmpSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 			scope (exit) inp.dispose();
 		}
 
-		uint i;
-		ushort s;
 		ubyte b;
 		inp.read(b); if ('B' != b) return false;
 		inp.read(b); if ('M' != b) return false;
-		inp.read(i);
-		inp.read(s);
-		inp.read(s);
-		inp.read(i);
+		inp.readUIntL;
+		inp.readUShortL;
+		inp.readUShortL;
+		inp.readUIntL;
 
-		i = readUIntL(inp);
+		auto i = readUIntL(inp);
 		if (i == 12) { mixin(S_TRACE);
 			x = readUShortL(inp);
 			y = readUShortL(inp);
