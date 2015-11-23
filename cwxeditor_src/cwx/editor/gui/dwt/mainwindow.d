@@ -2817,7 +2817,10 @@ public:
 
 				auto mc = createMenu(_comm, bar, MenuID.Card);
 				setupMenuListener(mc);
-				auto g = new RadioGroup!(MenuItem);
+				auto g = new RadioGroupAndSet!(MenuItem);
+				g.menuIDs.add(MenuID.ShowCardProp);
+				g.menuIDs.add(MenuID.ShowCardImage);
+				g.menuIDs.add(MenuID.ShowCardDetail);
 				mixin (MenuAction!("mc", MenuID.ShowCardProp, SWT.RADIO, "showCardLife", "null"));
 				auto scf = _menu[MenuID.ShowCardProp];
 				g.append(scf);
@@ -2921,7 +2924,10 @@ public:
 						.createCoolItem(cbar, tbar);
 						_toolBar ~= tbar;
 					}
-					auto cardRG = new ToolItemGroup;
+					auto cardRG = new RadioGroupAndSet!ToolItem;
+					cardRG.menuIDs.add(MenuID.ShowCardProp);
+					cardRG.menuIDs.add(MenuID.ShowCardImage);
+					cardRG.menuIDs.add(MenuID.ShowCardDetail);
 					foreach (toolbar; _prop.var.etc.mainToolBar.tools) { mixin(S_TRACE);
 						auto bar = new ToolBar(cbar, SWT.FLAT);
 						foreach (tool; toolbar) { mixin(S_TRACE);
@@ -3754,8 +3760,17 @@ public:
 	private HashSet!(MenuID) _noSummMenu;
 	private MenuItem[MenuID] _menu;
 	private ToolItem[MenuID] _tool;
-	private RadioGroup!(MenuItem)[] _menuRG;
-	private RadioGroup!(ToolItem)[] _toolRG;
+	private class RadioGroupAndSet(T) {
+		RadioGroup!T group = null;
+		HashSet!MenuID menuIDs;
+		alias group this;
+		this () { mixin(S_TRACE);
+			group = new RadioGroup!T;
+			menuIDs = new HashSet!MenuID;
+		}
+	}
+	private RadioGroupAndSet!MenuItem[] _menuRG;
+	private RadioGroupAndSet!ToolItem[] _toolRG;
 	private HashSet!(MenuID) _mainMenu;
 	private ToolBar[] _toolBar;
 	private TopLevelPanel _tlp = null;
@@ -3822,22 +3837,23 @@ public:
 	private void setupMenuListener(Menu menu) { mixin(S_TRACE);
 		menu.addMenuListener(new MenuShown);
 	}
-	private void menuActionAfterImpl(T)(MenuID id, T[MenuID] tools, RadioGroup!(T)[] rg) { mixin(S_TRACE);
-		if (!_tlp) return;
-		if (_tlp.menuChecked(id)) { mixin(S_TRACE);
-			auto p = id in tools;
-			if (p) { mixin(S_TRACE);
-				auto b = *p;
-				foreach (g; rg) { mixin(S_TRACE);
-					if (g.contains(b)) { mixin(S_TRACE);
-						foreach (gb; g.set()) { mixin(S_TRACE);
-							gb.setSelection(gb is b);
-						}
-						return;
-					}
+	private void menuActionAfterImpl(T)(MenuID id, T[MenuID] tools, RadioGroupAndSet!T[] rg) { mixin(S_TRACE);
+		auto p = id in tools;
+		foreach (g; rg) { mixin(S_TRACE);
+			if (p && g.contains(*p)) { mixin(S_TRACE);
+				foreach (gb; g.set) { mixin(S_TRACE);
+					gb.setSelection(gb is *p);
 				}
-				b.setSelection(_tlp.menuChecked(id)());
+			} else if (g.menuIDs.contains(id)) {
+				// 選択されたアイテムがメニュー・ツールバー上に存在はしないが
+				// 同一ラジオグループの他のアイテムが存在している場合
+				foreach (gb; g.set) { mixin(S_TRACE);
+					gb.setSelection(false);
+				}
 			}
+		}
+		if (p && _tlp && _tlp.menuChecked(id)) { mixin(S_TRACE);
+			p.setSelection(_tlp.menuChecked(id)());
 		}
 	}
 	private void menuAction(MenuID ID)(SelectionEvent se) { mixin(S_TRACE);
