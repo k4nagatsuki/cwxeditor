@@ -3693,7 +3693,7 @@ public:
 	private bool canOpenDirectory() {return summary !is null;}
 	private void openDirectory() { mixin(S_TRACE);
 		if (!summary) return;
-		auto dirWin = cast(DirectoryWindow) _tlp;
+		auto dirWin = cast(DirectoryWindow)_tlp;
 		if (dirWin) { mixin(S_TRACE);
 			dirWin.openDirectory();
 		} else { mixin(S_TRACE);
@@ -3822,12 +3822,16 @@ public:
 	}
 	private class MenuShown : MenuAdapter {
 		override void menuShown(MenuEvent e) { mixin(S_TRACE);
-			auto menu = cast(Menu) e.widget;
+			auto menu = cast(Menu)e.widget;
 			foreach (itm; menu.getItems()) { mixin(S_TRACE);
 				if (itm.getStyle() & SWT.SEPARATOR) continue;
-				auto d = cast(MenuData) itm.getData();
+				auto d = cast(MenuData)itm.getData();
 				assert (d !is null);
-				if (d.enabled) continue; // createMenuItem()内の処理に任せる
+				if (d.enabled) { mixin(S_TRACE);
+					itm.setEnabled(d.enabled());
+					continue;
+				}
+				if (!_tlp) continue;
 				auto enabled = _tlp.menuEnabled(d.id);
 				if (!enabled) continue;
 				itm.setEnabled(enabled());
@@ -3907,7 +3911,7 @@ public:
 	}
 	private void dockSelect(string key) { mixin(S_TRACE);
 		if (!_dock.control(key)) return;
-		auto tlp = (cast(TLPData) _dock.control(key).getData()).tlp;
+		auto tlp = (cast(TLPData)_dock.control(key).getData()).tlp;
 		assert (tlp, key);
 		_tlp = tlp;
 		statusLine = tlp.statusLine;
