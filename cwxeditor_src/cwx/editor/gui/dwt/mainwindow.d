@@ -1872,8 +1872,12 @@ private:
 				break;
 			}
 		}
-		_prop.var.etc.openHistories
-			= [hist] ~ (hists.length < _prop.var.etc.historyMax ? hists : hists[0 .. $ - 1]);
+		if (0 < _prop.var.etc.historyMax) { mixin(S_TRACE);
+			_prop.var.etc.openHistories
+				= [hist] ~ (hists.length < _prop.var.etc.historyMax ? hists : hists[0 .. $ - 1]);
+		} else { mixin(S_TRACE);
+			_prop.var.etc.openHistories = [];
+		}
 		_prop.var.etc.lastScenario = p;
 		writeDock();
 		_prop.var.save(dock);
