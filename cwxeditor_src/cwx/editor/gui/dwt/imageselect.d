@@ -165,6 +165,7 @@ public:
 			_msel.modEvent ~= { mixin(S_TRACE);
 				foreach (dlg; modEvent) dlg();
 			};
+			_msel.loadedEvent ~= &_image.redraw;
 			{ mixin(S_TRACE);
 				auto comp = new Composite(compl, SWT.NONE);
 				comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

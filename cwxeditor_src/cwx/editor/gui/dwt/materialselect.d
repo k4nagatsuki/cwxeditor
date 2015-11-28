@@ -1522,7 +1522,7 @@ private:
 						index = valueToDef(_paths[_imageIndex], 0 < binPath.length);
 					}
 				} else {
-					if (this.path.isBinImg && indexOfBinPath) { mixin(S_TRACE);
+					if (path.isBinImg && indexOfBinPath) { mixin(S_TRACE);
 						index = indexOfBinPath(0 < binPath.length);
 					}
 				}
