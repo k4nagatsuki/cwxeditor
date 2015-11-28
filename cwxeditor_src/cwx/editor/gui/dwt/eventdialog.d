@@ -1139,7 +1139,7 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		ws ~= _mview.warnings;
-		if (_se.path != "" && !_se.selectedDefDir) ws ~= prop.msgs.warningNotDefaultSE;
+		if (_se.filePath != "" && !_se.selectedDefDir) ws ~= prop.msgs.warningNotDefaultSE;
 		warning = ws ~ comm.skin.warningSE(prop.parent, _se.filePath, summ.legacy, _prop.var.etc.targetVersion) ~ _se.warnings;
 	}
 public:
@@ -1264,6 +1264,7 @@ protected:
 					_se = new MaterialSelect!(MtType.SE, Combo, Combo)(comm, prop, summ, false, null, included => [prop.msgs.defaultSelection(prop.msgs.soundNone)]);
 					mod(_se);
 					_se.modEvent ~= &refreshWarning;
+					_se.loadedEvent ~= &refreshWarning;
 					_se.createDirsCombo(grp).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					_se.createStopButton(grp);
 					_se.createPlayButton(grp);
