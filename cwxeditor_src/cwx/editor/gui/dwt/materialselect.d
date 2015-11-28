@@ -49,6 +49,8 @@ class MaterialSelect(MtType Type, D, C) {
 	void delegate()[] modEvent;
 	/// イメージ格納時に呼び出される。
 	void delegate()[] includeEvent;
+	/// リスト更新完了時に呼び出される。
+	void delegate()[] loadedEvent;
 
 	static if (Type == MtType.CARD) {
 		/// defsのindexから値を返す関数。
@@ -120,7 +122,7 @@ class MaterialSelect(MtType Type, D, C) {
 			}
 		});
 		auto menu = new Menu(_dirs.getShell(), SWT.POP_UP);
-		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, () => !_readOnly);
+		createMenuItem(_comm, menu, MenuID.IncSearch, &startIncSearch, () => !_readOnly && !_loading);
 		_dirs.setMenu(menu);
 		return _dirs;
 	}
@@ -523,7 +525,6 @@ class MaterialSelect(MtType Type, D, C) {
 		private TimeBar _playBar = null;
 		private core.thread.Thread _playThr = null;
 		private UpdatePlayBar _updatePlayBar = null;
-		private Display _display = null;
 		TimeBar createPlayingBar(Composite parent) { mixin(S_TRACE);
 			_playBar = new TimeBar(parent, SWT.NONE);
 			initPlayBar();
@@ -763,8 +764,11 @@ class MaterialSelect(MtType Type, D, C) {
 			refBtn.setToolTipText(_prop.msgs.menuText(MenuID.Refresh));
 		}
 		.listener(refBtn, SWT.Selection, &doRefresh);
+		_comm.put(refBtn, &canRefresh);
 		return refBtn;
 	}
+	@property
+	bool canRefresh() { return !_loading; }
 	Button createDirectoryButton(Composite parent, bool text) { mixin(S_TRACE);
 		_dirBtn = new Button(parent, SWT.PUSH);
 		_dirBtn.setLayoutData(new GridData(GridData.FILL_VERTICAL));
@@ -775,14 +779,20 @@ class MaterialSelect(MtType Type, D, C) {
 		} else { mixin(S_TRACE);
 			_dirBtn.setToolTipText(_prop.msgs.menuText(MenuID.OpenDir));
 		}
+		_comm.put(_dirBtn, &canDirectoryButton);
 		return _dirBtn;
 	}
+	@property
+	bool canDirectoryButton() { return !_loading; }
 	ToolItem createRefreshToolItem(ToolBar bar) { mixin(S_TRACE);
 		return createToolItem(_comm, bar, MenuID.Refresh, &doRefresh, null);
 	}
 	ToolItem createDirectoryToolItem(ToolBar bar) { mixin(S_TRACE);
 		return createToolItem(_comm, bar, MenuID.OpenDir, &doDirectory, null);
 	}
+	@property
+	const
+	bool loading() { return _loading; }
 	static if (Type == MtType.CARD) {
 		@property
 		CardImage[] paths() { mixin(S_TRACE);
@@ -927,6 +937,7 @@ class MaterialSelect(MtType Type, D, C) {
 	}
 	@property
 	string filePath() { mixin(S_TRACE);
+		if (_loading) return "";
 		if (!_dirs || _dirs.isDisposed()) return "";
 		if (!_fileList || _fileList.isDisposed()) return "";
 		static if (Type == MtType.CARD || Type == MtType.BG_IMG) {
@@ -1261,38 +1272,77 @@ private:
 	ptrdiff_t dirsIndexOf(string path) { mixin(S_TRACE);
 		return indexOf(_dirs, path);
 	}
-	string[] targs(string path, bool forceRefresh) { mixin(S_TRACE);
+	string[] targs(string path, bool forceRefresh, bool subThr) { mixin(S_TRACE);
 		string[] r;
 		foreach (f; targsImpl(path, forceRefresh)) { mixin(S_TRACE);
-			if (_incSearch.match(f.baseName())) { mixin(S_TRACE);
+			if (subThr || _incSearch.match(f.baseName())) { mixin(S_TRACE);
 				r ~= f;
 			}
 		}
 		return r;
 	}
-	void refreshListImpl(string path, bool forceRefresh) { mixin(S_TRACE);
-		refreshListImpl2(targs(path, forceRefresh));
-		_allList = false;
-	}
-	void refreshListImpl(string[] paths, bool forceRefresh) { mixin(S_TRACE);
-		string[] tgs;
-		foreach (path; paths) { mixin(S_TRACE);
-			string parent;
-			if (cfnmatch(path, defDir)) { mixin(S_TRACE);
-				parent = "";
+	void refreshListImpl(string path, bool forceRefresh, bool subThr = false) { mixin(S_TRACE);
+		if (!_display) _display = _fileList.getDisplay();
+		void find() { mixin(S_TRACE);
+			auto tgs = targs(path, forceRefresh, subThr);
+			if (subThr) { mixin(S_TRACE);
+				_display.asyncExec(new class Runnable {
+					override void run() { mixin(S_TRACE);
+						if (_fileList.isDisposed()) return;
+						refreshListImpl2(tgs);
+						_allList = false;
+					}
+				});
 			} else { mixin(S_TRACE);
-				assert (_summ !is null);
-				parent = abs2rel(path, _summ.scenarioPath);
-				parent = dirSeparator.idup ~ parent;
+				refreshListImpl2(tgs);
+				_allList = false;
 			}
-			string[] s = targs(path, forceRefresh);
-			foreach (ref f; s) { mixin(S_TRACE);
-				f = encodePath(std.path.buildPath(parent, f));
-			}
-			tgs ~= s;
 		}
-		refreshListImpl2(tgs);
-		_allList = true;
+		if (subThr) { mixin(S_TRACE);
+			auto thr = new core.thread.Thread(&find);
+			thr.start();
+		} else { mixin(S_TRACE);
+			find();
+		}
+	}
+	void refreshListImpl(string[] paths, bool forceRefresh, bool subThr = false) { mixin(S_TRACE);
+		if (!_display) _display = _fileList.getDisplay();
+		void find() { mixin(S_TRACE);
+			string[] tgs;
+			foreach (path; paths) { mixin(S_TRACE);
+				string parent;
+				if (cfnmatch(path, defDir)) { mixin(S_TRACE);
+					parent = "";
+				} else { mixin(S_TRACE);
+					assert (_summ !is null);
+					parent = abs2rel(path, _summ.scenarioPath);
+					parent = dirSeparator.idup ~ parent;
+				}
+				string[] s = targs(path, forceRefresh, subThr);
+				foreach (ref f; s) { mixin(S_TRACE);
+					f = encodePath(std.path.buildPath(parent, f));
+				}
+				tgs ~= s;
+			}
+			if (subThr) { mixin(S_TRACE);
+				_display.asyncExec(new class Runnable {
+					override void run() { mixin(S_TRACE);
+						if (_fileList.isDisposed()) return;
+						refreshListImpl2(tgs);
+						_allList = true;
+					}
+				});
+			} else { mixin(S_TRACE);
+				refreshListImpl2(tgs);
+				_allList = true;
+			}
+		}
+		if (subThr) { mixin(S_TRACE);
+			auto thr = new core.thread.Thread(&find);
+			thr.start();
+		} else { mixin(S_TRACE);
+			find();
+		}
 	}
 	void refreshListImpl2(string[] tgs) { mixin(S_TRACE);
 		foreach (f; tgs) { mixin(S_TRACE);
@@ -1324,6 +1374,10 @@ private:
 		} else static if (!is (C == Combo) && !is (C == CCombo)) {
 			static assert (false);
 		}
+		_fileList.setEnabled(!_readOnly && _fileList.getItemCount());
+		_loading = false;
+		foreach (dlg; loadedEvent) dlg();
+		_comm.refreshToolBar();
 	}
 	@property
 	string[] allDirs() { mixin(S_TRACE);
@@ -1343,7 +1397,7 @@ private:
 		}
 		return st;
 	}
-	void refreshList(bool forceRefresh = false) { mixin(S_TRACE);
+	void refreshList(bool forceRefresh = false, bool subThr = false) { mixin(S_TRACE);
 		_fileList.removeAll();
 		_fnone = false;
 		auto defs = _defs(0 < binPath.length);
@@ -1351,9 +1405,12 @@ private:
 			auto dirs = allDirs;
 			if (!dirs.length) { mixin(S_TRACE);
 				_fileList.setEnabled(false);
+				_loading = false;
+				foreach (dlg; loadedEvent) dlg();
+				_comm.refreshToolBar();
 			} else { mixin(S_TRACE);
 				_fileList.setEnabled(!_readOnly);
-				refreshListImpl(dirs, forceRefresh);
+				refreshListImpl(dirs, forceRefresh, subThr);
 				static if (is(C : Combo) || is(C : CCombo)) {
 					_fileList.add(_prop.msgs.defaultSelection(_prop.msgs.fileNone), 0);
 					_fileList.select(0);
@@ -1363,7 +1420,7 @@ private:
 				}
 			}
 		} else if (_dirs.getSelectionIndex() == _tbl) { mixin(S_TRACE);
-			refreshListImpl(defDir, forceRefresh);
+			refreshListImpl(defDir, forceRefresh, subThr);
 		} else if (_summ) { mixin(S_TRACE);
 			string st;
 			if (_dirs.getText() == "/") { mixin(S_TRACE);
@@ -1371,19 +1428,21 @@ private:
 			} else { mixin(S_TRACE);
 				st = std.path.buildPath(_summ.scenarioPath, fromViewPath(_dirs.getText()));
 			}
-			refreshListImpl(st, forceRefresh);
+			refreshListImpl(st, forceRefresh, subThr);
 		}
 	}
-	void searchTarg(string dir, size_t cut) { mixin(S_TRACE);
+	string[] searchTarg(string dir, size_t cut) { mixin(S_TRACE);
+		string[] r = [];
 		if (hasTarg(dir)) { mixin(S_TRACE);
-			_dirs.add(dir.length <= cut ? "/" : toViewPath(dir[cut .. $]));
+			r ~= dir.length <= cut ? "/" : toViewPath(dir[cut .. $]);
 		}
 		foreach (f; dir.dirEntries(SpanMode.shallow)) { mixin(S_TRACE);
 			if (containsPath(_prop.var.etc.ignorePaths, f.baseName)) continue;
 			if (f.isDir) { mixin(S_TRACE);
-				searchTarg(f, cut);
+				r ~= searchTarg(f, cut);
 			}
 		}
+		return r;
 	}
 	void refreshPaths(string select = null, bool forceRefresh = false) { mixin(S_TRACE);
 		int oldSel = _dirs.getSelectionIndex();
@@ -1391,91 +1450,143 @@ private:
 		string oldSelS = _dirs.getText();
 
 		_dirs.removeAll();
+
+		string[] items;
 		auto defs = _defs(0 < binPath.length);
 		foreach (def; defs) { mixin(S_TRACE);
-			_dirs.add(def);
+			items ~= def;
 		}
 		auto tbl = defDir;
 		_tbl = -1;
 		if (hasTarg(tbl)) { mixin(S_TRACE);
-			_tbl = _dirs.getItemCount();
-			_dirs.add(_prop.msgs.defaultSelection(_prop.msgs.pathDef));
+			_tbl = cast(int)items.length;
+			items ~= _prop.msgs.defaultSelection(_prop.msgs.pathDef);
 		}
-		size_t cut = 0;
-		if (_summ) { mixin(S_TRACE);
-			string st = _summ.scenarioPath;
-			cut = st.length;
-			static if (altDirSeparator.length) {
-				if (!endsWith(st, dirSeparator) && !endsWith(st, altDirSeparator)) cut++;
-			} else { mixin(S_TRACE);
-				if (!endsWith(st, dirSeparator)) cut++;
+		ptrdiff_t dirsIndexOf(string path) { mixin(S_TRACE);
+			foreach (i, s; items) { mixin(S_TRACE);
+				if (cfnmatch(s, path)) { mixin(S_TRACE);
+					return i;
+				}
 			}
-			searchTarg(_summ.scenarioPath, cut);
+			return -1;
 		}
-		if (!select) { mixin(S_TRACE);
-			void selectOld() { mixin(S_TRACE);
-				if (oldSel < defs.length) { mixin(S_TRACE);
-					_dirs.select(oldSel);
+
+		if (!_display) _display = _dirs.getDisplay();
+		int dirsIndex = -1;
+
+		version (Win32) {
+			// FIXME: 同時に複数開くなどすると謎のアクセス違反が発生する
+			auto subThr = false;
+		} else {
+			auto subThr = !_dirs.isVisible();
+		}
+		_loading = subThr;
+		auto path = this.path;
+
+		void update() { mixin(S_TRACE);
+			size_t cut = 0;
+			if (_summ) { mixin(S_TRACE);
+				string st = _summ.scenarioPath;
+				cut = st.length;
+				static if (altDirSeparator.length) {
+					if (!endsWith(st, dirSeparator) && !endsWith(st, altDirSeparator)) cut++;
 				} else { mixin(S_TRACE);
-					auto index = dirsIndexOf(oldSelS);
-					if (index >= 0) { mixin(S_TRACE);
-						_dirs.select(cast(int)index);
-					} else if (_dirs.getItemCount() > 0) { mixin(S_TRACE);
-						_dirs.select(0);
+					if (!endsWith(st, dirSeparator)) cut++;
+				}
+				items ~= searchTarg(_summ.scenarioPath, cut);
+			}
+			if (!select) { mixin(S_TRACE);
+				void selectOld() { mixin(S_TRACE);
+					if (oldSel < defs.length) { mixin(S_TRACE);
+						dirsIndex = oldSel;
+					} else { mixin(S_TRACE);
+						auto index = dirsIndexOf(oldSelS);
+						if (index >= 0) { mixin(S_TRACE);
+							dirsIndex = cast(int)index;
+						} else if (items.length > 0) { mixin(S_TRACE);
+							dirsIndex = 0;
+						}
+					}
+					static if (Type == MtType.CARD) {
+						auto index = dirsIndex;
+						if (index < defs.length) { mixin(S_TRACE);
+							if (valueFromDef) { mixin(S_TRACE);
+								_paths[_imageIndex] = valueFromDef(index, 0 < binPath.length, binPath);
+							}
+						}
 					}
 				}
+				int index = -1;
 				static if (Type == MtType.CARD) {
-					auto index = _dirs.getSelectionIndex();
-					if (index < defs.length) { mixin(S_TRACE);
-						if (valueFromDef) { mixin(S_TRACE);
-							_paths[_imageIndex] = valueFromDef(index, 0 < binPath.length, binPath);
-						}
+					if (valueToDef) { mixin(S_TRACE);
+						index = valueToDef(_paths[_imageIndex], 0 < binPath.length);
+					}
+				} else {
+					if (this.path.isBinImg && indexOfBinPath) { mixin(S_TRACE);
+						index = indexOfBinPath(0 < binPath.length);
 					}
 				}
-			}
-			int index = -1;
-			static if (Type == MtType.CARD) {
-				if (valueToDef) { mixin(S_TRACE);
-					index = valueToDef(_paths[_imageIndex], 0 < binPath.length);
-				}
-			} else {
-				if (this.path.isBinImg && indexOfBinPath) { mixin(S_TRACE);
-					index = indexOfBinPath(0 < binPath.length);
-				}
-			}
-			if (0 <= index) { mixin(S_TRACE);
-				_dirs.select(index);
-			} else { mixin(S_TRACE);
-				bool def;
-				auto p = summSkin.findPathF(this.path, defExts, defDir, _summ ? _summ.scenarioPath : "", def);
-				if (p.length > 0) { mixin(S_TRACE);
-					if (def) { mixin(S_TRACE);
-						if (_tbl == -1) { mixin(S_TRACE);
-							// ファイルが無い
-							selectOld();
-						} else { mixin(S_TRACE);
-							_dirs.select(_tbl);
-						}
-					} else if (_summ) { mixin(S_TRACE);
-						string pt = dirName(p);
-						pt = pt.length <= cut ? dirSeparator.idup : pt[cut .. $];
-						pt = toViewPath(pt);
-						_dirs.select(cast(int)dirsIndexOf(pt));
-					}
+				if (0 <= index) { mixin(S_TRACE);
+					dirsIndex = index;
 				} else { mixin(S_TRACE);
-					selectOld();
+					bool def;
+					auto p = summSkin.findPathF(path, defExts, defDir, _summ ? _summ.scenarioPath : "", def);
+					if (p.length > 0) { mixin(S_TRACE);
+						if (def) { mixin(S_TRACE);
+							if (_tbl == -1) { mixin(S_TRACE);
+								// ファイルが無い
+								selectOld();
+							} else { mixin(S_TRACE);
+								dirsIndex = _tbl;
+							}
+						} else if (_summ) { mixin(S_TRACE);
+							string pt = dirName(p);
+							pt = pt.length <= cut ? dirSeparator.idup : pt[cut .. $];
+							pt = toViewPath(pt);
+							dirsIndex = cast(int)dirsIndexOf(pt);
+						}
+					} else { mixin(S_TRACE);
+						selectOld();
+					}
 				}
+			} else { mixin(S_TRACE);
+				select = toViewPath(select);
+				dirsIndex = cast(int)dirsIndexOf(select);
 			}
+			_selDir = dirsIndex;
+			if (_selDir == -1 && items.length) { mixin(S_TRACE);
+				_selDir = 0;
+				dirsIndex = _selDir;
+			}
+
+			void updateList() { mixin(S_TRACE);
+				setComboItems(_dirs, items);
+				_dirs.select(dirsIndex);
+
+				refreshList(forceRefresh, subThr);
+			}
+			if (subThr) { mixin(S_TRACE);
+				_display.asyncExec(new class Runnable {
+					override void run() { mixin(S_TRACE);
+						if (_dirs.isDisposed()) return;
+						updateList();
+						_dirs.setEnabled(!_readOnly);
+						_fileList.setEnabled(!_readOnly && _fileList.getItemCount());
+					}
+				});
+			} else { mixin(S_TRACE);
+				updateList();
+			}
+		}
+		if (subThr) { mixin(S_TRACE);
+			_dirs.setEnabled(false);
+			_fileList.setEnabled(false);
+			_comm.refreshToolBar();
+			auto thr = new core.thread.Thread(&update);
+			thr.start();
 		} else { mixin(S_TRACE);
-			select = toViewPath(select);
-			_dirs.setText(select);
+			update();
 		}
-		_selDir = _dirs.getSelectionIndex();
-		if (_selDir == -1 && _dirs.getItemCount()) { mixin(S_TRACE);
-			_selDir = 0;
-			_dirs.select(_selDir);
-		}
-		refreshList(forceRefresh);
 	}
 
 	void refPaths(Object sender, string parent) { mixin(S_TRACE);
@@ -1573,6 +1684,7 @@ private:
 		return _summSkin ? _summSkin : _comm.skin;
 	}
 
+	Display _display = null;
 	int _readOnly = 0;
 	Props _prop;
 	Commons _comm;
@@ -1592,6 +1704,7 @@ private:
 	Skin _summSkin;
 	bool _processing = false;
 	int _imageIndex = 0;
+	bool _loading = false;
 	static if (Type == MtType.CARD) {
 		CardImage[] _paths = [];
 		string[] _binPaths = [];

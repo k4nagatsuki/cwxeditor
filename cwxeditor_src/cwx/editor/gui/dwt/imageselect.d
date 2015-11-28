@@ -175,6 +175,7 @@ public:
 				imgList.setImage(_prop.images.menu(MenuID.LookImages));
 				imgList.setToolTipText(_prop.msgs.menuText(MenuID.LookImages));
 				imgList.addSelectionListener(new SelImageList);
+				_comm.put(imgList, () => !_readOnly && !_msel.loading);
 				_msel.createRefreshButton(comp, true).setLayoutData(new GridData(GridData.FILL_BOTH));
 				_msel.createDirectoryButton(comp, false).setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				static if (Type is MtType.CARD) {
@@ -188,6 +189,7 @@ public:
 					.listener(_noCardSize, SWT.Selection, { mixin(S_TRACE);
 						_msel.useNoCardSizeImage = _noCardSize.getSelection();
 					});
+					_comm.put(_noCardSize, () => !_readOnly && !_msel.loading);
 				}
 			}
 		}

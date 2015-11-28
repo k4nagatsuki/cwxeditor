@@ -166,11 +166,11 @@ private:
 				break;
 			}
 		}
-		if (_se1.path != "" && !_se1.selectedDefDir) { mixin(S_TRACE);
+		if (_se1.filePath != "" && !_se1.selectedDefDir) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningNotDefaultSE;
 		}
 		ws ~= summSkin.warningSE(_prop.parent, _se1.filePath, _summ.legacy, _prop.var.etc.targetVersion) ~ _se1.warnings;
-		if (_se2.path != "" && !_se2.selectedDefDir) { mixin(S_TRACE);
+		if (_se2.filePath != "" && !_se2.selectedDefDir) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningNotDefaultSE;
 		}
 		ws ~= summSkin.warningSE(_prop.parent, _se2.filePath, _summ.legacy, _prop.var.etc.targetVersion) ~ _se2.warnings;
@@ -713,6 +713,7 @@ private:
 				auto se = new MaterialSelect!(MtType.SE, Combo, Combo)(_comm, _prop, _summ, _readOnly != 0, null, included => [_prop.msgs.defaultSelection(_prop.msgs.soundNone)]);
 				mod(se);
 				se.modEvent ~= &refreshWarning;
+				se.loadedEvent ~= &refreshWarning;
 
 				auto l = new CLabel(comp, SWT.NONE);
 				auto gdl = new GridData(GridData.FILL_HORIZONTAL);
