@@ -1727,7 +1727,11 @@ private:
 		scope (exit) {
 			oldStgs.raiseEvent(_comm);
 		}
+		auto mainToolBar = _prop.var.etc.mainToolBar.dup;
 		_prop.var.reload();
+		if (mainToolBar != _prop.var.etc.mainToolBar) { mixin(S_TRACE);
+			updateMainToolBar();
+		}
 	}
 	private SettingsDialog _stgDlg = null;
 	void settings() { mixin(S_TRACE);
@@ -3342,12 +3346,21 @@ public:
 		auto dlg = new ToolBarCustomDialog(_comm, _win, _prop.var.etc.mainToolBar, _prop.var.etc.mainToolBar.INIT);
 		dlg.appliedEvent ~= { mixin(S_TRACE);
 			_prop.var.etc.mainToolBar = dlg.tools;
-			createMainToolBar();
-			refShowMainToolBar();
-			_toolComp.getParent().layout(true);
-			_comm.refreshToolBar();
+			updateMainToolBar();
+			sendReloadPropsAndSave();
 		};
 		dlg.open();
+	}
+	private void updateMainToolBar() { mixin(S_TRACE);
+		if (_win.isVisible()) _win.setRedraw(false);
+		scope (exit) {
+			if (_win.isVisible()) _win.setRedraw(true);
+		}
+		createMainToolBar();
+		refShowMainToolBar();
+		_toolComp.layout(true);
+		_toolComp.getParent().layout(true);
+		_comm.refreshToolBar();
 	}
 	private void doMenu(MenuID ID)(SelectionEvent e) { mixin(S_TRACE);
 		auto menu = getMenu!ID;
