@@ -505,11 +505,18 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start,
 	version (Windows) {
 		if (SOUND_TYPE_BASS == soundPlayType) { mixin(S_TRACE);
 			// BASSがロードされている場合はBASSで再生する
+			initBass();
 			if (playBass(file, loopCount, spLoop, bassStream, volume, fadeIn, mciName)) { mixin(S_TRACE);
+				lastSoundType = soundPlayType;
 				return;
 			}
 			// ここへ来たら再生失敗
 		}
+	}
+	static immutable mciType = [".mid", ".midi", ".mp3", ".wav"];
+	auto ext = file.extension().toLower();
+	if (soundPlayType == SOUND_TYPE_MCI && !mciType.contains(ext)) { mixin(S_TRACE);
+		soundPlayType = SOUND_TYPE_SDL;
 	}
 	try { mixin(S_TRACE);
 		version (Windows) {
@@ -539,6 +546,7 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start,
 						new Exception("MCI play: " ~ file));
 				}
 				playingMCI = true;
+				lastSoundType = SOUND_TYPE_MCI;
 				return;
 			}
 		} else {
@@ -607,6 +615,7 @@ private void play(ref Mix_Music* music, ref Mix_Chunk* chunk, ref clock_t start,
 					}
 				}
 				start = .clock();
+				lastSoundType = SOUND_TYPE_SDL;
 			}
 		}
 	} catch (Exception e) {
@@ -655,6 +664,13 @@ private void stop(ref Mix_Music* music, ref Mix_Chunk* chunk, ref c_int channel,
 
 __gshared void delegate()[] stopBGMEvent;
 __gshared void delegate()[] stopSEEvent;
+
+/// 最後に選択された音声再生方式。
+version (Windows) {
+	__gshared int lastSoundType = SOUND_TYPE_MCI;
+} else {
+	__gshared int lastSoundType = SOUND_TYPE_SDL;
+}
 
 /// 指定されたディレクトリにあるBASSのDLLをロードし、初期化する。
 bool initBass(string bassDir, in string[] bassSoundFonts) { mixin(S_TRACE);

@@ -1176,7 +1176,7 @@ private:
 	void playSavedSound() { mixin(S_TRACE);
 		string file = _prop.var.etc.savedSound;
 		if (file.length && .exists(file)) { mixin(S_TRACE);
-			playSE(file, 0, 1, SOUND_TYPE_MCI, true);
+			playSE(file, 0, 1, lastSoundType, true);
 		}
 	}
 	void saveScenario() { mixin(S_TRACE);
@@ -2373,6 +2373,7 @@ private:
 				_bassDir = "";
 			}
 		}
+		lastSoundType = bgmType;
 	}
 public:
 	this (string appPath, cwx.system.System sys, Props prop, LaunchOption opt) { mixin(S_TRACE);
