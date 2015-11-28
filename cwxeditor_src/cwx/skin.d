@@ -1008,8 +1008,8 @@ class Skin {
 
 	const
 	private bool has(alias isT, Arg ...)(string dir, Arg args) { mixin(S_TRACE);
-		foreach (file; clistdir(dir)) { mixin(S_TRACE);
-			if (isT(std.path.buildPath(dir, file), args)) return true;
+		foreach (file; dir.dirEntries(SpanMode.shallow)) { mixin(S_TRACE);
+			if (isT(file, args)) return true;
 		}
 		return false;
 	}

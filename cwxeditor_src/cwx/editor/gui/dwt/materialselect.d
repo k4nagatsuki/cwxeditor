@@ -1378,10 +1378,9 @@ private:
 		if (hasTarg(dir)) { mixin(S_TRACE);
 			_dirs.add(dir.length <= cut ? "/" : toViewPath(dir[cut .. $]));
 		}
-		foreach (f; clistdir(dir)) { mixin(S_TRACE);
-			if (containsPath(_prop.var.etc.ignorePaths, f)) continue;
-			f = std.path.buildPath(dir, f);
-			if (isDir(f)) { mixin(S_TRACE);
+		foreach (f; dir.dirEntries(SpanMode.shallow)) { mixin(S_TRACE);
+			if (containsPath(_prop.var.etc.ignorePaths, f.baseName)) continue;
+			if (f.isDir) { mixin(S_TRACE);
 				searchTarg(f, cut);
 			}
 		}

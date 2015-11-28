@@ -3819,3 +3819,11 @@ void shrinkDrawText(GC gc, string title, int x, int y, in Point size, bool smoot
 	scope (exit) img2.dispose();
 	gc.drawImage(img2, x, y);
 }
+
+void asyncExec(Display d, void delegate() dlg) { mixin(S_TRACE);
+	d.asyncExec(new class Runnable {
+		override void run() { mixin(S_TRACE);
+			dlg();
+		}
+	});
+}
