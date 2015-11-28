@@ -109,6 +109,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.switchTabWheel, prop.msgs.switchTabWheel);
 		boolSetting(comp, prop.var.etc.closeTabWithMiddleClick, prop.msgs.closeTabWithMiddleClick);
 		boolSetting(comp, prop.var.etc.openTabAtRightOfCurrentTab, prop.msgs.openTabAtRightOfCurrentTab);
+		boolSetting(comp, prop.var.etc.showCloseButtonAllTab, prop.msgs.showCloseButtonAllTab);
 		boolSetting(comp, prop.var.etc.comboListVisible, prop.msgs.comboListVisible);
 		boolSetting!int(comp, prop.var.etc.editTriggerType, prop.msgs.editTriggerTypeIsQuick, (int value) { mixin(S_TRACE);
 			return value is EditTrigger.Quick;

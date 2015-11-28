@@ -199,6 +199,20 @@ class DockingFolder(TabF, int Style) {
 		/// paneKeyに該当するペインが各タブが閉じるボタンを持つ場合はtrueを返す。
 		/// デフォルトでは常に閉じるボタンをつける。
 		bool delegate(string paneKey) hasCloseButton = null;
+		/// 閉じるボタンの有無条件を変更した後にコールする事で、
+		/// 各タブの状態を更新する。
+		void updateCloseButtons() { mixin(S_TRACE);
+			_comp.setRedraw(false);
+			scope (exit) _comp.setRedraw(true);
+			foreach (tabf; _tabfList) { mixin(S_TRACE);
+				auto sel = tabf.getSelectionIndex();
+				foreach (i, tab; tabf.getItems()) { mixin(S_TRACE);
+					newTab(tabf, tab, i, true);
+					tab.dispose();
+				}
+				tabf.setSelection(sel);
+			}
+		}
 	}
 	/// Controlを移動する際、移動の可否を決定するためのdelegate。
 	/// nullの場合は常に移動可能となる。
@@ -1267,10 +1281,21 @@ class DockingFolder(TabF, int Style) {
 		auto s = ctrl.getSize();
 		return new Rectangle(cp.x - cvp.x, cp.y - cvp.y, s.x, s.y);
 	}
-	private void newTab(TabF tabf, Tab tab, ptrdiff_t index) { mixin(S_TRACE);
+	private void newTab(TabF tabf, Tab tab, ptrdiff_t index, bool updateCloseStyle = false) { mixin(S_TRACE);
+		auto style = tab.getStyle();
+		static if (is(TabF:CTabFolder)) {
+			if (updateCloseStyle) { mixin(S_TRACE);
+				auto key = keyFromCtrl(tab.getControl());
+				if (hasCloseButton && !hasCloseButton(key)) { mixin(S_TRACE);
+					style &= ~SWT.CLOSE;
+				} else { mixin(S_TRACE);
+					style |= SWT.CLOSE;
+				}
+			}
+		}
 		auto newTab = index != -1
-			? new Tab(tabf, tab.getStyle(), cast(int)index)
-			: new Tab(tabf, tab.getStyle());
+			? new Tab(tabf, style, cast(int)index)
+			: new Tab(tabf, style);
 		auto c = tab.getControl();
 		c.setParent(tabf);
 		{ mixin(S_TRACE);

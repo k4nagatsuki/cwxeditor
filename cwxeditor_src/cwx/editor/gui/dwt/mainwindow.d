@@ -2543,7 +2543,7 @@ public:
 			dockComp.setLayout(windowGridLayout(1, true));
 			dStr ~= " - " ~ .text(__LINE__);
 			bool hasCloseButton(string key) { mixin(S_TRACE);
-				return std.string.startsWith(key, "work") || std.string.startsWith(key, "side");
+				return _prop.var.etc.showCloseButtonAllTab || std.string.startsWith(key, "work") || std.string.startsWith(key, "side");
 			}
 			_dock = _prop.var.loadDock(dockComp, SWT.NONE, &hasCloseButton, &dockCanVanish, delegate Control(Composite parent, string key) { mixin(S_TRACE);
 				scope (exit) {

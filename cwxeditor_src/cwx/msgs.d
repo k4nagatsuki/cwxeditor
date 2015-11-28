@@ -1662,6 +1662,7 @@ class Msgs : Properties {
 	auto switchTabWheel = Msg("switchTabWheel", "マウスホイールでタブ切替を行う");
 	auto closeTabWithMiddleClick = Msg("closeTabWithMiddleClick", "中ボタンクリックでタブを閉じる");
 	auto openTabAtRightOfCurrentTab = Msg("openTabAtRightOfCurrentTab", "新しいタブを現在のタブの直後に開く");
+	auto showCloseButtonAllTab = Msg("showCloseButtonAllTab", "全てのタブに閉じるボタンを表示する");
 	auto comboListVisible = Msg("comboListVisible", "コンボボックスでの編集開始時にリストを開く");
 	auto editTriggerTypeIsQuick = Msg("editTriggerTypeIsQuick", "選択項目のクリックですぐにテキストの編集を開始する");
 	auto xmlCopy = Msg("xmlCopy", "コピーや切り取りを常にXML形式で行う");

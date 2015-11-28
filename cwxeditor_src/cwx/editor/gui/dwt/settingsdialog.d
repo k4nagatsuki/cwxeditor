@@ -1462,6 +1462,7 @@ struct OldSettings {
 	bool showAreaDirTree;
 	bool contentsFloat;
 	bool contentsAutoHide;
+	bool showCloseButtonAllTab;
 	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
 		this.targetVersion = prop.var.etc.targetVersion;
@@ -1512,6 +1513,7 @@ struct OldSettings {
 		this.showAreaDirTree = prop.var.etc.showAreaDirTree;
 		this.contentsFloat = prop.var.etc.contentsFloat;
 		this.contentsAutoHide = prop.var.etc.contentsAutoHide;
+		this.showCloseButtonAllTab = prop.var.etc.showCloseButtonAllTab;
 	}
 	void raiseEvent(Commons comm) { mixin(S_TRACE);
 		bool refSkin = false;
@@ -1652,8 +1654,11 @@ struct OldSettings {
 		if (this.showAreaDirTree != prop.var.etc.showAreaDirTree) { mixin(S_TRACE);
 			comm.refTableViewStyle.call();
 		}
-		if (this.contentsFloat != prop.var.etc.contentsFloat || this.contentsAutoHide != prop.var.etc.contentsAutoHide) {
+		if (this.contentsFloat != prop.var.etc.contentsFloat || this.contentsAutoHide != prop.var.etc.contentsAutoHide) { mixin(S_TRACE);
 			comm.refContentsToolBoxStyle.call();
+		}
+		if (this.showCloseButtonAllTab != prop.var.etc.showCloseButtonAllTab && comm.mainWin.dock) { mixin(S_TRACE);
+			comm.mainWin.dock.updateCloseButtons();
 		}
 	}
 }
