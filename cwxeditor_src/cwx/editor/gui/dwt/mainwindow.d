@@ -582,8 +582,8 @@ private:
 	Menu _mOuterTools;
 	Menu _tmOuterTools;
 	void refreshOuterTools() { mixin(S_TRACE);
-		refreshOuterToolsImpl(_mOuterTools);
-		refreshOuterToolsImpl(_tmOuterTools);
+		if (_mOuterTools) refreshOuterToolsImpl(_mOuterTools);
+		if (_tmOuterTools) refreshOuterToolsImpl(_tmOuterTools);
 		setupMenu(_menu);
 		setupMenu(_tool);
 	}
@@ -1620,7 +1620,7 @@ private:
 			if (_win.isVisible()) _win.setRedraw(true);
 		}
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
-		if (!_prop.var.etc.showMainToolBar) { mixin(S_TRACE);
+		if (!_prop.var.etc.showMainToolBar || !_cbar) { mixin(S_TRACE);
 			gd.heightHint = 0;
 		}
 		_toolComp.setLayoutData(gd);
@@ -2719,6 +2719,7 @@ public:
 			_noSummMenu.add(MenuID.ShowCardImage);
 			_noSummMenu.add(MenuID.ShowCardDetail);
 			_noSummMenu.add(MenuID.ExecEngine);
+			_noSummMenu.add(MenuID.CustomizeToolBar);
 			_noSummMenu.add(MenuID.Settings);
 			_noSummMenu.add(MenuID.VersionInfo);
 
@@ -2868,6 +2869,8 @@ public:
 				new MenuItem(mt, SWT.SEPARATOR);
 				mixin (MenuAction!("mt", MenuID.OpenImportSource, SWT.PUSH, "addScenario", "&canAddScenario"));
 				new MenuItem(mt, SWT.SEPARATOR);
+				mixin (MenuAction!("mt", MenuID.CustomizeToolBar, SWT.PUSH, "customizeToolBar", "null"));
+				new MenuItem(mt, SWT.SEPARATOR);
 				mixin (MenuAction!("mt", MenuID.Settings, SWT.PUSH, "settings", "null"));
 
 				auto mh = createMenu(_comm, bar, MenuID.Help);
@@ -2887,342 +2890,8 @@ public:
 				createMenuItem2(_comm, tmOpenCardWin, _prop.msgs.beast, _prop.images.beast, &openBeast, null);
 				createMenuItem2(_comm, tmOpenCardWin, _prop.msgs.info, _prop.images.info, &openInfo, null);
 			}
-			void createExecEngineTI(ToolBar bar) { mixin(S_TRACE);
-				_mainMenu.add(MenuID.ExecEngine);
-				_tiExecEngine = createDropDownItem(_comm, bar, MenuID.ExecEngine, &execEngine, _tmExecEngine, () => canExecEngine || _prop.var.etc.classicEngines.length);
-				_tool[MenuID.ExecEngine] = _tiExecEngine;
-				listener(_tiExecEngine, SWT.Dispose, { mixin(S_TRACE);
-					auto img = _tiExecEngine.getImage();
-					if (_prop.images.menu(MenuID.ExecEngineAuto) !is img) { mixin(S_TRACE);
-						img.dispose();
-					}
-				});
-			}
-			void createExecEngineWithPartyTI(ToolBar bar) { mixin(S_TRACE);
-				_mainMenu.add(MenuID.ExecEngineWithParty);
-				_tiExecEngineWithParty = createDropDownItem(_comm, bar, MenuID.ExecEngineWithParty, &execEngineWithLastParty, _tmExecEngineWithParty, () => canExecEngineWithLastParty || canExecEngineWithParty);
-				_tool[MenuID.ExecEngineWithParty] = _tiExecEngineWithParty;
-				listener(_tiExecEngineWithParty, SWT.Dispose, { mixin(S_TRACE);
-					auto img = _tiExecEngineWithParty.getImage();
-					if (_prop.images.menu(MenuID.ExecEngineWithParty) !is img) { mixin(S_TRACE);
-						img.dispose();
-					}
-				});
-				updateExecEngineWithPartyNameTI();
-			}
-
-			void createOuterToolsTI(ToolBar bar) { mixin(S_TRACE);
-				_mainMenu.add(MenuID.OuterTools);
-				auto ti = createDropDownItem(_comm, bar, MenuID.OuterTools, null, _tmOuterTools, () => _prop.var.etc.outerTools.length > 0);
-				_tool[MenuID.OuterTools] = ti;
-			}
 
 			dStr ~= " - " ~ .text(__LINE__);
-			void createMainToolBar() { mixin(S_TRACE);
-				_toolRG = [];
-				_toolBar = [];
-				_tool = null;
-				if (_cbar) _cbar.dispose();
-				_cbar = createCoolBar!("tools")(_comm, _toolComp, (CoolBar cbar) { mixin(S_TRACE);
-					void createCoolItem(CoolBar cbar, ToolBar tbar) { mixin(S_TRACE);
-						.createCoolItem(cbar, tbar);
-						_toolBar ~= tbar;
-					}
-					auto cardRG = new RadioGroupAndSet!ToolItem;
-					cardRG.menuIDs.add(MenuID.ShowCardProp);
-					cardRG.menuIDs.add(MenuID.ShowCardImage);
-					cardRG.menuIDs.add(MenuID.ShowCardDetail);
-					foreach (toolbar; _prop.var.etc.mainToolBar.tools) { mixin(S_TRACE);
-						auto bar = new ToolBar(cbar, SWT.FLAT);
-						foreach (tool; toolbar) { mixin(S_TRACE);
-							if (tool.separator) { mixin(S_TRACE);
-								new ToolItem(bar, SWT.SEPARATOR);
-							} else { mixin(S_TRACE);
-								void delegate(SelectionEvent se) actS = null;
-								void delegate() act = null;
-								bool delegate() can = null;
-								int style = SWT.PUSH;
-
-								final switch (tool.menu) {
-								case MenuID.New: act = &createScenario; can = null; break;
-								case MenuID.Open: act = &openScenarioM; can = null; break;
-								case MenuID.Save: act = &saveScenario; can = &canSaveOverwrite; break;
-								case MenuID.SaveAs: act = &saveScenarioA; can = () => summary !is null && !_inSaving; break;
-								case MenuID.CreateArchive: act = &_dirWin.createArchive; can = &_dirWin.canCreateArchive; break;
-								case MenuID.Reload: act = &reload; can = () => summary !is null; break;
-								case MenuID.Refresh: actS = &refreshAll; can = () => summary !is null; break;
-								case MenuID.Find: act = &replaceText; can = null; break;
-								case MenuID.ReNumberingAll: act = &reNumberingAll; can = () => summary !is null; break;
-								case MenuID.ToXMLText: act = &clipboardToXML; can = () => CBisXMLOnly(_comm.clipboard); break;
-								case MenuID.TableView: act = &openDataWindow; can = null; break;
-								case MenuID.VarView: act = &openFlagWindow; can = null; break;
-								case MenuID.CastView: act = &openCast; can = null; break;
-								case MenuID.SkillView: act = &openSkill; can = null; break;
-								case MenuID.ItemView: act = &openItem; can = null; break;
-								case MenuID.BeastView: act = &openBeast; can = null; break;
-								case MenuID.InfoView: act = &openInfo; can = null; break;
-								case MenuID.FileView: act = &openDirWindow; can = null; break;
-								case MenuID.EditSummary: act = &_tableWin.editSummary; can = () => summary !is null; break;
-								case MenuID.NewAreaDir: act = &_tableWin.createAreaDir; can = &_tableWin.canCreateAreaDir; break;
-								case MenuID.NewArea: act = &_tableWin.createArea; can = &_tableWin.canCreateArea; break;
-								case MenuID.NewBattle: act = &_tableWin.createBattle; can = &_tableWin.canCreateBattle; break;
-								case MenuID.NewPackage: act = &_tableWin.createPackage; can = &_tableWin.canCreatePackage; break;
-								case MenuID.NewFlagDir: act = &_flagWin.createFlagDir; can = &_flagWin.canCreateFlagDir; break;
-								case MenuID.NewFlag: act = &_flagWin.createFlag; can = &_flagWin.canCreateFlag; break;
-								case MenuID.NewStep: act = &_flagWin.createStep; can = &_flagWin.canCreateStep; break;
-								case MenuID.ShowCardProp: actS = &showCardLife; can = null; style = SWT.RADIO; break;
-								case MenuID.ShowCardImage: actS = &showCardList; can = null; style = SWT.RADIO; break;
-								case MenuID.ShowCardDetail: actS = &showCardTable; can = null; style = SWT.RADIO; break;
-								case MenuID.NewCast: act = &newCast; can = &canNewCast; break;
-								case MenuID.NewSkill: act = &newSkill; can = &canNewSkill; break;
-								case MenuID.NewItem: act = &newItem; can = &canNewItem; break;
-								case MenuID.NewBeast: act = &newBeast; can = &canNewBeast; break;
-								case MenuID.NewInfo: act = &newInfo; can = &canNewInfo; break;
-								case MenuID.OpenImportSource: act = &addScenario; can = &canAddScenario; break;
-								case MenuID.OpenDir: act = &openDirectory; can = &canOpenDirectory; break;
-								case MenuID.NewDir: act = &_dirWin.createNewFolder; can = &_dirWin.canCreateNewFolder; break;
-								case MenuID.ExecEngine: createExecEngineTI(bar); continue;
-								case MenuID.ExecEngineWithParty: createExecEngineWithPartyTI(bar); continue;
-								case MenuID.OuterTools: createOuterToolsTI(bar); continue;
-								case MenuID.Settings: act = &settings; can = null; break;
-								case MenuID.DelNotUsedFile: actS = &_dirWin.deleteUnuse; can = &_dirWin.canDeleteUnuse; break;
-								case MenuID.ShowMainToolBar: actS = &revShowMainToolBar; can = null; style = SWT.CHECK; break;
-								case MenuID.ShowSceneToolBar: actS = &revShowSceneToolBar; can = null; style = SWT.CHECK; break;
-								case MenuID.ShowEventToolBar: actS = &revShowEventToolBar; can = null; style = SWT.CHECK; break;
-								case MenuID.NewAtNewWindow: act = &createScenarioNewWin; can = null; break;
-								case MenuID.OpenAtNewWindow: act = &openScenarioNewWin; can = null; break;
-								case MenuID.Close: act = &exitAll; can = null; break;
-								case MenuID.VersionInfo: act = &versionInfo; can = null; break;
-								case MenuID.IncSearch: actS = &doMenu!(MenuID.IncSearch); can = &canDoMenu!(MenuID.IncSearch); break;
-								case MenuID.SelectAll: actS = &doMenu!(MenuID.SelectAll); can = &canDoMenu!(MenuID.SelectAll); break;
-								case MenuID.Undo:
-								case MenuID.Redo:
-								case MenuID.Cut:
-								case MenuID.Copy:
-								case MenuID.Paste:
-								case MenuID.Delete:
-								case MenuID.Clone:
-								case MenuID.Comment:
-								case MenuID.ToScript:
-								case MenuID.ToScriptAll:
-								case MenuID.Up:
-								case MenuID.Down:
-								case MenuID.SelectConnectedResource:
-								case MenuID.FindID:
-								case MenuID.EditScene:
-								case MenuID.EditSceneDup:
-								case MenuID.EditEvent:
-								case MenuID.EditEventDup:
-								case MenuID.EditProp:
-								case MenuID.ShowProp:
-								case MenuID.Cut1Content:
-								case MenuID.Copy1Content:
-								case MenuID.Delete1Content:
-								case MenuID.PasteInsert:
-								case MenuID.SetStartArea:
-								case MenuID.CopyVariablePath:
-								case MenuID.SwapToParent:
-								case MenuID.SwapToChild:
-								case MenuID.Import:
-								case MenuID.OpenHand:
-								case MenuID.AddHand:
-								case MenuID.RemoveRef:
-								case MenuID.EditEventAtTimeOfUsing:
-								case MenuID.Hold:
-								case MenuID.CopyFilePath:
-								case MenuID.ToScript1Content:
-								case MenuID.ChangeVH:
-								case MenuID.ReNumbering:
-								case MenuID.EventToPackage:
-								case MenuID.StartToPackage:
-								case MenuID.WrapTree:
-									break;
-								case MenuID.None:
-								case MenuID.File:
-								case MenuID.Edit:
-								case MenuID.View:
-								case MenuID.Tool:
-								case MenuID.Table:
-								case MenuID.Variable:
-								case MenuID.Help:
-								case MenuID.Card:
-								case MenuID.CardsAndBacks:
-								case MenuID.CreateSubWindow:
-								case MenuID.LeftPane:
-								case MenuID.RightPane:
-								case MenuID.ClosePane:
-								case MenuID.ClosePaneExcept:
-								case MenuID.ClosePaneLeft:
-								case MenuID.ClosePaneRight:
-								case MenuID.ClosePaneAll:
-								case MenuID.CloseWin:
-								case MenuID.OpenPlace:
-								case MenuID.SaveImage:
-								case MenuID.IncludeImage:
-								case MenuID.LookImages:
-								case MenuID.EditLayers:
-								case MenuID.AddLayer:
-								case MenuID.RemoveLayer:
-								case MenuID.CloseIncSearch:
-								case MenuID.CardView:
-								case MenuID.ExecEngineAuto:
-								case MenuID.ExecEngineMain:
-								case MenuID.ExecEngineWithLastParty:
-								case MenuID.LockToolBar:
-								case MenuID.ResetToolBar:
-								case MenuID.CopyAsText:
-								case MenuID.OpenAtView:
-								case MenuID.CreateContent:
-								case MenuID.ConvertContent:
-								case MenuID.CGroupTerminal:
-								case MenuID.CGroupStandard:
-								case MenuID.CGroupData:
-								case MenuID.CGroupUtility:
-								case MenuID.CGroupBranch:
-								case MenuID.CGroupGet:
-								case MenuID.CGroupLost:
-								case MenuID.CGroupVisual:
-								case MenuID.CreateStepValues:
-								case MenuID.CreateVariableEventTree:
-								case MenuID.InitVariablesTree:
-								case MenuID.OverDialog:
-								case MenuID.UnderDialog:
-								case MenuID.ShowParty:
-								case MenuID.ShowMsg:
-								case MenuID.ShowRefCards:
-								case MenuID.FixedCards:
-								case MenuID.FixedCells:
-								case MenuID.FixedBackground:
-								case MenuID.ShowGrid:
-								case MenuID.ShowEnemyCardProp:
-								case MenuID.ShowCard:
-								case MenuID.ShowBack:
-								case MenuID.NewMenuCard:
-								case MenuID.NewEnemyCard:
-								case MenuID.NewBack:
-								case MenuID.NewTextCell:
-								case MenuID.NewColorCell:
-								// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
-/+									case MenuID.NewPCCell:
-+/									case MenuID.AutoArrange:
-								case MenuID.ManualArrange:
-								case MenuID.Mask:
-								case MenuID.Escape:
-								case MenuID.ChangePos:
-								case MenuID.PosTop:
-								case MenuID.PosBottom:
-								case MenuID.PosLeft:
-								case MenuID.PosRight:
-								case MenuID.PosEven:
-								case MenuID.NearTop:
-								case MenuID.NearBottom:
-								case MenuID.NearLeft:
-								case MenuID.NearRight:
-								case MenuID.NearCenterH:
-								case MenuID.NearCenterV:
-								case MenuID.NearCenter:
-								case MenuID.ScaleMin:
-								case MenuID.ScaleMiddle:
-								case MenuID.ScaleMax:
-								case MenuID.ScaleBig:
-								case MenuID.ScaleSmall:
-								case MenuID.ExpandBack:
-								case MenuID.StopBGM:
-								case MenuID.PlayBGM:
-								case MenuID.KeyCodeTiming:
-								case MenuID.KeyCodeTimingUse:
-								case MenuID.KeyCodeTimingSuccess:
-								case MenuID.KeyCodeTimingFailure:
-								case MenuID.KeyCodeTimingHasNot:
-								case MenuID.KeyCodeCond:
-								case MenuID.KeyCodeCondOr:
-								case MenuID.KeyCodeCondAnd:
-								case MenuID.AddRangeOfRound:
-								case MenuID.OpenAtTableView:
-								case MenuID.OpenAtVarView:
-								case MenuID.OpenAtCardView:
-								case MenuID.OpenAtFileView:
-								case MenuID.OpenAtEventView:
-								case MenuID.PlaySE:
-								case MenuID.StopSE:
-								case MenuID.PutQuick:
-								case MenuID.PutSelect:
-								case MenuID.PutContinue:
-								case MenuID.EvTemplates:
-								case MenuID.EvTemplatesOfScenario:
-								case MenuID.Expand:
-								case MenuID.Collapse:
-								case MenuID.ResetPreviewValues:
-								case MenuID.ResetPreviewValuesAll:
-								case MenuID.CustomizeToolBar:
-								case MenuID.AddTool:
-								case MenuID.AddToolBar:
-								case MenuID.AddToolGroup:
-								case MenuID.ResetToolBarSettings:
-									debugln(tool.menu);
-									continue;
-								}
-
-								if (act) { mixin(S_TRACE);
-									_mainMenu.add(tool.menu);
-									_tool[tool.menu] = createToolItem(_comm, bar, tool.menu, act, can, style);
-								} else if (actS) { mixin(S_TRACE);
-									_mainMenu.add(tool.menu);
-									_tool[tool.menu] = createToolItem(_comm, bar, tool.menu, actS, can, style);
-								} else { mixin(S_TRACE);
-									_tool[tool.menu] = createToolItem(_comm, bar, tool.menu, menuActionDlg(tool.menu), can, style);
-								}
-							}
-						}
-						createCoolItem(cbar, bar);
-					}
-					// カードビューの表示方法(ラジオボタン)
-					auto scf = _tool.get(MenuID.ShowCardProp, null);
-					if (scf) cardRG.append(scf);
-					auto scl = _tool.get(MenuID.ShowCardImage, null);
-					if (scl) cardRG.append(scl);
-					auto sct = _tool.get(MenuID.ShowCardDetail, null);
-					if (sct) cardRG.append(sct);
-					if (_prop.var.etc.cardLife) { mixin(S_TRACE);
-						if (scf) scf.setSelection(true);
-					} else if (_prop.var.etc.cardDetails) { mixin(S_TRACE);
-						if (scl) sct.setSelection(true);
-					} else { mixin(S_TRACE);
-						if (sct) scl.setSelection(true);
-					}
-					if (cardRG.set.size) { mixin(S_TRACE);
-						_toolRG ~= cardRG;
-					}
-					
-					// ツールバーの表示切り替え(チェックボックス)
-					auto mtm = _tool.get(MenuID.ShowMainToolBar, null);
-					if (mtm) mtm.setSelection(_prop.var.etc.showMainToolBar);
-					auto stm = _tool.get(MenuID.ShowSceneToolBar, null);
-					if (stm) stm.setSelection(_prop.var.etc.showSceneToolBar);
-					auto etm = _tool.get(MenuID.ShowEventToolBar, null);
-					if (etm) etm.setSelection(_prop.var.etc.showEventToolBar);
-				}, (menu) { mixin(S_TRACE);
-					createMenuItem(_comm, menu, MenuID.CustomizeToolBar, { mixin(S_TRACE);
-						auto dlg = new ToolBarCustomDialog(_comm, _win, _prop.var.etc.mainToolBar, _prop.var.etc.mainToolBar.INIT);
-						dlg.appliedEvent ~= { mixin(S_TRACE);
-							_prop.var.etc.mainToolBar = dlg.tools;
-							createMainToolBar();
-							_toolComp.layout();
-							_toolComp.getParent().layout(true);
-							_comm.refreshToolBar();
-						};
-						dlg.open();
-					}, null);
-					new MenuItem(menu, SWT.SEPARATOR);
-				});
-
-				auto drop = new DropTarget(_cbar, DND.DROP_DEFAULT | DND.DROP_LINK);
-				drop.setTransfer([FileTransfer.getInstance()]);
-				drop.addDropListener(new DTListener);
-
-				refreshExecEngine();
-				refreshOuterTools();
-			}
 			createMainToolBar();
 
 			_comm.baseShell(this, _tableWin, _flagWin, _castWin, _skillWin, _itemWin, _beastWin, _infoWin, _dirWin);
@@ -3332,6 +3001,353 @@ public:
 			fdebugln(e);
 			throw e;
 		}
+	}
+	private void createMainToolBar() { mixin(S_TRACE);
+		_tmExecEngine = null;
+		_tiExecEngine = null;
+		_tmExecEngineWithParty = null;
+		_tiExecEngineWithParty = null;
+		_tmOuterTools = null;
+
+		_toolRG = [];
+		_toolBar = [];
+		_tool = null;
+		if (_cbar) _cbar.dispose();
+		_cbar = createCoolBar!("tools")(_comm, _toolComp, (CoolBar cbar) { mixin(S_TRACE);
+			void createCoolItem(CoolBar cbar, ToolBar tbar) { mixin(S_TRACE);
+				.createCoolItem(cbar, tbar);
+				_toolBar ~= tbar;
+			}
+			auto cardRG = new RadioGroupAndSet!ToolItem;
+			cardRG.menuIDs.add(MenuID.ShowCardProp);
+			cardRG.menuIDs.add(MenuID.ShowCardImage);
+			cardRG.menuIDs.add(MenuID.ShowCardDetail);
+			foreach (toolbar; _prop.var.etc.mainToolBar.tools) { mixin(S_TRACE);
+				auto bar = new ToolBar(cbar, SWT.FLAT);
+				foreach (tool; toolbar) { mixin(S_TRACE);
+					if (tool.separator) { mixin(S_TRACE);
+						new ToolItem(bar, SWT.SEPARATOR);
+					} else { mixin(S_TRACE);
+						void delegate(SelectionEvent se) actS = null;
+						void delegate() act = null;
+						bool delegate() can = null;
+						int style = SWT.PUSH;
+
+						final switch (tool.menu) {
+						case MenuID.New: act = &createScenario; can = null; break;
+						case MenuID.Open: act = &openScenarioM; can = null; break;
+						case MenuID.Save: act = &saveScenario; can = &canSaveOverwrite; break;
+						case MenuID.SaveAs: act = &saveScenarioA; can = () => summary !is null && !_inSaving; break;
+						case MenuID.CreateArchive: act = &_dirWin.createArchive; can = &_dirWin.canCreateArchive; break;
+						case MenuID.Reload: act = &reload; can = () => summary !is null; break;
+						case MenuID.Refresh: actS = &refreshAll; can = () => summary !is null; break;
+						case MenuID.Find: act = &replaceText; can = null; break;
+						case MenuID.ReNumberingAll: act = &reNumberingAll; can = () => summary !is null; break;
+						case MenuID.ToXMLText: act = &clipboardToXML; can = () => CBisXMLOnly(_comm.clipboard); break;
+						case MenuID.TableView: act = &openDataWindow; can = null; break;
+						case MenuID.VarView: act = &openFlagWindow; can = null; break;
+						case MenuID.CastView: act = &openCast; can = null; break;
+						case MenuID.SkillView: act = &openSkill; can = null; break;
+						case MenuID.ItemView: act = &openItem; can = null; break;
+						case MenuID.BeastView: act = &openBeast; can = null; break;
+						case MenuID.InfoView: act = &openInfo; can = null; break;
+						case MenuID.FileView: act = &openDirWindow; can = null; break;
+						case MenuID.EditSummary: act = &_tableWin.editSummary; can = () => summary !is null; break;
+						case MenuID.NewAreaDir: act = &_tableWin.createAreaDir; can = &_tableWin.canCreateAreaDir; break;
+						case MenuID.NewArea: act = &_tableWin.createArea; can = &_tableWin.canCreateArea; break;
+						case MenuID.NewBattle: act = &_tableWin.createBattle; can = &_tableWin.canCreateBattle; break;
+						case MenuID.NewPackage: act = &_tableWin.createPackage; can = &_tableWin.canCreatePackage; break;
+						case MenuID.NewFlagDir: act = &_flagWin.createFlagDir; can = &_flagWin.canCreateFlagDir; break;
+						case MenuID.NewFlag: act = &_flagWin.createFlag; can = &_flagWin.canCreateFlag; break;
+						case MenuID.NewStep: act = &_flagWin.createStep; can = &_flagWin.canCreateStep; break;
+						case MenuID.ShowCardProp: actS = &showCardLife; can = null; style = SWT.RADIO; break;
+						case MenuID.ShowCardImage: actS = &showCardList; can = null; style = SWT.RADIO; break;
+						case MenuID.ShowCardDetail: actS = &showCardTable; can = null; style = SWT.RADIO; break;
+						case MenuID.NewCast: act = &newCast; can = &canNewCast; break;
+						case MenuID.NewSkill: act = &newSkill; can = &canNewSkill; break;
+						case MenuID.NewItem: act = &newItem; can = &canNewItem; break;
+						case MenuID.NewBeast: act = &newBeast; can = &canNewBeast; break;
+						case MenuID.NewInfo: act = &newInfo; can = &canNewInfo; break;
+						case MenuID.OpenImportSource: act = &addScenario; can = &canAddScenario; break;
+						case MenuID.OpenDir: act = &openDirectory; can = &canOpenDirectory; break;
+						case MenuID.NewDir: act = &_dirWin.createNewFolder; can = &_dirWin.canCreateNewFolder; break;
+						case MenuID.ExecEngine: createExecEngineTI(bar); continue;
+						case MenuID.ExecEngineWithParty: createExecEngineWithPartyTI(bar); continue;
+						case MenuID.OuterTools: createOuterToolsTI(bar); continue;
+						case MenuID.Settings: act = &settings; can = null; break;
+						case MenuID.DelNotUsedFile: actS = &_dirWin.deleteUnuse; can = &_dirWin.canDeleteUnuse; break;
+						case MenuID.ShowMainToolBar: actS = &revShowMainToolBar; can = null; style = SWT.CHECK; break;
+						case MenuID.ShowSceneToolBar: actS = &revShowSceneToolBar; can = null; style = SWT.CHECK; break;
+						case MenuID.ShowEventToolBar: actS = &revShowEventToolBar; can = null; style = SWT.CHECK; break;
+						case MenuID.NewAtNewWindow: act = &createScenarioNewWin; can = null; break;
+						case MenuID.OpenAtNewWindow: act = &openScenarioNewWin; can = null; break;
+						case MenuID.Close: act = &exitAll; can = null; break;
+						case MenuID.VersionInfo: act = &versionInfo; can = null; break;
+						case MenuID.IncSearch: actS = &doMenu!(MenuID.IncSearch); can = &canDoMenu!(MenuID.IncSearch); break;
+						case MenuID.SelectAll: actS = &doMenu!(MenuID.SelectAll); can = &canDoMenu!(MenuID.SelectAll); break;
+						case MenuID.Undo:
+						case MenuID.Redo:
+						case MenuID.Cut:
+						case MenuID.Copy:
+						case MenuID.Paste:
+						case MenuID.Delete:
+						case MenuID.Clone:
+						case MenuID.Comment:
+						case MenuID.ToScript:
+						case MenuID.ToScriptAll:
+						case MenuID.Up:
+						case MenuID.Down:
+						case MenuID.SelectConnectedResource:
+						case MenuID.FindID:
+						case MenuID.EditScene:
+						case MenuID.EditSceneDup:
+						case MenuID.EditEvent:
+						case MenuID.EditEventDup:
+						case MenuID.EditProp:
+						case MenuID.ShowProp:
+						case MenuID.Cut1Content:
+						case MenuID.Copy1Content:
+						case MenuID.Delete1Content:
+						case MenuID.PasteInsert:
+						case MenuID.SetStartArea:
+						case MenuID.CopyVariablePath:
+						case MenuID.SwapToParent:
+						case MenuID.SwapToChild:
+						case MenuID.Import:
+						case MenuID.OpenHand:
+						case MenuID.AddHand:
+						case MenuID.RemoveRef:
+						case MenuID.EditEventAtTimeOfUsing:
+						case MenuID.Hold:
+						case MenuID.CopyFilePath:
+						case MenuID.ToScript1Content:
+						case MenuID.ChangeVH:
+						case MenuID.ReNumbering:
+						case MenuID.EventToPackage:
+						case MenuID.StartToPackage:
+						case MenuID.WrapTree:
+							break;
+						case MenuID.None:
+						case MenuID.File:
+						case MenuID.Edit:
+						case MenuID.View:
+						case MenuID.Tool:
+						case MenuID.Table:
+						case MenuID.Variable:
+						case MenuID.Help:
+						case MenuID.Card:
+						case MenuID.CardsAndBacks:
+						case MenuID.CreateSubWindow:
+						case MenuID.LeftPane:
+						case MenuID.RightPane:
+						case MenuID.ClosePane:
+						case MenuID.ClosePaneExcept:
+						case MenuID.ClosePaneLeft:
+						case MenuID.ClosePaneRight:
+						case MenuID.ClosePaneAll:
+						case MenuID.CloseWin:
+						case MenuID.OpenPlace:
+						case MenuID.SaveImage:
+						case MenuID.IncludeImage:
+						case MenuID.LookImages:
+						case MenuID.EditLayers:
+						case MenuID.AddLayer:
+						case MenuID.RemoveLayer:
+						case MenuID.CloseIncSearch:
+						case MenuID.CardView:
+						case MenuID.ExecEngineAuto:
+						case MenuID.ExecEngineMain:
+						case MenuID.ExecEngineWithLastParty:
+						case MenuID.LockToolBar:
+						case MenuID.ResetToolBar:
+						case MenuID.CopyAsText:
+						case MenuID.OpenAtView:
+						case MenuID.CreateContent:
+						case MenuID.ConvertContent:
+						case MenuID.CGroupTerminal:
+						case MenuID.CGroupStandard:
+						case MenuID.CGroupData:
+						case MenuID.CGroupUtility:
+						case MenuID.CGroupBranch:
+						case MenuID.CGroupGet:
+						case MenuID.CGroupLost:
+						case MenuID.CGroupVisual:
+						case MenuID.CreateStepValues:
+						case MenuID.CreateVariableEventTree:
+						case MenuID.InitVariablesTree:
+						case MenuID.OverDialog:
+						case MenuID.UnderDialog:
+						case MenuID.ShowParty:
+						case MenuID.ShowMsg:
+						case MenuID.ShowRefCards:
+						case MenuID.FixedCards:
+						case MenuID.FixedCells:
+						case MenuID.FixedBackground:
+						case MenuID.ShowGrid:
+						case MenuID.ShowEnemyCardProp:
+						case MenuID.ShowCard:
+						case MenuID.ShowBack:
+						case MenuID.NewMenuCard:
+						case MenuID.NewEnemyCard:
+						case MenuID.NewBack:
+						case MenuID.NewTextCell:
+						case MenuID.NewColorCell:
+						// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
+/+						case MenuID.NewPCCell:
++/						case MenuID.AutoArrange:
+						case MenuID.ManualArrange:
+						case MenuID.Mask:
+						case MenuID.Escape:
+						case MenuID.ChangePos:
+						case MenuID.PosTop:
+						case MenuID.PosBottom:
+						case MenuID.PosLeft:
+						case MenuID.PosRight:
+						case MenuID.PosEven:
+						case MenuID.NearTop:
+						case MenuID.NearBottom:
+						case MenuID.NearLeft:
+						case MenuID.NearRight:
+						case MenuID.NearCenterH:
+						case MenuID.NearCenterV:
+						case MenuID.NearCenter:
+						case MenuID.ScaleMin:
+						case MenuID.ScaleMiddle:
+						case MenuID.ScaleMax:
+						case MenuID.ScaleBig:
+						case MenuID.ScaleSmall:
+						case MenuID.ExpandBack:
+						case MenuID.StopBGM:
+						case MenuID.PlayBGM:
+						case MenuID.KeyCodeTiming:
+						case MenuID.KeyCodeTimingUse:
+						case MenuID.KeyCodeTimingSuccess:
+						case MenuID.KeyCodeTimingFailure:
+						case MenuID.KeyCodeTimingHasNot:
+						case MenuID.KeyCodeCond:
+						case MenuID.KeyCodeCondOr:
+						case MenuID.KeyCodeCondAnd:
+						case MenuID.AddRangeOfRound:
+						case MenuID.OpenAtTableView:
+						case MenuID.OpenAtVarView:
+						case MenuID.OpenAtCardView:
+						case MenuID.OpenAtFileView:
+						case MenuID.OpenAtEventView:
+						case MenuID.PlaySE:
+						case MenuID.StopSE:
+						case MenuID.PutQuick:
+						case MenuID.PutSelect:
+						case MenuID.PutContinue:
+						case MenuID.EvTemplates:
+						case MenuID.EvTemplatesOfScenario:
+						case MenuID.Expand:
+						case MenuID.Collapse:
+						case MenuID.ResetPreviewValues:
+						case MenuID.ResetPreviewValuesAll:
+						case MenuID.CustomizeToolBar:
+						case MenuID.AddTool:
+						case MenuID.AddToolBar:
+						case MenuID.AddToolGroup:
+						case MenuID.ResetToolBarSettings:
+							debugln(tool.menu);
+							continue;
+						}
+
+						if (act) { mixin(S_TRACE);
+							_mainMenu.add(tool.menu);
+							_tool[tool.menu] = createToolItem(_comm, bar, tool.menu, act, can, style);
+						} else if (actS) { mixin(S_TRACE);
+							_mainMenu.add(tool.menu);
+							_tool[tool.menu] = createToolItem(_comm, bar, tool.menu, actS, can, style);
+						} else { mixin(S_TRACE);
+							_tool[tool.menu] = createToolItem(_comm, bar, tool.menu, menuActionDlg(tool.menu), can, style);
+						}
+					}
+				}
+				createCoolItem(cbar, bar);
+			}
+			// カードビューの表示方法(ラジオボタン)
+			auto scf = _tool.get(MenuID.ShowCardProp, null);
+			if (scf) cardRG.append(scf);
+			auto scl = _tool.get(MenuID.ShowCardImage, null);
+			if (scl) cardRG.append(scl);
+			auto sct = _tool.get(MenuID.ShowCardDetail, null);
+			if (sct) cardRG.append(sct);
+			if (_prop.var.etc.cardLife) { mixin(S_TRACE);
+				if (scf) scf.setSelection(true);
+			} else if (_prop.var.etc.cardDetails) { mixin(S_TRACE);
+				if (scl) sct.setSelection(true);
+			} else { mixin(S_TRACE);
+				if (sct) scl.setSelection(true);
+			}
+			if (cardRG.set.size) { mixin(S_TRACE);
+				_toolRG ~= cardRG;
+			}
+			
+			// ツールバーの表示切り替え(チェックボックス)
+			auto mtm = _tool.get(MenuID.ShowMainToolBar, null);
+			if (mtm) mtm.setSelection(_prop.var.etc.showMainToolBar);
+			auto stm = _tool.get(MenuID.ShowSceneToolBar, null);
+			if (stm) stm.setSelection(_prop.var.etc.showSceneToolBar);
+			auto etm = _tool.get(MenuID.ShowEventToolBar, null);
+			if (etm) etm.setSelection(_prop.var.etc.showEventToolBar);
+		}, (menu) { mixin(S_TRACE);
+			createMenuItem(_comm, menu, MenuID.CustomizeToolBar, &customizeToolBar, null);
+			new MenuItem(menu, SWT.SEPARATOR);
+		});
+		if (_cbar.getItemCount()) { mixin(S_TRACE);
+			auto drop = new DropTarget(_cbar, DND.DROP_DEFAULT | DND.DROP_LINK);
+			drop.setTransfer([FileTransfer.getInstance()]);
+			drop.addDropListener(new DTListener);
+		} else { mixin(S_TRACE);
+			_cbar.dispose();
+			_cbar = null;
+		}
+		refShowMainToolBar();
+
+		refreshExecEngine();
+		refreshOuterTools();
+	}
+	private void createExecEngineTI(ToolBar bar) { mixin(S_TRACE);
+		_mainMenu.add(MenuID.ExecEngine);
+		_tiExecEngine = createDropDownItem(_comm, bar, MenuID.ExecEngine, &execEngine, _tmExecEngine, () => canExecEngine || _prop.var.etc.classicEngines.length);
+		_tool[MenuID.ExecEngine] = _tiExecEngine;
+		listener(_tiExecEngine, SWT.Dispose, (e) { mixin(S_TRACE);
+			auto tiExecEngine = cast(ToolItem)e.widget;
+			auto img = tiExecEngine.getImage();
+			if (_prop.images.menu(MenuID.ExecEngineAuto) !is img) { mixin(S_TRACE);
+				img.dispose();
+			}
+		});
+	}
+	private void createExecEngineWithPartyTI(ToolBar bar) { mixin(S_TRACE);
+		_mainMenu.add(MenuID.ExecEngineWithParty);
+		_tiExecEngineWithParty = createDropDownItem(_comm, bar, MenuID.ExecEngineWithParty, &execEngineWithLastParty, _tmExecEngineWithParty, () => canExecEngineWithLastParty || canExecEngineWithParty);
+		_tool[MenuID.ExecEngineWithParty] = _tiExecEngineWithParty;
+		listener(_tiExecEngineWithParty, SWT.Dispose, (e) { mixin(S_TRACE);
+			auto tiExecEngineWithParty = cast(ToolItem)e.widget;
+			auto img = tiExecEngineWithParty.getImage();
+			if (_prop.images.menu(MenuID.ExecEngineWithParty) !is img) { mixin(S_TRACE);
+				img.dispose();
+			}
+		});
+		updateExecEngineWithPartyNameTI();
+	}
+	private void createOuterToolsTI(ToolBar bar) { mixin(S_TRACE);
+		_mainMenu.add(MenuID.OuterTools);
+		auto ti = createDropDownItem(_comm, bar, MenuID.OuterTools, null, _tmOuterTools, () => _prop.var.etc.outerTools.length > 0);
+		_tool[MenuID.OuterTools] = ti;
+	}
+	private void customizeToolBar() { mixin(S_TRACE);
+		auto dlg = new ToolBarCustomDialog(_comm, _win, _prop.var.etc.mainToolBar, _prop.var.etc.mainToolBar.INIT);
+		dlg.appliedEvent ~= { mixin(S_TRACE);
+			_prop.var.etc.mainToolBar = dlg.tools;
+			createMainToolBar();
+			refShowMainToolBar();
+			_toolComp.getParent().layout(true);
+			_comm.refreshToolBar();
+		};
+		dlg.open();
 	}
 	private void doMenu(MenuID ID)(SelectionEvent e) { mixin(S_TRACE);
 		auto menu = getMenu!ID;
