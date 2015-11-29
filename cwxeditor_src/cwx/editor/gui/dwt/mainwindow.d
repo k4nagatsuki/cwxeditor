@@ -771,9 +771,13 @@ private:
 					{ mixin(S_TRACE);
 						_saveSync.lock();
 						scope (exit) _saveSync.unlock();
+						mixin(S_TRACE);
 						arc = summ.createZipData([], true, name.extension().toLower() == ".wsn", tempData);
+						mixin(S_TRACE);
 					}
+					mixin(S_TRACE);
 					auto data = arc.build();
+					mixin(S_TRACE);
 					auto md5 = md5Digest(data);
 					if (_oldMD5 != md5) { mixin(S_TRACE);
 						// 前回のバックアップと異なっていれば保存
@@ -783,7 +787,9 @@ private:
 						bc--;
 						ret = true;
 					}
+					mixin(S_TRACE);
 					destroy(arc);
+					mixin(S_TRACE);
 					freeAll(tempData);
 				} else { mixin(S_TRACE);
 					auto md5 = filesMD5(summ.scenarioPath);

@@ -1352,7 +1352,11 @@ protected:
 	}
 
 	private Coupon createCoupon(E)(Button[E] radios, string delegate(E) coupon) { mixin(S_TRACE);
-		foreach (e, radio; radios) { mixin(S_TRACE);
+		auto keys = radios.keys();
+		std.algorithm.sort(keys);
+		foreach (e; keys) { mixin(S_TRACE);
+			auto radio = radios.get(e, null);
+			if (!radio) continue;
 			if (radio.getSelection()) { mixin(S_TRACE);
 				return new Coupon(coupon(e), 0);
 			}

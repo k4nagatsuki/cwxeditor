@@ -352,8 +352,8 @@ public:
 	abstract
 	Card dup();
 
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	override
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto c = cast(const Card) o;
 		if (!c) return false;
 		return id == c.id
@@ -572,12 +572,6 @@ public:
 		}
 		return cast(hash_t)(hash * 37 + _id);
 	}
-
-	const
-	override
-	bool opEquals(Object o) {
-		return this is o;
-	}
 }
 
 /// キャストカード。
@@ -706,8 +700,7 @@ public:
 	}
 
 	override
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto c = cast(const CastCard) o;
 		if (!c) return false;
 		if (!super.opEquals(o)) return false;
@@ -1494,8 +1487,7 @@ public:
 	}
 
 	override
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto c = cast(const EffectCard) o;
 		if (!c) return false;
 		if (0 != linkId) return linkId == c.linkId;
@@ -2020,8 +2012,7 @@ public:
 	}
 
 	override
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto c = cast(const SkillCard) o;
 		if (!c) return false;
 		if (0 != linkId) return linkId == c.linkId && hold == c.hold;
@@ -2255,8 +2246,7 @@ public:
 	}
 
 	override
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto c = cast(const ItemCard) o;
 		if (!c) return false;
 		if (0 != linkId) return linkId == c.linkId && hold == c.hold;
@@ -2511,8 +2501,7 @@ public:
 	}
 
 	override
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto c = cast(const BeastCard) o;
 		if (!c) return false;
 		if (0 != linkId) return linkId == c.linkId;
@@ -2702,8 +2691,7 @@ public:
 	alias shallowCopy deepCopy;
 
 	override
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto c = cast(const InfoCard) o;
 		if (!c) return false;
 		return super.opEquals(o);

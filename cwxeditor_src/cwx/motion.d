@@ -253,8 +253,8 @@ public:
 		}
 		return r;
 	}
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	override
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto m = cast(const(Motion)) o;
 		if (!m) return false;
 		if (m.type != type) return false;

@@ -91,8 +91,8 @@ public:
 	int value() { mixin(S_TRACE);
 		return _val;
 	}
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	override
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto c = cast(Coupon) o;
 		return c && c.coupon == coupon && c.value == value;
 	}

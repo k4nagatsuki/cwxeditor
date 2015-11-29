@@ -33,8 +33,7 @@ public:
 	static immutable XML_NAME = "BgImage";
 
 	override
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto b = cast(ImageCell) o;
 		return b
 			&& path == b.path
@@ -185,8 +184,7 @@ public:
 	}
 
 	override
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto b = cast(TextCell) o;
 		return b
 			&& text == b.text
@@ -491,8 +489,7 @@ public:
 	}
 
 	override
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto b = cast(ColorCell) o;
 		return b
 			&& blendMode == b.blendMode
@@ -656,8 +653,7 @@ public:
 	}
 
 	override
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto b = cast(PCCell) o;
 		return b
 			&& pcNumber == b.pcNumber
@@ -746,8 +742,8 @@ public:
 		_cellName = new CellNameUser(this);
 	}
 
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	override
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto b = cast(BgImage)o;
 		return b
 			&& flag == b.flag

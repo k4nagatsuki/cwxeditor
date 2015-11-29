@@ -298,8 +298,8 @@ public:
 	this (in SDialog base) { mixin(S_TRACE);
 		this (base.text, base.rCoupons);
 	}
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	override
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto d = cast(const(SDialog)) o;
 		return d && d.rCoupons == rCoupons && d.text == text;
 	}
@@ -611,8 +611,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		return copy;
 	}
 
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	override
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto c = cast(const(Content)) o;
 		if (!c) return false;
 		return type == c.type
@@ -2308,8 +2308,8 @@ public:
 		keyCodeMatchingType = base.keyCodeMatchingType;
 	}
 
-	const
-	bool opEquals(ref const(Object) o) { mixin(S_TRACE);
+	override
+	bool opEquals(Object o) { mixin(S_TRACE);
 		auto c = cast(const(EventTree)) o;
 		if (!c) return false;
 		return fireEnter == c.fireEnter
