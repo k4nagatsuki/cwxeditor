@@ -4651,7 +4651,7 @@ class ContentsToolBox {
 			_toolWin.setText(_prop.msgs.tools);
 			_toolWin.addShellListener(new TSListener);
 			cbarPar = new Composite(_toolWin, SWT.NONE);
-			cbarPar.setLayoutData(new GridData(GridData.FILL_BOTH));
+			cbarPar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		} else if (_prop.var.etc.contentsAutoHide) { mixin(S_TRACE);
 			_autoHideTools = new Shell(parent.widget.getShell(), SWT.NO_TRIM);
 			_autoHideTools.setLayout(zeroGridLayout(1));
