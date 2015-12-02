@@ -3632,13 +3632,14 @@ public:
 	private class TabfPaint : PaintListener {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			if (!_comm.wallpaper) return;
-			auto tabf = cast(CTabFolder) e.widget;
+			auto tabf = cast(CTabFolder)e.widget;
 			if (!tabf || tabf.getItemCount() > 0) return;
+			if (!std.string.startsWith(_dock.key(tabf), "work")) return;
 			auto rect = tabf.getClientArea();
 			if (_prop.var.etc.wallpaperStyle < WallpaperStyle.min || WallpaperStyle.max < _prop.var.etc.wallpaperStyle) { mixin(S_TRACE);
 				_prop.var.etc.wallpaperStyle = WallpaperStyle.Tile;
 			}
-			auto style = cast(WallpaperStyle) _prop.var.etc.wallpaperStyle;
+			auto style = cast(WallpaperStyle)_prop.var.etc.wallpaperStyle;
 			drawWallpaper(e.gc, _comm.wallpaper, rect, style);
 		}
 	}

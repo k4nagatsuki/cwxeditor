@@ -1268,7 +1268,25 @@ class Commons {
 			}
 			auto data = loadImage(w, false);
 			if (_wallpaper) _wallpaper.dispose();
-			_wallpaper = new Image(Display.getCurrent(), data);
+
+			static immutable minWidth = 256;
+			static immutable minHeight = 256;
+			if (prop.var.etc.wallpaperStyle == WallpaperStyle.Tile && (data.width <= minWidth || data.height <= minHeight)) { mixin(S_TRACE);
+				// 敷き詰める場合、あまり細かいイメージだとパフォーマンスが落ちるので
+				// あらかじめある程度敷き詰めたものを用意しておく
+				if (data.width <= minWidth || data.height <= minHeight) { mixin(S_TRACE);
+					auto width = data.width * (minWidth / data.width);
+					auto height = data.height * (minHeight / data.height);
+					auto img = new Image(Display.getCurrent(), data);
+					scope (exit) img.dispose();
+					_wallpaper = new Image(Display.getCurrent(), width, height);
+					auto gc = new GC(_wallpaper);
+					scope (exit) gc.dispose();
+					drawWallpaper(gc, img, new Rectangle(0, 0, width, height), WallpaperStyle.Tile);
+				}
+			} else { mixin(S_TRACE);
+				_wallpaper = new Image(Display.getCurrent(), data);
+			}
 		} catch (Exception e) {
 			if (_wallpaper) _wallpaper.dispose();
 			_wallpaper = null;

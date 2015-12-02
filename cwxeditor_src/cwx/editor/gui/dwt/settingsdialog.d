@@ -1526,9 +1526,7 @@ struct OldSettings {
 			refSkin = true;
 		}
 		if (oldWallpaper != prop.var.etc.wallpaper || oldWallpaperStyle != prop.var.etc.wallpaperStyle) { mixin(S_TRACE);
-			if (oldWallpaper != prop.var.etc.wallpaper) { mixin(S_TRACE);
-				comm.refreshWallpaper(prop);
-			}
+			comm.refreshWallpaper(prop);
 			comm.refWallpaper.call();
 		}
 		if (oldKeyCodes != prop.var.etc.standardKeyCodes) { mixin(S_TRACE);
