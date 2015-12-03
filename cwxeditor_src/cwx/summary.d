@@ -360,15 +360,21 @@ public:
 			}
 			return false;
 		}
-		string suncab(string fname, string summName, out string summPath, out bool canArchive) { mixin(S_TRACE);
+		string suncab(string fname, string summName, out string summPath, out bool canArchive, out bool hasXML) { mixin(S_TRACE);
 			classic = true;
 			string temp;
 			auto ext = .extension(fname);
 			canArchive = true;
+			hasXML = false;
 			if (canUncab && .cfnmatch(ext, ".cab")) { mixin(S_TRACE);
+				hasXML = cabHasFile(fname, "Summary.xml");
+				if (hasXML) { mixin(S_TRACE);
+					summName = summName.setExtension(".xml");
+					classic = false;
+				}
 				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
 				expandDir = temp;
-				if (!.uncab(fname, temp, (string file) {return expandName(file, false);})) { mixin(S_TRACE);
+				if (!.uncab(fname, temp, (string file) { return expandName(file, false); })) { mixin(S_TRACE);
 					delAll(temp);
 					return null;
 				}
@@ -381,7 +387,12 @@ public:
 				auto arc = new LhaFile(fname, ByteIO(cast(void[])bin));
 				scope (exit) destroy(arc);
 				auto isSc = scArcLHA(arc, ".wsm");
-				if (!isSc) return null;
+				if (!isSc) { mixin(S_TRACE);
+					hasXML = scArcLHA(arc, ".xml");
+					if (!hasXML) return null;
+					summName = summName.setExtension(".xml");
+					classic = false;
+				}
 				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
 				try { mixin(S_TRACE);
 					expandDir = temp;
@@ -400,7 +411,12 @@ public:
 				auto arc = new ZipArchive(cast(void[])bin);
 				scope (exit) destroy(arc);
 				auto isSc = scArc(arc, ".wsm");
-				if (!isSc) return null;
+				if (!isSc) { mixin(S_TRACE);
+					hasXML = scArc(arc, ".xml");
+					if (!hasXML) return null;
+					summName = summName.setExtension(".xml");
+					classic = false;
+				}
 				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
 				try { mixin(S_TRACE);
 					expandDir = temp;
@@ -456,26 +472,45 @@ public:
 			}
 			return null;
 		}
-		Summary legacyCommon() { mixin(S_TRACE);
+		Summary archiveCommon() { mixin(S_TRACE);
 			string summPath;
 			bool canArchive;
-			string fn = suncab(fname, "Summary.wsm", summPath, canArchive);
+			bool hasXML;
+			string fn = suncab(fname, "Summary.wsm", summPath, canArchive, hasXML);
 			if (fn) { mixin(S_TRACE);
 				try { mixin(S_TRACE);
-					Summary r = loadLegacy(summPath);
-					r._expandXMLs = false;
-					r._useTemp = true;
-					r._legacy = true;
-					r._zipName = canArchive ? fname : "";
-					r._origZipName = fname;
-					r._tempPath = fn;
-					r.refCheckPaths();
-					r.repairID0();
-					if (scTemplate) { mixin(S_TRACE);
-						return createFromTemplate(r);
-					} else { mixin(S_TRACE);
+					if (hasXML) { mixin(S_TRACE);
+						Summary r = load(summPath);
+						r._expandXMLs = expand;
+						r._useTemp = true;
+						r._zipName = canArchive ? fname : "";
+						r._origZipName = fname;
+						r._tempPath = fn;
+						r._legacy = false;
 						r.lock(r._tempPath, r._useTemp);
+						if (scTemplate) { mixin(S_TRACE);
+							r._zipName = "";
+							r._origZipName = "";
+						}
+						r.refCheckPaths();
+						r.repairID0();
 						return r;
+					} else { mixin(S_TRACE);
+						Summary r = loadLegacy(summPath);
+						r._expandXMLs = false;
+						r._useTemp = true;
+						r._legacy = true;
+						r._zipName = canArchive ? fname : "";
+						r._origZipName = fname;
+						r._tempPath = fn;
+						r.refCheckPaths();
+						r.repairID0();
+						if (scTemplate) { mixin(S_TRACE);
+							return createFromTemplate(r);
+						} else { mixin(S_TRACE);
+							r.lock(r._tempPath, r._useTemp);
+							return r;
+						}
 					}
 				} catch (Exception e) {
 					printStackTrace();
@@ -535,61 +570,7 @@ public:
 					} else if (isDir(fname)) { mixin(S_TRACE);
 						return ll(fname);
 					} else { mixin(S_TRACE);
-						string zipname = fname;
-						string summPath;
-						string fn = "";
-						auto ext = .extension(fname);
-						if (canUncab && .cfnmatch(ext, ".cab")) { mixin(S_TRACE);
-							if (cabHasFile(fname, "Summary.xml")) { mixin(S_TRACE);
-								classic = false;
-								bool canArchive;
-								fn = suncab(fname, "Summary.xml", summPath, canArchive);
-							}
-						} else if (.cfnmatch(ext, ".lzh") || .cfnmatch(ext, ".lha")) {
-	 						return legacyCommon();
-						} else { mixin(S_TRACE);
-							ubyte* ptr = null;
-							auto bin = readBinaryFrom!ubyte(fname, ptr);
-							scope (exit) freeAll(ptr);
-							auto arc = new ZipArchive(cast(void[])bin);
-							scope (exit) destroy(arc);
-							auto isSc = scArc(arc, ".xml");
-							if (isSc) { mixin(S_TRACE);
-								bool cancel;
-								classic = false;
-								fn = sunzip(baseName(fname), arc, cancel, summPath);
-								if (cancel) { mixin(S_TRACE);
-									delAll(dirName(fname));
-									return null;
-								}
-							}
-						}
-						if (fn.length) { mixin(S_TRACE);
-							try { mixin(S_TRACE);
-								Summary r = load(summPath);
-								r._expandXMLs = expand;
-								r._useTemp = true;
-								r._zipName = zipname;
-								r._origZipName = zipname;
-								r._tempPath = fn;
-								r._legacy = false;
-								r.lock(r._tempPath, r._useTemp);
-								if (scTemplate) { mixin(S_TRACE);
-									r._zipName = "";
-									r._origZipName = "";
-								}
-								r.refCheckPaths();
-								r.repairID0();
-								return r;
-							} catch (Exception e) {
-								printStackTrace();
-								debugln(e);
-								delAll(fn);
-								throw e;
-							}
-						} else { mixin(S_TRACE);
-	 						return legacyCommon();
-						}
+ 						return archiveCommon();
 					}
 				} catch (ZipException e) {
 					printStackTrace();
