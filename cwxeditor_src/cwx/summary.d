@@ -391,6 +391,7 @@ public:
 				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
 				try { mixin(S_TRACE);
 					expandDir = temp;
+					auto summDir = summArcName.dirName();
 					if (expand || !hasXML) { mixin(S_TRACE);
 						.unzip(temp, arc, &expandName);
 						summPath = findSummaryDir(temp, summName);
@@ -411,7 +412,7 @@ public:
 									if (!exists(parent)) mkdirRecurse(parent);
 									std.file.write(path, data);
 								}
-							} else if (!isScenarioSystemDir(path)) { mixin(S_TRACE);
+							} else if (!isScenarioSystemDir(path.abs2rel(summDir))) { mixin(S_TRACE);
 								path = std.path.buildPath(temp, path);
 								if (!exists(path)) mkdirRecurse(path);
 							}
