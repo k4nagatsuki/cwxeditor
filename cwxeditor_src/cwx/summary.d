@@ -304,39 +304,7 @@ public:
 			}
 			return temp;
 		}
-		string sunzip(string fname, ZipArchive arc, out bool cancel, out string summPath) { mixin(S_TRACE);
-			cancel = false;
-			auto temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
-			expandDir = temp;
-			if (expand) { mixin(S_TRACE);
-				.unzip(temp, arc, &expandName, setMax, worked);
-			} else { mixin(S_TRACE);
-				.unzip(arc, (string path, ubyte[] data, bool isDir) { mixin(S_TRACE);
-					path = expandName(path, isDir);
-					if (!path.length) return;
-					if (!isDir) { mixin(S_TRACE);
-						auto file = path.baseName();
-						if (cfnmatch(file, "Summary.xml")) { mixin(S_TRACE);
-							xmls[""][file.idup] = cast(string)data.idup;
-						} else if (auto path2 = isXMLSystem(path)) { mixin(S_TRACE);
-							xmls[dirName(path2).idup][baseName(path2).idup] = cast(string)data.idup;
-						} else { mixin(S_TRACE);
-							path = std.path.buildPath(temp, path);
-							string parent = dirName(path);
-							if (!exists(parent)) mkdirRecurse(parent);
-							std.file.write(path, data);
-						}
-					} else if (!isScenarioSystemDir(path)) { mixin(S_TRACE);
-						path = std.path.buildPath(temp, path);
-						if (!exists(path)) mkdirRecurse(path);
-					}
-				}, setMax, worked);
-			}
-			summPath = findSummaryDir(temp, "Summary.xml");
-			createLockFile(temp);
-			return temp;
-		}
-		bool scArc(ZipArchive arc, string ext) { mixin(S_TRACE);
+		string scArc(ZipArchive arc, string ext) { mixin(S_TRACE);
 			foreach (am; arc.directory) { mixin(S_TRACE);
 				string name;
 				try {
@@ -347,10 +315,10 @@ public:
 				}
 				name = replace(name, "/", dirSeparator);
 				if (cfnmatch(baseName(name), setExtension("Summary", ext))) { mixin(S_TRACE);
-					return true;
+					return name;
 				}
 			}
-			return false;
+			return "";
 		}
 		bool scArcLHA(LhaFile arc, string ext) { mixin(S_TRACE);
 			foreach (name; arc.nameList) { mixin(S_TRACE);
@@ -378,6 +346,7 @@ public:
 					delAll(temp);
 					return null;
 				}
+				summPath = findSummaryDir(temp, summName);
 			} else if (.cfnmatch(ext, ".lzh") || .cfnmatch(ext, ".lha")) { mixin(S_TRACE);
 				// LHA
 				canArchive = false; // 圧縮は不可
@@ -403,6 +372,7 @@ public:
 					delAll(temp);
 					return null;
 				}
+				summPath = findSummaryDir(temp, summName);
 			} else { mixin(S_TRACE);
 				// zipと仮定
 				ubyte* ptr = null;
@@ -410,9 +380,10 @@ public:
 				scope (exit) freeAll(ptr);
 				auto arc = new ZipArchive(cast(void[])bin);
 				scope (exit) destroy(arc);
-				auto isSc = scArc(arc, ".wsm");
-				if (!isSc) { mixin(S_TRACE);
-					hasXML = scArc(arc, ".xml");
+				auto summArcName = scArc(arc, ".wsm");
+				if (summArcName == "") { mixin(S_TRACE);
+					summArcName = scArc(arc, ".xml");
+					hasXML = summArcName != "";
 					if (!hasXML) return null;
 					summName = summName.setExtension(".xml");
 					classic = false;
@@ -420,7 +391,33 @@ public:
 				temp = createTempDir(tempPath, baseName(stripExtension(fname)), false);
 				try { mixin(S_TRACE);
 					expandDir = temp;
-					.unzip(temp, arc, &expandName);
+					if (expand || !hasXML) { mixin(S_TRACE);
+						.unzip(temp, arc, &expandName);
+						summPath = findSummaryDir(temp, summName);
+					} else { mixin(S_TRACE);
+						// WSNシナリオでXMLファイルを展開しない場合
+						.unzip(arc, (string path, ubyte[] data, bool isDir) { mixin(S_TRACE);
+							path = expandName(path, isDir);
+							if (!path.length) return;
+							if (!isDir) { mixin(S_TRACE);
+								auto file = path.baseName();
+								if (cfnmatch(file, "Summary.xml")) { mixin(S_TRACE);
+									xmls[""][file.idup] = cast(string)data.idup;
+								} else if (auto path2 = isXMLSystem(path)) { mixin(S_TRACE);
+									xmls[dirName(path2).baseName().idup][baseName(path2).idup] = cast(string)data.idup;
+								} else { mixin(S_TRACE);
+									path = std.path.buildPath(temp, path);
+									string parent = dirName(path);
+									if (!exists(parent)) mkdirRecurse(parent);
+									std.file.write(path, data);
+								}
+							} else if (!isScenarioSystemDir(path)) { mixin(S_TRACE);
+								path = std.path.buildPath(temp, path);
+								if (!exists(path)) mkdirRecurse(path);
+							}
+						}, setMax, worked);
+						summPath = temp.buildPath(summArcName).dirName();
+					}
 				} catch (Exception e) { mixin(S_TRACE);
 					printStackTrace();
 					debugln(e);
@@ -428,10 +425,11 @@ public:
 					return null;
 				}
 			}
-			summPath = findSummaryDir(temp, summName);
-			if (!.exists(std.path.buildPath(summPath, summName))) { mixin(S_TRACE);
-				delAll(temp);
-				return null;
+			if (expand || !hasXML) { mixin(S_TRACE);
+				if (!.exists(std.path.buildPath(summPath, summName))) { mixin(S_TRACE);
+					delAll(temp);
+					return null;
+				}
 			}
 			if (!scTemplate) { mixin(S_TRACE);
 				createLockFile(temp);
@@ -440,7 +438,7 @@ public:
 		}
 		Summary load(string p) { mixin(S_TRACE);
 			Summary r;
-			if (expand || fext == ".cab") { mixin(S_TRACE);
+			if (expand) { mixin(S_TRACE);
 				r = Summary.fromXMLs(prop.sys, std.path.buildPath(p, "Summary.xml"), opt);
 			} else { mixin(S_TRACE);
 				r = Summary.fromXMLs(prop.sys, p, xmls, opt);
