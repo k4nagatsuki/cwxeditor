@@ -661,6 +661,8 @@ class DockingFolder(TabF, int Style) {
 		recurse(area);
 		return tabs;
 	}
+	/// サブウィンドウが閉じられた時に呼び出される。
+	void delegate()[] shellClosedEvent;
 	/// 新規にサブウィンドウを作成する。
 	private void createSubWindow(out Shell shell, out Composite area) {
 		auto parShl = _comp.getShell();
@@ -700,6 +702,7 @@ class DockingFolder(TabF, int Style) {
 				_subCanvas.remove(shell);
 				_subAreas.remove(shell);
 				cwx.utils.remove!("a is b")(_subShells, shell);
+				foreach (dlg; shellClosedEvent) dlg();
 			}
 		});
 	}

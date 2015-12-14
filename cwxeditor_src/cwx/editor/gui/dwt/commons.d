@@ -295,6 +295,16 @@ TLPData tlpData(Control c) { mixin(S_TRACE);
 	}
 	throw new Exception("Not TLP child.", __FILE__, __LINE__);
 }
+TopLevelPanel getTopLevelPanel(Control c) { mixin(S_TRACE);
+	while (c) { mixin(S_TRACE);
+		auto tlpData = cast(TLPData)c.getData();
+		if (tlpData) { mixin(S_TRACE);
+			return tlpData.tlp;
+		}
+		c = c.getParent();
+	}
+	return null;
+}
 
 class Commons {
 	Dlg!() changed;

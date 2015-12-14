@@ -1316,7 +1316,7 @@ private:
 		}
 		@property
 		override bool canDoC() { mixin(S_TRACE);
-			return canDoT;
+			return selectedCards.length > 0;
 		}
 		@property
 		override bool canDoP() { mixin(S_TRACE);

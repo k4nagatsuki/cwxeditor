@@ -2635,6 +2635,7 @@ public:
 				_dock.closeCtrlEvent ~= &dockCloseCtrl;
 				_dock.movingShellEvent ~= &dockMovingShellEvent;
 				_dock.moveShellEvent ~= &dockMoveShellEvent;
+				_dock.shellClosedEvent ~= &dockShellClosedEvent;
 				_dock.firstResize = &dockFirstResize;
 				_dock.memoryPane = &isSystemPaneName;
 				_dock.memoryControl = &isSystemCtrlName;
@@ -3952,6 +3953,15 @@ public:
 		assert (tlp, key);
 		_tlp = tlp;
 		statusLine = tlp.statusLine;
+		setupMenu(_menu);
+		setupMenu(_tool);
+	}
+	private void dockShellClosedEvent() { mixin(S_TRACE);
+		auto d = _win.getDisplay();
+		auto fc = d.getFocusControl();
+		_tlp = getTopLevelPanel(fc);
+		if (!_tlp) return;
+		statusLine = _tlp.statusLine;
 		setupMenu(_menu);
 		setupMenu(_tool);
 	}
