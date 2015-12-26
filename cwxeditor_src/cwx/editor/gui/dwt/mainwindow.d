@@ -1749,6 +1749,7 @@ private:
 	}
 
 	void setHistSkin() { mixin(S_TRACE);
+		if (!summary) return;
 		string skinType = summary.type;
 		string skinName = "";
 		if (summary.type == _comm.skin.type) skinName = _comm.skin.name;
