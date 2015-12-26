@@ -727,7 +727,7 @@ private:
 				auto itm = _items[index];
 				itm.x = x;
 				itm.y = y;
-				if ((getStyle() | SWT.VIRTUAL) || y < rect.y + rect.height) { mixin(S_TRACE);
+				if (!(getStyle() | SWT.VIRTUAL) || (y < rect.y + rect.height && rect.y <= y + _itmH)) { mixin(S_TRACE);
 					if (gc) { mixin(S_TRACE);
 						itm.createImage();
 						auto image = itm.getImage();
