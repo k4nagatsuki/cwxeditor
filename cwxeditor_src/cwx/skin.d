@@ -123,9 +123,9 @@ enum MaskType {
 /// シナリオの外観の情報。
 class Skin {
 	/// 設定に該当するスキンを探す。
-	static Skin find(in CProps prop, string enginePath, string type, string sPath, bool legacy, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) { mixin(S_TRACE);
+	static Skin find(in CProps prop, string enginePath, string type, string sPath, bool legacy, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines, string defaultSkin) { mixin(S_TRACE);
 		if (legacy && !type.length) { mixin(S_TRACE);
-			return findLegacySkin(prop, enginePath, sPath, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines);
+			return findLegacySkin(prop, enginePath, sPath, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines, defaultSkin);
 		}
 		static Skin[string] emptySkins;
 		auto tbl = table(prop, enginePath);
@@ -177,12 +177,12 @@ class Skin {
 		}
 	}
 	/// クラシックなエンジンのスキンを返す。
-	static Skin createLegacySkin(in CProps prop, string enginePath, string lEnginePath, string dataDirName, string execute, in ClassicEngine[] cEngines) { mixin(S_TRACE);
+	static Skin createLegacySkin(in CProps prop, string enginePath, string lEnginePath, string dataDirName, string execute, in ClassicEngine[] cEngines, string defaultSkin) { mixin(S_TRACE);
 		// 標準のスキンをベースにする
 		if (enginePath.length) enginePath = prop.toAppAbs(enginePath);
 		if (lEnginePath.length) lEnginePath = nabs(prop.toAppAbs(lEnginePath));
 		auto tbl = table(prop, enginePath);
-		auto sp = "MedievalFantasy" in tbl;
+		auto sp = defaultSkin in tbl;
 		ClassicEngine cEngine;
 		foreach (ce; cEngines) { mixin(S_TRACE);
 			if (cfnmatch(nabs(prop.toAppAbs(ce.enginePath)), lEnginePath)) { mixin(S_TRACE);
@@ -201,14 +201,14 @@ class Skin {
 		return skin;
 	}
 	/// クラシックなエンジンのスキンを探して返す。
-	static Skin findLegacySkin(in CProps prop, string enginePath, string sPath, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines) { mixin(S_TRACE);
+	static Skin findLegacySkin(in CProps prop, string enginePath, string sPath, string classicEngineRegex, string classicDataDirRegex, string classicMatchKey, in ClassicEngine[] cEngines, string defaultSkin) { mixin(S_TRACE);
 		string resDir, lEnginePath;
 		findLegacy(sPath, resDir, lEnginePath, classicEngineRegex, classicDataDirRegex, classicMatchKey, cEngines);
 		resDir = resDir.length ? nabs(resDir) : "";
 		lEnginePath = lEnginePath.length ? nabs(lEnginePath) : "";
 
 		string dataDirName = resDir.length ? abs2rel(resDir, lEnginePath.dirName()) : "";
-		return createLegacySkin(prop, enginePath, lEnginePath, dataDirName, "", cEngines);
+		return createLegacySkin(prop, enginePath, lEnginePath, dataDirName, "", cEngines, defaultSkin);
 	}
 	private void setupLegacy(string lEnginePath, string resDir, ClassicEngine cEngine) { mixin(S_TRACE);
 		_cEngine = cEngine;
@@ -1008,6 +1008,7 @@ class Skin {
 
 	const
 	private bool has(alias isT, Arg ...)(string dir, Arg args) { mixin(S_TRACE);
+		if (!dir.exists() || !dir.isDir()) return false;
 		foreach (file; dir.dirEntries(SpanMode.shallow)) { mixin(S_TRACE);
 			if (isT(file, args)) return true;
 		}

@@ -20,7 +20,7 @@ import std.path;
 import org.eclipse.swt.all;
 
 Skin createClassicSkin(in Props prop, in ClassicEngine ce) { mixin(S_TRACE);
-	return Skin.createLegacySkin(prop.parent, prop.enginePath, ce.enginePath, ce.dataDirName, ce.execute, [ce]);
+	return Skin.createLegacySkin(prop.parent, prop.enginePath, ce.enginePath, ce.dataDirName, ce.execute, [ce], prop.var.etc.defaultSkin);
 }
 
 bool findCWPy(Props prop, string sPath) { mixin(S_TRACE);
@@ -43,6 +43,7 @@ bool findCWPy(Props prop, string sPath) { mixin(S_TRACE);
 
 Skin findSkin2(const(Props) prop, string type, string name) { mixin(S_TRACE);
 	Skin typeSkin = null;
+	if (type == "") type = prop.var.etc.defaultSkin;
 	foreach (path, skin; skinTable(prop)) { mixin(S_TRACE);
 		if (skin.type == type) { mixin(S_TRACE);
 			if (!typeSkin) typeSkin = skin;

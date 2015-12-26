@@ -55,7 +55,7 @@ Skin findSkin(Commons comm, Props prop, in Summary summ, string type = null, str
 }
 
 Skin findSkin(Commons comm, Props prop, in Summary summ, bool legacy, string sPath, string type, string name = "", string legacyEngine = "", bool appendClassicSkin = true) { mixin(S_TRACE);
-	if (summ && !legacy) { mixin(S_TRACE);
+	if (summ) { mixin(S_TRACE);
 		findCWPy(prop, sPath);
 	}
 	if (!summ) { mixin(S_TRACE);
@@ -75,7 +75,7 @@ Skin findSkin(Commons comm, Props prop, in Summary summ, bool legacy, string sPa
 		}
 		auto skin = Skin.find(prop.parent, prop.enginePath, type, sPath, legacy,
 			prop.var.etc.classicEngineRegex, prop.var.etc.classicDataDirRegex,
-			prop.var.etc.classicMatchKey, prop.var.etc.classicEngines);
+			prop.var.etc.classicMatchKey, prop.var.etc.classicEngines, prop.var.etc.defaultSkin);
 		void find() { mixin(S_TRACE);
 			if (!appendClassicSkin) return;
 			if (!prop.var.etc.addNewClassicEngine) return;
