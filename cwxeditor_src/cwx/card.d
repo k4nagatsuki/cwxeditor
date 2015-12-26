@@ -823,7 +823,11 @@ public:
 	// 適性値を返す。
 	const
 	int aptitude(Physical phy, Mental m) { mixin(S_TRACE);
-		return physical(phy) + mental(m);
+		auto mVal = mental(m);
+		if (cast(int)mVal != mVal) { mixin(S_TRACE);
+			mVal = mVal < 0 ? mVal + 0.5 : mVal - 0.5;
+		}
+		return physical(phy) + cast(int)mVal;
 	}
 
 	/// 所持するクーポン。

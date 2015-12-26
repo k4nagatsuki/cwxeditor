@@ -1495,6 +1495,7 @@ class Skin {
 			}
 		} catch (Exception e) {
 			printStackTrace();
+			debugln(fname);
 			debugln(e);
 		}
 	}

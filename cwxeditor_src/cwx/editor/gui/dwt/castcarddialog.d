@@ -741,10 +741,10 @@ private:
 				int max = _prop.looks.mentalCut;
 				real val;
 				if (race) { mixin(S_TRACE);
-					int ival = race.mental(mtl);
-					val = ival;
-					if (ival < min) min = ival;
-					if (ival > max) max = ival;
+					val = race.mental(mtl);
+					auto iVal = cast(int)(val < 0 ? val + 0.5 : val - 0.5);
+					if (iVal < min) min = iVal;
+					if (iVal > max) max = iVal;
 				} else { mixin(S_TRACE);
 					val = 0.0;
 				}
@@ -752,7 +752,7 @@ private:
 				val += calcMtl!(Period)(summSkin, mtl, _period, false);
 				val += calcMtl!(Nature)(summSkin, mtl, _nature, false);
 				val += calcMtl!(Makings)(summSkin, mtl, _makings, true);
-				int v = cast(int) val;
+				auto v = cast(int)(val < 0 ? val + 0.5 : val - 0.5);
 				if (v < min) v = min;
 				if (v > max) v = max;
 				scale.setSelection(v + _prop.var.etc.mentalMax);
@@ -1291,7 +1291,11 @@ protected:
 				}
 			}
 			foreach (mtl, scale; _mtl) { mixin(S_TRACE);
-				scale.setSelection(_prop.var.etc.mentalMax + _card.mental(mtl));
+				auto mVal = _card.mental(mtl);
+				if (cast(int)mVal != mVal) { mixin(S_TRACE);
+					mVal = mVal < 0 ? mVal + 0.5 : mVal - 0.5;
+				}
+				scale.setSelection(_prop.var.etc.mentalMax + cast(int)mVal);
 			}
 			foreach (enh, i; _enhTbl) { mixin(S_TRACE);
 				if (_enhR) { mixin(S_TRACE);

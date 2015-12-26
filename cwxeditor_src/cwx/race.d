@@ -68,7 +68,7 @@ template RaceParam(bool Set) {
 		bool _res[Element];
 		bool _weak[Element];
 		uint _phy[Physical];
-		int _mtl[Mental];
+		double _mtl[Mental];
 		int _dEnh[Enhance]; /// デフォルトの能力修正
 	}
 
@@ -236,7 +236,7 @@ template RaceParam(bool Set) {
 		}
 		/// 精神傾向。
 		const
-		int mental(Mental m) { mixin(S_TRACE);
+		double mental(Mental m) { mixin(S_TRACE);
 			final switch (m) {
 			case Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE, Mental.CAUTIOUS, Mental.TRICKISH:
 				return _mtl[m];
@@ -254,7 +254,7 @@ template RaceParam(bool Set) {
 		}
 		static if (Set) {
 			/// ditto
-			void mental(Mental m, int val) { mixin(S_TRACE);
+			void mental(Mental m, double val) { mixin(S_TRACE);
 				final switch (m) {
 				case Mental.AGGRESSIVE, Mental.CHEERFUL, Mental.BRAVE, Mental.CAUTIOUS, Mental.TRICKISH:
 					if (_mtl[m] != val) changed();
@@ -370,11 +370,11 @@ template RaceParam(bool Set) {
 			_phy[Physical.MIN] = phyNode.attr!(int)("min", true);
 		};
 		aNode.onTag["Mental"] = (ref XNode mtlNode) { mixin(S_TRACE);
-			_mtl[Mental.AGGRESSIVE] = mtlNode.attr!(int)("aggressive", true);
-			_mtl[Mental.CHEERFUL] = mtlNode.attr!(int)("cheerful", true);
-			_mtl[Mental.BRAVE] = mtlNode.attr!(int)("brave", true);
-			_mtl[Mental.CAUTIOUS] = mtlNode.attr!(int)("cautious", true);
-			_mtl[Mental.TRICKISH] = mtlNode.attr!(int)("trickish", true);
+			_mtl[Mental.AGGRESSIVE] = mtlNode.attr!(double)("aggressive", true);
+			_mtl[Mental.CHEERFUL] = mtlNode.attr!(double)("cheerful", true);
+			_mtl[Mental.BRAVE] = mtlNode.attr!(double)("brave", true);
+			_mtl[Mental.CAUTIOUS] = mtlNode.attr!(double)("cautious", true);
+			_mtl[Mental.TRICKISH] = mtlNode.attr!(double)("trickish", true);
 		};
 		aNode.onTag["Enhance"] = (ref XNode enhNode) { mixin(S_TRACE);
 			_dEnh[Enhance.AVOID] = enhNode.attr!(int)("avoid", true);
