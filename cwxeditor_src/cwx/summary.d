@@ -2289,6 +2289,7 @@ public:
 				if (type == "") type = defSkin.type;
 				sPath = classicToX(prop, temp, tempPath, defSkin, copyFail);
 				toX = true;
+				_legacy = false;
 			} else { mixin(S_TRACE);
 				sPath = toNewDirectory(prop, fname, tempPath, copyFail, useTemp);
 			}
@@ -2296,6 +2297,8 @@ public:
 				// 一部コピー失敗しても中断しない
 				showWarn(.tryFormat(prop.msgs.fileCopyError, fail));
 			}
+			delTemp();
+			scenarioPath = sPath;
 			assert (!useTemp);
 			string zipName = "";
 			saveProc(prop, skin, opt2, useTemp, zipName, temp, sPath, false, false, defExpandXMLs, true, { mixin(S_TRACE);
@@ -2402,9 +2405,9 @@ public:
 				_tempPath = temp;
 				_legacy = true;
 				_type = "";
-			} else if (archive || useTemp || legacyToX) { mixin(S_TRACE);
+			} else if (archive || useTemp || (archive && legacyToX)) { mixin(S_TRACE);
 				auto oldPath = scenarioPath;
-				if (expandXMLs) { mixin(S_TRACE);
+				if (expandXMLs || !archive) { mixin(S_TRACE);
 					saveXMLsImpl(_sPath, prop.sys, opt, false);
 					expand = true;
 				} else if (legacyToX && defExpandXMLs) { mixin(S_TRACE);

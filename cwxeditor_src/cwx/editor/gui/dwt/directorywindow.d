@@ -1258,13 +1258,14 @@ private:
 				return summ && !_display.isDisposed() && _prop.var.etc.traceDirectories && _win;
 			}
 			version (Windows) {
+				string sPath;
 				bool setup() { mixin(S_TRACE);
 					_refreshThrMutex.lock();
 					scope (exit) _refreshThrMutex.unlock();
 					closeTraceHandleImpl();
 					if (summ) { mixin(S_TRACE);
 						DWORD fs = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_LAST_WRITE;
-						_traceHandle = FindFirstChangeNotificationW(toUTFz!(wchar*)(summ.scenarioPath), TRUE, fs);
+						_traceHandle = FindFirstChangeNotificationW(toUTFz!(wchar*)(sPath), TRUE, fs);
 						return _traceHandle !is INVALID_HANDLE_VALUE;
 					}
 					return true;
@@ -1289,8 +1290,9 @@ private:
 							sleep();
 							continue;
 						}
-						if (summ !is _summ) { mixin(S_TRACE);
+						if (summ !is _summ || (summ && summ.scenarioPath != sPath)) { mixin(S_TRACE);
 							summ = _summ;
+							sPath = summ ? summ.scenarioPath : "";
 							if (!setup()) { mixin(S_TRACE);
 								debugln("FindFirstChangeNotification failed: ", GetLastError());
 								continue;
