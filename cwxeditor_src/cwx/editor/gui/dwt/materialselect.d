@@ -21,6 +21,7 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.timebar;
 
+import core.atomic;
 import core.thread;
 
 import std.array;
@@ -1476,7 +1477,8 @@ private:
 
 		version (Win32) {
 			// FIXME: 同時に複数開くなどすると謎のアクセス違反が発生する
-			auto subThr = false;
+			shared static int subThrCount = 0;
+			auto subThr = !_dirs.isVisible() && subThrCount <= 0;
 		} else {
 			auto subThr = !_dirs.isVisible();
 		}
@@ -1484,6 +1486,8 @@ private:
 		auto path = this.path;
 
 		void update() { mixin(S_TRACE);
+			.atomicOp!"+="(subThrCount, 1);
+			scope (exit) .atomicOp!"-="(subThrCount, 1);
 			size_t cut = 0;
 			if (_summ) { mixin(S_TRACE);
 				string st = _summ.scenarioPath;
