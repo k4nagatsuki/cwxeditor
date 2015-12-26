@@ -1486,8 +1486,10 @@ private:
 		auto path = this.path;
 
 		void update() { mixin(S_TRACE);
-			.atomicOp!"+="(subThrCount, 1);
-			scope (exit) .atomicOp!"-="(subThrCount, 1);
+			version (Win32) {
+				.atomicOp!"+="(subThrCount, 1);
+				scope (exit) .atomicOp!"-="(subThrCount, 1);
+			}
 			size_t cut = 0;
 			if (_summ) { mixin(S_TRACE);
 				string st = _summ.scenarioPath;
