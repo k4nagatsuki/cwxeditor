@@ -126,25 +126,25 @@ public:
 
 	private static string gothic(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
-			if (legacy) return "ＭＳ ゴシック";
+			return "ＭＳ ゴシック";
 		}
 		return "IPAゴシック";
 	}
 	private static string pgothic(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
-			if (legacy) return "ＭＳ Ｐゴシック";
+			return "ＭＳ Ｐゴシック";
 		}
 		return "IPA Pゴシック";
 	}
 	private static string mincho(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
-			if (legacy) return "ＭＳ 明朝";
+			return "ＭＳ 明朝";
 		}
 		return "IPA明朝";
 	}
 	private static string uigothic(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
-			if (legacy) return "MS UI Gothic";
+			return "MS UI Gothic";
 		}
 		return "IPA UIゴシック";
 	}
@@ -193,7 +193,7 @@ public:
 		version (Windows) {
 			if (legacy) return CFont(pgothic(legacy), 11, true, false);
 		}
-		return CFont(pgothic(legacy), 14, false, false);
+		return CFont(pgothic(legacy), 11, false, false);
 	}
 	const CFont scriptErrorFont(uint defSize) { mixin(S_TRACE);
 		return textDlgFont(defSize);
