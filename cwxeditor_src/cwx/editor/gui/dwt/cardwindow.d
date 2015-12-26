@@ -1150,6 +1150,9 @@ private:
 			CardWindow[] r;
 			foreach (i, cc; ccs) { mixin(S_TRACE);
 				if (cc) { mixin(S_TRACE);
+					if (cc.type == "" && !cc.legacy) { mixin(S_TRACE);
+						cc.type = prop.var.etc.defaultSkin;
+					}
 					auto shl = cast(Shell) parent;
 					auto pane = comm.sidePane;
 					auto acw = new CardWindow(comm, prop, CardWindowKind.ImportSource, pane, cc, cc, toc);

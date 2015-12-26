@@ -976,6 +976,9 @@ private:
 			if (summ.legacy && hist.path.length && (hist.skinType.length || hist.skinEngine.length)) { mixin(S_TRACE);
 				summ.type = hist.skinType;
 			}
+			if (summ.type == "" && !summ.legacy) { mixin(S_TRACE);
+				summ.type = _prop.var.etc.defaultSkin;
+			}
 			dStr ~= " - " ~ .text(__LINE__);
 			_lastBackup = Clock.currTime();
 			dStr ~= " - " ~ .text(__LINE__);

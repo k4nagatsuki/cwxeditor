@@ -2286,6 +2286,7 @@ public:
 			if (!temp.exists()) temp.mkdirRecurse();
 			bool toX = false;
 			if (this.legacy) { mixin(S_TRACE);
+				if (type == "") type = defSkin.type;
 				sPath = classicToX(prop, temp, tempPath, defSkin, copyFail);
 				toX = true;
 			} else { mixin(S_TRACE);
