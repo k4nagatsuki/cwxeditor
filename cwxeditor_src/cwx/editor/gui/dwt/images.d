@@ -1243,9 +1243,9 @@ public:
 		if (!_visible) return false;
 		final switch (_type) {
 		case ImageType.Image:
+			if (transparent) return false;
 			if (_imgData && !_imgData.alphaData.length && _imgData.transparentPixel <= 0) return true; // 生成済みの場合
 			if (data && (data.alphaData.length || 0 < data.transparentPixel)) return false;
-			if (transparent) return false;
 			return true;
 		case ImageType.Text:
 			return false;
