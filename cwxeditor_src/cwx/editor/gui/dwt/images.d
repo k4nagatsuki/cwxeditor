@@ -84,6 +84,8 @@ private:
 		FontData fontData = null;
 		ScaleType scaleType = ScaleType.Scale;
 	}
+	bool _needCreate = false;
+
 	ImageType _type = ImageType.Image;
 	string _title = null;
 	FontData titFont = null;
@@ -460,6 +462,10 @@ public:
 	/// このメソッドを呼び出すことで、画像が生成される。
 	/// See_Also: append(), setTitle(), transparent()
 	void createImage() { mixin(S_TRACE);
+		_needCreate = true;
+	}
+	private void createImageImpl() { mixin(S_TRACE);
+		_needCreate = false;
 		auto cur = Display.getCurrent();
 		if (_imgData) { mixin(S_TRACE);
 			del(_imgData);
@@ -882,6 +888,7 @@ public:
 		scope (exit) {
 			if (!_dataResizable) gc.setClipping(cast(Rectangle)null);
 		}
+		if (_needCreate) createImageImpl();
 		final switch (_type) {
 		case ImageType.Image:
 			if (!_img) return;
@@ -1228,14 +1235,36 @@ public:
 		}
 	}
 
+	/// 確実に不透明か。
+	@property
+	bool isOpaque() { mixin(S_TRACE);
+		if (!_visible) return false;
+		if (_alpha < 255) return false;
+		final switch (_type) {
+		case ImageType.Image:
+			if (data && data.alphaData.length) return false;
+			if (transparent) return false;
+			return true;
+		case ImageType.Text:
+			return false;
+		case ImageType.ColorFilter:
+			if (_blendMode != BlendMode.Normal) return false;
+			if (_color1.a < 255) return false;
+			if (_color2.a < 255 && _gradientDir != GradientDir.None) return false;
+			return true;
+		}
+	}
+
 	/// 画像。
 	@property
 	Image image() { mixin(S_TRACE);
+		if (_needCreate) createImageImpl();
 		return _img;
 	}
 	/// リサイズ前の画像。
 	@property
 	ImageData baseSizeData() { mixin(S_TRACE);
+		if (_needCreate) createImageImpl();
 		return _baseSizeData;
 	}
 
