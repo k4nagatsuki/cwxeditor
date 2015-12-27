@@ -1796,7 +1796,7 @@ private:
 		label.setText(_prop.msgs.refFlags);
 		label.setImage(_prop.images.flag);
 
-		_flagList = new Table(comp, SWT.SINGLE | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		_flagList = new Table(comp, SWT.SINGLE | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.VIRTUAL);
 		new FullTableColumn(_flagList, SWT.NONE);
 		auto gd = new GridData(GridData.FILL_BOTH);
 		gd.widthHint = 0;
@@ -2027,43 +2027,45 @@ private:
 	void refreshControls() { mixin(S_TRACE);
 		_refreshControls = true;
 		_toolbar.redraw();
+	}
 
-		string f = null;
-		if (_flag) { mixin(S_TRACE);
-			_flag.setText(_flag.getItem(0));
-			void flag(string f2) { mixin(S_TRACE);
-				if (!_flag) return;
-				if (!f) { mixin(S_TRACE);
-					f = f2;
-					if ("" != f2) { mixin(S_TRACE);
-						_flag.setText(f2);
-					}
-				} else if (f != f2) { mixin(S_TRACE);
-					_flag.setText("");
-				}
+	private void updateFlagCombo() { mixin(S_TRACE);
+		if (!_flag) return;
+		auto f = "";
+		bool breaked = false;
+		void flag(string f2) { mixin(S_TRACE);
+			if (f == "") { mixin(S_TRACE);
+				f = f2;
+			} else if (f != f2) { mixin(S_TRACE);
+				f = "";
+				breaked = true;
 			}
-			static if (UseCards) {
-				foreach (c; _editC.keys) { mixin(S_TRACE);
-					flag(c.flag);
-				}
+		}
+		static if (UseCards) {
+			foreach (c; _editC.keys) { mixin(S_TRACE);
+				if (breaked) break;
+				flag(c.flag);
 			}
-			static if (UseBacks) {
-				foreach (b; _editB.keys) { mixin(S_TRACE);
-					flag(b.flag);
-				}
+		}
+		static if (UseBacks) {
+			foreach (b; _editB.keys) { mixin(S_TRACE);
+				if (breaked) break;
+				flag(b.flag);
 			}
-			static if (UseCards && UseBacks) {
-				_flag.setEnabled(!_readOnly && (_editC.length || _editB.length));
-			} else static if (UseCards) {
-				_flag.setEnabled(!_readOnly && _editC.length > 0);
-			} else static if (UseBacks) {
-				_flag.setEnabled(!_readOnly && _editB.length > 0);
-			}
+		}
+		_flag.setText(f == "" ? _flag.getItem(0) : f);
+		static if (UseCards && UseBacks) {
+			_flag.setEnabled(!_readOnly && (_editC.length || _editB.length));
+		} else static if (UseCards) {
+			_flag.setEnabled(!_readOnly && _editC.length > 0);
+		} else static if (UseBacks) {
+			_flag.setEnabled(!_readOnly && _editB.length > 0);
 		}
 	}
 	void refreshControlsImpl() { mixin(S_TRACE);
 		if (!_xSpn) return;
 		if (!_refreshControls) return;
+		scope (exit) updateFlagCombo();
 		_refreshControls = false;
 		static if (UseCards && UseBacks) {
 			_xSpn.setEnabled(!_readOnly && (_editC.length || _editB.length));
@@ -2416,7 +2418,7 @@ private:
 +/			}
 		}
 
-		auto list = new Table(comp, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		auto list = new Table(comp, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.VIRTUAL);
 		new FullTableColumn(list, SWT.NONE);
 		auto mkl = new MKListener!(C)(edit, items);
 		auto closePreview = new ClosePreview;
@@ -2963,6 +2965,7 @@ public:
 				_cards.addMouseTrackListener(prevTrig);
 				_cards.addMouseMoveListener(prevTrig);
 				.listener(_cards, SWT.Paint, &selectImageCImpl);
+				.listener(_cards, SWT.Paint, &openCWXPathImpl);
 			}
 			static if (UseBacks) {
 				_backs = createList(listsP, prop.msgs.backs,
@@ -2977,6 +2980,7 @@ public:
 				_backs.addMouseTrackListener(prevTrig);
 				_backs.addMouseMoveListener(prevTrig);
 				.listener(_backs, SWT.Paint, &selectImageBImpl);
+				.listener(_backs, SWT.Paint, &openCWXPathImpl);
 				if (!_readOnly) { mixin(S_TRACE);
 					_comm.refPath.add(&refPath);
 					.listener(_backs, SWT.Dispose, { mixin(S_TRACE);
@@ -5621,6 +5625,30 @@ public:
 		_undo.redo();
 	}
 
+	private bool _openCWXPathFocus = false;
+	private bool _openCWXPathShellActivate = false;
+	private int[][Table] _openCWXPathIndices;
+	static if (UseCards) bool _listSelectC = false;
+	static if (UseBacks) bool _listSelectB = false;
+	private void openCWXPathImpl() { mixin(S_TRACE);
+		if (!_openCWXPathIndices.length) return;
+
+		if (_openCWXPathFocus) .forceFocus(_imgp, _openCWXPathShellActivate);
+		foreach (list, indices; _openCWXPathIndices) { mixin(S_TRACE);
+			list.select(indices);
+			list.showSelection();
+		}
+		_comm.refreshToolBar();
+		static if (UseCards) if (_listSelectC) listSelectC();
+		static if (UseBacks) if (_listSelectB) listSelectB();
+
+		_openCWXPathFocus = false;
+		_openCWXPathShellActivate = false;
+		_openCWXPathIndices = null;
+		static if (UseCards) _listSelectC = false;
+		static if (UseBacks) _listSelectB = false;
+	}
+
 	bool openCWXPath(string path, bool shellActivate) { mixin(S_TRACE);
 		if (cpempty(path)) { mixin(S_TRACE);
 			if (!cphasattr(path, "nofocus")) .forceFocus(_imgp, shellActivate);
@@ -5631,10 +5659,15 @@ public:
 		auto index = cpindex(path);
 		bool sel(Table list) { mixin(S_TRACE);
 			if (index >= list.getItemCount()) return false;
-			if (!cphasattr(path, "nofocus")) .forceFocus(_imgp, shellActivate);
-			list.select(cast(int)index);
-			list.showSelection();
-			_comm.refreshToolBar();
+			if (!cphasattr(path, "nofocus")) { mixin(S_TRACE);
+				_openCWXPathFocus = true;
+				_openCWXPathShellActivate |= shellActivate;
+			}
+			if (list in _openCWXPathIndices) { mixin(S_TRACE);
+				_openCWXPathIndices[list] ~= cast(int)index;
+			} else {
+				_openCWXPathIndices[list] = [cast(int)index];
+			}
 			return true;
 		}
 		static if (UseCards && is(C : MenuCard)) {
@@ -5645,7 +5678,7 @@ public:
 					return true;
 				} else { mixin(S_TRACE);
 					if (sel(_cards)) { mixin(S_TRACE);
-						listSelectC();
+						_listSelectC = true;
 						return true;
 					}
 				}
@@ -5659,7 +5692,7 @@ public:
 					return true;
 				} else { mixin(S_TRACE);
 					if (sel(_cards)) { mixin(S_TRACE);
-						listSelectC();
+						_listSelectC = true;
 						return true;
 					}
 				}
@@ -5673,7 +5706,7 @@ public:
 					return true;
 				} else { mixin(S_TRACE);
 					if (sel(_backs)) { mixin(S_TRACE);
-						listSelectB();
+						_listSelectB = true;
 						return true;
 					}
 				}
