@@ -884,10 +884,6 @@ public:
 	void draw(ref Image buf, ref GC gc, Rectangle range) { mixin(S_TRACE);
 		if (!_visible) return;
 		if (!range.intersects(rect)) return;
-		if (!_dataResizable) gc.setClipping(new Rectangle(x, y, width, height));
-		scope (exit) {
-			if (!_dataResizable) gc.setClipping(cast(Rectangle)null);
-		}
 		if (_needCreate) createImageImpl();
 		final switch (_type) {
 		case ImageType.Image:
@@ -1238,11 +1234,17 @@ public:
 	/// 確実に不透明か。
 	@property
 	bool isOpaque() { mixin(S_TRACE);
-		if (!_visible) return false;
 		if (_alpha < 255) return false;
+		return isOpaqueWithoutAlpha;
+	}
+	/// ditto
+	@property
+	bool isOpaqueWithoutAlpha() { mixin(S_TRACE);
+		if (!_visible) return false;
 		final switch (_type) {
 		case ImageType.Image:
-			if (data && data.alphaData.length) return false;
+			if (_imgData && !_imgData.alphaData.length && _imgData.transparentPixel <= 0) return true; // 生成済みの場合
+			if (data && (data.alphaData.length || 0 < data.transparentPixel)) return false;
 			if (transparent) return false;
 			return true;
 		case ImageType.Text:
@@ -2525,25 +2527,33 @@ private:
 			gc.drawImage(back, 0, 0);
 			scope (exit) back.dispose();
 
-			ImageData alphaImgData = null;
-			byte[] alphas = null;
-			int befAlpha = -1;
-
-			void drawAlphaImgData() { mixin(S_TRACE);
-				auto aImg = new Image(d, alphaImgData);
-				gc.drawImage(aImg, 0, 0);
-				aImg.dispose();
-
-				alphaImgData.data[] = 0;
-				alphaImgData.alphaData[] = 0;
-				tempData[new Point(alphaImgData.width, alphaImgData.height)] = alphaImgData;
-				alphaImgData = null;
-				alphas[] = 0;
-				tempAlphaData[alphas.length] = alphas;
-				alphas = null;
+			// 描画・不描画の判断を行いつつ描画を行う。
+			// 基本的な考え方としては、手前に不透明なイメージが存在する場合、
+			// そのイメージに占められたエリアは描画範囲外とし、描画範囲外に
+			// 収まるイメージはイメージ本体の生成を省略するなどして
+			// できるだけ処理量を減らすようにする。
+			// そのため、手前に来るイメージほど先に描画し、そのイメージが
+			// 不透明であれば描画範囲のRegionから描画された領域を差し引くようにする。
+			// ただし透明部分のあるイメージが途中にあった場合、そのまま処理すると
+			// 本来透けて見える部分が丸ごと消滅したように見えてしまう。
+			// そのため、全イメージのリストを透明イメージが存在する位置で分割して
+			// グループ化し、グループは背後側から→グループの内部では手前側から
+			// という順序で描画を行い、Regionはグループごとに初期化するようにする。
+			PileImage[][] spriteGroups = [];
+			bool opaque = false;
+			PileImage[] groupO = [];
+			PileImage[] groupNO = [];
+			void putGroup() { mixin(S_TRACE);
+				// 透明部分のあるイメージは背後から順に描画する必要があり、
+				// 描画処理は手前から順に行われるため、透明イメージのリストは
+				// ここで順序を逆転しておく
+				groupNO.reverse();
+				spriteGroups ~= groupNO;
+				spriteGroups ~= groupO;
+				groupO = [];
+				groupNO = [];
 			}
 			foreach (t; fBacks) { mixin(S_TRACE);
-				auto i = t[0];
 				auto img = t[1];
 				if (!img.visible) continue;
 				if (img.y + img.height < 0) continue;
@@ -2552,62 +2562,133 @@ private:
 				if (rect.width <= img.x) continue;
 				if (!img.bounds.intersects(range)) continue;
 
-				if (img.type is ImageType.Image && 0 <= img.alpha && img.alpha < 255) { mixin(S_TRACE);
-					// 同一のレイヤ値を持つイメージが連続して存在している場合は
-					// 視認性をよくするために一体化させる
-					if (img.alpha != befAlpha || img.separator) { mixin(S_TRACE);
-						if (alphaImgData) { mixin(S_TRACE);
+				auto o = img.isOpaque;
+				if (opaque && !o) { mixin(S_TRACE);
+					putGroup();
+				}
+				if (o) { mixin(S_TRACE);
+					groupO ~= img;
+				} else { mixin(S_TRACE);
+					groupNO ~= img;
+				}
+
+				opaque = o;
+			}
+			if (groupO.length || groupNO.length) putGroup();
+
+			foreach (sprites; spriteGroups) { mixin(S_TRACE);
+				int befAlpha = -1;
+				PileImage[] alphaImgs = [];
+
+				void drawAlphaImgData() { mixin(S_TRACE);
+					if (!alphaImgs.length) return;
+					ImageData alphaImgData = null;
+					byte[] alphas = null;
+
+					auto size = new Point(rect.width, rect.height);
+					auto p = size in tempData;
+					if (p) { mixin(S_TRACE);
+						alphaImgData = *p;
+					} else { mixin(S_TRACE);
+						alphaImgData = new ImageData(rect.width, rect.height, alphaImgs[0].imageData.depth, alphaImgs[0].imageData.palette);
+					}
+					auto len = cast(size_t)(rect.width * rect.height);
+					auto p2 = len in tempAlphaData;
+					if (p2) { mixin(S_TRACE);
+						alphas = *p2;
+					} else { mixin(S_TRACE);
+						alphas = new byte[rect.width * rect.height];
+					}
+					alphas[] = 0;
+					alphaImgData.setAlphas(0, 0, rect.width * rect.height, alphas, 0);
+
+					auto alphaRegion = new Region(d);
+					scope (exit) alphaRegion.dispose();
+					alphaRegion.add(rect);
+
+					PileImage[] alphaImgs2 = [];
+					foreach_reverse (img; alphaImgs) { mixin(S_TRACE);
+						if (alphaRegion.isEmpty()) break;
+						if (!alphaRegion.intersects(img.x, img.y, img.width, img.height)) continue;
+						if (img.isOpaqueWithoutAlpha) { mixin(S_TRACE);
+							alphaRegion.subtract(img.x, img.y, img.width, img.height);
+						}
+						alphaImgs2 ~= img;
+					}
+
+					foreach_reverse (img; alphaImgs2) { mixin(S_TRACE);
+						int ix = .max(0, -img.x);
+						int aw = img.width - ix;
+						int x2 = img.x + ix;
+						aw = .min(aw, rect.width - x2);
+						assert (0 < aw);
+						auto iPixels = new int[aw];
+						auto iAlphas = new byte[aw];
+						iAlphas[] = cast(byte)img.alpha;
+						scope (exit) delete iPixels;
+						scope (exit) delete iAlphas;
+						auto iData = img.imageData;
+						foreach (iy; .max(0, -img.y) .. img.height) { mixin(S_TRACE);
+							int y2 = iy + img.y;
+							assert (0 <= y2);
+							if (rect.height <= y2) break;
+							iData.getPixels(ix, iy, aw, iPixels, 0);
+							alphaImgData.setPixels(x2, y2, aw, iPixels, 0);
+							alphaImgData.setAlphas(x2, y2, aw, iAlphas, 0);
+						}
+					}
+
+					auto aImg = new Image(d, alphaImgData);
+					gc.drawImage(aImg, 0, 0);
+					aImg.dispose();
+
+					alphaImgData.data[] = 0;
+					alphaImgData.alphaData[] = 0;
+					tempData[new Point(alphaImgData.width, alphaImgData.height)] = alphaImgData;
+					alphaImgData = null;
+					alphas[] = 0;
+					tempAlphaData[alphas.length] = alphas;
+					alphas = null;
+
+					alphaImgs = [];
+				}
+
+				auto region = new Region(d);
+				scope (exit) region.dispose();
+				region.add(range);
+
+				foreach_reverse (img; sprites) { mixin(S_TRACE);
+					if (region.isEmpty()) break;
+					if (!region.intersects(img.x, img.y, img.width, img.height)) continue;
+
+					gc.setClipping(region);
+					scope (exit) gc.setClipping(cast(Region)null);
+
+					if (img.type is ImageType.Image && 0 <= img.alpha && img.alpha < 255) { mixin(S_TRACE);
+						// 同一のレイヤ値を持つイメージが連続して存在している場合は
+						// 視認性をよくするために一体化させる
+						if (img.alpha != befAlpha || img.separator) { mixin(S_TRACE);
+							if (alphaImgs.length) { mixin(S_TRACE);
+								drawAlphaImgData();
+							}
+						}
+						alphaImgs ~= img;
+						befAlpha = img.separator ? -1 : img.alpha;
+
+					} else { mixin(S_TRACE);
+						if (alphaImgs.length) { mixin(S_TRACE);
 							drawAlphaImgData();
 						}
-						auto size = new Point(rect.width, rect.height);
-						auto p = size in tempData;
-						if (p) { mixin(S_TRACE);
-							alphaImgData = *p;
-						} else { mixin(S_TRACE);
-							alphaImgData = new ImageData(rect.width, rect.height, img.imageData.depth, img.imageData.palette);
+						befAlpha = -1;
+						img.draw(buf, gc, range);
+						if (img.isOpaque) { mixin(S_TRACE);
+							region.subtract(img.x, img.y, img.width, img.height);
 						}
-						auto len = cast(size_t)(rect.width * rect.height);
-						auto p2 = len in tempAlphaData;
-						if (p2) { mixin(S_TRACE);
-							alphas = *p2;
-						} else { mixin(S_TRACE);
-							alphas = new byte[rect.width * rect.height];
-						}
-						alphas[] = 0;
-						alphaImgData.setAlphas(0, 0, rect.width * rect.height, alphas, 0);
 					}
-					assert (alphaImgData !is null);
-					befAlpha = img.separator ? -1 : img.alpha;
-
-					int ix = .max(0, -img.x);
-					int aw = img.width - ix;
-					int x2 = img.x + ix;
-					aw = .min(aw, rect.width - x2);
-					assert (0 < aw);
-					auto iPixels = new int[aw];
-					auto iAlphas = new byte[aw];
-					iAlphas[] = cast(byte)img.alpha;
-					scope (exit) delete iPixels;
-					scope (exit) delete iAlphas;
-					auto iData = img.imageData;
-					foreach (iy; .max(0, -img.y) .. img.height) { mixin(S_TRACE);
-						int y2 = iy + img.y;
-						assert (0 <= y2);
-						if (rect.height <= y2) break;
-						iData.getPixels(ix, iy, aw, iPixels, 0);
-						alphaImgData.setPixels(x2, y2, aw, iPixels, 0);
-						alphaImgData.setAlphas(x2, y2, aw, iAlphas, 0);
-					}
-				} else { mixin(S_TRACE);
-					if (alphaImgData) { mixin(S_TRACE);
-						drawAlphaImgData();
-					}
-					befAlpha = -1;
-					img.draw(buf, gc, range);
 				}
-			}
-			if (alphaImgData) { mixin(S_TRACE);
-				drawAlphaImgData();
+				if (alphaImgs.length) { mixin(S_TRACE);
+					drawAlphaImgData();
+				}
 			}
 
 			foreach (bmp; backs) { mixin(S_TRACE);

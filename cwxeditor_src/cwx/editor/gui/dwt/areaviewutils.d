@@ -154,33 +154,25 @@ PImg createCastCardImage(PImg)(Props prop, Skin skin, CastCard card,
 /// Returns: カード画像。
 PImg createMenuCardImage(PImg)(Props prop, Skin skin, string sPath,
 		string title, in CardImage[] paths, int x, int y, uint scale, bool smoothing, int layer) { mixin(S_TRACE);
-mixin(BPerfS);
 	auto matPad = prop.looks.menuCardInsets;
 	auto card = menuCard(skin);
-mixin(BPerf!0);
 	auto r = createCardImageCommon!PImg(prop, card, matPad, x, y, scale, smoothing, layer);
-mixin(BPerf!1);
 	foreach (path; paths) { mixin(S_TRACE);
 		path.addToPileImage(r, prop, skin, sPath, matPad, ScaleType.Cut);
 	}
-mixin(BPerf!2);
 	auto tx = prop.looks.menuCardNamePoint.x;
 	auto w = card.width;
 	r.setTitle(title, dwtData(prop.looks.menuCardNameFont(skin.legacy)), dwtData(prop.looks.menuCardNamePoint),
 		skin.legacy ? 0 : w - tx * 2, !skin.legacy);
-mixin(BPerf!3);
 	if (!skin.legacy) { mixin(S_TRACE);
 		if (getRGBAverage(card, prop.looks.cardNameArea) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
 			r.titleColor = new RGB(255, 255, 255);
 		}
 	}
-mixin(BPerf!4);
 	static if (is(PImg : FlexImage)) {
 		r.resize();
-mixin(BPerf!5);
 	} else { mixin(S_TRACE);
 		r.createImage();
-mixin(BPerf!6);
 	}
 	return r;
 }
