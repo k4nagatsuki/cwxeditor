@@ -1475,21 +1475,11 @@ private:
 		if (!_display) _display = _dirs.getDisplay();
 		int dirsIndex = -1;
 
-		version (Win32) {
-			// FIXME: 同時に複数開くなどすると謎のアクセス違反が発生する
-			shared static int subThrCount = 0;
-			auto subThr = !_dirs.isVisible() && subThrCount <= 0;
-		} else {
-			auto subThr = !_dirs.isVisible();
-		}
+		auto subThr = !_dirs.isVisible();
 		_loading = subThr;
 		auto path = this.path;
 
 		void update() { mixin(S_TRACE);
-			version (Win32) {
-				.atomicOp!"+="(subThrCount, 1);
-				scope (exit) .atomicOp!"-="(subThrCount, 1);
-			}
 			size_t cut = 0;
 			if (_summ) { mixin(S_TRACE);
 				string st = _summ.scenarioPath;
@@ -1569,10 +1559,10 @@ private:
 				setComboItems(_dirs, items);
 				_dirs.select(dirsIndex);
 
-				refreshList(forceRefresh, subThr);
+				refreshList(forceRefresh, false);
 			}
 			if (subThr) { mixin(S_TRACE);
-				_display.syncExec(new class Runnable {
+				_display.asyncExec(new class Runnable {
 					override void run() { mixin(S_TRACE);
 						if (_dirs.isDisposed()) return;
 						updateList();
