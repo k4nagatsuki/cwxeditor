@@ -1572,7 +1572,7 @@ private:
 				refreshList(forceRefresh, subThr);
 			}
 			if (subThr) { mixin(S_TRACE);
-				_display.asyncExec(new class Runnable {
+				_display.syncExec(new class Runnable {
 					override void run() { mixin(S_TRACE);
 						if (_dirs.isDisposed()) return;
 						updateList();
