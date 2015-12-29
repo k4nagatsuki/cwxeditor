@@ -352,6 +352,8 @@ void build(string[] args) {
 			],
 			[
 				"areaview.d",
+			],
+			[
 				"areawindow.d",
 			],
 			[
@@ -477,11 +479,80 @@ void build(string[] args) {
 				"xmlbytestransfer.d",
 			],
 		];
+		immutable SPLITS_R = SPLITS ~ cast(immutable)[
+			[
+				"archive.d",
+				"area.d",
+				"background.d",
+				"binary.d",
+				"cab.d",
+				"card.d",
+				"coupon.d",
+				"cwl.d",
+			],
+			[
+				"event.d",
+				"features.d",
+				"flag.d",
+				"graphics.d",
+				"imagesize.d",
+				"importutils.d",
+				"jpy.d",
+				"menu.d",
+				"motion.d",
+			],
+			[
+				"msgs.d",
+				"msgutils.d",
+			],
+			[
+				"path.d",
+				"perf.d",
+				"props.d",
+				"race.d",
+				"script.d",
+				"settings.d",
+				"sjis.d",
+				"skin.d",
+				"structs.d",
+				"summary.d",
+				"system.d",
+				"textholder.d",
+				"types.d",
+				"usecounter.d",
+				"utils.d",
+				"variables.d",
+				"versioninfo.d",
+				"warning.d",
+				"win32res.d",
+				"xml.d",
+			],
+		];
 	}
 	foreach (dir, array; files) {
 		if (!array.length) continue;
 		static if (mscoffbug) {
-			if (m64) {
+			if (m64 && release) {
+				auto splits = new string[][SPLITS_R.length];
+				string[] array2;
+				foreach (file; array) {
+					bool add = false;
+					foreach (i, split; SPLITS_R) {
+						if (split.has(file.baseName())) {
+							splits[i] ~= file;
+							add = true;
+							break;
+						}
+					}
+					if (!add) {
+						array2 ~= file;
+					}
+				}
+				foreach (array1; splits) {
+					if (array1.length) exec(cmd ~ flags ~ array1 ~ res ~ "-odobjs" ~ dmdOption);
+				}
+				if (array2.length) exec(cmd ~ flags ~ array2 ~ res ~ "-odobjs" ~ dmdOption);
+			} else if (m64) {
 				auto splits = new string[][SPLITS.length];
 				string[] array2;
 				foreach (file; array) {

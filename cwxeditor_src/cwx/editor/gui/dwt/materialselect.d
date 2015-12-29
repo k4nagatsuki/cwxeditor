@@ -1475,7 +1475,12 @@ private:
 		if (!_display) _display = _dirs.getDisplay();
 		int dirsIndex = -1;
 
-		auto subThr = !_dirs.isVisible();
+		version (Win32) {
+			// FIXME: 環境によって原因不明の異常終了が発生する
+			auto subThr = false;
+		} else {
+			auto subThr = !_dirs.isVisible();
+		}
 		_loading = subThr;
 		auto path = this.path;
 
