@@ -2598,8 +2598,10 @@ public:
 					return _dirWin.shell;
 				}
 				default:
-					dStr ~= " - " ~ .text(__LINE__);
-					debugln("Unknown pane key: " ~ key);
+					if (!std.string.startsWith(key, "side")) { mixin(S_TRACE);
+						dStr ~= " - " ~ .text(__LINE__);
+						debugln("Unknown pane key: " ~ key);
+					}
 					return null;
 				}
 			}, &dockFirstResize);
