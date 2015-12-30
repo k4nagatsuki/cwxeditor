@@ -859,16 +859,28 @@ private bool playBass(string file, uint loopCount, bool spLoop, ref DWORD stream
 				loopKeys[loopKey] = keyPtr;
 			}
 			loopCounts[loopKey] = loopCount;
+
+			static __gshared extern (Windows) void bassLoop(HSYNC handle, DWORD channel, DWORD data, void* user) {
+				auto loopKey = fromStringz(cast(immutable(char)*)user);
+				auto pos = loopStarts[loopKey];
+				auto loops = loopCounts[loopKey];
+				if (loops != 1) { mixin(S_TRACE);
+					if (0 < loops) loopCounts[loopKey] = loops - 1;
+					getSymbol!(BASS_ChannelSetPosition)(bass, "BASS_ChannelSetPosition")(channel, pos, BASS_POS_BYTE);
+				}
+			}
+			static __gshared func = &bassLoop;
+
 			if (loopStart != -1 && loopEnd != -1) { mixin(S_TRACE);
 				loopStarts[loopKey] = loopStart;
-				BASS_ChannelSetSync(stream, BASS_SYNC_POS | BASS_SYNC_MIXTIME, loopEnd, &bassLoop, cast(void*)keyPtr);
-				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, &bassLoop, cast(void*)keyPtr);
+				BASS_ChannelSetSync(stream, BASS_SYNC_POS | BASS_SYNC_MIXTIME, loopEnd, func, cast(void*)keyPtr);
+				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, func, cast(void*)keyPtr);
 			} else if (loopStart != -1) { mixin(S_TRACE);
 				loopStarts[loopKey] = loopStart;
-				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, &bassLoop, cast(void*)keyPtr);
+				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, func, cast(void*)keyPtr);
 			} else { mixin(S_TRACE);
 				loopStarts[loopKey] = 0;
-				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, &bassLoop, cast(void*)keyPtr);
+				BASS_ChannelSetSync(stream, BASS_SYNC_END | BASS_SYNC_MIXTIME, 0, func, cast(void*)keyPtr);
 			}
 
 			volume = .min(100, volume);
@@ -1070,15 +1082,6 @@ version (Windows) {
 		alias void function(HSYNC handle, DWORD channel, DWORD data, void* user) SYNCPROC;
 		alias char* function(DWORD handle, DWORD tags) BASS_ChannelGetTags;
 		alias BOOL function(DWORD handle, BASS_CHANNELINFO* info) BASS_ChannelGetInfo;
-		void bassLoop(HSYNC handle, DWORD channel, DWORD data, void* user) { mixin(S_TRACE);
-			auto loopKey = fromStringz(cast(immutable(char)*)user);
-			auto pos = loopStarts[loopKey];
-			auto loops = loopCounts[loopKey];
-			if (loops != 1) { mixin(S_TRACE);
-				if (0 < loops) loopCounts[loopKey] = loops - 1;
-				getSymbol!(BASS_ChannelSetPosition)(bass, "BASS_ChannelSetPosition")(channel, pos, BASS_POS_BYTE);
-			}
-		}
 
 		alias QWORD function(HSTREAM handle, DWORD mode) BASS_ChannelGetLength;
 		alias QWORD function(HSTREAM handle, DWORD mode) BASS_ChannelGetPosition;

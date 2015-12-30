@@ -1183,14 +1183,10 @@ private:
 			old, fname, &openScenarioImpl, failure);
 	}
 	void playSavedSound() { mixin(S_TRACE);
-		_display.asyncExec(new class Runnable {
-			override void run() { mixin(S_TRACE);
-				string file = _prop.var.etc.savedSound;
-				if (file.length && .exists(file)) { mixin(S_TRACE);
-					playSE(file, 0, 1, lastSoundType, true);
-				}
-			}
-		});
+		string file = _prop.var.etc.savedSound;
+		if (file.length && .exists(file)) { mixin(S_TRACE);
+			playSE(file, 0, 1, lastSoundType, true);
+		}
 	}
 	void saveScenario() { mixin(S_TRACE);
 		auto fc = _win.getDisplay().getFocusControl();
@@ -1265,7 +1261,7 @@ private:
 					_comm.saved.call();
 					refreshTitle();
 					addHistory();
-					//core.memory.GC.collect();
+					core.memory.GC.collect();
 					playSavedSound();
 					_comm.refreshToolBar();
 					return true;
@@ -1391,7 +1387,7 @@ private:
 					_comm.refPaths.call("");
 					addHistory();
 					_prop.var.etc.lastSaveFilter = filter;
-					//core.memory.GC.collect();
+					core.memory.GC.collect();
 					playSavedSound();
 				} catch (SummaryException e) {
 					printStackTrace();
