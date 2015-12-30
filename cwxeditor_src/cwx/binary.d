@@ -8,7 +8,7 @@ private import core.stdc.stdio;
 private import std.algorithm : min;
 private import std.exception : enforce;
 private import std.string : format, toStringz;
-private import std.stdio : File, SEEK_CUR, SEEK_SET, SEEK_END;
+private import std.stdio;
 private import std.conv : to, text;
 
 private string repeat(string s, int count) {
