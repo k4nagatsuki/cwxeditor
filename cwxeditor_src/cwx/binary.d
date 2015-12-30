@@ -858,15 +858,15 @@ class RawFile {
 	}
 	/// ditto
 	void seekCur(long offset) { mixin(S_TRACE);
-		.fseek(_fp, cast(ptrdiff_t)offset, core.stdc.stdio.SEEK_CUR);
+		.fseek(_fp, cast(int)offset, core.stdc.stdio.SEEK_CUR);
 	}
 	/// ditto
 	void seekSet(long offset) { mixin(S_TRACE);
-		.fseek(_fp, cast(ptrdiff_t)offset, core.stdc.stdio.SEEK_SET);
+		.fseek(_fp, cast(int)offset, core.stdc.stdio.SEEK_SET);
 	}
 	/// ditto
 	void seekEnd(long offset) { mixin(S_TRACE);
-		.fseek(_fp, cast(ptrdiff_t)offset, core.stdc.stdio.SEEK_END);
+		.fseek(_fp, cast(int)offset, core.stdc.stdio.SEEK_END);
 	}
 
 	/// バッファをフラッシュする。
