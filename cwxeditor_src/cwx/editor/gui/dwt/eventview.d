@@ -674,6 +674,46 @@ private:
 		auto data = itm.getData();
 		return cast(KeyCodeObj)data ? itm : null;
 	}
+	public static string[] eventTreeNames(in Props prop, in EventTree tree) { mixin(S_TRACE);
+		auto owner = tree.owner;
+		string[] treeName = [];
+		if (tree.fireEnter) { mixin(S_TRACE);
+			if (cast(MenuCard)owner) {
+				treeName ~= prop.msgs.selectTree;
+			} else if (cast(EnemyCard)owner) {
+				treeName ~= prop.msgs.deadTree;
+				} else if (cast(Area)owner) {
+				treeName ~= prop.msgs.enterTree;
+			} else if (cast(Battle)owner) {
+				treeName ~= prop.msgs.victoryTree;
+			} else if (cast(Package)owner) {
+				treeName ~= prop.msgs.packageTree;
+			} else { mixin(S_TRACE);
+				treeName ~= prop.msgs.useTree;
+			}
+		}
+		if (tree.fireEscape) { mixin(S_TRACE);
+			treeName ~= prop.msgs.escapeTree;
+		}
+		if (tree.fireLose) { mixin(S_TRACE);
+			treeName ~= prop.msgs.loseTree;
+		}
+		if (tree.fireEveryRound) { mixin(S_TRACE);
+			treeName ~= prop.msgs.everyRoundTree;
+		}
+		if (tree.fireRound0) { mixin(S_TRACE);
+			treeName ~= prop.msgs.round0Tree;
+		}
+		foreach (keyCode; tree.keyCodes) { mixin(S_TRACE);
+			treeName ~= .tryFormat(prop.msgs.keyCodeTree, keyCode);
+		}
+		if (tree.rounds.length == 1) { mixin(S_TRACE);
+			foreach (round; tree.rounds) { mixin(S_TRACE);
+				treeName ~= .tryFormat(prop.msgs.roundTree, round);
+			}
+		}
+		return treeName;
+	}
 	void createEventTree() { mixin(S_TRACE);
 		createEventTree([]);
 	}

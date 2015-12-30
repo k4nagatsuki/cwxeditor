@@ -1062,22 +1062,27 @@ template isVArray(T) {
 /// base = 元となる名前。
 /// use = 名前を使用するか否かの判定関数。
 /// space = falseの場合は括弧の前のスペースを付けない。
+/// startNames = baseがここに含まれる名前と一致する場合、base内に数値が含まれていても無視する。
+///              例えばbaseが"ラウンド 1"でstartNamesに含まれている場合、
+///              普通は"ラウンド 2"のようになる所が"ラウンド 1 (2)"となる。
 /// Returns: 新しい名前。
-string createNewName(string base, bool delegate(string) use, bool space = true) { mixin(S_TRACE);
+string createNewName(string base, bool delegate(string) use, bool space = true, in string[] startNames = []) { mixin(S_TRACE);
 	if (use(base)) return base;
 	char[] digit;
 	ptrdiff_t digitL = 0;
 	ptrdiff_t digitR = -1;
-	foreach_reverse (i, c; base) { mixin(S_TRACE);
-		if (isDigit(c)) { mixin(S_TRACE);
-			digit.insertInPlace(0, c);
-			if (digitR == -1) { mixin(S_TRACE);
-				digitR = i + 1;
-			}
-		} else { mixin(S_TRACE);
-			if (digitR != -1) { mixin(S_TRACE);
-				digitL = i + 1;
-				break;
+	if (!startNames.contains(base)) { mixin(S_TRACE);
+		foreach_reverse (i, c; base) { mixin(S_TRACE);
+			if (isDigit(c)) { mixin(S_TRACE);
+				digit.insertInPlace(0, c);
+				if (digitR == -1) { mixin(S_TRACE);
+					digitR = i + 1;
+				}
+			} else { mixin(S_TRACE);
+				if (digitR != -1) { mixin(S_TRACE);
+					digitL = i + 1;
+					break;
+				}
 			}
 		}
 	}
@@ -1114,6 +1119,9 @@ string createNewName(string base, bool delegate(string) use, bool space = true) 
 	assert (createNewName("aaa(2)", (string n) {return n != "aaa(2)" && n != "aaa(3)";}, false) == "aaa(4)");
 	assert (createNewName("1-2", (string n) {return n != "1-2" && n != "1-3" && n != "1-4";}, false) == "1-5");
 	assert (createNewName("1 2 0003", (string n) {return n != "1 2 0003" && n != "1 2 0004";}, false) == "1 2 0005");
+	assert (createNewName("1-2", (n) => n != "1-2", true, ["1-2"]) == "1-2 (2)");
+	assert (createNewName("1-2", (n) => n != "1-2", true, ["1-3"]) == "1-3");
+	assert (createNewName("1-2", (n) => n != "1-2" && n != "1-3", true, ["1-3"]) == "1-4");
 }
 /// ditto
 string createNewFileName(string path, bool isdir) { mixin(S_TRACE);

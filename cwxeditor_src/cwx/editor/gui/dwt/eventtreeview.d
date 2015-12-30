@@ -37,6 +37,7 @@ import cwx.editor.gui.dwt.textdialog;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.eventeditor;
+import cwx.editor.gui.dwt.eventview;
 
 import std.ascii;
 import std.algorithm;
@@ -929,7 +930,7 @@ private:
 						if (icmp(start.name, name) == 0) return false;
 					}
 					return true;
-				});
+				}, true, EventView.eventTreeNames(_prop, _et));
 			}
 			applied(new Content(type, name));
 			return;
@@ -2222,7 +2223,7 @@ public:
 				}
 			}
 			return true;
-		}, true));
+		}, true, EventView.eventTreeNames(_prop, _et)));
 		_et.insert(si, start);
 		auto link = new Content(CType.LINK_START, c.name);
 		link.start = start.name;
@@ -2371,7 +2372,7 @@ public:
 						}
 					}
 					return true;
-				}, true));
+				}, true, EventView.eventTreeNames(_prop, _et)));
 				text = evt.name;
 			} else { mixin(S_TRACE);
 				evt.setName(_prop.parent, text);
@@ -3118,7 +3119,7 @@ public:
 					}
 				}
 				return true;
-			}, true));
+			}, true, EventView.eventTreeNames(_prop, _et)));
 			if (c.name != oldName) { mixin(S_TRACE);
 				void recurse(Content[] cs) { mixin(S_TRACE);
 					foreach (ct; cs) { mixin(S_TRACE);

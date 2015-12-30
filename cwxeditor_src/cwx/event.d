@@ -2276,7 +2276,8 @@ public:
 	}
 	/// このツリーの所有者。
 	@property
-	EventTreeOwner owner() {return _owner;}
+	inout
+	inout(EventTreeOwner) owner() {return _owner;}
 
 	/// ディープコピーを作成する。
 	@property
