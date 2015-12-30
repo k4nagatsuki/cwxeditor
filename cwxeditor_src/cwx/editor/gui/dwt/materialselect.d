@@ -1252,14 +1252,38 @@ private:
 		}
 		return null;
 	}
-	private string fileText(T)(T itm) { mixin(S_TRACE);
-		static if (is(T : TableItem)) {
-			return itm.getText();
-		} else static if (is(T : string)) {
-			return itm;
-		} else static assert (0);
+	// FIXME: リリースビルドでこのテンプレートメソッドがリンクエラーになる
+	//private string fileText(T)(T itm) { mixin(S_TRACE);
+	//	static if (is(T : TableItem)) {
+	//		return itm.getText();
+	//	} else static if (is(T : string)) {
+	//		return itm;
+	//	} else static assert (0);
+	//}
+	private string fileText(TableItem itm) { mixin(S_TRACE);
+		return itm.getText();
 	}
-	ptrdiff_t indexOf(T)(T list, string path) { mixin(S_TRACE);
+	private string fileText(string itm) { mixin(S_TRACE);
+		return itm;
+	}
+	// FIXME: リリースビルドでこのテンプレートメソッドがリンクエラーになる
+	//ptrdiff_t indexOf(T)(T list, string path) { mixin(S_TRACE);
+	//	foreach (i, s; list.getItems()) { mixin(S_TRACE);
+	//		if (cfnmatch(fileText(s), path)) { mixin(S_TRACE);
+	//			return i;
+	//		}
+	//	}
+	//	return -1;
+	//}
+	ptrdiff_t indexOf(Combo list, string path) { mixin(S_TRACE);
+		foreach (i, s; list.getItems()) { mixin(S_TRACE);
+			if (cfnmatch(fileText(s), path)) { mixin(S_TRACE);
+				return i;
+			}
+		}
+		return -1;
+	}
+	ptrdiff_t indexOf(Table list, string path) { mixin(S_TRACE);
 		foreach (i, s; list.getItems()) { mixin(S_TRACE);
 			if (cfnmatch(fileText(s), path)) { mixin(S_TRACE);
 				return i;

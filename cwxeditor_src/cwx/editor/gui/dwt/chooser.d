@@ -747,6 +747,9 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 	}
 }
 
+/// FIXME: ここで実体を作っておかないとリリースビルドがリンクエラーになる
+alias FlagChooser!(cwx.flag.Flag, true) FFlagChooser;
+
 class AreaChooser(A, bool StartArea) : Composite {
 	void delegate()[] modEvent;
 
