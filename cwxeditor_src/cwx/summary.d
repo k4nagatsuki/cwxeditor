@@ -96,7 +96,7 @@ private:
 
 	bool _expandXMLs; /// XMLファイルを展開するか。
 	bool _useTemp = true; /// 一時ディレクトリに展開しているか。
-	RawFile _lock; /// 一時ディレクトリロック用オブジェクト。
+	File _lock; /// 一時ディレクトリロック用オブジェクト。
 	string _zipName = ""; /// 圧縮されているシナリオなら、元ファイルのパス。再圧縮できない場合は""。
 	string _origZipName = ""; /// 圧縮されているシナリオなら、元ファイルのパス。
 	string _tempPath = ""; /// 圧縮されているシナリオなら、一時展開先のパス。
@@ -591,9 +591,9 @@ public:
 		return null;
 	}
 	private void lock(string tempPath, bool useTemp) { mixin(S_TRACE);
-		assert (!_lock);
+		assert (!_lock.isOpen);
 		if (useTemp) { mixin(S_TRACE);
-			_lock = .rawFile(std.path.buildPath(tempPath, "cwxeditor.lock"), "wb");
+			_lock = File(std.path.buildPath(tempPath, "cwxeditor.lock"), "wb");
 		}
 	}
 	/// 一時展開先を削除する。
@@ -607,7 +607,6 @@ public:
 				return;
 			}
 			_lock.close();
-			_lock = null;
 			try { mixin(S_TRACE);
 				delAll(_tempPath.length ? _tempPath : scenarioPath, true);
 				_useTemp = false;
@@ -994,7 +993,7 @@ public:
 		_legacy = false;
 		this.scenarioPath = scenarioPath;
 		_tempPath = scenarioPath;
-		if (!_lock) lock(_tempPath, true);
+		if (!_lock.isOpen) lock(_tempPath, true);
 	}
 
 	/// データバージョン。
@@ -2357,9 +2356,8 @@ public:
 				}
 			}
 			void releaseLockFile() { mixin(S_TRACE);
-				if (releaseLock && _lock) { mixin(S_TRACE);
+				if (releaseLock && _lock.isOpen) { mixin(S_TRACE);
 					_lock.close();
-					_lock = null;
 				}
 			}
 			bool expand = false;
@@ -2384,7 +2382,7 @@ public:
 							.zip(temp, zipName, true, [std.path.buildPath(temp, "cwxeditor.lock")], true);
 						}
 						releaseLockFile();
-						if (useTemp && !_lock) { mixin(S_TRACE);
+						if (useTemp && !_lock.isOpen) { mixin(S_TRACE);
 							lock(sPath, useTemp);
 						}
 					}
@@ -2396,7 +2394,7 @@ public:
 					}
 				} else { mixin(S_TRACE);
 					releaseLockFile();
-					if (useTemp && !_lock) { mixin(S_TRACE);
+					if (useTemp && !_lock.isOpen) { mixin(S_TRACE);
 						lock(sPath, useTemp);
 					}
 				}
