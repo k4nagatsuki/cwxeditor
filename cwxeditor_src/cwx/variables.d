@@ -19,7 +19,7 @@ class FlexEtcProps : Properties {
 	auto imeMode = Prop!(int)("imeMode", 0);
 	auto toolsLock = Prop!(bool)("toolsLock", false);
 	auto toolsOrder = Prop!(int[])("toolsOrder", []);
-	auto toolsWrapIndices = Prop!(int[])("toolsWrapIndices", [8]);
+	auto toolsWrapIndices = Prop!(int[])("toolsWrapIndices", []);
 	auto comboVisibleItemCount = Prop!(int, true)("comboVisibleItemCount", 20);
 	auto directorySashL = Prop!(int)("directorySashL", 2);
 	auto directorySashR = Prop!(int)("directorySashR", 5);
@@ -736,14 +736,6 @@ class FlexEtcProps : Properties {
 			Tool(MenuID.New),
 			Tool(MenuID.Open),
 			Tool(MenuID.Save),
-			Tool(MenuID.SaveAs),
-			Tool(),
-			Tool(MenuID.CreateArchive),
-			Tool(),
-			Tool(MenuID.Reload),
-		],
-		[
-			Tool(MenuID.Refresh),
 		],
 		[
 			Tool(MenuID.Undo),
@@ -753,7 +745,6 @@ class FlexEtcProps : Properties {
 			Tool(MenuID.Cut),
 			Tool(MenuID.Copy),
 			Tool(MenuID.Paste),
-			Tool(MenuID.Delete),
 		],
 		[
 			Tool(MenuID.Up),
@@ -761,30 +752,8 @@ class FlexEtcProps : Properties {
 		],
 		[
 			Tool(MenuID.Find),
-			Tool(MenuID.FindID),
-			Tool(),
-			Tool(MenuID.ReNumberingAll),
-			Tool(),
-			Tool(MenuID.ToXMLText),
 		],
 		[
-			Tool(MenuID.TableView),
-			Tool(MenuID.VarView),
-			Tool(),
-			Tool(MenuID.CastView),
-			Tool(MenuID.SkillView),
-			Tool(MenuID.ItemView),
-			Tool(MenuID.BeastView),
-			Tool(MenuID.InfoView),
-			Tool(),
-			Tool(MenuID.FileView),
-		],
-		[
-			Tool(MenuID.ChangeVH),
-		],
-		[
-			Tool(MenuID.EditSummary),
-			Tool(),
 			Tool(MenuID.NewAreaDir),
 			Tool(MenuID.NewArea),
 			Tool(MenuID.NewBattle),
@@ -796,7 +765,6 @@ class FlexEtcProps : Properties {
 		],
 		[
 			Tool(MenuID.ShowCardProp),
-			Tool(MenuID.ShowCardImage),
 			Tool(MenuID.ShowCardDetail),
 			Tool(),
 			Tool(MenuID.NewCast),
@@ -811,8 +779,6 @@ class FlexEtcProps : Properties {
 		[
 			Tool(MenuID.ExecEngine),
 			Tool(MenuID.ExecEngineWithParty),
-			Tool(),
-			Tool(MenuID.OuterTools),
 			Tool(),
 			Tool(MenuID.OpenImportSource),
 			Tool(),

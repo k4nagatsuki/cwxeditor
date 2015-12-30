@@ -3290,9 +3290,9 @@ public:
 			if (_prop.var.etc.cardLife) { mixin(S_TRACE);
 				if (scf) scf.setSelection(true);
 			} else if (_prop.var.etc.cardDetails) { mixin(S_TRACE);
-				if (scl) sct.setSelection(true);
+				if (sct) sct.setSelection(true);
 			} else { mixin(S_TRACE);
-				if (sct) scl.setSelection(true);
+				if (scl) scl.setSelection(true);
 			}
 			if (cardRG.set.size) { mixin(S_TRACE);
 				_toolRG ~= cardRG;
