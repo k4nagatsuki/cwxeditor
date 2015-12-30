@@ -566,7 +566,7 @@ version (Windows) {
 		auto buf = new ubyte[CFHEADER.sizeof];
 
 		try { mixin(S_TRACE);
-			auto stream = File(cab, "rb");
+			auto stream = .rawFile(cab, "rb");
 			scope (exit) stream.close();
 			if (buf.length != stream.rawRead(buf).length) { mixin(S_TRACE);
 				// Cabinetではない

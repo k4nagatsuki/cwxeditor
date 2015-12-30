@@ -3,11 +3,13 @@ module cwx.binary;
 
 private import cwx.perf;
 
+private import core.stdc.stdio;
+
 private import std.algorithm : min;
 private import std.exception : enforce;
-private import std.string : format;
+private import std.string : format, toStringz;
 private import std.stdio : File, SEEK_CUR, SEEK_SET, SEEK_END;
-private import std.conv : to;
+private import std.conv : to, text;
 
 private string repeat(string s, int count) {
 	string buf;
@@ -799,4 +801,81 @@ unittest { mixin(S_TRACE);
 	offset = 0; assert (readExInt([cast(ubyte)0x8F, 0x4E], offset) == -5000);
 	offset = 0; assert (readExInt([cast(ubyte)0x9D, 0x9C, 0x01], offset) == -9999);
 	offset = 0; assert (readExUInt([cast(ubyte)0xC7, 0x06], offset) == 839);
+}
+
+/// std.stdio.Fileがマルチスレッド環境で時々ハングアップを引き起こす
+/// (cwx.editor.gui.dwt.MaterialSelectを通して確認)ので代替する。
+RawFile rawFile(string file, in char[] mode) { mixin(S_TRACE);
+	return new RawFile(file, mode);
+}
+/// ditto
+class RawFile {
+	private FILE* _fp;
+	private char[BUFSIZ] _buf;
+
+	/// ファイルを開く。
+	this (string file, in char[] mode) { mixin(S_TRACE);
+		version (Windows) {
+			import std.windows.charset;
+			_fp = .fopen(file.toMBSz(), mode.toStringz());
+		} else {
+			_fp = .fopen(file.toStringz(), mode.toStringz());
+		}
+		.enforce(_fp, file);
+		.setbuf(_fp, _buf.ptr);
+	}
+	~this () { mixin(S_TRACE);
+		close();
+	}
+	/// ファイルを閉じる。
+	void close() { mixin(S_TRACE);
+		if (_fp) { mixin(S_TRACE);
+			.fclose(_fp);
+			_fp = null;
+		}
+	}
+
+	/// bufferへファイル内容を読み込む。
+	ubyte[] rawRead(ubyte[] buffer) { mixin(S_TRACE);
+		auto len = .fread(buffer.ptr, buffer.length, 1, _fp);
+		return buffer[0 .. len];
+	}
+	/// シークする。
+	void seek(long offset, int origin) { mixin(S_TRACE);
+		switch (origin) {
+		case std.stdio.SEEK_SET:
+			seekSet(offset);
+			break;
+		case std.stdio.SEEK_CUR:
+			seekCur(offset);
+			break;
+		case std.stdio.SEEK_END:
+			seekEnd(offset);
+			break;
+		default:
+			throw new Exception(.text(origin), __FILE__, __LINE__);
+		}
+	}
+	/// ditto
+	void seekCur(long offset) { mixin(S_TRACE);
+		.fseek(_fp, cast(ptrdiff_t)offset, core.stdc.stdio.SEEK_CUR);
+	}
+	/// ditto
+	void seekSet(long offset) { mixin(S_TRACE);
+		.fseek(_fp, cast(ptrdiff_t)offset, core.stdc.stdio.SEEK_SET);
+	}
+	/// ditto
+	void seekEnd(long offset) { mixin(S_TRACE);
+		.fseek(_fp, cast(ptrdiff_t)offset, core.stdc.stdio.SEEK_END);
+	}
+
+	/// バッファをフラッシュする。
+	void flush() { mixin(S_TRACE);
+		.fflush(_fp);
+	}
+	
+	/// ファイルポインタの位置を返す。
+	long tell() { mixin(S_TRACE);
+		return .ftell(_fp);
+	}
 }

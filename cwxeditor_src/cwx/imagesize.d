@@ -142,7 +142,7 @@ bool jpgSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 	ulong size = getSizeT!T(file);
 	if (6L <= size) { mixin(S_TRACE);
 		static if (isSomeString!T) {
-			auto inp = File(file, "rb");
+			auto inp = .rawFile(file, "rb");
 			scope (exit) inp.close();
 		} else { mixin(S_TRACE);
 			auto inp = ByteIO(file);
@@ -191,7 +191,7 @@ bool tifSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!
 	ulong size = getSizeT!T(file);
 	if (10L <= size) { mixin(S_TRACE);
 		static if (isSomeString!T) {
-			auto inp = File(file, "rb");
+			auto inp = .rawFile(file, "rb");
 			scope (exit) inp.close();
 		} else { mixin(S_TRACE);
 			auto inp = ByteIO(file);
@@ -276,7 +276,7 @@ bool tifSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!
 bool gifSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ubyte[])) {
 	if (10L <= getSizeT!T(file)) { mixin(S_TRACE);
 		static if (isSomeString!T) {
-			auto inp = File(file, "rb");
+			auto inp = .rawFile(file, "rb");
 			scope (exit) inp.close();
 		} else { mixin(S_TRACE);
 			auto inp = ByteIO(file);
@@ -312,10 +312,9 @@ bool gifSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ub
 ///  FileException = ファイル読込失敗時。
 bool bmpSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ubyte[])) {
 	ulong size = getSizeT!T(file);
-import cwx.utils;
 	if (22L <= size) { mixin(S_TRACE);
 		static if (isSomeString!T) {
-			auto inp = File(file, "rb");
+			auto inp = .rawFile(file, "rb");
 			scope (exit) inp.close();
 		} else { mixin(S_TRACE);
 			auto inp = ByteIO(file);
@@ -335,7 +334,7 @@ import cwx.utils;
 			x = readUShortL(inp);
 			y = readUShortL(inp);
 		} else if (i > 12) { mixin(S_TRACE);
-			if (24L > size) return false;
+			if (26L > size) return false;
 			x = readUIntL(inp);
 			y = readUIntL(inp);
 		} else { mixin(S_TRACE);
@@ -359,9 +358,9 @@ import cwx.utils;
 /// Throws:
 ///  FileException = ファイル読込失敗時。
 bool pngSize(T)(in T file, out uint x, out uint y) if (isSomeString!T || is(T:ubyte[])) {
-	if (25L <= getSizeT!T(file)) { mixin(S_TRACE);
+	if (24L <= getSizeT!T(file)) { mixin(S_TRACE);
 		static if (isSomeString!T) {
-			auto inp = File(file, "rb");
+			auto inp = .rawFile(file, "rb");
 			scope (exit) inp.close();
 		} else { mixin(S_TRACE);
 			auto inp = ByteIO(file);
@@ -410,7 +409,7 @@ bool icoSize(T)(in T file, out uint x, out uint y, uint n = 0) if (isSomeString!
 	ulong size = getSizeT!T(file);
 	if (8UL <= size) { mixin(S_TRACE);
 		static if (isSomeString!T) {
-			auto inp = File(file, "rb");
+			auto inp = .rawFile(file, "rb");
 			scope (exit) inp.close();
 		} else { mixin(S_TRACE);
 			auto inp = ByteIO(file);

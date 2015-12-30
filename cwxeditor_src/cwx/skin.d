@@ -1007,26 +1007,46 @@ class Skin {
 	const(string[dchar]) spChars() {return _spChars;}
 
 	const
-	private bool has(alias isT, Arg ...)(string dir, Arg args) { mixin(S_TRACE);
-		if (!dir.exists() || !dir.isDir()) return false;
-		foreach (file; dir.dirEntries(SpanMode.shallow)) { mixin(S_TRACE);
-			if (isT(file, args)) return true;
+	private bool has(alias isT, Arg ...)(string dir, bool forceRefresh, Arg args) { mixin(S_TRACE);
+		synchronized (this) { mixin(S_TRACE);
+			static struct Has {
+				Arg args;
+				bool result;
+			}
+			mixin FileCache!(Has);
+			if (!forceRefresh) { mixin(S_TRACE);
+				auto ca = cache(dir);
+				if (ca && ca.value.args == args) { mixin(S_TRACE);
+					return ca.value.result;
+				}
+			}
+
+			bool r = false;
+			if (dir.exists() && dir.isDir()) { mixin(S_TRACE);
+				foreach (file; dir.dirEntries(SpanMode.shallow)) { mixin(S_TRACE);
+					if (isT(file, args)) { mixin(S_TRACE);
+						r = true;
+						break;
+					}
+				}
+			}
+			putCache(dir, Has(args, r));
+			return r;
 		}
-		return false;
 	}
 
 	/// 各種の素材がdirに含まれていればtrueを返す。
 	const
-	bool hasCardImage(string dir, bool ignoreSize) {return has!(isCardImage)(dir, ignoreSize);}
+	bool hasCardImage(string dir, bool forceRefresh, bool ignoreSize) { return has!(isCardImage)(dir, forceRefresh, ignoreSize); }
 	/// ditto
 	const
-	bool hasBgImage(string dir) {return has!(isBgImage)(dir);}
+	bool hasBgImage(string dir, bool forceRefresh) { return has!(isBgImage)(dir, forceRefresh); }
 	/// ditto
 	const
-	bool hasBGM(string dir) {return has!(isBGM)(dir);}
+	bool hasBGM(string dir, bool forceRefresh) { return has!(isBGM)(dir, forceRefresh); }
 	/// ditto
 	const
-	bool hasSE(string dir) {return has!(isSE)(dir);}
+	bool hasSE(string dir, bool forceRefresh) { return has!(isSE)(dir, forceRefresh); }
 
 	const
 	private string[] list(alias isT, bool UseFlag = false)(string dir, bool logicalSort, bool forceRefresh, bool flag) { mixin(S_TRACE);

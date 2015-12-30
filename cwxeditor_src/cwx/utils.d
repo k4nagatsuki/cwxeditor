@@ -4,6 +4,7 @@ module cwx.utils;
 public import cwx.perf;
 public import cwx.versioninfo;
 
+import cwx.binary;
 import cwx.sjis;
 
 import std.algorithm;
@@ -142,7 +143,7 @@ string printStackTraceNoError() {
 }
 
 shared string debugLog = "cwxeditor_error.log";
-private __gshared File debugLogFile;
+private __gshared RawFile debugLogFile;
 private __gshared bool initDebugLogFile = false;
 
 /// FIXME: 2.059以降altsep不在
@@ -224,7 +225,7 @@ void fdebugln(string F = __FILE__, size_t L = __LINE__, T ...)(T vals) {
 				debugLog.dirName().mkdirRecurse();
 			}
 			if (!initDebugLogFile) {
-				debugLogFile = File(debugLog, "a");
+				debugLogFile = .rawFile(debugLog, "a");
 				initDebugLogFile = true;
 			}
 			debugLogFile.seek(0, SEEK_END);

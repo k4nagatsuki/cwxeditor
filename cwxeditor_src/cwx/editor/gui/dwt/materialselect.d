@@ -1085,28 +1085,28 @@ private:
 		@property const(string)[] defExts() {return summSkin.extImage;}
 		@property string defDir() {return summSkin.tableDir;}
 		bool isTarg(string p) {return summSkin.isCardImage(p, _noCardSize);}
-		bool hasTarg(string p) {return summSkin.hasCardImage(p, _noCardSize);}
+		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasCardImage(p, forceRefresh, noCardSize); }
 		string[] targsImpl(string dir, bool re) {return summSkin.cards(dir, _prop.var.etc.logicalSort, re, _noCardSize);}
 		@property Image image() {return _prop.images.cards;}
 	} else static if (Type == MtType.BG_IMG) {
 		@property const(string)[] defExts() {return summSkin.extImage;}
 		@property string defDir() {return summSkin.tableDir;}
 		bool isTarg(string p) {return summSkin.isBgImage(p);}
-		bool hasTarg(string p) {return summSkin.hasBgImage(p);}
+		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasBgImage(p, forceRefresh); }
 		string[] targsImpl(string dir, bool re) {return summSkin.tables(dir, _prop.var.etc.logicalSort, re);}
 		@property Image image() {return _prop.images.backs;}
 	} else static if (Type == MtType.BGM) {
 		@property const(string)[] defExts() {return summSkin.extBgm;}
 		@property string defDir() {return summSkin.bgmDir;}
 		bool isTarg(string p) {return summSkin.isBGM(p);}
-		bool hasTarg(string p) {return summSkin.hasBGM(p);}
+		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasBGM(p, forceRefresh); }
 		string[] targsImpl(string dir, bool re) {return summSkin.musics(dir, _prop.var.etc.logicalSort, re);}
 		@property Image image() {return _prop.images.bgm;}
 	} else static if (Type == MtType.SE) {
 		@property const(string)[] defExts() {return summSkin.extSound;}
 		@property string defDir() {return summSkin.seDir;}
 		bool isTarg(string p) {return summSkin.isSE(p);}
-		bool hasTarg(string p) {return summSkin.hasSE(p);}
+		static bool hasTarg(Skin skin, string p, bool forceRefresh, bool noCardSize) { return skin.hasSE(p, forceRefresh); }
 		string[] targsImpl(string dir, bool re) {return summSkin.sounds(dir, _prop.var.etc.logicalSort, re);}
 		@property Image image() {return _prop.images.se;}
 	} else static assert (0);
@@ -1432,15 +1432,21 @@ private:
 			refreshListImpl(st, forceRefresh, subThr);
 		}
 	}
-	string[] searchTarg(string dir, size_t cut) { mixin(S_TRACE);
+	string[] searchTarg(Skin skin, string dir, bool forceRefresh, size_t cut) { mixin(S_TRACE);
 		string[] r = [];
-		if (hasTarg(dir)) { mixin(S_TRACE);
+		static if (Type == MtType.CARD) {
+			bool noCardSize = _noCardSize;
+		} else {
+			bool noCardSize = false;
+		}
+		if (hasTarg(skin, dir, forceRefresh, noCardSize)) { mixin(S_TRACE);
 			r ~= dir.length <= cut ? "/" : toViewPath(dir[cut .. $]);
 		}
+		if (!dir.exists() || !dir.isDir()) return r;
 		foreach (f; dir.dirEntries(SpanMode.shallow)) { mixin(S_TRACE);
 			if (containsPath(_prop.var.etc.ignorePaths, f.baseName)) continue;
 			if (f.isDir) { mixin(S_TRACE);
-				r ~= searchTarg(f, cut);
+				r ~= searchTarg(skin, f, forceRefresh, cut);
 			}
 		}
 		return r;
@@ -1459,7 +1465,13 @@ private:
 		}
 		auto tbl = defDir;
 		_tbl = -1;
-		if (hasTarg(tbl)) { mixin(S_TRACE);
+		auto skin = summSkin;
+		static if (Type == MtType.CARD) {
+			bool noCardSize = _noCardSize;
+		} else {
+			bool noCardSize = false;
+		}
+		if (hasTarg(skin, tbl, forceRefresh, noCardSize)) { mixin(S_TRACE);
 			_tbl = cast(int)items.length;
 			items ~= _prop.msgs.defaultSelection(_prop.msgs.pathDef);
 		}
@@ -1475,12 +1487,7 @@ private:
 		if (!_display) _display = _dirs.getDisplay();
 		int dirsIndex = -1;
 
-		version (Win32) {
-			// FIXME: 環境によって原因不明の異常終了が発生する
-			auto subThr = false;
-		} else {
-			auto subThr = !_dirs.isVisible();
-		}
+		auto subThr = !_dirs.isVisible();
 		_loading = subThr;
 		auto path = this.path;
 
@@ -1494,7 +1501,7 @@ private:
 				} else { mixin(S_TRACE);
 					if (!endsWith(st, dirSeparator)) cut++;
 				}
-				items ~= searchTarg(_summ.scenarioPath, cut);
+				items ~= searchTarg(skin, _summ.scenarioPath, forceRefresh, cut);
 			}
 			if (!select) { mixin(S_TRACE);
 				void selectOld() { mixin(S_TRACE);
