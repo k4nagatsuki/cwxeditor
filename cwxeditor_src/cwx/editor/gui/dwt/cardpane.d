@@ -2269,9 +2269,9 @@ private:
 			new CardListEdit!Card(_comm, _list, &listEditEnd, &listCreateEditor);
 		}
 
+		_tcpd = [];
 		auto cl_ = new CL;
 		_tcpd ~= cl_;
-
 		auto ct_ = new CT;
 		_tcpd ~= ct_;
 
