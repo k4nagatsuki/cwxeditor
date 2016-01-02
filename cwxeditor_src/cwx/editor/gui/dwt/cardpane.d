@@ -541,19 +541,19 @@ private:
 		override void dispose() {}
 	}
 	static class UndoEdit : CPUndo {
-		private Card _card;
-		private ulong _id;
-		private void create(in Card c) { mixin(S_TRACE);
+		private Card[] _card;
+		private ulong[] _id;
+		private Card create(in Card c) { mixin(S_TRACE);
 			if (cast(CastCard)c) {
-				_card = new CastCard(c.id, c.name, c.paths, c.desc);
+				return new CastCard(c.id, c.name, c.paths, c.desc);
 			} else if (cast(SkillCard)c) {
-				_card = new SkillCard(c.id, c.name, c.paths, c.desc);
+				return new SkillCard(c.id, c.name, c.paths, c.desc);
 			} else if (cast(ItemCard)c) {
-				_card = new ItemCard(c.id, c.name, c.paths, c.desc);
+				return new ItemCard(c.id, c.name, c.paths, c.desc);
 			} else if (cast(BeastCard)c) {
-				_card = new BeastCard(c.id, c.name, c.paths, c.desc);
+				return new BeastCard(c.id, c.name, c.paths, c.desc);
 			} else if (cast(InfoCard)c) {
-				_card = new InfoCard(c.id, c.name, c.paths, c.desc);
+				return new InfoCard(c.id, c.name, c.paths, c.desc);
 			} else assert (0);
 		}
 		private void shallowCopy(Card dest, in Card base) { mixin(S_TRACE);
@@ -575,30 +575,35 @@ private:
 				break;
 			}
 		}
-		this (CardPane v, Commons comm, CWXPath owner, ulong id) { mixin(S_TRACE);
+		this (CardPane v, Commons comm, CWXPath owner, in ulong[] ids) { mixin(S_TRACE);
 			super (v, comm, owner);
-			auto c = cardFrom(owner, cardType, id);
-			create(c);
-			shallowCopy(_card, c);
-			_card.setUseCounter(comm.summary.useCounter.sub);
-			_id = id;
+			foreach (id; ids) {
+				auto c = cardFrom(owner, cardType, id);
+				auto card = create(c);
+				shallowCopy(card, c);
+				card.setUseCounter(comm.summary.useCounter.sub);
+				_card ~= card;
+			}
+			_id = ids.dup;
 		}
 		private void impl() { mixin(S_TRACE);
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			auto card = _card;
-			card.removeUseCounter();
-			auto c = cardFrom(owner, cardType, _id);
-			create(c);
-			shallowCopy(_card, c);
-			_card.setUseCounter(comm.summary.useCounter.sub);
-			shallowCopy(c, card);
+			foreach (i, id; _id) { mixin(S_TRACE);
+				auto card = _card[i];
+				card.removeUseCounter();
+				auto c = cardFrom(owner, cardType, id);
+				_card[i] = create(c);
+				shallowCopy(_card[i], c);
+				_card[i].setUseCounter(comm.summary.useCounter.sub);
+				shallowCopy(c, card);
 
+				refCard(v, comm, c);
+			}
 			if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
 				v.refresh();
 			}
-			refCard(v, comm, c);
 			comm.refUseCount.call();
 		}
 		override void undo() { mixin(S_TRACE);
@@ -608,10 +613,10 @@ private:
 			impl();
 		}
 		override void dispose() { mixin(S_TRACE);
-			_card.removeUseCounter();
+			foreach (card; _card) card.removeUseCounter();
 		}
 	}
-	void storeEdit(ulong id) { mixin(S_TRACE);
+	void storeEdit(ulong[] id) { mixin(S_TRACE);
 		assert (editMode);
 		_undo ~= new UndoEdit(this, _comm, _owner, id);
 	}
@@ -653,19 +658,26 @@ private:
 		} else assert (0);
 	}
 	static class UndoSwap : CPUndo {
-		private int _index1, _index2;
-		this (CardPane v, Commons comm, CWXPath owner, int index1, int index2) { mixin(S_TRACE);
+		private int[] _indices;
+		private bool _up;
+		this (CardPane v, Commons comm, CWXPath owner, in int[] indices, bool up) { mixin(S_TRACE);
 			super (v, comm, owner);
-			_index1 = index1;
-			_index2 = index2;
+			_indices = indices.dup;
+			_up = up;
 		}
 		private void impl() { mixin(S_TRACE);
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			swap(owner, cardType, _index1, _index2);
-			refCard(v, comm, cardsFrom(cardType, owner)[_index1]);
-			refCard(v, comm, cardsFrom(cardType, owner)[_index2]);
+
+			if (_up) {
+				_indices[] -= 1;
+			} else {
+				_indices[] += 1;
+			}
+			_up = !_up;
+
+			udImpl(v, comm, owner, cardType, _indices, _up);
 		}
 		override void undo() { mixin(S_TRACE);
 			impl();
@@ -673,12 +685,17 @@ private:
 		override void redo() { mixin(S_TRACE);
 			impl();
 		}
-		override void dispose() {}
+		override void dispose() { }
 	}
-	void storeSwap(int index1, int index2) { mixin(S_TRACE);
+	void storeUp(in int[] indices) { mixin(S_TRACE);
 		assert (editMode);
 		assert (_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column);
-		_undo ~= new UndoSwap(this, _comm, _owner, index1, index2);
+		_undo ~= new UndoSwap(this, _comm, _owner, indices, true);
+	}
+	void storeDown(in int[] indices) { mixin(S_TRACE);
+		assert (editMode);
+		assert (_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column);
+		_undo ~= new UndoSwap(this, _comm, _owner, indices, false);
 	}
 	static class UndoMove : CPUndo {
 		private const(int)[] _from;
@@ -1104,12 +1121,20 @@ private:
 	}
 	void nameEditEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
 		assert (editMode);
-		auto c = cast(Card)itm.getData();
-		assert (c !is null);
-		storeEdit(c.id);
-		c.name = newText;
+		auto itms = itm.getParent().getSelection();
+		Card[] cards;
+		foreach (itm2; itms) { mixin(S_TRACE);
+			auto c = cast(Card)itm2.getData();
+			if (c.name == newText) continue;
+			cards ~= c;
+		}
+		if (!cards.length) return;
+		storeEdit(.map!(card => card.id)(cards).array());
+		foreach (c; cards) { mixin(S_TRACE);
+			c.name = newText;
+			refCard(c);
+		}
 		refresh();
-		refCard(c);
 		_comm.refreshToolBar();
 	}
 
@@ -1149,34 +1174,62 @@ private:
 		assert (useNum);
 		assert (editMode);
 		auto num = (cast(Spinner)ctrl).getSelection();
-		auto c = cast(Card)itm.getData();
-		assert (c !is null);
-		storeEdit(c.id);
-
-		final switch (_cardType) {
-		case CardType.Cast:
-			(cast(CastCard)c).level = num;
-			break;
-		case CardType.Skill:
-			(cast(SkillCard)c).level = num;
-			break;
-		case CardType.Item:
-			auto s = cast(ItemCard)c;
-			if (s.useLimitMax == s.useLimit) { mixin(S_TRACE);
-				s.useLimit = num;
+		auto itms = itm.getParent().getSelection();
+		Card[] cards;
+		foreach (itm2; itms) { mixin(S_TRACE);
+			auto c = cast(Card)itm2.getData();
+			final switch (_cardType) {
+			case CardType.Cast:
+				if ((cast(CastCard)c).level == num) continue;
+				break;
+			case CardType.Skill:
+				if ((cast(SkillCard)c).level == num) continue;
+				break;
+			case CardType.Item:
+				auto s = cast(ItemCard)c;
+				int useLimit = s.useLimit, useLimitMax = s.useLimitMax;
+				if (useLimitMax == useLimit) { mixin(S_TRACE);
+					useLimit = num;
+				}
+				useLimitMax = num;
+				useLimit = .min(useLimit, useLimitMax);
+				if (s.useLimit == useLimit && s.useLimitMax == useLimitMax) continue;
+				break;
+			case CardType.Beast:
+				if ((cast(BeastCard)c).useLimit == num) continue;
+				break;
+			case CardType.Info:
+				assert (0);
 			}
-			s.useLimitMax = num;
-			s.useLimit = .min(s.useLimit, s.useLimitMax);
-			break;
-		case CardType.Beast:
-			(cast(BeastCard)c).useLimit = num;
-			break;
-		case CardType.Info:
-			assert (0);
+			cards ~= c;
 		}
-
+		if (!cards.length) return;
+		storeEdit(.map!(card => card.id)(cards).array());
+		foreach (c; cards) { mixin(S_TRACE);
+			final switch (_cardType) {
+			case CardType.Cast:
+				(cast(CastCard)c).level = num;
+				break;
+			case CardType.Skill:
+				(cast(SkillCard)c).level = num;
+				break;
+			case CardType.Item:
+				auto s = cast(ItemCard)c;
+				if (s.useLimitMax == s.useLimit) { mixin(S_TRACE);
+					s.useLimit = num;
+				}
+				s.useLimitMax = num;
+				s.useLimit = .min(s.useLimit, s.useLimitMax);
+				break;
+			case CardType.Beast:
+				(cast(BeastCard)c).useLimit = num;
+				break;
+			case CardType.Info:
+				assert (0);
+			}
+			refCard(c);
+		}
 		refresh();
-		refCard(c);
 		_comm.refreshToolBar();
 	}
 
@@ -1397,14 +1450,15 @@ private:
 		mixin CopyAndPaste;
 		override void del(SelectionEvent se) { mixin(S_TRACE);
 			if (editMode) { mixin(S_TRACE);
-				auto c = selectionCard;
-				if (c) { mixin(S_TRACE);
-					storeDelete([c.id]);
-					remove(_owner, c);
-					refresh();
-					delCard(c);
-					_comm.refreshToolBar();
+				auto cards = selectedCards;
+				auto ids = .map!(card => card.id)(cards).array();
+				storeDelete(ids);
+				foreach (card; cards) { mixin(S_TRACE);
+					remove(_owner, card);
+					delCard(card);
 				}
+				refresh();
+				_comm.refreshToolBar();
 			}
 		}
 	}
@@ -1477,17 +1531,27 @@ private:
 		mixin CopyAndPaste;
 		override void del(SelectionEvent se) { mixin(S_TRACE);
 			if (editMode) { mixin(S_TRACE);
-				auto c = selectionCard;
-				if (c) { mixin(S_TRACE);
-					int i = _tbl.getSelectionIndex();
-					if (-1 == i) return;
-					storeDelete([c.id]);
-					remove(_owner, c);
-					_tbl.getItem(i).dispose();
-					_tbl.redraw();
-					delCard(c);
-					_comm.refreshToolBar();
+				auto indices = _tbl.getSelectionIndices();
+				if (!indices.length) return;
+				.sort(indices);
+				TableItem[] itms;
+				Card[] cards;
+				ulong[] ids;
+				foreach (index; indices) { mixin(S_TRACE);
+					auto itm = _tbl.getItem(index);
+					itms ~= itm;
+					auto card = cast(Card)itm.getData();
+					cards ~= card;
+					ids ~= card.id;
 				}
+				storeDelete(ids);
+				foreach (itm, card; .zip(itms, cards)) { mixin(S_TRACE);
+					remove(_owner, card);
+					itm.dispose();
+					delCard(card);
+				}
+				_tbl.redraw();
+				_comm.refreshToolBar();
 			}
 		}
 	}
@@ -1588,6 +1652,7 @@ private:
 							foreach (i, card; arr) { mixin(S_TRACE);
 								pane.refCard(card);
 							}
+							selectID(ids);
 						}
 						_comm.refUseCount.call();
 						refreshStatusLine();
@@ -2227,10 +2292,19 @@ private:
 		assert (c !is null);
 		string newText = (cast(Text)ctrl).getText();
 		if (newText == "") return;
-		storeEdit(c.id);
-		c.name = newText;
+
+		Card[] cards;
+		foreach (card; selectedCards) { mixin(S_TRACE);
+			if (card.name == newText) continue;
+			cards ~= card;
+		}
+		if (!cards.length) return;
+		storeEdit(.map!(card => card.id)(cards).array());
+		foreach (card; cards) { mixin(S_TRACE);
+			card.name = newText;
+			refCard(card);
+		}
 		refresh();
-		refCard(c);
 		_comm.refreshToolBar();
 	}
 	Control listCreateEditor(in Card c) { mixin(S_TRACE);
@@ -2498,18 +2572,24 @@ private:
 	void hold(SelectionEvent e) { mixin(S_TRACE);
 		assert (canHold);
 		assert (editMode);
-		auto c = selection;
-		if (!c) return;
+		Card[] cards;
 		auto mi = cast(MenuItem)e.widget;
-		if (auto card = cast(SkillCard)c) {
-			if (card.hold is mi.getSelection()) return;
-			storeEdit(card.id);
-			card.hold = mi.getSelection();
-		} else if (auto card = cast(ItemCard)c) {
-			if (card.hold is mi.getSelection()) return;
-			storeEdit(card.id);
-			card.hold = mi.getSelection();
-		} else assert (0);
+		foreach (c; selectedCards) { mixin(S_TRACE);
+			if (auto card = cast(SkillCard)c) {
+				if (card.hold is mi.getSelection()) continue;
+			} else if (auto card = cast(ItemCard)c) {
+				if (card.hold is mi.getSelection()) continue;
+			} else assert (0);
+			cards ~= c;
+		}
+		storeEdit(.map!(card => card.id)(cards).array());
+		foreach (c; selectedCards) { mixin(S_TRACE);
+			if (auto card = cast(SkillCard)c) {
+				card.hold = mi.getSelection();
+			} else if (auto card = cast(ItemCard)c) {
+				card.hold = mi.getSelection();
+			} else assert (0);
+		}
 		refresh();
 	}
 	Menu _addHandMenu = null;
@@ -2538,40 +2618,49 @@ private:
 	public void removeRef() { mixin(S_TRACE);
 		assert (_ownerType is OwnerType.Cast);
 		assert (editMode);
-		auto card = selection;
-		if (!card || 0 == linkId(card)) return;
-		auto targ = pOwnerCard(linkId(card));
-		if (!targ) return;
-		storeEdit(card.id);
-		auto id = card.id;
-		bool hold = false;
-		if (auto c = cast(SkillCard)card) { mixin(S_TRACE);
-			hold = c.hold;
-			c.deepCopy(cast(SkillCard)targ);
-			c.id = id;
-			c.linkId = 0;
-			c.hold = hold;
-		} else if (auto c = cast(ItemCard)card) { mixin(S_TRACE);
-			hold = c.hold;
-			c.deepCopy(cast(ItemCard)targ);
-			c.id = id;
-			c.linkId = 0;
-			c.hold = hold;
-		} else if (auto c = cast(BeastCard)card) { mixin(S_TRACE);
-			c.deepCopy(cast(BeastCard)targ);
-			c.id = id;
-			c.linkId = 0;
-		} else assert (0);
-
+		Card[] cards;
+		Card[] targs;
+		foreach (card; selectedCards) { mixin(S_TRACE);
+			if (!card || 0 == linkId(card)) continue;
+			auto targ = pOwnerCard(linkId(card));
+			if (!targ) continue;
+			cards ~= card;
+			targs ~= targ;
+		}
+		storeEdit(map!(card => card.id)(cards).array());
+		foreach (card, targ; .zip(cards, targs)) { mixin(S_TRACE);
+			auto id = card.id;
+			bool hold = false;
+			if (auto c = cast(SkillCard)card) { mixin(S_TRACE);
+				hold = c.hold;
+				c.deepCopy(cast(SkillCard)targ);
+				c.id = id;
+				c.linkId = 0;
+				c.hold = hold;
+			} else if (auto c = cast(ItemCard)card) { mixin(S_TRACE);
+				hold = c.hold;
+				c.deepCopy(cast(ItemCard)targ);
+				c.id = id;
+				c.linkId = 0;
+				c.hold = hold;
+			} else if (auto c = cast(BeastCard)card) { mixin(S_TRACE);
+				c.deepCopy(cast(BeastCard)targ);
+				c.id = id;
+				c.linkId = 0;
+			} else assert (0);
+			refCard(card);
+		}
 		refresh();
-		refCard(card);
 		_comm.refreshToolBar();
 	}
 	@property
 	public bool canRemoveRef() { mixin(S_TRACE);
 		assert (_ownerType is OwnerType.Cast);
 		assert (editMode);
-		return selection && 0 != linkId(selection) && pOwnerCard(linkId(selection));
+		foreach (card; selectedCards) { mixin(S_TRACE);
+			if (0 != linkId(card) && pOwnerCard(linkId(card))) return true;
+		}
+		return false;
 	}
 public:
 	this (Commons comm, Props prop, Summary summ, Composite parent, OwnerType ownerType, CardType cardType, int style, Summary toc, void delegate() openHand = null) { mixin(S_TRACE);
@@ -2990,6 +3079,14 @@ public:
 		}
 	}
 	@property
+	int[] selectionIndices() { mixin(S_TRACE);
+		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
+			return _tbl.getSelectionIndices();
+		} else { mixin(S_TRACE);
+			return _list.selectionIndices;
+		}
+	}
+	@property
 	ulong[] selectionIDs() { mixin(S_TRACE);
 		return .map!(c => c.id)(selectedCards).array();
 	}
@@ -3001,6 +3098,13 @@ public:
 			return -1 != i ? cast(Card)_tbl.getItem(i).getData() : null;
 		} else { mixin(S_TRACE);
 			return _list.selectionCard;
+		}
+	}
+	void deselectAll() { mixin(S_TRACE);
+		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
+			_tbl.deselectAll();
+		} else { mixin(S_TRACE);
+			_list.deselectAll();
 		}
 	}
 
@@ -3089,6 +3193,7 @@ public:
 			}
 			storeInsert([c.id]);
 			refresh();
+			deselectAll();
 			selectID(c.id);
 			final switch (_cardType) {
 			case CardType.Cast:
@@ -3114,7 +3219,7 @@ public:
 			_comm.refUseCount.call();
 			absDlg.appliedEvent.length = 0;
 			absDlg.applyEvent ~= { mixin(S_TRACE);
-				storeEdit(c.id);
+				storeEdit([c.id]);
 			};
 			absDlg.appliedEvent ~= { mixin(S_TRACE);
 				refresh();
@@ -3178,9 +3283,10 @@ public:
 		}
 
 		foreach (cardType, arr; adds) { mixin(S_TRACE);
+			if (!arr.length) continue;
 			auto pane = openSameLevelPane(cardType, lastType is cardType);
 			ulong[] ids;
-			foreach (card; arr) { mixin(S_TRACE);
+			foreach (ref card; arr) { mixin(S_TRACE);
 				pane.refreshLink(card, samePane, sameSc, topLevel);
 				if (pane._ownerType is OwnerType.Summary) { mixin(S_TRACE);
 					ulong oldId = pane.add(cast(Summary)_owner, card);
@@ -3204,16 +3310,20 @@ public:
 	}
 	void pasteRefresh(Card[] cs) { mixin(S_TRACE);
 		assert (editMode);
+		assert (cs.length);
+		deselectAll();
 		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
 			foreach (c; cs) { mixin(S_TRACE);
 				if (!_incSearch.match(cardName(c))) continue;
 				createTableItem(c);
 			}
-			_tbl.setSelection([_tbl.getItemCount() - 1]);
+			auto count = _tbl.getItemCount();
+			_tbl.select(.iota(count - cast(int)cs.length, count).array());
 			_tbl.showSelection();
 		} else { mixin(S_TRACE);
 			refresh();
-			_list.select(_list.count - 1);
+			auto count = _list.count;
+			_list.selectionIndices = .iota(count - cast(int)cs.length, count).array();
 			_list.scroll(_list.count - 1);
 		}
 		refreshStatusLine();
@@ -3366,7 +3476,7 @@ public:
 		assert (absDlg !is null);
 		if (editMode) { mixin(S_TRACE);
 			absDlg.applyEvent ~= { mixin(S_TRACE);
-				storeEdit(c.id);
+				storeEdit([c.id]);
 			};
 			absDlg.appliedEvent ~= { mixin(S_TRACE);
 				refresh();
@@ -3383,18 +3493,11 @@ public:
 		return dlg;
 	}
 	CardDialog edit() { mixin(S_TRACE);
-		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
-			int index = _tbl.getSelectionIndex();
-			if (index >= 0) { mixin(S_TRACE);
-				return edit(cast(Card)_tbl.getItem(index).getData());
-			}
-		} else { mixin(S_TRACE);
-			int index = _list.selection;
-			if (index >= 0) { mixin(S_TRACE);
-				return edit(_list.card(index));
-			}
+		CardDialog dlg = null;
+		foreach (card; selectedCards) { mixin(S_TRACE);
+			dlg = edit(card);
 		}
-		return null;
+		return dlg;
 	}
 	void editUseEvent(bool canDuplicate = false) { mixin(S_TRACE);
 		assert (_cardType is CardType.Skill || _cardType is CardType.Item || _cardType is CardType.Beast);
@@ -3437,31 +3540,68 @@ public:
 	void editHand() { mixin(S_TRACE);
 		assert (_cardType is CardType.Cast);
 		assert (editMode);
-		auto sel = cast(CastCard)selection;
-		if (sel) { mixin(S_TRACE);
-			_comm.openHands(_prop, _summ, sel, true);
+		foreach (card; selectedCards) { mixin(S_TRACE);
+			assert(cast(CastCard)card !is null);
+			_comm.openHands(_prop, _summ, cast(CastCard)card, true);
 		}
 	}
 
-	private void udImpl(int index1, int index2) { mixin(S_TRACE);
+	private void udImpl(bool up) { mixin(S_TRACE);
 		assert (editMode);
 		if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return;
+		int[] indices;
 		auto arr = cardsFrom(_cardType, _owner);
-		if (index1 < 0 || arr.length <= index1) return;
-		if (index2 < 0 || arr.length <= index2) return;
-		int selIndex = index2;
-		if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
-			// ID昇順に変更
-			index1 = cast(int)arr.length - index1 - 1;
-			index2 = cast(int)arr.length - index2 - 1;
+		foreach (index; selectionIndices) { mixin(S_TRACE);
+			if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
+				// ID昇順に変更
+				index = cast(int)arr.length - index - 1;
+			}
+			indices ~= index;
 		}
-		storeSwap(index1, index2);
-		swap(_owner, _cardType, index1, index2);
+		.sort(indices);
+		auto selIndices = indices.dup;
+		if (up) { mixin(S_TRACE);
+			// 上へ移動
+			if (indices[0] <= 0) return;
+			storeUp(indices);
+			selIndices[] -= 1;
+		} else { mixin(S_TRACE);
+			// 下へ移動
+			if (arr.length <= indices[$ - 1] + 1) return;
+			storeDown(indices);
+			selIndices[] += 1;
+		}
+		udImpl(this, _comm, _owner, _cardType, indices, up);
 		refresh();
-		arr = cardsFrom(_cardType, _owner);
-		refCard(arr[index1]);
-		refCard(arr[index2]);
-		select(selIndex);
+		select(selIndices);
+		_comm.refreshToolBar();
+	}
+	private static void udImpl(CardPane v, Commons comm, CWXPath owner, CardType cardType, in int[] indices, bool up) { mixin(S_TRACE);
+		bool[int] refIndices;
+		int[] selIndices;
+		if (up) { mixin(S_TRACE);
+			// 上へ移動
+			foreach (index1; indices) { mixin(S_TRACE);
+				auto index2 = index1 - 1;
+				swap(owner, cardType, index1, index2);
+				refIndices[index1] = true;
+				refIndices[index2] = true;
+				selIndices ~= index2;
+			}
+		} else { mixin(S_TRACE);
+			// 下へ移動
+			foreach_reverse (index1; indices) { mixin(S_TRACE);
+				auto index2 = index1 + 1;
+				swap(owner, cardType, index1, index2);
+				refIndices[index1] = true;
+				refIndices[index2] = true;
+				selIndices ~= index2;
+			}
+		}
+		auto arr = cardsFrom(cardType, owner);
+		foreach (index; refIndices.byKey()) { mixin(S_TRACE);
+			refCard(v, comm, arr[index]);
+		}
 	}
 	bool canUp() { mixin(S_TRACE);
 		assert (editMode);
@@ -3470,8 +3610,10 @@ public:
 		if (_tbl.isDisposed()) return false;
 		if (narrowCount != cards.length) return false;
 		if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return false;
-		int sel = selectionIndex;
-		return sel != -1 && 0 < sel;
+		auto sel = selectionIndices;
+		if (!sel.length) return false;
+		.sort(sel);
+		return 0 < sel[0];
 	}
 	bool canDown() { mixin(S_TRACE);
 		assert (editMode);
@@ -3480,24 +3622,20 @@ public:
 		if (_tbl.isDisposed()) return false;
 		if (narrowCount != cards.length) return false;
 		if (!(_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column)) return false;
-		int sel = selectionIndex;
-		return sel != -1 && sel + 1 < cards.length;
+		auto sel = selectionIndices;
+		if (!sel.length) return false;
+		.sort(sel);
+		return sel[$ - 1] + 1 < cards.length;
 	}
 	void up() { mixin(S_TRACE);
 		assert (editMode);
 		if (!canUp()) return;
-		int sel = selectionIndex;
-		if (-1 == sel) return;
-		udImpl(sel, sel - 1);
-		_comm.refreshToolBar();
+		udImpl(true);
 	}
 	void down() { mixin(S_TRACE);
 		assert (editMode);
 		if (!canDown()) return;
-		int sel = selectionIndex;
-		if (-1 == sel) return;
-		udImpl(sel, sel + 1);
-		_comm.refreshToolBar();
+		udImpl(false);
 	}
 
 	bool isSelected() { mixin(S_TRACE);

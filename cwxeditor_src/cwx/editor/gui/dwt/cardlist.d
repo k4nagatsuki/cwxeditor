@@ -5,7 +5,7 @@ import cwx.utils;
 
 import cwx.editor.gui.dwt.dutils : wDrawText, wTextExtent;
 
-import std.algorithm : sort, countUntil;
+import std.algorithm : sort, countUntil, max, min;
 import std.conv;
 import std.datetime;
 
@@ -77,84 +77,94 @@ public:
 		addListener(SWT.KeyDown, new class Listener {
 			public override void handleEvent(Event e) { mixin(S_TRACE);
 				if (0 == count) return;
+				bool multi = (getStyle() & SWT.MULTI) != 0;
 				bool ctrl = (e.stateMask & SWT.CTRL) != 0;
-				if (e.character == SWT.CR && (getStyle() & SWT.MULTI) != 0) { mixin(S_TRACE);
-					if (_cur in _sels) { mixin(S_TRACE);
-						deselect(_cur);
+				bool shift = (e.stateMask & SWT.SHIFT) != 0;
+				void updateCursor(int nCur) { mixin(S_TRACE);
+					if (!ctrl && !shift) deselectAll();
+					setCursor(nCur, true, !multi || !shift);
+					if (shift && multi) { mixin(S_TRACE);
+						auto minIndex = .min(_shiftP, _cur);
+						auto maxIndex = .max(_shiftP, _cur);
+						deselectAll();
+						foreach (i; minIndex .. maxIndex + 1) { mixin(S_TRACE);
+							if (0 <= i) { mixin(S_TRACE);
+								select(i);
+							}
+						}
+						callSelectChanged();
 					} else { mixin(S_TRACE);
-						select(_cur);
+						_shiftP = _cur;
 					}
-					callSelectChanged();
-				} else { mixin(S_TRACE);
-					switch (e.keyCode) {
-					case SWT.PAGE_UP:
-						auto bar = getVerticalBar();
-						if (bar !is null) { mixin(S_TRACE);
-							scrollY(bar.getSelection() - bar.getPageIncrement());
-						}
-						break;
-					case SWT.PAGE_DOWN:
-						auto bar = getVerticalBar();
-						if (bar !is null) { mixin(S_TRACE);
-							scrollY(bar.getSelection() + bar.getPageIncrement());
-						}
-						break;
-					case SWT.HOME:
-						auto bar = getVerticalBar();
-						if (bar !is null) { mixin(S_TRACE);
-							scrollY(bar.getMinimum());
-						}
-						break;
-					case SWT.END:
-						auto bar = getVerticalBar();
-						if (bar !is null) { mixin(S_TRACE);
-							scrollY(bar.getMaximum() - bar.getThumb());
-						}
-						break;
-					case SWT.ARROW_UP:
-						if (ctrl) return;
-						int nCur = _cur - _wrap;
-						if (nCur < 0) { mixin(S_TRACE);
-							nCur = _wrap * (_line - 1) + _cur;
-							if (_items.length <= nCur) nCur -= _wrap;
-						}
-						setCursor(nCur, true);
-						break;
-					case SWT.ARROW_DOWN:
-						if (ctrl) return;
-						int nCur = _cur + _wrap;
-						if (_items.length <= nCur) { mixin(S_TRACE);
-							nCur = _cur % _wrap;
-						}
-						setCursor(nCur, true);
-						break;
-					case SWT.ARROW_LEFT:
-						if (ctrl) return;
-						int nCur;
-						if (isFirstCol(_cur)) { mixin(S_TRACE);
-							nCur = _cur + _wrap - 1;
-							if (_items.length <= nCur) nCur = cast(int)_items.length - 1;
-						} else { mixin(S_TRACE);
-							nCur = _cur - 1;
-						}
-						setCursor(nCur, true);
-						break;
-					case SWT.ARROW_RIGHT:
-						if (ctrl) return;
-						int nCur;
-						if (_cur == _items.length - 1) { mixin(S_TRACE);
-							int d = cast(int)_items.length % _wrap;
-							nCur = cast(int)_items.length - (d == 0 ? _wrap : d);
-						} else if (isLastCol(_cur)) { mixin(S_TRACE);
-							nCur = _cur - _wrap + 1;
-						} else { mixin(S_TRACE);
-							nCur = _cur + 1;
-						}
-						setCursor(nCur, true);
-						break;
-					default:
-						e.doit = true;
+				}
+				switch (e.keyCode) {
+				case SWT.PAGE_UP:
+					auto bar = getVerticalBar();
+					if (bar !is null) { mixin(S_TRACE);
+						scrollY(bar.getSelection() - bar.getPageIncrement());
 					}
+					break;
+				case SWT.PAGE_DOWN:
+					auto bar = getVerticalBar();
+					if (bar !is null) { mixin(S_TRACE);
+						scrollY(bar.getSelection() + bar.getPageIncrement());
+					}
+					break;
+				case SWT.HOME:
+					auto bar = getVerticalBar();
+					if (bar !is null) { mixin(S_TRACE);
+						scrollY(bar.getMinimum());
+					}
+					break;
+				case SWT.END:
+					auto bar = getVerticalBar();
+					if (bar !is null) { mixin(S_TRACE);
+						scrollY(bar.getMaximum() - bar.getThumb());
+					}
+					break;
+				case SWT.ARROW_UP:
+					if (ctrl) return;
+					int nCur = _cur - _wrap;
+					if (nCur < 0) { mixin(S_TRACE);
+						nCur = _wrap * (_line - 1) + _cur;
+						if (_items.length <= nCur) nCur -= _wrap;
+					}
+					updateCursor(nCur);
+					break;
+				case SWT.ARROW_DOWN:
+					if (ctrl) return;
+					int nCur = _cur + _wrap;
+					if (_items.length <= nCur) { mixin(S_TRACE);
+						nCur = _cur % _wrap;
+					}
+					updateCursor(nCur);
+					break;
+				case SWT.ARROW_LEFT:
+					if (ctrl) return;
+					int nCur;
+					if (isFirstCol(_cur)) { mixin(S_TRACE);
+						nCur = _cur + _wrap - 1;
+						if (_items.length <= nCur) nCur = cast(int)_items.length - 1;
+					} else { mixin(S_TRACE);
+						nCur = _cur - 1;
+					}
+					updateCursor(nCur);
+					break;
+				case SWT.ARROW_RIGHT:
+					if (ctrl) return;
+					int nCur;
+					if (_cur == _items.length - 1) { mixin(S_TRACE);
+						int d = cast(int)_items.length % _wrap;
+						nCur = cast(int)_items.length - (d == 0 ? _wrap : d);
+					} else if (isLastCol(_cur)) { mixin(S_TRACE);
+						nCur = _cur - _wrap + 1;
+					} else { mixin(S_TRACE);
+						nCur = _cur + 1;
+					}
+					updateCursor(nCur);
+					break;
+				default:
+					e.doit = true;
 				}
 			}
 		});
@@ -198,9 +208,7 @@ public:
 						}
 					} else { mixin(S_TRACE);
 						if (e.button == 1) { mixin(S_TRACE);
-							if (_ctrl) { mixin(S_TRACE);
-								_shiftP = i;
-							} else if (_shift) { mixin(S_TRACE);
+							if (_shift) { mixin(S_TRACE);
 								if (_shiftP >= 0) { mixin(S_TRACE);
 									int i1, i2;
 									if (_shiftP < i) { mixin(S_TRACE);
@@ -219,13 +227,15 @@ public:
 									_shiftP = i;
 								}
 								callSelectChanged();
-							} else { mixin(S_TRACE);
+							} else if (!_ctrl) { mixin(S_TRACE);
 								if (!isSelectedAt(i)) deselectAll();
 								select(i);
 								_shiftP = i;
 								callSelectChanged();
+							} else { mixin(S_TRACE);
+								_shiftP = i;
 							}
-							setCursor(i);
+							setCursor(i, true, false);
 						} else if (e.button == 3) { mixin(S_TRACE);
 							if (!_ctrl) { mixin(S_TRACE);
 								if (!isSelectedAt(i)) deselectAll();
@@ -308,13 +318,13 @@ public:
 	/// index = インデックス。
 	/// scroll = カーソル位置までスクロールするか。
 	/// select = 選択するか。
-	void setCursor(int index, bool scroll = false) { mixin(S_TRACE);
+	void setCursor(int index, bool scroll = false, bool select = true) { mixin(S_TRACE);
 		if (_cur != index) { mixin(S_TRACE);
 			if (_cur >= 0) redrawCard(_cur);
 			if (index >= 0) redrawCard(index);
 			_cur = index;
 		}
-		if ((getStyle() & SWT.MULTI) == 0) { mixin(S_TRACE);
+		if (select) { mixin(S_TRACE);
 			this.select(_cur);
 			callSelectChanged();
 		}

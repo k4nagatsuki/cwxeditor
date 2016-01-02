@@ -1057,16 +1057,16 @@ private:
 	Control delegate(in C card) _createEditor;
 
 	Item selectionM(int x, int y) { mixin(S_TRACE);
-		auto sels = _list.selectionIndices();
-		if (1 == sels.length && _list.getTitleBounds(sels[0]).contains(x, y)) { mixin(S_TRACE);
-			return _list.getItem(sels[0]);
+		auto sel = _list.selection;
+		if (0 <= sel && _list.getTitleBounds(sel).contains(x, y)) { mixin(S_TRACE);
+			return _list.getItem(sel);
 		}
 		return null;
 	}
 	Item selectionK() { mixin(S_TRACE);
-		auto sels = _list.selectionIndices();
-		if (1 == sels.length) { mixin(S_TRACE);
-			return _list.getItem(sels[0]);
+		auto sel = _list.selection;
+		if (0 <= sel) { mixin(S_TRACE);
+			return _list.getItem(sel);
 		}
 		return null;
 	}
@@ -1124,9 +1124,9 @@ public:
 	}
 	/// 選択されているセルの編集を開始する。
 	void startEdit() { mixin(S_TRACE);
-		auto sels = _list.selectionIndices();
-		if (sels.length == 1) { mixin(S_TRACE);
-			startEdit(_list.getItem(sels[0]));
+		auto sel = _list.selection;
+		if (0 <= sel) { mixin(S_TRACE);
+			startEdit(_list.getItem(sel));
 		}
 	}
 	bool isEditing() { mixin(S_TRACE);

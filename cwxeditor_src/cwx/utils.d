@@ -129,8 +129,11 @@ string printStackTrace() {
 	}
 	auto s = arr.join("\n");
 	fdebugln(s);
-	stStack = [];
+	clearStackTrace();
 	return createDebugln(s);
+}
+void clearStackTrace() {
+	stStack = [];
 }
 string printStackTraceNoError() {
 	string[] arr = ["Stack Trace --------"];
