@@ -47,6 +47,7 @@ import std.datetime;
 import std.typetuple;
 import std.path;
 import std.conv;
+import std.range : zip, iota;
 
 import org.eclipse.swt.all;
 
@@ -459,8 +460,8 @@ private:
 
 		private ulong[] _ids;
 		private ulong[] _idsB;
-		private ulong _sel;
-		private ulong _selB;
+		private ulong[] _sel;
+		private ulong[] _selB;
 
 		this (CardPane v, Commons comm, CWXPath owner) { mixin(S_TRACE);
 			_v = v;
@@ -475,7 +476,7 @@ private:
 			_ids.length = 0;
 			foreach (c; cardsFrom(cardType, owner)) _ids ~= c.id;
 			if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
-				_sel = v.selectionID;
+				_sel = v.selectionIDs;
 			}
 		}
 		abstract override void undo();
@@ -483,7 +484,7 @@ private:
 		abstract override void dispose();
 		protected void udb(CardPane v) { mixin(S_TRACE);
 			_idsB = _ids.dup;
-			_selB = _sel;
+			_selB = _sel.dup;
 			saveIDs(v);
 			if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
 				.forceFocus(v.widget, false);
@@ -680,31 +681,58 @@ private:
 		_undo ~= new UndoSwap(this, _comm, _owner, index1, index2);
 	}
 	static class UndoMove : CPUndo {
-		private int _from, _to;
-		this (CardPane v, Commons comm, CWXPath owner, int from, int to) { mixin(S_TRACE);
+		private const(int)[] _from;
+		private int _to;
+		this (CardPane v, Commons comm, CWXPath owner, const(int)[] from, int to) { mixin(S_TRACE);
 			super (v, comm, owner);
 			_from = from;
 			_to = to;
 		}
-		private void impl() { mixin(S_TRACE);
+		override void undo() { mixin(S_TRACE);
 			auto v = view();
 			udb(v);
 			scope (exit) uda(v);
-			auto card = cardsFrom(cardType, owner)[_to];
-			int from = _from;
-			if (_to <= from) from++;
-			insert(owner, from, card);
-			std.algorithm.swap(_from, _to);
-		}
-		override void undo() { mixin(S_TRACE);
-			impl();
+
+			auto array = cardsFrom(cardType, owner);
+			Card[] cards;
+			auto toIndex = _to;
+			foreach (index; _from) { mixin(S_TRACE);
+				if (index < _to) { mixin(S_TRACE);
+					toIndex--;
+				} else { mixin(S_TRACE);
+					break;
+				}
+			}
+			foreach (i; toIndex .. toIndex + _from.length) { mixin(S_TRACE);
+				cards ~= array[i];
+			}
+			foreach (i, card, fIndex; .zip(0.iota(_from.length), cards, _from)) { mixin(S_TRACE);
+				int index = fIndex;
+				if (_to < index) { mixin(S_TRACE);
+					index += _from.length;
+					index -= i;
+				}
+				insert(owner, index, card);
+			}
 		}
 		override void redo() { mixin(S_TRACE);
-			impl();
+			auto v = view();
+			udb(v);
+			scope (exit) uda(v);
+
+			auto array = cardsFrom(cardType, owner);
+			Card[] adds;
+			foreach (i; _from) { mixin(S_TRACE);
+				adds ~= array[i];
+			}
+			moveCards(owner, cardType, adds, _to);
+			if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
+				v.selectMovedCards(adds);
+			}
 		}
-		override void dispose() {}
+		override void dispose() { }
 	}
-	void storeMove(int from, int to) { mixin(S_TRACE);
+	void storeMove(const(int)[] from, int to) { mixin(S_TRACE);
 		assert (editMode);
 		assert (_tbl.getSortColumn() is null || _tbl.getSortColumn() is _idSorter.column);
 		_undo ~= new UndoMove(this, _comm, _owner, from, to);
@@ -1381,10 +1409,10 @@ private:
 		}
 	}
 
-	void refCard(Card c) { mixin(S_TRACE);
+	void refCard(Card c, bool updateStatus = true) { mixin(S_TRACE);
 		refCard(this, _comm, c);
 	}
-	static void refCard(CardPane v, Commons comm, Card c) { mixin(S_TRACE);
+	static void refCard(CardPane v, Commons comm, Card c, bool updateStatus = true) { mixin(S_TRACE);
 		if (auto c2 = cast(CastCard)c) {
 			comm.refCast.call(v, c2);
 		} else if (auto c2 = cast(SkillCard)c) {
@@ -1396,7 +1424,7 @@ private:
 		} else if (auto c2 = cast(InfoCard)c) {
 			comm.refInfo.call(v, c2);
 		} else assert (0);
-		if (v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
+		if (updateStatus && v && v.widget && !v.widget.isDisposed()) { mixin(S_TRACE);
 			v.refreshStatusLine();
 		}
 	}
@@ -1497,6 +1525,12 @@ private:
 						selectOnly(index);
 						return;
 					}
+					if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
+						// 処理を単純化するため、ID昇順でソートされた
+						// 状態に対して移動処理を行う
+						index = cast(int)cards.length - index - 1;
+					}
+
 					Card[] adds;
 					node.onTag[xmlName] = (ref XNode cNode) { mixin(S_TRACE);
 						auto id = Card.readId(cNode);
@@ -1506,24 +1540,7 @@ private:
 					};
 					node.parse();
 					if (adds.length == 0) return;
-					assert (adds.length == 1);
-					auto card = adds[0];
-					auto oldIndex = CardPane.indexOf(_owner, _cardType, card);
-
-					if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
-						// 処理を単純化するため、ID昇順でソートされた
-						// 状態に対して移動処理を行う
-						index = cast(int)cards.length - index;
-						if (index < oldIndex) { mixin(S_TRACE);
-							index--;
-						}
-					}
-
-					storeMove(cast(int)oldIndex, oldIndex < index ? index - 1 : index);
-					CardPane.insert(_owner, index, card);
-					insert(card, true);
-					refCard(card);
-					refreshStatusLine();
+					moveCards(adds, index, true);
 				} else { mixin(S_TRACE);
 					e.detail = DND.DROP_NONE;
 					// 他のリストからのコピー
@@ -1579,6 +1596,41 @@ private:
 			} catch (Exception e) {
 				printStackTrace();
 				debugln(e);
+			}
+		}
+	}
+	void moveCards(Card[] adds, int index, bool store) { mixin(S_TRACE);
+		if (store) { mixin(S_TRACE);
+			int[] oldIndexes;
+			foreach (card; adds) { mixin(S_TRACE);
+				oldIndexes ~= CardPane.indexOf(owner, cardType, card);
+			}
+			.sort(oldIndexes);
+			storeMove(oldIndexes, index);
+		}
+
+		moveCards(_owner, _cardType, adds, index);
+		selectMovedCards(adds);
+	}
+	void selectMovedCards(Card[] adds) { mixin(S_TRACE);
+		int[] indices;
+		foreach (card; adds) { mixin(S_TRACE);
+			refCard(card, false);
+			indices ~= CardPane.indexOf(owner, cardType, card);
+		}
+		insert(adds[$ - 1], true);
+		select(indices);
+	}
+	static void moveCards(CWXPath owner, CardType cardType, Card[] adds, int index) { mixin(S_TRACE);
+		/+if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
+			foreach_reverse (card; adds) { mixin(S_TRACE);
+				CardPane.insert(owner, index, card);
+				index = CardPane.indexOf(owner, cardType, card) + 1;
+			}
+		} else +/{ mixin(S_TRACE);
+			foreach (card; adds) { mixin(S_TRACE);
+				CardPane.insert(owner, index, card);
+				index = CardPane.indexOf(owner, cardType, card) + 1;
 			}
 		}
 	}
@@ -1670,9 +1722,14 @@ private:
 	private void insert(Card c, bool move) { mixin(S_TRACE);
 		assert (editMode);
 		refresh();
-		int index = _list.indexOf(c);
-		_list.select(index);
-		_list.scroll(index);
+		int index = indexOf(_owner, _cardType, c);
+		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
+			_tbl.select(index);
+			_tbl.showSelection();
+		} else { mixin(S_TRACE);
+			_list.select(index);
+			_list.scroll(index);
+		}
 		refreshStatusLine();
 	}
 	class CTDTListener : DropTargetAdapter {
@@ -2187,7 +2244,7 @@ private:
 
 		auto tableComp = new Composite(_pane, SWT.NONE);
 		tableComp.setLayout(zeroGridLayout(1, true));
-		_tbl = new Table(tableComp, SWT.FULL_SELECTION | (editMode ? SWT.SINGLE : SWT.MULTI));
+		_tbl = new Table(tableComp, SWT.FULL_SELECTION | SWT.MULTI);
 		_tbl.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_tbl.addSelectionListener(new SelChanged);
 		_tbl.setHeaderVisible(true);
@@ -2238,7 +2295,7 @@ private:
 			}
 		}
 
-		_list = new CardList!Card(_pane, SWT.VIRTUAL | SWT.V_SCROLL | (editMode ? SWT.SINGLE : SWT.MULTI));
+		_list = new CardList!Card(_pane, SWT.VIRTUAL | SWT.V_SCROLL | SWT.MULTI);
 		void updateCardListParamsImpl() { mixin(S_TRACE);
 			CInsets matPad;
 			if (_cardType is CardType.Cast) { mixin(S_TRACE);
@@ -2847,6 +2904,17 @@ public:
 			_pane.layout();
 		}
 	}
+	@property
+	void select(int[] indices) { mixin(S_TRACE);
+		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
+			_tbl.deselectAll();
+			_tbl.select(indices);
+		} else { mixin(S_TRACE);
+			_list.deselectAll();
+			_list.selectionIndices = indices;
+		}
+		refreshStatusLine();
+	}
 
 	@property
 	void select(int index) { mixin(S_TRACE);
@@ -2880,6 +2948,24 @@ public:
 			}
 		}
 	}
+	void selectID(in ulong[] ids) { mixin(S_TRACE);
+		int[ulong] indexTable;
+		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
+			foreach (i, itm; _tbl.getItems()) { mixin(S_TRACE);
+				auto c = cast(Card)itm.getData();
+				indexTable[c.id] = cast(int)i;
+			}
+		} else { mixin(S_TRACE);
+			foreach (i, c; _list.cards) { mixin(S_TRACE);
+				indexTable[c.id] = cast(int)i;
+			}
+		}
+		int[] indexes;
+		foreach (id; ids) { mixin(S_TRACE);
+			indexes ~= indexTable[id];
+		}
+		select(indexes);
+	}
 	@property
 	Card[] selectedCards() { mixin(S_TRACE);
 		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
@@ -2904,9 +2990,8 @@ public:
 		}
 	}
 	@property
-	ulong selectionID() { mixin(S_TRACE);
-		auto c = selection;
-		return c ? c.id : 0;
+	ulong[] selectionIDs() { mixin(S_TRACE);
+		return .map!(c => c.id)(selectedCards).array();
 	}
 	@property
 	Card selection() { mixin(S_TRACE);

@@ -5,7 +5,7 @@ import cwx.utils;
 
 import cwx.editor.gui.dwt.dutils : wDrawText, wTextExtent;
 
-import std.algorithm : countUntil;
+import std.algorithm : sort, countUntil;
 import std.conv;
 import std.datetime;
 
@@ -454,6 +454,9 @@ public:
 	@property
 	int selection() { mixin(S_TRACE);
 		if (isSelected) { mixin(S_TRACE);
+			if (_cur != -1 && _cur in _sels) { mixin(S_TRACE);
+				return _cur;
+			}
 			int i = int.max;
 			foreach (s; selectionIndices) { mixin(S_TRACE);
 				if (s < i) i = s;
@@ -486,8 +489,11 @@ public:
 	C[] selectionCards() { mixin(S_TRACE);
 		C[] cs;
 		cs.length = _sels.length;
-		foreach (i, c; _sels.values) { mixin(S_TRACE);
-			cs[i] = cast(C) c.getData();
+		auto keys = _sels.keys;
+		std.algorithm.sort(keys);
+		foreach (i, key; keys) { mixin(S_TRACE);
+			auto c = _sels[key];
+			cs[i] = cast(C)c.getData();
 		}
 		return cs;
 	}
