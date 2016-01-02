@@ -4648,11 +4648,13 @@ public:
 					scope (exit) addC = [];
 					auto arr = cast(FileNames) e.data;
 					if (arr) { mixin(S_TRACE);
+						int[] selIndices;
 						foreach (fname; arr.array) { mixin(S_TRACE);
 							try { mixin(S_TRACE);
 								if (!doFile(fname)) { mixin(S_TRACE);
 									break;
 								}
+								selIndices ~= cardsIndex + _cards.getItemCount() - 1;
 							} catch (SWTException e) {
 								printStackTrace();
 								debugln(e);
@@ -4662,6 +4664,8 @@ public:
 							auto undo = new UndoInsert(this.outer, _comm, _area, _summ, addC, []);
 							_comm.refPaths.call(summSkin.materialPath);
 						}
+						_imgp.select(selIndices);
+						refreshSelected();
 						_comm.refreshToolBar();
 						return;
 					} else if (isXMLBytes(e.data)) { mixin(S_TRACE);
@@ -4866,11 +4870,13 @@ public:
 				scope (exit) addB = [];
 				auto arr = cast(FileNames) e.data;
 				if (arr) { mixin(S_TRACE);
+					int[] selIndices;
 					foreach (fname; arr.array) { mixin(S_TRACE);
 						try { mixin(S_TRACE);
 							if (!doFile(fname)) { mixin(S_TRACE);
 								break;
 							}
+							selIndices ~= 0 + _backs.getItemCount() - 1;
 						} catch (SWTException e) {
 							printStackTrace();
 							debugln(e);
@@ -4880,6 +4886,8 @@ public:
 						auto undo = new UndoInsert(this.outer, _comm, _area, _summ, [], addB);
 						_comm.refPaths.call(summSkin.materialPath);
 					}
+					_imgp.select(selIndices);
+					refreshSelected();
 					_comm.refreshToolBar();
 					return;
 				} else if (isXMLBytes(e.data)) { mixin(S_TRACE);
@@ -5065,12 +5073,16 @@ public:
 							cx = x - cast(int) (s.width + ins.e + ins.w) / 2;
 							cy = y - cast(int) (s.height + ins.n + ins.s) / 2;
 						}
+						int[] selIndices;
 						foreach (i, card; cards) { mixin(S_TRACE);
 							assert (card.scale == 100);
 							card.x = cx;
 							card.y = cy;
+							selIndices ~= cardsIndex + _cards.getItemCount();
 							ci ~= appendCard(card, true, true, toImgp);
 						}
+						_imgp.select(selIndices);
+						refreshSelected();
 						_comm.refUseCount.call();
 						refreshFlags();
 						_comm.refreshToolBar();
@@ -5091,12 +5103,16 @@ public:
 					cx = x - cast(int) (s.width + ins.e + ins.w) / 2;
 					cy = y - cast(int) (s.height + ins.n + ins.s) / 2;
 				}
+				int[] selIndices;
 				foreach (card; cards) { mixin(S_TRACE);
 					assert (card.scale == 100);
 					card.x = cx;
 					card.y = cy;
+					selIndices ~= cardsIndex + _cards.getItemCount();
 					ci ~= appendCard(card, true, true, toImgp);
 				}
+				_imgp.select(selIndices);
+				refreshSelected();
 				_comm.refreshToolBar();
 			}
 		} catch (Exception e) {
@@ -5133,6 +5149,20 @@ public:
 				if (append > 0) { mixin(S_TRACE);
 					_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, addC, addB);
 					_comm.refPaths.call(summSkin.materialPath);
+
+					int[] selIndices;
+					static if (UseCards) {
+						foreach (i; addC) { mixin(S_TRACE);
+							selIndices ~= cardsIndex + i;
+						}
+					}
+					static if (UseBacks) {
+						foreach (i; addB) { mixin(S_TRACE);
+							selIndices ~= 0 + i;
+						}
+					}
+					_imgp.select(selIndices);
+					refreshSelected();
 					_comm.refreshToolBar();
 				}
 				return;
