@@ -1668,35 +1668,29 @@ private:
 		if (store) { mixin(S_TRACE);
 			int[] oldIndexes;
 			foreach (card; adds) { mixin(S_TRACE);
-				oldIndexes ~= CardPane.indexOf(owner, cardType, card);
+				oldIndexes ~= cast(int)CardPane.indexOf(owner, cardType, card);
 			}
 			.sort(oldIndexes);
 			storeMove(oldIndexes, index);
 		}
+		std.algorithm.sort!((a, b) => a.id < b.id)(adds);
 
 		moveCards(_owner, _cardType, adds, index);
 		selectMovedCards(adds);
 	}
 	void selectMovedCards(Card[] adds) { mixin(S_TRACE);
-		int[] indices;
+		ulong[] ids;
 		foreach (card; adds) { mixin(S_TRACE);
 			refCard(card, false);
-			indices ~= CardPane.indexOf(owner, cardType, card);
+			ids ~= card.id;
 		}
 		insert(adds[$ - 1], true);
-		select(indices);
+		selectID(ids);
 	}
 	static void moveCards(CWXPath owner, CardType cardType, Card[] adds, int index) { mixin(S_TRACE);
-		/+if (_tbl.getSortDirection() is SWT.DOWN) { mixin(S_TRACE);
-			foreach_reverse (card; adds) { mixin(S_TRACE);
-				CardPane.insert(owner, index, card);
-				index = CardPane.indexOf(owner, cardType, card) + 1;
-			}
-		} else +/{ mixin(S_TRACE);
-			foreach (card; adds) { mixin(S_TRACE);
-				CardPane.insert(owner, index, card);
-				index = CardPane.indexOf(owner, cardType, card) + 1;
-			}
+		foreach (card; adds) { mixin(S_TRACE);
+			CardPane.insert(owner, index, card);
+			index = cast(int)CardPane.indexOf(owner, cardType, card) + 1;
 		}
 	}
 	void refreshLink(ref Card card, bool samePane, bool sameSc, bool topLevel) { mixin(S_TRACE);
@@ -1787,7 +1781,7 @@ private:
 	private void insert(Card c, bool move) { mixin(S_TRACE);
 		assert (editMode);
 		refresh();
-		int index = indexOf(_owner, _cardType, c);
+		int index = cast(int)indexOf(_owner, _cardType, c);
 		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
 			_tbl.select(index);
 			_tbl.showSelection();
