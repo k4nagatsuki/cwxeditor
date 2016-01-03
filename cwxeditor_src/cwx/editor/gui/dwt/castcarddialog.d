@@ -1423,7 +1423,7 @@ protected:
 			}
 		}
 		foreach (mtl, scale; _mtl) { mixin(S_TRACE);
-			_card.mental(mtl, cast(int) scale.getSelection() - _prop.var.etc.mentalMax);
+			_card.mental(mtl, cast(int)scale.getSelection() - cast(int)_prop.var.etc.mentalMax);
 		}
 		foreach (enh, i; _enhTbl) { mixin(S_TRACE);
 			if (_enhR) { mixin(S_TRACE);
