@@ -2194,8 +2194,7 @@ private:
 		}
 	}
 
-	void selectAll() { mixin(S_TRACE);
-		assert (!editMode);
+	public void selectAll() { mixin(S_TRACE);
 		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
 			foreach (i; 0 .. _tbl.getItemCount()) { mixin(S_TRACE);
 				_tbl.select(i);
@@ -2208,8 +2207,11 @@ private:
 		selectChanged();
 	}
 	@property
+	public bool canSelectAll() { mixin(S_TRACE);
+		return cards.length && selectionCount != cards.length;
+	}
+	@property
 	int selectionCount() { mixin(S_TRACE);
-		assert (!editMode);
 		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
 			return _tbl.getSelectionCount();
 		} else { mixin(S_TRACE);
@@ -2832,6 +2834,8 @@ public:
 			new MenuItem(pop, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, pop, this, true, true, true, true, true);
 			new MenuItem(pop, SWT.SEPARATOR);
+			createMenuItem(_comm, pop, MenuID.SelectAll, &selectAll, &canSelectAll);
+			new MenuItem(pop, SWT.SEPARATOR);
 			createMenuItem(_comm, pop, MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
 			if (_ownerType is OwnerType.Summary) { mixin(S_TRACE);
 				new MenuItem(pop, SWT.SEPARATOR);
@@ -2857,7 +2861,7 @@ public:
 			}
 			appendMenuTCPD(_comm, pop, this, false, true, false, false, false);
 			new MenuItem(pop, SWT.SEPARATOR);
-			createMenuItem(_comm, pop, MenuID.SelectAll, &selectAll, () => cards.length && selectionCount != cards.length);
+			createMenuItem(_comm, pop, MenuID.SelectAll, &selectAll, &canSelectAll);
 		}
 		_list.setMenu(pop);
 		_tbl.setMenu(pop);

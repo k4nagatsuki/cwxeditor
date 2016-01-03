@@ -976,11 +976,18 @@ public override:
 		disposeImage();
 	}
 	void dragStart(DragSourceEvent event) { mixin(S_TRACE);
-		auto clist = cast(CardList!(C)) getControl();
+		auto clist = cast(CardList!(C))getControl();
 		int i = clist.searchIndex(event.x, event.y);
 		if (i >= 0) { mixin(S_TRACE);
+			auto ca = clist.getClientArea();
 			disposeImage();
-			auto sels = list.selectionItems;
+			CardListItem!C[] sels;
+			foreach (itm; list.selectionItems) { mixin(S_TRACE);
+				if (ca.intersects(itm.x, itm.y, itm.width, itm.height)) {
+					sels ~= itm;
+				}
+			}
+
 			int left = int.max;
 			int right = int.min;
 			int top = int.max;

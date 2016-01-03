@@ -348,6 +348,7 @@ public:
 			}
 			putMenuAction(MenuID.Import, &doImport, &canDoImport);
 		}
+		putMenuAction(MenuID.SelectAll, &selectAll, &canSelectAll);
 		if (CardType.Skill in _paneTbl || CardType.Item in _paneTbl || CardType.Beast in _paneTbl) {
 			putMenuAction(MenuID.EditEventAtTimeOfUsing, () => editUseEvent(false), &canEditUseEvent);
 			putMenuAction(MenuID.EditEventDup, () => editUseEvent(true), &canEditUseEvent);
@@ -971,6 +972,14 @@ public:
 	bool canDoImport() { mixin(S_TRACE);
 		assert (!editMode);
 		return selectPane!(bool, "canDoImport")();
+	}
+
+	void selectAll() { mixin(S_TRACE);
+		selectPane!(void, "selectAll")();
+	}
+	@property
+	bool canSelectAll() { mixin(S_TRACE);
+		return selectPane!(bool, "canSelectAll")();
 	}
 
 	void removeRef() { mixin(S_TRACE);

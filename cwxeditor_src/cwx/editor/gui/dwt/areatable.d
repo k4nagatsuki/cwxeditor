@@ -37,7 +37,8 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.centerlayout;
 
 import std.algorithm : max, min;
-import std.array : split;
+import std.range : iota;
+import std.array : split, array;
 import std.conv;
 import std.string : icmp, join, toLower;
 
@@ -1943,6 +1944,8 @@ public:
 			createMenuItem(_comm, menu, MenuID.ReNumbering, &reNumbering, &canReNumbering);
 		} else { mixin(S_TRACE);
 			appendMenuTCPD(_comm, menu, this, false, true, false, false, false);
+			new MenuItem(menu, SWT.SEPARATOR);
+			createMenuItem(_comm, menu, MenuID.SelectAll, &selectAll, &canSelectAll);
 		}
 		_areas.setMenu(menu);
 
@@ -3118,6 +3121,16 @@ public:
 
 	@property
 	bool isSelected() { return _areas.getSelectionIndex() != -1; }
+
+	void selectAll() { mixin(S_TRACE);
+		if (!canSelectAll) return;
+		_areas.setSelection(0.iota(_areas.getItemCount()).array());
+	}
+
+	@property
+	bool canSelectAll() { mixin(S_TRACE);
+		return (_areas.getStyle() | SWT.MULTI) && _areas.getItemCount() && _areas.getItemCount() != _areas.getSelectionCount();
+	}
 
 	@property
 	string[] openedCWXPath() { mixin(S_TRACE);
