@@ -1464,6 +1464,7 @@ public:
 	/// IDを除く内部データをクリアする。
 	protected override void clearData() { mixin(S_TRACE);
 		super.clearData();
+		_ceto.clearEvents();
 		linkId = 0;
 		scenario = "";
 		author = "";

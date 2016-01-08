@@ -3170,6 +3170,18 @@ public:
 	const
 	abstract bool canHasFireKeyCode();
 
+	void clearEvents() { mixin(S_TRACE);
+		if (!_evts.length) return;
+		changed();
+		foreach (evt; _evts) { mixin(S_TRACE);
+			if (_uc !is null) { mixin(S_TRACE);
+				evt.removeUseCounter();
+			}
+			evt.changeHandler = null;
+			evt._owner = null;
+		}
+		_evts = [];
+	}
 	void removeEvent(size_t index) { mixin(S_TRACE);
 		if (_uc !is null) { mixin(S_TRACE);
 			_evts[index].removeUseCounter();
