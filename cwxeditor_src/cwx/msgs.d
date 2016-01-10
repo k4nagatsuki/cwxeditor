@@ -729,7 +729,7 @@ class Msgs : Properties {
 	auto ctGetInfo = Msg("ctGetInfo", "情報カード「%1$s」を獲得");
 	auto ctGetMoney = Msg("ctGetMoney", "獲得金額 = %1$ssp");
 	auto ctGetCoupon = Msg("ctGetCoupon", "称号「%1$s(%2$s)」を獲得(%3$s)");
-	auto ctGetCompleteStamp = Msg("ctGetCompleteStamp", "シナリオ%1$sを終了済みにする");
+	auto ctGetCompleteStamp = Msg("ctGetCompleteStamp", "シナリオ「%1$s」を終了済みにする");
 	auto ctGetGossip = Msg("ctGetGossip", "ゴシップ「%1$s」を獲得");
 	auto ctLoseCardAll = Msg("ctLoseCardAll", "全て");
 	auto ctLoseCardCount = Msg("ctLoseCardCount", "%1$s枚");
