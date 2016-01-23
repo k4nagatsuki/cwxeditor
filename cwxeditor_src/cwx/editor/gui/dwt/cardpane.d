@@ -1652,7 +1652,7 @@ private:
 							foreach (i, card; arr) { mixin(S_TRACE);
 								pane.refCard(card);
 							}
-							selectID(ids);
+							pane.selectID(ids);
 						}
 						_comm.refUseCount.call();
 						refreshStatusLine();
