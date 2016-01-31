@@ -719,6 +719,7 @@ class ToolBarCustomizer : Composite, TCPD {
 		store();
 		removeMenuImpl(sels[0]);
 		refreshMenu();
+		updateBarAndGroupText();
 		_comm.refreshToolBar();
 		foreach (dlg; modEvent) dlg();
 	}
