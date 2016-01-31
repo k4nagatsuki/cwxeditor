@@ -1364,6 +1364,10 @@ public:
 		auto m = selection();
 		if (_maxNest) _maxNest.setEnabled(!_readOnly && m && m.beast && 0 != m.beast.linkId && !_prop.isTargetVersion(_summ, "1"));
 
+		if (_valValue) { mixin(S_TRACE);
+			_valValue.setEnabled(m && m.damageType !is DamageType.MAX);
+		}
+
 		foreach (radio; _skillPowerType.byValue()) { mixin(S_TRACE);
 			radio.setEnabled(m && (!_summ || !_summ.legacy || m.damageType !is DamageType.MAX));
 		}
