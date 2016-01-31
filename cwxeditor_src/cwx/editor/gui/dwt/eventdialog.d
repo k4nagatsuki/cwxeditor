@@ -1163,6 +1163,7 @@ protected:
 		{ mixin(S_TRACE);
 			_mview = new MotionView(_comm, _prop, _summ, tabf, SWT.NONE);
 			mod(_mview);
+			_mview.warningEvent ~= &refreshWarning;
 			tabM.setControl(_mview);
 		}
 		auto tabS = new CTabItem(tabf, SWT.NONE);

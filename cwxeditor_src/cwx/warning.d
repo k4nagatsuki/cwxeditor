@@ -111,15 +111,26 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 	}
 	void putMotions(in Motion[] motions) { mixin(S_TRACE);
+		bool[string] exists;
 		foreach (m; motions) { mixin(S_TRACE);
+			void put(string w) { mixin(S_TRACE);
+				if (w !in exists) { mixin(S_TRACE);
+					r ~= w;
+					exists[w] = true;
+				}
+			}
 			if (m.type is MType.CANCEL_ACTION && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
-				r ~= .tryFormat(prop.msgs.warningUnknownMotion, prop.msgs.motionName(m.type), "1.50");
+				put(.tryFormat(prop.msgs.warningUnknownMotion, prop.msgs.motionName(m.type), "1.50"));
 			}
 			if (m.type == MType.SUMMON_BEAST && !m.beast) { mixin(S_TRACE);
-				r ~= prop.msgs.searchErrorNoBeast;
+				put(prop.msgs.searchErrorNoBeast);
 			}
 			if (m.type == MType.SUMMON_BEAST && m.beast && 0 != m.beast.linkId && !(summ && summ.beast(m.beast.linkId))) { mixin(S_TRACE);
-				r ~= .tryFormat(prop.msgs.searchErrorLinkIdBeastNotFound, m.beast.linkId);
+				put(.tryFormat(prop.msgs.searchErrorLinkIdBeastNotFound, m.beast.linkId));
+			}
+			if ((m.type == MType.GET_SKILL_POWER || m.type == MType.LOSE_SKILL_POWER)
+					&& m.damageType !is DamageType.MAX && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+				put(prop.msgs.warningSkillPowerWithFixedValue);
 			}
 		}
 	}

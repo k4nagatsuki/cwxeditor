@@ -41,11 +41,12 @@ import std.utf;
 debug import std.stdio;
 
 import org.eclipse.swt.all;
+alias org.eclipse.swt.widgets.MessageBox.MessageBox DWTMessageBox;
 
 import java.lang.all;
 
 version (Windows) {
-	import std.c.windows.windows;
+	import core.sys.windows.windows;
 	private extern (Windows) {
 		const DWORD WAIT_ABANDONED = 0x80;
 		const DWORD WAIT_TIMEOUT = 0x102;
@@ -56,7 +57,7 @@ version (Windows) {
 	}
 } else version (linux) {
 	import core.stdc.errno;
-	import std.c.linux.linux;
+	import core.sys.linux.linux;
 	private extern (C) {
 		c_uint sleep(c_uint);
 		c_int inotify_init();
@@ -78,7 +79,7 @@ version (Windows) {
 		};
 	}
 } else { mixin(S_TRACE);
-	import std.c.unix.unix;
+	import core.sys.unix.unix;
 }
 
 private struct FC {
@@ -681,8 +682,7 @@ private:
 				if (paths.length == 0 && copys.length == 0) return false;
 				bool over = false;
 				if (exists.length > 0) { mixin(S_TRACE);
-					auto dlg = new MessageBox
-						(_win.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
+					auto dlg = new DWTMessageBox(_win.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
 					dlg.setText(_prop.msgs.dlgTitQuestion);
 					if (1 == exists.length) { mixin(S_TRACE);
 						dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDropOverWriteFile, exists[0]));
@@ -1390,7 +1390,7 @@ private:
 								sleep();
 								continue;
 							}
-							len = std.c.linux.linux.read(_traceHandle, buf.ptr, buf.sizeof);
+							len = core.sys.linux.linux.read(_traceHandle, buf.ptr, buf.sizeof);
 						}
 						if (-1 == len) break;
 						if (0 == len) { mixin(S_TRACE);
@@ -1696,7 +1696,7 @@ public:
 		}
 		bool recycle = (se.stateMask & SWT.SHIFT) == 0;
 		auto shl = dlgParShl.getShell();
-		auto dlg = new MessageBox(shl, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+		auto dlg = new DWTMessageBox(shl, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 		version (Windows) {
 			if (recycle) { mixin(S_TRACE);
 				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDeleteRecycleUnuse, files.length));
@@ -1929,7 +1929,7 @@ public:
 		if (!_summ) return;
 		auto shl = dlgParShl.getShell();
 		if (_comm.isChanged) { mixin(S_TRACE);
-			auto dlg = new MessageBox(shl, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
+			auto dlg = new DWTMessageBox(shl, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
 			dlg.setText(_prop.msgs.dlgTitQuestion);
 			dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgIsSaveBeforeCreateArchive, _summ.scenarioName));
 			shl.setMinimized(false);
@@ -2128,7 +2128,7 @@ public:
 			if (!sels.length) return;
 			if (!sels[0].getParentItem()) return;
 		}
-		auto dlg = new MessageBox(_win.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
+		auto dlg = new DWTMessageBox(_win.getShell(), SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
 		dlg.setText(_prop.msgs.dlgTitQuestion);
 		auto dir = selDirPath;
 		auto file = selFiles;
@@ -2312,7 +2312,7 @@ class Exec {
 		}
 		auto cmd = OuterTool.parse(_tool.command, file, sp);
 		if (!exec(cmd, wd)) { mixin(S_TRACE);
-			MessageBox.showWarning
+			DWTMessageBox.showWarning
 				(.tryFormat(_dirWin._prop.msgs.errorExec, _tool.name),
 				_dirWin._prop.msgs.dlgTitWarning, _dirWin._win.getShell());
 		}

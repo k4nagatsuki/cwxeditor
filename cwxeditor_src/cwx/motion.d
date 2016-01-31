@@ -23,8 +23,14 @@ private void static_this () { mixin(S_TRACE);
 		MType.DIS_PARALYZE:MDetail("DisParalyze", [MArg.VALUE_TYPE:_("damagetype"), MArg.U_VALUE:"value"]),
 		MType.POISON:MDetail("Poison", [MArg.VALUE_TYPE:_("damagetype"), MArg.U_VALUE:"value"]),
 		MType.DIS_POISON:MDetail("DisPoison", [MArg.VALUE_TYPE:_("damagetype"), MArg.U_VALUE:"value"]),
-		MType.GET_SKILL_POWER:MDetail("GetSkillPower"),
-		MType.LOSE_SKILL_POWER:MDetail("LoseSkillPower"),
+		MType.GET_SKILL_POWER:MDetail("GetSkillPower", [
+			MArg.VALUE_TYPE:"damagetype", // Wsn.1
+			MArg.U_VALUE:"value", // Wsn.1
+		]),
+		MType.LOSE_SKILL_POWER:MDetail("LoseSkillPower", [
+			MArg.VALUE_TYPE:"damagetype", // Wsn.1
+			MArg.U_VALUE:"value", // Wsn.1
+		]),
 		MType.SLEEP:MDetail("Sleep", [MArg.ROUND:"duration"]),
 		MType.CONFUSE:MDetail("Confuse", [MArg.ROUND:"duration"]),
 		MType.OVERHEAT:MDetail("Overheat", [MArg.ROUND:"duration"]),
@@ -200,6 +206,9 @@ public:
 	this (MType type, Element el) { mixin(S_TRACE);
 		_type = type;
 		_el = el;
+		if (type == MType.GET_SKILL_POWER || type == MType.LOSE_SKILL_POWER) { mixin(S_TRACE);
+			_dtyp = DamageType.MAX;
+		}
 	}
 	/// 効果の種類。
 	@property

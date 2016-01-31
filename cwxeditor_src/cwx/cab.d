@@ -12,11 +12,11 @@ import std.exception;
 import std.file;
 import std.path;
 
-import std.c.string;
+import core.stdc.string;
 
 version (Windows) {
 	import std.windows.charset;
-	import std.c.windows.windows;
+	import core.sys.windows.windows;
 
 	/// uncab()が行える状態であればtrueを返す。
 	/// cabinet.dllが使用できないなどの理由でfalseを返す事がある。

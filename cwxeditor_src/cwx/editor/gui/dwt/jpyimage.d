@@ -301,8 +301,8 @@ private ImageData loadJPYImageImpl(Props prop, in Skin skin, in Summary summ, st
 }
 
 version (Windows) {
-	import std.c.string;
-	import std.c.windows.windows;
+	import core.stdc.string;
+	import core.sys.windows.windows;
 	private extern (Windows) {
 		const DEFAULT_CHARSET = 0x1;
 		const OUT_DEFAULT_PRECIS = 0x0;

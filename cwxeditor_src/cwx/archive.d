@@ -13,7 +13,7 @@ import d2std.zip;
 import std.utf;
 import std.datetime;
 import std.string;
-import std.c.string : strlen;
+import core.stdc.string : strlen;
 
 /// アーカイヴのメンバ名をencodeする。
 string encodeArchiveName(string name) { mixin(S_TRACE);

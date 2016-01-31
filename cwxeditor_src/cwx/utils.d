@@ -80,9 +80,9 @@ shared immutable string APP_BUILD = "Build: "
 
 private version (Windows) {
 	import std.windows.charset;
-	import std.c.stdio;
+	import core.stdc.stdio;
 	extern (Windows) {
-		import std.c.windows.windows;
+		import core.sys.windows.windows;
 		struct STARTUPINFO {
 			DWORD cb;
 			LPTSTR lpReserved;
@@ -119,7 +119,7 @@ private version (Windows) {
 } else {
 	import core.sys.posix.unistd;
 	import core.sys.posix.pwd;
-	import std.c.string;
+	import core.stdc.string;
 }
 
 string printStackTrace() {
@@ -1301,11 +1301,11 @@ string toHex(string str) { mixin(S_TRACE);
 	assert (result == "%E3%81%82%E3%81%84%E3%81%86", result);
 }
 
-private import std.c.stdlib;
-private import std.c.string;
+private import core.stdc.stdlib;
+private import core.stdc.string;
 /// 環境変数envの値を返す。存在しない場合はnullを返す。
 string getenv(string env) { mixin(S_TRACE);
-	auto v = std.c.stdlib.getenv((env ~ '\0').ptr);
+	auto v = core.stdc.stdlib.getenv((env ~ '\0').ptr);
 	if (!v) return null;
 	string r = v[0u .. strlen(v)].idup;
 	version (Windows) {
@@ -1652,7 +1652,7 @@ version (Windows) {
 	private extern (C) {
 		c_int fork();
 	}
-	import std.c.stdlib;
+	import core.stdc.stdlib;
 	import std.process;
 	/// プロセスを起動する。成功した場合はtrueを返す。
 	/// FIXME: まったくテストしていない

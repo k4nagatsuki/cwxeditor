@@ -10,8 +10,8 @@ import std.path;
 import std.exception;
 import std.file;
 import std.process : environment;
-import std.c.stdio;
-import std.c.string;
+import core.stdc.stdio;
+import core.stdc.string;
 
 import core.sync.mutex;
 import core.stdc.wchar_;
@@ -39,7 +39,7 @@ private immutable CWSE = "cwse";
 
 version (Windows) {
 	import std.windows.charset;
-	import std.c.windows.windows;
+	import core.sys.windows.windows;
 	private extern (Windows) {
 		alias __gshared DWORD MCIERROR;
 		alias __gshared nothrow MCIERROR function(LPCWSTR, LPWSTR, UINT, HANDLE) mciSendStringW;
@@ -197,7 +197,7 @@ version (Windows) {
 			return;
 		}
 		if (!_mciNotifyHandleBGM) { mixin(S_TRACE);
-			WNDCLASS wc;
+			WNDCLASSA wc;
 			wc.lpszClassName = "MCIHandlerBGM\0".ptr;
 			wc.lpfnWndProc = &mciNotifyWndProcBGM;
 			if (!RegisterClassA(&wc)) { mixin(S_TRACE);
@@ -210,7 +210,7 @@ version (Windows) {
 			}
 		}
 		if (!_mciNotifyHandleSE) { mixin(S_TRACE);
-			WNDCLASS wc;
+			WNDCLASSA wc;
 			wc.lpszClassName = "MCIHandlerSE\0".ptr;
 			wc.lpfnWndProc = &mciNotifyWndProcSE;
 			if (!RegisterClassA(&wc)) { mixin(S_TRACE);

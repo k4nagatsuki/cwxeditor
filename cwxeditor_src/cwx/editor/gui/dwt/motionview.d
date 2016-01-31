@@ -251,6 +251,8 @@ private:
 	Spinner _rndRound;
 	Spinner _abiRound;
 	Spinner _valValue;
+	Button _skillPowerType[DamageType];
+	Spinner _skillPowerValue;
 	Image[TypeInfo] _imgMsns;
 	Image[Element] _imgElm;
 	Skin _summSkin;
@@ -313,14 +315,19 @@ private:
 		return null;
 	}
 	class DamageTypeListener : SelectionAdapter {
+		Button[DamageType] table;
+		Spinner valueSpn = null;
+		bool delegate() isEditable = null;
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			auto m = selection;
 			if (!m) return;
-			auto val = getRadioValue!(DamageType)(_dmgTyp);
+			auto val = getRadioValue!(DamageType)(table);
 			if (m.damageType != val) { mixin(S_TRACE);
 				storeEdit(_motions.getSelectionIndex());
 				m.damageType = val;
+				valueSpn.setEnabled(val !is DamageType.MAX && (!isEditable || isEditable()));
 				foreach (dlg; modEvent) dlg();
+				foreach (we; warningEvent) we();
 			}
 		}
 	}
@@ -336,6 +343,7 @@ private:
 			}
 		}
 	}
+
 	void roundEnter(int value) { mixin(S_TRACE);
 		auto m = selection;
 		if (!m) return;
@@ -373,6 +381,9 @@ private:
 			void create() { mixin(S_TRACE);
 				auto m = new Motion(type, Element.ALL);
 				m.damageType = DamageType.LEVEL_RATIO;
+				if (type == MType.GET_SKILL_POWER || type == MType.LOSE_SKILL_POWER) { mixin(S_TRACE);
+					m.damageType = DamageType.MAX;
+				}
 				m.uValue = 1u;
 				m.aValue = 0;
 				m.round = v._prop.looks.motionRoundDefault;
@@ -592,6 +603,7 @@ private:
 	Composite _roundComp;
 	Composite _abilityComp;
 	Composite _summonComp;
+	Composite _skillPowerComp;
 	int _oldIndex = -1;
 	void refreshSels(bool force = false) { mixin(S_TRACE);
 		scope(exit) refEnabled();
@@ -613,7 +625,16 @@ private:
 				}
 			}
 			auto d = m.detail;
-			if (d.use(MArg.BEAST)) { mixin(S_TRACE);
+			if (m.type == MType.GET_SKILL_POWER || m.type == MType.LOSE_SKILL_POWER) { mixin(S_TRACE);
+				foreach (typ, radio; _skillPowerType) { mixin(S_TRACE);
+					_skillPowerType[typ].setSelection((typ == m.damageType));
+				}
+				_skillPowerValue.setSelection(m.uValue);
+				if (stack.topControl !is _skillPowerComp) { mixin(S_TRACE);
+					stack.topControl = _skillPowerComp;
+					_editComp.layout();
+				}
+			} else if (d.use(MArg.BEAST)) { mixin(S_TRACE);
 				_beasts.select(0);
 				_selectedBeast = null;
 				_maxNest.setSelection(m.maxNest);
@@ -1292,6 +1313,30 @@ public:
 				}
 				_valValue = createSpinner(_valueComp, _prop.msgs.motionValue, _prop.var.etc.uValueMax,
 					.tryFormat(_prop.msgs.rangeHint, Motion.uValue_min, _prop.var.etc.uValueMax), &valEnter, &valCancel);
+				dtl.table = _dmgTyp;
+				dtl.valueSpn = _valValue;
+			}
+			_skillPowerComp = createC();
+			{ mixin(S_TRACE);
+				auto grp = new Group(_skillPowerComp, SWT.NONE);
+				grp.setText(_prop.msgs.motionDamageType);
+				grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
+				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				auto comp = new Composite(grp, SWT.NONE);
+				comp.setLayout(new GridLayout(1, false));
+				auto dtl = new DamageTypeListener;
+				foreach (typ; [DamageType.FIXED, DamageType.MAX]) { mixin(S_TRACE);
+					auto radio = new Button(comp, SWT.RADIO);
+					radio.setEnabled(!_readOnly);
+					radio.setText(_prop.msgs.damageTypeName(typ));
+					radio.addSelectionListener(dtl);
+					_skillPowerType[typ] = radio;
+				}
+				_skillPowerValue = createSpinner(_skillPowerComp, _prop.msgs.motionValue, _prop.var.etc.skillPowerMax,
+					.tryFormat(_prop.msgs.rangeHint, Motion.uValue_min, _prop.var.etc.skillPowerMax), &valEnter, &valCancel);
+				dtl.table = _skillPowerType;
+				dtl.valueSpn = _skillPowerValue;
+				dtl.isEditable = () => !_summ || !_summ.legacy;
 			}
 			_noneComp = createC();
 			motionStack.topControl = _noneComp;
@@ -1318,6 +1363,13 @@ public:
 	void refEnabled() { mixin(S_TRACE);
 		auto m = selection();
 		if (_maxNest) _maxNest.setEnabled(!_readOnly && m && m.beast && 0 != m.beast.linkId && !_prop.isTargetVersion(_summ, "1"));
+
+		foreach (radio; _skillPowerType.byValue()) { mixin(S_TRACE);
+			radio.setEnabled(m && (!_summ || !_summ.legacy || m.damageType !is DamageType.MAX));
+		}
+		if (_skillPowerValue) { mixin(S_TRACE);
+			_skillPowerValue.setEnabled(m && m.damageType !is DamageType.MAX);
+		}
 	}
 	@property
 	private bool canSelectConnectedResource() { mixin(S_TRACE);
@@ -1571,11 +1623,24 @@ public:
 	@property
 	string[] warnings() { mixin(S_TRACE);
 		string[] ws;
+		bool[string] exists;
 		foreach (itm; _motions.getItems()) { mixin(S_TRACE);
+			void put(string w) { mixin(S_TRACE);
+				if (w !in exists) { mixin(S_TRACE);
+					ws ~= w;
+					exists[w] = true;
+				}
+			}
 			auto m = cast(Motion)itm.getData();
 			if (m.type is MType.CANCEL_ACTION && !_prop.targetVersion("1.50")) { mixin(S_TRACE);
-				ws ~= .tryFormat(_prop.msgs.warningUnknownMotion, _prop.msgs.motionName(m.type), "1.50");
-				break;
+				put(.tryFormat(_prop.msgs.warningUnknownMotion, _prop.msgs.motionName(m.type), "1.50"));
+			}
+			if (m.type == MType.SUMMON_BEAST && m.beast && 0 != m.beast.linkId && !(_summ && _summ.beast(m.beast.linkId))) { mixin(S_TRACE);
+				put(.tryFormat(_prop.msgs.searchErrorLinkIdBeastNotFound, m.beast.linkId));
+			}
+			if ((m.type == MType.GET_SKILL_POWER || m.type == MType.LOSE_SKILL_POWER)
+					&& m.damageType !is DamageType.MAX && !_prop.isTargetVersion(_summ, "1")) { mixin(S_TRACE);
+				put(_prop.msgs.warningSkillPowerWithFixedValue);
 			}
 		}
 		return ws;

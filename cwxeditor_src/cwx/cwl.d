@@ -3,7 +3,7 @@ module cwx.cwl;
 
 import core.thread;
 
-import std.c.string;
+import core.stdc.string;
 
 import std.array;
 import std.conv;

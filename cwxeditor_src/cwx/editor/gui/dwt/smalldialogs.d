@@ -443,7 +443,7 @@ class ErrorDialog : AbsDialog {
 			int width() {return 600;}
 			int height() {return 400;}
 		};
-		auto info = ButtonInfo(prop.msgs.shutdown, {std.c.stdlib.exit(0);});
+		auto info = ButtonInfo(prop.msgs.shutdown, {core.stdc.stdlib.exit(0);});
 		super (prop, shell, false, prop.msgs.dlgTitError, shell.getImage(), true, size, false, false, [info]);
 		_comm = comm;
 		_prop = prop;

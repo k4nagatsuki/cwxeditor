@@ -68,11 +68,12 @@ import d2std.zip;
 debug import std.stdio;
 
 import org.eclipse.swt.all;
+alias org.eclipse.swt.widgets.MessageBox.MessageBox DWTMessageBox;
 
 import java.lang.all;
 
 version (Windows) {
-	import std.c.windows.windows;
+	import core.sys.windows.windows;
 	private extern (Windows) {
 		HANDLE CreateNamedPipeW(LPCWSTR, DWORD, DWORD,
 			DWORD, DWORD, DWORD, DWORD, LPSECURITY_ATTRIBUTES);
@@ -86,18 +87,18 @@ version (Windows) {
 } else {
 	import core.stdc.errno;
 	version (linux) {
-		import std.c.linux.linux;
-		import std.c.linux.socket;
-		alias std.c.linux.linux.read cread;
-		alias std.c.linux.linux.write cwrite;
-		alias std.c.linux.socket.bind cbind;
+		import core.sys.linux.linux;
+		import core.sys.linux.socket;
+		alias core.sys.linux.linux.read cread;
+		alias core.sys.linux.linux.write cwrite;
+		alias core.sys.linux.socket.bind cbind;
 	} else { mixin(S_TRACE);
-		import std.c.unix.unix;
-		alias std.c.unix.unix.read cread;
-		alias std.c.unix.unix.write cwrite;
-		alias std.c.unix.unix.bind cbind;
+		import core.sys.unix.unix;
+		alias core.sys.unix.unix.read cread;
+		alias core.sys.unix.unix.write cwrite;
+		alias core.sys.unix.unix.bind cbind;
 	}
-	import std.c.string;
+	import core.stdc.string;
 	extern (C) {
 		alias ushort sa_family_t;
 		struct sockaddr_un {
@@ -836,7 +837,7 @@ private:
 		if (!fname) return;
 		bool r = exec("\"" ~ _prop.parent.appPath ~ "\" " ~ fname);
 		if (!r) { mixin(S_TRACE);
-			MessageBox.showWarning
+			DWTMessageBox.showWarning
 				(.tryFormat(_prop.msgs.errorExec, baseName(_prop.parent.appPath)),
 				_prop.msgs.dlgTitWarning, _win);
 		}
@@ -851,7 +852,7 @@ private:
 			r = exec("\"" ~ _prop.parent.appPath ~ "\" -create " ~ dlg.name ~ " " ~ dlg.skin);
 		}
 		if (!r) { mixin(S_TRACE);
-			MessageBox.showWarning
+			DWTMessageBox.showWarning
 				(.tryFormat(_prop.msgs.errorExec, baseName(_prop.parent.appPath)),
 				_prop.msgs.dlgTitWarning, _win);
 		}
@@ -909,7 +910,7 @@ private:
 		if (!summary) return;
 		auto old = summary;
 		if (old.useTemp && !old.zipName.length) { mixin(S_TRACE);
-			MessageBox.showWarning(.tryFormat(_prop.msgs.reloadBeforeSaveError, old.scenarioName),
+			DWTMessageBox.showWarning(.tryFormat(_prop.msgs.reloadBeforeSaveError, old.scenarioName),
 				_prop.msgs.dlgTitWarning, _win);
 			return;
 		}
@@ -923,7 +924,7 @@ private:
 					} catch (Exception e) {
 						printStackTrace();
 						debugln(e);
-						MessageBox.showWarning(.tryFormat(_prop.msgs.reloadError, summary.scenarioPath)
+						DWTMessageBox.showWarning(.tryFormat(_prop.msgs.reloadError, summary.scenarioPath)
 							~ "\n" ~ e.msg,
 							_prop.msgs.dlgTitWarning, _win);
 					}
@@ -937,7 +938,7 @@ private:
 				} catch (Exception e) {
 					printStackTrace();
 					debugln(e);
-					MessageBox.showWarning(.tryFormat(_prop.msgs.reloadError, summary.scenarioPath)
+					DWTMessageBox.showWarning(.tryFormat(_prop.msgs.reloadError, summary.scenarioPath)
 						~ "\n" ~ e.msg,
 						_prop.msgs.dlgTitWarning, _win);
 				}
@@ -1002,7 +1003,7 @@ private:
 			dStr ~= " - " ~ .text(__LINE__);
 			if (summ.type.length && !hasSkin(_prop, summ.type)
 					&& summ.type != _prop.var.etc.defaultSkin) { mixin(S_TRACE);
-				MessageBox.showWarning(.tryFormat(_prop.msgs.useDefaultSkin, summ.type, _prop.var.etc.defaultSkin),
+				DWTMessageBox.showWarning(.tryFormat(_prop.msgs.useDefaultSkin, summ.type, _prop.var.etc.defaultSkin),
 					_prop.msgs.dlgTitWarning, _win);
 				summ.type = _prop.var.etc.defaultSkin;
 			}
@@ -1078,7 +1079,7 @@ private:
 					printStackTrace();
 					debugln(e);
 				}
-				MessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
+				DWTMessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
 			}
 			dStr ~= " - " ~ .text(__LINE__);
 			resetOpt();
@@ -1161,7 +1162,7 @@ private:
 					printStackTrace();
 					debugln(e);
 				}
-				MessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
+				DWTMessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
 			}
 			_opt.openPaths.length = 0u;
 			_comm.refreshToolBar();
@@ -1268,7 +1269,7 @@ private:
 				} catch (SummaryException e) {
 					printStackTrace();
 					debugln(e);
-					MessageBox.showWarning(e.msg, _prop.msgs.dlgTitWarning, shell);
+					DWTMessageBox.showWarning(e.msg, _prop.msgs.dlgTitWarning, shell);
 					return false;
 				}
 			}
@@ -1319,7 +1320,7 @@ private:
 				string dir = fname.dirName();
 				bool checkDir() { mixin(S_TRACE);
 					if (dir.clistdir().length) { mixin(S_TRACE);
-						auto dlg = new MessageBox(shell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+						auto dlg = new DWTMessageBox(shell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 						dlg.setMessage(.tryFormat(_prop.msgs.saveToNotEmptyDir, dir));
 						dlg.setText(_prop.msgs.dlgTitQuestion);
 						if (SWT.YES != dlg.open()) { mixin(S_TRACE);
@@ -1344,7 +1345,7 @@ private:
 					goto case FILTER_ZIP;
 				case FILTER_ZIP, FILTER_CAB:
 					if (!summary.legacy) { mixin(S_TRACE);
-						auto dlg = new MessageBox(shell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+						auto dlg = new DWTMessageBox(shell, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 						dlg.setMessage(_prop.msgs.warningXToClassic);
 						dlg.setText(_prop.msgs.dlgTitQuestion);
 						if (SWT.YES != dlg.open()) { mixin(S_TRACE);
@@ -1376,7 +1377,7 @@ private:
 						scope (exit) _saveSync.unlock();
 						summary.saveWithName(_prop.parent, _comm.skin, createSaveOpt(),
 							fname, tempPath, expandXMLs, defSkin, (string msg) { mixin(S_TRACE);
-								MessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
+								DWTMessageBox.showWarning(msg, _prop.msgs.dlgTitWarning, shell);
 							}, classic);
 					}
 					_comm.saved.call();
@@ -1392,7 +1393,7 @@ private:
 				} catch (SummaryException e) {
 					printStackTrace();
 					debugln(e);
-					MessageBox.showWarning(e.msg, _prop.msgs.dlgTitWarning, shell);
+					DWTMessageBox.showWarning(e.msg, _prop.msgs.dlgTitWarning, shell);
 				}
 			}
 		}
@@ -1453,7 +1454,7 @@ private:
 				updateExecEngineWithPartyName();
 			}
 		} else {
-			MessageBox.showWarning(.tryFormat(_prop.msgs.errorExecEngine, .baseName(path)),
+			DWTMessageBox.showWarning(.tryFormat(_prop.msgs.errorExecEngine, .baseName(path)),
 				_prop.msgs.dlgTitWarning, _win);
 		}
 	}
@@ -1545,7 +1546,7 @@ private:
 			}
 		}
 		if (noApplyCount) { mixin(S_TRACE);
-			auto dlg = new MessageBox(_win, SWT.YES | SWT.NO | SWT.ICON_QUESTION);
+			auto dlg = new DWTMessageBox(_win, SWT.YES | SWT.NO | SWT.ICON_QUESTION);
 			dlg.setText(_prop.msgs.dlgTitQuestion);
 			if (type is QSaveType.close) { mixin(S_TRACE);
 				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgForceCancelDialogsQuit, noApplyCount));
@@ -1557,12 +1558,12 @@ private:
 			}
 		}
 		if (_comm.isChanged) { mixin(S_TRACE);
-			MessageBox dlg;
+			DWTMessageBox dlg;
 			if (type is QSaveType.reload) { mixin(S_TRACE);
-				dlg = new MessageBox(_win, SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
+				dlg = new DWTMessageBox(_win, SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
 				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgIsSaveBeforeReload, summary.scenarioName));
 			} else { mixin(S_TRACE);
-				dlg = new MessageBox(_win, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
+				dlg = new DWTMessageBox(_win, SWT.YES | SWT.NO | SWT.CANCEL | SWT.ICON_QUESTION);
 				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgIsSaveBeforeExit, summary.scenarioName));
 			}
 			dlg.setText(_prop.msgs.dlgTitQuestion);
@@ -1936,7 +1937,7 @@ private:
 			}
 		}
 		private void delHist() { mixin(S_TRACE);
-			auto dlg = new MessageBox(_win, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+			auto dlg = new DWTMessageBox(_win, SWT.ICON_QUESTION | SWT.YES | SWT.NO);
 			string h = _hist;
 			string ext = .extension(h);
 			if (cfnmatch(ext, ".xml") || cfnmatch(ext, ".wsm") || cfnmatch(ext, ".wid") || cfnmatch(ext, ".wex")) { mixin(S_TRACE);
@@ -2487,7 +2488,7 @@ public:
 					}
 				}
 				if (!hasSkin) { mixin(S_TRACE);
-					MessageBox.showWarning(.tryFormat(_prop.msgs.loadSkinError, _prop.var.etc.defaultSkin),
+					DWTMessageBox.showWarning(.tryFormat(_prop.msgs.loadSkinError, _prop.var.etc.defaultSkin),
 						_prop.msgs.dlgTitWarning, null);
 				}
 			}
@@ -4076,7 +4077,7 @@ public:
 	}
 	void reNumberingAll() { mixin(S_TRACE);
 		if (!summary) return;
-		auto dlg = new MessageBox(_win, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
+		auto dlg = new DWTMessageBox(_win, SWT.ICON_QUESTION | SWT.OK | SWT.CANCEL);
 		dlg.setText(_prop.msgs.dlgTitQuestion);
 		dlg.setMessage(_prop.msgs.reNumberingAll);
 		if (SWT.OK == dlg.open()) { mixin(S_TRACE);

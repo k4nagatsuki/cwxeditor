@@ -208,8 +208,9 @@ string fromElement(Element el) { mixin(S_TRACE);
 /// 効果計算。
 enum DamageType {
 	LEVEL_RATIO, /// レベル比。
-	NORMAL, /// 固定値。
+	NORMAL, /// 値の直接指定。
 	MAX, /// 最大値。
+	FIXED, /// 固定値(Wsn.1)。
 }
 /// 文字列から効果計算方式を生成。
 DamageType toDamageType(string name) { mixin(S_TRACE);
@@ -220,6 +221,8 @@ DamageType toDamageType(string name) { mixin(S_TRACE);
 		return DamageType.NORMAL;
 	case "Max":
 		return DamageType.MAX;
+	case "Fixed":
+		return DamageType.FIXED;
 	default:
 		throw new MotionException("Unknown damagetype: " ~ name);
 	}
@@ -233,6 +236,8 @@ string fromDamageType(DamageType dtyp) { mixin(S_TRACE);
 		return "Normal";
 	case DamageType.MAX:
 		return "Max";
+	case DamageType.FIXED:
+		return "Fixed";
 	}
 }
 

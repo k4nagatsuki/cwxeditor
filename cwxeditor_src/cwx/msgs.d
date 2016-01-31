@@ -1278,6 +1278,7 @@ class Msgs : Properties {
 	auto damageTypeNameLevelRatio = Msg("damageTypeNameLevelRatio", "レベルに対応する値");
 	auto damageTypeNameNormal = Msg("damageTypeNameNormal", "値の直接入力");
 	auto damageTypeNameMax = Msg("damageTypeNameMax", "最大値処理");
+	auto damageTypeNameFixed = Msg("damageTypeNameFixed", "固定値");
 	const string elementName(Element id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(Element, "elementName"));
 	}
@@ -1578,6 +1579,7 @@ class Msgs : Properties {
 	auto warningStepCount = Msg("warningStepCount", "%1$s段階以外の段階数はクラシックなシナリオでは使用できません。");
 	auto warningKeyCodeCount = Msg("warningKeyCodeCount", "%1$s件より多くのキーコードはクラシックなシナリオでは設定できません。");
 	auto warningValuedSelectionMethod = Msg("warningValuedSelectionMethod", "評価条件によるメンバ選択分岐は、WSN1以降の形式のシナリオしか行えません。");
+	auto warningSkillPowerWithFixedValue = Msg("warningSkillPowerWithFixedValue", "精神力操作の固定値指定は、WSN1以降の形式のシナリオしか行えません。"); // Wsn.1
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");

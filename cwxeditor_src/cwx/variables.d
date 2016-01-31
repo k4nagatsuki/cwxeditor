@@ -191,6 +191,7 @@ class FlexEtcProps : Properties {
 	auto cardNumberMax = Prop!(uint, true)("cardNumberMax", 99);
 	auto waitMax = Prop!(uint, true)("waitMax", 1000);
 	auto uValueMax = Prop!(uint, true)("uValueMax", 999);
+	auto skillPowerMax = Prop!(uint, true)("skillPowerMax", 9);
 	auto beastMaxNest = Prop!(uint, true)("beastMaxNest", 99);
 
 	auto flagInitValue = Prop!(bool)("flagInitValue", true);

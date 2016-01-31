@@ -237,7 +237,7 @@ class Skin {
 	/// ファイルにアクセス可能か。
 	private static bool canAccess(string file) { mixin(S_TRACE);
 		version (Windows) {
-			import std.c.windows.windows;
+			import core.sys.windows.windows;
 			immutable INVALID_FILE_ATTRIBUTES = -1;
 			if (INVALID_FILE_ATTRIBUTES == GetFileAttributesW(toUTFz!(wchar*)(file))) { mixin(S_TRACE);
 				return false;

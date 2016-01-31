@@ -87,7 +87,7 @@ private static ImageData imgd(string path, MaskType maskType) { mixin(S_TRACE);
 }
 
 version (Windows) {
-	import std.c.windows.windows;
+	import core.sys.windows.windows;
 	private extern (Windows) {
 		HINSTANCE LoadLibraryExW(LPCWSTR, HANDLE, DWORD);
 		immutable DWORD LOAD_LIBRARY_AS_DATAFILE = 0x2;
