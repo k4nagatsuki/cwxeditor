@@ -3480,8 +3480,15 @@ public:
 				if ((s & SWT.PRIMARY_MODAL) || (s & SWT.APPLICATION_MODAL) || (s & SWT.SYSTEM_MODAL)) { mixin(S_TRACE);
 					break;
 				}
-				shl = cast(Shell) shl.getParent();
+				shl = cast(Shell)shl.getParent();
 				if (!shl) break;
+			}
+			if (menu) { mixin(S_TRACE);
+				// アンドゥ・リドゥに限り、現在操作中のウィンドウのみで適用する
+				auto data = cast(MenuData)menu.getData();
+				if (data && shl !is fc.getShell() && (data.id is MenuID.Undo || data.id is MenuID.Redo)) { mixin(S_TRACE);
+					return;
+				}
 			}
 			if (menu && .menuEnabled(menu)) { mixin(S_TRACE);
 				raiseEvent(menu);
