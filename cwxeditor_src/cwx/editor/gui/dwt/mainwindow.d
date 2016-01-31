@@ -3486,7 +3486,7 @@ public:
 			if (menu) { mixin(S_TRACE);
 				// アンドゥ・リドゥに限り、現在操作中のウィンドウのみで適用する
 				auto data = cast(MenuData)menu.getData();
-				if (data && shl !is fc.getShell() && (data.id is MenuID.Undo || data.id is MenuID.Redo)) { mixin(S_TRACE);
+				if (data && shl !is fc.getShell() && !.isGlobalMenu(data.id)) { mixin(S_TRACE);
 					return;
 				}
 			}
