@@ -679,9 +679,9 @@ class Msgs : Properties {
 	auto ctTalkMessageImage = Msg("ctTalkMessageImage", "[%1$s]");
 	auto ctTalkDialog = Msg("ctTalkDialog", "%1$s %2$s: %3$s");
 	auto ctTalkDialogNoCoupon = Msg("ctTalkDialogNoCoupon", "%1$s: %2$s");
-	auto ctPlayBGM = Msg("ctPlayBGM", "BGMとして「%1$s」を演奏 Ch. = %2$s フェードイン時間 = %3$s × 0.1秒 音量 = %4$s ループ回数 = %5$s");
+	auto ctPlayBGM = Msg("ctPlayBGM", "BGMとして「%1$s」を演奏 Ch. = %2$s フェードイン時間 = %3$s × 0.1秒 音量 = %4$s%% ループ回数 = %5$s");
 	auto ctStopBGM = Msg("ctStopBGM", "BGM停止 Ch. = %1$s フェードアウト時間 = %2$s × 0.1秒");
-	auto ctPlaySound = Msg("ctPlaySound", "効果音「%1$s」を鳴らす Ch. = %2$s フェードイン時間 = %3$s × 0.1秒 音量 = %4$s ループ回数 = %5$s");
+	auto ctPlaySound = Msg("ctPlaySound", "効果音「%1$s」を鳴らす Ch. = %2$s フェードイン時間 = %3$s × 0.1秒 音量 = %4$s%% ループ回数 = %5$s");
 	auto ctWait = Msg("ctWait", "空白時間 = %1$s × 0.1秒");
 	auto ctElapseTime = Msg("ctElapseTime", "ターン数経過コンテント");
 	auto ctCallStart = Msg("ctCallStart", "スタートコンテント「%1$s」のコール");
