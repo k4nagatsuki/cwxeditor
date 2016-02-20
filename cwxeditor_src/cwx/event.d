@@ -195,9 +195,9 @@ private void static_this () { mixin(S_TRACE);
 		CType.BRANCH_KEY_CODE:CDetail("Branch", "KeyCode", CNextType.BOOL, true, [CArg.KEY_CODE_RANGE:"targetkc", CArg.EFFECT_CARD_TYPE:"effectCardType", CArg.KEY_CODE:"keyCode"]),
 		CType.CHECK_STEP:CDetail("Check", "Step", CNextType.BOOL, true, [CArg.STEP:"step", CArg.STEP_VALUE:"value", CArg.COMPARISON_4:"comparison"]),
 		CType.BRANCH_ROUND:CDetail("Branch", "Round", CNextType.BOOL, true, [CArg.ROUND:"round", CArg.COMPARISON_3:"comparison"]),
-		CType.MOVE_BG_IMAGE:CDetail("Move", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SIZE_TYPE:"sizetype", CArg.WIDTH:"width", CArg.HEIGHT:"height", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
-		CType.REPLACE_BG_IMAGE:CDetail("Replace", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
-		CType.LOSE_BG_IMAGE:CDetail("Lose", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
+		CType.MOVE_BG_IMAGE:CDetail("Move", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SIZE_TYPE:"sizetype", CArg.WIDTH:"width", CArg.HEIGHT:"height", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
+		CType.REPLACE_BG_IMAGE:CDetail("Replace", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
+		CType.LOSE_BG_IMAGE:CDetail("Lose", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed", CArg.DO_ANIME:"doanime", CArg.IGNORE_EFFECT_BOOSTER:"ignoreeffectbooster"]),
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) { mixin(S_TRACE);
 		foreach (name; detail.names) { mixin(S_TRACE);
@@ -567,6 +567,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.width = c.width;
 		this.height = c.height;
 
+		this.doAnime = c.doAnime;
+		this.ignoreEffectBooster = c.ignoreEffectBooster;
+
 		Motion[] motions;
 		foreach (m; c.motions) { mixin(S_TRACE);
 			motions ~= m.dup;
@@ -696,6 +699,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& sizeType == c.sizeType
 			&& width == c.width
 			&& height == c.height
+
+			&& doAnime == c.doAnime
+			&& ignoreEffectBooster == c.ignoreEffectBooster
 
 			&& motions == c.motions
 
@@ -849,6 +855,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.SIZE_TYPE, CoordinateType, CoordinateType.None)(d, &sizeType);
 		resetValue!(CArg.WIDTH, int, 0)(d, &width);
 		resetValue!(CArg.HEIGHT, int, 0)(d, &height);
+
+		resetValue!(CArg.DO_ANIME, bool, true)(d, &doAnime);
+		resetValue!(CArg.IGNORE_EFFECT_BOOSTER, bool, true)(d, &ignoreEffectBooster);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
 
@@ -1602,6 +1611,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 高さ(Wsn.1)。
 	mixin Prop!(int, "height", 0);
 
+	/// JPY1アニメーションを実行する(Wsn.1)。
+	mixin Prop!(bool, "doAnime", true);
+	/// エフェクトブースター関係のセルを無視する(Wsn.1)。
+	mixin Prop!(bool, "ignoreEffectBooster", false);
+
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
 
@@ -1898,6 +1912,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.WIDTH, "width", "")(e, d);
 		atnPut!(CArg.HEIGHT, "height", "")(e, d);
 
+		atnPut!(CArg.DO_ANIME, "doAnime", "fromBool")(e, d);
+		atnPut!(CArg.IGNORE_EFFECT_BOOSTER, "ignoreEffectBooster", "fromBool")(e, d);
+
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
 			auto me = e.newElement("Motions");
@@ -2081,6 +2098,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.SIZE_TYPE, "sizeType", "toCoordinateType")(en, d, r);
 		cfnPut!(CArg.WIDTH, "width", "to!(int)")(en, d, r);
 		cfnPut!(CArg.HEIGHT, "height", "to!(int)")(en, d, r);
+
+		cfnPut!(CArg.DO_ANIME, "doAnime", "parseBool")(en, d, r);
+		cfnPut!(CArg.IGNORE_EFFECT_BOOSTER, "ignoreEffectBooster", "parseBool")(en, d, r);
 
 		// 多少複雑なもの
 		if (d.use(CArg.TRANSITION)) { mixin(S_TRACE);

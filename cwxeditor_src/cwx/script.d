@@ -2789,6 +2789,12 @@ fi`;
 			if (detail.use(CArg.TRANSITION)) { mixin(S_TRACE);
 				c.transition = parseAttr!(Transition)(opt, node.attr, i, c.transition, varTable, 0);
 			}
+			if (detail.use(CArg.DO_ANIME)) { mixin(S_TRACE);
+				c.doAnime = parseAttr!(bool)(opt, node.attr, i, c.doAnime, varTable, 0);
+			}
+			if (detail.use(CArg.IGNORE_EFFECT_BOOSTER)) { mixin(S_TRACE);
+				c.ignoreEffectBooster = parseAttr!(bool)(opt, node.attr, i, c.ignoreEffectBooster, varTable, 0);
+			}
 			if (detail.use(CArg.INIT_VALUE)) { mixin(S_TRACE);
 				c.initValue = parseAttr!(int)(opt, node.attr, i, c.initValue, varTable, 0);
 			}
@@ -3648,6 +3654,12 @@ fi`;
 				}
 				if (detail.use(CArg.TRANSITION)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.transition, indentValue, vars);
+				}
+				if (detail.use(CArg.DO_ANIME)) { mixin(S_TRACE);
+					attrs ~= toAttr(c.doAnime, indentValue, vars);
+				}
+				if (detail.use(CArg.IGNORE_EFFECT_BOOSTER)) { mixin(S_TRACE);
+					attrs ~= toAttr(c.ignoreEffectBooster, indentValue, vars);
 				}
 			}
 			if (c.talkerNC is Talker.VALUED || c.selectionMethod is SelectionMethod.Valued) { mixin(S_TRACE);

@@ -801,6 +801,9 @@ private:
 	TransitionPanel _transition;
 	Combo _cellName = null;
 
+	Button _doAnime = null;
+	Button _ignoreEffectBooster = null;
+
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
@@ -809,7 +812,7 @@ private:
 		string[] ws3;
 		foreach (back; _cont.backs) { mixin(S_TRACE);
 			auto ws2 = .warnings(prop.parent, skin, summ, back, _prop.var.etc.targetVersion);
-			if (type is CType.REPLACE_BG_IMAGE) { mixin(S_TRACE);
+			if (_ignoreEffectBooster && _ignoreEffectBooster.getSelection()) { mixin(S_TRACE);
 				if (auto ic = cast(ImageCell)back) { mixin(S_TRACE);
 					auto ext = ic.path.extension().toLower();
 					if (ext == ".jpy1" || ext == ".jptx" || ext == ".jpdc") { mixin(S_TRACE);
@@ -880,13 +883,28 @@ protected:
 				_transition.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			}
 		}
+		if (CDetail.fromType(type).use(CArg.DO_ANIME)) { mixin(S_TRACE);
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			comp.setLayout(zeroMarginGridLayout(2, false));
+			_doAnime = new Button(comp, SWT.CHECK);
+			_doAnime.setText(prop.msgs.doAnime);
+			_ignoreEffectBooster = new Button(comp, SWT.CHECK);
+			_ignoreEffectBooster.setText(prop.msgs.ignoreEffectBooster);
+			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+			.listener(_ignoreEffectBooster, SWT.Selection, &refreshWarning);
+		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
 			if (_cellName) _cellName.setText(_evt.cellName);
+			if (_doAnime) _doAnime.setSelection(_evt.doAnime);
+			if (_ignoreEffectBooster) _ignoreEffectBooster.setSelection(_evt.ignoreEffectBooster);
 		} else { mixin(S_TRACE);
 			if (_cellName) _cellName.setText("");
+			if (_doAnime) _doAnime.setSelection(true);
+			if (_ignoreEffectBooster) _ignoreEffectBooster.setSelection(false);
 		}
 
 		refreshWarning();
@@ -896,8 +914,14 @@ protected:
 		_evt.backs = _cont.backs;
 		_evt.transition = _transition.transition;
 		_evt.transitionSpeed = _transition.transitionSpeed;
-		if (CDetail.fromType(type).use(CArg.CELL_NAME)) {
+		if (_cellName) { mixin(S_TRACE);
 			_evt.cellName = _cellName.getText();
+		}
+		if (_doAnime) { mixin(S_TRACE);
+			_evt.doAnime = _doAnime.getSelection();
+		}
+		if (_ignoreEffectBooster) { mixin(S_TRACE);
+			_evt.ignoreEffectBooster = _ignoreEffectBooster.getSelection();
 		}
 		return true;
 	}
@@ -908,6 +932,9 @@ class LoseBgImageDialog : EventDialog {
 private:
 	Combo _name;
 	TransitionPanel _transition;
+
+	Button _doAnime;
+	Button _ignoreEffectBooster;
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
@@ -942,13 +969,29 @@ protected:
 			gd.widthHint = _prop.var.etc.nameWidth;
 			_name.setLayoutData(gd);
 		}
-		_transition = new TransitionPanel(comm, area, false, _evt, this);
+		_transition = new TransitionPanel(comm, area, true, _evt, this);
 		_transition.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+
+		{ mixin(S_TRACE);
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			comp.setLayout(zeroMarginGridLayout(1, false));
+			_doAnime = new Button(comp, SWT.CHECK);
+			_doAnime.setText(prop.msgs.doAnime);
+			_ignoreEffectBooster = new Button(comp, SWT.CHECK);
+			_ignoreEffectBooster.setText(prop.msgs.ignoreEffectBooster);
+			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+		}
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
 			_name.setText(_evt.cellName);
+			_doAnime.setSelection(_evt.doAnime);
+			_ignoreEffectBooster.setSelection(_evt.ignoreEffectBooster);
+		} else { mixin(S_TRACE);
+			_doAnime.setSelection(true);
+			_ignoreEffectBooster.setSelection(false);
 		}
 		refreshWarning();
 	}
@@ -958,6 +1001,8 @@ protected:
 		_evt.cellName = _name.getText();
 		_evt.transition = _transition.transition;
 		_evt.transitionSpeed = _transition.transitionSpeed;
+		_evt.doAnime = _doAnime.getSelection();
+		_evt.ignoreEffectBooster = _ignoreEffectBooster.getSelection();
 		comm.refCellNames.call();
 		return true;
 	}
@@ -2885,6 +2930,9 @@ private:
 
 	TransitionPanel _transition;
 
+	Button _doAnime;
+	Button _ignoreEffectBooster;
+
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
@@ -2963,10 +3011,23 @@ protected:
 		createGrp(prop.msgs.resizeCell, _sizeType, _w, _h, prop.var.etc.backWidthMax, prop.var.etc.backHeightMax);
 
 		{ mixin(S_TRACE);
-			_transition = new TransitionPanel(comm, area, false, _evt, this);
+			_transition = new TransitionPanel(comm, area, true, _evt, this);
 			auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			gd.horizontalSpan = 2;
 			_transition.setLayoutData(gd);
+		}
+
+		{ mixin(S_TRACE);
+			auto comp = new Composite(area, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			comp.setLayout(zeroMarginGridLayout(1, false));
+			_doAnime = new Button(comp, SWT.CHECK);
+			_doAnime.setText(prop.msgs.doAnime);
+			_ignoreEffectBooster = new Button(comp, SWT.CHECK);
+			_ignoreEffectBooster.setText(prop.msgs.ignoreEffectBooster);
+			auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			gd.horizontalSpan = 2;
+			comp.setLayoutData(gd);
 		}
 
 		ignoreMod = true;
@@ -2979,6 +3040,8 @@ protected:
 			_sizeType[_evt.sizeType].setSelection(true);
 			_w.setSelection(_evt.width);
 			_h.setSelection(_evt.height);
+			_doAnime.setSelection(_evt.doAnime);
+			_ignoreEffectBooster.setSelection(_evt.ignoreEffectBooster);
 		} else { mixin(S_TRACE);
 			_cellName.setText("");
 			_positionType[CoordinateType.None].setSelection(true);
@@ -2987,6 +3050,8 @@ protected:
 			_sizeType[CoordinateType.None].setSelection(true);
 			_w.setSelection(0);
 			_h.setSelection(0);
+			_doAnime.setSelection(true);
+			_ignoreEffectBooster.setSelection(false);
 		}
 		updateEnabled();
 		refreshWarning();
@@ -3003,6 +3068,8 @@ protected:
 		_evt.height = _h.getSelection();
 		_evt.transition = _transition.transition;
 		_evt.transitionSpeed = _transition.transitionSpeed;
+		_evt.doAnime = _doAnime.getSelection();
+		_evt.ignoreEffectBooster = _ignoreEffectBooster.getSelection();
 		return true;
 	}
 }

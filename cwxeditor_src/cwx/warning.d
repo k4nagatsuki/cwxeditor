@@ -338,7 +338,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			string[] ws2;
 			foreach (back; c.backs) { mixin(S_TRACE);
 				auto ws = warnings(prop, skin, summ, back, targVer);
-				if (c.type is CType.REPLACE_BG_IMAGE) { mixin(S_TRACE);
+				if (c.detail.use(CArg.IGNORE_EFFECT_BOOSTER) && c.ignoreEffectBooster) { mixin(S_TRACE);
 					if (auto ic2 = cast(ImageCell)back) { mixin(S_TRACE);
 						auto ext = ic2.path.extension().toLower();
 						if (ext == ".jpy1" || ext == ".jptx" || ext == ".jpdc") { mixin(S_TRACE);

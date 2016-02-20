@@ -1231,6 +1231,8 @@ enum CArg {
 	SIZE_TYPE, /// サイズ形式(Wsn.1)。
 	WIDTH, /// サイズ(Wsn.1)。
 	HEIGHT, /// サイズ(Wsn.1)。
+	DO_ANIME, /// JPY1アニメーションを実行する(Wsn.1)。
+	IGNORE_EFFECT_BOOSTER, /// エフェクトブースター関係のセルを無視する(Wsn.1)。
 }
 
 /// 後続コンテントのnameの型。

@@ -476,6 +476,8 @@ class Msgs : Properties {
 	auto roundCondition = Msg("roundCondition", "ラウンド条件");
 	auto roundIs = Msg("roundIs", "バトルが");
 	auto roundCmpIs = Msg("roundCmpIs", "ラウンド");
+	auto doAnime = Msg("doAnime", "JPY1アニメーションを実行する");
+	auto ignoreEffectBooster = Msg("ignoreEffectBooster", "エフェクトブースター関係のセルを無視する");
 
 	const string blendModeName(BlendMode id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(BlendMode, "blendModeName"));
@@ -1570,7 +1572,7 @@ class Msgs : Properties {
 	auto warningTextCell = Msg("warningTextCell", "テキストセルは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningColorCell = Msg("warningColorCell", "カラーセルは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningPCCell = Msg("warningPCCell", "プレイヤーキャラクタセルは、CardWirth 1.60より前のバージョンでは使用できません。");
-	auto warningEffectBoosterFileWithReplaceBgImage = Msg("warningEffectBoosterFileWithReplaceBgImage", "背景置換コンテントではエフェクトブースター関係の背景セルは無視されます。");
+	auto warningEffectBoosterFileWithReplaceBgImage = Msg("warningEffectBoosterFileWithReplaceBgImage", "エフェクトブースター関係の背景セルは無視するように指定されています。");
 	auto warningBgImageIncluded = Msg("warningBgImageForeground", "背景セルのイメージ格納は、CardWirth 1.60より前のバージョンでは行えません。");
 	auto warningBgImageForeground = Msg("warningBgImageForeground", "カードよりも前の表示は、CardWirth 1.60より前のバージョンでは行えません。");
 	auto warningBgImageCellName = Msg("warningBgImageCellName", "背景セル名称は、WSN1以降の形式のシナリオでしか設定できません。");
