@@ -1087,7 +1087,7 @@ public:
 		auto pNode = e.newElement("Property");
 		appendProp(pNode, opt, parentPath, cutPath);
 
-		BgImage.toNode(_bgImgs, e, opt);
+		BgImage.toNode(_bgImgs, true, e, opt);
 		auto ce = e.newElement("MenuCards");
 		ce.newAttr("spreadtype", _auto ? "Auto" : "Custom");
 		foreach (c; _cards) { mixin(S_TRACE);
@@ -1134,7 +1134,7 @@ public:
 			n.parse();
 		};
 		aNode.onTag["BgImages"] = (ref XNode n) { mixin(S_TRACE);
-			bgImgs = BgImage.bgImagesFromNode(n, ver);
+			bgImgs = BgImage.bgImagesFromNode(n, true, ver);
 		};
 		aNode.onTag["Events"] = (ref XNode n) { mixin(S_TRACE);
 			evt = loadEventsFromNode(n, ver);

@@ -2910,6 +2910,9 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 	}
 	@property
 	string bgImageString() { mixin(S_TRACE);
+		if (!evt.backs.length) {
+			return comm.prop.msgs.cellNoSet;
+		}
 		string buf;
 		foreach (i, b; evt.backs) { mixin(S_TRACE);
 			auto ic = cast(ImageCell) b;

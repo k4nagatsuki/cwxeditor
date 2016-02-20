@@ -1636,7 +1636,7 @@ public:
 				}
 			}
 			auto m = cast(Motion)itm.getData();
-			if (m.type is MType.CANCEL_ACTION && !_prop.targetVersion("1.50")) { mixin(S_TRACE);
+			if (m.type is MType.CANCEL_ACTION && !_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
 				put(.tryFormat(_prop.msgs.warningUnknownMotion, _prop.msgs.motionName(m.type), "1.50"));
 			}
 			if (m.type == MType.SUMMON_BEAST && m.beast && 0 != m.beast.linkId && !(_summ && _summ.beast(m.beast.linkId))) { mixin(S_TRACE);

@@ -1010,7 +1010,7 @@ string fromBorderingType(BorderingType t) { mixin(S_TRACE);
 	}
 }
 
-/// 座標タイプ(CardWirth 1.60)。
+/// 座標タイプ(Wsn.1)。
 enum CoordinateType {
 	None, /// 座標指定無効。
 	Absolute, /// 絶対位置。
@@ -1137,9 +1137,9 @@ enum CType {
 	BRANCH_KEY_CODE, /// キーコード所持分岐(CardWirth 1.50)。
 	CHECK_STEP, /// ステップ判定(CardWirth 1.50)。
 	BRANCH_ROUND, /// ラウンド分岐(CardWirth 1.50)。
-	MOVE_BG_IMAGE, /// 背景再配置(CardWirth 1.60)。
-	REPLACE_BG_IMAGE, /// 背景交換(CardWirth 1.60)。
-	LOSE_BG_IMAGE, /// 背景削除(CardWirth 1.60)。
+	MOVE_BG_IMAGE, /// 背景再配置(Wsn.1)。
+	REPLACE_BG_IMAGE, /// 背景置換(Wsn.1)。
+	LOSE_BG_IMAGE, /// 背景削除(Wsn.1)。
 }
 
 /// コンテントタイプの分類。
@@ -1224,13 +1224,13 @@ enum CArg {
 	COMPARISON_4, /// 4路比較条件(CardWirth 1.50)。
 	COMPARISON_3, /// 3路比較条件(CardWirth 1.50)。
 	ROUND, /// ラウンド(CardWirth 1.50)。
-	CELL_NAME, /// セル名称(CardWirth 1.60)。
-	POSITION_TYPE, /// 位置形式(CardWirth 1.60)。
-	X, /// 位置(CardWirth 1.60)。
-	Y, /// 位置(CardWirth 1.60)。
-	SIZE_TYPE, /// サイズ形式(CardWirth 1.60)。
-	WIDTH, /// サイズ(CardWirth 1.60)。
-	HEIGHT, /// サイズ(CardWirth 1.60)。
+	CELL_NAME, /// セル名称(Wsn.1)。
+	POSITION_TYPE, /// 位置形式(Wsn.1)。
+	X, /// 位置(Wsn.1)。
+	Y, /// 位置(Wsn.1)。
+	SIZE_TYPE, /// サイズ形式(Wsn.1)。
+	WIDTH, /// サイズ(Wsn.1)。
+	HEIGHT, /// サイズ(Wsn.1)。
 }
 
 /// 後続コンテントのnameの型。

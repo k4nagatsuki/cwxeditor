@@ -61,11 +61,9 @@ private:
 	Combo _easy;
 	bool _selected;
 
-	// FIXME: CardWirth 1.60 前景表示とセル名称
-/+	Button _foreground;
 	Combo _cellName;
-+/
-	void refreshWarning() { mixin(S_TRACE);
+
+	protected void refreshWarning() { mixin(S_TRACE);
 		// 処理無し
 	}
 	void refDataVersion() { mixin(S_TRACE);
@@ -75,17 +73,13 @@ private:
 	@property
 	string[] warningCommon() { mixin(S_TRACE);
 		string[] ws;
+		if (_summ && _cellName.getText() != "" && !_prop.isTargetVersion(_summ, "1")) { mixin(S_TRACE);
+			ws ~= _prop.msgs.warningBgImageCellName;
+		}
 		if (_layer.getEnabled() && _layer.getSelection() != LAYER_BACK_CELL && !_prop.isTargetVersion(_summ, "1")) {
 			ws ~= _prop.msgs.warningLayer;
 		}
-		// FIXME: CardWirth 1.60 前景表示とセル名称
-/+		if (_foreground.getSelection() && !_prop.targetVersion("1.60")) { mixin(S_TRACE);
-			ws ~= _prop.msgs.warningBgImageForeground;
-		}
-		if (_cellName.getText() != "" && !_prop.targetVersion("1.60")) { mixin(S_TRACE);
-			ws ~= _prop.msgs.warningBgImageCellName;
-		}
-+/		return ws;
+		return ws;
 	}
 
 	class SModL : ModifyListener {
@@ -208,17 +202,11 @@ protected:
 			_mask.addSelectionListener(new MaskListener);
 		}
 		_layer = createS(_prop.msgs.layer, _prop.var.etc.layerMax, LAYER_BACK_CELL, .tryFormat(_prop.msgs.layerHint, LAYER_BACK_CELL));
-		// FIXME: CardWirth 1.60 前景表示とセル名称
-/+		_foreground = new Button(comp2, SWT.CHECK);
-		mod(_foreground);
-		_foreground.setText(_prop.msgs.bgImageForeground);
-		.listener(_foreground, SWT.Selection, &refreshWarning);
-+/		return grp;
+		return grp;
 	}
 	Composite createEasySettingsPanel(Composite comp) { mixin(S_TRACE);
 		auto comp2 = new Composite(comp, SWT.NONE);
-		// FIXME: CardWirth 1.60 前景表示とセル名称 ここから
-/+		comp2.setLayout(new GridLayout(2, false));
+		comp2.setLayout(zeroMarginGridLayout(2, false));
 		{
 			auto grp = new Group(comp2, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -228,6 +216,7 @@ protected:
 			mod(_cellName);
 			_cellName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			.listener(_cellName, SWT.Selection, &refreshWarning);
+			.listener(_cellName, SWT.Modify, &refreshWarning);
 		}
 		{
 			auto grp = new Group(comp2, SWT.NONE);
@@ -237,18 +226,6 @@ protected:
 			_easy = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			_easy.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 		}
-+/		comp2.setLayout(zeroMarginGridLayout(3, false));
-		{
-			auto dummy = new Composite(comp2, SWT.NONE);
-			auto dgd = new GridData(GridData.FILL_HORIZONTAL);
-			dgd.heightHint = 0;
-			dummy.setLayoutData(dgd);
-			auto l = new Label(comp2, SWT.NONE);
-			l.setText(_prop.msgs.bgImageSettings);
-			_easy = new Combo(comp2, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-			_easy.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
-		}
-		// FIXME: CardWirth 1.60 前景表示とセル名称 ここまで
 		_easy.add(_prop.msgs.defaultSelection(_prop.msgs.bgImageSettingCustom));
 		if (cast(ImageCell) back) { mixin(S_TRACE);
 			_easy.add(_prop.msgs.defaultSelection(_prop.msgs.bgImageSettingOriginal));
@@ -289,9 +266,7 @@ protected:
 			_h.setSelection(back.height);
 			if (_mask) _mask.setSelection(back.mask);
 			_layer.setSelection(back.layer);
-			// FIXME: CardWirth 1.60 前景表示とセル名称
-//			_foreground.setSelection(back.foreground);
-//			_cellName.setText(back.cellName);
+			_cellName.setText(back.cellName);
 		} else { mixin(S_TRACE);
 			if (_flag) { mixin(S_TRACE);
 				_flag.selected = "";
@@ -302,9 +277,7 @@ protected:
 			_h.setSelection(0);
 			if (_mask) _mask.setSelection(false);
 			_layer.setSelection(LAYER_BACK_CELL);
-			// FIXME: CardWirth 1.60 前景表示とセル名称 ここから
-//			_foreground.setSelection(false);
-//			_cellName.setText("");
+			_cellName.setText("");
 		}
 		auto spnl = new SModL;
 		_w.addModifyListener(spnl);
@@ -319,13 +292,11 @@ protected:
 		back.height = _h.getSelection();
 		back.layer = _layer.getSelection();
 		if (_mask) back.mask = _mask.getSelection();
-		// FIXME: CardWirth 1.60 前景表示とセル名称 ここから
-/+		back.foreground = _foreground.getSelection();
 		if (back.cellName != _cellName.getText()) {
 			back.cellName = _cellName.getText();
 			_comm.refCellNames.call();
 		}
-+/		_create = false;
+		_create = false;
 	}
 
 	void updateMask() { mixin(S_TRACE);
@@ -343,10 +314,11 @@ private:
 
 	ImageSelect!(MtType.BG_IMG) _imgPath;
 
-	void refreshWarning() { mixin(S_TRACE);
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws = warningCommon;
 		if (_imgPath.image.isBinImg()) { mixin(S_TRACE);
-			if (!_prop.targetVersion("1.60")) { mixin(S_TRACE);
+			if (!_prop.targetVersion(_summ, "1.60")) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningBgImageIncluded;
 			}
 		}
@@ -494,9 +466,10 @@ private:
 		return _summSkin ? _summSkin : _comm.skin;
 	}
 
-	void refreshWarning() { mixin(S_TRACE);
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws = warningCommon;
-		if (!_prop.targetVersion("1.50")) { mixin(S_TRACE);
+		if (!_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningTextCell;
 		}
 
@@ -886,9 +859,10 @@ private:
 	ColorPicker _color1;
 	ColorPicker _color2;
 
-	void refreshWarning() { mixin(S_TRACE);
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws = warningCommon;
-		if (!_prop.targetVersion("1.50")) { mixin(S_TRACE);
+		if (!_prop.targetVersion(_summ, "1.50")) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningColorCell;
 		}
 		warning = ws;
@@ -1179,9 +1153,10 @@ private:
 	Canvas _prevPanel;
 	Combo _pcNumber;
 
-	void refreshWarning() { mixin(S_TRACE);
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws = warningCommon;
-		if (!_prop.targetVersion("1.60")) { mixin(S_TRACE);
+		if (!_prop.targetVersion(_summ, "1.60")) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningPCCell;
 		}
 		warning = ws;

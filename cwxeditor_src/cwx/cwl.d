@@ -1755,7 +1755,7 @@ private BgImage[] readBgImages(in RData d, ref ByteIO f, bool area, bool replBgI
 	if (!bgImgs.length) return bgImgs;
 	auto b = cast(ImageCell) bgImgs[0u];
 	if (b && b.path == "" && b.flag == ""
-			&& b.x == 0 && b.y == 0 && b.width == 632 && b.height == 420 && !b.mask) { mixin(S_TRACE);
+			&& b.x == 0 && b.y == 0 && b.width == 632 && b.height == 420 && !b.mask && b.cellName == "") { mixin(S_TRACE);
 		// クラシックなエンジンでは必ず1枚以上の背景画像が必要であるため、
 		// 背景継承時はダミーのイメージが挿入されている
 		return bgImgs[1u .. $];
@@ -3647,7 +3647,7 @@ private void writeBgImages(ref SData d, ref ByteIO f, BgImage[] backs, bool repl
 	} else { mixin(S_TRACE);
 		auto b = backs.length ? cast(ImageCell) backs[0] : null;
 		if (b && b.path != "" && b.flag == "" && b.x == 0 && b.y == 0
-				&& b.width == 632 && b.height == 420 && !b.mask) { mixin(S_TRACE);
+				&& b.width == 632 && b.height == 420 && !b.mask && b.cellName == "") { mixin(S_TRACE);
 			f.writeL(cast(uint) backs.length);
 		} else { mixin(S_TRACE);
 			f.writeL(cast(uint) backs.length + 1u);

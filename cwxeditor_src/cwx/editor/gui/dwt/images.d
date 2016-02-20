@@ -817,7 +817,7 @@ public:
 		if (borderingWidth <= fontPixelSize / 2) { mixin(S_TRACE);
 			gc.drawPath(pathL);
 		} else { mixin(S_TRACE);
-			// FIXME: 何層にも重なり合った部分に隙間が生じてしまう減少に対処
+			// FIXME: 何層にも重なり合った部分に隙間が生じてしまう現象に対処
 			auto p = pathL.getPathData();
 			size_t pi = 0;
 			auto rPath = new Path(cur);

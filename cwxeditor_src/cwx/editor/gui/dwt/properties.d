@@ -186,6 +186,7 @@ public class FlexProps {
 	DialogParam!("couponEventDialog") couponEvtDlg;
 	DialogParam!("inputEventDialog") inputEvtDlg;
 	DialogParam!("selectEventDialog") selEvtDlg;
+	DialogParam!("loseBgImageEventDialog") loseBgImageEvtDlg;
 	DialogParam!("scriptDialog", 400, 300) scriptDlg;
 	DialogParam!("commentDialog", 350, 200, 2013080800) commentDlg;
 	WindowProps!("dialogPreview", SWT.DEFAULT, 500) dlgPrev;

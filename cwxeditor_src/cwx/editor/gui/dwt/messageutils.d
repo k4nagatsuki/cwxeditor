@@ -330,7 +330,7 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 
-		if (!prop.targetVersion("1.50")) { mixin(S_TRACE);
+		if (!prop.targetVersion(summ, "1.50")) { mixin(S_TRACE);
 			if (Talker.VALUED is selectedTalker) { mixin(S_TRACE);
 				ws ~= prop.msgs.warningValuedTalker;
 			}

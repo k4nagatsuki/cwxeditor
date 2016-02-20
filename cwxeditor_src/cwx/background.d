@@ -912,7 +912,7 @@ public:
 		super.change(id);
 	}
 
-	static BgImage[] bgImagesFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
+	static BgImage[] bgImagesFromNode(ref XNode node, bool canInherit, in XMLInfo ver) { mixin(S_TRACE);
 		assert (node.name == XML_NAME_M);
 		BgImage[] bgImgs;
 		node.onTag[ImageCell.XML_NAME] = (ref XNode bgn) { mixin(S_TRACE);
@@ -931,8 +931,9 @@ public:
 		if (!bgImgs.length) return bgImgs;
 
 		auto b = cast(ImageCell)bgImgs[0u];
-		if (b && b.path == "" && b.flag == ""
-				&& b.x == 0 && b.y == 0 && b.width == 632 && b.height == 420 && !b.mask) { mixin(S_TRACE);
+		if (canInherit && b && b.path == "" && b.flag == ""
+				&& b.x == 0 && b.y == 0 && b.width == 632 && b.height == 420 && !b.mask
+				&& b.cellName == "") { mixin(S_TRACE);
 			// クラシックなエンジンでは必ず1枚以上の背景画像が必要であるため、
 			// 背景継承時はダミーのイメージが挿入されている
 			return bgImgs[1u .. $];
@@ -942,18 +943,20 @@ public:
 	}
 
 	/// 指定されたノードに背景イメージ群のデータを追加する。
-	static void toNode(in BgImage[] bgImgs, ref XNode e, XMLOption opt) { mixin(S_TRACE);
+	static void toNode(in BgImage[] bgImgs, bool canInherit, ref XNode e, XMLOption opt) { mixin(S_TRACE);
 		auto bge = e.newElement(XML_NAME_M);
 		if (bgImgs.length > 0) { mixin(S_TRACE);
-			// FIXME: 632×420のサイズはCPropsに持たせているがコンパイラのバグで参照できない。暫定。
-			auto b = cast(ImageCell)bgImgs[0];
-			if (!b || b.flag != "" || b.x != 0 || b.y != 0 || b.width != 632 || b.height != 420 || b.mask) { mixin(S_TRACE);
-				BgImage.appendEmptyToNode(bge, opt);
+			if (canInherit) { mixin(S_TRACE);
+				// FIXME: 632×420のサイズはCPropsに持たせているがコンパイラのバグで参照できない。暫定。
+				auto b = cast(ImageCell)bgImgs[0];
+				if (!b || b.flag != "" || b.x != 0 || b.y != 0 || b.width != 632 || b.height != 420 || b.mask || b.cellName != "") { mixin(S_TRACE);
+					BgImage.appendEmptyToNode(bge, opt);
+				}
 			}
 			foreach (bg; bgImgs) { mixin(S_TRACE);
 				bg.toNode(bge, opt);
 			}
-		} else { mixin(S_TRACE);
+		} else if (canInherit) { mixin(S_TRACE);
 			BgImage.appendEmptyToNode(bge, opt);
 		}
 	}

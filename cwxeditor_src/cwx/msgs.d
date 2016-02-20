@@ -594,7 +594,7 @@ class Msgs : Properties {
 	auto contentNameCheckStep = Msg("contentNameCheckStep", "ステップ判定");
 	auto contentNameBranchRound = Msg("contentNameBranchRound", "ラウンド分岐");
 	auto contentNameMoveBgImage = Msg("contentNameMoveBgImage", "背景再配置");
-	auto contentNameReplaceBgImage = Msg("contentNameReplaceBgImage", "背景交換");
+	auto contentNameReplaceBgImage = Msg("contentNameReplaceBgImage", "背景置換");
 	auto contentNameLoseBgImage = Msg("contentNameLoseBgImage", "背景削除");
 
 	auto msnGroupVitality = Msg("msnGroupVitality", "生命力");
@@ -952,8 +952,9 @@ class Msgs : Properties {
 	auto pcCell = Msg("pcCell", "プレイヤーキャラクタセル");
 	auto pcCellNoSet = Msg("pcCellNoSet", "(指定無し)");
 	auto cellPCNumber = Msg("cellPCNumber", "表示するキャラクタ");
+	auto cellNoSet = Msg("cellNoSet", "(指定無し)");
 
-	auto nameWithCellName = Msg("nameWithCellName", "%1$s - %2$s");
+	auto nameWithCellName = Msg("nameWithCellName", "[%1$s] %2$s");
 
 	/// カード/背景配置領域関連。
 	auto dlgTitDropCard = Msg("dlgTitDropCard", "カード画像の追加");
@@ -1559,6 +1560,7 @@ class Msgs : Properties {
 	auto warningNameLenOver = Msg("warningNameLenOver", "名前の長さが%2$s文字を超えています。メッセージにカード名が表示された際に不具合が発生する可能性があります。"); // %1$s = 文字数、%2$s = 文字数 / 2
 	auto warningPCNumberClassic = Msg("warningPCNumberClassic", "プレイヤーキャラクタのイメージはCardWirth 1.30より前のバージョンでは表示されません。");
 	auto warningUnknownContent = Msg("warningUnknownContent", "イベント [%1$s] はCardWirth %2$sより前のバージョンでは使用できません。");
+	auto warningUnknownContentWsn = Msg("warningUnknownContentWsn", "イベント [%1$s] はWSN%2$sより前のバージョンでは使用できません。");
 	auto warningBranchCouponAtField = Msg("warningBranchCouponAtField", "フィールド全体でのクーポン所持判定は、CardWirth 1.30より前のバージョンでは使用できません。");
 	auto warningSystemVarName = Msg("warningSystemVarName", "%1$sで始まる名前の状態変数は、プレイヤーの環境によっては正しく機能しない事があります。");
 	auto warningSystemCoupon = Msg("warningSystemCoupon", "%1$sで始まる名前のクーポンを操作する事はできません。");
@@ -1568,9 +1570,10 @@ class Msgs : Properties {
 	auto warningTextCell = Msg("warningTextCell", "テキストセルは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningColorCell = Msg("warningColorCell", "カラーセルは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningPCCell = Msg("warningPCCell", "プレイヤーキャラクタセルは、CardWirth 1.60より前のバージョンでは使用できません。");
+	auto warningEffectBoosterFileWithReplaceBgImage = Msg("warningEffectBoosterFileWithReplaceBgImage", "背景置換コンテントではエフェクトブースター関係の背景セルは無視されます。");
 	auto warningBgImageIncluded = Msg("warningBgImageForeground", "背景セルのイメージ格納は、CardWirth 1.60より前のバージョンでは行えません。");
 	auto warningBgImageForeground = Msg("warningBgImageForeground", "カードよりも前の表示は、CardWirth 1.60より前のバージョンでは行えません。");
-	auto warningBgImageCellName = Msg("warningBgImageCellName", "背景セル名称は、CardWirth 1.60より前のバージョンでは設定できません。");
+	auto warningBgImageCellName = Msg("warningBgImageCellName", "背景セル名称は、WSN1以降の形式のシナリオでしか設定できません。");
 	auto warningSelectionBarIsMany = Msg("warningSelectionBarIsMany", "選択肢が%1$s件ありますが、%2$s件までしか表示できません。");
 	auto warningEveryRound = Msg("warningEveryRound", "イベント発火条件「毎ラウンド」は、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningRound0 = Msg("warningRound0", "イベント発火条件「バトル開始」は、CardWirth 1.50より前のバージョンでは使用できません。");

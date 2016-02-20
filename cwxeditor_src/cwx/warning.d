@@ -20,10 +20,12 @@ import cwx.sjis;
 import cwx.motion;
 
 import std.path;
+import std.string;
 import std.typecons : Tuple;
 
 /// pathの内容を調査し、警告すべき点があればメッセージ群を返す。
 string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path, string targVer) { mixin(S_TRACE);
+	if (!summ.legacy) targVer = "";
 	auto wsnVer = summ ? summ.dataVersion : LATEST_VERSION;
 	auto sPath = summ ? summ.scenarioPath : "";
 	auto froot = summ ? summ.flagDirRoot : null;
@@ -53,7 +55,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			r ~= .tryFormat(prop.msgs.searchErrorSystemVariable, flagDir.name);
 		}
 	}
-	auto flag = cast(Flag) path;
+	auto flag = cast(cwx.flag.Flag) path;
 	if (flag) { mixin(S_TRACE);
 		if (flag.parent is froot && prop.sys.isSystemVar(flag.name)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorSystemVariable, flag.name);
@@ -170,6 +172,11 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (bi.flag != "" && !(froot && froot.findFlag(bi.flag))) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, bi.flag);
 		}
+		if (bi.cellName != "") {
+			if (!prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+				r ~= prop.msgs.warningBgImageCellName;
+			}
+		}
 		if (bi.layer != LAYER_BACK_CELL) {
 			// 1.60
 /+			if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
@@ -177,11 +184,6 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 +/			if (!prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningLayer;
-			}
-		}
-		if (bi.cellName != "") {
-			if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
-				r ~= prop.msgs.warningBgImageCellName;
 			}
 		}
 	}
@@ -331,8 +333,27 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 			return false;
 		}
-		foreach (back; c.backs) { mixin(S_TRACE);
-			r ~= warnings(prop, skin, summ, back, targVer);
+		{ mixin(S_TRACE);
+			bool[string] tbl;
+			string[] ws2;
+			foreach (back; c.backs) { mixin(S_TRACE);
+				auto ws = warnings(prop, skin, summ, back, targVer);
+				if (c.type is CType.REPLACE_BG_IMAGE) { mixin(S_TRACE);
+					if (auto ic2 = cast(ImageCell)back) { mixin(S_TRACE);
+						auto ext = ic2.path.extension().toLower();
+						if (ext == ".jpy1" || ext == ".jptx" || ext == ".jpdc") { mixin(S_TRACE);
+							ws ~= prop.msgs.warningEffectBoosterFileWithReplaceBgImage;
+						}
+					}
+				}
+				foreach (w; ws) { mixin(S_TRACE);
+					if (w !in tbl) { mixin(S_TRACE);
+						ws2 ~= w;
+						tbl[w] = true;
+					}
+				}
+			}
+			r ~= ws2;
 		}
 		if (c.flag != "" && !(froot && froot.findFlag(c.flag))) { mixin(S_TRACE);
 			// 代入コンテントではランダム値有効
@@ -503,6 +524,15 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (c.type is CType.BRANCH_ROUND && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContent, prop.msgs.contentName(CType.BRANCH_ROUND), "1.50");
+		}
+		if (c.type is CType.REPLACE_BG_IMAGE && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.REPLACE_BG_IMAGE), "1");
+		}
+		if (c.type is CType.LOSE_BG_IMAGE && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.LOSE_BG_IMAGE), "1");
+		}
+		if (c.type is CType.MOVE_BG_IMAGE && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.MOVE_BG_IMAGE), "1");
 		}
 	}
 	return r;

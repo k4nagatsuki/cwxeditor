@@ -111,11 +111,10 @@ private void static_this () { mixin(S_TRACE);
 			CType.SHOW_PARTY,
 			CType.HIDE_PARTY,
 			CType.CHANGE_BG_IMAGE,
-			// FIXME: CardWirth 1.60 セル関係のイベントコンテント
-/+			CType.MOVE_BG_IMAGE,
+			CType.MOVE_BG_IMAGE,
 			CType.REPLACE_BG_IMAGE,
 			CType.LOSE_BG_IMAGE,
-+/			CType.REDISPLAY,
+			CType.REDISPLAY,
 		]
 	];
 
@@ -198,7 +197,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.BRANCH_ROUND:CDetail("Branch", "Round", CNextType.BOOL, true, [CArg.ROUND:"round", CArg.COMPARISON_3:"comparison"]),
 		CType.MOVE_BG_IMAGE:CDetail("Move", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.POSITION_TYPE:"positiontype", CArg.X:"x", CArg.Y:"y", CArg.SIZE_TYPE:"sizetype", CArg.WIDTH:"width", CArg.HEIGHT:"height", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
 		CType.REPLACE_BG_IMAGE:CDetail("Replace", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.BG_IMAGES:_(null), CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
-		CType.LOSE_BG_IMAGE:CDetail("Lose", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname"]),
+		CType.LOSE_BG_IMAGE:CDetail("Lose", "BgImage", CNextType.NONE, true, [CArg.CELL_NAME:"cellname", CArg.TRANSITION:"transition", CArg.TRANSITION_SPEED:"transitionspeed"]),
 	];
 	foreach (cType, detail; _CONTENT_DETAILS) { mixin(S_TRACE);
 		foreach (name; detail.names) { mixin(S_TRACE);
@@ -1588,19 +1587,19 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// ラウンド(CardWirth 1.50)。
 	mixin Prop!(uint, "round", 0);
 
-	/// セル名称(CardWirth 1.60)。
+	/// セル名称(Wsn.1)。
 	mixin Prop!(CellNameUser, string, "cellName", "", ".cellName", ".cellName", true);
-	/// 位置形式(CardWirth 1.60)。
+	/// 位置形式(Wsn.1)。
 	mixin Prop!(CoordinateType, "positionType", CoordinateType.None);
-	/// X座標(CardWirth 1.60)。
+	/// X座標(Wsn.1)。
 	mixin Prop!(int, "x", 0);
-	/// Y座標(CardWirth 1.60)。
+	/// Y座標(Wsn.1)。
 	mixin Prop!(int, "y", 0);
-	/// サイズ形式(CardWirth 1.60)。
+	/// サイズ形式(Wsn.1)。
 	mixin Prop!(CoordinateType, "sizeType", CoordinateType.None);
-	/// 幅(CardWirth 1.60)。
+	/// 幅(Wsn.1)。
 	mixin Prop!(int, "width", 0);
-	/// 高さ(CardWirth 1.60)。
+	/// 高さ(Wsn.1)。
 	mixin Prop!(int, "height", 0);
 
 	/// 背景画像群。
@@ -1922,7 +1921,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 		atnPut!(CArg.TALKER_NC, "talkerNC", "fromTalker")(e, d);
 
-		if (d.use(CArg.BG_IMAGES)) BgImage.toNode(backs, e, opt);
+		if (d.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
+			BgImage.toNode(backs, type is CType.CHANGE_BG_IMAGE, e, opt);
+		}
 
 		if (d.use(CArg.CAST_RANGE)) { mixin(S_TRACE);
 			auto ce = e.newElement("CastRanges");
@@ -2139,7 +2140,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		if (d.use(CArg.BG_IMAGES)) { mixin(S_TRACE);
 			en.onTag["BgImages"] = (ref XNode node) { mixin(S_TRACE);
-				r.backs = BgImage.bgImagesFromNode(node, ver);
+				r.backs = BgImage.bgImagesFromNode(node, cType is CType.CHANGE_BG_IMAGE, ver);
 			};
 		}
 

@@ -16,6 +16,7 @@ import cwx.path;
 import cwx.structs;
 import cwx.menu;
 import cwx.types;
+import cwx.warning;
 
 import cwx.editor.gui.sound;
 
@@ -42,6 +43,7 @@ import std.conv;
 import std.math;
 import std.path;
 import std.traits;
+import std.string : toLower;
 
 import org.eclipse.swt.all;
 
@@ -166,15 +168,85 @@ class ContentCommentDialog : AbsDialog {
 	}
 }
 
+/// 背景切替方式と背景切替速度。
+class TransitionPanel : Composite {
+	private Combo _ts;
+	private Spinner _tsSpeed;
+	private Transition[int] _tsTbl;
+	private const Summary _summ;
+
+	this (Commons comm, Composite parent, bool horizontal, in Content evt, AbsDialog modDlg) { mixin(S_TRACE);
+		super (parent, SWT.NONE);
+		auto prop = comm.prop;
+		_summ = comm.summary;
+		if (horizontal) { mixin(S_TRACE);
+			this.setLayout(zeroMarginGridLayout(5, false));
+		} else {
+			this.setLayout(zeroMarginGridLayout(3, false));
+		}
+		auto lt = new Label(this, SWT.NONE);
+		lt.setText(prop.msgs.transition);
+		_ts = new Combo(this, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
+		modDlg.mod(_ts);
+		if (!horizontal) { mixin(S_TRACE);
+			auto tgd = new GridData;
+			tgd.horizontalSpan = 2;
+			_ts.setLayoutData(tgd);
+		}
+		_ts.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+		.listener(_ts, SWT.Selection, &refreshTS);
+		foreach (i, t; ALL_TRANSITION) { mixin(S_TRACE);
+			auto s = prop.msgs.transitionName(t);
+			if (t is Transition.DEFAULT) s = prop.msgs.defaultSelection(s);
+			_ts.add(s);
+			_tsTbl[cast(int)i] = t;
+			if (evt && t == evt.transition) _ts.select(cast(int)i);
+		}
+		auto ls = new Label(this, SWT.NONE);
+		ls.setText(prop.msgs.transitionSpeed);
+		_tsSpeed = new Spinner(this, SWT.BORDER);
+		initSpinner(_tsSpeed);
+		modDlg.mod(_tsSpeed);
+		_tsSpeed.setMaximum(Content.transitionSpeed_max);
+		_tsSpeed.setMinimum(Content.transitionSpeed_min);
+		auto hint = new Label(this, SWT.NONE);
+		hint.setText(.tryFormat(prop.msgs.rangeHint, Content.transitionSpeed_min, Content.transitionSpeed_max));
+
+		if (evt) { mixin(S_TRACE);
+			_tsSpeed.setSelection(evt.transitionSpeed);
+		} else { mixin(S_TRACE);
+			_ts.select(0);
+			_tsSpeed.setSelection(.transitionSpeedDef);
+		}
+		refreshTS();
+		comm.refDataVersion.add(&refreshTS);
+		.listener(this, SWT.Dispose, { mixin(S_TRACE);
+			comm.refDataVersion.remove(&refreshTS);
+		});
+	}
+
+	private void refreshTS() { mixin(S_TRACE);
+		_ts.setEnabled(!_summ.legacy);
+		_tsSpeed.setEnabled(!_summ.legacy && transition !is Transition.DEFAULT && transition !is Transition.NONE);
+	}
+
+	@property
+	Transition transition() { mixin(S_TRACE);
+		return _tsTbl[_ts.getSelectionIndex()];
+	}
+	@property
+	int transitionSpeed() { mixin(S_TRACE);
+		return _tsSpeed.getSelection();
+	}
+}
+
 /// エリア・バトル・パッケージ・キャスト・情報の選択を行うダイアログ。
 class AreaSelectDialog(CType Type, A, string Areas) : EventDialog {
 private:
 	AreaChooser!(A, false) _list;
 
 	static if (Type == CType.CHANGE_AREA) {
-		Combo _ts;
-		Spinner _tsSpeed;
-		Transition[int] _tsTbl;
+		TransitionPanel _transition;
 	}
 
 	void delA(A a) { mixin(S_TRACE);
@@ -197,16 +269,6 @@ private:
 			} else static if (is(A : InfoCard)) {
 				_comm.delInfo.remove(&delA);
 			} else static assert (0);
-		}
-	}
-	protected override void refDataVersion() { mixin(S_TRACE);
-		super.refDataVersion();
-		refreshTS();
-	}
-	void refreshTS() { mixin(S_TRACE);
-		static if (Type == CType.CHANGE_AREA) {
-			_ts.setEnabled(!_summ.legacy);
-			_tsSpeed.setEnabled(!_summ.legacy);
 		}
 	}
 public:
@@ -235,39 +297,9 @@ protected:
 			{ mixin(S_TRACE);
 				auto comp = new Composite(area, SWT.NONE);
 				comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-				comp.setLayout(new GridLayout(3, false));
-				auto lt = new Label(comp, SWT.NONE);
-				lt.setText(_prop.msgs.transition);
-				_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-				mod(_ts);
-				auto tgd = new GridData;
-				tgd.horizontalSpan = 2;
-				_ts.setLayoutData(tgd);
-				_ts.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
-				foreach (i, t; ALL_TRANSITION) { mixin(S_TRACE);
-					auto s = _prop.msgs.transitionName(t);
-					if (t is Transition.DEFAULT) s = _prop.msgs.defaultSelection(s);
-					_ts.add(s);
-					_tsTbl[cast(int)i] = t;
-					if (_evt && t == _evt.transition) _ts.select(cast(int)i);
-				}
-				auto ls = new Label(comp, SWT.NONE);
-				ls.setText(_prop.msgs.transitionSpeed);
-				_tsSpeed = new Spinner(comp, SWT.BORDER);
-				initSpinner(_tsSpeed);
-				mod(_tsSpeed);
-				_tsSpeed.setMaximum(Content.transitionSpeed_max);
-				_tsSpeed.setMinimum(Content.transitionSpeed_min);
-				auto hint = new Label(comp, SWT.NONE);
-				hint.setText(.tryFormat(_prop.msgs.rangeHint, Content.transitionSpeed_min, Content.transitionSpeed_max));
+				comp.setLayout(new GridLayout(1, false));
+				_transition = new TransitionPanel(comm, comp, false, _evt, this);
 			}
-			if (_evt) { mixin(S_TRACE);
-				_tsSpeed.setSelection(_evt.transitionSpeed);
-			} else { mixin(S_TRACE);
-				_ts.select(0);
-				_tsSpeed.setSelection(.transitionSpeedDef);
-			}
-			refreshTS();
 		}
 		static if (is(A : Area)) {
 			_comm.delArea.add(&delA);
@@ -308,11 +340,9 @@ protected:
 			_evt = new Content(Type, "");
 		}
 		static if (Type == CType.CHANGE_AREA) {
-			auto ts = _tsTbl[_ts.getSelectionIndex()];
-			uint tsSpeed = _tsSpeed.getSelection();
 			_evt.area = id;
-			_evt.transition = ts;
-			_evt.transitionSpeed = tsSpeed;
+			_evt.transition = _transition.transition;
+			_evt.transitionSpeed = _transition.transitionSpeed;
 		} else static if (Type == CType.START_BATTLE) {
 			_evt.battle = id;
 		} else static if (Type == CType.CALL_PACKAGE || Type == CType.LINK_PACKAGE) {
@@ -524,7 +554,7 @@ private:
 			}
 		}
 		static if (Field) {
-			if (_prop.targetVersion("1.30")) { mixin(S_TRACE);
+			if (_prop.targetVersion(summ, "1.30")) { mixin(S_TRACE);
 				if (_range[Range.FIELD].getSelection()) { mixin(S_TRACE);
 					ws ~= prop.msgs.warningBranchCouponAtField;
 				}
@@ -688,7 +718,7 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		static if (EngineVersion != "") {
-			if (!_prop.targetVersion(EngineVersion)) { mixin(S_TRACE);
+			if (!_prop.targetVersion(summ, EngineVersion)) { mixin(S_TRACE);
 				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(Type), EngineVersion);
 			}
 		}
@@ -759,42 +789,50 @@ template EndEventDialog(CType Type) {
 		"_evt.completeStamp", "_evt.completeStamp = text;") EndEventDialog;
 }
 
-alias OneTextEventDialog!(CType.LOSE_BG_IMAGE, "_prop.msgs.cellName",
-	"_evt.cellName", "_evt.cellName = text;", "1.60") LoseBgImageDialog;
-
 /// 背景変更・置換イベントの設定を行うダイアログ。
 class BgImagesDialog : EventDialog {
 private:
 	AbstractArea _refTarget;
-	Combo _ts;
-	Spinner _tsSpeed;
-	Transition[int] _tsTbl;
 
 	BgImageContainer _cont;
 
 	BgImagesView _view;
 
+	TransitionPanel _transition;
 	Combo _cellName = null;
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-		if (type is CType.REPLACE_BG_IMAGE) {
-			if (!_prop.targetVersion("1.60")) { mixin(S_TRACE);
-				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.REPLACE_BG_IMAGE), "1.60");
+		auto skin = _comm.skin;
+		bool[string] tbl;
+		string[] ws3;
+		foreach (back; _cont.backs) { mixin(S_TRACE);
+			auto ws2 = .warnings(prop.parent, skin, summ, back, _prop.var.etc.targetVersion);
+			if (type is CType.REPLACE_BG_IMAGE) { mixin(S_TRACE);
+				if (auto ic = cast(ImageCell)back) { mixin(S_TRACE);
+					auto ext = ic.path.extension().toLower();
+					if (ext == ".jpy1" || ext == ".jptx" || ext == ".jpdc") { mixin(S_TRACE);
+						ws2 ~= _prop.msgs.warningEffectBoosterFileWithReplaceBgImage;
+					}
+				}
+			}
+			foreach (w; ws2) { mixin(S_TRACE);
+				if (w !in tbl) { mixin(S_TRACE);
+					ws3 ~= w;
+					tbl[w] = true;
+				}
+			}
+		}
+		ws ~= ws3;
+		if (type is CType.REPLACE_BG_IMAGE) { mixin(S_TRACE);
+			if (!_prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
+				ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(type), "1");
 			}
 		}
 		warning = ws;
 	}
 
-	protected override void refDataVersion() { mixin(S_TRACE);
-		super.refDataVersion();
-		refreshTS();
-	}
-	void refreshTS() { mixin(S_TRACE);
-		_ts.setEnabled(!_summ.legacy);
-		_tsSpeed.setEnabled(!_summ.legacy);
-	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt, AbstractArea refTarget, CType type) { mixin(S_TRACE);
 		_refTarget = refTarget;
@@ -824,11 +862,10 @@ protected:
 			_view.modEvent ~= &refreshWarning;
 		}
 		{ mixin(S_TRACE);
-			auto comp = new Composite(area, SWT.NONE);
-			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
 			if (CDetail.fromType(type).use(CArg.CELL_NAME)) {
-				comp.setLayout(zeroMarginGridLayout(8, false));
+				auto comp = new Composite(area, SWT.NONE);
+				comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				comp.setLayout(zeroMarginGridLayout(4, false));
 				auto l = new Label(comp, SWT.NONE);
 				l.setText(_prop.msgs.cellName);
 				_cellName = createCellNameCombo(comm, summ, comp, &catchMod, _evt ? _evt.cellName : "");
@@ -837,55 +874,91 @@ protected:
 				auto gd = new GridData(GridData.FILL_VERTICAL);
 				gd.heightHint = 0;
 				(new Label(comp, SWT.SEPARATOR | SWT.VERTICAL)).setLayoutData(gd);
+				_transition = new TransitionPanel(comm, comp, true, _evt, this);
 			} else {
-				comp.setLayout(zeroMarginGridLayout(5, false));
+				_transition = new TransitionPanel(comm, area, true, _evt, this);
+				_transition.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 			}
-
-			auto lt = new Label(comp, SWT.NONE);
-			lt.setText(_prop.msgs.transition);
-			_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-			mod(_ts);
-			_ts.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
-			foreach (i, t; ALL_TRANSITION) { mixin(S_TRACE);
-				auto s = _prop.msgs.transitionName(t);
-				if (t is Transition.DEFAULT) s = _prop.msgs.defaultSelection(s);
-				_ts.add(s);
-				_tsTbl[cast(int)i] = t;
-				if (_evt && t == _evt.transition) _ts.select(cast(int)i);
-			}
-			auto ls = new Label(comp, SWT.NONE);
-			ls.setText(_prop.msgs.transitionSpeed);
-			_tsSpeed = new Spinner(comp, SWT.BORDER);
-			initSpinner(_tsSpeed);
-			mod(_tsSpeed);
-			_tsSpeed.setMaximum(Content.transitionSpeed_max);
-			_tsSpeed.setMinimum(Content.transitionSpeed_min);
-			auto hint = new Label(comp, SWT.NONE);
-			hint.setText(.tryFormat(_prop.msgs.rangeHint, Content.transitionSpeed_min, Content.transitionSpeed_max));
 		}
-		refreshTS();
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
 			if (_cellName) _cellName.setText(_evt.cellName);
-			_tsSpeed.setSelection(_evt.transitionSpeed);
 		} else { mixin(S_TRACE);
 			if (_cellName) _cellName.setText("");
-			_ts.select(0);
-			_tsSpeed.setSelection(.transitionSpeedDef);
 		}
+
+		refreshWarning();
 	}
 
 	override bool apply() { mixin(S_TRACE);
 		_evt.backs = _cont.backs;
-		auto ts = _tsTbl[_ts.getSelectionIndex()];
-		uint tsSpeed = _tsSpeed.getSelection();
-		_evt.transition = ts;
-		_evt.transitionSpeed = tsSpeed;
+		_evt.transition = _transition.transition;
+		_evt.transitionSpeed = _transition.transitionSpeed;
 		if (CDetail.fromType(type).use(CArg.CELL_NAME)) {
 			_evt.cellName = _cellName.getText();
 		}
+		return true;
+	}
+}
+
+/// 背景削除コンテント。
+class LoseBgImageDialog : EventDialog {
+private:
+	Combo _name;
+	TransitionPanel _transition;
+
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
+		string[] ws;
+		if (!_prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
+			ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(CType.LOSE_BG_IMAGE), "1");
+		}
+		warning = ws;
+	}
+
+public:
+	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
+		super (comm, prop, shell, summ, CType.LOSE_BG_IMAGE, parent, evt, true, prop.var.loseBgImageEvtDlg, true);
+	}
+
+protected:
+	override void setup(Composite area) { mixin(S_TRACE);
+		area.setLayout(new GridLayout(1, true));
+		{ mixin(S_TRACE);
+			auto grp = new Group(area, SWT.NONE);
+			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
+			grp.setText(_prop.msgs.cellName);
+			auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
+			cl.fillHorizontal = true;
+			grp.setLayout(cl);
+			auto comp = new Composite(grp, SWT.NONE);
+			comp.setLayout(new GridLayout(1, true));
+
+			_name = createCellNameCombo(comm, summ, comp, &catchMod, _evt ? _evt.cellName : "");
+			mod(_name);
+			auto gd = new GridData(GridData.FILL_HORIZONTAL);
+			gd.widthHint = _prop.var.etc.nameWidth;
+			_name.setLayoutData(gd);
+		}
+		_transition = new TransitionPanel(comm, area, false, _evt, this);
+		_transition.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+
+		ignoreMod = true;
+		scope (exit) ignoreMod = false;
+		if (_evt) { mixin(S_TRACE);
+			_name.setText(_evt.cellName);
+		}
+		refreshWarning();
+	}
+
+	override bool apply() { mixin(S_TRACE);
+		if (!_evt) _evt = new Content(CType.LOSE_BG_IMAGE, "");
+		_evt.cellName = _name.getText();
+		_evt.transition = _transition.transition;
+		_evt.transitionSpeed = _transition.transitionSpeed;
+		comm.refCellNames.call();
 		return true;
 	}
 }
@@ -1334,7 +1407,7 @@ private:
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 		static if (Type is CType.CHECK_STEP) {
-			if (!_prop.targetVersion("1.50")) { mixin(S_TRACE);
+			if (!_prop.targetVersion(summ, "1.50")) { mixin(S_TRACE);
 				ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.CHECK_STEP), "1.50");
 			}
 		}
@@ -1613,7 +1686,7 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-		if (!_prop.targetVersion("1.30")) { mixin(S_TRACE);
+		if (!_prop.targetVersion(summ, "1.30")) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(Type), "1.30");
 		}
 		warning = ws;
@@ -2107,7 +2180,7 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-		if (!_prop.targetVersion("1.30")) { mixin(S_TRACE);
+		if (!_prop.targetVersion(summ, "1.30")) { mixin(S_TRACE);
 			auto status = getRadioValue!(Status)(_stat);
 			if (Status.CONFUSE <= status) { mixin(S_TRACE);
 				if (Status.SILENCE <= status) { mixin(S_TRACE);
@@ -2116,7 +2189,7 @@ private:
 					ws ~= .tryFormat(_prop.msgs.warningBranchStatusMental, _prop.msgs.statusName(status), "1.30");
 				}
 			}
-		} else if (!_prop.targetVersion("1.50")) { mixin(S_TRACE);
+		} else if (!_prop.targetVersion(summ, "1.50")) { mixin(S_TRACE);
 			auto status = getRadioValue!(Status)(_stat);
 			if (Status.SILENCE <= status) { mixin(S_TRACE);
 				ws ~= .tryFormat(_prop.msgs.warningBranchStatusMental, _prop.msgs.statusName(status), "1.50");
@@ -2442,9 +2515,7 @@ alias CardEventDialog!(CType.LOSE_BEAST, BeastCard, "_summ.beasts", true, Range.
 /// 画面再構築イベントの設定を行うダイアログ。
 class RefreshDialog : EventDialog {
 private:
-	Combo _ts;
-	Spinner _tsSpeed;
-	Transition[int] _tsTbl;
+	TransitionPanel _transition;
 
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
@@ -2458,49 +2529,15 @@ protected:
 			grp.setText(_prop.msgs.transitionType);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new CenterLayout);
-			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout(zeroMarginGridLayout(3, false));
-			auto lt = new Label(comp, SWT.NONE);
-			lt.setText(_prop.msgs.transition);
-			_ts = new Combo(comp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
-			mod(_ts);
-			auto gd = new GridData;
-			gd.horizontalSpan = 2;
-			_ts.setLayoutData(gd);
-			_ts.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
-			foreach (i, t; ALL_TRANSITION) { mixin(S_TRACE);
-				auto s = _prop.msgs.transitionName(t);
-				if (t is Transition.DEFAULT) s = _prop.msgs.defaultSelection(s);
-				_ts.add(s);
-				_tsTbl[cast(int)i] = t;
-				if (_evt && t == _evt.transition) _ts.select(cast(int)i);
-			}
-			auto ls = new Label(comp, SWT.NONE);
-			ls.setText(_prop.msgs.transitionSpeed);
-			_tsSpeed = new Spinner(comp, SWT.BORDER);
-			initSpinner(_tsSpeed);
-			mod(_tsSpeed);
-			_tsSpeed.setMaximum(Content.transitionSpeed_max);
-			_tsSpeed.setMinimum(Content.transitionSpeed_min);
-			auto hint = new Label(comp, SWT.NONE);
-			hint.setText(.tryFormat(_prop.msgs.rangeHint, Content.transitionSpeed_min, Content.transitionSpeed_max));
-		}
-		ignoreMod = true;
-		scope (exit) ignoreMod = false;
-		if (_evt) { mixin(S_TRACE);
-			_tsSpeed.setSelection(_evt.transitionSpeed);
-		} else { mixin(S_TRACE);
-			_ts.select(0);
-			_tsSpeed.setSelection(.transitionSpeedDef);
+
+			_transition = new TransitionPanel(comm, grp, false, _evt, this);
 		}
 	}
 
 	override bool apply() { mixin(S_TRACE);
 		if (!_evt) _evt = new Content(CType.REDISPLAY, "");
-		auto ts = _tsTbl[_ts.getSelectionIndex()];
-		uint tsSpeed = _tsSpeed.getSelection();
-		_evt.transition = ts;
-		_evt.transitionSpeed = tsSpeed;
+		_evt.transition = _transition.transition;
+		_evt.transitionSpeed = _transition.transitionSpeed;
 		return true;
 	}
 }
@@ -2516,9 +2553,9 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-		if (!_prop.targetVersion("1.30")) { mixin(S_TRACE);
+		if (!_prop.targetVersion(summ, "1.30")) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_RANDOM_SELECT), "1.30");
-		} else if (!_prop.targetVersion("1.50")) { mixin(S_TRACE);
+		} else if (!_prop.targetVersion(summ, "1.50")) { mixin(S_TRACE);
 			auto status = getRadioValue!(Status)(_status);
 			if (Status.SILENCE <= status) { mixin(S_TRACE);
 				ws ~= .tryFormat(_prop.msgs.warningBranchStatusMental, _prop.msgs.statusName(status), "1.50");
@@ -2679,7 +2716,7 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-		if (!_prop.targetVersion("1.50")) { mixin(S_TRACE);
+		if (!_prop.targetVersion(summ, "1.50")) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_KEY_CODE), "1.50");
 		}
 		warning = ws;
@@ -2769,7 +2806,7 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-		if (!_prop.targetVersion("1.50")) { mixin(S_TRACE);
+		if (!_prop.targetVersion(summ, "1.50")) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(CType.BRANCH_ROUND), "1.50");
 		}
 		warning = ws;
@@ -2846,11 +2883,13 @@ private:
 	Spinner _w;
 	Spinner _h;
 
+	TransitionPanel _transition;
+
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-		if (!_prop.targetVersion("1.60")) { mixin(S_TRACE);
-			ws ~= .tryFormat(_prop.msgs.warningUnknownContent, _prop.msgs.contentName(type), "1.60");
+		if (!_prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
+			ws ~= .tryFormat(_prop.msgs.warningUnknownContentWsn, _prop.msgs.contentName(CType.MOVE_BG_IMAGE), "1");
 		}
 		warning = ws;
 	}
@@ -2923,6 +2962,13 @@ protected:
 		createGrp(prop.msgs.moveCell, _positionType, _x, _y, prop.var.etc.posLeftMax, prop.var.etc.posTopMax);
 		createGrp(prop.msgs.resizeCell, _sizeType, _w, _h, prop.var.etc.backWidthMax, prop.var.etc.backHeightMax);
 
+		{ mixin(S_TRACE);
+			_transition = new TransitionPanel(comm, area, false, _evt, this);
+			auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
+			gd.horizontalSpan = 2;
+			_transition.setLayoutData(gd);
+		}
+
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
 		if (_evt) { mixin(S_TRACE);
@@ -2955,6 +3001,8 @@ protected:
 		_evt.sizeType = getRadioValue(_sizeType);
 		_evt.width = _w.getSelection();
 		_evt.height = _h.getSelection();
+		_evt.transition = _transition.transition;
+		_evt.transitionSpeed = _transition.transitionSpeed;
 		return true;
 	}
 }

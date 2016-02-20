@@ -370,7 +370,7 @@ public:
 					ws ~= warningFrom(img.path);
 				}
 				if (img.type == CardImageType.PCNumber) { mixin(S_TRACE);
-					if (!_prop.targetVersion("1.50") && 0 != img.pcNumber && _summ) { mixin(S_TRACE);
+					if (!_prop.targetVersion(_summ, "1.50") && 0 != img.pcNumber && _summ) { mixin(S_TRACE);
 						ws ~= _prop.msgs.warningPCNumberClassic;
 					}
 				}

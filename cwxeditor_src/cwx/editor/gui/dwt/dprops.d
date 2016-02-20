@@ -150,7 +150,8 @@ public:
 
 	/// verがターゲットとなる環境のバージョン以下であればtrueを返す。
 	const
-	bool targetVersion(string ver) { mixin(S_TRACE);
+	bool targetVersion(in Summary summ, string ver) { mixin(S_TRACE);
+		if (summ && !summ.legacy) return true;
 		return parent.targetVersion(ver, var.etc.targetVersion);
 	}
 	/// summが存在する場合はwsnVer以上かを返す。

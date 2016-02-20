@@ -2472,10 +2472,9 @@ private:
 			} else static assert (0);
 			static if (is(C:BgImage)) {
 				if (!_readOnly) { mixin (S_TRACE);
-					// FIXME: CardWirth 1.60 セル名称
-/*					new MenuItem(menu, SWT.SEPARATOR);
+					new MenuItem(menu, SWT.SEPARATOR);
 					createMenuItem(_comm, menu, MenuID.FindID, &findCellName, &canFindCellName);
-*/				}
+				}
 			}
 			list.setMenu(menu);
 		}
