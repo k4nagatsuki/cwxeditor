@@ -4622,7 +4622,9 @@ public:
 			private int cardFromFile(string fname, int x, int y, bool fromImgPane) { mixin(S_TRACE);
 				if (_readOnly) return -1;
 				if (!_summ) return -1;
-				if (!hasPath(_summ.scenarioPath, fname)) { mixin(S_TRACE);
+				if (hasPath(_summ.scenarioPath, fname)) { mixin(S_TRACE);
+					fname = abs2rel(fname, _summ.scenarioPath);
+				} else { mixin(S_TRACE);
 					auto dlg = new MessageBox(getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
 					dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDropCard, fname));
 					dlg.setText(_prop.msgs.dlgTitDropCard);
@@ -4633,7 +4635,6 @@ public:
 						return -1;
 					}
 				}
-				fname = abs2rel(fname, _summ.scenarioPath);
 				auto card = new MenuCard(baseName(.stripExtension(fname)), fname.length ? [new CardImage(fname)] : [], "", "", x, y, 100, LAYER_MENU_CARD);
 				return appendCard(card, true, true, fromImgPane);
 			}
@@ -4845,7 +4846,9 @@ public:
 		private int backFromFile(string fname, int x, int y, int w, int h, bool fromImgPane) { mixin(S_TRACE);
 			if (_readOnly) return -1;
 			if (!_summ) return -1;
-			if (!hasPath(_summ.scenarioPath, fname)) { mixin(S_TRACE);
+			if (hasPath(_summ.scenarioPath, fname)) { mixin(S_TRACE);
+				fname = abs2rel(fname, _summ.scenarioPath);
+			} else { mixin(S_TRACE);
 				auto dlg = new MessageBox(getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
 				dlg.setMessage(.tryFormat(_prop.msgs.dlgMsgDropBack, fname));
 				dlg.setText(_prop.msgs.dlgTitDropBack);
@@ -4856,7 +4859,6 @@ public:
 					return -1;
 				}
 			}
-			fname = abs2rel(fname, _summ.scenarioPath);
 			auto back = new ImageCell(fname, "", x, y, w, h, false);
 			return appendBgImage(back, true, true, fromImgPane);
 		}
