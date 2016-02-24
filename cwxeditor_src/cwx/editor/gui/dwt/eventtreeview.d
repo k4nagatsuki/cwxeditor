@@ -44,6 +44,7 @@ import std.algorithm;
 import std.conv;
 import std.string;
 import std.datetime;
+import std.traits;
 
 import org.eclipse.swt.all;
 
@@ -4744,7 +4745,8 @@ class ContentsToolBox {
 			createCoolItem(cbar, mode);
 
 			auto tml = new TMListener;
-			foreach (cGrp, cs; CTYPE_GROUP) { mixin(S_TRACE);
+			foreach (cGrp; EnumMembers!CTypeGroup) { mixin(S_TRACE);
+				auto cs = CTYPE_GROUP[cGrp];
 				auto eBar = new ToolBar(cbar, SWT.FLAT);
 				eBar.addMouseListener(tml);
 				if (_prop.var.etc.showContentsGroupName) { mixin(S_TRACE);
