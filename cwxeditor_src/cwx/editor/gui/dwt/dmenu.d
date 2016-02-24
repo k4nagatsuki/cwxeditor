@@ -613,6 +613,9 @@ private class CBarListener(string Name) : MouseMoveListener, DisposeListener {
 		cbar.getShell().layout(true, true);
 	}
 	void reset() { mixin(S_TRACE);
+		auto shell = _cbar.getShell();
+		shell.setRedraw(false);
+		scope (exit) shell.setRedraw(true);
 		int[] ixs;
 		for (int i = 0; i < _cbar.getItemCount(); i++) { mixin(S_TRACE);
 			ixs ~= i;
@@ -622,6 +625,7 @@ private class CBarListener(string Name) : MouseMoveListener, DisposeListener {
 		foreach_reverse (i; _cbar.getItemOrder()) { mixin(S_TRACE);
 			resetCISize(_cbar.getItem(i));
 		}
+		shell.layout(true, true);
 	}
 	void lock() { mixin(S_TRACE);
 		_cbar.setLocked(!_cbar.getLocked());
