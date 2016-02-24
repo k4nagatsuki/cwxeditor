@@ -4704,6 +4704,7 @@ class ContentsToolBox {
 		_comm.refEventTemplates.add(&refreshTemplatesM);
 		_comm.selContentTool.add(&selContentTool);
 
+		Label[] labels;
 		_cbar = createCoolBar!("contents")(_comm, cbarPar, (CoolBar cbar) { mixin(S_TRACE);
 			void createCoolItem(CoolBar cbar, ToolBar tbar, int index = -1) { mixin(S_TRACE);
 				.createCoolItem(cbar, tbar, index);
@@ -4746,6 +4747,10 @@ class ContentsToolBox {
 			foreach (cGrp, cs; CTYPE_GROUP) { mixin(S_TRACE);
 				auto eBar = new ToolBar(cbar, SWT.FLAT);
 				eBar.addMouseListener(tml);
+				if (_prop.var.etc.showContentsGroupName) { mixin(S_TRACE);
+					auto menuID = cTypeGroupToMenuID(cGrp);
+					labels ~= createLabel(eBar, _prop.msgs.menuText(menuID), WGL_SPACING);
+				}
 				foreach (cType; cs) { mixin(S_TRACE);
 					createEI(cType, eBar, g);
 				}
@@ -4757,6 +4762,10 @@ class ContentsToolBox {
 				_comm.put(eBar);
 			}
 			updatePutMode();
+		}, (menu) { mixin(S_TRACE);
+			foreach (l; labels) { mixin(S_TRACE);
+				l.setMenu(menu);
+			}
 		});
 		_cbar.addMouseListener(new TMListener);
 		_cbar.getDisplay().addFilter(SWT.KeyDown, shiftCaptcha);

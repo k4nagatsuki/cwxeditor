@@ -1460,6 +1460,7 @@ struct OldSettings {
 	bool showTerminalMark;
 	bool showSummaryInAreaTable;
 	bool showAreaDirTree;
+	bool showContentsGroupName;
 	bool contentsFloat;
 	bool contentsAutoHide;
 	bool showCloseButtonAllTab;
@@ -1512,6 +1513,7 @@ struct OldSettings {
 		this.showTerminalMark = prop.var.etc.showTerminalMark;
 		this.showSummaryInAreaTable = prop.var.etc.showSummaryInAreaTable;
 		this.showAreaDirTree = prop.var.etc.showAreaDirTree;
+		this.showContentsGroupName = prop.var.etc.showContentsGroupName;
 		this.contentsFloat = prop.var.etc.contentsFloat;
 		this.contentsAutoHide = prop.var.etc.contentsAutoHide;
 		this.showCloseButtonAllTab = prop.var.etc.showCloseButtonAllTab;
@@ -1654,7 +1656,7 @@ struct OldSettings {
 		if (this.showAreaDirTree != prop.var.etc.showAreaDirTree) { mixin(S_TRACE);
 			comm.refTableViewStyle.call();
 		}
-		if (this.contentsFloat != prop.var.etc.contentsFloat || this.contentsAutoHide != prop.var.etc.contentsAutoHide) { mixin(S_TRACE);
+		if (this.contentsFloat != prop.var.etc.contentsFloat || this.contentsAutoHide != prop.var.etc.contentsAutoHide || this.showContentsGroupName != prop.var.etc.showContentsGroupName) { mixin(S_TRACE);
 			comm.refContentsToolBoxStyle.call();
 		}
 		if (this.showCloseButtonAllTab != prop.var.etc.showCloseButtonAllTab && comm.mainWin.dock) { mixin(S_TRACE);

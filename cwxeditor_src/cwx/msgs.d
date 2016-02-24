@@ -1707,6 +1707,7 @@ class Msgs : Properties {
 	auto copyDesc = Msg("copyDesc", "カードをエリアに貼り付け・ドロップした時、解説もコピーする");
 
 	auto etcSettingsEvent = Msg("etcSettingsEvent", "イベントビューの設定");
+	auto showContentsGroupName = Msg("showContentsGroupName", "コンテンツボックスにグループ名を表示する");
 	auto contentsFloat = Msg("contentsFloat", "コンテンツボックスを別ウィンドウで表示する");
 	auto contentsAutoHide = Msg("contentsAutoHide", "コンテンツボックスを自動的に隠す");
 	auto straightEventTreeView = Msg("straightEventTreeView", "イベントツリーを垂直に表示する");

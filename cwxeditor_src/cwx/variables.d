@@ -266,6 +266,7 @@ class FlexEtcProps : Properties {
 	auto contentsAutoOpen = Prop!(bool)("contentsAutoOpen", true);
 	auto contentsPutMode = Prop!(int)("contentsPutMode", 0);
 	auto contentsInsertFirst = Prop!(bool)("contentsInsertFirst", false);
+	auto showContentsGroupName = Prop!(bool)("showContentsGroupName", true);
 	auto contentsFloat = Prop!(bool)("contentsFloat", false);
 	auto contentsAutoHide = Prop!(bool)("contentsAutoHide", false);
 	auto comboListVisible = Prop!(bool)("comboListVisible", true);
