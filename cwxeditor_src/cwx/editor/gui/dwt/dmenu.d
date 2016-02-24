@@ -668,7 +668,7 @@ CoolBar createCoolBar(string Name)(Commons comm, Composite parent,
 	wiTbl[cbar.getItemCount()] = true;
 	foreach (i, itm; cbar.getItems()) { mixin(S_TRACE);
 		itm.getControl().setMenu(menu);
-		if (i + 1 !in wiTbl) { mixin(S_TRACE);
+		if (cast(int)i + 1 !in wiTbl) { mixin(S_TRACE);
 			itm.setSize(itm.getMinimumSize());
 		}
 	}
