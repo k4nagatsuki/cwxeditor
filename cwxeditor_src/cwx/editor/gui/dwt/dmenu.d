@@ -663,8 +663,14 @@ CoolBar createCoolBar(string Name)(Commons comm, Composite parent,
 	new MenuItem(menu, SWT.SEPARATOR);
 	createMenuItem(comm, menu, MenuID.ResetToolBar, &ls.reset, null);
 	cbar.setMenu(menu);
-	foreach (itm; cbar.getItems()) { mixin(S_TRACE);
+	bool[int] wiTbl;
+	foreach (i; cbar.getWrapIndices()) wiTbl[i] = true;
+	wiTbl[cbar.getItemCount()] = true;
+	foreach (i, itm; cbar.getItems()) { mixin(S_TRACE);
 		itm.getControl().setMenu(menu);
+		if (i + 1 !in wiTbl) { mixin(S_TRACE);
+			itm.setSize(itm.getMinimumSize());
+		}
 	}
 	ls._lock.setSelection(cbar.getLocked());
 
