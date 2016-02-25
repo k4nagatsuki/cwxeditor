@@ -4757,7 +4757,7 @@ class ContentsToolBox {
 					createEI(cType, eBar, g);
 				}
 				if (cGrp is CTypeGroup.Visual) { mixin(S_TRACE);
-					createCoolItem(cbar, eBar, 2);
+					createCoolItem(cbar, eBar, 3);
 				} else { mixin(S_TRACE);
 					createCoolItem(cbar, eBar);
 				}

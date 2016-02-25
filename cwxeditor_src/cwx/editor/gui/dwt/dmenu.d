@@ -581,6 +581,21 @@ ToolItem createToolItem(Commons comm, ToolBar bar, MenuID id,
 	return createToolItemImpl(comm, bar, comm.prop.buildTool(id), null, comm.prop.images.menu(id), func, style, id, enabled);
 }
 
+/// マウスで配置を操作すると、たまに折り返し位置が
+/// 外見と異なる位置になるので、外見と一致する位置を求める。
+private int[] getWrapIndices2(CoolBar cbar) { mixin(S_TRACE);
+	auto y = int.min;
+	int[] wi;
+	foreach (index, itm; cbar.getItems()) { mixin(S_TRACE);
+		auto iy = itm.getControl().getLocation().y;
+		if (y < iy) {
+			wi ~= cast(int)index;
+			y = iy;
+		}
+	}
+	return wi;
+}
+
 private class CBarListener(string Name) : MouseMoveListener, DisposeListener {
 	private Props _prop;
 	private CoolBar _cbar;
@@ -603,7 +618,7 @@ private class CBarListener(string Name) : MouseMoveListener, DisposeListener {
 		} else { mixin(S_TRACE);
 			mixin ("_prop.var.etc." ~ Name ~ "Order = cbar.getItemOrder();");
 		}
-		mixin ("_prop.var.etc." ~ Name ~ "WrapIndices = cbar.getWrapIndices();");
+		mixin ("_prop.var.etc." ~ Name ~ "WrapIndices = getWrapIndices2(cbar);");
 	}
 	override void mouseMove(MouseEvent e) { mixin(S_TRACE);
 		if (e.getSource() !is _cbar) return;
@@ -625,7 +640,18 @@ private class CBarListener(string Name) : MouseMoveListener, DisposeListener {
 		foreach_reverse (i; _cbar.getItemOrder()) { mixin(S_TRACE);
 			resetCISize(_cbar.getItem(i));
 		}
+		resizeAll();
 		shell.layout(true, true);
+	}
+	void resizeAll() { mixin(S_TRACE);
+		bool[int] wiTbl;
+		foreach (i; _cbar.getWrapIndices()) wiTbl[i] = true;
+		wiTbl[_cbar.getItemCount()] = true;
+		foreach (i, itm; _cbar.getItems()) { mixin(S_TRACE);
+			if (cast(int)i + 1 !in wiTbl) { mixin(S_TRACE);
+				itm.setSize(itm.getMinimumSize());
+			}
+		}
 	}
 	void lock() { mixin(S_TRACE);
 		_cbar.setLocked(!_cbar.getLocked());
@@ -663,16 +689,12 @@ CoolBar createCoolBar(string Name)(Commons comm, Composite parent,
 	new MenuItem(menu, SWT.SEPARATOR);
 	createMenuItem(comm, menu, MenuID.ResetToolBar, &ls.reset, null);
 	cbar.setMenu(menu);
-	bool[int] wiTbl;
-	foreach (i; cbar.getWrapIndices()) wiTbl[i] = true;
-	wiTbl[cbar.getItemCount()] = true;
 	foreach (i, itm; cbar.getItems()) { mixin(S_TRACE);
 		itm.getControl().setMenu(menu);
-		if (cast(int)i + 1 !in wiTbl) { mixin(S_TRACE);
-			itm.setSize(itm.getMinimumSize());
-		}
 	}
 	ls._lock.setSelection(cbar.getLocked());
+	auto d = cbar.getDisplay();
+	ls.resizeAll();
 
 	return cbar;
 }
