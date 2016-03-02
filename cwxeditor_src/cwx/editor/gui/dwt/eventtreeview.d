@@ -131,12 +131,12 @@ private:
 			_box._putMode = MenuID.PutQuick;
 			scope (exit) _box._putMode = oldMode;
 			create(insert ? itm : null);
-		}, () => _et !is null);
+		}, () => _et !is null && (!_summ || !_summ.legacy || !type.isWsnContent));
 	}
 	private void initConvMenu(CType type, Menu convMenu, string text, Image img) { mixin(S_TRACE);
 		auto ce = _conts[type];
 		if (type != CType.START) { mixin(S_TRACE);
-			ce.convMenuItem = createMenuItem2(_comm, convMenu, text, img, &ce.convert, null);
+			ce.convMenuItem = createMenuItem2(_comm, convMenu, text, img, &ce.convert, () => selection && (!_summ || !_summ.legacy || !type.isWsnContent));
 			ce.convMenuItem.setEnabled(false);
 		}
 	}
@@ -4464,7 +4464,7 @@ class ContentsToolBox {
 		auto cursor = _prop.images.cursor(type);
 		_cursors ~= cursor;
 		auto ce = new CreateEvent(type, cursor);
-		auto itm = createToolItem2(_comm, bar, text, img, &ce.create, () => _parent.selection !is null, SWT.RADIO);
+		auto itm = createToolItem2(_comm, bar, text, img, &ce.create, () => _parent.selection !is null && (!_summ || !_summ.legacy || !type.isWsnContent), SWT.RADIO);
 		ce.ti = itm;
 		g.append(itm);
 		_conts[type] = ce;

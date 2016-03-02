@@ -1142,6 +1142,19 @@ enum CType {
 	LOSE_BG_IMAGE, /// 背景削除(Wsn.1)。
 }
 
+/// WSN形式のシナリオでのみ使用できるイベントコンテントか。
+@property
+bool isWsnContent(CType cType) { mixin(S_TRACE);
+	with (CType) switch (cType) {
+	case MOVE_BG_IMAGE:
+	case REPLACE_BG_IMAGE:
+	case LOSE_BG_IMAGE:
+		return true;
+	default:
+		return false;
+	}
+}
+
 /// コンテントタイプの分類。
 enum CTypeGroup {
 	Terminal = 0, /// 開始/終端。
