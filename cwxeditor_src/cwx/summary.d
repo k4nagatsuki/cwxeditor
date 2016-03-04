@@ -2440,6 +2440,7 @@ public:
 					std.file.write(zipName, b);
 					destroy(arc);
 					freeAll(data);
+					_expandXMLs = expand;
 				}
 				if (opt.archiveInNewThread) { mixin(S_TRACE);
 					.task(&t2).executeInNewThread();
