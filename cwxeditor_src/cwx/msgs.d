@@ -359,8 +359,12 @@ class Msgs : Properties {
 	auto initValue = Msg("initValue", "初期点");
 	auto toneCoupons = Msg("toneCoupons", "口調条件");
 	auto valued = Msg("valued", "評価条件");
+	auto valuedTalkerMaxIsLess0 = Msg("valuedTalkerMaxIsLess0", "最大値 = %1$s (発言しない)\n最小値 = %2$s (発言しない)");
 	auto valuedTalkerMaxMin = Msg("valuedTalkerMaxMin", "最大値 = %1$s\n最小値 = %2$s");
 	auto valuedTalkerMaxMinLess0 = Msg("valuedTalkerMaxMinLess0", "最大値 = %1$s\n最小値 = %2$s (発言しない)");
+	auto selectMemberValuedMaxIsLess0 = Msg("selectMemberValuedMaxIsLess0", "最大値 = %1$s (選択失敗)\n最小値 = %2$s (選択失敗)");
+	auto selectMemberValuedMaxMin = Msg("selectMemberValuedMaxMin", "最大値 = %1$s\n最小値 = %2$s");
+	auto selectMemberValuedMaxMinLess0 = Msg("selectMemberValuedMaxMinLess0", "最大値 = %1$s\n最小値 = %2$s (選択失敗)");
 	auto cellName = Msg("cellName", "対象セル名称");
 	auto moveCell = Msg("moveCell", "位置の変更");
 	auto resizeCell = Msg("resizeCell", "サイズの変更");

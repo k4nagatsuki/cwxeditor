@@ -1908,7 +1908,7 @@ protected:
 
 		void delegate() updateValue;
 		{ mixin(S_TRACE);
-			auto comp = createValueEditor(comm, summ, area, &catchMod, _couponView, _initValue, updateValue);
+			auto comp = createValueEditor(comm, summ, area, &catchMod, _couponView, _initValue, updateValue, false);
 			mod(_initValue);
 			mod(_couponView);
 			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1949,7 +1949,7 @@ protected:
 }
 
 /// 評価メンバ設定用のビューを生成する。
-Composite createValueEditor(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, out CouponView!(CVType.Valued) couponView, out Spinner initValue, out void delegate() updateValue) { mixin(S_TRACE);
+Composite createValueEditor(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, out CouponView!(CVType.Valued) couponView, out Spinner initValue, out void delegate() updateValue, bool talker = true) { mixin(S_TRACE);
 	auto grp = new Group(parent, SWT.NONE);
 	grp.setText(comm.prop.msgs.valued);
 	grp.setLayout(new GridLayout(2, false));
@@ -1972,15 +1972,29 @@ Composite createValueEditor(Commons comm, Summary summ, Composite parent, bool d
 		int min = max;
 		foreach (cp; couponView.coupons) { mixin(S_TRACE);
 			if (cp.value < 0) { mixin(S_TRACE);
-				min -= cp.value;
+				min += cp.value;
 			} else { mixin(S_TRACE);
 				max += cp.value;
 			}
 		}
-		if (0 >= min) { mixin(S_TRACE);
-			couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.valuedTalkerMaxMinLess0, max, min), "&", "&&");
+		if (0 >= max) {
+			if (talker) { mixin(S_TRACE);
+				couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.valuedTalkerMaxIsLess0, max, min), "&", "&&");
+			} else { mixin(S_TRACE);
+				couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.selectMemberValuedMaxIsLess0, max, min), "&", "&&");
+			}
+		} else if (0 >= min) { mixin(S_TRACE);
+			if (talker) { mixin(S_TRACE);
+				couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.valuedTalkerMaxMinLess0, max, min), "&", "&&");
+			} else { mixin(S_TRACE);
+				couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.selectMemberValuedMaxMinLess0, max, min), "&", "&&");
+			}
 		} else { mixin(S_TRACE);
-			couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.valuedTalkerMaxMin, max, min), "&", "&&");
+			if (talker) { mixin(S_TRACE);
+				couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.valuedTalkerMaxMin, max, min), "&", "&&");
+			} else { mixin(S_TRACE);
+				couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.selectMemberValuedMaxMin, max, min), "&", "&&");
+			}
 		}
 	};
 	.listener(initValue, SWT.Selection, updateValue);
