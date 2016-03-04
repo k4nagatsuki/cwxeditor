@@ -479,10 +479,9 @@ private:
 			auto temp = _dlgs[index - 1];
 			_dlgs[index - 1] = _dlgs[index];
 			_dlgs[index] = temp;
-			auto tempL = _dlgsL.getItem(index - 1).getText();
-			_dlgsL.getItem(index - 1).setText(_dlgsL.getItem(index).getText());
-			_dlgsL.getItem(index).setText(tempL);
-			_dlgsL.select(index - 1);
+			_dlgsL.upItem(index);
+			_dlgsL.showSelection();
+			_dlgsL.redraw();
 			applyEnabled();
 			comm.refreshToolBar();
 		}
@@ -494,10 +493,9 @@ private:
 			auto temp = _dlgs[index + 1];
 			_dlgs[index + 1] = _dlgs[index];
 			_dlgs[index] = temp;
-			auto tempL = _dlgsL.getItem(index + 1).getText();
-			_dlgsL.getItem(index + 1).setText(_dlgsL.getItem(index).getText());
-			_dlgsL.getItem(index).setText(tempL);
-			_dlgsL.select(index + 1);
+			_dlgsL.downItem(index);
+			_dlgsL.showSelection();
+			_dlgsL.redraw();
 			applyEnabled();
 			comm.refreshToolBar();
 		}

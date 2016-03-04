@@ -166,13 +166,6 @@ class KeyCodeView : Composite {
 		raiseModifyEvent();
 		_comm.refreshToolBar();
 	}
-	private void swap(int index1, int index2) { mixin(S_TRACE);
-		auto itm1 = _keyCodes.getItem(index1);
-		auto itm2 = _keyCodes.getItem(index2);
-		auto text1 = itm1.getText();
-		itm1.setText(itm2.getText());
-		itm2.setText(text1);
-	}
 	private void up() { mixin(S_TRACE);
 		if (_tte.isEditing) _tte.enter();
 		auto indices = _keyCodes.getSelectionIndices();
@@ -181,11 +174,13 @@ class KeyCodeView : Composite {
 
 		storeKeyCodes();
 		foreach (index; indices) { mixin(S_TRACE);
-			swap(index, index - 1);
+			_keyCodes.upItem(index);
 		}
 		indices = indices.map!(a => a - 1)().array();
 		_keyCodes.deselectAll();
 		_keyCodes.select(indices);
+		_keyCodes.showSelection();
+		_keyCodes.redraw();
 		raiseModifyEvent();
 		_comm.refreshToolBar();
 	}
@@ -197,11 +192,13 @@ class KeyCodeView : Composite {
 
 		storeKeyCodes();
 		foreach_reverse (index; indices) { mixin(S_TRACE);
-			swap(index, index + 1);
+			_keyCodes.downItem(index);
 		}
 		indices = indices.map!(a => a + 1)().array();
 		_keyCodes.deselectAll();
 		_keyCodes.select(indices);
+		_keyCodes.showSelection();
+		_keyCodes.redraw();
 		raiseModifyEvent();
 		_comm.refreshToolBar();
 	}

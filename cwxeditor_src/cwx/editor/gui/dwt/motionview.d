@@ -506,7 +506,6 @@ private:
 		}
 	}
 	void swap(int index1, int index2, bool store) { mixin(S_TRACE);
-		if (store) storeSwap(index1, index2);
 		auto itm1 = _motions.getItem(index1);
 		auto itm2 = _motions.getItem(index2);
 		auto img = itm1.getImage();
@@ -523,16 +522,20 @@ private:
 	void up() { mixin(S_TRACE);
 		int index = _motions.getSelectionIndex();
 		if (index > 0) { mixin(S_TRACE);
-			swap(index, index - 1, true);
-			_motions.select(index - 1);
+			storeSwap(index, index - 1);
+			_motions.upItem(index);
+			_motions.showSelection();
+			_motions.redraw();
 			_comm.refreshToolBar();
 		}
 	}
 	void down() { mixin(S_TRACE);
 		int index = _motions.getSelectionIndex();
 		if (index >= 0 && index + 1 < _motions.getItemCount()) { mixin(S_TRACE);
-			swap(index, index + 1, true);
-			_motions.select(index + 1);
+			storeSwap(index, index + 1);
+			_motions.downItem(index);
+			_motions.showSelection();
+			_motions.redraw();
 			_comm.refreshToolBar();
 		}
 	}

@@ -3570,8 +3570,26 @@ public:
 			selIndices[] += 1;
 		}
 		udImpl(this, _comm, _owner, _cardType, indices, up);
-		refresh();
-		select(selIndices);
+		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
+			if (up) { mixin(S_TRACE);
+				foreach (index; indices) { mixin(S_TRACE);
+					_tbl.upItem(index);
+				}
+			} else { mixin(S_TRACE);
+				foreach_reverse (index; indices) { mixin(S_TRACE);
+					_tbl.downItem(index);
+				}
+			}
+			select(selIndices);
+			_tbl.showSelection();
+			_tbl.redraw();
+		} else { mixin(S_TRACE);
+			auto cursor = _list.cursor;
+			refresh();
+			cursor += up ? -1 : 1;
+			_list.setCursor(cursor, true, false);
+			select(selIndices);
+		}
 		_comm.refreshToolBar();
 	}
 	private static void udImpl(CardPane v, Commons comm, CWXPath owner, CardType cardType, in int[] indices, bool up) { mixin(S_TRACE);

@@ -223,29 +223,14 @@ class CouponView(CVType Type) : Composite {
 			}
 		}
 	}
-	private void swapCoupon(int index1, int index2) { mixin(S_TRACE);
-		auto itm1 = _coupons.getItem(index1);
-		auto itm2 = _coupons.getItem(index2);
-		auto img = itm1.getImage();
-		auto text1 = itm1.getText(0);
-		auto text2 = itm1.getText(1);
-		auto data = itm1.getData();
-		itm1.setImage(itm2.getImage());
-		itm1.setText(0, itm2.getText(0));
-		itm1.setText(1, itm2.getText(1));
-		itm1.setData(itm2.getData());
-		itm2.setImage(img);
-		itm2.setText(0, text1);
-		itm2.setText(1, text2);
-		itm2.setData(data);
-		raiseModifyEvent();
-	}
 	private void upCoupon() { mixin(S_TRACE);
 		int index = _coupons.getSelectionIndex();
 		if (index > 0) { mixin(S_TRACE);
 			storeCoupons();
-			swapCoupon(index, index - 1);
-			_coupons.select(index - 1);
+			_coupons.upItem(index);
+			_coupons.showSelection();
+			_coupons.redraw();
+			raiseModifyEvent();
 			_comm.refreshToolBar();
 		}
 	}
@@ -253,8 +238,10 @@ class CouponView(CVType Type) : Composite {
 		int index = _coupons.getSelectionIndex();
 		if (index >= 0 && index + 1 < _coupons.getItemCount()) { mixin(S_TRACE);
 			storeCoupons();
-			swapCoupon(index, index + 1);
-			_coupons.select(index + 1);
+			_coupons.downItem(index);
+			_coupons.showSelection();
+			_coupons.redraw();
+			raiseModifyEvent();
 			_comm.refreshToolBar();
 		}
 	}

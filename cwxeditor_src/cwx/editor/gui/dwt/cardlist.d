@@ -331,6 +331,12 @@ public:
 		if (scroll) this.scroll(_cur);
 	}
 	alias Composite.setCursor setCursor;
+	/// カーソル位置を返す。
+	@property
+	int cursor() { mixin(S_TRACE);
+		return _cur;
+	}
+
 	/// 指定されたインデックスの領域を再描画するよう指示する。
 	/// Params:
 	/// index = インデックス。

@@ -146,3 +146,55 @@ class FullTableColumn {
 		}
 	}
 }
+
+void upItem(Table table, int index) { mixin(S_TRACE);
+	if (index - 1 < 0) return;
+	table.setRedraw(false);
+	scope (exit) table.setRedraw(true);
+	auto itmTo = table.getItem(index - 1);
+
+	auto toStyle = itmTo.getStyle();
+	auto toData = itmTo.getData();
+	auto toChecked = itmTo.getChecked();
+	string[] toText;
+	Image[] toImage;
+	foreach (ci; 0 .. table.getColumnCount()) { mixin(S_TRACE);
+		toText ~= itmTo.getText(ci);
+		toImage ~= itmTo.getImage(ci);
+	}
+	itmTo.dispose();
+
+	itmTo = new TableItem(table, toStyle, index);
+	itmTo.setData(toData);
+	itmTo.setChecked(toChecked);
+	foreach (ci; 0 .. table.getColumnCount()) { mixin(S_TRACE);
+		itmTo.setText(ci, toText[ci]);
+		itmTo.setImage(ci, toImage[ci]);
+	}
+}
+
+void downItem(Table table, int index) { mixin(S_TRACE);
+	if (table.getItemCount() <= index + 1) return;
+	table.setRedraw(false);
+	scope (exit) table.setRedraw(true);
+	auto itmTo = table.getItem(index + 1);
+
+	auto toStyle = itmTo.getStyle();
+	auto toData = itmTo.getData();
+	auto toChecked = itmTo.getChecked();
+	string[] toText;
+	Image[] toImage;
+	foreach (ci; 0 .. table.getColumnCount()) { mixin(S_TRACE);
+		toText ~= itmTo.getText(ci);
+		toImage ~= itmTo.getImage(ci);
+	}
+	itmTo.dispose();
+
+	itmTo = new TableItem(table, toStyle, index);
+	itmTo.setData(toData);
+	itmTo.setChecked(toChecked);
+	foreach (ci; 0 .. table.getColumnCount()) { mixin(S_TRACE);
+		itmTo.setText(ci, toText[ci]);
+		itmTo.setImage(ci, toImage[ci]);
+	}
+}

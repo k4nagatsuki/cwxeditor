@@ -2631,6 +2631,11 @@ public:
 			ATUndo[] undos;
 			do { mixin(S_TRACE);
 				undos ~= new UndoSwap(this, _comm, _summ, indexFrom!A(_summ, i1), indexFrom!A(_summ, i2));
+				if (i1 < i2) { mixin(S_TRACE);
+					_areas.downItem(indexFrom!A(_summ, i1));
+				} else { mixin(S_TRACE);
+					_areas.upItem(indexFrom!A(_summ, i1));
+				}
 				a2 = array[i2];
 				_summ.swap!A(i1, i2);
 				int mv = i2 - i1;
@@ -2640,12 +2645,17 @@ public:
 			_undo ~= new ATUndoArr(undos);
 		} else { mixin(S_TRACE);
 			storeSwap(indexFrom!A(_summ, i1), indexFrom!A(_summ, i2));
+			if (i1 < i2) { mixin(S_TRACE);
+				_areas.downItem(indexFrom!A(_summ, i1));
+			} else { mixin(S_TRACE);
+				_areas.upItem(indexFrom!A(_summ, i1));
+			}
 			_summ.swap!A(i1, i2);
 		}
 		int m = showSummary ? 1 : 0;
-		refreshAreas();
 		select(a1);
 		_areas.showSelection();
+		_areas.redraw();
 		static if (is(A : Area)) {
 			_comm.refArea.call(a1);
 			_comm.refArea.call(a2);

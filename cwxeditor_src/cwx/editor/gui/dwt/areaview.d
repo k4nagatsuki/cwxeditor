@@ -1164,20 +1164,9 @@ private:
 					foreach (v; vs) v._imgp.swap(i + startIndex - 1, i + startIndex);
 					swap(i - 1, i);
 					foreach (list; lists) { mixin(S_TRACE);
-						auto itm1 = list.getItem(i - 1);
-						auto itm2 = list.getItem(i);
-						string temp = itm1.getText();
-						itm1.setText(itm2.getText());
-						itm2.setText(temp);
-						auto dtemp = itm1.getData();
-						itm1.setData(itm2.getData());
-						itm2.setData(dtemp);
-						auto itemp = itm1.getImage();
-						itm1.setImage(itm2.getImage());
-						itm2.setImage(itemp);
-						auto ctemp = itm1.getChecked();
-						itm1.setChecked(itm2.getChecked());
-						itm2.setChecked(ctemp);
+						list.upItem(i);
+						list.showSelection();
+						list.redraw();
 					}
 				}
 			}
@@ -1194,20 +1183,9 @@ private:
 					foreach (v; vs) v._imgp.swap(i + startIndex + 1, i + startIndex);
 					swap(i + 1, i);
 					foreach (list; lists) { mixin(S_TRACE);
-						auto itm1 = list.getItem(i + 1);
-						auto itm2 = list.getItem(i);
-						string temp = itm1.getText();
-						itm1.setText(itm2.getText());
-						itm2.setText(temp);
-						auto dtemp = itm1.getData();
-						itm1.setData(itm2.getData());
-						itm2.setData(dtemp);
-						auto itemp = itm1.getImage();
-						itm1.setImage(itm2.getImage());
-						itm2.setImage(itemp);
-						auto ctemp = itm1.getChecked();
-						itm1.setChecked(itm2.getChecked());
-						itm2.setChecked(ctemp);
+						list.downItem(i);
+						list.showSelection();
+						list.redraw();
 					}
 				}
 			}
