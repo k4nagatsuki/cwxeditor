@@ -1293,9 +1293,9 @@ private:
 				names ~= _prop.msgs.filterScenarioSaveCab;
 			}
 			string fname = null;
-			int filter = _prop.var.etc.lastSaveFilter;
-			if (filter < 0 || filters.length <= filter) { mixin(S_TRACE);
-				filter = 0;
+			int filter = FILTER_WSN;
+			if (summary.legacy) { mixin(S_TRACE);
+				filter = FILTER_WSM;
 			}
 			bool classic;
 			string filterPath = scenarioFilterPath(_prop);
@@ -1387,7 +1387,6 @@ private:
 					if (oldClassic != summary.legacy) _comm.refDataVersion.call();
 					_comm.refPaths.call("");
 					addHistory();
-					_prop.var.etc.lastSaveFilter = filter;
 					core.memory.GC.collect();
 					playSavedSound();
 				} catch (SummaryException e) {
