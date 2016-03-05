@@ -486,7 +486,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		// イベントタイプによって初期値が異なる
 		if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
 			initValue = 1;
-		} else assert (type is CType.BRANCH_SELECT);
+		}
 
 		validate();
 	}
@@ -849,9 +849,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
 			resetValue!(CArg.INIT_VALUE, int, 1)(d, &initValue);
-		} else if (type is CType.BRANCH_SELECT) { mixin(S_TRACE);
+		} else { mixin(S_TRACE);
 			resetValue!(CArg.INIT_VALUE, int, 0)(d, &initValue);
-		} else assert (0);
+		}
 
 		resetValue!(CArg.COMPARISON_4, Comparison4, Comparison4.Eq)(d, &comparison4);
 		resetValue!(CArg.COMPARISON_3, Comparison3, Comparison3.Eq)(d, &comparison3);
