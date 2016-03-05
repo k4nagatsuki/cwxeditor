@@ -482,6 +482,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_name = new SimpleTextHolder;
 		_name.text = name;
 		_name.owner = this;
+
+		// イベントタイプによって初期値が異なる
+		if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
+			initValue = 1;
+		} else assert (type is CType.BRANCH_SELECT);
+
 		validate();
 	}
 	/// cからパラメータをコピーする。
@@ -841,7 +847,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.EFFECT_CARD_TYPE, EffectCardType, EffectCardType.ALL)(d, &effectCardType);
 		resetValue!(CArg.KEY_CODE, string, "")(d, &keyCode);
 
-		resetValue!(CArg.INIT_VALUE, int, 0)(d, &initValue);
+		if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
+			resetValue!(CArg.INIT_VALUE, int, 1)(d, &initValue);
+		} else if (type is CType.BRANCH_SELECT) { mixin(S_TRACE);
+			resetValue!(CArg.INIT_VALUE, int, 0)(d, &initValue);
+		} else assert (0);
 
 		resetValue!(CArg.COMPARISON_4, Comparison4, Comparison4.Eq)(d, &comparison4);
 		resetValue!(CArg.COMPARISON_3, Comparison3, Comparison3.Eq)(d, &comparison3);
@@ -1586,7 +1596,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(KeyCodeUser, string, "keyCode", "", ".keyCode", ".keyCode", true);
 
 	/// 評価メンバ初期値(CardWirth 1.50)。
-	mixin Prop!(int, "initValue", 1);
+	mixin Prop!(int, "initValue", 0);
 
 	/// 4路比較条件(CardWirth 1.50)。
 	mixin Prop!(Comparison4, "comparison4", Comparison4.Eq);
