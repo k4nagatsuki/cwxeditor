@@ -1611,7 +1611,7 @@ public:
 	}
 	private void downCard(int[] indices, int count) { mixin(S_TRACE);
 		initial();
-		udCard(indices, &treeItemDown, 1, count);
+		udCard(indices.reverse, &treeItemDown, 1, count);
 	}
 	private bool _initialed = false;
 	bool initial() { mixin(S_TRACE);
