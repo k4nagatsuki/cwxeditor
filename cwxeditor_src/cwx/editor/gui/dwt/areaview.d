@@ -767,7 +767,6 @@ private:
 		int cancelSpnCard(string T, string SetFlexImage)(int oldVal) { mixin(S_TRACE);
 			if (_readOnly) return oldVal;
 			assert(_editC.length > 0);
-			assert(_editC.length == 1);
 			return cancelSpnImpl!(T, SetFlexImage, C)(_editC, (v) => v.cardsIndex, true);
 		}
 		class SCListener : SelectionAdapter {
