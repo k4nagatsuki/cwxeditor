@@ -58,6 +58,7 @@ class CouponView(CVType Type) : Composite {
 	private Commons _comm;
 	private Props _prop;
 	private Summary _summ;
+	private bool _isHistoryView; /// キャラクターの経歴欄か。評価条件などの場合はfalse。
 	private KeyDownFilter _kdFilter;
 
 	private UndoManager _undoCoupons;
@@ -145,7 +146,12 @@ class CouponView(CVType Type) : Composite {
 				}
 			}
 			storeCoupons();
-			appendCoupon(new Coupon(_newCoupon.getText(), _couponVal.getSelection()), _coupons.getSelectionIndex());
+			auto coupon = new Coupon(_newCoupon.getText(), _couponVal.getSelection());
+			if (_isHistoryView) { mixin(S_TRACE);
+				appendCoupon(coupon, _coupons.getSelectionIndex());
+			} else { mixin(S_TRACE);
+				appendCoupon(coupon);
+			}
 			raiseModifyEvent();
 			_comm.refreshToolBar();
 		}
@@ -394,8 +400,9 @@ class CouponView(CVType Type) : Composite {
 	private class HTBKeyDown : Listener {
 		override void handleEvent(Event e) {e.doit = true;}
 	}
-	this (Commons comm, Summary summ, Composite parent, int style, bool delegate() catchMod) { mixin(S_TRACE);
+	this (Commons comm, Summary summ, Composite parent, int style, bool delegate() catchMod, bool isHistoryView) { mixin(S_TRACE);
 		super (parent, style);
+		_isHistoryView = isHistoryView;
 
 		auto o = this;
 		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());

@@ -1962,7 +1962,7 @@ Composite createValueEditor(Commons comm, Summary summ, Composite parent, bool d
 	initValue.setMaximum(comm.prop.var.etc.couponValueMax);
 	initValue.setSelection(1);
 	initValue.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-	couponView = new CouponView!(CVType.Valued)(comm, summ, grp, SWT.NONE, catchMod);
+	couponView = new CouponView!(CVType.Valued)(comm, summ, grp, SWT.NONE, catchMod, false);
 	auto gd = new GridData(GridData.FILL_BOTH);
 	gd.horizontalSpan = 2;
 	couponView.setLayoutData(gd);
