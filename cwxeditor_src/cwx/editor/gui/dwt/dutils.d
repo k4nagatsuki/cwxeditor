@@ -1657,12 +1657,16 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 		static assert (0);
 	}
 	bool link = false;
+	bool noData = false;
 	Rebindable!(const(C)) c = base;
 	static if (is(typeof(base.linkId))) {
 		if (get && 0 != base.linkId) { mixin(S_TRACE);
 			link = true;
 			c = get(c.linkId);
-			if (!c) c = new C(1UL, "", [], "");
+			if (!c) { mixin(S_TRACE);
+				c = new C(1UL, "", [], "");
+				noData = true;
+			}
 		}
 	}
 	auto cardSize = prop.looks.cardSize;
@@ -1684,7 +1688,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 		}
 	}
 	static if (is(C:SkillCard)) {
-		if (prop.var.etc.showSkillCardLevel) { mixin(S_TRACE);
+		if (prop.var.etc.showSkillCardLevel && !noData) { mixin(S_TRACE);
 			auto levelColor = OS.VERSION(6, 0) <= OS.WIN32_VERSION ? prop.looks.skillCardLevelColor : CRGB(128, 128, 128);
 			r.append(to!(string)(c.level),
 				prop.looks.skillCardLevelInsets,
