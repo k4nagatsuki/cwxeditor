@@ -1350,16 +1350,12 @@ private:
 	template CopyAndPaste() {
 		override void cut(SelectionEvent se) { mixin(S_TRACE);
 			if (editMode) { mixin(S_TRACE);
-				copy(se);
+				copyImpl(true);
 				del(se);
 			}
 		}
 		override void copy(SelectionEvent se) { mixin(S_TRACE);
-			auto cs = selectedCards;
-			if (cs.length > 0) { mixin(S_TRACE);
-				XMLtoCB(_prop, _comm.clipboard, toXML(cs));
-				_comm.refreshToolBar();
-			}
+			copyImpl(false);
 		}
 		override void paste(SelectionEvent se) { mixin(S_TRACE);
 			if (editMode) { mixin(S_TRACE);
@@ -1387,7 +1383,7 @@ private:
 			if (editMode) { mixin(S_TRACE);
 				_comm.clipboard.memoryMode = true;
 				scope (exit) _comm.clipboard.memoryMode = false;
-				copy(se);
+				copyImpl(false);
 				paste(se);
 			}
 		}
@@ -1410,6 +1406,13 @@ private:
 		@property
 		override bool canDoClone() { mixin(S_TRACE);
 			return canDoC && editMode;
+		}
+	}
+	private void copyImpl(bool del) { mixin(S_TRACE);
+		auto cs = selectedCards;
+		if (cs.length > 0) { mixin(S_TRACE);
+			XMLtoCB(_prop, _comm.clipboard, toXML(cs, del));
+			_comm.refreshToolBar();
 		}
 	}
 	static void delImpl(CardPane v, Commons comm, CWXPath owner, Card card) { mixin(S_TRACE);
@@ -1843,7 +1846,7 @@ private:
 				Control c = (cast(DragSource) e.getSource()).getControl();
 				auto sels = selectedCards;
 				if (sels.length > 0) { mixin(S_TRACE);
-					e.data = bytesFromXML(toXML(sels));
+					e.data = bytesFromXML(toXML(sels, false));
 				}
 			}
 		}
@@ -1962,16 +1965,18 @@ private:
 		}
 		refreshStatusLine();
 	}
-	void toNode(ref XNode sn, Card[] sels) { mixin(S_TRACE);
+	void toNode(ref XNode sn, Card[] sels, bool del) { mixin(S_TRACE);
 		if (!sels.length) return;
-		if (cast(Object) sels[0].cwxParent is _summ) { mixin(S_TRACE);
-			sn.newAttr("summId", _summ.id);
-			sn.newAttr("paneId", _id);
-			sn.newAttr("topLevel", true);
-		} else { mixin(S_TRACE);
-			sn.newAttr("summId", ownerId);
-			sn.newAttr("paneId", _id);
-			sn.newAttr("topLevel", false);
+		if (!del) { mixin(S_TRACE);
+			if (cast(Object) sels[0].cwxParent is _summ) { mixin(S_TRACE);
+				sn.newAttr("summId", _summ.id);
+				sn.newAttr("paneId", _id);
+				sn.newAttr("topLevel", true);
+			} else { mixin(S_TRACE);
+				sn.newAttr("summId", ownerId);
+				sn.newAttr("paneId", _id);
+				sn.newAttr("topLevel", false);
+			}
 		}
 		sn.newAttr("scenarioPath", nabs(ownerScenarioPath));
 		auto opt = new XMLOption(_prop.sys, LATEST_VERSION);
@@ -1979,9 +1984,9 @@ private:
 			sel.toNode(sn, opt);
 		}
 	}
-	string toXML(Card[] sels) { mixin(S_TRACE);
+	string toXML(Card[] sels, bool del) { mixin(S_TRACE);
 		auto doc = XNode.create(xmlNameM);
-		toNode(doc, sels);
+		toNode(doc, sels, del);
 		return doc.text;
 	}
 	private void editM() { mixin(S_TRACE);
@@ -2595,7 +2600,7 @@ private:
 		createMenuItem2(_comm, _addHandMenu, .format("%s.%s", card.id, card.name), _cimg, { mixin(S_TRACE);
 			.forceFocus(widget, false);
 			auto doc = XNode.create(xmlNameM);
-			toNode(doc, [card]);
+			toNode(doc, [card], false);
 			auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 			addFromNode(doc, ver);
 		}, null);
