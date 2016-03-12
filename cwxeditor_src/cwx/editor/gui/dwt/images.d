@@ -59,6 +59,7 @@ enum ImageType {
 	Image, /// 重ね合わせた画像。
 	Text, /// テキスト描画。テキスト本体は拡大縮小されない。
 	ColorFilter, /// カラーフィルタ。
+	Drawer, /// 独自描画。
 }
 
 /// 画像を重ねて1枚のイメージを作成する。
@@ -104,6 +105,7 @@ private:
 	ImageData _baseSizeData = null;
 	string path = "";
 	ImageData data = null;
+	void delegate(in PileImage img, GC gc) _drawer = null;
 
 	bool _visible = true;
 	int _layer = 0;
@@ -201,6 +203,15 @@ public:
 		this.borderingType = borderingType;
 		this.borderingColor = borderingColor;
 		this.borderingWidth = borderingWidth;
+	}
+
+	/// 独自描画用のインスタンスを生成する。
+	this (void delegate(in PileImage img, GC gc) drawer, int x, int y, int baseW, int baseH) {
+		this._type = ImageType.Drawer;
+		_drawer = drawer;
+		rect = new Rectangle(x, y, baseW, baseH);
+		initW = baseW;
+		initH = baseH;
 	}
 
 	/// イメージのタイプ。
@@ -488,6 +499,8 @@ public:
 				return createTextImageData();
 			case ImageType.ColorFilter:
 				return createFilterImageData();
+			case ImageType.Drawer:
+				return null;
 			}
 		} catch (Exception e) {
 			printStackTrace();
@@ -881,7 +894,7 @@ public:
 	/// 画像を描画する。
 	/// Params:
 	/// dc = キャンバス。
-	void draw(ref Image buf, ref GC gc, Rectangle range) { mixin(S_TRACE);
+	void draw(Display d, ref Image buf, ref GC gc, Rectangle range) { mixin(S_TRACE);
 		if (!_visible) return;
 		if (!range.intersects(rect)) return;
 		if (_needCreate) createImageImpl();
@@ -900,11 +913,36 @@ public:
 				scope (exit) gc.setAlpha(olda);
 				gc.drawImage(_img, x, y);
 			} else { mixin(S_TRACE);
-				drawText(buf, gc, range);
+				drawText(d, buf, gc, range);
 			}
 			break;
 		case ImageType.ColorFilter:
 			drawFilter(buf, gc, range);
+			break;
+		case ImageType.Drawer:
+			import org.eclipse.swt.internal.win32.OS;
+			auto fore = gc.getForeground();
+			scope (exit) gc.setForeground(fore);
+			auto back = gc.getBackground();
+			scope (exit) gc.setBackground(back);
+
+			// FIXME: クリッピングをしたかったがなぜかまったく効かないので
+			GC gc2;
+			auto img2 = cloneBuf(d, buf, gc, range, gc2);
+			scope (exit) img2.dispose();
+			scope (exit) gc2.dispose();
+
+			if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
+				auto a = gc.getAlpha();
+				scope (exit) gc.setAlpha(a);
+				auto antialias = gc.getAntialias();
+				scope (exit) gc.setAntialias(antialias);
+				_drawer(this, gc2);
+			} else { mixin(S_TRACE);
+				_drawer(this, gc2);
+			}
+			// 元のバッファへ描き戻す
+			gc.drawImage(img2, 0, 0, width, height, x, y, width, height);
 			break;
 		}
 	}
@@ -948,11 +986,10 @@ public:
 		imgData.height = cast(int)iHeight;
 		imgData.bytesPerLine = cast(int)bytesPerLine;
 	}
-	// BorderingType.Inline以外のテキストの描画を行う。
-	private void drawText(ref Image buf, ref GC gc, Rectangle range) { mixin(S_TRACE);
-		auto cur = Display.getCurrent();
+	/// 描画対象領域をコピーして下地を作成する。
+	private Image cloneBuf(Display cur, Image buf, GC gc, Rectangle range, ref GC gc2) { mixin(S_TRACE);
 		auto img2 = new Image(cur, width, height);
-		auto gc2 = new GC(img2);
+		gc2 = new GC(img2);
 		// 描画対象領域をコピーして下地にする
 		int sx = x;
 		int sy = y;
@@ -977,6 +1014,12 @@ public:
 			sh -= (sy + sh) - (range.y + range.height);
 		}
 		gc2.drawImage(buf, sx, sy, sw, sh, dx, dy, sw, sh);
+		return img2;
+	}
+	/// BorderingType.Inline以外のテキストの描画を行う。
+	private void drawText(Display cur, ref Image buf, ref GC gc, Rectangle range) { mixin(S_TRACE);
+		GC gc2;
+		auto img2 = cloneBuf(cur, buf, gc, range, gc2);
 		gc2.dispose();
 		auto imgData = img2.getImageData();
 		img2.dispose();
@@ -1255,6 +1298,8 @@ public:
 			if (_color1.a < 255) return false;
 			if (_color2.a < 255 && _gradientDir != GradientDir.None) return false;
 			return true;
+		case ImageType.Drawer:
+			return false;
 		}
 	}
 
@@ -1498,6 +1543,11 @@ public:
 		this.gradientDir = gradientDir;
 		this.color1 = color1;
 		this.color2 = color2;
+	}
+	/// 独自描画用のインスタンスを生成する。
+	this (void delegate(in PileImage img, GC gc) drawer, int x, int y, int baseW, int baseH) {
+		super (drawer, x, y, baseW, baseH);
+		newR = new Rectangle(x, y, baseW, baseH);
 	}
 
 	/// Returns: 最小の幅。初期値は1。
@@ -2681,7 +2731,7 @@ private:
 							drawAlphaImgData();
 						}
 						befAlpha = -1;
-						img.draw(buf, gc, range);
+						img.draw(d, buf, gc, range);
 						if (img.isOpaque) { mixin(S_TRACE);
 							region.subtract(img.x, img.y, img.width, img.height);
 						}

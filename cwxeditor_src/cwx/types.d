@@ -1473,10 +1473,9 @@ enum MenuID {
 	NewEnemyCard,
 	NewBack,
 	NewTextCell,
-	NewColorCell,
-	// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
-/+	NewPCCell,
-+/	AutoArrange,
+	NewColorCell, // Wsn.1
+	NewPCCell,
+	AutoArrange,
 	ManualArrange,
 	Mask,
 	Escape,

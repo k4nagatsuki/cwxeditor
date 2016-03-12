@@ -1575,7 +1575,7 @@ class Msgs : Properties {
 	auto warningValuedTalker = Msg("warningValuedTalker", "評価メンバは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningTextCell = Msg("warningTextCell", "テキストセルは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningColorCell = Msg("warningColorCell", "カラーセルは、CardWirth 1.50より前のバージョンでは使用できません。");
-	auto warningPCCell = Msg("warningPCCell", "プレイヤーキャラクタセルは、CardWirth 1.60より前のバージョンでは使用できません。");
+	auto warningPCCell = Msg("warningPCCell", "プレイヤーキャラクタセルは、WSN1以降の形式のシナリオでしか使用できません。");
 	auto warningEffectBoosterFileWithReplaceBgImage = Msg("warningEffectBoosterFileWithReplaceBgImage", "エフェクトブースター関係の背景セルは無視するように指定されています。");
 	auto warningBgImageIncluded = Msg("warningBgImageForeground", "背景セルのイメージ格納は、CardWirth 1.60より前のバージョンでは行えません。");
 	auto warningBgImageForeground = Msg("warningBgImageForeground", "カードよりも前の表示は、CardWirth 1.60より前のバージョンでは行えません。");

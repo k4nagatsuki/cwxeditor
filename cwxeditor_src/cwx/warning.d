@@ -218,7 +218,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto pc = cast(PCCell) path;
 	if (pc) { mixin(S_TRACE);
-		if (!prop.targetVersion("1.60", targVer)) { mixin(S_TRACE);
+		if (!prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningPCCell;
 		}
 	}

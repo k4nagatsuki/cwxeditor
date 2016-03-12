@@ -551,9 +551,8 @@ public:
 		case MenuID.NewBack: return imgd!("back_new.png");
 		case MenuID.NewTextCell: return imgd!("text_cell_new.png");
 		case MenuID.NewColorCell: return imgd!("color_cell_new.png");
-		// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
-/+		case MenuID.NewPCCell: return imgd!("pc_cell_new.png");
-+/		case MenuID.AutoArrange: return imgd!("auto.png");
+		case MenuID.NewPCCell: return imgd!("pc_cell_new.png");
+		case MenuID.AutoArrange: return imgd!("auto.png");
 		case MenuID.ManualArrange: return imgd!("custom.png");
 		case MenuID.Mask: return imgd!("mask.png");
 		case MenuID.Escape: return imgd!("escape.png");

@@ -1691,9 +1691,8 @@ private:
 					createMenuItem(_comm, menu, MenuID.NewBack, &createBackground, () => !_readOnly);
 					createMenuItem(_comm, menu, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
 					createMenuItem(_comm, menu, MenuID.NewColorCell, &createColorCell, () => !_readOnly);
-					// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
-/+					createMenuItem(_comm, menu, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
-+/				}
+					createMenuItem(_comm, menu, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
+				}
 			}
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, menu, _tcpd, !_readOnly, true, !_readOnly, !_readOnly, !_readOnly);
@@ -2074,7 +2073,7 @@ private:
 				auto back = _editB.keys[0];
 				_wSpn.setSelection(back.width);
 				_hSpn.setSelection(back.height);
-				_maskTMenu.setSelection(back.mask);
+				_maskTMenu.setSelection(cast(ImageCell)back && back.mask);
 				if (_editC.length == 0) { mixin(S_TRACE);
 					_xSpn.setSelection(back.x);
 					_ySpn.setSelection(back.y);
@@ -2083,7 +2082,11 @@ private:
 			} else if (_editB.length > 1) { mixin(S_TRACE);
 				_wSpn.setSelection(spnValue!("a.width", BgImage, int)(_editB.keys, 0));
 				_hSpn.setSelection(spnValue!("a.height", BgImage, int)(_editB.keys, 0));
-				_maskTMenu.setSelection(spnValue!("a.mask", BgImage, bool)(_editB.keys, 0));
+				BgImage[] ics = [];
+				foreach (b; _editB.keys) { mixin(S_TRACE);
+					if (auto ic = cast(ImageCell)b) ics ~= ics;
+				}
+				_maskTMenu.setSelection(spnValue!("a.mask", BgImage, bool)(ics, 0));
 			}
 			if (_editC.length + _editB.length > 1) { mixin(S_TRACE);
 				if (_editC.length == 0) { mixin(S_TRACE);
@@ -2153,14 +2156,18 @@ private:
 				_ySpn.setSelection(back.y);
 				_wSpn.setSelection(back.width);
 				_hSpn.setSelection(back.height);
-				_maskTMenu.setSelection(back.mask);
+				_maskTMenu.setSelection(cast(ImageCell)back && back.mask);
 				_layerSpn.setSelection(back.layer);
 			} else if (_editB.length > 1) { mixin(S_TRACE);
 				_xSpn.setSelection(spnValue!("a.x", BgImage, int)(_editB.keys, 0));
 				_ySpn.setSelection(spnValue!("a.y", BgImage, int)(_editB.keys, 0));
 				_wSpn.setSelection(spnValue!("a.width", BgImage, int)(_editB.keys, 0));
 				_hSpn.setSelection(spnValue!("a.height", BgImage, int)(_editB.keys, 0));
-				_maskTMenu.setSelection(spnValue!("a.mask", BgImage, bool)(_editB.keys, false));
+				BgImage[] ics = [];
+				foreach (b; _editB.keys) { mixin(S_TRACE);
+					if (auto ic = cast(ImageCell)b) ics ~= ics;
+				}
+				_maskTMenu.setSelection(spnValue!("a.mask", BgImage, bool)(ics, false));
 				_layerSpn.setSelection(spnValue!("a.layer", BgImage, int)(_editB.keys, 0));
 			}
 		} else { mixin(S_TRACE);
@@ -2390,9 +2397,8 @@ private:
 				createToolItem(_comm, bar, MenuID.NewBack, &createBackground, () => !_readOnly);
 				createToolItem(_comm, bar, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
 				createToolItem(_comm, bar, MenuID.NewColorCell, &createColorCell, () => !_readOnly);
-				// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
-/+				createToolItem(_comm, bar, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
-+/			}
+				createToolItem(_comm, bar, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
+			}
 		}
 
 		auto list = new Table(comp, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.VIRTUAL);
@@ -2423,9 +2429,8 @@ private:
 					createMenuItem(_comm, menu, MenuID.NewBack, &createBackground, () => !_readOnly);
 					createMenuItem(_comm, menu, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
 					createMenuItem(_comm, menu, MenuID.NewColorCell, &createColorCell, () => !_readOnly);
-					// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
-/+					createMenuItem(_comm, menu, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
-+/				}
+					createMenuItem(_comm, menu, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
+				}
 			}
 			new MenuItem(menu, SWT.SEPARATOR);
 			appendMenuTCPD(_comm, menu, tcpd, !_readOnly, true, !_readOnly, !_readOnly, !_readOnly);
@@ -4239,9 +4244,8 @@ public:
 				createMenuItem(_comm, mv, MenuID.NewBack, &createBackground, () => !_readOnly);
 				createMenuItem(_comm, mv, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
 				createMenuItem(_comm, mv, MenuID.NewColorCell, &createColorCell, () => !_readOnly);
-				// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
-/+				createMenuItem(_comm, mv, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
-+/			}
+				createMenuItem(_comm, mv, MenuID.NewPCCell, &createPCCell, () => !_readOnly);
+			}
 		}
 	}
 
@@ -4333,7 +4337,15 @@ public:
 		}
 		static if (UseBacks) {
 			new ToolItem(bar, SWT.SEPARATOR);
-			_maskTMenu = createToolItem(_comm, bar, MenuID.Mask, &setMask, () => !_readOnly && _backs.getSelectionIndex() != -1, SWT.CHECK);
+			_maskTMenu = createToolItem(_comm, bar, MenuID.Mask, &setMask, { mixin(S_TRACE);
+				if (_readOnly) return false;
+				foreach (itm; _backs.getSelection()) { mixin(S_TRACE);
+					if (cast(ImageCell)itm.getData()) { mixin(S_TRACE);
+						return true;
+					}
+				}
+				return false;
+			}, SWT.CHECK);
 			_maskTMenu.setEnabled(false);
 		}
 		static if (is (C == EnemyCard)) {
@@ -4785,13 +4797,29 @@ public:
 		private FlexImage create(PCCell back) { mixin(S_TRACE);
 			auto skin = summSkin;
 			auto size = _prop.looks.cardSize;
-			auto img = new Image(getDisplay(), size.width, size.height);
-			scope (exit) img.dispose();
-			auto gc = new GC(img);
-			scope (exit) gc.dispose();
-			gc.drawRectangle(0, 0, size.width - 1, size.height - 1);
-			drawCenterText(dwtData(_prop.looks.pcNumberFont(skin.legacy)), gc, new Rectangle(0, 0, size.width, size.height), .text(back.pcNumber));
-			auto r = new FlexImage(img.getImageData(), back.x, back.y, size.width, size.height, true);
+			auto r = new FlexImage((img, gc) { mixin(S_TRACE);
+				import org.eclipse.swt.internal.win32.OS;
+				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
+					gc.setAntialias(SWT.ON);
+				}
+				auto d = _imgp.getDisplay();
+				int alpha;
+				auto back2 = new Color(d, .dwtData(_prop.looks.pcCellBackColor, alpha));
+				scope (exit) back2.dispose();
+				gc.setBackground(back2);
+				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
+					gc.setAlpha(alpha);
+				}
+				gc.fillOval(0, 0, size.width, size.height);
+				auto fore2 = new Color(d, .dwtData(_prop.looks.pcCellForeColor, alpha));
+				scope (exit) fore2.dispose();
+				gc.setForeground(fore2);
+				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
+					gc.setAlpha(alpha);
+				}
+				gc.drawOval(0, 0, size.width - 1, size.height - 1);
+				drawCenterText(.dwtData(_prop.looks.pcNumberFont(skin.legacy)), gc, new Rectangle(0, 0, size.width - 1, size.height - 1), .text(back.pcNumber));
+			}, back.x, back.y, size.width, size.height);
 			r.transparent = false;
 			r.layer = back.layer * 10;
 			r.newWidth = back.width;

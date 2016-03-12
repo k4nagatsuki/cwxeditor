@@ -161,9 +161,8 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.NewBack] = "B";
 		_mnemonic[MenuID.NewTextCell] = "T";
 		_mnemonic[MenuID.NewColorCell] = "L";
-		// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
-/+		_mnemonic[MenuID.NewPCCell] = "P";
-+/		_mnemonic[MenuID.AutoArrange] = "A";
+		_mnemonic[MenuID.NewPCCell] = "P";
+		_mnemonic[MenuID.AutoArrange] = "A";
 		_mnemonic[MenuID.ManualArrange] = "U";
 		_mnemonic[MenuID.Mask] = "M";
 		_mnemonic[MenuID.Escape] = "E";
@@ -376,9 +375,8 @@ class MenuProps : Properties {
 		_hotkey[MenuID.NewBack] = "";
 		_hotkey[MenuID.NewTextCell] = "";
 		_hotkey[MenuID.NewColorCell] = "";
-		// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
-/+		_hotkey[MenuID.NewPCCell] = "";
-+/		_hotkey[MenuID.AutoArrange] = "";
+		_hotkey[MenuID.NewPCCell] = "";
+		_hotkey[MenuID.AutoArrange] = "";
 		_hotkey[MenuID.ManualArrange] = "";
 		_hotkey[MenuID.Mask] = "";
 		_hotkey[MenuID.Escape] = "";
@@ -638,9 +636,8 @@ bool isPMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.NewBack:
 	case MenuID.NewTextCell:
 	case MenuID.NewColorCell:
-	// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
-/+	case MenuID.NewPCCell:
-+/	case MenuID.OpenImportSource:
+	case MenuID.NewPCCell:
+	case MenuID.OpenImportSource:
 	case MenuID.NewCast:
 	case MenuID.NewSkill:
 	case MenuID.NewItem:
@@ -838,9 +835,8 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.NewBack:
 	case MenuID.NewTextCell:
 	case MenuID.NewColorCell:
-	// FIXME: CardWirth 1.60 プレイヤーキャラクタセル
-/+	case MenuID.NewPCCell:
-+/	case MenuID.AutoArrange:
+	case MenuID.NewPCCell:
+	case MenuID.AutoArrange:
 	case MenuID.ManualArrange:
 	case MenuID.Mask:
 	case MenuID.Escape:
@@ -1053,6 +1049,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.NewBack:
 	case MenuID.NewTextCell:
 	case MenuID.NewColorCell:
+	case MenuID.NewPCCell:
 	case MenuID.AutoArrange:
 	case MenuID.ManualArrange:
 	case MenuID.Mask:

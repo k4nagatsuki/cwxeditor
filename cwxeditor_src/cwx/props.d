@@ -195,6 +195,10 @@ public:
 		}
 		return CFont(pgothic(legacy), 11, false, false);
 	}
+
+	@property const CRGB pcCellForeColor() { return CRGB(0, 0, 0); }
+	@property const CRGB pcCellBackColor() { return CRGB(255, 255, 255, 192); }
+
 	const CFont scriptErrorFont(uint defSize) { mixin(S_TRACE);
 		return textDlgFont(defSize);
 	}

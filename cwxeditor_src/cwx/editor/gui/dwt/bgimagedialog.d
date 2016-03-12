@@ -100,7 +100,7 @@ private:
 			case 0:
 				break;
 			case 1:
-				if (cast(ImageCell) back) { mixin(S_TRACE);
+				if (cast(ImageCell)back || cast(PCCell)back) { mixin(S_TRACE);
 					selectEasySetting();
 					applyEnabled();
 				} else { mixin(S_TRACE);
@@ -109,7 +109,7 @@ private:
 				break;
 			default:
 				_selected = true;
-				if (cast(ImageCell) back) { mixin(S_TRACE);
+				if (cast(ImageCell)back || cast(PCCell)back) { mixin(S_TRACE);
 					i--;
 				}
 				auto s = _prop.var.etc.bgImageSettings[i - 1];
@@ -227,7 +227,7 @@ protected:
 			_easy.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 		}
 		_easy.add(_prop.msgs.defaultSelection(_prop.msgs.bgImageSettingCustom));
-		if (cast(ImageCell) back) { mixin(S_TRACE);
+		if (cast(ImageCell)back || cast(PCCell)back) { mixin(S_TRACE);
 			_easy.add(_prop.msgs.defaultSelection(_prop.msgs.bgImageSettingOriginal));
 		}
 		foreach (bs; _prop.var.etc.bgImageSettings) { mixin(S_TRACE);
@@ -538,7 +538,7 @@ private:
 			gc.setBackground(_prevPanel.getBackground());
 			gc.fillRectangle(range);
 			if (_preview) { mixin(S_TRACE);
-				_preview.draw(image, gc, range);
+				_preview.draw(_prevPanel.getDisplay(), image, gc, range);
 			}
 			e.gc.drawImage(image, 0, 0);
 		}
@@ -896,7 +896,7 @@ private:
 			gc.setBackground(_prevPanel.getBackground());
 			gc.fillRectangle(range);
 			if (_preview) { mixin(S_TRACE);
-				_preview.draw(image, gc, range);
+				_preview.draw(_prevPanel.getDisplay(), image, gc, range);
 			}
 			e.gc.drawImage(image, 0, 0);
 		}
@@ -1156,7 +1156,7 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws = warningCommon;
-		if (!_prop.targetVersion(_summ, "1.60")) { mixin(S_TRACE);
+		if (!_prop.isTargetVersion(_summ, "1")) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningPCCell;
 		}
 		warning = ws;
@@ -1238,6 +1238,16 @@ protected:
 			_pcNumber.select(0);
 		}
 		refreshWarning();
+	}
+
+	override void selectEasySetting() { mixin(S_TRACE);
+		if (!_selected || _easy.getSelectionIndex() == 1) { mixin(S_TRACE);
+			auto cardSize = _prop.looks.cardSize;
+			_w.setSelection(cardSize.width);
+			_h.setSelection(cardSize.height);
+			_selected = true;
+			_comm.refreshToolBar();
+		}
 	}
 
 	override bool apply() { mixin(S_TRACE);

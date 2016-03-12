@@ -633,7 +633,7 @@ public:
 	}
 }
 
-/// PCセル(CardWirth 1.60)。
+/// PCセル(Wsn.1)。
 public class PCCell : BgImage {
 private:
 	uint _pcNumber = 0;
