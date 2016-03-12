@@ -405,7 +405,7 @@ public:
 			bClr.newAttr("a", borderingColor.a);
 		}
 
-		toNodeCommon(e, true);
+		toNodeCommon(e, false);
 	}
 	static TextCell createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		if (node.name != XML_NAME) throw new AreaException("Node is not TextCell");
@@ -596,7 +596,7 @@ public:
 			clr2.newAttr("a", color2.a);
 		}
 
-		toNodeCommon(e, true);
+		toNodeCommon(e, false);
 	}
 	static ColorCell createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		if (node.name != XML_NAME) throw new AreaException("Node is not TextCell");
@@ -702,7 +702,7 @@ public:
 
 		e.newElement("PCNumber", .text(pcNumber));
 
-		toNodeCommon(e, true);
+		toNodeCommon(e, false);
 	}
 	static PCCell createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		if (node.name != XML_NAME) throw new AreaException("Node is not PCCell");
