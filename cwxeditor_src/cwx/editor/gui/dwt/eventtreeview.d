@@ -101,7 +101,8 @@ private:
 		if (!_conts.length) return;
 		if (!_createM) return;
 		if (!_convM) return;
-		foreach (cGrp, cs; CTYPE_GROUP) { mixin(S_TRACE);
+		foreach (cGrp; EnumMembers!CTypeGroup) { mixin(S_TRACE);
+			auto cs = CTYPE_GROUP[cGrp];
 			auto create = cTypeGroupMenu(_createM, cGrp);
 			auto conv = cTypeGroupMenu(_convM, cGrp);
 			foreach (i, cType; cs) { mixin(S_TRACE);
@@ -1830,7 +1831,8 @@ public:
 			_comm.refEventTreeViewStyle.add(&refEventTreeViewStyle);
 		}
 
-		foreach (cGrp, cs; CTYPE_GROUP) { mixin(S_TRACE);
+		foreach (cGrp; EnumMembers!CTypeGroup) { mixin(S_TRACE);
+			auto cs = CTYPE_GROUP[cGrp];
 			foreach (cType; cs) { mixin(S_TRACE);
 				_conts[cType] = new Converter(cType);
 			}
