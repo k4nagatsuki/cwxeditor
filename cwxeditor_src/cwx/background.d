@@ -637,6 +637,7 @@ public:
 public class PCCell : BgImage {
 private:
 	uint _pcNumber = 0;
+	bool _expand = false;
 public:
 	/// XML要素名。
 	static immutable XML_NAME = "PCCell";
@@ -647,9 +648,10 @@ public:
 	}
 
 	/// パラメータを指定してインスタンスを生成する。
-	this (uint pcNumber, string flag, int x, int y, int w, int h, bool mask) { mixin(S_TRACE);
+	this (uint pcNumber, bool expand, string flag, int x, int y, int w, int h, bool mask) { mixin(S_TRACE);
 		super (flag, x, y, w, h, mask);
 		_pcNumber = pcNumber;
+		_expand = expand;
 	}
 
 	override
@@ -657,6 +659,7 @@ public:
 		auto b = cast(PCCell) o;
 		return b
 			&& pcNumber == b.pcNumber
+			&& expand == b.expand
 			&& super.opEquals(o);
 	}
 
@@ -676,7 +679,7 @@ public:
 	const
 	override
 	BgImage dup() { mixin(S_TRACE);
-		auto cell = new PCCell(pcNumber, flag, x, y, width, height, mask);
+		auto cell = new PCCell(pcNumber, expand, flag, x, y, width, height, mask);
 		dupImpl(cell);
 		return cell;
 	}
@@ -694,12 +697,27 @@ public:
 		_pcNumber = pcNumber;
 	}
 
+	/// セルのサイズとイメージのサイズが一致しない時、
+	/// イメージのサイズをセルに合わせて変更するか。
+	@property
+	const
+	bool expand() { mixin(S_TRACE);
+		return _expand;
+	}
+	/// ditto
+	@property
+	void expand(bool expand) { mixin(S_TRACE);
+		if (_expand != expand) changed();
+		_expand = expand;
+	}
+
 	override
 	const
 	void toNode(ref XNode node, XMLOption opt) { mixin(S_TRACE);
 		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
 		auto e = node.newElement(XML_NAME);
 
+		if (expand) e.newAttr("expand", expand);
 		e.newElement("PCNumber", .text(pcNumber));
 
 		toNodeCommon(e, false);
@@ -707,13 +725,14 @@ public:
 	static PCCell createFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
 		if (node.name != XML_NAME) throw new AreaException("Node is not PCCell");
 		uint pcNumber = 0;
+		bool expand = node.attr!bool("expand", false, false);
 
 		node.onTag["PCNumber"] = (ref XNode n) { mixin(S_TRACE);
 			pcNumber = to!uint(n.value);
 		};
 		node.parse();
 
-		auto r = new PCCell(pcNumber, "", 0, 0, 0, 0, false);
+		auto r = new PCCell(pcNumber, expand, "", 0, 0, 0, 0, false);
 		r.fromNodeCommon(node);
 		return r;
 	}

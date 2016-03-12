@@ -1009,6 +1009,7 @@ class Msgs : Properties {
 	auto bordering = Msg("bordering", "縁取り");
 	auto borderingWidth = Msg("borderingWidth", "幅:");
 	auto borderingColor = Msg("borderingColor", "縁取り色");
+	auto pcCellExpanding = Msg("pcCellExpanding", "セルに合わせて拡大・縮小する");
 
 	auto areaViewKeyboardHint = Msg("areaViewKeyboardHint", "選択+上下左右: 移動, Shift+上下左右: サイズ変更, Ctrl+Altで10ピクセル単位操作, Alt+クリックで範囲選択開始");
 

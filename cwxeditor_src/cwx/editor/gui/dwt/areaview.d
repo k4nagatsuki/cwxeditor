@@ -4810,15 +4810,21 @@ public:
 				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
 					gc.setAlpha(alpha);
 				}
-				gc.fillOval(0, 0, size.width, size.height);
+				auto width = size.width;
+				auto height = size.height;
+				if (back.expand) { mixin(S_TRACE);
+					width = img.width;
+					height = img.height;
+				}
+				gc.fillOval(0, 0, width, height);
 				auto fore2 = new Color(d, .dwtData(_prop.looks.pcCellForeColor, alpha));
 				scope (exit) fore2.dispose();
 				gc.setForeground(fore2);
 				if (OS.VERSION(6, 0) <= OS.WIN32_VERSION) { mixin(S_TRACE);
 					gc.setAlpha(alpha);
 				}
-				gc.drawOval(0, 0, size.width - 1, size.height - 1);
-				drawCenterText(.dwtData(_prop.looks.pcNumberFont(skin.legacy)), gc, new Rectangle(0, 0, size.width - 1, size.height - 1), .text(back.pcNumber));
+				gc.drawOval(0, 0, width - 1, height - 1);
+				drawCenterText(.dwtData(_prop.looks.pcNumberFont(skin.legacy)), gc, new Rectangle(0, 0, width - 1, height - 1), .text(back.pcNumber));
 			}, back.x, back.y, size.width, size.height);
 			r.transparent = false;
 			r.layer = back.layer * 10;

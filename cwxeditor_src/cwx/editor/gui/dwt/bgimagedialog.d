@@ -1152,6 +1152,7 @@ private:
 
 	Canvas _prevPanel;
 	Combo _pcNumber;
+	Button _expand;
 
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
@@ -1221,6 +1222,9 @@ protected:
 				ppgd.widthHint = _prop.var.etc.cellPCNumberWidth;
 				_prevPanel.setLayoutData(ppgd);
 				.listener(_pcNumber, SWT.Selection, &_prevPanel.redraw);
+
+				_expand = new Button(grp, SWT.CHECK);
+				_expand.setText(_prop.msgs.pcCellExpanding);
 			}
 			if (_summ) { mixin(S_TRACE);
 				createFlagPanel(comp2).setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1234,8 +1238,10 @@ protected:
 		scope (exit) ignoreMod = false;
 		if (!_create) { mixin(S_TRACE);
 			_pcNumber.select(.min(_back.pcNumber - 1, _pcNumber.getItemCount() - 1));
+			_expand.setSelection(_back.expand);
 		} else { mixin(S_TRACE);
 			_pcNumber.select(0);
+			_expand.setSelection(false);
 		}
 		refreshWarning();
 	}
@@ -1255,6 +1261,7 @@ protected:
 			_back = new PCCell;
 		}
 		_back.pcNumber = _pcNumber.getSelectionIndex() + 1;
+		_back.expand = _expand.getSelection();
 
 		applyParams(_back);
 		getShell().setText(_prop.msgs.dlgTitPCCell);

@@ -71,6 +71,7 @@ BgImageS[] createBgImageSs(in BgImage[] bgs) { mixin(S_TRACE);
 		if (pc) { mixin(S_TRACE);
 			s.type = "pc";
 			s.pcNumber = pc.pcNumber;
+			s.expand = pc.expand;
 		}
 	}
 	return r;
@@ -101,7 +102,7 @@ BgImage[] createBgImages(in Skin skin, in BgImageS[] bgs) { mixin(S_TRACE);
 				"", b.x, b.y, b.width, b.height, b.mask);
 			break;
 		case "pc":
-			r[i] = new PCCell(b.pcNumber, "", b.x, b.y, b.width, b.height, b.mask);
+			r[i] = new PCCell(b.pcNumber, b.expand, "", b.x, b.y, b.width, b.height, b.mask);
 			break;
 		default:
 			throw new Exception("Unknown type: " ~ b.type);

@@ -1732,7 +1732,7 @@ private BgImage readBgImage(in RData d, ref ByteIO f, bool area, size_t index) {
 			if (7 <= dataVersion) { mixin(S_TRACE);
 				cellName = readExString(f);
 			}
-			auto cell = new PCCell(pcNumber, flag, x, y, w, h, mask);
+			auto cell = new PCCell(pcNumber, false, flag, x, y, w, h, mask);
 			cell.layer = foreground ? LAYER_FORE_CELL : LAYER_BACK_CELL;
 			cell.cellName = cellName;
 			return cell;

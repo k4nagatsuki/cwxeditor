@@ -2,7 +2,7 @@
 module cwx.structs;
 
 import cwx.perf;
-import cwx.utils : printStackTrace;
+import cwx.utils : printStackTrace, fromBool;
 import cwx.features;
 import cwx.types;
 import cwx.xml;
@@ -485,6 +485,7 @@ struct BgImageS {
 
 	// PCCell
 	uint pcNumber;
+	bool expand;
 
 	/// 背景画像セルの設定を生成する。
 	static BgImageS opCall(string name, int x, int y, int width, int height, bool mask) {
@@ -543,6 +544,7 @@ struct BgImageS {
 			break;
 		case "pc":
 			r.newAttr("pcNumber", to!string(pcNumber));
+			r.newAttr("expand", fromBool(expand));
 			break;
 		default:
 			throw new Exception("Unknown type: " ~ type);
@@ -603,6 +605,7 @@ struct BgImageS {
 			break;
 		case "pc":
 			pcNumber = node.attr!(uint)("pcNumber", true);
+			expand = node.attr!(bool)("expand", false, false);
 			node.parse();
 			break;
 		default:

@@ -2271,7 +2271,9 @@ fi`;
 				break;
 			case "pc":
 				auto pcNumber = parseAttr!(int)(opt, vals, j, 1, varTable, msgWidth);
-				r = new PCCell(pcNumber, "", 0, 0, 0, 0, false);
+				auto expand = parseAttr!(bool)(opt, vals, j, false, varTable, msgWidth);
+				r = new PCCell(pcNumber, expand, "", 0, 0, 0, 0, false);
+				break;
 			default:
 				throwError(_prop.msgs.scriptErrorInvalidBgImage, attr[i].token);
 				return defValue;
@@ -3205,6 +3207,7 @@ fi`;
 			if (pc) { mixin(S_TRACE);
 				attrs2 ~= "pc";
 				attrs2 ~= toAttr(pc.pcNumber, indentValue, vars);
+				attrs2 ~= toAttr(pc.expand, indentValue, vars);
 			}
 			attrs2 ~= toAttr(value.flag, indentValue, vars);
 			attrs2 ~= toAttr(value.x, indentValue, vars);

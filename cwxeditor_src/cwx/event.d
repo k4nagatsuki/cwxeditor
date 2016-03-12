@@ -866,7 +866,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.WIDTH, int, 0)(d, &width);
 		resetValue!(CArg.HEIGHT, int, 0)(d, &height);
 
-		resetValue!(CArg.DO_ANIME, bool, true)(d, &doAnime);
+		resetValue!(CArg.DO_ANIME, bool, false)(d, &doAnime);
 		resetValue!(CArg.IGNORE_EFFECT_BOOSTER, bool, true)(d, &ignoreEffectBooster);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
@@ -1622,7 +1622,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(int, "height", 0);
 
 	/// JPY1アニメーションを実行する(Wsn.1)。
-	mixin Prop!(bool, "doAnime", true);
+	mixin Prop!(bool, "doAnime", false);
 	/// エフェクトブースター関係のセルを無視する(Wsn.1)。
 	mixin Prop!(bool, "ignoreEffectBooster", false);
 
