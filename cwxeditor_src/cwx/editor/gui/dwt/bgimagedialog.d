@@ -402,6 +402,7 @@ protected:
 			_imgPath.image = "";
 			_imgPath.mask = false;
 		}
+		refDataVersion();
 	}
 
 	override void updateMask() { mixin(S_TRACE);
@@ -817,7 +818,7 @@ protected:
 			_borderingColor.alpha = bc.a;
 			_borderingWidth.setSelection(1);
 		}
-		refreshWarning();
+		refDataVersion();
 		updatePreview();
 	}
 
@@ -1040,7 +1041,7 @@ protected:
 			_color2.color = new RGB(c2.r, c2.g, c2.b);
 			_color2.alpha = c2.a;
 		}
-		refreshWarning();
+		refDataVersion();
 		updatePreview();
 	}
 
@@ -1243,7 +1244,7 @@ protected:
 			_pcNumber.select(0);
 			_expand.setSelection(false);
 		}
-		refreshWarning();
+		refDataVersion();
 	}
 
 	override void selectEasySetting() { mixin(S_TRACE);
