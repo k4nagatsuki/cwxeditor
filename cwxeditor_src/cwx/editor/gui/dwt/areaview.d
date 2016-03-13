@@ -2044,6 +2044,7 @@ private:
 		if (!_xSpn) return;
 		if (!_refreshControls) return;
 		_refreshControls = false;
+		_imgp.cancelFullRedraw();
 		static if (UseCards && UseBacks) {
 			_xSpn.setEnabled(!_readOnly && (_editC.length || _editB.length));
 			_ySpn.setEnabled(!_readOnly && _xSpn.getEnabled());

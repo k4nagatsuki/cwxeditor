@@ -2402,7 +2402,7 @@ private:
 					_rangeStartPos = new Point(x, y);
 					_rangeEndPos = new Point(x, y);
 					updateRangeSelection();
-				} else {
+				} else { mixin(S_TRACE);
 					_mouseP = img;
 					if (me.button == 1) { mixin(S_TRACE);
 						if (!_ctrl && !_shift) { mixin(S_TRACE);
@@ -2413,6 +2413,11 @@ private:
 					} else if (me.button == 3) { mixin(S_TRACE);
 						if (!img.selected) doDeselectAll();
 						doSelect(img);
+					}
+					if (_mouseP.fixed) { mixin(S_TRACE);
+						_rangeStartPos = new Point(x, y);
+						_rangeEndPos = new Point(x, y);
+						updateRangeSelection();
 					}
 					return;
 				}
@@ -2523,15 +2528,27 @@ private:
 			addRedraw(area.x, area.y, area.width, area.height);
 		}
 	}
+
+	bool _cancelFullRedraw = false;
+	/// なぜか関係ないSpinnerの値を設定しただけでフル再描画がかかるので
+	/// それを一度だけキャンセルできるようにする。
+	public void cancelFullRedraw() { _cancelFullRedraw = true; }
+
 	class PListener : PaintListener {
 		private static ImageData[Point] tempBack;
 		private static ImageData[Point] tempData;
 		private static byte[][size_t] tempAlphaData;
 
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
+			auto rect = getClientArea();
+			if (_cancelFullRedraw) { mixin(S_TRACE);
+				_cancelFullRedraw = false;
+				if (rect.x == e.x && rect.y == e.y && rect.width == e.width && rect.height == e.height) { mixin(S_TRACE);
+					return;
+				}
+			}
 			auto d = getShell().getDisplay();
 			auto backImg = getBackgroundImage();
-			auto rect = getClientArea();
 			if (!_background || backImg !is _lastWallpaper || rect != _lastClientArea) { mixin(S_TRACE);
 				// 背景の初期化
 				auto buf = new Image(d, rect.width, rect.height);
@@ -2797,9 +2814,11 @@ private:
 	}
 
 	void redrawAll() { mixin(S_TRACE);
+		_cancelFullRedraw = false;
 		redraw();
 	}
 	void addRedraw(int x, int y, int width, int height) { mixin(S_TRACE);
+		_cancelFullRedraw = false;
 		redraw(x, y, width, height, false);
 	}
 
