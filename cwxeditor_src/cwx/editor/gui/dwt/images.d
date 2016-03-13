@@ -469,6 +469,11 @@ public:
 		return _imgData;
 	}
 
+	/// イメージを作成済みか。
+	@property
+	const
+	bool isCreated() { return _img !is null; }
+
 	/// イメージ・タイトル・透明色の設定有無を設定した後に
 	/// このメソッドを呼び出すことで、画像が生成される。
 	/// See_Also: append(), setTitle(), transparent()
@@ -2081,10 +2086,10 @@ private:
 	void redrawGridHighlight() { mixin(S_TRACE);
 		auto size = getSize();
 		foreach (x; _gridXH) { mixin(S_TRACE);
-			redraw(x, 0, 1, size.y, false);
+			addRedraw(x, 0, 1, size.y);
 		}
 		foreach (y; _gridYH) { mixin(S_TRACE);
-			redraw(0, y, size.x, 1, false);
+			addRedraw(0, y, size.x, 1);
 		}
 	}
 	void resetGrid() { mixin(S_TRACE);
@@ -2112,10 +2117,10 @@ private:
 		int y2 = .max(_rangeStartPos.y, _rangeEndPos.y);
 		int w = x2 - x1;
 		int h = y2 - y1;
-		redraw(x1, y1, w, 1, false);
-		redraw(x1, y2 - 1, w, 1, false);
-		redraw(x1, y1, 1, h, false);
-		redraw(x2 - 1, y1, 1, h, false);
+		addRedraw(x1, y1, w, 1);
+		addRedraw(x1, y2 - 1, w, 1);
+		addRedraw(x1, y1, 1, h);
+		addRedraw(x2 - 1, y1, 1, h);
 	}
 	private void updateRangeSelection() { mixin(S_TRACE);
 		int x1 = .min(_rangeStartPos.x, _rangeEndPos.x);
@@ -2152,16 +2157,12 @@ private:
 			if (_rangeStartPos) { mixin(S_TRACE);
 				// 範囲選択
 				assert (_rangeEndPos !is null);
-				setRedraw(false);
-				scope (exit) setRedraw(true);
 				redrawRangeLine();
 				_rangeEndPos.x = me.x;
 				_rangeEndPos.y = me.y;
 				redrawRangeLine();
 				updateRangeSelection();
 			} else if (dragTgl != Toggle.NONE) { mixin(S_TRACE);
-				setRedraw(false);
-				scope (exit) setRedraw(true);
 				assert (_mouseP !is null);
 				if ((_ctrl || _shift) && _mouseP) { mixin(S_TRACE);
 					doSelect(_mouseP);
@@ -2330,15 +2331,13 @@ private:
 						scope oldArea = img.drawNewArea;
 						img.newBounds = newRect;
 						scope newArea = img.drawNewArea;
-						redraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height, false);
-						redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
+						addRedraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height);
+						addRedraw(newArea.x, newArea.y, newArea.width, newArea.height);
 					}
 				}
 				redrawGridHighlight();
 				moved = true;
 			} else { mixin(S_TRACE);
-				setRedraw(false);
-				scope (exit) setRedraw(true);
 				// サイズ変更は下に隠れているセルでも優先的に受け付ける
 				foreach (move; [false, true]) { mixin(S_TRACE);
 					foreach_reverse (t; fBacks) { mixin(S_TRACE);
@@ -2446,8 +2445,8 @@ private:
 			auto oldArea = img.drawNewArea;
 			proc(img);
 			auto newArea = img.drawNewArea;
-			redraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height, false);
-			redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
+			addRedraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height);
+			addRedraw(newArea.x, newArea.y, newArea.width, newArea.height);
 		}
 	}
 	void redrawProc(void delegate(FlexImage) proc, bool resize) { mixin(S_TRACE);
@@ -2456,8 +2455,8 @@ private:
 			auto oldArea = img.drawArea;
 			proc(img);
 			auto newArea = img.drawNewArea;
-			redraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height, false);
-			redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
+			addRedraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height);
+			addRedraw(newArea.x, newArea.y, newArea.width, newArea.height);
 		}
 	}
 	class FocusLost : Listener {
@@ -2486,8 +2485,8 @@ private:
 							}
 							img.resize();
 							scope area = img.drawNewArea;
-							redraw(oldRect.x, oldRect.y, oldRect.width, oldRect.height, false);
-							redraw(area.x, area.y, area.width, area.height, false);
+							addRedraw(oldRect.x, oldRect.y, oldRect.width, oldRect.height);
+							addRedraw(area.x, area.y, area.width, area.height);
 							dragImgs[img] = new Rectangle(img.x, img.y, img.width, img.height);
 						}
 					}
@@ -2521,7 +2520,7 @@ private:
 		if (img.selected) { mixin(S_TRACE);
 			dragImgs[img] = new Rectangle(img.x, img.y, img.width, img.height);
 			auto area = img.drawArea;
-			redraw(area.x, area.y, area.width, area.height, false);
+			addRedraw(area.x, area.y, area.width, area.height);
 		}
 	}
 	class PListener : PaintListener {
@@ -2583,163 +2582,133 @@ private:
 			// そのイメージに占められたエリアは描画範囲外とし、描画範囲外に
 			// 収まるイメージはイメージ本体の生成を省略するなどして
 			// できるだけ処理量を減らすようにする。
-			// そのため、手前に来るイメージほど先に描画し、そのイメージが
-			// 不透明であれば描画範囲のRegionから描画された領域を差し引くようにする。
-			// ただし透明部分のあるイメージが途中にあった場合、そのまま処理すると
-			// 本来透けて見える部分が丸ごと消滅したように見えてしまう。
-			// そのため、全イメージのリストを透明イメージが存在する位置で分割して
-			// グループ化し、グループは背後側から→グループの内部では手前側から
-			// という順序で描画を行い、Regionはグループごとに初期化するようにする。
-			PileImage[][] spriteGroups = [];
-			bool opaque = false;
-			PileImage[] groupO = [];
-			PileImage[] groupNO = [];
-			void putGroup() { mixin(S_TRACE);
-				// 透明部分のあるイメージは背後から順に描画する必要があり、
-				// 描画処理は手前から順に行われるため、透明イメージのリストは
-				// ここで順序を逆転しておく
-				groupNO.reverse();
-				spriteGroups ~= groupNO;
-				spriteGroups ~= groupO;
-				groupO = [];
-				groupNO = [];
-			}
-			foreach (t; fBacks) { mixin(S_TRACE);
+			// そのため、手前に来る不透明イメージの領域を描画範囲の
+			// Regionから差し引いていく。
+			auto region = new Region(d);
+			scope (exit) region.dispose();
+			region.add(range);
+			PileImage[] drawImgs = [];
+			foreach_reverse (t; fBacks) { mixin(S_TRACE);
 				auto img = t[1];
 				if (!img.visible) continue;
 				if (img.y + img.height < 0) continue;
 				if (rect.height <= img.y) continue;
 				if (img.x + img.width < 0) continue;
 				if (rect.width <= img.x) continue;
-				if (!img.bounds.intersects(range)) continue;
+				if (!region.intersects(img.x, img.y, img.width, img.height)) continue;
 
-				auto o = img.isOpaque;
-				if (opaque && !o) { mixin(S_TRACE);
-					putGroup();
-				}
-				if (o) { mixin(S_TRACE);
-					groupO ~= img;
-				} else { mixin(S_TRACE);
-					groupNO ~= img;
-				}
+				drawImgs ~= img;
 
-				opaque = o;
+				if (!img.isOpaque) continue;
+				if (!img.isCreated) { mixin(S_TRACE);
+					img.createImageImpl();
+					if (!img.isOpaque) continue;
+				}
+				region.subtract(img.x, img.y, img.width, img.height);
+				if (region.isEmpty()) break;
 			}
-			if (groupO.length || groupNO.length) putGroup();
 
-			foreach (sprites; spriteGroups) { mixin(S_TRACE);
-				int befAlpha = -1;
-				PileImage[] alphaImgs = [];
+			int befAlpha = -1;
+			PileImage[] alphaImgs = [];
 
-				void drawAlphaImgData() { mixin(S_TRACE);
-					if (!alphaImgs.length) return;
-					ImageData alphaImgData = null;
-					byte[] alphas = null;
+			void drawAlphaImgData() { mixin(S_TRACE);
+				if (!alphaImgs.length) return;
+				ImageData alphaImgData = null;
+				byte[] alphas = null;
 
-					auto size = new Point(rect.width, rect.height);
-					auto p = size in tempData;
-					if (p) { mixin(S_TRACE);
-						alphaImgData = *p;
-					} else { mixin(S_TRACE);
-						alphaImgData = new ImageData(rect.width, rect.height, alphaImgs[0].imageData.depth, alphaImgs[0].imageData.palette);
+				auto size = new Point(rect.width, rect.height);
+				auto p = size in tempData;
+				if (p) { mixin(S_TRACE);
+					alphaImgData = *p;
+				} else { mixin(S_TRACE);
+					alphaImgData = new ImageData(rect.width, rect.height, alphaImgs[0].imageData.depth, alphaImgs[0].imageData.palette);
+				}
+				auto len = cast(size_t)(rect.width * rect.height);
+				auto p2 = len in tempAlphaData;
+				if (p2) { mixin(S_TRACE);
+					alphas = *p2;
+				} else { mixin(S_TRACE);
+					alphas = new byte[rect.width * rect.height];
+				}
+				alphas[] = 0;
+				alphaImgData.setAlphas(0, 0, rect.width * rect.height, alphas, 0);
+
+				auto alphaRegion = new Region(d);
+				scope (exit) alphaRegion.dispose();
+				alphaRegion.add(rect);
+
+				PileImage[] alphaImgs2 = [];
+				foreach_reverse (img; alphaImgs) { mixin(S_TRACE);
+					if (alphaRegion.isEmpty()) break;
+					if (!alphaRegion.intersects(img.x, img.y, img.width, img.height)) continue;
+					if (img.isOpaqueWithoutAlpha) { mixin(S_TRACE);
+						alphaRegion.subtract(img.x, img.y, img.width, img.height);
 					}
-					auto len = cast(size_t)(rect.width * rect.height);
-					auto p2 = len in tempAlphaData;
-					if (p2) { mixin(S_TRACE);
-						alphas = *p2;
-					} else { mixin(S_TRACE);
-						alphas = new byte[rect.width * rect.height];
-					}
-					alphas[] = 0;
-					alphaImgData.setAlphas(0, 0, rect.width * rect.height, alphas, 0);
-
-					auto alphaRegion = new Region(d);
-					scope (exit) alphaRegion.dispose();
-					alphaRegion.add(rect);
-
-					PileImage[] alphaImgs2 = [];
-					foreach_reverse (img; alphaImgs) { mixin(S_TRACE);
-						if (alphaRegion.isEmpty()) break;
-						if (!alphaRegion.intersects(img.x, img.y, img.width, img.height)) continue;
-						if (img.isOpaqueWithoutAlpha) { mixin(S_TRACE);
-							alphaRegion.subtract(img.x, img.y, img.width, img.height);
-						}
-						alphaImgs2 ~= img;
-					}
-
-					foreach_reverse (img; alphaImgs2) { mixin(S_TRACE);
-						int ix = .max(0, -img.x);
-						int aw = img.width - ix;
-						int x2 = img.x + ix;
-						aw = .min(aw, rect.width - x2);
-						assert (0 < aw);
-						auto iPixels = new int[aw];
-						auto iAlphas = new byte[aw];
-						iAlphas[] = cast(byte)img.alpha;
-						scope (exit) delete iPixels;
-						scope (exit) delete iAlphas;
-						auto iData = img.imageData;
-						foreach (iy; .max(0, -img.y) .. img.height) { mixin(S_TRACE);
-							int y2 = iy + img.y;
-							assert (0 <= y2);
-							if (rect.height <= y2) break;
-							iData.getPixels(ix, iy, aw, iPixels, 0);
-							alphaImgData.setPixels(x2, y2, aw, iPixels, 0);
-							alphaImgData.setAlphas(x2, y2, aw, iAlphas, 0);
-						}
-					}
-
-					auto aImg = new Image(d, alphaImgData);
-					gc.drawImage(aImg, 0, 0);
-					aImg.dispose();
-
-					alphaImgData.data[] = 0;
-					alphaImgData.alphaData[] = 0;
-					tempData[new Point(alphaImgData.width, alphaImgData.height)] = alphaImgData;
-					alphaImgData = null;
-					alphas[] = 0;
-					tempAlphaData[alphas.length] = alphas;
-					alphas = null;
-
-					alphaImgs = [];
+					alphaImgs2 ~= img;
 				}
 
-				auto region = new Region(d);
-				scope (exit) region.dispose();
-				region.add(range);
+				foreach_reverse (img; alphaImgs2) { mixin(S_TRACE);
+					int ix = .max(0, -img.x);
+					int aw = img.width - ix;
+					int x2 = img.x + ix;
+					aw = .min(aw, rect.width - x2);
+					assert (0 < aw);
+					auto iPixels = new int[aw];
+					auto iAlphas = new byte[aw];
+					iAlphas[] = cast(byte)img.alpha;
+					scope (exit) delete iPixels;
+					scope (exit) delete iAlphas;
+					auto iData = img.imageData;
+					foreach (iy; .max(0, -img.y) .. img.height) { mixin(S_TRACE);
+						int y2 = iy + img.y;
+						assert (0 <= y2);
+						if (rect.height <= y2) break;
+						iData.getPixels(ix, iy, aw, iPixels, 0);
+						alphaImgData.setPixels(x2, y2, aw, iPixels, 0);
+						alphaImgData.setAlphas(x2, y2, aw, iAlphas, 0);
+					}
+				}
 
-				foreach_reverse (img; sprites) { mixin(S_TRACE);
-					if (region.isEmpty()) break;
-					if (!region.intersects(img.x, img.y, img.width, img.height)) continue;
+				auto aImg = new Image(d, alphaImgData);
+				gc.dispose();
+				gc = new GC(buf);
+				gc.drawImage(aImg, 0, 0);
+				aImg.dispose();
 
-					gc.setClipping(region);
-					scope (exit) gc.setClipping(cast(Region)null);
+				alphaImgData.data[] = 0;
+				alphaImgData.alphaData[] = 0;
+				tempData[new Point(alphaImgData.width, alphaImgData.height)] = alphaImgData;
+				alphaImgData = null;
+				alphas[] = 0;
+				tempAlphaData[alphas.length] = alphas;
+				alphas = null;
 
-					if (img.type is ImageType.Image && 0 <= img.alpha && img.alpha < 255) { mixin(S_TRACE);
-						// 同一のレイヤ値を持つイメージが連続して存在している場合は
-						// 視認性をよくするために一体化させる
-						if (img.alpha != befAlpha || img.separator) { mixin(S_TRACE);
-							if (alphaImgs.length) { mixin(S_TRACE);
-								drawAlphaImgData();
-							}
-						}
-						alphaImgs ~= img;
-						befAlpha = img.separator ? -1 : img.alpha;
+				alphaImgs = [];
+			}
 
-					} else { mixin(S_TRACE);
+			// 実際の描画処理
+			foreach_reverse (img; drawImgs) { mixin(S_TRACE);
+				if (img.type is ImageType.Image && 0 <= img.alpha && img.alpha < 255) { mixin(S_TRACE);
+					// 同一のレイヤ値を持つイメージが連続して存在している場合は
+					// 視認性をよくするために一体化させる
+					if (img.alpha != befAlpha || img.separator) { mixin(S_TRACE);
 						if (alphaImgs.length) { mixin(S_TRACE);
 							drawAlphaImgData();
 						}
-						befAlpha = -1;
-						img.draw(d, buf, gc, range);
-						if (img.isOpaque) { mixin(S_TRACE);
-							region.subtract(img.x, img.y, img.width, img.height);
-						}
 					}
+					alphaImgs ~= img;
+					befAlpha = img.separator ? -1 : img.alpha;
+
+				} else { mixin(S_TRACE);
+					if (alphaImgs.length) { mixin(S_TRACE);
+						drawAlphaImgData();
+					}
+					befAlpha = -1;
+					img.draw(d, buf, gc, range);
 				}
-				if (alphaImgs.length) { mixin(S_TRACE);
-					drawAlphaImgData();
-				}
+			}
+			if (alphaImgs.length) { mixin(S_TRACE);
+				drawAlphaImgData();
 			}
 
 			foreach (bmp; backs) { mixin(S_TRACE);
@@ -2827,6 +2796,13 @@ private:
 		return false;
 	}
 
+	void redrawAll() { mixin(S_TRACE);
+		redraw();
+	}
+	void addRedraw(int x, int y, int width, int height) { mixin(S_TRACE);
+		redraw(x, y, width, height, false);
+	}
+
 	private Color _backColor = null;
 	private Color _gridColor = null, _gridHighlightColor = null;
 public:
@@ -2898,8 +2874,6 @@ public:
 	}
 	private void deselAfter(FlexImage img) { mixin(S_TRACE);
 		removeDragImage(img);
-		auto area = img.drawArea;
-		redraw(area.x, area.y, area.width, area.height, false);
 	}
 	private void doDeselectAll() { mixin(S_TRACE);
 		foreach_reverse (pimg; backs) { mixin(S_TRACE);
@@ -2976,9 +2950,15 @@ public:
 	}
 
 	private void removeDragImage(PileImage img) { mixin(S_TRACE);
-		auto fi = cast(FlexImage) img;
+		auto fi = cast(FlexImage)img;
 		if (fi && (fi in dragImgs)) { mixin(S_TRACE);
 			dragImgs.remove(fi);
+		}
+		if (fi) { mixin(S_TRACE);
+			auto area = fi.drawArea;
+			addRedraw(area.x, area.y, area.width, area.height);
+		} else { mixin(S_TRACE);
+			addRedraw(img.x, img.y, img.width, img.height);
 		}
 	}
 
@@ -2988,9 +2968,13 @@ public:
 			if (fi && fi.fixed !is fixed) { mixin(S_TRACE);
 				auto newArea = fi.drawNewArea;
 				auto oldArea = fi.drawArea;
+				addRedraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height);
+				addRedraw(newArea.x, newArea.y, newArea.width, newArea.height);
 				fi.fixed = fixed;
-				redraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height, false);
-				redraw(newArea.x, newArea.y, newArea.width, newArea.height, false);
+				newArea = fi.drawNewArea;
+				oldArea = fi.drawArea;
+				addRedraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height);
+				addRedraw(newArea.x, newArea.y, newArea.width, newArea.height);
 			}
 		}
 	}
@@ -3009,12 +2993,20 @@ public:
 		backs = backs[0 .. fromIndex] ~ backs[toIndex .. $];
 	}
 
+	private void addAfter(PileImage img) { mixin(S_TRACE);
+		if (auto fi = cast(FlexImage)img) { mixin(S_TRACE);
+			setSelected(fi);
+		} else { mixin(S_TRACE);
+			addRedraw(img.x, img.y, img.width, img.height);
+		}
+	}
+
 	void insert(int index, PileImage img) { mixin(S_TRACE);
 		if (index == backs.length) { mixin(S_TRACE);
 			append(img);
 		} else { mixin(S_TRACE);
 			backs = backs[0 .. index] ~ img ~ backs[index .. $];
-			if (cast(FlexImage) img) setSelected(cast(FlexImage) img);
+			addAfter(img);
 		}
 	}
 	void insert(int index, PileImage[] imgs) { mixin(S_TRACE);
@@ -3023,7 +3015,7 @@ public:
 		} else { mixin(S_TRACE);
 			backs = backs[0 .. index] ~ imgs ~ backs[index .. $];
 			foreach (img; imgs) { mixin(S_TRACE);
-				if (cast(FlexImage) img) setSelected(cast(FlexImage) img);
+				addAfter(img);
 			}
 		}
 	}
@@ -3031,16 +3023,16 @@ public:
 		backs[index].dispose();
 		removeDragImage(backs[index]);
 		this.backs[index] = img;
-		if (cast(FlexImage) img) setSelected(cast(FlexImage) img);
+		addAfter(img);
 	}
 	void append(PileImage img) { mixin(S_TRACE);
 		this.backs ~= img;
-		if (cast(FlexImage) img) setSelected(cast(FlexImage) img);
+		addAfter(img);
 	}
 	void append(PileImage[] imgs) { mixin(S_TRACE);
 		this.backs ~= imgs;
 		foreach (img; imgs) { mixin(S_TRACE);
-			if (cast(FlexImage) img) setSelected(cast(FlexImage) img);
+			addAfter(img);
 		}
 	}
 
@@ -3066,8 +3058,9 @@ public:
 	/// ditto
 	@property
 	void wallpaperStyle(WallpaperStyle v) { mixin(S_TRACE);
+		if (_wallpaperStyle == v) return;
 		_wallpaperStyle = v;
-		redraw();
+		redrawAll();
 	}
 
 	/// 追加的に表示するイメージ。
@@ -3079,7 +3072,7 @@ public:
 	@property
 	void appends(ImageData[] v) { mixin(S_TRACE);
 		_appends = v;
-		redraw();
+		redrawAll();
 	}
 
 	/// グリッド間隔。1以下の場合はグリッドは無効。
@@ -3091,9 +3084,10 @@ public:
 	/// ditto
 	@property
 	void gridX(int v) { mixin(S_TRACE);
+		if (_gridX == v) return;
 		_gridX = v;
 		resetGrid();
-		redraw();
+		redrawAll();
 	}
 	/// ditto
 	@property
@@ -3104,9 +3098,10 @@ public:
 	/// ditto
 	@property
 	void gridY(int v) { mixin(S_TRACE);
+		if (_gridY == v) return;
 		_gridY = v;
 		resetGrid();
-		redraw();
+		redrawAll();
 	}
 	/// グリッドに吸着する範囲。
 	@property
@@ -3132,6 +3127,18 @@ public:
 			}
 		}
 		return false;
+	}
+
+	/// imgの領域を再描画する。
+	void redrawImage(PileImage img) { mixin(S_TRACE);
+		if (auto fi = cast(FlexImage)img) { mixin(S_TRACE);
+			auto area = fi.drawArea;
+			addRedraw(area.x, area.y, area.width, area.height);
+			area = fi.drawNewArea;
+			addRedraw(area.x, area.y, area.width, area.height);
+		} else { mixin(S_TRACE);
+			addRedraw(img.x, img.y, img.width, img.height);
+		}
 	}
 
 	/// 唯一のコンストラクタ。

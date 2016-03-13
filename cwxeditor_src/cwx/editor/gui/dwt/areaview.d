@@ -200,33 +200,28 @@ private:
 			if (!_refTarget) return;
 			if (!cpeq(_refTarget.cwxPath(true), cpparent(a))) return;
 			createRefCard();
-			_imgp.redraw();
 		}
 		void addRefMenuCard(string a) { mixin(S_TRACE);
 			if (!_refTarget) return;
 			if (!cpeq(_refTarget.cwxPath(true), cpparent(a))) return;
 			createRefCard();
-			_imgp.redraw();
 		}
 		void delRefMenuCard(string a) { mixin(S_TRACE);
 			if (!_refTarget) return;
 			if (!cpeq(_refTarget.cwxPath(true), cpparent(a))) return;
 			createRefCard(cast(int)cpindex(cpbottom(a)));
-			_imgp.redraw();
 		}
 		void upRefMenuCards(string a, int[] indices, int count) { mixin(S_TRACE);
 			if (!_refTarget) return;
 			if (!cpeq(_refTarget.cwxPath(true), a)) return;
 			if (!indices.length) return;
 			createRefCard();
-			_imgp.redraw();
 		}
 		void downRefMenuCards(string a, int[] indices, int count) { mixin(S_TRACE);
 			if (!_refTarget) return;
 			if (!cpeq(_refTarget.cwxPath(true), a)) return;
 			if (!indices.length) return;
 			createRefCard();
-			_imgp.redraw();
 		}
 		void openRefAreaView() { mixin(S_TRACE);
 			if (!_refTarget) return;
@@ -757,7 +752,6 @@ private:
 		void editSpnCard(string T)(int value) { mixin(S_TRACE);
 			if (_readOnly) return;
 			editSpnImpl!(T, C)(value, _editC, cardsIndex);
-			_imgp.redraw();
 		}
 		void enterSpnCard(string T, string N)(int value) { mixin(S_TRACE);
 			if (_readOnly) return;
@@ -794,9 +788,10 @@ private:
 				if (v !is this) { mixin(S_TRACE);
 					auto fi = cast(FlexImage)v._imgp.images[cardsIndex + index];
 					assert (fi !is null);
+					v._imgp.redrawImage(fi);
 					fi.newBounds = img.bounds;
 					fi.resize(false);
-					v._imgp.redraw();
+					v._imgp.redrawImage(fi);
 				}
 				v.refreshControls();
 				v.callModEvent();
@@ -807,7 +802,8 @@ private:
 		private FlexImage[] _selectImageC = [];
 		void selectImageC(FlexImage img) { mixin(S_TRACE);
 			_selectImageC ~= img;
-			_cards.redraw();
+			selectImage!(C)(img, _area.cards, _cardTbl, _editC, _cards);
+			refreshControls();
 		}
 		private void selectImageCImpl() { mixin(S_TRACE);
 			if (!_selectImageC.length) return;
@@ -815,9 +811,6 @@ private:
 			scope (exit) _cards.setRedraw(true);
 			_toolbar.setRedraw(false);
 			scope (exit) _toolbar.setRedraw(true);
-			foreach (img; _selectImageC) { mixin(S_TRACE);
-				selectImage!(C)(img, _area.cards, _cardTbl, _editC, _cards);
-			}
 			_selectImageC.length = 0;
 			refreshControls();
 			_cards.showSelection();
@@ -858,7 +851,6 @@ private:
 		void editSpnBack(string T)(int value) { mixin(S_TRACE);
 			if (_readOnly) return;
 			editSpnImpl!(T, BgImage)(value, _editB, 0);
-			_imgp.redraw();
 		}
 		void enterSpnBack(string T, string N)(int value) { mixin(S_TRACE);
 			if (_readOnly) return;
@@ -896,9 +888,10 @@ private:
 				if (v !is this) { mixin(S_TRACE);
 					auto fi = cast(FlexImage)v._imgp.images[0 + index];
 					assert (fi !is null);
+					v._imgp.redrawImage(fi);
 					fi.newBounds = img.bounds;
 					fi.resize(false);
-					v._imgp.redraw();
+					v._imgp.redrawImage(fi);
 				}
 				v.refreshControls();
 				v.callModEvent();
@@ -909,7 +902,8 @@ private:
 		private FlexImage[] _selectImageB = [];
 		void selectImageB(FlexImage img) { mixin(S_TRACE);
 			_selectImageB ~= img;
-			_backs.redraw();
+			selectImage!(BgImage)(img, _area.backs, _backTbl, _editB, _backs);
+			refreshControls();
 		}
 		private void selectImageBImpl() { mixin(S_TRACE);
 			if (!_selectImageB.length) return;
@@ -917,9 +911,6 @@ private:
 			scope (exit) _backs.setRedraw(true);
 			_toolbar.setRedraw(false);
 			scope (exit) _toolbar.setRedraw(true);
-			foreach (img; _selectImageB) { mixin(S_TRACE);
-				selectImage!(BgImage)(img, _area.backs, _backTbl, _editB, _backs);
-			}
 			_selectImageB.length = 0;
 			refreshControls();
 			_backs.showSelection();
@@ -932,14 +923,15 @@ private:
 				if (cast(ImageCell)back) { mixin(S_TRACE);
 					back.mask = _maskTMenu.getSelection();
 					foreach (v; vs) { mixin(S_TRACE);
-						v._imgp.images[0 + i].transparent = back.mask;
-						v._imgp.images[0 + i].createImage();
+						auto img = v._imgp.images[0 + i];
+						img.transparent = back.mask;
+						img.createImage();
+						v._imgp.redrawImage(img);
 					}
 					_comm.refBgImage.call(back.cwxPath(true));
 				}
 			}
 			foreach (v; vs) { mixin(S_TRACE);
-				v._imgp.redraw();
 				v.callModEvent();
 				if (v !is this) { mixin(S_TRACE);
 					v.refreshControls();
@@ -957,7 +949,7 @@ private:
 		typeof(edits) editsInit;
 		edits = editsInit;
 		for (int i = 0; i < count; i++) { mixin(S_TRACE);
-			auto img = cast(FlexImage) imgs[startIndex + i];
+			auto img = cast(FlexImage)imgs[startIndex + i];
 			bool o = img.selected;
 			bool n = list.isSelected(i);
 			if (n) { mixin(S_TRACE);
@@ -973,15 +965,16 @@ private:
 			refreshSelectedImpl(_viewBacks, _backs, _editB, _area.backs, 0);
 		}
 		refreshControls();
-		_imgp.redraw();
 		_comm.refreshToolBar();
 	}
 
 	void editSpnImpl(string T, B)(int value, int[B] edits, int startIndex) { mixin(S_TRACE);
 		if (_readOnly) return;
-		foreach (i; edits.values) { mixin(S_TRACE);
+		foreach (i; edits.byValue) { mixin(S_TRACE);
 			auto a = cast(FlexImage)_imgp.images[startIndex + i];
+			_imgp.redrawImage(a);
 			mixin (T);
+			_imgp.redrawImage(a);
 		}
 	}
 	void enterSpnImpl(string T, string N, B)(int value, int[B] edits, int delegate(AbstractAreaView) startIndex) { mixin(S_TRACE);
@@ -995,7 +988,9 @@ private:
 			foreach (v; vs) { mixin(S_TRACE);
 				auto a = cast(FlexImage)v._imgp.images[startIndex(v) + i];
 				mixin (N);
+				v._imgp.redrawImage(a);
 				a.resize(false);
+				v._imgp.redrawImage(a);
 			}
 			static if (is(B : AbstractSpCard)) {
 				_comm.refMenuCard.call(c.cwxPath(true));
@@ -1005,7 +1000,6 @@ private:
 		}
 		foreach (v; vs) { mixin(S_TRACE);
 			v.callModEvent();
-			v._imgp.redraw();
 			if (v !is this) v.refreshControls();
 		}
 	}
@@ -1018,10 +1012,11 @@ private:
 		foreach (a, i; edits) { mixin(S_TRACE);
 			auto fi = cast(FlexImage)_imgp.images[startIndex(this) + i];
 			mixin(SetFlexImage);
+			_imgp.redrawImage(fi);
 			if (r != mixin(T)) r = 0;
+			_imgp.redrawImage(fi);
 		}
 		if (redraw) { mixin(S_TRACE);
-			_imgp.redraw();
 			refreshControls();
 		}
 		return r;
@@ -1031,7 +1026,6 @@ private:
 		if (_readOnly) return;
 		static if (UseCards) editSpnImpl!(T, C)(value, _editC, cardsIndex);
 		static if (UseBacks) editSpnImpl!(T, BgImage)(value, _editB, 0);
-		_imgp.redraw();
 	}
 	void enterSpn(string T, string N)(int value) { mixin(S_TRACE);
 		if (_readOnly) return;
@@ -1046,7 +1040,6 @@ private:
 			if (_editC.length && _editB.length) { mixin(S_TRACE);
 				auto r1 = cancelSpnImpl!(T, SetFlexImage, C)(_editC, (v) => v.cardsIndex, false);
 				auto r2 = cancelSpnImpl!(T, SetFlexImage, BgImage)(_editB, (v) => 0, false);
-				_imgp.redraw();
 				refreshControls();
 				return r1 == r2 ? r1 : oldVal;
 			} else if (_editC.length) { mixin(S_TRACE);
@@ -1209,8 +1202,10 @@ private:
 				foreach (v; vs) { mixin(S_TRACE);
 					a = cast(FlexImage)v._imgp.images[i];
 					assert (a !is null);
+					v._imgp.redrawImage(a);
 					mixin (Set ~ ";");
 					a.resize();
+					v._imgp.redrawImage(a);
 				}
 				auto c = cs[i - startIndex];
 				mixin (CSet ~ ";");
@@ -1223,7 +1218,6 @@ private:
 		}
 		foreach (v; vs) {
 			v.callModEvent();
-			v._imgp.redraw();
 			v.refreshControls();
 		}
 	}
@@ -1270,8 +1264,10 @@ private:
 			for (int i = 0; i < targs.length; i++) { mixin(S_TRACE);
 				a = targs[i];
 				auto b = left + cast(int) rndtol(((right - left) / (targs.length - 1.0)) * i);
+				_imgp.redrawImage(a);
 				mixin (SetX ~ ";");
 				a.resize();
+				_imgp.redrawImage(a);
 				auto c = cs[indices[a]];
 				mixin (XC ~ ";");
 				static if (is(T : AbstractSpCard)) {
@@ -1291,12 +1287,13 @@ private:
 				if (fi.selected) { mixin(S_TRACE);
 					c.scale = scale;
 					fi.scale = scale;
+					_imgp.redrawImage(fi);
 					fi.resize();
+					_imgp.redrawImage(fi);
 				}
 				_comm.refMenuCard.call(c.cwxPath(true));
 			}
 			refreshControls();
-			_imgp.redraw();
 			callModEvent();
 		}
 		private void scaleCMax() { mixin(S_TRACE);
@@ -1319,6 +1316,7 @@ private:
 		for (int i = 0; i < cs.length; i++) { mixin(S_TRACE);
 			auto fi = cast(FlexImage)_imgp.images[startIndex(this) + i];
 			if (fi.selected) { mixin(S_TRACE);
+				_imgp.redrawImage(fi);
 				int a, b;
 				a = fi.width;
 				b = w;
@@ -1326,6 +1324,7 @@ private:
 				a = fi.height;
 				b = h;
 				if (mixin (Cmp)) h = a;
+				_imgp.redrawImage(fi);
 			}
 		}
 		auto vs = views();
@@ -1334,9 +1333,11 @@ private:
 			if (fi.selected) { mixin(S_TRACE);
 				foreach (v; vs) { mixin(S_TRACE);
 					auto fi2 = cast(FlexImage)v._imgp.images[startIndex(v) + i];
+					v._imgp.redrawImage(fi2);
 					fi2.newWidth = w;
 					fi2.newHeight = h;
 					fi2.resize();
+					v._imgp.redrawImage(fi2);
 				}
 				auto a = cs[i];
 				mixin (CSet);
@@ -1346,7 +1347,6 @@ private:
 		foreach (v; vs) { mixin(S_TRACE);
 			v.callModEvent();
 			v.refreshControls();
-			v._imgp.redraw();
 		}
 	}
 	void posTopImpl(T)(int startIndex, T[] cs) { mixin(S_TRACE);
@@ -1508,9 +1508,11 @@ private:
 				c.y = c.y + moveY;
 				foreach (v; vs) { mixin(S_TRACE);
 					auto fi = cast(FlexImage)_imgp.images[startIndex(v) + i];
+					v._imgp.redrawImage(fi);
 					fi.newX = c.x;
 					fi.newY = c.y;
 					fi.resize();
+					v._imgp.redrawImage(fi);
 				}
 				static if (is(T:AbstractSpCard)) {
 					_comm.refMenuCard.call(c.cwxPath(true));
@@ -1522,7 +1524,6 @@ private:
 		foreach (v; vs) { mixin(S_TRACE);
 			v.callModEvent();
 			v.refreshControls();
-			v._imgp.redraw();
 		}
 	}
 	static if (UseBacks) {
@@ -1541,11 +1542,13 @@ private:
 					back.height = vSize.height;
 					foreach (v; vs) { mixin(S_TRACE);
 						auto img2 = cast(FlexImage)v._imgp.images[0 + i];
+						v._imgp.redrawImage(img2);
 						img2.newX = back.x;
 						img2.newY = back.y;
 						img2.newWidth = back.width;
 						img2.newHeight = back.height;
 						img2.resize();
+						v._imgp.redrawImage(img2);
 					}
 					_comm.refBgImage.call(back.cwxPath(true));
 				}
@@ -1553,7 +1556,6 @@ private:
 			foreach (v; vs) { mixin(S_TRACE);
 				v.callModEvent();
 				v.refreshControls();
-				v._imgp.redraw();
 			}
 		}
 	}
@@ -1903,7 +1905,7 @@ private:
 	}
 	void checkFlag(Event e) { mixin(S_TRACE);
 		if (!_flagList) return;
-		updateChecked(e);
+		if (!updateChecked(e)) return;
 		bool[string] useFlags;
 		if (e && cast(TableItem)e.item) { mixin(S_TRACE);
 			auto itm = cast(TableItem)e.item;
@@ -1939,7 +1941,6 @@ private:
 			}
 		}
 		checked();
-		_imgp.redraw();
 	}
 	void updateFlagChecks() { mixin(S_TRACE);
 		if (!_flagList) return;
@@ -2029,7 +2030,8 @@ private:
 				flag(b.flag);
 			}
 		}
-		_flag.setText(f == "" ? _flag.getItem(0) : f);
+		auto s = f == "" ? _flag.getItem(0) : f;
+		if (s != _flag.getText()) _flag.setText(s);
 		static if (UseCards && UseBacks) {
 			_flag.setEnabled(!_readOnly && (_editC.length || _editB.length));
 		} else static if (UseCards) {
@@ -2041,7 +2043,6 @@ private:
 	void refreshControlsImpl() { mixin(S_TRACE);
 		if (!_xSpn) return;
 		if (!_refreshControls) return;
-		scope (exit) updateFlagCombo();
 		_refreshControls = false;
 		static if (UseCards && UseBacks) {
 			_xSpn.setEnabled(!_readOnly && (_editC.length || _editB.length));
@@ -2173,6 +2174,7 @@ private:
 		} else { mixin(S_TRACE);
 			static assert (0);
 		}
+		updateFlagCombo();
 		refreshStatusLine();
 		_comm.refreshToolBar();
 	}
@@ -2682,7 +2684,7 @@ private:
 	}
 	class VCheckListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			updateChecked(e);
+			if (!updateChecked(e)) return;
 			checked();
 			updateFlagChecks();
 		}
@@ -2690,12 +2692,22 @@ private:
 	void checked() { mixin(S_TRACE);
 		static if (UseCards) {
 			foreach (i, itm; _cards.getItems()) { mixin(S_TRACE);
-				_imgp.images[cardsIndex + i].visible = _viewCards && itm.getChecked();
+				auto img = _imgp.images[cardsIndex + i];
+				auto visible = _viewCards && itm.getChecked();
+				if (img.visible != visible) { mixin(S_TRACE);
+					img.visible = visible;
+					_imgp.redrawImage(img);
+				}
 			}
 		}
 		static if (UseBacks) {
 			foreach (i, itm; _backs.getItems()) { mixin(S_TRACE);
-				_imgp.images[i].visible = _viewBacks && itm.getChecked();
+				auto img = _imgp.images[i];
+				auto visible = _viewBacks && itm.getChecked();
+				if (img.visible != visible) { mixin(S_TRACE);
+					img.visible = visible;
+					_imgp.redrawImage(img);
+				}
 			}
 		}
 	}
@@ -3297,12 +3309,12 @@ public:
 					}
 					img.createImage();
 					itm.setText(name);
+					_imgp.redrawImage(img);
 					_comm.refMenuCard.call(c.cwxPath(true));
 				}
 				// 置換でフラグ名が消失する可能性があるため
 				itm.setImage(cardImg(c));
 			}
-			_imgp.redraw();
 		}
 		static if (UseBacks) {
 			foreach (i, b; _area.backs) { mixin(S_TRACE);
@@ -3317,8 +3329,8 @@ public:
 				auto fi = cast(FlexImage) _imgp.images[cardsIndex + i];
 				fi.smoothing = _prop.var.etc.smoothingCard;
 				fi.createImage();
+				_imgp.redrawImage(fi);
 			}
-			_imgp.redraw();
 		}
 	}
 	private void refreshPanel() { mixin(S_TRACE);
@@ -3352,7 +3364,6 @@ public:
 		}
 
 		_imgp.select(sels);
-		_imgp.redraw();
 		_comm.refreshToolBar();
 	}
 	static if (RefCards) {
@@ -3539,7 +3550,6 @@ public:
 				v._imgp.select(sels);
 			}
 			v.refreshSelected();
-			if (cIdcs.length > 0 || bIdcs.length > 0) v._imgp.redraw();
 		}
 	}
 	void down() { mixin(S_TRACE);
@@ -3603,7 +3613,6 @@ public:
 				v._imgp.select(sels);
 			}
 			v.refreshSelected();
-			if (cIdcs.length > 0 || bIdcs.length > 0) v._imgp.redraw();
 		}
 	}
 	static if (UseCards && UseBacks) {
@@ -3619,6 +3628,7 @@ public:
 					_imgp.deselect(fi);
 					edits.remove(col()[i]);
 				}
+				_imgp.redrawImage(fi);
 			}
 			if (!view) { mixin(S_TRACE);
 				list.deselectAll();
@@ -3626,7 +3636,6 @@ public:
 			if (menu) menu.setSelection(view);
 			if (titm) titm.setSelection(view);
 			refreshControls();
-			_imgp.redraw();
 		}
 		void reverseViewCards() { mixin(S_TRACE);
 			reverseView!(C)(_viewCards, _cards, _editC, () => _area.cards, cardsIndex, _vcMenu, _vcTMenu);
@@ -3654,7 +3663,6 @@ public:
 						v._cards.getItem(cast(int)i).setData(c);
 						v.refreshControls();
 						v.refreshFlags();
-						v._imgp.redraw();
 						v.callModEvent();
 					}
 					_comm.refMenuCard.call(c.cwxPath(true));
@@ -3875,7 +3883,6 @@ public:
 						v.refreshControls();
 						v.refreshFlags();
 						v.updateFixedBackground();
-						v._imgp.redraw();
 						v.callModEvent();
 					}
 					_comm.refBgImage.call(b.cwxPath(true));
@@ -4125,9 +4132,9 @@ public:
 			foreach (img; _imgp.images) { mixin(S_TRACE);
 				if (img.type == ImageType.Text) { mixin(S_TRACE);
 					img.createImage();
+					_imgp.redrawImage(img);
 				}
 			}
-			_imgp.redraw();
 		}
 		string previewText(string base) { mixin(S_TRACE);
 			string[char] names;
@@ -4448,18 +4455,20 @@ public:
 	void reverseViewParty() { mixin(S_TRACE);
 		_viewParty = !_viewParty;
 		foreach (i; partyIndex .. partyIndex + _prop.looks.partyCardXY.length) { mixin(S_TRACE);
-			_imgp.images[i].visible = _viewParty;
+			auto img = _imgp.images[i];
+			img.visible = _viewParty;
+			_imgp.redrawImage(img);
 		}
 		if (_vpMenu) _vpMenu.setSelection(_viewParty);
 		if (_vpTMenu) _vpTMenu.setSelection(_viewParty);
-		_imgp.redraw();
 	}
 	void reverseViewMsg() { mixin(S_TRACE);
 		_viewMsg = !_viewMsg;
-		_imgp.images[messageIndex].visible = _viewMsg;
+		auto img = _imgp.images[messageIndex];
+		img.visible = _viewMsg;
+		_imgp.redrawImage(img);
 		if (_vmMenu) _vmMenu.setSelection(_viewMsg);
 		if (_vmTMenu) _vmTMenu.setSelection(_viewMsg);
-		_imgp.redraw();
 	}
 	static if (RefCards) {
 		void reverseViewRefCards() { mixin(S_TRACE);
@@ -4469,8 +4478,8 @@ public:
 			foreach (i; refCardIndex .. _imgp.images.length) { mixin(S_TRACE);
 				auto pImg = _imgp.images[i];
 				pImg.visible = _showRefCards;
+				_imgp.redrawImage(pImg);
 			}
-			_imgp.redraw();
 		}
 	}
 	static if (UseCards) {
@@ -4480,7 +4489,6 @@ public:
 			updateFixedCards();
 			if (_vfcMenu) _vfcMenu.setSelection(_fixedC);
 			if (_vfcTMenu) _vfcTMenu.setSelection(_fixedC);
-			_imgp.redraw();
 		}
 		private void updateFixedCards() { mixin(S_TRACE);
 			_imgp.fixedRange(_fixedC, cardsIndex, cardsIndex + cast(int)_area.cards.length);
@@ -4509,13 +4517,11 @@ public:
 						_imgp.fixedRange(_fixedB, 0, cast(int)i);
 						_imgp.fixedRange(_fixedFirstB, cast(int)i, cast(int)i + 1);
 						_imgp.fixedRange(_fixedB, cast(int)i + 1, cast(int)_area.backs.length);
-						_imgp.redraw();
 						return;
 					}
 				}
 			}
 			_imgp.fixedRange(_fixedB, 0, cast(int)_area.backs.length);
-			_imgp.redraw();
 		}
 	}
 	void reverseShowGrid() { mixin(S_TRACE);
@@ -4524,7 +4530,6 @@ public:
 		if (_sgMenu) _sgMenu.setSelection(_showGrid);
 		if (_sgTMenu) _sgTMenu.setSelection(_showGrid);
 		if (_sgPMenu) _sgPMenu.setSelection(_showGrid);
-		_imgp.redraw();
 	}
 	void refreshGrid() { mixin(S_TRACE);
 		_imgp.gridX = _showGrid ? _gridX : 0;
@@ -4568,7 +4573,6 @@ public:
 						v.refreshSelected();
 					}
 				}
-				v._imgp.redraw();
 			}
 			comm.addMenuCard.call(card.cwxPath(true));
 			comm.refUseCount.call();
@@ -4742,7 +4746,6 @@ public:
 						v.refreshSelected();
 					}
 				}
-				v._imgp.redraw();
 			}
 			comm.addBgImage.call(back.cwxPath(true));
 			comm.refUseCount.call();
@@ -5248,13 +5251,13 @@ public:
 					auto img = imagePane.images[cardsIndex + i];
 					img.setImageData(castCardImage(_prop, skin, castCard, _summ ? _summ.scenarioPath : "", _dbgMode));
 					img.createImage();
+					imagePane.redrawImage(img);
 					if (cardList.getItem(cast(int)i).getText() != castCard.name) { mixin(S_TRACE);
 						cardList.getItem(cast(int)i).setText(castCard.name);
 						_comm.refMenuCard.call(_area.cards[i].cwxPath(true));
 					}
 				}
 			}
-			imagePane.redraw();
 		}
 		private void deleteCast(CastCard castCard) { mixin(S_TRACE);
 			if (_readOnly) return;
@@ -5264,10 +5267,10 @@ public:
 					auto img = imagePane.images[cardsIndex + i];
 					img.setImageData(.castCard(skin));
 					img.createImage();
+					imagePane.redrawImage(img);
 					cardList.getItem(cast(int)i).setText("");
 				}
 			}
-			imagePane.redraw();
 		}
 	} else static if (RefCards) {
 		private void refreshCast(CastCard castCard) { mixin(S_TRACE);
@@ -5353,7 +5356,6 @@ public:
 			}
 		}
 		foreach (v; vs) { mixin(S_TRACE);
-			v._imgp.redraw();
 			v.refreshSelected();
 			v.refreshFlags();
 		}
@@ -5430,7 +5432,6 @@ public:
 								_area.insert(index, c);
 							}
 							appendCards(iic, cs, true, true, false);
-							if (_viewCards || _viewBacks) _imgp.redraw();
 							refreshSelected();
 							_comm.refUseCount.call();
 							refreshFlags();
@@ -5519,7 +5520,6 @@ public:
 									_area.insert(index, c);
 								}
 								appendCards(insertIndex(_cards), cs, true, true, false);
-								if (_viewCards) _imgp.redraw();
 								refreshSelected();
 								_comm.refUseCount.call();
 								refreshFlags();
@@ -5608,7 +5608,6 @@ public:
 									_area.insert(index, b);
 								}
 								appendBgImages(insertIndex(_backs), bs, true, true, false);
-								if (_viewBacks) _imgp.redraw();
 								refreshSelected();
 								_comm.refUseCount.call();
 								refreshFlags();

@@ -1021,7 +1021,9 @@ class ImportResultDialog : AbsDialog {
 		_list = new Table(area, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		_list.setLayoutData(new GridData(GridData.FILL_BOTH));
 		new FullTableColumn(_list, SWT.NONE);
-		.listener(_list, SWT.Selection, .toDelegate(&updateChecked!Event));
+		.listener(_list, SWT.Selection, (e) { mixin(S_TRACE);
+			updateChecked!Event(e);
+		});
 
 		auto menu = new Menu(_list.getShell(), SWT.POP_UP);
 		createMenuItem(_comm, menu, MenuID.SelectAll, &_list.selectAll, () => _list.getItemCount() && _list.getSelectionCount() != _list.getItemCount());

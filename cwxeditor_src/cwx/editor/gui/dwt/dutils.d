@@ -3494,15 +3494,21 @@ interface NoIME {
 	// Nothing
 }
 
-void updateChecked(Event)(Event e) { mixin(S_TRACE);
+bool updateChecked(Event)(Event e) { mixin(S_TRACE);
 	if (e.detail == SWT.CHECK) { mixin(S_TRACE);
 		auto itm = cast(TableItem)e.item;
+		auto checked = itm.getChecked();
 		auto tbl = itm.getParent();
 		if (tbl.isSelected(tbl.indexOf(itm))) { mixin(S_TRACE);
 			foreach (itm2; itm.getParent().getSelection()) { mixin(S_TRACE);
-				itm2.setChecked(itm.getChecked());
+				if (checked != itm2.getChecked()) { mixin(S_TRACE);
+					itm2.setChecked(checked);
+				}
 			}
 		}
+		return true;
+	} else {
+		return false;
 	}
 }
 
