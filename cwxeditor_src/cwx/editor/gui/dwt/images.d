@@ -2730,9 +2730,16 @@ private:
 			gc.dispose();
 			gc = new GC(buf);
 
+			auto rects = new HashSet!CRect;
 			foreach (bmp; backs) { mixin(S_TRACE);
-				auto fi = cast(FlexImage) bmp;
-				if (fi) fi.drawToggle(gc);
+				auto fi = cast(FlexImage)bmp;
+				if (fi) { mixin(S_TRACE);
+					auto fiRect = CRect(fi.x, fi.y, fi.width, fi.height);
+					if (!rects.contains(fiRect)) { mixin(S_TRACE);
+						fi.drawToggle(gc);
+						rects.add(fiRect);
+					}
+				}
 			}
 
 			if (1 < _gridX || 1 < _gridY) { mixin(S_TRACE);
