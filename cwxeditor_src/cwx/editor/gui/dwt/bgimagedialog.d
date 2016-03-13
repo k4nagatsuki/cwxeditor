@@ -202,6 +202,7 @@ protected:
 			_mask.addSelectionListener(new MaskListener);
 		}
 		_layer = createS(_prop.msgs.layer, _prop.var.etc.layerMax, LAYER_BACK_CELL, .tryFormat(_prop.msgs.layerHint, LAYER_BACK_CELL));
+		_layer.setToolTipText(.tryFormat(_prop.msgs.layerValues, LAYER_BACK_CELL, LAYER_MENU_CARD, LAYER_PLAYER_CARD, LAYER_MESSAGE));
 		return grp;
 	}
 	Composite createEasySettingsPanel(Composite comp) { mixin(S_TRACE);

@@ -4365,6 +4365,7 @@ public:
 		_layerSpn = createSpinner(bar, _prop.msgs.layer, _prop.var.etc.layerMax, LAYER_BACK_CELL, LAYER_BACK_CELL,
 			&editSpn!("a.layer = value * 10;"), &enterSpn!("a.layer = value;", "a.layer = value * 10;"),
 			&cancelSpn!("a.layer", "fi.layer = a.layer * 10;"), _readOnly);
+		_layerSpn.setToolTipText(.tryFormat(_prop.msgs.layerValues, LAYER_BACK_CELL, LAYER_MENU_CARD, LAYER_PLAYER_CARD, LAYER_MESSAGE));
 		new ToolItem(bar, SWT.SEPARATOR);
 		_sgTMenu = createToolItem(_comm, bar, MenuID.ShowGrid, &reverseShowGrid, null, SWT.CHECK);
 		_sgTMenu.setSelection(_showGrid);

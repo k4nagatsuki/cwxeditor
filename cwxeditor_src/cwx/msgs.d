@@ -112,6 +112,7 @@ class Msgs : Properties {
 	auto dlgTitImageLayerWindowReadOnly = Msg("dlgTitImageLayerWindowReadOnly", "レイヤの一覧");
 	auto layerName = Msg("layerName", "レイヤ %1$s");
 	auto warningLayer = Msg("warningLayer", "レイヤの指定はWSN1以降の形式のシナリオしか行えません。");
+	auto layerValues = Msg("layerValues", "%1$s = 背景セル\n%2$s = メニュー・エネミーカード\n%3$s = プレイヤーカード\n%4$s = メッセージ");
 
 	auto newFolder = Msg("newFolder", "新規" ~ DIR);
 
