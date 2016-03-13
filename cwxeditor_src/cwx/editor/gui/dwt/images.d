@@ -1971,6 +1971,7 @@ private:
 	WallpaperStyle _wallpaperStyle = WallpaperStyle.Tile;
 	Point _rangeStartPos = null;
 	Point _rangeEndPos = null;
+	bool _rangeSelected = false;
 	bool[FlexImage] rangeSelectOlds;
 
 	PileImage[] backs = [];
@@ -2162,6 +2163,7 @@ private:
 				_rangeEndPos.y = me.y;
 				redrawRangeLine();
 				updateRangeSelection();
+				_rangeSelected = true;
 			} else if (dragTgl != Toggle.NONE) { mixin(S_TRACE);
 				assert (_mouseP !is null);
 				if ((_ctrl || _shift) && _mouseP) { mixin(S_TRACE);
@@ -2401,6 +2403,7 @@ private:
 					_mouseP = null;
 					_rangeStartPos = new Point(x, y);
 					_rangeEndPos = new Point(x, y);
+					_rangeSelected = false;
 					updateRangeSelection();
 				} else { mixin(S_TRACE);
 					_mouseP = img;
@@ -2417,6 +2420,7 @@ private:
 					if (_mouseP.fixed) { mixin(S_TRACE);
 						_rangeStartPos = new Point(x, y);
 						_rangeEndPos = new Point(x, y);
+						_rangeSelected = false;
 					}
 					return;
 				}
@@ -2495,7 +2499,7 @@ private:
 						}
 					}
 				}
-				if (!moved && _mouseP) { mixin(S_TRACE);
+				if (!moved && _mouseP && !_rangeSelected) { mixin(S_TRACE);
 					if (_ctrl || _shift) { mixin(S_TRACE);
 						if (_mouseP.selected) { mixin(S_TRACE);
 							doDeselect(_mouseP);
@@ -2515,6 +2519,7 @@ private:
 			redrawRangeLine();
 			_rangeStartPos = null;
 			_rangeEndPos = null;
+			_rangeSelected = false;
 		}
 	}
 	bool _ctrl = false;
