@@ -2417,7 +2417,6 @@ private:
 					if (_mouseP.fixed) { mixin(S_TRACE);
 						_rangeStartPos = new Point(x, y);
 						_rangeEndPos = new Point(x, y);
-						updateRangeSelection();
 					}
 					return;
 				}
@@ -2727,6 +2726,9 @@ private:
 			if (alphaImgs.length) { mixin(S_TRACE);
 				drawAlphaImgData();
 			}
+
+			gc.dispose();
+			gc = new GC(buf);
 
 			foreach (bmp; backs) { mixin(S_TRACE);
 				auto fi = cast(FlexImage) bmp;
