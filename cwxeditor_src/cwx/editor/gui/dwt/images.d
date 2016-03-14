@@ -2608,25 +2608,40 @@ private:
 			auto region = new Region(d);
 			scope (exit) region.dispose();
 			region.add(range);
-			PileImage[] drawImgs = [];
+			PileImage[] drawImgs = []; // 描画するイメージ
+			FlexImage[] drawToggleImgs = []; // トグルを描画するイメージ
+			auto rects = new HashSet!CRect; // トグルを描画済みの領域
+
+			auto regionIsEmpty = false;
 			foreach_reverse (t; fBacks) { mixin(S_TRACE);
 				auto img = t[1];
 				if (!img.visible) continue;
-				if (img.y + img.height < 0) continue;
-				if (rect.height <= img.y) continue;
-				if (img.x + img.width < 0) continue;
-				if (rect.width <= img.x) continue;
-				if (!region.intersects(img.x, img.y, img.width, img.height)) continue;
 
-				drawImgs ~= img;
-
-				if (!img.isOpaque) continue;
-				if (!img.isCreated) { mixin(S_TRACE);
+				// イメージの描画を行うか
+				if (!regionIsEmpty && 0 <= img.y + img.height && img.y < rect.height && 0 <= img.x + img.width && img.x < rect.width
+						&& region.intersects(img.x, img.y, img.width, img.height)) { mixin(S_TRACE);
+					drawImgs ~= img;
 					img.createImageImpl();
-					if (!img.isOpaque) continue;
+
+					if (img.isOpaque) { mixin(S_TRACE);
+						region.subtract(img.x, img.y, img.width, img.height);
+						regionIsEmpty |= region.isEmpty();
+					}
 				}
-				region.subtract(img.x, img.y, img.width, img.height);
-				if (region.isEmpty()) break;
+
+				// トグルの描画を行うか
+				if (auto fi = cast(FlexImage)img) { mixin(S_TRACE);
+					if (fi.selected) { mixin(S_TRACE);
+						auto da = fi.drawNewArea;
+						if (0 <= da.y + da.height && da.y < rect.height && 0 <= da.x + da.width && da.x < rect.width) { mixin(S_TRACE);
+							auto fiRect = CRect(fi.x, fi.y, fi.width, fi.height);
+							if (!rects.contains(fiRect)) { mixin(S_TRACE);
+								drawToggleImgs ~= fi;
+								rects.add(fiRect);
+							}
+						}
+					}
+				}
 			}
 
 			int befAlpha = -1;
@@ -2732,20 +2747,9 @@ private:
 				drawAlphaImgData();
 			}
 
+			// FIXME: 半透明描画でGCの状態がおかしくなるので作りなおす
 			gc.dispose();
 			gc = new GC(buf);
-
-			auto rects = new HashSet!CRect;
-			foreach (bmp; backs) { mixin(S_TRACE);
-				auto fi = cast(FlexImage)bmp;
-				if (fi) { mixin(S_TRACE);
-					auto fiRect = CRect(fi.x, fi.y, fi.width, fi.height);
-					if (!rects.contains(fiRect)) { mixin(S_TRACE);
-						fi.drawToggle(gc);
-						rects.add(fiRect);
-					}
-				}
-			}
 
 			if (1 < _gridX || 1 < _gridY) { mixin(S_TRACE);
 				gc.dispose();
@@ -2796,6 +2800,11 @@ private:
 				int w = x2 - x1;
 				int h = y2 - y1;
 				gc.drawFocus(x1, y1, w, h);
+			}
+
+			// トグルの描画
+			foreach_reverse (fi; drawToggleImgs) { mixin(S_TRACE);
+				fi.drawToggle(gc);
 			}
 
 			e.gc.drawImage(buf, 0, 0);
