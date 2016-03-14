@@ -1905,7 +1905,8 @@ private:
 	}
 	void checkFlag(Event e) { mixin(S_TRACE);
 		if (!_flagList) return;
-		if (!updateChecked(e)) return;
+		if (e.detail != SWT.CHECK) return;
+		updateChecked(e);
 		bool[string] useFlags;
 		if (e && cast(TableItem)e.item) { mixin(S_TRACE);
 			auto itm = cast(TableItem)e.item;
@@ -2685,7 +2686,8 @@ private:
 	}
 	class VCheckListener : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			if (!updateChecked(e)) return;
+			if (e.detail != SWT.CHECK) return;
+			updateChecked(e);
 			checked();
 			updateFlagChecks();
 		}

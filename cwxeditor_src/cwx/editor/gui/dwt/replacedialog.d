@@ -1573,35 +1573,45 @@ private:
 	class RefRangeAllCheck : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			if (SWT.CHECK != e.detail) return;
-			auto par = (cast(TreeItem)e.item);
-			// アイテムが単なるコンテナであれば
-			// 下のアイテムの状態を一括で切り替える
-			if (par && !par.getData()) { mixin(S_TRACE);
-				void recurse(TreeItem itm) { mixin(S_TRACE);
-					itm.setChecked(par.getChecked());
-					foreach (child; itm.getItems()) recurse(child);
-				}
-				foreach (itm; par.getItems()) { mixin(S_TRACE);
-					recurse(itm);
-				}
+			auto par = cast(TreeItem)e.item;
+			if (!par) return;
+
+			TreeItem[] targs;
+			if (updateChecked(e)) { mixin(S_TRACE);
+				targs = par.getParent().getSelection();
+			} else { mixin(S_TRACE);
+				targs = [par];
 			}
-			// 上のアイテムが単なるコンテナであれば
-			// 下のアイテムの状態によってチェック状態を切り替える
-			while (par && par.getParentItem() && !par.getParentItem().getData()) { mixin(S_TRACE);
-				bool same = true;
-				void recurse2(TreeItem itm) { mixin(S_TRACE);
-					if (itm.getChecked() != par.getChecked()) { mixin(S_TRACE);
-						same = false;
-						return;
+			foreach (par2; targs) { mixin(S_TRACE);
+				if (!par2.getData()) { mixin(S_TRACE);
+					// アイテムが単なるコンテナであれば
+					// 下のアイテムの状態を一括で切り替える
+					void recurse(TreeItem itm) { mixin(S_TRACE);
+						itm.setChecked(par2.getChecked());
+						foreach (child; itm.getItems()) recurse(child);
 					}
-					foreach (child; itm.getItems()) recurse2(child);
+					foreach (itm; par2.getItems()) { mixin(S_TRACE);
+						recurse(itm);
+					}
 				}
-				foreach (itm; par.getParentItem().getItems()) { mixin(S_TRACE);
-					recurse2(itm);
+				// 上のアイテムが単なるコンテナであれば
+				// 下のアイテムの状態によってチェック状態を切り替える
+				while (par2 && par2.getParentItem() && !par2.getParentItem().getData()) { mixin(S_TRACE);
+					bool same = true;
+					void recurse2(TreeItem itm) { mixin(S_TRACE);
+						if (itm.getChecked() != par2.getChecked()) { mixin(S_TRACE);
+							same = false;
+							return;
+						}
+						foreach (child; itm.getItems()) recurse2(child);
+					}
+					foreach (itm; par2.getParentItem().getItems()) { mixin(S_TRACE);
+						recurse2(itm);
+					}
+					if (!same) break;
+					par2.getParentItem().setChecked(par2.getChecked());
+					par2 = par2.getParentItem();
 				}
-				if (!same) break;
-				par.getParentItem().setChecked(par.getChecked());
-				par = par.getParentItem();
 			}
 			refreshRangeAllCheck();
 		}
@@ -1860,7 +1870,7 @@ public:
 			grp.setText(_prop.msgs.searchRange);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setLayout(new GridLayout(1, true));
-			_range = new Tree(grp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL | SWT.CHECK);
+			_range = new Tree(grp, SWT.MULTI | SWT.BORDER | SWT.VIRTUAL | SWT.CHECK);
 			initTree(_comm, _range, false);
 			_range.addSelectionListener(new RefRangeAllCheck);
 			auto gd = new GridData(GridData.FILL_BOTH);
@@ -1876,6 +1886,19 @@ public:
 			_range.addKeyListener(openPath);
 			_range.addMouseListener(openPath);
 			auto menu = new Menu(_win, SWT.POP_UP);
+			createMenuItem(_comm, menu, MenuID.SelectAll, { mixin(S_TRACE);
+				void recurse(TreeItem itm) { mixin(S_TRACE);
+					_range.select(itm);
+					foreach (child; itm.getItems()) { mixin(S_TRACE);
+						recurse(child);
+					}
+				}
+				foreach (itm; _range.getItems()) { mixin(S_TRACE);
+					recurse(itm);
+				}
+				_comm.refreshToolBar();
+			}, () => _range.getAllItemCount() != _range.getSelectionCount());
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.OpenAtView, &openRangePath, () => _range.getSelection().length > 0 && cast(CWXPath)_range.getSelection()[0].getData());
 			_range.setMenu(menu);
 		}

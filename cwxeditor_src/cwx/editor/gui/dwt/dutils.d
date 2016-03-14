@@ -3496,20 +3496,50 @@ interface NoIME {
 
 bool updateChecked(Event)(Event e) { mixin(S_TRACE);
 	if (e.detail == SWT.CHECK) { mixin(S_TRACE);
-		auto itm = cast(TableItem)e.item;
-		auto checked = itm.getChecked();
-		auto tbl = itm.getParent();
-		if (tbl.isSelected(tbl.indexOf(itm))) { mixin(S_TRACE);
-			foreach (itm2; itm.getParent().getSelection()) { mixin(S_TRACE);
-				if (checked != itm2.getChecked()) { mixin(S_TRACE);
-					itm2.setChecked(checked);
+		bool r = false;
+		if (auto itm = cast(TableItem)e.item) { mixin(S_TRACE);
+			auto checked = itm.getChecked();
+			auto tbl = itm.getParent();
+			if (tbl.isSelected(tbl.indexOf(itm))) { mixin(S_TRACE);
+				r = true;
+				foreach (itm2; itm.getParent().getSelection()) { mixin(S_TRACE);
+					if (checked != itm2.getChecked()) { mixin(S_TRACE);
+						itm2.setChecked(checked);
+					}
+				}
+			}
+		} else if (auto itm = cast(TreeItem)e.item) { mixin(S_TRACE);
+			auto checked = itm.getChecked();
+			auto tree = itm.getParent();
+			auto sels = tree.getSelection();
+			if (sels.contains(itm)) { mixin(S_TRACE);
+				r = true;
+				foreach (itm2; sels) { mixin(S_TRACE);
+					if (checked != itm2.getChecked()) { mixin(S_TRACE);
+						itm2.setChecked(checked);
+					}
 				}
 			}
 		}
-		return true;
+		return r;
 	} else {
 		return false;
 	}
+}
+
+/// ツリーに含まれる全てのアイテム数を返す。
+int getAllItemCount(Tree tree) { mixin(S_TRACE);
+	int r = tree.getItemCount();
+	void recurse(TreeItem itm) { mixin(S_TRACE);
+		r += itm.getItemCount();
+		foreach (child; itm.getItems()) { mixin(S_TRACE);
+			recurse(child);
+		}
+	}
+	foreach (itm; tree.getItems()) { mixin(S_TRACE);
+		recurse(itm);
+	}
+	return r;
 }
 
 /// ファイルタイプ別のアイコン。
