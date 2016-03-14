@@ -2536,7 +2536,10 @@ private:
 	bool _cancelFullRedraw = false;
 	/// なぜか関係ないSpinnerの値を設定しただけでフル再描画がかかるので
 	/// それを一度だけキャンセルできるようにする。
-	public void cancelFullRedraw() { _cancelFullRedraw = true; }
+	public void cancelFullRedraw() { mixin(S_TRACE);
+		_cancelFullRedraw = true;
+		redraw();
+	}
 
 	class PListener : PaintListener {
 		private static ImageData[Point] tempBack;
@@ -3205,5 +3208,7 @@ public:
 		toggleCursors[Toggle.MIDDLE_BOTTOM] = display.getSystemCursor(SWT.CURSOR_SIZENS);
 		toggleCursors[Toggle.MOVE] = null;
 		toggleCursors[Toggle.NONE] = null;
+
+		cancelFullRedraw();
 	}
 }
