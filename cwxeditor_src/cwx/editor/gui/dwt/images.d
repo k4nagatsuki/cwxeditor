@@ -2634,7 +2634,7 @@ private:
 					if (fi.selected) { mixin(S_TRACE);
 						auto da = fi.drawNewArea;
 						if (0 <= da.y + da.height && da.y < rect.height && 0 <= da.x + da.width && da.x < rect.width) { mixin(S_TRACE);
-							auto fiRect = CRect(fi.x, fi.y, fi.width, fi.height);
+							auto fiRect = CRect(fi.newX, fi.newY, fi.newWidth, fi.newHeight);
 							if (!rects.contains(fiRect)) { mixin(S_TRACE);
 								drawToggleImgs ~= fi;
 								rects.add(fiRect);
