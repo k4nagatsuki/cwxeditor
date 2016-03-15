@@ -24,13 +24,20 @@ import java.lang.all;
 
 struct PosInfo {
 	int x;
-	int y;
+	int relY;
 	int height;
 	int index;
 	Content content;
 	string eventText;
 	int commentLineX = 0;
 	Rectangle commentRect = null;
+}
+class StartInfo {
+	int y = 0;
+	int width = 0;
+	int height = 0;
+	StartInfo prev = null;
+	StartInfo next = null;
 }
 
 class EventEditorItem : Item {
@@ -104,7 +111,8 @@ class EventEditorItem : Item {
 		scope (exit) gc.dispose();
 		auto pos = _parent._posTable[c.eventId];
 		auto sy = _parent.getVerticalBar().getSelection() * _parent._lineHeight;
-		return new Rectangle(0, pos.y - sy, 20 + gc.wTextExtent(pos.eventText).x + 4, pos.height);
+		auto startInfo = _parent._startInfos[pos.content.parentStart.eventId];
+		return new Rectangle(0, (startInfo.y + pos.relY) - sy, 20 + gc.wTextExtent(pos.eventText).x + 4, pos.height);
 	}
 	Rectangle getImageBounds() { mixin(S_TRACE);
 		auto c = cast(Content)getData();
@@ -112,7 +120,8 @@ class EventEditorItem : Item {
 		auto pos = _parent._pos[index];
 		auto sx = _parent.getHorizontalBar().getSelection();
 		auto sy = _parent.getVerticalBar().getSelection() * _parent._lineHeight;
-		return new Rectangle(pos.x - sx, pos.y + _parent._imgPos - sy, _parent._imageWidth, _parent._lineHeight - _parent._imgPos - _parent._imgPos);
+		auto startInfo = _parent._startInfos[pos.content.parentStart.eventId];
+		return new Rectangle(pos.x - sx, (startInfo.y + pos.relY) + _parent._imgPos - sy, _parent._imageWidth, _parent._lineHeight - _parent._imgPos - _parent._imgPos);
 	}
 }
 
@@ -129,11 +138,15 @@ class EventEditor : Composite {
 	private int _heightSum = 0;
 	private int _widthSum = 0;
 	private Content _selected = null, _lightup = null;
+	private Content _selectedParentStart = null, _lightupParentStart = null;
+	private int _selectedIndex = -1;
 	/// yの順に整列した位置リスト。
 	private PosInfo[] _pos;
 	/// イベントコンテントをキーに位置を取るテーブル。
 	private PosInfo[string] _posTable;
 	private EventEditorItem[string] _items;
+	/// スタートコンテントの位置と前後情報。
+	private StartInfo[string] _startInfos;
 
 	private Color _lineColor = null;
 	private Color _selectedColor = null;
@@ -199,9 +212,12 @@ class EventEditor : Composite {
 			_warningImage.dispose();
 			_expanded = null;
 			_selected = null;
+			_selectedParentStart = null;
 			_lightup = null;
+			_lightupParentStart = null;
 			_pos = [];
 			_posTable = null;
+			_startInfos = null;
 			_items = null;
 			_warningRects = [];
 			if (_summ) _comm.refTerminalMark.remove(&updatePosImpl);
@@ -245,7 +261,9 @@ class EventEditor : Composite {
 		updatePosImpl2();
 		if (!_selected) return;
 		if (_selected.eventId !in _posTable) return;
-		scroll(_posTable[_selected.eventId].y / _lineHeight, _posTable[_selected.eventId].height);
+		auto pos = _posTable[_selected.eventId];
+		auto startInfo = _startInfos[_selectedParentStart.eventId];
+		scroll((startInfo.y + pos.relY) / _lineHeight, pos.height);
 	}
 	private void scroll(int pos, int height) { mixin(S_TRACE);
 		_showSelection = false;
@@ -286,18 +304,22 @@ class EventEditor : Composite {
 		int y = 0;
 		int selIndex = 0;
 		auto oldSel = _selected;
-		if (_selected && _selected.eventId in _posTable) { mixin(S_TRACE);
-			selIndex = indexOf(_selected);
-		}
+		selIndex = _selectedIndex;
+		_selectedIndex = -1;
 		_pos = [];
 		_posTable = null;
+		_startInfos = null;
 		_lightup = null;
+		_lightupParentStart = null;
 		_heightSum = 0;
 		_widthSum = 0;
 		int index = 0;
 		bool[string] expanded2;
 		auto gc = new GC(this);
 		scope (exit) gc.dispose();
+		int relY = 0;
+		int startTreeWidth = 0;
+		int[] posY;
 		void recurse(int x, Content c) { mixin(S_TRACE);
 			while (true) { mixin(S_TRACE);
 				auto type = c.type;
@@ -308,9 +330,11 @@ class EventEditor : Composite {
 					_heightSum++;
 				}
 				auto s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
-				_pos ~= PosInfo(x, y, height, index, c, s, 0, null);
-				_posTable[c.eventId] = PosInfo(x, y, height, index, c, s, 0, null);
+				_pos ~= PosInfo(x, relY, height, index, c, s, 0, null);
+				posY ~= y;
+				_posTable[c.eventId] = PosInfo(x, relY, height, index, c, s, 0, null);
 				y += height;
+				relY += height;
 				index++;
 
 				// 幅計算
@@ -318,9 +342,9 @@ class EventEditor : Composite {
 					s = _comm.skin.evtChildOK;
 				}
 				if (s == "") { mixin(S_TRACE);
-					_widthSum = .max(x + 16, _widthSum);
+					startTreeWidth = .max(x + 16, startTreeWidth);
 				} else { mixin(S_TRACE);
-					_widthSum = .max(x + 20 + gc.wTextExtent(s).x, _widthSum);
+					startTreeWidth = .max(x + 20 + gc.wTextExtent(s).x, startTreeWidth);
 				}
 
 				if (c.next.length && !_expanded.get(c.eventId, true)) { mixin(S_TRACE);
@@ -345,27 +369,48 @@ class EventEditor : Composite {
 			}
 		}
 		if (_et) { mixin(S_TRACE);
-			foreach (i, start; _et.starts) { mixin(S_TRACE);
+			auto starts = _et.starts;
+			auto startInfos = new StartInfo[starts.length];
+			foreach (i, start; starts) { mixin(S_TRACE);
+				auto info = new StartInfo;
+				startInfos[i] = info;
+				_startInfos[start.eventId] = info;
+				if (0 < i) { mixin(S_TRACE);
+					info.prev = startInfos[i - 1];
+					startInfos[i - 1].next = info;
+				}
+				info.y = y;
+				relY = 0;
+				startTreeWidth = 0;
 				recurse(x, start);
+				info.height = relY;
+				_widthSum = .max(startTreeWidth, _widthSum);
 			}
 			if (_selected && _selected.eventId !in _posTable && 0 < selIndex) { mixin(S_TRACE);
 				if (_selected.type !is CType.START) selIndex -= 1;
 				_selected = null;
+				_selectedParentStart = null;
+				_selectedIndex = -1;
 			}
 		} else { mixin(S_TRACE);
 			_selected = null;
-		}
-		if (!_selected && _pos.length) { mixin(S_TRACE);
-			_selected = _pos[.min(selIndex, $ - 1)].content;
+			_selectedParentStart = null;
+			_selectedIndex = -1;
 		}
 		_expanded = expanded2;
 		_posTable.rehash();
+
+		if (!_selected && _pos.length) { mixin(S_TRACE);
+			_selected = _pos[.min(selIndex, $ - 1)].content;
+			_selectedParentStart = _selected.parentStart;
+			_selectedIndex = indexOf(_selected);
+		}
 
 		// コメント位置
 		Rectangle[] boxes;
 		Rectangle[string] cBoxes;
 		string[] comments;
-		Rectangle itemRect(ref PosInfo pos) { mixin(S_TRACE);
+		Rectangle itemRect(int y, ref PosInfo pos) { mixin(S_TRACE);
 			auto c = pos.content;
 			if (auto p = c.eventId in cBoxes) { mixin(S_TRACE);
 				return *p;
@@ -375,7 +420,7 @@ class EventEditor : Composite {
 				s = _comm.skin.evtChildOK;
 			}
 			int rx = 20 + gc.wTextExtent(s).x;
-			auto rect = new Rectangle(pos.x, pos.y, rx, pos.height);
+			auto rect = new Rectangle(pos.x, y, rx, pos.height);
 			cBoxes[c.eventId] = rect;
 			return rect;
 		}
@@ -383,7 +428,7 @@ class EventEditor : Composite {
 		foreach (i, ref pos; _pos) { mixin(S_TRACE);
 			auto c = pos.content;
 			if (c.comment == "") continue;
-			auto cRect = itemRect(pos);
+			auto cRect = itemRect(posY[i], pos);
 			int rx = cRect.x + cRect.width;
 			if (!_expanded.get(c.eventId, true)) { mixin(S_TRACE);
 				rx += 14 + gc.wTextExtent("...").x + 3;
@@ -404,10 +449,10 @@ class EventEditor : Composite {
 			Rectangle[] boxes2;
 			if (0 < ba) { mixin(S_TRACE);
 				foreach (j; .max(i - ba, 0) .. i) { mixin(S_TRACE);
-					boxes2 ~= itemRect(_pos[j]);
+					boxes2 ~= itemRect(posY[j], _pos[j]);
 				}
 				foreach (j; i + 1 .. .min(_pos.length, i + ba + 1)) { mixin(S_TRACE);
-					boxes2 ~= itemRect(_pos[j]);
+					boxes2 ~= itemRect(posY[j], _pos[j]);
 				}
 			}
 
@@ -416,7 +461,7 @@ class EventEditor : Composite {
 			int th = te.y + 6;
 
 			// 画面外へ出ないようにY座標の調節
-			int ty = pos.y - th / 2 + hh;
+			int ty = posY[i] - th / 2 + hh;
 			ty = .min(ty, _heightSum * _lineHeight - th);
 			ty = .max(ty, 0);
 
@@ -474,8 +519,9 @@ class EventEditor : Composite {
 				int index = indexOf(p.y);
 				if (0 <= index && index < _pos.length) { mixin(S_TRACE);
 					auto pos = _pos[index];
-					if (p.y - pos.y < _lineHeight) { mixin(S_TRACE);
-						auto c = pos.content;
+					auto c = pos.content;
+					auto startInfo = _startInfos[c.parentStart.eventId];
+					if (p.y - (startInfo.y + pos.relY) < _lineHeight) { mixin(S_TRACE);
 						auto s = .contentText(_comm, c, _summ);
 						auto gc = new GC(this);
 						scope (exit) gc.dispose();
@@ -533,11 +579,15 @@ class EventEditor : Composite {
 		auto c = cast(Content)itm.getData();
 		if (c) { mixin(S_TRACE);
 			_selected = c;
+			_selectedParentStart = c.parentStart;
+			_selectedIndex = indexOf(c);
 			redraw();
 		}
 	}
 	void select(Content c) { mixin(S_TRACE);
 		_selected = c;
+		_selectedParentStart = c ? c.parentStart : null;
+		_selectedIndex = indexOf(c);
 		redraw();
 	}
 	int indexOf(EventEditorItem itm) { mixin(S_TRACE);
@@ -555,8 +605,10 @@ class EventEditor : Composite {
 	void setTopItem(EventEditorItem itm) { mixin(S_TRACE);
 		if (itm && (cast(Content)itm.getData()).eventId in _posTable) { mixin(S_TRACE);
 			auto vbar = getVerticalBar();
-			auto pos = _posTable[(cast(Content)itm.getData()).eventId];
-			vbar.setSelection(pos.y / _lineHeight);
+			auto c = cast(Content)itm.getData();
+			auto pos = _posTable[c.eventId];
+			auto startInfo = _startInfos[c.parentStart.eventId];
+			vbar.setSelection((startInfo.y + pos.relY) / _lineHeight);
 		}
 	}
 
@@ -596,16 +648,20 @@ class EventEditor : Composite {
 		auto mid = (from + to) / 2;
 		auto pos = _pos[mid];
 		assert (mid == pos.index);
-		if (y < pos.y) { mixin(S_TRACE);
+		auto startInfo = _startInfos[pos.content.parentStart.eventId];
+		if (y < (startInfo.y + pos.relY)) { mixin(S_TRACE);
 			return find(y, from, mid);
-		} else if (pos.y + pos.height <= y) { mixin(S_TRACE);
+		} else if ((startInfo.y + pos.relY) + pos.height <= y) { mixin(S_TRACE);
 			return find(y, mid + 1, to);
 		} else { mixin(S_TRACE);
 			return pos.index;
 		}
 	}
 	private void select(int index) { mixin(S_TRACE);
-		_selected = _pos[index].content;
+		auto c = _pos[index].content;
+		_selected = c;
+		_selectedParentStart = c ? c.parentStart : null;
+		_selectedIndex = c ? indexOf(c) : -1;
 		redraw();
 	}
 
@@ -707,7 +763,7 @@ class EventEditor : Composite {
 			goto case SWT.ARROW_DOWN;
 		case SWT.ARROW_UP:
 			if (_selected) { mixin(S_TRACE);
-				int i = indexOf(_selected);
+				int i = _selectedIndex;
 				if (0 < i) select(i - 1);
 			} else { mixin(S_TRACE);
 				select(0);
@@ -717,7 +773,7 @@ class EventEditor : Composite {
 			break;
 		case SWT.ARROW_DOWN:
 			if (_selected) { mixin(S_TRACE);
-				int i = indexOf(_selected);
+				int i = _selectedIndex;
 				if (i + 1 < _pos.length) { mixin(S_TRACE);
 					select(i + 1);
 				}
@@ -739,7 +795,11 @@ class EventEditor : Composite {
 				_moveDetailLine = true;
 			} else { mixin(S_TRACE);
 				auto sel = getContent(e.x, e.y);
-				if (sel) _selected = sel;
+				if (sel) { mixin(S_TRACE);
+					_selected = sel;
+					_selectedParentStart = sel.parentStart;
+					_selectedIndex = indexOf(sel);
+				}
 				if (sel) { mixin(S_TRACE);
 					showSelection();
 					callSelectChanged();
@@ -796,8 +856,9 @@ class EventEditor : Composite {
 		auto ca = getClientArea();
 		if (_selected && _selected.eventId in _posTable) { mixin(S_TRACE);
 			auto pos = _posTable[_selected.eventId];
+			auto startInfo = _startInfos[_selectedParentStart.eventId];
 			auto sy = getVerticalBar().getSelection() * _lineHeight;
-			redraw(ca.x, pos.y - sy, ca.width, _lineHeight + 1, true);
+			redraw(ca.x, (startInfo.y + pos.relY) - sy, ca.width, _lineHeight + 1, true);
 		}
 	}
 
@@ -806,9 +867,11 @@ class EventEditor : Composite {
 			auto ca = getClientArea();
 			auto sy = getVerticalBar().getSelection() * _lineHeight;
 			auto pos = _posTable[_lightup.eventId];
-			redraw(ca.x, pos.y - sy, ca.width, _lineHeight + 1, true);
+			auto startInfo = _startInfos[_lightupParentStart.eventId];
+			redraw(ca.x, (startInfo.y + pos.relY) - sy, ca.width, _lineHeight + 1, true);
 		}
 		_lightup = null;
+		_lightupParentStart = null;
 	}
 	void updateLightup() { mixin(S_TRACE);
 		auto ca = getClientArea();
@@ -818,9 +881,11 @@ class EventEditor : Composite {
 		auto old = _lightup;
 		clearLightup();
 		_lightup = ca.contains(p) ? getContent(p.x, p.y) : null;
+		_lightupParentStart = _lightup ? _lightup.parentStart : null;
 		if (_lightup && _lightup.eventId in _posTable) { mixin(S_TRACE);
 			auto pos = _posTable[_lightup.eventId];
-			redraw(ca.x, pos.y - sy, ca.width, _lineHeight + 1, true);
+			auto startInfo = _startInfos[_lightupParentStart.eventId];
+			redraw(ca.x, (startInfo.y + pos.relY) - sy, ca.width, _lineHeight + 1, true);
 		}
 	}
 
@@ -894,9 +959,10 @@ class EventEditor : Composite {
 		if (_lightup && _lightup.eventId in _posTable) { mixin(S_TRACE);
 			// マウスオーバー中のイベントコンテント
 			auto pos = _posTable[_lightup.eventId];
+			auto startInfo = _startInfos[_lightupParentStart.eventId];
 			e.gc.setBackground(_lightupColor);
 			scope (exit) e.gc.setBackground(getBackground());
-			e.gc.fillRectangle(e.x, pos.y - sy, e.width, _lineHeight + 1);
+			e.gc.fillRectangle(e.x, (startInfo.y + pos.relY) - sy, e.width, _lineHeight + 1);
 		}
 		if (_selected && _selected.eventId in _posTable) { mixin(S_TRACE);
 			// 選択中マーク
@@ -909,6 +975,7 @@ class EventEditor : Composite {
 			scope (exit) gc.dispose();
 
 			auto pos = _posTable[_selected.eventId];
+			auto startInfo = _startInfos[_selectedParentStart.eventId];
 			gc.setBackground(_selectedColor);
 			scope (exit) gc.setBackground(getBackground());
 			gc.fillRectangle(0, 0, e.width, _lineHeight + 1);
@@ -917,36 +984,39 @@ class EventEditor : Composite {
 				auto cw = .max(ca.width, _widthSum + detailAreaWidth);
 				gc.drawFocus(2 - sx, 2, cw - 4, _lineHeight + 1 - 4);
 			}
-			e.gc.drawImage(buf, e.x, pos.y - sy);
+			e.gc.drawImage(buf, e.x, (startInfo.y + pos.relY) - sy);
 		}
 
 		// イベントコンテントを結ぶ線
 		e.gc.setLineWidth(4);
 		e.gc.setForeground(_lineColor);
 		e.gc.setBackground(_lineColor);
+		StartInfo[] possInfo;
 		foreach (i, ref pos; _pos[index .. $]) { mixin(S_TRACE);
 			auto c = pos.content;
+			auto startInfo = _startInfos[c.parentStart.eventId];
+			possInfo ~= startInfo;
 			if (c.type == CType.START) { mixin(S_TRACE);
 				if (poss.length <= i) break;
 				if (0 < i && (_summ ? _comm.prop.var.etc.drawContentTreeLine : drawContentTreeLine)) { mixin(S_TRACE);
 					e.gc.setLineWidth(1);
 					e.gc.setForeground(_lineColor);
-					e.gc.drawLine(e.x - sx, pos.y - sy, e.x + e.width - sx, pos.y - sy);
+					e.gc.drawLine(e.x - sx, (startInfo.y + pos.relY) - sy, e.x + e.width - sx, (startInfo.y + pos.relY) - sy);
 					e.gc.setLineWidth(4);
 					e.gc.setForeground(_lineColor);
 				}
 			} else if (c.parent && c.parent.eventId in _posTable) { mixin(S_TRACE);
 				auto pPos = _posTable[c.parent.eventId];
 				if (pPos.x == pos.x) { mixin(S_TRACE);
-					e.gc.drawLine(pos.x + hw - sx, pPos.y + hh - sy, pos.x + hw - sx, pos.y + hh - sy);
+					e.gc.drawLine(pos.x + hw - sx, (startInfo.y + pPos.relY) + hh - sy, pos.x + hw - sx, (startInfo.y + pos.relY) + hh - sy);
 				} else { mixin(S_TRACE);
-					if (pPos.y + hh - sy < pos.y - sy) { mixin(S_TRACE);
-						e.gc.drawLine(pPos.x + hw - sx, pPos.y + hh - sy, pPos.x + hw - sx, pos.y - sy);
+					if ((startInfo.y + pPos.relY) + hh - sy < (startInfo.y + pos.relY) - sy) { mixin(S_TRACE);
+						e.gc.drawLine(pPos.x + hw - sx, (startInfo.y + pPos.relY) + hh - sy, pPos.x + hw - sx, (startInfo.y + pos.relY) - sy);
 					}
 					setAntialias(SWT.ON);
 					auto cap = e.gc.getLineCap();
 					e.gc.setLineCap(SWT.CAP_ROUND);
-					e.gc.drawArc(pPos.x + hw - sx, pos.y - sy - _lineHeight, pos.x - pPos.x + hw, _lineHeight + hh, 180, 90);
+					e.gc.drawArc(pPos.x + hw - sx, (startInfo.y + pos.relY) - sy - _lineHeight, pos.x - pPos.x + hw, _lineHeight + hh, 180, 90);
 					e.gc.setLineCap(cap);
 					setAntialias(SWT.OFF);
 				}
@@ -955,28 +1025,30 @@ class EventEditor : Composite {
 				// 後続コンテントが置かれるであろう位置を示す
 				// (終端の場合は後続コンテントが置けない事を示す)
 				int terX = pos.x + hw - sx;
-				int terY = pos.y + hh + _lineHeight - sy + 1;
+				int terY = (startInfo.y + pos.relY) + hh + _lineHeight - sy + 1;
 				if (c.detail.owner) { mixin(S_TRACE);
-					e.gc.drawLine(pos.x + hw - sx, pos.y + hh - sy, terX, terY - 8);
+					e.gc.drawLine(pos.x + hw - sx, (startInfo.y + pos.relY) + hh - sy, terX, terY - 8);
 					e.gc.drawLine(terX, terY - 6, terX, terY - 2);
 					e.gc.drawLine(terX, terY, terX, terY + 3);
 				} else { mixin(S_TRACE);
-					e.gc.drawLine(pos.x + hw - sx, pos.y + hh - sy, terX, terY - 5);
+					e.gc.drawLine(pos.x + hw - sx, (startInfo.y + pos.relY) + hh - sy, terX, terY - 5);
 					e.gc.fillRectangle(terX - 6, terY - 5, 12, 4);
 				}
 			}
 		}
+
 		// イベントコンテント分岐点
 		e.gc.setBackground(getBackground());
 		setAntialias(SWT.ON);
 		e.gc.setLineWidth(4);
 		foreach (i, ref pos; poss) { mixin(S_TRACE);
 			auto c = pos.content;
+			auto startInfo = possInfo[i];
 			if (c.parent && c.parent.eventId in _posTable) { mixin(S_TRACE);
 				auto pPos = _posTable[c.parent.eventId];
-				if (pPos.x != pos.x && pPos.y != pos.y - _lineHeight) { mixin(S_TRACE);
-					e.gc.fillOval(pPos.x + hw - 6 - sx, pos.y - hh - sy - 2, 12, 12);
-					e.gc.drawOval(pPos.x + hw - 6 - sx, pos.y - hh - sy - 2, 12, 12);
+				if (pPos.x != pos.x && (startInfo.y + pPos.relY) != (startInfo.y + pos.relY) - _lineHeight) { mixin(S_TRACE);
+					e.gc.fillOval(pPos.x + hw - 6 - sx, (startInfo.y + pos.relY) - hh - sy - 2, 12, 12);
+					e.gc.drawOval(pPos.x + hw - 6 - sx, (startInfo.y + pos.relY) - hh - sy - 2, 12, 12);
 				}
 			}
 		}
@@ -986,10 +1058,11 @@ class EventEditor : Composite {
 		// イベントコンテントのアイコンとテキスト
 		auto ucExtent = e.gc.wTextExtent(_comm.prop.msgs.startUseCount);
 		e.gc.setForeground(getForeground());
-		foreach (ref pos; poss) { mixin(S_TRACE);
+		foreach (i, ref pos; poss) { mixin(S_TRACE);
 			auto c = pos.content;
+			auto startInfo = possInfo[i];
 			auto image = _comm.prop.images.content(c.type);
-			e.gc.drawImage(image, pos.x - sx, pos.y + _imgPos - sy);
+			e.gc.drawImage(image, pos.x - sx, (startInfo.y + pos.relY) + _imgPos - sy);
 			string s;
 			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
 				e.gc.setForeground(d.getSystemColor(SWT.COLOR_GRAY));
@@ -999,7 +1072,7 @@ class EventEditor : Composite {
 				s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
 			}
 			auto ctx = pos.x + 20;
-			e.gc.wDrawText(s, ctx - sx, pos.y - sy + _lineTextY, true);
+			e.gc.wDrawText(s, ctx - sx, (startInfo.y + pos.relY) - sy + _lineTextY, true);
 			if ((_summ ? _comm.prop.var.etc.drawCountOfUseOfStart : drawCountOfUseOfStart) && c.type == CType.START) { mixin(S_TRACE);
 				// スタート使用数
 				auto count = _et.startUseCounter.get(toStartId(c.name));
@@ -1008,19 +1081,19 @@ class EventEditor : Composite {
 				auto tw = e.gc.wTextExtent(uc).x;
 				int tx = ca.width - detailAreaWidth - 4 - tw;
 				e.gc.setForeground(getForeground());
-				e.gc.wDrawText(_comm.prop.msgs.startUseCount, tx - ucExtent.x - 4, pos.y - sy + _lineTextY, true);
+				e.gc.wDrawText(_comm.prop.msgs.startUseCount, tx - ucExtent.x - 4, (startInfo.y + pos.relY) - sy + _lineTextY, true);
 				e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-				e.gc.wDrawText(uc, tx, pos.y - sy + _lineTextY, true);
+				e.gc.wDrawText(uc, tx, (startInfo.y + pos.relY) - sy + _lineTextY, true);
 			}
 			if (!_expanded.get(c.eventId, true)) { mixin(S_TRACE);
 				// ツリーを畳んでいる時のマーク
 				e.gc.setForeground(getForeground());
 				auto tw = e.gc.wTextExtent(s).x;
 				auto te = e.gc.wTextExtent("...");
-				e.gc.drawLine(ctx + tw + 2 - sx, pos.y - sy + hh, ctx + tw + 10 - sx, pos.y - sy + hh);
-				e.gc.wDrawText("...", ctx + tw + 14 - sx, pos.y - sy + _lineTextY, true);
+				e.gc.drawLine(ctx + tw + 2 - sx, (startInfo.y + pos.relY) - sy + hh, ctx + tw + 10 - sx, (startInfo.y + pos.relY) - sy + hh);
+				e.gc.wDrawText("...", ctx + tw + 14 - sx, (startInfo.y + pos.relY) - sy + _lineTextY, true);
 				setAntialias(SWT.ON);
-				e.gc.drawRoundRectangle(ctx + tw + 10 - sx, pos.y - sy, te.x + 8, te.y, 10, 10);
+				e.gc.drawRoundRectangle(ctx + tw + 10 - sx, (startInfo.y + pos.relY) - sy, te.x + 8, te.y, 10, 10);
 				setAntialias(SWT.OFF);
 			}
 		}
@@ -1038,17 +1111,18 @@ class EventEditor : Composite {
 
 		e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 		_warningRects = [];
-		foreach (ref pos; poss) { mixin(S_TRACE);
+		foreach (i, ref pos; poss) { mixin(S_TRACE);
 			// イベントコンテント内容
 			auto c = pos.content;
+			auto startInfo = possInfo[i];
 			if (detailAreaWidth) {
 				auto s = .contentText(_comm, c, _summ);
 				int x = ca.width - detailAreaWidth + 2;
 				auto image = _comm.prop.images.content(c.type);
 				setAlpha(128);
-				e.gc.drawImage(image, x, pos.y + _imgPos - sy);
+				e.gc.drawImage(image, x, (startInfo.y + pos.relY) + _imgPos - sy);
 				setAlpha(255);
-				e.gc.wDrawText(s, x + 18, pos.y - sy + _lineTextY, true);
+				e.gc.wDrawText(s, x + 18, (startInfo.y + pos.relY) - sy + _lineTextY, true);
 			}
 
 			// 警告
@@ -1059,9 +1133,9 @@ class EventEditor : Composite {
 					int wix = .max(0, ca.width - detailAreaWidth - ww);
 					int wiw = ca.width - detailAreaWidth - wix;
 					if (wiw <= 0) continue;
-					e.gc.drawImage(_warningImage, 0, 0, ww, 1, wix, pos.y - sy, wiw, _lineHeight + 1);
-					e.gc.drawImage(_comm.prop.images.warning, wix + wiw - _imageWidth - 4, pos.y + _imgPos - sy);
-					auto rect = new Rectangle(ca.x, pos.y - sy, ca.width - detailAreaWidth, _lineHeight);
+					e.gc.drawImage(_warningImage, 0, 0, ww, 1, wix, (startInfo.y + pos.relY) - sy, wiw, _lineHeight + 1);
+					e.gc.drawImage(_comm.prop.images.warning, wix + wiw - _imageWidth - 4, (startInfo.y + pos.relY) + _imgPos - sy);
+					auto rect = new Rectangle(ca.x, (startInfo.y + pos.relY) - sy, ca.width - detailAreaWidth, _lineHeight);
 					_warningRects ~= Warning(rect, warnings);
 				}
 			}
@@ -1072,7 +1146,8 @@ class EventEditor : Composite {
 		e.gc.setForeground(getForeground());
 		foreach (i, ref pos; _pos) { mixin(S_TRACE);
 			if (!pos.commentRect) continue;
-			e.gc.drawLine(pos.commentLineX - sx, pos.y + hh - sy, pos.commentRect.x - sx, pos.y + hh - sy);
+			auto startInfo = _startInfos[pos.content.parentStart.eventId];
+			e.gc.drawLine(pos.commentLineX - sx, (startInfo.y + pos.relY) + hh - sy, pos.commentRect.x - sx, (startInfo.y + pos.relY) + hh - sy);
 		}
 		setAntialias(SWT.ON);
 		foreach (i, ref pos; _pos) { mixin(S_TRACE);
@@ -1418,7 +1493,8 @@ private:
 			w = .max(_comm.prop.var.etc.nameWidth.value, w);
 		}
 		int h = size.y;
-		int y = pos.y + (_list._lineHeight - h) / 2 - sy;
+		auto startInfo = _list._startInfos[pos.content.parentStart.eventId];
+		int y = (startInfo.y + pos.relY) + (_list._lineHeight - h) / 2 - sy;
 		_editor.setBounds(x, y, w, h);
 	}
 public:
