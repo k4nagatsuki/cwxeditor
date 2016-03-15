@@ -2309,6 +2309,7 @@ public:
 	}
 	@property
 	bool canExpandTree() { mixin(S_TRACE);
+		if (_tree.editor) return _tree.editor.canAllExpandStart;
 		foreach (itm; _tree.getItems()) { mixin(S_TRACE);
 			if (_tree.getItems(itm).length && !_tree.getExpanded(itm)) { mixin(S_TRACE);
 				return true;
@@ -2318,6 +2319,7 @@ public:
 	}
 	@property
 	bool canFoldTree() { mixin(S_TRACE);
+		if (_tree.editor) return _tree.editor.canAllFoldStart;
 		foreach (itm; _tree.getItems()) { mixin(S_TRACE);
 			if (_tree.getItems(itm).length && _tree.getExpanded(itm)) { mixin(S_TRACE);
 				return true;

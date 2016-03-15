@@ -2524,43 +2524,64 @@ public:
 	private void searchAll(CWXPath path, ref size_t count,
 			void delegate(CWXPath path, ref size_t count) dlg) { mixin(S_TRACE);
 		if (cancel) return;
-		dlg(path, count);
-		// _rangeに含まれる要素は再帰的検索から除外する
-		auto fdir = cast(FlagDir) path;
-		if (fdir) { mixin(S_TRACE);
-			foreach (o; fdir.flags) searchAll(o, count, dlg);
-			foreach (o; fdir.steps) searchAll(o, count, dlg);
-			foreach (o; fdir.subDirs) searchAll(o, count, dlg);
-		}
-		auto eto = cast(EventTreeOwner) path;
-		if (eto) { mixin(S_TRACE);
-			foreach (o; eto.trees) searchAll(o, count, dlg);
-		}
-		auto et = cast(EventTree) path;
-		if (et) { mixin(S_TRACE);
-			foreach (o; et.starts) searchAll(o, count, dlg);
-		}
-		auto c = cast(Content) path;
-		if (c) { mixin(S_TRACE);
-			foreach (o; c.backs) searchAll(o, count, dlg);
-			foreach (o; c.next) searchAll(o, count, dlg);
-		}
-		auto area = cast(Area) path;
-		if (area) { mixin(S_TRACE);
-			foreach (o; area.cards) searchAll(o, count, dlg);
-			foreach (o; area.backs) searchAll(o, count, dlg);
-		}
-		auto battle = cast(Battle) path;
-		if (battle) { mixin(S_TRACE);
-			foreach (o; battle.cards) searchAll(o, count, dlg);
-		}
-		auto mo = cast(MotionOwner) path;
-		if (mo) { mixin(S_TRACE);
-			foreach (m; mo.motions) { mixin(S_TRACE);
-				if (m.beast && 0 == m.beast.linkId) { mixin(S_TRACE);
-					searchAll(m.beast, count, dlg);
+		while (true) {
+			dlg(path, count);
+			// _rangeに含まれる要素は再帰的検索から除外する
+			auto fdir = cast(FlagDir)path;
+			if (fdir) { mixin(S_TRACE);
+				foreach (o; fdir.flags) searchAll(o, count, dlg);
+				foreach (o; fdir.steps) searchAll(o, count, dlg);
+				auto subDirs = fdir.subDirs;
+				if (subDirs.length == 1) { mixin(S_TRACE);
+					path = subDirs[0];
+					continue; // 再帰回避
+				} else { mixin(S_TRACE);
+					foreach (o; subDirs) searchAll(o, count, dlg);
 				}
+				break;
 			}
+			auto eto = cast(EventTreeOwner)path;
+			if (eto) { mixin(S_TRACE);
+				foreach (o; eto.trees) searchAll(o, count, dlg);
+				break;
+			}
+			auto et = cast(EventTree)path;
+			if (et) { mixin(S_TRACE);
+				foreach (o; et.starts) searchAll(o, count, dlg);
+			}
+			auto c = cast(Content)path;
+			if (c) { mixin(S_TRACE);
+				foreach (o; c.backs) searchAll(o, count, dlg);
+				auto next = c.next;
+				if (next.length == 1) { mixin(S_TRACE);
+					path = next[0];
+					continue; // 再帰回避
+				} else { mixin(S_TRACE);
+					foreach (o; next) searchAll(o, count, dlg);
+				}
+				break;
+			}
+			auto area = cast(Area)path;
+			if (area) { mixin(S_TRACE);
+				foreach (o; area.cards) searchAll(o, count, dlg);
+				foreach (o; area.backs) searchAll(o, count, dlg);
+				break;
+			}
+			auto battle = cast(Battle)path;
+			if (battle) { mixin(S_TRACE);
+				foreach (o; battle.cards) searchAll(o, count, dlg);
+				break;
+			}
+			auto mo = cast(MotionOwner)path;
+			if (mo) { mixin(S_TRACE);
+				foreach (m; mo.motions) { mixin(S_TRACE);
+					if (m.beast && 0 == m.beast.linkId) { mixin(S_TRACE);
+						searchAll(m.beast, count, dlg);
+					}
+				}
+				break;
+			}
+			break;
 		}
 	}
 

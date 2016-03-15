@@ -299,40 +299,49 @@ class EventEditor : Composite {
 		auto gc = new GC(this);
 		scope (exit) gc.dispose();
 		void recurse(int x, Content c) { mixin(S_TRACE);
-			auto type = c.type;
-			int height = _lineHeight;
-			_heightSum++;
-			if ((_summ ? _comm.prop.var.etc.showTerminalMark : showTerminalMark) && type != CType.START && !c.next.length) { mixin(S_TRACE);
-				height = _lineHeight * 2;
+			while (true) { mixin(S_TRACE);
+				auto type = c.type;
+				int height = _lineHeight;
 				_heightSum++;
-			}
-			auto s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
-			_pos ~= PosInfo(x, y, height, index, c, s, 0, null);
-			_posTable[c.eventId] = PosInfo(x, y, height, index, c, s, 0, null);
-			y += height;
-			index++;
-
-			// 幅計算
-			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
-				s = _comm.skin.evtChildOK;
-			}
-			if (s == "") { mixin(S_TRACE);
-				_widthSum = .max(x + 16, _widthSum);
-			} else { mixin(S_TRACE);
-				_widthSum = .max(x + 20 + gc.wTextExtent(s).x, _widthSum);
-			}
-
-			if (c.next.length && !_expanded.get(c.eventId, true)) { mixin(S_TRACE);
-				expanded2[c.eventId] = false;
-				return;
-			}
-			auto d = c.detail;
-			if (type != CType.START && c.next.length == 1 && (!(_summ ? _comm.prop.var.etc.forceIndentBranchContent : forceIndentBranchContent) || d.nextType == CNextType.NONE || d.nextType == CNextType.TEXT)) { mixin(S_TRACE);
-				recurse(x + slope, c.next[0]);
-			} else if (c.next.length) { mixin(S_TRACE);
-				foreach (next; c.next) { mixin(S_TRACE);
-					recurse(x + _imageWidth, next);
+				if ((_summ ? _comm.prop.var.etc.showTerminalMark : showTerminalMark) && type != CType.START && !c.next.length) { mixin(S_TRACE);
+					height = _lineHeight * 2;
+					_heightSum++;
 				}
+				auto s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
+				_pos ~= PosInfo(x, y, height, index, c, s, 0, null);
+				_posTable[c.eventId] = PosInfo(x, y, height, index, c, s, 0, null);
+				y += height;
+				index++;
+
+				// 幅計算
+				if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
+					s = _comm.skin.evtChildOK;
+				}
+				if (s == "") { mixin(S_TRACE);
+					_widthSum = .max(x + 16, _widthSum);
+				} else { mixin(S_TRACE);
+					_widthSum = .max(x + 20 + gc.wTextExtent(s).x, _widthSum);
+				}
+
+				if (c.next.length && !_expanded.get(c.eventId, true)) { mixin(S_TRACE);
+					expanded2[c.eventId] = false;
+					break; // 折りたたまれている
+				}
+				auto d = c.detail;
+				if (type != CType.START && c.next.length == 1 && (!(_summ ? _comm.prop.var.etc.forceIndentBranchContent : forceIndentBranchContent) || d.nextType == CNextType.NONE || d.nextType == CNextType.TEXT)) { mixin(S_TRACE);
+					x += slope;
+					c = c.next[0];
+					continue; // 再帰回避
+				} else if (c.next.length == 1) { mixin(S_TRACE);
+					x += _imageWidth;
+					c = c.next[0];
+					continue; // 再帰回避
+				} else { mixin(S_TRACE);
+					foreach (next; c.next) { mixin(S_TRACE);
+						recurse(x + _imageWidth, next);
+					}
+				}
+				break;
 			}
 		}
 		if (_et) { mixin(S_TRACE);
@@ -645,6 +654,27 @@ class EventEditor : Composite {
 				notifyListeners(itm.getExpanded() ? SWT.Expand : SWT.Collapse, se);
 			}
 		});
+	}
+
+	/// ツリーを全て開く・閉じる操作が可能か。
+	/// 例えば全て閉じられていた場合は全て閉じる操作は行えない
+	/// (行っても意味が無い)。
+	@property
+	const
+	bool canAllExpandStart() { mixin(S_TRACE);
+		foreach (c; _et.starts) {
+			if (!_expanded.get(c.eventId, true)) return true;
+		}
+		return false;
+	}
+	/// ditto
+	@property
+	const
+	bool canAllFoldStart() { mixin(S_TRACE);
+		foreach (c; _et.starts) {
+			if (_expanded.get(c.eventId, true)) return true;
+		}
+		return false;
 	}
 
 	/// キーボード操作による開閉操作が可能か。
