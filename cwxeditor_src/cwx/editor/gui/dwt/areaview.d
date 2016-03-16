@@ -1645,6 +1645,9 @@ private:
 		sc.getVerticalBar().setPageIncrement(vs.height / 5);
 		sc.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND);
+		static if (UseCards && UseBacks) {
+			_imgp.cancelFullRedraw();
+		}
 		auto d = Display.getCurrent();
 		auto rgb = new RGB(_prop.var.etc.wallColorR,
 			_prop.var.etc.wallColorG,

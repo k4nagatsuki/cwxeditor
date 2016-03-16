@@ -3208,7 +3208,5 @@ public:
 		toggleCursors[Toggle.MIDDLE_BOTTOM] = display.getSystemCursor(SWT.CURSOR_SIZENS);
 		toggleCursors[Toggle.MOVE] = null;
 		toggleCursors[Toggle.NONE] = null;
-
-		cancelFullRedraw();
 	}
 }
