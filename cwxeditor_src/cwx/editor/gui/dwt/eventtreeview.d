@@ -205,7 +205,7 @@ private:
 					}
 					v.procTreeItem(sel2);
 				} else { mixin(S_TRACE);
-					v._tree.editor.updateContentInfo(c);
+					v._tree.editor.updatePosOne(c);
 				}
 				v.refreshStatusLine();
 				v.redraw();
@@ -412,7 +412,7 @@ private:
 				v.createChilds(itm, c);
 				v._tree.setExpanded(itm, true);
 			} else { mixin(S_TRACE);
-				v._tree.editor.updateContentInfo(c);
+				v._tree.editor.updatePosOne(c);
 			}
 			v.refreshStatusLine();
 			v._refreshTopStart();
@@ -473,7 +473,7 @@ private:
 						v.createChilds(itm, c);
 						v._tree.setExpanded(itm, true);
 					} else { mixin(S_TRACE);
-						v._tree.editor.updateContentInfo(c);
+						v._tree.editor.updatePosOne(c);
 					}
 				}
 				delImpl(vs, comm, et, tc);
@@ -736,7 +736,7 @@ private:
 						if (v._tree.tree) { mixin(S_TRACE);
 							sItm = createTreeItem(v._tree.tree, evt, evt.name, img, index);
 						} else { mixin(S_TRACE);
-							v._tree.editor.updateContentInfo(evt);
+							v._tree.editor.updatePosOne(evt);
 							sItm = EventEditorItem.valueOf(v._tree.editor, evt);
 						}
 						if (v is this) v._tree.select(sItm);
@@ -795,7 +795,7 @@ private:
 								itm = createTreeItem(cast(TreeItem)oItm2, evt, text, img, insertIndex);
 								v._tree.setExpanded(oItm2, true);
 							} else { mixin(S_TRACE);
-								v._tree.editor.updateContentInfo(evt);
+								v._tree.editor.updatePosOne(evt);
 								itm = EventEditorItem.valueOf(v._tree.editor, evt);
 							}
 							if (v is this) v._tree.setSelection([itm]);
@@ -1303,7 +1303,7 @@ private:
 					if (v._tree.tree) { mixin(S_TRACE);
 						.fromTreePath(v._tree.tree, tPath).dispose();
 					} else {
-						v._tree.editor.updateContentInfo(parentStart);
+						v._tree.editor.updatePosOne(parentStart);
 					}
 				}
 				_comm.refUseCount.call();
@@ -1398,7 +1398,7 @@ private:
 									auto ti2 = .anotherTreeItem(v._tree.tree, cast(TreeItem)ti);
 									itm = createTreeItem(ti2, evt, v.eventText(owner, evt), _prop.images.content(evt.type), insertIndex);
 								} else { mixin(S_TRACE);
-									v._tree.editor.updateContentInfo(evt);
+									v._tree.editor.updatePosOne(evt);
 									itm = EventEditorItem.valueOf(v._tree.editor, evt);
 								}
 								v.procTreeItem(itm);
@@ -2243,8 +2243,8 @@ public:
 				sItm = createTreeItem(v._tree.tree, start, start.name, _prop.images.content(CType.START), cast(int)si);
 				v.createChilds(sItm, start);
 			} else { mixin(S_TRACE);
-				v._tree.editor.updateContentInfo(parentStart);
-				v._tree.editor.updateContentInfo(start);
+				v._tree.editor.updatePosOne(parentStart);
+				v._tree.editor.updatePosOne(start);
 				sItm = EventEditorItem.valueOf(v._tree.editor, start);
 			}
 			if (v is this) { mixin(S_TRACE);
@@ -2665,7 +2665,7 @@ public:
 			}
 			return itm;
 		} else { mixin(S_TRACE);
-			_tree.editor.updateContentInfo(evt);
+			_tree.editor.updatePosOne(evt);
 			while (evt.next.length) { mixin(S_TRACE);
 				evt = evt.next[$ - 1];
 			}
@@ -2723,7 +2723,7 @@ public:
 				} else static assert (0);
 			} else { mixin(S_TRACE);
 				foreach (upc; updateContents) { mixin(S_TRACE);
-					v._tree.editor.updateContentInfo(upc);
+					v._tree.editor.updatePosOne(upc);
 				}
 			}
 			if (!pc && (i == 0 || j == 0)) { mixin(S_TRACE);
@@ -2897,7 +2897,7 @@ public:
 				}
 				if (v is this) v._tree.setSelection([selTarg]);
 			} else { mixin(S_TRACE);
-				v._tree.editor.updateContentInfo(parPar);
+				v._tree.editor.updatePosOne(parPar);
 			}
 		}
 		_tree.showSelection();
@@ -3052,7 +3052,7 @@ public:
 				v.createChilds(parItm, owner);
 				parItm.setExpanded(true);
 			} else { mixin(S_TRACE);
-				v._tree.editor.updateContentInfo(owner);
+				v._tree.editor.updatePosOne(owner);
 			}
 		}
 		if (lastCt) { mixin(S_TRACE);
@@ -3324,7 +3324,7 @@ public:
 					assert (cast(TreeItem)ownerItm !is null);
 					v.createChilds(.anotherTreeItem(v._tree.tree, cast(TreeItem)ownerItm), owner);
 				} else { mixin(S_TRACE);
-					v._tree.editor.updateContentInfo(parentStart);
+					v._tree.editor.updatePosOne(parentStart);
 				}
 			}
 			_comm.refUseCount.call();
@@ -3466,7 +3466,7 @@ public:
 			if (v._tree.tree) { mixin(S_TRACE);
 				.fromTreePath(v._tree.tree, tPath).dispose();
 			} else { mixin(S_TRACE);
-				v._tree.editor.updateContentInfo(parentStart);
+				v._tree.editor.updatePosOne(parentStart);
 			}
 		}
 	}

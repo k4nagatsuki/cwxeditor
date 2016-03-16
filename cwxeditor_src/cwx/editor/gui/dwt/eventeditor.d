@@ -43,6 +43,12 @@ class StartInfo {
 	size_t toIndex = 0;
 	StartInfo prev = null;
 	StartInfo next = null;
+
+	@property
+	const
+	size_t count() { mixin(S_TRACE);
+		return toIndex - fromIndex;
+	}
 }
 
 class EventEditorItem : Item {
@@ -308,15 +314,18 @@ class EventEditor : Composite {
 		redraw();
 	}
 
-	void updateEventTree() { mixin(S_TRACE);
+	private void updateEventTree() { mixin(S_TRACE);
 		_items = null;
 		updatePosAll();
 	}
 	void updateEventText() { mixin(S_TRACE);
-		updatePosAll(); // TODO
+		// テキストが更新されたイベントコンテントの位置は
+		// スタートコンテントのupdateCounterで検知できる
+		updatePosImpl();
 	}
+	/// cの情報のみ更新する。
 	void updateContentInfo(in Content c) { mixin(S_TRACE);
-		_updateContents[c.parentStart.eventId] = true; // TODO: parentTreeが無い時は削除された時
+		_updateContents[c.parentStart.eventId] = true;
 		redraw();
 	}
 
@@ -326,7 +335,8 @@ class EventEditor : Composite {
 		redraw();
 	}
 	/// 次の再描画でcが属するツリーの位置計算をやり直す事を通知する。
-	private void updatePosOne(in Content c) { mixin(S_TRACE);
+	void updatePosOne(in Content c) { mixin(S_TRACE);
+		 // TODO: parentTreeが無い時は削除された時
 		_updateContents[c.parentStart.eventId] = true;
 		redraw();
 	}
@@ -338,7 +348,7 @@ class EventEditor : Composite {
 	/// 位置計算をやり直す。
 	private void updatePosImpl2() { mixin(S_TRACE);
 		if (!_updatePos && !_updatePosAll && !_updateContents.length) return;
-		//if (!_updatePosAll) return;
+		//if (!_updatePosAll) return; TODO
 		_updatePos = false;
 		_updatePosAll = false;
 		_updateContents = null;
