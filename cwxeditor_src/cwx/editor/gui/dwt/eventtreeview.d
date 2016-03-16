@@ -205,7 +205,7 @@ private:
 					}
 					v.procTreeItem(sel2);
 				} else { mixin(S_TRACE);
-					v._tree.editor.updateEventTree();
+					v._tree.editor.updateContentInfo(c);
 				}
 				v.refreshStatusLine();
 				v.redraw();
@@ -412,7 +412,7 @@ private:
 				v.createChilds(itm, c);
 				v._tree.setExpanded(itm, true);
 			} else { mixin(S_TRACE);
-				v._tree.editor.updateEventTree();
+				v._tree.editor.updateContentInfo(c);
 			}
 			v.refreshStatusLine();
 			v._refreshTopStart();
@@ -473,7 +473,7 @@ private:
 						v.createChilds(itm, c);
 						v._tree.setExpanded(itm, true);
 					} else { mixin(S_TRACE);
-						v._tree.editor.updateEventTree();
+						v._tree.editor.updateContentInfo(c);
 					}
 				}
 				delImpl(vs, comm, et, tc);
@@ -736,7 +736,7 @@ private:
 						if (v._tree.tree) { mixin(S_TRACE);
 							sItm = createTreeItem(v._tree.tree, evt, evt.name, img, index);
 						} else { mixin(S_TRACE);
-							v._tree.editor.updateEventTree();
+							v._tree.editor.updateContentInfo(evt);
 							sItm = EventEditorItem.valueOf(v._tree.editor, evt);
 						}
 						if (v is this) v._tree.select(sItm);
@@ -795,7 +795,7 @@ private:
 								itm = createTreeItem(cast(TreeItem)oItm2, evt, text, img, insertIndex);
 								v._tree.setExpanded(oItm2, true);
 							} else { mixin(S_TRACE);
-								v._tree.editor.updateEventTree();
+								v._tree.editor.updateContentInfo(evt);
 								itm = EventEditorItem.valueOf(v._tree.editor, evt);
 							}
 							if (v is this) v._tree.setSelection([itm]);
@@ -1285,6 +1285,7 @@ private:
 					if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
 				}
 				auto c = cast(Content)itm.getData();
+				auto parentStart = c.parentStart;
 				_comm.delContent.call(c);
 				if (_parItm) { mixin(S_TRACE);
 					assert (_parItm.getData());
@@ -1302,7 +1303,7 @@ private:
 					if (v._tree.tree) { mixin(S_TRACE);
 						.fromTreePath(v._tree.tree, tPath).dispose();
 					} else {
-						v._tree.editor.updateEventTree();
+						v._tree.editor.updateContentInfo(parentStart);
 					}
 				}
 				_comm.refUseCount.call();
@@ -1397,7 +1398,7 @@ private:
 									auto ti2 = .anotherTreeItem(v._tree.tree, cast(TreeItem)ti);
 									itm = createTreeItem(ti2, evt, v.eventText(owner, evt), _prop.images.content(evt.type), insertIndex);
 								} else { mixin(S_TRACE);
-									v._tree.editor.updateEventTree();
+									v._tree.editor.updateContentInfo(evt);
 									itm = EventEditorItem.valueOf(v._tree.editor, evt);
 								}
 								v.procTreeItem(itm);
@@ -1452,7 +1453,7 @@ private:
 	}
 	void redraw() { mixin(S_TRACE);
 		if (_tree.editor) { mixin(S_TRACE);
-			_tree.editor.updateEventTree();
+			_tree.editor.redraw();
 		} else { mixin(S_TRACE);
 			_tree.control.redraw();
 		}
@@ -2242,7 +2243,8 @@ public:
 				sItm = createTreeItem(v._tree.tree, start, start.name, _prop.images.content(CType.START), cast(int)si);
 				v.createChilds(sItm, start);
 			} else { mixin(S_TRACE);
-				v._tree.editor.updateEventTree();
+				v._tree.editor.updateContentInfo(parentStart);
+				v._tree.editor.updateContentInfo(start);
 				sItm = EventEditorItem.valueOf(v._tree.editor, start);
 			}
 			if (v is this) { mixin(S_TRACE);
@@ -2300,16 +2302,20 @@ public:
 		_comm.refreshToolBar();
 	}
 	void treeClose() { mixin(S_TRACE);
-		_tree.control.setRedraw(false);
-		scope (exit) _tree.control.setRedraw(true);
-		foreach (itm; _tree.getItems()) { mixin(S_TRACE);
-			_tree.setExpanded(itm, false);
+		if (_tree.editor) { mixin(S_TRACE);
+			_tree.editor.foldAll();
+		} else {
+			_tree.control.setRedraw(false);
+			scope (exit) _tree.control.setRedraw(true);
+			foreach (itm; _tree.getItems()) { mixin(S_TRACE);
+				_tree.setExpanded(itm, false);
+			}
 		}
 		_comm.refreshToolBar();
 	}
 	@property
 	bool canExpandTree() { mixin(S_TRACE);
-		if (_tree.editor) return _tree.editor.canAllExpandStart;
+		if (_tree.editor) return _tree.editor.canAllExpand;
 		foreach (itm; _tree.getItems()) { mixin(S_TRACE);
 			if (_tree.getItems(itm).length && !_tree.getExpanded(itm)) { mixin(S_TRACE);
 				return true;
@@ -2346,12 +2352,14 @@ public:
 		auto itm = selection;
 		if (!itm) return;
 		_tree.setExpanded(itm, true);
+		_comm.refreshToolBar();
 	}
 	void collapse() { mixin(S_TRACE);
 		if (!canCollapse) return;
 		auto itm = selection;
 		if (!itm) return;
 		_tree.setExpanded(itm, false);
+		_comm.refreshToolBar();
 	}
 	private void editEnd(TreeItem itm, Control c) { mixin(S_TRACE);
 		editEnd(cast(Item)itm, c);
@@ -2389,7 +2397,7 @@ public:
 					assert (cast(TreeItem)itm !is null);
 					.anotherTreeItem(v._tree.tree, cast(TreeItem)itm).setText(text);
 				} else {
-					v._tree.editor.updateEventTree();
+					v._tree.editor.updateContentInfo(evt);
 				}
 				if (isTop) { mixin(S_TRACE);
 					v._refreshTopStart();
@@ -2452,7 +2460,7 @@ public:
 					assert (cast(TreeItem)itm !is null);
 					.anotherTreeItem(v._tree.tree, cast(TreeItem)itm).setText(combo.getText());
 				} else {
-					v._tree.editor.updateEventTree();
+					v._tree.editor.updateContentInfo(evt);
 				}
 			}
 		}
@@ -2657,7 +2665,7 @@ public:
 			}
 			return itm;
 		} else { mixin(S_TRACE);
-			_tree.editor.updateEventTree();
+			_tree.editor.updateContentInfo(evt);
 			while (evt.next.length) { mixin(S_TRACE);
 				evt = evt.next[$ - 1];
 			}
@@ -2681,6 +2689,7 @@ public:
 		auto pc = c.parent;
 		size_t i, j;
 		auto path = c.ctPath;
+		Content[] updateContents;
 		if (pc) { mixin(S_TRACE);
 			i = cCountUntil!("a is b")(pc.next, c);
 			j = i + To;
@@ -2691,6 +2700,7 @@ public:
 			comm.delContent.call(pc.next[i]);
 			comm.delContent.call(pc.next[j]);
 			pc.swapContent(i, j);
+			updateContents ~= pc;
 		} else { mixin(S_TRACE);
 			i = cCountUntil!("a is b")(et.starts, c);
 			j = i + To;
@@ -2700,6 +2710,8 @@ public:
 			}
 			comm.delContent.call(et.starts[i]);
 			comm.delContent.call(et.starts[j]);
+			updateContents ~= et.starts[i];
+			updateContents ~= et.starts[j];
 			et.swapStart(i, j);
 		}
 		foreach (v; vs) { mixin(S_TRACE);
@@ -2710,7 +2722,9 @@ public:
 					treeItemDown(cast(TreeItem)v.fromPath(path));
 				} else static assert (0);
 			} else { mixin(S_TRACE);
-				v._tree.editor.updateEventTree();
+				foreach (upc; updateContents) { mixin(S_TRACE);
+					v._tree.editor.updateContentInfo(upc);
+				}
 			}
 			if (!pc && (i == 0 || j == 0)) { mixin(S_TRACE);
 				v._refreshTopStart();
@@ -2883,7 +2897,7 @@ public:
 				}
 				if (v is this) v._tree.setSelection([selTarg]);
 			} else { mixin(S_TRACE);
-				v._tree.editor.updateEventTree();
+				v._tree.editor.updateContentInfo(parPar);
 			}
 		}
 		_tree.showSelection();
@@ -3038,7 +3052,7 @@ public:
 				v.createChilds(parItm, owner);
 				parItm.setExpanded(true);
 			} else { mixin(S_TRACE);
-				v._tree.editor.updateEventTree();
+				v._tree.editor.updateContentInfo(owner);
 			}
 		}
 		if (lastCt) { mixin(S_TRACE);
@@ -3285,6 +3299,7 @@ public:
 
 			auto ownerItm = _tree.getParentItem(itm);
 			auto c = cast(Content)itm.getData();
+			auto parentStart = c.parentStart;
 			_comm.delContent.call(c);
 			auto owner = cast(Content)ownerItm.getData();
 			this.store(owner);
@@ -3309,7 +3324,7 @@ public:
 					assert (cast(TreeItem)ownerItm !is null);
 					v.createChilds(.anotherTreeItem(v._tree.tree, cast(TreeItem)ownerItm), owner);
 				} else { mixin(S_TRACE);
-					v._tree.editor.updateEventTree();
+					v._tree.editor.updateContentInfo(parentStart);
 				}
 			}
 			_comm.refUseCount.call();
@@ -3433,6 +3448,7 @@ public:
 		}
 		auto ownerItm = _tree.getParentItem(itm);
 		auto c = cast(Content) itm.getData();
+		auto parentStart = c.parentStart;
 		if (!viewOnly) { mixin(S_TRACE);
 			_comm.delContent.call(c);
 			if (ownerItm) { mixin(S_TRACE);
@@ -3450,7 +3466,7 @@ public:
 			if (v._tree.tree) { mixin(S_TRACE);
 				.fromTreePath(v._tree.tree, tPath).dispose();
 			} else { mixin(S_TRACE);
-				v._tree.editor.updateEventTree();
+				v._tree.editor.updateContentInfo(parentStart);
 			}
 		}
 	}
@@ -3488,7 +3504,7 @@ public:
 		if (_tree.control.isDisposed()) return;
 		if (_et) { mixin(S_TRACE);
 			if (_tree.editor) { mixin(S_TRACE);
-				_tree.editor.updateEventTree();
+				_tree.editor.redraw();
 				return;
 			}
 			foreach (itm; _tree.getItems()) { mixin(S_TRACE);
@@ -3514,7 +3530,7 @@ public:
 	private void refreshEventText() { mixin(S_TRACE);
 		if (_et) { mixin(S_TRACE);
 			if (_tree.editor) { mixin(S_TRACE);
-				_tree.editor.updateEventTree();
+				_tree.editor.updateEventText();
 				return;
 			}
 			foreach (itm; _tree.getItems()) { mixin(S_TRACE);

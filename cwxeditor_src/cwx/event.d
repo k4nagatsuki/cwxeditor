@@ -743,6 +743,12 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const
 	CDetail detail() {return CONTENT_DETAILS[type];}
 
+	/// スタートコンテントの場合、ツリーが変更された回数をカウントする。
+	private ulong _updateCounter = 0;
+	@property
+	const
+	ulong updateCounter() { return _updateCounter; }
+
 	/// プロパティを正規化する。
 	private void validate() { mixin(S_TRACE);
 		if (CType.BRANCH_STATUS is type) { mixin(S_TRACE);
@@ -1279,7 +1285,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			val.owner = this;
 		}
 		static if (is(typeof(val.changeHandler(null)))) {
-			val.changeHandler = &changed;
+			val.changeHandler = changeHandler;
 		}
 		static if (!is(T : Motion)) {
 			static if (is(typeof(val.setUseCounter(uc)))) {
@@ -1638,17 +1644,18 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	void changeHandler(void delegate() change) { mixin(S_TRACE);
 		_change = change;
 		foreach (c; _next) { mixin(S_TRACE);
-			c.changeHandler = change;
+			c.changeHandler = changeHandler;
 		}
 	}
 	/// 変更ハンドラ。
 	@property
 	private void delegate() changeHandler() { mixin(S_TRACE);
-		return _change;
+		return &changed;
 	}
 	/// 変更を通知する。
 	protected override void changed() { mixin(S_TRACE);
 		if (_change) _change();
+		if (type is CType.START) _updateCounter++;
 	}
 
 	private UseCounter _uc = null;
