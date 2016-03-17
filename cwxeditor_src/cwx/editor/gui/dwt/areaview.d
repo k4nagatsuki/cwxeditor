@@ -61,6 +61,7 @@ import java.lang.all;
 public:
 
 private P spnValue(string T, N, P)(N[] keys, P val) { mixin(S_TRACE);
+	if (!keys.length) return val;
 	auto a = keys[0];
 	P value = mixin (T);
 	for (int i = 1; i < keys.length; i++) { mixin(S_TRACE);

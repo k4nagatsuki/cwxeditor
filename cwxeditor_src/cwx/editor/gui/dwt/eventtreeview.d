@@ -688,7 +688,11 @@ private:
 			}
 			v.procTreeItem(itm);
 			if (v is this) v._tree.select(itm);
-			v.redraw();
+			if (v._tree.editor) { mixin(S_TRACE);
+				v._tree.editor.updatePosOne(c);
+			} else { mixin(S_TRACE);
+				v.redraw();
+			}
 			v.refreshStatusLine();
 		}
 		if (focus) .forceFocus(_tree.control, false);
@@ -2094,7 +2098,11 @@ public:
 			_undo ~= undo;
 			undo = new UndoContent(_comm, _prop, _summ, _et, _area, [c]);
 			foreach (v; views()) { mixin(S_TRACE);
-				v.redraw();
+				if (v._tree.editor) { mixin(S_TRACE);
+					v._tree.editor.updateContentInfo(c);
+				} else { mixin(S_TRACE);
+					v.redraw();
+				}
 			}
 		};
 		_commentDlgs[c.eventId] = dlg;
@@ -3159,7 +3167,11 @@ public:
 					sItm2 = EventEditorItem.valueOf(v._tree.editor, c);
 				}
 				auto lastItm2 = v.createChilds(sItm2, c);
-				v._tree.setExpanded(sItm2, true);
+				if (v._tree.editor) { mixin(S_TRACE);
+					v._tree.editor.updatePosOne(c);
+				} else { mixin(S_TRACE);
+					v._tree.setExpanded(sItm2, true);
+				}
 				if (v is this) { mixin(S_TRACE);
 					sItm = sItm2;
 					lastItm = lastItm2;
