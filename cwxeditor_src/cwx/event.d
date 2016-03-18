@@ -897,6 +897,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	private void name(string name) { mixin(S_TRACE);
 		if (_name.text != name) { mixin(S_TRACE);
 			changed();
+			if (type is CType.START && tree) { mixin(S_TRACE);
+				tree._startNames.remove(this.name);
+				tree._startNames[name] = this;
+			}
 			if (_type is CType.START && _tree) { mixin(S_TRACE);
 				_tree.startUseCounter.change(toStartId(_name.text), toStartId(name), true);
 			}
@@ -1081,6 +1085,11 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			auto index = cpindex(path);
 			if (index >= _next.length) return null;
 			return _next[index].findCWXPath(cpbottom(path));
+		}
+		case "motion": { mixin(S_TRACE);
+			auto index = cpindex(path);
+			if (index >= motions.length) return null;
+			return motions[index].findCWXPath(cpbottom(path));
 		}
 		case "dialog": { mixin(S_TRACE);
 			auto index = cpindex(path);
@@ -2274,24 +2283,13 @@ private:
 
 	FKeyCodeU[] _keyCodes;
 	KeyCodeMatchingType _keyCodeMatchingType = KeyCodeMatchingType.Or;
+	Content[string] _startNames;
 
 	Content[] _starts;
 	UseCounter _uc;
 	SUseCounter _suc;
 	void delegate() _change = null;
 
-	this (Content[] starts) in { mixin(S_TRACE);
-		foreach (c; starts) { mixin(S_TRACE);
-			assert (c.type is CType.START);
-		}
-	} body { mixin(S_TRACE);
-		_suc = new SUseCounter;
-		_starts = starts;
-		foreach (s; _starts) { mixin(S_TRACE);
-			s._tree = this;
-			s.setSUseCounter(_suc);
-		}
-	}
 	this () { mixin(S_TRACE);
 		_suc = new SUseCounter;
 	}
@@ -2312,6 +2310,21 @@ public:
 		}
 		add(start);
 	}
+	/// スタートコンテント群を指定してインスタンスを生成。
+	this (Content[] starts) in { mixin(S_TRACE);
+		foreach (c; starts) { mixin(S_TRACE);
+			assert (c.type is CType.START);
+		}
+	} body { mixin(S_TRACE);
+		_suc = new SUseCounter;
+		_starts = starts;
+		foreach (s; _starts) { mixin(S_TRACE);
+			s._tree = this;
+			s.setSUseCounter(_suc);
+		}
+		foreach (start; starts) _startNames[start.name] = start;
+	}
+
 	/// このツリーの所有者。
 	@property
 	inout
@@ -2420,8 +2433,12 @@ public:
 	/// 最初のスタートコンテントのテキストと常に一致する。
 	@property
 	void name(string name) { mixin(S_TRACE);
-		if (_starts[0].name != name) changed();
-		_starts[0].name = name;
+		if (_starts[0].name != name) {
+			changed();
+			_startNames.remove(_starts[0].name);
+			_starts[0].name = name;
+			_startNames[name] = _starts[0];
+		}
 	}
 	/// ditto
 	@property
@@ -2456,6 +2473,7 @@ public:
 		evt._tree = this;
 		evt.changeHandler = changeHandler;
 		_starts ~= evt;
+		_startNames[evt.name] = evt;
 		changed();
 	}
 	/// ditto
@@ -2469,6 +2487,7 @@ public:
 		evt._tree = this;
 		evt.changeHandler = changeHandler;
 		_starts = _starts[0u .. index] ~ evt ~ _starts[index .. $];
+		_startNames[evt.name] = evt;
 		changed();
 	}
 	/// スタートコンテントを除外。
@@ -2485,6 +2504,7 @@ public:
 		c.removeSUseCounter();
 		c._tree = null;
 		c.changeHandler = null;
+		_startNames.remove(c.name);
 	}
 	/// ditto
 	void remove(Content start) in { mixin(S_TRACE);
@@ -2523,15 +2543,13 @@ public:
 	/// 指定された名前のスタートコンテントがあるか。
 	const
 	bool hasStart(string name) { mixin(S_TRACE);
-		return start(name) !is null;
+		return (name in _startNames) !is null;
 	}
 	/// 指定された名前のスタートコンテントを探して返す。
 	inout
 	inout(Content) start(string name) { mixin(S_TRACE);
-		foreach (s; _starts) { mixin(S_TRACE);
-			if (0 == icmp(s.name, name)) return s;
-		}
-		return null;
+		auto p = name in _startNames;
+		return p ? *p : null;
 	}
 	/// 属するエリア等からの相対パスを返す。
 	@property

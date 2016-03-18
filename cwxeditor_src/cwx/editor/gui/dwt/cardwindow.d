@@ -1054,7 +1054,7 @@ public:
 			_comm.refreshToolBar();
 			if (editMode) { mixin(S_TRACE);
 				if (cphasattr(path, "opendialog") || !cpempty(path)) { mixin(S_TRACE);
-					auto dlg = _paneTbl[cardType].edit();
+					auto dlg = _paneTbl[cardType].edit(cast(int)index);
 					if (!dlg) return false;
 					if (!cpempty(path)) { mixin(S_TRACE);
 						return dlg.openCWXPath(path, shellActivate);

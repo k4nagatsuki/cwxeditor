@@ -549,6 +549,9 @@ class FlexEtcProps : Properties {
 	auto searchContentsBranchKeyCode = Prop!(bool)("searchContentsBranchKeyCode", false);
 	auto searchContentsCheckStep = Prop!(bool)("searchContentsCheckStep", false);
 	auto searchContentsBranchRound = Prop!(bool)("searchContentsBranchRound", false);
+	auto searchContentsReplaceBgImage = Prop!(bool)("searchContentsReplaceBgImage", false);
+	auto searchContentsMoveBgImage = Prop!(bool)("searchContentsMoveBgImage", false);
+	auto searchContentsLoseBgImage = Prop!(bool)("searchContentsLoseBgImage", false);
 
 	auto searchUnusedFlag = Prop!(bool)("searchUnusedFlag", true);
 	auto searchUnusedStep = Prop!(bool)("searchUnusedStep", true);

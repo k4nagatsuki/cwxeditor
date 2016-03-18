@@ -3495,10 +3495,14 @@ public:
 		absDlg.open();
 		return dlg;
 	}
-	CardDialog edit() { mixin(S_TRACE);
+	CardDialog edit(int index = -1) { mixin(S_TRACE);
 		CardDialog dlg = null;
-		foreach (card; selectedCards) { mixin(S_TRACE);
-			dlg = edit(card);
+		if (index == -1) { mixin(S_TRACE);
+			foreach (card; selectedCards) { mixin(S_TRACE);
+				dlg = edit(card);
+			}
+		} else { mixin(S_TRACE);
+			dlg = edit(cards[index]);
 		}
 		return dlg;
 	}

@@ -22,7 +22,7 @@ import std.string;
 import org.eclipse.swt.all;
 import java.lang.all;
 
-class PosInfo {
+private class PosInfo {
 	int depth1;
 	int depth2;
 	int relY;
@@ -45,7 +45,7 @@ class PosInfo {
 		this.eventTextWidth = eventTextWidth;
 	}
 }
-class StartInfo {
+private class StartInfo {
 	Content start;
 	int y = 0;
 	int width = 0;

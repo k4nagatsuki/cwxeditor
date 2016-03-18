@@ -107,10 +107,12 @@ private:
 
 	class RUndo : Undo {
 		private CWXPath _path = null;
+		private string _cwxPath = "";
 		private string _filePath = null;
 		private Undo[] _uArr;
-		this (CWXPath path, Undo[] uArr) { mixin(S_TRACE);
+		this (CWXPath path, string cwxPath, Undo[] uArr) { mixin(S_TRACE);
 			_path = path;
+			_cwxPath = cwxPath;
 			_uArr = uArr;
 		}
 		this (string filePath, Undo[] uArr) { mixin(S_TRACE);
@@ -120,13 +122,13 @@ private:
 		void undo() { mixin(S_TRACE);
 			size_t dmy = 0;
 			foreach_reverse (u; _uArr) u.undo();
-			if (_path) addResult(_path, dmy);
+			if (_path) addResult(_path, _cwxPath is null ? _path.cwxPath(true) : _cwxPath, dmy);
 			if (_filePath) addResult(_filePath, dmy);
 		}
 		void redo() { mixin(S_TRACE);
 			size_t dmy = 0;
 			foreach_reverse (u; _uArr) u.redo();
-			if (_path) addResult(_path, dmy);
+			if (_path) addResult(_path, _cwxPath is null ? _path.cwxPath(true) : _cwxPath, dmy);
 			if (_filePath) addResult(_filePath, dmy);
 		}
 		void dispose() { mixin(S_TRACE);
@@ -137,23 +139,23 @@ private:
 	void store(string filePath, Undo[] uArr) { mixin(S_TRACE);
 		_rUndo ~= new RUndo(filePath, uArr);
 	}
-	void store(CWXPath path, Undo[] uArr) { mixin(S_TRACE);
-		_rUndo ~= new RUndo(path, uArr);
+	void store(CWXPath path, string cwxPath, Undo[] uArr) { mixin(S_TRACE);
+		_rUndo ~= new RUndo(path, cwxPath, uArr);
 	}
-	void store(CWXPath path, string o, string n, void delegate(string) set) { mixin(S_TRACE);
-		_rUndo ~= new RUndo(path, [new StrUndo(o, n, set)]);
+	void store(CWXPath path, string cwxPath, string o, string n, void delegate(string) set) { mixin(S_TRACE);
+		_rUndo ~= new RUndo(path, cwxPath, [new StrUndo(o, n, set)]);
 	}
-	void store(CWXPath path, string[] o, string[] n, void delegate(string[]) set) { mixin(S_TRACE);
-		_rUndo ~= new RUndo(path, [new StrArrUndo(o, n, set)]);
+	void store(CWXPath path, string cwxPath, string[] o, string[] n, void delegate(string[]) set) { mixin(S_TRACE);
+		_rUndo ~= new RUndo(path, cwxPath, [new StrArrUndo(o, n, set)]);
 	}
-	void store(CWXPath path, FKeyCode[] o, FKeyCode[] n, void delegate(FKeyCode[]) set) { mixin(S_TRACE);
-		_rUndo ~= new RUndo(path, [new FKeyCodesUndo(o, n, set)]);
+	void store(CWXPath path, string cwxPath, FKeyCode[] o, FKeyCode[] n, void delegate(FKeyCode[]) set) { mixin(S_TRACE);
+		_rUndo ~= new RUndo(path, cwxPath, [new FKeyCodesUndo(o, n, set)]);
 	}
-	void store(CWXPath path, Coupon[] o, Coupon[] n, void delegate(Coupon[]) set) { mixin(S_TRACE);
-		_rUndo ~= new RUndo(path, [new CouponsUndo(o, n, set)]);
+	void store(CWXPath path, string cwxPath, Coupon[] o, Coupon[] n, void delegate(Coupon[]) set) { mixin(S_TRACE);
+		_rUndo ~= new RUndo(path, cwxPath, [new CouponsUndo(o, n, set)]);
 	}
 	void storeID(User, Id)(CWXPath path, User u, Id from, Id to, void delegate(Id) set) { mixin(S_TRACE);
-		_rUndo ~= new RUndo(path, [new TUndo!Id(from, to, set)]);
+		_rUndo ~= new RUndo(path, null, [new TUndo!Id(from, to, set)]);
 	}
 
 	bool _inProc = false;
@@ -387,6 +389,7 @@ private:
 	}
 	class AddResultCWXPath : Runnable {
 		CWXPath path;
+		string cwxPath;
 		int index;
 		string desc;
 		size_t count = 0;
@@ -394,11 +397,11 @@ private:
 			if (cancel) return;
 			if (!_win || _win.isDisposed()) return;
 			if (_inProc && !_prop.var.etc.searchResultRealtime) resultRedraw(false);
-			addResultImpl(path, index, desc);
+			addResultImpl(path, cwxPath, index, desc);
 			refResultStatus(cast(int)count, false);
 		}
 	}
-	private void addResultImpl(CWXPath path, int index = -1, string desc = "") {
+	private void addResultImpl(CWXPath path, string cwxPath, int index = -1, string desc = "") {
 		auto itm = new TableItem(_result, SWT.NONE, -1 == index ? _result.getItemCount() : index);
 		string text1, text2;
 		Image img1, img2;
@@ -417,7 +420,7 @@ private:
 			itm.setText(2, .tryFormat(_prop.msgs.grepScenario, _grepSumm.scenarioName, scPath));
 			itm.setImage(2, _prop.images.summary);
 		}
-		itm.setData(new CWXPathString(scPath, _grepSumm ? null : path, path.cwxPath(true)));
+		itm.setData(new CWXPathString(scPath, _grepSumm ? null : path, cwxPath));
 	}
 	class AddResultMsg : Runnable {
 		string name;
@@ -2067,6 +2070,9 @@ public:
 		_contents[CType.BRANCH_KEY_CODE].setSelection(_prop.var.etc.searchContentsBranchKeyCode);
 		_contents[CType.CHECK_STEP].setSelection(_prop.var.etc.searchContentsCheckStep);
 		_contents[CType.BRANCH_ROUND].setSelection(_prop.var.etc.searchContentsBranchRound);
+		_contents[CType.REPLACE_BG_IMAGE].setSelection(_prop.var.etc.searchContentsReplaceBgImage);
+		_contents[CType.MOVE_BG_IMAGE].setSelection(_prop.var.etc.searchContentsMoveBgImage);
+		_contents[CType.LOSE_BG_IMAGE].setSelection(_prop.var.etc.searchContentsLoseBgImage);
 
 		_cCoupon.setSelection(_prop.var.etc.replaceNameCoupon);
 		_cGossip.setSelection(_prop.var.etc.replaceNameGossip);
@@ -2258,6 +2264,9 @@ public:
 			_prop.var.etc.searchContentsBranchKeyCode = _contents[CType.BRANCH_KEY_CODE].getSelection();
 			_prop.var.etc.searchContentsCheckStep = _contents[CType.CHECK_STEP].getSelection();
 			_prop.var.etc.searchContentsBranchRound = _contents[CType.BRANCH_ROUND].getSelection();
+			_prop.var.etc.searchContentsReplaceBgImage = _contents[CType.REPLACE_BG_IMAGE].getSelection();
+			_prop.var.etc.searchContentsMoveBgImage = _contents[CType.MOVE_BG_IMAGE].getSelection();
+			_prop.var.etc.searchContentsLoseBgImage = _contents[CType.LOSE_BG_IMAGE].getSelection();
 
 			_prop.var.etc.replaceNameCoupon = _cCoupon.getSelection();
 			_prop.var.etc.replaceNameGossip = _cGossip.getSelection();
@@ -2350,7 +2359,7 @@ public:
 		reset();
 		initReplaceText();
 		foreach (path; paths) { mixin(S_TRACE);
-			addResultImpl(path);
+			addResultImpl(path, path.cwxPath(true));
 		}
 		refResultStatusImpl(cast(int)paths.length, kind);
 	}
@@ -2522,64 +2531,60 @@ public:
 		return r;
 	}
 	private void searchAll(CWXPath path, ref size_t count,
-			void delegate(CWXPath path, ref size_t count) dlg) { mixin(S_TRACE);
+			void delegate(CWXPath path, ref size_t count, string cwxPath) dlg, string cwxPath) { mixin(S_TRACE);
 		if (cancel) return;
 		while (true) {
-			dlg(path, count);
+			dlg(path, count, cwxPath);
 			// _rangeに含まれる要素は再帰的検索から除外する
 			auto fdir = cast(FlagDir)path;
 			if (fdir) { mixin(S_TRACE);
-				foreach (o; fdir.flags) searchAll(o, count, dlg);
-				foreach (o; fdir.steps) searchAll(o, count, dlg);
+				foreach (i, o; fdir.flags) searchAll(o, count, dlg, cpjoin(cwxPath, "flag", i));
+				foreach (i, o; fdir.steps) searchAll(o, count, dlg, cpjoin(cwxPath, "step", i));
 				auto subDirs = fdir.subDirs;
 				if (subDirs.length == 1) { mixin(S_TRACE);
 					path = subDirs[0];
+					cwxPath = cpjoin(cwxPath, "dir", 0);
 					continue; // 再帰回避
 				} else { mixin(S_TRACE);
-					foreach (o; subDirs) searchAll(o, count, dlg);
+					foreach (i, o; subDirs) searchAll(o, count, dlg, cpjoin(cwxPath, "dir", i));
 				}
-				break;
 			}
 			auto eto = cast(EventTreeOwner)path;
 			if (eto) { mixin(S_TRACE);
-				foreach (o; eto.trees) searchAll(o, count, dlg);
-				break;
+				foreach (i, o; eto.trees) searchAll(o, count, dlg, cpjoin(cwxPath, "event", i));
 			}
 			auto et = cast(EventTree)path;
 			if (et) { mixin(S_TRACE);
-				foreach (o; et.starts) searchAll(o, count, dlg);
+				foreach (i, o; et.starts) searchAll(o, count, dlg, cpjoin(cwxPath, "", i));
 			}
 			auto c = cast(Content)path;
 			if (c) { mixin(S_TRACE);
-				foreach (o; c.backs) searchAll(o, count, dlg);
+				foreach (i, o; c.backs) searchAll(o, count, dlg, cpjoin(cwxPath, "background", i));
 				auto next = c.next;
 				if (next.length == 1) { mixin(S_TRACE);
 					path = next[0];
+					cwxPath = cpjoin(cwxPath, "", 0);
 					continue; // 再帰回避
 				} else { mixin(S_TRACE);
-					foreach (o; next) searchAll(o, count, dlg);
+					foreach (i, o; next) searchAll(o, count, dlg, cpjoin(cwxPath, "", i));
 				}
-				break;
 			}
 			auto area = cast(Area)path;
 			if (area) { mixin(S_TRACE);
-				foreach (o; area.cards) searchAll(o, count, dlg);
-				foreach (o; area.backs) searchAll(o, count, dlg);
-				break;
+				foreach (i, o; area.cards) searchAll(o, count, dlg, cpjoin(cwxPath, "menucard", i));
+				foreach (i, o; area.backs) searchAll(o, count, dlg, cpjoin(cwxPath, "background", i));
 			}
 			auto battle = cast(Battle)path;
 			if (battle) { mixin(S_TRACE);
-				foreach (o; battle.cards) searchAll(o, count, dlg);
-				break;
+				foreach (i, o; battle.cards) searchAll(o, count, dlg, cpjoin(cwxPath, "enemycard", i));
 			}
 			auto mo = cast(MotionOwner)path;
 			if (mo) { mixin(S_TRACE);
-				foreach (m; mo.motions) { mixin(S_TRACE);
+				foreach (i, m; mo.motions) { mixin(S_TRACE);
 					if (m.beast && 0 == m.beast.linkId) { mixin(S_TRACE);
-						searchAll(m.beast, count, dlg);
+						searchAll(m.beast, count, dlg, cpjoin(cwxPath, "motion", i));
 					}
 				}
-				break;
 			}
 			break;
 		}
@@ -2720,7 +2725,7 @@ public:
 							storeID(u.owner, u, from, to, &u.id);
 						}
 					}
-					addResult(u.owner, count);
+					addResult(u.owner, u.owner.cwxPath(true), count);
 				}
 			} catch (Throwable e) {
 				printStackTrace();
@@ -2848,7 +2853,7 @@ public:
 								});
 								fromTos ~= [cast(string)id, cast(string)to];
 							}
-							addResult(u.owner, count);
+							addResult(u.owner, u.owner.cwxPath(true), count);
 						}
 					}
 				}
@@ -3083,14 +3088,14 @@ public:
 			scope (exit) _display.syncExec(exit);
 			try { mixin(S_TRACE);
 				foreach (path; range) { mixin(S_TRACE);
-					searchAll(path, count, (CWXPath path, ref size_t count) { mixin(S_TRACE);
+					searchAll(path, count, (CWXPath path, ref size_t count, string cwxPath) { mixin(S_TRACE);
 						if (cancel) return;
-						auto c = cast(Content) path;
+						auto c = cast(Content)path;
 						if (!c) return;
 						assert (c.type in _contents);
 						if (!contents[c.type]) return;
-						addResult(path, count);
-					});
+						addResult(path, cwxPath, count);
+					}, path.cwxPath(true));
 				}
 			} catch (Throwable e) {
 				printStackTrace();
@@ -3105,7 +3110,7 @@ public:
 		foreach (o; all) { mixin(S_TRACE);
 			if (cancel) break;
 			if (_summ.useCounter.get(mixin (ToId)) == 0) { mixin(S_TRACE);
-				addResult(o, count);
+				addResult(o, o.cwxPath(true), count);
 			}
 		}
 	}
@@ -3166,17 +3171,17 @@ public:
 			}
 			if (unuseStartSel) { mixin(S_TRACE);
 				foreach (path; range) { mixin(S_TRACE);
-					searchAll(path, count, (CWXPath path, ref size_t count) { mixin(S_TRACE);
+					searchAll(path, count, (CWXPath path, ref size_t count, string cwxPath) { mixin(S_TRACE);
 						if (cancel) return;
 						auto et = cast(EventTree) path;
 						if (et) { mixin(S_TRACE);
-							foreach (s; et.starts[1 .. $]) { mixin(S_TRACE);
+							foreach (i, s; et.starts[1 .. $]) { mixin(S_TRACE);
 								if (et.startUseCounter.get(toStartId(s.name)) == 0) { mixin(S_TRACE);
-									addResult(s, count);
+									addResult(s, cpjoin(cwxPath, "", i + 1), count);
 								}
 							}
 						}
-					});
+					}, path.cwxPath(true));
 				}
 			}
 			if (unusePathSel) { mixin(S_TRACE);
@@ -3234,13 +3239,13 @@ public:
 		auto range = searchRange;
 
 		void search(CWXPath path) { mixin(S_TRACE);
-			searchAll(path, count, (CWXPath path, ref size_t count) { mixin(S_TRACE);
+			searchAll(path, count, (CWXPath path, ref size_t count, string cwxPath) { mixin(S_TRACE);
 				if (cancel) return;
 				auto warnings = .warnings(_prop.parent, skin, _summ, path, targVer);
 				foreach (warning; warnings) { mixin(S_TRACE);
-					addResult(path, count, warning);
+					addResult(path, cwxPath, count, warning);
 				}
-			});
+			}, path.cwxPath(true));
 		}
 		void searchFileErrors() { mixin(S_TRACE);
 			string sPath = _summ.scenarioPath;
@@ -3326,7 +3331,7 @@ public:
 		});
 		thr.start();
 	}
-	private void replaceTextImpl(CWXPath c, ref size_t count) { mixin(S_TRACE);
+	private void replaceTextImpl(CWXPath c, ref size_t count, string cwxPath) { mixin(S_TRACE);
 		if (cancel) return;
 		bool oldIgnoreMod = ignoreMod;
 		ignoreMod = true;
@@ -3340,74 +3345,74 @@ public:
 				sr |= replImagePaths(summ.imagePaths, &summ.imagePaths, count, uArr);
 			}
 			if (_summarySel) { mixin(S_TRACE);
-				sr |= repl(null, summ.desc, &summ.desc, count, uArr);
+				sr |= repl(null, "", summ.desc, &summ.desc, count, uArr);
 			}
 			if (_scenarioSel) { mixin(S_TRACE);
-				sr |= repl(null, summ.scenarioName, &summ.scenarioName, count, uArr);
+				sr |= repl(null, "", summ.scenarioName, &summ.scenarioName, count, uArr);
 			}
 			if (_authorSel) { mixin(S_TRACE);
-				sr |= repl(null, summ.author, &summ.author, count, uArr);
+				sr |= repl(null, "", summ.author, &summ.author, count, uArr);
 			}
 			if (_couponSel) { mixin(S_TRACE);
-				sr |= replRqCoupons(null, summ, count, uArr);
+				sr |= replRqCoupons(null, "", summ, cwxPath, count, uArr);
 			}
 			if (sr) { mixin(S_TRACE);
-				if (_replMode) store(summ, uArr);
-				addResult(summ, dmy);
+				if (_replMode) store(summ, cwxPath, uArr);
+				addResult(summ, cwxPath, dmy);
 			}
 		}
 		auto cc = cast(CastCard) c;
 		if (cc) { mixin(S_TRACE);
 			Undo[] uArr;
-			bool r = replCard!(CastCard)(null, cc, count, uArr);
+			bool r = replCard!(CastCard)(null, "", cc, cwxPath, count, uArr);
 			if (_couponSel) { mixin(S_TRACE);
 				Coupon[] coupons = null;
 				if (_replMode) coupons = new Coupon[cc.coupons.length];
 				foreach (i, cp; cc.coupons) { mixin(S_TRACE);
 					Coupon cp2 = null;
-					r |= repl(null, cp.name,
+					r |= repl(null, "", cp.name,
 						(string t) {cp2 = new Coupon(t, cp.value);}, count, uArr);
 					if (_replMode) coupons[i] = cp2 ? cp2 : new Coupon(cp);
 				}
 				if (_replMode) cc.coupons = coupons;
 			}
 			if (r) { mixin(S_TRACE);
-				if (_replMode) store(cc, uArr);
-				addResult(cc, dmy);
+				if (_replMode) store(cc, cwxPath, uArr);
+				addResult(cc, cwxPath, dmy);
 			}
 		}
 		Undo[] nArr;
 		auto eff = cast(EffectCard) c;
 		if (eff) { mixin(S_TRACE);
-			replCard(eff, eff, count, nArr);
+			replCard(eff, cwxPath, eff, cwxPath, count, nArr);
 		}
 		auto info = cast(InfoCard) c;
 		if (info) { mixin(S_TRACE);
-			replCard(info, info, count, nArr);
+			replCard(info, cwxPath, info, cwxPath, count, nArr);
 		}
 		auto a = cast(AbstractArea) c;
 		if (a) { mixin(S_TRACE);
 			if (_areaSel) { mixin(S_TRACE);
-				repl(a, a.name, &a.name, count, nArr);
+				repl(a, cwxPath, a.name, &a.name, count, nArr);
 			}
 		}
 		auto menu = cast(MenuCard) c;
 		if (menu) { mixin(S_TRACE);
-			replCard(menu, menu, count, nArr);
+			replCard(menu, cwxPath, menu, cwxPath, count, nArr);
 		}
 		auto back = cast(BgImage) c;
 		if (back) { mixin(S_TRACE);
-			replBgImage(back, back, count, nArr);
+			replBgImage(back, cwxPath, back, count, nArr);
 		}
 		auto f = cast(cwx.flag.Flag) c;
 		if (f && _flagSel) { mixin(S_TRACE);
 			Undo[] uArr = new Undo[0];
 			bool r = replFlagName!(cwx.flag.Flag)(f.parent, f, count, uArr);
-			r |= repl(null, f.on, &f.on, count, uArr);
-			r |= repl(null, f.off, &f.off, count, uArr);
+			r |= repl(null, "", f.on, &f.on, count, uArr);
+			r |= repl(null, "", f.off, &f.off, count, uArr);
 			if (r) { mixin(S_TRACE);
-				if (_replMode) store(f, uArr);
-				addResult(f, dmy);
+				if (_replMode) store(f, cwxPath, uArr);
+				addResult(f, cwxPath, dmy);
 			}
 		}
 		auto s = cast(Step) c;
@@ -3415,20 +3420,20 @@ public:
 			Undo[] uArr;
 			bool r = replFlagName!Step(s.parent, s, count, uArr);
 			foreach (i, v; s.values) { mixin(S_TRACE);
-				r |= repl(null, v, (string t) {s.setValue(cast(int)i, t);}, count, uArr);
+				r |= repl(null, "", v, (string t) {s.setValue(cast(int)i, t);}, count, uArr);
 			}
 			if (r) { mixin(S_TRACE);
-				if (_replMode) store(s, uArr);
-				addResult(s, dmy);
+				if (_replMode) store(s, cwxPath, uArr);
+				addResult(s, cwxPath, dmy);
 			}
 		}
 		auto et = cast(EventTree) c;
 		if (et) { mixin(S_TRACE);
-			replFKeyCode(et, et, count, nArr);
+			replFKeyCode(et, cwxPath, et, cwxPath, count, nArr);
 		}
 		auto content = cast(Content) c;
 		if (content) { mixin(S_TRACE);
-			replContent(content, count);
+			replContent(content, cwxPath, count);
 		}
 	}
 	private void initText(string from, string to) { mixin(S_TRACE);
@@ -3517,7 +3522,7 @@ public:
 
 		void search() { mixin(S_TRACE);
 			foreach (path; range) { mixin(S_TRACE);
-				searchAll(path, count, &replaceTextImpl);
+				searchAll(path, count, &replaceTextImpl, path.cwxPath(true));
 			}
 			if (_jptxSel) { mixin(S_TRACE);
 				foreach (string file; .dirEntries(_summ.scenarioPath, SpanMode.depth, false)) { mixin(S_TRACE);
@@ -3530,7 +3535,7 @@ public:
 							auto jText = jptxText(value);
 							Undo[] uArr;
 							string file2 = file;
-							bool r = repl(null, jText, (string jText) { mixin(S_TRACE);
+							bool r = repl(null, "", jText, (string jText) { mixin(S_TRACE);
 								string value = jptxText(value, jText);
 								try { mixin(S_TRACE);
 									writeJPYFile(file2, value, isSJIS);
@@ -3637,14 +3642,14 @@ public:
 				core.memory.GC.minimize();
 			}
 			if (!_fromText.length) { mixin(S_TRACE);
-				addResult(summ, count);
+				addResult(summ, summ.cwxPath(true), count);
 				return;
 			}
 			refResultStatus(count, true);
 			auto range = rangeTree(summ);
 			foreach (path; range) { mixin(S_TRACE);
 				if (cancel) return;
-				searchAll(path, count, &replaceTextImpl);
+				searchAll(path, count, &replaceTextImpl, path.cwxPath(true));
 			}
 			if (_jptxSel) { mixin(S_TRACE);
 				foreach (string file; .dirEntries(summ.scenarioPath, SpanMode.depth, false)) { mixin(S_TRACE);
@@ -3657,7 +3662,7 @@ public:
 							auto jText = jptxText(value);
 							Undo[] uArr;
 							string file2 = file;
-							bool r = repl(null, jText, null, count, uArr, true);
+							bool r = repl(null, "", jText, null, count, uArr, true);
 							if (r) { mixin(S_TRACE);
 								file = abs2rel(file, summ.scenarioPath);
 								size_t dmy = 0;
@@ -3923,11 +3928,12 @@ public:
 		auto summ = _grepSumm ? _grepSumm : _summ;
 		getSymbols(_comm, summ, path, text, text2, img, img2, par);
 	}
-	private void addResult(CWXPath path, ref size_t count, string desc = "", int index = -1) { mixin(S_TRACE);
+	private void addResult(CWXPath path, string cwxPath, ref size_t count, string desc = "", int index = -1) { mixin(S_TRACE);
 		if (cancel) return;
 		count++;
 		auto addResultCWXPath = new AddResultCWXPath;
 		addResultCWXPath.path = path;
+		addResultCWXPath.cwxPath = cwxPath;
 		addResultCWXPath.index = index;
 		addResultCWXPath.desc = desc;
 		addResultCWXPath.count = count;
@@ -3954,7 +3960,7 @@ public:
 		addResultUse.count = count;
 		_display.syncExec(addResultUse);
 	}
-	private bool repl(CWXPath path, string text, void delegate(string) set, ref size_t count, ref Undo[] uArr, bool storeToArr = false) { mixin(S_TRACE);
+	private bool repl(CWXPath path, string cwxPath, string text, void delegate(string) set, ref size_t count, ref Undo[] uArr, bool storeToArr = false) { mixin(S_TRACE);
 		auto c = fTextCount(text);
 		count += c;
 		if (c > 0) { mixin(S_TRACE);
@@ -3965,9 +3971,9 @@ public:
 				set(n);
 			}
 			if (path) { mixin(S_TRACE);
-				if (_replMode && set && !storeToArr) store(path, text, n, set);
+				if (_replMode && set && !storeToArr) store(path, cwxPath, text, n, set);
 				size_t dmy = 0;
-				addResult(path, dmy);
+				addResult(path, cwxPath, dmy);
 			}
 			return true;
 		}
@@ -4042,13 +4048,13 @@ public:
 		return false;
 	}
 
-	private bool replRqCoupons(C)(CWXPath path, C targ, ref size_t count, ref Undo[] uArr, bool storeToArr = false) { mixin(S_TRACE);
+	private bool replRqCoupons(C)(CWXPath path, string pathPath, C targ, string targPath, ref size_t count, ref Undo[] uArr, bool storeToArr = false) { mixin(S_TRACE);
 		string[] coupons = targ.rCoupons;
 		string[] old = coupons.dup;
 		bool r = false;
 		foreach (i, cp; coupons) { mixin(S_TRACE);
 			Undo[] nArr;
-			r |= repl(null, cp, (string t) {cp = t;}, count, nArr);
+			r |= repl(null, "", cp, (string t) {cp = t;}, count, nArr);
 			if (_replMode) coupons[i] = cp;
 		}
 		if (r) { mixin(S_TRACE);
@@ -4057,23 +4063,23 @@ public:
 				targ.rCoupons = coupons;
 			}
 			if (path) { mixin(S_TRACE);
-				if (_replMode && !storeToArr) store(path, old, coupons.dup, &targ.rCoupons);
+				if (_replMode && !storeToArr) store(path, pathPath, old, coupons.dup, &targ.rCoupons);
 				size_t dmy = 0;
-				addResult(targ, dmy);
+				addResult(targ, targPath, dmy);
 			}
 			return true;
 		}
 		return false;
 	}
 
-	private bool replKeyCode(C)(CWXPath path, C targ, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
+	private bool replKeyCode(C)(CWXPath path, string pathPath, C targ, string targPath, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
 		if (_keyCodeSel) { mixin(S_TRACE);
 			auto kcs = targ.keyCodes.dup;
 			auto old = targ.keyCodes.dup;
 			bool r = false;
 			Undo[] nArr;
 			foreach (i, kc; kcs) { mixin(S_TRACE);
-				r |= repl(null, kc, (string t) {kc = t;}, count, nArr);
+				r |= repl(null, "", kc, (string t) {kc = t;}, count, nArr);
 				if (_replMode) kcs[i] = kc;
 			}
 			if (r) { mixin(S_TRACE);
@@ -4082,16 +4088,16 @@ public:
 					targ.keyCodes = kcs;
 				}
 				if (path) { mixin(S_TRACE);
-					if (_replMode) store(path, old, kcs.dup, &targ.keyCodes);
+					if (_replMode) store(path, pathPath, old, kcs.dup, &targ.keyCodes);
 					size_t dmy = 0;
-					addResult(path, dmy);
+					addResult(path, pathPath, dmy);
 				}
 				return true;
 			}
 		}
 		return false;
 	}
-	private bool replFKeyCode(C)(CWXPath path, C targ, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
+	private bool replFKeyCode(C)(CWXPath path, string pathPath, C targ, string targPath, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
 		if (_keyCodeSel) { mixin(S_TRACE);
 			auto kcs = targ.keyCodes.dup;
 			auto old = targ.keyCodes.dup;
@@ -4099,7 +4105,7 @@ public:
 			Undo[] nArr;
 			foreach (i, fkc; kcs) { mixin(S_TRACE);
 				auto kc = _prop.sys.convFireKeyCode(fkc);
-				r |= repl(null, kc, (string t) {kc = t;}, count, nArr);
+				r |= repl(null, "", kc, (string t) {kc = t;}, count, nArr);
 				if (_replMode) kcs[i] = _prop.sys.toFKeyCode(kc);
 			}
 			if (r) { mixin(S_TRACE);
@@ -4108,23 +4114,23 @@ public:
 					targ.keyCodes = kcs;
 				}
 				if (path) { mixin(S_TRACE);
-					if (_replMode) store(path, old, kcs.dup, (FKeyCode[] fkc) {targ.keyCodes = fkc;});
+					if (_replMode) store(path, pathPath, old, kcs.dup, (FKeyCode[] fkc) {targ.keyCodes = fkc;});
 					size_t dmy = 0;
-					addResult(path, dmy);
+					addResult(path, pathPath, dmy);
 				}
 				return true;
 			}
 		}
 		return false;
 	}
-	private bool replCoupons(C)(CWXPath path, C targ, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
+	private bool replCoupons(C)(CWXPath path, string pathPath, C targ, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
 		if (_couponSel) { mixin(S_TRACE);
 			auto coupons = targ.coupons.dup;
 			auto old = targ.coupons.dup;
 			bool r = false;
 			Undo[] nArr;
 			foreach (i, coupon; coupons) { mixin(S_TRACE);
-				r |= repl(null, coupon.name, (string t) {coupon = new Coupon(t, coupon.value);}, count, nArr);
+				r |= repl(null, "", coupon.name, (string t) {coupon = new Coupon(t, coupon.value);}, count, nArr);
 				if (_replMode) coupons[i] = coupon;
 			}
 			if (r) { mixin(S_TRACE);
@@ -4133,9 +4139,9 @@ public:
 					targ.coupons = coupons;
 				}
 				if (path) { mixin(S_TRACE);
-					if (_replMode) store(path, old, coupons.dup, &targ.coupons);
+					if (_replMode) store(path, pathPath, old, coupons.dup, &targ.coupons);
 					size_t dmy = 0;
-					addResult(path, dmy);
+					addResult(path, pathPath, dmy);
 				}
 				return true;
 			}
@@ -4143,14 +4149,14 @@ public:
 		return false;
 	}
 
-	private bool replBgImage(CWXPath path, BgImage back, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
+	private bool replBgImage(CWXPath path, string pathPath, BgImage back, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
 		bool r = false;
 		Undo[] uArr2;
 		if (_flagSel) { mixin(S_TRACE);
 			if (_flagDirOnRange) { mixin(S_TRACE);
-				r |= repl(null, back.flag, null, count, uArr2);
+				r |= repl(null, "", back.flag, null, count, uArr2);
 			} else { mixin(S_TRACE);
-				r |= repl(null, back.flag, &back.flag, count, uArr2);
+				r |= repl(null, "", back.flag, &back.flag, count, uArr2);
 			}
 		}
 		auto ic = cast(ImageCell) back;
@@ -4160,45 +4166,45 @@ public:
 		auto tc = cast(TextCell) back;
 		if (tc) { mixin(S_TRACE);
 			if (_jptxSel) { mixin(S_TRACE);
-				r |= repl(null, tc.text, &tc.text, count, uArr2, true);
+				r |= repl(null, "", tc.text, &tc.text, count, uArr2, true);
 			}
 			r |= replFlagsInText(tc, count, uArr2);
 		}
 		if (r && path) { mixin(S_TRACE);
-			if (_replMode) store(path, uArr2);
+			if (_replMode) store(path, pathPath, uArr2);
 			size_t dmy = 0;
-			addResult(path, dmy);
+			addResult(path, pathPath, dmy);
 		} else { mixin(S_TRACE);
 			uArr ~= uArr2;
 		}
 		return r;
 	}
-	private bool replCard(C)(CWXPath path, C card, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
+	private bool replCard(C)(CWXPath path, string pathPath, C card, string cardPath, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
 		bool r = false;
 		static if (is(typeof(card.linkId))) {
 			if (card.linkId != 0) return r;
 		}
 		Undo[] uArr2;
 		if (_cardNameSel) { mixin(S_TRACE);
-			r |= repl(null, card.name, &card.name, count, uArr2);
+			r |= repl(null, "", card.name, &card.name, count, uArr2);
 		}
 		if (_cardDescSel) { mixin(S_TRACE);
-			r |= repl(null, card.desc, &card.desc, count, uArr2);
+			r |= repl(null, "", card.desc, &card.desc, count, uArr2);
 		}
 		static if (is(C:EffectCard)) {
 			if (_scenarioSel) { mixin(S_TRACE);
-				r |= repl(null, card.scenario, &card.scenario, count, uArr2);
+				r |= repl(null, "", card.scenario, &card.scenario, count, uArr2);
 			}
 			if (_authorSel) { mixin(S_TRACE);
-				r |= repl(null, card.author, &card.author, count, uArr2);
+				r |= repl(null, "", card.author, &card.author, count, uArr2);
 			}
 		}
 		if (_flagSel) { mixin(S_TRACE);
 			static if (is (C : IFlagUser)) {
 				if (_flagDirOnRange) { mixin(S_TRACE);
-					r |= repl(null, card.flag, null, count, uArr2);
+					r |= repl(null, "", card.flag, null, count, uArr2);
 				} else { mixin(S_TRACE);
-					r |= repl(null, card.flag, &card.flag, count, uArr2);
+					r |= repl(null, "", card.flag, &card.flag, count, uArr2);
 				}
 			}
 		}
@@ -4206,12 +4212,12 @@ public:
 			r |= replImagePaths(card.paths, &card.paths, count, uArr2);
 		}
 		static if (is (C : EffectCard)) {
-			r |= replKeyCode!(C)(null, card, count, uArr2);
+			r |= replKeyCode!(C)(null, "", card, cardPath, count, uArr2);
 		}
 		if (r && path) { mixin(S_TRACE);
-			if (_replMode) store(path, uArr2);
+			if (_replMode) store(path, pathPath, uArr2);
 			size_t dmy = 0;
-			addResult(path, dmy);
+			addResult(path, pathPath, dmy);
 		} else { mixin(S_TRACE);
 			uArr ~= uArr2;
 		}
@@ -4226,7 +4232,7 @@ public:
 			foreach (i, p; ps) { mixin(S_TRACE);
 				auto c = decodeFontPath(p);
 				string ext = .extension(p);
-				r |= repl(null, .to!string(c), (string s) { mixin(S_TRACE);
+				r |= repl(null, "", .to!string(c), (string s) { mixin(S_TRACE);
 					dstring ds = .to!dstring(s);
 					if (!ds.length) return;
 					th.changeInText(i, toPathId(encodeFontPath(ds[0], ext)));
@@ -4244,80 +4250,82 @@ public:
 				// Flag/StepについてはUseCounter経由で置換される
 				auto fps = th.flagsInText;
 				foreach (i, p; fps) { mixin(S_TRACE);
-					r |= repl(null, p, null, count, nArr);
+					r |= repl(null, "", p, null, count, nArr);
 				}
 				auto sps = th.stepsInText;
 				foreach (i, p; sps) { mixin(S_TRACE);
-					r |= repl(null, p, null, count, nArr);
+					r |= repl(null, "", p, null, count, nArr);
 				}
 			} else { mixin(S_TRACE);
 				auto fps = th.flagsInText;
 				foreach (i, p; fps) { mixin(S_TRACE);
-					r |= repl(null, p, (string n) {th.changeInText(i, toFlagId(p));}, count, nArr);
+					r |= repl(null, "", p, (string n) {th.changeInText(i, toFlagId(p));}, count, nArr);
 				}
 				auto sps = th.stepsInText;
 				foreach (i, p; sps) { mixin(S_TRACE);
-					r |= repl(null, p, (string n) {th.changeInText(i, toStepId(p));}, count, nArr);
+					r |= repl(null, "", p, (string n) {th.changeInText(i, toStepId(p));}, count, nArr);
 				}
 			}
 		}
 		return r;
 	}
-	void replContent(Content e, ref size_t count) { mixin(S_TRACE);
+	void replContent(Content e, string cwxPath, ref size_t count) { mixin(S_TRACE);
 		auto eo = e.parent;
 		auto d = e.detail;
 		assert (!eo || eo.detail.owner);
 		bool r = false;
 		Undo[] uArr2;
 		if (_eventSel && eo && eo.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
-			r |= repl(null, e.name, &e.name, count, uArr2);
+			r |= repl(null, "", e.name, &e.name, count, uArr2);
 		}
 		if (_flagSel) { mixin(S_TRACE);
 			if (_flagDirOnRange) { mixin(S_TRACE);
 				// Flag/StepについてはUseCounter経由で置換される
-				if (d.use(CArg.FLAG)) r |= repl(null, e.flag, null, count, uArr2);
-				if (d.use(CArg.STEP)) r |= repl(null, e.step, null, count, uArr2);
-				if (d.use(CArg.FLAG_2)) r |= repl(null, e.flag2, null, count, uArr2);
-				if (d.use(CArg.STEP_2)) r |= repl(null, e.step2, null, count, uArr2);
+				if (d.use(CArg.FLAG)) r |= repl(null, "", e.flag, null, count, uArr2);
+				if (d.use(CArg.STEP)) r |= repl(null, "", e.step, null, count, uArr2);
+				if (d.use(CArg.FLAG_2)) r |= repl(null, "", e.flag2, null, count, uArr2);
+				if (d.use(CArg.STEP_2)) r |= repl(null, "", e.step2, null, count, uArr2);
 			} else { mixin(S_TRACE);
-				if (d.use(CArg.FLAG)) r |= repl(null, e.flag, &e.flag, count, uArr2);
-				if (d.use(CArg.STEP)) r |= repl(null, e.step, &e.step, count, uArr2);
-				if (d.use(CArg.FLAG_2)) r |= repl(null, e.flag2, &e.flag, count, uArr2);
-				if (d.use(CArg.STEP_2)) r |= repl(null, e.step2, &e.step, count, uArr2);
+				if (d.use(CArg.FLAG)) r |= repl(null, "", e.flag, &e.flag, count, uArr2);
+				if (d.use(CArg.STEP)) r |= repl(null, "", e.step, &e.step, count, uArr2);
+				if (d.use(CArg.FLAG_2)) r |= repl(null, "", e.flag2, &e.flag, count, uArr2);
+				if (d.use(CArg.STEP_2)) r |= repl(null, "", e.step2, &e.step, count, uArr2);
 			}
 		}
 		if (_startSel) { mixin(S_TRACE);
-			if (d.use(CArg.START)) r |= repl(null, e.start, &e.start, count, uArr2);
+			if (d.use(CArg.START)) r |= repl(null, "", e.start, &e.start, count, uArr2);
 			if (e.type == CType.START) { mixin(S_TRACE);
-				r |= repl(null, e.name, &e.name, count, uArr2);
+				r |= repl(null, "", e.name, &e.name, count, uArr2);
 			}
 		}
 		if (_couponSel) { mixin(S_TRACE);
-			if (d.use(CArg.COUPON)) r |= repl(null, e.coupon, &e.coupon, count, uArr2);
-			if (d.use(CArg.COUPONS)) r |= replCoupons(null, e, count, uArr2);
+			if (d.use(CArg.COUPON)) r |= repl(null, "", e.coupon, &e.coupon, count, uArr2);
+			if (d.use(CArg.COUPONS)) r |= replCoupons(null, "", e, count, uArr2);
 		}
 		if (_gossipSel) { mixin(S_TRACE);
-			if (d.use(CArg.GOSSIP)) r |= repl(null, e.gossip, &e.gossip, count, uArr2);
+			if (d.use(CArg.GOSSIP)) r |= repl(null, "", e.gossip, &e.gossip, count, uArr2);
 		}
 		if (_endSel) { mixin(S_TRACE);
-			if (d.use(CArg.COMPLETE_STAMP)) r |= repl(null, e.completeStamp, &e.completeStamp, count, uArr2);
+			if (d.use(CArg.COMPLETE_STAMP)) r |= repl(null, "", e.completeStamp, &e.completeStamp, count, uArr2);
 		}
 		if (_msgSel) { mixin(S_TRACE);
-			if (d.use(CArg.TEXT)) r |= repl(null, e.text, &e.text, count, uArr2);
+			if (d.use(CArg.TEXT)) r |= repl(null, "", e.text, &e.text, count, uArr2);
 		}
 		if (d.use(CArg.TEXT)) r |= replFontsInText(e, count, uArr2);
 		if (d.use(CArg.TEXT)) r |= replFlagsInText(e, count, uArr2);
 		bool rDlg = false;
 		if (_msgSel || _couponSel || _fileSel || _flagSel) { mixin(S_TRACE);
 			auto dlgs = e.dialogs;
-			foreach (dlg; dlgs) { mixin(S_TRACE);
+			foreach (i, dlg; dlgs) { mixin(S_TRACE);
 				Undo[] uArrDlg;
 				auto put = dlg;
-				if (_msgSel && repl(dlg, dlg.text, &dlg.text, count, uArrDlg, true)) { mixin(S_TRACE);
+				auto putPath = cpjoin(cwxPath, "dialog", i);
+				auto dlgPath = putPath;
+				if (_msgSel && repl(dlg, dlgPath, dlg.text, &dlg.text, count, uArrDlg, true)) { mixin(S_TRACE);
 					rDlg = true;
 					put = null;
 				}
-				if (_couponSel && replRqCoupons!(typeof(dlg))(put, dlg, count, uArrDlg, true)) { mixin(S_TRACE);
+				if (_couponSel && replRqCoupons!(typeof(dlg))(put, putPath, dlg, dlgPath, count, uArrDlg, true)) { mixin(S_TRACE);
 					rDlg = true;
 					put = null;
 				}
@@ -4325,12 +4333,12 @@ public:
 				dr |= replFlagsInText(dlg, count, uArrDlg);
 				if (dr) { mixin(S_TRACE);
 					size_t dmy = 0;
-					if (put) addResult(put, dmy);
+					if (put) addResult(put, putPath, dmy);
 					rDlg = true;
 					put = null;
 				}
 				if (_replMode && !put) { mixin(S_TRACE);
-					store(dlg, uArrDlg);
+					store(dlg, dlgPath, uArrDlg);
 				}
 			}
 		}
@@ -4340,14 +4348,14 @@ public:
 			if (d.use(CArg.SOUND_PATH)) r |= replFilePath(e.soundPath, &e.soundPath, count, uArr2);
 		}
 		if (_commentSel) { mixin(S_TRACE);
-			r |= repl(null, e.comment, &e.comment, count, uArr2);
+			r |= repl(null, "", e.comment, &e.comment, count, uArr2);
 		}
 		if (r) { mixin(S_TRACE);
 			if (_replMode) { mixin(S_TRACE);
-				store(e, uArr2);
+				store(e, cwxPath, uArr2);
 			}
 			size_t dmy = 0;
-			addResult(e, dmy);
+			addResult(e, cwxPath, dmy);
 		}
 	}
 }

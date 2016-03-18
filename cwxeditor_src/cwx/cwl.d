@@ -1544,23 +1544,31 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 	return e;
 }
 private EventTree readCEventTree(ref RData d, ref ByteIO f, size_t index) { mixin(S_TRACE);
-	auto tree = new EventTree("");
-	auto dest = tree.starts[0u];
+	EventTree tree = null;
 	uint cNum = f.readUIntL;
 	for (uint i = 0u; i < cNum; i++) { mixin(S_TRACE);
-		tree.add(readContent(d, f, i));
+		auto start = readContent(d, f, i);
+		if (tree) { mixin(S_TRACE);
+			tree.add(start);
+		} else { mixin(S_TRACE);
+			tree = new EventTree(start);
+		}
 	}
-	tree.remove(dest);
+	if (!tree) tree = new EventTree("");
 	return tree;
 }
 private EventTree readEventTree(ref RData d, ref ByteIO f, bool enemyCard, size_t index) { mixin(S_TRACE);
-	auto tree = new EventTree("");
-	auto dest = tree.starts[0u];
+	EventTree tree = null;
 	uint cNum = f.readUIntL;
 	for (uint i = 0u; i < cNum; i++) { mixin(S_TRACE);
-		tree.add(readContent(d, f, i));
+		auto start = readContent(d, f, i);
+		if (tree) { mixin(S_TRACE);
+			tree.add(start);
+		} else { mixin(S_TRACE);
+			tree = new EventTree(start);
+		}
 	}
-	tree.remove(dest);
+	if (!tree) tree = new EventTree("");
 	uint igNum = f.readUIntL;
 	for (uint i = 0u; i < igNum; i++) { mixin(S_TRACE);
 		int ig = f.readIntL;
