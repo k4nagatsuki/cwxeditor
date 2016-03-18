@@ -302,7 +302,7 @@ class EventEditor : Composite {
 			return;
 		}
 		_showSelection = false;
-		updatePosImpl2();
+		updatePosImpl2(false);
 		if (!_selected) return;
 		if (_selected.eventId !in _posTable) return;
 		auto pos = _posTable[_selected.eventId];
@@ -311,7 +311,7 @@ class EventEditor : Composite {
 	}
 	private void scroll(int pos, int height) { mixin(S_TRACE);
 		_showSelection = false;
-		updatePosImpl2();
+		updatePosImpl2(false);
 		auto vbar = getVerticalBar();
 		int vPos = vbar.getSelection();
 		int thumb = getClientArea().height / _lineHeight;
@@ -457,7 +457,7 @@ class EventEditor : Composite {
 		}
 	}
 	/// 位置計算をやり直す。
-	private void updatePosImpl2() { mixin(S_TRACE);
+	private void updatePosImpl2(bool fromRedraw) { mixin(S_TRACE);
 		if (!_updatePosAll && !_updateContents.length) { mixin(S_TRACE);
 			if (_updateEventText) { mixin(S_TRACE);
 				updateEventTextImpl();
@@ -493,7 +493,20 @@ class EventEditor : Composite {
 
 		updateCommentPos(gc, posY);
 		updateScrollBar();
-		redraw();
+		if (_pos.length && _pos[$ - 1].content.type is CType.START) { mixin(S_TRACE);
+			// FIXME: 末尾にスタートコンテントがあると縦スクロールバーの幅がおかしくなる事があるので
+			auto isShowSelection = _showSelection;
+			getDisplay.asyncExec(new class Runnable {
+				override void run() { mixin(S_TRACE);
+					updateScrollBar();
+					if (isShowSelection) { mixin(S_TRACE);
+						showSelection();
+					}
+					redraw();
+				}
+			});
+		}
+		if (!fromRedraw) redraw();
 		if (_selected !is oldSel && _selected) { mixin(S_TRACE);
 			callSelectChanged();
 		}
@@ -888,7 +901,7 @@ class EventEditor : Composite {
 		auto sy = vbar.getSelection() * _lineHeight;
 		y += sy;
 
-		updatePosImpl2();
+		updatePosImpl2(false);
 		return find(y, 0, cast(int)_pos.length);
 	}
 	private int find(int y, int from, int to) { mixin(S_TRACE);
@@ -1173,7 +1186,7 @@ class EventEditor : Composite {
 
 	private void onPaint(Event e) { mixin(S_TRACE);
 		if (!_et) return;
-		updatePosImpl2();
+		updatePosImpl2(true);
 		if (!_pos.length) return;
 		auto hw = _imageWidth / 2;
 		auto hh = _lineHeight / 2;
