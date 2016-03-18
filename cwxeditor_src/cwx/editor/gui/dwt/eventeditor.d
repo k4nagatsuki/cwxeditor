@@ -22,7 +22,7 @@ import std.string;
 import org.eclipse.swt.all;
 import java.lang.all;
 
-struct PosInfo {
+class PosInfo {
 	int depth1;
 	int depth2;
 	int relY;
@@ -33,6 +33,17 @@ struct PosInfo {
 	int eventTextWidth;
 	int commentLineX = 0;
 	Rectangle commentRect = null;
+
+	this (int depth1, int depth2, int relY, int height, int index, Content content, string eventText, int eventTextWidth) {
+		this.depth1 = depth1;
+		this.depth2 = depth2;
+		this.relY = relY;
+		this.height = height;
+		this.index = index;
+		this.content = content;
+		this.eventText = eventText;
+		this.eventTextWidth = eventTextWidth;
+	}
 }
 class StartInfo {
 	Content start;
@@ -413,7 +424,7 @@ class EventEditor : Composite {
 				eventTextWidth = gc.wTextExtent(s).x;
 			}
 
-			pos ~= PosInfo(depth1, depth2, relY, height, index, c, s, eventTextWidth, 0, null);
+			pos ~= new PosInfo(depth1, depth2, relY, height, index, c, s, eventTextWidth);
 			posY ~= y;
 			_posTable[c.eventId] = pos[$ - 1];
 			relY += height;
