@@ -2139,7 +2139,9 @@ public:
 			}
 			foreach (cld; _tree.getItems(itm)) find(cld);
 		}
-		foreach (itm; _tree.getItems()) find(itm);
+		foreach (i; 0 .. _tree.getItemCount()) { mixin(S_TRACE);
+			find(_tree.getItem(i));
+		}
 		auto ucp = new UndoCP(_comm, _prop, _summ, _et, _area, conts, index, start);
 		auto id = _comm.createPackage(start, _et.name, false);
 		if (id == 0) { mixin(S_TRACE);
@@ -2946,7 +2948,7 @@ public:
 
 	void refreshTreeName() { mixin(S_TRACE);
 		if (!_tree.getItemCount()) return;
-		_tree.getItems()[0].setText(_et.name);
+		_tree.getItem(0).setText(_et.name);
 		redraw();
 		refreshStatusLine();
 	}
@@ -3192,7 +3194,7 @@ public:
 			if (_readOnly) return;
 			if (!_tree.getItemCount()) return;
 			auto itm = selection;
-			if (itm && itm !is _tree.getItems()[0]) { mixin(S_TRACE);
+			if (itm && itm !is _tree.getItem(0)) { mixin(S_TRACE);
 				copy(se);
 				del(se);
 			}
@@ -3213,7 +3215,7 @@ public:
 			if (_readOnly) return;
 			if (!_tree.getItemCount()) return;
 			auto itm = selection;
-			if (itm && itm !is _tree.getItems()[0]) { mixin(S_TRACE);
+			if (itm && itm !is _tree.getItem(0)) { mixin(S_TRACE);
 				_tree.control.setRedraw(false);
 				scope(exit) _tree.control.setRedraw(true);
 				delImpl(itm, true, false, true);
@@ -3241,7 +3243,7 @@ public:
 		bool canDoT() { mixin(S_TRACE);
 			if (!_tree.getItemCount()) return false;
 			auto itm = selection;
-			return !_readOnly && itm && itm !is _tree.getItems()[0];
+			return !_readOnly && itm && itm !is _tree.getItem(0);
 		}
 		@property
 		bool canDoC() { mixin(S_TRACE);
@@ -3516,11 +3518,11 @@ public:
 		if (_tree.control.isDisposed()) return;
 		if (_et) { mixin(S_TRACE);
 			if (_tree.editor) { mixin(S_TRACE);
-				_tree.editor.redraw();
-				return;
-			}
-			foreach (itm; _tree.getItems()) { mixin(S_TRACE);
-				refreshCardImpl(itm);
+				_tree.editor.updateEventText();
+			} else { mixin(S_TRACE);
+				foreach (itm; _tree.getItems()) { mixin(S_TRACE);
+					refreshCardImpl(itm);
+				}
 			}
 			refreshStatusLine();
 		}
@@ -3543,14 +3545,14 @@ public:
 		if (_et) { mixin(S_TRACE);
 			if (_tree.editor) { mixin(S_TRACE);
 				_tree.editor.updateEventText();
-				return;
-			}
-			foreach (itm; _tree.getItems()) { mixin(S_TRACE);
-				auto start = cast(Content) itm.getData();
-				assert (start.type == CType.START);
-				itm.setText(start.name);
-				foreach (child; _tree.getItems(itm)) { mixin(S_TRACE);
-					refreshEventTextImpl(start, child);
+			} else { mixin(S_TRACE);
+				foreach (itm; _tree.getItems()) { mixin(S_TRACE);
+					auto start = cast(Content) itm.getData();
+					assert (start.type == CType.START);
+					itm.setText(start.name);
+					foreach (child; _tree.getItems(itm)) { mixin(S_TRACE);
+						refreshEventTextImpl(start, child);
+					}
 				}
 			}
 			refreshStatusLine();

@@ -38,7 +38,7 @@ class StartInfo {
 	Content start;
 	int y = 0;
 	int width = 0;
-	int height = 0;
+	int cHeight = 0;
 	ulong updateCounter = 0;
 	size_t fromIndex = 0;
 	size_t toIndex = 0;
@@ -159,6 +159,7 @@ class EventEditor : Composite {
 	private EventEditorItem[string] _items;
 	/// スタートコンテントの位置と前後情報。
 	private StartInfo[string] _startInfos;
+	private StartInfo _firstStartInfo = null;
 
 	private Color _lineColor = null;
 	private Color _selectedColor = null;
@@ -224,16 +225,7 @@ class EventEditor : Composite {
 			_lightupColor.dispose();
 			color.dispose();
 			_warningImage.dispose();
-			_expanded = null;
-			_selected = null;
-			_selectedParentStart = null;
-			_lightup = null;
-			_lightupParentStart = null;
-			_pos = [];
-			_posTable = null;
-			_startInfos = null;
-			_items = null;
-			_warningRects = [];
+			clearInfo();
 			if (_summ) _comm.refTerminalMark.remove(&updatePosAll);
 		});
 		.listener(this, SWT.Paint, &onPaint);
@@ -259,6 +251,21 @@ class EventEditor : Composite {
 	void eventTree(EventTree et) { mixin(S_TRACE);
 		_et = et;
 		updateEventTree();
+	}
+
+	private void clearInfo() { mixin(S_TRACE);
+		_expanded = null;
+		_selected = null;
+		_selectedParentStart = null;
+		_selectedIndex = -1;
+		_lightup = null;
+		_lightupParentStart = null;
+		_pos = [];
+		_posTable = null;
+		_startInfos = null;
+		_firstStartInfo = null;
+		_items = null;
+		_warningRects = [];
 	}
 
 	void expandAll() { mixin(S_TRACE);
@@ -333,7 +340,7 @@ class EventEditor : Composite {
 		scope (exit) gc.dispose();
 		_widthSum = 0;
 		auto posY = new int[_pos.length];
-		auto startInfo = _startInfos[_et.starts[0].eventId];
+		auto startInfo = _firstStartInfo;
 		while (startInfo) { mixin(S_TRACE);
 			assert (startInfo.start.tree is _et);
 			// テキストが更新されたイベントコンテントの位置は
@@ -376,14 +383,67 @@ class EventEditor : Composite {
 
 	/// 次の再描画でcが属するツリーの位置計算をやり直す事を通知する。
 	void updatePosOne(in Content c) { mixin(S_TRACE);
-		 // TODO: parentTreeが無い時は削除された時
-		_updateContents[c.parentStart.eventId] = true;
+		auto eventId = c.parentStart.eventId;
+		_updateContents[eventId] = true;
 		redraw();
 	}
 	/// 次の再描画で全ての位置計算をやり直す事を通知する。
 	private void updatePosAll() { mixin(S_TRACE);
 		_updatePosAll = true;
 		redraw();
+	}
+
+	private void createPosInfoRecurse(GC gc, int x, int depth1, int depth2, Content c, ref PosInfo[] pos, ref int[] posY, ref int index, ref int relY, ref int heightSum, ref int width, ref bool[string] expanded2) { mixin(S_TRACE);
+		while (true) { mixin(S_TRACE);
+			auto type = c.type;
+			int height = _lineHeight;
+			int y = heightSum * _lineHeight;
+			heightSum++;
+			if ((_summ ? _comm.prop.var.etc.showTerminalMark : showTerminalMark) && type != CType.START && !c.next.length) { mixin(S_TRACE);
+				height = _lineHeight * 2;
+				heightSum++;
+			}
+			auto eventText = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
+			auto s = eventText;
+			if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
+				s = _comm.skin.evtChildOK;
+			}
+			auto eventTextWidth = 0;
+			if (s != "") { mixin(S_TRACE);
+				eventTextWidth = gc.wTextExtent(s).x;
+			}
+
+			pos ~= PosInfo(depth1, depth2, relY, height, index, c, s, eventTextWidth, 0, null);
+			posY ~= y;
+			_posTable[c.eventId] = pos[$ - 1];
+			relY += height;
+			index++;
+
+			// 幅計算
+			width = .max(width, calcRight(pos[$ - 1], x));
+
+			if (c.next.length && !_expanded.get(c.eventId, true)) { mixin(S_TRACE);
+				expanded2[c.eventId] = false;
+				break; // 折りたたまれている
+			}
+			auto d = c.detail;
+			if (type != CType.START && c.next.length == 1 && (!(_summ ? _comm.prop.var.etc.forceIndentBranchContent : forceIndentBranchContent) || d.nextType == CNextType.NONE || d.nextType == CNextType.TEXT)) { mixin(S_TRACE);
+				x += slope;
+				depth2++;
+				c = c.next[0];
+				continue; // 再帰回避
+			} else if (c.next.length == 1) { mixin(S_TRACE);
+				x += _imageWidth;
+				depth1++;
+				c = c.next[0];
+				continue; // 再帰回避
+			} else { mixin(S_TRACE);
+				foreach (next; c.next) { mixin(S_TRACE);
+					createPosInfoRecurse(gc, x + _imageWidth, depth1 + 1, depth2, next, pos, posY, index, relY, heightSum, width, expanded2);
+				}
+			}
+			break;
+		}
 	}
 	/// 位置計算をやり直す。
 	private void updatePosImpl2() { mixin(S_TRACE);
@@ -393,127 +453,31 @@ class EventEditor : Composite {
 			}
 			return;
 		}
-
-		int y = 0;
 		int selIndex = 0;
 		auto oldSel = _selected;
 		selIndex = _selectedIndex;
 		_selectedIndex = -1;
 
-		_pos = [];
-		_posTable = null;
-		_startInfos = null;
 		_lightup = null;
 		_lightupParentStart = null;
-		_heightSum = 0;
-		_widthSum = 0;
-		int index = 0;
-		bool[string] expanded2;
+
 		auto gc = new GC(this);
 		scope (exit) gc.dispose();
-		int relY = 0;
-		int startTreeWidth = 0;
 		int[] posY;
-		void recurse(int x, int depth1, int depth2, Content c, ref PosInfo[] pos) { mixin(S_TRACE);
-			while (true) { mixin(S_TRACE);
-				auto type = c.type;
-				int height = _lineHeight;
-				_heightSum++;
-				if ((_summ ? _comm.prop.var.etc.showTerminalMark : showTerminalMark) && type != CType.START && !c.next.length) { mixin(S_TRACE);
-					height = _lineHeight * 2;
-					_heightSum++;
-				}
-				auto eventText = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
-				auto s = eventText;
-				if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
-					s = _comm.skin.evtChildOK;
-				}
-				auto eventTextWidth = 0;
-				if (s != "") { mixin(S_TRACE);
-					eventTextWidth = gc.wTextExtent(s).x;
-				}
+		updateStartInfo(gc, posY);
 
-				pos ~= PosInfo(depth1, depth2, relY, height, index, c, s, eventTextWidth, 0, null);
-				posY ~= y;
-				_posTable[c.eventId] = pos[$ - 1];
-				y += height;
-				relY += height;
-				index++;
-
-				// 幅計算
-				startTreeWidth = .max(startTreeWidth, calcRight(pos[$ - 1], x));
-
-				if (c.next.length && !_expanded.get(c.eventId, true)) { mixin(S_TRACE);
-					expanded2[c.eventId] = false;
-					break; // 折りたたまれている
-				}
-				auto d = c.detail;
-				if (type != CType.START && c.next.length == 1 && (!(_summ ? _comm.prop.var.etc.forceIndentBranchContent : forceIndentBranchContent) || d.nextType == CNextType.NONE || d.nextType == CNextType.TEXT)) { mixin(S_TRACE);
-					x += slope;
-					depth2++;
-					c = c.next[0];
-					continue; // 再帰回避
-				} else if (c.next.length == 1) { mixin(S_TRACE);
-					x += _imageWidth;
-					depth1++;
-					c = c.next[0];
-					continue; // 再帰回避
-				} else { mixin(S_TRACE);
-					foreach (next; c.next) { mixin(S_TRACE);
-						recurse(x + _imageWidth, depth1 + 1, depth2, next, pos);
-					}
-				}
-				break;
-			}
-		}
-
-		if (_et) { mixin(S_TRACE);
-			auto starts = _et.starts;
-			auto startInfos = new StartInfo[starts.length];
-			foreach (i, start; starts) { mixin(S_TRACE);
-				auto info = new StartInfo;
-				info.start = start;
-				startInfos[i] = info;
-				_startInfos[start.eventId] = info;
-				if (0 < i) { mixin(S_TRACE);
-					info.prev = startInfos[i - 1];
-					startInfos[i - 1].next = info;
-				}
-				info.y = y;
-				relY = 0;
-				startTreeWidth = 0;
-				info.fromIndex = _pos.length;
-				recurse(0, 0, 0, start, _pos);
-				info.toIndex = _pos.length;
-				info.height = relY;
-				info.width = startTreeWidth;
-				info.updateCounter = start.updateCounter;
-				_widthSum = .max(startTreeWidth, _widthSum);
-			}
-
-			if (_selected && _selected.eventId !in _posTable && 0 < selIndex) { mixin(S_TRACE);
-				if (_selected.type !is CType.START) selIndex -= 1;
-				_selected = null;
-				_selectedParentStart = null;
-				_selectedIndex = -1;
-			}
+		if (oldSel && oldSel.eventId in _posTable) { mixin(S_TRACE);
+			_selected = oldSel;
+			_selectedParentStart = oldSel.parentStart;
+			_selectedIndex = _posTable[oldSel.eventId].index;
+		} else if (_pos.length) { mixin(S_TRACE);
+			_selectedIndex = .max(0, .min(selIndex, _pos.length - 1));
+			_selected = _pos[_selectedIndex].content;
+			_selectedParentStart = _selected.parentStart;
 		} else { mixin(S_TRACE);
 			_selected = null;
 			_selectedParentStart = null;
 			_selectedIndex = -1;
-		}
-		_expanded = expanded2;
-		_posTable.rehash();
-
-		_updatePosAll = false;
-		_updateContents = null;
-
-		assert (_posTable.length == _pos.length);
-
-		if (!_selected && _pos.length) { mixin(S_TRACE);
-			_selectedIndex = .min(selIndex, _pos.length - 1);
-			_selected = _pos[_selectedIndex].content;
-			_selectedParentStart = _selected.parentStart;
 		}
 
 		updateCommentPos(gc, posY);
@@ -523,6 +487,146 @@ class EventEditor : Composite {
 			callSelectChanged();
 		}
 	}
+
+	/// 部分再描画処理。スタートコンテントを挿入・更新する。
+	private void updateStartInfo(GC gc, ref int[] posY) { mixin(S_TRACE);
+		if (!_et || !_et.starts.length) { mixin(S_TRACE);
+			clearInfo();
+			_updatePosAll = false;
+			_updateContents = null;
+			return;
+		}
+		if (!_updatePosAll && !_updateContents.length) { mixin(S_TRACE);
+			return;
+		}
+		if (_updatePosAll) { mixin(S_TRACE);
+			_startInfos = null;
+		} else { mixin(S_TRACE);
+			removeStarts();
+			assert (_startInfos.length <= _et.starts.length);
+		}
+
+		_heightSum = 0;
+		_widthSum = 0;
+		PosInfo[] pos;
+		_posTable = null;
+		int index = 0;
+		bool[string] expanded2;
+		StartInfo beforeInfo = null;
+		StartInfo[string] newStartInfos;
+		_firstStartInfo = null;
+		foreach (start; _et.starts) { mixin(S_TRACE);
+			StartInfo startInfo = null;
+			auto fromIndex = pos.length;
+			auto heightSumB = _heightSum;
+			void createInfos() { mixin(S_TRACE);
+				int width = 0;
+				int relY = 0;
+				createPosInfoRecurse(gc, 0, 0, 0, start, pos, posY, index, relY, _heightSum, width, expanded2);
+				startInfo.cHeight = _heightSum - heightSumB;
+				startInfo.width = width;
+			}
+			auto p = _startInfos.length ? start.eventId in _startInfos : null;
+			if (!p) { mixin(S_TRACE);
+				// 挿入
+				startInfo = new StartInfo;
+				createInfos();
+			} else { mixin(S_TRACE);
+				startInfo = *p;
+				void addPoss(StartInfo startInfo) { mixin(S_TRACE);
+					foreach (ref info; _pos[startInfo.fromIndex .. startInfo.toIndex]) { mixin(S_TRACE);
+						posY ~= startInfo.y + info.relY;
+						info.index = index;
+						_posTable[info.content.eventId] = info;
+						index++;
+					}
+					pos ~= _pos[startInfo.fromIndex .. startInfo.toIndex];
+					_heightSum += startInfo.cHeight;
+				}
+				if (start !is startInfo.start || startInfo.updateCounter != startInfo.start.updateCounter || start.eventId in _updateContents) { mixin(S_TRACE);
+					// 更新
+					if (start !is startInfo.start && start.eventId in _startInfos) { mixin(S_TRACE);
+						// スタートの位置の入れ替えなどが発生している
+						auto s = _startInfos[start.eventId];
+						addPoss(s);
+						startInfo.cHeight = s.cHeight;
+						startInfo.width = s.width;
+					} else { mixin(S_TRACE);
+						// ツリーの内容が更新されている
+						createInfos();
+					}
+				} else { mixin(S_TRACE);
+					// 何もしない
+					addPoss(startInfo);
+				}
+			}
+			startInfo.start = start;
+			startInfo.y = heightSumB * _lineHeight;
+			startInfo.updateCounter = start.updateCounter;
+			startInfo.fromIndex = fromIndex;
+			startInfo.toIndex = pos.length;
+			_widthSum = .max(startInfo.width, _widthSum);
+			newStartInfos[start.eventId] = startInfo;
+			startInfo.prev = beforeInfo;
+			if (beforeInfo) { mixin(S_TRACE);
+				beforeInfo.next = startInfo;
+			}
+
+			beforeInfo = startInfo;
+			if (!_firstStartInfo) _firstStartInfo = startInfo;
+		}
+		if (beforeInfo) beforeInfo.next = null;
+
+		assert (index == pos.length);
+		assert (_posTable.length == pos.length);
+		assert (posY.length == pos.length);
+		assert (_et.starts.length == newStartInfos.length);
+
+		_posTable.rehash();
+		newStartInfos.rehash();
+
+		_pos = pos;
+		_startInfos = newStartInfos;
+		_expanded = expanded2;
+
+		_updatePosAll = false;
+		_updateContents = null;
+	}
+
+	/// 部分再描画処理。ツリーから取り除かれたスタートコンテントを削除する。
+	private void removeStarts() { mixin(S_TRACE);
+		if (!_et) return;
+		if (!_startInfos.length) return;
+
+		auto startInfo = _firstStartInfo;
+		size_t removedPosCount = 0;
+		int removedHeight = 0;
+		_widthSum = 0;
+		while (startInfo) { mixin(S_TRACE);
+			startInfo.fromIndex -= removedPosCount;
+			startInfo.toIndex -= removedPosCount;
+
+			if (startInfo.start.tree is _et) { mixin(S_TRACE);
+				startInfo.y -= removedHeight * _lineHeight;
+				_widthSum = .max(_widthSum, startInfo.width);
+				startInfo = startInfo.next;
+				continue;
+			}
+			assert (startInfo.start.tree is null);
+
+			if (startInfo.prev) startInfo.prev.next = startInfo.next;
+			if (startInfo.next) startInfo.next.prev = startInfo.prev;
+			removedPosCount += startInfo.count;
+			removedHeight += startInfo.cHeight;
+
+			_pos = _pos[0 .. startInfo.fromIndex] ~ _pos[startInfo.toIndex .. $];
+			_updateContents.remove(startInfo.start.eventId);
+			_startInfos.remove(startInfo.start.eventId);
+
+			startInfo = startInfo.next;
+		}
+	}
+
 	/// コメント位置を計算する。
 	private void updateCommentPos(GC gc, in int[] posY) { mixin(S_TRACE);
 		Rectangle[] boxes;
@@ -597,6 +701,7 @@ class EventEditor : Composite {
 		}
 		_widthSum += 2;
 	}
+
 	private void updateScrollBar() { mixin(S_TRACE);
 		auto ca = getClientArea();
 
@@ -1347,7 +1452,7 @@ class EventEditor : Composite {
 		auto gc = new GC(this);
 		scope (exit) gc.dispose();
 		_widthSum = 0;
-		auto startInfo = _startInfos[_et.starts[0].eventId];
+		auto startInfo = _firstStartInfo;
 		auto posY = new int[_pos.length];
 		while (startInfo) { mixin(S_TRACE);
 			for (auto i = startInfo.fromIndex; i < startInfo.toIndex; i++) {
