@@ -2505,6 +2505,7 @@ public:
 		c._tree = null;
 		c.changeHandler = null;
 		_startNames.remove(c.name);
+		changed();
 	}
 	/// ditto
 	void remove(Content start) in { mixin(S_TRACE);
