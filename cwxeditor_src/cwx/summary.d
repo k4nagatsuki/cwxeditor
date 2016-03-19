@@ -1878,7 +1878,9 @@ public:
 					summ._rCouponNum = node.attr!(uint)("number", true);
 					rCoupons = decodeLf(node.value);
 				};
-				propNode.onTag["StartAreaId"] = (ref XNode node) {summ._startAreaId.area = node.valueTo!(ulong);};
+				propNode.onTag["StartAreaId"] = (ref XNode node) { mixin(S_TRACE);
+					summ._startAreaId.area = node.valueTo!(ulong);
+				};
 				propNode.onTag["Type"] = (ref XNode node) {summ._type = node.value;};
 				propNode.parse();
 				summ.imagePaths = paths;
@@ -1900,7 +1902,7 @@ public:
 		throw new SummaryException("File is not summary: " ~ sPath);
 	}
 	private void checkStartArea() { mixin(S_TRACE);
-		if (hasId(areas, startArea)) {
+		if (!hasId(areas, startArea)) {
 			_startAreaId.area = areas.length > 0 ? areas[0].id : 0;
 		}
 	}
