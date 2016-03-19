@@ -47,6 +47,15 @@ class IncSearch {
 		default: assert (0);
 		}
 	}
+	@property
+	bool isSearching() { mixin(S_TRACE);
+		if (!_win) return false;
+		if (!_win.isVisible()) return false;
+		foreach (chk, dlg; _additionCheckers) { mixin(S_TRACE);
+			if (!chk.getSelection()) return true;
+		}
+		return 0 < _text.getText().length;
+	}
 	bool matchAdditional(in Object additionalData) { mixin(S_TRACE);
 		if (!additionalData) return true;
 		foreach (chk, dlg; _additionCheckers) { mixin(S_TRACE);

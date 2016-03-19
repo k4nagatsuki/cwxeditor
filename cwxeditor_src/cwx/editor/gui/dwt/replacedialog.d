@@ -320,6 +320,14 @@ private:
 	TableTextEdit _edit;
 	Tree _range;
 
+	bool[CWXPath] _rangeTable;
+	IncSearch _incSearch = null;
+	private void incSearch() { mixin(S_TRACE);
+		if (!_range.isEnabled()) return;
+		.forceFocus(_range, true);
+		_incSearch.startIncSearch();
+	}
+
 	Composite[CTabItem] _comps;
 
 	ToolItem[CType] _contents;
@@ -750,6 +758,7 @@ private:
 		_replace.setEnabled(!(sel is _tabText && _ignoreReturnCode.getSelection()) && sel !is _tabContents && sel !is _tabCoupon && sel !is _tabUnuse && sel !is _tabError);
 		_range.setEnabled(sel !is _tabUnuse && sel !is _tabGrep);
 		_rangeAllCheck.setEnabled(_range.getEnabled());
+		if (!_range.getEnabled()) _incSearch.close();
 		_comm.refreshToolBar();
 	}
 	class TSListener : SelectionAdapter {
@@ -1322,6 +1331,10 @@ private:
 	}
 
 	void refFunc(bool Del, A : CWXPath)(A a) { mixin(S_TRACE);
+		if (_incSearch.isSearching) { mixin(S_TRACE);
+			refreshRangeTree();
+			return;
+		}
 		bool recurse(TreeItem itm) { mixin(S_TRACE);
 			if (a is itm.getData()) { mixin(S_TRACE);
 				static if (Del) {
@@ -1441,16 +1454,30 @@ private:
 		_range.setRedraw(false);
 		scope (exit) _range.setRedraw(true);
 		if (!_summ) { mixin(S_TRACE);
+			_rangeTable = null;
 			_range.removeAll();
 			return;
 		}
-		CWXPath sel = null;
-		auto selItm = _range.getSelection();
-		if (selItm.length) { mixin(S_TRACE);
-			sel = cast(CWXPath)selItm[0].getData();
+ 		bool[CWXPath] sels;
+ 		bool[string] selsStr;
+ 		foreach (itm; _range.getSelection()) { mixin(S_TRACE);
+ 			auto sel = cast(CWXPath)itm.getData();
+ 			if (sel) { mixin(S_TRACE);
+				sels[sel] = true;
+ 			} else { mixin(S_TRACE);
+ 				selsStr[itm.getText().toLower()] = true;
+ 			}
 		}
+		TreeItem[] newSels;
+
+		bool[CWXPath] rangeTable;
+		scope (exit) _rangeTable = rangeTable;
 		_range.removeAll();
-		TreeItem add(TreeItem par, string name, CWXPath path) { mixin(S_TRACE);
+		TreeItem add(lazy TreeItem par, string name, string matchName, CWXPath path) { mixin(S_TRACE);
+			rangeTable[path] = _rangeTable.get(path, true);
+			if (matchName !is null && !_incSearch.match(matchName)) { mixin(S_TRACE);
+				return null;
+			}
 			TreeItem itm;
 			if (par) { mixin(S_TRACE);
 				itm = new TreeItem(par, SWT.NONE);
@@ -1462,15 +1489,15 @@ private:
 			getPathParams(path, text1, text2, img1, img2, false);
 			itm.setText(name);
 			itm.setImage(img1);
-			itm.setData(cast(Object) path);
-			itm.setChecked(true);
-			if (sel is path) { mixin(S_TRACE);
-				_range.setSelection([itm]);
+			itm.setData(cast(Object)path);
+			itm.setChecked(_rangeTable.get(path, true));
+			if (path in sels) { mixin(S_TRACE);
+				newSels ~= itm;
 			}
 			return itm;
 		}
-		add(null, _prop.msgs.summary, _summ);
-		add(null, _prop.msgs.flagsAndSteps, _summ.flagDirRoot);
+		add(null, _prop.msgs.summary, null, _summ);
+		add(null, _prop.msgs.flagsAndSteps, null, _summ.flagDirRoot);
 		if (_prop.var.etc.showAreaDirTree) { mixin(S_TRACE);
 			TreeItem[string] itmTable;
 			auto dirSet = new HashSet!string;
@@ -1481,13 +1508,19 @@ private:
 				dirSet.add(dirName);
 				dirSet2.add(l);
 			}
-			foreach (a; _summ.areas) put1(a.dirName);
-			foreach (a; _summ.battles) put1(a.dirName);
-			foreach (a; _summ.packages) put1(a.dirName);
+			foreach (a; _summ.areas) { mixin (S_TRACE);
+				if (_incSearch.match(a.baseName)) put1(a.dirName);
+			}
+			foreach (a; _summ.battles) { mixin (S_TRACE);
+				if (_incSearch.match(a.baseName)) put1(a.dirName);
+			}
+			foreach (a; _summ.packages) { mixin (S_TRACE);
+				if (_incSearch.match(a.baseName)) put1(a.dirName);
+			}
 			bool delegate(string, string) cmps;
-			if (_prop.var.etc.logicalSort) {
+			if (_prop.var.etc.logicalSort) { mixin (S_TRACE);
 				cmps = (a, b) => incmp(a, b) < 0;
-			} else {
+			} else { mixin (S_TRACE);
 				cmps = (a, b) => icmp(a, b) < 0;
 			}
 			foreach (dirName; .sortDlg(dirSet.toArray(), cmps)) { mixin (S_TRACE);
@@ -1508,72 +1541,91 @@ private:
 						}
 						sub.setText(dir);
 						sub.setImage(_prop.images.areaDir);
-						sub.setChecked(true);
 						itm = sub;
 						itmTable[path] = sub;
 					}
 				}
 				itmTable[dirName.toLower()] = itm;
+				if (itm && dirName.toLower() in selsStr) newSels ~= itm;
 			}
 			void put(A)(A[] arr) { mixin (S_TRACE);
 				foreach (a; arr) { mixin (S_TRACE);
-					add(itmTable[a.dirName.toLower()], .tryFormat("%s.%s", a.id, a.baseName), a);
+					add(itmTable[a.dirName.toLower()], .tryFormat("%s.%s", a.id, a.baseName), a.baseName, a);
 				}
 			}
 			put(_summ.areas);
 			put(_summ.battles);
 			put(_summ.packages);
+			foreach (dirName, itm; itmTable) { mixin(S_TRACE);
+				if (!itm) continue;
+				bool recurse(TreeItem itm) { mixin(S_TRACE);
+					if (!itm.getChecked()) return false;
+					foreach (child; itm.getItems()) { mixin(S_TRACE);
+						if (!recurse(child)) return false;
+					}
+					return true;
+				}
+				auto checked = true;
+				foreach (child; itm.getItems()) { mixin(S_TRACE);
+					checked &= recurse(child);
+					if (!checked) break;
+				}
+				itm.setChecked(checked);
+			}
 		} else { mixin(S_TRACE);
-			foreach (a; _summ.areas) add(null, a.name, a);
-			foreach (a; _summ.battles) add(null, a.name, a);
-			foreach (a; _summ.packages) add(null, a.name, a);
+			foreach (a; _summ.areas) { mixin(S_TRACE);
+				add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
+			}
+			foreach (a; _summ.battles) { mixin(S_TRACE);
+				add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
+			}
+			foreach (a; _summ.packages) { mixin(S_TRACE);
+				add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
+			}
 		}
 		foreach (a; _summ.casts) { mixin(S_TRACE);
-			auto par = add(null, .tryFormat("%s.%s", a.id, a.name), a);
+			auto par = add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
+			void createParent() { mixin(S_TRACE);
+				if (par) return;
+				par = add(null, .tryFormat("%s.%s", a.id, a.name), null, a);
+			}
 			foreach (c; a.skills) { mixin(S_TRACE);
 				if (0 != c.linkId) continue;
-				add(par, .tryFormat("%s.%s", c.id, c.name), c);
+				if (_incSearch.match(c.name)) createParent();
+				add(par, .tryFormat("%s.%s", c.id, c.name), c.name, c);
 			}
 			foreach (c; a.items) { mixin(S_TRACE);
 				if (0 != c.linkId) continue;
-				add(par, .tryFormat("%s.%s", c.id, c.name), c);
+				if (_incSearch.match(c.name)) createParent();
+				add(par, .tryFormat("%s.%s", c.id, c.name), c.name, c);
 			}
 			foreach (c; a.beasts) { mixin(S_TRACE);
 				if (0 != c.linkId) continue;
-				add(par, .tryFormat("%s.%s", c.id, c.name), c);
+				if (_incSearch.match(c.name)) createParent();
+				add(par, .tryFormat("%s.%s", c.id, c.name), c.name, c);
 			}
 		}
 		foreach (a; _summ.skills) { mixin(S_TRACE);
-			add(null, .tryFormat("%s.%s", a.id, a.name), a);
+			add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
 		}
 		foreach (a; _summ.items) { mixin(S_TRACE);
-			add(null, .tryFormat("%s.%s", a.id, a.name), a);
+			add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
 		}
 		foreach (a; _summ.beasts) { mixin(S_TRACE);
-			add(null, .tryFormat("%s.%s", a.id, a.name), a);
+			add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
 		}
 		foreach (a; _summ.infos) { mixin(S_TRACE);
-			add(null, .tryFormat("%s.%s", a.id, a.name), a);
+			add(null, .tryFormat("%s.%s", a.id, a.name), a.name, a);
 		}
+		// FIXME: 謎のAccess Violation
+		//_range.setSelection(newSels);
 		_range.treeExpandedAll();
 		_range.showSelection();
 		_comm.refreshToolBar();
 	}
 	void refreshRangeAllCheck() { mixin(S_TRACE);
-		bool recurse(TreeItem itm) { mixin(S_TRACE);
-			if (!itm.getChecked()) { mixin(S_TRACE);
-				return true;
-			} else { mixin(S_TRACE);
-				foreach (child; itm.getItems()) { mixin(S_TRACE);
-					if (recurse(child)) { mixin(S_TRACE);
-						return true;
-					}
-				}
-				return false;
-			}
-		}
-		foreach (child; _range.getItems()) { mixin(S_TRACE);
-			if (recurse(child)) { mixin(S_TRACE);
+		foreach (checked; _rangeTable.byValue()) { mixin(S_TRACE);
+			if (!checked) { mixin(S_TRACE);
 				_rangeAllCheck.setSelection(false);
 				return;
 			}
@@ -1585,6 +1637,9 @@ private:
 			if (SWT.CHECK != e.detail) return;
 			auto par = cast(TreeItem)e.item;
 			if (!par) return;
+			if (auto cwxPath = cast(CWXPath)par.getData()) { mixin(S_TRACE);
+				_rangeTable[cwxPath] = par.getChecked();
+			}
 
 			TreeItem[] targs;
 			if (updateChecked(e)) { mixin(S_TRACE);
@@ -1598,6 +1653,9 @@ private:
 					// 下のアイテムの状態を一括で切り替える
 					void recurse(TreeItem itm) { mixin(S_TRACE);
 						itm.setChecked(par2.getChecked());
+						if (auto cwxPath = cast(CWXPath)itm.getData()) { mixin(S_TRACE);
+							_rangeTable[cwxPath] = itm.getChecked();
+						}
 						foreach (child; itm.getItems()) recurse(child);
 					}
 					foreach (itm; par2.getItems()) { mixin(S_TRACE);
@@ -1619,7 +1677,11 @@ private:
 						recurse2(itm);
 					}
 					if (!same) break;
-					par2.getParentItem().setChecked(par2.getChecked());
+					auto parItm = par2.getParentItem();
+					parItm.setChecked(par2.getChecked());
+					if (auto cwxPath = cast(CWXPath)parItm.getData()) { mixin(S_TRACE);
+						_rangeTable[cwxPath] = parItm.getChecked();
+					}
 					par2 = par2.getParentItem();
 				}
 			}
@@ -1630,6 +1692,8 @@ private:
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 			void recurse(TreeItem itm) { mixin(S_TRACE);
 				itm.setChecked(_rangeAllCheck.getSelection());
+				auto path = cast(CWXPath)itm.getData();
+				if (path) _rangeTable[path] = itm.getChecked();
 				foreach (child; itm.getItems()) { mixin(S_TRACE);
 					recurse(child);
 				}
@@ -1887,6 +1951,7 @@ public:
 			gd.widthHint = 0;
 			gd.heightHint = 0;
 			_range.setLayoutData(gd);
+			_incSearch = new IncSearch(_comm, _range);
 			refreshRangeTree();
 			_rangeAllCheck = new Button(grp, SWT.CHECK);
 			_rangeAllCheck.setText(_prop.msgs.allCheckRange);
@@ -1896,6 +1961,8 @@ public:
 			_range.addKeyListener(openPath);
 			_range.addMouseListener(openPath);
 			auto menu = new Menu(_win, SWT.POP_UP);
+			createMenuItem(_comm, menu, MenuID.IncSearch, &incSearch, null);
+			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.SelectAll, { mixin(S_TRACE);
 				void recurse(TreeItem itm) { mixin(S_TRACE);
 					_range.select(itm);
@@ -1911,6 +1978,7 @@ public:
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(_comm, menu, MenuID.OpenAtView, &openRangePath, () => _range.getSelection().length > 0 && cast(CWXPath)_range.getSelection()[0].getData());
 			_range.setMenu(menu);
+			_incSearch.modEvent ~= &refreshRangeTree;
 		}
 		{ mixin(S_TRACE);
 			auto sep = new Label(_win, SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -2468,9 +2536,10 @@ public:
 		_toText = _to.getText();
 
 		_flagDirOnRange = false;
+		_incSearch.close();
 		foreach (itm; _range.getItems()) { mixin(S_TRACE);
 			if (itm.getChecked()) { mixin(S_TRACE);
-				auto root = cast(FlagDir) itm.getData();
+				auto root = cast(FlagDir)itm.getData();
 				if (root) { mixin(S_TRACE);
 					_flagDirOnRange = true;
 					break;
@@ -2533,6 +2602,7 @@ public:
 				}
 			}
 		}
+		_incSearch.close();
 		foreach (itm; _range.getItems()) { mixin(S_TRACE);
 			if (itm.getChecked()) { mixin(S_TRACE);
 				recurse(itm);
@@ -2648,18 +2718,7 @@ public:
 	}
 	@property
 	private bool[CWXPath] rangeTable() { mixin(S_TRACE);
-		bool[CWXPath] range;
-		void recurse(TreeItem itm) { mixin(S_TRACE);
-			auto data = cast(CWXPath)itm.getData();
-			if (data) range[data] = itm.getChecked();
-			foreach (cItm; itm.getItems()) { mixin(S_TRACE);
-				recurse(cItm);
-			}
-		}
-		foreach (itm; _range.getItems()) { mixin(S_TRACE);
-			recurse(itm);
-		}
-		return range;
+		return _rangeTable;
 	}
 	private bool dec(CWXPath path, in bool[CWXPath] range) { mixin(S_TRACE);
 		assert (path);
@@ -3133,7 +3192,7 @@ public:
 
 		new FullTableColumn(_result, SWT.NONE);
 
-		auto range = searchRange();
+		auto range = searchRange;
 
 		bool unuseFlagSel = _unuseFlag.getSelection();
 		bool unuseStepSel = _unuseStep.getSelection();
@@ -3883,7 +3942,7 @@ public:
 		if (!sels.length) return false;
 		foreach (itm; sels) { mixin(S_TRACE);
 			auto d = itm.getData();
-			if (cast(CWXPathString) d !is null || cast(FilePathString) d !is null) { mixin(S_TRACE);
+			if (cast(CWXPathString)d !is null || cast(FilePathString)d !is null) { mixin(S_TRACE);
 				return true;
 			}
 		}
@@ -3894,7 +3953,7 @@ public:
 		if (-1 == i) return;
 		foreach (itm; [_result.getItem(i)] ~ _result.getItems()) { mixin(S_TRACE);
 			auto d = itm.getData();
-			auto rp = cast(CWXPathString) d;
+			auto rp = cast(CWXPathString)d;
 			if (rp) { mixin(S_TRACE);
 				auto path = rp.array;
 				if (_prop.var.etc.searchOpenDialog) { mixin(S_TRACE);
@@ -3962,7 +4021,7 @@ public:
 	}
 	private void refContentText() { mixin(S_TRACE);
 		foreach (itm; _result.getItems()) { mixin(S_TRACE);
-			auto c = cast(CWXPathString) itm.getData();
+			auto c = cast(CWXPathString)itm.getData();
 			if (c) { mixin(S_TRACE);
 				string text1, text2;
 				Image img1, img2;
