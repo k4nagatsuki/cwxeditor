@@ -2135,22 +2135,16 @@ public:
 		.enforce(legacy);
 		copyFail = [];
 		auto uc = useCounter;
-		string mt;
-		if (std.path.buildPath(scenarioPath, toSkin.materialPath).exists()) { mixin(S_TRACE);
-			// 元々Materialディレクトリが存在する
+		string mt = std.path.buildPath(temp, toSkin.materialPath);
+		try { mixin(S_TRACE);
+			if (!mt.exists()) mkdirRecurse(mt);
+		} catch (Exception e) {
+			// 稀な条件でMaterialだけ生成されない場合がある模様
+			printStackTrace();
+			debugln(e);
+		}
+		if (!.exists(mt)) { mixin(S_TRACE);
 			mt = temp;
-		} else { mixin(S_TRACE);
-			mt = std.path.buildPath(temp, toSkin.materialPath);
-			try { mixin(S_TRACE);
-				if (!mt.exists()) mkdirRecurse(mt);
-			} catch (Exception e) {
-				// 稀な条件でMaterialだけ生成されない場合がある模様
-				printStackTrace();
-				debugln(e);
-			}
-			if (!.exists(mt)) { mixin(S_TRACE);
-				mt = temp;
-			}
 		}
 		foreach (file; clistdir(scenarioPath)) { mixin(S_TRACE);
 			if (cfnmatch(file, "cwxeditor.lock")) { mixin(S_TRACE);
@@ -2186,22 +2180,22 @@ public:
 					uc.change(key, toPathId(std.path.buildPath(toSkin.materialPath, cast(string)key)));
 				}
 			}
-			ubyte*[] ptrs;
-			auto table = cardImgTable(mt, toSkin, uc, ptrs);
-			foreach (p; uc.path.keys) { mixin(S_TRACE);
-				if (p.isBinImg) { mixin(S_TRACE);
-					int i = 0;
-					foreach (ipu; uc.path.values(p)) { mixin(S_TRACE);
-						auto v = cast(PathUser)ipu;
-						assert (v);
-						if (moveBinImg(table, v, "@simage(" ~ to!(string)(i + 1) ~ ")", mt, toSkin)) { mixin(S_TRACE);
-							i++;
-						}
+		}
+		ubyte*[] ptrs;
+		auto table = cardImgTable(mt, toSkin, uc, ptrs);
+		foreach (p; uc.path.keys) { mixin(S_TRACE);
+			if (p.isBinImg) { mixin(S_TRACE);
+				int i = 0;
+				foreach (ipu; uc.path.values(p)) { mixin(S_TRACE);
+					auto v = cast(PathUser)ipu;
+					assert (v);
+					if (moveBinImg(table, v, "@simage(" ~ to!(string)(i + 1) ~ ")", mt, toSkin)) { mixin(S_TRACE);
+						i++;
 					}
 				}
 			}
-			freeAll(ptrs);
 		}
+		freeAll(ptrs);
 		return temp;
 	}
 	/// 新規にシナリオのディレクトリを作成し、現在のファイルをコピーする。
