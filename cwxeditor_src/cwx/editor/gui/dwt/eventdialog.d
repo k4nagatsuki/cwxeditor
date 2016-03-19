@@ -383,6 +383,7 @@ private:
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.refContent.remove(&refContent);
 			_comm.delContent.remove(&delContent);
+			_comm.replText.remove(&refreshStarts);
 		}
 	}
 	void refContent(Content c) { mixin(S_TRACE);
@@ -461,6 +462,7 @@ protected:
 		refreshStarts();
 		_comm.refContent.add(&refContent);
 		_comm.delContent.add(&delContent);
+		_comm.replText.add(&refreshStarts);
 		_list.addDisposeListener(new Dispose);
 
 		ignoreMod = true;

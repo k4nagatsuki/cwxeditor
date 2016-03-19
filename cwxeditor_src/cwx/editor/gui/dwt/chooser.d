@@ -59,9 +59,11 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 	incSearch.modEvent ~= &refreshCoupons;
 	comm.refSkin.add(&refreshCoupons);
 	comm.refCoupons.add(&refreshCoupons);
+	comm.replText.add(&refreshCoupons);
 	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
 		comm.refSkin.remove(&refreshCoupons);
 		comm.refCoupons.remove(&refreshCoupons);
+		comm.replText.remove(&refreshCoupons);
 	});
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
@@ -131,8 +133,10 @@ T createGossipCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 
 	incSearch.modEvent ~= &refGossip;
 	comm.refGossips.add(&refGossip);
+	comm.replText.add(&refGossip);
 	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
 		comm.refGossips.remove(&refGossip);
+		comm.replText.remove(&refGossip);
 	});
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
@@ -185,8 +189,10 @@ T createCompleteStampCombo(T = Combo)(Commons comm, Summary summ, Composite pare
 
 	incSearch.modEvent ~= &refCompleteStamp;
 	comm.refCompleteStamps.add(&refCompleteStamp);
+	comm.replText.add(&refCompleteStamp);
 	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
 		comm.refCompleteStamps.remove(&refCompleteStamp);
+		comm.replText.remove(&refCompleteStamp);
 	});
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
@@ -261,9 +267,11 @@ T createKeyCodeCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bo
 	incSearch.modEvent ~= &refStandardKeyCodes;
 	comm.refStandardKeyCodes.add(&refStandardKeyCodes);
 	comm.refKeyCodes.add(&refStandardKeyCodes);
+	comm.replText.add(&refStandardKeyCodes);
 	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
 		comm.refStandardKeyCodes.remove(&refStandardKeyCodes);
 		comm.refKeyCodes.remove(&refStandardKeyCodes);
+		comm.replText.remove(&refStandardKeyCodes);
 	});
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
@@ -333,8 +341,10 @@ T createCellNameCombo(T = Combo)(Commons comm, Summary summ, Composite parent, b
 
 	incSearch.modEvent ~= &refCellNames;
 	comm.refCellNames.add(&refCellNames);
+	comm.replText.add(&refCellNames);
 	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
 		comm.refCellNames.remove(&refCellNames);
+		comm.replText.remove(&refCellNames);
 	});
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);
@@ -432,9 +442,18 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 		string sel = _selected;
 		_selected = "";
 		if (_tree) { mixin(S_TRACE);
+			_tree.setRedraw(false);
 			_tree.removeAll();
 		} else { mixin(S_TRACE);
+			_list.setRedraw(false);
 			_list.removeAll();
+		}
+		scope (exit) {
+			if (_tree) {
+				_tree.setRedraw(true);
+			} else {
+				_list.setRedraw(true);
+			}
 		}
 		_canIncSearch = false;
 		bool has = false;
@@ -813,9 +832,18 @@ class AreaChooser(A, bool StartArea) : Composite {
 		ulong sel = _selected;
 		_selected = 0UL;
 		if (_tree) { mixin(S_TRACE);
+			_tree.setRedraw(false);
 			_tree.removeAll();
 		} else { mixin(S_TRACE);
+			_list.setRedraw(false);
 			_list.removeAll();
+		}
+		scope (exit) {
+			if (_tree) {
+				_tree.setRedraw(true);
+			} else {
+				_list.setRedraw(true);
+			}
 		}
 		_canIncSearch = false;
 		bool has = false;

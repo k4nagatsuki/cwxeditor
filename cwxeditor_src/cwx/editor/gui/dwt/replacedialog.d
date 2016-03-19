@@ -35,6 +35,8 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.incsearch;
 
+import std.algorithm : map;
+import std.range;
 import std.ascii;
 import std.conv;
 import std.array;
@@ -86,14 +88,17 @@ private class CouponsUndo : TUndo!(Coupon[]) {
 class ReplaceDialog {
 private:
 	class UndoRepl : UndoArr {
-		this (Undo[] array, bool rev = true) { mixin(S_TRACE);
+		private void delegate()[] _refCall;
+		this (Undo[] array, bool rev, void delegate()[] refCall) { mixin(S_TRACE);
 			super (array, rev);
+			_refCall = refCall;
 		}
 		override void undo() { mixin(S_TRACE);
 			reset(false);
 			super.undo();
 			refContentText();
 			_status.setText(.tryFormat(_prop.msgs.replaceUndo, .formatNum(_result.getItemCount())));
+			foreach_reverse (d; _refCall) d();
 			_comm.replText.call();
 		}
 		override void redo() { mixin(S_TRACE);
@@ -101,6 +106,7 @@ private:
 			super.redo();
 			refContentText();
 			_status.setText(.tryFormat(_prop.msgs.replaceRedo, .formatNum(_result.getItemCount())));
+			foreach (d; _refCall) d();
 			_comm.replText.call();
 		}
 	}
@@ -162,6 +168,7 @@ private:
 	bool _inUndo = false;
 	Undo[] _rUndo;
 	void delegate()[] _after;
+	void delegate()[] _refCall;
 	core.thread.Thread _uiThread;
 
 	Commons _comm;
@@ -2435,6 +2442,7 @@ public:
 		if (_inProc) return;
 		_rUndo.length = 0;
 		_after.length = 0;
+		_refCall.length = 0;
 
 		_notIgnoreCaseSel = _notIgnoreCase.getSelection();
 		_exactSel = _exact.getSelection();
@@ -2499,15 +2507,17 @@ public:
 		return true;
 	}
 	private void after() { mixin(S_TRACE);
+		foreach (a; _refCall) a();
 		foreach (a; _after) a();
 		if (_after.length) { mixin(S_TRACE);
 			refContentText();
 			if (_replMode) _comm.replText.call();
 		}
 		if (_replMode && _rUndo.length) { mixin(S_TRACE);
-			_undo ~= new UndoRepl(_rUndo, false);
+			_undo ~= new UndoRepl(_rUndo, false, _refCall);
 		}
 		_rUndo = [];
+		_refCall = [];
 		_after = [];
 		_comm.refreshToolBar();
 	}
@@ -3337,7 +3347,7 @@ public:
 		ignoreMod = true;
 		scope (exit) ignoreMod = oldIgnoreMod;
 		size_t dmy = 0;
-		auto summ = cast(Summary) c;
+		auto summ = cast(Summary)c;
 		if (summ) { mixin(S_TRACE);
 			bool sr = false;
 			Undo[] uArr;
@@ -3361,7 +3371,7 @@ public:
 				addResult(summ, cwxPath, dmy);
 			}
 		}
-		auto cc = cast(CastCard) c;
+		auto cc = cast(CastCard)c;
 		if (cc) { mixin(S_TRACE);
 			Undo[] uArr;
 			bool r = replCard!(CastCard)(null, "", cc, cwxPath, count, uArr);
@@ -3379,32 +3389,67 @@ public:
 			if (r) { mixin(S_TRACE);
 				if (_replMode) store(cc, cwxPath, uArr);
 				addResult(cc, cwxPath, dmy);
+				_refCall ~= { _comm.refCast.call(cc); };
 			}
 		}
 		Undo[] nArr;
-		auto eff = cast(EffectCard) c;
+		auto eff = cast(EffectCard)c;
 		if (eff) { mixin(S_TRACE);
-			replCard(eff, cwxPath, eff, cwxPath, count, nArr);
-		}
-		auto info = cast(InfoCard) c;
-		if (info) { mixin(S_TRACE);
-			replCard(info, cwxPath, info, cwxPath, count, nArr);
-		}
-		auto a = cast(AbstractArea) c;
-		if (a) { mixin(S_TRACE);
-			if (_areaSel) { mixin(S_TRACE);
-				repl(a, cwxPath, a.name, &a.name, count, nArr);
+			auto r = replCard(eff, cwxPath, eff, cwxPath, count, nArr);
+			if (r) { mixin(S_TRACE);
+				_refCall ~= { mixin(S_TRACE);
+					if (auto aa = cast(SkillCard)eff) { mixin(S_TRACE);
+						_comm.refSkill.call(aa);
+					} else if (auto aa = cast(ItemCard)eff) { mixin(S_TRACE);
+						_comm.refItem.call(aa);
+					} else if (auto aa = cast(BeastCard)eff) { mixin(S_TRACE);
+						_comm.refBeast.call(aa);
+					} else assert (0);
+				};
 			}
 		}
-		auto menu = cast(MenuCard) c;
+		auto info = cast(InfoCard)c;
+		if (info) { mixin(S_TRACE);
+			auto r = replCard(info, cwxPath, info, cwxPath, count, nArr);
+			if (r) { mixin(S_TRACE);
+				_refCall ~= { _comm.refInfo.call(info); };
+			}
+		}
+		auto a = cast(AbstractArea)c;
+		if (a) { mixin(S_TRACE);
+			if (_areaSel) { mixin(S_TRACE);
+				auto r = repl(a, cwxPath, a.name, &a.name, count, nArr);
+				if (r) { mixin(S_TRACE);
+					_refCall ~= { mixin(S_TRACE);
+						if (auto aa = cast(Area)a) { mixin(S_TRACE);
+							_comm.refArea.call(aa);
+						} else if (auto aa = cast(Battle)a) { mixin(S_TRACE);
+							_comm.refBattle.call(aa);
+						} else if (auto aa = cast(Package)a) { mixin(S_TRACE);
+							_comm.refPackage.call(aa);
+						} else assert (0);
+					};
+				}
+			}
+		}
+		auto menu = cast(MenuCard)c;
 		if (menu) { mixin(S_TRACE);
 			replCard(menu, cwxPath, menu, cwxPath, count, nArr);
 		}
-		auto back = cast(BgImage) c;
+		auto back = cast(BgImage)c;
 		if (back) { mixin(S_TRACE);
 			replBgImage(back, cwxPath, back, count, nArr);
 		}
-		auto f = cast(cwx.flag.Flag) c;
+		auto fDir = cast(FlagDir)c;
+		if (fDir && _flagSel) { mixin(S_TRACE);
+			Undo[] uArr = new Undo[0];
+			bool r = replFlagDirName(fDir, count, uArr);
+			if (r) { mixin(S_TRACE);
+				if (_replMode) store(fDir, cwxPath, uArr);
+				addResult(fDir, cwxPath, dmy);
+			}
+		}
+		auto f = cast(cwx.flag.Flag)c;
 		if (f && _flagSel) { mixin(S_TRACE);
 			Undo[] uArr = new Undo[0];
 			bool r = replFlagName!(cwx.flag.Flag)(f.parent, f, count, uArr);
@@ -3413,9 +3458,12 @@ public:
 			if (r) { mixin(S_TRACE);
 				if (_replMode) store(f, cwxPath, uArr);
 				addResult(f, cwxPath, dmy);
+				_refCall ~= { mixin(S_TRACE);
+					_comm.refFlagAndStep.call([f], []);
+				};
 			}
 		}
-		auto s = cast(Step) c;
+		auto s = cast(Step)c;
 		if (s && _flagSel) { mixin(S_TRACE);
 			Undo[] uArr;
 			bool r = replFlagName!Step(s.parent, s, count, uArr);
@@ -3425,6 +3473,9 @@ public:
 			if (r) { mixin(S_TRACE);
 				if (_replMode) store(s, cwxPath, uArr);
 				addResult(s, cwxPath, dmy);
+				_refCall ~= { mixin(S_TRACE);
+					_comm.refFlagAndStep.call([], [s]);
+				};
 			}
 		}
 		auto et = cast(EventTree) c;
@@ -3990,6 +4041,7 @@ public:
 		auto o = imgPaths.dup;
 		foreach (i, imgPath; imgPaths) { mixin(S_TRACE);
 			if (imgPath.type !is CardImageType.File) continue;
+			if (isBinImg(imgPath.path)) continue;
 			Undo[] uArr2;
 			r |= replFilePath(imgPath.path, (text) {
 				imgPaths[i] = new CardImage(text);
@@ -4010,6 +4062,55 @@ public:
 				string n = fTextRepl(o);
 				uArr ~= new StrUndo(o, n, set);
 				set(n);
+			}
+			return true;
+		}
+		return false;
+	}
+
+	private bool replFlagDirName(FlagDir dir, ref size_t count, ref Undo[] uArr) { mixin(S_TRACE);
+		string text = dir.name;
+		auto c = fTextCount(text);
+		count += c;
+		if (c > 0) { mixin(S_TRACE);
+			if (_replMode) { mixin(S_TRACE);
+				auto parent = dir.parent;
+				auto flags = dir.allFlags;
+				auto steps = dir.allSteps;
+				auto oldFPaths = .map!(a => a.path)(flags).array();
+				auto oldSPaths = .map!(a => a.path)(steps).array();
+				string n = fTextRepl(text);
+				uArr ~= new StrUndo(text, n, (string name) { mixin(S_TRACE);
+					if (parent) { mixin(S_TRACE);
+						dir.name = parent.validName(name);
+					} else { mixin(S_TRACE);
+						dir.name = name;
+					}
+				});
+				dir.name = parent.validName(n);
+				_refCall ~= { mixin(S_TRACE);
+					_comm.refFlagAndStep.call(flags, steps);
+				};
+				_after ~= { mixin(S_TRACE);
+					auto newFPaths = .map!(a => a.path)(flags).array();
+					auto newSPaths = .map!(a => a.path)(steps).array();
+					foreach (oldPath, newPath; .zip(oldFPaths, newFPaths)) { mixin(S_TRACE);
+						auto oldID = cwx.flag.Flag.toID(oldPath);
+						auto newID = cwx.flag.Flag.toID(newPath);
+						foreach (v; _summ.useCounter.values(oldID)) { mixin(S_TRACE);
+							v.id = newID;
+							storeID(null, v, oldID, newID, &v.id);
+						}
+					}
+					foreach (oldPath, newPath; .zip(oldSPaths, newSPaths)) { mixin(S_TRACE);
+						auto oldID = Step.toID(oldPath);
+						auto newID = Step.toID(newPath);
+						foreach (v; _summ.useCounter.values(oldID)) { mixin(S_TRACE);
+							v.id = newID;
+							storeID(null, v, oldID, newID, &v.id);
+						}
+					}
+				};
 			}
 			return true;
 		}
