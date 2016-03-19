@@ -1203,6 +1203,7 @@ private:
 		opt.saveChangedOnly = _prop.var.etc.saveChangedOnly;
 		opt.backup = _prop.var.etc.backupBeforeSaveEnabled;
 		opt.backupDir = _prop.backupBeforeSavePath.buildPath(_prop.var.etc.backupBeforeSaveDir);
+		if (!opt.backupDir.exists()) mkdirRecurse(opt.backupDir);
 		opt.archiveInNewThread = _prop.var.etc.archiveInNewThread && summary.useTemp;
 		if (opt.archiveInNewThread) { mixin(S_TRACE);
 			opt.savedCallback = { mixin(S_TRACE);

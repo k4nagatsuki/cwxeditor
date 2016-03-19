@@ -339,7 +339,12 @@ class EventEditor : Composite {
 	}
 	void updateEventText() { mixin(S_TRACE);
 		_updateEventText = true;
-		redraw();
+		getDisplay.asyncExec(new class Runnable {
+			override void run() { mixin(S_TRACE);
+				updatePosImpl2(false);
+				redraw();
+			}
+		});
 	}
 
 	private void updateEventTextImpl() { mixin(S_TRACE);
@@ -396,12 +401,22 @@ class EventEditor : Composite {
 	void updatePosOne(in Content c) { mixin(S_TRACE);
 		auto eventId = c.parentStart.eventId;
 		_updateContents[eventId] = true;
-		redraw();
+		getDisplay.asyncExec(new class Runnable {
+			override void run() { mixin(S_TRACE);
+				updatePosImpl2(false);
+				redraw();
+			}
+		});
 	}
 	/// 次の再描画で全ての位置計算をやり直す事を通知する。
 	private void updatePosAll() { mixin(S_TRACE);
 		_updatePosAll = true;
-		redraw();
+		getDisplay.asyncExec(new class Runnable {
+			override void run() { mixin(S_TRACE);
+				updatePosImpl2(false);
+				redraw();
+			}
+		});
 	}
 
 	private void createPosInfoRecurse(GC gc, int x, int depth1, int depth2, Content c, ref PosInfo[] pos, ref int[] posY, ref int index, ref int relY, ref int heightSum, ref int width, ref bool[string] expanded2) { mixin(S_TRACE);
@@ -562,6 +577,8 @@ class EventEditor : Composite {
 						posY ~= startInfo.y + info.relY;
 						info.index = index;
 						_posTable[info.content.eventId] = info;
+						auto expand = _expanded.get(info.content.eventId, true);
+						if (!expand) expanded2[info.content.eventId] = false;
 						index++;
 					}
 					pos ~= _pos[startInfo.fromIndex .. startInfo.toIndex];
@@ -800,11 +817,13 @@ class EventEditor : Composite {
 	}
 
 	EventEditorItem getItem(int index) { mixin(S_TRACE);
+		updatePosImpl2(false);
 		return EventEditorItem.valueOf(this, _et.starts[index]);
 	}
 
 	EventEditorItem getItem(Point p) { mixin(S_TRACE);
 		auto c = getContent(p.x, p.y);
+		updatePosImpl2(false);
 		if (c) { mixin(S_TRACE);
 			return EventEditorItem.valueOf(this, c);
 		}
@@ -812,6 +831,7 @@ class EventEditor : Composite {
 	}
 	EventEditorItem[] getItems() { mixin(S_TRACE);
 		if (!_et) return [];
+		updatePosImpl2(false);
 		auto c = cast(Content)getData();
 		auto items = new EventEditorItem[_et.starts.length];
 		foreach (i; 0 .. _et.starts.length) { mixin(S_TRACE);
@@ -825,6 +845,7 @@ class EventEditor : Composite {
 	}
 
 	EventEditorItem[] getSelection() { mixin(S_TRACE);
+		updatePosImpl2(false);
 		if (_selected) { mixin(S_TRACE);
 			return [EventEditorItem.valueOf(this, _selected)];
 		}
@@ -855,6 +876,7 @@ class EventEditor : Composite {
 		return cast(int).cCountUntil(_et.starts, cast(Content)itm.getData());
 	}
 	EventEditorItem getTopItem() { mixin(S_TRACE);
+		updatePosImpl2(false);
 		auto vbar = getVerticalBar();
 		auto index = indexOf(vbar.getSelection() * _lineHeight);
 		if (0 <= index && index < _pos.length) { mixin(S_TRACE);
@@ -1265,7 +1287,7 @@ class EventEditor : Composite {
 				if (0 < i && (_summ ? _comm.prop.var.etc.drawContentTreeLine : drawContentTreeLine)) { mixin(S_TRACE);
 					e.gc.setLineWidth(1);
 					e.gc.setForeground(_lineColor);
-					e.gc.drawLine(e.x - sx, (startInfo.y + pos.relY) - sy, e.x + e.width - sx, (startInfo.y + pos.relY) - sy);
+					e.gc.drawLine(0, (startInfo.y + pos.relY) - sy, ca.width, (startInfo.y + pos.relY) - sy);
 					e.gc.setLineWidth(4);
 					e.gc.setForeground(_lineColor);
 				}

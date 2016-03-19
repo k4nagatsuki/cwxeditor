@@ -220,6 +220,8 @@ private:
 		if (!_tree.control || _tree.control.isDisposed()) return null;
 		auto sels = _tree.getSelection();
 		if (sels.length > 0) { mixin(S_TRACE);
+			assert (cast(Content)sels[0].getData() !is null);
+			assert ((cast(Content)sels[0].getData()).tree is _et);
 			return sels[0];
 		}
 		return null;
