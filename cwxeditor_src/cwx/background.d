@@ -380,7 +380,7 @@ public:
 		assert (node.name == XML_NAME_M, node.name ~ " != BgImages");
 		auto e = node.newElement(XML_NAME);
 
-		e.newElement("Text", text);
+		e.newElement("Text", .encodeLf(text));
 		auto font = e.newElement("Font", fontName);
 		font.newAttr("size", size);
 		font.newAttr("bold", bold);
@@ -423,7 +423,7 @@ public:
 		uint borderingWidth = 1;
 
 		node.onTag["Text"] = (ref XNode n) { mixin(S_TRACE);
-			text = n.value;
+			text = .decodeLf2(n.value);
 		};
 		node.onTag["Font"] = (ref XNode n) { mixin(S_TRACE);
 			fontName = n.value;
