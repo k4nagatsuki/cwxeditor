@@ -440,6 +440,7 @@ class KeyCodeView : Composite {
 			refMenu(MenuID.Redo);
 		}
 		override void handleEvent(Event e) { mixin(S_TRACE);
+			if (!e.doit) return;
 			auto c = cast(Control)e.widget;
 			if (!c || c.getShell() !is getShell()) return;
 			if (isDescendant(this.outer, c)) { mixin(S_TRACE);

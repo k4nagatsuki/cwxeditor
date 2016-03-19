@@ -3408,6 +3408,7 @@ public:
 	}
 	private class KeyDownFilter : Listener {
 		override void handleEvent(Event e) { mixin(S_TRACE);
+			if (!e.doit) return;
 			auto text = cast(Text) e.widget;
 			if (text && cast(CCombo)text.getParent()) { mixin(S_TRACE);
 				// CComboは本体に加えて内部のTextからもイベントが発生する

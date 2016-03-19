@@ -1853,7 +1853,7 @@ private:
 	}
 	bool qCardMaterialCopy(in XNode node, Card[] cs) { mixin(S_TRACE);
 		string fromSPath = node.attr("scenarioPath", false);
-		if (fromSPath.length > 0 && !cfnmatch(fromSPath, nabs(ownerScenarioPath))) { mixin(S_TRACE);
+		if (fromSPath.length > 0 && !cfnmatch(nabs(fromSPath), nabs(ownerScenarioPath))) { mixin(S_TRACE);
 			scope uc = new UseCounter;
 			foreach (c; cs) { mixin(S_TRACE);
 				c.setUseCounter(uc);

@@ -13,6 +13,7 @@ import cwx.path;
 import cwx.menu;
 import cwx.types;
 import cwx.system;
+import cwx.usecounter;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
@@ -883,6 +884,7 @@ private:
 			refMenu(MenuID.Redo);
 		}
 		override void handleEvent(Event e) { mixin(S_TRACE);
+			if (!e.doit) return;
 			auto c = cast(Control) e.widget;
 			if (!c || c.getShell() !is getShell()) return;
 			if (!isDescendant(this.outer, c)) return;
@@ -1248,6 +1250,15 @@ public:
 				});
 				_maxNest.setMinimum(1);
 				_maxNest.setMaximum(_prop.var.etc.beastMaxNest);
+
+				if (!_readOnly) { mixin(S_TRACE);
+					auto drop = new DropTarget(_beastImg, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
+					drop.setTransfer([XMLBytesTransfer.getInstance()]);
+					drop.addDropListener(new BeastDropListener);
+				}
+				auto drag = new DragSource(_beastImg, DND.DROP_COPY);
+				drag.setTransfer([XMLBytesTransfer.getInstance()]);
+				drag.addDragListener(new BeastDragListener);
 			}
 			Spinner createSpinner(Composite parent, string name, int max, string hint,
 					void delegate(int) edit, int delegate(int) cancel) { mixin(S_TRACE);
@@ -1362,6 +1373,55 @@ public:
 		_comm.refCardImageStatus.add(&_beastImg.redraw);
 		_comm.refDataVersion.add(&refEnabled);
 		getDisplay().addFilter(SWT.KeyDown, _kdFilter);
+	}
+	class BeastDragListener : DragSourceAdapter {
+		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
+			auto m = selection;
+			e.doit = m && m.beast;
+		}
+		override void dragSetData(DragSourceEvent e){ mixin(S_TRACE);
+			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
+				auto m = selection;
+				if (!m || !m.beast) return;
+				auto sn = XNode.create(BeastCard.XML_NAME_M);
+				sn.newAttr("summId", _summ.id);
+				sn.newAttr("topLevel", false);
+				sn.newAttr("paneId", _id);
+				sn.newAttr("scenarioPath", _summ.scenarioPath);
+				auto opt = new XMLOption(_prop.sys, LATEST_VERSION);
+				m.beast.toNode(sn, opt);
+				e.data = bytesFromXML(sn.text);
+			}
+		}
+	}
+	class BeastDropListener : DropTargetAdapter {
+		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
+			e.detail = _readOnly ? DND.DROP_NONE : DND.DROP_COPY;
+		}
+		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
+			e.detail = _readOnly ? DND.DROP_NONE : DND.DROP_COPY;
+		}
+		override void drop(DropTargetEvent e){ mixin(S_TRACE);
+			assert (!_readOnly);
+			e.detail = DND.DROP_NONE;
+
+			auto m = selection;
+			if (!m) return;
+			int mi = _motions.getSelectionIndex();
+			if (-1 == mi) return;
+
+			if (!isXMLBytes(e.data)) return;
+			string xml = bytesToXML(e.data);
+			try { mixin(S_TRACE);
+				auto node = XNode.parse(xml);
+				bool samePane = _id == node.attr("paneId", false);
+				if (samePane) return;
+				e.detail = pasteBeast(node);
+			} catch (Exception e) {
+				printStackTrace();
+				debugln(e);
+			}
+		}
 	}
 	void refEnabled() { mixin(S_TRACE);
 		auto m = selection();
@@ -1499,34 +1559,59 @@ public:
 			return !_readOnly && canDoC;
 		}
 	}
-	private void pasteBeast(ref XNode node) { mixin(S_TRACE);
+
+	private bool qCardMaterialCopy(BeastCard card, string fromSPath) { mixin(S_TRACE);
+		if (fromSPath.length && !cfnmatch(nabs(fromSPath), nabs(_summ.scenarioPath))) { mixin(S_TRACE);
+			auto uc = new UseCounter;
+			card.setUseCounter(uc);
+			bool copy;
+			bool r = qMaterialCopy(_comm, getShell(), uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy);
+			card.removeUseCounter();
+			if (copy) { mixin(S_TRACE);
+				_comm.refPaths.call(_comm.skin.materialPath);
+			}
+			return r;
+		}
+		return true;
+	}
+	private int pasteBeast(ref XNode node) { mixin(S_TRACE);
 		auto m = selection;
+		int detail = DND.DROP_NONE;
 		if (m && m.detail.use(MArg.BEAST)) { mixin(S_TRACE);
 			try { mixin(S_TRACE);
 				bool sameSc = _summ.id == node.attr("summId", false);
 				bool topLevel = node.attr!bool("topLevel", false, false);
+				string fromSPath = node.attr("scenarioPath", false);
 				if (node.name == BeastCard.XML_NAME_M) { mixin(S_TRACE);
 					auto bNode = node.child(BeastCard.XML_NAME, false);
-					if (!bNode.valid) return;
-					storeEdit(_motions.getSelectionIndex());
-					if (m.beast) _comm.delBeast.call(m, m.beast);
-					m.beast = null;
+					if (!bNode.valid) return DND.DROP_NONE;
 					auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
-					auto bid = m.setBeastFromNode(bNode, ver);
-					if (bid && sameSc && topLevel && (_prop.var.etc.linkCard || !_summ || !_summ.legacy)) { mixin(S_TRACE);
-						m.beast = new BeastCard(1UL, "", [], "");
-						m.beast.linkId = bid;
+					auto beast = BeastCard.createFromNode(bNode, ver);
+					if (qCardMaterialCopy(beast, fromSPath)) { mixin(S_TRACE);
+						storeEdit(_motions.getSelectionIndex());
+						if (m.beast) _comm.delBeast.call(m, m.beast);
+						m.beast = null;
+						auto bid = beast.id;
+						if (bid && sameSc && topLevel && (_prop.var.etc.linkCard || !_summ || !_summ.legacy)) { mixin(S_TRACE);
+							m.beast = new BeastCard(1UL, "", [], "");
+							m.beast.linkId = bid;
+							detail = DND.DROP_LINK;
+						} else { mixin(S_TRACE);
+							m.newBeast = beast;
+							detail = DND.DROP_COPY;
+						}
+						resetMaxNest(m);
+						_beastImg.redraw();
+						foreach (dlg; modEvent) dlg();
+						refEnabled();
 					}
-					resetMaxNest(m);
-					_beastImg.redraw();
-					foreach (dlg; modEvent) dlg();
-					refEnabled();
 				}
 			} catch (Exception e) {
 				printStackTrace();
 				debugln(e);
 			}
 		}
+		return detail;
 	}
 	private void resetMaxNest(Motion m) { mixin(S_TRACE);
 		if (!m.beast || 0 == m.beast.linkId) { mixin(S_TRACE);

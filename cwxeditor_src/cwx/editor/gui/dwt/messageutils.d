@@ -153,6 +153,7 @@ class AbstractMessageDialog : EventDialog {
 			refMenu(MenuID.Redo);
 		}
 		override void handleEvent(Event e) { mixin(S_TRACE);
+			if (!e.doit) return;
 			auto c = cast(Control) e.widget;
 			if (!c || c.getShell() !is getShell()) return;
 			if (!canHookKeyDown(c)) return;
@@ -754,6 +755,7 @@ private:
 			refMenu(MenuID.UnderDialog);
 		}
 		override void handleEvent(Event e) { mixin(S_TRACE);
+			if (!e.doit) return;
 			auto c = cast(Control) e.widget;
 			if (!c || c.getShell() !is getShell()) return;
 			if (_dlgsL is c) return;
