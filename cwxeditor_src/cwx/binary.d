@@ -878,4 +878,10 @@ class RawFile {
 	long tell() { mixin(S_TRACE);
 		return .ftell(_fp);
 	}
+
+	/// 改行をつけてデータを書き込む。
+	void writeln(string s) { mixin(S_TRACE);
+		.fwrite(s.ptr, s.length, 1, _fp);
+		.fputc('\n', _fp);
+	}
 }
