@@ -220,6 +220,7 @@ private:
 				v.getSelectionInfo(_sel, _selType);
 			}
 			if (v) {
+				if (!v._dirs) v.constructDirTree(false);
 				_dirs = v._dirs.dup;
 			}
 		}
@@ -2281,7 +2282,7 @@ public:
 		};
 		_summDlg.appliedEvent ~= { mixin(S_TRACE);
 			if (showSummary) refresh();
-			updateAreaImage();
+			if (_areas && !_areas.isDisposed()) updateAreaImage();
 		};
 		_summDlg.closeEvent ~= { mixin(S_TRACE);
 			_summDlg = null;
