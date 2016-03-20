@@ -962,6 +962,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 						try {
 							auto value = .to!uint(ct.name);
 							start = .max(value + 1, start);
+							num = .max(value, num);
 						} catch (ConvException e) {
 							// 処理無し
 							printStackTrace();

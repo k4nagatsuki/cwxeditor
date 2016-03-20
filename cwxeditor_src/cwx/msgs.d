@@ -1587,10 +1587,13 @@ class Msgs : Properties {
 	auto warningRound0 = Msg("warningRound0", "イベント発火条件「バトル開始」は、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningUnknownMotion = Msg("warningUnknownMotion", "効果 [%1$s] は、CardWirth %2$sより前のバージョンでは使用できません。");
 	auto warningTextColor = Msg("warningTextColor", "テキスト色 [%1$s] は、CardWirth %2$sより前のバージョンでは使用できません。");
-	auto warningStepCount = Msg("warningStepCount", "%1$s段階以外の段階数はクラシックなシナリオでは使用できません。");
+	auto warningStepCount = Msg("warningStepCount", "%1$s段階以外のステップはクラシックなシナリオでは使用できません。");
+	auto warningStepOverCount = Msg("warningStepOverCount", "ステップ「%1$s」の段階数 [%2$s] より大きなステップ値 [%3$s] が指定されています。");
 	auto warningKeyCodeCount = Msg("warningKeyCodeCount", "%1$s件より多くのキーコードはクラシックなシナリオでは設定できません。");
 	auto warningValuedSelectionMethod = Msg("warningValuedSelectionMethod", "評価条件によるメンバ選択分岐は、WSN1以降の形式のシナリオしか行えません。");
 	auto warningSkillPowerWithFixedValue = Msg("warningSkillPowerWithFixedValue", "精神力操作の固定値指定は、WSN1以降の形式のシナリオしか行えません。"); // Wsn.1
+
+	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 
 	auto card = Msg("card", "カード");
 	auto apt = Msg("apt", "要素");

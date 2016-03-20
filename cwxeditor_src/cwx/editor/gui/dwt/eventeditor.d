@@ -14,6 +14,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.eventtreeview;
 
 import std.algorithm;
+import std.array : array;
 import std.ascii;
 import std.conv;
 import std.datetime;
@@ -361,27 +362,28 @@ class EventEditor : Composite {
 			assert (startInfo.start.tree is _et);
 			// テキストが更新されたイベントコンテントの位置は
 			// スタートコンテントのupdateCounterで検知できる
-			if (startInfo.updateCounter != startInfo.start.updateCounter) { mixin(S_TRACE);
-				for (auto i = startInfo.fromIndex; i < startInfo.toIndex; i++) { mixin(S_TRACE);
-					auto c = _pos[i].content;
-					auto s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));;
+			// ステップ上下分岐に限っては外的要因(ステップの編集)で
+			// updateCounterが更新されずにテキストが変化する可能性がある。
+			startInfo.width = 0;
+			auto update = startInfo.updateCounter != startInfo.start.updateCounter;
+			for (auto i = startInfo.fromIndex; i < startInfo.toIndex; i++) { mixin(S_TRACE);
+				auto c = _pos[i].content;
+				if (update || (c.parent && (c.parent.type is CType.BRANCH_MULTI_STEP || c.parent.type is CType.BRANCH_STEP))) { mixin(S_TRACE);
+					auto s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
 					_pos[i].eventText = s;
 					if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
 						s = _comm.skin.evtChildOK;
 					}
 					_pos[i].eventTextWidth = gc.wTextExtent(s).x;
 					_posTable[c.eventId] = _pos[i];
+				}
 
-					_widthSum = .max(_widthSum, calcRight(_pos[i]));
-					posY[i] = startInfo.y + _pos[i].relY;
-				}
-				startInfo.updateCounter = startInfo.start.updateCounter;
-			} else { mixin(S_TRACE);
-				for (auto i = startInfo.fromIndex; i < startInfo.toIndex; i++) { mixin(S_TRACE);
-					posY[i] = startInfo.y + _pos[i].relY;
-				}
-				_widthSum = .max(_widthSum, startInfo.width);;
+				startInfo.width = .max(startInfo.width, calcRight(_pos[i]));
+				posY[i] = startInfo.y + _pos[i].relY;
 			}
+			startInfo.updateCounter = startInfo.start.updateCounter;
+			_widthSum = .max(_widthSum, startInfo.width);
+
 			startInfo = startInfo.next;
 		}
 		updateCommentPos(gc, posY);
@@ -1415,6 +1417,7 @@ class EventEditor : Composite {
 			if (_summ ? _comm.prop.var.etc.drawContentWarnings : drawContentWarnings) { mixin(S_TRACE);
 				auto warnings = .warnings(_comm.prop.parent, _comm.skin, _summ, c, _comm.prop.var.etc.targetVersion);
 				if (warnings.length) { mixin(S_TRACE);
+					warnings = warnings.sort().uniq().array();
 					int ww = _comm.prop.var.etc.warningImageWidth;
 					int wix = .max(0, ca.width - detailAreaWidth - ww);
 					int wiw = ca.width - detailAreaWidth - wix;

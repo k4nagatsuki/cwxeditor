@@ -19,6 +19,7 @@ import cwx.motion;
 import cwx.sjis;
 import cwx.motion;
 
+import std.conv;
 import std.path;
 import std.string;
 import std.typecons : Tuple;
@@ -533,6 +534,34 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		}
 		if (c.type is CType.MOVE_BG_IMAGE && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.MOVE_BG_IMAGE), "1");
+		}
+		if (c.detail.use(CArg.STEP_VALUE)) { mixin(S_TRACE);
+			if (froot && c.step != "") { mixin(S_TRACE);
+				auto s = froot.findStep(c.step);
+				if (s && s.count < c.stepValue) { mixin(S_TRACE);
+					r ~= .tryFormat(prop.msgs.warningStepOverCount, s.name, s.count, c.stepValue);
+				}
+			}
+			if (summ && summ.legacy && prop.looks.stepMaxCount < c.stepValue) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.warningStepCount, prop.looks.stepMaxCount);
+			}
+		}
+		if (c.parent && c.parent.detail.nextType is CNextType.STEP && c.name != prop.sys.evtChildDefault && std.string.isNumeric(c.name)) { mixin(S_TRACE);
+			try {
+				auto value = .to!uint(c.name);
+				if (froot && c.parent.step != "") { mixin(S_TRACE);
+					auto s = froot.findStep(c.parent.step);
+					if (s && s.count < value) { mixin(S_TRACE);
+						r ~= .tryFormat(prop.msgs.warningStepOverCount, s.name, s.count, value);
+					}
+				}
+				if (summ && summ.legacy && prop.looks.stepMaxCount < value) { mixin(S_TRACE);
+					r ~= .tryFormat(prop.msgs.warningStepCount, prop.looks.stepMaxCount);
+				}
+			} catch (ConvException e) {
+				// 処理無し
+				printStackTrace();
+			}
 		}
 	}
 	return r;

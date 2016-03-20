@@ -155,7 +155,7 @@ private:
 			scope (exit) _values.setRedraw(true);
 			_values.setItemCount(num);
 		}
-		_stepCount.setSelection(num);
+		if (_stepCount.getSelection() != num) _stepCount.setSelection(num);
 		if (store) updateInitCombo();
 		refDataVersion();
 	}
@@ -336,7 +336,7 @@ protected:
 			item.setText(1, value);
 		}
 		setComboItems(_init, _valueCache);
-		_init.select(_step is null ? 0 : _step.select);
+		_init.select(.min(_step is null ? 0 : _step.select, _step.count - 1));
 		_stepCount.setSelection(_values.getItemCount());
 		refDataVersion();
 	}
@@ -1097,7 +1097,7 @@ private:
 				}
 				itm.setImage(0, prop.images.step);
 				itm.setText(NAME, f.name);
-				itm.setText(VALUE, f.value);
+				itm.setText(VALUE, .getStepValue(prop, f, f.select));
 				itm.setText(UC, to!(string)(uc.get(toStepId(f.path))));
 				itm.setData(f);
 				i++;
@@ -1478,7 +1478,7 @@ private:
 				oldNames ~= s.name;
 				oldValues ~= s.select;
 				s.select(i);
-				itm.setText(column, s.value);
+				itm.setText(column, getStepValue(prop, s, s.select));
 				refS ~= s;
 			}
 		}

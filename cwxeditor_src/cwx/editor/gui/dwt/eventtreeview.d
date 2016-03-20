@@ -39,8 +39,9 @@ import cwx.editor.gui.dwt.smalldialogs;
 import cwx.editor.gui.dwt.eventeditor;
 import cwx.editor.gui.dwt.eventview;
 
-import std.ascii;
 import std.algorithm;
+import std.array : array;
+import std.ascii;
 import std.conv;
 import std.string;
 import std.datetime;
@@ -1699,6 +1700,7 @@ private:
 			if ((_summ ? _prop.var.etc.drawContentWarnings : drawContentWarnings)) { mixin(S_TRACE);
 				auto warnings = .warnings(_prop.parent, summSkin, _summ, c, _prop.var.etc.targetVersion);
 				if (warnings.length) { mixin(S_TRACE);
+					warnings = warnings.sort().uniq().array();
 					auto b = itm.getBounds();
 					if (b.y + b.height <= ca.y) continue;
 					if (ca.y + ca.height < b.y) continue;
@@ -3882,12 +3884,8 @@ private string evtChildBrStepN(in Props prop, in Summary summ, string path, ref 
 	if (path.length && summ) { mixin(S_TRACE);
 		auto o = summ.flagDirRoot.findStep(path);
 		if (o) { mixin(S_TRACE);
-			if (o.count <= val) { mixin(S_TRACE);
-				val = -1;
-				text = prop.sys.evtChildDefault;
-			}
 			name = path;
-			if (0 <= val) value = o.getValue(val);
+			if (0 <= val) value = getStepValue(prop, o, val);
 		} else { mixin(S_TRACE);
 			name = .tryFormat(prop.msgs.noStep, path);
 		}
@@ -3903,7 +3901,7 @@ private string evtChildBrStepUL(in Props prop, in Summary summ, string path, int
 		auto o = summ.flagDirRoot.findStep(path);
 		if (o) { mixin(S_TRACE);
 			name = path;
-			if (0 <= num && num < o.count) value = o.getValue(num);
+			value = getStepValue(prop, o, num);
 		} else { mixin(S_TRACE);
 			name = .tryFormat(prop.msgs.noStep, path);
 		}
