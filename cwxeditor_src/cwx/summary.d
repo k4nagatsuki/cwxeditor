@@ -938,7 +938,7 @@ public:
 			if (isdir) { mixin(S_TRACE);
 				return isScenarioSystemDir(fl);
 			} else { mixin(S_TRACE);
-				return cast(bool) .cfnmatch(fl, "Summary.xml");
+				return cast(bool).cfnmatch(fl, "Summary.xml");
 			}
 		}
 		return false;
@@ -948,14 +948,20 @@ public:
 	SysTime[string] allPaths() { mixin(S_TRACE);
 		SysTime[string] fcs;
 		try { mixin(S_TRACE);
-			foreach (file; scenarioPath.dirEntries(SpanMode.depth)) { mixin(S_TRACE);
-				if (isSystemFile(file)) continue;
-				auto key = file[scenarioPath.length + 1 .. $];
-				static if (0 == filenameCharCmp('A', 'a')) {
-					key = key.toLower();
+			void recurse(string dir) { mixin(S_TRACE);
+				foreach (file; dir.dirEntries(SpanMode.shallow)) { mixin(S_TRACE);
+					if (isSystemFile(file)) continue;
+					auto key = file[scenarioPath.length + 1 .. $];
+					static if (0 == filenameCharCmp('A', 'a')) {
+						key = key.toLower();
+					}
+					fcs[key] = file.timeLastModified;
+					if (file.isDir) { mixin(S_TRACE);
+						recurse(file);
+					}
 				}
-				fcs[key] = file.timeLastModified;
 			}
+			recurse(scenarioPath);
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
@@ -2459,6 +2465,11 @@ public:
 			if (legacyToX) dataVersion = DEFAULT_VERSION;
 			if (legacyToX || (!useTemp && archive)) { mixin(S_TRACE);
 				_useTemp = true;
+				auto oldLegacy = _legacy;
+				if (legacyToX) _legacy = false;
+				scope (failure) {
+					if (legacyToX) _legacy = oldLegacy;
+				}
 				refCheckPaths();
 				resetChanged();
 				void t3() { mixin(S_TRACE);
