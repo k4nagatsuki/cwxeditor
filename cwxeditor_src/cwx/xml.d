@@ -10,7 +10,7 @@ import d2std.xml;
 
 /// XML文書処理用の構造体。
 struct XNode {
-	private Element _el;
+	private Element _el = null;
 
 	private static E ps(E)(ElementParser ep) { mixin(S_TRACE);
 		auto e = new E(ep.tag);

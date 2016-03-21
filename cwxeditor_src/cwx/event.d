@@ -1837,10 +1837,19 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const
 	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto d = this.detail;
-		auto doc = XNode.create(d.names[0]);
-		toNodeImpl(doc, d, opt);
-		doc.newAttr("contentId", _id);
-		return doc;
+		if ((!opt || opt.isTargetVersion("1")) && next.length == 1) { mixin(S_TRACE);
+			auto doc = XNode.create("ContentsLine");
+			auto node = doc.newElement(d.names[0]);
+			toNodeImpl(node, d, opt, doc);
+			doc.newAttr("contentId", _id);
+			return doc;
+		} else { mixin(S_TRACE);
+			auto doc = XNode.create(d.names[0]);
+			auto invalidNode = XNode.init;
+			toNodeImpl(doc, d, opt, invalidNode);
+			doc.newAttr("contentId", _id);
+			return doc;
+		}
 	}
 	const
 	private void atnPut(CArg ARG, string Name, string From)(ref XNode en, in CDetail d) { mixin(S_TRACE);
@@ -1852,9 +1861,17 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	const
 	XNode toNode(ref XNode parent, XMLOption opt) { mixin(S_TRACE);
 		auto d = this.detail;
-		auto e = parent.newElement(d.names[0]);
-		toNodeImpl(e, d, opt);
-		return e;
+		if ((!opt || opt.isTargetVersion("1")) && next.length == 1) { mixin(S_TRACE);
+			auto e = parent.newElement("ContentsLine");
+			auto node = e.newElement(d.names[0]);
+			toNodeImpl(node, d, opt, e);
+			return e;
+		} else { mixin(S_TRACE);
+			auto e = parent.newElement(d.names[0]);
+			auto invalidNode = XNode.init;
+			toNodeImpl(e, d, opt, invalidNode);
+			return e;
+		}
 	}
 	const
 	private void putNodeData(ref XNode e, in CDetail d, XMLOption opt) { mixin(S_TRACE);
@@ -1991,19 +2008,25 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 	}
 	const
-	private void toNodeImpl(ref XNode parent, CDetail d, XMLOption opt) { mixin(S_TRACE);
+	private void toNodeImpl(ref XNode parent, CDetail d, XMLOption opt, ref XNode contentsLine) { mixin(S_TRACE);
 		Rebindable!(const(Content)) c = this;
 		auto e = parent;
-		while (true) {
+		while (true) { mixin(S_TRACE);
 			c.putNodeData(e, d, opt);
-			auto ce = e.newElement("Contents");
+			XNode ce;
+			if (contentsLine.valid && c.next.length == 1) { mixin(S_TRACE);
+				assert (!opt || opt.isTargetVersion("1"));
+				ce = contentsLine;
+			} else if (c.next.length) { mixin(S_TRACE);
+				ce = e.newElement("Contents");
+			}
 			if (!opt || !opt.shallow) { mixin(S_TRACE);
-				if (c.next.length == 1) {
+				if (c.next.length == 1) { mixin(S_TRACE);
 					c = c.next[0];
 					d = c.detail;
 					e = ce.newElement(d.names[0]);
 					continue;
-				} else {
+				} else if (c.next.length) { mixin(S_TRACE);
 					foreach (sub; c.next) { mixin(S_TRACE);
 						sub.toNode(ce, opt);
 					}
@@ -2014,14 +2037,13 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	/// XMLノード(Contents)の直下にある全てのイベントを、
 	/// 後続のツリーを全て含めて生成する。
-	static Content[] createContentsFromNode(ref XNode node, in XMLInfo ver) { mixin(S_TRACE);
+	static void createContentsFromNode(ref XNode node, in XMLInfo ver, void delegate(Content) appender) { mixin(S_TRACE);
 		assert (node.name == "Contents", node.name ~ " != Contents");
-		Content[] r;
 		node.onTag[null] = (ref XNode en) { mixin(S_TRACE);
-			r ~= createFromNode(en, ver);
+			auto c = createFromNode(en, ver);
+			if (c) appender(c);
 		};
 		node.parse();
-		return r;
 	}
 	/// XMLテキストからイベントを生成する。
 	static Content createFromXML(string xml, in XMLInfo ver, out string id) { mixin(S_TRACE);
@@ -2040,6 +2062,21 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	}
 	/// XMLノードからイベントを生成する。
 	static Content createFromNode(ref XNode en, in XMLInfo ver) { mixin(S_TRACE);
+		if (en.name == "ContentsLine") { mixin(S_TRACE);
+			Content r = null;
+			Content c = null;
+			en.onTag[null] = (ref XNode en) { mixin(S_TRACE);
+				auto c2 = createFromNode(en, ver);
+				if (c) { mixin(S_TRACE);
+					c.add(null, c2);
+				} else { mixin(S_TRACE);
+					r = c2;
+				}
+				c = c2;
+			};
+			en.parse();
+			return r;
+		}
 		auto nmap = en.name in CTYPE_MAP;
 		if (!nmap) return null;
 		auto t = en.attr("type", false) in *nmap;
@@ -2223,9 +2260,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		if (d.owner) { mixin(S_TRACE);
 			en.onTag["Contents"] = (ref XNode node) { mixin(S_TRACE);
-				foreach (c; createContentsFromNode(node, ver)) { mixin(S_TRACE);
-					r.add(null, c);
-				}
+				Content.createContentsFromNode(node, ver, (c) => r.add(null, c));
 			};
 		}
 		en.parse();
@@ -2901,10 +2936,7 @@ public:
 		assert (node.name == "Event", node.name ~ " != Event");
 		auto r = new EventTree;
 		node.onTag["Contents"] = (ref XNode node) { mixin(S_TRACE);
-			node.onTag["Start"] = (ref XNode node) { mixin(S_TRACE);
-				r.add(Content.createFromNode(node, ver));
-			};
-			node.parse();
+			Content.createContentsFromNode(node, ver, (c) => r.add(c));
 		};
 		node.onTag["Ignitions"] = (ref XNode node) { mixin(S_TRACE);
 			r.keyCodeMatchingType = toKeyCodeMatchingType(node.attr("keyCodeMatchingType", false, fromKeyCodeMatchingType(r.keyCodeMatchingType)));
