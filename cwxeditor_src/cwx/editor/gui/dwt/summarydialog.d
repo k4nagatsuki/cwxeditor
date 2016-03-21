@@ -572,6 +572,8 @@ protected:
 
 	override bool apply() { mixin(S_TRACE);
 		if (_readOnly) return true;
+		auto images = _imgPath.materialPath;
+		if (images.cancel) return false;
 		string oldName = _summ.scenarioName;
 		string oldResDir = nabs(summSkin.resDir);
 		scope (exit) {
@@ -581,7 +583,7 @@ protected:
 		}
 		_summ.setBaseParams(_sname.getText(), _author.getText());
 		_summ.desc = _desc.getRRText();
-		_summ.imagePaths = _imgPath.images;
+		_summ.imagePaths = images.images;
 		_summ.levelMin = _levMin.getSelection();
 		_summ.levelMax = _levMax.getSelection();
 		string[] rcs;

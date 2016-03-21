@@ -107,6 +107,8 @@ class Msgs : Properties {
 	auto dlgTitSaveBitmapImage = Msg("dlgTitSaveBitmapImage", "格納イメージの保存");
 	auto filterBitmapImage = Msg("filterBitmapImage", "ビットマップイメージ (*.bmp)");
 	auto dlgMsgIncludeImage = Msg("dlgMsgIncludeImage", "%1$sをシナリオファイル内にコピーしますか？\n(元のファイルは削除されません)");
+	auto dlgMsgExcludeImage = Msg("dlgMsgExcludeImage", "WSN形式のシナリオでは格納イメージは使用できません。\n格納イメージを外部化しますか？\n(外部化しなかった場合、格納イメージは消滅します)");
+
 
 	auto dlgTitImageLayerWindow = Msg("dlgTitImageLayerWindow", "レイヤの編集");
 	auto dlgTitImageLayerWindowReadOnly = Msg("dlgTitImageLayerWindowReadOnly", "レイヤの一覧");
@@ -1592,6 +1594,7 @@ class Msgs : Properties {
 	auto warningKeyCodeCount = Msg("warningKeyCodeCount", "%1$s件より多くのキーコードはクラシックなシナリオでは設定できません。");
 	auto warningValuedSelectionMethod = Msg("warningValuedSelectionMethod", "評価条件によるメンバ選択分岐は、WSN1以降の形式のシナリオしか行えません。");
 	auto warningSkillPowerWithFixedValue = Msg("warningSkillPowerWithFixedValue", "精神力操作の固定値指定は、WSN1以降の形式のシナリオしか行えません。"); // Wsn.1
+	auto warningIncludedImage = Msg("warningIncludedImage", "WSN形式のシナリオでは格納イメージは使用できません。");
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

@@ -1368,15 +1368,17 @@ protected:
 		return null;
 	}
 	override bool apply() { mixin(S_TRACE);
+		auto images = _imgPath.materialPath;
+		if (images.cancel) return false;
 		if (_card) { mixin(S_TRACE);
-			_card.paths = _imgPath.images;
+			_card.paths = images.images;
 			_card.desc = _desc.getRRText();
 			_card.name = _name.getText();
 			_card.level = _level.getSelection();
 			_card.lifeMax = _lifeMax.getSelection();
 			_card.life = _lifeMax.getSelection();
 		} else { mixin(S_TRACE);
-			_card = new CastCard(_summ.newId!(CastCard), _name.getText(), _imgPath.images,
+			_card = new CastCard(_summ.newId!(CastCard), _name.getText(), images.images,
 				_desc.getRRText(), _level.getSelection(), _lifeMax.getSelection());
 		}
 		auto skin = summSkin;

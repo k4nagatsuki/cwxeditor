@@ -318,7 +318,7 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws = warningCommon;
-		if (_imgPath.image.isBinImg()) { mixin(S_TRACE);
+		if (_imgPath.images.isBinImg()) { mixin(S_TRACE);
 			if (!_prop.targetVersion(_summ, "1.60")) { mixin(S_TRACE);
 				ws ~= _prop.msgs.warningBgImageIncluded;
 			}
@@ -429,10 +429,12 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
+		auto images = _imgPath.materialPath;
+		if (images.cancel) return false;
 		if (!_back) { mixin(S_TRACE);
 			_back = new ImageCell;
 		}
-		_back.path = _imgPath.image;
+		_back.path = images.images;
 		applyParams(_back);
 		getShell().setText(_prop.msgs.dlgTitBgImage);
 		return true;

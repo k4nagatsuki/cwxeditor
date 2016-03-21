@@ -155,13 +155,15 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
+		auto images = _imgPath.materialPath;
+		if (images.cancel) return false;
 		if (_card) { mixin(S_TRACE);
 			_card.name = _name.getText();
-			_card.paths = _imgPath.images;
+			_card.paths = images.images;
 			_card.desc = wrapReturnCode(_desc.getText());
 		} else { mixin(S_TRACE);
 			_card = new InfoCard(_summ.newId!(InfoCard), _name.getText(),
-				_imgPath.images, wrapReturnCode(_desc.getText()));
+				images.images, wrapReturnCode(_desc.getText()));
 		}
 		getShell().setText(.tryFormat(_prop.msgs.dlgTitInfo, _card.name));
 		return true;

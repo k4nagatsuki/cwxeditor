@@ -24,6 +24,7 @@ import std.file;
 import std.path;
 import std.string;
 import std.conv;
+import std.typecons;
 
 import org.eclipse.swt.all;
 
@@ -233,10 +234,10 @@ public:
 					modEvent ~= &update;
 					updateImageEvent ~= &update;
 					if (_readOnly) { mixin(S_TRACE);
-						_comm.put(_layerButton, () => !_summ.legacy && 1 < _msel.paths.length);
+						_comm.put(_layerButton, () => !_summ.legacy && 1 < _msel.paths.length && !_msel.binPath.length);
 					} else { mixin(S_TRACE);
 						// すでに2枚以上レイヤがある場合は編集可能にしておく
-						_comm.put(_layerButton, () => !_summ.legacy || 1 < _msel.paths.length);
+						_comm.put(_layerButton, () => (!_summ.legacy || 1 < _msel.paths.length) && !_msel.binPath.length);
 					}
 				}
 
@@ -321,10 +322,53 @@ public:
 			_msel.paths = paths;
 			_image.redraw();
 		}
+		/// 画像のファイルパス。
+		/// 必要な時は格納イメージを外部化する。
+		@property
+		Tuple!(CardImage[], "images", bool, "cancel") materialPath() { mixin(S_TRACE);
+			typeof(return) p;
+			p.images = images;
+			p.cancel = false;
+			if ((!_summ || !_summ.legacy) && isIncluded) { mixin(S_TRACE);
+				int ret;
+				if (_summ) { mixin(S_TRACE);
+					auto dlg = new MessageBox(_image.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
+					dlg.setMessage(_prop.msgs.dlgMsgExcludeImage);
+					dlg.setText(_prop.msgs.dlgTitQuestion);
+					ret = dlg.open();
+				} else { mixin(S_TRACE);
+					ret = SWT.NO;
+				}
+				if (SWT.YES == ret) { mixin(S_TRACE);
+					foreach (ref path; p.images) { mixin(S_TRACE);
+						if (path.type !is CardImageType.File || !path.path.isBinImg) continue;
+						path = new CardImage(.copyTo(_summ.scenarioPath, path.path, summSkin.materialPath, true));
+					}
+				} else if (SWT.NO == ret) { mixin(S_TRACE);
+					p.images = [];
+					foreach (path; images) { mixin(S_TRACE);
+						if (path.type is CardImageType.File && path.path.isBinImg) continue;
+						p.images ~= path;
+					}
+				} else if (SWT.CANCEL == ret) { mixin(S_TRACE);
+					p.cancel = true;
+				}
+			}
+			return p;
+		}
+		@property
+		bool isIncluded() { mixin(S_TRACE);
+			foreach (path; _msel.paths) {
+				if (path.type is CardImageType.File && path.path.isBinImg) { mixin(S_TRACE);
+					return true;
+				}
+			}
+			return false;
+		}
 	} else static if (Type == MtType.BG_IMG) {
 		/// 画像のファイルパス。
 		@property
-		string image() { mixin(S_TRACE);
+		string images() { mixin(S_TRACE);
 			return _msel.path;
 		}
 		@property
@@ -338,7 +382,39 @@ public:
 			_msel.path = path;
 			_image.redraw();
 		}
+		/// 画像のファイルパス。
+		/// 必要な時は格納イメージを外部化する。
+		@property
+		Tuple!(string, "images", bool, "cancel") materialPath() { mixin(S_TRACE);
+			typeof(return) p;
+			p.images = _msel.path;
+			p.cancel = false;
+			if ((!_summ || !_summ.legacy) && isIncluded) { mixin(S_TRACE);
+				int ret;
+				if (_summ) { mixin(S_TRACE);
+					auto dlg = new MessageBox(_image.getShell(), SWT.ICON_QUESTION | SWT.YES | SWT.NO | SWT.CANCEL);
+					dlg.setMessage(_prop.msgs.dlgMsgExcludeImage);
+					dlg.setText(_prop.msgs.dlgTitQuestion);
+					ret = dlg.open();
+				} else { mixin(S_TRACE);
+					ret = SWT.NO;
+				}
+				if (SWT.YES == ret) { mixin(S_TRACE);
+					p.images = .copyTo(_summ.scenarioPath, p.images, summSkin.materialPath, true);
+				} else if (SWT.NO == ret) { mixin(S_TRACE);
+					p.images = "";
+				} else if (SWT.CANCEL == ret) { mixin(S_TRACE);
+					p.cancel = true;
+				}
+			}
+			return p;
+		}
+		@property
+		bool isIncluded() { mixin(S_TRACE);
+			return _msel.path.isBinImg;
+		}
 	} else static assert (0);
+
 	@property
 	Composite widget() { mixin(S_TRACE);
 		return _group;
@@ -364,6 +440,9 @@ public:
 	@property
 	string[] warnings() { mixin(S_TRACE);
 		string[] ws;
+		if ((!_summ || !_summ.legacy) && isIncluded) { mixin(S_TRACE);
+			ws ~= _prop.msgs.warningIncludedImage;
+		}
 		static if (Type == MtType.CARD) {
 			foreach (img; _msel.paths) { mixin(S_TRACE);
 				if (img.type == CardImageType.File) { mixin(S_TRACE);

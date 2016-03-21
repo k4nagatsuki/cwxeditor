@@ -464,7 +464,9 @@ protected:
 	override bool apply() { mixin(S_TRACE);
 		if (_card) { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
-				_card.paths = _imgPath.images;
+				auto images = _imgPath.materialPath;
+				if (images.cancel) return false;
+				_card.paths = images.images;
 				_card.desc = wrapReturnCode(_desc.getText());
 				_card.name = _name.getText();
 			} else static if (is (C == EnemyCard)) {
@@ -480,7 +482,9 @@ protected:
 			_card.layer = _layer.getSelection();
 		} else { mixin(S_TRACE);
 			static if (is (C == MenuCard)) {
-				_card = new C(_name.getText(), _imgPath.images,
+				auto images = _imgPath.materialPath;
+				if (images.cancel) return false;
+				_card = new C(_name.getText(), images.images,
 					wrapReturnCode(_desc.getText()), _flag.selected,
 					_x.getSelection(), _y.getSelection(), _scale.getSelection(), _layer.getSelection());
 			} else static if (is (C == EnemyCard)) {

@@ -1007,13 +1007,15 @@ protected:
 	}
 
 	override bool apply() { mixin(S_TRACE);
+		auto images = _imgPath.materialPath;
+		if (images.cancel) return false;
 		if (_card) { mixin(S_TRACE);
-			_card.paths = _imgPath.images;
+			_card.paths = images.images;
 			_card.desc = wrapReturnCode(_desc.getText());
 			_card.name = _name.getText();
 		} else { mixin(S_TRACE);
 			_card = new C(_summ.newId!(C), _name.getText(),
-				_imgPath.images, wrapReturnCode(_desc.getText()));
+				images.images, wrapReturnCode(_desc.getText()));
 		}
 		_card.spell = _needSpell.getSelection();
 		putRadioValue!(EffectType)(_effTyp, &_card.effectType);
