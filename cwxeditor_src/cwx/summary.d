@@ -1072,6 +1072,11 @@ public:
 	}
 	/// シナリオ名と作者名を設定する。
 	void setBaseParams(string newScenarioName, string newAuthor) { mixin(S_TRACE);
+		if (newScenarioName == _sname && newAuthor == _author) { mixin(S_TRACE);
+			return;
+		}
+		changeHandler();
+
 		setNames(skills, newAuthor, newScenarioName);
 		setNames(items, newAuthor, newScenarioName);
 		setNames(beasts, newAuthor, newScenarioName);
