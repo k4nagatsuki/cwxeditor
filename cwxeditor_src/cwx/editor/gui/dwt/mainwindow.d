@@ -601,7 +601,7 @@ private:
 		void run() { mixin(S_TRACE);
 			if (!_win || _win.isDisposed()) return;
 			if (summary) { mixin(S_TRACE);
-				string path = summary.scenarioPath;
+				string path = (summary.useTemp && summary.origZipName.length) ? summary.origZipName : summary.scenarioPath;
 				if (summary.isChanged) { mixin(S_TRACE);
 					_win.setText(.tryFormat(_prop.msgs.mainWindowNameChanged, summary.scenarioName, path));
 					_isChanged = true;
