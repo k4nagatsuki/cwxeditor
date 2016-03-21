@@ -1300,7 +1300,12 @@ private:
 			}
 			bool classic;
 			string filterPath = scenarioFilterPath(_prop);
-			string fileName = toFileName(setExtension(summary.scenarioName, filters[filter].extension()));
+			string fileName;
+			if (summary.origZipName == "") { mixin(S_TRACE);
+				fileName = toFileName(setExtension(summary.scenarioName, filters[filter].extension()));
+			} else { mixin(S_TRACE);
+				fileName = setExtension(summary.origZipName.baseName(), filters[filter].extension());
+			}
 			if (filters[filter] == "Summary.xml" || filters[filter] == "Summary.wsm") { mixin(S_TRACE);
 				fileName = filters[filter];
 			}
