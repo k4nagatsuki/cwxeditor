@@ -1219,8 +1219,8 @@ private Composite createTalkerPane2(Composite parent, Commons comm, Props prop, 
 			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
 				if (_combo.getText().length > 0) { mixin(S_TRACE);
 					_list.setSelection(cast(int)_list.getText().length, cast(int)_list.getText().length);
-					string[] lines = splitLines!string(_list.getText());
-					if (lines.length > 0 && lines[$ - 1].length > 0) { mixin(S_TRACE);
+					auto s = .wrapReturnCode(_list.getText());
+					if (s.length && !std.string.endsWith(s, "\n")) { mixin(S_TRACE);
 						_list.insert("\n");
 					}
 					_list.insert(_combo.getText() ~ "\n");
