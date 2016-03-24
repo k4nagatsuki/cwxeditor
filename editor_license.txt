@@ -5,16 +5,14 @@ CWXEditor ライセンス情報
 CWXEditorのライセンス
 ---------------------
 
- * CWXEditorのアーカイブに含まれる画像(*.png, *.ico)、ソースコード(*.d・ただし
-   d2stdディレクトリ内を除く)、テキスト(*.txt)、その他(*.cmd, *.rc, *.manifest)の
-   各ファイルは、CC0の下に配布されます。詳細はCC0.txtか、次のURIを参照してください。
+ * CWXEditorのアーカイブに含まれる実行ファイル(*.exe)、画像(*.png, *.ico)、ソース
+   コード(*.d・ただしd2stdディレクトリ内を除く)、テキスト(*.txt)、その他
+   (*.cmd, *.rc, *.manifest)の各ファイルは、CC0の下に配布されます。詳細はCC0.txtか、
+   次のURIを参照してください。
    https://creativecommons.org/publicdomain/zero/1.0/deed
    これらのリソースは、Public Domainにあるかのように誰でも自由に扱う事ができます。
  * d2stdディレクトリ内のソースコード(*.d)に関しては、後述の[d2stdディレクトリ内の
    コードのライセンス]を参照してください。
- * 実行ファイル(*.exe)はEclipse Public Licenseの下に頒布されます。詳細はEPL.txtか、
-   次のURIを参照してください。
-   http://www.eclipse.org/legal/epl-v10.html
  * 静的リンクしているライブラリのライセンスについては、後述の[静的リンクしている
    ライブラリのライセンス]を参照してください。
  * 共有ライブラリ(*.dll)のライセンスについては、後述の[共有ライブラリのライセンス]
