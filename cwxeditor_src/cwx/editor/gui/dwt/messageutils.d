@@ -216,7 +216,7 @@ class AbstractMessageDialog : EventDialog {
 			if (show) { mixin(S_TRACE);
 				auto size = shell.getSize();
 				if (prop.var.etc.floatMessagePreview) { mixin(S_TRACE);
-					size.x -= (cast(int) prop.looks.messageBounds.width);
+					size.x -= .max(1, (cast(int) prop.looks.messageBounds.width));
 				} else { mixin(S_TRACE);
 					size.x += prop.looks.messageBounds.width;
 				}

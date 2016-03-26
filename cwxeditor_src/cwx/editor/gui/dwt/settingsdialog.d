@@ -1570,10 +1570,10 @@ struct OldSettings {
 				wg = prop.looks.messageBounds.width;
 			}
 			if (prop.var.etc.showMessagePreview) { mixin(S_TRACE);
-				prop.var.msgDlg.width = prop.var.msgDlg.width + wg;
+				prop.var.msgDlg.width = .max(1, prop.var.msgDlg.width + wg);
 			}
 			if (prop.var.etc.showDialogPreview) { mixin(S_TRACE);
-				prop.var.speakDlg.width = prop.var.speakDlg.width + wg;
+				prop.var.speakDlg.width = .max(1, prop.var.speakDlg.width + wg);
 			}
 			comm.refFloatMessagePreview.call();
 		}
