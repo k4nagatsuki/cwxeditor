@@ -24,6 +24,7 @@ import cwx.flag;
 import cwx.background;
 import cwx.jpy;
 import cwx.textholder;
+import cwx.settings;
 
 import cwx.editor.gui.sound;
 import cwx.editor.gui.dwt.images;
@@ -40,6 +41,7 @@ import cwx.editor.gui.dwt.customtext;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.cardlist;
 import cwx.editor.gui.dwt.incsearch;
+import cwx.editor.gui.dwt.absdialog;
 
 import core.thread;
 
@@ -1456,7 +1458,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 		path.addToPileImage(r, prop, skin, sPath, matPad, ScaleType.Center);
 	}
 	int stMax = prop.looks.statusVerMax;
-	if (dbgMode || c.faceUpRound > 0) { mixin(S_TRACE);
+	if ((dbgMode || c.faceUpRound > 0) && 0 < c.life) { mixin(S_TRACE);
 		auto d = Display.getCurrent();
 		auto lgid = lifeGuage(skin);
 		int lgw = lgid.width;
@@ -1989,17 +1991,17 @@ bool qMaterialCopy(Commons comm, Shell shell,
 void saveColumnWidth(string Value)(Props prop, TableColumn col) { mixin(S_TRACE);
 	col.setWidth(mixin (Value));
 	static if (is (typeof(mixin(Value ~ " = 0")) == void)) {
-		static class SaveColumnWidth : DisposeListener {
+		static class SaveColumnWidth : ControlAdapter {
 			Props prop;
 			this(Props prop) { mixin(S_TRACE);
 				this.prop = prop;
 			}
-			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-				int width = (cast(TableColumn) e.widget).getWidth();
+			override void controlResized(ControlEvent e) { mixin(S_TRACE);
+				int width = (cast(TableColumn)e.widget).getWidth();
 				mixin (Value ~ " = width;");
 			}
 		}
-		col.addDisposeListener(new SaveColumnWidth(prop));
+		col.addControlListener(new SaveColumnWidth(prop));
 	}
 }
 
@@ -3878,4 +3880,107 @@ void asyncExec(Display d, void delegate() dlg) { mixin(S_TRACE);
 			dlg();
 		}
 	});
+}
+
+void setupWeights(SplitPane sash, ref Prop!(int, false) left, ref Prop!(int, false) right) { mixin(S_TRACE);
+	sash.setWeights([left, right]);
+	auto ad = cast(AbsDialog)sash.getShell().getData();
+	sash.addSelectionListener(new class SelectionAdapter {
+		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+			auto ws = sash.getWeights();
+			left.value = ws[0];
+			right.value = ws[1];
+			if (ad) ad.saveWin();
+		}
+	});
+}
+
+void setupToggle(Button toggle, ref Prop!(bool, false) value) { mixin(S_TRACE);
+	toggle.setSelection(value);
+	.listener(toggle, SWT.Selection, { mixin(S_TRACE);
+		value.value = toggle.getSelection();
+	});
+}
+void setupToggle(ToolItem toggle, ref Prop!(bool, false) value) { mixin(S_TRACE);
+	toggle.setSelection(value);
+	.listener(toggle, SWT.Selection, { mixin(S_TRACE);
+		value.value = toggle.getSelection();
+	});
+}
+void setupToggle(MenuItem toggle, ref Prop!(bool, false) value) { mixin(S_TRACE);
+	toggle.setSelection(value);
+	.listener(toggle, SWT.Selection, { mixin(S_TRACE);
+		value.value = toggle.getSelection();
+	});
+}
+
+void setupSpinner(Int)(Spinner spinner, ref Prop!(Int, false) value) { mixin(S_TRACE);
+	spinner.setSelection(value);
+	.listener(spinner, SWT.Selection, { mixin(S_TRACE);
+		value.value = spinner.getSelection();
+	});
+	.listener(spinner, SWT.Modify, { mixin(S_TRACE);
+		value.value = spinner.getSelection();
+	});
+}
+
+Rectangle setupWindow(Shell shell, DSize winProps) { mixin(S_TRACE);
+	auto wp = shell.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+	auto cs = new Point(wp.x, wp.y);
+	if (winProps) { mixin(S_TRACE);
+		if (winProps.width != SWT.DEFAULT) cs.x = winProps.width;
+		if (winProps.height != SWT.DEFAULT) cs.y = winProps.height;
+	}
+	shell.setSize(cs);
+
+	auto w = cast(WSize)winProps;
+	if (w) { mixin(S_TRACE);
+		shell.setMaximized(w.maximized);
+	}
+
+	auto parent = shell.getParent();
+	auto parBounds = parent.getBounds();
+	int width = !winProps || winProps.width == SWT.DEFAULT ? wp.x : winProps.width;
+	int height = !winProps || winProps.height == SWT.DEFAULT ? wp.y : winProps.height;
+	int x, y;
+	if (parent) { mixin(S_TRACE);
+		x = !w || w.x == SWT.DEFAULT ? (parBounds.x + (parBounds.width / 2 - width / 2)) : (w.x + parBounds.x);
+		y = !w || w.y == SWT.DEFAULT ? (parBounds.y + (parBounds.height / 2 - height / 2)) : (w.y + parBounds.y);
+	} else { mixin(S_TRACE);
+		x = !w || w.x == SWT.DEFAULT ? shell.getBounds().x : w.x;
+		y = !w || w.y == SWT.DEFAULT ? shell.getBounds().y : w.y;
+	}
+	intoDisplay(x, y, width, height);
+	shell.setBounds(x, y, width, height);
+	void saveWin(Event e) { mixin(S_TRACE);
+		if (!shell.getMaximized()) { mixin(S_TRACE);
+			auto s = shell.getSize();
+			if (winProps.width != s.x || winProps.height != s.y) { mixin(S_TRACE);
+				winProps.width = s.x;
+				winProps.height = s.y;
+				void recurse(Control ctrl) { mixin(S_TRACE);
+					if (auto sash = cast(SplitPane)ctrl) { mixin(S_TRACE);
+						sash.notifySelectionListeners(e);
+					}
+					if (auto comp = cast(Composite)ctrl) { mixin(S_TRACE);
+						foreach (child; comp.getChildren()) recurse(child);
+					}
+				}
+				recurse(shell);
+			}
+			auto parent = shell.getParent();
+			if (w) { mixin(S_TRACE);
+				w.x = shell.getBounds().x - (parent ? shell.getParent().getBounds().x : 0);
+				w.y = shell.getBounds().y - (parent ? shell.getParent().getBounds().y : 0);
+			}
+		}
+		if (w) { mixin(S_TRACE);
+			w.maximized = shell.getMaximized();
+		}
+	}
+	if (winProps) { mixin(S_TRACE);
+		.listener(shell, SWT.Move, &saveWin);
+		.listener(shell, SWT.Resize, &saveWin);
+	}
+	return shell.getBounds();
 }

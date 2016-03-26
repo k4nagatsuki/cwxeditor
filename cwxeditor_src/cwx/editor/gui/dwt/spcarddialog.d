@@ -115,15 +115,6 @@ private:
 
 	class SDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			auto sash = cast(SplitPane) e.widget;
-			auto ws = sash.getWeights();
-			static if (is (C == MenuCard)) {
-				_prop.var.etc.menuCardSashL = ws[0];
-				_prop.var.etc.menuCardSashR = ws[1];
-			} else static if (is (C == EnemyCard)) {
-				_prop.var.etc.enemyCardSashL = ws[0];
-				_prop.var.etc.enemyCardSashR = ws[1];
-			} else static assert (0);
 			_comm.delMenuCard.remove(&delMenuCard);
 			static if (is (C == EnemyCard)) {
 				_comm.refCast.remove(&refCast);
@@ -340,9 +331,9 @@ protected:
 					_flag.setLayoutData(new GridData(GridData.FILL_BOTH));
 				}
 				static if (is (C == MenuCard)) {
-					sash.setWeights([_prop.var.etc.menuCardSashL, _prop.var.etc.menuCardSashR]);
+					.setupWeights(sash, _prop.var.etc.menuCardSashL, _prop.var.etc.menuCardSashR);
 				} else static if (is (C == EnemyCard)) {
-					sash.setWeights([_prop.var.etc.enemyCardSashL, _prop.var.etc.enemyCardSashR]);
+					.setupWeights(sash, _prop.var.etc.enemyCardSashL, _prop.var.etc.enemyCardSashR);
 				} else static assert (0);
 				sash.addDisposeListener(new SDListener);
 			}

@@ -106,13 +106,8 @@ class DialogParam(string Name, int WidthDef = SWT.DEFAULT, int HeightDef = SWT.D
 }
 
 class EventWin(string Name, int Width, int Height, ulong SizeChgVersion = 0) : Properties {
-	auto _eventSashL = Prop!(int)("eventSashL", 2);
-	@property const int eventSashL() {return _eventSashL;}
-	@property void eventSashL(int v) {_eventSashL = v;}
-
-	auto _eventSashR = Prop!(int)("eventSashR", 7);
-	@property const int eventSashR() {return _eventSashR;}
-	@property void eventSashR(int v) {_eventSashR = v;}
+	auto eventSashL = Prop!(int)("eventSashL", 2);
+	auto eventSashR = Prop!(int)("eventSashR", 7);
 
 	mixin XMLFuncs!(EventWin, Name);
 }

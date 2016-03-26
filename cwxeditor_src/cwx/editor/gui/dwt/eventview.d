@@ -1314,22 +1314,6 @@ public:
 					_preview.dispose();
 				}
 
-				int[] ws = _sash.getWeights();
-				if (cast(Area)_area) {
-					_prop.var.areaEventWin.eventSashL = ws[0];
-					_prop.var.areaEventWin.eventSashR = ws[1];
-				} else if (cast(Battle)_area) {
-					_prop.var.battleEventWin.eventSashL = ws[0];
-					_prop.var.battleEventWin.eventSashR = ws[1];
-				} else if (cast(Package)_area) {
-					_prop.var.packageWin.eventSashL = ws[0];
-					_prop.var.packageWin.eventSashR = ws[1];
-				} else if (cast(EffectCard)_area) {
-					_prop.var.cardEventWin.eventSashL = ws[0];
-					_prop.var.cardEventWin.eventSashR = ws[1];
-				} else { mixin(S_TRACE);
-					assert (0);
-				}
 				_comm.refShowToolBar.remove(&refShowToolBar);
 				_comm.refEventTreeSlope.remove(&refEventTreeSlope);
 				if (!_readOnly) { mixin(S_TRACE);
@@ -1457,13 +1441,13 @@ public:
 			_cards.addPaintListener(initTools);
 		}
 		if (cast(Area)_area) {
-			_sash.setWeights([_prop.var.areaEventWin.eventSashL, _prop.var.areaEventWin.eventSashR]);
+			.setupWeights(_sash, _prop.var.areaEventWin.eventSashL, _prop.var.areaEventWin.eventSashR);
 		} else if (cast(Battle)_area) {
-			_sash.setWeights([_prop.var.battleEventWin.eventSashL, _prop.var.battleEventWin.eventSashR]);
+			.setupWeights(_sash, _prop.var.battleEventWin.eventSashL, _prop.var.battleEventWin.eventSashR);
 		} else if (cast(Package)_area) {
-			_sash.setWeights([_prop.var.packageWin.eventSashL, _prop.var.packageWin.eventSashR]);
+			.setupWeights(_sash, _prop.var.packageWin.eventSashL, _prop.var.packageWin.eventSashR);
 		} else if (cast(EffectCard)_area) {
-			_sash.setWeights([_prop.var.cardEventWin.eventSashL, _prop.var.cardEventWin.eventSashR]);
+			.setupWeights(_sash, _prop.var.cardEventWin.eventSashL, _prop.var.cardEventWin.eventSashR);
 		} else { mixin(S_TRACE);
 			 assert (0);
 		}

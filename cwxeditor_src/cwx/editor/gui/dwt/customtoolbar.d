@@ -454,12 +454,7 @@ class ToolBarCustomizer : Composite, TCPD {
 			drop.setTransfer([XMLBytesTransfer.getInstance()]);
 			drop.addDropListener(new DropMenu);
 		}
-		sash.setWeights([_prop.var.etc.mainToolBarCustomSashL, _prop.var.etc.mainToolBarCustomSashR]);
-		.listener(sash, SWT.Dispose, { mixin(S_TRACE);
-			auto ws = sash.getWeights();
-			_prop.var.etc.mainToolBarCustomSashL = ws[0];
-			_prop.var.etc.mainToolBarCustomSashR = ws[1];
-		});
+		.setupWeights(sash, _prop.var.etc.mainToolBarCustomSashL, _prop.var.etc.mainToolBarCustomSashR);
 
 		updateTree();
 		refreshMenu();

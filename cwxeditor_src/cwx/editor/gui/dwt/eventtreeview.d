@@ -1511,9 +1511,6 @@ private:
 			foreach (dlg; _commentDlgs.values) { mixin(S_TRACE);
 				dlg.forceCancel();
 			}
-			if (_summ) { mixin(S_TRACE);
-				_prop.var.etc.showEventTreeDetail = _showEventTreeDetail;
-			}
 		}
 	}
 
@@ -2827,6 +2824,7 @@ public:
 		if (_tree.editor) { mixin(S_TRACE);
 			_tree.editor.showEventTreeDetail = v;
 		}
+		_prop.var.etc.showEventTreeDetail = _showEventTreeDetail;
 	}
 
 	@property
@@ -4577,15 +4575,7 @@ class ContentsToolBox {
 		if (prop.var.etc.eventTemplates.length || summ.eventTemplates.length) { mixin(S_TRACE);
 			new MenuItem(menu, SWT.SEPARATOR);
 		}
-		void editScEvTemplate() { mixin(S_TRACE);
-			auto dlg = new EventTemplateDialog(comm, prop, summ, shell, summ.eventTemplates);
-			dlg.appliedEvent ~= { mixin(S_TRACE);
-				summ.eventTemplates = dlg.eventTemplates;
-				comm.refEventTemplates.call();
-			};
-			dlg.open();
-		}
-		createMenuItem(comm, menu, MenuID.EvTemplatesOfScenario, &editScEvTemplate, enabled);
+		createMenuItem(comm, menu, MenuID.EvTemplatesOfScenario, { comm.editScEventTemplate(shell); }, () => true);
 	}
 	private void refreshTemplatesM() { mixin(S_TRACE);
 		refreshTemplates(_comm, _prop, _summ, _templMenu, _parent.widget.getShell(), () => _parent._et !is null, (string script, bool tryInsert) {

@@ -1135,32 +1135,34 @@ private:
 		_comm.replacePath(sel, true);
 	}
 
+	void storeSortParams() { mixin(S_TRACE);
+		switch (_files.getSortDirection()) {
+		case SWT.UP:
+			_prop.var.etc.filesSortDirection = SortDir.Up;
+			break;
+		case SWT.DOWN:
+			_prop.var.etc.filesSortDirection = SortDir.Down;
+			break;
+		default:
+			// 必ずソートする
+			_prop.var.etc.filesSortDirection = SortDir.Up;
+			break;
+		}
+		if (_files.getSortColumn() is _sortName.column) { mixin(S_TRACE);
+			_prop.var.etc.filesSortColumn = 0;
+		} else if (_files.getSortColumn() is _sortExt.column) { mixin(S_TRACE);
+			_prop.var.etc.filesSortColumn = 1;
+		} else if (_files.getSortColumn() is _sortCount.column) { mixin(S_TRACE);
+			_prop.var.etc.filesSortColumn = 2;
+		} else { mixin(S_TRACE);
+			_prop.var.etc.filesSortColumn = -1;
+		}
+	}
 	class FDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			closePreview();
 			_preview.dispose();
 			_comm.refOuterTools.remove(&createFilesMenu);
-			switch (_files.getSortDirection()) {
-			case SWT.UP:
-				_prop.var.etc.filesSortDirection = SortDir.Up;
-				break;
-			case SWT.DOWN:
-				_prop.var.etc.filesSortDirection = SortDir.Down;
-				break;
-			default:
-				// 必ずソートする
-				_prop.var.etc.filesSortDirection = SortDir.Up;
-				break;
-			}
-			if (_files.getSortColumn() is _sortName.column) { mixin(S_TRACE);
-				_prop.var.etc.filesSortColumn = 0;
-			} else if (_files.getSortColumn() is _sortExt.column) { mixin(S_TRACE);
-				_prop.var.etc.filesSortColumn = 1;
-			} else if (_files.getSortColumn() is _sortCount.column) { mixin(S_TRACE);
-				_prop.var.etc.filesSortColumn = 2;
-			} else { mixin(S_TRACE);
-				_prop.var.etc.filesSortColumn = -1;
-			}
 		}
 	}
 	class DListener : DisposeListener {
@@ -1184,9 +1186,6 @@ private:
 	private SDListener _sdl;
 	class SDListener : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			_prop.var.etc.directorySashL = _sash.getWeights()[0];
-			_prop.var.etc.directorySashR = _sash.getWeights()[1];
-			_prop.var.etc.directorySashV = (_sash.getStyle() & SWT.VERTICAL) != 0;
 			_win = null;
 		}
 	}
@@ -1637,6 +1636,9 @@ public:
 				st.doSort(SWT.UP);
 				break;
 			}
+			_sortName.sortedEvent ~= &storeSortParams;
+			_sortExt.sortedEvent ~= &storeSortParams;
+			_sortCount.sortedEvent ~= &storeSortParams;
 
 			_comm.refOuterTools.add(&createFilesMenu);
 			_files.addDisposeListener(new FDListener);
@@ -1650,7 +1652,7 @@ public:
 			_files.addMouseTrackListener(prevTrig);
 			_files.addMouseMoveListener(prevTrig);
 		}
-		_sash.setWeights([_prop.var.etc.directorySashL, _prop.var.etc.directorySashR]);
+		.setupWeights(_sash, _prop.var.etc.directorySashL, _prop.var.etc.directorySashR);
 		_sdl = new SDListener;
 		_sash.addDisposeListener(_sdl);
 
@@ -1763,7 +1765,9 @@ public:
 	private void changeVHSide() { mixin(S_TRACE);
 		_sash.removeDisposeListener(_sdl);
 		_sash = .changeVHSide(_sash);
+		.setupWeights(_sash, _prop.var.etc.directorySashL, _prop.var.etc.directorySashR);
 		_sash.addDisposeListener(_sdl);
+		_prop.var.etc.directorySashV = (_sash.getStyle() & SWT.VERTICAL) != 0;
 	}
 
 	void stopTrace() { mixin(S_TRACE);

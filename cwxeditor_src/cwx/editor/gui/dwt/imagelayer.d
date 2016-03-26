@@ -52,6 +52,13 @@ class ImageLayerWindow {
 			createToolItem(comm, bar, MenuID.Up, &_list.upLayer, &_list.canUpLayer);
 			createToolItem(comm, bar, MenuID.Down, &_list.downLayer, &_list.canDownLayer);
 		}
+		void saveWin() { mixin(S_TRACE);
+			auto size = _win.getSize();
+			comm.prop.var.etc.layerListWidth = size.x;
+			comm.prop.var.etc.layerListHeight = size.y;
+		}
+		.listener(_win, SWT.Move, &saveWin);
+		.listener(_win, SWT.Resize, &saveWin);
 
 		void refDataVersion() { mixin(S_TRACE);
 			if (_list._items.length <= 1 && _list._summ.legacy) { mixin(S_TRACE);
@@ -61,10 +68,6 @@ class ImageLayerWindow {
 		comm.refDataVersion.add(&refDataVersion);
 		.listener(_win, SWT.Dispose, { mixin(S_TRACE);
 			comm.refDataVersion.remove(&refDataVersion);
-
-			auto size = _win.getSize();
-			comm.prop.var.etc.layerListWidth = size.x;
-			comm.prop.var.etc.layerListHeight = size.y;
 			_list.dispose();
 		});
 

@@ -748,15 +748,7 @@ private:
 			mod(_keyCodes);
 			_keyCodes.modEvent ~= &refreshWarning;
 		}
-		sash.setWeights([_prop.var.etc.seKeyCodeSashL, _prop.var.etc.seKeyCodeSashR]);
-		class Dispose : DisposeListener {
-			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-				auto ws = sash.getWeights();
-				_prop.var.etc.seKeyCodeSashL = ws[0];
-				_prop.var.etc.seKeyCodeSashR = ws[1];
-			}
-		}
-		sash.addDisposeListener(new Dispose);
+		.setupWeights(sash, _prop.var.etc.seKeyCodeSashL, _prop.var.etc.seKeyCodeSashR);
 
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText(_prop.msgs.seAndKeyCode);

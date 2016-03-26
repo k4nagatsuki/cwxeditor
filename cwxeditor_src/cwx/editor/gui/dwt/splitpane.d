@@ -2,6 +2,7 @@
 module cwx.editor.gui.dwt.splitpane;
 
 import cwx.perf;
+import cwx.utils : remove;
 
 import std.math;
 
@@ -11,6 +12,7 @@ import org.eclipse.swt.all;
 /// 設定が出来ないので再実装。
 class SplitPane : Composite {
 	private Sash _sash = null;
+	private SelectionListener[] _sls;
 	private FormData _sfd = null, _fd1 = null, _fd2 = null;
 	private int[] _weights = [0, 0];
 	private int _style;
@@ -57,6 +59,28 @@ class SplitPane : Composite {
 	int[] getWeights() { mixin(S_TRACE);
 		return _weights.dup;
 	}
+
+	void addSelectionListener(SelectionListener l) { mixin(S_TRACE);
+		if (_sash) { mixin(S_TRACE);
+			_sash.addSelectionListener(l);
+		}
+		_sls ~= l;
+	}
+	void removeSelectionListener(SelectionListener l) { mixin(S_TRACE);
+		if (_sash) { mixin(S_TRACE);
+			_sash.removeSelectionListener(l);
+		}
+		_sls.remove(l);
+	}
+	void notifySelectionListeners(Event base) { mixin(S_TRACE);
+		auto se = new SelectionEvent(base);
+		se.widget = _sash;
+		se.time = base.time;
+		se.stateMask = base.stateMask;
+		se.doit = true;
+		foreach (sl; _sls) sl.widgetSelected(se);
+	}
+
 	void setWeights(int[] weights) { mixin(S_TRACE);
 		if (weights.length != 2) throw new Exception("SplitPane weights length");
 		_weights = weights.dup;
@@ -192,6 +216,7 @@ class SplitPane : Composite {
 	}
 	private void initSash() { mixin(S_TRACE);
 		_sash = new Sash(this, (getStyle() & SWT.HORIZONTAL) ? SWT.VERTICAL : SWT.HORIZONTAL);
+		foreach (sl; _sls) _sash.addSelectionListener(sl);
 		if (getStyle() & SWT.VERTICAL) { mixin(S_TRACE);
 			_fd1.left = new FormAttachment(0, 0);
 			_fd1.right = new FormAttachment(100, 0);

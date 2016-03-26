@@ -679,6 +679,7 @@ private:
 			if (_dbgMenu) _dbgMenu.setSelection(_dbgMode);
 			if (_dbgTMenu) _dbgTMenu.setSelection(_dbgMode);
 			refreshPanel();
+			_prop.var.etc.viewEnemyCardDebug = _dbgMode;
 		}
 	}
 	static if (is (C == EnemyCard)) {
@@ -1633,7 +1634,7 @@ private:
 		if (_prop.var.etc.wallpaperStyle < WallpaperStyle.min || WallpaperStyle.max < _prop.var.etc.wallpaperStyle) { mixin(S_TRACE);
 			_prop.var.etc.wallpaperStyle = WallpaperStyle.Tile;
 		}
-		_imgp.wallpaperStyle = cast(WallpaperStyle) _prop.var.etc.wallpaperStyle;
+		_imgp.wallpaperStyle = cast(WallpaperStyle)_prop.var.etc.wallpaperStyle;
 	}
 	Control createImagePane(Composite parent) { mixin(S_TRACE);
 		auto sc = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
@@ -1662,7 +1663,7 @@ private:
 		_comm.refWallpaper.add(&refreshWallpaper);
 		_imgp.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-				_imgp.setBackgroundImage(cast(Image) null);
+				_imgp.setBackgroundImage(cast(Image)null);
 				_comm.refWallpaper.remove(&refreshWallpaper);
 			}
 		});
@@ -1714,7 +1715,7 @@ private:
 			createMenuItem(_comm, menu, MenuID.SelectConnectedResource, &selectConnectedResource, &canSelectConnectedResource);
 			new MenuItem(menu, SWT.SEPARATOR);
 			_sgPMenu = createMenuItem(_comm, menu, MenuID.ShowGrid, &reverseShowGrid, null, SWT.CHECK);
-			_sgPMenu.setSelection(_showGrid);
+			.setupToggle(_sgPMenu, _prop.var.etc.showGrid);
 
 			if (!_readOnly) { mixin(S_TRACE);
 				new MenuItem(menu, SWT.SEPARATOR);
@@ -1754,7 +1755,7 @@ private:
 		}
 		_imgp.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-				auto pane = cast(ImagePane) e.widget;
+				auto pane = cast(ImagePane)e.widget;
 				auto img = pane.getBackgroundImage();
 				if (img) img.dispose();
 				auto color = pane.getBackgroundColor2();
@@ -2376,11 +2377,11 @@ private:
 		static if (is(C:AbstractSpCard)) {
 			static if (UseBacks) {
 				_vcTMenu = createToolItem(_comm, bar, MenuID.ShowCard, &reverseViewCards, null, SWT.CHECK);
-				_vcTMenu.setSelection(_viewCards);
+				.setupToggle(_vcTMenu, _prop.var.etc.viewCards);
 			}
 			if (!_readOnly) { mixin(S_TRACE);
 				_vfcTMenu = createToolItem(_comm, bar, MenuID.FixedCards, &reverseFixedCards, null, SWT.CHECK);
-				_vfcTMenu.setSelection(_fixedC);
+				.setupToggle(_vfcTMenu, _prop.var.etc.fixedImagesMenuCards);
 				new ToolItem(bar, SWT.SEPARATOR);
 				static if (is (C == MenuCard)) {
 					createToolItem(_comm, bar, MenuID.NewMenuCard, &createCard, () => !_readOnly);
@@ -2394,13 +2395,13 @@ private:
 			static assert (is(C:BgImage));
 			static if (UseCards) {
 				_vbTMenu = createToolItem(_comm, bar, MenuID.ShowBack, &reverseViewBacks, null, SWT.CHECK);
-				_vbTMenu.setSelection(_viewBacks);
+				.setupToggle(_vbTMenu, _prop.var.etc.viewBgImages);
 			}
 			if (!_readOnly) { mixin(S_TRACE);
 				_vfbTMenu = createToolItem(_comm, bar, MenuID.FixedCells, &reverseFixedCells, null, SWT.CHECK);
-				_vfbTMenu.setSelection(_fixedB);
+				.setupToggle(_vfbTMenu, _prop.var.etc.fixedImagesCells);
 				_vffbTMenu = createToolItem(_comm, bar, MenuID.FixedBackground, &reverseFixedBackground, null, SWT.CHECK);
-				_vffbTMenu.setSelection(_fixedFirstB);
+				.setupToggle(_vffbTMenu, _prop.var.etc.fixedImagesBackground);
 				new ToolItem(bar, SWT.SEPARATOR);
 				createToolItem(_comm, bar, MenuID.NewBack, &createBackground, () => !_readOnly);
 				createToolItem(_comm, bar, MenuID.NewTextCell, &createTextCell, () => !_readOnly);
@@ -2853,52 +2854,9 @@ public:
 		static if (is(C : EnemyCard) || RefCards) {
 			_dbgMode = _prop.var.etc.viewEnemyCardDebug;
 		}
-		addDisposeListener(new class DisposeListener {
-			public override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-				static if (is (A == Area)) {
-					_prop.var.etc.viewMessageArea = _viewMsg;
-					_prop.var.etc.viewPartyCardsArea = _viewParty;
-					if (!_readOnly) { mixin(S_TRACE);
-						_prop.var.etc.fixedImagesMenuCards = _fixedC;
-						_prop.var.etc.fixedImagesCells = _fixedB;
-						_prop.var.etc.fixedImagesBackground = _fixedFirstB;
-					}
-				} else static if (is (A == Battle)) {
-					_prop.var.etc.viewMessageBattle = _viewMsg;
-					_prop.var.etc.viewPartyCardsBattle = _viewParty;
-					if (!_readOnly) { mixin(S_TRACE);
-						_prop.var.etc.fixedImagesBattle = _fixedC;
-					}
-				} else static if (is (A == BgImageContainer)) {
-					_prop.var.etc.viewMessageEvent = _viewMsg;
-					_prop.var.etc.viewPartyCardsEvent = _viewParty;
-					if (!_readOnly) { mixin(S_TRACE);
-						_prop.var.etc.fixedImagesEvent = _fixedB;
-						_prop.var.etc.fixedImagesEventBackground = _fixedFirstB;
-					}
-				} else { mixin(S_TRACE);
-					static assert (0);
-				}
-				_prop.var.etc.showGrid = _showGrid;
-				_prop.var.etc.gridX = _gridX;
-				_prop.var.etc.gridY = _gridY;
-				static if (RefCards) {
-					_prop.var.etc.viewReferenceCards = _showRefCards;
-				}
-				static if (is(C : EnemyCard) || RefCards) {
-					_prop.var.etc.viewEnemyCardDebug = _dbgMode;
-				}
-			}
-		});
 		static if (UseCards && UseBacks) {
 			_viewCards = _prop.var.etc.viewCards;
 			_viewBacks = _prop.var.etc.viewBgImages;
-			addDisposeListener(new class DisposeListener {
-				public override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-					_prop.var.etc.viewCards = _viewCards;
-					_prop.var.etc.viewBgImages = _viewBacks;
-				}
-			});
 		}
 		static if (UseCards) {
 			auto ctcpd = new CardTCPD;
@@ -3011,15 +2969,7 @@ public:
 						}
 					}
 				});
-				_sash.setWeights([_prop.var.etc.areaSashT, _prop.var.etc.areaSashB]);
-			}
-			static if (UseCards && UseBacks) {
-				_sash.addDisposeListener(new class DisposeListener {
-					override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-						_prop.var.etc.areaSashT = _sash.getWeights()[0];
-						_prop.var.etc.areaSashB = _sash.getWeights()[1];
-					}
-				});
+				.setupWeights(_sash, _prop.var.etc.areaSashT, _prop.var.etc.areaSashB);
 			}
 		}
 		if (_summ) { mixin(S_TRACE);
@@ -3125,25 +3075,12 @@ public:
 				}
 				createFlagList(lrSash2);
 				static if (is(A:Area)) {
-					lrSash2.setWeights([_prop.var.etc.areaViewImageFlagL, _prop.var.etc.areaViewImageFlagR]);
+					.setupWeights(lrSash2, _prop.var.etc.areaViewImageFlagL, _prop.var.etc.areaViewImageFlagR);
 				} else static if (is(A:Battle)) {
-					lrSash2.setWeights([_prop.var.etc.battleViewImageFlagL, _prop.var.etc.battleViewImageFlagR]);
+					.setupWeights(lrSash2, _prop.var.etc.battleViewImageFlagL, _prop.var.etc.battleViewImageFlagR);
 				} else static if (is(A:BgImageContainer)) {
-					lrSash2.setWeights([_prop.var.etc.bgImageViewImageFlagL, _prop.var.etc.bgImageViewImageFlagR]);
+					.setupWeights(lrSash2, _prop.var.etc.bgImageViewImageFlagL, _prop.var.etc.bgImageViewImageFlagR);
 				} else static assert (0);
-				.listener(lrSash2, SWT.Dispose, { mixin(S_TRACE);
-					auto ws = lrSash2.getWeights();
-					static if (is(A:Area)) {
-						_prop.var.etc.areaViewImageFlagL = ws[0];
-						_prop.var.etc.areaViewImageFlagR = ws[1];
-					} else static if (is(A:Battle)) {
-						_prop.var.etc.battleViewImageFlagL = ws[0];
-						_prop.var.etc.battleViewImageFlagR = ws[1];
-					} else static if (is(A:BgImageContainer)) {
-						_prop.var.etc.bgImageViewImageFlagL = ws[0];
-						_prop.var.etc.bgImageViewImageFlagR = ws[1];
-					} else static assert (0);
-				});
 			} else { mixin(S_TRACE);
 				auto imagePaneComp = new Composite(lrSash, SWT.NONE);
 				auto ipcl = windowGridLayout(1, true);
@@ -3229,27 +3166,12 @@ public:
 		}
 
 		static if (is(A:Area)) {
-			lrSash.setWeights([_prop.var.etc.areaViewL, _prop.var.etc.areaViewR]);
+			.setupWeights(lrSash, _prop.var.etc.areaViewL, _prop.var.etc.areaViewR);
 		} else static if (is(A:Battle)) {
-			lrSash.setWeights([_prop.var.etc.battleViewL, _prop.var.etc.battleViewR]);
+			.setupWeights(lrSash, _prop.var.etc.battleViewL, _prop.var.etc.battleViewR);
 		} else static if (is(A:BgImageContainer)) {
-			lrSash.setWeights([_prop.var.etc.bgImageViewL, _prop.var.etc.bgImageViewR]);
+			.setupWeights(lrSash, _prop.var.etc.bgImageViewL, _prop.var.etc.bgImageViewR);
 		} else static assert (0);
-		lrSash.addDisposeListener(new class DisposeListener {
-			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-				auto ws = (cast(SplitPane) e.widget).getWeights();
-				static if (is(A:Area)) {
-					_prop.var.etc.areaViewL = ws[0];
-					_prop.var.etc.areaViewR = ws[1];
-				} else static if (is(A:Battle)) {
-					_prop.var.etc.battleViewL = ws[0];
-					_prop.var.etc.battleViewR = ws[1];
-				} else static if (is(A:BgImageContainer)) {
-					_prop.var.etc.bgImageViewL = ws[0];
-					_prop.var.etc.bgImageViewR = ws[1];
-				} else static assert (0);
-			}
-		});
 		refShowToolBar();
 		static if (UseCards) refreshCards();
 		static if (UseBacks) refreshBacks();
@@ -4203,39 +4125,39 @@ public:
 	void setupMenu(Menu bar) { mixin(S_TRACE);
 		auto mv = createMenu(_comm, bar, MenuID.CardsAndBacks);
 		_vpMenu = createMenuItem(_comm, mv, MenuID.ShowParty, &reverseViewParty, null, SWT.CHECK);
-		_vpMenu.setSelection(_viewParty);
+		.setupToggle(_vpMenu, _prop.var.etc.viewPartyCardsArea);
 		_vmMenu = createMenuItem(_comm, mv, MenuID.ShowMsg, &reverseViewMsg, null, SWT.CHECK);
-		_vmMenu.setSelection(_viewMsg);
+		.setupToggle(_vmMenu, _prop.var.etc.viewMessageArea);
 		static if (RefCards) {
 			_vrMenu = createMenuItem(_comm, mv, MenuID.ShowRefCards, &reverseViewRefCards, null, SWT.CHECK);
-			_vrMenu.setSelection(_showRefCards);
+			.setupToggle(_vrMenu, _prop.var.etc.viewReferenceCards);
 		}
 		if (!_readOnly) { mixin(S_TRACE);
 			new MenuItem(mv, SWT.SEPARATOR);
 			static if (UseCards) {
 				_vfcMenu = createMenuItem(_comm, mv, MenuID.FixedCards, &reverseFixedCards, null, SWT.CHECK);
-				_vfcMenu.setSelection(_fixedC);
+				.setupToggle(_vfcMenu, _prop.var.etc.fixedImagesMenuCards);
 			}
 			static if (UseBacks) {
 				_vfbMenu = createMenuItem(_comm, mv, MenuID.FixedCells, &reverseFixedCells, null, SWT.CHECK);
-				_vfbMenu.setSelection(_fixedB);
+				.setupToggle(_vfbMenu, _prop.var.etc.fixedImagesBackground);
 				_vffbMenu = createMenuItem(_comm, mv, MenuID.FixedBackground, &reverseFixedBackground, null, SWT.CHECK);
-				_vffbMenu.setSelection(_fixedFirstB);
+				.setupToggle(_vffbMenu, _prop.var.etc.fixedImagesBackground);
 			}
 		}
 		static if (is(C : EnemyCard) || RefCards) {
 			if (_summ) { mixin(S_TRACE);
 				new MenuItem(mv, SWT.SEPARATOR);
 				_dbgMenu = createMenuItem(_comm, mv, MenuID.ShowEnemyCardProp, &reverseDebugMode, null, SWT.CHECK);
-				_dbgMenu.setSelection(_dbgMode);
+				.setupToggle(_dbgMenu, _prop.var.etc.viewEnemyCardDebug);
 			}
 		}
 		static if (UseCards && UseBacks) {
 			new MenuItem(mv, SWT.SEPARATOR);
 			_vcMenu = createMenuItem(_comm, mv, MenuID.ShowCard, &reverseViewCards, null, SWT.CHECK);
-			_vcMenu.setSelection(_viewCards);
+			.setupToggle(_vcMenu, _prop.var.etc.viewCards);
 			_vbMenu = createMenuItem(_comm, mv, MenuID.ShowBack, &reverseViewBacks, null, SWT.CHECK);
-			_vbMenu.setSelection(_viewBacks);
+			.setupToggle(_vbMenu, _prop.var.etc.viewBgImages);
 		}
 		static if (UseCards) {
 			new MenuItem(mv, SWT.SEPARATOR);
@@ -4246,7 +4168,7 @@ public:
 		}
 		new MenuItem(mv, SWT.SEPARATOR);
 		_sgMenu = createMenuItem(_comm, mv, MenuID.ShowGrid, &reverseShowGrid, null, SWT.CHECK);
-		_sgMenu.setSelection(_showGrid);
+		.setupToggle(_sgMenu, _prop.var.etc.showGrid);
 		if (!_readOnly) { mixin(S_TRACE);
 			new MenuItem(mv, SWT.SEPARATOR);
 			static if (is (C == MenuCard)) {
@@ -4302,18 +4224,18 @@ public:
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
 		_vpTMenu = createToolItem(_comm, bar, MenuID.ShowParty, &reverseViewParty, null, SWT.CHECK);
-		_vpTMenu.setSelection(_viewParty);
+		.setupToggle(_vpTMenu, _prop.var.etc.viewPartyCardsArea);
 		_vmTMenu = createToolItem(_comm, bar, MenuID.ShowMsg, &reverseViewMsg, null, SWT.CHECK);
-		_vmTMenu.setSelection(_viewMsg);
+		.setupToggle(_vmTMenu, _prop.var.etc.viewMessageArea);
 		static if (RefCards) {
 			_vrTMenu = createToolItem(_comm, bar, MenuID.ShowRefCards, &reverseViewRefCards, null, SWT.CHECK);
-			_vrTMenu.setSelection(_showRefCards);
+			.setupToggle(_vrTMenu, _prop.var.etc.viewReferenceCards);
 		}
 		static if (is(C : EnemyCard) || RefCards) {
 			if (_summ) { mixin(S_TRACE);
 				new ToolItem(bar, SWT.SEPARATOR);
 				_dbgTMenu = createToolItem(_comm, bar, MenuID.ShowEnemyCardProp, &reverseDebugMode, null, SWT.CHECK);
-				_dbgTMenu.setSelection(_dbgMode);
+				.setupToggle(_dbgTMenu, _prop.var.etc.viewEnemyCardDebug);
 			}
 		}
 		static if (UseCards) {
@@ -4374,7 +4296,7 @@ public:
 		_layerSpn.setToolTipText(.tryFormat(_prop.msgs.layerValues, LAYER_BACK_CELL, LAYER_MENU_CARD, LAYER_PLAYER_CARD, LAYER_MESSAGE));
 		new ToolItem(bar, SWT.SEPARATOR);
 		_sgTMenu = createToolItem(_comm, bar, MenuID.ShowGrid, &reverseShowGrid, null, SWT.CHECK);
-		_sgTMenu.setSelection(_showGrid);
+		.setupToggle(_sgTMenu, _prop.var.etc.showGrid);
 		new ToolItem(bar, SWT.SEPARATOR);
 		createLabel(bar, _prop.msgs.left ~ ":");
 		auto gridX = new Spinner(bar, SWT.BORDER);
@@ -4382,6 +4304,7 @@ public:
 		gridX.setMaximum(_prop.looks.viewSize.width);
 		gridX.setMinimum(1);
 		gridX.setSelection(_gridX);
+		.setupSpinner(gridX, _prop.var.etc.gridX);
 		.listener(gridX, SWT.Selection, { mixin(S_TRACE);
 			_gridX = gridX.getSelection();
 			refreshGrid();
@@ -4394,6 +4317,7 @@ public:
 		gridY.setMaximum(_prop.looks.viewSize.height);
 		gridY.setMinimum(1);
 		gridY.setSelection(_gridY);
+		.setupSpinner(gridY, _prop.var.etc.gridY);
 		.listener(gridY, SWT.Selection, { mixin(S_TRACE);
 			_gridY = gridY.getSelection();
 			refreshGrid();
@@ -4469,6 +4393,7 @@ public:
 		}
 		if (_vpMenu) _vpMenu.setSelection(_viewParty);
 		if (_vpTMenu) _vpTMenu.setSelection(_viewParty);
+		_prop.var.etc.viewPartyCardsArea = _viewParty;
 	}
 	void reverseViewMsg() { mixin(S_TRACE);
 		_viewMsg = !_viewMsg;
@@ -4477,6 +4402,7 @@ public:
 		_imgp.redrawImage(img);
 		if (_vmMenu) _vmMenu.setSelection(_viewMsg);
 		if (_vmTMenu) _vmTMenu.setSelection(_viewMsg);
+		_prop.var.etc.viewMessageArea = _viewMsg;
 	}
 	static if (RefCards) {
 		void reverseViewRefCards() { mixin(S_TRACE);
@@ -4488,6 +4414,7 @@ public:
 				pImg.visible = _showRefCards;
 				_imgp.redrawImage(pImg);
 			}
+			_prop.var.etc.viewReferenceCards = _showRefCards;
 		}
 	}
 	static if (UseCards) {
@@ -4497,6 +4424,7 @@ public:
 			updateFixedCards();
 			if (_vfcMenu) _vfcMenu.setSelection(_fixedC);
 			if (_vfcTMenu) _vfcTMenu.setSelection(_fixedC);
+			_prop.var.etc.fixedImagesMenuCards = _fixedC;
 		}
 		private void updateFixedCards() { mixin(S_TRACE);
 			_imgp.fixedRange(_fixedC, cardsIndex, cardsIndex + cast(int)_area.cards.length);
@@ -4509,6 +4437,7 @@ public:
 			updateFixedBackground();
 			if (_vfbMenu) _vfbMenu.setSelection(_fixedB);
 			if (_vfbTMenu) _vfbTMenu.setSelection(_fixedB);
+			_prop.var.etc.fixedImagesCells = _fixedB;
 		}
 		void reverseFixedBackground() { mixin(S_TRACE);
 			if (_readOnly) return;
@@ -4516,6 +4445,7 @@ public:
 			updateFixedBackground();
 			if (_vffbMenu) _vffbMenu.setSelection(_fixedFirstB);
 			if (_vffbTMenu) _vffbTMenu.setSelection(_fixedFirstB);
+			_prop.var.etc.fixedImagesBackground = _fixedFirstB;
 		}
 		private void updateFixedBackground() { mixin(S_TRACE);
 			if (isFixedBackground) { mixin(S_TRACE);
@@ -4538,6 +4468,7 @@ public:
 		if (_sgMenu) _sgMenu.setSelection(_showGrid);
 		if (_sgTMenu) _sgTMenu.setSelection(_showGrid);
 		if (_sgPMenu) _sgPMenu.setSelection(_showGrid);
+		_prop.var.etc.showGrid = _showGrid;
 	}
 	void refreshGrid() { mixin(S_TRACE);
 		_imgp.gridX = _showGrid ? _gridX : 0;

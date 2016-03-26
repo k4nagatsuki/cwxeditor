@@ -251,7 +251,7 @@ private:
 					hint.setText(.tryFormat(_prop.msgs.rangeHint, _levMin.getMinimum(), _levMin.getMaximum()));
 				}
 			}
-			_tab2Sash.setWeights([_prop.var.etc.summaryParamSashL, _prop.var.etc.summaryParamSashR]);
+			.setupWeights(_tab2Sash, _prop.var.etc.summaryParamSashL, _prop.var.etc.summaryParamSashR);
 		}
 		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
@@ -372,7 +372,7 @@ private:
 
 				_startArea.selected = _summ.startArea;
 			}
-			_tab3Sash.setWeights([_prop.var.etc.rCouponsStartAreaSashL, _prop.var.etc.rCouponsStartAreaSashR]);
+			.setupWeights(_tab3Sash, _prop.var.etc.rCouponsStartAreaSashL, _prop.var.etc.rCouponsStartAreaSashR);
 		}
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText(_prop.msgs.etcData);
@@ -388,12 +388,6 @@ private:
 	}
 	class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			auto ws1 = _tab2Sash.getWeights();
-			_prop.var.etc.summaryParamSashL = ws1[0];
-			_prop.var.etc.summaryParamSashR = ws1[1];
-			auto ws2 = _tab3Sash.getWeights();
-			_prop.var.etc.rCouponsStartAreaSashL = ws2[0];
-			_prop.var.etc.rCouponsStartAreaSashR = ws2[1];
 			if (!_readOnly) { mixin(S_TRACE);
 				_comm.refScenario.remove(&refScenario);
 			}

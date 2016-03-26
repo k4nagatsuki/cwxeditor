@@ -226,12 +226,7 @@ protected:
 		{ mixin(S_TRACE);
 			auto top = new SplitPane(area, SWT.HORIZONTAL);
 			top.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			top.setWeights([_comm.prop.var.etc.stepTopSashL, _comm.prop.var.etc.stepTopSashR]);
-			.listener(top, SWT.Dispose, { mixin(S_TRACE);
-				auto ws = top.getWeights();
-				_comm.prop.var.etc.stepTopSashL = ws[0];
-				_comm.prop.var.etc.stepTopSashR = ws[1];
-			});
+			.setupWeights(top, _comm.prop.var.etc.stepTopSashL, _comm.prop.var.etc.stepTopSashR);
 
 			auto comp1 = new Composite(top, SWT.NONE);
 			comp1.setLayout(zeroMarginGridLayout(2, false));
@@ -490,12 +485,7 @@ protected:
 
 			auto top = new SplitPane(comp, SWT.HORIZONTAL);
 			top.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			top.setWeights([_comm.prop.var.etc.flagTopSashL, _comm.prop.var.etc.flagTopSashR]);
-			.listener(top, SWT.Dispose, { mixin(S_TRACE);
-				auto ws = top.getWeights();
-				_comm.prop.var.etc.flagTopSashL = ws[0];
-				_comm.prop.var.etc.flagTopSashR = ws[1];
-			});
+			.setupWeights(top, _comm.prop.var.etc.flagTopSashL, _comm.prop.var.etc.flagTopSashR);
 
 			auto comp1 = new Composite(top, SWT.NONE);
 			comp1.setLayout(zeroMarginGridLayout(2, false));

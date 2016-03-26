@@ -3357,13 +3357,20 @@ public:
 		auto ti = createDropDownItem(_comm, bar, MenuID.OuterTools, null, _tmOuterTools, () => _prop.var.etc.outerTools.length > 0);
 		_tool[MenuID.OuterTools] = ti;
 	}
+	ToolBarCustomDialog _customizeToolBarDlg = null;
 	private void customizeToolBar() { mixin(S_TRACE);
+		if (_customizeToolBarDlg) { mixin(S_TRACE);
+			_customizeToolBarDlg.active();
+			return;
+		}
 		auto dlg = new ToolBarCustomDialog(_comm, _win, _prop.var.etc.mainToolBar, _prop.var.etc.mainToolBar.INIT);
 		dlg.appliedEvent ~= { mixin(S_TRACE);
 			_prop.var.etc.mainToolBar = dlg.tools;
 			updateMainToolBar();
 			sendReloadPropsAndSave();
 		};
+		_customizeToolBarDlg = dlg;
+		dlg.closeEvent ~= { _customizeToolBarDlg = null; };
 		dlg.open();
 	}
 	public void updateMainToolBar() { mixin(S_TRACE);

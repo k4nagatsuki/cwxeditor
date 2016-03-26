@@ -37,7 +37,13 @@ class ImageListWindow(MtType Type) {
 		_shl = new Shell(parent, SWT.RESIZE | SWT.MODELESS);
 		_shl.setSize(_prop.var.etc.imageListWidth, _prop.var.etc.imageListHeight);
 		_shl.setLayout(new FillLayout);
-		_shl.addDisposeListener(new Dispose);
+		void saveWin() { mixin(S_TRACE);
+			auto size = _shl.getSize();
+			_prop.var.etc.imageListWidth = size.x;
+			_prop.var.etc.imageListHeight = size.y;
+		}
+		.listener(_shl, SWT.Move, &saveWin);
+		.listener(_shl, SWT.Resize, &saveWin);
 		_list = new ImageList(_shl, SWT.NONE);
 		static if (Type == MtType.CARD) {
 			auto s = _prop.looks.cardSize;
@@ -63,13 +69,6 @@ class ImageListWindow(MtType Type) {
 			d.removeFilter(SWT.FocusOut, focusFilter);
 			d.removeFilter(SWT.Selection, focusFilter);
 		});
-	}
-	private class Dispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			auto size = _shl.getSize();
-			_prop.var.etc.imageListWidth = size.x;
-			_prop.var.etc.imageListHeight = size.y;
-		}
 	}
 
 	@property

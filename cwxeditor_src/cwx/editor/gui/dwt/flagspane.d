@@ -79,7 +79,7 @@ public:
 		_flags.setDir(_dirs.current, true);
 		_lastFocusTCPD = _dirs;
 
-		_sash.setWeights([_prop.var.etc.flagSashL, _prop.var.etc.flagSashR]);
+		.setupWeights(_sash, _prop.var.etc.flagSashL, _prop.var.etc.flagSashR);
 		_sdl = new DListener;
 		_sash.addDisposeListener(_sdl);
 	}
@@ -88,9 +88,6 @@ public:
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_comm.refScenario.remove(&refScenario);
 			_comm.refUndoMax.remove(&refUndoMax);
-			_prop.var.etc.flagSashL = _sash.getWeights()[0];
-			_prop.var.etc.flagSashR = _sash.getWeights()[1];
-			_prop.var.etc.flagSashV = (_sash.getStyle() & SWT.VERTICAL) != 0;
 		}
 	}
 	void setupTLP(TopLevelPanel tlp) { mixin(S_TRACE);
@@ -108,8 +105,10 @@ public:
 	void changeVHSide() { mixin(S_TRACE);
 		_sash.removeDisposeListener(_sdl);
 		_sash = .changeVHSide(_sash);
+		.setupWeights(_sash, _prop.var.etc.flagSashL, _prop.var.etc.flagSashR);
 		_sash.addDisposeListener(_sdl);
 		_flags.updateIncSearchParent(_sash);
+		_prop.var.etc.flagSashV = (_sash.getStyle() & SWT.VERTICAL) != 0;
 	}
 
 	/// フラグのディレクトリツリーを設定し、各コンポーネントに

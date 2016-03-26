@@ -1998,10 +1998,9 @@ public:
 		if (_readOnly) { mixin(S_TRACE);
 			_comm.refImportAreasSort.add(&refSortParams);
 		}
-		.listener(_areas, SWT.Dispose, (Event e) { mixin(S_TRACE);
-			auto areas = cast(Table)e.widget;
+		void storeSortParams() { mixin (S_TRACE);
 			if (_readOnly) { mixin(S_TRACE);
-				switch (areas.getSortDirection()) {
+				switch (_areas.getSortDirection()) {
 				case SWT.UP:
 					_prop.var.etc.importAreasSortDirection = SortDir.Up;
 					break;
@@ -2013,18 +2012,18 @@ public:
 					_prop.var.etc.importAreasSortDirection = SortDir.Up;
 					break;
 				}
-				if (areas.getSortColumn() is _idSorter.column) { mixin(S_TRACE);
+				if (_areas.getSortColumn() is _idSorter.column) { mixin(S_TRACE);
 					_prop.var.etc.importAreasSortColumn = ID;
-				} else if (areas.getSortColumn() is _nameSorter.column) { mixin(S_TRACE);
+				} else if (_areas.getSortColumn() is _nameSorter.column) { mixin(S_TRACE);
 					_prop.var.etc.importAreasSortColumn = NAME;
-				} else if (areas.getSortColumn() is _ucSorter.column) { mixin(S_TRACE);
+				} else if (_areas.getSortColumn() is _ucSorter.column) { mixin(S_TRACE);
 					_prop.var.etc.importAreasSortColumn = UC;
 				} else { mixin(S_TRACE);
 					_prop.var.etc.importAreasSortColumn = -1;
 				}
 				_comm.refImportAreasSort.remove(&refSortParams);
 			} else { mixin(S_TRACE);
-				switch (areas.getSortDirection()) {
+				switch (_areas.getSortDirection()) {
 				case SWT.UP:
 					_prop.var.etc.areasSortDirection = SortDir.Up;
 					break;
@@ -2036,40 +2035,32 @@ public:
 					_prop.var.etc.areasSortDirection = SortDir.Up;
 					break;
 				}
-				if (areas.getSortColumn() is _idSorter.column) { mixin(S_TRACE);
+				if (_areas.getSortColumn() is _idSorter.column) { mixin(S_TRACE);
 					_prop.var.etc.areasSortColumn = ID;
-				} else if (areas.getSortColumn() is _nameSorter.column) { mixin(S_TRACE);
+				} else if (_areas.getSortColumn() is _nameSorter.column) { mixin(S_TRACE);
 					_prop.var.etc.areasSortColumn = NAME;
-				} else if (areas.getSortColumn() is _ucSorter.column) { mixin(S_TRACE);
+				} else if (_areas.getSortColumn() is _ucSorter.column) { mixin(S_TRACE);
 					_prop.var.etc.areasSortColumn = UC;
 				} else { mixin(S_TRACE);
 					_prop.var.etc.areasSortColumn = -1;
 				}
 			}
-		});
-		_idSorter.sortedEvent ~= &_comm.refreshToolBar;
-		_nameSorter.sortedEvent ~= &_comm.refreshToolBar;
-		_ucSorter.sortedEvent ~= &_comm.refreshToolBar;
+			_comm.refreshToolBar();
+		}
+		_idSorter.sortedEvent ~= &storeSortParams;
+		_nameSorter.sortedEvent ~= &storeSortParams;
+		_ucSorter.sortedEvent ~= &storeSortParams;
 
 		if (_dirTree) { mixin (S_TRACE);
 			auto sash = cast(SplitPane)_dirTree.getParent().getParent();
 			if (_readOnly) { mixin (S_TRACE);
-				sash.setWeights([_prop.var.etc.importAreaSashL, _prop.var.etc.importAreaSashR]);
+				.setupWeights(sash, _prop.var.etc.importAreaSashL, _prop.var.etc.importAreaSashR);
 			} else { mixin (S_TRACE);
-				sash.setWeights([_prop.var.etc.areaSashL, _prop.var.etc.areaSashR]);
+				.setupWeights(sash, _prop.var.etc.areaSashL, _prop.var.etc.areaSashR);
 			}
-			.listener(sash, SWT.Dispose, {
-				auto ws = sash.getWeights();
-				if (_readOnly) { mixin (S_TRACE);
-					_prop.var.etc.importAreaSashL = ws[0];
-					_prop.var.etc.importAreaSashR = ws[1];
-				} else { mixin (S_TRACE);
-					_prop.var.etc.areaSashL = ws[0];
-					_prop.var.etc.areaSashR = ws[1];
-				}
-			});
 		}
 	}
+
 	private void updateIncSearchParent() { mixin(S_TRACE);
 		auto matchers = [
 			AdditionMatcher(MenuProps.buildMenu(.objName!Area(_prop), "A", "", false), (o) => cast(Area)o !is null),

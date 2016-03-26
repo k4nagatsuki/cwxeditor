@@ -327,14 +327,6 @@ private:
 		warning = ws;
 	}
 
-	class SDListener : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			auto sash = cast(SplitPane) e.widget;
-			auto ws = sash.getWeights();
-			_prop.var.etc.backSashL = ws[0];
-			_prop.var.etc.backSashR = ws[1];
-		}
-	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, ImageCell back, bool create) { mixin(S_TRACE);
 		_back = back;
@@ -382,8 +374,7 @@ protected:
 					imgs(sash);
 				}
 				createFlagPanel(sash);
-				sash.setWeights([_prop.var.etc.backSashL, _prop.var.etc.backSashR]);
-				sash.addDisposeListener(new SDListener);
+				.setupWeights(sash, _prop.var.etc.backSashL, _prop.var.etc.backSashR);
 			} else { mixin(S_TRACE);
 				// フラグ無し
 				imgs(comp);
@@ -711,11 +702,7 @@ protected:
 				auto sash2 = new SplitPane(sash, SWT.HORIZONTAL);
 				sash2.resizeControl1 = true;
 				left(sash2);
-				sash2.setWeights([_prop.var.etc.textCellHSashL, _prop.var.etc.textCellHSashR]);
-				.listener(sash2, SWT.Dispose, { mixin(S_TRACE);
-					_prop.var.etc.textCellHSashL = sash2.getWeights()[0];
-					_prop.var.etc.textCellHSashR = sash2.getWeights()[1];
-				});
+				.setupWeights(sash2, _prop.var.etc.textCellHSashL, _prop.var.etc.textCellHSashR);
 				createFlagPanel(sash2);
 			} else { mixin(S_TRACE);
 				// フラグ無し
@@ -747,17 +734,9 @@ protected:
 			_values = new PreviewValues(sash2, _comm, _prop, _summ, false);
 			_values.modEvent ~= &updatePreview;
 
-			sash2.setWeights([_prop.var.etc.textCellPreviewSashL, _prop.var.etc.textCellPreviewSashR]);
-			.listener(sash, SWT.Dispose, { mixin(S_TRACE);
-				_prop.var.etc.textCellPreviewSashL = sash2.getWeights()[0];
-				_prop.var.etc.textCellPreviewSashR = sash2.getWeights()[1];
-			});
+			.setupWeights(sash2, _prop.var.etc.textCellPreviewSashL, _prop.var.etc.textCellPreviewSashR);
 		}
-		sash.setWeights([_prop.var.etc.textCellVSashT, _prop.var.etc.textCellVSashB]);
-		.listener(sash, SWT.Dispose, { mixin(S_TRACE);
-			_prop.var.etc.textCellVSashT = sash.getWeights()[0];
-			_prop.var.etc.textCellVSashB = sash.getWeights()[1];
-		});
+		.setupWeights(sash, _prop.var.etc.textCellVSashT, _prop.var.etc.textCellVSashB);
 
 		createPosPanel(comp, false);
 

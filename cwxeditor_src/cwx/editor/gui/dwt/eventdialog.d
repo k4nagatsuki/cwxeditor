@@ -1684,7 +1684,7 @@ protected:
 		}
 		updateLabel();
 		refreshWarning();
-		_sash.setWeights([_prop.var.etc.flagEventSashL, _prop.var.etc.flagEventSashR]);
+		.setupWeights(_sash, _prop.var.etc.flagEventSashL, _prop.var.etc.flagEventSashR);
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -1820,7 +1820,7 @@ protected:
 			_flags2.selected = "";
 		}
 		refreshWarning();
-		_sash.setWeights([_prop.var.etc.flagCombiSashL, _prop.var.etc.flagCombiSashR]);
+		.setupWeights(_sash, _prop.var.etc.flagCombiSashL, _prop.var.etc.flagCombiSashR);
 	}
 
 	override bool apply() { mixin(S_TRACE);

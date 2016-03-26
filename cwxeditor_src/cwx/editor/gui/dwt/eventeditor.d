@@ -342,6 +342,7 @@ class EventEditor : Composite {
 		_updateEventText = true;
 		getDisplay.asyncExec(new class Runnable {
 			override void run() { mixin(S_TRACE);
+				if (isDisposed()) return;
 				updatePosImpl2(false);
 				redraw();
 			}
@@ -405,6 +406,7 @@ class EventEditor : Composite {
 		_updateContents[eventId] = true;
 		getDisplay.asyncExec(new class Runnable {
 			override void run() { mixin(S_TRACE);
+				if (isDisposed()) return;
 				updatePosImpl2(false);
 				redraw();
 			}
@@ -415,6 +417,7 @@ class EventEditor : Composite {
 		_updatePosAll = true;
 		getDisplay.asyncExec(new class Runnable {
 			override void run() { mixin(S_TRACE);
+				if (isDisposed()) return;
 				updatePosImpl2(false);
 				redraw();
 			}
@@ -515,6 +518,7 @@ class EventEditor : Composite {
 			auto isShowSelection = _showSelection;
 			getDisplay.asyncExec(new class Runnable {
 				override void run() { mixin(S_TRACE);
+					if (isDisposed()) return;
 					updateScrollBar();
 					if (isShowSelection) { mixin(S_TRACE);
 						showSelection();

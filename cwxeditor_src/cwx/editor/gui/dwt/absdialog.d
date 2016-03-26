@@ -54,37 +54,27 @@ abstract class AbsDialog {
 		_win.setText(text);
 		_win.setImage(img);
 		_win.setData(this);
-		if (rightGroup) { mixin(S_TRACE);
-			_win.setLayout(zeroGridLayout(3, false));
-		} else { mixin(S_TRACE);
-			_win.setLayout(zeroGridLayout(2, false));
-		}
 		_win.addShellListener(new SListener);
 
-		_area = new Composite(_win, SWT.NONE);
+		auto mainComp = new Composite(_win, SWT.NONE);
+		mainComp.setLayout(zeroGridLayout(2, false));
+		mainComp.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+		_area = new Composite(mainComp, SWT.NONE);
 		auto agd = new GridData(GridData.FILL_BOTH);
 		agd.horizontalSpan = 2;
 		_area.setLayoutData(agd);
 
-		if (rightGroup) { mixin(S_TRACE);
-			_rightGroup = new Composite(_win, SWT.NONE);
-			auto rgd = new GridData(GridData.FILL_VERTICAL);
-			rgd.verticalSpan = 3;
-			rgd.widthHint = 0;
-			rgd.heightHint = 0;
-			_rightGroup.setLayoutData(rgd);
-		}
-
-		auto sep = new Label(_win, SWT.SEPARATOR | SWT.HORIZONTAL);
+		auto sep = new Label(mainComp, SWT.SEPARATOR | SWT.HORIZONTAL);
 		auto sgd = new GridData(GridData.FILL_HORIZONTAL);
 		sgd.horizontalSpan = 2;
 		sep.setLayoutData(sgd);
 
-		_addition = new Composite(_win, SWT.NONE);
+		_addition = new Composite(mainComp, SWT.NONE);
 		_addition.setLayout(new GridLayout(1, true));
 		_addition.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-		auto buttons = new Composite(_win, SWT.NONE);
+		auto buttons = new Composite(mainComp, SWT.NONE);
 		buttons.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 		int gll = 1;
 		if (!(styleFlag & SWT.READ_ONLY)) { mixin(S_TRACE);
@@ -109,6 +99,8 @@ abstract class AbsDialog {
 		foreach (info; button) { mixin(S_TRACE);
 			createButton(buttons, info.name, info.func);
 		}
+
+		useRightGroupImpl(rightGroup);
 	}
 	@property
 	Composite addition() {return _addition;}
@@ -125,6 +117,34 @@ abstract class AbsDialog {
 		rgd.widthHint = width;
 		rgd.heightHint = height;
 		_rightGroup.getParent().layout();
+	}
+	void useRightGroup(bool rightGroup) { mixin(S_TRACE);
+		if (rightGroup) { mixin(S_TRACE);
+			if (_rightGroup) return;
+		} else { mixin(S_TRACE);
+			if (!_rightGroup) return;
+		}
+		useRightGroupImpl(rightGroup);
+	}
+	private void useRightGroupImpl(bool rightGroup) { mixin(S_TRACE);
+		if (rightGroup) { mixin(S_TRACE);
+			_win.setLayout(zeroGridLayout(2, false));
+		} else { mixin(S_TRACE);
+			_win.setLayout(zeroGridLayout(1, false));
+		}
+		if (rightGroup) { mixin(S_TRACE);
+			_rightGroup = new Composite(_win, SWT.NONE);
+			auto rgd = new GridData(GridData.FILL_VERTICAL);
+			rgd.verticalSpan = 3;
+			rgd.widthHint = 0;
+			rgd.heightHint = 0;
+			_rightGroup.setLayoutData(rgd);
+		} else {
+			if (_rightGroup) { mixin(S_TRACE);
+				_rightGroup.dispose();
+				_rightGroup = null;
+			}
+		}
 	}
 
 	void setImages(Image[] images) {
@@ -209,9 +229,6 @@ abstract class AbsDialog {
 			bool cancel;
 			_ret = close(_ret, cancel);
 			e.doit = !cancel;
-			if (e.doit && _size) { mixin(S_TRACE);
-				saveWin();
-			}
 			if (e.doit) { mixin(S_TRACE);
 				if (_ret) { mixin(S_TRACE);
 					foreach (dlg; appliedEvent) { mixin(S_TRACE);
@@ -224,9 +241,9 @@ abstract class AbsDialog {
 			}
 		}
 	}
-	private void saveWin() { mixin(S_TRACE);
+	public void saveWin() { mixin(S_TRACE);
 		if (!_size) return;
-		auto ws = cast(WSize) _size;
+		auto ws = cast(WSize)_size;
 		auto p = _win.getParent();
 		if (!_win.getMaximized() && !_win.getMinimized()) { mixin(S_TRACE);
 			auto b = _win.getBounds();
@@ -275,45 +292,10 @@ abstract class AbsDialog {
 	}
 
 	private void calcBounds() { mixin(S_TRACE);
-		auto par = _win.getParent();
-		auto winProps = cast(WSize) _size;
-		scope wp = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		int width = !_size || _size.width == SWT.DEFAULT ? wp.x : _size.width;
-		int height = !_size || _size.height == SWT.DEFAULT ? wp.y : _size.height;
-		int x, y;
-		if (par) { mixin(S_TRACE);
-			auto pb = par.getBounds();
-			if (winProps && winProps.x != SWT.DEFAULT) { mixin(S_TRACE);
-				x = winProps.x + pb.x;
-			} else { mixin(S_TRACE);
-				x = pb.x + (pb.width - width) / 2;
-			}
-			if (winProps && winProps.y != SWT.DEFAULT) { mixin(S_TRACE);
-				y = winProps.y + pb.y;
-			} else { mixin(S_TRACE);
-				y = pb.y + (pb.height - height) / 2;
-			}
-		} else { mixin(S_TRACE);
-			auto pb = _win.getDisplay().getBounds();
-			if (winProps && winProps.x != SWT.DEFAULT) { mixin(S_TRACE);
-				x = winProps.x;
-			} else { mixin(S_TRACE);
-				x = (pb.width - width) / 2;
-			}
-			if (winProps && winProps.y != SWT.DEFAULT) { mixin(S_TRACE);
-				y = winProps.y;
-			} else { mixin(S_TRACE);
-				y = (pb.height - height) / 2;
-			}
-		}
-		intoDisplay(x, y, width, height);
-		_win.setBounds(x, y, width, height);
-		if (winProps) { mixin(S_TRACE);
-			_win.setMaximized(winProps.maximized);
-		}
+		auto rect = .setupWindow(_win, _size);
 		_win.layout(true);
 		foreach (dlg; calcBoundsEvent) { mixin(S_TRACE);
-			dlg(x, y, width, height);
+			dlg(rect.x, rect.y, rect.width, rect.height);
 		}
 	}
 	bool open() { mixin(S_TRACE);

@@ -2175,8 +2175,7 @@ public:
 			_tabf.setSelection(_prop.var.etc.searchPlan);
 		}
 
-		sash.addDisposeListener(new SashDispose);
-		sash.setWeights([_prop.var.etc.replaceRangeSashL, _prop.var.etc.replaceRangeSashR]);
+		.setupWeights(sash, _prop.var.etc.replaceRangeSashL, _prop.var.etc.replaceRangeSashR);
 
 		_comm.refTableViewStyle.add(&refreshRangeTree);
 		_comm.refArea.add(&refArea);
@@ -2202,46 +2201,14 @@ public:
 		_comm.changed.add(&changed);
 		_comm.refScenario.add(&summary);
 		_win.addDisposeListener(new DL);
-		auto cs = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		auto size = _prop.var.replaceDlg;
-		if (size.width != SWT.DEFAULT) cs.x = size.width;
-		if (size.height != SWT.DEFAULT) cs.y = size.height;
-		_win.setSize(cs);
 
-		auto winProps = _prop.var.replaceDlg;
-		_win.setMaximized(winProps.maximized);
-		scope wp = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		int width = winProps.width == SWT.DEFAULT ? wp.x : winProps.width;
-		int height = winProps.height == SWT.DEFAULT ? wp.y : winProps.height;
-		int x = winProps.x == SWT.DEFAULT ? _win.getBounds().x : winProps.x + _win.getParent().getBounds().x;
-		int y = winProps.y == SWT.DEFAULT ? _win.getBounds().y : winProps.y + _win.getParent().getBounds().y;
-		intoDisplay(x, y, width, height);
-		_win.setBounds(x, y, width, height);
-	}
-	private void saveWin() { mixin(S_TRACE);
-		auto winProps = _prop.var.replaceDlg;
-		if (!_win.getMaximized()) { mixin(S_TRACE);
-			winProps.width = _win.getSize().x;
-			winProps.height = _win.getSize().y;
-			winProps.x = _win.getBounds().x - _win.getParent().getBounds().x;
-			winProps.y = _win.getBounds().y - _win.getParent().getBounds().y;
-		}
-		winProps.maximized = _win.getMaximized();
-	}
-	private class SashDispose : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			auto sash = cast(SplitPane) e.widget;
-			auto ws = sash.getWeights();
-			_prop.var.etc.replaceRangeSashL = ws[0];
-			_prop.var.etc.replaceRangeSashR = ws[1];
-		}
+		.setupWindow(_win, _prop.var.replaceDlg);
 	}
 	private class DL : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_cancel = true;
 			_comm.changed.remove(&changed);
 			_comm.refScenario.remove(&summary);
-			saveWin();
 			_prop.var.etc.replaceTextNotIgnoreCase = _notIgnoreCase.getSelection();
 			_prop.var.etc.replaceTextExactMatch = _exact.getSelection();
 			_prop.var.etc.replaceTextIgnoreReturnCode = _ignoreReturnCode.getSelection();

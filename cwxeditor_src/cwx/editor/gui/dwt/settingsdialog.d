@@ -16,6 +16,7 @@ import cwx.props;
 import cwx.features;
 import cwx.types;
 import cwx.imagesize;
+import cwx.settings;
 
 import cwx.editor.gui.sound;
 
@@ -670,20 +671,6 @@ private:
 			_dlg.open();
 		}
 	}
-	class DBgImgStg : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			auto ws = (cast(SplitPane) e.widget).getWeights();
-			_prop.var.etc.bgImageSettingsSashL = ws[0];
-			_prop.var.etc.bgImageSettingsSashR = ws[1];
-		}
-	}
-	class DBgImgKeyCodeSash : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			auto ws = (cast(SplitPane) e.widget).getWeights();
-			_prop.var.etc.bgImageKeyCodeSashL = ws[0];
-			_prop.var.etc.bgImageKeyCodeSashR = ws[1];
-		}
-	}
 	void construct2(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
 		_tabS = new CTabItem(tabf, SWT.NONE);
@@ -722,8 +709,7 @@ private:
 			gd.heightHint = 0;
 			_keyCodes.setLayoutData(gd);
 		}
-		sash.setWeights([_prop.var.etc.bgImageKeyCodeSashL, _prop.var.etc.bgImageKeyCodeSashR]);
-		sash.addDisposeListener(new DBgImgKeyCodeSash);
+		.setupWeights(sash, _prop.var.etc.bgImageKeyCodeSashL, _prop.var.etc.bgImageKeyCodeSashR);
 	}
 
 	void construct3(CTabFolder tabf) { mixin(S_TRACE);
@@ -741,12 +727,7 @@ private:
 		_scTempls = new ToolsPane!ScTemplate(_comm, (b) { ignoreMod = b; }, &catchMod, &applyEnabled, sash, SWT.NONE);
 		_scTempls.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-		sash.setWeights([_prop.var.etc.templatesSashL, _prop.var.etc.templatesSashR]);
-		listener(sash, SWT.Dispose, { mixin(S_TRACE);
-			auto ws = sash.getWeights();
-			_prop.var.etc.templatesSashL = ws[0];
-			_prop.var.etc.templatesSashR = ws[1];
-		});
+		.setupWeights(sash, _prop.var.etc.templatesSashL, _prop.var.etc.templatesSashR);
 	}
 
 	void construct4(CTabFolder tabf) { mixin(S_TRACE);
@@ -771,12 +752,7 @@ private:
 			}
 		});
 
-		sash.setWeights([_prop.var.etc.toolsClassicEnginesSashL, _prop.var.etc.toolsClassicEnginesSashR]);
-		listener(sash, SWT.Dispose, { mixin(S_TRACE);
-			auto ws = sash.getWeights();
-			_prop.var.etc.toolsClassicEnginesSashL = ws[0];
-			_prop.var.etc.toolsClassicEnginesSashR = ws[1];
-		});
+		.setupWeights(sash, _prop.var.etc.toolsClassicEnginesSashL, _prop.var.etc.toolsClassicEnginesSashR);
 	}
 
 	Combo createEnumC(I)(Composite grp, string title, in I[] values, in string[] names, ref int[I] tblA, ref I[int] tblB, int hSpan = 1) { mixin(S_TRACE);
@@ -795,13 +771,6 @@ private:
 			combo.add(names[cast(int)i]);
 		}
 		return combo;
-	}
-	class DMISash : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			auto ws = (cast(SplitPane) e.widget).getWeights();
-			_prop.var.etc.ignoreMenuSashL = ws[0];
-			_prop.var.etc.ignoreMenuSashR = ws[1];
-		}
 	}
 	void selectMenu() { mixin(S_TRACE);
 		ignoreMod = true;
@@ -1071,8 +1040,7 @@ private:
 				gdp.heightHint = 0;
 				_ignorePaths.setLayoutData(gdp);
 			}
-			sash.setWeights([_prop.var.etc.ignoreMenuSashL, _prop.var.etc.ignoreMenuSashR]);
-			sash.addDisposeListener(new DMISash);
+			.setupWeights(sash, _prop.var.etc.ignoreMenuSashL, _prop.var.etc.ignoreMenuSashR);
 		}
 	}
 	private RefE _refe;
@@ -1130,14 +1098,14 @@ protected:
 		construct3(_tabf);
 		construct4(_tabf);
 		construct5(_tabf);
-		_bgStgs.setup(_prop.var.etc.bgImageSettings, _prop.var.etc.bgImageSettingsSashL.value, _prop.var.etc.bgImageSettingsSashR.value);
-		_cEngines.setup(_prop.var.etc.classicEngines, _prop.var.etc.classicEnginesSashL.value, _prop.var.etc.classicEnginesSashR.value);
-		_tools.setup(_prop.var.etc.outerTools, _prop.var.etc.outerToolsSashL.value, _prop.var.etc.outerToolsSashR.value);
-		_scTempls.setup(_prop.var.etc.scenarioTemplates, _prop.var.etc.scenarioTemplatesSashL.value, _prop.var.etc.scenarioTemplatesSashR.value);
-		_evTempls.setup(_prop.var.etc.eventTemplates, _prop.var.etc.eventTemplatesSashL.value, _prop.var.etc.eventTemplatesSashR.value);
-		_tools.setShortcutWeights(_prop.var.etc.outerToolShortcutSashL.value, _prop.var.etc.outerToolShortcutSashR.value);
-		_cEngines.setShortcutWeights(_prop.var.etc.classicEngineShortcutSashL.value, _prop.var.etc.classicEngineShortcutSashR.value);
-		_evTempls.setShortcutWeights(_prop.var.etc.eventTemplateShortcutSashL.value, _prop.var.etc.eventTemplateShortcutSashR.value);
+		_bgStgs.setup(_prop.var.etc.bgImageSettings, _prop.var.etc.bgImageSettingsSashL, _prop.var.etc.bgImageSettingsSashR);
+		_cEngines.setup(_prop.var.etc.classicEngines, _prop.var.etc.classicEnginesSashL, _prop.var.etc.classicEnginesSashR);
+		_tools.setup(_prop.var.etc.outerTools, _prop.var.etc.outerToolsSashL, _prop.var.etc.outerToolsSashR);
+		_scTempls.setup(_prop.var.etc.scenarioTemplates, _prop.var.etc.scenarioTemplatesSashL, _prop.var.etc.scenarioTemplatesSashR);
+		_evTempls.setup(_prop.var.etc.eventTemplates, _prop.var.etc.eventTemplatesSashL, _prop.var.etc.eventTemplatesSashR);
+		_tools.setShortcutWeights(_prop.var.etc.outerToolShortcutSashL, _prop.var.etc.outerToolShortcutSashR);
+		_cEngines.setShortcutWeights(_prop.var.etc.classicEngineShortcutSashL, _prop.var.etc.classicEngineShortcutSashR);
+		_evTempls.setShortcutWeights(_prop.var.etc.eventTemplateShortcutSashL, _prop.var.etc.eventTemplateShortcutSashR);
 
 		_enginePath.setText(_prop.var.etc.enginePath);
 		_findEnginePath.setSelection(_prop.var.etc.findEnginePath);
@@ -1607,6 +1575,7 @@ struct OldSettings {
 			if (prop.var.etc.showDialogPreview) { mixin(S_TRACE);
 				prop.var.speakDlg.width = prop.var.speakDlg.width + wg;
 			}
+			comm.refFloatMessagePreview.call();
 		}
 		if (this.bgmVolume != prop.var.etc.bgmVolume) { mixin(S_TRACE);
 			.bgmVolume = prop.var.etc.bgmVolume;
@@ -2775,7 +2744,7 @@ public:
 		_undo = new UndoManager(_prop.var.etc.undoMaxEtc);
 	}
 
-	void setup(T[] array, ref int sashL, ref int sashR) { mixin(S_TRACE);
+	void setup(T[] array, ref Prop!(int, false) sashL, ref Prop!(int, false) sashR) { mixin(S_TRACE);
 		this.setLayout(zeroMarginGridLayout(1, true));
 
 		auto grp = new Group(this, SWT.NONE);
@@ -2948,13 +2917,15 @@ public:
 				auto winProps = _prop.var.featuresWin;
 				auto shell = _ceNameWin;
 				bool first = true;
-				.listener(_ceNameWin, SWT.Dispose, { mixin(S_TRACE);
+				void resize() { mixin(S_TRACE);
 					if (first) return;
 					winProps.width = shell.getSize().x;
 					winProps.height = shell.getSize().y;
 					winProps.x = shell.getBounds().x - shell.getParent().getBounds().x;
 					winProps.y = shell.getBounds().y - shell.getParent().getBounds().y;
-				});
+				}
+				.listener(_ceNameWin, SWT.Resize, &resize);
+				.listener(_ceNameWin, SWT.Move, &resize);
 				int parX, parY;
 				.listener(features, SWT.Selection, { mixin(S_TRACE);
 					if (first) { mixin(S_TRACE);
@@ -3033,12 +3004,7 @@ public:
 			modB(_alt, _list, _mnemonic, _canApply);
 			modB(_alt, _list, _hotkey.widget, _canApply);
 		} else static assert (0);
-		leftSash.setWeights([sashL, sashR]);
-		listener(leftSash, SWT.Dispose, (Event e) { mixin(S_TRACE);
-			auto ws = (cast(SplitPane)e.widget).getWeights();
-			sashL = ws[0];
-			sashR = ws[1];
-		});
+		.setupWeights(leftSash, sashL, sashR);
 
 		_array.length = array.length;
 		foreach (i, t; array) { mixin(S_TRACE);
@@ -3104,13 +3070,8 @@ public:
 		Button features() { return _features; }
 	}
 	static if (is(typeof(_shortcutSash))) {
-		void setShortcutWeights(ref int sashL, ref int sashR) {
-			_shortcutSash.setWeights([sashL, sashR]);
-			.listener(_shortcutSash, SWT.Dispose, { mixin(S_TRACE);
-				auto ws = _shortcutSash.getWeights();
-				sashL = ws[0];
-				sashR = ws[1];
-			});
+		void setShortcutWeights(ref Prop!(int, false) sashL, ref Prop!(int, false) sashR) {
+			.setupWeights(_shortcutSash, sashL, sashR);
 		}
 	}
 }

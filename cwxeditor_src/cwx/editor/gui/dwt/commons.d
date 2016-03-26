@@ -363,6 +363,7 @@ class Commons {
 	Dlg!() refTerminalMark;
 	Dlg!() refContentsToolBoxStyle;
 	Dlg!(int) refEventTreeSlope;
+	Dlg!() refFloatMessagePreview;
 
 	Dlg!() refTableViewStyle;
 	Dlg!(Area) refArea;
@@ -1179,6 +1180,23 @@ class Commons {
 			_tableWin.areas.addAreas(areas);
 		}
 		refreshToolBar();
+	}
+	EventTemplateDialog _evtTmplDlg = null;
+	EventTemplateDialog editScEventTemplate(Shell shell) { mixin(S_TRACE);
+		if (!summary) return null;
+		if (_evtTmplDlg) { mixin(S_TRACE);
+			_evtTmplDlg.active();
+			return _evtTmplDlg;
+		}
+		auto dlg = new EventTemplateDialog(this, prop, summary, shell, summary.eventTemplates);
+		dlg.appliedEvent ~= { mixin(S_TRACE);
+			summary.eventTemplates = dlg.eventTemplates;
+			refEventTemplates.call();
+		};
+		dlg.closeEvent ~= { _evtTmplDlg = null; };
+		_evtTmplDlg = dlg;
+		dlg.open();
+		return dlg;
 	}
 
 	void setTitle(Composite comp, string text) { mixin(S_TRACE);

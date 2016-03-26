@@ -58,6 +58,7 @@ class AbstractMessageDialog : EventDialog {
 	private KeyDownFilter _kdFilter;
 	private MsgPreviewWindow _previewWin = null;
 	private MsgPreview _preview = null;
+	private Button _prev = null;
 	private UndoManager _undo;
 
 	private Skin _summSkin;
@@ -74,26 +75,39 @@ class AbstractMessageDialog : EventDialog {
 
 	private class SelPrev : SelectionAdapter {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
-			auto btn = cast(Button)e.widget;
-			if (btn.getSelection()) { mixin(S_TRACE);
-				auto s = wrapReturnCode(text);
-				if (_previewWin) { mixin(S_TRACE);
-					if (_previewWin.isVisible()) return;
-					_previewWin.text(imgPaths, s);
-					_previewWin.open();
-				} else { mixin(S_TRACE);
-					if (rightGroup.isVisible()) return;
-					_preview.text(imgPaths, s);
-					setPreviewLData(true);
-				}
+			updateShowPreview();
+			if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
+				prop.var.etc.showMessagePreview = _preview ? _preview.isVisible() : _previewWin.isVisible();
+			} else if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
+				prop.var.etc.showDialogPreview = _preview ? _preview.isVisible() : _previewWin.isVisible();
+			} else assert (0);
+			if (!_previewWin) { mixin(S_TRACE);
+				// プレビューがメインダイアログと一体化しているので
+				// メインダイアログのサイズが変わる場合
+				saveWin();
+			}
+		}
+	}
+	private void updateShowPreview() { mixin(S_TRACE);
+		auto btn = _prev;
+		if (btn.getSelection()) { mixin(S_TRACE);
+			auto s = wrapReturnCode(text);
+			if (_previewWin) { mixin(S_TRACE);
+				if (_previewWin.isVisible()) return;
+				_previewWin.text(imgPaths, s);
+				_previewWin.open();
 			} else { mixin(S_TRACE);
-				if (_previewWin) { mixin(S_TRACE);
-					if (!_previewWin.isVisible()) return;
-					_previewWin.close();
-				} else { mixin(S_TRACE);
-					if (!rightGroup.isVisible()) return;
-					setPreviewLData(false);
-				}
+				if (rightGroup.isVisible()) return;
+				_preview.text(imgPaths, s);
+				setPreviewLData(true);
+			}
+		} else { mixin(S_TRACE);
+			if (_previewWin) { mixin(S_TRACE);
+				if (!_previewWin.isVisible()) return;
+				_previewWin.close();
+			} else { mixin(S_TRACE);
+				if (!rightGroup.isVisible()) return;
+				setPreviewLData(false);
 			}
 		}
 	}
@@ -137,13 +151,6 @@ class AbstractMessageDialog : EventDialog {
 			comm.refPath.remove(&refPath);
 			comm.delPaths.remove(&refreshWarning);
 			getShell().getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
-			if (_preview) { mixin(S_TRACE);
-				if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
-					prop.var.etc.showMessagePreview = _preview.isVisible();
-				} else if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
-					prop.var.etc.showDialogPreview = _preview.isVisible();
-				} else assert (0);
-			}
 		}
 	}
 
@@ -183,24 +190,67 @@ class AbstractMessageDialog : EventDialog {
 	protected void initPreview(Composite area, WSize size) { mixin(S_TRACE);
 		auto aComp = addition();
 		aComp.setLayout(new GridLayout(1, true));
-		auto prev = new Button(aComp, SWT.TOGGLE);
-		prev.setText(prop.msgs.messagePreview);
+		_prev = new Button(aComp, SWT.TOGGLE);
+		_prev.setText(prop.msgs.messagePreview);
 		bool show;
 		if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
 			show = prop.var.etc.showMessagePreview;
 		} else if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
 			show = prop.var.etc.showDialogPreview;
 		} else assert (0);
-		prev.setSelection(show);
-		prev.addSelectionListener(new SelPrev);
+		_prev.setSelection(show);
+		_prev.addSelectionListener(new SelPrev);
+		initPreview2(area, size);
 
+		void updatePreviewType() { mixin(S_TRACE);
+			auto shell = area.getShell();
+			shell.setRedraw(false);
+			scope (exit) shell.setRedraw(true);
+			initPreview2(area, size);
+			updateShowPreview();
+			if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
+				show = prop.var.etc.showMessagePreview;
+			} else if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
+				show = prop.var.etc.showDialogPreview;
+			} else assert (0);
+			if (show) { mixin(S_TRACE);
+				auto size = shell.getSize();
+				if (prop.var.etc.floatMessagePreview) { mixin(S_TRACE);
+					size.x -= (cast(int) prop.looks.messageBounds.width);
+				} else { mixin(S_TRACE);
+					size.x += prop.looks.messageBounds.width;
+				}
+				shell.setSize(size);
+				shell.layout(true);
+			}
+		}
+		comm.refFloatMessagePreview.add(&updatePreviewType);
+		.listener(area, SWT.Dispose, { mixin(S_TRACE);
+			comm.refFloatMessagePreview.remove(&updatePreviewType);
+		});
+	}
+	protected void initPreview2(Composite area, WSize size) { mixin(S_TRACE);
 		if (prop.var.etc.floatMessagePreview) { mixin(S_TRACE);
-			_previewWin = new MsgPreviewWindow(getShell(), comm, prop, summ, prev, size);
+			if (_preview) { mixin(S_TRACE);
+				_preview.dispose();
+				_preview = null;
+				useRightGroup(false);
+			}
 		} else { mixin(S_TRACE);
+			if (_previewWin) { mixin(S_TRACE);
+				_previewWin.dispose();
+				_previewWin = null;
+				useRightGroup(true);
+			}
+		}
+		if (prop.var.etc.floatMessagePreview) { mixin(S_TRACE);
+			_previewWin = new MsgPreviewWindow(getShell(), comm, prop, summ, _prev, size);
+		} else { mixin(S_TRACE);
+			assert (rightGroup && !rightGroup.isDisposed());
 			_preview = new MsgPreview(rightGroup, comm, prop, summ);
 			rightGroup.setLayout(zeroGridLayout(1, false));
 			_preview.setLayoutData(new GridData(GridData.FILL_BOTH));
-			setPreviewLData(show, false);
+			setPreviewLData(_prev.getSelection(), false);
 		}
 		refreshPreview();
 	}
@@ -216,14 +266,8 @@ class AbstractMessageDialog : EventDialog {
 		if (!_previewWin) return;
 		if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
 			if (prop.var.etc.showMessagePreview) _previewWin.open();
-			closeEvent ~= { mixin(S_TRACE);
-				prop.var.etc.showMessagePreview = _previewWin.isVisible();
-			};
 		} else if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
 			if (prop.var.etc.showDialogPreview) _previewWin.open();
-			closeEvent ~= { mixin(S_TRACE);
-				prop.var.etc.showDialogPreview = _previewWin.isVisible();
-			};
 		} else assert (0);
 	}
 
@@ -732,22 +776,6 @@ private:
 			comm.refreshToolBar();
 		}
 	}
-	class DisposeLeftSash : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			auto sash = cast(SplitPane) e.widget;
-			auto ws = sash.getWeights();
-			prop.var.etc.talkLeftSashL = ws[0];
-			prop.var.etc.talkLeftSashR = ws[1];
-		}
-	}
-	class DisposeMainSash : DisposeListener {
-		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
-			auto sash = cast(SplitPane) e.widget;
-			auto ws = sash.getWeights();
-			prop.var.etc.talkMainSashL = ws[0];
-			prop.var.etc.talkMainSashR = ws[1];
-		}
-	}
 
 	private class KeyDownFilter : Listener {
 		this () { mixin(S_TRACE);
@@ -944,10 +972,8 @@ protected:
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
 
-		leftSash.setWeights([prop.var.etc.talkLeftSashL, prop.var.etc.talkLeftSashR]);
-		leftSash.addDisposeListener(new DisposeLeftSash);
-		sash.setWeights([prop.var.etc.talkMainSashL, prop.var.etc.talkMainSashR]);
-		sash.addDisposeListener(new DisposeMainSash);
+		.setupWeights(leftSash, prop.var.etc.talkLeftSashL, prop.var.etc.talkLeftSashR);
+		.setupWeights(sash, prop.var.etc.talkMainSashL, prop.var.etc.talkMainSashR);
 		auto kdFilter = new KeyDownFilter;
 		area.getDisplay().addFilter(SWT.KeyDown, kdFilter);
 		comm.refMenu.add(&refMenu);
@@ -1688,7 +1714,6 @@ class MsgPreviewWindow {
 	private class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			_win.getParent().removeControlListener(_winL);
-			saveWin();
 		}
 	}
 	private class PShellL : ControlAdapter {
@@ -1698,6 +1723,7 @@ class MsgPreviewWindow {
 			_win.setBounds(tb.x + pb.x - _parX, tb.y + pb.y - _parY, tb.width, tb.height);
 			_parX = pb.x;
 			_parY = pb.y;
+			saveWin();
 		}
 	}
 	private class ShellL : ShellAdapter {
@@ -1722,11 +1748,14 @@ class MsgPreviewWindow {
 		_win.setLayout(cl);
 		_win.addShellListener(new ShellL);
 		_win.addDisposeListener(new Dispose);
+		.listener(_win, SWT.Move, &saveWin);
+		.listener(_win, SWT.Resize, &saveWin);
 
 		_preview = new MsgPreview(_win, comm, prop, summ);
 	}
 
 	private void saveWin() { mixin(S_TRACE);
+		if (!_win.isVisible()) return;
 		auto winProps = _size;
 		winProps.width = _win.getSize().x;
 		winProps.height = _win.getSize().y;
@@ -1740,14 +1769,7 @@ class MsgPreviewWindow {
 		auto pb = _win.getParent().getBounds();
 		_parX = pb.x;
 		_parY = pb.y;
-		auto winProps = _size;
-		scope wp = _win.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		int width = winProps.width == SWT.DEFAULT ? wp.x : winProps.width;
-		int height = winProps.height == SWT.DEFAULT ? wp.y : winProps.height;
-		int x = winProps.x == SWT.DEFAULT ? pb.x + pb.width : winProps.x + pb.x;
-		int y = winProps.y == SWT.DEFAULT ? pb.y : winProps.y + pb.y;
-		intoDisplay(x, y, width, height);
-		_win.setBounds(x, y, width, height);
+		.setupWindow(_win, _size);
 		refresh();
 		_win.setVisible(true);
 		_toggle.setSelection(true);
@@ -1757,6 +1779,9 @@ class MsgPreviewWindow {
 		saveWin();
 		_win.setVisible(false);
 		_toggle.setSelection(false);
+	}
+	void dispose() { mixin(S_TRACE);
+		_win.dispose();
 	}
 
 	void text(CardImage[] imgPaths, string message) { mixin(S_TRACE);
