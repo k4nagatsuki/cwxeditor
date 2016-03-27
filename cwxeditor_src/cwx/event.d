@@ -484,8 +484,19 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		_name.owner = this;
 
 		// イベントタイプによって初期値が異なる
-		if (type is CType.TALK_DIALOG) { mixin(S_TRACE);
+		switch (type) {
+		case CType.TALK_DIALOG:
 			initValue = 1;
+			break;
+		case CType.GET_COUPON:
+		case CType.LOSE_COUPON:
+			range = Range.PARTY;
+			break;
+		case CType.BRANCH_COUPON:
+			range = Range.RANDOM;
+			break;
+		default:
+			break;
 		}
 
 		validate();
@@ -819,7 +830,13 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.MENTAL, Mental, Mental.init)(d, &mental);
 		resetValue!(CArg.PHYSICAL, Physical, Physical.init)(d, &physical);
 		resetValue!(CArg.STATUS, Status, Status.ACTIVE)(d, &status);
-		resetValue!(CArg.RANGE, Range, Range.SELECTED)(d, &range);
+		if (type is CType.GET_COUPON || type is CType.GET_COUPON) { mixin(S_TRACE);
+			resetValue!(CArg.RANGE, Range, Range.PARTY)(d, &range);
+		} else if (type is CType.BRANCH_COUPON) { mixin(S_TRACE);
+			resetValue!(CArg.RANGE, Range, Range.RANDOM)(d, &range);
+		} else { mixin(S_TRACE);
+			resetValue!(CArg.RANGE, Range, Range.FIELD)(d, &range);
+		}
 		resetValue!(CArg.CARD_VISUAL, CardVisual, CardVisual.NONE)(d, &cardVisual);
 		resetValue!(CArg.EFFECT_TYPE, EffectType, EffectType.NONE)(d, &effectType);
 		resetValue!(CArg.RESIST, Resist, Resist.UNFAIL)(d, &resist);
@@ -1517,7 +1534,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// 状態。
 	mixin Prop!(Status, "status", Status.NONE);
 	/// 範囲。
-	mixin Prop!(Range, "range", Range.SELECTED);
+	mixin Prop!(Range, "range", Range.FIELD);
 	/// カード視覚効果。
 	mixin Prop!(CardVisual, "cardVisual", CardVisual.NONE);
 	/// 対象(睡眠者判定含む)。
