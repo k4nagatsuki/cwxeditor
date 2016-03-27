@@ -3278,24 +3278,26 @@ public:
 		auto sels = _imgp.selectedIndices;
 		static if (UseCards) {
 			foreach (i, c; _area.cards) { mixin(S_TRACE);
+				auto itm = _cards.getItem(cast(int)i);
 				auto v = _imgp.images[cardsIndex + i].visible;
 				auto fi = create(c);
 				fi.visible = v;
 				_imgp.set(cardsIndex + cast(int)i, fi);
-				_cards.getItem(cast(int)i).setText(cardName(c));
-				_cards.getItem(cast(int)i).setImage(cardImg(c));
-				_cards.getItem(cast(int)i).setData(c);
+				itm.setText(cardName(c));
+				itm.setImage(cardImg(c));
+				itm.setData(c);
 			}
 		}
 		static if (UseBacks) {
 			foreach (i, b; _area.backs) { mixin(S_TRACE);
+				auto itm = _backs.getItem(cast(int)i);
 				auto v = _imgp.images[i].visible;
 				auto fi = create(b);
 				fi.visible = v;
 				_imgp.set(cast(int)i, fi);
-				_backs.getItem(cast(int)i).setText(b.name(_prop.parent));
-				_backs.getItem(cast(int)i).setImage(backImg(b));
-				_backs.getItem(cast(int)i).setData(b);
+				itm.setText(b.name(_prop.parent));
+				itm.setImage(backImg(b));
+				itm.setData(b);
 			}
 			updateFixedBackground();
 		}
@@ -4512,13 +4514,13 @@ public:
 				auto img = v.create(card);
 				v._imgp.deselectAll();
 				v._imgp.insert(v.cardsIndex + index, img);
-				v._imgp.images[v.cardsIndex + index].visible = check;
+				v._imgp.images[v.cardsIndex + index].visible = v.isViewCards && check;
 				auto itm = new TableItem(v._cards, SWT.NONE, index);
 				itm.setImage(v.cardImg(card));
 				itm.setData(card);
 				itm.setChecked(check);
 				itm.setText(v.cardName(card));
-				if (select && v._viewCards) { mixin(S_TRACE);
+				if (select && v.isViewCards) { mixin(S_TRACE);
 					v._imgp.select(img);
 					if (refresh) { mixin(S_TRACE);
 						v.refreshSelected();
@@ -4685,13 +4687,13 @@ public:
 				v._imgp.deselectAll();
 				auto img = v.create(back);
 				v._imgp.insert(index, img);
-				v._imgp.images[index].visible = check;
+				v._imgp.images[index].visible = v.isViewBacks && check;
 				auto itm = new TableItem(v._backs, SWT.NONE, index);
 				itm.setImage(v.backImg(back));
 				itm.setData(back);
 				itm.setChecked(check);
 				itm.setText(back.name(comm.prop.parent));
-				if (select && v._viewBacks) { mixin(S_TRACE);
+				if (select && v.isViewBacks) { mixin(S_TRACE);
 					v._imgp.select(img);
 					if (refresh) { mixin(S_TRACE);
 						v.refreshSelected();
