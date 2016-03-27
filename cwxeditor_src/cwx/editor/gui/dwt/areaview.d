@@ -2046,11 +2046,18 @@ private:
 			_flag.setEnabled(!_readOnly && _editB.length > 0);
 		}
 	}
+	private static bool valid(Args...)(Args ctrls) { mixin(S_TRACE);
+		foreach (ctrl; ctrls) { mixin(S_TRACE);
+			if (!ctrl || ctrl.isDisposed()) return false;
+		}
+		return true;
+	}
 	void refreshControlsImpl() { mixin(S_TRACE);
 		if (!_xSpn) return;
 		if (!_refreshControls) return;
 		_refreshControls = false;
 		static if (UseCards && UseBacks) {
+			if (!valid(_imgp, _xSpn, _ySpn, _wSpn, _hSpn, _layerSpn, _maskTMenu, _scaleSpn)) return;
 			_imgp.cancelFullRedraw();
 			_xSpn.setEnabled(!_readOnly && (_editC.length || _editB.length));
 			_ySpn.setEnabled(!_readOnly && _xSpn.getEnabled());
@@ -2115,6 +2122,10 @@ private:
 				}
 			}
 		} else static if (UseCards) {
+			if (!valid(_imgp, _xSpn, _ySpn, _layerSpn, _scaleSpn)) return;
+			static if (is (C == EnemyCard)) {
+				if (!valid(_escTMenu)) return;
+			}
 			bool enbl = !_readOnly && _editC.length > 0;
 			_xSpn.setEnabled(enbl);
 			_ySpn.setEnabled(enbl);
@@ -2142,6 +2153,7 @@ private:
 				}
 			}
 		} else static if (UseBacks) {
+			if (!valid(_imgp, _xSpn, _ySpn, _wSpn, _hSpn, _layerSpn, _maskTMenu)) return;
 			bool enbl = !_readOnly && _editB.length > 0;
 			_xSpn.setEnabled(enbl);
 			_ySpn.setEnabled(enbl);
