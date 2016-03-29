@@ -622,8 +622,10 @@ class CouponView(CVType Type) : Composite {
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.Up, &upCoupon, &canUp);
 				createMenuItem(_comm, menu, MenuID.Down, &downCoupon, &canDown);
-				new MenuItem(menu, SWT.SEPARATOR);
-				createMenuItem(_comm, menu, MenuID.Reverse, &reverseCoupons, () => !_readOnly && 2 <= _coupons.getItemCount());
+				static if (Type is CVType.Cast) {
+					new MenuItem(menu, SWT.SEPARATOR);
+					createMenuItem(_comm, menu, MenuID.Reverse, &reverseCoupons, () => !_readOnly && 2 <= _coupons.getItemCount());
+				}
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new CouponTCPD, true, true, true, true, true);
 			} else { mixin(S_TRACE);
