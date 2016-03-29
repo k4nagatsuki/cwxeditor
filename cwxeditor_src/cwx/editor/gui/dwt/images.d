@@ -2421,6 +2421,7 @@ private:
 						_rangeStartPos = new Point(x, y);
 						_rangeEndPos = new Point(x, y);
 						_rangeSelected = false;
+						updateRangeSelection();
 					}
 					return;
 				}
