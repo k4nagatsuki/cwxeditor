@@ -1163,7 +1163,7 @@ private:
 			min = 0;
 			break;
 		case CardType.Info:
-			assert (0);;
+			assert (0);
 		}
 		spn.setMaximum(max);
 		spn.setMinimum(min);

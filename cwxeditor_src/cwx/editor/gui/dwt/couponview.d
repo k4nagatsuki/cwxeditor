@@ -139,14 +139,15 @@ class CouponView(CVType Type) : Composite {
 	}
 	private void addCoupon() { mixin(S_TRACE);
 		if (_newCoupon.getText().length > 0) { mixin(S_TRACE);
-			foreach (i, itm; _coupons.getItems()) { mixin(S_TRACE);
-				if (_newCoupon.getText() == (cast(Coupon)itm.getData()).name) { mixin(S_TRACE);
-					_coupons.select(cast(int)i);
-					return;
+			string name = createNewName(_newCoupon.getText(), (string s) { mixin(S_TRACE);
+				foreach (itm; _coupons.getItems()) { mixin(S_TRACE);
+					auto c = cast(Coupon) itm.getData();
+					if (c.name == s) return false;
 				}
-			}
+				return true;
+			}, true);
 			storeCoupons();
-			auto coupon = new Coupon(_newCoupon.getText(), _couponVal.getSelection());
+			auto coupon = new Coupon(name, _couponVal.getSelection());
 			if (_isHistoryView) { mixin(S_TRACE);
 				appendCoupon(coupon, _coupons.getSelectionIndex());
 			} else { mixin(S_TRACE);
@@ -501,6 +502,10 @@ class CouponView(CVType Type) : Composite {
 				appendMenuTCPD(_comm, menu, new CouponTCPD, false, true, false, false, false);
 			}
 			_coupons.setMenu(menu);
+			if (!_readOnly) { mixin(S_TRACE);
+				new TableTextEdit(_comm, _prop, _coupons, 0, &nameEditEnd, (itm, column) => true);
+				new TableTCEdit(_comm, _coupons, 1, &valueCreateEditor, &valueEditEnd, (itm, column) => true);
+			}
 		}
 		_coupons.addSelectionListener(new SelCoupon);
 		this.setTabList([cast(Control)_toolbar, _newCoupon, _couponType, _couponVal, _coupons]);
@@ -594,5 +599,68 @@ class CouponView(CVType Type) : Composite {
 	@property
 	string toolTip() { mixin(S_TRACE);
 		return _coupons.getToolTipText();
+	}
+
+	private void nameEditEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
+		assert (!_readOnly);
+		auto itms = itm.getParent().getSelection();
+		auto edit = false;
+		foreach (itm2; itms) { mixin(S_TRACE);
+			auto coupon = cast(Coupon)itm2.getData();
+			if (coupon.name == newText) continue;
+			edit = true;
+			break;
+		}
+		if (!edit) return;
+		storeCoupons();
+		foreach (itm2; itms) { mixin(S_TRACE);
+			auto coupon = cast(Coupon)itm2.getData();
+			auto name = createNewName(newText, (string s) { mixin(S_TRACE);
+				foreach (itm; _coupons.getItems()) { mixin(S_TRACE);
+					auto c = cast(Coupon)itm.getData();
+					if (coupon != c && c.name == s) return false;
+				}
+				return true;
+			}, true);
+			coupon = new Coupon(name, coupon.value);
+			itm2.setText(0, name);
+			itm2.setData(coupon);
+		}
+		_comm.refreshToolBar();
+	}
+
+	private Control valueCreateEditor(TableItem itm, int column) { mixin(S_TRACE);
+		assert (!_readOnly);
+		auto spn = new Spinner(itm.getParent(), SWT.BORDER);
+		initSpinner(spn);
+		auto coupon = cast(Coupon)itm.getData();
+		assert (coupon !is null);
+		spn.setMaximum(_couponVal.getMaximum());
+		spn.setMinimum(_couponVal.getMinimum());
+		spn.setSelection(coupon.value);
+		return spn;
+	}
+	void valueEditEnd(TableItem itm, int column, Control ctrl) { mixin(S_TRACE);
+		assert (!_readOnly);
+		assert (cast(Spinner)ctrl !is null);
+		auto value = (cast(Spinner)ctrl).getSelection();
+		auto itms = itm.getParent().getSelection();
+		auto edit = false;
+		foreach (itm2; itms) { mixin(S_TRACE);
+			auto coupon = cast(Coupon)itm2.getData();
+			if (coupon.value == value) continue;
+			edit = true;
+			break;
+		}
+		if (!edit) return;
+		storeCoupons();
+		foreach (itm2; itms) { mixin(S_TRACE);
+			auto coupon = cast(Coupon)itm2.getData();
+			coupon = new Coupon(coupon.name, value);
+			itm2.setImage(0, couponImage(value));
+			itm2.setText(1, .text(value));
+			itm2.setData(coupon);
+		}
+		_comm.refreshToolBar();
 	}
 }
