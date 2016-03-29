@@ -219,7 +219,7 @@ abstract class TopLevelPanel {
 		this (void delegate() dlg) { mixin(S_TRACE);
 			_dlg = dlg;
 		}
-		void call(SelectionEvent se) {_dlg();}
+		void call(SelectionEvent se) { _dlg(); }
 	}
 	private bool delegate()[MenuID] _enabled;
 	private void delegate(SelectionEvent)[MenuID] _act;
@@ -262,6 +262,17 @@ abstract class TopLevelPanel {
 		if (!shell || shell.isDisposed()) return null;
 		auto p = menuID in _enabled;
 		return p ? *p : null;
+	}
+	bool doMenu(in Props prop, int keyCode, wchar character, int stateMask, SelectionEvent delegate() e) { mixin(S_TRACE);
+		foreach (menu, dlg; _act) { mixin(S_TRACE);
+			if (!dlg) continue;
+			if (!.eqAcc(.convertAccelerator(prop.buildMenu(menu)), keyCode, character, stateMask)) continue;
+			auto p = menu in _enabled;
+			if (p && *p !is null && !(*p)()) continue;
+			dlg(e());
+			return true;
+		}
+		return false;
 	}
 	private string _status = "";
 	@property

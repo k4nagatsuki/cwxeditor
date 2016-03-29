@@ -3462,7 +3462,7 @@ public:
 						}
 					}
 				}
-				scope se = new Event;
+				auto se = new Event;
 				se.type = SWT.Selection;
 				se.widget = menu;
 				se.time = e.time;
@@ -3496,7 +3496,8 @@ public:
 				if (!shl) break;
 			}
 			if (menu) { mixin(S_TRACE);
-				// アンドゥ・リドゥに限り、現在操作中のウィンドウのみで適用する
+				// アプリケーション全体を対象としたメニュー以外は、
+				// 現在操作中のウィンドウのみで適用する
 				auto data = cast(MenuData)menu.getData();
 				if (data && shl !is fc.getShell() && !.isGlobalMenu(data.id)) { mixin(S_TRACE);
 					return;
@@ -3505,6 +3506,18 @@ public:
 			if (menu && .menuEnabled(menu)) { mixin(S_TRACE);
 				raiseEvent(menu);
 				return;
+			}
+			auto tlp = getTopLevelPanel(fc);
+			if (tlp) { mixin(S_TRACE);
+				SelectionEvent selEvent() { mixin(S_TRACE);
+					auto se = new SelectionEvent(e);
+					se.widget = fc;
+					se.time = e.time;
+					se.stateMask = e.stateMask;
+					se.doit = e.doit;
+					return se;
+				}
+				if (tlp.doMenu(_prop, e.keyCode, e.character, e.stateMask, &selEvent)) return;
 			}
 		}
 	}
