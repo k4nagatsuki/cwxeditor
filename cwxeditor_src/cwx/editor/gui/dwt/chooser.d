@@ -40,6 +40,7 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, CouponComboType type, string initValue, out TextMenuModify tmm) { mixin(S_TRACE);
 	auto combo = new T(parent, SWT.BORDER | SWT.DROP_DOWN);
 	combo.setVisibleItemCount(comm.prop.var.etc.comboVisibleItemCount);
+	combo.setText(initValue);
 	auto incSearch = new IncSearch(comm, combo);
 
 	void refreshCoupons() { mixin(S_TRACE);

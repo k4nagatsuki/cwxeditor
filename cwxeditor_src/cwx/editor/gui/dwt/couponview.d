@@ -521,7 +521,7 @@ class CouponView(CVType Type) : Composite {
 			}
 			_coupons.setMenu(menu);
 			if (!_readOnly) { mixin(S_TRACE);
-				new TableTextEdit(_comm, _prop, _coupons, 0, &nameEditEnd, (itm, column) => true);
+				new TableTCEdit(_comm, _coupons, 0, &nameCreateEditor, &nameEditEnd, (itm, column) => true);
 				new TableTCEdit(_comm, _coupons, 1, &valueCreateEditor, &valueEditEnd, (itm, column) => true);
 			}
 		}
@@ -619,8 +619,18 @@ class CouponView(CVType Type) : Composite {
 		return _coupons.getToolTipText();
 	}
 
-	private void nameEditEnd(TableItem itm, int column, string newText) { mixin(S_TRACE);
+	private Control nameCreateEditor(TableItem itm, int column) { mixin(S_TRACE);
+		static if (CVType.Cast == Type) {
+			auto type = CouponComboType.Cast;
+		} else { mixin(S_TRACE);
+			auto type = CouponComboType.Talker;
+		}
+		return createCouponCombo!Combo(_comm, _summ, itm.getParent(), null, type, itm.getText());
+	}
+	void nameEditEnd(TableItem itm, int column, Control ctrl) { mixin(S_TRACE);
 		assert (!_readOnly);
+		assert (cast(Combo)ctrl !is null);
+		auto newText = (cast(Combo)ctrl).getText();
 		auto itms = itm.getParent().getSelection();
 		auto edit = false;
 		foreach (itm2; itms) { mixin(S_TRACE);
