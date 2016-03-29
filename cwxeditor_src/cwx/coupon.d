@@ -23,7 +23,8 @@ private:
 	CouponUser _coupon;
 	int _val;
 public:
-	static const XML_NAME = "Coupon";
+	static immutable XML_NAME = "Coupon";
+	static immutable XML_NAME_M = "Coupons";
 
 	/// 唯一のコンストラクタ。
 	this (string name, int val) { mixin(S_TRACE);
@@ -99,20 +100,20 @@ public:
 
 	/// XMLノードからインスタンスを生成する。
 	static Coupon fromNode(in XNode node, in XMLInfo ver) { mixin(S_TRACE);
-		assert (node.name == "Coupon", node.name ~ " != Coupon");
+		assert (node.name == Coupon.XML_NAME, node.name ~ " != Coupon");
 		return new Coupon(node.value, node.attr!(int)("value", true));
 	}
 	/// 自身をXMLノードにする。
 	const
 	XNode toNode() { mixin(S_TRACE);
-		auto node = XNode.create("Coupon", coupon);
+		auto node = XNode.create(Coupon.XML_NAME, coupon);
 		node.newAttr("value", value);
 		return node;
 	}
 	/// ditto
 	const
 	XNode toNode(ref XNode parent) { mixin(S_TRACE);
-		auto node = parent.newElement("Coupon", coupon);
+		auto node = parent.newElement(Coupon.XML_NAME, coupon);
 		node.newAttr("value", value);
 		return node;
 	}

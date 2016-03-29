@@ -1135,7 +1135,7 @@ private:
 								if (cp.name == summSkin.natureCoupon(n)) { mixin(S_TRACE);
 									_nature[n].setSelection(true);
 									_natureU.setSelection(false);
-									_couponView.delCoupon(cast(int)i);
+									_couponView.delCoupon([cast(int)i]);
 									break cp;
 								}
 							}

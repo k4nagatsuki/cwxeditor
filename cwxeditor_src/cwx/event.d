@@ -2011,7 +2011,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 
 		if (d.use(CArg.COUPONS)) { mixin(S_TRACE);
-			auto ce = e.newElement("Coupons");
+			auto ce = e.newElement(Coupon.XML_NAME_M);
 			foreach (c; coupons) { mixin(S_TRACE);
 				c.toNode(ce);
 			}
@@ -2257,9 +2257,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		}
 
 		if (d.use(CArg.COUPONS)) { mixin(S_TRACE);
-			en.onTag["Coupons"] = (ref XNode node) { mixin(S_TRACE);
+			en.onTag[Coupon.XML_NAME_M] = (ref XNode node) { mixin(S_TRACE);
 				Coupon[] coupons;
-				node.onTag["Coupon"] = (ref XNode node) { mixin(S_TRACE);
+				node.onTag[Coupon.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
 					coupons ~= Coupon.fromNode(node, ver);
 				};
 				node.parse();

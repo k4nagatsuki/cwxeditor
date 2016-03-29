@@ -1172,7 +1172,7 @@ public:
 				.newAttr("duration", enhanceRound(Enhance.DEFENSE));
 		}
 		{ mixin(S_TRACE);
-			auto cpNode = pNode.newElement("Coupons");
+			auto cpNode = pNode.newElement(Coupon.XML_NAME_M);
 			foreach (c; _coupons) { mixin(S_TRACE);
 				c.toNode(cpNode);
 			}
@@ -1250,8 +1250,8 @@ public:
 				n.parse();
 			};
 			Coupon[] coupons;
-			pNode.onTag["Coupons"] = (ref XNode n) { mixin(S_TRACE);
-				n.onTag["Coupon"] = (ref XNode n) { mixin(S_TRACE);
+			pNode.onTag[Coupon.XML_NAME_M] = (ref XNode n) { mixin(S_TRACE);
+				n.onTag[Coupon.XML_NAME] = (ref XNode n) { mixin(S_TRACE);
 					coupons ~= Coupon.fromNode(n, ver);
 				};
 				n.parse();

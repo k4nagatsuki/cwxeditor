@@ -220,6 +220,7 @@ class KeyCodeView : Composite {
 				auto t = _keyCodes.getItem(p);
 				int index = t ? _keyCodes.indexOf(t) : _keyCodes.getItemCount();
 				auto samePane = _id == node.attr("paneId", false);
+				if (samePane && index == _dragIndex) return;
 				if (!appendFromNode(node, index, samePane)) return;
 
 				if (samePane) { mixin(S_TRACE);
@@ -239,6 +240,8 @@ class KeyCodeView : Composite {
 		auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 		auto keyCodes = keyCodesFromNode(node, ver);
 		if (!keyCodes.length) return false;
+		_keyCodes.setRedraw(false);
+		scope (exit) _keyCodes.setRedraw(true);
 		if (_tte.isEditing) _tte.enter();
 		storeKeyCodes();
 		TableItem[] itms = [];
@@ -254,6 +257,7 @@ class KeyCodeView : Composite {
 		_comm.refreshToolBar();
 		return true;
 	}
+	private int _dragIndex = -1;
 	private class CDragListener : DragSourceAdapter {
 		private TableItem[] _itms;
 		override void dragStart(DragSourceEvent e) { mixin(S_TRACE);
@@ -265,6 +269,9 @@ class KeyCodeView : Composite {
 				if (_tte.isEditing) _tte.enter();
 				auto c = cast(Table)(cast(DragSource)e.getSource()).getControl();
 				_itms = c.getSelection();
+				if (!_itms.length) return;
+				_dragIndex = c.getSelectionIndex();
+				if (_dragIndex == -1) return;
 				auto keyCodes = _itms.map!(itm => itm.getText())().array();
 				auto node = keyCodesToNode(keyCodes);
 				node.newAttr("paneId", _id);
@@ -280,6 +287,8 @@ class KeyCodeView : Composite {
 				raiseModifyEvent();
 				_comm.refreshToolBar();
 			}
+			_dragIndex = -1;
+			_itms = [];
 		}
 	}
 	private class KeyCodeTCPD : TCPD {

@@ -32,8 +32,8 @@ public:
 		node.onTag["Description"] = (ref XNode node) {r._desc = decodeLf2(node.value);};
 		node.onTag["Feature"] = (ref XNode node) {r.loadFeature(node, ver);};
 		node.onTag["Ability"] = (ref XNode node) {r.loadAbility(node, ver);};
-		node.onTag["Coupons"] = (ref XNode node) { mixin(S_TRACE);
-			node.onTag["Coupon"] = (ref XNode node) { mixin(S_TRACE);
+		node.onTag[Coupon.XML_NAME_M] = (ref XNode node) { mixin(S_TRACE);
+			node.onTag[Coupon.XML_NAME] = (ref XNode node) { mixin(S_TRACE);
 				auto coupon = Coupon.fromNode(node, ver);
 				coupon.owner = r;
 				r._coupons ~= coupon;
