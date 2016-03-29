@@ -252,6 +252,22 @@ class CouponView(CVType Type) : Composite {
 			_comm.refreshToolBar();
 		}
 	}
+	private void reverseCoupons() { mixin(S_TRACE);
+		if (_coupons.getItemCount() < 2) return;
+		storeCoupons();
+		Coupon[] coupons;
+		foreach (itm; _coupons.getItems()) { mixin(S_TRACE);
+			coupons ~= cast(Coupon)itm.getData();
+		}
+		coupons.reverse;
+		foreach (i, itm; _coupons.getItems()) { mixin(S_TRACE);
+			auto coupon = coupons[i];
+			itm.setImage(0, couponImage(coupon.value));
+			itm.setText(0, coupon.name);
+			itm.setText(1, .text(coupon.value));
+			itm.setData(coupon);
+		}
+	}
 
 	private class CDropListener : DropTargetAdapter {
 		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
@@ -496,6 +512,8 @@ class CouponView(CVType Type) : Composite {
 				new MenuItem(menu, SWT.SEPARATOR);
 				createMenuItem(_comm, menu, MenuID.Up, &upCoupon, () => !_readOnly && _coupons.getSelectionIndex() != -1 && 0 < _coupons.getSelectionIndex());
 				createMenuItem(_comm, menu, MenuID.Down, &downCoupon, () => !_readOnly && _coupons.getSelectionIndex() != -1 && _coupons.getSelectionIndex() + 1 < _coupons.getItemCount());
+				new MenuItem(menu, SWT.SEPARATOR);
+				createMenuItem(_comm, menu, MenuID.Reverse, &reverseCoupons, () => !_readOnly && 2 <= _coupons.getItemCount());
 				new MenuItem(menu, SWT.SEPARATOR);
 				appendMenuTCPD(_comm, menu, new CouponTCPD, true, true, true, true, true);
 			} else { mixin(S_TRACE);

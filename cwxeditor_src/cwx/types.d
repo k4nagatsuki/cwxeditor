@@ -1455,6 +1455,7 @@ enum MenuID {
 	CopyVariablePath,
 	Up,
 	Down,
+	Reverse,
 	SwapToParent,
 	SwapToChild,
 	OverDialog,
