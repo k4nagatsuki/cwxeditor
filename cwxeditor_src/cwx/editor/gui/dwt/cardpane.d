@@ -2313,6 +2313,27 @@ private:
 		if (0 != linkId(c)) return null;
 		return createTextEditor(_comm, _prop, _list, c.name);
 	}
+	string toolTip(Card card) { mixin(S_TRACE);
+		if (!card) return "";
+		auto id = linkId(card);
+		if (!id) return "";
+		auto c = pOwnerCard(id);
+		if (c) { mixin(S_TRACE);
+			return .tryFormat(_prop.msgs.cardIsReference, id, c.name);
+		} else { mixin(S_TRACE);
+			return .tryFormat(_prop.msgs.referencedCardIsNotFound, id);
+		}
+	}
+	void updateToolTip(Event e) { mixin(S_TRACE);
+		if (_viewMode !is CViewMode.TABLE) return;
+		auto itm = _tbl.getItem(new Point(e.x, e.y));
+		if (itm) { mixin(S_TRACE);
+			auto card = cast(Card)itm.getData();
+			_tbl.setToolTipText(toolTip(card));
+		} else { mixin(S_TRACE);
+			_tbl.setToolTipText("");
+		}
+	}
 	void createCardList(Composite parent) { mixin(S_TRACE);
 		_pane = new Composite(parent, _style);
 		_pane.setLayout(zeroGridLayout(1, true));
@@ -2331,6 +2352,10 @@ private:
 		.listener(_tbl, SWT.FocusIn, { mixin(S_TRACE);
 			if (_viewMode !is CViewMode.TABLE) _list.setFocus();
 		});
+		.listener(_tbl, SWT.MouseMove, &updateToolTip);
+		.listener(_tbl, SWT.MouseEnter, &updateToolTip);
+		.listener(_tbl, SWT.MouseExit, &updateToolTip);
+		.listener(_tbl, SWT.Paint, &updateToolTip);
 
 		_preview = new Preview(_prop, _tbl);
 		auto closePreview = new ClosePreview;
@@ -2400,6 +2425,8 @@ private:
 		if (editMode) { mixin(S_TRACE);
 			new CardListEdit!Card(_comm, _list, &listEditEnd, &listCreateEditor);
 		}
+
+		_list.setToolTip(&toolTip);
 
 		_tcpd = [];
 		auto cl_ = new CL;

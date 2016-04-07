@@ -737,6 +737,21 @@ private:
 		foreach (dlg; modEvent) dlg();
 		refEnabled();
 	}
+	void updateBeastToolTip() { mixin(S_TRACE);
+		if (!selection) return;
+		auto beast = selection.beast;
+		string toolTip = "";
+		if (beast && beast.linkId) { mixin(S_TRACE);
+			auto id = beast.linkId;
+			auto c = _summ.beast(id);
+			if (c) { mixin(S_TRACE);
+				toolTip = .tryFormat(_prop.msgs.cardIsReference, id, c.name);
+			} else { mixin(S_TRACE);
+				toolTip = .tryFormat(_prop.msgs.referencedCardIsNotFound, id);
+			}
+		}
+		_beastImg.setToolTipText(toolTip);
+	}
 	class PaintBeast : PaintListener {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			auto beast = selection.beast;
@@ -757,6 +772,7 @@ private:
 					e.gc.setAlpha(255);
 				}
 			}
+			updateBeastToolTip();
 		}
 	}
 	class MDropListener : DropTargetAdapter {
@@ -1196,6 +1212,9 @@ public:
 						(cast(Canvas) e.widget).redraw();
 					}
 				});
+				.listener(_beastImg, SWT.MouseMove, &updateBeastToolTip);
+				.listener(_beastImg, SWT.MouseEnter, &updateBeastToolTip);
+				.listener(_beastImg, SWT.MouseExit, &updateBeastToolTip);
 				_beastImg.addPaintListener(new PaintBeast);
 				auto eb = new EditBeast;
 				_beastImg.addMouseListener(eb);

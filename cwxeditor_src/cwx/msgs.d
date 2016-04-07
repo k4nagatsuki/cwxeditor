@@ -1392,6 +1392,9 @@ class Msgs : Properties {
 	auto importResourceList = Msg("importResourceList", "次のリソースのうち、チェックを入れたものがインポートされます。");
 	auto overwriteMark = Msg("overwriteMark", "%1$s (上書き)");
 
+	auto cardIsReference = Msg("cardIsReference", "「%1$s.%2$s」を参照しています");
+	auto referencedCardIsNotFound = Msg("referencedCardIsNotFound", "参照先のカードが見つかりません(ID:%1$s)");
+
 	auto cardStatus = Msg("cardStatus", "%1$s枚のカード");
 	auto cardStatusSelOne = Msg("cardStatusSelOne", "%1$s枚のカード (ID = %2$s)");
 	auto cardStatusSelMulti = Msg("cardStatusSelMulti", "%1$s枚のカード (%2$s枚を選択中)");
