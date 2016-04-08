@@ -24,6 +24,7 @@ import cwx.editor.gui.dwt.timebar;
 import core.atomic;
 import core.thread;
 
+import std.algorithm : min;
 import std.array;
 import std.file;
 import std.path;

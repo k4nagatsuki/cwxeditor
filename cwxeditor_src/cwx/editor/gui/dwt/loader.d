@@ -42,6 +42,7 @@ import std.file;
 import std.datetime;
 import std.path;
 import std.process;
+import std.stdio;
 
 import org.eclipse.swt.all;
 

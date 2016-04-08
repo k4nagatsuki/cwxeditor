@@ -322,10 +322,14 @@ public:
 			_msel.paths = paths;
 			_image.redraw();
 		}
+		static struct MaterialPath {
+			CardImage[] images;
+			bool cancel;
+		}
 		/// 画像のファイルパス。
 		/// 必要な時は格納イメージを外部化する。
 		@property
-		Tuple!(CardImage[], "images", bool, "cancel") materialPath() { mixin(S_TRACE);
+		MaterialPath materialPath() { mixin(S_TRACE);
 			typeof(return) p;
 			p.images = images;
 			p.cancel = false;

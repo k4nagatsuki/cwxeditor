@@ -2346,7 +2346,7 @@ public:
 						toIndex = toTree.keyCodes.length;
 					} else { mixin(S_TRACE);
 						auto treeItm = ti.getParentItem();
-						toIndex = std.algorithm.max(0, treeItm.indexOf(ti) - keyCodesIndex(treeItm));
+						toIndex = .max(0, treeItm.indexOf(ti) - keyCodesIndex(treeItm));
 					}
 					if (fromIndex == toIndex) return;
 					auto tree = cast(EventTree)fromTreeItm.getData();

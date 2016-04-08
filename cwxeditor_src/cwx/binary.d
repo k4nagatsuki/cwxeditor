@@ -6,6 +6,7 @@ private import cwx.perf;
 private import core.stdc.stdio;
 
 private import std.algorithm : min;
+private import std.datetime;
 private import std.exception : enforce;
 private import std.string : format, toStringz;
 private import std.stdio;

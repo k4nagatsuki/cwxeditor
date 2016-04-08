@@ -40,7 +40,7 @@ import cwx.editor.gui.dwt.eventeditor;
 import cwx.editor.gui.dwt.eventview;
 
 import std.algorithm;
-import std.array : array;
+import std.array : array, replace, replicate;
 import std.ascii;
 import std.conv;
 import std.string;
@@ -321,7 +321,7 @@ private:
 				}
 			}
 		}
-		toolTip = std.array.replace(toolTip, "&", "&&");
+		toolTip = .replace(toolTip, "&", "&&");
 		if (_tree.control.getToolTipText() != toolTip) { mixin(S_TRACE);
 			_tree.control.setToolTipText(toolTip);
 		}
@@ -2052,7 +2052,7 @@ public:
 		auto c = cast(Content) itm.getData();
 		auto script = new CWXScript(_prop.parent, _summ);
 		auto text = script.toScript([c], summSkin.evtChildOK, _summ ? _summ.legacy : false, "\t");
-		text = std.array.replace(text ~ "\n", "\n", .newline);
+		text = .replace(text ~ "\n", "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
 	}
@@ -2060,7 +2060,7 @@ public:
 		if (!_et) return;
 		auto script = new CWXScript(_prop.parent, _summ);
 		auto text = script.toScript(_et.starts, summSkin.evtChildOK, _summ ? _summ.legacy : false, "\t");
-		text = std.array.replace(text ~ "\n", "\n", .newline);
+		text = .replace(text ~ "\n", "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
 	}
@@ -2072,7 +2072,7 @@ public:
 		auto c2 = new Content(c.type, c.name);
 		c2.shallowCopy(c);
 		auto text = script.toScript([c2], summSkin.evtChildOK, _summ ? _summ.legacy : false, "\t");
-		text = std.array.replace(text ~ "\n", "\n", .newline);
+		text = .replace(text ~ "\n", "\n", .newline);
 		_comm.clipboard.setContents([new ArrayWrapperString(text)], [TextTransfer.getInstance()]);
 		_comm.refreshToolBar();
 	}
@@ -4288,7 +4288,7 @@ Image warningImage(Props prop, Display d) { mixin(S_TRACE);
 	foreach (i, ref b; alphas) { mixin(S_TRACE);
 		b = cast(byte)(cast(real)i / prop.var.etc.warningImageWidth * alpha);
 	}
-	alphas = std.array.replicate(alphas, height);
+	alphas = .replicate(alphas, height);
 	assert (alphas.length == prop.var.etc.warningImageWidth * height);
 	auto imgData = buf.getImageData();
 	imgData.setAlphas(0, 0, prop.var.etc.warningImageWidth * height, alphas, 0);

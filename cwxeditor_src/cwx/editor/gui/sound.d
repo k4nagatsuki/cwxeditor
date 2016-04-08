@@ -4,6 +4,7 @@ module cwx.editor.gui.sound;
 import std.algorithm : min;
 import std.utf;
 import std.stdint;
+import std.stdio;
 import std.string;
 import std.conv;
 import std.path;

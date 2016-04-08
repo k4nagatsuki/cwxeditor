@@ -16,12 +16,14 @@ import core.thread;
 import std.exception;
 import std.array;
 import std.conv;
+import std.uni;
 import std.utf;
-import std.ascii;
+import std.ascii : isPrintable;
 import std.file;
 import std.datetime;
 import std.path;
 import std.process;
+import std.string;
 
 import org.eclipse.swt.all;
 

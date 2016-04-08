@@ -37,8 +37,9 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.centerlayout;
 
 import std.algorithm : max, min;
+import std.algorithm.mutation : swap;
 import std.range : iota;
-import std.array : split, array;
+import std.array : split, array, replace;
 import std.conv;
 import std.string : icmp, join, toLower;
 
@@ -472,7 +473,7 @@ private:
 				summ.insert(removeIndex, a);
 			}
 
-			std.algorithm.swap(_removeIndex, _insertIndex);
+			.swap(_removeIndex, _insertIndex);
 		}
 		override void undo() { mixin(S_TRACE);
 			impl();
@@ -513,7 +514,7 @@ private:
 			}
 			calls ~= area1;
 			calls ~= area2;
-			std.algorithm.swap(_index1, _index2);
+			.swap(_index1, _index2);
 		}
 		override void undo() { mixin(S_TRACE);
 			impl();
@@ -649,7 +650,7 @@ private:
 			foreach (a; summ.areas) put(a);
 			foreach (a; summ.battles) put(a);
 			foreach (a; summ.packages) put(a);
-			std.algorithm.swap(_oldPath, _newPath);
+			.swap(_oldPath, _newPath);
 
 			if (v && v._areas && !v._areas.isDisposed()) {
 				auto itm = v.findDirTree(_oldPath);
@@ -676,7 +677,7 @@ private:
 		assert (_dirMode);
 		auto t = cast(Text)ctrl;
 		if (!t) return;
-		auto newText = std.array.replace(t.getText(), "\\", "");
+		auto newText = .replace(t.getText(), "\\", "");
 		if (newText == "") return;
 		if (itm.getText() == newText) return;
 		if (auto summ = cast(Summary)itm.getData()) { mixin(S_TRACE);
@@ -728,7 +729,7 @@ private:
 		} else if (auto area = cast(AbstractArea) itm.getData()) { mixin(S_TRACE);
 			assert (area !is null);
 			if (_dirMode) { mixin(S_TRACE);
-				newText = std.array.replace(newText, "\\", "");
+				newText = .replace(newText, "\\", "");
 				if (newText == "") return;
 				if (area.baseName == newText) return;
 				storeEdit(_areas.indexOf(itm));

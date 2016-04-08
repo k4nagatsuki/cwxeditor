@@ -33,7 +33,7 @@ import cwx.editor.gui.dwt.images;
 import cwx.editor.gui.dwt.messageutils;
 import cwx.editor.gui.dwt.chooser;
 
-import std.algorithm : countUntil;
+import std.algorithm : countUntil, min;
 import std.traits;
 import std.conv;
 

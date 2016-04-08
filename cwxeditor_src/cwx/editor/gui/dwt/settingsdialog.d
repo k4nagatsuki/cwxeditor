@@ -887,7 +887,7 @@ private:
 			];
 			string[] targetVersionNames = [
 				_prop.msgs.cardWirthPy.value,
-			] ~ std.algorithm.map!((s) => .tryFormat(_prop.msgs.cardWirthWithVersion, s))(targetVersionVals[1..$]).array();
+			] ~ .map!((s) => .tryFormat(_prop.msgs.cardWirthWithVersion, s))(targetVersionVals[1..$]).array();
 			_targetVersion = createEnumC(grp, _prop.msgs.targetVersion, targetVersionVals, targetVersionNames, _targetVersionTbl, _targetVersionTbl2, 4);
 			auto dummy2 = new Composite(grp, SWT.NONE);
 			auto dgd2 = new GridData(GridData.FILL_HORIZONTAL);

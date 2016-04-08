@@ -11,6 +11,7 @@ import cwx.editor.gui.dwt.materialselect;
 import cwx.editor.gui.dwt.cardlist : cutText;
 
 import std.algorithm;
+import std.array;
 import std.conv;
 import std.exception;
 import std.path;
@@ -187,7 +188,7 @@ class ImageList : Composite {
 				setToolTipText("");
 			} else { mixin(S_TRACE);
 				setCursor(getDisplay().getSystemCursor(SWT.CURSOR_HAND));
-				setToolTipText(std.array.replace(_path[i], "&", "&&"));
+				setToolTipText(.replace(_path[i], "&", "&&"));
 			}
 		}
 	}

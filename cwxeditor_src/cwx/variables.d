@@ -431,6 +431,8 @@ class FlexEtcProps : Properties {
 	auto loopCountMax = Prop!(uint)("loopCountMax", 100, true);
 	auto fadeInMax = Prop!(uint)("fadeInMax", 1000, true);
 
+	auto selectionColumnsMax = Prop!(uint)("selectionColumnsMax", 4, true);
+
 	auto detailAreaWidth = Prop!(int)("detailAreaWidth", 200);
 
 	auto searchPlan = Prop!(int)("searchPlan", 0);

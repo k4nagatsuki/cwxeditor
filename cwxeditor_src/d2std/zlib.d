@@ -28,6 +28,8 @@ module d2std.zlib;
 
 //debug=zlib;       // uncomment to turn on debugging printf's
 
+import std.exception;
+
 import etc.c.zlib;
 
 // Values for 'mode'

@@ -2,7 +2,7 @@
 module cwx.structs;
 
 import cwx.perf;
-import cwx.utils : printStackTrace, fromBool;
+import cwx.utils : printStackTrace, fromBool, debugln;
 import cwx.features;
 import cwx.types;
 import cwx.xml;

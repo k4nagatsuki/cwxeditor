@@ -10,6 +10,7 @@ import std.conv;
 import std.file;
 import std.path;
 import std.math;
+import std.stdio;
 import std.string;
 import std.regex;
 import std.utf;

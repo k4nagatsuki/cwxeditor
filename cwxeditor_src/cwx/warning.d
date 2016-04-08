@@ -19,6 +19,7 @@ import cwx.motion;
 import cwx.sjis;
 import cwx.motion;
 
+import std.ascii;
 import std.conv;
 import std.path;
 import std.string;
@@ -471,7 +472,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= prop.msgs.warningChannel;
 			}
 		}
-		uint maxNextLen(in Content c) {
+		uint maxNextLen(in Content c) { mixin(S_TRACE);
 			if (c.type is CType.TALK_MESSAGE) { mixin(S_TRACE);
 				return c.text == "" ? prop.looks.selectionBarMax : prop.looks.selectionBarMaxWithMessage;
 			} else if (c.type is CType.TALK_DIALOG) { mixin(S_TRACE);
@@ -482,8 +483,14 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 			return uint.max;
 		}
-		if (c.detail.nextType is CNextType.TEXT && maxNextLen(c) < c.next.length) { mixin(S_TRACE);
-			r ~= .tryFormat(prop.msgs.warningSelectionBarIsMany, c.next.length, maxNextLen(c));
+		size_t rows(in Content c) { mixin(S_TRACE);
+			return (c.next.length + (c.selectionColumns - 1)) / c.selectionColumns;
+		}
+		if (c.detail.nextType is CNextType.TEXT && maxNextLen(c) < rows(c)) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningSelectionBarIsMany, rows(c), maxNextLen(c));
+		}
+		if (c.detail.nextType is CNextType.TEXT && c.selectionColumns != 1 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+			r ~= prop.msgs.warningSelectionColumns;
 		}
 
 		if (c.talkerNC is Talker.VALUED && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
@@ -567,9 +574,15 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	return r;
 }
 
+/// 台詞・メッセージ内で使用されているデータに対する警告のリスト。
+struct TextWarnings {
+	string[] all; /// 全ての警告。
+	string[] noDup; /// 重複する警告を取り除いた配列。
+}
+
 /// 台詞・メッセージ内で使用されているデータに対する警告を返す。
 /// 警告が行われたデータは引数の連想配列に格納される。
-Tuple!(string[], "all", string[], "noDup") textWarnings(in CProps prop, in Skin skin, in Summary summ, string targVer,
+TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, string targVer,
 		in string[] flags, in string[] steps, in string[] fonts, in char[] colors,
 		ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
 	string[] all = [];

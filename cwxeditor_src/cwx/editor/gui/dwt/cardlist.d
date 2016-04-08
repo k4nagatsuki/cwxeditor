@@ -5,7 +5,9 @@ import cwx.utils;
 
 import cwx.editor.gui.dwt.dutils : wDrawText, wTextExtent;
 
-import std.algorithm : sort, countUntil, max, min;
+import std.algorithm : countUntil, max, min;
+import std.algorithm.sorting : sort;
+import std.array;
 import std.conv;
 import std.datetime;
 
@@ -506,7 +508,7 @@ public:
 		C[] cs;
 		cs.length = _sels.length;
 		auto keys = _sels.keys;
-		std.algorithm.sort(keys);
+		.sort(keys);
 		foreach (i, key; keys) { mixin(S_TRACE);
 			auto c = _sels[key];
 			cs[i] = cast(C)c.getData();
@@ -666,7 +668,7 @@ private:
 	void refreshToolTip() { mixin(S_TRACE);
 		if (_createToolTip) { mixin(S_TRACE);
 			if (0 <= _oldMoveIndex && _oldMoveIndex < _items.length) { mixin(S_TRACE);
-				setToolTipText(std.array.replace(_createToolTip(cast(C) _items[_oldMoveIndex].getData()), "&", "&&"));
+				setToolTipText(.replace(_createToolTip(cast(C) _items[_oldMoveIndex].getData()), "&", "&&"));
 			} else { mixin(S_TRACE);
 				setToolTipText(_createToolTip(null));
 			}

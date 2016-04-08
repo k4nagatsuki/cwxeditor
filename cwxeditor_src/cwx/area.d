@@ -14,6 +14,7 @@ import cwx.types;
 import std.algorithm;
 import std.array;
 import std.conv;
+import std.file;
 import std.math;
 import std.string;
 

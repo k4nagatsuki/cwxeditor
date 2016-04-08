@@ -11,6 +11,8 @@ import std.array;
 import std.exception;
 import std.file;
 import std.path;
+import std.string;
+import std.utf;
 
 import core.stdc.string;
 

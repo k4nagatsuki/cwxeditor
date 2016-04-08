@@ -7,6 +7,9 @@ import cwx.structs;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
 
+import std.array;
+import std.string;
+
 import org.eclipse.swt.all;
 
 struct ButtonInfo {

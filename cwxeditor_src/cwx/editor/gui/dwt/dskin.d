@@ -11,11 +11,13 @@ import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.properties;
 import cwx.editor.gui.dwt.dutils;
 
+import std.algorithm : countUntil;
 import std.string;
 import std.utf;
 import std.ascii;
 import std.file;
 import std.path;
+import std.conv;
 
 import org.eclipse.swt.all;
 
@@ -127,7 +129,7 @@ version (Windows) {
 				if (FAILED(r) || 0 == cchOut) return null;
 				PathRemoveArgsW(path.ptr);
 				PathUnquoteSpacesW(path.ptr);
-				exe = std.conv.to!string(path[0 .. std.algorithm.countUntil(path, '\0')]);
+				exe = std.conv.to!string(path[0 .. .countUntil(path, '\0')]);
 			}
 			if (!.exists(exe)) return null;
 			SHFILEINFO info;

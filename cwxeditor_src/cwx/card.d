@@ -17,6 +17,7 @@ import cwx.system;
 import std.algorithm;
 import std.array;
 import std.exception;
+import std.typecons;
 import std.conv;
 
 /// データをXML化する時のオプション。

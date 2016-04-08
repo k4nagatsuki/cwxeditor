@@ -6,6 +6,7 @@ import cwx.sjis;
 
 import lhafile.lhafile;
 
+import std.algorithm;
 import std.array;
 import std.file;
 import std.path;

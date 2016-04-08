@@ -688,7 +688,7 @@ public:
 	/// 指定された名前のフラグ・ステップ・サブディレクトリが
 	/// 追加可能であればtrueを返す。
 	const
-	private bool canAppend(F)(string name) { mixin(S_TRACE);
+	bool canAppend(F)(string name) { mixin(S_TRACE);
 		static if (is(F:Flag)) {
 			name = validName(name);
 			if (name.length == 0) { mixin(S_TRACE);

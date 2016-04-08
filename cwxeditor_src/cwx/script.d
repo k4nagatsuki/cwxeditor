@@ -2785,6 +2785,9 @@ fi`;
 			if (detail.use(CArg.SOUND_LOOP_COUNT)) { mixin(S_TRACE);
 				c.soundLoopCount = parseAttr!(int)(opt, node.attr, i, c.soundLoopCount, varTable, 0);
 			}
+			if (detail.use(CArg.ROUND)) { mixin(S_TRACE);
+				c.round = parseAttr!(int)(opt, node.attr, i, c.round, varTable, 0);
+			}
 			if (detail.use(CArg.TRANSITION_SPEED)) { mixin(S_TRACE);
 				c.transitionSpeed = parseAttr!(int)(opt, node.attr, i, c.transitionSpeed, varTable, 0);
 			}
@@ -2797,14 +2800,16 @@ fi`;
 			if (detail.use(CArg.IGNORE_EFFECT_BOOSTER)) { mixin(S_TRACE);
 				c.ignoreEffectBooster = parseAttr!(bool)(opt, node.attr, i, c.ignoreEffectBooster, varTable, 0);
 			}
-			if (detail.use(CArg.INIT_VALUE)) { mixin(S_TRACE);
-				c.initValue = parseAttr!(int)(opt, node.attr, i, c.initValue, varTable, 0);
+			if (c.talkerNC is Talker.VALUED || c.selectionMethod is SelectionMethod.Valued) { mixin(S_TRACE);
+				if (detail.use(CArg.INIT_VALUE)) { mixin(S_TRACE);
+					c.initValue = parseAttr!(int)(opt, node.attr, i, c.initValue, varTable, 0);
+				}
+				if (detail.use(CArg.COUPONS)) { mixin(S_TRACE);
+					c.coupons = parseAttr!(Coupon[])(opt, node.attr, i, c.coupons, varTable, 0);
+				}
 			}
-			if (detail.use(CArg.COUPONS)) { mixin(S_TRACE);
-				c.coupons = parseAttr!(Coupon[])(opt, node.attr, i, c.coupons, varTable, 0);
-			}
-			if (detail.use(CArg.ROUND)) { mixin(S_TRACE);
-				c.round = parseAttr!(int)(opt, node.attr, i, c.round, varTable, 0);
+			if (detail.use(CArg.SELECTION_COLUMNS)) { mixin(S_TRACE);
+				c.selectionColumns = parseAttr!(int)(opt, node.attr, i, c.selectionColumns, varTable, 0);
 			}
 			Content autoWrap(Content c) { mixin(S_TRACE);
 				if (!c.detail.owner) { mixin(S_TRACE);
@@ -3651,6 +3656,9 @@ fi`;
 			if (detail.use(CArg.SOUND_LOOP_COUNT)) { mixin(S_TRACE);
 				attrs ~= toAttr(c.soundLoopCount, indentValue, vars);
 			}
+			if (detail.use(CArg.ROUND)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.round, indentValue, vars);
+			}
 			if (!legacy) { mixin(S_TRACE);
 				if (detail.use(CArg.TRANSITION_SPEED)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.transitionSpeed, indentValue, vars);
@@ -3670,12 +3678,13 @@ fi`;
 				if (detail.use(CArg.INIT_VALUE)) { mixin(S_TRACE);
 					attrs ~= toAttr(c.initValue, indentValue, vars);
 				}
-				if (detail.use(CArg.COUPONS) && c.coupons.length) { mixin(S_TRACE);
+				// 後続に選択肢値が出現する場合は必ず値を生成する必要がある
+				if (detail.use(CArg.COUPONS) && (c.coupons.length || (detail.use(CArg.SELECTION_COLUMNS) && c.selectionColumns != 1))) { mixin(S_TRACE);
 					attrs ~= toAttr(c.coupons, indentValue, vars);
 				}
 			}
-			if (detail.use(CArg.ROUND)) { mixin(S_TRACE);
-				attrs ~= toAttr(c.round, indentValue, vars);
+			if (detail.use(CArg.SELECTION_COLUMNS) && c.selectionColumns != 1) { mixin(S_TRACE);
+				attrs ~= toAttr(c.selectionColumns, indentValue, vars);
 			}
 			bool useIf = c.next.length > 1;
 			bool useSif = c.next.length == 1 && c.next[0].name.length;

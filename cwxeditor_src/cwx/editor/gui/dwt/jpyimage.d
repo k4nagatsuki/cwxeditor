@@ -12,6 +12,7 @@ import cwx.summary;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
 
+import std.algorithm : max;
 import std.file;
 import std.path;
 import std.string;

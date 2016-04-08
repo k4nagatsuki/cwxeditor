@@ -41,6 +41,7 @@ import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.imagelistwindow;
 
+import std.algorithm : max;
 import std.array;
 import std.utf;
 import std.string;
@@ -49,12 +50,16 @@ import std.conv;
 import std.exception;
 import std.ascii;
 import std.path;
+import std.typecons;
+import std.range;
 
 import org.eclipse.swt.all;
 import java.lang.all;
 
 /// 台詞コンテント・メッセージコンテントのダイアログの親クラス。
 class AbstractMessageDialog : EventDialog {
+	private Spinner _selectionColumns;
+
 	private KeyDownFilter _kdFilter;
 	private MsgPreviewWindow _previewWin = null;
 	private MsgPreview _preview = null;
@@ -67,7 +72,7 @@ class AbstractMessageDialog : EventDialog {
 		return _summSkin ? _summSkin : comm.skin;
 	}
 
-	private Tuple!(string[], "all", string[], "noDup") textWarnings(in string[] flags, in string[] steps, in string[] fonts, in char[] colors,
+	private TextWarnings textWarnings(in string[] flags, in string[] steps, in string[] fonts, in char[] colors,
 			ref bool[string] wFlags, ref bool[string] wSteps, ref bool[string] wFonts, ref bool[char] wColors) { mixin(S_TRACE);
 		return .textWarnings(prop.parent, summSkin, summ, prop.var.etc.targetVersion,
 			flags, steps, fonts, colors, wFlags, wSteps, wFonts, wColors);
@@ -305,6 +310,24 @@ class AbstractMessageDialog : EventDialog {
 
 	@property
 	protected abstract CardImage[] imgPaths();
+
+	protected Composite createSelectionColumns(Composite parent) { mixin(S_TRACE);
+		auto comp = new Composite(parent, SWT.NONE);
+		auto gl = new GridLayout(3, false);
+		gl.marginHeight = 0;
+		comp.setLayout(gl);
+		auto l = new Label(comp, SWT.NONE);
+		l.setText(prop.msgs.selectionColumns);
+		_selectionColumns = new Spinner(comp, SWT.BORDER);
+		mod(_selectionColumns);
+		initSpinner(_selectionColumns);
+		_selectionColumns.setMaximum(prop.var.etc.selectionColumnsMax);
+		_selectionColumns.setMinimum(1);
+		.listener(_selectionColumns, SWT.Selection, &refDataVersion);
+		auto hint = new Label(comp, SWT.NONE);
+		hint.setText(.tryFormat(prop.msgs.rangeHint, 1, prop.var.etc.selectionColumnsMax));
+		return comp;
+	}
 }
 
 /// 台詞コンテントの設定ダイアログ。
@@ -401,8 +424,20 @@ private:
 		_warningTip.setVisible(false);
 		_warningTip.setMessage("");
 
+		if (!prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
+			if (_selectionColumns.getSelection() != 1) { mixin(S_TRACE);
+				ws ~= prop.msgs.warningSelectionColumns;
+			}
+		}
+
 		warning = ws;
 	}
+
+	protected override void refDataVersion() { mixin(S_TRACE);
+		_selectionColumns.setEnabled(!summ || !summ.legacy || _selectionColumns.getSelection() != 1);
+		refreshWarning();
+	}
+
 	class MouseMoveDlgsL : MouseTrackAdapter, MouseMoveListener {
 		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
 			string toolTip = "";
@@ -848,10 +883,12 @@ protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		super.setup(area);
 
-		area.setLayout(windowGridLayout(1, true));
+		area.setLayout(windowGridLayout(2, false));
 
 		auto sash = new SplitPane(area, SWT.HORIZONTAL);
-		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto sgd = new GridData(GridData.FILL_BOTH);
+		sgd.horizontalSpan = 2;
+		sash.setLayoutData(sgd);
 		auto left = new Composite(sash, SWT.NONE);
 		left.setLayout(zeroMarginGridLayout(1, true));
 		{ mixin(S_TRACE);
@@ -959,18 +996,23 @@ protected:
 			_text.widget.setLayoutData(_text.computeTextBaseSize(prop.looks.messageLine));
 			_text.widget.addModifyListener(new ModL);
 		}
-		{ mixin(S_TRACE);
-			auto bar = createSCharBar(comm, area, &insert, &put, prop, skin);
-			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		}
-		{ mixin(S_TRACE);
-			auto bar = createSkinSCharBar(comm, area, &insert, prop, skin);
-			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		}
-		{ mixin(S_TRACE);
-			auto bar = createFlagStepBar(area, &insert, comm, prop, skin, summ, true);
-			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		}
+
+		auto sChar = createSCharBar(comm, area, &insert, &put, prop, skin);
+		sChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+		auto rows = createSelectionColumns(area);
+
+		auto skinSChar = createSkinSCharBar(comm, area, &insert, prop, skin);
+		auto gdS = new GridData(GridData.FILL_HORIZONTAL);
+		gdS.horizontalSpan = 2;
+		skinSChar.setLayoutData(gdS);
+
+		auto var = createFlagStepBar(area, &insert, comm, prop, skin, summ, true);
+		auto gdV = new GridData(GridData.FILL_HORIZONTAL);
+		gdV.horizontalSpan = 2;
+		var.setLayoutData(gdV);
+
+		area.setTabList([sash, sChar, skinSChar, var, rows]);
 
 		.setupWeights(leftSash, prop.var.etc.talkLeftSashL, prop.var.etc.talkLeftSashR);
 		.setupWeights(sash, prop.var.etc.talkMainSashL, prop.var.etc.talkMainSashR);
@@ -1006,9 +1048,11 @@ protected:
 			}
 			_couponView.coupons = evt.coupons;
 			_initValue.setSelection(evt.initValue);
+			_selectionColumns.setSelection(evt.selectionColumns);
 		} else { mixin(S_TRACE);
 			_talkers.select(0);
 			_dlgs = [new SDialog];
+			_selectionColumns.setSelection(1);
 		}
 		refreshDlgList();
 
@@ -1018,7 +1062,7 @@ protected:
 		initPreview(area, prop.var.dlgPrev);
 		updateValue();
 		updateTalker();
-		refreshWarning();
+		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -1032,6 +1076,7 @@ protected:
 			evt.coupons = [];
 			evt.initValue = 0;
 		}
+		evt.selectionColumns = _selectionColumns.getSelection();
 		comm.refCoupons.call();
 		return true;
 	}
@@ -1063,8 +1108,20 @@ private:
 		ws ~= textWarnings(flags, steps, fonts, colors,
 			wFlags, wSteps, wFonts, wColors).all;
 
+		if (!prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
+			if (_selectionColumns.getSelection() != 1) { mixin(S_TRACE);
+				ws ~= prop.msgs.warningSelectionColumns;
+			}
+		}
+
 		warning = ws;
 	}
+
+	protected override void refDataVersion() { mixin(S_TRACE);
+		_selectionColumns.setEnabled(!summ || !summ.legacy || _selectionColumns.getSelection() != 1);
+		refreshWarning();
+	}
+
 	void tabChanged() { mixin(S_TRACE);
 		switch (_tabf.getSelectionIndex()) {
 		case 0:
@@ -1131,10 +1188,12 @@ protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		super.setup(area);
 
-		area.setLayout(new GridLayout(1, true));
+		area.setLayout(windowGridLayout(2, false));
 		_tabf = new CTabFolder(area, SWT.BORDER);
 		mod(_tabf);
-		_tabf.setLayoutData(new GridData(GridData.FILL_BOTH));
+		auto gdT = new GridData(GridData.FILL_BOTH);
+		gdT.horizontalSpan = 2;
+		_tabf.setLayoutData(gdT);
 		auto skin = comm.skin;
 		{ mixin(S_TRACE);
 			auto comp = new Composite(_tabf, SWT.NONE);
@@ -1167,20 +1226,25 @@ protected:
 			tab.setText(prop.msgs.noImageMessage);
 			tab.setControl(_msgCompB);
 		}
-		{ mixin(S_TRACE);
-			auto bar = createSCharBar(comm, area, &insert, &put, prop, skin);
-			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		}
-		{ mixin(S_TRACE);
-			auto bar = createSkinSCharBar(comm, area, &insert, prop, skin);
-			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		}
-		{ mixin(S_TRACE);
-			auto bar = createFlagStepBar(area, &insert, comm, prop, skin, summ, true);
-			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		}
+
+		auto sChar = createSCharBar(comm, area, &insert, &put, prop, skin);
+		sChar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+		auto rows = createSelectionColumns(area);
+
+		auto skinSChar = createSkinSCharBar(comm, area, &insert, prop, skin);
+		auto gdS = new GridData(GridData.FILL_HORIZONTAL);
+		gdS.horizontalSpan = 2;
+		skinSChar.setLayoutData(gdS);
+
+		auto var = createFlagStepBar(area, &insert, comm, prop, skin, summ, true);
+		auto gdV = new GridData(GridData.FILL_HORIZONTAL);
+		gdV.horizontalSpan = 2;
+		var.setLayoutData(gdV);
 
 		_tabf.addSelectionListener(new SL);
+
+		area.setTabList([_tabf, sChar, skinSChar, var, rows]);
 
 		ignoreMod = true;
 		scope (exit) ignoreMod = false;
@@ -1190,14 +1254,17 @@ protected:
 			if (evt.cardPaths == []) { mixin(S_TRACE);
 				_tabf.setSelection(1);
 			}
+			_selectionColumns.setSelection(evt.selectionColumns);
 		} else { mixin(S_TRACE);
 			_tabf.setSelection(1);
+			_selectionColumns.setSelection(1);
 		}
 		tabChanged();
 
 		initPreview(area, prop.var.msgPrev);
 		_msel.modEvent ~= &refreshPreview;
 		_msel.updateImageEvent ~= &refreshPreview;
+		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -1207,6 +1274,7 @@ protected:
 		if (!evt) evt = new Content(CType.TALK_MESSAGE, "");
 		evt.text = text;
 		evt.cardPaths = paths;
+		evt.selectionColumns = _selectionColumns.getSelection();
 		return true;
 	}
 }

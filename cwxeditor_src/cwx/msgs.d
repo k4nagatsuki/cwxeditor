@@ -485,6 +485,7 @@ class Msgs : Properties {
 	auto roundCmpIs = Msg("roundCmpIs", "ラウンド");
 	auto doAnime = Msg("doAnime", "JPY1アニメーションを実行する");
 	auto ignoreEffectBooster = Msg("ignoreEffectBooster", "エフェクトブースター関係のセルを無視する");
+	auto selectionColumns = Msg("selectionColumns", "選択肢の列数");
 
 	const string blendModeName(BlendMode id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(BlendMode, "blendModeName"));
@@ -684,10 +685,15 @@ class Msgs : Properties {
 	auto ctEffectBreak = Msg("ctEffectBreak", "効果中断コンテント");
 	auto ctLinkStart = Msg("ctLinkStart", "スタートコンテント「%1$s」へのリンク");
 	auto ctLinkPackage = Msg("ctLinkPackage", "パッケージ「%1$s」へのリンク");
-	auto ctTalkMessage = Msg("ctTalkMessage", "%1$s: %2$s");
 	auto ctTalkMessageImage = Msg("ctTalkMessageImage", "[%1$s]");
+	auto ctTalkMessage = Msg("ctTalkMessage", "%1$s: %2$s");
+	auto ctTalkMessageWithColumns = Msg("ctTalkMessageWithColumns", "%1$s: %2$s (%3$s列の選択肢)");
+	auto ctTalkMessageNarration = Msg("ctTalkMessageNarration", "%1$s");
+	auto ctTalkMessageNarrationWithColumns = Msg("ctTalkMessageNarrationWithColumns", "%1$s (%2$s列の選択肢)");
 	auto ctTalkDialog = Msg("ctTalkDialog", "%1$s %2$s: %3$s");
+	auto ctTalkDialogWithColumns = Msg("ctTalkDialogWithColumns", "%1$s %2$s: %3$s (%4$s列の選択肢)");
 	auto ctTalkDialogNoCoupon = Msg("ctTalkDialogNoCoupon", "%1$s: %2$s");
+	auto ctTalkDialogNoCouponWithColumns = Msg("ctTalkDialogNoCouponWithColumns", "%1$s: %2$s (%3$s列の選択肢)");
 	auto ctPlayBGM = Msg("ctPlayBGM", "BGMとして「%1$s」を演奏 Ch. = %2$s フェードイン時間 = %3$s × 0.1秒 音量 = %4$s%% ループ回数 = %5$s");
 	auto ctStopBGM = Msg("ctStopBGM", "BGM停止 Ch. = %1$s フェードアウト時間 = %2$s × 0.1秒");
 	auto ctPlaySound = Msg("ctPlaySound", "効果音「%1$s」を鳴らす Ch. = %2$s フェードイン時間 = %3$s × 0.1秒 音量 = %4$s%% ループ回数 = %5$s");
@@ -1587,7 +1593,7 @@ class Msgs : Properties {
 	auto warningBgImageIncluded = Msg("warningBgImageForeground", "背景セルのイメージ格納は、CardWirth 1.60より前のバージョンでは行えません。");
 	auto warningBgImageForeground = Msg("warningBgImageForeground", "カードよりも前の表示は、CardWirth 1.60より前のバージョンでは行えません。");
 	auto warningBgImageCellName = Msg("warningBgImageCellName", "背景セル名称は、WSN1以降の形式のシナリオでしか設定できません。");
-	auto warningSelectionBarIsMany = Msg("warningSelectionBarIsMany", "選択肢が%1$s件ありますが、%2$s件までしか表示できません。");
+	auto warningSelectionBarIsMany = Msg("warningSelectionBarIsMany", "選択肢が%1$s行ありますが、%2$s行までしか表示できません。");
 	auto warningEveryRound = Msg("warningEveryRound", "イベント発火条件「毎ラウンド」は、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningRound0 = Msg("warningRound0", "イベント発火条件「バトル開始」は、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningUnknownMotion = Msg("warningUnknownMotion", "効果 [%1$s] は、CardWirth %2$sより前のバージョンでは使用できません。");
@@ -1598,6 +1604,7 @@ class Msgs : Properties {
 	auto warningValuedSelectionMethod = Msg("warningValuedSelectionMethod", "評価条件によるメンバ選択分岐は、WSN1以降の形式のシナリオしか行えません。");
 	auto warningSkillPowerWithFixedValue = Msg("warningSkillPowerWithFixedValue", "精神力操作の固定値指定は、WSN1以降の形式のシナリオしか行えません。"); // Wsn.1
 	auto warningIncludedImage = Msg("warningIncludedImage", "WSN形式のシナリオでは格納イメージは使用できません。");
+	auto warningSelectionColumns = Msg("warningSelectionColumns", "選択肢の複数列表示は、WSN1以降の形式のシナリオしか行えません。");
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

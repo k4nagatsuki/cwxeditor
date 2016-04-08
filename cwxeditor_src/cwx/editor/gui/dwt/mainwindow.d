@@ -47,6 +47,8 @@ import cwx.editor.gui.dwt.loader;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.customtoolbar;
 
+static import d2std.zlib;
+
 import core.memory;
 import core.thread;
 import core.sync.mutex;
@@ -65,6 +67,7 @@ import std.csv;
 import std.functional;
 import std.exception;
 import d2std.zip;
+import std.typecons;
 debug import std.stdio;
 
 import org.eclipse.swt.all;

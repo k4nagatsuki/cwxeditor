@@ -14,7 +14,7 @@ import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.eventtreeview;
 
 import std.algorithm;
-import std.array : array;
+import std.array : array, replace;
 import std.ascii;
 import std.conv;
 import std.datetime;
@@ -795,7 +795,7 @@ class EventEditor : Composite {
 				}
 			}
 		}
-		toolTip = std.array.replace(toolTip, "&", "&&");
+		toolTip = .replace(toolTip, "&", "&&");
 		if (getToolTipText() != toolTip) { mixin(S_TRACE);
 			setToolTipText(toolTip);
 		}

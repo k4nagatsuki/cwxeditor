@@ -45,6 +45,7 @@ import cwx.editor.gui.dwt.absdialog;
 
 import core.thread;
 
+import std.algorithm : max, min;
 import std.array;
 import std.conv;
 import std.utf;
@@ -55,6 +56,9 @@ import std.path;
 import std.process;
 import std.functional;
 import std.typecons : Rebindable;
+import std.stdio;
+import std.string;
+import std.math;
 
 import org.eclipse.swt.all;
 
@@ -2617,8 +2621,8 @@ RGB alphaColor(in RGB c, in RGB b, int a) { mixin(S_TRACE);
 	if (255 < a) a = 255;
 	int oc(int c, int b) { mixin(S_TRACE);
 		if (c == b) return c;
-		int mx = std.algorithm.max(c, b);
-		int mn = std.algorithm.min(c, b);
+		int mx = .max(c, b);
+		int mn = .min(c, b);
 		return mn + (mx - mn) - cast(int) ((mx - mn) * (a / 255.0));
 	}
 	return new RGB(oc(c.red, b.red), oc(c.green, b.green), oc(c.blue, b.blue));
@@ -2982,18 +2986,35 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		text = text.singleLine;
 		if (evt.cardPaths.length) {
 			auto t = contentTextUseID!(CIDKind.CardImages)(comm, summ, evt.cardPaths, comm.prop.msgs.ctTalkMessageImage, evt);
-			return .tryFormat(comm.prop.msgs.ctTalkMessage, t, text);
+			if (evt.selectionColumns == 1) { mixin(S_TRACE);
+				return .tryFormat(comm.prop.msgs.ctTalkMessage, t, text);
+			} else { mixin(S_TRACE);
+				return .tryFormat(comm.prop.msgs.ctTalkMessageWithColumns, t, text, evt.selectionColumns);
+			}
 		} else {
-			return text;
+			if (evt.selectionColumns == 1) { mixin(S_TRACE);
+				return .tryFormat(comm.prop.msgs.ctTalkMessageNarration, text);
+			} else { mixin(S_TRACE);
+				return .tryFormat(comm.prop.msgs.ctTalkMessageNarrationWithColumns, text, evt.selectionColumns);
+			}
 		}
 	} case CType.TALK_DIALOG: { mixin(S_TRACE);
 		string r(in SDialog sdlg) { mixin(S_TRACE);
 			string tt = .tryFormat(comm.prop.msgs.ctTalkMessageImage, comm.prop.msgs.talkerName(evt.talkerNC));
 			string t = sdlg.text.singleLine;
 			if (sdlg.rCoupons.length) { mixin(S_TRACE);
-				return .tryFormat(comm.prop.msgs.ctTalkDialog, tt, std.string.join(sdlg.rCoupons.dup, " "), t);
+				auto cp = std.string.join(sdlg.rCoupons.dup, " ");
+				if (evt.selectionColumns == 1) { mixin(S_TRACE);
+					return .tryFormat(comm.prop.msgs.ctTalkDialog, tt, cp, t);
+				} else { mixin(S_TRACE);
+					return .tryFormat(comm.prop.msgs.ctTalkDialogWithColumns, tt, cp, t, evt.selectionColumns);
+				}
 			} else { mixin(S_TRACE);
-				return .tryFormat(comm.prop.msgs.ctTalkDialogNoCoupon, tt, t);
+				if (evt.selectionColumns == 1) { mixin(S_TRACE);
+					return .tryFormat(comm.prop.msgs.ctTalkDialogNoCoupon, tt, t);
+				} else { mixin(S_TRACE);
+					return .tryFormat(comm.prop.msgs.ctTalkDialogNoCouponWithColumns, tt, t, evt.selectionColumns);
+				}
 			}
 		}
 		assert (evt.dialogs.length);

@@ -8,9 +8,11 @@ import cwx.props;
 import cwx.usecounter;
 import cwx.path;
 
+import std.algorithm;
 import std.array;
 import std.conv;
 import std.exception;
+import std.file;
 import std.string;
 import std.regex;
 import std.utf;

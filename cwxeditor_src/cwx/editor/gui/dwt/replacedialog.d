@@ -35,7 +35,10 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.incsearch;
 
-import std.algorithm : map;
+import core.thread;
+static import core.memory;
+
+import std.algorithm : map, uniq, swap, count;
 import std.range;
 import std.ascii;
 import std.conv;
@@ -44,8 +47,8 @@ import std.string;
 import std.file;
 import std.path;
 import std.regex : Regex, regex, RegexMatch, match;
+static import std.regex;
 import std.utf;
-import std.algorithm : uniq, swap;
 import std.traits;
 import std.typecons : Tuple;
 
@@ -2864,7 +2867,7 @@ public:
 					_inProc = false;
 					setResultStatus(cast(int)count);
 					if (count) { mixin(S_TRACE);
-						foreach (fromTo; std.algorithm.uniq(fromTos)) { mixin(S_TRACE);
+						foreach (fromTo; .uniq(fromTos)) { mixin(S_TRACE);
 							_comm.replPath.call(fromTo[0], fromTo[1]);
 						}
 					}
@@ -3889,7 +3892,7 @@ public:
 			if (_exactSel) { mixin(S_TRACE);
 				return 0 == cmp(s, from) ? 1 : 0;
 			} else { mixin(S_TRACE);
-				return std.algorithm.count(s, from);
+				return .count(s, from);
 			}
 		} else { mixin(S_TRACE);
 			if (_exactSel) { mixin(S_TRACE);

@@ -7,6 +7,7 @@ import cwx.editor.gui.dwt.dutils;
 
 import std.algorithm;
 import std.datetime;
+import std.string;
 
 import org.eclipse.swt.all;
 

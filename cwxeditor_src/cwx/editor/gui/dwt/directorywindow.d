@@ -30,6 +30,7 @@ import cwx.editor.gui.dwt.images;
 import core.thread;
 import core.sync.mutex;
 
+import std.algorithm : countUntil;
 import std.array;
 import std.conv;
 import std.datetime;
@@ -2339,7 +2340,7 @@ class Exec {
 					wcom[$ - 1] = '\0';
 					PathRemoveArgsW(wcom.ptr);
 					PathUnquoteSpacesW(wcom.ptr);
-					com = wcom[0 .. std.algorithm.countUntil(wcom, '\0')].idup;
+					com = wcom[0 .. .countUntil(wcom, '\0')].idup;
 					if (com.length) { mixin(S_TRACE);
 						auto thr = new core.thread.Thread({ mixin(S_TRACE);
 							auto exeIcon = loadIcon(to!string(com), 16, 16, (void delegate() dlg) { mixin(S_TRACE);

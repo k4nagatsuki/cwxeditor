@@ -67,7 +67,8 @@ debug {
 		}
 		/// unittestの実行時間を計測する。
 		static const UTPerf
-			= "scope f_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);"
+			= "static import std.datetime;"
+			~ "scope f_timer = std.datetime.StopWatch(std.datetime.AutoStart.yes);"
 			~ "scope (exit) {"
 			~ "f_timer.stop();"
 			~ ".utperf += f_timer.peek().msecs;"

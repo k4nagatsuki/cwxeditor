@@ -21,6 +21,7 @@ import std.algorithm;
 import std.datetime;
 import std.string;
 import std.traits;
+import std.typecons;
 import std.conv;
 import std.range;
 
@@ -131,8 +132,8 @@ private void static_this () { mixin(S_TRACE);
 		CType.EFFECT_BREAK:CDetail("Effect", "Break", CNextType.NONE, false),
 		CType.LINK_START:CDetail("Link", "Start", CNextType.NONE, false, [CArg.START:"link"]),
 		CType.LINK_PACKAGE:CDetail("Link", "Package", CNextType.NONE, false, [CArg.PACKAGE:"link"]),
-		CType.TALK_MESSAGE:CDetail("Talk", "Message", CNextType.TEXT, true, [CArg.TALKER_C:_("path"), CArg.TEXT:null]),
-		CType.TALK_DIALOG:CDetail("Talk", "Dialog", CNextType.TEXT, true, [CArg.TALKER_NC:_("targetm"), CArg.DIALOGS:null, CArg.COUPONS:null, CArg.INIT_VALUE:"initialValue"]),
+		CType.TALK_MESSAGE:CDetail("Talk", "Message", CNextType.TEXT, true, [CArg.TALKER_C:_("path"), CArg.TEXT:null, CArg.SELECTION_COLUMNS:"columns"]),
+		CType.TALK_DIALOG:CDetail("Talk", "Dialog", CNextType.TEXT, true, [CArg.TALKER_NC:_("targetm"), CArg.DIALOGS:null, CArg.COUPONS:null, CArg.INIT_VALUE:"initialValue", CArg.SELECTION_COLUMNS:"columns"]),
 		CType.PLAY_BGM:CDetail("Play", "Bgm", CNextType.NONE, true, [CArg.BGM_PATH:"path", CArg.BGM_CHANNEL:"channel", CArg.BGM_VOLUME:"volume", CArg.BGM_LOOP_COUNT:"loopcount", CArg.BGM_FADE_IN:"fadein"]),
 		CType.PLAY_SOUND:CDetail("Play", "Sound", CNextType.NONE, true, [CArg.SOUND_PATH:"path", CArg.SOUND_CHANNEL:"channel", CArg.SOUND_VOLUME:"volume", CArg.SOUND_LOOP_COUNT:"loopcount", CArg.SOUND_FADE_IN:"fadein"]),
 		CType.WAIT:CDetail("Wait", "", CNextType.NONE, true, [CArg.WAIT:"value"]),
@@ -587,6 +588,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.doAnime = c.doAnime;
 		this.ignoreEffectBooster = c.ignoreEffectBooster;
 
+		this.selectionColumns = c.selectionColumns;
+
 		Motion[] motions;
 		foreach (m; c.motions) { mixin(S_TRACE);
 			motions ~= m.dup;
@@ -719,6 +722,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 			&& doAnime == c.doAnime
 			&& ignoreEffectBooster == c.ignoreEffectBooster
+
+			&& selectionColumns == c.selectionColumns
 
 			&& motions == c.motions
 
@@ -891,6 +896,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		resetValue!(CArg.DO_ANIME, bool, false)(d, &doAnime);
 		resetValue!(CArg.IGNORE_EFFECT_BOOSTER, bool, true)(d, &ignoreEffectBooster);
+
+		resetValue!(CArg.SELECTION_COLUMNS, uint, 1)(d, &selectionColumns);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
 
@@ -1659,6 +1666,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	/// エフェクトブースター関係のセルを無視する(Wsn.1)。
 	mixin Prop!(bool, "ignoreEffectBooster", false);
 
+	/// 後続選択肢の列数(Wsn.1)。
+	mixin Prop!(uint, "selectionColumns", 1);
+	mixin MaxMin!(uint, "selectionColumns", uint.max, 1u);
+
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
 
@@ -1976,6 +1987,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.DO_ANIME, "doAnime", "fromBool")(e, d);
 		atnPut!(CArg.IGNORE_EFFECT_BOOSTER, "ignoreEffectBooster", "fromBool")(e, d);
 
+		atnPut!(CArg.SELECTION_COLUMNS, "selectionColumns", "")(e, d);
+
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
 			auto me = e.newElement("Motions");
@@ -2182,6 +2195,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		cfnPut!(CArg.DO_ANIME, "doAnime", "parseBool")(en, d, r);
 		cfnPut!(CArg.IGNORE_EFFECT_BOOSTER, "ignoreEffectBooster", "parseBool")(en, d, r);
+
+		cfnPut!(CArg.SELECTION_COLUMNS, "selectionColumns", "to!(uint)")(en, d, r);
 
 		// 多少複雑なもの
 		if (d.use(CArg.TRANSITION)) { mixin(S_TRACE);

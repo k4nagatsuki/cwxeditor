@@ -132,6 +132,7 @@ import std.array;
 import std.ascii;
 import std.string;
 import std.encoding;
+import std.utf;
 
 enum cdata = "<![CDATA[";
 

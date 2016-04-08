@@ -35,7 +35,9 @@ D2のstd.zipをD1から使用できるように改造したモジュールであ
  */
 module d2std.zip;
 
-import d2std.zlib: NGCArray;
+import d2std.zlib;
+
+import std.conv;
 
 //debug=print;
 

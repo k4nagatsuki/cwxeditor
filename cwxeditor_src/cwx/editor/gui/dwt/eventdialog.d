@@ -39,6 +39,7 @@ import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.couponview;
 
 import std.algorithm : countUntil;
+import std.array;
 import std.conv;
 import std.math;
 import std.path;
@@ -1326,7 +1327,7 @@ protected:
 						}
 						radio.setLayoutData(gd);
 						radio.setText(.tryFormat(_prop.msgs.effectTypeElement, _prop.msgs.effectTypeName(eff)));
-						radio.setToolTipText(std.array.replace(_prop.msgs.effectTypeDesc(eff), "&", "&&"));
+						radio.setToolTipText(.replace(_prop.msgs.effectTypeDesc(eff), "&", "&&"));
 						_effTyp[eff] = radio;
 					}
 				}
@@ -1339,7 +1340,7 @@ protected:
 						auto radio = new Button(grp, SWT.RADIO);
 						mod(radio);
 						radio.setText(_prop.msgs.resistName(res));
-						radio.setToolTipText(std.array.replace(_prop.msgs.resistDesc(res), "&", "&&"));
+						radio.setToolTipText(.replace(_prop.msgs.resistDesc(res), "&", "&&"));
 						radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 						_res[res] = radio;
 					}
@@ -1981,21 +1982,21 @@ Composite createValueEditor(Commons comm, Summary summ, Composite parent, bool d
 		}
 		if (0 >= max) {
 			if (talker) { mixin(S_TRACE);
-				couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.valuedTalkerMaxIsLess0, max, min), "&", "&&");
+				couponView.toolTip = .replace(.tryFormat(comm.prop.msgs.valuedTalkerMaxIsLess0, max, min), "&", "&&");
 			} else { mixin(S_TRACE);
-				couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.selectMemberValuedMaxIsLess0, max, min), "&", "&&");
+				couponView.toolTip = .replace(.tryFormat(comm.prop.msgs.selectMemberValuedMaxIsLess0, max, min), "&", "&&");
 			}
 		} else if (0 >= min) { mixin(S_TRACE);
 			if (talker) { mixin(S_TRACE);
-				couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.valuedTalkerMaxMinLess0, max, min), "&", "&&");
+				couponView.toolTip = .replace(.tryFormat(comm.prop.msgs.valuedTalkerMaxMinLess0, max, min), "&", "&&");
 			} else { mixin(S_TRACE);
-				couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.selectMemberValuedMaxMinLess0, max, min), "&", "&&");
+				couponView.toolTip = .replace(.tryFormat(comm.prop.msgs.selectMemberValuedMaxMinLess0, max, min), "&", "&&");
 			}
 		} else { mixin(S_TRACE);
 			if (talker) { mixin(S_TRACE);
-				couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.valuedTalkerMaxMin, max, min), "&", "&&");
+				couponView.toolTip = .replace(.tryFormat(comm.prop.msgs.valuedTalkerMaxMin, max, min), "&", "&&");
 			} else { mixin(S_TRACE);
-				couponView.toolTip = std.array.replace(.tryFormat(comm.prop.msgs.selectMemberValuedMaxMin, max, min), "&", "&&");
+				couponView.toolTip = .replace(.tryFormat(comm.prop.msgs.selectMemberValuedMaxMin, max, min), "&", "&&");
 			}
 		}
 	};

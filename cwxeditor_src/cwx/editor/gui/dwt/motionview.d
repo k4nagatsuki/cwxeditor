@@ -30,6 +30,8 @@ import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.absdialog;
 import cwx.editor.gui.dwt.cardpane : CardDialog;
 
+import std.algorithm : swap;
+import std.array;
 import std.string;
 import std.datetime;
 import std.conv;
@@ -150,7 +152,7 @@ private:
 			auto m = v.motion(to);
 			v.removeMotion(to, false, false, false);
 			v.appendMotion(m, from, true, true, false);
-			std.algorithm.swap(_from, _to);
+			.swap(_from, _to);
 		}
 		override void undo() {impl();}
 		override void redo() {impl();}
@@ -1132,7 +1134,7 @@ public:
 			.listener(_motionElm, SWT.MouseMove, (Event e) { mixin(S_TRACE);
 				auto itm = _motionElm.getItem(new Point(e.x, e.y));
 				if (itm) { mixin(S_TRACE);
-					_motionElm.setToolTipText(std.array.replace(toolTip[_motionElm.indexOf(itm)], "&", "&&"));
+					_motionElm.setToolTipText(.replace(toolTip[_motionElm.indexOf(itm)], "&", "&&"));
 				} else { mixin(S_TRACE);
 					_motionElm.setToolTipText(null);
 				}

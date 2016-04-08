@@ -2,7 +2,7 @@
 module cwx.settings;
 
 import cwx.perf;
-import cwx.utils : printStackTrace;
+import cwx.utils : printStackTrace, debugln;
 import cwx.xml;
 
 import std.conv;
@@ -291,6 +291,7 @@ abstract class Properties {
 	/// Root = ルート要素の名前。
 	protected template XMLFuncs(SubClass : Properties, string Root = "") {
 		import cwx.xml;
+		import cwx.utils : printStackTrace, debugln;
 		static if (Root.length > 0) {
 			const
 			string toXML() {

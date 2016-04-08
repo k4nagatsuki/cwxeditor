@@ -26,6 +26,8 @@ import cwx.editor.gui.dwt.customtable;
 import cwx.editor.gui.dwt.scripterrordialog;
 import cwx.editor.gui.dwt.settingsdialog;
 
+static import core.stdc.stdlib;
+
 import std.string;
 import std.conv;
 import std.path;

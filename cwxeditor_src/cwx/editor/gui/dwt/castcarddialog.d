@@ -34,6 +34,8 @@ import cwx.editor.gui.dwt.couponview;
 import cwx.editor.gui.dwt.scales;
 import cwx.editor.gui.dwt.cardpane;
 
+import std.algorithm : sort;
+import std.array;
 import std.datetime;
 import std.string;
 import std.conv;
@@ -133,7 +135,7 @@ private:
 	void raceToolTip() { mixin(S_TRACE);
 		if (_race) { mixin(S_TRACE);
 			auto race = selectedRace;
-			_race.setToolTipText(race ? std.array.replace(race.desc, "&", "&&") : "");
+			_race.setToolTipText(race ? .replace(race.desc, "&", "&&") : "");
 		}
 	}
 	class SelectRace : SelectionAdapter {
@@ -1357,7 +1359,7 @@ protected:
 
 	private Coupon createCoupon(E)(Button[E] radios, string delegate(E) coupon) { mixin(S_TRACE);
 		auto keys = radios.keys();
-		std.algorithm.sort(keys);
+		.sort(keys);
 		foreach (e; keys) { mixin(S_TRACE);
 			auto radio = radios.get(e, null);
 			if (!radio) continue;

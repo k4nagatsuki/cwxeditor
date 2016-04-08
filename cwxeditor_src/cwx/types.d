@@ -1246,6 +1246,7 @@ enum CArg {
 	HEIGHT, /// サイズ(Wsn.1)。
 	DO_ANIME, /// JPY1アニメーションを実行する(Wsn.1)。
 	IGNORE_EFFECT_BOOSTER, /// エフェクトブースター関係のセルを無視する(Wsn.1)。
+	SELECTION_COLUMNS, /// 後続選択肢の列数(Wsn.1)。
 }
 
 /// 後続コンテントのnameの型。
