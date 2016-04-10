@@ -532,7 +532,7 @@ class Msgs : Properties {
 	auto contentNameStart = Msg("contentNameStart", "スタート");
 	auto contentNameStartBattle = Msg("contentNameStartBattle", "バトル開始");
 	auto contentNameEnd = Msg("contentNameEnd", "シナリオクリア");
-	auto contentNameEndBadEnd = Msg("contentNameEndBadEnd", "ゲームオーバー");
+	auto contentNameEndBadEnd = Msg("contentNameEndBadEnd", "敗北・ゲームオーバー");
 	auto contentNameChangeArea = Msg("contentNameChangeArea", "エリア移動");
 	auto contentNameChangeBgImage = Msg("contentNameChangeBgImage", "背景変更");
 	auto contentNameEffect = Msg("contentNameEffect", "効果");
@@ -674,7 +674,7 @@ class Msgs : Properties {
 	auto ctChangeAreaClassic = Msg("ctChangeAreaClassic", "エリア移動「%1$s」");
 	auto ctEndComplete = Msg("ctEndComplete", "済印をつけて終了");
 	auto ctEndNoComplete = Msg("ctEndNoComplete", "済印をつけずに終了");
-	auto ctGameOver = Msg("ctGameOver", "ゲームオーバーコンテント");
+	auto ctGameOver = Msg("ctGameOver", "敗北・ゲームオーバーコンテント");
 	auto ctChangeBgImage = Msg("ctChangeBgImage", "背景ファイル = %1$s 切替方式 = %2$s ウェイト = %3$s");
 	auto ctChangeBgImageClassic = Msg("ctChangeBgImageClassic", "背景ファイル = %1$s");
 	auto ctChangeBgImageFile = Msg("ctChangeBgImageFile", "[%1$s]");
