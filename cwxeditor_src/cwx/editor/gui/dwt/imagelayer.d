@@ -265,6 +265,7 @@ class ImageLayerList : Composite {
 		showSelection();
 		redraw();
 		_comm.refreshToolBar();
+		foreach (dlg; selectionEvent) dlg();
 		foreach (dlg; modEvent) dlg();
 	}
 	@property
@@ -280,6 +281,7 @@ class ImageLayerList : Composite {
 		showSelection();
 		redraw();
 		_comm.refreshToolBar();
+		foreach (dlg; selectionEvent) dlg();
 		foreach (dlg; modEvent) dlg();
 	}
 	@property
@@ -293,6 +295,7 @@ class ImageLayerList : Composite {
 		_items[selection - 1] = temp;
 		selection = selection - 1;
 		showSelection();
+		foreach (dlg; selectionEvent) dlg();
 		foreach (dlg; modEvent) dlg();
 	}
 	@property
@@ -306,6 +309,7 @@ class ImageLayerList : Composite {
 		_items[selection + 1] = temp;
 		selection = selection + 1;
 		showSelection();
+		foreach (dlg; selectionEvent) dlg();
 		foreach (dlg; modEvent) dlg();
 	}
 	@property
