@@ -435,8 +435,10 @@ public:
 				}
 			};
 			ctrl.getDisplay().addFilter(SWT.FocusIn, focusIn);
+			ctrl.getDisplay().addFilter(SWT.Deactivate, focusIn);
 			.listener(ctrl, SWT.Dispose, {
 				ctrl.getDisplay().removeFilter(SWT.FocusIn, focusIn);
+				ctrl.getDisplay().removeFilter(SWT.Deactivate, focusIn);
 			});
 		} catch (Exception e) {
 			printStackTrace();
@@ -1058,6 +1060,8 @@ private:
 	EditEnd _tee;
 	Control _editor = null;
 	Item _edit = null;
+	int _vbarPos = -1;
+	int _hbarPos = -1;
 
 	void delegate(C card, Control ctrl) _editEnd;
 	Control delegate(in C card) _createEditor;
@@ -1093,12 +1097,21 @@ private:
 			_edit = itm;
 			_list.scroll(_list.indexOf(sel));
 			_tee = new EditEnd(_comm, _list, _editor, &end);
+			_vbarPos = -1;
+			_hbarPos = -1;
 			layout();
 			_tee.setFocus();
 		}
 	}
 	void layout() { mixin(S_TRACE);
 		if (!_edit) return;
+		auto vbar = _list.getVerticalBar();
+		auto hbar = _list.getHorizontalBar();
+		auto vPos = vbar ? vbar.getSelection() : -2;
+		auto hPos = hbar ? hbar.getSelection() : -2;
+		if (_vbarPos == vPos && _hbarPos == hPos) return;
+		_vbarPos = vPos;
+		_hbarPos = hPos;
 		auto cItm = _list.indexOf(_edit);
 		auto ib = _list.getImageBounds(cItm);
 		auto tb = _list.getTitleBounds(cItm);
@@ -1137,6 +1150,10 @@ public:
 	}
 	bool isEditing() { mixin(S_TRACE);
 		return _tee !is null;
+	}
+	void cancel() { mixin(S_TRACE);
+		if (!isEditing) return;
+		_tee.cancel();
 	}
 }
 
