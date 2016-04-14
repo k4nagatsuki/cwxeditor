@@ -191,6 +191,7 @@ class EventEditor : Composite {
 	private bool _updatePosAll = true; /// 次の描画で全ての位置計算をやり直す。
 	private bool _updateEventText = true; /// 次の描画でイベントテキストの位置計算のみやり直す。
 	private bool _showSelection = false;
+	private bool _updateCommentPos = false; /// 次の描画でコメントの位置計算のみやり直す。
 
 	this (Commons comm, Composite parent, int style, Summary summ, EventTree et) { mixin(S_TRACE);
 		super (parent, style | SWT.V_SCROLL | SWT.H_SCROLL);
@@ -252,6 +253,10 @@ class EventEditor : Composite {
 		.listener(this, SWT.KeyDown, &onKeyDown);
 		.listener(this, SWT.FocusIn, &onFocusInOut);
 		.listener(this, SWT.FocusOut, &onFocusInOut);
+		.listener(this, SWT.Resize, { mixin(S_TRACE);
+			_updateCommentPos = true;
+			redraw();
+		});
 		setDragDetect(true);
 		updateEventTree();
 	}
@@ -564,6 +569,7 @@ class EventEditor : Composite {
 			StartInfo startInfo = null;
 			auto fromIndex = pos.length;
 			auto heightSumB = _heightSum;
+			auto y = heightSumB * _lineHeight;
 			void createInfos() { mixin(S_TRACE);
 				int width = 0;
 				int relY = 0;
@@ -580,7 +586,7 @@ class EventEditor : Composite {
 				startInfo = *p;
 				void addPoss(StartInfo startInfo) { mixin(S_TRACE);
 					foreach (ref info; _pos[startInfo.fromIndex .. startInfo.toIndex]) { mixin(S_TRACE);
-						posY ~= startInfo.y + info.relY;
+						posY ~= y + info.relY;
 						info.index = index;
 						_posTable[info.content.eventId] = info;
 						auto expand = _expanded.get(info.content.eventId, true);
@@ -608,7 +614,7 @@ class EventEditor : Composite {
 				}
 			}
 			startInfo.start = start;
-			startInfo.y = heightSumB * _lineHeight;
+			startInfo.y = y;
 			startInfo.updateCounter = start.updateCounter;
 			startInfo.fromIndex = fromIndex;
 			startInfo.toIndex = pos.length;
@@ -676,6 +682,12 @@ class EventEditor : Composite {
 
 	/// コメント位置を計算する。
 	private void updateCommentPos(GC gc, in int[] posY) { mixin(S_TRACE);
+		if (!isVisible()) { mixin(S_TRACE);
+			_updateCommentPos = true;
+			return;
+		}
+		_updateCommentPos = false;
+		auto ca = getClientArea();
 		Rectangle[] boxes;
 		Rectangle[string] cBoxes;
 		string[] comments;
@@ -692,9 +704,13 @@ class EventEditor : Composite {
 			return rect;
 		}
 		auto hh = _lineHeight / 2;
-		foreach (i, ref pos; _pos) { mixin(S_TRACE);
+		foreach (ptrdiff_t i, ref pos; _pos) { mixin(S_TRACE);
 			auto c = pos.content;
-			if (c.comment == "") continue;
+			if (c.comment == "") { mixin(S_TRACE);
+				_pos[i].commentLineX = 0;
+				_pos[i].commentRect = null;
+				continue;
+			}
 			auto cRect = itemRect(posY[i], pos);
 			int rx = cRect.x + cRect.width;
 			if (!_expanded.get(c.eventId, true)) { mixin(S_TRACE);
@@ -729,7 +745,7 @@ class EventEditor : Composite {
 
 			// 画面外へ出ないようにY座標の調節
 			int ty = posY[i] - th / 2 + hh;
-			ty = .min(ty, _heightSum * _lineHeight - th);
+			ty = .min(ty, .max(_heightSum * _lineHeight, ca.height) - th);
 			ty = .max(ty, 0);
 
 			auto box = new Rectangle(rx + dis, ty, tw, th);
@@ -1216,6 +1232,19 @@ class EventEditor : Composite {
 		if (!_et) return;
 		updatePosImpl2(true);
 		if (!_pos.length) return;
+		if (_updateCommentPos) { mixin(S_TRACE);
+			auto posY = new int[_pos.length];
+			size_t i = 0;
+			auto startInfo = _firstStartInfo;
+			while (startInfo) { mixin(S_TRACE);
+				for (auto index = startInfo.fromIndex; index < startInfo.toIndex; index++) { mixin(S_TRACE);
+					posY[i] = startInfo.y + _pos[index].relY;
+					i++;
+				}
+				startInfo = startInfo.next;
+			}
+			updateCommentPos(e.gc, posY);
+		}
 		auto hw = _imageWidth / 2;
 		auto hh = _lineHeight / 2;
 		auto ca = getClientArea();
