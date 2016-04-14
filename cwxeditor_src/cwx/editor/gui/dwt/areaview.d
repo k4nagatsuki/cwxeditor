@@ -2393,15 +2393,15 @@ private:
 			}
 			if (!_readOnly) { mixin(S_TRACE);
 				_vfcTMenu = createToolItem(_comm, bar, MenuID.FixedCards, &reverseFixedCards, null, SWT.CHECK);
-				.setupToggle(_vfcTMenu, _prop.var.etc.fixedImagesMenuCards);
-				new ToolItem(bar, SWT.SEPARATOR);
-				static if (is (C == MenuCard)) {
+				static if (is(C:MenuCard)) {
+					.setupToggle(_vfcTMenu, _prop.var.etc.fixedImagesMenuCards);
+					new ToolItem(bar, SWT.SEPARATOR);
 					createToolItem(_comm, bar, MenuID.NewMenuCard, &createCard, () => !_readOnly);
-				} else static if (is (C == EnemyCard)) {
+				} else static if (is(C:EnemyCard)) {
+					.setupToggle(_vfcTMenu, _prop.var.etc.fixedImagesBattle);
+					new ToolItem(bar, SWT.SEPARATOR);
 					createToolItem(_comm, bar, MenuID.NewEnemyCard, &createCard, () => !_readOnly && _summ && _summ.casts.length);
-				} else { mixin(S_TRACE);
-					static assert (0);
-				}
+				} else static assert (0);
 			}
 		} else { mixin(S_TRACE);
 			static assert (is(C:BgImage));
@@ -4150,7 +4150,11 @@ public:
 			new MenuItem(mv, SWT.SEPARATOR);
 			static if (UseCards) {
 				_vfcMenu = createMenuItem(_comm, mv, MenuID.FixedCards, &reverseFixedCards, null, SWT.CHECK);
-				.setupToggle(_vfcMenu, _prop.var.etc.fixedImagesMenuCards);
+				static if (is(C:MenuCard)) {
+					.setupToggle(_vfcMenu, _prop.var.etc.fixedImagesMenuCards);
+				} else static if (is(C:EnemyCard)) {
+					.setupToggle(_vfcMenu, _prop.var.etc.fixedImagesBattle);
+				} else static assert (0);
 			}
 			static if (UseBacks) {
 				_vfbMenu = createMenuItem(_comm, mv, MenuID.FixedCells, &reverseFixedCells, null, SWT.CHECK);
@@ -4438,7 +4442,11 @@ public:
 			updateFixedCards();
 			if (_vfcMenu) _vfcMenu.setSelection(_fixedC);
 			if (_vfcTMenu) _vfcTMenu.setSelection(_fixedC);
-			_prop.var.etc.fixedImagesMenuCards = _fixedC;
+			static if (is(C:MenuCard)) {
+				_prop.var.etc.fixedImagesMenuCards = _fixedC;
+			} else static if (is(C:EnemyCard)){
+				_prop.var.etc.fixedImagesBattle = _fixedC;
+			} else static assert (0);
 		}
 		private void updateFixedCards() { mixin(S_TRACE);
 			_imgp.fixedRange(_fixedC, cardsIndex, cardsIndex + cast(int)_area.cards.length);
