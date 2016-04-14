@@ -2172,6 +2172,14 @@ private:
 				int movX = x - dragStartX;
 				int movY = y - dragStartY;
 				bool ratioFix = (me.stateMask & SWT.SHIFT) != 0;
+				if (Toggle.MOVE is dragTgl && ratioFix) { mixin(S_TRACE);
+					// シフトを押しながらドラッグで水平・垂直移動する
+					if (movY <= movX) { mixin(S_TRACE);
+						movY = 0;
+					} else { mixin(S_TRACE);
+						movX = 0;
+					}
+				}
 				resetGrid();
 				foreach (img; dragImgs.keys) { mixin(S_TRACE);
 					if (img.selected && !img.fixed && img.visible) { mixin(S_TRACE);
@@ -2435,9 +2443,13 @@ private:
 					}
 				}
 			} else if (me.button == 3) { mixin(S_TRACE);
-				dragTgl = Toggle.NONE;
 				resetGrid();
-				redrawProc((FlexImage img) {img.reset();}, false);
+				if (dragTgl is Toggle.MOVE) { mixin(S_TRACE);
+					redrawProcMove((FlexImage img) { img.reset(); }, false);
+				} else { mixin(S_TRACE);
+					redrawProc((FlexImage img) { img.reset(); }, false);
+				}
+				dragTgl = Toggle.NONE;
 			}
 		}
 	}
