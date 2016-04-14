@@ -419,6 +419,9 @@ class KeyCodeView : Composite {
 			}
 			_keyCodes.setMenu(menu);
 			.listener(_keyCodes, SWT.Selection, { _comm.refreshToolBar(); });
+			if (!_readOnly) { mixin(S_TRACE);
+				.listener(_keyCodes, SWT.MouseDoubleClick, &add);
+			}
 		}
 
 		auto drag = new DragSource(_keyCodes, DND.DROP_MOVE | DND.DROP_COPY);
