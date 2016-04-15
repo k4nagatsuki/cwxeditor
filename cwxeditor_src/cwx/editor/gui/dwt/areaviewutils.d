@@ -60,14 +60,14 @@ FlexImage createBackgroundImage(Props prop, in Skin skin, in Summary summ, strin
 	if (cfnmatch(ext, ".jpy1") || cfnmatch(ext, ".jptx") || cfnmatch(ext, ".jpdc")) { mixin(S_TRACE);
 		bool resizable;
 		auto data = loadJPYImage(prop, skin, summ, path, [], resizable);
-		r = new FlexImage(data, x, y, data.width, data.height, resizable);
+		r = new FlexImage(data, x, y, data.width, data.height, false, resizable);
 	} else { mixin(S_TRACE);
 		uint baseW = w, baseH = h;
 		if (isBinImg(path)) {
 			auto imgData = loadImage(prop, skin, summ, path, false);
 			baseW = imgData.width;
 			baseH = imgData.height;
-			r = new FlexImage(imgData, x, y, baseW, baseH, true);
+			r = new FlexImage(imgData, x, y, baseW, baseH, false, true);
 		} else {
 			try { mixin(S_TRACE);
 				dwtImageSize(prop, skin, summ, path, baseW, baseH);
@@ -77,7 +77,7 @@ FlexImage createBackgroundImage(Props prop, in Skin skin, in Summary summ, strin
 				baseW = w;
 				baseH = h;
 			}
-			r = new FlexImage(path, x, y, baseW, baseH);
+			r = new FlexImage(path, x, y, baseW, baseH, false);
 		}
 	}
 	r.transparent = transparent;
@@ -100,7 +100,7 @@ PileImage createCastCardBackImage(Props prop, Skin skin, int x, int y, byte alph
 	auto imgData = cast(ImageData)castCard(skin).clone();
 	imgData.alphaData = new byte[imgData.width * imgData.height];
 	imgData.alphaData[] = alpha;
-	auto r = new PileImage(imgData, x, y, w, h, true);
+	auto r = new PileImage(imgData, x, y, w, h, true, true);
 	r.layer = LAYER_PLAYER_CARD * 10;
 	r.createImage();
 	return r;
@@ -111,21 +111,16 @@ PImg createCardImageCommon(PImg)(Props prop, ImageData card,
 	auto cardSize = prop.looks.cardSize;
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
-	auto r = new PImg(card, x, y, w, h, true);
+	auto r = new PImg(card, x, y, w, h, true, true);
 	r.transparent = false;
 	r.layer = layer * 10;
 	r.smoothing = smoothing;
-	static if (is(PImg : FlexImage)) {
-		r.minimumWidth = cast(int)(w * prop.var.etc.cardScaleMin / 100.0);
-		r.minimumHeight = cast(int)(h * prop.var.etc.cardScaleMin / 100.0);
-		r.maximumWidth = cast(int)(w * prop.var.etc.cardScaleMax / 100.0);
-		r.maximumHeight = cast(int)(h * prop.var.etc.cardScaleMax / 100.0);
-		r.ratioFix = true;
-		r.newWidth = cast(int)(w * scale / 100.0);
-		r.newHeight = cast(int)(h * scale / 100.0);
+	static if (is(PImg:FlexImage)) {
+		r.maximumScale = prop.var.etc.cardScaleMax;
+		r.minimumScale = prop.var.etc.cardScaleMin;
+		r.newScale = scale;
 	} else { mixin(S_TRACE);
-		r.width = cast(int)(w * scale / 100.0);
-		r.height = cast(int)(h * scale / 100.0);
+		r.scale = scale;
 	}
 	return r;
 }
@@ -211,7 +206,7 @@ PileImage createMessageImage(Commons comm, Props prop) { mixin(S_TRACE);
 	string[string] flags, steps;
 	// 特殊文字が無いためシナリオパス不要
 	auto imgData = previewMessage(comm, prop, "", null, "", [""], names, flags, steps);
-	auto img = new PileImage(imgData, rect.x, rect.y, imgData.width, imgData.height, true);
+	auto img = new PileImage(imgData, rect.x, rect.y, imgData.width, imgData.height, false, true);
 	img.layer = LAYER_MESSAGE * 10 - 1;
 	img.alpha = prop.var.etc.messageAlpha;
 	img.separator = true;

@@ -1465,7 +1465,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 		id = castCard(skin);
 		whiteName = false;
 	}
-	auto r = new PileImage(id, w, h);
+	auto r = new PileImage(id, w, h, true);
 	auto stp = prop.looks.castLifeBarPoint;
 	if (dbgMode || c.faceUpRound > 0) { mixin(S_TRACE);
 		auto levelColor = OS.VERSION(6, 0) <= OS.WIN32_VERSION ? prop.looks.castCardLevelColor : CRGB(128, 128, 128);
@@ -1696,7 +1696,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 	auto matPad = prop.looks.cardInsets;
 	int w = cardSize.width + matPad.e + matPad.w;
 	int h = cardSize.height + matPad.n + matPad.s;
-	scope r = new PileImage(card, w, h);
+	scope r = new PileImage(card, w, h, true);
 	static if (!is (C == InfoCard)) {
 		final switch (c.premium) {
 		case Premium.PREMIUM, Premium.RARE:

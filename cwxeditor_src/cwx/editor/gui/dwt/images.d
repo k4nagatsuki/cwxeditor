@@ -96,6 +96,7 @@ private:
 	RGB _titColor = null;
 	AppImg[] appends = [];
 	Rectangle rect;
+	uint _scale = 100u;
 	bool t = false;
 	bool s = false;
 	int _alpha = 0xFF;
@@ -114,6 +115,7 @@ private:
 	int initW, initH;
 	int _maskR = 0, _maskG = 0, _maskB = 0, _maskA = 0;
 	bool _dataResizable = true;
+	bool _scaleMode = false;
 
 	// ImageType.Text用。_titleとtitFontを流用。
 	int _fontPixelSize = 0;
@@ -141,12 +143,13 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (string path, int x, int y, int baseW, int baseH) { mixin(S_TRACE);
+	this (string path, int x, int y, int baseW, int baseH, bool scaleMode) { mixin(S_TRACE);
 		this._type = ImageType.Image;
 		this.path = path;
 		rect = new Rectangle(x, y, baseW, baseH);
 		initW = baseW;
 		initH = baseH;
+		_scaleMode = scaleMode;
 	}
 	/// 画像のファイルパス、サイズを指定してインスタンスを生成する。
 	/// パスが存在しない場合、描画のタイミングで単に表示されない。
@@ -154,8 +157,8 @@ public:
 	/// path = 画像のファイルパス。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (string path, int baseW, int baseH) { mixin(S_TRACE);
-		this(path, 0, 0, baseW, baseH);
+	this (string path, int baseW, int baseH, bool scaleMode) { mixin(S_TRACE);
+		this(path, 0, 0, baseW, baseH, scaleMode);
 	}
 	/// 画像のデータ、位置、サイズを指定してインスタンスを生成する。
 	/// Params:
@@ -164,12 +167,13 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (ImageData data, int x, int y, int baseW, int baseH, bool dataResizable) { mixin(S_TRACE);
+	this (ImageData data, int x, int y, int baseW, int baseH, bool scaleMode, bool dataResizable) { mixin(S_TRACE);
 		this._type = ImageType.Image;
 		this.data = data;
 		rect = new Rectangle(x, y, baseW, baseH);
 		initW = baseW;
 		initH = baseH;
+		_scaleMode = scaleMode;
 		_dataResizable = dataResizable;
 	}
 	/// 画像のデータ、サイズを指定してインスタンスを生成する。
@@ -177,16 +181,17 @@ public:
 	/// data = 画像のデータ。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (ImageData data, int baseW, int baseH) { mixin(S_TRACE);
-		this(data, 0, 0, baseW, baseH, true);
+	this (ImageData data, int baseW, int baseH, bool scaleMode) { mixin(S_TRACE);
+		this(data, 0, 0, baseW, baseH, scaleMode, true);
 	}
 
 	/// サイズのみを指定してインスタンスを生成する。
-	this (ImageType type, int x, int y, int baseW, int baseH) { mixin(S_TRACE);
+	this (ImageType type, int x, int y, int baseW, int baseH, bool scaleMode) { mixin(S_TRACE);
 		this._type = type;
 		rect = new Rectangle(x, y, baseW, baseH);
 		initW = baseW;
 		initH = baseH;
+		_scaleMode = scaleMode;
 	}
 
 	/// テキスト表示用のインスタンスを生成する。
@@ -194,7 +199,7 @@ public:
 			bool bold, bool italic, bool underline, bool strike, bool vertical,
 			BorderingType borderingType, CRGB borderingColor, uint borderingWidth,
 			int x, int y, int baseW, int baseH) { mixin(S_TRACE);
-		this (ImageType.Text, x, y, baseW, baseH);
+		this (ImageType.Text, x, y, baseW, baseH, false);
 
 		setTitle(text, fontName, size, bold, italic, vertical);
 		this.textColor = color;
@@ -206,12 +211,13 @@ public:
 	}
 
 	/// 独自描画用のインスタンスを生成する。
-	this (void delegate(in PileImage img, GC gc) drawer, int x, int y, int baseW, int baseH) {
+	this (void delegate(in PileImage img, GC gc) drawer, int x, int y, int baseW, int baseH, bool scaleMode) {
 		this._type = ImageType.Drawer;
 		_drawer = drawer;
 		rect = new Rectangle(x, y, baseW, baseH);
 		initW = baseW;
 		initH = baseH;
+		_scaleMode = scaleMode;
 	}
 
 	/// イメージのタイプ。
@@ -243,6 +249,11 @@ public:
 	void baseHeight(int initH) { mixin(S_TRACE);
 		this.initH = initH;
 	}
+
+	/// 縦横のサイズ値ではなくスケール値を使用するか。
+	@property
+	const
+	bool scaleMode() { return _scaleMode; }
 
 	/// 前面に画像を追加する。
 	/// Params:
@@ -901,7 +912,7 @@ public:
 	/// dc = キャンバス。
 	void draw(Display d, ref Image buf, ref GC gc, Rectangle range) { mixin(S_TRACE);
 		if (!_visible) return;
-		if (!range.intersects(rect)) return;
+		if (!range.intersects(x, y, width, height)) return;
 		if (_needCreate) createImageImpl();
 		final switch (_type) {
 		case ImageType.Image:
@@ -1416,13 +1427,18 @@ public:
 	/// w = 幅。
 	@property
 	void width(int w) { mixin(S_TRACE);
+		assert (!_scaleMode);
 		rect.width = w;
 	}
 	/// Returns: 幅。
 	@property
 	const
 	int width() { mixin(S_TRACE);
-		return rect.width;
+		if (_scaleMode) { mixin(S_TRACE);
+			return (baseWidth * _scale) / 100;
+		} else { mixin(S_TRACE);
+			return rect.width;
+		}
 	}
 
 	/// 高さを設定する。
@@ -1430,13 +1446,18 @@ public:
 	/// h = 高さ。
 	@property
 	void height(int h) { mixin(S_TRACE);
+		assert (!_scaleMode);
 		rect.height = h;
 	}
 	/// Returns: 高さ。
 	@property
 	const
 	int height() { mixin(S_TRACE);
-		return rect.height;
+		if (_scaleMode) { mixin(S_TRACE);
+			return (baseHeight * _scale) / 100;
+		} else { mixin(S_TRACE);
+			return rect.height;
+		}
 	}
 
 	/// 位置とサイズを設定する。
@@ -1444,10 +1465,27 @@ public:
 	/// rect = 位置とサイズ。
 	@property
 	void bounds(Rectangle rect) { mixin(S_TRACE);
-		this.rect.x = rect.x;
-		this.rect.y = rect.y;
-		this.rect.width = rect.width;
-		this.rect.height = rect.height;
+		if (_scaleMode) {
+			uint scale;
+			if (baseHeight <= baseWidth) { mixin(S_TRACE);
+				scale = (rect.width * 100) / baseWidth;
+			} else { mixin(S_TRACE);
+				scale = (rect.height * 100) / baseHeight;
+			}
+			boundsWithScale(rect.x, rect.y, scale);
+		} else { mixin(S_TRACE);
+			this.rect.x = rect.x;
+			this.rect.y = rect.y;
+			this.rect.width = rect.width;
+			this.rect.height = rect.height;
+		}
+	}
+	/// ditto
+	void boundsWithScale(int x, int y, uint scale) { mixin(S_TRACE);
+		assert (_scaleMode);
+		this.rect.x = x;
+		this.rect.y = y;
+		_scale = scale;
 	}
 
 	/// Returns: 位置とサイズ。
@@ -1455,6 +1493,18 @@ public:
 	const
 	Rectangle bounds() { mixin(S_TRACE);
 		return new Rectangle(x, y, width, height);
+	}
+
+	/// スケール(%)。
+	@property
+	const
+	uint scale() { mixin(S_TRACE);
+		return _scale;
+	}
+	/// ditto
+	@property
+	void scale(uint scale) { mixin(S_TRACE);
+		_scale = scale;
 	}
 
 	private void del(ImageData data) { mixin(S_TRACE);
@@ -1495,10 +1545,12 @@ private:
 
 	int minW = 0, minH = 0;
 	int maxW = 65536, maxH = 65536;
+	uint _maxScale = 300, _minScale = 50;
 	bool s = false;
 	bool whconst = false; // 縦横比を維持するか否か
 
 	Rectangle newR;
+	uint _newScale = 100;
 	uint tglSize = 5;
 
 	Rectangle[Toggle] tgls;
@@ -1514,9 +1566,11 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (string path, int x, int y, int baseW, int baseH) { mixin(S_TRACE);
-		super (path, x, y, baseW, baseH);
+	/// scaleMode = 幅と高さではなくスケールを変更するモードか。
+	this (string path, int x, int y, int baseW, int baseH, bool scaleMode) { mixin(S_TRACE);
+		super (path, x, y, baseW, baseH, scaleMode);
 		newR = new Rectangle(x, y, baseW, baseH);
+		_newScale = 100;
 	}
 	/// 画像のデータ、位置、本来のサイズを指定してインスタンスを生成する。
 	/// Params:
@@ -1525,9 +1579,11 @@ public:
 	/// y = 縦位置。
 	/// baseW = 本来の幅。
 	/// baseH = 本来の高さ。
-	this (ImageData data, int x, int y, int baseW, int baseH, bool dataResizable) { mixin(S_TRACE);
-		super (data, x, y, baseW, baseH, dataResizable);
+	/// scaleMode = 幅と高さではなくスケールを変更するモードか。
+	this (ImageData data, int x, int y, int baseW, int baseH, bool scaleMode, bool dataResizable) { mixin(S_TRACE);
+		super (data, x, y, baseW, baseH, scaleMode, dataResizable);
 		newR = new Rectangle(x, y, baseW, baseH);
+		_newScale = 100;
 	}
 
 	/// テキスト表示用のインスタンスを生成する。
@@ -1538,11 +1594,12 @@ public:
 		super (text, fontName, size, color, bold, italic, underline, strike, vertical,
 			borderingType, borderingColor, borderingWidth, x, y, baseW, baseH);
 		newR = new Rectangle(x, y, baseW, baseH);
+		_newScale = 100;
 	}
 	/// カラーフィルタ用のインスタンスを生成する。
 	this (BlendMode blendMode, GradientDir gradientDir, CRGB color1, CRGB color2,
 			int x, int y, int baseW, int baseH) { mixin(S_TRACE);
-		super (ImageType.ColorFilter, x, y, baseW, baseH);
+		super (ImageType.ColorFilter, x, y, baseW, baseH, false);
 		newR = new Rectangle(x, y, baseW, baseH);
 		this.blendMode = blendMode;
 		this.gradientDir = gradientDir;
@@ -1550,69 +1607,95 @@ public:
 		this.color2 = color2;
 	}
 	/// 独自描画用のインスタンスを生成する。
-	this (void delegate(in PileImage img, GC gc) drawer, int x, int y, int baseW, int baseH) {
-		super (drawer, x, y, baseW, baseH);
+	this (void delegate(in PileImage img, GC gc) drawer, int x, int y, int baseW, int baseH, bool scaleMode) {
+		super (drawer, x, y, baseW, baseH, scaleMode);
 		newR = new Rectangle(x, y, baseW, baseH);
+		_newScale = 100;
 	}
 
 	/// Returns: 最小の幅。初期値は1。
 	@property
 	const
 	int minimumWidth() { mixin(S_TRACE);
+		assert (!_scaleMode);
 		return minW;
 	}
 	/// Params:
 	/// minW = 最小の幅。
 	@property
 	void minimumWidth(int minW) { mixin(S_TRACE);
+		assert (!_scaleMode);
 		this.minW = minW;
 	}
 	/// Returns: 最小の高さ。初期値は1。
 	@property
 	const
 	int minimumHeight() { mixin(S_TRACE);
+		assert (!_scaleMode);
 		return minH;
 	}
 	/// Params:
 	/// minW = 最小の高さ。
 	@property
 	void minimumHeight(int minH) { mixin(S_TRACE);
+		assert (!_scaleMode);
 		this.minH = minH;
 	}
 	/// Returns: 最大の幅。初期値は65536。
 	@property
 	const
 	int maximumWidth() { mixin(S_TRACE);
+		assert (!_scaleMode);
 		return maxW;
 	}
 	/// Params:
 	/// minW = 最大の幅。
 	@property
 	void maximumWidth(int maxW) { mixin(S_TRACE);
+		assert (!_scaleMode);
 		this.maxW = maxW;
 	}
 	/// Returns: 最大の高さ。初期値は65536。
 	@property
 	const
 	int maximumHeight() { mixin(S_TRACE);
+		assert (!_scaleMode);
 		return maxH;
 	}
 	/// Params:
 	/// minW = 最大の高さ。
 	@property
 	void maximumHeight(int maxH) { mixin(S_TRACE);
+		assert (!_scaleMode);
 		this.maxH = maxH;
 	}
-	/// 縦横比固定か。
+	/// 最大のスケール。
 	@property
 	const
-	bool ratioFix() { mixin(S_TRACE);
-		return whconst;
+	uint maximumScale() { mixin(S_TRACE);
+		assert (_scaleMode);
+		return _maxScale;
 	}
-	/// ditto
+	/// Params:
+	/// minW = 最大の高さ。
 	@property
-	void ratioFix(bool whconst) { mixin(S_TRACE);
-		this.whconst = whconst;
+	void maximumScale(uint maxScale) { mixin(S_TRACE);
+		assert (_scaleMode);
+		_maxScale = maxScale;
+	}
+	/// 最小のスケール。
+	@property
+	const
+	uint minimumScale() { mixin(S_TRACE);
+		assert (_scaleMode);
+		return _minScale;
+	}
+	/// Params:
+	/// minW = 最大の高さ。
+	@property
+	void minimumScale(uint minScale) { mixin(S_TRACE);
+		assert (_scaleMode);
+		_minScale = minScale;
 	}
 	/// サイズ・位置固定モードか。
 	@property
@@ -1632,14 +1715,24 @@ public:
 	/// 配置後、createImage()が実行される。
 	/// See_Also: createImage();
 	void resize(bool callListeners = true) { mixin(S_TRACE);
-		bool resize = bounds.width != newR.width || bounds.height != newR.height;
-		bounds = newR;
-		if (callListeners) { mixin(S_TRACE);
-			foreach (l; l_resizes) { mixin(S_TRACE);
-				l(this, x, y, width, height);
+		bool resize;
+		if (_scaleMode) { mixin(S_TRACE);
+			resize = scale != newScale;
+			x = newX;
+			y = newY;
+			scale = newScale;
+			if (callListeners) { mixin(S_TRACE);
+				foreach (l; lc_resizes) { mixin(S_TRACE);
+					l(this, x, y, scale);
+				}
 			}
-			foreach (l; lc_resizes) { mixin(S_TRACE);
-				l(this, x, y, width * 100 / initW);
+		} else { mixin(S_TRACE);
+			resize = bounds.width != newR.width || bounds.height != newR.height;
+			bounds = newR;
+			if (callListeners) { mixin(S_TRACE);
+				foreach (l; l_resizes) { mixin(S_TRACE);
+					l(this, x, y, width, height);
+				}
 			}
 		}
 		if (!_img || (resize && _dataResizable)) createImage();
@@ -1649,8 +1742,12 @@ public:
 	void reset() { mixin(S_TRACE);
 		newR.x = x;
 		newR.y = y;
-		newR.width = width;
-		newR.height = height;
+		if (_scaleMode) { mixin(S_TRACE);
+			newScale = scale;
+		} else { mixin(S_TRACE);
+			newR.width = width;
+			newR.height = height;
+		}
 		retoggle();
 	}
 	/// トグルを描画する。
@@ -1722,33 +1819,23 @@ public:
 		w = maxW < w ? maxW : w;
 		return w;
 	}
-	/// 幅を設定可能な値に丸めて返す。
-	/// Params:
-	/// w = 幅。
-	/// Returns: 丸めた幅。
-	const
-	int roundWidth(int w) { mixin(S_TRACE);
-		if (whconst) { mixin(S_TRACE);
-			// 縦横比固定
-			int scale = newHeight * 100 / initH;
-			return cast(int)(initW * scale / 100.0);
-		} else { mixin(S_TRACE);
-			return roundMWidth(w);
-		}
-	}
 	/// Returns: 仮の幅。
 	@property
 	const
 	int newWidth() { mixin(S_TRACE);
-		return newR.width;
+		if (_scaleMode) { mixin(S_TRACE);
+			return (initW * _newScale) / 100;
+		} else { mixin(S_TRACE);
+			return newR.width;
+		}
 	}
 	/// 幅を仮に設定する。確定するにはresize()を使用。
 	/// Params:
 	/// w = 幅。
 	@property
 	void newWidth(int w) { mixin(S_TRACE);
+		assert (!_scaleMode);
 		newR.width = roundMWidth(w);
-		newR.height = roundHeight(newR.height);
 		retoggle();
 	}
 	/// 高さを設定可能な値に丸めて返す。
@@ -1759,33 +1846,23 @@ public:
 		h = maxH < h ? maxH : h;
 		return h;
 	}
-	/// 高さを設定可能な値に丸めて返す。
-	/// Params:
-	/// h = 高さ。
-	/// Returns: 丸めた高さ。
-	const
-	int roundHeight(int h) { mixin(S_TRACE);
-		if (whconst) { mixin(S_TRACE);
-			// 縦横比固定
-			int scale = newWidth * 100 / initW;
-			return cast(int)(initH * scale / 100.0);
-		} else { mixin(S_TRACE);
-			return roundMHeight(h);
-		}
-	}
 	/// Returns: 仮の高さ。
 	@property
 	const
 	int newHeight() { mixin(S_TRACE);
-		return newR.height;
+		if (_scaleMode) { mixin(S_TRACE);
+			return (initH * _newScale) / 100;
+		} else { mixin(S_TRACE);
+			return newR.height;
+		}
 	}
 	/// 高さを仮に設定する。確定するにはresize()を使用。
 	/// Params:
 	/// h = 高さ。
 	@property
 	void newHeight(int h) { mixin(S_TRACE);
+		assert (!_scaleMode);
 		newR.height = roundMHeight(h);
-		newR.width = roundWidth(newR.width);
 		retoggle();
 	}
 	/// 位置とサイズを仮に設定する。確定するにはresize()を使用。
@@ -1793,31 +1870,59 @@ public:
 	/// rect = 位置とサイズ。
 	@property
 	void newBounds(Rectangle rect) { mixin(S_TRACE);
-		newR.x = rect.x;
-		newR.y = rect.y;
-		if (newR.width >= newR.height) { mixin(S_TRACE);
-			newR.width = roundMWidth(rect.width);
-			newR.height = roundHeight(rect.height);
+		if (_scaleMode) {
+			uint scale;
+			if (baseHeight <= baseWidth) { mixin(S_TRACE);
+				scale = (rect.width * 100) / baseWidth;
+			} else { mixin(S_TRACE);
+				scale = (rect.height * 100) / baseHeight;
+			}
+			newBoundsWithScale(rect.x, rect.y, scale);
 		} else { mixin(S_TRACE);
+			newR.x = rect.x;
+			newR.y = rect.y;
+			newR.width = roundMWidth(rect.width);
 			newR.height = roundMHeight(rect.height);
-			newR.width = roundWidth(rect.width);
+			retoggle();
 		}
+	}
+	/// ditto
+	void newBoundsWithScale(int x, int y, uint scale) { mixin(S_TRACE);
+		assert (_scaleMode);
+		newR.x = x;
+		newR.y = y;
+		_newScale = roundScale(scale);
 		retoggle();
+	}
+	/// スケールを設定可能な値に丸めて返す。
+	const
+	uint roundScale(uint scale) { mixin(S_TRACE);
+		assert (_scaleMode);
+		scale = _minScale > scale ? _minScale : scale;
+		scale = _maxScale < scale ? _maxScale : scale;
+		return scale;
 	}
 	/// スケールを指定してサイズを設定する。
 	/// Params:
 	/// scale = 元のサイズに対するスケール(%)。
 	@property
-	void scale(uint scale) { mixin(S_TRACE);
-		newR.width = cast(int)(initW * scale / 100.0);
-		newR.height = roundHeight(cast(int)rndtol(cast(real)initH * rect.height));
+	void newScale(uint scale) { mixin(S_TRACE);
+		assert (_scaleMode);
+		_newScale = roundScale(scale);
 		retoggle();
 	}
+	/// ditto
+	@property
+	const
+	uint newScale() { mixin(S_TRACE);
+		return _newScale;
+	}
+
 	/// Returns: 仮の位置とサイズ。
 	@property
 	const
 	Rectangle newBounds() { mixin(S_TRACE);
-		return new Rectangle(newR.x, newR.y, newR.width, newR.height);
+		return new Rectangle(newR.x, newR.y, newWidth, newHeight);
 	}
 
 	/// 指定されたポイントが画像内、あるいはトグルの内部であればその値を返す。
@@ -1906,10 +2011,10 @@ public:
 	const
 	Rectangle drawNewArea() { mixin(S_TRACE);
 		if (fixed) { mixin(S_TRACE);
-			return new Rectangle(newR.x - 1, newR.y - 1, newR.width + 2, newR.height + 2);
+			return new Rectangle(newR.x - 1, newR.y - 1, newWidth + 2, newHeight + 2);
 		} else { mixin(S_TRACE);
 			return new Rectangle(newR.x - tglSize, newR.y - tglSize,
-				newR.width + tglSize * 2, newR.height + tglSize * 2);
+				newWidth + tglSize * 2, newHeight + tglSize * 2);
 		}
 	}
 	/// 描画する領域を返す。
@@ -2174,7 +2279,7 @@ private:
 				bool ratioFix = (me.stateMask & SWT.SHIFT) != 0;
 				if (Toggle.MOVE is dragTgl && ratioFix) { mixin(S_TRACE);
 					// シフトを押しながらドラッグで水平・垂直移動する
-					if (movY <= movX) { mixin(S_TRACE);
+					if (.abs(movY) <= .abs(movX)) { mixin(S_TRACE);
 						movY = 0;
 					} else { mixin(S_TRACE);
 						movX = 0;
@@ -2209,31 +2314,42 @@ private:
 						default:
 							break;
 						}
-						void roundH() { mixin(S_TRACE);
-							uint scale = newRect.width * 100 / img.width;
-							newRect.height = cast(int)(img.height * scale / 100.0);
+						uint newScale = img.newScale;
+						void roundH(int width, int height) { mixin(S_TRACE);
+							uint scale = newRect.width * 100 / width;
+							if (img.scaleMode) { mixin(S_TRACE);
+								scale = .min(scale, img.maximumScale);
+								scale = .max(scale, img.minimumScale);
+							}
+							newRect.width = (width * scale) / 100;
+							newRect.height = (height * scale) / 100;
+							newScale = scale;
 						}
-						void roundW() { mixin(S_TRACE);
-							uint scale = newRect.height * 100 / img.height;
-							newRect.width = cast(int)(img.width * scale / 100.0);
+						void roundW(int width, int height) { mixin(S_TRACE);
+							uint scale = newRect.height * 100 / height;
+							if (img.scaleMode) { mixin(S_TRACE);
+								scale = .min(scale, img.maximumScale);
+								scale = .max(scale, img.minimumScale);
+							}
+							newRect.width = (width * scale) / 100;
+							newRect.height = (height * scale) / 100;
+							newScale = scale;
 						}
 						/// 縦横比固定のための調整。
-						void round(void delegate() roundW, void delegate() roundH) { mixin(S_TRACE);
-							if (ratioFix || img.ratioFix) { mixin(S_TRACE);
-								// イメージ自体が縦横比固定でない場合、トグルによっては縦横比の変更を許可する
-								switch (dragTgl) {
-								case Toggle.LEFT_MIDDLE, Toggle.RIGHT_MIDDLE:
-									if (img.ratioFix) roundH();
-									break;
-								case Toggle.MIDDLE_TOP, Toggle.MIDDLE_BOTTOM:
-									if (img.ratioFix) roundW();
-									break;
-								default:
+						void round(void delegate(int width, int height) roundW, void delegate(int width, int height) roundH) { mixin(S_TRACE);
+							if (ratioFix || img.scaleMode) { mixin(S_TRACE);
+								auto width = img.scaleMode ? img.baseWidth : img.width;
+								auto height = img.scaleMode ? img.baseHeight : img.height;
+								if (dragTgl is Toggle.LEFT_MIDDLE || dragTgl is Toggle.RIGHT_MIDDLE) { mixin(S_TRACE);
+									roundH(width, height);
+								} else if (dragTgl is Toggle.MIDDLE_TOP || dragTgl is Toggle.MIDDLE_BOTTOM) { mixin(S_TRACE);
+									roundW(width, height);
+								} else { mixin(S_TRACE);
 									// 元のサイズによって縦横の優先順を変更
-									if (rect.width >= rect.height) { mixin(S_TRACE);
-										roundH();
+									if (width >= height) { mixin(S_TRACE);
+										roundH(width, height);
 									} else { mixin(S_TRACE);
-										roundW();
+										roundW(width, height);
 									}
 								}
 							}
@@ -2323,14 +2439,14 @@ private:
 									}
 								}
 
-								void roundH2() { mixin(S_TRACE);
+								void roundH2(int width, int height) { mixin(S_TRACE);
 									if (isLeft) newRect.x = r - newRect.width;
-									roundH();
+									roundH(width, height);
 									if (isTop) newRect.y = b - newRect.height;
 								}
-								void roundW2() { mixin(S_TRACE);
+								void roundW2(int width, int height) { mixin(S_TRACE);
 									if (isTop) newRect.y = b - newRect.height;
-									roundW();
+									roundW(width, height);
 									if (isLeft) newRect.x = r - newRect.width;
 								}
 								round(&roundW2, &roundH2);
@@ -2338,9 +2454,13 @@ private:
 							redrawGrid(newRect);
 						}
 
-						scope oldArea = img.drawNewArea;
-						img.newBounds = newRect;
-						scope newArea = img.drawNewArea;
+						auto oldArea = img.drawNewArea;
+						if (img.scaleMode) { mixin(S_TRACE);
+							img.newBoundsWithScale(newRect.x, newRect.y, newScale);
+						} else { mixin(S_TRACE);
+							img.newBounds = newRect;
+						}
+						auto newArea = img.drawNewArea;
 						addRedraw(oldArea.x, oldArea.y, oldArea.width, oldArea.height);
 						addRedraw(newArea.x, newArea.y, newArea.width, newArea.height);
 					}

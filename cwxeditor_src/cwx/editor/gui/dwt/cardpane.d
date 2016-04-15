@@ -2119,7 +2119,7 @@ private:
 		closePreview();
 		_previewC = c;
 		auto imgData = cardImage(c);
-		_previewI = new PileImage(imgData, imgData.width, imgData.height);
+		_previewI = new PileImage(imgData, imgData.width, imgData.height, false);
 		_previewI.createImage();
 
 		auto b = itm.getBounds();

@@ -852,7 +852,7 @@ private:
 		if (!path.array.isImageExt()) return;
 		auto imgData = previewImage(path.array);
 		if (!imgData) return;
-		_previewI = new PileImage(imgData, imgData.width, imgData.height);
+		_previewI = new PileImage(imgData, imgData.width, imgData.height, false);
 		_previewI.transparent = -1 < imgData.transparentPixel;
 		_previewI.createImage();
 

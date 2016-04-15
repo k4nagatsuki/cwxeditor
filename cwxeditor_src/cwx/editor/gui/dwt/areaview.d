@@ -4139,9 +4139,21 @@ public:
 	void setupMenu(Menu bar) { mixin(S_TRACE);
 		auto mv = createMenu(_comm, bar, MenuID.CardsAndBacks);
 		_vpMenu = createMenuItem(_comm, mv, MenuID.ShowParty, &reverseViewParty, null, SWT.CHECK);
-		.setupToggle(_vpMenu, _prop.var.etc.viewPartyCardsArea);
+		static if (is(C:MenuCard)) {
+			.setupToggle(_vpMenu, _prop.var.etc.viewPartyCardsArea);
+		} else static if (is(C:EnemyCard)) {
+			.setupToggle(_vpMenu, _prop.var.etc.viewPartyCardsBattle);
+		} else static if (!UseCards) {
+			.setupToggle(_vpMenu, _prop.var.etc.viewPartyCardsEvent);
+		} else static assert (0);
 		_vmMenu = createMenuItem(_comm, mv, MenuID.ShowMsg, &reverseViewMsg, null, SWT.CHECK);
-		.setupToggle(_vmMenu, _prop.var.etc.viewMessageArea);
+		static if (is(C:MenuCard)) {
+			.setupToggle(_vpMenu, _prop.var.etc.viewMessageArea);
+		} else static if (is(C:EnemyCard)) {
+			.setupToggle(_vpMenu, _prop.var.etc.viewMessageBattle);
+		} else static if (!UseCards) {
+			.setupToggle(_vpMenu, _prop.var.etc.viewMessageEvent);
+		} else static assert (0);
 		static if (RefCards) {
 			_vrMenu = createMenuItem(_comm, mv, MenuID.ShowRefCards, &reverseViewRefCards, null, SWT.CHECK);
 			.setupToggle(_vrMenu, _prop.var.etc.viewReferenceCards);
@@ -4242,9 +4254,21 @@ public:
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
 		_vpTMenu = createToolItem(_comm, bar, MenuID.ShowParty, &reverseViewParty, null, SWT.CHECK);
-		.setupToggle(_vpTMenu, _prop.var.etc.viewPartyCardsArea);
+		static if (is(C:MenuCard)) {
+			.setupToggle(_vpTMenu, _prop.var.etc.viewPartyCardsArea);
+		} else static if (is(C:EnemyCard)) {
+			.setupToggle(_vpTMenu, _prop.var.etc.viewPartyCardsBattle);
+		} else static if (!UseCards) {
+			.setupToggle(_vpTMenu, _prop.var.etc.viewPartyCardsEvent);
+		} else static assert (0);
 		_vmTMenu = createToolItem(_comm, bar, MenuID.ShowMsg, &reverseViewMsg, null, SWT.CHECK);
-		.setupToggle(_vmTMenu, _prop.var.etc.viewMessageArea);
+		static if (is(C:MenuCard)) {
+			.setupToggle(_vmTMenu, _prop.var.etc.viewMessageArea);
+		} else static if (is(C:EnemyCard)) {
+			.setupToggle(_vmTMenu, _prop.var.etc.viewMessageBattle);
+		} else static if (!UseCards) {
+			.setupToggle(_vmTMenu, _prop.var.etc.viewMessageEvent);
+		} else static assert (0);
 		static if (RefCards) {
 			_vrTMenu = createToolItem(_comm, bar, MenuID.ShowRefCards, &reverseViewRefCards, null, SWT.CHECK);
 			.setupToggle(_vrTMenu, _prop.var.etc.viewReferenceCards);
@@ -4284,9 +4308,9 @@ public:
 		static if (UseCards) {
 			new ToolItem(bar, SWT.SEPARATOR);
 			_scaleSpn = createSpinner(bar, _prop.msgs.scale, _prop.var.etc.cardScaleMax, _prop.var.etc.cardScaleMin, 100,
-				&editSpnCard!("a.scale = value;"),
-				&enterSpnCard!("a.scale = value;", "a.scale = value;"),
-				&cancelSpnCard!("a.scale", "fi.scale = a.scale;"), _readOnly);
+				&editSpnCard!("a.newScale = value;"),
+				&enterSpnCard!("a.scale = value;", "a.newScale = value;"),
+				&cancelSpnCard!("a.scale", "fi.newScale = a.scale;"), _readOnly);
 			createLabel(bar, "%");
 		}
 		static if (UseBacks) {
@@ -4323,10 +4347,12 @@ public:
 		gridX.setMinimum(1);
 		gridX.setSelection(_gridX);
 		.setupSpinner(gridX, _prop.var.etc.gridX);
-		.listener(gridX, SWT.Selection, { mixin(S_TRACE);
+		void updateGridX() { mixin(S_TRACE);
 			_gridX = gridX.getSelection();
 			refreshGrid();
-		});
+		}
+		.listener(gridX, SWT.Selection, &updateGridX);
+		.listener(gridX, SWT.Modify, &updateGridX);
 		createToolItemC(bar, gridX);
 		new ToolItem(bar, SWT.SEPARATOR);
 		createLabel(bar, _prop.msgs.top ~ ":");
@@ -4336,10 +4362,12 @@ public:
 		gridY.setMinimum(1);
 		gridY.setSelection(_gridY);
 		.setupSpinner(gridY, _prop.var.etc.gridY);
-		.listener(gridY, SWT.Selection, { mixin(S_TRACE);
+		void updateGridY() { mixin(S_TRACE);
 			_gridY = gridY.getSelection();
 			refreshGrid();
-		});
+		}
+		.listener(gridY, SWT.Selection, &updateGridY);
+		.listener(gridY, SWT.Modify, &updateGridY);
 		createToolItemC(bar, gridY);
 		return true;
 	}
@@ -4411,7 +4439,13 @@ public:
 		}
 		if (_vpMenu) _vpMenu.setSelection(_viewParty);
 		if (_vpTMenu) _vpTMenu.setSelection(_viewParty);
-		_prop.var.etc.viewPartyCardsArea = _viewParty;
+		static if (is(C:MenuCard)) {
+			_prop.var.etc.viewPartyCardsArea = _viewParty;
+		} else static if (is(C:EnemyCard)) {
+			_prop.var.etc.viewPartyCardsBattle = _viewParty;
+		} else static if (!UseCards) {
+			_prop.var.etc.viewPartyCardsEvent = _viewParty;
+		} else static assert (0);
 	}
 	void reverseViewMsg() { mixin(S_TRACE);
 		_viewMsg = !_viewMsg;
@@ -4420,7 +4454,13 @@ public:
 		_imgp.redrawImage(img);
 		if (_vmMenu) _vmMenu.setSelection(_viewMsg);
 		if (_vmTMenu) _vmTMenu.setSelection(_viewMsg);
-		_prop.var.etc.viewMessageArea = _viewMsg;
+		static if (is(C:MenuCard)) {
+			_prop.var.etc.viewMessageArea = _viewMsg;
+		} else static if (is(C:EnemyCard)) {
+			_prop.var.etc.viewMessageBattle = _viewMsg;
+		} else static if (!UseCards) {
+			_prop.var.etc.viewMessageEvent = _viewMsg;
+		} else static assert (0);
 	}
 	static if (RefCards) {
 		void reverseViewRefCards() { mixin(S_TRACE);
@@ -4789,7 +4829,7 @@ public:
 				}
 				gc.drawOval(0, 0, width - 1, height - 1);
 				drawCenterText(.dwtData(_prop.looks.pcNumberFont(skin.legacy)), gc, new Rectangle(0, 0, width - 1, height - 1), .text(back.pcNumber));
-			}, back.x, back.y, size.width, size.height);
+			}, back.x, back.y, size.width, size.height, false);
 			r.transparent = false;
 			r.layer = back.layer * 10;
 			r.newWidth = back.width;
