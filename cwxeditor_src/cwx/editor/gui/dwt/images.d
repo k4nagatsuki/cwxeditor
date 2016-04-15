@@ -2354,7 +2354,9 @@ private:
 								}
 							}
 						}
-						round(&roundW, &roundH);
+						if (dragTgl !is Toggle.MOVE) { mixin(S_TRACE);
+							round(&roundW, &roundH);
+						}
 						switch (dragTgl) {
 						case Toggle.LEFT_TOP, Toggle.MIDDLE_TOP, Toggle.RIGHT_TOP:
 							newRect.y = (rect.y + rect.height) - newRect.height;
