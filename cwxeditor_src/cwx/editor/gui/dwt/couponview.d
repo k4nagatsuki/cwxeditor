@@ -636,6 +636,15 @@ class CouponView(CVType Type) : Composite {
 				_tte1 = new TableTCEdit(_comm, _coupons, 0, &nameCreateEditor, &nameEditEnd, (itm, column) => true);
 				_tte2 = new TableTCEdit(_comm, _coupons, 1, &valueCreateEditor, &valueEditEnd, (itm, column) => true);
 			}
+			if (!_readOnly) { mixin(S_TRACE);
+				.listener(_coupons, SWT.MouseDoubleClick, { mixin(S_TRACE);
+					static if (Type is CVType.Cast) {
+						_tte1.startEdit(appendCoupon(new Coupon("", 0), 0));
+					} else {
+						_tte1.startEdit(appendCoupon(new Coupon("", 0)));
+					}
+				});
+			}
 		}
 		_coupons.addSelectionListener(new SelCoupon);
 		this.setTabList([cast(Control)_toolbar, _newCoupon, _couponType, _couponVal, _coupons]);
@@ -695,9 +704,9 @@ class CouponView(CVType Type) : Composite {
 	@property
 	Coupon[] coupons() { mixin(S_TRACE);
 		Coupon[] r;
-		r.length = _coupons.getItemCount();
-		foreach (i, itm; _coupons.getItems()) { mixin(S_TRACE);
-			r[i] = cast(Coupon) itm.getData();
+		foreach (itm; _coupons.getItems()) { mixin(S_TRACE);
+			auto c = cast(Coupon)itm.getData();
+			if (c.name != "") r ~= c;
 		}
 		return r;
 	}
@@ -743,6 +752,12 @@ class CouponView(CVType Type) : Composite {
 		assert (!_readOnly);
 		assert (cast(Combo)ctrl !is null);
 		auto newText = (cast(Combo)ctrl).getText();
+		if (newText == "") { mixin(S_TRACE);
+			if ((cast(Coupon)itm.getData()).name != "") storeCoupons();
+			itm.dispose();
+			_comm.refreshToolBar();
+			return;
+		}
 		auto itms = itm.getParent().getSelection();
 		auto edit = false;
 		foreach (itm2; itms) { mixin(S_TRACE);
