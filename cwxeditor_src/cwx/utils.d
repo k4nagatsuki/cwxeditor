@@ -1241,10 +1241,10 @@ string fromBool(bool b) { mixin(S_TRACE);
 }
 /// True/Falseの文字列からbool値を生成する。
 bool parseBool(string b) { mixin(S_TRACE);
-	switch (b) {
-	case "True":
+	switch (b.toLower()) {
+	case "true", "1":
 		return true;
-	case "False":
+	case "false", "0":
 		return false;
 	default:
 		throw new Exception("Not bool: " ~ b);
