@@ -2343,7 +2343,7 @@ private:
 
 		auto tableComp = new Composite(_pane, SWT.NONE);
 		tableComp.setLayout(zeroGridLayout(1, true));
-		_tbl = new Table(tableComp, SWT.FULL_SELECTION | SWT.MULTI);
+		_tbl = .rangeSelectableTable(tableComp, SWT.FULL_SELECTION | SWT.MULTI);
 		_tbl.setLayoutData(new GridData(GridData.FILL_BOTH));
 		_tbl.addSelectionListener(new SelChanged);
 		_tbl.setHeaderVisible(true);

@@ -1892,7 +1892,7 @@ public:
 			}
 		}
 
-		_areas = new Table(tableParent, (_readOnly ? SWT.MULTI : SWT.SINGLE) | SWT.BORDER | SWT.FULL_SELECTION);
+		_areas = .rangeSelectableTable(tableParent, (_readOnly ? SWT.MULTI : SWT.SINGLE) | SWT.BORDER | SWT.FULL_SELECTION);
 		_areas.addDisposeListener(new ADListener);
 		_areas.addSelectionListener(new SListener);
 		.listener(_areas, SWT.FocusIn, (e) { _lastFocus = cast(Control)e.widget; });

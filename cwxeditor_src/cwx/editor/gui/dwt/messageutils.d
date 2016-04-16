@@ -933,7 +933,7 @@ protected:
 		auto right = new Composite(sash, SWT.NONE);
 		right.setLayout(zeroMarginGridLayout(2, false));
 		{ mixin(S_TRACE);
-			_dlgsL = new Table(right, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+			_dlgsL = .rangeSelectableTable(right, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
 			new FullTableColumn(_dlgsL, SWT.NONE);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = 0;
@@ -2329,7 +2329,7 @@ class PreviewValues : Composite {
 
 		this.setLayout(zeroGridLayout(1, true));
 
-		_values = new Table(this, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
+		_values = .rangeSelectableTable(this, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
 		auto vgd = new GridData(GridData.FILL_BOTH);
 		vgd.heightHint = _prop.var.etc.messageVarTableHeight;
 		_values.setLayoutData(vgd);

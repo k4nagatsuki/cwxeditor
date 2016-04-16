@@ -4,7 +4,402 @@ module cwx.editor.gui.dwt.customtable;
 import cwx.perf;
 import cwx.utils : debugln, cdebugln;
 
+import core.thread;
+
+import std.algorithm;
+import std.datetime;
+
 import org.eclipse.swt.all;
+
+import java.lang.all;
+
+/// WindowsExplorerのように範囲選択が可能なテーブルを生成する。
+Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
+	if (!(style & SWT.MULTI)) return new Table(parent, style);
+	version (Windows) {
+		import org.eclipse.swt.internal.win32.OS;
+		static class RSTable : Table {
+			private GC _gc;
+			private bool _down = false;
+
+			this (Composite parent, int style) { mixin(S_TRACE);
+				super (parent, style);
+				_gc = new GC(this);
+				addDisposeListener(new class DisposeListener {
+					override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
+						_gc.dispose();
+					}
+				});
+			}
+
+			protected
+			override
+			LRESULT WM_MOUSEMOVE(WPARAM wParam, LPARAM lParam) { mixin(S_TRACE);
+				_down = false;
+				return super.WM_MOUSEMOVE(wParam, lParam);
+			}
+
+			protected
+			override
+			LRESULT WM_LBUTTONUP(WPARAM wParam, LPARAM lParam) { mixin(S_TRACE);
+				if (_down) { mixin(S_TRACE);
+					super.sendMouseDownEvent(SWT.MouseDown, 1, OS.WM_LBUTTONDOWN, wParam, lParam);
+				}
+				_down = false;
+				return super.WM_LBUTTONUP(wParam, lParam);
+			}
+
+			protected
+			override
+			LRESULT sendMouseDownEvent(int type, int button, int msg, WPARAM wParam, LPARAM lParam) { mixin(S_TRACE);
+				if (_down || type !is SWT.MouseDown || button != 1 || msg !is OS.WM_LBUTTONDOWN) { mixin(S_TRACE);
+					return super.sendMouseDownEvent(type, button, msg, wParam, lParam);
+				}
+				auto x = OS.GET_X_LPARAM(lParam);
+				auto y = OS.GET_Y_LPARAM(lParam);
+				auto itm = getItem(new Point(x, y));
+				if (!itm) return super.sendMouseDownEvent(type, button, msg, wParam, lParam);
+				auto index = indexOf(itm);
+				if (isSelected(index)) return super.sendMouseDownEvent(type, button, msg, wParam, lParam);
+				foreach (i; 0 .. getColumnCount()) { mixin(S_TRACE);
+					// カーソル下のアイテムのアイコンかテキストをクリックした場合はそのアイテムを選択する
+					if (itm.getImageBounds(i).contains(x, y)) { mixin(S_TRACE);
+						return super.sendMouseDownEvent(type, button, msg, wParam, lParam);
+					}
+					auto tRect = itm.getTextBounds(i);
+					// 幅の値がセル幅一杯のものになってしまうので再測定
+					tRect.width = _gc.textExtent(itm.getText(i)).x;
+					if (tRect.contains(x, y)) { mixin(S_TRACE);
+						return super.sendMouseDownEvent(type, button, msg, wParam, lParam);
+					}
+				}
+				OS.SetFocus(handle);
+				if (!getDisplay().captureChanged && OS.GetCapture() !is handle) {
+					OS.SetCapture(handle);
+				}
+				// 範囲選択開始
+				_down = true;
+				LVITEM lvItem;
+				lvItem.state = OS.LVNI_FOCUSED;
+				lvItem.stateMask = OS.LVNI_FOCUSED;
+				OS.SendMessage(handle, OS.LVM_SETITEMSTATE, index, &lvItem);
+				sendMouseEvent(SWT.MouseDown, 1, handle, OS.WM_LBUTTONDOWN, wParam, lParam);
+				return LRESULT.ZERO;
+			}
+		}
+		auto table = new RSTable(parent, style);
+	} else {
+		auto table = new Table(parent, style);
+	}
+	ulong frame = 0;
+	ulong lastVFrame = 0;
+	ulong lastHFrame = 0;
+	auto d = table.getDisplay();
+	auto timerRunning = false;
+	core.thread.Thread timer = null;
+	Point startPos = null;
+	Point endPos = null;
+	int stateMask = 0;
+	bool[int] selected;
+	int rangeFrom = -1;
+	int rangeTo = -1;
+
+	void notifySelection() { mixin(S_TRACE);
+		auto se = new Event;
+		se.type = SWT.Selection;
+		se.widget = table;
+		se.time = cast(int)(0xFFFFFFFFL & Clock.currStdTime());
+		se.stateMask = stateMask;
+		se.doit = true;
+		table.notifyListeners(SWT.Selection, se);
+	}
+	void updateRangeIndices() { mixin(S_TRACE);
+		auto left = .min(startPos.x, endPos.x);
+		auto top = .min(startPos.y, endPos.y);
+		auto right = .max(startPos.x, endPos.x);
+		auto bottom = .max(startPos.y, endPos.y);
+		auto hbar = table.getHorizontalBar();
+		if (hbar) { mixin(S_TRACE);
+			auto hPos = hbar.getSelection() * hbar.getIncrement();
+			left += hPos;
+			right += hPos;
+		}
+		auto vbar = table.getVerticalBar();
+		if (vbar) { mixin(S_TRACE);
+			auto vPos = vbar.getSelection() * table.getItemHeight();
+			top += vPos;
+			bottom += vPos;
+		}
+		if (table.getHeaderVisible()) { mixin(S_TRACE);
+			top -= table.getHeaderHeight();
+			bottom -= table.getHeaderHeight();
+		}
+		auto oldFrom = rangeFrom;
+		auto oldTo = rangeTo;
+
+		if (right < 0) { mixin(S_TRACE);
+			rangeFrom = -1;
+			rangeTo = -1;
+		} else if (.reduce!((a, b) => a + b)(.map!(col => col.getWidth())(table.getColumns())) <= left) { mixin(S_TRACE);
+			rangeFrom = -1;
+			rangeTo = -1;
+		} else { mixin(S_TRACE);
+			rangeFrom = top / table.getItemHeight();
+			rangeTo = bottom / table.getItemHeight();
+			if (rangeTo < 0 || table.getItemCount() <= rangeFrom) { mixin(S_TRACE);
+				rangeFrom = -1;
+				rangeTo = -1;
+			} else { mixin(S_TRACE); mixin(S_TRACE);
+				rangeFrom = .max(rangeFrom, 0);
+				rangeTo = .min(rangeTo, table.getItemCount() - 1);
+			}
+		}
+
+		auto ctrl = (stateMask & SWT.CTRL) != 0;
+		auto shift = (stateMask & SWT.SHIFT) != 0;
+		void updateSelection(int index) { mixin(S_TRACE);
+			auto inRange = rangeFrom != -1 && rangeFrom <= index && index <= rangeTo;
+			auto sel = false;
+			if (ctrl) { mixin(S_TRACE);
+				if (index in selected) { mixin(S_TRACE);
+					sel = !inRange;
+				} else { mixin(S_TRACE);
+					sel = true;
+				}
+			} else { mixin(S_TRACE);
+				sel = inRange;
+			}
+			if (sel) { mixin(S_TRACE);
+				table.select(index);
+			} else { mixin(S_TRACE);
+				table.deselect(index);
+			}
+		}
+
+		if (rangeFrom != -1 && oldFrom != -1) { mixin(S_TRACE);
+			foreach (i; .min(oldFrom, rangeFrom) .. .max(oldTo, rangeTo) + 1) { mixin(S_TRACE);
+				if (i < .max(oldFrom, rangeFrom) || .min(oldTo, rangeTo) < i) { mixin(S_TRACE);
+					updateSelection(i);
+				}
+			}
+		} else if (rangeFrom != -1) { mixin(S_TRACE);
+			foreach (i; rangeFrom .. rangeTo + 1) { mixin(S_TRACE);
+				updateSelection(i);
+			}
+		} else if (oldFrom != -1) { mixin(S_TRACE);
+			foreach (i; oldFrom .. oldTo + 1) { mixin(S_TRACE);
+				updateSelection(i);
+			}
+		}
+		if (!ctrl) { mixin(S_TRACE);
+			selected = null;
+			.each!(i => selected[i] = true)(table.getSelectionIndices());
+		}
+		notifySelection();
+	}
+	void mouseRelease() { mixin(S_TRACE);
+		if (!startPos) return;
+		auto sx = startPos.x;
+		auto sy = startPos.y;
+		startPos = null;
+		if (!endPos) return;
+		assert (timer !is null);
+		auto ex = endPos.x;
+		auto ey = endPos.y;
+		endPos = null;
+		auto left = .min(sx, ex);
+		auto top = .min(sy, ey);
+		auto right = .max(sx, ex);
+		auto bottom = .max(sy, ey);
+		table.redraw(left, top, right - left + 1, bottom - top + 1, false);
+		timerRunning = false;
+		timer.join();
+		timer = null;
+		stateMask = 0;
+		selected = null;
+		rangeFrom = -1;
+		rangeTo = -1;
+	}
+	auto doAutoScroll = new class Runnable {
+		/// 縦スクロール位置を調節し、調節が完了した場合はtrueを返す。
+		private bool vertical(ulong pFrame) { mixin(S_TRACE);
+			auto top = 0;
+			if (table.getHeaderVisible()) top += table.getHeaderHeight();
+			auto ti = table.getTopIndex();
+			if (endPos.y < top) { mixin(S_TRACE);
+				if (ti <= 0) return true;
+				auto count = (top - endPos.y) * 2;
+				auto sIndex = cast(int)(pFrame / 60.0 * count);
+				if (sIndex <= 0) return false;
+				table.setTopIndex(.max(0, ti - sIndex));
+				startPos.y += (ti - table.getTopIndex()) * table.getItemHeight();
+				updateRangeIndices();
+			} else { mixin(S_TRACE);
+				auto ca = table.getClientArea();
+				auto hc = (ca.height - top) / table.getItemHeight();
+				auto bi = ti + hc;
+				if (table.getItemCount() <= bi) return true;
+				if (ca.height <= endPos.y) { mixin(S_TRACE);
+					auto count = (endPos.y - ca.height + 1) * 2;
+					auto sIndex = cast(int)(pFrame / 60.0 * count);
+					if (sIndex <= 0) return false;
+					table.setTopIndex(.min(table.getItemCount() - 1, ti + sIndex));
+					startPos.y += (ti - table.getTopIndex()) * table.getItemHeight();
+					updateRangeIndices();
+				}
+			}
+			return true;
+		}
+		private bool horizontal(ulong pFrame) { mixin(S_TRACE);
+			version (Windows) {
+				auto hbar = table.getHorizontalBar();
+				if (!hbar) return true;
+				auto pos = hbar.getSelection();
+				int sIndex = 0;
+				if (endPos.x < 0) { mixin(S_TRACE);
+					if (pos <= 0) return true;
+					auto count = endPos.x;
+					sIndex = cast(int)(pFrame * 1.0 * count);
+					if (0 <= sIndex) return false;
+				} else { mixin(S_TRACE);
+					auto ca = table.getClientArea();
+					if (endPos.x < ca.width) return true;
+					if (pos + 1 < hbar.getMaximum() - hbar.getThumb()) { mixin(S_TRACE);
+						auto count = endPos.x - ca.width + 1;
+						sIndex = cast(int)(pFrame * 1.0 * count);
+					}
+					if (sIndex <= 0) return false;
+				}
+				if (sIndex == 0) return false;
+				OS.SendMessage(table.handle, OS.LVM_SCROLL, sIndex, 0);
+				startPos.x += (pos - hbar.getSelection()) * hbar.getIncrement();
+				updateRangeIndices();
+				return true;
+			} else {
+				return true;
+			}
+		}
+		override void run() { mixin(S_TRACE);
+			if (table.isDisposed() || !endPos || !table.getItemCount()) { mixin(S_TRACE);
+				lastVFrame = frame;
+				lastHFrame = frame;
+				return;
+			}
+			auto pVFrame = frame - lastVFrame;
+			auto pHFrame = frame - lastHFrame;
+			if (0 < pVFrame && vertical(pVFrame)) lastVFrame = frame;
+			if (0 < pHFrame && horizontal(pHFrame)) lastHFrame = frame;
+		}
+	};
+	void autoScroll() { mixin(S_TRACE);
+		while (timerRunning) { mixin(S_TRACE);
+			d.asyncExec(doAutoScroll);
+			core.thread.Thread.sleep(dur!"msecs"(16));
+			frame++;
+		}
+	}
+	table.addMouseListener(new class MouseAdapter {
+		override void mouseUp(MouseEvent e) { mixin(S_TRACE);
+			if (e.button == 1) { mixin(S_TRACE);
+				auto rangeSelection = endPos !is null;
+				mouseRelease();
+				auto ctrl = (e.stateMask & SWT.CTRL) != 0;
+				auto shift = (e.stateMask & SWT.SHIFT) != 0;
+				if (!ctrl && !shift && !rangeSelection) { mixin(S_TRACE);
+					auto itm = table.getItem(new Point(e.x, e.y));
+					if (itm) { mixin(S_TRACE);
+						table.setSelection([itm]);
+					} else { mixin(S_TRACE);
+						table.deselectAll();
+					}
+					notifySelection();
+				}
+			}
+		}
+		override void mouseDown(MouseEvent e) { mixin(S_TRACE);
+			startPos = new Point(e.x, e.y);
+		}
+	});
+	table.addFocusListener(new class FocusAdapter {
+		override void focusLost(FocusEvent e) { mixin(S_TRACE);
+			mouseRelease();
+		}
+	});
+	table.addMouseMoveListener(new class MouseMoveListener {
+		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
+			if (!startPos) return;
+
+			void redraw() { mixin(S_TRACE);
+				auto left = .min(startPos.x, endPos.x);
+				auto top = .min(startPos.y, endPos.y);
+				auto right = .max(startPos.x, endPos.x);
+				auto bottom = .max(startPos.y, endPos.y);
+				table.redraw(left, top, right - left + 1, bottom - top + 1, false);
+			}
+			if (endPos) { mixin(S_TRACE);
+				redraw();
+				endPos.x = e.x;
+				endPos.y = e.y;
+				stateMask = e.stateMask;
+				updateRangeIndices();
+			} else { mixin(S_TRACE);
+				assert (timer is null);
+				auto itm = table.getItem(startPos);
+				if (itm && table.isSelected(table.indexOf(itm)) && table.getListeners(SWT.DragDetect).length) { mixin(S_TRACE);
+					// ドラッグが開始される場合
+					mouseRelease();
+					return;
+				}
+
+				endPos = new Point(e.x, e.y);
+				timer = new core.thread.Thread(&autoScroll);
+				timerRunning = true;
+				frame = 0;
+				lastVFrame = 0;
+				lastHFrame = 0;
+				stateMask = e.stateMask;
+				auto ctrl = (stateMask & SWT.CTRL) != 0;
+				auto shift = (stateMask & SWT.SHIFT) != 0;
+				if (!ctrl && !shift) table.deselectAll();
+				selected = null;
+				.each!(i => selected[i] = true)(table.getSelectionIndices());
+				updateRangeIndices();
+				timer.start();
+			}
+			redraw();
+		}
+	});
+	table.addKeyListener(new class KeyAdapter {
+		private void common(KeyEvent e) { mixin(S_TRACE);
+			stateMask = e.stateMask;
+		}
+		override void keyPressed(KeyEvent e) { mixin(S_TRACE);
+			common(e);
+		}
+		override void keyReleased(KeyEvent e) { mixin(S_TRACE);
+			common(e);
+		}
+	});
+	table.addPaintListener(new class PaintListener {
+		override void paintControl(PaintEvent e) { mixin(S_TRACE);
+			if (!startPos) return;
+			if (!endPos) return;
+			auto left = .min(startPos.x, endPos.x);
+			auto top = .min(startPos.y, endPos.y);
+			auto right = .max(startPos.x, endPos.x);
+			auto bottom = .max(startPos.y, endPos.y);
+			auto lineColor = new Color(d, new RGB(64, 160, 222));
+			scope (exit) lineColor.dispose();
+			e.gc.setBackground(lineColor);
+			e.gc.setAlpha(96);
+			e.gc.fillRectangle(left, top, right - left, bottom - top);
+			e.gc.setAlpha(255);
+			e.gc.setForeground(lineColor);
+			e.gc.drawRectangle(left, top, right - left, bottom - top);
+		}
+	});
+	return table;
+}
 
 class TableSorter(DataT) {
 	void delegate()[] sortedEvent;

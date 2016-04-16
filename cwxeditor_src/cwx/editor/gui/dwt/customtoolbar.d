@@ -361,7 +361,7 @@ class ToolBarCustomizer : Composite, TCPD {
 			auto comp = new Composite(sash, SWT.NONE);
 			comp.setLayout(zeroMarginGridLayout(2, false));
 
-			_menuList = new Table(comp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.FULL_SELECTION);
+			_menuList = .rangeSelectableTable(comp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.FULL_SELECTION);
 			_menuList.setLayoutData(new GridData(GridData.FILL_BOTH));
 			.listener(_menuList, SWT.Selection, &_comm.refreshToolBar);
 			new FullTableColumn(_menuList, SWT.NONE);

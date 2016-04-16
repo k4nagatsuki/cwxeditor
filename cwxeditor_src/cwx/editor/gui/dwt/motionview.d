@@ -1093,7 +1093,7 @@ public:
 			mtabf.setSelection(0);
 		}
 		{ mixin(S_TRACE);
-			_motions = new Table(this, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
+			_motions = .rangeSelectableTable(this, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.widthHint = _prop.var.etc.motionsWidth;
 			_motions.setLayoutData(gd);
@@ -1115,7 +1115,7 @@ public:
 			col.column.setText(_prop.msgs.motionKind);
 		}
 		{ mixin(S_TRACE);
-			_motionElm = new Table(this, SWT.BORDER | SWT.SINGLE | SWT.NO_SCROLL | SWT.FULL_SELECTION);
+			_motionElm = .rangeSelectableTable(this, SWT.BORDER | SWT.SINGLE | SWT.NO_SCROLL | SWT.FULL_SELECTION);
 			_motionElm.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			_motionElm.setHeaderVisible(true);
 			_motionElm.addSelectionListener(new SelElement);

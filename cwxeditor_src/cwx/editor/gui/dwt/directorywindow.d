@@ -1579,7 +1579,7 @@ public:
 		}
 		auto fComp = new Composite(_sash, SWT.NONE);
 		fComp.setLayout(new FillLayout);
-		_files = new Table(fComp, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
+		_files = .rangeSelectableTable(fComp, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
 		{ mixin(S_TRACE);
 			_files.addSelectionListener(new FilesSelection);
 			.listener(_files, SWT.FocusIn, (e) { _lastFocus = cast(Control)e.widget; });

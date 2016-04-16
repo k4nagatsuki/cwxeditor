@@ -402,7 +402,7 @@ class KeyCodeView : Composite {
 			createToolItem(_comm, _toolbar, MenuID.Down, &down, &canDown);
 		}
 		{ mixin(S_TRACE);
-			_keyCodes = new Table(this, SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION);
+			_keyCodes = .rangeSelectableTable(this, SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION);
 			_keyCodes.setLayoutData(new GridData(GridData.FILL_BOTH));
 			new FullTableColumn(_keyCodes, SWT.NONE);
 			auto menu = new Menu(_keyCodes);

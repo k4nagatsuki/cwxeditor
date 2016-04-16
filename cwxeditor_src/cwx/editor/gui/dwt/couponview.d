@@ -606,7 +606,7 @@ class CouponView(CVType Type) : Composite {
 			}
 		}
 		{ mixin(S_TRACE);
-			_coupons = new Table(this, SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION);
+			_coupons = .rangeSelectableTable(this, SWT.BORDER | SWT.MULTI | SWT.FULL_SELECTION);
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.horizontalSpan = 3;
 			gd.widthHint = _prop.var.etc.couponWidth;

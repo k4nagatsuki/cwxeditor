@@ -262,7 +262,7 @@ protected:
 			setEVS(_init);
 		}
 		{ mixin(S_TRACE);
-			_values = new Table(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
+			_values = .rangeSelectableTable(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
 			_values.setLayoutData(new GridData(GridData.FILL_BOTH));
 			auto valueNumCol = new TableColumn(_values, SWT.NONE);
 			auto prop = _comm.prop;
@@ -1567,7 +1567,7 @@ public:
 	Control createControl(Composite parent, Composite incSearchParent, void delegate() gotFocus) { mixin(S_TRACE);
 		_comp = new Composite(parent, SWT.NONE);
 		_comp.setLayout(new FillLayout);
-		flags = new Table(_comp, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
+		flags = .rangeSelectableTable(_comp, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
 		flags.setHeaderVisible(true);
 		.listener(flags, SWT.FocusIn, gotFocus);
 		auto nameCol = new TableColumn(flags, SWT.NULL);

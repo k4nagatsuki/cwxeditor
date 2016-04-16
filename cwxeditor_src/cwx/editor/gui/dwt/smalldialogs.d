@@ -736,7 +736,7 @@ protected:
 		grp.setText(_comm.prop.msgs.scriptVarSet);
 		grp.setLayout(new GridLayout(1, false));
 
-		_table = new Table(grp, SWT.BORDER | SWT.FULL_SELECTION);
+		_table = .rangeSelectableTable(grp, SWT.BORDER | SWT.FULL_SELECTION);
 		auto vgd = new GridData(GridData.FILL_BOTH);
 		vgd.heightHint = _comm.prop.var.etc.scriptVarTableHeight;
 		_table.setLayoutData(vgd);
@@ -1020,7 +1020,7 @@ class ImportResultDialog : AbsDialog {
 		label.setText(_prop.msgs.importResourceList);
 		label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-		_list = new Table(area, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+		_list = .rangeSelectableTable(area, SWT.MULTI | SWT.CHECK | SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
 		_list.setLayoutData(new GridData(GridData.FILL_BOTH));
 		new FullTableColumn(_list, SWT.NONE);
 		.listener(_list, SWT.Selection, (e) { mixin(S_TRACE);

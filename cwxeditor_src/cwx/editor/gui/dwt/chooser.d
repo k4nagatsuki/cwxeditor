@@ -682,7 +682,7 @@ class FlagChooser(F, bool CanSelNothing, bool Random = false) : Composite {
 			}
 			_allExpanded = createAllExpandedButton(_comm.prop, this, _tree);
 		} else { mixin(S_TRACE);
-			_list = new Table(this, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
+			_list = .rangeSelectableTable(this, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
 			auto colN = new FullTableColumn(_list, SWT.NONE);
 		}
 		auto gd = new GridData(GridData.FILL_BOTH);
@@ -1078,7 +1078,7 @@ class AreaChooser(A, bool StartArea) : Composite {
 			initTree(_comm, _tree, false, false);
 			_allExpanded = createAllExpandedButton(_comm.prop, this, _tree);
 		} else { mixin(S_TRACE);
-			_list = new Table(this, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
+			_list = .rangeSelectableTable(this, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
 			auto idCol = new TableColumn(_list, SWT.NONE);
 			saveColumnWidth!("prop.var.etc.idColumn")(_prop, idCol);
 			auto nameCol = new FullTableColumn(_list, SWT.NONE);

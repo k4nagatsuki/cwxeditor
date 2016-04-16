@@ -1010,7 +1010,7 @@ private:
 				_hotkey.widget.setLayoutData(hgd);
 				_hotkey.widget.addModifyListener(new ModMenu);
 
-				_menu = new Table(grp, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
+				_menu = .rangeSelectableTable(grp, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
 				auto mgd = new GridData(GridData.FILL_BOTH);
 				mgd.horizontalSpan = 4;
 				mgd.heightHint = _prop.var.etc.menuSettingsHeight;
@@ -2861,7 +2861,7 @@ public:
 					_features.setSelection(false);
 					e.doit = false;
 				});
-				_featureName = new Table(_ceNameWin, SWT.FULL_SELECTION | SWT.MULTI | SWT.V_SCROLL);
+				_featureName = .rangeSelectableTable(_ceNameWin, SWT.FULL_SELECTION | SWT.MULTI | SWT.V_SCROLL);
 				_featureUndo = new UndoManager(_prop.var.etc.undoMaxEtc);
 				auto menu = new Menu(_featureName.getShell(), SWT.POP_UP);
 				createMenuItem(_comm, menu, MenuID.Undo, &undoFeatures, &_featureUndo.canUndo);

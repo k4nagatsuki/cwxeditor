@@ -443,7 +443,7 @@ public:
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(new GridLayout(1, false));
-		_list = new Table(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+		_list = .rangeSelectableTable(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
 		mod(_list);
 		auto nameCol = new FullTableColumn(_list, SWT.NONE);
 		auto gd = new GridData(GridData.FILL_BOTH);
@@ -1624,7 +1624,7 @@ protected:
 			_flags.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		{ mixin(S_TRACE);
-			_values = new Table(right, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+			_values = .rangeSelectableTable(right, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
 			new FullTableColumn(_values, SWT.NONE);
 			mod(_values);
 			auto gd = new GridData(GridData.FILL_BOTH);
@@ -2458,7 +2458,7 @@ protected:
 			}
 		}
 		{ mixin(S_TRACE);
-			_list = new Table(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
+			_list = .rangeSelectableTable(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
 			mod(_list);
 			_incSearch = new IncSearch(comm, _list);
 			_incSearch.modEvent ~= &refreshList;
