@@ -3,15 +3,20 @@ module cwx.editor.gui.dwt.cardlist;
 
 import cwx.utils;
 
-import cwx.editor.gui.dwt.dutils : wDrawText, wTextExtent;
+import cwx.editor.gui.dwt.customtable : lineColor, fillColor;
+import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.dprops;
 
-import std.algorithm : countUntil, max, min;
+import core.thread;
+
+import std.algorithm : countUntil, max, min, each;
 import std.algorithm.sorting : sort;
 import std.array;
 import std.conv;
 import std.datetime;
 
 import org.eclipse.swt.all;
+
 import java.lang.all;
 
 public:
@@ -23,6 +28,7 @@ public:
 	/// style = スタイル。使用可能なスタイルはSWT.MULTI、DWT.V_SCROLL、DWT.H_SCROLL。
 	this (Composite parent, int style) { mixin(S_TRACE);
 		super(parent, style | SWT.NO_BACKGROUND);
+		auto d = getDisplay();
 		_origin = new Point(0, 0);
 		setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
 		void setupBar(ScrollBar scr, void delegate(int) setOrigin) { mixin(S_TRACE);
@@ -76,16 +82,66 @@ public:
 				}
 			}
 		});
+
+		auto doAutoScroll = new class Runnable {
+			private bool autoScroll(ulong pFrame, ScrollBar bar, lazy int width, ref int end, void delegate(int xy) scroll) { mixin(S_TRACE);
+				if (!bar) return true;
+				auto pos = bar.getSelection();
+				int sIndex = 0;
+				if (end < 0) { mixin(S_TRACE);
+					if (pos <= 0) return true;
+					auto count = end;
+					sIndex = cast(int)(pFrame * 0.5 * count);
+					if (0 <= sIndex) return false;
+				} else { mixin(S_TRACE);
+					if (end < width) return true;
+					if (pos + 1 < bar.getMaximum() - bar.getThumb()) { mixin(S_TRACE);
+						auto count = end - width + 1;
+						sIndex = cast(int)(pFrame * 0.5 * count);
+					}
+					if (sIndex <= 0) return false;
+				}
+				if (sIndex == 0) return false;
+				scroll(pos + sIndex);
+				updateRangeIndices();
+				return true;
+			}
+			override void run() { mixin(S_TRACE);
+				if (isDisposed() || !_endPos || !_items.length) { mixin(S_TRACE);
+					_lastVFrame = _frame;
+					_lastHFrame = _frame;
+					return;
+				}
+				auto pVFrame = _frame - _lastVFrame;
+				auto pHFrame = _frame - _lastHFrame;
+				if (0 < pVFrame && autoScroll(pVFrame, getVerticalBar(), getClientArea().height, _endPos.y, &scrollY)) _lastVFrame = _frame;
+				if (0 < pHFrame && autoScroll(pHFrame, getHorizontalBar(), getClientArea().width, _endPos.x, &scrollX)) _lastHFrame = _frame;
+			}
+		};
+		void autoScroll() { mixin(S_TRACE);
+			while (_timerRunning) { mixin(S_TRACE);
+				d.asyncExec(doAutoScroll);
+				core.thread.Thread.sleep(dur!"msecs"(16));
+				_frame++;
+			}
+		}
+
+		addListener(SWT.KeyUp, new class Listener {
+			public override void handleEvent(Event e) { mixin(S_TRACE);
+				_shift = (e.stateMask & SWT.SHIFT) != 0;
+				_ctrl = (e.stateMask & SWT.CTRL) != 0;
+			}
+		});
 		addListener(SWT.KeyDown, new class Listener {
 			public override void handleEvent(Event e) { mixin(S_TRACE);
+				_shift = (e.stateMask & SWT.SHIFT) != 0;
+				_ctrl = (e.stateMask & SWT.CTRL) != 0;
 				if (0 == count) return;
 				bool multi = (getStyle() & SWT.MULTI) != 0;
-				bool ctrl = (e.stateMask & SWT.CTRL) != 0;
-				bool shift = (e.stateMask & SWT.SHIFT) != 0;
 				void updateCursor(int nCur) { mixin(S_TRACE);
-					if (!ctrl && !shift) deselectAll();
-					setCursor(nCur, true, !multi || !shift);
-					if (shift && multi) { mixin(S_TRACE);
+					if (!_ctrl && !_shift) deselectAll();
+					setCursor(nCur, true, !multi || !_shift);
+					if (_shift && multi) { mixin(S_TRACE);
 						auto minIndex = .min(_shiftP, _cur);
 						auto maxIndex = .max(_shiftP, _cur);
 						deselectAll();
@@ -125,7 +181,7 @@ public:
 					}
 					break;
 				case SWT.ARROW_UP:
-					if (ctrl) return;
+					if (_ctrl) return;
 					int nCur = _cur - _wrap;
 					if (nCur < 0) { mixin(S_TRACE);
 						nCur = _wrap * (_line - 1) + _cur;
@@ -134,7 +190,7 @@ public:
 					updateCursor(nCur);
 					break;
 				case SWT.ARROW_DOWN:
-					if (ctrl) return;
+					if (_ctrl) return;
 					int nCur = _cur + _wrap;
 					if (_items.length <= nCur) { mixin(S_TRACE);
 						nCur = _cur % _wrap;
@@ -142,7 +198,7 @@ public:
 					updateCursor(nCur);
 					break;
 				case SWT.ARROW_LEFT:
-					if (ctrl) return;
+					if (_ctrl) return;
 					int nCur;
 					if (isFirstCol(_cur)) { mixin(S_TRACE);
 						nCur = _cur + _wrap - 1;
@@ -153,7 +209,7 @@ public:
 					updateCursor(nCur);
 					break;
 				case SWT.ARROW_RIGHT:
-					if (ctrl) return;
+					if (_ctrl) return;
 					int nCur;
 					if (_cur == _items.length - 1) { mixin(S_TRACE);
 						int d = cast(int)_items.length % _wrap;
@@ -172,6 +228,12 @@ public:
 		});
 		addListener(SWT.MouseUp, new class Listener {
 			public override void handleEvent(Event e) { mixin(S_TRACE);
+				_shift = (e.stateMask & SWT.SHIFT) != 0;
+				_ctrl = (e.stateMask & SWT.CTRL) != 0;
+				if (e.button == 1 && (_startPos || _endPos)) { mixin(S_TRACE);
+					mouseRelease();
+					return;
+				}
 				if (!_dragging && (getStyle() & SWT.MULTI) != 0 && e.button == 1 && _mouseP >= 0) { mixin(S_TRACE);
 					if (_ctrl) { mixin(S_TRACE);
 						if (isSelectedAt(_mouseP)) { mixin(S_TRACE);
@@ -193,12 +255,12 @@ public:
 		});
 		addListener(SWT.MouseDown, new class Listener {
 			public override void handleEvent(Event e) { mixin(S_TRACE);
+				_shift = (e.stateMask & SWT.SHIFT) != 0;
+				_ctrl = (e.stateMask & SWT.CTRL) != 0;
 				if (e.button == 1 || e.button == 3) { mixin(S_TRACE);
 					forceFocus();
 				}
 				_dragging = false;
-				_shift = (e.stateMask & SWT.SHIFT) != 0;
-				_ctrl = (e.stateMask & SWT.CTRL) != 0;
 				int i = searchIndex(e.x, e.y);
 				if (i >= 0) { mixin(S_TRACE);
 					_mouseP = i;
@@ -249,9 +311,16 @@ public:
 						}
 					}
 				} else if (e.button == 1 || e.button == 3) { mixin(S_TRACE);
-					deselectAll();
 					_shiftP = -1;
 					_mouseP = -1;
+					if ((getStyle() & SWT.MULTI) && e.button == 1) { mixin(S_TRACE);
+						_startPos = new Point(e.x, e.y);
+						if (!_ctrl && !_shift) { mixin(S_TRACE);
+							deselectAll();
+						}
+					} else { mixin(S_TRACE);
+						deselectAll();
+					} mixin(S_TRACE);
 					callSelectChanged();
 				}
 			}
@@ -271,12 +340,51 @@ public:
 		setData(DragSource.DEFAULT_DRAG_SOURCE_EFFECT, new CardListDragSourceEffect!(C)(this));
 		addListener(SWT.MouseMove, new class Listener {
 			public override void handleEvent(Event e) { mixin(S_TRACE);
+				_shift = (e.stateMask & SWT.SHIFT) != 0;
+				_ctrl = (e.stateMask & SWT.CTRL) != 0;
 				int index = searchIndex(e.x, e.y);
 				if (_oldMoveIndex != index) { mixin(S_TRACE);
 					_oldMoveIndex = index;
 					setDragDetect(index >= 0);
 					refreshToolTip();
 				}
+
+				if ((getStyle() & SWT.MULTI) == 0) return;
+				if (!_startPos) return;
+
+				void redrawes() { mixin(S_TRACE);
+					auto left = .min(_startPos.x, _endPos.x);
+					auto top = .min(_startPos.y, _endPos.y);
+					auto right = .max(_startPos.x, _endPos.x);
+					auto bottom = .max(_startPos.y, _endPos.y);
+					redraw(left, top, right - left + 1, bottom - top + 1, false);
+				}
+				if (_endPos) { mixin(S_TRACE);
+					redrawes();
+					_endPos.x = e.x;
+					_endPos.y = e.y;
+					updateRangeIndices();
+				} else { mixin(S_TRACE);
+					assert (_timer is null);
+					if (index in _sels) { mixin(S_TRACE);
+						// ドラッグが開始される場合
+						mouseRelease();
+						return;
+					}
+
+					_endPos = new Point(e.x, e.y);
+					_timer = new core.thread.Thread(&autoScroll);
+					_timerRunning = true;
+					_frame = 0;
+					_lastVFrame = 0;
+					_lastHFrame = 0;
+					if (!_ctrl && !_shift) deselectAll();
+					_startSelected = null;
+					.each!(i => _startSelected[i] = true)(selectionIndices);
+					updateRangeIndices();
+					_timer.start();
+				}
+				redrawes();
 			}
 		});
 		addListener(SWT.FocusIn, new class Listener {
@@ -291,6 +399,7 @@ public:
 		addListener(SWT.FocusOut, new class Listener {
 			public override void handleEvent(Event e) { mixin(S_TRACE);
 				if (_cur >= 0) redrawCard(_cur);
+				mouseRelease();
 			}
 		});
 	}
@@ -668,7 +777,7 @@ private:
 	void refreshToolTip() { mixin(S_TRACE);
 		if (_createToolTip) { mixin(S_TRACE);
 			if (0 <= _oldMoveIndex && _oldMoveIndex < _items.length) { mixin(S_TRACE);
-				setToolTipText(.replace(_createToolTip(cast(C) _items[_oldMoveIndex].getData()), "&", "&&"));
+				setToolTipText(.replace(_createToolTip(cast(C)_items[_oldMoveIndex].getData()), "&", "&&"));
 			} else { mixin(S_TRACE);
 				setToolTipText(_createToolTip(null));
 			}
@@ -690,6 +799,10 @@ private:
 		auto bar = getHorizontalBar();
 		if (bar !is null) { mixin(S_TRACE);
 			bar.setSelection(x);
+			if (_startPos) { mixin(S_TRACE);
+				_startPos.x += _origin.x - bar.getSelection();
+				updateRangeIndices();
+			}
 			_origin.x = bar.getSelection();
 			redraw();
 		}
@@ -698,6 +811,10 @@ private:
 		auto bar = getVerticalBar();
 		if (bar !is null) { mixin(S_TRACE);
 			bar.setSelection(y);
+			if (_startPos) { mixin(S_TRACE);
+				_startPos.y += _origin.y - bar.getSelection();
+				updateRangeIndices();
+			}
 			_origin.y = bar.getSelection();
 			redraw();
 		}
@@ -796,6 +913,28 @@ private:
 			y += _itmH;
 			y += _spaceY;
 		}
+		if (_startPos && _endPos) { mixin(S_TRACE);
+			auto left = .min(_startPos.x, _endPos.x);
+			auto top = .min(_startPos.y, _endPos.y);
+			auto right = .max(_startPos.x, _endPos.x);
+			auto bottom = .max(_startPos.y, _endPos.y);
+
+			int lineAlpha;
+			auto lineRGB = .dwtData(.lineColor, lineAlpha);
+			int fillAlpha;
+			auto fillRGB = .dwtData(.fillColor, fillAlpha);
+
+			auto fillColor = new Color(d, fillRGB);
+			scope (exit) fillColor.dispose();
+			gc.setBackground(fillColor);
+			gc.setAlpha(fillAlpha);
+			gc.fillRectangle(left, top, right - left, bottom - top);
+			auto lineColor = new Color(d, lineRGB);
+			scope (exit) lineColor.dispose();
+			gc.setForeground(lineColor);
+			gc.setAlpha(lineAlpha);
+			gc.drawRectangle(left, top, right - left, bottom - top);
+		}
 	}
 	void resize() { mixin(S_TRACE);
 		auto rect = getClientArea();
@@ -843,6 +982,96 @@ private:
 		if (_defItmH >= 0) _itmH = 0;
 		_cur = -1;
 	}
+
+	void updateRangeIndices() { mixin(S_TRACE);
+		auto left = .min(_startPos.x, _endPos.x);
+		auto top = .min(_startPos.y, _endPos.y);
+		auto right = .max(_startPos.x, _endPos.x);
+		auto bottom = .max(_startPos.y, _endPos.y);
+		auto hbar = getHorizontalBar();
+		if (hbar) { mixin(S_TRACE);
+			auto hPos = hbar.getSelection();
+			left += hPos;
+			right += hPos;
+		}
+		auto vbar = getVerticalBar();
+		if (vbar) { mixin(S_TRACE);
+			auto vPos = vbar.getSelection();
+			top += vPos;
+			bottom += vPos;
+		}
+		bool[int] inRanges2;
+
+		if (_marginY <= top && _marginX <= left) { mixin(S_TRACE);
+			int colFrom = (left - _marginX + _spaceX) / (_itmW + _spaceX);
+			int colTo = (right - _marginX) / (_itmW + _spaceX);
+			if (_wrap <= colTo) colTo = _wrap - 1;
+			int rowFrom = (top - _marginY + _spaceY) / (_itmH + _spaceY);
+			int rowTo = (bottom - _marginY) / (_itmH + _spaceY);
+			foreach (col; colFrom .. colTo + 1) { mixin(S_TRACE);
+				foreach (row; rowFrom .. rowTo + 1) { mixin(S_TRACE);
+					auto index = (row * _wrap) + col;
+					if (0 <= index && index < _items.length) { mixin(S_TRACE);
+						inRanges2[index] = true;
+					}
+				}
+			}
+		}
+		if (_inRanges == inRanges2) return; 
+
+		bool[int] indices;
+		foreach (i; _inRanges.byKey()) indices[i] = true;
+		foreach (i; inRanges2.byKey()) indices[i] = true;
+
+		foreach (index; indices.byKey()) { mixin(S_TRACE);
+			auto inRange = (index in inRanges2) !is null;
+			auto sel = false;
+			if (_ctrl) { mixin(S_TRACE);
+				if (index in _startSelected) { mixin(S_TRACE);
+					sel = !inRange;
+				} else { mixin(S_TRACE);
+					sel = inRange;
+				}
+			} else { mixin(S_TRACE);
+				sel = inRange;
+			}
+			if (sel) { mixin(S_TRACE);
+				select(index);
+			} else { mixin(S_TRACE);
+				deselect(index);
+			}
+		}
+		_inRanges = inRanges2;
+
+		if (!_ctrl) { mixin(S_TRACE);
+			_startSelected = null;
+			.each!(i => _startSelected[i] = true)(selectionIndices);
+		}
+		callSelectChanged();
+	}
+	void mouseRelease() { mixin(S_TRACE);
+		if ((getStyle() & SWT.MULTI) == 0) return;
+		if (!_startPos) return;
+		auto sx = _startPos.x;
+		auto sy = _startPos.y;
+		_startPos = null;
+		if (!_endPos) return;
+		assert (_timer !is null);
+		auto ex = _endPos.x;
+		auto ey = _endPos.y;
+		_endPos = null;
+		auto left = .min(sx, ex);
+		auto top = .min(sy, ey);
+		auto right = .max(sx, ex);
+		auto bottom = .max(sy, ey);
+		redraw(left, top, right - left + 1, bottom - top + 1, false);
+		_timerRunning = false;
+		_timer.join();
+		_timer = null;
+		_startSelected = null;
+		_inRanges = null;
+	}
+
 	string delegate(C) _createToolTip = null;
 	CardListItem!(C)[] _items;
 	CardListItem!(C)[int] _sels;
@@ -868,6 +1097,17 @@ private:
 	bool _dragging = false;
 	bool _shift = false;
 	bool _ctrl = false;
+
+	// 範囲選択周り
+	ulong _frame = 0;
+	ulong _lastVFrame = 0;
+	ulong _lastHFrame = 0;
+	auto _timerRunning = false;
+	core.thread.Thread _timer = null;
+	bool[int] _startSelected;
+	bool[int] _inRanges;
+	Point _startPos = null;
+	Point _endPos = null;
 }
 
 private class CardListItem(C) : Item {

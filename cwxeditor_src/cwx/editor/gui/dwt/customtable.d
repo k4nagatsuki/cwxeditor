@@ -2,7 +2,10 @@
 module cwx.editor.gui.dwt.customtable;
 
 import cwx.perf;
+import cwx.structs;
 import cwx.utils : debugln, cdebugln;
+
+import cwx.editor.gui.dwt.dutils : dwtData;
 
 import core.thread;
 
@@ -12,6 +15,9 @@ import std.datetime;
 import org.eclipse.swt.all;
 
 import java.lang.all;
+
+immutable lineColor = CRGB(64, 160, 222, 255);
+immutable fillColor = CRGB(64, 160, 222, 96);
 
 /// WindowsExplorerのように範囲選択が可能なテーブルを生成する。
 Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
@@ -103,6 +109,8 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 	bool[int] selected;
 	int rangeFrom = -1;
 	int rangeTo = -1;
+	int vBarValue = 0;
+	int hBarValue = 0;
 
 	void notifySelection() { mixin(S_TRACE);
 		auto se = new Event;
@@ -220,6 +228,28 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 		rangeFrom = -1;
 		rangeTo = -1;
 	}
+	void updateVerticalBar() { mixin(S_TRACE);
+		auto bar = table.getVerticalBar();
+		if (!bar) return;
+		auto newPos = bar.getSelection();
+		if (startPos) { mixin(S_TRACE);
+			startPos.y += (vBarValue - newPos) * table.getItemHeight();
+			updateRangeIndices();
+			table.redraw();
+		}
+		vBarValue = newPos;
+	}
+	void updateHorizontalBar() {
+		auto bar = table.getHorizontalBar();
+		if (!bar) return;
+		auto newPos = bar.getSelection();
+		if (startPos) { mixin(S_TRACE);
+			startPos.x += vBarValue - newPos;
+			updateRangeIndices();
+			table.redraw();
+		}
+		hBarValue = newPos;
+	}
 	auto doAutoScroll = new class Runnable {
 		/// 縦スクロール位置を調節し、調節が完了した場合はtrueを返す。
 		private bool vertical(ulong pFrame) { mixin(S_TRACE);
@@ -232,8 +262,7 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 				auto sIndex = cast(int)(pFrame / 60.0 * count);
 				if (sIndex <= 0) return false;
 				table.setTopIndex(.max(0, ti - sIndex));
-				startPos.y += (ti - table.getTopIndex()) * table.getItemHeight();
-				updateRangeIndices();
+				updateVerticalBar();
 			} else { mixin(S_TRACE);
 				auto ca = table.getClientArea();
 				auto hc = (ca.height - top) / table.getItemHeight();
@@ -244,8 +273,7 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 					auto sIndex = cast(int)(pFrame / 60.0 * count);
 					if (sIndex <= 0) return false;
 					table.setTopIndex(.min(table.getItemCount() - 1, ti + sIndex));
-					startPos.y += (ti - table.getTopIndex()) * table.getItemHeight();
-					updateRangeIndices();
+					updateVerticalBar();
 				}
 			}
 			return true;
@@ -272,8 +300,7 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 				}
 				if (sIndex == 0) return false;
 				OS.SendMessage(table.handle, OS.LVM_SCROLL, sIndex, 0);
-				startPos.x += (pos - hbar.getSelection()) * hbar.getIncrement();
-				updateRangeIndices();
+				updateHorizontalBar();
 				return true;
 			} else {
 				return true;
@@ -388,16 +415,42 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 			auto top = .min(startPos.y, endPos.y);
 			auto right = .max(startPos.x, endPos.x);
 			auto bottom = .max(startPos.y, endPos.y);
-			auto lineColor = new Color(d, new RGB(64, 160, 222));
-			scope (exit) lineColor.dispose();
-			e.gc.setBackground(lineColor);
-			e.gc.setAlpha(96);
+
+			int lineAlpha;
+			auto lineRGB = .dwtData(.lineColor, lineAlpha);
+			int fillAlpha;
+			auto fillRGB = .dwtData(.fillColor, fillAlpha);
+
+			auto fillColor = new Color(d, fillRGB);
+			scope (exit) fillColor.dispose();
+			e.gc.setBackground(fillColor);
+			e.gc.setAlpha(fillAlpha);
 			e.gc.fillRectangle(left, top, right - left, bottom - top);
-			e.gc.setAlpha(255);
+			auto lineColor = new Color(d, lineRGB);
+			scope (exit) lineColor.dispose();
 			e.gc.setForeground(lineColor);
+			e.gc.setAlpha(lineAlpha);
 			e.gc.drawRectangle(left, top, right - left, bottom - top);
 		}
 	});
+	auto hBar = table.getHorizontalBar();
+	if (hBar) { mixin(S_TRACE);
+		hBarValue = hBar.getSelection();
+		hBar.addSelectionListener(new class SelectionAdapter {
+			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+				updateHorizontalBar();
+			}
+		});
+	}
+	auto vBar = table.getVerticalBar();
+	if (vBar) { mixin(S_TRACE);
+		vBarValue = vBar.getSelection();
+		vBar.addSelectionListener(new class SelectionAdapter {
+			override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+				updateVerticalBar();
+			}
+		});
+	}
 	return table;
 }
 
