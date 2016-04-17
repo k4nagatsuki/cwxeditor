@@ -382,6 +382,8 @@ void build(string[] args) {
 			],
 			[
 				"directorywindow.d",
+			],
+			[
 				"dmenu.d",
 			],
 			[

@@ -1786,6 +1786,8 @@ public:
 		setUseCounterImpl(uc);
 		_ceto.setUseCounter = uc;
 		_muser.setUseCounter = uc;
+		_se1.setUseCounter = uc;
+		_se2.setUseCounter = uc;
 		foreach (ref kc; _keyCodes) { mixin(S_TRACE);
 			kc.setUseCounter = uc;
 		}
@@ -1796,6 +1798,8 @@ public:
 		removeUseCounterImpl();
 		_ceto.removeUseCounter();
 		_muser.removeUseCounter();
+		_se1.removeUseCounter();
+		_se2.removeUseCounter();
 		foreach (ref kc; _keyCodes) { mixin(S_TRACE);
 			kc.removeUseCounter();
 		}
