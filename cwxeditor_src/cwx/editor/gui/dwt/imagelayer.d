@@ -260,17 +260,18 @@ class ImageLayerList : Composite {
 
 	void addLayer() { mixin(S_TRACE);
 		if (!canAddLayer) return;
-		_items = _items[0 .. selection] ~ new ImageLayerItem(this, new CardImage("")) ~ _items[selection .. $];
+		_selection = cast(int)_items.length;
+		_items ~= new ImageLayerItem(this, new CardImage(""));
 		setupScrollBar();
 		showSelection();
 		redraw();
 		_comm.refreshToolBar();
-		foreach (dlg; selectionEvent) dlg();
 		foreach (dlg; modEvent) dlg();
+		foreach (dlg; selectionEvent) dlg();
 	}
 	@property
 	const
-	bool canAddLayer() { return !_readOnly && 0 <= selection; }
+	bool canAddLayer() { return !_readOnly; }
 
 	void removeLayer() { mixin(S_TRACE);
 		if (!canRemoveLayer) return;
@@ -281,8 +282,8 @@ class ImageLayerList : Composite {
 		showSelection();
 		redraw();
 		_comm.refreshToolBar();
-		foreach (dlg; selectionEvent) dlg();
 		foreach (dlg; modEvent) dlg();
+		foreach (dlg; selectionEvent) dlg();
 	}
 	@property
 	const
@@ -295,8 +296,8 @@ class ImageLayerList : Composite {
 		_items[selection - 1] = temp;
 		selection = selection - 1;
 		showSelection();
-		foreach (dlg; selectionEvent) dlg();
 		foreach (dlg; modEvent) dlg();
+		foreach (dlg; selectionEvent) dlg();
 	}
 	@property
 	const
@@ -309,8 +310,8 @@ class ImageLayerList : Composite {
 		_items[selection + 1] = temp;
 		selection = selection + 1;
 		showSelection();
-		foreach (dlg; selectionEvent) dlg();
 		foreach (dlg; modEvent) dlg();
+		foreach (dlg; selectionEvent) dlg();
 	}
 	@property
 	const
