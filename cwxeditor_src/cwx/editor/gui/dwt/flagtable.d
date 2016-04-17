@@ -171,9 +171,7 @@ private:
 		storeSingle(index, itm.getText(1), newText);
 		itm.setText(column, newText);
 		_valueCache[index] = newText;
-		if (index == _init.getSelectionIndex()) { mixin(S_TRACE);
-			_init.setItem(index, newText);
-		}
+		_init.setItem(index, newText);
 	}
 
 	void delStep(cwx.flag.Flag[] flag, Step[] step) { mixin(S_TRACE);
@@ -197,7 +195,6 @@ public:
 	/// step = 設定するステップ。新規の場合はnull。
 	this (Commons comm, Summary summ, Shell shell, FlagDir dir, Step step = null) { mixin(S_TRACE);
 		super(comm.prop, shell, false, comm.prop.msgs.dlgTitStep, comm.prop.images.step, true, comm.prop.var.stepDlg, true);
-		enterClose = true;
 		_comm = comm;
 		_summ = summ;
 		_dir = dir;
