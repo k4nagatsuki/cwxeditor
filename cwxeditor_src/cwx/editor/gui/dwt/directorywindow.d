@@ -474,7 +474,7 @@ private:
 			return _prop.images.bgm;
 		} else if (skin.isSE(file)) { mixin(S_TRACE);
 			return _prop.images.se;
-		} else if (cfnmatch(.extension(file), ".txt") || cfnmatch(.extension(file), ".ini")) { mixin(S_TRACE);
+		} else if (cfnmatch(.extension(file), ".txt") || cfnmatch(.extension(file), ".ini") || cfnmatch(.extension(file), ".sli")) { mixin(S_TRACE);
 			return _prop.images.text;
 		} else { mixin(S_TRACE);
 			return _prop.images.unknown;
@@ -512,7 +512,7 @@ private:
 			return _sImgBgm;
 		} else if (skin.isSE(file)) { mixin(S_TRACE);
 			return _sImgSe;
-		} else if (cfnmatch(.extension(file), ".txt") || cfnmatch(.extension(file), ".ini")) { mixin(S_TRACE);
+		} else if (cfnmatch(.extension(file), ".txt") || cfnmatch(.extension(file), ".ini") || cfnmatch(.extension(file), ".sli")) { mixin(S_TRACE);
 			return _sImgText;
 		} else { mixin(S_TRACE);
 			return _sImgUnknown;
