@@ -107,7 +107,7 @@ public:
 				return true;
 			}
 			override void run() { mixin(S_TRACE);
-				if (isDisposed() || !_endPos || !_items.length) { mixin(S_TRACE);
+				if (_frame < _lastVFrame || _frame < _lastHFrame || isDisposed() || !_endPos || !_items.length) { mixin(S_TRACE);
 					_lastVFrame = _frame;
 					_lastHFrame = _frame;
 					return;
@@ -360,6 +360,7 @@ public:
 					redraw(left, top, right - left + 1, bottom - top + 1, false);
 				}
 				if (_endPos) { mixin(S_TRACE);
+					if (_endPos.x == e.x && _endPos.y == e.y) return;
 					redrawes();
 					_endPos.x = e.x;
 					_endPos.y = e.y;
