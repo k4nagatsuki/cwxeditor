@@ -420,7 +420,6 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
 			if (!startPos) return;
 			if (!endPos) return;
-cdebugln("Repaint");
 			auto left = .min(startPos.x, endPos.x);
 			auto top = .min(startPos.y, endPos.y);
 			auto right = .max(startPos.x, endPos.x);
