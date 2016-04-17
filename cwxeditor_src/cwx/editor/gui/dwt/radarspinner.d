@@ -85,9 +85,9 @@ class RadarSpinner : Composite {
 						ptrdiff_t i = _onDrag;
 						int sel = getValue(i) - _min;
 						size_t minIdx = 0;
-						real minDist = real.max;
+						double minDist = double.max;
 						foreach (j, tgl; _tgls[i]) { mixin(S_TRACE);
-							real dist = abs(tgl.x - x) + abs(tgl.y - y);
+							double dist = abs(tgl.x - x) + abs(tgl.y - y);
 							if (dist <= minDist) { mixin(S_TRACE);
 								minDist = dist;
 								minIdx = j;
@@ -426,11 +426,11 @@ class RadarSpinner : Composite {
 		if (!_mod) return;
 		_mod = false;
 		scope client = getClientArea();
-		real tgs_d = TOGGLE_SIZE / 2.0;
+		double tgs_d = TOGGLE_SIZE / 2.0;
 
 		if (SWT.DEFAULT == _ovalW && SWT.DEFAULT == _ovalH && 3 == _param_c && !_oval) { mixin(S_TRACE);
 			// 3点の場合は最初に頂点の位置を固定する
-			real x1, y1, x2, y2, x3, y3;
+			double x1, y1, x2, y2, x3, y3;
 			int w = client.width;
 			int h = client.height;
 
@@ -459,37 +459,37 @@ class RadarSpinner : Composite {
 				x3 = w / 2.0;
 				y3 = _maxSize.y / 2.0;
 			}
-			real x1sq = x1 * x1;
-			real y1sq = y1 * y1;
-			real x2sq = x2 * x2;
-			real y2sq = y2 * y2;
-			real x3sq = x3 * x3;
-			real y3sq = y3 * y3;
+			double x1sq = x1 * x1;
+			double y1sq = y1 * y1;
+			double x2sq = x2 * x2;
+			double y2sq = y2 * y2;
+			double x3sq = x3 * x3;
+			double y3sq = y3 * y3;
 
-			real cx = (x1 + x2 + x3) / 3.0;
-			real cy = (y1 + y2 + y3) / 3.0;
-			real r1 = atan2(y1 - cy, x1 - cx);
-			real r2 = atan2(y2 - cy, x2 - cx);
-			real r3 = atan2(y3 - cy, x3 - cx);
+			double cx = (x1 + x2 + x3) / 3.0;
+			double cy = (y1 + y2 + y3) / 3.0;
+			double r1 = atan2(y1 - cy, x1 - cx);
+			double r2 = atan2(y2 - cy, x2 - cx);
+			double r3 = atan2(y3 - cy, x3 - cx);
 
 			// LabelとSpinnerの位置。
 			_comps[0].setBounds(xs + cast(int) (x1 - _maxSize.x / 2), ys + cast(int) (y1 - _maxSize.y / 2), _maxSize.x, _maxSize.y);
 			_comps[1].setBounds(xs + cast(int) (x2 - _maxSize.x / 2), ys + cast(int) (y2 - _maxSize.y / 2), _maxSize.x, _maxSize.y);
 			_comps[2].setBounds(xs + cast(int) (x3 - _maxSize.x / 2), ys + cast(int) (y3 - _maxSize.y / 2), _maxSize.x, _maxSize.y);
 
-			real dis = TOGGLE_SIZE + MARGIN + ((_maxSize.x + _maxSize.y) / 2) / 2;
+			double dis = TOGGLE_SIZE + MARGIN + ((_maxSize.x + _maxSize.y) / 2) / 2;
 			x1 -= dis * cos(r1);
 			y1 -= dis * sin(r1);
 			x2 -= dis * cos(r2);
 			y2 -= dis * sin(r2);
 			x3 -= dis * cos(r3);
 			y3 -= dis * sin(r3);
-			real x1d = (cx - x1) / _step_c;
-			real y1d = (cy - y1) / _step_c;
-			real x2d = (cx - x2) / _step_c;
-			real y2d = (cy - y2) / _step_c;
-			real x3d = (cx - x3) / _step_c;
-			real y3d = (cy - y3) / _step_c;
+			double x1d = (cx - x1) / _step_c;
+			double y1d = (cy - y1) / _step_c;
+			double x2d = (cx - x2) / _step_c;
+			double y2d = (cy - y2) / _step_c;
+			double x3d = (cx - x3) / _step_c;
+			double y3d = (cy - y3) / _step_c;
 
 			// レーダーの各座標位置
 			foreach (s; 0 .. _step_c) { mixin(S_TRACE);
@@ -517,28 +517,25 @@ class RadarSpinner : Composite {
 		int ovalW = _ovalW;
 		int ovalH = _ovalH;
 		if (SWT.DEFAULT == _ovalW || SWT.DEFAULT == _ovalH) { mixin(S_TRACE);
-			real ovalWr = real.max;
-			real ovalHr = real.max;
-			real cw = client.width;
-			real ch = client.height;
-			real bw = _maxSize.x;
-			real bh = _maxSize.y;
-			real disW = TOGGLE_SIZE + MARGIN + _maxSize.x / 2;
-			real disH = TOGGLE_SIZE + MARGIN + _maxSize.y / 2;
+			double ovalWr = double.max;
+			double ovalHr = double.max;
+			double cw = client.width;
+			double ch = client.height;
+			double bw = _maxSize.x;
+			double bh = _maxSize.y;
+			double disW = TOGGLE_SIZE + MARGIN + _maxSize.x / 2;
+			double disH = TOGGLE_SIZE + MARGIN + _maxSize.y / 2;
 			foreach (i; 0 .. _param_c) { mixin(S_TRACE);
 				// 角度(°)
 				int r = cast(int)(((PI * 2.0 * nPos(i) / _param_c)) * 180 / PI); // rad -> °
 				r += 360;
 				r %= 360;
-				real cosR = .cos(r * PI / 180);
-				version (Win64) {
-					// FIXME: rが180の時にrを使って計算すると結果が1.22461e-16になる
-					//        正しくは-5.42101e-20
-					real sinR = r == 180 ? .sin(180 * PI / 180) : .sin(r * PI / 180);
-				} else {
-					real sinR = .sin(r * PI / 180);
-				}
-				real disBaseX, disBaseY;
+				double cosR = .cos(r * PI / 180);
+				// FIXME: rが180の時にrを使って計算すると結果が1.22461e-16になる
+				//        正しくは-5.42101e-20
+				//double sinR = .sin(r * PI / 180);
+				double sinR = r == 180 ? .sin(180 * PI / 180) : .sin(r * PI / 180);
+				double disBaseX, disBaseY;
 				if (r < 90) { mixin(S_TRACE);
 					disBaseX = +(cw - bw);
 					disBaseY = +(ch - bh);
@@ -576,20 +573,20 @@ class RadarSpinner : Composite {
 			(ovalW + TOGGLE_SIZE + MARGIN * 2 + _maxSize.x * 2,
 			ovalH + TOGGLE_SIZE + MARGIN * 2 + _maxSize.y * 2);
 		scope bs = computeBounds(size.x, size.y);
-		real posX = (client.width - bs.width) / 2.0 - bs.x;
-		real posY = (client.height - bs.height) / 2.0 - bs.y;
+		double posX = (client.width - bs.width) / 2.0 - bs.x;
+		double posY = (client.height - bs.height) / 2.0 - bs.y;
 
 		auto sp = _maxSize;
 
 		// レーダー線と値の位置。
 		int oval_base_x = size.x - TOGGLE_SIZE - MARGIN * 2 - sp.x * 2;
 		int oval_base_y = size.y - TOGGLE_SIZE - MARGIN * 2 - sp.y * 2;
-		real oval_x = oval_base_x;
-		real oval_y = oval_base_y;
-		real oval_d_x = oval_x / _step_c;
-		real oval_d_y = oval_y / _step_c;
-		real x = tgs_d + MARGIN + sp.x + posX;
-		real y = tgs_d + MARGIN + sp.y + posY;
+		double oval_x = oval_base_x;
+		double oval_y = oval_base_y;
+		double oval_d_x = oval_x / _step_c;
+		double oval_d_y = oval_y / _step_c;
+		double x = tgs_d + MARGIN + sp.x + posX;
+		double y = tgs_d + MARGIN + sp.y + posY;
 		for (int s = 0; s < _step_c; s++) { mixin(S_TRACE);
 			if (_oval) { mixin(S_TRACE);
 				_ovals[s].x = cast(int) x;
@@ -597,12 +594,12 @@ class RadarSpinner : Composite {
 				_ovals[s].width = cast(int) oval_x + 1;
 				_ovals[s].height = cast(int) oval_y + 1;
 			}
-			real rw = oval_x / 2.0;
-			real rh = oval_y / 2.0;
+			double rw = oval_x / 2.0;
+			double rh = oval_y / 2.0;
 			for (int i = 0; i < _param_c; i++) { mixin(S_TRACE);
-				real n = nPos(i);
-				real px = x + rw + rw * cos(PI * 2.0 * n / _param_c);
-				real py = y + rh + rh * sin(PI * 2.0 * n / _param_c);
+				double n = nPos(i);
+				double px = x + rw + rw * cos(PI * 2.0 * n / _param_c);
+				double py = y + rh + rh * sin(PI * 2.0 * n / _param_c);
 				auto t = _tgls[i][$ - 1 - s];
 				t.x = cast(int) px;
 				t.y = cast(int) py;
@@ -624,11 +621,11 @@ class RadarSpinner : Composite {
 		oval_x = size.x - sp.x;
 		oval_y = size.y - sp.y;
 		for (int i = 0; i < _param_c; i++) { mixin(S_TRACE);
-			real n = nPos(i);
-			real rw = oval_x / 2.0;
-			real rh = oval_y / 2.0;
-			real px = x + rw + rw * cos(PI * 2.0 * n / _param_c);
-			real py = y + rh + rh * sin(PI * 2.0 * n / _param_c);
+			double n = nPos(i);
+			double rw = oval_x / 2.0;
+			double rh = oval_y / 2.0;
+			double px = x + rw + rw * cos(PI * 2.0 * n / _param_c);
+			double py = y + rh + rh * sin(PI * 2.0 * n / _param_c);
 			_comps[i].setBounds
 				(cast(int) rndtol(px - sp.x / 2), cast(int) rndtol(py - sp.y / 2), sp.x, sp.y);
 		}
@@ -813,8 +810,8 @@ class RadarSpinner : Composite {
 	Toggle toggleStyle() { mixin(S_TRACE);
 		return _tstyle;
 	}
-	private real nPos(size_t i) { mixin(S_TRACE);
-		real r;
+	private double nPos(size_t i) { mixin(S_TRACE);
+		double r;
 		if (_side) { mixin(S_TRACE);
 			r = i - _param_c / 4.0 - 0.5;
 		} else { mixin(S_TRACE);
@@ -828,16 +825,16 @@ class RadarSpinner : Composite {
 		int maxR = int.min;
 		int maxB = int.min;
 		auto sp = _maxSize;
-		real x = sp.x / 2.0;
-		real y = sp.y / 2.0;
-		real oval_x = width - sp.x;
-		real oval_y = height - sp.y;
+		double x = sp.x / 2.0;
+		double y = sp.y / 2.0;
+		double oval_x = width - sp.x;
+		double oval_y = height - sp.y;
 		for (int i = 0; i < _param_c; i++) { mixin(S_TRACE);
-			real n = nPos(i);
-			real rw = oval_x / 2.0;
-			real rh = oval_y / 2.0;
-			real px = x + rw + rw * cos(PI * 2.0 * n / _param_c);
-			real py = y + rh + rh * sin(PI * 2.0 * n / _param_c);
+			double n = nPos(i);
+			double rw = oval_x / 2.0;
+			double rh = oval_y / 2.0;
+			double px = x + rw + rw * cos(PI * 2.0 * n / _param_c);
+			double py = y + rh + rh * sin(PI * 2.0 * n / _param_c);
 			int cl = cast(int) px - sp.x / 2;
 			int ct = cast(int) py - sp.y / 2;
 			int cr = cl + sp.x;
