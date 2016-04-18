@@ -74,6 +74,7 @@ private:
 
 	} else static if (is (C == EnemyCard)) {
 		Combo _casts;
+		ulong[] _castIDs;
 		Button _escape;
 		Canvas _image;
 		class CardPaint : PaintListener {
@@ -138,6 +139,7 @@ private:
 					return;
 				}
 				_casts.removeAll();
+				_castIDs = [];
 				bool has = false;
 				foreach (i, c; _summ.casts) { mixin(S_TRACE);
 					if (!has && _selectedID == c.id) { mixin(S_TRACE);
@@ -145,6 +147,7 @@ private:
 					}
 					if (!_cardIncSearch.match(c.name)) continue;
 					_casts.add(to!string(c.id) ~ "." ~ c.name);
+					_castIDs ~= c.id;
 					if (_selectedID == c.id) _casts.select(_casts.getItemCount() - 1);
 				}
 				if (!has && _casts.getItemCount()) { mixin(S_TRACE);
@@ -153,6 +156,7 @@ private:
 				}
 			} else { mixin(S_TRACE);
 				_casts.removeAll();
+				_castIDs = [];
 				_selectedID = 0;
 			}
 			_image.redraw();
@@ -258,7 +262,7 @@ protected:
 							.listener(_casts, SWT.Selection, { mixin(S_TRACE);
 								int index = _casts.getSelectionIndex();
 								if (-1 != index) { mixin(S_TRACE);
-									_selectedID = _summ.casts[index].id;
+									_selectedID = _castIDs[index];
 								}
 							});
 
