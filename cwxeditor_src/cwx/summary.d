@@ -805,13 +805,29 @@ public:
 				static if (0 == filenameCharCmp('A', 'a')) {
 					path = path.toLower();
 				}
+				if (!scenarioPath.buildPath(path).exists()) continue;
 				auto p1 = path in newAllPaths;
 				auto p2 = path in _noSaveCheckPaths;
 				if ((!p1 && !p2) || (p1 && !p2) || (!p1 && p2) || (*p1 != *p2)) { mixin(S_TRACE);
 					foreach (user; useCounter.values(toPathId(path))) { mixin(S_TRACE);
+						// 強制的に格納しなければならないイメージがある場合
 						auto owner = user.owner;
-						if (cast(Card)owner || cast(AbstractSpCard)owner) { mixin(S_TRACE);
-							set.add(topRes(user.owner));
+						const(CardImage)[] paths;
+						if (auto card = cast(Card)owner) { mixin(S_TRACE);
+							paths = card.paths;
+						} else if (owner is this) { mixin(S_TRACE);
+							paths = imagePaths;
+						}
+						foreach (u; paths) { mixin(S_TRACE);
+							static if (0 == filenameCharCmp('A', 'a')) {
+								auto path2 = u.path.toLower();
+							} else {
+								auto path2 = u.path;
+							}
+							if (path == path2) { mixin(S_TRACE);
+								set.add(topRes(owner));
+								break;
+							}
 						}
 					}
 				}
