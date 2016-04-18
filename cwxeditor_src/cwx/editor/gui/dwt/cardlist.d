@@ -985,6 +985,10 @@ private:
 	}
 
 	void updateRangeIndices() { mixin(S_TRACE);
+		if (!_ctrl) { mixin(S_TRACE);
+			_startSelected = null;
+			.each!(i => _startSelected[i] = true)(selectionIndices);
+		}
 		auto left = .min(_startPos.x, _endPos.x);
 		auto top = .min(_startPos.y, _endPos.y);
 		auto right = .max(_startPos.x, _endPos.x);
@@ -1044,10 +1048,6 @@ private:
 		}
 		_inRanges = inRanges2;
 
-		if (!_ctrl) { mixin(S_TRACE);
-			_startSelected = null;
-			.each!(i => _startSelected[i] = true)(selectionIndices);
-		}
 		callSelectChanged();
 	}
 	void mouseRelease() { mixin(S_TRACE);

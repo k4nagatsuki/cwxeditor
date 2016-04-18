@@ -122,6 +122,12 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 		table.notifyListeners(SWT.Selection, se);
 	}
 	void updateRangeIndices() { mixin(S_TRACE);
+		auto ctrl = (stateMask & SWT.CTRL) != 0;
+		auto shift = (stateMask & SWT.SHIFT) != 0;
+		if (!ctrl) { mixin(S_TRACE);
+			selected = null;
+			.each!(i => selected[i] = true)(table.getSelectionIndices());
+		}
 		auto oldSels = table.getSelectionIndices();
 		auto left = .min(startPos.x, endPos.x);
 		auto top = .min(startPos.y, endPos.y);
@@ -164,8 +170,6 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 			}
 		}
 
-		auto ctrl = (stateMask & SWT.CTRL) != 0;
-		auto shift = (stateMask & SWT.SHIFT) != 0;
 		void updateSelection(int index) { mixin(S_TRACE);
 			auto inRange = rangeFrom != -1 && rangeFrom <= index && index <= rangeTo;
 			auto sel = false;
@@ -199,10 +203,6 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 			foreach (i; oldFrom .. oldTo + 1) { mixin(S_TRACE);
 				updateSelection(i);
 			}
-		}
-		if (!ctrl) { mixin(S_TRACE);
-			selected = null;
-			.each!(i => selected[i] = true)(table.getSelectionIndices());
 		}
 		if (oldSels != table.getSelectionIndices()) { mixin(S_TRACE);
 			notifySelection();
