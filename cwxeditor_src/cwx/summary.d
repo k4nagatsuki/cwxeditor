@@ -809,32 +809,49 @@ public:
 				auto p1 = path in newAllPaths;
 				auto p2 = path in _noSaveCheckPaths;
 				if ((!p1 && !p2) || (p1 && !p2) || (!p1 && p2) || (*p1 != *p2)) { mixin(S_TRACE);
-					foreach (user; useCounter.values(toPathId(path))) { mixin(S_TRACE);
-						// 強制的に格納しなければならないイメージがある場合
-						auto owner = user.owner;
-						const(CardImage)[] paths;
-						if (auto card = cast(Card)owner) { mixin(S_TRACE);
-							paths = card.paths;
-						} else if (owner is this) { mixin(S_TRACE);
-							paths = imagePaths;
-						}
-						foreach (u; paths) { mixin(S_TRACE);
-							static if (0 == filenameCharCmp('A', 'a')) {
-								auto path2 = u.path.toLower();
-							} else {
-								auto path2 = u.path;
-							}
-							if (path == path2) { mixin(S_TRACE);
-								set.add(topRes(owner));
-								break;
-							}
-						}
+					if (auto owner = isIncludedImpl(path)) { mixin(S_TRACE);
+						set.add(topRes(owner));
 					}
 				}
 			}
 		}
 		return set;
 	}
+	/// 指定された素材を格納イメージとして使用している箇所があるか。
+	bool isIncluded(string path) { mixin(S_TRACE);
+		if (!legacy) return false;
+		if (path == "") return false;
+		if (path.isBinImg) return false;
+		static if (0 == filenameCharCmp('A', 'a')) {
+			path = path.toLower();
+		}
+		if (!scenarioPath.buildPath(path).exists()) return false;
+		return isIncludedImpl(path) !is null;
+	}
+	/// ditto
+	private CWXPath isIncludedImpl(string path) { mixin(S_TRACE);
+		foreach (user; useCounter.values(toPathId(path))) { mixin(S_TRACE);
+			auto owner = user.owner;
+			const(CardImage)[] paths;
+			if (auto card = cast(Card)owner) { mixin(S_TRACE);
+				paths = card.paths;
+			} else if (owner is this) { mixin(S_TRACE);
+				paths = imagePaths;
+			}
+			foreach (u; paths) { mixin(S_TRACE);
+				static if (0 == filenameCharCmp('A', 'a')) {
+					auto path2 = u.path.toLower();
+				} else {
+					auto path2 = u.path;
+				}
+				if (path == path2) { mixin(S_TRACE);
+					return owner;
+				}
+			}
+		}
+		return null;
+	}
+
 	/// このシナリオが持つ使用回数カウンタ。
 	@property
 	UseCounter useCounter() { mixin(S_TRACE);
@@ -989,8 +1006,34 @@ public:
 		if (needCheckPaths) { mixin(S_TRACE);
 			auto cp = _checkPaths;
 			_checkPaths = allPaths;
-			if (((legacy && !saveInnerImagePath) || useTemp) && cp != _checkPaths) { mixin(S_TRACE);
+			if (useTemp && cp != _checkPaths) { mixin(S_TRACE);
+				// 圧縮シナリオは保存で再圧縮しなければいけない
 				changed();
+			} else if (legacy) { mixin(S_TRACE);
+				// 格納イメージのチェック
+				bool[string] modified;
+				foreach (path, ref time; cp) { mixin(S_TRACE);
+					auto p = path in _checkPaths;
+					if (p) { mixin(S_TRACE);
+						if (*p == time) continue;
+					}
+					modified[path] = true;
+				}
+				foreach (path, ref time; _checkPaths) { mixin(S_TRACE);
+					auto p = path in cp;
+					if (p) { mixin(S_TRACE);
+						if (*p == time) continue;
+					}
+					modified[path] = true;
+				}
+				foreach (path; modified.byKey()) { mixin(S_TRACE);
+					auto p = scenarioPath.buildPath(path);
+					if (!p.exists() || !p.isFile()) continue;
+					if (isIncluded(path)) { mixin(S_TRACE);
+						changed();
+						break;
+					}
+				}
 			}
 		}
 	}
