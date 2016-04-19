@@ -221,7 +221,7 @@ private:
 							parseEnemy(node);
 						}
 						if (id && _selectedID != id && _summ.cwCast(id)) { mixin(S_TRACE);
-							auto index = _castIDs.cCountUntil(id);
+							auto index = cast(int)_castIDs.cCountUntil(id);
 							assert (index != -1);
 							_casts.select(index);
 							_selectedID = id;
