@@ -1277,7 +1277,7 @@ public:
 					drop.setTransfer([XMLBytesTransfer.getInstance()]);
 					drop.addDropListener(new BeastDropListener);
 				}
-				auto drag = new DragSource(_beastImg, DND.DROP_COPY);
+				auto drag = new DragSource(_beastImg, DND.DROP_DEFAULT | DND.DROP_COPY);
 				drag.setTransfer([XMLBytesTransfer.getInstance()]);
 				drag.addDragListener(new BeastDragListener);
 			}

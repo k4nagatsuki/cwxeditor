@@ -11,6 +11,7 @@ import cwx.types;
 import cwx.path;
 import cwx.imagesize;
 import cwx.skin;
+import cwx.xml;
 
 import cwx.editor.gui.sound;
 
@@ -28,6 +29,7 @@ import cwx.editor.gui.dwt.splitpane;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.chooser;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.conv;
 import std.math;
@@ -184,6 +186,54 @@ private:
 				debugln(e);
 			}
 		}
+		class EnemyDrop : DropTargetAdapter {
+			override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
+				e.detail = DND.DROP_LINK;
+			}
+			override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
+				e.detail = DND.DROP_LINK;
+			}
+			override void drop(DropTargetEvent e){ mixin(S_TRACE);
+				if (!isXMLBytes(e.data)) return;
+				e.detail = DND.DROP_NONE;
+				string xml = bytesToXML(e.data);
+				try { mixin(S_TRACE);
+					auto node = XNode.parse(xml);
+					bool sameSc = _summ.id == node.attr("summId", false);
+					bool topLevel = node.attr!bool("topLevel", false, false);
+					if (sameSc && topLevel && (node.name == CastCard.XML_NAME || node.name == CastCard.XML_NAME_M)) { mixin(S_TRACE);
+						ulong id = 0UL;
+						void parseEnemy(ref XNode node) { mixin(S_TRACE);
+							assert (node.name == CastCard.XML_NAME);
+							node.onTag["Property"] = (ref XNode node) { mixin(S_TRACE);
+								node.onTag["Id"] = (ref XNode node) { mixin(S_TRACE);
+									if (id == 0UL) id = .to!ulong(node.value);
+								};
+								node.parse();
+							};
+							node.parse();
+						}
+						if (node.name == CastCard.XML_NAME_M) { mixin(S_TRACE);
+							node.onTag[CastCard.XML_NAME] = &parseEnemy;
+							node.parse();
+						} else { mixin(S_TRACE);
+							assert (node.name == CastCard.XML_NAME);
+							parseEnemy(node);
+						}
+						if (id && _selectedID != id && _summ.cwCast(id)) { mixin(S_TRACE);
+							auto index = _castIDs.cCountUntil(id);
+							assert (index != -1);
+							_casts.select(index);
+							_selectedID = id;
+							_image.redraw();
+						}
+					}
+				} catch (Exception e) {
+					printStackTrace();
+					debugln(e);
+				}
+			}
+		}
 	}
 public:
 	this(Commons comm, Props prop, Shell shell, Summary summ, C card, bool create) { mixin(S_TRACE);
@@ -261,8 +311,9 @@ protected:
 
 							.listener(_casts, SWT.Selection, { mixin(S_TRACE);
 								int index = _casts.getSelectionIndex();
-								if (-1 != index) { mixin(S_TRACE);
+								if (-1 != index && _selectedID != _castIDs[index]) { mixin(S_TRACE);
 									_selectedID = _castIDs[index];
+									_image.redraw();
 								}
 							});
 
@@ -324,6 +375,11 @@ protected:
 						} else { mixin(S_TRACE);
 							static assert (0);
 						}
+					}
+					static if (is(C:EnemyCard)) {
+						auto dropT = new DropTarget(comp2, DND.DROP_DEFAULT | DND.DROP_LINK);
+						dropT.setTransfer([XMLBytesTransfer.getInstance()]);
+						dropT.addDropListener(new EnemyDrop);
 					}
 				}
 				{ mixin(S_TRACE);
