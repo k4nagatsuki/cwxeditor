@@ -138,7 +138,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 		}
 	}
-	auto effCard = cast(EffectCard) path;
+	auto effCard = cast(EffectCard)path;
 	if (effCard) { mixin(S_TRACE);
 		putMotions(effCard.motions);
 		if (effCard.soundPath1 != "") { mixin(S_TRACE);
@@ -152,6 +152,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if ((effCard.loopCount1 != 1 || effCard.loopCount2 != 1) && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningLoopCount;
 			}
+		}
+		if (prop.sys.isRunaway(effCard.keyCodes)) { mixin(S_TRACE);
+			r ~= prop.msgs.warningRunawayCard;
 		}
 		if (prop.looks.keyCodesMaxLegacy < effCard.keyCodes.length && summ && summ.legacy) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningKeyCodeCount, prop.looks.keyCodesMaxLegacy);

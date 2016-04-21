@@ -1605,6 +1605,7 @@ class Msgs : Properties {
 	auto warningSkillPowerWithFixedValue = Msg("warningSkillPowerWithFixedValue", "精神力操作の固定値指定は、WSN1以降の形式のシナリオしか行えません。"); // Wsn.1
 	auto warningIncludedImage = Msg("warningIncludedImage", "WSN形式のシナリオでは格納イメージは使用できません。");
 	auto warningSelectionColumns = Msg("warningSelectionColumns", "選択肢の複数列表示は、WSN1以降の形式のシナリオしか行えません。");
+	auto warningRunawayCard = Msg("warningRunawayCard", "キーコード「%1$s」付きのカードは死亡イベントを発生させないため、シナリオを誤動作させる可能性があります。");
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

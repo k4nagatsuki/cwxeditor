@@ -235,6 +235,11 @@ class System {
 	bool isRecycle(in string[] keyCodes) { mixin(S_TRACE);
 		return 0 < keyCodes.find("リサイクル").length;
 	}
+	/// 逃走カードであればtrue。
+	const
+	bool isRunaway(in string[] keyCodes) { mixin(S_TRACE);
+		return 0 < keyCodes.find("逃走").length;
+	}
 
 	private static immutable FKC_SUCCESS = "○";
 	private static immutable FKC_FAILURE = "×";

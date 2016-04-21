@@ -511,6 +511,9 @@ class KeyCodeView : Composite {
 	@property
 	string[] warnings() { mixin(S_TRACE);
 		string[] ws;
+		if (_prop.sys.isRunaway(keyCodes)) { mixin(S_TRACE);
+			ws ~= _prop.msgs.warningRunawayCard;
+		}
 		if (_summ && _summ.legacy && _prop.looks.keyCodesMaxLegacy < keyCodes.length) { mixin(S_TRACE);
 			ws ~= .tryFormat(_prop.msgs.warningKeyCodeCount, _prop.looks.keyCodesMaxLegacy);
 		}
