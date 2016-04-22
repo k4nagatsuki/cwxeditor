@@ -857,7 +857,7 @@ private:
 	Summary _summ = null;
 	void delegate(Shell) _save;
 	CardList!Card _list;
-	CardListEdit!Card _cle;
+	CardListEdit!Card _cle = null;
 	Table _tbl;
 	Image _cimg;
 	CViewMode _viewMode = CViewMode.INIT;
@@ -1272,7 +1272,7 @@ private:
 		closePreview();
 		auto cards = cardsNarrow;
 		sort(cards);
-		_cle.cancel();
+		if (_cle) _cle.cancel();
 		if (_viewMode == CViewMode.TABLE) { mixin(S_TRACE);
 			_list.refresh([], &cardImage, _prop.var.etc.showCardListTitle ? &cardTitle : null);
 			Card sel = null;
@@ -1305,7 +1305,7 @@ private:
 		refreshTableItem(c, itm);
 	}
 	void refreshListItem(int index, Card card) { mixin(S_TRACE);
-		_cle.cancel();
+		if (_cle) _cle.cancel();
 		_list.refresh(index, card);
 	}
 	void refreshTableItem(Card c, TableItem itm) { mixin(S_TRACE);
