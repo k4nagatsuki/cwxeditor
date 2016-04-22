@@ -881,7 +881,7 @@ class MaterialSelect(MtType Type, D, C) {
 
 		@property
 		string binPath() { mixin(S_TRACE);
-			return _binPaths[_imageIndex];
+			return _imageIndex < _binPaths.length ? _binPaths[_imageIndex] : "";
 		}
 
 		@property

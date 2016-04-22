@@ -355,6 +355,11 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 			startPos = new Point(e.x, e.y);
 		}
 	});
+	table.addDragDetectListener(new class DragDetectListener {
+		override void dragDetected(DragDetectEvent e) { mixin(S_TRACE);
+			mouseRelease();
+		}
+	});
 	table.addFocusListener(new class FocusAdapter {
 		override void focusLost(FocusEvent e) { mixin(S_TRACE);
 			mouseRelease();

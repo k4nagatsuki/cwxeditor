@@ -421,7 +421,7 @@ class KeyCodeView : Composite {
 			.listener(_keyCodes, SWT.Selection, { _comm.refreshToolBar(); });
 			if (!_readOnly) { mixin(S_TRACE);
 				.listener(_keyCodes, SWT.MouseDoubleClick, { mixin(S_TRACE);
-					if (_coupons.getSelectionIndex() != -1) return;
+					if (_keyCodes.getSelectionIndex() != -1) return;
 					add();
 				});
 			}
