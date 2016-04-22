@@ -239,7 +239,7 @@ private:
 		bool[string]  r;
 		void all(TreeItem itm) { mixin(S_TRACE);
 			auto dir = cast(FlagDir) itm.getData();
-			r[dir.path.toLower()] = itm.getItemCount() == 0 || itm.getExpanded();
+			r[dir.path] = itm.getItemCount() == 0 || itm.getExpanded();
 			foreach (sub; itm.getItems()) { mixin(S_TRACE);
 				all(sub);
 			}
@@ -261,7 +261,7 @@ private:
 		foreach (sub; dir.subDirs) { mixin(S_TRACE);
 			newItem(sub, sItm, exAll);
 		}
-		auto ep = toLower(dir.path) in exAll;
+		auto ep = dir.path in exAll;
 		if (!ep || *ep) { mixin(S_TRACE);
 			sItm.setExpanded(true);
 		}
