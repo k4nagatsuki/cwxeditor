@@ -1275,10 +1275,10 @@ private:
 	}
 	void selectNamesImpl(F)(string[] names) { mixin(S_TRACE);
 		auto set = new HashSet!string;
-		foreach (name; names) set.add(name.toLower());
+		foreach (name; names) set.add(name);
 		foreach (i, itm; flags.getItems()) { mixin(S_TRACE);
 			if (auto f = cast(F)itm.getData()) { mixin(S_TRACE);
-				if (set.contains(f.name.toLower())) { mixin(S_TRACE);
+				if (set.contains(f.name)) { mixin(S_TRACE);
 					flags.select(cast(int)i);
 				}
 			}
@@ -1372,9 +1372,9 @@ private:
 		if (indices.length) { mixin(S_TRACE);
 			auto newNamesF = _dir.createNewFlagNames(text, refF.length, oldNamesF);
 			auto newNamesS = _dir.createNewStepNames(text, refS.length, oldNamesS);
-			bool changed = false;
-			changed |= setNames(refF, newNamesF, uc);
-			changed |= setNames(refS, newNamesS, uc);
+			bool changed = oldNamesF != newNamesF || oldNamesS != newNamesS;
+			if (oldNamesF != newNamesF) setNames(refF, newNamesF, uc);
+			if (oldNamesS != newNamesS) setNames(refS, newNamesS, uc);
 			if (changed) { mixin(S_TRACE);
 				storeEdit(indices, oldNames);
 				refresh();
@@ -1388,12 +1388,11 @@ private:
 		if (!refVals.length) return false;
 		auto dir = refVals[0].parent;
 		auto newSet = new HashSet!string;
-		foreach (name; newNames) newSet.add(name.toLower());
+		foreach (name; newNames) newSet.add(name);
 		auto tempSet = new HashSet!string;
 		foreach (i; 0..refVals.length) { mixin(S_TRACE);
 			auto name = createNewName("temp", (string name) { mixin(S_TRACE);
 				if (!dir.canAppend!F(name)) return false;
-				name = name.toLower();
 				return !newSet.contains(name) && !tempSet.contains(name);
 			});
 			tempSet.add(name);

@@ -221,7 +221,7 @@ public:
 	}
 	const
 	override int opCmp(Object o) { mixin(S_TRACE);
-		return icmp(name, (cast(Flag) o).name);
+		return cmp(name, (cast(Flag) o).name);
 	}
 	/// このフラグのフルパスを返す。
 	@property
@@ -431,7 +431,7 @@ public:
 
 	const
 	override int opCmp(Object o) { mixin(S_TRACE);
-		return icmp(name, (cast(Step) o).name);
+		return cmp(name, (cast(Step) o).name);
 	}
 
 	/// ステップのフルパス。
@@ -625,7 +625,7 @@ public:
 		assert (!parent || !parent.getSubDir(name));
 		_parent = parent;
 	}
-	/// 変更ハンドラを登録する。
+	/// 変更ハンドラ。
 	@property
 	void changeHandler(void delegate() change) { mixin(S_TRACE);
 		foreach (f; _flags) { mixin(S_TRACE);
@@ -638,6 +638,11 @@ public:
 			s.changeHandler = change;
 		}
 		_change = change;
+	}
+	@property
+	const
+	void delegate() changeHandler() { mixin(S_TRACE);
+		return _change;
 	}
 
 	/// 最上位のディレクトリ。
@@ -695,7 +700,7 @@ public:
 				return false;
 			}
 			foreach (flag; _flags) { mixin(S_TRACE);
-				if (icmp(flag.name, name) == 0) { mixin(S_TRACE);
+				if (cmp(flag.name, name) == 0) { mixin(S_TRACE);
 					return false;
 				}
 			}
@@ -706,7 +711,7 @@ public:
 				return false;
 			}
 			foreach (step; _steps) { mixin(S_TRACE);
-				if (icmp(step.name, name) == 0) { mixin(S_TRACE);
+				if (cmp(step.name, name) == 0) { mixin(S_TRACE);
 					return false;
 				}
 			}
@@ -733,7 +738,7 @@ public:
 			return false;
 		}
 		foreach (dir; _subdir) { mixin(S_TRACE);
-			if (icmp(dir.name, name) == 0) { mixin(S_TRACE);
+			if (cmp(dir.name, name) == 0) { mixin(S_TRACE);
 				return false;
 			}
 		}
@@ -805,7 +810,7 @@ public:
 	}
 	private bool removeImpl(T)(ref T[] arr, T e) { mixin(S_TRACE);
 		for (int i = 0; i < arr.length; i++) { mixin(S_TRACE);
-			if (icmp(e.name, arr[i].name) == 0) { mixin(S_TRACE);
+			if (cmp(e.name, arr[i].name) == 0) { mixin(S_TRACE);
 				e.parent = null;
 				arr[i].changeHandler = null;
 				arr = arr[0 .. i] ~ arr[i + 1 .. $];
@@ -884,7 +889,7 @@ public:
 	/// 存在しない場合は-1を返す。
 	const
 	ptrdiff_t indexOf(string name) { mixin(S_TRACE);
-		return .cCountUntil!("0 == icmp(a.name, b)")(_subdir, name);
+		return .cCountUntil!("0 == cmp(a.name, b)")(_subdir, name);
 	}
 
 	/// サブディレクトリの位置を交換する。
@@ -898,7 +903,7 @@ public:
 
 	private static F getImpl(F)(F[] arr, string name) { mixin(S_TRACE);
 		foreach (f; arr) { mixin(S_TRACE);
-			if (icmp(f.name, name) == 0) { mixin(S_TRACE);
+			if (cmp(f.name, name) == 0) { mixin(S_TRACE);
 				return f;
 			}
 		}
@@ -1367,7 +1372,7 @@ public:
 				string path;
 				bool sameTree;
 				if (readAtt(doc, rootId, path, sameTree)) { mixin(S_TRACE);
-					if (!copy && sameTree && icmp(this.path, path) == 0) { mixin(S_TRACE);
+					if (!copy && sameTree && cmp(this.path, path) == 0) { mixin(S_TRACE);
 						// 転送されてきたのが自分自身の場合は末尾に移し変えて終了
 						doc.onTag["Flags"] = (ref XNode node) { mixin(S_TRACE);
 							doc.onTag["Flag"] = (ref XNode node) { mixin(S_TRACE);
@@ -1412,7 +1417,7 @@ public:
 					// ルートディレクトリは移動不可
 					return AppendXmlResult.FAIL;
 				}
-				if (sameTree && icmp(this.path, up(path)) == 0) { mixin(S_TRACE);
+				if (sameTree && cmp(this.path, up(path)) == 0) { mixin(S_TRACE);
 					// 転送されてきたのが自分自身の場合は末尾に移し変えて終了
 					auto d = getSubDir(dirName);
 					add(d);
@@ -1452,7 +1457,7 @@ public:
 
 		loop: for (int lev = 0; lev < paths.length; lev++) { mixin(S_TRACE);
 			foreach (sub; dir.subDirs) { mixin(S_TRACE);
-				if (icmp(paths[lev], sub.name) == 0) { mixin(S_TRACE);
+				if (cmp(paths[lev], sub.name) == 0) { mixin(S_TRACE);
 					if (lev < paths.length - 1) { mixin(S_TRACE);
 						dir = sub;
 						continue loop;

@@ -179,18 +179,18 @@ struct FlagId {
 	const
 	hash_t toHash() { mixin(S_TRACE);
 		hash_t hash = 0;
-		foreach (c; .toLower(id)) { mixin(S_TRACE);
+		foreach (c; id) { mixin(S_TRACE);
 			hash = (hash * 9) + c;
 		}
 		return hash;
 	}
 	const
 	bool opEquals(ref const(FlagId) s) { mixin(S_TRACE);
-		return icmp(id, s.id) == 0;
+		return cmp(id, s.id) == 0;
 	}
 	const
 	int opCmp(ref const(FlagId) s) { mixin(S_TRACE);
-		return icmp(this.id, s.id);
+		return cmp(this.id, s.id);
 	}
 	const
 	string toString() { mixin(S_TRACE);
@@ -292,18 +292,18 @@ struct StepId {
 	const
 	hash_t toHash() { mixin(S_TRACE);
 		hash_t hash = 0;
-		foreach (c; .toLower(id)) { mixin(S_TRACE);
+		foreach (c; id) { mixin(S_TRACE);
 			hash = (hash * 9) + c;
 		}
 		return hash;
 	}
 	const
 	bool opEquals(ref const(StepId) s) { mixin(S_TRACE);
-		return icmp(id, s.id) == 0;
+		return cmp(id, s.id) == 0;
 	}
 	const
 	int opCmp(ref const(StepId) s) { mixin(S_TRACE);
-		return icmp(this.id, s.id);
+		return cmp(this.id, s.id);
 	}
 	const
 	string toString() { mixin(S_TRACE);
