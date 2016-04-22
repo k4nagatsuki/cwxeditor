@@ -546,7 +546,11 @@ public:
 					matImgData = blankImage(initW, initH);
 				}
 			}
-			return matImgData;
+			if (appends.length) { mixin(S_TRACE);
+				return matImgData;
+			} else { mixin(S_TRACE);
+				return cast(ImageData)matImgData.clone();
+			}
 		}
 		ImageData matImgData;
 		bool noTransparent = false;
@@ -731,14 +735,14 @@ public:
 		}
 		if (_dataResizable && (bmpData.width != width || bmpData.height != height)) { mixin(S_TRACE);
 			dataSet.add(bmpData);
-			if (smoothing) { mixin(S_TRACE);
+			if (smoothing && 16 <= bmpData.depth) { mixin(S_TRACE);
 				bmpData = cast(ImageData)bmpData.clone();
-				auto data = cast(ubyte[]) bmpData.data;
-				auto alpha = cast(ubyte[]) bmpData.alphaData;
+				auto data = cast(ubyte[])bmpData.data;
+				auto alpha = cast(ubyte[])bmpData.alphaData;
 				size_t bpl;
-				bmpData.data = cast(byte[]) smoothResize(width, height, data, alpha,
+				bmpData.data = cast(byte[])smoothResize(width, height, data, alpha,
 					bmpData.depth, bmpData.width, bmpData.height, bmpData.bytesPerLine, bpl);
-				bmpData.alphaData = cast(byte[]) alpha;
+				bmpData.alphaData = cast(byte[])alpha;
 				bmpData.width = width;
 				bmpData.height = height;
 				bmpData.bytesPerLine = cast(int)bpl;

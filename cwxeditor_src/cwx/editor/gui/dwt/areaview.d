@@ -3618,6 +3618,9 @@ public:
 		}
 		void createCard() { mixin(S_TRACE);
 			if (_readOnly) return;
+			static if (is(C:EnemyCard)) {
+				if (!_summ.casts.length) return;
+			}
 			static if (is(C : MenuCard)) {
 				auto c = new MenuCard("", [], "", "", 0, 0, 100, LAYER_MENU_CARD);
 			} else static if (is(C : EnemyCard)) {
@@ -3648,12 +3651,18 @@ public:
 		}
 		void editCard(int[] indices) { mixin(S_TRACE);
 			if (_readOnly) return;
+			static if (is(C:EnemyCard)) {
+				if (!_summ.casts.length) return;
+			}
 			foreach (i; indices) { mixin(S_TRACE);
 				editCard(_area.cards[i]);
 			}
 		}
 		void editCard(C card) { mixin(S_TRACE);
 			if (_readOnly) return;
+			static if (is(C:EnemyCard)) {
+				if (!_summ.casts.length) return;
+			}
 			auto p = card in _editDlgsC;
 			if (p) { mixin(S_TRACE);
 				p.active();
