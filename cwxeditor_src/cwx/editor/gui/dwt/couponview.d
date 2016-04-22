@@ -638,6 +638,7 @@ class CouponView(CVType Type) : Composite {
 			}
 			if (!_readOnly) { mixin(S_TRACE);
 				.listener(_coupons, SWT.MouseDoubleClick, { mixin(S_TRACE);
+					if (_coupons.getSelectionIndex() != -1) return;
 					static if (Type is CVType.Cast) {
 						_tte1.startEdit(appendCoupon(new Coupon("", 0), 0));
 					} else {
