@@ -4491,20 +4491,38 @@ class ContentsToolBox {
 		ToolItem ti() {return _itm;}
 	}
 	private ToolItem createEI(CType type, ToolBar bar, ToolItemGroup g) { mixin(S_TRACE);
-		string text;
-		if (_prop.var.etc.showEventContentDescription) { mixin(S_TRACE);
-			text = .format("%s\n%s", _prop.msgs.contentName(type), _prop.msgs.contentDesc(type));
-		} else { mixin(S_TRACE);
-			text = _prop.msgs.contentName(type);
-		}
 		auto img = _prop.images.content(type);
 		auto cursor = _prop.images.cursor(type);
 		_cursors ~= cursor;
 		auto ce = new CreateEvent(type, cursor);
-		auto itm = createToolItem2(_comm, bar, text, img, &ce.create, () => _parent.selection !is null && (!_summ || !_summ.legacy || !type.isWsnContent), SWT.RADIO);
+		auto itm = createToolItem2(_comm, bar, _prop.msgs.contentName(type), img, &ce.create, () => _parent.selection !is null && (!_summ || !_summ.legacy || !type.isWsnContent), SWT.RADIO);
 		ce.ti = itm;
 		g.append(itm);
 		_conts[type] = ce;
+
+		if (_prop.var.etc.showEventContentDescription) { mixin(S_TRACE);
+			void refDataVersion() { mixin(S_TRACE);
+				string desc;
+				with (CType) switch (type) {
+				case MOVE_BG_IMAGE:
+				case REPLACE_BG_IMAGE:
+				case LOSE_BG_IMAGE:
+					if (!_summ.legacy) goto default;
+					desc = .tryFormat(_prop.msgs.contentDescWsnN, _prop.msgs.contentDesc(type), "1");
+					break;
+				default:
+					desc = _prop.msgs.contentDesc(type);
+					break;
+				}
+				itm.setToolTipText(.format("%s\n%s", _prop.msgs.contentName(type), desc));
+			}
+			_comm.refDataVersion.add(&refDataVersion);
+			.listener(itm, SWT.Dispose, { mixin(S_TRACE);
+				_comm.refDataVersion.remove(&refDataVersion);
+			});
+			refDataVersion();
+		}
+
 		return itm;
 	}
 

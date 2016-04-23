@@ -640,7 +640,7 @@ class Msgs : Properties {
 	auto contentDescBranchArea = Msg("contentDescBranchArea", "現在どのエリアにいるかによって処理を分岐させます。");
 	auto contentDescBranchBattle = Msg("contentDescBranchBattle", "現在どのバトルを実行中かによって処理を分岐させます。");
 	auto contentDescBranchIsBattle = Msg("contentDescBranchIsBattle", "現在バトル中かそうでないかによって処理を分岐させます。");
-	auto contentDescBranchCast = Msg("contentDescBranchCast", "任意の同行キャストが同行中かそうでないかによって処理を分岐させます。");
+	auto contentDescBranchCast = Msg("contentDescBranchCast", "任意のキャストが同行中かそうでないかによって処理を分岐させます。");
 	auto contentDescBranchItem = Msg("contentDescBranchItem", "任意のアイテムカードを所持しているかいないかによって処理を分岐させます。所持判定において、名前と解説が一致するカードは同一とみなされます。カードを所持しているキャラクタは選択状態になります。");
 	auto contentDescBranchSkill = Msg("contentDescBranchSkill", "任意の特殊技能カードを所持しているかいないかによって処理を分岐させます。所持判定において、名前と解説が一致するカードは同一とみなされます。カードを所持しているキャラクタは選択状態になります。");
 	auto contentDescBranchInfo = Msg("contentDescBranchInfo", "任意の情報カードを所持しているかいないかによって処理を分岐させます。");
@@ -687,6 +687,7 @@ class Msgs : Properties {
 	auto contentDescMoveBgImage = Msg("contentDescMoveBgImage", "セル名称のつけられた背景セルを移動・サイズ変更します。");
 	auto contentDescReplaceBgImage = Msg("contentDescReplaceBgImage", "セル名称のつけられた背景セルを新しい背景セルに置換します。");
 	auto contentDescLoseBgImage = Msg("contentDescLoseBgImage", "セル名称のつけられた背景セルを削除します。");
+	auto contentDescWsnN = Msg("contentDescWsnN", "%1$sWsn.%2$s以降のシナリオ形式で使用可能です。");
 
 	auto msnGroupVitality = Msg("msnGroupVitality", "生命力");
 	auto msnGroupPhysical = Msg("msnGroupPhysical", "肉体");
