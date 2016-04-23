@@ -152,6 +152,7 @@ class EtcSettings : Composite {
 
 		comp = createComp(prop.msgs.etcSettingsEvent);
 		boolSetting(comp, prop.var.etc.showContentsGroupName, prop.msgs.showContentsGroupName);
+		boolSetting(comp, prop.var.etc.showEventContentDescription, prop.msgs.showEventContentDescription);
 		auto contentsFloat = boolSetting(comp, prop.var.etc.contentsFloat, prop.msgs.contentsFloat);
 		auto contentsAutoHide = boolSetting(comp, prop.var.etc.contentsAutoHide, prop.msgs.contentsAutoHide);
 		.listener(contentsFloat, SWT.Selection, { mixin(S_TRACE);

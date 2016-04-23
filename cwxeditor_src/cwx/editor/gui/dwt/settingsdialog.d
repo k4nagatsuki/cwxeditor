@@ -1429,6 +1429,7 @@ struct OldSettings {
 	bool showSummaryInAreaTable;
 	bool showAreaDirTree;
 	bool showContentsGroupName;
+	bool showEventContentDescription;
 	bool contentsFloat;
 	bool contentsAutoHide;
 	bool showCloseButtonAllTab;
@@ -1482,6 +1483,7 @@ struct OldSettings {
 		this.showSummaryInAreaTable = prop.var.etc.showSummaryInAreaTable;
 		this.showAreaDirTree = prop.var.etc.showAreaDirTree;
 		this.showContentsGroupName = prop.var.etc.showContentsGroupName;
+		this.showEventContentDescription = prop.var.etc.showEventContentDescription;
 		this.contentsFloat = prop.var.etc.contentsFloat;
 		this.contentsAutoHide = prop.var.etc.contentsAutoHide;
 		this.showCloseButtonAllTab = prop.var.etc.showCloseButtonAllTab;
@@ -1625,7 +1627,9 @@ struct OldSettings {
 		if (this.showAreaDirTree != prop.var.etc.showAreaDirTree) { mixin(S_TRACE);
 			comm.refTableViewStyle.call();
 		}
-		if (this.contentsFloat != prop.var.etc.contentsFloat || this.contentsAutoHide != prop.var.etc.contentsAutoHide || this.showContentsGroupName != prop.var.etc.showContentsGroupName) { mixin(S_TRACE);
+		if (this.contentsFloat != prop.var.etc.contentsFloat || this.contentsAutoHide != prop.var.etc.contentsAutoHide
+				|| this.showContentsGroupName != prop.var.etc.showContentsGroupName
+				|| this.showEventContentDescription != prop.var.etc.showEventContentDescription) { mixin(S_TRACE);
 			comm.refContentsToolBoxStyle.call();
 		}
 		if (this.showCloseButtonAllTab != prop.var.etc.showCloseButtonAllTab && comm.mainWin.dock) { mixin(S_TRACE);

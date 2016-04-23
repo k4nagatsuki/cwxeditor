@@ -74,7 +74,7 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 					}
 					auto tRect = itm.getTextBounds(i);
 					// 幅の値がセル幅一杯のものになってしまうので再測定
-					tRect.width = _gc.textExtent(itm.getText(i)).x;
+					tRect.width = .min(tRect.width, _gc.textExtent(itm.getText(i)).x);
 					if (tRect.contains(x, y)) { mixin(S_TRACE);
 						return super.sendMouseDownEvent(type, button, msg, wParam, lParam);
 					}

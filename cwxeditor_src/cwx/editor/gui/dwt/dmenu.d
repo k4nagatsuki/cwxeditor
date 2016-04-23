@@ -13,6 +13,7 @@ import cwx.editor.gui.dwt.undo;
 
 import core.thread;
 
+import std.algorithm;
 import std.exception;
 import std.array;
 import std.conv;
@@ -750,4 +751,115 @@ bool menuEnabled(MenuItem menu) {
 		menu.setEnabled(data.enabled());
 	}
 	return menu.getEnabled();
+}
+
+/// ToolItemが持つツールチップを独自描画のものに差し替える。
+void setupToolTips(ToolBar bar, in Props prop) { mixin(S_TRACE);
+	Shell toolTip = null;
+	Font bFont = null;
+	string[ToolItem] textTable;
+	ToolItem lastItm = null;
+	Label label1 = null;
+	Label label2 = null;
+	void release() { mixin(S_TRACE);
+		if (!toolTip) return;
+		toolTip.dispose();
+		toolTip = null;
+		bFont.dispose();
+		bFont = null;
+		lastItm = null;
+		label1 = null;
+		label2 = null;
+	}
+	void rebounds() { mixin(S_TRACE);
+		auto d = bar.getDisplay();
+		auto text = textTable[lastItm];
+		auto index = std.string.indexOf(text, "\n");
+		auto name = text[0 .. index];
+		auto desc = text[index + 1 .. $];
+		label1.setText(name);
+		label2.setText(desc);
+		auto gd = new GridData;
+		auto gc = new GC(label2);
+		scope (exit) gc.dispose();
+		gd.widthHint = .min(gc.textExtent(desc).x, prop.var.etc.toolTipWidth);
+		label2.setLayoutData(gd);
+		auto size = toolTip.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		auto b = lastItm.getBounds();
+		auto p2 = bar.toDisplay(b.x, b.y);
+		auto da = d.getClientArea();
+		if (p2.y + b.height + size.y < da.height) { mixin(S_TRACE);
+			p2.y += b.height;
+		} else { mixin(S_TRACE);
+			p2.y -= size.y;
+		}
+		if (p2.x < 0) { mixin(S_TRACE);
+			p2.x = 0;
+		} else if (da.width <= p2.x + size.x) { mixin(S_TRACE);
+			p2.x = da.width - size.x;
+		}
+		toolTip.layout();
+		toolTip.setBounds(p2.x, p2.y,size.x, size.y);
+		toolTip.setVisible(true);
+	}
+	void enter(int x, int y) { mixin(S_TRACE);
+		auto p = new Point(x, y);
+		auto itm = bar.getItem(p);
+		if (!itm) { mixin(S_TRACE);
+			release();
+			return;
+		}
+		if (itm is lastItm) return;
+		if (itm !in textTable) { mixin(S_TRACE);
+			auto index = std.string.indexOf(itm.getToolTipText(), "\n");
+			if (index == -1) { mixin(S_TRACE);
+				release();
+				return;
+			}
+		}
+		if (itm.getToolTipText() != "") { mixin(S_TRACE);
+			if (itm !in textTable) { mixin(S_TRACE);
+				.listener(itm, SWT.Dispose, (e) { mixin(S_TRACE);
+					textTable.remove(cast(ToolItem)e.widget);
+				});
+			}
+			textTable[itm] = itm.getToolTipText();
+			itm.setToolTipText("");
+		}
+		lastItm = itm;
+		if (toolTip) { mixin(S_TRACE);
+			rebounds();
+			return;
+		}
+		auto d = bar.getDisplay();
+		auto fore = d.getSystemColor(SWT.COLOR_INFO_FOREGROUND);
+		auto back = d.getSystemColor(SWT.COLOR_INFO_BACKGROUND);
+		toolTip = new Shell(bar.getShell(), SWT.ON_TOP);
+		toolTip.setForeground(fore);
+		toolTip.setBackground(back);
+		auto gl = new GridLayout(1, true);
+		gl.verticalSpacing = 0;
+		gl.marginHeight = WGL_SPACING;
+		toolTip.setLayout(gl);
+		label1 = new Label(toolTip, SWT.NONE);
+		label1.setForeground(fore);
+		label1.setBackground(back);
+		auto font = label1.getFont();
+		auto fontData = font.getFontData()[0];
+		fontData.setStyle(fontData.getStyle() | SWT.BOLD);
+		bFont = new Font(d, fontData);
+		label1.setFont(bFont);
+		label2 = new Label(toolTip, SWT.WRAP);
+		label2.setForeground(fore);
+		label2.setBackground(back);
+		rebounds();
+	}
+	.listener(bar, SWT.MouseEnter, (e) { mixin(S_TRACE);
+		enter(e.x, e.y);
+	});
+	.listener(bar, SWT.MouseMove, (e) { mixin(S_TRACE);
+		enter(e.x, e.y);
+	});
+	.listener(bar, SWT.MouseExit, &release);
+	.listener(bar, SWT.Dispose, &release);
 }

@@ -166,6 +166,7 @@ class FlexEtcProps : Properties {
 	auto stepTopSashR = Prop!(int)("stepTopSashR", 2);
 	auto flagTopSashL = Prop!(int)("flagTopSashL", 3);
 	auto flagTopSashR = Prop!(int)("flagTopSashR", 2);
+	auto toolTipWidth = Prop!(int, true)("toolTipWidth", 300);
 
 	auto partyMax = Prop!(uint, true)("partyMax", 6);
 	auto cardScaleMax = Prop!(int)("cardScaleMax", 300);
@@ -267,6 +268,7 @@ class FlexEtcProps : Properties {
 	auto contentsPutMode = Prop!(int)("contentsPutMode", 0);
 	auto contentsInsertFirst = Prop!(bool)("contentsInsertFirst", false);
 	auto showContentsGroupName = Prop!(bool)("showContentsGroupName", true);
+	auto showEventContentDescription = Prop!(bool)("showEventContentDescription", true);
 	auto contentsFloat = Prop!(bool)("contentsFloat", false);
 	auto contentsAutoHide = Prop!(bool)("contentsAutoHide", false);
 	auto comboListVisible = Prop!(bool)("comboListVisible", true);

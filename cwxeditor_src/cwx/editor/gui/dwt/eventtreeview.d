@@ -4491,7 +4491,12 @@ class ContentsToolBox {
 		ToolItem ti() {return _itm;}
 	}
 	private ToolItem createEI(CType type, ToolBar bar, ToolItemGroup g) { mixin(S_TRACE);
-		auto text = _prop.msgs.contentName(type);
+		string text;
+		if (_prop.var.etc.showEventContentDescription) { mixin(S_TRACE);
+			text = .format("%s\n%s", _prop.msgs.contentName(type), _prop.msgs.contentDesc(type));
+		} else { mixin(S_TRACE);
+			text = _prop.msgs.contentName(type);
+		}
 		auto img = _prop.images.content(type);
 		auto cursor = _prop.images.cursor(type);
 		_cursors ~= cursor;
@@ -4785,6 +4790,7 @@ class ContentsToolBox {
 				} else { mixin(S_TRACE);
 					createCoolItem(cbar, eBar);
 				}
+				.setupToolTips(eBar, _prop);
 				_comm.put(eBar);
 			}
 			updatePutMode();
