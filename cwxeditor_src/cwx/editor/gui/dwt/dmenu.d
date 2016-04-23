@@ -791,7 +791,7 @@ void setupToolTips(ToolBar bar, in Props prop) { mixin(S_TRACE);
 	void rebounds() { mixin(S_TRACE);
 		auto d = bar.getDisplay();
 		auto text = textTable[lastItm];
-		auto index = std.string.indexOf(text, "\n");
+		auto index = std.string.indexOf(text, "\v");
 		auto name = text[0 .. index];
 		auto desc = text[index + 1 .. $];
 		label1.setImage(lastItm.getImage());
@@ -829,7 +829,7 @@ void setupToolTips(ToolBar bar, in Props prop) { mixin(S_TRACE);
 		}
 		if (itm is lastItm) return;
 		if (itm !in textTable) { mixin(S_TRACE);
-			auto index = std.string.indexOf(itm.getToolTipText(), "\n");
+			auto index = std.string.indexOf(itm.getToolTipText(), "\v");
 			if (index == -1) { mixin(S_TRACE);
 				release();
 				return;

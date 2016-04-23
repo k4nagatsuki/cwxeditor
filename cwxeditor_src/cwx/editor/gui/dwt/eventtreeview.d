@@ -4514,7 +4514,7 @@ class ContentsToolBox {
 					desc = _prop.msgs.contentDesc(type);
 					break;
 				}
-				itm.setToolTipText(.format("%s\n%s", _prop.msgs.contentName(type), desc));
+				itm.setToolTipText(.format("%s\v%s", _prop.msgs.contentName(type), desc));
 			}
 			_comm.refDataVersion.add(&refDataVersion);
 			.listener(itm, SWT.Dispose, { mixin(S_TRACE);

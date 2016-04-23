@@ -375,6 +375,7 @@ class Commons {
 	Dlg!() refContentsToolBoxStyle;
 	Dlg!(int) refEventTreeSlope;
 	Dlg!() refFloatMessagePreview;
+	Dlg!() refUpdateMotionBarStyle;
 
 	Dlg!() refTableViewStyle;
 	Dlg!(Area) refArea;

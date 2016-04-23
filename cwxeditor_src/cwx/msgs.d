@@ -747,6 +747,50 @@ class Msgs : Properties {
 	auto motionNameSummonBeast = Msg("motionNameSummonBeast", "召喚獣召喚");
 	auto motionNameCancelAction = Msg("motionNameCancelAction", "行動キャンセル"); // CardWirth 1.50
 
+	const string motionDesc(MType id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(MType, "motionDesc"));
+	}
+	auto motionDescHeal = Msg("motionDescHeal", "対象の生命点を増加させます。");
+	auto motionDescDamage = Msg("motionDescDamage", "対象の生命点を減少させます。");
+	auto motionDescAbsorb = Msg("motionDescAbsorb", "対象の生命点を減少させた分だけ使用者の生命点を回復させます。");
+	auto motionDescParalyze = Msg("motionDescParalyze", "対象を麻痺させます。麻痺の値が20を超えた場合は石化扱いとなります。麻痺の最大値は40です。全員が麻痺状態になった場合は全滅します。");
+	auto motionDescDisParalyze = Msg("motionDescDisParalyze", "対象の麻痺を緩和します。");
+	auto motionDescPoison = Msg("motionDescPoison", "対象を中毒状態にします。中毒状態のキャラクタは時間経過でダメージを受けます。中毒の最大値は40です。");
+	auto motionDescDisPoison = Msg("motionDescDisPoison", "対象の中毒を緩和します。");
+	auto motionDescGetSkillPower = Msg("motionDescGetSkillPower", "対象の特殊技能の使用回数を増加させます。");
+	auto motionDescLoseSkillPower = Msg("motionDescLoseSkillPower", "対象の特殊技能の使用回数を減少させます。");
+	auto motionDescSleep = Msg("motionDescSleep", "対象を睡眠状態にします。睡眠状態のキャラクタは、行動・回避・抵抗ができなくなります。");
+	auto motionDescConfuse = Msg("motionDescConfuse", "対象を混乱状態にします。混乱状態のキャラクタは、手札に「混乱」が配付されます。");
+	auto motionDescOverheat = Msg("motionDescOverheat", "対象を激昂状態にします。激昂状態のキャラクタは、手札に「渾身の一撃」が配付されます。");
+	auto motionDescBrave = Msg("motionDescBrave", "対象を勇敢状態にします。勇敢状態のキャラクタは、手札に「防御」「見切り」が配付されなくなります。");
+	auto motionDescPanic = Msg("motionDescPanic", "対象を恐慌状態にします。恐慌状態のキャラクタは、手札に「防御」「見切り」だけが配付されます。");
+	auto motionDescNormal = Msg("motionDescNormal", "対象の精神状態を通常に戻します。");
+	auto motionDescBind = Msg("motionDescBind", "対象を呪縛します。呪縛されたキャラクタは、行動・回避ができなくなります。");
+	auto motionDescDisBind = Msg("motionDescDisBind", "対象の呪縛を解除します。");
+	auto motionDescSilence = Msg("motionDescSilence", "対象を沈黙状態にします。沈黙状態のキャラクタは、発声が必要なカードを使用できなくなります。");
+	auto motionDescDisSilence = Msg("motionDescDisSilence", "対象の沈黙状態を解除します。");
+	auto motionDescFaceUp = Msg("motionDescFaceUp", "対象を暴露状態にします。暴露状態のキャラクタは、そのステータスや次ラウンドの行動を見る事ができます。");
+	auto motionDescFaceDown = Msg("motionDescFaceDown", "対象の暴露状態を解除します。");
+	auto motionDescAntiMagic = Msg("motionDescAntiMagic", "対象を魔法無効化状態にします。魔法無効化状態のキャラクタは魔法・物理的魔法属性の効果を受けなくなり、これらの属性のカードを使用できなくなります。");
+	auto motionDescDisAntiMagic = Msg("motionDescDisAntiMagic", "対象の魔法無効化状態を解除します。");
+	auto motionDescEnhanceAction = Msg("motionDescEnhanceAction", "対象の行動力を変化させます。行動力の増減は行動の成功判定や能力判定の結果に影響します。");
+	auto motionDescEnhanceAvoid = Msg("motionDescEnhanceAvoid", "対象の回避力を変化させます。回避力の増減は効果の回避判定の結果に影響します。+10の場合は必ず回避が成功します。-10の場合は必ず失敗します。");
+	auto motionDescEnhanceDefense = Msg("motionDescEnhanceDefense", "対象の防御力を変化させます。防御力の増減はダメージ計算の結果に影響します。+10の場合はダメージを受けません。-10の場合は3倍のダメージを受けます。");
+	auto motionDescEnhanceResist = Msg("motionDescEnhanceResist", "対象の抵抗力を変化させます。抵抗力の増減は効果への抵抗判定の結果に影響します。+10の場合は必ず抵抗が成功します。-10の場合は必ず失敗します。");
+	auto motionDescVanishTarget = Msg("motionDescVanishTarget", "対象を消去します。消去されたキャラクタが戻ってくる事はありません。");
+	auto motionDescVanishCard = Msg("motionDescVanishCard", "対象の手札を消去します。対象は、次のラウンドで消去された分だけ山札からカードを引きます。");
+	auto motionDescVanishBeast = Msg("motionDescVanishBeast", "対象が所持する召喚獣を消去します。付帯能力(召喚獣召喚効果以外で付与された召喚獣カード)は消去されません。");
+	auto motionDescDealAttackCard = Msg("motionDescDealAttackCard", "対象の山札の一番上に「攻撃」を配付します。");
+	auto motionDescDealPowerfulAttackCard = Msg("motionDescDealPowerfulAttackCard", "対象の山札の一番上に「渾身の一撃」を配付します。");
+	auto motionDescDealCriticalAttackCard = Msg("motionDescDealCriticalAttackCard", "対象の山札の一番上に「会心の一撃」を配付します。");
+	auto motionDescDealFeintCard = Msg("motionDescDealFeintCard", "対象の山札の一番上に「フェイント」を配付します。");
+	auto motionDescDealDefenseCard = Msg("motionDescDealDefenseCard", "対象の山札の一番上に「防御」を配付します。「防御」を選択したキャラクタは抵抗力が増加し、受けるダメージが減少します。");
+	auto motionDescDealDistanceCard = Msg("motionDescDealDistanceCard", "対象の山札の一番上に「見切り」を配付します。「見切り」を選択したキャラクタは回避力が増加します。");
+	auto motionDescDealConfuseCard = Msg("motionDescDealConfuseCard", "対象の山札の一番上に「混乱」を配付します。「混乱」を選択したキャラクタは、選択したラウンド中の行動・回避・抵抗ができなくなります。");
+	auto motionDescDealSkillCard = Msg("motionDescDealSkillCard", "対象の山札の一番上に、対象が使用できる特殊技能カードを配付します。使用回数が尽きている場合は配付されません。");
+	auto motionDescSummonBeast = Msg("motionDescSummonBeast", "対象に任意の召喚獣カードを付与します。");
+	auto motionDescCancelAction = Msg("motionDescCancelAction", "対象の現在のラウンドの行動をキャンセルします。すでに行動済みの場合は何もしません。"); // CardWirth 1.50
+
 	auto dialogText = Msg("dialogText", "%2$s: %1$s");
 	auto dialogTextNoCoupon = Msg("dialogTextNoCoupon", "%1$s");
 
@@ -1834,6 +1878,7 @@ class Msgs : Properties {
 	auto showCardListHeader = Msg("showCardListHeader", "カードの画像表示時にヘッダを表示する");
 	auto showCardListTitle = Msg("showCardListTitle", "カードの画像表示時にIDと名前を表示する");
 	auto showSkillCardLevel = Msg("showSkillCardLevel", "カードの画像表示時に特殊技能カードのレベルを表示する");
+	auto showMotionDescription = Msg("showMotionDescription", "効果の解説をツールチップで表示する");
 	auto showSpNature = Msg("showSpNature", "特殊型を表示する");
 	auto radarStyleParams = Msg("radarStyleParams", "レーダー型コントロールでパラメータ値を設定する");
 	auto linkCard = Msg("linkCard", "クラシックなシナリオでキャストの所有カードや召喚対象カードを参照で設定する");

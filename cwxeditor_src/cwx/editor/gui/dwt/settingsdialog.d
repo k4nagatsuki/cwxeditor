@@ -1433,6 +1433,7 @@ struct OldSettings {
 	bool contentsFloat;
 	bool contentsAutoHide;
 	bool showCloseButtonAllTab;
+	bool showMotionDescription;
 	ToolBarSettings mainToolBar;
 	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
@@ -1488,6 +1489,7 @@ struct OldSettings {
 		this.contentsAutoHide = prop.var.etc.contentsAutoHide;
 		this.showCloseButtonAllTab = prop.var.etc.showCloseButtonAllTab;
 		this.mainToolBar = prop.var.etc.mainToolBar;
+		this.showMotionDescription = prop.var.etc.showMotionDescription;
 	}
 	void raiseEvent(Commons comm) { mixin(S_TRACE);
 		bool refSkin = false;
@@ -1631,6 +1633,9 @@ struct OldSettings {
 				|| this.showContentsGroupName != prop.var.etc.showContentsGroupName
 				|| this.showEventContentDescription != prop.var.etc.showEventContentDescription) { mixin(S_TRACE);
 			comm.refContentsToolBoxStyle.call();
+		}
+		if (this.showMotionDescription != prop.var.etc.showMotionDescription) { mixin(S_TRACE);
+			comm.refUpdateMotionBarStyle.call();
 		}
 		if (this.showCloseButtonAllTab != prop.var.etc.showCloseButtonAllTab && comm.mainWin.dock) { mixin(S_TRACE);
 			comm.mainWin.dock.updateCloseButtons();

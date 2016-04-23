@@ -184,6 +184,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.showCardListTitle, prop.msgs.showCardListTitle);
 		boolSetting(comp, prop.var.etc.showSkillCardLevel, prop.msgs.showSkillCardLevel);
 		boolSetting(comp, prop.var.etc.showSpNature, prop.msgs.showSpNature);
+		boolSetting(comp, prop.var.etc.showMotionDescription, prop.msgs.showMotionDescription);
 		boolSetting(comp, prop.var.etc.radarStyleParams, prop.msgs.radarStyleParams);
 		boolSetting(comp, prop.var.etc.linkCard, prop.msgs.linkCard);
 

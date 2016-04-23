@@ -400,7 +400,11 @@ private:
 		auto mt = new MT;
 		mt.v = v;
 		mt.type = type;
-		createToolItem2(_comm, tbar, tt, _prop.images.motion(type), &mt.create, () => !_readOnly);
+		auto text = tt;
+		if (_prop.var.etc.showMotionDescription) { mixin(S_TRACE);
+			text = .format("%s\v%s", tt, _prop.msgs.motionDesc(type));
+		}
+		createToolItem2(_comm, tbar, text, _prop.images.motion(type), &mt.create, () => !_readOnly);
 	}
 	ptrdiff_t indexOf(Motion m) { mixin(S_TRACE);
 		foreach (i, itm; _motions.getItems()) { mixin(S_TRACE);
@@ -1004,93 +1008,117 @@ public:
 				bar.addListener(SWT.KeyDown, new class Listener {
 					override void handleEvent(Event e) {e.doit = true;}
 				});
+				auto tab = new CTabItem(mtabf, SWT.NONE);
+				tab.setControl(bar);
+				tab.setText(name);
+				.setupToolTips(bar, _prop);
+				return bar;
+			}
+			auto vitalityBar = createBar(_prop.msgs.msnGroupVitality);
+			auto physicalBar = createBar(_prop.msgs.msnGroupPhysical);
+			auto skillBar = createBar(_prop.msgs.msnGroupSkill);
+			auto mentalBar = createBar(_prop.msgs.msnGroupMental);
+			auto magicBar = createBar(_prop.msgs.msnGroupMagic);
+			auto enhanceBar = createBar(_prop.msgs.msnGroupEnhance);
+			auto vanishBar = createBar(_prop.msgs.msnGroupVanish);
+			auto cardBar = createBar(_prop.msgs.msnGroupCard);
+			auto beastBar = createBar(_prop.msgs.msnGroupBeast);
+
+			void addDefItems(ToolBar bar) { mixin(S_TRACE);
 				createToolItem2(_comm, bar, _prop.msgs.msnDelete, _prop.images.msnDelete, &removeMotion, () => _motions.getSelectionIndex() != -1);
 				new ToolItem(bar, SWT.SEPARATOR);
 				createToolItem(_comm, bar, MenuID.Up, &up, () => _motions.getSelectionIndex() != -1 && 0 < _motions.getSelectionIndex());
 				createToolItem(_comm, bar, MenuID.Down, &down, () => _motions.getSelectionIndex() != -1 && _motions.getSelectionIndex() + 1 < _motions.getItemCount());
 				new ToolItem(bar, SWT.SEPARATOR);
-				auto tab = new CTabItem(mtabf, SWT.NONE);
-				tab.setControl(bar);
-				tab.setText(name);
-				return bar;
 			}
-			{ mixin(S_TRACE);
+			void createBars(bool init) { mixin(S_TRACE);
 				string g = _prop.msgs.msnGroupVitality;
-				auto bar = createBar(g);
-				createMT(this, bar, g, MType.HEAL);
-				createMT(this, bar, g, MType.DAMAGE);
-				createMT(this, bar, g, MType.ABSORB);
+				foreach (itm; vitalityBar.getItems()) itm.dispose();
+				addDefItems(vitalityBar);
+				createMT(this, vitalityBar, g, MType.HEAL);
+				createMT(this, vitalityBar, g, MType.DAMAGE);
+				createMT(this, vitalityBar, g, MType.ABSORB);
+
+				g = _prop.msgs.msnGroupPhysical;
+				foreach (itm; physicalBar.getItems()) itm.dispose();
+				addDefItems(physicalBar);
+				createMT(this, physicalBar, g, MType.PARALYZE);
+				createMT(this, physicalBar, g, MType.DIS_PARALYZE);
+				createMT(this, physicalBar, g, MType.POISON);
+				createMT(this, physicalBar, g, MType.DIS_POISON);
+
+				g = _prop.msgs.msnGroupSkill;
+				foreach (itm; skillBar.getItems()) itm.dispose();
+				addDefItems(skillBar);
+				createMT(this, skillBar, g, MType.GET_SKILL_POWER);
+				createMT(this, skillBar, g, MType.LOSE_SKILL_POWER);
+
+				g = _prop.msgs.msnGroupMental;
+				foreach (itm; mentalBar.getItems()) itm.dispose();
+				addDefItems(mentalBar);
+				createMT(this, mentalBar, g, MType.SLEEP);
+				createMT(this, mentalBar, g, MType.CONFUSE);
+				createMT(this, mentalBar, g, MType.OVERHEAT);
+				createMT(this, mentalBar, g, MType.BRAVE);
+				createMT(this, mentalBar, g, MType.PANIC);
+				createMT(this, mentalBar, g, MType.NORMAL);
+
+				g = _prop.msgs.msnGroupMagic;
+				foreach (itm; magicBar.getItems()) itm.dispose();
+				addDefItems(magicBar);
+				createMT(this, magicBar, g, MType.BIND);
+				createMT(this, magicBar, g, MType.DIS_BIND);
+				createMT(this, magicBar, g, MType.SILENCE);
+				createMT(this, magicBar, g, MType.DIS_SILENCE);
+				createMT(this, magicBar, g, MType.FACE_UP);
+				createMT(this, magicBar, g, MType.FACE_DOWN);
+				createMT(this, magicBar, g, MType.ANTI_MAGIC);
+				createMT(this, magicBar, g, MType.DIS_ANTI_MAGIC);
+
+				g = _prop.msgs.msnGroupEnhance;
+				foreach (itm; enhanceBar.getItems()) itm.dispose();
+				addDefItems(enhanceBar);
+				createMT(this, enhanceBar, g, MType.ENHANCE_ACTION);
+				createMT(this, enhanceBar, g, MType.ENHANCE_AVOID);
+				createMT(this, enhanceBar, g, MType.ENHANCE_DEFENSE);
+				createMT(this, enhanceBar, g, MType.ENHANCE_RESIST);
+
+				g = _prop.msgs.msnGroupVanish;
+				foreach (itm; vanishBar.getItems()) itm.dispose();
+				addDefItems(vanishBar);
+				createMT(this, vanishBar, g, MType.VANISH_TARGET);
+				createMT(this, vanishBar, g, MType.VANISH_CARD);
+				createMT(this, vanishBar, g, MType.VANISH_BEAST);
+
+				g = _prop.msgs.msnGroupCard;
+				foreach (itm; cardBar.getItems()) itm.dispose();
+				addDefItems(cardBar);
+				createMT(this, cardBar, g, MType.DEAL_ATTACK_CARD);
+				createMT(this, cardBar, g, MType.DEAL_POWERFUL_ATTACK_CARD);
+				createMT(this, cardBar, g, MType.DEAL_CRITICAL_ATTACK_CARD);
+				createMT(this, cardBar, g, MType.DEAL_FEINT_CARD);
+				createMT(this, cardBar, g, MType.DEAL_DEFENSE_CARD);
+				createMT(this, cardBar, g, MType.DEAL_DISTANCE_CARD);
+				createMT(this, cardBar, g, MType.DEAL_CONFUSE_CARD);
+				createMT(this, cardBar, g, MType.DEAL_SKILL_CARD);
+				createMT(this, cardBar, g, MType.CANCEL_ACTION); // CardWirth 1.50
+
+				g = _prop.msgs.msnGroupBeast;
+				foreach (itm; beastBar.getItems()) itm.dispose();
+				addDefItems(beastBar);
+				createMT(this, beastBar, g, MType.SUMMON_BEAST);
+
+				if (!init) _comm.refreshToolBar();
 			}
-			{ mixin(S_TRACE);
-				string g = _prop.msgs.msnGroupPhysical;
-				auto bar = createBar(g);
-				createMT(this, bar, g, MType.PARALYZE);
-				createMT(this, bar, g, MType.DIS_PARALYZE);
-				createMT(this, bar, g, MType.POISON);
-				createMT(this, bar, g, MType.DIS_POISON);
-			}
-			{ mixin(S_TRACE);
-				string g = _prop.msgs.msnGroupSkill;
-				auto bar = createBar(g);
-				createMT(this, bar, g, MType.GET_SKILL_POWER);
-				createMT(this, bar, g, MType.LOSE_SKILL_POWER);
-			}
-			{ mixin(S_TRACE);
-				string g = _prop.msgs.msnGroupMental;
-				auto bar = createBar(g);
-				createMT(this, bar, g, MType.SLEEP);
-				createMT(this, bar, g, MType.CONFUSE);
-				createMT(this, bar, g, MType.OVERHEAT);
-				createMT(this, bar, g, MType.BRAVE);
-				createMT(this, bar, g, MType.PANIC);
-				createMT(this, bar, g, MType.NORMAL);
-			}
-			{ mixin(S_TRACE);
-				string g = _prop.msgs.msnGroupMagic;
-				auto bar = createBar(g);
-				createMT(this, bar, g, MType.BIND);
-				createMT(this, bar, g, MType.DIS_BIND);
-				createMT(this, bar, g, MType.SILENCE);
-				createMT(this, bar, g, MType.DIS_SILENCE);
-				createMT(this, bar, g, MType.FACE_UP);
-				createMT(this, bar, g, MType.FACE_DOWN);
-				createMT(this, bar, g, MType.ANTI_MAGIC);
-				createMT(this, bar, g, MType.DIS_ANTI_MAGIC);
-			}
-			{ mixin(S_TRACE);
-				string g = _prop.msgs.msnGroupEnhance;
-				auto bar = createBar(g);
-				createMT(this, bar, g, MType.ENHANCE_ACTION);
-				createMT(this, bar, g, MType.ENHANCE_AVOID);
-				createMT(this, bar, g, MType.ENHANCE_DEFENSE);
-				createMT(this, bar, g, MType.ENHANCE_RESIST);
-			}
-			{ mixin(S_TRACE);
-				string g = _prop.msgs.msnGroupVanish;
-				auto bar = createBar(g);
-				createMT(this, bar, g, MType.VANISH_TARGET);
-				createMT(this, bar, g, MType.VANISH_CARD);
-				createMT(this, bar, g, MType.VANISH_BEAST);
-			}
-			{ mixin(S_TRACE);
-				string g = _prop.msgs.msnGroupCard;
-				auto bar = createBar(g);
-				createMT(this, bar, g, MType.DEAL_ATTACK_CARD);
-				createMT(this, bar, g, MType.DEAL_POWERFUL_ATTACK_CARD);
-				createMT(this, bar, g, MType.DEAL_CRITICAL_ATTACK_CARD);
-				createMT(this, bar, g, MType.DEAL_FEINT_CARD);
-				createMT(this, bar, g, MType.DEAL_DEFENSE_CARD);
-				createMT(this, bar, g, MType.DEAL_DISTANCE_CARD);
-				createMT(this, bar, g, MType.DEAL_CONFUSE_CARD);
-				createMT(this, bar, g, MType.DEAL_SKILL_CARD);
-				createMT(this, bar, g, MType.CANCEL_ACTION); // CardWirth 1.50
-			}
-			{ mixin(S_TRACE);
-				string g = _prop.msgs.msnGroupBeast;
-				auto bar = createBar(g);
-				createMT(this, bar, g, MType.SUMMON_BEAST);
-			}
+
+			createBars(true);
 			mtabf.setSelection(0);
+
+			auto createBars2 = () => createBars(false);
+			_comm.refUpdateMotionBarStyle.add(createBars2);
+			.listener(mtabf, SWT.Dispose, { mixin(S_TRACE);
+				_comm.refUpdateMotionBarStyle.remove(createBars2);
+			});
 		}
 		{ mixin(S_TRACE);
 			_motions = .rangeSelectableTable(this, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.FULL_SELECTION);
