@@ -761,6 +761,23 @@ void setupToolTips(ToolBar bar, in Props prop) { mixin(S_TRACE);
 	ToolItem lastItm = null;
 	CLabel label1 = null;
 	Label label2 = null;
+
+	void putToolTip(ToolItem itm) { mixin(S_TRACE);
+		if (itm.getToolTipText() != "") { mixin(S_TRACE);
+			if (itm !in textTable) { mixin(S_TRACE);
+				.listener(itm, SWT.Dispose, (e) { mixin(S_TRACE);
+					textTable.remove(cast(ToolItem)e.widget);
+				});
+			}
+			textTable[itm] = itm.getToolTipText();
+			itm.setToolTipText("");
+		}
+	}
+
+	foreach (itm; bar.getItems()) { mixin(S_TRACE);
+		putToolTip(itm);
+	}
+
 	void release() { mixin(S_TRACE);
 		if (!toolTip) return;
 		toolTip.dispose();
@@ -818,15 +835,7 @@ void setupToolTips(ToolBar bar, in Props prop) { mixin(S_TRACE);
 				return;
 			}
 		}
-		if (itm.getToolTipText() != "") { mixin(S_TRACE);
-			if (itm !in textTable) { mixin(S_TRACE);
-				.listener(itm, SWT.Dispose, (e) { mixin(S_TRACE);
-					textTable.remove(cast(ToolItem)e.widget);
-				});
-			}
-			textTable[itm] = itm.getToolTipText();
-			itm.setToolTipText("");
-		}
+		putToolTip(itm);
 		lastItm = itm;
 		if (toolTip) { mixin(S_TRACE);
 			rebounds();
