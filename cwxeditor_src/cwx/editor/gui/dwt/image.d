@@ -232,7 +232,7 @@ public:
 		case CType.GET_INFO: return imgd!("info.png");
 		case CType.GET_BEAST: return imgd!("beast.png");
 		case CType.GET_MONEY: return imgd!("money.png");
-		case CType.GET_COUPON: return imgd!("coupon.png");
+		case CType.GET_COUPON: return imgd!("evt_get_coupon.png");
 		case CType.GET_COMPLETE_STAMP: return imgd!("end.png");
 		case CType.GET_GOSSIP: return imgd!("gossip.png");
 		case CType.LOSE_CAST: return imgd!("evt_lost_cast.png");
@@ -353,7 +353,7 @@ public:
 	@property Image foldTree() {return imgd!("tree_close.png");}
 	@property Image showEventTreeDetail() {return imgd!("evt_detail.png");}
 
-	@property Image addCoupon() {return imgd!("coupon.png");}
+	@property Image addCoupon() {return imgd!("add_coupon.png");}
 	@property Image altCoupon() {return imgd!("alt_coupon.png");}
 	@property Image delCoupon() {return imgd!("del_res.png");}
 
