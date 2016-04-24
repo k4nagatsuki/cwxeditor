@@ -225,6 +225,13 @@ public:
 	const
 	ImageType type() { return _type; }
 
+	/// ベースとなるイメージを置換する。
+	void setBaseImage(ImageData data, int baseW, int baseH) { mixin(S_TRACE);
+		this.data = data;
+		initW = baseW;
+		initH = baseH;
+	}
+
 	/// Returns: ベースとなる幅。
 	@property
 	const

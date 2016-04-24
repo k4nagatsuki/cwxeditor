@@ -105,6 +105,16 @@ PileImage createCastCardBackImage(Props prop, Skin skin, int x, int y, byte alph
 	r.createImage();
 	return r;
 }
+/// 背景のみのキャストカード画像をスキンに応じて更新する。
+void updateCastCardBackImage(PileImage img, Skin skin, byte alpha) { mixin(S_TRACE);
+	// FIXME: 64bit環境で256色の画像にalpha値を設定するとXOR描画状態になる
+	//auto imgData = castCard(skin);
+	auto imgData = cast(ImageData)castCard(skin).clone();
+	imgData.alphaData = new byte[imgData.width * imgData.height];
+	imgData.alphaData[] = alpha;
+	img.setBaseImage(imgData, img.width, img.height);
+	img.createImage();
+}
 
 PImg createCardImageCommon(PImg)(Props prop, ImageData card,
 		CInsets matPad, int x, int y, uint scale, bool smoothing, int layer) { mixin(S_TRACE);

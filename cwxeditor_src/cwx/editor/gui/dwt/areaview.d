@@ -3125,6 +3125,19 @@ public:
 				auto img = createCastCardBackImage(_prop, summSkin, p.x, p.y, cast(byte)_prop.var.etc.partyCardAlpha);
 				img.visible = _viewParty;
 				_imgp.append(img);
+				class Update {
+					PileImage img;
+					void update() { mixin(S_TRACE);
+						updateCastCardBackImage(img, summSkin, cast(byte)_prop.var.etc.partyCardAlpha);
+					}
+					void dispose() { mixin(S_TRACE);
+						_comm.refSkin.remove(&update);
+					}
+				}
+				auto update = new Update;
+				update.img = img;
+				_comm.refSkin.add(&update.update);
+				.listener(_imgp, SWT.Dispose, &update.dispose);
 			}
 			static if (RefCards) {
 				createRefCard();
