@@ -1122,3 +1122,48 @@ bool isGlobalMenu(MenuID id) {
 		return false;
 	}
 }
+
+/// フォーカスがコントロール上にある時に限り実行可能なメニュー。
+/// !isGlobalMenu(id) is isLocalMenu(id)とは限らない。
+@property
+bool isLocalMenu(MenuID id) {
+	switch (id) {
+	case MenuID.EditProp:
+	case MenuID.ShowProp:
+	case MenuID.Undo:
+	case MenuID.Redo:
+	case MenuID.Cut:
+	case MenuID.Copy:
+	case MenuID.Paste:
+	case MenuID.Delete:
+	case MenuID.Cut1Content:
+	case MenuID.Copy1Content:
+	case MenuID.Delete1Content:
+	case MenuID.PasteInsert:
+	case MenuID.Clone:
+	case MenuID.SelectAll:
+	case MenuID.CopyAsText:
+	case MenuID.CreateContent:
+	case MenuID.ConvertContent:
+	case MenuID.SetStartArea:
+	case MenuID.Up:
+	case MenuID.Down:
+	case MenuID.Reverse:
+	case MenuID.SwapToParent:
+	case MenuID.SwapToChild:
+	case MenuID.OverDialog:
+	case MenuID.UnderDialog:
+	case MenuID.Comment:
+	case MenuID.CopyFilePath:
+	case MenuID.ToScript:
+	case MenuID.ToScriptAll:
+	case MenuID.ToScript1Content:
+	case MenuID.Expand:
+	case MenuID.Collapse:
+	case MenuID.ResetPreviewValues:
+	case MenuID.ResetPreviewValuesAll:
+		return true;
+	default:
+		return false;
+	}
+}
