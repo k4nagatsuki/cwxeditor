@@ -1145,7 +1145,6 @@ bool isLocalMenu(MenuID id) {
 	case MenuID.CopyAsText:
 	case MenuID.CreateContent:
 	case MenuID.ConvertContent:
-	case MenuID.SetStartArea:
 	case MenuID.Up:
 	case MenuID.Down:
 	case MenuID.Reverse:
