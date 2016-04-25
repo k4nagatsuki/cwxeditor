@@ -265,6 +265,7 @@ abstract class TopLevelPanel {
 	}
 	bool doMenu(in Props prop, int keyCode, wchar character, int stateMask, SelectionEvent delegate() e) { mixin(S_TRACE);
 		foreach (menu, dlg; _act) { mixin(S_TRACE);
+			if (!.isGlobalMenu(menu)) continue;
 			if (!dlg) continue;
 			if (!.eqAcc(.convertAccelerator(prop.buildMenu(menu)), keyCode, character, stateMask)) continue;
 			auto p = menu in _enabled;

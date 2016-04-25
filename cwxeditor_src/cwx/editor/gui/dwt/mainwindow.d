@@ -3449,11 +3449,6 @@ public:
 					return;
 				}
 			}
-			if (!ro && (cast(Combo)fc || cast(CCombo)fc)) { mixin(S_TRACE);
-				if (!e.stateMask && e.character == SWT.CR) { mixin(S_TRACE);
-					return;
-				}
-			}
 			if (cast(IgnoreHotkey)fc.getData()) { mixin(S_TRACE);
 				return;
 			}
