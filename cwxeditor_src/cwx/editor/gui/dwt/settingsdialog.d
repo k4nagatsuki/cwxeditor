@@ -2297,8 +2297,8 @@ private:
 		}
 		override void handleEvent(Event e) { mixin(S_TRACE);
 			if (!e.doit) return;
-			auto c = cast(Control) e.widget;
-			if (!c || c.getShell() !is getShell()) return;
+			auto c = cast(Control)e.widget;
+			if (!c || c.isDisposed() || c.getShell() !is getShell()) return;
 			if (isDescendant(this.outer, c)) { mixin(S_TRACE);
 				if (c.getMenu() && findMenu(c.getMenu(), e.keyCode, e.character, e.stateMask)) return;
 				if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
@@ -2977,7 +2977,7 @@ public:
 			}
 		}
 
-		_kdFilter = new KeyDownFilter();
+		_kdFilter = new KeyDownFilter;
 		this.getDisplay().addFilter(SWT.KeyDown, _kdFilter);
 		_comm.refMenu.add(&refMenu);
 		_comm.refUndoMax.add(&refUndoMax);

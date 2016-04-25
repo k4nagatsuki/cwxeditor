@@ -102,7 +102,7 @@ class IncSearch {
 				if (!_comm.prop.var.etc.startIncrementalSearchWhenKeyDown) return;
 				if (_parent.isDisposed() || !_parent.isVisible()) return;
 				auto c = cast(Control)e.widget;
-				if (!c) return;
+				if (!c || c.isDisposed()) return;
 				if (cast(Text)c) return;
 				if (cast(Spinner)c) return;
 				if (cast(TimeBar)c) return;

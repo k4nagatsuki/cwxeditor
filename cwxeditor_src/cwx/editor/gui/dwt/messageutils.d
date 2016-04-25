@@ -166,8 +166,8 @@ class AbstractMessageDialog : EventDialog {
 		}
 		override void handleEvent(Event e) { mixin(S_TRACE);
 			if (!e.doit) return;
-			auto c = cast(Control) e.widget;
-			if (!c || c.getShell() !is getShell()) return;
+			auto c = cast(Control)e.widget;
+			if (!c || c.isDisposed() || c.getShell() !is getShell()) return;
 			if (!canHookKeyDown(c)) return;
 			if (cast(Text) c) return;
 			if (eqAcc(_undoAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
@@ -819,8 +819,8 @@ private:
 		}
 		override void handleEvent(Event e) { mixin(S_TRACE);
 			if (!e.doit) return;
-			auto c = cast(Control) e.widget;
-			if (!c || c.getShell() !is getShell()) return;
+			auto c = cast(Control)e.widget;
+			if (!c || c.isDisposed() || c.getShell() !is getShell()) return;
 			if (_dlgsL is c) return;
 			if (eqAcc(_overAcc, e.keyCode, e.character, e.stateMask)) { mixin(S_TRACE);
 				overDialog();
