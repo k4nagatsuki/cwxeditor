@@ -1156,7 +1156,6 @@ bool isLocalMenu(MenuID id) {
 	case MenuID.Comment:
 	case MenuID.CopyFilePath:
 	case MenuID.ToScript:
-	case MenuID.ToScriptAll:
 	case MenuID.ToScript1Content:
 	case MenuID.Expand:
 	case MenuID.Collapse:
