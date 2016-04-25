@@ -3441,15 +3441,20 @@ public:
 			auto fc = d.getFocusControl();
 			if (!fc) return;
 			bool ro = !(fc.getStyle() & SWT.READ_ONLY);
-			if (ro && cast(Spinner) fc) { mixin(S_TRACE);
+			if (ro && cast(Spinner)fc) { mixin(S_TRACE);
 				return;
 			}
-			if (ro && (cast(Spinner) fc || cast(Text) fc || cast(Combo) fc || cast(CCombo) fc)) { mixin(S_TRACE);
+			if (ro && (cast(Spinner)fc || cast(Text)fc || cast(Combo)fc || cast(CCombo)fc)) { mixin(S_TRACE);
 				if (!(e.stateMask & SWT.CTRL) && !.contains!("a == b", int, int)(F, e.keyCode)) { mixin(S_TRACE);
 					return;
 				}
 			}
-			if (cast(IgnoreHotkey) fc.getData()) { mixin(S_TRACE);
+			if (!ro && (cast(Combo)fc || cast(CCombo)fc)) { mixin(S_TRACE);
+				if (!e.stateMask && e.character == SWT.CR) { mixin(S_TRACE);
+					return;
+				}
+			}
+			if (cast(IgnoreHotkey)fc.getData()) { mixin(S_TRACE);
 				return;
 			}
 			void raiseEvent(MenuItem menu) { mixin(S_TRACE);
