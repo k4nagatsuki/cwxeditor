@@ -1650,6 +1650,7 @@ private:
 		static if (UseCards && UseBacks) {
 			_imgp.cancelFullRedraw();
 		}
+		_imgp.highPoint = _prop.var.etc.highValueOfImageControl;
 		auto d = Display.getCurrent();
 		auto rgb = new RGB(_prop.var.etc.wallColorR,
 			_prop.var.etc.wallColorG,

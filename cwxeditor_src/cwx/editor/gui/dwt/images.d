@@ -2095,6 +2095,7 @@ private:
 
 	int _gridX = 0, _gridY = 0;
 	int _gridRange = 5;
+	int _highPoint = 10;
 	int[] _gridXH = [];
 	int[] _gridYH = [];
 
@@ -2134,12 +2135,16 @@ private:
 	}
 	class KListener : KeyAdapter {
 		override void keyPressed(KeyEvent ke) { mixin(S_TRACE);
-			int point = (ke.stateMask & SWT.CTRL) && (ke.stateMask & SWT.ALT) ? 10 : 1;
+			int point = (ke.stateMask & SWT.CTRL) && (ke.stateMask & SWT.ALT) ? highPoint : 1;
 			switch (ke.keyCode) {
 			case SWT.ARROW_UP: { mixin(S_TRACE);
 				redrawProcMove((FlexImage img) { mixin(S_TRACE);
 					if (ke.stateMask & SWT.SHIFT) { mixin(S_TRACE);
-						img.newHeight = img.newHeight - point;
+						if (img.scaleMode) { mixin(S_TRACE);
+							img.newScale = img.newScale - point;
+						} else { mixin(S_TRACE);
+							img.newHeight = img.newHeight - point;
+						}
 					} else { mixin(S_TRACE);
 						img.newY = img.newY - point;
 					}
@@ -2148,7 +2153,11 @@ private:
 			case SWT.ARROW_RIGHT: { mixin(S_TRACE);
 				redrawProcMove((FlexImage img) { mixin(S_TRACE);
 					if (ke.stateMask & SWT.SHIFT) { mixin(S_TRACE);
-						img.newWidth = img.newWidth + point;
+						if (img.scaleMode) { mixin(S_TRACE);
+							img.newScale = img.newScale + point;
+						} else { mixin(S_TRACE);
+							img.newWidth = img.newWidth + point;
+						}
 					} else { mixin(S_TRACE);
 						img.newX = img.newX + point;
 					}
@@ -2157,7 +2166,11 @@ private:
 			case SWT.ARROW_DOWN: { mixin(S_TRACE);
 				redrawProcMove((FlexImage img) { mixin(S_TRACE);
 					if (ke.stateMask & SWT.SHIFT) { mixin(S_TRACE);
-						img.newHeight = img.newHeight + point;
+						if (img.scaleMode) { mixin(S_TRACE);
+							img.newScale = img.newScale + point;
+						} else { mixin(S_TRACE);
+							img.newHeight = img.newHeight + point;
+						}
 					} else { mixin(S_TRACE);
 						img.newY = img.newY + point;
 					}
@@ -2166,7 +2179,11 @@ private:
 			case SWT.ARROW_LEFT: { mixin(S_TRACE);
 				redrawProcMove((FlexImage img) { mixin(S_TRACE);
 					if (ke.stateMask & SWT.SHIFT) { mixin(S_TRACE);
-						img.newWidth = img.newWidth - point;
+						if (img.scaleMode) { mixin(S_TRACE);
+							img.newScale = img.newScale - point;
+						} else { mixin(S_TRACE);
+							img.newWidth = img.newWidth - point;
+						}
 					} else { mixin(S_TRACE);
 						img.newX = img.newX - point;
 					}
@@ -3331,6 +3348,14 @@ public:
 			addRedraw(img.x, img.y, img.width, img.height);
 		}
 	}
+
+	/// Ctrl+Altを押しながら移動・サイズ変更した時の変更量。
+	@property
+	void highPoint(int value) { _highPoint = value; }
+	/// ditto
+	@property
+	const
+	int highPoint() { return _highPoint; }
 
 	/// 唯一のコンストラクタ。
 	this (Composite parent, int style) { mixin(S_TRACE);

@@ -349,6 +349,7 @@ class FlexEtcProps : Properties {
 	auto backupArchived = Prop!(bool)("backupArchived", true);
 	auto ignoreMenuSashL = Prop!(int)("ignoreMenuSashL", 2);
 	auto ignoreMenuSashR = Prop!(int)("ignoreMenuSashR", 1);
+	auto highValueOfImageControl = Prop!(uint, true)("highValueOfImageControl", 10);
 
 	auto openHistories = Prop!(OpenHistory[])("openHistories", []);
 	auto historyMax = Prop!(int)("historyMax", 9);
