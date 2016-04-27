@@ -2452,6 +2452,9 @@ protected:
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
 					radio.setText(_prop.msgs.rangeName(r));
+					if (r is Range.FIELD) { mixin(S_TRACE);
+						radio.setToolTipText(_prop.msgs.rangeDescField);
+					}
 					radio.setLayoutData(new GridData(GridData.FILL_BOTH));
 					_range[r] = radio;
 				}

@@ -1409,6 +1409,7 @@ class Msgs : Properties {
 	auto rangeNameBackpack = Msg("rangeNameBackpack", "荷物袋");
 	auto rangeNamePartyAndBackpack = Msg("rangeNamePartyAndBackpack", "全体(荷物袋含む)");
 	auto rangeNameField = Msg("rangeNameField", "フィールド全体");
+	auto rangeDescField = Msg("rangeDescField", "パーティ・荷物袋・エネミーカードを含む");
 	const string castRangeName(CastRange id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CastRange, "castRangeName"));
 	}
