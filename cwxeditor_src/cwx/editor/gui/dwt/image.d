@@ -168,7 +168,7 @@ public:
 	@property Image couponNormal() {return imgd!("coupon_n.png");}
 	@property Image couponPlus() {return imgd!("coupon_plus.png");}
 	@property Image couponMinus() {return imgd!("coupon_minus.png");}
-	@property Image couponHigh() {return imgd!("coupon.png");}
+	@property Image couponHigh() {return imgd!("coupon_high.png");}
 	@property Image couponDelete() {return imgd!("del_res.png");}
 
 	@property Image gossip() {return imgd!("gossip.png");}
@@ -232,7 +232,7 @@ public:
 		case CType.GET_INFO: return imgd!("info.png");
 		case CType.GET_BEAST: return imgd!("beast.png");
 		case CType.GET_MONEY: return imgd!("money.png");
-		case CType.GET_COUPON: return imgd!("evt_get_coupon.png");
+		case CType.GET_COUPON: return imgd!("coupon.png");
 		case CType.GET_COMPLETE_STAMP: return imgd!("end.png");
 		case CType.GET_GOSSIP: return imgd!("gossip.png");
 		case CType.LOSE_CAST: return imgd!("evt_lost_cast.png");
