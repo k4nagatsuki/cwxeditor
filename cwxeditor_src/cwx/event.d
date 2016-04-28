@@ -489,14 +489,10 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		case CType.TALK_DIALOG:
 			initValue = 1;
 			break;
-		case CType.GET_COUPON:
-		case CType.LOSE_COUPON:
-			range = Range.PARTY;
-			break;
-		case CType.BRANCH_COUPON:
-			range = Range.RANDOM;
-			break;
 		default:
+			if (detail.use(CArg.COUPON)) { mixin(S_TRACE);
+				range = Range.SELECTED;
+			}
 			break;
 		}
 
@@ -835,10 +831,8 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.MENTAL, Mental, Mental.init)(d, &mental);
 		resetValue!(CArg.PHYSICAL, Physical, Physical.init)(d, &physical);
 		resetValue!(CArg.STATUS, Status, Status.ACTIVE)(d, &status);
-		if (type is CType.GET_COUPON || type is CType.GET_COUPON) { mixin(S_TRACE);
-			resetValue!(CArg.RANGE, Range, Range.PARTY)(d, &range);
-		} else if (type is CType.BRANCH_COUPON) { mixin(S_TRACE);
-			resetValue!(CArg.RANGE, Range, Range.RANDOM)(d, &range);
+		if (d.use(CArg.COUPON)) { mixin(S_TRACE);
+			resetValue!(CArg.RANGE, Range, Range.SELECTED)(d, &range);
 		} else { mixin(S_TRACE);
 			resetValue!(CArg.RANGE, Range, Range.FIELD)(d, &range);
 		}
