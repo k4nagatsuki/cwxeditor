@@ -3159,11 +3159,11 @@ fi`;
 			}
 		} else static if (is(Unqual!(T) : BgImage)) {
 			string[] attrs2;
-			auto ic = cast(ImageCell) value;
+			auto ic = cast(ImageCell)value;
 			if (ic) { mixin(S_TRACE);
 				attrs2 ~= toAttr(encodePath(ic.path), indentValue, vars);
 			}
-			auto tc = cast(TextCell) value;
+			auto tc = cast(TextCell)value;
 			if (tc) { mixin(S_TRACE);
 				attrs2 ~= "text";
 				attrs2 ~= toAttr(tc.text, indentValue, vars);
@@ -3193,7 +3193,7 @@ fi`;
 					break;
 				}
 			}
-			auto cc = cast(ColorCell) value;
+			auto cc = cast(ColorCell)value;
 			if (cc) { mixin(S_TRACE);
 				attrs2 ~= "color";
 				attrs2 ~= toAttr(cc.blendMode, indentValue, vars);
@@ -3222,7 +3222,7 @@ fi`;
 			if (ic) { mixin(S_TRACE);
 				attrs2 ~= toAttr(ic.mask, indentValue, vars);
 			}
-			if (value.cellName != "") { mixin(S_TRACE);
+			if (value.cellName != "" || value.layer) { mixin(S_TRACE);
 				attrs2 ~= toAttr(value.cellName, indentValue, vars);
 			}
 			if (value.layer) { mixin(S_TRACE);
