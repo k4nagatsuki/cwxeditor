@@ -353,6 +353,7 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 			}
 		}
 		override void mouseDown(MouseEvent e) { mixin(S_TRACE);
+			if (e.button != 1) return;
 			startPos = new Point(e.x, e.y);
 		}
 	});
