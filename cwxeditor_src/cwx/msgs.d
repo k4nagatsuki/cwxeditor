@@ -2130,7 +2130,8 @@ class Msgs : Properties {
 	auto menuTextSave = Msg("menuTextSave", "上書き保存");
 	auto menuTextSaveAs = Msg("menuTextSaveAs", "名前を付けて保存");
 	auto menuTextReload = Msg("menuTextReload", "再読込");
-	auto menuTextOpenDir = Msg("menuTextOpenDir", DIR ~ "を開く");
+	auto menuTextOpenDir = Msg("menuTextOpenDir", "シナリオの" ~ DIR ~ "を開く");
+	auto menuTextOpenBackupDir = Msg("menuTextOpenBackupDir", "バックアップ" ~ DIR ~ "を開く");
 	auto menuTextOpenPlace = Msg("menuTextOpenPlace", "ファイルの場所を開く");
 	auto menuTextSaveImage = Msg("menuTextSaveImage", "格納イメージをファイルに保存");
 	auto menuTextIncludeImage = Msg("menuTextIncludeImage", "イメージを格納する");

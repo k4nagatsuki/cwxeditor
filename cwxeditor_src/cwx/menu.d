@@ -55,6 +55,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.SaveAs] = "A";
 		_mnemonic[MenuID.Reload] = "R";
 		_mnemonic[MenuID.OpenDir] = "O";
+		_mnemonic[MenuID.OpenBackupDir] = "B";
 		_mnemonic[MenuID.OpenPlace] = "O";
 		_mnemonic[MenuID.SaveImage] = "I";
 		_mnemonic[MenuID.IncludeImage] = "N";
@@ -102,7 +103,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.ExecEngineWithParty] = "P";
 		_mnemonic[MenuID.ExecEngineWithLastParty] = "L";
 		_mnemonic[MenuID.OuterTools] = "T";
-		_mnemonic[MenuID.Settings] = "O";
+		_mnemonic[MenuID.Settings] = "S";
 		_mnemonic[MenuID.VersionInfo] = "A";
 		_mnemonic[MenuID.LockToolBar] = "L";
 		_mnemonic[MenuID.ResetToolBar] = "R";
@@ -270,6 +271,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.SaveAs] = "";
 		_hotkey[MenuID.Reload] = "";
 		_hotkey[MenuID.OpenDir] = "";
+		_hotkey[MenuID.OpenBackupDir] = "";
 		_hotkey[MenuID.OpenPlace] = "";
 		_hotkey[MenuID.SaveImage] = "";
 		_hotkey[MenuID.IncludeImage] = "";
@@ -691,6 +693,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.SaveAs:
 	case MenuID.Reload:
 	case MenuID.OpenDir:
+	case MenuID.OpenBackupDir:
 	case MenuID.ShowMainToolBar:
 	case MenuID.ShowSceneToolBar:
 	case MenuID.ShowEventToolBar:
@@ -915,6 +918,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.SaveAs:
 	case MenuID.Reload:
 	case MenuID.OpenDir:
+	case MenuID.OpenBackupDir:
 	case MenuID.ShowMainToolBar:
 	case MenuID.ShowSceneToolBar:
 	case MenuID.ShowEventToolBar:

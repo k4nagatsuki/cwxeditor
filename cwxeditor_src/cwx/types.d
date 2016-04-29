@@ -1369,6 +1369,7 @@ enum MenuID {
 	SaveAs,
 	Reload,
 	OpenDir,
+	OpenBackupDir,
 	OpenPlace,
 	SaveImage,
 	IncludeImage,

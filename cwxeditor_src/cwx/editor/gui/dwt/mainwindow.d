@@ -723,7 +723,7 @@ private:
 
 			// 既存のバックアップファイルのリスト
 			auto dReg = .regex("^cwxeditor_backup_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]\\[.+\\]$"d);
-			auto fReg = .regex("^cwxeditor_backup_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]\\[.+\\]\\.zip$"d);
+			auto fReg = .regex("^cwxeditor_backup_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]\\[.+\\]\\.(zip|wsn)$"d);
 			auto files = clistdir(parent);
 			alias Tuple!(string, "name", string, "file", bool, "isDir") Info;
 			Info[] backup;
@@ -742,6 +742,7 @@ private:
 			backup = cwx.utils.sort!(sorter)(backup);
 
 			bool ret = false;
+			auto mkeddir = false;
 			auto bc = _prop.var.etc.backupCount;
 			if (0 < bc) { mixin(S_TRACE);
 				string sPath = summ.scenarioPath;
@@ -785,7 +786,10 @@ private:
 					auto md5 = md5Digest(data);
 					if (_oldMD5 != md5) { mixin(S_TRACE);
 						// 前回のバックアップと異なっていれば保存
-						if (!parent.exists()) mkdirRecurse(parent);
+						if (!parent.exists()) { mixin(S_TRACE);
+							mkeddir = true;
+							mkdirRecurse(parent);
+						}
 						std.file.write(writePath, data);
 						_oldMD5 = md5;
 						bc--;
@@ -799,7 +803,10 @@ private:
 					auto md5 = filesMD5(summ.scenarioPath);
 					if (_oldMD5 != md5) { mixin(S_TRACE);
 						// 前回のバックアップと異なっていればコピー
-						if (!parent.exists()) mkdirRecurse(parent);
+						if (!parent.exists()) { mixin(S_TRACE);
+							mkeddir = true;
+							mkdirRecurse(parent);
+						}
 						{ mixin(S_TRACE);
 							_saveSync.lock();
 							scope (exit) _saveSync.unlock();
@@ -810,6 +817,15 @@ private:
 						ret = true;
 					}
 				}
+			}
+
+			if (mkeddir) { mixin(S_TRACE);
+				_display.syncExec(new class Runnable {
+					override void run() { mixin(S_TRACE);
+						if (!_win || _win.isDisposed()) return;
+						_comm.refreshToolBar();
+					}
+				});
 			}
 
 			if (backup.length <= bc) return ret;
@@ -2760,8 +2776,6 @@ public:
 
 				auto me = createMenu(_comm, bar, MenuID.Edit);
 				setupMenuListener(me);
-				mixin (MenuAction!("me", MenuID.OpenDir, SWT.PUSH, "openDirectory", "&canOpenDirectory"));
-				new MenuItem(me, SWT.SEPARATOR);
 				mixin (MenuAction!("me", MenuID.Undo));
 				mixin (MenuAction!("me", MenuID.Redo));
 				new MenuItem(me, SWT.SEPARATOR);
@@ -2886,6 +2900,8 @@ public:
 				_mExecEngineWithParty = new Menu(eewpmi);
 				eewpmi.setMenu(_mExecEngineWithParty);
 				new MenuItem(mt, SWT.SEPARATOR);
+				mixin (MenuAction!("mt", MenuID.OpenDir, SWT.PUSH, "openDirectory", "&canOpenDirectory"));
+				new MenuItem(mt, SWT.SEPARATOR);
 				auto otmi = createMenuItem(_comm, mt, MenuID.OuterTools, dummy, () => _prop.var.etc.outerTools.length > 0, SWT.CASCADE);
 				_mOuterTools = new Menu(otmi);
 				otmi.setMenu(_mOuterTools);
@@ -2893,6 +2909,8 @@ public:
 				mixin (MenuAction!("mt", MenuID.OpenImportSource, SWT.PUSH, "addScenario", "&canAddScenario"));
 				new MenuItem(mt, SWT.SEPARATOR);
 				mixin (MenuAction!("mt", MenuID.CustomizeToolBar, SWT.PUSH, "customizeToolBar", "null"));
+				new MenuItem(mt, SWT.SEPARATOR);
+				mixin (MenuAction!("mt", MenuID.OpenBackupDir, SWT.PUSH, "openBackupDirectory", "&canOpenBackupDirectory"));
 				new MenuItem(mt, SWT.SEPARATOR);
 				mixin (MenuAction!("mt", MenuID.Settings, SWT.PUSH, "settings", "null"));
 
@@ -3093,6 +3111,7 @@ public:
 						case MenuID.NewInfo: act = &newInfo; can = &canNewInfo; break;
 						case MenuID.OpenImportSource: act = &addScenario; can = &canAddScenario; break;
 						case MenuID.OpenDir: act = &openDirectory; can = &canOpenDirectory; break;
+						case MenuID.OpenBackupDir: act = &openBackupDirectory; can = &canOpenBackupDirectory; break;
 						case MenuID.NewDir: act = &_dirWin.createNewFolder; can = &_dirWin.canCreateNewFolder; break;
 						case MenuID.ExecEngine: createExecEngineTI(bar); continue;
 						case MenuID.ExecEngineWithParty: createExecEngineWithPartyTI(bar); continue;
@@ -3771,7 +3790,7 @@ public:
 	private void createPaneEvent(Composite parent, string paneKey) { mixin(S_TRACE);
 		new TabMenu(paneKey);
 	}
-	private bool canOpenDirectory() {return summary !is null;}
+	private bool canOpenDirectory() { return summary !is null; }
 	private void openDirectory() { mixin(S_TRACE);
 		if (!summary) return;
 		auto dirWin = cast(DirectoryWindow)_tlp;
@@ -3780,6 +3799,15 @@ public:
 		} else { mixin(S_TRACE);
 			openFolder(summary.scenarioPath);
 		}
+	}
+	const
+	private bool canOpenBackupDirectory() { mixin(S_TRACE);
+		return _prop.backupPath != "" && .exists(_prop.backupPath) && .isDir(_prop.backupPath);
+	}
+	const
+	private void openBackupDirectory() { mixin(S_TRACE);
+		if (!canOpenBackupDirectory) return;
+		openFolder(_prop.backupPath);
 	}
 	private bool isMainCardWin(CardWindow cw) { mixin(S_TRACE);
 		return cw.kind is CardWindowKind.Cast || cw.kind is CardWindowKind.Skill || cw.kind is CardWindowKind.Item || cw.kind is CardWindowKind.Beast || cw.kind is CardWindowKind.Info;

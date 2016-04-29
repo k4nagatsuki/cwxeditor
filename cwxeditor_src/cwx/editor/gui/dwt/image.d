@@ -445,6 +445,7 @@ public:
 		case MenuID.SaveAs: return imgd!("save_a.png");
 		case MenuID.Reload: return imgd!("reload.png");
 		case MenuID.OpenDir: return imgd!("folder.png");
+		case MenuID.OpenBackupDir: return imgd!("open_backup.png");
 		case MenuID.OpenPlace: return imgd!("folder.png");
 		case MenuID.SaveImage: return imgd!("save_inc_img.png");
 		case MenuID.IncludeImage: return imgd!("inc_img.png");
