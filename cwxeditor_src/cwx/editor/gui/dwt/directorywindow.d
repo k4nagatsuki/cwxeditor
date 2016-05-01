@@ -1015,6 +1015,7 @@ private:
 	}
 	void updateJpy1List() { mixin(S_TRACE);
 		if (!_summ) return;
+		if (!_summ.scenarioPath.exists()) return;
 		foreach (ref jpy; _jpyData) { mixin(S_TRACE);
 			jpy.removeUseCounter();
 		}
@@ -1198,6 +1199,7 @@ private:
 			_onRefresh = true;
 			scope (exit) _onRefresh = false;
 			if (_stopTrace) return;
+			if (!_summ.scenarioPath.exists()) return;
 			if (_summ) { mixin(S_TRACE);
 				_summ.checkPathsIsChanged(_prop.var.etc.saveInnerImagePath);
 			}
@@ -1810,6 +1812,8 @@ public:
 
 	@property
 	bool isChanged() { mixin(S_TRACE);
+		if (!_summ) return false;
+		if (!_summ.scenarioPath.exists()) return false;
 		if (!_summ.isChanged) _summ.checkPathsIsChanged(_prop.var.etc.saveInnerImagePath);
 		return _summ.isChanged;
 	}
