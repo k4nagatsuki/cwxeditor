@@ -2321,7 +2321,7 @@ private:
 		int seType = _prop.var.etc.soundEffectPlayType;
 		if (SOUND_TYPE_SAME_BGM == seType) seType = bgmType;
 		version (Windows) {
-			int engineTypeBGM = summary.legacy ? SOUND_TYPE_SDL : SOUND_TYPE_MCI;
+			int engineTypeBGM = summary.legacy ? SOUND_TYPE_MCI : SOUND_TYPE_SDL;
 			string sfont[] = [];
 			string sfontDir = "";
 		} else { mixin(S_TRACE);
@@ -2390,8 +2390,10 @@ private:
 					}
 				}
 				version (Win64) {
-					if (!_comm.skin.legacy) { mixin(S_TRACE);
-						sfontDir = sfontDir.buildPath("x64");
+					sfontDir = sfontDir.buildPath("x64");
+					if (!sfontDir.buildPath("bass.dll").exists() && _prop.enginePath.dirName().exists()
+							&& _prop.enginePath.dirName().buildPath("x64").exists()) { mixin(S_TRACE);
+						sfontDir = _prop.enginePath.dirName().buildPath("x64");
 					}
 				}
 				if (_bassDir != sfontDir) { mixin(S_TRACE);
