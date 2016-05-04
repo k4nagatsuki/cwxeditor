@@ -1733,6 +1733,7 @@ class Msgs : Properties {
 	auto warningIncludedImage = Msg("warningIncludedImage", "WSN形式のシナリオでは格納イメージは使用できません。");
 	auto warningSelectionColumns = Msg("warningSelectionColumns", "選択肢の複数列表示は、WSN1以降の形式のシナリオしか行えません。");
 	auto warningRunawayCard = Msg("warningRunawayCard", "キーコード「%1$s」付きのカードは死亡イベントを発生させないため、シナリオを誤動作させる可能性があります。");
+	auto warningEndOrChangeAreaInRound0 = Msg("warningEndOrChangeAreaInRound0", "クラシックエンジンのバグにより、バトル開始イベント中にシナリオ終了やエリア移動を行うと、プレイヤーのデータの破損を含めた異常が発生する可能性があります。");
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

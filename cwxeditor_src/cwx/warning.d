@@ -573,6 +573,12 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				printStackTrace();
 			}
 		}
+		if (summ && summ.legacy && (c.type is CType.CHANGE_AREA || c.type is CType.START_BATTLE || c.type is CType.END)) { mixin(S_TRACE);
+			auto tree = c.tree;
+			if (tree && tree.fireRound0) { mixin(S_TRACE);
+				r ~= .tryFormat(prop.msgs.warningEndOrChangeAreaInRound0);
+			}
+		}
 	}
 	return r;
 }
