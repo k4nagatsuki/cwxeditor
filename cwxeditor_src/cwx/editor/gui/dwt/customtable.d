@@ -122,6 +122,7 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 		table.notifyListeners(SWT.Selection, se);
 	}
 	void updateRangeIndices() { mixin(S_TRACE);
+		if (table.isDisposed() || !table.isEnabled()) return;
 		if (!startPos || !endPos) return;
 		auto ctrl = (stateMask & SWT.CTRL) != 0;
 		auto shift = (stateMask & SWT.SHIFT) != 0;
@@ -156,7 +157,7 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 		if (right < 0) { mixin(S_TRACE);
 			rangeFrom = -1;
 			rangeTo = -1;
-		} else if (.reduce!((a, b) => a + b)(.map!(col => col.getWidth())(table.getColumns())) <= left) { mixin(S_TRACE);
+		} else if (.reduce!((a, b) => a + b)(0, .map!(col => col.getWidth())(table.getColumns())) <= left) { mixin(S_TRACE);
 			rangeFrom = -1;
 			rangeTo = -1;
 		} else { mixin(S_TRACE);
@@ -333,6 +334,7 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 	}
 	table.addMouseListener(new class MouseAdapter {
 		override void mouseUp(MouseEvent e) { mixin(S_TRACE);
+			if (table.isDisposed() || !table.isEnabled()) return;
 			if (e.button == 1) { mixin(S_TRACE);
 				auto rangeSelection = endPos !is null;
 				mouseRelease();
@@ -353,6 +355,7 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 			}
 		}
 		override void mouseDown(MouseEvent e) { mixin(S_TRACE);
+			if (table.isDisposed() || !table.isEnabled()) return;
 			if (e.button != 1) return;
 			startPos = new Point(e.x, e.y);
 		}
@@ -370,6 +373,7 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 	table.addMouseMoveListener(new class MouseMoveListener {
 		override void mouseMove(MouseEvent e) { mixin(S_TRACE);
 			if (!startPos) return;
+			if (table.isDisposed() || !table.isEnabled()) return;
 
 			void redraw() { mixin(S_TRACE);
 				auto left = .min(startPos.x, endPos.x);
