@@ -3779,7 +3779,7 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out s
 		auto fPath = nabs(jpy1Sec.fPath).abs2rel(nabs(summ.scenarioPath));
 		text = .tryFormat(prop.msgs.searchResultJpy1, encodePath(fPath));
 	}
-	assert (par || img);
+	assert (par || img, .text(path) ~ ", " ~ typeid(path).toString());
 	string parText = "", dummy;
 	Image parImg, dummyImg;
 	getSymbols(comm, summ, path.cwxParent, parText, dummy, parImg, dummyImg, true);

@@ -1254,6 +1254,9 @@ public:
 	/// このオブジェクトの所有者。
 	@property
 	ICouponUser owner() {return _cwxPath;}
+	/// ditto
+	@property
+	void owner(ICouponUser u) { _cwxPath = u; }
 
 	/// クーポンを設定する。
 	/// Params:

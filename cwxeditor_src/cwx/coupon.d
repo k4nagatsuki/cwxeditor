@@ -40,7 +40,14 @@ public:
 	}
 
 	@property
-	package void owner(CouponsOwner owner) {_owner = owner;}
+	package void owner(CouponsOwner owner) { mixin(S_TRACE);
+		_owner = owner;
+		if (auto u = cast(ICouponUser)owner) { mixin(S_TRACE);
+			_coupon.owner = u;
+		} else { mixin(S_TRACE);
+			_coupon.owner = this;
+		}
+	}
 
 	/// 使用回数カウンタ。
 	@property

@@ -576,7 +576,7 @@ public:
 }
 
 /// キャストカード。
-class CastCard : Card, SkillOwner, ItemOwner, BeastOwner, CouponsOwner {
+class CastCard : Card, SkillOwner, ItemOwner, BeastOwner, CouponsOwner, ICouponUser {
 private:
 	mixin RaceParam!(true);
 
@@ -750,6 +750,9 @@ public:
 		copy.deepCopy(this);
 		return copy;
 	}
+
+	override void change(CouponId id) { }
+
 	/// 使用回数カウンタ。
 	@property
 	override
