@@ -759,7 +759,8 @@ public:
 	@property
 	HashSet!Object changedResources() { mixin(S_TRACE);
 		Object topRes(CWXPath path) { mixin(S_TRACE);
-			while (!cast(Summary)path.cwxParent) { mixin(S_TRACE);
+			if (auto s = cast(Summary)path) return s;
+			while (path && !cast(Summary)path.cwxParent) { mixin(S_TRACE);
 				path = path.cwxParent;
 			}
 			return cast(Object)path;
@@ -774,7 +775,9 @@ public:
 			if (a.isChanged) { mixin(S_TRACE);
 				set.add(a);
 				if (!isTargetVersion("1")) { mixin(S_TRACE);
-					foreach (user; useCounter.values(a.toID(a.id))) set.add(topRes(user.owner));
+					foreach (user; useCounter.values(a.toID(a.id))) { mixin(S_TRACE);
+						if (auto o = topRes(user.owner)) set.add(o);
+					}
 				}
 			}
 		}
@@ -782,7 +785,9 @@ public:
 			if (a.isChanged) { mixin(S_TRACE);
 				set.add(a);
 				if (!isTargetVersion("1")) { mixin(S_TRACE);
-					foreach (user; useCounter.values(a.toID(a.id))) set.add(topRes(user.owner));
+					foreach (user; useCounter.values(a.toID(a.id))) { mixin(S_TRACE);
+						if (auto o = topRes(user.owner)) set.add(o);
+					}
 				}
 			}
 		}
@@ -790,7 +795,9 @@ public:
 			if (a.isChanged) { mixin(S_TRACE);
 				set.add(a);
 				if (!isTargetVersion("1")) { mixin(S_TRACE);
-					foreach (user; useCounter.values(a.toID(a.id))) set.add(topRes(user.owner));
+					foreach (user; useCounter.values(a.toID(a.id))) { mixin(S_TRACE);
+						if (auto o = topRes(user.owner)) set.add(o);
+					}
 				}
 			}
 		}
@@ -810,7 +817,7 @@ public:
 				auto p2 = path in _noSaveCheckPaths;
 				if ((!p1 && !p2) || (p1 && !p2) || (!p1 && p2) || (*p1 != *p2)) { mixin(S_TRACE);
 					if (auto owner = isIncludedImpl(path)) { mixin(S_TRACE);
-						set.add(topRes(owner));
+						if (auto o = topRes(owner)) set.add(o);
 					}
 				}
 			}
