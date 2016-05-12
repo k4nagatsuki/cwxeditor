@@ -32,8 +32,14 @@ public:
 }
 
 /// フラグとステップの集合をXMLにして返す。
-public string getXML(FlagDir parent, Flag[] flags, Step[] steps) { mixin(S_TRACE);
-	auto e = XNode.create(XML_ROOT_FLAGS_AND_STEPS);
+public string getXML(in FlagDir parent, in Flag[] flags, in Step[] steps) { mixin(S_TRACE);
+	XNode node;
+	getNode(parent, flags, steps, node);
+	return node.text;
+}
+/// ditto
+public void getNode(in FlagDir parent, in Flag[] flags, in Step[] steps, out XNode e) { mixin(S_TRACE);
+	e = XNode.create(XML_ROOT_FLAGS_AND_STEPS);
 	auto _root = parent.root;
 	e.newAttr(XML_ATT_PATH, parent.path);
 	e.newAttr( XML_ATT_ROOT_ID, _root.id);
@@ -49,7 +55,6 @@ public string getXML(FlagDir parent, Flag[] flags, Step[] steps) { mixin(S_TRACE
 		assert (step.parent == parent);
 		step.toNode(se);
 	}
-	return e.text;
 }
 
 /// フラグのディレクトリとその配下の内容をXMLにして返す。
@@ -1362,45 +1367,51 @@ public:
 	/// See_Also: getXml(FlagDir, Flag[], Step[]), getXml(FlagDir)
 	AppendXmlResult appendFromXML(string xml, in XMLInfo ver, bool copy, bool dirMode,
 			out Flag[string] cFlags, out Step[string] cSteps, out string newPath, out string rootId) { mixin(S_TRACE);
-		newPath = null;
-		rootId = "";
 		try { mixin(S_TRACE);
-			scope doc = XNode.parse(xml);
-			rootId = doc.attr(XML_ATT_ROOT_ID, false, "");
-
-			if (doc.name == XML_ROOT_FLAGS_AND_STEPS) { mixin(S_TRACE);
-				string path;
-				bool sameTree;
-				if (readAtt(doc, rootId, path, sameTree)) { mixin(S_TRACE);
-					if (!copy && sameTree && cmp(this.path, path) == 0) { mixin(S_TRACE);
-						// 転送されてきたのが自分自身の場合は末尾に移し変えて終了
-						doc.onTag["Flags"] = (ref XNode node) { mixin(S_TRACE);
-							doc.onTag["Flag"] = (ref XNode node) { mixin(S_TRACE);
-								add(getFlag(node.childText("Name", true)));
-							};
-							node.parse();
-						};
-						doc.onTag["Steps"] = (ref XNode node) { mixin(S_TRACE);
-							doc.onTag["Step"] = (ref XNode node) { mixin(S_TRACE);
-								add(getStep(node.childText("Name", true)));
-							};
-							node.parse();
-						};
-						doc.parse();
-						return AppendXmlResult.FLAG_STEP_ON_DIR;
-					}
-					if (loadFlagAndSteps(doc, cFlags, cSteps, copy, ver)) { mixin(S_TRACE);
-						return AppendXmlResult.FLAG_STEP_SUCCESS;
-					}
-				}
-				return AppendXmlResult.FAIL;
-			}
-			if (dirMode && doc.name == XML_ROOT_FLAG_DIRECTORY) { mixin(S_TRACE);
-				return loadRootFlagDirectory(doc, ver, copy, cFlags, cSteps, newPath);
-			}
+			auto doc = XNode.parse(xml);
+			return appendFromNode(doc, ver, copy, dirMode, cFlags, cSteps, newPath, rootId);
 		} catch (Exception e) {
 			printStackTrace();
 			debugln(e);
+		}
+		return AppendXmlResult.FAIL;
+	}
+	/// ditto
+	AppendXmlResult appendFromNode(ref XNode doc, in XMLInfo ver, bool copy, bool dirMode,
+			out Flag[string] cFlags, out Step[string] cSteps, out string newPath, out string rootId) { mixin(S_TRACE);
+		newPath = null;
+		rootId = "";
+		rootId = doc.attr(XML_ATT_ROOT_ID, false, "");
+
+		if (doc.name == XML_ROOT_FLAGS_AND_STEPS) { mixin(S_TRACE);
+			string path;
+			bool sameTree;
+			if (readAtt(doc, rootId, path, sameTree)) { mixin(S_TRACE);
+				if (!copy && sameTree && cmp(this.path, path) == 0) { mixin(S_TRACE);
+					// 転送されてきたのが自分自身の場合は末尾に移し変えて終了
+					doc.onTag["Flags"] = (ref XNode node) { mixin(S_TRACE);
+						doc.onTag["Flag"] = (ref XNode node) { mixin(S_TRACE);
+							add(getFlag(node.childText("Name", true)));
+						};
+						node.parse();
+					};
+					doc.onTag["Steps"] = (ref XNode node) { mixin(S_TRACE);
+						doc.onTag["Step"] = (ref XNode node) { mixin(S_TRACE);
+							add(getStep(node.childText("Name", true)));
+						};
+						node.parse();
+					};
+					doc.parse();
+					return AppendXmlResult.FLAG_STEP_ON_DIR;
+				}
+				if (loadFlagAndSteps(doc, cFlags, cSteps, copy, ver)) { mixin(S_TRACE);
+					return AppendXmlResult.FLAG_STEP_SUCCESS;
+				}
+			}
+			return AppendXmlResult.FAIL;
+		}
+		if (dirMode && doc.name == XML_ROOT_FLAG_DIRECTORY) { mixin(S_TRACE);
+			return loadRootFlagDirectory(doc, ver, copy, cFlags, cSteps, newPath);
 		}
 		return AppendXmlResult.FAIL;
 	}

@@ -11,6 +11,7 @@ import cwx.types;
 import cwx.system;
 import cwx.card;
 import cwx.event;
+import cwx.xml;
 
 import cwx.editor.gui.dwt.dutils;
 import cwx.editor.gui.dwt.dprops;
@@ -29,6 +30,7 @@ import std.range;
 import std.array;
 import std.ascii;
 import std.conv;
+import std.datetime;
 import std.string;
 import std.exception;
 
@@ -194,7 +196,7 @@ public:
 	/// dir = 設定するステップの親ディレクトリ。
 	/// step = 設定するステップ。新規の場合はnull。
 	this (Commons comm, Summary summ, Shell shell, FlagDir dir, Step step = null) { mixin(S_TRACE);
-		super(comm.prop, shell, false, comm.prop.msgs.dlgTitStep, comm.prop.images.step, true, comm.prop.var.stepDlg, true);
+		super(comm.prop, shell, false, comm.prop.msgs.dlgTitStep, comm.prop.images.step, true, comm.prop.var.stepDlg, true);		auto o = this;
 		_comm = comm;
 		_summ = summ;
 		_dir = dir;
@@ -1112,6 +1114,8 @@ private:
 		}
 	}
 
+	string _id;
+
 	Props prop;
 	Commons _comm;
 	UseCounter uc;
@@ -1172,7 +1176,7 @@ private:
 				storeEdit(indexOf(parent, flag), oldName, oldValue);
 			}
 			_comm.openCWXPath(flag.cwxPath(true), false);
-			refresh(flag);
+			refresh([flag]);
 			_comm.refFlagAndStep.call([flag], []);
 			_comm.refreshToolBar();
 		};
@@ -1224,7 +1228,7 @@ private:
 				storeEdit(indexOf(parent, step), oldName, oldValue);
 			}
 			_comm.openCWXPath(step.cwxPath(true), false);
-			refresh(step);
+			refresh([step]);
 			_comm.refFlagAndStep.call([], [step]);
 			_comm.refreshToolBar();
 		};
@@ -1304,7 +1308,10 @@ private:
 			if (XMLBytesTransfer.getInstance().isSupportedType(e.dataType)) { mixin(S_TRACE);
 				// XML化して転送する。
 				getSelectionFlagAndStep(_dragFlags, _dragSteps);
-				e.data = bytesFromXML(getXML(_dir, _dragFlags, _dragSteps));
+				XNode node;
+				getNode(_dir, _dragFlags, _dragSteps, node);
+				node.newAttr("paneId", _id);
+				e.data = bytesFromXML(node.text);
 			}
 		}
 		override void dragFinished(DragSourceEvent e) { mixin(S_TRACE);
@@ -1323,6 +1330,30 @@ private:
 			_dragSteps.length = 0;
 		}
 	}
+	class FlagDrop : DropTargetAdapter {
+		override void dragEnter(DropTargetEvent e){ mixin(S_TRACE);
+			e.detail = DND.DROP_COPY;
+		}
+		override void dragOver(DropTargetEvent e){ mixin(S_TRACE);
+			e.detail = DND.DROP_COPY;
+		}
+		override void drop(DropTargetEvent e){ mixin(S_TRACE);
+			if (!isXMLBytes(e.data)) return;
+			e.detail = DND.DROP_NONE;
+			auto xml = bytesToXML(e.data);
+			try { mixin(S_TRACE);
+				auto node = XNode.parse(xml);
+				if (_id == node.attr!string("paneId", false)) return;
+				if (pasteImpl(node)) { mixin(S_TRACE);
+					e.detail = DND.DROP_COPY;
+				}
+			} catch (Exception e) { mixin (S_TRACE);
+				printStackTrace();
+				debugln(e);
+			}
+		}
+	}
+
 	void flagsSelected() { mixin(S_TRACE);
 		refreshStatusLine();
 		_comm.refreshToolBar();
@@ -1552,6 +1583,9 @@ private:
 	}
 public:
 	this (Commons comm, Props prop, UndoManager undo) { mixin(S_TRACE);
+		auto o = this;
+		_id = format("%08X", &o) ~ "-" ~ to!(string)(Clock.currTime());
+
 		_undo = undo;
 		_comm = comm;
 		this.prop = prop;
@@ -1627,6 +1661,9 @@ public:
 		auto ds = new DragSource(flags, DND.DROP_MOVE | DND.DROP_COPY);
 		ds.setTransfer([XMLBytesTransfer.getInstance()]);
 		ds.addDragListener(new FlagDragListener);
+		auto dt = new DropTarget(flags, DND.DROP_COPY);
+		dt.setTransfer([XMLBytesTransfer.getInstance()]);
+		dt.addDropListener(new FlagDrop);
 
 		_comm.refUseCount.add(&refreshUseCount);
 		_comm.replText.add(&refresh);
@@ -1691,14 +1728,14 @@ public:
 		}
 	}
 	void refresh() { mixin(S_TRACE);
-		refresh(null);
+		refresh([]);
 	}
-	void refresh(in Object selObj) { mixin(S_TRACE);
+	void refresh(in Object[] selObjs) { mixin(S_TRACE);
 		if (!flags || flags.isDisposed()) return;
 		if (_dir) { mixin(S_TRACE);
 			const(Object)[] sels;
-			if (selObj) { mixin(S_TRACE);
-				sels ~= selObj;
+			if (selObjs.length) { mixin(S_TRACE);
+				sels ~= selObjs;
 			} else { mixin(S_TRACE);
 				foreach (itm; flags.getSelection()) { mixin(S_TRACE);
 					sels ~= itm.getData();
@@ -1713,7 +1750,7 @@ public:
 					flags.select(cast(int)i);
 				}
 			}
-			if (selObj) { mixin(S_TRACE);
+			if (selObjs.length) { mixin(S_TRACE);
 				flags.showSelection();
 			}
 		}
@@ -1886,7 +1923,10 @@ public:
 			cwx.flag.Flag[] fs;
 			Step[] ss;
 			if (getSelectionFlagAndStep(fs, ss)) { mixin(S_TRACE);
-				XMLtoCB(prop, _comm.clipboard, getXML(_dir, fs, ss));
+				XNode node;
+				getNode(_dir, fs, ss, node);
+				node.newAttr("paneId", _id);
+				XMLtoCB(prop, _comm.clipboard, node.text);
 				_comm.refreshToolBar();
 			}
 		}
@@ -1894,32 +1934,8 @@ public:
 			if (!_dir) return;
 			auto c = CBtoXML(_comm.clipboard);
 			if (c) { mixin(S_TRACE);
-				try { mixin(S_TRACE);
-					string newPath;
-					string rootId;
-					cwx.flag.Flag[string] cFlags;
-					Step[string] cSteps;
-					auto selsF = selectionFlagNames;
-					auto selsS = selectionStepNames;
-					auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
-					if (_dir.appendFromXML(c, ver, true, false, cFlags, cSteps, newPath, rootId)) { mixin(S_TRACE);
-						string[] flagName;
-						string[] stepName;
-						foreach (f; cFlags) { mixin(S_TRACE);
-							flagName ~= f.name;
-						}
-						foreach (s; cSteps) { mixin(S_TRACE);
-							stepName ~= s.name;
-						}
-						storeInsert(selsF, selsS, flagName, stepName);
-						refresh();
-						_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
-						_comm.refreshToolBar();
-					}
-				} catch (Exception e) {
-					printStackTrace();
-					debugln(e);
-				}
+				auto node = XNode.parse(c);
+				pasteImpl(node);
 			}
 		}
 		void del(SelectionEvent se) { mixin(S_TRACE);
@@ -1976,6 +1992,40 @@ public:
 		bool canDoClone() { mixin(S_TRACE);
 			return canDoC;
 		}
+	}
+	private bool pasteImpl(ref XNode node) { mixin(S_TRACE);
+		try { mixin(S_TRACE);
+			string newPath;
+			string rootId;
+			cwx.flag.Flag[string] cFlags;
+			Step[string] cSteps;
+			auto selsF = selectionFlagNames;
+			auto selsS = selectionStepNames;
+			auto ver = new XMLInfo(prop.sys, LATEST_VERSION);
+			if (_dir.appendFromNode(node, ver, true, false, cFlags, cSteps, newPath, rootId)) { mixin(S_TRACE);
+				string[] flagName;
+				string[] stepName;
+				if (!cFlags.length && !cSteps.length) return false;
+				foreach (f; cFlags) { mixin(S_TRACE);
+					flagName ~= f.name;
+				}
+				foreach (s; cSteps) { mixin(S_TRACE);
+					stepName ~= s.name;
+				}
+				storeInsert(selsF, selsS, flagName, stepName);
+				Object[] objs;
+				objs ~= cFlags.values;
+				objs ~= cSteps.values;
+				refresh(objs);
+				_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
+				_comm.refreshToolBar();
+				return true;
+			}
+		} catch (Exception e) {
+			printStackTrace();
+			debugln(e);
+		}
+		return false;
 	}
 	void undo() { mixin(S_TRACE);
 		_undo.undo();
