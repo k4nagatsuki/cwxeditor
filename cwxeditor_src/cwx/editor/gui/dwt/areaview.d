@@ -2568,16 +2568,6 @@ private:
 				if (selectConnectedResourceImpl(c)) return;
 			}
 		}
-		void refPath(string oldPath, string newPath, bool isDir) { mixin(S_TRACE);
-			if (isDir) return;
-			foreach (itm; _backs.getItems()) { mixin(S_TRACE);
-				auto cell = cast(ImageCell)itm.getData();
-				if (!cell) continue;
-				if (cell.path == newPath) {
-					itm.setText(cell.path);
-				}
-			}
-		}
 	}
 	static if (UseCards) {
 		void setAutoImpl(bool value) { mixin(S_TRACE);
@@ -2616,6 +2606,26 @@ private:
 				auto c = cast(AbstractSpCard)item.getData();
 				if (!c) continue;
 				if (selectConnectedResourceImpl(c)) return;
+			}
+		}
+	}
+	void refPath(string oldPath, string newPath, bool isDir) { mixin(S_TRACE);
+		if (isDir) return;
+		static if (UseCards) {
+			foreach (i, itm; _cards.getItems()) { mixin(S_TRACE);
+				auto img = _imgp.images[cardsIndex + i];
+				if (img.updatePath(_summ.scenarioPath.buildPath(oldPath), _summ.scenarioPath.buildPath(newPath))) { mixin(S_TRACE);
+					_imgp.redrawImage(img);
+				}
+			}
+		}
+		static if (UseBacks) {
+			foreach (itm; _backs.getItems()) { mixin(S_TRACE);
+				auto cell = cast(ImageCell)itm.getData();
+				if (!cell) continue;
+				if (cell.path == newPath) {
+					itm.setText(cell.path);
+				}
 			}
 		}
 	}
@@ -2952,12 +2962,12 @@ public:
 				_backs.addMouseMoveListener(prevTrig);
 				.listener(_backs, SWT.Paint, &selectImageBImpl);
 				.listener(_backs, SWT.Paint, &openCWXPathImpl);
-				if (!_readOnly) { mixin(S_TRACE);
-					_comm.refPath.add(&refPath);
-					.listener(_backs, SWT.Dispose, { mixin(S_TRACE);
-						_comm.refPath.remove(&refPath);
-					});
-				}
+			}
+			if (!_readOnly) { mixin(S_TRACE);
+				_comm.refPath.add(&refPath);
+				.listener(listsP, SWT.Dispose, { mixin(S_TRACE);
+					_comm.refPath.remove(&refPath);
+				});
 			}
 			static if (UseCards && UseBacks) {
 				_cards.addMouseListener(new class MouseAdapter {

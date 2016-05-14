@@ -225,6 +225,26 @@ public:
 	const
 	ImageType type() { return _type; }
 
+	/// 指定されたパスを所持している場合は置換する。
+	bool updatePath(string oldPath, string newPath) { mixin(S_TRACE);
+		oldPath = nabs(oldPath);
+		auto update = false;
+		if (cfnmatch(nabs(path), oldPath)) { mixin(S_TRACE);
+			path = newPath;
+			update = true;
+		}
+		foreach (ref a; appends) { mixin(S_TRACE);
+			if (cfnmatch(nabs(a.path), oldPath)) { mixin(S_TRACE);
+				a.path = newPath;
+				update = true;
+			}
+		}
+		if (update) { mixin(S_TRACE);
+			createImage();
+		}
+		return update;
+	}
+
 	/// ベースとなるイメージを置換する。
 	void setBaseImage(ImageData data, int baseW, int baseH) { mixin(S_TRACE);
 		this.data = data;
