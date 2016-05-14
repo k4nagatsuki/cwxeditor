@@ -1998,6 +1998,9 @@ public:
 		}
 		if (_readOnly) { mixin(S_TRACE);
 			_comm.refImportAreasSort.add(&refSortParams);
+			.listener(_areas, SWT.Dispose, { mixin (S_TRACE);
+				_comm.refImportAreasSort.remove(&refSortParams);
+			});
 		}
 		void storeSortParams() { mixin (S_TRACE);
 			if (_readOnly) { mixin(S_TRACE);
@@ -2022,7 +2025,6 @@ public:
 				} else { mixin(S_TRACE);
 					_prop.var.etc.importAreasSortColumn = -1;
 				}
-				_comm.refImportAreasSort.remove(&refSortParams);
 			} else { mixin(S_TRACE);
 				switch (_areas.getSortDirection()) {
 				case SWT.UP:
