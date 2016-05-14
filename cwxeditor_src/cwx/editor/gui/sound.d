@@ -821,7 +821,7 @@ private bool playBass(string file, uint loopCount, bool spLoop, ref DWORD stream
 				return false;
 			}
 			bool midi = isMidi(file);
-			int flag = BASS_DEFAULT;
+			int flag = BASS_MUSIC_RAMP | BASS_MUSIC_POSRESET | BASS_MUSIC_PRESCAN;
 			if (midi) { mixin(S_TRACE);
 				stream = getSymbol!(BASS_MIDI_StreamCreateFile)(bassMidi, "BASS_MIDI_StreamCreateFile")(false, file.toMBSz(), 0, 0, flag, 44100);
 				if (!stream) { mixin(S_TRACE);
@@ -1048,6 +1048,11 @@ version (Windows) {
 		immutable BASS_SAMPLE_8BITS = 1;
 		immutable BASS_SAMPLE_FLOAT = 256;
 		immutable BASS_ACTIVE_STOPPED = 0;
+		immutable BASS_MUSIC_RAMP = 0x200;
+		immutable BASS_MUSIC_RAMPS = 0x400;
+		immutable BASS_MUSIC_POSRESET = 0x8000;
+		immutable BASS_MUSIC_PRESCAN = 0x20000;
+		immutable BASS_STREAM_DECODE = 0x200000;
 		struct  BASS_MIDI_EVENT {
 			DWORD event;
 			DWORD param;
