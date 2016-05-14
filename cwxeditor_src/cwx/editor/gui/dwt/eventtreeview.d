@@ -4040,7 +4040,7 @@ private string evtChildBrCast(in Props prop, in Summary summ, ulong id, ref stri
 	string name = prop.msgs.noSelectCast;
 	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.cwCast(id);
-		name = c ? c.name : .tryFormat(prop.msgs.noCast, id);
+		name = c ? .format(prop.msgs.nameWithID, c.id, c.name) : .tryFormat(prop.msgs.noCast, id);
 	}
 	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchCastSuccess, name);
@@ -4055,7 +4055,7 @@ private string evtChildBrItem(in Props prop, in Summary summ, ulong id, Range r,
 	string name = prop.msgs.noSelectItem;
 	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.item(id);
-		name = c ? c.name : .tryFormat(prop.msgs.noItem, id);
+		name = c ? .format(prop.msgs.nameWithID, c.id, c.name) : .tryFormat(prop.msgs.noItem, id);
 	}
 	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
@@ -4070,7 +4070,7 @@ private string evtChildBrSkill(in Props prop, in Summary summ, ulong id, Range r
 	string name = prop.msgs.noSelectSkill;
 	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.skill(id);
-		name = c ? c.name : .tryFormat(prop.msgs.noSkill, id);
+		name = c ? .format(prop.msgs.nameWithID, c.id, c.name) : .tryFormat(prop.msgs.noSkill, id);
 	}
 	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
@@ -4085,7 +4085,7 @@ private string evtChildBrBeast(in Props prop, in Summary summ, ulong id, Range r
 	string name = prop.msgs.noSelectBeast;
 	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.beast(id);
-		name = c ? c.name : .tryFormat(prop.msgs.noBeast, id);
+		name = c ? .format(prop.msgs.nameWithID, c.id, c.name) : .tryFormat(prop.msgs.noBeast, id);
 	}
 	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchEffectCardSuccess, tr, name);
@@ -4099,7 +4099,7 @@ private string evtChildBrInfo(in Props prop, in Summary summ, ulong id, ref stri
 	string name = prop.msgs.noSelectInfo;
 	if (0 != id && summ) { mixin(S_TRACE);
 		auto c = summ.info(id);
-		name = c ? c.name : .tryFormat(prop.msgs.noInfo, id);
+		name = c ? .format(prop.msgs.nameWithID, c.id, c.name) : .tryFormat(prop.msgs.noInfo, id);
 	}
 	if (val) { mixin(S_TRACE);
 		return .tryFormat(prop.msgs.branchInfoSuccess, name);
