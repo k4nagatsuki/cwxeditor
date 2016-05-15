@@ -548,11 +548,9 @@ class CouponView(CVType Type) : Composite {
 			createToolItem2(_comm, _toolbar, _prop.msgs.addCoupon, _prop.images.addCoupon, &addCoupon, () => !_readOnly && _newCoupon.getText().length > 0);
 			createToolItem2(_comm, _toolbar, _prop.msgs.altCoupon, _prop.images.altCoupon, &altCoupon, () => !_readOnly && _newCoupon.getText().length > 0 && _coupons.getSelectionIndex() != -1);
 			createToolItem2(_comm, _toolbar, _prop.msgs.delCoupon, _prop.images.couponDelete, &delCoupon, () => !_readOnly && _coupons.getSelectionIndex() != -1);
-			static if (CVType.Cast == Type) {
-				new ToolItem(_toolbar, SWT.SEPARATOR);
-				createToolItem(_comm, _toolbar, MenuID.Up, &upCoupon, &canUp);
-				createToolItem(_comm, _toolbar, MenuID.Down, &downCoupon, &canDown);
-			}
+			new ToolItem(_toolbar, SWT.SEPARATOR);
+			createToolItem(_comm, _toolbar, MenuID.Up, &upCoupon, &canUp);
+			createToolItem(_comm, _toolbar, MenuID.Down, &downCoupon, &canDown);
 
 			auto gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			gd.horizontalSpan = 2;
