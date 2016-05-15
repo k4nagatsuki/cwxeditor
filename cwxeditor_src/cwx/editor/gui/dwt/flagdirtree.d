@@ -106,6 +106,7 @@ private:
 			if (cast(FlagDir) e.item.getData()) { mixin(S_TRACE);
 				auto data = bytesToXML(e.data);
 				auto dir = cast(FlagDir)e.item.getData();
+				assert (dir !is null, .text(e.item.getData()));
 				string newPath;
 				string rootId;
 				cwx.flag.Flag[] fs = flags.dragFlags;

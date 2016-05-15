@@ -1633,11 +1633,7 @@ version (Windows) {
 			flag |= CREATE_NEW_CONSOLE;
 		}
 
-		int r;
-		wchar[] procTemp;
-		procTemp.length = process.length + 1;
-		procTemp[0 .. $] = toUTFz!(wchar*)(process)[0 .. procTemp.length];
-		r = CreateProcessW(null, procTemp.ptr, null, null, false, flag, null,
+		auto r = CreateProcessW(null, toUTFz!(wchar*)(process), null, null, false, flag, null,
 			workDir.length ? toUTFz!(wchar*)(workDir) : null, &setup, &info);
 		if (r) { mixin(S_TRACE);
 			if (wait) { mixin(S_TRACE);

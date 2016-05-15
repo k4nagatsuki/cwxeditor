@@ -243,6 +243,7 @@ class EtcSettings : Composite {
 	private void scSize() { mixin(S_TRACE);
 		auto runScSize = new class Runnable {
 			override void run() { mixin(S_TRACE);
+				if (_expandBar.isDisposed()) return;
 				auto size = _expandBar.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 				_sc.setMinSize(size.x, size.y);
 			}

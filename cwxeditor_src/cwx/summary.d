@@ -989,6 +989,7 @@ public:
 		SysTime[string] fcs;
 		try { mixin(S_TRACE);
 			void recurse(string dir) { mixin(S_TRACE);
+				if (!dir.exists() || !dir.isDir()) return;
 				foreach (file; dir.dirEntries(SpanMode.shallow)) { mixin(S_TRACE);
 					if (isSystemFile(file)) continue;
 					auto key = file[scenarioPath.length + 1 .. $];
