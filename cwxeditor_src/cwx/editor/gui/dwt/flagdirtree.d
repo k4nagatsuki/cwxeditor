@@ -105,7 +105,7 @@ private:
 			assert (cast(TreeItem) e.item);
 			if (cast(FlagDir) e.item.getData()) { mixin(S_TRACE);
 				auto data = bytesToXML(e.data);
-				auto dir = cast(FlagDir) e.item.getData();
+				auto dir = cast(FlagDir)e.item.getData();
 				string newPath;
 				string rootId;
 				cwx.flag.Flag[] fs = flags.dragFlags;
@@ -145,6 +145,7 @@ private:
 				final switch (ret) {
 				case FlagDir.AppendXmlResult.DIR_SUCCESS:
 					string dirName = FlagDir.basename(newPath);
+					if (prop.var.etc.sortFlagDirs) dir.sortSubDirs();
 					if (samePane) { mixin(S_TRACE);
 						e.detail = DND.DROP_MOVE;
 						assert (moveDirParent);
@@ -156,10 +157,11 @@ private:
 						storeInsert(dir, tblSelsF, tblSelsS, [cast(int)dir.indexOf(dirName)], [], []);
 						_comm.refFlagDir.call(this.outer, [root.findPath(newPath, false)]);
 					}
-					if (prop.var.etc.sortFlagDirs) dir.sortSubDirs();
 					refresh(newPath);
 					break;
 				case FlagDir.AppendXmlResult.FLAG_STEP_SUCCESS:
+					if (cFlags.length > 0) dir.sortFlags();
+					if (cSteps.length > 0) dir.sortSteps();
 					if (samePane) { mixin(S_TRACE);
 						e.detail = DND.DROP_MOVE;
 						FlagDir[int] ds;
@@ -168,8 +170,6 @@ private:
 						e.detail = DND.DROP_COPY;
 						storeInsert(dir, tblSelsF, tblSelsS, [], flagName, stepName);
 					}
-					if (cFlags.length > 0) dir.sortFlags();
-					if (cSteps.length > 0) dir.sortSteps();
 					flags.refresh();
 					break;
 				case FlagDir.AppendXmlResult.ON_DIR:
@@ -547,9 +547,9 @@ public:
 					case FlagDir.AppendXmlResult.DIR_SUCCESS:
 						refresh(newPath);
 						auto dir = root.findPath(newPath, false);
+						if (prop.var.etc.sortFlagDirs) dir.parent.sortSubDirs();
 						storeInsert(dir.parent, tblSelsF, tblSelsS, [cast(int)dir.parent.indexOf(dir.name)], [], []);
 						_comm.refFlagDir.call(this, [dir]);
-						if (prop.var.etc.sortFlagDirs) dir.parent.sortSubDirs();
 						refresh();
 						auto itm = find(current);
 						if (itm) treeExpandedAll(itm);
