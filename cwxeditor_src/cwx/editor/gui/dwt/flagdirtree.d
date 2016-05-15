@@ -193,6 +193,7 @@ private:
 						uc.change(toStepId(oldPath), toStepId(cSteps[oldPath].path));
 					}
 					_comm.refFlagAndStep.call(cFlags.values, cSteps.values);
+					_comm.refUseCount.call();
 				}
 				_comm.refreshToolBar();
 			} else { mixin(S_TRACE);
