@@ -643,7 +643,7 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, string 
 			}
 		}
 	}
-	if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
+	if ((summ && summ.legacy) && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 		foreach (color; colors) { mixin(S_TRACE);
 			switch (std.ascii.toUpper(color)) {
 			case 'O', 'P', 'L', 'D':
