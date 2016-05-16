@@ -2620,7 +2620,11 @@ private:
 			}
 		}
 		static if (UseBacks) {
-			foreach (itm; _backs.getItems()) { mixin(S_TRACE);
+			foreach (i, itm; _backs.getItems()) { mixin(S_TRACE);
+				auto img = _imgp.images[i];
+				if (img.updatePath(_summ.scenarioPath.buildPath(oldPath), _summ.scenarioPath.buildPath(newPath))) { mixin(S_TRACE);
+					_imgp.redrawImage(img);
+				}
 				auto cell = cast(ImageCell)itm.getData();
 				if (!cell) continue;
 				if (cell.path == newPath) {
