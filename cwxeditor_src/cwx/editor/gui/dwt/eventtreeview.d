@@ -629,22 +629,22 @@ private:
 	}
 	static class UndoCP : Undo {
 		private UndoContent _undoC;
-		private UndoDelete _undoD;
+		private UndoDelete _undoD = null;
 		this (Commons comm, Props prop, Summary summ, EventTree et, CWXPath area, Content[] conts, int index, Content start) { mixin(S_TRACE);
 			_undoC = new UndoContent(comm, prop, summ, et, area, conts);
-			_undoD = new UndoDelete(comm, prop, summ, et, area, index, start);
+			if (start) _undoD = new UndoDelete(comm, prop, summ, et, area, index, start);
 		}
 		override void undo() { mixin(S_TRACE);
-			_undoD.undo();
+			if (_undoD) _undoD.undo();
 			_undoC.undo();
 		}
 		override void redo() { mixin(S_TRACE);
 			_undoC.redo();
-			_undoD.redo();
+			if (_undoD) _undoD.redo();
 		}
 		override void dispose() { mixin(S_TRACE);
 			_undoC.dispose();
-			_undoD.dispose();
+			if (_undoD) _undoD.dispose();
 		}
 	}
 	static class UndoContentAndInsert : ETVUndo {
@@ -2115,15 +2115,15 @@ public:
 
 	@property
 	bool canStartToPackage() { mixin(S_TRACE);
-		return !_readOnly && 1 < _tree.getItemCount() && selection !is null;
+		return !_readOnly && 1 <= _tree.getItemCount() && selection !is null;
 	}
 	void startToPackage() { mixin(S_TRACE);
 		if (!canStartToPackage) return;
 		if (!_et || !selection) return;
-		if (_tree.getItemCount() <= 1) return;
+		if (_tree.getItemCount() < 1) return;
 		auto sel = selection;
 		if (!sel) return;
-		auto base = cast(Content) selection.getData();
+		auto base = cast(Content)selection.getData();
 		auto startItm = _tree.topItem(sel);
 		auto start = base.parentStart;
 		assert (start);
@@ -2143,14 +2143,38 @@ public:
 		foreach (i; 0 .. _tree.getItemCount()) { mixin(S_TRACE);
 			find(_tree.getItem(i));
 		}
-		auto ucp = new UndoCP(_comm, _prop, _summ, _et, _area, conts, index, start);
-		auto id = _comm.createPackage(start, _et.name, false);
+		auto isTopStart = start is _et.starts[0];
+		auto ucp = new UndoCP(_comm, _prop, _summ, _et, _area, conts, index, isTopStart ? null : start);
+		auto id = _comm.createPackage(start, start.name, false);
 		if (id == 0) { mixin(S_TRACE);
 			ucp.dispose();
 			return;
 		}
 		_undo ~= ucp;
-		delImpl(startItm, false, false, true);
+		if (isTopStart) { mixin(S_TRACE);
+			foreach_reverse (child; _tree.getItems(startItm)) { mixin(S_TRACE);
+				delImpl(child, false, false, true);
+			}
+			auto evt = new Content(CType.LINK_PACKAGE, "");
+			start.add(_prop.parent, evt);
+			evt.packages = id;
+			auto img = _prop.images.content(CType.LINK_PACKAGE);
+			foreach (v; views()) { mixin(S_TRACE);
+				Item evtItm;
+				if (v._tree.tree) { mixin(S_TRACE);
+					assert (cast(TreeItem)startItm !is null);
+					auto ti = .anotherTreeItem(v._tree.tree, cast(TreeItem)startItm);
+					evtItm = createTreeItem(ti, evt, v.eventText(start, evt), img);
+				} else { mixin(S_TRACE);
+					v._tree.editor.updatePosOne(evt);
+					evtItm = EventEditorItem.valueOf(v._tree.editor, evt);
+				}
+				if (v is this) v._tree.select(evtItm);
+				if (v is this) v._tree.showSelection();
+			}
+		} else { mixin(S_TRACE);
+			delImpl(startItm, false, false, true);
+		}
 		auto vs = views();
 		foreach (itm; users) { mixin(S_TRACE);
 			auto c = cast(Content)itm.getData();
