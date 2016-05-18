@@ -2974,7 +2974,11 @@ public:
 
 	void refreshTreeName() { mixin(S_TRACE);
 		if (!_tree.getItemCount()) return;
-		_tree.getItem(0).setText(_et.name);
+		if (_tree.tree) { mixin(S_TRACE);
+			_tree.getItem(0).setText(_et.name);
+		} else { mixin(S_TRACE);
+			_tree.editor.updateContentInfo(_et.starts[0]);
+		}
 		redraw();
 		refreshStatusLine();
 	}

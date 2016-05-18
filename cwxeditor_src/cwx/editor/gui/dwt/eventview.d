@@ -848,8 +848,8 @@ private:
 				return true;
 			}, true);
 			tree.name = text;
-			_etree.refreshTreeName();
 			foreach (v; views()) { mixin(S_TRACE);
+				v._etree.refreshTreeName();
 				.anotherTreeItem(v._cards, itm).setText(text);
 			}
 			_comm.refEventTree.call(tree);
