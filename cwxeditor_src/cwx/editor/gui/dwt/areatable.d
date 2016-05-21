@@ -2605,6 +2605,12 @@ public:
 		}
 		_comm.refreshToolBar();
 	}
+	private int listIndexOf(AbstractArea area) { mixin(S_TRACE);
+		foreach (i, itm; _areas.getItems()) { mixin(S_TRACE);
+			if (itm.getData() is area) return cast(int)i;
+		}
+		return -1;
+	}
 	private void udImpl2(A)(AbstractArea area1, AbstractArea area2) { mixin(S_TRACE);
 		if (_readOnly) return;
 		assert (_areas.getSortColumn() is null || _areas.getSortColumn() is _idSorter.column);
@@ -2615,6 +2621,7 @@ public:
 		int i2 = cast(int)_summ.indexOf(a2);
 		if (_dirMode) { mixin(S_TRACE);
 			// 見かけ上の位置が動くまで続ける
+			int li1 = listIndexOf(a1);
 			static if (is(A:Area)) {
 				auto array = _summ.areas;
 			} else static if (is(A:Battle)) {
@@ -2627,9 +2634,11 @@ public:
 			do { mixin(S_TRACE);
 				undos ~= new UndoSwap(this, _comm, _summ, indexFrom!A(_summ, i1), indexFrom!A(_summ, i2));
 				if (i1 < i2) { mixin(S_TRACE);
-					_areas.downItem(indexFrom!A(_summ, i1));
+					_areas.downItem(li1);
+					li1++;
 				} else { mixin(S_TRACE);
-					_areas.upItem(indexFrom!A(_summ, i1));
+					_areas.upItem(li1);
+					li1--;
 				}
 				a2 = array[i2];
 				_summ.swap!A(i1, i2);
