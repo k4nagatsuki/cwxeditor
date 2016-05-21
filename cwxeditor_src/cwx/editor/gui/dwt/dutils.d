@@ -350,8 +350,41 @@ public:
 	}
 	override void focusGained(FocusEvent e) { mixin(S_TRACE);
 		_hasFocus = true;
+		auto selected = false;
+		if (quickStart) { mixin(S_TRACE);
+			if (auto table = cast(Table)e.widget) {
+				if (-1 == table.getSelectionIndex() && table.getItemCount()) { mixin(S_TRACE);
+					table.select(0);
+					selected = true;
+				}
+			}
+			if (auto tree = cast(Tree)e.widget) {
+				if (!tree.getSelection() && tree.getItemCount()) { mixin(S_TRACE);
+					tree.setSelection(tree.getItem(0));
+					selected = true;
+				}
+			}
+		}
 		if (_comm.prop.var.etc.editTriggerType is EditTrigger.Quick) { mixin(S_TRACE);
 			_itm = _selection();
+		}
+		if (selected) { mixin(S_TRACE);
+			.asyncExec(_display, { mixin(S_TRACE);
+				auto se = new Event;
+				se.type = SWT.Selection;
+				se.widget = e.widget;
+				se.time = e.time;
+				se.stateMask = SWT.NONE;
+				se.doit = true;
+				e.widget.notifyListeners(SWT.Selection, se);
+			});
+		} else if (quickStart) { mixin(S_TRACE);
+			.asyncExec(_display, { mixin(S_TRACE);
+				auto itm = _selection();
+				if (itm) { mixin(S_TRACE);
+					_startEdit(itm);
+				}
+			});
 		}
 	}
 	override void focusLost(FocusEvent e) { mixin(S_TRACE);
@@ -710,7 +743,39 @@ public:
 			auto sel = itm;
 			if (canEdit is null || canEdit(sel, editC)) { mixin(S_TRACE);
 				table.showSelection();
-				_tee = new EditEnd(_comm, table, createEditor(sel, editC), &endImpl, !quickStart);
+				auto editor = createEditor(sel, editC);
+				if (auto t = cast(Text)editor && _mf.quickStart) { mixin(S_TRACE);
+					.listener(editor, SWT.KeyDown, (e) { mixin(S_TRACE);
+						auto selected = false;
+						if (e.keyCode is SWT.ARROW_UP) { mixin(S_TRACE);
+							auto index = table.indexOf(sel);
+							if (0 < index) { mixin(S_TRACE);
+								table.deselectAll();
+								table.select(index - 1);
+								selected = true;
+							}
+						} else if (e.keyCode is SWT.ARROW_DOWN) { mixin(S_TRACE);
+							auto index = table.indexOf(sel);
+							if (index + 1 < table.getItemCount()) { mixin(S_TRACE);
+								table.deselectAll();
+								table.select(index + 1);
+								selected = true;
+							}
+						}
+						if (selected) { mixin(S_TRACE);
+							e.doit = false;
+							enter();
+							auto se = new Event;
+							se.type = SWT.Selection;
+							se.widget = table;
+							se.time = e.time;
+							se.stateMask = e.stateMask;
+							se.doit = true;
+							table.notifyListeners(SWT.Selection, se);
+						}
+					});
+				}
+				_tee = new EditEnd(_comm, table, editor, &endImpl, !quickStart);
 				_editor.setEditor(_tee.editor, sel, editC);
 				_tee.setFocus();
 			}
