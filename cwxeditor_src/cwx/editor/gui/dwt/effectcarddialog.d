@@ -167,11 +167,11 @@ private:
 				break;
 			}
 		}
-		if (_se1.filePath != "" && !_se1.selectedDefDir) { mixin(S_TRACE);
+		if (_summ && _summ.legacy && _se1.filePath != "" && !_se1.selectedDefDir) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningNotDefaultSE;
 		}
 		ws ~= summSkin.warningSE(_prop.parent, _se1.filePath, _summ.legacy, _prop.var.etc.targetVersion) ~ _se1.warnings;
-		if (_se2.filePath != "" && !_se2.selectedDefDir) { mixin(S_TRACE);
+		if (_summ && _summ.legacy && _se2.filePath != "" && !_se2.selectedDefDir) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningNotDefaultSE;
 		}
 		ws ~= summSkin.warningSE(_prop.parent, _se2.filePath, _summ.legacy, _prop.var.etc.targetVersion) ~ _se2.warnings;
