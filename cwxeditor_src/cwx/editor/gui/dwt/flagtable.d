@@ -689,7 +689,7 @@ package class UndoAllVariables : FTVUndo {
 package class UndoEditN {
 	private CWXPath _f;
 	private string _name;
-	this (FlagDir dir, int index, string oldName, int value) { mixin(S_TRACE);
+	this (FlagDir dir, int index, string oldName, int value, string[] names) { mixin(S_TRACE);
 		auto p = FlagTable.fromIndex(dir, index);
 		auto f = cast(cwx.flag.Flag)p;
 		if (f) { mixin(S_TRACE);
@@ -697,6 +697,10 @@ package class UndoEditN {
 			_name = flag.name;
 			flag.name = oldName;
 			if (-1 != value) flag.onOff = value == 0;
+			if (names.length) { mixin(S_TRACE);
+				flag.on = names[0];
+				flag.off = names[1];
+			}
 			_f = flag;
 		}
 		auto s = cast(Step)p;
@@ -705,6 +709,9 @@ package class UndoEditN {
 			_name = step.name;
 			step.name = oldName;
 			if (-1 != value) step.select = value;
+			if (names.length) { mixin(S_TRACE);
+				step.setValues(names, step.select);
+			}
 			_f = step;
 		}
 	}
@@ -746,13 +753,13 @@ package class UndoEditN {
 }
 package class UndoEdit : FTVUndo {
 	private UndoEditN[] _impl;
-	this (FlagTable v, Commons comm, FlagDir dir, int[] index, string[] oldName, int[] oldValues) in { mixin(S_TRACE);
+	this (FlagTable v, Commons comm, FlagDir dir, int[] index, string[] oldName, int[] oldValues, string[][] oldNames) in { mixin(S_TRACE);
 		assert (index.length == oldName.length);
 		assert (!oldValues.length || oldValues.length == index.length);
 	} body { mixin(S_TRACE);
 		super (v, comm, dir);
 		foreach (i, idx; index) { mixin(S_TRACE);
-			_impl ~= new UndoEditN(dir, idx, oldName[i], oldValues.length ? oldValues[i] : -1);
+			_impl ~= new UndoEditN(dir, idx, oldName[i], oldValues.length ? oldValues[i] : -1, oldNames.length ? oldNames[i] : []);
 		}
 	}
 	private void impl() { mixin(S_TRACE);
@@ -1027,11 +1034,11 @@ package class UndoSwap : FTVUndo {
 
 public class FlagTable : TCPD {
 private:
-	void storeEdit(int[] index, string[] oldName, int[] oldValues = []) { mixin(S_TRACE);
-		_undo ~= new UndoEdit(this, _comm, _dir, index, oldName, oldValues);
+	void storeEdit(int[] index, string[] oldName, int[] oldValues = [], string[][] oldNames = []) { mixin(S_TRACE);
+		_undo ~= new UndoEdit(this, _comm, _dir, index, oldName, oldValues, oldNames);
 	}
-	void storeEdit(int index, string oldName, int oldValue) { mixin(S_TRACE);
-		_undo ~= new UndoEdit(this, _comm, _dir, [index], [oldName], [oldValue]);
+	void storeEdit(int index, string oldName, int oldValue, string[] oldNames = []) { mixin(S_TRACE);
+		_undo ~= new UndoEdit(this, _comm, _dir, [index], [oldName], [oldValue], [oldNames]);
 	}
 	void storeInsert(string[] selectedF, string[] selectedS, string[] flagName, string[] stepName) { mixin(S_TRACE);
 		_undo ~= new UndoInsertDelete(this, _comm, _dir, selectedF, selectedS, [], flagName, stepName);
@@ -1152,12 +1159,14 @@ private:
 		auto dlg = new FlagEditDialog(_comm, prop, dlgParShl, parent, flag);
 		string oldName = "";
 		int oldValue = 0;
+		string[] oldNames = [flag.on, flag.off];
 		dlg.applyEvent ~= { mixin(S_TRACE);
 			int i = indexOf(parent, flag);
 			if (-1 != i) { mixin(S_TRACE);
 				assert (!createMode);
 				oldName = flag.name;
 				oldValue = flag.onOff ? 0 : 1;
+				oldNames = [flag.on, flag.off];
 			}
 		};
 		dlg.appliedEvent ~= { mixin(S_TRACE);
@@ -1173,7 +1182,7 @@ private:
 				storeInsert(selsF, selsS, [flag.name], []);
 				createMode = false;
 			} else { mixin(S_TRACE);
-				storeEdit(indexOf(parent, flag), oldName, oldValue);
+				storeEdit(indexOf(parent, flag), oldName, oldValue, oldNames);
 			}
 			_comm.openCWXPath(flag.cwxPath(true), false);
 			refresh([flag]);
@@ -1204,12 +1213,14 @@ private:
 		auto dlg = new StepEditDialog(_comm, _comm.summary, dlgParShl, parent, step);
 		string oldName = "";
 		int oldValue = 0;
+		string[] oldNames = step.values.dup;
 		dlg.applyEvent ~= { mixin(S_TRACE);
 			int i = indexOf(parent, step);
 			if (-1 != i) { mixin(S_TRACE);
 				assert (!createMode);
 				oldName = step.name;
 				oldValue = step.select;
+				oldNames = step.values.dup;
 			}
 		};
 		dlg.appliedEvent ~= { mixin(S_TRACE);
@@ -1225,7 +1236,7 @@ private:
 				storeInsert(selsF, selsS, [step.name], []);
 				createMode = false;
 			} else { mixin(S_TRACE);
-				storeEdit(indexOf(parent, step), oldName, oldValue);
+				storeEdit(indexOf(parent, step), oldName, oldValue, oldNames);
 			}
 			_comm.openCWXPath(step.cwxPath(true), false);
 			refresh([step]);
