@@ -27,6 +27,8 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 		static class RSTable : Table {
 			private GC _gc;
 			private bool _down = false;
+			private int _x = int.max;
+			private int _y = int.max;
 
 			this (Composite parent, int style) { mixin(S_TRACE);
 				super (parent, style);
@@ -41,7 +43,13 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 			protected
 			override
 			LRESULT WM_MOUSEMOVE(WPARAM wParam, LPARAM lParam) { mixin(S_TRACE);
-				_down = false;
+				auto x = OS.GET_X_LPARAM(lParam);
+				auto y = OS.GET_Y_LPARAM(lParam);
+				if (_down && (x != _x || y != _y)) { mixin(S_TRACE);
+					_down = false;
+					_x = int.max;
+					_y = int.max;
+				}
 				return super.WM_MOUSEMOVE(wParam, lParam);
 			}
 
@@ -52,6 +60,8 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 					super.sendMouseDownEvent(SWT.MouseDown, 1, OS.WM_LBUTTONDOWN, wParam, lParam);
 				}
 				_down = false;
+				_x = int.max;
+				_y = int.max;
 				return super.WM_LBUTTONUP(wParam, lParam);
 			}
 
@@ -85,6 +95,8 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 				}
 				// 範囲選択開始
 				_down = true;
+				_x = x;
+				_y = y;
 				LVITEM lvItem;
 				lvItem.state = OS.LVNI_FOCUSED;
 				lvItem.stateMask = OS.LVNI_FOCUSED;
