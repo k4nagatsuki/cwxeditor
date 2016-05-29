@@ -368,13 +368,32 @@ class EventEditor : Composite {
 			assert (startInfo.start.tree is _et);
 			// テキストが更新されたイベントコンテントの位置は
 			// スタートコンテントのupdateCounterで検知できる
-			// ステップ上下分岐に限っては外的要因(ステップの編集)で
+			// いくつかのイベントコンテントに限っては外的要因(ステップ値の編集など)で
 			// updateCounterが更新されずにテキストが変化する可能性がある。
 			startInfo.width = 0;
 			auto update = startInfo.updateCounter != startInfo.start.updateCounter;
 			for (auto i = startInfo.fromIndex; i < startInfo.toIndex; i++) { mixin(S_TRACE);
 				auto c = _pos[i].content;
-				if (update || (c.parent && (c.parent.type is CType.BRANCH_MULTI_STEP || c.parent.type is CType.BRANCH_STEP))) { mixin(S_TRACE);
+				auto branch = false;
+				if (c.parent) { mixin(S_TRACE);
+					switch (c.parent.type) {
+					case CType.BRANCH_FLAG:
+					case CType.BRANCH_MULTI_STEP:
+					case CType.BRANCH_STEP:
+					case CType.BRANCH_AREA:
+					case CType.BRANCH_BATTLE:
+					case CType.BRANCH_CAST:
+					case CType.BRANCH_ITEM:
+					case CType.BRANCH_SKILL:
+					case CType.BRANCH_INFO:
+					case CType.BRANCH_BEAST:
+						branch = true;
+						break;
+					default:
+						break;
+					}
+				}
+				if (update || branch) { mixin(S_TRACE);
 					auto s = .eventText(_comm, _summ, c.parent, c, !(getStyle() & SWT.READ_ONLY));
 					_pos[i].eventText = s;
 					if (c.name == "" && c.parent && c.parent.detail.nextType == CNextType.TEXT) { mixin(S_TRACE);
