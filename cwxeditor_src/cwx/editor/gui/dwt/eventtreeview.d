@@ -2232,7 +2232,7 @@ public:
 		auto c = cast(Content)selection.getData();
 		if (!c) return;
 		if (auto path = c.connectedResource(_summ)) { mixin(S_TRACE);
-			_comm.openCWXPath(cpaddattr(path.cwxPath(true), "shallow"), false);
+			_comm.openCWXPath(cpaddattr(cpaddattr(path.cwxPath(true), "shallow"), "only"), false);
 			return;
 		}
 		auto file = c.connectedFile;

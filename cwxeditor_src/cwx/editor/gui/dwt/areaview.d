@@ -2654,7 +2654,7 @@ private:
 	private bool selectConnectedResourceImpl(CWXPath c) { mixin(S_TRACE);
 		if (auto card = cast(AbstractSpCard)c) { mixin(S_TRACE);
 			if (auto path = card.connectedResource(_summ)) { mixin(S_TRACE);
-				_comm.openCWXPath(cpaddattr(path.cwxPath(true), "shallow"), false);
+				_comm.openCWXPath(cpaddattr(cpaddattr(path.cwxPath(true), "shallow"), "only"), false);
 				return true;
 			}
 			auto file = card.connectedFile;
@@ -5753,6 +5753,7 @@ public:
 		}
 		static if (UseCards && is(C : MenuCard)) {
 			if (cate == "menucard") { mixin(S_TRACE);
+				if (cphasattr(path, "only")) _cards.deselectAll();
 				if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 					if (index >= _cards.getItemCount()) return false;
 					editCard([cast(int)index]);
@@ -5767,6 +5768,7 @@ public:
 		}
 		static if (UseCards && is(C : EnemyCard)) {
 			if (cate == "enemycard") { mixin(S_TRACE);
+				if (cphasattr(path, "only")) _cards.deselectAll();
 				if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 					if (index >= _cards.getItemCount()) return false;
 					editCard([cast(int)index]);
@@ -5781,6 +5783,7 @@ public:
 		}
 		static if (UseBacks) {
 			if (cate == "background") { mixin(S_TRACE);
+				if (cphasattr(path, "only")) _backs.deselectAll();
 				if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 					if (index >= _backs.getItemCount()) return false;
 					editBack([cast(int)index]);

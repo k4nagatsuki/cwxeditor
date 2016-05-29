@@ -1050,6 +1050,7 @@ public:
 		path = cpbottom(path);
 		if (cpempty(path) || ((cardType is CardType.Skill || cardType is CardType.Item || cardType is CardType.Beast) && "motion" == cpcategory(path))) { mixin(S_TRACE);
 			if (!cphasattr(path, "nofocus")) .forceFocus(_paneTbl[cardType].widget, shellActivate);
+			if (cphasattr(path, "only")) _paneTbl[cardType].select(-1);
 			_paneTbl[cardType].select(cast(int)index);
 			_comm.refreshToolBar();
 			if (editMode) { mixin(S_TRACE);

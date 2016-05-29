@@ -711,7 +711,7 @@ public:
 			if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 				flags.edit(dir.flags[index]);
 			} else { mixin(S_TRACE);
-				flags.select(dir.flags[index], false);
+				flags.select(dir.flags[index], cphasattr(path, "only"));
 			}
 			_comm.refreshToolBar();
 			return true;
@@ -724,7 +724,7 @@ public:
 			if (cphasattr(path, "opendialog")) { mixin(S_TRACE);
 				flags.edit(dir.steps[index]);
 			} else { mixin(S_TRACE);
-				flags.select(dir.steps[index], false);
+				flags.select(dir.steps[index], cphasattr(path, "only"));
 			}
 			_comm.refreshToolBar();
 			return true;
