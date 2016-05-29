@@ -3348,13 +3348,14 @@ public:
 			auto owner = cast(Content)ownerItm.getData();
 			this.store(owner);
 			auto insertIndex = owner.next.countUntil(c);
+			auto cName = c.name;
 			owner.remove(c);
 			auto lastNextType = fromCNextType(c.detail.nextType);
 			foreach (i, next; c.next.dup) { mixin(S_TRACE);
 				c.remove(next);
 				if (_prop.var.etc.adjustContentName) { mixin(S_TRACE);
 					if (i == 0 && lastNextType != fromCNextType(owner.detail.nextType)) { mixin(S_TRACE);
-						next.setName(_prop.parent, c.name);
+						next.setName(_prop.parent, cName);
 					} else { mixin(S_TRACE);
 						adjustText(owner, next, lastNextType);
 					}
