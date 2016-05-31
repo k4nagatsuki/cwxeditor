@@ -1956,6 +1956,7 @@ public:
 		if (!data) return;
 		string path = data.cwxPath(true);
 		path = cpaddattr(path, "shallow");
+		path = cpaddattr(path, "only");
 		auto r = _comm.openCWXPath(path, false);
 		if (!r) { mixin(S_TRACE);
 			MessageBox.showWarning(.tryFormat(_prop.msgs.cwxPathOpenError, path), _prop.msgs.dlgTitWarning, _win);
@@ -4036,6 +4037,7 @@ public:
 				if (_prop.var.etc.searchOpenDialog) { mixin(S_TRACE);
 					path = cpaddattr(path, "opendialog");
 				}
+				path = cpaddattr(path, "only");
 				if (rp.scPath !is null) { mixin(S_TRACE);
 					exec("\"" ~ _prop.parent.appPath ~ "\" \"" ~ rp.scPath ~ "\" " ~ path);
 					return;
