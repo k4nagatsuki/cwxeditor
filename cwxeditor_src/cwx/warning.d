@@ -487,7 +487,13 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			return uint.max;
 		}
 		size_t rows(in Content c) { mixin(S_TRACE);
-			return (c.next.length + (c.selectionColumns - 1)) / c.selectionColumns;
+			size_t len = 0;
+			foreach (n; c.next) { mixin(S_TRACE);
+				if (n.name != "" && n.type !is CType.CHECK_FLAG && n.type !is CType.CHECK_STEP) { mixin(S_TRACE);
+					len++;
+				}
+			}
+			return (len + (c.selectionColumns - 1)) / c.selectionColumns;
 		}
 		if (c.detail.nextType is CNextType.TEXT && maxNextLen(c) < rows(c)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningSelectionBarIsMany, rows(c), maxNextLen(c));
