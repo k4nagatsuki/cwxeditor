@@ -2145,8 +2145,8 @@ public:
 		auto pNode = setEffProp(cNode, opt, od);
 		if (0 == linkId || (opt && opt.includeCard)) { mixin(S_TRACE);
 			pNode.newElement("Level", level);
+			pNode.newElement("UseLimit", useLimit);
 		}
-		pNode.newElement("UseLimit", useLimit);
 		pNode.newElement("Hold", fromBool(od && od.overHold ? od.hold : hold));
 	}
 
@@ -2401,8 +2401,8 @@ public:
 			return;
 		}
 		auto pNode = setEffProp(cNode, opt, od);
-		pNode.newElement("UseLimit", useLimit).newAttr("max", useLimitMax);
 		if (0 == linkId || (opt && opt.includeCard)) { mixin(S_TRACE);
+			pNode.newElement("UseLimit", useLimit).newAttr("max", useLimitMax);
 			pNode.newElement("Price", price);
 			auto eo = pNode.newElement("EnhanceOwner");
 			eo.newAttr("avoid", enhanceOwner(Enhance.AVOID));
@@ -2611,7 +2611,9 @@ public:
 			return;
 		}
 		auto pNode = setEffProp(cNode, opt, od);
-		pNode.newElement("UseLimit", useLimit);
+		if (0 == linkId || (opt && opt.includeCard)) { mixin(S_TRACE);
+			pNode.newElement("UseLimit", useLimit);
+		}
 	}
 	/// コピーを生成する。
 	@property
