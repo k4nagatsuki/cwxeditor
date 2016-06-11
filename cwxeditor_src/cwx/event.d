@@ -2381,6 +2381,7 @@ public:
 		_suc = new SUseCounter;
 		_starts = starts;
 		foreach (s; _starts) { mixin(S_TRACE);
+			if (s._tree) s._tree._startNames.remove(s.name);
 			s._tree = this;
 			s.setSUseCounter(_suc);
 		}
@@ -2531,6 +2532,7 @@ public:
 		if (_uc !is null) { mixin(S_TRACE);
 			evt.setUseCounter(_uc);
 		}
+		if (evt._tree) evt._tree._startNames.remove(evt.name);
 		evt.setSUseCounter(_suc);
 		evt._tree = this;
 		evt.changeHandler = changeHandler;
@@ -2545,6 +2547,7 @@ public:
 		if (_uc !is null) { mixin(S_TRACE);
 			evt.setUseCounter(_uc);
 		}
+		if (evt._tree) evt._tree._startNames.remove(evt.name);
 		evt.setSUseCounter(_suc);
 		evt._tree = this;
 		evt.changeHandler = changeHandler;
@@ -2552,6 +2555,8 @@ public:
 		_startNames[evt.name] = evt;
 		changed();
 	}
+	const
+	string[] startNames() { return _startNames.keys(); }
 	/// スタートコンテントを除外。
 	void remove(size_t index) in { mixin(S_TRACE);
 		assert (_starts.length > 1);

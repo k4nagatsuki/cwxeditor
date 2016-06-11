@@ -446,6 +446,7 @@ private:
 			foreach (i, c; _c.dup) { mixin(S_TRACE);
 				auto index = _path[i][$ - 1];
 				auto tc = et.fromPath(_path[i]);
+				delImpl(vs, comm, et, tc);
 				if (c.type == CType.START) { mixin(S_TRACE);
 					et.startUseCounter.change(tc.name, c.name);
 				}
@@ -479,7 +480,6 @@ private:
 						v._tree.editor.updatePosOne(c);
 					}
 				}
-				delImpl(vs, comm, et, tc);
 				if (!pc) { mixin(S_TRACE);
 					foreach (v; vs) { mixin(S_TRACE);
 						v._refreshTopStart();
