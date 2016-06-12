@@ -557,7 +557,7 @@ private:
 			}
 		}
 		static if (Field) {
-			if (_prop.targetVersion(summ, "1.30")) { mixin(S_TRACE);
+			if (summ && summ.legacy && !_prop.targetVersion(summ, "1.30")) { mixin(S_TRACE);
 				if (_range[Range.FIELD].getSelection()) { mixin(S_TRACE);
 					ws ~= prop.msgs.warningBranchCouponAtField;
 				}
