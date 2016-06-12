@@ -4057,20 +4057,25 @@ Rectangle setupWindow(Shell shell, DSize winProps) { mixin(S_TRACE);
 	shell.setBounds(x, y, width, height);
 	void saveWin(Event e) { mixin(S_TRACE);
 		if (!shell.getMaximized()) { mixin(S_TRACE);
-			auto s = shell.getSize();
-			if (winProps.width != s.x || winProps.height != s.y) { mixin(S_TRACE);
-				winProps.width = s.x;
-				winProps.height = s.y;
-				void recurse(Control ctrl) { mixin(S_TRACE);
-					if (auto sash = cast(SplitPane)ctrl) { mixin(S_TRACE);
-						sash.notifySelectionListeners(e);
+			.asyncExec(shell.getDisplay(), { mixin(S_TRACE);
+				// SplitPaneのSash位置の記録処理は再レイアウト後に
+				// 行う必要が有るため、実行を遅延する
+				if (shell.isDisposed()) return;
+				auto s = shell.getSize();
+				if (winProps.width != s.x || winProps.height != s.y) { mixin(S_TRACE);
+					winProps.width = s.x;
+					winProps.height = s.y;
+					void recurse(Control ctrl) { mixin(S_TRACE);
+						if (auto sash = cast(SplitPane)ctrl) { mixin(S_TRACE);
+							sash.notifySelectionListeners(e);
+						}
+						if (auto comp = cast(Composite)ctrl) { mixin(S_TRACE);
+							foreach (child; comp.getChildren()) recurse(child);
+						}
 					}
-					if (auto comp = cast(Composite)ctrl) { mixin(S_TRACE);
-						foreach (child; comp.getChildren()) recurse(child);
-					}
+					recurse(shell);
 				}
-				recurse(shell);
-			}
+			});
 			auto parent = shell.getParent();
 			if (w) { mixin(S_TRACE);
 				w.x = shell.getBounds().x - (parent ? shell.getParent().getBounds().x : 0);
