@@ -2524,6 +2524,7 @@ class MsgPreview : Composite {
 
 	private class Paint : PaintListener {
 		override void paintControl(PaintEvent e) { mixin(S_TRACE);
+			refreshImpl();
 			auto b = _canvas.getBounds();
 			auto rect = _prop.looks.messageBounds;
 			e.gc.drawImage(_img, (b.width - rect.width) / 2, (b.height - rect.height) / 2);
@@ -2563,7 +2564,7 @@ class MsgPreview : Composite {
 	}
 
 	void text(CardImage[] imgPaths, string message) { mixin(S_TRACE);
-		if (_img && imgPaths == _imgPaths && message == _message) { mixin(S_TRACE);
+		if (imgPaths == _imgPaths && message == _message) { mixin(S_TRACE);
 			return;
 		}
 		_imgPaths = imgPaths;
@@ -2572,10 +2573,15 @@ class MsgPreview : Composite {
 	}
 
 	private void refresh() { mixin(S_TRACE);
-		auto d = _canvas.getDisplay();
 		if (_img) { mixin(S_TRACE);
 			_img.dispose();
+			_img = null;
 		}
+		_canvas.redraw();
+	}
+	private void refreshImpl() { mixin(S_TRACE);
+		if (_img) return;
+		auto d = _canvas.getDisplay();
 		ImageData[] tImg = [];
 		foreach (imgPath; _imgPaths) { mixin(S_TRACE);
 			final switch (imgPath.type) {
@@ -2606,7 +2612,6 @@ class MsgPreview : Composite {
 		string[string] flags, steps;
 		_values.getValues(names, flags, steps);
 		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, _message, [], names, flags, steps));
-		_canvas.redraw();
 	}
 
 	@property
