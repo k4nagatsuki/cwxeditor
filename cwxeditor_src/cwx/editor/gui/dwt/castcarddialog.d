@@ -754,7 +754,7 @@ private:
 				val += calcMtl!(Period)(summSkin, mtl, _period, false);
 				val += calcMtl!(Nature)(summSkin, mtl, _nature, false);
 				val += calcMtl!(Makings)(summSkin, mtl, _makings, true);
-				auto v = cast(int)(val < 0 ? val + 0.5 : val - 0.5);
+				auto v = cast(int)val;
 				if (v < min) v = min;
 				if (v > max) v = max;
 				scale.setSelection(v + _prop.var.etc.mentalMax);
