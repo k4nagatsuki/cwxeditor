@@ -447,12 +447,10 @@ private:
 				auto index = _path[i][$ - 1];
 				auto tc = et.fromPath(_path[i]);
 				auto pc = tc.parent;
-				if (!pc) { mixin(S_TRACE);
+				if (c.type is CType.START) { mixin(S_TRACE);
 					// スタートコンテントは名前被りを避けるため
 					// 予めここで削除しておく
 					delImpl(vs, comm, et, tc);
-				}
-				if (c.type == CType.START) { mixin(S_TRACE);
 					et.startUseCounter.change(tc.name, c.name);
 				}
 				_c[i] = tc.dup;
@@ -465,7 +463,7 @@ private:
 					et.insert(index, c);
 					text = c.name;
 				}
-				if (pc) { mixin(S_TRACE);
+				if (c.type !is CType.START) { mixin(S_TRACE);
 					delImpl(vs, comm, et, tc);
 				}
 				foreach (v; vs) v._tree.control.setRedraw(false);
