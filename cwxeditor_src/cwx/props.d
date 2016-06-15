@@ -103,8 +103,8 @@ public:
 	@property const uint physicalCutMaxBase() {return 6;}
 	@property const uint physicalNormal() {return 6;}
 	@property const uint[] physicalBorders() {return [1, 6, 12];}
-	@property const uint mentalCut() {return 3;}
-	@property const uint[] mentalBorders() {return [3];}
+	@property const uint mentalCut() {return 4;}
+	@property const uint[] mentalBorders() {return [2];}
 
 	const int skillPrice(int lev) {return (lev + 2) * 200;}
 	@property const int beastPrice() {return 500;}
