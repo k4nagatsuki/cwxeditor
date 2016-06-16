@@ -2543,7 +2543,7 @@ fi`;
 			if (node.type is NodeType.START) { mixin(S_TRACE);
 				c.setName(_prop, createNewName(c.name, (string name) { mixin(S_TRACE);
 					foreach (sn; startNames) { mixin(S_TRACE);
-						if (0 == icmp(sn, name)) { mixin(S_TRACE);
+						if (sn == name) { mixin(S_TRACE);
 							return false;
 						}
 					}
@@ -2820,7 +2820,7 @@ fi`;
 					stack = 0;
 					auto s = new Content(CType.START, .createNewName(.format("Auto wrap (%d)", autoWrapCount), (string name) { mixin(S_TRACE);
 						foreach (sn; startNames) { mixin(S_TRACE);
-							if (0 == icmp(sn, name)) { mixin(S_TRACE);
+							if (sn == name) { mixin(S_TRACE);
 								return false;
 							}
 						}

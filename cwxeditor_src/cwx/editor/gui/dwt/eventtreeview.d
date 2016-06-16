@@ -447,13 +447,15 @@ private:
 				auto index = _path[i][$ - 1];
 				auto tc = et.fromPath(_path[i]);
 				auto pc = tc.parent;
-				if (c.type is CType.START) { mixin(S_TRACE);
+				_c[i] = tc.dup;
+				if (!pc) { mixin(S_TRACE);
 					// スタートコンテントは名前被りを避けるため
-					// 予めここで削除しておく
-					delImpl(vs, comm, et, tc);
+					// 予めここで名前を変更しておく
+					tc.setName(prop.parent, createNewName("*Temporary_Start_Name*", (name) { mixin(S_TRACE);
+						return !et.hasStart(name) && c.name != name;
+					}));
 					et.startUseCounter.change(tc.name, c.name);
 				}
-				_c[i] = tc.dup;
 				_c[i].setUseCounter(summ.useCounter.sub);
 				string text;
 				if (pc) { mixin(S_TRACE);
@@ -463,9 +465,7 @@ private:
 					et.insert(index, c);
 					text = c.name;
 				}
-				if (c.type !is CType.START) { mixin(S_TRACE);
-					delImpl(vs, comm, et, tc);
-				}
+				delImpl(vs, comm, et, tc);
 				foreach (v; vs) v._tree.control.setRedraw(false);
 				scope (exit) foreach (v; vs) v._tree.control.setRedraw(true);
 				foreach (v; vs) { mixin(S_TRACE);
@@ -940,10 +940,7 @@ private:
 					}
 				}
 				name = createNewName(startName, (string name) { mixin(S_TRACE);
-					foreach (start; _et.starts) { mixin(S_TRACE);
-						if (icmp(start.name, name) == 0) return false;
-					}
-					return true;
+					return !_et.hasStart(name);
 				}, true, EventView.eventTreeNames(_prop, _et));
 			}
 			applied(new Content(type, name));
@@ -2261,12 +2258,7 @@ public:
 		storeContentAndInsert(c.parent, cast(int)si, 1);
 
 		auto start = new Content(CType.START, createNewName(parentStart.name, (string name) { mixin(S_TRACE);
-			foreach (s; _et.starts) { mixin(S_TRACE);
-				if (icmp(s.name, name) == 0) { mixin(S_TRACE);
-					return false;
-				}
-			}
-			return true;
+			return !_et.hasStart(name);
 		}, true, EventView.eventTreeNames(_prop, _et)));
 		_et.insert(si, start);
 		auto link = new Content(CType.LINK_START, c.name);
@@ -2419,12 +2411,8 @@ public:
 			store(evt);
 			if (evt.type == CType.START) { mixin(S_TRACE);
 				evt.setName(_prop.parent, createNewName(text, (string name) { mixin(S_TRACE);
-					foreach (s; _et.starts) { mixin(S_TRACE);
-						if (s !is evt && icmp(s.name, name) == 0) { mixin(S_TRACE);
-							return false;
-						}
-					}
-					return true;
+					auto s = _et.start(name);
+					return !(s && s !is evt);
 				}, true, EventView.eventTreeNames(_prop, _et)));
 				text = evt.name;
 			} else { mixin(S_TRACE);
@@ -3171,14 +3159,10 @@ public:
 			if (!c.type is CType.START) continue;
 			auto oldName = c.name;
 			c.setName(_prop.parent, createNewName(c.name, (string name) { mixin(S_TRACE);
-				foreach (s; _et.starts) { mixin(S_TRACE);
-					if (icmp(s.name, name) == 0) { mixin(S_TRACE);
-						return false;
-					}
-				}
+				if (_et.hasStart(name)) return false;
 				foreach (s; cs2) { mixin(S_TRACE);
 					if (s is c) continue;
-					if (icmp(s.name, name) == 0) { mixin(S_TRACE);
+					if (s.name == name) { mixin(S_TRACE);
 						return false;
 					}
 				}

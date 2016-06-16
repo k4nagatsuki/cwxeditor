@@ -841,7 +841,7 @@ private:
 			text = createNewName(text, (string name) { mixin(S_TRACE);
 				if (!tree.starts.length) return true;
 				foreach (s; tree.starts[1..$]) { mixin(S_TRACE);
-					if (icmp(s.name, name) == 0) { mixin(S_TRACE);
+					if (s.name == name) { mixin(S_TRACE);
 						return false;
 					}
 				}

@@ -1579,7 +1579,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 			auto p = flag.path;
 			if (!flagIncSearch.match(p)) continue;
 			flags.add(p);
-			if (0 == i || 0 == icmp(p, fSel)) flags.select(cast(int)i);
+			if (0 == i || p == fSel) flags.select(cast(int)i);
 			i++;
 		}
 		flags.setEnabled(list.length > 0);
@@ -1595,7 +1595,7 @@ Composite createFlagStepBar(Composite parent, void delegate(string) insert, Comm
 			auto p = step.path;
 			if (!stepIncSearch.match(p)) continue;
 			steps.add(p);
-			if (0 == i || 0 == icmp(p, sSel)) steps.select(cast(int)i);
+			if (0 == i || p == sSel) steps.select(cast(int)i);
 			i++;
 		}
 		steps.setEnabled(list.length > 0);
