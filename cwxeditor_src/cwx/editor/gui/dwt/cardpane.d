@@ -1242,7 +1242,7 @@ private:
 	void refreshR(string from, string to) { mixin(S_TRACE);
 		refreshImpl();
 	}
-	void refresh(Card c) { mixin(S_TRACE);
+	void refresh(Card c, bool updateStatus = true) { mixin(S_TRACE);
 		if (!_tbl || _tbl.isDisposed()) return;
 		void update(size_t i, Card card) { mixin(S_TRACE);
 			bool targ = card is c;
@@ -1266,7 +1266,7 @@ private:
 				update(i, card);
 			}
 		}
-		refreshStatusLine();
+		if (updateStatus) refreshStatusLine();
 	}
 	void refreshImpl() { mixin(S_TRACE);
 		closePreview();
@@ -3448,10 +3448,12 @@ public:
 			}
 			cards[i].id = newId;
 			refCard(cards[i]);
+			refresh(cards[i]);
 			newId++;
 		}
 		refreshIDs();
 		if (refIDs) _undo ~= undo;
+		refreshStatusLine();
 		_comm.refreshToolBar();
 	}
 
