@@ -3524,7 +3524,7 @@ public:
 				// アプリケーション全体を対象としたメニュー以外は、
 				// 現在操作中のウィンドウのみで適用する
 				auto data = cast(MenuData)menu.getData();
-				if (data && shl !is fc.getShell() && !.isGlobalMenu(data.id)) { mixin(S_TRACE);
+				if (data && shl !is fc.getShell() && !cast(DockingFolderShell)fc.getShell().getData() && !.isGlobalMenu(data.id)) { mixin(S_TRACE);
 					return;
 				}
 			}

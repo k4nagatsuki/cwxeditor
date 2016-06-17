@@ -74,6 +74,9 @@ private struct PaneMemory {
 	int height = SWT.DEFAULT;
 }
 
+/// DockingFolder内で生成されたShellにはこのオブジェクトが設定される。
+class DockingFolderShell { }
+
 class DockingFolder(TabF, int Style) {
 	static if (is(TabF == TabFolder)) {
 		alias TabItem Tab;
@@ -667,6 +670,7 @@ class DockingFolder(TabF, int Style) {
 	private void createSubWindow(out Shell shell, out Composite area) {
 		auto parShl = _comp.getShell();
 		shell = new Shell(parShl, SWT.TITLE | SWT.RESIZE | SWT.CLOSE | SWT.TOOL);
+		shell.setData(new DockingFolderShell);
 		_subShells ~= shell;
 		shell.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 		_subCanvas[shell] = createCanvas(shell);
