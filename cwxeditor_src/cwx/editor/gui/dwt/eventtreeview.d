@@ -80,6 +80,8 @@ private:
 	Menu _evTemplM = null;
 	Converter[CType] _conts;
 	bool _showEventTreeDetail = false;
+	EventEdit _ee = null;
+	TreeEdit _te = null;
 
 	void delegate(size_t[]) _forceSel;
 	void delegate() _refreshTopStart;
@@ -373,6 +375,7 @@ private:
 			auto sel = mainV.selection;
 			_selPath2 = sel ? (cast(Content)sel.getData()).ctPath : null;
 			foreach (v; vs) { mixin(S_TRACE);
+				v.editCancel();
 				v._forceSel(_etPath);
 			}
 			foreach (v; vs) { mixin(S_TRACE);
@@ -725,6 +728,7 @@ private:
 		if (!_box._arrowMode || _box._putMode is MenuID.PutQuick) { mixin(S_TRACE);
 			_tree.control.setRedraw(false);
 			scope (exit) _tree.control.setRedraw(true);
+			foreach (v; views()) v.editEnter();
 			if (_box._cType == CType.START) { mixin(S_TRACE);
 				if (insertTo) return;
 				create(null, _box._cType, "", (Content evt) { mixin(S_TRACE);
@@ -1373,6 +1377,7 @@ private:
 						auto sp = selParent(ti);
 						if (!sp || sp.eventId != id) { mixin(S_TRACE);
 							// 転送先が自分の子コンテントではないなら転送成功
+							foreach (v; views()) v.editEnter();
 							bool empty = _et.owner.isEmpty;
 							scope (exit) {
 								if (empty != _et.owner.isEmpty) _comm.refEventTree.call(_et);
@@ -1866,12 +1871,12 @@ public:
 			_tree.editor = new EventEditor(_comm, _comp, SWT.BORDER | _readOnly, _summ, null);
 			_tree.editor.showEventTreeDetail = _showEventTreeDetail;
 			_tree.editor.slope = _prop.var.etc.eventTreeSlope;
-			new EventEdit(_comm, _tree.editor, &editEnd, &createEditor);
+			_ee = new EventEdit(_comm, _tree.editor, &editEnd, &createEditor);
 		} else { mixin(S_TRACE);
 			_tree.tree = new Tree(_comp, SWT.SINGLE | SWT.BORDER | SWT.VIRTUAL);
 			initTree(_comm, _tree.tree, true, true, () => _summ ? _prop.var.etc.classicStyleTree.value : classicStyleTree);
 			if (!_readOnly) { mixin(S_TRACE);
-				new TreeEdit(_comm, _tree.tree, &editEnd, &createEditor);
+				_te = new TreeEdit(_comm, _tree.tree, &editEnd, &createEditor);
 			}
 			_tree.tree.addPaintListener(new PaintTree);
 			if (!_grayFont) { mixin(S_TRACE);
@@ -2051,6 +2056,7 @@ public:
 	void toScript() { mixin(S_TRACE);
 		auto itm = selection;
 		if (!itm) return;
+		foreach (v; views()) v.editEnter();
 		auto c = cast(Content) itm.getData();
 		auto script = new CWXScript(_prop.parent, _summ);
 		auto text = script.toScript([c], summSkin.evtChildOK, _summ ? _summ.legacy : false, "\t");
@@ -2060,6 +2066,7 @@ public:
 	}
 	void toScriptAll() { mixin(S_TRACE);
 		if (!_et) return;
+		foreach (v; views()) v.editEnter();
 		auto script = new CWXScript(_prop.parent, _summ);
 		auto text = script.toScript(_et.starts, summSkin.evtChildOK, _summ ? _summ.legacy : false, "\t");
 		text = .replace(text ~ "\n", "\n", .newline);
@@ -2069,6 +2076,7 @@ public:
 	void toScript1Content() { mixin(S_TRACE);
 		auto itm = selection;
 		if (!itm) return;
+		foreach (v; views()) v.editEnter();
 		auto c = cast(Content) itm.getData();
 		auto script = new CWXScript(_prop.parent, _summ);
 		auto c2 = new Content(c.type, c.name);
@@ -2125,6 +2133,7 @@ public:
 		if (_tree.getItemCount() < 1) return;
 		auto sel = selection;
 		if (!sel) return;
+		foreach (v; views()) v.editEnter();
 		auto base = cast(Content)selection.getData();
 		auto startItm = _tree.topItem(sel);
 		auto start = base.parentStart;
@@ -2250,6 +2259,7 @@ public:
 	}
 	void wrapTree() { mixin(S_TRACE);
 		if (!canWrapTree) return;
+		foreach (v; views()) v.editEnter();
 		auto sel = selection;
 		assert (sel !is null);
 		auto c = cast(Content)sel.getData();
@@ -2295,6 +2305,9 @@ public:
 		_comm.setStatusLine(_tree.control, "");
 		_statusLine = "";
 		if (_et !is et) { mixin(S_TRACE);
+			if (_et) { mixin(S_TRACE);
+				foreach (v; views()) v.editEnter();
+			}
 			foreach (dlg; _editDlgs.values) { mixin(S_TRACE);
 				dlg.forceCancel();
 			}
@@ -2714,6 +2727,7 @@ public:
 		if (!et) return;
 		foreach (v; vs) v._tree.control.setRedraw(false);
 		scope (exit) foreach (v; vs) v._tree.control.setRedraw(true);
+		foreach (v; vs) v.editEnter();
 		auto pc = c.parent;
 		size_t i, j;
 		auto path = c.ctPath;
@@ -2887,6 +2901,8 @@ public:
 		auto parParNType = fromCNextType(parPar.detail.nextType);
 		auto parIndex = parPar.next.cCountUntil!"a is b"(par);
 
+		auto vs = views();
+		foreach (v; vs) v.editEnter();
 		store(parPar);
 
 		// 入れ替え
@@ -2905,7 +2921,7 @@ public:
 		next.add(_prop.parent, par);
 
 		// 表示の更新
-		foreach (v; views()) { mixin(S_TRACE);
+		foreach (v; vs) { mixin(S_TRACE);
 			if (_tree.tree) { mixin(S_TRACE);
 				assert (cast(TreeItem)parent !is null);
 				auto parent2 = .anotherTreeItem(v._tree.tree, cast(TreeItem)parent);
@@ -3044,6 +3060,7 @@ public:
 		auto vs = views();
 		foreach (v; vs) v._tree.control.setRedraw(false);
 		scope (exit) foreach (v; vs) v._tree.control.setRedraw(true);
+		foreach (v; vs) v.editEnter();
 		if (stored) store(owner);
 		if (last) { mixin(S_TRACE);
 			cs2[0].setName(_prop.parent, owner.name);
@@ -3152,9 +3169,10 @@ public:
 		if (!cs2.length) return;
 
 		auto top = _tree.getTopItem();
+		auto vs = views();
+		foreach (v; vs) v.editEnter();
 		if (stored) storeInsert(index, cs2.length);
 		Item sItm = null, lastItm = null;
-		auto vs = views();
 		foreach (i, c; cs2) { mixin(S_TRACE);
 			if (!c.type is CType.START) continue;
 			auto oldName = c.name;
@@ -3208,6 +3226,15 @@ public:
 		_comm.refreshToolBar();
 	}
 
+	void editCancel() {
+		if (_ee) _ee.cancel();
+		if (_te) _te.cancel();
+	}
+	void editEnter() {
+		if (_ee) _ee.enter();
+		if (_te) _te.enter();
+	}
+
 	override {
 		void cut(SelectionEvent se) { mixin(S_TRACE);
 			if (_readOnly) return;
@@ -3221,6 +3248,7 @@ public:
 		void copy(SelectionEvent se) { mixin(S_TRACE);
 			auto itm = selection;
 			if (itm) { mixin(S_TRACE);
+				foreach (v; views()) v.editEnter();
 				auto c = cast(Content)itm.getData();
 				XMLtoCB(_prop, _comm.clipboard, toXML(c));
 				_comm.refreshToolBar();
@@ -3306,6 +3334,7 @@ public:
 		if (_readOnly) return;
 		auto itm = selection;
 		if (itm && _tree.getParentItem(itm)) { mixin(S_TRACE);
+			foreach (v; views()) v.editEnter();
 			copy1Content();
 			del1Content();
 		}
@@ -3314,6 +3343,7 @@ public:
 		if (_readOnly) return;
 		auto itm = selection;
 		if (itm) { mixin(S_TRACE);
+			foreach (v; views()) v.editEnter();
 			auto c = cast(Content)itm.getData();
 			XMLtoCB(_prop, _comm.clipboard, toXML(c, true));
 			_comm.refreshToolBar();
@@ -3329,6 +3359,7 @@ public:
 		if (itm && _tree.getParentItem(itm)) { mixin(S_TRACE);
 			_tree.control.setRedraw(false);
 			scope(exit) _tree.control.setRedraw(true);
+			foreach (v; views()) v.editEnter();
 
 			auto ownerItm = _tree.getParentItem(itm);
 			auto c = cast(Content)itm.getData();
@@ -3378,6 +3409,7 @@ public:
 			return;
 		}
 		if (c) { mixin(S_TRACE);
+			foreach (v; views()) v.editEnter();
 			try { mixin(S_TRACE);
 				auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 				auto node = XNode.parse(c);
@@ -3444,6 +3476,7 @@ public:
 		if (_readOnly) return;
 		if (!_et) return;
 		if (!cs.length) return;
+		foreach (v; views()) v.editEnter();
 		Content[] starts;
 		Content[] contents;
 		foreach (c; cs) { mixin(S_TRACE);
@@ -3475,6 +3508,9 @@ public:
 	}
 	private void delImpl(Item itm, bool store, bool viewOnly = false, bool refOtherView = false) { mixin(S_TRACE);
 		if (_readOnly) return;
+		auto vs = [this];
+		if (refOtherView) vs = views();
+		foreach (v; vs) v.editEnter();
 		auto tPath = _tree.tree ? .toTreePath(cast(TreeItem)itm) : [];
 		bool empty = _et.owner.isEmpty;
 		scope (exit) {
@@ -3494,8 +3530,6 @@ public:
 				_et.remove(c);
 			}
 		}
-		auto vs = [this];
-		if (refOtherView) vs = views();
 		foreach (v; vs) { mixin(S_TRACE);
 			if (v._tree.tree) { mixin(S_TRACE);
 				.fromTreePath(v._tree.tree, tPath).dispose();

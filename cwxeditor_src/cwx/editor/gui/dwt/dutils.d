@@ -1114,6 +1114,10 @@ public:
 		if (!isEditing) return;
 		_tee.cancel();
 	}
+	void enter() { mixin(S_TRACE);
+		if (!isEditing) return;
+		_tee.enter();
+	}
 }
 
 /// CardListのテキストを編集可能にする。
