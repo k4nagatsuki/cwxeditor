@@ -2648,11 +2648,17 @@ public:
 			} while (0 != icmp(a1.dirName, a2.dirName));
 			_undo ~= new ATUndoArr(undos);
 		} else { mixin(S_TRACE);
-			storeSwap(indexFrom!A(_summ, i1), indexFrom!A(_summ, i2));
+			auto index1 = indexFrom!A(_summ, i1);
+			auto index2 = indexFrom!A(_summ, i2);
+			storeSwap(index1, index2);
+			if (showSummary) { mixin(S_TRACE);
+				index1++;
+				index2++;
+			}
 			if (i1 < i2) { mixin(S_TRACE);
-				_areas.downItem(indexFrom!A(_summ, i1));
+				_areas.downItem(index1);
 			} else { mixin(S_TRACE);
-				_areas.upItem(indexFrom!A(_summ, i1));
+				_areas.upItem(index1);
 			}
 			_summ.swap!A(i1, i2);
 		}
