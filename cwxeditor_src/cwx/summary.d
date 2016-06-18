@@ -1830,7 +1830,7 @@ public:
 	private static string[string] toXMLsImpl(A)(in A[] targs, XMLOption opt) { mixin(S_TRACE);
 		string[string] r;
 		foreach (targ; targs) { mixin(S_TRACE);
-			auto fname = format("%02d", targ.id) ~ ".xml";
+			auto fname = .cleanFileName(.format("%02d_%s", targ.id, targ.name)) ~ ".xml";
 			r[fname] = targ.toXML(opt);
 		}
 		return r;
