@@ -267,6 +267,7 @@ class EventEditor : Composite {
 	inout(EventTree) eventTree() { return _et; }
 	@property
 	void eventTree(EventTree et) { mixin(S_TRACE);
+		if (_et is et) return;
 		_et = et;
 		updateEventTree();
 	}
@@ -343,6 +344,11 @@ class EventEditor : Composite {
 	private void updateEventTree() { mixin(S_TRACE);
 		_items = null;
 		updatePosAll();
+
+		auto vbar = getVerticalBar();
+		if (vbar) vbar.setSelection(0);
+		auto hbar = getHorizontalBar();
+		if (hbar) hbar.setSelection(0);
 	}
 	void updateEventText() { mixin(S_TRACE);
 		_updateEventText = true;
