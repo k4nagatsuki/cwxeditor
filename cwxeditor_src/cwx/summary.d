@@ -86,6 +86,7 @@ struct SaveOption {
 	bool backup = false; /// 保存時バックアップを行うか。
 	string backupDir = ""; /// 保存時バックアップ先。
 	bool archiveInNewThread = false; /// 保存後の圧縮を別スレッドで行うか。
+	bool xmlFileNameIsIDOnly = false; /// XMLファイルの名称をIDのみで設定するか。
 	void delegate() savedCallback = null; /// 保存完了通知を受け取る場合は設定する。
 }
 
@@ -1799,7 +1800,7 @@ public:
 	/// ]
 	/// ---
 	const
-	string[string][string] toXMLs(const System sys) { mixin(S_TRACE);
+	string[string][string] toXMLs(const System sys, in SaveOption saveOpt) { mixin(S_TRACE);
 		auto opt = new XMLOption(sys, dataVersion);
 		opt.includeCard = !isTargetVersion("1");
 		opt.skill = (id) => this.skill(id);
@@ -1815,22 +1816,27 @@ public:
 				r[parent] = p;
 			}
 		}
-		put(PATH_AREA, toXMLsImpl!(const Area)(_area, opt));
-		put(PATH_BATTLE, toXMLsImpl!(const Battle)(_btl, opt));
-		put(PATH_PACKAGE, toXMLsImpl!(const Package)(_pkg, opt));
+		put(PATH_AREA, toXMLsImpl!(const Area)(_area, opt, saveOpt));
+		put(PATH_BATTLE, toXMLsImpl!(const Battle)(_btl, opt, saveOpt));
+		put(PATH_PACKAGE, toXMLsImpl!(const Package)(_pkg, opt, saveOpt));
 
-		put(PATH_CAST, toXMLsImpl!(const CastCard)(_cast, opt));
-		put(PATH_SKILL, toXMLsImpl!(const SkillCard)(_skl, opt));
-		put(PATH_ITEM, toXMLsImpl!(const ItemCard)(_itm, opt));
-		put(PATH_BEAST, toXMLsImpl!(const BeastCard)(_bst, opt));
-		put(PATH_INFO, toXMLsImpl!(const InfoCard)(_info, opt));
+		put(PATH_CAST, toXMLsImpl!(const CastCard)(_cast, opt, saveOpt));
+		put(PATH_SKILL, toXMLsImpl!(const SkillCard)(_skl, opt, saveOpt));
+		put(PATH_ITEM, toXMLsImpl!(const ItemCard)(_itm, opt, saveOpt));
+		put(PATH_BEAST, toXMLsImpl!(const BeastCard)(_bst, opt, saveOpt));
+		put(PATH_INFO, toXMLsImpl!(const InfoCard)(_info, opt, saveOpt));
 
 		return r;
 	}
-	private static string[string] toXMLsImpl(A)(in A[] targs, XMLOption opt) { mixin(S_TRACE);
+	private static string[string] toXMLsImpl(A)(in A[] targs, XMLOption opt, in SaveOption saveOpt) { mixin(S_TRACE);
 		string[string] r;
 		foreach (targ; targs) { mixin(S_TRACE);
-			auto fname = .cleanFileName(.format("%02d_%s", targ.id, targ.name)) ~ ".xml";
+			string fname;
+			if (saveOpt.xmlFileNameIsIDOnly) { mixin(S_TRACE);
+				fname = .format("%02d", targ.id) ~ ".xml";
+			} else { mixin(S_TRACE);
+				fname = .cleanFileName(.format("%02d_%s", targ.id, targ.name)) ~ ".xml";
+			}
 			r[fname] = targ.toXML(opt);
 		}
 		return r;
@@ -1919,7 +1925,12 @@ public:
 		} else { mixin(S_TRACE);
 			A[string] saveSet;
 			foreach (targ; targs) { mixin(S_TRACE);
-				auto p = createFileI(path, targ.name, ".xml", format("%02d", targ.id) ~ "_", true);
+				string p;
+				if (opt.xmlFileNameIsIDOnly) { mixin(S_TRACE);
+					p = createFileI(path, .format("%02d", targ.id), ".xml", "", true);
+				} else { mixin(S_TRACE);
+					p = createFileI(path, targ.name, ".xml", .format("%02d", targ.id) ~ "_", true);
+				}
 				saveSet[p.baseName()] = targ;
 			}
 			if (exists(path) && isDir(path)) { mixin(S_TRACE);
@@ -2501,7 +2512,7 @@ public:
 					ubyte*[] data;
 					scope arc = .zip(scenarioPath, false, [lock], false, data);
 					if (!expand) { mixin(S_TRACE);
-						auto xmls = toXMLs(prop.sys);
+						auto xmls = toXMLs(prop.sys, opt);
 						foreach (path, files; xmls) { mixin(S_TRACE);
 							foreach (name, xml; files) { mixin(S_TRACE);
 								auto p = std.path.buildPath(path, name);

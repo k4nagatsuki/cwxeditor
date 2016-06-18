@@ -1434,6 +1434,7 @@ struct OldSettings {
 	bool contentsAutoHide;
 	bool showCloseButtonAllTab;
 	bool showMotionDescription;
+	bool xmlFileNameIsIDOnly;
 	ToolBarSettings mainToolBar;
 	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
@@ -1490,6 +1491,7 @@ struct OldSettings {
 		this.showCloseButtonAllTab = prop.var.etc.showCloseButtonAllTab;
 		this.mainToolBar = prop.var.etc.mainToolBar;
 		this.showMotionDescription = prop.var.etc.showMotionDescription;
+		this.xmlFileNameIsIDOnly = prop.var.etc.xmlFileNameIsIDOnly;
 	}
 	void raiseEvent(Commons comm) { mixin(S_TRACE);
 		bool refSkin = false;
@@ -1642,6 +1644,20 @@ struct OldSettings {
 		}
 		if (this.mainToolBar != prop.var.etc.mainToolBar) { mixin(S_TRACE);
 			comm.mainWin.updateMainToolBar();
+		}
+		if (comm.summary && !comm.summary.legacy && this.xmlFileNameIsIDOnly != prop.var.etc.xmlFileNameIsIDOnly) { mixin(S_TRACE);
+			if (comm.summary.expandXMLs) { mixin(S_TRACE);
+				foreach (a; comm.summary.areas) a.changed();
+				foreach (a; comm.summary.battles) a.changed();
+				foreach (a; comm.summary.packages) a.changed();
+				foreach (a; comm.summary.casts) a.changed();
+				foreach (a; comm.summary.skills) a.changed();
+				foreach (a; comm.summary.items) a.changed();
+				foreach (a; comm.summary.beasts) a.changed();
+				foreach (a; comm.summary.infos) a.changed();
+			} else { mixin(S_TRACE);
+				comm.summary.changed();
+			}
 		}
 	}
 }

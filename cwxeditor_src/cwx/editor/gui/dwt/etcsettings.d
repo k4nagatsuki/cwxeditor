@@ -126,6 +126,7 @@ class EtcSettings : Composite {
 		boolSetting(comp, prop.var.etc.doubleIO, prop.msgs.doubleIO);
 		boolSetting(comp, prop.var.etc.archiveInNewThread, prop.msgs.archiveInNewThread);
 		boolSetting(comp, prop.var.etc.saveChangedOnly, prop.msgs.saveChangedOnly);
+		boolSetting(comp, prop.var.etc.xmlFileNameIsIDOnly, prop.msgs.xmlFileNameIsIDOnly);
 		boolSetting(comp, prop.var.etc.expandXMLs, prop.msgs.expandXMLs);
 		boolSetting(comp, prop.var.etc.saveInnerImagePath, prop.msgs.saveInnerImagePath);
 		boolSetting(comp, prop.var.etc.addNewClassicEngine, prop.msgs.addNewClassicEngine);
