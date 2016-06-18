@@ -1894,7 +1894,7 @@ public:
 	void saveXMLs(const System sys, in SaveOption opt) { mixin(S_TRACE);
 		saveXMLs(_sPath, sys, opt);
 	}
-	private static void delAllXML(A)(string p, in A[string] saveSet, in SaveOption opt) { mixin(S_TRACE);
+	private static void delAllXML(A)(string p, in A[string] saveSet, bool useSaveSet, in SaveOption opt) { mixin(S_TRACE);
 		bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
 		string backupDir = "";
 		if (canBackup) { mixin(S_TRACE);
@@ -1902,7 +1902,7 @@ public:
 		}
 		foreach (t; clistdir(p)) { mixin(S_TRACE);
 			auto file = std.path.buildPath(p, t);
-			if (saveSet && t !in saveSet) continue;
+			if (useSaveSet && t !in saveSet) continue;
 			if (isDir(file) || !cfnmatch(.extension(file), ".xml")) continue;
 
 			if (canBackup) { mixin(S_TRACE);
@@ -1917,15 +1917,15 @@ public:
 	private static void saveXML(A)(string path, A[] targs, in SaveOption opt, XMLOption xOpt, HashSet!Object changed) { mixin(S_TRACE);
 		if (targs.length == 0) { mixin(S_TRACE);
 			if (exists(path) && isDir(path)) { mixin(S_TRACE);
-				delAllXML!Object(path, null, opt);
+				delAllXML!Object(path, null, false, opt);
 				if (clistdir(path).length == 0) { mixin(S_TRACE);
 					rmdir(path);
 				}
 			}
 		} else { mixin(S_TRACE);
 			A[string] saveSet;
+			A[string] saveSet2;
 			foreach (targ; targs) { mixin(S_TRACE);
-				if (opt.saveChangedOnly && !changed.contains(cast(Object)targ)) continue;
 				string p;
 				if (opt.xmlFileNameIsIDOnly) { mixin(S_TRACE);
 					p = createFileI(path, .format("%02d", targ.id), ".xml", "", true);
@@ -1933,9 +1933,12 @@ public:
 					p = createFileI(path, targ.name, ".xml", .format("%02d", targ.id) ~ "_", true);
 				}
 				saveSet[p.baseName()] = targ;
+				if (!opt.saveChangedOnly || changed.contains(cast(Object)targ)) { mixin(S_TRACE);
+					saveSet2[p.baseName()] = targ;
+				}
 			}
 			if (exists(path) && isDir(path)) { mixin(S_TRACE);
-				delAllXML!A(path, saveSet, opt);
+				delAllXML!A(path, saveSet2, true, opt);
 			} else { mixin(S_TRACE);
 				mkdir(path);
 			}
