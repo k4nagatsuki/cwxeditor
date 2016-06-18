@@ -1894,58 +1894,64 @@ public:
 	void saveXMLs(const System sys, in SaveOption opt) { mixin(S_TRACE);
 		saveXMLs(_sPath, sys, opt);
 	}
-	private static void delAllXML(A)(string p, in A[string] saveSet, bool useSaveSet, in SaveOption opt) { mixin(S_TRACE);
-		bool canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
+	private static void saveXML(A)(string path, A[] targs, in SaveOption opt, XMLOption xOpt, HashSet!Object changed) { mixin(S_TRACE);
+		auto canBackup = opt.backup && (!opt.backupDir.exists() || opt.backupDir.isDir());
 		string backupDir = "";
 		if (canBackup) { mixin(S_TRACE);
-			backupDir = opt.backupDir.buildPath(p.baseName());
+			backupDir = opt.backupDir.buildPath(path.baseName());
 		}
-		foreach (t; clistdir(p)) { mixin(S_TRACE);
-			auto file = std.path.buildPath(p, t);
-			if (useSaveSet && t !in saveSet) continue;
-			if (isDir(file) || !cfnmatch(.extension(file), ".xml")) continue;
 
-			if (canBackup) { mixin(S_TRACE);
-				if (!backupDir.exists()) backupDir.mkdirRecurse();
-				auto backFile = backupDir.buildPath(t);
-				file.copy(backFile);
-			}
-
-			std.file.remove(file);
-		}
-	}
-	private static void saveXML(A)(string path, A[] targs, in SaveOption opt, XMLOption xOpt, HashSet!Object changed) { mixin(S_TRACE);
-		if (targs.length == 0) { mixin(S_TRACE);
-			if (exists(path) && isDir(path)) { mixin(S_TRACE);
-				delAllXML!Object(path, null, false, opt);
-				if (clistdir(path).length == 0) { mixin(S_TRACE);
-					rmdir(path);
-				}
-			}
-		} else { mixin(S_TRACE);
-			A[string] saveSet;
-			A[string] saveSet2;
-			foreach (targ; targs) { mixin(S_TRACE);
-				string p;
-				if (opt.xmlFileNameIsIDOnly) { mixin(S_TRACE);
-					p = createFileI(path, .format("%02d", targ.id), ".xml", "", true);
-				} else { mixin(S_TRACE);
-					p = createFileI(path, targ.name, ".xml", .format("%02d", targ.id) ~ "_", true);
-				}
-				saveSet[p.baseName()] = targ;
-				if (!opt.saveChangedOnly || changed.contains(cast(Object)targ)) { mixin(S_TRACE);
-					saveSet2[p.baseName()] = targ;
-				}
-			}
-			if (exists(path) && isDir(path)) { mixin(S_TRACE);
-				delAllXML!A(path, saveSet2, true, opt);
+		A[string] saveSet;
+		foreach (targ; targs) { mixin(S_TRACE);
+			string p;
+			if (opt.xmlFileNameIsIDOnly) { mixin(S_TRACE);
+				p = createFileI(path, .format("%02d", targ.id), ".xml", "", true);
 			} else { mixin(S_TRACE);
-				mkdir(path);
+				p = createFileI(path, targ.name, ".xml", .format("%02d", targ.id) ~ "_", true);
 			}
-			foreach (name, a; saveSet) { mixin(S_TRACE);
-				auto p = path.buildPath(name);
-				if (!opt.saveChangedOnly || !p.exists() || !p.isFile() || changed.contains(cast(Object)a)) { mixin(S_TRACE);
-					std.file.write(p, a.toXML(xOpt));
+			saveSet[p.baseName()] = targ;
+		}
+		if (targs.length && !.exists(path)) { mixin(S_TRACE);
+			mkdir(path);
+		}
+		void renameFile(string from, string to) { mixin(S_TRACE);
+			version (Windows) {
+				from = .nabs(from);
+				to = .nabs(to);
+				if (from.driveName.cfnmatch(to.driveName)) { mixin(S_TRACE);
+					std.file.rename(from, to);
+				} else { mixin(S_TRACE);
+					std.file.copy(from, to);
+					std.file.remove(from);
+				}
+			} else {
+				std.file.rename(from, to);
+			}
+		}
+		bool[string] wrote;
+		foreach (name, a; saveSet) { mixin(S_TRACE);
+			wrote[name] = true;
+			auto file = path.buildPath(name);
+			if (!opt.saveChangedOnly || !file.exists() || !file.isFile() || changed.contains(cast(Object)a)) { mixin(S_TRACE);
+				if (canBackup && file.exists()) { mixin(S_TRACE);
+					if (!backupDir.exists()) backupDir.mkdirRecurse();
+					auto backFile = backupDir.buildPath(name);
+					renameFile(file, backFile);
+				}
+				std.file.write(file, a.toXML(xOpt));
+			}
+		}
+		if (.exists(path)) { mixin(S_TRACE);
+			foreach (name; .clistdir(path)) { mixin(S_TRACE);
+				if (name in wrote) continue;
+				auto file = std.path.buildPath(path, name);
+				if (.isDir(file) || !.cfnmatch(.extension(name), ".xml")) continue;
+				if (canBackup) { mixin(S_TRACE);
+					if (!backupDir.exists()) backupDir.mkdirRecurse();
+					auto backFile = backupDir.buildPath(name);
+					renameFile(file, backFile);
+				} else { mixin(S_TRACE);
+					std.file.remove(file);
 				}
 			}
 		}
