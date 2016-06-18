@@ -1256,6 +1256,10 @@ class EventEditor : Composite {
 	private void onPaint(Event e) { mixin(S_TRACE);
 		if (!_et) return;
 		updatePosImpl2(true);
+		if (_showSelection) { mixin(S_TRACE);
+			_showSelection = false;
+			showSelection();
+		}
 		if (!_pos.length) return;
 		if (_updateCommentPos) { mixin(S_TRACE);
 			auto posY = new int[_pos.length];
@@ -1509,10 +1513,6 @@ class EventEditor : Composite {
 			e.gc.wDrawText(pos.content.comment, box.x + 5 - sx, box.y + 3 - sy, true);
 		}
 		setAntialias(SWT.OFF);
-		if (_showSelection) { mixin(S_TRACE);
-			_showSelection = false;
-			showSelection();
-		}
 		_updatedPos = false;
 	}
 
