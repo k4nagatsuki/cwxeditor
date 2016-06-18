@@ -1942,10 +1942,14 @@ public:
 			}
 		}
 		if (.exists(path)) { mixin(S_TRACE);
+			bool has = 0 < wrote.length;
 			foreach (name; .clistdir(path)) { mixin(S_TRACE);
 				if (name in wrote) continue;
 				auto file = std.path.buildPath(path, name);
-				if (.isDir(file) || !.cfnmatch(.extension(name), ".xml")) continue;
+				if (.isDir(file) || !.cfnmatch(.extension(name), ".xml")) { mixin(S_TRACE);
+					has = true;
+					continue;
+				}
 				if (canBackup) { mixin(S_TRACE);
 					if (!backupDir.exists()) backupDir.mkdirRecurse();
 					auto backFile = backupDir.buildPath(name);
@@ -1954,6 +1958,7 @@ public:
 					std.file.remove(file);
 				}
 			}
+			if (!has) .rmdir(path);
 		}
 	}
 
