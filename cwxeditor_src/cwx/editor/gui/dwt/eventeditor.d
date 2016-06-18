@@ -192,6 +192,7 @@ class EventEditor : Composite {
 	private bool _updateEventText = true; /// 次の描画でイベントテキストの位置計算のみやり直す。
 	private bool _showSelection = false;
 	private bool _updateCommentPos = false; /// 次の描画でコメントの位置計算のみやり直す。
+	private bool _updatedPos = false; /// 位置計算を行って再描画が完了するまでの間はtrue。
 
 	this (Commons comm, Composite parent, int style, Summary summ, EventTree et) { mixin(S_TRACE);
 		super (parent, style | SWT.V_SCROLL | SWT.H_SCROLL);
@@ -303,7 +304,7 @@ class EventEditor : Composite {
 	}
 
 	void showSelection() { mixin(S_TRACE);
-		if (_showSelection|| _updatePosAll || _updateContents.length) { mixin(S_TRACE);
+		if (_showSelection || _updatePosAll || _updatedPos || _updateContents.length) { mixin(S_TRACE);
 			_showSelection = true;
 			return;
 		}
@@ -663,6 +664,7 @@ class EventEditor : Composite {
 
 		_updatePosAll = false;
 		_updateContents = null;
+		_updatedPos = true;
 	}
 
 	/// 部分再描画処理。ツリーから取り除かれたスタートコンテントを削除する。
@@ -1507,6 +1509,7 @@ class EventEditor : Composite {
 			_showSelection = false;
 			showSelection();
 		}
+		_updatedPos = false;
 	}
 
 	private bool _showTerminalMark = false;
