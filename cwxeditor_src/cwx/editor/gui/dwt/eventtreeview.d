@@ -372,12 +372,12 @@ private:
 		void udb(EventTreeView[] vs) { mixin(S_TRACE);
 			if (!vs.length) return;
 			auto mainV = mainEventTreeView(vs);
-			auto sel = mainV.selection;
-			_selPath2 = sel ? (cast(Content)sel.getData()).ctPath : null;
 			foreach (v; vs) { mixin(S_TRACE);
 				v.editCancel();
 				v._forceSel(_etPath);
 			}
+			auto sel = mainV.selection;
+			_selPath2 = sel ? (cast(Content)sel.getData()).ctPath : null;
 			foreach (v; vs) { mixin(S_TRACE);
 				auto ct = Display.getCurrent().getFocusControl();
 				while (ct.getParent()) { mixin(S_TRACE);
