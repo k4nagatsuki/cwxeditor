@@ -1902,7 +1902,7 @@ public:
 		}
 		foreach (t; clistdir(p)) { mixin(S_TRACE);
 			auto file = std.path.buildPath(p, t);
-			if (saveSet && t in saveSet) continue;
+			if (saveSet && t !in saveSet) continue;
 			if (isDir(file) || !cfnmatch(.extension(file), ".xml")) continue;
 
 			if (canBackup) { mixin(S_TRACE);
@@ -1925,6 +1925,7 @@ public:
 		} else { mixin(S_TRACE);
 			A[string] saveSet;
 			foreach (targ; targs) { mixin(S_TRACE);
+				if (opt.saveChangedOnly && !changed.contains(cast(Object)targ)) continue;
 				string p;
 				if (opt.xmlFileNameIsIDOnly) { mixin(S_TRACE);
 					p = createFileI(path, .format("%02d", targ.id), ".xml", "", true);
