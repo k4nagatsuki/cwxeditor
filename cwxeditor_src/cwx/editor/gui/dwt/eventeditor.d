@@ -344,11 +344,9 @@ class EventEditor : Composite {
 	private void updateEventTree() { mixin(S_TRACE);
 		_items = null;
 		updatePosAll();
-
-		auto vbar = getVerticalBar();
-		if (vbar) vbar.setSelection(0);
-		auto hbar = getHorizontalBar();
-		if (hbar) hbar.setSelection(0);
+		.asyncExec(getDisplay(), { mixin(S_TRACE);
+			redraw();
+		});
 	}
 	void updateEventText() { mixin(S_TRACE);
 		_updateEventText = true;
