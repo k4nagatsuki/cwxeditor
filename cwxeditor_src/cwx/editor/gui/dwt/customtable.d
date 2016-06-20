@@ -78,8 +78,12 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 				auto index = indexOf(itm);
 				if (isSelected(index)) return super.sendMouseDownEvent(type, button, msg, wParam, lParam);
 				foreach (i; 0 .. getColumnCount()) { mixin(S_TRACE);
+					auto iRect = itm.getImageBounds(i);
+					if (x < iRect.x && (getStyle() & SWT.CHECK)) { mixin(S_TRACE);
+						return super.sendMouseDownEvent(type, button, msg, wParam, lParam);
+					}
 					// カーソル下のアイテムのアイコンかテキストをクリックした場合はそのアイテムを選択する
-					if (itm.getImageBounds(i).contains(x, y)) { mixin(S_TRACE);
+					if (iRect.contains(x, y)) { mixin(S_TRACE);
 						return super.sendMouseDownEvent(type, button, msg, wParam, lParam);
 					}
 					auto tRect = itm.getTextBounds(i);
@@ -354,6 +358,10 @@ Table rangeSelectableTable(Composite parent, int style) { mixin(S_TRACE);
 				auto shift = (e.stateMask & SWT.SHIFT) != 0;
 				if (!ctrl && !shift && !rangeSelection) { mixin(S_TRACE);
 					auto itm = table.getItem(new Point(e.x, e.y));
+					if (itm && (table.getStyle() & SWT.CHECK) && e.x < itm.getImageBounds(0).x) { mixin(S_TRACE);
+						// チェックボックスをクリック
+						return;
+					}
 					auto indices = table.getSelectionIndices();
 					if (itm) { mixin(S_TRACE);
 						table.setSelection([itm]);
