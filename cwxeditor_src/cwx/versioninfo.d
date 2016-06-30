@@ -27,6 +27,6 @@ immutable VERSION_NAMES = [
 ];
 /// WSNデータバージョンに対応するエンジン名。
 immutable ENGINES = [
-	"CWPy 0.12.4(α)",
-	"CWPy 0.12.3",
+	"CardWirthPy 1",
+	"CardWirthPy 0.12.3",
 ];
