@@ -853,6 +853,7 @@ class ImportOptionDialog : AbsDialog {
 	private Commons _comm;
 	private ImportOption _opt;
 	private Props _prop;
+	private bool _canIncludeImage;
 
 	private Combo _materials;
 	private Combo _variables;
@@ -871,9 +872,10 @@ class ImportOptionDialog : AbsDialog {
 	private Combo _beastsInMotions;
 	private Button _overwriteScenarioInfo;
 
-	this (Commons comm, Shell shell) { mixin(S_TRACE);
+	this (Commons comm, Shell shell, bool canIncludeImage) { mixin(S_TRACE);
 		_comm = comm;
 		_prop = comm.prop;
+		_canIncludeImage = canIncludeImage;
 		super (_prop, shell, true, _prop.msgs.dlgTitImportOption, _prop.images.menu(MenuID.Import), false);
 	}
 
@@ -894,7 +896,7 @@ class ImportOptionDialog : AbsDialog {
 		auto cgd = new GridLayout(4, false);
 		cgd.marginHeight = 0;
 		comp.setLayout(cgd);
-		Combo create(T)(Image icon, string name, int opValue, T value) { mixin(S_TRACE);
+		Combo create(T)(Image icon, string name, int opValue, T value, bool canIncludeImage = true) { mixin(S_TRACE);
 			if (opValue < value.min || value.max < opValue) opValue = value;
 			value = cast(T)opValue;
 			auto label = new CLabel(comp, SWT.NONE);
@@ -905,6 +907,16 @@ class ImportOptionDialog : AbsDialog {
 			combo.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 			foreach (t; EnumMembers!T) { mixin(S_TRACE);
 				static if (is(T:ImportTypeIncluded)) {
+					final switch (t) {
+					case ImportTypeIncluded.Exclude:
+						break;
+					case ImportTypeIncluded.Include:
+						if (!canIncludeImage) continue;
+						break;
+					case ImportTypeIncluded.AsIs:
+						if (!canIncludeImage) continue;
+						break;
+					}
 					combo.add(_prop.msgs.importTypeIncludedName(t));
 				} else static if (is(T:ImportTypeReference1)) {
 					combo.add(_prop.msgs.importTypeReference1Name(t));
@@ -928,7 +940,7 @@ class ImportOptionDialog : AbsDialog {
 		_areas = create(_prop.images.area, _prop.msgs.importOptionAreas, _prop.var.etc.importOptionAreas, _opt.areas);
 		_battles = create(_prop.images.battle, _prop.msgs.importOptionBattles, _prop.var.etc.importOptionBattles, _opt.battles);
 		_packages = create(_prop.images.packages, _prop.msgs.importOptionPackages, _prop.var.etc.importOptionPackages, _opt.packages);
-		_includedFiles = create(_prop.images.cards, _prop.msgs.importOptionIncludedFiles, _prop.var.etc.importOptionIncludedFiles, _opt.includedFiles);
+		_includedFiles = create(_prop.images.cards, _prop.msgs.importOptionIncludedFiles, _canIncludeImage ? _prop.var.etc.importOptionIncludedFiles : _prop.var.etc.importOptionIncludedFilesWithoutIncluding, _opt.includedFiles, _canIncludeImage);
 		// FIXME: CardWirth 1.60 格納イメージ
 /+		_includedBgImages = create(_prop.images.backs, _prop.msgs.importOptionIncludedBgImages, _prop.var.etc.importOptionIncludedBgImages, _opt.includedBgImages);
 +/		_hands = create(_prop.images.menu(MenuID.OpenHand), _prop.msgs.importOptionHands, _prop.var.etc.importOptionHands, _opt.hands);
@@ -944,8 +956,17 @@ class ImportOptionDialog : AbsDialog {
 	protected override bool close(bool ok) { mixin(S_TRACE);
 		if (!ok) return ok;
 
-		void put(T)(Combo combo, ref int opValue, ref T value) { mixin(S_TRACE);
-			auto arr = EnumMembers!T;
+		void put(T)(Combo combo, ref int opValue, ref T value, bool canIncludeImage = true) { mixin(S_TRACE);
+			static if (is(T:ImportTypeIncluded)) {
+				T[] arr;
+				if (canIncludeImage) { mixin(S_TRACE);
+					foreach (t; EnumMembers!T) arr ~= t;
+				} else { mixin(S_TRACE);
+					arr = [T.Exclude];
+				}
+			} else {
+				auto arr = EnumMembers!T;
+			}
 			auto index = combo.getSelectionIndex();
 			foreach (i, t; arr) { mixin(S_TRACE);
 				if (i == index) { mixin(S_TRACE);
@@ -965,7 +986,7 @@ class ImportOptionDialog : AbsDialog {
 		put(_areas, _prop.var.etc.importOptionAreas.value, _opt.areas);
 		put(_battles, _prop.var.etc.importOptionBattles.value, _opt.battles);
 		put(_packages, _prop.var.etc.importOptionPackages.value, _opt.packages);
-		put(_includedFiles, _prop.var.etc.importOptionIncludedFiles.value, _opt.includedFiles);
+		put(_includedFiles, _canIncludeImage ? _prop.var.etc.importOptionIncludedFiles.value : _prop.var.etc.importOptionIncludedFilesWithoutIncluding.value, _opt.includedFiles, _canIncludeImage);
 		// FIXME: CardWirth 1.60 格納イメージ
 /+		put(_includedBgImages, _prop.var.etc.importOptionIncludedBgImages.value, _opt.includedBgImages);
 +/		put(_hands, _prop.var.etc.importOptionHands.value, _opt.hands);

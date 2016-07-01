@@ -293,6 +293,7 @@ class FlexEtcProps : Properties {
 	auto importOptionBattles = Prop!(int)("importOptionBattles", ImportTypeReference2.NoImport);
 	auto importOptionPackages = Prop!(int)("importOptionPackages", ImportTypeReference2.NoImport);
 	auto importOptionIncludedFiles = Prop!(int)("importOptionIncludedFiles", ImportTypeIncluded.AsIs);
+	auto importOptionIncludedFilesWithoutIncluding = Prop!(int)("importOptionIncludedFilesWithoutIncluding", ImportTypeIncluded.Exclude);
 	auto importOptionIncludedBgImages = Prop!(int)("importOptionIncludedBgImages", ImportTypeIncluded.AsIs);
 	auto importOptionHands = Prop!(int)("importOptionHands", ImportTypeIncluded.AsIs);
 	auto importOptionBeastsInMotions = Prop!(int)("importOptionBeastsInMotions", ImportTypeIncluded.AsIs);

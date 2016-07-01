@@ -1146,7 +1146,7 @@ class Commons {
 		import std.array;
 		import std.algorithm;
 
-		auto dialog = new ImportOptionDialog(this, mainShell);
+		auto dialog = new ImportOptionDialog(this, mainShell, to && to.legacy);
 		if (!dialog.open()) return;
 		auto opt = dialog.option;
 
