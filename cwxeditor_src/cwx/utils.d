@@ -1322,6 +1322,7 @@ string cleanFileName(string name) { mixin(S_TRACE);
 	}
 	name = replace(name, ".", "");
 	name = replace(name, " ", "");
+	name = toFileName(name);
 	if (name.length == 0) { mixin(S_TRACE);
 		name = "noname";
 	}
