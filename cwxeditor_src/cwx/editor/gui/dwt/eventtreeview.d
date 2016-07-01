@@ -3074,13 +3074,12 @@ public:
 			}
 			last.add(_prop.parent, owner);
 			owner = parent;
-			itm = _tree.getParentItem(itm);
-			if (itm.getData() !is cs2[0]) { mixin(S_TRACE);
+			while (itm.getData() !is cs2[0]) { mixin(S_TRACE);
 				// 分岐の直後に1つ以上のコンテントと終端が含まれており、
 				// 最初の分岐の直後に挿入先のイベントが来る場合
 				itm = _tree.getParentItem(itm);
-				assert (cs2[0] is itm.getData());
 			}
+			assert (cs2[0] is itm.getData());
 		}
 		bool insertFirst = (index == -1 && _box._insertFirst);
 		Content lastCt = null;
