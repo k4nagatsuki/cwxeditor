@@ -1501,7 +1501,7 @@ class Skin {
 			auto fd = std.path.buildPath(resourceDir, "Font");
 			foreach (path; clistdir(fd)) { mixin(S_TRACE);
 				path = std.path.buildPath(fd, path);
-				if (!isDir(path) && cfnmatch(.extension(path), ".bmp")) { mixin(S_TRACE);
+				if (!isDir(path) && .isImageExt(path)) { mixin(S_TRACE);
 					auto dp = toUTF32(stripExtension(baseName(path)));
 					auto c = std.uni.toUpper(dp[0]);
 					switch (c) {
