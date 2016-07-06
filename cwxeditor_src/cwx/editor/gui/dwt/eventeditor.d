@@ -345,6 +345,7 @@ class EventEditor : Composite {
 		_items = null;
 		updatePosAll();
 		.asyncExec(getDisplay(), { mixin(S_TRACE);
+			if (isDisposed()) return;
 			redraw();
 		});
 	}
