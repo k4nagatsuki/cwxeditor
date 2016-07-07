@@ -83,49 +83,6 @@ public:
 			}
 		});
 
-		auto doAutoScroll = new class Runnable {
-			private bool autoScroll(ulong pFrame, ScrollBar bar, lazy int width, ref int end, void delegate(int xy) scroll) { mixin(S_TRACE);
-				if (!bar) return true;
-				auto pos = bar.getSelection();
-				int sIndex = 0;
-				if (end < 0) { mixin(S_TRACE);
-					if (pos <= 0) return true;
-					auto count = end;
-					sIndex = cast(int)(pFrame * 0.5 * count);
-					if (0 <= sIndex) return false;
-				} else { mixin(S_TRACE);
-					if (end < width) return true;
-					if (pos + 1 < bar.getMaximum() - bar.getThumb()) { mixin(S_TRACE);
-						auto count = end - width + 1;
-						sIndex = cast(int)(pFrame * 0.5 * count);
-					}
-					if (sIndex <= 0) return false;
-				}
-				if (sIndex == 0) return false;
-				scroll(pos + sIndex);
-				updateRangeIndices();
-				return true;
-			}
-			override void run() { mixin(S_TRACE);
-				if (_frame < _lastVFrame || _frame < _lastHFrame || isDisposed() || !_endPos || !_items.length) { mixin(S_TRACE);
-					_lastVFrame = _frame;
-					_lastHFrame = _frame;
-					return;
-				}
-				auto pVFrame = _frame - _lastVFrame;
-				auto pHFrame = _frame - _lastHFrame;
-				if (0 < pVFrame && autoScroll(pVFrame, getVerticalBar(), getClientArea().height, _endPos.y, &scrollY)) _lastVFrame = _frame;
-				if (0 < pHFrame && autoScroll(pHFrame, getHorizontalBar(), getClientArea().width, _endPos.x, &scrollX)) _lastHFrame = _frame;
-			}
-		};
-		void autoScroll() { mixin(S_TRACE);
-			while (_timerRunning) { mixin(S_TRACE);
-				d.asyncExec(doAutoScroll);
-				core.thread.Thread.sleep(dur!"msecs"(16));
-				_frame++;
-			}
-		}
-
 		addListener(SWT.KeyUp, new class Listener {
 			public override void handleEvent(Event e) { mixin(S_TRACE);
 				_shift = (e.stateMask & SWT.SHIFT) != 0;
@@ -373,17 +330,8 @@ public:
 						return;
 					}
 
-					_endPos = new Point(e.x, e.y);
-					_timer = new core.thread.Thread(&autoScroll);
-					_timerRunning = true;
-					_frame = 0;
-					_lastVFrame = 0;
-					_lastHFrame = 0;
-					if (!_ctrl && !_shift) deselectAll();
-					_startSelected = null;
-					.each!(i => _startSelected[i] = true)(selectionIndices);
+					startRangeSelection(e.x, e.y);
 					updateRangeIndices();
-					_timer.start();
 				}
 				redrawes();
 			}
@@ -403,6 +351,62 @@ public:
 				mouseRelease();
 			}
 		});
+	}
+	private void startRangeSelection(int x, int y) { mixin(S_TRACE);
+		auto doAutoScroll = new class Runnable {
+			private bool autoScroll(ulong pFrame, ScrollBar bar, lazy int width, ref int end, void delegate(int xy) scroll) { mixin(S_TRACE);
+				if (!bar) return true;
+				auto pos = bar.getSelection();
+				int sIndex = 0;
+				if (end < 0) { mixin(S_TRACE);
+					if (pos <= 0) return true;
+					auto count = end;
+					sIndex = cast(int)(pFrame * 0.5 * count);
+					if (0 <= sIndex) return false;
+				} else { mixin(S_TRACE);
+					if (end < width) return true;
+					if (pos + 1 < bar.getMaximum() - bar.getThumb()) { mixin(S_TRACE);
+						auto count = end - width + 1;
+						sIndex = cast(int)(pFrame * 0.5 * count);
+					}
+					if (sIndex <= 0) return false;
+				}
+				if (sIndex == 0) return false;
+				scroll(pos + sIndex);
+				updateRangeIndices();
+				return true;
+			}
+			override void run() { mixin(S_TRACE);
+				if (_frame < _lastVFrame || _frame < _lastHFrame || isDisposed() || !_endPos || !_items.length) { mixin(S_TRACE);
+					_lastVFrame = _frame;
+					_lastHFrame = _frame;
+					return;
+				}
+				auto pVFrame = _frame - _lastVFrame;
+				auto pHFrame = _frame - _lastHFrame;
+				if (0 < pVFrame && autoScroll(pVFrame, getVerticalBar(), getClientArea().height, _endPos.y, &scrollY)) _lastVFrame = _frame;
+				if (0 < pHFrame && autoScroll(pHFrame, getHorizontalBar(), getClientArea().width, _endPos.x, &scrollX)) _lastHFrame = _frame;
+			}
+		};
+
+		auto d = getDisplay();
+		void autoScroll() { mixin(S_TRACE);
+			while (_timerRunning) { mixin(S_TRACE);
+				d.asyncExec(doAutoScroll);
+				core.thread.Thread.sleep(dur!"msecs"(16));
+				_frame++;
+			}
+		}
+		_endPos = new Point(x, y);
+		_timer = new core.thread.Thread(&autoScroll);
+		_timerRunning = true;
+		_frame = 0;
+		_lastVFrame = 0;
+		_lastHFrame = 0;
+		if (!_ctrl && !_shift) deselectAll();
+		_startSelected = null;
+		.each!(i => _startSelected[i] = true)(selectionIndices);
+		_timer.start();
 	}
 	/// 選択の変更をlistenerに通知する。
 	void addSelectionListener(SelectionListener listener) { mixin(S_TRACE);
@@ -801,6 +805,9 @@ private:
 		if (bar !is null) { mixin(S_TRACE);
 			bar.setSelection(x);
 			if (_startPos) { mixin(S_TRACE);
+				if (!_endPos) { mixin(S_TRACE);
+					startRangeSelection(_startPos.x, _startPos.y);
+				}
 				_startPos.x += _origin.x - bar.getSelection();
 				updateRangeIndices();
 			}
@@ -813,6 +820,9 @@ private:
 		if (bar !is null) { mixin(S_TRACE);
 			bar.setSelection(y);
 			if (_startPos) { mixin(S_TRACE);
+				if (!_endPos) { mixin(S_TRACE);
+					startRangeSelection(_startPos.x, _startPos.y);
+				}
 				_startPos.y += _origin.y - bar.getSelection();
 				updateRangeIndices();
 			}
@@ -985,6 +995,7 @@ private:
 	}
 
 	void updateRangeIndices() { mixin(S_TRACE);
+		if (!_startPos || !_endPos) return;
 		if (!_ctrl) { mixin(S_TRACE);
 			_startSelected = null;
 			.each!(i => _startSelected[i] = true)(selectionIndices);
