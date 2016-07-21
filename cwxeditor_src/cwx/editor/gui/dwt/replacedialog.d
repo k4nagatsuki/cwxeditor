@@ -4532,7 +4532,8 @@ public:
 			}
 		}
 		if (_startSel) { mixin(S_TRACE);
-			if (d.use(CArg.START)) r |= repl(null, "", e.start, &e.start, count, uArr2);
+			// スタートへのリンク・コールはSUseCounter経由で置換されるため
+			// ここでは置換しない
 			if (e.type == CType.START) { mixin(S_TRACE);
 				r |= repl(null, "", e.name, &e.name, count, uArr2);
 			}
