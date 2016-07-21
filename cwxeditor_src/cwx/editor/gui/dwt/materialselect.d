@@ -556,6 +556,10 @@ class MaterialSelect(MtType Type, D, C) {
 			_bgmTMenu = createToolItem(_comm, bar, MenuID.PlayBGM, () => playBGM(false), &canPlay, SWT.CHECK);
 			auto data = cast(MenuData) _bgmTMenu.getData();
 			data.format = (string t) {return data.id is MenuID.StopBGM ? .tryFormat(t, _playing) : t;};
+			modEvent ~= { mixin(S_TRACE);
+				if (!_playing) return;
+				updatePlayButton(isPlayOrStop);
+			};
 		}
 		Button createPlayButton(Composite parent) { mixin(S_TRACE);
 			_bgmBtn = new Button(parent, SWT.TOGGLE);
@@ -565,41 +569,73 @@ class MaterialSelect(MtType Type, D, C) {
 			auto pbgm = new Play;
 			_bgmBtn.addSelectionListener(pbgm);
 			_comm.put(_bgmBtn, &canPlay);
+			modEvent ~= { mixin(S_TRACE);
+				if (!_playing) return;
+				updatePlayButton(isPlayOrStop);
+			};
 			return _bgmBtn;
 		}
 		@property
 		bool canPlay() { mixin(S_TRACE);
 			return _playing ? true : filePath.length > 0;
 		}
-		void playBGM(bool fromEvent) { mixin(S_TRACE);
+		@property
+		bool isPlayOrStop() { mixin(S_TRACE);
 			string p = filePath;
-			if (p.length > 0 && (!_playing || !cfnmatch(nabs(p), nabs(_playing)))) { mixin(S_TRACE);
+			return p.length > 0 && (!_playing || !cfnmatch(nabs(p), nabs(_playing)));
+		}
+		void updatePlayButton(bool playOrStop) { mixin(S_TRACE);
+			if (playOrStop) { mixin(S_TRACE);
+				if (_bgmMenu) { mixin(S_TRACE);
+					_bgmMenu.setText(_prop.buildMenu(MenuID.PlayBGM));
+					auto d = cast(MenuData) _bgmMenu.getData();
+					d.id = MenuID.PlayBGM;
+					_bgmMenu.setImage(_prop.images.menu(MenuID.PlayBGM));
+					_bgmMenu.setSelection(false);
+				}
+				if (_bgmTMenu) { mixin(S_TRACE);
+					_bgmTMenu.setToolTipText(_prop.msgs.menuText(MenuID.PlayBGM));
+					_bgmTMenu.setImage(_prop.images.menu(MenuID.PlayBGM));
+					_bgmTMenu.setSelection(false);
+				}
+				if (_bgmBtn) { mixin(S_TRACE);
+					_bgmBtn.setToolTipText(_prop.msgs.menuText(MenuID.PlayBGM));
+					_bgmBtn.setImage(_prop.images.menu(MenuID.PlayBGM));
+					_bgmBtn.setSelection(false);
+				}
+			} else { mixin(S_TRACE);
+				auto relPath = .encodePath(this.path);
+				if (_bgmMenu) { mixin(S_TRACE);
+					_bgmMenu.setText(.tryFormat(_prop.buildMenu(MenuID.StopBGM), .baseName(relPath)));
+					auto d = cast(MenuData) _bgmMenu.getData();
+					d.id = MenuID.StopBGM;
+					_bgmMenu.setImage(_prop.images.menu(MenuID.StopBGM));
+					_bgmMenu.setSelection(true);
+				}
+				if (_bgmTMenu) { mixin(S_TRACE);
+					_bgmTMenu.setToolTipText(.tryFormat(_prop.msgs.menuText(MenuID.StopBGM), relPath));
+					_bgmTMenu.setImage(_prop.images.menu(MenuID.StopBGM));
+					_bgmTMenu.setSelection(true);
+				}
+				if (_bgmBtn) { mixin(S_TRACE);
+					_bgmBtn.setToolTipText(.tryFormat(_prop.msgs.menuText(MenuID.StopBGM), relPath));
+					_bgmBtn.setImage(_prop.images.menu(MenuID.StopBGM));
+					_bgmBtn.setSelection(true);
+				}
+			}
+		}
+		void playBGM(bool fromEvent) { mixin(S_TRACE);
+			if (isPlayOrStop) { mixin(S_TRACE);
 				_startPlay = true;
 				scope (exit) _startPlay = false;
+				string p = filePath;
 				auto volume = _volume ? _volume.getSelection() : 100;
 				auto loopCount = _loopCount ? _loopCount.getSelection() : 0;
 				auto fadeIn = this.fadeIn;
 				bool inPlay = playBGMCW(_prop, p, fadeIn, volume, loopCount, _comm.skin.legacy);
 				if (inPlay) { mixin(S_TRACE);
 					_playing = p;
-					auto relPath = .encodePath(this.path);
-					if (_bgmMenu) { mixin(S_TRACE);
-						_bgmMenu.setText(.tryFormat(_prop.buildMenu(MenuID.StopBGM), .baseName(relPath)));
-						auto d = cast(MenuData) _bgmMenu.getData();
-						d.id = MenuID.StopBGM;
-						_bgmMenu.setImage(_prop.images.menu(MenuID.StopBGM));
-						_bgmMenu.setSelection(true);
-					}
-					if (_bgmTMenu) { mixin(S_TRACE);
-						_bgmTMenu.setToolTipText(.tryFormat(_prop.msgs.menuText(MenuID.StopBGM), relPath));
-						_bgmTMenu.setImage(_prop.images.menu(MenuID.StopBGM));
-						_bgmTMenu.setSelection(true);
-					}
-					if (_bgmBtn) { mixin(S_TRACE);
-						_bgmBtn.setToolTipText(.tryFormat(_prop.msgs.menuText(MenuID.StopBGM), relPath));
-						_bgmBtn.setImage(_prop.images.menu(MenuID.StopBGM));
-						_bgmBtn.setSelection(true);
-					}
+					updatePlayButton(false);
 					if (_playBar) { mixin(S_TRACE);
 						if (!_updatePlayBar) { mixin(S_TRACE);
 							_updatePlayBar = new UpdatePlayBar;
@@ -626,23 +662,7 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		private void bgmStopped() { mixin(S_TRACE);
 			if (!_playing) return;
-			if (_bgmMenu) { mixin(S_TRACE);
-				_bgmMenu.setText(_prop.buildMenu(MenuID.PlayBGM));
-				auto d = cast(MenuData) _bgmMenu.getData();
-				d.id = MenuID.PlayBGM;
-				_bgmMenu.setImage(_prop.images.menu(MenuID.PlayBGM));
-				_bgmMenu.setSelection(false);
-			}
-			if (_bgmTMenu) { mixin(S_TRACE);
-				_bgmTMenu.setToolTipText(_prop.msgs.menuText(MenuID.PlayBGM));
-				_bgmTMenu.setImage(_prop.images.menu(MenuID.PlayBGM));
-				_bgmTMenu.setSelection(false);
-			}
-			if (_bgmBtn) { mixin(S_TRACE);
-				_bgmBtn.setToolTipText(_prop.msgs.menuText(MenuID.PlayBGM));
-				_bgmBtn.setImage(_prop.images.menu(MenuID.PlayBGM));
-				_bgmBtn.setSelection(false);
-			}
+			updatePlayButton(true);
 			_playing = null;
 			if (_playThr) { mixin(S_TRACE);
 				_playThr.join();
