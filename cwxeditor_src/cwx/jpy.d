@@ -247,14 +247,14 @@ private {
 string readJPYFile(string path, in CProps prop, EffectBoosterError errInfo, out bool isSJIS) {
 	char[] value;
 	try {
-		value = cast(char[])std.file.readText(path);
-		isSJIS = false;
-		return assumeUnique(value);
-	} catch (Exception e) {
 		isSJIS = true;
 		value = cast(char[])readBinary(path);
+		return touni(value);
+	} catch (Exception e) {
 		try {
-			return touni(value);
+			value = cast(char[])std.file.readText(path);
+			isSJIS = false;
+			return assumeUnique(value);
 		} catch (Exception e) {
 			errInfo.add(prop.msgs.jpyErrorInvalidEncoding, path, 0);
 			return "";
@@ -264,10 +264,10 @@ string readJPYFile(string path, in CProps prop, EffectBoosterError errInfo, out 
 /// ditto
 private string readJPYFile(string path, in CProps prop, EffectBoosterError errInfo) {
 	try {
-		return std.file.readText(path);
-	} catch (UTFException e) {
+		return touni(cast(char[])readBinary(path));
+	} catch (Exception e) {
 		try {
-			return touni(cast(char[])readBinary(path));
+			return std.file.readText(path);
 		} catch (Exception e) {
 			errInfo.add(prop.msgs.jpyErrorInvalidEncoding, path, 0);
 			return "";
