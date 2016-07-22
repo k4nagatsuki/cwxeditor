@@ -4534,6 +4534,7 @@ public:
 		if (_startSel) { mixin(S_TRACE);
 			// スタートへのリンク・コールはSUseCounter経由で置換されるため
 			// ここでは置換しない
+			if (d.use(CArg.START)) r |= repl(null, "", e.start, null, count, uArr2);
 			if (e.type == CType.START) { mixin(S_TRACE);
 				r |= repl(null, "", e.name, &e.name, count, uArr2);
 			}
