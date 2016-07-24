@@ -264,7 +264,7 @@ private:
 		protected ulong uid(ulong id, TypeInfo type) { mixin(S_TRACE);
 			return id;
 		}
-		protected void uda(AreaTable v) { mixin(S_TRACE);
+		protected void uda(AreaTable v, bool refreshDirTree = true) { mixin(S_TRACE);
 			resetID!toAreaId(v, summ.areas, _areaIDsB);
 			resetID!toBattleId(v, summ.battles, _battleIDsB);
 			resetID!toPackageId(v, summ.packages, _packageIDsB);
@@ -285,7 +285,7 @@ private:
 			calls = [];
 			delCalls = [];
 			if (!one) return;
-			if (v) { mixin(S_TRACE);
+			if (v && refreshDirTree) { mixin(S_TRACE);
 				v._dirs = _dirsB.dup;
 				v.refreshDirTree();
 			}
@@ -640,9 +640,13 @@ private:
 		private void impl() { mixin(S_TRACE);
 			auto v = view();
 			udb(v);
-			scope (exit) uda(v);
+			scope (exit) uda(v, false);
+			auto newPath2 = _newPath ~ '\\';
 			void put(AbstractArea area) { mixin(S_TRACE);
-				if (area.dirName == _newPath) { mixin(S_TRACE);
+				if (area.dirName.istartsWith(newPath2)) {
+					area.dirName = _oldPath ~ '\\' ~ area.dirName[newPath2.length .. $];
+					calls ~= area;
+				} else if (0 == icmp(area.dirName, _newPath)) { mixin(S_TRACE);
 					area.dirName = _oldPath;
 					calls ~= area;
 				}
@@ -656,8 +660,9 @@ private:
 				auto itm = v.findDirTree(_oldPath);
 				auto dir = cast(DirTree)itm.getData();
 				dir.name = .split(_newPath, "\\")[$ - 1];
+				itm.setText(dir.name);
 				v._dir = dir.path;
-				v.refreshAreas();
+				v.sortDirTree();
 			}
 		}
 		override void undo() { mixin(S_TRACE);
@@ -688,10 +693,10 @@ private:
 		} else { mixin(S_TRACE);
 			auto dir = cast(DirTree)itm.getData();
 			auto oldPath = dir.path;
-			dir.name = createNewName(newText, (s) {
-				foreach (n; dir.parent.subDirs) {
+			dir.name = createNewName(newText, (s) { mixin(S_TRACE);
+				foreach (n; dir.parent.subDirs) { mixin(S_TRACE);
 					if (n is dir) continue;
-					if (0 == icmp(n.name, s)) {
+					if (0 == icmp(n.name, s)) { mixin(S_TRACE);
 						return false;
 					}
 				}
@@ -700,8 +705,12 @@ private:
 			auto path = dir.path;
 			itm.setText(dir.name);
 			storeRenameDir(oldPath, path);
-			void put(AbstractArea area) {
-				if (area.dirName == oldPath) {
+			auto oldPath2 = oldPath ~ '\\';
+			void put(AbstractArea area) { mixin(S_TRACE);
+				if (area.dirName.istartsWith(oldPath2)) { mixin(S_TRACE);
+					area.dirName = path ~ '\\' ~ area.dirName[oldPath2.length .. $];
+					callRefArea(area);
+				} else if (0 == icmp(area.dirName, oldPath)) { mixin(S_TRACE);
 					area.dirName = path;
 					callRefArea(area);
 				}
@@ -1082,29 +1091,36 @@ private:
 				auto itm = cast(TreeItem)e.item;
 				auto dir = cast(DirTree)itm.getData();
 				auto path = dir.path;
-				if (node.name == "TablePath") {
+				if (node.name == "TablePath") { mixin(S_TRACE);
 					if (_summ.id != AbstractArea.summaryId(node)) return;
 					auto oldPath = node.value;
 					auto removePath = node.value;
 					if (oldPath == "") return;
 					if (0 == icmp(path, oldPath)) return;
 					auto nDir = oldPath.split("\\")[$ - 1];
-					oldPath ~= "\\";
-					if (istartsWith(path, oldPath)) return; // 下位のフォルダに移動しようとした
+					auto oldPath2 = oldPath ~ "\\";
+					if (istartsWith(path, oldPath2)) return; // 下位のフォルダに移動しようとした
 					// 同一名がある場合は移動禁止
 					foreach (sub; dir.subDirs) {
 						if (0 == icmp(sub.name, nDir)) return;
 					}
 					ATUndo[] undos;
-					void put(AbstractArea area) {
-						if (area.name.istartsWith(oldPath)) {
+					void put(AbstractArea area) { mixin(S_TRACE);
+						if (area.name.istartsWith(oldPath2)) { mixin(S_TRACE);
 							ulong id;
 							TypeInfo type;
 							getInfoFromArea(area, id, type);
 							undos ~= new UndoEdit(this.outer, _comm, _summ, id, type);
 							auto p = path;
 							if (p != "") p ~= "\\";
-							area.name = p ~ nDir ~ "\\" ~ area.name[oldPath.length .. $];
+							area.name = p ~ nDir ~ "\\" ~ area.name[oldPath2.length .. $];
+							callRefArea(area);
+						} else if (0 == icmp(area.dirName, oldPath)) { mixin(S_TRACE);
+							ulong id;
+							TypeInfo type;
+							getInfoFromArea(area, id, type);
+							undos ~= new UndoEdit(this.outer, _comm, _summ, id, type);
+							area.dirName = path;
 							callRefArea(area);
 						}
 					}
@@ -1112,19 +1128,19 @@ private:
 					foreach (a; _summ.battles) put(a);
 					foreach (a; _summ.packages) put(a);
 
-					if (!undos.length) {
+					if (!undos.length) { mixin(S_TRACE);
 						undos ~= new UndoIDs(this.outer, _comm, _summ);
 					}
 
 					auto removeItm = findDirTree(removePath);
 					auto removeDir = cast(DirTree)removeItm.getData();
 					removeDir.parent.subDirs.remove(removeDir);
-					new DirTree(dir, removeItm.getText());
+					auto newDir = new DirTree(dir, removeDir.name, removeDir.subDirs);
 					sortDirTree();
 					refreshDirTree();
 
 					_undo ~= new ATUndoArr(undos);
-				} else if (_summ.id == AbstractArea.summaryId(node)) {
+				} else if (_summ.id == AbstractArea.summaryId(node)) { mixin(S_TRACE);
 					auto area = getSelectionArea();
 					ulong id;
 					TypeInfo type;
@@ -1132,7 +1148,7 @@ private:
 					storeEdit(id, type);
 					area.dirName = dir.path;
 					callRefArea(area);
-				} else {
+				} else { mixin(S_TRACE);
 					_dirTree.setSelection([itm]);
 					updateDirSel();
 					pasteImpl(node);
@@ -1431,11 +1447,15 @@ private:
 		DirTree parent;
 		string name;
 		DirTree[] subDirs;
-		this (DirTree parent, string name) { mixin (S_TRACE);
+		this (DirTree parent, string name, DirTree[] subDirs = []) { mixin (S_TRACE);
 			this.parent = parent;
 			this.name = name;
 			if (parent) { mixin (S_TRACE);
 				parent.subDirs ~= this;
+			}
+			foreach (subDir; subDirs) { mixin (S_TRACE);
+				subDir.parent = this;
+				this.subDirs ~= subDir;
 			}
 		}
 		@property
