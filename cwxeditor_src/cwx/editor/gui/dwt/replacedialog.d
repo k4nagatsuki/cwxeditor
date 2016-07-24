@@ -1544,6 +1544,7 @@ private:
 						}
 						sub.setText(dir);
 						sub.setImage(_prop.images.areaDir);
+						sub.setChecked(true);
 						itm = sub;
 						itmTable[path] = sub;
 					}
