@@ -506,9 +506,6 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if ((cd.use(CArg.STEP) && c.step == "") || (cd.use(CArg.STEP_2) && c.step2 == "")) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorNoStep;
 		}
-		if (cd.use(CArg.SOUND_PATH) && c.soundPath == "") { mixin(S_TRACE);
-			r ~= prop.msgs.searchErrorNoSoundPath;
-		}
 		if (cd.use(CArg.COUPON) && c.coupon == "") { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorNoCoupon;
 		}
