@@ -314,8 +314,6 @@ class Msgs : Properties {
 	auto searchErrorStartAreaNotFound = Msg("searchErrorStartAreaNotFound", "開始エリアが設定されていません。");
 	auto searchErrorFlagNotFound = Msg("searchErrorFlagNotFound", "存在しないフラグ(%1$s)が指定されています。");
 	auto searchErrorStepNotFound = Msg("searchErrorStepNotFound", "存在しないステップ(%1$s)が指定されています");
-	auto searchErrorNoCast = Msg("searchErrorNoCast", "キャストカードが指定されていません。");
-	auto searchErrorNoBeast = Msg("searchErrorNoBeast", "召喚獣カードが指定されていません。");
 	auto searchErrorDupNextContent = Msg("searchErrorDupNextContent", "分岐条件が重複しています。");
 	auto searchErrorSPFontIsNotSJIS1ByteChar = Msg("searchErrorSPFontIsNotSJIS1ByteChar", "「%1$s」は無効です。クラシックなシナリオの特殊フォント指定にはShift JISの1バイト文字しか使用できません。");
 	auto searchErrorSPFontNotFound = Msg("searchErrorSPFontNotFound", "特殊フォントイメージ(%1$s)が見つかりません。");
@@ -340,6 +338,23 @@ class Msgs : Properties {
 	auto searchErrorSystemVariable = Msg("searchErrorSystemVariable", "「%1$s」はシステム変数として扱われるため、正しく機能しない場合があります。");
 	auto searchErrorKeyCodeMatchingAll = Msg("searchErrorKeyCodeMatchingAll", "「MatchingType=All」はシステムで使用されているキーコードのため、正しく機能しない場合があります。");
 	auto searchErrorBranchRoundInArea = Msg("searchErrorBranchRoundInArea", "ラウンド分岐がエリアイベントで使用されています。");
+
+	auto searchErrorNoArea = Msg("searchErrorNoArea", "エリアが指定されていません。");
+	auto searchErrorNoBattle = Msg("searchErrorNoBattle", "バトルが指定されていません。");
+	auto searchErrorNoPackage = Msg("searchErrorNoPackage", "パッケージが指定されていません。");
+	auto searchErrorNoSkill = Msg("searchErrorNoSkill", "特殊技能カードが指定されていません。");
+	auto searchErrorNoItem = Msg("searchErrorNoItem", "アイテムカードが指定されていません。");
+	auto searchErrorNoCast = Msg("searchErrorNoCast", "キャストカードが指定されていません。");
+	auto searchErrorNoBeast = Msg("searchErrorNoBeast", "召喚獣カードが指定されていません。");
+	auto searchErrorNoInfo = Msg("searchErrorNoInfo", "情報カードが指定されていません。");
+	auto searchErrorNoFlag = Msg("searchErrorNoFlag", "フラグが指定されていません。");
+	auto searchErrorNoStep = Msg("searchErrorNoStep", "ステップが指定されていません。");
+	auto searchErrorNoSoundPath = Msg("searchErrorNoSoundPath", "効果音が指定されていません。");
+	auto searchErrorNoCoupon = Msg("searchErrorNoCoupon", "クーポンが指定されていません。");
+	auto searchErrorNoGossip = Msg("searchErrorNoGossip", "ゴシップが指定されていません。");
+	auto searchErrorNoCompleteStamp = Msg("searchErrorNoCompleteStamp", "シナリオ名が指定されていません。");
+	auto searchErrorNoKeyCode = Msg("searchErrorNoKeyCode", "キーコードが指定されていません。");
+	auto searchErrorNoCellName = Msg("searchErrorNoCellName", "セル名称が指定されていません。");
 
 	auto searchOpenDialog = Msg("searchOpenDialog", "検索結果へジャンプする時、ダイアログを開く(&J)");
 

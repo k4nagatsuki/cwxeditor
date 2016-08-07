@@ -296,10 +296,11 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto c = cast(Content) path;
 	if (c) { mixin(S_TRACE);
+		auto cd = c.detail;
 		if ((summ ? summ.legacy : false) && c.type == CType.WAIT && !c.next.length) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorIgnoreWait;
 		}
-		if (c.detail.owner && c.detail.nextType != CNextType.TEXT) { mixin(S_TRACE);
+		if (cd.owner && cd.nextType != CNextType.TEXT) { mixin(S_TRACE);
 			auto set = new HashSet!(string);
 			foreach (cld; c.next) { mixin(S_TRACE);
 				if (cld.name == "") continue;
@@ -343,7 +344,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			string[] ws2;
 			foreach (back; c.backs) { mixin(S_TRACE);
 				auto ws = warnings(prop, skin, summ, back, targVer);
-				if (c.detail.use(CArg.IGNORE_EFFECT_BOOSTER) && c.ignoreEffectBooster) { mixin(S_TRACE);
+				if (cd.use(CArg.IGNORE_EFFECT_BOOSTER) && c.ignoreEffectBooster) { mixin(S_TRACE);
 					if (auto ic2 = cast(ImageCell)back) { mixin(S_TRACE);
 						auto ext = ic2.path.extension().toLower();
 						if (ext == ".jpy1" || ext == ".jptx" || ext == ".jpdc") { mixin(S_TRACE);
@@ -475,6 +476,54 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= prop.msgs.warningChannel;
 			}
 		}
+		if (cd.use(CArg.AREA) && c.area == 0) { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoArea;
+		}
+		if (cd.use(CArg.BATTLE) && c.battle == 0) { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoBattle;
+		}
+		if (cd.use(CArg.PACKAGE) && c.packages == 0) { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoPackage;
+		}
+		if (cd.use(CArg.CAST) && c.casts == 0) { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoCast;
+		}
+		if (cd.use(CArg.ITEM) && c.item == 0) { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoItem;
+		}
+		if (cd.use(CArg.SKILL) && c.skill == 0) { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoSkill;
+		}
+		if (cd.use(CArg.BEAST) && c.beast == 0) { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoBeast;
+		}
+		if (cd.use(CArg.INFO) && c.info == 0) { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoInfo;
+		}
+		if ((cd.use(CArg.FLAG) && c.flag == "") || (cd.use(CArg.FLAG_2) && c.flag2 == "")) { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoFlag;
+		}
+		if ((cd.use(CArg.STEP) && c.step == "") || (cd.use(CArg.STEP_2) && c.step2 == "")) { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoStep;
+		}
+		if (cd.use(CArg.SOUND_PATH) && c.soundPath == "") { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoSoundPath;
+		}
+		if (cd.use(CArg.COUPON) && c.coupon == "") { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoCoupon;
+		}
+		if (cd.use(CArg.GOSSIP) && c.gossip == "") { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoGossip;
+		}
+		if (cd.use(CArg.COMPLETE_STAMP) && c.completeStamp == "") { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoCompleteStamp;
+		}
+		if (cd.use(CArg.KEY_CODE) && c.keyCode == "") { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoKeyCode;
+		}
+		if (cd.use(CArg.CELL_NAME) && c.cellName == "") { mixin(S_TRACE);
+			r ~= prop.msgs.searchErrorNoCellName;
+		}
 		uint maxNextLen(in Content c) { mixin(S_TRACE);
 			if (c.type is CType.TALK_MESSAGE) { mixin(S_TRACE);
 				return c.text == "" ? prop.looks.selectionBarMax : prop.looks.selectionBarMaxWithMessage;
@@ -495,10 +544,10 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 			return (len + (c.selectionColumns - 1)) / c.selectionColumns;
 		}
-		if (c.detail.nextType is CNextType.TEXT && maxNextLen(c) < rows(c)) { mixin(S_TRACE);
+		if (cd.nextType is CNextType.TEXT && maxNextLen(c) < rows(c)) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningSelectionBarIsMany, rows(c), maxNextLen(c));
 		}
-		if (c.detail.nextType is CNextType.TEXT && c.selectionColumns != 1 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
+		if (cd.nextType is CNextType.TEXT && c.selectionColumns != 1 && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 			r ~= prop.msgs.warningSelectionColumns;
 		}
 
@@ -512,7 +561,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= .tryFormat(prop.msgs.warningBranchStatusMental, prop.msgs.statusName(c.status), "1.30");
 			}
 		}
-		if (c.range == Range.FIELD && c.detail.use(CArg.COUPON) && !prop.targetVersion("1.30", targVer)) { mixin(S_TRACE);
+		if (c.range == Range.FIELD && cd.use(CArg.COUPON) && !prop.targetVersion("1.30", targVer)) { mixin(S_TRACE);
 			r ~= prop.msgs.warningBranchCouponAtField;
 		}
 		if (c.selectionMethod is SelectionMethod.Valued && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
@@ -551,7 +600,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.type is CType.MOVE_BG_IMAGE && !prop.isTargetVersion(summ, targVer, "1")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningUnknownContentWsn, prop.msgs.contentName(CType.MOVE_BG_IMAGE), "1");
 		}
-		if (c.detail.use(CArg.STEP_VALUE)) { mixin(S_TRACE);
+		if (cd.use(CArg.STEP_VALUE)) { mixin(S_TRACE);
 			if (froot && c.step != "") { mixin(S_TRACE);
 				auto s = froot.findStep(c.step);
 				if (s && s.count < c.stepValue) { mixin(S_TRACE);
