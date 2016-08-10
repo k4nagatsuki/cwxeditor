@@ -669,7 +669,11 @@ protected:
 		}
 
 		if (_evt) { mixin(S_TRACE);
-			_range[_evt.range].setSelection(true);
+			if (_evt.range in _range) { mixin(S_TRACE);
+				_range[_evt.range].setSelection(true);
+			} else { mixin(S_TRACE);
+				_range[Range.SELECTED].setSelection(true);
+			}
 			auto cType = prop.sys.couponType(_evt.coupon);
 			auto cTypeP = cType in _type;
 			if (cTypeP) { mixin(S_TRACE);
