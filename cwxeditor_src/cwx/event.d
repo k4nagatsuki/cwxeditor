@@ -906,6 +906,16 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 
 		resetValue!(CArg.COUPONS, Coupon[], [])(d, &coupons);
 
+		if ((type is CType.GET_COUPON || type is CType.LOSE_COUPON) && range is Range.FIELD) { mixin(S_TRACE);
+			// 称号獲得・喪失コンテントでは「フィールド全体」は使用不可
+			range = Range.SELECTED;
+		}
+		if (type is CType.BRANCH_COUPON && !od.use(CArg.RANGE)) { mixin(S_TRACE);
+			// CArg.RANGEが無いイベントコンテントから称号分岐コンテントへ変換した場合、
+			// rangeの初期値がRange.FIELDになっているので、Range.SELECTEDにしておく
+			range = Range.SELECTED;
+		}
+
 		validate();
 	}
 
