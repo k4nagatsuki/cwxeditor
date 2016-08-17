@@ -915,6 +915,7 @@ private:
 				auto l2  = new Label(comp2, SWT.NONE);
 				l2.setText(_prop.msgs.unitRound);
 				spn.addSelectionListener(new LiveEnh);
+				spn.addModifyListener(new LiveEnh);
 			}
 		}
 		Spinner createStSpn(Composite grp, string name, uint max, string val) { mixin(S_TRACE);
@@ -962,8 +963,11 @@ private:
 		tab.setText(_prop.msgs.liveStatus);
 		tab.setControl(comp);
 	}
-	class LiveEnh : SelectionAdapter {
+	class LiveEnh : SelectionAdapter, ModifyListener {
 		override void widgetSelected(SelectionEvent e) { mixin(S_TRACE);
+			changeLiveEnhance();
+		}
+		override void modifyText(ModifyEvent e) { mixin(S_TRACE);
 			changeLiveEnhance();
 		}
 	}
