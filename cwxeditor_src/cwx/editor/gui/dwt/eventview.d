@@ -1125,7 +1125,7 @@ private:
 				assert (0);
 			}
 			foreach (itm2; itm.getItems()) { mixin(S_TRACE);
-				auto et = cast(EventTree) itm2.getData();
+				auto et = cast(EventTree)itm2.getData();
 				bool chg = false;
 				if (itm2.getText() != et.name) { mixin(S_TRACE);
 					itm2.setText(et.name);
@@ -1134,7 +1134,7 @@ private:
 				ptrdiff_t startKC = -1;
 				foreach (i, itm3; itm2.getItems()) { mixin(S_TRACE);
 					auto kc = cast(KeyCodeObj)itm3.getData();
-					if (kc && startKC <= 0) startKC = i;
+					if (kc && startKC < 0) startKC = i;
 					if (startKC >= 0 && itm3.getText() != _prop.sys.convFireKeyCode(et.keyCodes[i - startKC])) { mixin(S_TRACE);
 						itm3.setText(_prop.sys.convFireKeyCode(et.keyCodes[i - startKC]));
 						chg = true;
