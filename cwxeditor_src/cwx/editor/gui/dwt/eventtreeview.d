@@ -468,7 +468,6 @@ private:
 					et.insert(index, c);
 					text = c.name;
 				}
-				delImpl(vs, comm, et, tc);
 				foreach (v; vs) v._tree.control.setRedraw(false);
 				scope (exit) foreach (v; vs) v._tree.control.setRedraw(true);
 				foreach (v; vs) { mixin(S_TRACE);
@@ -488,6 +487,7 @@ private:
 						v._tree.editor.updatePosOne(c);
 					}
 				}
+				delImpl(vs, comm, et, tc);
 				if (!pc) { mixin(S_TRACE);
 					foreach (v; vs) { mixin(S_TRACE);
 						v._refreshTopStart();
