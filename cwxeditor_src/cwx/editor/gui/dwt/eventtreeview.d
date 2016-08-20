@@ -1421,6 +1421,8 @@ private:
 								if (evt.detail.owner) { mixin(S_TRACE);
 									v.createChilds(itm, evt);
 									v._tree.setExpanded(itm, true);
+									auto parItm = v._tree.getParentItem(itm);
+									if (parItm) v._tree.setExpanded(parItm, true);
 								}
 								v.refreshStatusLine();
 							}
