@@ -348,7 +348,11 @@ struct Jpy1 {
 				case "width": width = intVal(value, prop, jpy1Path, lineNum, errInfo); break;
 				case "height": height = intVal(value, prop, jpy1Path, lineNum, errInfo); break;
 				case "color": color = rgbVal(value, prop, jpy1Path, lineNum, errInfo); break;
-				case "dirdepth": dirdepth = intVal(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "dirdepth":
+					dirdepth = intVal(value, prop, jpy1Path, lineNum, errInfo);
+					dirdepthIndex = i;
+					dirdepthLine = origLine;
+					break;
 				case "filename":
 					filename = strVal(value, prop, jpy1Path, lineNum, errInfo);
 					filenameIndex = i;
@@ -420,8 +424,20 @@ struct Jpy1 {
 			newPath = newPath.buildPath(fPath.abs2rel(oPath));
 		}
 		jpy1Path = newPath;
+		auto rel = .abs2rel(oPath.dirName(), newPath.nabs().dirName());
 		foreach (ref sec; sections) { mixin(S_TRACE);
+			auto filename = sec.toMaterialPath;
 			sec.fPath = jpy1Path;
+			if (filename != "") { mixin(S_TRACE);
+				switch (sec.dirtype) {
+				case Dirtype.CURRENT:
+				case Dirtype.SCENARIO:
+					sec.path = filename;
+					break;
+				default:
+					break;
+				}
+			}
 		}
 		return true;
 	}
@@ -431,13 +447,27 @@ struct Jpy1 {
 	void updateJpy1File(in CProps prop, bool rewrite) { mixin(S_TRACE);
 		bool update = false;
 		foreach (ref sec; sections) { mixin(S_TRACE);
-			if (sec.needUpdate && sec.filenameIndex != -1) { mixin(S_TRACE);
-				auto eq = sec.filenameLine.cCountUntil('=');
-				assert (eq != -1);
-				auto ret = sec.filenameLine[sec.filenameLine.chomp().length .. $];
-				lines[sec.filenameIndex] = sec.filenameLine[0 .. eq+1] ~ sec.filename ~ ret;
+			if (sec.needUpdate) { mixin(S_TRACE);
+				if (sec.filenameIndex != -1) { mixin(S_TRACE);
+					auto eq = sec.filenameLine.cCountUntil('=');
+					assert (eq != -1);
+					auto ret = sec.filenameLine[sec.filenameLine.chomp().length .. $];
+					lines[sec.filenameIndex] = sec.filenameLine[0 .. eq+1] ~ sec.filename ~ ret;
+					update = true;
+				}
+				if (sec.dirdepthIndex == -1 && sec.dirdepth != 0) { mixin(S_TRACE);
+					sec.dirdepthIndex = lines.length;
+					sec.dirdepthLine = .format("dirdepth=%s%s", sec.dirdepth, dirSeparator);
+					lines ~= sec.dirdepthLine;
+					update = true;
+				} else if (sec.dirdepthIndex != -1) { mixin(S_TRACE);
+					auto eq = sec.dirdepthLine.cCountUntil('=');
+					assert (eq != -1);
+					auto ret = sec.dirdepthLine[sec.dirdepthLine.chomp().length .. $];
+					lines[sec.dirdepthIndex] = sec.dirdepthLine[0 .. eq+1] ~ .text(sec.dirdepth) ~ ret;
+					update = true;
+				}
 				sec.needUpdate = false;
-				update = true;
 			}
 		}
 		if (update && rewrite) { mixin(S_TRACE);
@@ -474,12 +504,18 @@ class Jpy1Sec : PathUser, CWXPath {
 	override
 	CWXPath cwxParent() {return null;}
 
+	private struct FromMaterialPathResult {
+		string filename;
+		int dirdepth;
+	}
+
 	override
 	void change(PathId newVal) { mixin(S_TRACE);
 		super.change(newVal);
 		auto newName = fromMaterialPath(cast(string)newVal);
-		if (newName != filename) { mixin(S_TRACE);
-			filename = newName;
+		if (newName.filename != filename || newName.dirdepth != dirdepth) { mixin(S_TRACE);
+			filename = newName.filename;
+			dirdepth = newName.dirdepth;
 			needUpdate = true;
 		}
 	}
@@ -489,8 +525,9 @@ class Jpy1Sec : PathUser, CWXPath {
 	void path(string path) { mixin(S_TRACE);
 		super.path(path);
 		auto newName = fromMaterialPath(path);
-		if (newName != filename) { mixin(S_TRACE);
-			filename = newName;
+		if (newName.filename != filename || newName.dirdepth != dirdepth) { mixin(S_TRACE);
+			filename = newName.filename;
+			dirdepth = newName.dirdepth;
 			needUpdate = true;
 		}
 	}
@@ -549,11 +586,11 @@ class Jpy1Sec : PathUser, CWXPath {
 	}
 
 	/// シナリオ内の相対パスをJPY1内のfilenameへ変換する。
-	private string fromMaterialPath(string filename) { mixin(S_TRACE);
+	private FromMaterialPathResult fromMaterialPath(string filename) { mixin(S_TRACE);
 		return fromMaterialPathImpl(filename, sPath, fPath, dirtype, dirdepth);
 	}
 	/// ditto
-	private static string fromMaterialPathImpl(string filename, string sPath, string fPath, Dirtype dirtype, int dirdepth) { mixin(S_TRACE);
+	private static FromMaterialPathResult fromMaterialPathImpl(string filename, string sPath, string fPath, Dirtype dirtype, int dirdepth) { mixin(S_TRACE);
 		string relPath(string sPath, string path) { mixin(S_TRACE);
 			if (sPath == "") return path;
 			auto nsPath = nabs(sPath);
@@ -562,45 +599,50 @@ class Jpy1Sec : PathUser, CWXPath {
 		}
 		switch (dirtype) {
 		case Dirtype.CURRENT: { mixin(S_TRACE);
-			return relPath(dirName(fPath.abs2rel(sPath)), dirName(filename)).buildPath(filename.baseName());
+			return FromMaterialPathResult(relPath(dirName(fPath.abs2rel(sPath)), dirName(filename)).buildPath(filename.baseName()), dirdepth);
 		} break;
-		case Dirtype.TABLE: return filename.decodePath();
-		case Dirtype.SCHEME: return filename.decodePath();
+		case Dirtype.TABLE: break;
+		case Dirtype.SCHEME: break;
 		case Dirtype.SCENARIO: { mixin(S_TRACE);
 			string dir = dirName(fPath);
 			for (int dp = 0; dp < dirdepth; dp++) { mixin(S_TRACE);
+				if (.cfnmatch(.nabs(dir), .nabs(sPath))) { mixin(S_TRACE);
+					dirdepth = dp;
+					break;
+				}
 				dir = dirName(dir);
 			}
 			dir = relPath(sPath, dir);
-			return relPath(dir, filename);
+			return FromMaterialPathResult(relPath(dir, filename), dirdepth);
 		} break;
-		case Dirtype.WAV: return filename.decodePath();
+		case Dirtype.WAV: break;
 		case Dirtype.PARENT: { mixin(S_TRACE);
 			string dir = dirName(dirName(fPath.abs2rel(sPath)));
-			return relPath(dir, filename);
+			return FromMaterialPathResult(relPath(dir, filename), dirdepth);
 		} break;
-		case Dirtype.PROGRAM: return filename.decodePath();
-		default: return filename.decodePath();
+		case Dirtype.PROGRAM: break;
+		default: break;
 		}
+		return FromMaterialPathResult(filename.decodePath(), dirdepth);
 	} unittest { mixin(S_TRACE);
 		debug mixin(UTPerf);
 		string p;
 
-		p = fromMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/b.jpy1", Dirtype.CURRENT, 0).encodePath();
+		p = fromMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/b.jpy1", Dirtype.CURRENT, 0).filename.encodePath();
 		assert (p == "a.bmp", p);
-		p = fromMaterialPathImpl("c/a.bmp", "/dir/sc", "/dir/sc/c/b.jpy1", Dirtype.CURRENT, 0).encodePath();
+		p = fromMaterialPathImpl("c/a.bmp", "/dir/sc", "/dir/sc/c/b.jpy1", Dirtype.CURRENT, 0).filename.encodePath();
 		assert (p == "a.bmp", p);
-		p = fromMaterialPathImpl("a/b/c/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 0).encodePath();
+		p = fromMaterialPathImpl("a/b/c/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 0).filename.encodePath();
 		assert (p == "a.bmp", p);
-		p = fromMaterialPathImpl("a/b/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 1).encodePath();
+		p = fromMaterialPathImpl("a/b/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 1).filename.encodePath();
 		assert (p == "a.bmp", p);
-		p = fromMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 3).encodePath();
+		p = fromMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 3).filename.encodePath();
 		assert (p == "a.bmp", p);
-		p = fromMaterialPathImpl("d/e/f/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 1).encodePath();
+		p = fromMaterialPathImpl("d/e/f/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 1).filename.encodePath();
 		assert (p == "../../d/e/f/a.bmp", p);
-		p = fromMaterialPathImpl("d/e/f/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 3).encodePath();
+		p = fromMaterialPathImpl("d/e/f/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 3).filename.encodePath();
 		assert (p == "d/e/f/a.bmp", p);
-		p = fromMaterialPathImpl("a/b/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.PARENT, 0).encodePath();
+		p = fromMaterialPathImpl("a/b/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.PARENT, 0).filename.encodePath();
 		assert (p == "a.bmp", p);
 	}
 
@@ -614,6 +656,10 @@ class Jpy1Sec : PathUser, CWXPath {
 	ptrdiff_t filenameIndex = -1;
 	/// filenameがある行の内容。ファイルの更新に使用する。
 	string filenameLine = "filename=";
+	/// dirdepthがある行。ファイルの更新に使用する。
+	ptrdiff_t dirdepthIndex = -1;
+	/// dirdepthがある行の内容。ファイルの更新に使用する。
+	string dirdepthLine = "dirdepth=";
 	/// filenameが更新されたためファイルの上書きが必要な場合はtrue。
 	bool needUpdate = false;
 
