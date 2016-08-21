@@ -497,7 +497,11 @@ class Jpy1Sec : PathUser, CWXPath {
 
 	protected override void changed() { }
 
+	/// JPY1内のfilenameをシナリオ内の相対パスへ変換する。
 	private string toMaterialPath() { mixin(S_TRACE);
+		return toMaterialPathImpl(filename, sPath, fPath, dirtype, dirdepth);
+	}
+	private static string toMaterialPathImpl(string filename, string sPath, string fPath, Dirtype dirtype, int dirdepth) { mixin(S_TRACE);
 		string dir;
 		switch (dirtype) {
 		case Dirtype.CURRENT: { mixin(S_TRACE);
@@ -507,14 +511,14 @@ class Jpy1Sec : PathUser, CWXPath {
 		case Dirtype.SCHEME: return "";
 		case Dirtype.SCENARIO: { mixin(S_TRACE);
 			if (sPath == "") return "";
-			dir = sPath;
+			dir = dirName(fPath);
+			for (int dp = 0; dp < dirdepth; dp++) { mixin(S_TRACE);
+				dir = dirName(dir);
+			}
 		} break;
 		case Dirtype.WAV: return "";
 		case Dirtype.PARENT: { mixin(S_TRACE);
 			dir = dirName(dirName(fPath));
-			for (int dp = 0; dp < dirdepth; dp++) { mixin(S_TRACE);
-				dir = dirName(dir);
-			}
 		} break;
 		case Dirtype.PROGRAM: return "";
 		default: return "";
@@ -526,34 +530,78 @@ class Jpy1Sec : PathUser, CWXPath {
 			return fname.abs2rel(sPath);
 		}
 		return "";
+	} unittest { mixin(S_TRACE);
+		debug mixin(UTPerf);
+		string p;
+
+		p = toMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/b.jpy1", Dirtype.CURRENT, 0).encodePath();
+		assert (p == "a.bmp", p);
+		p = toMaterialPathImpl("c/a.bmp", "/dir/sc", "/dir/sc/b.jpy1", Dirtype.CURRENT, 0).encodePath();
+		assert (p == "c/a.bmp", p);
+		p = toMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 0).encodePath();
+		assert (p == "a/b/c/a.bmp", p);
+		p = toMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 1).encodePath();
+		assert (p == "a/b/a.bmp", p);
+		p = toMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 3).encodePath();
+		assert (p == "a.bmp", p);
+		p = toMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.PARENT, 0).encodePath();
+		assert (p == "a/b/a.bmp", p);
 	}
 
+	/// シナリオ内の相対パスをJPY1内のfilenameへ変換する。
 	private string fromMaterialPath(string filename) { mixin(S_TRACE);
+		return fromMaterialPathImpl(filename, sPath, fPath, dirtype, dirdepth);
+	}
+	/// ditto
+	private static string fromMaterialPathImpl(string filename, string sPath, string fPath, Dirtype dirtype, int dirdepth) { mixin(S_TRACE);
 		string relPath(string sPath, string path) { mixin(S_TRACE);
+			if (sPath == "") return path;
 			auto nsPath = nabs(sPath);
 			auto nPath = nabs(path);
 			return nPath.abs2rel(nsPath);
 		}
 		switch (dirtype) {
 		case Dirtype.CURRENT: { mixin(S_TRACE);
-			return relPath(dirName(fPath.abs2rel(sPath)), filename);
+			return relPath(dirName(fPath.abs2rel(sPath)), dirName(filename)).buildPath(filename.baseName());
 		} break;
 		case Dirtype.TABLE: return filename.decodePath();
 		case Dirtype.SCHEME: return filename.decodePath();
 		case Dirtype.SCENARIO: { mixin(S_TRACE);
-			return relPath(sPath, sPath.buildPath(filename));
+			string dir = dirName(fPath);
+			for (int dp = 0; dp < dirdepth; dp++) { mixin(S_TRACE);
+				dir = dirName(dir);
+			}
+			dir = relPath(sPath, dir);
+			return relPath(dir, filename);
 		} break;
 		case Dirtype.WAV: return filename.decodePath();
 		case Dirtype.PARENT: { mixin(S_TRACE);
 			string dir = dirName(dirName(fPath.abs2rel(sPath)));
-			for (int dp = 0; dp < dirdepth; dp++) { mixin(S_TRACE);
-				dir = dirName(dir);
-			}
 			return relPath(dir, filename);
 		} break;
 		case Dirtype.PROGRAM: return filename.decodePath();
 		default: return filename.decodePath();
 		}
+	} unittest { mixin(S_TRACE);
+		debug mixin(UTPerf);
+		string p;
+
+		p = fromMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/b.jpy1", Dirtype.CURRENT, 0).encodePath();
+		assert (p == "a.bmp", p);
+		p = fromMaterialPathImpl("c/a.bmp", "/dir/sc", "/dir/sc/c/b.jpy1", Dirtype.CURRENT, 0).encodePath();
+		assert (p == "a.bmp", p);
+		p = fromMaterialPathImpl("a/b/c/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 0).encodePath();
+		assert (p == "a.bmp", p);
+		p = fromMaterialPathImpl("a/b/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 1).encodePath();
+		assert (p == "a.bmp", p);
+		p = fromMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 3).encodePath();
+		assert (p == "a.bmp", p);
+		p = fromMaterialPathImpl("d/e/f/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 1).encodePath();
+		assert (p == "../../d/e/f/a.bmp", p);
+		p = fromMaterialPathImpl("d/e/f/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.SCENARIO, 3).encodePath();
+		assert (p == "d/e/f/a.bmp", p);
+		p = fromMaterialPathImpl("a/b/a.bmp", "/dir/sc", "/dir/sc/a/b/c/b.jpy1", Dirtype.PARENT, 0).encodePath();
+		assert (p == "a.bmp", p);
 	}
 
 	/// 所属するシナリオのディレクトリ。

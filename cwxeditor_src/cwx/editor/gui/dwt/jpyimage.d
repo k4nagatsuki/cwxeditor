@@ -114,6 +114,9 @@ private ImageData loadJPYImageImpl(Props prop, in Skin skin, in Summary summ, st
 			case Dirtype.SCENARIO: { mixin(S_TRACE);
 				if (!summ) continue;
 				dir = summ.scenarioPath;
+				for (int dp = 0; dp < sec.dirdepth; dp++) { mixin(S_TRACE);
+					dir = dirName(dir);
+				}
 			} break;
 			case Dirtype.WAV: { mixin(S_TRACE);
 				if (!skin) continue;
@@ -121,9 +124,6 @@ private ImageData loadJPYImageImpl(Props prop, in Skin skin, in Summary summ, st
 			} break;
 			case Dirtype.PARENT: { mixin(S_TRACE);
 				dir = dirName(dirName(path));
-				for (int dp = 0; dp < sec.dirdepth; dp++) { mixin(S_TRACE);
-					dir = dirName(dir);
-				}
 			} break;
 			case Dirtype.PROGRAM: { mixin(S_TRACE);
 				if (!skin) continue;
