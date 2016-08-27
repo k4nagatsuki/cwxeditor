@@ -790,7 +790,7 @@ private:
 						}
 						store(owner);
 						if (insertIndex == -1) { mixin(S_TRACE);
-							if (_box._insertFirst) { mixin(S_TRACE);
+							if (_box.isInsertFirst) { mixin(S_TRACE);
 								insertIndex = 0;
 								owner.insert(_prop.parent, 0, evt);
 							} else { mixin(S_TRACE);
@@ -824,7 +824,7 @@ private:
 							if (_prop.var.etc.adjustContentName) { mixin(S_TRACE);
 								ic.setName(_prop.parent, "");
 							}
-							if (_box._insertFirst) { mixin(S_TRACE);
+							if (_box.isInsertFirst) { mixin(S_TRACE);
 								evt.insert(_prop.parent, 0, ic);
 							} else { mixin(S_TRACE);
 								evt.add(_prop.parent, ic);
@@ -928,7 +928,7 @@ private:
 			}
 		}
 		if (hasDialog(type)) { mixin(S_TRACE);
-			if (!_box._autoOpen || !checkOpenDialog(type)) { mixin(S_TRACE);
+			if (!_box.isAutoOpen || !checkOpenDialog(type)) { mixin(S_TRACE);
 				auto c = new Content(type, name);
 				initial(c);
 				applied(c);
@@ -1396,7 +1396,7 @@ private:
 								adjustText(owner, evt, lastNextType);
 							}
 							int insertIndex = -1;
-							if (_box._insertFirst) { mixin(S_TRACE);
+							if (_box.isInsertFirst) { mixin(S_TRACE);
 								owner.insert(_prop.parent, 0, evt);
 								insertIndex = 0;
 							} else { mixin(S_TRACE);
@@ -3083,7 +3083,7 @@ public:
 			}
 			assert (cs2[0] is itm.getData());
 		}
-		bool insertFirst = (index == -1 && _box._insertFirst);
+		bool insertFirst = (index == -1 && _box.isInsertFirst);
 		Content lastCt = null;
 		int i = 0;
 		foreach (ct; cs2) { mixin(S_TRACE);
@@ -4387,6 +4387,8 @@ class ContentsToolBox {
 
 	private CreateEvent[CType] _conts;
 	private bool _shiftDown = false;
+	private bool _ctrlDown = false;
+	private bool _altDown = false;
 
 	private MouseTrack _mTrack = null;
 	private Shell _toolWin = null;
@@ -4424,6 +4426,14 @@ class ContentsToolBox {
 	private void insertFirst() { mixin(S_TRACE);
 		_insertFirst = _insertFirstTI.getSelection();
 		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
+	}
+	@property
+	bool isInsertFirst() { mixin(S_TRACE);
+		return _ctrlDown ? !_prop.var.etc.contentsInsertFirst : _prop.var.etc.contentsInsertFirst;
+	}
+	@property
+	bool isAutoOpen() { mixin(S_TRACE);
+		return _altDown ? !_prop.var.etc.contentsAutoOpen : _prop.var.etc.contentsAutoOpen;
 	}
 
 	private void arrow() { mixin(S_TRACE);
@@ -4807,6 +4817,14 @@ class ContentsToolBox {
 					_shiftDown = false;
 				} else if (e.type == SWT.KeyDown && e.keyCode == SWT.SHIFT) { mixin(S_TRACE);
 					_shiftDown = true;
+				} else if (e.type == SWT.KeyUp && e.keyCode == SWT.CTRL) { mixin(S_TRACE);
+					_ctrlDown = false;
+				} else if (e.type == SWT.KeyDown && e.keyCode == SWT.CTRL) { mixin(S_TRACE);
+					_ctrlDown = true;
+				} else if (e.type == SWT.KeyUp && e.keyCode == SWT.ALT) { mixin(S_TRACE);
+					_altDown = false;
+				} else if (e.type == SWT.KeyDown && e.keyCode == SWT.ALT) { mixin(S_TRACE);
+					_altDown = true;
 				}
 			}
 		};

@@ -1413,7 +1413,13 @@ public:
 			}
 		}
 		{ mixin(S_TRACE);
-			_etree = new EventTreeView(comm, prop, summ, _area, _sash, _undo, &forceSel, &refreshTopStart, _toolbar, _readOnly != SWT.NONE);
+			auto viewArea = new Composite(_sash, SWT.NONE);
+			viewArea.setLayout(zeroGridLayout(1, true));
+			_etree = new EventTreeView(comm, prop, summ, _area, viewArea, _undo, &forceSel, &refreshTopStart, _toolbar, _readOnly != SWT.NONE);
+			_etree.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
+			auto hint = new Label(viewArea, SWT.NONE);
+			hint.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			hint.setText(_prop.msgs.eventTreeViewHint);
 			if (!_readOnly) { mixin(S_TRACE);
 				auto _edit = new TreeEdit(_comm, _cards, &editEnd, &createEditor);
 			}

@@ -541,6 +541,8 @@ class Msgs : Properties {
 	auto evtAutoOpen = Msg("evtAutoOpen", "配置と同時に編集");
 	auto evtInsertFirst = Msg("evtInsertFirst", "他の子コンテントより前に配置");
 
+	auto eventTreeViewHint = Msg("eventTreeViewHint", "Shift+配置: 選択コンテントの上へ挿入, Alt+配置: 「配置と同時に編集」設定を反転, Ctrl+配置: 「他の子コンテントより前に配置」設定を反転");
+
 	const string contentName(CType id) { mixin(S_TRACE);
 		mixin(EnumToStringSwitch!(CType, "contentName"));
 	}
