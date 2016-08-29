@@ -3475,6 +3475,8 @@ public:
 				return;
 			}
 			void raiseEvent(MenuItem menu) { mixin(S_TRACE);
+				_comm.isMenuAccelerating = .convertAccelerator(menu.getText());
+				scope (exit) _comm.isMenuAccelerating = 0;
 				if (menu.getStyle() & SWT.CHECK) { mixin(S_TRACE);
 					menu.setSelection(!menu.getSelection());
 				}
@@ -3543,7 +3545,7 @@ public:
 					se.doit = e.doit;
 					return se;
 				}
-				if (tlp.doMenu(_prop, e.keyCode, e.character, e.stateMask, &selEvent)) return;
+				if (tlp.doMenu(_comm, e.keyCode, e.character, e.stateMask, &selEvent)) return;
 			}
 		}
 	}

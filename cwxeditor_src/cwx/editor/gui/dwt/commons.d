@@ -263,13 +263,16 @@ abstract class TopLevelPanel {
 		auto p = menuID in _enabled;
 		return p ? *p : null;
 	}
-	bool doMenu(in Props prop, int keyCode, wchar character, int stateMask, SelectionEvent delegate() e) { mixin(S_TRACE);
+	bool doMenu(Commons comm, int keyCode, wchar character, int stateMask, SelectionEvent delegate() e) { mixin(S_TRACE);
 		foreach (menu, dlg; _act) { mixin(S_TRACE);
 			if (.isLocalMenu(menu)) continue;
 			if (!dlg) continue;
-			if (!.eqAcc(.convertAccelerator(prop.buildMenu(menu)), keyCode, character, stateMask)) continue;
+			auto accel = .convertAccelerator(comm.prop.buildMenu(menu));
+			if (!.eqAcc(accel, keyCode, character, stateMask)) continue;
 			auto p = menu in _enabled;
 			if (p && *p !is null && !(*p)()) continue;
+			comm.isMenuAccelerating = accel;
+			scope (exit) comm.isMenuAccelerating = 0;
 			dlg(e());
 			return true;
 		}
@@ -487,6 +490,15 @@ class Commons {
 			}
 		}
 	}
+
+	private int _isMenuAccelerating = 0;
+	/// メニューイベント中に、そのイベントのアクセラレータとして
+	/// 押されたShift・Ctrl・Altの状態を返す。
+	@property
+	const
+	int isMenuAccelerating() { return _isMenuAccelerating; }
+	@property
+	void isMenuAccelerating(int mask) { _isMenuAccelerating = mask; };
 
 	private MainWindow _main = null;
 	private TableWindow _tableWin = null;

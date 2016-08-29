@@ -127,7 +127,7 @@ private:
 		createMenuItem2(_comm, menu, text, img, {
 			if (!_box) return;
 			auto itm = selection;
-			bool insert = _box && _box._shiftDown;
+			bool insert = _box && _box.isInsert;
 			auto oldType = _box._cType;
 			_box._cType = type;
 			scope (exit) _box._cType = oldType;
@@ -4428,12 +4428,16 @@ class ContentsToolBox {
 		_comm.selContentTool.call(this, _arrowMode, _cType, _putMode, _autoOpen, _insertFirst);
 	}
 	@property
+	bool isInsert() { mixin(S_TRACE);
+		return _shiftDown && !(_comm.isMenuAccelerating & SWT.SHIFT);
+	}
+	@property
 	bool isInsertFirst() { mixin(S_TRACE);
-		return _ctrlDown ? !_prop.var.etc.contentsInsertFirst : _prop.var.etc.contentsInsertFirst;
+		return (_ctrlDown && !(_comm.isMenuAccelerating & SWT.CTRL)) ? !_prop.var.etc.contentsInsertFirst : _prop.var.etc.contentsInsertFirst;
 	}
 	@property
 	bool isAutoOpen() { mixin(S_TRACE);
-		return _altDown ? !_prop.var.etc.contentsAutoOpen : _prop.var.etc.contentsAutoOpen;
+		return (_altDown && !(_comm.isMenuAccelerating & SWT.ALT)) ? !_prop.var.etc.contentsAutoOpen : _prop.var.etc.contentsAutoOpen;
 	}
 
 	private void arrow() { mixin(S_TRACE);
@@ -4512,7 +4516,7 @@ class ContentsToolBox {
 			if (_itm.getSelection()) { mixin(S_TRACE);
 				auto itm = _parent.selection;
 				if (_putMode is MenuID.PutQuick) { mixin(S_TRACE);
-					putQuick(_shiftDown);
+					putQuick(isInsert);
 					if (e) e.doit = false;
 					return;
 				}
