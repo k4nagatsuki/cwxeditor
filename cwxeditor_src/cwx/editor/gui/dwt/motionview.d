@@ -394,6 +394,7 @@ private:
 				v.appendMotion(m);
 				v._motions.select(v._motions.getItemCount() - 1);
 				v.refreshSels();
+				v._motions.showSelection();
 				foreach (dlg; v.modEvent) dlg();
 			}
 		}
@@ -808,6 +809,7 @@ private:
 						appendMotion(m, index, true, false, true);
 					}
 					_motions.select(index);
+					_motions.showSelection();
 					refreshSels();
 					e.detail = DND.DROP_MOVE;
 				} else { mixin(S_TRACE);
@@ -1003,10 +1005,10 @@ public:
 				_comm.put(bar);
 				bar.setEnabled(!_readOnly);
 				bar.addListener(SWT.Traverse, new class Listener {
-					override void handleEvent(Event e) {e.doit = true;}
+					override void handleEvent(Event e) { e.doit = true; }
 				});
 				bar.addListener(SWT.KeyDown, new class Listener {
-					override void handleEvent(Event e) {e.doit = true;}
+					override void handleEvent(Event e) { e.doit = true; }
 				});
 				auto tab = new CTabItem(mtabf, SWT.NONE);
 				tab.setControl(bar);
@@ -1524,6 +1526,7 @@ public:
 			appendMotion(m.dup, -1, false, false, false);
 			if (0 == i) _motions.select(0);
 		}
+		_motions.showSelection();
 		refreshSels();
 		foreach (dlg; modEvent) dlg();
 		_motions.setRedraw(true);
@@ -1562,6 +1565,7 @@ public:
 						auto ver = new XMLInfo(_prop.sys, LATEST_VERSION);
 						appendMotion(Motion.createFromNode(node, ver));
 						_motions.select(_motions.getItemCount() - 1);
+						_motions.showSelection();
 						refreshSels();
 						foreach (dlg; modEvent) dlg();
 					} else { mixin(S_TRACE);

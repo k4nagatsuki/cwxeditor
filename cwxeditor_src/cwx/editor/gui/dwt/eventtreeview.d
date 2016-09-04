@@ -783,6 +783,7 @@ private:
 						oItm = sel;
 					}
 					auto owner = cast(Content) oItm.getData();
+					auto isInsertFirst = _box.isInsertFirst;
 					void applied(Content evt) { mixin(S_TRACE);
 						bool empty = _et.owner.isEmpty;
 						scope (exit) {
@@ -790,7 +791,7 @@ private:
 						}
 						store(owner);
 						if (insertIndex == -1) { mixin(S_TRACE);
-							if (_box.isInsertFirst) { mixin(S_TRACE);
+							if (isInsertFirst) { mixin(S_TRACE);
 								insertIndex = 0;
 								owner.insert(_prop.parent, 0, evt);
 							} else { mixin(S_TRACE);
@@ -824,7 +825,7 @@ private:
 							if (_prop.var.etc.adjustContentName) { mixin(S_TRACE);
 								ic.setName(_prop.parent, "");
 							}
-							if (_box.isInsertFirst) { mixin(S_TRACE);
+							if (isInsertFirst) { mixin(S_TRACE);
 								evt.insert(_prop.parent, 0, ic);
 							} else { mixin(S_TRACE);
 								evt.add(_prop.parent, ic);
