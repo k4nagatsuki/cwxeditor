@@ -1553,7 +1553,7 @@ public:
 			c.setUseCounter = _uc;
 			c.changeHandler = &changeHandler;
 			c.owner = this;
-			changeHandler();
+			c.changed();
 			foreach_reverse (o; chg.keys.sort) { mixin(S_TRACE);
 				_uc.change(ToID(o), ToID(chg[o]));
 			}
