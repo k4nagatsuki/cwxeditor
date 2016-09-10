@@ -224,7 +224,7 @@ private:
 		auto sels = _tree.getSelection();
 		if (sels.length > 0) { mixin(S_TRACE);
 			assert (cast(Content)sels[0].getData() !is null);
-			assert ((cast(Content)sels[0].getData()).tree is _et);
+			//assert ((cast(Content)sels[0].getData()).tree is _et);
 			return sels[0];
 		}
 		return null;
@@ -3076,13 +3076,15 @@ public:
 				owner.setName(_prop.parent, "");
 			}
 			last.add(_prop.parent, owner);
+			auto o = owner;
 			owner = parent;
-			while (itm.getData() !is cs2[0]) { mixin(S_TRACE);
+			while (o !is cs2[0]) { mixin(S_TRACE);
 				// 分岐の直後に1つ以上のコンテントと終端が含まれており、
 				// 最初の分岐の直後に挿入先のイベントが来る場合
 				itm = _tree.getParentItem(itm);
+				o = o.parent;
 			}
-			assert (cs2[0] is itm.getData());
+			assert (!_tree.editor || cs2[0] is itm.getData());
 		}
 		bool insertFirst = (index == -1 && _box.isInsertFirst);
 		Content lastCt = null;
