@@ -2,10 +2,11 @@
 module cwx.editor.gui.dwt.customtext;
 
 import cwx.utils;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.undo;
 import cwx.editor.gui.dwt.dmenu;
-import cwx.editor.gui.dwt.dutils : wDrawText, wTextExtent;
+import cwx.editor.gui.dwt.dutils : wDrawText, wTextExtent, createFontFromPixels, ppis;
 
 import std.utf;
 import std.string;
@@ -87,7 +88,7 @@ class FixedWidthText {
 	private GC _gc = null;
 	private int _width;
 	private int _num;
-	this (FontData fontData, int num, Composite parent, int style, bool wordWrap = false) { mixin(S_TRACE);
+	this (in CFont fontData, int num, Composite parent, int style, bool wordWrap = false) { mixin(S_TRACE);
 		_widget = new Text(parent, style | SWT.MULTI | SWT.WRAP);
 		_num = num;
 		font = fontData;
@@ -105,11 +106,13 @@ class FixedWidthText {
 		calcWidth();
 	}
 	@property
-	void font(FontData fontData) { mixin(S_TRACE);
+	void font(in CFont fontData) { mixin(S_TRACE);
 		if (_gc) { mixin(S_TRACE);
 			_widget.getFont().dispose();
 		}
-		_widget.setFont(new Font(Display.getCurrent(), fontData));
+		CFont fontData2 = fontData;
+		fontData2.point = fontData.point.ppis;
+		_widget.setFont(.createFontFromPixels(fontData2));
 		calcWidth();
 	}
 	private void calcWidth() { mixin(S_TRACE);

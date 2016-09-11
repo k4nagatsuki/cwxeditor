@@ -3,6 +3,8 @@ module cwx.editor.gui.dwt.radarspinner;
 
 import cwx.utils;
 
+import cwx.editor.gui.dwt.dutils : ppis, normalGridLayout;
+
 import std.algorithm;
 import std.conv;
 import std.math;
@@ -206,30 +208,30 @@ class RadarSpinner : Composite {
 							auto tgl = _tgls[i][getValue(i) - _min];
 							final switch (_tstyle) {
 							case Toggle.SQUARE:
-								int x = tgl.x - TOGGLE_SIZE / 2;
-								int y = tgl.y - TOGGLE_SIZE / 2;
-								gc.fillRectangle(x, y, TOGGLE_SIZE, TOGGLE_SIZE);
-								gc.drawRectangle(x, y, TOGGLE_SIZE, TOGGLE_SIZE);
+								int x = tgl.x - TOGGLE_SIZE.ppis / 2;
+								int y = tgl.y - TOGGLE_SIZE.ppis / 2;
+								gc.fillRectangle(x, y, TOGGLE_SIZE.ppis, TOGGLE_SIZE.ppis);
+								gc.drawRectangle(x, y, TOGGLE_SIZE.ppis, TOGGLE_SIZE.ppis);
 								break;
 							case Toggle.OVAL:
-								int x = tgl.x - TOGGLE_SIZE / 2;
-								int y = tgl.y - TOGGLE_SIZE / 2;
-								gc.fillOval(x, y, TOGGLE_SIZE, TOGGLE_SIZE);
-								gc.drawOval(x, y, TOGGLE_SIZE, TOGGLE_SIZE);
+								int x = tgl.x - TOGGLE_SIZE.ppis / 2;
+								int y = tgl.y - TOGGLE_SIZE.ppis / 2;
+								gc.fillOval(x, y, TOGGLE_SIZE.ppis, TOGGLE_SIZE.ppis);
+								gc.drawOval(x, y, TOGGLE_SIZE.ppis, TOGGLE_SIZE.ppis);
 								break;
 							case Toggle.OBLIQUE_SQUARE:
-								int pL = tgl.x - TOGGLE_SIZE / 2 - 1;
-								int pT = tgl.y - TOGGLE_SIZE / 2 - 1;
-								int pR = tgl.x + TOGGLE_SIZE / 2 + 1;
-								int pB = tgl.y + TOGGLE_SIZE / 2 + 1;
+								int pL = tgl.x - TOGGLE_SIZE.ppis / 2 - 1;
+								int pT = tgl.y - TOGGLE_SIZE.ppis / 2 - 1;
+								int pR = tgl.x + TOGGLE_SIZE.ppis / 2 + 1;
+								int pB = tgl.y + TOGGLE_SIZE.ppis / 2 + 1;
 								gc.fillPolygon([pL, tgl.y, tgl.x, pT, pR, tgl.y, tgl.x, pB]);
 								gc.drawPolygon([pL, tgl.y, tgl.x, pT, pR, tgl.y, tgl.x, pB]);
 								break;
 							case Toggle.CROSS:
-								int pL = tgl.x - TOGGLE_SIZE / 2 - 2;
-								int pT = tgl.y - TOGGLE_SIZE / 2 - 2;
-								int pR = tgl.x + TOGGLE_SIZE / 2 + 2;
-								int pB = tgl.y + TOGGLE_SIZE / 2 + 2;
+								int pL = tgl.x - TOGGLE_SIZE.ppis / 2 - 2;
+								int pT = tgl.y - TOGGLE_SIZE.ppis / 2 - 2;
+								int pR = tgl.x + TOGGLE_SIZE.ppis / 2 + 2;
+								int pB = tgl.y + TOGGLE_SIZE.ppis / 2 + 2;
 								int[] cpoly = [
 									pL, tgl.y - 1,
 									tgl.x - 1, tgl.y - 1,
@@ -288,10 +290,10 @@ class RadarSpinner : Composite {
 		foreach (i, ref comp; _comps) { mixin(S_TRACE);
 			comp = new Composite(this, SWT.NONE);
 			comp.setCapture(false);
-			auto gl = new GridLayout(1, true);
+			auto gl = normalGridLayout(1, true);
 			gl.marginWidth = 0;
 			gl.marginHeight = 0;
-			gl.verticalSpacing = 2;
+			gl.verticalSpacing = 2.ppis;
 			comp.setLayout(gl);
 			auto lbl = new Label(comp, SWT.CENTER | SWT.EMBEDDED);
 			lbl.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -338,9 +340,9 @@ class RadarSpinner : Composite {
 		assert (!_readOnly);
 		foreach (i, tgls; _tgls) { mixin(S_TRACE);
 			auto tgl = tgls[getValue(i) - _min];
-			int tx = tgl.x - TOGGLE_CATCH_SIZE / 2;
-			int ty = tgl.y - TOGGLE_CATCH_SIZE / 2;
-			scope rect = new Rectangle(tx, ty, TOGGLE_CATCH_SIZE, TOGGLE_CATCH_SIZE);
+			int tx = tgl.x - TOGGLE_CATCH_SIZE.ppis / 2;
+			int ty = tgl.y - TOGGLE_CATCH_SIZE.ppis / 2;
+			scope rect = new Rectangle(tx, ty, TOGGLE_CATCH_SIZE.ppis, TOGGLE_CATCH_SIZE.ppis);
 			if (rect.contains(x, y)) { mixin(S_TRACE);
 				setCursor(Display.getCurrent().getSystemCursor(SWT.CURSOR_CROSS));
 				return true;
@@ -356,9 +358,9 @@ class RadarSpinner : Composite {
 		ptrdiff_t index = -1;
 		foreach (i, tgls; _tgls) { mixin(S_TRACE);
 			auto tgl = tgls[getValue(i) - _min];
-			int tx = tgl.x - TOGGLE_CATCH_SIZE / 2;
-			int ty = tgl.y - TOGGLE_CATCH_SIZE / 2;
-			scope rect = new Rectangle(tx, ty, TOGGLE_CATCH_SIZE, TOGGLE_CATCH_SIZE);
+			int tx = tgl.x - TOGGLE_CATCH_SIZE.ppis / 2;
+			int ty = tgl.y - TOGGLE_CATCH_SIZE.ppis / 2;
+			scope rect = new Rectangle(tx, ty, TOGGLE_CATCH_SIZE.ppis, TOGGLE_CATCH_SIZE.ppis);
 			if (rect.contains(x, y)) { mixin(S_TRACE);
 				int dist = abs(tgl.x - x) + abs(tgl.y - y);
 				if (dist < minDist) { mixin(S_TRACE);
@@ -426,7 +428,7 @@ class RadarSpinner : Composite {
 		if (!_mod) return;
 		_mod = false;
 		scope client = getClientArea();
-		double tgs_d = TOGGLE_SIZE / 2.0;
+		double tgs_d = TOGGLE_SIZE.ppis / 2.0;
 
 		if (SWT.DEFAULT == _ovalW && SWT.DEFAULT == _ovalH && 3 == _param_c && !_oval) { mixin(S_TRACE);
 			// 3点の場合は最初に頂点の位置を固定する
@@ -477,7 +479,7 @@ class RadarSpinner : Composite {
 			_comps[1].setBounds(xs + cast(int) (x2 - _maxSize.x / 2), ys + cast(int) (y2 - _maxSize.y / 2), _maxSize.x, _maxSize.y);
 			_comps[2].setBounds(xs + cast(int) (x3 - _maxSize.x / 2), ys + cast(int) (y3 - _maxSize.y / 2), _maxSize.x, _maxSize.y);
 
-			double dis = TOGGLE_SIZE + MARGIN + ((_maxSize.x + _maxSize.y) / 2) / 2;
+			double dis = TOGGLE_SIZE.ppis + MARGIN.ppis + ((_maxSize.x + _maxSize.y) / 2) / 2;
 			x1 -= dis * cos(r1);
 			y1 -= dis * sin(r1);
 			x2 -= dis * cos(r2);
@@ -523,8 +525,8 @@ class RadarSpinner : Composite {
 			double ch = client.height;
 			double bw = _maxSize.x;
 			double bh = _maxSize.y;
-			double disW = TOGGLE_SIZE + MARGIN + _maxSize.x / 2;
-			double disH = TOGGLE_SIZE + MARGIN + _maxSize.y / 2;
+			double disW = TOGGLE_SIZE.ppis + MARGIN.ppis + _maxSize.x / 2;
+			double disH = TOGGLE_SIZE.ppis + MARGIN.ppis + _maxSize.y / 2;
 			foreach (i; 0 .. _param_c) { mixin(S_TRACE);
 				// 角度(°)
 				int r = cast(int)(((PI * 2.0 * nPos(i) / _param_c)) * 180 / PI); // rad -> °
@@ -570,8 +572,8 @@ class RadarSpinner : Composite {
 		}
 
 		scope size = new Point
-			(ovalW + TOGGLE_SIZE + MARGIN * 2 + _maxSize.x * 2,
-			ovalH + TOGGLE_SIZE + MARGIN * 2 + _maxSize.y * 2);
+			(ovalW + TOGGLE_SIZE.ppis + MARGIN.ppis * 2 + _maxSize.x * 2,
+			ovalH + TOGGLE_SIZE.ppis + MARGIN.ppis * 2 + _maxSize.y * 2);
 		scope bs = computeBounds(size.x, size.y);
 		double posX = (client.width - bs.width) / 2.0 - bs.x;
 		double posY = (client.height - bs.height) / 2.0 - bs.y;
@@ -579,14 +581,14 @@ class RadarSpinner : Composite {
 		auto sp = _maxSize;
 
 		// レーダー線と値の位置。
-		int oval_base_x = size.x - TOGGLE_SIZE - MARGIN * 2 - sp.x * 2;
-		int oval_base_y = size.y - TOGGLE_SIZE - MARGIN * 2 - sp.y * 2;
+		int oval_base_x = size.x - TOGGLE_SIZE.ppis - MARGIN.ppis * 2 - sp.x * 2;
+		int oval_base_y = size.y - TOGGLE_SIZE.ppis - MARGIN.ppis * 2 - sp.y * 2;
 		double oval_x = oval_base_x;
 		double oval_y = oval_base_y;
 		double oval_d_x = oval_x / _step_c;
 		double oval_d_y = oval_y / _step_c;
-		double x = tgs_d + MARGIN + sp.x + posX;
-		double y = tgs_d + MARGIN + sp.y + posY;
+		double x = tgs_d + MARGIN.ppis + sp.x + posX;
+		double y = tgs_d + MARGIN.ppis + sp.y + posY;
 		for (int s = 0; s < _step_c; s++) { mixin(S_TRACE);
 			if (_oval) { mixin(S_TRACE);
 				_ovals[s].x = cast(int) x;
@@ -611,8 +613,8 @@ class RadarSpinner : Composite {
 			if (s + 1 < _step_c) { mixin(S_TRACE);
 				oval_x -= oval_d_x;
 				oval_y -= oval_d_y;
-				x = sp.x + MARGIN + tgs_d + (oval_base_x - oval_x) / 2.0 + posX;
-				y = sp.y + MARGIN + tgs_d + (oval_base_y - oval_y) / 2.0 + posY;
+				x = sp.x + MARGIN.ppis + tgs_d + (oval_base_x - oval_x) / 2.0 + posX;
+				y = sp.y + MARGIN.ppis + tgs_d + (oval_base_y - oval_y) / 2.0 + posY;
 			}
 		}
 		// LabelとSpinnerの位置。
@@ -847,23 +849,23 @@ class RadarSpinner : Composite {
 		int cx, cy, cwidth, cheight;
 		if (_oval) { mixin(S_TRACE);
 			// 5 = (外周円の幅 = 2) * 2 + 1
-			int oval_w = width - TOGGLE_SIZE - MARGIN * 2 - sp.x * 2 + 5;
+			int oval_w = width - TOGGLE_SIZE.ppis - MARGIN.ppis * 2 - sp.x * 2 + 5;
 			if (minL == 0) { mixin(S_TRACE);
-				oval_w += MARGIN + sp.x;
+				oval_w += MARGIN.ppis + sp.x;
 			} else if (maxR == width) { mixin(S_TRACE);
-				oval_w += MARGIN + sp.x;
+				oval_w += MARGIN.ppis + sp.x;
 				if (maxR - minL < oval_w) minL += maxR - minL - oval_w;
 			} else { mixin(S_TRACE);
-				if (maxR - minL < oval_w) minL = MARGIN + sp.x;
+				if (maxR - minL < oval_w) minL = MARGIN.ppis + sp.x;
 			}
-			int oval_h = height - TOGGLE_SIZE - MARGIN * 2 - sp.y * 2 + 5;
+			int oval_h = height - TOGGLE_SIZE.ppis - MARGIN.ppis * 2 - sp.y * 2 + 5;
 			if (minT == 0) { mixin(S_TRACE);
-				oval_h += MARGIN + sp.y;
+				oval_h += MARGIN.ppis + sp.y;
 			} else if (maxB == height) { mixin(S_TRACE);
-				oval_h += MARGIN + sp.y;
+				oval_h += MARGIN.ppis + sp.y;
 				if (maxB - minT < oval_h) minT += maxB - minT - oval_h;
 			} else { mixin(S_TRACE);
-				if (maxB - minT < oval_h) minT = MARGIN + sp.y;
+				if (maxB - minT < oval_h) minT = MARGIN.ppis + sp.y;
 			}
 			cwidth = maxR - minL > oval_w ? maxR - minL : oval_w;
 			cheight = maxB - minT > oval_h ? maxB - minT : oval_h;
@@ -951,8 +953,8 @@ class RadarSpinner : Composite {
 					int h = _ovalH != SWT.DEFAULT ? _ovalH : 0;
 					return new Point(w, h);
 				}
-				int w = _ovalW + TOGGLE_SIZE + MARGIN * 2 + _maxSize.x * 2;
-				int h = _ovalH + TOGGLE_SIZE + MARGIN * 2 + _maxSize.y * 2;
+				int w = _ovalW + TOGGLE_SIZE.ppis + MARGIN.ppis * 2 + _maxSize.x * 2;
+				int h = _ovalH + TOGGLE_SIZE.ppis + MARGIN.ppis * 2 + _maxSize.y * 2;
 				scope b = computeBounds(w, h);
 				return new Point(b.width, b.height);
 			}

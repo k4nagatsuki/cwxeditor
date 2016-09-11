@@ -4406,6 +4406,7 @@ public:
 		.listener(gridY, SWT.Selection, &updateGridY);
 		.listener(gridY, SWT.Modify, &updateGridY);
 		createToolItemC(bar, gridY);
+		bar.getParent().layout();
 		return true;
 	}
 	private class FlagsDispose : DisposeListener {

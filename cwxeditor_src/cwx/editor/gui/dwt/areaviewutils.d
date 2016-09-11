@@ -167,7 +167,7 @@ PImg createMenuCardImage(PImg)(Props prop, Skin skin, string sPath,
 	}
 	auto tx = prop.looks.menuCardNamePoint.x;
 	auto w = card.width;
-	r.setTitle(title, dwtData(prop.looks.menuCardNameFont(skin.legacy)), dwtData(prop.looks.menuCardNamePoint),
+	r.setTitle(title, prop.looks.menuCardNameFont(skin.legacy), dwtData(prop.looks.menuCardNamePoint),
 		skin.legacy ? 0 : w - tx * 2, !skin.legacy);
 	if (!skin.legacy) { mixin(S_TRACE);
 		if (getRGBAverage(card, prop.looks.cardNameArea) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);

@@ -62,7 +62,7 @@ private:
 		forceCancel();
 	}
 	void refSkin() { mixin(S_TRACE);
-		_desc.font = dwtData(_prop.looks.cardDescFont(summSkin.legacy));
+		_desc.font = _prop.looks.cardDescFont(summSkin.legacy);
 	}
 	void refDataVersion() { mixin(S_TRACE);
 		refreshWarning();
@@ -100,11 +100,11 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, false));
+		area.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			grp.setLayout(new GridLayout(1, false));
+			grp.setLayout(normalGridLayout(1, false));
 			grp.setText(_prop.msgs.name);
 			_name = new GBLimitText(_prop.looks.monospace,
 				_prop.looks.nameLimit, false, grp, SWT.BORDER | _readOnly);
@@ -128,7 +128,7 @@ protected:
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(summSkin.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
+			_desc = new FixedWidthText(_prop.looks.cardDescFont(summSkin.legacy), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			mod(_desc.widget);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));

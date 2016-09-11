@@ -301,24 +301,6 @@ private ImageData loadJPYImageImpl(Props prop, in Skin skin, in Summary summ, st
 	return img.getImageData();
 }
 
-version (Windows) {
-	import core.stdc.string;
-	import core.sys.windows.windows;
-	private extern (Windows) {
-		const DEFAULT_CHARSET = 0x1;
-		const OUT_DEFAULT_PRECIS = 0x0;
-		const CLIP_DEFAULT_PRECIS = 0x0;
-		const DEFAULT_QUALITY = 0x0;
-		const ANTIALIASED_QUALITY = 0x4;
-		const DEFAULT_PITCH = 0x0;
-		const FIXED_PITCH = 0x1;
-		const VARIABLE_PITCH = 0x2;
-		const FF_DONTCARE = (0x0 << 4);
-		const FF_ROMAN = (0x1 << 4);
-		const FF_MODERN = (0x3 << 4);
-		HFONT CreateFontW(INT, INT, INT, INT, INT, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, LPCWSTR);
-	}
-}
 /// この実装は実質Windows専用である。
 /// 他のOSではレンダリング結果が大幅に異なる。
 /// また、antialiasプロパティの値は一切反映されない。
@@ -360,31 +342,10 @@ private ImageData loadJPTXImage(in Props prop, string path) { mixin(S_TRACE);
 	int autoH = 1;
 	int lineCount = 0;
 	jptx.parse((string text, in JptxParam param) { mixin(S_TRACE);
-		version (Windows) {
-			int fh = param.pixels;
-			DWORD fwg = param.b ? FW_BOLD : FW_NORMAL;
-			DWORD fi = param.i ? TRUE : FALSE;
-			DWORD fu = param.u ? TRUE : FALSE;
-			DWORD fs = param.s ? TRUE : FALSE;
-			DWORD fc = DEFAULT_CHARSET;
-			DWORD fop = OUT_DEFAULT_PRECIS;
-			DWORD fclp = CLIP_DEFAULT_PRECIS;
-			// FIXME: 現行の実装で必ずantialiasがかかってしまう
-			DWORD fq = ANTIALIASED_QUALITY;
-//			DWORD fq = jptx.antialias ? ANTIALIASED_QUALITY : DEFAULT_QUALITY;
-			DWORD fp = DEFAULT_PITCH | FF_DONTCARE;
-			HFONT hf;
-			hf = CreateFontW(fh, 0, 0, 0, fwg, fi, fu, fs, fc, fop, fclp, fq,
-				fp, toUTFz!(wchar*)(param.face));
-			auto font = Font.win32_new(d, hf);
-		} else { mixin(S_TRACE);
-			int fStyle = SWT.NORMAL;
-			if (param.b) fStyle |= SWT.BOLD;
-			if (param.i) fStyle |= SWT.ITALIC;
-			auto h = cast(int) (param.pixels * (72.0 / d.getDPI().y) + 0.5);
-			auto fontData = new FontData(param.face, h, fStyle);
-			auto font = new Font(d, fontData);
-		}
+		// FIXME: 現行の実装で必ずantialiasがかかってしまう
+//		auto a = jptx.antialias;
+		auto a = true;
+		auto font = .createFontFromPixels(param.face, param.pixels, param.b, param.i, param.u, param.s, a);
 		scope (exit) font.dispose();
 		gc.setFont(font);
 
@@ -453,7 +414,7 @@ private ImageData warningImage(Props prop, in Summary summ, EffectBoosterError e
 		scope (exit) gc.dispose();
 		lineHeight = gc.getFontMetrics().getHeight();
 		lh = .max(imgBounds.height, lineHeight);
-		height = (lh * 2) * cast(int)e.errors.length + 5 * (cast(int)e.errors.length - 1) + 2 * 2;
+		height = (lh * 2) * cast(int)e.errors.length + 5.ppis * (cast(int)e.errors.length - 1) + 2.ppis * 2;
 		width = 0;
 		auto sPath = summ ? nabs(summ.scenarioPath).toLower() : "";
 		foreach (err; e.errors) { mixin(S_TRACE);
@@ -467,7 +428,7 @@ private ImageData warningImage(Props prop, in Summary summ, EffectBoosterError e
 			width = .max(width, gc.wTextExtent(msg).x);
 			msgs ~= msg;
 		}
-		width += imgBounds.width + 4 + 5 * 2;
+		width += imgBounds.width + 4.ppis + 5.ppis * 2;
 	}
 	auto img = new Image(d, width, height);
 	scope (exit) img.dispose();
@@ -476,12 +437,12 @@ private ImageData warningImage(Props prop, in Summary summ, EffectBoosterError e
 	gc.setForeground(d.getSystemColor(SWT.COLOR_WHITE));
 	gc.fillRectangle(0, 0, width, height);
 	gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-	int x = 5;
-	int y = 2;
+	int x = 5.ppis;
+	int y = 2.ppis;
 	foreach (i, msg; msgs) { mixin(S_TRACE);
 		gc.drawImage(prop.images.warning, x, y + (lh - imgBounds.height) / 2);
-		gc.wDrawText(msg, x + imgBounds.width + 4, y + (lh - lineHeight) / 2, true);
-		y += lh * 2 + 5;
+		gc.wDrawText(msg, x + imgBounds.width + 4.ppis, y + (lh - lineHeight) / 2, true);
+		y += lh * 2 + 5.ppis;
 	}
 	return img.getImageData();
 }
@@ -496,9 +457,9 @@ private ImageData loadJPDCImage(in Props prop, string path) { mixin(S_TRACE);
 	gc.setForeground(d.getSystemColor(SWT.COLOR_WHITE));
 	gc.fillRectangle(0, 0, jpdc.clip.width, jpdc.clip.height);
 	gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-	int tw = jpdc.clip.width - 4;
+	int tw = jpdc.clip.width - 4.ppis;
 	string text = "JPDC Save to: " ~ (jpdc.saveFileName.length ? jpdc.saveFileName : "(undefined)");
-	int ty = 2;
+	int ty = 2.ppis;
 	while (text.length) { mixin(S_TRACE);
 		string t = text[0 .. 1];
 		size_t i;
@@ -506,7 +467,7 @@ private ImageData loadJPDCImage(in Props prop, string path) { mixin(S_TRACE);
 			if (gc.wTextExtent(t ~ text[i]).x > tw) break;
 			t ~= text[i];
 		}
-		gc.wDrawText(t, 2, ty, true);
+		gc.wDrawText(t, 2.ppis, ty, true);
 		ty += gc.wTextExtent(t).y;
 		text = text[t.length .. $];
 	}

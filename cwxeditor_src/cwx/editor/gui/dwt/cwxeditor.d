@@ -17,6 +17,8 @@ import std.stdio;
 import std.exception;
 import std.conv;
 
+import org.eclipse.swt.widgets.Display;
+
 void main(string[] args) {
 	string appPath = exeName(args[0]);
 	version (Console) {
@@ -40,6 +42,8 @@ void main(string[] args) {
 	string debugName = cwx.utils.debugLog;
 	cwx.utils.debugLog = buildPath(dirName(appPath), debugName);
 	string dStr = .text(__LINE__); // 起動ログ
+	auto display = new Display;
+	dStr ~= " - " ~ .text(__LINE__);
 	try {
 		auto sys = new System;
 		opt.conf = buildPath(dirName(appPath), "cwxeditor.config");
@@ -94,7 +98,7 @@ void main(string[] args) {
 			return;
 		}
 		dStr ~= " - " ~ .text(__LINE__);
-		auto main = new MainWindow(appPath, sys, prop, opt);
+		auto main = new MainWindow(appPath, sys, display, prop, opt);
 		dStr ~= " - " ~ .text(__LINE__);
 		main.doCWX();
 		dStr ~= " - " ~ .text(__LINE__);
@@ -105,5 +109,7 @@ void main(string[] args) {
 		fdebugln(dStr);
 		fdebugln(e);
 		throw e;
+	} finally {
+		if (!display.isDisposed()) display.dispose();
 	}
 }

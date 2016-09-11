@@ -178,12 +178,12 @@ protected:
 		cl.fillHorizontal = true;
 		area.setLayout(cl);
 		auto comp = new Composite(area, SWT.NONE);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(normalGridLayout(1, true));
 		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.scenarioName);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new GridLayout(1, true));
+			grp.setLayout(normalGridLayout(1, true));
 
 			_name = new Text(grp, SWT.BORDER);
 			createTextMenu!Text(_comm, _prop, _name, &catchMod);
@@ -195,7 +195,7 @@ protected:
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.initialize);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new GridLayout(2, false));
+			grp.setLayout(normalGridLayout(2, false));
 
 			void refRadio() { mixin(S_TRACE);
 				_skinC.setEnabled(_baseSkin.getSelection());
@@ -276,7 +276,7 @@ protected:
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.createClassicDir);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new GridLayout(3, false));
+			grp.setLayout(normalGridLayout(3, false));
 
 			_dir = new Text(grp, SWT.BORDER);
 			.listener(_dir, SWT.Modify, { mixin(S_TRACE);
@@ -401,9 +401,9 @@ public:
 
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		auto gl = new GridLayout(2, false);
-		gl.marginWidth = 10;
-		gl.horizontalSpacing = 15;
+		auto gl = normalGridLayout(2, false);
+		gl.marginWidth = 10.ppis;
+		gl.horizontalSpacing = 15.ppis;
 		area.setLayout(gl);
 		auto d = Display.getCurrent();
 		auto img = new Label(area, SWT.CENTER);
@@ -442,8 +442,8 @@ class ErrorDialog : AbsDialog {
 		auto size = new class DSize {
 			void width(int v) {}
 			void height(int v) {}
-			int width() {return 600;}
-			int height() {return 400;}
+			int width() {return 600.ppis;}
+			int height() {return 400.ppis;}
 		};
 		auto info = ButtonInfo(prop.msgs.shutdown, {core.stdc.stdlib.exit(0);});
 		super (prop, shell, false, prop.msgs.dlgTitError, shell.getImage(), true, size, false, false, [info]);
@@ -459,15 +459,15 @@ class ErrorDialog : AbsDialog {
 
 	override void setup(Composite area) { mixin(S_TRACE);
 		auto d = area.getDisplay();
-		auto gl = new GridLayout(2, false);
+		auto gl = normalGridLayout(2, false);
 		gl.horizontalSpacing = 0;
 		area.setLayout(gl);
 
 		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
-			auto cgl = new GridLayout(1, true);
-			cgl.marginWidth = 10;
-			cgl.marginHeight = 10;
+			auto cgl = normalGridLayout(1, true);
+			cgl.marginWidth = 10.ppis;
+			cgl.marginHeight = 10.ppis;
 			comp.setLayout(cgl);
 			auto img = new Label(comp, SWT.NONE);
 			img.setImage(d.getSystemImage(SWT.ICON_ERROR));
@@ -529,14 +529,14 @@ public:
 
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, false));
+		area.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setText(_prop.msgs.reNumbering);
 			grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout(new GridLayout(3, false));
+			comp.setLayout(normalGridLayout(3, false));
 			string cName = objNameFrom(_prop, _area);
 			auto l1 = new Label(comp, SWT.NONE);
 			auto name = _area.name;
@@ -729,12 +729,12 @@ public:
 
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, false));
+		area.setLayout(normalGridLayout(1, false));
 
 		auto grp = new Group(area, SWT.NONE);
 		grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		grp.setText(_comm.prop.msgs.scriptVarSet);
-		grp.setLayout(new GridLayout(1, false));
+		grp.setLayout(normalGridLayout(1, false));
 
 		_table = .rangeSelectableTable(grp, SWT.BORDER | SWT.FULL_SELECTION);
 		auto vgd = new GridData(GridData.FILL_BOTH);
@@ -888,12 +888,12 @@ class ImportOptionDialog : AbsDialog {
 	ImportOption option() { return _opt; }
 
 	protected override void setup(Composite area) { mixin(S_TRACE);
-		auto agd = new GridLayout(1, true);
+		auto agd = normalGridLayout(1, true);
 		agd.marginWidth = 0;
 		area.setLayout(agd);
 		auto comp = new Composite(area, SWT.NONE);
 		comp.setLayoutData(new GridData(GridData.FILL_BOTH));
-		auto cgd = new GridLayout(4, false);
+		auto cgd = normalGridLayout(4, false);
 		cgd.marginHeight = 0;
 		comp.setLayout(cgd);
 		Combo create(T)(Image icon, string name, int opValue, T value, bool canIncludeImage = true) { mixin(S_TRACE);
@@ -1036,7 +1036,7 @@ class ImportResultDialog : AbsDialog {
 	}
 
 	protected override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, false));
+		area.setLayout(normalGridLayout(1, false));
 		auto label = new Label(area, SWT.WRAP);
 		label.setText(_prop.msgs.importResourceList);
 		label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

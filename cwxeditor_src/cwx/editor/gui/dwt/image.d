@@ -9,6 +9,8 @@ import org.eclipse.swt.graphics.FontData;
 import cwx.types;
 import cwx.utils;
 
+import cwx.editor.gui.dwt.dutils : dpiMuls;
+
 import std.file;
 import std.path;
 
@@ -20,13 +22,24 @@ import java.io.ByteArrayInputStream;
 /// アイコン等のリソースを一括管理する。
 class Images {
 private:
+	private struct ImgRegKey {
+		string key;
+		int dpi;
+	}
+
 	string _appPath;
-	Image[string] _imgReg;
+	Image[ImgRegKey] _imgReg;
 	Cursor[CType] _curReg;
 	Image[] _icon;
 	Image _largeIcon;
-	@property Image imgd(string Path)() { mixin(S_TRACE);
-		auto p = Path in _imgReg;
+	@property Image imgd(string Path)(bool hDPI = true) { mixin(S_TRACE);
+		auto d = Display.getCurrent();
+		auto dpi = d.getDPI().x;
+		if (!hDPI)  {mixin(S_TRACE);
+			dpi = 96;
+		}
+		auto key = ImgRegKey(Path, dpi);
+		auto p = key in _imgReg;
 		if (p) { mixin(S_TRACE);
 			return *p;
 		} else { mixin(S_TRACE);
@@ -52,8 +65,14 @@ private:
 				imgData = new ImageData(s);
 			}
 			imgData.transparentPixel = imgData.getPixel(0, 0);
-			auto img = new Image(Display.getCurrent(), imgData);
-			_imgReg[Path] = img;
+			if (hDPI) { mixin(S_TRACE);
+				auto muls = .dpiMuls;
+				if (1 < muls) { mixin(S_TRACE);
+					imgData = imgData.scaledTo(imgData.width * muls, imgData.height * muls);
+				}
+			}
+			auto img = new Image(d, imgData);
+			_imgReg[key] = img;
 			return img;
 		}
 	}
@@ -330,19 +349,20 @@ public:
 	Image talker(Talker t) { mixin(S_TRACE);
 		final switch (t) {
 		case Talker.SELECTED:
-			return imgd!("talker_sel.png");
+			return imgd!("talker_sel.png")(false);
 		case Talker.UNSELECTED:
-			return imgd!("talker_unsel.png");
+			return imgd!("talker_unsel.png")(false);
 		case Talker.RANDOM:
-			return imgd!("talker_random.png");
+			return imgd!("talker_random.png")(false);
 		case Talker.VALUED:
-			return imgd!("talker_valued.png");
+			return imgd!("talker_valued.png")(false);
 		case Talker.CARD:
 			throw new Exception("Narration, image and card haven't image.");
 		}
 	}
 
 	@property Image eventTree() {return imgd!("event_tree.png");}
+	@property Image eventTreeNoScale() {return imgd!("event_tree.png")(false);}
 	@property Image eventTreeAnd() {return imgd!("event_tree_and.png");}
 	@property Image defStart() {return imgd!("def_start.png");}
 	@property Image keyCode() {return imgd!("key_code.png");}

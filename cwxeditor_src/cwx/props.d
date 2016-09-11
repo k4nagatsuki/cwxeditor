@@ -58,6 +58,7 @@ public:
 		return withTalker ? CPoint(115, 11) : CPoint(16, 11);
 	}
 	@property const uint messageLineHeight() { return 22; }
+	@property const uint messageCharWidth() { return 20; }
 	@property const CPoint messageTalkerPos() {return CPoint(15, 43);}
 	@property const uint selectionBarMaxWithMessage() { return 7; }
 	@property const uint selectionBarMax() { return 13; }
@@ -151,49 +152,49 @@ public:
 	const CFont textDlgFont(uint defSize) { mixin(S_TRACE);
 		return CFont(gothic(true), defSize <= 0 ? 12 : defSize, false, false);
 	}
-	const CFont castCardNameFont(bool legacy) {return CFont(uigothic(legacy), 9, true, false);}
-	const CFont castCardLevelFont(bool legacy) {return CFont(mincho(legacy), 24, true, true);}
+	const CFont castCardNameFont(bool legacy) {return CFont(uigothic(legacy), 12, true, false);}
+	const CFont castCardLevelFont(bool legacy) {return CFont(mincho(legacy), 33, true, true);}
 	const CFont pcNumberFont(bool legacy) {return CFont(mincho(legacy), 42, true, false);}
 	@property const CInsets castCardLevelInsets() {return CInsets(2, 8, 0, 0);}
 	@property const CRGB castCardLevelColor() {return CRGB(0, 0, 0, 128);}
 	@property const CPoint castLifeBarPoint() {return CPoint(8, 110);}
 	@property const int statusX() {return 7;}
 	@property const uint statusVerMax() {return 6;}
-	@property const CFont beastNumFont(bool legacy) {return CFont(pgothic(legacy), 9, false, false);}
+	@property const CFont beastNumFont(bool legacy) {return CFont(pgothic(legacy), 12, false, false);}
 
-	const CFont skillCardLevelFont(bool legacy) {return CFont(mincho(legacy), 20, true, true);}
+	const CFont skillCardLevelFont(bool legacy) {return CFont(mincho(legacy), 27, true, true);}
 	@property const CRGB skillCardLevelColor() {return CRGB(0, 0, 0, 128);}
 	@property const CInsets skillCardLevelInsets() {return CInsets(2, 8, 0, 0);}
 
 	const CFont menuCardNameFont(bool legacy) {return castCardNameFont(legacy);}
 	const CFont cardNameFont(bool legacy) {return castCardNameFont(legacy);}
-	const CFont useCountFont(bool legacy) {return CFont(mincho(legacy), 12, true, false);}
+	const CFont useCountFont(bool legacy) {return CFont(mincho(legacy), 18, true, false);}
 	@property const CPoint useCountPoint() {return CPoint(10, 90);}
 	@property const CRGB recycleNumColor() {return CRGB(255, 255, 0);}
-	const CFont summaryLevelFont(bool legacy) {return CFont(mincho(legacy), 10, true, true);}
-	const CFont summaryTitleFont(bool legacy) {return CFont(mincho(legacy), 16, true, false);}
+	const CFont summaryLevelFont(bool legacy) {return CFont(mincho(legacy), 16, true, true);}
+	const CFont summaryTitleFont(bool legacy) {return CFont(mincho(legacy), 21, true, false);}
 	const CFont summaryDescFont(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
-			if (legacy) return CFont(mincho(legacy), 10, true, false);
+			if (legacy) return CFont(mincho(legacy), 14, true, false);
 		}
-		return CFont(gothic(legacy), 10, true, false);
+		return CFont(gothic(legacy), 14, true, false);
 	}
 	@property const uint summaryDescLineHeightClassic() { mixin(S_TRACE);
 		return 15;
 	}
-	const CFont summaryPageFont(bool legacy) {return CFont(gothic(legacy), 9, true, false);}
-	const CFont cardDescFont(bool legacy) {return CFont(gothic(legacy), 10, false, false);}
+	const CFont summaryPageFont(bool legacy) {return CFont(gothic(legacy), 12, true, false);}
+	const CFont cardDescFont(bool legacy) {return CFont(gothic(legacy), 13, false, false);}
 	const CFont messageFont(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
-			if (legacy) return CFont(mincho(legacy), 15, true, false);
+			if (legacy) return CFont(mincho(legacy), 22, true, false);
 		}
-		return CFont(mincho(legacy), 15, true, false);
+		return CFont(mincho(legacy), 22, true, false);
 	}
 	const CFont messageSelectFont(bool legacy) { mixin(S_TRACE);
 		version (Windows) {
-			if (legacy) return CFont(pgothic(legacy), 11, true, false);
+			if (legacy) return CFont(pgothic(legacy), 14, true, false);
 		}
-		return CFont(pgothic(legacy), 11, false, false);
+		return CFont(pgothic(legacy), 14, false, false);
 	}
 
 	@property const CRGB pcCellForeColor() { return CRGB(0, 0, 0); }

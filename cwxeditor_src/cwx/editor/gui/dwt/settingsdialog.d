@@ -289,7 +289,7 @@ private:
 	}
 	void construct1(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, false));
+		comp.setLayout(normalGridLayout(1, false));
 		_tabB = new CTabItem(tabf, SWT.NONE);
 		_tabB.setText(_prop.msgs.baseSettings);
 		_tabB.setControl(comp);
@@ -300,7 +300,7 @@ private:
 			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				grp.setLayout(new GridLayout(3, false));
+				grp.setLayout(normalGridLayout(3, false));
 				grp.setText(.tryFormat(_prop.msgs.enginePath, _prop.var.etc.engine));
 				_enginePath = new Text(grp, SWT.BORDER);
 				createTextMenu!Text(_comm, _prop, _enginePath, &catchMod);
@@ -330,7 +330,7 @@ private:
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				grp.setText(_prop.msgs.languageSetting);
-				grp.setLayout(new GridLayout(1, true));
+				grp.setLayout(normalGridLayout(1, true));
 				string defLocale;
 				auto msgsTable = _prop.parent.msgsTable(_prop.var.etc.languageDir, _msgsTableFile, defLocale);
 				_language = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
@@ -355,7 +355,7 @@ private:
 		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			grp.setLayout(new GridLayout(3, false));
+			grp.setLayout(normalGridLayout(3, false));
 			grp.setText(_prop.msgs.tempDir);
 			_tempDir = new Text(grp, SWT.BORDER);
 			createTextMenu!Text(_comm, _prop, _tempDir, &catchMod);
@@ -371,8 +371,8 @@ private:
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setText(_prop.msgs.backupDir);
-			auto gl = new GridLayout(3, false);
-			gl.horizontalSpacing = 10;
+			auto gl = normalGridLayout(3, false);
+			gl.horizontalSpacing = 10.ppis;
 			grp.setLayout(gl);
 
 			{ mixin(S_TRACE);
@@ -463,7 +463,7 @@ private:
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setText(_prop.msgs.backupBeforeSaveDir);
-			grp.setLayout(new GridLayout(1, false));
+			grp.setLayout(normalGridLayout(1, false));
 
 			{ mixin(S_TRACE);
 				_backupBeforeSaveEnabled = new Button(grp, SWT.CHECK);
@@ -512,7 +512,7 @@ private:
 				{ mixin(S_TRACE);
 					auto grp = new Group(comp3, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-					grp.setLayout(new GridLayout(1, true));
+					grp.setLayout(normalGridLayout(1, true));
 					grp.setText(_prop.msgs.wallpaper);
 					{ mixin(S_TRACE);
 						auto comp4 = new Composite(grp, SWT.NONE);
@@ -546,7 +546,7 @@ private:
 					auto grp = new Group(comp3, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setText(_prop.msgs.systemSounds);
-					grp.setLayout(new GridLayout(7, false));
+					grp.setLayout(normalGridLayout(7, false));
 					auto l = new Label(grp, SWT.NONE);
 					l.setText(_prop.msgs.soundSaved);
 					_savedSound = new Text(grp, SWT.BORDER);
@@ -589,7 +589,7 @@ private:
 					auto grp = new Group(comp3, SWT.NONE);
 					grp.setText(_prop.msgs.historiesSettings);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-					grp.setLayout(new GridLayout(3, false));
+					grp.setLayout(normalGridLayout(3, false));
 					{ mixin(S_TRACE);
 						auto lComp = new Composite(grp, SWT.NONE);
 						auto cl = new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0);
@@ -633,7 +633,7 @@ private:
 					auto grp = new Group(comp3, SWT.NONE);
 					grp.setText(_prop.msgs.undoMax);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-					grp.setLayout(new GridLayout(2, false));
+					grp.setLayout(normalGridLayout(2, false));
 					Spinner createUndoMax(string title) { mixin(S_TRACE);
 						auto l = new Label(grp, SWT.NONE);
 						l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -676,7 +676,7 @@ private:
 		_tabS = new CTabItem(tabf, SWT.NONE);
 		_tabS.setText(_prop.msgs.bgImageAndKeyCode);
 		_tabS.setControl(comp);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(normalGridLayout(1, true));
 		auto sash = new SplitPane(comp, SWT.HORIZONTAL);
 		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto back = new Composite(sash, SWT.NONE);
@@ -699,7 +699,7 @@ private:
 		{ mixin(S_TRACE);
 			auto grp = new Group(sash, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new GridLayout(1, false));
+			grp.setLayout(normalGridLayout(1, false));
 			grp.setText(_prop.msgs.standardKeyCode);
 			_keyCodes = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 			createTextMenu!Text(_comm, _prop, _keyCodes, &catchMod);
@@ -714,7 +714,7 @@ private:
 
 	void construct3(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, false));
+		comp.setLayout(normalGridLayout(1, false));
 		_tabT = new CTabItem(tabf, SWT.NONE);
 		_tabT.setText(_prop.msgs.templates);
 		_tabT.setControl(comp);
@@ -732,7 +732,7 @@ private:
 
 	void construct4(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, false));
+		comp.setLayout(normalGridLayout(1, false));
 		_tabC = new CTabItem(tabf, SWT.NONE);
 		_tabC.setText(_prop.msgs.outerToolsAndClassicEngines);
 		_tabC.setControl(comp);
@@ -857,12 +857,12 @@ private:
 		_tabE = new CTabItem(tabf, SWT.NONE);
 		_tabE.setText(_prop.msgs.etcSettings);
 		_tabE.setControl(comp);
-		comp.setLayout(new GridLayout(2, false));
+		comp.setLayout(normalGridLayout(2, false));
 		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			grp.setText(_prop.msgs.etcSettingsTitle);
-			grp.setLayout(new GridLayout(5, false));
+			grp.setLayout(normalGridLayout(5, false));
 
 			_etcSettings = new EtcSettings(_comm, grp, SWT.NONE);
 			mod(_etcSettings);
@@ -985,7 +985,7 @@ private:
 			{ mixin(S_TRACE);
 				auto grp = new Group(sash, SWT.NONE);
 				grp.setText(_prop.msgs.keyBind);
-				grp.setLayout(new GridLayout(4, false));
+				grp.setLayout(normalGridLayout(4, false));
 
 				auto l1 = new Label(grp, SWT.NONE);
 				l1.setText(_prop.msgs.mnemonic);
@@ -1031,7 +1031,7 @@ private:
 			{ mixin(S_TRACE);
 				auto grp = new Group(sash, SWT.NONE);
 				grp.setText(_prop.msgs.ignorePaths);
-				grp.setLayout(new GridLayout(1, false));
+				grp.setLayout(normalGridLayout(1, false));
 				_ignorePaths = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 				createTextMenu!Text(_comm, _prop, _ignorePaths, &catchMod);
 				mod(_ignorePaths);
@@ -1691,7 +1691,7 @@ public:
 	BgImageS[] backs() {return createBgImageSs(_cont.backs);}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, false));
+		area.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
 			_view = createBgImagesViewAndMenu(_comm, _prop, null, _cont, area, null, false);
 			mod(_view);
@@ -2774,7 +2774,7 @@ public:
 
 		auto grp = new Group(this, SWT.NONE);
 		grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-		grp.setLayout(new GridLayout(1, true));
+		grp.setLayout(normalGridLayout(1, true));
 		grp.setText(boxName);
 		auto leftSash = new SplitPane(grp, SWT.HORIZONTAL);
 		leftSash.setLayoutData(new GridData(GridData.FILL_BOTH));

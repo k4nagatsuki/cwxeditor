@@ -4,6 +4,8 @@ module cwx.editor.gui.dwt.splitpane;
 import cwx.perf;
 import cwx.utils : remove;
 
+import cwx.editor.gui.dwt.dutils : ppis;
+
 import std.math;
 
 import org.eclipse.swt.all;
@@ -109,11 +111,11 @@ class SplitPane : Composite {
 		auto ca = getClientArea();
 		if (getStyle() & SWT.VERTICAL) { mixin(S_TRACE);
 			if (ca.height == 0) return false;
-			int lw = cast(int)rndtol((ca.height - SASH_WIDTH) * (cast(real)l / full));
+			int lw = cast(int)rndtol((ca.height - SASH_WIDTH.ppis) * (cast(real)l / full));
 			_sfd.top = new FormAttachment(0, lw);
 		} else { mixin(S_TRACE);
 			if (ca.width == 0) return false;
-			int lw = cast(int)rndtol((ca.width - SASH_WIDTH) * (cast(real)l / full));
+			int lw = cast(int)rndtol((ca.width - SASH_WIDTH.ppis) * (cast(real)l / full));
 			_sfd.left = new FormAttachment(0, lw);
 		}
 		relo(updateMin, false);
@@ -129,13 +131,13 @@ class SplitPane : Composite {
 		if (getStyle() & SWT.VERTICAL) { mixin(S_TRACE);
 			int lw = _sfd.top.offset;
 			if (resizeControl1 && resize && -1 != _size) lw += ca.height - _size;
-			if (_min1 || lw < MIN) { mixin(S_TRACE);
+			if (_min1 || lw < MIN.ppis) { mixin(S_TRACE);
 				if (updateMin && canMinimized1) _min1 = true;
-				lw = _min1 ? 0 : MIN;
+				lw = _min1 ? 0 : MIN.ppis;
 			}
-			if (_min2 || lw + SASH_WIDTH >= ca.height - MIN) { mixin(S_TRACE);
+			if (_min2 || lw + SASH_WIDTH.ppis >= ca.height - MIN.ppis) { mixin(S_TRACE);
 				if (updateMin && canMinimized2) _min2 = true;
-				lw = ca.height - SASH_WIDTH - (_min2 ? 0 : MIN);
+				lw = ca.height - SASH_WIDTH.ppis - (_min2 ? 0 : MIN.ppis);
 			}
 			_sfd.top.offset = lw;
 			_fd1.bottom.control = _sash;
@@ -144,13 +146,13 @@ class SplitPane : Composite {
 		} else { mixin(S_TRACE);
 			int lw = _sfd.left.offset;
 			if (resizeControl1 && resize && -1 != _size) lw += ca.width - _size;
-			if (_min1 || lw < MIN) { mixin(S_TRACE);
+			if (_min1 || lw < MIN.ppis) { mixin(S_TRACE);
 				if (updateMin && canMinimized1) _min1 = true;
-				lw = _min1 ? 0 : MIN;
+				lw = _min1 ? 0 : MIN.ppis;
 			}
-			if (_min2 || lw + SASH_WIDTH >= ca.width - MIN) { mixin(S_TRACE);
+			if (_min2 || lw + SASH_WIDTH.ppis >= ca.width - MIN.ppis) { mixin(S_TRACE);
 				if (updateMin && canMinimized2) _min2 = true;
-				lw = ca.width - SASH_WIDTH - (_min2 ? 0 : MIN);
+				lw = ca.width - SASH_WIDTH.ppis - (_min2 ? 0 : MIN.ppis);
 			}
 			_sfd.left.offset = lw;
 			_fd1.right.control = _sash;
@@ -207,10 +209,10 @@ class SplitPane : Composite {
 			auto ca = getClientArea();
 			if (getStyle() & SWT.VERTICAL) { mixin(S_TRACE);
 				int l = _sfd.top.offset - ca.y;
-				_weights = [l, ca.height - l - SASH_WIDTH];
+				_weights = [l, ca.height - l - SASH_WIDTH.ppis];
 			} else { mixin(S_TRACE);
 				int l = _sfd.left.offset - ca.x;
-				_weights = [l, ca.width - l - SASH_WIDTH];
+				_weights = [l, ca.width - l - SASH_WIDTH.ppis];
 			}
 		}
 	}
@@ -248,7 +250,7 @@ class SplitPane : Composite {
 			_fd2.top = new FormAttachment(0, 0);
 			_fd2.bottom = new FormAttachment(100, 0);
 		}
-		_sfd.width = SASH_WIDTH;
+		_sfd.width = SASH_WIDTH.ppis;
 		_sash.setLayoutData(_sfd);
 		_sash.addListener(SWT.Selection, new SSelL);
 	}
@@ -258,8 +260,8 @@ class SplitPane : Composite {
 		override void handleEvent(Event e) { mixin(S_TRACE);
 			auto sb = _sash.getBounds();
 			auto cb = getClientArea();
-			auto minSize1 = canMinimized1 ? 0 : MIN;
-			auto minSize2 = canMinimized2 ? 0 : MIN;
+			auto minSize1 = canMinimized1 ? 0 : MIN.ppis;
+			auto minSize2 = canMinimized2 ? 0 : MIN.ppis;
 			if (getStyle() & SWT.VERTICAL) { mixin(S_TRACE);
 				int right = cb.height - sb.height - minSize2;
 				if (right < e.y) e.y = right;
@@ -300,7 +302,7 @@ class SplitPane : Composite {
 			foreach (s; size) { mixin(S_TRACE);
 				x += s.x;
 			}
-			x += SASH_WIDTH;
+			x += SASH_WIDTH.ppis;
 		}
 		if (hHint != SWT.DEFAULT) { mixin(S_TRACE);
 			y = hHint;
@@ -308,7 +310,7 @@ class SplitPane : Composite {
 			foreach (s; size) { mixin(S_TRACE);
 				y += s.y;
 			}
-			y += SASH_WIDTH;
+			y += SASH_WIDTH.ppis;
 		} else { mixin(S_TRACE);
 			foreach (s; size) { mixin(S_TRACE);
 				if (y < s.y) y = s.y;

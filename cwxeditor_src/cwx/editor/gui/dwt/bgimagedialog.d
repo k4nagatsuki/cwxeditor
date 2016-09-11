@@ -154,7 +154,7 @@ public:
 protected:
 	Composite createFlagPanel(Composite comp) { mixin(S_TRACE);
 		auto grp = new Group(comp, SWT.NONE);
-		grp.setLayout(new GridLayout(2, false));
+		grp.setLayout(normalGridLayout(2, false));
 		grp.setText(_prop.msgs.refFlag);
 		_flag = new FlagChooser!(Flag, true)(_comm, _summ, grp);
 		mod(_flag);
@@ -167,10 +167,10 @@ protected:
 		grp.setText(_prop.msgs.cardPosition);
 		grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 		auto comp2 = new Composite(grp, SWT.NONE);
-		comp2.setLayout(new GridLayout(mask ? 6 : 5, false));
+		comp2.setLayout(normalGridLayout(mask ? 6 : 5, false));
 		Spinner createS(string name, int max, int min, string hint = "") { mixin(S_TRACE);
 			auto comp3 = new Composite(comp2, SWT.NONE);
-			auto gl = new GridLayout((hint == "") ? 2 : 3, false);
+			auto gl = normalGridLayout((hint == "") ? 2 : 3, false);
 			gl.marginHeight = 0;
 			comp3.setLayout(gl);
 			auto l = new Label(comp3, SWT.NONE);
@@ -211,7 +211,7 @@ protected:
 		{
 			auto grp = new Group(comp2, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new GridLayout(1, true));
+			grp.setLayout(normalGridLayout(1, true));
 			grp.setText(_prop.msgs.bgImageCellName);
 			_cellName = createCellNameCombo(_comm, _summ, grp, &catchMod, back ? back.cellName : "");
 			mod(_cellName);
@@ -222,7 +222,7 @@ protected:
 		{
 			auto grp = new Group(comp2, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-			grp.setLayout(new GridLayout(1, true));
+			grp.setLayout(normalGridLayout(1, true));
 			grp.setText(_prop.msgs.bgImageSettings);
 			_easy = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 			_easy.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
@@ -351,7 +351,7 @@ protected:
 		auto skin = _comm.skin;
 		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
-			comp.setLayout(new GridLayout(1, false));
+			comp.setLayout(normalGridLayout(1, false));
 			void imgs(Composite parent) { mixin(S_TRACE);
 				bool including = _back && isBinImg(_back.path);
 				// FIXME: CardWirth 1.60 背景イメージの格納 ここから
@@ -563,16 +563,16 @@ protected:
 		area.setLayout(zeroGridLayout(1));
 		auto skin = summSkin;
 		auto comp = new Composite(area, SWT.NONE);
-		comp.setLayout(new GridLayout(1, false));
+		comp.setLayout(normalGridLayout(1, false));
 		auto sash = new SplitPane(comp, SWT.VERTICAL);
 		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		void left(Composite parent) { mixin(S_TRACE);
 			auto comp = new Composite(parent, SWT.NONE);
-			comp.setLayout(new GridLayout(2, false));
+			comp.setLayout(normalGridLayout(2, false));
 			{ mixin(S_TRACE);
 				auto grp = new Group(comp, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				grp.setLayout(new GridLayout(1, true));
+				grp.setLayout(normalGridLayout(1, true));
 				grp.setText(_prop.msgs.image);
 				_prevPanel = new Canvas(grp, SWT.BORDER | SWT.NO_BACKGROUND | SWT.DOUBLE_BUFFERED);
 				_prevPanel.addPaintListener(new Paint);
@@ -586,7 +586,7 @@ protected:
 				auto grp = new Group(comp, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 				grp.setText(_prop.msgs.fontStyle);
-				grp.setLayout(new GridLayout(1, true));
+				grp.setLayout(normalGridLayout(1, true));
 
 				Button check(string name) { mixin(S_TRACE);
 					auto button = new Button(grp, SWT.CHECK);
@@ -715,7 +715,7 @@ protected:
 
 			auto grp = new Group(sash2, SWT.NONE);
 			grp.setText(_prop.msgs.text);
-			grp.setLayout(new GridLayout(2, false));
+			grp.setLayout(normalGridLayout(2, false));
 			_text = new Text(grp, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
 			mod(_text);
 			createTextMenu!Text(_comm, _prop, _text, &catchMod);
@@ -906,7 +906,7 @@ protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(zeroGridLayout(1));
 		auto comp = new Composite(area, SWT.NONE);
-		comp.setLayout(new GridLayout(1, false));
+		comp.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
 			Composite left(Composite parent) { mixin(S_TRACE);
 				auto comp = new Composite(parent, SWT.NONE);
@@ -914,7 +914,7 @@ protected:
 				{ mixin(S_TRACE);
 					auto grp = new Group(comp, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-					grp.setLayout(new GridLayout(1, true));
+					grp.setLayout(normalGridLayout(1, true));
 					grp.setText(_prop.msgs.image);
 					_prevPanel = new Canvas(grp, SWT.BORDER | SWT.NO_BACKGROUND | SWT.DOUBLE_BUFFERED);
 					_prevPanel.addPaintListener(new Paint);
@@ -1070,7 +1070,7 @@ class ColorPicker : Composite {
 
 		_colorLabel = new Label(comp, SWT.BORDER);
 		auto gd = new GridData(GridData.FILL_BOTH);
-		gd.widthHint = 50;
+		gd.widthHint = prop.var.etc.colorExampleWidth;
 		_colorLabel.setLayoutData(gd);
 
 		_button = new Button(comp, SWT.PUSH);
@@ -1173,7 +1173,7 @@ protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(zeroGridLayout(1));
 		auto comp = new Composite(area, SWT.NONE);
-		comp.setLayout(new GridLayout(1, false));
+		comp.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
 			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1187,7 +1187,7 @@ protected:
 					ggd.horizontalSpan = 2;
 					grp.setLayoutData(ggd);
 				}
-				grp.setLayout(new GridLayout(1, true));
+				grp.setLayout(normalGridLayout(1, true));
 				grp.setText(_prop.msgs.cellPCNumber);
 
 				_pcNumber = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);

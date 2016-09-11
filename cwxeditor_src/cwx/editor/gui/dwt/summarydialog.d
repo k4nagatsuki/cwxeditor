@@ -120,7 +120,7 @@ private:
 		_imgArea = area;
 
 		auto aComp = addition();
-		aComp.setLayout(new GridLayout(1, true));
+		aComp.setLayout(normalGridLayout(1, true));
 		auto prev = new Button(aComp, SWT.TOGGLE);
 		prev.setText(_prop.msgs.messagePreview);
 		prev.setSelection(_prop.var.etc.showSummaryPreview);
@@ -183,7 +183,7 @@ private:
 	}
 	void constructTab1(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(normalGridLayout(1, true));
 		{ mixin(S_TRACE);
 			_tab2Sash = new SplitPane(comp, SWT.HORIZONTAL);
 			_tab2Sash.resizeControl1 = true;
@@ -203,7 +203,7 @@ private:
 				comp2.setLayout(zeroGridLayout(1, true));
 				{ mixin(S_TRACE);
 					auto grp = centerGroup(comp2, _prop.msgs.title, true, false, new GridData(GridData.FILL_BOTH));
-					grp.setLayout(new GridLayout(1, true));
+					grp.setLayout(normalGridLayout(1, true));
 					_sname = new Text(grp, SWT.BORDER | _readOnly);
 					createTextMenu!Text(_comm, _prop, _sname, &catchMod);
 					mod(_sname);
@@ -214,7 +214,7 @@ private:
 				}
 				{ mixin(S_TRACE);
 					auto grp = centerGroup(comp2, _prop.msgs.author, true, false, new GridData(GridData.FILL_BOTH));
-					grp.setLayout(new GridLayout(1, true));
+					grp.setLayout(normalGridLayout(1, true));
 					_author = new Text(grp, SWT.BORDER | _readOnly);
 					createTextMenu!Text(_comm, _prop, _author, &catchMod);
 					mod(_author);
@@ -223,7 +223,7 @@ private:
 				}
 				{ mixin(S_TRACE);
 					auto grp = centerGroup(comp2, _prop.msgs.targetLevel, false, false, new GridData(GridData.FILL_BOTH));
-					grp.setLayout(new GridLayout(4, false));
+					grp.setLayout(normalGridLayout(4, false));
 					_levMin = new Spinner(grp, SWT.BORDER | _readOnly);
 					initSpinner(_levMin);
 					mod(_levMin);
@@ -259,7 +259,7 @@ private:
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText(dwtData(_prop.looks.summaryDescFont(summSkin.legacy)), _prop.looks.summaryDescLen, grp, SWT.BORDER | _readOnly);
+			_desc = new FixedWidthText(_prop.looks.summaryDescFont(summSkin.legacy), _prop.looks.summaryDescLen, grp, SWT.BORDER | _readOnly);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			mod(_desc.widget);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.summaryDescLine));
@@ -272,7 +272,7 @@ private:
 	}
 	void constructTab2(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(normalGridLayout(1, true));
 		{ mixin(S_TRACE);
 			_tab3Sash = new SplitPane(comp, SWT.HORIZONTAL);
 			_tab3Sash.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -284,7 +284,7 @@ private:
 					auto grp = new Group(comp2, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					grp.setText(_prop.msgs.scenarioType);
-					grp.setLayout(new GridLayout(1, true));
+					grp.setLayout(normalGridLayout(1, true));
 					auto refTypes = new RefreshTypes;
 					_typeSkin = new Button(grp, SWT.RADIO);
 					_typeSkin.setEnabled(!_readOnly);
@@ -308,7 +308,7 @@ private:
 					auto grp = new Group(comp2, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					grp.setText(_prop.msgs.dataVersion);
-					grp.setLayout(new GridLayout(1, true));
+					grp.setLayout(normalGridLayout(1, true));
 					_dataVersion = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 					mod(_dataVersion);
 					_dataVersion.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
@@ -326,7 +326,7 @@ private:
 					auto grp = new Group(comp2, SWT.NONE);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 					grp.setText(_prop.msgs.qualification);
-					grp.setLayout(new GridLayout(2, false));
+					grp.setLayout(normalGridLayout(2, false));
 					{ mixin(S_TRACE);
 						auto lblN = new Label(grp, SWT.NONE);
 						lblN.setText(_prop.msgs.rCouponNum);
@@ -365,7 +365,7 @@ private:
 				auto grp = new Group(_tab3Sash, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				grp.setText(_prop.msgs.startArea);
-				grp.setLayout(new GridLayout(1, false));
+				grp.setLayout(normalGridLayout(1, false));
 				_startArea = new AreaChooser!(Area, true)(_comm, _summ, grp);
 				_startArea.setEnabled(!_readOnly);
 				mod(_startArea);
@@ -405,7 +405,7 @@ private:
 	void refSkin(Object sender) { mixin(S_TRACE);
 		if (_readOnly) return;
 		refreshPreview();
-		_desc.font = dwtData(_prop.looks.summaryDescFont(summSkin.legacy));
+		_desc.font = _prop.looks.summaryDescFont(summSkin.legacy);
 		if (sender is this) return;
 		refreshTypes();
 	}
@@ -686,10 +686,10 @@ private class SummaryPreview : Composite {
 				}
 			}
 			{ mixin(S_TRACE);
-				void drawCenterText(FontData fontData, string text, int y) { mixin(S_TRACE);
-					scope font = new Font(d, fontData);
+				void drawCenterText(in CFont fontData, string text, int y) { mixin(S_TRACE);
+					auto font = .createFontFromPixels(fontData);
 					gc.setFont(font);
-					scope p = gc.stringExtent(text);
+					auto p = gc.stringExtent(text);
 					gc.wDrawText(text, (size.width - p.x) / 2, y, true);
 					font.dispose();
 				}
@@ -711,13 +711,13 @@ private class SummaryPreview : Composite {
 				} else { mixin(S_TRACE);
 					levText = "";
 				}
-				drawCenterText(dwtData(_prop.looks.summaryLevelFont(skin.legacy)),
+				drawCenterText(_prop.looks.summaryLevelFont(skin.legacy),
 					levText, _prop.looks.summaryLevelY);
 				c.dispose();
 				gc.setAlpha(255);
 				gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-				drawCenterText(dwtData(_prop.looks.summaryTitleFont(skin.legacy)), _sname(), _prop.looks.summaryTitleY);
-				scope font = new Font(d, dwtData(_prop.looks.summaryDescFont(skin.legacy)));
+				drawCenterText(_prop.looks.summaryTitleFont(skin.legacy), _sname(), _prop.looks.summaryTitleY);
+				auto font = .createFontFromPixels(_prop.looks.summaryDescFont(skin.legacy));
 				gc.setFont(font);
 				int hig = gc.getFontMetrics().getHeight();
 				int x = _prop.looks.summaryDescXY.x;
@@ -733,7 +733,7 @@ private class SummaryPreview : Composite {
 				}
 				gc.setFont(null);
 				font.dispose();
-				drawCenterText(dwtData(_prop.looks.summaryPageFont(skin.legacy)),
+				drawCenterText(_prop.looks.summaryPageFont(skin.legacy),
 					_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
 			}
 			auto bx = (rect.width - size.width) / 2;

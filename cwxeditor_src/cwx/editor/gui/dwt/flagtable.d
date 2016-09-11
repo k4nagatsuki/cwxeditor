@@ -221,7 +221,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, true));
+		area.setLayout(normalGridLayout(1, true));
 		{ mixin(S_TRACE);
 			auto top = new SplitPane(area, SWT.HORIZONTAL);
 			top.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -480,7 +480,7 @@ protected:
 		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			comp.setLayout(new GridLayout(1, true));
+			comp.setLayout(normalGridLayout(1, true));
 
 			auto top = new SplitPane(comp, SWT.HORIZONTAL);
 			top.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -527,7 +527,7 @@ protected:
 			cl.fillHorizontal = true;
 			ocomp.setLayout(cl);
 			auto comp = new Composite(ocomp, SWT.NONE);
-			comp.setLayout(new GridLayout(2, false));
+			comp.setLayout(normalGridLayout(2, false));
 
 			(new Label(comp, SWT.NULL)).setText(prop.msgs.dlgLblFlagTrue);
 			flagTrue = new Combo(comp, SWT.NULL);

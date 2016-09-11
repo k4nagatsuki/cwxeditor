@@ -5,7 +5,7 @@ import cwx.perf;
 import cwx.structs;
 import cwx.utils : debugln, cdebugln;
 
-import cwx.editor.gui.dwt.dutils : dwtData;
+import cwx.editor.gui.dwt.dutils : dwtData, ppis;
 
 import core.thread;
 
@@ -591,11 +591,12 @@ class TableSorter(DataT) {
 
 class FullTableColumn {
 	private TableColumn _column;
-	private int _packWidth = 50;
+	private int _packWidth;
 	private Listener _rl;
 	this (Table tbl, int style) { mixin(S_TRACE);
 		_column = new TableColumn(tbl, style);
 		_column.setResizable(false);
+		_packWidth = 50.ppis;
 		_rl = new RL;
 		tbl.addListener(SWT.Resize, _rl);
 		_column.addListener(SWT.Dispose, new class Listener {

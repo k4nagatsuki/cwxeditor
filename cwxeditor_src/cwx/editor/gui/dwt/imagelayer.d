@@ -347,7 +347,7 @@ class ImageLayerList : Composite {
 	}
 	@property
 	private int itemHeight() { mixin(S_TRACE);
-		return _comm.prop.looks.cardSize.height + 2;
+		return _comm.prop.looks.cardSize.height + 2.ppis;
 	}
 
 	private void onPaint(Event e) { mixin(S_TRACE);
@@ -461,17 +461,17 @@ private class ImageLayerItem : Item {
 		auto ca = _parent.getClientArea();
 		auto cRect = _parent._comm.prop.looks.cardSize;
 		auto image = getImage();
-		auto textX = cRect.width + 1 + 5;
+		auto textX = cRect.width + 1.ppis + 5.ppis;
 		if (image) { mixin(S_TRACE);
 			auto b = image.getBounds();
-			gc.drawImage(image, (cRect.width - b.width) / 2 + 1, y + (cRect.height - b.height) / 2 + 1);
+			gc.drawImage(image, (cRect.width - b.width) / 2 + 1.ppis, y + (cRect.height - b.height) / 2 + 1.ppis);
 		}
 		if (_warning) { mixin(S_TRACE);
-			textX = 5;
+			textX = 5.ppis;
 			auto img = _parent._comm.prop.images.warning;
 			auto b = img.getBounds();
 			gc.drawImage(img, textX, y + _parent.itemHeight / 2 - b.height / 2);
-			textX += b.width + 5;
+			textX += b.width + 5.ppis;
 		}
 		_toolTip = "";
 		auto name = getText();

@@ -74,7 +74,7 @@ abstract class AbsDialog {
 		sep.setLayoutData(sgd);
 
 		_addition = new Composite(mainComp, SWT.NONE);
-		_addition.setLayout(new GridLayout(1, true));
+		_addition.setLayout(normalGridLayout(1, true));
 		_addition.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		auto buttons = new Composite(mainComp, SWT.NONE);
@@ -85,7 +85,7 @@ abstract class AbsDialog {
 			if (cancel) gll++;
 		}
 		gll += button.length;
-		buttons.setLayout(new GridLayout(gll, true));
+		buttons.setLayout(normalGridLayout(gll, true));
 		auto okComp = new Composite(buttons, SWT.NONE);
 		okComp.setLayout(new FillLayout);
 		if (styleFlag & SWT.READ_ONLY) { mixin(S_TRACE);
@@ -157,7 +157,7 @@ abstract class AbsDialog {
 	private Button createButton(Composite parent, string text, void delegate() push) { mixin(S_TRACE);
 		auto b = new Button(parent, SWT.PUSH);
 		auto gd = new GridData(GridData.FILL_HORIZONTAL);
-		gd.widthHint = 100;
+		gd.widthHint = _prop.var.etc.buttonWidth;
 		if (cast(GridLayout) parent.getLayout()) { mixin(S_TRACE);
 			b.setLayoutData(gd);
 		} else { mixin(S_TRACE);

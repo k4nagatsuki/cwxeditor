@@ -84,7 +84,7 @@ class SBShell {
 	} else {
 		private Label _sbar;
 		private void initStatusBar() { mixin(S_TRACE);
-			auto gl = new GridLayout(1, true);
+			auto gl = normalGridLayout(1, true);
 			gl.marginWidth = 0;
 			gl.marginHeight = 0;
 			gl.verticalSpacing = 0;

@@ -91,9 +91,9 @@ class EtcSettings : Composite {
 			itm.setText(text);
 			auto comp = new Composite(_expandBar, SWT.NONE);
 			auto fl = new FormLayout;
-			fl.marginLeft = 5;
-			fl.marginRight = 5;
-			fl.marginBottom = 5;
+			fl.marginLeft = 5.ppis;
+			fl.marginRight = 5.ppis;
+			fl.marginBottom = 5.ppis;
 			comp.setLayout(fl);
 			itm.setControl(comp);
 			itm.setExpanded(true);
@@ -203,7 +203,7 @@ class EtcSettings : Composite {
 
 		showCheckBoxes();
 
-		auto gd = new GridLayout(1, true);
+		auto gd = normalGridLayout(1, true);
 		_sc.getVerticalBar().setIncrement(contentsFloat.computeSize(SWT.DEFAULT, SWT.DEFAULT).y + gd.verticalSpacing);
 		scSize();
 	}
@@ -222,7 +222,7 @@ class EtcSettings : Composite {
 				} else { mixin(S_TRACE);
 					child.setVisible(false);
 					auto fd = new FormData;
-					fd.top = new FormAttachment(0, 0);
+					fd.top = new FormAttachment(0, 0.ppis);
 					fd.width = 0;
 					fd.height = 0;
 					child.setLayoutData(fd);
@@ -231,9 +231,9 @@ class EtcSettings : Composite {
 			foreach (i, check; children) { mixin(S_TRACE);
 				auto fd = new FormData;
 				if (0 < i) { mixin(S_TRACE);
-					fd.top = new FormAttachment(children[i - 1], 5);
+					fd.top = new FormAttachment(children[i - 1], 5.ppis);
 				} else {
-					fd.top = new FormAttachment(0, 5);
+					fd.top = new FormAttachment(0, 5.ppis);
 				}
 				check.setLayoutData(fd);
 			}

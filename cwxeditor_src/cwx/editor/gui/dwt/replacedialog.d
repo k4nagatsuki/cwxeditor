@@ -822,7 +822,7 @@ private:
 	}
 	void constructText(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(normalGridLayout(1, true));
 		auto comp2 = new Composite(comp, SWT.NONE);
 		auto comp2gl = windowGridLayout(1, true);
 		comp2gl.marginWidth = 0;
@@ -832,7 +832,7 @@ private:
 			auto grp = new Group(comp2, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setText(_prop.msgs.replText);
-			grp.setLayout(new GridLayout(2, false));
+			grp.setLayout(normalGridLayout(2, false));
 			auto fl = new Label(grp, SWT.NONE);
 			fl.setText(_prop.msgs.replFrom);
 			_textFromComp = new Composite(grp, SWT.NONE);
@@ -878,7 +878,7 @@ private:
 			gd.widthHint = _prop.var.etc.searchResultTableWidth;
 			grp.setLayoutData(gd);
 			grp.setText(_prop.msgs.replCond);
-			grp.setLayout(new GridLayout(3, false));
+			grp.setLayout(normalGridLayout(3, false));
 			_notIgnoreCase = new Button(grp, SWT.CHECK);
 			_notIgnoreCase.setText(_prop.msgs.replNotIgnoreCase);
 			_exact = new Button(grp, SWT.CHECK);
@@ -956,14 +956,14 @@ private:
 	}
 	void constructID(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(normalGridLayout(1, true));
 		auto comp2 = new Composite(comp, SWT.NONE);
 		comp2.setLayout(zeroGridLayout(1, true));
 		{ mixin(S_TRACE);
 			auto grp = new Group(comp2, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setText(_prop.msgs.replID);
-			grp.setLayout(new GridLayout(3, false));
+			grp.setLayout(normalGridLayout(3, false));
 			{ mixin(S_TRACE);
 				auto l = new Label(grp, SWT.NONE);
 				l.setText(_prop.msgs.replIDKind);
@@ -1032,14 +1032,14 @@ private:
 	}
 	void constructPath(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(normalGridLayout(1, true));
 		auto comp2 = new Composite(comp, SWT.NONE);
 		comp2.setLayout(zeroGridLayout(1, true));
 		{ mixin(S_TRACE);
 			auto grp = new Group(comp2, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setText(_prop.msgs.replPath);
-			grp.setLayout(new GridLayout(2, false));
+			grp.setLayout(normalGridLayout(2, false));
 			Combo setupPath(string text, ref IncSearch incSearch) { mixin(S_TRACE);
 				auto l = new Label(grp, SWT.NONE);
 				l.setText(text);
@@ -1087,7 +1087,7 @@ private:
 	}
 	void constructContents(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(normalGridLayout(1, true));
 		auto comp2 = new Composite(comp, SWT.NONE);
 		comp2.setLayout(zeroGridLayout(1, true));
 		{ mixin(S_TRACE);
@@ -1139,7 +1139,7 @@ private:
 	}
 	void constructCoupon(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(normalGridLayout(1, true));
 		auto comp2 = new Composite(comp, SWT.NONE);
 		auto comp2gl = windowGridLayout(1, true);
 		comp2gl.marginWidth = 0;
@@ -1188,7 +1188,7 @@ private:
 	}
 	void constructUnuse(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(normalGridLayout(1, true));
 		auto comp2 = new Composite(comp, SWT.NONE);
 		comp2.setLayout(zeroGridLayout(1, true));
 		{ mixin(S_TRACE);
@@ -1240,7 +1240,7 @@ private:
 	}
 	void constructError(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(normalGridLayout(1, true));
 		auto comp2 = new Composite(comp, SWT.NONE);
 		comp2.setLayout(zeroGridLayout(1, true));
 		{ mixin(S_TRACE);
@@ -1261,7 +1261,7 @@ private:
 	}
 	void constructGrep(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(normalGridLayout(1, true));
 		auto comp2 = new Composite(comp, SWT.NONE);
 		auto comp2gl = windowGridLayout(1, true);
 		comp2gl.marginWidth = 0;
@@ -1272,7 +1272,7 @@ private:
 			auto grp = new Group(comp2, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setText(_prop.msgs.grepText);
-			grp.setLayout(new GridLayout(2, false));
+			grp.setLayout(normalGridLayout(2, false));
 			auto fl = new Label(grp, SWT.NONE);
 			fl.setText(_prop.msgs.grepFrom);
 			_grepFromComp = new Composite(grp, SWT.NONE);
@@ -1285,7 +1285,7 @@ private:
 			auto grp = new Group(comp2, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setText(_prop.msgs.grepTarget);
-			grp.setLayout(new GridLayout(4, false));
+			grp.setLayout(normalGridLayout(4, false));
 
 			_grepDir = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN);
 			_grepDir.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
@@ -2055,7 +2055,7 @@ public:
 			auto grp = new Group(right, SWT.NONE);
 			grp.setText(_prop.msgs.searchRange);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new GridLayout(1, true));
+			grp.setLayout(normalGridLayout(1, true));
 			_range = new Tree(grp, SWT.MULTI | SWT.BORDER | SWT.VIRTUAL | SWT.CHECK);
 			initTree(_comm, _range, false);
 			_range.addSelectionListener(new RefRangeAllCheck);
@@ -2099,13 +2099,13 @@ public:
 		{ mixin(S_TRACE);
 			auto bArea = new Composite(_win, SWT.NONE);
 			bArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			bArea.setLayout(new GridLayout(2, false));
+			bArea.setLayout(normalGridLayout(2, false));
 			_status = new Label(bArea, SWT.NONE);
 			_status.setText(_prop.msgs.searchResultEmpty);
 			_status.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			auto comp = new Composite(bArea, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-			auto gl = new GridLayout(4, true);
+			auto gl = normalGridLayout(4, true);
 			gl.marginWidth = 0;
 			gl.marginHeight = 0;
 			comp.setLayout(gl);

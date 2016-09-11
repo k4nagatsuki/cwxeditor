@@ -11,6 +11,7 @@ import cwx.versioninfo;
 import cwx.types;
 
 import cwx.editor.gui.dwt.dockingfolder;
+import cwx.editor.gui.dwt.dutils : ppis;
 
 import std.ascii;
 import std.conv;
@@ -41,11 +42,11 @@ class WindowProps(string PropName, int Width, int Height, ulong SizeChgVersion =
 	@property const int y() {return _y;}
 	@property void y(int v) {_y = v;}
 
-	auto _width = Prop!(int)("width", Width, SizeChgVersion);
+	auto _width = Prop!(int, false, true)("width", Width, SizeChgVersion);
 	@property const int width() {return _width;}
 	@property void width(int v) {_width = v;}
 
-	auto _height = Prop!(int)("height", Height, SizeChgVersion);
+	auto _height = Prop!(int, false, true)("height", Height, SizeChgVersion);
 	@property const int height() {return _height;}
 	@property void height(int v) {_height = v;}
 
@@ -65,11 +66,11 @@ class MainWin : Properties, WSize {
 	@property const int y() {return _y;}
 	@property void y(int v) {_y = v;}
 
-	auto _width = Prop!(int)("width", 1024);
+	auto _width = Prop!(int, false, true)("width", 1024);
 	@property const int width() {return _width;}
 	@property void width(int v) {_width = v;}
 
-	auto _height = Prop!(int)("height", 768);
+	auto _height = Prop!(int, false, true)("height", 768);
 	@property const int height() {return _height;}
 	@property void height(int v) {_height = v;}
 
@@ -94,11 +95,11 @@ class ContWin : Properties {
 
 class DialogParam(string Name, int WidthDef = SWT.DEFAULT, int HeightDef = SWT.DEFAULT, ulong SizeChgVersion = 0)
 		: Properties, DSize {
-	auto _width = Prop!(int)("width", WidthDef, SizeChgVersion);
+	auto _width = Prop!(int, false, true)("width", WidthDef, SizeChgVersion);
 	@property const int width() {return _width;}
 	@property void width(int v) {_width = v;}
 
-	auto _height = Prop!(int)("height", HeightDef, SizeChgVersion);
+	auto _height = Prop!(int, false, true)("height", HeightDef, SizeChgVersion);
 	@property const int height() {return _height;}
 	@property void height(int v) {_height = v;}
 
@@ -121,11 +122,11 @@ class ToolWin(string PropName, int Width, int Height, ulong SizeChgVersion = 0)
 	@property const int y() {return _y;}
 	@property void y(int v) {_y = v;}
 
-	auto _width = Prop!(int)("width", Width, SizeChgVersion);
+	auto _width = Prop!(int, false, true)("width", Width, SizeChgVersion);
 	@property const int width() {return _width;}
 	@property void width(int v) {_width = v;}
 
-	auto _height = Prop!(int)("height", Height, SizeChgVersion);
+	auto _height = Prop!(int, false, true)("height", Height, SizeChgVersion);
 	@property const int height() {return _height;}
 	@property void height(int v) {_height = v;}
 
@@ -337,6 +338,9 @@ public class FlexProps {
 				dStr ~= " - " ~ .text(__LINE__);
 				etc.backupBeforeSavePath.value = etc.backupPath;
 			}
+			// 高DPI用にレイアウトパラメータを変更
+			updatePPIs();
+
 		} catch (Throwable e) {
 			printStackTrace();
 			fdebugln(dStr);
@@ -357,11 +361,29 @@ public class FlexProps {
 	bool reload() { mixin(S_TRACE);
 		if (_noFile) return true;
 		string dStr = .text(__LINE__);
-		return reloadImpl(true, dStr);
+		if (reloadImpl(true, dStr)) { mixin(S_TRACE);
+			// 高DPI用にレイアウトパラメータを変更
+			updatePPIs();
+			return true;
+		}
+		return false;
 	}
 	void delNodeTemp() { mixin(S_TRACE);
 		XNode node;
 		_node = node;
+	}
+	private void updatePPIs() { mixin(S_TRACE);
+		foreach (i, pFld; this.tupleof) { mixin(S_TRACE);
+			static if (is(typeof(pFld.tupleof))) {
+				foreach (j, fld; pFld.tupleof) { mixin(S_TRACE);
+					static if (is(typeof(fld.LAYOUT_VALUE))) {
+						if (!fld.readValue && fld.value != SWT.DEFAULT) { mixin(S_TRACE);
+							this.tupleof[i].tupleof[j].value = fld.value.ppis;
+						}
+					}
+				}
+			}
+		}
 	}
 	private bool reloadImpl(bool force, ref string dStr) { mixin(S_TRACE);
 		if (_noFile) return true;
@@ -375,6 +397,7 @@ public class FlexProps {
 				foreach (i, fld; this.tupleof) { mixin(S_TRACE);
 					this.tupleof[i] = fromNode(_node, fld, force, dataVersion);
 				}
+				updatePPIs();
 				if (dataVersion < 2012072700) { mixin(S_TRACE);
 					// backupBeforeSavePath追加
 					etc.backupBeforeSavePath.value = etc.backupPath;

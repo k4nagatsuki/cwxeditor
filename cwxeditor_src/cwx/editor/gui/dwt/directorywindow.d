@@ -2346,8 +2346,10 @@ class Exec {
 					PathUnquoteSpacesW(wcom.ptr);
 					com = wcom[0 .. .countUntil(wcom, '\0')].idup;
 					if (com.length) { mixin(S_TRACE);
+						auto w = 16.ppis;
+						auto h = 16.ppis;
 						auto thr = new core.thread.Thread({ mixin(S_TRACE);
-							auto exeIcon = loadIcon(to!string(com), 16, 16, (void delegate() dlg) { mixin(S_TRACE);
+							auto exeIcon = loadIcon(to!string(com), w, h, (void delegate() dlg) { mixin(S_TRACE);
 								display.syncExec(new class Runnable {
 									void run() { mixin(S_TRACE);
 										dlg();

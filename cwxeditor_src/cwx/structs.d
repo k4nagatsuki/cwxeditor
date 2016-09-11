@@ -268,10 +268,10 @@ struct CRGB {
 
 /// フォント情報。
 struct CFont {
-	string name;
-	uint point;
-	bool bold;
-	bool italic;
+	string name; /// フォント名。
+	uint point; /// ポイントサイズ、または使用される文脈によってピクセルサイズ。
+	bool bold; /// 太字か。
+	bool italic; /// 斜体か。
 	const
 	void toNode(ref XNode e, string name = "font") { mixin(S_TRACE);
 		auto r = e.newElement(name);

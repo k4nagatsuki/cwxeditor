@@ -103,7 +103,7 @@ class Scales : Composite {
 				OS.SendMessage(_scales[0].handle, TBM_GETTHUMBRECT, 0, &rect);
 				left += (rect.right - rect.left) / 2;
 			} else { mixin(S_TRACE);
-				int left = 15;
+				int left = 15.ppis;
 			}
 			int w = ca.width - left * 2;
 

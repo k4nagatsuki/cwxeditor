@@ -157,9 +157,9 @@ class ImageList : Composite {
 	private int calcCountPerLine() { mixin(S_TRACE);
 		auto ca = getClientArea();
 
-		int w = SPACING + _imgW;
+		int w = SPACING.ppis + _imgW;
 		int countPerLine = ca.width / w;
-		if (ca.width % w < SPACING) countPerLine--;
+		if (ca.width % w < SPACING.ppis) countPerLine--;
 		return max(1, countPerLine);
 	}
 	private void calcScrollParams() { mixin(S_TRACE);
@@ -170,12 +170,12 @@ class ImageList : Composite {
 		auto gc = new GC(this);
 		scope (exit) gc.dispose();
 		int fh = gc.getFontMetrics().getHeight();
-		int h = SPACING + _imgH + fh;
+		int h = SPACING.ppis + _imgH + fh;
 		int countPerLine = calcCountPerLine();
 		auto row = _path.length / countPerLine;
 		if (_path.length % countPerLine) row++;
 		vs.setMinimum(0);
-		vs.setMaximum(cast(int)row * h + SPACING);
+		vs.setMaximum(cast(int)row * h + SPACING.ppis);
 		vs.setThumb(ca.height);
 		vs.addSelectionListener(new Redraw);
 	}
@@ -213,8 +213,8 @@ class ImageList : Composite {
 	}
 	private void onPaint(PaintEvent e) { mixin(S_TRACE);
 		auto ca = getClientArea();
-		int x = SPACING;
-		int y = SPACING - getVerticalBar().getSelection();
+		int x = SPACING.ppis;
+		int y = SPACING.ppis - getVerticalBar().getSelection();
 		int fh = e.gc.getFontMetrics().getHeight();
 		foreach (i, ref imgData; _image) { mixin(S_TRACE);
 			if (ca.intersects(x, y, _imgW, fh + _imgH)) { mixin(S_TRACE);
@@ -254,10 +254,10 @@ class ImageList : Composite {
 			_bounds[i].y = y;
 			_bounds[i].width = _imgW;
 			_bounds[i].height = fh + _imgH;
-			x += _imgW + SPACING;
-			if (ca.width < x + _imgW + SPACING) { mixin(S_TRACE);
-				x = SPACING;
-				y += fh + _imgH + SPACING;
+			x += _imgW + SPACING.ppis;
+			if (ca.width < x + _imgW + SPACING.ppis) { mixin(S_TRACE);
+				x = SPACING.ppis;
+				y += fh + _imgH + SPACING.ppis;
 			}
 		}
 	}
@@ -290,12 +290,12 @@ class ImageList : Composite {
 		scope (exit) gc.dispose();
 		int fh = gc.getFontMetrics().getHeight();
 
-		int h = SPACING + _imgH + fh;
+		int h = SPACING.ppis + _imgH + fh;
 		auto y = _sel / countPerLine * h;
 		if (y < vs.getSelection()) { mixin(S_TRACE);
 			vs.setSelection(cast(int)y);
-		} else if (vs.getSelection() + vs.getThumb() < y + h + SPACING) { mixin(S_TRACE);
-			vs.setSelection(cast(int)y + h + SPACING - vs.getThumb());
+		} else if (vs.getSelection() + vs.getThumb() < y + h + SPACING.ppis) { mixin(S_TRACE);
+			vs.setSelection(cast(int)y + h + SPACING.ppis - vs.getThumb());
 		}
 		redraw();
 	}
@@ -309,12 +309,12 @@ class ImageList : Composite {
 		auto gc = new GC(this);
 		scope (exit) gc.dispose();
 		int fh = gc.getFontMetrics().getHeight();
-		int h = SPACING + _imgH + fh;
-		int w = SPACING + _imgW;
+		int h = SPACING.ppis + _imgH + fh;
+		int w = SPACING.ppis + _imgW;
 		int colp = x % w;
-		if (colp <= SPACING) return -1;
+		if (colp <= SPACING.ppis) return -1;
 		int rowp = y % h;
-		if (rowp <= SPACING) return -1;
+		if (rowp <= SPACING.ppis) return -1;
 		if (countPerLine <= x / w) return -1;
 		int index = y / h * countPerLine + x / w;
 		return index < _path.length ? index : -1;

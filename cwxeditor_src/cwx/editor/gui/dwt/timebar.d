@@ -124,7 +124,7 @@ class TimeBar : Canvas {
 
 	override
 	Point computeSize(int wHint, int hHint, bool change) { mixin(S_TRACE);
-		return new Point(100, 28);
+		return new Point(100.ppis, 28.ppis);
 	}
 
 	private void onPaint(Event e) { mixin(S_TRACE);

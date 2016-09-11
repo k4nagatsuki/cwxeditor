@@ -224,7 +224,7 @@ private:
 		auto sels = _tree.getSelection();
 		if (sels.length > 0) { mixin(S_TRACE);
 			assert (cast(Content)sels[0].getData() !is null);
-			//assert ((cast(Content)sels[0].getData()).tree is _et);
+			assert ((cast(Content)sels[0].getData()).tree is _et);
 			return sels[0];
 		}
 		return null;
@@ -1564,12 +1564,12 @@ private:
 			}
 			if ((_summ ? _prop.var.etc.drawCountOfUseOfStart : drawCountOfUseOfStart)) { mixin(S_TRACE);
 				string t = counts[i];
-				int tx = ca.width - maxW - 5;
+				int tx = ca.width - maxW - 5.ppis;
 				int ty = b.y + (b.height - h) / 2;
 				e.gc.wDrawText(t, tx, ty);
 				e.gc.setForeground(fontColor);
 				scope (exit) e.gc.setForeground(fore);
-				e.gc.wDrawText(_prop.msgs.startUseCount, tx - ucExtent.x - 5, ty);
+				e.gc.wDrawText(_prop.msgs.startUseCount, tx - ucExtent.x - 5.ppis, ty);
 			}
 		}
 	}
@@ -1607,8 +1607,8 @@ private:
 		auto lineHeight = e.gc.getFontMetrics().getHeight();
 		Rectangle[] bs;
 		string[][] texts;
-		static const MARGIN_L = 5;
-		static const MARGIN_T = 4;
+		const MARGIN_L = 5.ppis;
+		const MARGIN_T = 4.ppis;
 		Image wImg = null;
 		scope (exit) {
 			if (wImg) wImg.dispose();
@@ -1645,15 +1645,15 @@ private:
 				setAlpha(128);
 				scope (exit) setAlpha(255);
 				auto bounds = itm.getBounds();
-				int dotX = bounds.x + bounds.width + 2;
-				bounds.x = dotX + 10;
-				bounds.width = dotExtent.x + 10;
-				e.gc.wDrawText("...", bounds.x + 5, bounds.y + (bounds.height - dotExtent.y) / 2, true);
+				int dotX = bounds.x + bounds.width + 2.ppis;
+				bounds.x = dotX + 10.ppis;
+				bounds.width = dotExtent.x + 10.ppis;
+				e.gc.wDrawText("...", bounds.x + 5.ppis, bounds.y + (bounds.height - dotExtent.y) / 2, true);
 				auto lineY = bounds.y + bounds.height / 2;
 				e.gc.drawLine(dotX, lineY, bounds.x, lineY);
 				setAntialias(SWT.ON);
 				scope (exit) setAntialias(SWT.OFF);
-				e.gc.drawRoundRectangle(bounds.x, bounds.y, bounds.width, bounds.height, 10, 10);
+				e.gc.drawRoundRectangle(bounds.x, bounds.y, bounds.width, bounds.height, 10.ppis, 10.ppis);
 			}
 			auto c = cast(Content) itm.getData();
 			string cm = c.comment;
@@ -1696,7 +1696,7 @@ private:
 				/// ラインのみを先行描画
 				e.gc.setBackground(lineColor);
 				scope (exit) e.gc.setBackground(back);
-				int px = ib.x + ib.width + 2;
+				int px = ib.x + ib.width + 2.ppis;
 				int py = ib.y + ib.height / 2 - 1;
 				e.gc.fillRectangle(px, py, dis - MARGIN_L - 2, 1);
 
@@ -4884,7 +4884,7 @@ class ContentsToolBox {
 				eBar.addMouseListener(tml);
 				if (_prop.var.etc.showContentsGroupName) { mixin(S_TRACE);
 					auto menuID = cTypeGroupToMenuID(cGrp);
-					labels ~= createLabel(eBar, _prop.msgs.menuText(menuID), WGL_SPACING);
+					labels ~= createLabel(eBar, _prop.msgs.menuText(menuID), WGL_SPACING.ppis);
 				}
 				foreach (cType; cs) { mixin(S_TRACE);
 					createEI(cType, eBar, g);

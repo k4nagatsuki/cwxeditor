@@ -611,7 +611,7 @@ class CouponView(CVType Type) : Composite {
 			_coupons.setLayoutData(gd);
 			auto cc = new FullTableColumn(_coupons, SWT.NONE);
 			auto cv = new TableColumn(_coupons, SWT.NONE);
-			cv.setWidth(40);
+			cv.setWidth(_prop.var.etc.couponValueColumnWidth);
 			saveColumnWidth!("prop.var.etc.couponValueColumn")(_prop, cv);
 			auto menu = new Menu(_coupons);
 			if (!_readOnly) { mixin(S_TRACE);

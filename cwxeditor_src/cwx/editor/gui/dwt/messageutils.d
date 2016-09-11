@@ -194,7 +194,7 @@ class AbstractMessageDialog : EventDialog {
 
 	protected void initPreview(Composite area, WSize size) { mixin(S_TRACE);
 		auto aComp = addition();
-		aComp.setLayout(new GridLayout(1, true));
+		aComp.setLayout(normalGridLayout(1, true));
 		_prev = new Button(aComp, SWT.TOGGLE);
 		_prev.setText(prop.msgs.messagePreview);
 		bool show;
@@ -313,7 +313,7 @@ class AbstractMessageDialog : EventDialog {
 
 	protected Composite createSelectionColumns(Composite parent) { mixin(S_TRACE);
 		auto comp = new Composite(parent, SWT.NONE);
-		auto gl = new GridLayout(3, false);
+		auto gl = normalGridLayout(3, false);
 		gl.marginHeight = 0;
 		comp.setLayout(gl);
 		auto l = new Label(comp, SWT.NONE);
@@ -781,7 +781,7 @@ private:
 		}
 	}
 	protected override void refSkin() { mixin(S_TRACE);
-		_text.font = dwtData(prop.looks.messageFont(summSkin.legacy));
+		_text.font = prop.looks.messageFont(summSkin.legacy);
 	}
 	void refreshDlgList() { mixin(S_TRACE);
 		bool oldIgnoreMod = ignoreMod;
@@ -895,7 +895,7 @@ protected:
 			auto grp = new Group(left, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			grp.setText(prop.msgs.talker);
-			grp.setLayout(new GridLayout(1, true));
+			grp.setLayout(normalGridLayout(1, true));
 			_talkers = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
 			mod(_talkers);
 			_talkers.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -913,7 +913,7 @@ protected:
 		{ mixin(S_TRACE);
 			auto grp = new Group(leftSash, SWT.NONE);
 			grp.setText(prop.msgs.toneCoupons);
-			grp.setLayout(new GridLayout(1, true));
+			grp.setLayout(normalGridLayout(1, true));
 			Control tp;
 			if (evt) { mixin(S_TRACE);
 				tp = createTalkerPane2(grp, comm, prop, summ, evt.dialogs[0].rCoupons, _rCoupons, _rCouponsList);
@@ -1159,7 +1159,7 @@ private:
 		_text.insert(put);
 	}
 	protected override void refSkin() { mixin(S_TRACE);
-		_text.font = dwtData(prop.looks.messageFont(summSkin.legacy));
+		_text.font = prop.looks.messageFont(summSkin.legacy);
 	}
 public:
 	this (Commons comm, Props prop, Shell shell, Summary summ, Content parent, Content evt) { mixin(S_TRACE);
@@ -1197,7 +1197,7 @@ protected:
 		auto skin = comm.skin;
 		{ mixin(S_TRACE);
 			auto comp = new Composite(_tabf, SWT.NONE);
-			comp.setLayout(new GridLayout(2, false));
+			comp.setLayout(normalGridLayout(2, false));
 			Control tp;
 			if (evt) { mixin(S_TRACE);
 				tp = createTalkerPane(comp, comm, prop, summ, evt.cardPaths, _msel);
@@ -1385,7 +1385,7 @@ private class DisposeText : DisposeListener {
 }
 private FixedWidthText createMessagePane(Commons comm, Props prop, bool image, Composite parent, Summary summ) { mixin(S_TRACE);
 	int len = image ? prop.looks.messageImageLen : prop.looks.messageLen;
-	auto r = new FixedWidthText(dwtData(prop.looks.messageFont(comm.skin.legacy)), len, parent, SWT.BORDER, true);
+	auto r = new FixedWidthText(prop.looks.messageFont(comm.skin.legacy), len, parent, SWT.BORDER, true);
 	auto d = r.widget.getDisplay();
 	auto back = new Color(d, new RGB(prop.var.etc.msgBackR, prop.var.etc.msgBackG, prop.var.etc.msgBackB));
 	auto fore = new Color(d, new RGB(prop.var.etc.msgForeR, prop.var.etc.msgForeG, prop.var.etc.msgForeB));
@@ -2712,13 +2712,13 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 	auto cl = new Color(d, new RGB(169, 169, 169)); scope (exit) cl.dispose(); // CardWirth 1.50
 	auto cd = new Color(d, new RGB(105, 105, 105)); scope (exit) cd.dispose(); // CardWirth 1.50
 
-	auto font = new Font(d, dwtData(prop.looks.messageFont(legacy)));
+	auto font = .createFontFromPixels(prop.looks.messageFont(legacy));
 	scope (exit) font.dispose();
 	auto fc = new Color(d, dwtData(prop.var.etc.messageForeColor, alpha));
 	scope (exit) fc.dispose();
 	auto hc = new Color(d, dwtData(prop.var.etc.messageHemColor, alpha));
 	scope (exit) hc.dispose();
-	auto selFont = new Font(d, dwtData(prop.looks.messageSelectFont(legacy)));
+	auto selFont = .createFontFromPixels(prop.looks.messageSelectFont(legacy));
 	scope (exit) selFont.dispose();
 
 	auto start = prop.looks.messageStartPos(legacy, 0 < talkers.length);
@@ -2798,7 +2798,7 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 			string s1 = to!string(dmsg[i]);
 			i++;
 			string s2 = to!string(dmsg[i]);
-			auto w = (tgc.wTextExtent(s1).x - 1) + (tgc.wTextExtent(s2).x - 1);
+			auto w = prop.looks.messageCharWidth;
 			if (msgLen < writeLen + 2) { mixin(S_TRACE);
 				// 列数オーバー
 				if (dmsg[i] != '\n') { mixin(S_TRACE);
@@ -2840,8 +2840,9 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 		default:
 			auto s = to!string(c);
 			auto te = tgc.wTextExtent(s);
-			int w = te.x - 1;
 			int len = (te.x + 1) / tgc.wTextExtent("#").x;
+			int w = prop.looks.messageCharWidth;
+			if (len < 2) w = prop.looks.messageCharWidth / 2;
 			// 行末が半角スペースの時だけ特別扱いする(CardWirthの挙動に合わせた処理)
 			if (msgLen < writeLen + (s == " " ? len - 1 : len)) { mixin(S_TRACE);
 				// 列数オーバー

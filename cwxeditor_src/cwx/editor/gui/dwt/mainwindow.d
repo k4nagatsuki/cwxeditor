@@ -151,7 +151,7 @@ private:
 		auto ePath = refreshExecEngineImpl(_tmExecEngine, _tmExecEngineWithParty, false);
 		version (Windows) {
 			// ツールボタンのアイコン
-			auto exeIcon = loadIcon(ePath, 16, 16);
+			auto exeIcon = loadIcon(ePath, 16.ppis, 16.ppis);
 			if (exeIcon) { mixin(S_TRACE);
 				if (_tiExecEngine) { mixin(S_TRACE);
 					auto img = _tiExecEngine.getImage();
@@ -288,8 +288,10 @@ private:
 				mShown = new class MenuAdapter {
 					override void menuShown(MenuEvent e) { mixin(S_TRACE);
 						// 実行ファイルのアイコンを取得
+						auto w = 16.ppis;
+						auto h = 16.ppis;
 						auto thr = new core.thread.Thread({ mixin(S_TRACE);
-							auto exeIcon = loadIcon(ePath, 16, 16, (void delegate() dlg) { mixin(S_TRACE);
+							auto exeIcon = loadIcon(ePath, w, h, (void delegate() dlg) { mixin(S_TRACE);
 								_display.syncExec(new class Runnable {
 									void run() { mixin(S_TRACE);
 										if (!_win || _win.isDisposed()) return;
@@ -2414,11 +2416,18 @@ private:
 		lastSoundType = bgmType;
 	}
 public:
-	this (string appPath, cwx.system.System sys, Props prop, LaunchOption opt) { mixin(S_TRACE);
+	this (string appPath, cwx.system.System sys, Display d, Props prop, LaunchOption opt) { mixin(S_TRACE);
 		string dStr = .text(__LINE__); // 起動ログ
 		try { mixin(S_TRACE);
+			dStr ~= " - " ~ .text(__LINE__);
 			_prop = prop;
 			_opt = opt;
+			dStr ~= " - " ~ .text(__LINE__);
+			_display = d;
+			_displayMutex = new Object;
+			dStr ~= " - " ~ .text(__LINE__);
+			d.setAppName(_prop.msgs.application);
+
 			dStr ~= " - " ~ .text(__LINE__);
 			decScenarioPath(opt.scenario, opt.openPaths, _prop.var.etc.clickIsOpenEvent);
 			/// すでにopt.scenarioを開いている
@@ -2494,12 +2503,6 @@ public:
 			_comm = new Commons(_prop);
 			_comm.saveSync = _saveSync;
 			_comm.skin = findSkin2(_prop, _prop.var.etc.defaultSkin, "");
-			dStr ~= " - " ~ .text(__LINE__);
-
-			auto d = new Display;
-			_display = d;
-			_displayMutex = new Object;
-			d.setAppName(_prop.msgs.application);
 			dStr ~= " - " ~ .text(__LINE__);
 
 			string engineDir = "";

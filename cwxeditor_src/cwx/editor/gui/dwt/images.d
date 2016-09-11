@@ -89,7 +89,7 @@ private:
 
 	ImageType _type = ImageType.Image;
 	string _title = null;
-	FontData titFont = null;
+	CFont titFont;
 	Point titPoint = null;
 	int _titShrinkWidth = 0;
 	bool _titAntialias = false;
@@ -366,7 +366,7 @@ public:
 	/// shrinkWidth = 指定幅に収まらない場合は縮小するか。0以下は縮小しない。
 	/// antialias = タイトルにアンチエイリアス処理を行うか。
 	/// See_Also: createImage();
-	void setTitle(string title, FontData font, Point titPoint, int shrinkWidth = 0, bool antialias = false) { mixin(S_TRACE);
+	void setTitle(string title, CFont font, Point titPoint, int shrinkWidth = 0, bool antialias = false) { mixin(S_TRACE);
 		this._title = title;
 		this.titFont = font;
 		this.titPoint = titPoint;
@@ -375,18 +375,13 @@ public:
 	}
 	void setTitle(string title, string fontName, int size, bool bold, bool italic, bool vertical) { mixin(S_TRACE);
 		this.vertical = vertical;
-		int style = SWT.NORMAL;
-		if (bold) style |= SWT.BOLD;
-		if (italic) style |= SWT.ITALIC;
 		auto d = Display.getCurrent();
-		auto h = cast(int) (size * (72.0 / d.getDPI().y) + 0.5);
-		_fontPixelSize = size;
-		auto font = new FontData(fontName, h, style);
+		auto font = CFont(fontName, size, bold, italic);
 		setTitle(title, font, new Point(0, 0));
 	}
 	@property
 	void title(string title) { mixin(S_TRACE);
-		assert (titFont !is null);
+		assert (titFont.name != "");
 		assert (titPoint);
 		_title = title;
 	}
@@ -405,7 +400,7 @@ public:
 		return _titColor;
 	}
 	@property
-	FontData font() { mixin(S_TRACE);
+	CFont font() { mixin(S_TRACE);
 		return titFont;
 	}
 	@property
@@ -668,7 +663,7 @@ public:
 					}
 					if (a.text.length) { mixin(S_TRACE);
 						try { mixin(S_TRACE);
-							auto font = new Font(cur, dwtData(a.font));
+							auto font = .createFontFromPixels(a.font);
 							scope (exit) font.dispose();
 							dc.setFont(font);
 							scope (exit) dc.setFont(null);
@@ -721,14 +716,14 @@ public:
 				scope (exit) {
 					if (_titColor) color.dispose();
 				}
-				auto font = new Font(cur, titFont);
+				auto font = createFontFromPixels(titFont);
 				scope (exit) font.dispose();
 				dc.setFont(font);
 				auto extent = dc.wTextExtent(_title);
 				if (_titAntialias) { mixin(S_TRACE);
-					auto titFont2 = new FontData(titFont.getName(), titFont.getHeight(), titFont.getStyle());
-					titFont2.setHeight(this.titFont.getHeight() * 2);
-					auto font2 = new Font(cur, titFont2);
+					CFont titFont2 = this.titFont;
+					titFont2.point = titFont2.point * 2;
+					auto font2 = .createFontFromPixels(titFont2);
 					scope (exit) font2.dispose();
 					dc.setFont(font);
 					// 2倍に描画して縮める事でアンチエイリアスする
@@ -815,7 +810,7 @@ public:
 		scope (exit) img.dispose();
 		auto gc = new GC(img);
 		scope (exit) gc.dispose();
-		auto font = new Font(cur, titFont);
+		auto font = .createFontFromPixels(titFont);
 		scope (exit) font.dispose();
 		auto backColor = new Color(cur, backRgb);
 		scope (exit) backColor.dispose();
@@ -1083,7 +1078,7 @@ public:
 		scope (exit) img2.dispose();
 		gc2 = new GC(img2);
 		scope (exit) gc2.dispose();
-		auto font = new Font(cur, titFont);
+		auto font = .createFontFromPixels(titFont);
 		scope (exit) font.dispose();
 		auto borderColor = new Color(cur, borderRgb);
 		scope (exit) borderColor.dispose();

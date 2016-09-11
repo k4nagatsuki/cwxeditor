@@ -171,7 +171,7 @@ private:
 	}
 	void refSkin() { mixin(S_TRACE);
 		static if (is (C == MenuCard)) {
-			_desc.font = dwtData(_prop.looks.cardDescFont(_comm.skin.legacy));
+			_desc.font = _prop.looks.cardDescFont(_comm.skin.legacy);
 		}
 	}
 	static if (is(C:EnemyCard)) {
@@ -273,7 +273,7 @@ protected:
 		area.setLayout(cl);
 		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
-			comp.setLayout(new GridLayout(1, false));
+			comp.setLayout(normalGridLayout(1, false));
 			{ mixin(S_TRACE);
 				auto sash = new SplitPane(comp, SWT.HORIZONTAL);
 				sash.resizeControl1 = true;
@@ -285,14 +285,14 @@ protected:
 						auto grp = new Group(comp2, SWT.NONE);
 						grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 						static if (is (C == MenuCard)) {
-							grp.setLayout(new GridLayout(1, false));
+							grp.setLayout(normalGridLayout(1, false));
 							grp.setText(_prop.msgs.name);
 							_name = new Text(grp, SWT.BORDER);
 							createTextMenu!Text(_comm, _prop, _name, &catchMod);
 							mod(_name);
 							_name.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 						} else static if (is (C == EnemyCard)) {
-							grp.setLayout(new GridLayout(2, false));
+							grp.setLayout(normalGridLayout(2, false));
 							grp.setText(_prop.msgs.enemyCardBase);
 							_casts = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 							_casts.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
@@ -384,7 +384,7 @@ protected:
 				}
 				{ mixin(S_TRACE);
 					auto grp = new Group(sash, SWT.NONE);
-					grp.setLayout(new GridLayout(2, false));
+					grp.setLayout(normalGridLayout(2, false));
 					grp.setText(_prop.msgs.refFlag);
 					_flag = new FlagChooser!(Flag, true)(_comm, _summ, grp);
 					mod(_flag);
@@ -403,10 +403,10 @@ protected:
 				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL, 0));
 				auto comp2 = new Composite(grp, SWT.NONE);
-				comp2.setLayout(new GridLayout(4, false));
+				comp2.setLayout(normalGridLayout(4, false));
 				Spinner createS(string name, int max, int min, string hint = "") { mixin(S_TRACE);
 					auto comp3 = new Composite(comp2, SWT.NONE);
-					auto gl = new GridLayout((hint != "") ? 3 : 2, false);
+					auto gl = normalGridLayout((hint != "") ? 3 : 2, false);
 					gl.marginHeight = 0;
 					comp3.setLayout(gl);
 					auto l = new Label(comp3, SWT.NONE);
@@ -434,7 +434,7 @@ protected:
 					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 					grp.setText(_prop.msgs.desc);
-					_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(summSkin.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER);
+					_desc = new FixedWidthText(_prop.looks.cardDescFont(summSkin.legacy), _prop.looks.cardDescLen, grp, SWT.BORDER);
 					createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 					mod(_desc.widget);
 					_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));

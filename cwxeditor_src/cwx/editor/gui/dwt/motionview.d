@@ -1161,6 +1161,7 @@ public:
 				itm.setData(new Integer(elm));
 				toolTip ~= _prop.msgs.elementDesc(elm);
 			}
+			col.column.pack();
 			.listener(_motionElm, SWT.MouseMove, (Event e) { mixin(S_TRACE);
 				auto itm = _motionElm.getItem(new Point(e.x, e.y));
 				if (itm) { mixin(S_TRACE);
@@ -1188,7 +1189,7 @@ public:
 			{ mixin(S_TRACE);
 				auto grp = new Group(_summonComp, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				grp.setLayout(new GridLayout(2, false));
+				grp.setLayout(normalGridLayout(2, false));
 				grp.setText(_prop.msgs.motionBeast);
 				_beasts = new Combo(grp, SWT.BORDER | SWT.DROP_DOWN | SWT.READ_ONLY);
 				_beasts.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
@@ -1318,7 +1319,7 @@ public:
 				rgrp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				rgrp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 				auto rcomp = new Composite(rgrp, SWT.NONE);
-				rcomp.setLayout(new GridLayout(2, false));
+				rcomp.setLayout(normalGridLayout(2, false));
 				auto round = new Spinner(rcomp, SWT.BORDER | _readOnly);
 				initSpinner(round);
 				round.setMaximum(max);
@@ -1338,7 +1339,7 @@ public:
 				vgrp.setText(_prop.msgs.motionEnhValue);
 				vgrp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 				auto vcomp = new Composite(vgrp, SWT.NONE);
-				vcomp.setLayout(new GridLayout(2, false));
+				vcomp.setLayout(normalGridLayout(2, false));
 				_abiVal = new Scale(vcomp, SWT.NONE);
 				_abiVal.setEnabled(!_readOnly);
 				auto gd_av = new GridData(GridData.FILL_HORIZONTAL);
@@ -1367,7 +1368,7 @@ public:
 				grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				auto comp = new Composite(grp, SWT.NONE);
-				comp.setLayout(new GridLayout(1, false));
+				comp.setLayout(normalGridLayout(1, false));
 				auto dtl = new DamageTypeListener;
 				foreach (typ; [DamageType.LEVEL_RATIO, DamageType.NORMAL, DamageType.MAX]) { mixin(S_TRACE);
 					auto radio = new Button(comp, SWT.RADIO);
@@ -1388,7 +1389,7 @@ public:
 				grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				auto comp = new Composite(grp, SWT.NONE);
-				comp.setLayout(new GridLayout(1, false));
+				comp.setLayout(normalGridLayout(1, false));
 				auto dtl = new DamageTypeListener;
 				foreach (typ; [DamageType.FIXED, DamageType.MAX]) { mixin(S_TRACE);
 					auto radio = new Button(comp, SWT.RADIO);

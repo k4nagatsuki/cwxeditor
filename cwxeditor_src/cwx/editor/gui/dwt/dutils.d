@@ -1477,10 +1477,18 @@ bool openFolder(string path) { mixin(S_TRACE);
 }
 
 void drawCenterText(FontData fontData, GC gc, Rectangle ca, string str) { mixin(S_TRACE);
-	auto oldFont = gc.getFont();
-	scope (exit) gc.setFont(oldFont);
 	auto font = new Font(Display.getCurrent(), fontData);
 	scope (exit) font.dispose();
+	.drawCenterTextImpl(font, gc, ca, str);
+}
+void drawCenterText(in CFont fontData, GC gc, Rectangle ca, string str) { mixin(S_TRACE);
+	auto font = .createFontFromPixels(fontData);
+	scope (exit) font.dispose();
+	.drawCenterTextImpl(font, gc, ca, str);
+}
+private void drawCenterTextImpl(Font font, GC gc, Rectangle ca, string str) { mixin(S_TRACE);
+	auto oldFont = gc.getFont();
+	scope (exit) gc.setFont(oldFont);
 	gc.setFont(font);
 	auto te = gc.wTextExtent(str);
 	int x = ca.x + (ca.width - te.x) / 2;
@@ -1669,7 +1677,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 		auto bi = new Image(d, bid);
 		scope (exit) bi.dispose();
 		gc.drawImage(bi, 0, 0);
-		auto bff = new Font(d, dwtData(prop.looks.beastNumFont(skin.legacy)));
+		auto bff = .createFontFromPixels(prop.looks.beastNumFont(skin.legacy));
 		scope (exit) bff.dispose();
 		gc.setFont(bff);
 		string s = to!(string)(beastCount);
@@ -1681,7 +1689,7 @@ ImageData castCardImage(Props prop, Skin skin, in CastCard c, string sPath, bool
 		r.append(bmp.getImageData(), stp, ScaleType.Cut);
 	}
 	auto x = prop.looks.castCardNamePoint.x;
-	r.setTitle(c.name, dwtData(prop.looks.castCardNameFont(skin.legacy)), dwtData(prop.looks.castCardNamePoint),
+	r.setTitle(c.name, prop.looks.castCardNameFont(skin.legacy), dwtData(prop.looks.castCardNamePoint),
 		skin.legacy ? 0 : w - x * 2, !skin.legacy);
 	if (skin.legacy) { mixin(S_TRACE);
 		// 状態によって固定で文字が白くなる
@@ -1833,7 +1841,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 		}
 	}
 	auto x = prop.looks.cardNamePoint.x;
-	r.setTitle(c.name, dwtData(prop.looks.cardNameFont(skin.legacy)), dwtData(prop.looks.cardNamePoint),
+	r.setTitle(c.name, prop.looks.cardNameFont(skin.legacy), dwtData(prop.looks.cardNamePoint),
 		skin.legacy ? 0 : w - x * 2, !skin.legacy);
 	if (!skin.legacy) { mixin(S_TRACE);
 		if (getRGBAverage(card, prop.looks.cardNameArea) < prop.var.etc.negativeCardNameBorder) { mixin(S_TRACE);
@@ -1845,7 +1853,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 			if (preview || !prop.var.etc.showEventTreeMark) return;
 			auto et = useCount ? prop.looks.eventTreeXYWithCount : prop.looks.eventTreeXY;
 			if (detail && (prop.var.etc.ignoreEmptyStart ? !c.isEmpty : 0 < c.trees.length)) { mixin(S_TRACE);
-				auto iData = prop.images.eventTree.getImageData();
+				auto iData = prop.images.eventTreeNoScale.getImageData();
 				r.append(iData, CInsets(et.y, w - et.x - iData.width, h - et.y - iData.height, et.x), ScaleType.Cut);
 			}
 		}
@@ -1866,7 +1874,7 @@ ImageData cardImage(C)(Props prop, Skin skin, in C base, string sPath, CastCard 
 			scope (exit) img.dispose();
 			auto gc = new GC(img);
 			scope (exit) gc.dispose();
-			auto font = new Font(d, dwtData(prop.looks.useCountFont(skin.legacy)));
+			auto font = .createFontFromPixels(prop.looks.useCountFont(skin.legacy));
 			scope (exit) font.dispose();
 			gc.setFont(font);
 			int alpha;
@@ -1944,7 +1952,7 @@ Rectangle eventTreeMarkRect(C:EventTreeOwner)(Props prop, int left, int top, in 
 
 	auto et = useCount ? prop.looks.eventTreeXYWithCount : prop.looks.eventTreeXY;
 	if (prop.var.etc.ignoreEmptyStart ? !c2.isEmpty : 0 < c2.trees.length) { mixin(S_TRACE);
-		auto bounds = prop.images.eventTree.getBounds();
+		auto bounds = prop.images.eventTreeNoScale.getBounds();
 		bounds.x = left + et.x;
 		bounds.y = top + et.y;
 		return bounds;
@@ -2124,7 +2132,7 @@ Composite createSuccessRateScale(Props prop, Composite parent, out Scale sucRate
 	grp.setLayout(cl);
 	grp.setText(prop.msgs.successRate);
 	auto comp = new Composite(grp, SWT.NONE);
-	comp.setLayout(new GridLayout(3, false));
+	comp.setLayout(normalGridLayout(3, false));
 	auto allf = new Label(comp, SWT.CENTER);
 	allf.setText(prop.msgs.allFail);
 	sucRate = new Scale(comp, SWT.NONE);
@@ -2536,6 +2544,22 @@ string wrapReturnCode(string str) { mixin(S_TRACE);
 	}
 }
 
+@property
+int ppis(int value) { mixin(S_TRACE);
+	return value * dpiMuls;
+}
+@property
+int dpiMuls() { mixin(S_TRACE);
+	auto d = Display.getCurrent();
+	auto dpi = d.getDPI().x;
+	immutable base = 96;
+	auto exp = 2;
+	while (base * exp <= dpi) { mixin(S_TRACE);
+		exp *= 2;
+	}
+	return exp / 2;
+}
+
 GridLayout zeroGridLayout(int col, bool eqWid = false) { mixin(S_TRACE);
 	auto gl = new GridLayout(col, eqWid);
 	gl.horizontalSpacing = 0;
@@ -2552,14 +2576,24 @@ GridLayout zeroMarginGridLayout(int col, bool eqWid) { mixin(S_TRACE);
 	return gl;
 }
 
+GridLayout normalGridLayout(int col, bool eqWid = false) { mixin(S_TRACE);
+	auto gl = new GridLayout(col, eqWid);
+	auto spacing = gl.horizontalSpacing;
+	gl.horizontalSpacing = spacing.ppis;
+	gl.verticalSpacing = spacing.ppis;
+	gl.marginWidth = spacing.ppis;
+	gl.marginHeight = spacing.ppis;
+	return gl;
+}
+
 const WGL_SPACING = 2;
 
 GridLayout windowGridLayout(int col, bool eqWid = false) { mixin(S_TRACE);
 	auto gl = new GridLayout(col, eqWid);
-	gl.horizontalSpacing = WGL_SPACING;
-	gl.verticalSpacing = WGL_SPACING;
-	gl.marginWidth = WGL_SPACING;
-	gl.marginHeight = WGL_SPACING;
+	gl.horizontalSpacing = WGL_SPACING.ppis;
+	gl.verticalSpacing = WGL_SPACING.ppis;
+	gl.marginWidth = WGL_SPACING.ppis;
+	gl.marginHeight = WGL_SPACING.ppis;
 	return gl;
 }
 
@@ -4095,4 +4129,51 @@ Rectangle setupWindow(Shell shell, DSize winProps) { mixin(S_TRACE);
 		.listener(shell, SWT.Resize, &saveWin);
 	}
 	return shell.getBounds();
+}
+
+version (Windows) {
+	static immutable DEFAULT_CHARSET = 0x1;
+	static immutable OUT_DEFAULT_PRECIS = 0x0;
+	static immutable CLIP_DEFAULT_PRECIS = 0x0;
+	static immutable DEFAULT_QUALITY = 0x0;
+	static immutable ANTIALIASED_QUALITY = 0x4;
+	static immutable DEFAULT_PITCH = 0x0;
+	static immutable FIXED_PITCH = 0x1;
+	static immutable VARIABLE_PITCH = 0x2;
+	static immutable FF_DONTCARE = (0x0 << 4);
+	static immutable FF_ROMAN = (0x1 << 4);
+	static immutable FF_MODERN = (0x3 << 4);
+	extern (Windows) HFONT CreateFontW(INT, INT, INT, INT, INT, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, DWORD, LPCWSTR);
+}
+
+/// ピクセルサイズを指定してフォントを生成する。
+Font createFontFromPixels(in CFont font) { mixin(S_TRACE);
+	return .createFontFromPixels(font.name, font.point, font.bold, font.italic);
+}
+/// ditto
+Font createFontFromPixels(string face, int pixels, bool bold = false, bool italic = false, bool uline = false, bool strike = false, bool antialias = true) { mixin(S_TRACE);
+	auto d = Display.getCurrent();
+	version (Windows) {
+		int fh = pixels;
+		DWORD fwg = bold ? FW_BOLD : FW_NORMAL;
+		DWORD fi = italic ? TRUE : FALSE;
+		DWORD fu = uline ? TRUE : FALSE;
+		DWORD fs = strike ? TRUE : FALSE;
+		DWORD fc = DEFAULT_CHARSET;
+		DWORD fop = OUT_DEFAULT_PRECIS;
+		DWORD fclp = CLIP_DEFAULT_PRECIS;
+		DWORD fq = antialias ? ANTIALIASED_QUALITY : DEFAULT_QUALITY;
+		DWORD fp = DEFAULT_PITCH | FF_DONTCARE;
+		HFONT hf;
+		hf = CreateFontW(fh, 0, 0, 0, fwg, fi, fu, fs, fc, fop, fclp, fq,
+			fp, toUTFz!(wchar*)(face));
+		return Font.win32_new(d, hf);
+	} else { mixin(S_TRACE);
+		int fStyle = SWT.NORMAL;
+		if (bold) fStyle |= SWT.BOLD;
+		if (italic) fStyle |= SWT.ITALIC;
+		auto h = cast(int) (pixels * (72.0 / d.getDPI().y) + 0.5);
+		auto fontData = new FontData(face, h, fStyle);
+		return new Font(d, fontData);
+	}
 }

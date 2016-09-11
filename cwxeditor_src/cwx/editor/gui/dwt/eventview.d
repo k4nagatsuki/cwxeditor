@@ -2021,6 +2021,7 @@ public:
 		.listener(_slope, SWT.Dispose, { mixin(S_TRACE);
 			_comm.refEventTreeViewStyle.remove(&refEventTreeViewStyle);
 		});
+		bar.getParent().layout();
 		return true;
 	}
 	private void refEventTreeSlope(Object sender, int slope) { mixin(S_TRACE);
@@ -2843,14 +2844,14 @@ protected:
 		}
 	}
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, false));
+		area.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setText(_prop.msgs.manyRounds);
 			grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout(new GridLayout(4, false));
+			comp.setLayout(normalGridLayout(4, false));
 			_from = new Spinner(comp, SWT.BORDER);
 			initSpinner(_from);
 			_from.setMinimum(1);

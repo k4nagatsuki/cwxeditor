@@ -198,7 +198,7 @@ private:
 
 	CTabItem constructMain(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(2, false));
+		comp.setLayout(normalGridLayout(2, false));
 		{ mixin(S_TRACE);
 			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -206,7 +206,7 @@ private:
 			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				grp.setLayout(new GridLayout(2, false));
+				grp.setLayout(normalGridLayout(2, false));
 				grp.setText(_prop.msgs.name);
 				_name = new GBLimitText(_prop.looks.monospace,
 					_prop.looks.nameLimit, false, grp, SWT.BORDER | _readOnly);
@@ -235,7 +235,7 @@ private:
 			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				grp.setLayout(new GridLayout(1, true));
+				grp.setLayout(normalGridLayout(1, true));
 				grp.setText(_prop.msgs.workConditionGroup);
 				Button createCheck(string name, bool enabled) {
 					auto check = new Button(grp, SWT.CHECK);
@@ -253,7 +253,7 @@ private:
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setText(_prop.msgs.elementProps);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				grp.setLayout(new GridLayout(2, true));
+				grp.setLayout(normalGridLayout(2, true));
 				foreach (i, eff; [EffectType.PHYSIC, EffectType.MAGIC,
 						EffectType.MAGICAL_PHYSIC, EffectType.PHYSICAL_MAGIC,
 						EffectType.NONE]) { mixin(S_TRACE);
@@ -277,7 +277,7 @@ private:
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setText(_prop.msgs.resistProps);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				grp.setLayout(new GridLayout(2, true));
+				grp.setLayout(normalGridLayout(2, true));
 				foreach (res; [Resist.AVOID, Resist.RESIST, Resist.UNFAIL]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
@@ -296,7 +296,7 @@ private:
 	}
 	CTabItem constructDesc(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(normalGridLayout(1, true));
 		auto top = new Composite(comp, SWT.NONE);
 		top.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		top.setLayout(zeroMarginGridLayout(2, false));
@@ -307,7 +307,7 @@ private:
 				grp.setLayout(new CenterLayout);
 				grp.setText(_prop.msgs.skillLevel);
 				auto comp2 = new Composite(grp, SWT.NONE);
-				comp2.setLayout(new GridLayout(2, false));
+				comp2.setLayout(normalGridLayout(2, false));
 				_level = new Spinner(comp2, SWT.BORDER | _readOnly);
 				initSpinner(_level);
 				mod(_level);
@@ -354,7 +354,7 @@ private:
 						}
 					});
 				} else { mixin(S_TRACE);
-					comp2.setLayout(new GridLayout(2, false));
+					comp2.setLayout(normalGridLayout(2, false));
 					_useCount = new Spinner(comp2, SWT.BORDER | _readOnly);
 					initSpinner(_useCount);
 					mod(_useCount);
@@ -373,7 +373,7 @@ private:
 			grp.setLayout(new CenterLayout);
 			grp.setText(_prop.msgs.price);
 			auto comp2 = new Composite(grp, SWT.NONE);
-			comp2.setLayout(new GridLayout(2, false));
+			comp2.setLayout(normalGridLayout(2, false));
 			static if (is (C == SkillCard) || is (C == BeastCard)) {
 				_price = new Spinner(comp2, SWT.BORDER | SWT.READ_ONLY);
 				initSpinner(_price);
@@ -406,7 +406,7 @@ private:
 			grp.setLayoutData(gd);
 			grp.setLayout(new CenterLayout(SWT.HORIZONTAL));
 			grp.setText(_prop.msgs.desc);
-			_desc = new FixedWidthText(dwtData(_prop.looks.cardDescFont(summSkin.legacy)), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
+			_desc = new FixedWidthText(_prop.looks.cardDescFont(summSkin.legacy), _prop.looks.cardDescLen, grp, SWT.BORDER | _readOnly);
 			mod(_desc.widget);
 			createTextMenu!Text(_comm, _prop, _desc.widget, &catchMod);
 			_desc.widget.setLayoutData(_desc.computeTextBaseSize(_prop.looks.cardDescLine));
@@ -416,7 +416,7 @@ private:
 			auto gd = new GridData(GridData.FILL_HORIZONTAL);
 			gd.horizontalSpan = 2;
 			grp.setLayoutData(gd);
-			grp.setLayout(new GridLayout(2, false));
+			grp.setLayout(normalGridLayout(2, false));
 			grp.setText(_prop.msgs.source);
 			Text createLine(string title, out TextMenuModify tm) { mixin(S_TRACE);
 				auto l = new Label(grp, SWT.NONE);
@@ -451,7 +451,7 @@ private:
 	}
 	CTabItem constructApt(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(2, false));
+		comp.setLayout(normalGridLayout(2, false));
 		{ mixin(S_TRACE);
 			auto grp = new Group(comp, SWT.NONE);
 			grp.setText(_prop.msgs.aptPhysical);
@@ -460,7 +460,7 @@ private:
 			cl.fillVertical = true;
 			grp.setLayout(cl);
 			auto comp2 = new Composite(grp, SWT.NONE);
-			comp2.setLayout(new GridLayout(1, true));
+			comp2.setLayout(normalGridLayout(1, true));
 			foreach (phy; [Physical.DEX, Physical.AGL, Physical.INT,
 					Physical.STR, Physical.VIT, Physical.MIN]) { mixin(S_TRACE);
 				auto radio = new Button(comp2, SWT.RADIO);
@@ -479,8 +479,8 @@ private:
 			cl.fillVertical = true;
 			grp.setLayout(cl);
 			auto comp2 = new Composite(grp, SWT.NONE);
-			auto gl = new GridLayout(2, true);
-			gl.horizontalSpacing = 15;
+			auto gl = normalGridLayout(2, true);
+			gl.horizontalSpacing = _prop.var.etc.radioGroupSeparatorWidth;
 			comp2.setLayout(gl);
 			static const Ms = [Mental.AGGRESSIVE, Mental.UNAGGRESSIVE,
 				Mental.CHEERFUL, Mental.UNCHEERFUL,
@@ -556,7 +556,7 @@ private:
 	}
 	CTabItem constructUseModify(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(2, false));
+		comp.setLayout(normalGridLayout(2, false));
 		{ mixin(S_TRACE);
 			_useModParent = createModParent(comp, _prop.msgs.useModify);
 			initUseMod();
@@ -572,7 +572,7 @@ private:
 		}
 		CTabItem constructHaveModify(CTabFolder tabf) { mixin(S_TRACE);
 			auto comp = new Composite(tabf, SWT.NONE);
-			comp.setLayout(new GridLayout(2, false));
+			comp.setLayout(normalGridLayout(2, false));
 			{ mixin(S_TRACE);
 				_hasModParent = createModParent(comp, _prop.msgs.haveModify);
 				initHasMod();
@@ -585,7 +585,7 @@ private:
 	}
 	CTabItem constructMotion(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, false));
+		comp.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
 			_motions = new MotionView(_comm, _prop, _summ, comp, _readOnly);
 			mod(_motions);
@@ -599,7 +599,7 @@ private:
 	}
 	CTabItem constructProps(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, false));
+		comp.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
 			auto tcomp = new Composite(comp, SWT.NONE);
 			tcomp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -618,7 +618,7 @@ private:
 					cl.fillVertical = true;
 					grp.setLayout(cl);
 					auto comp3 = new Composite(grp, SWT.NONE);
-					comp3.setLayout(new GridLayout(2, false));
+					comp3.setLayout(normalGridLayout(2, false));
 					foreach (t; [CardTarget.NONE, CardTarget.USER,
 							CardTarget.PARTY, CardTarget.ENEMY, CardTarget.BOTH]) { mixin(S_TRACE);
 						auto radio = new Button(comp3, SWT.RADIO);
@@ -638,7 +638,7 @@ private:
 					cl.fillVertical = true;
 					grp.setLayout(cl);
 					auto comp3 = new Composite(grp, SWT.NONE);
-					comp3.setLayout(new GridLayout(2, false));
+					comp3.setLayout(normalGridLayout(2, false));
 					auto one = new Button(comp3, SWT.RADIO);
 					mod(one);
 					one.setEnabled(!_readOnly);
@@ -658,7 +658,7 @@ private:
 				auto grp = new Group(tcomp, SWT.NONE);
 				grp.setText(_prop.msgs.effectVisual);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				grp.setLayout(new GridLayout(2, false));
+				grp.setLayout(normalGridLayout(2, false));
 				foreach (v; [CardVisual.NONE, CardVisual.HORIZONTAL,
 						CardVisual.REVERSE, CardVisual.VERTICAL]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
@@ -673,7 +673,7 @@ private:
 				auto grp = new Group(tcomp, SWT.NONE);
 				grp.setText(_prop.msgs.cardPremium);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				grp.setLayout(new GridLayout(1, false));
+				grp.setLayout(normalGridLayout(1, false));
 				foreach (p; [Premium.NORMAL, Premium.RARE, Premium.PREMIUM]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
@@ -697,7 +697,7 @@ private:
 	}
 	CTabItem constructKeyCode(CTabFolder tabf) { mixin(S_TRACE);
 		auto comp = new Composite(tabf, SWT.NONE);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(normalGridLayout(1, true));
 		auto sash = new SplitPane(comp, SWT.HORIZONTAL);
 		sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto skin = summSkin;
@@ -705,7 +705,7 @@ private:
 			auto grp = new Group(sash, SWT.NONE);
 			grp.setText(_prop.msgs.se);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new GridLayout(1, false));
+			grp.setLayout(normalGridLayout(1, false));
 			MaterialSelect!(MtType.SE, Combo, Combo) createSE(string title) { mixin(S_TRACE);
 				auto comp = new Composite(grp, SWT.NONE);
 				comp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -742,7 +742,7 @@ private:
 			auto grp = new Group(sash, SWT.NONE);
 			grp.setText(_prop.msgs.keyCodes);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new GridLayout(1, true));
+			grp.setLayout(normalGridLayout(1, true));
 
 			_keyCodes = new KeyCodeView(_comm, _summ, grp, _readOnly, &catchMod);
 			_keyCodes.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -765,7 +765,7 @@ private:
 		forceCancel();
 	}
 	void refSkin() { mixin(S_TRACE);
-		_desc.font = dwtData(_prop.looks.cardDescFont(summSkin.legacy));
+		_desc.font = _prop.looks.cardDescFont(summSkin.legacy);
 	}
 	void refDataVersion() { mixin(S_TRACE);
 		refreshWarning();

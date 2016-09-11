@@ -281,7 +281,7 @@ protected:
 		area.setLayout(zeroGridLayout(1, false));
 		{ mixin(S_TRACE);
 			auto listComp = new Composite(area, SWT.NONE);
-			listComp.setLayout(new GridLayout(1, true));
+			listComp.setLayout(normalGridLayout(1, true));
 			listComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			_list = new AreaChooser!(A, false)(comm, summ, listComp);
 			mod(_list);
@@ -298,7 +298,7 @@ protected:
 			{ mixin(S_TRACE);
 				auto comp = new Composite(area, SWT.NONE);
 				comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
-				comp.setLayout(new GridLayout(1, false));
+				comp.setLayout(normalGridLayout(1, false));
 				_transition = new TransitionPanel(comm, comp, false, _evt, this);
 			}
 		}
@@ -442,7 +442,7 @@ public:
 
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, false));
+		area.setLayout(normalGridLayout(1, false));
 		_list = .rangeSelectableTable(area, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL);
 		mod(_list);
 		auto nameCol = new FullTableColumn(_list, SWT.NONE);
@@ -510,7 +510,7 @@ protected:
 		grp.setText(_prop.msgs.afterClear);
 		grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 		auto comp = new Composite(grp, SWT.NONE);
-		comp.setLayout(new GridLayout(1, true));
+		comp.setLayout(normalGridLayout(1, true));
 		_mark = new Button(comp, SWT.RADIO);
 		mod(_mark);
 		_mark.setText(_prop.msgs.afterClearEndMark);
@@ -582,7 +582,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(2, false));
+		area.setLayout(normalGridLayout(2, false));
 		auto skin = _comm.skin;
 
 		auto leftComp = new Composite(area, SWT.NONE);
@@ -596,7 +596,7 @@ protected:
 				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			}
 			grp.setText(_prop.msgs.range);
-			grp.setLayout(new GridLayout(1, true));
+			grp.setLayout(normalGridLayout(1, true));
 			auto ranges = RANGE_MEMBER.dup;
 			static if (Field) {
 				ranges ~= Range.FIELD;
@@ -619,7 +619,7 @@ protected:
 			grp.setText(_prop.msgs.couponName);
 			{ mixin(S_TRACE);
 				auto comp = new Composite(grp, SWT.NONE);
-				comp.setLayout(new GridLayout(3, false));
+				comp.setLayout(normalGridLayout(3, false));
 				{ mixin(S_TRACE);
 					_name = createCouponCombo(comm, summ, comp, &catchMod, CouponComboType.AllCoupons, _evt ? _evt.coupon : "");
 					mod(_name);
@@ -739,7 +739,7 @@ public:
 
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, false));
+		area.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -748,7 +748,7 @@ protected:
 			cl.fillHorizontal = true;
 			grp.setLayout(cl);
 			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout(new GridLayout(1, true));
+			comp.setLayout(normalGridLayout(1, true));
 
 			if (CDetail.fromType(Type).use(CArg.GOSSIP)) { mixin(S_TRACE);
 				_name = createGossipCombo(comm, summ, comp, &catchMod, _evt ? mixin(Get) : "");
@@ -863,7 +863,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, false));
+		area.setLayout(normalGridLayout(1, false));
 		auto skin = _comm.skin;
 		{ mixin(S_TRACE);
 			_view = createBgImagesViewAndMenu(_comm, _prop, _summ, _cont, area, _refTarget, false);
@@ -959,7 +959,7 @@ public:
 
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, true));
+		area.setLayout(normalGridLayout(1, true));
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -968,7 +968,7 @@ protected:
 			cl.fillHorizontal = true;
 			grp.setLayout(cl);
 			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout(new GridLayout(1, true));
+			comp.setLayout(normalGridLayout(1, true));
 
 			_name = createCellNameCombo(comm, summ, comp, &catchMod, _evt ? _evt.cellName : "");
 			mod(_name);
@@ -1032,7 +1032,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, true));
+		area.setLayout(normalGridLayout(1, true));
 		auto comp = new Composite(area, SWT.NONE);
 		comp.setLayout(zeroMarginGridLayout(4, false));
 		comp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1103,7 +1103,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, true));
+		area.setLayout(normalGridLayout(1, true));
 		auto comp = new Composite(area, SWT.NONE);
 		comp.setLayout(zeroMarginGridLayout(5, false));
 		comp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1175,7 +1175,7 @@ protected:
 		}
 	}
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, false));
+		area.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1187,7 +1187,7 @@ protected:
 			mod(_value);
 			_value.setMinimum(Min);
 			_value.setMaximum(mixin (Max));
-			comp.setLayout(new GridLayout(10 <= _value.getMaximum() ? 3 : 2, false));
+			comp.setLayout(normalGridLayout(10 <= _value.getMaximum() ? 3 : 2, false));
 			if (10 <= _value.getMaximum()) { mixin(S_TRACE);
 				auto tools = new Composite(comp, SWT.NONE);
 				tools.setLayout(new FillLayout(SWT.HORIZONTAL));
@@ -1296,7 +1296,7 @@ protected:
 		{ mixin(S_TRACE);
 			auto comp = new Composite(tabf, SWT.NONE);
 			tabS.setControl(comp);
-			comp.setLayout(new GridLayout(2, false));
+			comp.setLayout(normalGridLayout(2, false));
 			{ mixin(S_TRACE);
 				auto comp2 = new Composite(comp, SWT.NONE);
 				comp2.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1305,7 +1305,7 @@ protected:
 					auto grp = new Group(comp2, SWT.NONE);
 					grp.setText(_prop.msgs.targetLevel);
 					grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-					grp.setLayout(new GridLayout(2, false));
+					grp.setLayout(normalGridLayout(2, false));
 					_lev = new Spinner(grp, SWT.BORDER);
 					initSpinner(_lev);
 					mod(_lev);
@@ -1319,7 +1319,7 @@ protected:
 					auto grp = new Group(comp2, SWT.NONE);
 					grp.setText(_prop.msgs.elementProps);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-					grp.setLayout(new GridLayout(2, true));
+					grp.setLayout(normalGridLayout(2, true));
 					foreach (i, eff; [EffectType.PHYSIC, EffectType.MAGIC,
 							EffectType.MAGICAL_PHYSIC, EffectType.PHYSICAL_MAGIC,
 							EffectType.NONE]) { mixin(S_TRACE);
@@ -1339,7 +1339,7 @@ protected:
 					auto grp = new Group(comp2, SWT.NONE);
 					grp.setText(_prop.msgs.resistProps);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-					grp.setLayout(new GridLayout(2, true));
+					grp.setLayout(normalGridLayout(2, true));
 					foreach (res; [Resist.AVOID, Resist.RESIST, Resist.UNFAIL]) { mixin(S_TRACE);
 						auto radio = new Button(grp, SWT.RADIO);
 						mod(radio);
@@ -1358,7 +1358,7 @@ protected:
 					auto grp = new Group(comp2, SWT.NONE);
 					grp.setText(_prop.msgs.effectVisual);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-					grp.setLayout(new GridLayout(1, false));
+					grp.setLayout(normalGridLayout(1, false));
 					foreach (v; [CardVisual.NONE, CardVisual.REVERSE, CardVisual.HORIZONTAL, CardVisual.VERTICAL]) { mixin(S_TRACE);
 						auto radio = new Button(grp, SWT.RADIO);
 						mod(radio);
@@ -1371,7 +1371,7 @@ protected:
 					auto grp = new Group(comp2, SWT.NONE);
 					grp.setText(_prop.msgs.judgeTarget);
 					grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-					grp.setLayout(new GridLayout(1, true));
+					grp.setLayout(normalGridLayout(1, true));
 					foreach (m; [Target.M.SELECTED, Target.M.RANDOM, Target.M.PARTY]) { mixin(S_TRACE);
 						auto radio = new Button(grp, SWT.RADIO);
 						mod(radio);
@@ -1386,7 +1386,7 @@ protected:
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 2;
 					grp.setLayoutData(gd);
-					grp.setLayout(new GridLayout(3, false));
+					grp.setLayout(normalGridLayout(3, false));
 					_se = new MaterialSelect!(MtType.SE, Combo, Combo)(comm, prop, summ, false, null, included => [prop.msgs.defaultSelection(prop.msgs.soundNone)]);
 					mod(_se);
 					_se.modEvent ~= &refreshWarning;
@@ -1596,7 +1596,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, true));
+		area.setLayout(normalGridLayout(1, true));
 		_sash = new SplitPane(area, SWT.HORIZONTAL);
 		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto left = new Composite(_sash, SWT.NONE);
@@ -1773,7 +1773,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, true));
+		area.setLayout(normalGridLayout(1, true));
 		_sash = new SplitPane(area, SWT.HORIZONTAL);
 		_sash.setLayoutData(new GridData(GridData.FILL_BOTH));
 		auto left = new Composite(_sash, SWT.NONE);
@@ -1884,7 +1884,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, true));
+		area.setLayout(normalGridLayout(1, true));
 		void createR(Composite parent, string title, in string[] texts, ref Button[] btns) { mixin(S_TRACE);
 			auto grp = new Group(parent, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -1959,7 +1959,7 @@ protected:
 Composite createValueEditor(Commons comm, Summary summ, Composite parent, bool delegate() catchMod, out CouponView!(CVType.Valued) couponView, out Spinner initValue, out void delegate() updateValue, bool talker = true) { mixin(S_TRACE);
 	auto grp = new Group(parent, SWT.NONE);
 	grp.setText(comm.prop.msgs.valued);
-	grp.setLayout(new GridLayout(2, false));
+	grp.setLayout(normalGridLayout(2, false));
 
 	auto lbl = new Label(grp, SWT.NONE);
 	lbl.setText(comm.prop.msgs.initValue);
@@ -2026,7 +2026,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(3, false));
+		area.setLayout(normalGridLayout(3, false));
 		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayout(zeroMarginGridLayout(1, true));
@@ -2034,7 +2034,7 @@ protected:
 				auto grp = new Group(comp, SWT.NONE);
 				grp.setText(_prop.msgs.targetLevel);
 				grp.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-				grp.setLayout(new GridLayout(2, false));
+				grp.setLayout(normalGridLayout(2, false));
 				_lev = new Spinner(grp, SWT.BORDER);
 				initSpinner(_lev);
 				mod(_lev);
@@ -2048,7 +2048,7 @@ protected:
 				auto grp = new Group(comp, SWT.NONE);
 				grp.setText(_prop.msgs.judgeTarget);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				grp.setLayout(new GridLayout(1, true));
+				grp.setLayout(normalGridLayout(1, true));
 				foreach (m; [Target.M.SELECTED, Target.M.RANDOM, Target.M.PARTY]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
 					mod(radio);
@@ -2061,7 +2061,7 @@ protected:
 				auto grp = new Group(comp, SWT.NONE);
 				grp.setText(_prop.msgs.judgeSleep);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				grp.setLayout(new GridLayout(1, true));
+				grp.setLayout(normalGridLayout(1, true));
 				_sleep[1] = new Button(grp, SWT.RADIO);
 				mod(_sleep[1]);
 				_sleep[1].setText(_prop.msgs.sleepDisabled);
@@ -2078,7 +2078,7 @@ protected:
 			cl.fillVertical = true;
 			grp.setLayout(cl);
 			auto comp2 = new Composite(grp, SWT.NONE);
-			comp2.setLayout(new GridLayout(1, true));
+			comp2.setLayout(normalGridLayout(1, true));
 			foreach (phy; [Physical.DEX, Physical.AGL, Physical.INT,
 					Physical.STR, Physical.VIT, Physical.MIN]) { mixin(S_TRACE);
 				auto radio = new Button(comp2, SWT.RADIO);
@@ -2096,7 +2096,7 @@ protected:
 			cl.fillVertical = true;
 			grp.setLayout(cl);
 			auto comp2 = new Composite(grp, SWT.NONE);
-			comp2.setLayout(new GridLayout(2, true));
+			comp2.setLayout(normalGridLayout(2, true));
 			static const Ms = [Mental.AGGRESSIVE, Mental.UNAGGRESSIVE,
 				Mental.CHEERFUL, Mental.UNCHEERFUL,
 				Mental.BRAVE, Mental.UNBRAVE, Mental.CAUTIOUS, Mental.UNCAUTIOUS,
@@ -2149,7 +2149,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(2, false));
+		area.setLayout(normalGridLayout(2, false));
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setText(_prop.msgs.judgeTarget);
@@ -2203,7 +2203,7 @@ protected:
 private Composite createStatusPane(Props prop, Composite area, ref Button[Status] stat, void delegate(Button) mod) { mixin(S_TRACE);
 	auto grp = new Group(area, SWT.NONE);
 	grp.setText(prop.msgs.judgeState);
-	grp.setLayout(new GridLayout(4, true));
+	grp.setLayout(normalGridLayout(4, true));
 	auto statuses = [Status.ACTIVE, Status.INACTIVE, Status.ALIVE, Status.DEAD,
 			Status.FINE, Status.INJURED, Status.HEAVY_INJURED, Status.UNCONSCIOUS,
 			Status.POISON, Status.SLEEP, Status.BIND, Status.PARALYZE,
@@ -2269,12 +2269,12 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, false));
+		area.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setText(_prop.msgs.judgeTarget);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new GridLayout(3, true));
+			grp.setLayout(normalGridLayout(3, true));
 			foreach (m; [Target.M.SELECTED, Target.M.RANDOM, Target.M.PARTY]) { mixin(S_TRACE);
 				auto radio = new Button(grp, SWT.RADIO);
 				mod(radio);
@@ -2414,7 +2414,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(2, false));
+		area.setLayout(normalGridLayout(2, false));
 		{ mixin(S_TRACE);
 			auto comp = new Composite(area, SWT.NONE);
 			comp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
@@ -2427,7 +2427,7 @@ protected:
 				cl.fillHorizontal = true;
 				grp.setLayout(cl);
 				auto comp2 = new Composite(grp, SWT.NONE);
-				comp2.setLayout(new GridLayout(2, false));
+				comp2.setLayout(normalGridLayout(2, false));
 				_num = new Spinner(comp2, SWT.BORDER);
 				initSpinner(_num);
 				mod(_num);
@@ -2450,7 +2450,7 @@ protected:
 				auto grp = new Group(comp, SWT.NONE);
 				grp.setText(_prop.msgs.cardEventRange);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-				grp.setLayout(new GridLayout(1, true));
+				grp.setLayout(normalGridLayout(1, true));
 				foreach (r; [Range.SELECTED, Range.RANDOM, Range.PARTY,
 						Range.BACKPACK, Range.PARTY_AND_BACKPACK, Range.FIELD]) { mixin(S_TRACE);
 					auto radio = new Button(grp, SWT.RADIO);
@@ -2592,7 +2592,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, false));
+		area.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setText(_prop.msgs.transitionType);
@@ -2657,12 +2657,12 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, false));
+		area.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setText(_prop.msgs.selectMember);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
-			grp.setLayout(new GridLayout(3, true));
+			grp.setLayout(normalGridLayout(3, true));
 			foreach (r; EnumMembers!CastRange) { mixin(S_TRACE);
 				auto radio = new Button(grp, SWT.CHECK);
 				mod(radio);
@@ -2797,7 +2797,7 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(2, false));
+		area.setLayout(normalGridLayout(2, false));
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setText(_prop.msgs.range);
@@ -2834,7 +2834,7 @@ protected:
 			auto gd = new GridData(GridData.FILL_BOTH);
 			gd.horizontalSpan = 2;
 			grp.setLayoutData(gd);
-			grp.setLayout(new GridLayout(1, true));
+			grp.setLayout(normalGridLayout(1, true));
 
 			_keyCode = createKeyCodeCombo(comm, summ, grp, &catchMod, _evt ? _evt.keyCode : "");
 			mod(_keyCode);
@@ -2891,14 +2891,14 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(1, false));
+		area.setLayout(normalGridLayout(1, false));
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			grp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			grp.setText(prop.msgs.roundCondition);
 			grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout(new GridLayout(4, false));
+			comp.setLayout(normalGridLayout(4, false));
 
 			auto l1 = new Label(comp, SWT.NONE);
 			l1.setText(_prop.msgs.roundIs);
@@ -2980,14 +2980,14 @@ public:
 	}
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
-		area.setLayout(new GridLayout(2, true));
+		area.setLayout(normalGridLayout(2, true));
 
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);
 			auto ggd = new GridData(GridData.FILL_HORIZONTAL);
 			ggd.horizontalSpan = 2;
 			grp.setLayoutData(ggd);
-			grp.setLayout(new GridLayout(1, true));
+			grp.setLayout(normalGridLayout(1, true));
 			grp.setText(prop.msgs.cellName);
 
 			_cellName = createCellNameCombo(comm, summ, grp, &catchMod, _evt ? _evt.cellName : "");
@@ -3002,7 +3002,7 @@ protected:
 			grp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 
 			auto comp = new Composite(grp, SWT.NONE);
-			comp.setLayout(new GridLayout(4, false));
+			comp.setLayout(normalGridLayout(4, false));
 
 			void putRadio(CoordinateType ct) { mixin(S_TRACE);
 				auto radio = new Button(comp, SWT.RADIO);

@@ -26,15 +26,15 @@ class FlexEtcProps : Properties {
 	auto directorySashV = Prop!(bool)("directorySashV", false);
 	auto filesSortColumn = Prop!(int)("filesSortColumn", 1);
 	auto filesSortDirection = Prop!(int)("filesSortDirection", SortDir.Up);
-	auto fileNameColumn = Prop!(int)("fileNameColumn", 150);
-	auto fileExtColumn = Prop!(int)("fileExtColumn", 60);
-	auto fileCountColumn = Prop!(int)("fileCountColumn", 60);
-	auto areaIdColumn = Prop!(int)("areaIdColumn", 50);
-	auto areaNameColumn = Prop!(int)("areaNameColumn", 280);
-	auto areaCountColumn = Prop!(int)("areaCountColumn", 60);
-	auto importAreaIdColumn = Prop!(int)("importAreaIdColumn", 50);
-	auto importAreaNameColumn = Prop!(int)("importAreaNameColumn", 280);
-	auto importAreaCountColumn = Prop!(int)("importAreaCountColumn", 60);
+	auto fileNameColumn = Prop!(int, false, true)("fileNameColumn", 150);
+	auto fileExtColumn = Prop!(int, false, true)("fileExtColumn", 60);
+	auto fileCountColumn = Prop!(int, false, true)("fileCountColumn", 60);
+	auto areaIdColumn = Prop!(int, false, true)("areaIdColumn", 50);
+	auto areaNameColumn = Prop!(int, false, true)("areaNameColumn", 280);
+	auto areaCountColumn = Prop!(int, false, true)("areaCountColumn", 60);
+	auto importAreaIdColumn = Prop!(int, false, true)("importAreaIdColumn", 50);
+	auto importAreaNameColumn = Prop!(int, false, true)("importAreaNameColumn", 280);
+	auto importAreaCountColumn = Prop!(int, false, true)("importAreaCountColumn", 60);
 	auto areasSortColumn = Prop!(int)("areasSortColumn", 0);
 	auto areasSortDirection = Prop!(int)("areasSortDirection", SortDir.Up);
 	auto importAreasSortColumn = Prop!(int)("importAreasSortColumn", 0);
@@ -85,16 +85,16 @@ class FlexEtcProps : Properties {
 	auto flagSashL = Prop!(int)("flagSashL", 1);
 	auto flagSashR = Prop!(int)("flagSashR", 4);
 	auto flagSashV = Prop!(bool)("flagSashV", false);
-	auto flagsWidth = Prop!(int, true)("flagsWidth", 150);
-	auto flagsHeight = Prop!(int, true)("flagsHeight", 200);
+	auto flagsWidth = Prop!(int, true, true)("flagsWidth", 150);
+	auto flagsHeight = Prop!(int, true, true)("flagsHeight", 200);
 	auto menuCardSashL = Prop!(int)("menuCardSashL", 5, 2012101100);
 	auto menuCardSashR = Prop!(int)("menuCardSashR", 3, 2012101100);
 	auto enemyCardSashL = Prop!(int)("enemyCardSashL", 3);
 	auto enemyCardSashR = Prop!(int)("enemyCardSashR", 5);
 	auto backSashL = Prop!(int)("backSashL", 5);
 	auto backSashR = Prop!(int)("backSashR", 3);
-	auto bgImageSampleWidth = Prop!(int, true)("bgImageSampleWidth", 150);
-	auto bgImageSampleHeight = Prop!(int, true)("bgImageSampleHeight", 150);
+	auto bgImageSampleWidth = Prop!(int, true, true)("bgImageSampleWidth", 150);
+	auto bgImageSampleHeight = Prop!(int, true, true)("bgImageSampleHeight", 150);
 	auto cellPCNumberWidth = Prop!(int, true)("cellPCNumberWidth", 150, false);
 	auto textCellVSashT = Prop!(int)("textCellVSashT", 2);
 	auto textCellVSashB = Prop!(int)("textCellVSashB", 1);
@@ -102,28 +102,28 @@ class FlexEtcProps : Properties {
 	auto textCellHSashR = Prop!(int)("textCellHSashR", 1);
 	auto textCellPreviewSashL = Prop!(int)("textCellPreviewSashL", 1);
 	auto textCellPreviewSashR = Prop!(int)("textCellPreviewSashR", 1);
-	auto textCellPreviewWidth = Prop!(int, true)("textCellPreviewWidth", 100);
-	auto textCellPreviewHeight = Prop!(int, true)("textCellPreviewHeight", 100);
-	auto textCellBoxWidth = Prop!(int, true)("textCellBoxWidth", 100);
-	auto textCellBoxHeight = Prop!(int, true)("textCellBoxHeight", 50);
-	auto cardIdColumn = Prop!(int)("cardIdColumn", 50);
-	auto cardNameColumn = Prop!(int)("cardNameColumn", 100);
-	auto cardNumberColumn = Prop!(int)("cardNumberColumn", 60);
-	auto cardDescriptionColumn = Prop!(int)("cardDescriptionColumn", 280);
-	auto cardCountColumn = Prop!(int)("cardCountColumn", 60);
-	auto handCardIdColumn = Prop!(int)("handCardIdColumn", 50);
-	auto handCardNameColumn = Prop!(int)("handCardNameColumn", 100);
-	auto handCardNumberColumn = Prop!(int)("handCardNumberColumn", 60);
-	auto handCardDescriptionColumn = Prop!(int)("handCardDescriptionColumn", 50);
-	auto importCardIdColumn = Prop!(int)("importCardIdColumn", 50);
-	auto importCardNameColumn = Prop!(int)("importCardNameColumn", 100);
-	auto importCardNumberColumn = Prop!(int)("importCardNumberColumn", 60);
-	auto importCardDescriptionColumn = Prop!(int)("importCardDescriptionColumn", 50);
-	auto importCardCountColumn = Prop!(int)("importCardCountColumn", 30);
-	auto importHandCardIdColumn = Prop!(int)("importHandCardIdColumn", 50);
-	auto importHandCardNameColumn = Prop!(int)("importHandCardNameColumn", 100);
-	auto importHandCardNumberColumn = Prop!(int)("importHandCardNumberColumn", 60);
-	auto importHandCardDescriptionColumn = Prop!(int)("importHandCardDescriptionColumn", 50);
+	auto textCellPreviewWidth = Prop!(int, true, true)("textCellPreviewWidth", 100);
+	auto textCellPreviewHeight = Prop!(int, true, true)("textCellPreviewHeight", 100);
+	auto textCellBoxWidth = Prop!(int, true, true)("textCellBoxWidth", 100);
+	auto textCellBoxHeight = Prop!(int, true, true)("textCellBoxHeight", 50);
+	auto cardIdColumn = Prop!(int, false, true)("cardIdColumn", 50);
+	auto cardNameColumn = Prop!(int, false, true)("cardNameColumn", 100);
+	auto cardNumberColumn = Prop!(int, false, true)("cardNumberColumn", 60);
+	auto cardDescriptionColumn = Prop!(int, false, true)("cardDescriptionColumn", 280);
+	auto cardCountColumn = Prop!(int, false, true)("cardCountColumn", 60);
+	auto handCardIdColumn = Prop!(int, false, true)("handCardIdColumn", 50);
+	auto handCardNameColumn = Prop!(int, false, true)("handCardNameColumn", 100);
+	auto handCardNumberColumn = Prop!(int, false, true)("handCardNumberColumn", 60);
+	auto handCardDescriptionColumn = Prop!(int, false, true)("handCardDescriptionColumn", 50);
+	auto importCardIdColumn = Prop!(int, false, true)("importCardIdColumn", 50);
+	auto importCardNameColumn = Prop!(int, false, true)("importCardNameColumn", 100);
+	auto importCardNumberColumn = Prop!(int, false, true)("importCardNumberColumn", 60);
+	auto importCardDescriptionColumn = Prop!(int, false, true)("importCardDescriptionColumn", 50);
+	auto importCardCountColumn = Prop!(int, false, true)("importCardCountColumn", 30);
+	auto importHandCardIdColumn = Prop!(int, false, true)("importHandCardIdColumn", 50);
+	auto importHandCardNameColumn = Prop!(int, false, true)("importHandCardNameColumn", 100);
+	auto importHandCardNumberColumn = Prop!(int, false, true)("importHandCardNumberColumn", 60);
+	auto importHandCardDescriptionColumn = Prop!(int, false, true)("importHandCardDescriptionColumn", 50);
 	auto mainCardsSortColumn = Prop!(int)("mainCardsSortColumn", 0);
 	auto mainCardsSortDirection = Prop!(int)("mainCardsSortDirection", SortDir.Up);
 	auto handCardsSortColumn = Prop!(int)("handCardsSortColumn", 0);
@@ -134,27 +134,27 @@ class FlexEtcProps : Properties {
 	auto importHandCardsSortDirection = Prop!(int)("importHandCardsSortDirection", SortDir.Up);
 	auto linkCardMaskColor = Prop!(CRGB)("linkCardMaskColor", CRGB(0, 255, 0, 64), true);
 	auto negativeCardNameBorder = Prop!(int)("negativeCardNameBorder", 116, true);
-	auto couponWidth = Prop!(int, true)("couponWidth", 150);
-	auto couponValueColumn = Prop!(int, true)("couponValueColumn", 40);
-	auto idColumn = Prop!(int)("idColumn", 50);
-	auto valueNumberColumn = Prop!(int)("valueNumberColumn", 50);
-	auto nameTableWidth = Prop!(int, true)("nameTableWidth", 250);
-	auto nameTableHeight = Prop!(int, true)("nameTableHeight", 250);
+	auto couponWidth = Prop!(int, true, true)("couponWidth", 150);
+	auto couponValueColumn = Prop!(int, true, true)("couponValueColumn", 40);
+	auto idColumn = Prop!(int, false, true)("idColumn", 50);
+	auto valueNumberColumn = Prop!(int, false, true)("valueNumberColumn", 50);
+	auto nameTableWidth = Prop!(int, true, true)("nameTableWidth", 250);
+	auto nameTableHeight = Prop!(int, true, true)("nameTableHeight", 250);
 	auto flagEventSashL = Prop!(int)("flagEventSashL", 3);
 	auto flagEventSashR = Prop!(int)("flagEventSashR", 2);
-	auto nameWidth = Prop!(int, true)("nameWidth", 300);
-	auto firesWidth = Prop!(int, true)("firesWidth", 120);
-	auto flagNameWidth = Prop!(int, true)("flagNameWidth", 150);
-	auto flagInitWidth = Prop!(int, true)("flagInitWidth", 50);
-	auto flagValueWidth = Prop!(int, true)("flagValueWidth", 50);
-	auto flagNameColumn = Prop!(int)("flagNameColumn", 150);
-	auto flagInitColumn = Prop!(int)("flagInitColumn", 90);
-	auto flagCountColumn = Prop!(int)("flagCountColumn", 60);
-	auto filesWidth = Prop!(int, true)("filesWidth", 150);
-	auto filesHeight = Prop!(int, true)("filesHeight", 150);
-	auto talkersWidth = Prop!(int, true)("talkersWidth", 100);
-	auto motionsWidth = Prop!(int, true)("motionsWidth", 150);
-	auto incrementalSearchBoxWidth = Prop!(int, true)("incrementalSearchBoxWidth", 100);
+	auto nameWidth = Prop!(int, true, true)("nameWidth", 300);
+	auto firesWidth = Prop!(int, true, true)("firesWidth", 120);
+	auto flagNameWidth = Prop!(int, true, true)("flagNameWidth", 150);
+	auto flagInitWidth = Prop!(int, true, true)("flagInitWidth", 50);
+	auto flagValueWidth = Prop!(int, true, true)("flagValueWidth", 50);
+	auto flagNameColumn = Prop!(int, false, true)("flagNameColumn", 150);
+	auto flagInitColumn = Prop!(int, false, true)("flagInitColumn", 90);
+	auto flagCountColumn = Prop!(int, false, true)("flagCountColumn", 60);
+	auto filesWidth = Prop!(int, true, true)("filesWidth", 150);
+	auto filesHeight = Prop!(int, true, true)("filesHeight", 150);
+	auto talkersWidth = Prop!(int, true, true)("talkersWidth", 100);
+	auto motionsWidth = Prop!(int, true, true)("motionsWidth", 150);
+	auto incrementalSearchBoxWidth = Prop!(int, true, true)("incrementalSearchBoxWidth", 100);
 	auto showMainToolBar = Prop!(bool)("showMainToolBar", true);
 	auto showSceneToolBar = Prop!(bool)("showSceneToolBar", true);
 	auto showEventToolBar = Prop!(bool)("showEventToolBar", true);
@@ -166,7 +166,11 @@ class FlexEtcProps : Properties {
 	auto stepTopSashR = Prop!(int)("stepTopSashR", 2);
 	auto flagTopSashL = Prop!(int)("flagTopSashL", 3);
 	auto flagTopSashR = Prop!(int)("flagTopSashR", 2);
-	auto toolTipWidth = Prop!(int, true)("toolTipWidth", 300);
+	auto toolTipWidth = Prop!(int, true, true)("toolTipWidth", 300);
+	auto colorExampleWidth = Prop!(int, false, true)("colorExampleWidth", 50);
+	auto buttonWidth = Prop!(int, false, true)("buttonWidth", 100);
+	auto radioGroupSeparatorWidth = Prop!(int, false, true)("radioGroupSeparatorWidth", 15);
+	auto couponValueColumnWidth = Prop!(int, false, true)("couponValueColumnWidth", 40);
 
 	auto partyMax = Prop!(uint, true)("partyMax", 6);
 	auto cardScaleMax = Prop!(int)("cardScaleMax", 300);
@@ -199,10 +203,10 @@ class FlexEtcProps : Properties {
 	auto stepInitValue = Prop!(int)("stepInitValue", 0);
 	auto stepCountMax = Prop!(uint)("stepCountMax", 10000, true);
 
-	auto imageListWidth = Prop!(int)("imageListWidth", 380);
-	auto imageListHeight = Prop!(int)("imageListHeight", 300);
-	auto layerListWidth = Prop!(int)("layerListWidth", 300);
-	auto layerListHeight = Prop!(int)("layerListHeight", 350);
+	auto imageListWidth = Prop!(int, false, true)("imageListWidth", 380);
+	auto imageListHeight = Prop!(int, false, true)("imageListHeight", 300);
+	auto layerListWidth = Prop!(int, false, true)("layerListWidth", 300);
+	auto layerListHeight = Prop!(int, false, true)("layerListHeight", 350);
 	auto cardLife = Prop!(bool)("cardLife", false);
 	auto cardDetails = Prop!(bool)("cardDetails", false);
 	auto cardsMarginX = Prop!(int, true)("cardsMarginX", 5);
@@ -277,10 +281,10 @@ class FlexEtcProps : Properties {
 	auto showSummaryInAreaTable = Prop!(bool)("showSummaryInAreaTable", true);
 	auto clickIsOpenEvent = Prop!(bool)("clickIsOpenEvent", false);
 	auto smoothingCard = Prop!(bool)("smoothingCard", true);
-	auto ignorePathsWidth = Prop!(int, true)("ignorePathsWidth", 50);
-	auto menuSettingsHeight = Prop!(int, true)("menuSettingsHeight", 150);
-	auto settingListWidth = Prop!(int, true)("settingListWidth", 150);
-	auto settingListHeight = Prop!(int, true)("settingListHeight", 150);
+	auto ignorePathsWidth = Prop!(int, true, true)("ignorePathsWidth", 50);
+	auto menuSettingsHeight = Prop!(int, true, true)("menuSettingsHeight", 150);
+	auto settingListWidth = Prop!(int, true, true)("settingListWidth", 150);
+	auto settingListHeight = Prop!(int, true, true)("settingListHeight", 150);
 
 	auto importOptionMaterials = Prop!(int)("importOptionMaterials", ImportTypeReference1.NoOverwrite);
 	auto importOptionVariables = Prop!(int)("importOptionVariables", ImportTypeReference1.Rename);
@@ -316,9 +320,9 @@ class FlexEtcProps : Properties {
 	auto classicEnginesSashR = Prop!(int)("classicEnginesSashR", 2);
 	auto classicEngineShortcutSashL = Prop!(int)("classicEngineShortcutSashL", 1, 2014103100);
 	auto classicEngineShortcutSashR = Prop!(int)("classicEngineShortcutSashR", 4, 2014103100);
-	auto featureDefaultNameWidth = Prop!(int)("featureDefaultNameWidth", 100);
-	auto featureVariantNameWidth = Prop!(int)("featureVariantNameWidth", 100);
-	auto featureManualNameWidth = Prop!(int)("featureManualNameWidth", 100);
+	auto featureDefaultNameWidth = Prop!(int, false, true)("featureDefaultNameWidth", 100);
+	auto featureVariantNameWidth = Prop!(int, false, true)("featureVariantNameWidth", 100);
+	auto featureManualNameWidth = Prop!(int, false, true)("featureManualNameWidth", 100);
 	auto eventTemplatesSashL = Prop!(int)("eventTemplatesSashL", 1);
 	auto eventTemplatesSashR = Prop!(int)("eventTemplatesSashR", 2);
 	auto eventTemplatesOfScenarioSashL = Prop!(int)("eventTemplatesOfScenarioSashL", 1);
@@ -333,7 +337,7 @@ class FlexEtcProps : Properties {
 	auto templatesSashR = Prop!(int)("templatesSashR", 1);
 	auto toolsClassicEnginesSashL = Prop!(int)("toolsClassicEnginesSashL", 1);
 	auto toolsClassicEnginesSashR = Prop!(int)("toolsClassicEnginesSashR", 1);
-	auto keyCodeWidth = Prop!(int, true)("keyCodeWidth", 100);
+	auto keyCodeWidth = Prop!(int, true, true)("keyCodeWidth", 100);
 	auto scenarioPath = Prop!(string)("scenarioPath", "");
 	auto tempPath = Prop!(string)("tempPath", "temp");
 	auto backupPath = Prop!(string)("backupPath", "backup");
@@ -356,8 +360,8 @@ class FlexEtcProps : Properties {
 	auto historyMax = Prop!(int)("historyMax", 9);
 	auto historySnipLength = Prop!(int)("historySnipLength", 30);
 	auto lastScenario = Prop!(string)("lastScenario", "");
-	auto searchResultTableWidth = Prop!(int, true)("searchResultTableWidth", 400);
-	auto searchResultTableHeight = Prop!(int, true)("searchResultTableHeight", 200);
+	auto searchResultTableWidth = Prop!(int, true, true)("searchResultTableWidth", 400);
+	auto searchResultTableHeight = Prop!(int, true, true)("searchResultTableHeight", 200);
 	version (Windows) {
 		auto engine = Prop!(string, true)("engine", "CardWirthPy.exe");
 	} else {
@@ -439,7 +443,7 @@ class FlexEtcProps : Properties {
 
 	auto selectionColumnsMax = Prop!(uint)("selectionColumnsMax", 4, true);
 
-	auto detailAreaWidth = Prop!(int)("detailAreaWidth", 200);
+	auto detailAreaWidth = Prop!(int, false, true)("detailAreaWidth", 200);
 
 	auto searchPlan = Prop!(int)("searchPlan", 0);
 	auto searchIDKind = Prop!(int)("searchIDKind", 0);
@@ -575,11 +579,11 @@ class FlexEtcProps : Properties {
 	auto searchUnusedPath = Prop!(bool)("searchUnusedPath", true);
 	auto searchOpenDialog = Prop!(bool)("searchOpenDialog", false);
 
-	auto searchResultColumnMain = Prop!(int)("searchResultColumnMain", 400);
-	auto searchResultColumnParent = Prop!(int)("searchResultColumnParent", 200);
-	auto searchResultColumnCouponCount = Prop!(int)("searchResultColumnCouponCount", 60);
-	auto searchResultColumnErrorDesc = Prop!(int)("searchResultColumnErrorDesc", 500);
-	auto searchResultColumnScenario = Prop!(int)("searchResultColumnScenario", 500);
+	auto searchResultColumnMain = Prop!(int, false, true)("searchResultColumnMain", 400);
+	auto searchResultColumnParent = Prop!(int, false, true)("searchResultColumnParent", 200);
+	auto searchResultColumnCouponCount = Prop!(int, false, true)("searchResultColumnCouponCount", 60);
+	auto searchResultColumnErrorDesc = Prop!(int, false, true)("searchResultColumnErrorDesc", 500);
+	auto searchResultColumnScenario = Prop!(int, false, true)("searchResultColumnScenario", 500);
 
 	auto incrementalSearchType = Prop!(int)("incrementalSearchType", 0);
 
@@ -687,8 +691,8 @@ class FlexEtcProps : Properties {
 	auto drawCountOfUseOfStart = Prop!(bool)("drawCountOfUseOfStart", true);
 	auto drawContentTreeLine = Prop!(bool)("drawContentTreeLine", true);
 	auto drawContentWarnings = Prop!(bool)("drawContentWarnings", true);
-	auto commentBoxDistance = Prop!(int, true)("commentBoxDistance", 50);
-	auto warningImageWidth = Prop!(int, true)("warningImageWidth", 200);
+	auto commentBoxDistance = Prop!(int, true, true)("commentBoxDistance", 50);
+	auto warningImageWidth = Prop!(int, true, true)("warningImageWidth", 200);
 	auto warningImageColor = Prop!(CRGB, true)("warningImageColor", CRGB(255, 128, 128));
 
 	auto doubleIO = Prop!(bool)("doubleIO", true);
@@ -701,8 +705,8 @@ class FlexEtcProps : Properties {
 	auto connContentTools = Prop!(bool)("connContentTools", true);
 
 	auto previewAlpha = Prop!(int, true)("previewAlpha", 255);
-	auto previewMaxWidth = Prop!(int, true)("previewMaxWidth", 150);
-	auto previewMaxHeight = Prop!(int, true)("previewMaxHeight", 150);
+	auto previewMaxWidth = Prop!(int, true, true)("previewMaxWidth", 150);
+	auto previewMaxHeight = Prop!(int, true, true)("previewMaxHeight", 150);
 
 	auto undoMaxMainView = Prop!(int)("undoMaxMainView", 1024);
 	auto undoMaxEvent = Prop!(int)("undoMaxEvent", 1024);
@@ -719,11 +723,11 @@ class FlexEtcProps : Properties {
 	auto floatMessagePreview = Prop!(bool)("floatMessagePreview", false);
 	auto showDialogPreview = Prop!(bool)("showDialogPreview", true);
 	auto showMessagePreview = Prop!(bool)("showMessagePreview", true);
-	auto messageVarKindColumn = Prop!(int)("messageVarKindColumn", 200);
-	auto messageVarValueColumn = Prop!(int)("messageVarValueColumn", 250);
-	auto textVarKindColumn = Prop!(int)("textVarKindColumn", 160);
-	auto textVarValueColumn = Prop!(int)("textVarValueColumn", 180);
-	auto messageVarTableHeight = Prop!(int, true)("messageVarTableHeight", 300);
+	auto messageVarKindColumn = Prop!(int, false, true)("messageVarKindColumn", 200);
+	auto messageVarValueColumn = Prop!(int, false, true)("messageVarValueColumn", 250);
+	auto textVarKindColumn = Prop!(int, false, true)("textVarKindColumn", 160);
+	auto textVarValueColumn = Prop!(int, false, true)("textVarValueColumn", 180);
+	auto messageVarTableHeight = Prop!(int, true, true)("messageVarTableHeight", 300);
 	auto messageVarSelected = Prop!(string)("messageVarSelected", "[選択中----14]");
 	auto messageVarUnselected = Prop!(string)("messageVarUnselected", "[選択外----14]");
 	auto messageVarRandom = Prop!(string)("messageVarRandom", "[ランダム--14]");
@@ -739,7 +743,7 @@ class FlexEtcProps : Properties {
 	auto createScenarioDir = Prop!(bool)("createScenarioDir", true);
 
 	auto eventTemplates = Prop!(EvTemplate[])("eventTemplates", []);
-	auto scriptVarTableHeight = Prop!(int, true)("scriptVarTableHeight", 300);
+	auto scriptVarTableHeight = Prop!(int, true, true)("scriptVarTableHeight", 300);
 
 	auto archivePath = Prop!(string)("archivePath", "");
 

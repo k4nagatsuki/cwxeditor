@@ -74,7 +74,7 @@ public:
 			auto group = new Group(parent, style);
 			group.setText(prop.msgs.image);
 			_group = group;
-			auto gl = new GridLayout(2, false);
+			auto gl = normalGridLayout(2, false);
 			gl.verticalSpacing = 0;
 			_group.setLayout(gl);
 
