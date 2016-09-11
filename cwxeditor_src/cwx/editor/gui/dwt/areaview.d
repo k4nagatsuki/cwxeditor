@@ -3182,6 +3182,7 @@ public:
 				refreshControls();
 			}
 		});
+		setupToolBar0(_toolbar); // レイアウトのため最初のアイテムだけ生成しておく
 		static if (is(A : Battle) && is(C : EnemyCard)) {
 			if (!_readOnly) { mixin(S_TRACE);
 				auto target = new DropTarget(imagePane, DND.DROP_DEFAULT | DND.DROP_COPY | DND.DROP_LINK);
@@ -4253,20 +4254,15 @@ public:
 	}
 
 	private bool _setupToolBar = false;
-	/// ツールバーにAreaViewで使用するアイテムを設定する。
-	/// Params:
-	/// bar = ツールバー。
-	private bool setupToolBar(ToolBar bar) { mixin(S_TRACE);
-		if (_setupToolBar) return false;
-		_setupToolBar = true;
-		static if (is(A : Area)) {
+	private void setupToolBar0(ToolBar bar) { mixin(S_TRACE);
+		static if (is(A:Area)) {
 			if (cast(AreaSceneWindow)tlpData(this).tlp) { mixin(S_TRACE);
 				createToolItem(_comm, bar, MenuID.EditEvent, () => openEvent(false), null);
 				new ToolItem(bar, SWT.SEPARATOR);
 				createToolItem(_comm, bar, MenuID.EditSceneDup, () => openDup(), null);
 				new ToolItem(bar, SWT.SEPARATOR);
 			}
-		} else static if (is(A : Battle)) {
+		} else static if (is(A:Battle)) {
 			if (cast(BattleSceneWindow)tlpData(this).tlp) { mixin(S_TRACE);
 				auto itm = createToolItem(_comm, bar, MenuID.EditEvent, () => openEvent(false), null);
 				itm.setImage(_prop.images.editEventBattle);
@@ -4291,6 +4287,13 @@ public:
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
 		_vpTMenu = createToolItem(_comm, bar, MenuID.ShowParty, &reverseViewParty, null, SWT.CHECK);
+	}
+	/// ツールバーにAreaViewで使用するアイテムを設定する。
+	/// Params:
+	/// bar = ツールバー。
+	private bool setupToolBar(ToolBar bar) { mixin(S_TRACE);
+		if (_setupToolBar) return false;
+		_setupToolBar = true;
 		static if (is(C:MenuCard)) {
 			.setupToggle(_vpTMenu, _prop.var.etc.viewPartyCardsArea);
 		} else static if (is(C:EnemyCard)) {

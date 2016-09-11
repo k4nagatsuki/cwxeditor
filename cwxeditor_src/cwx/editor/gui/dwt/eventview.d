@@ -1445,6 +1445,7 @@ public:
 				}
 			};
 			_cards.addPaintListener(initTools);
+			setupToolBar0(); // レイアウトのため最初のアイテムだけ生成しておく
 		}
 		if (cast(Area)_area) {
 			.setupWeights(_sash, _prop.var.areaEventWin.eventSashL, _prop.var.areaEventWin.eventSashR);
@@ -1700,6 +1701,7 @@ public:
 		}
 		while (_toolbar.getChildren()) _toolbar.getChildren()[0].dispose();
 		while (_toolbar.getItemCount()) _toolbar.getItem(0).dispose();
+		setupToolBar0();
 	}
 	void moveShell() { mixin(S_TRACE);
 		scope (exit) _toolbar.setRedraw(true);
@@ -1894,9 +1896,7 @@ public:
 	}
 
 	private bool _setupToolBar = false;
-	private bool setupToolBar() { mixin(S_TRACE);
-		if (_setupToolBar) return false;
-		_setupToolBar = true;
+	private void setupToolBar0() { mixin(S_TRACE);
 		auto bar = _toolbar;
 		if (cast(EventWindow)tlpData(this).tlp) { mixin(S_TRACE);
 			if (cast(Area)_area) {
@@ -1924,6 +1924,11 @@ public:
 			}
 			new ToolItem(bar, SWT.SEPARATOR);
 		}
+	}
+	private bool setupToolBar() { mixin(S_TRACE);
+		if (_setupToolBar) return false;
+		_setupToolBar = true;
+		auto bar = _toolbar;
 		if (!_readOnly) { mixin(S_TRACE);
 			createToolItem(_comm, bar, MenuID.Undo, &undo, () => !_readOnly && _undo.canUndo);
 			createToolItem(_comm, bar, MenuID.Redo, &redo, () => !_readOnly && _undo.canRedo);
