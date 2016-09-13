@@ -385,7 +385,9 @@ public class FlexProps {
 							if (fld.readValue) { mixin(S_TRACE);
 								this.tupleof[i].tupleof[j].value = cast(int)(fld.value * dpiMuls);
 							} else { mixin(S_TRACE);
+								assert (fld.value == fld.INIT);
 								this.tupleof[i].tupleof[j].value = cast(int)(fld.value * iDpiMuls);
+								this.tupleof[i].tupleof[j].INIT = cast(int)(fld.value * iDpiMuls);
 							}
 						}
 					}

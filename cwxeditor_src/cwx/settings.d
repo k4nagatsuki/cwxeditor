@@ -56,7 +56,7 @@ private void fromNode(T)(ref XNode node, string key, ref T value) {
 /// T型のプロパティ。
 struct Prop(T, bool ReadOnly = false, bool LayoutValue = false) {
 	const string KEY;
-	const T INIT;
+	T INIT;
 	static immutable bool READ_ONLY = ReadOnly;
 	static if (LayoutValue) {
 		static immutable bool LAYOUT_VALUE = LayoutValue;
@@ -79,9 +79,6 @@ struct Prop(T, bool ReadOnly = false, bool LayoutValue = false) {
 
 	const
 	void toNode(ref XNode node) {
-		static if (LayoutValue && ReadOnly) {
-			if (!readValue) return;
-		}
 		.toNode(node, KEY, value);
 	}
 	void fromNode(ref XNode node, ulong dataVersion) {
@@ -94,7 +91,7 @@ struct Prop(T, bool ReadOnly = false, bool LayoutValue = false) {
 /// ditto
 struct PropAttr(T, bool ReadOnly = false, bool LayoutValue = false) {
 	const string ATTR_KEY;
-	const T INIT;
+	T INIT;
 	static immutable bool READ_ONLY = ReadOnly;
 	static if (LayoutValue) {
 		static immutable bool LAYOUT_VALUE = LayoutValue;
@@ -114,9 +111,6 @@ struct PropAttr(T, bool ReadOnly = false, bool LayoutValue = false) {
 
 	const
 	void toNode(ref XNode node) {
-		static if (LayoutValue && ReadOnly) {
-			if (!readValue) return;
-		}
 		.toNode(node, ATTR_KEY, value);
 	}
 	void fromNode(ref XNode node, ulong dataVersion) {
