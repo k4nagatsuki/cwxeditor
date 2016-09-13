@@ -391,6 +391,8 @@ void build(string[] args) {
 			],
 			[
 				"dprops.d",
+			],
+			[
 				"dskin.d",
 			],
 			[

@@ -11,7 +11,7 @@ import cwx.versioninfo;
 import cwx.types;
 
 import cwx.editor.gui.dwt.dockingfolder;
-import cwx.editor.gui.dwt.dutils : ppis;
+import cwx.editor.gui.dwt.dutils : ppis, dpiMuls;
 
 import std.ascii;
 import std.conv;
@@ -204,6 +204,7 @@ public class FlexProps {
 	private string _appPath;
 	private string _cwxDir = null;
 	private XNode _node;
+	private int _dpi= 96;
 
 	private bool _noFile = false;
 	private string _noFileTemp;
@@ -338,8 +339,7 @@ public class FlexProps {
 				dStr ~= " - " ~ .text(__LINE__);
 				etc.backupBeforeSavePath.value = etc.backupPath;
 			}
-			// 高DPI用にレイアウトパラメータを変更
-			updatePPIs();
+			updatePPIs(Display.getCurrent().getDPI().x);
 
 		} catch (Throwable e) {
 			printStackTrace();
@@ -362,8 +362,7 @@ public class FlexProps {
 		if (_noFile) return true;
 		string dStr = .text(__LINE__);
 		if (reloadImpl(true, dStr)) { mixin(S_TRACE);
-			// 高DPI用にレイアウトパラメータを変更
-			updatePPIs();
+			updatePPIs(Display.getCurrent().getDPI().x);
 			return true;
 		}
 		return false;
@@ -372,13 +371,22 @@ public class FlexProps {
 		XNode node;
 		_node = node;
 	}
-	private void updatePPIs() { mixin(S_TRACE);
+	// 高DPI用にレイアウトパラメータを変更
+	private void updatePPIs(int dpi) { mixin(S_TRACE);
+		if (_dpi == dpi) return;
+		auto dpiMuls = cast(real)dpi / _dpi;
+		auto iDpiMuls = cast(real)dpi / 96;
+		_dpi = dpi;
 		foreach (i, pFld; this.tupleof) { mixin(S_TRACE);
 			static if (is(typeof(pFld.tupleof))) {
 				foreach (j, fld; pFld.tupleof) { mixin(S_TRACE);
 					static if (is(typeof(fld.LAYOUT_VALUE))) {
-						if (!fld.readValue && fld.value != SWT.DEFAULT) { mixin(S_TRACE);
-							this.tupleof[i].tupleof[j].value = fld.value.ppis;
+						if (fld.value != SWT.DEFAULT) { mixin(S_TRACE);
+							if (fld.readValue) { mixin(S_TRACE);
+								this.tupleof[i].tupleof[j].value = cast(int)(fld.value * dpiMuls);
+							} else { mixin(S_TRACE);
+								this.tupleof[i].tupleof[j].value = cast(int)(fld.value * iDpiMuls);
+							}
 						}
 					}
 				}
@@ -397,7 +405,9 @@ public class FlexProps {
 				foreach (i, fld; this.tupleof) { mixin(S_TRACE);
 					this.tupleof[i] = fromNode(_node, fld, force, dataVersion);
 				}
-				updatePPIs();
+				dStr ~= " - " ~ .text(__LINE__);
+				_dpi = _node.attr("dpi", false, 96);
+				dStr ~= " - " ~ .text(__LINE__);
 				if (dataVersion < 2012072700) { mixin(S_TRACE);
 					// backupBeforeSavePath追加
 					etc.backupBeforeSavePath.value = etc.backupPath;
@@ -553,6 +563,7 @@ public class FlexProps {
 		if (_noFile) return;
 		auto node = XNode.create("cwxeditor");
 		node.newAttr("version", APP_VERSION_NUM);
+		node.newAttr("dpi", _dpi);
 		foreach (i, fld; this.tupleof) { mixin(S_TRACE);
 			toNode(node, fld);
 		}

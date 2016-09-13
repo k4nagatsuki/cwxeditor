@@ -167,10 +167,10 @@ class FlexEtcProps : Properties {
 	auto flagTopSashL = Prop!(int)("flagTopSashL", 3);
 	auto flagTopSashR = Prop!(int)("flagTopSashR", 2);
 	auto toolTipWidth = Prop!(int, true, true)("toolTipWidth", 300);
-	auto colorExampleWidth = Prop!(int, false, true)("colorExampleWidth", 50);
-	auto buttonWidth = Prop!(int, false, true)("buttonWidth", 100);
-	auto radioGroupSeparatorWidth = Prop!(int, false, true)("radioGroupSeparatorWidth", 15);
-	auto couponValueColumnWidth = Prop!(int, false, true)("couponValueColumnWidth", 40);
+	auto colorExampleWidth = Prop!(int, true, true)("colorExampleWidth", 50);
+	auto buttonWidth = Prop!(int, true, true)("buttonWidth", 100);
+	auto radioGroupSeparatorWidth = Prop!(int, true, true)("radioGroupSeparatorWidth", 15);
+	auto couponValueColumnWidth = Prop!(int, true, true)("couponValueColumnWidth", 40);
 
 	auto partyMax = Prop!(uint, true)("partyMax", 6);
 	auto cardScaleMax = Prop!(int)("cardScaleMax", 300);

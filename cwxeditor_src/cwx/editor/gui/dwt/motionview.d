@@ -1146,7 +1146,6 @@ public:
 		}
 		{ mixin(S_TRACE);
 			_motionElm = .rangeSelectableTable(this, SWT.BORDER | SWT.SINGLE | SWT.NO_SCROLL | SWT.FULL_SELECTION);
-			_motionElm.setLayoutData(new GridData(GridData.FILL_VERTICAL));
 			_motionElm.setHeaderVisible(true);
 			_motionElm.addSelectionListener(new SelElement);
 			_motionElm.setEnabled(false);
@@ -1161,7 +1160,6 @@ public:
 				itm.setData(new Integer(elm));
 				toolTip ~= _prop.msgs.elementDesc(elm);
 			}
-			col.column.pack();
 			.listener(_motionElm, SWT.MouseMove, (Event e) { mixin(S_TRACE);
 				auto itm = _motionElm.getItem(new Point(e.x, e.y));
 				if (itm) { mixin(S_TRACE);
@@ -1170,6 +1168,9 @@ public:
 					_motionElm.setToolTipText(null);
 				}
 			});
+			auto gd = new GridData(GridData.FILL_VERTICAL);
+			gd.widthHint = _motionElm.computeSize(SWT.DEFAULT, SWT.DEFAULT).x.ppis;
+			_motionElm.setLayoutData(gd);
 			auto menu = new Menu(_motionElm);
 			createMenuItem(_comm, menu, MenuID.Undo, &this.undo, () => !_readOnly && _undo.canUndo);
 			createMenuItem(_comm, menu, MenuID.Redo, &this.redo, () => !_readOnly && _undo.canRedo);

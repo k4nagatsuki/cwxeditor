@@ -79,6 +79,9 @@ struct Prop(T, bool ReadOnly = false, bool LayoutValue = false) {
 
 	const
 	void toNode(ref XNode node) {
+		static if (LayoutValue && ReadOnly) {
+			if (!readValue) return;
+		}
 		.toNode(node, KEY, value);
 	}
 	void fromNode(ref XNode node, ulong dataVersion) {
@@ -111,6 +114,9 @@ struct PropAttr(T, bool ReadOnly = false, bool LayoutValue = false) {
 
 	const
 	void toNode(ref XNode node) {
+		static if (LayoutValue && ReadOnly) {
+			if (!readValue) return;
+		}
 		.toNode(node, ATTR_KEY, value);
 	}
 	void fromNode(ref XNode node, ulong dataVersion) {
