@@ -43,7 +43,7 @@ ImageData loadJPYImage(Props prop, in Skin skin, in Summary summ, string path, s
 			height = img.height;
 			return img;
 		} else if (cfnmatch(ext, ".jpdc")) { mixin(S_TRACE);
-			auto img = loadJPDCImage(prop, path);
+			auto img = loadJPDCImage(prop, summ ? summ.scenarioPath : "", path);
 			width = img.width;
 			height = img.height;
 			resizable = false;
@@ -447,8 +447,8 @@ private ImageData warningImage(Props prop, in Summary summ, EffectBoosterError e
 	return img.getImageData();
 }
 
-private ImageData loadJPDCImage(in Props prop, string path) { mixin(S_TRACE);
-	Jpdc jpdc = Jpdc.load(prop.parent, path);
+private ImageData loadJPDCImage(in Props prop, string sPath, string path) { mixin(S_TRACE);
+	Jpdc jpdc = Jpdc.load(prop.parent, sPath, path);
 	auto d = Display.getCurrent();
 	auto img = new Image(d, jpdc.clip.width, jpdc.clip.height);
 	scope (exit) img.dispose();

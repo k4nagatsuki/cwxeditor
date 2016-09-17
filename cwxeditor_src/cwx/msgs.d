@@ -305,6 +305,7 @@ class Msgs : Properties {
 	auto searchResultEnemyCard = Msg("searchResultEnemyCard", "エネミーカード [%1$s]");
 
 	auto searchResultJpy1 = Msg("searchResultJpy1", "JPY1ファイル [%1$s]");
+	auto searchResultJpdc = Msg("searchResultJpdc", "JPDCファイル [%1$s]");
 
 	auto searchErrorReversalLevel = Msg("searchErrorReversalLevel", "レベルの上限と下限が逆転しています。");
 	auto searchErrorNoImage = Msg("searchErrorNoImage", "イメージが指定されていません。");
@@ -1859,7 +1860,7 @@ class Msgs : Properties {
 
 	auto etcSettingsFile = Msg("etcSettingsFile", "ファイルの追跡");
 	auto traceDirectories = Msg("traceDirectories", "ファイル・" ~ DIR ~ "の変更を自動的に追跡する");
-	auto autoUpdateJpy1File = Msg("autoUpdateJpy1File", "ファイル名が変更された時に関係するJPY1ファイルを自動的に更新する");
+	auto autoUpdateJpy1File = Msg("autoUpdateJpy1File", "ファイル名が変更された時に関係するJPY1・JPDCファイルを自動的に更新する");
 
 	auto etcSettingsFind = Msg("etcSettingsFind", "検索と置換");
 	auto startIncrementalSearchWhenKeyDown = Msg("startIncrementalSearchWhenKeyDown", "何かキーを押した時に絞り込み検索を開始する");

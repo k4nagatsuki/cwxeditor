@@ -2992,7 +2992,7 @@ public:
 				foreach (key; uc.path.keys) { mixin(S_TRACE);
 					if (wildcard.match((cast(string)key).encodePath())) { mixin(S_TRACE);
 						foreach (u; uc.path.values(key)) { mixin(S_TRACE);
-							if (!cast(Jpy1Sec)u && !dec(u.owner, range)) continue;
+							if (!(cast(Jpy1Sec)u || cast(Jpdc)u) && !dec(u.owner, range)) continue;
 							if (_replMode) { mixin(S_TRACE);
 								auto id = u.path;
 								u.path = cast(string)to;
@@ -3426,13 +3426,13 @@ public:
 						try { mixin(S_TRACE);
 							switch (file.extension().toLower()) {
 							case ".jpy1": mixin(S_TRACE);
-								Jpy1.load(_prop.parent, _summ.scenarioPath, file);
+								Jpy1.load(_prop.parent, _summ ? _summ.scenarioPath : "", file);
 								break;
 							case ".jptx": mixin(S_TRACE);
 								Jptx.load(_prop.parent, file);
 								break;
 							case ".jpdc": mixin(S_TRACE);
-								Jpdc.load(_prop.parent, file);
+								Jpdc.load(_prop.parent, _summ ? _summ.scenarioPath : "", file);
 								break;
 							default:
 								break;

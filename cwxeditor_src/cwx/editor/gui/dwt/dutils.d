@@ -3882,6 +3882,12 @@ void getSymbols(Commons comm, Summary summ, CWXPath path, out string text, out s
 		auto fPath = nabs(jpy1Sec.fPath).abs2rel(nabs(summ.scenarioPath));
 		text = .tryFormat(prop.msgs.searchResultJpy1, encodePath(fPath));
 	}
+	auto jpdc = cast(Jpdc)path;
+	if (jpdc) { mixin(S_TRACE);
+		img = prop.images.backs;
+		auto fPath = nabs(jpdc.jpdcPath).abs2rel(nabs(summ.scenarioPath));
+		text = .tryFormat(prop.msgs.searchResultJpdc, encodePath(fPath));
+	}
 	assert (par || img, .text(path) ~ ", " ~ typeid(path).toString());
 	string parText = "", dummy;
 	Image parImg, dummyImg;

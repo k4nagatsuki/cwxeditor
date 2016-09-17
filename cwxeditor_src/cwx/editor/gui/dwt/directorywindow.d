@@ -738,6 +738,9 @@ private:
 								foreach (ref jpy; _jpyData) { mixin(S_TRACE);
 									jpy.renameFile(from, to);
 								}
+								foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
+									jpdc.renameFile(from, to);
+								}
 							}
 						}
 						if (cfnmatch(parent, targ)) selfs ~= to;
@@ -822,6 +825,7 @@ private:
 	Props _prop;
 	Summary _summ = null;
 	Jpy1[] _jpyData;
+	Jpdc[] _jpdcData;
 
 	Commons _comm;
 
@@ -904,6 +908,9 @@ private:
 			auto p2 = nabs(to);
 			foreach (ref jpy; _jpyData) { mixin(S_TRACE);
 				jpy.renameFile(p1, p2);
+			}
+			foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
+				jpdc.renameFile(p1, p2);
 			}
 		} catch (Exception e) {
 			// 不正な名前
@@ -1020,12 +1027,20 @@ private:
 			jpy.removeUseCounter();
 		}
 		_jpyData.length = 0;
+		foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
+			jpdc.removeUseCounter();
+		}
+		_jpdcData.length = 0;
 		auto sPath = _summ.scenarioPath;
 		foreach (string file; sPath.dirEntries(SpanMode.depth)) { mixin(S_TRACE);
-			if (!cfnmatch(file.extension(), ".jpy1")) continue;
 			try { mixin(S_TRACE);
-				_jpyData ~= Jpy1.load(_prop.parent, sPath, file);
-				_jpyData[$-1].setUseCounter(_summ.useCounter);
+				if (.cfnmatch(file.extension(), ".jpy1")) {
+					_jpyData ~= Jpy1.load(_prop.parent, sPath, file);
+					_jpyData[$-1].setUseCounter(_summ.useCounter);
+				} else if (.cfnmatch(file.extension(), ".jpdc")) {
+					_jpdcData ~= Jpdc.load(_prop.parent, sPath, file);
+					_jpdcData[$-1].setUseCounter(_summ.useCounter);
+				}
 			} catch (EffectBoosterError e) {
 				clearStackTrace();
 				debug {
@@ -1791,6 +1806,10 @@ public:
 			jpy.removeUseCounter();
 		}
 		_jpyData.length = 0;
+		foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
+			jpdc.removeUseCounter();
+		}
+		_jpdcData.length = 0;
 
 		_summ = summ;
 
@@ -1927,6 +1946,9 @@ public:
 	void updateJpy1Files() { mixin(S_TRACE);
 		foreach (ref jpy; _jpyData) { mixin(S_TRACE);
 			jpy.updateJpy1File(_prop.parent, _prop.var.etc.autoUpdateJpy1File);
+		}
+		foreach (ref jpdc; _jpdcData) { mixin(S_TRACE);
+			jpdc.updateJpdcFile(_prop.parent, _prop.var.etc.autoUpdateJpy1File);
 		}
 	}
 

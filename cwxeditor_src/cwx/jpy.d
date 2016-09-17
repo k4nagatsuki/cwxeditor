@@ -1308,19 +1308,46 @@ const JPDC_COMMENT_FILE = "file";
 const JPDC_COMMENT_DIR = "dir";
 
 /// Jpdcの1ファイルの定義。
-struct Jpdc {
+class Jpdc : PathUser, CWXPath {
+	alias PathUser.path path;
+
+	/// シナリオのパス。
+	string sPath;
+	/// ファイルパス。
+	string jpdcPath;
+	/// 改行コードを含めた全行をそのまま格納する。
+	string[] lines;
+	/// ファイルが本来はShift JISであればtrue。
+	bool isSJIS;
+
 	CRect clip = CRect(0, 0, 632, 420);
 	Copymode copymode = Copymode.AUTO;
 	string saveFileName = "";
 	string savecomment = "";
 
+	/// savefilenameがある行。ファイルの更新に使用する。
+	private ptrdiff_t savefilenameIndex = -1;
+	/// savefilenameがある行の内容。ファイルの更新に使用する。
+	private string savefilenameLine = "savefilename=";
+	/// savefilenameが更新されたためファイルの上書きが必要な場合はtrue。
+	private bool needUpdate = false;
+
+	private this () { mixin(S_TRACE);
+		super (this);
+	}
+
 	/// pathからJpdcを読込む。
-	static Jpdc load(in CProps prop, string path) { mixin(S_TRACE);
-		Jpdc r;
+	static Jpdc load(in CProps prop, string sPath, string fPath) { mixin(S_TRACE);
+		auto r = new Jpdc;
+		r.sPath = sPath;
+		r.jpdcPath = fPath;
 		auto errInfo = new EffectBoosterError;
 		bool init = false;
-		foreach (i, line; splitLines!string(readJPYFile(path, prop, errInfo))) { mixin(S_TRACE);
+		r.lines = .splitLines!string(readJPYFile(fPath, prop, errInfo, r.isSJIS), KeepTerminator.yes);
+		foreach (i, line; r.lines) { mixin(S_TRACE);
+			auto origLine = line;
 			auto lineNum = i + 1;
+			line = line.chomp();
 			line = astrip(line);
 			if (!line.length || line[0] == ';') continue;
 			if (line[0] == '[' && line[$ - 1] == ']') { mixin(S_TRACE);
@@ -1338,22 +1365,156 @@ struct Jpdc {
 					// init
 					auto eq = .cCountUntil(line, '=');
 					if (eq == -1) { mixin(S_TRACE);
-						errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidLine, line), path, lineNum);
+						errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidLine, line), fPath, lineNum);
 					}
 					auto key = astrip(line[0 .. eq]);
 					auto value = stripValue(line[eq + 1 .. $]);
 					switch (.toLower(key)) {
-					case "clip": clip = rectVal(value, prop, path, lineNum, errInfo); break;
-					case "copymode": copymode = enumVal!(Copymode)(value, prop, path, lineNum, errInfo); break;
-					case "savefilename": saveFileName = strVal(value, prop, path, lineNum, errInfo); break;
-					case "savecomment": savecomment = strVal(value, prop, path, lineNum, errInfo); break;
+					case "clip": clip = rectVal(value, prop, fPath, lineNum, errInfo); break;
+					case "copymode": copymode = enumVal!(Copymode)(value, prop, fPath, lineNum, errInfo); break;
+					case "savefilename":
+						saveFileName = strVal(value, prop, fPath, lineNum, errInfo);
+						savefilenameIndex = i;
+						savefilenameLine = origLine;
+						break;
+					case "savecomment": savecomment = strVal(value, prop, fPath, lineNum, errInfo); break;
 					default:
-						errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidCommand, key), path, lineNum);
+						errInfo.add(.tryFormat(prop.msgs.jpyErrorInvalidCommand, key), fPath, lineNum);
 					}
 				}
 			}
 		}
 		if (errInfo.errors.length) throw errInfo;
+
+		r.path = r.toMaterialPath;
 		return r;
 	}
+
+	@property
+	override
+	string cwxPath(bool id) { return ""; }
+	override
+	CWXPath findCWXPath(string path) { mixin(S_TRACE);
+		if (cpempty(path)) return this;
+		return null;
+	}
+	@property
+	override
+	inout
+	inout(CWXPath)[] cwxChilds() { return []; }
+	@property
+	override
+	CWXPath cwxParent() { return null; }
+
+	protected override void changed() { }
+
+	override
+	void change(PathId newVal) { mixin(S_TRACE);
+		super.change(newVal);
+		auto newName = fromMaterialPath(cast(string)newVal);
+		if (newName != saveFileName) { mixin(S_TRACE);
+			saveFileName = newName;
+			needUpdate = true;
+		}
+	}
+
+	@property
+	override
+	void path(string path) { mixin(S_TRACE);
+		super.path(path);
+		auto newName = fromMaterialPath(path);
+		if (newName != saveFileName) { mixin(S_TRACE);
+			saveFileName = newName;
+			needUpdate = true;
+		}
+	}
+
+	/// JPDC内のsavefilenameをシナリオ内の相対パスへ変換する。
+	private string toMaterialPath() { mixin(S_TRACE);
+		return toMaterialPathImpl(saveFileName, sPath, jpdcPath);
+	}
+	private static string toMaterialPathImpl(string filename, string sPath, string fPath) { mixin(S_TRACE);
+		auto dir = dirName(fPath);
+		auto fname = std.path.buildPath(dir, filename);
+		sPath = .nabs(sPath);
+		fname = .nabs(fname);
+		if (fname.fnstartsWith(sPath)) { mixin(S_TRACE);
+			return fname.abs2rel(sPath);
+		}
+		return "";
+	} unittest { mixin(S_TRACE);
+		debug mixin(UTPerf);
+		string p;
+
+		p = toMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/b.jpy1").encodePath();
+		assert (p == "a.bmp", p);
+		p = toMaterialPathImpl("c/a.bmp", "/dir/sc", "/dir/sc/b.jpy1").encodePath();
+		assert (p == "c/a.bmp", p);
+	}
+
+	/// シナリオ内の相対パスをJPY1内のfilenameへ変換する。
+	private string fromMaterialPath(string filename) { mixin(S_TRACE);
+		return fromMaterialPathImpl(filename, sPath, jpdcPath);
+	}
+	/// ditto
+	private static string fromMaterialPathImpl(string filename, string sPath, string fPath) { mixin(S_TRACE);
+		string relPath(string sPath, string path) { mixin(S_TRACE);
+			if (sPath == "") return path;
+			auto nsPath = nabs(sPath);
+			auto nPath = nabs(path);
+			return nPath.abs2rel(nsPath);
+		}
+		return relPath(dirName(fPath.abs2rel(sPath)), dirName(filename)).buildPath(filename.baseName());
+	} unittest { mixin(S_TRACE);
+		debug mixin(UTPerf);
+		string p;
+
+		p = fromMaterialPathImpl("a.bmp", "/dir/sc", "/dir/sc/b.jpy1").encodePath();
+		assert (p == "a.bmp", p);
+		p = fromMaterialPathImpl("c/a.bmp", "/dir/sc", "/dir/sc/c/b.jpy1").encodePath();
+		assert (p == "a.bmp", p);
+	}
+
+	/// ファイルパスの変更を反映する。
+	/// oldPathがこのJPDCのファイルでもこのJPDCが含まれる
+	/// ディレクトリでもない場合は何もしない。
+	bool renameFile(string oldPath, string newPath) { mixin(S_TRACE);
+		auto fPath = .nabs(jpdcPath);
+		auto oPath = .nabs(oldPath);
+		if (!fPath.fnstartsWith(oPath)) return false;
+		if (!.cfnmatch(fPath, oPath)) { mixin(S_TRACE);
+			newPath = newPath.buildPath(fPath.abs2rel(oPath));
+		}
+		auto rel = .abs2rel(oPath.dirName(), newPath.nabs().dirName());
+		auto filename = this.toMaterialPath;
+		jpdcPath = newPath;
+		if (filename != "") { mixin(S_TRACE);
+			this.path = filename;
+		}
+		return true;
+	}
+
+	/// ファイルパスの変更に伴ってファイルを上書き更新する。
+	/// rewriteがfalseの場合はファイルの上書きはせず内部データのみを更新する。
+	void updateJpdcFile(in CProps prop, bool rewrite) { mixin(S_TRACE);
+		bool update = false;
+		if (needUpdate) { mixin(S_TRACE);
+			if (savefilenameIndex != -1) { mixin(S_TRACE);
+				auto eq = savefilenameLine.cCountUntil('=');
+				assert (eq != -1);
+				auto ret = savefilenameLine[savefilenameLine.chomp().length .. $];
+				lines[savefilenameIndex] = savefilenameLine[0 .. eq+1] ~ saveFileName ~ ret;
+				update = true;
+			}
+			needUpdate = false;
+		}
+		if (update && rewrite) { mixin(S_TRACE);
+			auto rLines = std.array.join(lines, "");
+			if (isSJIS) { mixin(S_TRACE);
+				rLines = tosjis(rLines);
+			}
+			std.file.write(jpdcPath, rLines);
+		}
+	}
+	
 }
