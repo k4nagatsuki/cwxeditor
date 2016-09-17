@@ -124,7 +124,7 @@ class AbstractMessageDialog : EventDialog {
 		if (!visible) { mixin(S_TRACE);
 			pvw = rightGroup.getSize().x;
 		}
-		int w = visible ? prop.looks.messageBounds.width : 0;
+		int w = visible ? prop.s(prop.looks.messageBounds.width) : 0;
 		int h = 0;
 		rightGroupSize(w, h);
 
@@ -221,9 +221,9 @@ class AbstractMessageDialog : EventDialog {
 			if (show) { mixin(S_TRACE);
 				auto size = shell.getSize();
 				if (prop.var.etc.floatMessagePreview) { mixin(S_TRACE);
-					size.x -= .max(1, (cast(int) prop.looks.messageBounds.width));
+					size.x -= .max(1, prop.s(cast(int)prop.looks.messageBounds.width));
 				} else { mixin(S_TRACE);
-					size.x += prop.looks.messageBounds.width;
+					size.x += prop.s(prop.looks.messageBounds.width);
 				}
 				shell.setSize(size);
 				shell.layout(true);
@@ -1339,7 +1339,7 @@ private Composite createTalkerPane
 		prop.msgs.defaultSelection(prop.msgs.talkerName(Talker.CARD))
 	];
 	auto s = prop.looks.cardSize;
-	msel = new ImageSelect!(MtType.CARD, Combo)(comp, SWT.NONE, comm, prop, summ, s.width, s.height,
+	msel = new ImageSelect!(MtType.CARD, Combo)(comp, SWT.NONE, comm, prop, summ, prop.s(s.width), prop.s(s.height),
 		false, () => "", null, included => defs);
 	msel.valueFromDef = (defIndex, included, binPath) { mixin(S_TRACE);
 		switch (defIndex) {
@@ -2527,7 +2527,7 @@ class MsgPreview : Composite {
 			refreshImpl();
 			auto b = _canvas.getBounds();
 			auto rect = _prop.looks.messageBounds;
-			e.gc.drawImage(_img, (b.width - rect.width) / 2, (b.height - rect.height) / 2);
+			e.gc.drawImage(_img, (b.width - _prop.s(rect.width)) / 2, (b.height - _prop.s(rect.height)) / 2);
 		}
 	}
 	private class Dispose : DisposeListener {
@@ -2549,8 +2549,8 @@ class MsgPreview : Composite {
 		_canvas = new Canvas(this, SWT.DOUBLE_BUFFERED);
 		auto cgd = new GridData(GridData.FILL_HORIZONTAL);
 		auto rect = _prop.looks.messageBounds;
-		cgd.widthHint = rect.width;
-		cgd.heightHint = rect.height;
+		cgd.widthHint = _prop.s(rect.width);
+		cgd.heightHint = _prop.s(rect.height);
 		_canvas.setLayoutData(cgd);
 		_canvas.addPaintListener(new Paint);
 		_canvas.addDisposeListener(new Dispose);
@@ -2925,5 +2925,9 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 		gc.drawRectangle(1, rect.height + 1 + bh * cast(int)i, rect.width - 3, bh - 3);
 	}
 
-	return canvas.getImageData();
+	auto data = canvas.getImageData();
+	if (1024 < prop.s(1024)) { mixin(S_TRACE);
+		data = data.scaledTo(prop.s(data.width), prop.s(data.height));
+	}
+	return data;
 }

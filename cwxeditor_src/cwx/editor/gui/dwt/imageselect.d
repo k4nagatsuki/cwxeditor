@@ -685,35 +685,40 @@ private:
 		}
 		private void drawImage(GC gc, ImageData imgData) { mixin(S_TRACE);
 			if (!imgData) return;
-			scope img = new Image(Display.getCurrent(), imgData);
-			scope b = img.getBounds();
-			scope area = _image.getClientArea();
+			auto img = new Image(Display.getCurrent(), imgData);
+			auto b = img.getBounds();
+			b.x = _prop.s(b.x);
+			b.y = _prop.s(b.y);
+			b.width = _prop.s(b.width);
+			b.height = _prop.s(b.height);
+			auto b2 = img.getBounds();
+			auto area = _image.getClientArea();
 			int x, y, w, h, fw, fh;
 			static if (Type is MtType.CARD) {
 				final switch (_cardMode) {
 				case CardMode.Message:
 					x = 0;
 					w = .min(b.width, area.width);
-					fw = w;
-					fh = b.height;
-					h = fh;
-					y = (area.height - fh) / 2;
+					fw = b2.width;
+					fh = b2.height;
+					h = b.height;
+					y = (area.height - h) / 2;
 					break;
 				case CardMode.Cast:
-					fw = b.width;
-					fh = b.height;
-					w = fw;
-					h = fh;
-					x = (area.width - fw) / 2;
-					y = (area.height - fh) / 2;
+					fw = b2.width;
+					fh = b2.height;
+					w = b.width;
+					h = b.height;
+					x = (area.width - w) / 2;
+					y = (area.height - h) / 2;
 					break;
 				case CardMode.Normal:
 					x = 0;
 					y = 0;
 					w = .min(b.width, area.width);
 					h = .min(b.height, area.height);
-					fw = w;
-					fh = h;
+					fw = b2.width;
+					fh = b2.height;
 					break;
 				}
 			} else { mixin(S_TRACE);
@@ -731,8 +736,8 @@ private:
 					y = 0;
 					h = area.height;
 				}
-				fw = b.width;
-				fh = b.height;
+				fw = b2.width;
+				fh = b2.height;
 			}
 			gc.drawImage(img, 0, 0, fw, fh, x, y, w, h);
 			img.dispose();

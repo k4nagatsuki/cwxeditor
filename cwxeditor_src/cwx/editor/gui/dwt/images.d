@@ -1777,14 +1777,16 @@ public:
 		retoggle();
 	}
 	/// トグルを描画する。
-	void drawToggle(GC gc) { mixin(S_TRACE);
+	void drawToggle(GC gc, int imageScale) { mixin(S_TRACE);
 		if (visible && selected) { mixin(S_TRACE);
 			gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
 			gc.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
 			gc.drawFocus(newX, newY, newWidth, newHeight);
+			gc.setLineStyle(SWT.LINE_SOLID);
 			foreach (rect; tgls.values) { mixin(S_TRACE);
-				gc.fillRectangle(rect.x + 1, rect.y + 1, tglSize - 1, tglSize - 1);
-				gc.drawRectangle(rect);
+				gc.fillRectangle(rect.x * imageScale + 1, rect.y * imageScale + 1,
+					tglSize * imageScale - 1, tglSize * imageScale - 1);
+				gc.drawRectangle(rect.x * imageScale, rect.y * imageScale, rect.width * imageScale, rect.height * imageScale);
 			}
 		}
 	}
@@ -2108,6 +2110,9 @@ private:
 	PileImage[] backs = [];
 	ImageData[] _appends = [];
 
+	int _width, _height;
+	int _imageScale = 1;
+
 	int _gridX = 0, _gridY = 0;
 	int _gridRange = 5;
 	int _highPoint = 10;
@@ -2233,12 +2238,11 @@ private:
 		return p;
 	}
 	void redrawGridHighlight() { mixin(S_TRACE);
-		auto size = getSize();
 		foreach (x; _gridXH) { mixin(S_TRACE);
-			addRedraw(x, 0, 1, size.y);
+			addRedraw(x, 0, 1, _height);
 		}
 		foreach (y; _gridYH) { mixin(S_TRACE);
-			addRedraw(0, y, size.x, 1);
+			addRedraw(0, y, _width, 1);
 		}
 	}
 	void resetGrid() { mixin(S_TRACE);
@@ -2301,14 +2305,14 @@ private:
 	}
 	class MMListener : MouseMoveListener {
 		override void mouseMove(MouseEvent me) { mixin(S_TRACE);
-			int x = me.x;
-			int y = me.y;
+			int x = me.x / _imageScale;
+			int y = me.y / _imageScale;
 			if (_rangeStartPos) { mixin(S_TRACE);
 				// 範囲選択
 				assert (_rangeEndPos !is null);
 				redrawRangeLine();
-				_rangeEndPos.x = me.x;
-				_rangeEndPos.y = me.y;
+				_rangeEndPos.x = x;
+				_rangeEndPos.y = y;
 				redrawRangeLine();
 				updateRangeSelection();
 				_rangeSelected = true;
@@ -2539,8 +2543,8 @@ private:
 			_ctrl = (me.stateMask & SWT.CTRL) != 0;
 			_shift = (me.stateMask & SWT.SHIFT) != 0;
 			auto alt = (me.stateMask & SWT.ALT) != 0;
-			int x = me.x;
-			int y = me.y;
+			int x = me.x / _imageScale;
+			int y = me.y / _imageScale;
 			if (me.button == 1) { mixin(S_TRACE);
 				rangeSelectOlds = null;
 				foreach (img, rect; dragImgs) { mixin(S_TRACE);
@@ -2654,8 +2658,8 @@ private:
 	}
 	class MouseUp : Listener {
 		override void handleEvent(Event me) { mixin(S_TRACE);
-			int x = me.x;
-			int y = me.y;
+			int x = me.x / _imageScale;
+			int y = me.y / _imageScale;
 			if (me.button == 1) { mixin(S_TRACE);
 				bool ci = false;
 				foreach_reverse (t; fBacks) { mixin(S_TRACE);
@@ -2732,24 +2736,26 @@ private:
 					return;
 				}
 			}
+			auto bWidth = _width;
+			auto bHeight = _height;
 			auto d = getShell().getDisplay();
 			auto backImg = getBackgroundImage();
 			if (!_background || backImg !is _lastWallpaper || rect != _lastClientArea) { mixin(S_TRACE);
 				// 背景の初期化
-				auto buf = new Image(d, rect.width, rect.height);
+				auto buf = new Image(d, bWidth, bHeight);
 				auto gc = new GC(buf);
 				scope (exit) gc.dispose();
 				scope (exit) buf.dispose();
 
 				if (_backColor) { mixin(S_TRACE);
 					gc.setBackground(_backColor);
-					gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
+					gc.fillRectangle(0, 0, bWidth, bHeight);
 				} else { mixin(S_TRACE);
 					gc.setBackground(d.getSystemColor(SWT.COLOR_DARK_BLUE));
-					gc.fillRectangle(rect.x, rect.y, rect.width, rect.height);
+					gc.fillRectangle(0, 0, bWidth, bHeight);
 				}
 				if (backImg) { mixin(S_TRACE);
-					drawWallpaper(gc, backImg, rect, _wallpaperStyle);
+					drawWallpaper(gc, backImg, new Rectangle(0, 0, bWidth, bHeight), _wallpaperStyle);
 				}
 				_background = buf.getImageData();
 				_lastWallpaper = backImg;
@@ -2770,7 +2776,7 @@ private:
 			scope (exit) {
 				tempBack[backSize] = imageData;
 			}
-			auto range = new Rectangle(e.x, e.y, e.width, e.height);
+			auto range = new Rectangle(0, 0, bWidth, bHeight);
 			auto buf = new Image(d, imageData);
 			scope (exit) buf.dispose();
 			auto gc = new GC(buf);
@@ -2799,7 +2805,7 @@ private:
 				if (!img.visible) continue;
 
 				// イメージの描画を行うか
-				if (!regionIsEmpty && 0 <= img.y + img.height && img.y < rect.height && 0 <= img.x + img.width && img.x < rect.width
+				if (!regionIsEmpty && 0 <= img.y + img.height && img.y < _height && 0 <= img.x + img.width && img.x < _width
 						&& region.intersects(img.x, img.y, img.width, img.height)) { mixin(S_TRACE);
 					drawImgs ~= img;
 					img.createImageImpl();
@@ -2814,7 +2820,7 @@ private:
 				if (auto fi = cast(FlexImage)img) { mixin(S_TRACE);
 					if (fi.selected) { mixin(S_TRACE);
 						auto da = fi.drawNewArea;
-						if (0 <= da.y + da.height && da.y < rect.height && 0 <= da.x + da.width && da.x < rect.width) { mixin(S_TRACE);
+						if (0 <= da.y + da.height && da.y < _height && 0 <= da.x + da.width && da.x < _width) { mixin(S_TRACE);
 							auto fiRect = CRect(fi.newX, fi.newY, fi.newWidth, fi.newHeight);
 							if (!rects.contains(fiRect)) { mixin(S_TRACE);
 								drawToggleImgs ~= fi;
@@ -2827,32 +2833,33 @@ private:
 
 			int befAlpha = -1;
 			PileImage[] alphaImgs = [];
+			auto fullRect = new Rectangle(0, 0, _width, _height);
 
 			void drawAlphaImgData() { mixin(S_TRACE);
 				if (!alphaImgs.length) return;
 				ImageData alphaImgData = null;
 				byte[] alphas = null;
 
-				auto size = new Point(rect.width, rect.height);
+				auto size = new Point(_width, _height);
 				auto p = size in tempData;
 				if (p) { mixin(S_TRACE);
 					alphaImgData = *p;
 				} else { mixin(S_TRACE);
-					alphaImgData = new ImageData(rect.width, rect.height, alphaImgs[0].imageData.depth, alphaImgs[0].imageData.palette);
+					alphaImgData = new ImageData(_width, _height, alphaImgs[0].imageData.depth, alphaImgs[0].imageData.palette);
 				}
-				auto len = cast(size_t)(rect.width * rect.height);
+				auto len = cast(size_t)(_width * _height);
 				auto p2 = len in tempAlphaData;
 				if (p2) { mixin(S_TRACE);
 					alphas = *p2;
 				} else { mixin(S_TRACE);
-					alphas = new byte[rect.width * rect.height];
+					alphas = new byte[_width * _height];
 				}
 				alphas[] = 0;
-				alphaImgData.setAlphas(0, 0, rect.width * rect.height, alphas, 0);
+				alphaImgData.setAlphas(0, 0, _width * _height, alphas, 0);
 
 				auto alphaRegion = new Region(d);
 				scope (exit) alphaRegion.dispose();
-				alphaRegion.add(rect);
+				alphaRegion.add(fullRect);
 
 				PileImage[] alphaImgs2 = [];
 				foreach_reverse (img; alphaImgs) { mixin(S_TRACE);
@@ -2868,7 +2875,7 @@ private:
 					int ix = .max(0, -img.x);
 					int aw = img.width - ix;
 					int x2 = img.x + ix;
-					aw = .min(aw, rect.width - x2);
+					aw = .min(aw, _width - x2);
 					assert (0 < aw);
 					auto iPixels = new int[aw];
 					auto iAlphas = new byte[aw];
@@ -2879,7 +2886,7 @@ private:
 					foreach (iy; .max(0, -img.y) .. img.height) { mixin(S_TRACE);
 						int y2 = iy + img.y;
 						assert (0 <= y2);
-						if (rect.height <= y2) break;
+						if (_height <= y2) break;
 						iData.getPixels(ix, iy, aw, iPixels, 0);
 						alphaImgData.setPixels(x2, y2, aw, iPixels, 0);
 						alphaImgData.setAlphas(x2, y2, aw, iAlphas, 0);
@@ -2928,47 +2935,46 @@ private:
 				drawAlphaImgData();
 			}
 
-			// FIXME: 半透明描画でGCの状態がおかしくなるので作りなおす
-			gc.dispose();
-			gc = new GC(buf);
+			e.gc.drawImage(buf, 0, 0, bWidth, bHeight,
+				rect.x, rect.y, _width * _imageScale, _height * _imageScale);
 
 			if (1 < _gridX || 1 < _gridY) { mixin(S_TRACE);
-				gc.dispose();
-				gc = new GC(buf);
 				void drawLines() { mixin(S_TRACE);
 					if (1 < _gridX) { mixin(S_TRACE);
-						int x = _gridX;
+						int x = _gridX * _imageScale;
 						while (x < rect.width) { mixin(S_TRACE);
-							gc.drawLine(x, rect.y, x, rect.height);
-							x += _gridX;
+							e.gc.drawLine(x, rect.y, x, rect.height);
+							x += _gridX * _imageScale;
 						}
 					}
 					if (1 < _gridY) { mixin(S_TRACE);
-						int y = _gridY;
+						int y = _gridY * _imageScale;
 						while (y < rect.height) { mixin(S_TRACE);
-							gc.drawLine(rect.x, y, rect.width, y);
-							y += _gridY;
+							e.gc.drawLine(rect.x, y, rect.width, y);
+							y += _gridY * _imageScale;
 						}
 					}
 				}
 				void drawHLines() { mixin(S_TRACE);
 					if (1 < _gridX) { mixin(S_TRACE);
 						foreach (x; _gridXH) { mixin(S_TRACE);
-							gc.drawLine(x, rect.y, x, rect.height);
+							x *= _imageScale;
+							e.gc.drawLine(x, rect.y, x, rect.height);
 						}
 					}
 					if (1 < _gridY) { mixin(S_TRACE);
 						foreach (y; _gridYH) { mixin(S_TRACE);
-							gc.drawLine(rect.x, y, rect.width, y);
+							y *= _imageScale;
+							e.gc.drawLine(rect.x, y, rect.width, y);
 						}
 					}
 				}
-				gc.setForeground(_gridColor ? _gridColor : d.getSystemColor(SWT.COLOR_DARK_GRAY));
-				gc.setLineStyle(SWT.LINE_DOT);
+				e.gc.setForeground(_gridColor ? _gridColor : d.getSystemColor(SWT.COLOR_DARK_GRAY));
+				e.gc.setLineStyle(SWT.LINE_DOT);
 				drawLines();
 				if (_gridXH.length || _gridYH.length) { mixin(S_TRACE);
-					gc.setForeground(_gridHighlightColor ? _gridHighlightColor : d.getSystemColor(SWT.COLOR_GRAY));
-					gc.setLineStyle(SWT.LINE_SOLID);
+					e.gc.setForeground(_gridHighlightColor ? _gridHighlightColor : d.getSystemColor(SWT.COLOR_GRAY));
+					e.gc.setLineStyle(SWT.LINE_SOLID);
 					drawHLines();
 				}
 			}
@@ -2980,15 +2986,13 @@ private:
 				int y2 = .max(_rangeStartPos.y, _rangeEndPos.y);
 				int w = x2 - x1;
 				int h = y2 - y1;
-				gc.drawFocus(x1, y1, w, h);
+				e.gc.drawFocus(x1 * _imageScale, y1 * _imageScale, w * _imageScale, h * _imageScale);
 			}
 
 			// トグルの描画
 			foreach_reverse (fi; drawToggleImgs) { mixin(S_TRACE);
-				fi.drawToggle(gc);
+				fi.drawToggle(e.gc, _imageScale);
 			}
-
-			e.gc.drawImage(buf, 0, 0);
 		}
 	}
 	class Traverse : Listener {
@@ -3023,7 +3027,7 @@ private:
 	}
 	void addRedraw(int x, int y, int width, int height) { mixin(S_TRACE);
 		_cancelFullRedraw = false;
-		redraw(x, y, width, height, false);
+		redraw(x * _imageScale, y * _imageScale, width * _imageScale, height * _imageScale, false);
 	}
 
 	private Color _backColor = null;
@@ -3153,6 +3157,8 @@ public:
 		return r;
 	}
 	int findSelectedIndex(int x, int y) { mixin(S_TRACE);
+		x /= _imageScale;
+		y /= _imageScale;
 		foreach_reverse (t; fBacks) { mixin(S_TRACE);
 			auto i = t[0];
 			auto img = t[1];
@@ -3373,8 +3379,11 @@ public:
 	int highPoint() { return _highPoint; }
 
 	/// 唯一のコンストラクタ。
-	this (Composite parent, int style) { mixin(S_TRACE);
+	this (Composite parent, int style, int width, int height, int imageScale) { mixin(S_TRACE);
 		super(parent, style);
+		_width = width;
+		_height = height;
+		_imageScale = imageScale;
 		addListener(SWT.MouseDown, new MouseDown);
 		addListener(SWT.MouseUp, new MouseUp);
 		addMouseMoveListener(new MMListener);

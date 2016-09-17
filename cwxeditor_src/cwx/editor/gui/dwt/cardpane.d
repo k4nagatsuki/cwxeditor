@@ -1904,18 +1904,22 @@ private:
 		Skin skin = _skinTemp ? _skinTemp : _comm.skin;
 		auto preview = _viewMode == CViewMode.TABLE;
 		auto detail = _viewMode == CViewMode.LIFE || preview;
+		ImageData data;
 		if (cast(CastCard)c) { mixin(S_TRACE);
-			return castCardImage(_prop, skin, cast(CastCard)c, ownerScenarioPath, detail);
+			data = castCardImage(_prop, skin, cast(CastCard)c, ownerScenarioPath, detail);
 		} else if (!cast(InfoCard)c && _ownerType is OwnerType.Cast) { mixin(S_TRACE);
 			final switch (_cardType) {
 			case CardType.Cast:
 				assert (0);
 			case CardType.Skill:
-				return .cardImage(_prop, skin, cast(const SkillCard)c, ownerScenarioPath, cast(CastCard)_owner, (id) => cast(const SkillCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, cast(const SkillCard)c, ownerScenarioPath, cast(CastCard)_owner, (id) => cast(const SkillCard)pOwnerCard(id), detail, preview);
+				break;
 			case CardType.Item:
-				return .cardImage(_prop, skin, cast(const ItemCard)c, ownerScenarioPath, cast(CastCard)_owner, (id) => cast(const ItemCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, cast(const ItemCard)c, ownerScenarioPath, cast(CastCard)_owner, (id) => cast(const ItemCard)pOwnerCard(id), detail, preview);
+				break;
 			case CardType.Beast:
-				return .cardImage(_prop, skin, cast(const BeastCard)c, ownerScenarioPath, cast(CastCard)_owner, (id) => cast(const BeastCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, cast(const BeastCard)c, ownerScenarioPath, cast(CastCard)_owner, (id) => cast(const BeastCard)pOwnerCard(id), detail, preview);
+				break;
 			case CardType.Info:
 				assert (0);
 			}
@@ -1924,15 +1928,23 @@ private:
 			case CardType.Cast:
 				assert (0);
 			case CardType.Skill:
-				return .cardImage(_prop, skin, cast(const SkillCard)c, ownerScenarioPath, cast(CastCard)null, (id) => cast(const SkillCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, cast(const SkillCard)c, ownerScenarioPath, cast(CastCard)null, (id) => cast(const SkillCard)pOwnerCard(id), detail, preview);
+				break;
 			case CardType.Item:
-				return .cardImage(_prop, skin, cast(const ItemCard)c, ownerScenarioPath, cast(CastCard)null, (id) => cast(const ItemCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, cast(const ItemCard)c, ownerScenarioPath, cast(CastCard)null, (id) => cast(const ItemCard)pOwnerCard(id), detail, preview);
+				break;
 			case CardType.Beast:
-				return .cardImage(_prop, skin, cast(const BeastCard)c, ownerScenarioPath, cast(CastCard)null, (id) => cast(const BeastCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, cast(const BeastCard)c, ownerScenarioPath, cast(CastCard)null, (id) => cast(const BeastCard)pOwnerCard(id), detail, preview);
+				break;
 			case CardType.Info:
-				return .cardImage(_prop, skin, cast(const InfoCard)c, ownerScenarioPath, cast(CastCard)null, (id) => cast(const InfoCard)pOwnerCard(id), detail, preview);
+				data = .cardImage(_prop, skin, cast(const InfoCard)c, ownerScenarioPath, cast(CastCard)null, (id) => cast(const InfoCard)pOwnerCard(id), detail, preview);
+				break;
 			}
 		}
+		if (1024 < _prop.s(1024)) { mixin(S_TRACE);
+			data = data.scaledTo(_prop.s(data.width), _prop.s(data.height));
+		}
+		return data;
 	}
 	string cardTitle(in Card c) { mixin(S_TRACE);
 		return .tryFormat(_prop.msgs.cardTitle, c.id, baseCard(c).name);
@@ -2408,10 +2420,10 @@ private:
 			}
 			int w = _prop.looks.cardSize.width + matPad.e + matPad.w;
 			int h = _prop.looks.cardSize.height + matPad.n + matPad.s;
-			_list.setCardSize(w, h, _prop.var.etc.showCardListTitle);
+			_list.setCardSize(_prop.s(w), _prop.s(h), _prop.var.etc.showCardListTitle);
 			_list.setLayoutValues(_prop.var.etc.cardsMarginX, _prop.var.etc.cardsSpaceX,
 				_prop.var.etc.cardsMarginY, _prop.var.etc.cardsSpaceY, _prop.var.etc.cardsTitleSpace,
-				_prop.var.etc.cardsDefaultWrap);
+				_prop.var.etc.cardsFocusLinePadding, _prop.var.etc.cardsDefaultWrap);
 		}
 		void updateCardListParams() { mixin(S_TRACE);
 			updateCardListParamsImpl();

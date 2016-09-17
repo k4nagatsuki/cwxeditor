@@ -12,9 +12,10 @@ import cwx.summary;
 import cwx.editor.gui.dwt.image;
 import cwx.editor.gui.dwt.properties;
 
+import std.algorithm : max;
+import std.conv;
 import std.file;
 import std.path;
-import std.conv;
 
 import org.eclipse.swt.all;
 
@@ -157,8 +158,14 @@ public:
 	/// summが存在する場合はwsnVer以上かを返す。
 	/// それ以外の場合は対象バージョンがCardWirthPyか否かを返す。
 	const
-	bool isTargetVersion(in Summary summ, string ver) {
+	bool isTargetVersion(in Summary summ, string ver) { mixin(S_TRACE);
 		return parent.isTargetVersion(summ, var.etc.targetVersion, ver);
+	}
+
+	/// 拡大率に応じた値に変換する。
+	const
+	int s(int s) { mixin(S_TRACE);
+		return s * .max(1, var.etc.imageScale);
 	}
 }
 

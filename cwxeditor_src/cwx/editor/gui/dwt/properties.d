@@ -373,7 +373,7 @@ public class FlexProps {
 	}
 	// 高DPI用にレイアウトパラメータを変更
 	private void updatePPIs(int dpi) { mixin(S_TRACE);
-		if (_dpi == dpi) return;
+		if (_dpi == dpi && _dpi == 96) return;
 		auto dpiMuls = cast(real)dpi / _dpi;
 		auto iDpiMuls = cast(real)dpi / 96;
 		_dpi = dpi;
@@ -387,8 +387,10 @@ public class FlexProps {
 							} else { mixin(S_TRACE);
 								assert (fld.value == fld.INIT);
 								this.tupleof[i].tupleof[j].value = cast(int)(fld.value * iDpiMuls);
-								this.tupleof[i].tupleof[j].INIT = cast(int)(fld.value * iDpiMuls);
 							}
+						}
+						if (fld.INIT != SWT.DEFAULT) { mixin(S_TRACE);
+							this.tupleof[i].tupleof[j].INIT = cast(int)(fld.INIT * iDpiMuls);
 						}
 					}
 				}

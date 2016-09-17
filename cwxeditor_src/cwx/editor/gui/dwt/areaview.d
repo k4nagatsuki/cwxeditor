@@ -1641,12 +1641,16 @@ private:
 		sc.setExpandHorizontal(false);
 		sc.setExpandVertical(false);
 		auto vs = _prop.looks.viewSize;
+		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND, vs.width, vs.height, _prop.var.etc.imageScale);
+
+		vs.width = _prop.s(vs.width);
+		vs.height = _prop.s(vs.height);
 		sc.getHorizontalBar().setIncrement(vs.width / 20);
 		sc.getVerticalBar().setIncrement(vs.height / 20);
 		sc.getHorizontalBar().setPageIncrement(vs.width / 5);
 		sc.getVerticalBar().setPageIncrement(vs.height / 5);
 		sc.setLayoutData(new GridData(GridData.FILL_BOTH));
-		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND);
+
 		static if (UseCards && UseBacks) {
 			_imgp.cancelFullRedraw();
 		}

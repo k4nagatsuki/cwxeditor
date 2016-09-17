@@ -336,10 +336,10 @@ class Preview {
 			if (_x + _w > dc.width) { mixin(S_TRACE);
 				_x -= _x + _w - dc.width;
 			}
-			_shell.setBounds(_x, _y, _w, _h);
+			_shell.setBounds(_x, _y, _prop.s(_w), _prop.s(_h));
 			auto data = _image.baseSizeData();
 			if (!data) return;
-			data = data.scaledTo(_w, _h);
+			data = data.scaledTo(_prop.s(_w), _prop.s(_h));
 			if (_paintImage) { mixin(S_TRACE);
 				_paintImage.dispose();
 			}
@@ -351,13 +351,13 @@ class Preview {
 			if (_image.transparent) { mixin(S_TRACE);
 				auto region = new Region;
 				auto rect = new Rectangle(0, 0, 0, 1);
-				auto pixels = new int[_w];
-				foreach (y; 0 .. _h) { mixin(S_TRACE);
+				auto pixels = new int[_prop.s(_w)];
+				foreach (y; 0 .. _prop.s(_h)) { mixin(S_TRACE);
 					rect.y = y;
-					data.getPixels(0, y, _w, pixels, 0);
+					data.getPixels(0, y, _prop.s(_w), pixels, 0);
 					int tStart = 0;
 					bool t = true;
-					foreach (x; 0 .. _w) { mixin(S_TRACE);
+					foreach (x; 0 .. _prop.s(_w)) { mixin(S_TRACE);
 						bool pt = data.transparentPixel == pixels[x];
 						if (pt) tStart = x;
 						if (t == pt) { mixin(S_TRACE);
@@ -372,7 +372,7 @@ class Preview {
 					}
 					if (!t) { mixin(S_TRACE);
 						rect.x = tStart + 1;
-						rect.width = _w - tStart;
+						rect.width = _prop.s(_w) - tStart;
 						region.add(rect);
 					}
 				}

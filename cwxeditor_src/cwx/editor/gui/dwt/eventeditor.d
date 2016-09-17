@@ -223,11 +223,11 @@ class EventEditor : Composite {
 		vbar.setThumb(1);
 		auto hbar = getHorizontalBar();
 		hbar.setMinimum(0);
-		hbar.setMaximum(32);
+		hbar.setMaximum(32.ppis);
 		hbar.setSelection(0);
-		hbar.setIncrement(16);
-		hbar.setPageIncrement(32);
-		hbar.setThumb(32);
+		hbar.setIncrement(16.ppis);
+		hbar.setPageIncrement(32.ppis);
+		hbar.setThumb(32.ppis);
 		.listener(this, SWT.Resize, &updateScrollBar);
 		.listener(hbar, SWT.Selection, &redraw);
 		.listener(vbar, SWT.Selection, &redraw);

@@ -17,6 +17,7 @@ class FlexEtcProps : Properties {
 
 	auto targetVersion = Prop!(string)("targetVersion", "1.50");
 	auto imeMode = Prop!(int)("imeMode", 0);
+	auto imageScale = Prop!(int, false, true)("imageScale", 1);
 	auto toolsLock = Prop!(bool)("toolsLock", false);
 	auto toolsOrder = Prop!(int[])("toolsOrder", []);
 	auto toolsWrapIndices = Prop!(int[])("toolsWrapIndices", []);
@@ -209,11 +210,12 @@ class FlexEtcProps : Properties {
 	auto layerListHeight = Prop!(int, false, true)("layerListHeight", 350);
 	auto cardLife = Prop!(bool)("cardLife", false);
 	auto cardDetails = Prop!(bool)("cardDetails", false);
-	auto cardsMarginX = Prop!(int, true)("cardsMarginX", 5);
-	auto cardsSpaceX = Prop!(int, true)("cardsSpaceX", 8);
-	auto cardsMarginY = Prop!(int, true)("cardsMarginY", 5);
-	auto cardsSpaceY = Prop!(int, true)("cardsSpaceY", 8);
-	auto cardsTitleSpace = Prop!(int, true)("cardsTitleSpace", 2);
+	auto cardsMarginX = Prop!(int, true, true)("cardsMarginX", 5);
+	auto cardsSpaceX = Prop!(int, true, true)("cardsSpaceX", 8);
+	auto cardsMarginY = Prop!(int, true, true)("cardsMarginY", 5);
+	auto cardsSpaceY = Prop!(int, true, true)("cardsSpaceY", 8);
+	auto cardsTitleSpace = Prop!(int, true, true)("cardsTitleSpace", 2);
+	auto cardsFocusLinePadding = Prop!(int, true, true)("cardsFocusLinePadding", 2);
 	auto cardsDefaultWrap = Prop!(int, true)("cardsDefaultWrap", 4);
 	auto seKeyCodeSashL = Prop!(int)("seKeyCodeSashL", 4, 2012101100);
 	auto seKeyCodeSashR = Prop!(int)("seKeyCodeSashR", 7, 2012101100);

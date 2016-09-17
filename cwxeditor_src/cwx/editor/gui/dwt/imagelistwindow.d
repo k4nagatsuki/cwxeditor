@@ -45,10 +45,10 @@ class ImageListWindow(MtType Type) {
 		}
 		.listener(_shl, SWT.Move, &saveWin);
 		.listener(_shl, SWT.Resize, &saveWin);
-		_list = new ImageList(_shl, SWT.NONE);
+		_list = new ImageList(_shl, SWT.NONE, _prop.var.etc.imageScale);
 		static if (Type == MtType.CARD) {
 			auto s = _prop.looks.cardSize;
-			_list.init(s.width, s.height, &createImage);
+			_list.init(_prop.s(s.width), _prop.s(s.height), &createImage);
 			_list.mask = true;
 		} else { mixin(S_TRACE);
 			_list.init(_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, &createImage);
@@ -135,11 +135,13 @@ class ImageList : Composite {
 	private bool _mask;
 	private ptrdiff_t _sel = -1;
 	private ImageData delegate(string path, bool mask) _createImage;
+	private int _imageScale = 1;
 
 	private bool _showSelection = false;
 
-	this (Composite parent, int style) { mixin(S_TRACE);
+	this (Composite parent, int style, int imageScale) { mixin(S_TRACE);
 		super (parent, style | SWT.V_SCROLL | SWT.DOUBLE_BUFFERED);
+		_imageScale = imageScale;
 		addControlListener(new Resize);
 		addPaintListener(new Paint);
 		addMouseMoveListener(new MouseMove);
@@ -219,30 +221,24 @@ class ImageList : Composite {
 		foreach (i, ref imgData; _image) { mixin(S_TRACE);
 			if (ca.intersects(x, y, _imgW, fh + _imgH)) { mixin(S_TRACE);
 				int iw, ih;
-				if (imgData) { mixin(S_TRACE);
-					iw = imgData.width;
-					ih = imgData.height;
-				} else { mixin(S_TRACE);
+				if (!imgData) { mixin(S_TRACE);
 					imgData = _createImage(_path[i], _mask);
-					if (_imgW < imgData.width || _imgH < imgData.height) { mixin(S_TRACE);
-						real wr = cast(real) _imgW / imgData.width;
-						real hr = cast(real) _imgH / imgData.height;
-						iw = cast(int) (imgData.width * min(wr, hr));
-						ih = cast(int) (imgData.height * min(wr, hr));
-						auto data2 = imgData;
-						imgData = imgData.scaledTo(iw, ih);
-						data2.data[] = 0;
-						delete data2.data;
-					} else { mixin(S_TRACE);
-						iw = imgData.width;
-						ih = imgData.height;
-					}
+				}
+				if (_imgW < imgData.width * _imageScale || _imgH < imgData.height * _imageScale) { mixin(S_TRACE);
+					real wr = cast(real)_imgW / (imgData.width * _imageScale);
+					real hr = cast(real)_imgH / (imgData.height * _imageScale);
+					iw = cast(int)(imgData.width * _imageScale * min(wr, hr));
+					ih = cast(int)(imgData.height * _imageScale * min(wr, hr));
+				} else { mixin(S_TRACE);
+					iw = imgData.width * _imageScale;
+					ih = imgData.height * _imageScale;
 				}
 				auto img = new Image(getDisplay(), imgData);
 				scope (exit) img.dispose();
 				int ix = (_imgW - iw) / 2;
 				int iy = (_imgH - ih) / 2;
-				e.gc.drawImage(img, x + ix, y + iy);
+				e.gc.drawImage(img, 0, 0, imgData.width, imgData.height,
+					x + ix, y + iy, iw, ih);
 				string name = .cutText(_path[i].baseName(), e.gc, _imgW);
 				auto te = e.gc.wTextExtent(name);
 				e.gc.wDrawText(name, x + (_imgW - te.x) / 2, y + _imgH);

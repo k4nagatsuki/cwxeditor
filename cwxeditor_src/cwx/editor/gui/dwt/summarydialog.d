@@ -191,7 +191,7 @@ private:
 			auto skin = summSkin;
 			{ mixin(S_TRACE);
 				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, _readOnly, _comm, _prop, _summ,
-					_prop.looks.cardSize.width, _prop.looks.cardSize.height, true, () => _sname.getText(), &clearBuf);
+					_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), true, () => _sname.getText(), &clearBuf);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.images = _summ.imagePaths;
@@ -736,9 +736,9 @@ private class SummaryPreview : Composite {
 				drawCenterText(_prop.looks.summaryPageFont(skin.legacy),
 					_prop.msgs.summaryPageDummy, _prop.looks.summaryPageY);
 			}
-			auto bx = (rect.width - size.width) / 2;
-			auto by = (rect.height - size.height) / 2;
-			e.gc.drawImage(buf, bx, by);
+			auto bx = (rect.width - _prop.s(size.width)) / 2;
+			auto by = (rect.height - _prop.s(size.height)) / 2;
+			e.gc.drawImage(buf, 0, 0, size.width, size.height, bx, by, _prop.s(size.width), _prop.s(size.height));
 		}
 	}
 
@@ -757,7 +757,7 @@ private class SummaryPreview : Composite {
 
 		auto size = _prop.looks.summarySize;
 		_summImage = new Canvas(grp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
-		_summImage.setLayoutData(_summImage.computeSize(size.width, size.height));
+		_summImage.setLayoutData(_summImage.computeSize(_prop.s(size.width), _prop.s(size.height)));
 		_summImage.addPaintListener(new PListener);
 
 		_comm.refSkin.add(&clearBuf);

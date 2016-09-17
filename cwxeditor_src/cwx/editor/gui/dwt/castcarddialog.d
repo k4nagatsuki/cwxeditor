@@ -230,7 +230,7 @@ private:
 			}
 			{ mixin(S_TRACE);
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, _readOnly, _comm, _prop, _summ,
-					_prop.looks.cardSize.width, _prop.looks.cardSize.height, true, &_name.getText);
+					_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), true, &_name.getText);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));

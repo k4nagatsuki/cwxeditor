@@ -677,7 +677,7 @@ public:
 			auto gc = new GC(this);
 			scope (exit) gc.dispose();
 			_fontHeight = gc.getFontMetrics().getHeight();
-			cardH += _titleSpace + _fontHeight + 1;
+			cardH += _titleSpace + _fontHeight + 1.ppis;
 		}
 		_defItmW = cardW;
 		_defItmH = cardH;
@@ -685,12 +685,13 @@ public:
 		_itmH = cardH;
 		if (isVisible()) redraw();
 	}
-	void setLayoutValues(int marginX, int spaceX, int marginY, int spaceY, int titleSpace, int defWrap) { mixin(S_TRACE);
+	void setLayoutValues(int marginX, int spaceX, int marginY, int spaceY, int titleSpace, int focusLinePadding, int defWrap) { mixin(S_TRACE);
 		_marginX = marginX;
 		_spaceX = spaceX;
 		_marginY = marginY;
 		_spaceY = spaceY;
 		_titleSpace = titleSpace;
+		_focusLinePadding = focusLinePadding;
 		_defWrap = defWrap;
 		setCardSize(_cardW, _cardH, _showTitle);
 	}
@@ -1180,7 +1181,7 @@ public:
 		createImage();
 		createTitle();
 		if (_createTitle) { mixin(S_TRACE);
-			return _imgData.height + _parent._titleSpace + _parent._fontHeight + 1;
+			return _imgData.height + _parent._titleSpace + _parent._fontHeight + 1.ppis;
 		} else { mixin(S_TRACE);
 			return _imgData.height;
 		}
