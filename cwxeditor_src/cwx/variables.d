@@ -428,6 +428,7 @@ class FlexEtcProps : Properties {
 	auto saveNeedChanged = Prop!(bool)("saveNeedChanged", true);
 	auto canVanishWorkAreaInMainWindow = Prop!(bool)("canVanishWorkAreaInMainWindow", false);
 
+	auto showEventTreeLineNumber = Prop!(bool)("showEventTreeLineNumber", true);
 	auto showEventTreeDetail = Prop!(bool)("showEventTreeDetail", true);
 	auto editTriggerType = Prop!(int)("editTriggerType", EditTrigger.Slow);
 

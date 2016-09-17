@@ -80,6 +80,7 @@ private:
 	Menu _evTemplM = null;
 	Converter[CType] _conts;
 	bool _showEventTreeDetail = false;
+	bool _showLineNumber = false;
 	EventEdit _ee = null;
 	TreeEdit _te = null;
 
@@ -1806,6 +1807,7 @@ public:
 
 		_comp.addDisposeListener(new TRDListener);
 		_showEventTreeDetail = _prop.var.etc.showEventTreeDetail;
+		_showLineNumber = _prop.var.etc.showEventTreeLineNumber;
 
 		if (!_readOnly) { mixin(S_TRACE);
 			_cbarPar = new Composite(_comp, SWT.NONE);
@@ -1873,6 +1875,7 @@ public:
 		if ((_summ ? _prop.var.etc.straightEventTreeView : straightEventTreeView)) { mixin(S_TRACE);
 			_tree.editor = new EventEditor(_comm, _comp, SWT.BORDER | _readOnly, _summ, null);
 			_tree.editor.showEventTreeDetail = _showEventTreeDetail;
+			_tree.editor.showLineNumber = _showLineNumber;
 			_tree.editor.slope = _prop.var.etc.eventTreeSlope;
 			_ee = new EventEdit(_comm, _tree.editor, &editEnd, &createEditor);
 		} else { mixin(S_TRACE);
@@ -2859,6 +2862,18 @@ public:
 			_tree.editor.showEventTreeDetail = v;
 		}
 		_prop.var.etc.showEventTreeDetail = _showEventTreeDetail;
+	}
+
+	void reverseShowLineNumber() { mixin(S_TRACE);
+		showLineNumber = !_showLineNumber;
+	}
+	@property
+	void showLineNumber(bool v) { mixin(S_TRACE);
+		_showLineNumber = v;
+		if (_tree.editor) { mixin(S_TRACE);
+			_tree.editor.showLineNumber = v;
+		}
+		_prop.var.etc.showEventTreeLineNumber = _showLineNumber;
 	}
 
 	@property

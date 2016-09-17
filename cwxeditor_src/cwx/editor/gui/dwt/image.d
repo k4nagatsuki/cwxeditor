@@ -372,6 +372,7 @@ public:
 	@property Image expandTree() {return imgd!("tree_open.png");}
 	@property Image foldTree() {return imgd!("tree_close.png");}
 	@property Image showEventTreeDetail() {return imgd!("evt_detail.png");}
+	@property Image showEventTreeLineNumber() {return imgd!("evt_linenum.png");}
 
 	@property Image addCoupon() {return imgd!("add_coupon.png");}
 	@property Image altCoupon() {return imgd!("alt_coupon.png");}

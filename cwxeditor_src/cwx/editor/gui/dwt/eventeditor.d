@@ -29,18 +29,20 @@ private class PosInfo {
 	int relY;
 	int height;
 	int index;
+	int lineNumber;
 	Content content;
 	string eventText;
 	int eventTextWidth;
 	int commentLineX = 0;
 	Rectangle commentRect = null;
 
-	this (int depth1, int depth2, int relY, int height, int index, Content content, string eventText, int eventTextWidth) {
+	this (int depth1, int depth2, int relY, int height, int index, int lineNumber, Content content, string eventText, int eventTextWidth) {
 		this.depth1 = depth1;
 		this.depth2 = depth2;
 		this.relY = relY;
 		this.height = height;
 		this.index = index;
+		this.lineNumber = lineNumber;
 		this.content = content;
 		this.eventText = eventText;
 		this.eventTextWidth = eventTextWidth;
@@ -161,6 +163,7 @@ class EventEditor : Composite {
 	private int _imgPos = 0;
 	private int _heightSum = 0;
 	private int _widthSum = 0;
+	private int _lineNumWidth = 0;
 	private Content _selected = null, _lightup = null;
 	private Content _selectedParentStart = null, _lightupParentStart = null;
 	private int _selectedIndex = -1;
@@ -186,6 +189,7 @@ class EventEditor : Composite {
 
 	private bool _expandedOperation = false;
 	private bool _showEventTreeDetail = true;
+	private bool _showLineNumber = false;
 
 	private bool[string] _updateContents; /// 次の描画で位置計算をやり直すスタートコンテント。
 	private bool _updatePosAll = true; /// 次の描画で全ての位置計算をやり直す。
@@ -339,6 +343,19 @@ class EventEditor : Composite {
 	@property
 	void showEventTreeDetail(bool v) { mixin(S_TRACE);
 		_showEventTreeDetail = v;
+		updateScrollBar();
+		redraw();
+	}
+
+	@property
+	const
+	bool showLineNumber() { mixin(S_TRACE);
+		return _showLineNumber;
+	}
+	@property
+	void showLineNumber(bool v) { mixin(S_TRACE);
+		_showLineNumber = v;
+		updateScrollBar();
 		redraw();
 	}
 
@@ -455,7 +472,7 @@ class EventEditor : Composite {
 		});
 	}
 
-	private void createPosInfoRecurse(GC gc, int x, int depth1, int depth2, Content c, ref PosInfo[] pos, ref int[] posY, ref int index, ref int relY, ref int heightSum, ref int width, ref bool[string] expanded2) { mixin(S_TRACE);
+	private void createPosInfoRecurse(GC gc, int x, int depth1, int depth2, Content c, ref PosInfo[] pos, ref int[] posY, ref int index, ref int lineNumber, ref int relY, ref int heightSum, ref int width, ref bool[string] expanded2) { mixin(S_TRACE);
 		while (true) { mixin(S_TRACE);
 			auto type = c.type;
 			int height = _lineHeight;
@@ -475,18 +492,21 @@ class EventEditor : Composite {
 				eventTextWidth = gc.wTextExtent(s).x;
 			}
 
-			pos ~= new PosInfo(depth1, depth2, relY, height, index, c, s, eventTextWidth);
+			pos ~= new PosInfo(depth1, depth2, relY, height, index, lineNumber, c, s, eventTextWidth);
 			posY ~= y;
 			_posTable[c.eventId] = pos[$ - 1];
 			relY += height;
 			index++;
+			lineNumber++;
 
 			// 幅計算
 			width = .max(width, calcRight(pos[$ - 1], x));
 
 			if (c.next.length && !_expanded.get(c.eventId, true)) { mixin(S_TRACE);
+				// 折りたたまれている
 				expanded2[c.eventId] = false;
-				break; // 折りたたまれている
+				lineNumber += c.countChildren();
+				break;
 			}
 			auto d = c.detail;
 			if (type != CType.START && c.next.length == 1 && (!(_summ ? _comm.prop.var.etc.forceIndentBranchContent : forceIndentBranchContent) || d.nextType == CNextType.NONE || d.nextType == CNextType.TEXT)) { mixin(S_TRACE);
@@ -501,7 +521,7 @@ class EventEditor : Composite {
 				continue; // 再帰回避
 			} else { mixin(S_TRACE);
 				foreach (next; c.next) { mixin(S_TRACE);
-					createPosInfoRecurse(gc, x + _imageWidth, depth1 + 1, depth2, next, pos, posY, index, relY, heightSum, width, expanded2);
+					createPosInfoRecurse(gc, x + _imageWidth, depth1 + 1, depth2, next, pos, posY, index, lineNumber, relY, heightSum, width, expanded2);
 				}
 			}
 			break;
@@ -587,6 +607,7 @@ class EventEditor : Composite {
 		PosInfo[] pos;
 		_posTable = null;
 		int index = 0;
+		int lineNumber = 1;
 		bool[string] expanded2;
 		StartInfo beforeInfo = null;
 		StartInfo[string] newStartInfos;
@@ -599,7 +620,7 @@ class EventEditor : Composite {
 			void createInfos() { mixin(S_TRACE);
 				int width = 0;
 				int relY = 0;
-				createPosInfoRecurse(gc, 0, 0, 0, start, pos, posY, index, relY, _heightSum, width, expanded2);
+				createPosInfoRecurse(gc, 0, 0, 0, start, pos, posY, index, lineNumber, relY, _heightSum, width, expanded2);
 				startInfo.cHeight = _heightSum - heightSumB;
 				startInfo.width = width;
 			}
@@ -614,10 +635,12 @@ class EventEditor : Composite {
 					foreach (ref info; _pos[startInfo.fromIndex .. startInfo.toIndex]) { mixin(S_TRACE);
 						posY ~= y + info.relY;
 						info.index = index;
+						info.lineNumber = lineNumber;
 						_posTable[info.content.eventId] = info;
 						auto expand = _expanded.get(info.content.eventId, true);
 						if (!expand) expanded2[info.content.eventId] = false;
 						index++;
+						lineNumber++;
 					}
 					pos ~= _pos[startInfo.fromIndex .. startInfo.toIndex];
 					_heightSum += startInfo.cHeight;
@@ -790,6 +813,14 @@ class EventEditor : Composite {
 			_widthSum = .max(box.x + box.width, _widthSum);
 		}
 		_widthSum += 2.ppis;
+
+		// 行番号表示幅を計算する
+		_lineNumWidth = 0;
+		foreach  (i; 0 .. 10) { mixin(S_TRACE);
+			_lineNumWidth =  .max(_lineNumWidth, gc.textExtent(.text(i)).x);
+		}
+		_lineNumWidth *= .text(_pos[$ - 1].lineNumber).length;
+		_lineNumWidth += (5 + 5 + 1).ppis; // 余白と区切り線の幅
 	}
 
 	private void updateScrollBar() { mixin(S_TRACE);
@@ -797,6 +828,9 @@ class EventEditor : Composite {
 
 		auto hbar = getHorizontalBar();
 		auto cw = ca.width - detailAreaWidth;
+		if (_showLineNumber) { mixin(S_TRACE);
+			cw -= _lineNumWidth;
+		}
 		hbar.setVisible(cw < _widthSum);
 		hbar.setMaximum(_widthSum);
 		hbar.setThumb(cw);
@@ -845,7 +879,11 @@ class EventEditor : Composite {
 	}
 
 	private int calcX(in PosInfo pos) { mixin(S_TRACE);
-		return (pos.depth1 * _imageWidth) + (pos.depth2 * _slope);
+		auto x = (pos.depth1 * _imageWidth) + (pos.depth2 * _slope);
+		if (_showLineNumber) { mixin(S_TRACE);
+			x += _lineNumWidth;
+		}
+		return x;
 	}
 
 	private int calcRight(in PosInfo pos) { mixin(S_TRACE);
@@ -1377,7 +1415,7 @@ class EventEditor : Composite {
 				// 後続コンテントが置かれるであろう位置を示す
 				// (終端の場合は後続コンテントが置けない事を示す)
 				int terX = calcX(pos) + hw - sx;
-				int terY = (startInfo.y + pos.relY) + hh + _lineHeight - sy + 1;
+				int terY = (startInfo.y + pos.relY) + hh + _lineHeight - sy + 1.ppis;
 				if (c.detail.owner) { mixin(S_TRACE);
 					e.gc.drawLine(calcX(pos) + hw - sx, (startInfo.y + pos.relY) + hh - sy, terX, terY - 8.ppis);
 					e.gc.drawLine(terX, terY - 6.ppis, terX, terY - 2.ppis);
@@ -1450,12 +1488,30 @@ class EventEditor : Composite {
 			}
 		}
 
+		// 行番号
+		if (_showLineNumber) { mixin(S_TRACE);
+			e.gc.setBackground(getBackground());
+			setAlpha(192);
+			auto w = _lineNumWidth;
+			e.gc.fillRectangle(e.x, e.y, w, e.height);
+			e.gc.setForeground(d.getSystemColor(SWT.COLOR_GRAY));
+			e.gc.drawLine(w, e.y, w, e.y + e.height);
+			setAlpha(255);
+			foreach (i, ref pos; poss) { mixin(S_TRACE);
+				auto startInfo = possInfo[i];
+				auto line = .text(pos.lineNumber);
+				auto te = e.gc.wTextExtent(line);
+				e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
+				e.gc.wDrawText(line, _lineNumWidth - (1 + 5).ppis - te.x, (startInfo.y + pos.relY) - sy + (_lineHeight - te.y) / 2, true);
+			}
+		}
+
 		// イベントコンテントの内容領域、警告
 		e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 		e.gc.setBackground(getBackground());
-		if (detailAreaWidth) {
+		if (detailAreaWidth) { mixin(S_TRACE);
 			setAlpha(192);
-			e.gc.fillRectangle(ca.width - detailAreaWidth + 1, e.y, detailAreaWidth - 1, e.height);
+			e.gc.fillRectangle(ca.width - detailAreaWidth + 1.ppis, e.y, detailAreaWidth - 1.ppis, e.height);
 			e.gc.setForeground(d.getSystemColor(SWT.COLOR_GRAY));
 			e.gc.drawLine(ca.width - detailAreaWidth, e.y, ca.width - detailAreaWidth, e.y + e.height);
 			setAlpha(255);

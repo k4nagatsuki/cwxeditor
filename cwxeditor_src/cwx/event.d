@@ -1224,6 +1224,28 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	inout
 	inout(Content)[] next() {return _next;}
 
+	/// このコンテントを親にしたツリーの
+	/// イベントコンテント数を再帰的にカウントする。
+	@property
+	const
+	size_t countChildren() { mixin(S_TRACE);
+		auto c = .rebindable(this);
+		size_t count = 0;
+		while (c.next.length) { mixin(S_TRACE);
+			count += c.next.length;
+			if (c.next.length == 1) { mixin(S_TRACE);
+				// 再帰回避
+				c = c.next[0];
+			} else { mixin(S_TRACE);
+				foreach (n; c.next) { mixin(S_TRACE);
+					count += n.countChildren();
+				}
+				break;
+			}
+		}
+		return count;
+	}
+
 	/// 後続コンテントのインデックスを交換する。
 	void swapContent(size_t index1, size_t index2) { mixin(S_TRACE);
 		if (index1 != index2) changed();

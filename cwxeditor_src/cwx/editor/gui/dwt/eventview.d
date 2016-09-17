@@ -72,6 +72,7 @@ private:
 	ToolItem _fireItm;
 	CCombo _keyCodeTim = null;
 	ToolItem _showEventTreeDetailItm;
+	ToolItem _showLineNumberItm;
 	Spinner _slope = null;
 
 	TCPD[] _tcpd;
@@ -1674,6 +1675,7 @@ public:
 
 	private bool _resetToolBar = false;
 	private bool _showEventTreeDetail = false;
+	private bool _showLineNumber = false;
 	private string _treeKindSel = "";
 	private string _fireSel = "";
 	private int _fireSelInt = 0;
@@ -1684,6 +1686,7 @@ public:
 			_resetToolBar = true;
 			_setupToolBar = false;
 			_showEventTreeDetail = _showEventTreeDetailItm.getSelection();
+			_showLineNumber = _showLineNumberItm.getSelection();
 			_prop.var.etc.eventTreeSlope = _slope.getSelection();
 			if (!_readOnly) { mixin(S_TRACE);
 				_treeKindSel = _treeKind.getText();
@@ -1709,6 +1712,7 @@ public:
 			refShowToolBar();
 			if (_resetToolBar) { mixin(S_TRACE);
 				_showEventTreeDetailItm.setSelection(_showEventTreeDetail);
+				_showLineNumberItm.setSelection(_showLineNumber);
 				_slope.setSelection(_prop.var.etc.eventTreeSlope);
 				if (!_readOnly) { mixin(S_TRACE);
 					_treeKind.setText(_treeKindSel);
@@ -2014,6 +2018,8 @@ public:
 		new ToolItem(bar, SWT.SEPARATOR);
 		_showEventTreeDetailItm = createToolItem2(_comm, bar,_prop.msgs.showEventTreeDetail, _prop.images.showEventTreeDetail, &_etree.reverseShowEventTreeDetail, () => _prop.var.etc.straightEventTreeView.value, SWT.CHECK);
 		_showEventTreeDetailItm.setSelection(_prop.var.etc.showEventTreeDetail);
+		_showLineNumberItm = createToolItem2(_comm, bar,_prop.msgs.showEventTreeLineNumber, _prop.images.showEventTreeLineNumber, &_etree.reverseShowLineNumber, () => _prop.var.etc.straightEventTreeView.value, SWT.CHECK);
+		_showLineNumberItm.setSelection(_prop.var.etc.showEventTreeLineNumber);
 		new ToolItem(bar, SWT.SEPARATOR);
 		auto imgW = _prop.images.content(CType.START).getBounds().width;
 		_slope = createSpinner(bar, _prop.msgs.eventTreeSlope, imgW, 0, _prop.var.etc.eventTreeSlope,

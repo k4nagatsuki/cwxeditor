@@ -2354,6 +2354,7 @@ class Msgs : Properties {
 	auto expandTree = Msg("expandTree", "全コンテントツリーを開く");
 	auto foldTree = Msg("foldTree", "全コンテントツリーを閉じる");
 	auto showEventTreeDetail = Msg("showEventTreeDetail", "イベントコンテントの詳細を表示");
+	auto showEventTreeLineNumber = Msg("showEventTreeLineNumber", "行番号を表示");
 
 	auto sex = AAMsg("sex", "key", "name");
 	auto period = AAMsg("period", "key", "name");
