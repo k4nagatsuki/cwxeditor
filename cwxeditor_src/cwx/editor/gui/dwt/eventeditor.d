@@ -756,8 +756,18 @@ class EventEditor : Composite {
 			return rect;
 		}
 		auto hh = _lineHeight / 2;
+		auto ucExtent = gc.wTextExtent(_comm.prop.msgs.startUseCount);
 		foreach (ptrdiff_t i, ref pos; _pos) { mixin(S_TRACE);
 			auto c = pos.content;
+			if (c.type is CType.START) { mixin(S_TRACE);
+				auto startInfo = _startInfos[c.eventId];
+				auto count = _et.startUseCounter.get(toStartId(c.name));
+				if (_pos[0].content is c) count++;
+				auto uc = .text(count);
+				auto tw = gc.wTextExtent(uc).x;
+				auto tw2 = ucExtent.x;
+				_widthSum = .max(_widthSum, startInfo.width  + tw + 4.ppis + tw2 + 4.ppis);
+			}
 			if (c.comment == "") { mixin(S_TRACE);
 				_pos[i].commentLineX = 0;
 				_pos[i].commentRect = null;
