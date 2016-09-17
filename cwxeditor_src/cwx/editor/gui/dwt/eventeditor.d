@@ -639,10 +639,13 @@ class EventEditor : Composite {
 						info.index = index;
 						info.lineNumber = lineNumber;
 						_posTable[info.content.eventId] = info;
-						auto expand = _expanded.get(info.content.eventId, true);
-						if (!expand) expanded2[info.content.eventId] = false;
 						index++;
 						lineNumber++;
+						auto expand = _expanded.get(info.content.eventId, true);
+						if (!expand) { mixin(S_TRACE);
+							expanded2[info.content.eventId] = false;
+							lineNumber += info.content.countChildren();
+						}
 					}
 					pos ~= _pos[startInfo.fromIndex .. startInfo.toIndex];
 					_heightSum += startInfo.cHeight;
