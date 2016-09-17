@@ -190,6 +190,7 @@ class EventEditor : Composite {
 	private bool _expandedOperation = false;
 	private bool _showEventTreeDetail = true;
 	private bool _showLineNumber = false;
+	private int _detailAreaWidth = 0;
 
 	private bool[string] _updateContents; /// 次の描画で位置計算をやり直すスタートコンテント。
 	private bool _updatePosAll = true; /// 次の描画で全ての位置計算をやり直す。
@@ -211,6 +212,7 @@ class EventEditor : Composite {
 		_lineHeight = .max(_lineHeight, th);
 		_lineTextY = (_lineHeight - th) / 2;
 		_imgPos = (_lineHeight - _comm.prop.images.content(CType.START).getBounds().height) / 2;
+		_detailAreaWidth = _comm.prop.var.etc.detailAreaWidth;
 
 		auto vbar = getVerticalBar();
 		vbar.setMinimum(0);
@@ -810,9 +812,8 @@ class EventEditor : Composite {
 			_pos[i].commentRect = box;
 			_posTable[c.eventId].commentLineX = rx;
 			_posTable[c.eventId].commentRect = box;
-			_widthSum = .max(box.x + box.width, _widthSum);
+			_widthSum = .max(box.x + box.width + 2.ppis, _widthSum);
 		}
-		_widthSum += 2.ppis;
 
 		// 行番号表示幅を計算する
 		_lineNumWidth = 0;
@@ -1189,14 +1190,19 @@ class EventEditor : Composite {
 		}
 	}
 
+	@property
+	const
+	private int detailAreaWidth() {
+		return _showEventTreeDetail ? _detailAreaWidth : 0;
+	}
+
 	private void onMouseMove(Event e) { mixin(S_TRACE);
 		auto ca = getClientArea();
 		if (_moveDetailLine) { mixin(S_TRACE);
-			int w = detailAreaWidth;
-			_comm.prop.var.etc.detailAreaWidth = ca.width - e.x;
-			_comm.prop.var.etc.detailAreaWidth = .min(detailAreaWidth, ca.width - _imageWidth);
-			_comm.prop.var.etc.detailAreaWidth = .max(detailAreaWidth, _imageWidth);
-			w = .max(w, detailAreaWidth);
+			_detailAreaWidth = ca.width - e.x;
+			_detailAreaWidth = .min(_detailAreaWidth, ca.width - _imageWidth);
+			_detailAreaWidth = .max(_detailAreaWidth, _imageWidth);
+			_comm.prop.var.etc.detailAreaWidth = _detailAreaWidth;
 			updateScrollBar();
 			redraw();
 		} else { mixin(S_TRACE);
@@ -1283,14 +1289,6 @@ class EventEditor : Composite {
 		}
 		vbar.setSelection(val);
 		updateLightup();
-	}
-
-	@property
-	private int detailAreaWidth() {
-		if (!_showEventTreeDetail) return 0;
-		auto ca = getClientArea();
-		int detailAreaWidth = min(_comm.prop.var.etc.detailAreaWidth.value, ca.width - _imageWidth);
-		return .max(detailAreaWidth, _imageWidth);
 	}
 
 	private void onPaint(Event e) { mixin(S_TRACE);
