@@ -830,11 +830,13 @@ class EventEditor : Composite {
 
 		// 行番号表示幅を計算する
 		_lineNumWidth = 0;
-		foreach  (i; 0 .. 10) { mixin(S_TRACE);
-			_lineNumWidth =  .max(_lineNumWidth, gc.textExtent(.text(i)).x);
+		if (_pos.length) { mixin(S_TRACE);
+			foreach  (i; 0 .. 10) { mixin(S_TRACE);
+				_lineNumWidth =  .max(_lineNumWidth, gc.textExtent(.text(i)).x);
+			}
+			_lineNumWidth *= .text(_pos[$ - 1].lineNumber).length;
+			_lineNumWidth += (5 + 5 + 1).ppis; // 余白と区切り線の幅
 		}
-		_lineNumWidth *= .text(_pos[$ - 1].lineNumber).length;
-		_lineNumWidth += (5 + 5 + 1).ppis; // 余白と区切り線の幅
 	}
 
 	private void updateScrollBar() { mixin(S_TRACE);
@@ -842,7 +844,7 @@ class EventEditor : Composite {
 
 		auto hbar = getHorizontalBar();
 		auto cw = ca.width - detailAreaWidth;
-		if (_showLineNumber) { mixin(S_TRACE);
+		if (_showLineNumber && _pos.length) { mixin(S_TRACE);
 			cw -= _lineNumWidth;
 		}
 		hbar.setVisible(cw < _widthSum);
@@ -894,7 +896,7 @@ class EventEditor : Composite {
 
 	private int calcX(in PosInfo pos) { mixin(S_TRACE);
 		auto x = (pos.depth1 * _imageWidth) + (pos.depth2 * _slope);
-		if (_showLineNumber) { mixin(S_TRACE);
+		if (_showLineNumber && _pos.length) { mixin(S_TRACE);
 			x += _lineNumWidth;
 		}
 		return x;
@@ -1500,7 +1502,7 @@ class EventEditor : Composite {
 		}
 
 		// 行番号
-		if (_showLineNumber) { mixin(S_TRACE);
+		if (_showLineNumber && _pos.length) { mixin(S_TRACE);
 			e.gc.setBackground(getBackground());
 			setAlpha(192);
 			auto w = _lineNumWidth;
