@@ -1901,6 +1901,9 @@ private:
 	}
 	private Skin _skinTemp = null;
 	ImageData cardImage(in Card c) { mixin(S_TRACE);
+		return cardImage(c, true);
+	}
+	ImageData cardImage(in Card c, bool imageScale) { mixin(S_TRACE);
 		Skin skin = _skinTemp ? _skinTemp : _comm.skin;
 		auto preview = _viewMode == CViewMode.TABLE;
 		auto detail = _viewMode == CViewMode.LIFE || preview;
@@ -1941,7 +1944,7 @@ private:
 				break;
 			}
 		}
-		if (1024 < _prop.s(1024)) { mixin(S_TRACE);
+		if (imageScale && 1024 < _prop.s(1024)) { mixin(S_TRACE);
 			data = data.scaledTo(_prop.s(data.width), _prop.s(data.height));
 		}
 		return data;
@@ -2130,7 +2133,7 @@ private:
 		}
 		closePreview();
 		_previewC = c;
-		auto imgData = cardImage(c);
+		auto imgData = cardImage(c, false);
 		_previewI = new PileImage(imgData, imgData.width, imgData.height, false);
 		_previewI.createImage();
 
