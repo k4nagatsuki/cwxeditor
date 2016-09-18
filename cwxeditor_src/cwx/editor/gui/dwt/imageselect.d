@@ -124,7 +124,7 @@ public:
 				comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				comp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 				_image = new Canvas(comp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
-				_image.setLayoutData(_image.computeSize(w, h));
+				setPreviewSize(_w, _h);
 				_image.addPaintListener(new PListener);
 				.listener(_image, SWT.Dispose, { mixin(S_TRACE);
 					foreach (img; _img) { mixin(S_TRACE);
@@ -269,7 +269,18 @@ public:
 			}
 			_layerName.getParent().setLayoutData(gd);
 		}
-	} 
+	}
+
+	void setPreviewSize(int w, int h) { mixin(S_TRACE);
+		_group.setRedraw(false);
+		scope (exit) _group.setRedraw(true);
+		_w = w;
+		_h = h;
+		_image.setLayoutData(_image.computeSize(_w, _h));
+		_group.layout(true);
+		_image.getParent().layout(true);
+	}
+
 	@property
 	void mask(bool mask) { mixin(S_TRACE);
 		_mask = mask;

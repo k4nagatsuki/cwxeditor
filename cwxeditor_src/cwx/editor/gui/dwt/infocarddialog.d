@@ -122,6 +122,13 @@ protected:
 			mod(_imgPath);
 			_imgPath.modEvent ~= &refreshWarning;
 			_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
+			void refImageScale() { mixin(S_TRACE);
+				_imgPath.setPreviewSize(_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height));
+			}
+			_comm.refImageScale.add(&refImageScale);
+			.listener(_imgPath.widget, SWT.Dispose, { mixin(S_TRACE);
+				_comm.refImageScale.remove(&refImageScale);
+			});
 		}
 		{ mixin(S_TRACE);
 			auto grp = new Group(area, SWT.NONE);

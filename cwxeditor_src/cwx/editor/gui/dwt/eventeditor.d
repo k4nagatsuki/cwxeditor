@@ -1413,8 +1413,8 @@ class EventEditor : Composite {
 				if (calcX(pPos) == calcX(pos)) { mixin(S_TRACE);
 					e.gc.drawLine(calcX(pos) + hw - sx, (startInfo.y + pPos.relY) + hh - sy, calcX(pos) + hw - sx, (startInfo.y + pos.relY) + hh - sy);
 				} else { mixin(S_TRACE);
-					if ((startInfo.y + pPos.relY) + hh - sy < (startInfo.y + pos.relY) - sy) { mixin(S_TRACE);
-						e.gc.drawLine(calcX(pPos) + hw - sx, (startInfo.y + pPos.relY) + hh - sy, calcX(pPos) + hw - sx, (startInfo.y + pos.relY) - sy);
+					if ((startInfo.y + pPos.relY) + hh - sy < (startInfo.y + pos.relY) - sy - hh) { mixin(S_TRACE);
+						e.gc.drawLine(calcX(pPos) + hw - sx, (startInfo.y + pPos.relY) + hh - sy, calcX(pPos) + hw - sx, (startInfo.y + pos.relY) - sy - hh);
 					}
 					setAntialias(SWT.ON);
 					auto cap = e.gc.getLineCap();

@@ -2021,7 +2021,7 @@ public:
 		_showLineNumberItm = createToolItem2(_comm, bar,_prop.msgs.showEventTreeLineNumber, _prop.images.showEventTreeLineNumber, &_etree.reverseShowLineNumber, () => _prop.var.etc.straightEventTreeView.value, SWT.CHECK);
 		_showLineNumberItm.setSelection(_prop.var.etc.showEventTreeLineNumber);
 		new ToolItem(bar, SWT.SEPARATOR);
-		auto imgW = _prop.images.content(CType.START).getBounds().width;
+		auto imgW = _prop.var.etc.eventTreeSlope.INIT.ppis;
 		_slope = createSpinner(bar, _prop.msgs.eventTreeSlope, imgW, 0, _prop.var.etc.eventTreeSlope,
 			&editEventTreeSlope, null, &cancelEventTreeSlope, SWT.NONE);
 		void refEventTreeViewStyle() { mixin(S_TRACE);

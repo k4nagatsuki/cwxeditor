@@ -17,7 +17,7 @@ class FlexEtcProps : Properties {
 
 	auto targetVersion = Prop!(string)("targetVersion", "1.50");
 	auto imeMode = Prop!(int)("imeMode", 0);
-	auto imageScale = Prop!(int, false, true)("imageScale", 1);
+	auto imageScale = Prop!(uint)("imageScale", 1, 2016091800);
 	auto toolsLock = Prop!(bool)("toolsLock", false);
 	auto toolsOrder = Prop!(int[])("toolsOrder", []);
 	auto toolsWrapIndices = Prop!(int[])("toolsWrapIndices", []);
@@ -31,10 +31,10 @@ class FlexEtcProps : Properties {
 	auto fileExtColumn = Prop!(int, false, true)("fileExtColumn", 60);
 	auto fileCountColumn = Prop!(int, false, true)("fileCountColumn", 60);
 	auto areaIdColumn = Prop!(int, false, true)("areaIdColumn", 50);
-	auto areaNameColumn = Prop!(int, false, true)("areaNameColumn", 280);
+	auto areaNameColumn = Prop!(int, false, true)("areaNameColumn", 190);
 	auto areaCountColumn = Prop!(int, false, true)("areaCountColumn", 60);
 	auto importAreaIdColumn = Prop!(int, false, true)("importAreaIdColumn", 50);
-	auto importAreaNameColumn = Prop!(int, false, true)("importAreaNameColumn", 280);
+	auto importAreaNameColumn = Prop!(int, false, true)("importAreaNameColumn", 190);
 	auto importAreaCountColumn = Prop!(int, false, true)("importAreaCountColumn", 60);
 	auto areasSortColumn = Prop!(int)("areasSortColumn", 0);
 	auto areasSortDirection = Prop!(int)("areasSortDirection", SortDir.Up);
@@ -50,11 +50,11 @@ class FlexEtcProps : Properties {
 	auto battleViewR = Prop!(int)("battleViewR", 4);
 	auto bgImageViewL = Prop!(int)("bgImageViewL", 1);
 	auto bgImageViewR = Prop!(int)("bgImageViewR", 4);
-	auto areaViewImageFlagL = Prop!(int)("areaViewImageFlagL", 3);
+	auto areaViewImageFlagL = Prop!(int)("areaViewImageFlagL", 4);
 	auto areaViewImageFlagR = Prop!(int)("areaViewImageFlagR", 1);
-	auto battleViewImageFlagL = Prop!(int)("battleViewImageFlagL", 3);
+	auto battleViewImageFlagL = Prop!(int)("battleViewImageFlagL", 4);
 	auto battleViewImageFlagR = Prop!(int)("battleViewImageFlagR", 1);
-	auto bgImageViewImageFlagL = Prop!(int)("bgImageViewImageFlagL", 3);
+	auto bgImageViewImageFlagL = Prop!(int)("bgImageViewImageFlagL", 4);
 	auto bgImageViewImageFlagR = Prop!(int)("bgImageViewImageFlagR", 1);
 	auto partyCardAlpha = Prop!(int, true)("partyCardAlpha", 176);
 	auto viewPartyCardsArea = Prop!(bool)("viewPartyCardsArea", true);

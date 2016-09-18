@@ -13,6 +13,7 @@ import cwx.types;
 import cwx.editor.gui.dwt.dockingfolder;
 import cwx.editor.gui.dwt.dutils : ppis, dpiMuls;
 
+import std.algorithm : max;
 import std.ascii;
 import std.conv;
 import std.string;
@@ -34,11 +35,11 @@ class WindowProps(string PropName, int Width, int Height, ulong SizeChgVersion =
 	@property const bool minimized() {return _minimized;}
 	@property void minimized(bool v) {_minimized = v;}
 
-	auto _x = Prop!(int)("x", SWT.DEFAULT);
+	auto _x = Prop!(int, false, true)("x", SWT.DEFAULT);
 	@property const int x() {return _x;}
 	@property void x(int v) {_x = v;}
 
-	auto _y = Prop!(int)("y", SWT.DEFAULT);
+	auto _y = Prop!(int, false, true)("y", SWT.DEFAULT);
 	@property const int y() {return _y;}
 	@property void y(int v) {_y = v;}
 
@@ -58,11 +59,11 @@ class WindowProps(string PropName, int Width, int Height, ulong SizeChgVersion =
 }
 
 class MainWin : Properties, WSize {
-	auto _x = Prop!(int)("x", SWT.DEFAULT);
+	auto _x = Prop!(int, false, true)("x", SWT.DEFAULT);
 	@property const int x() {return _x;}
 	@property void x(int v) {_x = v;}
 
-	auto _y = Prop!(int)("y", SWT.DEFAULT);
+	auto _y = Prop!(int, false, true)("y", SWT.DEFAULT);
 	@property const int y() {return _y;}
 	@property void y(int v) {_y = v;}
 
@@ -82,11 +83,11 @@ class MainWin : Properties, WSize {
 }
 
 class ContWin : Properties {
-	auto _x = Prop!(int)("x", SWT.DEFAULT);
+	auto _x = Prop!(int, false, true)("x", SWT.DEFAULT);
 	@property const int x() {return _x;}
 	@property void x(int v) {_x = v;}
 
-	auto _y = Prop!(int)("y", SWT.DEFAULT);
+	auto _y = Prop!(int, false, true)("y", SWT.DEFAULT);
 	@property const int y() {return _y;}
 	@property void y(int v) {_y = v;}
 
@@ -114,11 +115,11 @@ class EventWin(string Name, int Width, int Height, ulong SizeChgVersion = 0) : P
 }
 class ToolWin(string PropName, int Width, int Height, ulong SizeChgVersion = 0)
 		: Properties, DSize {
-	auto _x = Prop!(int)("x", SWT.DEFAULT);
+	auto _x = Prop!(int, false, true)("x", SWT.DEFAULT);
 	@property const int x() {return _x;}
 	@property void x(int v) {_x = v;}
 
-	auto _y = Prop!(int)("y", SWT.DEFAULT);
+	auto _y = Prop!(int, false, true)("y", SWT.DEFAULT);
 	@property const int y() {return _y;}
 	@property void y(int v) {_y = v;}
 
@@ -317,7 +318,9 @@ public class FlexProps {
 					this.tupleof[i] = newField(fld);
 				}
 
-				// tempとbackupの設定だけは環境によって初期値が変わる
+				// レイアウト関係及びtempとbackupの設定だけは環境によって初期値が変わる
+				etc.imageScale = .dpiMuls;
+				etc.eventTreeSlope = etc.eventTreeSlope * .dpiMuls;
 				final switch (_loc) {
 				case IniLocation.STANDARD, IniLocation.COPY:
 					dStr ~= " - " ~ .text(__LINE__);
@@ -421,7 +424,7 @@ public class FlexProps {
 					// 元の設定に応じて初期角度を設定
 					if (etc.straightEventTreeView) { mixin(S_TRACE);
 						if (etc.gentleAngleEventTree) { mixin(S_TRACE);
-							etc.eventTreeSlope.value = 8;
+							etc.eventTreeSlope.value = 8 * .dpiMuls;
 						} else { mixin(S_TRACE);
 							etc.eventTreeSlope.value = 0;
 						}
@@ -453,6 +456,13 @@ public class FlexProps {
 						}
 					}
 				}
+				if (dataVersion < 2016091800) { mixin(S_TRACE);
+					// imageScale追加
+					etc.imageScale = .dpiMuls;
+					etc.eventTreeSlope = etc.eventTreeSlope * .dpiMuls;
+				}
+				// 現在のDPI値に合わせて傾き値の補正
+				etc.eventTreeSlope = .max(etc.eventTreeSlope.INIT.ppis, etc.eventTreeSlope);
 				dStr ~= " - " ~ .text(__LINE__);
 			}
 			dStr ~= " - " ~ .text(__LINE__);

@@ -2433,9 +2433,11 @@ private:
 		_list.addSelectionListener(new SelChanged);
 		_comm.refShowCardListHeader.add(&updateLayout);
 		_comm.refShowCardListTitle.add(&updateCardListParams);
+		_comm.refImageScale.add(&updateCardListParams);
 		.listener(_list, SWT.Dispose, { mixin(S_TRACE);
 			_comm.refShowCardListHeader.remove(&updateLayout);
 			_comm.refShowCardListTitle.remove(&updateCardListParams);
+			_comm.refImageScale.remove(&updateCardListParams);
 		});
 		if (editMode) { mixin(S_TRACE);
 			_cle = new CardListEdit!Card(_comm, _list, &listEditEnd, &listCreateEditor);

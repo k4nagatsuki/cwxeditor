@@ -433,7 +433,6 @@ public:
 	@property
 	void id(ulong id) { mixin(S_TRACE);
 		if (_id != id) { mixin(S_TRACE);
-			cdebugln(name);
 			changed();
 		}
 		_id = id;

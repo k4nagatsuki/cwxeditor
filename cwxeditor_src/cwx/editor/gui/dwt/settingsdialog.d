@@ -51,6 +51,7 @@ import std.array;
 import std.ascii;
 import std.exception;
 import std.range : iota;
+import std.math;
 
 import org.eclipse.swt.all;
 import java.lang.all;
@@ -119,6 +120,7 @@ private:
 	ToolsPane!EvTemplate _evTempls;
 
 	CTabItem _tabE;
+	Combo _imageScale;
 	Combo _language;
 	string[int] _msgsTableIndex;
 	string[string] _msgsTableFile;
@@ -296,7 +298,7 @@ private:
 		{ mixin(S_TRACE);
 			auto comp2 = new Composite(comp, SWT.NONE);
 			comp2.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			comp2.setLayout(zeroMarginGridLayout(2, false));
+			comp2.setLayout(zeroMarginGridLayout(3, false));
 			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
 				grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -325,6 +327,29 @@ private:
 					_enginePath.setEnabled(!_findEnginePath.getSelection());
 					_refEnginePath.setEnabled(!_findEnginePath.getSelection());
 				});
+			}
+			{ mixin(S_TRACE);
+				auto grp = new Group(comp2, SWT.NONE);
+				grp.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+				grp.setText(_prop.msgs.imageScale);
+				grp.setLayout(new CenterLayout);
+				_imageScale = new Combo(grp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+				mod(_imageScale);
+				_imageScale.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
+				_imageScale.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				auto ca = _imageScale.getDisplay().getClientArea();
+				int imageScale = 1;
+				auto vs = _prop.looks.viewSize;
+				_imageScale.add(.tryFormat(_prop.msgs.imageScaleValue, imageScale));
+				_imageScale.select(0);
+				imageScale *= 2;
+				while (vs.width * imageScale <= ca.width && vs.height * imageScale <= ca.height) { mixin(S_TRACE);
+					_imageScale.add(.tryFormat(_prop.msgs.imageScaleValue, imageScale));
+					if (imageScale == _prop.var.etc.imageScale) { mixin(S_TRACE);
+						_imageScale.select(_imageScale.getItemCount() - 1);
+					}
+					imageScale *= 2;
+				}
 			}
 			{ mixin(S_TRACE);
 				auto grp = new Group(comp2, SWT.NONE);
@@ -1279,6 +1304,9 @@ protected:
 		}
 		_prop.var.etc.enginePath = engine;
 		_prop.var.etc.findEnginePath = _findEnginePath.getSelection();
+
+		_prop.var.etc.imageScale = cast(uint).pow(2, _imageScale.getSelectionIndex());
+
 		if (_language.getSelectionIndex() <= 0) { mixin(S_TRACE);
 			_prop.var.etc.languageFile = "";
 			_prop.var.etc.useSystemLanguage = true;
@@ -1384,6 +1412,7 @@ protected:
 
 struct OldSettings {
 	Props prop;
+	uint imageScale;
 	string targetVersion;
 	string oldEnginePath;
 	bool findEnginePath;
@@ -1435,9 +1464,12 @@ struct OldSettings {
 	bool showCloseButtonAllTab;
 	bool showMotionDescription;
 	bool xmlFileNameIsIDOnly;
+	bool showSummaryPreview;
+	bool showMessagePreview;
 	ToolBarSettings mainToolBar;
 	this (Props prop) { mixin(S_TRACE);
 		this.prop = prop;
+		this.imageScale = prop.var.etc.imageScale;
 		this.targetVersion = prop.var.etc.targetVersion;
 		this.oldEnginePath = prop.var.etc.enginePath;
 		this.oldWallpaper = prop.var.etc.wallpaper;
@@ -1492,9 +1524,35 @@ struct OldSettings {
 		this.mainToolBar = prop.var.etc.mainToolBar;
 		this.showMotionDescription = prop.var.etc.showMotionDescription;
 		this.xmlFileNameIsIDOnly = prop.var.etc.xmlFileNameIsIDOnly;
+		this.showSummaryPreview = prop.var.etc.showSummaryPreview;
+		this.showMessagePreview = prop.var.etc.showMessagePreview;
 	}
 	void raiseEvent(Commons comm) { mixin(S_TRACE);
 		bool refSkin = false;
+		if (imageScale != prop.var.etc.imageScale) { mixin(S_TRACE);
+			if (showSummaryPreview) { mixin(S_TRACE);
+				auto oldW = cast(int)prop.looks.summarySize.width * imageScale;
+				auto newW = cast(int)prop.looks.summarySize.width * prop.var.etc.imageScale;
+				prop.var.summaryDlg.width = prop.var.summaryDlg.width + (newW - oldW);
+			}
+			if (showMessagePreview && !floatMessagePreview) { mixin(S_TRACE);
+				auto b = prop.looks.messageBounds;
+				auto oldW = cast(int)b.width * imageScale;
+				auto newW = cast(int)b.width * prop.var.etc.imageScale;
+				prop.var.msgDlg.width = prop.var.msgDlg.width + (newW - oldW);
+			}
+			if (floatMessagePreview) {
+				auto b = prop.looks.messageBounds;
+				auto oldW = cast(int)b.width * imageScale;
+				auto newW = cast(int)b.width * prop.var.etc.imageScale;
+				prop.var.msgPrev.width = prop.var.msgPrev.width + (newW - oldW);
+				auto oldH = cast(int)b.height * imageScale;
+				auto newH = cast(int)b.height * prop.var.etc.imageScale;
+				prop.var.msgPrev.height = prop.var.msgPrev.height + (newH - oldH);
+			}
+
+			comm.refImageScale.call();
+		}
 		if (targetVersion != prop.var.etc.targetVersion) { mixin(S_TRACE);
 			comm.refTargetVersion.call();
 		}
@@ -1571,9 +1629,9 @@ struct OldSettings {
 		if (this.floatMessagePreview != prop.var.etc.floatMessagePreview) { mixin(S_TRACE);
 			int wg;
 			if (prop.var.etc.floatMessagePreview) { mixin(S_TRACE);
-				wg = -(cast(int) prop.looks.messageBounds.width);
+				wg = -prop.s(prop.looks.messageBounds.width);
 			} else { mixin(S_TRACE);
-				wg = prop.looks.messageBounds.width;
+				wg = prop.s(prop.looks.messageBounds.width);
 			}
 			if (prop.var.etc.showMessagePreview) { mixin(S_TRACE);
 				prop.var.msgDlg.width = .max(1, prop.var.msgDlg.width + wg);

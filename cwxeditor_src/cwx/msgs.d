@@ -446,7 +446,7 @@ class Msgs : Properties {
 	auto copyToUpper = Msg("copyToUpper", "台詞を上方にコピー");
 	auto copyToLower = Msg("copyToLower", "台詞を下方にコピー");
 	auto setTalkerCoupon = Msg("setTalkerCoupon", "追加");
-	auto messagePreview = Msg("messagePreview", "プレビュー");
+	auto messagePreview = Msg("messagePreview", "プレビュー(&P)");
 	auto dlgTitMessagePreview = Msg("dlgTitMessagePreview", "プレビュー");
 	auto messageVarKindColumn = Msg("messageVarKindColumn", "状態変数");
 	auto messageVarValueColumn = Msg("messageVarValueColumn", "サンプル値");
@@ -1827,6 +1827,9 @@ class Msgs : Properties {
 	auto etcSettings = Msg("etcSettings", "その他");
 
 	auto etcSettingsTitle = Msg("etcSettingsTitle", "詳細");
+
+	auto imageScale = Msg("imageScale", "表示倍率");
+	auto imageScaleValue = Msg("imageScaleValue", "%s倍");
 
 	auto languageSetting = Msg("languageSetting", "言語");
 	auto languageSystem = Msg("languageSystem", "システムの言語");

@@ -165,7 +165,7 @@ public:
 	/// 拡大率に応じた値に変換する。
 	const
 	int s(int s) { mixin(S_TRACE);
-		return s * .max(1, var.etc.imageScale);
+		return s * .max(1u, var.etc.imageScale);
 	}
 }
 

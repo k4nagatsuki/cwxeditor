@@ -1953,8 +1953,10 @@ Rectangle eventTreeMarkRect(C:EventTreeOwner)(Props prop, int left, int top, in 
 	auto et = useCount ? prop.looks.eventTreeXYWithCount : prop.looks.eventTreeXY;
 	if (prop.var.etc.ignoreEmptyStart ? !c2.isEmpty : 0 < c2.trees.length) { mixin(S_TRACE);
 		auto bounds = prop.images.eventTreeNoScale.getBounds();
-		bounds.x = left + et.x;
-		bounds.y = top + et.y;
+		bounds.x = left + prop.s(et.x);
+		bounds.y = top + prop.s(et.y);
+		bounds.width = prop.s(bounds.width);
+		bounds.height = prop.s(bounds.height);
 		return bounds;
 	}
 	return null;

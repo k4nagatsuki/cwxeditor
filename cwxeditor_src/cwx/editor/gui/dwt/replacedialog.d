@@ -2111,7 +2111,9 @@ public:
 			comp.setLayout(gl);
 			Button createButton(string text, void delegate() push) { mixin(S_TRACE);
 				auto b = new Button(comp, SWT.PUSH);
-				b.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				auto gd = new GridData(GridData.FILL_HORIZONTAL);
+				gd.widthHint = _prop.var.etc.buttonWidth;
+				b.setLayoutData(gd);
 				b.setText(text);
 				auto sa = new class SelectionAdapter {
 					private void delegate() push;

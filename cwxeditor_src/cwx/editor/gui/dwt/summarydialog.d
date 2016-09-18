@@ -122,6 +122,9 @@ private:
 		auto aComp = addition();
 		aComp.setLayout(normalGridLayout(1, true));
 		auto prev = new Button(aComp, SWT.TOGGLE);
+		auto pgd = new GridData;
+		pgd.widthHint = _prop.var.etc.buttonWidth;
+		prev.setLayoutData(pgd);
 		prev.setText(_prop.msgs.messagePreview);
 		prev.setSelection(_prop.var.etc.showSummaryPreview);
 		.listener(prev, SWT.Selection, { mixin(S_TRACE);
@@ -159,6 +162,17 @@ private:
 			}
 			getShell().setSize(ws);
 		}
+	}
+	void refImageScale() { mixin(S_TRACE);
+		_imgPath.setPreviewSize(_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height));
+
+		if (!_summImage) return;
+		if (getShell().isVisible()) getShell().setRedraw(false);
+		scope (exit) {
+			if (getShell().isVisible()) getShell().setRedraw(true);
+		}
+		showImagePreview(false);
+		showImagePreview(true);
 	}
 	void refreshPreview() { mixin(S_TRACE);
 		if (_summImage) { mixin(S_TRACE);
@@ -266,6 +280,11 @@ private:
 			_desc.setText(_summ.desc);
 			.listener(_desc.widget, SWT.Modify, &refreshPreview);
 		}
+		_comm.refImageScale.add(&refImageScale);
+		.listener(tabf, SWT.Dispose, { mixin(S_TRACE);
+			_comm.refImageScale.remove(&refImageScale);
+		});
+
 		auto tab = new CTabItem(tabf, SWT.NONE);
 		tab.setText(_prop.msgs.baseData);
 		tab.setControl(comp);
@@ -755,9 +774,8 @@ private class SummaryPreview : Composite {
 		grp.setText(_prop.msgs.summaryPreview);
 		grp.setLayout(new CenterLayout(SWT.HORIZONTAL | SWT.VERTICAL));
 
-		auto size = _prop.looks.summarySize;
 		_summImage = new Canvas(grp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
-		_summImage.setLayoutData(_summImage.computeSize(_prop.s(size.width), _prop.s(size.height)));
+		updateScale();
 		_summImage.addPaintListener(new PListener);
 
 		_comm.refSkin.add(&clearBuf);
@@ -765,6 +783,11 @@ private class SummaryPreview : Composite {
 			_comm.refSkin.remove(&clearBuf);
 			clearBuf();
 		});
+	}
+
+	void updateScale() { mixin(S_TRACE);
+		auto size = _prop.looks.summarySize;
+		_summImage.setLayoutData(_summImage.computeSize(_prop.s(size.width), _prop.s(size.height)));
 	}
 
 	void setImageSelect(string delegate() sname, CardImage[] delegate() imgPaths, Skin delegate() selectedSkin, string delegate() desc, int delegate() levMin, int delegate() levMax) { mixin(S_TRACE);

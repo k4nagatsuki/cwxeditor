@@ -90,9 +90,11 @@ private:
 					scope img = new Image(Display.getCurrent(), imgData);
 					scope (exit) img.dispose();
 					auto ca = canv.getClientArea();
-					auto x = (ca.width - imgData.width) / 2 + ca.x;
-					auto y = (ca.height - imgData.height) / 2 + ca.y;
-					e.gc.drawImage(img, x, y);
+					auto iw = _prop.s(imgData.width);
+					auto ih = _prop.s(imgData.height);
+					auto x = (ca.width - iw) / 2 + ca.x;
+					auto y = (ca.height - ih) / 2 + ca.y;
+					e.gc.drawImage(img, 0, 0, imgData.width, imgData.height, x, y, iw, ih);
 				}
 			}
 		}
@@ -365,6 +367,13 @@ protected:
 							mod(_imgPath);
 							_imgPath.modEvent ~= &refreshWarning;
 							_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
+							void refImageScale() { mixin(S_TRACE);
+								_imgPath.setPreviewSize(_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height));
+							}
+							_comm.refImageScale.add(&refImageScale);
+							.listener(_imgPath.widget, SWT.Dispose, { mixin(S_TRACE);
+								_comm.refImageScale.remove(&refImageScale);
+							});
 						} else static if (is (C == EnemyCard)) {
 							auto grp = new Group(comp2, SWT.NONE);
 							grp.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -372,6 +381,10 @@ protected:
 							grp.setText(_prop.msgs.image);
 							_image = new Canvas(grp, SWT.DOUBLE_BUFFERED);
 							_image.addPaintListener(new CardPaint);
+							_comm.refImageScale.add(&_image.redraw);
+							.listener(_image, SWT.Dispose, { mixin(S_TRACE);
+								_comm.refImageScale.remove(&_image.redraw);
+							});
 						} else { mixin(S_TRACE);
 							static assert (0);
 						}

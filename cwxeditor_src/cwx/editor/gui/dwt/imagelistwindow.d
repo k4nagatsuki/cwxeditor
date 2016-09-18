@@ -45,15 +45,28 @@ class ImageListWindow(MtType Type) {
 		}
 		.listener(_shl, SWT.Move, &saveWin);
 		.listener(_shl, SWT.Resize, &saveWin);
-		_list = new ImageList(_shl, SWT.NONE, _prop.var.etc.imageScale);
+		_list = new ImageList(_shl, SWT.NONE);
 		static if (Type == MtType.CARD) {
 			auto s = _prop.looks.cardSize;
-			_list.init(_prop.s(s.width), _prop.s(s.height), &createImage);
+			_list.init(_prop.s(s.width), _prop.s(s.height), &createImage, _prop.var.etc.imageScale);
 			_list.mask = true;
 		} else { mixin(S_TRACE);
-			_list.init(_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, &createImage);
+			_list.init(_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, &createImage, _prop.var.etc.imageScale);
 		}
 		_list.addMouseListener(new MouseDown);
+		void refImageScale() { mixin(S_TRACE);
+			static if (Type == MtType.CARD) {
+				auto s = _prop.looks.cardSize;
+				_list.init(_prop.s(s.width), _prop.s(s.height), &createImage, _prop.var.etc.imageScale);
+				_list.mask = true;
+			} else { mixin(S_TRACE);
+				_list.init(_prop.var.etc.bgImageSampleWidth, _prop.var.etc.bgImageSampleHeight, &createImage, _prop.var.etc.imageScale);
+			}
+		}
+		_comm.refImageScale.add(&refImageScale);
+		.listener(_list, SWT.Dispose, { mixin(S_TRACE);
+			_comm.refImageScale.remove(&refImageScale);
+		});
 
 		auto d = parent.getDisplay();
 		auto focusFilter = new class Listener {
@@ -139,22 +152,25 @@ class ImageList : Composite {
 
 	private bool _showSelection = false;
 
-	this (Composite parent, int style, int imageScale) { mixin(S_TRACE);
+	this (Composite parent, int style) { mixin(S_TRACE);
 		super (parent, style | SWT.V_SCROLL | SWT.DOUBLE_BUFFERED);
-		_imageScale = imageScale;
 		addControlListener(new Resize);
 		addPaintListener(new Paint);
 		addMouseMoveListener(new MouseMove);
 		setForeground(getDisplay().getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 		setBackground(getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
 	}
-	void init(int imgW, int imgH, ImageData delegate(string path, bool mask) createImage) { mixin(S_TRACE);
+	void init(int imgW, int imgH, ImageData delegate(string path, bool mask) createImage, int imageScale) { mixin(S_TRACE);
 		_imgW = imgW;
 		_imgH = imgH;
+		_imageScale = imageScale;
 		_createImage = createImage;
 
 		auto vs = getVerticalBar();
 		vs.setIncrement(_imgH / 4);
+
+		calcScrollParams();
+		redraw();
 	}
 	private int calcCountPerLine() { mixin(S_TRACE);
 		auto ca = getClientArea();

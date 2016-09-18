@@ -323,6 +323,7 @@ TopLevelPanel getTopLevelPanel(Control c) { mixin(S_TRACE);
 
 class Commons {
 	Dlg!() changed;
+	Dlg!() refImageScale;
 	Dlg!(Shell) save;
 	Dlg!() saved;
 	Dlg!() refHistories;

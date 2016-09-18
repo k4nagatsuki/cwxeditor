@@ -1640,16 +1640,24 @@ private:
 		auto sc = new ScrolledComposite(parent, SWT.H_SCROLL | SWT.V_SCROLL);
 		sc.setExpandHorizontal(false);
 		sc.setExpandVertical(false);
+		sc.setLayoutData(new GridData(GridData.FILL_BOTH));
+
 		auto vs = _prop.looks.viewSize;
 		_imgp = new ImagePane(sc, SWT.BORDER | SWT.NO_BACKGROUND, vs.width, vs.height, _prop.var.etc.imageScale);
 
-		vs.width = _prop.s(vs.width);
-		vs.height = _prop.s(vs.height);
-		sc.getHorizontalBar().setIncrement(vs.width / 20);
-		sc.getVerticalBar().setIncrement(vs.height / 20);
-		sc.getHorizontalBar().setPageIncrement(vs.width / 5);
-		sc.getVerticalBar().setPageIncrement(vs.height / 5);
-		sc.setLayoutData(new GridData(GridData.FILL_BOTH));
+		void refImageScale() { mixin(S_TRACE);
+			auto vs = _prop.looks.viewSize;
+			_imgp.imageScale = _prop.var.etc.imageScale;
+			vs.width = _prop.s(vs.width);
+			vs.height = _prop.s(vs.height);
+			sc.getHorizontalBar().setIncrement(vs.width / 20);
+			sc.getVerticalBar().setIncrement(vs.height / 20);
+			sc.getHorizontalBar().setPageIncrement(vs.width / 5);
+			sc.getVerticalBar().setPageIncrement(vs.height / 5);
+			auto rect = _imgp.computeSize(vs.width, vs.height);
+			sc.setMinSize(rect.x, rect.y);
+			_imgp.setSize(rect.x, rect.y);
+		}
 
 		static if (UseCards && UseBacks) {
 			_imgp.cancelFullRedraw();
@@ -1666,17 +1674,17 @@ private:
 		_imgp.gridColor(new Color(d, dwtData(_prop.var.etc.gridColor, alpha)));
 		_imgp.gridHighlightColor(new Color(d, dwtData(_prop.var.etc.gridHighlightColor, alpha)));
 		_comm.refWallpaper.add(&refreshWallpaper);
+		_comm.refImageScale.add(&refImageScale);
 		_imgp.addDisposeListener(new class DisposeListener {
 			override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 				_imgp.setBackgroundImage(cast(Image)null);
 				_comm.refWallpaper.remove(&refreshWallpaper);
+				_comm.refImageScale.remove(&refImageScale);
 			}
 		});
 		refreshWallpaper();
 		sc.setContent(_imgp);
-		auto rect = _imgp.computeSize(vs.width, vs.height);
-		sc.setMinSize(rect.x, rect.y);
-		_imgp.setSize(rect.x, rect.y);
+		refImageScale();
 		auto ipe = new IPEditListener;
 		_imgp.addMouseListener(ipe);
 		_imgp.changingImages(&changingImages);
@@ -5200,7 +5208,7 @@ public:
 				foreach (fname; arr.array) { mixin(S_TRACE);
 					try { mixin(S_TRACE);
 						scope p = _imgp.toControl(e.x, e.y);
-						if (!doFile(fname, p.x, p.y)) { mixin(S_TRACE);
+						if (!doFile(fname, p.x / _prop.var.etc.imageScale, p.y / _prop.var.etc.imageScale)) { mixin(S_TRACE);
 							break;
 						}
 						append++;
@@ -5233,7 +5241,7 @@ public:
 			if (isXMLBytes(e.data)) { mixin(S_TRACE);
 				scope p = _imgp.toControl(e.x, e.y);
 				int[] ci, bi;
-				appendFromXML(bytesToXML(e.data), p.x, p.y, DropTarg.ImagePane, ci, bi);
+				appendFromXML(bytesToXML(e.data), p.x / _prop.var.etc.imageScale, p.y / _prop.var.etc.imageScale, DropTarg.ImagePane, ci, bi);
 				if (ci.length || bi.length) { mixin(S_TRACE);
 					_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, ci, bi);
 					_comm.refreshToolBar();
@@ -5339,7 +5347,7 @@ public:
 					auto p = ctrl.toControl(e.x, e.y);
 					auto imgp = cast(ImagePane) ctrl;
 					int[] ci, bi;
-					appendFromXML(arr, p.x, p.y, imgp ? DropTarg.ImagePane : DropTarg.Card, ci, bi);
+					appendFromXML(arr, p.x / _prop.var.etc.imageScale, p.y / _prop.var.etc.imageScale, imgp ? DropTarg.ImagePane : DropTarg.Card, ci, bi);
 					if (ci.length || bi.length) { mixin(S_TRACE);
 						_undo ~= new UndoInsert(this.outer, _comm, _area, _summ, ci, bi);
 						_comm.refreshToolBar();

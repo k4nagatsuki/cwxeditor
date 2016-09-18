@@ -1781,7 +1781,7 @@ public:
 		if (visible && selected) { mixin(S_TRACE);
 			gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
 			gc.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
-			gc.drawFocus(newX, newY, newWidth, newHeight);
+			gc.drawFocus(newX * imageScale, newY * imageScale, newWidth * imageScale, newHeight * imageScale);
 			gc.setLineStyle(SWT.LINE_SOLID);
 			foreach (rect; tgls.values) { mixin(S_TRACE);
 				gc.fillRectangle(rect.x * imageScale + 1, rect.y * imageScale + 1,
@@ -3377,6 +3377,17 @@ public:
 	@property
 	const
 	int highPoint() { return _highPoint; }
+
+	/// 表示倍率。
+	@property
+	void imageScale(int value) { mixin(S_TRACE);
+		_imageScale = value;
+		redraw();
+	}
+	/// ditto
+	@property
+	const
+	int imageScale() { return _imageScale; }
 
 	/// 唯一のコンストラクタ。
 	this (Composite parent, int style, int width, int height, int imageScale) { mixin(S_TRACE);

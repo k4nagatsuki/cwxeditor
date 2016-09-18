@@ -145,6 +145,24 @@ class AbstractMessageDialog : EventDialog {
 			getShell().setSize(ws);
 		}
 	}
+
+	private void refImageScale() { mixin(S_TRACE);
+		if (!_preview) return;
+		if (rightGroup.isVisible()) { mixin(S_TRACE);
+			getShell().setRedraw(false);
+			scope (exit) getShell().setRedraw(true);
+			auto ws = getShell().getSize();
+			auto pvw = rightGroup.getSize().x;
+			ws.x -= pvw;
+			ws.x += prop.s(prop.looks.messageBounds.width);
+			getShell().setSize(ws);
+
+			int w = prop.s(prop.looks.messageBounds.width);
+			int h = 0;
+			rightGroupSize(w, h);
+		}
+	}
+
 	private class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			comm.refMenu.remove(&refMenu);
@@ -155,6 +173,7 @@ class AbstractMessageDialog : EventDialog {
 			comm.refPaths.remove(&refPaths);
 			comm.refPath.remove(&refPath);
 			comm.delPaths.remove(&refreshWarning);
+			comm.refImageScale.remove(&refImageScale);
 			getShell().getDisplay().removeFilter(SWT.KeyDown, _kdFilter);
 		}
 	}
@@ -196,6 +215,9 @@ class AbstractMessageDialog : EventDialog {
 		auto aComp = addition();
 		aComp.setLayout(normalGridLayout(1, true));
 		_prev = new Button(aComp, SWT.TOGGLE);
+		auto pgd = new GridData;
+		pgd.widthHint = prop.var.etc.buttonWidth;
+		_prev.setLayoutData(pgd);
 		_prev.setText(prop.msgs.messagePreview);
 		bool show;
 		if (type is CType.TALK_MESSAGE) { mixin(S_TRACE);
@@ -288,6 +310,7 @@ class AbstractMessageDialog : EventDialog {
 		comm.refPaths.add(&refPaths);
 		comm.refPath.add(&refPath);
 		comm.delPaths.add(&refreshWarning);
+		comm.refImageScale.add(&refImageScale);
 	}
 	private void refFlagAndStep(cwx.flag.Flag[] flags, Step[] steps) { refreshWarning(); }
 	private void refPath(string o, string n, bool isDir) { refreshWarning(); }
@@ -1369,6 +1392,15 @@ private Composite createTalkerPane
 	auto gd = new GridData(GridData.FILL_BOTH);
 	msel.widget.setLayoutData(gd);
 	msel.images = paths.length ? paths : [new CardImage(Talker.SELECTED)];
+
+	void refImageScale() { mixin(S_TRACE);
+		msel.setPreviewSize(prop.s(s.width), prop.s(s.height));
+	}
+	comm.refImageScale.add(&refImageScale);
+	.listener(msel.widget, SWT.Dispose, { mixin(S_TRACE);
+		comm.refImageScale.remove(&refImageScale);
+	});
+
 	return comp;
 }
 
@@ -1771,6 +1803,8 @@ private void putColor(FixedWidthText text, dchar put) { mixin(S_TRACE);
 }
 
 class MsgPreviewWindow {
+	private Commons _comm;
+
 	private MsgPreview _preview;
 
 	private Button _toggle;
@@ -1778,6 +1812,7 @@ class MsgPreviewWindow {
 	private Shell _win;
 	private ControlListener _winL;
 	private int _parX, _parY;
+	private int _oldImageScale;
 
 	private class Dispose : DisposeListener {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
@@ -1802,6 +1837,7 @@ class MsgPreviewWindow {
 	}
 
 	this (Shell parent, Commons comm, Props prop, Summary summ, Button toggle, WSize size) { mixin(S_TRACE);
+		_comm = comm;
 		_size = size;
 		_toggle = toggle;
 
@@ -1818,8 +1854,27 @@ class MsgPreviewWindow {
 		_win.addDisposeListener(new Dispose);
 		.listener(_win, SWT.Move, &saveWin);
 		.listener(_win, SWT.Resize, &saveWin);
+		comm.refImageScale.add(&refImageScale);
+		.listener(_win, SWT.Dispose, { mixin(S_TRACE);
+			comm.refImageScale.remove(&refImageScale);
+		});
+		_oldImageScale = comm.prop.var.etc.imageScale;
 
 		_preview = new MsgPreview(_win, comm, prop, summ);
+	}
+
+	private void refImageScale() { mixin(S_TRACE);
+		auto ws = _win.getSize();
+		auto b = _comm.prop.looks.messageBounds;
+		auto oldW = cast(int)b.width * _oldImageScale;
+		auto newW = cast(int)b.width * _comm.prop.var.etc.imageScale;
+		ws.x += newW - oldW;
+		auto oldH = cast(int)b.height * _oldImageScale;
+		auto newH = cast(int)b.height * _comm.prop.var.etc.imageScale;
+		ws.y += newH - oldH;
+		_win.setSize(ws);
+
+		_oldImageScale = _comm.prop.var.etc.imageScale;
 	}
 
 	private void saveWin() { mixin(S_TRACE);
@@ -2534,6 +2589,7 @@ class MsgPreview : Composite {
 		override void widgetDisposed(DisposeEvent e) { mixin(S_TRACE);
 			if (_img) _img.dispose();
 			_comm.refSkin.remove(&refresh);
+			_comm.refImageScale.remove(&refImageScale);
 		}
 	}
 
@@ -2547,11 +2603,7 @@ class MsgPreview : Composite {
 		this.setLayout(zeroGridLayout(1, true));
 
 		_canvas = new Canvas(this, SWT.DOUBLE_BUFFERED);
-		auto cgd = new GridData(GridData.FILL_HORIZONTAL);
-		auto rect = _prop.looks.messageBounds;
-		cgd.widthHint = _prop.s(rect.width);
-		cgd.heightHint = _prop.s(rect.height);
-		_canvas.setLayoutData(cgd);
+		refImageScaleImpl();
 		_canvas.addPaintListener(new Paint);
 		_canvas.addDisposeListener(new Dispose);
 
@@ -2561,6 +2613,20 @@ class MsgPreview : Composite {
 		_values.setLayoutData(vgd);
 		_values.modEvent ~= &refresh;
 		_comm.refSkin.add(&refresh);
+		_comm.refImageScale.add(&refImageScale);
+	}
+
+	private void refImageScale() { mixin(S_TRACE);
+		refImageScaleImpl();
+		layout(true);
+		refresh();
+	}
+	private void refImageScaleImpl() { mixin(S_TRACE);
+		auto cgd = new GridData(GridData.FILL_HORIZONTAL);
+		auto rect = _prop.looks.messageBounds;
+		cgd.widthHint = _prop.s(rect.width);
+		cgd.heightHint = _prop.s(rect.height);
+		_canvas.setLayoutData(cgd);
 	}
 
 	void text(CardImage[] imgPaths, string message) { mixin(S_TRACE);
