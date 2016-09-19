@@ -1365,14 +1365,14 @@ class EventEditor : Composite {
 			auto startInfo = _startInfos[_lightupParentStart.eventId];
 			e.gc.setBackground(_lightupColor);
 			scope (exit) e.gc.setBackground(getBackground());
-			e.gc.fillRectangle(e.x, (startInfo.y + pos.relY) - sy, e.width, _lineHeight + 1);
+			e.gc.fillRectangle(ca.x, (startInfo.y + pos.relY) - sy, ca.width, _lineHeight + 1);
 		}
 		if (_selected && _selected.eventId in _posTable) { mixin(S_TRACE);
 			// 選択中マーク
 			// FIXME: e.gcで直接描画するとフォーカス線が出ない場合がある
 			//        一度でもキー操作をすると改善するが、確実に回避する
 			//        ためには別のGCを作成して描画を行う必要がある
-			auto buf = new Image(d, e.width, _lineHeight + 1);
+			auto buf = new Image(d, ca.width, _lineHeight + 1);
 			scope (exit) buf.dispose();
 			auto gc = new GC(buf);
 			scope (exit) gc.dispose();
@@ -1381,13 +1381,13 @@ class EventEditor : Composite {
 			auto startInfo = _startInfos[_selectedParentStart.eventId];
 			gc.setBackground(_selectedColor);
 			scope (exit) gc.setBackground(getBackground());
-			gc.fillRectangle(0, 0, e.width, _lineHeight + 1);
+			gc.fillRectangle(0, 0, ca.width, _lineHeight + 1);
 			if (isFocusControl()) { mixin(S_TRACE);
 				gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 				auto cw = .max(ca.width, _widthSum + detailAreaWidth);
 				gc.drawFocus(2 - sx, 2, cw - 4, _lineHeight + 1 - 4);
 			}
-			e.gc.drawImage(buf, e.x, (startInfo.y + pos.relY) - sy);
+			e.gc.drawImage(buf, ca.x, (startInfo.y + pos.relY) - sy);
 		}
 
 		// イベントコンテントを結ぶ線
@@ -1501,32 +1501,32 @@ class EventEditor : Composite {
 			}
 		}
 
+		e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
+		e.gc.setBackground(getBackground());
+
 		// 行番号
 		if (_showLineNumber && _pos.length) { mixin(S_TRACE);
-			e.gc.setBackground(getBackground());
 			setAlpha(192);
 			auto w = _lineNumWidth;
-			e.gc.fillRectangle(e.x, e.y, w, e.height);
+			e.gc.fillRectangle(0, 0, w, ca.height);
 			e.gc.setForeground(d.getSystemColor(SWT.COLOR_GRAY));
-			e.gc.drawLine(w, e.y, w, e.y + e.height);
+			e.gc.drawLine(w, ca.y, w, ca.y + ca.height);
 			setAlpha(255);
+			e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 			foreach (i, ref pos; poss) { mixin(S_TRACE);
 				auto startInfo = possInfo[i];
 				auto line = .text(pos.lineNumber);
 				auto te = e.gc.wTextExtent(line);
-				e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
 				e.gc.wDrawText(line, _lineNumWidth - (1 + 5).ppis - te.x, (startInfo.y + pos.relY) - sy + (_lineHeight - te.y) / 2, true);
 			}
 		}
 
 		// イベントコンテントの内容領域、警告
-		e.gc.setForeground(d.getSystemColor(SWT.COLOR_BLACK));
-		e.gc.setBackground(getBackground());
 		if (detailAreaWidth) { mixin(S_TRACE);
 			setAlpha(192);
-			e.gc.fillRectangle(ca.width - detailAreaWidth + 1.ppis, e.y, detailAreaWidth - 1.ppis, e.height);
+			e.gc.fillRectangle(ca.width - detailAreaWidth + 1.ppis, ca.y, detailAreaWidth - 1.ppis, ca.height);
 			e.gc.setForeground(d.getSystemColor(SWT.COLOR_GRAY));
-			e.gc.drawLine(ca.width - detailAreaWidth, e.y, ca.width - detailAreaWidth, e.y + e.height);
+			e.gc.drawLine(ca.width - detailAreaWidth, ca.y, ca.width - detailAreaWidth, ca.y + ca.height);
 			setAlpha(255);
 		}
 
