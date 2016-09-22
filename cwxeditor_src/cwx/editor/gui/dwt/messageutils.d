@@ -41,7 +41,7 @@ import cwx.editor.gui.dwt.chooser;
 import cwx.editor.gui.dwt.incsearch;
 import cwx.editor.gui.dwt.imagelistwindow;
 
-import std.algorithm : max;
+import std.algorithm : max, sort, uniq;
 import std.array;
 import std.utf;
 import std.string;
@@ -442,6 +442,16 @@ private:
 				_dlgsL.getItem(cast(int)i).setImage(prop.images.content(CType.TALK_DIALOG));
 			}
 			ws ~= dws.noDup;
+
+			foreach (coupon; dlg.rCoupons) { mixin(S_TRACE);
+				ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, coupon, false);
+			}
+		}
+
+		if (selectedTalker is Talker.VALUED) { mixin(S_TRACE);
+			foreach (coupon; _couponView.coupons) { mixin(S_TRACE);
+				ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, coupon.name, false);
+			}
 		}
 
 		_warningTip.setVisible(false);
@@ -453,7 +463,7 @@ private:
 			}
 		}
 
-		warning = ws;
+		warning = ws.sort().uniq().array();
 	}
 
 	protected override void refDataVersion() { mixin(S_TRACE);
@@ -952,6 +962,7 @@ protected:
 			createValueEditor(comm, summ, leftSash, &catchMod, _couponView, _initValue, updateValue);
 			mod(_initValue);
 			mod(_couponView);
+			_couponView.modEvent ~= &refreshWarning;
 		}
 		auto right = new Composite(sash, SWT.NONE);
 		right.setLayout(zeroMarginGridLayout(2, false));

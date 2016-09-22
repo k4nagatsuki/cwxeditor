@@ -1968,6 +1968,11 @@ string[] castCoupons(Commons comm, bool talker, string legacyName) { mixin(S_TRA
 		foreach (c; comm.prop.var.etc.standardCoupons) { mixin(S_TRACE);
 			r ~= c;
 		}
+		if (comm.prop.isTargetVersion(comm.summary, "2")) { mixin(S_TRACE);
+			r ~= comm.prop.sys.userCoupon;
+			r ~= comm.prop.sys.eventTargetCoupon;
+			r ~= comm.prop.sys.effectTargetCoupon;
+		}
 	}
 	foreach (e; comm.skin.allSexes) { mixin(S_TRACE);
 		r ~= comm.skin.sexCoupon(e);

@@ -46,7 +46,7 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 	void refreshCoupons() { mixin(S_TRACE);
 		string id = combo.getText();
 		combo.removeAll();
-
+		cdebugln();
 		auto values = allCoupons(comm, summ, type);
 		if (initValue != "") values = cwx.utils.remove(values, initValue);
 		if (initValue != "") values = values.length ? ([initValue, ""] ~ values) : [initValue];
@@ -61,10 +61,12 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 	comm.refSkin.add(&refreshCoupons);
 	comm.refCoupons.add(&refreshCoupons);
 	comm.replText.add(&refreshCoupons);
+	comm.refDataVersion.add(&refreshCoupons);
 	.listener(combo, SWT.Dispose, { mixin(S_TRACE);
 		comm.refSkin.remove(&refreshCoupons);
 		comm.refCoupons.remove(&refreshCoupons);
 		comm.replText.remove(&refreshCoupons);
+		comm.refDataVersion.remove(&refreshCoupons);
 	});
 
 	auto menu = new Menu(combo.getShell(), SWT.POP_UP);

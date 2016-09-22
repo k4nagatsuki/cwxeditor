@@ -311,6 +311,11 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				set.add(cld.name);
 			}
 		}
+
+		void couponWarnings(string coupon, bool getLose) { mixin(S_TRACE);
+			r ~= .couponWarnings(prop, summ, targVer, coupon, getLose);
+		}
+
 		if (c.type == CType.TALK_DIALOG) { mixin(S_TRACE);
 			if (!prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 				if (Talker.VALUED is c.talkerNC) { mixin(S_TRACE);
@@ -323,6 +328,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				bool[string] wFonts;
 				bool[char] wColors;
 				foreach (i, dlg; c.dialogs) { mixin(S_TRACE);
+					foreach (coupon; dlg.rCoupons) { mixin(S_TRACE);
+						couponWarnings(coupon, false);
+					}
 					r ~= checkTextRes(dlg.flagsInText, dlg.stepsInText, dlg.fontsInText, dlg.colorsInText,
 						wFlags, wSteps, wFonts, wColors).noDup;
 					if (i + 1 < c.dialogs.length && !dlg.rCoupons.length) { mixin(S_TRACE);
@@ -428,8 +436,16 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 		if (c.step != "" && c.step == c.step2) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorSourceIsTarget;
 		}
+		if (c.type is CType.BRANCH_COUPON) { mixin(S_TRACE);
+			couponWarnings(c.coupon, false);
+		}
 		if ((c.type is CType.GET_COUPON || c.type is CType.LOSE_COUPON) && prop.sys.isCouponType(c.coupon, CouponType.System)) { mixin(S_TRACE);
-			r ~= .tryFormat(prop.msgs.searchErrorSystemCoupon, c.coupon);
+			couponWarnings(c.coupon, true);
+		}
+		if (cd.use(CArg.COUPONS)) { mixin(S_TRACE);
+			foreach (coupon; c.coupons) { mixin(S_TRACE);
+				couponWarnings(coupon.name, false);
+			}
 		}
 		if (c.levelMin > c.levelMax) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorReversalLevel;
@@ -712,4 +728,24 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, string 
 		}
 	}
 	return typeof(return)(all, noDup);
+}
+
+/// システムクーポンに関する警告を返す。
+string[] couponWarnings(in CProps prop, in Summary summ, string targVer, string coupon, bool getLose) { mixin(S_TRACE);
+	string[] r;
+	if (coupon == prop.sys.userCoupon || coupon == prop.sys.eventTargetCoupon) { mixin(S_TRACE);
+		if (!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningWsnSystemCoupon, coupon, "2");
+		}
+		if (getLose) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningCanNotGetSetCoupon, coupon);
+		}
+	} else if (coupon == prop.sys.effectTargetCoupon) { mixin(S_TRACE);
+		if (!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			r ~= .tryFormat(prop.msgs.warningWsnSystemCoupon, coupon, "2");
+		}
+	} else if (getLose && coupon.startsWith(prop.sys.couponSystem)) { mixin(S_TRACE);
+		r ~= .tryFormat(prop.msgs.warningSystemCoupon, coupon);
+	}
+	return r;
 }

@@ -551,11 +551,7 @@ private:
 	override
 	protected void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-		static if (Type is CType.GET_COUPON || Type is CType.LOSE_COUPON) {
-			if (prop.sys.isCouponType(_name.getText(), CouponType.System)) { mixin(S_TRACE);
-				ws ~= .tryFormat(prop.msgs.warningSystemCoupon, prop.sys.couponSystem);
-			}
-		}
+		ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, _name.getText(), Type is CType.GET_COUPON || Type is CType.LOSE_COUPON);
 		static if (Field) {
 			if (summ && summ.legacy && !_prop.targetVersion(summ, "1.30")) { mixin(S_TRACE);
 				if (_range[Range.FIELD].getSelection()) { mixin(S_TRACE);
@@ -1863,6 +1859,11 @@ private:
 		if (valued.getSelection() && !prop.isTargetVersion(summ, "1")) { mixin(S_TRACE);
 			ws ~= prop.msgs.warningValuedSelectionMethod;
 		}
+
+		foreach (coupon; _couponView.coupons) { mixin(S_TRACE);
+			ws ~= couponWarnings(prop.parent, summ, prop.var.etc.targetVersion, coupon.name, false);
+		}
+
 		warning = ws;
 	}
 
@@ -1918,6 +1919,7 @@ protected:
 			auto comp = createValueEditor(comm, summ, area, &catchMod, _couponView, _initValue, updateValue, false);
 			mod(_initValue);
 			mod(_couponView);
+			_couponView.modEvent ~= &refreshWarning;
 			comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 

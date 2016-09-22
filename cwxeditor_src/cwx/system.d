@@ -327,6 +327,16 @@ class System {
 		return "＠Ｒ" ~ raceName;
 	}
 
+	/// 効果・イベントの対象に付与されるシステムクーポン(Wsn.2)。
+	/// イベント発生原因となったカードの使用者に付与される。
+	@property const string userCoupon() { return "＠使用者"; }
+	/// 効果・イベントの対象に付与されるシステムクーポン(Wsn.2)。
+	/// カードの効果対象に付与される。付け替えて効果対象を変更する事が可能。
+	@property const string effectTargetCoupon() { return "＠効果対象"; }
+	/// 効果・イベントの対象に付与されるシステムクーポン(Wsn.2)。
+	/// 死亡イベントやキーコードイベントの中で、イベントの所有者に付与される。
+	@property const string eventTargetCoupon() { return "＠イベント対象"; }
+
 	/// 後続イベントコンテントのTrue値。
 	@property const string evtChildTrue() {return "○";}
 	/// 後続イベントコンテントのFalse値。

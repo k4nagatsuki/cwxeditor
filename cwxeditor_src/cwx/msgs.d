@@ -113,7 +113,7 @@ class Msgs : Properties {
 	auto dlgTitImageLayerWindow = Msg("dlgTitImageLayerWindow", "レイヤの編集");
 	auto dlgTitImageLayerWindowReadOnly = Msg("dlgTitImageLayerWindowReadOnly", "レイヤの一覧");
 	auto layerName = Msg("layerName", "レイヤ %1$s");
-	auto warningLayer = Msg("warningLayer", "レイヤの指定はWSN1以降の形式のシナリオしか行えません。");
+	auto warningLayer = Msg("warningLayer", "レイヤの指定はWsn.1以降の形式のシナリオしか行えません。");
 	auto layerValues = Msg("layerValues", "%1$s = 背景セル\n%2$s = メニュー・エネミーカード\n%3$s = プレイヤーカード\n%4$s = メッセージ");
 
 	auto newFolder = Msg("newFolder", "新規" ~ DIR);
@@ -951,10 +951,10 @@ class Msgs : Properties {
 	auto subChannel = Msg("subChannel", "副音声"); // Wsn.1
 	auto fadeIn = Msg("fadeIn", "フェードイン時間"); // Wsn.1
 	auto fadeInHint = Msg("fadeInHint", "× 0.1秒"); // Wsn.1
-	auto warningVolume = Msg("warningVolume", "音量の設定はWSN1以降の形式のシナリオしか使用できません。"); // Wsn.1
-	auto warningLoopCount = Msg("warningLoopCount", "ループ回数の設定はWSN1以降の形式のシナリオしか使用できません。"); // Wsn.1
-	auto warningChannel= Msg("warningChannel", "再生チャンネルの設定はWSN1以降の形式のシナリオしか使用できません。"); // Wsn.1
-	auto warningFadeIn = Msg("warningFadeIn", "フェードイン時間の設定はWSN1以降の形式のシナリオしか使用できません。"); // Wsn.1
+	auto warningVolume = Msg("warningVolume", "音量の設定はWsn.1以降の形式のシナリオしか使用できません。"); // Wsn.1
+	auto warningLoopCount = Msg("warningLoopCount", "ループ回数の設定はWsn.1以降の形式のシナリオしか使用できません。"); // Wsn.1
+	auto warningChannel= Msg("warningChannel", "再生チャンネルの設定はWsn.1以降の形式のシナリオしか使用できません。"); // Wsn.1
+	auto warningFadeIn = Msg("warningFadeIn", "フェードイン時間の設定はWsn.1以降の形式のシナリオしか使用できません。"); // Wsn.1
 
 	/// メインウィンドウ。
 	auto mainWindowName = Msg("mainWindowName", "%1$s [ %2$s ] - CWXEditor");
@@ -1724,7 +1724,7 @@ class Msgs : Properties {
 	auto warningNameLenOver = Msg("warningNameLenOver", "名前の長さが%2$s文字を超えています。メッセージにカード名が表示された際に不具合が発生する可能性があります。"); // %1$s = 文字数、%2$s = 文字数 / 2
 	auto warningPCNumberClassic = Msg("warningPCNumberClassic", "プレイヤーキャラクタのイメージはCardWirth 1.30より前のバージョンでは表示されません。");
 	auto warningUnknownContent = Msg("warningUnknownContent", "イベント [%1$s] はCardWirth %2$sより前のバージョンでは使用できません。");
-	auto warningUnknownContentWsn = Msg("warningUnknownContentWsn", "イベント [%1$s] はWSN%2$sより前のバージョンでは使用できません。");
+	auto warningUnknownContentWsn = Msg("warningUnknownContentWsn", "イベント [%1$s] はWsn.%2$sより前のバージョンでは使用できません。");
 	auto warningBranchCouponAtField = Msg("warningBranchCouponAtField", "フィールド全体でのクーポン所持判定は、CardWirth 1.30より前のバージョンでは使用できません。");
 	auto warningSystemVarName = Msg("warningSystemVarName", "%1$sで始まる名前の状態変数は、プレイヤーの環境によっては正しく機能しない事があります。");
 	auto warningSystemCoupon = Msg("warningSystemCoupon", "%1$sで始まる名前のクーポンを操作する事はできません。");
@@ -1733,11 +1733,11 @@ class Msgs : Properties {
 	auto warningValuedTalker = Msg("warningValuedTalker", "評価メンバは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningTextCell = Msg("warningTextCell", "テキストセルは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningColorCell = Msg("warningColorCell", "カラーセルは、CardWirth 1.50より前のバージョンでは使用できません。");
-	auto warningPCCell = Msg("warningPCCell", "プレイヤーキャラクタセルは、WSN1以降の形式のシナリオでしか使用できません。");
+	auto warningPCCell = Msg("warningPCCell", "プレイヤーキャラクタセルは、Wsn.1以降の形式のシナリオでしか使用できません。");
 	auto warningEffectBoosterFileWithReplaceBgImage = Msg("warningEffectBoosterFileWithReplaceBgImage", "エフェクトブースター関係の背景セルは無視するように指定されています。");
 	auto warningBgImageIncluded = Msg("warningBgImageForeground", "背景セルのイメージ格納は、CardWirth 1.60より前のバージョンでは行えません。");
 	auto warningBgImageForeground = Msg("warningBgImageForeground", "カードよりも前の表示は、CardWirth 1.60より前のバージョンでは行えません。");
-	auto warningBgImageCellName = Msg("warningBgImageCellName", "背景セル名称は、WSN1以降の形式のシナリオでしか設定できません。");
+	auto warningBgImageCellName = Msg("warningBgImageCellName", "背景セル名称は、Wsn.1以降の形式のシナリオでしか設定できません。");
 	auto warningSelectionBarIsMany = Msg("warningSelectionBarIsMany", "選択肢が%1$s行ありますが、%2$s行までしか表示できません。");
 	auto warningEveryRound = Msg("warningEveryRound", "イベント発火条件「毎ラウンド」は、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningRound0 = Msg("warningRound0", "イベント発火条件「バトル開始」は、CardWirth 1.50より前のバージョンでは使用できません。");
@@ -1746,12 +1746,14 @@ class Msgs : Properties {
 	auto warningStepCount = Msg("warningStepCount", "%1$s段階以外のステップはクラシックなシナリオでは使用できません。");
 	auto warningStepOverCount = Msg("warningStepOverCount", "ステップ「%1$s」の段階数 [%2$s] より大きなステップ値 [%3$s] が指定されています。");
 	auto warningKeyCodeCount = Msg("warningKeyCodeCount", "%1$s件より多くのキーコードはクラシックなシナリオでは設定できません。");
-	auto warningValuedSelectionMethod = Msg("warningValuedSelectionMethod", "評価条件によるメンバ選択分岐は、WSN1以降の形式のシナリオしか行えません。");
-	auto warningSkillPowerWithFixedValue = Msg("warningSkillPowerWithFixedValue", "精神力操作の固定値指定は、WSN1以降の形式のシナリオしか行えません。"); // Wsn.1
+	auto warningValuedSelectionMethod = Msg("warningValuedSelectionMethod", "評価条件によるメンバ選択分岐は、Wsn.1以降の形式のシナリオしか行えません。");
+	auto warningSkillPowerWithFixedValue = Msg("warningSkillPowerWithFixedValue", "精神力操作の固定値指定は、Wsn.1以降の形式のシナリオしか行えません。"); // Wsn.1
 	auto warningIncludedImage = Msg("warningIncludedImage", "WSN形式のシナリオでは格納イメージは使用できません。");
-	auto warningSelectionColumns = Msg("warningSelectionColumns", "選択肢の複数列表示は、WSN1以降の形式のシナリオしか行えません。");
+	auto warningSelectionColumns = Msg("warningSelectionColumns", "選択肢の複数列表示は、Wsn.1以降の形式のシナリオしか行えません。");
 	auto warningRunawayCard = Msg("warningRunawayCard", "キーコード「%1$s」付きのカードは死亡イベントを発生させないため、シナリオを誤動作させる可能性があります。");
 	auto warningEndOrChangeAreaInRound0 = Msg("warningEndOrChangeAreaInRound0", "クラシックエンジンのバグにより、バトル開始イベント中にシナリオ終了やエリア移動を行うと、プレイヤーのデータの破損を含めた異常が発生する可能性があります。");
+	auto warningWsnSystemCoupon = Msg("warningWsnSystemCoupon", "システムクーポン「%1$s」はWsn.%2$s以降の形式のシナリオでしか機能しません。"); // Wsn.2
+	auto warningCanNotGetSetCoupon = Msg("warningCanNotGetSetCoupon", "システムクーポン「%1$s」を操作する事はできません。"); // Wsn.2
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

@@ -45,10 +45,14 @@ class XMLOption {
 	}
 	/// ditto
 	static bool isTargetVersion(string dataVersion, string ver) { mixin(S_TRACE);
-		immutable VER_TABLE = [
-			"":  0,
-			"1": 1,
-		];
+		static ptrdiff_t[string] VER_TABLE;
+		synchronized {
+			if (VER_TABLE.length == 0) { mixin(S_TRACE);
+				foreach (i, v; VERSIONS) { mixin(S_TRACE);
+					VER_TABLE[v] = VERSIONS.length - i;
+				}
+			}
+		}
 		return VER_TABLE.get(ver, int.min) <= VER_TABLE.get(dataVersion, int.max);
 	}
 }
