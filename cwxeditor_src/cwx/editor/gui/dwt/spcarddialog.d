@@ -342,9 +342,9 @@ protected:
 							_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
 								_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), true, &_name.getText, null, &defs, true);
 							_imgPath.valueFromDef = (defIndex, included, binPath) { mixin(S_TRACE);
-								if (defIndex <= 0) return new CardImage("");
+								if (defIndex <= 0) return new CardImage("", CardImagePosition.Default);
 								if (included) { mixin(S_TRACE);
-									if (defIndex == 1) return new CardImage(binPath);
+									if (defIndex == 1) return new CardImage(binPath, CardImagePosition.Default);
 									defIndex--;
 								}
 								return new CardImage(cast(uint)defIndex);

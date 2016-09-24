@@ -462,7 +462,7 @@ public class FlexProps {
 					etc.eventTreeSlope = etc.eventTreeSlope * .dpiMuls;
 				}
 				// 現在のDPI値に合わせて傾き値の補正
-				etc.eventTreeSlope = .max(etc.eventTreeSlope.INIT.ppis, etc.eventTreeSlope);
+				etc.eventTreeSlope.INIT = .max(etc.eventTreeSlope.INIT.ppis, etc.eventTreeSlope);
 				dStr ~= " - " ~ .text(__LINE__);
 			}
 			dStr ~= " - " ~ .text(__LINE__);

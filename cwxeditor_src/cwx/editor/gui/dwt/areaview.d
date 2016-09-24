@@ -4682,7 +4682,7 @@ public:
 						return -1;
 					}
 				}
-				auto card = new MenuCard(baseName(.stripExtension(fname)), fname.length ? [new CardImage(fname)] : [], "", "", x, y, 100, LAYER_MENU_CARD);
+				auto card = new MenuCard(baseName(.stripExtension(fname)), fname.length ? [new CardImage(fname, CardImagePosition.Default)] : [], "", "", x, y, 100, LAYER_MENU_CARD);
 				return appendCard(card, true, true, fromImgPane);
 			}
 			private class CLDropTarget : DropTargetAdapter {

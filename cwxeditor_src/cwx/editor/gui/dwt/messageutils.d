@@ -1381,7 +1381,7 @@ private Composite createTalkerPane
 		case 1: return new CardImage(Talker.UNSELECTED);
 		case 2: return new CardImage(Talker.RANDOM);
 		case 3: return new CardImage(Talker.CARD);
-		default: return new CardImage("");
+		default: return new CardImage("", CardImagePosition.Default);
 		}
 	};
 	msel.valueToDef = (imgPath, included) { mixin(S_TRACE);

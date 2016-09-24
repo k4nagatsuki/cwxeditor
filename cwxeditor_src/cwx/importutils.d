@@ -369,9 +369,9 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 					foreach (imgPath; c.paths) { mixin(S_TRACE);
 						if (imgPath.type is CardImageType.File) { mixin(S_TRACE);
 							if (opt.includedFiles is ImportTypeIncluded.Exclude && imgPath.path.isBinImg()) { mixin(S_TRACE);
-								imgPath = new CardImage(putBinImg(name, imgPath.path));
+								imgPath = new CardImage(putBinImg(name, imgPath.path), imgPath.positionType);
 							} else if (opt.includedFiles is ImportTypeIncluded.Include && imgPath.path.length) { mixin(S_TRACE);
-								imgPath = new CardImage(includeImg(imgPath.path));
+								imgPath = new CardImage(includeImg(imgPath.path), imgPath.positionType);
 							}
 						}
 						paths ~= imgPath;
@@ -383,9 +383,9 @@ ImportResult importResource(Summary to, Summary from, in string[] resCWXPath, in
 					foreach (imgPath; c.paths) { mixin(S_TRACE);
 						if (imgPath.type is CardImageType.File) { mixin(S_TRACE);
 							if (opt.includedFiles is ImportTypeIncluded.Exclude && imgPath.path.isBinImg()) { mixin(S_TRACE);
-								imgPath = new CardImage(putBinImg(name, imgPath.path));
+								imgPath = new CardImage(putBinImg(name, imgPath.path), imgPath.positionType);
 							} else if (opt.includedFiles is ImportTypeIncluded.Include && imgPath.path.length) { mixin(S_TRACE);
-								imgPath = new CardImage(includeImg(imgPath.path));
+								imgPath = new CardImage(includeImg(imgPath.path), imgPath.positionType);
 							}
 						}
 						paths ~= imgPath;

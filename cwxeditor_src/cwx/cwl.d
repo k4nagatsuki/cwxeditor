@@ -230,15 +230,15 @@ void loadImageRef(Summary summ) { mixin(S_TRACE);
 			auto cp = summ.findCWXPath(path);
 			auto card = cast(Card) cp;
 			if (card) { mixin(S_TRACE);
-				card.paths = node.value.length ? [new CardImage(decodePath(node.value))] : [];
+				card.paths = node.value.length ? [new CardImage(decodePath(node.value), CardImagePosition.Default)] : [];
 			}
 			auto mCard = cast(MenuCard) cp;
 			if (mCard) { mixin(S_TRACE);
-				mCard.paths = node.value.length ? [new CardImage(decodePath(node.value))] : [];
+				mCard.paths = node.value.length ? [new CardImage(decodePath(node.value), CardImagePosition.Default)] : [];
 			}
 			auto summ2 = cast(Summary) cp;
 			if (summ2) { mixin(S_TRACE);
-				summ2.imagePaths = node.value.length ? [new CardImage(decodePath(node.value))] : [];
+				summ2.imagePaths = node.value.length ? [new CardImage(decodePath(node.value), CardImagePosition.Default)] : [];
 			}
 		};
 		node.parse();
@@ -696,7 +696,7 @@ private Summary loadSummary(ref RData d, ref ByteIO f, out ulong startAreaId) { 
 	string img = readImage(d, f);
 	byte b;
 	auto summ = new Summary(readString(f), d.skin, d.sPath, false, true);
-	summ.imagePaths = img.length ? [new CardImage(img)] : [];
+	summ.imagePaths = img.length ? [new CardImage(img, CardImagePosition.Default)] : [];
 	summ.desc = readString(f, true);
 	summ.author = readString(f);
 	if (d.cardOnly) return summ;
@@ -949,7 +949,7 @@ private Content readContent(ref RData d, ref ByteIO f, size_t index) { mixin(S_T
 			if (hasTalker) {
 				e.cardPaths = [new CardImage(msgTalker)];
 			} else if (msgPath.length) {
-				e.cardPaths = [new CardImage(decodePathLegacy(msgPath))];
+				e.cardPaths = [new CardImage(decodePathLegacy(msgPath), CardImagePosition.Default)];
 			} else {
 				e.cardPaths = [];
 			}
@@ -1825,7 +1825,7 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
 		CardImage imgPath = null;
 		if (d.dataVersion <= 2) { mixin(S_TRACE);
 			// 格納のみ
-			imgPath = img ? new CardImage(img) : null;
+			imgPath = img ? new CardImage(img, CardImagePosition.Default) : null;
 		} else { mixin(S_TRACE);
 			auto file = decodePathLegacy(readString(f));
 			if (isNumeric(file)) { mixin(S_TRACE);
@@ -1840,11 +1840,11 @@ private Area loadArea(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE);
 			}
 			if (!imgPath && file.length) { mixin(S_TRACE);
 				// ファイル指定
-				imgPath = new CardImage(file);
+				imgPath = new CardImage(file, CardImagePosition.Default);
 			}
 			if (!imgPath && img.length) {
 				// イメージ格納
-				imgPath = new CardImage(img);
+				imgPath = new CardImage(img, CardImagePosition.Default);
 			}
 		}
 		auto c = new MenuCard(cName, imgPath ? [imgPath] : [], desc, flag, x, y, scale, LAYER_MENU_CARD);
@@ -1922,7 +1922,7 @@ private CastCard loadCast(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 		d.dataVersion = 4;
 		id = idl - 40000;
 	}
-	auto r = new CastCard(id, name, img.length ? [new CardImage(img)] : [], "", 1u, 1u);
+	auto r = new CastCard(id, name, img.length ? [new CardImage(img, CardImagePosition.Default)] : [], "", 1u, 1u);
 	r.weaponResist = readBool(f);
 	r.magicResist = readBool(f);
 	r.undead = readBool(f);
@@ -2010,7 +2010,7 @@ private C readEffCard(C)(ref RData d, ref ByteIO f) { mixin(S_TRACE);
 		id = idl - 40000;
 	}
 	string desc = readString(f);
-	auto r = new C(id, name, img.length ? [new CardImage(img)] : [], desc);
+	auto r = new C(id, name, img.length ? [new CardImage(img, CardImagePosition.Default)] : [], desc);
 	r.physical = toPhysical(f.readUIntL);
 	r.mental = toMental(f.readIntL);
 	r.spell = readBool(f);
@@ -2103,7 +2103,7 @@ private InfoCard loadInfo(ref RData d, ref ByteIO f, ulong fid) { mixin(S_TRACE)
 		id = idl - 40000;
 	}
 	string desc = readString(f);
-	return new InfoCard(id, name, img.length ? [new CardImage(img)] : [], desc);
+	return new InfoCard(id, name, img.length ? [new CardImage(img, CardImagePosition.Default)] : [], desc);
 }
 
 /// パーティ見出しデータ(*.wpl)からパーティ名を取得する。

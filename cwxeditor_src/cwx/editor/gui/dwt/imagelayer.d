@@ -266,7 +266,7 @@ class ImageLayerList : Composite {
 	void addLayer() { mixin(S_TRACE);
 		if (!canAddLayer) return;
 		_selection = cast(int)_items.length;
-		_items ~= new ImageLayerItem(this, _comm, new CardImage(""));
+		_items ~= new ImageLayerItem(this, _comm, new CardImage("", CardImagePosition.Default));
 		setupScrollBar();
 		showSelection();
 		redraw();

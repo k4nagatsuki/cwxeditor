@@ -2094,6 +2094,7 @@ class Msgs : Properties {
 	auto scriptErrorInvalidCoordinateType = Msg("scriptErrorInvalidCoordinateType", "未知の位置・サイズ形式です。");
 	auto scriptErrorInvalidArray = Msg("scriptErrorInvalidArray", "ここに配列が必要です。");
 	auto scriptErrorSystem = Msg("scriptErrorSystem", "サイズが大きすぎるため、CWXスクリプトをコンパイルできません。");
+	auto scriptErrorInvalidCardImagePosition = Msg("scriptErrorInvalidCardImagePosition", "イメージの配置形式が正しくありません。");
 
 	auto dlgTitScriptVarSet = Msg("dlgTitScriptVarSet", "値が未決定の変数の設定");
 	auto scriptVarSet = Msg("scriptVarSet", "変数に値を入力");

@@ -73,6 +73,12 @@ enum CardImageType {
 	File, /// ファイル。
 	Talker /// 話者キャラクタ。
 }
+/// カード画像の配置形式(Wsn.2)。
+enum CardImagePosition {
+	Default, /// 指定無し(クラシックな位置に合わせる)。
+	Center, /// 中央寄せ。
+	TopLeft /// 左上起点。
+}
 
 /// カード画像のデータ。
 class CardImage : IPathUser {
@@ -80,6 +86,7 @@ class CardImage : IPathUser {
 	private uint _pcNumber = 0;
 	private Talker _talker = Talker.SELECTED;
 	private PathUser _path = null;
+	private CardImagePosition _positionType = CardImagePosition.Default;
 
 	/// パスを示すオブジェクトを指定してインスタンスを生成。
 	private this (IPathUser cwxPath) { mixin(S_TRACE);
@@ -92,6 +99,7 @@ class CardImage : IPathUser {
 		final switch (base.type) {
 		case CardImageType.File:
 			_path.path = base.path;
+			_positionType = base.positionType;
 			break;
 		case CardImageType.PCNumber:
 			_pcNumber = base.pcNumber;
@@ -102,10 +110,11 @@ class CardImage : IPathUser {
 		}
 	}
 	/// パスを指定してインスタンスを生成。
-	this (string path) { mixin(S_TRACE);
+	this (string path, CardImagePosition positionType) { mixin(S_TRACE);
 		this (cast(IPathUser)null);
 		type = CardImageType.File;
 		_path.path = path;
+		_positionType = positionType;
 	}
 	/// PC番号を指定してインスタンスを生成。
 	this (uint pcNumber) { mixin(S_TRACE);
@@ -134,7 +143,12 @@ class CardImage : IPathUser {
 	/// ファイルパス。
 	@property
 	const
-	string path() {return _path.path;}
+	string path() { return _path.path; }
+
+	/// 配置形式。
+	@property
+	const
+	CardImagePosition positionType() { return _positionType; }
 
 	/// PC画像を表示する場合はその位置(1～6)。
 	/// 0の場合はPC画像を使用しない。
@@ -158,7 +172,8 @@ class CardImage : IPathUser {
 			&& c.type == type
 			&& c.pcNumber == pcNumber
 			&& c.path == path
-			&& c.talker == talker;
+			&& c.talker == talker
+			&& c.positionType == positionType;
 	}
 	override
 	const
@@ -168,6 +183,7 @@ class CardImage : IPathUser {
 		hash = (hash * 9) + type;
 		hash = (hash * 9) + _pcNumber;
 		hash = (hash * 9) + _talker;
+		hash = (hash * 9) + _positionType;
 		return hash;
 	}
 
@@ -190,30 +206,44 @@ class CardImage : IPathUser {
 	/// インスタンス群を生成してpathsに追加するハンドラを登録する。
 	/// attrをtrueにした場合、ImagePath要素ではなくpath属性を使用する。
 	static void setOnTag(ref XNode pNode, ref CardImage[] paths, bool attr = false) {
-		void convPath(string pathTemp) { mixin(S_TRACE);
+		void convPath(string pathTemp, string posTypeTemp) { mixin(S_TRACE);
+			CardImage path = null;
 			if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.SELECTED))) { mixin(S_TRACE);
-				paths ~= new CardImage(Talker.SELECTED);
+				path = new CardImage(Talker.SELECTED);
 			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.UNSELECTED))) { mixin(S_TRACE);
-				paths ~= new CardImage(Talker.UNSELECTED);
+				path = new CardImage(Talker.UNSELECTED);
 			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.RANDOM))) { mixin(S_TRACE);
-				paths ~= new CardImage(Talker.RANDOM);
+				path = new CardImage(Talker.RANDOM);
 			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.CARD))) { mixin(S_TRACE);
-				paths ~= new CardImage(Talker.CARD);
+				path = new CardImage(Talker.CARD);
 			} else if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.VALUED))) { mixin(S_TRACE);
-				paths ~= new CardImage(Talker.VALUED);
+				path = new CardImage(Talker.VALUED);
 			} else if (pathTemp && pathTemp != "") { mixin(S_TRACE);
-				paths ~= new CardImage(decodePath(pathTemp));
+				switch (posTypeTemp) {
+				case "Center":
+					path = new CardImage(decodePath(pathTemp), CardImagePosition.Center);
+					break;
+				case "TopLeft":
+					path = new CardImage(decodePath(pathTemp), CardImagePosition.TopLeft);
+					break;
+				default:
+					path = new CardImage(decodePath(pathTemp), CardImagePosition.Default);
+					break;
+				}
+			}
+			if (path) { mixin(S_TRACE);
+				paths ~= path;
 			}
 		}
 		auto imgPath = (ref XNode n) { mixin(S_TRACE);
-			convPath(n.value);
+			convPath(n.value, n.attr("positiontype", false, "Default"));
 		};
 		auto pcNum = (ref XNode node) { mixin(S_TRACE);
 			paths ~= new CardImage(.to!uint(node.value));
 		};
 		if (attr) { mixin(S_TRACE);
 			auto path = pNode.attr("path", false, "");
-			convPath(path);
+			convPath(path, pNode.attr("positiontype", false, "Default"));
 			auto pcNumber = pNode.attr!uint("pcNumber", false, 0);
 			if (pcNumber != 0) { mixin(S_TRACE);
 				paths ~= new CardImage(pcNumber);
@@ -234,10 +264,24 @@ class CardImage : IPathUser {
 		static void put(ref XNode pNode, in CardImage path, bool attr) { mixin(S_TRACE);
 			final switch (path.type) {
 			case CardImageType.File:
+				void putPosType(ref XNode n) { mixin(S_TRACE);
+					final switch (path.positionType) {
+					case CardImagePosition.Center:
+						n.newAttr("positiontype", "Center");
+						break;
+					case CardImagePosition.TopLeft:
+						n.newAttr("positiontype", "TopLeft");
+						break;
+					case CardImagePosition.Default:
+						break;
+					}
+				}
 				if (attr) { mixin(S_TRACE);
 					pNode.newAttr("path", encodePath(path.path));
+					putPosType(pNode);
 				} else { mixin(S_TRACE);
-					pNode.newElement("ImagePath", encodePath(path.path));
+					auto n = pNode.newElement("ImagePath", encodePath(path.path));
+					putPosType(n);
 				}
 				break;
 			case CardImageType.PCNumber:

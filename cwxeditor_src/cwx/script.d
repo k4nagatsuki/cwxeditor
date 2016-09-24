@@ -2372,20 +2372,41 @@ fi`;
 			CardImage imgPath = null;
 			if (attr[i].token.kind == Kind.STRING) { mixin(S_TRACE);
 				auto value = parseAttr!(string)(opt, attr, i, "", varTable, 0);
-				imgPath = new CardImage(decodePath(value));
+				imgPath = new CardImage(decodePath(value), CardImagePosition.Default);
 			} else if (attr[i].token.kind == Kind.SYMBOL) { mixin(S_TRACE);
 				auto value = attrValue(attr[i], varTable, 0);
 				if (value == "n" || value == "none") { mixin(S_TRACE);
-					imgPath = new CardImage("");
+					imgPath = new CardImage("", CardImagePosition.Default);
 					i++;
 				} else { mixin(S_TRACE);
 					imgPath = new CardImage(parseTalker!(false)(attr, i, varTable));
 				}
+			} else if (attr[i].type is NodeType.VALUES) { mixin(S_TRACE);
+				size_t j = 0;
+				auto vals = attr[i].values;
+				auto path = parseAttr!(string)(opt, vals, j, "", varTable, 0);
+				auto posType = parseAttr!(CardImagePosition)(opt, vals, j, CardImagePosition.Default, varTable, 0);
+				i++;
+				imgPath = new CardImage(decodePath(path), posType);
 			} else { mixin(S_TRACE);
-				imgPath = new CardImage("");
+				imgPath = new CardImage("", CardImagePosition.Default);
 				i++;
 			}
 			return imgPath;
+		} else static if (is(T:CardImagePosition)) {
+			if (attr[i].token.kind == Kind.SYMBOL) { mixin(S_TRACE);
+				switch (attrValue(attr[i], varTable, 0)) {
+				case "center":
+					return CardImagePosition.Center;
+				case "topleft":
+					return CardImagePosition.TopLeft;
+				case "default":
+					return CardImagePosition.Default;
+				default:
+					throwError(_prop.msgs.scriptErrorInvalidCardImagePosition, attr[i].token);
+					break;
+				}
+			}
 		} else static if (is(T == int)) {
 			auto value = attrValue(attr[i], varTable, msgWidth);
 			if (attr[i].token.kind is Kind.SYMBOL && value == "all") { mixin(S_TRACE);
@@ -3300,7 +3321,17 @@ fi`;
 		foreach (cardPath; cardPaths) { mixin(S_TRACE);
 			final switch (cardPath.type) {
 			case CardImageType.File:
-				r ~= toAttr(encodePath(cardPath.path), indentValue, vars);
+				final switch (cardPath.positionType) {
+				case CardImagePosition.Center:
+					r ~= ("[" ~ createString(encodePath(cardPath.path)) ~ ", center" ~ "]");
+					break;
+				case CardImagePosition.TopLeft:
+					r ~= ("[" ~ createString(encodePath(cardPath.path)) ~ ", topleft" ~ "]");
+					break;
+				case CardImagePosition.Default:
+					r ~= toAttr(encodePath(cardPath.path), indentValue, vars);
+					break;
+				}
 				break;
 			case CardImageType.PCNumber:
 				// 非対応

@@ -4185,7 +4185,7 @@ public:
 			if (isBinImg(imgPath.path)) continue;
 			Undo[] uArr2;
 			r |= replFilePath(imgPath.path, (text) {
-				imgPaths[i] = new CardImage(text);
+				imgPaths[i] = new CardImage(text, imgPath.positionType);
 			}, count, uArr2);
 		}
 		if (r) { mixin(S_TRACE);

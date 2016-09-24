@@ -74,7 +74,7 @@ class MaterialSelect(MtType Type, D, C) {
 		_canInclude = canInclude;
 		_isMenuCard = isMenuCard;
 		static if (Type == MtType.CARD) {
-			_paths = [new CardImage("")];
+			_paths = [new CardImage("", CardImagePosition.Default)];
 		}
 	}
 	@property
@@ -839,7 +839,7 @@ class MaterialSelect(MtType Type, D, C) {
 				}
 				refreshButtons();
 			}
-			_paths = paths.length ? paths : [new CardImage("")];
+			_paths = paths.length ? paths : [new CardImage("", CardImagePosition.Default)];
 			_binPaths.length = _paths.length;
 			bool include = false;
 			foreach (i, path; paths) { mixin(S_TRACE);
@@ -876,7 +876,7 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		private void selectPath(string path, ptrdiff_t index = -1) { mixin(S_TRACE);
 			if (index < 0) index = _imageIndex;
-			_paths[index] = new CardImage(path);
+			_paths[index] = new CardImage(path, CardImagePosition.Default);
 		}
 		private void updateUseNoCardSizeImage() { mixin(S_TRACE);
 			if (useNoCardSizeImage) return;
@@ -1654,7 +1654,7 @@ private:
 			foreach (i, path; _paths) { mixin(S_TRACE);
 				if (i == _imageIndex) continue;
 				if (path.type !is CardImageType.File) continue;
-				if (o == path.path) _paths[i] = new CardImage(n); // 格納イメージは更新不要
+				if (o == path.path) _paths[i] = new CardImage(n, path.positionType); // 格納イメージは更新不要
 			}
 		}
 		scope (exit) {

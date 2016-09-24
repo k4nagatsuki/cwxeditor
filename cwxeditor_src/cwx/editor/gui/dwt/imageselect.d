@@ -150,8 +150,8 @@ public:
 				_msel.indexOfBinPath = (included) => included ? 1 : -1;
 				static if (Type == MtType.CARD) {
 					_msel.valueFromDef = (index, included, binPath) { mixin(S_TRACE);
-						if (index == 0) return new CardImage("");
-						if (included && index == 1) return new CardImage(binPath);
+						if (index == 0) return new CardImage("", CardImagePosition.Default);
+						if (included && index == 1) return new CardImage(binPath, CardImagePosition.Default);
 						assert (0);
 					};
 					_msel.valueToDef = (imgPath, included) { mixin(S_TRACE);
@@ -357,7 +357,7 @@ public:
 				if (SWT.YES == ret) { mixin(S_TRACE);
 					foreach (ref path; p.images) { mixin(S_TRACE);
 						if (path.type !is CardImageType.File || !path.path.isBinImg) continue;
-						path = new CardImage(.copyTo(_summ.scenarioPath, path.path, summSkin.materialPath, true));
+						path = new CardImage(.copyTo(_summ.scenarioPath, path.path, summSkin.materialPath, true), path.positionType);
 					}
 				} else if (SWT.NO == ret) { mixin(S_TRACE);
 					p.images = [];
