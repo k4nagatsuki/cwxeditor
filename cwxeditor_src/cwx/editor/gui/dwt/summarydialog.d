@@ -677,7 +677,16 @@ private class SummaryPreview : Composite {
 					string p = skin.findImagePath(imgPath.path, _summ.scenarioPath);
 					if (p.length) { mixin(S_TRACE);
 						auto image = new Image(d, loadImage(_prop, skin, _summ, p));
-						gc.drawImage(image, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
+						final switch (imgPath.positionType) {
+						case CardImagePosition.Center:
+							auto b = image.getBounds();
+							gc.drawImage(image, (size.width - b.width) / 2, (size.height - b.height) / 2);
+							break;
+						case CardImagePosition.TopLeft:
+						case CardImagePosition.Default:
+							gc.drawImage(image, _prop.looks.summaryImageXY.x, _prop.looks.summaryImageXY.y);
+							break;
+						}
 						image.dispose();
 					}
 					break;

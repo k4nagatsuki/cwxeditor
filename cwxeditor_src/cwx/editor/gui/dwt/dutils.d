@@ -1714,7 +1714,17 @@ void addToPileImage(in CardImage img, PileImage pile, Props prop, Skin skin, str
 	case CardImageType.File:
 		auto path = skin.findImagePath(img.path, sPath);
 		if (path != "") { mixin(S_TRACE);
-			pile.append(path, matPad, type, true);
+			final switch (img.positionType) {
+			case CardImagePosition.Center:
+				pile.append(path, matPad, ScaleType.Center, true);
+				break;
+			case CardImagePosition.TopLeft:
+				pile.append(path, matPad, ScaleType.Cut, true);
+				break;
+			case CardImagePosition.Default:
+				pile.append(path, matPad, type, true);
+				break;
+			}
 		}
 		break;
 	case CardImageType.Talker:

@@ -628,7 +628,15 @@ public:
 							}
 							int bw = initW - a.insets.w - a.insets.e;
 							int bh = initH - a.insets.n - a.insets.s;
-							if (imgData.width == bw && imgData.height == bh) { mixin(S_TRACE);
+							if (a.scaleType is ScaleType.Center) { mixin(S_TRACE);
+								auto img = new Image(cur, imgData);
+								scope (exit) img.dispose();
+								int dw = imgData.width;
+								int dh = imgData.height;
+								int x = (initW - dw) / 2;
+								int y = (initH - dh) / 2;
+								dc.drawImage(img, x, y);
+							} else if (imgData.width == bw && imgData.height == bh) { mixin(S_TRACE);
 								auto img = new Image(cur, imgData);
 								scope (exit) img.dispose();
 								dc.drawImage(img, a.insets.w, a.insets.n);
@@ -638,14 +646,6 @@ public:
 								int dw = imgData.width;
 								int dh = imgData.height;
 								dc.drawImage(img, 0, 0, dw, dh, a.insets.w, a.insets.n, dw, dh);
-							} else if (a.scaleType is ScaleType.Center) { mixin(S_TRACE);
-								auto img = new Image(cur, imgData);
-								scope (exit) img.dispose();
-								int dw = imgData.width;
-								int dh = imgData.height;
-								int x = a.insets.w + (bw - dw) / 2;
-								int y = a.insets.n + (bh - dh) / 2;
-								dc.drawImage(img, 0, 0, dw, dh, x, y, dw, dh);
 							} else { mixin(S_TRACE);
 								assert (a.scaleType is ScaleType.Scale);
 								imgData = imgData.scaledTo
