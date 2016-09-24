@@ -109,6 +109,14 @@ class Msgs : Properties {
 	auto dlgMsgIncludeImage = Msg("dlgMsgIncludeImage", "%1$sをシナリオファイル内にコピーしますか？\n(元のファイルは削除されません)");
 	auto dlgMsgExcludeImage = Msg("dlgMsgExcludeImage", "WSN形式のシナリオでは格納イメージは使用できません。\n格納イメージを外部化しますか？\n(外部化しなかった場合、格納イメージは消滅します)");
 
+	auto cardImagePosition = Msg("cardImagePosition", "イメージの配置方式:");
+
+	const string cardImagePositionName(CardImagePosition id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(CardImagePosition, "cardImagePositionName"));
+	}
+	auto cardImagePositionNameDefault = Msg("cardImagePositionNameDefault", "指定しない");
+	auto cardImagePositionNameCenter = Msg("cardImagePositionNameCenter", "中央寄せ");
+	auto cardImagePositionNameTopLeft = Msg("cardImagePositionNameTopLeft", "左上寄せ");
 
 	auto dlgTitImageLayerWindow = Msg("dlgTitImageLayerWindow", "レイヤの編集");
 	auto dlgTitImageLayerWindowReadOnly = Msg("dlgTitImageLayerWindowReadOnly", "レイヤの一覧");

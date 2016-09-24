@@ -2660,10 +2660,12 @@ class MsgPreview : Composite {
 		if (_img) return;
 		auto d = _canvas.getDisplay();
 		ImageData[] tImg = [];
+		CardImagePosition[] pos = [];
 		foreach (imgPath; _imgPaths) { mixin(S_TRACE);
 			final switch (imgPath.type) {
 			case CardImageType.File:
 				tImg ~= loadImage(_comm.skin.findImagePath(imgPath.path, _summ.scenarioPath), true);
+				pos ~= imgPath.positionType;
 				break;
 			case CardImageType.PCNumber:
 				// Invalid data.
@@ -2675,10 +2677,12 @@ class MsgPreview : Composite {
 				case Talker.RANDOM:
 				case Talker.VALUED:
 					tImg ~= _prop.images.talker(imgPath.talker).getImageData();
+					pos ~= CardImagePosition.Default;
 					break;
 				case Talker.CARD:
 					auto cRect = _prop.looks.cardSize;
 					tImg ~= menuCard(_comm.skin).scaledTo(cRect.width, cRect.height);
+					pos ~= CardImagePosition.Default;
 					break;
 				}
 				break;
@@ -2688,7 +2692,7 @@ class MsgPreview : Composite {
 		string[char] names;
 		string[string] flags, steps;
 		_values.getValues(names, flags, steps);
-		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, _message, [], names, flags, steps));
+		_img = new Image(d, previewMessage(_comm, _prop, _summ.scenarioPath, tImg, pos, _message, [], names, flags, steps));
 	}
 
 	@property
@@ -2700,7 +2704,7 @@ class MsgPreview : Composite {
 }
 
 /// メッセージのプレビューを生成する。
-ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] talkers, string message, in string[] sel, in string[char] names, in string[string] flags, in string[string] steps) { mixin(S_TRACE);
+ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] talkers, CardImagePosition[] poses, string message, in string[] sel, in string[char] names, in string[string] flags, in string[string] steps) { mixin(S_TRACE);
 	auto d = Display.getCurrent();
 	version (Windows) {
 		bool legacy = comm.skin.legacy;
@@ -2725,13 +2729,24 @@ ImageData previewMessage(Commons comm, Props prop, string sPath, ImageData[] tal
 	}
 
 	// 話者の描画
-	foreach (talker; talkers) { mixin(S_TRACE);
+	foreach (i, talker; talkers) { mixin(S_TRACE);
 		auto tImg = new Image(d, talker);
 		scope (exit) tImg.dispose();
 		auto tp = prop.looks.messageTalkerPos;
 		auto cs = prop.looks.cardSize;
-		int tpy = tp.y + (cast(int) cs.height - cast(int) talker.height) / 2;
-		gc.drawImage(tImg, tp.x, tpy);
+		final switch (poses[i]) {
+		case CardImagePosition.Default:
+		case CardImagePosition.TopLeft:
+			int tpy = tp.y + (cast(int) cs.height - cast(int) talker.height) / 2;
+			gc.drawImage(tImg, tp.x, tpy);
+			break;
+		case CardImagePosition.Center:
+			auto b = tImg.getBounds();
+			int tpx = (rect.width - b.width) / 2;
+			int tpy = (rect.height - b.height) / 2;
+			gc.drawImage(tImg, tpx, tpy);
+			break;
+		}
 	}
 
 	// 文章と特殊文字の描画

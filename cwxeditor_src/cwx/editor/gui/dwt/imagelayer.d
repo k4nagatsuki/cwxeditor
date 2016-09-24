@@ -8,16 +8,19 @@ import cwx.types;
 import cwx.utils;
 
 import cwx.editor.gui.dwt.cardlist;
+import cwx.editor.gui.dwt.centerlayout;
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
 
-import std.algorithm;
+import std.algorithm : max, min, map;
 import std.array;
 import std.conv;
+import std.datetime;
 import std.file;
+import std.traits;
 
 import org.eclipse.swt.all;
 
@@ -25,6 +28,7 @@ import org.eclipse.swt.all;
 class ImageLayerWindow {
 	private Shell _win = null;
 	private ImageLayerList _list = null;
+	private ImageLayerPanel _layerPanel = null;
 
 	this (Commons comm, const Summary summ, bool mask, bool readOnly, Control parent) { mixin(S_TRACE);
 		_win = new Shell(parent.getShell(), SWT.TITLE | SWT.RESIZE | SWT.CLOSE | SWT.TOOL);
@@ -34,16 +38,21 @@ class ImageLayerWindow {
 			_win.setText(comm.prop.msgs.dlgTitImageLayerWindow);
 		}
 
-		_win.setLayout(zeroGridLayout(1, true));
+		_win.setLayout(zeroGridLayout(2, false));
 		ToolBar bar = null;
 		if (!readOnly) { mixin(S_TRACE);
 			bar = new ToolBar(_win, SWT.FLAT);
 			bar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			comm.put(bar);
+
+			_layerPanel = new ImageLayerPanel(comm, _win, readOnly);
 		}
 
 		_list = new ImageLayerList(comm, summ, _win, mask, readOnly);
-		_list.setLayoutData(new GridData(GridData.FILL_BOTH));
+		if (_layerPanel) _layerPanel.list = _list;
+		auto lgd = new GridData(GridData.FILL_BOTH);
+		lgd.horizontalSpan = 2;
+		_list.setLayoutData(lgd);
 
 		if (bar) { mixin(S_TRACE);
 			createToolItem(comm, bar, MenuID.AddLayer, &_list.addLayer, &_list.canAddLayer);
@@ -105,6 +114,7 @@ class ImageLayerWindow {
 class ImageLayerList : Composite {
 	void delegate()[] selectionEvent;
 	void delegate()[] modEvent;
+	private void delegate()[] updateEvent;
 
 	private int _readOnly = 0;
 
@@ -245,6 +255,7 @@ class ImageLayerList : Composite {
 		}
 		setupScrollBar();
 		redraw();
+		foreach (dlg; updateEvent) dlg();
 	}
 	@property
 	CardImage[] images() { mixin(S_TRACE);
@@ -256,6 +267,7 @@ class ImageLayerList : Composite {
 		_selection = index;
 		_comm.refreshToolBar();
 		redraw();
+		foreach (dlg; updateEvent) dlg();
 	}
 	@property
 	const
@@ -502,17 +514,74 @@ private class ImageLayerItem : Item {
 		}
 		_toolTip = "";
 		auto name = getText();
+		auto posType = _comm.prop.msgs.cardImagePositionName(_cardPath.positionType);
+		auto te = gc.wTextExtent(posType);
+		auto ih = _parent.itemHeight;
+		auto textY = y + ih / 2 - te.y - 3.ppis;
 		if (name != "") { mixin(S_TRACE);
-			auto te = gc.wTextExtent(name);
 			auto name2 = cutText(name, gc, ca.width - textX - 1);
 			if (name2 != name) { mixin(S_TRACE);
 				_toolTip = name;
 			}
-			gc.wDrawText(name2, textX, y + _parent.itemHeight / 2 - te.y / 2);
+			gc.wDrawText(name2, textX, textY);
 		}
+
+		gc.wDrawText(posType, textX, textY + te.y + 3.ppis);
 	}
 
 	CardImage cardPath() { mixin(S_TRACE);
 		return _cardPath;
+	}
+}
+
+class ImageLayerPanel : Composite {
+	private Commons _comm;
+	private bool _readOnly;
+
+	private Combo _positionType;
+	private CardImagePosition[] _posTypes;
+	private int[CardImagePosition] _posTypeTable;
+	private ImageLayerList _list = null;
+
+	this (Commons comm, Composite parent, bool readOnly) { mixin(S_TRACE);
+		super (parent, SWT.NONE);
+
+		_comm = comm;
+		_readOnly = readOnly;
+		setLayout(zeroMarginGridLayout(2, false));
+
+		auto l = new Label(this, SWT.NONE);
+		l.setText(_comm.prop.msgs.cardImagePosition);
+		_positionType = new Combo(this, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+		_positionType.setVisibleItemCount(_comm.prop.var.etc.comboVisibleItemCount);
+		foreach (i, posType; EnumMembers!CardImagePosition) { mixin(S_TRACE);
+			_posTypes ~= posType;
+			_posTypeTable[posType] = _positionType.getItemCount();
+			_positionType.add(comm.prop.msgs.cardImagePositionName(posType));
+		}
+	}
+
+	void list(ImageLayerList list) {
+		_list = list;
+		.listener(_positionType, SWT.Selection, { mixin(S_TRACE);
+			auto itm = 0 <= _list.selection ? _list._items[_list.selection] : null;
+			itm._cardPath = new CardImage(itm._cardPath.path, _posTypes[_positionType.getSelectionIndex()]);
+			foreach (dlg; _list.modEvent) dlg();
+			_list.redraw();
+		});
+		selected();
+		_list.selectionEvent ~= &selected;
+		_list.updateEvent ~= &selected;
+	}
+
+	private void selected() { mixin(S_TRACE);
+		auto cardPath = 0 <= _list.selection ? _list._items[_list.selection]._cardPath : null;
+		if (cardPath && cardPath.type is CardImageType.File) { mixin(S_TRACE);
+			_positionType.select(_posTypeTable[cardPath.positionType]);
+			_positionType.setEnabled(!_readOnly);
+		} else { mixin(S_TRACE);
+			_positionType.select(0);
+			_positionType.setEnabled(false);
+		}
 	}
 }

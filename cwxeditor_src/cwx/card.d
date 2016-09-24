@@ -67,19 +67,6 @@ class OverData {
 
 public:
 
-/// カード画像のタイプ。
-enum CardImageType {
-	PCNumber, /// PCの画像。
-	File, /// ファイル。
-	Talker /// 話者キャラクタ。
-}
-/// カード画像の配置形式(Wsn.2)。
-enum CardImagePosition {
-	Default, /// 指定無し(クラシックな位置に合わせる)。
-	Center, /// 中央寄せ。
-	TopLeft /// 左上起点。
-}
-
 /// カード画像のデータ。
 class CardImage : IPathUser {
 	CardImageType type = CardImageType.File;

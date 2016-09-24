@@ -238,7 +238,7 @@ public:
 					modEvent ~= &update;
 					updateImageEvent ~= &update;
 					if (_readOnly) { mixin(S_TRACE);
-						_comm.put(_layerButton, () => !_summ.legacy && 1 < _msel.paths.length && !_msel.binPath.length);
+						_comm.put(_layerButton, () => !_summ.legacy && 1 <= _msel.paths.length && !_msel.binPath.length);
 					} else { mixin(S_TRACE);
 						// すでに2枚以上レイヤがある場合は編集可能にしておく
 						_comm.put(_layerButton, () => (!_summ.legacy || 1 < _msel.paths.length) && !_msel.binPath.length);
