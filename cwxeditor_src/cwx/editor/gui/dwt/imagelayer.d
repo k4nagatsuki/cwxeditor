@@ -215,15 +215,20 @@ class ImageLayerList : Composite {
 			}
 		});
 
-		auto vBar = getVerticalBar();
-		auto cRect = _comm.prop.looks.cardSize;
-		vBar.setIncrement(cRect.height / 2);
 		setupScrollBar();
 		.listener(this, SWT.Resize, &setupScrollBar);
+		auto vBar = getVerticalBar();
 		.listener(vBar, SWT.Selection, &redraw);
+		_comm.refImageScale.add(&refImageScale);
 		.listener(this, SWT.Dispose, { mixin(S_TRACE);
+			_comm.refImageScale.remove(&refImageScale);
 			foreach (item; _items) item.dispose();
 		});
+	}
+
+	private void refImageScale() { mixin(S_TRACE);
+		setupScrollBar();
+		redraw();
 	}
 
 	@property
@@ -236,7 +241,7 @@ class ImageLayerList : Composite {
 		foreach (item; _items) item.dispose();
 		_items = [];
 		foreach (cardPath; cardPaths) { mixin(S_TRACE);
-			_items ~= new ImageLayerItem(this, cardPath);
+			_items ~= new ImageLayerItem(this, _comm, cardPath);
 		}
 		setupScrollBar();
 		redraw();
@@ -261,7 +266,7 @@ class ImageLayerList : Composite {
 	void addLayer() { mixin(S_TRACE);
 		if (!canAddLayer) return;
 		_selection = cast(int)_items.length;
-		_items ~= new ImageLayerItem(this, new CardImage(""));
+		_items ~= new ImageLayerItem(this, _comm, new CardImage(""));
 		setupScrollBar();
 		showSelection();
 		redraw();
@@ -340,6 +345,10 @@ class ImageLayerList : Composite {
 	private void setupScrollBar() { mixin(S_TRACE);
 		auto ca = getClientArea();
 		auto vBar = getVerticalBar();
+		auto cRect = _comm.prop.looks.cardSize;
+		cRect.width = _comm.prop.s(cRect.width);
+		cRect.height = _comm.prop.s(cRect.height);
+		vBar.setIncrement(cRect.height / 2);
 		auto height = itemHeight * cast(int)_items.length;
 		vBar.setMaximum(height);
 		vBar.setThumb(height < ca.height ? height : ca.height);
@@ -347,7 +356,7 @@ class ImageLayerList : Composite {
 	}
 	@property
 	private int itemHeight() { mixin(S_TRACE);
-		return _comm.prop.looks.cardSize.height + 2.ppis;
+		return _comm.prop.s(_comm.prop.looks.cardSize.height) + 2.ppis;
 	}
 
 	private void onPaint(Event e) { mixin(S_TRACE);
@@ -367,14 +376,17 @@ class ImageLayerList : Composite {
 
 private class ImageLayerItem : Item {
 	private ImageLayerList _parent = null;
+
+	private Commons _comm = null;
 	private CardImage _cardPath = null;
 	private string _toolTip = "";
 	private bool _commonImage = false;
 	private bool _warning = false;
 
-	this (ImageLayerList parent, CardImage cardPath) { mixin(S_TRACE);
+	this (ImageLayerList parent, Commons comm, CardImage cardPath) { mixin(S_TRACE);
 		super (parent, SWT.NONE);
 		_parent = parent;
+		_comm = comm;
 		_cardPath = cardPath;
 		.listener(this, SWT.Dispose, &disposeImage);
 	}
@@ -400,6 +412,8 @@ private class ImageLayerItem : Item {
 			gc.setForeground(d.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 		}
 		auto cRect = _parent._comm.prop.looks.cardSize;
+		cRect.width = _comm.prop.s(cRect.width);
+		cRect.height = _comm.prop.s(cRect.height);
 
 		if (getImage()) { mixin(S_TRACE);
 			drawImage(gc, y);
@@ -460,15 +474,28 @@ private class ImageLayerItem : Item {
 	private void drawImage(GC gc, int y) { mixin(S_TRACE);
 		auto ca = _parent.getClientArea();
 		auto cRect = _parent._comm.prop.looks.cardSize;
+		cRect.width = _comm.prop.s(cRect.width);
+		cRect.height = _comm.prop.s(cRect.height);
 		auto image = getImage();
 		auto textX = cRect.width + 1.ppis + 5.ppis;
 		if (image) { mixin(S_TRACE);
 			auto b = image.getBounds();
-			gc.drawImage(image, (cRect.width - b.width) / 2 + 1.ppis, y + (cRect.height - b.height) / 2 + 1.ppis);
+			auto b2 = image.getBounds();
+			b.width = _comm.prop.s(b.width);
+			b.height = _comm.prop.s(b.height);
+			if (cRect.width < b.width || cRect.height < b.height) { mixin(S_TRACE);
+				auto sc = .min(cast(real)cRect.width / b.width, cast(real)cRect.height / b.height);
+				b.width = cast(int)(b.width * sc);
+				b.height = cast(int)(b.height * sc);
+			}
+			b.x = (cRect.width - b.width) / 2 + 1.ppis;
+			b.y = y + (cRect.height - b.height) / 2 + 1.ppis;
+			gc.drawImage(image, 0, 0, b2.width, b2.height,
+				b.x, b.y, b.width, b.height);
 		}
 		if (_warning) { mixin(S_TRACE);
 			textX = 5.ppis;
-			auto img = _parent._comm.prop.images.warning;
+			auto img = _comm.prop.images.warning;
 			auto b = img.getBounds();
 			gc.drawImage(img, textX, y + _parent.itemHeight / 2 - b.height / 2);
 			textX += b.width + 5.ppis;

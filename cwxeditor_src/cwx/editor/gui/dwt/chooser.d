@@ -46,7 +46,6 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 	void refreshCoupons() { mixin(S_TRACE);
 		string id = combo.getText();
 		combo.removeAll();
-		cdebugln();
 		auto values = allCoupons(comm, summ, type);
 		if (initValue != "") values = cwx.utils.remove(values, initValue);
 		if (initValue != "") values = values.length ? ([initValue, ""] ~ values) : [initValue];
