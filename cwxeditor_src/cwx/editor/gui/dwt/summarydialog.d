@@ -164,7 +164,7 @@ private:
 		}
 	}
 	void refImageScale() { mixin(S_TRACE);
-		_imgPath.setPreviewSize(_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height));
+		_imgPath.setPreviewSize(_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(CInsets(0, 0, 0, 0)));
 
 		if (!_summImage) return;
 		if (getShell().isVisible()) getShell().setRedraw(false);
@@ -205,7 +205,8 @@ private:
 			auto skin = summSkin;
 			{ mixin(S_TRACE);
 				_imgPath = new ImageSelect!(MtType.CARD)(_tab2Sash, _readOnly, _comm, _prop, _summ,
-					_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), true, () => _sname.getText(), &clearBuf);
+					_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(CInsets(0, 0, 0, 0)),
+					CardImagePosition.TopLeft, true, () => _sname.getText(), &clearBuf);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.images = _summ.imagePaths;

@@ -8,6 +8,7 @@ import cwx.menu;
 import cwx.types;
 import cwx.imagesize;
 import cwx.card;
+import cwx.structs;
 
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dutils;
@@ -58,7 +59,7 @@ public:
 	/// refresh = 選択が変更された際のコールバック関数。
 	/// defs = 画像以外の選択肢。nullの場合は「イメージ無し」になる。
 	this (Composite parent, int style, Commons comm, Props prop, Summary summ,
-			int w, int h, bool canInclude, string delegate() saveName, void delegate() refresh = null,
+			int w, int h, CInsets insets, CardImagePosition defPosType, bool canInclude, string delegate() saveName, void delegate() refresh = null,
 			string[] delegate(bool included) defs = null, bool isMenuCard = false) { mixin(S_TRACE);
 		_readOnly = style & SWT.READ_ONLY;
 		_comm = comm;
@@ -68,6 +69,9 @@ public:
 		_refresh = refresh;
 		_w = w;
 		_h = h;
+		_insets = insets;
+		assert (defPosType !is CardImagePosition.Default);
+		_defPosType = defPosType;
 		_saveName = saveName;
 		static if (is(C == Table)) {
 			// 背景イメージ選択等
@@ -124,7 +128,7 @@ public:
 				comp.setLayoutData(new GridData(GridData.FILL_BOTH));
 				comp.setLayout(new CenterLayout(SWT.VERTICAL | SWT.HORIZONTAL, 0));
 				_image = new Canvas(comp, SWT.BORDER | SWT.DOUBLE_BUFFERED);
-				setPreviewSize(_w, _h);
+				setPreviewSize(_w, _h, insets);
 				_image.addPaintListener(new PListener);
 				.listener(_image, SWT.Dispose, { mixin(S_TRACE);
 					foreach (img; _img) { mixin(S_TRACE);
@@ -271,12 +275,13 @@ public:
 		}
 	}
 
-	void setPreviewSize(int w, int h) { mixin(S_TRACE);
+	void setPreviewSize(int w, int h, CInsets insets) { mixin(S_TRACE);
 		_group.setRedraw(false);
 		scope (exit) _group.setRedraw(true);
 		_w = w;
 		_h = h;
-		_image.setLayoutData(_image.computeSize(_w, _h));
+		_insets = insets;
+		_image.setLayoutData(_image.computeSize(_w + _insets.w + _insets.e, _h + _insets.n + _insets.s));
 		_group.layout(true);
 		_image.getParent().layout(true);
 	}
@@ -641,7 +646,7 @@ private:
 			} else static if (Type == MtType.BG_IMG) {
 				_paintedPaths.length = 1;
 				_img.length = 1;
-				drawImage(e.gc, 0, filePath);
+				drawImage(e.gc, 0, filePath, _defPosType, _insets);
 			} else static assert (0);
 		}
 		private void drawImage(GC gc, size_t i, CardImage path) { mixin(S_TRACE);
@@ -649,7 +654,9 @@ private:
 			case CardImageType.File:
 				auto file = summSkin.findImagePath(path.path, _summ ? _summ.scenarioPath : "");
 				if (file != "") { mixin(S_TRACE);
-					drawImage(gc, i, file);
+					auto posType = path.positionType;
+					if (posType is CardImagePosition.Default) posType = _defPosType;
+					drawImage(gc, i, file, posType, _insets);
 				}
 				break;
 			case CardImageType.PCNumber:
@@ -666,18 +673,17 @@ private:
 				case Talker.RANDOM:
 				case Talker.VALUED:
 					_paintedPaths[i] = "";
-					drawImage(gc, _prop.images.talker(path.talker).getImageData());
+					drawImage(gc, _prop.images.talker(path.talker).getImageData(), CardImagePosition.Center, _insets);
 					break;
 				case Talker.CARD:
 					_paintedPaths[i] = "";
-					auto cRect = _prop.looks.cardSize;
-					drawImage(gc, menuCard(summSkin).scaledTo(cRect.width, cRect.height));
+					drawImage(gc, menuCard(summSkin), CardImagePosition.Center, CInsets(0, 0, 0, 0));
 					break;
 				}
 				break;
 			}
 		}
-		private void drawImage(GC gc, size_t i, string path) { mixin(S_TRACE);
+		private void drawImage(GC gc, size_t i, string path, CardImagePosition posType, CInsets insets) { mixin(S_TRACE);
 			ImageData imgData = null;
 			if (path !is null && path.length > 0) { mixin(S_TRACE);
 				if (!_paintedPaths[i] && _paintedPaths[i] == path) { mixin(S_TRACE);
@@ -692,9 +698,9 @@ private:
 					_img[i] = imgData;
 				}
 			}
-			drawImage(gc, imgData);
+			drawImage(gc, imgData, posType, insets);
 		}
-		private void drawImage(GC gc, ImageData imgData) { mixin(S_TRACE);
+		private void drawImage(GC gc, ImageData imgData, CardImagePosition posType, CInsets insets) { mixin(S_TRACE);
 			if (!imgData) return;
 			auto img = new Image(Display.getCurrent(), imgData);
 			auto b = img.getBounds();
@@ -704,53 +710,32 @@ private:
 			b.height = _prop.s(b.height);
 			auto b2 = img.getBounds();
 			auto area = _image.getClientArea();
-			int x, y, w, h, fw, fh;
 			static if (Type is MtType.CARD) {
-				final switch (_cardMode) {
-				case CardMode.Message:
-					x = 0;
-					w = .min(b.width, area.width);
-					fw = b2.width;
-					fh = b2.height;
-					h = b.height;
-					y = (area.height - h) / 2;
+				final switch (posType) {
+				case CardImagePosition.Center:
+					b.x = (area.width - b.width) / 2;
+					b.y = (area.height - b.height) / 2;
+					gc.drawImage(img, 0, 0, b2.width, b2.height,
+						b.x, b.y, b.width, b.height);
 					break;
-				case CardMode.Cast:
-					fw = b2.width;
-					fh = b2.height;
-					w = b.width;
-					h = b.height;
-					x = (area.width - w) / 2;
-					y = (area.height - h) / 2;
+				case CardImagePosition.TopLeft:
+					gc.drawImage(img, 0, 0, b2.width, b2.height,
+						insets.w, insets.n, b.width, b.height);
 					break;
-				case CardMode.Normal:
-					x = 0;
-					y = 0;
-					w = .min(b.width, area.width);
-					h = .min(b.height, area.height);
-					fw = b2.width;
-					fh = b2.height;
-					break;
+				case CardImagePosition.Default:
+					assert (0);
 				}
 			} else { mixin(S_TRACE);
-				if (area.width >= b.width) { mixin(S_TRACE);
-					x = (area.width - b.width) / 2;
-					w = b.width;
-				} else { mixin(S_TRACE);
-					x = 0;
-					w = area.width;
+				if (area.width < b.width || area.height < b.height) { mixin(S_TRACE);
+					auto sc = .min(cast(real)area.width / b.width, cast(real)area.height / b.height);
+					b.width = cast(int)(b.width * sc);
+					b.height = cast(int)(b.height * sc);
 				}
-				if (area.height >= b.height) { mixin(S_TRACE);
-					y = (area.height - b.height) / 2;
-					h = b.height;
-				} else { mixin(S_TRACE);
-					y = 0;
-					h = area.height;
-				}
-				fw = b2.width;
-				fh = b2.height;
+				b.x = (area.width - b.width) / 2;
+				b.y = (area.height - b.height) / 2;
+				gc.drawImage(img, 0, 0, b2.width, b2.height,
+					b.x, b.y, b.width, b.height);
 			}
-			gc.drawImage(img, 0, 0, fw, fh, x, y, w, h);
 			img.dispose();
 		}
 	}
@@ -819,6 +804,8 @@ private:
 	MaterialSelect!(Type, Combo, C) _msel;
 	ImageListWindow!Type _imgList = null;
 	int _w, _h;
+	CInsets _insets;
+	CardImagePosition _defPosType;
 	string delegate() _saveName;
 	bool _mask = true;
 	void delegate() _refresh;

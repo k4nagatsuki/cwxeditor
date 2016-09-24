@@ -167,6 +167,15 @@ public:
 	int s(int s) { mixin(S_TRACE);
 		return s * .max(1u, var.etc.imageScale);
 	}
+	/// ditto
+	const
+	CInsets s(CInsets insets) { mixin(S_TRACE);
+		insets.n = s(insets.n);
+		insets.e = s(insets.e);
+		insets.s = s(insets.s);
+		insets.w = s(insets.w);
+		return insets;
+	}
 }
 
 /// CPoint等の構造体をSWTのクラスに変換するための関数。

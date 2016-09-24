@@ -118,12 +118,13 @@ protected:
 		{ mixin(S_TRACE);
 			auto skin = summSkin;
 			_imgPath = new ImageSelect!(MtType.CARD)(area, _readOnly, _comm, _prop, _summ,
-				_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), true, &_name.getText);
+				_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height),
+				_prop.s(_prop.looks.cardInsets), CardImagePosition.TopLeft, true, &_name.getText);
 			mod(_imgPath);
 			_imgPath.modEvent ~= &refreshWarning;
 			_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 			void refImageScale() { mixin(S_TRACE);
-				_imgPath.setPreviewSize(_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height));
+				_imgPath.setPreviewSize(_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(_prop.looks.cardInsets));
 			}
 			_comm.refImageScale.add(&refImageScale);
 			.listener(_imgPath.widget, SWT.Dispose, { mixin(S_TRACE);

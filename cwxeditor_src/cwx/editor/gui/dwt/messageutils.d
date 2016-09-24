@@ -1374,7 +1374,7 @@ private Composite createTalkerPane
 	];
 	auto s = prop.looks.cardSize;
 	msel = new ImageSelect!(MtType.CARD, Combo)(comp, SWT.NONE, comm, prop, summ, prop.s(s.width), prop.s(s.height),
-		false, () => "", null, included => defs);
+		prop.s(CInsets(0, 0, 0, 0)), CardImagePosition.TopLeft, false, () => "", null, included => defs);
 	msel.valueFromDef = (defIndex, included, binPath) { mixin(S_TRACE);
 		switch (defIndex) {
 		case 0: return new CardImage(Talker.SELECTED);
@@ -1405,7 +1405,7 @@ private Composite createTalkerPane
 	msel.images = paths.length ? paths : [new CardImage(Talker.SELECTED)];
 
 	void refImageScale() { mixin(S_TRACE);
-		msel.setPreviewSize(prop.s(s.width), prop.s(s.height));
+		msel.setPreviewSize(prop.s(s.width), prop.s(s.height), prop.s(CInsets(0, 0, 0, 0)));
 	}
 	comm.refImageScale.add(&refImageScale);
 	.listener(msel.widget, SWT.Dispose, { mixin(S_TRACE);

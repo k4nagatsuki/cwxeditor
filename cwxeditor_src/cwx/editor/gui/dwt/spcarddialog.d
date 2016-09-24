@@ -340,7 +340,8 @@ protected:
 								return defs;
 							}
 							_imgPath = new ImageSelect!(MtType.CARD)(comp2, SWT.NONE, _comm, _prop, _summ,
-								_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), true, &_name.getText, null, &defs, true);
+								_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(_prop.looks.menuCardInsets),
+								CardImagePosition.TopLeft, true, &_name.getText, null, &defs, true);
 							_imgPath.valueFromDef = (defIndex, included, binPath) { mixin(S_TRACE);
 								if (defIndex <= 0) return new CardImage("", CardImagePosition.Default);
 								if (included) { mixin(S_TRACE);
@@ -368,7 +369,7 @@ protected:
 							_imgPath.modEvent ~= &refreshWarning;
 							_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 							void refImageScale() { mixin(S_TRACE);
-								_imgPath.setPreviewSize(_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height));
+								_imgPath.setPreviewSize(_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(_prop.looks.menuCardInsets));
 							}
 							_comm.refImageScale.add(&refImageScale);
 							.listener(_imgPath.widget, SWT.Dispose, { mixin(S_TRACE);

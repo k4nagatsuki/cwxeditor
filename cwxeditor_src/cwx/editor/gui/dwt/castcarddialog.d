@@ -230,13 +230,14 @@ private:
 			}
 			{ mixin(S_TRACE);
 				_imgPath = new ImageSelect!(MtType.CARD)(comp2, _readOnly, _comm, _prop, _summ,
-					_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), true, &_name.getText);
+					_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(_prop.looks.castCardInsets),
+					CardImagePosition.Center, true, &_name.getText);
 				mod(_imgPath);
 				_imgPath.modEvent ~= &refreshWarning;
 				_imgPath.widget.setLayoutData(new GridData(GridData.FILL_BOTH));
 				_imgPath.cardMode = CardMode.Cast;
 				void refImageScale() { mixin(S_TRACE);
-					_imgPath.setPreviewSize(_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height));
+					_imgPath.setPreviewSize(_prop.s(_prop.looks.cardSize.width), _prop.s(_prop.looks.cardSize.height), _prop.s(_prop.looks.castCardInsets));
 				}
 				_comm.refImageScale.add(&refImageScale);
 				.listener(_imgPath.widget, SWT.Dispose, { mixin(S_TRACE);
