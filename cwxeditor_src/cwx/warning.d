@@ -35,6 +35,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 
 	auto psumm = cast(Summary) path;
 	if (psumm) { mixin(S_TRACE);
+		bool warnPos = false;
 		foreach (imagePath; psumm.imagePaths) { mixin(S_TRACE);
 			if (imagePath.type !is CardImageType.File) continue;
 			if (imagePath.path != "" && !isBinImg(imagePath.path) && !skin.findPath(imagePath.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
@@ -43,8 +44,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (imagePath.path != "") { mixin(S_TRACE);
 				r ~= skin.warningImage(prop, imagePath.path, psumm.legacy, true, targVer);
 			}
-			if (imagePath.positionType !is CardImagePosition.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			if (!warnPos && imagePath.positionType !is CardImagePosition.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningCardImagePosition;
+				warnPos = true;
 			}
 		}
 		if (psumm.levelMin > psumm.levelMax) { mixin(S_TRACE);
@@ -107,6 +109,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto card = cast(Card) path;
 	if (card) { mixin(S_TRACE);
+		bool warnPos = false;
 		foreach (imagePath; card.paths) { mixin(S_TRACE);
 			if (imagePath.type !is CardImageType.File) continue;
 			if (imagePath.path != "" && !isBinImg(imagePath.path) && !skin.findPath(imagePath.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
@@ -115,8 +118,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (imagePath.path != "") { mixin(S_TRACE);
 				r ~= skin.warningImage(prop, imagePath.path, summ ? summ.legacy : false, true, targVer);
 			}
-			if (imagePath.positionType !is CardImagePosition.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			if (!warnPos && imagePath.positionType !is CardImagePosition.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningCardImagePosition;
+				warnPos = true;
 			}
 		}
 	}
@@ -250,6 +254,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 	}
 	auto mc = cast(MenuCard) path;
 	if (mc) { mixin(S_TRACE);
+		bool warnPos = false;
 		foreach (imagePath; mc.paths) { mixin(S_TRACE);
 			if (imagePath.type is CardImageType.File) { mixin(S_TRACE);
 				if (imagePath.path != "" && !isBinImg(imagePath.path) && !skin.findPath(imagePath.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
@@ -271,8 +276,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (imagePath.type is CardImageType.PCNumber && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 				r ~= prop.msgs.warningPCNumberClassic;
 			}
-			if (imagePath.positionType !is CardImagePosition.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			if (!warnPos && imagePath.positionType !is CardImagePosition.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningCardImagePosition;
+				warnPos = true;
 			}
 		}
 		if (mc.flag != "" && !(froot && froot.findFlag(mc.flag))) { mixin(S_TRACE);
@@ -390,6 +396,7 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= .tryFormat(prop.msgs.searchErrorStepNotFound, c.step);
 			}
 		}
+		bool warnPos = false;
 		foreach (cardPath; c.cardPaths) { mixin(S_TRACE);
 			if (cardPath.type !is CardImageType.File) continue;
 			if (cardPath.path != "" && !skin.findPath(cardPath.path, skin.extImage, skin.tableDir, sPath).length) { mixin(S_TRACE);
@@ -398,8 +405,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (cardPath.path != "") { mixin(S_TRACE);
 				r ~= skin.warningImage(prop, cardPath.path, summ ? summ.legacy : false, false, targVer);
 			}
-			if (cardPath.positionType !is CardImagePosition.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+			if (!warnPos && cardPath.positionType !is CardImagePosition.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 				r ~= prop.msgs.warningCardImagePosition;
+				warnPos = true;
 			}
 		}
 		if (c.bgmPath != "" && !skin.findPath(c.bgmPath, skin.extBgm, skin.bgmDir, sPath).length) { mixin(S_TRACE);

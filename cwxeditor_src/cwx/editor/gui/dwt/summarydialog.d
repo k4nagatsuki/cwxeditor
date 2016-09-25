@@ -682,7 +682,7 @@ private class SummaryPreview : Composite {
 						final switch (imgPath.positionType) {
 						case CardImagePosition.Center:
 							auto b = image.getBounds();
-							gc.drawImage(image, (size.width - b.width) / 2, (size.height - b.height) / 2);
+							gc.drawImage(image, (cast(int)size.width - b.width) / 2, (cast(int)size.height - b.height) / 2);
 							break;
 						case CardImagePosition.TopLeft:
 						case CardImagePosition.Default:

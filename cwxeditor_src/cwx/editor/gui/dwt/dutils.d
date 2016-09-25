@@ -1708,7 +1708,9 @@ void addToPileImage(in CardImage img, PileImage pile, Props prop, Skin skin, str
 	final switch (img.type) {
 	case CardImageType.PCNumber:
 		if (0 < img.pcNumber) { mixin(S_TRACE);
-			pile.append(dwtData(prop.looks.pcNumberFont(skin.legacy)), .text(img.pcNumber), prop.looks.menuCardInsets);
+			auto font = prop.looks.pcNumberFont(skin.legacy);
+			font.point /= 2;
+			pile.append(dwtData(font), .text(img.pcNumber), prop.looks.menuCardInsets);
 		}
 		break;
 	case CardImageType.File:
