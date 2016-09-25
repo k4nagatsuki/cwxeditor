@@ -626,6 +626,7 @@ protected:
 			if (!_summ.legacy) { mixin(S_TRACE);
 				_comm.refDataVersion.call();
 			}
+			refreshWarning();
 		}
 		return true;
 	}

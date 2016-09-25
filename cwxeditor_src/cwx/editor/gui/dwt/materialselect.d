@@ -876,7 +876,7 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		private void selectPath(string path, ptrdiff_t index = -1) { mixin(S_TRACE);
 			if (index < 0) index = _imageIndex;
-			_paths[index] = new CardImage(path, CardImagePosition.Default);
+			_paths[index] = new CardImage(path, _paths[index].positionType);
 		}
 		private void updateUseNoCardSizeImage() { mixin(S_TRACE);
 			if (useNoCardSizeImage) return;

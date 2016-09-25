@@ -43,6 +43,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (imagePath.path != "") { mixin(S_TRACE);
 				r ~= skin.warningImage(prop, imagePath.path, psumm.legacy, true, targVer);
 			}
+			if (imagePath.positionType !is CardImagePosition.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+				r ~= prop.msgs.warningCardImagePosition;
+			}
 		}
 		if (psumm.levelMin > psumm.levelMax) { mixin(S_TRACE);
 			r ~= prop.msgs.searchErrorReversalLevel;
@@ -111,6 +114,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 			if (imagePath.path != "") { mixin(S_TRACE);
 				r ~= skin.warningImage(prop, imagePath.path, summ ? summ.legacy : false, true, targVer);
+			}
+			if (imagePath.positionType !is CardImagePosition.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+				r ~= prop.msgs.warningCardImagePosition;
 			}
 		}
 	}
@@ -265,6 +271,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			if (imagePath.type is CardImageType.PCNumber && !prop.targetVersion("1.50", targVer)) { mixin(S_TRACE);
 				r ~= prop.msgs.warningPCNumberClassic;
 			}
+			if (imagePath.positionType !is CardImagePosition.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+				r ~= prop.msgs.warningCardImagePosition;
+			}
 		}
 		if (mc.flag != "" && !(froot && froot.findFlag(mc.flag))) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.searchErrorFlagNotFound, mc.flag);
@@ -388,6 +397,9 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 			}
 			if (cardPath.path != "") { mixin(S_TRACE);
 				r ~= skin.warningImage(prop, cardPath.path, summ ? summ.legacy : false, false, targVer);
+			}
+			if (cardPath.positionType !is CardImagePosition.Default && !prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
+				r ~= prop.msgs.warningCardImagePosition;
 			}
 		}
 		if (c.bgmPath != "" && !skin.findPath(c.bgmPath, skin.extBgm, skin.bgmDir, sPath).length) { mixin(S_TRACE);

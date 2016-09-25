@@ -4881,7 +4881,9 @@ public:
 					gc.setAlpha(alpha);
 				}
 				gc.drawOval(0, 0, width - 1, height - 1);
-				drawCenterText(.dwtData(_prop.looks.pcNumberFont(skin.legacy)), gc, new Rectangle(0, 0, width - 1, height - 1), .text(back.pcNumber));
+				auto font = _prop.looks.pcNumberFont(skin.legacy);
+				font.point /= .dpiMuls;
+				drawCenterText(.dwtData(font), gc, new Rectangle(0, 0, width - 1, height - 1), .text(back.pcNumber));
 			}, back.x, back.y, size.width, size.height, false);
 			r.transparent = false;
 			r.layer = back.layer * 10;

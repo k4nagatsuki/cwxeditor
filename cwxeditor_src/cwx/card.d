@@ -1173,6 +1173,7 @@ public:
 	const
 	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
+		n.newAttr("dataVersion", opt.dataVersion);
 		toNodeImpl(n, opt);
 		return n;
 	}
@@ -1181,6 +1182,7 @@ public:
 	override
 	XNode toNode(ref XNode parent, XMLOption opt) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
+		cNode.newAttr("dataVersion", opt.dataVersion);
 		toNodeImpl(cNode, opt);
 		return cNode;
 	}
@@ -2152,6 +2154,7 @@ public:
 	const
 	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
+		n.newAttr("dataVersion", opt.dataVersion);
 		toNodeImpl(n, opt, null);
 		return n;
 	}
@@ -2163,6 +2166,7 @@ public:
 	const
 	XNode toNode(ref XNode parent, XMLOption opt, in OverData od) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
+		cNode.newAttr("dataVersion", opt.dataVersion);
 		toNodeImpl(cNode, opt, od);
 		return cNode;
 	}
@@ -2410,6 +2414,7 @@ public:
 	const
 	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
+		n.newAttr("dataVersion", opt.dataVersion);
 		toNodeImpl(n, opt, null);
 		return n;
 	}
@@ -2421,6 +2426,7 @@ public:
 	const
 	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
+		cNode.newAttr("dataVersion", opt.dataVersion);
 		toNodeImpl(cNode, opt, od);
 		return cNode;
 	}
@@ -2621,6 +2627,7 @@ public:
 	const
 	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
+		n.newAttr("dataVersion", opt.dataVersion);
 		toNodeImpl(n, opt, null);
 		return n;
 	}
@@ -2632,6 +2639,7 @@ public:
 	const
 	XNode toNode(ref XNode parent, XMLOption opt, in OverData od = null) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
+		cNode.newAttr("dataVersion", opt.dataVersion);
 		toNodeImpl(cNode, opt, od);
 		return cNode;
 	}
@@ -2665,6 +2673,7 @@ public:
 	const
 	string toXML(XMLOption opt, in OverData od = null) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
+		n.newAttr("dataVersion", opt.dataVersion);
 		toNodeImpl(n, opt, od);
 		return n.text;
 	}
@@ -2774,6 +2783,7 @@ public:
 	const
 	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto n = XNode.create(XML_NAME);
+		n.newAttr("dataVersion", opt.dataVersion);
 		toNodeImpl(n, opt);
 		return n;
 	}
@@ -2782,6 +2792,7 @@ public:
 	override
 	XNode toNode(ref XNode parent, XMLOption opt) { mixin(S_TRACE);
 		auto cNode = parent.newElement(XML_NAME);
+		cNode.newAttr("dataVersion", opt.dataVersion);
 		toNodeImpl(cNode, opt);
 		return cNode;
 	}

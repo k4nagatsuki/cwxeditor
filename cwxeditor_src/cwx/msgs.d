@@ -1762,6 +1762,7 @@ class Msgs : Properties {
 	auto warningEndOrChangeAreaInRound0 = Msg("warningEndOrChangeAreaInRound0", "クラシックエンジンのバグにより、バトル開始イベント中にシナリオ終了やエリア移動を行うと、プレイヤーのデータの破損を含めた異常が発生する可能性があります。");
 	auto warningWsnSystemCoupon = Msg("warningWsnSystemCoupon", "システムクーポン「%1$s」はWsn.%2$s以降の形式のシナリオでしか機能しません。"); // Wsn.2
 	auto warningCanNotGetSetCoupon = Msg("warningCanNotGetSetCoupon", "システムクーポン「%1$s」を操作する事はできません。"); // Wsn.2
+	auto warningCardImagePosition = Msg("warningCardImagePosition", "イメージの配置形式の指定は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 

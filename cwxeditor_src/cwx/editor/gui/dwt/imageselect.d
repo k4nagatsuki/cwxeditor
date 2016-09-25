@@ -467,6 +467,9 @@ public:
 			foreach (img; _msel.paths) { mixin(S_TRACE);
 				if (img.type == CardImageType.File) { mixin(S_TRACE);
 					ws ~= warningFrom(img.path);
+					if (img.positionType !is CardImagePosition.Default && !_prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
+						ws ~= _prop.msgs.warningCardImagePosition;
+					}
 				}
 				if (img.type == CardImageType.PCNumber) { mixin(S_TRACE);
 					if (!_prop.targetVersion(_summ, "1.50") && 0 != img.pcNumber && _summ) { mixin(S_TRACE);

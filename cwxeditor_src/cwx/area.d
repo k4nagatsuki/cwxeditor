@@ -806,7 +806,8 @@ public:
 	/// summId = テキストに付与するID。nullを指定すると付与しない。
 	const
 	string toXML(XMLOption opt, string summId = null) { mixin(S_TRACE);
-		scope doc = XNode.create(rootName);
+		auto doc = XNode.create(rootName);
+		doc.newAttr("dataVersion", opt.dataVersion);
 		toNodeImpl(doc, opt);
 		if (summId) doc.newAttr("summaryId", summId);
 		return doc.text;
@@ -816,12 +817,14 @@ public:
 	const
 	XNode toNode(XMLOption opt) { mixin(S_TRACE);
 		auto e = XNode.create(rootName);
+		e.newAttr("dataVersion", opt.dataVersion);
 		toNodeImpl(e, opt);
 		return e;
 	}
 	const
 	XNode toNode(ref XNode parent, XMLOption opt, string parentPath = "", string cutPath = "") { mixin(S_TRACE);
 		auto e = parent.newElement(rootName);
+		e.newAttr("dataVersion", opt.dataVersion);
 		toNodeImpl(e, opt, parentPath, cutPath);
 		return e;
 	}
