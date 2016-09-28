@@ -187,7 +187,8 @@ public:
 				static if (Type is MtType.CARD) {
 					_noCardSize = new Button(compl, SWT.CHECK);
 					_noCardSize.setEnabled(!_readOnly);
-					_noCardSize.setText(prop.msgs.useNoCardSizeImage);
+					auto cs = prop.looks.cardSize;
+					_noCardSize.setText(.tryFormat(prop.msgs.useNoCardSizeImage, cs.width, cs.height));
 					auto ncsgd = new GridData(GridData.HORIZONTAL_ALIGN_END);
 					ncsgd.horizontalSpan = 3;
 					_noCardSize.setLayoutData(ncsgd);
@@ -459,26 +460,30 @@ public:
 
 	@property
 	string[] warnings() { mixin(S_TRACE);
+		return warningsWith(_summ ? _summ.legacy : false, _summ ? _summ.dataVersion : LATEST_VERSION, summSkin);
+	}
+
+	string[] warningsWith(bool legacy, string dataVersion, in Skin skin) { mixin(S_TRACE);
 		string[] ws;
-		if ((!_summ || !_summ.legacy) && isIncluded) { mixin(S_TRACE);
+		if (!legacy && isIncluded) { mixin(S_TRACE);
 			ws ~= _prop.msgs.warningIncludedImage;
 		}
 		static if (Type == MtType.CARD) {
 			foreach (img; _msel.paths) { mixin(S_TRACE);
 				if (img.type == CardImageType.File) { mixin(S_TRACE);
-					ws ~= warningFrom(img.path);
-					if (img.positionType !is CardImagePosition.Default && !_prop.isTargetVersion(_summ, "2")) { mixin(S_TRACE);
+					ws ~= warningFrom(img.path, legacy, skin);
+					if (img.positionType !is CardImagePosition.Default && !_prop.isTargetVersion(legacy, dataVersion, "2")) { mixin(S_TRACE);
 						ws ~= _prop.msgs.warningCardImagePosition;
 					}
 				}
 				if (img.type == CardImageType.PCNumber) { mixin(S_TRACE);
-					if (!_prop.targetVersion(_summ, "1.50") && 0 != img.pcNumber && _summ) { mixin(S_TRACE);
+					if (!_prop.targetVersion(legacy, "1.50") && 0 != img.pcNumber) { mixin(S_TRACE);
 						ws ~= _prop.msgs.warningPCNumberClassic;
 					}
 				}
 			}
 		} else static if (Type == MtType.BG_IMG) {
-			ws ~= warningFrom(filePath);
+			ws ~= warningFrom(filePath, legacy, skin);
 		} else static assert (0);
 		bool[string] wSet;
 		string[] ws2;
@@ -491,36 +496,17 @@ public:
 		return ws2;
 	}
 	static if (Type == MtType.CARD || Type == MtType.BG_IMG) {
-		private string[] warningFrom(string img) { mixin(S_TRACE);
+		private string[] warningFrom(string img, bool legacy, in Skin skin) { mixin(S_TRACE);
 			string[] ws;
 			if (isBinImg(img)) { mixin(S_TRACE);
 				auto bin =  cast(ubyte[])strToBImg(img);
 				auto type = imageType(bin);
 				if ("" != type) { mixin(S_TRACE);
 					img = "image".setExtension(type);
-					ws ~= summSkin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false, _msel.canInclude, _prop.var.etc.targetVersion);
-					static if (Type is MtType.CARD) {
-						uint w, h;
-						imageSize!(ubyte[])(bin, w, h);
-						auto cs = _prop.looks.cardSize;
-						if (cs.width != w && cs.height != h) { mixin(S_TRACE);
-							ws ~= _prop.msgs.warningNoCardSizeImage;
-						}
-					}
+					ws ~= skin.warningImage(_prop.parent, img, legacy, _msel.canInclude, _prop.var.etc.targetVersion);
 				}
 			} else { mixin(S_TRACE);
-				ws ~= summSkin.warningImage(_prop.parent, img, _summ ? _summ.legacy : false, _msel.canInclude && !_msel.isMenuCard, _prop.var.etc.targetVersion);
-				static if (Type is MtType.CARD) {
-					if (img.length) { mixin(S_TRACE);
-						img = summSkin.findImagePath(img, _summ ? _summ.scenarioPath : "");
-						uint w, h;
-						imageSize(img, w, h);
-						auto cs = _prop.looks.cardSize;
-						if (cs.width != w && cs.height != h) { mixin(S_TRACE);
-							ws ~= _prop.msgs.warningNoCardSizeImage;
-						}
-					}
-				}
+				ws ~= skin.warningImage(_prop.parent, img, legacy, _msel.canInclude && !_msel.isMenuCard, _prop.var.etc.targetVersion);
 			}
 			return ws;
 		}

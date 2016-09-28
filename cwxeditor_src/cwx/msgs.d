@@ -142,7 +142,7 @@ class Msgs : Properties {
 	auto pc = Msg("pc", "%1$s番目のメンバ");
 	auto bgmStop = Msg("bgmStop", "BGM停止");
 	auto bgmNone = Msg("bgmNone", "BGM無し");
-	auto useNoCardSizeImage = Msg("useNoCardSizeImage", "74×94以外も許容");
+	auto useNoCardSizeImage = Msg("useNoCardSizeImage", "%1$s×%2$s以外も許容");
 	auto dlgMsgForceCancelDialogs = Msg("dlgMsgForceCancelDialogs", "%1$s件のダイアログが変更されたまま適用されていません。無視して操作を続行しますか？");
 	auto dlgMsgForceCancelDialogsQuit = Msg("dlgMsgForceCancelDialogsQuit", "%1$s件のダイアログが変更されたまま適用されていません。無視して終了しますか？");
 	auto dlgMsgIsSaveBeforeReload = Msg("dlgMsgIsSaveBeforeReload", "「%1$s」は変更されています。再読込しますか？");
@@ -1737,7 +1737,6 @@ class Msgs : Properties {
 	auto warningSystemVarName = Msg("warningSystemVarName", "%1$sで始まる名前の状態変数は、プレイヤーの環境によっては正しく機能しない事があります。");
 	auto warningSystemCoupon = Msg("warningSystemCoupon", "%1$sで始まる名前のクーポンを操作する事はできません。");
 	auto warningBranchStatusMental = Msg("warningBranchStatusMental", "%1$s状態の判定は、CardWirth %2$sより前のバージョンでは使用できません。");
-	auto warningNoCardSizeImage = Msg("warningNoCardSizeImage", "カードサイズ以外の画像を使用すると、プレイヤーの環境によっては意図したように表示されない事があります。");
 	auto warningValuedTalker = Msg("warningValuedTalker", "評価メンバは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningTextCell = Msg("warningTextCell", "テキストセルは、CardWirth 1.50より前のバージョンでは使用できません。");
 	auto warningColorCell = Msg("warningColorCell", "カラーセルは、CardWirth 1.50より前のバージョンでは使用できません。");

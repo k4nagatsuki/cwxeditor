@@ -315,4 +315,9 @@ public:
 	bool isTargetVersion(in Summary summ, string targVer, string wsnVer) { mixin(S_TRACE);
 		return summ ? summ.isTargetVersion(wsnVer) : targVer == "CardWirthPy";
 	}
+	/// ditto
+	const
+	bool isTargetVersion(bool legacy, string dataVersion, string wsnVer) { mixin(S_TRACE);
+		return Summary.isTargetVersionWith(legacy, dataVersion, wsnVer);
+	}
 }

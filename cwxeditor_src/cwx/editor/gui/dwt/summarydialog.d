@@ -77,7 +77,8 @@ private:
 	void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
 
-		ws ~= _imgPath.warnings;
+		auto ver = VERSIONS[_dataVersion.getSelectionIndex()];
+		ws ~= _imgPath.warningsWith(_summ.legacy, ver, selectedSkin);
 
 		warning = ws;
 	}
@@ -320,8 +321,12 @@ private:
 					_type.setVisibleItemCount(_prop.var.etc.comboVisibleItemCount);
 					_type.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					refreshTypes(skin);
-					.listener(_typeSkin, SWT.Selection, &refreshPreview);
-					.listener(_typeClassic, SWT.Selection, &refreshPreview);
+					void refType() { mixin(S_TRACE);
+						refreshPreview();
+						refreshWarning();
+					}
+					.listener(_typeSkin, SWT.Selection, &refType);
+					.listener(_typeClassic, SWT.Selection, &refType);
 					.listener(_type, SWT.Modify, &refreshPreview);
 				}
 				{ mixin(S_TRACE);
@@ -341,6 +346,7 @@ private:
 					}
 					if (_dataVersion.getSelectionIndex() == -1) _dataVersion.select(0);
 					updateDataVersion();
+					.listener(_dataVersion, SWT.Selection, &refreshWarning);
 				}
 				{ mixin(S_TRACE);
 					auto grp = new Group(comp2, SWT.NONE);

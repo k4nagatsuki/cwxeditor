@@ -1097,6 +1097,10 @@ public:
 	/// クラシックなシナリオの場合は常にfalseとなる。
 	const
 	bool isTargetVersion(string ver) { mixin(S_TRACE);
+		return isTargetVersionWith(legacy, dataVersion, ver);
+	}
+	static
+	bool isTargetVersionWith(bool legacy, string dataVersion, string ver) { mixin(S_TRACE);
 		return !legacy && XMLOption.isTargetVersion(dataVersion, ver);
 	}
 

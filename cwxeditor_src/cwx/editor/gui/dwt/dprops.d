@@ -155,11 +155,21 @@ public:
 		if (summ && !summ.legacy) return true;
 		return parent.targetVersion(ver, var.etc.targetVersion);
 	}
+	/// ditto
+	const
+	bool targetVersion(bool legacy, string ver) { mixin(S_TRACE);
+		if (!legacy) return true;
+		return parent.targetVersion(ver, var.etc.targetVersion);
+	}
 	/// summが存在する場合はwsnVer以上かを返す。
 	/// それ以外の場合は対象バージョンがCardWirthPyか否かを返す。
 	const
 	bool isTargetVersion(in Summary summ, string ver) { mixin(S_TRACE);
 		return parent.isTargetVersion(summ, var.etc.targetVersion, ver);
+	}
+	/// ditto
+	bool isTargetVersion(bool legacy, string dataVersion, string wsnVer) { mixin(S_TRACE);
+		return parent.isTargetVersion(legacy, dataVersion, wsnVer);
 	}
 
 	/// 拡大率に応じた値に変換する。
