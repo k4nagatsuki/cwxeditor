@@ -856,7 +856,7 @@ private:
 	void openScenarioNewWin() { mixin(S_TRACE);
 		auto fname = selectScenario(_prop, _win, _prop.msgs.dlgTitOpenScenarioAtNewWin);
 		if (!fname) return;
-		bool r = exec("\"" ~ _prop.parent.appPath ~ "\" " ~ fname);
+		bool r = exec("\"" ~ _prop.parent.appPath ~ "\" \"" ~ fname ~ "\"");
 		if (!r) { mixin(S_TRACE);
 			DWTMessageBox.showWarning
 				(.tryFormat(_prop.msgs.errorExec, baseName(_prop.parent.appPath)),
@@ -868,9 +868,9 @@ private:
 		if (!dlg.open()) return;
 		bool r;
 		if (dlg.legacy) { mixin(S_TRACE);
-			r = exec("\"" ~ _prop.parent.appPath ~ "\" -createclassic " ~ dlg.name ~ " " ~ dlg.classicDir);
+			r = exec("\"" ~ _prop.parent.appPath ~ "\" -createclassic \"" ~ dlg.name ~ "\" \"" ~ dlg.classicDir ~ "\"");
 		} else { mixin(S_TRACE);
-			r = exec("\"" ~ _prop.parent.appPath ~ "\" -create " ~ dlg.name ~ " " ~ dlg.skin);
+			r = exec("\"" ~ _prop.parent.appPath ~ "\" -create \"" ~ dlg.name ~ "\" \"" ~ dlg.skin ~ "\"");
 		}
 		if (!r) { mixin(S_TRACE);
 			DWTMessageBox.showWarning
