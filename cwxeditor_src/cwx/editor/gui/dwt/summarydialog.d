@@ -76,10 +76,10 @@ private:
 
 	void refreshWarning() { mixin(S_TRACE);
 		string[] ws;
-
-		auto ver = VERSIONS[_dataVersion.getSelectionIndex()];
-		ws ~= _imgPath.warningsWith(_summ.legacy, ver, selectedSkin);
-
+		if (_dataVersion && _summ && _imgPath) { mixin(S_TRACE);
+			auto ver = VERSIONS[_dataVersion.getSelectionIndex()];
+			ws ~= _imgPath.warningsWith(_summ.legacy, ver, selectedSkin);
+		}
 		warning = ws;
 	}
 
@@ -589,6 +589,8 @@ protected:
 		}
 		_comm.closeAdds.add(&closeAdds);
 		.listener(getShell(), SWT.Dispose, () => _comm.closeAdds.remove(&closeAdds));
+
+		refreshWarning();
 	}
 
 	override bool apply() { mixin(S_TRACE);
