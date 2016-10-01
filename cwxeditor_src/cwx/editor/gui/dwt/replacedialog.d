@@ -3529,14 +3529,14 @@ public:
 			if (r) { mixin(S_TRACE);
 				if (_replMode) store(cc, cwxPath, uArr);
 				addResult(cc, cwxPath, dmy);
-				_refCall ~= { _comm.refCast.call(cc); };
+				if (_replMode) _refCall ~= { _comm.refCast.call(cc); };
 			}
 		}
 		Undo[] nArr;
 		auto eff = cast(EffectCard)c;
 		if (eff) { mixin(S_TRACE);
 			auto r = replCard(eff, cwxPath, eff, cwxPath, count, nArr);
-			if (r) { mixin(S_TRACE);
+			if (r && _replMode) { mixin(S_TRACE);
 				_refCall ~= { mixin(S_TRACE);
 					if (auto aa = cast(SkillCard)eff) { mixin(S_TRACE);
 						_comm.refSkill.call(aa);
@@ -3551,7 +3551,7 @@ public:
 		auto info = cast(InfoCard)c;
 		if (info) { mixin(S_TRACE);
 			auto r = replCard(info, cwxPath, info, cwxPath, count, nArr);
-			if (r) { mixin(S_TRACE);
+			if (r && _replMode) { mixin(S_TRACE);
 				_refCall ~= { _comm.refInfo.call(info); };
 			}
 		}
@@ -3559,7 +3559,7 @@ public:
 		if (a) { mixin(S_TRACE);
 			if (_areaSel) { mixin(S_TRACE);
 				auto r = repl(a, cwxPath, a.name, &a.name, count, nArr);
-				if (r) { mixin(S_TRACE);
+				if (r && _replMode) { mixin(S_TRACE);
 					_refCall ~= { mixin(S_TRACE);
 						if (auto aa = cast(Area)a) { mixin(S_TRACE);
 							_comm.refArea.call(aa);
@@ -3598,9 +3598,11 @@ public:
 			if (r) { mixin(S_TRACE);
 				if (_replMode) store(f, cwxPath, uArr);
 				addResult(f, cwxPath, dmy);
-				_refCall ~= { mixin(S_TRACE);
-					_comm.refFlagAndStep.call([f], []);
-				};
+				if (_replMode) { mixin(S_TRACE);
+					_refCall ~= { mixin(S_TRACE);
+						_comm.refFlagAndStep.call([f], []);
+					};
+				}
 			}
 		}
 		auto s = cast(Step)c;
@@ -3613,9 +3615,11 @@ public:
 			if (r) { mixin(S_TRACE);
 				if (_replMode) store(s, cwxPath, uArr);
 				addResult(s, cwxPath, dmy);
-				_refCall ~= { mixin(S_TRACE);
-					_comm.refFlagAndStep.call([], [s]);
-				};
+				if (_replMode) { mixin(S_TRACE);
+					_refCall ~= { mixin(S_TRACE);
+						_comm.refFlagAndStep.call([], [s]);
+					};
+				}
 			}
 		}
 		auto et = cast(EventTree) c;
