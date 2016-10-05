@@ -308,6 +308,7 @@ struct Jpy1 {
 		bool[string] secNames;
 		r.jpy1Path = jpy1Path;
 		r.lines = .splitLines(readJPYFile(jpy1Path, prop, errInfo, r.isSJIS), KeepTerminator.yes);
+		auto hasExchange = false;
 		foreach (i, line; r.lines) { mixin(S_TRACE);
 			string origLine = line;
 			line = line.chomp();
@@ -326,6 +327,7 @@ struct Jpy1 {
 					secNames[sec.label.toLower()] = true;
 				}
 				r.sections ~= sec;
+				hasExchange = false;
 				continue;
 			}
 			if (!r.sections.length) { mixin(S_TRACE);
@@ -375,7 +377,18 @@ struct Jpy1 {
 				case "wait": wait = intVal(value, prop, jpy1Path, lineNum, errInfo); break;
 				case "animespeed": animespeed = intVal(value, prop, jpy1Path, lineNum, errInfo); break;
 				case "smooth": smooth = boolVal(value, prop, jpy1Path, lineNum, errInfo); break;
-				case "colorexchange": colorexchange = enumVal!(Colorexchange)(value, prop, jpy1Path, lineNum, errInfo); break;
+				case "colorexchange":
+					if (!hasExchange) { mixin(S_TRACE);
+						colorexchange = enumVal!(Colorexchange)(value, prop, jpy1Path, lineNum, errInfo);
+						hasExchange = true;
+					}
+					break;
+				case "exchange":
+					/// BUG: cwconv.dllではexchangeという名前でもcolorexchangeが機能する
+					//       (exchangeが優先される)
+					colorexchange = enumVal!(Colorexchange)(value, prop, jpy1Path, lineNum, errInfo);
+					hasExchange = true;
+					break;
 				case "colormap": colormap = enumVal!(Colormap)(value, prop, jpy1Path, lineNum, errInfo); break;
 				case "filter": filter = enumVal!(Filter)(value, prop, jpy1Path, lineNum, errInfo); break;
 				case "mask": mask = enumVal!(Mask)(value, prop, jpy1Path, lineNum, errInfo); break;
