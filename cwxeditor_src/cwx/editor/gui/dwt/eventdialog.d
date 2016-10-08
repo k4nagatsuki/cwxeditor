@@ -617,7 +617,12 @@ protected:
 				auto comp = new Composite(grp, SWT.NONE);
 				comp.setLayout(normalGridLayout(3, false));
 				{ mixin(S_TRACE);
-					_name = createCouponCombo(comm, summ, comp, &catchMod, CouponComboType.AllCoupons, _evt ? _evt.coupon : "");
+					static if (Type is CType.GET_COUPON || Type is CType.LOSE_COUPON) {
+						auto type = CouponComboType.GetLose;
+					} else static if (Type is CType.BRANCH_COUPON) {
+						auto type = CouponComboType.AllCoupons;
+					} else static assert (0);
+					_name = createCouponCombo(comm, summ, comp, &catchMod, type, _evt ? _evt.coupon : "");
 					mod(_name);
 					auto gd = new GridData(GridData.FILL_HORIZONTAL);
 					gd.horizontalSpan = 3;

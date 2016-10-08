@@ -9,6 +9,7 @@ import cwx.path;
 import cwx.area;
 import cwx.card;
 import cwx.usecounter;
+import cwx.features;
 
 import cwx.editor.gui.dwt.commons;
 import cwx.editor.gui.dwt.customtext;
@@ -30,6 +31,7 @@ import java.lang.all;
 
 enum CouponComboType {
 	AllCoupons, /// 全てのクーポンを選択肢とする。
+	GetLose, /// 獲得・喪失が可能なクーポンを選択肢とする。
 	Talker, /// 話者用のクーポンを選択肢とする。
 	Cast, /// キャストの経歴用のクーポンを選択肢とする。
 }
@@ -85,7 +87,7 @@ T createCouponCombo(T = Combo)(Commons comm, Summary summ, Composite parent, boo
 string[] allCoupons(Commons comm, Summary summ, CouponComboType type) {
 	string[] cs;
 	if (type !is CouponComboType.Cast) { mixin(S_TRACE);
-		cs = castCoupons(comm, type is CouponComboType.Talker, comm.skin.legacyName);
+		cs = castCoupons(comm, type is CouponComboType.Talker, comm.skin.legacyName, type is CouponComboType.GetLose);
 	}
 
 	string[] dcs;
@@ -96,7 +98,31 @@ string[] allCoupons(Commons comm, Summary summ, CouponComboType type) {
 		} else { mixin(S_TRACE);
 			cmps = (a, b) => icmp(cast(string)a, cast(string)b) < 0;
 		}
+		bool[string] sysCoupons;
+		foreach (coupon; comm.prop.var.etc.standardCoupons) { mixin(S_TRACE);
+			sysCoupons[coupon] = true;
+		}
+		foreach (e; comm.skin.allSexes) { mixin(S_TRACE);
+			sysCoupons[comm.skin.sexCoupon(e)] = true;
+		}
+		foreach (e; comm.skin.allPeriods) { mixin(S_TRACE);
+			sysCoupons[comm.skin.periodCoupon(e)] = true;
+		}
+		if (comm.prop.var.etc.showSpNature) { mixin(S_TRACE);
+			foreach (e; comm.skin.allNatures) { mixin(S_TRACE);
+				sysCoupons[comm.skin.natureCoupon(e)] = true;
+			}
+		} else { mixin(S_TRACE);
+			foreach (e; comm.skin.normalNatures) { mixin(S_TRACE);
+				sysCoupons[comm.skin.natureCoupon(e)] = true;
+			}
+		}
+		foreach (e; comm.skin.leftMakings) { mixin(S_TRACE);
+			sysCoupons[comm.skin.makingsCoupon(e)] = true;
+			sysCoupons[comm.skin.makingsCoupon(comm.skin.reverseMakings(e))] = true;
+		}
 		foreach (coupon; .sortDlg(summ.useCounter.coupon.keys, cmps)) { mixin(S_TRACE);
+			if (coupon.id in sysCoupons || comm.prop.sys.isCouponType(coupon.id, CouponType.System)) continue;
 			if (!.contains(cs, coupon.id)) dcs ~= coupon;
 		}
 	}

@@ -1974,16 +1974,21 @@ Rectangle eventTreeMarkRect(C:EventTreeOwner)(Props prop, int left, int top, in 
 	return null;
 }
 
-string[] castCoupons(Commons comm, bool talker, string legacyName) { mixin(S_TRACE);
+string[] castCoupons(Commons comm, bool talker, string legacyName, bool getLose) { mixin(S_TRACE);
 	string[] r;
 	if (!talker) { mixin(S_TRACE);
 		foreach (c; comm.prop.var.etc.standardCoupons) { mixin(S_TRACE);
 			r ~= c;
 		}
 		if (comm.prop.isTargetVersion(comm.summary, "2")) { mixin(S_TRACE);
-			r ~= comm.prop.sys.userCoupon;
-			r ~= comm.prop.sys.eventTargetCoupon;
+			if (!getLose) { mixin(S_TRACE);
+				r ~= comm.prop.sys.userCoupon;
+				r ~= comm.prop.sys.eventTargetCoupon;
+			}
 			r ~= comm.prop.sys.effectTargetCoupon;
+			if (!getLose) { mixin(S_TRACE);
+				r ~= comm.prop.sys.effectOutOfTargetCoupon;
+			}
 		}
 	}
 	foreach (e; comm.skin.allSexes) { mixin(S_TRACE);

@@ -336,6 +336,10 @@ class System {
 	/// 効果・イベントの対象に付与されるシステムクーポン(Wsn.2)。
 	/// 死亡イベントやキーコードイベントの中で、イベントの所有者に付与される。
 	@property const string eventTargetCoupon() { return "＠イベント対象"; }
+	/// 効果・イベントの対象に付与されるシステムクーポン(Wsn.2)。
+	/// 効果適用ループ中に"＠効果対象"を除去されたメンバに付与される。
+	/// このクーポンを持つメンバは"＠効果対象"がつかない。
+	@property const string effectOutOfTargetCoupon() { return "＠効果対象外"; }
 
 	/// 後続イベントコンテントのTrue値。
 	@property const string evtChildTrue() {return "○";}

@@ -753,7 +753,7 @@ TextWarnings textWarnings(in CProps prop, in Skin skin, in Summary summ, string 
 /// システムクーポンに関する警告を返す。
 string[] couponWarnings(in CProps prop, in Summary summ, string targVer, string coupon, bool getLose) { mixin(S_TRACE);
 	string[] r;
-	if (coupon == prop.sys.userCoupon || coupon == prop.sys.eventTargetCoupon) { mixin(S_TRACE);
+	if (coupon == prop.sys.userCoupon || coupon == prop.sys.eventTargetCoupon || coupon == prop.sys.effectOutOfTargetCoupon) { mixin(S_TRACE);
 		if (!prop.isTargetVersion(summ, targVer, "2")) { mixin(S_TRACE);
 			r ~= .tryFormat(prop.msgs.warningWsnSystemCoupon, coupon, "2");
 		}
