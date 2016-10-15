@@ -1294,6 +1294,7 @@ class EventEditor : Composite {
 	}
 
 	private void onMouseWheel(Event e) { mixin(S_TRACE);
+		setRedraw(false);
 		clearLightup();
 		auto vbar = getVerticalBar();
 		auto val = vbar.getSelection();
@@ -1303,7 +1304,10 @@ class EventEditor : Composite {
 			val -= 1;
 		}
 		vbar.setSelection(val);
-		updateLightup();
+		.asyncExec(getDisplay(), { mixin(S_TRACE);
+			setRedraw(true);
+			updateLightup();
+		});
 	}
 
 	private void onPaint(Event e) { mixin(S_TRACE);
