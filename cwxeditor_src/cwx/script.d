@@ -2158,6 +2158,14 @@ fi`;
 			case "valued": i++; return SelectionMethod.Valued;
 			default: throwError(_prop.msgs.scriptErrorInvalidSelectionMethod, attr[i].token);
 			}
+		} else static if (is(T == StartAction)) {
+			auto value = attrValue(attr[i], varTable, msgWidth);
+			switch (value) {
+			case "now": i++; return StartAction.Now;
+			case "current": i++; return StartAction.CurrentRound;
+			case "next": i++; return StartAction.NextRound;
+			default: throwError(_prop.msgs.scriptErrorInvalidStartAction, attr[i].token);
+			}
 		} else static if (is(T == CRGB)) {
 			if (attr[i].type is NodeType.VALUES) { mixin(S_TRACE);
 				auto vals = attr[i].values;
@@ -2832,6 +2840,9 @@ fi`;
 			if (detail.use(CArg.SELECTION_COLUMNS)) { mixin(S_TRACE);
 				c.selectionColumns = parseAttr!(int)(opt, node.attr, i, c.selectionColumns, varTable, 0);
 			}
+			if (detail.use(CArg.START_ACTION)) { mixin(S_TRACE);
+				c.startAction = parseAttr!(StartAction)(opt, node.attr, i, c.startAction, varTable, 0);
+			}
 			Content autoWrap(Content c) { mixin(S_TRACE);
 				if (!c.detail.owner) { mixin(S_TRACE);
 					throwError(_prop.msgs.scriptErrorCanNotHaveContent, node.token);
@@ -3171,6 +3182,13 @@ fi`;
 			case SelectionMethod.Manual: attrs ~= "manual"; break;
 			case SelectionMethod.Random: attrs ~= "random"; break;
 			case SelectionMethod.Valued: attrs ~= "valued"; break;
+			}
+		} else static if (is(T:StartAction)) {
+			switch (value) {
+			case StartAction.Now: attrs ~= "now"; break;
+			case StartAction.CurrentRound: attrs ~= "current"; break;
+			case StartAction.NextRound: attrs ~= "next"; break;
+			default: assert (0);
 			}
 		} else static if (is(T : CRGB)) {
 			if (value.a == 255) { mixin(S_TRACE);
@@ -3716,6 +3734,9 @@ fi`;
 			}
 			if (detail.use(CArg.SELECTION_COLUMNS) && c.selectionColumns != 1) { mixin(S_TRACE);
 				attrs ~= toAttr(c.selectionColumns, indentValue, vars);
+			}
+			if (detail.use(CArg.START_ACTION)) { mixin(S_TRACE);
+				attrs ~= toAttr(c.startAction, indentValue, vars);
 			}
 			bool useIf = c.next.length > 1;
 			bool useSif = c.next.length == 1 && c.next[0].name.length;

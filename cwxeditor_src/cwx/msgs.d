@@ -542,6 +542,14 @@ class Msgs : Properties {
 	auto coordinateTypeNameRelative = Msg("coordinateTypeNameRelative", "現在値基準");
 	auto coordinateTypeNamePercentage = Msg("coordinateTypeNamePercentage", "パーセンテージ");
 
+	auto startAction = Msg("startAction", "戦闘行動開始タイミング");
+	const string startActionName(StartAction id) { mixin(S_TRACE);
+		mixin(EnumToStringSwitch!(StartAction, "startActionName"));
+	}
+	auto startActionNameNow = Msg("startActionNameNow", "すぐに行動");
+	auto startActionNameCurrentRound = Msg("startActionNameCurrentRound", "加入ラウンドから行動");
+	auto startActionNameNextRound = Msg("startActionNameNextRound", "次のラウンドから行動");
+
 	/// イベント。
 	auto evtArrow = Msg("evtArrow", "イベント編集");
 
@@ -889,7 +897,7 @@ class Msgs : Properties {
 	auto ctSetStepDown = Msg("ctSetStepDown", "ステップ「%1$s」の値を1減少");
 	auto ctReverseFlag = Msg("ctReverseFlag", "フラグ「%1$s」の値を反転");
 	auto ctCheckFlag = Msg("ctCheckFlag", "フラグ「%1$s」の値が[%2$s]であれば後続のイベントが出現");
-	auto ctGetCast = Msg("ctGetCast", "キャストカード「%1$s」を同行させる");
+	auto ctGetCast = Msg("ctGetCast", "キャストカード「%1$s」を同行させる(%2$s)");
 	auto ctGetSkill = Msg("ctGetSkill", "特殊技能カード「%1$s」を獲得(%2$sに%3$s枚)");
 	auto ctGetItem = Msg("ctGetItem", "アイテムカード「%1$s」を獲得(%2$sに%3$s枚)");
 	auto ctGetBeast = Msg("ctGetBeast", "召喚獣カード「%1$s」を獲得(%2$sに%3$s枚)");
@@ -1762,6 +1770,7 @@ class Msgs : Properties {
 	auto warningWsnSystemCoupon = Msg("warningWsnSystemCoupon", "システムクーポン「%1$s」はWsn.%2$s以降の形式のシナリオでしか機能しません。"); // Wsn.2
 	auto warningCanNotGetSetCoupon = Msg("warningCanNotGetSetCoupon", "システムクーポン「%1$s」を操作する事はできません。"); // Wsn.2
 	auto warningCardImagePosition = Msg("warningCardImagePosition", "イメージの配置形式の指定は、Wsn.2以降の形式のシナリオでしか行えません。"); // Wsn.2
+	auto warningStartAction = Msg("warningStartAction", "戦闘行動開始タイミングの指定は、Wsn.2以降の形式のシナリオしか行えません。"); // Wsn.2
 
 	auto unknownStepValue = Msg("unknownStepValue", "存在しないステップ値(%1$s)");
 
@@ -2103,6 +2112,7 @@ class Msgs : Properties {
 	auto scriptErrorInvalidArray = Msg("scriptErrorInvalidArray", "ここに配列が必要です。");
 	auto scriptErrorSystem = Msg("scriptErrorSystem", "サイズが大きすぎるため、CWXスクリプトをコンパイルできません。");
 	auto scriptErrorInvalidCardImagePosition = Msg("scriptErrorInvalidCardImagePosition", "イメージの配置形式が正しくありません。");
+	auto scriptErrorInvalidStartAction = Msg("scriptErrorInvalidStartAction", "未知の戦闘行動開始タイミングです。"); // Wsn.2
 
 	auto dlgTitScriptVarSet = Msg("dlgTitScriptVarSet", "値が未決定の変数の設定");
 	auto scriptVarSet = Msg("scriptVarSet", "変数に値を入力");

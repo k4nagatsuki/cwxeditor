@@ -3322,7 +3322,9 @@ string contentText(Commons comm, in Content evt, Summary summ) { mixin(S_TRACE);
 		}
 		return .tryFormat(comm.prop.msgs.ctCheckFlag, name, on);
 	} case CType.GET_CAST: { mixin(S_TRACE);
-		return contentTextUseID!(CIDKind.Cast)(comm, summ, evt.casts, comm.prop.msgs.ctGetCast, evt);
+		auto name = contentTextUseID!(CIDKind.Cast)(comm, summ, evt.casts, "%s", evt);
+		auto startAction = comm.prop.msgs.startActionName(evt.startAction);
+		return .tryFormat(comm.prop.msgs.ctGetCast, name, startAction);
 	} case CType.GET_ITEM: { mixin(S_TRACE);
 		string name = contentTextUseID!(CIDKind.Item)(comm, summ, evt.item, "%s", evt);
 		return .tryFormat(comm.prop.msgs.ctGetItem, name, comm.prop.msgs.rangeName(evt.range), evt.cardNumber);

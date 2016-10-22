@@ -1049,7 +1049,7 @@ SelectionMethod toSelectionMethod(string name) { mixin(S_TRACE);
 	case "Manual": return SelectionMethod.Manual;
 	case "Random": return SelectionMethod.Random;
 	case "Valued": return SelectionMethod.Valued;
-	default: throw new Exception("Unknown coordinate type: " ~ name);
+	default: throw new Exception("Unknown selection method: " ~ name);
 	}
 }
 /// ditto
@@ -1058,6 +1058,30 @@ string fromSelectionMethod(SelectionMethod t) { mixin(S_TRACE);
 	case SelectionMethod.Manual: return "Manual";
 	case SelectionMethod.Random: return "Random";
 	case SelectionMethod.Valued: return "Valued";
+	}
+}
+
+/// キャスト同行時の戦闘行動開始タイミング(Wsn.2)。
+enum StartAction {
+	Now, /// 即時に行動する(無指定の場合のデフォルト)。
+	CurrentRound, /// ラウンドイベントで加入した場合はそのラウンドから行動する。
+	NextRound, /// 次ラウンドから行動する(クラシックなシナリオのデフォルト)。
+}
+/// ditto
+StartAction toStartAction(string name) { mixin(S_TRACE);
+	switch (name) {
+	case "Now": return StartAction.Now;
+	case "CurrentRound": return StartAction.CurrentRound;
+	case "NextRound": return StartAction.NextRound;
+	default: throw new Exception("Unknown start action: " ~ name);
+	}
+}
+/// ditto
+string fromStartAction(StartAction t) { mixin(S_TRACE);
+	final switch (t) {
+	case StartAction.Now: return "Now";
+	case StartAction.CurrentRound: return "CurrentRound";
+	case StartAction.NextRound: return "NextRound";
 	}
 }
 
@@ -1247,6 +1271,7 @@ enum CArg {
 	DO_ANIME, /// JPY1アニメーションを実行する(Wsn.1)。
 	IGNORE_EFFECT_BOOSTER, /// エフェクトブースター関係のセルを無視する(Wsn.1)。
 	SELECTION_COLUMNS, /// 後続選択肢の列数(Wsn.1)。
+	START_ACTION, /// キャスト同行時の戦闘行動開始タイミング(Wsn.2)。
 }
 
 /// 後続コンテントのnameの型。

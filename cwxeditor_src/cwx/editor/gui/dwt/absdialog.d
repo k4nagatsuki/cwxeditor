@@ -38,6 +38,7 @@ abstract class AbsDialog {
 	private Composite _rightGroup;
 	private bool _modal;
 	private bool _hasApply;
+	private bool _forceApplyEnabled = false;
 	this (Props prop, Shell parent, string text, Image img, bool resizable, DSize size = null, bool apply = false, bool cancel = true, ButtonInfo[] button = []) { mixin(S_TRACE);
 		this (prop, parent, true, text, img, resizable, size, apply, cancel, button);
 	}
@@ -307,7 +308,8 @@ abstract class AbsDialog {
 			_win.setDefaultButton(_okBtn);
 		}
 		calcBounds();
-		if (_apply) _apply.setEnabled(false);
+		if (_apply && !_forceApplyEnabled) _apply.setEnabled(false);
+		_forceApplyEnabled = false;
 		auto par = cast(Shell)_win.getParent();
 		_win.open();
 		if (firstFocusIsOK) _okBtn.setFocus();
@@ -389,8 +391,14 @@ abstract class AbsDialog {
 		}
 	}
 	protected final void applyEnabled() { mixin(S_TRACE);
+		applyEnabled(false);
+	}
+	protected final void applyEnabled(bool force) { mixin(S_TRACE);
 		check();
-		if (_apply) _apply.setEnabled(_okBtn.getEnabled());
+		if (_apply) { mixin(S_TRACE);
+			_apply.setEnabled(_okBtn.getEnabled());
+			_forceApplyEnabled |= force;
+		}
 	}
 
 	@property

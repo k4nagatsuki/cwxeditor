@@ -667,6 +667,15 @@ string[] warnings(in CProps prop, in Skin skin, in Summary summ, in CWXPath path
 				r ~= .tryFormat(prop.msgs.warningEndOrChangeAreaInRound0);
 			}
 		}
+		if (cd.use(CArg.START_ACTION) && summ) { mixin(S_TRACE);
+			if (summ.legacy && c.startAction !is StartAction.NextRound) { mixin(S_TRACE);
+				// クラシックなシナリオではStartAction.NextRoundがデフォルト
+				r ~= .tryFormat(prop.msgs.warningStartAction);
+			} else if (!summ.legacy && !prop.isTargetVersion(summ, targVer, "2") && c.startAction !is StartAction.Now) { mixin(S_TRACE);
+				// Wsn.1以前は戦闘行動開始タイミング指定不可かつStartAction.Nowがデフォルト
+				r ~= .tryFormat(prop.msgs.warningStartAction);
+			}
+		}
 	}
 	return r;
 }

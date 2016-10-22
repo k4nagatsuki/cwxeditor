@@ -249,6 +249,45 @@ private:
 	static if (Type == CType.CHANGE_AREA) {
 		TransitionPanel _transition;
 	}
+	static if (Type == CType.GET_CAST) {
+		Combo _startAction;
+		StartAction[] _startActions;
+	}
+
+	override
+	protected void refreshWarning() { mixin(S_TRACE);
+		static if (Type == CType.GET_CAST) {
+			string[] r;
+			if (summ) { mixin(S_TRACE);
+				auto startAction = _startActions[_startAction.getSelectionIndex()];
+				if (summ.legacy && startAction !is StartAction.NextRound) { mixin(S_TRACE);
+					// クラシックなシナリオではStartAction.NextRoundがデフォルト
+					r ~= .tryFormat(prop.msgs.warningStartAction);
+				} else if (!summ.legacy && !prop.isTargetVersion(summ, "2") && startAction !is StartAction.Now) { mixin(S_TRACE);
+					// Wsn.1以前は戦闘行動開始タイミング指定不可かつStartAction.Nowがデフォルト
+					r ~= .tryFormat(prop.msgs.warningStartAction);
+				}
+			}
+			warning = r;
+		}
+	}
+
+	override
+	protected void refDataVersion() { mixin(S_TRACE);
+		static if (Type == CType.GET_CAST) {
+			if (summ && summ.legacy) { mixin(S_TRACE);
+				auto startAction = _startActions[_startAction.getSelectionIndex()];
+				if (startAction !is StartAction.NextRound) { mixin(S_TRACE);
+					_startAction.select(cast(int)_startActions.countUntil(StartAction.NextRound));
+					applyEnabled(true);
+				}
+				_startAction.setEnabled(false);
+			} else {
+				_startAction.setEnabled(true);
+			}
+		}
+		super.refDataVersion();
+	}
 
 	void delA(A a) { mixin(S_TRACE);
 		auto summary = _summ;
@@ -279,8 +318,8 @@ public:
 protected:
 	override void setup(Composite area) { mixin(S_TRACE);
 		area.setLayout(zeroGridLayout(1, false));
+		auto listComp = new Composite(area, SWT.NONE);
 		{ mixin(S_TRACE);
-			auto listComp = new Composite(area, SWT.NONE);
 			listComp.setLayout(normalGridLayout(1, true));
 			listComp.setLayoutData(new GridData(GridData.FILL_BOTH));
 			_list = new AreaChooser!(A, false)(comm, summ, listComp);
@@ -301,6 +340,21 @@ protected:
 				comp.setLayout(normalGridLayout(1, false));
 				_transition = new TransitionPanel(comm, comp, false, _evt, this);
 			}
+		}
+		static if (Type == CType.GET_CAST) {
+			auto comp = new Composite(listComp, SWT.NONE);
+			comp.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+			comp.setLayout(zeroMarginGridLayout(2, false));
+			auto l = new Label(comp, SWT.NONE);
+			l.setText(prop.msgs.startAction);
+			_startAction = new Combo(comp, SWT.READ_ONLY | SWT.DROP_DOWN | SWT.BORDER);
+			mod(_startAction);
+			_startAction.setVisibleItemCount(prop.var.etc.comboVisibleItemCount);
+			foreach (v; EnumMembers!StartAction) { mixin(S_TRACE);
+				_startAction.add(prop.msgs.startActionName(v));
+				_startActions ~= v;
+			}
+			.listener(_startAction, SWT.Selection, &refreshWarning);
 		}
 		static if (is(A : Area)) {
 			_comm.delArea.add(&delA);
@@ -331,7 +385,21 @@ protected:
 			} else { mixin(S_TRACE);
 				static assert (0);
 			}
+			static if (Type == CType.GET_CAST) {
+				_startAction.select(cast(int)_startActions.countUntil(_evt.startAction));
+			}
+		} else { mixin(S_TRACE);
+			static if (Type == CType.GET_CAST) {
+				if (summ && (summ.legacy || prop.isTargetVersion(summ, "2"))) { mixin(S_TRACE);
+					// クラシックなシナリオまたはWsn.2以降はStartAction.NextRoundがデフォルト
+					_startAction.select(cast(int)_startActions.countUntil(StartAction.NextRound));
+				} else { mixin(S_TRACE);
+					// Wsn.1以前はStartAction.Nowがデフォルト
+					_startAction.select(cast(int)_startActions.countUntil(StartAction.Now));
+				}
+			}
 		}
+		refDataVersion();
 	}
 
 	override bool apply() { mixin(S_TRACE);
@@ -354,6 +422,9 @@ protected:
 			_evt.info = id;
 		} else { mixin(S_TRACE);
 			static assert (0);
+		}
+		static if (Type == CType.GET_CAST) {
+			_evt.startAction = _startActions[_startAction.getSelectionIndex()];
 		}
 		return true;
 	}
@@ -1878,6 +1949,7 @@ private:
 		if (!valued.isEnabled() && valued.getSelection()) { mixin(S_TRACE);
 			valued.setSelection(false);
 			_method[cast(size_t)SelectionMethod.Manual].setSelection(true);
+			applyEnabled(true);
 		}
 		_couponView.enabled = !summ.legacy && valued.getSelection();
 		_initValue.setEnabled(!summ.legacy && valued.getSelection());

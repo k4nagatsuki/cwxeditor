@@ -167,7 +167,7 @@ private void static_this () { mixin(S_TRACE);
 		CType.SET_STEP_DOWN:CDetail("Set", "StepDown", CNextType.NONE, true, [CArg.STEP:"step"]),
 		CType.REVERSE_FLAG:CDetail("Reverse", "Flag", CNextType.NONE, true, [CArg.FLAG:"flag"]),
 		CType.CHECK_FLAG:CDetail("Check", "Flag", CNextType.NONE, true, [CArg.FLAG:"flag"]),
-		CType.GET_CAST:CDetail("Get", "Cast", CNextType.NONE, true, [CArg.CAST:"id"]),
+		CType.GET_CAST:CDetail("Get", "Cast", CNextType.NONE, true, [CArg.CAST:"id", CArg.START_ACTION:"startaction"]),
 		CType.GET_ITEM:CDetail("Get", "Item", CNextType.NONE, true, [CArg.ITEM:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
 		CType.GET_SKILL:CDetail("Get", "Skill", CNextType.NONE, true, [CArg.SKILL:_("id"), CArg.RANGE:"targets", CArg.CARD_NUMBER:"number"]),
 		CType.GET_INFO:CDetail("Get", "Info", CNextType.NONE, true, [CArg.INFO:"id"]),
@@ -585,6 +585,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		this.ignoreEffectBooster = c.ignoreEffectBooster;
 
 		this.selectionColumns = c.selectionColumns;
+		this.startAction = c.startAction;
 
 		Motion[] motions;
 		foreach (m; c.motions) { mixin(S_TRACE);
@@ -720,6 +721,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 			&& ignoreEffectBooster == c.ignoreEffectBooster
 
 			&& selectionColumns == c.selectionColumns
+			&& startAction == c.startAction
 
 			&& motions == c.motions
 
@@ -892,6 +894,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		resetValue!(CArg.IGNORE_EFFECT_BOOSTER, bool, true)(d, &ignoreEffectBooster);
 
 		resetValue!(CArg.SELECTION_COLUMNS, uint, 1)(d, &selectionColumns);
+		resetValue!(CArg.START_ACTION, StartAction, StartAction.NextRound)(d, &startAction);
 
 		resetValue!(CArg.MOTIONS, Motion[], [])(d, &motions);
 
@@ -1696,6 +1699,9 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 	mixin Prop!(uint, "selectionColumns", 1);
 	mixin MaxMin!(uint, "selectionColumns", uint.max, 1u);
 
+	/// キャスト同行時の戦闘行動開始タイミング(Wsn.2)。
+	mixin Prop!(StartAction, "startAction", StartAction.NextRound);
+
 	/// 背景画像群。
 	mixin Prop!(BgImage[], "backs", []);
 
@@ -2014,6 +2020,7 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		atnPut!(CArg.IGNORE_EFFECT_BOOSTER, "ignoreEffectBooster", "fromBool")(e, d);
 
 		atnPut!(CArg.SELECTION_COLUMNS, "selectionColumns", "")(e, d);
+		atnPut!(CArg.START_ACTION, "startAction", "")(e, d);
 
 		// 多少複雑なもの
 		if (d.use(CArg.MOTIONS)) { mixin(S_TRACE);
@@ -2223,6 +2230,19 @@ class Content : CWXPath, IPathUser, IAreaUser, IBattleUser, IPackageUser,
 		cfnPut!(CArg.IGNORE_EFFECT_BOOSTER, "ignoreEffectBooster", "parseBool")(en, d, r);
 
 		cfnPut!(CArg.SELECTION_COLUMNS, "selectionColumns", "to!(uint)")(en, d, r);
+
+		// CardWirthではラウンドイベントで加入したメンバは次ラウンドから
+		// 行動を開始するが、CardWirthPy 1では即時に行動していた。
+		// その挙動を前提にしたWsn.1シナリオが作られている可能性があるので、
+		// Wsn.2で`startaction`属性を設けて挙動を制御可能にする。
+		//  * Wsnシナリオで`startaction`が無い場合(Wsn.1以前)は、
+		//    `startaction="Now"`として扱う。
+		//  * クラシックなシナリオを変換した時は`startaction="NextRound"`とする。
+		// ここはXMLデータのパースなので、初期値を`Now`しておく。
+		if (d.use(CArg.START_ACTION)) { mixin(S_TRACE);
+			r.startAction = StartAction.Now;
+			cfnPut!(CArg.START_ACTION, "startAction", "toStartAction")(en, d, r);
+		}
 
 		// 多少複雑なもの
 		if (d.use(CArg.TRANSITION)) { mixin(S_TRACE);

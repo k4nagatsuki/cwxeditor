@@ -885,7 +885,7 @@
 	<dd>フラグ判定</dd>
 	<dt class="content"><a href="#CHKSTEP">chkstep <span class="args"><span class="arg">&lt;ステップ名&gt;</span>, <span class="arg">&lt;比較条件&gt;</span>, <span class="arg">&lt;値&gt;</span></span></a></dt>
 	<dd>ステップ判定</dd>
-	<dt class="content"><a href="#GETCAST">getcast <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></dt>
+	<dt class="content"><a href="#GETCAST">getcast <span class="args"><span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;戦闘行動開始タイミング&gt;</span></span></a></dt>
 	<dd>キャストの同行</dd>
 	<dt class="content"><a href="#GETITEM">getitem <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></dt>
 	<dd>アイテムの獲得</dd>
@@ -1555,8 +1555,21 @@
 	<dt class="keyword"><code>C</code> または <code>card</code></dt>
 	<dd class="worddesc">カードイベント中であれば、使用したカード。</dd>
 	<dt class="keyword">文字列</dt>
-	<dd class="worddesc">カード画像のファイル名と解釈し、そのカードを話者とします。</dd>
+	<dd class="worddesc">イメージファイル名と解釈し、そのイメージを話者とします。</dd>
+	<dt class="keyword"><span class="array">[<span class="arg">&lt;文字列&gt;</span>, <span class="arg">&lt;配置方式&gt;</span>]</span></dt>
+	<dd class="worddesc">イメージファイル名に加えて配置方式を指定します。<em class="warning">配置方式はWsn.2以降のWSN形式シナリオでのみ機能します。</em></dd>
 </dl>
+<p class="desc">イメージの配置方式には以下のいずれかが指定できます。省略した場合は<code>default</code>になります。</p>
+
+<dl>
+	<dt class="keyword"><code>default</code></dt>
+	<dd class="worddesc">方式を指定しません。<span class="keywords">msg</span>では<code>topleft</code>と同じ結果になります。</dd>
+	<dt class="keyword"><code>topleft</code></dt>
+	<dd class="worddesc">左上を起点として配置します。</dd>
+	<dt class="keyword"><code>center</code></dt>
+	<dd class="worddesc">メッセージウィンドウの中央に表示されるように配置します。</dd>
+</dl>
+
 <p class="desc">テキストには、メッセージとして表示する文字列を指定します。</p>
 <p class="desc">通常の<code class="str">""</code>や<code class="str">''</code>で囲った文字列の他、<code class="str">@</code>を使用して複数行の文字列を記述できます。以下の例を参照してください。</p>
 <p class="desc">選択肢の列数には、メッセージの下に表示される選択肢を横何列で表示するかを指定します。省略した場合は<span class="num">1</span>になります。</p>
@@ -2707,18 +2720,28 @@
     <span class="keywords">break</span>
 <code class="code">fi</code> <span class="comment">// 分岐終了</span></code></pre>
 
-<h3 class="content"><a id="GETCAST" name="GETCAST">getcast <span class="args"><span class="arg">&lt;ID&gt;</span></span></a></h3>
+<h3 class="content"><a id="GETCAST" name="GETCAST">getcast <span class="args"><span class="arg">&lt;ID&gt;</span> <span class="arg">&lt;戦闘行動開始タイミング&gt;</span></span></a></h3>
 
 <p class="fullname">(Get Cast)</p>
 <p class="desc">キャストを同行させます。</p>
 
 <h4 class="argments">パラメータ</h4>
 
-<p class="desc">キャストカードのIDを整数で指定します。</p>
+<p class="desc">IDには、キャストカードのIDを整数で指定します。</p>
+<p class="desc">戦闘行動開始タイミングには、以下のいずれかを指定できます。省略した場合は<code>next</code>になります。<em class="warning">Wsn.2以降のWSN形式シナリオでのみ機能します。</em></p>
+
+<dl>
+	<dt class="keyword"><code>now</code></dt>
+	<dd class="worddesc">そのラウンドから開始します。加入が戦闘行動中であっても行動します。</dd>
+	<dt class="keyword"><code>current</code></dt>
+	<dd class="worddesc">ラウンドイベントで加入した場合に限り、そのラウンドから行動を開始します。</dd>
+	<dt class="keyword"><code>next</code></dt>
+	<dd class="worddesc">次のラウンドから行動を開始します。</dd>
+</dl>
 
 <h4 class="example">例</h4>
 
-<pre><code class="samplecode"><span class="keywords">getcast</span> <span class="num">1</span> <span class="comment">// ID1のキャストを同行させる</span></code></pre>
+<pre><code class="samplecode"><span class="keywords">getcast</span> <span class="num">1</span> <span class="comment">// ID1のキャストを同行させ、次のラウンドから行動させる</span></code></pre>
 
 <h3 class="content"><a id="GETITEM" name="GETITEM">getitem <span class="args"><span class="arg">&lt;範囲&gt;</span>, <span class="arg">&lt;ID&gt;</span>, <span class="arg">&lt;枚数&gt;</span></span></a></h3>
 
@@ -3131,6 +3154,7 @@ center
 cheerf
 complete
 confuse
+current
 damage
 dead
 dealattack
@@ -3187,9 +3211,11 @@ min
 mind
 mphysic
 n
+next
 no
 nocomplete
 none
+now
 off
 on
 one
@@ -3224,6 +3250,7 @@ summon
 t
 team
 thread
+topleft
 trick
 true
 u
