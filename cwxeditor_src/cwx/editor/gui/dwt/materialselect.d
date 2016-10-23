@@ -832,12 +832,16 @@ class MaterialSelect(MtType Type, D, C) {
 		}
 		@property
 		void paths(CardImage[] paths) { mixin(S_TRACE);
+			_dirs.setRedraw(false);
+			_fileList.setRedraw(false);
 			auto old = _paths;
 			scope (exit) {
 				if (old != _paths) {
 					foreach (dlg; modEvent) dlg();
 				}
 				refreshButtons();
+				_dirs.setRedraw(true);
+				_fileList.setRedraw(true);
 			}
 			_paths = paths.length ? paths : [new CardImage("", CardImagePosition.Default)];
 			_binPaths.length = _paths.length;

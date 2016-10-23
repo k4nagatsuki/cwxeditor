@@ -192,7 +192,7 @@ class CardImage : IPathUser {
 	/// pNodeにImagePath要素またはImagePaths要素から
 	/// インスタンス群を生成してpathsに追加するハンドラを登録する。
 	/// attrをtrueにした場合、ImagePath要素ではなくpath属性を使用する。
-	static void setOnTag(ref XNode pNode, ref CardImage[] paths, bool attr = false) {
+	static void setOnTag(ref XNode pNode, ref CardImage[] paths, bool attr = false) { mixin(S_TRACE);
 		void convPath(string pathTemp, string posTypeTemp) { mixin(S_TRACE);
 			CardImage path = null;
 			if (pathTemp && endsWith(pathTemp, "??" ~ fromTalker(Talker.SELECTED))) { mixin(S_TRACE);
@@ -239,56 +239,26 @@ class CardImage : IPathUser {
 			pNode.onTag["ImagePath"] = imgPath;
 			pNode.onTag["PCNumber"] = pcNum;
 		}
-		pNode.onTag["ImagePaths"] = (ref XNode n) { mixin(S_TRACE);
-			n.onTag["ImagePath"] = imgPath;
-			n.onTag["PCNumber"] = pcNum;
-			n.parse();
-		};
+		if (pNode.name != "ImagePaths") { mixin(S_TRACE);
+			pNode.onTag["ImagePaths"] = (ref XNode n) { mixin(S_TRACE);
+				n.onTag["ImagePath"] = imgPath;
+				n.onTag["PCNumber"] = pcNum;
+				n.parse();
+			};
+		}
 	}
+
+	/// ImagePaths要素からCardImageの配列を作成する。
+	static CardImage[] createFromNode(ref XNode node) { mixin(S_TRACE);
+		CardImage[] paths;
+		setOnTag(node, paths, false);
+		node.parse();
+		return paths;
+	}
+
 	/// pNodeにpathsのデータを追加する。
 	/// attrをtrueにした場合、ImagePath要素ではなくpath属性を使用する。
 	static void toNode(ref XNode pNode, in CardImage[] paths, bool attr = false) { mixin(S_TRACE);
-		static void put(ref XNode pNode, in CardImage path, bool attr) { mixin(S_TRACE);
-			final switch (path.type) {
-			case CardImageType.File:
-				void putPosType(ref XNode n) { mixin(S_TRACE);
-					final switch (path.positionType) {
-					case CardImagePosition.Center:
-						n.newAttr("positiontype", "Center");
-						break;
-					case CardImagePosition.TopLeft:
-						n.newAttr("positiontype", "TopLeft");
-						break;
-					case CardImagePosition.Default:
-						break;
-					}
-				}
-				if (attr) { mixin(S_TRACE);
-					pNode.newAttr("path", encodePath(path.path));
-					putPosType(pNode);
-				} else { mixin(S_TRACE);
-					auto n = pNode.newElement("ImagePath", encodePath(path.path));
-					putPosType(n);
-				}
-				break;
-			case CardImageType.PCNumber:
-				if (attr) { mixin(S_TRACE);
-					pNode.newAttr("path", "");
-					pNode.newAttr("pcNumber", path.pcNumber);
-				} else { mixin(S_TRACE);
-					if (pNode.name != "ImagePaths") pNode.newElement("ImagePath", "");
-					pNode.newElement("PCNumber", .text(path.pcNumber));
-				}
-				break;
-			case CardImageType.Talker:
-				if (attr) { mixin(S_TRACE);
-					pNode.newAttr("path", "Material/??" ~ fromTalker(path.talker));
-				} else { mixin(S_TRACE);
-					pNode.newElement("ImagePath", "Material/??" ~ fromTalker(path.talker));
-				}
-				break;
-			}
-		}
 		if (paths.length == 0) { mixin(S_TRACE);
 			if (attr) { mixin(S_TRACE);
 				pNode.newAttr("path", "");
@@ -296,12 +266,61 @@ class CardImage : IPathUser {
 				pNode.newElement("ImagePath", "");
 			}
 		} else if (paths.length <= 1) { mixin(S_TRACE);
-			put(pNode, paths[0], attr);
+			putToNode(pNode, paths[0], attr);
 		} else { mixin(S_TRACE);
 			auto imp = pNode.newElement("ImagePaths", "");
 			foreach (path; paths) { mixin(S_TRACE);
-				put(imp, path, false);
+				putToNode(imp, path, false);
 			}
+		}
+	}
+	/// pathsからImagePaths要素を作成する。
+	static XNode toNode(in CardImage[] paths) { mixin(S_TRACE);
+		auto imp = XNode.create("ImagePaths");
+		foreach (path; paths) { mixin(S_TRACE);
+			putToNode(imp, path, false);
+		}
+		return imp;
+	}
+	private static void putToNode(ref XNode pNode, in CardImage path, bool attr) { mixin(S_TRACE);
+		final switch (path.type) {
+		case CardImageType.File:
+			void putPosType(ref XNode n) { mixin(S_TRACE);
+				final switch (path.positionType) {
+				case CardImagePosition.Center:
+					n.newAttr("positiontype", "Center");
+					break;
+				case CardImagePosition.TopLeft:
+					n.newAttr("positiontype", "TopLeft");
+					break;
+				case CardImagePosition.Default:
+					break;
+				}
+			}
+			if (attr) { mixin(S_TRACE);
+				pNode.newAttr("path", encodePath(path.path));
+				putPosType(pNode);
+			} else { mixin(S_TRACE);
+				auto n = pNode.newElement("ImagePath", encodePath(path.path));
+				putPosType(n);
+			}
+			break;
+		case CardImageType.PCNumber:
+			if (attr) { mixin(S_TRACE);
+				pNode.newAttr("path", "");
+				pNode.newAttr("pcNumber", path.pcNumber);
+			} else { mixin(S_TRACE);
+				if (pNode.name != "ImagePaths") pNode.newElement("ImagePath", "");
+				pNode.newElement("PCNumber", .text(path.pcNumber));
+			}
+			break;
+		case CardImageType.Talker:
+			if (attr) { mixin(S_TRACE);
+				pNode.newAttr("path", "Material/??" ~ fromTalker(path.talker));
+			} else { mixin(S_TRACE);
+				pNode.newElement("ImagePath", "Material/??" ~ fromTalker(path.talker));
+			}
+			break;
 		}
 	}
 }

@@ -6,6 +6,7 @@ import cwx.skin;
 import cwx.summary;
 import cwx.types;
 import cwx.utils;
+import cwx.xml;
 
 import cwx.editor.gui.dwt.cardlist;
 import cwx.editor.gui.dwt.centerlayout;
@@ -14,6 +15,7 @@ import cwx.editor.gui.dwt.dmenu;
 import cwx.editor.gui.dwt.dprops;
 import cwx.editor.gui.dwt.dskin;
 import cwx.editor.gui.dwt.dutils;
+import cwx.editor.gui.dwt.xmlbytestransfer;
 
 import std.algorithm : max, min, map;
 import std.array;
@@ -111,7 +113,7 @@ class ImageLayerWindow {
 }
 
 /// CardImageのリスト。
-class ImageLayerList : Composite {
+class ImageLayerList : Composite, TCPD {
 	void delegate()[] selectionEvent;
 	void delegate()[] modEvent;
 	private void delegate()[] updateEvent;
@@ -145,6 +147,8 @@ class ImageLayerList : Composite {
 			auto menu = new Menu(this.getShell(), SWT.POP_UP);
 			createMenuItem(comm, menu, MenuID.AddLayer, &addLayer, &canAddLayer);
 			createMenuItem(comm, menu, MenuID.RemoveLayer, &removeLayer, &canRemoveLayer);
+			new MenuItem(menu, SWT.SEPARATOR);
+			appendMenuTCPD(comm, menu, this, false, true, true, false, false);
 			new MenuItem(menu, SWT.SEPARATOR);
 			createMenuItem(comm, menu, MenuID.Up, &upLayer, &canUpLayer);
 			createMenuItem(comm, menu, MenuID.Down, &downLayer, &canDownLayer);
@@ -206,6 +210,9 @@ class ImageLayerList : Composite {
 				foreach (dlg; selectionEvent) dlg();
 			}
 		});
+		.listener(this, SWT.MouseDown, (e) { mixin(S_TRACE);
+			setFocus();
+		});
 		.listener(this, SWT.MouseUp, (e) { mixin(S_TRACE);
 			auto index = indexOf(e.x, e.y);
 			if (index < 0) return;
@@ -248,6 +255,10 @@ class ImageLayerList : Composite {
 
 	@property
 	void images(CardImage[] cardPaths) { mixin(S_TRACE);
+		setImages(cardPaths);
+		foreach (dlg; updateEvent) dlg();
+	}
+	private void setImages(CardImage[] cardPaths) { mixin(S_TRACE);
 		foreach (item; _items) item.dispose();
 		_items = [];
 		foreach (cardPath; cardPaths) { mixin(S_TRACE);
@@ -255,7 +266,6 @@ class ImageLayerList : Composite {
 		}
 		setupScrollBar();
 		redraw();
-		foreach (dlg; updateEvent) dlg();
 	}
 	@property
 	CardImage[] images() { mixin(S_TRACE);
@@ -274,6 +284,71 @@ class ImageLayerList : Composite {
 	int selection() { mixin(S_TRACE);
 		return _selection;
 	}
+
+	override
+	void cut(SelectionEvent se) { }
+	override
+	void copy(SelectionEvent se) { mixin(S_TRACE);
+		XMLtoCB(_comm.prop, _comm.clipboard, CardImage.toNode(images).text);
+		_comm.refreshToolBar();
+	}
+	override
+	void paste(SelectionEvent se) { mixin(S_TRACE);
+		auto c = CBtoXML(_comm.clipboard);
+		if (c) { mixin(S_TRACE);
+			try { mixin(S_TRACE);
+				auto node = XNode.parse(c);
+				auto paths = CardImage.createFromNode(node);
+				if (!paths.length) return;
+				auto defValue = new CardImage("", CardImagePosition.Default);
+				auto a = images;
+				CardImage[] r;
+				if (a.length && a[$ - 1] == defValue) { mixin(S_TRACE);
+					r = a[0 .. $ - 1] ~ paths;
+				} else { mixin(S_TRACE);
+					r = a ~ paths;
+				}
+				if (r == a) return;
+				_selection = cast(int)r.length - 1;
+				setImages(r);
+				showSelection();
+				_comm.refreshToolBar();
+				foreach (dlg; modEvent) dlg();
+				foreach (dlg; selectionEvent) dlg();
+			} catch (Exception e) { mixin (S_TRACE);
+				printStackTrace();
+				debugln(e);
+			}
+		}
+	}
+	override
+	void del(SelectionEvent se) { }
+	override
+	void clone(SelectionEvent se) { }
+
+	@property
+	override
+	bool canDoTCPD() { return true; }
+	@property
+	override
+	bool canDoT() { return false; }
+	@property
+	override
+	bool canDoC() { mixin(S_TRACE);
+		auto defValue = new CardImage("", CardImagePosition.Default);
+		return _items.length && (2 <= _items.length || defValue != _items[$ - 1].cardPath);
+	}
+	@property
+	override
+	bool canDoP() { mixin(S_TRACE);
+		return !_readOnly && CBisXML(_comm.clipboard);
+	}
+	@property
+	override
+	bool canDoClone() { return false; }
+	@property
+	override
+	bool canDoD() { return false; }
 
 	void addLayer() { mixin(S_TRACE);
 		if (!canAddLayer) return;
