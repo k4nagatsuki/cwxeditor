@@ -303,11 +303,10 @@ class ImageLayerList : Composite, TCPD {
 				auto defValue = new CardImage("", CardImagePosition.Default);
 				auto a = images;
 				CardImage[] r;
-				if (a.length && a[$ - 1] == defValue) { mixin(S_TRACE);
-					r = a[0 .. $ - 1] ~ paths;
-				} else { mixin(S_TRACE);
-					r = a ~ paths;
+				while (a.length && a[$ - 1] == defValue) { mixin(S_TRACE);
+					a = a[0 .. $ - 1];
 				}
+				r = a ~ paths;
 				if (r == a) return;
 				_selection = cast(int)r.length - 1;
 				setImages(r);
@@ -336,7 +335,10 @@ class ImageLayerList : Composite, TCPD {
 	override
 	bool canDoC() { mixin(S_TRACE);
 		auto defValue = new CardImage("", CardImagePosition.Default);
-		return _items.length && (2 <= _items.length || defValue != _items[$ - 1].cardPath);
+		foreach (item; _items) { mixin(S_TRACE);
+			if (item.cardPath != defValue) return true;
+		}
+		return false;
 	}
 	@property
 	override
