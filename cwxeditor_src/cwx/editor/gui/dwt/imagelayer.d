@@ -5,6 +5,7 @@ import cwx.card;
 import cwx.skin;
 import cwx.summary;
 import cwx.types;
+import cwx.usecounter;
 import cwx.utils;
 import cwx.xml;
 
@@ -289,7 +290,9 @@ class ImageLayerList : Composite, TCPD {
 	void cut(SelectionEvent se) { }
 	override
 	void copy(SelectionEvent se) { mixin(S_TRACE);
-		XMLtoCB(_comm.prop, _comm.clipboard, CardImage.toNode(images).text);
+		auto node = CardImage.toNode(images);
+		if (_summ) node.newAttr("scenarioPath", nabs(_summ.scenarioPath));
+		XMLtoCB(_comm.prop, _comm.clipboard, node.text);
 		_comm.refreshToolBar();
 	}
 	override
@@ -306,6 +309,7 @@ class ImageLayerList : Composite, TCPD {
 				while (a.length && a[$ - 1] == defValue) { mixin(S_TRACE);
 					a = a[0 .. $ - 1];
 				}
+				paths = qMaterialCopy(node, paths);
 				r = a ~ paths;
 				if (r == a) return;
 				_selection = cast(int)r.length - 1;
@@ -351,6 +355,27 @@ class ImageLayerList : Composite, TCPD {
 	@property
 	override
 	bool canDoD() { return false; }
+
+	private CardImage[] qMaterialCopy(in XNode node, CardImage[] cardPaths) { mixin(S_TRACE);
+		if (!_summ) return cardPaths;
+		auto fromSPath = node.attr("scenarioPath", false);
+		if (fromSPath.length > 0 && !cfnmatch(nabs(fromSPath), nabs(_summ.scenarioPath))) { mixin(S_TRACE);
+			auto uc = new UseCounter;
+			foreach (path; cardPaths) { mixin(S_TRACE);
+				path.setUseCounter(uc);
+			}
+			bool copy;
+			bool r = .qMaterialCopy(_comm, getShell(),
+				uc, _summ.scenarioPath, fromSPath, copy, _summ.legacy);
+			foreach (path; cardPaths) { mixin(S_TRACE);
+				path.removeUseCounter();
+			}
+			if (copy) { mixin(S_TRACE);
+				_comm.refPaths.call(_comm.skin.materialPath);
+			}
+		}
+		return cardPaths;
+	}
 
 	void addLayer() { mixin(S_TRACE);
 		if (!canAddLayer) return;
