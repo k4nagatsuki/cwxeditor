@@ -645,6 +645,7 @@ public:
 		case MenuID.EvTemplatesOfScenario: return imgd!("new_ev_tmpl.png");
 		case MenuID.Expand: return imgd!("expanded.png");
 		case MenuID.Collapse: return imgd!("collapsed.png");
+		case MenuID.SelectCurrentEvent: return imgd!("select_current_event.png");
 		case MenuID.ResetPreviewValues: return imgd!("reset.png");
 		case MenuID.ResetPreviewValuesAll: return imgd!("reset_all.png");
 		case MenuID.CustomizeToolBar: return imgd!("custom_tools.png");

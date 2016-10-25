@@ -2355,6 +2355,7 @@ class Msgs : Properties {
 	auto menuTextEvTemplatesOfScenario = Msg("menuTextEvTemplatesOfScenario", "シナリオのテンプレートを編集");
 	auto menuTextExpand = Msg("menuTextExpand", "ツリーを開く");
 	auto menuTextCollapse = Msg("menuTextCollapse", "ツリーを閉じる");
+	auto menuTextSelectCurrentEvent = Msg("menuTextSelectCurrentEvent", "表示中のイベントを選択");
 	auto menuTextResetPreviewValues = Msg("menuTextResetPreviewValues", "初期値に戻す");
 	auto menuTextResetPreviewValuesAll = Msg("menuTextResetPreviewValuesAll", "全て初期値に戻す");
 	auto menuTextCustomizeToolBar = Msg("menuTextCustomizeToolBar", "ツールバーの編集");

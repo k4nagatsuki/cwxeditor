@@ -1573,6 +1573,7 @@ enum MenuID {
 	EvTemplatesOfScenario,
 	Expand,
 	Collapse,
+	SelectCurrentEvent,
 	ResetPreviewValues,
 	ResetPreviewValuesAll,
 	CustomizeToolBar,

@@ -3290,6 +3290,7 @@ public:
 						case MenuID.EvTemplatesOfScenario:
 						case MenuID.Expand:
 						case MenuID.Collapse:
+						case MenuID.SelectCurrentEvent:
 						case MenuID.ResetPreviewValues:
 						case MenuID.ResetPreviewValuesAll:
 						case MenuID.CustomizeToolBar:

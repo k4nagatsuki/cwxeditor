@@ -234,6 +234,7 @@ class MenuProps : Properties {
 		_mnemonic[MenuID.EvTemplatesOfScenario] = "E";
 		_mnemonic[MenuID.Expand] = "X";
 		_mnemonic[MenuID.Collapse] = "O";
+		_mnemonic[MenuID.SelectCurrentEvent] = "S";
 		_mnemonic[MenuID.ResetPreviewValues] = "R";
 		_mnemonic[MenuID.ResetPreviewValuesAll] = "E";
 		_mnemonic[MenuID.CustomizeToolBar] = "Z";
@@ -451,6 +452,7 @@ class MenuProps : Properties {
 		_hotkey[MenuID.EvTemplatesOfScenario] = "";
 		_hotkey[MenuID.Expand] = "Ctrl+Arrow_Right";
 		_hotkey[MenuID.Collapse] = "Ctrl+Arrow_Left";
+		_hotkey[MenuID.SelectCurrentEvent] = "";
 		_hotkey[MenuID.ResetPreviewValues] = "";
 		_hotkey[MenuID.ResetPreviewValuesAll] = "";
 		_hotkey[MenuID.CustomizeToolBar] = "";
@@ -892,6 +894,7 @@ bool isMainToolBarMenu(MenuID id) { mixin(S_TRACE);
 	case MenuID.EvTemplatesOfScenario:
 	case MenuID.Expand:
 	case MenuID.Collapse:
+	case MenuID.SelectCurrentEvent:
 	case MenuID.ResetPreviewValues:
 	case MenuID.ResetPreviewValuesAll:
 	case MenuID.CustomizeToolBar:
@@ -1116,6 +1119,7 @@ bool isGlobalMenu(MenuID id) {
 	case MenuID.EvTemplates:
 	case MenuID.Expand:
 	case MenuID.Collapse:
+	case MenuID.SelectCurrentEvent:
 	case MenuID.ResetPreviewValues:
 	case MenuID.ResetPreviewValuesAll:
 	case MenuID.CustomizeToolBar:

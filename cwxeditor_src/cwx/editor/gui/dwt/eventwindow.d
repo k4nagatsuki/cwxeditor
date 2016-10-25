@@ -145,6 +145,7 @@ public:
 		putMenuAction(MenuID.PasteInsert, &_eview.pasteInsert, &_eview.canPasteInsert);
 		putMenuAction(MenuID.SwapToParent, &_eview.swapToParent, &_eview.canSwapToParent);
 		putMenuAction(MenuID.SwapToChild, &_eview.swapToChild, &_eview.canSwapToChild);
+		putMenuAction(MenuID.SelectCurrentEvent, &_eview.selectCurrentEvent, &_eview.canSelectCurrentEvent);
 
 		auto d = contPane.getDisplay();
 		auto tl = new class Listener {

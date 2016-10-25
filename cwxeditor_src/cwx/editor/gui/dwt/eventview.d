@@ -2032,6 +2032,8 @@ public:
 		.listener(_slope, SWT.Dispose, { mixin(S_TRACE);
 			_comm.refEventTreeViewStyle.remove(&refEventTreeViewStyle);
 		});
+		new ToolItem(bar, SWT.SEPARATOR);
+		createToolItem(_comm, bar, MenuID.SelectCurrentEvent, &selectCurrentEvent, &canSelectCurrentEvent);
 		bar.getParent().layout();
 		return true;
 	}
@@ -2262,6 +2264,25 @@ public:
 			if (v._etree && v._etree.eventTree is et) { mixin(S_TRACE);
 				v._etree.refresh(null);
 				v._etree.refresh(et);
+			}
+		}
+	}
+
+	@property
+	bool canSelectCurrentEvent() { mixin(S_TRACE);
+		auto sel = selection;
+		auto et = _etree.eventTree;
+		return et && (!sel || sel.getData() !is et);
+	}
+	void selectCurrentEvent() { mixin(S_TRACE);
+		auto et = _etree.eventTree;
+		if (!et) return;
+		foreach (itm; _cards.getItems()) { mixin(S_TRACE);
+			foreach (etItm; itm.getItems()) { mixin(S_TRACE);
+				if (etItm.getData() is et) { mixin(S_TRACE);
+					selectImpl(etItm);
+					break;
+				}
 			}
 		}
 	}
