@@ -1,32 +1,32 @@
 
-CWXEditor ƒ‰ƒCƒZƒ“ƒXî•ñ
+CWXEditor ãƒ©ã‚¤ã‚»ãƒ³ã‚¹æƒ…å ±
 ========================
 
-CWXEditor‚Ìƒ‰ƒCƒZƒ“ƒX
+CWXEditorã®ãƒ©ã‚¤ã‚»ãƒ³ã‚¹
 ---------------------
 
- * CWXEditor‚ÌƒA[ƒJƒCƒu‚ÉŠÜ‚Ü‚ê‚éŽÀsƒtƒ@ƒCƒ‹(*.exe)A‰æ‘œ(*.png, *.ico)Aƒ\[ƒX
-   ƒR[ƒh(*.dE‚½‚¾‚µd2stdƒfƒBƒŒƒNƒgƒŠ“à‚ðœ‚­)AƒeƒLƒXƒg(*.txt)A‚»‚Ì‘¼
-   (*.cmd, *.rc, *.manifest)‚ÌŠeƒtƒ@ƒCƒ‹‚ÍACC0‚Ì‰º‚É”z•z‚³‚ê‚Ü‚·BÚ×‚ÍCC0.txt‚©A
-   ŽŸ‚ÌURI‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+ * CWXEditorã®ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã«å«ã¾ã‚Œã‚‹å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«(*.exe)ã€ç”»åƒ(*.png, *.ico)ã€ã‚½ãƒ¼ã‚¹
+   ã‚³ãƒ¼ãƒ‰(*.dãƒ»ãŸã ã—d2stdãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå†…ã‚’é™¤ã)ã€ãƒ†ã‚­ã‚¹ãƒˆ(*.txt)ã€ãã®ä»–
+   (*.cmd, *.rc, *.manifest)ã®å„ãƒ•ã‚¡ã‚¤ãƒ«ã¯ã€CC0ã®ä¸‹ã«é…å¸ƒã•ã‚Œã¾ã™ã€‚è©³ç´°ã¯CC0.txtã‹ã€
+   æ¬¡ã®URIã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
    https://creativecommons.org/publicdomain/zero/1.0/deed
-   ‚±‚ê‚ç‚ÌƒŠƒ\[ƒX‚ÍAPublic Domain‚É‚ ‚é‚©‚Ì‚æ‚¤‚É’N‚Å‚àŽ©—R‚Éˆµ‚¤Ž–‚ª‚Å‚«‚Ü‚·B
- * d2stdƒfƒBƒŒƒNƒgƒŠ“à‚Ìƒ\[ƒXƒR[ƒh(*.d)‚ÉŠÖ‚µ‚Ä‚ÍAŒãq‚Ì[d2stdƒfƒBƒŒƒNƒgƒŠ“à‚Ì
-   ƒR[ƒh‚Ìƒ‰ƒCƒZƒ“ƒX]‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
- * Ã“IƒŠƒ“ƒN‚µ‚Ä‚¢‚éƒ‰ƒCƒuƒ‰ƒŠ‚Ìƒ‰ƒCƒZƒ“ƒX‚É‚Â‚¢‚Ä‚ÍAŒãq‚Ì[Ã“IƒŠƒ“ƒN‚µ‚Ä‚¢‚é
-   ƒ‰ƒCƒuƒ‰ƒŠ‚Ìƒ‰ƒCƒZƒ“ƒX]‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
- * ‹¤—Lƒ‰ƒCƒuƒ‰ƒŠ(*.dll)‚Ìƒ‰ƒCƒZƒ“ƒX‚É‚Â‚¢‚Ä‚ÍAŒãq‚Ì[‹¤—Lƒ‰ƒCƒuƒ‰ƒŠ‚Ìƒ‰ƒCƒZƒ“ƒX]
-   ‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
- * ŽÀsƒtƒ@ƒCƒ‹(*.exe)‚ª¶¬‚µ‚½ƒtƒ@ƒCƒ‹‚ÉŠÖ‚µ‚Ä‚ÍAŽÀsƒtƒ@ƒCƒ‹‚ðŽg—p‚µ‚Ä‚»‚ê‚ð
-   ì¬‚µ‚½ŽÒ‚ªˆêŽŸ’˜ìŒ ‚ð—L‚µ‚Ü‚·B
- * ìŽÒ‚Í‘O‹L‚µ‚½ƒŠƒ\[ƒX‚Ì‚ ‚ç‚ä‚é•û–@‚Å‚ÌŽg—p‚ÉÛ‚µ‚Ä”­¶‚µ‚½ƒgƒ‰ƒuƒ‹‚É‘Î‚µA
-   ˆêØÓ”C‚ð•‰‚¢‚Ü‚¹‚ñB‘O‹LƒŠƒ\[ƒX‚Í‘S‚Ä–³•ÛØ‚Å‚·B
+   ã“ã‚Œã‚‰ã®ãƒªã‚½ãƒ¼ã‚¹ã¯ã€Public Domainã«ã‚ã‚‹ã‹ã®ã‚ˆã†ã«èª°ã§ã‚‚è‡ªç”±ã«æ‰±ã†äº‹ãŒã§ãã¾ã™ã€‚
+ * d2stdãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå†…ã®ã‚½ãƒ¼ã‚¹ã‚³ãƒ¼ãƒ‰(*.d)ã«é–¢ã—ã¦ã¯ã€å¾Œè¿°ã®[d2stdãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå†…ã®
+   ã‚³ãƒ¼ãƒ‰ã®ãƒ©ã‚¤ã‚»ãƒ³ã‚¹]ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
+ * é™çš„ãƒªãƒ³ã‚¯ã—ã¦ã„ã‚‹ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®ãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã«ã¤ã„ã¦ã¯ã€å¾Œè¿°ã®[é™çš„ãƒªãƒ³ã‚¯ã—ã¦ã„ã‚‹
+   ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®ãƒ©ã‚¤ã‚»ãƒ³ã‚¹]ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
+ * å…±æœ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒª(*.dll)ã®ãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã«ã¤ã„ã¦ã¯ã€å¾Œè¿°ã®[å…±æœ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®ãƒ©ã‚¤ã‚»ãƒ³ã‚¹]
+   ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
+ * å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«(*.exe)ãŒç”Ÿæˆã—ãŸãƒ•ã‚¡ã‚¤ãƒ«ã«é–¢ã—ã¦ã¯ã€å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä½¿ç”¨ã—ã¦ãã‚Œã‚’
+   ä½œæˆã—ãŸè€…ãŒä¸€æ¬¡è‘—ä½œæ¨©ã‚’æœ‰ã—ã¾ã™ã€‚
+ * ä½œè€…ã¯å‰è¨˜ã—ãŸãƒªã‚½ãƒ¼ã‚¹ã®ã‚ã‚‰ã‚†ã‚‹æ–¹æ³•ã§ã®ä½¿ç”¨ã«éš›ã—ã¦ç™ºç”Ÿã—ãŸãƒˆãƒ©ãƒ–ãƒ«ã«å¯¾ã—ã€
+   ä¸€åˆ‡è²¬ä»»ã‚’è² ã„ã¾ã›ã‚“ã€‚å‰è¨˜ãƒªã‚½ãƒ¼ã‚¹ã¯å…¨ã¦ç„¡ä¿è¨¼ã§ã™ã€‚
 
-d2stdƒfƒBƒŒƒNƒgƒŠ“à‚ÌƒR[ƒh‚Ìƒ‰ƒCƒZƒ“ƒX
+d2stdãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå†…ã®ã‚³ãƒ¼ãƒ‰ã®ãƒ©ã‚¤ã‚»ãƒ³ã‚¹
 ---------------------------------------
 
- * d2stdƒfƒBƒŒƒNƒgƒŠ“à‚É‚ÍD2‚Ì•W€ƒ‰ƒCƒuƒ‰ƒŠPhobos‚ÌƒR[ƒh‚ð‰ü‘¢‚µ‚½‚à‚Ì‚ª“ü‚Á‚Ä
-   ‚¢‚Ü‚·BBoost Software License‚Å‚·B
+ * d2stdãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå†…ã«ã¯D2ã®æ¨™æº–ãƒ©ã‚¤ãƒ–ãƒ©ãƒªPhobosã®ã‚³ãƒ¼ãƒ‰ã‚’æ”¹é€ ã—ãŸã‚‚ã®ãŒå…¥ã£ã¦
+   ã„ã¾ã™ã€‚Boost Software Licenseã§ã™ã€‚
 
 ### Boost Software License - Version 1.0 - August 17th, 2003
 
@@ -52,11 +52,11 @@ FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 
-lhafileƒfƒBƒŒƒNƒgƒŠ“à‚ÌƒR[ƒh‚Ìƒ‰ƒCƒZƒ“ƒX
+lhafileãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå†…ã®ã‚³ãƒ¼ãƒ‰ã®ãƒ©ã‚¤ã‚»ãƒ³ã‚¹
 ---------------------------------------
 
- * lhafileƒfƒBƒŒƒNƒgƒŠ“à‚É‚ÍPythonŒ¾ŒêŒü‚¯‚Ìƒ‰ƒCƒuƒ‰ƒŠlhafile‚ðDŒ¾ŒêŒü‚¯‚ÉˆÚA‚µ
-   ‚½‚à‚Ì‚ª“ü‚Á‚Ä‚¢‚Ü‚·BC³BSDƒ‰ƒCƒZƒ“ƒX‚Å‚·B
+ * lhafileãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå†…ã«ã¯Pythonè¨€èªžå‘ã‘ã®ãƒ©ã‚¤ãƒ–ãƒ©ãƒªlhafileã‚’Dè¨€èªžå‘ã‘ã«ç§»æ¤ã—
+   ãŸã‚‚ã®ãŒå…¥ã£ã¦ã„ã¾ã™ã€‚ä¿®æ­£BSDãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã§ã™ã€‚
 
 lzhlib - lzh library modules for lhafile
 Copyright (c) 2010 Hidekazu Ohnishi.
@@ -85,30 +85,30 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Ã“IƒŠƒ“ƒN‚µ‚Ä‚¢‚éƒ‰ƒCƒuƒ‰ƒŠ‚Ìƒ‰ƒCƒZƒ“ƒX
+é™çš„ãƒªãƒ³ã‚¯ã—ã¦ã„ã‚‹ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®ãƒ©ã‚¤ã‚»ãƒ³ã‚¹
 ----------------------------------------
 
- * [DWT](http://www.dsource.org/projects/dwt/)‚ÍEclipse Public License‚Ì‰º‚É
-   ”Ð•z‚³‚ê‚Ä‚¢‚Ü‚·BEPL.txt‚©AŽŸ‚ÌURI‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+ * [DWT](http://www.dsource.org/projects/dwt/)ã¯Eclipse Public Licenseã®ä¸‹ã«
+   é ’å¸ƒã•ã‚Œã¦ã„ã¾ã™ã€‚EPL.txtã‹ã€æ¬¡ã®URIã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
    http://www.eclipse.org/legal/epl-v10.html
 
-‹¤—Lƒ‰ƒCƒuƒ‰ƒŠ‚Ìƒ‰ƒCƒZƒ“ƒX
+å…±æœ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®ãƒ©ã‚¤ã‚»ãƒ³ã‚¹
 --------------------------
 
-BGM‚âSE‚ÌÄ¶‚Ì‚½‚ß‚É“®“IƒŠƒ“ƒN‚·‚éƒ‰ƒCƒuƒ‰ƒŠ‚ð‚¢‚­‚Â‚©“¯«‚µ‚Ä‚ ‚è‚Ü‚·B
+BGMã‚„SEã®å†ç”Ÿã®ãŸã‚ã«å‹•çš„ãƒªãƒ³ã‚¯ã™ã‚‹ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã‚’ã„ãã¤ã‹åŒæ¢±ã—ã¦ã‚ã‚Šã¾ã™ã€‚
 
- * SDL.dll‚ÍAThe Simple DirectMedia Layer (SDL)‚Ì‹¤—Lƒ‰ƒCƒuƒ‰ƒŠ‚Å‚·B
+ * SDL.dllã¯ã€The Simple DirectMedia Layer (SDL)ã®å…±æœ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã§ã™ã€‚
    http://www.libsdl.org/
-   ƒ‰ƒCƒZƒ“ƒX‚ÍLGPL‚È‚Ì‚ÅALGPL.txt‚©AŽŸ‚ÌURI‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+   ãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã¯LGPLãªã®ã§ã€LGPL.txtã‹ã€æ¬¡ã®URIã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
    http://www.gnu.org/copyleft/lesser.html
- * SDL_mixer.dll‚ÍSDL_mixer‚Ì‹¤—Lƒ‰ƒCƒuƒ‰ƒŠ‚Å‚·B
+ * SDL_mixer.dllã¯SDL_mixerã®å…±æœ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã§ã™ã€‚
    http://www.libsdl.org/projects/SDL_mixer/
-   ‚±‚ê‚àƒ‰ƒCƒZƒ“ƒX‚ÍLGPL‚Å‚·B
- * smpeg.dll‚ÍSMPEG‚Ì‹¤—Lƒ‰ƒCƒuƒ‰ƒŠ‚Å‚·B
+   ã“ã‚Œã‚‚ãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã¯LGPLã§ã™ã€‚
+ * smpeg.dllã¯SMPEGã®å…±æœ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã§ã™ã€‚
    http://www.lokigames.com/development/smpeg.php3
-   ‚±‚ê‚àƒ‰ƒCƒZƒ“ƒX‚ÍLGPL‚Å‚·B
- * libogg-0.dll‚Ælibvorbis-0.dll‚Ælibvorbisfile-3.dll‚ÍOggVorbis‚Ì
-   ‹¤—Lƒ‰ƒCƒuƒ‰ƒŠ‚Å‚·BC³BSDƒ‰ƒCƒZƒ“ƒX‚Ì‰º‚É”Ð•z‚³‚ê‚Ä‚¢‚Ü‚·:
+   ã“ã‚Œã‚‚ãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã¯LGPLã§ã™ã€‚
+ * libogg-0.dllã¨libvorbis-0.dllã¨libvorbisfile-3.dllã¯OggVorbisã®
+   å…±æœ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã§ã™ã€‚ä¿®æ­£BSDãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã®ä¸‹ã«é ’å¸ƒã•ã‚Œã¦ã„ã¾ã™:
 
 ### Copyright (c) 2002-2008 Xiph.org Foundation
 
@@ -137,11 +137,11 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-x64ƒtƒHƒ‹ƒ_“à‚É‚ ‚é“®“Iƒ‰ƒCƒuƒ‰ƒŠ‚Ìƒ‰ƒCƒZƒ“ƒX‚ÍŽŸ‚Ì’Ê‚è‚Å‚·B
+x64ãƒ•ã‚©ãƒ«ãƒ€å†…ã«ã‚ã‚‹å‹•çš„ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®ãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã¯æ¬¡ã®é€šã‚Šã§ã™ã€‚
 
- * SDL2.dll‚ÍSDL 2.0‚Ì‹¤—Lƒ‰ƒCƒuƒ‰ƒŠ‚Å‚·B
+ * SDL2.dllã¯SDL 2.0ã®å…±æœ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã§ã™ã€‚
    http://www.libsdl.org/
-   zlib License‚Ì‰º‚Å”Ð•z‚³‚ê‚Ä‚¢‚Ü‚·:
+   zlib Licenseã®ä¸‹ã§é ’å¸ƒã•ã‚Œã¦ã„ã¾ã™:
 
 Copyright (c) <''year''> <''copyright holders''>
 
@@ -164,21 +164,21 @@ freely, subject to the following restrictions:
    3. This notice may not be removed or altered from any source
    distribution.
 
- * SDL2_mixer.dll‚ÍSDL_mixer 2.0‚Ì‹¤—Lƒ‰ƒCƒuƒ‰ƒŠ‚Å‚·B
+ * SDL2_mixer.dllã¯SDL_mixer 2.0ã®å…±æœ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã§ã™ã€‚
    http://www.libsdl.org/projects/SDL_mixer/
-   ƒ‰ƒCƒZƒ“ƒX‚Ízlib License‚Å‚·B
- * smpeg2.dll‚ÍSMPEG‚Ì‹¤—Lƒ‰ƒCƒuƒ‰ƒŠ‚Å‚·B
+   ãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã¯zlib Licenseã§ã™ã€‚
+ * smpeg2.dllã¯SMPEGã®å…±æœ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã§ã™ã€‚
    http://www.lokigames.com/development/smpeg.php3
-   ƒ‰ƒCƒZƒ“ƒX‚ÍLGPL‚È‚Ì‚ÅALGPL.txt‚©AŽŸ‚ÌURI‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+   ãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã¯LGPLãªã®ã§ã€LGPL.txtã‹ã€æ¬¡ã®URIã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
    http://www.gnu.org/copyleft/lesser.html
- * libogg-0.dll‚Ælibvorbis-0.dll‚Ælibvorbisfile-3.dll‚ÍOggVorbis‚Ì
-   ‹¤—Lƒ‰ƒCƒuƒ‰ƒŠ‚Å‚·Bƒ‰ƒCƒZƒ“ƒX‚ÍC³BSDƒ‰ƒCƒZƒ“ƒX‚Å‚·B
- * libFLAC-8.dll‚ÍFLAC‚Ì‹¤—Lƒ‰ƒCƒuƒ‰ƒŠ‚Å‚·B
+ * libogg-0.dllã¨libvorbis-0.dllã¨libvorbisfile-3.dllã¯OggVorbisã®
+   å…±æœ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã§ã™ã€‚ãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã¯ä¿®æ­£BSDãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã§ã™ã€‚
+ * libFLAC-8.dllã¯FLACã®å…±æœ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã§ã™ã€‚
    https://xiph.org/flac/
-   ƒ‰ƒCƒZƒ“ƒX‚ÍC³BSDƒ‰ƒCƒZƒ“ƒX‚Å‚·B
- * libmikmod-2.dll‚ÍMikMod‚Ì‹¤—Lƒ‰ƒCƒuƒ‰ƒŠ‚Å‚·B
+   ãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã¯ä¿®æ­£BSDãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã§ã™ã€‚
+ * libmikmod-2.dllã¯MikModã®å…±æœ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã§ã™ã€‚
    http://mikmod.sourceforge.net/
-   ƒ‰ƒCƒZƒ“ƒX‚ÍLGPL‚Å‚·B
- * libmodplug-1.dll‚ÍModPlug‚Ì‹¤—Lƒ‰ƒCƒuƒ‰ƒŠ‚Å‚·B
+   ãƒ©ã‚¤ã‚»ãƒ³ã‚¹ã¯LGPLã§ã™ã€‚
+ * libmodplug-1.dllã¯ModPlugã®å…±æœ‰ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã§ã™ã€‚
    http://modplug-xmms.sourceforge.net/
-   ƒpƒuƒŠƒbƒNƒhƒƒCƒ“‚Å”Ð•z‚³‚ê‚Ä‚¢‚Ü‚·B
+   ãƒ‘ãƒ–ãƒªãƒƒã‚¯ãƒ‰ãƒ¡ã‚¤ãƒ³ã§é ’å¸ƒã•ã‚Œã¦ã„ã¾ã™ã€‚

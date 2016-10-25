@@ -1,41 +1,41 @@
 
-CWXEditor �r���h�K�C�h
+CWXEditor ビルドガイド
 ----------------------
 
-�r���h�c�[��:
+ビルドツール:
  : dmd 2.071.0
  : Digital Mars rcc
-���C�u����:
+ライブラリ:
  : DWT at GitHub
 
-���git�̃N���C�A���g������Ɗy�ł��B
+後はgitのクライアントがあると楽です。
 
 
-Windows�̏ꍇ
+Windowsの場合
 -------------
 
-DWT��GitHub�������Ă��܂��B
+DWTをGitHubから取ってきます。
 
-submodule������̂ŁAsubmodule init��update�����Ă����܂��傤�B
+submoduleがあるので、submodule initとupdateをしておきましょう。
 
-�esubmodule���ŐV��commit�ɂȂ��Ă��Ȃ��������\����̂ŁA�����I��
-pull�����Ă����܂��B
+各submoduleが最新のcommitになっていない事が結構あるので、強制的に
+pullもしておきます。
 
     git clone https://github.com/d-widget-toolkit/dwt.git
     cd dwt
     git submodule update --init
     git submodule foreach git pull origin master
 
-�������ł�����r���h���܂��B
+準備ができたらビルドします。
 
     rdmd build base swt
 
-64�r�b�g�ł̃��C�u�������쐬����ꍇ�͎��̂悤�ɂ��܂��B
+64ビット版のライブラリを作成する場合は次のようにします。
 
     rdmd build base swt -m64
 
-��́Admd2/windows/bin/sc.ini��M������DWT�̃C���|�[�g�t�H���_���
-���\�[�X�t�H���_����T���ɍs���悤�ɂ��Ă����܂��傤�B
+後は、dmd2/windows/bin/sc.iniを弄くってDWTのインポートフォルダやら
+リソースフォルダやらを探しに行くようにしておきましょう。
 
     [Environment]
 
@@ -48,109 +48,109 @@ pull�����Ă����܂��B
       :
     LIB=%LIB%;"%@P%\..\..\dwt\lib"
 
-�Ō�Ƀ��\�[�X�R���p�C���p��rcc����肵�܂�(32�r�b�g�ł̂�)�B
+最後にリソースコンパイル用のrccを入手します(32ビット版のみ)。
 
-Digital Mars�̃T�C�g����Basic Utilities����肵�āA�p�X��ʂ��܂��傤�B
+Digital MarsのサイトからBasic Utilitiesを入手して、パスを通しましょう。
 
 http://www.digitalmars.com//download/freecompiler.html
 
-����ł悤�₭���������ł��B
+これでようやく準備完了です。
 
-cwxeditor�{�̂̃r���h�̓r���h�X�N���v�gbuild.d�ōs���܂��B
+cwxeditor本体のビルドはビルドスクリプトbuild.dで行います。
 
-rdmd���Ŏ��s���Ă��������B
+rdmd等で実行してください。
 
     rdmd build
 
-�����[�X�r���h�Ȃ�:
+リリースビルドなら:
 
     rdmd build release
 
-�N���[������Ȃ�:
+クリーンするなら:
 
     rdmd build clean
 
-�f�o�O�r���h�ŃR���\�[�����o���Ȃ��Ȃ�:
+デバグビルドでコンソールを出さないなら:
 
     rdmd build gui
 
-64�r�b�g�łȂ�`-m64`�����܂�:
+64ビット版なら`-m64`をつけます:
 
     rdmd build -m64
 
-��͂ǂ���DWT�����ȂȂ����Ƃ����ƈꏏ�ɋF���Ă��������B
+後はどうかDWTが死なないことを私と一緒に祈ってください。
 
 
-linux�̏ꍇ
+linuxの場合
 -----------
 
-linux�ł̃r���h�͍ŐV�̃o�[�W�����ł͎�����Ă��Ȃ����������ł��B
+linuxでのビルドは最新のバージョンでは試されていない事が多いです。
 
-�܂��A�r���h�ł����Ƃ��Ă��S�̂�����ɓ��삷�鎖�͂قƂ�ǂ���܂�
-��(���ӏ��C������Γ����͂��ł͂���܂�)�B
+また、ビルドできたとしても全体が正常に動作する事はほとんどありませ
+ん(数箇所修正すれば動くはずではあります)。
 
-�菇��Windows���ƊT�˓����ł��B
+手順はWindows側と概ね同じです。
 
-### ���O�ɕK�v�ȃp�b�P�[�W
+### 事前に必要なパッケージ
 
-apt-get���Ŏ�ɓ���Ă����܂��傤�B
+apt-get等で手に入れておきましょう。
 
  * libgnomeui-dev
  * libxtst-dev
 
 
-### D���C�u������CWXEditor�̃r���h
+### DライブラリとCWXEditorのビルド
 
-DWT��GitHub�������Ă��܂��B
+DWTをGitHubから取ってきます。
 
-submodule������̂ŁAsubmodule init��update�����Ă����܂��傤�B
+submoduleがあるので、submodule initとupdateをしておきましょう。
 
-�esubmodule���ŐV��commit�ɂȂ��Ă��Ȃ��������\����̂ŁA�����I��
-pull�����Ă����܂��B
+各submoduleが最新のcommitになっていない事が結構あるので、強制的に
+pullもしておきます。
 
     git clone https://github.com/d-widget-toolkit/dwt.git
     cd dwt
     git submodule update --init
     git submodule foreach git pull origin master
 
-�������ł�����r���h���܂��B
+準備ができたらビルドします。
 
     rdmd build base swt
 
-�r���h����������ƁA�ȉ��̃��C�u�����t�@�C����lib�f�B���N�g���ɐ�������
-��͂��ł��B
+ビルドが完了すると、以下のライブラリファイルがlibディレクトリに生成され
+るはずです。
 
  * dwt-base.a
  * org.eclipse.swt.gtk.linux.x86.a
 
-dwt/lib�ɂ����Ԃł͉����ǂ����Ă������N�ł��Ȃ������̂ŁAcwxeditor_src/
-�ɕ��荞��ł��܂��Ă��������B
+dwt/libにある状態では何をどうしてもリンクできなかったので、cwxeditor_src/
+に放り込んでしまってください。
 
-���O��"lib"����n�܂��Ă��Ȃ��̂������̂ł����A���̂܂܃����N������@��
-�����ł��傤���B�����͊��������܂łɃ^�R�Ȃ̂ŁA�������Ă���l�͋�����
-��������Ə�����܂��B
+名前が"lib"から始まっていないのが悪いのですが、そのままリンクする方法が
+あるんでしょうか。自分は完膚無きまでにタコなので、分かっている人は教えて
+くださると助かります。
 
-���"/etc/dmd.conf"��DFLAGS��M������DWT�̃C���|�[�g�t�H���_��烊�\�[
-�X����T���ɍs���悤�ɂ��Ă����܂��傤�B
+後は"/etc/dmd.conf"のDFLAGSを弄くってDWTのインポートフォルダやらリソー
+スやらを探しに行くようにしておきましょう。
 
-����ł悤�₭���������ł��B
+これでようやく準備完了です。
 
-cwxeditor�{�̂̃r���h�̓r���h�X�N���v�gbuild.d�ōs���܂��B
+cwxeditor本体のビルドはビルドスクリプトbuild.dで行います。
 
-rdmd���Ŏ��s���Ă��������B
+rdmd等で実行してください。
 
     rdmd build
 
-�����[�X�r���h�Ȃ�:
+リリースビルドなら:
 
     rdmd build release
 
-�N���[������Ȃ�:
+クリーンするなら:
 
     rdmd build clean
 
-�f�o�O�r���h�ŃR���\�[�����o���Ȃ��Ȃ�:
+デバグビルドでコンソールを出さないなら:
 
     rdmd build gui
 
-�@��͂ǂ���DWT�����ȂȂ����Ƃ����ƈꏏ�ɋF���Ă��������B
+　後はどうかDWTが死なないことを私と一緒に祈ってください。
