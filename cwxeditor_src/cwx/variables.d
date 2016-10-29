@@ -13,8 +13,6 @@ class FlexEtcProps : Properties {
 	auto languageFile = Prop!(string)("languageFile", "");
 	auto useSystemLanguage = Prop!(bool)("useSystemLanguage", true);
 
-	auto pipeAppMax = Prop!(int)("pipeAppMax", 256);
-
 	auto targetVersion = Prop!(string)("targetVersion", "1.50");
 	auto imeMode = Prop!(int)("imeMode", 0);
 	auto imageScale = Prop!(uint)("imageScale", 1, 2016091800);

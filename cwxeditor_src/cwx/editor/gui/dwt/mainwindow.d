@@ -78,6 +78,7 @@ import java.lang.all;
 version (Windows) {
 	import core.sys.windows.windows;
 	private extern (Windows) {
+		import core.stdc.wchar_;
 		HANDLE CreateNamedPipeW(LPCWSTR, DWORD, DWORD,
 			DWORD, DWORD, DWORD, DWORD, LPSECURITY_ATTRIBUTES);
 		BOOL ConnectNamedPipe(HANDLE, OVERLAPPED*);
@@ -2111,7 +2112,6 @@ private:
 		}
 	}
 	void pipeThr() { mixin(S_TRACE);
-		if (0 >= _prop.var.etc.pipeAppMax) return;
 		try { mixin(S_TRACE);
 			version (Console) {
 				debug std.stdio.writeln("Start Pipe Thread");
@@ -2225,7 +2225,7 @@ private:
 	/// このプロセスが待ち受けする際のパイプ名を生成。
 	string createPipeName() { mixin(S_TRACE);
 		version (Windows) {
-			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) { mixin(S_TRACE);
+			for (size_t i = 0; ; i++) { mixin(S_TRACE);
 				string pipeName = r"\\.\pipe\cwxeditor_" ~ to!(string)(i);
 				auto p = CreateFileW(toUTFz!(wchar*)(pipeName),
 					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
@@ -2235,8 +2235,8 @@ private:
 				CloseHandle(p);
 			}
 		} else { mixin(S_TRACE);
-			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) { mixin(S_TRACE);
-				string pipeName = r"/etc/cwxeditor_" ~ to!(string)(i);
+			for (size_t i = 0; ; i++) { mixin(S_TRACE);
+				string pipeName = r"/etc/cwxeditor_pipe_" ~ to!(string)(i);
 				auto p = socket(AF_UNIX, SOCK_STREAM, 0);
 				if (-1 == p) continue;
 				scope (exit) {
@@ -2255,11 +2255,15 @@ private:
 	/// CWXEditorのプロセスに対してパイプを通じてメッセージを送る。
 	void sendToPipe(string delegate(string) sendRecv, bool delegate() next) { mixin(S_TRACE);
 		version (Windows) {
+			WIN32_FIND_DATA fd;
 			char[MAX_PATH] buf;
 			DWORD len;
-			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) { mixin(S_TRACE);
+			auto handle = FindFirstFileW(r"\\.\pipe\cwxeditor_*".toUTFz!(wchar*), &fd);
+			if (handle == INVALID_HANDLE_VALUE) return;
+			scope (exit) FindClose(handle);
+			do {
 				if (!next()) break;
-				string pipeName = r"\\.\pipe\cwxeditor_" ~ to!(string)(i);
+				auto pipeName = r"\\.\pipe".buildPath(fd.cFileName[0 .. core.stdc.wchar_.wcslen(fd.cFileName.ptr)].to!string);
 				if (_pipeName == pipeName) continue;
 				auto p = CreateFileW(toUTFz!(wchar*)(pipeName),
 					GENERIC_READ | GENERIC_WRITE, 0, null, OPEN_EXISTING, 0, null);
@@ -2275,12 +2279,12 @@ private:
 					if (!ReadFile(p, buf.ptr, buf.length, &len, null)) break;
 					recv = buf[0 .. len].idup;
 				}
-			}
+			} while (FindNextFileW(handle, &fd));
 		} else { mixin(S_TRACE);
 			char[4096] buf;
-			for (size_t i = 0; i < _prop.var.etc.pipeAppMax; i++) { mixin(S_TRACE);
+			foreach (entry; .dirEntries("/etc", SpanMode.shallow).filter(a => a.baseName.fnstartsWith("cwxeditor_pipe_"))) {
+				auto pipeName = entry.name;
 				if (!next()) break;
-				string pipeName = r"/etc/cwxeditor_" ~ to!(string)(i);
 				if (_pipeName == pipeName) continue;
 				auto p = socket(AF_UNIX, SOCK_STREAM, 0);
 				if (-1 == p) continue;
@@ -2288,7 +2292,7 @@ private:
 				sockaddr_un raddr;
 				raddr.sun_family = AF_INET;
 				strcpy(raddr.sun_path.ptr, pipeName.ptr);
-				if (-1 == connect(p, cast(sockaddr*) &raddr, raddr.sizeof)) { mixin(S_TRACE);
+				if (-1 == connect(p, cast(sockaddr*)&raddr, raddr.sizeof)) { mixin(S_TRACE);
 					continue;
 				}
 				string recv = null;
